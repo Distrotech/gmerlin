@@ -283,7 +283,7 @@ void bgav_codecs_init()
   if(!win_path_needs_delete || !win32_def_path)
     {
     win32_def_path = bgav_strndup(getenv(env_name_win32), NULL);
-    fprintf(stderr, "Init codecs: %s\n", win32_def_path);
+    //    fprintf(stderr, "Init codecs: %s\n", win32_def_path);
     }
 
   if(!win32_def_path)
