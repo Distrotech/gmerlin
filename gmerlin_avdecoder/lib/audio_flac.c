@@ -255,7 +255,7 @@ static int init_flac(bgav_stream_t * s)
   frame_format.samples_per_frame = MAX_FRAME_SAMPLES;
   priv->frame = gavl_audio_frame_create(&frame_format);
 
-  s->description = bgav_sprintf("FLAC");
+  s->description = bgav_sprintf("FLAC (%d bits per sample)", s->data.audio.bits_per_sample);
   
   return 1;
   }

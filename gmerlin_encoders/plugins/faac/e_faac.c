@@ -437,10 +437,10 @@ bg_encoder_plugin_t the_plugin =
       name:            "e_faac",       /* Unique short name */
       long_name:       "Faac encoder",
       mimetypes:       NULL,
-      extensions:      "ogg",
+      extensions:      "aac",
       type:            BG_PLUGIN_ENCODER_AUDIO,
       flags:           BG_PLUGIN_FILE,
-      
+      priority:        5,
       create:            create_faac,
       destroy:           destroy_faac,
       get_error:         get_error_faac,
@@ -465,3 +465,7 @@ bg_encoder_plugin_t the_plugin =
     write_audio_frame:   write_audio_frame_faac,
     close:               close_faac
   };
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;

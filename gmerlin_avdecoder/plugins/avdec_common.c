@@ -152,6 +152,9 @@ static int get_stream_action(bg_stream_action_t action)
     case BG_STREAM_ACTION_STANDBY:
       return BGAV_STREAM_SYNC;
       break;
+    case BG_STREAM_ACTION_BYPASS:
+      return -1;
+      break;
     }
   return -1;
   }

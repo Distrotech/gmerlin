@@ -184,3 +184,7 @@ bg_redirector_plugin_t the_plugin =
     get_stream_url:    get_stream_url_ram,
     get_stream_plugin: get_stream_plugin_ram
   };
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;

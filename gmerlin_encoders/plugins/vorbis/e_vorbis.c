@@ -464,7 +464,7 @@ bg_encoder_plugin_t the_plugin =
       extensions:      "ogg",
       type:            BG_PLUGIN_ENCODER_AUDIO,
       flags:           BG_PLUGIN_FILE,
-      
+      priority:        5,
       create:            create_vorbis,
       destroy:           destroy_vorbis,
       get_error:         get_error_vorbis,
@@ -491,3 +491,7 @@ bg_encoder_plugin_t the_plugin =
     write_audio_frame:   write_audio_frame_vorbis,
     close:               close_vorbis
   };
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;

@@ -63,6 +63,7 @@ bg_input_plugin_t the_plugin =
       long_name:     "VCD Player",
       type:          BG_PLUGIN_INPUT,
       flags:         BG_PLUGIN_REMOVABLE,
+      priority:      BG_PLUGIN_PRIORITY_MAX,
       create:        bg_avdec_create,
       destroy:       bg_avdec_destroy,
       //      get_parameters: get_parameters_vcd,
@@ -108,3 +109,7 @@ bg_input_plugin_t the_plugin =
     stop:         NULL,
     close:        bg_avdec_close,
   };
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;

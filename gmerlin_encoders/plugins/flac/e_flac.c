@@ -326,7 +326,6 @@ clevels[] =
 static void set_audio_parameter_flac(void * data, int stream, char * name,
                                        bg_parameter_value_t * v)
   {
-  int i;
   flac_t * flac;
   flac = (flac_t*)data;
   
@@ -800,9 +799,10 @@ bg_encoder_plugin_t the_plugin =
       name:            "e_flac",       /* Unique short name */
       long_name:       "Flac encoder",
       mimetypes:       NULL,
-      extensions:      "ogg",
+      extensions:      "flac",
       type:            BG_PLUGIN_ENCODER_AUDIO,
       flags:           BG_PLUGIN_FILE,
+      priority:        5,
       
       create:            create_flac,
       destroy:           destroy_flac,
@@ -828,3 +828,7 @@ bg_encoder_plugin_t the_plugin =
     write_audio_frame:   write_audio_frame_flac,
     close:               close_flac
   };
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;

@@ -183,12 +183,13 @@ bg_input_plugin_t the_plugin =
   {
     common:
     {
-      name:          "i_avdec",
-      long_name:     "AVDecoder plugin",
-      mimetypes:     "video/x-ms-asf audio/x-pn-realaudio-plugin video/x-pn-realvideo-plugin audio/x-pn-realaudio video/x-pn-realvideo audio/x-mpegurl audio/mpegurl audio/x-scpls audio/scpls audio/m3u",
-      extensions:    "avi asf asx wmv rm ra ram mov wav mp4 m4a 3gp qt au aiff aif mp3 mpg mpeg vob m3u pls ogg flac aac",
-      type:          BG_PLUGIN_INPUT,
-      flags:         BG_PLUGIN_FILE|BG_PLUGIN_URL,
+      name:           "i_avdec",
+      long_name:      "AVDecoder plugin",
+      mimetypes:      "video/x-ms-asf audio/x-pn-realaudio-plugin video/x-pn-realvideo-plugin audio/x-pn-realaudio video/x-pn-realvideo audio/x-mpegurl audio/mpegurl audio/x-scpls audio/scpls audio/m3u",
+      extensions:     "avi asf asx wmv rm ra ram mov wav mp4 m4a 3gp qt au aiff aif mp3 mpg mpeg vob m3u pls ogg flac aac",
+      type:           BG_PLUGIN_INPUT,
+      flags:          BG_PLUGIN_FILE|BG_PLUGIN_URL,
+      priority:       BG_PLUGIN_PRIORITY_MAX,
       create:         bg_avdec_create,
       destroy:        bg_avdec_destroy,
       get_parameters: get_parameters_avdec,
@@ -232,3 +233,7 @@ bg_input_plugin_t the_plugin =
     stop: NULL,
     close: bg_avdec_close,
   };
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;
