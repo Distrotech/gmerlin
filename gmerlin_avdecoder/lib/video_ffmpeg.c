@@ -258,6 +258,15 @@ static codec_info_t codec_infos[] =
     { "FFmpeg VCR1 decoder", "ATI VCR1", CODEC_ID_VCR1,
       (int[]){ BGAV_MK_FOURCC('V', 'C', 'R', '1'),
                0x00 } },
+
+    { "FFmpeg CLJR decoder", "Cirrus Logic AccuPak", CODEC_ID_CLJR,
+      (int[]){ BGAV_MK_FOURCC('C', 'L', 'J', 'R'),
+               0x00 } },
+
+    { "FFmpeg TSCC decoder", "TechSmith Camtasia", CODEC_ID_TSCC,
+      (int[]){ BGAV_MK_FOURCC('T', 'S', 'C', 'C'),
+               BGAV_MK_FOURCC('t', 's', 'c', 'c'),
+               0x00 } },
     
     { "FFmpeg FFV1 decoder", "FFmpeg Video 1", CODEC_ID_FFV1,
       (int[]){ BGAV_MK_FOURCC('F', 'F', 'V', '1'),
@@ -267,6 +276,13 @@ static codec_info_t codec_infos[] =
       (int[]){ BGAV_MK_FOURCC('X', 'x', 'a', 'n'),
                0x00 } },
 
+    { "FFmpeg QDraw decoder", "Apple QuickDraw", CODEC_ID_QDRAW,
+      (int[]){ BGAV_MK_FOURCC('q', 'd', 'r', 'w'),
+               0x00 } },
+
+    { "FFmpeg ULTI decoder", "IBM Ultimotion", CODEC_ID_ULTI,
+      (int[]){ BGAV_MK_FOURCC('U', 'L', 'T', 'I'),
+               0x00 } },
   };
 
 /* Pixel formats */

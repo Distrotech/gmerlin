@@ -393,8 +393,8 @@ static int init_pcm(bgav_stream_t * s)
   }
 
 static int decode_pcm(bgav_stream_t * s,
-                       gavl_audio_frame_t * frame,
-                       int num_samples)
+                      gavl_audio_frame_t * frame,
+                      int num_samples)
   {
   pcm_t * priv;
   int samples_decoded;
@@ -448,9 +448,7 @@ static int decode_pcm(bgav_stream_t * s,
     }
   if(frame)
     frame->valid_samples = samples_decoded;
-  if(!samples_decoded)
-    return 0;
-  return 1;
+  return samples_decoded;
   }
 
 static void close_pcm(bgav_stream_t * s)

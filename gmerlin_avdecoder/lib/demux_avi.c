@@ -31,7 +31,7 @@
 
 // #define DUMP_INDICES
 
-#define DUMP_AUDIO_TYPE
+// #define DUMP_AUDIO_TYPE
 
 /* AVI Flags */
 
@@ -1583,18 +1583,35 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
   priv = (avi_priv*)(ctx->priv);
   
   if(ctx->input->position + 8 >= priv->movi_start + priv->movi_size)
+    {
+    fprintf(stderr, "next_packet_avi: EOF 1\n");
     return 0;
-  
+    }
   while(!s)
     {
     if(!read_chunk_header(ctx->input, &ch))
+      {
+      //  fprintf(stderr, "next_packet_avi: EOF 2 (%lld, %lld)\n",
+      //          ctx->input->position, ctx->input->total_bytes);
       return 0;
+      }
+
+#ifdef DUMP_HEADERS
+    dump_chunk_header(&ch);
+    //  fprintf(stderr, "File position: %lld\n", ctx->input->position);
+#endif
+
     if(ch.ckID == BGAV_MK_FOURCC('L','I','S','T'))
       {
       fprintf(stderr, "Got list chunk\n");
       bgav_input_read_fourcc(ctx->input, &fourcc);
       bgav_dump_fourcc(fourcc);
       fprintf(stderr, "\n");
+      }
+    else if(ch.ckID == BGAV_MK_FOURCC('J','U','N','K'))
+      {
+      /* It's true, JUNK can appear EVERYWHERE!!! */
+      bgav_input_skip(ctx->input, PADD(ch.ckSize));
       }
     else
       {
@@ -1612,10 +1629,6 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
     priv->idx1.entries[priv->index_position].dwChunkLength);
   */
 
-#ifdef DUMP_HEADERS
-  dump_chunk_header(&ch);
-#endif
-
   if(ch.ckSize)
     {
     p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
@@ -1623,7 +1636,10 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
     bgav_packet_alloc(p, PADD(ch.ckSize));
     
     if(bgav_input_read_data(ctx->input, p->data, ch.ckSize) < ch.ckSize)
+      {
+      fprintf(stderr, "next_packet_avi: EOF 3\n");
       return 0;
+      }
     p->data_size = ch.ckSize;
     
     if(s->type == BGAV_STREAM_VIDEO)
@@ -1639,8 +1655,6 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
     avi_vs = (video_priv_t*)s->priv;
     avi_vs->total_frames++;
     }
-  
-
   //  fprintf(stderr, " Stream ID %d\n", stream_id);
   if(ch.ckSize & 1)
     bgav_input_skip(ctx->input, 1);
