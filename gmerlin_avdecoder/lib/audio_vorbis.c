@@ -210,16 +210,16 @@ static int init_vorbis(bgav_stream_t * s)
    * 3 uint32_ts for the packet sizes, followed by the raw
    * packets
    */
-  else if(s->fourcc == BGAV_WAVID_2_FOURCC(0xfffe))
+  else if(s->fourcc == BGAV_MK_FOURCC('V', 'O', 'R', 'B'))
     {
-    if(s->ext_size < 22 + 3 * sizeof(uint32_t))
+    if(s->ext_size < 3 * sizeof(uint32_t))
       {
-      fprintf(stderr, "Vorbis decoder: Init data too small\n");
+      fprintf(stderr, "Vorbis decoder: Init data too small (%d bytes)\n", s->ext_size);
       return 0;
       }
-    bgav_hexdump(s->ext_data, s->ext_size, 16);
+    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
 
-    ptr = s->ext_data + 22;
+    ptr = s->ext_data;
     header_sizes[0] = BGAV_PTR_2_32LE(ptr);ptr+=4;
     header_sizes[1] = BGAV_PTR_2_32LE(ptr);ptr+=4;
     header_sizes[2] = BGAV_PTR_2_32LE(ptr);ptr+=4;
@@ -535,7 +535,7 @@ static bgav_audio_decoder_t decoder =
     fourccs: (uint32_t[]){ BGAV_MK_FOURCC('O','g', 'g', 'S'),
                            BGAV_MK_FOURCC('O','g', 'g', 'V'),
                            BGAV_VORBIS,
-                           BGAV_WAVID_2_FOURCC(0xfffe),
+                           BGAV_MK_FOURCC('V', 'O', 'R', 'B'),
                            BGAV_WAVID_2_FOURCC(0x674f), // Mode 1  (header in first packet)
                            BGAV_WAVID_2_FOURCC(0x676f), // Mode 1+
                            BGAV_WAVID_2_FOURCC(0x6750), // Mode 2  (header in extradata)

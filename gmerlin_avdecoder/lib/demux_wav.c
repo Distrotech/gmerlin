@@ -22,26 +22,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-/* Speaker copnfigurations */
-
-#define SPEAKER_FRONT_LEFT 	        0x1
-#define SPEAKER_FRONT_RIGHT 	        0x2
-#define SPEAKER_FRONT_CENTER 	        0x4
-#define SPEAKER_LOW_FREQUENCY 	        0x8
-#define SPEAKER_BACK_LEFT 	        0x10
-#define SPEAKER_BACK_RIGHT 	        0x20
-#define SPEAKER_FRONT_LEFT_OF_CENTER 	0x40
-#define SPEAKER_FRONT_RIGHT_OF_CENTER 	0x80
-#define SPEAKER_BACK_CENTER 	        0x100
-#define SPEAKER_SIDE_LEFT 	        0x200
-#define SPEAKER_SIDE_RIGHT 	        0x400
-#define SPEAKER_TOP_CENTER 	        0x800
-#define SPEAKER_TOP_FRONT_LEFT 	        0x1000
-#define SPEAKER_TOP_FRONT_CENTER 	0x2000
-#define SPEAKER_TOP_FRONT_RIGHT 	0x4000
-#define SPEAKER_TOP_BACK_LEFT 	        0x8000
-#define SPEAKER_TOP_BACK_CENTER 	0x10000
-#define SPEAKER_TOP_BACK_RIGHT 	        0x20000
 
 /* WAV demuxer */
 
@@ -102,15 +82,15 @@ static int find_tag(bgav_demuxer_context_t * ctx, uint32_t tag)
 static int open_wav(bgav_demuxer_context_t * ctx,
                     bgav_redirector_context_t ** redir)
   {
+  uint8_t * buf;
+  
   uint32_t fourcc;
   //  int size;
   uint32_t file_size;
   int format_size;
   bgav_stream_t * s;
 
-  uint16_t tmp_16;
-  uint32_t tmp_32;
-  
+  bgav_WAVEFORMAT_t wf;
   wav_priv_t * priv;
   
   priv = calloc(1, sizeof(*priv));
@@ -137,84 +117,19 @@ static int open_wav(bgav_demuxer_context_t * ctx,
 
   format_size = find_tag(ctx, BGAV_MK_FOURCC('f', 'm', 't', ' '));
 
-  if(format_size < 0)
+  if(format_size <= 0)
     goto fail;
-
+  
   s = bgav_track_add_audio_stream(ctx->tt->current_track);
 
-  if(!bgav_input_read_16_le(ctx->input, &tmp_16))
+  buf = malloc(format_size);
+  if(bgav_input_read_data(ctx->input, buf, format_size) < format_size)
     goto fail;
-
-  s->fourcc = BGAV_WAVID_2_FOURCC(tmp_16);
-
-  if(!bgav_input_read_16_le(ctx->input, &tmp_16))
-    goto fail;
-
-  s->data.audio.format.num_channels = tmp_16;
-
-  if(!bgav_input_read_32_le(ctx->input, &tmp_32))
-    goto fail;
-  s->data.audio.format.samplerate = tmp_32;
-
-  if(!bgav_input_read_32_le(ctx->input, &tmp_32))
-    goto fail;
-  s->codec_bitrate = tmp_32 * 8;
-
-  if(!bgav_input_read_16_le(ctx->input, &tmp_16))
-    goto fail;
-  s->data.audio.block_align = tmp_16;
-
-  if(format_size == 14)
-    {
-    s->data.audio.bits_per_sample = 8;
-    }
-  else
-    {
-    if(!bgav_input_read_16_le(ctx->input, &tmp_16))
-      goto fail;
-    s->data.audio.bits_per_sample = tmp_16;
-
-    if(format_size > 16)
-      {
-      if(!bgav_input_read_16_le(ctx->input, &tmp_16))
-        goto fail;
-      if(tmp_16)
-        {
-        if((s->fourcc == BGAV_WAVID_2_FOURCC(0xfffe)) && (tmp_16 == 22))
-          {
-          /* WAVEFORMATEXTENSIBLE */
-          //          fprintf(stderr, "Detected WAVEFORMATEXTENSIBLE\n");
-          if(!bgav_input_read_16_le(ctx->input, &tmp_16))
-            goto fail;
-          s->data.audio.bits_per_sample = tmp_16; /* Valid bits / sample */
-          if(!bgav_input_read_32_le(ctx->input, &tmp_32))
-            goto fail;
-          //          fprintf(stderr, "Channel mask: %08x\n", tmp_32);
-          if(!bgav_input_read_16_le(ctx->input, &tmp_16))
-            goto fail;
-          s->fourcc = BGAV_WAVID_2_FOURCC(tmp_16);
-          
-          bgav_input_skip(ctx->input, 14); /* Skip rest of GUID */ 
-          }
-        else
-          {
-          fprintf(stderr, "Reading extradata %d bytes\n", tmp_16);
-          s->ext_size = tmp_16;
-          s->ext_data = malloc(s->ext_size);
-          if(bgav_input_read_data(ctx->input, s->ext_data, s->ext_size) <
-             s->ext_size)
-            goto fail;
-
-          /* It is possible for the chunk to contain garbage at the end */
-          if(format_size - s->ext_size - 18 > 0)
-            bgav_input_skip(ctx->input, format_size - s->ext_size - 18);
-          
-          }
-        }
-      
-      }
-    }
-
+  
+  bgav_WAVEFORMAT_read(&wf, buf, format_size);
+  bgav_WAVEFORMAT_get_format(&wf, s);
+  bgav_WAVEFORMAT_free(&wf);
+  free(buf);
   //  bgav_stream_dump(s);
   
   priv->data_size = find_tag(ctx, BGAV_MK_FOURCC('d', 'a', 't', 'a'));
@@ -231,7 +146,10 @@ static int open_wav(bgav_demuxer_context_t * ctx,
     {
     bgav_input_seek(ctx->input, priv->data_start + priv->data_size, SEEK_SET);
     if(bgav_RIFFINFO_probe(ctx->input))
+      {
+      //      fprintf(stderr, "Found INFO chunk");
       priv->info = bgav_RIFFINFO_read(ctx->input);
+      }
     bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
     }
 

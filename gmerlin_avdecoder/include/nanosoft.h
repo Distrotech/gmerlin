@@ -17,6 +17,22 @@
  
 *****************************************************************/
 
+/* GUID: For codec identification and asf files */
+
+typedef struct
+  {
+  uint32_t v1;
+  uint16_t v2;
+  uint16_t v3;
+  uint8_t  v4[8];
+  } bgav_GUID_t;
+
+void bgav_GUID_dump(bgav_GUID_t * g);
+int bgav_GUID_equal(const bgav_GUID_t * g1, const bgav_GUID_t * g2);
+int bgav_GUID_read(bgav_GUID_t * ret, bgav_input_context_t * input);
+int bgav_GUID_get(bgav_GUID_t * ret, bgav_input_context_t * input);
+void bgav_GUID_from_ptr(bgav_GUID_t * ret, uint8_t * ptr);
+
 /* Stuff from redmont */
 
 typedef struct
@@ -35,33 +51,69 @@ typedef struct
   uint32_t  biClrUsed;       /* valid only for palettized images. */
   /* Number of colors in palette. */
   uint32_t  biClrImportant;
-  } bgav_BITMAPINFOHEADER;
+  } bgav_BITMAPINFOHEADER_t;
 
-void bgav_BITMAPINFOHEADER_read(bgav_BITMAPINFOHEADER * ret, uint8_t ** data);
-void bgav_BITMAPINFOHEADER_dump(bgav_BITMAPINFOHEADER * ret);
-void bgav_BITMAPINFOHEADER_get_format(bgav_BITMAPINFOHEADER * bh,
+void bgav_BITMAPINFOHEADER_read(bgav_BITMAPINFOHEADER_t * ret, uint8_t ** data);
+void bgav_BITMAPINFOHEADER_dump(bgav_BITMAPINFOHEADER_t * ret);
+void bgav_BITMAPINFOHEADER_get_format(bgav_BITMAPINFOHEADER_t * bh,
                                       bgav_stream_t * f);
-void bgav_BITMAPINFOHEADER_set_format(bgav_BITMAPINFOHEADER * bh,
+void bgav_BITMAPINFOHEADER_set_format(bgav_BITMAPINFOHEADER_t * bh,
                                       bgav_stream_t * f);
 
+/* Waveformat (resembles the evolution of nanosoft speficifications) */
+
+typedef enum
+  {
+    BGAV_WAVEFORMAT_WAVEFORMAT,
+    BGAV_WAVEFORMAT_PCMWAVEFORMAT,
+    BGAV_WAVEFORMAT_WAVEFORMATEX,
+    BGAV_WAVEFORMAT_WAVEFORMATEXTENSIBLE,
+  } bgav_WAVEFORMAT_type_t;
 
 typedef struct
   {
-  uint16_t  wFormatTag;     /* value that identifies compression format */
-  uint16_t  nChannels;
-  uint32_t  nSamplesPerSec;
-  uint32_t  nAvgBytesPerSec;
-  uint16_t  nBlockAlign;    /* size of a data sample */
-  uint16_t  wBitsPerSample;
-  uint16_t  cbSize;         /* size of format-specific data */
-  } bgav_WAVEFORMATEX;
+  bgav_WAVEFORMAT_type_t type;
 
-void bgav_WAVEFORMATEX_read(bgav_WAVEFORMATEX * ret, uint8_t ** data);
-void bgav_WAVEFORMATEX_dump(bgav_WAVEFORMATEX * ret);
-void bgav_WAVEFORMATEX_get_format(bgav_WAVEFORMATEX * wf,
-                                  bgav_stream_t * f);
-void bgav_WAVEFORMATEX_set_format(bgav_WAVEFORMATEX * wf,
-                                  bgav_stream_t * f);
+  struct
+    {
+    struct
+      {
+      uint16_t  wFormatTag;     /* value that identifies compression format */
+      uint16_t  nChannels;
+      uint32_t  nSamplesPerSec;
+      uint32_t  nAvgBytesPerSec;
+      uint16_t  nBlockAlign;    /* size of a data sample */
+      } WAVEFORMAT;
+    struct
+      {
+      uint16_t  wBitsPerSample;
+      } PCMWAVEFORMAT;
+    struct
+      {
+      uint16_t  cbSize;         /* size of format-specific data */
+      uint8_t * ext_data;
+      int       ext_size; /* Can be different from cbSize for WAVEFORMATEXTENSIBLE */
+      } WAVEFORMATEX;
+    struct
+      {
+      union
+        {
+        uint16_t wValidBitsPerSample;
+        uint16_t wSamplesPerBlock;
+        uint16_t wReserved;
+        } Samples;
+      uint32_t    dwChannelMask; 
+      bgav_GUID_t SubFormat;
+      } WAVEFORMATEXTENSIBLE;
+    } f;
+  } bgav_WAVEFORMAT_t;
+
+void bgav_WAVEFORMAT_read(bgav_WAVEFORMAT_t * ret, uint8_t * data, int size);
+void bgav_WAVEFORMAT_dump(bgav_WAVEFORMAT_t * ret);
+void bgav_WAVEFORMAT_get_format(bgav_WAVEFORMAT_t * wf, bgav_stream_t * f);
+void bgav_WAVEFORMAT_set_format(bgav_WAVEFORMAT_t * wf, bgav_stream_t * f);
+void bgav_WAVEFORMAT_free(bgav_WAVEFORMAT_t * wf);
+
 
 /* RIFF Info (used in AVI and WAV) */
 

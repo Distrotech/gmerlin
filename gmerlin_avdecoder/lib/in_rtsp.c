@@ -174,7 +174,7 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
           {
           fprintf(stderr, "in_rtsp.c: Detected end of stream in RDT header\n");
           priv->eof = 1;
-          //          return 0; /* End of stream */
+          return 0; /* End of stream */
           }
         header[0]=header[5];
         header[1]=header[6];
@@ -232,7 +232,7 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
         // fprintf(stderr, "Got rdt chunk %d bytes\n", size);
         //        bgav_hexdump(priv->packet, priv->packet_len, 16);
         }
-#if 0
+#if 1
       else
         {
         fprintf(stderr, "Got rdt chunk %d bytes\n", size);

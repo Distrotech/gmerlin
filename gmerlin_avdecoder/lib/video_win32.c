@@ -168,7 +168,7 @@ typedef struct
 
   } win32_priv_t;
 
-static void pack_bih(BITMAPINFOHEADER * dst, bgav_BITMAPINFOHEADER * src)
+static void pack_bih(BITMAPINFOHEADER * dst, bgav_BITMAPINFOHEADER_t * src)
   {
   dst->biSize          = src->biSize;  /* sizeof(BITMAPINFOHEADER) */
   dst->biWidth         = src->biWidth;
@@ -185,7 +185,7 @@ static void pack_bih(BITMAPINFOHEADER * dst, bgav_BITMAPINFOHEADER * src)
   dst->biClrImportant  = src->biClrImportant;
   }
 
-static void unpack_bih(bgav_BITMAPINFOHEADER * dst, BITMAPINFOHEADER * src)
+static void unpack_bih(bgav_BITMAPINFOHEADER_t * dst, BITMAPINFOHEADER * src)
   {
   dst->biSize          = src->biSize;  /* sizeof(BITMAPINFOHEADER) */
   dst->biWidth         = src->biWidth;
@@ -207,8 +207,8 @@ static int init_std(bgav_stream_t * s)
   HRESULT result;
   codec_info_t * info;
   win32_priv_t * priv;
-  bgav_BITMAPINFOHEADER bih_in;
-  bgav_BITMAPINFOHEADER bih_out;
+  bgav_BITMAPINFOHEADER_t bih_in;
+  bgav_BITMAPINFOHEADER_t bih_out;
     
   priv = calloc(1, sizeof(*priv));
   priv->ldt_fs = Setup_LDT_Keeper();
@@ -387,8 +387,8 @@ static int init_ds(bgav_stream_t * s)
   uint8_t * init_data;
   codec_info_t * info;
   win32_priv_t * priv;
-  bgav_BITMAPINFOHEADER bih_in;
-  //  bgav_BITMAPINFOHEADER bih_out;
+  bgav_BITMAPINFOHEADER_t bih_in;
+  //  bgav_BITMAPINFOHEADER_t bih_out;
 
   priv = calloc(1, sizeof(*priv));
   priv->ldt_fs = Setup_LDT_Keeper();
@@ -504,8 +504,8 @@ static int init_dmo(bgav_stream_t * s)
   uint8_t * init_data;
   codec_info_t * info;
   win32_priv_t * priv;
-  bgav_BITMAPINFOHEADER bih_in;
-  //  bgav_BITMAPINFOHEADER bih_out;
+  bgav_BITMAPINFOHEADER_t bih_in;
+  //  bgav_BITMAPINFOHEADER_t bih_out;
 
   priv = calloc(1, sizeof(*priv));
   priv->ldt_fs = Setup_LDT_Keeper();

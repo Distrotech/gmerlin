@@ -40,17 +40,19 @@ static void add_char(char ** buffer, int * buffer_alloc,
   }
 
 int bgav_input_read_line(bgav_input_context_t* input,
-                         char ** buffer, int * buffer_alloc)
+                         char ** buffer, int * buffer_alloc, int buffer_offset) 
   {
   char c;
-  int pos = 0;
+  int pos = buffer_offset;
+  int64_t old_pos = input->position;
+  
   while(1)
     {
     if(!bgav_input_read_data(input, &c, 1))
       {
       //      return 0;
       add_char(buffer, buffer_alloc, pos, 0);
-      return !!pos;
+      return pos - buffer_offset;
       break;
       }
     else if(c == '\n')
@@ -64,7 +66,7 @@ int bgav_input_read_line(bgav_input_context_t* input,
     }
   add_char(buffer, buffer_alloc, pos, 0);
   //  fprintf(stderr, "Read line: %s\n", *buffer);
-  return 1;
+  return input->position - old_pos;
   }
 
 int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)

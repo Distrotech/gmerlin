@@ -1052,7 +1052,7 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
                              strh_t * strh, chunk_header_t * ch)
   {
   uint8_t * buf, * pos;
-  bgav_WAVEFORMATEX wf;
+  bgav_WAVEFORMAT_t wf;
   int keep_going;
   keep_going = 1;
   bgav_stream_t * bg_as;
@@ -1077,17 +1077,12 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
         if(bgav_input_read_data(ctx->input, buf, ch->ckSize) < ch->ckSize)
           return 0;
         pos = buf;
-        bgav_WAVEFORMATEX_read(&wf, &pos);
-        bgav_WAVEFORMATEX_get_format(&wf, bg_as);
+        bgav_WAVEFORMAT_read(&wf, buf, ch->ckSize);
+        bgav_WAVEFORMAT_get_format(&wf, bg_as);
 #ifdef DUMP_HEADERS
-        bgav_WAVEFORMATEX_dump(&wf);
+        bgav_WAVEFORMAT_dump(&wf);
 #endif
-        if(wf.cbSize)
-          {
-          bg_as->ext_size = wf.cbSize;
-          bg_as->ext_data = malloc(wf.cbSize);
-          memcpy(bg_as->ext_data, pos, wf.cbSize);
-          }
+        bgav_WAVEFORMAT_free(&wf);
         //        bg_as->fourcc = BGAV_WAVID_2_FOURCC(wf.wFormatTag);
         if(!bg_as->data.audio.bits_per_sample)
           bg_as->data.audio.bits_per_sample = strh->dwSampleSize * 8;          
@@ -1140,7 +1135,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
   {
   avih_t * avih;
   uint8_t * buf, * pos;
-  bgav_BITMAPINFOHEADER bh;
+  bgav_BITMAPINFOHEADER_t bh;
   int keep_going, i;
   keep_going = 1;
   

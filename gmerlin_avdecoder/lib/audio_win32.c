@@ -133,16 +133,16 @@ typedef struct
   
   } win32_priv_t;
 
-static void pack_wf(WAVEFORMATEX * dst, bgav_WAVEFORMATEX * src)
+static void pack_wf(WAVEFORMATEX * dst, bgav_WAVEFORMAT_t * src)
   {
   memset(dst, 0, sizeof(*dst));
-  dst->nChannels       = src->nChannels;
-  dst->nSamplesPerSec  = src->nSamplesPerSec;
-  dst->nAvgBytesPerSec = src->nAvgBytesPerSec;
-  dst->nBlockAlign     = src->nBlockAlign;
-  dst->wFormatTag      = src->wFormatTag;
-  dst->cbSize          = src->cbSize;
-  dst->wBitsPerSample  = src->wBitsPerSample;
+  dst->nChannels       = src->f.WAVEFORMAT.nChannels;
+  dst->nSamplesPerSec  = src->f.WAVEFORMAT.nSamplesPerSec;
+  dst->nAvgBytesPerSec = src->f.WAVEFORMAT.nAvgBytesPerSec;
+  dst->nBlockAlign     = src->f.WAVEFORMAT.nBlockAlign;
+  dst->wFormatTag      = src->f.WAVEFORMAT.wFormatTag;
+  dst->wBitsPerSample  = src->f.PCMWAVEFORMAT.wBitsPerSample;
+  dst->cbSize          = src->f.WAVEFORMATEX.cbSize;
   }
 #if 0
 static void dump_wf(WAVEFORMATEX * wf)
@@ -240,7 +240,7 @@ static int init_w32(bgav_stream_t * s)
   win32_priv_t * priv = NULL;
 
   WAVEFORMATEX * in_format;
-  bgav_WAVEFORMATEX _in_format;
+  bgav_WAVEFORMAT_t _in_format;
   uint8_t * in_fmt_buffer = (uint8_t*)0;
 
   WAVEFORMATEX out_format;
@@ -257,7 +257,7 @@ static int init_w32(bgav_stream_t * s)
 
   /* Create input- and output formats */
 
-  bgav_WAVEFORMATEX_set_format(&_in_format, s);
+  bgav_WAVEFORMAT_set_format(&_in_format, s);
 
   in_fmt_buffer = malloc(sizeof(*in_format) + s->ext_size);
 

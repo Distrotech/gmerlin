@@ -32,7 +32,7 @@ typedef struct
   char * buffer_ptr;
   int buffer_size;
   int buffer_alloc;
-  int eof;
+  //  int eof;
   } parser_t;
 
 static bgav_yml_node_t * parse_node(parser_t * p, int * is_comment);
@@ -42,31 +42,28 @@ static bgav_yml_node_t * parse_node(parser_t * p, int * is_comment);
 
 static int more_data(parser_t * p)
   {
-  int buffer_pos;
-  int bytes_read;
-  if(p->eof)
-    return 0;
-  
-  if(p->buffer_size + BYTES_TO_READ + 1 > p->buffer_alloc)
+  int bytes_read = 0;
+  //  fprintf(stderr, "more_data...");
+  while(1)
     {
-    p->buffer_alloc = p->buffer_size + BYTES_TO_READ + 1 + 128;
-    buffer_pos = (int)(p->buffer_ptr - p->buffer);
-    p->buffer = realloc(p->buffer, p->buffer_alloc);
-    p->buffer_ptr = p->buffer + buffer_pos;
+    if(!bgav_input_read_line(p->input, &(p->buffer), &(p->buffer_alloc), p->buffer_size))
+      {
+      //      fprintf(stderr, "more_data done\n");
+      return bytes_read;
+      }
+    bytes_read = strlen(p->buffer + p->buffer_size);
+    p->buffer_size += bytes_read;
+    if(bytes_read)
+      {
+      //      fprintf(stderr, "more_data done\n");
+      return bytes_read;
+      }
     }
-  bytes_read = bgav_input_read_data(p->input, p->buffer + p->buffer_size, BYTES_TO_READ);
 
-  if(bytes_read < BYTES_TO_READ)
-    p->eof = 1;
-  if(!bytes_read)
-    return 0;
-
-  p->buffer_size += bytes_read;
-
-  /* Zero terminate so we can use the string.h functions */
+  //  if(!bytes_read)
+  //    return 0;
   
-  p->buffer[p->buffer_size] = '\0';
-  
+
   return 1;
   }
 
@@ -119,7 +116,7 @@ static int skip_space(parser_t * p)
 static char * parse_tag_name(parser_t * p)
   {
   char * pos;
-  char * ret;
+  char  * ret;
   pos = find_chars(p, "> /");
   if(!pos)
     return (char*)0;
@@ -386,6 +383,9 @@ static int parse_tag_node(parser_t * p, bgav_yml_node_t * ret)
   if(strncasecmp(ret->name, p->buffer, (int)(pos - p->buffer)))
     return 0;
   advance(p, (int)(pos - p->buffer) + 1);
+
+  //  fprintf(stderr, "Parse tag node done: %s\n", ret->name);
+
   return 1;
   }
 
@@ -485,8 +485,6 @@ bgav_yml_node_t * bgav_yml_parse(bgav_input_context_t * input)
     else
       break;
     }
-  
-  
   while(is_comment)
     ret = parse_node(&parser, &is_comment);
   

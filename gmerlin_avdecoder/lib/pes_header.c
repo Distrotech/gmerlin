@@ -28,7 +28,7 @@
 int bgav_pes_header_read(bgav_input_context_t * input,
                          bgav_pes_header_t * ret)
   {
-  int i;
+  //  int i;
   uint8_t c;
   uint16_t len;
   int64_t pos;

@@ -29,195 +29,149 @@
 
 #define ASF_TIME_SCALE 1000
 
-typedef struct
-  {
-  uint32_t v1;
-  uint16_t v2;
-  uint16_t v3;
-  uint8_t  v4[8];
-  } guid_t;
-
 /* Copied from avifile CVS */
 
 /* base ASF objects */
-static const guid_t guid_header = 
+static const bgav_GUID_t guid_header = 
   { 0x75b22630, 0x668e, 0x11cf,
     { 0xa6, 0xd9, 0x00, 0xaa, 0x00, 0x62, 0xce, 0x6c } };
 
-static const guid_t guid_data = 
+static const bgav_GUID_t guid_data = 
   { 0x75b22636, 0x668e, 0x11cf,
     { 0xa6, 0xd9, 0x00, 0xaa, 0x00, 0x62, 0xce, 0x6c } };
 
-static const guid_t guid_simple_index = 
+static const bgav_GUID_t guid_simple_index = 
   { 0x33000890, 0xe5b1, 0x11cf,
     { 0x89, 0xf4, 0x00, 0xa0, 0xc9, 0x03, 0x49, 0xcb } };
 
 
 /* header ASF objects */
-static const guid_t guid_file_properties = 
+static const bgav_GUID_t guid_file_properties = 
   { 0x8cabdca1, 0xa947, 0x11cf,
     { 0x8e, 0xe4, 0x00, 0xc0, 0x0c, 0x20, 0x53, 0x65 } };
 
-static const guid_t guid_stream_header = 
+static const bgav_GUID_t guid_stream_header = 
   { 0xb7dc0791, 0xa9b7, 0x11cf,
     { 0x8e, 0xe6, 0x00, 0xc0, 0x0c, 0x20, 0x53, 0x65 } };
 
-static const guid_t guid_stream_bitrate_properties =  /* (http://get.to/sdp) */
+static const bgav_GUID_t guid_stream_bitrate_properties =  /* (http://get.to/sdp) */
   { 0x7bf875ce, 0x468d, 0x11d1,
       { 0x8d, 0x82, 0x00, 0x60, 0x97, 0xc9, 0xa2, 0xb2 } };
 
-static const guid_t guid_content_description = 
+static const bgav_GUID_t guid_content_description = 
   { 0x75b22633, 0x668e, 0x11cf,
     { 0xa6, 0xd9, 0x00, 0xaa, 0x00, 0x62, 0xce, 0x6c } };
 
-static const guid_t guid_extended_content_encryption = 
+static const bgav_GUID_t guid_extended_content_encryption = 
   { 0x298ae614, 0x2622, 0x4c17,
     { 0xb9, 0x35, 0xda, 0xe0, 0x7e, 0xe9, 0x28, 0x9c } };
 
-static const guid_t guid_script_command = 
+static const bgav_GUID_t guid_script_command = 
   { 0x1efb1a30, 0x0b62, 0x11d0,
     { 0xa3, 0x9b, 0x00, 0xa0, 0xc9, 0x03, 0x48, 0xf6 } };
 
-static const guid_t guid_marker = 
+static const bgav_GUID_t guid_marker = 
   { 0xf487cd01, 0xa951, 0x11cf,
     { 0x8e, 0xe6, 0x00, 0xc0, 0x0c, 0x20, 0x53, 0x65 } };
 
-static const guid_t guid_header_extension = 
+static const bgav_GUID_t guid_header_extension = 
   { 0x5fbf03b5, 0xa92e, 0x11cf,
     { 0x8e, 0xe3, 0x00, 0xc0, 0x0c, 0x20, 0x53, 0x65 } };
 
-static const guid_t guid_bitrate_mutual_exclusion = 
+static const bgav_GUID_t guid_bitrate_mutual_exclusion = 
   { 0xd6e229dc, 0x35da, 0x11d1,
     { 0x90, 0x34, 0x00, 0xa0, 0xc9, 0x03, 0x49, 0xbe } };
 
-static const guid_t guid_codec_list = 
+static const bgav_GUID_t guid_codec_list = 
   { 0x86d15240, 0x311d, 0x11d0,
     { 0xa3, 0xa4, 0x00, 0xa0, 0xc9, 0x03, 0x48, 0xf6 } };
 
-static const guid_t guid_extended_content_description = 
+static const bgav_GUID_t guid_extended_content_description = 
   { 0xd2d0a440, 0xe307, 0x11d2,
     { 0x97, 0xf0, 0x00, 0xa0, 0xc9, 0x5e, 0xa8, 0x50 } };
 
-static const guid_t guid_error_correction = 
+static const bgav_GUID_t guid_error_correction = 
   { 0x75b22635, 0x668e, 0x11cf,
     { 0xa6, 0xd9, 0x00, 0xaa, 0x00, 0x62, 0xce, 0x6c } };
 
-static const guid_t guid_padding = 
+static const bgav_GUID_t guid_padding = 
   { 0x1806d474, 0xcadf, 0x4509,
     { 0xa4, 0xba, 0x9a, 0xab, 0xcb, 0x96, 0xaa, 0xe8 } };
 
-static const guid_t guid_comment_header =
+static const bgav_GUID_t guid_comment_header =
   { 0x75b22633, 0x668e, 0x11cf,
     { 0xa6, 0xd9, 0x00, 0xaa, 0x00, 0x62, 0xce, 0x6c } };
 
 /* stream properties object stream type */
-static const guid_t guid_audio_media = 
+static const bgav_GUID_t guid_audio_media = 
   { 0xf8699e40, 0x5b4d, 0x11cf,
     { 0xa8, 0xfd, 0x00, 0x80, 0x5f, 0x5c, 0x44, 0x2b } };
 
-static const guid_t guid_video_media = 
+static const bgav_GUID_t guid_video_media = 
   { 0xbc19efc0, 0x5b4d, 0x11cf,
     { 0xa8, 0xfd, 0x00, 0x80, 0x5f, 0x5c, 0x44, 0x2b } };
 
-static const guid_t guid_command_media = 
+static const bgav_GUID_t guid_command_media = 
   { 0x59dacfc0, 0x59e6, 0x11d0,
     { 0xa3, 0xac, 0x00, 0xa0, 0xc9, 0x03, 0x48, 0xf6 } };
 
 /* GUID indicating that audio error concealment is absent */
-static const guid_t guid_audio_conceal_none=
+static const bgav_GUID_t guid_audio_conceal_none=
   { 0x49f1a440, 0x4ece, 0x11d0,
     { 0xa3, 0xac, 0x00, 0xa0, 0xc9, 0x03, 0x48, 0xf6 } };
 
 /* GUID indicating that interleaved audio error concealment is present */
-static const guid_t guid_audio_conceal_interleave =
+static const bgav_GUID_t guid_audio_conceal_interleave =
   { 0xbfc3cd50, 0x618f, 0x11cf,
     { 0x8b, 0xb2, 0x00, 0xaa, 0x00, 0xb4, 0xe2, 0x20 } };
 
 /* stream properties object error correction */
-static const guid_t guid_no_error_correction = 
+static const bgav_GUID_t guid_no_error_correction = 
   { 0x20fb5700, 0x5b55, 0x11cf,
     { 0xa8, 0xfd, 0x00, 0x80, 0x5f, 0x5c, 0x44, 0x2b } };
 
-static const guid_t guid_audio_spread = 
+static const bgav_GUID_t guid_audio_spread = 
   { 0xbfc3cd50, 0x618f, 0x11cf,
     { 0x8b, 0xb2, 0x00, 0xaa, 0x00, 0xb4, 0xe2, 0x20 } };
 
 
 /* mutual exclusion object exlusion type */
-static const guid_t guid_mutex_bitrate = 
+static const bgav_GUID_t guid_mutex_bitrate = 
     { 0xd6e22a01, 0x35da, 0x11d1,
       { 0x90, 0x34, 0x00, 0xa0, 0xc9, 0x03, 0x49, 0xbe } };
 
-static const guid_t guid_mutex_unknown =  
+static const bgav_GUID_t guid_mutex_unknown =  
   { 0xd6e22a02, 0x35da, 0x11d1,
     { 0x90, 0x34, 0x00, 0xa0, 0xc9, 0x03, 0x49, 0xbe } };
 
 
 /* header extension */
-static const guid_t guid_reserved_1 = 
+static const bgav_GUID_t guid_reserved_1 = 
   { 0xabd3d211, 0xa9ba, 0x11cf,
     { 0x8e, 0xe6, 0x00, 0xc0, 0x0c, 0x20, 0x53, 0x65 } };
 
 /* script command */
-static const guid_t guid_reserved_script_command = 
+static const bgav_GUID_t guid_reserved_script_command = 
   { 0x4B1ACBE3, 0x100B, 0x11D0,
     { 0xA3, 0x9B, 0x00, 0xA0, 0xC9, 0x03, 0x48, 0xF6 } };
 
 /* marker object */
-static const guid_t guid_reserved_marker = 
+static const bgav_GUID_t guid_reserved_marker = 
   { 0x4CFEDB20, 0x75F6, 0x11CF,
     { 0x9C, 0x0F, 0x00, 0xA0, 0xC9, 0x03, 0x49, 0xCB } };
 
 /* various */
-static const guid_t guid_head2 = 
+static const bgav_GUID_t guid_head2 = 
   { 0xabd3d211, 0xa9ba, 0x11cf,
     { 0x8e, 0xe6, 0x00, 0xc0, 0x0c, 0x20, 0x53, 0x65 } };
 
-static const guid_t guid_codec_comment1_header = 
+static const bgav_GUID_t guid_codec_comment1_header = 
   { 0x86d15241, 0x311d, 0x11d0,
     { 0xa3, 0xa4, 0x00, 0xa0, 0xc9, 0x03, 0x48, 0xf6 } };
 
-static const guid_t guid_asf_2_0_header = 
+static const bgav_GUID_t guid_asf_2_0_header = 
   { 0xd6e229d1, 0x35da, 0x11d1,
     { 0x90, 0x34, 0x00, 0xa0, 0xc9, 0x03, 0x49, 0xbe } };
-#if 0
-static void dump_guid(guid_t * g)
-  {
-  fprintf(stderr,
-          "%08x-%04x-%04x-%02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x\n",
-          g->v1, g->v2, g->v3, g->v4[0], g->v4[1], g->v4[2], g->v4[3],
-          g->v4[4], g->v4[5], g->v4[6], g->v4[7]);
-  }
-#endif
-static int guid_equal(const guid_t * g1, const guid_t * g2)
-  {
-  return (g1->v1 == g2->v1) &&
-    (g1->v2 == g2->v2) &&
-    (g1->v3 == g2->v3) &&
-    !memcmp(g1->v4, g2->v4, 8);
-  }
-
-static int read_guid(guid_t * ret, bgav_input_context_t * input)
-  {
-  return bgav_input_read_32_le(input, &(ret->v1)) &&
-    bgav_input_read_16_le(input, &(ret->v2)) &&
-    bgav_input_read_16_le(input, &(ret->v3)) &&
-    (bgav_input_read_data(input, ret->v4, 8) == 8);
-  }
-
-static int get_guid(guid_t * ret, bgav_input_context_t * input)
-  {
-  uint8_t data[16];
-
-  if(bgav_input_get_data(input, data, 16) < 16)
-    return 0;
-  
-  ret->v1 = BGAV_PTR_2_32LE(data);
-  ret->v2 = BGAV_PTR_2_16LE(data+4);
-  ret->v3 = BGAV_PTR_2_16LE(data+6);
-  memcpy(ret->v4, data + 8, 8);
-  return 1;
-  }
 
 /* ASF specific stream flags */
 
@@ -281,7 +235,7 @@ typedef struct
 
 typedef struct
   {
-  guid_t guid;		/* generated by client computer */
+  bgav_GUID_t guid;		/* generated by client computer */
   uint64_t file_size;	/* in bytes */
                         /* invalid if broadcasting */
   uint64_t create_time; /* time of creation, in 100-nanosecond units */
@@ -339,11 +293,11 @@ typedef struct
 
 static int probe_asf(bgav_input_context_t * input)
   {
-  guid_t guid;
-  if(!get_guid(&guid, input))
+  bgav_GUID_t guid;
+  if(!bgav_GUID_get(&guid, input))
     return 0;
 
-  if(guid_equal(&guid, &guid_header))
+  if(bgav_GUID_equal(&guid, &guid_header))
     {
     //    fprintf(stderr, "Detected ASF format\n");
     return 1;
@@ -503,13 +457,13 @@ static int open_asf(bgav_demuxer_context_t * ctx,
   {
   int64_t chunk_start_pos;
   
-  bgav_BITMAPINFOHEADER bh;
-  bgav_WAVEFORMATEX     wf;
+  bgav_BITMAPINFOHEADER_t bh;
+  bgav_WAVEFORMAT_t     wf;
   uint8_t * buf = (uint8_t*)0;
   uint8_t * pos;
   uint16_t stream_number;
   int buf_size = 0;
-  guid_t guid, guid1;
+  bgav_GUID_t guid, guid1;
   int64_t size;
   uint32_t type_specific_size;
   uint32_t stream_specific_size;
@@ -524,12 +478,12 @@ static int open_asf(bgav_demuxer_context_t * ctx,
   /* Create track */
   ctx->tt = bgav_track_table_create(1);
   
-  if(!read_guid(&guid, ctx->input))
+  if(!bgav_GUID_read(&guid, ctx->input))
     return 0;
   
   /* Read header */
   
-  if(!guid_equal(&guid, &guid_header))
+  if(!bgav_GUID_equal(&guid, &guid_header))
     return 0;
 
   bgav_input_skip(ctx->input, 8); /*  Chunk length UINT64          */
@@ -545,7 +499,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
   while(1) /* Read all GUIDs until the data comes */
     {
     chunk_start_pos = ctx->input->position;
-    if(!read_guid(&guid, ctx->input) ||
+    if(!bgav_GUID_read(&guid, ctx->input) ||
        !bgav_input_read_64_le(ctx->input, &size))
       goto fail;
     //    fprintf(stderr, "GUID: ");
@@ -554,9 +508,9 @@ static int open_asf(bgav_demuxer_context_t * ctx,
     
     /* Overall file properties */
     
-    if(guid_equal(&guid, &guid_file_properties))
+    if(bgav_GUID_equal(&guid, &guid_file_properties))
       {
-      if(!read_guid(&asf->hdr.guid, ctx->input) ||
+      if(!bgav_GUID_read(&asf->hdr.guid, ctx->input) ||
          !bgav_input_read_64_le(ctx->input, &(asf->hdr.file_size)) ||
          !bgav_input_read_64_le(ctx->input, &(asf->hdr.create_time)) ||
          !bgav_input_read_64_le(ctx->input, &(asf->hdr.packets_count)) ||
@@ -580,21 +534,21 @@ static int open_asf(bgav_demuxer_context_t * ctx,
       //      fprintf(stderr, "**** Duration: %lld\n", ctx->duration);
       }
     /* Stream properties */
-    else if(guid_equal(&guid, &guid_stream_header))
+    else if(bgav_GUID_equal(&guid, &guid_stream_header))
       {
       /* Stream type */
-      if(!read_guid(&guid, ctx->input))
+      if(!bgav_GUID_read(&guid, ctx->input))
         goto fail;
 
       /* Error concealment type */
-      if(!read_guid(&guid1, ctx->input))
+      if(!bgav_GUID_read(&guid1, ctx->input))
         goto fail;
 
       error_concealment = AUDIO_ERROR_CONCEAL_NONE;
       
-      //      if(guid_equal(&guid1, &guid_audio_conceal_none))
+      //      if(bgav_GUID_equal(&guid1, &guid_audio_conceal_none))
       //        error_concealment = AUDIO_ERROR_CONCEAL_NONE;
-      if(guid_equal(&guid1, &guid_audio_conceal_interleave))
+      if(bgav_GUID_equal(&guid1, &guid_audio_conceal_interleave))
         error_concealment = AUDIO_ERROR_CONCEAL_INTERLEAVE;
       
       bgav_input_skip(ctx->input, 8);  /* Unknown */
@@ -607,7 +561,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
       bgav_input_skip(ctx->input, 4);  /* Unknown */
       
       /* Found audio stream */
-      if(guid_equal(&guid, &guid_audio_media))
+      if(bgav_GUID_equal(&guid, &guid_audio_media))
         {
         //        fprintf(stderr, "Found audio stream\n");
         
@@ -629,18 +583,10 @@ static int open_asf(bgav_demuxer_context_t * ctx,
         if(bgav_input_read_data(ctx->input, buf, type_specific_size) <
            type_specific_size)
           goto fail;
-        pos = buf;
-        bgav_WAVEFORMATEX_read(&wf, &pos);
-        //        bgav_WAVEFORMATEX_dump(&wf);
-        bgav_WAVEFORMATEX_get_format(&wf, bgav_as);
-
-        if(wf.cbSize)
-          {
-          bgav_as->ext_size = wf.cbSize;
-          bgav_as->ext_data = malloc(bgav_as->ext_size);
-          memcpy(bgav_as->ext_data, pos, bgav_as->ext_size);
-          pos += bgav_as->ext_size;
-          }
+        bgav_WAVEFORMAT_read(&wf, buf, type_specific_size);
+        //        bgav_WAVEFORMAT_dump(&wf);
+        bgav_WAVEFORMAT_get_format(&wf, bgav_as);
+        bgav_WAVEFORMAT_free(&wf);
         
         /* Stream specific data */
 
@@ -678,7 +624,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
         }
       
       /* Found video stream */
-      else if(guid_equal(&guid, &guid_video_media))
+      else if(bgav_GUID_equal(&guid, &guid_video_media))
         {
         //        fprintf(stderr, "Found video stream\n");
         bgav_vs = bgav_track_add_video_stream(ctx->tt->current_track);
@@ -733,18 +679,18 @@ static int open_asf(bgav_demuxer_context_t * ctx,
         }
       }
     /* Metadata */
-    else if(guid_equal(&guid_comment_header, &guid))
+    else if(bgav_GUID_equal(&guid_comment_header, &guid))
       {
       //      fprintf(stderr, "Comment header\n");
       if(!read_metadata(ctx))
         return 0;
       }
-    else if(guid_equal(&guid_stream_bitrate_properties, &guid))
+    else if(bgav_GUID_equal(&guid_stream_bitrate_properties, &guid))
       {
       if(!read_bitrate_properties(ctx))
         return 0;
       }
-    else if(guid_equal(&guid_data, &guid))
+    else if(bgav_GUID_equal(&guid_data, &guid))
       {
       asf->data_size = size;
       break;

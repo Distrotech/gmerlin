@@ -53,7 +53,7 @@ static int parse_pls(bgav_redirector_context_t * r)
   int index;
   char * pos;
     
-  if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc))
+  if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0))
     return 0;
 
   //  fprintf(stderr, "Got line: %s\n", buffer);
@@ -65,7 +65,7 @@ static int parse_pls(bgav_redirector_context_t * r)
   
   while(1)
     {
-    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc))
+    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0))
       break;
 
     //    fprintf(stderr, "Got line: %s\n", buffer);

@@ -514,7 +514,7 @@ int bgav_input_get_64_be(bgav_input_context_t*,uint64_t*);
  */
 
 int bgav_input_read_line(bgav_input_context_t*,
-                         char ** buffer, int * buffer_alloc);
+                         char ** buffer, int * buffer_alloc, int buffer_offset);
 
 bgav_input_context_t * bgav_input_create();
 
