@@ -29,7 +29,7 @@
 
 static int open_avdec(void * priv, const char * location)
   {
-  int i;
+  int i, result;
   const char * str;
   avdec_priv * avdec;
 
@@ -72,7 +72,16 @@ static int open_avdec(void * priv, const char * location)
       }
     return 1;
     }
-  return bg_avdec_init(avdec);
+  result = bg_avdec_init(avdec);
+
+  /* Set default track name */
+  
+  if(result && (avdec->num_tracks == 1) && !avdec->track_info->name)
+    {
+    bg_set_track_name_default(avdec->track_info, location);
+    }
+  
+  return result;
   }
 
 

@@ -148,7 +148,7 @@ static int open_wav(bgav_demuxer_context_t * ctx,
 
   if(!bgav_input_read_16_le(ctx->input, &tmp_16))
     goto fail;
-  s->data.audio.block_align = tmp_16 * 8;
+  s->data.audio.block_align = tmp_16;
 
   if(format_size == 14)
     {

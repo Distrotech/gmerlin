@@ -53,9 +53,12 @@ AH_TEMPLATE([HAVE_LIBAVCODEC],
 
 have_avcodec=false
 
-AVCODEC_REQUIRED="0.4.8acl"
+AVCODEC_BUILD="4719"
 
-PKG_CHECK_MODULES(AVCODEC, avcodec_acl = $AVCODEC_REQUIRED, have_avcodec="true", have_avcodec="false")
+dnl PKG_CHECK_MODULES(AVCODEC, avcodec_acl = $AVCODEC_REQUIRED, have_avcodec="true", have_avcodec="false")
+
+LQT_PATH_AVCODEC($AVCODEC_BUILD , have_avcodec="true", have_avcodec="false")
+AVCODEC_REQUIRED=$AVCODEC_VERSION
 
 AM_CONDITIONAL(HAVE_LIBAVCODEC, test x$have_avcodec = xtrue)
 

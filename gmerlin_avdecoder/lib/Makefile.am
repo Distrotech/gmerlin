@@ -232,6 +232,7 @@ tracktable.c \
 utils.c \
 video.c \
 video_qtraw.c \
+video_qtyuv2.c \
 video_aviraw.c \
 xing.c \
 yml.c
