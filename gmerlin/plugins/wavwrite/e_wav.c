@@ -267,7 +267,7 @@ bg_encoder_plugin_t the_plugin =
     max_video_streams:   0,
 
     open:                open_wav,
-    set_audio_format:    set_audio_format_wav,
+    //    set_audio_format:    set_audio_format_wav,
     write_audio_frame:   write_audio_frame_wav,
     close:               close_wav
   };

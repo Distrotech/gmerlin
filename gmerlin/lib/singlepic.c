@@ -622,7 +622,7 @@ bg_encoder_plugin_t encoder_plugin =
    */
   
 //  void (*set_audio_format)(void *, int stream, gavl_audio_format_t*);
-    set_video_format: set_video_format_encoder,
+//    set_video_format: set_video_format_encoder,
     
     /*
      *  Encode audio/video

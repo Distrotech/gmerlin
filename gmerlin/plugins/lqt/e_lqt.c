@@ -23,23 +23,17 @@
 
 #include "lqt_common.h"
 
-#define PARAM_AUDIO 0
-#define PARAM_VIDEO 1
+/* Format definitions */
 
-static bg_parameter_info_t audio_parameters[] = 
+#define FORMAT_QUICKTIME            0
+#define FORMAT_QUICKTIME_STREAMABLE 1
+#define FORMAT_AVI                  2
+
+static bg_parameter_info_t stream_parameters[] = 
   {
     {
-      name:      "audio_codec",
-      long_name: "Audio Codec",
-    },
-  };
-
-
-static bg_parameter_info_t video_parameters[] = 
-  {
-    {
-      name:      "video_codec",
-      long_name: "Video Codec",
+      name:      "codec",
+      long_name: "Codec",
     },
   };
 
@@ -55,7 +49,22 @@ typedef struct
   bg_parameter_info_t * audio_parameters;
   bg_parameter_info_t * video_parameters;
   
-  
+  int format; /* See defines above */
+
+  int num_video_streams;
+  int num_audio_streams;
+    
+  struct
+    {
+    gavl_audio_format_t format;
+    } * audio_streams;
+
+  struct
+    {
+    gavl_video_format_t format;
+    uint8_t ** rows;
+    } * video_streams;
+
   } e_lqt_t;
 
 static void * create_lqt()
@@ -68,34 +77,87 @@ static int open_lqt(void * data, const char * filename_base,
                     bg_metadata_t * metadata)
   {
   e_lqt_t * e = (e_lqt_t*)data;
-  e->filename = bg_sprintf("%s.mov", filename_base);
-  
+
+  if(e->format == FORMAT_AVI)
+    e->filename = bg_sprintf("%s.avi", filename_base);
+  else
+    e->filename = bg_sprintf("%s.mov", filename_base);
+
+  e->file = quicktime_open(e->filename, 0, 1);
+
+  /* Set metadata */
+
+  if(metadata->copyright)
+    quicktime_set_copyright(e->file, metadata->copyright);
+  if(metadata->title)
+    quicktime_set_name(e->file, metadata->title);
+  if(metadata->comment)
+    quicktime_set_info(e->file, metadata->comment);
+    
   return 0;
   }
 
-#if 0
 static void add_audio_stream_lqt(void * data, bg_audio_info_t * info)
   {
-  //  e_lqt_t * e = (e_lqt_t*)data;
+  e_lqt_t * e = (e_lqt_t*)data;
+
+  e->audio_streams =
+    realloc(e->audio_streams,
+            (e->num_audio_streams+1)*sizeof(*(e->audio_streams)));
+  memset(&(e->audio_streams[e->num_audio_streams]), 0,
+         sizeof(*(e->audio_streams)));
+  gavl_audio_format_copy(&(e->audio_streams[e->num_audio_streams].format),
+                         &(info->format));
+  
+  e->num_audio_streams++;
   }
 
 static void add_video_stream_lqt(void * data, bg_video_info_t* info)
   {
-  //  e_lqt_t * e = (e_lqt_t*)data;
+  e_lqt_t * e = (e_lqt_t*)data;
+
+  e->video_streams =
+    realloc(e->video_streams,
+            (e->num_video_streams+1)*sizeof(*(e->video_streams)));
+  memset(&(e->video_streams[e->num_video_streams]), 0,
+         sizeof(*(e->video_streams)));
+  
+  gavl_video_format_copy(&(e->video_streams[e->num_video_streams].format),
+                         &(info->format));
+  e->num_video_streams++;
+  
   }
-#endif
 
 static void write_audio_frame_lqt(void * data, gavl_audio_frame_t* frame,
                                   int stream)
   {
   //  e_lqt_t * e = (e_lqt_t*)data;
-
+  
   }
 
 static void write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
                                   int stream)
   {
-  //  e_lqt_t * e = (e_lqt_t*)data;
+  int i;
+  uint8_t ** rows;
+  
+  e_lqt_t * e = (e_lqt_t*)data;
+
+  lqt_set_row_span(e->file, stream, frame->strides[0]);
+  lqt_set_row_span_uv(e->file, stream, frame->strides[1]);
+  
+  if(e->video_streams[stream].rows)
+    {
+    for(i = 0; i < e->video_streams[stream].format.image_height; i++)
+      e->video_streams[stream].rows[i] = frame->planes[0] + i * frame->strides[0];
+    rows = e->video_streams[stream].rows;
+    }
+  else
+    rows = frame->planes;
+
+  /* TODO: Lqt encode video!!!! */
+  
+  quicktime_encode_video(e->file, rows, stream);
   }
 
 static void close_lqt(void * data, int do_delete)
@@ -131,8 +193,8 @@ static void create_parameters(e_lqt_t * e)
   e->audio_parameters = calloc(2, sizeof(*(e->audio_parameters)));
   e->video_parameters = calloc(2, sizeof(*(e->video_parameters)));
 
-  bg_parameter_info_copy(&(e->audio_parameters[0]), &(audio_parameters[0]));
-  bg_parameter_info_copy(&(e->video_parameters[0]), &(video_parameters[0]));
+  bg_parameter_info_copy(&(e->audio_parameters[0]), &(stream_parameters[0]));
+  bg_parameter_info_copy(&(e->video_parameters[0]), &(stream_parameters[0]));
   
   bg_lqt_create_codec_info(&(e->audio_parameters[0]),
                            1, 0, 1, 0);
@@ -147,8 +209,9 @@ static bg_parameter_info_t common_parameters[] =
       name:      "format",
       long_name: "Format",
       type:      BG_PARAMETER_STRINGLIST,
-      multi_names:   (char*[]) { "Quicktime", "Quicktime (streamable)", "AVI", (char*)0 },
-      val_default: { val_str: "Quicktime" },
+      multi_names:    (char*[]) { "quicktime", "quicktime_s", "avi", (char*)0 },
+      multi_labels:   (char*[]) { "Quicktime", "Quicktime (streamable)", "AVI", (char*)0 },
+      val_default: { val_str: "quicktime" },
     },
     { /* End of parameters */ }
   };
@@ -161,6 +224,19 @@ static bg_parameter_info_t * get_parameters_lqt(void * data)
 static void set_parameter_lqt(void * data, char * name,
                               bg_parameter_value_t * val)
   {
+  e_lqt_t * e = (e_lqt_t*)data;
+  if(!name)
+    return;
+
+  else if(!strcmp(name, "format"))
+    {
+    if(!strcmp(val->val_str, "quicktime"))
+      e->format = FORMAT_QUICKTIME;
+    else if(!strcmp(val->val_str, "quicktime_s"))
+      e->format = FORMAT_QUICKTIME_STREAMABLE;
+    else if(!strcmp(val->val_str, "avi"))
+      e->format = FORMAT_AVI;
+    }
   
   }
 
@@ -184,57 +260,76 @@ static bg_parameter_info_t * get_video_parameters_lqt(void * data)
   return e->video_parameters;
   }
 
+
+
 static void set_audio_parameter_lqt(void * data, int stream, char * name,
                                     bg_parameter_value_t * val)
   {
-#if 0
   e_lqt_t * e = (e_lqt_t*)data;
-
+  lqt_codec_info_t ** info;
+    
   if(!name)
     return;
 
-  if(!e->parameters)
-    create_parameters(e);
-  
+  if(!strcmp(name, "codec"))
+    {
+    /* Now we can add the stream */
+
+    info = lqt_find_audio_codec_by_name(val->val_str);
+    
+    lqt_add_audio_track(e->file, e->audio_streams[stream].format.num_channels,
+                        e->audio_streams[stream].format.samplerate, 16,
+                        *info);
+
+    e->audio_streams[stream].format.interleave_mode = GAVL_INTERLEAVE_NONE;
+    e->audio_streams[stream].format.sample_format = GAVL_SAMPLE_FLOAT;
+    
+    lqt_destroy_codec_info(info);
+    }
+#if 0  
   if(bg_lqt_set_parameter(name, val, &(e->parameters[PARAM_AUDIO])) ||
      bg_lqt_set_parameter(name, val, &(e->parameters[PARAM_VIDEO])))
     return;
-
-  if(!strcmp(name, "audio_codec"))
-    {
-    e->audio_codec_name = bg_strdup(e->audio_codec_name, val->val_str);
-    }
-  else if(!strcmp(name, "video_codec"))
-    {
-    e->video_codec_name = bg_strdup(e->video_codec_name, val->val_str);
-    }
 #endif
   }
 
 static void set_video_parameter_lqt(void * data, int stream, char * name,
                                     bg_parameter_value_t * val)
   {
-#if 0
   e_lqt_t * e = (e_lqt_t*)data;
-
+  int quicktime_colormodel;
+  
+  lqt_codec_info_t ** info;
+    
   if(!name)
     return;
 
-  if(!e->parameters)
-    create_parameters(e);
+  if(!strcmp(name, "codec"))
+    {
+    /* Now we can add the stream */
 
+    info = lqt_find_audio_codec_by_name(val->val_str);
+    
+    lqt_add_video_track(e->file, e->video_streams[stream].format.image_width,
+                        e->video_streams[stream].format.image_height,
+                        e->video_streams[stream].format.frame_duration,
+                        e->video_streams[stream].format.timescale,
+                        *info);
+    lqt_destroy_codec_info(info);
+
+    quicktime_colormodel = lqt_get_best_colormodel(e->file, stream, bg_lqt_supported_colormodels);
+    e->video_streams[stream].format.colorspace = bg_lqt_get_gavl_colorspace(quicktime_colormodel);
+    lqt_set_cmodel(e->file, stream, quicktime_colormodel);
+
+    if(!gavl_colorspace_is_planar(e->video_streams[stream].format.colorspace))
+      e->video_streams[e->num_audio_streams].rows =
+        malloc(e->video_streams[stream].format.image_height * 
+               sizeof(*(e->video_streams[e->num_audio_streams].rows)));
+    }
+#if 0  
   if(bg_lqt_set_parameter(name, val, &(e->parameters[PARAM_AUDIO])) ||
      bg_lqt_set_parameter(name, val, &(e->parameters[PARAM_VIDEO])))
     return;
-
-  if(!strcmp(name, "audio_codec"))
-    {
-    e->audio_codec_name = bg_strdup(e->audio_codec_name, val->val_str);
-    }
-  else if(!strcmp(name, "video_codec"))
-    {
-    e->video_codec_name = bg_strdup(e->video_codec_name, val->val_str);
-    }
 #endif
   }
 
@@ -260,12 +355,15 @@ bg_encoder_plugin_t the_plugin =
 
     get_audio_parameters: get_audio_parameters_lqt,
     get_video_parameters: get_video_parameters_lqt,
+    
+    open:                 open_lqt,
 
+    add_audio_stream:     add_audio_stream_lqt,
+    add_video_stream:     add_video_stream_lqt,
+        
     set_audio_parameter:  set_audio_parameter_lqt,
     set_video_parameter:  set_video_parameter_lqt,
-    
-    open:              open_lqt,
-    
+        
     write_audio_frame: write_audio_frame_lqt,
     write_video_frame: write_video_frame_lqt,
     close:             close_lqt,
