@@ -277,6 +277,10 @@ void bg_gtk_filesel_destroy(bg_gtk_filesel_t * filesel)
 void bg_gtk_filesel_run(bg_gtk_filesel_t * filesel, int modal)
   {
   gtk_window_set_modal(GTK_WINDOW(filesel->filesel), modal);
+
+  gtk_widget_grab_focus(GTK_FILE_SELECTION(filesel->filesel)->cancel_button);
+  gtk_widget_grab_default(GTK_FILE_SELECTION(filesel->filesel)->cancel_button);
+  
   gtk_widget_show(filesel->filesel);
   filesel->is_modal = modal;
   if(modal)

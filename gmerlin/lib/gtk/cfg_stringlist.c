@@ -218,8 +218,9 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
                    "changed", G_CALLBACK(change_callback),
                    (gpointer)w);
 #endif
-  
-  
+
+  //  GTK_WIDGET_UNSET_FLAGS(priv->combo, GTK_CAN_DEFAULT);
+
   gtk_widget_show(priv->combo);
 
   priv->label = gtk_label_new(info->long_name);

@@ -37,7 +37,7 @@ void bg_gtk_multi_info_show(const bg_parameter_info_t * info, int i)
   win = bg_gtk_textwindow_create(text, info->long_name);
   free(text);
 
-  bg_gtk_textwindow_show(win, 0);
+  bg_gtk_textwindow_show(win, 1);
   }
 
 

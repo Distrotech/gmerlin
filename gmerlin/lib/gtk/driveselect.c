@@ -325,7 +325,10 @@ bg_gtk_drivesel_create(const char * title,
 
   ret->add_button = gtk_button_new_from_stock(GTK_STOCK_ADD);
   ret->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
-    
+
+  GTK_WIDGET_SET_FLAGS(ret->close_button, GTK_CAN_DEFAULT);
+  GTK_WIDGET_SET_FLAGS(ret->add_button, GTK_CAN_DEFAULT);
+  
   /* Set callbacks */
 
   g_signal_connect(G_OBJECT(ret->window), "delete-event",
@@ -402,6 +405,10 @@ void bg_gtk_drivesel_run(bg_gtk_drivesel_t * drivesel, int modal)
   {
   gtk_window_set_modal(GTK_WINDOW(drivesel->window), modal);
   gtk_widget_show(drivesel->window);
+
+  gtk_widget_grab_focus(drivesel->close_button);
+  gtk_widget_grab_default(drivesel->close_button);
+  
   drivesel->is_modal = modal;
   if(modal)
     gtk_main();

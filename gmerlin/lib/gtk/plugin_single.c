@@ -311,10 +311,6 @@ bg_gtk_plugin_widget_single_create(char * label,
     {
     ret->audio_button = create_pixmap_button(ret, "audio_16.png", tooltips,
                                             "Audio options", "Audio options");
-    
-    g_signal_connect(G_OBJECT(ret->audio_button), "clicked",
-                     G_CALLBACK(button_callback), (gpointer)ret);
-    
     }
 
   /* Video */
@@ -323,9 +319,6 @@ bg_gtk_plugin_widget_single_create(char * label,
     {
     ret->video_button = create_pixmap_button(ret, "video_16.png", tooltips,
                                             "Video options", "Video options");
-    
-    g_signal_connect(G_OBJECT(ret->video_button), "clicked",
-                     G_CALLBACK(button_callback), (gpointer)ret);
     }
     
   /* Create combo */

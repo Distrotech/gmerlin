@@ -295,6 +295,10 @@ struct bg_transcoder_s
   gavl_timer_t * timer;
   gavl_time_t time;
 
+  /* Duration of the section to be transcoded */
+    
+  gavl_time_t duration;
+  
   /* Error handling */
 
   char * error_msg;
@@ -678,6 +682,7 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   if((samples_decoded < num_samples) ||
      (s->samples_to_read && (s->samples_to_read <= s->samples_read)))
     {
+    //    fprintf(stderr, "Audio stream finished\n");
     s->com.status = STREAM_STATE_FINISHED;
     }
 
@@ -700,7 +705,7 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
     }
   s->com.time = gavl_samples_to_time(s->out_format.samplerate,
                                      s->samples_written);
-  //  fprintf(stderr, "Audio iteration 1 %d\n", s->in_format.samples_per_frame);
+  //  fprintf(stderr, "Audio iteration %f\n", gavl_time_to_seconds(s->com.time));
   }
 
 static int decode_video_frame(video_stream_t * s, bg_transcoder_t * t,
@@ -840,6 +845,7 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
                                            s->com.out_index);
       }
     s->com.time = s->in_frame_1->time;
+    //    fprintf(stderr, "Video iteration %f\n", gavl_time_to_seconds(s->com.time));
     s->frames_written++;
     }
   
@@ -980,7 +986,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
 
   //  fprintf(stderr, "done\n");
     
-  //  fprintf(stderr, "Opening input...");
+  //  fprintf(stderr, "Opening input with %s...", ret->location);
 
   /* Open input plugin */
 
@@ -1374,10 +1380,31 @@ int bg_transcoder_init(bg_transcoder_t * ret,
     
     bg_plugin_unref(encoder_handle);
     }
+
+  /* Set duration */
+
+  if(ret->set_start_time && ret->set_end_time)
+    {
+    ret->duration = ret->end_time - ret->start_time;
+    }
+  else if(ret->set_start_time)
+    {
+    ret->duration = ret->track_info->duration - ret->start_time;
+    }
+  else if(ret->set_end_time)
+    {
+    ret->duration = ret->end_time;
+    }
+  else
+    {
+    ret->duration = ret->track_info->duration;
+    }
+  
+  /* Free stuff */
   
   free(audio_encoder_name);
   free(video_encoder_name);
-
+  
   /* Start timer */
 
   gavl_timer_start(ret->timer);
@@ -1420,7 +1447,9 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   double remaining_seconds;
   
   int done = 1;
-    
+
+  //  fprintf(stderr, "bg_transcoder_iteration...");
+  
   time = GAVL_TIME_MAX;
   
   /* Find the stream with the smallest time */
@@ -1452,6 +1481,7 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   if(done)
     {
     t->state = TRANSCODER_STATE_FINISHED;
+    //    fprintf(stderr, "finished\n");
     return 0;
     }
   
@@ -1472,8 +1502,8 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
 
   t->transcoder_info.percentage_done =
     gavl_time_to_seconds(t->time) /
-    gavl_time_to_seconds(t->track_info->duration);
-
+    gavl_time_to_seconds(t->duration);
+  
   if(t->transcoder_info.percentage_done < 0.0)
     t->transcoder_info.percentage_done = 0.0;
   if(t->transcoder_info.percentage_done > 1.0)
@@ -1491,6 +1521,8 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
 
   //  fprintf(stderr, "t->transcoder_info.remaining_time: %lld\n",
   //          t->transcoder_info.remaining_time);
+
+  //  fprintf(stderr, "done\n");
   
   return 1;
   }

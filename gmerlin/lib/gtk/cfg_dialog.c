@@ -152,6 +152,10 @@ static bg_dialog_t * create_dialog(const char * title)
   ret->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
   ret->ok_button    = gtk_button_new_from_stock(GTK_STOCK_OK);
 
+  GTK_WIDGET_SET_FLAGS(ret->apply_button, GTK_CAN_DEFAULT);
+  GTK_WIDGET_SET_FLAGS(ret->close_button, GTK_CAN_DEFAULT);
+  GTK_WIDGET_SET_FLAGS(ret->ok_button, GTK_CAN_DEFAULT);
+  
   gtk_window_set_modal(GTK_WINDOW(ret->window), TRUE);
   g_signal_connect(G_OBJECT(ret->ok_button), "clicked",
                    G_CALLBACK(button_callback), (gpointer)ret);
@@ -185,6 +189,7 @@ static bg_dialog_t * create_dialog(const char * title)
   gtk_box_pack_end(GTK_BOX(ret->mainbox), buttonbox, FALSE, FALSE, 0);
   gtk_widget_show(ret->mainbox);
   gtk_container_add(GTK_CONTAINER(ret->window), ret->mainbox);  
+  
   return ret;
   }
 
@@ -512,6 +517,8 @@ void bg_dialog_add(bg_dialog_t *d,
 void bg_dialog_show(bg_dialog_t * d)
   {
   gtk_widget_show(d->window);
+  gtk_widget_grab_default(d->ok_button);
+  gtk_widget_grab_focus(d->ok_button);
   gtk_main();
   }
 

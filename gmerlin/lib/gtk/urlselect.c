@@ -144,6 +144,9 @@ bg_gtk_urlsel_create(const char * title,
 
   ret->add_button = gtk_button_new_from_stock(GTK_STOCK_ADD);
   ret->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
+
+  GTK_WIDGET_SET_FLAGS(ret->close_button, GTK_CAN_DEFAULT);
+  GTK_WIDGET_SET_FLAGS(ret->add_button, GTK_CAN_DEFAULT);
     
   /* Set callbacks */
 
@@ -178,6 +181,8 @@ bg_gtk_urlsel_create(const char * title,
 
   box = gtk_hbutton_box_new();
 
+  gtk_box_set_spacing(GTK_BOX(box), 5);
+  
   gtk_container_add(GTK_CONTAINER(box), ret->close_button);
   gtk_container_add(GTK_CONTAINER(box), ret->add_button);
   gtk_widget_show(box);
@@ -209,6 +214,10 @@ void bg_gtk_urlsel_run(bg_gtk_urlsel_t * urlsel, int modal)
   {
   gtk_window_set_modal(GTK_WINDOW(urlsel->window), modal);
   gtk_widget_show(urlsel->window);
+
+  gtk_widget_grab_default(urlsel->close_button);
+  gtk_widget_grab_focus(urlsel->close_button);
+  
   urlsel->is_modal = modal;
   if(modal)
     gtk_main();

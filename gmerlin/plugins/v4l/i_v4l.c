@@ -562,7 +562,7 @@ static void set_parameter_v4l(void * priv, char * name,
     return;
     }
 
-  fprintf(stderr, "Set parameter %s\n", name);
+  //  fprintf(stderr, "Set parameter %s\n", name);
 
   if(!strncmp(name, "pwc_", 4))
     {

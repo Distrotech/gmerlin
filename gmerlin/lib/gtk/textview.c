@@ -55,6 +55,7 @@ bg_gtk_textview_t * bg_gtk_textview_create()
   t->buffer = gtk_text_buffer_new(tag_table);
   t->textview = gtk_text_view_new_with_buffer(t->buffer);
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(t->textview), GTK_WRAP_NONE);
+  gtk_text_view_set_editable(GTK_TEXT_VIEW(t->textview), 0);
   
   gtk_widget_show(t->textview);
   return t;
