@@ -17,6 +17,7 @@
  
 *****************************************************************/
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -34,7 +35,7 @@ static char * do_convert(iconv_t cd, char * in_string, int len)
   char *outbuf;
   int alloc_size;
   int output_pos;
-  
+  int keep_going = 1;
   size_t inbytesleft;
   size_t outbytesleft;
 
@@ -47,8 +48,9 @@ static char * do_convert(iconv_t cd, char * in_string, int len)
   inbuf  = in_string;
   outbuf = ret;
   
-  while(1)
+  while(keep_going)
     {
+    fprintf(stderr, "Iconv...");
     if(iconv(cd, &inbuf, &inbytesleft,
              &outbuf, &outbytesleft) == (size_t)-1)
       {
@@ -64,11 +66,14 @@ static char * do_convert(iconv_t cd, char * in_string, int len)
           outbuf = &ret[output_pos];
           break;
         default:
+          fprintf(stderr, "Unknown error: %s\n", strerror(errno));
+          keep_going = 0;
           break;
         }
       }
     if(!inbytesleft)
       break;
+    fprintf(stderr, "done, %d\n", inbytesleft);
     }
   /* Zero terminate */
 
@@ -95,12 +100,18 @@ char * bg_system_to_utf8(const char * str, int len)
   if(len < 0)
     len = strlen(str);
 
+  fprintf(stderr, "System string:\n");
+  bg_hexdump(str, len);
   tmp_string = malloc(len+1);
   memcpy(tmp_string, str, len);
   tmp_string[len] = '\0';
   
   system_charset = nl_langinfo(CODESET);
 
+  fprintf(stderr, "System charset: %s\n", system_charset);
+
+  system_charset = "ISO-8859-1";
+  
   cd = iconv_open("UTF-8", system_charset);
   ret = do_convert(cd, tmp_string, len);
   iconv_close(cd);
@@ -124,6 +135,9 @@ char * bg_utf8_to_system(const char * str, int len)
   tmp_string[len] = '\0';
 
   system_charset = nl_langinfo(CODESET);
+  fprintf(stderr, "System charset: %s\n", system_charset);
+
+  system_charset = "ISO-8859-1";
 
   cd = iconv_open(system_charset, "UTF-8");
   ret = do_convert(cd, tmp_string, len);
