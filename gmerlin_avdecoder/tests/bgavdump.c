@@ -101,6 +101,10 @@ int main(int argc, char ** argv)
   num_tracks = bgav_num_tracks(file);
   for(track = 0; track < num_tracks; track++)
     {
+    fprintf(stderr, "===================================\n");
+    fprintf(stderr, "============ Track %3d ============\n", track+1);
+    fprintf(stderr, "===================================\n");
+    
     bgav_select_track(file, track);
     
     num_audio_streams = bgav_num_audio_streams(file, track);

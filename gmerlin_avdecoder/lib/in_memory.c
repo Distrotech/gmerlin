@@ -92,11 +92,11 @@ void bgav_input_reopen_memory(bgav_input_context_t * ctx,
   {
   mem_priv_t * priv;
 
-  priv = calloc(1, sizeof(*priv));
-  ctx->priv = priv;
+  priv = (mem_priv_t *)(ctx->priv);
 
   priv->data     = data;
   priv->data_ptr = data;
   ctx->total_bytes = data_size;
+  ctx->position = 0;
   
   }

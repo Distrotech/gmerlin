@@ -174,8 +174,10 @@ static int transport_packet_read(bgav_input_context_t * input,
     return 0;
 
   if((header & 0xff000000) != 0x47000000)
+    {
+    fprintf(stderr, "transport_packet_read: Out of sync %08x\n", header);
     return 0;
-
+    }
   ret->payload_start = !!(header & 0x00400000);
   
   ret->pid = (header & 0x001fff00) >> 8;
@@ -228,17 +230,17 @@ typedef struct
   uint8_t last_section_number;
 
   uint16_t pcr_pid;
-  char * descriptor;
-  int descriptor_alloc;
-    
+  char descriptor[4096];
+  int descriptor_len;
+  
   int num_streams;
   struct
     {
     uint8_t type;
     uint16_t pid;
     
-    char * descriptor;
-    int descriptor_alloc;
+    char descriptor[4096];
+    int descriptor_len;
     } streams[MAX_STREAMS];
   } pmt_section_t;
 
@@ -270,14 +272,9 @@ static int pmt_section_read(uint8_t * data, int size,
 
   if(len)
     {
-    if(len + 1 > ret->descriptor_alloc)
-      {
-      ret->descriptor_alloc = len + 10;
-      ret->descriptor = realloc(ret->descriptor,
-                                ret->descriptor_alloc);
-      }
     memcpy(ret->descriptor, ptr, len);
     ret->descriptor[len] = '\0';
+    ret->descriptor_len = len;
     ptr += len;
     }
   ret->num_streams = 0;
@@ -292,15 +289,9 @@ static int pmt_section_read(uint8_t * data, int size,
 
     if(len)
       {
-      if(len + 1 > ret->streams[ret->num_streams].descriptor_alloc)
-        {
-        ret->streams[ret->num_streams].descriptor_alloc = len + 10;
-        ret->streams[ret->num_streams].descriptor =
-          realloc(ret->streams[ret->num_streams].descriptor,
-                  ret->streams[ret->num_streams].descriptor_alloc);
-        }
       memcpy(ret->streams[ret->num_streams].descriptor, ptr, len);
       ret->streams[ret->num_streams].descriptor[len] = '\0';
+      ret->streams[ret->num_streams].descriptor_len = len;      
       ptr += len;
       }
     ret->num_streams++;
@@ -321,7 +312,11 @@ static void pmt_section_dump(pmt_section_t * pmts)
   fprintf(stderr, "  section_number:         %d\n",     pmts->section_number);
   fprintf(stderr, "  last_section_number:    %d\n",     pmts->last_section_number);
   fprintf(stderr, "  pcr_pid:                0x%04x\n", pmts->pcr_pid);
-  fprintf(stderr, "  descriptor:             %s\n",     pmts->descriptor);
+  fprintf(stderr, "  descriptor:             ");
+  if(pmts->descriptor_len)
+    bgav_hexdump(pmts->descriptor, pmts->descriptor_len, pmts->descriptor_len);
+  else
+    fprintf(stderr, "[none]\n");
   fprintf(stderr, "  Number of streams:      %d\n",     pmts->num_streams);
 
   for(i = 0; i < pmts->num_streams; i++)
@@ -333,7 +328,14 @@ static void pmt_section_dump(pmt_section_t * pmts)
             pmts->streams[i].type,
             (stream_type ? stream_type->description : "Unknown"));
     fprintf(stderr, "    PID:        0x%04x\n", pmts->streams[i].pid);
-    fprintf(stderr, "    descriptor: %s\n", pmts->streams[i].descriptor);
+    fprintf(stderr, "    descriptor: ");
+    
+    if(pmts->streams[i].descriptor_len)
+      bgav_hexdump(pmts->streams[i].descriptor, pmts->streams[i].descriptor_len,
+                   pmts->streams[i].descriptor_len);
+    else
+      fprintf(stderr, "[none]\n");
+
     }
   
   }
@@ -416,9 +418,9 @@ typedef struct
 
   bgav_pes_header_t pes_header;
 
-  uint8_t * buffer;
-  int buffer_alloc;
-  int buffer_size;
+  //  uint8_t * buffer;
+  //  int buffer_alloc;
+  //  int buffer_size;
   
   } stream_priv_t;
 
@@ -431,6 +433,13 @@ typedef struct
 
   int num_video_streams;
   stream_priv_t * video_streams;
+
+  uint16_t program_map_pid;
+  uint16_t pts_pid; /* Stream ID from which the start- and end pts's are taken */
+  
+  int64_t start_pts;
+  int64_t end_pts;
+
   } program_priv_t;
 
 typedef struct
@@ -442,6 +451,11 @@ typedef struct
 
   bgav_input_context_t * input_mem;
 
+  /* Timing stuff */
+
+  int64_t first_packet_pos;
+
+  int current_program;
   } mpegts_t;
 
 static int probe_mpegts(bgav_input_context_t * input)
@@ -459,14 +473,77 @@ static int probe_mpegts(bgav_input_context_t * input)
   return 0;
   }
 
+/* Get program durations */
+
+static void get_program_durations(bgav_demuxer_context_t * ctx)
+  {
+  int i, j;
+  
+  int keep_going, keep_going1;
+  
+  mpegts_t * priv;
+  transport_packet_t packet;
+
+  priv = (mpegts_t*)(ctx->priv);
+
+  bgav_input_seek(ctx->input, priv->first_packet_pos,
+                  SEEK_SET);
+
+  /* Get the start timestamps of all programs */
+
+  keep_going = 1;
+
+  while(keep_going)
+    {
+
+    if(bgav_input_read_data(ctx->input, data, 188) < 188)
+      break;
+    
+    bgav_input_reopen_memory(priv->input_mem, data, 188);
+    
+    if(!transport_packet_read(priv->input_mem, &tp))
+      {
+      fprintf(stderr, "Reading transport packet failed\n");
+      break;
+      }
+
+    /* Check to which stream this belongs */
+
+    keep_going1 = 1;
+    
+    for(i = 0; i < priv->num_programs; i++)
+      {
+      for(j = 0; j < priv->programs[i].num_audio_streams; j++)
+        {
+        if(priv->programs[i].audio_streams[i].pid == tp.pid)
+          {
+          keep_going1 = 0;
+          
+          }
+        }
+
+      if(!keep_going1)
+        break;
+      
+      for(j = 0; j < priv->programs[i].num_video_streams; j++)
+        {
+        
+        }
+      
+      }
+
+    }
+  
+  }
+
 #define REALLOCZ(ptr, offset) \
-  ptr = realloc(ptr, (offset+1)*sizeof(*(ptr)));        \
+  ptr = realloc(ptr, (offset+1)*sizeof(*(ptr))); \
   memset(&(ptr[offset]), 0, sizeof(*(ptr)))
 
 static int open_mpegts(bgav_demuxer_context_t * ctx,
                        bgav_redirector_context_t ** redir)
   {
-  int i, program;
+  int i, j, program;
   uint8_t data[184];
   transport_packet_t packet;
   pat_section_t pats;
@@ -475,7 +552,17 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
   mpegts_t * priv;
   stream_type_t * stream_type;
   bgav_stream_t * bgav_stream;
-    
+
+  /* Allocate private data */
+
+  priv = calloc(1, sizeof(*priv));
+  
+  priv->input_mem = bgav_input_open_memory((uint8_t*)0, 0);
+  
+  ctx->priv = priv;
+
+  priv->first_packet_pos = ctx->input->position;
+  
   /* Skip everything until we get the first PAT */
   i = 0;
   while(1)
@@ -510,27 +597,32 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
     return 0;
     }
 
-  /* Allocate private data */
-
-  priv = calloc(1, sizeof(*priv));
-
-  priv->input_mem = bgav_input_open_memory((uint8_t*)0, 0);
-  
-  ctx->priv = priv;
   
   /* Count the programs */
 
   for(i = 0; i < pats.num_programs; i++)
     {
-    if(pats.programs[i].program_map_pid != 0x0000)
+    if(pats.programs[i].program_number != 0x0000)
       priv->num_programs++;
     }
 
+  /* Allocate programs and track table */
+  
   priv->programs = calloc(priv->num_programs, sizeof(*(priv->programs)));
-
-  /* Allocate track table */
-
   ctx->tt = bgav_track_table_create(priv->num_programs);
+
+  /* Assign program map pids */
+
+  j = 0;
+
+  for(i = 0; i < pats.num_programs; i++)
+    {
+    if(pats.programs[i].program_number != 0x0000)
+      {
+      priv->programs[j].program_map_pid = pats.programs[i].program_map_pid;
+      j++;
+      }
+    }
   
   /* Next, we want to get all programs */
 
@@ -548,13 +640,14 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
 
     for(program = 0; program < priv->num_programs; program++)
       {
-      if(packet.pid == pats.programs[program].program_map_pid)
+      if(packet.pid == priv->programs[program].program_map_pid)
         break;
       }
 
     if(program == priv->num_programs)
       {
-      fprintf(stderr, "Skipping packet with PID %04x\n", packet.pid);
+      //      fprintf(stderr, "Skipping packet with PID 0x%04x (%d %d)\n", packet.pid,
+      //              program, priv->num_programs);
       continue;
       }
     
@@ -590,14 +683,21 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
         bgav_stream = bgav_track_add_audio_stream(&(ctx->tt->tracks[program]));
         bgav_stream->timescale = 90000;
         bgav_stream->fourcc = stream_type->fourcc;
+
+        /*
+         *  We save the pid twice, once in the generic stream structure,
+         *  once in our private stream structure. It's bad but makes things
+         *  easier afterwards
+         */
         
         bgav_stream->stream_id = pmts.streams[i].pid;
-
-        bgav_stream->priv =
-          &(priv->programs[program].audio_streams[priv->programs[program].num_audio_streams]);
-
+        priv->programs[program].audio_streams[priv->programs[program].num_audio_streams].pid =
+          pmts.streams[i].pid;
+        
         priv->programs[program].num_audio_streams++;
-          
+
+        // fprintf(stderr, "Got audio stream %d\n", priv->programs[program].num_audio_streams);
+        // bgav_stream_dump(bgav_stream);
         }
 
       /* Add video stream */
@@ -612,20 +712,31 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
         bgav_stream->fourcc = stream_type->fourcc;
 
         bgav_stream->stream_id = pmts.streams[i].pid;
-
-        bgav_stream->priv =
-          &(priv->programs[program].video_streams[priv->programs[program].num_video_streams]);
-
-        
         priv->programs[program].num_video_streams++;
-
+        
         }
 
       
       }
 
-    priv->programs[program].initialized = 1;
+    /* Assign private data for streams */
 
+    for(i = 0; i < priv->programs[program].num_audio_streams; i++)
+      {
+      ctx->tt->tracks[program].audio_streams[i].priv =
+        &(priv->programs[program].audio_streams[i]);
+      }
+
+    for(i = 0; i < priv->programs[program].num_video_streams; i++)
+      {
+      ctx->tt->tracks[program].video_streams[i].priv =
+        &(priv->programs[program].video_streams[i]);
+      }
+    
+    priv->programs[program].initialized = 1;
+    priv->programs[program].start_pts = -1;
+    priv->programs[program].end_pts = -1;
+        
     /* Check if we are done */
     keep_going = 0;
     for(i = 0; i < priv->num_programs; i++)
@@ -636,6 +747,12 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
         break;
         }
       }
+    }
+
+  if(ctx->input->input->seek_byte)
+    {
+    bgav_input_seek(ctx->input, priv->first_packet_pos,
+                    SEEK_SET);
     }
   
   //  fprintf(stderr, "Got transport packet:\n");
@@ -657,51 +774,85 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
   stream_priv_t * stream_priv;
     
   priv = (mpegts_t*)(ctx->priv);
+
+  // fprintf(stderr, "Track: %d\n", (int)(ctx->tt->current_track - ctx->tt->tracks));
     
   for(i = 0; i < NUM_PACKETS; i++)
     {
+    //    fprintf(stderr, "Data: %llx ", ctx->input->position);
+
     if(bgav_input_read_data(ctx->input, data, 188) < 188)
+      {
+      fprintf(stderr, "EOF\n");
+
       return !!i;
+      }
+    
+    //    bgav_hexdump(data, 4, 4);
     
     bgav_input_reopen_memory(priv->input_mem, data, 188);
+
+    //    bgav_hexdump(data, 188, 16);
     
     if(!transport_packet_read(priv->input_mem, &tp))
+      {
+      fprintf(stderr, "Reading transport packet failed\n");
       return !!i;
-
+      }
     s = bgav_track_find_stream(ctx->tt->current_track, tp.pid);    
     
     if(!s)
-      {
-      /* Skip */
-      bgav_input_skip(ctx->input, tp.payload_size);
       continue;
-      }
-
+    
     stream_priv = (stream_priv_t*)(s->priv);
       
     if(tp.payload_start) /* New packet starts here */
       {
       if(s->packet)
         {
+        //        fprintf(stderr, "Finished reading packet, size: %d\n", s->packet->data_size);
+
         bgav_packet_done_write(s->packet);
         s->packet = (bgav_packet_t*)0;
         }
 
+      //      fprintf(stderr, "Got stream\n");
+      //      bgav_stream_dump(s);
+      
       s->packet = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
 
       /* Read PES header */
 
+      
       if(!bgav_pes_header_read(priv->input_mem, &(stream_priv->pes_header)))
         return !!i;
-
-      fprintf(stderr, "Got PES header\n");
-      bgav_pes_header_dump(&(stream_priv->pes_header));
       
-      bgav_packet_alloc(s->packet, stream_priv->pes_header.payload_size);
+      /*
+       *  Now the bad news: Some transport streams contain PES packets with a
+       *  packet length field of zero. This means, we must use the
+       *  payload_start bit to find out when a packet ended.
+       *
+       *  Here, we allocate 1024 bytes (>> transport payload) to reduce realloc
+       *  overhead afterwards
+       */
+      
+      //      fprintf(stderr, "Got PES header\n");
+      //      bgav_pes_header_dump(&(stream_priv->pes_header));
+      
+      bgav_packet_alloc(s->packet, 1024);
 
       if(stream_priv->pes_header.pts >= 0)
-        s->packet->timestamp_scaled = stream_priv->pes_header.pts;
+        {
+        if(priv->programs[priv->current_program].start_pts < 0)
+          priv->programs[priv->current_program].start_pts = stream_priv->pes_header.pts;
 
+        s->packet->timestamp_scaled =
+          stream_priv->pes_header.pts -
+          priv->programs[priv->current_program].start_pts;
+
+        if(s->packet->timestamp_scaled < 0)
+          s->packet->timestamp_scaled = 0;
+        }
       /* Read data */
 
       s->packet->data_size =
@@ -715,7 +866,10 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
       {
       /* Read data */
 
-      s->packet->data_size +=
+      bgav_packet_alloc(s->packet,
+                        s->packet->data_size + tp.payload_size);
+
+      s->packet->data_size += 
         bgav_input_read_data(priv->input_mem,
                              s->packet->data + s->packet->data_size,
                              tp.payload_size);
@@ -734,15 +888,38 @@ static void seek_mpegts(bgav_demuxer_context_t * ctx, gavl_time_t time)
 
 static void close_mpegts(bgav_demuxer_context_t * ctx)
   {
-  
+  int i;
+
+  mpegts_t * priv;
+  priv = (mpegts_t*)(ctx->priv);
+
+  for(i = 0; i < priv->num_programs; i++)
+    {
+    if(priv->programs[i].audio_streams)
+      free(priv->programs[i].audio_streams);
+    if(priv->programs[i].video_streams)
+      free(priv->programs[i].video_streams);
+    }
+  if(priv->programs)
+    free(priv->programs);
+  free(priv);
   }
-  
+
+static void select_track_mpegts(bgav_demuxer_context_t * ctx,
+                                int track)
+  {
+  mpegts_t * priv;
+  priv = (mpegts_t*)(ctx->priv);
+  priv->current_program = track;
+  }
+
 bgav_demuxer_t bgav_demuxer_mpegts =
   {
-    probe:       probe_mpegts,
-    open:        open_mpegts,
-    next_packet: next_packet_mpegts,
-    seek:        seek_mpegts,
-    close:       close_mpegts
+    probe:        probe_mpegts,
+    open:         open_mpegts,
+    next_packet:  next_packet_mpegts,
+    seek:         seek_mpegts,
+    close:        close_mpegts,
+    select_track: select_track_mpegts
   };
 

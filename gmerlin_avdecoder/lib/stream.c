@@ -110,6 +110,7 @@ void bgav_stream_dump(bgav_stream_t * s)
     fprintf(stderr, "Unspecified\n");
 
   fprintf(stderr, "  Timescale:         %d\n", s->timescale);
+  fprintf(stderr, "  Private data:      %p\n", s->priv);
   }
 
 void bgav_stream_clear(bgav_stream_t * s)
