@@ -191,8 +191,6 @@ typedef struct
     uint32_t dwFlags;
     uint32_t dwChunkOffset;
     uint32_t dwChunkLength;
-    /* These are not present in the AVI, but are calculated after reading */
-    gavl_time_t time;
     } * entries;
   } idx1_t;
 
@@ -213,8 +211,7 @@ static void dump_idx1(idx1_t * idx1)
     bgav_dump_fourcc(idx1->entries[i].ckid);
     fprintf(stderr, " Flags: %08x", idx1->entries[i].dwFlags);
     fprintf(stderr, " O: %08x", idx1->entries[i].dwChunkOffset);
-    fprintf(stderr, " L: %08x", idx1->entries[i].dwChunkLength);
-    fprintf(stderr, " T: %f\n", gavl_time_to_seconds(idx1->entries[i].time));
+    fprintf(stderr, " L: %08x\n", idx1->entries[i].dwChunkLength);
     }
   }
 #endif
@@ -669,10 +666,9 @@ typedef struct
   avih_t avih;
   idx1_t idx1;
   int has_idx1;
-  int has_idx1_timestamps; /* True if the timestamps are already calculated */
   int64_t movi_start;
   uint32_t movi_size;
-  uint32_t index_position;
+
   int do_seek; /* Are wee seeking? */
 
   odml_t odml;
@@ -683,7 +679,6 @@ typedef struct
 typedef struct
   {
   strh_t strh;
-  uint32_t index_position;
   int vbr;
   int64_t total_bytes;
   int64_t total_blocks;
@@ -695,7 +690,6 @@ typedef struct
 typedef struct
   {
   strh_t strh;
-  uint32_t index_position;
   int64_t total_frames;
 
   indx_t indx;
@@ -796,7 +790,9 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
         break;
       }
     }
-  bg_as->stream_id = (ctx->tt->current_track->num_audio_streams + ctx->tt->current_track->num_video_streams) - 1;
+  bg_as->stream_id =
+    (ctx->tt->current_track->num_audio_streams + ctx->tt->current_track->num_video_streams) - 1;
+  bg_as->timescale = bg_as->data.audio.format.samplerate;
   return 1;
   }
 
@@ -822,7 +818,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
   memcpy(&(avi_vs->strh), strh, sizeof(*strh));
   
   bg_vs->priv = avi_vs;
-
+  
   //  fprintf(stderr, "Init video stream\n");
 
   while(keep_going)
@@ -914,6 +910,9 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
     bg_vs->data.video.format.timescale = 25;
     bg_vs->data.video.format.frame_duration = 1;
     }
+
+  bg_vs->timescale = bg_vs->data.video.format.timescale;
+    
   bg_vs->stream_id = (ctx->tt->current_track->num_audio_streams + ctx->tt->current_track->num_video_streams) - 1;
   return 1;
   }
@@ -936,25 +935,27 @@ static int get_stream_id(uint32_t fourcc)
   return ret;  
   }
 
-
 /*
  *  Calculate the timestamp field of each chunk in the index
  */
 
-static void idx1_calculate_timestamps(bgav_demuxer_context_t * ctx)
+static void idx1_build_superindex(bgav_demuxer_context_t * ctx)
   {
-  uint32_t i, j;
+  uint32_t i;
   int stream_id;
   audio_priv_t * avi_as;
   video_priv_t * avi_vs;
   bgav_stream_t * stream;
   avi_priv * avi;
   int samplerate;
+  int64_t time;
+  int64_t base_offset;
+  
   avi = (avi_priv*)(ctx->priv);
-  if(avi->has_idx1_timestamps)
-    return;
-
+  
   //  fprintf(stderr, "Getting index timestamps\n");
+
+  /* Reset timestamps */
   
   for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
     {
@@ -968,31 +969,19 @@ static void idx1_calculate_timestamps(bgav_demuxer_context_t * ctx)
     avi_vs = (video_priv_t*)(ctx->tt->current_track->video_streams[i].priv);
     avi_vs->total_frames = 0;
     }
+
+  ctx->si = bgav_superindex_create(avi->idx1.num_entries);
+
+  if(avi->idx1.entries[0].dwChunkOffset == 4)
+    base_offset = 4 + avi->movi_start;
+  else
+    base_offset = 4; /* For invalid files, which have the index relative to file start */
   
   for(i = 0; i < avi->idx1.num_entries; i++)
     {
     stream_id = get_stream_id(avi->idx1.entries[i].ckid);
-    stream = (bgav_stream_t *)0;
-    for(j = 0; j < ctx->tt->current_track->num_audio_streams; j++)
-      {
-      if(ctx->tt->current_track->audio_streams[j].stream_id == stream_id)
-        {
-        stream = &(ctx->tt->current_track->audio_streams[j]);
-        break;
-        }
-      }
-    if(!stream)
-      {
-      for(j = 0; j < ctx->tt->current_track->num_video_streams; j++)
-        {
-        if(ctx->tt->current_track->video_streams[j].stream_id == stream_id)
-          {
-          stream = &(ctx->tt->current_track->video_streams[j]);
-          break;
-          }
-        }
-      }
-  
+
+    stream = bgav_track_find_stream_all(ctx->tt->current_track, stream_id);
     if(!stream) /* Stream not used */
       continue;
 
@@ -1006,9 +995,8 @@ static void idx1_calculate_timestamps(bgav_demuxer_context_t * ctx)
       if ((avi_as->strh.dwSampleSize == 0) && (avi_as->strh.dwScale > 1))
         {
         /* variable bitrate */
-        avi->idx1.entries[i].time =
-          (samplerate * (gavl_time_t)avi_as->total_blocks *
-           (gavl_time_t)avi_as->strh.dwScale) / avi_as->strh.dwRate;
+        time = (samplerate * (gavl_time_t)avi_as->total_blocks *
+                (gavl_time_t)avi_as->strh.dwScale) / avi_as->strh.dwRate;
         }
       else
         {
@@ -1017,46 +1005,66 @@ static void idx1_calculate_timestamps(bgav_demuxer_context_t * ctx)
         //                at->wavex->nBlockAlign, at->dwSampleSize);
         if(stream->data.audio.block_align)
           {
-          avi->idx1.entries[i].time =
+          time =
             ((gavl_time_t)avi_as->total_bytes * (gavl_time_t)avi_as->strh.dwScale *
              samplerate) /
             (stream->data.audio.block_align * avi_as->strh.dwRate);
           }
         else
           {
-          avi->idx1.entries[i].time =
+          time =
             (samplerate * (gavl_time_t)avi_as->total_bytes *
              (gavl_time_t)avi_as->strh.dwScale) /
             (avi_as->strh.dwSampleSize * avi_as->strh.dwRate);
           }
         }
+
+      bgav_superindex_add_packet(ctx->si,
+                                 stream,
+                                 avi->idx1.entries[i].dwChunkOffset + base_offset,
+                                 avi->idx1.entries[i].dwChunkLength,
+                                 stream_id,
+                                 time,
+                                 1);
       
       /* Increase block count */
             
       if(stream->data.audio.block_align)
         {
-        avi_as->total_blocks += (avi->idx1.entries[i].dwChunkLength + stream->data.audio.block_align - 1)
+        avi_as->total_blocks +=
+          (avi->idx1.entries[i].dwChunkLength + stream->data.audio.block_align - 1)
           / stream->data.audio.block_align;
         }
       else
         {
-        avi_as->total_blocks += 1;
+        avi_as->total_blocks++;
         }
       avi_as->total_bytes += avi->idx1.entries[i].dwChunkLength;
       }
     else if(stream->type == BGAV_STREAM_VIDEO)
       {
       avi_vs = (video_priv_t*)(stream->priv);
-      avi->idx1.entries[i].time = stream->data.video.format.frame_duration *
+      time = stream->data.video.format.frame_duration *
         avi_vs->total_frames;
+      
+      bgav_superindex_add_packet(ctx->si,
+                                 stream,
+                                 avi->idx1.entries[i].dwChunkOffset + base_offset,
+                                 avi->idx1.entries[i].dwChunkLength,
+                                 stream_id,
+                                 time,
+                                 !!(avi->idx1.entries[i].dwFlags & AVI_KEYFRAME));
+
+
+
       avi_vs->total_frames++;
       }
     }
-  avi->has_idx1_timestamps = 1;
   }
 
+#if 0 /* Obsolete */
 /* Fix offsets (yes, some files have the index offset relative to the file start,
-   indstead of relative to the movi atom */
+   instead of relative to the movi atom) */
 
 static void idx1_fix_offsets(bgav_demuxer_context_t * ctx)
   {
@@ -1071,7 +1079,7 @@ static void idx1_fix_offsets(bgav_demuxer_context_t * ctx)
   for(i = 0; i < avi->idx1.num_entries; i++)
     avi->idx1.entries[i].dwChunkOffset -= err;
   }
-
+#endif
 
 static int open_avi(bgav_demuxer_context_t * ctx,
                     bgav_redirector_context_t ** redir)
@@ -1217,7 +1225,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
     if(ctx->input->total_bytes)
       p->movi_size = ctx->input->total_bytes - p->movi_start;
     }
-  //  fprintf(stderr, "Reached MOVI atom start: %lld size: %d\n", p->movi_start, p->movi_size);
+  fprintf(stderr, "Reached MOVI atom start: %lld size: %d\n", p->movi_start, p->movi_size);
   //  bgav_dump_fourcc(fourcc);
   if((p->avih.dwFlags & AVI_HASINDEX) && (ctx->input->input->seek_byte))
     {
@@ -1227,11 +1235,8 @@ static int open_avi(bgav_demuxer_context_t * ctx,
       {
       p->has_idx1 = 1;
       ctx->can_seek = 1;
-      idx1_calculate_timestamps(ctx);
-      idx1_fix_offsets(ctx);
-      //      dump_idx1(&(p->idx1));
-      //      fprintf(stderr, "Found standard index\n");
-      
+      //      idx1_calculate_timestamps(ctx);
+      //      idx1_fix_offsets(ctx);
 #ifdef ENABLE_DUMP
       dump_idx1(&(p->idx1));
 #endif
@@ -1255,6 +1260,13 @@ static int open_avi(bgav_demuxer_context_t * ctx,
                           ctx->tt->current_track->video_streams[0].data.video.format.frame_duration,
                           p->avih.dwTotalFrames);
     
+    }
+
+  /* Check, which index to build */
+
+  if(p->has_idx1)
+    {
+    idx1_build_superindex(ctx);
     }
 
   if(!ctx->tt->current_track->duration)
@@ -1312,7 +1324,6 @@ static void close_avi(bgav_demuxer_context_t * ctx)
   free(priv);
   }
 
-
 static int next_packet_avi(bgav_demuxer_context_t * ctx)
   {
   chunk_header_t ch;
@@ -1325,64 +1336,26 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
       
   if(ctx->input->position + 8 >= priv->movi_start + priv->movi_size)
     return 0;
-
-  //  fprintf(stderr, "Position: %lld\n", ctx->input->position);
-
-  /* Sometimes, there are unknown entries in the index, we skip them here */
-  if(priv->has_idx1)
+  
+  while(!s)
     {
-    if(priv->index_position >= priv->idx1.num_entries)
-      {
-      //      fprintf(stderr, "AVI EOF\n");
+    if(!read_chunk_header(ctx->input, &ch))
       return 0;
-      }
-
-    while(!s)
-      {
-      stream_id = get_stream_id(priv->idx1.entries[priv->index_position].ckid);
-      s = bgav_track_find_stream(ctx->tt->current_track, stream_id);
-      
-      if(!s)
-        priv->index_position++;
-
-//      fprintf(stderr, "%d %d\n", priv->index_position, priv->idx1.num_entries);
-      
-      }
-    ch.ckID   = priv->idx1.entries[priv->index_position].ckid;
-    ch.ckSize = priv->idx1.entries[priv->index_position].dwChunkLength;
-    //    fprintf(stderr, "Stream ID: %d, stream: %p length: %d\n", stream_id, s,
-    //            ch.ckSize);
-
-    /* Skip to the Chunk header */
     
-    bgav_input_skip(ctx->input,
-                    priv->movi_start +
-                    priv->idx1.entries[priv->index_position].dwChunkOffset + 4 -
-                    ctx->input->position);
-    //    fprintf(stderr, "Position: %x\n", priv->idx1.entries[priv->index_position].dwChunkOffset);
-
-    }
-  else /* No index present */
-    {
-    while(!s)
+    if(ch.ckID == BGAV_MK_FOURCC('L','I','S','T'))
       {
-      if(!read_chunk_header(ctx->input, &ch))
-        return 0;
-      
-      if(ch.ckID == BGAV_MK_FOURCC('L','I','S','T'))
-        {
-        //    fprintf(stderr, "Got list chunk\n");
-        bgav_input_read_fourcc(ctx->input, &fourcc);
-        //    bgav_dump_fourcc(fourcc);
-        //    fprintf(stderr, "\n");
-        }
-      else
-        {
-        stream_id = get_stream_id(ch.ckID);
-        s = bgav_track_find_stream(ctx->tt->current_track, stream_id);
-        }
+      fprintf(stderr, "Got list chunk\n");
+      bgav_input_read_fourcc(ctx->input, &fourcc);
+      bgav_dump_fourcc(fourcc);
+      fprintf(stderr, "\n");
+      }
+    else
+      {
+      stream_id = get_stream_id(ch.ckID);
+      s = bgav_track_find_stream(ctx->tt->current_track, stream_id);
       }
     }
+
   /*
     fprintf(stderr, "Position: %lld, index position: %d\n",
     ctx->input->position - priv->movi_start,
@@ -1395,21 +1368,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
 #ifdef ENABLE_DUMP
   dump_chunk_header(&ch);
 #endif
-  /* Skip ignored streams */
-
-  if(priv->do_seek)
-    {
-    if(((s->type == BGAV_STREAM_AUDIO) &&
-        (((audio_priv_t*)(s->priv))->index_position > priv->index_position)) ||
-       ((s->type == BGAV_STREAM_VIDEO) &&
-        (((video_priv_t*)(s->priv))->index_position > priv->index_position)))
-      {
-      bgav_input_skip(ctx->input, PADD(ch.ckSize));
-      priv->index_position++;
-      return 1;
-      }
-    }
-
+  
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
   
   bgav_packet_alloc(p, PADD(ch.ckSize));
@@ -1418,32 +1377,17 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
     return 0;
   p->data_size = ch.ckSize;
 
-  if(priv->has_idx1_timestamps)
-    {
-    p->timestamp_scaled = priv->idx1.entries[priv->index_position].time;
-    if(s->type == BGAV_STREAM_AUDIO)
-      {
-      p->timestamp = (p->timestamp_scaled * GAVL_TIME_SCALE) /
-        s->data.audio.format.samplerate;
-      }
-    else if(s->type == BGAV_STREAM_VIDEO)
-      {
-      p->timestamp = (p->timestamp_scaled * GAVL_TIME_SCALE) /
-        s->data.video.format.timescale;
-      }
-    p->keyframe  = !!(priv->idx1.entries[priv->index_position].dwFlags & AVI_KEYFRAME);
-    }
   bgav_packet_done_write(p);
     
   //  fprintf(stderr, " Stream ID %d\n", stream_id);
   if(ch.ckSize & 1)
     bgav_input_skip(ctx->input, 1);
-  priv->index_position++;
   return 1;
   }
 
 static void seek_avi(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
+#if 0
   int i, j;
   uint32_t chunk_min;
   uint32_t chunk_max;
@@ -1610,6 +1554,7 @@ static void seek_avi(bgav_demuxer_context_t * ctx, gavl_time_t time)
     next_packet_avi(ctx);
     }
   avi->do_seek = 0;
+#endif
   }
 
 

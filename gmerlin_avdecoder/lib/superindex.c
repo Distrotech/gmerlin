@@ -48,6 +48,7 @@ void bgav_superindex_destroy(bgav_superindex_t * idx)
 void bgav_superindex_add_packet(bgav_superindex_t * idx,
                                 bgav_stream_t * s,
                                 int64_t offset,
+                                uint32_t size,
                                 int stream_id,
                                 int64_t timestamp,
                                 int keyframe)
@@ -62,11 +63,14 @@ void bgav_superindex_add_packet(bgav_superindex_t * idx,
     memset(idx->entries + idx->num_entries, 0,
            NUM_ALLOC * sizeof(*idx->entries));
     }
+  /* Set fields */
   idx->entries[idx->num_entries].offset    = offset;
+  idx->entries[idx->num_entries].size      = size;
   idx->entries[idx->num_entries].stream_id = stream_id;
   idx->entries[idx->num_entries].time = timestamp;
   idx->entries[idx->num_entries].keyframe  = keyframe;
 
+  /* Update indices */
   if(s)
     {
     if(s->first_index_position > idx->num_entries)
@@ -96,8 +100,26 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
        (idx->entries[i].time < time_scaled))
       {
       s->index_position = i;
+      s->time_scaled = idx->entries[i].time;
+      s->time = (s->time_scaled * GAVL_TIME_SCALE)/s->timescale;
       break;
       }
     i--;
     }
   }
+
+void bgav_superindex_dump(bgav_superindex_t * idx)
+  {
+  int i;
+  fprintf(stderr, "superindex %d entries:\n", idx->num_entries);
+  for(i = 0; i < idx->num_entries; i++)
+    {
+    fprintf(stderr, "  ID: %d O: %lld T: %lld S: %d\n", 
+            idx->entries[i].stream_id,
+            idx->entries[i].offset,
+            idx->entries[i].time,
+            idx->entries[i].size);
+    }
+  }
+
+  

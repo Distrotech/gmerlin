@@ -543,10 +543,13 @@ typedef struct
   {
   int num_entries;
   int entries_alloc;
+
+  int current_position;
+  
   struct
     {
     int64_t offset;
-    int32_t size;
+    uint32_t size;
     int stream_id;
     int keyframe;
     int64_t time; /* Time is scaled with the timescale of the stream */
@@ -561,6 +564,7 @@ void bgav_superindex_destroy(bgav_superindex_t *);
 void bgav_superindex_add_packet(bgav_superindex_t * idx,
                                 bgav_stream_t * s,
                                 int64_t offset,
+                                uint32_t size,
                                 int stream_id,
                                 int64_t timestamp,
                                 int keyframe);
@@ -568,6 +572,8 @@ void bgav_superindex_add_packet(bgav_superindex_t * idx,
 void bgav_superindex_seek(bgav_superindex_t * idx,
                           bgav_stream_t * s,
                           gavl_time_t time);
+
+void bgav_superindex_dump(bgav_superindex_t * idx);
 
 /* Demuxer class */
 
@@ -602,9 +608,20 @@ struct bgav_demuxer_context_s
   
   bgav_track_table_t * tt;
   char * stream_description;
-     
+  
   int can_seek;
 
+  /*
+   *  If demuxer creates a suprtindex, generic get_packet() and
+   *  seek() functions will be used
+   */
+
+  bgav_superindex_t * si;
+  int seeking;
+  int non_interleaved;
+    
+  /* Callbacks */
+  
   void (*name_change_callback)(void * data, const char * name);
   void * name_change_callback_data;
 

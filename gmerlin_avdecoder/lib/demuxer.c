@@ -175,15 +175,85 @@ void bgav_demuxer_destroy(bgav_demuxer_context_t * ctx)
   ctx->demuxer->close(ctx);
   if(ctx->tt)
     bgav_track_table_unref(ctx->tt);
+
+  if(ctx->si)
+    bgav_superindex_destroy(ctx->si);
+
   FREE(ctx->stream_description);
   free(ctx);
   }
 
+static void check_interleave(bgav_demuxer_context_t * ctx)
+  {
+  bgav_stream_t * s1;
+  bgav_stream_t * s2;
+  int i;
+  
+  if(ctx->tt->current_track->num_audio_streams + ctx->tt->current_track->num_video_streams <= 1)
+    {
+    return; /* Only one stream */
+    }
+  
+  if(ctx->tt->current_track->num_audio_streams && ctx->tt->current_track->num_video_streams)
+    {
+    s1 = &(ctx->tt->current_track->audio_streams[0]);
+    s2 = &(ctx->tt->current_track->video_streams[0]);
+    }
+  else if(ctx->tt->current_track->num_audio_streams)
+    {
+    s1 = &(ctx->tt->current_track->audio_streams[0]);
+    s1 = &(ctx->tt->current_track->audio_streams[1]);
+    }
+  else 
+    {
+    s1 = &(ctx->tt->current_track->video_streams[0]);
+    s1 = &(ctx->tt->current_track->video_streams[1]);
+    }
+
+  if((s1->last_index_position < s2->first_index_position) ||
+     (s2->last_index_position < s1->first_index_position))
+    {
+    ctx->non_interleaved = 1;
+
+    /* Adjust index positions for the streams */
+
+    for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
+      {
+      s1 = &(ctx->tt->current_track->audio_streams[i]);
+      s1->index_position = s1->first_index_position;
+      }
+    for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
+      {
+      s1 = &(ctx->tt->current_track->video_streams[i]);
+      s1->index_position = s1->first_index_position;
+      }
+    }
+  }
 
 int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
                        bgav_redirector_context_t ** redir)
   {
-  return ctx->demuxer->open(ctx, redir);
+  if(!ctx->demuxer->open(ctx, redir))
+    return 0;
+  
+  if(ctx->si)
+    {
+    check_interleave(ctx);
+
+    //    bgav_superindex_dump(ctx->si);
+
+    if(ctx->non_interleaved)
+      {
+      fprintf(stderr, "Non interleaved\n");
+      
+      if(!ctx->input->input->seek_byte)
+        {
+        fprintf(stderr, "Non interleaved file from non seekable source\n");
+        return 0;
+        }
+      }
+    }
+  return 1;
   }
 
 void bgav_demuxer_stop(bgav_demuxer_context_t * ctx)
@@ -192,6 +262,168 @@ void bgav_demuxer_stop(bgav_demuxer_context_t * ctx)
   ctx->priv = NULL;
   FREE(ctx->stream_description);
   }
+
+static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
+  {
+  bgav_stream_t * stream;
+  bgav_packet_t * p;
+
+  fprintf(stderr, "next_packet_interleaved\n");
+  
+  if(ctx->si->current_position >= ctx->si->num_entries)
+    {
+    //    fprintf(stderr, "EOF %d %d\n", priv->current_packet, priv->num_packets);
+    return 0;
+    }
+
+  if(ctx->input->position >= ctx->si->entries[ctx->si->num_entries - 1].offset +
+     ctx->si->entries[ctx->si->num_entries - 1].size)
+    {
+    return 0;
+    }
+  stream =
+    bgav_track_find_stream(ctx->tt->current_track,
+                           ctx->si->entries[ctx->si->current_position].stream_id);
+  
+  if(!stream) /* Skip unused stream */
+    {
+    //    fprintf(stderr, "Skipping %d bytes of unused stream Nr %d\n",
+    //            priv->packet_table[priv->current_packet].size,
+    //            priv->packet_table[priv->current_packet].stream_id);
+    bgav_input_skip(ctx->input, ctx->si->entries[ctx->si->current_position].size);
+    ctx->si->current_position++;
+    return 1;
+    }
+  
+  if(ctx->seeking && (stream->index_position > ctx->si->current_position))
+    {
+    bgav_input_skip(ctx->input,
+                    ctx->si->entries[ctx->si->current_position].size);
+    ctx->si->current_position++;
+    return 1;
+    }
+
+  /* Skip until this packet */
+
+  if(ctx->si->entries[ctx->si->current_position].offset > ctx->input->position)
+    {
+    bgav_input_skip(ctx->input, ctx->si->entries[ctx->si->current_position].offset - ctx->input->position);
+    }
+
+  p = bgav_packet_buffer_get_packet_write(stream->packet_buffer);
+  bgav_packet_alloc(p, ctx->si->entries[ctx->si->current_position].size);
+  p->data_size = ctx->si->entries[ctx->si->current_position].size;
+
+  fprintf(stderr, "size: %d\n", p->data_size);
+  
+  p->timestamp_scaled = ctx->si->entries[ctx->si->current_position].time;
+  p->timestamp = (p->timestamp_scaled * GAVL_TIME_SCALE) / stream->timescale;
+  
+  if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
+    return 0;
+  bgav_packet_done_write(p);
+  
+  //  fprintf(stderr, "Current chunk: %d\n", priv->current_packet);
+  ctx->si->current_position++;
+  return 1;
+  }
+
+static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
+  {
+  int i;
+  bgav_stream_t * stream = (bgav_stream_t*)0;
+  bgav_stream_t * test_stream;
+  bgav_packet_t * p;
+  
+  //  fprintf(stderr, "next_packet_quicktime_noninterleaved\n");
+  
+  /* We read data for the first stream with an empty packet buffer */
+
+  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
+    {
+    test_stream = &(ctx->tt->current_track->audio_streams[i]);
+#if 0
+    fprintf(stderr, "A: %d %d %d\n",
+            bgav_packet_buffer_is_empty(test_stream->packet_buffer),
+            stream_priv->index_position, stream_priv->last_index_position);
+#endif
+    if((test_stream->action != BGAV_STREAM_MUTE) &&
+       bgav_packet_buffer_is_empty(test_stream->packet_buffer) &&
+       (test_stream->index_position <= test_stream->last_index_position))
+      {
+      stream = test_stream;
+      break;
+      }
+    }
+  if(!stream)
+    {
+    for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
+      {
+      test_stream = &(ctx->tt->current_track->video_streams[i]);
+#if 0
+      fprintf(stderr, "V: %d %d %d\n",
+            bgav_packet_buffer_is_empty(test_stream->packet_buffer),
+            stream_priv->index_position, stream_priv->last_index_position);
+#endif
+      if((test_stream->action != BGAV_STREAM_MUTE) &&
+         bgav_packet_buffer_is_empty(test_stream->packet_buffer) &&
+         (test_stream->index_position <= test_stream->last_index_position))
+        {
+        stream = test_stream;
+        break;
+        }
+      }
+    }
+
+  if(!stream)
+    {
+    //    fprintf(stderr, "EOF\n");
+    return 0;
+    }
+
+  while(ctx->si->entries[stream->index_position].stream_id != stream->stream_id)
+    {
+    stream->index_position++;
+    }
+  
+  bgav_input_seek(ctx->input,
+                  ctx->si->entries[stream->index_position].offset,
+                  SEEK_SET);
+  
+  p = bgav_packet_buffer_get_packet_write(stream->packet_buffer);
+  p->data_size = ctx->si->entries[stream->index_position].size;
+  bgav_packet_alloc(p, p->data_size);
+  
+  p->timestamp_scaled = ctx->si->entries[stream->index_position].time;
+  
+  p->timestamp = (p->timestamp_scaled * GAVL_TIME_SCALE) / stream->timescale;
+  
+  if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
+    return 0;
+  bgav_packet_done_write(p);
+  
+  //  fprintf(stderr, "Current chunk: %d\n", stream_priv->index_position);
+  stream->index_position++;
+  return 1;
+
+  
+  }
+
+static int demuxer_next_packet(bgav_demuxer_context_t * demuxer)
+  {
+  if(demuxer->si) /* Superindex present */
+    {
+    if(demuxer->non_interleaved)
+      return next_packet_noninterleaved(demuxer);
+    else
+      return next_packet_interleaved(demuxer);
+    }
+  else
+    {
+    return demuxer->demuxer->next_packet(demuxer);
+    }
+  }
+
 
 bgav_packet_t *
 bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
@@ -202,7 +434,7 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
     return (bgav_packet_t*)0;
   while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer)))
     {
-    if(!demuxer->demuxer->next_packet(demuxer))
+    if(!demuxer_next_packet(demuxer))
       return (bgav_packet_t*)0;
     }
   return ret;
@@ -213,6 +445,73 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
                               bgav_packet_t * p)
   {
   p->valid = 0;
+  }
+
+/* Seek functions with superindex */
+
+static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
+  {
+  uint32_t i, j;
+  uint32_t start_packet;
+  uint32_t end_packet;
+  bgav_track_t * track;
+  
+  //  fprintf(stderr, "Seek quicktime %f %lld\n", gavl_time_to_seconds(time), time);
+  track = ctx->tt->current_track;
+  
+  /* Set the packet indices of the streams to -1 */
+  for(j = 0; j < track->num_audio_streams; j++)
+    {
+    track->audio_streams[j].index_position = -1;
+    }
+  for(j = 0; j < track->num_video_streams; j++)
+    {
+    track->video_streams[j].index_position = -1;
+    }
+    
+  /* Seek the start chunks indices of all streams */
+  
+  for(j = 0; j < track->num_audio_streams; j++)
+    {
+    bgav_superindex_seek(ctx->si, &(track->audio_streams[j]), time);
+    }
+  for(j = 0; j < track->num_video_streams; j++)
+    {
+    bgav_superindex_seek(ctx->si, &(track->video_streams[j]), time);
+    }
+
+  /* Find the start and end packet */
+
+  if(!ctx->non_interleaved)
+    {
+    start_packet = ~0x0;
+    end_packet   = 0x0;
+    
+    for(j = 0; j < track->num_audio_streams; j++)
+      {
+      if(start_packet > track->audio_streams[j].index_position)
+        start_packet = track->audio_streams[j].index_position;
+      if(end_packet < track->audio_streams[j].index_position)
+        end_packet = track->audio_streams[j].index_position;
+      }
+    for(j = 0; j < track->num_video_streams; j++)
+      {
+      if(start_packet > track->video_streams[j].index_position)
+        start_packet = track->video_streams[j].index_position;
+      if(end_packet < track->video_streams[j].index_position)
+        end_packet = track->video_streams[j].index_position;
+      }
+
+    /* Do the seek */
+    ctx->si->current_position = start_packet;
+    bgav_input_seek(ctx->input, ctx->si->entries[ctx->si->current_position].offset,
+                    SEEK_SET);
+
+    ctx->seeking = 1;
+    for(i = start_packet; i <= end_packet; i++)
+      next_packet_interleaved(ctx);
+    ctx->seeking = 0;
+    }
   }
 
 /* Maximum allowed seek tolerance, decrease if you want it more exact */
@@ -249,7 +548,11 @@ bgav_seek(bgav_t * b, gavl_time_t time)
     
     /* Second step: Let the demuxer seek */
     /* This will set the "time" members of all streams */
-    b->demuxer->demuxer->seek(b->demuxer, seek_time);
+
+    if(b->demuxer->si)
+      seek_si(b->demuxer, seek_time);
+    else
+      b->demuxer->demuxer->seek(b->demuxer, seek_time);
     sync_time = bgav_track_resync_decoders(track);
     if(sync_time == GAVL_TIME_UNDEFINED)
       return;
@@ -275,7 +578,10 @@ bgav_seek(bgav_t * b, gavl_time_t time)
           {
           if(last_sync_time != sync_time)
             {
-            b->demuxer->demuxer->seek(b->demuxer, seek_time);
+            if(b->demuxer->si)
+              seek_si(b->demuxer, seek_time);
+            else
+              b->demuxer->demuxer->seek(b->demuxer, seek_time);
             sync_time = bgav_track_resync_decoders(track);
             }
           }
