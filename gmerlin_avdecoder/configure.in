@@ -419,9 +419,13 @@ fi
 
 if test "x$enable_realdll" = "xtrue"; then
 AC_DEFINE([HAVE_REALDLL])
+REALDLL_LIBS="-ldl"
+else
+REALDLL_LIBS=""
 fi
 
 AM_CONDITIONAL(HAVE_REALDLL, test x"$enable_realdll" = "xtrue")
+AC_SUBST(REALDLL_LIBS)
 
 dnl
 dnl Real DLLs loader

@@ -100,8 +100,10 @@ endif
 
 if HAVE_REALDLL
 real_sources = audio_real.c video_real.c
+real_libs = @REALDLL_LIBS@
 else
 real_sources =
+real_libs =
 endif
 
 if HAVE_XADLL
@@ -129,6 +131,7 @@ $(flac_libs) \
 $(mad_libs) \
 $(a52_libs) \
 $(avcodec_libs) \
+$(real_libs) \
 -lm
 
 AM_CFLAGS = \
