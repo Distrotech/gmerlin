@@ -93,18 +93,6 @@ struct bg_player_s
   bg_track_info_t * track_info;
 
   /*
-   *  Formats are initialized at playback start
-   *  and must not be changed afterwards, since they are
-   *  used by the threads during playback
-   */
-    
-  //  gavl_audio_format_t audio_format_i;
-  //  gavl_audio_format_t audio_format_o;
-
-  //  gavl_video_format_t video_format_i;
-  //  gavl_video_format_t video_format_o;
-
-  /*
    *  Stream selection
    */
     
@@ -134,13 +122,15 @@ struct bg_player_s
 
   /* Stuff for synchronous stopping and starting of the playback */
 
-  pthread_cond_t start_cond;
+  pthread_cond_t  start_cond;
   pthread_mutex_t start_mutex;
 
-  pthread_cond_t stop_cond;
+  pthread_cond_t  stop_cond;
   pthread_mutex_t stop_mutex;
 
-  int waiting_plugin_threads;
+  int             waiting_plugin_threads;
+  pthread_mutex_t waiting_plugin_threads_mutex;
+  
   int total_plugin_threads;
     
   };

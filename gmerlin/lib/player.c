@@ -23,6 +23,28 @@
 #include "player.h"
 #include "playerprivate.h"
 
+static void wait_notify(bg_player_t * p)
+  {
+  pthread_mutex_lock(&p->stop_mutex);
+
+  pthread_mutex_lock(&(p->waiting_plugin_threads_mutex));
+  p->waiting_plugin_threads++;
+
+  if(p->waiting_plugin_threads == p->total_plugin_threads)
+    pthread_cond_broadcast(&(p->stop_cond));
+  
+  pthread_mutex_unlock(&p->stop_mutex);
+  
+  pthread_mutex_unlock(&(p->waiting_plugin_threads_mutex));
+  }
+
+static void wait_unnotify(bg_player_t * p)
+  {
+  pthread_mutex_lock(&(p->waiting_plugin_threads_mutex));
+  p->waiting_plugin_threads--;
+  pthread_mutex_unlock(&(p->waiting_plugin_threads_mutex));
+  }
+
 int bg_player_keep_going(bg_player_t * p)
   {
   int state = bg_player_get_state(p);
@@ -45,16 +67,13 @@ int bg_player_keep_going(bg_player_t * p)
 
       /* If we are the last thread to stop, tell the player
          to continue */
-      pthread_mutex_lock(&p->stop_mutex);
-      p->waiting_plugin_threads++;
-      if(p->waiting_plugin_threads == p->total_plugin_threads)
-        {
-        pthread_cond_broadcast(&(p->stop_cond));
-        }
-      pthread_mutex_unlock(&p->stop_mutex);
+
+      wait_notify(p);
 
       pthread_cond_wait(&(p->start_cond), &(p->start_mutex));
-      p->waiting_plugin_threads--;
+
+      wait_unnotify(p);
+      
       pthread_mutex_unlock(&(p->start_mutex));
       break;
     }
@@ -85,8 +104,14 @@ bg_player_t * bg_player_create()
   
   ret->message_queues = bg_msg_queue_list_create();
 
-  pthread_mutex_init(&(ret->state_mutex),(pthread_mutexattr_t *)0);
-    
+  pthread_mutex_init(&(ret->state_mutex), (pthread_mutexattr_t *)0);
+  pthread_mutex_init(&(ret->start_mutex), (pthread_mutexattr_t *)0);
+  pthread_mutex_init(&(ret->stop_mutex),  (pthread_mutexattr_t *)0);
+  pthread_mutex_init(&(ret->waiting_plugin_threads_mutex),
+                     (pthread_mutexattr_t *)0);
+
+  pthread_cond_init (&(ret->start_cond),  (pthread_condattr_t *)0);
+  pthread_cond_init (&(ret->stop_cond),   (pthread_condattr_t *)0);
   return ret;
   }
 

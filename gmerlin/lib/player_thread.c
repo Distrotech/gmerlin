@@ -139,10 +139,10 @@ static void interrupt_cmd(bg_player_t * p, int new_state)
     bg_fifo_set_state(p->audio_stream.fifo, BG_FIFO_PAUSED);
   if(p->do_video)
     bg_fifo_set_state(p->video_stream.fifo, BG_FIFO_PAUSED);
-
-  if(p->waiting_plugin_threads < p->total_plugin_threads)
-    pthread_cond_wait(&(p->stop_cond), &(p->stop_mutex));
-
+  
+  //  if(p->waiting_plugin_threads < p->total_plugin_threads)
+  pthread_cond_wait(&(p->stop_cond), &(p->stop_mutex));
+  
   pthread_mutex_unlock(&p->stop_mutex);
   bg_player_time_stop(p);
 
@@ -300,6 +300,8 @@ static void play_cmd(bg_player_t * p,
     
   /* Start playback */
   
+  pthread_mutex_lock(&(p->stop_mutex));
+  
   pthread_create(&(p->input_thread),
                  (pthread_attr_t*)0,
                  bg_player_input_thread, p->input_context);
@@ -314,10 +316,8 @@ static void play_cmd(bg_player_t * p,
                    (pthread_attr_t*)0,
                    bg_player_ov_thread, p->ov_context);
 
-  
-  pthread_mutex_lock(&(p->stop_mutex));
-  if(p->waiting_plugin_threads < p->total_plugin_threads)
-    pthread_cond_wait(&(p->stop_cond), &(p->stop_mutex));
+  //  if(p->waiting_plugin_threads < p->total_plugin_threads)
+  pthread_cond_wait(&(p->stop_cond), &(p->stop_mutex));
   pthread_mutex_unlock(&p->stop_mutex);
   
   bg_player_time_set(p, 0);
