@@ -71,5 +71,6 @@ noinst_HEADERS = \
 	winnt.h \
 	winreg.h \
 	winuser.h \
-	wrapper.h
+	wrapper.h \
+        compat.h
 

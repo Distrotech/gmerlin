@@ -68,8 +68,7 @@ bgav_stream_t * bgav_track_find_stream(bgav_track_t * t, int stream_id)
     {
     if(t->audio_streams[i].stream_id == stream_id)
       {
-      if((t->audio_streams[i].action != BGAV_STREAM_MUTE) &&
-         (t->audio_streams[i].action != BGAV_STREAM_UNSUPPORTED))
+      if(t->audio_streams[i].action != BGAV_STREAM_MUTE)
         return &(t->audio_streams[i]);
       return (bgav_stream_t *)0;
       }
@@ -78,8 +77,7 @@ bgav_stream_t * bgav_track_find_stream(bgav_track_t * t, int stream_id)
     {
     if(t->video_streams[i].stream_id == stream_id)
       {
-      if((t->video_streams[i].action != BGAV_STREAM_MUTE) &&
-         (t->video_streams[i].action != BGAV_STREAM_UNSUPPORTED))
+      if(t->video_streams[i].action != BGAV_STREAM_MUTE)
         return &(t->video_streams[i]);
       return (bgav_stream_t *)0;
       }
@@ -179,6 +177,49 @@ void bgav_track_free(bgav_track_t * t)
     }
   if(t->name)
     free(t->name);
+  }
+
+static void remove_stream(bgav_stream_t * stream_array, int index, int num)
+  {
+  fprintf(stderr, "Warning, unsupported stream:\n");
+  bgav_stream_dump(&(stream_array[index]));
+  bgav_stream_free(&(stream_array[index]));
+  if(index < num - 1)
+    {
+    memmove(&(stream_array[index]),
+            &(stream_array[index+1]),
+            sizeof(*stream_array) * (num - 1 - index));
+    }
+  }
+
+void bgav_track_remove_unsupported(bgav_track_t * track)
+  {
+  int i;
+  bgav_stream_t * s;
+
+  i = 0;
+  while(i < track->num_audio_streams)
+    {
+    s = &(track->audio_streams[i]);
+    if(!bgav_find_audio_decoder(s))
+      {
+      remove_stream(track->audio_streams, i, track->num_audio_streams);
+      track->num_audio_streams--;
+      }
+    else
+      i++;
+    }
+  while(i < track->num_video_streams)
+    {
+    s = &(track->video_streams[i]);
+    if(!bgav_find_video_decoder(s))
+      {
+      remove_stream(track->video_streams, i, track->num_video_streams);
+      track->num_video_streams--;
+      }
+    else
+      i++;
+    }
   }
 
 void bgav_track_clear(bgav_track_t * track)

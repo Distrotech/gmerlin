@@ -169,10 +169,6 @@ const bgav_metadata_t * bgav_get_metadata(bgav_t*,int track);
 
 void bgav_select_track(bgav_t *, int);
 
-/* Description of the current track */
-
-const char * bgav_get_description(bgav_t * b);
-
 /*
  * Get formats
  * NOTE: The returned formats aren't completely valid, because
@@ -194,6 +190,7 @@ const gavl_video_format_t * bgav_get_video_format(bgav_t*, int stream);
 
 const char * bgav_get_audio_description(bgav_t * b, int stream);
 const char * bgav_get_video_description(bgav_t * b, int stream);
+const char * bgav_get_description(bgav_t * b);
 
 /***************************************************
  * Stream handling functions
@@ -215,7 +212,6 @@ const char * bgav_get_video_description(bgav_t * b, int stream);
 #define BGAV_STREAM_MUTE         0
 #define BGAV_STREAM_SYNC         1
 #define BGAV_STREAM_DECODE       2
-#define BGAV_STREAM_UNSUPPORTED  3
 
 int bgav_set_audio_stream(bgav_t*, int stream, int action);
 int bgav_set_video_stream(bgav_t*, int stream, int action);
@@ -228,7 +224,6 @@ int bgav_set_video_stream(bgav_t*, int stream, int action);
 
 void bgav_start(bgav_t *);
 
-
 /***************************************************
  * Decoding functions
  ***************************************************/
@@ -238,7 +233,7 @@ int bgav_read_audio(bgav_t *, gavl_audio_frame_t * frame, int stream,
                     int num_samples);
 
 /***************************************************
- * Seek to a timestanmp. This also resyncs all streams
+ * Seek to a timestamp. This also resyncs all streams
  ***************************************************/
 
 void bgav_seek(bgav_t *, gavl_time_t);

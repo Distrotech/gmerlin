@@ -109,7 +109,6 @@ int main(int argc, char ** argv)
     for(i = 0; i < num_audio_streams; i++)
       {
       audio_format_c = bgav_get_audio_format(file, i);
-
       gavl_audio_format_copy(&audio_format, audio_format_c);
       audio_format.samples_per_frame = 1024;
       af = gavl_audio_frame_create(&audio_format);
@@ -120,6 +119,7 @@ int main(int argc, char ** argv)
         fprintf(stderr, "Failed\n");
       gavl_audio_frame_destroy(af);
       }
+    
     for(i = 0; i < num_video_streams; i++)
       {
       video_format = bgav_get_video_format(file, i);
@@ -133,7 +133,6 @@ int main(int argc, char ** argv)
 #endif
       gavl_video_frame_destroy(vf);
       }
-    
     }
     
 

@@ -87,7 +87,6 @@ int bgav_init(bgav_t * ret)
    *  If the input already has it's track table,
    *  we can stop here
    */
-  
   if(ret->input->tt)
     {
     ret->tt = ret->input->tt;
@@ -97,14 +96,14 @@ int bgav_init(bgav_t * ret)
 
     if(ret->demuxer)
       ret->demuxer->tt = ret->input->tt;
-
-    
+   
     if(ret->tt->num_tracks > 1)
       return 1;
     
     }
-  
-  
+  /*
+   *  Autodetect the format and fire up the demuxer
+   */
   if(!ret->input->demuxer)
     {
     if(bgav_id3v2_probe(ret->input))
@@ -141,6 +140,8 @@ int bgav_init(bgav_t * ret)
   ret->tt = ret->demuxer->tt;
   bgav_track_table_ref(ret->tt);
 
+  bgav_track_table_remove_unsupported(ret->tt);
+  
   bgav_track_table_merge_metadata(ret->tt,
                                   &(ret->input->metadata));
   

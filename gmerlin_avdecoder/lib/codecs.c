@@ -195,7 +195,7 @@ void bgav_codecs_init()
 
 #ifdef HAVE_W32DLL
   bgav_init_video_decoders_win32();
-  //  bgav_init_audio_decoders_win32();
+  bgav_init_audio_decoders_win32();
   bgav_init_audio_decoders_qtwin32();
 #endif
 

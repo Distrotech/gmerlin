@@ -147,7 +147,11 @@ static int decode_faad2(bgav_stream_t * s, gavl_audio_frame_t * f,
     {
     if(!priv->frame->valid_samples)
       if(!decode_frame(s))
+        {
+        if(f)
+          f->valid_samples = samples_decoded;
         return samples_decoded;
+        }
     samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
                                            f,
                                            priv->frame,

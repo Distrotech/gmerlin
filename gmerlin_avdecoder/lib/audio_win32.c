@@ -47,6 +47,7 @@
 
 #include "libw32dll/libwin32.h"
 
+#define SAMPLES_PER_FRAME 1024
 
 /* Ported from xine */
 
@@ -105,11 +106,26 @@ typedef struct
   DS_AudioDecoder    * ds_dec;
   DMO_AudioDecoder   * dmo_dec;
 
+  int bytes_per_sample;
+  
+  int src_size;
+  int dst_size;
+
+  uint8_t * buffer;
+  int buffer_size;
+  int buffer_alloc;
+
+  int last_frame_size;
+
+  /* Decode function */
+
+  int (*decode_frame)(bgav_stream_t*);
   
   } win32_priv_t;
 
 static void pack_wf(WAVEFORMATEX * dst, bgav_WAVEFORMATEX * src)
   {
+  memset(dst, 0, sizeof(*dst));
   dst->nChannels       = src->nChannels;
   dst->nSamplesPerSec  = src->nSamplesPerSec;
   dst->nAvgBytesPerSec = src->nAvgBytesPerSec;
@@ -118,7 +134,94 @@ static void pack_wf(WAVEFORMATEX * dst, bgav_WAVEFORMATEX * src)
   dst->cbSize          = src->cbSize;
   dst->wBitsPerSample  = src->wBitsPerSample;
   }
+#if 0
+static void dump_wf(WAVEFORMATEX * wf)
+  {
+  fprintf(stderr, "WAVEFORMATEX:\n");
+  fprintf(stderr, "nChannels:      %d\n", wf->nChannels);
+  fprintf(stderr, "nSamplesPerSec  %d\n", (int)wf->nSamplesPerSec);
+  fprintf(stderr, "nAvgBytesPerSec %d\n", (int)wf->nAvgBytesPerSec);
+  fprintf(stderr, "nBlockAlign     %d\n", wf->nBlockAlign);
+  fprintf(stderr, "wFormatTag      %04x\n", wf->wFormatTag);
+  fprintf(stderr, "cbSize          %d\n", wf->cbSize);
+  fprintf(stderr, "wBitsPerSample  %d\n", wf->wBitsPerSample);
+  }
+#endif
+/* Get one packet worth of data */
 
+static int get_data(bgav_stream_t * s)
+  {
+  win32_priv_t * priv;
+  bgav_packet_t * p;
+  
+  priv = (win32_priv_t*)(s->data.audio.decoder->priv);
+
+  p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  if(!p)
+    return 0;
+
+  if(priv->buffer_alloc < priv->buffer_size + p->data_size)
+    {
+    priv->buffer_alloc = priv->buffer_size + p->data_size + 32;
+    priv->buffer = realloc(priv->buffer, priv->buffer_alloc);
+    }
+
+  memcpy(priv->buffer + priv->buffer_size, p->data, p->data_size);
+  priv->buffer_size += p->data_size;
+  bgav_demuxer_done_packet_read(s->demuxer, p);
+  return 1;
+  }
+
+/* Tell how many bytes we needed */
+
+static void buffer_done(win32_priv_t * priv, int bytes)
+  {
+  if(priv->buffer_size > bytes)
+    memmove(priv->buffer, priv->buffer + bytes, priv->buffer_size - bytes);
+  priv->buffer_size -= bytes;
+  }
+
+
+static int decode_frame_DS(bgav_stream_t * s)
+  {
+  int result;
+  unsigned int size_read;
+  unsigned int size_written;
+  
+  win32_priv_t * priv;
+  priv = (win32_priv_t*)(s->data.audio.decoder->priv);
+
+  while(priv->buffer_size < priv->src_size)
+    if(!get_data(s))
+      return 0;
+  //  fprintf(stderr, "decode_frame_DS: ");
+  while(!priv->frame->valid_samples)
+    {
+    //    fprintf(stderr, "DS_AudioDecoder_Convert: %p, %d, %d...", priv->buffer, priv->src_size,
+    //            priv->dst_size);
+
+    result = DS_AudioDecoder_Convert(priv->ds_dec, priv->buffer, priv->src_size,
+                                     priv->frame->samples.s_16, priv->dst_size,
+                                     &size_read, &size_written);
+
+    if(result)
+      return 0;
+    
+    //    fprintf(stderr, "size_read: %d, size_written: %d buffer_size: %d src_size: %d dst_size: %d\n",
+    //            size_read, size_written, priv->src_size, priv->src_size, priv->dst_size);
+
+    if(size_written)
+      {
+      priv->frame->valid_samples =
+        size_written / (s->data.audio.format.num_channels*priv->bytes_per_sample);
+      priv->last_frame_size = priv->frame->valid_samples;
+      }
+    if(size_read)
+      buffer_done(priv, size_read);
+    
+    }
+  return priv->last_frame_size;
+  }
 
 static int init_w32(bgav_stream_t * s)
   {
@@ -126,15 +229,16 @@ static int init_w32(bgav_stream_t * s)
   codec_info_t * info;
   win32_priv_t * priv = NULL;
 
-  WAVEFORMATEX in_format;
+  WAVEFORMATEX * in_format;
   bgav_WAVEFORMATEX _in_format;
+  uint8_t * in_fmt_buffer = (uint8_t*)0;
 
   WAVEFORMATEX out_format;
-  
+
   codec_index = find_codec_index(s);
   if(codec_index == -1)
     goto fail;
-
+  
   info = &(codec_infos[codec_index]);
 
   priv = calloc(1, sizeof(*priv));
@@ -144,42 +248,102 @@ static int init_w32(bgav_stream_t * s)
   /* Create input- and output formats */
 
   bgav_WAVEFORMATEX_set_format(&_in_format, s);
-  pack_wf(&in_format, &_in_format);
 
+  in_fmt_buffer = malloc(sizeof(*in_format) + s->ext_size);
+
+  in_format = (WAVEFORMATEX*)in_fmt_buffer;
+  
+  pack_wf(in_format, &_in_format);
+
+  in_format->cbSize = s->ext_size;
+  if(in_format->cbSize)
+    {
+    //    fprintf(stderr, "Adding extradata:");
+    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
+    memcpy(in_fmt_buffer + sizeof(*in_format), s->ext_data, s->ext_size);
+    }
+#if 0
+  fprintf(stderr, "*** BGAV WAVEFORMATEX\n");
+  bgav_WAVEFORMATEX_dump(&_in_format);
+  
+  fprintf(stderr, "*** WAVEFORMATEX\n");
+  dump_wf(in_format);
+#endif
   /* We want 16 bit pcm as output */
 
-  out_format.nChannels       = (in_format.nChannels >= 2)?2:1;
-  out_format.nSamplesPerSec  = in_format.nSamplesPerSec;
+  out_format.nChannels       = (in_format->nChannels >= 2)?2:1;
+  out_format.nSamplesPerSec  = in_format->nSamplesPerSec;
   out_format.nAvgBytesPerSec = 2*out_format.nSamplesPerSec*out_format.nChannels;
   out_format.wFormatTag      = 0x0001;
-  out_format.nBlockAlign     = 2*in_format.nChannels;
+  out_format.nBlockAlign     = 2*in_format->nChannels;
   out_format.wBitsPerSample  = 16;
   out_format.cbSize          = 0;
 
+  /* Set gavl format */
+
+  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
+  s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
+      
   /* Setup LDT */
 
   priv->ldt_fs = Setup_LDT_Keeper();
+  Setup_FS_Segment();
   
   switch(info->type)
     {
     case CODEC_STD:
       break;
     case CODEC_DS:
+      s->data.audio.format.samples_per_frame = SAMPLES_PER_FRAME;
+      
       priv->ds_dec=DS_AudioDecoder_Open(info->dll_name,
                                         &(info->guid),
-                                        &in_format);
+                                        in_format);
       if(!priv->ds_dec)
+        {
+        fprintf(stderr, "DS_AudioDecoder_Open failed\n");
         goto fail;
+        }
+      priv->bytes_per_sample = gavl_bytes_per_sample(s->data.audio.format.sample_format);
+      priv->dst_size = s->data.audio.format.num_channels *
+        s->data.audio.format.samples_per_frame * priv->bytes_per_sample;
+      
+      priv->src_size = DS_AudioDecoder_GetSrcSize(priv->ds_dec,priv->dst_size);
+    
+    /* somehow DS_Filters seems to eat more than rec_audio_src_size if the output 
+       buffer is big enough. Doubling rec_audio_src_size should make this 
+       impossible */
+      //      priv->src_size*=2; 
+
+      priv->buffer_alloc = priv->src_size;
+      priv->buffer = malloc(priv->buffer_alloc);
+
+      priv->decode_frame = decode_frame_DS;
+
+      s->data.audio.format.samples_per_frame *= 2;
+      priv->dst_size *= 2;
+      
       break;
     case CODEC_DMO:
       break;
     }
+
+  gavl_set_channel_setup(&(s->data.audio.format));
+  
+  priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+
+  if(in_fmt_buffer)
+    free(in_fmt_buffer);
+
+  s->description = bgav_sprintf("%s", info->format_name);
   
   return 1;
   fail:
-
+  
   if(priv)
     {
+    if(in_fmt_buffer)
+      free(in_fmt_buffer);
     
     free(priv);
     s->data.audio.decoder->priv = NULL;
@@ -188,22 +352,75 @@ static int init_w32(bgav_stream_t * s)
   return 0;
   }
 
-static int decode_w32(bgav_stream_t * s, gavl_audio_frame_t * frame, int num_samples)
+static int decode_w32(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
   {
-  return 0;
+  win32_priv_t * priv;
+  int samples_copied;
+  int samples_decoded = 0;
+  Setup_FS_Segment();
   
+  priv = (win32_priv_t *)(s->data.audio.decoder->priv);
+
+  //  fprintf(stderr, "decode_w32 %d %d....\n", num_samples, priv->frame->valid_samples);
+  
+  while(samples_decoded < num_samples)
+    {
+    if(!priv->frame->valid_samples)
+      {
+      if(!priv->decode_frame(s))
+        {
+        if(f)
+          f->valid_samples = samples_decoded;
+        return samples_decoded;
+        }
+      }
+    
+    samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
+                                           f,
+                                           priv->frame,
+                                           samples_decoded, /* out_pos */
+                                           priv->last_frame_size - priv->frame->valid_samples,  /* in_pos */
+                                           num_samples - samples_decoded, /* out_size, */
+                                           priv->frame->valid_samples /* in_size */);
+    //    fprintf(stderr, "Copied %d samples\n", samples_copied);
+    priv->frame->valid_samples -= samples_copied;
+    samples_decoded += samples_copied;
+    }
+  if(f)
+    f->valid_samples = samples_decoded;
+
+  //  fprintf(stderr, "decode_w32 done\n");
+
+  return samples_decoded;
   }
 
 static void resync_w32(bgav_stream_t * s)
   {
-  //  return 0;
+  win32_priv_t * priv;
+  priv = (win32_priv_t*)(s->data.audio.decoder->priv);
 
+  priv->buffer_size = 0;
+  priv->frame->valid_samples = 0;
   }
 
 static void close_w32(bgav_stream_t * s)
   {
-  //  return 0;
+  win32_priv_t * priv;
+  priv = (win32_priv_t*)(s->data.audio.decoder->priv);
+
+  if(priv->buffer)
+    free(priv->buffer);
+
+  if(priv->frame)
+    gavl_audio_frame_destroy(priv->frame);
+
+  if(priv->ds_dec)
+    DS_AudioDecoder_Destroy(priv->ds_dec);
+
+  if(priv->ldt_fs)
+    Restore_LDT_Keeper(priv->ldt_fs);
   
+  free(priv);
   }
 
 void bgav_init_audio_decoders_win32()

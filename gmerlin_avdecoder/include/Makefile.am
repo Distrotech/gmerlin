@@ -1,3 +1,6 @@
+pkgincludedir=$(includedir)/gmerlin
+pkginclude_HEADERS = avdec.h
+
 noinst_HEADERS = \
 avdec_private.h \
 bswap.h \
@@ -13,4 +16,3 @@ xing.h \
 yml.h \
 avdec.h
 
-# include_HEADERS = avdec.h

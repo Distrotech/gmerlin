@@ -322,6 +322,10 @@ bgav_track_find_stream_all(bgav_track_t * t, int stream_id);
 void bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer);
 void bgav_track_stop(bgav_track_t * t);
 
+/* Remove unsupported streams */
+
+void bgav_track_remove_unsupported(bgav_track_t * t);
+
 void bgav_track_free(bgav_track_t * t);
 
 void bgav_track_dump(bgav_t * b, bgav_track_t * t);
@@ -349,6 +353,8 @@ void bgav_track_table_dump(bgav_track_table_t*);
 
 void bgav_track_table_merge_metadata(bgav_track_table_t*,
                                      bgav_metadata_t * m);
+
+void bgav_track_table_remove_unsupported(bgav_track_table_t * t);
 
 /* Overloadable input module */
 

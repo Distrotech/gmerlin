@@ -12,20 +12,30 @@ dnl
 dnl Check for Libraries
 dnl
 
-PKG_CHECK_MODULES(GAVL, gavl >= 0.2.0, , AC_MSG_ERROR("gavl not found"))
-PKG_CHECK_MODULES(GMERLIN, gmerlin >= 0.3.0, , AC_MSG_ERROR("gmerlin not found"))
+GAVL_REQUIRED="0.2.0"
 
-GMERLIN_LIB_DIR=`pkg-config --variable=prefix gmerlin`"/lib/gmerlin"
-GMERLIN_PLUGIN_DIR=$GMERLIN_LIB_DIR"/plugins"
- 
-AC_SUBST(GMERLIN_PLUGIN_DIR)
-AC_SUBST(GMERLIN_LIB_DIR)
-
-
+PKG_CHECK_MODULES(GAVL, gavl >= $GAVL_REQUIRED, , AC_MSG_ERROR("gavl not found"))
+AC_SUBST(GAVL_REQUIRED)
 
 dnl
 dnl Optional Libraries
 dnl
+
+dnl
+dnl gmerlin
+dnl 
+
+have_gmerlin="false"
+
+GMERLIN_REQUIRED="0.3.0"
+
+PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, have_gmerlin="true")
+
+GMERLIN_PLUGIN_DIR=`pkg-config --variable=prefix gmerlin`"/lib/gmerlin/plugins"
+AC_SUBST(GMERLIN_PLUGIN_DIR)
+AC_SUBST(GMERLIN_REQUIRED)
+
+AM_CONDITIONAL(HAVE_GMERLIN, test x$have_gmerlin = xtrue)
 
 dnl
 dnl AVCodec
@@ -62,16 +72,20 @@ dnl
 dnl libmpeg2
 dnl 
 
+LIBMPEG2_REQUIRED="0.4.0"
+
 have_libmpeg2=false
 AH_TEMPLATE([HAVE_LIBMPEG2], [libmpeg2 found])
 
-PKG_CHECK_MODULES(LIBMPEG2, libmpeg2 >= 0.4.0, have_libmpeg2=true, )
+PKG_CHECK_MODULES(LIBMPEG2, libmpeg2 >= $LIBMPEG2_REQUIRED, have_libmpeg2=true, )
 
 AM_CONDITIONAL(HAVE_LIBMPEG2, test x$have_libmpeg2 = xtrue)
 
 if test x$have_libmpeg2 = xtrue; then
 AC_DEFINE(HAVE_LIBMPEG2)
 fi
+
+AC_SUBST(LIBMPEG2_REQUIRED)
 
 dnl
 dnl PNG
@@ -179,6 +193,8 @@ OLD_LIBS=$LIBS
 LIBS="-lFLAC -lm"
 CFLAGS=""
 
+FLAC_REQUIRED="1.1.0"
+
 AH_TEMPLATE([HAVE_FLAC], [Enable FLAC])
 AC_MSG_CHECKING(for flac)
 have_flac="false"
@@ -217,6 +233,7 @@ LIBS=$OLD_LIBS
 
 AC_SUBST(FLAC_CFLAGS)
 AC_SUBST(FLAC_LIBS)
+AC_SUBST(FLAC_REQUIRED)
 
 AM_CONDITIONAL(HAVE_FLAC, test x$have_flac = xtrue)
 
@@ -224,15 +241,15 @@ if test x$have_flac = xtrue; then
 AC_DEFINE(HAVE_FLAC)
 fi
 
-
-
 dnl
 dnl MAD
 dnl
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
- 
+
+MAD_REQUIRED="0.15.0"
+   
 LIBS="-lmad"
 CFLAGS=""
 
@@ -271,6 +288,7 @@ LIBS=$OLD_LIBS
 
 AC_SUBST(MAD_CFLAGS)
 AC_SUBST(MAD_LIBS)
+AC_SUBST(MAD_REQUIRED)
 
 AM_CONDITIONAL(HAVE_MAD, test x$have_mad = xtrue)
 
@@ -324,14 +342,6 @@ AM_CONDITIONAL(HAVE_LIBA52, test x$have_mad = xtrue)
 if test x$have_liba52 = xtrue; then
 AC_DEFINE(HAVE_LIBA52)
 fi
-
-dnl
-dnl libxml2
-dnl
-
-dnl have_libxml2="false"
-dnl PKG_CHECK_MODULES(XML2, libxml-2.0 >= 2.4.0, have_libxml2="true", have_libxml2="false")
-dnl AM_CONDITIONAL(HAVE_LIBXML2, test x$have_libxml2 = xtrue)
 
 dnl
 dnl Check wether to enable win32 DLLs
@@ -428,6 +438,8 @@ if test "x$exec_prefix" = xNONE; then
 fi
 
 AC_CONFIG_FILES([Makefile \
+gmerlin_avdec.spec \
+gmerlin_avdec.pc \
 include/Makefile \
 lib/Makefile \
 lib/libw32dll/Makefile \
