@@ -545,6 +545,9 @@ void player_window_destroy(player_window_t * win)
 
   bg_gtk_slider_destroy(win->seek_slider);
   bg_gtk_slider_destroy(win->volume_slider);
+
+  main_menu_destroy(win->main_menu);
+
   
   free(win);
   }

@@ -583,7 +583,9 @@ GtkWidget * display_get_widget(display_t * d)
 
 void display_destroy(display_t * d)
   {
-
+  bg_gtk_time_display_destroy(d->time_display);
+  bg_gtk_scrolltext_destroy(d->scrolltext);
+  free(d);
   }
 
 void display_set_playlist_times(display_t * d,

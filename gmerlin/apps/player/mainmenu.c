@@ -190,6 +190,11 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   return ret;
   }
 
+void main_menu_destroy(main_menu_t * m)
+  {
+  free(m);
+  }
+
 GtkWidget * main_menu_get_widget(main_menu_t * m)
   {
   return m->menu;

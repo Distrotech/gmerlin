@@ -32,6 +32,8 @@ typedef struct main_menu_s main_menu_t;
 
 main_menu_t * main_menu_create(gmerlin_t * gmerlin);
 
+void main_menu_destroy(main_menu_t *);
+
 GtkWidget * main_menu_get_widget(main_menu_t *);
 
 void main_menu_destroy(main_menu_t *);
