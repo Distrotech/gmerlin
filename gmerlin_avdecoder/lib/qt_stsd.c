@@ -149,7 +149,7 @@ static int stsd_read_audio(bgav_input_context_t * input,
         // bgav_hexdump(ret->format.audio.wave_atom.data,
         //             ret->format.audio.wave_atom.size, 16); 
         
-        /* Sometimes, the ess atom is INSIDE the wav atom, so let's catch this */
+        /* Sometimes, the esds atom is INSIDE the wav atom, so let's catch this */
 
         input_mem = bgav_input_open_memory(ret->format.audio.wave_atom.data,
                                            ret->format.audio.wave_atom.size);
