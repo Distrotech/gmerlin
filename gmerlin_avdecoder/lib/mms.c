@@ -157,16 +157,16 @@ static void set_command_header(bgav_mms_t * mms, int command,
   {
   uint8_t * ptr;
   int len8;
-  mms->write_buffer_len = length + 48;
   
-  len8 = (length + (length % 8)) / 8;
+  len8 = (length + 7) / 8;
   ptr = mms->write_buffer;
+  mms->write_buffer_len = len8*8 + 48;
 
   //  fprintf(stderr, "Sending command %02x\n", command);
   
   BGAV_32LE_2_PTR(0x00000001, ptr);ptr+=4; /* Start sequence */
   BGAV_32LE_2_PTR(0xB00BFACE, ptr);ptr+=4; /* :-) */
-  BGAV_32LE_2_PTR(length+32, ptr);ptr+=4;
+  BGAV_32LE_2_PTR(len8*8+32, ptr);ptr+=4;
   BGAV_32LE_2_PTR(0x20534d4d, ptr);ptr+=4; /* MMS */
   BGAV_32LE_2_PTR(len8 + 4, ptr);ptr+=4;
   BGAV_32LE_2_PTR(mms->seqnum, ptr);ptr+=4;
@@ -178,11 +178,13 @@ static void set_command_header(bgav_mms_t * mms, int command,
   BGAV_32LE_2_PTR(switches, ptr);ptr+=4;
   BGAV_32LE_2_PTR(extra, ptr);ptr+=4;
 
-  mms->cmd_data_write = mms->write_buffer + 48;
+  mms->cmd_data_write = ptr;
   }
 
 static void flush_command(bgav_mms_t * mms)
   {
+  fprintf(stderr, "Sending command\n");
+  bgav_hexdump(mms->write_buffer, mms->write_buffer_len, 16);
   write(mms->fd, mms->write_buffer, mms->write_buffer_len);
   }
 
@@ -258,16 +260,16 @@ static int read_command_header(bgav_mms_t * mms)
   return 1;
   }
 
-#if 0 
+#if 1 
 static void dump_command_header(bgav_mms_t * mms)
   {
   fprintf(stderr, "Got command header:\n");
-  fprintf(stderr, "Command:         0x%02x\n", mms->command_header.command);
-  fprintf(stderr, "Data len:        %d\n", mms->command_header.data_len);
-  fprintf(stderr, "Padded data len: %d\n", mms->command_header.padded_data_len);
-  fprintf(stderr, "Sequence number: %d\n", mms->command_header.seqnum);
-  fprintf(stderr, "Prefix1:         %d\n", mms->command_header.prefix1);
-  fprintf(stderr, "Prefix2:         %d\n", mms->command_header.prefix2);
+  fprintf(stderr, "  Command:         0x%02x\n", mms->command_header.command);
+  fprintf(stderr, "  Data len:        %d\n", mms->command_header.data_len);
+  fprintf(stderr, "  Padded data len: %d\n", mms->command_header.padded_data_len);
+  fprintf(stderr, "  Sequence number: %d\n", mms->command_header.seqnum);
+  fprintf(stderr, "  Prefix1:         %d\n", mms->command_header.prefix1);
+  fprintf(stderr, "  Prefix2:         %d\n", mms->command_header.prefix2);
   bgav_hexdump(mms->cmd_data_read, mms->command_header.data_len, 16);
   }
 #endif
@@ -332,7 +334,7 @@ static int next_packet(bgav_mms_t * mms, int block)
         continue;
         }
       
-      //      dump_command_header(mms);
+      dump_command_header(mms);
       
       }
     else
@@ -435,8 +437,10 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
                      &host,
                      &port,
                      &path))
+    {
+    fprintf(stderr, "Invalid URL: %s\n", url);
     goto fail;
-  
+    }
   ret = calloc(1, sizeof(*ret));
 
   /* Store timeouts */
@@ -469,31 +473,38 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
 
   /* C->S: 0x01 Send player, version, guid and hostname */
 
-  buf = bgav_sprintf("\x1c\x03NSPlayer/7.0.0.1956; {%s}; Host: %s",
-                     guid, host);
+  //  buf = bgav_sprintf("\x1c\x03NSPlayer/7.0.0.1956; {%s}; Host: %s",
+  //                     guid, host);
+  buf = bgav_sprintf("\034\003NSPlayer/7.0.0.1956; {33715801-BAB3-9D85-24E9-03B90328270A}; Host: %s",
+                     host);
   
   utf16 = bgav_convert_string(ascii_2_utf16, buf, -1, &len_out);
   
   //  fprintf(stderr, "Converted string: %d %d\n", len_in, len_out);
   
-  set_command_header(ret, 0x01, 0, 0x0004000b, len_out+1+NUM_ZEROS);
+  set_command_header(ret, 0x01, 0, 0x0004000b, strlen(buf)*2+2);
 
-  memcpy(ret->cmd_data_write, utf16, len_out + 1);
-  memset(ret->cmd_data_write + len_out + 1, 0, NUM_ZEROS);
+  memcpy(ret->cmd_data_write, utf16, len_out);
+  memset(ret->cmd_data_write + len_out, 0, 2);
   flush_command(ret);
   free(buf);
   free(utf16);
       
   if(!next_packet(ret, 1))
+    {
+    fprintf(stderr, "Cannot get Software version number and stuff\n");
     goto fail;
-    
+    }
   /* S->C: 0x01 Software version number and stuff */
   
   if((!ret->command) ||
      (ret->command_header.prefix1) ||
      (ret->command_header.command != 0x01))
+    {
+    fprintf(stderr, "Invalid answer 1 %08x %08x\n", ret->command_header.prefix1,
+            ret->command_header.command);
     goto fail;
-
+    }
   pos = ret->cmd_data_read + 32;
 
   server_version_len           = BGAV_PTR_2_32LE(pos);pos+=4;
@@ -548,7 +559,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   
   if(!next_packet(ret, 1))
     {
-    fprintf(stderr, "Next packet failed\n");
+    fprintf(stderr, "Next packet failed 1\n");
     goto fail;
     }
   if((!ret->command) ||
@@ -582,13 +593,14 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   
   if(!next_packet(ret, 1))
     {
-    fprintf(stderr, "Next packet failed\n");
+    fprintf(stderr, "Next packet failed 2\n");
     goto fail;
     }
-  if((!ret->command) ||
-     (ret->command_header.prefix1))
+  if((!ret->command) || (ret->command_header.prefix1))
+    {
+    fprintf(stderr, "Invalid answer 2 %08x\n", ret->command_header.prefix1);
     goto fail;
-
+    }
   if(ret->command_header.command == 0x1a)
     {
     /* Passwords not supported, dammit */
@@ -597,16 +609,16 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
     }
   else if(ret->command_header.command != 0x06)
     {
-    //    fprintf(stderr, "Got answer: %d\n", ret->command_header.command);
+    fprintf(stderr, "Invalid answer 3: %d\n", ret->command_header.command);
     goto fail;
     }
   
   pos = ret->cmd_data_read;
   i_tmp = BGAV_PTR_2_32LE(pos);pos+=4;
 
-  if(i_tmp != 0x00000001)
+  if(i_tmp & 0x80000000)
     {
-    fprintf(stderr, "Request not accepted\n");
+    fprintf(stderr, "Request not accepted %08x\n", i_tmp);
     goto fail;
     }
   pos+=4; /* 00000000 */
@@ -654,8 +666,10 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   if((!ret->command) ||
      (ret->command_header.prefix1) ||
      (ret->command_header.command != 0x11))
+    {
+    fprintf(stderr, "Invalid answer 4\n");
     goto fail;
-
+    }
   ret->header_id = ret->command_header.prefix2;
   
   /* Now, the header should come */
@@ -673,8 +687,10 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   //  dump_data(ret->read_buffer+8, ret->read_buffer_len-8, "header.dat");
 
   if(!ret->header)
+    {
+    fprintf(stderr, "Read header failed\n");
     goto fail;
-    
+    }
   mms_dump(ret);
 
   bgav_charset_converter_destroy(ascii_2_utf16);

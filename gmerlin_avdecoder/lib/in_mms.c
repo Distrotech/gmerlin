@@ -161,7 +161,8 @@ static void    close_mms(bgav_input_context_t * ctx)
   {
   mms_priv_t * mms;
   mms = (mms_priv_t *)(ctx->priv);
-  bgav_mms_close(mms->mms);
+  if(mms->mms)
+    bgav_mms_close(mms->mms);
   free(mms);
   }
 
