@@ -161,7 +161,7 @@ alsa_card_t * alsa_card_create(int index)
     is_playback = 0;
     is_capture  = 0;
     
-    if(num_strings > 2)
+    if(num_strings >= 2)
       {
       if(!strcmp(strings[num_strings-1], "Switch"))
         {
@@ -185,16 +185,28 @@ alsa_card_t * alsa_card_create(int index)
         num_strings--;
         }
       }
-    
-    label = (char*)0;
-    for(i = 0; i < num_strings; i++)
+
+    if(num_strings)
       {
-      label = bg_strcat(label, strings[i]);
-      if(i < num_strings - 1)
+      label = (char*)0;
+      for(i = 0; i < num_strings; i++)
         {
-        label = bg_strcat(label, " ");
+        label = bg_strcat(label, strings[i]);
+        if(i < num_strings - 1)
+          {
+          label = bg_strcat(label, " ");
+          }
         }
       }
+    else if(is_capture && (is_volume || is_switch))
+      {
+      label = bg_strdup(NULL, "Capture");
+      }
+    else
+      {
+      label = bg_strdup(NULL, "Unknown");
+      }
+    
     if(elem_index > 0)
       {
       tmp_label = bg_sprintf("%s %d", label, elem_index+1);

@@ -1,3 +1,4 @@
+#include <utils.h>
 #include "gui.h"
 
 #define LOWER_ROWS 3
@@ -6,6 +7,8 @@
 
 struct card_widget_s
   {
+  char * label;
+
   int num_controls;
   int num_upper_controls;
   int num_lower_controls;
@@ -100,7 +103,7 @@ card_widget_t * card_widget_create(alsa_card_t * c, bg_cfg_section_t * section)
   ret = calloc(1, sizeof(*ret));
   ret->controls = calloc(c->num_groups, sizeof(*(ret->controls)));
   ret->hctl = c->hctl;
-
+  ret->label = bg_strdup(NULL, c->name);
   /* Create controls and count them */
     
   for(i = 0; i < c->num_groups; i++)
@@ -256,6 +259,9 @@ void card_widget_destroy(card_widget_t * w)
     control_widget_write_config(w->controls[i]);
     g_object_unref(G_OBJECT(control_widget_get_widget(w->controls[i])));
     }
+  if(w->label)
+    free(w->label);
+  
   free(w);
   }
 
@@ -457,14 +463,7 @@ static gboolean delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
   own_window_t * win;
   win = (own_window_t*)data;
 
-  gtk_widget_hide(win->window);
-  gtk_container_remove(GTK_CONTAINER(win->window), control_widget_get_widget(win->control));
-  
-  //  g_object_unref(win->window);
-
-  win->card->control_windows = g_list_remove(win->card->control_windows, win);
   card_widget_tearon_control(win->card, win->control);
-  free(win);
   return FALSE;
   }
 
@@ -477,7 +476,7 @@ static void unmap_callback(GtkWidget * w, gpointer data)
   gtk_window_get_position(GTK_WINDOW(win->window), &(x), &(y));
   gtk_window_get_size(GTK_WINDOW(win->window), &(width), &(height));
 
-  fprintf(stderr, "Unmap callback %d %d %d %d\n", x, y, width, height);
+  //  fprintf(stderr, "Unmap callback %d %d %d %d\n", x, y, width, height);
   
   control_widget_set_coords(win->control, x, y, width, height);
   
@@ -529,9 +528,152 @@ void card_widget_tearoff_control(card_widget_t * c, control_widget_t * w)
 
 void card_widget_tearon_control(card_widget_t * c, control_widget_t * w)
   {
+  own_window_t * win;
+  GList * item;
   int index;
+  
+  item = c->control_windows;
+  
+  while(item)
+    {
+    win = (own_window_t*)(item->data);
+
+    if(w == win->control)
+      break;
+    item = item->next;
+    }
+
+  gtk_widget_hide(win->window);
+  gtk_container_remove(GTK_CONTAINER(win->window), control_widget_get_widget(win->control));
+  
+  //  g_object_unref(win->window);
+
+  c->control_windows = g_list_remove(c->control_windows, win);
+
+  free(win);
+
+  
   index = control_widget_get_index(w);
   gtk_table_attach_defaults(GTK_TABLE(c->upper_table), control_widget_get_widget(w),
                             index*2, index*2+1, 0, 1);
   control_widget_set_own_window(w, 0);
   }
+
+/* Configuration stuff */
+
+typedef struct
+  {
+  card_widget_t * cw;
+  GtkWidget ** control_buttons;
+  GtkWidget * window;
+  GtkWidget * close_button;
+  } config_window;
+
+static void config_button_callback(GtkWidget * w, gpointer data)
+  {
+  config_window * win;
+  win = (config_window *)data;
+  gtk_widget_hide(win->window);
+  gtk_main_quit();
+  //  g_object_unref(win->window);
+  free(win->control_buttons);
+  free(win);
+  }
+
+static void config_toggle_callback(GtkWidget * w, gpointer data)
+  {
+  int i;
+  config_window * win;
+  win = (config_window *)data;
+
+  for(i = 0; i < win->cw->num_upper_controls; i++)
+    {
+    if(w == win->control_buttons[i])
+      {
+      if(control_widget_get_own_window(win->cw->upper_controls[i]))
+        {
+        card_widget_tearon_control(win->cw, win->cw->upper_controls[i]);
+        }
+      control_widget_set_hidden(win->cw->upper_controls[i],
+                                !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->control_buttons[i])));
+      }
+    }
+  }
+
+static gboolean config_delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
+  {
+  config_button_callback(w, data);
+  return TRUE;
+  }
+
+void card_widget_configure(card_widget_t * c)
+  {
+  char * window_title;
+  int i;
+  config_window * win;
+  GtkWidget * buttonbox;
+  GtkWidget * mainbox;
+  GtkWidget * scrolledwindow;
+  
+  win = calloc(1, sizeof(*win));
+  win->cw = c;
+  
+  win->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title(GTK_WINDOW(win->window), "Card controls");
+  gtk_window_set_modal(GTK_WINDOW(win->window), 1);
+  g_signal_connect(G_OBJECT(win->window), "delete_event",G_CALLBACK(config_delete_callback),
+                   win);
+
+  window_title = bg_sprintf("Controls for %s", c->label);
+  gtk_window_set_title(GTK_WINDOW(win->window), window_title);
+  free(window_title);
+  
+  gtk_widget_set_size_request(win->window, 200, 300);
+  gtk_window_set_position(GTK_WINDOW(win->window), GTK_WIN_POS_CENTER);
+  
+  /* Create buttons */
+  
+  win->control_buttons = calloc(c->num_upper_controls, sizeof(*win->control_buttons));
+
+  buttonbox = gtk_vbox_new(1, 0);
+  
+  for(i = 0; i < c->num_upper_controls; i++)
+    {
+    win->control_buttons[i] =
+      gtk_check_button_new_with_label(control_widget_get_label(c->upper_controls[i]));
+
+    
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(win->control_buttons[i]),
+                                 !control_widget_get_hidden(c->upper_controls[i]));
+    g_signal_connect(G_OBJECT(win->control_buttons[i]), "toggled",
+                     G_CALLBACK(config_toggle_callback), win);
+    gtk_widget_show(win->control_buttons[i]);
+    gtk_box_pack_start_defaults(GTK_BOX(buttonbox), win->control_buttons[i]);
+    }
+  gtk_widget_show(buttonbox);
+
+  /* Close button */
+
+  win->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
+  g_signal_connect(G_OBJECT(win->close_button), "clicked",
+                   G_CALLBACK(config_button_callback), win);
+  gtk_widget_show(win->close_button);
+  
+  scrolledwindow = gtk_scrolled_window_new((GtkAdjustment*)0, (GtkAdjustment*)0);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwindow),
+                                 GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
+
+
+  gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolledwindow), buttonbox);
+  gtk_widget_show(scrolledwindow);
+
+  mainbox = gtk_vbox_new(0, 5);
+  gtk_box_pack_start_defaults(GTK_BOX(mainbox), scrolledwindow);
+  gtk_box_pack_start(GTK_BOX(mainbox), win->close_button, FALSE, FALSE, 0);
+  gtk_widget_show(mainbox);
+  gtk_container_add(GTK_CONTAINER(win->window), mainbox);
+  gtk_widget_show(win->window);
+  gtk_main();
+  
+  }
+

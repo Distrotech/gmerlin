@@ -573,12 +573,14 @@ typedef struct
   GtkWidget * first;
   GtkWidget * last;
   GtkWidget * tearoff;
+  GtkWidget * config;
   GtkWidget * menu;
   } menu_t;
 
 struct control_widget_s
   {
   int type;
+  char * label;
   
   union
     {
@@ -630,10 +632,13 @@ struct control_widget_s
 
   /* True if we are in an own window */
   int own_window;
-
+  
   /* Coordinates for own window */
-
   int x, y, width, height;
+
+  /* True if we don't show this at all */
+
+  int hidden;
   };
 
 static void menu_callback(GtkWidget * w, gpointer data)
@@ -666,6 +671,12 @@ static void menu_callback(GtkWidget * w, gpointer data)
     card_widget_tearoff_control(wid->card, wid);
     //    fprintf(stderr, "Tearoff\n");
     }
+  else if(w == wid->menu.config)
+    {
+    card_widget_configure(wid->card);
+    //    card_widget_tearoff_control(wid->card, wid);
+    //    fprintf(stderr, "Config\n");
+    }
   }
 
 static GtkWidget * create_pixmap_item(const char * filename)
@@ -696,6 +707,7 @@ static void init_menu(control_widget_t * w)
   w->menu.first = create_pixmap_item("first_16.png");
   w->menu.last  = create_pixmap_item("last_16.png");
   w->menu.tearoff  = create_pixmap_item("tearoff_16.png");
+  w->menu.config  = create_pixmap_item("config_16.png");
 
   g_signal_connect(w->menu.left, "activate",
                    G_CALLBACK(menu_callback), w);
@@ -712,11 +724,15 @@ static void init_menu(control_widget_t * w)
   g_signal_connect(w->menu.tearoff, "activate",
                    G_CALLBACK(menu_callback), w);
 
+  g_signal_connect(w->menu.config, "activate",
+                   G_CALLBACK(menu_callback), w);
+
   gtk_widget_show(w->menu.left);
   gtk_widget_show(w->menu.right);
   gtk_widget_show(w->menu.first);
   gtk_widget_show(w->menu.last);
   gtk_widget_show(w->menu.tearoff);
+  gtk_widget_show(w->menu.config);
 
   w->menu.menu = gtk_menu_new();
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.left);
@@ -724,6 +740,7 @@ static void init_menu(control_widget_t * w)
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.first);
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.last);
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.tearoff);
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.config);
   gtk_widget_show(w->menu.menu);
   }
 
@@ -805,7 +822,8 @@ static void init_tone(control_widget_t * w, alsa_mixer_group_t * c)
 
   row = 0;
   
-  label = gtk_label_new("Tone");
+  w->label = bg_strdup(w->label, "Tone");
+  label = gtk_label_new(w->label);
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(w->w), label, 0, num_cols, row, row+1,
                    GTK_FILL, GTK_FILL, 0, 0);
@@ -892,8 +910,6 @@ static void init_tone(control_widget_t * w, alsa_mixer_group_t * c)
       }
     row++;
     }
-
-
   gtk_widget_show(w->w);
   w->upper = 1;
   }
@@ -944,12 +960,15 @@ static void init_volume(control_widget_t * w, alsa_mixer_group_t * c)
   
   w->w = gtk_table_new(4, capture_width + playback_width, 0);
   //  fprintf(stderr, "Creating widget for %s\n", c->label);
-  label = gtk_label_new(c->label);
+
+  w->label = bg_strdup(w->label, c->label);
+  label = gtk_label_new(w->label);
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(w->w), label, 0,
                    capture_width + playback_width, 0, 1,
                    GTK_FILL, GTK_FILL, 0, 0);
-  
+
+  /* Save label */
   if(capture_width)
     {
     label = gtk_label_new("Rec");
@@ -1119,7 +1138,10 @@ static void init_integer(control_widget_t * w, alsa_mixer_group_t * c,
   
   w->w = gtk_table_new(2, w->priv.integer.sliders.num,
                        0);
-  label = gtk_label_new(c->label);
+
+  w->label = bg_strdup(w->label, c->label);
+  label = gtk_label_new(w->label);
+  
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(w->w), label,
                    0, w->priv.integer.sliders.num, 0, 1,
@@ -1146,8 +1168,9 @@ static void init_bool(control_widget_t * w, alsa_mixer_group_t * c,
   
   w->w = gtk_table_new(w->priv.bool.buttons.num + 1,
                        1, 0);
-  
-  label = gtk_label_new(c->label);
+
+  w->label = bg_strdup(w->label, c->label);
+  label = gtk_label_new(w->label);
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(w->w), label, 0, 1, 0, 1,
                    GTK_FILL, GTK_FILL, 0, 0);
@@ -1176,8 +1199,8 @@ static void init_enumerated(control_widget_t * w, alsa_mixer_group_t * c,
   w->w = gtk_table_new(w->priv.enumerated.combos.num + 1,
                        1, 0);
 
-    
-  label = gtk_label_new(c->label);
+  w->label = bg_strdup(w->label, c->label);
+  label = gtk_label_new(w->label);
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(w->w), label, 0, 1, 0, 1,
                    GTK_FILL, GTK_FILL, 0, 0);
@@ -1215,6 +1238,11 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
   control_widget_t * wid;
   wid = (control_widget_t*)data;
 
+  /* No menu of we are in an own window */
+
+  if(wid->own_window)
+    return FALSE;
+  
   if(evt->button == 3)
     {
     gtk_menu_popup(GTK_MENU(wid->menu.menu),
@@ -1365,6 +1393,8 @@ int control_widget_is_upper(control_widget_t * w)
 
 void control_widget_destroy(control_widget_t * w)
   {
+  if(w->label)
+    free(w->label);
   free(w);
   }
 
@@ -1401,15 +1431,18 @@ static bg_parameter_info_t treble_lock_param =
     val_default: { val_i: 1 }
   };
 
-static bg_parameter_info_t index_param =
+static bg_parameter_info_t upper_params[] =
   {
-    name: "index",
-    type: BG_PARAMETER_INT,
-    val_default: { val_i: -1 }
-  };
-
-static bg_parameter_info_t own_window_params[] =
-  {
+    {
+      name: "hidden",
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 0 }
+    },
+    {
+      name: "index",
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: -1 }
+    },
     {
       name: "own_window",
       type: BG_PARAMETER_CHECKBUTTON,
@@ -1444,7 +1477,7 @@ static void create_parameters(control_widget_t * w)
   
   if(w->upper) /* Index */
     {
-    num_parameters+=6;
+    num_parameters+=7;
     }
   if(w->type == TYPE_VOLUME)
     {
@@ -1466,12 +1499,9 @@ static void create_parameters(control_widget_t * w)
 
   if(w->upper)
     {
-    bg_parameter_info_copy(&w->parameters[i], &index_param);
-    i++;
-
-    for(j = 0; j < 5; j++)
+    for(j = 0; j < 7; j++)
       {
-      bg_parameter_info_copy(&w->parameters[i], &(own_window_params[j]));
+      bg_parameter_info_copy(&w->parameters[i], &(upper_params[j]));
       i++;
       }
     }
@@ -1564,6 +1594,11 @@ void control_widget_set_parameter(void * data, char * name,
     {
     w->height = v->val_i;
     }
+  if(!strcmp(name, "hidden"))
+    {
+    //    w->hidden = v->val_i;
+    control_widget_set_hidden(w, v->val_i);
+    }
   }
 
 int control_widget_get_parameter(void * data, char * name,
@@ -1620,6 +1655,10 @@ int control_widget_get_parameter(void * data, char * name,
     {
     v->val_i = w->height;
     }
+  if(!strcmp(name, "hidden"))
+    {
+    v->val_i = w->hidden;
+    }
   return 0; 
   }
 
@@ -1672,4 +1711,24 @@ void control_widget_set_coords(control_widget_t * w, int x, int y, int width, in
   w->y = y;
   w->width = width;
   w->height = height;
+  }
+
+void control_widget_set_hidden(control_widget_t * w, int hidden)
+  {
+  w->hidden = hidden;
+  //  fprintf(stderr, "Set hidden %s %d\n", w->label, hidden);
+  if(hidden)
+    gtk_widget_hide(w->w);
+  else
+    gtk_widget_show(w->w);
+  }
+
+int control_widget_get_hidden(control_widget_t * w)
+  {
+  return w->hidden;
+  }
+
+const char * control_widget_get_label(control_widget_t * w)
+  {
+  return w->label;
   }
