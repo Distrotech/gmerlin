@@ -92,18 +92,22 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
 
   input_colorspace = input_format->colorspace;
   
-  if(options->alpha_mode == GAVL_ALPHA_IGNORE)
-    {
-    switch(input_colorspace)
+  if(gavl_colorspace_has_alpha(input_format->colorspace) &&
+     !gavl_colorspace_has_alpha(output_format->colorspace))
+    { 
+    if(options->alpha_mode == GAVL_ALPHA_IGNORE)
       {
-      case GAVL_RGBA_32:
-        input_colorspace = GAVL_RGB_32;
-        break;
-      default:
-        break;
+      switch(input_colorspace)
+        {
+        case GAVL_RGBA_32:
+          input_colorspace = GAVL_RGB_32;
+          break;
+        default:
+          break;
+        }
       }
     }
-  
+
   if(input_colorspace != output_format->colorspace)
     {
     gavl_video_format_copy(&(cnv->csp_context.input_format),
