@@ -150,6 +150,10 @@ int gavl_audio_frame_copy(gavl_audio_format_t * format,
   int samples_to_copy;
 
   samples_to_copy = (in_size < out_size) ? in_size : out_size;
+
+  if(!dst)
+    return samples_to_copy;
+
   bytes_per_sample = gavl_bytes_per_sample(format->sample_format);
   
   switch(format->interleave_mode)

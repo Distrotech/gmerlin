@@ -19,7 +19,8 @@
 
 /* Generic time type: Microseconds */
 
-#define GAVL_TIME_SCALE 1000000
+#define GAVL_TIME_SCALE     1000000
+#define GAVL_TIME_UNDEFINED 0x8000000000000000LL
 
 typedef int64_t gavl_time_t;
 
@@ -38,13 +39,13 @@ typedef int64_t gavl_time_t;
   (int64_t)(((t)*((int64_t)rate_num))/(GAVL_TIME_SCALE*((int64_t)rate_den)))
 
 
-#define GAVL_TIME_TO_SECONDS(t) (double)(t)/(double)(GAVL_TIME_SCALE)
+// #define GAVL_TIME_TO_SECONDS(t) (double)(t)/(double)(GAVL_TIME_SCALE)
 
-#define GAVL_SECONDS_TO_TIME(s) \
+#define gavl_seconds_to_time(s) \
 (gavl_time_t)((s)*(double)(GAVL_TIME_SCALE))
 
 #define gavl_time_to_seconds(t) \
-(double)t/(double)(GAVL_TIME_SCALE)
+((double)t/(double)(GAVL_TIME_SCALE))
 
 /* Simple software timer */
 

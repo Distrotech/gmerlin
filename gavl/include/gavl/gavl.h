@@ -244,9 +244,11 @@ void gavl_audio_frame_null(gavl_audio_frame_t * f);
 /* Function for copying audio frames, returnes the number of copied samples */
 
 /*
- *  in_size are the number of input samples, out_size the number of output samples,
- *  the function will copy the smaller of both samples and return the number of
- *  copied samples
+ *  in_size are the number of input samples, out_size the number of
+ *  output samples, the function will copy the smaller of both samples
+ *  and return the number of copied samples
+ *  src_pos and dst_pos are offsets from the start of the sample buffer
+ *  in _samples_
  */
   
 int gavl_audio_frame_copy(gavl_audio_format_t * format,
