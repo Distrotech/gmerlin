@@ -54,7 +54,9 @@ static void combo_box_change_callback(GtkWidget * wid, gpointer data)
   menu_t * m;
   m = (menu_t*)data;
   m->selected = gtk_combo_box_get_active(GTK_COMBO_BOX(m->widget));
-  
+
+  if(m->change_callback)
+    m->change_callback(m, m->change_callback_data);
   }
 
 #else
@@ -97,9 +99,7 @@ static void entry_change_callback(GtkWidget * wid, gpointer data)
     }
 
   if(m->change_callback)
-    {
     m->change_callback(m, m->change_callback_data);
-    }
   }
 
 #endif
@@ -140,6 +140,10 @@ static void menu_set_options(menu_t * m, char ** options)
     gtk_combo_box_append_text(GTK_COMBO_BOX(m->widget), options[m->num_options]);
     m->num_options++;
     }
+  /* Select first entry */
+
+  gtk_combo_box_set_active(GTK_COMBO_BOX(m->widget), 0);
+  
 #else
 
   int i;
