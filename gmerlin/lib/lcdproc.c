@@ -120,19 +120,6 @@ bg_lcdproc_t * bg_lcdproc_create(bg_player_t * player)
   return ret;
   }
 
-#define FREE(p) if(l->p) free(l->p);
-
-void bg_lcdproc_destroy(bg_lcdproc_t* l)
-  {
-  FREE(answer);
-  FREE(hostname);
-  FREE(hostname_cfg);
-  bg_msg_queue_destroy(l->queue);
-
-  pthread_mutex_destroy(&(l->config_mutex));
-  pthread_mutex_destroy(&(l->state_mutex));
-  free(l);
-  }
 
 int send_command(bg_lcdproc_t * l, char * command)
   {
@@ -665,7 +652,7 @@ static void * thread_func(void * data)
 
 static void start_thread(bg_lcdproc_t * l)
   {
-  fprintf(stderr, "Start thread...");
+  //  fprintf(stderr, "Start thread...");
   pthread_mutex_lock(&(l->state_mutex));
 
   pthread_create(&(l->thread), (pthread_attr_t*)0,
@@ -673,12 +660,12 @@ static void start_thread(bg_lcdproc_t * l)
 
   l->is_running = 1;
   pthread_mutex_unlock(&(l->state_mutex));
-  fprintf(stderr, "done");
+  //  fprintf(stderr, "done");
   }
 
 static void stop_thread(bg_lcdproc_t * l)
   {
-  fprintf(stderr, "Stop thread...");
+  //  fprintf(stderr, "Stop thread...");
   pthread_mutex_lock(&(l->state_mutex));
   l->do_stop = 1;
 
@@ -696,8 +683,24 @@ static void stop_thread(bg_lcdproc_t * l)
   l->do_stop = 0;
   l->is_running = 0;
   pthread_mutex_unlock(&(l->state_mutex));
-  fprintf(stderr, "done");
+  //  fprintf(stderr, "done");
   }
+
+#define FREE(p) if(l->p) free(l->p);
+
+void bg_lcdproc_destroy(bg_lcdproc_t* l)
+  {
+  stop_thread(l);
+  FREE(answer);
+  FREE(hostname);
+  FREE(hostname_cfg);
+  bg_msg_queue_destroy(l->queue);
+
+  pthread_mutex_destroy(&(l->config_mutex));
+  pthread_mutex_destroy(&(l->state_mutex));
+  free(l);
+  }
+
 
 /*
  *  Config stuff. The function set_parameter automatically

@@ -530,6 +530,7 @@ void bg_dialog_show(bg_dialog_t * d)
   gtk_main();
   }
 
+
 static void destroy_section(dialog_section_t * s)
   {
   int i;

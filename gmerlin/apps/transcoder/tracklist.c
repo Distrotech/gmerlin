@@ -131,6 +131,8 @@ struct track_list_s
   bg_gtk_time_display_t * time_total;
 
   GtkTooltips * tooltips;
+
+  int show_tooltips;
   };
 
 static GtkWidget * create_pixmap_button(track_list_t * l, const char * filename,
@@ -697,7 +699,8 @@ static void button_callback(GtkWidget * w, gpointer data)
   if(w == t->config_button)
     {
     //    fprintf(stderr, "Config button\n");
-    track_dialog = track_dialog_create(t->selected_track, update_track, t);
+    track_dialog = track_dialog_create(t->selected_track, update_track,
+                                       t, t->show_tooltips);
     track_dialog_run(track_dialog);
     track_dialog_destroy(track_dialog);
 
@@ -1160,4 +1163,5 @@ void track_list_set_tooltips(track_list_t * t, int show_tooltips)
     gtk_tooltips_enable(t->tooltips);
   else
     gtk_tooltips_disable(t->tooltips);
+  t->show_tooltips = show_tooltips;
   }

@@ -1186,8 +1186,9 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
   struct stat stat_buf;
   char * urls[2];
   bg_album_t * a;
-
+    
   a = bg_media_tree_append_album(t, parent);
+  bg_album_set_expanded(parent, 1);
   
   bg_album_open(a);
   bg_album_set_expanded(a, 1);
@@ -1240,7 +1241,8 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
       t->change_callback(t, t->change_callback_data);
     }
   closedir(dir);
-  bg_album_sort(a);
+  bg_album_sort_entries(a);
+  bg_album_sort_children(a);
   bg_album_close(a);
 
   if(t->change_callback)

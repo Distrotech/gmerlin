@@ -115,6 +115,7 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
   int num_options, i;
   dst->name = bg_strdup(dst->name, src->name);
   dst->long_name = bg_strdup(dst->long_name, src->long_name);
+  dst->help_string = bg_strdup(dst->help_string, src->help_string);
   dst->type = src->type;
   dst->flags = src->flags;
   
@@ -242,6 +243,8 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
     free(info[index].name);
     if(info[index].long_name)
       free(info[index].long_name);
+    if(info[index].help_string)
+      free(info[index].help_string);
     switch(info[index].type)
       {
       case BG_PARAMETER_COLOR_RGB:

@@ -151,6 +151,37 @@ static void change_callback(GtkWidget * wid, gpointer data)
   
   }
 
+#ifdef GTK_2_4
+
+/*
+ *  Really dirty trick to get tooltips for a GtkComboBox working:
+ *  loop through all container children and set the tooltip for
+ *  the child, which is a button
+ */
+
+static void
+set_combo_tooltip(GtkWidget *widget, gpointer   data)
+  {
+  bg_gtk_widget_t * w = (bg_gtk_widget_t *)data;
+  //  GtkTooltips *tooltips = (GtkTooltips *)data;
+
+  if(GTK_IS_BUTTON (widget))
+    gtk_tooltips_set_tip(w->tooltips, widget,
+                         w->info->help_string,
+                         NULL);
+  }
+
+static void
+realize_combo(GtkWidget *combo, gpointer   data)
+  {
+  bg_gtk_widget_t * w = (bg_gtk_widget_t *)data;
+  
+  gtk_container_forall (GTK_CONTAINER (combo),
+                        set_combo_tooltip,
+                        w);
+  }
+#endif
+
 void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
   {
   int i;
@@ -165,9 +196,16 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
 
   if(info->help_string)
     {
+#if 0
     gtk_tooltips_set_tip(w->tooltips,
                          priv->combo,
                          info->help_string, info->help_string);
+#else
+    g_signal_connect (priv->combo, "realize",
+                      G_CALLBACK (realize_combo), w);
+
+#endif
+    
     }
 
   

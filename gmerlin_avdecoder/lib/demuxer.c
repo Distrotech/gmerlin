@@ -413,6 +413,7 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
 
 static int demuxer_next_packet(bgav_demuxer_context_t * demuxer)
   {
+  int ret, i;
   if(demuxer->si) /* Superindex present */
     {
     if(demuxer->non_interleaved)
@@ -422,7 +423,33 @@ static int demuxer_next_packet(bgav_demuxer_context_t * demuxer)
     }
   else
     {
-    return demuxer->demuxer->next_packet(demuxer);
+    ret = demuxer->demuxer->next_packet(demuxer);
+
+    if(!ret)
+      {
+      /* Some demuxers have packets stored in the streams,
+         we flush them here */
+ 
+      for(i = 0; i < demuxer->tt->current_track->num_audio_streams; i++)
+        {
+        if(demuxer->tt->current_track->audio_streams[i].packet)
+          {
+          bgav_packet_done_write(demuxer->tt->current_track->audio_streams[i].packet);
+          demuxer->tt->current_track->audio_streams[i].packet = (bgav_packet_t*)0;
+          ret = 1;
+          }
+        }
+      for(i = 0; i < demuxer->tt->current_track->num_video_streams; i++)
+        {
+        if(demuxer->tt->current_track->video_streams[i].packet)
+          {
+          bgav_packet_done_write(demuxer->tt->current_track->video_streams[i].packet);
+          demuxer->tt->current_track->video_streams[i].packet = (bgav_packet_t*)0;
+          ret = 1;
+          }
+        }
+      }
+    return ret;
     }
   }
 

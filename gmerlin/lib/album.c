@@ -769,18 +769,18 @@ typedef struct
   {
   bg_album_entry_t * entry;
   char * sort_string;
-  } sort_struct;
+  } sort_entries_struct;
 
-void bg_album_sort(bg_album_t * album)
+void bg_album_sort_entries(bg_album_t * album)
   {
   int num_entries;
   int i, j;
   char * tmp_string;
   int sort_string_len;
-  sort_struct * s_tmp;
+  sort_entries_struct * s_tmp;
   int keep_going;
   
-  sort_struct ** s;
+  sort_entries_struct ** s;
   bg_album_entry_t * tmp_entry;
   
   /* 1. Count the entries */
@@ -800,13 +800,13 @@ void bg_album_sort(bg_album_t * album)
   
   /* Set up the album array */
 
-  s = malloc(num_entries * sizeof(sort_struct*));
+  s = malloc(num_entries * sizeof(*s));
 
   tmp_entry = album->entries;
   
   for(i = 0; i < num_entries; i++)
     {
-    s[i] = calloc(1, sizeof(sort_struct));
+    s[i] = calloc(1, sizeof(*(s[i])));
     s[i]->entry = tmp_entry;
 
     /* Set up the sort string */
@@ -853,8 +853,7 @@ void bg_album_sort(bg_album_t * album)
     s[i]->entry->next = s[i+1]->entry;
     }
   
-  s[num_entries-1]->entry->next =
-    (bg_album_entry_t*)0;
+  s[num_entries-1]->entry->next = (bg_album_entry_t*)0;
   
   /* Free everything */
 
@@ -865,6 +864,108 @@ void bg_album_sort(bg_album_t * album)
     }
   free(s);
   }
+
+typedef struct
+  {
+  bg_album_t * child;
+  char * sort_string;
+  } sort_children_struct;
+
+void bg_album_sort_children(bg_album_t * album)
+  {
+  int num_children;
+  int i, j;
+  char * tmp_string;
+  int sort_string_len;
+  sort_children_struct * s_tmp;
+  int keep_going;
+  
+  sort_children_struct ** s;
+  bg_album_t * tmp_child;
+  
+  /* 1. Count the children */
+  
+  num_children = 0;
+
+  tmp_child = album->children;
+
+  while(tmp_child)
+    {
+    tmp_child = tmp_child->next;
+    num_children++;
+    }
+
+  if(!num_children)
+    return;
+  
+  /* Set up the album array */
+
+  s = malloc(num_children * sizeof(*s));
+
+  tmp_child = album->children;
+  
+  for(i = 0; i < num_children; i++)
+    {
+    s[i] = calloc(1, sizeof(*(s[i])));
+    s[i]->child = tmp_child;
+
+    /* Set up the sort string */
+
+    tmp_string = bg_utf8_to_system(tmp_child->name,
+                                   strlen(tmp_child->name));
+
+    sort_string_len = strxfrm((char*)0, tmp_string, 0);
+    s[i]->sort_string = malloc(sort_string_len+1);
+    strxfrm(s[i]->sort_string, tmp_string, sort_string_len+1);
+
+    free(tmp_string);
+    
+    /* Advance */
+    
+    tmp_child = tmp_child->next;
+    }
+
+  /* Now, do a braindead bubblesort algorithm */
+
+  for(i = 0; i < num_children - 1; i++)
+    {
+    keep_going = 0;
+    for(j = num_children-1; j > i; j--)
+      {
+      if(strcmp(s[j]->sort_string, s[j-1]->sort_string) < 0)
+        {
+        s_tmp  = s[j];
+        s[j]   = s[j-1];
+        s[j-1] = s_tmp;
+        keep_going = 1;
+        }
+      }
+    if(!keep_going)
+      break;
+    }
+  
+  /* Rechain children */
+
+  album->children = s[0]->child;
+
+  for(i = 0; i < num_children-1; i++)
+    {
+    s[i]->child->next = s[i+1]->child;
+    }
+  
+  s[num_children-1]->child->next = (bg_album_t*)0;
+  
+  /* Free everything */
+
+  for(i = 0; i < num_children; i++)
+    {
+    free(s[i]->sort_string);
+    free(s[i]);
+    }
+  free(s);
+  }
+
+/* END */
 
 void bg_album_rename_track(bg_album_t * album,
                            const bg_album_entry_t * entry_c,

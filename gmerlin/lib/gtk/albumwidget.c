@@ -922,7 +922,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
   /* Sort */
   else if(w == widget->menu.album_menu.sort_item)
     {
-    bg_album_sort(widget->album);
+    bg_album_sort_entries(widget->album);
     bg_gtk_album_widget_update(widget);
     }
   /* Save */

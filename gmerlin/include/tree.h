@@ -219,7 +219,8 @@ void bg_album_refresh_selected(bg_album_t * album);
 
 void bg_album_move_selected_up(bg_album_t * album);
 void bg_album_move_selected_down(bg_album_t * album);
-void bg_album_sort(bg_album_t * album);
+void bg_album_sort_entries(bg_album_t * album);
+void bg_album_sort_children(bg_album_t * album);
 
 void bg_album_rename_track(bg_album_t * album,
                            const bg_album_entry_t * entry,

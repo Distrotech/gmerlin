@@ -898,7 +898,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
     
   if(ctx->input->input->seek_byte)
     ctx->can_seek = 1;
-    
+  ctx->stream_description = bgav_strndup("Ogg bitstream", NULL);
   return 1;
   }
 

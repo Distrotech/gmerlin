@@ -32,7 +32,7 @@ static void set_parameter_general(void * priv, char * name, bg_parameter_value_t
 
 track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                                      void (*update_callback)(void * priv),
-                                     void * update_priv)
+                                     void * update_priv, int show_tooltips)
   {
   int i;
   char * label;
@@ -139,6 +139,11 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                           NULL,
                           t->video_streams[i].encoder_parameters);
     }
+
+  bg_dialog_set_tooltips(ret->cfg_dialog, show_tooltips);
+
+  fprintf(stderr, "Show tooltips: %d\n", show_tooltips);
+  
   return ret;
   
   }

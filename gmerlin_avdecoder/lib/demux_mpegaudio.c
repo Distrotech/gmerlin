@@ -136,6 +136,14 @@ typedef struct
   int samples_per_frame;
   } mpeg_header;
 
+
+static int header_equal(mpeg_header * h1, mpeg_header * h2)
+  {
+  return ((h1->version == h2->version) &&
+          (h1->layer == h2->layer) &&
+          (h1->samplerate == h2->samplerate));
+  }
+
 #if 0
 static void dump_header(mpeg_header * h)
   {
@@ -487,10 +495,12 @@ typedef struct
 static void select_track_mpegaudio(bgav_demuxer_context_t * ctx,
                                    int track);
 
+#define MAX_BYTES 2885 /* Maximum size of an mpeg audio frame + 4 bytes for next header */
+
 static int probe_mpegaudio(bgav_input_context_t * input)
   {
-  mpeg_header h;
-  uint8_t probe_data[4];
+  mpeg_header h1, h2;
+  uint8_t probe_data[MAX_BYTES];
   
   /* Check for audio header */
 
@@ -500,10 +510,27 @@ static int probe_mpegaudio(bgav_input_context_t * input)
   if(bgav_input_get_data(input, probe_data, 4) < 4)
     return 0;
 
-  if(decode_header(&h, probe_data))
-    return 1;
+  if(!decode_header(&h1, probe_data))
+    {
+    return 0;
+    }
 
-  return 0;
+  /* Now, we look where the next header might come
+     and decode from that point */
+
+  if(h1.frame_bytes > 2881) /* Prevent possible security hole */
+    return 0;
+
+  if(bgav_input_get_data(input, probe_data, h1.frame_bytes + 4) < h1.frame_bytes + 4)
+    return 0;
+
+  if(!decode_header(&h2, &(probe_data[h1.frame_bytes])))
+    return 0;
+
+  if(!header_equal(&h1, &h2))
+    return 0;
+
+  return 1;
   }
 
 static int resync(bgav_demuxer_context_t * ctx)

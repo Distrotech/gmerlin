@@ -258,6 +258,8 @@ void gmerlin_destroy(gmerlin_t * g)
   plugin_window_destroy(g->plugin_window);
   player_window_destroy(g->player_window);
 
+  bg_lcdproc_destroy(g->lcdproc);
+    
   bg_player_destroy(g->player);
 
   //  fprintf(stderr, "Blupp 1\n");
@@ -283,6 +285,8 @@ void gmerlin_destroy(gmerlin_t * g)
   //  fprintf(stderr, "Blupp 6\n");
   bg_dialog_destroy(g->cfg_dialog);
 
+  free(g->skin_dir);
+  
   //  fprintf(stderr, "Blupp 7\n");
   free(g);
   
