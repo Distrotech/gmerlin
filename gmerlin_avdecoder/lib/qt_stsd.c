@@ -33,36 +33,35 @@ extern bgav_palette_entry_t bgav_qt_default_palette_256[];
 /*
  *  Sample description
  */
-#if 0
 static void stsd_dump_audio(qt_sample_description_t * d)
   {
-  fprintf(stderr, "stsd:\nfourcc: ");
+  fprintf(stderr, "  fourcc: ");
   bgav_dump_fourcc(d->fourcc);
   fprintf(stderr, "\n");
     
-  fprintf(stderr, "data_reference_index: %d\n", d->data_reference_index);
-  fprintf(stderr, "version:              %d\n", d->version);
-  fprintf(stderr, "revision_level:       %d\n", d->revision_level);
-  fprintf(stderr, "vendor:               ");
+  fprintf(stderr, "  data_reference_index: %d\n", d->data_reference_index);
+  fprintf(stderr, "  version:              %d\n", d->version);
+  fprintf(stderr, "  revision_level:       %d\n", d->revision_level);
+  fprintf(stderr, "  vendor:               ");
   bgav_dump_fourcc(d->vendor);
   
-  fprintf(stderr, "\nnum_channels          %d\n", d->format.audio.num_channels);
-  fprintf(stderr, "bits_per_sample:      %d\n", d->format.audio.bits_per_sample);
-  fprintf(stderr, "compression_id:       %d\n", d->format.audio.compression_id);
-  fprintf(stderr, "packet_size:          %d\n", d->format.audio.packet_size);
-  fprintf(stderr, "samplerate:           %d\n", d->format.audio.samplerate);
+  fprintf(stderr, "\n  num_channels          %d\n", d->format.audio.num_channels);
+  fprintf(stderr, "  bits_per_sample:      %d\n", d->format.audio.bits_per_sample);
+  fprintf(stderr, "  compression_id:       %d\n", d->format.audio.compression_id);
+  fprintf(stderr, "  packet_size:          %d\n", d->format.audio.packet_size);
+  fprintf(stderr, "  samplerate:           %d\n", d->format.audio.samplerate);
 
   if(d->version > 0)
     {
-    fprintf(stderr, "samples_per_packet:   %d\n", d->format.audio.samples_per_packet);
-    fprintf(stderr, "bytes_per_packet:     %d\n", d->format.audio.bytes_per_packet);
-    fprintf(stderr, "bytes_per_frame:      %d\n", d->format.audio.bytes_per_frame);
-    fprintf(stderr, "bytes_per_sample:     %d\n", d->format.audio.bytes_per_sample);
+    fprintf(stderr, "  samples_per_packet:   %d\n", d->format.audio.samples_per_packet);
+    fprintf(stderr, "  bytes_per_packet:     %d\n", d->format.audio.bytes_per_packet);
+    fprintf(stderr, "  bytes_per_frame:      %d\n", d->format.audio.bytes_per_frame);
+    fprintf(stderr, "  bytes_per_sample:     %d\n", d->format.audio.bytes_per_sample);
     }
   }
 static void stsd_dump_video(qt_sample_description_t * d)
   {
-  fprintf(stderr, "stsd:\n  fourcc: ");
+  fprintf(stderr, "  fourcc: ");
   bgav_dump_fourcc(d->fourcc);
   fprintf(stderr, "\n");
     
@@ -86,7 +85,6 @@ static void stsd_dump_video(qt_sample_description_t * d)
   fprintf(stderr, "  ctab_id:               %d\n", d->format.video.ctab_id);
   fprintf(stderr, "  ctab_size:             %d\n", d->format.video.ctab_size);
   }
-#endif
 
 static int stsd_read_common(bgav_input_context_t * input,
                             qt_sample_description_t * ret)
@@ -175,8 +173,7 @@ static int stsd_read_audio(bgav_input_context_t * input,
         bgav_input_destroy(input_mem);
         break;
       case BGAV_MK_FOURCC('e', 's', 'd', 's'):
-        //        fprintf(stderr, "Found esds atom, %lld bytes\n",
-        //                h.size);
+        fprintf(stderr, "Found esds atom, %lld bytes\n", h.size);
         if(!bgav_qt_esds_read(&h, input, &(ret->esds)))
           return 0;
         ret->has_esds = 1;
@@ -223,9 +220,10 @@ static int stsd_read_video(bgav_input_context_t * input,
      !bgav_input_read_16_be(input, &(ret->format.video.depth)) ||
      !bgav_input_read_16_be(input, &(ret->format.video.ctab_id)))
     return 0;
-  ret->format.video.compressor_name[len] = '\0';
-  //  fprintf(stderr, "CTAB ID: %d\n", ret->format.video.ctab_id);
-
+  //  fprintf(stderr, "compressor name len: %d\n", len);
+  if(len < 31)
+    ret->format.video.compressor_name[len] = '\0';
+  
   /* Create colortable */
 
   bits_per_pixel = ret->format.video.depth & 0x1f;
@@ -346,6 +344,10 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak)
     if(trak->mdia.minf.has_vmhd) /* Video sample description */
       {
       //      fprintf(stderr, "Reading video stsd\n");
+
+      fprintf(stderr, "Reading video stsd\n");
+      bgav_hexdump(c->entries[i].data, c->entries[i].data_size, 16);
+      
       input_mem = bgav_input_open_memory(c->entries[i].data,
                                          c->entries[i].data_size);
       
@@ -366,7 +368,9 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak)
       }
     else if(trak->mdia.minf.has_smhd) /* Audio sample description */
       {
-      //      fprintf(stderr, "Reading audio stsd\n");
+      fprintf(stderr, "Reading audio stsd\n");
+      bgav_hexdump(c->entries[i].data, c->entries[i].data_size, 16);
+      
       input_mem = bgav_input_open_memory(c->entries[i].data,
                                          c->entries[i].data_size);
       
@@ -405,4 +409,22 @@ void bgav_qt_stsd_free(qt_stsd_t * c)
       bgav_qt_esds_free(&(c->entries[i].desc.esds));
     }
   free(c->entries);
+  }
+
+void bgav_qt_stsd_dump(qt_stsd_t * s)
+  {
+  int i;
+
+  fprintf(stderr, "stsd\n");
+
+  fprintf(stderr, "  num_entries: %d\n", s->num_entries);
+  
+  for(i = 0; i < s->num_entries; i++)
+    {
+    fprintf(stderr, "  Sample description: %d\n", i);
+    if(s->entries[i].desc.type == BGAV_STREAM_AUDIO)
+      stsd_dump_audio(&s->entries[i].desc);
+    else if(s->entries[i].desc.type == BGAV_STREAM_VIDEO)
+      stsd_dump_video(&s->entries[i].desc);
+    }
   }

@@ -182,6 +182,11 @@ static int probe_aac(bgav_input_context_t * input)
   {
   uint8_t header[4];
 
+  /* Support aac live streams */
+
+  if(input->mimetype && !strcmp(input->mimetype, "audio/aacp"))
+    return 1;
+
   if(bgav_input_get_data(input, header, 4) < 4)
     return 0;
   
@@ -371,20 +376,26 @@ static int open_aac(bgav_demuxer_context_t * ctx,
   ctx->priv = priv;
 
   /* Recheck header */
-  
-  if(bgav_input_get_data(ctx->input, header, 4) < 4)
-    return 0;
-  
-  if(IS_ADTS(header))
+
+  while(1)
     {
-    fprintf(stderr, "Found ADTS header\n");
-    priv->type = TYPE_ADTS;
-    }
-  else if(IS_ADIF(header))
-    {
-    fprintf(stderr, "Found ADIF header\n");
-    priv->type = TYPE_ADIF;
-    //    return 0;
+    if(bgav_input_get_data(ctx->input, header, 4) < 4)
+      return 0;
+    
+    if(IS_ADTS(header))
+      {
+      //      fprintf(stderr, "Found ADTS header\n");
+      priv->type = TYPE_ADTS;
+      break;
+      }
+    else if(IS_ADIF(header))
+      {
+      //      fprintf(stderr, "Found ADIF header\n");
+      priv->type = TYPE_ADIF;
+      //    return 0;
+      break;
+      }
+    bgav_input_skip(ctx->input, 1);
     }
   
   /* Create track */

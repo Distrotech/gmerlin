@@ -40,18 +40,20 @@ typedef struct
 
 void bgav_qt_hdlr_dump(qt_hdlr_t * ret)
   {
-  fprintf(stderr,"component_type: ");
+  fprintf(stderr,"hdlr:\n");
+  
+  fprintf(stderr,"  component_type: ");
   bgav_dump_fourcc(ret->component_type);
   
-  fprintf(stderr,"component_subtype: ");
+  fprintf(stderr,"\n  component_subtype: ");
   bgav_dump_fourcc(ret->component_subtype);
 
-  fprintf(stderr,"component_manufacturer: ");
+  fprintf(stderr,"\n  component_manufacturer: ");
   bgav_dump_fourcc(ret->component_manufacturer);
 
-  fprintf(stderr,"component_flags:     0x%08x\n", ret->component_flags);
-  fprintf(stderr,"component_flag_mask: 0x%08x\n", ret->component_flag_mask);
-  fprintf(stderr,"component_name: %s\n", ret->component_name);
+  fprintf(stderr,"\n  component_flags:     0x%08x\n", ret->component_flags);
+  fprintf(stderr,"  component_flag_mask: 0x%08x\n", ret->component_flag_mask);
+  fprintf(stderr,"  component_name: %s\n", ret->component_name);
   }
 
 

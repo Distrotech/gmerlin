@@ -41,12 +41,12 @@ typedef struct
 void bgav_qt_mdhd_dump(qt_mdhd_t * m)
   {
   fprintf(stderr, "mdhd:\n");
-  fprintf(stderr, "creation_time:     %d\n", m->creation_time);
-  fprintf(stderr, "modification_time: %d\n", m->modification_time);
-  fprintf(stderr, "time_scale:        %d\n", m->time_scale);
-  fprintf(stderr, "duration:          %d\n", m->duration);
-  fprintf(stderr, "language:          %d\n", m->language);
-  fprintf(stderr, "quality:           %d\n", m->quality);
+  fprintf(stderr, "  creation_time:     %d\n", m->creation_time);
+  fprintf(stderr, "  modification_time: %d\n", m->modification_time);
+  fprintf(stderr, "  time_scale:        %d\n", m->time_scale);
+  fprintf(stderr, "  duration:          %d\n", m->duration);
+  fprintf(stderr, "  language:          %d\n", m->language);
+  fprintf(stderr, "  quality:           %d\n", m->quality);
   }
   
 int bgav_qt_mdhd_read(qt_atom_header_t * h, bgav_input_context_t * input,

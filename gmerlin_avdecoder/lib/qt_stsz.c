@@ -64,3 +64,23 @@ void bgav_qt_stsz_free(qt_stsz_t * c)
   if(c->entries)
     free(c->entries);
   }
+
+void bgav_qt_stsz_dump(qt_stsz_t * c)
+  {
+  int i;
+  fprintf(stderr, "stsz\n");
+
+  if(c->sample_size)
+    {
+    fprintf(stderr, "  sample size: %d\n", c->sample_size);
+    }
+  else
+    {
+    fprintf(stderr, "  num_entries: %d\n", c->num_entries);
+    
+    for(i = 0; i < c->num_entries; i++)
+      {
+      fprintf(stderr, "  sample size: %d\n", c->entries[i]);
+      }
+    }
+  }

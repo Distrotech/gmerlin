@@ -68,3 +68,51 @@ void bgav_qt_trak_free(qt_trak_t * c)
   {
   bgav_qt_mdia_free(&(c->mdia));
   }
+
+void bgav_qt_trak_dump(qt_trak_t * c)
+  {
+  fprintf(stderr, "trak\n");
+  bgav_qt_mdia_dump(&c->mdia);
+  bgav_qt_tkhd_dump(&c->tkhd);
+  fprintf(stderr, "end of trak\n");
+  }
+
+int64_t bgav_qt_trak_samples(qt_trak_t * c)
+  {
+  int j;
+
+  int64_t stco_pos = 0;
+  int64_t stsc_pos = 0;
+  int64_t ret = 0;
+
+  for(j = 0; j < c->mdia.minf.stbl.stco.num_entries; j++) // Loop over chunks
+    {
+    ret += c->mdia.minf.stbl.stsc.entries[stsc_pos].samples_per_chunk;
+    stco_pos++;
+
+    /* Update sample to chunk */
+    if(stsc_pos < c->mdia.minf.stbl.stsc.num_entries - 1)
+      {
+      if(c->mdia.minf.stbl.stsc.entries[stsc_pos+1].first_chunk - 1 == stco_pos)
+        stsc_pos++;
+      }
+    }
+  return ret;
+  }
+
+int64_t bgav_qt_trak_chunks(qt_trak_t * c)
+  {
+  return c->mdia.minf.stbl.stco.num_entries;
+  }
+
+int64_t bgav_qt_trak_tics(qt_trak_t * c) /* Duration in timescale tics */
+  {
+  int i;
+  int64_t ret = 0;
+
+  for(i = 0; i < c->mdia.minf.stbl.stts.num_entries; i++)
+    {
+    ret += c->mdia.minf.stbl.stts.entries[i].count * c->mdia.minf.stbl.stts.entries[i].duration;
+    }
+  return ret;
+  }

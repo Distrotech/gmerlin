@@ -76,3 +76,12 @@ void bgav_qt_mdia_free(qt_mdia_t * c)
   bgav_qt_hdlr_free(&(c->hdlr));
   bgav_qt_minf_free(&(c->minf));
   }
+
+void bgav_qt_mdia_dump(qt_mdia_t * c)
+  {
+  fprintf(stderr, "mdia\n");
+  bgav_qt_mdhd_dump(&(c->mdhd));
+  bgav_qt_hdlr_dump(&(c->hdlr));
+  bgav_qt_minf_dump(&(c->minf));
+  fprintf(stderr, "end of mdia\n");
+  }

@@ -23,6 +23,8 @@
 #include <avdec_private.h>
 #include <qt.h>
 
+#define ENABLE_DUMP
+
 #if 0
 typedef struct
   {
@@ -40,21 +42,22 @@ typedef struct
   } qt_esds_t;
 #endif
 
-static void bgav_qt_esds_dump(qt_esds_t * ret)
+
+void bgav_qt_esds_dump(qt_esds_t * e)
   {
   fprintf(stderr, "esds:\n");
-  bgav_qt_atom_dump_header(&(ret->h));
-  fprintf(stderr, "Version:          %d\n", ret->version);
-  fprintf(stderr, "Flags:            0x%0x06x\n", ret->flags);
-  fprintf(stderr, "objectTypeId:     %d\n", ret->objectTypeId);
-  fprintf(stderr, "streamType:       0x%02x\n", ret->streamType);
-  fprintf(stderr, "bufferSizeDB:     %d\n", ret->bufferSizeDB);
+  bgav_qt_atom_dump_header(&(e->h));
+  fprintf(stderr, "  Version:          %d\n", e->version);
+  fprintf(stderr, "  Flags:            0x%0x06x\n", e->flags);
+  fprintf(stderr, "  objectTypeId:     %d\n", e->objectTypeId);
+  fprintf(stderr, "  streamType:       0x%02x\n", e->streamType);
+  fprintf(stderr, "  bufferSizeDB:     %d\n", e->bufferSizeDB);
 
-  fprintf(stderr, "maxBitrate:       %d\n", ret->maxBitrate);
-  fprintf(stderr, "avgBitrate:       %d\n", ret->avgBitrate);
-  fprintf(stderr, "decoderConfigLen: %d\n", ret->decoderConfigLen);
-  fprintf(stderr, "decoderConfig:\n");
-  bgav_hexdump(ret->decoderConfig, ret->decoderConfigLen, 16);
+  fprintf(stderr, "  maxBitrate:       %d\n", e->maxBitrate);
+  fprintf(stderr, "  avgBitrate:       %d\n", e->avgBitrate);
+  fprintf(stderr, "  decoderConfigLen: %d\n", e->decoderConfigLen);
+  fprintf(stderr, "  decoderConfig:\n");
+  bgav_hexdump(e->decoderConfig, e->decoderConfigLen, 16);
   
   }
 
@@ -122,6 +125,12 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
     return 0;
 
   ret->decoderConfigLen = read_mp4_descr_length(input);
+
+  // fprintf(stderr, "decoderConfigLen 1: %d\n", ret->decoderConfigLen);
+
+  // ret->decoderConfigLen = input->total_bytes - input->position;
+  // fprintf(stderr, "decoderConfigLen 2: %d\n", ret->decoderConfigLen);
+    
   ret->decoderConfig = malloc(ret->decoderConfigLen);
   if(bgav_input_read_data(input, ret->decoderConfig,
                           ret->decoderConfigLen) < ret->decoderConfigLen)
@@ -129,9 +138,9 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
   //  fprintf(stderr, "decoderConfigLen: %d\n", ret->decoderConfigLen);
   //  fprintf(stderr, "Skipping %lld bytes\n", h->size - (input->position - h->start_position));
   bgav_qt_atom_skip(input, h);
-
+#ifdef ENABLE_DUMP
   bgav_qt_esds_dump(ret);
-
+#endif
   return 1;
   }
 

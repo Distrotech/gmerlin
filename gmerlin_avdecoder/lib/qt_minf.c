@@ -24,20 +24,6 @@
 
 #include <qt.h>
 
-/*
-
-typedef struct
-  {
-  qt_stbl_t stbl;
-  qt_hdlr_t hdlr;
-
-  // qt_vmhd_t vmhd;
-  // qt_dinf_t dinf;
-  
-  } qt_minf_t;
-*/
-
-
 int bgav_qt_minf_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_minf_t * ret)
   {
@@ -81,4 +67,12 @@ void bgav_qt_minf_free(qt_minf_t * h)
   //  bgav_qt_dinf_free(&(h->dinf));
   bgav_qt_hdlr_free(&(h->hdlr));
   bgav_qt_stbl_free(&(h->stbl));
+  }
+
+void bgav_qt_minf_dump(qt_minf_t * h)
+  {
+  fprintf(stderr, "minf\n");
+  bgav_qt_hdlr_dump(&(h->hdlr));
+  bgav_qt_stbl_dump(&(h->stbl));
+  fprintf(stderr, "end of minf\n");
   }

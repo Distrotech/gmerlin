@@ -116,6 +116,7 @@ typedef struct
 int bgav_qt_stts_read(qt_atom_header_t * h,
                       bgav_input_context_t * ctx, qt_stts_t * ret);
 void bgav_qt_stts_free(qt_stts_t * c);
+void bgav_qt_stts_dump(qt_stts_t * c);
 
 /*
  *  Sync samples
@@ -133,6 +134,7 @@ typedef struct
 int bgav_qt_stss_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                   qt_stss_t * ret);
 void bgav_qt_stss_free(qt_stss_t * c);
+void bgav_qt_stss_dump(qt_stss_t * c);
 
 /* Esds */
 
@@ -155,6 +157,8 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_esds_t * ret);
 
 void bgav_qt_esds_free(qt_esds_t * ret);
+
+void bgav_qt_esds_dump(qt_esds_t * e);
 
 /*
  *  Sample description
@@ -243,6 +247,9 @@ int bgav_qt_stsd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 void bgav_qt_stsd_free(qt_stsd_t * c);
 int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak);
 
+void bgav_qt_stsd_dump(qt_stsd_t * c);
+
+
 /*
  * Sample to chunk
  */
@@ -266,6 +273,7 @@ typedef struct
 int bgav_qt_stsc_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_stsc_t * ret);
 void bgav_qt_stsc_free(qt_stsc_t * c);
+void bgav_qt_stsc_dump(qt_stsc_t * c);
 
 /*
  *  Sample size table
@@ -284,6 +292,7 @@ typedef struct
 int bgav_qt_stsz_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_stsz_t * ret);
 void bgav_qt_stsz_free(qt_stsz_t * c);
+void bgav_qt_stsz_dump(qt_stsz_t * c);
 
 /*
  *  Chunk offset table
@@ -303,6 +312,7 @@ int bgav_qt_stco_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 int bgav_qt_stco_read_64(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_stco_t * ret);
 void bgav_qt_stco_free(qt_stco_t * c);
+void bgav_qt_stco_dump(qt_stco_t * c);
 
 /*
  *  Sample table
@@ -323,6 +333,7 @@ typedef struct
 int bgav_qt_stbl_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_stbl_t * ret, qt_minf_t * minf);
 void bgav_qt_stbl_free(qt_stbl_t * c);
+void bgav_qt_stbl_dump(qt_stbl_t * c);
 
 /*
  * Media handler
@@ -345,6 +356,7 @@ int bgav_qt_hdlr_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_hdlr_t * ret);
 
 void bgav_qt_hdlr_free(qt_hdlr_t * h);
+void bgav_qt_hdlr_dump(qt_hdlr_t * h);
 
 /*
  *  Media information
@@ -365,6 +377,8 @@ int bgav_qt_minf_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_minf_t * ret);
 
 void bgav_qt_minf_free(qt_minf_t * h);
+
+void bgav_qt_minf_dump(qt_minf_t * h);
 
 /*
  *  Media header
@@ -388,6 +402,7 @@ int bgav_qt_mdhd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_mdhd_t * ret);
 
 void bgav_qt_mdhd_free(qt_mdhd_t * c);
+void bgav_qt_mdhd_dump(qt_mdhd_t * c);
 
 /*
  *  Media
@@ -406,6 +421,7 @@ int bgav_qt_mdia_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_mdia_t * ret);
 
 void bgav_qt_mdia_free(qt_mdia_t * c);
+void bgav_qt_mdia_dump(qt_mdia_t * c);
 
 /*
  *  Track header
@@ -437,6 +453,7 @@ int bgav_qt_tkhd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_tkhd_t * ret);
 
 void bgav_qt_tkhd_free(qt_tkhd_t * c);
+void bgav_qt_tkhd_dump(qt_tkhd_t * c);
 
 
 /*
@@ -453,6 +470,16 @@ struct qt_trak_s
 int bgav_qt_trak_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_trak_t * ret);
 void bgav_qt_trak_free(qt_trak_t * c);
+
+void bgav_qt_trak_dump(qt_trak_t * c);
+
+/* Infos about the track */
+
+int64_t bgav_qt_trak_samples(qt_trak_t * c);
+
+int64_t bgav_qt_trak_chunks(qt_trak_t * c);
+
+int64_t bgav_qt_trak_tics(qt_trak_t * c); /* Duration in timescale tics */
 
 /*
  *  Movie header

@@ -112,3 +112,10 @@ int bgav_packet_buffer_get_timestamp(bgav_packet_buffer_t * b,
   *ret = b->read_packet->timestamp;
   return 1;
   }
+
+int bgav_packet_buffer_is_empty(bgav_packet_buffer_t * b)
+  {
+  if((b->write_packet == b->read_packet) && !b->read_packet->valid)
+    return 1;
+  return 0;
+  }

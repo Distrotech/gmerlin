@@ -100,3 +100,13 @@ void bgav_qt_stbl_free(qt_stbl_t * c)
   bgav_qt_stsc_free(&(c->stsc));
   bgav_qt_stco_free(&(c->stco));
   }
+
+void bgav_qt_stbl_dump(qt_stbl_t * c)
+  {
+  bgav_qt_stts_dump(&(c->stts));
+  bgav_qt_stss_dump(&(c->stss));
+  bgav_qt_stsd_dump(&(c->stsd));
+  bgav_qt_stsz_dump(&(c->stsz));
+  bgav_qt_stsc_dump(&(c->stsc));
+  bgav_qt_stco_dump(&(c->stco));
+  }

@@ -156,11 +156,21 @@ dnl
 dnl FAAD2
 dnl
 
+FAAD2_PREFIX=""
+AC_ARG_WITH(faad2-prefix, [ --with-faad2-prefix=PFX   Prefix to search for faad2],FAAD2_PREFIX=${withval})
+
+
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
- 
-LIBS="-lfaad -lm"
+
+if test "x$FAAD2_PREFIX" = "x"; then 
 CFLAGS=""
+LIBS="-lfaad -lm"
+else
+CFLAGS="-I$FAAD2_PREFIX/include"
+LIBS="-L$FAAD2_PREFIX/lib -lfaad -lm"
+fi
+
 FAAD2_REQUIRED="2.0"
 AH_TEMPLATE([HAVE_FAAD2], [Enable FAAD2])
 AC_MSG_CHECKING(for faad2)
@@ -428,7 +438,7 @@ AM_CONDITIONAL(HAVE_REALDLL, test x"$enable_realdll" = "xtrue")
 AC_SUBST(REALDLL_LIBS)
 
 dnl
-dnl Real DLLs loader
+dnl Xanim DLLs loader
 dnl
 
 AH_TEMPLATE([HAVE_XADLL], [ Xanim dll loader enabled ])
@@ -443,8 +453,12 @@ fi
 
 if test "x$enable_xadll" = "xtrue"; then
 AC_DEFINE([HAVE_XADLL])
+XADLL_LIBS="-ldl"
+else
+XADLL_LIBS=""
 fi
 
+AC_SUBST(XADLL_LIBS)
 AM_CONDITIONAL(HAVE_XADLL, test x"$enable_xadll" = "xtrue")
 
 dnl
@@ -541,7 +555,7 @@ fi
 
 echo -n "faad2:                  "
 if test "x$have_faad2" = "xtrue"; then
-echo "Yes"
+echo "Yes CFLAGS=$FAAD2_CFLAGS LIBS=$FAAD2_LIBS"
 else
 echo "Missing"
 fi

@@ -32,7 +32,7 @@
 
 void bgav_dump_fourcc(uint32_t fourcc)
   {
-  if(fourcc & 0xffff0000)
+  if((fourcc & 0xffff0000) || !(fourcc))
     fprintf(stderr, "%c%c%c%c (%08x)",
             (fourcc & 0xFF000000) >> 24,
             (fourcc & 0x00FF0000) >> 16,

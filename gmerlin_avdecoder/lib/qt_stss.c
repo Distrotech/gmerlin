@@ -60,3 +60,16 @@ void bgav_qt_stss_free(qt_stss_t * c)
   if(c->entries)
     free(c->entries);
   }
+
+void bgav_qt_stss_dump(qt_stss_t * c)
+  {
+  int i;
+  fprintf(stderr, "stss\n");
+  fprintf(stderr, "  num_entries: %d\n", c->num_entries);
+  
+  for(i = 0; i < c->num_entries; i++)
+    {
+    fprintf(stderr, "  sample: %d\n", c->entries[i]);
+    }
+    
+  }

@@ -108,8 +108,10 @@ endif
 
 if HAVE_XADLL
 xadll_sources = video_xadll.c
+xadll_libs = @XADLL_LIBS@
 else
 xadll_sources =
+xadll_libs = 
 endif
 
 if HAVE_VCD
@@ -132,6 +134,7 @@ $(mad_libs) \
 $(a52_libs) \
 $(avcodec_libs) \
 $(real_libs) \
+$(xadll_libs) \
 -lm
 
 AM_CFLAGS = \

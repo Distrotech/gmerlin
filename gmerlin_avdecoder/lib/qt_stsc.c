@@ -67,3 +67,19 @@ void bgav_qt_stsc_free(qt_stsc_t * c)
   if(c->entries)
     free(c->entries);
   }
+
+void bgav_qt_stsc_dump(qt_stsc_t * c)
+  {
+  int i;
+  fprintf(stderr, "stsc\n");
+  fprintf(stderr, "  num_entries: %d\n", c->num_entries);
+
+  for(i = 0; i < c->num_entries; i++)
+    {
+    fprintf(stderr, "  chunk: %d samples: %d id: %d\n",
+            c->entries[i].first_chunk, c->entries[i].samples_per_chunk,
+            c->entries[i].sample_description_id);
+    }
+
+  }
+

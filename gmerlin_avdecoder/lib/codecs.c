@@ -26,6 +26,8 @@
 #include <avdec_private.h>
 #include <utils.h>
 
+// #define ENABLE_DEBUG
+
 static void codecs_lock();
 static void codecs_unlock();
 
@@ -360,10 +362,12 @@ bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t * s)
   cur = audio_decoders;
   if(!codecs_initialized)
     bgav_codecs_init();
-  
-  //  fprintf(stderr, "Seeking audio codec ");
-  //  bgav_dump_fourcc(s->fourcc);
-  //  fprintf(stderr, "\n");
+
+#ifdef ENABLE_DEBUG
+  fprintf(stderr, "Seeking audio codec ");
+  bgav_dump_fourcc(s->fourcc);
+  fprintf(stderr, "\n");
+#endif
   
   while(cur)
     {
@@ -374,6 +378,9 @@ bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t * s)
       if(cur->fourccs[i] == s->fourcc)
         {
         codecs_unlock();
+#ifdef ENABLE_DEBUG
+        fprintf(stderr, "Found %s\n", cur->name);
+#endif
         return cur;
         }
       else
@@ -396,10 +403,11 @@ bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
   
   cur = video_decoders;
 
-  //  fprintf(stderr, "Seeking video codec ");
-  //  bgav_dump_fourcc(s->fourcc);
-  //  fprintf(stderr, "\n");
-  
+#ifdef ENABLE_DEBUG
+  fprintf(stderr, "Seeking video codec ");
+  bgav_dump_fourcc(s->fourcc);
+  fprintf(stderr, "\n");
+#endif
   while(cur)
     {
     i = 0;
@@ -408,6 +416,9 @@ bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
       if(cur->fourccs[i] == s->fourcc)
         {
         codecs_unlock();
+#ifdef ENABLE_DEBUG
+        fprintf(stderr, "Found %s\n", cur->name);
+#endif
         return cur;
         }
       else

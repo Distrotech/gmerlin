@@ -148,6 +148,8 @@ void bgav_packet_buffer_clear(bgav_packet_buffer_t*);
 int bgav_packet_buffer_get_timestamp(bgav_packet_buffer_t*,
                                      gavl_time_t * ret);
 
+int bgav_packet_buffer_is_empty(bgav_packet_buffer_t * b);
+
 /* Palette support */
 
 typedef struct
@@ -178,8 +180,9 @@ dst[0] = pal.b >> 8;
 
 /* Stream types */
 
-#define BGAV_STREAM_AUDIO 0
-#define BGAV_STREAM_VIDEO 1
+#define BGAV_STREAM_UNKNOWN 0
+#define BGAV_STREAM_AUDIO   1
+#define BGAV_STREAM_VIDEO   2
 
 /* Stream structure */ 
 
