@@ -593,8 +593,10 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         bg_vs->ext_data = moov->tracks[i].mdia.minf.stbl.stsd.entries[0].data +
           moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc.avcC_offset;
         bg_vs->ext_size = moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc.avcC_size;
-        fprintf(stderr, "AVCC Data\n");
+#if 0
+        fprintf(stderr, "Setting AVCC extradata\n");
         bgav_hexdump(bg_vs->ext_data, bg_vs->ext_size, 16);
+#endif
         }
       
       /* Set mp4 extradata */
