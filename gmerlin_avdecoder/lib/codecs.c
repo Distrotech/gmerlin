@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <config.h>
 #include <codecs.h>
+#include <pthread.h>
 
 #include <avdec_private.h>
 #include <utils.h>
@@ -47,8 +48,45 @@ static const char * env_name_win32 = "GMERLIN_AVDEC_CODEC_PATH_WIN32";
 static bgav_audio_decoder_t * audio_decoders = (bgav_audio_decoder_t*)0;
 static bgav_video_decoder_t * video_decoders = (bgav_video_decoder_t*)0;
 static int codecs_initialized = 0;
+
 static int num_audio_codecs = 0;
 static int num_video_codecs = 0;
+
+static pthread_mutex_t codec_mutex;
+static int mutex_initialized = 0;
+
+static void codecs_lock()
+  {
+  if(!mutex_initialized)
+    {
+    pthread_mutex_init(&(codec_mutex),(pthread_mutexattr_t *)0);
+    mutex_initialized = 1;
+    }
+  pthread_mutex_lock(&(codec_mutex));
+  }
+
+static void codecs_unlock()
+  {
+  pthread_mutex_unlock(&(codec_mutex));
+  }
+
+/***************************************************************
+ * This will hopefully make the destruction for dynamic loading
+ * (Trick comes from a 1995 version of the ELF Howto, so it
+ * should work everywhere now)
+ ***************************************************************/
+
+
+#if defined(__GNUC__) && defined(__ELF__)
+
+static void codecs_free() __attribute__ ((destructor));
+static void codecs_free()
+  {
+  if(mutex_initialized)
+    pthread_mutex_destroy(&codec_mutex);
+  }
+
+#endif
 
 void bgav_codecs_dump()
   {
@@ -129,15 +167,17 @@ void bgav_codecs_dump()
       }
     vd = vd->next;
     }
-
-  
   }
 
 void bgav_codecs_init()
   {
   const char * env_ptr;
+  codecs_lock();
   if(codecs_initialized)
+    {
+    codecs_unlock();
     return;
+    }
 //  fprintf(stderr, "bgav_codecs_init()\n");
   codecs_initialized = 1;
 #ifdef HAVE_LIBAVCODEC
@@ -245,6 +285,9 @@ void bgav_codecs_init()
   
   //  fprintf(stderr, "BGAV Codecs initialized: A: %d V: %d\n",
   //          num_audio_codecs, num_video_codecs);
+
+  codecs_unlock();
+  
   }
 
 void bgav_audio_decoder_register(bgav_audio_decoder_t * dec)
@@ -283,7 +326,11 @@ bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t * s)
   {
   bgav_audio_decoder_t * cur;
   int i;
+  codecs_lock();
   cur = audio_decoders;
+  if(!codecs_initialized)
+    bgav_codecs_init();
+  
   //  fprintf(stderr, "Seeking audio codec ");
   //  bgav_dump_fourcc(s->fourcc);
   //  fprintf(stderr, "\n");
@@ -295,12 +342,16 @@ bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t * s)
     while(cur->fourccs[i])
       {
       if(cur->fourccs[i] == s->fourcc)
+        {
+        codecs_unlock();
         return cur;
+        }
       else
         i++;
       }
     cur = cur->next;
     }
+  codecs_unlock();
   return (bgav_audio_decoder_t*)0;
   }
 
@@ -308,6 +359,11 @@ bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
   {
   bgav_video_decoder_t * cur;
   int i;
+  codecs_lock();
+
+  if(!codecs_initialized)
+    bgav_codecs_init();
+  
   cur = video_decoders;
 
   //  fprintf(stderr, "Seeking video codec ");
@@ -320,11 +376,15 @@ bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
     while(cur->fourccs[i])
       {
       if(cur->fourccs[i] == s->fourcc)
+        {
+        codecs_unlock();
         return cur;
+        }
       else
         i++;
       }
     cur = cur->next;
     }
+  codecs_unlock();
   return (bgav_video_decoder_t*)0;
   }

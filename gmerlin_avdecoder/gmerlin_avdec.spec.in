@@ -68,6 +68,7 @@ Group:	    Applications/Multimedia
 Group(de):  Anwendungen/Multimedia
 Requires:   gmerlin-lib = @GMERLIN_REQUIRED@
 Requires:   %{name} = %{version}
+Provides:   gmerlin-input-plugin
 
 %description plugins
 Gmerlin plugins based on the Gmerlin A/V decoder library
