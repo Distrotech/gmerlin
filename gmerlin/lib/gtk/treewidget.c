@@ -228,6 +228,12 @@ static bg_gtk_album_window_t * album_is_open(bg_gtk_tree_widget_t * widget,
 
 /* Update the menu */
 
+static void rename_item(GtkWidget * w, const char * label)
+  {
+  gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(w))), label);
+  }
+
+
 static void update_menu(bg_gtk_tree_widget_t * w)
   {
   bg_album_type_t type;
@@ -249,9 +255,11 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         gtk_widget_show(w->menu.plugin_item);
         break;
       case BG_ALBUM_TYPE_REMOVABLE:
+        rename_item(w->menu.album_item, "Device...");
         gtk_widget_show(w->menu.album_item);
+        
         gtk_widget_hide(w->menu.plugin_item);
-
+        
         gtk_widget_show(w->menu.album_menu.remove_item);
         gtk_widget_show(w->menu.album_menu.rename_item);
         gtk_widget_hide(w->menu.album_menu.new_item);
@@ -272,6 +280,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
       case BG_ALBUM_TYPE_REGULAR:
         gtk_widget_hide(w->menu.plugin_item);
 
+        rename_item(w->menu.album_item, "Album...");
         gtk_widget_show(w->menu.album_item);
         gtk_widget_show(w->menu.album_menu.remove_item);
         gtk_widget_show(w->menu.album_menu.new_item);
@@ -937,7 +946,7 @@ static void init_menu(bg_gtk_tree_widget_t * w)
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.plugin_menu.menu),
                         w->menu.plugin_menu.find_devices_item);
 
-  w->menu.plugin_menu.add_device_item = create_item(w, "Add device");
+  w->menu.plugin_menu.add_device_item = create_item(w, "Add device...");
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.plugin_menu.menu),
                         w->menu.plugin_menu.add_device_item);
   
@@ -1024,6 +1033,8 @@ static void select_row_callback(GtkTreeSelection * sel,
     if(album_window)
       bg_gtk_album_window_raise(album_window);
 
+    type = bg_album_get_type(w->current_album);
+    
     switch(type)
       {
       case BG_ALBUM_TYPE_PLUGIN:
@@ -1284,8 +1295,8 @@ static gboolean drag_motion_callback(GtkWidget *widget,
       type = bg_album_get_type(drop_album);
       switch(type)
         {
-        case BG_ALBUM_TYPE_PLUGIN:
-        case BG_ALBUM_TYPE_REMOVABLE:
+        case BG_ALBUM_TYPE_REGULAR:
+        case BG_ALBUM_TYPE_INCOMING:
           if(widget != gtk_drag_get_source_widget(drag_context))
             {
             gtk_tree_view_set_drag_dest_row(GTK_TREE_VIEW(w->treeview),
@@ -1328,8 +1339,8 @@ static gboolean drag_motion_callback(GtkWidget *widget,
             }
           
           break;
-        case BG_ALBUM_TYPE_REGULAR:
-        case BG_ALBUM_TYPE_INCOMING:
+        case BG_ALBUM_TYPE_PLUGIN:
+        case BG_ALBUM_TYPE_REMOVABLE:
           break;
         }
       }

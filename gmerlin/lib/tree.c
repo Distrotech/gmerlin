@@ -672,8 +672,8 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   bg_input_plugin_t * input_plugin;
   bg_plugin_handle_t * ret;
 
-  fprintf(stderr, "bg_media_tree_get_current_track %p %p\n",
-          t->com.current_entry, t->com.current_album);
+  //  fprintf(stderr, "bg_media_tree_get_current_track %p %p\n",
+  //          t->com.current_entry, t->com.current_album);
   
   if(!t->com.current_entry || !t->com.current_album)
     {

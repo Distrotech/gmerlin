@@ -495,6 +495,10 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
     ctx->tt = bgav_track_table_create(1);
     find_streams(ctx);
     }
+  fprintf(stderr, "Duration: %lld, Mux rate: %d, total_bytes: %lld\n",
+          ctx->tt->current_track->duration,
+          priv->pack_header.mux_rate,
+          ctx->input->total_bytes);
   if((ctx->tt->current_track->duration == GAVL_TIME_UNDEFINED) &&
      priv->pack_header.mux_rate)
     {
@@ -502,6 +506,12 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
     ctx->tt->current_track->duration =
       (ctx->input->total_bytes * GAVL_TIME_SCALE)/(priv->pack_header.mux_rate*50);
     }
+
+  fprintf(stderr, "Duration: %lld, Mux rate: %d, total_bytes: %lld\n",
+          ctx->tt->current_track->duration,
+          priv->pack_header.mux_rate,
+          ctx->input->total_bytes);
+  
   if(ctx->input->input->seek_byte)
     ctx->can_seek = 1;
 
@@ -541,7 +551,9 @@ static void seek_mpegps(bgav_demuxer_context_t * ctx, gavl_time_t time)
 
 static void close_mpegps(bgav_demuxer_context_t * ctx)
   {
-  
+  mpegps_priv_t * priv;
+  priv = (mpegps_priv_t*)(ctx->priv);
+  free(priv);
   }
 
 

@@ -27,7 +27,7 @@
 #endif
 
 #include <unistd.h>
-#include <sys/ioctl.h>                                                             
+#include <sys/ioctl.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -78,12 +78,14 @@ static int read_toc(vcd_priv * priv)
   
   for(i = 0; i < priv->num_tracks; i++)
     {
+    
     entry.cdte_track = hdr.cdth_trk0 + i;
     entry.cdte_format = CDROM_LBA;
     
     if(ioctl(priv->fd, CDROMREADTOCENTRY, &entry) < 0 )
       return 0;
 
+    fprintf(stderr, "Track %d: Datamode: %d\n", i+1, entry.cdte_datamode);
     if(i)
       priv->tracks[i-1].end_sector = entry.cdte_addr.lba - 1;
     priv->tracks[i].start_sector = entry.cdte_addr.lba;
@@ -131,6 +133,7 @@ void toc_2_tt(bgav_input_context_t * ctx)
     stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
     stream->stream_id = 0xe0;
     track->name = bgav_sprintf("VCD Track %d", i);
+    track->duration = GAVL_TIME_UNDEFINED;
     }
   }
 
@@ -265,7 +268,6 @@ static int64_t seek_byte_vcd(bgav_input_context_t * ctx,
   return ctx->position;
   }
 
-
 static void    close_vcd(bgav_input_context_t * ctx)
   {
   vcd_priv * priv;
@@ -381,8 +383,8 @@ int bgav_check_device_vcd(const char * device, char ** name)
 
   if(fd < 0)
     {
-    fprintf(stderr, "Couldn't open device %s: %s\n",
-            device, strerror(errno));
+    //    fprintf(stderr, "Couldn't open device %s: %s\n",
+    //            device, strerror(errno));
     return 0;
     }
   /* Try a cdrom ioctl and see what happens */

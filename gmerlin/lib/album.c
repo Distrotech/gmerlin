@@ -528,9 +528,9 @@ void bg_album_close(bg_album_t *a )
           free(a->location);
           a->location = (char*)0;
           }
+        else
+          bg_album_save(a, NULL);
         }
-      else
-        bg_album_save(a, NULL);
       break;
     case BG_ALBUM_TYPE_INCOMING:
       bg_album_save(a, NULL);
