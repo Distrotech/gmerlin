@@ -1,4 +1,24 @@
+/*****************************************************************
+ 
+  mainmenu.h
+ 
+  Copyright (c) 2003-2005 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
 #include "gmerlin.h"
+#include <utils.h>
 
 struct stream_menu_s
   {
@@ -38,18 +58,27 @@ struct options_menu_s
   GtkWidget * menu;
   };
 
+struct accessories_menu_s
+  {
+  GtkWidget * transcoder;
+  GtkWidget * visualizer;
+
+  GtkWidget * menu;
+  };
+
 struct main_menu_s
   {
-  struct windows_menu_s windows_menu;
-  struct options_menu_s options_menu;
+  struct windows_menu_s     windows_menu;
+  struct options_menu_s     options_menu;
+  struct accessories_menu_s accessories_menu;
   
   GtkWidget * windows_item;
   GtkWidget * options_item;
-    
+  GtkWidget * accessories_item;
+  
   GtkWidget * audio_streams_item;
   GtkWidget * video_streams_item;
   GtkWidget * subpicture_streams_item;
-  GtkWidget * programs_item;
       
   GtkWidget * menu;
   };
@@ -169,13 +198,17 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   {
   main_menu_t * ret;
   ret = calloc(1, sizeof(*ret));
-  
+
+  /* Windows */
+    
   ret->windows_menu.menu = create_menu();
   ret->windows_menu.mediatree =
     create_toggle_item("Media Tree", gmerlin, ret->windows_menu.menu, &ret->windows_menu.mediatree_id);
   ret->windows_menu.infowindow =
     create_toggle_item("Info window", gmerlin, ret->windows_menu.menu, &ret->windows_menu.infowindow_id);
   gtk_widget_show(ret->windows_menu.menu);
+
+  /* Options */
   
   ret->options_menu.menu = create_menu();
   ret->options_menu.preferences =
@@ -185,7 +218,23 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
 
   ret->options_menu.skins =
     create_item("Skins...", gmerlin, ret->options_menu.menu);
+
+  /* Accessories */
+
+  ret->accessories_menu.menu = create_menu();
+
+  if(bg_search_file_exec("gmerlin_transcoder"))
+    ret->accessories_menu.transcoder = create_item("Launch transcoder", gmerlin, ret->accessories_menu.menu);
+  else
+    fprintf(stderr, "gmerlin_transcoder not found\n");
+
+  if(bg_search_file_exec("gmerlin_visualizer"))
+    ret->accessories_menu.visualizer = create_item("Launch visualizer", gmerlin, ret->accessories_menu.menu);
+  else
+    fprintf(stderr, "gmerlin_visualizer not found\n");
   
+  /* Main menu */
+    
   ret->menu = create_menu();
   
   ret->windows_item = create_submenu_item("Windows...",
@@ -194,6 +243,10 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   ret->options_item = create_submenu_item("Options...",
                                           ret->options_menu.menu,
                                           ret->menu);
+
+  ret->accessories_item = create_submenu_item("Accessories...",
+                                              ret->accessories_menu.menu,
+                                              ret->menu);
   gtk_widget_show(ret->menu);
 
   

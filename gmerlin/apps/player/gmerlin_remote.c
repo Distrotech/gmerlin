@@ -1,20 +1,26 @@
+/*****************************************************************
+ 
+  gmerlin_remote.c
+ 
+  Copyright (c) 2003-2005 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
 #include <cmdline.h>
 #include <utils.h>
 #include <remote.h>
 #include "player_remote.h"
-
-/*
- *  Options:
- *  -host <hostname>
- *  -port <port>
- *  -spawn
- *
- *  Commands:
- *  -p --play <location>: Load location into incoming and play it
- *  -a --add <location>:  Load location into incoming
- *  -P:                   Play current track
- *  -v+
- */
 
 #if 0
 typedef struct
@@ -242,7 +248,7 @@ bg_cmdline_arg_t commands[] =
 
 char * host = (char *)0;
 int port = PLAYER_REMOTE_PORT;
-int spawn = 0;
+int launch = 0;
 
 static void opt_host(void * data, int * argc, char *** argv, int arg)
   {
@@ -266,9 +272,9 @@ static void opt_port(void * data, int * argc, char *** argv, int arg)
   bg_cmdline_remove_arg(argc, argv, arg);
   }
 
-static void opt_spawn(void * data, int * argc, char *** argv, int arg)
+static void opt_launch(void * data, int * argc, char *** argv, int arg)
   {
-  spawn = 1;
+  launch = 1;
   }
 
 static void opt_help(void * data, int * argc, char *** argv, int arg);
@@ -288,9 +294,9 @@ static bg_cmdline_arg_t global_options[] =
       callback:    opt_port,
     },
     {
-      arg:         "-spawn",
-      help_string: "Spawn new player is necessary",
-      callback:    opt_spawn,
+      arg:         "-launch",
+      help_string: "Launch new player if necessary",
+      callback:    opt_launch,
     },
     {
       arg:         "-help",
@@ -330,11 +336,11 @@ int main(int argc, char ** argv)
   if(!bg_remote_client_init(remote, host, port, 1000))
     {
     //    fprintf(stderr, "Initializing remote failed\n");
-    if(spawn)
+    if(launch)
       {
       if(system("gmerlin &"))
         {
-        fprintf(stderr, "Cannot spawn gmerlin process\n");
+        fprintf(stderr, "Cannot launch gmerlin process\n");
         return -1;
         }
       

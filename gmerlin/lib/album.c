@@ -1522,7 +1522,7 @@ void bg_album_copy_selected_to_favourites(bg_album_t * a)
   int was_open;
 
   
-  xml = bg_album_save_selected_to_memory(a, &len);
+  xml = bg_album_save_selected_to_memory(a, &len, 0);
 
   if(!bg_album_is_open(a->com->favourites))
     {

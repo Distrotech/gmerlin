@@ -339,7 +339,7 @@ void bg_album_load(bg_album_t * a, const char * filename)
 
 /* Save album */
 
-static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr parent)
+static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr parent, int preserve_current)
   {
   xmlNodePtr xml_entry;
   xmlNodePtr node;
@@ -347,7 +347,7 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
   
   xml_entry = xmlNewTextChild(parent, (xmlNsPtr)0, "ENTRY", NULL);
 
-  if(a && bg_album_entry_is_current(a, entry))  
+  if(a && bg_album_entry_is_current(a, entry) && preserve_current)
     {
     //    fprintf(stderr, "Save Current: %s\n", entry->name);
     xmlSetProp(xml_entry, "current", "1");
@@ -465,13 +465,13 @@ static xmlDocPtr album_2_xml(bg_album_t * a)
 
   while(entry)
     {
-    save_entry(a, entry, xml_album);
+    save_entry(a, entry, xml_album, 1);
     entry = entry->next;
     }
   return xml_doc;
   }
 
-static xmlDocPtr selected_2_xml(bg_album_t * a)
+static xmlDocPtr selected_2_xml(bg_album_t * a, int preserve_current)
   {
   bg_album_entry_t * entry;
   xmlDocPtr  xml_doc;
@@ -490,7 +490,7 @@ static xmlDocPtr selected_2_xml(bg_album_t * a)
   while(entry)
     {
     if(entry->flags & BG_ALBUM_ENTRY_SELECTED)
-      save_entry(a, entry, xml_album);
+      save_entry(a, entry, xml_album, preserve_current);
     entry = entry->next;
     }
   return xml_doc;
@@ -559,14 +559,14 @@ char * bg_album_save_to_memory(bg_album_t * a, int * len)
   return ret;
   }
 
-char * bg_album_save_selected_to_memory(bg_album_t * a, int * len)
+char * bg_album_save_selected_to_memory(bg_album_t * a, int * len, int preserve_current)
   {
   xmlDocPtr  xml_doc;
   output_mem_t * ctx;
   xmlOutputBufferPtr b;
   char * ret;
 
-  xml_doc = selected_2_xml(a);
+  xml_doc = selected_2_xml(a, preserve_current);
   
   ctx = calloc(1, sizeof(*ctx));
   

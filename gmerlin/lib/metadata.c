@@ -348,7 +348,7 @@ char * bg_create_track_name(const bg_metadata_t * metadata,
         end++;
         if(metadata->date)
           {
-          buf = bg_sprintf("%d", bg_metadata_get_year(metadata->date));
+          buf = bg_sprintf("%d", bg_metadata_get_year(metadata));
           ret = bg_strcat(ret, buf);
           free(buf);
           }

@@ -34,6 +34,10 @@ char * bg_search_file_read(const char * directory, const char * file);
 
 char * bg_search_file_write(const char * directory, const char * file);
 
+/* Returns TRUE if an executeable is found anywhere in $PATH */
+
+int bg_search_file_exec(const char * file);
+
 /* 
  *  String utilities
  */
