@@ -232,6 +232,7 @@ struct bg_gtk_album_widget_s
   GtkWidget * add_files_button;
   GtkWidget * add_urls_button;
   GtkWidget * remove_selected_button;
+  GtkWidget * rename_selected_button;
   GtkWidget * info_button;
   GtkWidget * move_selected_up_button;
   GtkWidget * move_selected_down_button;
@@ -339,6 +340,7 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
 
     gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 0);
     gtk_widget_set_sensitive(w->remove_selected_button, 0);
+    gtk_widget_set_sensitive(w->rename_selected_button, 0);
 
     if(w->menu.selected_menu.refresh_item)
       gtk_widget_set_sensitive(w->menu.selected_menu.refresh_item, 0);
@@ -367,6 +369,7 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
 
     gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 1);
     gtk_widget_set_sensitive(w->remove_selected_button, 1);
+    gtk_widget_set_sensitive(w->rename_selected_button, 1);
 
     if(w->menu.selected_menu.refresh_item)
       gtk_widget_set_sensitive(w->menu.selected_menu.refresh_item, 1);
@@ -393,6 +396,7 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
 
     gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 1);
     gtk_widget_set_sensitive(w->remove_selected_button, 1);
+    gtk_widget_set_sensitive(w->rename_selected_button, 0);
 
     if(w->menu.selected_menu.refresh_item)
       gtk_widget_set_sensitive(w->menu.selected_menu.refresh_item, 1);
@@ -1632,6 +1636,12 @@ static void button_callback(GtkWidget * wid, gpointer data)
     {
     remove_selected(w);
     }
+  else if(wid == w->rename_selected_button)
+    {
+    rename_current_entry(w);
+    bg_gtk_album_widget_update(w);
+    }
+  
   else if(wid == w->info_button)
     {
     bg_gtk_album_enrty_show(w->selected_entry);
@@ -1940,6 +1950,10 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   
   ret->remove_selected_button    = create_pixmap_button(ret, "trash_16.png",
                                                         "Delete", "Delete selected tracks");
+
+  ret->rename_selected_button    = create_pixmap_button(ret, "rename_16.png",
+                                                        "Rename", "Rename selected track");
+
   ret->info_button               = create_pixmap_button(ret, "info_16.png",
                                                         "Show track info", "Show track info");
   ret->move_selected_up_button   = create_pixmap_button(ret, "top_16.png",
@@ -1964,6 +1978,7 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
     }
   gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->remove_selected_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->info_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->rename_selected_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->move_selected_up_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->move_selected_down_button, FALSE, FALSE, 0);
 

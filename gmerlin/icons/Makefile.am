@@ -6,6 +6,7 @@ audio_16.png \
 bottom_16.png \
 camelot_icon.png \
 config_16.png \
+close_16.png \
 digit_0.png \
 digit_1.png \
 digit_2.png \
@@ -45,6 +46,7 @@ mute_16.png \
 player_icon.png \
 plugincfg_icon.png \
 record_16.png \
+rename_16.png \
 repeat_mode_1.png \
 repeat_mode_all.png \
 repeat_mode_none.png \
@@ -60,6 +62,7 @@ state_paused.png \
 state_playing.png \
 state_seeking.png \
 state_stopped.png \
+tab_close.png \
 top_16.png \
 tearoff_16.png \
 tracks_dnd_32.png \

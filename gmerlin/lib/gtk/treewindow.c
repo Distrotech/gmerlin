@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <stdlib.h>
+#include <string.h>
 #include <gtk/gtk.h>
 
 #include <tree.h>
@@ -33,7 +34,97 @@ struct bg_gtk_tree_window_s
   GtkWidget * window;
   void (*close_callback)(bg_gtk_tree_window_t*,void*);
   void * close_callback_data;
+
+  /* Configuration stuff */
+
+  bg_cfg_section_t * cfg_section;
+  
+  int x, y, width, height;
   };
+
+/* Configuration stuff */
+
+static bg_parameter_info_t parameters[] =
+  {
+    {
+      name: "x",
+      long_name: "X",
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 100 }
+    },
+    {
+      name: "y",
+      long_name: "Y",
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 100 }
+    },
+    {
+      name: "width",
+      long_name: "Width",
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 200 }
+    },
+    {
+      name: "height",
+      long_name: "Height",
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 300 }
+    },
+    { /* End of parameters */ }
+  };
+
+static void set_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  bg_gtk_tree_window_t * win;
+  win = (bg_gtk_tree_window_t*)data;
+  if(!name)
+    return;
+  else if(!strcmp(name, "x"))
+    {
+    win->x = val->val_i;
+    }
+  else if(!strcmp(name, "y"))
+    {
+    win->y = val->val_i;
+    }
+  else if(!strcmp(name, "width"))
+    {
+    win->width = val->val_i;
+    }
+  else if(!strcmp(name, "height"))
+    {
+    win->height = val->val_i;
+    }
+  }
+
+static int get_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  bg_gtk_tree_window_t * win;
+  win = (bg_gtk_tree_window_t*)data;
+  if(!name)
+    return 1;
+  else if(!strcmp(name, "x"))
+    {
+    val->val_i = win->x;
+    return 1;
+    }
+  else if(!strcmp(name, "y"))
+    {
+    val->val_i = win->y;
+    return 1;
+    }
+  else if(!strcmp(name, "width"))
+    {
+    val->val_i = win->width;
+    return 1;
+    }
+  else if(!strcmp(name, "height"))
+    {
+    val->val_i = win->height;
+    return 1;
+    }
+  return 0;
+  }
 
 static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
                                 gpointer data)
@@ -54,6 +145,10 @@ bg_gtk_tree_window_create(bg_media_tree_t * tree,
                           void * close_callback_data)
   {
   bg_gtk_tree_window_t * ret = calloc(1, sizeof(*ret));
+
+  ret->cfg_section =
+    bg_cfg_section_find_subsection(bg_media_tree_get_cfg_section(tree), "gtk_treewindow");
+  
   ret->widget = bg_gtk_tree_widget_create(tree);
   
   ret->close_callback = close_callback;
@@ -83,32 +178,34 @@ void bg_gtk_tree_window_destroy(bg_gtk_tree_window_t * w)
 
 void bg_gtk_tree_window_show(bg_gtk_tree_window_t* w)
   {
-  int x, y, width, height;
   gtk_widget_show(w->window);
 
-  bg_media_tree_get_coords(bg_gtk_tree_widget_get_tree(w->widget),
-                           &x, &y, &width, &height);
-
-  if((width > 0) && (height > 0))
+  bg_cfg_section_apply(w->cfg_section,
+                       parameters,
+                       set_parameter,
+                       w);
+  
+  if((w->width > 0) && (w->height > 0))
     {
     gtk_decorated_window_move_resize_window(GTK_WINDOW(w->window),
-                                            x, y, width, height);
+                                            w->x, w->y, w->width, w->height);
     }
   }
 
 void bg_gtk_tree_window_hide(bg_gtk_tree_window_t* w)
   {
-  int x, y, width, height;
   if(w->window->window)
     {
     gdk_window_get_geometry(w->window->window,
-                            (gint *)0, (gint *)0, &width, &height,
+                            (gint *)0, (gint *)0, &(w->width), &(w->height),
                             (gint *)0);
 
-    gdk_window_get_root_origin(w->window->window, &x, &y);
-    
-    bg_media_tree_set_coords(bg_gtk_tree_widget_get_tree(w->widget),
-                             x, y, width, height);
+    gdk_window_get_root_origin(w->window->window, &(w->x), &(w->y));
+
+    bg_cfg_section_get(w->cfg_section,
+                       parameters,
+                       get_parameter,
+                       w);
     }
   gtk_widget_hide(w->window);
   }

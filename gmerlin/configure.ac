@@ -237,7 +237,7 @@ AH_TEMPLATE([HAVE_MUSICBRAINZ],
 
 MUSICBRAINZ_REQUIRED="2.0.2"
 have_musicbrainz=false
-AC_ARG_ENABLE(lqt,
+AC_ARG_ENABLE(musicbrainz,
               AC_HELP_STRING(--disable-musicbrainz, [Disable musicbrainz support (default: autodetect)]),
               [case "${enableval}" in
                  yes) test_musicbrainz=true ;;

@@ -259,6 +259,8 @@ bg_media_tree_t * bg_media_tree_create(const char * filename,
   bg_album_t * device_album;
   
   ret = calloc(1, sizeof(*ret));
+
+  ret->cfg_section = bg_cfg_section_create((char*)0);
   
   ret->com.plugin_reg = plugin_reg;
   ret->com.set_current_callback = bg_media_tree_set_current;
@@ -352,6 +354,8 @@ void bg_media_tree_destroy(bg_media_tree_t * t)
 
   if(t->purge_directory)
     bg_media_tree_purge_directory(t);
+
+  bg_cfg_section_destroy(t->cfg_section);
   
   while(t->children)
     {
@@ -1096,25 +1100,6 @@ const char * bg_media_tree_get_current_track_name(bg_media_tree_t * t)
   return t->com.current_entry->name;
   }
 
-void bg_media_tree_set_coords(bg_media_tree_t * t, int x, int y,
-                              int width, int height)
-  {
-  t->x = x;
-  t->y = y;
-  t->width = width;
-  t->height = height;
-  }
-
-void bg_media_tree_get_coords(bg_media_tree_t * t, int * x, int * y,
-                              int * width, int * height)
-  {
-  *x      = t->x;
-  *y      = t->y;
-  *width  = t->width;
-  *height = t->height;
-  }
-
-
 /* Parameter stuff */
 
 static bg_parameter_info_t parameters[] =
@@ -1374,4 +1359,10 @@ void bg_media_tree_purge_directory(bg_media_tree_t * t)
 bg_album_t * bg_media_tree_get_incoming(bg_media_tree_t *t)
   {
   return t->incoming;
+  }
+
+bg_cfg_section_t *
+bg_media_tree_get_cfg_section(bg_media_tree_t * t)
+  {
+  return t->cfg_section;
   }

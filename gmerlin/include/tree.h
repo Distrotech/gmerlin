@@ -246,6 +246,10 @@ bg_media_tree_t * bg_media_tree_create(const char * filename,
 bg_plugin_registry_t *
 bg_media_tree_get_plugin_registry(bg_media_tree_t *);
 
+bg_cfg_section_t *
+bg_media_tree_get_cfg_section(bg_media_tree_t *);
+
+
 bg_album_t * bg_media_tree_get_incoming(bg_media_tree_t *);
 
 void
@@ -362,15 +366,6 @@ bg_plugin_handle_t *
 bg_media_tree_get_current_track(bg_media_tree_t *, int * index);
 
 const char * bg_media_tree_get_current_track_name(bg_media_tree_t *);
-
-void
-bg_media_tree_set_coords(bg_media_tree_t * t,
-                         int x, int y,
-                         int width, int height);
-
-void bg_media_tree_get_coords(bg_media_tree_t * t,
-                              int * x, int * y,
-                              int * width, int * height);
 
 /* Configuration stuff */
 

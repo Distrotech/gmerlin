@@ -109,5 +109,9 @@ bg_album_t * bg_gtk_album_window_get_album(bg_gtk_album_window_t*);
 
 void bg_gtk_album_window_set_tooltips(bg_gtk_album_window_t * w, int enable);
 
+void bg_gtk_album_window_attach(bg_gtk_album_window_t * w, GtkWidget * notebook);
+void bg_gtk_album_window_detach(bg_gtk_album_window_t * w);
+
+
 
 #endif // __BG_GTK_TREE_H_

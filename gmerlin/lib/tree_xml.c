@@ -145,7 +145,6 @@ void bg_media_tree_load(bg_media_tree_t * tree)
   xmlDocPtr xml_doc;
   xmlNodePtr node;
   bg_album_t * new_album;
-  char * tmp_string;
   
   xml_doc = xmlParseFile(tree->filename);
   
@@ -173,15 +172,9 @@ void bg_media_tree_load(bg_media_tree_t * tree)
         if(new_album)
           tree->children = append_album(tree->children, new_album);
         }
-      else if(!strcmp(node->name, "COORDS"))
+      else if(!strcmp(node->name, "CFG_SECTION"))
         {
-        tmp_string = xmlNodeListGetString(xml_doc, node->children, 1);
-        if(tmp_string)
-          {
-          sscanf(tmp_string, "%d %d %d %d", &(tree->x), &(tree->y),
-                 &(tree->width), &(tree->height));
-          xmlFree(tmp_string);
-          }
+        bg_cfg_xml_2_section(xml_doc, node, tree->cfg_section);
         }
       }
     
@@ -257,7 +250,6 @@ void bg_media_tree_save(bg_media_tree_t * tree)
   {
   bg_album_t * child;
   char * filename;
-  char * tmp_string;
   xmlDocPtr  xml_doc;
   xmlNodePtr xml_mediatree;
   xmlNodePtr node;
@@ -268,15 +260,15 @@ void bg_media_tree_save(bg_media_tree_t * tree)
 
   xmlAddChild(xml_mediatree, xmlNewText("\n"));
 
-  /* Save coords */
+  /* Config stuff */
 
-  node = xmlNewTextChild(xml_mediatree, (xmlNsPtr)0, "COORDS", NULL);
-  tmp_string = bg_sprintf("%d %d %d %d", tree->x, tree->y,
-                          tree->width, tree->height);
-  xmlAddChild(node, xmlNewText(tmp_string));
-  free(tmp_string);
-  xmlAddChild(xml_mediatree, xmlNewText("\n"));
-  
+  if(tree->cfg_section)
+    {
+    node = xmlNewTextChild(xml_mediatree, (xmlNsPtr)0, "CFG_SECTION", NULL);
+    bg_cfg_section_2_xml(tree->cfg_section, node);
+    xmlAddChild(xml_mediatree, xmlNewText("\n"));
+    }
+ 
   child = tree->children;
   while(child)
     {

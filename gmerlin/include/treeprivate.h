@@ -172,14 +172,7 @@ struct bg_mediatree_s
     
   void (*error_callback)(bg_media_tree_t*, void*, const char*);
   void * error_callback_data;
-
-  /* Coordinates in the screen */
-
-  int x;
-  int y;
-  int width;
-  int height;
-
+  
   /* Current entry in shuffle list */
 
   bg_shuffle_list_t * shuffle_current;
@@ -187,6 +180,9 @@ struct bg_mediatree_s
 
   int purge_directory;
 
+  /* Here, dialogs can store additional config data */
+    
+  bg_cfg_section_t * cfg_section;
   };
 
 /* Purge the directory (remove unused albums) */

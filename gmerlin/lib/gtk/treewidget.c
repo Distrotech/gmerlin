@@ -31,6 +31,10 @@
 #include <gui_gtk/tree.h>
 #include <gui_gtk/fileselect.h>
 
+static void set_tabbed_mode(bg_gtk_tree_widget_t * w);
+static void set_windowed_mode(bg_gtk_tree_widget_t * w);
+
+
 static char ** file_plugins = (char **)0;
 
 static GdkPixbuf * root_pixbuf = (GdkPixbuf *)0;
@@ -231,6 +235,8 @@ typedef struct
   GtkWidget * menu;
   GtkWidget * expand_item;
   GtkWidget * collapse_item;
+  GtkWidget * tabbed_mode_item;
+  GtkWidget * windowed_mode_item;
   } tree_menu_t;
 
 typedef struct
@@ -265,6 +271,7 @@ typedef struct
 
 struct bg_gtk_tree_widget_s
   {
+  bg_cfg_section_t * cfg_section;
   GtkWidget * widget;
   GtkWidget * treeview;
   bg_media_tree_t * tree;
@@ -274,7 +281,66 @@ struct bg_gtk_tree_widget_s
 
   gulong select_handler_id;
   guint drop_time;
+
+  /* Buttons */
+
+  GtkWidget * remove_button;
+  GtkWidget * rename_button;
+
+  /* Tooltips */
+
+  GtkTooltips * tooltips;
+
+  /* Notebook */
+
+  GtkWidget * notebook;
+  int tabbed_mode;
+  
   };
+
+/* Configuration */
+
+static bg_parameter_info_t parameters[] =
+  {
+    {
+      name:      "tabbed_mode",
+      long_name: "Tabbed mode",
+      type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 0 },
+    },
+    { /* End of parameters */ }
+  };
+
+static void set_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  bg_gtk_tree_widget_t * wid;
+  wid = (bg_gtk_tree_widget_t*)data;
+  if(!name)
+    return;
+  else if(!strcmp(name, "tabbed_mode"))
+    {
+    if(val->val_i)
+      set_tabbed_mode(wid);
+    else
+      set_windowed_mode(wid);
+    }
+  }
+
+static int get_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  bg_gtk_tree_widget_t * wid;
+  wid = (bg_gtk_tree_widget_t*)data;
+  if(!name)
+    return 1;
+  else if(!strcmp(name, "tabbed_mode"))
+    {
+    val->val_i = wid->tabbed_mode;
+    return 1;
+    }
+  return 0;
+  }
+
 
 /* Utility funcions */
 
@@ -323,12 +389,26 @@ static void update_menu(bg_gtk_tree_widget_t * w)
 
 // fprintf(stderr, "Update menu %p\n", w->current_album);
 
+  if(w->tabbed_mode)
+    {
+    gtk_widget_hide(w->menu.tree_menu.tabbed_mode_item);
+    gtk_widget_show(w->menu.tree_menu.windowed_mode_item);
+    }
+  else
+    {
+    gtk_widget_show(w->menu.tree_menu.tabbed_mode_item);
+    gtk_widget_hide(w->menu.tree_menu.windowed_mode_item);
+    }
+  
   if(!w->current_album)
     {
     rename_item(w->menu.album_item, "Album...");
     gtk_widget_show(w->menu.album_item);
 
     gtk_widget_hide(w->menu.album_menu.remove_item);
+    gtk_widget_set_sensitive(w->remove_button, 0);
+    gtk_widget_set_sensitive(w->rename_button, 0);
+
     gtk_widget_hide(w->menu.album_menu.rename_item);
     gtk_widget_hide(w->menu.album_menu.open_item);
     gtk_widget_hide(w->menu.album_menu.close_item);
@@ -346,6 +426,9 @@ static void update_menu(bg_gtk_tree_widget_t * w)
       case BG_ALBUM_TYPE_PLUGIN:
         gtk_widget_hide(w->menu.album_item);
         gtk_widget_show(w->menu.plugin_item);
+        gtk_widget_set_sensitive(w->remove_button, 0);
+        gtk_widget_set_sensitive(w->rename_button, 0);
+
         break;
       case BG_ALBUM_TYPE_REMOVABLE:
         rename_item(w->menu.album_item, "Device...");
@@ -354,6 +437,9 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         gtk_widget_hide(w->menu.plugin_item);
         
         gtk_widget_show(w->menu.album_menu.remove_item);
+        gtk_widget_set_sensitive(w->remove_button, 1);
+        gtk_widget_set_sensitive(w->rename_button, 1);
+
         gtk_widget_show(w->menu.album_menu.rename_item);
         gtk_widget_hide(w->menu.album_menu.new_item);
         gtk_widget_hide(w->menu.album_menu.new_from_directory_item);
@@ -376,6 +462,9 @@ static void update_menu(bg_gtk_tree_widget_t * w)
 
         gtk_widget_show(w->menu.album_item);
         gtk_widget_show(w->menu.album_menu.remove_item);
+        gtk_widget_set_sensitive(w->remove_button, 1);
+        gtk_widget_set_sensitive(w->rename_button, 1);
+
         gtk_widget_show(w->menu.album_menu.new_item);
         gtk_widget_show(w->menu.album_menu.new_from_directory_item);
         gtk_widget_show(w->menu.album_menu.rename_item);
@@ -398,9 +487,12 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         rename_item(w->menu.album_item, "Album...");
 
         gtk_widget_show(w->menu.album_item);
-        // gtk_widget_show(w->menu.album_menu.remove_item);
-        gtk_widget_show(w->menu.album_menu.new_item);
-        // gtk_widget_show(w->menu.album_menu.new_from_directory_item);
+        gtk_widget_hide(w->menu.album_menu.remove_item);
+        gtk_widget_set_sensitive(w->remove_button, 0);
+        gtk_widget_set_sensitive(w->rename_button, 1);
+
+        gtk_widget_hide(w->menu.album_menu.new_item);
+        gtk_widget_hide(w->menu.album_menu.new_from_directory_item);
         gtk_widget_show(w->menu.album_menu.rename_item);
         
         if(album_is_open(w, w->current_album))
@@ -604,6 +696,12 @@ static void set_album(bg_gtk_tree_widget_t * widget,
     
     widget->album_windows = g_list_append(widget->album_windows,
                                           album_window);
+
+    if(widget->tabbed_mode)
+      bg_gtk_album_window_attach(album_window, widget->notebook);
+    else
+      bg_gtk_album_window_detach(album_window);
+    
     }
   
   /* Append all subalbums of one album */
@@ -762,6 +860,12 @@ static void set_tooltips_func(gpointer data,
 void bg_gtk_tree_widget_set_tooltips(bg_gtk_tree_widget_t* widget, int enable)
   {
   g_list_foreach(widget->album_windows, set_tooltips_func, &enable);
+
+  if(enable)
+    gtk_tooltips_enable(widget->tooltips);
+  else
+    gtk_tooltips_disable(widget->tooltips);
+  
   }
 
 /* Open the current album if it isn't already open */
@@ -1047,6 +1151,46 @@ static void find_devices(bg_gtk_tree_widget_t * w)
   bg_gtk_tree_widget_update(w, 0);
   }
 
+static void attach_func(gpointer data,
+                        gpointer user_data)
+  {
+  bg_gtk_album_window_t * win;
+  bg_gtk_tree_widget_t * widget;
+  
+  win = (bg_gtk_album_window_t *)data;
+  widget = (bg_gtk_tree_widget_t *)user_data;
+  
+  bg_gtk_album_window_attach(win, widget->notebook);
+  }
+
+static void set_tabbed_mode(bg_gtk_tree_widget_t * w)
+  {
+  g_list_foreach(w->album_windows, attach_func, w);
+  gtk_widget_show(w->notebook);
+  w->tabbed_mode = 1;
+  update_menu(w);
+  }
+
+static void detach_func(gpointer data,
+                        gpointer user_data)
+  {
+  bg_gtk_album_window_t * win;
+  bg_gtk_tree_widget_t * widget;
+  
+  win = (bg_gtk_album_window_t *)data;
+  widget = (bg_gtk_tree_widget_t *)user_data;
+  
+  bg_gtk_album_window_detach(win);
+  }
+
+static void set_windowed_mode(bg_gtk_tree_widget_t * w)
+  {
+  g_list_foreach(w->album_windows, detach_func, w);
+  gtk_widget_hide(w->notebook);
+  w->tabbed_mode = 0;
+  update_menu(w);
+  }
+
 static void menu_callback(GtkWidget * w, gpointer data)
   {
   bg_gtk_tree_widget_t * widget = (bg_gtk_tree_widget_t*)data;
@@ -1059,11 +1203,11 @@ static void menu_callback(GtkWidget * w, gpointer data)
       {
       open_album(widget, widget->current_album);
       }
-    else if(w == widget->menu.album_menu.rename_item)
+    else if((w == widget->menu.album_menu.rename_item) || (w == widget->rename_button))
       {
       rename_current_album(widget);
       }
-    else if(w == widget->menu.album_menu.remove_item)
+    else if((w == widget->menu.album_menu.remove_item) || (w == widget->remove_button))
       {
       remove_album(widget, widget->current_album);
       bg_gtk_tree_widget_update(widget, 0);
@@ -1106,8 +1250,20 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     gtk_tree_view_collapse_all(GTK_TREE_VIEW(widget->treeview));
     }
+  else if(w == widget->menu.tree_menu.tabbed_mode_item)
+    {
+    fprintf(stderr, "Tabbed mode\n");
+    set_tabbed_mode(widget);
+    }
+  else if(w == widget->menu.tree_menu.windowed_mode_item)
+    {
+    fprintf(stderr, "Windowed mode\n");
+    set_windowed_mode(widget);
+    }
   
   }
+
+/* Menu stuff */
 
 static GtkWidget * create_item(bg_gtk_tree_widget_t * w,
                                const char * label)
@@ -1132,8 +1288,17 @@ static void init_menu(bg_gtk_tree_widget_t * w)
   w->menu.tree_menu.collapse_item = create_item(w, "Collapse all");
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.tree_menu.menu),
                         w->menu.tree_menu.collapse_item);
-  gtk_widget_show(w->menu.tree_menu.menu);
 
+  w->menu.tree_menu.tabbed_mode_item = create_item(w, "Tabbed mode");
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.tree_menu.menu),
+                        w->menu.tree_menu.tabbed_mode_item);
+
+  w->menu.tree_menu.windowed_mode_item = create_item(w, "Windowed mode");
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.tree_menu.menu),
+                        w->menu.tree_menu.windowed_mode_item);
+  
+  gtk_widget_show(w->menu.tree_menu.menu);
+  
   /* Album menu */
   
   w->menu.album_menu.menu = gtk_menu_new();
@@ -1198,6 +1363,42 @@ static void init_menu(bg_gtk_tree_widget_t * w)
                         w->menu.tree_item);
 
   } 
+
+/* Buttons */
+
+static GtkWidget * create_pixmap_button(bg_gtk_tree_widget_t * w,
+                                        const char * filename,
+                                        const char * tooltip,
+                                        const char * tooltip_private)
+  {
+  GtkWidget * button;
+  GtkWidget * image;
+  char * path;
+  path = bg_search_file_read("icons", filename);
+  if(path)
+    {
+    image = gtk_image_new_from_file(path);
+    free(path);
+    }
+  else
+    image = gtk_image_new();
+
+  gtk_widget_show(image);
+  button = gtk_button_new();
+  gtk_container_add(GTK_CONTAINER(button), image);
+
+  g_signal_connect(G_OBJECT(button), "clicked",
+                   G_CALLBACK(menu_callback), w);
+
+  gtk_widget_show(button);
+
+  gtk_tooltips_set_tip(w->tooltips, button, tooltip, tooltip_private);
+  
+  return button;
+  }
+
+
+/* */
 
 GtkWidget * bg_gtk_tree_widget_get_widget(bg_gtk_tree_widget_t * w)
   {
@@ -1595,6 +1796,10 @@ static void tree_changed_callback(bg_media_tree_t * t, void * data)
 bg_gtk_tree_widget_t *
 bg_gtk_tree_widget_create(bg_media_tree_t * tree)
   {
+  GtkWidget * scrolledwindow;
+  GtkWidget * buttonbox;
+  GtkWidget * mainbox;
+    
   bg_gtk_tree_widget_t * ret;
 
   GtkTreeStore      *store;
@@ -1609,6 +1814,12 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree)
   ret = calloc(1, sizeof(*ret));
   ret->tree = tree;
 
+  ret->tooltips = gtk_tooltips_new();
+
+  g_object_ref (G_OBJECT (ret->tooltips));
+  gtk_object_sink (GTK_OBJECT (ret->tooltips));
+
+  
   bg_media_tree_set_change_callback(ret->tree, tree_changed_callback, ret);
   
   store = gtk_tree_store_new (NUM_COLUMNS,
@@ -1715,16 +1926,56 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree)
   
   gtk_widget_show(ret->treeview);
 
-  ret->widget =
+  scrolledwindow =
     gtk_scrolled_window_new(gtk_tree_view_get_hadjustment(GTK_TREE_VIEW(ret->treeview)),
                             gtk_tree_view_get_vadjustment(GTK_TREE_VIEW(ret->treeview)));
   
-  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ret->widget),
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwindow),
                                  GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
-  gtk_container_add(GTK_CONTAINER(ret->widget), ret->treeview);
-  gtk_widget_show(ret->widget);
+  gtk_container_add(GTK_CONTAINER(scrolledwindow), ret->treeview);
+  gtk_widget_show(scrolledwindow);
 
+  /* Create buttons */
+    
+  ret->remove_button = create_pixmap_button(ret, "trash_16.png",
+                                            "Delete album", "Delete album");
+  ret->rename_button = create_pixmap_button(ret, "rename_16.png",
+                                            "Rename album", "Rename album");
+
+  buttonbox = gtk_hbox_new(0, 0);
+  gtk_box_pack_start(GTK_BOX(buttonbox), ret->remove_button,
+                     FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(buttonbox), ret->rename_button,
+                     FALSE, FALSE, 0);
+
+  gtk_widget_show(buttonbox);
+
+  mainbox = gtk_vbox_new(0, 0);
+  gtk_box_pack_start_defaults(GTK_BOX(mainbox), scrolledwindow);
+  gtk_box_pack_start(GTK_BOX(mainbox), buttonbox, FALSE, FALSE, 0);
+  
+  gtk_widget_show(mainbox);
+
+  /* Create notebook */
+    
+  ret->notebook = gtk_notebook_new();
+  gtk_notebook_set_scrollable(GTK_NOTEBOOK(ret->notebook), TRUE);
+  gtk_notebook_popup_enable(GTK_NOTEBOOK(ret->notebook));
+
+  //  gtk_widget_show(ret->notebook);
+  /* Create paned */
+
+  ret->widget = gtk_hpaned_new();
+  gtk_paned_add1(GTK_PANED(ret->widget), mainbox);
+  gtk_paned_add2(GTK_PANED(ret->widget), ret->notebook);
+  gtk_widget_show(ret->widget);
+  
   init_menu(ret);
+
+  ret->cfg_section =
+    bg_cfg_section_find_subsection(bg_media_tree_get_cfg_section(tree), "gtk_treewidget");
+  
+  bg_cfg_section_apply(ret->cfg_section, parameters, set_parameter, ret);
   
   bg_gtk_tree_widget_update(ret, 1);
   
@@ -1734,7 +1985,12 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree)
 void bg_gtk_tree_widget_destroy(bg_gtk_tree_widget_t * w)
   {
   bg_gtk_album_window_t * win;
+
+  bg_cfg_section_get(w->cfg_section, parameters, get_parameter, w);
   
+  
+  g_object_unref(w->tooltips);
+    
   while(w->album_windows)
     {
     win = (bg_gtk_album_window_t*)w->album_windows->data;

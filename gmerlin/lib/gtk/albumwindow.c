@@ -22,13 +22,14 @@
 #include <gtk/gtk.h>
 
 #include <tree.h>
+#include <utils.h>
+
 #include <gui_gtk/tree.h>
 
 /* This is missing in the gtk headers */
 
 extern void
 gtk_decorated_window_move_resize_window(GtkWindow*, int, int, int, int);
-
 
 struct bg_gtk_album_window_s
   {
@@ -39,6 +40,14 @@ struct bg_gtk_album_window_s
   int x, y, width, height;
 
   bg_cfg_section_t * cfg_section;
+
+  /* Notebook stuff */
+
+  GtkWidget * tab_close_button;
+  GtkWidget * tab_label;
+  GtkWidget * tab_widget;
+
+  GtkWidget * notebook;
   
   };
 
@@ -135,6 +144,14 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
   return TRUE;
   }
 
+static void close_callback(GtkWidget * w, gpointer data)
+  {
+  bg_gtk_album_window_t * win;
+  win = (bg_gtk_album_window_t*)data;
+  bg_gtk_album_window_destroy(win, 1);
+  }
+
+
 bg_gtk_album_window_t *
 bg_gtk_album_window_create(bg_album_t * album,
                            bg_gtk_tree_widget_t * tree_widget)
@@ -144,19 +161,8 @@ bg_gtk_album_window_create(bg_album_t * album,
   ret = calloc(1, sizeof(*ret));
   ret->tree_widget = tree_widget;
 
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   ret->widget = bg_gtk_album_widget_create(album, ret->window);
-
-  g_signal_connect(G_OBJECT(ret->window), "delete-event",
-                   G_CALLBACK(delete_callback),
-                   ret);
-  
-  gtk_container_add(GTK_CONTAINER(ret->window),
-                    bg_gtk_album_widget_get_widget(ret->widget));
-
-  gtk_window_set_title(GTK_WINDOW(ret->window), bg_album_get_name(album));
-      
-  gtk_widget_show(ret->window);
+  g_object_ref(G_OBJECT(bg_gtk_album_widget_get_widget(ret->widget)));
 
   /* Set config stuff */
 
@@ -165,17 +171,16 @@ bg_gtk_album_window_create(bg_album_t * album,
 
   bg_cfg_section_apply(ret->cfg_section, parameters, set_parameter, ret);
   
-  gtk_decorated_window_move_resize_window(GTK_WINDOW(ret->window),
-                                          ret->x, ret->y, ret->width, ret->height);
   return ret;
   }
 
 void bg_gtk_album_window_destroy(bg_gtk_album_window_t * w, int notify)
   {
+  int page_num;
   
   /* Get the window coordinates */
   
-  if(w->window->window)
+  if(w->window && w->window->window)
     {
     gdk_window_get_geometry(w->window->window,
                             (gint *)0, (gint *)0, &(w->width), &(w->height),
@@ -192,11 +197,20 @@ void bg_gtk_album_window_destroy(bg_gtk_album_window_t * w, int notify)
     {
     bg_gtk_tree_widget_close_album(w->tree_widget, w);
     }
+  if(w->window)
+    gtk_widget_destroy(w->window);
+
+  if(w->notebook)
+    {
+    page_num = gtk_notebook_page_num(GTK_NOTEBOOK(w->notebook), bg_gtk_album_widget_get_widget(w->widget));
+    gtk_notebook_remove_page(GTK_NOTEBOOK(w->notebook), page_num);
+    }
 
   if(w->widget)
+    {
+    g_object_unref(G_OBJECT(bg_gtk_album_widget_get_widget(w->widget)));
     bg_gtk_album_widget_destroy(w->widget);
-    
-  gtk_widget_destroy(w->window);
+    }
   free(w);
   }
 
@@ -207,8 +221,17 @@ bg_album_t * bg_gtk_album_window_get_album(bg_gtk_album_window_t*w)
 
 void bg_gtk_album_window_raise(bg_gtk_album_window_t* w)
   {
-  if(w->window->window)
+  int page_num;
+  
+  if(w->window && w->window->window)
     gdk_window_raise(w->window->window);
+
+  else if(w->notebook)
+    {
+    page_num = gtk_notebook_page_num(GTK_NOTEBOOK(w->notebook), bg_gtk_album_widget_get_widget(w->widget));
+    gtk_notebook_set_current_page(GTK_NOTEBOOK(w->notebook), page_num);
+    
+    }
   }
 
 void bg_gtk_album_window_update(bg_gtk_album_window_t* w)
@@ -219,4 +242,101 @@ void bg_gtk_album_window_update(bg_gtk_album_window_t* w)
 void bg_gtk_album_window_set_tooltips(bg_gtk_album_window_t * w, int enable)
   {
   bg_gtk_album_widget_set_tooltips(w->widget, enable);
+  }
+
+static GtkWidget * create_close_button(bg_gtk_album_window_t * w)
+  {
+  GtkWidget * button;
+  GtkWidget * image;
+  char * path;
+  path = bg_search_file_read("icons", "tab_close.png");
+  if(path)
+    {
+    image = gtk_image_new_from_file(path);
+    free(path);
+    }
+  else
+    image = gtk_image_new();
+
+  gtk_widget_show(image);
+  button = gtk_button_new();
+  gtk_container_add(GTK_CONTAINER(button), image);
+
+  g_signal_connect(G_OBJECT(button), "clicked",
+                   G_CALLBACK(close_callback), w);
+
+  gtk_widget_show(button);
+  return button;
+  }
+
+
+void bg_gtk_album_window_attach(bg_gtk_album_window_t * w, GtkWidget * notebook)
+  {
+  int page_num;
+  
+  bg_album_t * album;
+  
+  /* Remove widget from container and delete window */
+
+  if(w->window)
+    {
+    gtk_container_remove(GTK_CONTAINER(w->window), bg_gtk_album_widget_get_widget(w->widget));
+    gtk_widget_destroy(w->window);
+    w->window = (GtkWidget*)0;
+    }
+  /* Attach stuff to notebook */
+
+  album = bg_gtk_album_widget_get_album(w->widget);
+
+  w->tab_label = gtk_label_new(bg_album_get_name(album));
+  gtk_widget_show(w->tab_label);
+    
+  w->tab_close_button = create_close_button(w);
+  w->tab_widget = gtk_hbox_new(0, 2);
+  gtk_box_pack_start_defaults(GTK_BOX(w->tab_widget), w->tab_label);
+  gtk_box_pack_start(GTK_BOX(w->tab_widget), w->tab_close_button, FALSE, FALSE, 0);
+  gtk_widget_show(w->tab_widget);
+
+  page_num = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), bg_gtk_album_widget_get_widget(w->widget),
+                                      w->tab_widget);
+  gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page_num);
+  
+  gtk_notebook_set_tab_label_packing(GTK_NOTEBOOK(notebook), bg_gtk_album_widget_get_widget(w->widget),
+                                     FALSE, FALSE, GTK_PACK_START);
+  
+  gtk_notebook_set_menu_label_text(GTK_NOTEBOOK(notebook),
+                                   bg_gtk_album_widget_get_widget(w->widget),
+                                   bg_album_get_name(album));
+  
+  w->notebook = notebook;
+  }
+
+void bg_gtk_album_window_detach(bg_gtk_album_window_t * w)
+  {
+  int page_num;
+  bg_album_t * album;
+
+  album = bg_gtk_album_widget_get_album(w->widget);
+
+  if(w->notebook)
+    {
+    page_num = gtk_notebook_page_num(GTK_NOTEBOOK(w->notebook), bg_gtk_album_widget_get_widget(w->widget));
+    gtk_notebook_remove_page(GTK_NOTEBOOK(w->notebook), page_num);
+    w->notebook = (GtkWidget*)0;
+    }
+  
+  w->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  g_signal_connect(G_OBJECT(w->window), "delete-event",
+                   G_CALLBACK(delete_callback),
+                   w);
+  gtk_window_set_title(GTK_WINDOW(w->window), bg_album_get_name(album));
+  
+  gtk_container_add(GTK_CONTAINER(w->window),
+                    bg_gtk_album_widget_get_widget(w->widget));
+
+  gtk_widget_show(w->window);
+
+  gtk_decorated_window_move_resize_window(GTK_WINDOW(w->window),
+                                          w->x, w->y, w->width, w->height);
+  
   }
