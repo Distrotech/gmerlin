@@ -286,6 +286,7 @@ void bgav_codecs_init()
     {
     win32_def_path = bgav_strndup(getenv(env_name_win32), NULL);
     //    fprintf(stderr, "Init codecs: %s\n", win32_def_path);
+    win_path_needs_delete = 1;
     }
 
   if(!win32_def_path)
@@ -443,6 +444,7 @@ static void __cleanup() __attribute__ ((destructor));
  
 static void __cleanup()
   {
+  //  fprintf(stderr, "Freeing codec paths\n");
 
 #ifdef HAVE_W32DLL
   if(win_path_needs_delete)

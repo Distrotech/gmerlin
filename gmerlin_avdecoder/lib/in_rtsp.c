@@ -43,7 +43,8 @@ real_calc_response_and_checksum (char *response,
 
 typedef struct rtsp_priv_s
   {
-  int has_smil; /* One if we want to fetch a smil file */
+  int has_smil; /* Nonzero if we want to fetch a smil file */
+  int eof;      /* EOF detected? */
   
   int type;
   char * challenge1;
@@ -85,16 +86,19 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
   //  int unknown1;
   uint8_t * pos;
   char * buf;
-    
+  int bytes_read;
   int fd;
   uint8_t header[8];
   int seq;
   rtsp_priv_t * priv = (rtsp_priv_t *)(ctx->priv);
 
+  if(priv->eof)
+    return 0;
+  
   //  fprintf(stderr, "Next packet rdt...\n");
 
   fd = bgav_rtsp_get_fd(priv->r);
-
+  
   while(1)
     {
     if(block)
@@ -104,12 +108,23 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
       }
     else
       {
-      if(bgav_read_data_fd(fd, header, 4, 0) < 4)
+      bytes_read = bgav_read_data_fd(fd, header, 8, 0);
+      if(!bytes_read)
         return 0;
+      else if(bytes_read < 8)
+        {
+        //        fprintf(stderr, "Warning, got incomplete header %d bytes\n",
+        //                bytes_read);
+        if(bgav_read_data_fd(fd, &(header[bytes_read]), 8 - bytes_read,
+                             ctx->read_timeout) < 8 - bytes_read)
+          return 0;
+        
+        }
+              
       }
     
-    fprintf(stderr, "Header:\n");
-    bgav_hexdump(header, 8, 8);
+    //    fprintf(stderr, "Block: %d, Header: ", block);
+    //    bgav_hexdump(header, 8, 8);
     
     /* Check for a ping request */
     
@@ -142,7 +157,7 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
       buf = bgav_sprintf("CSeq: %u\r\n\r\n", seq);
       bgav_tcp_send(fd, buf, strlen(buf));
       free(buf);
-      fprintf(stderr, "Answered ping request\n");
+      //      fprintf(stderr, "Answered ping request\n");
       }
     else if(header[0] == '$')
       {
@@ -158,7 +173,8 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
         if(header[6] == 0x06)
           {
           fprintf(stderr, "in_rtsp.c: Detected end of stream in RDT header\n");
-          return 0; /* End of stream */
+          priv->eof = 1;
+          //          return 0; /* End of stream */
           }
         header[0]=header[5];
         header[1]=header[6];
@@ -213,13 +229,13 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
           }
 
 
-        //        fprintf(stderr, "Got rdt chunk %d bytes\n", size);
+        // fprintf(stderr, "Got rdt chunk %d bytes\n", size);
         //        bgav_hexdump(priv->packet, priv->packet_len, 16);
         }
-#if 1
+#if 0
       else
         {
-        //        fprintf(stderr, "Got rdt chunk %d bytes\n", size);
+        fprintf(stderr, "Got rdt chunk %d bytes\n", size);
         //        bgav_hexdump(priv->packet, size, 16);
         }
 #endif
