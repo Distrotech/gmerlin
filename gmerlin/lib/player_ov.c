@@ -35,6 +35,8 @@ struct bg_player_ov_context_s
   
   gavl_video_frame_t  * logo_frame;
   gavl_video_format_t   logo_format;
+
+  const char * error_msg;
   };
 
 /* Callback functions */
@@ -187,6 +189,12 @@ int bg_player_ov_init(bg_player_ov_context_t * ctx)
                              "Video output");
   if(result && ctx->plugin->show_window)
     ctx->plugin->show_window(ctx->priv, 1);
+
+  else if(!result)
+    {
+    if(ctx->plugin->common.get_error)
+      ctx->error_msg = ctx->plugin->common.get_error(ctx->priv);
+    }
   
   bg_plugin_unlock(ctx->plugin_handle);
   return result;
@@ -202,6 +210,12 @@ void bg_player_ov_cleanup(bg_player_ov_context_t * ctx)
 void bg_player_ov_sync(bg_player_t * p)
   {
   p->ov_context->do_sync  = 1;
+  }
+
+
+const char * bg_player_ov_get_error(bg_player_ov_context_t * ctx)
+  {
+  return ctx->error_msg;
   }
 
 

@@ -77,7 +77,8 @@ typedef struct
 
   gavl_audio_frame_t * f;
   int last_frame_size;
-  
+
+  char * error_msg;  
   } alsa_t;
 
 static bg_parameter_info_t *
@@ -169,7 +170,7 @@ static int open_alsa(void * data,
     format->sample_format = GAVL_SAMPLE_S16;
   format->samplerate = priv->samplerate;
     
-  priv->pcm = bg_alsa_open_read(card, format);
+  priv->pcm = bg_alsa_open_read(card, format, &priv->error_msg);
   free(card);
   
   if(!priv->pcm)
@@ -198,7 +199,13 @@ static void close_alsa(void * p)
     gavl_audio_frame_destroy(priv->f);
     priv->f = (gavl_audio_frame_t*)0;
     }
+  if(priv->error_msg)
+    {
+    free(priv->error_msg);
+    priv->error_msg = NULL;
+    }
   }
+
 
 static int read_frame(alsa_t * priv)
   {
@@ -290,6 +297,12 @@ static void read_frame_alsa(void * p, gavl_audio_frame_t * f,
   
   }
 
+static const char * get_error_alsa(void* p)
+  {
+  alsa_t * priv = (alsa_t*)(p);
+  return priv->error_msg;
+  }
+
 static void destroy_alsa(void * p)
   {
   alsa_t * priv = (alsa_t*)(p);
@@ -310,7 +323,8 @@ bg_ra_plugin_t the_plugin =
       destroy:       destroy_alsa,
 
       get_parameters: get_parameters_alsa,
-      set_parameter:  set_parameter_alsa
+      set_parameter:  set_parameter_alsa,
+      get_error:      get_error_alsa
     },
 
     open:          open_alsa,

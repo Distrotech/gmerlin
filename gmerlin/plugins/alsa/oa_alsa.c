@@ -90,6 +90,8 @@ typedef struct
   int enable_surround51;
   
   int card_index;
+
+  char * error_msg;
   } alsa_t;
 
 static void * create_alsa()
@@ -181,6 +183,8 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
         format->num_channels = 2;
       format->lfe = 0;
       format->channel_locations[0] = GAVL_CHID_NONE;
+      format->channel_setup = (format->num_channels > 1) ?
+        GAVL_CHANNEL_STEREO : GAVL_CHANNEL_MONO;
       gavl_set_channel_setup(format);
       card = bg_sprintf("hw:%d,0", priv->card_index);
       break;
@@ -243,7 +247,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
 
   //  fprintf(stderr, "Opening card %s...", card);
     
-  priv->pcm = bg_alsa_open_write(card, format);
+  priv->pcm = bg_alsa_open_write(card, format, &priv->error_msg);
   
   //  if(priv->pcm)
   //    fprintf(stderr, "done\n");
@@ -266,6 +270,11 @@ static void close_alsa(void * p)
     {
     snd_pcm_close(priv->pcm);
     priv->pcm = NULL;
+    }
+  if(priv->error_msg)
+    {
+    free(priv->error_msg);
+    priv->error_msg = NULL;
     }
   }
 
@@ -312,6 +321,8 @@ static void destroy_alsa(void * p)
 
   if(priv->parameters)
     bg_parameter_info_destroy_array(priv->parameters);
+
+
   free(priv);
   }
 
@@ -320,6 +331,12 @@ get_parameters_alsa(void * p)
   {
   alsa_t * priv = (alsa_t*)(p);
   return priv->parameters;
+  }
+
+static const char * get_error_alsa(void* p)
+  {
+  alsa_t * priv = (alsa_t*)(p);
+  return priv->error_msg;
   }
 
 static int get_delay_alsa(void * p)
@@ -386,7 +403,8 @@ bg_oa_plugin_t the_plugin =
       destroy:       destroy_alsa,
       
       get_parameters: get_parameters_alsa,
-      set_parameter:  set_parameter_alsa
+      set_parameter:  set_parameter_alsa,
+      get_error:      get_error_alsa,
     },
 
     open:          open_alsa,

@@ -52,7 +52,7 @@ typedef struct
   
   gavl_audio_format_t input_format;
   gavl_audio_format_t output_format;
-  
+  const char * error_msg;
   } bg_player_audio_stream_t;
 
 typedef struct
@@ -67,6 +67,7 @@ typedef struct
 
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;
+  const char * error_msg;
   } bg_player_video_stream_t;
 
 struct bg_player_s
@@ -207,6 +208,7 @@ void bg_player_ov_destroy_frame(void * data, void * frame);
 void bg_player_ov_set_plugin(bg_player_t * player,
                              bg_plugin_handle_t * handle);
 
+const char * bg_player_ov_get_error(bg_player_ov_context_t * ctx);
 
 /*
  *  This call will let the video plugin adjust the playertime from the
@@ -233,6 +235,7 @@ void bg_player_oa_destroy(bg_player_t * player);
 int bg_player_oa_init(bg_player_oa_context_t * ctx);
 int bg_player_oa_start(bg_player_oa_context_t * ctx);
 void bg_player_oa_stop(bg_player_oa_context_t * ctx);
+const char * bg_player_oa_get_error(bg_player_oa_context_t * ctx);
 
 void bg_player_oa_cleanup(bg_player_oa_context_t * ctx);
 void * bg_player_oa_thread(void *);

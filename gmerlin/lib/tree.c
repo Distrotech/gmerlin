@@ -947,7 +947,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   bg_track_info_t * track_info;
   const bg_plugin_info_t * info;
   bg_input_plugin_t * input_plugin;
-  bg_plugin_handle_t * ret;
+  bg_plugin_handle_t * ret = (bg_plugin_handle_t *)0;
   char * system_location = (char*)0;
   
   //  fprintf(stderr, "bg_media_tree_get_current_track %p %p\n",
@@ -975,14 +975,22 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
       info = bg_plugin_find_by_filename(t->com.plugin_reg,
                                         system_location,
                                         (BG_PLUGIN_INPUT));
-    
+#if 0    
     if(!info)
       {
       error_message = bg_sprintf("Cannot open %s: no plugin found",
                                  system_location);
       goto fail;
       }
-    ret = bg_plugin_load(t->com.plugin_reg, info);
+#endif
+    if(!bg_input_plugin_load(t->com.plugin_reg,
+                             system_location, info,
+                             &(ret)))
+      {
+      error_message = bg_sprintf("Cannot open %s", system_location);
+      goto fail;
+      }
+    //    ret = bg_plugin_load(t->com.plugin_reg, info);
     input_plugin = (bg_input_plugin_t*)(ret->plugin);
 
     if(!input_plugin->open(ret->priv,

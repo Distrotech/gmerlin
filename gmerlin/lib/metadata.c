@@ -40,6 +40,8 @@ void bg_metadata_free(bg_metadata_t * m)
   MY_FREE(m->comment);
   MY_FREE(m->author);
   MY_FREE(m->copyright);
+
+  memset(m, 0, sizeof(*m));
   }
 
 #define MY_STRCPY(s) \

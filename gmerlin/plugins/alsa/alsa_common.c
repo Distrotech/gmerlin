@@ -102,7 +102,8 @@ static snd_pcm_t * bg_alsa_open(const char * card,
                                 gavl_audio_format_t * format,
                                 snd_pcm_stream_t stream,
                                 unsigned int buffer_time,
-                                unsigned int period_time)
+                                unsigned int period_time,
+                                char ** error_msg)
   {
   int dir;
   snd_pcm_format_t alsa_format;
@@ -122,7 +123,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
                   ) < 0)
     {
     ret = (snd_pcm_t *)0;
-    fprintf(stderr, "bg_alsa_open: snd_pcm_open failed\n");
+    if(error_msg) *error_msg = bg_sprintf(*error_msg, "alsa: snd_pcm_open failed");
     goto fail;
     }
 
@@ -132,30 +133,35 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   
   if(snd_pcm_hw_params_malloc(&hw_params) < 0)
     {
-    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_malloc failed\n");
+    if(error_msg) *error_msg = bg_sprintf(*error_msg, "alsa: snd_pcm_hw_params_malloc failed");
     goto fail;
     }
   if(snd_pcm_hw_params_any(ret, hw_params) < 0)
     {
-    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_any failed\n");
+    if(error_msg) *error_msg = bg_sprintf(*error_msg, "alsa: snd_pcm_hw_params_any failed");
     goto fail;
     }
 
   /* Interleave mode */
   
+#if 0
   if(format->interleave_mode != GAVL_INTERLEAVE_ALL)
     {
     if(snd_pcm_hw_params_set_access(ret, hw_params,
                                     SND_PCM_ACCESS_RW_NONINTERLEAVED) < 0)
       {
+      fprintf(stderr, "Non interleaved access doesn't work, trying interleaved\n");
+#endif
       if(snd_pcm_hw_params_set_access(ret, hw_params,
                                       SND_PCM_ACCESS_RW_INTERLEAVED) < 0)
         {
-        fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_set_access failed\n");
+        if(error_msg)
+          *error_msg = bg_sprintf(*error_msg, "alsa: snd_pcm_hw_params_set_access failed");
         goto fail;
         }
       else
         format->interleave_mode = GAVL_INTERLEAVE_ALL;
+#if 0
       }
     else
       format->interleave_mode = GAVL_INTERLEAVE_NONE;
@@ -164,9 +170,11 @@ static snd_pcm_t * bg_alsa_open(const char * card,
     if(snd_pcm_hw_params_set_access(ret, hw_params,
                                     SND_PCM_ACCESS_RW_INTERLEAVED) < 0)
       {
-      fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_set_access failed\n");
+      if(error_msg)
+        *error_msg = bg_sprintf(*error_msg, "alsa: snd_pcm_hw_params_set_access failed");
       goto fail;
       }
+#endif
   
   /* Sample format */
   
@@ -174,12 +182,12 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   if(alsa_format == SND_PCM_FORMAT_UNKNOWN)
     alsa_format = sample_format_gavl_2_alsa(GAVL_SAMPLE_S16);
   
-  //  fprintf(stderr, "Trying 1 %s\n", snd_pcm_format_name(alsa_format)); 
+  //  if(error_msg) *error_msg = bgav_sprintf("Trying 1 %s\n", snd_pcm_format_name(alsa_format)); 
   if(snd_pcm_hw_params_set_format(ret, hw_params,
                                   alsa_format) < 0)
     {
     alsa_format = sample_format_gavl_2_alsa(GAVL_SAMPLE_S16);
-    //    fprintf(stderr, "Trying 2 %s\n", snd_pcm_format_name(alsa_format)); 
+    //    if(error_msg) *error_msg = bgav_sprintf("Trying 2 %s\n", snd_pcm_format_name(alsa_format)); 
 
     if(snd_pcm_hw_params_set_format(ret, hw_params,
                                     alsa_format) < 0)
@@ -196,7 +204,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
       if(snd_pcm_hw_params_set_format(ret, hw_params,
                                       alsa_format) < 0)
         {
-        fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_set_format failed\n");
+        if(error_msg) *error_msg = bg_sprintf(*error_msg, "alsa: snd_pcm_hw_params_set_format failed");
         goto fail;
         }
       }
@@ -209,7 +217,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
                                      &(format->samplerate),
                                      0) < 0)
     {
-    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_set_rate_near failed\n");
+    if(error_msg) *error_msg = bg_sprintf(*error_msg, "alsa: snd_pcm_hw_params_set_rate_near failed");
     goto fail;
     }
 
@@ -218,9 +226,10 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   if(snd_pcm_hw_params_set_channels(ret, hw_params,
                                     format->num_channels) < 0)
     {
-    fprintf(stderr,
-            "bg_alsa_open: snd_pcm_hw_params_set_channels failed (Format has %d channels)\n",
-            format->num_channels);
+    if(error_msg)
+      *error_msg =
+        bg_sprintf(*error_msg, "alsa: snd_pcm_hw_params_set_channels failed (Format has %d channels)",
+                     format->num_channels);
 
     if(format->num_channels == 1) /* Mono doesn't work, try stereo */
       {
@@ -243,28 +252,32 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   if(snd_pcm_hw_params_set_buffer_time_near(ret, hw_params,
                                             &buffer_time, &dir) < 0)
     {
-    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_set_buffer_time_near failed\n");
+    if(error_msg)
+      *error_msg =
+        bg_sprintf(*error_msg, "bg_alsa_open: snd_pcm_hw_params_set_buffer_time_near failed");
     goto fail;
     }
 
   /* Buffer size */
   if(snd_pcm_hw_params_get_buffer_size(hw_params, &buffer_size) < 0)
     {
-    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_get_buffer_size failed\n");
+    if(error_msg)
+      *error_msg = bg_sprintf(*error_msg, "bg_alsa_open: snd_pcm_hw_params_get_buffer_size failed");
     goto fail;
     }
   //  fprintf(stderr, "*** Buffer size: %d\n", (int)buffer_size);
   /* Period time */
   if(snd_pcm_hw_params_set_period_time_near(ret, hw_params, &period_time, &dir) < 0)
     {
-    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_set_period_time_near failed\n");
+    if(error_msg)
+      *error_msg = bg_sprintf(*error_msg, "alsa: snd_pcm_hw_params_set_period_time_near failed");
     goto fail;
     }
   /* Period size */
   
   if(snd_pcm_hw_params_get_period_size(hw_params, &period_size, &dir) < 0)
     {
-    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_get_period_size failed\n");
+    if(error_msg) *error_msg = bg_sprintf(*error_msg, "alsa: snd_pcm_hw_params_get_period_size failed");
     goto fail;
     }
   //  fprintf(stderr, "*** Period size: %d\n", (int)period_size);
@@ -274,9 +287,16 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   /* Write params to card */
   if(snd_pcm_hw_params (ret, hw_params) < 0)
     {
-    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params failed\n");
+    if(error_msg)
+      *error_msg = bg_sprintf(*error_msg, "alsa: snd_pcm_hw_params failed");
     goto fail;
     }
+
+  
+  if(error_msg)
+    *error_msg = bg_sprintf(*error_msg, "Test error");
+  goto fail;
+  
   snd_pcm_hw_params_free(hw_params);
   
   gavl_set_channel_setup(format);
@@ -291,16 +311,18 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   return (snd_pcm_t *)0;
   }
 
-snd_pcm_t * bg_alsa_open_read(const char * card, gavl_audio_format_t * format)
+snd_pcm_t * bg_alsa_open_read(const char * card, gavl_audio_format_t * format,
+                              char ** error_msg)
   {
   return bg_alsa_open(card, format, SND_PCM_STREAM_CAPTURE,
-                      30000, 10000);
+                      30000, 10000, error_msg);
   }
 
-snd_pcm_t * bg_alsa_open_write(const char * card, gavl_audio_format_t * format)
+snd_pcm_t * bg_alsa_open_write(const char * card, gavl_audio_format_t * format,
+                              char ** error_msg)
   {
   return bg_alsa_open(card, format, SND_PCM_STREAM_PLAYBACK,
-                      350000, 30000);
+                      350000, 30000, error_msg);
   }
 
 void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)

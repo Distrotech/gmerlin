@@ -22,11 +22,13 @@
 
 /* For reading, the sample format, num_channels and samplerate must be set */
 
-snd_pcm_t * bg_alsa_open_read(const char * card, gavl_audio_format_t * format);
+snd_pcm_t * bg_alsa_open_read(const char * card, gavl_audio_format_t * format,
+                              char ** error_msg);
 
 /* For writing, the complete format must be set, values will be changed if not compatible */
 
-snd_pcm_t * bg_alsa_open_write(const char * card, gavl_audio_format_t * format);
+snd_pcm_t * bg_alsa_open_write(const char * card, gavl_audio_format_t * format,
+                               char ** error_msg);
 
 /* Builds a parameter array for all available cards */
 

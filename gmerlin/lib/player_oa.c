@@ -52,7 +52,9 @@ struct bg_player_oa_context_s
 
   gavl_volume_control_t * volume;
   pthread_mutex_t volume_mutex;
-  
+
+  /* Error message */
+  const char * error_msg;
   };
 
 void * bg_player_oa_create_frame(void * data)
@@ -300,7 +302,13 @@ int bg_player_oa_init(bg_player_oa_context_t * ctx)
   if(result)
     ctx->output_open = 1;
   else
+    {
     ctx->output_open = 0;
+    if(ctx->plugin->common.get_error)
+      ctx->error_msg = ctx->plugin->common.get_error(ctx->priv);
+    }
+  
+
   bg_plugin_unlock(ctx->plugin_handle);
 
   gavl_volume_control_set_format(ctx->volume,
@@ -309,6 +317,13 @@ int bg_player_oa_init(bg_player_oa_context_t * ctx)
   ctx->audio_samples_written = 0;
   return result;
   }
+
+
+const char * bg_player_oa_get_error(bg_player_oa_context_t * ctx)
+  {
+  return ctx->error_msg;
+  }
+
 
 void bg_player_oa_cleanup(bg_player_oa_context_t * ctx)
   {
