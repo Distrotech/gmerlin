@@ -307,10 +307,16 @@ static int stsd_read_video(bgav_input_context_t * input,
           return 0;
         ret->has_esds = 1;
         break;
+      case BGAV_MK_FOURCC('a', 'v', 'c', 'C'):
+        fprintf(stderr, "Found avcC data\n");
+        ret->avcC_offset = input->position - 4;
+        ret->avcC_size   = h.size - 4;
+        bgav_qt_atom_skip(input, &h);
+        break;
       default:
-        //        fprintf(stderr, "Unknown atom ");
-        //        bgav_dump_fourcc(h.fourcc);
-        //        fprintf(stderr, "\n");
+        fprintf(stderr, "Unknown atom ");
+        bgav_dump_fourcc(h.fourcc);
+        fprintf(stderr, "\n");
         bgav_qt_atom_skip(input, &h);
         break;
       }

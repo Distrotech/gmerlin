@@ -221,6 +221,11 @@ typedef struct
     } format;
   qt_esds_t esds;
   int has_esds;
+
+  /* Data for avc1 (offset realtive to data) */
+
+  int avcC_offset;
+  int avcC_size;
   } qt_sample_description_t ;
 
 typedef struct

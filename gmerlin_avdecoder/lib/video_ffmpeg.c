@@ -283,6 +283,11 @@ static codec_info_t codec_infos[] =
     { "FFmpeg ULTI decoder", "IBM Ultimotion", CODEC_ID_ULTI,
       (int[]){ BGAV_MK_FOURCC('U', 'L', 'T', 'I'),
                0x00 } },
+
+    { "FFmpeg H264 decoder", "H264", CODEC_ID_H264,
+      (int[]){ BGAV_MK_FOURCC('a', 'v', 'c', '1'),
+               BGAV_MK_FOURCC('H', '2', '6', '4'),
+               0x00 } },
   };
 
 /* Pixel formats */

@@ -587,7 +587,16 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
           //          bgav_hexdump(bg_vs->ext_data, bg_vs->ext_size, 16);
           }
         }
-
+      else if((bg_vs->fourcc == BGAV_MK_FOURCC('a', 'v', 'c', '1')) &&
+              (moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc.avcC_offset))
+        {
+        bg_vs->ext_data = moov->tracks[i].mdia.minf.stbl.stsd.entries[0].data +
+          moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc.avcC_offset;
+        bg_vs->ext_size = moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc.avcC_size;
+        fprintf(stderr, "AVCC Data\n");
+        bgav_hexdump(bg_vs->ext_data, bg_vs->ext_size, 16);
+        }
+      
       /* Set mp4 extradata */
 
       if((moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc.has_esds) &&
