@@ -19,20 +19,46 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <utils.h>
 
 #include "gtk_dialog.h"
+
+#if GTK_MINOR_VERSION >= 4
+#define GTK_2_4
+#endif
 
 typedef struct
   {
   GtkWidget * label;
   GtkWidget * combo;
+#ifndef GTK_2_4
   GList * strings;
+#endif
   } stringlist_t;
 
 static void get_value(bg_gtk_widget_t * w)
   {
+  int i;
   stringlist_t * priv;
   priv = (stringlist_t*)(w->priv);
+#ifdef GTK_2_4
+  if(!w->value.val_str || (*w->value.val_str == '\0'))
+    {
+    gtk_combo_box_set_active(GTK_COMBO_BOX(priv->combo), 0);
+    return;
+    }
+
+  i = 0;
+  while(w->info->options[i])
+    {
+    if(!strcmp(w->value.val_str, w->info->options[i]))
+      {
+      gtk_combo_box_set_active(GTK_COMBO_BOX(priv->combo), i);
+      break; 
+      }
+    i++;
+    }
+#else
   if(!w->value.val_str || (*w->value.val_str == '\0'))
     {
     gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry), "");
@@ -40,6 +66,7 @@ static void get_value(bg_gtk_widget_t * w)
     }
   gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry),
                      w->value.val_str);
+#endif
   }
 
 static void set_value(bg_gtk_widget_t * w)
@@ -48,20 +75,12 @@ static void set_value(bg_gtk_widget_t * w)
   const char * str;
   
   priv = (stringlist_t*)(w->priv);
-
+#ifdef GTK_2_4
+  str = w->info->options[gtk_combo_box_get_active(GTK_COMBO_BOX(priv->combo))];
+#else
   str = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry));
-
-  if(w->value.val_str)
-    {
-    free(w->value.val_str);
-    w->value.val_str = (char*)0;
-    }
-  
-  if(*str != '\0')
-    {
-    w->value.val_str = malloc(strlen(str)+1);
-    strcpy(w->value.val_str, str);
-    }
+#endif
+  w->value.val_str = bg_strdup(w->value.val_str, str);
   }
 
 static void destroy(bg_gtk_widget_t * w)
@@ -102,19 +121,40 @@ static gtk_widget_funcs_t funcs =
 
 static void change_callback(GtkWidget * w, gpointer data)
   {
+#ifndef GTK_2_4
   const char * str;
   str = gtk_entry_get_text(GTK_ENTRY(w));
 
   if(str && (*str != '\0'))
+#endif
     bg_gtk_change_callback(w, data);
   }
 
 void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
   {
   int i;
+#ifndef GTK_2_4
   char * c;
+#endif
   stringlist_t * priv = calloc(1, sizeof(*priv));
 
+#ifdef GTK_2_4
+  priv->combo = gtk_combo_box_new_text();
+  i = 0;
+  while(info->options[i])
+    {
+    gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
+                              info->options[i]);
+    i++;
+    }
+  if(info->flags & BG_PARAMETER_SYNC)
+    {
+    w->callback_widget = priv->combo;
+    w->callback_id = g_signal_connect(G_OBJECT(w->callback_widget),
+                                      "changed", G_CALLBACK(change_callback),
+                                      (gpointer)w);
+    }
+#else
   priv->combo = gtk_combo_new();
   gtk_editable_set_editable(GTK_EDITABLE(GTK_COMBO(priv->combo)->entry),
                             FALSE);
@@ -135,6 +175,8 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
                      "changed", G_CALLBACK(change_callback),
                      (gpointer)w);
     }
+#endif
+  
   
   gtk_widget_show(priv->combo);
 

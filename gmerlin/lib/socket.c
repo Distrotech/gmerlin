@@ -235,8 +235,8 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
   int ret = -1;
   struct sockaddr_in  addr_in;
   struct sockaddr_in6 addr_in6;
-  void * addr;
-  int addr_len;
+  void * addr = NULL;
+  int addr_len = 0;
   struct timeval timeout;
   fd_set write_fds;
   

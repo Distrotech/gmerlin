@@ -260,7 +260,7 @@ char * bg_strncat(char * old_string, const char * start, const char * end)
 char ** bg_strbreak(const char * str, char delim)
   {
   int num_entries;
-  char *pos, *end;
+  char *pos, *end = NULL;
   const char *pos_c;
   char ** ret;
   int i;

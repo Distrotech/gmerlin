@@ -27,6 +27,11 @@
 
 #include <gui_gtk/plugin.h>
 
+#if GTK_MINOR_VERSION >= 4
+#define GTK_2_4
+#endif
+
+
 struct bg_gtk_plugin_widget_single_s
   {
   GtkWidget * table;
@@ -41,6 +46,7 @@ struct bg_gtk_plugin_widget_single_s
   bg_cfg_section_t * section;
 
   int32_t type_mask;
+  int32_t flag_mask;
   void (*set_plugin)(bg_plugin_handle_t *, void*);
   void * set_plugin_data;
   };
@@ -110,21 +116,30 @@ static void button_callback(GtkWidget * w, gpointer data)
 
 static void change_callback(GtkWidget * w, gpointer data)
   {
+#ifndef GTK_2_4
   const char * long_name;
+#endif
   
   bg_gtk_plugin_widget_single_t * widget;
   widget = (bg_gtk_plugin_widget_single_t *)data;
-  
+
+#ifdef GTK_2_4
+  widget->info = bg_plugin_find_by_index(widget->reg,
+                                         gtk_combo_box_get_active(GTK_COMBO_BOX(widget->combo)),
+                                         widget->type_mask, widget->flag_mask);
+#else
   long_name = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(widget->combo)->entry));
   //  fprintf(stderr, "Change callback %s\n", long_name);
   if(*long_name == '\0')
     return;
+
+  widget->info = bg_plugin_find_by_long_name(widget->reg, long_name);
   
+#endif
+
   if(widget->handle)
     bg_plugin_unref(widget->handle);
   
-  widget->info = bg_plugin_find_by_long_name(widget->reg, long_name);
-    
   widget->handle = bg_plugin_load(widget->reg, widget->info);
 
   if(widget->handle->plugin->get_parameters)
@@ -148,12 +163,17 @@ bg_gtk_plugin_widget_single_create(bg_plugin_registry_t * reg,
                                                      void * data),
                                    void * set_plugin_data)
   {
+#ifdef GTK_2_4
+  int default_index;
+#else
   GList * strings;
-
-  int num_plugins, i;
   char * tmp_string;
+#endif
+  
+  int num_plugins, i;
   bg_gtk_plugin_widget_single_t * ret;
   const bg_plugin_info_t * info;
+  const bg_plugin_info_t * default_info;
   
   ret = calloc(1, sizeof(*ret));
 
@@ -162,6 +182,7 @@ bg_gtk_plugin_widget_single_create(bg_plugin_registry_t * reg,
   
   ret->reg = reg;
   ret->type_mask = type_mask;
+  ret->flag_mask = flag_mask;
 
   /* Make buttons */
     
@@ -175,9 +196,32 @@ bg_gtk_plugin_widget_single_create(bg_plugin_registry_t * reg,
 
   gtk_widget_show(ret->config_button);
   gtk_widget_show(ret->info_button);
-  
+
+  num_plugins = bg_plugin_registry_get_num_plugins(reg,
+                                                   type_mask,
+                                                   flag_mask);
+
+  default_info = bg_plugin_registry_get_default(reg, type_mask);
+
   /* Make combo */
-    
+#ifdef GTK_2_4
+  default_index = -1;
+  ret->combo = gtk_combo_box_new_text();
+  g_signal_connect(G_OBJECT(ret->combo),
+                   "changed", G_CALLBACK(change_callback),
+                   (gpointer)ret);
+  for(i = 0; i < num_plugins; i++)
+    {
+    info = bg_plugin_find_by_index(reg, i, type_mask, flag_mask);
+    gtk_combo_box_append_text(GTK_COMBO_BOX(ret->combo), info->long_name);
+
+    if(info == default_info)
+      default_index = i;
+    }
+  if(default_index >= 0)
+    gtk_combo_box_set_active(GTK_COMBO_BOX(ret->combo), default_index);
+#else
+  
   ret->combo = gtk_combo_new();
   gtk_editable_set_editable(GTK_EDITABLE(GTK_COMBO(ret->combo)->entry),
                             FALSE);
@@ -187,9 +231,6 @@ bg_gtk_plugin_widget_single_create(bg_plugin_registry_t * reg,
   
   strings = (GList*)0;
   
-  num_plugins = bg_plugin_registry_get_num_plugins(reg,
-                                                   type_mask,
-                                                   flag_mask);
   
   for(i = 0; i < num_plugins; i++)
     {
@@ -199,15 +240,14 @@ bg_gtk_plugin_widget_single_create(bg_plugin_registry_t * reg,
     }
 
   gtk_combo_set_popdown_strings(GTK_COMBO(ret->combo), strings);
-
   /* Get default plugin */
 
-  info = bg_plugin_registry_get_default(reg, type_mask);
-  if(info)
+  if(default_info)
     {
     gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(ret->combo)->entry),
-                       info->long_name);
+                       default_info->long_name);
     }
+#endif
 
   /* Show */
   

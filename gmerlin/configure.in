@@ -34,6 +34,9 @@ AM_PATH_GTK_2_0($GTK_REQUIRED, have_gtk=true, have_gtk=false)
 AM_CONDITIONAL(HAVE_GTK, test x$have_gtk = xtrue)
 AC_SUBST(GTK_REQUIRED)
 
+dnl Always be in sync weith the newest gtk
+GTK_CFLAGS="$GTK_CFLAGS -DGTK_DISABLE_DEPRECATED"
+
 dnl
 dnl X11
 dnl

@@ -2,6 +2,10 @@
 #include <parameter.h>
 #include "gui.h"
 
+#if GTK_MINOR_VERSION >= 4
+#define GTK_2_4
+#endif
+
 #define SLIDER_HEIGHT 120
 
 #define TYPE_SINGLEBOOL 0
@@ -66,9 +70,9 @@ typedef struct
   float val_max;
 
   /* Combo box stuff */
-
+#ifndef GTK_2_4
   GList * popdown_strings;
-  
+#endif
   /* Control */
 
   alsa_mixer_control_t * control;
@@ -83,17 +87,25 @@ typedef struct
 
 static void enum_callback(GtkWidget * w, gpointer data)
   {
-  const char * label;
   int index;
   int value;
+
+#ifndef GTK_2_4
   GList * list;
+  const char * label;
+#endif
   
   widget_array_t * arr = (widget_array_t *)data;
-
+  
   for(index = 0; index < arr->num; index++)
     {
+#ifdef GTK_2_4
+    if(arr->widgets[index].w == w)
+      break;
+#else
     if(GTK_COMBO(arr->widgets[index].w)->entry == w)
       break;
+#endif
     }
   if(index == arr->num)
     {
@@ -102,7 +114,9 @@ static void enum_callback(GtkWidget * w, gpointer data)
     }
   
   /* Get the string and the index of the enum */
-  
+#ifdef GTK_2_4
+  value = gtk_combo_box_get_active(GTK_COMBO_BOX(arr->widgets[index].w));
+#else
   label =
     gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(arr->widgets[index].w)->entry));
   
@@ -122,12 +136,13 @@ static void enum_callback(GtkWidget * w, gpointer data)
       value++;
       }
     }
+#endif
   /* Transfer value */
   snd_ctl_elem_value_set_enumerated(arr->control->val, index, value);
   /* Write value */
   snd_hctl_elem_write(arr->control->hctl, arr->control->val);
 
-  fprintf(stderr, "enum_callback, Control: %d, val: %d\n", index, value);
+  //  fprintf(stderr, "enum_callback, Control: %d, val: %d\n", index, value);
   
   }
 
@@ -136,7 +151,11 @@ static int hctl_enum_callback(snd_hctl_elem_t *elem, unsigned int mask)
   int i;
   widget_array_t * arr;
   unsigned int value;
+
+#ifndef GTK_2_4
   char * val_str;
+#endif
+  
   if(mask & SND_CTL_EVENT_MASK_VALUE) 
     {
     arr = (widget_array_t*)snd_hctl_elem_get_callback_private(elem);
@@ -145,6 +164,12 @@ static int hctl_enum_callback(snd_hctl_elem_t *elem, unsigned int mask)
     for(i = 0; i < arr->num; i++)
       {
       value = snd_ctl_elem_value_get_enumerated(arr->control->val, i);
+#ifdef GTK_2_4
+      widget_block(&(arr->widgets[i]));
+      gtk_combo_box_set_active(GTK_COMBO_BOX(arr->widgets[i].w), value);
+      widget_unblock(&(arr->widgets[i]));
+#else
+      
       val_str = g_list_nth_data(arr->popdown_strings, value);
 
       fprintf(stderr, "hctl_enum_callback i: %d, value: %d, val_str: %s\n",
@@ -154,6 +179,7 @@ static int hctl_enum_callback(snd_hctl_elem_t *elem, unsigned int mask)
       gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(arr->widgets[i].w)->entry),
                          val_str);
       widget_unblock(&(arr->widgets[i]));
+#endif
       }
     }
   return 0;
@@ -352,6 +378,9 @@ void init_array(widget_array_t * ret, alsa_mixer_control_t * c,
   {
   int req_width, req_height;
   int i;
+#ifdef GTK_2_4
+  int j;
+#endif
   int num_items;
   snd_ctl_elem_type_t type;
   snd_ctl_elem_info_t * info;
@@ -462,6 +491,7 @@ void init_array(widget_array_t * ret, alsa_mixer_control_t * c,
       break;
     case SND_CTL_ELEM_TYPE_ENUMERATED:
       num_items = snd_ctl_elem_info_get_items(info);
+#ifndef GTK_2_4
       for(i = 0; i < num_items; i++)
         {
         snd_ctl_elem_info_set_item(info,i);
@@ -472,8 +502,26 @@ void init_array(widget_array_t * ret, alsa_mixer_control_t * c,
                         bg_strdup(NULL,
                                   snd_ctl_elem_info_get_item_name(info)));
         }
+#endif
       for(i = 0; i < ret->num; i++)
         {
+#ifdef GTK_2_4
+        ret->widgets[i].w = gtk_combo_box_new_text();
+        ret->widgets[i].handler_widget = ret->widgets[i].w;
+        
+        for(j = 0; j < num_items; j++)
+          {
+          snd_ctl_elem_info_set_item(info,j);
+          snd_hctl_elem_info(hctl,info);
+          gtk_combo_box_append_text(GTK_COMBO_BOX(ret->widgets[i].w),
+                                    snd_ctl_elem_info_get_item_name(info));
+          }
+        ret->widgets[i].id =
+          g_signal_connect(G_OBJECT(ret->widgets[i].w),
+                           "changed", G_CALLBACK(enum_callback),
+                           (gpointer)ret);
+        
+#else
         ret->widgets[i].w = gtk_combo_new();
         gtk_editable_set_editable(GTK_EDITABLE(GTK_COMBO(ret->widgets[i].w)->entry),
                                   FALSE);
@@ -488,10 +536,9 @@ void init_array(widget_array_t * ret, alsa_mixer_control_t * c,
           g_signal_connect(G_OBJECT(GTK_EDITABLE(GTK_COMBO(ret->widgets[i].w)->entry)),
                            "changed", G_CALLBACK(enum_callback),
                          (gpointer)ret);
-
+#endif
         gtk_widget_show(ret->widgets[i].w);
         }
-
       snd_hctl_elem_set_callback(c->hctl, hctl_enum_callback);
       snd_hctl_elem_set_callback_private(c->hctl, ret);
 
@@ -672,11 +719,11 @@ static void init_menu(control_widget_t * w)
   gtk_widget_show(w->menu.tearoff);
 
   w->menu.menu = gtk_menu_new();
-  gtk_menu_append(GTK_MENU(w->menu.menu), w->menu.left);
-  gtk_menu_append(GTK_MENU(w->menu.menu), w->menu.right);
-  gtk_menu_append(GTK_MENU(w->menu.menu), w->menu.first);
-  gtk_menu_append(GTK_MENU(w->menu.menu), w->menu.last);
-  gtk_menu_append(GTK_MENU(w->menu.menu), w->menu.tearoff);
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.left);
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.right);
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.first);
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.last);
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.tearoff);
   gtk_widget_show(w->menu.menu);
   }
 
