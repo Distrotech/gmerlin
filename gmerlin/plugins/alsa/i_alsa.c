@@ -223,7 +223,7 @@ static int read_frame(alsa_t * priv)
       {
       priv->f->valid_samples = result;
       priv->last_frame_size = result;
-      //      fprintf(stderr, "Read %d\n", result);
+//      fprintf(stderr, "Read %d\n", result);
       return 1;
       }
     else if(result == -EPIPE)
@@ -231,11 +231,17 @@ static int read_frame(alsa_t * priv)
       fprintf(stderr, "Warning: Dropping samples\n");
       snd_pcm_drop(priv->pcm);
       if(snd_pcm_prepare(priv->pcm) < 0)
+        {
+        fprintf(stderr, "i_alsa: snd_pcm_prepare failed\n");
         return 0;
+        }
       snd_pcm_start(priv->pcm);
       }
     else
+      {
+      fprintf(stderr, "Unknown error\n");
       break;
+      }
     }
   return 0;
   }
@@ -265,7 +271,7 @@ static void read_frame_alsa(void * p, gavl_audio_frame_t * f,
                             priv->last_frame_size - priv->f->valid_samples, /* src_pos */
                             num_samples - samples_read,                     /* dst_size */
                             priv->f->valid_samples                          /* src_size */ );
-#if 0
+#if 0 
     fprintf(stderr, "Copy %d %d %d %d\n",
             samples_read,                                   /* dst_pos */
             priv->last_frame_size - priv->f->valid_samples, /* src_pos */

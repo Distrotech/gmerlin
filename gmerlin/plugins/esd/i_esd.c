@@ -42,7 +42,7 @@ typedef struct
   
   } esd_t;
 
-bg_parameter_info_t parameters[] =
+static bg_parameter_info_t parameters[] =
   {
     {
       name:      "esd_host",
@@ -95,7 +95,7 @@ static void destroy_esd(void *data)
   free(e);
   }
 
-bg_parameter_info_t *
+static bg_parameter_info_t *
 get_parameters_esd(void * priv)
   {
   return parameters;
