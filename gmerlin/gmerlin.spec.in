@@ -319,6 +319,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(644,root,root) %{_datadir}/gmerlin/icons/state_*.png
 %attr(644,root,root) %{_datadir}/gmerlin/icons/gmerlin.jpg
 %attr(644,root,root) %{_datadir}/gmerlin/icons/tracks_dnd_32.png
+%attr(644,root,root) %{_datadir}/gmerlin/icons/tab_close.png
 %attr(644,root,root) %{_libdir}/gmerlin/plugins/e_wav.la
 %attr(755,root,root) %{_libdir}/gmerlin/plugins/e_wav.so
 %attr(644,root,root) %{_libdir}/gmerlin/plugins/*_tga.la

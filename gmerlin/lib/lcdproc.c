@@ -124,7 +124,7 @@ bg_lcdproc_t * bg_lcdproc_create(bg_player_t * player)
 int send_command(bg_lcdproc_t * l, char * command)
   {
   char * error_msg = (char*)0;
-
+//  fprintf(stderr, "Send command: %s\n", command);
   if(!bg_tcp_send(l->fd, command, strlen(command), &error_msg))
     return 0;
 
