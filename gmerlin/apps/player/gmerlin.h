@@ -37,9 +37,6 @@ typedef struct gmerlin_s gmerlin_t;
 #include "playerwindow.h"
 #include "pluginwindow.h"
 
-/* Volume boundaries */
-
-#define VOLUME_MAX   0.0
 
 /* Repeat mode */
 

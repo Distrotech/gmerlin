@@ -537,6 +537,9 @@ void bg_gtk_slider_skin_free(bg_gtk_slider_skin_t * s)
 
 void bg_gtk_slider_set_pos(bg_gtk_slider_t * s, float position)
   {
+  if(s->action)
+    return;
+
   if(s->vertical)
     s->pos = (int)((1.0 - position) * (float)(s->total_size - s->slider_size) + 0.5);
   else
@@ -549,14 +552,9 @@ void bg_gtk_slider_set_pos(bg_gtk_slider_t * s, float position)
   //  fprintf(stderr, "Slider pos 2: %d\n", s->pos);
   
   if(s->vertical)
-    {
     gtk_layout_move(GTK_LAYOUT(s->background_layout), s->slider_eventbox,
                     0, s->pos);
-    //    fprintf(stderr, "Total size: %d, slider_size: %d, Slider pos: %d\n",
-    //            s->total_size, s->slider_size, s->pos);
-    }
   else
     gtk_layout_move(GTK_LAYOUT(s->background_layout), s->slider_eventbox,
                     s->pos, 0);
-  
   }

@@ -24,7 +24,7 @@
 #include <pluginregistry.h>
 #include <msgqueue.h>
 
-#define BG_PLAYER_VOLUME_MIN -40.0
+#define BG_PLAYER_VOLUME_MIN (-40.0)
 
 typedef struct bg_player_s bg_player_t;
 

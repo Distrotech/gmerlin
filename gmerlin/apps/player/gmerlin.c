@@ -583,8 +583,8 @@ static bg_parameter_info_t parameters[] =
       type:        BG_PARAMETER_FLOAT,
       flags:       BG_PARAMETER_HIDE_DIALOG,
       val_min:     { val_f: BG_PLAYER_VOLUME_MIN },
-      val_max:     { val_f: VOLUME_MAX },
-      val_default: { val_f: VOLUME_MAX },
+      val_max:     { val_f: 0.0 },
+      val_default: { val_f: 0.0 },
     },
     {
       name:        "skin_dir",
@@ -658,7 +658,8 @@ void gmerlin_set_parameter(void * data, char * name, bg_parameter_value_t * val)
     g->player_window->volume = val->val_f;
 
     bg_gtk_slider_set_pos(g->player_window->volume_slider,
-                          (g->player_window->volume - BG_PLAYER_VOLUME_MIN)/(VOLUME_MAX - BG_PLAYER_VOLUME_MIN));
+                          (g->player_window->volume - BG_PLAYER_VOLUME_MIN)/
+                          (-BG_PLAYER_VOLUME_MIN));
 
     }
   else if(!strcmp(name, "show_tooltips"))

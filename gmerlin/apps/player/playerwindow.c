@@ -152,7 +152,7 @@ void player_window_set_skin(player_window_t * win,
   //  fprintf(stderr, "Setting volume: %f\n", win->volume);
   bg_gtk_slider_set_pos(win->volume_slider,
                         (win->volume - BG_PLAYER_VOLUME_MIN)/
-                        (VOLUME_MAX - BG_PLAYER_VOLUME_MIN));
+                        (-BG_PLAYER_VOLUME_MIN));
   
   }
 
@@ -234,7 +234,7 @@ static void volume_change_callback(bg_gtk_slider_t * slider, float perc,
   float volume;
   player_window_t * win = (player_window_t *)data;
   
-  volume = BG_PLAYER_VOLUME_MIN + (VOLUME_MAX - BG_PLAYER_VOLUME_MIN) * perc;
+  volume = BG_PLAYER_VOLUME_MIN - BG_PLAYER_VOLUME_MIN * perc;
   if(volume > 0.0)
     volume = 0.0;
   
@@ -312,7 +312,7 @@ static void handle_message(player_window_t * win,
       arg_f_1 = bg_msg_get_arg_float(msg, 0);
       bg_gtk_slider_set_pos(win->volume_slider,
                             (arg_f_1 - BG_PLAYER_VOLUME_MIN) /
-                            (VOLUME_MAX - BG_PLAYER_VOLUME_MIN));
+                            (- BG_PLAYER_VOLUME_MIN));
       break;
     case BG_PLAYER_MSG_TRACK_CHANGED:
       //      fprintf(stderr, "Got BG_PLAYER_MSG_TRACK_CHANGED\n");
