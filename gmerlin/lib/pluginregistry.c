@@ -108,7 +108,8 @@ const bg_plugin_info_t * bg_plugin_find_by_long_name(bg_plugin_registry_t *
   }
 
 const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
-                                                    const char * filename)
+                                                    const char * filename,
+                                                    int typemask)
   {
   bg_plugin_info_t * info;
   char * pos;
@@ -142,8 +143,7 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
   
   while(info)
     {
-    if(((info->type != BG_PLUGIN_INPUT) &&
-        (info->type != BG_PLUGIN_REDIRECTOR)) ||
+    if(!(info->type & typemask) ||
        !(info->flags & BG_PLUGIN_FILE) ||
        !info->extensions)
       {
@@ -182,6 +182,14 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
   free(extension);
   return (const bg_plugin_info_t *)0;
   }
+
+#if 0
+const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
+                                                    const char * filename)
+  {
+  return bg_plugin_find_by_filename_and_mask(reg, filename, (BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR));
+  }
+#endif
 
 const bg_plugin_info_t * bg_plugin_find_by_mimetype(bg_plugin_registry_t * reg,
                                                     const char * mimetype)
@@ -727,3 +735,36 @@ void bg_plugin_unref(bg_plugin_handle_t * h)
     }
   }
 
+gavl_video_frame_t * bg_plugin_registry_load_image(bg_plugin_registry_t * r,
+                                                   const char * filename,
+                                                   gavl_video_format_t * format)
+  {
+  const bg_plugin_info_t * info;
+  
+  bg_image_reader_plugin_t * ir;
+  bg_plugin_handle_t * handle = (bg_plugin_handle_t *)0;
+  gavl_video_frame_t * ret = (gavl_video_frame_t*)0;
+  
+  info = bg_plugin_find_by_filename(r, filename, BG_PLUGIN_IMAGE_READER);
+
+  handle = bg_plugin_load(r, info);
+  if(!handle)
+    goto fail;
+  
+  ir = (bg_image_reader_plugin_t*)(handle->plugin);
+
+  if(!ir->read_header(handle->priv, filename, format))
+    goto fail;
+  
+  ret = gavl_video_frame_create(format);
+  if(!ir->read_image(handle->priv, ret))
+    goto fail;
+  
+  bg_plugin_unref(handle);
+  return ret;
+
+  fail:
+    gavl_video_frame_destroy(ret);
+    return (gavl_video_frame_t*)0;
+  
+  }

@@ -70,7 +70,8 @@ typedef enum
     BG_PLUGIN_RECORDER_VIDEO     = (1<<5),
     BG_PLUGIN_ENCODER_AUDIO      = (1<<6),
     BG_PLUGIN_ENCODER_VIDEO      = (1<<7),
-    BG_PLUGIN_ENCODER            = (1<<8)
+    BG_PLUGIN_ENCODER            = (1<<8), // Encodetr for both audio and video
+    BG_PLUGIN_IMAGE_READER       = (1<<9)
   } bg_plugin_type_t;
 
 /* At least one of these must be set */
@@ -340,6 +341,7 @@ typedef struct bg_ov_plugin_callbacks_s
      positions */
   void (*store_parameter)(void * data, const char * name,
                          bg_parameter_value_t * val);
+  
   void * data;
   } bg_ov_callbacks_t;
 
@@ -348,16 +350,30 @@ typedef struct bg_ov_plugin_callbacks_s
 typedef struct bg_ov_plugin_s
   {
   bg_plugin_common_t common;
-
-  int (*open)(void *, gavl_video_format_t*, const char * window_title);
-
+  
   /* Set callback functions, which can be called by plugin */
   
   void (*set_callbacks)(void * priv, bg_ov_callbacks_t * callbacks);
-  
-  void (*close)(void * priv);
-  void (*write_frame)(void * priv, gavl_video_frame_t*);
 
+  /*
+   *   First Operation mode: Video: Initialize with format,
+   *   Put frames and close again
+   */
+         
+  int  (*open)(void *, gavl_video_format_t*, const char * window_title);
+  void (*put_video)(void * priv, gavl_video_frame_t*);
+  void (*close)(void * priv);
+
+  /* 
+   *  Second Operation mode:
+   *  Put a still image and start a thread for handling expose events
+   *  The thread will be stopped by a call to open() or a subsequent
+   *  put_still()
+   */
+
+  void (*put_still)(void*, gavl_video_format_t * format,
+                    gavl_video_frame_t * frame);
+  
   /* The following ones are optional */
 
   gavl_video_frame_t * (*alloc_frame)(void * priv);
@@ -417,5 +433,27 @@ typedef struct bg_encoder_plugin_s
 
   void (*close)(void*);
   } bg_encoder_plugin_t;
+
+/*******************************************
+ * Image reader
+ *******************************************/
+
+typedef struct bg_image_reader_plugin_s
+  {
+  bg_plugin_common_t common;
+
+  /*
+   * Read the file header, return format (Framerate will be undefined)
+   * Return FALSE on error
+  */
+  
+  int (*read_header)(void * priv, const char * filename,
+                     gavl_video_format_t * format);
+  /*
+   *  Read the image, cleanup after so read_header can be calles
+   *  again after that. If frame == NULL, do cleanup only
+   */
+  int (*read_image)(void * priv, gavl_video_frame_t * frame);
+  } bg_image_reader_plugin_t;
 
 #endif // __BG_PLUGIN_H_

@@ -1,4 +1,4 @@
-SUBDIRS = include lib plugins tests apps icons
+SUBDIRS = include lib plugins tests apps icons skins
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = gmerlin.pc

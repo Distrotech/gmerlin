@@ -63,8 +63,8 @@ void player_window_set_skin(player_window_t * win,
   bg_gtk_button_set_skin(win->play_button, &(s->play_button), directory);
   bg_gtk_button_get_coords(win->play_button, &x, &y);
   gtk_layout_move(GTK_LAYOUT(win->layout),
-                 bg_gtk_button_get_widget(win->play_button),
-                 x, y);
+                  bg_gtk_button_get_widget(win->play_button),
+                  x, y);
 
   bg_gtk_button_set_skin(win->stop_button, &(s->stop_button), directory);
   bg_gtk_button_get_coords(win->stop_button, &x, &y);
@@ -272,8 +272,7 @@ static void handle_message(player_window_t * win,
               if(win->gmerlin->playback_flags & PLAYBACK_SKIP_ERROR)
                 {
                 /* Next track */
-                bg_media_tree_next(win->gmerlin->tree, 1);
-                gmerlin_play(win->gmerlin, 0);
+                gmerlin_next_track(win->gmerlin);
                 }
               break;
             }
@@ -300,6 +299,7 @@ static void handle_message(player_window_t * win,
                                     BG_GTK_SLIDER_HIDDEN);
             }
           display_set_state(win->display, arg_i_1, NULL);
+          bg_media_tree_mark_error(win->gmerlin->tree, 0);
           break;
         case BG_PLAYER_STATE_STOPPED:
           bg_gtk_slider_set_state(win->seek_slider,
@@ -307,36 +307,9 @@ static void handle_message(player_window_t * win,
           display_set_state(win->display, arg_i_1, NULL);
           break;
         case BG_PLAYER_STATE_CHANGING:
-          {
           arg_i_2 = bg_msg_get_arg_int(msg, 1);
-          
           if(arg_i_2)
-            {
-            switch(win->gmerlin->repeat_mode)
-              {
-              case REPEAT_MODE_NONE:
-                fprintf(stderr, "REPEAT_MODE_NONE\n");
-                bg_media_tree_next(win->gmerlin->tree, 0);
-                gmerlin_play(win->gmerlin, BG_PLAYER_IGNORE_IF_PLAYING);
-                break;
-              case REPEAT_MODE_1:
-                fprintf(stderr, "REPEAT_MODE_1\n");
-                gmerlin_play(win->gmerlin, BG_PLAYER_IGNORE_IF_PLAYING);
-                break;
-              case REPEAT_MODE_ALL:
-                fprintf(stderr, "REPEAT_MODE_ALL\n");
-                bg_media_tree_next(win->gmerlin->tree, 1);
-                gmerlin_play(win->gmerlin, BG_PLAYER_IGNORE_IF_PLAYING);
-                break;
-              case  NUM_REPEAT_MODES:
-                break;
-                display_set_state(win->display, arg_i_1, NULL);
-              }
-            }
-          default:
-            display_set_state(win->display, arg_i_1, NULL);
-          }
-          
+            gmerlin_next_track(win->gmerlin);
         }
       break;
     case BG_PLAYER_MSG_TRACK_NAME:

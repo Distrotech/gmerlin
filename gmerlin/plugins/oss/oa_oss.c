@@ -493,13 +493,13 @@ static void destroy_oss(void * p)
   free(priv);
   }
 
-bg_parameter_info_t *
+static bg_parameter_info_t *
 get_parameters_oss(void * priv)
   {
   return parameters;
   }
 
-int get_delay_oss(void * p)
+static int get_delay_oss(void * p)
   {
   int unplayed_bytes;
   oss_t * priv;
@@ -515,12 +515,13 @@ int get_delay_oss(void * p)
 
 /* Set parameter */
 
-void
+static void
 set_parameter_oss(void * p, char * name, bg_parameter_value_t * val)
   {
   oss_t * priv = (oss_t*)(p);
   if(!name)
     return;
+  //  fprintf(stderr, "Set parameter %s\n", name);
   if(!strcmp(name, "multichannel_mode"))
     {
    if(!strcmp(val->val_str, "None (Downmix)"))

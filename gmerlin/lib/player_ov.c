@@ -32,6 +32,9 @@ struct bg_player_ov_context_s
   bg_player_t           * player;
   int do_sync;
   bg_ov_callbacks_t callbacks;
+  
+  gavl_video_frame_t  * logo_frame;
+  gavl_video_format_t   logo_format;
   };
 
 /* Callback functions */
@@ -65,11 +68,11 @@ void * bg_player_ov_create_frame(void * data)
     bg_plugin_lock(ctx->plugin_handle);
     ret = ctx->plugin->alloc_frame(ctx->priv);
     bg_plugin_unlock(ctx->plugin_handle);
-    return ret;
     }
-  
   else
-    return gavl_video_frame_create(&(ctx->player->video_format_o));
+    ret = gavl_video_frame_create(&(ctx->player->video_format_o));
+  gavl_clear_video_frame(ret, &(ctx->player->video_format_o));
+  return ret;
   }
 
 void bg_player_ov_destroy_frame(void * data, void * frame)
@@ -96,15 +99,39 @@ void bg_player_ov_create(bg_player_t * player)
   
   /* Load output plugin */
   
-
   //  fprintf(stderr, "Loading video output plugin %s\n", info->long_name);
   
   ctx->callbacks.key_callback    = key_callback;
   ctx->callbacks.button_callback = button_callback;
   ctx->callbacks.store_parameter = store_parameter;
   ctx->callbacks.data = ctx;
-
   player->ov_context = ctx;
+  }
+
+void bg_player_ov_standby(bg_player_ov_context_t * ctx)
+  {
+  if(!ctx->plugin_handle)
+    return;
+
+  bg_plugin_lock(ctx->plugin_handle);
+  if(ctx->plugin->put_still)
+    ctx->plugin->put_still(ctx->priv,
+                           &(ctx->logo_format),
+                           ctx->logo_frame);
+  
+  bg_plugin_unlock(ctx->plugin_handle);
+  }
+
+void bg_player_ov_set_logo(bg_player_ov_context_t * ctx,
+                           gavl_video_format_t * format,
+                           gavl_video_frame_t * frame)
+  {
+  if(ctx->logo_frame)
+    gavl_video_frame_destroy(ctx->logo_frame);
+  
+  ctx->logo_frame = frame;
+
+  gavl_video_format_copy(&(ctx->logo_format), format);;
   
   }
 
@@ -212,12 +239,12 @@ void * bg_player_ov_thread(void * data)
       }
     //    fprintf(stderr, "Frame time: %lld\n", frame->time);
     bg_plugin_lock(ctx->plugin_handle);
-    ctx->plugin->write_frame(ctx->priv, frame);
+    ctx->plugin->put_video(ctx->priv, frame);
 
     if(ctx->do_sync)
       {
       bg_player_time_set(ctx->player, frame->time);
-      fprintf(stderr, "OV Resync %lld\n", frame->time);
+      //      fprintf(stderr, "OV Resync %lld\n", frame->time);
       ctx->do_sync = 0;
       }
     

@@ -63,6 +63,11 @@ void bg_player_pause(bg_player_t *);
 void bg_player_set_oa_plugin(bg_player_t *, bg_plugin_handle_t * handle);
 void bg_player_set_ov_plugin(bg_player_t *, bg_plugin_handle_t * handle);
 
+void bg_player_set_logo(bg_player_t * p,
+                        gavl_video_format_t * format,
+                        gavl_video_frame_t * frame);
+
+
 void bg_player_set_track_name(bg_player_t *, const char *);
 
 

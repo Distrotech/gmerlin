@@ -85,13 +85,13 @@ typedef struct
   int bytes_per_frame;
   } oss_t;
 
-bg_parameter_info_t *
+static bg_parameter_info_t *
 get_parameters_oss(void * priv)
   {
   return parameters;
   }
 
-void
+static void
 set_parameter_oss(void * p, char * name, bg_parameter_value_t * val)
   {
   oss_t * priv = (oss_t*)(p);

@@ -72,7 +72,7 @@ const bg_plugin_info_t *
 bg_plugin_find_by_name(bg_plugin_registry_t *, const char * name);
 
 const bg_plugin_info_t *
-bg_plugin_find_by_filename(bg_plugin_registry_t *, const char * filename);
+bg_plugin_find_by_filename(bg_plugin_registry_t *, const char * filename, int type_mask);
 
 const bg_plugin_info_t *
 bg_plugin_find_by_mimetype(bg_plugin_registry_t *, const char * mimetype);
@@ -115,6 +115,17 @@ const bg_plugin_info_t * bg_plugin_registry_get_default(bg_plugin_registry_t *,
 void
 bg_plugin_registry_sort(bg_plugin_registry_t * r,
                         const char * sort_string);
+
+
+/*
+ *  Convenience function: Load an image.
+ *  Use gavl_video_frame_destroy to free the
+ *  return value
+ */
+
+gavl_video_frame_t * bg_plugin_registry_load_image(bg_plugin_registry_t * r,
+                                                   const char * filename,
+                                                   gavl_video_format_t * format);
 
 /*
  *  pluginreg_xml.c

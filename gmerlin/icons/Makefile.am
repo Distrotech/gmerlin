@@ -56,7 +56,8 @@ treble_32.png \
 tree_root_16.png \
 up_16.png \
 video_16.png \
-video_32.png
+video_32.png \
+gmerlin.jpg
 
 pkgdata_DATA = $(icons)
 

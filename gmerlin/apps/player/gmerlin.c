@@ -6,12 +6,28 @@
 
 #include <utils.h>
 
+static void set_logo(bg_plugin_registry_t * reg, bg_player_t * player)
+  {
+  gavl_video_format_t format;
+  gavl_video_frame_t * frame;
+  char * filename;
+  filename = bg_search_file_read("icons", "gmerlin.jpg");
+
+  if(!filename)
+    return;
+  if(!(frame = bg_plugin_registry_load_image(reg, filename, &format)))
+    {
+    free(filename);
+    return;
+    }
+  bg_player_set_logo(player, &format, frame);
+  }
+
 static void tree_play_callback(bg_media_tree_t * t, void * data)
   {
   gmerlin_t * g = (gmerlin_t*)data;
   gmerlin_play(g, 0);
   }
-
 
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   {
@@ -26,30 +42,15 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   /* Create plugin registry */
   cfg_section     = bg_cfg_registry_find_section(cfg_reg, "plugins");
   ret->plugin_reg = bg_plugin_registry_create(cfg_section);
-#if 0
-  plugin_info = bg_plugin_registry_get_default(ret->plugin_reg,
-                                               BG_PLUGIN_OUTPUT_AUDIO);
-
-  
-  ret->oa_plugin  = bg_plugin_load(ret->plugin_reg,
-                                   plugin_info);
-
-  plugin_info = bg_plugin_registry_get_default(ret->plugin_reg,
-                                               BG_PLUGIN_OUTPUT_VIDEO);
-  
-  ret->ov_plugin  = bg_plugin_load(ret->plugin_reg,
-                                   plugin_info);
-  
-  /* Set the plugins for the player */
-
-  bg_player_set_ov_plugin(ret->player, ret->ov_plugin);
-  bg_player_set_oa_plugin(ret->player, ret->oa_plugin);
-#endif
 
   /* Create player instance */
   
   ret->player = bg_player_create();
-    
+
+  /* Set the Logo */
+
+  set_logo(ret->plugin_reg, ret->player);
+  
   /* Create media tree */
 
   tmp_string = bg_search_file_write("player/tree", "tree.xml");
@@ -74,8 +75,7 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
     
   ret->player_window = player_window_create(ret);
   
-  gmerlin_skin_load(&(ret->skin),
-                    "/home/pix/Src/Babygmerlin/skins/Default/skin.xml");
+  gmerlin_skin_load(&(ret->skin), "Default");
   gmerlin_skin_set(ret);
 
   gmerlin_create_dialog(ret);
@@ -130,6 +130,35 @@ void gmerlin_play(gmerlin_t * g, int ignore_flags)
     bg_player_set_track_name(g->player,
                              bg_media_tree_get_current_track_name(g->tree));
   }
+
+void gmerlin_next_track(gmerlin_t * g)
+  {
+  switch(g->repeat_mode)
+    {
+    case REPEAT_MODE_NONE:
+      fprintf(stderr, "REPEAT_MODE_NONE\n");
+      if(bg_media_tree_next(g->tree, 0))
+        gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
+      else
+        {
+        fprintf(stderr, "End of album, stopping\n");
+        bg_player_stop(g->player);
+        }
+      break;
+    case REPEAT_MODE_1:
+      fprintf(stderr, "REPEAT_MODE_1\n");
+      gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
+      break;
+    case REPEAT_MODE_ALL:
+      fprintf(stderr, "REPEAT_MODE_ALL\n");
+      bg_media_tree_next(g->tree, 1);
+      gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
+      break;
+    case  NUM_REPEAT_MODES:
+      break;
+    }
+  }
+
 
 static bg_parameter_info_t parameters[] =
   {

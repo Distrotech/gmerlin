@@ -187,11 +187,21 @@ int  bg_player_ov_init(bg_player_ov_context_t * ctx);
 void bg_player_ov_cleanup(bg_player_ov_context_t * ctx);
 void * bg_player_ov_thread(void *);
 
+void bg_player_ov_set_logo(bg_player_ov_context_t * ctx,
+                           gavl_video_format_t * format,
+                           gavl_video_frame_t * frame);
+
+
+/* Display logo (if present) and continue processing events */
+
+void bg_player_ov_standby(bg_player_ov_context_t * ctx);
+
 void * bg_player_ov_create_frame(void * data);
 void bg_player_ov_destroy_frame(void * data, void * frame);
 
 void bg_player_ov_set_plugin(bg_player_t * player,
                              bg_plugin_handle_t * handle);
+
 
 /*
  *  This call will let the video plugin adjust the playertime from the

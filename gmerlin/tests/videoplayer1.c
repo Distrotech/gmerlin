@@ -187,7 +187,7 @@ int main(int argc, char ** argv)
         gavl_time_delay(&diff_time);
         }
       
-      output_plugin->write_frame(output_handle->priv, output_frame);
+      output_plugin->put_video(output_handle->priv, output_frame);
       frames_written++;
       }
     }
@@ -207,7 +207,7 @@ int main(int argc, char ** argv)
       diff_time = frame_time - gavl_timer_get(timer);
       if(diff_time > 0)
         gavl_time_delay(&diff_time);
-      output_plugin->write_frame(output_handle->priv, output_frame);
+      output_plugin->put_video(output_handle->priv, output_frame);
       frames_written++;
       }
     }

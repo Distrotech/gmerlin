@@ -50,7 +50,9 @@ static app_window * create_window(bg_plugin_registry_t * reg)
     
   ret->input_plugins =
     bg_gtk_plugin_widget_multi_create(reg,
-                                      BG_PLUGIN_INPUT|BG_PLUGIN_REDIRECTOR,
+                                      BG_PLUGIN_INPUT|
+                                      BG_PLUGIN_IMAGE_READER|
+                                      BG_PLUGIN_REDIRECTOR,
                                       BG_PLUGIN_FILE|
                                       BG_PLUGIN_URL|
                                       BG_PLUGIN_REMOVABLE);

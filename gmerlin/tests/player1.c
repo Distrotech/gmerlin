@@ -44,7 +44,8 @@ static void play_file(bg_player_t * player)
   //  fprintf(stderr, "Searching plugin for %s...", filename);
   
   info = bg_plugin_find_by_filename(plugin_reg,
-                                    bg_argv[bg_arg_index]);
+                                    bg_argv[bg_arg_index],
+                                    BG_PLUGIN_INPUT);
 
   if(!info)
     {

@@ -362,7 +362,8 @@ static int load_plugin_by_filename(bg_media_tree_t * tree,
                                    const char * filename)
   {
   const bg_plugin_info_t * info;
-  info = bg_plugin_find_by_filename(tree->plugin_reg, filename);
+  info = bg_plugin_find_by_filename(tree->plugin_reg, filename,
+                                    (BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR));
   if(!info)
     return 0;
   load_plugin(tree, info);
@@ -420,7 +421,9 @@ static void update_entry(bg_media_tree_t * tree,
 
   if(tree->use_metadata && tree->metadata_format)
     {
-    entry->name = bg_strdup(entry->name, bg_create_track_name(track_info, tree->metadata_format));
+    entry->name = bg_strdup(entry->name,
+                            bg_create_track_name(track_info,
+                                                 tree->metadata_format));
     if(entry->name)
       name_set = 1;
     }
@@ -446,6 +449,7 @@ static void update_entry(bg_media_tree_t * tree,
       }
     }
   entry->duration = track_info->duration;
+  entry->flags &= ~BG_ALBUM_ENTRY_ERROR;
   }
 
 static int refresh_entry(bg_media_tree_t * tree,
@@ -470,6 +474,7 @@ static int refresh_entry(bg_media_tree_t * tree,
     //    bg_hexdump(system_location, strlen(system_location));
         
     free(system_location);
+    entry->flags |= BG_ALBUM_ENTRY_ERROR;
     return 0;
     }
 
@@ -502,6 +507,7 @@ int bg_media_tree_refresh_entry(bg_media_tree_t * tree,
     {
     fprintf(stderr, "No plugin found for %s\n",
             (char*)(entry->location));
+    entry->flags |= BG_ALBUM_ENTRY_ERROR;
     return 0;
     }
   return refresh_entry(tree, entry);
@@ -1067,7 +1073,9 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
     if(t->current_entry->plugin)
       info = bg_plugin_find_by_name(t->plugin_reg, t->current_entry->plugin);
     else
-      info = bg_plugin_find_by_filename(t->plugin_reg, t->current_entry->location);
+      info = bg_plugin_find_by_filename(t->plugin_reg,
+                                        t->current_entry->location,
+                                        (BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR));
     
     t->current_handle = bg_plugin_load(t->plugin_reg, info);
     input_plugin = (bg_input_plugin_t*)(t->current_handle->plugin);

@@ -272,7 +272,7 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
       gtk_list_store_set(GTK_LIST_STORE(model),
                          &iter,
                          COLUMN_FG_COLOR,
-                         "#808080", -1);
+                         "#FF0000", -1);
     else
       gtk_list_store_set(GTK_LIST_STORE(model),
                          &iter,

@@ -187,6 +187,8 @@ void bg_player_set_state(bg_player_t * player, int state,
 
   /* Broadcast this message */
 
+  //  fprintf(stderr, "bg_player_set_state %d\n", state);
+  
   //  memset(&state, 0, sizeof(state));
     
   s.state = state;

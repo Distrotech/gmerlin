@@ -31,7 +31,6 @@ struct bg_cfg_section_s
   bg_cfg_item_t * items;
 
   struct bg_cfg_section_s * next;
-  struct bg_cfg_section_s * parent;
   struct bg_cfg_section_s * children;
   };
 

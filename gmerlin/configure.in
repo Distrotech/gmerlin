@@ -22,7 +22,7 @@ PKG_CHECK_MODULES(GAVL, gavl >= 0.2.0, , AC_MSG_ERROR("gavl not found"))
 
 dnl Gtk
 
-AM_PATH_GTK_2_0(2.0.0, have_gtk=true, have_gtk=false)
+AM_PATH_GTK_2_0(2.2.0, have_gtk=true, have_gtk=false)
 AM_CONDITIONAL(HAVE_GTK, test x$have_gtk = xtrue)
 
 dnl Libquicktime
@@ -38,6 +38,55 @@ AM_CONDITIONAL(HAVE_ESD,           test x$have_esd = xtrue)
 dnl Vorbis
 XIPH_PATH_VORBIS(have_vorbis=true,have_vorbis=false)
 AM_CONDITIONAL(HAVE_VORBIS, test x$have_vorbis = xtrue)
+
+dnl libjpeg
+
+AH_TEMPLATE([HAVE_LIBJPEG],
+            [Do we have libjpeg installed?])
+                                                                               
+have_libjpeg=false
+                                                                               
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+                                                                               
+LIBS=-ljpeg-mmx
+CFLAGS=""
+                                                                               
+AC_MSG_CHECKING(for jpeg-mmx)
+AC_TRY_LINK([#include <stdio.h>
+             #include <jpeglib.h>],
+            [struct jpeg_decompress_struct cinfo;
+             jpeg_create_decompress(&cinfo);],
+            [have_libjpeg=true])
+ 
+if test x$have_libjpeg = xfalse; then
+  AC_MSG_RESULT(no);
+  LIBS=-ljpeg
+  CFLAGS=""
+  AC_MSG_CHECKING(for libjpeg)
+  AC_TRY_LINK([#include <stdio.h>
+               #include <jpeglib.h>],
+              [struct jpeg_decompress_struct cinfo;
+               jpeg_create_decompress(&cinfo);],
+              [have_libjpeg=true])
+fi
+                                                                               
+case $have_libjpeg in
+  true) AC_DEFINE(HAVE_LIBJPEG)
+        AC_MSG_RESULT(yes)
+        JPEG_LIBS=$LIBS;
+        JPEG_CFLAGS=$CFLAGS;;
+  false) AC_MSG_RESULT(no); JPEG_LIBS=""; JPEG_CFLAGS="";;
+  * ) AC_MSG_RESULT("Somethings wrong: $have_libjpeg") ;;
+esac
+                                                                               
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+                                                                               
+AC_SUBST(JPEG_LIBS)
+AC_SUBST(JPEG_CFLAGS)
+                                                                               
+AM_CONDITIONAL(HAVE_LIBJPEG, test x$have_libjpeg = xtrue)
 
 dnl
 dnl Common CFLAGS
@@ -135,6 +184,10 @@ plugins/x11/Makefile \
 plugins/esd/Makefile \
 plugins/lqt/Makefile \
 plugins/vorbis/Makefile \
-plugins/oss/Makefile ])
+plugins/oss/Makefile \
+plugins/jpeg/Makefile \
+skins/Makefile \
+skins/Default/Makefile])
+
 AC_OUTPUT
 

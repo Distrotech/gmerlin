@@ -274,6 +274,9 @@ static void play_cmd(bg_player_t * p,
   {
   int error_code;
   char * error_msg;
+  int had_video;
+
+  had_video = p->do_video;
   
   bg_player_set_state(p, BG_PLAYER_STATE_STARTING, NULL, NULL);
   
@@ -287,7 +290,7 @@ static void play_cmd(bg_player_t * p,
     bg_player_set_state(p, BG_PLAYER_STATE_ERROR, error_msg, &error_code);
     return;
     }
-
+  
   /* Send messages about the stream */
   /*
     bg_msg_queue_list_send(p->message_queues,
@@ -346,7 +349,7 @@ static void play_cmd(bg_player_t * p,
                            msg_stream_description,
                            p->track_info->description);
 
-      
+  
   /* Send messages about formats */
   if(p->do_audio)
     {
@@ -368,6 +371,9 @@ static void play_cmd(bg_player_t * p,
                            msg_video_stream,
                            p);
     }
+  else if(had_video)
+    bg_player_ov_standby(p->ov_context);
+
   
   /* Count the threads */
 
@@ -402,7 +408,7 @@ static void play_cmd(bg_player_t * p,
   if(p->waiting_plugin_threads < p->total_plugin_threads)
     pthread_cond_wait(&(p->stop_cond), &(p->stop_mutex));
   pthread_mutex_unlock(&p->stop_mutex);
-
+  
   bg_player_time_set(p, 0);
   preload(p);
   start_playback(p);
@@ -430,6 +436,11 @@ static void player_cleanup(bg_player_t * player)
 static void stop_cmd(bg_player_t * player, int new_state)
   {
   int want_new;
+  int old_state;
+
+  old_state = bg_player_get_state(player);
+  //  fprintf(stderr, "STOP CMD\n");
+  
   if(new_state == BG_PLAYER_STATE_CHANGING)
     {
     want_new = 0;
@@ -438,6 +449,9 @@ static void stop_cmd(bg_player_t * player, int new_state)
   else
     bg_player_set_state(player, new_state, NULL, NULL);
 
+  if(old_state == BG_PLAYER_STATE_CHANGING)
+    return;
+  
   /* Set the stop flag */
   if(player->do_audio)
     bg_fifo_set_state(player->audio_stream.fifo, BG_FIFO_STOPPED);
@@ -461,6 +475,9 @@ static void stop_cmd(bg_player_t * player, int new_state)
     fprintf(stderr, "done\n");
     }
   player_cleanup(player);
+
+  if(new_state == BG_PLAYER_STATE_STOPPED)
+    bg_player_ov_standby(player->ov_context);
   }
 
 static void set_ov_plugin_cmd(bg_player_t * player,
@@ -474,6 +491,7 @@ static void set_ov_plugin_cmd(bg_player_t * player,
     stop_cmd(player, BG_PLAYER_STATE_STOPPED);
   
   bg_player_ov_set_plugin(player, handle);
+  bg_player_ov_standby(player->ov_context);
   }
 
 static void set_oa_plugin_cmd(bg_player_t * player,
@@ -486,7 +504,6 @@ static void set_oa_plugin_cmd(bg_player_t * player,
     stop_cmd(player, BG_PLAYER_STATE_STOPPED);
   bg_player_oa_set_plugin(player, handle);
   }
-
 
 static void seek_cmd(bg_player_t * player, float percentage)
   {
@@ -552,6 +569,10 @@ static int process_command(bg_player_t * player,
   char * arg_str1;
   int next_track;
   int error_code;
+
+  gavl_video_format_t logo_format;
+  gavl_video_frame_t * logo_frame;
+  
   //  fprintf(stderr, "process_command\n");
   
   switch(bg_msg_get_id(command))
@@ -594,9 +615,15 @@ static int process_command(bg_player_t * player,
                   
       break;
     case BG_PLAYER_CMD_STOP:
-      if(bg_player_get_state(player) != BG_PLAYER_STATE_PLAYING)
-        return 1;
-      stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+      state = bg_player_get_state(player);
+      switch(state)
+        {
+        case BG_PLAYER_STATE_PLAYING:
+        case BG_PLAYER_STATE_CHANGING:
+          stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+          break;
+        }
+      return 1;
       break;
     case BG_PLAYER_CMD_SEEK:
       if(!player->can_seek)
@@ -638,8 +665,17 @@ static int process_command(bg_player_t * player,
       set_oa_plugin_cmd(player, arg_ptr1);
       break;
     case BG_PLAYER_CMD_SET_OV_PLUGIN:
+      fprintf(stderr, "***** Set OV Plugin\n");
       arg_ptr1 = bg_msg_get_arg_ptr_nocopy(command, 0);
       set_ov_plugin_cmd(player, arg_ptr1);
+      break;
+    case BG_PLAYER_CMD_SETLOGO:
+      fprintf(stderr, "***** Set Logo\n");
+      bg_msg_get_arg_video_format(command, 0, &logo_format);
+      (gavl_video_frame_t*)logo_frame = bg_msg_get_arg_ptr_nocopy(command, 1);
+      bg_player_ov_set_logo(player->ov_context, &logo_format, logo_frame);
+      if(!player->do_video)
+        bg_player_ov_standby(player->ov_context);
       break;
     case BG_PLAYER_CMD_SET_NAME:
       arg_str1 = bg_msg_get_arg_string(command, 0);

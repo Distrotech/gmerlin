@@ -77,7 +77,7 @@ void gmerlin_run(gmerlin_t*);
 
 /* Skin stuff */
 
-void gmerlin_skin_load(gmerlin_skin_t *, const char * filename);
+void gmerlin_skin_load(gmerlin_skin_t *, const char * name);
 void gmerlin_skin_set(gmerlin_t*);
 void gmerlin_skin_free(gmerlin_skin_t*);
 
@@ -94,6 +94,12 @@ void gmerlin_configure(gmerlin_t *);
 
 
 void gmerlin_play(gmerlin_t * g, int ignore_flags);
+
+/* This is called when the player signals that it wants a new
+   track */
+
+void gmerlin_next_track(gmerlin_t * g);
+
 
 void gmerlin_tree_close_callback(bg_gtk_tree_window_t * win,
                                  void * data);

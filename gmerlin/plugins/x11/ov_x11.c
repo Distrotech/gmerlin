@@ -17,13 +17,13 @@
  
 *****************************************************************/
 
+#include <pthread.h>
+
 #include <string.h>
 
-#define DEBUG
+// #define DEBUG
 
-#ifdef DEBUG
 #include <stdio.h>
-#endif
 
 #include <stdlib.h>
 #include <X11/Xlib.h>
@@ -37,6 +37,7 @@
 #include <utils.h>
 
 #include <X11/extensions/Xvlib.h>
+
 
 #define XV_ID_YV12  0x32315659 
 #define XV_ID_I420  0x30323449
@@ -77,27 +78,16 @@ xv_parameters[] =
 
 #define NUM_XV_PARAMETERS (sizeof(xv_parameters)/sizeof(xv_parameters[0]))
 
-
-
 typedef struct
   {
-  int image_width;
-  int image_height;
-
-  unsigned int frame_width;
-  int frame_height;
-
+  gavl_video_format_t format;
+  
   unsigned int window_width;
   unsigned int window_height;
 
   int screen_width;
   int screen_height;
-    
-  int pixel_width;
-  int pixel_height;
-    
-  gavl_colorspace_t colorspace;
-
+  
   /* Supported modes */
 
   int have_shm;
@@ -105,6 +95,8 @@ typedef struct
   int have_xv_yuy2;
   int have_xv_i420;
 
+  int force_xv;
+  
   /* Actual mode */
 
   int do_xv;
@@ -153,7 +145,13 @@ typedef struct
   Atom delete_atom;
 
   bg_parameter_info_t * parameters;
-  
+
+  /* Still image stuff */
+
+  pthread_t       still_thread;
+  pthread_mutex_t still_mutex;
+  int do_still;
+  gavl_video_frame_t * still_frame;
   } x11_t;
 
 void set_callbacks_x11(void * data, bg_ov_callbacks_t * callbacks)
@@ -241,19 +239,19 @@ typedef struct {
     long input_mode;
     unsigned long status;
 } MotifWmHints, MwmHints;
-                                                                                
+                                                                               
 #define MWM_HINTS_FUNCTIONS     (1L << 0)
 #define MWM_HINTS_DECORATIONS   (1L << 1)
 #define MWM_HINTS_INPUT_MODE    (1L << 2)
 #define MWM_HINTS_STATUS        (1L << 3)
-                                                                                
+                                                                               
 #define MWM_FUNC_ALL            (1L << 0)
 #define MWM_FUNC_RESIZE         (1L << 1)
 #define MWM_FUNC_MOVE           (1L << 2)
 #define MWM_FUNC_MINIMIZE       (1L << 3)
 #define MWM_FUNC_MAXIMIZE       (1L << 4)
 #define MWM_FUNC_CLOSE          (1L << 5)
-                                                                                
+                                                                               
 #define MWM_DECOR_ALL           (1L << 0)
 #define MWM_DECOR_BORDER        (1L << 1)
 #define MWM_DECOR_RESIZEH       (1L << 2)
@@ -262,7 +260,7 @@ typedef struct {
 #define MWM_DECOR_MINIMIZE      (1L << 5)
 #define MWM_DECOR_MAXIMIZE      (1L << 6)
 #define _XA_MOTIF_WM_HINTS              "_MOTIF_WM_HINTS"
-                                                                                
+                                                                               
 static unsigned char bm_no_data[] = { 0,0,0,0, 0,0,0,0 };
 
 static MwmHints fullscreen_hints =
@@ -376,7 +374,7 @@ static Window create_window(x11_t * x11, int width, int height)
   attr.backing_store = NotUseful;
   attr.border_pixel = 0;
   attr.background_pixel = 0;
-  attr.event_mask = StructureNotifyMask | ButtonPressMask | KeyPressMask;
+  attr.event_mask = StructureNotifyMask | ButtonPressMask | KeyPressMask | ExposureMask;
   
   ret = XCreateWindow (d, DefaultRootWindow (d),
                        0 /* x */, 0 /* y */, width, height,
@@ -551,8 +549,8 @@ alloc_frame_xv(x11_t * priv)
     {
     x11_frame->xv_image =
       XvShmCreateImage(priv->dpy, priv->xv_port, priv->xv_format, NULL,
-                       priv->image_width,
-                       priv->image_height, &(x11_frame->shminfo));
+                       priv->format.image_width,
+                       priv->format.image_height, &(x11_frame->shminfo));
     if(!x11_frame->xv_image)
       priv->have_shm = 0;
     else
@@ -573,18 +571,18 @@ alloc_frame_xv(x11_t * priv)
   
   if(!priv->have_shm)
     {
-    video_format.image_width  = priv->image_width;
-    video_format.image_height = priv->image_height;
+    video_format.image_width  = priv->format.image_width;
+    video_format.image_height = priv->format.image_height;
 
-    video_format.frame_width  = priv->frame_width;
-    video_format.frame_height = priv->frame_height;
+    video_format.frame_width  = priv->format.frame_width;
+    video_format.frame_height = priv->format.frame_height;
 
-    video_format.colorspace = priv->colorspace;
+    video_format.colorspace = priv->format.colorspace;
     
     ret = gavl_video_frame_create(&video_format);
     x11_frame->xv_image = XvCreateImage(priv->dpy, priv->xv_port,
                                        priv->xv_format, ret->planes[0],
-                                       priv->frame_width, priv->frame_height);
+                                       priv->format.frame_width, priv->format.frame_height);
     }
   else
     {
@@ -647,8 +645,8 @@ alloc_frame_ximage(x11_t * priv)
     /* Create Shm Image */
     x11_frame->x11_image = XShmCreateImage(priv->dpy, visual, depth, ZPixmap,
                                            NULL, &(x11_frame->shminfo),
-                                           priv->frame_width,
-                                           priv->frame_height);
+                                           priv->format.frame_width,
+                                           priv->format.frame_height);
     if(!x11_frame->x11_image)
       priv->have_shm = 0;
     else
@@ -672,20 +670,20 @@ alloc_frame_ximage(x11_t * priv)
   if(!priv->have_shm)
     {
     /* Use gavl to allocate memory aligned scanlines */
-    video_format.image_width = priv->image_width;
-    video_format.image_height = priv->image_height;
+    video_format.image_width = priv->format.image_width;
+    video_format.image_height = priv->format.image_height;
 
-    video_format.frame_width = priv->frame_width;
-    video_format.frame_height = priv->frame_height;
+    video_format.frame_width = priv->format.frame_width;
+    video_format.frame_height = priv->format.frame_height;
 
-    video_format.colorspace = priv->colorspace;
+    video_format.colorspace = priv->format.colorspace;
 
     ret = gavl_video_frame_create(&video_format);
     
     x11_frame->x11_image = XCreateImage(priv->dpy, visual, depth, ZPixmap,
                                         0, ret->planes[0],
-                                        priv->frame_width,
-                                        priv->frame_height,
+                                        priv->format.frame_width,
+                                        priv->format.frame_height,
                                         32,
                                         ret->strides[0]);
     }
@@ -736,6 +734,8 @@ static void * create_x11()
   
   priv = calloc(1, sizeof(x11_t));
 
+  pthread_mutex_init(&(priv->still_mutex), NULL);
+    
   /* Open X Display */
 
   priv->dpy = XOpenDisplay(NULL);
@@ -780,7 +780,7 @@ static void * create_x11()
 
   priv->current_window = priv->normal_window;
 
-  fprintf(stderr, "XMapWindow: %p\n", priv);
+  //  fprintf(stderr, "XMapWindow: %p\n", priv);
   
   XMapWindow(priv->dpy, priv->normal_window);
   return priv;
@@ -790,15 +790,14 @@ static void set_drawing_coords(x11_t * priv)
   {
   float aspect_window;
   float aspect_video;
-
   if(priv->do_xv)
     {
     /* Check for apsect ratio */
     aspect_window = (float)(priv->window_width)/(float)(priv->window_height);
     
     aspect_video  =
-      (float)(priv->image_width * priv->pixel_width)/
-      (float)(priv->image_height * priv->pixel_height);
+      (float)(priv->format.image_width  * priv->format.pixel_width)/
+      (float)(priv->format.image_height * priv->format.pixel_height);
 
     if(aspect_window > aspect_video) /* Bars left and right */
       {
@@ -817,8 +816,10 @@ static void set_drawing_coords(x11_t * priv)
     }
   else
     {
-    priv->dst_x = (priv->window_width - priv->image_width) / 2;
-    priv->dst_y = (priv->window_height - priv->image_height) / 2;
+    priv->dst_x = (priv->window_width - priv->format.image_width) / 2;
+    priv->dst_y = (priv->window_height - priv->format.image_height) / 2;
+    priv->dst_w = priv->format.image_width;
+    priv->dst_h = priv->format.image_height;
     
     }
   }
@@ -827,6 +828,7 @@ static int open_x11(void * data,
                     gavl_video_format_t * format,
                     const char * window_title)
   {
+  int still_running;
   x11_t * priv;
   gavl_colorspace_t x11_colorspace;
   int window_width;
@@ -834,15 +836,17 @@ static int open_x11(void * data,
   
   priv = (x11_t*)data;
 
-  priv->image_width = format->image_width;
-  priv->image_height = format->image_height;
-
-  priv->frame_width  = format->frame_width;
-  priv->frame_height = format->frame_height;
-
-  priv->pixel_width = format->pixel_width;
-  priv->pixel_height = format->pixel_height;
+  /* Stop still thread if necessary */
   
+  pthread_mutex_lock(&(priv->still_mutex));
+  still_running = priv->do_still;
+  if(priv->do_still)
+    priv->do_still = 0;
+  pthread_mutex_unlock(&(priv->still_mutex));
+
+  if(still_running)
+    pthread_join(priv->still_thread, NULL);
+    
   XmbSetWMProperties(priv->dpy, priv->normal_window, window_title,
                      window_title, NULL, 0, NULL, NULL, NULL);
     
@@ -902,8 +906,36 @@ static int open_x11(void * data,
         format->colorspace = x11_colorspace;
       break;
     default:
-      format->colorspace = x11_colorspace;
+      if(gavl_colorspace_is_yuv(format->colorspace) ||
+         priv->force_xv)
+        {
+        if(priv->have_xv_yuy2)
+          {
+          priv->do_xv = 1;
+          priv->xv_format = XV_ID_YUY2;
+          format->colorspace = GAVL_YUY2;
+          }
+        else if(priv->have_xv_yv12)
+          {
+          priv->do_xv = 1;
+          priv->xv_format = XV_ID_YV12;
+          format->colorspace = GAVL_YUV_420_P;
+          }
+        else if(priv->have_xv_i420)
+          {
+          priv->do_xv = 1;
+          priv->xv_format = XV_ID_I420;
+          format->colorspace = GAVL_YUV_420_P;
+          }
+        else
+          format->colorspace = x11_colorspace;
+        }
+      else
+        format->colorspace = x11_colorspace;
     }
+
+  gavl_video_format_copy(&(priv->format), format);
+
 #ifdef DEBUG
   if(priv->do_xv)
     fprintf(stderr, "Using XVideo output\n");
@@ -915,36 +947,38 @@ static int open_x11(void * data,
     {
     if(priv->do_xv)
       {
-      if(priv->pixel_width > priv->pixel_height)
+      if(priv->format.pixel_width > priv->format.pixel_height)
         {
         window_width =
-          (format->image_width * priv->pixel_width) / (priv->pixel_height);
-        window_height = format->image_height;
+          (priv->format.image_width * priv->format.pixel_width) / (priv->format.pixel_height);
+        window_height = priv->format.image_height;
         }
-      else if(priv->pixel_height > priv->pixel_width)
+      else if(priv->format.pixel_height > priv->format.pixel_width)
         {
         window_height =
-          (priv->image_height * priv->pixel_height) / priv->pixel_width;
-        window_width = priv->image_width;
+          (priv->format.image_height * priv->format.pixel_height) / priv->format.pixel_width;
+        window_width = priv->format.image_width;
         }
       else
         {
-        window_width = priv->image_width;
-        window_height = priv->image_height;
+        window_width = priv->format.image_width;
+        window_height = priv->format.image_height;
         }
       }
     else
       {
-      window_width = format->image_width;
-      window_height = format->image_height;
+      window_width =  priv->format.image_width;
+      window_height = priv->format.image_height;
       }
     XResizeWindow(priv->dpy, priv->normal_window, window_width,
                   window_height);
     }
   else
     set_drawing_coords(priv);
-    
-  priv->colorspace = format->colorspace;
+
+  XClearArea(priv->dpy, priv->current_window, 0, 0,
+             priv->window_width, priv->window_height, True);
+  
   return 1;
   }
 
@@ -1028,12 +1062,12 @@ static int handle_event(x11_t * priv, XEvent * evt)
         /* Transform coordinates */
         
         x_image =
-          ((evt->xbutton.x-priv->dst_x)*priv->image_width)/(priv->dst_w);
+          ((evt->xbutton.x-priv->dst_x)*priv->format.image_width)/(priv->dst_w);
         y_image =
-          ((evt->xbutton.y-priv->dst_y)*priv->image_height)/(priv->dst_h);
+          ((evt->xbutton.y-priv->dst_y)*priv->format.image_height)/(priv->dst_h);
         
-        if((x_image >= 0) && (x_image < priv->image_width) &&
-           (y_image >= 0) && (y_image < priv->image_height))
+        if((x_image >= 0) && (x_image < priv->format.image_width) &&
+           (y_image >= 0) && (y_image < priv->format.image_height))
           priv->callbacks->button_callback(priv->callbacks->data,
                                            x_image, y_image, button_number);
         }
@@ -1099,8 +1133,9 @@ static int handle_event(x11_t * priv, XEvent * evt)
         {
         priv->window_width  = evt->xconfigure.width;
         priv->window_height = evt->xconfigure.height;
+        XClearArea(priv->dpy, evt->xconfigure.window, 0, 0,
+                   priv->window_width, priv->window_height, True);
         set_drawing_coords(priv);
-        XClearWindow(priv->dpy, evt->xconfigure.window);
         }
       break;
     }
@@ -1134,6 +1169,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
   {
   x11_t * priv = (x11_t*)data;
   x11_frame_t * x11_frame = (x11_frame_t*)(frame->user_data);
+
   
   if(priv->do_xv)
     {
@@ -1146,8 +1182,8 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
                     x11_frame->xv_image,
                     0,                   /* src_x  */
                     0,                   /* src_y  */
-                    priv->image_width,   /* src_w  */
-                    priv->image_height,  /* src_h  */
+                    priv->format.image_width,   /* src_w  */
+                    priv->format.image_height,  /* src_h  */
                     priv->dst_x,         /* dest_x */
                     priv->dst_y,         /* dest_y */
                     priv->dst_w,         /* dest_w */
@@ -1163,8 +1199,8 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
                  x11_frame->xv_image,
                  0,                    /* src_x   */
                  0,                    /* src_y   */
-                 priv->image_width,    /* src_w   */
-                 priv->image_height,   /* src_h   */
+                 priv->format.image_width,    /* src_w   */
+                 priv->format.image_height,   /* src_h   */
                  priv->dst_x,          /* dest_x  */
                  priv->dst_y,          /* dest_y  */
                  priv->dst_w,          /* dest_w  */
@@ -1175,6 +1211,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
     {
     if(priv->have_shm)
       {
+      
       XShmPutImage(priv->dpy,            /* dpy        */
                    priv->current_window, /* d          */
                    priv->gc,             /* gc         */
@@ -1183,8 +1220,8 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
                    0,                    /* src_y      */
                    priv->dst_x,          /* dst_x      */
                    priv->dst_y,          /* dst_y      */
-                   priv->image_width,    /* src_width  */
-                   priv->image_height,   /* src_height */
+                   priv->format.image_width,    /* src_width  */
+                   priv->format.image_height,   /* src_height */
                    True                  /* send_event */);
       }
     else
@@ -1197,12 +1234,81 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
                 0,                    /* src_y   */
                 priv->dst_x,          /* dest_x  */
                 priv->dst_y,          /* dest_y  */
-                priv->image_width,          /* width   */
-                priv->image_height          /* height  */);
+                priv->format.image_width,          /* width   */
+                priv->format.image_height          /* height  */);
       }
     }
 
   handle_events(priv);
+  }
+
+static void * thread_func(void * data)
+  {
+  gavl_time_t time;
+  XEvent event;
+
+  x11_t * priv = (x11_t*)data;
+  time = gavl_seconds_to_time(0.05);
+
+  while(1)
+    {
+    pthread_mutex_lock(&(priv->still_mutex));
+    if(!priv->do_still)
+      {
+      pthread_mutex_unlock(&(priv->still_mutex));
+      break;
+      }
+    pthread_mutex_unlock(&(priv->still_mutex));
+        
+    while(XPending(priv->dpy))
+      {
+      XNextEvent(priv->dpy, &event);
+      if(event.type == Expose)
+        {
+        write_frame_x11(data, priv->still_frame);
+        }
+      else
+        handle_event(priv, &event);
+      }
+    gavl_time_delay(&time);
+    }
+  
+  free_frame_x11(data, priv->still_frame);
+  return NULL;
+  }
+
+static void put_still_x11(void * data, gavl_video_format_t * format,
+                          gavl_video_frame_t * frame)
+  {
+  gavl_video_converter_t * cnv;
+  gavl_video_format_t tmp_format;
+  gavl_video_options_t opt;
+  
+  x11_t * priv = (x11_t*)data;
+  /* Initialize as if we displayed video */
+
+  gavl_video_format_copy(&tmp_format, format);
+  open_x11(data, &tmp_format, "Video output");
+
+  /* Create the output frame for the format */
+
+  priv->still_frame = alloc_frame_x11(data);
+    
+  /* Now, we have the proper format, let's invoke the converter */
+
+  cnv = gavl_video_converter_create();
+  gavl_video_default_options(&opt);
+  
+  gavl_video_init(cnv, &opt, format, &tmp_format);
+  gavl_video_convert(cnv, frame, priv->still_frame);
+
+  gavl_video_converter_destroy(cnv);
+
+  priv->do_still = 1;
+  pthread_create(&(priv->still_thread),
+                 (pthread_attr_t*)0,
+                 thread_func, priv);
+  
   }
 
 static int get_num_xv_parameters(Display * dpy, XvPortID xv_port)
@@ -1298,6 +1404,12 @@ bg_parameter_info_t common_parameters[] =
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },
+    {
+      name:        "force_xv",
+      long_name:   "Force XVideo",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 }
+    },
   };
 
 #define NUM_COMMON_PARAMETERS sizeof(common_parameters)/sizeof(common_parameters[0])
@@ -1331,7 +1443,7 @@ get_parameters_x11(void * priv)
                              &(common_parameters[i]));
       index++;
       }
-    //    fprintf(stderr, "num_xv_parameters: %d\n", num_xv_parameters);
+    fprintf(stderr, "num_xv_parameters: %d\n", num_xv_parameters);
     if(num_xv_parameters)
       {
       get_xv_parameters(x11, &(x11->parameters[index]));
@@ -1359,6 +1471,10 @@ set_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
     {
     p->remember_size = val->val_i;
     }
+  if(!strcmp(name, "force_xv"))
+    {
+    p->force_xv = val->val_i;
+    }
   }
 
 bg_ov_plugin_t the_plugin =
@@ -1379,9 +1495,10 @@ bg_ov_plugin_t the_plugin =
     },
 
     open:          open_x11,
-    write_frame:   write_frame_x11,
+    put_video:     write_frame_x11,
     alloc_frame:   alloc_frame_x11,
     free_frame:    free_frame_x11,
     close:         close_x11,
+    put_still:     put_still_x11,
     set_callbacks: set_callbacks_x11,
   };

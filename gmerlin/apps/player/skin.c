@@ -5,23 +5,35 @@
 
 #include <utils.h>
 
-void gmerlin_skin_load(gmerlin_skin_t * s, const char * filename)
+void gmerlin_skin_load(gmerlin_skin_t * s, const char * name)
   {
   xmlDocPtr doc;
   xmlNodePtr node;
   xmlNodePtr child;
-  const char * path_end;
+  char * tmp;
   
+  const char * path_end;
+  char * filename = (char*)0;
+  
+  tmp = bg_sprintf("skins/%s", name);
+
+  filename = bg_search_file_read(tmp, "skin.xml");
+
+  free(tmp);
+
+  if(!filename)
+    goto fail;
   doc = xmlParseFile(filename);
 
   if(!doc)
     goto fail;
 
+  
   path_end = strrchr(filename, '/');
   s->directory = bg_strndup(s->directory, filename, path_end);
   
   node = doc->children;
- 
+  
   if(strcmp(node->name, "SKIN"))
     {
     fprintf(stderr, "File %s contains no skin\n", filename);
@@ -49,7 +61,8 @@ void gmerlin_skin_load(gmerlin_skin_t * s, const char * filename)
   fail:
   if(doc)
     xmlFreeDoc(doc);
-  
+  if(filename)
+    free(filename);
   }
 
 void gmerlin_skin_set(gmerlin_t * g)

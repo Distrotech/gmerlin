@@ -5,6 +5,12 @@ else
 esd_subdirs =
 endif
 
+if HAVE_LIBJPEG
+jpeg_subdirs = jpeg
+else
+jpeg_subdirs =
+endif
+
 if HAVE_VORBIS
 vorbis_subdirs = vorbis
 else
@@ -19,6 +25,7 @@ endif
 
 SUBDIRS = \
 $(lqt_subdirs) \
+$(jpeg_subdirs) \
 $(vorbis_subdirs) \
 $(esd_subdirs) \
 oss \

@@ -43,6 +43,7 @@ type_names[] =
     { "Audio recorder", BG_PLUGIN_RECORDER_AUDIO },
     { "Video recorder", BG_PLUGIN_RECORDER_VIDEO },
     { "Redirector",     BG_PLUGIN_REDIRECTOR    },
+    { "Image Reader",   BG_PLUGIN_IMAGE_READER  },
     { (char*)0,         BG_PLUGIN_NONE }
   };
 

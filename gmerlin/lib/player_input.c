@@ -34,7 +34,7 @@ struct bg_player_input_context_s
 
   int audio_finished;
   int video_finished;
-
+  int send_silence;
   int do_audio;
   int do_video;
   
@@ -232,7 +232,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   
   //  fprintf(stderr, "Process audio...");
 
-  if(ctx->audio_finished && !ctx->video_finished)
+  if(ctx->send_silence)
     {
     if(preload)
       audio_frame = (gavl_audio_frame_t*)bg_fifo_try_lock_write(s->fifo, &state);
@@ -243,8 +243,6 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
     gavl_audio_frame_mute(audio_frame, &(ctx->player->audio_format_o));
     audio_frame->valid_samples = ctx->player->audio_format_o.samples_per_frame;
     ctx->audio_samples_written += audio_frame->valid_samples;
-    //    fprintf(stderr, "Muting frame\n");
-
     ctx->audio_time =
       gavl_samples_to_time(ctx->player->audio_format_i.samplerate,
                            ctx->audio_samples_written);
@@ -347,8 +345,10 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     if(!result)
       ctx->video_finished = 1;
     ctx->video_time = ctx->player->video_stream.frame->time;
-    
     gavl_video_convert(s->cnv, ctx->player->video_stream.frame, video_frame);
+    /*    fprintf(stderr, "Video Frame time: %lld %lld\n",
+            ctx->player->video_stream.frame->time,
+            video_frame->time); */
     }
   else
     {
@@ -379,7 +379,7 @@ void * bg_player_input_thread(void * data)
   {
   bg_player_input_context_t * ctx;
   bg_msg_t * msg;
-  
+  bg_fifo_state_t state;
   int do_audio;
   int do_video;
   
@@ -392,7 +392,7 @@ void * bg_player_input_thread(void * data)
 
   ctx->audio_finished = !do_audio;
   ctx->video_finished = !do_video;
-  
+  ctx->send_silence = 0;
   ctx->audio_samples_written = 0;
   
   ctx->audio_time = 0;
@@ -446,6 +446,16 @@ void * bg_player_input_thread(void * data)
     else
       {
       process_video(ctx, 0);
+      }
+    if(do_audio && do_video && ctx->audio_finished && !ctx->video_finished)
+      ctx->send_silence = 1;
+
+    /* If we sent silence before, we must tell the audio fifo EOF */
+        
+    if(ctx->send_silence && ctx->audio_finished && ctx->video_finished)
+      {
+      bg_fifo_lock_write(ctx->player->audio_stream.fifo, &state);
+      bg_fifo_unlock_write(ctx->player->audio_stream.fifo, 1);
       }
     }
   msg = bg_msg_queue_lock_write(ctx->player->command_queue);

@@ -110,9 +110,9 @@ static void change_callback(GtkWidget * w, gpointer data)
   
   bg_gtk_plugin_widget_single_t * widget;
   widget = (bg_gtk_plugin_widget_single_t *)data;
-    
+  
   long_name = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(widget->combo)->entry));
-
+  fprintf(stderr, "Change callback %s\n", long_name);
   if(*long_name == '\0')
     return;
   

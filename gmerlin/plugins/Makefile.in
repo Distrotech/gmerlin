@@ -80,6 +80,8 @@ GMERLIN_PLUGIN_DIR = @GMERLIN_PLUGIN_DIR@
 GTK_CFLAGS = @GTK_CFLAGS@
 GTK_LIBS = @GTK_LIBS@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
+JPEG_CFLAGS = @JPEG_CFLAGS@
+JPEG_LIBS = @JPEG_LIBS@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
 LQT_CFLAGS = @LQT_CFLAGS@
@@ -105,6 +107,9 @@ install_sh = @install_sh@
 @HAVE_ESD_TRUE@esd_subdirs = esd
 @HAVE_ESD_FALSE@esd_subdirs = 
 
+@HAVE_LIBJPEG_TRUE@jpeg_subdirs = jpeg
+@HAVE_LIBJPEG_FALSE@jpeg_subdirs = 
+
 @HAVE_VORBIS_TRUE@vorbis_subdirs = vorbis
 @HAVE_VORBIS_FALSE@vorbis_subdirs = 
 
@@ -113,6 +118,7 @@ install_sh = @install_sh@
 
 SUBDIRS = \
 $(lqt_subdirs) \
+$(jpeg_subdirs) \
 $(vorbis_subdirs) \
 $(esd_subdirs) \
 oss \
@@ -129,7 +135,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	install-exec-recursive installdirs-recursive install-recursive \
 	uninstall-recursive check-recursive installcheck-recursive
 DIST_COMMON = Makefile.am Makefile.in
-DIST_SUBDIRS = lqt vorbis esd oss x11
+DIST_SUBDIRS = lqt jpeg vorbis esd oss x11
 all: all-recursive
 
 .SUFFIXES:
