@@ -440,9 +440,9 @@ static bgav_yml_node_t * parse_node(parser_t * p, int * is_comment)
 bgav_yml_node_t * bgav_yml_parse(bgav_input_context_t * input)
   {
   char c;
-  bgav_yml_node_t * ret;
   parser_t parser;
   int is_comment = 1;
+  bgav_yml_node_t * ret = (bgav_yml_node_t *)0;
   
   memset(&parser, 0, sizeof(parser));
   parser.input = input;

@@ -82,6 +82,7 @@ void bgav_set_dll_path_win32(const char * path)
     free(win32_def_path);
     }
   win32_def_path = bgav_strndup(path, (char*)0);
+  win_path_needs_delete = 1;
   codecs_uninit();
   codecs_unlock();
   }
@@ -285,6 +286,7 @@ void bgav_codecs_init()
   if(!win_path_needs_delete || !win32_def_path)
     {
     win32_def_path = bgav_strndup(getenv(env_name_win32), NULL);
+    fprintf(stderr, "Init codecs: %s\n", win32_def_path);
     }
 
   if(!win32_def_path)
