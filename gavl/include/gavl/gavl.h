@@ -210,12 +210,12 @@ int gavl_bytes_per_sample(gavl_sample_format_t format);
   
 /* Create/destroy audio frame */  
   
-gavl_audio_frame_t * gavl_create_audio_frame(const gavl_audio_format_t*);
+gavl_audio_frame_t * gavl_audio_frame_create(const gavl_audio_format_t*);
 
-void gavl_destroy_audio_frame(gavl_audio_frame_t *);
+void gavl_audio_frame_destroy(gavl_audio_frame_t *);
 
-  void gavl_audio_frame_mute(gavl_audio_frame_t *,
-                             const gavl_audio_format_t *);
+void gavl_audio_frame_mute(gavl_audio_frame_t *,
+                           const gavl_audio_format_t *);
   
     
 /* Create/Destroy audio converter */
@@ -248,7 +248,7 @@ typedef struct gavl_audio_buffer_s gavl_audio_buffer_t;
  *  should be the desired number at the output
  */
   
-gavl_audio_buffer_t * gavl_create_audio_buffer(gavl_audio_format_t *);
+gavl_audio_buffer_t * gavl_audio_buffer_create(gavl_audio_format_t *);
 
 void gavl_destroy_audio_buffer(gavl_audio_buffer_t *);
 
@@ -341,9 +341,9 @@ typedef struct
  * Create and destroy video converters
  ***************************************************/
 
-gavl_video_converter_t * gavl_create_video_converter();
+gavl_video_converter_t * gavl_video_converter_create();
 
-void gavl_destroy_video_converter(gavl_video_converter_t*);
+void gavl_video_converter_destroy(gavl_video_converter_t*);
 
 /***************************************************
  * Default Options
@@ -372,13 +372,13 @@ void  gavl_video_convert(gavl_video_converter_t * cnv,
  * Create a video frame with memory aligned scanlines
  *******************************************************/
 
-gavl_video_frame_t * gavl_create_video_frame(gavl_video_format_t*);
+gavl_video_frame_t * gavl_video_frame_create(gavl_video_format_t*);
 
 /*******************************************************
  * Destroy video frame 
  *******************************************************/
 
-void gavl_destroy_video_frame(gavl_video_frame_t*);
+void gavl_video_frame_destroy(gavl_video_frame_t*);
 
 /*****************************************************
  *  Zero all pointers of a video frame

@@ -36,9 +36,34 @@ const char * gavl_sample_format_to_string(gavl_sample_format_t format)
   return (char*)0;
   }
 
-const char * gavl_channel_setup_to_string(gavl_channel_setup_t setup)
+static struct
   {
-  
+  gavl_channel_setup_t channel_setup;
+  char * name;
+  }
+channel_setup_names[] =
+  {
+    { GAVL_CHANNEL_NONE,  "Not Specified" },
+    { GAVL_CHANNEL_MONO,  "Mono" },
+    { GAVL_CHANNEL_1,     "Channel 1" },   /* First (left) channel */
+    { GAVL_CHANNEL_2,     "Channel 2" },   /* Second (right) channel */
+    { GAVL_CHANNEL_2F,    "2 Front" },   /* 2 Front channels (Stereo or Dual channels) */
+    { GAVL_CHANNEL_3F,    "3 Front" },
+    { GAVL_CHANNEL_2F1R,  "2 Front, 1 Rear" },
+    { GAVL_CHANNEL_3F1R,  "3 Front, 1 Rear" },
+    { GAVL_CHANNEL_2F2R,  "2 Front, 2 Rear" },
+    { GAVL_CHANNEL_3F2R,  "3 Front, 2 Rear" }
+  };
+
+const char * gavl_channel_setup_to_string(gavl_channel_setup_t channel_setup)
+  {
+  int i;
+  for(i = 0; i < sizeof(channel_setup_names)/sizeof(channel_setup_names[0]); i++)
+    {
+    if(channel_setup == channel_setup_names[i].channel_setup)
+      return channel_setup_names[i].name;
+    }
+  return (char*)0;
   }
 
 static struct

@@ -2,7 +2,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include "../include/gavl.h"
+#include <gavl.h>
 
 //#include "colorspace.h"
 
@@ -52,7 +52,7 @@ int main()
 
   gavl_video_options_t opt;
   
-  gavl_video_converter_t * cnv = gavl_create_video_converter();
+  gavl_video_converter_t * cnv = gavl_video_converter_create();
 
   input_format.colorspace = GAVL_RGB_15;
   output_format.colorspace = GAVL_RGB_15;
@@ -68,14 +68,14 @@ int main()
   for(i = 0; i < num_colorspaces; i++) /* Input format loop */
     {
     input_format.colorspace = gavl_get_colorspace(i);
-    input_frame = gavl_create_video_frame(&input_format);
+    input_frame = gavl_video_frame_create(&input_format);
     
     for(j = 0; j < num_colorspaces; j++) /* Output format loop */
       {
       output_format.colorspace = gavl_get_colorspace(j);
       if(input_format.colorspace != output_format.colorspace)
         {
-        output_frame = gavl_create_video_frame(&output_format);
+        output_frame = gavl_video_frame_create(&output_format);
         fprintf(stderr, "************* Colorspace conversion ");
 
         tmp = gavl_colorspace_to_string(input_format.colorspace);
@@ -128,10 +128,10 @@ int main()
             gavl_video_convert(cnv, input_frame, output_frame);
           timer_stop();
           }
-        gavl_destroy_video_frame(output_frame);
+        gavl_video_frame_destroy(output_frame);
         }
       }
-    gavl_destroy_video_frame(input_frame);
+    gavl_video_frame_destroy(input_frame);
     }
   return 0;
   }

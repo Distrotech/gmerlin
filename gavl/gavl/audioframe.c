@@ -17,7 +17,7 @@ void * memalign (size_t align, size_t size);
 #define ALIGNMENT_BYTES 8
 
 gavl_audio_frame_t *
-gavl_create_audio_frame(const gavl_audio_format_t * format)
+gavl_audio_frame_create(const gavl_audio_format_t * format)
   {
   gavl_audio_frame_t * ret;
   int num_samples;
@@ -78,11 +78,16 @@ gavl_create_audio_frame(const gavl_audio_format_t * format)
         ret->channels.f[i] = &(ret->samples.f[i*num_samples]);
 
       break;
+    case GAVL_SAMPLE_NONE:
+      {
+      fprintf(stderr, "Sample format not specified for audio frame\n");
+      return ret;
+      }
     }
   return ret;
   }
 
-void gavl_destroy_audio_frame(gavl_audio_frame_t * frame)
+void gavl_audio_frame_destroy(gavl_audio_frame_t * frame)
   {
   free(frame->samples.s_8);
   free(frame->channels.s_8);

@@ -1,4 +1,4 @@
-#include "../include/gavl.h"
+#include <gavl.h>
 //#include "colorspace.h" // Common routines
 #include <stdio.h>
 #include <png.h>
@@ -446,13 +446,13 @@ int write_file(const char * name,
     {
     case GAVL_RGB_15:
     case GAVL_BGR_15:
-      tmp_frame = gavl_create_video_frame(&tmp_format);
+      tmp_frame = gavl_video_frame_create(&tmp_format);
       convert_15_to_24(frame, tmp_frame, format->width, format->height);
       out_frame = tmp_frame;
       break;
     case GAVL_RGB_16:
     case GAVL_BGR_16:
-      tmp_frame = gavl_create_video_frame(&tmp_format);
+      tmp_frame = gavl_video_frame_create(&tmp_format);
       convert_16_to_24(frame, tmp_frame, format->width, format->height);
       out_frame = tmp_frame;
       break;
@@ -463,26 +463,28 @@ int write_file(const char * name,
       break;
     case GAVL_RGB_32:
     case GAVL_BGR_32:
-      tmp_frame = gavl_create_video_frame(&tmp_format);
+      tmp_frame = gavl_video_frame_create(&tmp_format);
       convert_32_to_24(frame, tmp_frame, format->width, format->height);
       out_frame = tmp_frame;
       break;
     case GAVL_YUY2:
-      tmp_frame = gavl_create_video_frame(&tmp_format);
+      tmp_frame = gavl_video_frame_create(&tmp_format);
       convert_YUY2_to_RGB24(frame, tmp_frame, format->width, format->height);
       out_frame = tmp_frame;
       break;
     case GAVL_YUV_420_P:
-      tmp_frame = gavl_create_video_frame(&tmp_format);
+      tmp_frame = gavl_video_frame_create(&tmp_format);
       convert_YUV_420_P_to_RGB24(frame, tmp_frame, format->width,
                                  format->height);
       out_frame = tmp_frame;
       break;
     case GAVL_YUV_422_P:
-      tmp_frame = gavl_create_video_frame(&tmp_format);
+      tmp_frame = gavl_video_frame_create(&tmp_format);
       convert_YUV_422_P_to_RGB24(frame, tmp_frame, format->width,
                                  format->height);
       out_frame = tmp_frame;
+      break;
+    case GAVL_COLORSPACE_NONE:
       break;
     }
 
@@ -501,7 +503,7 @@ int write_file(const char * name,
   free(row_pointers);
 
   if(tmp_frame)
-    gavl_destroy_video_frame(tmp_frame);
+    gavl_video_frame_destroy(tmp_frame);
   png_destroy_write_struct(&png_ptr, &info_ptr);
   fclose(fp);
     
@@ -633,7 +635,7 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
   format.width = TEST_PICTURE_WIDTH;
   format.height = TEST_PICTURE_HEIGHT;
   
-  ret = gavl_create_video_frame(&format);
+  ret = gavl_video_frame_create(&format);
 
   switch(colorspace)
     {
@@ -819,6 +821,8 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
           }
         }
       break;
+    case GAVL_COLORSPACE_NONE:
+      break;
     }
   
   return  ret;
@@ -838,7 +842,7 @@ int main(int argc, char ** argv)
   
   gavl_video_options_t opt;
 
-  gavl_video_converter_t * cnv = gavl_create_video_converter();
+  gavl_video_converter_t * cnv = gavl_video_converter_create();
   
   input_format.width = TEST_PICTURE_WIDTH;
   input_format.height = TEST_PICTURE_HEIGHT;
@@ -869,7 +873,7 @@ int main(int argc, char ** argv)
       if(input_format.colorspace == output_format.colorspace)
         continue;
       
-      output_frame = gavl_create_video_frame(&output_format);
+      output_frame = gavl_video_frame_create(&output_format);
       fprintf(stderr, "************* Colorspace conversion ");
       fprintf(stderr, "%s -> ", tmp1);
       tmp2 = gavl_colorspace_to_string(output_format.colorspace);
@@ -938,7 +942,7 @@ int main(int argc, char ** argv)
         }
 
       
-      gavl_destroy_video_frame(output_frame);
+      gavl_video_frame_destroy(output_frame);
 
       
       }

@@ -74,7 +74,7 @@ static void copy_samples_none(gavl_audio_buffer_t * buf,
   
   }
 
-gavl_audio_buffer_t * gavl_create_audio_buffer(gavl_audio_format_t * format)
+gavl_audio_buffer_t * gavl_audio_buffer_create(gavl_audio_format_t * format)
   {
   gavl_audio_buffer_t * ret = calloc(1, sizeof(*ret));
 

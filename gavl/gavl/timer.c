@@ -20,13 +20,13 @@ struct gavl_timer_s
   int is_running;
   };
 
-gavl_timer_t * gavl_create_timer()
+gavl_timer_t * gavl_timer_create()
   {
   gavl_timer_t * ret = calloc(1, sizeof(*ret));
   return ret;
   }
 
-void gavl_destroy_timer(gavl_timer_t * t)
+void gavl_timer_destroy(gavl_timer_t * t)
   {
   free(t);
   }

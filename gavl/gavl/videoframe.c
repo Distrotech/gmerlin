@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 /* Taken from a52dec (thanks guys) */
@@ -112,6 +113,9 @@ void gavl_video_frame_alloc(gavl_video_frame_t * ret,
       ret->u = ret->y + ret->y_stride*format->height;
       ret->v = ret->u + ret->u_stride*format->height;
       break;
+    case GAVL_COLORSPACE_NONE:
+      fprintf(stderr, "Colorspace not specified for video frame\n");
+      return;
     }
 
   }
@@ -124,7 +128,7 @@ void gavl_video_frame_free(gavl_video_frame_t * frame)
   }
                             
 
-gavl_video_frame_t * gavl_create_video_frame(gavl_video_format_t * format)
+gavl_video_frame_t * gavl_video_frame_create(gavl_video_format_t * format)
   {
   gavl_video_frame_t * ret = calloc(1, sizeof(gavl_video_frame_t));
   if(format)
@@ -132,7 +136,7 @@ gavl_video_frame_t * gavl_create_video_frame(gavl_video_format_t * format)
   return ret;
   }
 
-void gavl_destroy_video_frame(gavl_video_frame_t * frame)
+void gavl_video_frame_destroy(gavl_video_frame_t * frame)
   {
   gavl_video_frame_free(frame);
   free(frame);

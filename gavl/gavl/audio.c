@@ -143,14 +143,14 @@ void gavl_audio_converter_destroy(gavl_audio_converter_t* cnv)
     ctx = cnv->contexts->next;
     if(ctx)
       {
-      gavl_destroy_audio_frame(cnv->contexts->output_frame);
+      gavl_audio_frame_destroy(cnv->contexts->output_frame);
       }
     free(cnv->contexts->output_format);
     destroy_context(cnv->contexts);
     cnv->contexts = ctx;
     }
   if(cnv->buffer_frame)
-    gavl_destroy_audio_frame(cnv->buffer_frame);
+    gavl_audio_frame_destroy(cnv->buffer_frame);
   free(cnv);
   }
 
@@ -171,6 +171,8 @@ int gavl_bytes_per_sample(gavl_sample_format_t format)
     case     GAVL_SAMPLE_FLOAT:
       return sizeof(float);
       break;
+    case     GAVL_SAMPLE_NONE:
+      return 0;
     }
   return 0;
   }
@@ -400,7 +402,7 @@ int gavl_audio_init(gavl_audio_converter_t* cnv,
   for(i = 0; i < cnv->num_conversions-1; i++)
     {
     current_context->output_frame =
-      gavl_create_audio_frame(current_context->output_format);
+      gavl_audio_frame_create(current_context->output_format);
     current_context->next->input_frame = current_context->output_frame;
     }
 
@@ -409,11 +411,11 @@ int gavl_audio_init(gavl_audio_converter_t* cnv,
     memcpy(&tmp_format, &(cnv->input_format),
            sizeof(gavl_audio_format_t));
     
-    cnv->buffer = gavl_create_audio_buffer(&(cnv->input_format));
+    cnv->buffer = gavl_audio_buffer_create(&(cnv->input_format));
     if(cnv->num_conversions)
       {
       cnv->buffer_frame =
-        gavl_create_audio_frame(&(cnv->input_format));
+        gavl_audio_frame_create(&(cnv->input_format));
       }
     cnv->num_conversions++;
     }

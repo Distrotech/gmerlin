@@ -78,6 +78,7 @@ rm -rf $RPM_BUILD_ROOT
 # %doc docs/*.html
 %{_libdir}/lib*.la
 %{_libdir}/lib*.a
+%defattr(-,root,root)
 %{_includedir}/gavl
 %{_libdir}/gavl/include/gavlconfig.h
 %{_libdir}/pkgconfig/gavl.pc

@@ -25,8 +25,8 @@ void gavl_frames_to_time(gavl_time_t * ret,
 
 typedef struct gavl_timer_s gavl_timer_t;
 
-gavl_timer_t * gavl_create_timer();
-void gavl_destroy_timer(gavl_timer_t *);
+gavl_timer_t * gavl_timer_create();
+void gavl_timer_destroy(gavl_timer_t *);
 
 void gavl_timer_start(gavl_timer_t *);
 void gavl_timer_stop(gavl_timer_t *);

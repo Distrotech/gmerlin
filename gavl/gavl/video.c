@@ -60,7 +60,7 @@ static void copy_video_format(gavl_video_format_t  * dst,
  * Create and destroy video converters
  ***************************************************/
 
-gavl_video_converter_t * gavl_create_video_converter()
+gavl_video_converter_t * gavl_video_converter_create()
   {
   gavl_video_converter_t * ret = calloc(1,sizeof(gavl_video_converter_t));
 
@@ -69,7 +69,7 @@ gavl_video_converter_t * gavl_create_video_converter()
   return ret;
   }
 
-void gavl_destroy_video_converter(gavl_video_converter_t* cnv)
+void gavl_video_converter_destroy(gavl_video_converter_t* cnv)
   {
   free(cnv);
   }

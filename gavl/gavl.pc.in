@@ -7,5 +7,5 @@ Name: Gavl
 Description: Gmerlin Audio Video Library
 Version: @VERSION@
 Libs: -L${libdir} -lgavl
-Cflags: -I${includedir} -I${exec_prefix}/gavl/include/
+Cflags: -I${includedir} -I${exec_prefix}/lib/gavl/include/
 
