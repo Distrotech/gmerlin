@@ -11,10 +11,9 @@ AM_CFLAGS = $(X_CFLAGS) @W32_NO_OPTIMIZE@ \
 	-DWIN32_PATH=\"@w32_path@\" -I$(srcdir)/.. -D__WINE__ \
 	-Ddbg_printf=__vprintf -DTRACE=__vprintf
 
-# CFLAGS is here to filter out -fomit-frame-pointer,
-# -finline-functions and -frename-registers because they cause bad
-# behavior of wine
-CFLAGS = `echo @CFLAGS@ | sed -e 's/-fomit-frame-pointer//g;s/-finline-functions//g;s/-frename-registers//g'`
+LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
+        $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS)
+
 
 if HAVE_W32DLL
 wine_lib = libwine.la
@@ -40,7 +39,6 @@ noinst_HEADERS = \
 	avifmt.h \
 	basetsd.h \
 	com.h \
-        compat.h \
 	debugtools.h \
 	driver.h \
 	elfdll.h \

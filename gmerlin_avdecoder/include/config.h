@@ -10,11 +10,20 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
+/* Enable liba52 */
+#define HAVE_LIBA52 1
+
 /* Define to 1 if you have the `avcodec' library (-lavcodec). */
 #define HAVE_LIBAVCODEC 1
 
+/* libmpeg2 found */
+#define HAVE_LIBMPEG2 1
+
 /* Enable png codec */
 #define HAVE_LIBPNG 1
+
+/* Enable MAD */
+#define HAVE_MAD 1
 
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
