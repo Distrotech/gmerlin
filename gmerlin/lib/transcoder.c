@@ -100,7 +100,11 @@ static void set_audio_parameter_general(void * data, char * name, bg_parameter_v
                                    name, val))
     return;
 
-  if(!strcmp(name, "fixed_samplerate"))
+  if(!strcmp(name, "conversion_quality"))
+    {
+    stream->opt.quality = val->val_i;
+    }
+  else if(!strcmp(name, "fixed_samplerate"))
     {
     stream->fixed_samplerate = val->val_i;
     }
@@ -198,7 +202,11 @@ static void set_video_parameter_general(void * data, char * name, bg_parameter_v
                                    name, val))
     return;
 
-  if(!strcmp(name, "fixed_framerate"))
+  if(!strcmp(name, "conversion_quality"))
+    {
+    stream->opt.quality = val->val_i;
+    }
+  else if(!strcmp(name, "fixed_framerate"))
     {
     stream->fixed_framerate = val->val_i;
     }
@@ -524,5 +532,5 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
         
     }
   
-  return 0;
+  return 1;
   }

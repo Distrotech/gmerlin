@@ -175,7 +175,8 @@ static void add_audio_stream_wav(void * data, bg_audio_info_t * audio_info)
   write_32(wav->output, wav->format.samplerate);     /* Samplerate */
     
   /* Bytes per second */
-  write_32(wav->output, wav->bytes_per_sample * wav->format.num_channels * wav->format.samplerate);
+  write_32(wav->output, wav->bytes_per_sample *
+           wav->format.num_channels * wav->format.samplerate);
 
   /* Block align */
   write_16(wav->output, wav->bytes_per_sample * wav->format.num_channels);
@@ -234,7 +235,8 @@ static void write_audio_frame_wav(void * data, gavl_audio_frame_t * frame,
     }
   }
 
-static void get_audio_format_wav(void * data, int stream, gavl_audio_format_t * ret)
+static void get_audio_format_wav(void * data, int stream,
+                                 gavl_audio_format_t * ret)
   {
   wav_t * wav;
   wav = (wav_t*)data;

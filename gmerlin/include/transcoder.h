@@ -37,4 +37,4 @@ const bg_transcoder_status_t * bg_transcoder_get_status(bg_transcoder_t * t);
 
 int bg_transcoder_iteration(bg_transcoder_t * t);
 
-void bg_transcoder_destroy(bg_transcoder_t * t);
+void bg_transcoder_destroy(bg_transcoder_t * t, int do_delete);

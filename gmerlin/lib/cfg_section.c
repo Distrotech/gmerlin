@@ -458,6 +458,8 @@ bg_cfg_section_t * bg_cfg_section_copy(bg_cfg_section_t * src)
 
 const char * bg_cfg_section_get_name(bg_cfg_section_t * s)
   {
+  if(!s)
+    return (const char*)0;
   return s->name;
   }
 

@@ -18,7 +18,7 @@
 *****************************************************************/
 
 #ifndef __BG_TRANSCODER_TRACK_H_
-#define __BG_TRANSCODER_TRACK_H__
+#define __BG_TRANSCODER_TRACK_H_
 
 #include <libxml/tree.h>
 #include <libxml/parser.h>

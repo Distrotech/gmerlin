@@ -39,7 +39,7 @@ static void create_sections(bg_transcoder_track_t * t,
   bg_cfg_section_t * general_section;
 
   char * encoder_label;
-    
+  
   t->metadata_section =
     bg_cfg_section_create_from_parameters("Metadata", t->metadata_parameters);
 
@@ -91,29 +91,57 @@ static void create_sections(bg_transcoder_track_t * t,
       }
     else
       {
-      encoder_section = audio_encoder_section;
+      encoder_section = (bg_cfg_section_t*)0;
       }
     
-    general_section = bg_cfg_section_find_subsection(track_defaults_section, "audio");
+    general_section =
+      bg_cfg_section_find_subsection(track_defaults_section, "audio");
     
     for(i = 0; i < t->num_audio_streams; i++)
       {
       t->audio_streams[i].general_section = bg_cfg_section_copy(general_section);
-      t->audio_streams[i].encoder_section = bg_cfg_section_copy(encoder_section);
+      if(encoder_section)
+        {
+        encoder_label = bg_sprintf("%s audio options",
+                                   audio_encoder ? audio_encoder->info->long_name :
+                                   video_encoder->info->long_name);
+        
+        t->audio_streams[i].encoder_section =
+          bg_cfg_section_copy(encoder_section);
+        bg_cfg_section_set_name(t->audio_streams[i].encoder_section, encoder_label);
+        free(encoder_label);
+        }
       }
+    
     }
 
   if(t->num_video_streams)
     {
-    encoder_section = bg_cfg_section_has_subsection(video_encoder_section, "$video") ?
-      bg_cfg_section_find_subsection(video_encoder_section, "$video") : video_encoder_section;
+    if(bg_cfg_section_has_subsection(video_encoder_section, "$video"))
+      {
+      encoder_section =
+        bg_cfg_section_find_subsection(video_encoder_section, "$video");
+      }
+    else
+      encoder_section = (bg_cfg_section_t*)0;
     
-    general_section = bg_cfg_section_find_subsection(track_defaults_section, "video");
+    general_section = bg_cfg_section_find_subsection(track_defaults_section,
+                                                     "video");
     
     for(i = 0; i < t->num_video_streams; i++)
       {
-      t->video_streams[i].general_section = bg_cfg_section_copy(general_section);
-      t->video_streams[i].encoder_section = bg_cfg_section_copy(encoder_section);
+      t->video_streams[i].general_section =
+        bg_cfg_section_copy(general_section);
+
+      if(encoder_section)
+        {
+        encoder_label = bg_sprintf("%s video options", video_encoder->info->long_name);
+        
+        t->video_streams[i].encoder_section =
+          bg_cfg_section_copy(encoder_section);
+        bg_cfg_section_set_name(t->video_streams[i].encoder_section, encoder_label);
+        free(encoder_label);
+        }
       }
     }
   }
@@ -196,17 +224,26 @@ void bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
         {
         track->audio_streams[i].encoder_parameters =
           bg_parameter_info_copy_array(plugin->get_audio_parameters(priv));
-
-        if(audio_encoder && !track->audio_encoder_parameters &&
-           plugin->common.get_parameters)
-          {
-          track->audio_encoder_parameters =
-            bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
-          }
         }
       }
-    }
 
+    if(plugin->common.get_parameters)
+      {
+      if(audio_encoder)
+        {
+        track->audio_encoder_parameters =
+          bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
+        }
+      else
+        {
+        track->video_encoder_parameters =
+          bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
+        }
+
+      }
+    
+    }
+  
   /* Video streams */
   
   if(track->num_video_streams)
@@ -220,18 +257,26 @@ void bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
         {
         track->video_streams[i].encoder_parameters =
           bg_parameter_info_copy_array(plugin->get_video_parameters(priv));
-
-        if(!track->video_encoder_parameters && plugin->common.get_parameters)
-          {
-          track->video_encoder_parameters =
-            bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
-          }
         }
       else if(plugin->common.get_parameters)
         track->video_streams[i].encoder_parameters =
           bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
+
+      }
+
+    if(!track->video_encoder_parameters && plugin->common.get_parameters)
+      {
+      track->video_encoder_parameters =
+        bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
       }
     }
+#if 0
+  fprintf(stderr, "Encoder parameters: %p %p %p %p\n",
+          audio_encoder,
+          video_encoder,
+          track->audio_encoder_parameters,
+          track->video_encoder_parameters);
+#endif
   }
 
 static void set_track(bg_transcoder_track_t * track,
@@ -247,8 +292,8 @@ static void set_track(bg_transcoder_track_t * track,
   bg_encoder_plugin_t * plugin;
   void * priv;
 
-  fprintf(stderr, "set_track, Encoders: %p %p\n",
-          audio_encoder, video_encoder);
+  //  fprintf(stderr, "set_track, Encoders: %p %p\n",
+  //          audio_encoder, video_encoder);
 
   /* General parameters */
 
@@ -312,6 +357,16 @@ static void set_track(bg_transcoder_track_t * track,
       priv = video_encoder->priv;
       }
 
+    if(plugin->common.get_parameters)
+      {
+      if(audio_encoder)
+        track->audio_encoder_parameters =
+          bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
+      else
+        track->video_encoder_parameters =
+          bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
+      }
+    
     for(i = 0; i < track_info->num_audio_streams; i++)
       {
       if(plugin->get_audio_parameters)
@@ -326,10 +381,6 @@ static void set_track(bg_transcoder_track_t * track,
             bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
           }
         }
-      
-      else if(plugin->common.get_parameters)
-        track->audio_streams[i].encoder_parameters =
-          bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
       }
     }
 
@@ -340,10 +391,13 @@ static void set_track(bg_transcoder_track_t * track,
   
   if(track_info->num_video_streams)
     {
+    if(plugin->common.get_parameters && !track->video_encoder_parameters)
+      track->video_encoder_parameters =
+        bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
+
     track->num_video_streams = track_info->num_video_streams; 
     track->video_streams = calloc(track_info->num_video_streams,
                                   sizeof(*(track->video_streams)));
-
     
     for(i = 0; i < track_info->num_video_streams; i++)
       {
@@ -360,19 +414,9 @@ static void set_track(bg_transcoder_track_t * track,
           }
 
         }
-      else if(plugin->common.get_parameters)
-        track->video_streams[i].encoder_parameters =
-          bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
       }
     }
-  else if(plugin->common.get_parameters && !audio_encoder)
-    {
-    track->video_encoder_parameters =
-      bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
-    }
-  
   //  fprintf(stderr, "Track name: %s\n", track->name);
-  
   }
 
 static void enable_streams(bg_input_plugin_t * plugin, void * priv, 
@@ -680,6 +724,14 @@ static bg_parameter_info_t general_parameters_video[] =
       val_default: { val_str: "transcode" },
     },
     {
+      name:        "conversion_quality",
+      long_name:   "Conversion Quality",
+      type:        BG_PARAMETER_SLIDER_INT,
+      val_min:     { val_i: GAVL_QUALITY_FASTEST },
+      val_max:     { val_i: GAVL_QUALITY_BEST    },
+      val_default: { val_i: GAVL_QUALITY_DEFAULT }
+    },
+    {
       name:      "fixed_framerate",
       long_name: "Fixed framerate",
       type:      BG_PARAMETER_CHECKBUTTON,
@@ -713,6 +765,14 @@ static bg_parameter_info_t general_parameters_audio[] =
       multi_names: (char*[]){ "transcode", "forget", (char*)0 },
       multi_labels:  (char*[]){ "Transcode", "Forget", (char*)0 },
       val_default: { val_str: "transcode" },
+    },
+    {
+      name:        "conversion_quality",
+      long_name:   "Conversion Quality",
+      type:        BG_PARAMETER_SLIDER_INT,
+      val_min:     { val_i: GAVL_QUALITY_FASTEST },
+      val_max:     { val_i: GAVL_QUALITY_BEST    },
+      val_default: { val_i: GAVL_QUALITY_DEFAULT }
     },
     {
       name:      "fixed_samplerate",

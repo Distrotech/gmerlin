@@ -11,6 +11,7 @@
 
 #include <cfg_dialog.h>
 #include <transcoder_track.h>
+#include <transcoder.h>
 
 #include <gui_gtk/display.h>
 
@@ -46,10 +47,13 @@ struct transcoder_window_s
   int delete_incomplete;
 
   bg_cfg_section_t * track_defaults_section;
+
+  /* The actual transcoder */
+
+  bg_transcoder_t * transcoder;
+  bg_transcoder_track_t * transcoder_track;
   
   };
-
-
 
 static void
 transcoder_window_preferences(transcoder_window_t * win);
@@ -62,6 +66,38 @@ static void plugin_window_close_notify(plugin_window_t * w,
   gtk_widget_set_sensitive(win->preferences_button, 1);
   }
 
+static void finish_transcoding(transcoder_window_t * win, int do_delete)
+  {
+  bg_transcoder_destroy(win->transcoder, do_delete);
+  win->transcoder = (bg_transcoder_t*)0;
+
+  bg_transcoder_track_destroy(win->transcoder_track);
+  win->transcoder_track = (bg_transcoder_track_t*)0;
+  }
+
+static gboolean idle_callback(gpointer data)
+  {
+  transcoder_window_t * win;
+  win = (transcoder_window_t*)data;
+  
+  if(!bg_transcoder_iteration(win->transcoder))
+    {
+    /* Finish transcoding */
+    finish_transcoding(win, 0);
+    return FALSE;
+    }
+  return TRUE;
+  }
+
+static void start_transcode(transcoder_window_t * win)
+  {
+  win->transcoder_track      = track_list_get_track(win->tracklist);
+  if(!win->transcoder_track)
+    return;
+
+  win->transcoder            = bg_transcoder_create(win->plugin_reg, win->transcoder_track);
+  }
+
 static void button_callback(GtkWidget * w, gpointer data)
   {
   transcoder_window_t * win = (transcoder_window_t *)data;
@@ -69,6 +105,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   if(w == win->run_button)
     {
     fprintf(stderr, "Run Button\n");
+    
     }
   else if(w == win->stop_button)
     {

@@ -509,7 +509,7 @@ bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg)
   }
 #endif
 
-static bg_parameter_info_t * get_parameters_encoder(void * priv)
+static bg_parameter_info_t * get_video_parameters_encoder(void * priv)
   {
   int i;
   encoder_t * enc = (encoder_t *)priv;
@@ -546,17 +546,19 @@ static int open_encoder(void * data, const char * filename_base,
   return 0;
   }
 
-static void destroy_encoder(void * data)
-  {
-  }
-
-static void set_parameter_encoder(void * priv, char * name,
-                                  bg_parameter_value_t * val)
+void add_video_stream_encoder(void * data, bg_video_info_t * info)
   {
   
   }
 
-static void set_video_format_encoder(void * priv, int stream,
+
+static void set_video_parameter_encoder(void * priv, int stream, char * name, 
+                                        bg_parameter_value_t * val)
+  {
+  
+  }
+
+static void get_video_format_encoder(void * priv, int stream,
                                      gavl_video_format_t * format)
   {
   
@@ -573,6 +575,10 @@ static void close_encoder(void * priv, int do_delete)
   
   }
 
+static void destroy_encoder(void * data)
+  {
+  }
+
 bg_encoder_plugin_t encoder_plugin =
   {
     common:
@@ -584,51 +590,27 @@ bg_encoder_plugin_t encoder_plugin =
       flags:         BG_PLUGIN_FILE,
       create:         NULL,
       destroy:        destroy_encoder,
-      get_parameters: get_parameters_encoder,
-      set_parameter:  set_parameter_encoder
+      //      get_parameters: get_parameters_encoder,
+      //      set_parameter:  set_parameter_encoder
     },
     
     /* Maximum number of audio/video streams. -1 means infinite */
     
     max_audio_streams: 0,
     max_video_streams: 1,
+
+    get_video_parameters: get_video_parameters_encoder,
     
     /* Open a file, filename base is without extension, which
        will be added by the plugin */
 
+    
     open: open_encoder,
-    
-  /*
-   *  Add audio/video streams
-   *  For plugins, which always procude exactly one stream,
-   *  these can be ommitted
-   */
 
-    //  void (*set_audio_streams)(void *, int);
-    //  void (*set_video_streams)(void *, int);
-  
-    //  bg_parameter_info_t * (*get_audio_parameters)(void * data);
-    //  bg_parameter_info_t * (*get_video_parameters)(void * data);
-  
-  
-    //  void (*set_audio_parameter)(void * data, int stream, char * name,
-    //                              bg_parameter_value_t * v);
-  
-    //  void (*set_video_parameter)(void * data, int stream, char * name,
-    // bg_parameter_value_t * v);
-  /*
-   *  Set the audio/video formats.
-   *  The arguments might be changed by the plugin
-   */
-  
-//  void (*set_audio_format)(void *, int stream, gavl_audio_format_t*);
-//    set_video_format: set_video_format_encoder,
+    add_video_stream: add_video_stream_encoder,
     
-    /*
-     *  Encode audio/video
-     */
-    
-    //  void (*write_audio_frame)(void*,gavl_audio_frame_t*,int stream);
+    set_video_parameter: set_video_parameter_encoder,
+    get_video_format:    get_video_format_encoder,
     
     write_video_frame: write_video_frame_encoder,
     

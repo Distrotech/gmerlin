@@ -197,7 +197,22 @@ static GtkWidget * create_section(dialog_section_t * section,
   int i, count;
   int row, column, num_columns;
   GtkWidget * table;
-    
+  GtkWidget * label;
+  
+  /* If info == NULL, we create a label, which
+     tell the user, that there is nothing to do */
+
+  if(!info)
+    {
+    table = gtk_table_new(1, 1, 0);
+    label = gtk_label_new("No options available");
+    gtk_widget_show(label);
+    gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1, GTK_FILL|GTK_EXPAND, 
+                     GTK_FILL|GTK_EXPAND, 0, 0);
+    gtk_widget_show(table);
+    return table;
+    }
+  
   section->num_widgets = 0;
   i = 0;
   while(info[i].name &&
@@ -422,15 +437,18 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
   GtkWidget * tab_label;
   int i, item_index, section_index;
   dialog_section_t * parent = (dialog_section_t*)_parent;
-    
-  while(info[num_items+num_sections].name)
+
+  if(info)
     {
-    if(info[num_items+num_sections].type == BG_PARAMETER_SECTION)
-      num_sections++;
-    else
-      num_items++;
+    while(info[num_items+num_sections].name)
+      {
+      if(info[num_items+num_sections].type == BG_PARAMETER_SECTION)
+        num_sections++;
+      else
+        num_items++;
+      }
     }
- 
+  
   if(!num_sections)
     {
     parent->children = realloc(parent->children,

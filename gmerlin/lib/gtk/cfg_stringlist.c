@@ -126,12 +126,14 @@ static void change_callback(GtkWidget * wid, gpointer data)
   
   priv->selected = 0;
 
-  if(!str)
+  if(str && *str)
     {
     if(w->info->multi_labels)
       {
       while(strcmp(w->info->multi_labels[priv->selected], str))
+        {
         priv->selected++;
+        }
       }
     else
       {
@@ -139,6 +141,7 @@ static void change_callback(GtkWidget * wid, gpointer data)
         priv->selected++;
       }
     }
+  //  fprintf(stderr, "Change callback %d\n", priv->selected);
 #else
   priv->selected = gtk_combo_box_get_active(GTK_COMBO_BOX(priv->combo));
 #endif

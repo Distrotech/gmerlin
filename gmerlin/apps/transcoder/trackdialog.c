@@ -84,12 +84,14 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t)
                         NULL,
                         NULL,
                         bg_transcoder_track_audio_get_general_parameters());
-    bg_dialog_add_child(ret->cfg_dialog, parent,
-                        "Encoder",
-                        t->audio_streams[i].encoder_section,
-                        NULL,
-                        NULL,
-                        t->audio_streams[i].encoder_parameters);
+
+    if(t->audio_streams[i].encoder_parameters)
+      bg_dialog_add_child(ret->cfg_dialog, parent,
+                          bg_cfg_section_get_name(t->audio_streams[i].encoder_section),
+                          t->audio_streams[i].encoder_section,
+                          NULL,
+                          NULL,
+                          t->audio_streams[i].encoder_parameters);
     }
 
   /* Video streams */
@@ -102,7 +104,6 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t)
                                   label);
     free(label);
     
-
     bg_dialog_add_child(ret->cfg_dialog, parent,
                         "General",
                         t->video_streams[i].general_section,
@@ -110,15 +111,14 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t)
                         NULL,
                         bg_transcoder_track_video_get_general_parameters());
 
-    bg_dialog_add_child(ret->cfg_dialog, parent,
-                        "Encoder",
-                        t->video_streams[i].encoder_section,
-                        NULL,
-                        NULL,
-                        t->video_streams[i].encoder_parameters);
+    if(t->video_streams[i].encoder_parameters)
+      bg_dialog_add_child(ret->cfg_dialog, parent,
+                          bg_cfg_section_get_name(t->video_streams[i].encoder_section),
+                          t->video_streams[i].encoder_section,
+                          NULL,
+                          NULL,
+                          t->video_streams[i].encoder_parameters);
     }
-  
-  
   return ret;
   
   }

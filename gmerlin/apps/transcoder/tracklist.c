@@ -543,7 +543,8 @@ static void drag_received_callback(GtkWidget *widget,
                   time);
   }
 
-track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg, bg_cfg_section_t * track_defaults_section)
+track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
+                                 bg_cfg_section_t * track_defaults_section)
   {
   GtkWidget * scrolled;
   GtkWidget * box;
@@ -796,5 +797,16 @@ void track_list_destroy(track_list_t * t)
 GtkWidget * track_list_get_widget(track_list_t * t)
   {
   return t->widget;
+  }
+
+bg_transcoder_track_t * track_list_get_track(track_list_t * t)
+  {
+  bg_transcoder_track_t * ret;
+  if(!t->tracks)
+    return (bg_transcoder_track_t*)0;
+  ret = t->tracks;
+  t->tracks = t->tracks->next;
+  track_list_update(t);
+  return ret;
   }
 
