@@ -161,17 +161,17 @@ static void pack_wf(WAVEFORMATEX * dst, bgav_WAVEFORMAT_t * src)
   dst->wBitsPerSample  = src->f.PCMWAVEFORMAT.wBitsPerSample;
   dst->cbSize          = src->f.WAVEFORMATEX.cbSize;
   }
-#if 1
+#if 0
 static void dump_wf(WAVEFORMATEX * wf)
   {
   fprintf(stderr, "WAVEFORMATEX:\n");
-  fprintf(stderr, "nChannels:      %d\n", wf->nChannels);
-  fprintf(stderr, "nSamplesPerSec  %d\n", (int)wf->nSamplesPerSec);
-  fprintf(stderr, "nAvgBytesPerSec %d\n", (int)wf->nAvgBytesPerSec);
-  fprintf(stderr, "nBlockAlign     %d\n", wf->nBlockAlign);
-  fprintf(stderr, "wFormatTag      %04x\n", wf->wFormatTag);
-  fprintf(stderr, "cbSize          %d\n", wf->cbSize);
-  fprintf(stderr, "wBitsPerSample  %d\n", wf->wBitsPerSample);
+  fprintf(stderr, "  wFormatTag      %04x\n", wf->wFormatTag);
+  fprintf(stderr, "  nChannels:      %d\n",   wf->nChannels);
+  fprintf(stderr, "  nSamplesPerSec  %d\n",   (int)wf->nSamplesPerSec);
+  fprintf(stderr, "  nAvgBytesPerSec %d\n",   (int)wf->nAvgBytesPerSec);
+  fprintf(stderr, "  nBlockAlign     %d\n",   wf->nBlockAlign);
+  fprintf(stderr, "  wBitsPerSample  %d\n",   wf->wBitsPerSample);
+  fprintf(stderr, "  cbSize          %d\n",   wf->cbSize);
   }
 #endif
 /* Get one packet worth of data */
@@ -328,8 +328,9 @@ static int init_w32(bgav_stream_t * s)
   s->data.audio.decoder->priv = priv;
 
   /* Create input- and output formats */
-
+  
   bgav_WAVEFORMAT_set_format(&_in_format, s);
+  bgav_WAVEFORMAT_dump(&_in_format);
 
   in_fmt_buffer = malloc(sizeof(*in_format) + s->ext_size);
 
@@ -375,6 +376,13 @@ static int init_w32(bgav_stream_t * s)
     {
     case CODEC_STD:
       MSACM_RegisterDriver(info->dll_name, in_format->wFormatTag, 0);
+#if 0
+      fprintf(stderr, "acmStreamOpen:\n");
+      fprintf(stderr, "in_format:\n");
+      dump_wf(in_format);
+      fprintf(stderr, "out_format:\n");
+      dump_wf(&out_format);
+#endif
       result=acmStreamOpen(&(priv->acmstream),(HACMDRIVER)NULL,
                            in_format,
                            &out_format,
@@ -384,16 +392,14 @@ static int init_w32(bgav_stream_t * s)
         if(result == ACMERR_NOTPOSSIBLE)
           {
           fprintf(stderr, "(ACM_Decoder) Unappropriate audio format\n");
-          fprintf(stderr, "in_format:\n");
-          dump_wf(in_format);
-          fprintf(stderr, "out_format:\n");
-          dump_wf(&out_format);
           }
         else
           fprintf(stderr, "(ACM_Decoder) acmStreamOpen error %d\n", result);
         priv->acmstream = 0;
         return 0;
         }
+
+
       acmStreamSize(priv->acmstream, s->data.audio.block_align,
                     &out_size, ACM_STREAMSIZEF_SOURCE);    
 #if 0

@@ -24,7 +24,7 @@
 #include <avdec_private.h>
 #include <nanosoft.h>
 
-/* Define the variable below to get a detailed file dump
+/* Define the variables below to get a detailed file dump
    on each open call */
 
 // #define DUMP_HEADERS
@@ -1084,8 +1084,8 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
 #endif
         bgav_WAVEFORMAT_free(&wf);
         //        bg_as->fourcc = BGAV_WAVID_2_FOURCC(wf.wFormatTag);
-        if(!bg_as->data.audio.bits_per_sample)
-          bg_as->data.audio.bits_per_sample = strh->dwSampleSize * 8;          
+        //        if(!bg_as->data.audio.bits_per_sample)
+        //          bg_as->data.audio.bits_per_sample = strh->dwSampleSize * 8;          
         
         /* Seek support */
         if(!strh->dwSampleSize)

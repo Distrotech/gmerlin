@@ -303,6 +303,7 @@ void bgav_WAVEFORMAT_get_format(bgav_WAVEFORMAT_t * wf,
   {
   //  bgav_WAVEFORMAT_dump(wf);
   
+  s->fourcc                         = BGAV_WAVID_2_FOURCC(wf->f.WAVEFORMAT.wFormatTag);
   s->data.audio.format.num_channels = wf->f.WAVEFORMAT.nChannels;
   s->data.audio.format.samplerate   = wf->f.WAVEFORMAT.nSamplesPerSec;
   s->codec_bitrate                  = wf->f.WAVEFORMAT.nAvgBytesPerSec * 8;
@@ -314,17 +315,14 @@ void bgav_WAVEFORMAT_get_format(bgav_WAVEFORMAT_t * wf,
   switch(wf->type)
     {
     case BGAV_WAVEFORMAT_WAVEFORMAT:
-      s->fourcc                         = BGAV_WAVID_2_FOURCC(wf->f.WAVEFORMAT.wFormatTag);
       s->data.audio.bits_per_sample     = 8;
       gavl_set_channel_setup(&(s->data.audio.format));
       break;
     case BGAV_WAVEFORMAT_PCMWAVEFORMAT:
-      s->fourcc                         = BGAV_WAVID_2_FOURCC(wf->f.WAVEFORMAT.wFormatTag);
       s->data.audio.bits_per_sample     = wf->f.PCMWAVEFORMAT.wBitsPerSample;
       gavl_set_channel_setup(&(s->data.audio.format));
       break;
     case BGAV_WAVEFORMAT_WAVEFORMATEX:
-      s->fourcc                         = BGAV_WAVID_2_FOURCC(wf->f.WAVEFORMAT.wFormatTag);
       s->data.audio.bits_per_sample     = wf->f.PCMWAVEFORMAT.wBitsPerSample;
 
       if(wf->f.WAVEFORMATEX.ext_size)
