@@ -1,4 +1,4 @@
-/* include/gavl/config.h.in.  Generated from configure.in by autoheader.  */
+/* include/gavl/config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* X86 Architecture */
 #undef ARCH_X86

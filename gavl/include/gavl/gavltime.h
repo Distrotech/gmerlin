@@ -21,6 +21,7 @@
 
 #define GAVL_TIME_SCALE     1000000
 #define GAVL_TIME_UNDEFINED 0x8000000000000000LL
+#define GAVL_TIME_MAX       0x7fffffffffffffffLL
 
 typedef int64_t gavl_time_t;
 
