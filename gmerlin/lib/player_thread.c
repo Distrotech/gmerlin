@@ -378,7 +378,7 @@ static void set_ov_plugin_cmd(bg_player_t * player,
                               bg_plugin_handle_t * handle)
   {
   int state;
-  fprintf(stderr, "Setting video output plugin: %s\n", handle->info->name);
+  //  fprintf(stderr, "Setting video output plugin: %s\n", handle->info->name);
 
   state = bg_player_get_state(player);
   if(state == BG_PLAYER_STATE_PLAYING)
@@ -392,7 +392,7 @@ static void set_oa_plugin_cmd(bg_player_t * player,
                               bg_plugin_handle_t * handle)
   {
   int state;
-  fprintf(stderr, "Setting audio output plugin: %s\n", handle->info->name);
+  //  fprintf(stderr, "Setting audio output plugin: %s\n", handle->info->name);
   state = bg_player_get_state(player);
   if(state == BG_PLAYER_STATE_PLAYING)
     stop_cmd(player, BG_PLAYER_STATE_STOPPED);
@@ -402,7 +402,7 @@ static void set_oa_plugin_cmd(bg_player_t * player,
 static void seek_cmd(bg_player_t * player, gavl_time_t t)
   {
   gavl_video_frame_t * vf;
-  fprintf(stderr, "Seek cmd\n");
+  //  fprintf(stderr, "Seek cmd\n");
   interrupt_cmd(player, BG_PLAYER_STATE_SEEKING);
 
   bg_player_input_seek(player->input_context, t);
@@ -419,9 +419,9 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
     }
     
   /* Resync */
-  fprintf(stderr, "Preload\n");
+  //  fprintf(stderr, "Preload\n");
   preload(player);
-  fprintf(stderr, "Preload done\n");
+  //  fprintf(stderr, "Preload done\n");
   
   if(player->do_video)
     {
@@ -476,7 +476,7 @@ static int process_command(bg_player_t * player,
       return 0;
       break;
     case BG_PLAYER_CMD_PLAY:
-      fprintf(stderr, "Command play\n");
+      //      fprintf(stderr, "Command play\n");
       arg_i1   = bg_msg_get_arg_int(command, 2);
       state = bg_player_get_state(player);
       

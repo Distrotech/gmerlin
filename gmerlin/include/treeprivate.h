@@ -91,7 +91,6 @@ struct bg_mediatree_s
   bg_plugin_registry_t * plugin_reg;
 
   bg_plugin_handle_t * load_handle;
-  bg_plugin_handle_t * current_handle;
   
   void (*change_callback)(bg_media_tree_t*, void*);
   void * change_callback_data;

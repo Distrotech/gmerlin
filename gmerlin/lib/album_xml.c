@@ -69,12 +69,6 @@ static bg_album_entry_t * load_entry(bg_media_tree_t * tree,
     if(!strcmp(node->name, "NAME"))
       {
       ret->name = bg_strdup(ret->name, tmp_string);
-#if 0
-      if(current && *current)
-        {
-        fprintf(stderr, "Load current: %s\n", ret->name);
-        }
-#endif
       }
     else if(!strcmp(node->name, "LOCATION"))
       {
@@ -150,12 +144,9 @@ static bg_album_entry_t * xml_2_album(bg_media_tree_t * tree,
           end_ptr->next = new_entry;
           end_ptr = end_ptr->next;
           }
-        if(is_current)
-          fprintf(stderr, "Load current 1: %s\n", new_entry->name);
         if(is_current && current)
           {
           *current = new_entry;
-          fprintf(stderr, "Load current 2: %s\n", new_entry->name);
           }
         }
       }

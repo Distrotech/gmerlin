@@ -208,7 +208,7 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
   player_window_t * win = (player_window_t *)data;
   if(b == win->play_button)
     {
-    fprintf(stderr, "Play button clicked\n");
+    //    fprintf(stderr, "Play button clicked\n");
 
     gmerlin_play(win->gmerlin, BG_PLAYER_IGNORE_IF_PLAYING);
     
@@ -219,12 +219,12 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
     }
   else if(b == win->stop_button)
     {
-    fprintf(stderr, "Stop button clicked\n");
+    //    fprintf(stderr, "Stop button clicked\n");
     bg_player_stop(win->gmerlin->player);
     }
   else if(b == win->next_button)
     {
-    fprintf(stderr, "Next button clicked\n");
+    //    fprintf(stderr, "Next button clicked\n");
 
     bg_media_tree_next(win->gmerlin->tree, 1);
     //    fprintf(stderr, "Handle: %p plugin %p\n", handle, handle->plugin);
@@ -233,14 +233,14 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
     }
   else if(b == win->prev_button)
     {
-    fprintf(stderr, "Prev button clicked\n");
+    //    fprintf(stderr, "Prev button clicked\n");
     bg_media_tree_previous(win->gmerlin->tree, 1);
 
     gmerlin_play(win->gmerlin, BG_PLAYER_IGNORE_IF_STOPPED);
     }
   else if(b == win->close_button)
     {
-    fprintf(stderr, "Close button clicked\n");
+    //    fprintf(stderr, "Close button clicked\n");
     gtk_main_quit();
     }
   }

@@ -331,7 +331,7 @@ typedef struct bg_ov_plugin_callbacks_s
   /* Store parameter: This lets the plugin save window sizes and
      positions */
   void (*store_parameter)(void * data, const char * name,
-                         bg_parameter_value_t * val);
+                          bg_parameter_value_t * val);
   
   void * data;
   } bg_ov_callbacks_t;

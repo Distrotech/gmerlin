@@ -411,7 +411,7 @@ static void update_entry(bg_media_tree_t * tree,
   char * start_pos;
   char * end_pos;
   int name_set = 0;
-  fprintf(stderr, "Update entry!\n");
+  //  fprintf(stderr, "Update entry!\n");
   entry->num_audio_streams = track_info->num_audio_streams;
   entry->num_video_streams = track_info->num_video_streams;
 
@@ -491,7 +491,7 @@ static int refresh_entry(bg_media_tree_t * tree,
     }
 
   free(system_location);
-  fprintf(stderr, "Refresh entry: %d\n", entry->index);
+  //  fprintf(stderr, "Refresh entry: %d\n", entry->index);
   track_info = plugin->get_track_info(tree->load_handle->priv,
                                       entry->index);
 
@@ -958,11 +958,6 @@ void bg_media_tree_set_current(bg_media_tree_t * t,
     bg_album_changed(t->current_album);
     }
   t->current_album = album;
-  if(t->current_handle)
-    {
-    bg_plugin_unref(t->current_handle);
-    t->current_handle = (bg_plugin_handle_t*)0;
-    }
 
   if(t->current_album)
     {
@@ -1023,7 +1018,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   bg_track_info_t * track_info;
   const bg_plugin_info_t * info;
   bg_input_plugin_t * input_plugin;
-
+  bg_plugin_handle_t * ret;
   
   if(!t->current_entry || !t->current_album)
     {
@@ -1032,18 +1027,11 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
     }
   if(bg_album_is_removable(t->current_album))
     {
-    if(t->current_handle)
-      bg_plugin_unref(t->current_handle);
-
-    t->current_handle = t->current_album->handle;
-    bg_plugin_ref(t->current_handle);
-    input_plugin = (bg_input_plugin_t*)(t->current_handle->plugin);
+    ret = t->current_album->handle;
+    input_plugin = (bg_input_plugin_t*)(ret->plugin);
     }
   else
     {
-    if(t->current_handle)
-      bg_plugin_unref(t->current_handle);
-
     //    fprintf(stderr, "Get current track %s\n", t->current_entry->plugin);
     
     if(t->current_entry->plugin)
@@ -1059,29 +1047,29 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
                                  t->current_entry->location);
       goto fail;
       }
-    t->current_handle = bg_plugin_load(t->plugin_reg, info);
-    input_plugin = (bg_input_plugin_t*)(t->current_handle->plugin);
+    ret = bg_plugin_load(t->plugin_reg, info);
+    input_plugin = (bg_input_plugin_t*)(ret->plugin);
 
-    if(!input_plugin->open(t->current_handle->priv,
+    if(!input_plugin->open(ret->priv,
                            t->current_entry->location))
       {
       if(input_plugin->common.get_error)
         error_message = bg_sprintf("Cannot open %s: %s",
                                    t->current_entry->location,
-                                   input_plugin->common.get_error(t->current_handle->priv));
+                                   input_plugin->common.get_error(ret->priv));
       else
         error_message = bg_sprintf("Cannot open %s");
       goto fail;
       }
     }
-  track_info = input_plugin->get_track_info(t->current_handle->priv,
+  track_info = input_plugin->get_track_info(ret->priv,
                                             t->current_entry->index);
   update_entry(t, t->current_entry, track_info);
   bg_album_changed(t->current_album);
   
   if(index)
     *index = t->current_entry->index;
-  return t->current_handle;
+  return ret;
 
   fail:
 

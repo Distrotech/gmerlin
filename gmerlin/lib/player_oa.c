@@ -145,7 +145,7 @@ void bg_player_time_reset(bg_player_t * player)
   {
   bg_player_oa_context_t * ctx;
   ctx = player->oa_context;
-  fprintf(stderr, "time reset\n");
+  //  fprintf(stderr, "time reset\n");
   if(ctx->sync_mode == SYNC_SOFTWARE)
     {
     pthread_mutex_lock(&(ctx->time_mutex));

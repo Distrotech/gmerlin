@@ -117,7 +117,7 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
   int i;
   
   ctx->plugin_handle = handle;
-  bg_plugin_ref(ctx->plugin_handle);
+  //  bg_plugin_ref(ctx->plugin_handle);
   
   ctx->plugin = (bg_input_plugin_t*)(handle->plugin);
   ctx->priv = handle->priv;
@@ -299,8 +299,8 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   ctx->audio_time =
     gavl_samples_to_time(ctx->player->audio_stream.input_format.samplerate,
                          ctx->audio_samples_written);
-  if(ctx->audio_finished)
-    fprintf(stderr, "ctx->audio_finished\n");
+  //  if(ctx->audio_finished)
+  //    fprintf(stderr, "ctx->audio_finished\n");
 
   //  fprintf(stderr, "Process audio done\n");
 
@@ -454,7 +454,7 @@ void * bg_player_input_thread(void * data)
   bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_FINISHING);
   bg_msg_queue_unlock_write(ctx->player->command_queue);
   
-  fprintf(stderr, "input thread finished\n");
+  //  fprintf(stderr, "input thread finished\n");
   return NULL;
   }
 
