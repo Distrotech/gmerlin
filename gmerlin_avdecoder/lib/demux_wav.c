@@ -243,6 +243,7 @@ static void close_wav(bgav_demuxer_context_t * ctx)
   {
   wav_priv_t * priv;
   priv = (wav_priv_t *)(ctx->priv);
+
   if(ctx->tt->current_track->audio_streams[0].ext_data)
     free(ctx->tt->current_track->audio_streams[0].ext_data);
 

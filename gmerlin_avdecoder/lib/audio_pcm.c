@@ -203,6 +203,28 @@ static void decode_s_32(bgav_stream_t * s)
   
   }
 
+static void decode_float_native(bgav_stream_t * s)
+  {
+  pcm_t * priv;
+  int num_samples, num_bytes;
+  priv = (pcm_t*)(s->data.audio.decoder->priv);
+
+  num_samples = priv->bytes_in_packet / (sizeof(float) * s->data.audio.format.num_channels);
+
+  if(num_samples > FRAME_SAMPLES)
+    num_samples = FRAME_SAMPLES;
+
+  num_bytes   = num_samples * sizeof(float) * s->data.audio.format.num_channels;
+  memcpy(priv->frame->samples.f, priv->packet_ptr, num_bytes);
+  
+  priv->packet_ptr += num_bytes;
+  priv->bytes_in_packet -= num_bytes;
+  priv->frame->valid_samples = num_samples;
+  //  fprintf(stderr, "Decode %d %d\n", num_bytes, num_samples);
+  
+  }
+
+
 static void decode_s_32_swap(bgav_stream_t * s)
   {
 
@@ -377,7 +399,12 @@ static int init_pcm(bgav_stream_t * s)
           fprintf(stderr, "Error: %d bit lpcm not supported\n", s->data.audio.bits_per_sample);
           return 0;
         }
-      
+     
+      break;
+    case BGAV_MK_FOURCC('m', 'p', 'c', ' '):
+      s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+      priv->decode_func = decode_float_native;
+      s->description = bgav_sprintf("Musepack");
       break;
     default:
       fprintf(stderr, "Unkknown fourcc\n");
@@ -475,6 +502,8 @@ static bgav_audio_decoder_t decoder =
                            BGAV_MK_FOURCC('s', 'o', 'w', 't'),
                            BGAV_MK_FOURCC('r', 'a', 'w', ' '),
                            BGAV_MK_FOURCC('l', 'p', 'c', 'm'),
+                           BGAV_MK_FOURCC('f', 'l', 't', 'n'), /* Native float format */
+                           BGAV_MK_FOURCC('m', 'p', 'c', ' '), /* Native float format */
                            0x00 },
     name: "PCM audio decoder",
     init: init_pcm,

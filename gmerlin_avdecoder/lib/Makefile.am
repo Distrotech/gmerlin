@@ -73,6 +73,17 @@ mad_libs =
 mad_sources =
 endif
 
+if HAVE_MUSEPACK
+musepack_cflags =  @MUSEPACK_CFLAGS@
+musepack_libs =    @MUSEPACK_LIBS@
+musepack_sources = demux_musepack.c
+else
+musepack_cflags =
+musepack_libs =
+musepack_sources =
+endif
+
+
 if HAVE_LIBAVCODEC
 avcodec_cflags =  @AVCODEC_CFLAGS@
 avcodec_libs =    @AVCODEC_LIBS@
@@ -131,6 +142,7 @@ $(png_libs) \
 $(faad2_libs) \
 $(flac_libs) \
 $(mad_libs) \
+$(musepack_libs) \
 $(a52_libs) \
 $(avcodec_libs) \
 $(real_libs) \
@@ -146,6 +158,7 @@ $(faad2_cflags) \
 $(flac_cflags) \
 $(libmpeg2_cflags) \
 $(a52_cflags) \
+$(musepack_cflags) \
 $(avcodec_cflags)
 
 libgmerlin_avdec_la_SOURCES = \
@@ -155,6 +168,7 @@ $(faad2_sources) \
 $(png_sources) \
 $(win32_sources) \
 $(mad_sources) \
+$(musepack_sources) \
 $(a52_sources) \
 $(flac_sources) \
 $(avcodec_sources) \

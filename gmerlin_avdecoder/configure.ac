@@ -276,6 +276,58 @@ AC_DEFINE(HAVE_FLAC)
 fi
 
 dnl
+dnl Musepack
+dnl
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+LIBS="-lmusepack"
+CFLAGS=""
+
+MUSEPACK_REQUIRED="1.1"
+
+AH_TEMPLATE([HAVE_MUSEPACK], [Enable Musepack])
+AC_MSG_CHECKING(for libmusepack)
+have_musepack="false"
+
+  AC_TRY_RUN([
+    #include <musepack/musepack.h>
+    #include <stdio.h>
+    main()
+    {
+    mpc_streaminfo si;
+    mpc_streaminfo_init(&si);
+    return 0;
+    }
+  ],
+  [
+    # program could be run
+    have_musepack="true"
+    AC_MSG_RESULT(yes)
+    MUSEPACK_CFLAGS=$CFLAGS
+    MUSEPACK_LIBS=$LIBS
+
+  ],
+    # program could not be run
+    AC_MSG_RESULT(no)
+)
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+AC_SUBST(MUSEPACK_CFLAGS)
+AC_SUBST(MUSEPACK_LIBS)
+AC_SUBST(MUSEPACK_REQUIRED)
+
+AM_CONDITIONAL(HAVE_MUSEPACK, test x$have_musepack = xtrue)
+
+if test x$have_musepack = xtrue; then
+AC_DEFINE(HAVE_MUSEPACK)
+fi
+
+
+dnl
 dnl MAD
 dnl
 
@@ -609,6 +661,13 @@ fi
 echo -n "liba52 (a52dec):        "
 if test "x$have_liba52" = "xtrue"; then
 echo "Found (CFLAGS=$LIBA52_CFLAGS LIBS=$LIBA52_LIBS)"
+else
+echo "Missing"
+fi
+
+echo -n "libmusepack:            "
+if test "x$have_musepack" = "xtrue"; then
+echo "Found (CFLAGS=$MUSEPACK_CFLAGS LIBS=$MUSEPACK_LIBS)"
 else
 echo "Missing"
 fi

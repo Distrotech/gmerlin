@@ -426,7 +426,7 @@ static int open_aac(bgav_demuxer_context_t * ctx,
     memset(&id3v2_metadata, 0, sizeof(id3v2_metadata));
     bgav_id3v1_2_metadata(id3v1, &id3v1_metadata);
     bgav_id3v2_2_metadata(ctx->input->id3v2, &id3v2_metadata);
-    bgav_metadata_dump(&id3v2_metadata);
+    //    bgav_metadata_dump(&id3v2_metadata);
 
     bgav_metadata_merge(&(ctx->tt->current_track->metadata),
                         &id3v2_metadata, &id3v1_metadata);

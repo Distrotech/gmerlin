@@ -47,6 +47,10 @@ extern bgav_demuxer_t bgav_demuxer_ogg;
 extern bgav_demuxer_t bgav_demuxer_a52;
 #endif
 
+#ifdef HAVE_MUSEPACK
+extern bgav_demuxer_t bgav_demuxer_mpc;
+#endif
+
 typedef struct
   {
   bgav_demuxer_t * demuxer;
@@ -71,6 +75,9 @@ static demuxer_t demuxers[] =
 #endif
 #ifdef HAVE_LIBA52
     { &bgav_demuxer_a52, "A52 Bitstream" },
+#endif
+#ifdef HAVE_MUSEPACK
+    { &bgav_demuxer_mpc, "Musepack" },
 #endif
     
   };
