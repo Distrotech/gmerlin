@@ -92,8 +92,13 @@ int input_create()
     gavl_audio_converter_init(the_input->cnv, &opt, &input_format, &format);
 
   if(the_input->do_convert_gavl)
+    {
+    /* Correct this because it might have been changed by the input plugin */
+    if(input_format.samples_per_frame < 512)
+      input_format.samples_per_frame = 512;
+    
     the_input->input_frame = gavl_audio_frame_create(&input_format);
-
+    }
   the_input->frame = gavl_audio_frame_create(NULL);
 
   the_input->frame->channels.s_16[0] = the_input->pcm_data[0];
@@ -178,7 +183,9 @@ int input_iteration(void * data)
     gavl_audio_convert(c->cnv, c->input_frame, c->frame);
     }
   else
+    {
     c->input->read_frame(c->input_handle->priv, c->frame, 512);
+    }
   
   /* Check, if we need mono samples */
 
