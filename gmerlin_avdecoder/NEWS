@@ -7,3 +7,5 @@
 * WAVEFORMATEXTENSIBLE support in wav files
 
 * Raw AVIs with 8, 16, 24 and 32 bpp
+
+* 'demuxer' for raw A52 streams

@@ -402,12 +402,14 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
       if(pos)
         {
         pos += 13;
-        end_pos = strchr(pos, '\'');
+        end_pos = strchr(pos, ';');
+        while((end_pos > pos) && (*end_pos != '\''))
+          end_pos--;
         meta_name = bgav_strndup(pos, end_pos);
         ctx->name_change_callback(ctx->name_change_callback_data,
                                   meta_name);
         
-        //            fprintf(stderr, "NAME CHANGED: %s\n", meta_name);
+        //        fprintf(stderr, "NAME CHANGED: %s\n", meta_name);
         free(meta_name);
         }
       }

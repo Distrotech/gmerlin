@@ -16,7 +16,7 @@ endif
 if HAVE_LIBA52
 a52_cflags = @LIBA52_CFLAGS@
 a52_libs =   @LIBA52_LIBS@
-a52_sources = audio_a52.c
+a52_sources = audio_a52.c demux_a52.c
 else
 a52_cflags =
 a52_libs =
@@ -162,6 +162,7 @@ bgav.c \
 charset.c \
 codecs.c \
 demuxer.c \
+demux_aac.c \
 demux_aiff.c \
 demux_asf.c \
 demux_avi.c \

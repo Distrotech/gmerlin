@@ -33,10 +33,16 @@ extern bgav_demuxer_t bgav_demuxer_ra;
 extern bgav_demuxer_t bgav_demuxer_mpegaudio;
 extern bgav_demuxer_t bgav_demuxer_mpegps;
 extern bgav_demuxer_t bgav_demuxer_flac;
+extern bgav_demuxer_t bgav_demuxer_aac;
 
 #ifdef HAVE_VORBIS
 extern bgav_demuxer_t bgav_demuxer_ogg;
 #endif
+
+#ifdef HAVE_LIBA52
+extern bgav_demuxer_t bgav_demuxer_a52;
+#endif
+
 
 typedef struct
   {
@@ -55,9 +61,14 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_au,        "Sun AU" },
     { &bgav_demuxer_aiff,      "Aiff" },
     { &bgav_demuxer_flac,      "FLAC" },
+    { &bgav_demuxer_aac,       "AAC" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif
+#ifdef HAVE_LIBA52
+    { &bgav_demuxer_a52, "A52 Bitstream" },
+#endif
+    
   };
 
 static demuxer_t sync_demuxers[] =
@@ -80,7 +91,7 @@ static int num_demuxers = sizeof(demuxers)/sizeof(demuxers[0]);
 static int num_sync_demuxers = sizeof(sync_demuxers)/sizeof(sync_demuxers[0]);
 static int num_mimetypes = sizeof(mimetypes)/sizeof(mimetypes[0]);
 
-#define SYNC_BYTES 1024
+#define SYNC_BYTES 2048
 
 bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
   {
