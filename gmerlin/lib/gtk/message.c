@@ -45,11 +45,14 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * evt,
 
 void bg_gtk_message(const char * message, int type)
   {
-  GtkWidget * table;
   GtkWidget * buttonbox;
-  int ret;
   message_t * q;
+  GtkWidget * label;
 
+  GtkWidget * mainbox;
+  GtkWidget * hbox;
+  GtkWidget * image;
+    
   q = calloc(1, sizeof(*q));
     
   /* Create objects */
@@ -60,7 +63,14 @@ void bg_gtk_message(const char * message, int type)
 
   
   q->ok_button = gtk_button_new_from_stock(GTK_STOCK_OK);
-  q->label = gtk_label_new(message);
+  label = gtk_label_new(message);
+
+  if(type == BG_GTK_MESSAGE_INFO)
+    image = gtk_image_new_from_stock(GTK_STOCK_DIALOG_INFO,
+                                     GTK_ICON_SIZE_DIALOG);
+  else if(type == BG_GTK_MESSAGE_ERROR)
+    image = gtk_image_new_from_stock(GTK_STOCK_DIALOG_ERROR,
+                                     GTK_ICON_SIZE_DIALOG);
   
   /* Set attributes */
 
@@ -69,7 +79,7 @@ void bg_gtk_message(const char * message, int type)
   gtk_window_set_position(GTK_WINDOW(q->window), GTK_WIN_POS_CENTER);
   GTK_WIDGET_SET_FLAGS (q->ok_button, GTK_CAN_DEFAULT);
 
-  gtk_label_set_justify(GTK_LABEL(q->label), GTK_JUSTIFY_CENTER);
+  gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_CENTER);
   
   /* Set callbacks */
 
@@ -84,18 +94,22 @@ void bg_gtk_message(const char * message, int type)
 
   /* Show everything */
 
-  gtk_widget_show(q->label);
+  gtk_widget_show(label);
+  gtk_widget_show(image);
   gtk_widget_show(q->ok_button);
   
   /* Pack the objects */
 
-  table = gtk_table_new(2, 1, FALSE);
-  gtk_container_set_border_width(GTK_CONTAINER(table), 5);
-  gtk_table_set_row_spacings(GTK_TABLE(table), 5);
-  gtk_table_set_col_spacings(GTK_TABLE(table), 5);
+  mainbox = gtk_vbox_new(0, 5);
+  hbox    = gtk_hbox_new(0, 5);
+    
+  gtk_container_set_border_width(GTK_CONTAINER(mainbox), 5);
   
-  gtk_table_attach_defaults(GTK_TABLE(table), q->label, 0, 1, 0, 1);
-
+  gtk_box_pack_start_defaults(GTK_BOX(hbox), image);
+  gtk_box_pack_start_defaults(GTK_BOX(hbox), label);
+  gtk_widget_show(hbox);
+  gtk_box_pack_start_defaults(GTK_BOX(mainbox), hbox);
+  
   buttonbox = gtk_hbutton_box_new();
 
   gtk_box_set_spacing(GTK_BOX(buttonbox), 10);
@@ -103,17 +117,21 @@ void bg_gtk_message(const char * message, int type)
   gtk_container_add(GTK_CONTAINER(buttonbox), q->ok_button);
 
   gtk_widget_show(buttonbox);
-  gtk_table_attach_defaults(GTK_TABLE(table), buttonbox, 0, 1, 1, 2);
-  gtk_widget_show(table);
-  gtk_container_add(GTK_CONTAINER(q->window), table);
+
+  gtk_box_pack_start_defaults(GTK_BOX(mainbox), buttonbox);
+  
+  gtk_widget_show(mainbox);
+  gtk_container_add(GTK_CONTAINER(q->window), mainbox);
   
   gtk_widget_show(q->window);
-  gtk_widget_grab_default(q->ok_button);
   
   gtk_main();
-  
+
+  /* Window has gone, fetch the answer */
+
+
   /* Destroy everything */
-  gtk_widget_hide(q->window);
+  //  gtk_widget_hide(q->window);
   g_object_unref(q->window);
   free(q);
   }
