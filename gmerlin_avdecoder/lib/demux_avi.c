@@ -24,6 +24,11 @@
 #include <avdec_private.h>
 #include <nanosoft.h>
 
+/* Define the variable below to get a detailed file dump
+   on each open call */
+
+// #define ENABLE_DUMP
+
 /* AVI Flags */
 
 #define AVI_HASINDEX       0x00000010  // Index at end of file?
@@ -77,7 +82,8 @@ static int read_chunk_header(bgav_input_context_t * input,
   return bgav_input_read_fourcc(input, &(chunk->ckID)) &&
     bgav_input_read_32_le(input, &(chunk->ckSize));
   }
-#if 0
+
+#ifdef ENABLE_DUMP
 static void dump_chunk_header(chunk_header_t * chunk)
   {
   fprintf(stderr, "chunk header:\n");
@@ -86,6 +92,7 @@ static void dump_chunk_header(chunk_header_t * chunk)
   fprintf(stderr, "\n  ckSize %d\n", chunk->ckSize);
   }
 #endif
+
 typedef struct
   {
   uint32_t ckID;
@@ -119,6 +126,27 @@ typedef struct
   uint32_t dwLength;
   } avih_t;
 
+
+#ifdef ENABLE_DUMP
+void dump_avih(avih_t * h)
+  {
+  fprintf(stderr, "avih:\n");
+  fprintf(stderr, "  dwMicroSecPerFrame: %d\n",    h->dwMicroSecPerFrame);
+  fprintf(stderr, "  dwMaxBytesPerSec: %d\n",      h->dwMaxBytesPerSec);
+  fprintf(stderr, "  dwReserved1: %d\n",           h->dwReserved1);
+  fprintf(stderr, "  dwFlags: %08x\n",             h->dwFlags);
+  fprintf(stderr, "  dwTotalFrames: %d\n",         h->dwTotalFrames);
+  fprintf(stderr, "  dwInitialFrames: %d\n",       h->dwInitialFrames);
+  fprintf(stderr, "  dwStreams: %d\n",             h->dwStreams);
+  fprintf(stderr, "  dwSuggestedBufferSize: %d\n", h->dwSuggestedBufferSize);
+  fprintf(stderr, "  dwWidth: %d\n",               h->dwWidth);
+  fprintf(stderr, "  dwHeight: %d\n",              h->dwHeight);
+  fprintf(stderr, "  dwScale: %d\n",               h->dwScale);
+  fprintf(stderr, "  dwRate: %d\n",                h->dwRate);
+  fprintf(stderr, "  dwLength: %d\n",              h->dwLength);
+  }
+#endif
+
 static int read_avih(bgav_input_context_t* input,
               avih_t * ret, chunk_header_t * ch)
   {
@@ -148,27 +176,12 @@ static int read_avih(bgav_input_context_t* input,
     
     bgav_input_skip(input, PADD(ch->ckSize) - (input->position - start_pos));
     }
+#ifdef ENABLE_DUMP
+  dump_avih(ret);
+#endif
   return result;
   }
-#if 0
-void dump_avih(avih_t * h)
-  {
-  fprintf(stderr, "avih:\n");
-  fprintf(stderr, "  dwMicroSecPerFrame: %d\n",    h->dwMicroSecPerFrame);
-  fprintf(stderr, "  dwMaxBytesPerSec: %d\n",      h->dwMaxBytesPerSec);
-  fprintf(stderr, "  dwReserved1: %d\n",           h->dwReserved1);
-  fprintf(stderr, "  dwFlags: %08x\n",             h->dwFlags);
-  fprintf(stderr, "  dwTotalFrames: %d\n",         h->dwTotalFrames);
-  fprintf(stderr, "  dwInitialFrames: %d\n",       h->dwInitialFrames);
-  fprintf(stderr, "  dwStreams: %d\n",             h->dwStreams);
-  fprintf(stderr, "  dwSuggestedBufferSize: %d\n", h->dwSuggestedBufferSize);
-  fprintf(stderr, "  dwWidth: %d\n",               h->dwWidth);
-  fprintf(stderr, "  dwHeight: %d\n",              h->dwHeight);
-  fprintf(stderr, "  dwScale: %d\n",               h->dwScale);
-  fprintf(stderr, "  dwRate: %d\n",                h->dwRate);
-  fprintf(stderr, "  dwLength: %d\n",              h->dwLength);
-  }
-#endif
+
 typedef struct
   {
   uint32_t num_entries;
@@ -189,7 +202,7 @@ static void free_idx1(idx1_t * idx1)
     free(idx1->entries);
   }
 
-#if 0
+#ifdef ENABLE_DUMP
 static void dump_idx1(idx1_t * idx1)
   {
   int i;
@@ -246,6 +259,32 @@ typedef struct
   uint32_t dwSampleSize;
   } strh_t;
 
+
+#ifdef ENABLE_DUMP
+static void dump_strh(strh_t * ret)
+  {
+  fprintf(stderr, "strh\n  fccType: ");
+  bgav_dump_fourcc(ret->fccType);
+  fprintf(stderr, "\n  fccHandler: ");
+  bgav_dump_fourcc(ret->fccHandler);
+  fprintf(stderr, "\n  dwFlags: %d (%08x)\n",
+          ret->dwFlags, ret->dwFlags);
+  fprintf(stderr, "  dwReserved1: %d (%08x)\n",
+          ret->dwReserved1, ret->dwReserved1);
+  fprintf(stderr, "  dwInitialFrames: %d (%08x)\n",
+          ret->dwInitialFrames, ret->dwInitialFrames);
+  fprintf(stderr, "  dwScale: %d (%08x)\n", ret->dwScale, ret->dwScale);
+  fprintf(stderr, "  dwRate: %d (%08x)\n", ret->dwRate, ret->dwRate);
+  fprintf(stderr, "  dwStart: %d (%08x)\n", ret->dwStart, ret->dwStart);
+  fprintf(stderr, "  dwLength: %d (%08x)\n", ret->dwLength, ret->dwLength);
+  fprintf(stderr, "  dwSuggestedBufferSize: %d (%08x)\n",
+          ret->dwSuggestedBufferSize,
+          ret->dwSuggestedBufferSize);
+  fprintf(stderr, "  dwQuality: %d (%08x)\n", ret->dwQuality, ret->dwQuality);
+  fprintf(stderr, "  dwSampleSize: %d (%08x)\n", ret->dwSampleSize, ret->dwSampleSize);
+  }
+#endif
+
 static int read_strh(bgav_input_context_t * input, strh_t * ret,
                      chunk_header_t * ch)
   {
@@ -275,32 +314,11 @@ static int read_strh(bgav_input_context_t * input, strh_t * ret,
     
     bgav_input_skip(input, PADD(ch->ckSize) - (input->position - start_pos));
     }
+#ifdef ENABLE_DUMP
+  dump_strh(ret);
+#endif
   return result;
   }
-#if 0
-static void dump_strh(strh_t * ret)
-  {
-  fprintf(stderr, "strh\nfccType: ");
-  bgav_dump_fourcc(ret->fccType);
-  fprintf(stderr, "\nfccHandler: ");
-  bgav_dump_fourcc(ret->fccHandler);
-  fprintf(stderr, "\ndwFlags: %d (%08x)\n",
-          ret->dwFlags, ret->dwFlags);
-  fprintf(stderr, "dwReserved1: %d (%08x)\n",
-          ret->dwReserved1, ret->dwReserved1);
-  fprintf(stderr, "dwInitialFrames: %d (%08x)\n",
-          ret->dwInitialFrames, ret->dwInitialFrames);
-  fprintf(stderr, "dwScale: %d (%08x)\n", ret->dwScale, ret->dwScale);
-  fprintf(stderr, "dwRate: %d (%08x)\n", ret->dwRate, ret->dwRate);
-  fprintf(stderr, "dwStart: %d (%08x)\n", ret->dwStart, ret->dwStart);
-  fprintf(stderr, "dwLength: %d (%08x)\n", ret->dwLength, ret->dwLength);
-  fprintf(stderr, "dwSuggestedBufferSize: %d (%08x)\n",
-          ret->dwSuggestedBufferSize,
-          ret->dwSuggestedBufferSize);
-  fprintf(stderr, "dwQuality: %d (%08x)\n", ret->dwQuality, ret->dwQuality);
-  fprintf(stderr, "dwSampleSize: %d (%08x)\n", ret->dwSampleSize, ret->dwSampleSize);
-  }
-#endif
 
 /* odml extensions */
 
@@ -310,6 +328,15 @@ typedef struct
   {
   uint32_t dwTotalFrames;
   } dmlh_t;
+
+
+#ifdef ENABLE_DUMP
+static void dump_dmlh(dmlh_t * dmlh)
+  {
+  fprintf(stderr, "dmlh:\n");
+  fprintf(stderr, "  dwTotalFrames: %d\n", dmlh->dwTotalFrames);
+  }
+#endif
 
 static int read_dmlh(bgav_input_context_t * input, dmlh_t * ret,
                      chunk_header_t * ch)
@@ -328,14 +355,6 @@ static int read_dmlh(bgav_input_context_t * input, dmlh_t * ret,
     }
   return 1;
   }
-
-#if 0
-static void dump_dmlh(dmlh_t * dmlh)
-  {
-  fprintf(stderr, "dmlh:\n");
-  fprintf(stderr, "  dwTotalFrames: %d\n", dmlh->dwTotalFrames);
-  }
-#endif
 /* odml */
 
 typedef struct
@@ -343,6 +362,15 @@ typedef struct
   int has_dmlh;
   dmlh_t dmlh;
   } odml_t;
+
+#ifdef ENABLE_DUMP
+static void dump_odml(odml_t * odml)
+  {
+  fprintf(stderr, "odml:\n");
+  if(odml->has_dmlh)
+    dump_dmlh(&(odml->dmlh));
+  }
+#endif
 
 static int read_odml(bgav_input_context_t * input, odml_t * ret,
                      chunk_header_t * ch)
@@ -382,16 +410,13 @@ static int read_odml(bgav_input_context_t * input, odml_t * ret,
     //            ch->ckSize - 4 - input->position - start_pos);
     bgav_input_skip(input, ch->ckSize - 4 - input->position - start_pos);
     }
+#ifdef ENABLE_DUMP
+  dump_odml(ret);
+#endif
+
   return 1;
   }
-#if 0
-static void dump_odml(odml_t * odml)
-  {
-  fprintf(stderr, "odml:\n");
-  if(odml->has_dmlh)
-    dump_dmlh(&(odml->dmlh));
-  }
-#endif
+
 /* indx */
 
 typedef struct indx_s
@@ -538,7 +563,7 @@ static int read_indx(bgav_input_context_t * input, indx_t * ret,
   return 1;
   }
 
-#if 0
+#ifdef ENABLE_DUMP
 static void dump_indx(indx_t * indx)
   {
   int i;
@@ -610,6 +635,7 @@ static void dump_indx(indx_t * indx)
     }
   }
 #endif
+
 static void free_indx(indx_t * indx)
   {
   int i;
@@ -723,7 +749,9 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
         pos = buf;
         bgav_WAVEFORMATEX_read(&wf, &pos);
         bgav_WAVEFORMATEX_get_format(&wf, bg_as);
-        //        bgav_WAVEFORMATEX_dump(&wf);
+#ifdef ENABLE_DUMP
+        bgav_WAVEFORMATEX_dump(&wf);
+#endif
         if(wf.cbSize)
           {
           bg_as->ext_size = wf.cbSize;
@@ -811,8 +839,9 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
         pos = buf;
         bgav_BITMAPINFOHEADER_read(&bh, &pos);
         bgav_BITMAPINFOHEADER_get_format(&bh, bg_vs);
-        //        bgav_BITMAPINFOHEADER_dump(&bh);
-
+#ifdef ENABLE_DUMP
+        bgav_BITMAPINFOHEADER_dump(&bh);
+#endif
         if(ch->ckSize > 40)
           {
           //          fprintf(stderr, "Adding extradata %d bytes\n",
@@ -1174,9 +1203,10 @@ static int open_avi(bgav_demuxer_context_t * ctx,
     if(!read_chunk_header(ctx->input, &ch))
       goto fail;
     }
-  
-  //  fprintf(stderr, "*** Chunk header\n");
-  //  dump_chunk_header(&ch);
+#ifdef ENABLE_DUMP
+  fprintf(stderr, "movi:\n");
+  dump_chunk_header(&ch);
+#endif
   p->movi_start = ctx->input->position;
 
   if(ch.ckSize)
@@ -1201,6 +1231,10 @@ static int open_avi(bgav_demuxer_context_t * ctx,
       idx1_fix_offsets(ctx);
       //      dump_idx1(&(p->idx1));
       //      fprintf(stderr, "Found standard index\n");
+      
+#ifdef ENABLE_DUMP
+      dump_idx1(&(p->idx1));
+#endif
       }
     bgav_input_seek(ctx->input, p->movi_start, SEEK_SET);
     }
@@ -1297,15 +1331,22 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
   /* Sometimes, there are unknown entries in the index, we skip them here */
   if(priv->has_idx1)
     {
+    if(priv->index_position >= priv->idx1.num_entries)
+      {
+      //      fprintf(stderr, "AVI EOF\n");
+      return 0;
+      }
+
     while(!s)
       {
       stream_id = get_stream_id(priv->idx1.entries[priv->index_position].ckid);
       s = bgav_track_find_stream(ctx->tt->current_track, stream_id);
       
       if(!s)
-        {
         priv->index_position++;
-        }
+
+//      fprintf(stderr, "%d %d\n", priv->index_position, priv->idx1.num_entries);
+      
       }
     ch.ckID   = priv->idx1.entries[priv->index_position].ckid;
     ch.ckSize = priv->idx1.entries[priv->index_position].dwChunkLength;
@@ -1350,9 +1391,10 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
     ch.ckSize,
     priv->idx1.entries[priv->index_position].dwChunkLength);
   */
-  
-  //  dump_chunk_header(&ch);
-  
+
+#ifdef ENABLE_DUMP
+  dump_chunk_header(&ch);
+#endif
   /* Skip ignored streams */
 
   if(priv->do_seek)
