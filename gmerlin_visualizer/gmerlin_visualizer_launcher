@@ -1,0 +1,7 @@
+#!/bin/sh
+VIS_RUNNING=`ps ax | grep gmerlin_visualizer | grep -v grep | grep -v launcher`
+if test "x$VIS_RUNNING" != "x"; then
+exit 1
+fi
+gmerlin_visualizer $* &
+exit 0

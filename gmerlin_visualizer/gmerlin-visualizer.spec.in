@@ -49,6 +49,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(644,root,root) %{_datadir}/applications/gmerlin-visualizer.desktop
 %attr(644,root,root) %{_datadir}/gmerlin/icons/visualizer_icon.png
 %attr(755,root,root) %{_bindir}/gmerlin_visualizer
+%attr(755,root,root) %{_bindir}/gmerlin_visualizer_launcher
 
 %define date    %(echo `LC_ALL="C" date +"%a %b %d %Y"`)
 %changelog
