@@ -186,27 +186,27 @@ static int open_mpc(bgav_demuxer_context_t * ctx,
   else if(apetag)
     bgav_ape_tag_2_metadata(apetag,
                             &(ctx->tt->current_track->metadata));
-
+  
   if(id3v1)
     bgav_id3v1_destroy(id3v1);
   if(apetag)
     bgav_ape_tag_destroy(apetag);
   
   /* Get stream info */
-
+  
   mpc_streaminfo_init(&(priv->si));
-
+  
   if(mpc_streaminfo_read(&(priv->si), &(priv->reader)) != ERROR_CODE_OK)
     return 0;
-
+  
   /* Fire up decoder and set up stream */
-
+  
   mpc_decoder_setup(&(priv->dec), &(priv->reader));
   if(!mpc_decoder_initialize(&(priv->dec), &(priv->si)))
     return 0;
-    
+  
   s = bgav_track_add_audio_stream(ctx->tt->current_track);
-
+  
   s->data.audio.format.samplerate   = priv->si.sample_freq;
   s->data.audio.format.num_channels = priv->si.channels;
 

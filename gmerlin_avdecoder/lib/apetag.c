@@ -2,7 +2,7 @@
  
   apetag.c
  
-  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2005 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
   http://gmerlin.sourceforge.net
  
@@ -171,3 +171,5 @@ void bgav_ape_tag_destroy(bgav_ape_tag_t * tag)
   FREE(tag->items);
   free(tag);
   }
+
+#undef FREE

@@ -562,6 +562,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       priv->ctx->hurry_up = 1;
     else
       priv->ctx->hurry_up = 0;
+
     //    fprintf(stderr, "Decode: %lld %d\n", s->position, len);
 
     //    fprintf(stderr, "Decode %d...", priv->ctx->pix_fmt);
