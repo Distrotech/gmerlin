@@ -107,16 +107,16 @@ static void adts_header_dump(adts_header_t * adts)
     switch(adts->profile)
       {
       case 0:
-        fprintf(stderr, "MPEG-4 AAC MAIN\n");
+        fprintf(stderr, "MPEG-4 AAC Main profile\n");
         break;
       case 1:
-        fprintf(stderr, "MPEG-4 AAC LC\n");
+        fprintf(stderr, "MPEG-4 AAC Low Complexity profile (LC)\n");
         break;
       case 2:
-        fprintf(stderr, "MPEG-4 AAC SSR\n");
+        fprintf(stderr, "MPEG-4 AAC Scalable Sample Rate profile (SSR)\n");
         break;
       case 3:
-        fprintf(stderr, "MPEG-4 AAC LTP\n");
+        fprintf(stderr, "MPEG-4 AAC Long Term Prediction (LTP)\n");
         break;
       }
     }
@@ -151,7 +151,7 @@ static int adts_header_read(uint8_t * data, adts_header_t * ret)
   ret->num_blocks = (data[6] & 0x03) + 1;
 
   if(ret->profile == 2) 
-    ret->block_samples = 910;
+    ret->block_samples = 960;
   else
     ret->block_samples = 1024;
   return 1;

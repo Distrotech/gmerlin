@@ -107,7 +107,7 @@ void bgav_id3v1_destroy(bgav_id3v1_tag_t * t)
 
 #define GENRE_MAX 0x94
 
-const char *id3_genres[GENRE_MAX] =
+static const char *id3_genres[GENRE_MAX] =
   {
     "Blues", "Classic Rock", "Country", "Dance",
     "Disco", "Funk", "Grunge", "Hip-Hop",

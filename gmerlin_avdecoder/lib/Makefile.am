@@ -248,6 +248,7 @@ video_aviraw.c \
 video_tga.c \
 video_yuv.c \
 video_rtjpeg.c \
+vorbis_comment.c \
 xing.c \
 yml.c
 

@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <avdec_private.h>
+#include <vorbis_comment.h>
 
 typedef struct
   {
@@ -127,6 +128,17 @@ static void seektable_dump(seektable_t * t)
     }
   }
 #endif
+
+/*
+ *  Vorbis comment.
+ *  These are simple enough to support directly
+ */
+
+
+
+
+/* Probe */
+
 static int probe_flac(bgav_input_context_t * input)
   {
   uint8_t probe_data[4];
@@ -158,7 +170,10 @@ static int open_flac(bgav_demuxer_context_t * ctx,
   uint32_t size;
   flac_priv_t * priv;
   bgav_input_context_t * input_mem;
-  
+  uint8_t * comment_buffer;
+
+  bgav_vorbis_comment_t vc;
+    
   /* Skip header */
 
   bgav_input_skip(ctx->input, 4);
@@ -181,8 +196,6 @@ static int open_flac(bgav_demuxer_context_t * ctx,
     size |= header[2];
     size <<= 8;
     size |= header[3];
-    
-    
     //    fprintf(stderr, "Size: %d\n", size);
     
     //    if(!bgav_input_read_24_be(ctx->input, &size))
@@ -221,7 +234,7 @@ static int open_flac(bgav_demuxer_context_t * ctx,
         bgav_input_close(input_mem);
         bgav_input_destroy(input_mem);
         //        streaminfo_dump(&(priv->streaminfo));
-                
+        
         s->data.audio.format.num_channels = priv->streaminfo.num_channels;
         s->data.audio.format.samplerate   = priv->streaminfo.samplerate;
         s->data.audio.bits_per_sample     = priv->streaminfo.bits_per_sample;
@@ -235,7 +248,7 @@ static int open_flac(bgav_demuxer_context_t * ctx,
         //        bgav_input_skip(ctx->input, size);
         break;
       case 1: // PADDING
-        //        fprintf(stderr, "PADDING\n");
+        fprintf(stderr, "PADDING %d bytes\n", size);
         bgav_input_skip(ctx->input, size);
         break;
       case 2: // APPLICATION
@@ -251,8 +264,29 @@ static int open_flac(bgav_demuxer_context_t * ctx,
         //        bgav_input_skip(ctx->input, size);
         break;
       case 4: // VORBIS_COMMENT
-        //        fprintf(stderr, "VORBIS_COMMENT\n");
-        bgav_input_skip(ctx->input, size);
+        // fprintf(stderr, "VORBIS_COMMENT %d bytes\n", size);
+
+        comment_buffer = malloc(size);
+        if(bgav_input_read_data(ctx->input, comment_buffer, size) < size)
+          return 0;
+
+        input_mem =
+          bgav_input_open_memory(comment_buffer, size);
+
+        memset(&vc, 0, sizeof(vc));
+
+        if(bgav_vorbis_comment_read(&vc, input_mem))
+          {
+          bgav_vorbis_comment_2_metadata(&vc,
+                                         &(ctx->tt->current_track->metadata));
+          }
+        //        bgav_hexdump(comment_buffer, size, 16);
+        bgav_vorbis_comment_free(&vc);
+        bgav_input_close(input_mem);
+        bgav_input_destroy(input_mem);
+        
+        free(comment_buffer);
+        //        bgav_input_skip(ctx->input, size);
         break;
       case 5: // CUESHEET
         //        fprintf(stderr, "CUESHEET\n");

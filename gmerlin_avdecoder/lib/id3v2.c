@@ -426,6 +426,7 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
     ret->num_frames++;
     }
   bgav_input_close(input_mem);
+  bgav_input_destroy(input_mem);
   
   ret->total_bytes = ret->header.size + 10;
   /* Read footer */
@@ -532,6 +533,16 @@ static uint32_t genre_tags[] =
     0x00,
   };
 
+/* Author == composer */
+
+static uint32_t author_tags[] =
+  {
+    BGAV_MK_FOURCC('T', 'C', 'O', 'M'),
+    BGAV_MK_FOURCC('T', 'C', 'M', 0x00),
+    0x00,
+  };
+
+
 static uint32_t comment_tags[] =
   {
     BGAV_MK_FOURCC('C', 'O', 'M', 'M'),
@@ -625,6 +636,12 @@ void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
   if(frame && frame->strings)
     m->artist = bgav_strndup(frame->strings[0], NULL);
 
+  /* Author */
+
+  frame = bgav_id3v2_find_frame(t, author_tags);
+  if(frame && frame->strings)
+    m->author = bgav_strndup(frame->strings[0], NULL);
+  
   /* Date */
   
   frame = bgav_id3v2_find_frame(t, date_tags);

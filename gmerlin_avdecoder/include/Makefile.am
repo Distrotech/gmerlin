@@ -17,6 +17,7 @@ rmff.h \
 rtsp.h \
 sdp.h \
 utils.h \
+vorbis_comment.h \
 xing.h \
 yml.h \
 avdec.h

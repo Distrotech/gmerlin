@@ -17,88 +17,16 @@
  
 *****************************************************************/
 
-#include <avdec_private.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <string.h>
-#include <vorbis/codec.h>
+
+#include <avdec_private.h>
+#include <vorbis_comment.h>
+
+#include <ogg/ogg.h>
 
 #define BYTES_TO_READ 8500 /* Same as in vorbisfile */
-
-static char * _artist_key = "ARTIST=";
-static char * _album_key = "ALBUM=";
-static char * _title_key = "TITLE=";
-// static char * _version_key = "VERSION=";
-static char * _track_number_key = "TRACKNUMBER=";
-// static char * _organization_key = "ORGANIZATION=";
-static char * _genre_key = "GENRE=";
-// static char * _description_key = "DESCRIPTION=";
-// static char * _date_key = "DATE=";
-// static char * _location_key = "LOCATION=";
-// static char * _copyright_key = "COPYRIGHT=";
-
-static void set_metadata(bgav_metadata_t * ret, vorbis_comment * vc)
-  {
-  int key_len;
-  int j;
-  int comment_added = 0;
-
-  if(vc->comments)
-    {
-    for(j = 0; j < vc->comments; j++)
-      {
-      key_len = strlen(_artist_key);
-      if(!strncasecmp(vc->user_comments[j], _artist_key,
-                      key_len))
-        {
-        ret->artist =
-          bgav_strndup(&(vc->user_comments[j][key_len]), NULL);
-        continue;
-        }
-      key_len = strlen(_album_key);
-      if(!strncasecmp(vc->user_comments[j], _album_key,
-                      key_len))
-        {
-        ret->album =
-          bgav_strndup(&(vc->user_comments[j][key_len]), NULL);
-        continue;
-        }
-      key_len = strlen(_title_key);
-      if(!strncasecmp(vc->user_comments[j], _title_key,
-                      key_len))
-        {
-        ret->title =
-          bgav_strndup(&(vc->user_comments[j][key_len]), NULL);
-        continue;
-        }
-      
-      key_len = strlen(_genre_key);
-      if(!strncasecmp(vc->user_comments[j], _genre_key,
-                      key_len))
-        {
-        ret->genre =
-          bgav_strndup(&(vc->user_comments[j][key_len]), NULL);
-        continue;
-        }
-      key_len = strlen(_track_number_key);
-      if(!strncasecmp(vc->user_comments[j], _track_number_key,
-                      key_len))
-        {
-        ret->track =
-          atoi(&(vc->user_comments[j][key_len]));
-        continue;
-        }
-      if(!(comment_added) && !strchr(vc->user_comments[j], '='))
-        {
-        ret->comment =
-          bgav_strndup(vc->user_comments[j], NULL);
-        comment_added = 1;
-        continue;
-        }
-      }
-    }
-  }
 
 
 /* Currently, we support one single vorbis encoded audio stream */
@@ -424,9 +352,11 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   bgav_packet_t * p;
   bgav_stream_t * s;
   bgav_metadata_t metadata;
-  vorbis_info vi;
-  vorbis_comment vc;
-  
+  //  vorbis_info vi;
+  bgav_vorbis_comment_t vc;
+
+  bgav_input_context_t * input_mem;
+    
   ogg_priv * priv = (ogg_priv*)(ctx->priv);
 
   s = &(ctx->tt->current_track->audio_streams[0]);
@@ -438,20 +368,51 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   if(priv->current_packet.b_o_s)
     {
     //    fprintf(stderr, "New stream!!!\n");
-    vorbis_info_init(&vi);
-    vorbis_comment_init(&vc);
+    //    vorbis_info_init(&vi);
+    //    vorbis_comment_init(&vc);
 
     p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
     set_packet(priv, p);
     bgav_packet_done_write(p);
+    if(!get_next_packet(ctx))
+      return 0;
+    p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+    set_packet(priv, p);
+    bgav_packet_done_write(p);
+    //    vorbis_synthesis_headerin(&vi, &vc, &(priv->current_packet));
 
-    if(vorbis_synthesis_headerin(&vi, &vc, &(priv->current_packet)))
+    
+    
+    memset(&metadata, 0, sizeof(metadata));
+    memset(&vc, 0, sizeof(vc));
+
+    if((priv->current_packet.bytes > 7) &&
+       (priv->current_packet.packet[0] == 0x03) &&
+       (priv->current_packet.packet[1] == 'v') &&
+       (priv->current_packet.packet[2] == 'o') &&
+       (priv->current_packet.packet[3] == 'r') &&
+       (priv->current_packet.packet[4] == 'b') &&
+       (priv->current_packet.packet[5] == 'i') &&
+       (priv->current_packet.packet[6] == 's'))
       {
-      fprintf(stderr, "No vorbis header %ld %ld\n",
-              priv->current_packet.bytes, priv->current_packet.b_o_s);
+
+      /* Second packet is vorbis comment */
+      input_mem = bgav_input_open_memory(priv->current_packet.packet + 7,
+                                         priv->current_packet.bytes - 7);
+#if 0
+      fprintf(stderr, "Comment header: %ld bytes\n", priv->current_packet.bytes);
       bgav_hexdump(priv->current_packet.packet,
                    priv->current_packet.bytes, 16);
-      return 0;
+#endif
+      if(bgav_vorbis_comment_read(&vc, input_mem))
+        {
+        bgav_vorbis_comment_2_metadata(&vc,
+                                       &(metadata));
+        }
+      //        bgav_hexdump(comment_buffer, size, 16);
+      bgav_vorbis_comment_free(&vc);
+      bgav_input_close(input_mem);
+      bgav_input_destroy(input_mem);
       }
     
     if(!get_next_packet(ctx))
@@ -459,17 +420,9 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
     p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
     set_packet(priv, p);
     bgav_packet_done_write(p);
-    vorbis_synthesis_headerin(&vi, &vc, &(priv->current_packet));
+    //    vorbis_synthesis_headerin(&vi, &vc, &(priv->current_packet));
 
-    if(!get_next_packet(ctx))
-      return 0;
-    p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
-    set_packet(priv, p);
-    bgav_packet_done_write(p);
-    vorbis_synthesis_headerin(&vi, &vc, &(priv->current_packet));
-
-    memset(&metadata, 0, sizeof(metadata));
-    set_metadata(&metadata, &vc);
+    //    set_metadata(&metadata, &vc);
 
     //    fprintf(stderr, "Metadata:\n");
     //    bgav_metadata_dump(&metadata);
@@ -502,8 +455,8 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
     //      fprintf(stderr, "NO METADATA CHANGE CALLBACK\n");
     bgav_metadata_free(&metadata);
 
-    vorbis_info_clear(&vi);
-    vorbis_comment_clear(&vc);
+    //    vorbis_info_clear(&vi);
+    //    vorbis_comment_clear(&vc);
     
     }
   else
@@ -646,9 +599,7 @@ static void bisect(bgav_demuxer_context_t * ctx, int index)
 
 static int setup_streams(bgav_demuxer_context_t * ctx)
   {
-  int result;
-  vorbis_info vi;
-  vorbis_comment vc;
+  bgav_vorbis_comment_t vc;
   int i, j;
   bgav_stream_t * s;
   char * filename_base;
@@ -656,6 +607,11 @@ static int setup_streams(bgav_demuxer_context_t * ctx)
   char * pos;
   int packet_size;
   uint8_t * ptr;
+  bgav_input_context_t * input_mem;
+    
+  ogg_priv * priv = (ogg_priv*)(ctx->priv);
+
+  
   if(ctx->input->filename)
     {
     extension_start = strrchr(ctx->input->filename, '.');
@@ -669,7 +625,6 @@ static int setup_streams(bgav_demuxer_context_t * ctx)
   else
     filename_base = (char*)0;
   
-  ogg_priv * priv = (ogg_priv*)(ctx->priv);
 
   ctx->tt = bgav_track_table_create(priv->streams.num_bitstreams);
 
@@ -682,8 +637,8 @@ static int setup_streams(bgav_demuxer_context_t * ctx)
     
     if(ctx->input->input->seek_byte)
       seek_byte(ctx, priv->streams.bitstreams[i].start_position);
-    vorbis_info_init(&vi);
-    vorbis_comment_init(&vc);
+    //    vorbis_info_init(&vi);
+    //    vorbis_comment_init(&vc);
 
     priv->streams.bitstreams[i].ext_size = 3 * sizeof(priv->current_packet);
     
@@ -712,32 +667,68 @@ static int setup_streams(bgav_demuxer_context_t * ctx)
       ptr = ogg_2_ptr(&(priv->current_packet),
                       ptr);
       
-      if((result = vorbis_synthesis_headerin(&vi, &vc,
-                                             &(priv->current_packet))))
+      /* Vorbis info (Identification Header) */
+
+      if((priv->current_packet.bytes > 7) &&
+         (priv->current_packet.packet[0] == 0x01) &&
+         (priv->current_packet.packet[1] == 'v') &&
+         (priv->current_packet.packet[2] == 'o') &&
+         (priv->current_packet.packet[3] == 'r') &&
+         (priv->current_packet.packet[4] == 'b') &&
+         (priv->current_packet.packet[5] == 'i') &&
+         (priv->current_packet.packet[6] == 's'))
         {
-        fprintf(stderr, "Stream %d: No vorbis header %ld %ld\n",
-                i+1, priv->current_packet.bytes, priv->current_packet.b_o_s);
+        s->data.audio.format.num_channels = priv->current_packet.packet[11];
+        s->data.audio.format.samplerate = BGAV_PTR_2_32LE(priv->current_packet.packet + 12);
+        }
+
+      /* Vorbis comment */
+
+      if((priv->current_packet.bytes > 7) &&
+         (priv->current_packet.packet[0] == 0x03) &&
+         (priv->current_packet.packet[1] == 'v') &&
+         (priv->current_packet.packet[2] == 'o') &&
+         (priv->current_packet.packet[3] == 'r') &&
+         (priv->current_packet.packet[4] == 'b') &&
+         (priv->current_packet.packet[5] == 'i') &&
+         (priv->current_packet.packet[6] == 's'))
+        {
+        memset(&vc, 0, sizeof(vc));
+        input_mem = bgav_input_open_memory(priv->current_packet.packet + 7,
+                                           priv->current_packet.bytes - 7);
+#if 0
+        fprintf(stderr, "Comment header: %ld bytes\n", priv->current_packet.bytes);
         bgav_hexdump(priv->current_packet.packet,
                      priv->current_packet.bytes, 16);
-        return 0;
+#endif
+        if(bgav_vorbis_comment_read(&vc, input_mem))
+          {
+          bgav_vorbis_comment_2_metadata(&vc,
+                                         &(ctx->tt->tracks[i].metadata));
+          }
+        //        bgav_hexdump(comment_buffer, size, 16);
+        bgav_vorbis_comment_free(&vc);
+        bgav_input_close(input_mem);
+        bgav_input_destroy(input_mem);
         }
       }
     /* Now, read the infos */
       
-    s->data.audio.format.samplerate = vi.rate;
+    //    s->data.audio.format.samplerate = vi.rate;
 
     /* Calculate duration */
 
     if(priv->streams.bitstreams[i].last_pos)
       ctx->tt->tracks[i].duration =
-        gavl_samples_to_time(vi.rate, priv->streams.bitstreams[i].last_pos);
+        gavl_samples_to_time(s->data.audio.format.samplerate,
+                             priv->streams.bitstreams[i].last_pos);
     else
       ctx->tt->tracks[i].duration = GAVL_TIME_UNDEFINED;
-    s->data.audio.format.num_channels = vi.channels;
+    //    s->data.audio.format.num_channels = vi.channels;
 
     s->fourcc = BGAV_MK_FOURCC('V','B','I','S');
     
-    set_metadata(&(ctx->tt->tracks[i].metadata), &vc);
+    //    set_metadata(&(ctx->tt->tracks[i].metadata), &vc);
 
     /* Set the stream name. We do this only
        if we have more than one track. */
@@ -776,8 +767,8 @@ static int setup_streams(bgav_demuxer_context_t * ctx)
         bgav_strndup(ctx->input->metadata.title, NULL);
       }
     
-    vorbis_comment_clear(&vc);
-    vorbis_info_clear(&vi);
+    //    vorbis_comment_clear(&vc);
+    //    vorbis_info_clear(&vi);
     }
   if(filename_base)
     free(filename_base);
@@ -953,7 +944,6 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, gavl_time_t time)
     s->time_scaled = -1;
     }
   
-  //  seek_byte(
   }
 
 static void close_ogg(bgav_demuxer_context_t * ctx)
