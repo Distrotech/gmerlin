@@ -304,7 +304,7 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
     add_context(cnv, ctx);
     }
 
-  fprintf(stderr, "Audio converter initialized, %d conversions\n", cnv->num_conversions);
+  //  fprintf(stderr, "Audio converter initialized, %d conversions\n", cnv->num_conversions);
 
   //  gavl_audio_format_dump(&(cnv->input_format));
 
