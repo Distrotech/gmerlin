@@ -248,7 +248,7 @@ int bgav_qt_udta_read(qt_atom_header_t * h, bgav_input_context_t * input,
     bgav_qt_atom_skip(input, &ch);
     }
   bgav_qt_atom_skip(input, h);
-  bgav_qt_udta_dump(ret);
+//  bgav_qt_udta_dump(ret);
   return 1;
   }
 
