@@ -21,8 +21,8 @@ the actual gmerlin plugin.
 
 REQUIREMENTS:
 
-The configure script autodetects all installed libraries
-and tell you what's missing.
+The configure script autodetects all installed libraries and tell you what's
+missing.
 
 FORMATS/CODECS:
 

@@ -89,6 +89,53 @@ static int init_yuv2(bgav_stream_t * s)
   }
 
 /*
+ *   2vuy: Like yuv2 but WITHOUT swapped chroma sign and
+ *   packing order vyuy
+ */
+
+static void decode_2vuy(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t * f)
+  {
+  int i, j;
+  uint8_t * src, *dst;
+  yuv_priv_t * priv;
+  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+
+  priv->frame->planes[0] = p->data;
+  
+  for(i = 0; i < s->data.video.format.image_height; i++)
+    {
+    src = priv->frame->planes[0] + i * priv->frame->strides[0];
+    dst = f->planes[0]           + i * f->strides[0];
+    
+    for(j = 0; j < s->data.video.format.image_width; j+=2)
+      {
+      dst[0] = src[1];
+      dst[1] = src[2];
+      dst[2] = src[3];
+      dst[3] = src[0];
+      src+=4;
+      dst+=4;
+      }
+    }
+  }
+
+static int init_2vuy(bgav_stream_t * s)
+  {
+  yuv_priv_t * priv;
+  
+  init_common(s);
+  s->description = bgav_sprintf("YUV 4:2:2 packed (2vuy)");
+
+  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+
+  priv->frame->strides[0] = PADD(s->data.video.format.image_width * 2, 4);
+  priv->decode_func = decode_2vuy;
+  s->data.video.format.colorspace = GAVL_YUY2;
+  return 1;
+  }
+
+
+/*
  *  VYUY is just YUY2 colorspace!!!
  *  Wow, that was hard to reverse engineer ;-)
  */
@@ -434,6 +481,15 @@ static bgav_video_decoder_t yuv2_decoder =
     close:  close,
   };
 
+static bgav_video_decoder_t twovuy_decoder =
+  {
+    name:   "2vuy video decoder",
+    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('2', 'v', 'u', 'y'), 0x00  },
+    init:   init_2vuy,
+    decode: decode,
+    close:  close,
+  };
+
 static bgav_video_decoder_t yv12_decoder =
   {
     name:   "yv12 video decoder",
@@ -500,6 +556,7 @@ static bgav_video_decoder_t yuv4_decoder =
 void bgav_init_video_decoders_yuv()
   {
   bgav_video_decoder_register(&yuv2_decoder);
+  bgav_video_decoder_register(&twovuy_decoder);
   bgav_video_decoder_register(&yv12_decoder);
   bgav_video_decoder_register(&YV12_decoder);
   bgav_video_decoder_register(&VYUY_decoder);
