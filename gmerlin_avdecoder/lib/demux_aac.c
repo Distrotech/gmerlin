@@ -29,6 +29,9 @@
 #define TYPE_ADTS 1
 
 #define ADTS_SIZE 9
+#define ADIF_SIZE 17
+
+#define BYTES_TO_READ (768*GAVL_MAX_CHANNELS)
 
 #define IS_ADIF(h) ((h[0] == 'A') && \
                     (h[1] == 'D') && \
@@ -39,6 +42,12 @@
                     ((h[1] & 0xf0) == 0xf0) && \
                     ((h[1] & 0x06) == 0x00))
 
+static int adts_samplerates[] =
+  {96000,88200,64000,48000,44100,
+   32000,24000,22050,16000,12000,
+   11025,8000,7350,0,0,0};
+
+#if 0
 static int samplerates[] =
   {
     96000,
@@ -54,6 +63,7 @@ static int samplerates[] =
     11025,
     8000
   };
+#endif
 
 /* The following struct is not exactly the same as in the spec */
 
@@ -132,7 +142,7 @@ static int adts_header_read(uint8_t * data, adts_header_t * ret)
   protection_absent = data[1] & 0x01;
 
   ret->profile = (data[2] & 0xC0) >> 6;
-  ret->samplerate = samplerates[(data[2]&0x3C)>>2];
+  ret->samplerate = adts_samplerates[(data[2]&0x3C)>>2];
   ret->channel_configuration = ((data[2]&0x01)<<2)|((data[3]&0xC0)>>6);
 
   ret->frame_bytes = ((((unsigned int)data[3] & 0x3)) << 11)
@@ -318,11 +328,34 @@ static int open_adts(bgav_demuxer_context_t * ctx)
 
 static int open_adif(bgav_demuxer_context_t * ctx)
   {
-  fprintf(stderr, "ADIF header not supported yet\n");
-
+  uint8_t buf[ADIF_SIZE];
+  int skip_size;
+  aac_priv_t * priv;
+  priv = (aac_priv_t*)(ctx->priv);
   
+  //  fprintf(stderr, "ADIF header not supported yet\n");
+  /* Try to get the bitrate */
 
-  return 0;
+  if(bgav_input_get_data(ctx->input, buf, ADIF_SIZE) < ADIF_SIZE)
+    return 0;
+
+  skip_size = (buf[4] & 0x80) ? 9 : 0;
+
+  if(buf[4 + skip_size] & 0x10)
+    {
+    ctx->tt->current_track->audio_streams[0].container_bitrate = BGAV_BITRATE_VBR;
+    }
+  else
+    {
+    ctx->tt->current_track->audio_streams[0].container_bitrate =
+      ((unsigned int)(buf[4 + skip_size] & 0x0F)<<19) |
+      ((unsigned int)buf[5 + skip_size]<<11) |
+      ((unsigned int)buf[6 + skip_size]<<3) |
+      ((unsigned int)buf[7 + skip_size] & 0xE0);
+    ctx->tt->current_track->duration = (GAVL_TIME_SCALE * (priv->data_size) * 8) /
+      (ctx->tt->current_track->audio_streams[0].container_bitrate);
+    }
+  return 1;
   }
 
 static int open_aac(bgav_demuxer_context_t * ctx,
@@ -456,12 +489,15 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
   //          adts.num_blocks, adts.frame_bytes);
   
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
-
-  p->timestamp_scaled = priv->sample_count;
   
-  p->timestamp = gavl_samples_to_time(s->data.audio.format.samplerate,
-                                      priv->sample_count);
+  p->timestamp_scaled = priv->sample_count;
 
+  if(s->data.audio.format.samplerate)
+    p->timestamp = gavl_samples_to_time(s->data.audio.format.samplerate,
+                                        priv->sample_count);
+  else
+    p->timestamp = 0;
+  
   p->keyframe = 1;
 
   bgav_packet_alloc(p, adts.frame_bytes);
@@ -480,7 +516,26 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
 
 static int next_packet_adif(bgav_demuxer_context_t * ctx)
   {
-  return 0;
+  bgav_stream_t * s;
+  bgav_packet_t * p;
+  aac_priv_t * priv;
+  int bytes_read;
+  priv = (aac_priv_t *)(ctx->priv);
+  s = ctx->tt->current_track->audio_streams;
+  
+  /* Just copy the bytes, we have no idea about
+     aac frame boundaries or timestamps here */
+
+  p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
+  bgav_packet_alloc(p, BYTES_TO_READ);
+  
+  bytes_read = bgav_input_read_data(ctx->input, p->data, BYTES_TO_READ);
+  if(!bytes_read)
+    return 0;
+  p->data_size = bytes_read;
+
+  bgav_packet_done_write(p);
+  return 1;
   }
 
 static int next_packet_aac(bgav_demuxer_context_t * ctx)

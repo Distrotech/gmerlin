@@ -19,18 +19,24 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <avdec_private.h>
 
 static char * get_string(char * ptr, int max_size)
   {
-  int i;
-  char * end = ptr;
-  for(i = 0; i < max_size; i++)
+  char * end;
+  
+  end = ptr + max_size - 1;
+
+  while(end > ptr)
     {
-    if(*end == '\0')
+    if(!isspace(*end) && (*end != '\0'))
       break;
-    end++;
+    end--;
     }
+  if(end == ptr)
+    return (char*)0;
+  end++;
   return bgav_strndup(ptr, end);
   }
 
@@ -60,7 +66,7 @@ bgav_id3v1_tag_t * bgav_id3v1_read(bgav_input_context_t * input)
 
   pos = buffer + 97;
   ret->comment = get_string(pos, 30);
-  if(strlen(ret->comment) <= 28)
+  if(ret->comment && strlen(ret->comment) <= 28)
     ret->track = buffer[126];
   ret->genre = buffer[127];
   return ret;

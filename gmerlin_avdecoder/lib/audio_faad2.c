@@ -46,19 +46,27 @@ static int get_data(bgav_stream_t * s)
   bgav_packet_t * p;
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
 
+  //  fprintf(stderr, "Get data %d...", priv->data_size);
+  
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!p)
     return 0;
   
-  if(priv->data_alloc < p->data_size)
+  if(priv->data_alloc < p->data_size + priv->data_size)
     {
-    priv->data_alloc = p->data_size + 32;
+    priv->data_alloc = p->data_size + priv->data_size + 32;
     priv->data = realloc(priv->data, priv->data_alloc);
     }
-  memcpy(priv->data, p->data, p->data_size);
-  priv->data_size = p->data_size;
+
+  if(priv->data_size)
+    memmove(priv->data, priv->data_ptr, priv->data_size);
+  
+  memcpy(priv->data + priv->data_size, p->data, p->data_size);
+  priv->data_size += p->data_size;
   priv->data_ptr = priv->data;
   bgav_demuxer_done_packet_read(s->demuxer, p);
+
+  //  fprintf(stderr, "done %d\n", priv->data_size);
   return 1;
   }
 
@@ -73,6 +81,7 @@ static int init_faad2(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
   priv->dec = faacDecOpen();
   priv->frame = gavl_audio_frame_create(NULL);
+  s->data.audio.decoder->priv = priv;
   
   /* Init the library using a DecoderSpecificInfo */
 
@@ -86,6 +95,10 @@ static int init_faad2(bgav_stream_t * s)
     result = faacDecInit(priv->dec, priv->data_ptr,
                          priv->data_size,
                          &samplerate, &channels);
+    //    fprintf(stderr, "faacDecInit %d bytes used\n", result);
+
+    priv->data_size -= result;
+    priv->data_ptr += result;
     }
   else
     result = faacDecInit2(priv->dec, s->ext_data,
@@ -110,12 +123,12 @@ static int init_faad2(bgav_stream_t * s)
   cfg->outputFormat = FAAD_FMT_16BIT;
   faacDecSetConfiguration(priv->dec, cfg);
   
-  s->data.audio.decoder->priv = priv;
 
   s->description = bgav_sprintf("%s", "AAC Audio stream");
   
   return 1;
   }
+
 
 static int decode_frame(bgav_stream_t * s)
   {
@@ -124,35 +137,49 @@ static int decode_frame(bgav_stream_t * s)
   
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
 
+  //  fprintf(stderr, "Decode frame %d\n", priv->data_size);
+  
   memset(&frame_info, 0, sizeof(&frame_info));
   
-  if(!priv->data_size)
+  if(priv->data_size < 30)
     if(!get_data(s))
       return 0;
 
   //  fprintf(stderr, "Decode %d\n", priv->data_size);
-  
-  priv->frame->samples.f = faacDecDecode(priv->dec,
-                                         &frame_info,
-                                         priv->data_ptr,
-                                         priv->data_size);
 
-
-  priv->data_ptr += frame_info.bytesconsumed;
-  priv->data_size -= frame_info.bytesconsumed;
-
-  if(!priv->frame->samples.f)
+  while(1)
     {
-    fprintf(stderr, "faad2: faacDecDecode failed %s\n",
-            faacDecGetErrorMessage(frame_info.error));
-    //    priv->data_size = 0;
-    //    priv->frame->valid_samples = 0;
-    return 0; /* Recatching the stream is doomed to failure, so we end here */
+    priv->frame->samples.f = faacDecDecode(priv->dec,
+                                           &frame_info,
+                                           priv->data_ptr,
+                                           priv->data_size);
+    priv->data_ptr  += frame_info.bytesconsumed;
+    priv->data_size -= frame_info.bytesconsumed;
+    
+    if(!priv->frame->samples.f)
+      {
+      if(frame_info.error == 14) /* Too little data */
+        {
+        //        fprintf(stderr, "Need more data %d\n", priv->data_size);
+        if(!get_data(s))
+          return 0;
+        }
+      else
+        {
+        fprintf(stderr, "faad2: faacDecDecode failed %s\n",
+                faacDecGetErrorMessage(frame_info.error));
+        //    priv->data_size = 0;
+        //    priv->frame->valid_samples = 0;
+        return 0; /* Recatching the stream is doomed to failure, so we end here */
+        }
+      }
+    else
+      break;
     }
 
-  priv->last_block_size = frame_info.samples / s->data.audio.format.num_channels;
   priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
-
+  priv->last_block_size = priv->frame->valid_samples;
+  
   //  fprintf(stderr, "Decoded %d samples, used %d bytes\n", priv->last_block_size,
   //          frame_info.bytesconsumed);
   
