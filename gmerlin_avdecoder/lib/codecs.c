@@ -275,11 +275,6 @@ void bgav_codecs_init()
   bgav_init_audio_decoders_mad();
 #endif
 
-  
-  bgav_init_video_decoders_qtraw();
-  bgav_init_video_decoders_qtrle();
-
-
 #ifdef HAVE_LIBPNG
   bgav_init_video_decoders_png();
 #endif
@@ -358,6 +353,9 @@ void bgav_codecs_init()
     }
   
 #endif
+
+  bgav_init_video_decoders_qtraw();
+  //  bgav_init_video_decoders_qtrle();
   
   bgav_init_audio_decoders_aiff();
   

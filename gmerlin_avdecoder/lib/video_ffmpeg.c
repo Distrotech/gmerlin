@@ -59,6 +59,7 @@ static codec_info_t codec_infos[] =
                0x00 } },
     { "FFmpeg rpza decoder", "Apple Video", CODEC_ID_RPZA,
       (int[]){ BGAV_MK_FOURCC('r', 'p', 'z', 'a'),
+               BGAV_MK_FOURCC('a', 'z', 'p', 'r'),
                0x00 } },
     { "FFmpeg SMC decoder", "Apple Graphics", CODEC_ID_SMC,
       (int[]){ BGAV_MK_FOURCC('s', 'm', 'c', ' '),
@@ -82,6 +83,10 @@ static codec_info_t codec_infos[] =
     { "FFmpeg MSRLE Decoder", "Microsoft RLE", CODEC_ID_MSRLE,
       (int[]){ BGAV_MK_FOURCC('m', 'r', 'l', 'e'),
                BGAV_MK_FOURCC(0x1, 0x0, 0x0, 0x0),
+               0x00 } },
+
+    { "FFmpeg QT rle Decoder", "Quicktime RLE", CODEC_ID_QTRLE,
+      (int[]){ BGAV_MK_FOURCC('r', 'l', 'e', ' '),
                0x00 } },
     
     /************************************************************

@@ -98,7 +98,7 @@ static void qt_decode_rle8(
 static void qt_decode_rle16(
   unsigned char *encoded,
   int encoded_size,
-  unsigned char *decoded,
+  unsigned char *_decoded,
   int width,
   int height,
   int bytes_per_pixel)
@@ -109,9 +109,9 @@ static void qt_decode_rle16(
   int lines_to_change;
   signed char rle_code;
   int row_ptr, pixel_ptr;
-  int row_inc = bytes_per_pixel * width;
+  int row_inc = width;
   unsigned char p1, p2;
-
+  uint16_t * decoded = (uint16_t*)_decoded;
   // check if this frame is even supposed to change
   if (encoded_size < 8)
     return;
@@ -140,7 +140,7 @@ static void qt_decode_rle16(
   row_ptr = row_inc * start_line;
   while (lines_to_change--)
   {
-    pixel_ptr = row_ptr + ((encoded[stream_ptr++] - 1) * bytes_per_pixel);
+    pixel_ptr = row_ptr + (encoded[stream_ptr++] - 1);
 
     while (stream_ptr < encoded_size &&
            (rle_code = (signed char)encoded[stream_ptr++]) != -1)
@@ -156,8 +156,8 @@ static void qt_decode_rle16(
         p2 = encoded[stream_ptr++];
         while (rle_code--)
         {
-          decoded[pixel_ptr++] = p2;
-          decoded[pixel_ptr++] = p1;
+          decoded[pixel_ptr] = (p1<<8) | p2;
+          pixel_ptr++;
         }
       }
       else
@@ -165,9 +165,11 @@ static void qt_decode_rle16(
         // copy pixels directly to output
         while (rle_code--)
         {
-          decoded[pixel_ptr++] = encoded[stream_ptr + 1];
-          decoded[pixel_ptr++] = encoded[stream_ptr + 0];
+          p1 = encoded[stream_ptr++];
+          p2 = encoded[stream_ptr++];
+          decoded[pixel_ptr] = (p1<<8) | p2;
           stream_ptr += 2;
+          pixel_ptr++;
         }
       }
     }
