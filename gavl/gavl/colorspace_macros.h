@@ -48,11 +48,11 @@
 
 #define CONVERSION_FUNC_START_PLANAR_PACKED(input_type, output_type, advance_x, advance_y) \
 input_type * end_ptr;\
-int units_per_line = ctx->input_frame->y_stride/sizeof(input_type);\
-input_type  * src_y = (input_type*)ctx->input_frame->y;\
-input_type  * src_u = (input_type*)ctx->input_frame->u;\
-input_type  * src_v = (input_type*)ctx->input_frame->v;\
-output_type * dst = (output_type*)ctx->input_frame->pixels;
+int units_per_line = ctx->input_frame->strides[0]/sizeof(input_type);\
+input_type  * src_y = (input_type*)ctx->input_frame->planes[0];\
+input_type  * src_u = (input_type*)ctx->input_frame->planes[1];\
+input_type  * src_v = (input_type*)ctx->input_frame->planes[2];\
+output_type * dst = (output_type*)ctx->input_frame->planes[0];
 
 #define CONVERSION_FUNC_END_PLANAR_PACKED 
 
@@ -60,9 +60,9 @@ output_type * dst = (output_type*)ctx->input_frame->pixels;
 
 #define CONVERSION_FUNC_START_PACKED_PACKED(input_type, output_type, advance_x, advance_y) \
 input_type * end_ptr;\
-int units_per_line = ctx->input_frame->pixels_stride/sizeof(input_type);\
-input_type  * src = (input_type*)ctx->input_frame->pixels;\
-output_type * dst = (output_type*)ctx->output_frame->pixels;
+int units_per_line = ctx->input_frame->strides[0]/sizeof(input_type);\
+input_type  * src = (input_type*)ctx->input_frame->planes[0];\
+output_type * dst = (output_type*)ctx->output_frame->planes[0];
 
 #define CONVERSION_FUNC_END_PACKED_PACKED
 
@@ -70,11 +70,11 @@ output_type * dst = (output_type*)ctx->output_frame->pixels;
 
 #define CONVERSION_FUNC_START_PACKED_PLANAR(input_type, output_type, advance_x, advance_y) \
 input_type * end_ptr;\
-int units_per_line = ctx->input_frame->pixels_stride/sizeof(input_type);\
-input_type * src = (input_type*)ctx->input_frame->pixels;\
-output_type * dst_y = (output_type*)ctx->output_frame->y;\
-output_type * dst_u = (output_type*)ctx->output_frame->u;\
-output_type * dst_v = (output_type*)ctx->output_frame->v;
+int units_per_line = ctx->input_frame->strides[0]/sizeof(input_type);\
+input_type * src = (input_type*)ctx->input_frame->planes[0];\
+output_type * dst_y = (output_type*)ctx->output_frame->planes[0];\
+output_type * dst_u = (output_type*)ctx->output_frame->planes[1];\
+output_type * dst_v = (output_type*)ctx->output_frame->planes[2];
 
 #define CONVERSION_FUNC_END_PACKED_PLANAR
 
@@ -82,13 +82,13 @@ output_type * dst_v = (output_type*)ctx->output_frame->v;
 
 #define CONVERSION_FUNC_START_PLANAR_PLANAR(input_type, output_type, advance_x, advance_y) \
 input_type * end_ptr;\
-int units_per_line = ctx->input_frame->y_stride/sizeof(input_type);\
-input_type * src_y = (input_type*)ctx->input_frame->y;\
-input_type * src_u = (input_type*)ctx->input_frame->u;\
-input_type * src_v = (input_type*)ctx->input_frame->v;\
-output_type * dst_y = (output_type*)ctx->output_frame->y;\
-output_type * dst_u = (output_type*)ctx->output_frame->u;\
-output_type * dst_v = (output_type*)ctx->output_frame->v;
+int units_per_line = ctx->input_frame->planes[0]_stride/sizeof(input_type);\
+input_type * src_y = (input_type*)ctx->input_frame->planes[0];\
+input_type * src_u = (input_type*)ctx->input_frame->planes[1];\
+input_type * src_v = (input_type*)ctx->input_frame->planes[2];\
+output_type * dst_y = (output_type*)ctx->output_frame->planes[0];\
+output_type * dst_u = (output_type*)ctx->output_frame->planes[1];\
+output_type * dst_v = (output_type*)ctx->output_frame->planes[2];
 
 #define CONVERSION_FUNC_END_PLANAR_PLANAR
 
@@ -102,15 +102,15 @@ output_type * dst_v = (output_type*)ctx->output_frame->v;
 int i;\
 input_type * end_ptr;\
 int imax = ctx->input_format.image_height/advance_y;\
-int units_per_line = ctx->input_frame->y_stride/sizeof(input_type);\
+int units_per_line = ctx->input_frame->strides[0]/sizeof(input_type);\
 input_type * src_y;\
 input_type * src_u;\
 input_type * src_v;\
 output_type * dst;\
-uint8_t * src_y_save = ctx->input_frame->y;\
-uint8_t * src_u_save = ctx->input_frame->u;\
-uint8_t * src_v_save = ctx->input_frame->v;\
-uint8_t * dst_save =   ctx->output_frame->pixels;
+uint8_t * src_y_save = ctx->input_frame->planes[0];\
+uint8_t * src_u_save = ctx->input_frame->planes[1];\
+uint8_t * src_v_save = ctx->input_frame->planes[2];\
+uint8_t * dst_save =   ctx->output_frame->planes[0];
 
 #define CONVERSION_LOOP_START_PLANAR_PACKED(input_type, output_type) \
 for(i = 0; i < imax; i++){\
@@ -120,10 +120,10 @@ src_v = src_v_save;\
 dst =   (output_type*)dst_save;
                                             
 #define CONVERSION_FUNC_END_PLANAR_PACKED \
-src_y_save += ctx->input_frame->y_stride;\
-src_u_save += ctx->input_frame->u_stride;\
-src_v_save += ctx->input_frame->v_stride;\
-dst_save += ctx->output_frame->pixels_stride;}
+src_y_save += ctx->input_frame->strides[0];\
+src_u_save += ctx->input_frame->strides[1];\
+src_v_save += ctx->input_frame->strides[2];\
+dst_save += ctx->output_frame->strides[0];}
 
 /* Planar -> Planar conversion */
 
@@ -131,19 +131,19 @@ dst_save += ctx->output_frame->pixels_stride;}
 int i;\
 input_type * end_ptr;\
 int imax = ctx->input_format.image_height/advance_y;\
-int units_per_line = ctx->input_frame->y_stride/sizeof(input_type);\
+int units_per_line = ctx->input_frame->strides[0]/sizeof(input_type);\
 input_type * src_y;\
 input_type * src_u;\
 input_type * src_v;\
 output_type * dst_y;\
 output_type * dst_u;\
 output_type * dst_v;\
-uint8_t * src_y_save = (input_type*)ctx->input_frame->y;\
-uint8_t * src_u_save = (input_type*)ctx->input_frame->u;\
-uint8_t * src_v_save = (input_type*)ctx->input_frame->v;\
-uint8_t * dst_y_save = (output_type*)ctx->output_frame->y;\
-uint8_t * dst_u_save = (output_type*)ctx->output_frame->u;\
-uint8_t * dst_v_save = (output_type*)ctx->output_frame->v;
+uint8_t * src_y_save = (input_type*)ctx->input_frame->planes[0];\
+uint8_t * src_u_save = (input_type*)ctx->input_frame->planes[1];\
+uint8_t * src_v_save = (input_type*)ctx->input_frame->planes[2];\
+uint8_t * dst_y_save = (output_type*)ctx->output_frame->planes[0];\
+uint8_t * dst_u_save = (output_type*)ctx->output_frame->planes[1];\
+uint8_t * dst_v_save = (output_type*)ctx->output_frame->planes[2];
 
 #define CONVERSION_LOOP_START_PLANAR_PLANAR(input_type, output_type) \
 for(i = 0; i < imax; i++){\
@@ -155,12 +155,12 @@ dst_u = (output_type*)dst_u_save;\
 dst_v = (output_type*)dst_v_save;
 
 #define CONVERSION_FUNC_END_PLANAR_PLANAR \
-src_y_save += ctx->input_frame->y_stride;\
-src_u_save += ctx->input_frame->u_stride;\
-src_v_save += ctx->input_frame->v_stride;\
-dst_y_save += ctx->output_frame->y_stride;\
-dst_u_save += ctx->output_frame->u_stride;\
-dst_v_save += ctx->output_frame->v_stride;}
+src_y_save += ctx->input_frame->strides[0];\
+src_u_save += ctx->input_frame->strides[1];\
+src_v_save += ctx->input_frame->strides[2];\
+dst_y_save += ctx->output_frame->strides[0];\
+dst_u_save += ctx->output_frame->strides[1];\
+dst_v_save += ctx->output_frame->strides[2];}
 
 /* Packed -> Planar conversion */
 
@@ -172,11 +172,11 @@ output_type * dst_y;\
 output_type * dst_u;\
 output_type * dst_v;\
 int imax = ctx->input_format.image_height/advance_y;\
-int units_per_line = ctx->input_frame->pixels_stride/sizeof(input_type);\
-uint8_t * src_save = ctx->input_frame->pixels;\
-uint8_t * dst_y_save = ctx->output_frame->y;\
-uint8_t * dst_u_save = ctx->output_frame->u;\
-uint8_t * dst_v_save = ctx->output_frame->v;
+int units_per_line = ctx->input_frame->strides[0]/sizeof(input_type);\
+uint8_t * src_save = ctx->input_frame->planes[0];\
+uint8_t * dst_y_save = ctx->output_frame->planes[0];\
+uint8_t * dst_u_save = ctx->output_frame->planes[1];\
+uint8_t * dst_v_save = ctx->output_frame->planes[2];
 
 #define CONVERSION_LOOP_START_PACKED_PLANAR(input_type, output_type) \
 for(i = 0; i < imax; i++){\
@@ -186,10 +186,10 @@ dst_u = (output_type*)dst_u_save;\
 dst_v = (output_type*)dst_v_save;
 
 #define CONVERSION_FUNC_END_PACKED_PLANAR \
-dst_y_save += ctx->output_frame->y_stride;\
-dst_u_save += ctx->output_frame->u_stride;\
-dst_v_save += ctx->output_frame->v_stride;\
-src_save += ctx->input_frame->pixels_stride;}
+dst_y_save += ctx->output_frame->strides[0];\
+dst_u_save += ctx->output_frame->strides[1];\
+dst_v_save += ctx->output_frame->strides[2];\
+src_save += ctx->input_frame->strides[0];}
 
 /* Packed -> Packed conversion */
 
@@ -199,9 +199,9 @@ input_type * end_ptr;\
 input_type * src;\
 output_type * dst;\
 int imax = ctx->input_format.image_height/advance_y;\
-int units_per_line = ctx->input_frame->pixels_stride/sizeof(input_type);\
-uint8_t * src_save = ctx->input_frame->pixels;\
-uint8_t * dst_save = ctx->output_frame->pixels;
+int units_per_line = ctx->input_frame->strides[0]/sizeof(input_type);\
+uint8_t * src_save = ctx->input_frame->planes[0];\
+uint8_t * dst_save = ctx->output_frame->planes[0];
 
 #define CONVERSION_LOOP_START_PACKED_PACKED(input_type, output_type) \
 for(i = 0; i < imax; i++){\
@@ -209,18 +209,18 @@ src = (input_type*)src_save;\
 dst = (output_type*)dst_save;
 
 #define CONVERSION_FUNC_END_PACKED_PACKED \
-dst_save += ctx->output_frame->pixels_stride;\
-src_save += ctx->input_frame->pixels_stride;}
+dst_save += ctx->output_frame->strides[0];\
+src_save += ctx->input_frame->strides[0];}
 
 #define CONVERSION_FUNC_MIDDLE_PACKED_TO_420(input_type, output_type) \
-dst_y_save += ctx->output_frame->y_stride;\
-src_save += ctx->input_frame->pixels_stride;\
+dst_y_save += ctx->output_frame->strides[0];\
+src_save += ctx->input_frame->strides[0];\
 src =   (input_type*)src_save;\
 dst_y = (output_type*)dst_y_save;
 
 #define CONVERSION_FUNC_MIDDLE_420_TO_PACKED(input_type, output_type) \
-src_y_save += ctx->input_frame->y_stride;\
-dst_save += ctx->output_frame->pixels_stride;\
+src_y_save += ctx->input_frame->strides[0];\
+dst_save += ctx->output_frame->strides[0];\
 src_y = (input_type*)src_y_save;\
 src_u = (input_type*)src_u_save;\
 src_v = (input_type*)src_v_save;\

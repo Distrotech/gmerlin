@@ -292,20 +292,23 @@ typedef struct gavl_video_converter_s gavl_video_converter_t;
 
 typedef struct gavl_video_frame_s
   {
+  uint8_t * planes[4];
+  int strides[4];
+
   /* For planar formsts */
   
-  uint8_t * y;
-  uint8_t * u;
-  uint8_t * v;
+  //  uint8_t * y;
+  //  uint8_t * u;
+  //  uint8_t * v;
 
-  int y_stride;
-  int u_stride;
-  int v_stride;
+  //  int y_stride;
+  //  int u_stride;
+  //  int v_stride;
  
   /* For packed formats */
   
-  uint8_t * pixels;
-  int pixels_stride;
+  //  uint8_t * pixels;
+  //  int pixels_stride;
   
   void * user_data;   /* For storing private data             */
 

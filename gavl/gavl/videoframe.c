@@ -49,71 +49,71 @@ void gavl_video_frame_alloc(gavl_video_frame_t * ret,
     case GAVL_BGR_15:
     case GAVL_RGB_16:
     case GAVL_BGR_16:
-      ret->pixels_stride = format->frame_width*2;
-      ALIGN(ret->pixels_stride);
-      ret->pixels = memalign(ALIGNMENT_BYTES,
-                             ret->pixels_stride * format->frame_height);
+      ret->strides[0] = format->frame_width*2;
+      ALIGN(ret->strides[0]);
+      ret->planes[0] = memalign(ALIGNMENT_BYTES,
+                             ret->strides[0] * format->frame_height);
       break;
     case GAVL_RGB_24:
     case GAVL_BGR_24:
-      ret->pixels_stride = format->frame_width*3;
-      ALIGN(ret->pixels_stride);
-      ret->pixels = memalign(ALIGNMENT_BYTES,
-                             ret->pixels_stride * format->frame_height);
+      ret->strides[0] = format->frame_width*3;
+      ALIGN(ret->strides[0]);
+      ret->planes[0] = memalign(ALIGNMENT_BYTES,
+                             ret->strides[0] * format->frame_height);
       break;
     case GAVL_RGB_32:
     case GAVL_BGR_32:
-      ret->pixels_stride = format->frame_width*4;
-      ALIGN(ret->pixels_stride);
-      ret->pixels = memalign(ALIGNMENT_BYTES,
-                             ret->pixels_stride * format->frame_height);
+      ret->strides[0] = format->frame_width*4;
+      ALIGN(ret->strides[0]);
+      ret->planes[0] = memalign(ALIGNMENT_BYTES,
+                             ret->strides[0] * format->frame_height);
       break;
     case GAVL_RGBA_32:
-      ret->pixels_stride = format->frame_width*4;
-      ALIGN(ret->pixels_stride);
-      ret->pixels = memalign(ALIGNMENT_BYTES,
-                             ret->pixels_stride * format->frame_height);
+      ret->strides[0] = format->frame_width*4;
+      ALIGN(ret->strides[0]);
+      ret->planes[0] = memalign(ALIGNMENT_BYTES,
+                             ret->strides[0] * format->frame_height);
       break;
     case GAVL_YUY2:
-      ret->pixels_stride = format->frame_width*2;
-      ALIGN(ret->pixels_stride);
-      ret->pixels = memalign(ALIGNMENT_BYTES,
-                             ret->pixels_stride * format->frame_height);
+      ret->strides[0] = format->frame_width*2;
+      ALIGN(ret->strides[0]);
+      ret->planes[0] = memalign(ALIGNMENT_BYTES,
+                             ret->strides[0] * format->frame_height);
       break;
     case GAVL_YUV_420_P:
-      ret->y_stride = format->frame_width;
-      ret->u_stride = format->frame_width/2;
-      ret->v_stride = format->frame_width/2;
-      ALIGN(ret->y_stride);
-      ALIGN(ret->u_stride);
-      ALIGN(ret->v_stride);
+      ret->strides[0] = format->frame_width;
+      ret->strides[1] = format->frame_width/2;
+      ret->strides[2] = format->frame_width/2;
+      ALIGN(ret->strides[0]);
+      ALIGN(ret->strides[1]);
+      ALIGN(ret->strides[2]);
       
-      ret->pixels = memalign(ALIGNMENT_BYTES,
-                             ret->y_stride*format->frame_height+
-                             (ret->u_stride*format->frame_height)/2+
-                             (ret->v_stride*format->frame_height)/2);
-      ret->y = ret->pixels;
-      ret->u = ret->y + ret->y_stride*format->frame_height;
-      ret->v = ret->u + (ret->u_stride*format->frame_height)/2;
-      ret->pixels_stride = ret->y_stride;
+      ret->planes[0] = memalign(ALIGNMENT_BYTES,
+                             ret->strides[0]*format->frame_height+
+                             (ret->strides[1]*format->frame_height)/2+
+                             (ret->strides[2]*format->frame_height)/2);
+      ret->planes[0] = ret->planes[0];
+      ret->planes[1] = ret->planes[0] + ret->strides[0]*format->frame_height;
+      ret->planes[2] = ret->planes[1] + (ret->strides[1]*format->frame_height)/2;
+      ret->strides[0] = ret->strides[0];
       break;
     case GAVL_YUV_422_P:
-      ret->y_stride = format->frame_width;
-      ret->u_stride = format->frame_width/2;
-      ret->v_stride = format->frame_width/2;
-      ALIGN(ret->y_stride);
-      ALIGN(ret->u_stride);
-      ALIGN(ret->v_stride);
+      ret->strides[0] = format->frame_width;
+      ret->strides[1] = format->frame_width/2;
+      ret->strides[2] = format->frame_width/2;
+      ALIGN(ret->strides[0]);
+      ALIGN(ret->strides[1]);
+      ALIGN(ret->strides[2]);
 
-      ret->pixels = memalign(ALIGNMENT_BYTES,
-                             ret->y_stride*format->frame_height+
-                             ret->u_stride*format->frame_height+
-                             ret->v_stride*format->frame_height);
+      ret->planes[0] = memalign(ALIGNMENT_BYTES,
+                             ret->strides[0]*format->frame_height+
+                             ret->strides[1]*format->frame_height+
+                             ret->strides[2]*format->frame_height);
 
-      ret->y = ret->pixels;
-      ret->u = ret->y + ret->y_stride*format->frame_height;
-      ret->v = ret->u + ret->u_stride*format->frame_height;
-      ret->pixels_stride = ret->y_stride;
+      ret->planes[0] = ret->planes[0];
+      ret->planes[1] = ret->planes[0] + ret->strides[0]*format->frame_height;
+      ret->planes[2] = ret->planes[1] + ret->strides[1]*format->frame_height;
+      ret->strides[0] = ret->strides[0];
       break;
     case GAVL_COLORSPACE_NONE:
       fprintf(stderr, "Colorspace not specified for video frame\n");
@@ -124,9 +124,9 @@ void gavl_video_frame_alloc(gavl_video_frame_t * ret,
 
 void gavl_video_frame_free(gavl_video_frame_t * frame)
   {
-  if(frame->pixels)
-    free(frame->pixels);
-  frame->pixels = (uint8_t*)0;
+  if(frame->planes[0])
+    free(frame->planes[0]);
+  frame->planes[0] = (uint8_t*)0;
   }
 
 gavl_video_frame_t * gavl_video_frame_create(gavl_video_format_t * format)
@@ -145,7 +145,7 @@ void gavl_video_frame_destroy(gavl_video_frame_t * frame)
 
 void gavl_video_frame_null(gavl_video_frame_t* frame)
   {
-  frame->pixels = (char*)0;
+  frame->planes[0] = (char*)0;
   }
 
 void gavl_clear_video_frame(gavl_video_frame_t * frame,
@@ -162,17 +162,17 @@ void gavl_clear_video_frame(gavl_video_frame_t * frame,
     case GAVL_BGR_24:
     case GAVL_RGB_32:
     case GAVL_BGR_32:
-      memset(frame->pixels, 0x00, format->frame_height * frame->pixels_stride);
+      memset(frame->planes[0], 0x00, format->frame_height * frame->strides[0]);
       break;
     case GAVL_RGBA_32:
       for(i = 0; i < format->frame_height; i++)
         {
         for(j = 0; j < format->frame_width; j++)
           {
-          frame->pixels[4*j + i*frame->pixels_stride]   = 0x00; /* R */
-          frame->pixels[4*j + i*frame->pixels_stride+1] = 0x00; /* G */
-          frame->pixels[4*j + i*frame->pixels_stride+2] = 0x00; /* B */
-          frame->pixels[4*j + i*frame->pixels_stride+3] = 0xFF; /* A */
+          frame->planes[0][4*j + i*frame->strides[0]]   = 0x00; /* R */
+          frame->planes[0][4*j + i*frame->strides[0]+1] = 0x00; /* G */
+          frame->planes[0][4*j + i*frame->strides[0]+2] = 0x00; /* B */
+          frame->planes[0][4*j + i*frame->strides[0]+3] = 0xFF; /* A */
           }
         }
       
@@ -182,20 +182,20 @@ void gavl_clear_video_frame(gavl_video_frame_t * frame,
         {
         for(j = 0; j < format->frame_width; j++)
           {
-          frame->pixels[2*j + i*frame->pixels_stride]   = 0x00; /* Y   */
-          frame->pixels[2*j + i*frame->pixels_stride+1] = 0x80; /* U/V */
+          frame->planes[0][2*j + i*frame->strides[0]]   = 0x00; /* Y   */
+          frame->planes[0][2*j + i*frame->strides[0]+1] = 0x80; /* U/V */
           }
         }
       break;
     case GAVL_YUV_420_P:
-      memset(frame->y, 0x00, format->frame_height * frame->y_stride);
-      memset(frame->u, 0x80, (format->frame_height * frame->u_stride)/2);
-      memset(frame->v, 0x80, (format->frame_height * frame->v_stride)/2);
+      memset(frame->planes[0], 0x00, format->frame_height * frame->strides[0]);
+      memset(frame->planes[1], 0x80, (format->frame_height * frame->strides[1])/2);
+      memset(frame->planes[2], 0x80, (format->frame_height * frame->strides[2])/2);
       break;
     case GAVL_YUV_422_P:
-      memset(frame->y, 0x00, format->frame_height * frame->y_stride);
-      memset(frame->u, 0x80, format->frame_height * frame->u_stride);
-      memset(frame->v, 0x80, format->frame_height * frame->v_stride);
+      memset(frame->planes[0], 0x00, format->frame_height * frame->strides[0]);
+      memset(frame->planes[1], 0x80, format->frame_height * frame->strides[1]);
+      memset(frame->planes[2], 0x80, format->frame_height * frame->strides[2]);
       break;
     case GAVL_COLORSPACE_NONE:
       break;
@@ -212,24 +212,24 @@ void gavl_video_frame_copy(gavl_video_format_t * format,
   int imax;
   int bytes_per_line;
   
-  if(dst->pixels_stride != src->pixels_stride)
+  if(dst->strides[0] != src->strides[0])
     {
-    //    fprintf(stderr, "Strides not equal %d %d\n", dst->pixels_stride, src->pixels_stride);
-    sp = src->pixels;
-    dp = dst->pixels;
-    bytes_per_line = (dst->pixels_stride < src->pixels_stride) ?
-      dst->pixels_stride : src->pixels_stride;      
+    //    fprintf(stderr, "Strides not equal %d %d\n", dst->strides[0], src->strides[0]);
+    sp = src->planes[0];
+    dp = dst->planes[0];
+    bytes_per_line = (dst->strides[0] < src->strides[0]) ?
+      dst->strides[0] : src->strides[0];      
     
     for(i = 0; i < format->image_height; i++)
       {
       memcpy(dp, sp, bytes_per_line);
-      dp += dst->pixels_stride;
-      sp += src->pixels_stride;
+      dp += dst->strides[0];
+      sp += src->strides[0];
       }
     }
   else
     {
-    memcpy(dst->pixels, src->pixels, format->image_height * dst->pixels_stride);
+    memcpy(dst->planes[0], src->planes[0], format->image_height * dst->strides[0]);
     }
   
   if(gavl_colorspace_is_planar(format->colorspace))
@@ -239,42 +239,42 @@ void gavl_video_frame_copy(gavl_video_format_t * format,
     else
       imax = format->image_height;
 
-    if(dst->u_stride != src->u_stride)
+    if(dst->strides[1] != src->strides[1])
       {
-      sp = src->u;
-      dp = dst->u;
+      sp = src->planes[1];
+      dp = dst->planes[1];
       
-      bytes_per_line = (dst->u_stride < src->u_stride) ?
-        dst->u_stride : src->u_stride;      
+      bytes_per_line = (dst->strides[1] < src->strides[1]) ?
+        dst->strides[1] : src->strides[1];      
       
       for(i = 0; i < imax; i++)
         {
         memcpy(dp, sp, bytes_per_line);
-        dp += dst->u_stride;
-        sp += src->u_stride;
+        dp += dst->strides[1];
+        sp += src->strides[1];
         }
       }
     else
       {
-      memcpy(dst->u, src->u, imax * dst->u_stride);
+      memcpy(dst->planes[1], src->planes[1], imax * dst->strides[1]);
       }
     
-    if(dst->v_stride != src->v_stride)
+    if(dst->strides[2] != src->strides[2])
       {
-      sp = src->v;
-      dp = dst->v;
+      sp = src->planes[2];
+      dp = dst->planes[2];
       
-      bytes_per_line = (dst->v_stride < src->v_stride) ?
-        dst->v_stride : src->v_stride;      
+      bytes_per_line = (dst->strides[2] < src->strides[2]) ?
+        dst->strides[2] : src->strides[2];      
       
       for(i = 0; i < imax; i++)
         {
         memcpy(dp, sp, bytes_per_line);
-        dp += dst->v_stride;
-        sp += src->v_stride;
+        dp += dst->strides[2];
+        sp += src->strides[2];
         }
       }
     else
-      memcpy(dst->v, src->v, imax * dst->v_stride);
+      memcpy(dst->planes[2], src->planes[2], imax * dst->strides[2]);
     }
   }
