@@ -17,9 +17,11 @@
  
 *****************************************************************/
 
-#include <avdec_private.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
+#include <avdec_private.h>
 
 /* Supported header types */
 
@@ -139,7 +141,10 @@ static int adts_header_read(uint8_t * data, adts_header_t * ret)
   
   ret->num_blocks = (data[6] & 0x03) + 1;
 
-  ret->block_samples = 1024;
+  if(ret->profile == 2) 
+    ret->block_samples = 910;
+  else
+    ret->block_samples = 1024;
   return 1;
   }
 
@@ -209,16 +214,20 @@ static int open_adts(bgav_demuxer_context_t * ctx)
     switch(adts.profile)
       {
       case 0:
-        ctx->stream_description = bgav_strndup("MPEG-2 AAC Main profile", NULL);
+        ctx->stream_description =
+          bgav_strndup("MPEG-2 AAC Main profile", NULL);
         break;
       case 1:
-        ctx->stream_description = bgav_strndup("MPEG-2 AAC Low Complexity profile (LC)", NULL);
+        ctx->stream_description =
+          bgav_strndup("MPEG-2 AAC Low Complexity profile (LC)", NULL);
         break;
       case 2:
-        ctx->stream_description = bgav_strndup("MPEG-2 AAC Scalable Sample Rate profile (SSR)", NULL);
+        ctx->stream_description =
+          bgav_strndup("MPEG-2 AAC Scalable Sample Rate profile (SSR)", NULL);
         break;
       case 3:
-        ctx->stream_description = bgav_strndup("MPEG-2 AAC (reserved)", NULL);
+        ctx->stream_description =
+          bgav_strndup("MPEG-2 AAC (reserved)", NULL);
         break;
       }
     }
@@ -227,16 +236,20 @@ static int open_adts(bgav_demuxer_context_t * ctx)
     switch(adts.profile)
       {
       case 0:
-        ctx->stream_description = bgav_strndup("MPEG-4 AAC MAIN", NULL);
+        ctx->stream_description =
+          bgav_strndup("MPEG-4 AAC MAIN", NULL);
         break;
       case 1:
-        ctx->stream_description = bgav_strndup("MPEG-4 AAC LC", NULL);
+        ctx->stream_description =
+          bgav_strndup("MPEG-4 AAC LC", NULL);
         break;
       case 2:
-        ctx->stream_description = bgav_strndup("MPEG-4 AAC SSR", NULL);
+        ctx->stream_description =
+          bgav_strndup("MPEG-4 AAC SSR", NULL);
         break;
       case 3:
-        ctx->stream_description = bgav_strndup("MPEG-4 AAC LTP", NULL);
+        ctx->stream_description =
+          bgav_strndup("MPEG-4 AAC LTP", NULL);
         break;
       }
     }
@@ -298,9 +311,6 @@ static int open_adts(bgav_demuxer_context_t * ctx)
 #endif
     bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
     ctx->can_seek = 1;
-
-    fprintf(stderr, "Sample count: %lld, samplerate: %d\n",
-            sample_count, adts.samplerate);
     
     ctx->tt->current_track->duration =
       gavl_samples_to_time(adts.samplerate, sample_count);
@@ -321,6 +331,8 @@ static int open_aac(bgav_demuxer_context_t * ctx,
   uint8_t header[4];
   aac_priv_t * priv;
   bgav_stream_t * s;
+  bgav_id3v1_tag_t * id3v1 = (bgav_id3v1_tag_t*)0;
+  bgav_metadata_t id3v1_metadata, id3v2_metadata;
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
@@ -344,10 +356,48 @@ static int open_aac(bgav_demuxer_context_t * ctx,
   
   /* Create track */
 
+  priv->data_start = ctx->input->position;
+
   ctx->tt = bgav_track_table_create(1);
 
-  if(ctx->input->id3v2)
-    bgav_id3v2_2_metadata(ctx->input->id3v2, &(ctx->tt->current_track->metadata));
+  /* Check for id3v1 tag at the end */
+
+  if(ctx->input->input->seek_byte)
+    {
+    bgav_input_seek(ctx->input, -128, SEEK_END);
+    if(bgav_id3v1_probe(ctx->input))
+      {
+      id3v1 = bgav_id3v1_read(ctx->input);
+      //      fprintf(stderr, "Found ID3V1 tag\n");
+      }
+    bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
+    }
+
+  //  if(ctx->input->id3v2)
+  //    bgav_id3v2_dump(ctx->input->id3v2);
+  
+  if(ctx->input->id3v2 && id3v1)
+    {
+    memset(&id3v1_metadata, 0, sizeof(id3v1_metadata));
+    memset(&id3v2_metadata, 0, sizeof(id3v2_metadata));
+    bgav_id3v1_2_metadata(id3v1, &id3v1_metadata);
+    bgav_id3v2_2_metadata(ctx->input->id3v2, &id3v2_metadata);
+    bgav_metadata_dump(&id3v2_metadata);
+
+    bgav_metadata_merge(&(ctx->tt->current_track->metadata),
+                        &id3v2_metadata, &id3v1_metadata);
+    bgav_metadata_free(&id3v1_metadata);
+    bgav_metadata_free(&id3v2_metadata);
+    }
+  else if(ctx->input->id3v2)
+    bgav_id3v2_2_metadata(ctx->input->id3v2,
+                          &(ctx->tt->current_track->metadata));
+  else if(id3v1)
+    bgav_id3v1_2_metadata(id3v1,
+                          &(ctx->tt->current_track->metadata));
+
+  if(id3v1)
+    bgav_id3v1_destroy(id3v1);
     
   s = bgav_track_add_audio_stream(ctx->tt->current_track);
 
@@ -356,8 +406,6 @@ static int open_aac(bgav_demuxer_context_t * ctx,
   s->fourcc = BGAV_MK_FOURCC('a', 'a', 'c', ' ');
 
   /* Initialize rest */
-
-  priv->data_start = ctx->input->position;
 
   if(ctx->input->total_bytes)
     priv->data_size = ctx->input->total_bytes - priv->data_start;

@@ -268,8 +268,8 @@ static struct
     { PIX_FMT_YUV422P,       GAVL_YUV_422_P },  ///< Planar YUV 4:2:2 (1 Cr & Cb sample per 2x1 Y samples)
     { PIX_FMT_YUV444P,       GAVL_YUV_444_P }, ///< Planar YUV 4:4:4 (1 Cr & Cb sample per 1x1 Y samples)
     { PIX_FMT_RGBA32,        GAVL_RGBA_32   },  ///< Packed pixel, 4 bytes per pixel, BGRABGRA..., stored in cpu endianness
-    { PIX_FMT_YUV410P,       GAVL_COLORSPACE_NONE }, ///< Planar YUV 4:1:0 (1 Cr & Cb sample per 4x4 Y samples)
-    { PIX_FMT_YUV411P,       GAVL_COLORSPACE_NONE }, ///< Planar YUV 4:1:1 (1 Cr & Cb sample per 4x1 Y samples)
+    { PIX_FMT_YUV410P,       GAVL_YUV_410_P }, ///< Planar YUV 4:1:0 (1 Cr & Cb sample per 4x4 Y samples)
+    { PIX_FMT_YUV411P,       GAVL_YUV_411_P }, ///< Planar YUV 4:1:1 (1 Cr & Cb sample per 4x1 Y samples)
     { PIX_FMT_RGB565,        GAVL_RGB_16 }, ///< always stored in cpu endianness
     { PIX_FMT_RGB555,        GAVL_RGB_15 }, ///< always stored in cpu endianness, most significant bit to 1
     { PIX_FMT_GRAY8,         GAVL_COLORSPACE_NONE },

@@ -411,17 +411,6 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
   return (bgav_id3v2_tag_t *)0;
   }
 
-void bgav_id3v2_free(bgav_id3v2_tag_t * t)
-  {
-  int i;
-  for(i = 0; i < t->num_frames; i++)
-    {
-    
-    }
-
-  free(t);
-  }
-
 bgav_id3v2_frame_t * bgav_id3v2_find_frame(bgav_id3v2_tag_t*t,
                                            uint32_t * fourcc)
   {
@@ -500,6 +489,70 @@ static uint32_t genre_tags[] =
     0x00,
   };
 
+static uint32_t comment_tags[] =
+  {
+    BGAV_MK_FOURCC('C', 'O', 'M', 'M'),
+    BGAV_MK_FOURCC('C', 'O', 'M', 0x00),
+    0x00,
+  };
+
+static char * get_comment(bgav_id3v2_frame_t* frame)
+  {
+  char * ret;
+  uint8_t encoding;
+  uint8_t * pos;
+  int bytes_per_char;
+  bgav_charset_converter_t * cnv =
+    (bgav_charset_converter_t*)0;
+  
+  if(!frame->data)
+    return (char*)0;
+  
+  encoding = *frame->data;
+    
+  switch(encoding)
+    {
+    case ENCODING_LATIN1:
+      bytes_per_char = 1;
+      cnv = bgav_charset_converter_create("LATIN1", "UTF-8");
+      break;
+    case ENCODING_UTF16_LE:
+      bytes_per_char = 2;
+      cnv = bgav_charset_converter_create("UTF16LE", "UTF-8");
+      break;
+    case ENCODING_UTF16_BE:
+      bytes_per_char = 2;
+      cnv = bgav_charset_converter_create("UTF16BE", "UTF-8");
+      break;
+    case ENCODING_UTF8:
+      bytes_per_char = 1;
+      break;
+    default:
+      fprintf(stderr, "Warning, unknown encoding %02x\n", encoding);
+      return (char *)0;
+    }
+  
+  pos = frame->data + 4; /* Skip encoding and language */
+
+  /* Skip short description */
+  
+  while(!is_null(pos, bytes_per_char))
+    pos += bytes_per_char;
+
+  pos += bytes_per_char;
+  
+  if(cnv)
+    ret = bgav_convert_string(cnv, 
+                              pos, frame->header.size - (int)(pos - frame->data),
+                              NULL);
+  else
+    ret = bgav_strndup(pos, NULL);
+
+  if(cnv)
+    bgav_charset_converter_destroy(cnv);
+  return ret;
+  }
+
 void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
   {
   int i_tmp;
@@ -556,6 +609,13 @@ void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
       m->genre = bgav_strndup(frame->strings[0], NULL);
       }
     }
+
+  /* Comment */
+  
+  frame = bgav_id3v2_find_frame(t, comment_tags);
+
+  if(frame)
+    m->comment = get_comment(frame);
   
   }
 

@@ -797,7 +797,7 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx,
   if(ctx->input->input->seek_byte && !priv->albw)
     {
     oldpos = ctx->input->position;
-    bgav_input_seek(ctx->input, 128, SEEK_END);
+    bgav_input_seek(ctx->input, -128, SEEK_END);
 
     if(bgav_id3v1_probe(ctx->input))
       {

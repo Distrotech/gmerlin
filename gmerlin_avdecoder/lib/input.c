@@ -482,7 +482,7 @@ void bgav_input_seek(bgav_input_context_t * ctx,
       ctx->position += position;
       break;
     case SEEK_END:
-      ctx->position = ctx->total_bytes - position;
+      ctx->position = ctx->total_bytes + position;
       break;
     }
   ctx->input->seek_byte(ctx, position, whence);
