@@ -74,6 +74,8 @@ typedef struct bg_transcoder_track_s
 
   int selected;
 
+  /* This is non NULL if we have a redirector */
+  char * url;
   } bg_transcoder_track_t;
 
 bg_transcoder_track_t *

@@ -40,12 +40,17 @@ static void create_sections(bg_transcoder_track_t * t,
 
   char * encoder_label;
   
-  t->metadata_section =
-    bg_cfg_section_create_from_parameters("Metadata", t->metadata_parameters);
-
   t->general_section =
     bg_cfg_section_create_from_parameters("General", t->general_parameters);
 
+  /* Stop here for redirectors */
+
+  if(t->url)
+    return;
+  
+  t->metadata_section =
+    bg_cfg_section_create_from_parameters("Metadata", t->metadata_parameters);
+  
   if(t->audio_encoder_parameters)
     {
     encoder_label = bg_sprintf("%s options", audio_encoder->info->long_name);
@@ -420,6 +425,11 @@ static void set_track(bg_transcoder_track_t * track,
       }
     i++;
     }
+
+  /* Stop here for redirectors */
+
+  if(track->url)
+    return;
   
   /* Metadata */
     
@@ -543,6 +553,8 @@ bg_transcoder_track_create(const char * url,
                            bg_cfg_section_t * track_defaults_section)
   {
   int i;
+
+  bg_transcoder_track_t * ret = (bg_transcoder_track_t *)0;
   bg_transcoder_track_t * new_track = (bg_transcoder_track_t *)0;
   bg_transcoder_track_t * end_track = (bg_transcoder_track_t *)0;
   
@@ -609,6 +621,7 @@ bg_transcoder_track_create(const char * url,
   if(!bg_input_plugin_load(plugin_reg, url,
                            input_info, &plugin_handle))
     {
+    fprintf(stderr, __FILE__": Loading %s failed\n", url);
     return (bg_transcoder_track_t*)0;
     }
 
@@ -621,12 +634,21 @@ bg_transcoder_track_create(const char * url,
     /* Load single track */
     track_info = input->get_track_info(plugin_handle->priv, track);
     new_track = calloc(1, sizeof(*new_track));
+    ret = new_track;
     
-    enable_streams(input, plugin_handle->priv, 
-                   track,
-                   track_info->num_audio_streams,
-                   track_info->num_video_streams);
-
+    if(track_info->url)
+      {
+      new_track->url = bg_strdup(new_track->url, track_info->url);
+      fprintf(stderr, "Track: %d, URL: %s\n", track, new_track->url);
+      }
+    else
+      {
+      enable_streams(input, plugin_handle->priv, 
+                     track,
+                     track_info->num_audio_streams,
+                     track_info->num_video_streams);
+      }
+    
     set_track(new_track, track_info, plugin_handle, url, track,
               audio_encoder, video_encoder);
     create_sections(new_track, track_defaults_section,
@@ -644,22 +666,32 @@ bg_transcoder_track_create(const char * url,
       {
       track_info = input->get_track_info(plugin_handle->priv, i);
 
-      if(new_track)
+      new_track = calloc(1, sizeof(*new_track));
+      
+      if(ret)
         {
-        end_track->next = calloc(1, sizeof(*new_track));
+        end_track->next = new_track;
         end_track = end_track->next;
         }
       else
         {
-        new_track = calloc(1, sizeof(*new_track));
+        ret = new_track;
         end_track = new_track;
         }
-      
-      enable_streams(input, plugin_handle->priv, 
-                     i,
-                     track_info->num_audio_streams,
-                     track_info->num_video_streams);
 
+      if(track_info->url)
+        {
+        new_track->url = bg_strdup(new_track->url, track_info->url);
+        fprintf(stderr, "Track: %d, URL: %s\n", i, new_track->url);
+        }
+      else
+        {
+        enable_streams(input, plugin_handle->priv, 
+                       i,
+                       track_info->num_audio_streams,
+                       track_info->num_video_streams);
+        }
+      
       set_track(new_track, track_info, plugin_handle, url, i,
                 audio_encoder, video_encoder);
       create_sections(new_track, track_defaults_section,
@@ -674,9 +706,97 @@ bg_transcoder_track_create(const char * url,
   if(audio_encoder)
     bg_plugin_unref(audio_encoder);
   
-  return new_track;
+  return ret;
   }
 
+#if 1
+static bg_transcoder_track_t * remove_redirectors(bg_transcoder_track_t * entries,
+                                                  bg_plugin_registry_t * plugin_reg,
+                                                  bg_cfg_section_t * track_defaults_section)
+  {
+  bg_transcoder_track_t * before, * e;
+  //  bg_album_entry_t * ret_end = (bg_album_entry_t*)0;
+  bg_transcoder_track_t * new_entry, * end_entry;
+  int done = 0;
+  const char * plugin_name = (const char*)0;
+  const bg_plugin_info_t * info;
+  
+  done = 1;
+  e = entries;
+
+  fprintf(stderr, "Remove redirectors\n");
+  
+  while(e)
+    {
+    if(e->url)
+      {
+      bg_cfg_section_get_parameter_string(e->general_section, "plugin", &plugin_name);
+      
+      if(plugin_name)
+        info = bg_plugin_find_by_name(plugin_reg, plugin_name);
+      else
+        info = (const bg_plugin_info_t*)0;
+
+      /* Load "real" url */
+      
+      new_entry = bg_transcoder_track_create(e->url,
+                                             info,
+                                             -1, plugin_reg,
+                                             track_defaults_section);
+      
+      if(new_entry)
+        {
+        /* Insert new entries into list */
+        if(e != entries)
+          {
+          before = entries;
+          while(before->next != e)
+            before = before->next;
+          before->next = new_entry;
+          }
+        else
+          {
+          entries = new_entry;
+          }
+      
+        end_entry = new_entry;
+        while(end_entry->next)
+          end_entry = end_entry->next;
+        end_entry->next = e->next;
+      
+        bg_transcoder_track_destroy(e);
+        e = new_entry;
+        }
+      else
+        {
+        /* Remove e from list */
+        if(e != entries)
+          {
+          before = entries;
+          while(before->next != e)
+            before = before->next;
+          before->next = e->next;
+          }
+        else
+          {
+          entries = e->next;
+          before = (bg_transcoder_track_t*)0;
+          }
+        bg_transcoder_track_destroy(e);
+        e = (before) ? before->next : entries;
+        }
+      }
+    else
+      {
+      /* Leave e as it is */
+      e = e->next;
+      }
+    }
+  fprintf(stderr, "Remove redirectors %p %p\n", entries, entries->next);
+
+  return entries;
+  }
+#endif
 
 bg_transcoder_track_t *
 bg_transcoder_track_create_from_urilist(const char * list,
@@ -728,6 +848,12 @@ bg_transcoder_track_create_from_urilist(const char * list,
     i++;
     }
   bg_urilist_free(uri_list);
+
+  ret = remove_redirectors(ret,
+                           plugin_reg,
+                           track_defaults_section);
+  
+
   return ret;
   }
 
@@ -776,6 +902,10 @@ bg_transcoder_track_create_from_albumentries(const char * xml_string,
     entry = entry->next;
     }
   bg_album_entries_destroy(new_entries);
+
+  ret = remove_redirectors(ret,
+                           plugin_reg,
+                           track_defaults_section);
   
   return ret;
   }
@@ -829,7 +959,9 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
     bg_parameter_info_destroy_array(t->general_parameters);
   if(t->metadata_parameters)
     bg_parameter_info_destroy_array(t->metadata_parameters);
-    
+
+  if(t->url)
+    free(t->url);
   free(t);
   }
 

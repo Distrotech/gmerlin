@@ -131,9 +131,8 @@ void bg_album_update_entry(bg_album_t * album,
     entry->location = bg_strdup(entry->location, track_info->url);
     entry->index = 0;
     entry->total_tracks = 1;
+    entry->flags = BG_ALBUM_ENTRY_REDIRECTOR;
     }
-  if(track_info->plugin)
-    entry->plugin   = bg_strdup(entry->plugin, track_info->plugin);
   
   }
 
@@ -300,8 +299,11 @@ void bg_album_insert_urls_after(bg_album_t * a,
     bg_album_insert_entries_after(a, new_entries, before);
 
     before = new_entries;
-    while(before->next)
-      before = before->next;
+    if(before)
+      {
+      while(before->next)
+        before = before->next;
+      }
     bg_album_changed(a);
     i++;
     }
@@ -1165,13 +1167,97 @@ void bg_album_find_devices(bg_album_t * a)
   bg_album_set_devices(a);
   }
 
+static bg_album_entry_t * remove_redirectors(bg_album_t * album,
+                                      bg_album_entry_t * entries)
+  {
+  bg_album_entry_t * before;
+  bg_album_entry_t * e;
+  //  bg_album_entry_t * ret_end = (bg_album_entry_t*)0;
+  bg_album_entry_t * new_entry, * end_entry;
+  int done = 0;
+  const bg_plugin_info_t * info;
+  const char * long_name;
+  
+  done = 1;
+  e = entries;
+  
+  while(e)
+    {
+    if(e->flags & BG_ALBUM_ENTRY_REDIRECTOR)
+      {
+      /* Load "real" url */
+      if(e->plugin)
+        {
+        info = bg_plugin_find_by_name(album->com->plugin_reg,
+                                      e->plugin);
+          
+        long_name = info->long_name;
+        }
+      else
+        long_name = (const char*)0;
+        
+      new_entry = bg_album_load_url(album,
+                                    e->location,
+                                    long_name);
+      if(new_entry)
+        {
+        /* Insert new entries into list */
+        if(e != entries)
+          {
+          before = entries;
+          while(before->next != e)
+            before = before->next;
+          before->next = new_entry;
+          }
+        else
+          {
+          entries = new_entry;
+          }
+      
+        end_entry = new_entry;
+        while(end_entry->next)
+          end_entry = end_entry->next;
+        end_entry->next = e->next;
+      
+        bg_album_entry_destroy(e);
+        e = new_entry;
+        }
+      else
+        {
+        /* Remove e from list */
+        if(e != entries)
+          {
+          before = entries;
+          while(before->next != e)
+            before = before->next;
+          before->next = e->next;
+          }
+        else
+          {
+          entries = e->next;
+          before = (bg_album_entry_t*)0;
+          }
+        bg_album_entry_destroy(e);
+        e = (before) ? before->next : entries;
+        }
+      }
+    else
+      {
+      /* Leave e as it is */
+      e = e->next;
+      }
+    }
+  //  fprintf(stderr, "Remove redirectors %p\n", entries);
+
+  return entries;
+  }
+
 bg_album_entry_t * bg_album_load_url(bg_album_t * album,
                                      char * url,
                                      const char * plugin_long_name)
   {
   int i, num_entries;
     
-  //  bg_redirector_plugin_t * redir;
 
   bg_album_entry_t * new_entry;
   bg_album_entry_t * end_entry = (bg_album_entry_t*)0;
@@ -1213,6 +1299,8 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   
   for(i = 0; i < num_entries; i++)
     {
+    track_info = plugin->get_track_info(album->com->load_handle->priv, i);
+
     new_entry = bg_album_entry_create(album);
     new_entry->location = bg_system_to_utf8(url, strlen(url));
     new_entry->index = i;
@@ -1220,13 +1308,12 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
     //    fprintf(stderr, "Loading [%d/%d]\n", new_entry->total_tracks,
     //            new_entry->index);
     
-    track_info = plugin->get_track_info(album->com->load_handle->priv, i);
     bg_album_update_entry(album, new_entry, track_info);
-
+    
     if(plugin_long_name)
       new_entry->plugin = bg_strdup(new_entry->plugin,
                                     album->com->load_handle->info->name);
-    
+
     if(ret)
       {
       end_entry->next = new_entry;
@@ -1237,8 +1324,11 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
       ret = new_entry;
       end_entry = ret;
       }
+    
     }
   plugin->close(album->com->load_handle->priv);
+
+  ret = remove_redirectors(album, ret);
   return ret;
   }
 

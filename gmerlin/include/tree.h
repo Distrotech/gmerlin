@@ -25,10 +25,11 @@
 /* Entry flags                 */
 /* Flags should not be changed */
 
-#define BG_ALBUM_ENTRY_ERROR    (1<<0)
-#define BG_ALBUM_ENTRY_SELECTED (1<<1)
-#define BG_ALBUM_ENTRY_PRIVNAME (1<<2)
-
+#define BG_ALBUM_ENTRY_ERROR      (1<<0)
+#define BG_ALBUM_ENTRY_SELECTED   (1<<1)
+#define BG_ALBUM_ENTRY_PRIVNAME   (1<<2)
+#define BG_ALBUM_ENTRY_REDIRECTOR (1<<3)
+ 
 /*
  *  Shuffle mode passed to bg_media_tree_next() and
  *  bg_media_tree_previous()

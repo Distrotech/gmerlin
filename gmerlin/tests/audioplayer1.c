@@ -72,7 +72,8 @@ int main(int argc, char ** argv)
 
   /* Load input plugin */
 
-  plugin_info = bg_plugin_find_by_filename(plugin_reg, argv[1], BG_PLUGIN_INPUT);
+  plugin_info = bg_plugin_find_by_filename(plugin_reg, argv[1],
+                                           BG_PLUGIN_INPUT);
   if(!plugin_info)
     {
     fprintf(stderr, "Input plugin not found\n");
@@ -83,7 +84,8 @@ int main(int argc, char ** argv)
 
   /* Load output plugin */
   
-  plugin_info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_OUTPUT_AUDIO);
+  plugin_info = bg_plugin_registry_get_default(plugin_reg,
+                                               BG_PLUGIN_OUTPUT_AUDIO);
 
   if(!plugin_info)
     {

@@ -92,7 +92,6 @@ void bg_track_info_free(bg_track_info_t * info)
   MY_FREE(info->name);
   MY_FREE(info->description);
   MY_FREE(info->url);
-  MY_FREE(info->plugin);
   memset(info, 0, sizeof(*info));
   }
 

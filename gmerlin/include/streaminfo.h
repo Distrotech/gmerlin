@@ -108,7 +108,6 @@ typedef struct
   /* The following are only meaningful for redirectors */
   
   char * url;
-  char * plugin;
   
   } bg_track_info_t;
 
