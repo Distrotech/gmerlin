@@ -172,6 +172,7 @@ int bg_search_file_exec(const char * file)
     free(test_filename);
     if(ret)
       break;
+    i++;
     }
 
   bg_strbreak_free(searchpaths);
