@@ -35,7 +35,8 @@ have_gmerlin="false"
 
 GMERLIN_REQUIRED="0.3.1pre1"
 
-PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, have_gmerlin="true")
+PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, have_gmerlin="true",
+have_gmerlin="false")
 
 GMERLIN_PLUGIN_DIR=`pkg-config --variable=prefix gmerlin`"/lib/gmerlin/plugins"
 AC_SUBST(GMERLIN_PLUGIN_DIR)
