@@ -163,7 +163,12 @@ static int socket_connect_inet(host_address_t * a, int milliseconds)
            sizeof(a->addr.ipv6_addr));
     addr_in6.sin6_port = htons(a->port);
     }
-                                                                               
+  else
+    {
+    fprintf(stderr, "Unknown Address family!!!\n");
+    return -1;
+    }
+  
   /* Connect the thing */
                                                                                
   //  fprintf(stderr, "Connecting...");

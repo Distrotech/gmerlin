@@ -16,7 +16,7 @@
 /* Enable liba52 */
 #define HAVE_LIBA52 1
 
-/* Define to 1 if you have the `avcodec' library (-lavcodec). */
+/* Do we have libavcodec installed? */
 #define HAVE_LIBAVCODEC 1
 
 /* libmpeg2 found */
@@ -30,6 +30,9 @@
 
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
+
+/* RealPlayer dll loader enabled */
+#define HAVE_REALDLL 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
@@ -60,6 +63,9 @@
 
 /* Win32 dll loader enabled */
 #define HAVE_W32DLL 1
+
+/* Xanim dll loader enabled */
+#define HAVE_XADLL 1
 
 /* Name of package */
 #define PACKAGE "gmerlin_avdec"
