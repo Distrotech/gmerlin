@@ -27,7 +27,7 @@ bgav_input_context_t * create_input(bgav_t * b)
   {
   bgav_input_context_t * ret;
 
-  fprintf(stderr, "CREATE INPUT %p\n", b->name_change_callback);
+  //  fprintf(stderr, "CREATE INPUT %p\n", b->name_change_callback);
   
   ret = calloc(1, sizeof(*ret));
 
@@ -59,7 +59,7 @@ bgav_demuxer_context_t * create_demuxer(bgav_t * b, bgav_demuxer_t * demuxer)
   {
   bgav_demuxer_context_t * ret;
 
-  fprintf(stderr, "CREATE DEMUXER %p\n", b->name_change_callback);
+  //  fprintf(stderr, "CREATE DEMUXER %p\n", b->name_change_callback);
 
   ret = bgav_demuxer_create(demuxer, b->input);
   
@@ -155,9 +155,15 @@ int bgav_init(bgav_t * ret)
     }
   
   if(ret->demuxer)
+    {
     bgav_demuxer_destroy(ret->demuxer);
+    ret->demuxer = (bgav_demuxer_context_t*)0;
+    }
   if(ret->redirector)
+    {
     bgav_redirector_destroy(ret->redirector);
+    ret->redirector = (bgav_redirector_context_t*)0;
+    }
   return 0;
   }
 
@@ -184,6 +190,13 @@ int bgav_open(bgav_t * ret, const char * location)
     goto fail;
   return 1;
   fail:
+
+  if(ret->input)
+    {
+    bgav_input_close(ret->input);
+    free(ret->input);
+    ret->input = (bgav_input_context_t*)0;
+    }
   return 0;
   }
 
@@ -213,13 +226,17 @@ void bgav_close(bgav_t * b)
   {
   if(b->is_running)
     bgav_stop(b);
+
   if(b->demuxer)
     bgav_demuxer_destroy(b->demuxer);
   if(b->redirector)
     bgav_redirector_destroy(b->redirector);
 
   if(b->input)
+    {
     bgav_input_close(b->input);
+    free(b->input);
+    }
   if(b->tt)
     bgav_track_table_unref(b->tt);
   free(b);
@@ -250,7 +267,7 @@ void bgav_stop(bgav_t * b)
 
 void bgav_select_track(bgav_t * b, int track)
   {
-  fprintf(stderr, "bgav_select_track %d\n", track);
+  //  fprintf(stderr, "bgav_select_track %d\n", track);
   
   if(b->is_running)
     bgav_stop(b);
@@ -353,7 +370,7 @@ bgav_set_name_change_callback(bgav_t * b,
   {
   b->name_change_callback      = callback;
   b->name_change_callback_data = data;
-  fprintf(stderr, "bgav_set_name_change_callback\n");
+  //  fprintf(stderr, "bgav_set_name_change_callback\n");
   
   if(b->input)
     {

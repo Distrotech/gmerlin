@@ -529,8 +529,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       
       bg_vs->stream_id = i;
       }
-    else
-      fprintf(stderr, "Steam %d has an unhandled type\n", i);
+    //    else
+    //      fprintf(stderr, "Steam %d has an unhandled type\n", i);
     }
   set_metadata(ctx);
   }
@@ -675,7 +675,7 @@ static void seek_quicktime(bgav_demuxer_context_t * ctx, gavl_time_t time)
   int keep_going;
   stream_priv_t * s;
   bgav_track_t * track;
-  fprintf(stderr, "Seek quicktime %f %lld\n", gavl_time_to_seconds(time), time);
+  //  fprintf(stderr, "Seek quicktime %f %lld\n", gavl_time_to_seconds(time), time);
   track = ctx->tt->current_track;
   
   qt_priv_t * priv = (qt_priv_t*)(ctx->priv);

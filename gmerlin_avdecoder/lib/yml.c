@@ -366,7 +366,7 @@ static void skip_comment(parser_t * p)
   {
   char * pos;
   advance(p, 4);
-  fprintf(stderr, "Skip comment\n");
+  //  fprintf(stderr, "Skip comment\n");
   while(1)
     {
     pos = find_chars(p, "-");

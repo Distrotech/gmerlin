@@ -470,7 +470,7 @@ static int parse_media(char ** lines, bgav_sdp_media_desc_t * ret)
   num_lines = 1;
   while(lines[num_lines] && (lines[num_lines][0] != 'm'))
     num_lines++;
-  fprintf(stderr, "Num lines: %d %c %p\n", num_lines, lines[num_lines-1][0], lines[num_lines]);
+  //  fprintf(stderr, "Num lines: %d %c %p\n", num_lines, lines[num_lines-1][0], lines[num_lines]);
   
   /* 2. Parse "m=" header */
 
@@ -741,7 +741,7 @@ int bgav_sdp_parse(const char * data, bgav_sdp_t * ret)
         ret->num_attributes = i_tmp;
         break;
       case 'm': //  Zero or more media descriptions (see below)
-        fprintf(stderr, "Parse media %d\n", line_index);
+        //        fprintf(stderr, "Parse media %d\n", line_index);
         ret->num_media++;
         ret->media = realloc(ret->media, ret->num_media * sizeof(*(ret->media)));
         line_index += parse_media(&(lines[line_index]), &(ret->media[ret->num_media-1]));

@@ -136,7 +136,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
   
   header = bgav_http_get_header(p->h);
 
-  bgav_http_header_dump(header);
+  //  bgav_http_header_dump(header);
   
   var = bgav_http_header_get_var(header, "Content-Length");
   if(var)
@@ -197,7 +197,7 @@ static int read_chunk(bgav_input_context_t* ctx)
   http_priv * p = (http_priv *)(ctx->priv);
   fd = bgav_http_get_fd(p->h);
 
-  fprintf(stderr, "Read chunk...");
+  //  fprintf(stderr, "Read chunk...");
     
   /* We first check if there is data availble, after that, the whole
      chunk is read at once */
@@ -248,8 +248,8 @@ static int read_chunk(bgav_input_context_t* ctx)
   p->chunk_buffer_size = chunk_size;
   p->chunk_size = chunk_size;
 
-  fprintf(stderr, "done, size: %d\n", p->chunk_size);
-  bgav_hexdump(p->chunk_buffer, p->chunk_size, 16);
+  //  fprintf(stderr, "done, size: %d\n", p->chunk_size);
+  //  bgav_hexdump(p->chunk_buffer, p->chunk_size, 16);
   return bytes_read;
   }
 
@@ -480,7 +480,13 @@ static int read_nonblock_http(bgav_input_context_t * ctx,
 static void close_http(bgav_input_context_t * ctx)
   {
   http_priv * p = (http_priv *)(ctx->priv);
+
+  if(p->chunk_buffer)
+    free(p->chunk_buffer);
   bgav_http_close(p->h);
+
+  //  fprintf(stderr, "CLOSE HTTP\n");
+
   free(p);
   }
 

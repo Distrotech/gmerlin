@@ -220,9 +220,9 @@ static int init_std(bgav_stream_t * s)
     bgav_BITMAPINFOHEADER_dump(&bih_in);
     }
 
-  fprintf(stderr, "Formats:");
-  bgav_BITMAPINFOHEADER_dump(&bih_in);
-  bgav_BITMAPINFOHEADER_dump(&bih_out);
+  //  fprintf(stderr, "Formats:");
+  //  bgav_BITMAPINFOHEADER_dump(&bih_in);
+  //  bgav_BITMAPINFOHEADER_dump(&bih_out);
     
   s->data.video.decoder->priv = priv;
 
@@ -260,7 +260,7 @@ static int init_std(bgav_stream_t * s)
 
   if(result)
     {
-    fprintf(stderr, "No YUV output possible, switching to RGB\n");
+    //    fprintf(stderr, "No YUV output possible, switching to RGB\n");
     bih_out.biCompression = 0;
     bih_out.biSizeImage = bih_out.biWidth * bih_out.biHeight * 3;
     bih_out.biBitCount  = 24;
@@ -268,7 +268,7 @@ static int init_std(bgav_stream_t * s)
     }
   else
     {
-    fprintf(stderr, "Decoder supports YUY2 output\n");
+    //    fprintf(stderr, "Decoder supports YUY2 output\n");
     //    unpack_bih(&bih_out, &priv->bih_out);
     //    bgav_BITMAPINFOHEADER_dump(&bih_out);
     s->data.video.format.colorspace = GAVL_YUY2;
@@ -400,7 +400,7 @@ static int init_ds(bgav_stream_t * s)
 
   if(!DS_VideoDecoder_SetDestFmt(priv->ds_dec, 16, BGAV_MK_FOURCC('2', 'Y', 'U', 'Y')))
     {
-    fprintf(stderr, "YUY2 output\n");
+    //    fprintf(stderr, "YUY2 output\n");
     s->data.video.format.colorspace = GAVL_YUY2;
     }
   else /* RGB */
@@ -513,7 +513,7 @@ static int init_dmo(bgav_stream_t * s)
 
   if(!DMO_VideoDecoder_SetDestFmt(priv->dmo_dec, 16, BGAV_MK_FOURCC('2', 'Y', 'U', 'Y')))
     {
-    fprintf(stderr, "YUY2 output\n");
+    //    fprintf(stderr, "YUY2 output\n");
     s->data.video.format.colorspace = GAVL_YUY2;
     }
   else /* RGB */

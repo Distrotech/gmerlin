@@ -289,7 +289,7 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
             stream = bgav_track_add_audio_stream(ctx->tt->current_track);
             stream->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
             stream->stream_id = priv->pes_header.stream_id;
-            fprintf(stderr, "Found audio stream\n");
+            //            fprintf(stderr, "Found audio stream\n");
             }
           }
         else if((c >= 0xA0) && (c <= 0xA7)) /* LPCM Audio */
@@ -309,7 +309,7 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
             stream = bgav_track_add_audio_stream(ctx->tt->current_track);
             stream->fourcc = BGAV_MK_FOURCC('L', 'P', 'C', 'M');
             stream->stream_id = priv->pes_header.stream_id;
-            fprintf(stderr, "Found LPCM stream\n");
+            //            fprintf(stderr, "Found LPCM stream\n");
             }
 
           /* Set stream format */
@@ -359,7 +359,7 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
           stream = bgav_track_add_audio_stream(ctx->tt->current_track);
           stream->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
           stream->stream_id = priv->pes_header.stream_id;
-          fprintf(stderr, "Found audio stream\n");
+          //          fprintf(stderr, "Found audio stream\n");
           }
         }
       /* Video stream */
@@ -376,7 +376,7 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
           stream = bgav_track_add_video_stream(ctx->tt->current_track);
           stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
           stream->stream_id = priv->pes_header.stream_id;
-          fprintf(stderr, "Found video stream\n");
+          //          fprintf(stderr, "Found video stream\n");
           }
         }
 
@@ -406,8 +406,8 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
           if(priv->start_pts < 0)
             {
             priv->start_pts = priv->pes_header.pts;
-            fprintf(stderr, "Start PTS: %f\n",
-                    priv->start_pts / 90000.0);
+            //            fprintf(stderr, "Start PTS: %f\n",
+            //                    priv->start_pts / 90000.0);
             }
           p->timestamp =
             ((priv->pes_header.pts - priv->start_pts) * GAVL_TIME_SCALE) / 90000;

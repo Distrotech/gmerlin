@@ -200,9 +200,9 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
         keep_going = 0;
         break;
       default:
-        fprintf(stderr, "Skipping chunk ");
-        bgav_dump_fourcc(ch.fourcc);
-        fprintf(stderr, "\n");
+        //        fprintf(stderr, "Skipping chunk ");
+        //        bgav_dump_fourcc(ch.fourcc);
+        //        fprintf(stderr, "\n");
         
         bgav_input_skip(ctx->input, PADD(ch.size));
         break;

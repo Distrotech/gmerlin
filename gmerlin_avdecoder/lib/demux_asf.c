@@ -342,7 +342,7 @@ static int probe_asf(bgav_input_context_t * input)
 
   if(guid_equal(&guid, &guid_header))
     {
-    fprintf(stderr, "Detected ASF format\n");
+    //    fprintf(stderr, "Detected ASF format\n");
     return 1;
     }
   return 0;
@@ -362,7 +362,7 @@ static int read_bitrate_properties(bgav_demuxer_context_t * ctx)
 
   if(!asf->num_stream_bitrates)
     {
-    fprintf(stderr, "No bitrates specified\n");
+    //    fprintf(stderr, "No bitrates specified\n");
     return 1;
     }
   asf->stream_bitrates     = calloc(asf->num_stream_bitrates,
@@ -374,8 +374,8 @@ static int read_bitrate_properties(bgav_demuxer_context_t * ctx)
        !bgav_input_read_32_le(ctx->input, &(asf->stream_bitrates[i].bitrate)))
       return 0;
     asf->stream_bitrates[i].stream_id = i_tmp;
-    fprintf(stderr, "Stream: %d, Bitrate %d\n", asf->stream_bitrates[i].stream_id,
-            asf->stream_bitrates[i].bitrate);
+    //    fprintf(stderr, "Stream: %d, Bitrate %d\n", asf->stream_bitrates[i].stream_id,
+    //        asf->stream_bitrates[i].bitrate);
     
     }
   return 1;
@@ -676,7 +676,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
       /* Found video stream */
       else if(guid_equal(&guid, &guid_video_media))
         {
-        fprintf(stderr, "Found video stream\n");
+        //        fprintf(stderr, "Found video stream\n");
         bgav_vs = bgav_track_add_video_stream(ctx->tt->current_track);
         bgav_vs->stream_id = stream_number;
         //        asf_vs  = calloc(1, sizeof(*asf_vs));
@@ -731,7 +731,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
     /* Metadata */
     else if(guid_equal(&guid_comment_header, &guid))
       {
-      fprintf(stderr, "Comment header\n");
+      //      fprintf(stderr, "Comment header\n");
       if(!read_metadata(ctx))
         return 0;
       }
@@ -749,12 +749,12 @@ static int open_asf(bgav_demuxer_context_t * ctx,
     /* Skip unused junk */
     if(ctx->input->position - chunk_start_pos < size)
       {
-      fprintf(stderr, "Skipping %lld unused/unknown bytes...",
-              size - (ctx->input->position - chunk_start_pos));
+      //      fprintf(stderr, "Skipping %lld unused/unknown bytes...",
+      //              size - (ctx->input->position - chunk_start_pos));
       bgav_input_skip(ctx->input,
                       size - (ctx->input->position - chunk_start_pos));
-      fprintf(stderr, "Pos is now: %lld\n",
-              ctx->input->position);
+      //      fprintf(stderr, "Pos is now: %lld\n",
+      //              ctx->input->position);
       
       }
     //    if(size & 1)
@@ -781,9 +781,9 @@ static int open_asf(bgav_demuxer_context_t * ctx,
   
   asf->data_start = ctx->input->position;
   
-  fprintf(stderr, "Reached Data section, %lld %lld\n",
-          asf->data_start,
-          asf->data_size);
+  //  fprintf(stderr, "Reached Data section, %lld %lld\n",
+  //          asf->data_start,
+  //          asf->data_size);
 
   /* Update stream bitrates */
 

@@ -412,7 +412,7 @@ static int init(bgav_stream_t * s)
     //    fprintf(stderr, "done %d colors\n", imax);
     }
   
-  fprintf(stderr, "Setting extradata: %d bytes\n", s->ext_size);
+  //  fprintf(stderr, "Setting extradata: %d bytes\n", s->ext_size);
 
   //  bgav_hexdump(s->ext_data, s->ext_size, 16);
   
@@ -596,7 +596,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   
     if(bytes_used <= 0)
       {
-      fprintf(stderr, "Skipping corrupted frame\n");
+      //      fprintf(stderr, "Skipping corrupted frame\n");
       priv->packet_buffer_ptr += len;
       priv->bytes_in_packet_buffer -= len;
       }
@@ -658,7 +658,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       }
     else /* !got_picture */
       {
-      fprintf(stderr, "Got no picture\n");
+      //      fprintf(stderr, "Got no picture\n");
       if(!priv->packet_buffer_ptr)
         return 0; /* EOF */
       }

@@ -352,7 +352,7 @@ static void bgav_albw_unwrap(bgav_input_context_t * input, bgav_albw_t * a)
   for(i = 0; i < a->num_tracks; i++)
     {
     output = fopen(a->tracks[i].filename, "wb");
-    fprintf(stderr, "%d: %s\n", i+1, a->tracks[i].filename);
+    //    fprintf(stderr, "%d: %s\n", i+1, a->tracks[i].filename);
     bytes_read = 1;
     while(bytes_read)
       {
@@ -440,9 +440,9 @@ static bgav_albw_t * bgav_albw_read(bgav_input_context_t * input)
   
   if(diff > 0)
     {
-    fprintf(stderr, "WARNING: first file starts at %lld, pos: %lld (diff: %lld)\n",
-            ret->tracks[0].start_pos, input->position,
-            diff);
+    //    fprintf(stderr, "WARNING: first file starts at %lld, pos: %lld (diff: %lld)\n",
+    //            ret->tracks[0].start_pos, input->position,
+    //            diff);
     for(i = 0; i < ret->num_tracks; i++)
       {
       ret->tracks[i].start_pos += diff;
@@ -521,7 +521,7 @@ static int resync(bgav_demuxer_context_t * ctx)
       }
     }
   if(skipped_bytes)
-    fprintf(stderr, "Skipped %d bytes\n", skipped_bytes);
+    fprintf(stderr, "Skipped %d bytes in mpeg audio stream\n", skipped_bytes);
   return 1;
   }
 
@@ -749,7 +749,7 @@ static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
                                            albw->tracks[i].end_pos);
       
     
-    fprintf(stderr, "*** ret[i].duration: %f\n", gavl_time_to_seconds(ret->tracks[i].duration));
+//    fprintf(stderr, "*** ret[i].duration: %f\n", gavl_time_to_seconds(ret->tracks[i].duration));
     }
   
   return ret;
@@ -863,13 +863,13 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
   
   if(priv->data_end && (priv->data_end - ctx->input->position < 4))
     {
-    fprintf(stderr, "Stream finished %lld %lld\n",
-            priv->data_end, ctx->input->position);
+//    fprintf(stderr, "Stream finished %lld %lld\n",
+//            priv->data_end, ctx->input->position);
     return 0;
     }
   if(!resync(ctx))
     {
-    fprintf(stderr, "Lost sync\n");
+//    fprintf(stderr, "Lost sync\n");
     return 0;
     }
   s = ctx->tt->current_track->audio_streams;
@@ -879,7 +879,7 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
   if(bgav_input_read_data(ctx->input, p->data, priv->header.frame_bytes) <
      priv->header.frame_bytes)
     {
-    fprintf(stderr, "EOF\n");
+//    fprintf(stderr, "EOF\n");
     return 0;
     }
   p->data_size = priv->header.frame_bytes;

@@ -210,8 +210,8 @@ void bgav_codecs_init()
 
   bgav_init_audio_decoders_aiff();
   
-  fprintf(stderr, "BGAV Codecs initialized: A: %d V: %d\n",
-          num_audio_codecs, num_video_codecs);
+  //  fprintf(stderr, "BGAV Codecs initialized: A: %d V: %d\n",
+  //          num_audio_codecs, num_video_codecs);
   }
 
 void bgav_audio_decoder_register(bgav_audio_decoder_t * dec)

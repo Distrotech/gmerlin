@@ -215,6 +215,6 @@ bgav_seek(bgav_t * b, gavl_time_t time)
       break;
       }
     }
-  fprintf(stderr, "Seek done, %d iterations\n", num_iterations);
+  //  fprintf(stderr, "Seek done, %d iterations\n", num_iterations);
   }
 

@@ -222,7 +222,7 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
   
   if(extra_header)
     {
-    bgav_http_header_dump(extra_header);
+    //    bgav_http_header_dump(extra_header);
     bgav_http_header_send(extra_header, ret->fd);
     }
   write(ret->fd, "\r\n", 2);

@@ -479,6 +479,7 @@ bgav_input_context_t * bgav_input_open_vcd(const char * device);
 
 
 void bgav_input_close(bgav_input_context_t * ctx);
+void bgav_input_destroy(bgav_input_context_t * ctx);
 
 void bgav_input_skip(bgav_input_context_t *, int);
 

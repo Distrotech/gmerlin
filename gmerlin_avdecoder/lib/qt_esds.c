@@ -91,7 +91,7 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
   if(bgav_input_read_data(input, ret->decoderConfig,
                           ret->decoderConfigLen) < ret->decoderConfigLen)
     return 0;
-  fprintf(stderr, "decoderConfigLen: %d\n", ret->decoderConfigLen);
+  //  fprintf(stderr, "decoderConfigLen: %d\n", ret->decoderConfigLen);
   bgav_qt_atom_skip(input, h);
   return 1;
   }

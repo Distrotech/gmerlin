@@ -71,7 +71,7 @@ static void decode_24(uint8_t * data, int data_len,
   int i;
   int num_samples;
   num_samples = data_len / 3;
-  fprintf(stderr, "decode_24: %d %d\n", data_len, num_samples);
+  //  fprintf(stderr, "decode_24: %d %d\n", data_len, num_samples);
   dst = f->samples.f;
   for(i = 0; i < num_samples; i++)
     {
@@ -92,7 +92,7 @@ static void decode_32(uint8_t * data, int data_len,
   int num_samples;
 
   num_samples = data_len / 4;
-  fprintf(stderr, "decode_32: %d %d\n", data_len, num_samples);
+  //  fprintf(stderr, "decode_32: %d %d\n", data_len, num_samples);
   dst = f->samples.f;
   for(i = 0; i < num_samples; i++)
     {

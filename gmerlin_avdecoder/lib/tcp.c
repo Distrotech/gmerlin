@@ -65,7 +65,7 @@ static int hostbyname(host_address_t * a, const char * hostname)
     return 1;
     }
 
-  fprintf(stderr, "Resolving host %s\n", hostname);
+  //  fprintf(stderr, "Resolving host %s\n", hostname);
   
   gethostbyname_buffer_size = 1024;
   gethostbyname_buffer = malloc(gethostbyname_buffer_size);
@@ -106,7 +106,7 @@ static int hostbyname(host_address_t * a, const char * hostname)
     fprintf(stderr, "No known address space\n");
     goto fail;
     }
-  fprintf(stderr, "Done\n");
+  //  fprintf(stderr, "Done\n");
   ret = 1;
 
   fail:
@@ -166,7 +166,7 @@ static int socket_connect_inet(host_address_t * a, int milliseconds)
                                                                                
   /* Connect the thing */
                                                                                
-  fprintf(stderr, "Connecting...");
+  //  fprintf(stderr, "Connecting...");
 
   if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)
     {
@@ -183,17 +183,17 @@ static int socket_connect_inet(host_address_t * a, int milliseconds)
       FD_SET (ret, &write_fds);
       if(!select(ret+1, (fd_set*)0, &write_fds,(fd_set*)0,&timeout))
         {
-        fprintf(stderr, "Connection timed out\n");
+        //        fprintf(stderr, "Connection timed out\n");
         return -1;
         }
       }
     else
       {
-      fprintf(stderr, "Failed\n");
+      //      fprintf(stderr, "Failed\n");
       return -1;
       }
     }
-  fprintf(stderr, "Connected\n");
+  //  fprintf(stderr, "Connected\n");
   
   /* Set back to blocking mode */
   

@@ -329,15 +329,15 @@ static int init_xadll(bgav_stream_t * s)
     goto fail;
     }
 #if 0  
-  fprintf(stderr, "=== XAnim Codec ===\n");
-  fprintf(stderr, " API revision: %x\n", mod_hdr->api_rev);
-  fprintf(stderr, " Codec: %s. Rev: %s\n", mod_hdr->desc, mod_hdr->rev);
-  if (mod_hdr->copyright)
-    fprintf(stderr, " %s\n", mod_hdr->copyright);
-  if (mod_hdr->mod_author)
-    fprintf(stderr, " Module Author(s): %s\n", mod_hdr->mod_author);
-  if (mod_hdr->authors)
-    fprintf(stderr, " Codec Author(s): %s\n", mod_hdr->authors);
+  //  fprintf(stderr, "=== XAnim Codec ===\n");
+  //  fprintf(stderr, " API revision: %x\n", mod_hdr->api_rev);
+  //  fprintf(stderr, " Codec: %s. Rev: %s\n", mod_hdr->desc, mod_hdr->rev);
+  //  if (mod_hdr->copyright)
+  //    fprintf(stderr, " %s\n", mod_hdr->copyright);
+  //  if (mod_hdr->mod_author)
+  //    fprintf(stderr, " Module Author(s): %s\n", mod_hdr->mod_author);
+  //  if (mod_hdr->authors)
+  //    fprintf(stderr, " Codec Author(s): %s\n", mod_hdr->authors);
 #endif
   if (mod_hdr->api_rev > XAVID_API_REV)
     {

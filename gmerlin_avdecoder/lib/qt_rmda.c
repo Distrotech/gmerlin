@@ -38,8 +38,8 @@ int bgav_qt_rmda_read(qt_atom_header_t * h,
           return 0;
         break;
       default:
-        fprintf(stderr, "Skipping atom inside rmda:\n");
-        bgav_qt_atom_dump_header(&ch);
+        //        fprintf(stderr, "Skipping atom inside rmda:\n");
+        //        bgav_qt_atom_dump_header(&ch);
         bgav_qt_atom_skip(input, &ch);
         break;
         

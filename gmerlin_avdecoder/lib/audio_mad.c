@@ -48,7 +48,7 @@ static int get_data(bgav_stream_t * s)
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!p)
     {
-    fprintf(stderr, "No packet\n");
+    //    fprintf(stderr, "No packet\n");
     return 0;
     }
   bytes_in_buffer = (int)(priv->stream.bufend - priv->stream.next_frame);
@@ -112,7 +112,7 @@ static int decode_frame(bgav_stream_t * s)
   if(priv->stream.bufend - priv->stream.next_frame <= MAD_BUFFER_GUARD)
     if(!get_data(s))
       {
-      fprintf(stderr, "No data left\n");
+      //      fprintf(stderr, "No data left\n");
       return 0;
       }
   //  fprintf(stderr, "Decode frame\n");
@@ -134,8 +134,8 @@ static int decode_frame(bgav_stream_t * s)
           return 0;
         break;
       default:
-        fprintf(stderr, "mad_decode_frame returned: %s\n",
-                mad_stream_errorstr(&priv->stream));
+        //        fprintf(stderr, "mad_decode_frame returned: %s\n",
+        //                mad_stream_errorstr(&priv->stream));
         //        fprintf(stderr, "Oops, Muting frame %s\n");
         mad_frame_mute(&priv->frame);
         break;
@@ -214,7 +214,7 @@ static int init_mad(bgav_stream_t * s)
   {
   mad_priv_t * priv;
 
-  fprintf(stderr, "Init MAD\n");
+  //  fprintf(stderr, "Init MAD\n");
 
   priv = calloc(1, sizeof(*priv));
   s->data.audio.decoder->priv = priv;
@@ -228,7 +228,7 @@ static int init_mad(bgav_stream_t * s)
   get_data(s);
   if(!decode_frame(s))
     {
-    fprintf(stderr, "Decode frame failed\n");
+    //    fprintf(stderr, "Decode frame failed\n");
     return 0;
     }
   return 1;

@@ -429,7 +429,7 @@ int decode_qtrle(bgav_stream_t * s, gavl_video_frame_t * frame)
     return 0;
     }
 
-  fprintf(stderr, "Got packet %d bytes\n", p->data_size);
+  //  fprintf(stderr, "Got packet %d bytes\n", p->data_size);
   
   priv->decode(p->data,
                p->data_size,

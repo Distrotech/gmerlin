@@ -522,8 +522,8 @@ static int decode_real(bgav_stream_t * s, gavl_audio_frame_t * f, int num_sample
     priv->sample_buffer_size -= samples_to_copy;
     samples_decoded += samples_to_copy;
     }
-  if(!f)
-    fprintf(stderr, "Skipped %d samples\n", samples_decoded);
+  //  if(!f)
+  //    fprintf(stderr, "Skipped %d samples\n", samples_decoded);
   
   return samples_decoded;
   }

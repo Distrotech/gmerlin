@@ -168,7 +168,7 @@ static int init_vorbis(bgav_stream_t * s)
     
     /* Initialize vorbis */
     
-    fprintf(stderr, "Init vorbis %d\n", s->ext_size);
+    //    fprintf(stderr, "Init vorbis %d\n", s->ext_size);
     //    bgav_hexdump(s->ext_data, s->ext_size, 16);
     
     if(vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
@@ -251,7 +251,7 @@ static int init_vorbis(bgav_stream_t * s)
       fprintf(stderr, "No OVHS Atom found\n");
       return 0;
       }
-    fprintf(stderr, "Found OVHS Atom\n");
+    //    fprintf(stderr, "Found OVHS Atom\n");
 
     buffer = ogg_sync_buffer(&priv->dec_oy, len - 8);
     memcpy(buffer, ptr, len - 8);
@@ -265,7 +265,7 @@ static int init_vorbis(bgav_stream_t * s)
     
     /* Initialize vorbis */
     
-    fprintf(stderr, "Init vorbis %d\n", s->ext_size);
+    //    fprintf(stderr, "Init vorbis %d\n", s->ext_size);
     //    bgav_hexdump(s->ext_data, s->ext_size, 16);
     
     if(vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,

@@ -55,7 +55,7 @@ static int open_pnm(bgav_input_context_t * ctx, const char * url)
 
   if(!priv->s)
     {
-    fprintf(stderr, "Cannot open %s\n", url);
+    //    fprintf(stderr, "Cannot open %s\n", url);
     return 0;
     }
   

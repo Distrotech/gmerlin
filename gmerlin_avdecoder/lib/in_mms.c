@@ -98,7 +98,7 @@ static int open_mms(bgav_input_context_t * ctx, const char * url)
   ctx->do_buffer = 1;
   ctx->demuxer->input = ctx;
   ctx->position = header_len;
-  bgav_input_close(input);
+  bgav_input_destroy(input);
   
   return 1;
   

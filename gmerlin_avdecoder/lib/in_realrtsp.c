@@ -66,7 +66,7 @@ static int open_realrtsp(bgav_input_context_t * ctx, const char * url)
 
   if(got_redirected)
     {
-    fprintf(stderr, "Got redirected to %s\n", mrl);
+    //    fprintf(stderr, "Got redirected to %s\n", mrl);
     ret = open_realrtsp(ctx, mrl);
     }
   free(mrl);

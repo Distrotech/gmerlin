@@ -29,7 +29,6 @@
 int bgav_qt_cmov_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_moov_t * ret)
   {
-  FILE * outfile;
   qt_atom_header_t ch;
   uint32_t compression_id;
   int have_dcom = 0;
@@ -55,7 +54,6 @@ int bgav_qt_cmov_read(qt_atom_header_t * h, bgav_input_context_t * input,
         switch(compression_id)
           {
           case BGAV_MK_FOURCC('z', 'l', 'i', 'b'):
-            //            fprintf(stderr, "zlib compressed movie header\n");
             have_dcom = 1;
             break;
           default:
@@ -88,11 +86,11 @@ int bgav_qt_cmov_read(qt_atom_header_t * h, bgav_input_context_t * input,
           }
         else
           {
-          fprintf(stderr, "Uncompressed %d bytes\n",
-                  (int)size_uncompressed_ret);
-          outfile = fopen("header.dat", "w");
-          fwrite(buf_uncompressed, size_uncompressed_ret, 1, outfile);
-          fclose(outfile);
+          //          fprintf(stderr, "Uncompressed %d bytes\n",
+          //                  (int)size_uncompressed_ret);
+          //          outfile = fopen("header.dat", "w");
+          //          fwrite(buf_uncompressed, size_uncompressed_ret, 1, outfile);
+          //          fclose(outfile);
           }
         input_mem = bgav_input_open_memory(buf_uncompressed,
                                            size_uncompressed_ret);
@@ -100,11 +98,11 @@ int bgav_qt_cmov_read(qt_atom_header_t * h, bgav_input_context_t * input,
         if(!bgav_qt_atom_read_header(input_mem, &ch) ||
            ch.fourcc != BGAV_MK_FOURCC('m', 'o', 'o', 'v'))
           {
-          bgav_input_close(input_mem);
+          bgav_input_destroy(input_mem);
           return 0;
           }
         result = bgav_qt_moov_read(&ch, input_mem, ret);
-        bgav_input_close(input_mem);
+        bgav_input_destroy(input_mem);
         free(buf_compressed);
         free(buf_uncompressed);
         

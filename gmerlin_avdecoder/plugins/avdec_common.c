@@ -203,7 +203,7 @@ void bg_avdec_start(void * priv)
     if(str)
       avdec->current_track->audio_streams[i].description = bg_strdup(NULL, str);
     }
-  bgav_dump(avdec->dec);
+  //  bgav_dump(avdec->dec);
   }
 
 void bg_avdec_seek(void * priv, gavl_time_t t)

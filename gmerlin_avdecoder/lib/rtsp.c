@@ -83,7 +83,7 @@ static void rtsp_send_request(bgav_rtsp_t * rtsp,
   /* Read answers */
   bgav_http_header_reset(rtsp->answers);
   bgav_http_header_revc(rtsp->answers, rtsp->fd, milliseconds);
-  bgav_http_header_dump(rtsp->answers);
+  //  bgav_http_header_dump(rtsp->answers);
 
   var = bgav_http_header_get_var(rtsp->answers, "Session");
   if(var && !(rtsp->session)) 

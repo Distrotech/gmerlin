@@ -62,7 +62,7 @@ int bgav_input_read_line(bgav_input_context_t* input,
       }
     }
   add_char(buffer, buffer_alloc, pos, 0);
-  fprintf(stderr, "Read line: %s\n", *buffer);
+  //  fprintf(stderr, "Read line: %s\n", *buffer);
   return 1;
   }
 
@@ -387,7 +387,11 @@ void bgav_input_close(bgav_input_context_t * ctx)
   {
   if(ctx->tt)
     bgav_track_table_unref(ctx->tt);
-  ctx->input->close(ctx);
+  if(ctx->input && ctx->priv)
+    {
+    ctx->input->close(ctx);
+    ctx->priv = NULL;
+    }
   if(ctx->buffer)
     free(ctx->buffer);
   if(ctx->mimetype)
@@ -395,8 +399,15 @@ void bgav_input_close(bgav_input_context_t * ctx)
   if(ctx->filename)
     free(ctx->filename);
   bgav_metadata_free(&(ctx->metadata));
-  free(ctx);
+  //  free(ctx);
+  memset(ctx, 0, sizeof(*ctx));
   return;
+  }
+
+void bgav_input_destroy(bgav_input_context_t * ctx)
+  {
+  bgav_input_close(ctx);
+  free(ctx);
   }
 
 void bgav_input_skip(bgav_input_context_t * ctx, int bytes)

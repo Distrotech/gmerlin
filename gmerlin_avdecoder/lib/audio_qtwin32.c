@@ -130,7 +130,7 @@ static int init_qtaudio(bgav_stream_t * s)
   priv->qtml_dll = LoadLibraryA("qtmlClient.dll");
   if(!priv->qtml_dll)
     {
-    fprintf(stderr, "Cannot open qtmlClient.dll\n");
+    //    fprintf(stderr, "Cannot open qtmlClient.dll\n");
     goto fail;
     }
 
@@ -257,12 +257,12 @@ static int init_qtaudio(bgav_stream_t * s)
   priv->InFrameSize   = (InputBufferSize+priv->FramesToGet-1)/priv->FramesToGet;
   priv->OutFrameSize  = OutputBufferSize/priv->FramesToGet;
 
-  fprintf(stderr, "audio: SoundConverterGetBufferSizes:%i\n", result);
-  fprintf(stderr, "audio: WantedBufferSize = %li\n", WantedBufferSize);
-  fprintf(stderr, "audio: InputBufferSize  = %li\n", InputBufferSize);
-  fprintf(stderr, "audio: OutputBufferSize = %li\n", OutputBufferSize);
-  fprintf(stderr, "audio: priv->FramesToGet = %li\n", priv->FramesToGet);
-  fprintf(stderr, "audio: FrameSize: %i -> %i\n", priv->InFrameSize, priv->OutFrameSize);
+  //  fprintf(stderr, "audio: SoundConverterGetBufferSizes:%i\n", result);
+  //  fprintf(stderr, "audio: WantedBufferSize = %li\n", WantedBufferSize);
+  //  fprintf(stderr, "audio: InputBufferSize  = %li\n", InputBufferSize);
+  //  fprintf(stderr, "audio: OutputBufferSize = %li\n", OutputBufferSize);
+  //  fprintf(stderr, "audio: priv->FramesToGet = %li\n", priv->FramesToGet);
+  //  fprintf(stderr, "audio: FrameSize: %i -> %i\n", priv->InFrameSize, priv->OutFrameSize);
 
   if(priv->SoundConverterBeginConversion (priv->myConverter))
     {

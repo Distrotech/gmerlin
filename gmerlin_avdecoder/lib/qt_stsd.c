@@ -116,7 +116,7 @@ static int stsd_read_audio(bgav_input_context_t * input,
                                 ret->format.audio.wave_atom.data,
                                 ret->format.audio.wave_atom.size) < ret->format.audio.wave_atom.size)
           return 0;
-        fprintf(stderr, "Found wave atom, %d bytes\n", ret->format.audio.wave_atom.size);
+        //        fprintf(stderr, "Found wave atom, %d bytes\n", ret->format.audio.wave_atom.size);
 
         /* Sometimes, the ess atom is INSIDE the wav atom, so let's catch this */
 
@@ -143,7 +143,7 @@ static int stsd_read_audio(bgav_input_context_t * input,
             //            fprintf(stderr, "\n");
             }
           }
-        bgav_input_close(input_mem);
+        bgav_input_destroy(input_mem);
         break;
       case BGAV_MK_FOURCC('e', 's', 'd', 's'):
         //        fprintf(stderr, "Found esds atom, %lld bytes\n",
@@ -154,9 +154,9 @@ static int stsd_read_audio(bgav_input_context_t * input,
         
         break;
       default:
-        fprintf(stderr, "Unknown atom ");
-        bgav_dump_fourcc(h.fourcc);
-        fprintf(stderr, "\n");
+        //        fprintf(stderr, "Unknown atom ");
+        //        bgav_dump_fourcc(h.fourcc);
+        //        fprintf(stderr, "\n");
         bgav_qt_atom_skip(input, &h);
         break;
       }
@@ -195,7 +195,7 @@ static int stsd_read_video(bgav_input_context_t * input,
      !bgav_input_read_16_be(input, &(ret->format.video.ctab_id)))
     return 0;
   ret->format.video.compressor_name[len] = '\0';
-  fprintf(stderr, "CTAB ID: %d\n", ret->format.video.ctab_id);
+  //  fprintf(stderr, "CTAB ID: %d\n", ret->format.video.ctab_id);
 
   /* Create colortable */
 
@@ -250,13 +250,13 @@ static int stsd_read_video(bgav_input_context_t * input,
     }
   while(1)
     {
-    fprintf(stderr, "Reading Atom...");
+    //    fprintf(stderr, "Reading Atom...");
     if(!bgav_qt_atom_read_header(input, &h))
       {
-      fprintf(stderr, "failed\n");
+      //      fprintf(stderr, "failed\n");
       return 0;
       }
-    fprintf(stderr, "done\n");
+    //    fprintf(stderr, "done\n");
     switch(h.fourcc)
       {
       case BGAV_MK_FOURCC('e', 's', 'd', 's'):
@@ -265,9 +265,9 @@ static int stsd_read_video(bgav_input_context_t * input,
         ret->has_esds = 1;
         break;
       default:
-        fprintf(stderr, "Unknown atom ");
-        bgav_dump_fourcc(h.fourcc);
-        fprintf(stderr, "\n");
+        //        fprintf(stderr, "Unknown atom ");
+        //        bgav_dump_fourcc(h.fourcc);
+        //        fprintf(stderr, "\n");
         bgav_qt_atom_skip(input, &h);
         break;
       }
@@ -301,8 +301,8 @@ int bgav_qt_stsd_read(qt_atom_header_t * h, bgav_input_context_t * input,
        ret->entries[i].data_size)
       return 0;
     
-    fprintf(stderr, "stsd:\n");
-    bgav_hexdump(ret->entries[i].data, ret->entries[i].data_size, 16);
+    //    fprintf(stderr, "stsd:\n");
+    //    bgav_hexdump(ret->entries[i].data, ret->entries[i].data_size, 16);
     
     }
   return 1;
@@ -317,7 +317,7 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak)
     {
     if(trak->mdia.minf.has_vmhd) /* Video sample description */
       {
-      fprintf(stderr, "Reading video stsd\n");
+      //      fprintf(stderr, "Reading video stsd\n");
       input_mem = bgav_input_open_memory(c->entries[i].data,
                                          c->entries[i].data_size);
       
@@ -332,25 +332,25 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak)
         c->entries[i].desc.format.video.height = (int)(trak->tkhd.track_height);
         }
 
-      bgav_input_close(input_mem);
+      bgav_input_destroy(input_mem);
       if(!result)
         return 0;
       }
     else if(trak->mdia.minf.has_smhd) /* Audio sample description */
       {
-      fprintf(stderr, "Reading audio stsd\n");
+      //      fprintf(stderr, "Reading audio stsd\n");
       input_mem = bgav_input_open_memory(c->entries[i].data,
                                          c->entries[i].data_size);
       
       result = stsd_read_audio(input_mem, &(c->entries[i].desc));
-      bgav_input_close(input_mem);
+      bgav_input_destroy(input_mem);
       if(!result)
         return 0;
       }
-    else
-      {
-      fprintf(stderr, "Skipping stsd\n");
-      }
+    //    else
+    //      {
+    //      fprintf(stderr, "Skipping stsd\n");
+    //      }
     }
   return 1;
   }

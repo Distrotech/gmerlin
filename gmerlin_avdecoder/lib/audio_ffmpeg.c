@@ -166,7 +166,7 @@ static int init(bgav_stream_t * s)
   codec = avcodec_find_decoder(priv->info->ffmpeg_id);
   priv->ctx = avcodec_alloc_context();
   
-  fprintf(stderr, "Initializing %s\n", s->data.audio.decoder->decoder->name);
+  //  fprintf(stderr, "Initializing %s\n", s->data.audio.decoder->decoder->name);
 
   //  priv->ctx->width = s->format.frame_width;
   //  priv->ctx->height = s->format.frame_height;
@@ -262,7 +262,7 @@ static int decode(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
       p = bgav_demuxer_get_packet_read(s->demuxer, s);
       if(!p)
         {
-        fprintf(stderr, "Got no packet\n");
+        //        fprintf(stderr, "Got no packet\n");
         if(f)
           f->valid_samples = samples_decoded;
         return samples_decoded;

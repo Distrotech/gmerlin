@@ -84,7 +84,7 @@ static int open_ra(bgav_demuxer_context_t * ctx,
     }
   
   version = BGAV_PTR_2_16BE(file_header + 0x04);
-  fprintf(stderr, "Real audio Version %d\n", version);
+  //  fprintf(stderr, "Real audio Version %d\n", version);
 
   /* read header size according to version */
   if (version == 3)
@@ -140,8 +140,8 @@ static int open_ra(bgav_demuxer_context_t * ctx,
     codec_flavor       = BGAV_PTR_2_16BE(audio_header + 0x16);
     coded_framesize    = BGAV_PTR_2_32BE(audio_header + 0x18); 
 
-    fprintf(stderr, "sub_packet_size %d, sub_packet_height %d, codec_flavor %d, coded_framesize %d framesize: %d\n",
-            sub_packet_size, priv->sub_packet_h, codec_flavor, coded_framesize, framesize);
+    //    fprintf(stderr, "sub_packet_size %d, sub_packet_height %d, codec_flavor %d, coded_framesize %d framesize: %d\n",
+    //            sub_packet_size, priv->sub_packet_h, codec_flavor, coded_framesize, framesize);
       
 
 
@@ -259,7 +259,7 @@ static int next_packet_ra(bgav_demuxer_context_t * ctx)
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
 
   len = s->data.audio.block_align * priv->sub_packet_h;
-  fprintf(stderr, "Len: %d\n", len);
+//  fprintf(stderr, "Len: %d\n", len);
     
   bgav_packet_alloc(p, len);
   if(bgav_input_read_data(ctx->input, p->data, len) < len)

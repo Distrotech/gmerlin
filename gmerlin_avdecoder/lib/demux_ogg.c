@@ -428,9 +428,6 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   vorbis_info vi;
   vorbis_comment vc;
   
-  vorbis_info_init(&vi);
-  vorbis_comment_init(&vc);
-  
   ogg_priv * priv = (ogg_priv*)(ctx->priv);
 
   s = &(ctx->tt->current_track->audio_streams[0]);
@@ -505,6 +502,10 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
     //    else
     //      fprintf(stderr, "NO METADATA CHANGE CALLBACK\n");
     bgav_metadata_free(&metadata);
+
+    vorbis_info_clear(&vi);
+    vorbis_comment_clear(&vc);
+    
     }
   else
     {
@@ -695,13 +696,13 @@ static int setup_streams(bgav_demuxer_context_t * ctx)
         {
         if(!get_next_packet(ctx))
           {
-          fprintf(stderr, "get_next_packet failed\n");
+          //          fprintf(stderr, "get_next_packet failed\n");
           return 0;
           }
         if(priv->current_packet.bytes)
           break;
-        else
-          fprintf(stderr, "Skipping packet\n");
+        //        else
+        //          fprintf(stderr, "Skipping packet\n");
         }
       packet_size = sizeof(ogg_packet) + priv->current_packet.bytes;
       s->ext_data = realloc(s->ext_data, s->ext_size + packet_size);
@@ -853,7 +854,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
         i++;
         }
 
-      bitstreams_dump(&(priv->streams));
+      //      bitstreams_dump(&(priv->streams));
       }
     else
       {
@@ -931,7 +932,7 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, gavl_time_t time)
     
   if(page_pos == -1)
     {
-    fprintf(stderr, "Lost sync during seeking 1, %lld\n", pos);
+    //    fprintf(stderr, "Lost sync during seeking 1, %lld\n", pos);
     return;
     }
   pos = page_pos + priv->current_page_size;

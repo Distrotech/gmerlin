@@ -240,9 +240,10 @@ int bgav_qt_udta_read(qt_atom_header_t * h, bgav_input_context_t * input,
         ret->url = read_string(&ch, input);
         break;
       default:
-        fprintf(stderr, "Skipping udta atom ");
-        bgav_dump_fourcc(ch.fourcc);
-        fprintf(stderr, "\n");
+        //        fprintf(stderr, "Skipping udta atom ");
+        //        bgav_dump_fourcc(ch.fourcc);
+        //        fprintf(stderr, "\n");
+        break;
       }
     bgav_qt_atom_skip(input, &ch);
     }

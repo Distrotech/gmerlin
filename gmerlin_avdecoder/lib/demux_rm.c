@@ -525,7 +525,7 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
     
   codecdata_length = BGAV_PTR_2_16BE(data);data+=2;
   
-  fprintf(stderr, "Codecdata length: %d\n", codecdata_length);
+  //  fprintf(stderr, "Codecdata length: %d\n", codecdata_length);
   
   bg_as->ext_size = 10+codecdata_length;
   bg_as->ext_data = malloc(bg_as->ext_size);
@@ -798,7 +798,7 @@ int open_rmff(bgav_demuxer_context_t * ctx,
   if(!read_file_header(&chunk,ctx->input, &file_header))
     return 0;
 
-  fprintf(stderr, "Header size: %d\n", chunk.size);
+  //  fprintf(stderr, "Header size: %d\n", chunk.size);
 
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
@@ -815,7 +815,7 @@ int open_rmff(bgav_demuxer_context_t * ctx,
           goto fail;
         break;
       case MDPR_ID:
-        fprintf(stderr, "Media Properties\n");
+        //        fprintf(stderr, "Media Properties\n");
         if(!read_mdpr(&chunk,ctx->input, &mdpr))
           return 0;
         
@@ -843,7 +843,7 @@ int open_rmff(bgav_demuxer_context_t * ctx,
           }
         else
           {
-          fprintf(stderr, "Unknown stream type: %s\n", mdpr.mime_type);
+          //          fprintf(stderr, "Unknown stream type: %s\n", mdpr.mime_type);
           }
         destroy_mdpr(&mdpr);
         break;
@@ -914,8 +914,8 @@ int open_rmff(bgav_demuxer_context_t * ctx,
               {
               bgav_input_skip(ctx->input,
                               next_index_header - ctx->input->position);
-              fprintf(stderr, "Skipping %lld bytes",
-                      next_index_header - ctx->input->position);
+              //              fprintf(stderr, "Skipping %lld bytes",
+              //                      next_index_header - ctx->input->position);
               }
             else
               break;
@@ -926,7 +926,7 @@ int open_rmff(bgav_demuxer_context_t * ctx,
         //        bgav_input_skip(ctx->input, chunk.size - 10);
         break;
       case INDX_ID:
-        fprintf(stderr, "Index\n");
+        //        fprintf(stderr, "Index\n");
         bgav_input_skip(ctx->input, chunk.size - 10);
         break;
       }
@@ -980,7 +980,7 @@ int probe_rmff(bgav_input_context_t * input)
   
   if(header == FILE_ID)
     {
-    fprintf(stderr, "Detected Real video format\n");
+    //    fprintf(stderr, "Detected Real video format\n");
     return 1;
     }
   return 0;

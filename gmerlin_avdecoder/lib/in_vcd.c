@@ -88,13 +88,13 @@ static int read_toc(vcd_priv * priv)
     entry.cdte_addr.lba - 1;
   
   /* Dump this */
-  
+#if 0  
   for(i = priv->num_tracks-1; i>=0; i--)
     {
     fprintf(stderr, "Track %d, S: %d, E: %d\n",
             i+1, priv->tracks[i].start_sector, priv->tracks[i].end_sector);
     }
-  
+#endif
   return 1;
   }
 
@@ -127,7 +127,7 @@ void toc_2_tt(bgav_input_context_t * ctx)
 static int open_vcd(bgav_input_context_t * ctx, const char * url)
   {
   vcd_priv * priv;
-  fprintf(stderr, "OPEN VCD\n");
+  //  fprintf(stderr, "OPEN VCD\n");
   
   priv = calloc(1, sizeof(*priv));
   
@@ -248,7 +248,7 @@ static int64_t seek_byte_vcd(bgav_input_context_t * ctx,
 static void    close_vcd(bgav_input_context_t * ctx)
   {
   vcd_priv * priv;
-  fprintf(stderr, "CLOSE VCD\n");
+  //  fprintf(stderr, "CLOSE VCD\n");
   priv = (vcd_priv*)(ctx->priv);
   if(priv->fd > -1)
     close(priv->fd);
@@ -263,7 +263,7 @@ static void select_track_vcd(bgav_input_context_t * ctx, int track)
   vcd_priv * priv;
   priv = (vcd_priv*)(ctx->priv);
 
-  fprintf(stderr, "Select track VCD\n");
+  //  fprintf(stderr, "Select track VCD\n");
 
   priv->current_track = track+1;
   priv->current_sector = priv->tracks[priv->current_track].start_sector;
