@@ -1,10 +1,13 @@
-This is gavl, a library for handling uncompressed video-
-and audio data.
+This is gavl, a library for handling uncompressed audio- and video data.
 
 It defines generic types for audio and video formats,
-which are applicable to a wide range of multimedia application.
-In addition, it provides conversion functions for all
-possible formats to all other prossible formats.
+which are applicable to a wide range of multimedia applications.
+In addition, it provides conversion functions for all possible formats
+to all other formats.
+
+If you want to write a multimedia application, gavl will help you a lot:
+You don't have to mess around with the large varieties of colorspaces,
+interleaving modes, audio sample formats and so on.
 
 Current features:
 
@@ -18,7 +21,8 @@ Current features:
 - Audio samples can be 8 bit and 16 PCM (signed and unsigned),
   32 bit signed and floating point.
 
-
+- Video frames will allocated with memory aligned scanelines for faster
+  processing.
 
 See the header file include/gavl.h and the sample files
 src/colorspace_test.c and src/colorspace_time.c for
