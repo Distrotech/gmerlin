@@ -38,12 +38,13 @@ extern bgav_demuxer_t bgav_demuxer_flac;
 extern bgav_demuxer_t bgav_demuxer_ogg;
 #endif
 
-static struct
+typedef struct
   {
   bgav_demuxer_t * demuxer;
   char * format_name;
-  }
-demuxers[] =
+  } demuxer_t;
+
+static demuxer_t demuxers[] =
   {
     { &bgav_demuxer_asf, "Microsoft ASF" },
     { &bgav_demuxer_avi, "Microsoft AVI" },
@@ -53,12 +54,16 @@ demuxers[] =
     { &bgav_demuxer_au, "AU" },
     { &bgav_demuxer_aiff, "AIFF" },
     { &bgav_demuxer_ra, "Real Audio" },
-    { &bgav_demuxer_mpegaudio, "Mpeg Audio" },
-    { &bgav_demuxer_mpegps, "Mpeg System" },
     { &bgav_demuxer_flac, "FLAC" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif
+  };
+
+static demuxer_t sync_demuxers[] =
+  {
+    { &bgav_demuxer_mpegaudio, "Mpeg Audio" },
+    { &bgav_demuxer_mpegps, "Mpeg System" },
   };
 
 static struct
@@ -72,11 +77,17 @@ mimetypes[] =
   };
 
 static int num_demuxers = sizeof(demuxers)/sizeof(demuxers[0]);
+static int num_sync_demuxers = sizeof(sync_demuxers)/sizeof(sync_demuxers[0]);
 static int num_mimetypes = sizeof(mimetypes)/sizeof(mimetypes[0]);
+
+#define SYNC_BYTES 1024
 
 bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
   {
   int i;
+  int bytes_skipped;
+  uint8_t skip;
+    
   //  uint8_t header[32];
   if(input->mimetype)
     {
@@ -97,6 +108,39 @@ bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
       return demuxers[i].demuxer;
       }
     }
+  
+  for(i = 0; i < num_sync_demuxers; i++)
+    {
+    if(sync_demuxers[i].demuxer->probe(input))
+      {
+      fprintf(stderr, "Detected %s format\n", sync_demuxers[i].format_name);
+      return sync_demuxers[i].demuxer;
+      }
+    }
+
+  /* Try again with skipping initial bytes */
+
+  bytes_skipped = 0;
+
+  while(bytes_skipped < SYNC_BYTES)
+    {
+    bytes_skipped++;
+    if(!bgav_input_read_data(input, &skip, 1))
+      return (bgav_demuxer_t *)0;
+
+    for(i = 0; i < num_sync_demuxers; i++)
+      {
+      if(sync_demuxers[i].demuxer->probe(input))
+        {
+        fprintf(stderr, "Detected %s format after skipping %d bytes\n",
+                sync_demuxers[i].format_name, bytes_skipped);
+        return sync_demuxers[i].demuxer;
+        }
+      }
+    
+    }
+  
+  
   return (bgav_demuxer_t *)0;
   }
 
