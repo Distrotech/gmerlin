@@ -1,0 +1,42 @@
+INTRODUCTION
+
+This is Gmerlin Visualizer, a small application, which does only one thing:
+Run xmms viszalization plugins without having to run xmms.
+
+It uses gmerlins audio recording architecture, so it can grab audio data
+from many sources including other applications (e.g. via the Alsa loopback 
+mechanism) or the line in connector of your soundcard. Use the gmerlin
+plugin configurator to set up the desired recording mode.
+
+It is known, that Gmerlin Visualizer doesn't work with all plugins, some
+crash  when enabled, some crash when disabled and some crash when reenabled.
+But it works nice with many good plugins.
+
+INSTALLATION
+
+You need the following development packages (with header files!) before
+compiling :
+
+- gmerlin-lib
+- gtk-1.2.x
+- xmms
+
+For running the application, you also need at least one of gmerlins
+soundcard packages (oss, esd, alsa or whatever).
+
+Then do the usual
+
+./configure
+make
+su
+<type root password>
+make install
+
+the configure script will detect the directory, where you installed your
+xmms visualization plugins. This means, if you unistall xmms from /usr and
+resintall it in /usr/local, you have to recompile Gmerlin Visualizer.
+
+USAGE
+
+Type gmerlin_visualizer and a smalll window comes up, which lets you
+en- and disable each installed visualization plugin individiually.
