@@ -1,20 +1,14 @@
 This is gmerlin, a set of multimedia libraries bundled with an application suite.
 
 This package contains the core libraries, some plugins and most applications.
-To get the full functionality of the software, you need some other packages:
+For installation instructions and troubleshooting tips, read the file 
+INSTALL.
 
-- gavl (http://gmerlin.sourceforge.net/gavl.html) This handles most of the low
-  level processing/conversion of audio/video data and is required to compile
-  gmerlin.
-
-- gmerlin_avdecoder (http://gmerlin.sourceforge.net/avdec.html) This is the media
-  decoding library for gmerlin. It was split into a separate package, because it
-  can be used as a standalone library by 3rd party applications.
-  It is optional but you will definitely want it. Without gmerlin_avdecoder,
-  gmerlin applications won't be able to play much.
-
-To install gmerlin, use the usual "configure; make; make install" procedure. Type
-configure --help to get a list of options.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+BIG NOTE: If you just install gmerlin, you won't be able to play a single file in
+the worst case. All media file support is in the package gmerlin_avdec, which
+must be downloaded and installed separately AFTER installing gmerlin.
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 The following applications are included in this package:
 
@@ -22,6 +16,8 @@ The following applications are included in this package:
   where you can store your media collection in virtual directories (albums).
   In the tree window and in the album windows, right-click and context sensitive menus
   will tell you your options. There are also tooltips helping you through the software.
+  To toggle between fullscreen and windowed playback, press the TAB key while the mouse
+  is in the video window.
 
 - Transcoder: Type gmerlin_transcoder to start this. It works very simple:
   First, add tracks to the tasklist. Then, edit options (Metadata, encoder settings...)
@@ -41,8 +37,5 @@ The following applications are included in this package:
   you might want to avoid translating 100s of plugin options into command line options.
   This can be done by typing gmerlin_plugincfg. It lets you configure all plugin options and
   save them at a location, where other applications can find them. One application, which uses
-  this, is gmerlin_visualizer.
-
-
-
+  this, is gmerlin_visualizer, which also comes as a separate package.
 

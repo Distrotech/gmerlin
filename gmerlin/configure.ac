@@ -635,3 +635,7 @@ echo "Enabled"
 else
 echo "Disabled"
 fi
+
+echo
+echo "If you installed a library but it was not detected, check the file INSTALL"
+echo "for troubleshooting tips"
