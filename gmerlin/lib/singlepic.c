@@ -187,9 +187,15 @@ static int open_input(void * priv, const char * arg)
   input_t * inp = (input_t *)priv;
 
   filename = arg;
-    
-  /* Create template */
 
+  /* First of all, check if there is a plugin for this format */
+  
+  if(!bg_plugin_find_by_filename(inp->reg, filename,
+                                 BG_PLUGIN_IMAGE_READER))
+    return 0;
+  
+  /* Create template */
+  
   pos = filename + strlen(filename) - 1;
   while((*pos != '.') && (pos != filename))
     pos--;
