@@ -386,6 +386,8 @@ rm -rf $RPM_BUILD_ROOT
 %attr(644,root,root) %{_datadir}/gmerlin/icons/player_icon.png
 %attr(644,root,root) %{_datadir}/gmerlin/skins/Default/*
 %attr(755,root,root) %{_bindir}/gmerlin
+%attr(755,root,root) %{_bindir}/gmerlin_remote
+%attr(755,root,root) %{_bindir}/gmerlin_launcher
 
 %files -n gmerlin-alsamixer
 %attr(644,root,root) %{_datadir}/applications/gmerlin-alsamixer.desktop
