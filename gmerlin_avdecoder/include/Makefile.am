@@ -4,6 +4,7 @@ pkginclude_HEADERS = avdec.h
 noinst_HEADERS = \
 avdec_private.h \
 bswap.h \
+codecs.h \
 http.h \
 id3.h \
 mms.h \
