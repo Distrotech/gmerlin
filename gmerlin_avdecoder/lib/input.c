@@ -453,6 +453,22 @@ void bgav_input_skip(bgav_input_context_t * ctx, int bytes)
                                                   ctx->buffer_alloc - ctx->buffer_size);
   }
 
+void bgav_input_skip_dump(bgav_input_context_t * ctx, int bytes)
+  {
+  uint8_t * buf;
+  buf = malloc(bytes);
+  if(bgav_input_read_data(ctx, buf, bytes) < bytes)
+    {
+    fprintf(stderr, "Unextected EOF during skipping\n");
+    free(buf);
+    return;
+    }
+  fprintf(stderr, "Skipping %d bytes:\n", bytes);
+  bgav_hexdump(buf, bytes, 16);
+  free(buf);
+  }
+
+
 void bgav_input_seek(bgav_input_context_t * ctx,
                      int64_t position,
                      int whence)

@@ -138,7 +138,7 @@ void bgav_qt_stss_free(qt_stss_t * c);
 
 typedef struct
   {
-  qt_atom_header_t * h;
+  qt_atom_header_t h;
   int      version;
   uint32_t flags;
 

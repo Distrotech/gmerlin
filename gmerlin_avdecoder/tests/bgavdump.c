@@ -107,8 +107,9 @@ int main(int argc, char ** argv)
       {
       bgav_set_video_stream(file, i, BGAV_STREAM_DECODE);
       }
-  
+    fprintf(stderr, "Starting decoders...");
     bgav_start(file);
+    fprintf(stderr, "done\n");
     
     fprintf(stderr, "Dumping file contents...\n");
     bgav_dump(file);

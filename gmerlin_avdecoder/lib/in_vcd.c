@@ -90,6 +90,11 @@ static int read_toc(vcd_priv * priv)
     return 0;
 
   priv->num_tracks = hdr.cdth_trk1 - hdr.cdth_trk0+1;
+
+  /* VCD needs at least 2 tracks */
+  if(priv->num_tracks < 2)
+    return 0;
+  
   priv->tracks = calloc(priv->num_tracks, sizeof(*(priv->tracks)));
   
   for(i = 0; i < priv->num_tracks; i++)
@@ -407,9 +412,9 @@ int bgav_check_device_vcd(const char * device, char ** name)
   
   if((cap = ioctl(fd, CDROM_GET_CAPABILITY, 0)) < 0)
     {
-    fprintf(stderr, "CDROM_GET_CAPABILITY ioctl failed\n");
+    fprintf(stderr, "CDROM_GET_CAPABILITY ioctl failed for device %s\n", device);
     close(fd);
-      return 0;
+    return 0;
     }
   
   /* Ok, seems the drive is ok */

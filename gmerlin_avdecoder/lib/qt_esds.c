@@ -23,6 +23,41 @@
 #include <avdec_private.h>
 #include <qt.h>
 
+#if 0
+typedef struct
+  {
+  qt_atom_header_t * h;
+  int      version;
+  uint32_t flags;
+
+  uint8_t  objectTypeId;
+  uint8_t  streamType;
+  int      bufferSizeDB;
+  int32_t  maxBitrate;
+  int32_t  avgBitrate;
+  int	   decoderConfigLen;
+  uint8_t* decoderConfig;
+  } qt_esds_t;
+#endif
+
+static void bgav_qt_esds_dump(qt_esds_t * ret)
+  {
+  fprintf(stderr, "esds:\n");
+  bgav_qt_atom_dump_header(&(ret->h));
+  fprintf(stderr, "Version:          %d\n", ret->version);
+  fprintf(stderr, "Flags:            0x%0x06x\n", ret->flags);
+  fprintf(stderr, "objectTypeId:     %d\n", ret->objectTypeId);
+  fprintf(stderr, "streamType:       0x%02x\n", ret->streamType);
+  fprintf(stderr, "bufferSizeDB:     %d\n", ret->bufferSizeDB);
+
+  fprintf(stderr, "maxBitrate:       %d\n", ret->maxBitrate);
+  fprintf(stderr, "avgBitrate:       %d\n", ret->avgBitrate);
+  fprintf(stderr, "decoderConfigLen: %d\n", ret->decoderConfigLen);
+  fprintf(stderr, "decoderConfig:\n");
+  bgav_hexdump(ret->decoderConfig, ret->decoderConfigLen, 16);
+  
+  }
+
 static int read_mp4_descr_length(bgav_input_context_t * input)
   {
   uint8_t b;
@@ -35,7 +70,7 @@ static int read_mp4_descr_length(bgav_input_context_t * input)
       return -1;
     num_bytes++;
     length = (length << 7) | (b & 0x7F);
-    } while ((b & 0x80) && num_bytes < 4);
+    } while ((b & 0x80) && (num_bytes < 4));
   return length;
   }
 
@@ -92,7 +127,11 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
                           ret->decoderConfigLen) < ret->decoderConfigLen)
     return 0;
   //  fprintf(stderr, "decoderConfigLen: %d\n", ret->decoderConfigLen);
+  //  fprintf(stderr, "Skipping %lld bytes\n", h->size - (input->position - h->start_position));
   bgav_qt_atom_skip(input, h);
+
+  //  bgav_qt_esds_dump(ret);
+
   return 1;
   }
 

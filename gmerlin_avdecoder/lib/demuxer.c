@@ -209,6 +209,10 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
 
 #define SEEK_TOLERANCE (GAVL_TIME_SCALE/2)
 
+/* We skip at most this time */
+
+#define MAX_SKIP_TIME  (GAVL_TIME_SCALE*5)
+
 void
 bgav_seek(bgav_t * b, gavl_time_t time)
   {
@@ -242,8 +246,12 @@ bgav_seek(bgav_t * b, gavl_time_t time)
             gavl_time_to_seconds(time),
             gavl_time_to_seconds(sync_time),
             gavl_time_to_seconds(diff_time));
-    
-    if(diff_time > 0)
+
+    if(diff_time > MAX_SKIP_TIME)
+      {
+      seek_time += (diff_time * 2)/3;
+      }
+    else if(diff_time > 0)
       {
       bgav_track_skipto(track, time);
       break;

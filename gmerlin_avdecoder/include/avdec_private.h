@@ -503,6 +503,11 @@ void bgav_input_destroy(bgav_input_context_t * ctx);
 
 void bgav_input_skip(bgav_input_context_t *, int);
 
+/* For debugging purposes only: if you encounter data,
+   hexdump them to stderr and skip them */
+
+void bgav_input_skip_dump(bgav_input_context_t *, int);
+
 void bgav_input_seek(bgav_input_context_t * ctx,
                      int64_t position,
                      int whence);

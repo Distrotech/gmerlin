@@ -126,8 +126,8 @@ static int decode_frame(bgav_stream_t * s)
 
   if(!priv->frame->samples.f)
     return 0;
-  // fprintf(stderr, "Decoded %d samples, used %d bytes\n", frame_info.samples,
-  //         frame_info.bytesconsumed);
+  //  fprintf(stderr, "Decoded %d samples, used %d bytes\n", frame_info.samples,
+  //          frame_info.bytesconsumed);
 
   priv->data_buffer_ptr += frame_info.bytesconsumed;
   priv->data_buffer_size -= frame_info.bytesconsumed;
@@ -145,16 +145,20 @@ static int decode_faad2(bgav_stream_t * s, gavl_audio_frame_t * f,
   int samples_decoded = 0;
 
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
-
+  
   while(samples_decoded < num_samples)
     {
     if(!priv->frame->valid_samples)
+      {
+      //      fprintf(stderr, "decode frame...");
       if(!decode_frame(s))
         {
         if(f)
           f->valid_samples = samples_decoded;
         return samples_decoded;
         }
+      //      fprintf(stderr, "done\n");
+      }
     samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
                                            f,
                                            priv->frame,

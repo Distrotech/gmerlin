@@ -105,7 +105,7 @@ static int stsd_read_audio(bgav_input_context_t * input,
     {
     if(!bgav_qt_atom_read_header(input, &h))
       break;
-    
+    // fprintf(stderr, "Blupp\n");
     switch(h.fourcc)
       {
       case BGAV_MK_FOURCC('w', 'a', 'v', 'e'):
@@ -116,8 +116,10 @@ static int stsd_read_audio(bgav_input_context_t * input,
                                 ret->format.audio.wave_atom.data,
                                 ret->format.audio.wave_atom.size) < ret->format.audio.wave_atom.size)
           return 0;
-        //        fprintf(stderr, "Found wave atom, %d bytes\n", ret->format.audio.wave_atom.size);
-
+        fprintf(stderr, "Found wave atom, %d bytes\n", ret->format.audio.wave_atom.size);
+        bgav_hexdump(ret->format.audio.wave_atom.data,
+                     ret->format.audio.wave_atom.size, 16); 
+        
         /* Sometimes, the ess atom is INSIDE the wav atom, so let's catch this */
 
         input_mem = bgav_input_open_memory(ret->format.audio.wave_atom.data,
@@ -129,18 +131,18 @@ static int stsd_read_audio(bgav_input_context_t * input,
             break;
           if(h1.fourcc == BGAV_MK_FOURCC('e', 's', 'd', 's'))
             {
-            // fprintf(stderr, "Found esds atom inside of wave atom, %lld bytes\n",
-            //                    h1.size);
+            fprintf(stderr, "Found esds atom inside of wave atom, %lld bytes\n",
+                    h1.size);
             if(!bgav_qt_esds_read(&h1, input_mem, &(ret->esds)))
               return 0;
             ret->has_esds = 1;
             }
           else
             {
+            // fprintf(stderr, "Skipping atom ");
+            // bgav_dump_fourcc(h1.fourcc);
+            // fprintf(stderr, " Start: %lld, bytes: %lld\n", h1.start_position, h1.size);
             bgav_qt_atom_skip(input_mem, &h1);
-            //            fprintf(stderr, "Skipping atom ");
-            //            bgav_dump_fourcc(h1.fourcc);
-            //            fprintf(stderr, "\n");
             }
           }
         bgav_input_destroy(input_mem);
@@ -154,14 +156,14 @@ static int stsd_read_audio(bgav_input_context_t * input,
         
         break;
       default:
-        //        fprintf(stderr, "Unknown atom ");
-        //        bgav_dump_fourcc(h.fourcc);
-        //        fprintf(stderr, "\n");
+        fprintf(stderr, "Unknown atom ");
+        bgav_dump_fourcc(h.fourcc);
+        fprintf(stderr, "\n");
         bgav_qt_atom_skip(input, &h);
         break;
       }
     }
-  stsd_dump_audio(ret);
+  //  stsd_dump_audio(ret);
   return result;
   }
 

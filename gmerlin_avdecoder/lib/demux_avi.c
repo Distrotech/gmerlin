@@ -324,7 +324,7 @@ static int read_dmlh(bgav_input_context_t * input, dmlh_t * ret,
     {
     fprintf(stderr, "dmlh: Skipping %lld bytes\n",
             ch->ckSize - (input->position - start_pos));
-    bgav_input_skip(input, PADD(ch->ckSize) - (input->position - start_pos));
+    bgav_input_skip_dump(input, PADD(ch->ckSize) - (input->position - start_pos));
     }
   return 1;
   }
@@ -533,6 +533,7 @@ static int read_indx(bgav_input_context_t * input, indx_t * ret,
       }
     bgav_input_seek(input, pos, SEEK_SET);
     }
+  fprintf(stderr, "Read indx\n");
   return 1;
   }
 
@@ -1160,6 +1161,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
       ctx->can_seek = 1;
       idx1_calculate_timestamps(ctx);
       //      dump_idx1(&(p->idx1));
+      fprintf(stderr, "Found standard index\n");
       }
     bgav_input_seek(ctx->input, p->movi_start, SEEK_SET);
     }
@@ -1260,18 +1262,47 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
       {
       stream_id = get_stream_id(priv->idx1.entries[priv->index_position].ckid);
       s = bgav_track_find_stream(ctx->tt->current_track, stream_id);
-
+      
       if(!s)
         {
         priv->index_position++;
-        bgav_input_seek(ctx->input, priv->idx1.entries[priv->index_position].dwChunkOffset, SEEK_SET);
         }
       }
+    ch.ckID   = priv->idx1.entries[priv->index_position].ckid;
+    ch.ckSize = priv->idx1.entries[priv->index_position].dwChunkLength;
+    //    fprintf(stderr, "Stream ID: %d, stream: %p length: %d\n", stream_id, s,
+    //            ch.ckSize);
+
+    /* Skip to the Chunk header */
     
+    bgav_input_skip(ctx->input,
+                    priv->movi_start +
+                    priv->idx1.entries[priv->index_position].dwChunkOffset + 4 -
+                    ctx->input->position);
+    
+
     }
-    
-  if(!read_chunk_header(ctx->input, &ch))
-    return 0;
+  else /* No index present */
+    {
+    while(!s)
+      {
+      if(!read_chunk_header(ctx->input, &ch))
+        return 0;
+      
+      if(ch.ckID == BGAV_MK_FOURCC('L','I','S','T'))
+        {
+        //    fprintf(stderr, "Got list chunk\n");
+        bgav_input_read_fourcc(ctx->input, &fourcc);
+        //    bgav_dump_fourcc(fourcc);
+        //    fprintf(stderr, "\n");
+        }
+      else
+        {
+        stream_id = get_stream_id(ch.ckID);
+        s = bgav_track_find_stream(ctx->tt->current_track, stream_id);
+        }
+      }
+    }
   /*
     fprintf(stderr, "Position: %lld, index position: %d\n",
     ctx->input->position - priv->movi_start,
@@ -1280,45 +1311,12 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
     ch.ckSize,
     priv->idx1.entries[priv->index_position].dwChunkLength);
   */
+    
   //  dump_chunk_header(&ch);
-  if(ch.ckID == BGAV_MK_FOURCC('L','I','S','T'))
-    {
-    //    fprintf(stderr, "Got list chunk\n");
-    bgav_input_read_fourcc(ctx->input, &fourcc);
-    //    bgav_dump_fourcc(fourcc);
-    //    fprintf(stderr, "\n");
-    if(!read_chunk_header(ctx->input, &ch))
-      return 0;
-    }
-
-  if(!s)
-    {
-    stream_id = get_stream_id(ch.ckID);
-    s = bgav_track_find_stream(ctx->tt->current_track, stream_id);
-    }
   
   /* Skip ignored streams */
 
-  if(!s)
-    {
-    fprintf(stderr, "No such stream %d\n", stream_id);
-    dump_chunk_header(&ch);
-    /* For some really bad streams, this can help */
-    if(ch.ckSize < 0)
-      {
-      if(priv->has_idx1)
-        ch.ckSize = priv->idx1.entries[priv->index_position].dwChunkLength;
-      else
-        {
-        fprintf(stderr, "Broken file\n");
-        return 0;
-        }
-      }
-    bgav_input_skip(ctx->input, PADD(ch.ckSize));
-    priv->index_position++;
-    return 1;
-    }
-  else if(priv->do_seek)
+  if(priv->do_seek)
     {
     if(((s->type == BGAV_STREAM_AUDIO) &&
         (((audio_priv_t*)(s->priv))->index_position > priv->index_position)) ||
@@ -1330,7 +1328,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
       return 1;
       }
     }
-  
+
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
   
   bgav_packet_alloc(p, PADD(ch.ckSize));
@@ -1390,7 +1388,7 @@ static void seek_avi(bgav_demuxer_context_t * ctx, gavl_time_t time)
 
   /* Set the index_position members of the streams */
 
-  fprintf(stderr, "Seek AVI\n");
+  //  fprintf(stderr, "Seek AVI\n");
   
   for(i = avi->idx1.num_entries - 1; i >= 0; i--)
     {
