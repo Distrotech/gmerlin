@@ -17,6 +17,8 @@ BuildRequires:	esound >= @ESD_REQUIRED@
 BuildRequires:  gavl-devel = @GAVL_REQUIRED@
 BuildRequires:  libpng-devel >= @PNG_REQUIRED@
 BuildRequires:  libquicktime-devel = @LQT_REQUIRED@
+BuildRequires:  libmusicbrainz-devel >= @MUSICBRAINZ_REQUIRED@
+
 Requires:       libxml2 >= @XML2_REQUIRED@
 Requires:       gavl = @GAVL_REQUIRED@
 BuildRoot:	/tmp/gmerlin-build
@@ -129,6 +131,21 @@ Provides:       gmerlin-image-writer-plugin
 PNG plugins for gmerlin
 
 #
+# TIFF
+#
+
+%package -n gmerlin-tiff
+Summary:	tiff plugins for gmerlin
+Group:		Applications/Multimedia
+Requires:       gmerlin-lib = %{version}
+Requires:	libtiff >= @TIFF_REQUIRED@
+Provides:       gmerlin-image-reader-plugin
+Provides:       gmerlin-image-writer-plugin
+
+%description -n gmerlin-tiff
+TIFF plugins for gmerlin
+
+#
 # OSS
 #
 
@@ -180,6 +197,19 @@ Provides:       gmerlin-video-recorder-plugin
 
 %description -n gmerlin-v4l
 Video4linux plugin for gmerlin
+
+#
+# cdaudio
+#
+
+%package -n gmerlin-cdaudio
+Summary:	Audio CD playing/ripping plugin for gmerlin
+Group:		Applications/Multimedia
+Requires:       gmerlin-lib = %{version}
+Requires:       libmusicbrainz >= @MUSICBRAINZ_REQUIRED@
+
+%description -n gmerlin-cdaudio
+Audio CD playing/ripping plugin for gmerlin
 
 #
 # Applications: Player
@@ -341,6 +371,14 @@ rm -rf $RPM_BUILD_ROOT
 %files -n gmerlin-png
 %attr(644,root,root) %{_libdir}/gmerlin/plugins/*png*.la
 %attr(755,root,root) %{_libdir}/gmerlin/plugins/*png*.so
+
+%files -n gmerlin-tiff
+%attr(644,root,root) %{_libdir}/gmerlin/plugins/*tiff*.la
+%attr(755,root,root) %{_libdir}/gmerlin/plugins/*tiff*.so
+
+%files -n gmerlin-cdaudio
+%attr(644,root,root) %{_libdir}/gmerlin/plugins/*cdaudio*.la
+%attr(755,root,root) %{_libdir}/gmerlin/plugins/*cdaudio*.so
 
 %files -n gmerlin-player
 %attr(644,root,root) %{_datadir}/applications/gmerlin-player.desktop
