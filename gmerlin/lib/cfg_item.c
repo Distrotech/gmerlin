@@ -111,13 +111,12 @@ bg_cfg_item_t * bg_cfg_create_item(bg_parameter_info_t * info,
     case BG_CFG_STRING:
       if(value && value->val_str)
         {
-        ret->value.val_str = malloc(strlen(value->val_str)+1);
-        strcpy(ret->value.val_str, value->val_str);
+        ret->value.val_str = bg_strdup(ret->value.val_str, value->val_str);
         }
       else if(info->val_default.val_str)
         {
-        ret->value.val_str = malloc(strlen(info->val_default.val_str)+1);
-        strcpy(ret->value.val_str, info->val_default.val_str);
+        ret->value.val_str = bg_strdup(ret->value.val_str,
+                                       info->val_default.val_str);
         }
       break;
     }

@@ -1,4 +1,4 @@
-AM_CFLAGS = @GTK_CFLAGS@ @ALSA_CFLAGS@
+AM_CFLAGS = @XML2_CFLAGS@ @GTK_CFLAGS@ @ALSA_CFLAGS@
 
 Desktopdir = $(datadir)/applications
 Desktop_DATA = gmerlin-alsamixer.desktop

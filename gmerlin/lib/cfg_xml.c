@@ -19,13 +19,11 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <locale.h>
+// #include <locale.h>
 
 #include <cfg_registry.h>
 #include <registry_priv.h>
-
-#include <libxml/tree.h>
-#include <libxml/parser.h>
+#include <utils.h>
 
 static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
                       bg_cfg_section_t * cfg_section)
@@ -99,16 +97,8 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
       sscanf(tmp_string, "%f", &(item->value.val_f));
       break;
     case BG_CFG_STRING:
-      if(item->value.val_str)
-        {
-        free(item->value.val_str);
-        item->value.val_str = (char*)0;
-        }
-      if(tmp_string)
-        {
-        item->value.val_str = malloc(strlen(tmp_string)+1);
-        strcpy(item->value.val_str, tmp_string);
-        }
+      item->value.val_str = bg_strdup(item->value.val_str,
+                                      tmp_string);
       break;
     case BG_CFG_COLOR:
       start = tmp_string;
@@ -127,16 +117,14 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
     xmlFree(tmp_type);
   }
 
-static void load_section(xmlDocPtr xml_doc,
-                         xmlNodePtr xml_section,
-                         bg_cfg_section_t * cfg_section)
+void bg_cfg_xml_2_section(xmlDocPtr xml_doc,
+                          xmlNodePtr xml_section,
+                          bg_cfg_section_t * cfg_section)
   {
   xmlNodePtr cur;
   char * name;
   bg_cfg_section_t * cfg_child_section;
-    
-  /* Load items */
-
+  
   cur = xml_section->children;
   
   while(cur)
@@ -146,23 +134,24 @@ static void load_section(xmlDocPtr xml_doc,
       cur = cur->next;
       continue;
       }
+    /* Load items */
     else if(!strcmp(cur->name, "ITEM"))
       {
       load_item(xml_doc, cur, cfg_section);
       }
+    /* Load child */
     else if(!strcmp(cur->name, "SECTION"))
       {
       name = xmlGetProp(cur, "name");
       if(name)
         {
         cfg_child_section = bg_cfg_section_find_subsection(cfg_section, name);
-        load_section(xml_doc, cur, cfg_child_section);
+        bg_cfg_xml_2_section(xml_doc, cur, cfg_child_section);
         xmlFree(name);
         }
       }
     cur = cur->next;
     }
-  
   }
 
 void bg_cfg_registry_load(bg_cfg_registry_t * r, const char * filename)
@@ -199,7 +188,7 @@ void bg_cfg_registry_load(bg_cfg_registry_t * r, const char * filename)
       if(section_name)
         {
         cfg_section = bg_cfg_registry_find_section(r, section_name);
-        load_section(xml_doc, node, cfg_section);
+        bg_cfg_xml_2_section(xml_doc, node, cfg_section);
         xmlFree(section_name);
         }
       }
@@ -209,20 +198,14 @@ void bg_cfg_registry_load(bg_cfg_registry_t * r, const char * filename)
   xmlFreeDoc(xml_doc);
   }
 
-static void save_section(bg_cfg_section_t * section, xmlNodePtr parent)
+void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
   {
   bg_cfg_item_t    * item;
   bg_cfg_section_t * tmp_section;
 
   char buffer[1024];
   
-  xmlNodePtr xml_section;
-  xmlNodePtr xml_item;
-  
-  /* Create XML section */
-
-  xml_section = xmlNewTextChild(parent, (xmlNsPtr)0, "SECTION", NULL);
-  xmlSetProp(xml_section, "name", section->name);
+  xmlNodePtr xml_item, xml_child;
   
   /* Save items */
 
@@ -278,23 +261,26 @@ static void save_section(bg_cfg_section_t * section, xmlNodePtr parent)
   tmp_section = section->children;
   while(tmp_section)
     {
-    save_section(tmp_section, xml_section);
+    xml_child = xmlNewTextChild(xml_section, (xmlNsPtr)0, "SECTION", NULL);
+    xmlSetProp(xml_child, "name", tmp_section->name);
+
+    bg_cfg_section_2_xml(tmp_section, xml_section);
     tmp_section = tmp_section->next;
     }
-  xmlAddChild(parent, xmlNewText("\n"));
   }
 
 void bg_cfg_registry_save(bg_cfg_registry_t * r, const char * filename)
   {
   xmlDocPtr  xml_doc;
-  xmlNodePtr xml_registry;
+  xmlNodePtr xml_registry, xml_section;
+  
   bg_cfg_section_t * tmp_section;
-  char * old_locale;
+  //  char * old_locale;
 
   if(!filename)
     return;
   
-  old_locale = setlocale(LC_NUMERIC, "C");
+  //  old_locale = setlocale(LC_NUMERIC, "C");
   
   xml_doc = xmlNewDoc("1.0");
   xml_registry = xmlNewDocRawNode(xml_doc, NULL, "REGISTRY", NULL);
@@ -305,10 +291,16 @@ void bg_cfg_registry_save(bg_cfg_registry_t * r, const char * filename)
   tmp_section = r->sections;
   while(tmp_section)
     {
-    save_section(tmp_section, xml_registry);
+    xml_section = xmlNewTextChild(xml_registry, (xmlNsPtr)0, "SECTION", NULL);
+    xmlSetProp(xml_section, "name", tmp_section->name);
+    
+    bg_cfg_section_2_xml(tmp_section, xml_section);
     tmp_section = tmp_section->next;
+
+    xmlAddChild(xml_registry, xmlNewText("\n"));
+    
     }
   xmlSaveFile(filename, xml_doc);
   xmlFreeDoc(xml_doc);
-  setlocale(LC_NUMERIC, old_locale);
+  //  setlocale(LC_NUMERIC, old_locale);
   }

@@ -22,6 +22,10 @@
 
 #include "parameter.h"
 
+#include <libxml/tree.h>
+#include <libxml/parser.h>
+
+
 typedef enum
   {
     BG_CFG_INT,
@@ -38,8 +42,17 @@ typedef struct bg_cfg_registry_s bg_cfg_registry_t;
 bg_cfg_registry_t * bg_cfg_registry_create();
 void bg_cfg_registry_destroy(bg_cfg_registry_t *);
 
+/* cfg_xml.c */
+
 void bg_cfg_registry_load(bg_cfg_registry_t *, const char * filename);
 void bg_cfg_registry_save(bg_cfg_registry_t *, const char * filename);
+
+/* The name and xml tag of the section must be set before */
+
+void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section);
+
+void bg_cfg_xml_2_section(xmlDocPtr xml_doc, xmlNodePtr xml_section,
+                          bg_cfg_section_t * cfg_section);
 
 /*
  *  Path looks like "section:subsection:subsubsection"
@@ -51,6 +64,12 @@ bg_cfg_section_t * bg_cfg_registry_find_section(bg_cfg_registry_t *,
 bg_cfg_section_t * bg_cfg_section_find_subsection(bg_cfg_section_t *,
                                                   const char * name);
 
+/* 
+ *  Create/destroy config sections
+ */
+
+bg_cfg_section_t * bg_cfg_section_create(const char * name);
+void bg_cfg_section_destroy(bg_cfg_section_t * s);
 
 /*
  *  Get/Set values

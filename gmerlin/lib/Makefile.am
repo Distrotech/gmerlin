@@ -41,6 +41,7 @@ streaminfo.c \
 stringutils.c \
 transcoder.c \
 transcoder_track.c \
+transcoder_track_xml.c \
 tree.c \
 tree_xml.c \
 urilist.c \

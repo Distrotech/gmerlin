@@ -40,9 +40,6 @@ struct bg_cfg_registry_s
   
   };
 
-bg_cfg_section_t * bg_cfg_create_section(const char * name);
-void bg_cfg_destroy_section(bg_cfg_section_t *);
-
 /* Create an empty item */
 
 bg_cfg_item_t * bg_cfg_create_item_empty(const char * name);

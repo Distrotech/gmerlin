@@ -25,11 +25,10 @@
 #include <registry_priv.h>
 #include <utils.h>
 
-bg_cfg_section_t * bg_cfg_create_section(const char * name)
+bg_cfg_section_t * bg_cfg_section_create(const char * name)
   {
   bg_cfg_section_t * ret = calloc(1, sizeof(*ret));
-  ret->name = malloc(strlen(name)+1);
-  strcpy(ret->name, name);
+  ret->name = bg_strdup(ret->name, name);
   return ret;
   }
 
@@ -53,12 +52,12 @@ bg_cfg_section_t * bg_cfg_section_find_subsection(bg_cfg_section_t * s,
   /*  fprintf(stderr, "Creating subsection %s\n", name); */
   if(prev_section)
     {
-    prev_section->next = bg_cfg_create_section(name);
+    prev_section->next = bg_cfg_section_create(name);
     return prev_section->next;
     }
   else
     {
-    s->children = bg_cfg_create_section(name);
+    s->children = bg_cfg_section_create(name);
     return s->children;
     }
   }
@@ -130,16 +129,8 @@ void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
       item->value.val_f = value->val_f;
       break;
     case BG_CFG_STRING:
-      if(item->value.val_str)
-        {
-        free(item->value.val_str);
-        item->value.val_str = (char*)0;
-        }
-      if(value->val_str)
-        {
-        item->value.val_str = malloc(strlen(value->val_str)+1);
-        strcpy(item->value.val_str, value->val_str);
-        }
+      item->value.val_str = bg_strdup(item->value.val_str,
+                                      value->val_str);
       break;
     case BG_CFG_COLOR:
       item->value.val_color[0] = value->val_color[0];
@@ -186,7 +177,7 @@ void bg_cfg_section_get_parameter(bg_cfg_section_t * section,
     }
   }
 
-void bg_cfg_destroy_section(bg_cfg_section_t * s)
+void bg_cfg_section_destroy(bg_cfg_section_t * s)
   {
   bg_cfg_item_t    * next_item;
   bg_cfg_section_t * next_section;
@@ -200,7 +191,7 @@ void bg_cfg_destroy_section(bg_cfg_section_t * s)
   while(s->children)
     {
     next_section = s->children->next;
-    bg_cfg_destroy_section(s->children);
+    bg_cfg_section_destroy(s->children);
     s->children = next_section;
     }
   free(s->name);

@@ -1,4 +1,4 @@
-AM_CFLAGS = @GTK_CFLAGS@
+AM_CFLAGS = @XML2_CFLAGS@ @GTK_CFLAGS@
 
 bin_PROGRAMS = gmerlin_plugincfg
 

@@ -23,6 +23,7 @@
 
 #include <cfg_registry.h>
 #include <registry_priv.h>
+#include <utils.h>
 
 bg_cfg_registry_t * bg_cfg_registry_create()
   {
@@ -37,7 +38,7 @@ void bg_cfg_registry_destroy(bg_cfg_registry_t * r)
   while(r->sections)
     {
     next_section = r->sections->next;
-    bg_cfg_destroy_section(r->sections);
+    bg_cfg_section_destroy(r->sections);
     r->sections = next_section;
     }
   free(r);
@@ -66,9 +67,8 @@ bg_cfg_section_t * bg_cfg_registry_find_section(bg_cfg_registry_t * r,
     if(path[i] == ':')
       depth++;
     }
-
-  tmp_path = malloc(len+1);
-  strcpy(tmp_path, path);
+  tmp_path = bg_strdup((char*)0, path);
+  
   tmp_sections = malloc(depth * sizeof(char*));
 
   tmp_sections[0] = tmp_path;
@@ -107,12 +107,12 @@ bg_cfg_section_t * bg_cfg_registry_find_section(bg_cfg_registry_t * r,
     /*    fprintf(stderr, "Creating section %s\n", tmp_sections[0]); */
     if(prev_section)
       {
-      prev_section->next = bg_cfg_create_section(tmp_sections[0]);
+      prev_section->next = bg_cfg_section_create(tmp_sections[0]);
       section = prev_section->next;
       }
     else
       {
-      r->sections = bg_cfg_create_section(tmp_sections[0]);
+      r->sections = bg_cfg_section_create(tmp_sections[0]);
       section = r->sections;
       }
     

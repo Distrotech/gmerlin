@@ -1302,6 +1302,11 @@ control_widget_t * control_widget_create(alsa_mixer_group_t * c,
           }
         break;
       case SND_CTL_ELEM_TYPE_INTEGER:
+        if(snd_ctl_elem_info_get_min(info) >= snd_ctl_elem_info_get_max(info))
+          {
+          fprintf(stderr, "int control %s has min >= max, skipping\n", c->label);
+          break;
+          }
         ret = calloc(1, sizeof(*ret));
         init_integer(ret, c, info);
         ret->type = TYPE_INTEGER;
@@ -1320,6 +1325,11 @@ control_widget_t * control_widget_create(alsa_mixer_group_t * c,
         ret->type = TYPE_ENUM;
         break;
       case SND_CTL_ELEM_TYPE_INTEGER64:
+        if(snd_ctl_elem_info_get_min64(info) >= snd_ctl_elem_info_get_max64(info))
+          {
+          fprintf(stderr, "int64 control %s has min >= max, skipping\n", c->label);
+          break;
+          }
         ret = calloc(1, sizeof(*ret));
         init_integer(ret, c, info);
         ret->type = TYPE_INTEGER64;

@@ -1,4 +1,4 @@
-AM_CFLAGS = @GTK_CFLAGS@
+AM_CFLAGS = @XML2_CFLAGS@ @GTK_CFLAGS@
 
 Desktopdir = $(datadir)/applications
 Desktop_DATA = gmerlin-camelot.desktop
