@@ -31,14 +31,36 @@ typedef struct
   float * sample_buffer;
   int sample_buffer_size;
 
-  uint8_t * data_buffer;
-  uint8_t * data_buffer_ptr;
-  int data_buffer_size;
-  int data_buffer_alloc;
+  uint8_t * data;
+  uint8_t * data_ptr;
+  int data_size;
+  int data_alloc;
   
   gavl_audio_frame_t * frame;
   int last_block_size;
   } faad_priv_t;
+
+static int get_data(bgav_stream_t * s)
+  {
+  faad_priv_t * priv;
+  bgav_packet_t * p;
+  priv = (faad_priv_t *)(s->data.audio.decoder->priv);
+
+  p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  if(!p)
+    return 0;
+  
+  if(priv->data_alloc < p->data_size)
+    {
+    priv->data_alloc = p->data_size + 32;
+    priv->data = realloc(priv->data, priv->data_alloc);
+    }
+  memcpy(priv->data, p->data, p->data_size);
+  priv->data_size = p->data_size;
+  priv->data_ptr = priv->data;
+  bgav_demuxer_done_packet_read(s->demuxer, p);
+  return 1;
+  }
 
 static int init_faad2(bgav_stream_t * s)
   {
@@ -56,10 +78,15 @@ static int init_faad2(bgav_stream_t * s)
 
   //  fprintf(stderr, "Extradata size: %d\n", s->ext_size);
 
-  if(s->fourcc == BGAV_MK_FOURCC('a', 'a', 'c', ' '))
-    result = faacDecInit(priv->dec, s->ext_data,
-                         s->ext_size,
+  if(!s->ext_size)
+    {
+    if(!get_data(s))
+      return 0;
+
+    result = faacDecInit(priv->dec, priv->data_ptr,
+                         priv->data_size,
                          &samplerate, &channels);
+    }
   else
     result = faacDecInit2(priv->dec, s->ext_data,
                           s->ext_size,
@@ -90,28 +117,6 @@ static int init_faad2(bgav_stream_t * s)
   return 1;
   }
 
-static int get_data(bgav_stream_t * s)
-  {
-  faad_priv_t * priv;
-  bgav_packet_t * p;
-  priv = (faad_priv_t *)(s->data.audio.decoder->priv);
-
-  p = bgav_demuxer_get_packet_read(s->demuxer, s);
-  if(!p)
-    return 0;
-  
-  if(priv->data_buffer_alloc < p->data_size)
-    {
-    priv->data_buffer_alloc = p->data_size + 32;
-    priv->data_buffer = realloc(priv->data_buffer, priv->data_buffer_alloc);
-    }
-  memcpy(priv->data_buffer, p->data, p->data_size);
-  priv->data_buffer_size = p->data_size;
-  priv->data_buffer_ptr = priv->data_buffer;
-  bgav_demuxer_done_packet_read(s->demuxer, p);
-  return 1;
-  }
-
 static int decode_frame(bgav_stream_t * s)
   {
   faacDecFrameInfo frame_info;
@@ -121,26 +126,26 @@ static int decode_frame(bgav_stream_t * s)
 
   memset(&frame_info, 0, sizeof(&frame_info));
   
-  if(!priv->data_buffer_size)
+  if(!priv->data_size)
     if(!get_data(s))
       return 0;
 
-  //  fprintf(stderr, "Decode %d\n", priv->data_buffer_size);
+  //  fprintf(stderr, "Decode %d\n", priv->data_size);
   
   priv->frame->samples.f = faacDecDecode(priv->dec,
                                          &frame_info,
-                                         priv->data_buffer_ptr,
-                                         priv->data_buffer_size);
+                                         priv->data_ptr,
+                                         priv->data_size);
 
 
-  priv->data_buffer_ptr += frame_info.bytesconsumed;
-  priv->data_buffer_size -= frame_info.bytesconsumed;
+  priv->data_ptr += frame_info.bytesconsumed;
+  priv->data_size -= frame_info.bytesconsumed;
 
   if(!priv->frame->samples.f)
     {
     fprintf(stderr, "faad2: faacDecDecode failed %s\n",
             faacDecGetErrorMessage(frame_info.error));
-    //    priv->data_buffer_size = 0;
+    //    priv->data_size = 0;
     //    priv->frame->valid_samples = 0;
     return 0; /* Recatching the stream is doomed to failure, so we end here */
     }
@@ -207,7 +212,7 @@ static void resync_faad2(bgav_stream_t * s)
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
   priv->frame->valid_samples = 0;
   priv->sample_buffer_size = 0;
-  priv->data_buffer_size = 0;
+  priv->data_size = 0;
   
   }
 

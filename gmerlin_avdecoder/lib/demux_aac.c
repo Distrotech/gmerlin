@@ -39,7 +39,6 @@
                     ((h[1] & 0xf0) == 0xf0) && \
                     ((h[1] & 0x06) == 0x00))
 
-
 static int samplerates[] =
   {
     96000,
@@ -201,14 +200,12 @@ static int open_adts(bgav_demuxer_context_t * ctx)
   /* The first header will also be the streams extradata */
   s = ctx->tt->current_track->audio_streams;
 
-  s->ext_data = malloc(ADTS_SIZE);
-  s->ext_size = bgav_input_get_data(ctx->input, s->ext_data, ADTS_SIZE);
-  if(s->ext_size < ADTS_SIZE)
-    return 0;
-  
-  if(!adts_header_read(s->ext_data, &adts))
+  if(bgav_input_get_data(ctx->input, buf, ADTS_SIZE) < ADTS_SIZE)
     return 0;
 
+  if(!adts_header_read(buf, &adts))
+    return 0;
+  
   if(adts.mpeg_version == 2)
     {
     switch(adts.profile)
@@ -322,6 +319,9 @@ static int open_adts(bgav_demuxer_context_t * ctx)
 static int open_adif(bgav_demuxer_context_t * ctx)
   {
   fprintf(stderr, "ADIF header not supported yet\n");
+
+  
+
   return 0;
   }
 
@@ -396,9 +396,15 @@ static int open_aac(bgav_demuxer_context_t * ctx,
     bgav_id3v1_2_metadata(id3v1,
                           &(ctx->tt->current_track->metadata));
 
+  if(ctx->input->total_bytes)
+    priv->data_size = ctx->input->total_bytes - priv->data_start;
+
   if(id3v1)
+    {
     bgav_id3v1_destroy(id3v1);
-    
+    priv->data_size -= 128;
+    }
+
   s = bgav_track_add_audio_stream(ctx->tt->current_track);
 
   /* This fourcc reminds the decoder to call a different init function */
@@ -406,10 +412,7 @@ static int open_aac(bgav_demuxer_context_t * ctx,
   s->fourcc = BGAV_MK_FOURCC('a', 'a', 'c', ' ');
 
   /* Initialize rest */
-
-  if(ctx->input->total_bytes)
-    priv->data_size = ctx->input->total_bytes - priv->data_start;
-
+  
   switch(priv->type)
     {
     case TYPE_ADTS:
