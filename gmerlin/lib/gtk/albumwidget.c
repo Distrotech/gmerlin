@@ -1066,10 +1066,14 @@ static void select_row_callback(GtkTreeSelection * sel,
       break;
     }
   if(w->num_selected == 1)
+    {
     gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.info_item, 1);
+    }
   else
     {
     gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.info_item, 0);
     w->selected_entry = (bg_album_entry_t*)0;
     }
   }
