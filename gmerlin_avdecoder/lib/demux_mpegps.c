@@ -522,7 +522,7 @@ static void get_duration(bgav_demuxer_context_t * ctx)
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
 
-  fprintf(stderr, "get duration...\n");
+  //  fprintf(stderr, "get duration...\n");
   
   if(!ctx->input->total_bytes)
     return;
@@ -538,7 +538,7 @@ static void get_duration(bgav_demuxer_context_t * ctx)
     while(start_code != PACK_HEADER)
       {
       start_code = previous_start_code(ctx->input);
-#if 1
+#if 0
       fprintf(stderr, "previous_start_code %lld %lld ",
               ctx->input->position, ctx->input->total_bytes);
       bgav_dump_fourcc(start_code);
@@ -568,7 +568,7 @@ static void get_duration(bgav_demuxer_context_t * ctx)
       (ctx->input->total_bytes * GAVL_TIME_SCALE)/
       (priv->pack_header.mux_rate*50);
     }
-  fprintf(stderr, "get duration done\n");
+  //  fprintf(stderr, "get duration done\n");
   }
 
 

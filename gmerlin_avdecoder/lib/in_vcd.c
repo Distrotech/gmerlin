@@ -217,10 +217,10 @@ static int read_sector(vcd_priv * priv)
   struct cdrom_msf cdrom_msf;
   int secnum;
 
-  fprintf(stderr, "Read sector %d ", priv->next_sector);
+  //  fprintf(stderr, "Read sector %d ", priv->next_sector);
 
-  do
-    {
+  //  do
+  //    {
 #if 0
     fprintf(stderr, "read_sector %d %d %d\n",
             priv->next_sector,
@@ -246,9 +246,9 @@ static int read_sector(vcd_priv * priv)
       return 0;
       }
     priv->next_sector++;
-    } while((priv->sector[18] & ~0x01) == 0x60);
+    //    } while((priv->sector[18] & ~0x01) == 0x60);
   priv->last_sector = priv->next_sector - 1;
-  fprintf(stderr, " %d\n", priv->last_sector);
+  //  fprintf(stderr, " %d\n", priv->last_sector);
   priv->buffer_ptr = priv->buffer;
   //  bgav_hexdump(priv->sector, 2352, 16);
 
@@ -298,10 +298,10 @@ static int64_t seek_byte_vcd(bgav_input_context_t * ctx,
     ctx->position / SECTOR_SIZE;
 
   sector_offset = ctx->position % SECTOR_SIZE;
-
+#if 0
   fprintf(stderr, "Seek: Pos: %lld, whence: %d, S: %d, O: %d\n", 
           pos, whence, sector, sector_offset);
-
+#endif
   if(sector == priv->last_sector)
     priv->buffer_ptr = priv->buffer + sector_offset;
   else
