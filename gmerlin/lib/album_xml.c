@@ -112,8 +112,6 @@ static bg_album_entry_t * load_entry(bg_album_t * album,
   return ret;
   }
 
-/* Load a chained list of albums */
-
 static bg_album_entry_t * xml_2_album(bg_album_t * album,
                                       xmlDocPtr xml_doc,
                                       bg_album_entry_t ** last,
@@ -228,6 +226,23 @@ bg_album_entry_t * load_album_xml(bg_album_t * album,
   xmlFreeDoc(xml_doc);
   return ret;
   }
+
+bg_album_entry_t *
+bg_album_entries_new_from_xml(const char * xml_string,
+                             int length)
+  {
+  bg_album_entry_t * ret;
+  xmlDocPtr xml_doc;
+  xml_doc = xmlParseMemory(xml_string, length);
+
+  ret = xml_2_album((bg_album_t*)0, xml_doc,
+                    (bg_album_entry_t**)0, (bg_album_entry_t**)0, 0);
+  
+  xmlFreeDoc(xml_doc);
+  return ret;
+  }
+
+
 
 /* Inserts an xml-string */
 

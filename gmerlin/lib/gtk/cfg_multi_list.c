@@ -87,7 +87,7 @@ static void set_value(bg_gtk_widget_t * w)
       break;
     w->value.val_str = bg_strcat(w->value.val_str, ",");
     }
-  fprintf(stderr, "Set Value: %s\n", w->value.val_str);
+  //  fprintf(stderr, "Set Value: %s\n", w->value.val_str);
   }
 
 

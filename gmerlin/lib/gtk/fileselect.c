@@ -112,6 +112,10 @@ static void button_callback(GtkWidget * w, gpointer data)
     gtk_widget_hide(f->filesel);
     if(f->is_modal)
       gtk_main_quit();
+
+    if(f->close_notify)
+      f->close_notify(f, f->callback_data);
+    
     bg_gtk_filesel_destroy(f);
     }
   else if(w ==  filesel->ok_button)

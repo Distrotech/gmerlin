@@ -31,7 +31,7 @@
 #include <config.h>
 #include <utils.h>
 
-char * bg_singlepic_ouput_name = "ev_singlepic";
+char * bg_singlepic_ouput_name = "e_singlepic";
 char * bg_singlepic_input_name = "i_singlepic";
 
 static char * get_extensions(bg_plugin_registry_t * reg,
@@ -91,7 +91,7 @@ static void set_plugin_parameter(bg_parameter_info_t * ret,
 
 /* Input stuff */
 
-static bg_parameter_info_t parameters[] =
+static bg_parameter_info_t parameters_input[] =
   {
     {
       name:      "timescale",
@@ -109,11 +109,6 @@ static bg_parameter_info_t parameters[] =
       val_max:     { val_i: 100000 },
       val_default: { val_i: 1 }
     },
-    {
-      name:      "plugins",
-      long_name: "Plugins",
-      type:      BG_PARAMETER_MULTI_MENU,
-    }
   };
 
 typedef struct
@@ -143,15 +138,11 @@ typedef struct
 static bg_parameter_info_t * get_parameters_input(void * priv)
   {
   input_t * inp = (input_t *)priv;
-  inp->parameters = calloc(sizeof(parameters)/sizeof(parameters[0])+1,
+  inp->parameters = calloc(sizeof(parameters_input)/sizeof(parameters_input[0])+1,
                            sizeof(*inp->parameters));
   
-  bg_parameter_info_copy(&inp->parameters[0], &parameters[0]);
-  bg_parameter_info_copy(&inp->parameters[1], &parameters[1]);
-  bg_parameter_info_copy(&inp->parameters[2], &parameters[2]);
-  
-  set_plugin_parameter(&inp->parameters[2],
-                       inp->reg, BG_PLUGIN_IMAGE_READER, BG_PLUGIN_FILE);
+  bg_parameter_info_copy(&inp->parameters[0], &parameters_input[0]);
+  bg_parameter_info_copy(&inp->parameters[1], &parameters_input[1]);
 
   return inp->parameters;
   }
@@ -385,7 +376,6 @@ static void destroy_input(void* priv)
   free(priv);
   }
 
-
 static bg_input_plugin_t input_plugin =
   {
     common:
@@ -436,7 +426,7 @@ bg_plugin_common_t * bg_singlepic_input_get()
 bg_plugin_info_t * bg_singlepic_input_info(bg_plugin_registry_t * reg)
   {
   bg_plugin_info_t * ret;
-
+  
   if(!bg_plugin_registry_get_num_plugins(reg, BG_PLUGIN_IMAGE_READER,
                                          BG_PLUGIN_FILE))
     return (bg_plugin_info_t *)0;
@@ -466,35 +456,225 @@ void * bg_singlepic_input_create(bg_plugin_registry_t * reg)
 
 void bg_singlepic_input_destroy(bg_plugin_common_t * p)
   {
-
+  
   }
 
-/* Output stuff */
+/* Encoder stuff */
 
-bg_plugin_info_t * bg_singlepic_output_info(bg_plugin_registry_t * reg)
+static bg_parameter_info_t parameters_encoder[] =
+  {
+    {
+      name:        "plugin",
+      long_name:   "Plugin",
+      type:        BG_PARAMETER_MULTI_MENU,
+    },
+    {
+      name:        "frame_digits",
+      long_name:   "Framenumber digits",
+      type:        BG_PARAMETER_INT,
+      val_min:     { val_i: 1 },
+      val_max:     { val_i: 9 },
+      val_default: { val_i: 4 },
+    }
+  };
+
+typedef struct
+  {
+  char * mask;
+  bg_plugin_handle_t * handle;
+  bg_parameter_info_t * parameters;
+
+  bg_plugin_registry_t * reg;
+  } encoder_t;
+
+#if 0
+bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg)
   {
   bg_plugin_info_t * ret;
-
-  if(bg_plugin_registry_get_num_plugins(reg, BG_PLUGIN_IMAGE_WRITER,
-                                        BG_PLUGIN_FILE))
+  
+  if(!bg_plugin_registry_get_num_plugins(reg, BG_PLUGIN_IMAGE_WRITER,
+                                         BG_PLUGIN_FILE))
+    {
+    fprintf(stderr, "No singlepicture encoding possible\n");
     return (bg_plugin_info_t *)0;
+    }
   ret = calloc(1, sizeof(*ret));
-
+  
   ret->name = bg_strdup(ret->name, bg_singlepic_input_name);
   ret->long_name = "Single picture encoder";
   ret->extensions = get_extensions(reg, BG_PLUGIN_IMAGE_WRITER,
                                    BG_PLUGIN_FILE);
+  return ret;
+  }
+#endif
+
+static bg_parameter_info_t * get_parameters_encoder(void * priv)
+  {
+  int i;
+  encoder_t * enc = (encoder_t *)priv;
+  
+  if(!enc->parameters)
+    {
+    enc->parameters =
+      calloc(sizeof(parameters_encoder)/sizeof(parameters_encoder[0])+1,
+             sizeof(*enc->parameters));
+    
+    for(i = 0; i < sizeof(parameters_encoder)/sizeof(parameters_encoder[0]); i++)
+      {
+      bg_parameter_info_copy(&enc->parameters[i], &parameters_encoder[i]);
+      }
+    set_plugin_parameter(&enc->parameters[0],
+                         enc->reg, BG_PLUGIN_IMAGE_WRITER, BG_PLUGIN_FILE);
+    }
+  return enc->parameters;
+  }
+
+#if 0
+void * bg_singlepic_encoder_create(bg_plugin_registry_t * reg)
+  {
+  encoder_t * ret;
+  ret = calloc(1, sizeof(*ret));
+  ret->reg = reg;
+  return ret;
+  }
+#endif
+
+static int open_encoder(void * data, const char * filename_base,
+                        bg_metadata_t * metadata)
+  {
+  return 0;
+  }
+
+static void destroy_encoder(void * data)
+  {
+  }
+
+static void set_parameter_encoder(void * priv, char * name,
+                                  bg_parameter_value_t * val)
+  {
+  
+  }
+
+static void set_video_format_encoder(void * priv, int stream,
+                                     gavl_video_format_t * format)
+  {
+  
+  }
+
+static void write_video_frame_encoder(void * priv,gavl_video_frame_t * frame,int stream)
+  {
+
+  }
+
+
+static void close_encoder(void * priv)
+  {
+  
+  }
+
+bg_encoder_plugin_t encoder_plugin =
+  {
+    common:
+    {
+      name:          "e_singlepic",
+      long_name:     "Singlepicture encoder",
+      extensions:    NULL, /* Filled in later */
+      type:          BG_PLUGIN_ENCODER_VIDEO,
+      flags:         BG_PLUGIN_FILE,
+      create:         NULL,
+      destroy:        destroy_encoder,
+      get_parameters: get_parameters_encoder,
+      set_parameter:  set_parameter_encoder
+    },
+    
+    /* Maximum number of audio/video streams. -1 means infinite */
+    
+    max_audio_streams: 0,
+    max_video_streams: 0,
+    
+    /* Open a file, filename base is without extension, which
+       will be added by the plugin */
+
+    open: open_encoder,
+    
+  /*
+   *  Add audio/video streams
+   *  For plugins, which always procude exactly one stream,
+   *  these can be ommitted
+   */
+
+    //  void (*set_audio_streams)(void *, int);
+    //  void (*set_video_streams)(void *, int);
+  
+    //  bg_parameter_info_t * (*get_audio_parameters)(void * data);
+    //  bg_parameter_info_t * (*get_video_parameters)(void * data);
+  
+  /* If the following are NOT called, the plugin MUST use resonable 
+     defaults from set_parameter() */
+  
+    //  void (*set_audio_parameter)(void * data, int stream, char * name,
+    //                              bg_parameter_value_t * v);
+  
+    //  void (*set_video_parameter)(void * data, int stream, char * name,
+    // bg_parameter_value_t * v);
+  /*
+   *  Set the audio/video formats.
+   *  The arguments might be changed by the plugin
+   */
+  
+//  void (*set_audio_format)(void *, int stream, gavl_audio_format_t*);
+    set_video_format: set_video_format_encoder,
+    
+    /*
+     *  Encode audio/video
+     */
+    
+    //  void (*write_audio_frame)(void*,gavl_audio_frame_t*,int stream);
+    
+    write_video_frame: write_video_frame_encoder,
+    
+    /* Close it */
+
+    close: close_encoder,
+  };
+
+bg_plugin_common_t * bg_singlepic_encoder_get()
+  {
+  return (bg_plugin_common_t*)(&encoder_plugin);
+  }
+
+bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg)
+  {
+  bg_plugin_info_t * ret;
+  
+  if(!bg_plugin_registry_get_num_plugins(reg, BG_PLUGIN_IMAGE_WRITER,
+                                         BG_PLUGIN_FILE))
+    return (bg_plugin_info_t *)0;
+  
+  ret = calloc(1, sizeof(*ret));
+  
+  ret->name      = bg_strdup(ret->name, encoder_plugin.common.name);
+  ret->long_name = bg_strdup(ret->long_name, encoder_plugin.common.long_name);
+  ret->extensions = get_extensions(reg, BG_PLUGIN_IMAGE_READER,
+                                   BG_PLUGIN_FILE);
+  ret->type  =  encoder_plugin.common.type;
+  ret->flags =  encoder_plugin.common.flags;
+  
   
   return ret;
-  
   }
 
-bg_plugin_common_t * bg_singlepic_output_create(bg_plugin_registry_t * reg)
+void * bg_singlepic_encoder_create(bg_plugin_registry_t * reg)
   {
-  return NULL;
+  encoder_t * ret;
+  ret = calloc(1, sizeof(*ret));
+
+  ret->reg = reg;
+
+  return ret;
   }
 
-void bg_singlepic_output_destroy(bg_plugin_common_t * p)
+void bg_singlepic_encoder_destroy(bg_plugin_common_t * p)
   {
   
   }

@@ -54,5 +54,6 @@ $(esd_subdirs) \
 $(v4l_subdirs) \
 $(oss_subdirs) \
 $(png_subdirs) \
-$(x11_subdirs)
+$(x11_subdirs) \
+wavwrite
 

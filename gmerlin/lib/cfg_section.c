@@ -123,6 +123,9 @@ void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
     case BG_CFG_INT:
       item->value.val_i = value->val_i;
       break;
+    case BG_CFG_TIME:
+      item->value.val_time = value->val_time;
+      break;
     case BG_CFG_FLOAT:
       item->value.val_f = value->val_f;
       break;
@@ -163,6 +166,9 @@ void bg_cfg_section_get_parameter(bg_cfg_section_t * section,
     {
     case BG_CFG_INT:
       value->val_i = item->value.val_i;
+      break;
+    case BG_CFG_TIME:
+      value->val_time = item->value.val_time;
       break;
     case BG_CFG_FLOAT:
       value->val_f = item->value.val_f;

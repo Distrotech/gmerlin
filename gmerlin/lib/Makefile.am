@@ -40,6 +40,7 @@ socket.c \
 streaminfo.c \
 stringutils.c \
 transcoder.c \
+transcoder_track.c \
 tree.c \
 tree_xml.c \
 urilist.c \

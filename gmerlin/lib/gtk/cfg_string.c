@@ -84,10 +84,10 @@ static void attach(void * priv, GtkWidget * table,
   //  gtk_table_attach_defaults(GTK_TABLE(table), b->button,
   //                            0, 1, *row, *row+1);
   gtk_table_attach(GTK_TABLE(table), b->label,
-                    0, 1, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+                   0, 1, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
 
-  gtk_table_attach_defaults(GTK_TABLE(table), b->entry,
-                    1, 2, *row, *row+1);
+  gtk_table_attach(GTK_TABLE(table), b->entry,
+                   1, 2, *row, *row+1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 
   (*row)++;
   }

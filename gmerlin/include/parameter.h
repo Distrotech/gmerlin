@@ -20,6 +20,8 @@
 #ifndef __BG_PARAMETER_H_
 #define __BG_PARAMETER_H_
 
+#include <gavl/gavl.h>
+
 /* Universal Parameter setting mechanism */
 
 /* Parameter type: These define both the data type and
@@ -44,6 +46,7 @@ typedef enum
     BG_PARAMETER_DIRECTORY,
     BG_PARAMETER_MULTI_MENU,
     BG_PARAMETER_MULTI_LIST,
+    BG_PARAMETER_TIME
   } bg_parameter_type_t;
 
 /* Container for a parameter value */
@@ -54,6 +57,7 @@ typedef union
   int     val_i;
   char *  val_str;
   float * val_color;  /* RGBA Color */
+  gavl_time_t val_time;
   } bg_parameter_value_t;
 
 /* Flags */

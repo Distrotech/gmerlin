@@ -54,7 +54,7 @@ void bg_gtk_plugin_widget_single_destroy(bg_gtk_plugin_widget_single_t * w);
 GtkWidget *
 bg_gtk_plugin_widget_single_get_widget(bg_gtk_plugin_widget_single_t * w);
 
-const bg_plugin_info_t *
+bg_plugin_handle_t *
 bg_gtk_plugin_widget_single_get_plugin(bg_gtk_plugin_widget_single_t * w);
 
 /* Menu for plugins, will be used for file selectors to select the plugin */

@@ -459,44 +459,27 @@ typedef struct bg_encoder_plugin_s
    *  these can be ommitted
    */
 
-  void (*set_num_audio_streams)(void *, int);
-  void (*set_num_video_streams)(void *, int);
+  void (*set_audio_streams)(void *, int);
+  void (*set_video_streams)(void *, int);
   
-  /*
-   *  Purely optional functions for multiple codec support
-   *  These allow parameters to be set on a per stream basis.
-   *  All the parameters MUST also be accessible via the
-   *  common parameter mechanism. The standard dialog set the defaults.
-   */
-
-  int (*num_audio_codecs)(void * data);
-  int (*num_video_codecs)(void * data);
-
-  const char * (*audio_codec_name)(void * data, int codec_index);
-  const char * (*video_codec_name)(void * data, int codec_index);
-
-  void (*set_audio_codec)(void*data,int codec_index);
-  void (*set_video_codec)(void*data,int codec_index);
+  bg_parameter_info_t * (*get_audio_parameters)(void * data);
+  bg_parameter_info_t * (*get_video_parameters)(void * data);
   
-  bg_parameter_info_t * (*get_audio_parameters)(void * data, int codec_index);
-  bg_parameter_info_t * (*get_video_parameters)(void * data, int codec_index);
-
-  /* If the following are NOT called, the plugin MUST use defaults
-     from set_parameter() */
+  /* If the following are NOT called, the plugin MUST use resonable 
+     defaults from set_parameter() */
   
   void (*set_audio_parameter)(void * data, int stream, char * name,
                               bg_parameter_value_t * v);
   
   void (*set_video_parameter)(void * data, int stream, char * name,
                               bg_parameter_value_t * v);
-
   /*
    *  Set the audio/video formats.
    *  The arguments might be changed by the plugin
    */
   
-  void (*set_audio_format)(void *, gavl_audio_format_t*);
-  void (*set_video_format)(void *, gavl_video_format_t*);
+  void (*set_audio_format)(void *, int stream, gavl_audio_format_t*);
+  void (*set_video_format)(void *, int stream, gavl_video_format_t*);
   
   /*
    *  Encode audio/video

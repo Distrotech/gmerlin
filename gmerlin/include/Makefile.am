@@ -17,6 +17,7 @@ remote.h \
 singlepic.h \
 streaminfo.h \
 transcoder.h \
+transcoder_track.h \
 tree.h \
 utils.h
 

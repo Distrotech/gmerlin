@@ -33,18 +33,18 @@
  */
 
 bg_plugin_info_t * bg_singlepic_input_info(bg_plugin_registry_t * reg);
-bg_plugin_info_t * bg_singlepic_output_info(bg_plugin_registry_t * reg);
+bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg);
 
 /*
  *  Get the static plugin infos
  */
 
 bg_plugin_common_t * bg_singlepic_input_get();
-bg_plugin_common_t * bg_singlepic_output_get();
+bg_plugin_common_t * bg_singlepic_encoder_get();
 
 /*
  *  Create the plugins (These are a replacement for the create() methods
  */
 
 void * bg_singlepic_input_create(bg_plugin_registry_t * reg);
-void * bg_singlepic_output_create(bg_plugin_registry_t * reg);
+void * bg_singlepic_encoder_create(bg_plugin_registry_t * reg);

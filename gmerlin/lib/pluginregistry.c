@@ -39,7 +39,7 @@ struct bg_plugin_registry_s
   bg_cfg_section_t * config_section;
 
   bg_plugin_info_t * singlepic_input;
-  bg_plugin_info_t * singlepic_output;
+  bg_plugin_info_t * singlepic_encoder;
   };
 
 static void free_info(bg_plugin_info_t * info)
@@ -459,6 +459,7 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   tmp_info = ret->entries;
   while(tmp_info->next)
     tmp_info = tmp_info->next;
+
   
   ret->singlepic_input = bg_singlepic_input_info(ret);
 
@@ -469,7 +470,15 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
     tmp_info = tmp_info->next;
     }
   
-  //  ret->singlepic_output = bg_singlepic_output_info(ret);
+  ret->singlepic_encoder = bg_singlepic_encoder_info(ret);
+
+  if(ret->singlepic_encoder)
+    {
+    fprintf(stderr, "Found Singlepicture encoder\n");
+    tmp_info->next = ret->singlepic_encoder;
+    tmp_info = tmp_info->next;
+    }
+  
   
   /* Lets sort them */
   
@@ -546,6 +555,8 @@ int bg_plugin_registry_get_num_plugins(bg_plugin_registry_t * reg,
     if((info->type & type_mask) &&
        (info->flags & flag_mask))
       ret++;
+
+    //    fprintf(stderr, "Tried %s %d\n", info->name, ret);
     info = info->next;
     }
   return ret;
@@ -812,10 +823,11 @@ bg_plugin_handle_t * bg_plugin_load(bg_plugin_registry_t * reg,
     ret->plugin = bg_singlepic_input_get();
     ret->priv = bg_singlepic_input_create(reg);
     }
-  else if(reg->singlepic_output &&
-          !strcmp(reg->singlepic_output->name, info->name))
+  else if(reg->singlepic_encoder &&
+          !strcmp(reg->singlepic_encoder->name, info->name))
     {
-    
+    ret->plugin = bg_singlepic_encoder_get();
+    ret->priv = bg_singlepic_encoder_create(reg);
     }
   ret->info = info;
 
@@ -1001,7 +1013,10 @@ static void load_plugin(bg_plugin_registry_t * reg,
   if(!(*ret) || strcmp((*ret)->info->name, info->name))
     {
     if(*ret)
+      {
       bg_plugin_unref(*ret);
+      *ret = (bg_plugin_handle_t*)0;
+      }
     *ret = bg_plugin_load(reg, info);
     }
   }

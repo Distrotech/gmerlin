@@ -39,6 +39,9 @@ type_names[] =
     { "Video output",   BG_PLUGIN_OUTPUT_VIDEO },
     { "Audio recorder", BG_PLUGIN_RECORDER_AUDIO },
     { "Video recorder", BG_PLUGIN_RECORDER_VIDEO },
+    { "Audio encoder",  BG_PLUGIN_ENCODER_AUDIO },
+    { "Video encoder",  BG_PLUGIN_ENCODER_VIDEO },
+    { "Audio/Video encoder",  BG_PLUGIN_ENCODER },
     { "Image Reader",   BG_PLUGIN_IMAGE_READER  },
     { "Image Writer",   BG_PLUGIN_IMAGE_WRITER  },
     { (char*)0,         BG_PLUGIN_NONE }

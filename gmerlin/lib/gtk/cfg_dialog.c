@@ -250,6 +250,9 @@ GtkWidget * create_section(dialog_section_t * section,
       case BG_PARAMETER_SLIDER_INT:
         bg_gtk_create_slider_int(&(section->widgets[count]), &(info[i]));
         break;
+      case BG_PARAMETER_TIME:
+        bg_gtk_create_time(&(section->widgets[count]), &(info[i]));
+        break;
       case BG_PARAMETER_SLIDER_FLOAT:
         bg_gtk_create_slider_float(&(section->widgets[count]), &(info[i]));
         break;
@@ -285,7 +288,7 @@ GtkWidget * create_section(dialog_section_t * section,
         bg_gtk_create_multi_list(&(section->widgets[count]), &(info[i]),
                                  cfg_section, set_param, data);
         break;
-      default:
+      case BG_PARAMETER_SECTION:
         break;
       }
     section->widgets[count].funcs->attach(section->widgets[count].priv, table,

@@ -26,27 +26,35 @@
 #define PARAM_AUDIO 0
 #define PARAM_VIDEO 1
 
-static bg_parameter_info_t parameters[] = 
+static bg_parameter_info_t audio_parameters[] = 
   {
     {
       name:      "audio_codec",
       long_name: "Audio Codec",
     },
+  };
+
+
+static bg_parameter_info_t video_parameters[] = 
+  {
     {
       name:      "video_codec",
       long_name: "Video Codec",
     },
-    { /* End of parameters */ }
   };
 
 typedef struct
   {
   quicktime_t * file;
-  bg_parameter_info_t * parameters;
+  //  bg_parameter_info_t * parameters;
 
   char * audio_codec_name;
   char * video_codec_name;
-    
+
+  bg_parameter_info_t * audio_parameters;
+  bg_parameter_info_t * video_parameters;
+  
+  
   } e_lqt_t;
 
 static void * create_lqt()
@@ -96,37 +104,79 @@ static void destroy_lqt(void * data)
 
   close_lqt(data);
     
-  if(e->parameters)
-    bg_parameter_info_destroy_array(e->parameters);
+  if(e->audio_parameters)
+    bg_parameter_info_destroy_array(e->audio_parameters);
+  if(e->video_parameters)
+    bg_parameter_info_destroy_array(e->video_parameters);
   free(e);
   }
 
 static void create_parameters(e_lqt_t * e)
   {
-  e->parameters = calloc(3, sizeof(bg_parameter_info_t));
-  bg_parameter_info_copy(&(e->parameters[PARAM_AUDIO]), &(parameters[PARAM_AUDIO]));
-  bg_parameter_info_copy(&(e->parameters[PARAM_VIDEO]), &(parameters[PARAM_VIDEO]));
+  e->audio_parameters = calloc(1, sizeof(*(e->audio_parameters)));
+  e->video_parameters = calloc(1, sizeof(*(e->video_parameters)));
 
-  bg_lqt_create_codec_info(&(e->parameters[PARAM_AUDIO]),
+  bg_parameter_info_copy(&(e->audio_parameters[0]), &(audio_parameters[0]));
+  bg_parameter_info_copy(&(e->video_parameters[0]), &(video_parameters[0]));
+  
+  bg_lqt_create_codec_info(&(e->audio_parameters[0]),
                            1, 0, 1, 0);
-  bg_lqt_create_codec_info(&(e->parameters[PARAM_VIDEO]),
+  bg_lqt_create_codec_info(&(e->video_parameters[0]),
                            0, 1, 1, 0);
   
   }
 
-static bg_parameter_info_t * get_parameters_lqt(void * data)
+static bg_parameter_info_t * get_audio_parameters_lqt(void * data)
   {
   e_lqt_t * e = (e_lqt_t*)data;
   
+  if(!e->audio_parameters)
+    create_parameters(e);
+  
+  return e->audio_parameters;
+  }
+
+static bg_parameter_info_t * get_video_parameters_lqt(void * data)
+  {
+  e_lqt_t * e = (e_lqt_t*)data;
+  
+  if(!e->audio_parameters)
+    create_parameters(e);
+  
+  return e->video_parameters;
+  }
+
+static void set_audio_parameter_lqt(void * data, int stream, char * name,
+                                    bg_parameter_value_t * val)
+  {
+#if 0
+  e_lqt_t * e = (e_lqt_t*)data;
+
+  if(!name)
+    return;
+
   if(!e->parameters)
     create_parameters(e);
   
-  return e->parameters;
+  if(bg_lqt_set_parameter(name, val, &(e->parameters[PARAM_AUDIO])) ||
+     bg_lqt_set_parameter(name, val, &(e->parameters[PARAM_VIDEO])))
+    return;
+
+  if(!strcmp(name, "audio_codec"))
+    {
+    e->audio_codec_name = bg_strdup(e->audio_codec_name, val->val_str);
+    }
+  else if(!strcmp(name, "video_codec"))
+    {
+    e->video_codec_name = bg_strdup(e->video_codec_name, val->val_str);
+    }
+#endif
   }
 
-static void set_parameter_lqt(void * data, char * name,
-                              bg_parameter_value_t * val)
+static void set_video_parameter_lqt(void * data, int stream, char * name,
+                                    bg_parameter_value_t * val)
   {
+#if 0
   e_lqt_t * e = (e_lqt_t*)data;
 
   if(!name)
@@ -147,8 +197,9 @@ static void set_parameter_lqt(void * data, char * name,
     {
     e->video_codec_name = bg_strdup(e->video_codec_name, val->val_str);
     }
-  
+#endif
   }
+
 
 bg_encoder_plugin_t the_plugin =
   {
@@ -162,13 +213,19 @@ bg_encoder_plugin_t the_plugin =
       flags:          BG_PLUGIN_FILE,
       create:         create_lqt,
       destroy:        destroy_lqt,
-      get_parameters: get_parameters_lqt,
-      set_parameter:  set_parameter_lqt,
+      //      get_parameters: get_parameters_lqt,
+      //      set_parameter:  set_parameter_lqt,
     },
 
     max_audio_streams: -1,
     max_video_streams: -1,
 
+    get_audio_parameters: get_audio_parameters_lqt,
+    get_video_parameters: get_video_parameters_lqt,
+
+    set_audio_parameter:  set_audio_parameter_lqt,
+    set_video_parameter:  set_video_parameter_lqt,
+    
     open:              open_lqt,
     
     write_audio_frame: write_audio_frame_lqt,

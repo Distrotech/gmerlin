@@ -17,12 +17,6 @@
  
 *****************************************************************/
 
-/*
- *  VERY simple transcoder class.
- *  You give readily initialized plugins
- *  to the transcoder and it will transcode the streams
- */
-
 typedef struct bg_transcoder_s bg_transcoder_t;
 
 typedef struct

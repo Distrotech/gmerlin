@@ -1,5 +1,7 @@
 #include <gtk/gtk.h>
 #include <gui_gtk/gtkutils.h>
+
+#include <pluginregistry.h>
 #include "transcoder_window.h"
 
 

@@ -20,6 +20,7 @@ cfg_slider.c \
 cfg_spinbutton.c \
 cfg_string.c \
 cfg_stringlist.c \
+cfg_time.c \
 display.c \
 fileselect.c \
 fileentry.c \

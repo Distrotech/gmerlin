@@ -182,44 +182,7 @@ void bg_album_unlock(bg_album_t * a)
   }
 
 /* Add items */
-#if 0
-static bg_album_entry_t * load_url(bg_album_t * a,
-                                   char * location,
-                                   const char * plugin)
-  {
-  bg_album_entry_t * new_entry;
-  bg_album_entry_t * ret;
-  bg_album_entry_t * end_entry;
-  
-  ret       = (bg_album_entry_t*)0;
-  end_entry = (bg_album_entry_t*)0;
-  new_entry = (bg_album_entry_t*)0;
-    
-    new_entry = bg_album_load_url(a,
-                                  locations[i],
-                                  plugin);
-    if(!new_entry)
-      {
-      i++;
-      continue;
-      }
-    
-    if(!end_entry)
-      {
-      end_entry = new_entry;
-      ret       = new_entry;
-      }
-    else
-      {
-      end_entry->next = new_entry;
-      while(end_entry->next)
-        end_entry = end_entry->next;
-      }
-    i++;
-    }
-  return ret;
-  }
-#endif
+
 static void insertion_done(bg_album_t * album)
   {
   switch(album->type)
@@ -492,11 +455,25 @@ void bg_album_entry_destroy(bg_album_entry_t * entry)
   free(entry);
   }
 
+void bg_album_entries_destroy(bg_album_entry_t * entries)
+  {
+  bg_album_entry_t * tmp_entry;
+
+  while(entries)
+    {
+    tmp_entry = entries->next;
+    bg_album_entry_destroy(entries);
+    entries = tmp_entry;
+    }
+
+  }
+
 bg_album_entry_t * bg_album_entry_create(bg_album_t * album)
   {
   bg_album_entry_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->id = bg_album_get_unique_id(album);
+  if(album)
+    ret->id = bg_album_get_unique_id(album);
   return ret;
   }
 
@@ -504,7 +481,6 @@ bg_album_entry_t * bg_album_entry_create(bg_album_t * album)
 void bg_album_close(bg_album_t *a )
   {
 
-  bg_album_entry_t * tmp_entry;
   char * tmp_filename;
   
   a->open_count--;
@@ -548,14 +524,13 @@ void bg_album_close(bg_album_t *a )
     }
   
   /* Delete entries */
+
+  bg_album_entries_destroy(a->entries);
+  a->entries = (bg_album_entry_t*)0;
   
-  while(a->entries)
-    {
-    tmp_entry = a->entries->next;
-    bg_album_entry_destroy(a->entries);
-    a->entries = tmp_entry;
-    }
   }
+
+
 
 void bg_album_set_expanded(bg_album_t * a, int expanded)
   {
@@ -581,7 +556,6 @@ int bg_album_is_open(bg_album_t * a)
 void bg_album_destroy(bg_album_t * a)
   {
   bg_album_t       * tmp_album;
-  bg_album_entry_t * tmp_entry;
 
   if(a->open_count && a->entries)
     bg_album_save(a, (const char*)0);
@@ -597,15 +571,8 @@ void bg_album_destroy(bg_album_t * a)
   
   /* Free entries */
 
-  while(a->entries)
-    {
-    tmp_entry = a->entries->next;
-
-    bg_album_entry_destroy(a->entries);
-    
-    a->entries = tmp_entry;
-    }
-    
+  bg_album_entries_destroy(a->entries);
+  
   /* Free Children */
 
   while(a->children)
@@ -1160,7 +1127,7 @@ void bg_album_remove_from_parent(bg_album_t * album)
   
   album->parent->children = remove_from_list(album->parent->children, album, &index);
 
-  fprintf(stderr, "bg_album_remove_from_parent: %d\n", index);
+  //  fprintf(stderr, "bg_album_remove_from_parent: %d\n", index);
   
   if(album->type == BG_ALBUM_TYPE_REMOVABLE)
     {

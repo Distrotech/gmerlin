@@ -113,6 +113,10 @@ typedef struct
  */
 
 void bg_track_info_free(bg_track_info_t *);
+
 char * bg_create_track_name(const bg_track_info_t *, const char * format);
+
+void bg_set_track_name_default(bg_track_info_t *,
+                               const char * location);
 
 #endif // /__BG_STREAMINFO_H_

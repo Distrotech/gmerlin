@@ -150,6 +150,16 @@ void bg_album_insert_xml_before(bg_album_t * a, const char * xml_string,
 void bg_album_insert_xml_after(bg_album_t * a, const char * xml_string,
                                int length, bg_album_entry_t * before);
 
+/* Load an xml string and make album entries from it */
+
+bg_album_entry_t *
+bg_album_entries_new_from_xml(const char * xml_string,
+                             int length);
+
+/* Destroy the list returned from the function above */
+
+void bg_album_entries_destroy(bg_album_entry_t*);
+
 /* Inserts a string of the type text/uri-list into the album */
 
 void bg_album_insert_urilist_after(bg_album_t * a, const char * xml_string,

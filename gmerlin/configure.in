@@ -401,7 +401,7 @@ dnl
 dnl Common CFLAGS
 dnl
 
-CFLAGS="-Wall -D_REENTRANT $GAVL_CFLAGS"
+CFLAGS="-Wall -D_REENTRANT -D_FILE_OFFSET_BITS=64 $GAVL_CFLAGS"
 
 dnl
 dnl Build optimization flags
@@ -506,6 +506,7 @@ plugins/oss/Makefile \
 plugins/jpeg/Makefile \
 plugins/png/Makefile \
 plugins/v4l/Makefile \
+plugins/wavwrite/Makefile \
 skins/Makefile \
 skins/Default/Makefile])
 

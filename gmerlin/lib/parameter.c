@@ -69,11 +69,45 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
              src->val_color,
              4 * sizeof(float));
       break;
+    case BG_PARAMETER_TIME:
+      dst->val_time = src->val_time;
+      break;
     case BG_PARAMETER_SECTION:
       break;
     }
   }
 
+static char ** copy_string_array(char ** arr)
+  {
+  int i, num;
+  char ** ret;
+  if(!arr)
+    return (char**)0;
+
+  num = 0;
+  while(arr[num])
+    num++;
+
+  ret = calloc(num+1, sizeof(*ret));
+
+  for(i = 0; i < num; i++)
+    ret[i] = bg_strdup(ret[i], arr[i]);
+  return ret;
+  }
+
+void free_string_array(char ** arr)
+  {
+  int i = 0;
+  if(!arr)
+    return;
+
+  while(arr[i])
+    {
+    free(arr[i]);
+    i++;
+    }
+  free(arr);
+  }
 
 void bg_parameter_info_copy(bg_parameter_info_t * dst,
                             const bg_parameter_info_t * src)
@@ -107,27 +141,48 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
     case BG_PARAMETER_DEVICE:
     case BG_PARAMETER_FILE:
     case BG_PARAMETER_DIRECTORY:
+      dst->val_default.val_str = bg_strdup(dst->val_default.val_str,
+                                           src->val_default.val_str);
+      break;
     case BG_PARAMETER_MULTI_MENU:
     case BG_PARAMETER_MULTI_LIST:
       dst->val_default.val_str = bg_strdup(dst->val_default.val_str,
                                            src->val_default.val_str);
+      
+      dst->multi_names        = copy_string_array(src->multi_names);
+      dst->multi_labels       = copy_string_array(src->multi_labels);
+      dst->multi_descriptions = copy_string_array(src->multi_descriptions);
+
+      i = 0;
+
+      if(src->multi_names)
+        {
+        num_options = 0;
+        
+        while(src->multi_names[num_options])
+          num_options++;
+        
+        dst->multi_parameters = calloc(1, sizeof(*(src->multi_parameters)));
+        i = 0;
+        
+        while(src->multi_names[i])
+          {
+          if(src->multi_parameters[i])
+            dst->multi_parameters[i] =
+              bg_parameter_info_copy_array(src->multi_parameters[i]);
+          i++;
+          }
+        }
+      
       break;
     case BG_PARAMETER_STRINGLIST:
       dst->val_default.val_str = bg_strdup(dst->val_default.val_str,
                                            src->val_default.val_str);
 
       /* Copy stringlist options */
-
+      
       if(src->options)
-        {
-        num_options = 0;
-        while(src->options[num_options])
-          num_options++;
-        dst->options = calloc(num_options+1,sizeof(char*));
-        for(i = 0; i < num_options; i++)
-          dst->options[i] = bg_strdup(dst->options[i],
-                                      src->options[i]);
-        }
+        dst->options = copy_string_array(src->options);
       break;
     case BG_PARAMETER_COLOR_RGB:
       if(src->val_default.val_color)
@@ -147,6 +202,9 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
                src->val_default.val_color,
                4 * sizeof(float));
         }
+      break;
+    case BG_PARAMETER_TIME:
+      dst->val_default.val_time = src->val_default.val_time;
       break;
     case BG_PARAMETER_SECTION:
       break;
@@ -177,8 +235,6 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
   {
   int index = 0;
   int i;
-  int num_codecs;
-  int option_index;
   while(info[index].name)
     {
     free(info[index].name);
@@ -192,16 +248,7 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
           free(info[index].val_default.val_color);
         break;
       case BG_PARAMETER_STRINGLIST:
-        if(info[index].options)
-          {
-          option_index = 0;
-          while(info[index].options[option_index])
-            {
-            free(info[index].options[option_index]);
-            option_index++;
-            }
-          free(info[index].options);
-          }
+        free_string_array(info[index].options);
         if(info[index].val_default.val_str)
           free(info[index].val_default.val_str);
         break;
@@ -217,52 +264,31 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
       case BG_PARAMETER_CHECKBUTTON:
       case BG_PARAMETER_INT:
       case BG_PARAMETER_FLOAT:
+      case BG_PARAMETER_TIME:
       case BG_PARAMETER_SLIDER_INT:
       case BG_PARAMETER_SLIDER_FLOAT:
         break;
       case BG_PARAMETER_MULTI_MENU:
       case BG_PARAMETER_MULTI_LIST:
+
+        i = 0;
+        while(info[index].multi_names[i])
+          {
+          if(info[index].multi_parameters[i])
+            bg_parameter_info_destroy_array(info[index].multi_parameters[i]);
+          i++;
+          }
+        free(info[index].multi_parameters);
+        free_string_array(info[index].multi_names);
+        free_string_array(info[index].multi_labels);
+        free_string_array(info[index].multi_descriptions);
+                
         if(info[index].val_default.val_str)
           free(info[index].val_default.val_str);
-
-        num_codecs = 0;
         
-        while(info[index].multi_names[num_codecs])
-          {
-          free(info[index].multi_names[num_codecs]);
-          num_codecs++;
-          }
-
-        if(info[index].multi_labels)
-          {
-          for(i = 0; i < num_codecs; i++)
-            {
-            free(info[index].multi_labels[i]);
-            }
-          free(info[index].multi_labels);
-          }
-
-        if(info[index].multi_descriptions)
-          {
-          for(i = 0; i < num_codecs; i++)
-            {
-            free(info[index].multi_descriptions[i]);
-            }
-          free(info[index].multi_descriptions);
-          }
-
-        if(info[index].multi_parameters)
-          {
-          for(i = 0; i < num_codecs; i++)
-            {
-            if(info[index].multi_parameters[i])
-              bg_parameter_info_destroy_array(info[index].multi_parameters[i]);
-            }
-          free(info[index].multi_parameters[i]);
-          }
+        
       }
     index++;
     }
-
   free(info);
   }

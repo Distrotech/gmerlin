@@ -48,6 +48,7 @@ static GdkPixbuf * hardware_pixbuf = (GdkPixbuf *)0;
 static int atoms_created = 0;
 
 GdkAtom bg_gtk_atom_entries = (GdkAtom)0;
+GdkAtom bg_gtk_atom_entries_r = (GdkAtom)0;
 GdkAtom bg_gtk_atom_album   = (GdkAtom)0;
 
 void bg_gtk_tree_create_atoms()
@@ -57,14 +58,18 @@ void bg_gtk_tree_create_atoms()
 
   atoms_created = 1;
 
-  bg_gtk_atom_entries = gdk_atom_intern(bg_gtk_atom_entries_name, FALSE);
-  bg_gtk_atom_album   = gdk_atom_intern(bg_gtk_atom_album_name,   FALSE);
+  bg_gtk_atom_entries_r = gdk_atom_intern(bg_gtk_atom_entries_name_r, FALSE);
+  bg_gtk_atom_entries   = gdk_atom_intern(bg_gtk_atom_entries_name, FALSE);
+  bg_gtk_atom_album     = gdk_atom_intern(bg_gtk_atom_album_name,   FALSE);
   }
 
-#define DND_GMERLIN_TRACKS 0
-#define DND_GMERLIN_ALBUM  1
-#define DND_TEXT_URI_LIST  2
-#define DND_TEXT_PLAIN     3
+/* 0 means undefined */
+
+#define DND_GMERLIN_TRACKS   1
+#define DND_GMERLIN_TRACKS_R 2
+#define DND_GMERLIN_ALBUM    3
+#define DND_TEXT_URI_LIST    4
+#define DND_TEXT_PLAIN       5
 
 static GtkTargetEntry dnd_src_entries[] = 
   {

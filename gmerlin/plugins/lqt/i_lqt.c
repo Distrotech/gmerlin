@@ -105,6 +105,8 @@ static int open_lqt(void * data, const char * arg)
   if(!e->file)
     return 0;
 
+  bg_set_track_name_default(&(e->track_info), arg);
+  
   /* Query streams */
 
   num_audio_streams = quicktime_audio_tracks(e->file);

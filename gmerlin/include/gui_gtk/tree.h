@@ -24,10 +24,17 @@
 
 void bg_gtk_tree_create_atoms();
 
-#define bg_gtk_atom_entries_name "gmerlin_entries"
+#define bg_gtk_atom_entries_name   "gmerlin_entries"
+
+/* Entries corresponding to removable devices can be dragged
+   into the transcoder window but not between albums */
+
+#define bg_gtk_atom_entries_name_r "gmerlin_entries_r"
+
 #define bg_gtk_atom_album_name   "gmerlin_album"
 
 extern GdkAtom bg_gtk_atom_entries;
+extern GdkAtom bg_gtk_atom_entries_r;
 extern GdkAtom bg_gtk_atom_album;
 
 typedef struct bg_gtk_tree_window_s bg_gtk_tree_window_t;

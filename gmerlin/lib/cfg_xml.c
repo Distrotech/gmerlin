@@ -71,6 +71,10 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
     {
     info.type = BG_PARAMETER_COLOR_RGBA;
     }
+  else if(!strcmp(tmp_type, "time"))
+    {
+    info.type = BG_PARAMETER_TIME;
+    }
   else
     {
     fprintf(stderr, "Unknown type: %s\n", tmp_type);
@@ -87,6 +91,9 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
     {
     case BG_CFG_INT:
       sscanf(tmp_string, "%d", &(item->value.val_i));
+      break;
+    case BG_CFG_TIME:
+      sscanf(tmp_string, "%lld", &(item->value.val_time));
       break;
     case BG_CFG_FLOAT:
       sscanf(tmp_string, "%f", &(item->value.val_f));
@@ -233,6 +240,11 @@ static void save_section(bg_cfg_section_t * section, xmlNodePtr parent)
       case BG_CFG_INT:
         xmlSetProp(xml_item, "type", "int");
         sprintf(buffer, "%d", item->value.val_i);
+        xmlAddChild(xml_item, xmlNewText(buffer));
+        break;
+      case BG_CFG_TIME:
+        xmlSetProp(xml_item, "type", "time");
+        sprintf(buffer, "%lld", item->value.val_time);
         xmlAddChild(xml_item, xmlNewText(buffer));
         break;
       case BG_CFG_FLOAT:

@@ -64,7 +64,10 @@ bg_cfg_item_t * bg_cfg_create_item(bg_parameter_info_t * info,
     case BG_PARAMETER_MULTI_LIST:
       ret->type = BG_CFG_STRING;
       break;
-    default:
+    case BG_PARAMETER_TIME:
+      ret->type = BG_CFG_TIME;
+      break;
+    case BG_PARAMETER_SECTION:
       break;
     }
 
@@ -75,6 +78,12 @@ bg_cfg_item_t * bg_cfg_create_item(bg_parameter_info_t * info,
         ret->value.val_i = value->val_i;
       else
         ret->value.val_i = info->val_default.val_i;
+      break;
+    case BG_CFG_TIME:
+      if(value)
+        ret->value.val_time = value->val_time;
+      else
+        ret->value.val_time = info->val_default.val_time;
       break;
     case BG_CFG_FLOAT:
       if(value)

@@ -111,6 +111,11 @@ static bg_parameter_info_t info[] =
       val_max:     { val_i: 300 },
     },
     {
+      name:      "time",
+      long_name: "Time",
+      type:      BG_PARAMETER_TIME,
+    },
+    {
       name:        "slider_float",
       long_name:   "Floating point Slider",
       type:        BG_PARAMETER_SLIDER_FLOAT,
@@ -215,6 +220,7 @@ static void set_param(void * data, char * name,
   {
   bg_parameter_info_t * tmp_info;
   int i;
+  char time_buf[GAVL_TIME_STRING_LEN];
 
   i = 0;
   tmp_info = (bg_parameter_info_t *)0;
@@ -248,6 +254,10 @@ static void set_param(void * data, char * name,
     case BG_PARAMETER_SLIDER_INT:
       fprintf(stderr, "Integer value %s: %d\n", tmp_info->name, v->val_i);
       break;
+    case BG_PARAMETER_TIME:
+      gavl_time_prettyprint(v->val_time, time_buf);
+      fprintf(stderr, "Time %s\n", time_buf);
+      break;
     case BG_PARAMETER_FLOAT:
     case BG_PARAMETER_SLIDER_FLOAT:
       fprintf(stderr, "Float value %s: %f\n", tmp_info->name, v->val_f);
@@ -265,8 +275,12 @@ static void set_param(void * data, char * name,
     case BG_PARAMETER_FONT:
     case BG_PARAMETER_DEVICE:
     case BG_PARAMETER_MULTI_MENU:
+    case BG_PARAMETER_MULTI_LIST:
       fprintf(stderr, "String %s: %s\n", tmp_info->name,
               v->val_str);
+      break;
+    case BG_PARAMETER_SECTION:
+      fprintf(stderr, "Section\n");
       break;
     default:
       fprintf(stderr, "Unknown type\n");

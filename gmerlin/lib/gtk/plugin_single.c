@@ -285,8 +285,8 @@ bg_gtk_plugin_widget_single_get_widget(bg_gtk_plugin_widget_single_t * w)
   return w->table;
   }
 
-const bg_plugin_info_t *
+bg_plugin_handle_t *
 bg_gtk_plugin_widget_single_get_plugin(bg_gtk_plugin_widget_single_t * w)
   {
-  return w->info;
+  return w->handle;
   }

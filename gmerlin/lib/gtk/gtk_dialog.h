@@ -93,8 +93,9 @@ void
 bg_gtk_create_device(bg_gtk_widget_t *,
                      bg_parameter_info_t * info);
 
+
 void 
-bg_gtk_create_file(bg_gtk_widget_t *,
+bg_gtk_create_time(bg_gtk_widget_t *,
                    bg_parameter_info_t * info);
 
 
@@ -114,6 +115,10 @@ bg_gtk_create_multi_menu(bg_gtk_widget_t *, bg_parameter_info_t * info,
 void 
 bg_gtk_create_directory(bg_gtk_widget_t *,
                         bg_parameter_info_t * info);
+
+void 
+bg_gtk_create_file(bg_gtk_widget_t *,
+                   bg_parameter_info_t * info);
 
 void bg_gtk_change_callback(GtkWidget * gw, gpointer data);
 
