@@ -25,9 +25,39 @@
 
 #include <avdec_private.h>
 
+struct bgav_charset_converter_s
+  {
+  iconv_t cd;
+  };
+  
+
+bgav_charset_converter_t *
+bgav_charset_converter_create(const char * in_charset,
+                              const char * out_charset)
+  {
+  bgav_charset_converter_t * ret = calloc(1, sizeof(*ret));
+  ret->cd = iconv_open(out_charset, in_charset);
+  return ret;
+  }
+
+void bgav_charset_converter_destroy(bgav_charset_converter_t * cnv)
+  {
+  iconv_close(cnv->cd);
+  free(cnv);
+  }
+
+/*
+
+void bgav_charset_converter_destroy(bgav_charset_converter_t *);
+
+char * bgav_convert_string(bgav_charset_converter_t *,
+                           const char * in_string, int in_len,
+                           int * out_len);
+*/
+
 #define BYTES_INCREMENT 10
 
-static char * do_convert(iconv_t cd, char * in_string, int len)
+static char * do_convert(iconv_t cd, char * in_string, int len, int * out_len)
   {
   char * ret;
 
@@ -79,20 +109,23 @@ static char * do_convert(iconv_t cd, char * in_string, int len)
 
   output_pos = (int)(outbuf - ret);
   
-  if(!outbytesleft)
+  if(outbytesleft < 2)
     {
-    alloc_size++;
+    alloc_size+=2;
     ret = realloc(ret, alloc_size);
     outbuf = &ret[output_pos];
     }
-  *outbuf = '\0';
+  outbuf[0] = '\0';
+  outbuf[1] = '\0';
+  if(out_len)
+    *out_len = outbuf - ret;
   return ret;
   }
 
-char * bgav_convert_string(const char * str, int len,
-                           char * in_charset, char * out_charset)
+char * bgav_convert_string(bgav_charset_converter_t * cnv,
+                           const char * str, int len,
+                           int * out_len)
   {
-  iconv_t cd;
   char * ret;
   char * tmp_string;
 
@@ -102,10 +135,7 @@ char * bgav_convert_string(const char * str, int len,
   tmp_string = malloc(len+1);
   memcpy(tmp_string, str, len);
   tmp_string[len] = '\0';
-
-  cd = iconv_open(out_charset, in_charset);
-  ret = do_convert(cd, tmp_string, len);
-  iconv_close(cd);
+  ret = do_convert(cnv->cd, tmp_string, len, out_len);
   free(tmp_string);
   return ret;
   }

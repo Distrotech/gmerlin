@@ -37,6 +37,24 @@ typedef struct
   } qt_hdlr_t;
 */
 
+
+void bgav_qt_hdlr_dump(qt_hdlr_t * ret)
+  {
+  fprintf(stderr,"component_type: ");
+  bgav_dump_fourcc(ret->component_type);
+  
+  fprintf(stderr,"component_subtype: ");
+  bgav_dump_fourcc(ret->component_subtype);
+
+  fprintf(stderr,"component_manufacturer: ");
+  bgav_dump_fourcc(ret->component_manufacturer);
+
+  fprintf(stderr,"component_flags:     0x%08x\n", ret->component_flags);
+  fprintf(stderr,"component_flag_mask: 0x%08x\n", ret->component_flag_mask);
+  fprintf(stderr,"component_name: %s\n", ret->component_name);
+  }
+
+
 int bgav_qt_hdlr_read(qt_atom_header_t * h,
                       bgav_input_context_t * input,
                       qt_hdlr_t * ret)

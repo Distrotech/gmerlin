@@ -264,7 +264,8 @@ typedef struct
   uint32_t next_data_header;
   } rm_data_t;
 
-static int read_data_chunk_header(bgav_input_context_t * input, rm_data_t * data)
+static int
+read_data_chunk_header(bgav_input_context_t * input, rm_data_t * data)
   {
   return bgav_input_read_32_be(input, &(data->num_packets)) &&
     bgav_input_read_32_be(input, &(data->next_data_header));
@@ -324,7 +325,7 @@ static void free_indx(rm_indx_t * ret)
     free(ret->records);
   memset(ret, 0, sizeof(*ret));
   }
-     
+
 static void dump_indx(rm_indx_t * indx)
   {
   int i;
@@ -352,7 +353,7 @@ static uint32_t seek_indx(rm_indx_t * indx, uint32_t millisecs,
   {
   uint32_t ret;
   ret = indx->num_indices - 1;
-  fprintf(stderr, "Seek Indx %d\n", millisecs);
+  //  fprintf(stderr, "Seek Indx %d\n", millisecs);
   //  dump_indx(indx);
   while(ret)
     {
@@ -367,11 +368,11 @@ static uint32_t seek_indx(rm_indx_t * indx, uint32_t millisecs,
   if(*end_packet < indx->records[ret].packet_count_for_this_packet)
     *end_packet = indx->records[ret].packet_count_for_this_packet;
     
-  fprintf(stderr, "Ret: %d, Time: %d, offset: %d, count: %d\n",
-          ret,
-          indx->records[ret].timestamp,
-          indx->records[ret].offset,
-          indx->records[ret].packet_count_for_this_packet);
+  //  fprintf(stderr, "Ret: %d, Time: %d, offset: %d, count: %d\n",
+  //          ret,
+  //          indx->records[ret].timestamp,
+  //          indx->records[ret].offset,
+  //          indx->records[ret].packet_count_for_this_packet);
   
   return ret;
   }
@@ -454,7 +455,9 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
   bgav_stream_t * bg_as;
   rm_audio_stream_t * rm_as;
   uint8_t desc_len;
-  bg_as = bgav_demuxer_add_audio_stream(ctx);
+  bgav_track_t * track = ctx->tt->current_track;
+  
+  bg_as = bgav_track_add_audio_stream(track);
   rm_as = calloc(1, sizeof(*rm_as));
 
   bg_as->priv = rm_as;
@@ -572,8 +575,9 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   bgav_stream_t * bg_vs;
   rm_video_stream_t * rm_vs;
   uint32_t format_le;
+  bgav_track_t * track = ctx->tt->current_track;
   
-  bg_vs = bgav_demuxer_add_video_stream(ctx);
+  bg_vs = bgav_track_add_video_stream(track);
   rm_vs = calloc(1, sizeof(*rm_vs));
 
   bg_vs->ext_size = 3 * sizeof(uint32_t);
@@ -694,15 +698,17 @@ static bgav_stream_t * find_stream(bgav_demuxer_context_t * ctx,
                                    int id)
   {
   int i;
-  for(i = 0; i < ctx->num_audio_streams; i++)
+  bgav_track_t * track = ctx->tt->current_track;
+  
+  for(i = 0; i < track->num_audio_streams; i++)
     {
-    if(ctx->audio_streams[i].stream_id == id)
-      return &(ctx->audio_streams[i]);
+    if(track->audio_streams[i].stream_id == id)
+      return &(track->audio_streams[i]);
     }
-  for(i = 0; i < ctx->num_video_streams; i++)
+  for(i = 0; i < track->num_video_streams; i++)
     {
-    if(ctx->video_streams[i].stream_id == id)
-      return &(ctx->video_streams[i]);
+    if(track->video_streams[i].stream_id == id)
+      return &(track->video_streams[i]);
     }
   return (bgav_stream_t*)0;
   }
@@ -723,7 +729,7 @@ static bgav_stream_t * find_stream(bgav_demuxer_context_t * ctx,
       free(buf); \
       return 0; \
       } \
-    ctx->metadata.dst = bgav_convert_string(buf, len, "ISO-8859-1", "UTF-8"); \
+    ctx->tt->current_track->metadata.dst = bgav_convert_string(cnv, buf, len, NULL); \
     free(buf); \
     }
 
@@ -731,7 +737,10 @@ static int read_cont(bgav_demuxer_context_t * ctx)
   {
   uint16_t len;
   char * buf;
-  fprintf(stderr, "Read Cont\n");
+  bgav_charset_converter_t * cnv;
+  cnv = bgav_charset_converter_create("ISO-8859-1", "UTF-8");
+
+  //  fprintf(stderr, "Read Cont\n");
   
   /* Title */
   
@@ -748,11 +757,13 @@ static int read_cont(bgav_demuxer_context_t * ctx)
   /* Comment */
 
   READ_STRING(comment);
-    
+
+  bgav_charset_converter_destroy(cnv);
   return 1;
   }
 
-int open_rmff(bgav_demuxer_context_t * ctx)
+int open_rmff(bgav_demuxer_context_t * ctx,
+              bgav_redirector_context_t ** redir)
   {
   int i;
   int keep_going = 1;
@@ -770,8 +781,14 @@ int open_rmff(bgav_demuxer_context_t * ctx)
   /* File header */
   uint32_t header = 0;
   uint32_t next_index_header;
-  fprintf(stderr, "Open rmff\n");
+  bgav_track_t * track;
+  
   rm_indx_t indx;
+
+  /* Create track */
+  ctx->tt = bgav_track_table_create(1);
+  track = ctx->tt->current_track;
+  
   if(!read_chunk_header(&chunk, ctx->input))
     return 0;
   
@@ -928,16 +945,16 @@ int open_rmff(bgav_demuxer_context_t * ctx)
   if(ctx->input->input->seek_byte)
     {
     ctx->can_seek = 1;
-    for(i = 0; i < ctx->num_audio_streams; i++)
+    for(i = 0; i < track->num_audio_streams; i++)
       {
-      if(!((rm_audio_stream_t*)(ctx->audio_streams[i].priv))->has_index)
+      if(!((rm_audio_stream_t*)(track->audio_streams[i].priv))->has_index)
         ctx->can_seek = 0;
       //      else
       //        dump_indx(&(((rm_audio_stream_t*)(ctx->audio_streams[i].priv))->indx));
       }
-    for(i = 0; i < ctx->num_video_streams; i++)
+    for(i = 0; i < track->num_video_streams; i++)
       {
-      if(!((rm_video_stream_t*)(ctx->video_streams[i].priv))->has_index)
+      if(!((rm_video_stream_t*)(track->video_streams[i].priv))->has_index)
         ctx->can_seek = 0;
       //      else
       //        dump_indx(&(((rm_video_stream_t*)(ctx->video_streams[i].priv))->indx));
@@ -1145,7 +1162,6 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
         //        fprintf(stderr,
         //                "closing probably incomplete packet\n");
 
-        /* TODO: Timestamps */
         p->timestamp=(dp_hdr->len<3)?0:
           fix_timestamp(stream,dp_data,dp_hdr->timestamp);
         bgav_packet_done_write(p);
@@ -1330,7 +1346,11 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
   rm_audio_stream_t * as;
   rm_video_stream_t * vs;
   int result = 0;
+  bgav_track_t * track;
+  
   rm = (rm_private_t*)(ctx->priv);
+  track = ctx->tt->current_track;
+  
   //  fprintf(stderr, "Data size: %d\n", rm->data_size);
     
   if(rm->data_size && (ctx->input->position + 10 >= rm->data_start + rm->data_size))
@@ -1348,7 +1368,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
   
   //  if(rm->do_seek)
   //  packet_header_dump(&h);
-  stream = bgav_demuxer_find_stream(ctx, h.stream_number);
+  stream = bgav_track_find_stream(track, h.stream_number);
 
   if(!stream) /* Skip unknown stuff */
     {
@@ -1401,7 +1421,7 @@ void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
   rm_audio_stream_t * as;
   rm_video_stream_t * vs;
   rm_private_t * rm;
-  
+  bgav_track_t * track;
   uint32_t real_time; /* We'll never be more accurate than milliseconds */
   uint32_t position = ~0x0;
 
@@ -1411,7 +1431,8 @@ void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
   //  fprintf(stderr, "Seek RMFF\n");
   
   rm = (rm_private_t*)(ctx->priv);
-    
+  track = ctx->tt->current_track;
+  
   real_time = (time * 1000) / GAVL_TIME_SCALE;
   
   /* First step: Seek the index records for each stream */
@@ -1419,9 +1440,9 @@ void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
   /* Seek the pointers for the index records for each stream */
   /* We also calculate the file position where we will start again */
   
-  for(i = 0; i < ctx->supported_video_streams; i++)
+  for(i = 0; i < track->num_video_streams; i++)
     {
-    stream = &(ctx->video_streams[ctx->video_stream_index[i]]);
+    stream = &(track->video_streams[i]);
     vs = (rm_video_stream_t*)(stream->priv);
     vs->index_record = seek_indx(&(vs->indx), real_time,
                                  &position, &start_packet, &end_packet);
@@ -1429,9 +1450,9 @@ void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
                     GAVL_TIME_SCALE) / 1000;
     vs->kf_pts = vs->indx.records[vs->index_record].timestamp;
     }
-  for(i = 0; i < ctx->supported_audio_streams; i++)
+  for(i = 0; i < track->num_audio_streams; i++)
     {
-    stream = &(ctx->audio_streams[ctx->audio_stream_index[i]]);
+    stream = &(track->audio_streams[i]);
     as = (rm_audio_stream_t*)(stream->priv);
     as->index_record = seek_indx(&(as->indx), real_time,
                                  &position, &start_packet, &end_packet);
@@ -1460,14 +1481,16 @@ void close_rmff(bgav_demuxer_context_t * ctx)
   rm_audio_stream_t * as;
   rm_video_stream_t * vs;
   rm_private_t * priv;
+  bgav_track_t * track;
   int i;
   priv = (rm_private_t *)ctx->priv;
+  track = ctx->tt->current_track;
   
-  for(i = 0; i < ctx->num_audio_streams; i++)
+  for(i = 0; i < track->num_audio_streams; i++)
     {
-    as = (rm_audio_stream_t*)(ctx->audio_streams[i].priv);
-    if(ctx->audio_streams[i].ext_data)
-      free(ctx->audio_streams[i].ext_data);
+    as = (rm_audio_stream_t*)(track->audio_streams[i].priv);
+    if(track->audio_streams[i].ext_data)
+      free(track->audio_streams[i].ext_data);
     if(as->has_index)
       {
       //      fprintf(stderr, "Audio stream index\n");
@@ -1476,11 +1499,11 @@ void close_rmff(bgav_demuxer_context_t * ctx)
       }
     free(as);
     } 
-  for(i = 0; i < ctx->num_video_streams; i++)
+  for(i = 0; i < track->num_video_streams; i++)
     {
-    vs = (rm_video_stream_t*)(ctx->video_streams[i].priv);
-    if(ctx->video_streams[i].ext_data)
-      free(ctx->video_streams[i].ext_data);
+    vs = (rm_video_stream_t*)(track->video_streams[i].priv);
+    if(track->video_streams[i].ext_data)
+      free(track->video_streams[i].ext_data);
     if(vs->has_index)
       {
       //      fprintf(stderr, "Video stream index\n");

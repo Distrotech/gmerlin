@@ -530,7 +530,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         s->position++;
       timestamp = p->timestamp;
     
-      fprintf(stderr, "Packet timestamp: %lld, size: %d\n", p->timestamp, p->data_size);
+      //      fprintf(stderr, "Packet timestamp: %lld, size: %d\n", p->timestamp, p->data_size);
       if(p->data_size + FF_INPUT_BUFFER_PADDING_SIZE > priv->packet_buffer_alloc)
         {
         priv->packet_buffer_alloc = p->data_size + FF_INPUT_BUFFER_PADDING_SIZE + 32;
@@ -573,13 +573,13 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     
     /* Decode one frame */
 
-    fprintf(stderr, "Decode Video: %d %p\n", len, priv->packet_buffer_ptr);
+    //    fprintf(stderr, "Decode Video: %d %p\n", len, priv->packet_buffer_ptr);
 
     if(!f)
       priv->ctx->hurry_up = 1;
     else
       priv->ctx->hurry_up = 0;
-    // fprintf(stderr, "Decode: %lld %d\n", s->position, len);
+    fprintf(stderr, "Decode: %lld %d\n", s->position, len);
     
     bytes_used = avcodec_decode_video(priv->ctx,
                                       priv->frame,
@@ -587,10 +587,10 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
                                       priv->packet_buffer_ptr,
                                       len);
 
-    //  fprintf(stderr, "Used %d bytes, %d %d\n",
-    //          bytes_used,
-    //          priv->frame->coded_picture_number,
-    //          priv->frame->display_picture_number);
+    fprintf(stderr, "Used %d bytes, %d %d\n",
+            bytes_used,
+            priv->frame->coded_picture_number,
+            priv->frame->display_picture_number);
 
     /* Check for error */
   

@@ -27,6 +27,10 @@
 
 typedef struct bgav_demuxer_s         bgav_demuxer_t;
 typedef struct bgav_demuxer_context_s bgav_demuxer_context_t;
+
+typedef struct bgav_redirector_s         bgav_redirector_t;
+typedef struct bgav_redirector_context_s bgav_redirector_context_t;
+
 typedef struct bgav_packet_s          bgav_packet_t;
 
 typedef struct bgav_input_s           bgav_input_t;
@@ -40,6 +44,29 @@ typedef struct bgav_video_decoder_context_s bgav_video_decoder_context_t;
 typedef struct bgav_stream_s   bgav_stream_t;
 
 typedef struct bgav_packet_buffer_s   bgav_packet_buffer_t;
+
+/* Metadata structure */
+
+typedef struct
+  {
+  char * author;
+  char * title;
+  char * comment;
+  char * copyright;
+  char * album;
+  char * artist;
+  char * genre;
+  char * date;
+  int track;
+  } bgav_metadata_t;
+
+void bgav_metadata_dump(bgav_metadata_t*m);
+
+void bgav_metadata_merge(bgav_metadata_t * dst,
+                         bgav_metadata_t * src1,
+                         bgav_metadata_t * src2);
+
+void bgav_metadata_free(bgav_metadata_t*);
 
 /* Decoder structures */
 
@@ -180,6 +207,15 @@ struct bgav_stream_s
   int             packet_seq;
 
   char * description;
+
+  /*
+   *  Sometimes, the bitrates important for codecs 
+   *  and the bitrates set in the container format
+   *  differ, so we save both here
+   */
+  
+  int container_bitrate;
+  int codec_bitrate;
   
   union
     {
@@ -193,8 +229,6 @@ struct bgav_stream_s
                               field is nonsense*/
       
       /* The following ones are mainly for Microsoft formats and codecs */
-      
-      int bitrate;
       int block_align;
       } audio;
     struct
@@ -212,6 +246,64 @@ struct bgav_stream_s
     } data;
   };
 
+/* stream.c */
+
+void bgav_stream_start(bgav_stream_t * stream);
+void bgav_stream_stop(bgav_stream_t * stream);
+void bgav_stream_free(bgav_stream_t * stream);
+
+void bgav_stream_dump(bgav_stream_t * s);
+
+typedef struct
+  {
+  char * name;
+  gavl_time_t duration;
+  bgav_metadata_t metadata;
+
+  int num_audio_streams;
+  int num_video_streams;
+
+  bgav_stream_t * audio_streams;
+  bgav_stream_t * video_streams;
+
+  } bgav_track_t;
+
+/* track.c */
+
+bgav_stream_t *
+bgav_track_add_audio_stream(bgav_track_t * t);
+
+bgav_stream_t *
+bgav_track_add_video_stream(bgav_track_t * t);
+
+bgav_stream_t *
+bgav_track_find_stream(bgav_track_t * t, int stream_id);
+
+void bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer);
+void bgav_track_stop(bgav_track_t * t);
+
+void bgav_track_free(bgav_track_t * t);
+
+void bgav_track_dump(bgav_t * b, bgav_track_t * t);
+
+typedef struct
+  {
+  int num_tracks;
+  bgav_track_t * tracks;
+  bgav_track_t * current_track;
+  int refcount;
+  } bgav_track_table_t;
+
+/* Tracktable */
+
+bgav_track_table_t * bgav_track_table_create(int num_tracks);
+
+void bgav_track_table_unref(bgav_track_table_t*);
+void bgav_track_table_ref(bgav_track_table_t*);
+
+void bgav_track_table_select_track(bgav_track_table_t*,int);
+void bgav_track_table_dump(bgav_track_table_t*);
+
 /* Overloadable input module */
 
 struct bgav_input_s
@@ -221,6 +313,10 @@ struct bgav_input_s
   int     (*read)(bgav_input_context_t*, uint8_t * buffer, int len);
   int64_t (*seek_byte)(bgav_input_context_t*, int64_t pos, int whence);
   void    (*close)(bgav_input_context_t*);
+
+  /* Some inputs support multiple tracks */
+
+  void    (*select_track)(bgav_input_context_t*, int);
   };
 
 struct bgav_input_context_s
@@ -233,6 +329,22 @@ struct bgav_input_context_s
   int64_t total_bytes; /* Maybe 0 for non seekable streams */
   int64_t position;    /* Updated also for non seekable streams */
   bgav_input_t * input;
+
+  /* Some input modules already fire up a demuxer */
+    
+  bgav_demuxer_context_t * demuxer;
+
+  /*
+   *  These can be NULL. If not, they might be used to
+   *  fire up the right demultiplexer
+   */
+  
+  char * filename;
+  char * mimetype;
+
+  /* For multiple track support */
+
+  bgav_track_table_t * tt;
   };
 
 /* input.c */
@@ -280,13 +392,18 @@ void bgav_input_seek(bgav_input_context_t * ctx,
 bgav_input_context_t * bgav_input_open_memory(uint8_t * data,
                                               uint32_t data_size);
 
+/* Input module to read from a filedescriptor */
+
+bgav_input_context_t * bgav_input_open_fd(int fd, int64_t total_bytes, const char * mimetype);
 
 /* Demuxer class */
 
 struct bgav_demuxer_s
   {
   int  (*probe)(bgav_input_context_t*);
-  int  (*open)(bgav_demuxer_context_t*);
+
+  int  (*open)(bgav_demuxer_context_t * ctx,
+               bgav_redirector_context_t ** redir);
   int  (*next_packet)(bgav_demuxer_context_t*);
 
   /*
@@ -296,57 +413,50 @@ struct bgav_demuxer_s
   
   void (*seek)(bgav_demuxer_context_t*, gavl_time_t);
   void (*close)(bgav_demuxer_context_t*);
+
+  /* Some demuxer support multiple tracks */
+
+  void (*select_track)(bgav_demuxer_context_t*, int track);
   };
 
-/* Metadata structure */
-
-typedef struct
-  {
-  char * author;
-  char * title;
-  char * comment;
-  char * copyright;
-  } bgav_metadata_t;
 
 struct bgav_demuxer_context_s
   {
   void * priv;
-  bgav_metadata_t metadata;
   bgav_demuxer_t * demuxer;
   bgav_input_context_t * input;
   gavl_time_t duration;
-  
-  /* Stream table */
-  int num_audio_streams;
-  int num_video_streams;
-  
-  bgav_stream_t * audio_streams;
-  bgav_stream_t * video_streams;
 
-  /* What is actually supported by us */
+  //  bgav_metadata_t metadata;
 
-  int supported_audio_streams;
-  int supported_video_streams;
-  
-  int * audio_stream_index;
-  int * video_stream_index;
+  //  int num_audio_streams;
+  //  int num_video_streams;
+  //  bgav_stream_t * audio_streams;
+  //  bgav_stream_t * video_streams;
+
+  bgav_track_table_t * tt;
   char * stream_description;
+     
   int can_seek;
-
   };
 
 /* demuxer.c */
 
-bgav_demuxer_context_t * bgav_demuxer_create(bgav_input_context_t * input);
+/*
+ *  Create a demuxer. Some demuxers (most notably quicktime)
+ *  can contain nothing but urls for the real streams.
+ *  In this case, redir (if not NULL) will contain the
+ *  redirector context
+ */
+
+bgav_demuxer_context_t *
+bgav_demuxer_create(bgav_demuxer_t * demuxer,
+                    bgav_input_context_t * input);
+
+bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input);
 
 void bgav_demuxer_create_buffers(bgav_demuxer_context_t * demuxer);
 void bgav_demuxer_destroy(bgav_demuxer_context_t * demuxer);
-
-bgav_stream_t *
-bgav_demuxer_add_audio_stream(bgav_demuxer_context_t * demuxer);
-
-bgav_stream_t *
-bgav_demuxer_add_video_stream(bgav_demuxer_context_t * demuxer);
 
 bgav_packet_t *
 bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
@@ -361,23 +471,68 @@ void
 bgav_demuxer_seek(bgav_demuxer_context_t * demuxer,
                   gavl_time_t time);
 
+int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
+                       bgav_redirector_context_t ** redir);
+void bgav_demuxer_stop(bgav_demuxer_context_t * ctx);
+
+
 // bgav_packet_t *
 // bgav_demuxer_get_packet_write(bgav_demuxer_context_t * demuxer, int stream);
 
-bgav_stream_t * bgav_demuxer_find_stream(bgav_demuxer_context_t * ctx,
-                                         int stream_id);
+bgav_stream_t * bgav_track_find_stream(bgav_track_t * ctx, int stream_id);
 
+/* Redirector */
+
+struct bgav_redirector_s
+  {
+  int (*probe)(bgav_input_context_t*);
+  int (*parse)(bgav_redirector_context_t*);
+  };
+
+struct bgav_redirector_context_s
+  {
+  bgav_redirector_t * redirector;
+  bgav_input_context_t * input;
+
+  int parsed;
+  int num_urls;
+  
+  struct
+    {
+    char * url;
+    char * name;
+    } * urls;
+  };
+
+void bgav_redirector_destroy(bgav_redirector_context_t*r);
+bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input);
 
 /* Actual decoder */
 
 struct bgav_s
   {
-  bgav_metadata_t metadata;
+  /* Configuration parameters */
+
+  int connect_timeout;
+  int read_timeout;
+  int network_bandwidth;
+  
   bgav_input_context_t * input;
   bgav_demuxer_context_t * demuxer;
+  bgav_redirector_context_t * redirector;
+
+  bgav_track_table_t * tt;
+  
+  int is_running;
   };
 
+/* bgav.c */
+
+void bgav_stop(bgav_t * b);
+
 /* Bytestream utilities */
+
+/* ptr -> integer */
 
 #define BGAV_PTR_2_16LE(p) \
 ((*(p+1) << 8) | \
@@ -422,7 +577,50 @@ struct bgav_s
 ((int64_t)p[4] << 24) | \
 ((int64_t)p[5] << 16) | \
 ((int64_t)p[6] << 8) | \
-p[7])
+(p)[7])
+
+
+/* integer -> ptr */
+
+#define BGAV_16LE_2_PTR(i, p) \
+(p)[0] = (i) & 0xff; \
+(p)[1] = ((i)>>8) & 0xff
+
+#define BGAV_32LE_2_PTR(i, p) \
+(p)[0] = (i) & 0xff; \
+(p)[1] = ((i)>>8) & 0xff; \
+(p)[2] = ((i)>>16) & 0xff; \
+(p)[3] = ((i)>>24) & 0xff
+
+#define BGAV_64LE_2_PTR(i, p) \
+(p)[0] = (i) & 0xff; \
+(p)[1] = ((i)>>8) & 0xff; \
+(p)[2] = ((i)>>16) & 0xff; \
+(p)[3] = ((i)>>24) & 0xff; \
+(p)[4] = ((i)>>32) & 0xff; \
+(p)[5] = ((i)>>40) & 0xff; \
+(p)[6] = ((i)>>48) & 0xff; \
+(p)[7] = ((i)>>56) & 0xff
+
+#define BGAV_16BE_2_PTR(i, p) \
+(p)[1] = (i) & 0xff; \
+(p)[0] = ((i)>>8) & 0xff
+
+#define BGAV_32BE_2_PTR(i, p) \
+(p)[3] = (i) & 0xff; \
+(p)[2] = ((i)>>8) & 0xff; \
+(p)[1] = ((i)>>16) & 0xff; \
+(p)[0] = ((i)>>24) & 0xff;
+
+#define BGAV_64BE_2_PTR(i, p) \
+(p)[7] = (i) & 0xff; \
+(p)[6] = ((i)>>8) & 0xff; \
+(p)[5] = ((i)>>16) & 0xff; \
+(p)[4] = ((i)>>24) & 0xff; \
+(p)[3] = ((i)>>32) & 0xff; \
+(p)[2] = ((i)>>40) & 0xff; \
+(p)[1] = ((i)>>48) & 0xff; \
+(p)[0] = ((i)>>56) & 0xff
 
 #define BGAV_PTR_2_FOURCC(p) BGAV_PTR_2_32BE(p)
 
@@ -435,27 +633,46 @@ void bgav_hexdump(uint8_t * data, int len, int linebreak);
 char * bgav_sprintf(const char * format,...);
 char * bgav_strndup(const char * start, const char * end);
 
-
 int bgav_url_split(const char * url,
                    char ** protocol,
                    char ** hostname,
                    int * port,
                    char ** path);
 
+char ** bgav_stringbreak(const char * str, char sep);
+void bgav_stringbreak_free(char ** str);
+
+
+/* Read a single line from a filedescriptor */
+
+int bgav_read_line_fd(int fd, char ** ret, int * ret_alloc, int milliseconds);
+
+int bgav_read_data_fd(int fd, uint8_t * ret, int size, int milliseconds);
+
 /* tcp.c */
 
-int bgav_tcp_connect(const char * url, int port, int millisecondsn);
+int bgav_tcp_connect(const char * host, int port, int milliseconds);
 
 /* Charset utilities (charset.c) */
 
-char * bgav_convert_string(const char * in_string, int in_len,
-                           char * in_charset, char * out_charset);
+typedef struct bgav_charset_converter_s bgav_charset_converter_t;
+
+bgav_charset_converter_t *
+bgav_charset_converter_create(const char * in_charset,
+                              const char * out_charset);
+
+void bgav_charset_converter_destroy(bgav_charset_converter_t *);
+
+char * bgav_convert_string(bgav_charset_converter_t *,
+                           const char * in_string, int in_len,
+                           int * out_len);
 
 /* audio.c */
 
 void bgav_audio_dump(bgav_stream_t * s);
-int bgav_start_audio_decoders(bgav_t *);
-void bgav_close_audio_decoders(bgav_t *);
+
+int bgav_audio_start(bgav_stream_t * s);
+void bgav_audio_stop(bgav_stream_t * s);
 
 int bgav_audio_decode(bgav_stream_t * stream, gavl_audio_frame_t * frame,
                       int num_samples);
@@ -463,8 +680,9 @@ int bgav_audio_decode(bgav_stream_t * stream, gavl_audio_frame_t * frame,
 /* video.c */
 
 void bgav_video_dump(bgav_stream_t * s);
-int bgav_start_video_decoders(bgav_t * s);
-void bgav_close_video_decoders(bgav_t *);
+
+int bgav_video_start(bgav_stream_t * s);
+void bgav_video_stop(bgav_stream_t * s);
 
 /* codecs.c */
 
@@ -474,4 +692,20 @@ bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t*);
 bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t*);
 void bgav_audio_decoder_register(bgav_audio_decoder_t * dec);
 void bgav_video_decoder_register(bgav_video_decoder_t * dec);
+
+/* rtsp.c */
+
+typedef struct bgav_rtsp_s bgav_rtsp_t;
+
+bgav_rtsp_t *
+bgav_rtsp_open(const char * url, int milliseconds,
+               const char * user_agent);
+
+void bgav_rtsp_close(bgav_rtsp_t *);
+
+/* base64.c */
+
+int bgav_base64decode(const unsigned char *input,
+                      int input_length,
+                      unsigned char *output, int output_length);
 

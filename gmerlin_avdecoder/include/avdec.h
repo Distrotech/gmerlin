@@ -1,6 +1,6 @@
 /*****************************************************************
  
-  bgav.h
+  avdec.h
  
   Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
@@ -32,27 +32,106 @@ typedef struct bgav_s bgav_t;
  * Housekeeping Functions
  ***************************************************/
 
-/* Open a file or URL, return handle on success */
+bgav_t * bgav_create();
+
+/***************************************************
+ * Set parameters
+ ***************************************************/
 
 /*
  * Timeout will only be used for network connections.
  * It is in milliseconds, 0 is infinity
  */
 
-bgav_t * bgav_open(const char * location, int timeout);
+void bgav_set_connect_timeout(bgav_t *, int timeout);
+void bgav_set_read_timeout(bgav_t *, int timeout);
 
-/* Close and free everything */
+/*
+ *  Set network bandwidth (in bits per second)
+ */
+
+void bgav_set_network_bandwidth(bgav_t *, int bandwidth);
+
+/* Open a file or URL, return handle on success */
+
+int bgav_open(bgav_t *, const char * location);
+
+
+/*
+ *  Open with existing file descriptor (e.g. http socket)
+ *  total size must be 0 if unknown
+ */
+
+int bgav_open_fd(bgav_t *, int fd,
+                 int64_t total_size,
+                 const char * mimetype);
+
+/* Close and destroy everything */
 
 void bgav_close(bgav_t *);
+
+/***************************************************
+ * Check for redirecting: You MUST check if you opened
+ * a redirector, because reading data from redirectors
+ * crashes
+ * After you read the URLs, close the bgav_t object
+ * and open a new one with one of the URLs.
+ ***************************************************/
+
+int bgav_is_redirector(bgav_t*);
+
+int bgav_redirector_get_num_urls(bgav_t*);
+const char * bgav_redirector_get_url(bgav_t*, int);
+const char * bgav_redirector_get_name(bgav_t*, int);
 
 /***************************************************
  * Get information about the file
  ***************************************************/
 
+/*
+ *  Multiple tracks support
+ *  (like VCD tracks, ALBW titles and so on)
+ */
+
+int bgav_num_tracks(bgav_t *);
+
+/* Return duration, will be 0 if unknown */
+
+gavl_time_t bgav_get_duration(bgav_t*, int track);
+
 /* Query stream numbers */
 
-int bgav_num_audio_streams(bgav_t *);
-int bgav_num_video_streams(bgav_t *);
+int bgav_num_audio_streams(bgav_t *, int track);
+int bgav_num_video_streams(bgav_t *, int track);
+
+const char * bgav_get_track_name(bgav_t *, int track);
+
+/* Returns TRUE if the track is seekable */
+
+int bgav_can_seek(bgav_t *);
+
+/*
+ *  Metadata: These will return NULL for the fields,
+ *  which are not present in the stream
+ */
+
+const char * bgav_get_author(bgav_t*, int track);
+const char * bgav_get_title(bgav_t*, int track);
+const char * bgav_get_copyright(bgav_t*, int track);
+const char * bgav_get_comment(bgav_t*, int track);
+
+char * bgav_get_album(bgav_t*, int track);
+char * bgav_get_artist(bgav_t*, int track);
+char * bgav_get_genre(bgav_t*, int track);
+char * bgav_get_date(bgav_t*, int track);
+int bgav_get_track(bgav_t*, int track);
+
+
+void bgav_select_track(bgav_t *, int);
+
+/* Description of the current track */
+
+const char * bgav_get_description(bgav_t * b);
 
 /*
  * Get formats
@@ -65,26 +144,8 @@ int bgav_num_video_streams(bgav_t *);
  *       BGAV_STREAM_SYNC or BGAV_STREAM_DECODE.
  */
 
-gavl_audio_format_t * bgav_get_audio_format(bgav_t*, int stream);
-gavl_video_format_t * bgav_get_video_format(bgav_t*, int stream);
-
-/* Return duration, will be 0 if unknown */
-
-gavl_time_t bgav_get_duration(bgav_t*);
-
-/* Returns TRUE if the track is seekable */
-
-int bgav_can_seek(bgav_t *);
-
-/*
- *  Metadata: These will return NULL for the fields,
- *  which are not present in the stream
- */
-
-const char * bgav_get_author(bgav_t*);
-const char * bgav_get_title(bgav_t*);
-const char * bgav_get_copyright(bgav_t*);
-const char * bgav_get_comment(bgav_t*);
+const gavl_audio_format_t * bgav_get_audio_format(bgav_t*, int stream);
+const gavl_video_format_t * bgav_get_video_format(bgav_t*, int stream);
 
 /*
  *  Get textual description of single streams as well as
@@ -93,7 +154,6 @@ const char * bgav_get_comment(bgav_t*);
 
 const char * bgav_get_audio_description(bgav_t * b, int stream);
 const char * bgav_get_video_description(bgav_t * b, int stream);
-const char * bgav_get_description(bgav_t * b);
 
 /***************************************************
  * Stream handling functions
@@ -126,7 +186,7 @@ int bgav_set_video_stream(bgav_t*, int stream, int action);
  *  formats (see above)
  */
 
-void bgav_start_decoders(bgav_t *);
+void bgav_start(bgav_t *);
 
 
 /***************************************************

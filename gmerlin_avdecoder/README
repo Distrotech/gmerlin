@@ -39,6 +39,16 @@ The configure script autodetects all installed libraries.
   Copy the dll file (vid_3ivX.xa) to a directory and let the
   XANIM_MOD_DIR environment variable point to it.
 
+SUPPORTED DATA SOURCES:
+
+* Regular files
+
+* pnm Protocol used by older Real servers
+
+* mms protocol (Windows media)
+
+* rtsp with either the standard RTP transport or
+  RealMedia RDP
 
 SUPPORTED FORMATS:
 
@@ -51,6 +61,7 @@ SUPPORTED FORMATS:
 * aiff
 * au
 * Real Audio (.ra) (todo)
+* Raw mp3
 
 SUPPORTED CODECS:
 
@@ -187,12 +198,8 @@ PNG video decoder             png  (706e6720)
 Xanim dll decoder             3IV1 (33495631)
                               3iv1 (33697631)
 
-PLEASE NOTE:
+Features:
 
-This library has no and will never get any support for MPEG-1/2 formats.
-MPEG-Support is in a separate library (along with VCD and DVD support),
-OggVorbis has just a gmerlin plugin.
-
-If you use the libgmerlin library instead of bgav, you'll get support for
-all other formats, for which gmerlin plugins exist.
+* albw (wrapped mp3s) files are unwrapped on the fly.
+  So you can access the individual tracks without unwrapping.
 

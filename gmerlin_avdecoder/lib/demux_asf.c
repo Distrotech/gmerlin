@@ -179,7 +179,7 @@ static const guid_t guid_asf_2_0_header =
   { 0xd6e229d1, 0x35da, 0x11d1,
     { 0x90, 0x34, 0x00, 0xa0, 0xc9, 0x03, 0x49, 0xbe } };
 
-static void guid_dump(guid_t * g)
+static void dump_guid(guid_t * g)
   {
   fprintf(stderr,
           "%08x-%04x-%04x-%02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x\n",
@@ -322,6 +322,16 @@ typedef struct
   int64_t data_start;
   int64_t data_size;
   int do_sync;
+
+  uint32_t first_timestamp;
+  int need_first_timestamp;
+  
+  struct
+    {
+    int stream_id;
+    int bitrate;
+    } * stream_bitrates;
+  int num_stream_bitrates;
   } asf_t;
 
 static int probe_asf(bgav_input_context_t * input)
@@ -338,11 +348,69 @@ static int probe_asf(bgav_input_context_t * input)
   return 0;
   }
 
+static int read_bitrate_properties(bgav_demuxer_context_t * ctx)
+  {
+  int16_t i_tmp;
+  int i;
+  asf_t * asf;
+  asf = (asf_t*)(ctx->priv);
+
+  if(!bgav_input_read_16_le(ctx->input, &i_tmp))
+    return 0;
+
+  asf->num_stream_bitrates = i_tmp;
+
+  if(!asf->num_stream_bitrates)
+    {
+    fprintf(stderr, "No bitrates specified\n");
+    return 1;
+    }
+  asf->stream_bitrates     = calloc(asf->num_stream_bitrates,
+                                    sizeof(*(asf->stream_bitrates)));
+
+  for(i = 0; i < asf->num_stream_bitrates; i++)
+    {
+    if(!bgav_input_read_16_le(ctx->input, &i_tmp) ||
+       !bgav_input_read_32_le(ctx->input, &(asf->stream_bitrates[i].bitrate)))
+      return 0;
+    asf->stream_bitrates[i].stream_id = i_tmp;
+    fprintf(stderr, "Stream: %d, Bitrate %d\n", asf->stream_bitrates[i].stream_id,
+            asf->stream_bitrates[i].bitrate);
+    
+    }
+  return 1;
+  }
+
+static void update_stream_bitrates(bgav_demuxer_context_t * ctx)
+  {
+  int i;
+  bgav_stream_t * stream;
+    
+  asf_t * asf;
+  asf = (asf_t*)(ctx->priv);
+
+  //  fprintf(stderr, "**** update_stream_bitrates\n"); 
+  for(i = 0; i < asf->num_stream_bitrates; i++)
+    {
+    stream = bgav_track_find_stream(ctx->tt->current_track, asf->stream_bitrates[i].stream_id);
+    if(stream)
+      stream->container_bitrate = asf->stream_bitrates[i].bitrate;
+    else
+      {
+      //      fprintf(stderr, "NO STREAM FOUND %d\n",
+      //              asf->stream_bitrates[i].stream_id);
+      }
+    }
+  }
+
+
 static int read_metadata(bgav_demuxer_context_t * ctx)
   {
   char * str = (char*)0;
   uint16_t len1, len2, len3, len4, len5;
   int str_len;
+  bgav_charset_converter_t * cnv =
+    (bgav_charset_converter_t*)0;
   
   if(!bgav_input_read_16_le(ctx->input, &len1) ||
      !bgav_input_read_16_le(ctx->input, &len2) ||
@@ -351,6 +419,8 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
      !bgav_input_read_16_le(ctx->input, &len5))
     goto fail;
 
+  cnv = bgav_charset_converter_create("UTF-16LE", "UTF-8");
+  
   str_len = len1;
   if(str_len < len2)
     str_len = len2;
@@ -369,8 +439,9 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
     {
     if(bgav_input_read_data(ctx->input, str, len1) < len1)
       goto fail;
-    ctx->metadata.title = bgav_convert_string(str, len1, "UTF-16LE", "UTF-8");
-    fprintf(stderr, "Title: %s\n", ctx->metadata.title);
+    ctx->tt->current_track->metadata.title = bgav_convert_string(cnv, str, len1,
+                                              NULL);
+    //    fprintf(stderr, "Title: %s\n", ctx->current_track->metadata.title);
     }
 
   /* Author */
@@ -379,8 +450,9 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
     {
     if(bgav_input_read_data(ctx->input, str, len2) < len2)
       goto fail;
-    ctx->metadata.author = bgav_convert_string(str, len2, "UTF-16LE", "UTF-8");
-    fprintf(stderr, "Author: %s\n", ctx->metadata.author);
+    ctx->tt->current_track->metadata.author =
+      bgav_convert_string(cnv, str, len2, NULL);
+    //    fprintf(stderr, "Author: %s\n", ctx->current_track->metadata.author);
     }
 
   /* Copyright */
@@ -389,9 +461,9 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
     {
     if(bgav_input_read_data(ctx->input, str, len3) < len3)
       goto fail;
-    ctx->metadata.copyright =
-      bgav_convert_string(str, len3, "UTF-16LE", "UTF-8");
-    fprintf(stderr, "Copyright: %s\n", ctx->metadata.copyright);
+    ctx->tt->current_track->metadata.copyright =
+      bgav_convert_string(cnv, str, len3, NULL);
+    //    fprintf(stderr, "Copyright: %s\n", ctx->current_track->metadata.copyright);
     }
 
   /* Comment */
@@ -400,9 +472,9 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
     {
     if(bgav_input_read_data(ctx->input, str, len4) < len4)
       goto fail;
-    ctx->metadata.comment =
-      bgav_convert_string(str, len4, "UTF-16", "UTF-8");
-    fprintf(stderr, "Comment: %s\n", ctx->metadata.comment);
+    ctx->tt->current_track->metadata.comment =
+      bgav_convert_string(cnv, str, len4, NULL);
+    //    fprintf(stderr, "Comment: %s\n", ctx->current_track->metadata.comment);
     }
 
   /* Unknown stuff */
@@ -411,16 +483,23 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
     bgav_input_skip(ctx->input, len5);
   
   free(str);
-  
+  bgav_charset_converter_destroy(cnv);
   return 1;
+
   fail:
+  if(cnv)
+    bgav_charset_converter_destroy(cnv);
   if(str)
     free(str);
   return 0;
   }
 
-static int open_asf(bgav_demuxer_context_t * ctx)
+
+static int open_asf(bgav_demuxer_context_t * ctx,
+                    bgav_redirector_context_t ** redir)
   {
+  int64_t chunk_start_pos;
+  
   bgav_BITMAPINFOHEADER bh;
   bgav_WAVEFORMATEX     wf;
   uint8_t * buf = (uint8_t*)0;
@@ -437,12 +516,14 @@ static int open_asf(bgav_demuxer_context_t * ctx)
   //  asf_video_stream_t  * asf_vs;
   bgav_stream_t * bgav_as;
   bgav_stream_t * bgav_vs;
-  
-  fprintf(stderr, "Open asf\n");
+  //  fprintf(stderr, "Open asf\n");
+
+  /* Create track */
+  ctx->tt = bgav_track_table_create(1);
   
   if(!read_guid(&guid, ctx->input))
     return 0;
-
+  
   /* Read header */
   
   if(!guid_equal(&guid, &guid_header))
@@ -454,12 +535,19 @@ static int open_asf(bgav_demuxer_context_t * ctx)
 
   /* Now the file header should come */
   asf = calloc(1, sizeof(*asf));
+
+  asf->need_first_timestamp = 1;
+  
   ctx->priv = asf;
   while(1) /* Read all GUIDs until the data comes */
     {
+    chunk_start_pos = ctx->input->position;
     if(!read_guid(&guid, ctx->input) ||
        !bgav_input_read_64_le(ctx->input, &size))
       goto fail;
+    //    fprintf(stderr, "GUID: ");
+    //    dump_guid(&guid);
+    //    fprintf(stderr, "Size: %lld\n", size);
     
     /* Overall file properties */
     
@@ -478,13 +566,15 @@ static int open_asf(bgav_demuxer_context_t * ctx)
          !bgav_input_read_32_le(ctx->input, &(asf->hdr.max_pktsize)) ||
          !bgav_input_read_32_le(ctx->input, &(asf->hdr.max_bitrate)))
         goto fail;
-      //      fprintf(stderr, "Duration: %lld\n", asf->hdr.send_time);
+      //      fprintf(stderr, "*** Preroll: %lld\n", asf->hdr.preroll);
       //      asf->packet_size = asf->hdr.max_pktsize;
       //      asf->nb_packets = asf->hdr.packets_count;
-      ctx->duration = (asf->hdr.send_time - asf->hdr.preroll) 
-        / (10000000/GAVL_TIME_SCALE);
+
+      // fprintf(stderr, "Send time: 0x%llx\n", asf->hdr.send_time);
+      if(asf->hdr.send_time)
+        ctx->duration = (asf->hdr.send_time - asf->hdr.preroll) 
+          / (10000000/GAVL_TIME_SCALE);
       //      fprintf(stderr, "**** Duration: %lld\n", ctx->duration);
-      
       }
     /* Stream properties */
     else if(guid_equal(&guid, &guid_stream_header))
@@ -516,11 +606,10 @@ static int open_asf(bgav_demuxer_context_t * ctx)
       /* Found audio stream */
       if(guid_equal(&guid, &guid_audio_media))
         {
-        fprintf(stderr, "Found audio stream\n");
+        //        fprintf(stderr, "Found audio stream\n");
         
-        bgav_as = bgav_demuxer_add_audio_stream(ctx);
-        bgav_as->stream_id = ctx->num_audio_streams +
-          ctx->num_video_streams;
+        bgav_as = bgav_track_add_audio_stream(ctx->tt->current_track);
+        bgav_as->stream_id = stream_number;
 
         asf_as  = calloc(1, sizeof(*asf_as));
        
@@ -588,10 +677,8 @@ static int open_asf(bgav_demuxer_context_t * ctx)
       else if(guid_equal(&guid, &guid_video_media))
         {
         fprintf(stderr, "Found video stream\n");
-        bgav_vs = bgav_demuxer_add_video_stream(ctx);
-        bgav_vs->stream_id = ctx->num_audio_streams +
-          ctx->num_video_streams;
-        
+        bgav_vs = bgav_track_add_video_stream(ctx->tt->current_track);
+        bgav_vs->stream_id = stream_number;
         //        asf_vs  = calloc(1, sizeof(*asf_vs));
         
         //        bgav_vs->priv = asf_vs;
@@ -648,14 +735,36 @@ static int open_asf(bgav_demuxer_context_t * ctx)
       if(!read_metadata(ctx))
         return 0;
       }
+    else if(guid_equal(&guid_stream_bitrate_properties, &guid))
+      {
+      if(!read_bitrate_properties(ctx))
+        return 0;
+      }
     else if(guid_equal(&guid_data, &guid))
       {
       asf->data_size = size;
       break;
       }
-    else
-      /* Skip unused junk */
-      bgav_input_skip(ctx->input, size - 24);
+
+    /* Skip unused junk */
+    if(ctx->input->position - chunk_start_pos < size)
+      {
+      fprintf(stderr, "Skipping %lld unused/unknown bytes...",
+              size - (ctx->input->position - chunk_start_pos));
+      bgav_input_skip(ctx->input,
+                      size - (ctx->input->position - chunk_start_pos));
+      fprintf(stderr, "Pos is now: %lld\n",
+              ctx->input->position);
+      
+      }
+    //    if(size & 1)
+    //      {
+    //      bgav_input_skip(ctx->input, 1);
+    //      fprintf(stderr, "Padding Size: %lld\n", size);
+    //      }
+    //    else
+    //      fprintf(stderr, "Not Padding Size: %lld\n", size);
+    
     }
 
   /* Skip 26 bytes */
@@ -671,11 +780,17 @@ static int open_asf(bgav_demuxer_context_t * ctx)
   asf->packet_buffer = malloc(asf->packet_size);
   
   asf->data_start = ctx->input->position;
-
+  
   fprintf(stderr, "Reached Data section, %lld %lld\n",
           asf->data_start,
           asf->data_size);
-      
+
+  /* Update stream bitrates */
+
+  if(asf->num_stream_bitrates)
+    {
+    update_stream_bitrates(ctx);
+    }
       
   if(buf)
     free(buf);
@@ -691,8 +806,6 @@ static int open_asf(bgav_demuxer_context_t * ctx)
     free(buf);
   return 0;
   }
-
-/* Returns the number of bytes used or -1 */
 
 /* Packet info */
 
@@ -723,6 +836,7 @@ static void dump_packet_header(asf_packet_header_t * h)
   fprintf(stderr, "segments:        %d\n",     h->segs);
   }
 
+/* Returns the number of bytes used or -1 */
 
 static int read_packet_header(asf_t * asf,
                               asf_packet_header_t * ret,
@@ -772,7 +886,7 @@ static int read_packet_header(asf_t * asf,
   if(((ret->flags>>5)&3)!=0)
     {
     // Explicit (absoulte) packet size
-    fprintf(stderr,"Explicit packet size specified: %d  \n",ret->plen);
+    //    fprintf(stderr,"Explicit packet size specified: %d  \n",ret->plen);
     if(ret->plen>asf->packet_size)
       fprintf(stderr,
              "Warning! plen>packetsize! (%d>%d)  \n",
@@ -933,7 +1047,7 @@ static void add_packet(bgav_demuxer_context_t * ctx,
 
   //  if(asf->do_sync)
   //    fprintf(stderr, "Add packet: %d %d %d\n", id, keyframe, offs);
-  stream = bgav_demuxer_find_stream(ctx, id);
+  stream = bgav_track_find_stream(ctx->tt->current_track, id);
   
   if(!stream)
     return;
@@ -980,9 +1094,17 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   
   stream->packet = bgav_packet_buffer_get_packet_write(stream->packet_buffer);
   bgav_packet_alloc(stream->packet, len);
-
+  
+  if(asf->need_first_timestamp)
+    {
+    asf->first_timestamp = time;
+    asf->need_first_timestamp = 0;
+    //    fprintf(stderr, "First timestamp: %d\n", rm->first_timestamp);
+    }
+  time -= asf->first_timestamp;
+  
   stream->packet->timestamp = ((gavl_time_t)time * GAVL_TIME_SCALE) / 1000;
-  stream->packet->timestamp -= ((gavl_time_t)(asf->hdr.preroll) * GAVL_TIME_SCALE) / 1000;
+  // stream->packet->timestamp -= ((gavl_time_t)(asf->hdr.preroll) * GAVL_TIME_SCALE) / 1000;
   
   if(asf->do_sync && (stream->time == -1))
     {
@@ -1007,10 +1129,9 @@ static int next_packet_asf(bgav_demuxer_context_t * ctx)
   asf_packet_header_t pkt_hdr;
   asf_segment_header_t seg_hdr;
 
-  //  fprintf(stderr, "Next packet\n");
-  
-  if(ctx->input->position >= asf->data_start + asf->data_size)
-    return 0;
+  //  fprintf(stderr, "Next packet %lld\n", asf->data_size);
+  //  if(ctx->input->position >= asf->data_start + asf->data_size)
+  //    return 0;
   if(bgav_input_read_data(ctx->input, asf->packet_buffer,
                           asf->packet_size) < asf->packet_size)
     return 0;
@@ -1079,19 +1200,19 @@ static gavl_time_t resync(bgav_demuxer_context_t * ctx)
   int i;
   asf_t * asf = (asf_t*)(ctx->priv);
 
-  for(i = 0; i < ctx->num_audio_streams; i++)
+  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
     {
-    ctx->audio_streams[i].time = -1;
-    ctx->audio_streams[i].packet = (bgav_packet_t*)0;
-    if(ctx->audio_streams[i].packet_buffer)
-      bgav_packet_buffer_clear(ctx->audio_streams[i].packet_buffer);
+    ctx->tt->current_track->audio_streams[i].time = -1;
+    ctx->tt->current_track->audio_streams[i].packet = (bgav_packet_t*)0;
+    if(ctx->tt->current_track->audio_streams[i].packet_buffer)
+      bgav_packet_buffer_clear(ctx->tt->current_track->audio_streams[i].packet_buffer);
     }
-  for(i = 0; i < ctx->num_video_streams; i++)
+  for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
     {
-    ctx->video_streams[i].time = -1;
-    ctx->video_streams[i].packet = (bgav_packet_t*)0;
-    if(ctx->video_streams[i].packet_buffer)
-      bgav_packet_buffer_clear(ctx->video_streams[i].packet_buffer);
+    ctx->tt->current_track->video_streams[i].time = -1;
+    ctx->tt->current_track->video_streams[i].packet = (bgav_packet_t*)0;
+    if(ctx->tt->current_track->video_streams[i].packet_buffer)
+      bgav_packet_buffer_clear(ctx->tt->current_track->video_streams[i].packet_buffer);
     }
   
   keep_going = 1;
@@ -1100,14 +1221,14 @@ static gavl_time_t resync(bgav_demuxer_context_t * ctx)
     {
     next_packet_asf(ctx);
     keep_going = 0;
-    for(i = 0; i < ctx->num_audio_streams; i++)
+    for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
       {
-      if(ctx->audio_streams[i].time == -1)
+      if(ctx->tt->current_track->audio_streams[i].time == -1)
         keep_going = 1;
       }
-    for(i = 0; i < ctx->num_video_streams; i++)
+    for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
       {
-      if(ctx->video_streams[i].time == -1)
+      if(ctx->tt->current_track->video_streams[i].time == -1)
         keep_going = 1;
       }
     }
@@ -1115,19 +1236,18 @@ static gavl_time_t resync(bgav_demuxer_context_t * ctx)
   asf->do_sync = 0;
 
   ret = 0;
-  for(i = 0; i < ctx->num_audio_streams; i++)
+  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
     {
-    if(ctx->audio_streams[i].time > ret)
-      ret = ctx->audio_streams[i].time;
+    if(ctx->tt->current_track->audio_streams[i].time > ret)
+      ret = ctx->tt->current_track->audio_streams[i].time;
     }
-  for(i = 0; i < ctx->num_video_streams; i++)
+  for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
     {
-    if(ctx->video_streams[i].time > ret)
-      ret = ctx->video_streams[i].time;
+    if(ctx->tt->current_track->video_streams[i].time > ret)
+      ret = ctx->tt->current_track->video_streams[i].time;
     }
   return ret;
   }
-
 
 static void seek_asf(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
@@ -1148,7 +1268,7 @@ static void seek_asf(bgav_demuxer_context_t * ctx, gavl_time_t time)
 
   while(1)
     {
-    fprintf(stderr, "Filepos: %lld\n", filepos);
+    //    fprintf(stderr, "Filepos: %lld\n", filepos);
 
     bgav_input_seek(ctx->input, filepos, SEEK_SET);
     //    fprintf(stderr, "Resync...");
@@ -1172,19 +1292,29 @@ static void close_asf(bgav_demuxer_context_t * ctx)
 
   if(asf->packet_buffer)
     free(asf->packet_buffer);
+
+  if(asf->stream_bitrates)
+    free(asf->stream_bitrates);
   
-  for(i = 0; i < ctx->num_audio_streams; i++)
+  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
     {
-    as = (asf_audio_stream_t*)ctx->audio_streams[i].priv;
+    as = (asf_audio_stream_t*)ctx->tt->current_track->audio_streams[i].priv;
+
+    if(ctx->tt->current_track->audio_streams[i].ext_data)
+      free(ctx->tt->current_track->audio_streams[i].ext_data);
+
     if(as->scramble_buffer)
       free(as->scramble_buffer);
-    if(ctx->audio_streams[i].priv)
-      free(ctx->audio_streams[i].priv);
+    if(ctx->tt->current_track->audio_streams[i].priv)
+      free(ctx->tt->current_track->audio_streams[i].priv);
     }
-  for(i = 0; i < ctx->num_audio_streams; i++)
+  for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
     {
-    if(ctx->video_streams[i].priv)
-      free(ctx->video_streams[i].priv);
+    if(ctx->tt->current_track->video_streams[i].ext_data)
+      free(ctx->tt->current_track->video_streams[i].ext_data);
+    
+    if(ctx->tt->current_track->video_streams[i].priv)
+      free(ctx->tt->current_track->video_streams[i].priv);
     }
   free(ctx->priv);
   }

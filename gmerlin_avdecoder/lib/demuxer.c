@@ -30,113 +30,60 @@ extern bgav_demuxer_t bgav_demuxer_wav;
 extern bgav_demuxer_t bgav_demuxer_au;
 extern bgav_demuxer_t bgav_demuxer_aiff;
 extern bgav_demuxer_t bgav_demuxer_ra;
+extern bgav_demuxer_t bgav_demuxer_mpegaudio;
+extern bgav_demuxer_t bgav_demuxer_mpegps;
 
-bgav_demuxer_context_t * bgav_demuxer_create(bgav_input_context_t * input)
+static struct
+  {
+  bgav_demuxer_t * demuxer;
+  char * format_name;
+  }
+demuxers[] =
+  {
+    { &bgav_demuxer_asf, "Microsoft ASF" },
+    { &bgav_demuxer_avi, "Microsoft AVI" },
+    { &bgav_demuxer_rmff, "Real Media" },
+    { &bgav_demuxer_quicktime, "Apple Quicktime" },
+    { &bgav_demuxer_wav, "Microsoft WAV" },
+    { &bgav_demuxer_au, "AU" },
+    { &bgav_demuxer_aiff, "AIFF" },
+    { &bgav_demuxer_ra, "Real Audio" },
+    { &bgav_demuxer_mpegaudio, "Mpeg Audio" },
+    { &bgav_demuxer_mpegps, "Mpeg System" },
+  };
+
+static int num_demuxers = sizeof(demuxers)/sizeof(demuxers[0]);
+
+bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
+  {
+  int i;
+  uint8_t header[32];
+  for(i = 0; i < num_demuxers; i++)
+    {
+    if(demuxers[i].demuxer->probe(input))
+      {
+      fprintf(stderr, "Detected %s format\n", demuxers[i].format_name);
+      return demuxers[i].demuxer;
+      }
+    }
+  fprintf(stderr, "Cannot detect format, first 32 bytes follow\n");
+
+  if(bgav_input_get_data(input, header, 32) == 32)
+    bgav_hexdump(header, 32, 16);
+  return (bgav_demuxer_t *)0;
+  }
+
+bgav_demuxer_context_t *
+bgav_demuxer_create(bgav_demuxer_t * demuxer,
+                    bgav_input_context_t * input)
   {
   bgav_demuxer_context_t * ret;
-  int i;
-  bgav_demuxer_t * demuxer = (bgav_demuxer_t*)0;
   
-  if(bgav_demuxer_asf.probe(input))
-    {
-    demuxer = &bgav_demuxer_asf;
-    fprintf(stderr, "Detected ASF format\n");
-    }
-  else if(bgav_demuxer_quicktime.probe(input))
-    {
-    demuxer = &bgav_demuxer_quicktime;
-    fprintf(stderr, "Detected Quicktime format\n");
-    }
-  else if(bgav_demuxer_avi.probe(input))
-    {
-    demuxer = &bgav_demuxer_avi;
-    fprintf(stderr, "Detected AVI format\n");
-    }
-  else if(bgav_demuxer_rmff.probe(input))
-    {
-    demuxer = &bgav_demuxer_rmff;
-    fprintf(stderr, "Detected Real format\n");
-    }
-  else if(bgav_demuxer_wav.probe(input))
-    {
-    demuxer = &bgav_demuxer_wav;
-    fprintf(stderr, "Detected WAV format\n");
-    }
-  else if(bgav_demuxer_au.probe(input))
-    {
-    demuxer = &bgav_demuxer_au;
-    fprintf(stderr, "Detected Sun .au format\n");
-    }
-  else if(bgav_demuxer_aiff.probe(input))
-    {
-    demuxer = &bgav_demuxer_aiff;
-    fprintf(stderr, "Detected Apple AIFF format\n");
-    }
-  else if(bgav_demuxer_ra.probe(input))
-    {
-    demuxer = &bgav_demuxer_ra;
-    fprintf(stderr, "Detected Real audio format\n");
-    }
-  
-  /* TODO: Other formats */
-  else
-    return (bgav_demuxer_context_t*)0;
-
   ret = calloc(1, sizeof(*ret));
   
   ret->demuxer = demuxer;
   ret->input = input;
-  
-  if(!ret->demuxer->open(ret))
-    {
-    free(ret);
-    return (bgav_demuxer_context_t*)0;
-    }
-
-  /* Remove unsupported streams */
-
-  if(ret->num_audio_streams)
-    {
-    ret->audio_stream_index = malloc(ret->num_audio_streams * sizeof(int));
     
-    for(i = 0; i < ret->num_audio_streams; i++)
-      {
-      if(!bgav_find_audio_decoder(&(ret->audio_streams[i])))
-        {
-        fprintf(stderr, "Unsupported Audio codec: ");
-        bgav_dump_fourcc(ret->audio_streams[i].fourcc);
-        fprintf(stderr, "\n");
-        ret->audio_streams[i].action = BGAV_STREAM_UNSUPPORTED;
-        }
-      else    
-        {
-        ret->audio_stream_index[ret->supported_audio_streams] = i;
-        ret->supported_audio_streams++;
-        }
-      }
-    }
-
-  if(ret->num_video_streams)
-    {
-    ret->video_stream_index = malloc(ret->num_video_streams * sizeof(int));
-    
-    for(i = 0; i < ret->num_video_streams; i++)
-      {
-      if(!bgav_find_video_decoder(&(ret->video_streams[i])))
-        {
-        fprintf(stderr, "Unsupported Video codec: ");
-        bgav_dump_fourcc(ret->video_streams[i].fourcc);
-        fprintf(stderr, "\n");
-        ret->video_streams[i].action = BGAV_STREAM_UNSUPPORTED;
-        }
-      else    
-        {
-        ret->video_stream_index[ret->supported_video_streams] = i;
-        ret->supported_video_streams++;
-        }
-      }
-    }
-  
   return ret;
   }
 
@@ -144,76 +91,28 @@ bgav_demuxer_context_t * bgav_demuxer_create(bgav_input_context_t * input)
 
 void bgav_demuxer_destroy(bgav_demuxer_context_t * ctx)
   {
-  int i;
   ctx->demuxer->close(ctx);
-  
-  if(ctx->video_stream_index)
-    free(ctx->video_stream_index);
-  if(ctx->audio_stream_index)
-    free(ctx->audio_stream_index);
-  
-  for(i = 0; i < ctx->num_audio_streams; i++)
-    FREE(ctx->audio_streams[i].description);
-  for(i = 0; i < ctx->num_video_streams; i++)
-    FREE(ctx->video_streams[i].description);
+  if(ctx->tt)
+    bgav_track_table_unref(ctx->tt);
   FREE(ctx->stream_description);
-  free(ctx->audio_streams);
-  free(ctx->video_streams);
   free(ctx);
   }
 
-bgav_stream_t *
-bgav_demuxer_add_audio_stream(bgav_demuxer_context_t * d)
+
+int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
+                       bgav_redirector_context_t ** redir)
   {
-  d->num_audio_streams++;
-  d->audio_streams = realloc(d->audio_streams, d->num_audio_streams * 
-                             sizeof(*(d->audio_streams)));
-  memset(&(d->audio_streams[d->num_audio_streams-1]),
-         0, sizeof(d->audio_streams[0]));
-  d->audio_streams[d->num_audio_streams-1].demuxer = d;
-  d->audio_streams[d->num_audio_streams-1].data.audio.bits_per_sample = 16;
-  d->audio_streams[d->num_audio_streams-1].type = BGAV_STREAM_AUDIO;
-  return &(d->audio_streams[d->num_audio_streams-1]);
+  return ctx->demuxer->open(ctx, redir);
   }
 
-bgav_stream_t *
-bgav_demuxer_add_video_stream(bgav_demuxer_context_t * d)
+void bgav_demuxer_stop(bgav_demuxer_context_t * ctx)
   {
-  d->num_video_streams++;
-  d->video_streams = realloc(d->video_streams, d->num_video_streams * 
-                             sizeof(*(d->video_streams)));
-  memset(&(d->video_streams[d->num_video_streams-1]),
-         0, sizeof(d->video_streams[0]));
-  d->video_streams[d->num_video_streams-1].demuxer = d;
-  d->video_streams[d->num_video_streams-1].type = BGAV_STREAM_VIDEO;
-  return &(d->video_streams[d->num_video_streams-1]);
-  }
-
-bgav_stream_t * bgav_demuxer_find_stream(bgav_demuxer_context_t * ctx,
-                                         int stream_id)
-  {
-  int i;
-  for(i = 0; i < ctx->num_audio_streams; i++)
-    {
-    if(ctx->audio_streams[i].stream_id == stream_id)
-      {
-      if((ctx->audio_streams[i].action != BGAV_STREAM_MUTE) &&
-         (ctx->audio_streams[i].action != BGAV_STREAM_UNSUPPORTED))
-        return &(ctx->audio_streams[i]);
-      return (bgav_stream_t *)0;
-      }
-    }
-  for(i = 0; i < ctx->num_video_streams; i++)
-    {
-    if(ctx->video_streams[i].stream_id == stream_id)
-      {
-      if((ctx->video_streams[i].action != BGAV_STREAM_MUTE) &&
-         (ctx->video_streams[i].action != BGAV_STREAM_UNSUPPORTED))
-        return &(ctx->video_streams[i]);
-      return (bgav_stream_t *)0;
-      }
-    }
-  return (bgav_stream_t *)0;
+  if(ctx->stream_description)
+    free(ctx->stream_description);
+  
+  ctx->demuxer->close(ctx);
+  ctx->priv = NULL;
+  FREE(ctx->stream_description);
   }
 
 bgav_packet_t *
@@ -248,22 +147,23 @@ bgav_seek(bgav_t * b, gavl_time_t time)
   bgav_stream_t * s;
   /* First step: Flush all fifos and decoders */
   bgav_demuxer_context_t * demuxer = b->demuxer;
-
-  for(i = 0; i < demuxer->num_audio_streams; i++)
+  bgav_track_t * track = b->tt->current_track;
+  
+  for(i = 0; i < track->num_audio_streams; i++)
     {
-    s = &(demuxer->audio_streams[i]);
+    s = &(track->audio_streams[i]);
 
     if(s->packet_buffer)
       bgav_packet_buffer_clear(s->packet_buffer);
     if(s->data.audio.decoder &&
        s->data.audio.decoder->decoder->clear)
-      s->data.audio.decoder->decoder->clear(&(demuxer->audio_streams[i]));
+      s->data.audio.decoder->decoder->clear(&(track->audio_streams[i]));
 
     s->packet = NULL;
     }
-  for(i = 0; i < demuxer->num_video_streams; i++)
+  for(i = 0; i < track->num_video_streams; i++)
     {
-    s = &(demuxer->video_streams[i]);
+    s = &(track->video_streams[i]);
     if(s->packet_buffer)
       bgav_packet_buffer_clear(s->packet_buffer);
     if(s->data.video.decoder &&
@@ -281,9 +181,9 @@ bgav_seek(bgav_t * b, gavl_time_t time)
   
   /* Third step: Resync this mess */
   new_time = time;
-  for(i = 0; i < demuxer->supported_video_streams; i++)
+  for(i = 0; i < track->num_video_streams; i++)
     {
-    s = &(demuxer->video_streams[demuxer->video_stream_index[i]]);
+    s = &(track->video_streams[i]);
     if(s->time == -1)
       {
       if(s->position == -1)
@@ -325,10 +225,10 @@ bgav_seek(bgav_t * b, gavl_time_t time)
     if(!i) /* We use the first video stream as the official new time */
       new_time = packet_time;
     }
-  for(i = 0; i < demuxer->num_audio_streams; i++)
+  for(i = 0; i < track->num_audio_streams; i++)
     {
     
-    s = &(demuxer->audio_streams[demuxer->audio_stream_index[i]]);
+    s = &(track->audio_streams[i]);
     diff_time = new_time - s->time;
 
     if(s->time == -1)
@@ -365,27 +265,3 @@ bgav_seek(bgav_t * b, gavl_time_t time)
     }
   }
 
-void bgav_demuxer_create_buffers(bgav_demuxer_context_t * demuxer)
-  {
-  int i;
-  bgav_stream_t * stream;
-  for(i = 0; i < demuxer->supported_audio_streams; i++)
-    {
-    stream = &(demuxer->audio_streams[demuxer->audio_stream_index[i]]);
-    if((stream->action == BGAV_STREAM_DECODE) ||
-       (stream->action == BGAV_STREAM_SYNC))
-      {
-      stream->packet_buffer = bgav_packet_buffer_create();
-      }
-    }
-  for(i = 0; i < demuxer->supported_video_streams; i++)
-    {
-    stream = &(demuxer->video_streams[demuxer->video_stream_index[i]]);
-    if((stream->action == BGAV_STREAM_DECODE) ||
-       (stream->action == BGAV_STREAM_SYNC))
-      {
-      stream->packet_buffer = bgav_packet_buffer_create();
-      }
-    }
-  }
-  

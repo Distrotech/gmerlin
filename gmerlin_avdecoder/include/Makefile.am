@@ -1,8 +1,15 @@
 noinst_HEADERS = \
 avdec_private.h \
-avdec.h \
 bswap.h \
-config.h \
+http.h \
+id3.h \
+mms.h \
 nanosoft.h \
+pes_packet.h \
 qt.h \
-utils.h
+sdp.h \
+utils.h \
+xing.h \
+yml.h
+
+include_HEADERS = avdec.h

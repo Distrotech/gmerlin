@@ -162,16 +162,17 @@ static stream_priv_t * find_stream(bgav_demuxer_context_t * ctx,
   //  qt_priv_t * priv; 
   stream_priv_t * ret;
   int i;
-
-  for(i = 0; i < ctx->num_audio_streams; i++)
+  bgav_track_t * track = ctx->tt->current_track;
+  
+  for(i = 0; i < track->num_audio_streams; i++)
     {
-    ret = (stream_priv_t *)(ctx->audio_streams[i].priv);
+    ret = (stream_priv_t *)(track->audio_streams[i].priv);
     if(ret->trak == trak)
       return ret;
     }
-  for(i = 0; i < ctx->num_video_streams; i++)
+  for(i = 0; i < track->num_video_streams; i++)
     {
-    ret = (stream_priv_t *)(ctx->video_streams[i].priv);
+    ret = (stream_priv_t *)(track->video_streams[i].priv);
     if(ret->trak == trak)
       return ret;
     }
@@ -380,24 +381,29 @@ static void build_index(bgav_demuxer_context_t * ctx)
   }
 
 #define SET_UDTA_STRING(dst, src) \
-if(!(ctx->metadata.dst) && moov->udta.src)\
+if(!(ctx->tt->current_track->metadata.dst) && moov->udta.src)\
   { \
-  ctx->metadata.dst=bgav_convert_string(moov->udta.src, -1, "ISO-8859-1", "UTF-8");\
+  ctx->tt->current_track->metadata.dst=bgav_convert_string(cnv, moov->udta.src, -1, NULL);\
   }
 
 static void set_metadata(bgav_demuxer_context_t * ctx)
   {
+  bgav_charset_converter_t * cnv;
+
   qt_priv_t * priv;
   qt_moov_t * moov;
   priv = (qt_priv_t*)(ctx->priv);
   moov = &(priv->moov);
 
+  cnv = bgav_charset_converter_create("ISO-8859-1", "UTF-8");
+    
   SET_UDTA_STRING(copyright, cpy);
   SET_UDTA_STRING(title,     nam);
   SET_UDTA_STRING(comment,   cmt);
   SET_UDTA_STRING(comment,   inf);
   SET_UDTA_STRING(author,    aut);
   SET_UDTA_STRING(author,    ART);
+  bgav_charset_converter_destroy(cnv);
   }
 
 static void quicktime_init(bgav_demuxer_context_t * ctx)
@@ -410,9 +416,12 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   stream_priv_t * stream_priv;
   gavl_time_t     stream_duration;
   qt_sample_description_t * desc;
-  
+  bgav_track_t * track;
+    
   qt_priv_t * priv = (qt_priv_t*)(ctx->priv);
 
+  track = ctx->tt->current_track;
+    
   qt_moov_t * moov = &(priv->moov);
   ctx->duration = 0;
   for(i = 0; i < moov->num_tracks; i++)
@@ -421,7 +430,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
     if(moov->tracks[i].mdia.minf.has_smhd)
       {
       //      fprintf(stderr, "Found audio stream\n");
-      bg_as = bgav_demuxer_add_audio_stream(ctx);
+      bg_as = bgav_track_add_audio_stream(track);
       desc = &(moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc);
       stream_priv = stream_create(&(moov->tracks[i]), BGAV_STREAM_AUDIO);
       
@@ -463,7 +472,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
     else if(moov->tracks[i].mdia.minf.has_vmhd)
       {
       //      fprintf(stderr, "Found video stream\n");
-      bg_vs = bgav_demuxer_add_video_stream(ctx);
+      bg_vs = bgav_track_add_video_stream(track);
       desc = &(moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc);
       stream_priv = stream_create(&(moov->tracks[i]), BGAV_STREAM_VIDEO);
       
@@ -526,12 +535,17 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   set_metadata(ctx);
   }
 
-static int open_quicktime(bgav_demuxer_context_t * ctx)
+static int open_quicktime(bgav_demuxer_context_t * ctx,
+                          bgav_redirector_context_t ** redir)
   {
   qt_atom_header_t h;
   qt_priv_t * priv = (qt_priv_t*)0;
   int have_moov = 0;
   int have_mdat = 0;
+
+  /* Create track */
+
+  ctx->tt = bgav_track_table_create(1);
   
   /* Read moov atom */
 
@@ -616,7 +630,8 @@ static int next_packet_quicktime(bgav_demuxer_context_t * ctx)
     return 0;
   
   stream =
-    bgav_demuxer_find_stream(ctx, priv->packet_table[priv->current_packet].stream_id);
+    bgav_track_find_stream(ctx->tt->current_track,
+                           priv->packet_table[priv->current_packet].stream_id);
   
   if(!stream) /* Skip unused stream */
     {
@@ -659,17 +674,21 @@ static void seek_quicktime(bgav_demuxer_context_t * ctx, gavl_time_t time)
   uint32_t end_packet;
   int keep_going;
   stream_priv_t * s;
-  qt_priv_t * priv = (qt_priv_t*)(ctx->priv);
+  bgav_track_t * track;
 
+  track = ctx->tt->current_track;
+  
+  qt_priv_t * priv = (qt_priv_t*)(ctx->priv);
+  
   /* Set the packet indices of the streams to -1 */
-  for(j = 0; j < ctx->num_audio_streams; j++)
+  for(j = 0; j < track->num_audio_streams; j++)
     {
-    s = (stream_priv_t*)(ctx->audio_streams[j].priv);
+    s = (stream_priv_t*)(track->audio_streams[j].priv);
     s->packet_index = -1;
     }
-  for(j = 0; j < ctx->num_video_streams; j++)
+  for(j = 0; j < track->num_video_streams; j++)
     {
-    s = (stream_priv_t*)(ctx->video_streams[j].priv);
+    s = (stream_priv_t*)(track->video_streams[j].priv);
     s->packet_index = -1;
     }
     
@@ -681,34 +700,34 @@ static void seek_quicktime(bgav_demuxer_context_t * ctx, gavl_time_t time)
   while(keep_going)
     {
     keep_going = 0;
-    for(j = 0; j < ctx->num_audio_streams; j++)
+    for(j = 0; j < track->num_audio_streams; j++)
       {
-      s = (stream_priv_t*)(ctx->audio_streams[j].priv);
+      s = (stream_priv_t*)(track->audio_streams[j].priv);
       if(s->packet_index < 0)
         {
-        if((priv->packet_table[i].stream_id == ctx->audio_streams[j].stream_id) &&
+        if((priv->packet_table[i].stream_id == track->audio_streams[j].stream_id) &&
            (priv->packet_table[i].keyframe) &&
            (priv->packet_table[i].timestamp < time))
           {
           s->packet_index = i;
-          ctx->audio_streams[j].time = priv->packet_table[i].timestamp;
+          track->audio_streams[j].time = priv->packet_table[i].timestamp;
           }
         else
           keep_going = 1;
         }
             
       }
-    for(j = 0; j < ctx->num_video_streams; j++)
+    for(j = 0; j < track->num_video_streams; j++)
       {
-      s = (stream_priv_t*)(ctx->video_streams[j].priv);
+      s = (stream_priv_t*)(track->video_streams[j].priv);
       if(s->packet_index < 0)
         {
-        if((priv->packet_table[i].stream_id == ctx->video_streams[j].stream_id) &&
+        if((priv->packet_table[i].stream_id == track->video_streams[j].stream_id) &&
            (priv->packet_table[i].keyframe) &&
            (priv->packet_table[i].timestamp < time))
           {
           s->packet_index = i;
-          ctx->video_streams[j].time = priv->packet_table[i].timestamp;
+          track->video_streams[j].time = priv->packet_table[i].timestamp;
           }
         else
           keep_going = 1;
@@ -722,17 +741,17 @@ static void seek_quicktime(bgav_demuxer_context_t * ctx, gavl_time_t time)
   start_packet = ~0x0;
   end_packet   = 0x0;
   
-  for(j = 0; j < ctx->num_audio_streams; j++)
+  for(j = 0; j < track->num_audio_streams; j++)
     {
-    s = (stream_priv_t*)(ctx->audio_streams[j].priv);
+    s = (stream_priv_t*)(track->audio_streams[j].priv);
     if(start_packet > s->packet_index)
       start_packet = s->packet_index;
     if(end_packet < s->packet_index)
       end_packet = s->packet_index;
     }
-  for(j = 0; j < ctx->num_video_streams; j++)
+  for(j = 0; j < track->num_video_streams; j++)
     {
-    s = (stream_priv_t*)(ctx->video_streams[j].priv);
+    s = (stream_priv_t*)(track->video_streams[j].priv);
     if(start_packet > s->packet_index)
       start_packet = s->packet_index;
     if(end_packet < s->packet_index)
@@ -754,16 +773,18 @@ static void close_quicktime(bgav_demuxer_context_t * ctx)
   {
   int i;
   qt_priv_t * priv;
+
+  bgav_track_t * track = ctx->tt->current_track;
   
-  for(i = 0; i < ctx->num_audio_streams; i++)
+  for(i = 0; i < track->num_audio_streams; i++)
     {
-    if(ctx->audio_streams[i].priv)
-      free(ctx->audio_streams[i].priv);
+    if(track->audio_streams[i].priv)
+      free(track->audio_streams[i].priv);
     }
-  for(i = 0; i < ctx->num_video_streams; i++)
+  for(i = 0; i < track->num_video_streams; i++)
     {
-    if(ctx->video_streams[i].priv)
-      free(ctx->video_streams[i].priv);
+    if(track->video_streams[i].priv)
+      free(track->video_streams[i].priv);
     }
   
   priv = (qt_priv_t*)(ctx->priv);
@@ -772,7 +793,6 @@ static void close_quicktime(bgav_demuxer_context_t * ctx)
   bgav_qt_moov_free(&(priv->moov));
   free(ctx->priv);
   }
-
 
 bgav_demuxer_t bgav_demuxer_quicktime =
   {

@@ -77,7 +77,7 @@ static int parse_asx(void * priv, const char * filename)
   
   //  fprintf(stderr, "Node: %s\n", node->name);
   
-  if(strcmp(node->name, "ASX"))
+  if(xmlStrcasecmp(node->name, "ASX"))
     {
     xmlFreeDoc(xml_doc);
     return 0;
@@ -144,7 +144,8 @@ static int parse_asx(void * priv, const char * filename)
       //      fprintf(stderr, "Name: %s\nLocation: %s\n", p->names[index],
       //              p->locations[index]);
       if(!p->names[index])
-        p->names[index] = bg_sprintf("Stream %d\n", index+1);
+        p->names[index] = bg_sprintf("Stream %d (%s)",
+                                     index+1, p->locations[index]);
       index++;
       }
     node = node->next;

@@ -48,6 +48,16 @@ win32_libs =
 win32_sources =
 endif
 
+# if HAVE_LIBXML2
+# xml2_sources = r_asx.c
+# xml2_cflags = @XML2_CFLAGS@
+# xml2_libs =   @XML2_LIBS@
+# else
+# xml2_sources =
+# xml2_cflags =
+# xml2_libs =
+# endif
+
 SUBDIRS = $(win32_subdirs) real_rtsp
 
 libgmerlin_avdec_la_LDFLAGS=-export-dynamic
@@ -59,10 +69,12 @@ $(vorbis_sources) \
 $(faad2_sources) \
 $(png_sources) \
 $(win32_sources) \
+$(xml2_sources) \
 audio.c \
 audio_ffmpeg.c \
 audio_real.c \
 audio_aiff.c \
+base64.c \
 bgav.c \
 charset.c \
 codecs.c \
@@ -71,18 +83,29 @@ demux_aiff.c \
 demux_asf.c \
 demux_avi.c \
 demux_au.c \
+demux_mpegaudio.c \
+demux_mpegps.c \
 demux_quicktime.c \
 demux_ra.c \
 demux_rm.c \
 demux_wav.c \
+http.c \
+id3v1.c \
+id3v2.c \
+in_fd.c \
 in_file.c \
+in_http.c \
 in_memory.c \
+in_mms.c \
 in_pnm.c \
 in_realrtsp.c \
 input.c \
+metadata.c \
+mms.c \
 nanosoft.c \
 packetbuffer.c \
 packet.c \
+pes_packet.c \
 pnm.c \
 qt_atom.c \
 qt_cmov.c \
@@ -94,6 +117,9 @@ qt_minf.c \
 qt_moov.c \
 qt_mvhd.c \
 qt_palette.c \
+qt_rdrf.c \
+qt_rmda.c \
+qt_rmra.c \
 qt_stbl.c \
 qt_stco.c \
 qt_stsc.c \
@@ -105,12 +131,22 @@ qt_tkhd.c \
 qt_trak.c \
 qt_udta.c \
 qt_utils.c \
+redirect.c \
+r_asx.c \
+r_ram.c \
+sdp.c \
+stream.c \
+rtsp.c \
 tcp.c \
+track.c \
+tracktable.c \
 utils.c \
 video.c \
 video_ffmpeg.c \
 video_xadll.c \
 video_qtraw.c \
 video_qtrle.c \
-video_real.c
+video_real.c \
+xing.c \
+yml.c
 

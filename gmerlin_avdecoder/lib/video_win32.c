@@ -540,11 +540,11 @@ static int decode_dmo(bgav_stream_t * s, gavl_video_frame_t * frame)
   if(!p)
     return 0;
   
-  fprintf(stderr, "Decode dmo %d....", p->data_size);
+  //  fprintf(stderr, "Decode dmo %d....", p->data_size);
   result = DMO_VideoDecoder_DecodeInternal(priv->dmo_dec, p->data, p->data_size,
                                            p->keyframe,
                                            priv->frame->planes[0]);
-  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done\n");
 
 
   if(result)

@@ -30,7 +30,10 @@ static int open_file(bgav_input_context_t * ctx, const char * url,
 
   fseek((FILE*)(ctx->priv), 0, SEEK_END);
   ctx->total_bytes = ftell((FILE*)(ctx->priv));
+    
   fseek((FILE*)(ctx->priv), 0, SEEK_SET);
+  
+  ctx->filename = bgav_strndup(url, NULL);
   return 1;
   }
 

@@ -58,6 +58,43 @@ void bgav_qt_atom_dump_header(qt_atom_header_t * h);
 void bgav_qt_atom_skip(bgav_input_context_t * input,
                        qt_atom_header_t * h);
 
+/* Reference movies (== Quicktime redirectors) */
+
+typedef struct
+  {
+  uint32_t flags;
+  uint32_t fourcc;
+  uint32_t data_ref_size;
+  uint8_t * data_ref;
+  } qt_rdrf_t;
+
+int bgav_qt_rdrf_read(qt_atom_header_t * h,
+                      bgav_input_context_t * ctx, qt_rdrf_t * ret);
+
+void bgav_qt_rdrf_free(qt_rdrf_t * r);
+
+typedef struct
+  {
+  qt_atom_header_t h;
+  qt_rdrf_t rdrf;
+  } qt_rmda_t;
+
+int bgav_qt_rmda_read(qt_atom_header_t * h,
+                      bgav_input_context_t * ctx, qt_rmda_t * ret);
+
+void bgav_qt_rmda_free(qt_rmda_t * r);
+
+typedef struct
+  {
+  qt_atom_header_t h;
+  qt_rmda_t rmda;
+  } qt_rmra_t;
+
+int bgav_qt_rmra_read(qt_atom_header_t * h,
+                      bgav_input_context_t * ctx, qt_rmra_t * ret);
+
+void bgav_qt_rmra_free(qt_rmra_t * r);
+
 /*
  *  Time to sample
  */
@@ -515,11 +552,15 @@ typedef struct
   {
   qt_atom_header_t h;
   qt_mvhd_t mvhd;
-
+  
   qt_udta_t udta;
   
   int num_tracks;
   qt_trak_t * tracks;
+
+  /* Reference movie */
+  qt_rmra_t rmra;
+  int has_rmra;
   } qt_moov_t;
 
 int bgav_qt_moov_read(qt_atom_header_t * h, bgav_input_context_t * ctx,

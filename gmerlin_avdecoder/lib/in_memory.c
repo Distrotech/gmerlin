@@ -36,8 +36,9 @@ static int read_mem(bgav_input_context_t* ctx,
   
   mem_priv_t * priv = (mem_priv_t*)(ctx->priv);
   bytes_left = ctx->total_bytes - (uint32_t)(priv->data_ptr - priv->data);
-  bytes_to_read = len < bytes_left ? len : bytes_left;
-
+  bytes_to_read = (len < bytes_left) ? len : bytes_left;
+  //  fprintf(stderr, "*** COPY %p %p %d\n", buffer,
+  //          priv->data_ptr, bytes_to_read);
   memcpy(buffer, priv->data_ptr, bytes_to_read);
   priv->data_ptr += bytes_to_read;
   return bytes_to_read;
@@ -48,6 +49,8 @@ static int64_t seek_byte_mem(bgav_input_context_t * ctx,
   {
   mem_priv_t * priv = (mem_priv_t*)(ctx->priv);
   priv->data_ptr = priv->data + ctx->position;
+  //  fprintf(stderr, "*** SEEK_BYTE %lld\n", ctx->position);
+  
   return ctx->position;
   }
 

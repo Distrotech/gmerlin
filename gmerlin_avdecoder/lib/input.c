@@ -27,6 +27,7 @@ int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
   {
   int bytes_to_copy = 0;
   int ret;
+  int result;
   if(ctx->get_buffer_size)
     {
     if(len > ctx->get_buffer_size)
@@ -41,9 +42,12 @@ int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
     ctx->get_buffer_size -= bytes_to_copy; 
     }
   if(len > bytes_to_copy)
-    ret = bytes_to_copy + ctx->input->read(ctx,
-                                           &(buffer[bytes_to_copy]),
-                                           len - bytes_to_copy);
+    {
+    result = ctx->input->read(ctx, &(buffer[bytes_to_copy]), len - bytes_to_copy);
+    if(result < 0)
+      result = 0;
+    ret = bytes_to_copy + result;
+    }
   else
     ret = len;
   ctx->position += ret;
@@ -53,7 +57,7 @@ int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
 int bgav_input_get_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
   {
   int bytes_gotten;
-  
+  int result;
   if(ctx->get_buffer_size < len)
     {
     if(ctx->get_buffer_size + len > ctx->get_buffer_alloc)
@@ -61,9 +65,12 @@ int bgav_input_get_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
       ctx->get_buffer_alloc += len + 64;
       ctx->get_buffer = realloc(ctx->get_buffer, ctx->get_buffer_alloc);
       }
-    ctx->get_buffer_size +=
+    result =
       ctx->input->read(ctx, &(ctx->get_buffer[ctx->get_buffer_size]),
                       len - ctx->get_buffer_size);
+    if(result < 0)
+      result = 0;
+    ctx->get_buffer_size += result;
     }
   bytes_gotten = (len > ctx->get_buffer_size) ? ctx->get_buffer_size :
     len;
@@ -215,6 +222,8 @@ int bgav_input_get_64_be(bgav_input_context_t * ctx, uint64_t * ret)
 extern bgav_input_t bgav_input_file;
 extern bgav_input_t bgav_input_realrtsp;
 extern bgav_input_t bgav_input_pnm;
+extern bgav_input_t bgav_input_mms;
+extern bgav_input_t bgav_input_http;
 
 bgav_input_context_t * bgav_input_open(const char *url,
                                        int milliseconds)
@@ -224,6 +233,7 @@ bgav_input_context_t * bgav_input_open(const char *url,
   ret = calloc(1, sizeof(*ret));
   int url_len;
   /* TODO: Check for http etc */
+  const char * pos;
 
   if(bgav_url_split(url,
                     &protocol,
@@ -233,7 +243,11 @@ bgav_input_context_t * bgav_input_open(const char *url,
     {
     if(!strcmp(protocol, "rtsp"))
       {
-      url_len = strlen(url);
+      pos = strchr(url, '?');
+      if(!pos)
+        pos = url + strlen(url);
+      
+      url_len = (int)(pos - url);
       if(((url[url_len-3] == '.') &&
           (url[url_len-2] == 'r') &&
           (url[url_len-1] == 'm')) ||
@@ -246,15 +260,20 @@ bgav_input_context_t * bgav_input_open(const char *url,
         }
       else
         fprintf(stderr, "Standard rtsp not supported\n");
-      }
+     }
     else if(!strcmp(protocol, "pnm"))
       ret->input = &bgav_input_pnm;
+    else if(!strcmp(protocol, "mms"))
+      ret->input = &bgav_input_mms;
+    else if(!strcmp(protocol, "http"))
+      ret->input = &bgav_input_http;
     else
       {
       fprintf(stderr, "Unknown protocol: %s\n", protocol);
       goto fail;
       }
     free(protocol);
+    protocol = (char*)0;
     }
   else
     ret->input = &bgav_input_file;
@@ -278,9 +297,15 @@ bgav_input_context_t * bgav_input_open(const char *url,
 
 void bgav_input_close(bgav_input_context_t * ctx)
   {
+  if(ctx->tt)
+    bgav_track_table_unref(ctx->tt);
   ctx->input->close(ctx);
   if(ctx->get_buffer)
     free(ctx->get_buffer);
+  if(ctx->mimetype)
+    free(ctx->mimetype);
+  if(ctx->filename)
+    free(ctx->filename);
   free(ctx);
   return;
   }
@@ -339,6 +364,7 @@ void bgav_input_seek(bgav_input_context_t * ctx,
       break;
     }
   ctx->input->seek_byte(ctx, position, whence);
+  ctx->get_buffer_size = 0;
   }
 
 int bgav_input_read_string_pascal(bgav_input_context_t * ctx,

@@ -20,6 +20,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <ctype.h>
+
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
@@ -30,7 +36,7 @@ typedef struct
   {
   int num_streams;
   char ** locations;
-  char ** names;
+  int locations_alloc;
   } ram_t;
 
 static void free_info(ram_t * ram)
@@ -38,20 +44,83 @@ static void free_info(ram_t * ram)
   int i;
   for(i = 0; i < ram->num_streams; i++)
     {
-    if(ram->names && ram->names[i])
-      free(ram->names[i]);
     if(ram->locations && ram->locations[i])
       free(ram->locations[i]);
     }
   if(ram->locations)
     free(ram->locations);
-  if(ram->names)
-    free(ram->names);
+  }
+
+static char * trim_string(char * str)
+  {
+  char * ret, *pos;
+  ret = str;
+  while(isspace(*ret))
+    ret++;
+  pos = &(ret[strlen(ret)-1]);
+
+  while(1)
+    {
+    if(pos < ret)
+      break;
+
+    if(isspace(*pos))
+      {
+      *pos = '\0';
+      pos--;
+      }
+    else
+      break;
+    }
+  return ret;
   }
 
 static int parse_ram(void * priv, const char * filename)
   {
-  return 0;
+  int fd;
+  char * buffer;
+  int buffer_size;
+  char * str, *pos;
+  ram_t * ram;
+  ram = (ram_t*)(priv);
+  fd = open(filename, O_RDONLY, 0);
+  
+  if(fd == -1)
+    return 0;
+  
+  buffer = (char*)0;
+  buffer_size = 0;
+  while(1)
+    {
+    if(!bg_read_line_fd(fd, &buffer, &buffer_size))
+      break;
+    pos = strchr(buffer, '#');
+    if(pos)
+      *pos = '\0';
+    if(*buffer == '\0')
+      continue;
+
+    str = trim_string(buffer);
+
+    if(*str == '\0')
+      continue;
+    
+    if(!strcmp(str, "--stop--"))
+      break;
+        
+    if(ram->locations_alloc < ram->num_streams + 1)
+      {
+      ram->locations_alloc += 8;
+      ram->locations = realloc(ram->locations,
+                               ram->locations_alloc * sizeof(char*));
+      }
+    ram->locations[ram->num_streams] = bg_strdup(NULL, str);
+    ram->num_streams++;
+    }
+  if(buffer)
+    free(buffer);
+  close(fd);
+  return 1;
   }
 
 static int get_num_streams_ram(void * priv)
@@ -65,7 +134,7 @@ static const char * get_stream_name_ram(void * priv, int stream)
   {
   ram_t * p;
   p = (ram_t *)priv;
-  return p->names[stream];
+  return p->locations[stream];
   }
 
 static const char * get_stream_url_ram(void * priv, int stream)
@@ -101,7 +170,7 @@ bg_redirector_plugin_t the_plugin =
       name:          "r_ram",
       long_name:     "RAM Redirector",
       mimetypes:     "audio/x-pn-realaudio audio/x-pn-realvideo",
-      extensions:    "ram",
+      extensions:    "ram rm rpm",
       type:          BG_PLUGIN_REDIRECTOR,
       flags:         BG_PLUGIN_FILE|BG_PLUGIN_URL,
       create:        create_ram,

@@ -46,7 +46,8 @@ static int probe_ra(bgav_input_context_t * input)
 
 #define RA_FILE_HEADER_PREV_SIZE 22
 
-static int open_ra(bgav_demuxer_context_t * ctx)
+static int open_ra(bgav_demuxer_context_t * ctx,
+                   bgav_redirector_context_t ** redir)
   {
   uint8_t fh[RA_FILE_HEADER_PREV_SIZE], len;
   uint8_t * file_header;
@@ -61,7 +62,14 @@ static int open_ra(bgav_demuxer_context_t * ctx)
   //  int sub_packet_height = 0;
   int codec_flavor      = 0;
   int coded_framesize   = 0;
-  
+  bgav_track_t * track;
+    
+  /* Create track */
+
+  ctx->tt = bgav_track_table_create(1);
+
+  track = ctx->tt->current_track;
+    
   if(bgav_input_read_data(ctx->input, fh, RA_FILE_HEADER_PREV_SIZE) < RA_FILE_HEADER_PREV_SIZE)
     {
     return 0;
@@ -103,7 +111,7 @@ static int open_ra(bgav_demuxer_context_t * ctx)
     }
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
-  s = bgav_demuxer_add_audio_stream(ctx);
+  s = bgav_track_add_audio_stream(track);
   priv->sub_packet_h = 1;
   /* read header data according to version */
   if((version == 3) && (hdr_size >= 32))
@@ -160,7 +168,7 @@ static int open_ra(bgav_demuxer_context_t * ctx)
   len = audio_header[offset];
   if(len && ((offset+len+2) < hdr_size))
     {
-    ctx->metadata.title = bgav_strndup(audio_header +offset + 1, audio_header +offset + 1 + len); 
+    track->metadata.title = bgav_strndup(audio_header +offset + 1, audio_header +offset + 1 + len); 
     offset += len+1;
     }
   else
@@ -170,7 +178,7 @@ static int open_ra(bgav_demuxer_context_t * ctx)
   len = audio_header[offset];
   if(len && ((offset+len+1) < hdr_size))
     {
-    ctx->metadata.author = bgav_strndup(audio_header + offset + 1, audio_header + offset + 1 + len);
+    track->metadata.author = bgav_strndup(audio_header + offset + 1, audio_header + offset + 1 + len);
     offset += len+1;
     }
   else
@@ -180,7 +188,7 @@ static int open_ra(bgav_demuxer_context_t * ctx)
   len = audio_header[offset];
   if(len && ((offset+len) <= hdr_size))
     {
-    ctx->metadata.copyright = bgav_strndup(audio_header + offset + 1, audio_header + offset + 1 + len);
+    track->metadata.copyright = bgav_strndup(audio_header + offset + 1, audio_header + offset + 1 + len);
     offset += len+1;
     }
   else
@@ -247,7 +255,7 @@ static int next_packet_ra(bgav_demuxer_context_t * ctx)
   int len;
   priv = (ra_priv_t *)ctx->priv;
   
-  s = &(ctx->audio_streams[0]);
+  s = &(ctx->tt->current_track->audio_streams[0]);
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
 
   len = s->data.audio.block_align * priv->sub_packet_h;

@@ -27,7 +27,9 @@ dnl
 dnl Optional Libraries
 dnl
 
+dnl
 dnl AVCodec
+dnl
 
 have_avcodec="true"
 AVCODEC_CFLAGS=
@@ -151,6 +153,14 @@ AM_CONDITIONAL(HAVE_FAAD2, test x$have_faad2 = xtrue)
 if test x$have_faad2 = xtrue; then
 AC_DEFINE(HAVE_FAAD2)
 fi
+
+dnl
+dnl libxml2
+dnl
+
+dnl have_libxml2="false"
+dnl PKG_CHECK_MODULES(XML2, libxml-2.0 >= 2.4.0, have_libxml2="true", have_libxml2="false")
+dnl AM_CONDITIONAL(HAVE_LIBXML2, test x$have_libxml2 = xtrue)
 
 dnl
 dnl Check wether to enable win32 DLLs
@@ -293,6 +303,13 @@ echo "Yes"
 else
 echo "Missing"
 fi
+
+dnl echo -n "libxml2:           "
+dnl if test "x$have_libxml2" = "xtrue"; then
+dnl echo "Yes"
+dnl else
+dnl echo "Missing"
+dnl fi
 
 echo -n "win32 DLL Support: "
 if test "x$enable_w32dll" = "xtrue"; then

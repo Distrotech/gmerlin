@@ -22,6 +22,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
+#include <sys/select.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+
 
 #include <avdec_private.h>
 
@@ -82,7 +87,12 @@ char * bgav_sprintf(const char * format,...)
 char * bgav_strndup(const char * start, const char * end)
   {
   char * ret;
-  int len = end - start;
+  int len;
+
+  if(!start)
+    return (char*)0;
+
+  len = (end) ? (end - start) : strlen(start);
   ret = malloc(len+1);
   strncpy(ret, start, len);
   ret[len] = '\0';
@@ -151,4 +161,145 @@ int bgav_url_split(const char * url,
       *path = bgav_strndup(pos1, pos2);
     }
   return 1;
+  }
+
+/*
+ *  Read a single line from a filedescriptor
+ *
+ *  ret will be reallocated if neccesary and ret_alloc will
+ *  be updated then
+ *
+ *  The string will be 0 terminated, a trailing \r or \n will
+ *  be removed
+ */
+#define BYTES_TO_ALLOC 1024
+
+int bgav_read_line_fd(int fd, char ** ret, int * ret_alloc, int milliseconds)
+  {
+  char * pos;
+  char c;
+  int bytes_read;
+  bytes_read = 0;
+  /* Allocate Memory for the case we have none */
+  if(!ret_alloc)
+    {
+    *ret_alloc = BYTES_TO_ALLOC;
+    *ret = realloc(*ret, *ret_alloc);
+    }
+  pos = *ret;
+  while(1)
+    {
+    if(!bgav_read_data_fd(fd, &c, 1, milliseconds))
+      {
+      if(!bytes_read)
+        return 0;
+      break;
+      }
+    /*
+     *  Line break sequence
+     *  is starting, remove the rest from the stream
+     */
+    if(c == '\n')
+      {
+      break;
+      }
+    /* Reallocate buffer */
+    else if(c != '\r')
+      {
+      if(bytes_read+2 >= *ret_alloc)
+        {
+        *ret_alloc += BYTES_TO_ALLOC;
+        *ret = realloc(*ret, *ret_alloc);
+        pos = &((*ret)[bytes_read]);
+        }
+      /* Put the byte and advance pointer */
+      *pos = c;
+      pos++;
+      bytes_read++;
+      }
+    }
+  *pos = '\0';
+  return 1;
+  }
+
+int bgav_read_data_fd(int fd, uint8_t * ret, int len, int milliseconds)
+  {
+  int bytes_read = 0;
+  int result;
+  fd_set rset;
+  struct timeval timeout;
+
+  int flags = 0;
+  if(!milliseconds)
+    flags = MSG_WAITALL;
+  
+  while(bytes_read < len)
+    {
+    result = recv(fd, ret + bytes_read, len - bytes_read, flags);
+    if(result < 0)
+      {
+      if(!milliseconds)
+        return 0;
+      
+      FD_ZERO (&rset);
+      FD_SET  (fd, &rset);
+      
+      timeout.tv_sec  = milliseconds / 1000;
+      timeout.tv_usec = (milliseconds % 1000) * 1000;
+      
+      if (select (fd+1, &rset, NULL, NULL, &timeout) <= 0)
+        {
+        return bytes_read;
+        }
+      }
+    else
+      bytes_read += result;
+    }
+  return 
+    bytes_read;
+  }
+
+/* Break string into substrings separated by spaces */
+
+char ** bgav_stringbreak(const char * str, char sep)
+  {
+  int len, i;
+  int num;
+  int index;
+  char ** ret;
+  len = strlen(str);
+  if(!len)
+    {
+    num = 0;
+    return (char**)0;
+    }
+  
+  num = 1;
+  for(i = 0; i < len; i++)
+    {
+    if(str[i] == sep)
+      num++;
+    }
+  ret = calloc(num+1, sizeof(char*));
+
+  index = 1;
+  ret[0] = bgav_strndup(str, NULL);
+  
+  for(i = 0; i < len; i++)
+    {
+    if(ret[0][i] == sep)
+      {
+      if(index < num)
+        ret[index] = ret[0] + i + 1;
+      ret[0][i] = '\0';
+      index++;
+      }
+    }
+  return ret;
+  }
+
+void bgav_stringbreak_free(char ** str)
+  {
+  free(str[0]);
+  free(str);
   }

@@ -181,7 +181,7 @@ static int init(bgav_stream_t * s)
   priv->ctx->channels =    s->data.audio.format.num_channels;
   priv->ctx->sample_rate = s->data.audio.format.samplerate;
   priv->ctx->block_align = s->data.audio.block_align;
-  priv->ctx->bit_rate    = s->data.audio.bitrate;
+  priv->ctx->bit_rate    = s->codec_bitrate;
 
   priv->ctx->codec_tag   =
     ((s->fourcc & 0x000000ff) << 24) ||
@@ -222,9 +222,8 @@ static int decode(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
   int samples_decoded = 0;
   priv= (ffmpeg_audio_priv*)(s->data.audio.decoder->priv);
   
-  /* Check if there are samples im the buffer left */
-  
-  
+  /* Check if there are samples in the buffer left */
+ 
   if(priv->samples_in_buffer)
     {
     if(priv->samples_in_buffer > num_samples)
@@ -270,7 +269,7 @@ static int decode(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
         priv->packet_buffer_alloc = p->data_size + FF_INPUT_BUFFER_PADDING_SIZE + 32;
         priv->packet_buffer = realloc(priv->packet_buffer, priv->packet_buffer_alloc);
         }
-      fprintf(stderr, "Got packet: %d bytes\n", p->data_size);      
+      //      fprintf(stderr, "Got packet: %d bytes\n", p->data_size);      
       priv->bytes_in_packet_buffer = p->data_size;
       memcpy(priv->packet_buffer, p->data, p->data_size);
       priv->packet_buffer_ptr = priv->packet_buffer;
@@ -287,16 +286,16 @@ static int decode(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
                                       &frame_size,
                                       priv->packet_buffer_ptr,
                                       priv->bytes_in_packet_buffer);
-    fprintf(stderr, "Used: %d bytes, frame_size: %d\n", bytes_used, frame_size);
+    //    fprintf(stderr, "Used: %d bytes, frame_size: %d\n", bytes_used, frame_size);
     
     /* Check for error */
     
     if(frame_size < 0)
       {
-      //      fprintf(stderr, "Decoding failed %d\n", bytes_used);
-      if(f)
-        f->valid_samples = samples_decoded;
-      return samples_decoded;
+      fprintf(stderr, "Decoding failed %d\n", bytes_used);
+      //      if(f)
+      //        f->valid_samples = samples_decoded;
+      //      return samples_decoded;
       }
     /* Advance packet buffer */
     
