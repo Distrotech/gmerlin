@@ -15,6 +15,13 @@ alsa_mixer_t * alsa_mixer_create()
     else
       break;
     }
+
+  if(!ret->num_cards)
+    {
+    free(ret);
+    return (alsa_mixer_t*)0;
+    }
+
   ret->cards = calloc(ret->num_cards, sizeof(*ret->cards));
 
   for(i = 0; i < ret->num_cards; i++)

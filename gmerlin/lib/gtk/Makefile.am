@@ -25,6 +25,7 @@ fileselect.c \
 fileentry.c \
 gtkutils.c \
 infowindow.c \
+message.c \
 mixercontrol.c \
 multiinfo.c \
 plugininfo.c \

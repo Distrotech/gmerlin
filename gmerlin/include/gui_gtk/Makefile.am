@@ -8,6 +8,7 @@ fileentry.h \
 fileselect.h \
 gtkutils.h \
 infowindow.h \
+message.h \
 plugin.h \
 question.h \
 scrolltext.h \
