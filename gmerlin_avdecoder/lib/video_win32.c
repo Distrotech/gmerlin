@@ -307,6 +307,9 @@ static int init_std(bgav_stream_t * s)
     }
   priv->frame = gavl_video_frame_create(&(s->data.video.format));
   Restore_LDT_Keeper(priv->ldt_fs);
+
+  s->description = bgav_strndup(info->format_name, (char*)0);
+
   return 1;
   }
 
@@ -432,6 +435,8 @@ static int init_ds(bgav_stream_t * s)
   s->data.video.decoder->priv = priv;
   priv->frame = gavl_video_frame_create(&(s->data.video.format));
   Restore_LDT_Keeper(priv->ldt_fs);
+  s->description = bgav_strndup(info->format_name, (char*)0);
+
   return 1;
   }
 
@@ -545,6 +550,7 @@ static int init_dmo(bgav_stream_t * s)
   s->data.video.decoder->priv = priv;
   priv->frame = gavl_video_frame_create(&(s->data.video.format));
   Restore_LDT_Keeper(priv->ldt_fs);
+  s->description = bgav_strndup(info->format_name, (char*)0);
   return 1;
   }
 

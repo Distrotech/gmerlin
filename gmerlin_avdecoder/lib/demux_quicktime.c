@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <avdec_private.h>
 #include <qt.h>
@@ -392,6 +393,12 @@ if(!(ctx->tt->current_track->metadata.dst) && moov->udta.src)\
   ctx->tt->current_track->metadata.dst=bgav_convert_string(cnv, moov->udta.src, -1, NULL);\
   }
 
+#define SET_UDTA_INT(dst, src) \
+  if(!(ctx->tt->current_track->metadata.dst) && moov->udta.src && isdigit(*(moov->udta.src))) \
+    { \
+    ctx->tt->current_track->metadata.dst = atoi(moov->udta.src);\
+    }
+
 static void set_metadata(bgav_demuxer_context_t * ctx)
   {
   bgav_charset_converter_t * cnv;
@@ -403,12 +410,16 @@ static void set_metadata(bgav_demuxer_context_t * ctx)
 
   cnv = bgav_charset_converter_create("ISO-8859-1", "UTF-8");
     
-  SET_UDTA_STRING(copyright, cpy);
+  SET_UDTA_STRING(artist,    ART);
   SET_UDTA_STRING(title,     nam);
+  SET_UDTA_STRING(album,     alb);
+  SET_UDTA_STRING(genre,     gen);
+  SET_UDTA_STRING(copyright, cpy);
+  SET_UDTA_INT(track,     trk);
   SET_UDTA_STRING(comment,   cmt);
   SET_UDTA_STRING(comment,   inf);
   SET_UDTA_STRING(author,    aut);
-  SET_UDTA_STRING(author,    ART);
+  
   bgav_charset_converter_destroy(cnv);
   }
 
