@@ -178,7 +178,7 @@ static const guid_t guid_codec_comment1_header =
 static const guid_t guid_asf_2_0_header = 
   { 0xd6e229d1, 0x35da, 0x11d1,
     { 0x90, 0x34, 0x00, 0xa0, 0xc9, 0x03, 0x49, 0xbe } };
-
+#if 0
 static void dump_guid(guid_t * g)
   {
   fprintf(stderr,
@@ -186,7 +186,7 @@ static void dump_guid(guid_t * g)
           g->v1, g->v2, g->v3, g->v4[0], g->v4[1], g->v4[2], g->v4[3],
           g->v4[4], g->v4[5], g->v4[6], g->v4[7]);
   }
-
+#endif
 static int guid_equal(const guid_t * g1, const guid_t * g2)
   {
   return (g1->v1 == g2->v1) &&
@@ -822,7 +822,7 @@ typedef struct
   int segsizetype;
   int segs;
   } asf_packet_header_t;
-
+#if 0
 static void dump_packet_header(asf_packet_header_t * h)
   {
   fprintf(stderr, "packet_flags:    0x%02x\n", h->flags);
@@ -835,7 +835,7 @@ static void dump_packet_header(asf_packet_header_t * h)
   fprintf(stderr, "segsizetype:     0x%02x\n", h->segsizetype);
   fprintf(stderr, "segments:        %d\n",     h->segs);
   }
-
+#endif
 /* Returns the number of bytes used or -1 */
 
 static int read_packet_header(asf_t * asf,
@@ -924,7 +924,7 @@ typedef struct
   unsigned int time2;
   int keyframe;
   } asf_segment_header_t;
-
+#if 0
 static void dump_segment_header(asf_segment_header_t*h)
   {
   fprintf(stderr, "Stream number: %d\n", h->streamno);
@@ -935,7 +935,7 @@ static void dump_segment_header(asf_segment_header_t*h)
   fprintf(stderr, "time2:         %d\n", h->time2);
   fprintf(stderr, "keyframe:      %d\n", h->keyframe);
   }
-
+#endif
 static int read_segment_header(asf_t * asf,
                                asf_packet_header_t * pkt_hdr,
                                asf_segment_header_t * ret,

@@ -81,7 +81,7 @@ int bgav_init(bgav_t * ret)
   int dump_len;
     
   bgav_demuxer_t * demuxer;
-  bgav_redirector_t * redirector;
+  bgav_redirector_t * redirector = (bgav_redirector_t*)0;
 
   /*
    *  If the input already has it's track table,
@@ -107,6 +107,9 @@ int bgav_init(bgav_t * ret)
   
   if(!ret->input->demuxer)
     {
+    if(bgav_id3v2_probe(ret->input))
+      ret->input->id3v2 = bgav_id3v2_read(ret->input);
+    
     demuxer = bgav_demuxer_probe(ret->input);
     
     if(demuxer)

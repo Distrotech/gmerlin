@@ -174,7 +174,7 @@ static void free_idx1(idx1_t * idx1)
   if(idx1->entries)
     free(idx1->entries);
   }
-
+#if 0
 static void dump_idx1(idx1_t * idx1)
   {
   int i;
@@ -189,7 +189,7 @@ static void dump_idx1(idx1_t * idx1)
     fprintf(stderr, " T: %f\n", gavl_time_to_seconds(idx1->entries[i].time));
     }
   }
-
+#endif
 static int read_idx1(bgav_input_context_t * input, idx1_t * ret)
   {
   int i;
@@ -261,7 +261,7 @@ static int read_strh(bgav_input_context_t * input, strh_t * ret,
     }
   return result;
   }
-
+#if 0
 static void dump_strh(strh_t * ret)
   {
   fprintf(stderr, "strh\nfccType: ");
@@ -284,7 +284,7 @@ static void dump_strh(strh_t * ret)
   fprintf(stderr, "dwQuality: %d (%08x)\n", ret->dwQuality, ret->dwQuality);
   fprintf(stderr, "dwSampleSize: %d (%08x)\n", ret->dwSampleSize, ret->dwSampleSize);
   }
-
+#endif
 typedef struct
   {
   avih_t avih;
@@ -367,12 +367,10 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
           bg_as->ext_data = malloc(wf.cbSize);
           memcpy(bg_as->ext_data, pos, wf.cbSize);
           }
-        bg_as->fourcc = BGAV_WAVID_2_FOURCC(wf.wFormatTag);
-        if(wf.wBitsPerSample)
-          bg_as->data.audio.bits_per_sample = wf.wBitsPerSample;
-        else if(strh->dwSampleSize)
+        //        bg_as->fourcc = BGAV_WAVID_2_FOURCC(wf.wFormatTag);
+        if(!bg_as->data.audio.bits_per_sample)
           bg_as->data.audio.bits_per_sample = strh->dwSampleSize * 8;          
-
+        
         /* Seek support */
         if(!strh->dwSampleSize)
           {

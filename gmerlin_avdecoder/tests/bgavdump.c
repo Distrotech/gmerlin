@@ -45,7 +45,7 @@ int main(int argc, char ** argv)
   gavl_audio_format_t audio_format;
   const gavl_video_format_t * video_format;
   
-  bgav_codecs_dump();
+  //  bgav_codecs_dump();
 
   file = bgav_create();
 

@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <avdec_private.h>
-#include <id3.h>
+// #include <id3.h>
 #include <xing.h>
 #include <utils.h>
 
@@ -135,11 +135,13 @@ typedef struct
   int samples_per_frame;
   } mpeg_header;
 
+#if 0
 static void dump_header(mpeg_header * h)
   {
   fprintf(stderr, "Header:\n");
   fprintf(stderr, "  Version:     %s\n",
-          (h->version == MPEG_VERSION_1 ? "1" : (h->version == MPEG_VERSION_2 ? "2" : "2.5")));
+          (h->version == MPEG_VERSION_1 ? "1" :
+           (h->version == MPEG_VERSION_2 ? "2" : "2.5")));
   fprintf(stderr, "  Layer:       %d\n", h->layer);
   fprintf(stderr, "  Bitrate:     %d\n", h->bitrate);
   fprintf(stderr, "  Samplerate:  %d\n", h->samplerate);
@@ -162,6 +164,7 @@ static void dump_header(mpeg_header * h)
     }
   
   }
+#endif
 
 static int decode_header(mpeg_header * h, uint8_t * ptr)
   {
@@ -313,6 +316,7 @@ typedef struct
     } * tracks;
   } bgav_albw_t;
 
+#if 0
 static void bgav_albw_dump(bgav_albw_t * a)
   {
   int i;
@@ -324,7 +328,8 @@ static void bgav_albw_dump(bgav_albw_t * a)
             a->tracks[i].end_pos,
             a->tracks[i].filename);
   }
-
+#endif
+           
 static int bgav_albw_probe(bgav_input_context_t * input)
   {
   uint8_t probe_data[4];
@@ -339,6 +344,7 @@ static int bgav_albw_probe(bgav_input_context_t * input)
   return 1;
   }
 
+#if 0
 #define BUF_SIZE 1024
 
 static void bgav_albw_unwrap(bgav_input_context_t * input, bgav_albw_t * a)
@@ -371,6 +377,7 @@ static void bgav_albw_unwrap(bgav_input_context_t * input, bgav_albw_t * a)
     fclose(output);
     }
   }
+#endif
 
 static void bgav_albw_destroy(bgav_albw_t * a)
   {
@@ -484,13 +491,11 @@ static int probe_mpegaudio(bgav_input_context_t * input)
   mpeg_header h;
   uint8_t probe_data[4];
   
-  /* Check for ID3V2 tag */
-
-  if(bgav_id3v2_probe(input))
-    return 1;
-
   /* Check for audio header */
 
+  if(bgav_albw_probe(input))
+    return 1;
+  
   if(bgav_input_get_data(input, probe_data, 4) < 4)
     return 0;
 
@@ -762,7 +767,6 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx,
   bgav_metadata_t metadata_v2;
 
   bgav_id3v1_tag_t * id3v1 = NULL;
-  bgav_id3v2_tag_t * id3v2 = NULL;
   bgav_stream_t * s;
   
   mpegaudio_priv_t * priv;
@@ -774,23 +778,15 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx,
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;    
   
-  if(bgav_id3v2_probe(ctx->input))
-    {
-    id3v2 = bgav_id3v2_read(ctx->input);
-    if(!id3v2)
-      return 0;
-    //    else
-    //      bgav_id3v2_dump(id3v2);
-    }
-  
-  if(id3v2)
+  if(ctx->input->id3v2)
     {
     //    fprintf(stderr, "Found ID3V2!\n");
     
-    bgav_id3v2_2_metadata(id3v2, &(metadata_v2));
+    bgav_id3v2_2_metadata(ctx->input->id3v2, &(metadata_v2));
     
     /* Check for ALBW, but only on a seekable source! */
-    if(ctx->input->input->seek_byte && bgav_albw_probe(ctx->input))
+    if(ctx->input->input->seek_byte &&
+       bgav_albw_probe(ctx->input))
       {
       priv->albw = bgav_albw_read(ctx->input);
       //      bgav_albw_dump(priv->albw);
@@ -825,7 +821,7 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx,
     
     if(ctx->input->input->seek_byte)
       {
-      priv->data_start = (id3v2) ? id3v2->total_bytes : 0;
+      priv->data_start = (ctx->input->id3v2) ? ctx->input->id3v2->total_bytes : 0;
       priv->data_end   = (id3v1) ? ctx->input->total_bytes - 128 :
         ctx->input->total_bytes;
       }
@@ -838,8 +834,6 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx,
 
   if(id3v1)
     bgav_id3v1_destroy(id3v1);
-  if(id3v2)
-    bgav_id3v2_destroy(id3v2);
   bgav_metadata_free(&metadata_v1);
   bgav_metadata_free(&metadata_v2);
   

@@ -54,6 +54,16 @@ libmpeg2_libs =
 libmpeg2_sources =
 endif
 
+if HAVE_FLAC
+flac_cflags =  @FLAC_CFLAGS@
+flac_libs =    @FLAC_LIBS@
+flac_sources = audio_flac.c
+else
+flac_cflags =
+flac_libs =
+flac_sources =
+endif
+
 if HAVE_MAD
 mad_cflags =  @MAD_CFLAGS@
 mad_libs =    @MAD_LIBS@
@@ -72,7 +82,7 @@ libw32dll/DirectShow/libds_filter.la \
 libw32dll/dmo/libdmo_filter.la \
 libw32dll/wine/libwine.la \
 -lpthread
-win32_sources = video_win32.c audio_qtwin32.c
+win32_sources = video_win32.c audio_qtwin32.c audio_win32.c
 else
 win32_subdirs =
 win32_libs =
@@ -89,6 +99,7 @@ $(libmpeg2_libs) \
 $(win32_libs) \
 $(png_libs) \
 $(faad2_libs) \
+$(flac_libs) \
 $(mad_libs) \
 $(a52_libs) \
 real_rtsp/librealrtsp.la \
@@ -99,6 +110,7 @@ $(vorbis_cflags) \
 $(mad_cflags) \
 $(png_cflags) \
 $(faad2_cflags) \
+$(flac_cflags) \
 $(libmpeg2_cflags) \
 $(a52_cflags)
 
@@ -110,6 +122,7 @@ $(png_sources) \
 $(win32_sources) \
 $(mad_sources) \
 $(a52_sources) \
+$(flac_sources) \
 audio.c \
 audio_ffmpeg.c \
 audio_real.c \
@@ -123,6 +136,7 @@ demux_aiff.c \
 demux_asf.c \
 demux_avi.c \
 demux_au.c \
+demux_flac.c \
 demux_mpegaudio.c \
 demux_mpegps.c \
 demux_quicktime.c \

@@ -45,6 +45,8 @@ typedef struct bgav_stream_s   bgav_stream_t;
 
 typedef struct bgav_packet_buffer_s   bgav_packet_buffer_t;
 
+#include "id3.h"
+
 struct bgav_metadata_s
   {
   char * author;
@@ -371,6 +373,11 @@ struct bgav_input_s
 
 struct bgav_input_context_s
   {
+  /* ID3V2 tags can be prepended to many types of files,
+     so we read them globally */
+
+  bgav_id3v2_tag_t * id3v2;
+  
   char * buffer;
   int    buffer_size;
   int    buffer_alloc;
@@ -749,6 +756,8 @@ void bgav_stop(bgav_t * b);
 #define BGAV_PTR_2_FOURCC(p) BGAV_PTR_2_32BE(p)
 
 #define BGAV_WAVID_2_FOURCC(id) BGAV_MK_FOURCC(0x00, 0x00, (id>>8), (id&0xff))
+
+#define BGAV_FOURCC_2_WAVID(f) (f & 0xffff)
 
 /* utils.c */
 

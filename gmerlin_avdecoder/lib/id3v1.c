@@ -20,9 +20,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <avdec_private.h>
-#include <id3.h>
-
-
 
 char * get_string(char * ptr, int max_size)
   {

@@ -39,6 +39,10 @@ The configure script autodetects all installed libraries.
   Copy the dll file (vid_3ivX.xa) to a directory and let the
   XANIM_MOD_DIR environment variable point to it.
 
+* libmpeg2 from libmpeg2.sourceforge.net
+
+* liba52 from liba52.sourceforge.net
+
 SUPPORTED DATA SOURCES:
 
 * Regular files
@@ -47,8 +51,9 @@ SUPPORTED DATA SOURCES:
 
 * mms protocol (Windows media)
 
-* rtsp with either the standard RTP transport or
-  RealMedia RDP
+* rtsp with RealMedia RDP
+
+* http with icecast (mp3 and Vorbis) and shoutcast support
 
 SUPPORTED FORMATS:
 
@@ -62,6 +67,7 @@ SUPPORTED FORMATS:
 * au
 * Real Audio (.ra) (todo)
 * Raw mp3
+* Mpeg-1/2 System streams
 
 SUPPORTED CODECS:
 
@@ -201,5 +207,7 @@ Xanim dll decoder             3IV1 (33495631)
 Features:
 
 * albw (wrapped mp3s) files are unwrapped on the fly.
-  So you can access the individual tracks without unwrapping.
+  So you can access the individual tracks without writing the
+  individual files to the disk.
+  The same is true for concatenated OggVorbis audio files.
 

@@ -161,6 +161,7 @@ static void bitstreams_free(bitstream_table * t)
   free(t->bitstreams);
   }
 
+#if 0
 static void bitstreams_dump(bitstream_table * t)
   {
   int i;
@@ -176,6 +177,7 @@ static void bitstreams_dump(bitstream_table * t)
             t->bitstreams[i].last_pos);
     }
   }
+#endif
 
 typedef struct
   {
@@ -420,7 +422,6 @@ static void set_packet(ogg_priv * priv, bgav_packet_t * p)
 
 static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   {
-  int i;
   char * name;
   bgav_packet_t * p;
   bgav_stream_t * s;
@@ -448,8 +449,8 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
 
     if(vorbis_synthesis_headerin(&vi, &vc, &(priv->current_packet)))
       {
-      fprintf(stderr, "Stream %d: No vorbis header %ld %ld\n",
-              i+1, priv->current_packet.bytes, priv->current_packet.b_o_s);
+      fprintf(stderr, "No vorbis header %ld %ld\n",
+              priv->current_packet.bytes, priv->current_packet.b_o_s);
       bgav_hexdump(priv->current_packet.packet,
                    priv->current_packet.bytes, 16);
       return 0;

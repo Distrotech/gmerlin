@@ -57,6 +57,9 @@ void bgav_WAVEFORMATEX_dump(bgav_WAVEFORMATEX * ret);
 void bgav_WAVEFORMATEX_get_format(bgav_WAVEFORMATEX * wf,
                                   bgav_stream_t * f);
 
+void bgav_WAVEFORMATEX_set_format(bgav_WAVEFORMATEX * wf,
+                                  bgav_stream_t * f);
+
 void bgav_BITMAPINFOHEADER_get_format(bgav_BITMAPINFOHEADER * bh,
                                       bgav_stream_t * f);
 

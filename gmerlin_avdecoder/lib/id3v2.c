@@ -23,7 +23,6 @@
 #include <string.h>
 
 #include <avdec_private.h>
-#include <id3.h>
 
 #define ENCODING_LATIN1   0x00
 #define ENCODING_UTF16_LE 0x01

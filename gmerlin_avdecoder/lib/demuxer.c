@@ -32,6 +32,7 @@ extern bgav_demuxer_t bgav_demuxer_aiff;
 extern bgav_demuxer_t bgav_demuxer_ra;
 extern bgav_demuxer_t bgav_demuxer_mpegaudio;
 extern bgav_demuxer_t bgav_demuxer_mpegps;
+extern bgav_demuxer_t bgav_demuxer_flac;
 
 #ifdef HAVE_VORBIS
 extern bgav_demuxer_t bgav_demuxer_ogg;
@@ -54,6 +55,7 @@ demuxers[] =
     { &bgav_demuxer_ra, "Real Audio" },
     { &bgav_demuxer_mpegaudio, "Mpeg Audio" },
     { &bgav_demuxer_mpegps, "Mpeg System" },
+    { &bgav_demuxer_flac, "FLAC" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif

@@ -258,6 +258,7 @@ static int read_command_header(bgav_mms_t * mms)
   return 1;
   }
 
+#if 0 
 static void dump_command_header(bgav_mms_t * mms)
   {
   fprintf(stderr, "Got command header:\n");
@@ -269,7 +270,7 @@ static void dump_command_header(bgav_mms_t * mms)
   fprintf(stderr, "Prefix2:         %d\n", mms->command_header.prefix2);
   bgav_hexdump(mms->cmd_data_read, mms->command_header.data_len, 16);
   }
-
+#endif
 static int next_packet(bgav_mms_t * mms, int block)
   {
   uint8_t * ptr;

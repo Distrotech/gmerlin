@@ -29,7 +29,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-
 #include "libw32dll/wine/msacm.h"
 #include "libw32dll/wine/driver.h"
 #include "libw32dll/wine/avifmt.h"
@@ -54,10 +53,10 @@
 #define CODEC_DS  1
 #define CODEC_DMO 2
 
-
 typedef struct
   {
   char * name;
+  char * format_name;
   uint32_t * fourccs;
   char * dll_name;
   int type;
@@ -68,39 +67,45 @@ typedef struct
 static codec_info_t codec_infos[] =
   {
     {
-      name:     "Win32 Indeo 3.2 decoder",
-      fourccs:  (int[]){ BGAV_MK_FOURCC('I', 'V', '3', '2'), 0x00 },
-      dll_name: "ir32_32.dll",
-      type:     CODEC_STD,
+      name:        "Win32 Indeo 3.2 decoder",
+      format_name: "Indeo 3.2",
+      fourccs:     (int[]){ BGAV_MK_FOURCC('I', 'V', '3', '2'), 0x00 },
+      dll_name:    "ir32_32.dll",
+      type:        CODEC_STD,
     },
     {
-      name:     "Win32 Indeo 4.1 decoder",
-      fourccs:  (int[]){ BGAV_MK_FOURCC('I', 'V', '4', '1'), 0x00 },
-      dll_name: "ir41_32.dll",
-      type:     CODEC_STD,
+      name:        "Win32 Indeo 4.1 decoder",
+      format_name: "Indeo 4.1",
+      fourccs:     (int[]){ BGAV_MK_FOURCC('I', 'V', '4', '1'), 0x00 },
+      dll_name:    "ir41_32.dll",
+      type:        CODEC_STD,
     },
     {
-      name:     "DirectShow Indeo 5.0 decoder",
-      fourccs:  (int[]){ BGAV_MK_FOURCC('I', 'V', '5', '0'), 0x00 },
-      dll_name: "ir50_32.dll",
-      type:     CODEC_DS,
-      guid:     { 0x30355649, 0, 16,{ 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71 } }
+      name:        "DirectShow Indeo 5.0 decoder",
+      format_name: "Indeo 5.0",
+      fourccs:     (int[]){ BGAV_MK_FOURCC('I', 'V', '5', '0'), 0x00 },
+      dll_name:    "ir50_32.dll",
+      type:        CODEC_DS,
+      guid:        { 0x30355649, 0, 16,{ 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71 } }
     },
     {
-      name:     "Win32 Indeo 5.0 decoder",
-      fourccs:  (int[]){ BGAV_MK_FOURCC('I', 'V', '5', '0'), 0x00 },
-      dll_name: "ir50_32.dll",
-      type:     CODEC_STD,
+      name:        "Win32 Indeo 5.0 decoder",
+      format_name: "Indeo 5.0",
+      fourccs:     (int[]){ BGAV_MK_FOURCC('I', 'V', '5', '0'), 0x00 },
+      dll_name:    "ir50_32.dll",
+      type:        CODEC_STD,
     },
     {
-      name:         "Win32 VP4 decoder",
-      fourccs:      (int[]){ BGAV_MK_FOURCC('V', 'P', '4', '0'), 0x00 },
-      dll_name:     "vp4vfw.dll",
-      type:         CODEC_STD,
+      name:        "Win32 VP4 decoder",
+      format_name: "VP4",
+      fourccs:     (int[]){ BGAV_MK_FOURCC('V', 'P', '4', '0'), 0x00 },
+      dll_name:    "vp4vfw.dll",
+      type:        CODEC_STD,
       ex_functions: 1,
     },
     {
-      name:     "DMO WMV9 decoder",
+      name:        "DMO WMV9 decoder",
+      format_name: "WMV9",
       fourccs:  (int[]){ BGAV_MK_FOURCC('W', 'M', 'V', '3'), 0x00 },
       dll_name: "wmv9dmod.dll",
       type:     CODEC_DMO,
@@ -581,7 +586,6 @@ static void close_dmo(bgav_stream_t * s)
   free(priv);
   }
 
-
 void bgav_init_video_decoders_win32()
   {
   int i;
@@ -601,19 +605,19 @@ void bgav_init_video_decoders_win32()
         case CODEC_STD:
           codecs[i].init   = init_std;
           codecs[i].decode = decode_std;
-          codecs[i].close = close_std;
+          codecs[i].close  = close_std;
           codecs[i].resync = resync_std;
           break;
         case CODEC_DS:
           codecs[i].init   = init_ds;
           codecs[i].decode = decode_ds;
-          codecs[i].close = close_ds;
+          codecs[i].close  = close_ds;
           codecs[i].resync = resync_ds;
           break;
         case CODEC_DMO:
           codecs[i].init   = init_dmo;
           codecs[i].decode = decode_dmo;
-          codecs[i].close = close_dmo;
+          codecs[i].close  = close_dmo;
           codecs[i].resync = resync_dmo;
           break;
         }

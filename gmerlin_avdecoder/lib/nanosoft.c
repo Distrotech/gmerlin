@@ -80,8 +80,20 @@ void bgav_WAVEFORMATEX_get_format(bgav_WAVEFORMATEX * wf,
   s->data.audio.format.samplerate   = wf->nSamplesPerSec;
   s->codec_bitrate                  = wf->nAvgBytesPerSec * 8;
   s->data.audio.block_align         = wf->nBlockAlign;
+  s->data.audio.bits_per_sample     = wf->wBitsPerSample;
   s->fourcc                         = BGAV_WAVID_2_FOURCC(wf->wFormatTag);
-  
+  }
+
+void bgav_WAVEFORMATEX_set_format(bgav_WAVEFORMATEX * wf,
+                                  bgav_stream_t * s)
+  {
+  wf->nChannels             = s->data.audio.format.num_channels;
+  wf->nSamplesPerSec        = s->data.audio.format.samplerate;
+  wf->nAvgBytesPerSec       = s->codec_bitrate / 8;
+  wf->nBlockAlign           = s->data.audio.block_align;
+  wf->wFormatTag            = BGAV_FOURCC_2_WAVID(s->fourcc);
+  wf->wBitsPerSample        = s->data.audio.bits_per_sample;
+  wf->cbSize                = 0;
   }
 
 void bgav_BITMAPINFOHEADER_get_format(bgav_BITMAPINFOHEADER * bh,

@@ -33,8 +33,6 @@ static int codecs_initialized = 0;
 static int num_audio_codecs = 0;
 static int num_video_codecs = 0;
 
-
-
 #ifdef HAVE_LIBAVCODEC
 extern void bgav_init_audio_decoders_ffmpeg();
 extern void bgav_init_video_decoders_ffmpeg();
@@ -46,6 +44,7 @@ extern void bgav_init_audio_decoders_vorbis();
 
 #ifdef HAVE_W32DLL
 extern void bgav_init_video_decoders_win32();
+extern void bgav_init_audio_decoders_win32();
 extern void bgav_init_audio_decoders_qtwin32();
 #endif
 
@@ -55,6 +54,10 @@ extern void bgav_init_video_decoders_png();
 
 #ifdef HAVE_FAAD2
 extern void bgav_init_audio_decoders_faad2();
+#endif
+
+#ifdef HAVE_FLAC
+extern void bgav_init_audio_decoders_flac();
 #endif
 
 #ifdef HAVE_MAD
@@ -192,6 +195,7 @@ void bgav_codecs_init()
 
 #ifdef HAVE_W32DLL
   bgav_init_video_decoders_win32();
+  //  bgav_init_audio_decoders_win32();
   bgav_init_audio_decoders_qtwin32();
 #endif
 
@@ -203,6 +207,11 @@ void bgav_codecs_init()
   bgav_init_audio_decoders_faad2();
 #endif
 
+#ifdef HAVE_FLAC
+  bgav_init_audio_decoders_flac();
+#endif
+
+  
 #ifdef HAVE_LIBMPEG2
   bgav_init_video_decoders_libmpeg2();
 #endif

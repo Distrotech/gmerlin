@@ -36,14 +36,14 @@ NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_triplet = i686-redhat-linux-gnu
-ACLOCAL = ${SHELL} /home/pix/Src/gmerlin_avdecoder/missing --run aclocal-1.7
+ACLOCAL = ${SHELL} /home/pix/Src/Gmerlin_avdecoder/missing --run aclocal-1.7
 AMDEP_FALSE = #
 AMDEP_TRUE = 
-AMTAR = ${SHELL} /home/pix/Src/gmerlin_avdecoder/missing --run tar
+AMTAR = ${SHELL} /home/pix/Src/Gmerlin_avdecoder/missing --run tar
 AR = ar
-AUTOCONF = ${SHELL} /home/pix/Src/gmerlin_avdecoder/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/pix/Src/gmerlin_avdecoder/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/pix/Src/gmerlin_avdecoder/missing --run automake-1.7
+AUTOCONF = ${SHELL} /home/pix/Src/Gmerlin_avdecoder/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/pix/Src/Gmerlin_avdecoder/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/pix/Src/Gmerlin_avdecoder/missing --run automake-1.7
 AWK = gawk
 CC = gcc
 CCAS = $(CC)
@@ -70,6 +70,8 @@ F77 =
 FAAD2_CFLAGS = 
 FAAD2_LIBS = -lfaad -lm
 FFLAGS = 
+FLAC_CFLAGS = 
+FLAC_LIBS = -lFLAC -lm
 GAVL_CFLAGS = -I/home/pix/include -I/home/pix/lib/gavl/include/  
 GAVL_LIBS = -L/home/pix/lib -lgavl  
 GMERLIN_CFLAGS = -I/home/pix/include -I/home/pix/lib/gavl/include/ -I/usr/include/libxml2  
@@ -78,6 +80,8 @@ GMERLIN_LIB_DIR = /home/pix/lib/gmerlin
 GMERLIN_PLUGIN_DIR = /home/pix/lib/gmerlin/plugins
 HAVE_FAAD2_FALSE = #
 HAVE_FAAD2_TRUE = 
+HAVE_FLAC_FALSE = #
+HAVE_FLAC_TRUE = 
 HAVE_LIBA52_FALSE = #
 HAVE_LIBA52_TRUE = 
 HAVE_LIBAVCODEC_FALSE = #
@@ -108,7 +112,7 @@ LN_S = ln -s
 LTLIBOBJS = 
 MAD_CFLAGS = 
 MAD_LIBS = -lmad
-MAKEINFO = ${SHELL} /home/pix/Src/gmerlin_avdecoder/missing --run makeinfo
+MAKEINFO = ${SHELL} /home/pix/Src/Gmerlin_avdecoder/missing --run makeinfo
 OBJEXT = o
 PACKAGE = gmerlin_avdec
 PACKAGE_BUGREPORT = 
@@ -158,7 +162,7 @@ host_os = linux-gnu
 host_vendor = redhat
 includedir = ${prefix}/include
 infodir = ${prefix}/info
-install_sh = /home/pix/Src/gmerlin_avdecoder/install-sh
+install_sh = /home/pix/Src/Gmerlin_avdecoder/install-sh
 libdir = /home/pix/lib/gmerlin
 libexecdir = ${exec_prefix}/libexec
 localstatedir = ${prefix}/var
@@ -175,13 +179,13 @@ w32_path = /usr/lib/win32
 lib_LTLIBRARIES = libgmerlin_avdec.la
 
 noinst_HEADERS = pnm.h
+#vorbis_cflags = 
 
 vorbis_cflags = 
-#vorbis_cflags = 
-vorbis_libs =  -lvorbis -lm
 #vorbis_libs = 
-vorbis_sources = audio_vorbis.c demux_ogg.c
+vorbis_libs =  -lvorbis -lm
 #vorbis_sources = 
+vorbis_sources = audio_vorbis.c demux_ogg.c
 
 a52_cflags = 
 #a52_cflags = 
@@ -196,27 +200,34 @@ faad2_libs = -lfaad -lm
 #faad2_libs = 
 faad2_sources = audio_faad2.c
 #faad2_sources = 
+#png_cflags = 
 
 png_cflags = 
-#png_cflags = 
-png_libs = -lpng -lm -lz
 #png_libs = 
-png_sources = video_png.c
+png_libs = -lpng -lm -lz
 #png_sources = 
-#libmpeg2_cflags = 
+png_sources = video_png.c
 
 libmpeg2_cflags = -I/usr/local/include/mpeg2dec  
-#libmpeg2_libs = 
+#libmpeg2_cflags = 
 libmpeg2_libs = -L/usr/local/lib -lmpeg2  
-#libmpeg2_sources = 
+#libmpeg2_libs = 
 libmpeg2_sources = video_libmpeg2.c
-#mad_cflags = 
+#libmpeg2_sources = 
+#flac_cflags = 
+
+flac_cflags = 
+#flac_libs = 
+flac_libs = -lFLAC -lm
+#flac_sources = 
+flac_sources = audio_flac.c
 
 mad_cflags = 
-#mad_libs = 
+#mad_cflags = 
 mad_libs = -lmad
-#mad_sources = 
+#mad_libs = 
 mad_sources = audio_mad.c
+#mad_sources = 
 #win32_subdirs = 
 
 win32_subdirs = libw32dll
@@ -228,7 +239,7 @@ libw32dll/wine/libwine.la \
 -lpthread
 
 #win32_sources = 
-win32_sources = video_win32.c audio_qtwin32.c
+win32_sources = video_win32.c audio_qtwin32.c audio_win32.c
 
 SUBDIRS = $(win32_subdirs) real_rtsp
 
@@ -239,6 +250,7 @@ $(libmpeg2_libs) \
 $(win32_libs) \
 $(png_libs) \
 $(faad2_libs) \
+$(flac_libs) \
 $(mad_libs) \
 $(a52_libs) \
 real_rtsp/librealrtsp.la \
@@ -250,6 +262,7 @@ $(vorbis_cflags) \
 $(mad_cflags) \
 $(png_cflags) \
 $(faad2_cflags) \
+$(flac_cflags) \
 $(libmpeg2_cflags) \
 $(a52_cflags)
 
@@ -262,6 +275,7 @@ $(png_sources) \
 $(win32_sources) \
 $(mad_sources) \
 $(a52_sources) \
+$(flac_sources) \
 audio.c \
 audio_ffmpeg.c \
 audio_real.c \
@@ -275,6 +289,7 @@ demux_aiff.c \
 demux_asf.c \
 demux_avi.c \
 demux_au.c \
+demux_flac.c \
 demux_mpegaudio.c \
 demux_mpegps.c \
 demux_quicktime.c \
@@ -352,6 +367,454 @@ CONFIG_HEADER = $(top_builddir)/include/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(lib_LTLIBRARIES)
 
+#######libgmerlin_avdec_la_DEPENDENCIES = \
+#######	libw32dll/DirectShow/libds_filter.la \
+#######	libw32dll/dmo/libdmo_filter.la \
+#######	libw32dll/wine/libwine.la \
+#######	real_rtsp/librealrtsp.la
+########libgmerlin_avdec_la_DEPENDENCIES = \
+########	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	libw32dll/DirectShow/libds_filter.la \
+######	libw32dll/dmo/libdmo_filter.la \
+######	libw32dll/wine/libwine.la \
+######	real_rtsp/librealrtsp.la
+#######libgmerlin_avdec_la_DEPENDENCIES = \
+#######	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	libw32dll/DirectShow/libds_filter.la \
+######	libw32dll/dmo/libdmo_filter.la \
+######	libw32dll/wine/libwine.la \
+######	real_rtsp/librealrtsp.la
+#######libgmerlin_avdec_la_DEPENDENCIES = \
+#######	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	libw32dll/DirectShow/libds_filter.la \
+######	libw32dll/dmo/libdmo_filter.la \
+######	libw32dll/wine/libwine.la \
+######	real_rtsp/librealrtsp.la
+#######libgmerlin_avdec_la_DEPENDENCIES = \
+#######	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	libw32dll/DirectShow/libds_filter.la \
+######	libw32dll/dmo/libdmo_filter.la \
+######	libw32dll/wine/libwine.la \
+######	real_rtsp/librealrtsp.la
+#######libgmerlin_avdec_la_DEPENDENCIES = \
+#######	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	libw32dll/DirectShow/libds_filter.la \
+######	libw32dll/dmo/libdmo_filter.la \
+######	libw32dll/wine/libwine.la \
+######	real_rtsp/librealrtsp.la
+#######libgmerlin_avdec_la_DEPENDENCIES = \
+#######	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+##libgmerlin_avdec_la_DEPENDENCIES = \
+##	libw32dll/DirectShow/libds_filter.la \
+##	libw32dll/dmo/libdmo_filter.la \
+##	libw32dll/wine/libwine.la \
+##	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	libw32dll/DirectShow/libds_filter.la \
+######	libw32dll/dmo/libdmo_filter.la \
+######	libw32dll/wine/libwine.la \
+######	real_rtsp/librealrtsp.la
+#######libgmerlin_avdec_la_DEPENDENCIES = \
+#######	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+##libgmerlin_avdec_la_DEPENDENCIES = \
+##	libw32dll/DirectShow/libds_filter.la \
+##	libw32dll/dmo/libdmo_filter.la \
+##	libw32dll/wine/libwine.la \
+##	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	libw32dll/DirectShow/libds_filter.la \
+#####	libw32dll/dmo/libdmo_filter.la \
+#####	libw32dll/wine/libwine.la \
+#####	real_rtsp/librealrtsp.la
+######libgmerlin_avdec_la_DEPENDENCIES = \
+######	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+##libgmerlin_avdec_la_DEPENDENCIES = \
+##	libw32dll/DirectShow/libds_filter.la \
+##	libw32dll/dmo/libdmo_filter.la \
+##	libw32dll/wine/libwine.la \
+##	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	libw32dll/DirectShow/libds_filter.la \
+####	libw32dll/dmo/libdmo_filter.la \
+####	libw32dll/wine/libwine.la \
+####	real_rtsp/librealrtsp.la
+#####libgmerlin_avdec_la_DEPENDENCIES = \
+#####	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+##libgmerlin_avdec_la_DEPENDENCIES = \
+##	libw32dll/DirectShow/libds_filter.la \
+##	libw32dll/dmo/libdmo_filter.la \
+##	libw32dll/wine/libwine.la \
+##	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	libw32dll/DirectShow/libds_filter.la \
+###	libw32dll/dmo/libdmo_filter.la \
+###	libw32dll/wine/libwine.la \
+###	real_rtsp/librealrtsp.la
+####libgmerlin_avdec_la_DEPENDENCIES = \
+####	real_rtsp/librealrtsp.la
+##libgmerlin_avdec_la_DEPENDENCIES = \
+##	libw32dll/DirectShow/libds_filter.la \
+##	libw32dll/dmo/libdmo_filter.la \
+##	libw32dll/wine/libwine.la \
+##	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	real_rtsp/librealrtsp.la
+##libgmerlin_avdec_la_DEPENDENCIES = \
+##	libw32dll/DirectShow/libds_filter.la \
+##	libw32dll/dmo/libdmo_filter.la \
+##	libw32dll/wine/libwine.la \
+##	real_rtsp/librealrtsp.la
+###libgmerlin_avdec_la_DEPENDENCIES = \
+###	real_rtsp/librealrtsp.la
+#libgmerlin_avdec_la_DEPENDENCIES = \
+#	libw32dll/DirectShow/libds_filter.la \
+#	libw32dll/dmo/libdmo_filter.la \
+#	libw32dll/wine/libwine.la \
+#	real_rtsp/librealrtsp.la
+##libgmerlin_avdec_la_DEPENDENCIES = \
+##	real_rtsp/librealrtsp.la
 ######libgmerlin_avdec_la_DEPENDENCIES = \
 ######	libw32dll/DirectShow/libds_filter.la \
 ######	libw32dll/dmo/libdmo_filter.la \
@@ -802,9 +1265,10 @@ libgmerlin_avdec_la_DEPENDENCIES = \
 #	real_rtsp/librealrtsp.la
 am__libgmerlin_avdec_la_SOURCES_DIST = video_libmpeg2.c audio_vorbis.c \
 	demux_ogg.c audio_faad2.c video_png.c video_win32.c \
-	audio_qtwin32.c audio_mad.c audio_a52.c audio.c audio_ffmpeg.c \
-	audio_real.c audio_aiff.c base64.c bgav.c charset.c codecs.c \
-	demuxer.c demux_aiff.c demux_asf.c demux_avi.c demux_au.c \
+	audio_qtwin32.c audio_win32.c audio_mad.c audio_a52.c \
+	audio_flac.c audio.c audio_ffmpeg.c audio_real.c audio_aiff.c \
+	base64.c bgav.c charset.c codecs.c demuxer.c demux_aiff.c \
+	demux_asf.c demux_avi.c demux_au.c demux_flac.c \
 	demux_mpegaudio.c demux_mpegps.c demux_quicktime.c demux_ra.c \
 	demux_rm.c demux_wav.c http.c id3v1.c id3v2.c in_fd.c in_file.c \
 	in_http.c in_memory.c in_mms.c in_pnm.c in_realrtsp.c in_vcd.c \
@@ -825,31 +1289,34 @@ am__objects_3 = audio_faad2.lo
 #am__objects_3 =
 am__objects_4 = video_png.lo
 #am__objects_4 =
-am__objects_5 = video_win32.lo audio_qtwin32.lo
+am__objects_5 = video_win32.lo audio_qtwin32.lo \
+	audio_win32.lo
 #am__objects_5 =
 am__objects_6 = audio_mad.lo
 #am__objects_6 =
 am__objects_7 = audio_a52.lo
 #am__objects_7 =
+am__objects_8 = audio_flac.lo
+#am__objects_8 =
 am_libgmerlin_avdec_la_OBJECTS = $(am__objects_1) $(am__objects_2) \
 	$(am__objects_3) $(am__objects_4) $(am__objects_5) \
-	$(am__objects_6) $(am__objects_7) audio.lo audio_ffmpeg.lo \
-	audio_real.lo audio_aiff.lo base64.lo bgav.lo charset.lo \
-	codecs.lo demuxer.lo demux_aiff.lo demux_asf.lo demux_avi.lo \
-	demux_au.lo demux_mpegaudio.lo demux_mpegps.lo \
-	demux_quicktime.lo demux_ra.lo demux_rm.lo demux_wav.lo http.lo \
-	id3v1.lo id3v2.lo in_fd.lo in_file.lo in_http.lo in_memory.lo \
-	in_mms.lo in_pnm.lo in_realrtsp.lo in_vcd.lo input.lo \
-	metadata.lo mms.lo nanosoft.lo packetbuffer.lo packet.lo \
-	pes_header.lo pnm.lo qt_atom.lo qt_cmov.lo qt_esds.lo \
-	qt_hdlr.lo qt_mdhd.lo qt_mdia.lo qt_minf.lo qt_moov.lo \
-	qt_mvhd.lo qt_palette.lo qt_rdrf.lo qt_rmda.lo qt_rmra.lo \
-	qt_stbl.lo qt_stco.lo qt_stsc.lo qt_stsd.lo qt_stss.lo \
-	qt_stsz.lo qt_stts.lo qt_tkhd.lo qt_trak.lo qt_udta.lo \
-	qt_utils.lo redirect.lo r_asx.lo r_m3u.lo r_pls.lo r_ref.lo \
-	sdp.lo stream.lo rtsp.lo tcp.lo track.lo tracktable.lo utils.lo \
-	video.lo video_ffmpeg.lo video_xadll.lo video_qtraw.lo \
-	video_qtrle.lo video_real.lo xing.lo yml.lo
+	$(am__objects_6) $(am__objects_7) $(am__objects_8) audio.lo \
+	audio_ffmpeg.lo audio_real.lo audio_aiff.lo base64.lo bgav.lo \
+	charset.lo codecs.lo demuxer.lo demux_aiff.lo demux_asf.lo \
+	demux_avi.lo demux_au.lo demux_flac.lo demux_mpegaudio.lo \
+	demux_mpegps.lo demux_quicktime.lo demux_ra.lo demux_rm.lo \
+	demux_wav.lo http.lo id3v1.lo id3v2.lo in_fd.lo in_file.lo \
+	in_http.lo in_memory.lo in_mms.lo in_pnm.lo in_realrtsp.lo \
+	in_vcd.lo input.lo metadata.lo mms.lo nanosoft.lo \
+	packetbuffer.lo packet.lo pes_header.lo pnm.lo qt_atom.lo \
+	qt_cmov.lo qt_esds.lo qt_hdlr.lo qt_mdhd.lo qt_mdia.lo \
+	qt_minf.lo qt_moov.lo qt_mvhd.lo qt_palette.lo qt_rdrf.lo \
+	qt_rmda.lo qt_rmra.lo qt_stbl.lo qt_stco.lo qt_stsc.lo \
+	qt_stsd.lo qt_stss.lo qt_stsz.lo qt_stts.lo qt_tkhd.lo \
+	qt_trak.lo qt_udta.lo qt_utils.lo redirect.lo r_asx.lo r_m3u.lo \
+	r_pls.lo r_ref.lo sdp.lo stream.lo rtsp.lo tcp.lo track.lo \
+	tracktable.lo utils.lo video.lo video_ffmpeg.lo video_xadll.lo \
+	video_qtraw.lo video_qtrle.lo video_real.lo xing.lo yml.lo
 libgmerlin_avdec_la_OBJECTS = $(am_libgmerlin_avdec_la_OBJECTS)
 
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include
@@ -859,14 +1326,17 @@ DEP_FILES = ./$(DEPDIR)/audio.Plo ./$(DEPDIR)/audio_a52.Plo \
 	./$(DEPDIR)/audio_aiff.Plo \
 	./$(DEPDIR)/audio_faad2.Plo \
 	./$(DEPDIR)/audio_ffmpeg.Plo \
+	./$(DEPDIR)/audio_flac.Plo \
 	./$(DEPDIR)/audio_mad.Plo \
 	./$(DEPDIR)/audio_qtwin32.Plo \
 	./$(DEPDIR)/audio_real.Plo \
-	./$(DEPDIR)/audio_vorbis.Plo ./$(DEPDIR)/base64.Plo \
+	./$(DEPDIR)/audio_vorbis.Plo \
+	./$(DEPDIR)/audio_win32.Plo ./$(DEPDIR)/base64.Plo \
 	./$(DEPDIR)/bgav.Plo ./$(DEPDIR)/charset.Plo \
 	./$(DEPDIR)/codecs.Plo ./$(DEPDIR)/demux_aiff.Plo \
 	./$(DEPDIR)/demux_asf.Plo ./$(DEPDIR)/demux_au.Plo \
 	./$(DEPDIR)/demux_avi.Plo \
+	./$(DEPDIR)/demux_flac.Plo \
 	./$(DEPDIR)/demux_mpegaudio.Plo \
 	./$(DEPDIR)/demux_mpegps.Plo \
 	./$(DEPDIR)/demux_ogg.Plo \
@@ -981,10 +1451,12 @@ include ./$(DEPDIR)/audio_a52.Plo
 include ./$(DEPDIR)/audio_aiff.Plo
 include ./$(DEPDIR)/audio_faad2.Plo
 include ./$(DEPDIR)/audio_ffmpeg.Plo
+include ./$(DEPDIR)/audio_flac.Plo
 include ./$(DEPDIR)/audio_mad.Plo
 include ./$(DEPDIR)/audio_qtwin32.Plo
 include ./$(DEPDIR)/audio_real.Plo
 include ./$(DEPDIR)/audio_vorbis.Plo
+include ./$(DEPDIR)/audio_win32.Plo
 include ./$(DEPDIR)/base64.Plo
 include ./$(DEPDIR)/bgav.Plo
 include ./$(DEPDIR)/charset.Plo
@@ -993,6 +1465,7 @@ include ./$(DEPDIR)/demux_aiff.Plo
 include ./$(DEPDIR)/demux_asf.Plo
 include ./$(DEPDIR)/demux_au.Plo
 include ./$(DEPDIR)/demux_avi.Plo
+include ./$(DEPDIR)/demux_flac.Plo
 include ./$(DEPDIR)/demux_mpegaudio.Plo
 include ./$(DEPDIR)/demux_mpegps.Plo
 include ./$(DEPDIR)/demux_ogg.Plo
