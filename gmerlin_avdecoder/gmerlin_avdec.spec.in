@@ -1,0 +1,100 @@
+Summary:	Gmerlin A/V decoder library
+Group:		Development/Libraries
+Group(de):	Entwicklung/Libraries
+Group(es):	Desarrollo/Bibliotecas
+Group(fr):	Development/Librairies
+Group(pl):	Programowanie/Biblioteki
+Group(pt_BR):	Desenvolvimento/Bibliotecas
+Group(ru):	Разработка/Библиотеки
+Group(uk):	Розробка/Б╕бл╕отеки
+Name:		gmerlin_avdec
+Version:	@VERSION@
+Release:	1
+License:	GPL
+Source0:	gmerlin_avdec-%{version}.tar.gz
+URL:		http://gmerlin.sourceforge.net/
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	gmerlin-lib-devel = @GMERLIN_REQUIRED@
+Requires:       gmerlin-lib = @GMERLIN_REQUIRED@
+BuildRoot:	/tmp/gmerlin-build
+
+%description
+Gmerlin A/V decoder library
+
+#
+# gmerlin_avdec-devel
+#
+
+%package devel
+Summary:	Header files for compiling gmerlin applications and plugins
+Group:		Development/Libraries
+Group(de):	Entwicklung/Libraries
+Group(es):	Desarrollo/Bibliotecas
+Group(fr):	Development/Librairies
+Group(pl):	Programowanie/Biblioteki
+Group(pt_BR):	Desenvolvimento/Bibliotecas
+Group(ru):	Разработка/Библиотеки
+Group(uk):	Розробка/Б╕бл╕отеки
+Requires:	%{name} = %{version}
+
+%description devel
+Header files for compiling gmerlin applications and plugins
+
+#
+# gmerlin_avdec-plugins
+#
+
+%package plugins
+Summary:    Gmerlin plugins based on the Gmerlin A/V decoder library
+Group:	    Applications/Multimedia
+Group(de):  Anwendungen/Multimedia
+Requires:   gmerlin-lib = @GMERLIN_REQUIRED@
+Requires:   %{name} = %{version}
+
+%description plugins
+Gmerlin plugins based on the Gmerlin A/V decoder library
+
+%prep
+%setup -n gmerlin_avdec-%{version}
+
+%build
+./cvs_clean.sh
+./autogen.sh
+%configure
+
+%{__make}
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+%{__make} install DESTDIR=$RPM_BUILD_ROOT
+
+gzip -9nf README
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post   -p /sbin/ldconfig
+%postun -p /sbin/ldconfig
+
+%files
+%defattr(644,root,root)
+%doc README.gz
+%attr(755,root,root) %{_libdir}/libgmerlin_avdec.so*
+%attr(644,root,root) %{_libdir}/libgmerlin_avdec.la
+
+%files devel
+%defattr(644,root,root)
+%{_includedir}/gmerlin/*.h
+%{_libdir}/pkgconfig/gmerlin_avdec.pc
+
+%files plugins
+%attr(755,root,root) @GMERLIN_PLUGIN_DIR@/*.so*
+%attr(644,root,root) @GMERLIN_PLUGIN_DIR@/*.la
+
+%define date	%(echo `LC_ALL="C" date +"%a %b %d %Y"`)
+%changelog
+* Sat May 31 2004 Burkhard Plaum <gmerlin@users.sourceforge.net>
+- Initial creation
+
