@@ -5,3 +5,5 @@
   DVD audio (LPCM).
 
 * WAVEFORMATEXTENSIBLE support in wav files
+
+* Raw AVIs with 8, 16, 24 and 32 bpp

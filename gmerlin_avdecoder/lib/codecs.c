@@ -209,9 +209,6 @@ void bgav_codecs_init()
     }
 //  fprintf(stderr, "bgav_codecs_init()\n");
   codecs_initialized = 1;
-
-  bgav_init_video_decoders_qtraw();
-  //  bgav_init_video_decoders_qtrle();
   
 #ifdef HAVE_LIBAVCODEC
   bgav_init_audio_decoders_ffmpeg();
@@ -311,7 +308,9 @@ void bgav_codecs_init()
 
   
   bgav_init_audio_decoders_pcm();
-  
+  bgav_init_video_decoders_aviraw();
+  bgav_init_video_decoders_qtraw();
+
   //  fprintf(stderr, "BGAV Codecs initialized: A: %d V: %d\n",
   //          num_audio_codecs, num_video_codecs);
 

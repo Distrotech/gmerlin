@@ -41,7 +41,7 @@ static codec_info_t codec_infos[] =
      * Uncompressed "decoders"
      ************************************************************/
 
-    { "FFmpeg Raw decoder", "Uncompressed YUV420", CODEC_ID_RAWVIDEO,
+    { "FFmpeg Raw decoder", "Uncompressed", CODEC_ID_RAWVIDEO,
       (int[]){ BGAV_MK_FOURCC('Y', '4', '2', '2'),
                BGAV_MK_FOURCC('I', '4', '2', '0'),
                0x00 } },
@@ -461,12 +461,13 @@ static int init(bgav_stream_t * s)
   //  fprintf(stderr, "Setting extradata: %d bytes\n", s->ext_size);
 
   //  bgav_hexdump(s->ext_data, s->ext_size, 16);
-  
+
   priv->ctx->codec_tag   =
     ((s->fourcc & 0x000000ff) << 24) |
     ((s->fourcc & 0x0000ff00) << 8) |
     ((s->fourcc & 0x00ff0000) >> 8) |
     ((s->fourcc & 0xff000000) >> 24);
+
   priv->ctx->codec_id =
     codec->id;
   //  fprintf(stderr, "Codec tag: %08x\n", priv->ctx->codec_tag);

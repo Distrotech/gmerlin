@@ -14,10 +14,6 @@ void bgav_init_audio_decoders_a52();
 void bgav_init_audio_decoders_mad();
 #endif
 
-void bgav_init_video_decoders_qtraw();
-void bgav_init_video_decoders_qtrle();
-
-
 #ifdef HAVE_LIBPNG
 void bgav_init_video_decoders_png();
 #endif
@@ -52,3 +48,6 @@ extern char * win32_def_path;
 #endif
 
 void bgav_init_audio_decoders_pcm();
+void bgav_init_video_decoders_aviraw();
+void bgav_init_video_decoders_qtraw();
+

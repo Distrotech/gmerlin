@@ -112,6 +112,11 @@ void bgav_BITMAPINFOHEADER_get_format(bgav_BITMAPINFOHEADER * bh,
   s->data.video.planes              = bh->biPlanes;
   
   s->fourcc =                        swap_endian(bh->biCompression);
+
+  /* Introduce a fourcc for RGB */
+  
+  if(!s->fourcc)
+    s->fourcc = BGAV_MK_FOURCC('R', 'G', 'B', ' ');
   }
 
 void bgav_BITMAPINFOHEADER_set_format(bgav_BITMAPINFOHEADER * bh,
