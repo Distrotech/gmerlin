@@ -1,0 +1,3 @@
+elfdll.lo elfdll.lo: elfdll.c ../../../include/config.h
+
+../../../include/config.h:
