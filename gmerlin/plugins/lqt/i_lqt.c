@@ -174,8 +174,8 @@ static int open_lqt(void * data, const char * arg)
         e->audio_streams[e->track_info.num_audio_streams].total_samples
           = quicktime_audio_length(e->file, i);
 
-        fprintf(stderr, "Audio samples: %lld\n",
-                e->audio_streams[e->track_info.num_audio_streams].total_samples);
+        //        fprintf(stderr, "Audio samples: %lld\n",
+        //                e->audio_streams[e->track_info.num_audio_streams].total_samples);
         
         duration =
           gavl_samples_to_time(audio_format->samplerate,
