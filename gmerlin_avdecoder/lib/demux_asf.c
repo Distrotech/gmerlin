@@ -318,6 +318,7 @@ typedef struct
 
 typedef struct
   {
+  uint64_t packets_read;
   asf_main_header_t hdr;
   int packet_size;
   uint8_t * packet_buffer;
@@ -1150,6 +1151,10 @@ static int next_packet_asf(bgav_demuxer_context_t * ctx)
   //  fprintf(stderr, "Next packet %lld\n", asf->data_size);
   //  if(ctx->input->position >= asf->data_start + asf->data_size)
   //    return 0;
+
+  if(asf->hdr.packets_count && (asf->packets_read >= asf->hdr.packets_count))
+    return 0;
+  
   if(bgav_input_read_data(ctx->input, asf->packet_buffer,
                           asf->packet_size) < asf->packet_size)
     return 0;
@@ -1228,18 +1233,21 @@ static void seek_asf(bgav_demuxer_context_t * ctx, gavl_time_t time)
           asf->data_start, asf->hdr.packets_count, asf->packet_size,
           gavl_time_to_seconds(time)/gavl_time_to_seconds(ctx->duration),
           gavl_time_to_seconds(time), gavl_time_to_seconds(ctx->duration));
-#endif     
-  filepos = asf->data_start +
-    asf->packet_size *
+#endif
+  asf->packets_read =
     (int64_t)((double)asf->hdr.packets_count *
-              (gavl_time_to_seconds(time)/gavl_time_to_seconds(ctx->tt->current_track->duration)));
-
+              (gavl_time_to_seconds(time)/
+               gavl_time_to_seconds(ctx->tt->current_track->duration)));
+  
+  filepos = asf->data_start +
+    asf->packet_size * asf->packets_read;
+  
   //  while(1)
   //    {
     //    fprintf(stderr, "Filepos: %lld\n", filepos);
 
-    bgav_input_seek(ctx->input, filepos, SEEK_SET);
-    //    fprintf(stderr, "Resync...");
+  bgav_input_seek(ctx->input, filepos, SEEK_SET);
+  //    fprintf(stderr, "Resync...");
 
     asf->do_sync = 1;
     while(!bgav_track_has_sync(ctx->tt->current_track))

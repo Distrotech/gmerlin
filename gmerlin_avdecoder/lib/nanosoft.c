@@ -79,6 +79,7 @@ void bgav_WAVEFORMATEX_get_format(bgav_WAVEFORMATEX * wf,
   s->data.audio.format.num_channels = wf->nChannels;
   s->data.audio.format.samplerate   = wf->nSamplesPerSec;
   s->codec_bitrate                  = wf->nAvgBytesPerSec * 8;
+  s->container_bitrate              = wf->nAvgBytesPerSec * 8;
   s->data.audio.block_align         = wf->nBlockAlign;
   s->data.audio.bits_per_sample     = wf->wBitsPerSample;
   s->fourcc                         = BGAV_WAVID_2_FOURCC(wf->wFormatTag);

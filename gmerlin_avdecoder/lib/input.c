@@ -79,7 +79,7 @@ int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
     //            ctx->total_bytes, ctx->position);
     if(ctx->position + len > ctx->total_bytes)
       len = ctx->total_bytes - ctx->position;
-    if(!len)
+    if(len <= 0)
       return 0;
     }
 
