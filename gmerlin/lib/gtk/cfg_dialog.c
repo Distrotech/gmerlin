@@ -50,6 +50,7 @@ struct bg_dialog_s
   GtkWidget * window;
   GtkWidget * mainbox;
   dialog_section_t root_section;
+  GtkTooltips * tooltips;
   };
 
 static void apply_section(dialog_section_t * s)
@@ -144,6 +145,10 @@ static bg_dialog_t * create_dialog(const char * title)
     
   ret = calloc(1, sizeof(*ret));
 
+  ret->tooltips = gtk_tooltips_new();
+  g_object_ref (G_OBJECT (ret->tooltips));
+  gtk_object_sink (GTK_OBJECT (ret->tooltips));
+  
   ret->window       = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
   gtk_window_set_title(GTK_WINDOW(ret->window), title);
@@ -194,10 +199,10 @@ static bg_dialog_t * create_dialog(const char * title)
   }
 
 static GtkWidget * create_section(dialog_section_t * section,
-                           bg_parameter_info_t * info,
-                           bg_cfg_section_t * cfg_section,
-                           bg_set_parameter_func set_param,
-                           void * data)
+                                  bg_parameter_info_t * info,
+                                  bg_cfg_section_t * cfg_section,
+                                  bg_set_parameter_func set_param,
+                                  void * data, GtkTooltips * tooltips)
   {
   int i, count;
   int row, column, num_columns;
@@ -256,7 +261,8 @@ static GtkWidget * create_section(dialog_section_t * section,
       i++;
       continue;
       }
-    
+    section->widgets[count].tooltips = tooltips;
+      
     if(info[i].flags & BG_PARAMETER_SYNC)
       {
       section->widgets[count].change_callback = set_param;
@@ -379,6 +385,8 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
   bg_dialog_t * ret = create_dialog(title);
 
   num_sections = count_sections(info);
+
+
   
   if(num_sections)
     {
@@ -397,7 +405,7 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
       while(info[index].type == BG_PARAMETER_SECTION)
         index++;
       table = create_section(&(ret->root_section.children[i]), &(info[index]),
-                             section, set_param, callback_data);
+                             section, set_param, callback_data, ret->tooltips);
       gtk_notebook_append_page(GTK_NOTEBOOK(ret->root_section.notebook),
                                table, label);
       while(info[index].name &&
@@ -412,7 +420,7 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
     ret->root_section.num_children = 1;
     ret->root_section.children = calloc(1,
                            ret->root_section.num_children * sizeof(dialog_section_t));
-    table = create_section(ret->root_section.children, info, section, set_param, callback_data);
+    table = create_section(ret->root_section.children, info, section, set_param, callback_data, ret->tooltips);
     gtk_box_pack_start(GTK_BOX(ret->mainbox), table, TRUE, TRUE, 0);
     }
   return ret;
@@ -462,7 +470,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
            sizeof(parent->children[parent->num_children]));
     
     table = create_section(&(parent->children[parent->num_children]),
-                           info, section, set_param, callback_data);
+                           info, section, set_param, callback_data, d->tooltips);
     tab_label = gtk_label_new(name);
     gtk_widget_show(tab_label);
     gtk_notebook_append_page(GTK_NOTEBOOK(parent->notebook),
@@ -489,7 +497,7 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
       
       table = create_section(&(parent->children[section_index]),
                              &(info[item_index]),
-                             section, set_param, callback_data);
+                             section, set_param, callback_data, d->tooltips);
       gtk_notebook_append_page(GTK_NOTEBOOK(parent->notebook),
                                table, tab_label);
 
@@ -548,9 +556,11 @@ static void destroy_section(dialog_section_t * s)
 
 void bg_dialog_destroy(bg_dialog_t * d)
   {
-
   destroy_section(&(d->root_section));
   gtk_widget_destroy(d->window);
+
+  g_object_unref(d->tooltips);
+  
   free(d);
   }
 
@@ -616,4 +626,12 @@ void * bg_dialog_add_parent(bg_dialog_t *d, void * _parent, const char * label)
   parent->num_children++;
   
   return &(parent->children[parent->num_children-1]);
+  }
+
+void bg_dialog_set_tooltips(bg_dialog_t *d, int enable)
+  {
+  if(enable)
+    gtk_tooltips_enable(d->tooltips);
+  else
+    gtk_tooltips_disable(d->tooltips);
   }

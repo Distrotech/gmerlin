@@ -176,9 +176,14 @@ struct bg_mediatree_s
 
   bg_shuffle_list_t * shuffle_current;
   bg_shuffle_mode_t last_shuffle_mode;
+
+  int purge_directory;
+
   };
 
+/* Purge the directory (remove unused albums) */
 
+void bg_media_tree_purge_directory(bg_media_tree_t * t);
 
 /* Create a unique filename */
 

@@ -163,6 +163,14 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
   priv->combo = gtk_combo_box_new_text();
   i = 0;
 
+  if(info->help_string)
+    {
+    gtk_tooltips_set_tip(w->tooltips,
+                         priv->combo,
+                         info->help_string, info->help_string);
+    }
+
+  
   if(info->multi_labels)
     {
     while(info->multi_labels[i])
@@ -190,6 +198,14 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
   priv->combo = gtk_combo_new();
   gtk_editable_set_editable(GTK_EDITABLE(GTK_COMBO(priv->combo)->entry),
                             FALSE);
+
+  if(info->help_string)
+    {
+    gtk_tooltips_set_tip(w->tooltips,
+                         GTK_COMBO(priv->combo)->entry,
+                         info->help_string, info->help_string);
+    }
+
   
   i = 0;
 
@@ -218,7 +234,7 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
                    "changed", G_CALLBACK(change_callback),
                    (gpointer)w);
 #endif
-
+  
   //  GTK_WIDGET_UNSET_FLAGS(priv->combo, GTK_CAN_DEFAULT);
 
   gtk_widget_show(priv->combo);

@@ -133,6 +133,12 @@ static void create_common(bg_gtk_widget_t * w,
                                1.0, 0.0, 0.0);
   s->spinbutton =
     gtk_spin_button_new(GTK_ADJUSTMENT(s->adj), 0.1, 0);
+
+  if(info->help_string)
+    {
+    gtk_tooltips_set_tip(w->tooltips, s->spinbutton, info->help_string, info->help_string);
+    }
+  
   gtk_widget_show(s->spinbutton);
   gtk_widget_show(s->label);
   w->priv = s;

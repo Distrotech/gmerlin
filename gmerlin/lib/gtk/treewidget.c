@@ -149,7 +149,7 @@ static void load_pixmaps()
     free(filename);
     }
   }
-
+#if 0
 static void unload_pixmaps()
   {
   num_tree_widgets--;
@@ -178,7 +178,7 @@ static void unload_pixmaps()
 
   
   }
-
+#endif
 enum
 {
   COLUMN_NAME,

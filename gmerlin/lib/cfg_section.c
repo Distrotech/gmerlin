@@ -452,10 +452,10 @@ int bg_cfg_section_get_parameter_time(bg_cfg_section_t * section,
 bg_cfg_section_t * bg_cfg_section_copy(bg_cfg_section_t * src)
   {
   bg_cfg_item_t * src_item;
-  bg_cfg_item_t * end_item;
+  bg_cfg_item_t * end_item = (bg_cfg_item_t*)0;
   bg_cfg_section_t * ret;
   bg_cfg_section_t * src_child;
-  bg_cfg_section_t * end_child;
+  bg_cfg_section_t * end_child = (bg_cfg_section_t*)0;
   
   ret = calloc(1, sizeof(*ret));
 

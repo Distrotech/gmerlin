@@ -126,6 +126,12 @@ static void create_common(bg_gtk_widget_t * w,
   s->slider =
     gtk_hscale_new_with_range(min_value, max_value, 1.0);
 
+  if(info->help_string)
+    {
+    gtk_tooltips_set_tip(w->tooltips, s->slider, info->help_string, info->help_string);
+    }
+
+  
   if(info->flags & BG_PARAMETER_SYNC)
     {
     w->callback_id =

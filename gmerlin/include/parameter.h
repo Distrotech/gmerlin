@@ -103,10 +103,12 @@ typedef struct bg_parameter_info_s
 
   struct bg_parameter_info_s ** multi_parameters;
   
-  /* For floating point inputs */
+  /* For floating point parameters */
   
   int num_digits;
-    
+  
+  /* For tooltips and such */
+  char * help_string;
   } bg_parameter_info_t;
 
 /* Prototype for setting/getting parameters */

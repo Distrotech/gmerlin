@@ -23,7 +23,8 @@ bg_gtk_file_entry_t *
 bg_gtk_file_entry_create(int dir,
                          void (*name_changed_callback)(bg_gtk_file_entry_t *,
                                                        void * data),
-                         void * name_changed_callback_data);
+                         void * name_changed_callback_data,
+                         GtkTooltips * tooltips, const char * help_string);
 
 void bg_gtk_file_entry_destroy(bg_gtk_file_entry_t *);
 

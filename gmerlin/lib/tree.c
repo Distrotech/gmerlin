@@ -313,6 +313,9 @@ void bg_media_tree_destroy(bg_media_tree_t * t)
   {
   bg_album_t * next_album;
   bg_media_tree_save(t);
+
+  if(t->purge_directory)
+    bg_media_tree_purge_directory(t);
   
   while(t->children)
     {
@@ -1055,13 +1058,32 @@ static bg_parameter_info_t parameters[] =
       name:        "use_metadata",
       long_name:   "Use metadata for track names",
       type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 }
+      val_default: { val_i: 1 },
+      help_string: "If disabled, track name will be taken from filename"
     },
     {
       name:        "metadata_format",
       long_name:   "Format for track names",
       type:        BG_PARAMETER_STRING,
-      val_default: { val_str: "%p - %t" }
+      val_default: { val_str: "%p - %t" },
+      help_string: "Format specifier for tracknames from\n\
+metadata\n\
+%p:    Artist\n\
+%a:    Album\n\
+%g:    Genre\n\
+%t:    Track name\n\
+%<d>n: Track number with <d> digits\n\
+%y:    Year\n\
+%c:    Comment",
+
+    },
+    {
+      name:        "purge_directory",
+      long_name:   "Purge directory on exit",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 },
+      help_string: "Purge directory (i.e. delete\n\
+unused album files) at program exit"
     },
     { /* End of parameters */ }
   };
@@ -1086,6 +1108,10 @@ void bg_media_tree_set_parameter(void * priv, char * name,
   else if(!strcmp(name, "metadata_format"))
     {
     tree->com.metadata_format = val->val_str;
+    }
+  else if(!strcmp(name, "purge_directory"))
+    {
+    tree->purge_directory = val->val_i;
     }
   }
 
@@ -1181,7 +1207,7 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
       }
     else if(S_ISREG(stat_buf.st_mode))
       {
-      fprintf(stderr, "Loading %s\n", urls[0]);
+      //      fprintf(stderr, "Loading %s\n", urls[0]);
       bg_album_insert_urls_before(a, urls, plugin, NULL);
       }
     if(t->change_callback)
@@ -1193,4 +1219,59 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
 
   if(t->change_callback)
     t->change_callback(t, t->change_callback_data);
+  }
+
+static int albums_have_file(bg_album_t * album, const char * filename)
+  {
+  bg_album_t * a;
+  a = album;
+
+  while(a)
+    {
+    if(a->location && !strcmp(a->location, filename))
+      return 1;
+
+    else if(a->children && albums_have_file(a->children, filename))
+      return 1;
+    a = a->next;
+    }
+  return 0;
+  }
+
+void bg_media_tree_purge_directory(bg_media_tree_t * t)
+  {
+  DIR * dir;
+  char filename[PATH_MAX];
+  struct dirent * dent_ptr;
+
+  struct
+    {
+    struct dirent d;
+    char b[NAME_MAX]; /* Make sure there is enough memory */
+    } dent;
+
+  dir = opendir(t->com.directory);
+  if(!dir)
+    return;
+
+  fprintf(stderr, "Purging tree...\n");
+  
+  while(!readdir_r(dir, &(dent.d), &dent_ptr))
+    {
+    if(!dent_ptr)
+      break;
+    
+    if(!strcmp(dent.d.d_name, ".") || !strcmp(dent.d.d_name, "..") ||
+       !strcmp(dent.d.d_name, "tree.xml"))
+      continue;
+    
+    if(!albums_have_file(t->children, dent.d.d_name))
+      {
+      sprintf(filename, "%s/%s", t->com.directory, dent.d.d_name);
+      //      fprintf(stderr, "Removing %s\n", filename);
+      remove(filename);
+      }
+    }
+  closedir(dir);
+  //  fprintf(stderr, "Purging tree done\n");
   }

@@ -273,6 +273,11 @@ void bg_gtk_create_color_rgb(bg_gtk_widget_t * w,
   gtk_widget_show(priv->drawingarea);
   gtk_container_add(GTK_CONTAINER(priv->button), priv->drawingarea);
 
+  if(info->help_string)
+    {
+    gtk_tooltips_set_tip(w->tooltips, priv->button, info->help_string, info->help_string);
+    }
+  
   gtk_widget_show(priv->button);
 
   priv->label = gtk_label_new(info->long_name);

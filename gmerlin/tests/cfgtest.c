@@ -6,77 +6,77 @@
 #include <gui_gtk/gtkutils.h>
 
 
-static bg_parameter_info_t encoder_1_info[] =
+static bg_parameter_info_t multimenu_1_info[] =
   {
     {
-      name:      "encoder_1_checkbutton 1",
-      long_name: "Encoder 1 Checkbutton 1",
+      name:      "multimenu_1_checkbutton 1",
+      long_name: "Multimenu 1 Checkbutton 1",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
     {
-      name:      "encoder_1_checkbutton 2",
-      long_name: "Encoder 1 Checkbutton 2",
+      name:      "multimenu_1_checkbutton 2",
+      long_name: "Multimenu 1 Checkbutton 2",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
     { /* End of Parameters */ }
   };
 
-static bg_parameter_info_t encoder_2_info[] =
+static bg_parameter_info_t multimenu_2_info[] =
   {
     {
-      name:      "encoder_2_checkbutton 1",
-      long_name: "Encoder 2 Checkbutton 1",
+      name:      "multimenu_2_checkbutton 1",
+      long_name: "Multimenu 2 Checkbutton 1",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
     {
-      name:      "encoder_2_checkbutton 2",
-      long_name: "Encoder 2 Checkbutton 2",
+      name:      "multimenu_2_checkbutton 2",
+      long_name: "Multimenu 2 Checkbutton 2",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
     { /* End of Parameters */ }
   };
 
-static bg_parameter_info_t decoder_1_info[] =
+static bg_parameter_info_t multilist_1_info[] =
   {
     {
-      name:      "decoder_1_checkbutton 1",
-      long_name: "Decoder 1 Checkbutton 1",
+      name:      "multilist_1_checkbutton 1",
+      long_name: "Multilist 1 Checkbutton 1",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
     {
-      name:      "decoder_1_checkbutton 2",
-      long_name: "Decoder 1 Checkbutton 2",
+      name:      "multilist_1_checkbutton 2",
+      long_name: "Multilist 1 Checkbutton 2",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
     { /* End of Parameters */ }
   };
 
-static bg_parameter_info_t decoder_2_info[] =
+static bg_parameter_info_t multilist_2_info[] =
   {
     {
-      name:      "decoder_1_checkbutton 1",
-      long_name: "Decoder 1 Checkbutton 1",
+      name:      "multilist_2_checkbutton 1",
+      long_name: "Multilist 2 Checkbutton 1",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
     {
-      name:      "decoder_1_checkbutton 2",
-      long_name: "Decoder 1 Checkbutton 2",
+      name:      "multilist_2_checkbutton 2",
+      long_name: "Multilist 2 Checkbutton 2",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
     { /* End of Parameters */ }
   };
 
-bg_parameter_info_t * decoder_parameters[] =
+bg_parameter_info_t * multilist_parameters[] =
   {
-    decoder_1_info,
-    decoder_2_info,
+    multilist_1_info,
+    multilist_2_info,
     (bg_parameter_info_t *)0
   };
 
-bg_parameter_info_t * encoder_parameters[] =
+bg_parameter_info_t * multimenu_parameters[] =
   {
-    encoder_1_info,
-    encoder_2_info,
+    multimenu_1_info,
+    multimenu_2_info,
     (bg_parameter_info_t *)0
   };
 
@@ -92,6 +92,7 @@ static bg_parameter_info_t info[] =
       long_name:   "Check Button 1",
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
+      help_string: "Check Button 1 help"
     },
     {
       name:      "spinbutton_float",
@@ -100,7 +101,8 @@ static bg_parameter_info_t info[] =
       val_default: { val_f: 250.0 },
       val_min:     { val_f: 200.0 },
       val_max:     { val_f: 300.0 },
-      num_digits: 3
+      num_digits: 3,
+      help_string: "Floating point Spinbutton help",
     },
     {
       name:      "spinbutton_int",
@@ -109,11 +111,13 @@ static bg_parameter_info_t info[] =
       val_default: { val_i: 250 },
       val_min:     { val_i: 200 },
       val_max:     { val_i: 300 },
+      help_string: "Integer Spinbutton help",
     },
     {
       name:      "time",
       long_name: "Time",
       type:      BG_PARAMETER_TIME,
+      help_string: "Time help",
     },
     {
       name:        "slider_float",
@@ -122,7 +126,8 @@ static bg_parameter_info_t info[] =
       val_default: { val_f: 250.0 },
       val_min:     { val_f: 1.0 },
       val_max:     { val_f: 300.0 },
-      num_digits:  1
+      num_digits:  1,
+      help_string: "Floating point Slider help",
     },
     {
       name:        "slider_int",
@@ -131,19 +136,22 @@ static bg_parameter_info_t info[] =
       val_default: { val_i: 250 },
       val_min:     { val_i: 200 },
       val_max:     { val_i: 300 },
+      help_string:   "Integer Slider help",
     },
     {
       name:      "string",
       long_name: "String",
       type:      BG_PARAMETER_STRING,
       val_default: { val_str: "Some string" },
+      help_string:   "String help",
     },
     {
       name:        "stringlist",
       long_name:   "Stringlist",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "Option 2" },
-      multi_names:     (char *[]){ "Option 1", "Option 2", "Option 3", NULL }
+      multi_names:     (char *[]){ "Option 1", "Option 2", "Option 3", NULL },
+      help_string:   "Stringlist help",
     },
     {
       name:      "section_2",
@@ -155,36 +163,42 @@ static bg_parameter_info_t info[] =
       long_name: "Color RGB",
       type:      BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 0.0, 1.0, 0.0 } },
+      help_string:   "Color RGB help",
     },
     {
       name:      "color_rgba",
       long_name: "Color RGBA",
       type:      BG_PARAMETER_COLOR_RGBA,
-      val_default: { val_color: (float[]){ 0.0, 1.0, 0.0, 0.5 } }
+      val_default: { val_color: (float[]){ 0.0, 1.0, 0.0, 0.5 } },
+      help_string:   "Color RGBA help",
     },
     {
       name:        "file",
-      long_name:   "File: ",
+      long_name:   "File",
       type:        BG_PARAMETER_FILE,
-      val_default: { val_str: "/usr/include/stdio.h" }
+      val_default: { val_str: "/usr/include/stdio.h" },
+      help_string:   "File help",
     },
     {
       name:        "directory",
-      long_name:   "Directory: ",
+      long_name:   "Directory",
       type:        BG_PARAMETER_DIRECTORY,
-      val_default: { val_str: "/usr/local" }
+      val_default: { val_str: "/usr/local" },
+      help_string:   "Directory help",
     },
     {
       name:      "font",
-      long_name: "Font: ",
+      long_name: "Font",
       type:      BG_PARAMETER_FONT,
-      val_default: { val_str: "rudelsberg 12" }
+      val_default: { val_str: "rudelsberg 12" },
+      help_string:   "Font help",
     },
     {
       name:      "device",
-      long_name: "Device: ",
+      long_name: "Device",
       type:      BG_PARAMETER_DEVICE,
-      val_default: { val_str: "/dev/cdrom" }
+      val_default: { val_str: "/dev/cdrom" },
+      help_string:   "Device help",
     },
     {
       name:      "section_3",
@@ -192,24 +206,26 @@ static bg_parameter_info_t info[] =
       type:      BG_PARAMETER_SECTION
     },
     {
-      name:               "encoder",
-      long_name:          "Encoder",
+      name:               "multimenu",
+      long_name:          "Multimenu",
       type:               BG_PARAMETER_MULTI_MENU,
-      val_default:        { val_str: "Encoder 1" },
-      multi_names:        (char *[]){ "encoder_1", "encoder_2", NULL },
-      multi_labels:   (char *[]){ "Encoder 1", "Encoder 2", NULL },
-      multi_descriptions: (char *[]){ "Encoder 1", "Encoder 2", NULL },
-      multi_parameters:   encoder_parameters,
+      val_default:        { val_str: "Multimenu 1" },
+      multi_names:        (char *[]){ "multimenu_1", "multimenu_2", NULL },
+      multi_labels:   (char *[]){ "Multimenu 1", "Multimenu 2", NULL },
+      multi_descriptions: (char *[]){ "Multimenu 1", "Multimenu 2", NULL },
+      multi_parameters:   multimenu_parameters,
+      help_string:   "Multimenu help",
     },
 #if 1
     {
-      name:               "decoder",
-      long_name:          "Decoder",
+      name:               "multilist",
+      long_name:          "Multilist",
       type:               BG_PARAMETER_MULTI_LIST,
-      multi_names:        (char *[]){ "decoder_1", "decoder_2", NULL },
-      multi_labels:   (char *[]){ "Decoder 1", "Decoder 2", NULL },
-      multi_descriptions: (char *[]){ "Decoder 1", "Decoder 2", NULL },
-      multi_parameters:   encoder_parameters,
+      multi_names:        (char *[]){ "multilist_1", "multilist_2", NULL },
+      multi_labels:   (char *[]){ "Multilist 1", "Multilist 2", NULL },
+      multi_descriptions: (char *[]){ "Multilist 1", "Multilist 2", NULL },
+      multi_parameters:   multimenu_parameters,
+      help_string:   "Multilist help",
     },
 #endif
     { /* End of parameters */ }

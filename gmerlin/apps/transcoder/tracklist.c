@@ -440,7 +440,7 @@ static bg_transcoder_track_t * extract_selected(track_list_t * l)
   bg_transcoder_track_t * ret = (bg_transcoder_track_t*)0;
   bg_transcoder_track_t * ret_end = (bg_transcoder_track_t*)0;
 
-  bg_transcoder_track_t * new_tracks;
+  bg_transcoder_track_t * new_tracks  = (bg_transcoder_track_t*)0;
   bg_transcoder_track_t * new_tracks_end = (bg_transcoder_track_t*)0;
 
   track = l->tracks;

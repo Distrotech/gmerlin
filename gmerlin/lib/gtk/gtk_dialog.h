@@ -47,6 +47,10 @@ struct bg_gtk_widget_s
   void * change_callback_data;
   gulong callback_id;
   GtkWidget * callback_widget;
+
+  /* Pointer to central tooltips instance */
+
+  GtkTooltips * tooltips;
   };
 
 void 

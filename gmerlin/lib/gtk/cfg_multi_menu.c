@@ -317,6 +317,14 @@ void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
 
 #ifdef GTK_2_4
   priv->combo = gtk_combo_box_new_text();
+
+  if(info->help_string)
+    {
+    gtk_tooltips_set_tip(w->tooltips,
+                         priv->combo,
+                         info->help_string, info->help_string);
+    }
+  
   i = 0;
   while(info->multi_names[i])
     {
@@ -334,6 +342,14 @@ void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
 #else
   
   priv->combo = gtk_combo_new();
+
+  if(info->help_string)
+    {
+    gtk_tooltips_set_tip(w->tooltips,
+                         GTK_COMBO(priv->combo)->entry,
+                         info->help_string, info->help_string);
+    }
+  
   gtk_editable_set_editable(GTK_EDITABLE(GTK_COMBO(priv->combo)->entry), FALSE);
 
   g_signal_connect(G_OBJECT(GTK_EDITABLE(GTK_COMBO(priv->combo)->entry)),

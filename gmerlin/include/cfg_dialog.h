@@ -49,6 +49,8 @@ void bg_dialog_add(bg_dialog_t *d,
                    void * callback_data,
                    bg_parameter_info_t * info);
 
+void bg_dialog_set_tooltips(bg_dialog_t *d, int enable);
+
 /* Add child notebook to the dialog. You can pass the returned
    void pointer to subsequent calls of bg_dialog_add_child */
 

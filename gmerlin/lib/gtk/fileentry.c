@@ -84,7 +84,8 @@ static void button_callback(GtkWidget * w, gpointer data)
 bg_gtk_file_entry_t * bg_gtk_file_entry_create(int is_dir,
                                                void (*name_changed_callback)(bg_gtk_file_entry_t *,
                                                                              void * data),
-                                               void * name_changed_callback_data)
+                                               void * name_changed_callback_data,
+                                               GtkTooltips * tooltips, const char * help_string)
   {
   bg_gtk_file_entry_t * priv = calloc(1, sizeof(*priv));
   priv->is_dir = is_dir;
@@ -94,6 +95,11 @@ bg_gtk_file_entry_t * bg_gtk_file_entry_create(int is_dir,
   
   priv->entry = gtk_entry_new();
 
+  if(help_string && tooltips)
+    {
+    gtk_tooltips_set_tip(tooltips, priv->entry, help_string, help_string);
+    }
+  
   if(priv->name_changed_callback)
     g_signal_connect(G_OBJECT(priv->entry), "changed",
                      G_CALLBACK(button_callback),
@@ -102,7 +108,7 @@ bg_gtk_file_entry_t * bg_gtk_file_entry_create(int is_dir,
   gtk_widget_show(priv->entry);
   
   priv->button = gtk_button_new_with_label("Browse...");
-
+  
   g_signal_connect(G_OBJECT(priv->button),
                      "clicked", G_CALLBACK(button_callback),
                      (gpointer)priv);

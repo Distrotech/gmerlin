@@ -20,6 +20,7 @@
 #include <stdio.h>
 
 #include "gtk_dialog.h"
+#include <utils.h>
 
 typedef struct
   {
@@ -185,6 +186,7 @@ void
 bg_gtk_create_time(bg_gtk_widget_t * w,
                    bg_parameter_info_t * info)
   {
+  char * tooltip;
   GtkWidget * label;
   spinbutton_t * s = calloc(1, sizeof(*s));
   s->label = gtk_label_new(info->long_name);
@@ -205,7 +207,25 @@ bg_gtk_create_time(bg_gtk_widget_t * w,
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(s->spinbutton_s), 0);
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(s->spinbutton_m), 0);
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(s->spinbutton_h), 0);
+  
+  if(info->help_string)
+    {
+    tooltip = bg_sprintf("%s (Hours)", info->help_string);
+    gtk_tooltips_set_tip(w->tooltips, s->spinbutton_h, tooltip, tooltip);
+    free(tooltip);
 
+    tooltip = bg_sprintf("%s (Minutes)", info->help_string);
+    gtk_tooltips_set_tip(w->tooltips, s->spinbutton_m, tooltip, tooltip);
+    free(tooltip);
+
+    tooltip = bg_sprintf("%s (Seconds)", info->help_string);
+    gtk_tooltips_set_tip(w->tooltips, s->spinbutton_s, tooltip, tooltip);
+    free(tooltip);
+
+    tooltip = bg_sprintf("%s (Milliseconds)", info->help_string);
+    gtk_tooltips_set_tip(w->tooltips, s->spinbutton_ms, tooltip, tooltip);
+    free(tooltip);
+    }
   g_signal_connect(G_OBJECT(s->spinbutton_ms), "value-changed",
                    G_CALLBACK(change_callback), w);
   

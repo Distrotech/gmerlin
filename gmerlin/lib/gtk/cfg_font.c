@@ -155,6 +155,12 @@ void bg_gtk_create_font(bg_gtk_widget_t * w, bg_parameter_info_t * info)
   font_t * priv = calloc(1, sizeof(*priv));
 
   priv->entry = gtk_entry_new();
+
+  if(info->help_string)
+    {
+    gtk_tooltips_set_tip(w->tooltips, priv->entry, info->help_string, info->help_string);
+    }
+
   gtk_widget_show(priv->entry);
 
   priv->label = gtk_label_new(info->long_name);

@@ -609,4 +609,6 @@ void gmerlin_set_tooltips(gmerlin_t * g, int enable)
   bg_gtk_tree_window_set_tooltips(g->tree_window, enable);
   player_window_set_tooltips(g->player_window, enable);
   plugin_window_set_tooltips(g->plugin_window, enable);
+  bg_dialog_set_tooltips(g->cfg_dialog, enable);
+  
   }

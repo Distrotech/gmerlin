@@ -85,6 +85,11 @@ void bg_gtk_create_checkbutton(bg_gtk_widget_t * w, bg_parameter_info_t * info)
                        G_CALLBACK(bg_gtk_change_callback), (gpointer)w);
     w->callback_widget = priv->button;
     }
+
+  if(info->help_string)
+    {
+    gtk_tooltips_set_tip(w->tooltips, priv->button, info->help_string, info->help_string);
+    }
   
   gtk_widget_show(priv->button);
  

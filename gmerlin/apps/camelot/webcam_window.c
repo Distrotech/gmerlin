@@ -334,7 +334,8 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
 
   /* Create output file stuff */
 
-  ret->output_dir = bg_gtk_file_entry_create(1, filename_changed_callback, ret);
+  ret->output_dir = bg_gtk_file_entry_create(1, filename_changed_callback, ret,
+                                             (GtkTooltips*)0, (const char*)0);
   ret->output_filename_base = gtk_entry_new();
   g_signal_connect(ret->output_filename_base, "changed", G_CALLBACK(button_callback),
                    ret);
