@@ -54,3 +54,4 @@ void bgav_init_video_decoders_aviraw();
 void bgav_init_video_decoders_qtraw();
 void bgav_init_video_decoders_yuv();
 void bgav_init_video_decoders_tga();
+void bgav_init_video_decoders_rtjpeg();

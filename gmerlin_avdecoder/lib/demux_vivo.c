@@ -467,6 +467,7 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
     }
   video_stream->data.video.format.pixel_width = 1;
   video_stream->data.video.format.pixel_height = 1;
+  video_stream->data.video.format.free_framerate = 1;
   
   video_stream->stream_id = VIDEO_STREAM_ID;
   
@@ -486,6 +487,10 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
   ctx->tt->current_track->metadata.copyright = bgav_strndup(priv->header.copyright, NULL);
   ctx->tt->current_track->metadata.comment   = bgav_sprintf("Made with %s",
                                                             priv->header.producer);
+
+  ctx->stream_description = bgav_sprintf("Vivo Version %d.x", priv->header.version);
+
+  ctx->tt->current_track->duration = (GAVL_TIME_SCALE * (int64_t)(priv->header.duration)) / 1000;
   
   return 1;
   
@@ -615,7 +620,8 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
     return 0;
     }
   stream->packet->data_size += len;
-
+  if((h & 0xf0) == 0x20)
+    stream->packet_seq--;
   return 1;
   }
 

@@ -93,6 +93,7 @@ codec_info_t codec_infos[] =
       dll_name:    "msgsm32.acm",
       type:        CODEC_STD,
     },
+#if 1
     {
       name:        "Vivo G.723/Siren Audio Codec",
       format_name: "Vivo G.723/Siren",
@@ -102,6 +103,7 @@ codec_info_t codec_infos[] =
       dll_name:    "vivog723.acm",
       type:        CODEC_STD,
     },
+#endif
   };
 
 #define MAX_CODECS (sizeof(codec_infos)/sizeof(codec_infos[0]))

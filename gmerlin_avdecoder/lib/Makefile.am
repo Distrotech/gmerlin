@@ -161,6 +161,7 @@ $(avcodec_sources) \
 $(real_sources) \
 $(xadll_sources) \
 $(vcd_sources) \
+RTjpeg.c \
 audio.c \
 audio_pcm.c \
 asmrp.c \
@@ -246,6 +247,7 @@ video_qtraw.c \
 video_aviraw.c \
 video_tga.c \
 video_yuv.c \
+video_rtjpeg.c \
 xing.c \
 yml.c
 

@@ -153,6 +153,37 @@ static codec_info_t codec_infos[] =
 #endif
   };
 
+#if 0
+static uint32_t swap_endian(uint32_t val)
+  {
+  return ((val & 0x000000FF) << 24) |
+    ((val & 0x0000FF00) << 8) |
+    ((val & 0x00FF0000) >> 8) |
+    ((val & 0xFF000000) >> 24);
+  }
+
+static void dump_bi(BITMAPINFOHEADER * bh)
+  {
+  uint32_t fourcc_be;
+  fprintf(stderr, "BITMAPINFOHEADER:\n");
+  fprintf(stderr, "  biSize: %ld\n", bh->biSize); /* sizeof(BITMAPINFOHEADER) */
+  fprintf(stderr, "  biWidth: %ld\n", bh->biWidth);
+  fprintf(stderr, "  biHeight: %ld\n", bh->biHeight);
+  fprintf(stderr, "  biPlanes: %d\n", bh->biPlanes);
+  fprintf(stderr, "  biBitCount: %d\n", bh->biBitCount);
+  fourcc_be = swap_endian(bh->biCompression);
+  fprintf(stderr, "  biCompression: ");
+  bgav_dump_fourcc(fourcc_be);
+  fprintf(stderr, "\n");
+  fprintf(stderr, "  biSizeImage: %ld\n", bh->biSizeImage);
+  fprintf(stderr, "  biXPelsPerMeter: %ld\n", bh->biXPelsPerMeter);
+  fprintf(stderr, "  biYPelsPerMeter: %ld\n", bh->biXPelsPerMeter);
+  fprintf(stderr, "  biClrUsed: %ld\n", bh->biClrUsed);
+  fprintf(stderr, "  biClrImportant: %ld\n", bh->biClrImportant);
+
+  }
+#endif
+
 extern char*   win32_def_path;
 
 #define MAX_CODECS (sizeof(codec_infos)/sizeof(codec_infos[0]))
@@ -190,6 +221,8 @@ typedef struct
   
   DMO_VideoDecoder *dmo_dec;
 
+  int bytes_per_pixel;
+  
   } win32_priv_t;
 
 static void pack_bih(BITMAPINFOHEADER * dst, bgav_BITMAPINFOHEADER_t * src)
@@ -228,6 +261,7 @@ static void unpack_bih(bgav_BITMAPINFOHEADER_t * dst, BITMAPINFOHEADER * src)
 
 static int init_std(bgav_stream_t * s)
   {
+  int old_bit_count;
   HRESULT result;
   codec_info_t * info;
   win32_priv_t * priv;
@@ -276,19 +310,6 @@ static int init_std(bgav_stream_t * s)
   switch(bih_out.biCompression)
     {
     case 0:
-      switch(bih_out.biBitCount)
-        {
-        case 24:
-          s->data.video.format.colorspace = GAVL_RGB_24;
-          break;
-        case 16:
-          s->data.video.format.colorspace = GAVL_RGB_16;
-          break;
-        default:
-          fprintf(stderr, "Warning: Unsupported depth %d\n",
-                  bih_out.biBitCount);
-          return 0;
-        }
       break;
     default:
       fprintf(stderr, "Warning: Unsupported Colorspace\n");
@@ -299,6 +320,8 @@ static int init_std(bgav_stream_t * s)
 
   /* Check if we can output YUV data */
 
+  old_bit_count = bih_out.biBitCount;
+  
   bih_out.biCompression = BGAV_MK_FOURCC('2', 'Y', 'U', 'Y');
   bih_out.biSizeImage = bih_out.biWidth * bih_out.biHeight * 2;
   bih_out.biBitCount  = 16;
@@ -310,15 +333,34 @@ static int init_std(bgav_stream_t * s)
 
   if(result)
     {
-    //    fprintf(stderr, "No YUV output possible, switching to RGB\n");
+    fprintf(stderr, "No YUV output possible, switching to RGB\n");
     bih_out.biCompression = 0;
-    bih_out.biSizeImage = bih_out.biWidth * bih_out.biHeight * 3;
-    bih_out.biBitCount  = 24;
+    bih_out.biBitCount  = old_bit_count;
+    
+    switch(bih_out.biBitCount)
+      {
+      case 24:
+        s->data.video.format.colorspace = GAVL_RGB_24;
+        fprintf(stderr, "Using RGB24 output\n");
+        priv->bytes_per_pixel = 3;
+        break;
+      case 16:
+        s->data.video.format.colorspace = GAVL_RGB_15;
+        fprintf(stderr, "Using RGB16 output\n");
+        priv->bytes_per_pixel = 2;
+        break;
+      default:
+        fprintf(stderr, "Warning: Unsupported depth %d\n",
+                bih_out.biBitCount);
+        return 0;
+      }
+    bih_out.biSizeImage = bih_out.biWidth * bih_out.biHeight * priv->bytes_per_pixel;
+    
     pack_bih(&priv->bih_out, &bih_out);
     }
   else
     {
-    //    fprintf(stderr, "Decoder supports YUY2 output\n");
+    fprintf(stderr, "Decoder supports YUY2 output\n");
     //    unpack_bih(&bih_out, &priv->bih_out);
     //    bgav_BITMAPINFOHEADER_dump(&bih_out);
     s->data.video.format.colorspace = GAVL_YUY2;
@@ -367,8 +409,16 @@ static int decode_std(bgav_stream_t * s, gavl_video_frame_t * frame)
   if(!frame)
     flags |= ICDECOMPRESS_HURRYUP|ICDECOMPRESS_PREROL;
 
-  fprintf(stderr, "ICDecompressn %d\n", p->data_size);
-  
+  //  fprintf(stderr, "ICDecompress %d\n", p->data_size);
+  priv->bih_in.biSizeImage = p->data_size;
+
+  priv->bih_out.biSizeImage = s->data.video.format.image_height * priv->frame->strides[0];
+  priv->bih_out.biWidth     = priv->frame->strides[0] / priv->bytes_per_pixel;
+#if 0
+  fprintf(stderr, "ICDecompress\n");
+  dump_bi(&priv->bih_in);
+  dump_bi(&priv->bih_out);
+#endif
   result = (!priv->ex_functions)
     ?ICDecompress(priv->hic, flags,
                   &priv->bih_in, p->data, &priv->bih_out, 
@@ -383,7 +433,13 @@ static int decode_std(bgav_stream_t * s, gavl_video_frame_t * frame)
     }
   if(frame)
     {
-    gavl_video_frame_copy(&s->data.video.format, frame, priv->frame);
+    if(gavl_colorspace_is_rgb(s->data.video.format.colorspace))
+      {
+      /* RGB colorspaces are upside down normally */
+      gavl_video_frame_copy_flip_y(&s->data.video.format, frame, priv->frame);
+      }
+    else
+      gavl_video_frame_copy(&s->data.video.format, frame, priv->frame);
     }
   bgav_demuxer_done_packet_read(s->demuxer, p);
   
