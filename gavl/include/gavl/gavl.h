@@ -27,7 +27,7 @@
 
 
 #include <inttypes.h>
-#include "gavlconfig.h"
+#include <gavlconfig.h>
 
 #include "gavltime.h"
 
@@ -300,34 +300,6 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
 void gavl_audio_convert(gavl_audio_converter_t * cnv,
                         gavl_audio_frame_t * input_frame,
                         gavl_audio_frame_t * output_frame);
-
-/* Audio buffer: Can be used if samples_per_frame is different in the
-   input and output format, or if the samples, which will be read at
-   once, cannot be determined at start */
-
-typedef struct gavl_audio_buffer_s gavl_audio_buffer_t;
-
-/*
- *  Create/destroy the buffer. The samples_per_frame member
- *  should be the desired number at the output
- */
-  
-gavl_audio_buffer_t * gavl_audio_buffer_create(gavl_audio_format_t *);
-
-void gavl_destroy_audio_buffer(gavl_audio_buffer_t *);
-
-  /*
-   *  Buffer audio
-   *
-   *  output frame is full, if valid_samples == samples_per_frame
-   *
-   *  If return value is 0, input frame is needed some more times
-   */
-  
-int gavl_buffer_audio(gavl_audio_buffer_t * b,
-                      gavl_audio_frame_t * in,
-                      gavl_audio_frame_t * out);
-  
   
 /**********************************************
  *  Video conversions routines

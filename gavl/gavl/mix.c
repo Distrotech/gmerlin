@@ -1,3 +1,23 @@
+/*****************************************************************
+ 
+  mix.c
+ 
+  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -66,6 +86,8 @@ void gavl_mix_audio(gavl_audio_convert_context_t * ctx)
 #define IN_INDEX(id) gavl_channel_index(in, id)
 #define OUT_INDEX(id) gavl_channel_index(out, id)
 
+#if 0
+
 static void dump_matrix(gavl_audio_format_t * in,
                         gavl_audio_format_t * out,
                         float matrix[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS])
@@ -82,6 +104,8 @@ static void dump_matrix(gavl_audio_format_t * in,
     }
   //  fprintf(stderr, "End Mix Matrix\n");
   }
+
+#endif
 
 void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
                  gavl_audio_options_t * opt,
@@ -102,13 +126,13 @@ void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
 
   input_rear  = gavl_rear_channels(in);
   output_rear = gavl_rear_channels(out);
-
+#if 0
   fprintf(stderr, "INIT MATRIX\n");
   fprintf(stderr, "In:\n");
   gavl_audio_format_dump(in);
   fprintf(stderr, "Out:\n");
   gavl_audio_format_dump(out);
-  
+#endif
   
   switch(input_front)
     {
@@ -335,13 +359,13 @@ void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
       max_ampl = ampl;
     }
 
-  dump_matrix(in, out, ret);
+  //  dump_matrix(in, out, ret);
   
   for(i = 0; i < out->num_channels; i++)
     for(j = 0; j < in->num_channels; j++)
       ret[i][j] /= max_ampl;
   
-  dump_matrix(in, out, ret);
+  //  dump_matrix(in, out, ret);
   }
 
 static void set_factor(gavl_mix_input_channel_t * ret,

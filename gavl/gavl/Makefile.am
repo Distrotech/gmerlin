@@ -13,7 +13,6 @@ lib_LTLIBRARIES= libgavl.la
 
 libgavl_la_SOURCES = \
 audio.c \
-audiobuffer.c \
 audioconverter.c \
 audioformat.c \
 audioframe.c \
