@@ -23,6 +23,7 @@ BuildRequires:  mpeg2dec-devel >= @LIBMPEG2_REQUIRED@
 BuildRequires:  faad2-devel >= @FAAD2_REQUIRED@
 BuildRequires:  libmad-devel >= @MAD_REQUIRED@
 BuildRequires:  a52dec-devel >= @LIBA52_REQUIRED@
+BuildRequires:  libpng-devel >= @PNG_REQUIRED@
 Requires:       libvorbis >= @VORBIS_REQUIRED@
 Requires:       flac >= @FLAC_REQUIRED@
 Requires:       gavl = @GAVL_REQUIRED@
@@ -30,6 +31,7 @@ Requires:       mpeg2dec >= @LIBMPEG2_REQUIRED@
 Requires:       faad2 >= @FAAD2_REQUIRED@
 Requires:       libmad = @MAD_REQUIRED@
 Requires:       a52dec >= @LIBA52_REQUIRED@
+Requires:       libpng >= @PNG_REQUIRED@
 BuildRoot:	/tmp/gmerlin-build
 
 %description

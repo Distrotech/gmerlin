@@ -98,6 +98,7 @@ dnl
 AH_TEMPLATE([HAVE_LIBPNG], [Enable png codec])
  
 have_libpng=false
+PNG_REQUIRED="1.2.2"
  
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
@@ -125,6 +126,8 @@ LIBS=$OLD_LIBS
 
 AC_SUBST(PNG_CFLAGS)
 AC_SUBST(PNG_LIBS)
+AC_SUBST(PNG_REQUIRED)
+
 AM_CONDITIONAL(HAVE_LIBPNG, test x$have_libpng = xtrue)
 
 if test x$have_libpng = xtrue; then
