@@ -253,7 +253,7 @@ static int init_flac(bgav_stream_t * s)
   priv->frame = gavl_audio_frame_create(&frame_format);
 
   s->description = bgav_sprintf("FLAC");
-    
+  
   return 1;
   }
 
@@ -287,7 +287,8 @@ static int decode_flac(bgav_stream_t * s,
                             frame,       /* dst */
                             priv->frame, /* src */
                             samples_decoded, /* int dst_pos */
-                            priv->last_frame_samples - priv->frame->valid_samples, /* int src_pos */
+                            priv->last_frame_samples -
+                            priv->frame->valid_samples, /* int src_pos */
                             num_samples - samples_decoded, /* int dst_size, */
                             priv->frame->valid_samples /* int src_size*/ );
     priv->frame->valid_samples -= samples_copied;
@@ -300,6 +301,13 @@ static int decode_flac(bgav_stream_t * s,
 
 static void close_flac(bgav_stream_t * s)
   {
+  flac_priv_t * priv;
+  priv = (flac_priv_t*)(s->data.audio.decoder->priv);
+  if(priv->frame)
+    gavl_audio_frame_destroy(priv->frame);
+  if(priv->dec)
+    FLAC__stream_decoder_delete(priv->dec);
+  free(priv);
   }
 
 static void resync_flac(bgav_stream_t * s)
