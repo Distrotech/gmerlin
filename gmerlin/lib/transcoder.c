@@ -469,6 +469,12 @@ static void finalize_audio_stream(audio_stream_t * ret,
   
   gavl_audio_format_copy(&(ret->in_format),
                          &(track_info->audio_streams[ret->com.in_index].format));
+
+  /* We set the frame size so we have roughly half second long audio chunks */
+#if 1
+  ret->in_format.samples_per_frame = gavl_time_to_samples(ret->in_format.samplerate,
+                                                          GAVL_TIME_SCALE/2);
+#endif
   gavl_audio_format_copy(&(ret->out_format), &(ret->in_format));
     
   /* Adjust format */
@@ -1439,7 +1445,7 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   {
   int i;
   gavl_time_t time;
-  stream_t * stream;
+  stream_t * stream = (stream_t*)0;
 
   gavl_time_t real_time;
   double real_seconds;

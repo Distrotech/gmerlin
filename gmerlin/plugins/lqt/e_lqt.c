@@ -231,7 +231,7 @@ static void write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
 
   /* TODO: lqt_encode_video */
   
-  quicktime_encode_video(e->file, rows, stream);
+  lqt_encode_video(e->file, rows, stream, frame->time_scaled);
   }
 
 static void close_lqt(void * data, int do_delete)

@@ -63,8 +63,8 @@ typedef struct
   struct
     {
     int quicktime_index;
-    int64_t total_samples;
     int64_t sample_position;
+    int eof;
     } * audio_streams;
   
   struct
@@ -170,16 +170,16 @@ static int open_lqt(void * data, const char * arg)
         gavl_set_channel_setup(audio_format);
 
         //        gavl_audio_format_dump(audio_format);
-
+#if 0
         e->audio_streams[e->track_info.num_audio_streams].total_samples
           = quicktime_audio_length(e->file, i);
-
+#endif
         //        fprintf(stderr, "Audio samples: %lld\n",
         //                e->audio_streams[e->track_info.num_audio_streams].total_samples);
         
         duration =
           gavl_samples_to_time(audio_format->samplerate,
-                               e->audio_streams[e->track_info.num_audio_streams].total_samples);
+                               quicktime_audio_length(e->file, i));
 
         //        fprintf(stderr, "Audio Duration: %lld %d %lld\n", duration,
         //                audio_format->samplerate,
@@ -281,38 +281,35 @@ static
 int read_audio_samples_lqt(void * data, gavl_audio_frame_t * f, int stream,
                           int num_samples)
   {
-  int samples_to_read;
+  int64_t new_position;
+  int samples_read;
   i_lqt_t * e = (i_lqt_t*)data;
 
   //  fprintf(stderr, "read audio\n");
-  
-  if(e->audio_streams[stream].sample_position + num_samples > 
-     e->audio_streams[stream].total_samples)
-    {
-    samples_to_read = e->audio_streams[stream].total_samples -
-      e->audio_streams[stream].sample_position;
-    }
-  else
-    samples_to_read = num_samples;
 
-  if(samples_to_read <= 0)
-    {
-    fprintf(stderr, "AUDIO EOF\n");
+  if(e->audio_streams[stream].eof)
     return 0;
-    }
   
   if(e->track_info.audio_streams[stream].format.sample_format == GAVL_SAMPLE_FLOAT)
     lqt_decode_audio_track(e->file,
                            NULL,
                            f->channels.f,
-                           samples_to_read,
+                           num_samples,
                            e->audio_streams[stream].quicktime_index);
 
-  e->audio_streams[stream].sample_position += samples_to_read;
+  new_position = lqt_last_audio_position(e->file, 
+                                         e->audio_streams[stream].quicktime_index);
+
+  samples_read = new_position - e->audio_streams[stream].sample_position;
+
+  if(samples_read < num_samples)
+    e->audio_streams[stream].eof = 1;
+  
+  e->audio_streams[stream].sample_position += samples_read;
   
   if(f)
-    f->valid_samples = samples_to_read;
-  return samples_to_read;
+    f->valid_samples = samples_read;
+  return samples_read;
   }
 
 

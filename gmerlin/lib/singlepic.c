@@ -342,6 +342,7 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
     return 0;
   if(f)
     {
+    f->time_scaled = (inp->current_frame - inp->frame_start) * inp->frame_duration;
     f->time = gavl_frames_to_time(inp->timescale, inp->frame_duration,
                                   inp->current_frame - inp->frame_start);
     }
