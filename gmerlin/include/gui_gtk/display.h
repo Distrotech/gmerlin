@@ -29,7 +29,8 @@ typedef enum
 
 typedef struct bg_gtk_time_display_s bg_gtk_time_display_t;
 
-bg_gtk_time_display_t * bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size, int border_width);
+bg_gtk_time_display_t *
+bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size, int border_width);
 
 GtkWidget * bg_gtk_time_display_get_widget(bg_gtk_time_display_t *);
 

@@ -66,6 +66,14 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
   return TRUE;
   }
 
+static gboolean configure_callback(GtkWidget * w, GdkEventConfigure * evt,
+                                   gpointer data)
+  {
+  bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t *)data;
+  fprintf(stderr, "Configure: %d %d\n", evt->width, evt->height);
+  return FALSE;
+  }
+
 static gboolean timeout_func(gpointer data)
   {
   bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t*)data;
@@ -233,6 +241,7 @@ static void create_text_pixmap(bg_gtk_scrolltext_t * st)
 static void realize_callback(GtkWidget * w, gpointer data)
   {
   bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t *)data;
+  fprintf(stderr, "Realize!!\n");
   st->is_realized = 1;
   st->gc = gdk_gc_new(st->drawingarea->window);
 
@@ -260,7 +269,11 @@ bg_gtk_scrolltext_t * bg_gtk_scrolltext_create(int width, int height)
                    "realize", G_CALLBACK(realize_callback),
                    ret);
   g_signal_connect(G_OBJECT(ret->drawingarea),
-                   "expose_event", G_CALLBACK(expose_callback),
+                   "expose-event", G_CALLBACK(expose_callback),
+                   ret);
+
+  g_signal_connect(G_OBJECT(ret->drawingarea),
+                   "configure-event", G_CALLBACK(configure_callback),
                    ret);
   
   gtk_widget_show(ret->drawingarea);
