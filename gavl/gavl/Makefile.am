@@ -19,6 +19,7 @@ audioformat.c \
 audioframe.c \
 colorspace.c \
 cputest.c \
+framerate.c \
 interleave.c \
 mix.c \
 sampleformat.c \

@@ -316,7 +316,7 @@ typedef struct
   int width;
   int height;
   gavl_colorspace_t colorspace;
-  float framerate;
+  double framerate;
   int free_framerate;   /* Framerate will be based on timestamps only */
   } gavl_video_format_t;
 
@@ -362,9 +362,11 @@ int gavl_video_init(gavl_video_converter_t* cnv,
 
 /***************************************************
  * Convert a frame
+ * Returns 1 if the input frame is no longer used
+ * If the timestamp of the output frame is > 0
  ***************************************************/
 
-void  gavl_video_convert(gavl_video_converter_t * cnv,
+void gavl_video_convert(gavl_video_converter_t * cnv,
                         gavl_video_frame_t * input_frame,
                         gavl_video_frame_t * output_frame);
 
@@ -406,6 +408,42 @@ void gavl_video_frame_free(gavl_video_frame_t*);
 void gavl_clear_video_frame(gavl_video_frame_t * frame,
                             gavl_video_format_t * format);
 
+
+/*
+ *  Video framerate converter
+ *  Simple converter, which is works by
+ *  repeating/dropping pictures
+ */
+
+typedef struct gavl_framerate_converter_s gavl_framerate_converter_t;
+
+gavl_framerate_converter_t * gavl_framerate_converter_create();
+
+void
+gavl_framerate_converter_init(gavl_framerate_converter_t *,
+                              double output_framerate);
+
+void gavl_framerate_converter_reset(gavl_framerate_converter_t*);
+
+void gavl_framerate_converter_destroy(gavl_framerate_converter_t*);
+
+/*
+ * Convert framerate:
+ * input are 2 subsequent frames with valid timestamps
+ * output is one of the input frames with corrected timestamps
+ *
+ * The timestamps of the input frames should be considered
+ * undefined afterwards
+ */
+
+#define GAVL_FRAMERATE_INPUT_DONE  (1<<0)
+#define GAVL_FRAMERATE_OUTPUT_DONE (1<<1)
+  
+int gavl_framerate_convert(gavl_framerate_converter_t *,
+                           gavl_video_frame_t *  input_frame_1,
+                           gavl_video_frame_t *  input_frame_2,
+                           gavl_video_frame_t ** output_frame);
+  
 /*******************************************************
  * Colorspace related functions
  *******************************************************/

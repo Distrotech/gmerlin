@@ -5,8 +5,6 @@
 #include <inttypes.h>
 #include <gavltime.h>
 
-
-
 /* Sleep for a specified time */
 
 void gavl_time_delay(gavl_time_t * t)
@@ -25,9 +23,22 @@ void gavl_samples_to_time(gavl_time_t * ret,
   }
 
 void gavl_frames_to_time(gavl_time_t * ret,
-                         float framerate, int64_t frames)
+                         double framerate, int64_t frames)
   {
-  *ret = (gavl_time_t)((float)frames/(float)(framerate)*1000000.0);
+  *ret = (gavl_time_t)((double)frames*1000000.0/framerate);
+  }
+
+
+void gavl_time_to_samples(int64_t * ret,
+                          int samplerate, gavl_time_t time)
+  {
+  *ret = (time*samplerate)/1000000;
+  }
+
+void gavl_time_to_frames(int64_t * ret,
+                         double framerate, gavl_time_t time)
+  {
+  *ret = (int64_t)(((double)time*framerate)/1000000.0+0.5);
   }
 
 /*
@@ -35,43 +46,13 @@ void gavl_frames_to_time(gavl_time_t * ret,
  *  hhh:mm:ss
  */
 
+static char digit_to_char_array[] = "0123456789 ";
+
 static char digit_to_char(int digit)
   {
-  switch(digit)
-    {
-    case 0:
-      return '0';
-      break;
-    case 1:
-      return '1';
-      break;
-    case 2:
-      return '2';
-      break;
-    case 3:
-      return '3';
-      break;
-    case 4:
-      return '4';
-      break;
-    case 5:
-      return '5';
-      break;
-    case 6:
-      return '6';
-      break;
-    case 7:
-      return '7';
-      break;
-    case 8:
-      return '8';
-      break;
-    case 9:
-      return '9';
-      break;
-    default:
-      return ' ';
-    }
+  if((digit > 9) || (digit < 0))
+    return ' ';
+  return digit_to_char_array[digit];
   }
 
 void

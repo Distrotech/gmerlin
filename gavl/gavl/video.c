@@ -33,27 +33,13 @@
 static void copy_video_options(gavl_video_options_t * dst,
                                const gavl_video_options_t * src)
   {
-  dst->accel_flags = src->accel_flags;
-
-  /* Conversion flags */
-  
-  dst->conversion_flags = src->conversion_flags;
-
-  dst->crop_factor = src->crop_factor;
-  
-  /* Background color */
-
-  dst->background_red   = src->background_red;
-  dst->background_green = src->background_green;
-  dst->background_blue  = src->background_blue;
+  memcpy(dst, src, sizeof(*dst));
   }
 
 static void copy_video_format(gavl_video_format_t  * dst,
                               const gavl_video_format_t  * src)
   {
-  dst->colorspace = src->colorspace;
-  dst->width = src->width;
-  dst->height = src->height;
+  memcpy(dst, src, sizeof(*dst));
   }
 
 /***************************************************
@@ -145,8 +131,8 @@ int gavl_video_init(gavl_video_converter_t * cnv,
  ***************************************************/
 
 void gavl_video_convert(gavl_video_converter_t * cnv,
-                       gavl_video_frame_t * input_frame,
-                       gavl_video_frame_t * output_frame)
+                        gavl_video_frame_t * input_frame,
+                        gavl_video_frame_t * output_frame)
   {
   if(cnv->csp_func)
     {

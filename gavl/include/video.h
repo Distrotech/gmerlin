@@ -34,12 +34,15 @@ typedef struct
 
 typedef void (*gavl_video_func_t)(gavl_video_convert_context_t * ctx);
 
-
 struct gavl_video_converter_s
   {
   gavl_video_convert_context_t csp_context;
   gavl_video_options_t options;
   gavl_video_func_t csp_func;
+
+  int convert_framerate;
+  
+  int64_t frame_count;
   };
 
 
