@@ -27,6 +27,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+#include <parameter.h>
 #include <streaminfo.h>
 #include <msgqueue.h>
 

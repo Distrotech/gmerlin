@@ -4,12 +4,12 @@
 
 typedef struct
   {
-  int dummy;
+  gavl_audio_format_t format;
   } audio_stream_t;
 
 typedef struct
   {
-  int dummy;
+  gavl_video_format_t format;
   } video_stream_t;
 
 typedef struct track_s
@@ -30,5 +30,7 @@ typedef struct track_s
 
   } track_t;
 
-track_t * track_create_from_url(const char * url);
+track_t * track_create(const char * url, const char * plugin,
+                       int track, bg_plugin_registry_t * plugin_reg);
 
+void track_destroy(track_t * t);

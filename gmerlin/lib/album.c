@@ -1204,62 +1204,11 @@ void bg_album_find_devices(bg_album_t * a)
   bg_album_set_devices(a);
   }
 
-static void load_plugin(bg_album_t * album,
-                        const bg_plugin_info_t * info)
-  {
-  if(!album->com->load_handle || strcmp(album->com->load_handle->info->name,
-                                  info->name))
-    {
-    if(album->com->load_handle)
-      bg_plugin_unref(album->com->load_handle);
-    album->com->load_handle = bg_plugin_load(album->com->plugin_reg, info);
-    //    album->com->plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
-    }
-  }
-
-static int load_plugin_by_filename(bg_album_t * album,
-                                   const char * filename)
-  {
-  const bg_plugin_info_t * info;
-  info = bg_plugin_find_by_filename(album->com->plugin_reg, filename,
-                                    (BG_PLUGIN_INPUT));
-  if(!info)
-    return 0;
-  load_plugin(album, info);
-  return 1;
-  }
-
-
-static int load_plugin_by_name(bg_album_t * album,
-                               const char * name)
-  {
-  const bg_plugin_info_t * info;
-  info = bg_plugin_find_by_name(album->com->plugin_reg, name);
-  if(!info)
-    return 0;
-  load_plugin(album, info);
-  return 1;
-  }
-
-static int load_plugin_by_long_name(bg_album_t * album,
-                               const char * name)
-  {
-  const bg_plugin_info_t * info;
-  info = bg_plugin_find_by_long_name(album->com->plugin_reg, name);
-  if(!info)
-    return 0;
-  load_plugin(album, info);
-  return 1;
-  }
-
-
-
 bg_album_entry_t * bg_album_load_url(bg_album_t * album,
                                      char * url,
                                      const char * plugin_long_name)
   {
   int i, num_entries;
-  int have_plugin = 0;
     
   //  bg_redirector_plugin_t * redir;
 
@@ -1271,10 +1220,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
 
   bg_input_plugin_t * plugin;
   bg_track_info_t * track_info;
-  int num_plugins;
-  uint32_t flags;
   const bg_plugin_info_t * info;
-  int remember_plugin = 0;
   //  const char * file_plugin_name;
   
   //  fprintf(stderr, "bg_media_tree_load_url %s %s\n", url,
@@ -1282,79 +1228,20 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   
   /* Load the appropriate plugin */
 
-  /* 1st case: We know the plugin in advance */
   if(plugin_long_name)
     {
-    if(!load_plugin_by_long_name(album, plugin_long_name))
-      return (bg_album_entry_t*)0;
-    
-    plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
-    if(!plugin->open(album->com->load_handle->priv, url))
-      {
-      fprintf(stderr, "Opening %s with %s failed\n", url,
-              album->com->load_handle->info->name);
-      //      plugin->close(album->com->load_handle->priv);
-      return (bg_album_entry_t*)0;
-      }
-    remember_plugin = 1;
-    have_plugin = 1;
+    info = bg_plugin_find_by_long_name(album->com->plugin_reg,
+                                       plugin_long_name);
     }
-  /* 2rd case: Track has a filename so we can look for the extension */
   else
-    {
-    if(load_plugin_by_filename(album, url))
-      {
-      plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
-      if(!plugin->open(album->com->load_handle->priv, url))
-        {
-        fprintf(stderr, "Opening %s with %s failed\n", url,
-                album->com->load_handle->info->name);
-        //        plugin->close(album->com->load_handle->priv);
-        return (bg_album_entry_t*)0;
-        }
-      else
-        have_plugin = 1;
-      }
-    }
-  /* 3rd case: We try all plugins if they can open the file */
-  if(!have_plugin)
-    {
-    flags = bgav_string_is_url(url) ? BG_PLUGIN_URL : BG_PLUGIN_FILE;
+    info = (bg_plugin_info_t*)0;
 
-    num_plugins = bg_plugin_registry_get_num_plugins(album->com->plugin_reg,
-                                                     BG_PLUGIN_INPUT, flags);
-    for(i = 0; i < num_plugins; i++)
-      {
-      info = bg_plugin_find_by_index(album->com->plugin_reg, i,
-                                     BG_PLUGIN_INPUT, flags);
-      load_plugin(album, info);
-      plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
-      fprintf(stderr, "Trying to load %s with %s...", url, info->long_name);
-      if(!plugin->open(album->com->load_handle->priv, url))
-        {
-        //        plugin->close(album->com->load_handle->priv);
-        fprintf(stderr, "Failed\n");
-        }
-      else
-        {
-        have_plugin = 1;
-        remember_plugin = 1;
-        fprintf(stderr, "Success\n");
-        break;
-        }
-      }
-    }
-
-  if(!have_plugin)
-    {
-    fprintf(stderr, "Cannot load %s: giving up\n", url);
+  if(!bg_input_plugin_load(album->com->plugin_reg,
+                           url, info,
+                           &(album->com->load_handle)))
     return (bg_album_entry_t*)0;
-    }
-  //  fprintf(stderr, "Loaded %s\n", album->com->load_handle->info->long_name);
   
-  /* Use track info from the plugin */
-  //  fprintf(stderr, "Using input plugin %s\n",
-  //          album->com->load_handle->info->name);
+  plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
   
   /* Open the track */
   
@@ -1375,10 +1262,10 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
     track_info = plugin->get_track_info(album->com->load_handle->priv, i);
     bg_album_update_entry(album, new_entry, track_info);
 
-    if(remember_plugin)
+    if(plugin_long_name)
       new_entry->plugin = bg_strdup(new_entry->plugin,
                                     album->com->load_handle->info->name);
-        
+    
     if(ret)
       {
       end_entry->next = new_entry;
@@ -1437,21 +1324,23 @@ static int refresh_entry(bg_album_t * album,
   }
 
 int bg_album_refresh_entry(bg_album_t * album,
-                            bg_album_entry_t * entry)
+                           bg_album_entry_t * entry)
   {
-  int result = 0;
-  
-  //  fprintf(stderr, "Opening %s %p\n", (char*)(entry->location), tree);
+  const bg_plugin_info_t * info;
   
   /* Check, which plugin to use */
 
   if(entry->plugin)
-    result = load_plugin_by_name(album, entry->plugin);
-  else if(entry->location)
-    result = load_plugin_by_filename(album,
-                                     (char*)(entry->location));
-
-  if(!result)
+    {
+    info = bg_plugin_find_by_name(album->com->plugin_reg, entry->plugin);
+    }
+  else
+    info = (bg_plugin_info_t*)0;
+  
+  if(!bg_input_plugin_load(album->com->plugin_reg,
+                           entry->location,
+                           info,
+                           &(album->com->load_handle)))
     {
     fprintf(stderr, "No plugin found for %s\n",
             (char*)(entry->location));

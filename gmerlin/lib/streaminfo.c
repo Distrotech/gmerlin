@@ -23,27 +23,16 @@
 #include <ctype.h>
 
 #include <gavl/gavl.h>
+#include <parameter.h>
 #include <streaminfo.h>
 #include <utils.h>
 
-#define my_free(ptr) \
+#define MY_FREE(ptr) \
   if(ptr) \
     { \
     free(ptr); \
     ptr = NULL; \
     }
-
-void bg_metadata_free(bg_metadata_t * m)
-  {
-  my_free(m->artist);
-  my_free(m->title);
-  my_free(m->album);
-  my_free(m->genre);
-  my_free(m->comment);
-  my_free(m->author);
-  my_free(m->copyright);
-
-  }
 
 void bg_track_info_free(bg_track_info_t * info)
   {
@@ -52,24 +41,24 @@ void bg_track_info_free(bg_track_info_t * info)
   if(info->audio_streams)
     {
     for(i = 0; i < info->num_audio_streams; i++)
-      my_free(info->audio_streams[i].language);
-    my_free(info->audio_streams);
+      MY_FREE(info->audio_streams[i].language);
+    MY_FREE(info->audio_streams);
     }
   
-  my_free(info->video_streams);
+  MY_FREE(info->video_streams);
   if(info->subpicture_streams)
     {
     for(i = 0; i < info->num_subpicture_streams; i++)
-      my_free(info->subpicture_streams[i].language);
-    my_free(info->subpicture_streams);
+      MY_FREE(info->subpicture_streams[i].language);
+    MY_FREE(info->subpicture_streams);
     }
 
   bg_metadata_free(&(info->metadata));
   
-  my_free(info->name);
-  my_free(info->description);
-  my_free(info->url);
-  my_free(info->plugin);
+  MY_FREE(info->name);
+  MY_FREE(info->description);
+  MY_FREE(info->url);
+  MY_FREE(info->plugin);
   memset(info, 0, sizeof(*info));
   }
 

@@ -898,7 +898,7 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
     if(!dent_ptr)
       break;
     
-    fprintf(stderr, "d_name: %s\n", dent.d.d_name);
+    //    fprintf(stderr, "d_name: %s\n", dent.d.d_name);
 
     if(!strcmp(dent.d.d_name, ".") || !strcmp(dent.d.d_name, ".."))
       continue;

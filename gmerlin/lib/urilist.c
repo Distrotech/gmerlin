@@ -59,7 +59,7 @@ char * parse_uri(const char * pos1, int len)
     else /* Gnome Case */
       start = &(pos1[7]);
     }
-  else if(bgav_string_is_url(pos1))
+  else if(bg_string_is_url(pos1))
     start = pos1;
   else
     return (char*)0;

@@ -99,7 +99,21 @@ char ** bg_plugin_registry_get_plugins(bg_plugin_registry_t*reg,
                                        uint32_t type_mask,
                                        uint32_t flag_mask);
 
-void bg_plugin_registry__free_plugins(char ** plugins);
+void bg_plugin_registry_free_plugins(char ** plugins);
+
+/*  Finally a version for finding/loading plugins */
+
+/*
+ *  info can be NULL
+ *  If ret is non NULL before the call, the plugin will be unrefed
+ *
+ *  Return values are 0 for error, 1 on success
+ */
+
+int bg_input_plugin_load(bg_plugin_registry_t * reg,
+                         const char * location,
+                         const bg_plugin_info_t * info,
+                         bg_plugin_handle_t ** ret);
 
 /* Set the supported extensions and mimetypes for a plugin */
 

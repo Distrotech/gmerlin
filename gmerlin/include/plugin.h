@@ -21,8 +21,8 @@
 #define __BG_PLUGIN_H_
 
 #include <gavl/gavl.h>
-#include "streaminfo.h"
 #include "parameter.h"
+#include "streaminfo.h"
 
 typedef enum
   {

@@ -30,6 +30,7 @@ static gboolean delete_callback(GtkWidget * w, GdkEvent * evt,
 transcoder_window_t * transcoder_window_create()
   {
   GtkWidget * main_table;
+  GtkWidget * frame;
   char * tmp_path;
   transcoder_window_t * ret;
   bg_cfg_section_t * cfg_section;
@@ -69,8 +70,13 @@ transcoder_window_t * transcoder_window_create()
   gtk_table_set_row_spacings(GTK_TABLE(main_table), 5);
   gtk_table_set_col_spacings(GTK_TABLE(main_table), 5);
 
+  frame = gtk_frame_new("Track queue");
+  gtk_container_add(GTK_CONTAINER(frame),
+                    track_list_get_widget(ret->tracklist));
+
+  gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(main_table),
-                            track_list_get_widget(ret->tracklist),
+                            frame,
                             0, 1, 0, 1);
   gtk_widget_show(main_table);
   gtk_container_add(GTK_CONTAINER(ret->win), main_table);

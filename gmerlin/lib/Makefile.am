@@ -21,6 +21,7 @@ fifo.c \
 formats.c \
 hexdump.c \
 http.c \
+metadata.c \
 msgqueue.c \
 parameter.c \
 player.c \

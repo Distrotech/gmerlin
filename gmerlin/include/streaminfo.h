@@ -62,6 +62,18 @@ typedef struct
   } bg_metadata_t;
 
 void bg_metadata_free(bg_metadata_t * m);
+void bg_metadata_copy(bg_metadata_t * dst, const bg_metadata_t * src);
+
+/*
+ *  Get parameters for configuring metadata
+ *  call bg_parameter_info_destroy_array(bg_parameter_info_t * info);
+ *  to free the returned array
+ */
+
+bg_parameter_info_t * bg_metadata_get_parameters(bg_metadata_t * m);
+
+void bg_metadata_set_parameter(void * data, char * name,
+                               bg_parameter_value_t * v);
 
 typedef struct
   {

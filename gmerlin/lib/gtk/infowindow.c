@@ -22,6 +22,7 @@
 #include <string.h>
 #include <gtk/gtk.h>
 
+#include <parameter.h>
 #include <streaminfo.h>
 //#include <msgqueue.h>
 #include <player.h>

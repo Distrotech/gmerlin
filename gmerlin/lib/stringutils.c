@@ -301,7 +301,7 @@ void bg_strbreak_free(char ** retval)
   free(retval);
   }
 
-int bgav_string_is_url(const char * str)
+int bg_string_is_url(const char * str)
   {
   const char * pos, * end_pos;
   pos = str;

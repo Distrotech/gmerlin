@@ -993,3 +993,86 @@ void bg_plugin_registry_free_plugins(char ** plugins)
   free(plugins);
   
   }
+
+static void load_plugin(bg_plugin_registry_t * reg,
+                        const bg_plugin_info_t * info,
+                        bg_plugin_handle_t ** ret)
+  {
+  if(!(*ret) || strcmp((*ret)->info->name, info->name))
+    {
+    if(*ret)
+      bg_plugin_unref(*ret);
+    *ret = bg_plugin_load(reg, info);
+    }
+  }
+
+int bg_input_plugin_load(bg_plugin_registry_t * reg,
+                         const char * location,
+                         const bg_plugin_info_t * info,
+                         bg_plugin_handle_t ** ret)
+  {
+  int num_plugins, i;
+  uint32_t flags;
+  
+  bg_input_plugin_t * plugin;
+
+  int try_and_error = 1;
+  if(!info) /* No plugin given, seek one */
+    {
+    info = bg_plugin_find_by_filename(reg, location,
+                                      (BG_PLUGIN_INPUT));
+    }
+  else
+    try_and_error = 0; /* We never try other plugins than the given one */
+  
+  if(info)
+    {
+    /* Try to load this */
+
+    load_plugin(reg, info, ret);
+
+    if(!(*ret))
+      return 0;
+    
+    plugin = (bg_input_plugin_t*)((*ret)->plugin);
+
+    if(!plugin->open((*ret)->priv, location))
+      {
+      fprintf(stderr, "Opening %s with %s failed\n", location,
+              info->long_name);
+      return 0;
+      }
+    else
+      return 1;
+    }
+
+  if(!try_and_error)
+    return 0;
+
+  flags = bg_string_is_url(location) ? BG_PLUGIN_URL : BG_PLUGIN_FILE;
+  
+  num_plugins = bg_plugin_registry_get_num_plugins(reg,
+                                                   BG_PLUGIN_INPUT, flags);
+  for(i = 0; i < num_plugins; i++)
+    {
+    info = bg_plugin_find_by_index(reg, i, BG_PLUGIN_INPUT, flags);
+
+    load_plugin(reg, info, ret);
+    
+    plugin = (bg_input_plugin_t*)((*ret)->plugin);
+    fprintf(stderr, "Trying to load %s with %s...", location,
+            info->long_name);
+    if(!plugin->open((*ret)->priv, location))
+      {
+      //        plugin->close(album->com->load_handle->priv);
+      fprintf(stderr, "Failed\n");
+      }
+    else
+      {
+      fprintf(stderr, "Success\n");
+      return 1;
+      }
+    }
+  fprintf(stderr, "Cannot load %s: giving up\n", location);
+  return 0;
+  }
