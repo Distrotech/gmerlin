@@ -1,0 +1,56 @@
+Summary:        Run xmms visualization plugins without having to run xmms
+Name:           gmerlin-visualizer
+Version:        @VERSION@
+Release:        1
+License:        GPL
+Group:          Applications/Multimedia
+Group(de):      Anwendungen/Multimedia
+Source0:        gmerlin-visualizer-%{version}.tar.gz
+URL:            http://gmerlin.sourceforge.net/
+BuildRequires:  autoconf
+BuildRequires:  automake
+BuildRequires:  gmerlin-lib-devel = @GMERLIN_REQUIRED@
+BuildRequires:  xmms-devel =        @XMMS_REQUIRED@
+BuildRequires:  gtk+-devel =        @GTK_REQUIRED@
+Requires:       gmerlin-lib =       @GMERLIN_REQUIRED@
+Requires:       xmms =              @XMMS_REQUIRED@
+Requires:       gtk+ =              @GTK_REQUIRED@
+Requires:       gmerlin-utils =     @GMERLIN_REQUIRED@
+Requires:       gmerlin-soundcard-plugin
+BuildRoot:      /tmp/gmerlin-build
+
+%description
+Run xmms visualization plugins without having to run xmms
+
+%prep
+%setup -n gmerlin-viszalizer-%{version}
+
+%build
+./cvs_clean.sh
+./autogen.sh
+
+%configure
+
+%{__make}
+%install
+rm -rf $RPM_BUILD_ROOT
+%{__make} install DESTDIR=$RPM_BUILD_ROOT
+
+gzip -9nf README
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post   -p /sbin/ldconfig
+%postun -p /sbin/ldconfig
+
+%files
+%doc README.gz
+%attr(644,root,root) %{_datadir}/applications/gmerlin-visualizer.desktop
+%attr(644,root,root) %{_datadir}/gmerlin/icons/visualizer_icon.png
+%attr(755,root,root) %{_bindir}/gmerlin_visualizer
+
+%define date    %(echo `LC_ALL="C" date +"%a %b %d %Y"`)
+%changelog
+* Sat Jun 19 2004 Burkhard Plaum <gmerlin@users.sourceforge.net>
+- Initial creation
