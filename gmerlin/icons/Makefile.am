@@ -5,6 +5,7 @@ icons = \
 audio_16.png \
 bass_32.png \
 cd_32.png \
+camelot_icon.png \
 config_16.png \
 digit_0.png \
 digit_1.png \
@@ -36,8 +37,11 @@ line_32.png \
 lock_16.png \
 mic_32.png \
 mixer_32.png \
+mixer_icon.png \
 mute_16.png \
 pcm_32.png \
+player_icon.png \
+plugincfg_icon.png \
 record_16.png \
 record_32.png \
 repeat_mode_1.png \

@@ -18,6 +18,8 @@ struct card_widget_s
   GtkWidget * w;
   snd_hctl_t *hctl;
   bg_cfg_section_t * section;
+
+  GList * control_windows;
   };
 
 gboolean  timeout_func(gpointer data)
@@ -427,6 +429,26 @@ typedef struct
   GtkWidget * window;
   } own_window_t;
 
+void card_widget_get_window_coords(card_widget_t * w)
+  {
+  int x, y, width, height;
+  own_window_t * win;
+  GList * item;
+  
+  item = w->control_windows;
+  
+  while(item)
+    {
+    win = (own_window_t*)(item->data);
+    gtk_window_get_position(GTK_WINDOW(win->window), &(x), &(y));
+    gtk_window_get_size(GTK_WINDOW(win->window), &(width), &(height));
+    control_widget_set_coords(win->control, x, y, width, height);
+    
+    item = item->next;
+    }
+  
+  }
+
 static gboolean delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
   {
   own_window_t * win;
@@ -434,13 +456,46 @@ static gboolean delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
 
   gtk_widget_hide(win->window);
   gtk_container_remove(GTK_CONTAINER(win->window), control_widget_get_widget(win->control));
-
+  
   //  g_object_unref(win->window);
 
+  win->card->control_windows = g_list_remove(win->card->control_windows, win);
   card_widget_tearon_control(win->card, win->control);
   free(win);
   return FALSE;
   }
+
+static void unmap_callback(GtkWidget * w, gpointer data)
+  {
+  own_window_t * win;
+  int x, y, width, height;
+
+  win = (own_window_t*)data;
+  gtk_window_get_position(GTK_WINDOW(win->window), &(x), &(y));
+  gtk_window_get_size(GTK_WINDOW(win->window), &(width), &(height));
+
+  fprintf(stderr, "Unmap callback %d %d %d %d\n", x, y, width, height);
+  
+  control_widget_set_coords(win->control, x, y, width, height);
+  
+  }
+     
+static void map_callback(GtkWidget * w, gpointer data)
+  {
+  int x, y, width, height;
+  own_window_t * win;
+  win = (own_window_t*)data;
+
+  control_widget_get_coords(win->control, &x, &y, &width, &height);
+
+  fprintf(stderr, "Map %d %d %d %d\n", x, y, width, height);
+  
+  gtk_window_resize(GTK_WINDOW(win->window), width, height);
+  gtk_window_move(GTK_WINDOW(win->window), x, y);
+
+  }
+
+
 
 void card_widget_tearoff_control(card_widget_t * c, control_widget_t * w)
   {
@@ -449,6 +504,8 @@ void card_widget_tearoff_control(card_widget_t * c, control_widget_t * w)
 
   win->control = w;
   win->card    = c;
+
+  c->control_windows = g_list_append(c->control_windows, win);
   
   gtk_container_remove(GTK_CONTAINER(c->upper_table), control_widget_get_widget(w));
   
@@ -460,7 +517,9 @@ void card_widget_tearoff_control(card_widget_t * c, control_widget_t * w)
 
   
   g_signal_connect(G_OBJECT(win->window), "delete-event", G_CALLBACK(delete_callback), win);
-    
+  g_signal_connect(G_OBJECT(win->window), "map", G_CALLBACK(map_callback), win);
+  g_signal_connect(G_OBJECT(win->window), "unmap", G_CALLBACK(unmap_callback), win);
+  
   gtk_widget_show(win->window);
   }
 

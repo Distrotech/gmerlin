@@ -88,11 +88,10 @@ static void * create_alsa()
   {
   int i;
   alsa_t * ret = calloc(1, sizeof(*ret));
-
+  
   ret->parameters = calloc(num_global_parameters+2, sizeof(*ret->parameters));
   
-  bg_alsa_create_card_parameters(ret->parameters,
-                                 (bg_parameter_info_t*)0);
+  bg_alsa_create_card_parameters(ret->parameters);
   
   for(i = 0; i < num_global_parameters; i++)
     {
@@ -102,9 +101,24 @@ static void * create_alsa()
   return ret;
   }
 
-static int open_devices(alsa_t * priv, gavl_audio_format_t * format)
+static int start_alsa(void * data)
   {
-  return 0;
+  alsa_t * priv = (alsa_t*)(data);
+  fprintf(stderr, "start_alsa\n");
+
+  if(snd_pcm_prepare(priv->pcm) < 0)
+    return 0;
+  snd_pcm_start(priv->pcm);
+  return 1;
+  }
+
+static void stop_alsa(void * data)
+  {
+  alsa_t * priv = (alsa_t*)(data);
+  fprintf(stderr, "stop_alsa: ");
+  snd_pcm_drop(priv->pcm);
+
+  fprintf(stderr, "%s\n", snd_pcm_state_name(snd_pcm_state(priv->pcm)));
   }
 
 static int open_alsa(void * data, gavl_audio_format_t * format)
@@ -127,7 +141,6 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   
   if(!priv->pcm)
     return 0;
-  
   gavl_audio_format_copy(&(priv->format), format);
   return 1;
   }
@@ -135,7 +148,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
 static void close_alsa(void * p)
   {
   alsa_t * priv = (alsa_t*)(p);
-
+  fprintf(stderr, "close_alsa\n");
   if(priv->pcm)
     {
     snd_pcm_close(priv->pcm);
@@ -143,12 +156,6 @@ static void close_alsa(void * p)
     }
   }
 
-static void reset_alsa(void * data)
-  {
-  alsa_t * priv = (alsa_t*)data;
-  close_alsa(data);
-  open_devices(priv, &(priv->format));
-  }
 
 static void write_frame_alsa(void * p, gavl_audio_frame_t * f)
   {
@@ -173,6 +180,9 @@ static void destroy_alsa(void * p)
   {
   alsa_t * priv = (alsa_t*)(p);
   close_alsa(priv);
+
+  if(priv->parameters)
+    bg_parameter_info_destroy_array(priv->parameters);
   free(priv);
   }
 
@@ -249,8 +259,9 @@ bg_oa_plugin_t the_plugin =
     },
 
     open:          open_alsa,
+    start:         start_alsa,
     write_frame:   write_frame_alsa,
+    stop:          stop_alsa,
     close:         close_alsa,
     get_delay:     get_delay_alsa,
-    reset:         reset_alsa,
   };

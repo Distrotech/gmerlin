@@ -32,6 +32,7 @@
 #include <linux/videodev.h>
 
 #include <unistd.h>
+#include <utils.h>
 
 extern int bg_pwc_probe(int fd);
 
@@ -182,7 +183,7 @@ typedef struct
   gavl_video_format_t format;
   int luma_size;
   int chroma_size;
-
+  char * device;
   int flip;
   } v4l_t;
 
@@ -194,8 +195,9 @@ int open_v4l(void * priv, gavl_video_format_t * format)
   v4l = (v4l_t*)priv;
 
   /* Open device */
-  
-  if((v4l->fd = open("/dev/video0", O_RDWR, 0)) < 0)
+
+  fprintf(stderr, "Opening %s\n", v4l->device);  
+  if((v4l->fd = open(v4l->device, O_RDWR, 0)) < 0)
     goto fail;
 
   /* Check if we have a Phillips webcam */
@@ -377,6 +379,17 @@ void  destroy_v4l(void * priv)
 
 static bg_parameter_info_t parameters[] =
   {
+    {
+      name:        "device_section",
+      long_name:   "Device",
+      type:        BG_PARAMETER_SECTION
+    },
+    {
+      name:        "device",
+      long_name:   "V4L Device",
+      type:        BG_PARAMETER_DEVICE,
+      val_default: { val_str: "/dev/video" },
+    },
     {
       name:        "res",
       long_name:   "Resolution",
@@ -568,6 +581,10 @@ void set_parameter_v4l(void * priv, char * name,
   else if(!strcmp(name, "flip"))
     {
     v4l->flip = val->val_i;
+    }
+  else if(!strcmp(name, "device"))
+    {
+    v4l->device = bg_strdup(v4l->device, val->val_str);
     }
   else if(!strcmp(name, "user_width"))
     {

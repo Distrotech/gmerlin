@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Gmerlin mixer
+Name[de]=Gmerlin mixer
+Comment=Alsa mixer
+Comment[de]=Alsa mixer
+Exec=gmerlin_alsamixer
+Icon=@GMERLIN_DATA_DIR@/icons/mixer_icon.png
+Type=Application
+Categories=Application;AudioVideo;
+

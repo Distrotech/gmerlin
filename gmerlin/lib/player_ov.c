@@ -188,7 +188,7 @@ int bg_player_ov_init(bg_player_ov_context_t * ctx)
   result = ctx->plugin->open(ctx->priv,
                              &(ctx->player->video_stream.output_format),
                              "Video output");
-  if(ctx->plugin->show_window)
+  if(result && ctx->plugin->show_window)
     ctx->plugin->show_window(ctx->priv, 1);
   
   bg_plugin_unlock(ctx->plugin_handle);

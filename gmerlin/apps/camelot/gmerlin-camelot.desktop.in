@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Camelot
+Name[de]=Camelot
+Comment=Gmerlin webcam application
+Comment[de]=Gmerlin Webcam Programm
+Exec=camelot
+Icon=@GMERLIN_DATA_DIR@/icons/camelot_icon.png
+Type=Application
+Categories=Application;AudioVideo;
+

@@ -39,21 +39,25 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   {
   bg_player_video_stream_t * s;
   s = &(player->video_stream);
-  
-  player->do_video = bg_player_input_set_video_stream(player->input_context,
-                                                      video_stream);
 
+  player->do_video = 0;
+  
+  if(player->track_info->num_video_streams)
+    player->do_video = bg_player_input_set_video_stream(player->input_context,
+                                                        video_stream);
+  
   if(!player->do_video)
-    return 0;
-
-  bg_player_ov_init(player->ov_context);
+    return 1;
   
+  if(!bg_player_ov_init(player->ov_context))
+    return 0;
+    
   /* Initialize video fifo */
-
+  
   player->video_stream.fifo = bg_fifo_create(NUM_VIDEO_FRAMES,
                                              bg_player_ov_create_frame,
                                              (void*)(player->ov_context));
-                                      
+  
   /* Initialize audio converter */
 
   //  fprintf(stderr, "Initializing video converter...");

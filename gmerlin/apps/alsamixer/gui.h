@@ -34,6 +34,10 @@ int control_widget_get_parameter(void * data, char * name,
 void control_widget_read_config(control_widget_t *);
 void control_widget_write_config(control_widget_t *);
 
+/* Coords are handled by the card widgets, but the control widgets store them */
+
+void control_widget_get_coords(control_widget_t *, int * x, int * y, int * width, int * height);
+void control_widget_set_coords(control_widget_t *, int x, int y, int width, int height);
 
 /* Card widget */
 
@@ -54,6 +58,8 @@ void card_widget_move_control_last(card_widget_t*, control_widget_t*);
 
 void card_widget_tearoff_control(card_widget_t*, control_widget_t*);
 void card_widget_tearon_control(card_widget_t*, control_widget_t*);
+
+void card_widget_get_window_coords(card_widget_t*);
 
 
 /* Mixer window */

@@ -1,5 +1,8 @@
 AM_CFLAGS = @GTK_CFLAGS@
 
+Desktopdir = $(datadir)/applications
+Desktop_DATA = gmerlin-camelot.desktop
+
 bin_PROGRAMS = camelot
 
 camelot_SOURCES = webcam.c webcam_window.c main.c

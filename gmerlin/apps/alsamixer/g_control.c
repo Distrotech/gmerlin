@@ -583,6 +583,10 @@ struct control_widget_s
 
   /* True if we are in an own window */
   int own_window;
+
+  /* Coordinates for own window */
+
+  int x, y, width, height;
   };
 
 static void menu_callback(GtkWidget * w, gpointer data)
@@ -1346,21 +1350,43 @@ static bg_parameter_info_t index_param =
     val_default: { val_i: -1 }
   };
 
-static bg_parameter_info_t own_window_param =
+static bg_parameter_info_t own_window_params[] =
   {
-    name: "own_window",
-    type: BG_PARAMETER_CHECKBUTTON,
-    val_default: { val_i: 0 }
+    {
+      name: "own_window",
+      type: BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 0 }
+    },
+    {
+      name: "x",
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 100 }
+    },
+    {
+      name: "y",
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 100 }
+    },
+    {
+      name: "width",
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 20 }
+    },
+    {
+      name: "height",
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 100 }
+    },
   };
 
 static void create_parameters(control_widget_t * w)
   {
-  int i;
+  int i, j;
   int num_parameters = 0;
   
   if(w->upper) /* Index */
     {
-    num_parameters+=2;
+    num_parameters+=6;
     }
   if(w->type == TYPE_VOLUME)
     {
@@ -1384,8 +1410,12 @@ static void create_parameters(control_widget_t * w)
     {
     bg_parameter_info_copy(&w->parameters[i], &index_param);
     i++;
-    bg_parameter_info_copy(&w->parameters[i], &own_window_param);
-    i++;
+
+    for(j = 0; j < 5; j++)
+      {
+      bg_parameter_info_copy(&w->parameters[i], &(own_window_params[j]));
+      i++;
+      }
     }
   if(w->type == TYPE_VOLUME)
     {
@@ -1460,6 +1490,22 @@ void control_widget_set_parameter(void * data, char * name,
     //    fprintf(stderr, "Index: %d\n", v->val_i);
     w->own_window = v->val_i;
     }
+  if(!strcmp(name, "x"))
+    {
+    w->x = v->val_i;
+    }
+  if(!strcmp(name, "y"))
+    {
+    w->y = v->val_i;
+    }
+  if(!strcmp(name, "width"))
+    {
+    w->width = v->val_i;
+    }
+  if(!strcmp(name, "height"))
+    {
+    w->height = v->val_i;
+    }
   }
 
 int control_widget_get_parameter(void * data, char * name,
@@ -1500,6 +1546,22 @@ int control_widget_get_parameter(void * data, char * name,
     //    fprintf(stderr, "Index: %d\n", v->val_i);
     v->val_i = w->own_window;
     }
+  if(!strcmp(name, "x"))
+    {
+    v->val_i = w->x;
+    }
+  if(!strcmp(name, "y"))
+    {
+    v->val_i = w->y;
+    }
+  if(!strcmp(name, "width"))
+    {
+    v->val_i = w->width;
+    }
+  if(!strcmp(name, "height"))
+    {
+    v->val_i = w->height;
+    }
   return 0; 
   }
 
@@ -1535,4 +1597,21 @@ int control_widget_get_own_window(control_widget_t * w)
 void control_widget_set_own_window(control_widget_t * w, int own_window)
   {
   w->own_window = own_window;
+  }
+
+void control_widget_get_coords(control_widget_t * w, int * x, int * y, int * width, int * height)
+  {
+  *x = w->x;
+  *y = w->y;
+  *width = w->width;
+  *height = w->height;
+  
+  }
+
+void control_widget_set_coords(control_widget_t * w, int x, int y, int width, int height)
+  {
+  w->x = x;
+  w->y = y;
+  w->width = width;
+  w->height = height;
   }

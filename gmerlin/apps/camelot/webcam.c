@@ -305,6 +305,8 @@ static void do_capture(gmerlin_webcam_t * cam)
 
 static void open_monitor(gmerlin_webcam_t * cam)
   {
+  if(!cam->input_open)
+    return;
   //  fprintf(stderr, "Open monitor\n");
   gavl_video_format_copy(&cam->monitor_format, &cam->input_format);
 
@@ -361,6 +363,8 @@ static void open_input(gmerlin_webcam_t * cam)
   if(!cam->input->open(cam->input_handle->priv, &cam->input_format))
     {
     fprintf(stderr, "Opening video device failed\n");
+    cam->input_open = 0;
+    return;
     }
   cam->input_frame = gavl_video_frame_create(&cam->input_format);
   cam->input_open = 1;

@@ -108,6 +108,9 @@ typedef struct
 static void * create_oss()
   {
   oss_t * ret = calloc(1, sizeof(*ret));
+  ret->fd_front = -1;
+  ret->fd_rear = -1;
+  ret->fd_center_lfe = -1;
   return ret;
   }
 
@@ -436,7 +439,6 @@ static int open_oss(void * data, gavl_audio_format_t * format)
     }
 
   ret = open_devices(priv, format);
-  
   if(ret)
     {
     format->samples_per_frame = 1024;
@@ -447,7 +449,7 @@ static int open_oss(void * data, gavl_audio_format_t * format)
   return ret;
   }
 
-static void close_oss(void * p)
+static void stop_oss(void * p)
   {
   oss_t * priv = (oss_t*)(p);
 
@@ -468,11 +470,20 @@ static void close_oss(void * p)
     }
   }
 
-static void reset_oss(void * data)
+static void close_oss(void * p)
+  {
+  
+  }
+
+static int start_oss(void * data)
   {
   oss_t * priv = (oss_t*)data;
-  close_oss(data);
-  open_devices(priv, &(priv->format));
+
+  if((priv->fd_front == -1) && (priv->fd_rear == -1)
+     && (priv->fd_center_lfe == -1))
+    return open_devices(priv, &(priv->format));
+  else
+    return 1;
   }
 
 static void write_frame_oss(void * p, gavl_audio_frame_t * f)
@@ -589,8 +600,9 @@ bg_oa_plugin_t the_plugin =
     },
 
     open:          open_oss,
+    start:         start_oss,
     write_frame:   write_frame_oss,
+    stop:          stop_oss,
     close:         close_oss,
     get_delay:     get_delay_oss,
-    reset:         reset_oss,
   };

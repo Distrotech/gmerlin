@@ -114,8 +114,7 @@ static void * create_alsa()
   {
   alsa_t * ret = calloc(1, sizeof(*ret));
 
-  bg_alsa_create_card_parameters(ret->parameters,
-                                 per_card_parameters);
+  bg_alsa_create_card_parameters(ret->parameters);
   
   return ret;
   }

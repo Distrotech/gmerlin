@@ -292,13 +292,25 @@ void bg_player_oa_cleanup(bg_player_oa_context_t * ctx)
   bg_plugin_unlock(ctx->plugin_handle);
   }
 
-void bg_player_oa_reset(bg_player_oa_context_t * ctx)
+int bg_player_oa_start(bg_player_oa_context_t * ctx)
+  {
+  int result = 1;
+  bg_plugin_lock(ctx->plugin_handle);
+  if(ctx->plugin->start)
+    result = ctx->plugin->start(ctx->priv);
+  bg_plugin_unlock(ctx->plugin_handle);
+  return result;
+  }
+
+void bg_player_oa_stop(bg_player_oa_context_t * ctx)
   {
   bg_plugin_lock(ctx->plugin_handle);
-  if(ctx->plugin->reset)
-    ctx->plugin->reset(ctx->priv);
+  if(ctx->plugin->stop)
+    ctx->plugin->stop(ctx->priv);
   bg_plugin_unlock(ctx->plugin_handle);
+  
   }
+
 
 
 int bg_player_oa_get_latency(bg_player_oa_context_t * ctx)

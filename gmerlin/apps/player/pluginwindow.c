@@ -50,8 +50,9 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
   
   ret = calloc(1, sizeof(*ret));
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-
   gtk_window_set_title(GTK_WINDOW(ret->window), "Plugins");
+
+  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
   
   ret->close_notify      = close_notify;
   ret->close_notify_data = close_notify_data;

@@ -281,11 +281,11 @@ typedef struct bg_oa_plugin_s
   int (*open)(void * priv, gavl_audio_format_t*);
 
   /*
-   *  Close plugin, make it ready to be opened with another format
+   *  Start playback
    */
-  
-  void (*close)(void * priv);
 
+  int (*start)(void * priv);
+    
   /*
    *  Write audio samples
    */
@@ -293,11 +293,16 @@ typedef struct bg_oa_plugin_s
   void (*write_frame)(void * priv, gavl_audio_frame_t*);
 
   /*
-   *  This function is called after pause and seek operations
-   *  to get the device in a well defined state after
+   *  Stop playback
    */
 
-  void (*reset)(void * priv);
+  void (*stop)(void * priv);
+    
+  /*
+   *  Close plugin, make it ready to be opened with another format
+   */
+  
+  void (*close)(void * priv);
   
   /*
    *  Get the delay due to buffered audio in _samples_

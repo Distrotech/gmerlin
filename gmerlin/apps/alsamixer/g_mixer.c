@@ -8,16 +8,139 @@ struct mixer_window_s
   int num_cards;
   card_widget_t ** cards;
   bg_cfg_registry_t * cfg_reg;
+
+  int x, y, width, height;
   };
 
-static gboolean delete_callback(GtkWidget * w, GdkEventAny * evt,
+static bg_parameter_info_t parameters[] =
+  {
+    {
+      name:      "x",
+      long_name: "X",
+      type:      BG_PARAMETER_INT,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 100 },
+    },
+    {
+      name:      "y",
+      long_name: "Y",
+      type:      BG_PARAMETER_INT,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 100 },
+    },
+    {
+      name:      "width",
+      long_name: "Width",
+      type:      BG_PARAMETER_INT,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 300 },
+    },
+    {
+      name:      "height",
+      long_name: "Height",
+      type:      BG_PARAMETER_INT,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 200 },
+    },
+    { /* End of parameters */ }
+  };
+
+static void set_parameter(void * data, char * name,
+                          bg_parameter_value_t * val)
+  {
+  mixer_window_t * w;
+  w = (mixer_window_t*)data;
+  
+  if(!name)
+    {
+    return;
+    }
+  if(!strcmp(name, "x"))
+    {
+    w->x = val->val_i;
+    }
+  else if(!strcmp(name, "y"))
+    {
+    w->y = val->val_i;
+    }
+  else if(!strcmp(name, "width"))
+    {
+    w->width = val->val_i;
+    }
+  else if(!strcmp(name, "height"))
+    {
+    w->height = val->val_i;
+    }
+  }
+
+static int get_parameter(void * data, char * name,
+                          bg_parameter_value_t * val)
+  {
+  mixer_window_t * w;
+  w = (mixer_window_t*)data;
+  if(!name)
+    {
+    return 1;
+    }
+  if(!strcmp(name, "x"))
+    {
+    val->val_i = w->x;
+    return 1;
+    }
+  else if(!strcmp(name, "y"))
+    {
+    val->val_i = w->y;
+    return 1;
+    }
+  else if(!strcmp(name, "width"))
+    {
+    val->val_i = w->width;
+    return 1;
+    }
+  else if(!strcmp(name, "height"))
+    {
+    val->val_i = w->height;
+    return 1;
+    }
+  return 0;
+  }
+
+
+
+static gboolean delete_callback(GtkWidget * wid, GdkEventAny * evt,
                                 gpointer data)
   {
+  int i;
+  mixer_window_t * w;
+  bg_cfg_section_t * section;
+  
+  w = (mixer_window_t*)data;
+  section =
+    bg_cfg_registry_find_section(w->cfg_reg, "General");
+
+  gtk_window_get_position(GTK_WINDOW(w->main_win), &(w->x), &(w->y));
+  gtk_window_get_size(GTK_WINDOW(w->main_win), &(w->width), &(w->height));
+  bg_cfg_section_get(section, parameters, get_parameter, w);
+
+  for(i = 0; i < w->num_cards; i++)
+    card_widget_get_window_coords(w->cards[i]);
+  
   gtk_main_quit();
   return TRUE;
   }
 
-mixer_window_t * mixer_window_create(alsa_mixer_t * mixer, bg_cfg_registry_t * cfg_reg)
+
+
+static void map_callback(GtkWidget * wid, gpointer data)
+  {
+  mixer_window_t * w;
+  w = (mixer_window_t*)data;
+  gtk_window_resize(GTK_WINDOW(w->main_win), w->width, w->height);
+  gtk_window_move(GTK_WINDOW(w->main_win), w->x, w->y);
+  }
+
+mixer_window_t * mixer_window_create(alsa_mixer_t * mixer,
+                                     bg_cfg_registry_t * cfg_reg)
   {
   int i;
   GtkWidget * notebook;
@@ -27,9 +150,15 @@ mixer_window_t * mixer_window_create(alsa_mixer_t * mixer, bg_cfg_registry_t * c
   ret = calloc(1, sizeof(*ret));
   ret->cfg_reg = cfg_reg;
   ret->main_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-
+  gtk_window_set_title(GTK_WINDOW(ret->main_win), "Gmerlin Alsamixer");
+  
+  
   g_signal_connect(G_OBJECT(ret->main_win),
                    "delete-event", G_CALLBACK(delete_callback),
+                   ret);
+
+  g_signal_connect(G_OBJECT(ret->main_win),
+                   "map", G_CALLBACK(map_callback),
                    ret);
     
   ret->cards = calloc(mixer->num_cards, sizeof(*(ret->cards)));
@@ -38,7 +167,8 @@ mixer_window_t * mixer_window_create(alsa_mixer_t * mixer, bg_cfg_registry_t * c
   ret->num_cards = mixer->num_cards;
   for(i = 0; i < mixer->num_cards; i++)
     {
-    section = bg_cfg_registry_find_section(ret->cfg_reg, mixer->cards[i]->name);
+    section =
+      bg_cfg_registry_find_section(ret->cfg_reg, mixer->cards[i]->name);
     label = gtk_label_new(mixer->cards[i]->name);
     gtk_widget_show(label);
     ret->cards[i] = card_widget_create(mixer->cards[i], section);
@@ -49,13 +179,17 @@ mixer_window_t * mixer_window_create(alsa_mixer_t * mixer, bg_cfg_registry_t * c
   
   gtk_widget_show(notebook);
   gtk_container_add(GTK_CONTAINER(ret->main_win), notebook);
-  
+
+  section =
+    bg_cfg_registry_find_section(ret->cfg_reg, "General");
+  bg_cfg_section_apply(section, parameters, set_parameter, ret);
   return ret;
   }
 
 void mixer_window_destroy(mixer_window_t * w)
   {
   int i;
+  
   for(i = 0; i < w->num_cards; i++)
     card_widget_destroy(w->cards[i]);
   

@@ -229,7 +229,7 @@ void bg_player_video_create(bg_player_t * p);
 void bg_player_video_destroy(bg_player_t * p);
 
 
-/* player1_oa.c */
+/* player_oa.c */
 
 void * bg_player_oa_create_frame(void * data);
 void bg_player_oa_destroy_frame(void * data, void * frame);
@@ -238,7 +238,8 @@ void bg_player_oa_create(bg_player_t * player);
 void bg_player_oa_destroy(bg_player_t * player);
 
 int bg_player_oa_init(bg_player_oa_context_t * ctx);
-void bg_player_oa_reset(bg_player_oa_context_t * ctx);
+int bg_player_oa_start(bg_player_oa_context_t * ctx);
+void bg_player_oa_stop(bg_player_oa_context_t * ctx);
 
 void bg_player_oa_cleanup(bg_player_oa_context_t * ctx);
 void * bg_player_oa_thread(void *);

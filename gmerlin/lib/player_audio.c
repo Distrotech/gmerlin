@@ -38,11 +38,14 @@ void bg_player_audio_destroy(bg_player_t * p)
 
 int bg_player_audio_init(bg_player_t * player, int audio_stream)
   {
-  player->do_audio =
-    bg_player_input_set_audio_stream(player->input_context, audio_stream);
+  player->do_audio = 0;
+  
+  if(player->track_info->num_audio_streams)
+    player->do_audio =
+      bg_player_input_set_audio_stream(player->input_context, audio_stream);
   
   if(!player->do_audio)
-    return 0;
+    return 1;
 
   /* Set custom format */
 
@@ -62,6 +65,11 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
     player->audio_stream.output_format.num_channels =
       gavl_num_channels(player->audio_stream.channel_setup);
     player->audio_stream.output_format.lfe = 0;
+
+    /* Let gavl find the channel indices also */
+    player->audio_stream.output_format.channel_locations[0] = GAVL_CHID_NONE;
+    gavl_set_channel_setup(&(player->audio_stream.output_format));
+    
     }
   //  else
   //    fprintf(stderr, "NO Fixed channel setup\n");

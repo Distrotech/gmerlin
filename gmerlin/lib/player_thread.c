@@ -145,6 +145,9 @@ static void interrupt_cmd(bg_player_t * p, int new_state)
 
   pthread_mutex_unlock(&p->stop_mutex);
   bg_player_time_stop(p);
+
+  if(p->do_audio)
+    bg_player_oa_stop(p->oa_context);
   }
 
 /* Preload fifos */
@@ -172,6 +175,9 @@ static void start_playback(bg_player_t * p)
   
   bg_player_time_start(p);
 
+  if(p->do_audio)
+    bg_player_oa_start(p->oa_context);
+  
   pthread_cond_broadcast(&(p->start_cond));
   pthread_mutex_unlock(&(p->start_mutex));
   }
@@ -186,6 +192,8 @@ static void pause_cmd(bg_player_t * p)
   if(state == BG_PLAYER_STATE_PLAYING)
     {
     interrupt_cmd(p, BG_PLAYER_STATE_PAUSED);
+
+    
     }
   else if(state == BG_PLAYER_STATE_PAUSED)
     {
@@ -219,7 +227,7 @@ static void play_cmd(bg_player_t * p,
                         "Cannot setup audio playback", NULL);
     return;
     }
-  if(bg_player_video_init(p, 0))
+  if(!bg_player_video_init(p, 0))
     {
     bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
                         "Cannot setup video playback", NULL);
@@ -288,7 +296,7 @@ static void play_cmd(bg_player_t * p,
   p->waiting_plugin_threads = 0;
     
   /* Start playback */
-    
+  
   pthread_create(&(p->input_thread),
                  (pthread_attr_t*)0,
                  bg_player_input_thread, p->input_context);
@@ -318,14 +326,18 @@ static void player_cleanup(bg_player_t * player)
   {
   gavl_time_t t = 0;
   bg_player_input_cleanup(player->input_context);
+
+  //  fprintf(stderr, "bg_player_oa_cleanup...");
+  
   bg_player_oa_cleanup(player->oa_context);
+  //  fprintf(stderr, "bg_player_oa_cleanup done\n");
+  
   bg_player_ov_cleanup(player->ov_context);
   
   bg_player_time_stop(player);
   
   bg_player_video_cleanup(player);
   bg_player_audio_cleanup(player);
-
   bg_player_time_reset(player);
 
   bg_msg_queue_list_send(player->message_queues,
@@ -388,6 +400,8 @@ static void stop_cmd(bg_player_t * player, int new_state)
       pthread_join(player->ov_thread, (void**)0);
       fprintf(stderr, "done\n");
       }
+    if(player->do_audio)
+      bg_player_oa_stop(player->oa_context);
     player_cleanup(player);
     
     if(new_state == BG_PLAYER_STATE_STOPPED)
@@ -455,24 +469,10 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
     /* Ok, now we set the time from the video stream */
     vf = bg_fifo_get_read(player->video_stream.fifo);
     bg_player_time_set(player, vf->time);
-    fprintf(stderr, "Time is now: %lld\n", vf->time);
+    //    fprintf(stderr, "Time is now: %lld\n", vf->time);
     }
   else
     bg_player_time_set(player, t);
-  
-  if((player->do_video) && (player->do_audio))
-    {
-    bg_player_oa_reset(player->oa_context);
-    }
-  else if(player->do_video)
-    {
-    
-    }
-  else if(player->do_audio)
-    {
-    
-    }
-  
   start_playback(player);
   }
 

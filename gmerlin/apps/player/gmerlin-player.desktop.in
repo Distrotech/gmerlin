@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Gmerlin player
+Name[de]=Gmerlin player
+Comment=Multiformat mediaplayer
+Comment[de]=Multiformat mediaplayer
+Exec=gmerlin
+Icon=@GMERLIN_DATA_DIR@/icons/player_icon.png
+Type=Application
+Categories=Application;AudioVideo;
+
