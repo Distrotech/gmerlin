@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <gavl/gavl.h>
 
-void gavl_video_format_dump(gavl_video_format_t * format)
+void gavl_video_format_dump(const gavl_video_format_t * format)
   {
   fprintf(stderr, "Frame size:   %d x %d\n",
           format->frame_width, format->frame_height);

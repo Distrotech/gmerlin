@@ -50,6 +50,65 @@ colorspace_tab_t colorspace_tab[] =
 
 static int num_colorspaces = sizeof(colorspace_tab)/sizeof(colorspace_tab_t);
 
+int gavl_colorspace_num_planes(gavl_colorspace_t csp)
+  {
+  switch(csp)
+    {
+    case GAVL_RGB_15:
+    case GAVL_BGR_15:
+    case GAVL_RGB_16:
+    case GAVL_BGR_16:
+    case GAVL_RGB_24:
+    case GAVL_BGR_24:
+    case GAVL_RGB_32:
+    case GAVL_BGR_32:
+    case GAVL_RGBA_32:
+    case GAVL_YUY2:
+      return 1;
+      break;
+    case GAVL_YUV_420_P:
+    case GAVL_YUV_422_P:
+      return 3;
+      break;
+    case GAVL_COLORSPACE_NONE:
+      return 0;
+      break;
+    }
+  return 0;
+  }
+
+void gavl_colorspace_chroma_sub(gavl_colorspace_t csp, int * sub_h, int * sub_v)
+  {
+  switch(csp)
+    {
+    case GAVL_RGB_15:
+    case GAVL_BGR_15:
+    case GAVL_RGB_16:
+    case GAVL_BGR_16:
+    case GAVL_RGB_24:
+    case GAVL_BGR_24:
+    case GAVL_RGB_32:
+    case GAVL_BGR_32:
+    case GAVL_RGBA_32:
+    case GAVL_YUY2:
+      *sub_h = 1;
+      *sub_v = 1;
+      break;
+    case GAVL_YUV_420_P:
+      *sub_h = 2;
+      *sub_v = 2;
+      break;
+    case GAVL_YUV_422_P:
+      *sub_h = 2;
+      *sub_v = 1;
+      break;
+    case GAVL_COLORSPACE_NONE:
+      *sub_h = 0;
+      *sub_v = 0;
+      break;
+    }
+  }
+
 int gavl_num_colorspaces()
   {
   return num_colorspaces - 1;

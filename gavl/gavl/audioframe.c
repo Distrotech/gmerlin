@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -23,6 +24,9 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
   int num_samples;
   int i;
   ret = calloc(1, sizeof(*ret));
+
+  if(!format)
+    return ret;
   
   num_samples = ALIGNMENT_BYTES *
     ((format->samples_per_frame + ALIGNMENT_BYTES - 1) / ALIGNMENT_BYTES);
@@ -86,8 +90,10 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
 
 void gavl_audio_frame_destroy(gavl_audio_frame_t * frame)
   {
-  free(frame->samples.s_8);
-  free(frame->channels.s_8);
+  if(frame->samples.s_8)
+    free(frame->samples.s_8);
+  if(frame->channels.s_8)
+    free(frame->channels.s_8);
   free(frame);
   }
 
@@ -129,4 +135,58 @@ void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
       break;
     }
   frame->valid_samples = format->samples_per_frame;
+  }
+
+int gavl_audio_frame_copy(gavl_audio_format_t * format,
+                          gavl_audio_frame_t * dst,
+                          gavl_audio_frame_t * src,
+                          int out_pos,
+                          int in_pos,
+                          int out_size,
+                          int in_size)
+      {
+  int i;
+  int bytes_per_sample;
+  int samples_to_copy;
+
+  samples_to_copy = (in_size < out_size) ? in_size : out_size;
+  bytes_per_sample = gavl_bytes_per_sample(format->sample_format);
+  
+  switch(format->interleave_mode)
+    {
+    case GAVL_INTERLEAVE_NONE:
+      for(i = 0; i < format->num_channels; i++)
+        {
+        memcpy(&(dst->channels.s_8[i][out_pos * bytes_per_sample]),
+               &(src->channels.s_8[i][in_pos * bytes_per_sample]),
+               samples_to_copy * bytes_per_sample);
+        }
+      break;
+    case GAVL_INTERLEAVE_2:
+      for(i = 0; i < format->num_channels/2; i++)
+        {
+        memcpy(&(dst->channels.s_8[i*2][2 * out_pos * bytes_per_sample]),
+               &(src->channels.s_8[i*2][2 * in_pos * bytes_per_sample]),
+               2*samples_to_copy * bytes_per_sample);
+        }
+      /* Last channel is not interleaved */
+      if(format->num_channels & 1)
+        {
+        memcpy(&(dst->channels.s_8[format->num_channels-1][2 * out_pos * bytes_per_sample]),
+               &(src->channels.s_8[format->num_channels-1][2 * in_pos * bytes_per_sample]),
+               2*samples_to_copy * bytes_per_sample);
+        }
+      break;
+    case GAVL_INTERLEAVE_ALL:
+      memcpy(&(dst->samples.s_8[format->num_channels * out_pos * bytes_per_sample]),
+             &(src->samples.s_8[format->num_channels * in_pos * bytes_per_sample]),
+             format->num_channels * samples_to_copy * bytes_per_sample);
+      break;
+    }
+  return samples_to_copy;
+  }
+
+void gavl_audio_frame_null(gavl_audio_frame_t * f)
+  {
+  memset(f, 0, sizeof(*f));
   }

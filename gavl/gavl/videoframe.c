@@ -41,7 +41,7 @@ void * memalign (size_t align, size_t size);
 #define ALIGN(a) a=((a+ALIGNMENT_BYTES-1)/ALIGNMENT_BYTES)*ALIGNMENT_BYTES
 
 void gavl_video_frame_alloc(gavl_video_frame_t * ret,
-                            gavl_video_format_t * format)
+                            const gavl_video_format_t * format)
   {
   switch(format->colorspace)
     {
@@ -129,7 +129,7 @@ void gavl_video_frame_free(gavl_video_frame_t * frame)
   frame->planes[0] = (uint8_t*)0;
   }
 
-gavl_video_frame_t * gavl_video_frame_create(gavl_video_format_t * format)
+gavl_video_frame_t * gavl_video_frame_create(const gavl_video_format_t * format)
   {
   gavl_video_frame_t * ret = calloc(1, sizeof(gavl_video_frame_t));
   if(format)
@@ -207,74 +207,87 @@ void gavl_video_frame_copy(gavl_video_format_t * format,
                            gavl_video_frame_t * dst,
                            gavl_video_frame_t * src)
   {
-  int i;
+  int i, j;
   uint8_t * sp, *dp;
-  int imax;
+  int jmax;
   int bytes_per_line;
-  
-  if(dst->strides[0] != src->strides[0])
-    {
-    //    fprintf(stderr, "Strides not equal %d %d\n", dst->strides[0], src->strides[0]);
-    sp = src->planes[0];
-    dp = dst->planes[0];
-    bytes_per_line = (dst->strides[0] < src->strides[0]) ?
-      dst->strides[0] : src->strides[0];      
-    
-    for(i = 0; i < format->image_height; i++)
-      {
-      memcpy(dp, sp, bytes_per_line);
-      dp += dst->strides[0];
-      sp += src->strides[0];
-      }
-    }
-  else
-    {
-    memcpy(dst->planes[0], src->planes[0], format->image_height * dst->strides[0]);
-    }
-  
-  if(gavl_colorspace_is_planar(format->colorspace))
-    {
-    if(format->colorspace == GAVL_YUV_420_P)
-      imax = format->image_height / 2;
-    else
-      imax = format->image_height;
+  int sub_h, sub_v;
 
-    if(dst->strides[1] != src->strides[1])
+  int planes = gavl_colorspace_num_planes(format->colorspace);
+  sub_h = 1;
+  sub_v = 1;
+
+  
+  for(i = 0; i < planes; i++)
+    {
+    if(i)
+      gavl_colorspace_chroma_sub(format->colorspace, &sub_h, &sub_v);
+    if(dst->strides[i] == src->strides[i])
       {
-      sp = src->planes[1];
-      dp = dst->planes[1];
-      
-      bytes_per_line = (dst->strides[1] < src->strides[1]) ?
-        dst->strides[1] : src->strides[1];      
-      
-      for(i = 0; i < imax; i++)
-        {
-        memcpy(dp, sp, bytes_per_line);
-        dp += dst->strides[1];
-        sp += src->strides[1];
-        }
+      memcpy(dst->planes[i], src->planes[i],
+             format->image_height / sub_v * dst->strides[i]);
+
       }
     else
       {
-      memcpy(dst->planes[1], src->planes[1], imax * dst->strides[1]);
-      }
-    
-    if(dst->strides[2] != src->strides[2])
-      {
-      sp = src->planes[2];
-      dp = dst->planes[2];
-      
-      bytes_per_line = (dst->strides[2] < src->strides[2]) ?
-        dst->strides[2] : src->strides[2];      
-      
-      for(i = 0; i < imax; i++)
+      bytes_per_line =
+        dst->strides[i] < src->strides[i] ?
+        dst->strides[i] : src->strides[i];
+      sp = src->planes[i];
+      dp = dst->planes[i];
+      jmax = format->image_height / sub_v;
+      for(j = 0; j < jmax; j++)
         {
         memcpy(dp, sp, bytes_per_line);
-        dp += dst->strides[2];
-        sp += src->strides[2];
+        sp += src->strides[i];
+        dp += dst->strides[i];
         }
       }
-    else
-      memcpy(dst->planes[2], src->planes[2], imax * dst->strides[2]);
     }
+  
+  }
+
+void gavl_video_frame_dump(gavl_video_frame_t * frame,
+                           gavl_video_format_t * format,
+                           const char * namebase)
+  {
+  char * filename;
+  int baselen;
+  int sub_h, sub_v;
+  int planes;
+  int i, j;
+  
+  FILE * output;
+
+  planes = gavl_colorspace_num_planes(format->colorspace);
+  
+  baselen = strlen(namebase);
+  
+  filename = malloc(baselen + 4);
+  strcpy(filename, namebase);
+
+  sub_h = 1;
+  sub_v = 1;
+  
+  for(i = 0; i < planes; i++)
+    {
+    filename[baselen]   = '.';
+    filename[baselen+1] = 'p';
+    filename[baselen+2] = i + 1 + '0';
+    filename[baselen+3] = '\0';
+
+    output = fopen(filename, "wb");
+
+    if(i == 1)
+      gavl_colorspace_chroma_sub(format->colorspace,
+                          &sub_h, &sub_v);
+    
+    for(j = 0; j < format->image_height / sub_v; j++)
+      {
+      fwrite(frame->planes[i] + j*frame->strides[i], 1,  format->image_width / sub_h,
+             output);
+      }
+    fclose(output);
+    }
+  free(filename);
   }

@@ -1,3 +1,21 @@
+/*****************************************************************
+ 
+  gavltime.h
+ 
+  Copyright (c) 2001-2002 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
 
 /* Generic time type: Microseconds */
 
@@ -7,31 +25,17 @@ typedef int64_t gavl_time_t;
 
 /* Utility functions */
 
-#if 0
-void gavl_samples_to_time(gavl_time_t * ret,
-                          int samplerate, int64_t * samples);
-
-void gavl_frames_to_time(gavl_time_t * ret,
-                         double framerate, int64_t * frames);
-
-void gavl_time_to_samples(int64_t * ret,
-                          int samplerate, gavl_time_t * time);
-
-void gavl_time_to_frames(int64_t * ret,
-                         double framerate, gavl_time_t * time);
-#endif
-
 #define gavl_samples_to_time(rate, samples) \
-(((samples)*1000000)/(rate))
+(((samples)*GAVL_TIME_SCALE)/(rate))
 
 #define gavl_frames_to_time(rate_num, rate_den, frames) \
-((gavl_time_t)((1000000*(frames)*(rate_den))/(rate_num)))
+((gavl_time_t)((GAVL_TIME_SCALE*((int64_t)frames)*((int64_t)rate_den))/((int64_t)rate_num)))
 
 #define gavl_time_to_samples(rate, t) \
-  (((t)*(rate))/1000000)
+  (((t)*(rate))/GAVL_TIME_SCALE)
 
 #define gavl_time_to_frames(rate_num, rate_den, t) \
-  ((int64_t)(((t)*(rate_num))/(1000000*(rate_den)))
+  (int64_t)(((t)*((int64_t)rate_num))/(GAVL_TIME_SCALE*((int64_t)rate_den)))
 
 
 #define GAVL_TIME_TO_SECONDS(t) (double)(t)/(double)(GAVL_TIME_SCALE)

@@ -142,4 +142,5 @@ void gavl_video_convert(gavl_video_converter_t * cnv,
     cnv->csp_context.output_frame = output_frame;
     cnv->csp_func(&(cnv->csp_context));
     }
+  output_frame->time = input_frame->time;
   }

@@ -92,7 +92,7 @@ const char * gavl_interleave_mode_to_string(gavl_interleave_mode_t mode)
   return (char*)0;
   }
 
-void gavl_audio_format_dump(gavl_audio_format_t * f)
+void gavl_audio_format_dump(const gavl_audio_format_t * f)
   {
   fprintf(stderr, "         Channels: %d (%s", f->num_channels,
           gavl_channel_setup_to_string(f->channel_setup));

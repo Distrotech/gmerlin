@@ -191,7 +191,7 @@ const char * gavl_sample_format_to_string(gavl_sample_format_t);
 const char * gavl_channel_setup_to_string(gavl_channel_setup_t);
 const char * gavl_interleave_mode_to_string(gavl_interleave_mode_t);
 
-void gavl_audio_format_dump(gavl_audio_format_t *);
+void gavl_audio_format_dump(const gavl_audio_format_t *);
   
   
 /* Copy audio format */
@@ -235,8 +235,28 @@ void gavl_audio_frame_destroy(gavl_audio_frame_t *);
 
 void gavl_audio_frame_mute(gavl_audio_frame_t *,
                            const gavl_audio_format_t *);
+
+  /* Zero all pointers, so gavl_audio_frame_detsroy won't free them */
   
-    
+void gavl_audio_frame_null(gavl_audio_frame_t * f);
+
+  
+/* Function for copying audio frames, returnes the number of copied samples */
+
+/*
+ *  in_size are the number of input samples, out_size the number of output samples,
+ *  the function will copy the smaller of both samples and return the number of
+ *  copied samples
+ */
+  
+int gavl_audio_frame_copy(gavl_audio_format_t * format,
+                          gavl_audio_frame_t * dst,
+                          gavl_audio_frame_t * src,
+                          int dst_pos,
+                          int src_pos,
+                          int dst_size,
+                          int src_size);
+  
 /* Create/Destroy audio converter */
 
 gavl_audio_converter_t * gavl_audio_converter_create();
@@ -361,7 +381,7 @@ typedef struct
 void gavl_video_format_copy(gavl_video_format_t * dst,
                             const gavl_video_format_t * src);
 
-void gavl_video_format_dump(gavl_video_format_t *);
+void gavl_video_format_dump(const gavl_video_format_t *);
   
 #define GAVL_SCANLINE (1<<0)
 
@@ -417,7 +437,7 @@ void gavl_video_convert(gavl_video_converter_t * cnv,
  * Create a video frame with memory aligned scanlines
  *******************************************************/
 
-gavl_video_frame_t * gavl_video_frame_create(gavl_video_format_t*);
+gavl_video_frame_t * gavl_video_frame_create(const gavl_video_format_t*);
 
 /*******************************************************
  * Destroy video frame 
@@ -436,7 +456,7 @@ void gavl_video_frame_null(gavl_video_frame_t*);
  *****************************************************/
 
 void gavl_video_frame_alloc(gavl_video_frame_t * frame,
-                            gavl_video_format_t * format);
+                            const gavl_video_format_t * format);
 
 /*****************************************************
  *  Free memory of a video frame
@@ -459,6 +479,17 @@ void gavl_video_frame_copy(gavl_video_format_t * format,
                            gavl_video_frame_t * dst,
                            gavl_video_frame_t * src);
 
+/**********************************************************
+  This is purely for optimizing purposes:
+  Dump all planes into files names <filebase>.p1,
+  <filebase>.p2 etc
+***********************************************************/
+
+void gavl_video_frame_dump(gavl_video_frame_t *,
+                           gavl_video_format_t *,
+                           const char * namebase);
+  
+  
 
 /*
  *  Video framerate converter
@@ -504,6 +535,15 @@ int gavl_colorspace_is_yuv(gavl_colorspace_t colorspace);
 int gavl_colorspace_has_alpha(gavl_colorspace_t colorspace);
 int gavl_colorspace_is_planar(gavl_colorspace_t colorspace);
 
+/* Get the number of planes (=1 for packet formats) */  
+int gavl_colorspace_num_planes(gavl_colorspace_t csp);
+
+/*
+ *  Get the horizontal and vertical subsampling factors
+ *  (e.g. for 420: sub_h = 2, sub_v = 2)
+ */
+void gavl_colorspace_chroma_sub(gavl_colorspace_t csp, int * sub_h, int * sub_v);
+    
 const char * gavl_colorspace_to_string(gavl_colorspace_t colorspace);
 gavl_colorspace_t gavl_string_to_colorspace(const char *);
 
