@@ -289,7 +289,7 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
             stream = bgav_track_add_audio_stream(ctx->tt->current_track);
             stream->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
             stream->stream_id = priv->pes_header.stream_id;
-            fprintf(stderr, "Found AC3 audio stream\n");
+            //            fprintf(stderr, "Found AC3 audio stream\n");
             }
           }
         else if((c >= 0xA0) && (c <= 0xA7)) /* LPCM Audio */
@@ -307,7 +307,7 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
           if(!stream && priv->find_streams)
             {
             stream = bgav_track_add_audio_stream(ctx->tt->current_track);
-            stream->fourcc = BGAV_MK_FOURCC('L', 'P', 'C', 'M');
+            stream->fourcc = BGAV_MK_FOURCC('l', 'p', 'c', 'm');
             stream->stream_id = priv->pes_header.stream_id;
             //            fprintf(stderr, "Found LPCM stream\n");
             }

@@ -310,7 +310,7 @@ void bgav_codecs_init()
 #endif
 
   
-  bgav_init_audio_decoders_aiff();
+  bgav_init_audio_decoders_pcm();
   
   //  fprintf(stderr, "BGAV Codecs initialized: A: %d V: %d\n",
   //          num_audio_codecs, num_video_codecs);

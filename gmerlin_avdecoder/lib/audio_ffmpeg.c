@@ -62,6 +62,7 @@ static codec_info_t codec_infos[] =
       (int[]){ BGAV_WAVID_2_FOURCC(0x2000), BGAV_MK_FOURCC('.', 'a', 'c', '3'), 0x00 } },
     
 #endif
+#if 0
     { "FFmpeg PCM decoder", "16bit linear PCM (little endian)", CODEC_ID_PCM_S16LE,
       (int[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('s', 'o', 'w', 't'), 0x00 } },
 
@@ -74,7 +75,7 @@ static codec_info_t codec_infos[] =
 
     { "FFmpeg PCM decoder", "8bit signed linear PCM", CODEC_ID_PCM_S8,
       (int[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('t', 'w', 'o', 's'), 0x00 } },
-    
+#endif    
     { "FFmpeg alaw decoder", "alaw", CODEC_ID_PCM_ALAW,
       (int[]){ BGAV_WAVID_2_FOURCC(0x06), BGAV_MK_FOURCC('a', 'l', 'a', 'w'), 0x00 }  },
 

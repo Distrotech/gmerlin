@@ -1,0 +1,7 @@
+* NEXT VERSION *
+
+* New generic pcm decoder handles 8/12/16/24/32 bit WAVs,
+  AIFF (all bit depths), Quicktime (raw, twos and sowt) and
+  DVD audio (LPCM).
+
+* WAVEFORMATEXTENSIBLE support in wav files
