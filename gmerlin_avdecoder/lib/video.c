@@ -73,18 +73,30 @@ const char * bgav_get_video_description(bgav_t * b, int s)
 static int bgav_video_decode(bgav_stream_t * stream, gavl_video_frame_t* frame)
   {
   int result;
-  stream->time = GAVL_TIME_UNDEFINED;
-  
+  stream->time        = GAVL_TIME_UNDEFINED;
+  stream->time_scaled = -1;
   result = stream->data.video.decoder->decoder->decode(stream,
                                                        frame);
   if(stream->time == GAVL_TIME_UNDEFINED)
     {
-    stream->time = gavl_frames_to_time(stream->data.video.format.framerate_num,
-                                      stream->data.video.format.framerate_den,
-                                      stream->position);
+    if(stream->time_scaled == -1)
+      stream->time = gavl_frames_to_time(stream->data.video.format.timescale,
+                                         stream->data.video.format.frame_duration,
+                                         stream->position);
+    else
+      stream->time = (stream->time_scaled * GAVL_TIME_SCALE) /
+        stream->data.video.format.timescale;
+    }
+  if(stream->time_scaled == -1)
+    {
+    stream->time_scaled = (stream->time * stream->data.video.format.timescale) /
+      GAVL_TIME_SCALE;
     }
   if(frame)
-    frame->time = stream->time;
+    {
+    frame->time        = stream->time;
+    frame->time_scaled = stream->time_scaled;
+    }
   stream->position++;
   return result;
   }

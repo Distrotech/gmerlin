@@ -228,6 +228,19 @@ static int init_qtaudio(bgav_stream_t * s)
   priv->OutputFormatInfo.format = BGAV_MK_FOURCC('N','O','N','E');
   priv->InputFormatInfo.format = s->fourcc;
 
+  switch(s->fourcc)
+    {
+    case BGAV_MK_FOURCC('Q','D','M','C'):
+      s->description = bgav_strndup("QDMC", NULL);
+      break;
+    case BGAV_MK_FOURCC('Q','D','M','2'):
+      s->description = bgav_strndup("QDM2", NULL);
+      break;
+    case BGAV_MK_FOURCC('Q','c','l','p'):
+      s->description = bgav_strndup("Qclp", NULL);
+      break;
+    }
+
   if(priv->SoundConverterOpen (&priv->InputFormatInfo, 
                                &priv->OutputFormatInfo, 
                                &priv->myConverter))

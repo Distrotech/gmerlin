@@ -602,11 +602,15 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   bg_vs->data.video.format.pixel_width = 1;
   bg_vs->data.video.format.pixel_height = 1;
     
-  bg_vs->data.video.format.framerate_num = BGAV_PTR_2_16BE(data);data+=2;
-  bg_vs->data.video.format.framerate_den = 1;
+  // bg_vs->data.video.format.framerate_num = BGAV_PTR_2_16BE(data);data+=2;
+  //  bg_vs->data.video.format.framerate_den = 1;
   // we probably won't even care about fps
-  if (bg_vs->data.video.format.framerate_num<=0) bg_vs->data.video.format.framerate_num=24; 
-  
+  //  if (bg_vs->data.video.format.framerate_num<=0) bg_vs->data.video.format.framerate_num=24; 
+  data+=2; /* Skip framerate */
+
+  bg_vs->data.video.format.timescale = 1000;
+  bg_vs->data.video.format.frame_duration = 40;
+  bg_vs->data.video.format.free_framerate = 1;
 #if 1
   data += 4;
 #else
@@ -618,9 +622,9 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   if(1)
     {
     tmp=BGAV_PTR_2_16BE(data);data+=2;
-    if(tmp>0){
-    bg_vs->data.video.format.framerate_num = tmp;
-    }
+    //    if(tmp>0){
+    //    bg_vs->data.video.format.framerate_num = tmp;
+    //    }
     } else {
     int fps=BGAV_PTR_2_16BE(data);data+=2;
     printf("realvid: ignoring FPS = %d\n",fps);
@@ -678,7 +682,6 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   data++;
   } 
   
-  bg_vs->data.video.format.free_framerate = 1;
   bg_vs->stream_id = mdpr->stream_number;
   //  gavl_video_format_dump(&(bg_vs->format));
   }
@@ -1165,6 +1168,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
 
         p->timestamp=(dp_hdr->len<3)?0:
           fix_timestamp(stream,dp_data,dp_hdr->timestamp);
+        p->timestamp_scaled = (p->timestamp*1000)/GAVL_TIME_SCALE;
         bgav_packet_done_write(p);
         // ds_add_packet(ds,dp);
         stream->packet = (bgav_packet_t*)0;
@@ -1213,6 +1217,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
 #if 1
           p->timestamp=(dp_hdr->len<3)?0:
             fix_timestamp(stream,dp_data,dp_hdr->timestamp);
+          p->timestamp_scaled = (p->timestamp*1000)/GAVL_TIME_SCALE;
 #endif
           bgav_packet_done_write(p);
           stream->packet = (bgav_packet_t*)0;
@@ -1279,6 +1284,8 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
     /* TODO: Timestanp */
     p->timestamp=(dp_hdr->len<3)?0:
       fix_timestamp(stream,dp_data,dp_hdr->timestamp);
+    p->timestamp_scaled = (p->timestamp * 1000)/GAVL_TIME_SCALE;
+
     bgav_packet_done_write(p);
     
     // ds_add_packet(ds,dp);

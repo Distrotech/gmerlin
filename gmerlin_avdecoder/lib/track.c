@@ -209,6 +209,7 @@ void bgav_track_remove_unsupported(bgav_track_t * track)
     else
       i++;
     }
+  i = 0;
   while(i < track->num_video_streams)
     {
     s = &(track->video_streams[i]);
@@ -264,8 +265,8 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
       return GAVL_TIME_UNDEFINED;
       }
     s->position =
-      gavl_time_to_frames(s->data.video.format.framerate_num,
-                          s->data.video.format.framerate_den,
+      gavl_time_to_frames(s->data.video.format.timescale,
+                          s->data.video.format.frame_duration,
                           s->time);
     if(s->time > ret)
       ret = s->time;

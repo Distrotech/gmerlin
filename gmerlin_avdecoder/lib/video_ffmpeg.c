@@ -386,8 +386,8 @@ static int init(bgav_stream_t * s)
   priv->ctx->codec_type = CODEC_TYPE_VIDEO;
   
   priv->ctx->bit_rate = 0;
-  priv->ctx->frame_rate = s->data.video.format.framerate_num;
-  priv->ctx->frame_rate_base = s->data.video.format.framerate_den;
+  priv->ctx->frame_rate = s->data.video.format.timescale;
+  priv->ctx->frame_rate_base = s->data.video.format.frame_duration;
 
   /* Build the palette from the stream info */
   
@@ -509,6 +509,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   ffmpeg_video_priv * priv;
   bgav_packet_t * p;
   int64_t timestamp = 0;
+  int64_t timestamp_scaled = 0;
   
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
 
@@ -528,7 +529,8 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         }
       if(!p->data_size)
         s->position++;
-      timestamp = p->timestamp;
+      timestamp        = p->timestamp;
+      timestamp_scaled = p->timestamp_scaled;
     
       //      fprintf(stderr, "Packet timestamp: %lld, size: %d\n", p->timestamp, p->data_size);
       if(p->data_size + FF_INPUT_BUFFER_PADDING_SIZE > priv->packet_buffer_alloc)
@@ -610,7 +612,11 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   
     if(timestamp >= 0)
       s->time = timestamp;
-  
+    if(timestamp_scaled >= 0)
+      s->time_scaled = timestamp_scaled;
+
+    //    fprintf(stderr, "time: %f, time_scaled: %lld\n", gavl_time_to_seconds(s->time), s->time_scaled);
+    
     if(got_picture)
       {
       if(priv->frame->pict_type == FF_B_TYPE)

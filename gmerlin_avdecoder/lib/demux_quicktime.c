@@ -38,7 +38,7 @@ typedef struct
     int32_t size;
     int stream_id;
     int keyframe;
-    gavl_time_t timestamp;
+    int64_t time;
     } * packet_table;
 
   int64_t mdat_start;
@@ -198,12 +198,12 @@ static void add_packet(qt_priv_t * priv,
                        int index,
                        int64_t offset,
                        int stream_id,
-                       gavl_time_t timestamp,
+                       int64_t timestamp,
                        int keyframe)
   {
   priv->packet_table[index].offset = offset;
   priv->packet_table[index].stream_id = stream_id;
-  priv->packet_table[index].timestamp = timestamp;
+  priv->packet_table[index].time = timestamp;
   priv->packet_table[index].keyframe = keyframe;
   if(index)
     priv->packet_table[index-1].size =
@@ -282,7 +282,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
       add_packet(priv,
                  i, chunk_offset,
                  stream_id,
-                 (s->tics * GAVL_TIME_SCALE) / s->time_scale,
+                 s->tics,
                  check_keyframe(s));
       /* Time to sample */
       if(s->stts_pos >= 0)
@@ -321,7 +321,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
         add_packet(priv,
                    i, chunk_offset,
                    stream_id,
-                   (s->tics * GAVL_TIME_SCALE) / s->time_scale,
+                   s->tics,
                    check_keyframe(s));
         chunk_offset += (s->stsz_pos >= 0) ? s->stbl->stsz.entries[s->stsz_pos]:
           s->stbl->stsz.sample_size;
@@ -490,10 +490,18 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       bg_vs->data.video.format.pixel_width = 1;
       bg_vs->data.video.format.pixel_height = 1;
       bg_vs->data.video.depth = desc->format.video.depth;
-      bg_vs->data.video.format.framerate_num = moov->tracks[i].mdia.mdhd.time_scale;
-      bg_vs->data.video.format.framerate_den =
+      
+      bg_vs->data.video.format.timescale = moov->tracks[i].mdia.mdhd.time_scale;
+      bg_vs->data.video.format.frame_duration =
         moov->tracks[i].mdia.minf.stbl.stts.entries[0].duration;
 
+      if((moov->tracks[i].mdia.minf.stbl.stts.num_entries == 1) ||
+         ((moov->tracks[i].mdia.minf.stbl.stts.num_entries == 2) &&
+          (moov->tracks[i].mdia.minf.stbl.stts.entries[1].count == 1)))
+        bg_vs->data.video.format.free_framerate = 0;
+      else
+        bg_vs->data.video.format.free_framerate = 1;
+            
       bg_vs->data.video.palette_size = desc->format.video.ctab_size;
       if(bg_vs->data.video.palette_size)
         bg_vs->data.video.palette = desc->format.video.ctab;
@@ -656,7 +664,10 @@ static int next_packet_quicktime(bgav_demuxer_context_t * ctx)
   p = bgav_packet_buffer_get_packet_write(stream->packet_buffer);
   p->data_size = priv->packet_table[priv->current_packet].size;
   bgav_packet_alloc(p, p->data_size);
-  p->timestamp = priv->packet_table[priv->current_packet].timestamp;
+  
+  p->timestamp_scaled = priv->packet_table[priv->current_packet].time;
+  p->timestamp = (p->timestamp_scaled * GAVL_TIME_SCALE) / sp->trak->mdia.mdhd.time_scale;
+  
   if(bgav_input_read_data(ctx->input, p->data, p->data_size) <
      p->data_size)
     return 0;
@@ -675,6 +686,8 @@ static void seek_quicktime(bgav_demuxer_context_t * ctx, gavl_time_t time)
   int keep_going;
   stream_priv_t * s;
   bgav_track_t * track;
+  int64_t time_scaled;
+  
   //  fprintf(stderr, "Seek quicktime %f %lld\n", gavl_time_to_seconds(time), time);
   track = ctx->tt->current_track;
   
@@ -703,14 +716,18 @@ static void seek_quicktime(bgav_demuxer_context_t * ctx, gavl_time_t time)
     for(j = 0; j < track->num_audio_streams; j++)
       {
       s = (stream_priv_t*)(track->audio_streams[j].priv);
+      time_scaled = (time * s->trak->mdia.mdhd.time_scale)/GAVL_TIME_SCALE;
       if(s->packet_index < 0)
         {
         if((priv->packet_table[i].stream_id == track->audio_streams[j].stream_id) &&
            (priv->packet_table[i].keyframe) &&
-           (priv->packet_table[i].timestamp < time))
+           (priv->packet_table[i].time < time_scaled))
           {
           s->packet_index = i;
-          track->audio_streams[j].time = priv->packet_table[i].timestamp;
+          track->audio_streams[j].time_scaled = priv->packet_table[i].time;
+          track->audio_streams[j].time =
+            (track->audio_streams[j].time_scaled *
+             GAVL_TIME_SCALE)/s->trak->mdia.mdhd.time_scale;
           }
         else
           keep_going = 1;
@@ -720,14 +737,19 @@ static void seek_quicktime(bgav_demuxer_context_t * ctx, gavl_time_t time)
     for(j = 0; j < track->num_video_streams; j++)
       {
       s = (stream_priv_t*)(track->video_streams[j].priv);
+      time_scaled = (time * s->trak->mdia.mdhd.time_scale)/GAVL_TIME_SCALE;
       if(s->packet_index < 0)
         {
         if((priv->packet_table[i].stream_id == track->video_streams[j].stream_id) &&
            (priv->packet_table[i].keyframe) &&
-           (priv->packet_table[i].timestamp < time))
+           (priv->packet_table[i].time < time_scaled))
           {
           s->packet_index = i;
-          track->video_streams[j].time = priv->packet_table[i].timestamp;
+
+          track->video_streams[j].time_scaled = priv->packet_table[i].time;
+          track->video_streams[j].time =
+            (track->video_streams[j].time_scaled *
+             GAVL_TIME_SCALE)/s->trak->mdia.mdhd.time_scale;
           }
         else
           keep_going = 1;

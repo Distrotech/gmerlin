@@ -80,7 +80,7 @@ int bgav_init(bgav_t * ret)
   uint8_t dump_buffer[DUMP_SIZE];
   int dump_len;
     
-  bgav_demuxer_t * demuxer;
+  bgav_demuxer_t * demuxer = (bgav_demuxer_t *)0;
   bgav_redirector_t * redirector = (bgav_redirector_t*)0;
 
   /*
@@ -106,6 +106,24 @@ int bgav_init(bgav_t * ret)
    */
   if(!ret->input->demuxer)
     {
+    /* First, we try the redirector, because we never need to
+       skip bytes for them. */
+
+    redirector = bgav_redirector_probe(ret->input);
+    if(redirector)
+      {
+      ret->redirector = calloc(1, sizeof(*(ret->redirector)));
+      ret->redirector->input = ret->input;
+      
+      if(!redirector->parse(ret->redirector))
+        goto fail;
+      else
+        return 1;
+      }
+
+    /* Check for ID3V2 tags here, they can be prepended to
+       many different file types */
+    
     if(bgav_id3v2_probe(ret->input))
       ret->input->id3v2 = bgav_id3v2_read(ret->input);
     
@@ -116,18 +134,6 @@ int bgav_init(bgav_t * ret)
       ret->demuxer = create_demuxer(ret, demuxer);
       if(!bgav_demuxer_start(ret->demuxer, &(ret->redirector)))
         goto fail;
-      }
-    else
-      {
-      redirector = bgav_redirector_probe(ret->input);
-      if(!redirector)
-        goto fail;
-      ret->redirector = calloc(1, sizeof(*(ret->redirector)));
-      ret->redirector->input = ret->input;
-      
-      if(!redirector->parse(ret->redirector))
-        goto fail;
-      return 1;
       }
     if(!ret->demuxer)
       goto fail;
@@ -192,6 +198,9 @@ int bgav_open(bgav_t * ret, const char * location)
   
   if(!bgav_init(ret))
     goto fail;
+
+  ret->location = bgav_strndup(location, NULL);
+  
   return 1;
   fail:
 
@@ -228,6 +237,9 @@ int bgav_open_fd(bgav_t * ret, int fd, int64_t total_size, const char * mimetype
 
 void bgav_close(bgav_t * b)
   {
+  if(b->location)
+    free(b->location);
+  
   if(b->is_running)
     bgav_stop(b);
 

@@ -339,14 +339,16 @@ static void metadata_change_callback(void * priv,
   avdec = (avdec_priv*)(priv);
 
   bg_metadata_t m;
+  
+  if(avdec->bg_callbacks && avdec->bg_callbacks->metadata_changed)
+    {
+    memset(&m, 0, sizeof(m));
+    convert_metadata(&m, metadata);
 
-  memset(&m, 0, sizeof(m));
-
-  convert_metadata(&m, metadata);
-
-  avdec->bg_callbacks->metadata_changed(avdec->bg_callbacks->data,
-                                        &m);
-  bg_metadata_free(&m);
+    avdec->bg_callbacks->metadata_changed(avdec->bg_callbacks->data,
+                                          &m);
+    bg_metadata_free(&m);
+    }
   }
 
 int bg_avdec_set_track(void * priv, int track)

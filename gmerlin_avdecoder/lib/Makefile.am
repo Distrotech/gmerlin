@@ -73,6 +73,16 @@ mad_libs =
 mad_sources =
 endif
 
+if HAVE_LIBAVCODEC
+avcodec_cflags =  @AVCODEC_CFLAGS@
+avcodec_libs =    @AVCODEC_LIBS@
+avcodec_sources = audio_ffmpeg.c video_ffmpeg.c
+else
+avcodec_cflags =
+avcodec_libs =
+avcodec_sources =
+endif
+
 
 if HAVE_W32DLL
 win32_subdirs = libw32dll
@@ -101,6 +111,7 @@ $(faad2_libs) \
 $(flac_libs) \
 $(mad_libs) \
 $(a52_libs) \
+$(avcodec_libs) \
 real_rtsp/librealrtsp.la \
 -lm
 
@@ -111,7 +122,8 @@ $(png_cflags) \
 $(faad2_cflags) \
 $(flac_cflags) \
 $(libmpeg2_cflags) \
-$(a52_cflags)
+$(a52_cflags) \
+$(avcodec_cflags)
 
 libgmerlin_avdec_la_SOURCES = \
 $(libmpeg2_sources) \
@@ -122,8 +134,8 @@ $(win32_sources) \
 $(mad_sources) \
 $(a52_sources) \
 $(flac_sources) \
+$(avcodec_sources) \
 audio.c \
-audio_ffmpeg.c \
 audio_real.c \
 audio_aiff.c \
 base64.c \
@@ -198,7 +210,6 @@ track.c \
 tracktable.c \
 utils.c \
 video.c \
-video_ffmpeg.c \
 video_xadll.c \
 video_qtraw.c \
 video_qtrle.c \

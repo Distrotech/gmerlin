@@ -56,6 +56,8 @@ int parse_pls(bgav_redirector_context_t * r)
   if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc))
     return 0;
 
+  //  fprintf(stderr, "Got line: %s\n", buffer);
+
   if(strncasecmp(buffer, "[playlist]", 10))
     return 0;
 
@@ -65,6 +67,9 @@ int parse_pls(bgav_redirector_context_t * r)
     {
     if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc))
       break;
+
+    //    fprintf(stderr, "Got line: %s\n", buffer);
+    
     if(!strncasecmp(buffer, "Title", 5))
       {
       index = atoi(buffer + 5);

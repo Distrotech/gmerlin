@@ -27,7 +27,7 @@
 
 #include "avdec_common.h"
 
-static int open_avdec(void * priv, const void * location)
+static int open_avdec(void * priv, const char * location)
   {
   int i;
   const char * str;
@@ -46,7 +46,7 @@ static int open_avdec(void * priv, const void * location)
   
   bgav_set_http_shoutcast_metadata(avdec->dec, avdec->http_shoutcast_metadata);
     
-  if(!bgav_open(avdec->dec, (const char *) location))
+  if(!bgav_open(avdec->dec, location))
     return 0;
   
   if(bgav_is_redirector(avdec->dec))

@@ -99,6 +99,7 @@ bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t * b)
   ret = b->write_packet;
   b->write_packet = b->write_packet->next;
   ret->timestamp = GAVL_TIME_UNDEFINED;
+  ret->timestamp_scaled = -1;
   //  fprintf(stderr, "Get packet write: %p\n", ret);  
   return ret;
   }

@@ -41,18 +41,25 @@ dnl
 dnl AVCodec
 dnl
 
-have_avcodec="true"
+have_avcodec="false"
 AVCODEC_CFLAGS=
 AVCODEC_LIBS=
 
 AH_TEMPLATE([HAVE_LIBAVCODEC], [ libavcodec present ])
 
-AC_CHECK_LIB(avcodec, avcodec_open, , have_avcodec="false")
+AC_CHECK_LIB(avcodec, avcodec_open, have_avcodec="true", have_avcodec="false")
 AM_CONDITIONAL(HAVE_LIBAVCODEC, test "x$have_avcodec" = "xtrue")
 if test "x$have_avcodec" = "xtrue"; then
-AVCODEC_LIBS=$LIBS
-LIBS=
+AVCODEC_LIBS=-lavcodec
 fi
+
+AC_SUBST(AVCODEC_CFLAGS)
+AC_SUBST(AVCODEC_LIBS)
+
+if test "x$have_avcodec" = "xtrue"; then
+AC_DEFINE([HAVE_LIBAVCODEC])
+fi
+
 
 dnl
 dnl Vorbis
@@ -81,7 +88,7 @@ LIBMPEG2_REQUIRED="0.4.0"
 have_libmpeg2=false
 AH_TEMPLATE([HAVE_LIBMPEG2], [libmpeg2 found])
 
-PKG_CHECK_MODULES(LIBMPEG2, libmpeg2 >= $LIBMPEG2_REQUIRED, have_libmpeg2=true, )
+PKG_CHECK_MODULES(LIBMPEG2, libmpeg2 >= $LIBMPEG2_REQUIRED, have_libmpeg2=true, have_libmpeg2=false)
 
 AM_CONDITIONAL(HAVE_LIBMPEG2, test x$have_libmpeg2 = xtrue)
 
@@ -436,7 +443,7 @@ case $have_debug in
   false) CFLAGS="$CFLAGS $OPT_CFLAGS";;
 esac
 
-LIBS="$GAVL_LIBS $AVCODEC_LIBS"
+LIBS="$GAVL_LIBS"
 
 if test "x$prefix" = xNONE; then
    prefix="${ac_default_prefix}"

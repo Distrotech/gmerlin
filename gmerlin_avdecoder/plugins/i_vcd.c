@@ -27,7 +27,7 @@
 
 #include "avdec_common.h"
 
-static int open_vcd(void * priv, const void * location)
+static int open_vcd(void * priv, const char * location)
   {
   avdec_priv * avdec;
 

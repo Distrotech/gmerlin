@@ -83,36 +83,38 @@ static void get_format(gavl_video_format_t * ret,
   {
   switch(sequence->frame_period)
     {
+    /* Original timscale is 27.000.000, a bit too much for us */
     case 1126125:
-      ret->framerate_num = 24000;
-      ret->framerate_den = 1001;
+      ret->timescale = 24000;
+      ret->frame_duration = 1001;
       break;
     case 1125000:
-      ret->framerate_num = 24;
-      ret->framerate_den = 1;
+      ret->timescale = 24;
+      ret->frame_duration = 1;
       break;
     case 1080000:
-      ret->framerate_num = 25;
-      ret->framerate_den = 1;
+      ret->timescale = 25;
+      ret->frame_duration = 1;
       break;
     case 900900:
-      ret->framerate_num = 30000;
-      ret->framerate_den = 1001;
+      ret->timescale = 30000;
+      ret->frame_duration = 1001;
       break;
     case 900000:
-      ret->framerate_num = 30;
-      ret->framerate_den = 1;
+      ret->timescale = 30;
+      ret->frame_duration = 1;
       break;
     case 540000:
-      ret->framerate_num = 50;
-      ret->framerate_den = 1;
+      ret->timescale = 50;
+      ret->frame_duration = 1;
       break;
     case 450450:
-      ret->framerate_num = 60000;
-      ret->framerate_den = 1001;
+      ret->timescale = 60000;
+      ret->frame_duration = 1001;
+      break;
     case 450000:
-      ret->framerate_num = 60;
-      ret->framerate_den = 1;
+      ret->timescale = 60;
+      ret->frame_duration = 1;
       break;
     }
 
@@ -226,8 +228,8 @@ int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     /* Get this pictures duration */
 
     priv->picture_duration =
-      (GAVL_TIME_SCALE * s->data.video.format.framerate_den) /
-      s->data.video.format.framerate_num;
+      (GAVL_TIME_SCALE * s->data.video.format.frame_duration) /
+      s->data.video.format.timescale;
     
     if((priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
        (priv->info->display_picture->nb_fields > 2))

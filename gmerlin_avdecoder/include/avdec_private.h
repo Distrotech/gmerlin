@@ -121,6 +121,7 @@ struct bgav_packet_s
   int data_alloc;
   uint8_t * data;
   int64_t timestamp;
+  int64_t timestamp_scaled;
   int keyframe;
   struct bgav_packet_s * next;
   };
@@ -199,6 +200,10 @@ struct bgav_stream_s
 
   int64_t position; /* In samples/frames */
   gavl_time_t time; /* Timestamp (used mainly for seeking) */
+
+  /* Support for custom timescales (optional) */
+
+  int64_t time_scaled;
   
   /* Where to get data */
   bgav_demuxer_context_t * demuxer;
@@ -627,6 +632,8 @@ bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input);
 
 struct bgav_s
   {
+  char * location;
+  
   /* Configuration parameters */
 
   int http_use_proxy;

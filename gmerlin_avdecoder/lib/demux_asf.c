@@ -27,6 +27,8 @@
 #define AUDIO_ERROR_CONCEAL_NONE       0
 #define AUDIO_ERROR_CONCEAL_INTERLEAVE 1
 
+#define ASF_TIME_SCALE 1000
+
 typedef struct
   {
   uint32_t v1;
@@ -705,8 +707,8 @@ static int open_asf(bgav_demuxer_context_t * ctx,
         bgav_BITMAPINFOHEADER_get_format(&bh, bgav_vs);
         /* Fill in the remeaining values */
         
-        bgav_vs->data.video.format.framerate_num = 15;
-        bgav_vs->data.video.format.framerate_den = 1;
+        bgav_vs->data.video.format.timescale = 1000;
+        bgav_vs->data.video.format.frame_duration = 40; /* 25.0 fps, but we don't care about this */
         bgav_vs->data.video.format.free_framerate = 1;
         
         //        gavl_video_format_dump(&(bgav_vs->format));
@@ -1106,12 +1108,15 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   time -= asf->first_timestamp;
   
   stream->packet->timestamp = ((gavl_time_t)time * GAVL_TIME_SCALE) / 1000;
+  stream->packet->timestamp_scaled = time;
+
   // stream->packet->timestamp -= ((gavl_time_t)(asf->hdr.preroll) * GAVL_TIME_SCALE) / 1000;
   
   if(asf->do_sync && (stream->time == GAVL_TIME_UNDEFINED))
     {
     //    fprintf(stderr, "Sync %d %f\n", id, gavl_time_to_seconds(stream->packet->timestamp));
     stream->time = stream->packet->timestamp;
+    stream->time_scaled = stream->packet->timestamp_scaled;
     }
   //  if(id == 2)
   //    fprintf(stderr, "Timestamps: %d %lld\n", time, stream->packet->timestamp);

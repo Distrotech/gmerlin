@@ -29,7 +29,7 @@ Requires:       flac >= @FLAC_REQUIRED@
 Requires:       gavl = @GAVL_REQUIRED@
 Requires:       mpeg2dec >= @LIBMPEG2_REQUIRED@
 Requires:       faad2 >= @FAAD2_REQUIRED@
-Requires:       libmad = @MAD_REQUIRED@
+Requires:       libmad >= @MAD_REQUIRED@
 Requires:       a52dec >= @LIBA52_REQUIRED@
 Requires:       libpng >= @PNG_REQUIRED@
 BuildRoot:	/tmp/gmerlin-build
