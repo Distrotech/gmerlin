@@ -155,7 +155,6 @@ $(real_sources) \
 $(xadll_sources) \
 $(vcd_sources) \
 audio.c \
-audio_aiff.c \
 audio_pcm.c \
 asmrp.c \
 base64.c \

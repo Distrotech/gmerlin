@@ -51,5 +51,4 @@ int bgav_init_audio_decoders_qtwin32();
 extern char * win32_def_path;
 #endif
 
-void bgav_init_audio_decoders_aiff();
 void bgav_init_audio_decoders_pcm();
