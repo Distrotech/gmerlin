@@ -225,6 +225,7 @@ bg_gtk_plugin_widget_single_create(bg_plugin_registry_t * reg,
 
 void bg_gtk_plugin_widget_single_destroy(bg_gtk_plugin_widget_single_t * w)
   {
+//  fprintf(stderr, "bg_gtk_plugin_widget_single_destroy\n");
   if(w->info)
     bg_plugin_registry_set_default(w->reg, w->type_mask, w->info->name);
   free(w);

@@ -94,12 +94,11 @@ static int open_esd(void * data, gavl_audio_format_t * format)
     default:
       e->bytes_per_sample *= 2;
       esd_format |= ESD_STEREO;
-      format->channel_setup = GAVL_CHANNEL_STEREO;
       format->num_channels = 2;
       break;
     }
   format->lfe = 0;
-
+  gavl_set_channel_setup(format);
   /* Set bits */
 
   if(gavl_bytes_per_sample(format->sample_format)==1)

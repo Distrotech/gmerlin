@@ -430,3 +430,8 @@ bg_gtk_plugin_widget_multi_get_widget(bg_gtk_plugin_widget_multi_t * w)
   {
   return w->table;
   }
+
+void bg_gtk_plugin_widget_multi_destroy(bg_gtk_plugin_widget_multi_t * w)
+  {
+  free(w);
+  }

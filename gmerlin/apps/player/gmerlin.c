@@ -97,6 +97,7 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
 
 void gmerlin_destroy(gmerlin_t * g)
   {
+  plugin_window_destroy(g->plugin_window);
   player_window_destroy(g->player_window);
   
   bg_gtk_tree_window_destroy(g->tree_window);

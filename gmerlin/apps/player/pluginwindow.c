@@ -158,6 +158,9 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
 
 void plugin_window_destroy(plugin_window_t * w)
   {
+  bg_gtk_plugin_widget_single_destroy(w->audio_output);
+  bg_gtk_plugin_widget_single_destroy(w->video_output);
+  bg_gtk_plugin_widget_multi_destroy(w->inputs);
   free(w);
   }
 
