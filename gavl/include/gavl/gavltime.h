@@ -22,16 +22,16 @@ void gavl_time_to_frames(int64_t * ret,
 #endif
 
 #define gavl_samples_to_time(rate, samples) \
-((samples)*1000000/(rate))
+(((samples)*1000000)/(rate))
 
-#define gavl_frames_to_time(rate, frames) \
-((gavl_time_t)((double)(frames)*1000000.0/(rate)+0.5))
+#define gavl_frames_to_time(rate_num, rate_den, frames) \
+((gavl_time_t)((1000000*(frames)*(rate_den))/(rate_num)))
 
 #define gavl_time_to_samples(rate, t) \
   (((t)*(rate))/1000000)
 
-#define gavl_time_to_frames(rate, t) \
-  ((int64_t)(((double)(t)*(rate))/1000000.0+0.5))
+#define gavl_time_to_frames(rate_num, rate_den, t) \
+  ((int64_t)(((t)*(rate_num))/(1000000*(rate_den)))
 
 
 #define GAVL_TIME_TO_SECONDS(t) (double)(t)/(double)(GAVL_TIME_SCALE)

@@ -12,17 +12,17 @@ sample_format_names[] =
     { GAVL_SAMPLE_U8,    "Unsigned 8 bit"},
     { GAVL_SAMPLE_S8,    "Signed 8 bit"},
 #ifdef GAVL_PROCESSOR_BIG_ENDIAN
-    { GAVL_SAMPLE_U16LE, "Unsigned 16 bit little endian"},
-    { GAVL_SAMPLE_S16LE, "Signed 16 bit little endian"},
-    { GAVL_SAMPLE_U16BE, "Unsigned 16 bit big endian (native)"},
-    { GAVL_SAMPLE_S16BE, "Signed 16 bit big endian (native)"},
+    { GAVL_SAMPLE_U16LE, "Unsigned 16 bit LE"},
+    { GAVL_SAMPLE_S16LE, "Signed 16 bit LE"},
+    { GAVL_SAMPLE_U16BE, "Unsigned 16 bit BE (native)"},
+    { GAVL_SAMPLE_S16BE, "Signed 16 bit BE (native)"},
 #else
-    { GAVL_SAMPLE_U16LE, "Unsigned 16 bit little endian (native)"},
-    { GAVL_SAMPLE_S16LE, "Signed 16 bit little endian (native)"},
-    { GAVL_SAMPLE_U16BE, "Unsigned 16 bit big endian"},
-    { GAVL_SAMPLE_S16BE, "Signed 16 bit big endian"},
+    { GAVL_SAMPLE_U16LE, "Unsigned 16 bit LE (native)"},
+    { GAVL_SAMPLE_S16LE, "Signed 16 bit LE (native)"},
+    { GAVL_SAMPLE_U16BE, "Unsigned 16 bit BE"},
+    { GAVL_SAMPLE_S16BE, "Signed 16 bit BE"},
 #endif
-    { GAVL_SAMPLE_FLOAT, "Floating point (native)"},
+    { GAVL_SAMPLE_FLOAT, "Floating point"},
   };
 
 const char * gavl_sample_format_to_string(gavl_sample_format_t format)

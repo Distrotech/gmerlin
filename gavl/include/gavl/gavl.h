@@ -111,14 +111,14 @@ typedef struct gavl_audio_frame_s
 
 typedef enum
   {
-    GAVL_SAMPLE_NONE,
-    GAVL_SAMPLE_U8,
-    GAVL_SAMPLE_S8,
-    GAVL_SAMPLE_U16LE,
-    GAVL_SAMPLE_S16LE,
-    GAVL_SAMPLE_U16BE,
-    GAVL_SAMPLE_S16BE,
-    GAVL_SAMPLE_FLOAT
+    GAVL_SAMPLE_NONE  = 0,
+    GAVL_SAMPLE_U8    = 1,
+    GAVL_SAMPLE_S8    = 2,
+    GAVL_SAMPLE_U16LE = 3,
+    GAVL_SAMPLE_S16LE = 4,
+    GAVL_SAMPLE_U16BE = 5,
+    GAVL_SAMPLE_S16BE = 6,
+    GAVL_SAMPLE_FLOAT = 7
   } gavl_sample_format_t;
 
 #ifdef  GAVL_PROCESSOR_BIG_ENDIAN
@@ -135,9 +135,9 @@ typedef enum
 
 typedef enum
   {
-    GAVL_INTERLEAVE_NONE, /* No interleaving, all channels separate */
-    GAVL_INTERLEAVE_2,    /* Interleaved pairs of channels          */ 
-    GAVL_INTERLEAVE_ALL   /* Everything interleaved                 */
+    GAVL_INTERLEAVE_NONE = 0, /* No interleaving, all channels separate */
+    GAVL_INTERLEAVE_2    = 1, /* Interleaved pairs of channels          */ 
+    GAVL_INTERLEAVE_ALL  = 2  /* Everything interleaved                 */
   } gavl_interleave_mode_t;
 
 /*
@@ -161,15 +161,15 @@ typedef enum
 typedef enum
   {
     GAVL_CHANNEL_NONE = 0,
-    GAVL_CHANNEL_MONO,
-    GAVL_CHANNEL_1,      /* First (left) channel */
-    GAVL_CHANNEL_2,      /* Second (right) channel */
-    GAVL_CHANNEL_2F,     /* 2 Front channels (Stereo or Dual channels) */
-    GAVL_CHANNEL_3F,
-    GAVL_CHANNEL_2F1R,
-    GAVL_CHANNEL_3F1R,
-    GAVL_CHANNEL_2F2R,
-    GAVL_CHANNEL_3F2R
+    GAVL_CHANNEL_MONO = 1,
+    GAVL_CHANNEL_1    = 2,      /* First (left) channel */
+    GAVL_CHANNEL_2    = 3,      /* Second (right) channel */
+    GAVL_CHANNEL_2F   = 4,     /* 2 Front channels (Stereo or Dual channels) */
+    GAVL_CHANNEL_3F   = 5,
+    GAVL_CHANNEL_2F1R = 6,
+    GAVL_CHANNEL_3F1R = 7,
+    GAVL_CHANNEL_2F2R = 8,
+    GAVL_CHANNEL_3F2R = 9
   } gavl_channel_setup_t;
 
 /* Structure describing an audio format */
@@ -305,19 +305,19 @@ typedef struct gavl_video_frame_s
 
 typedef enum 
   {
-    GAVL_COLORSPACE_NONE = 0,
-    GAVL_RGB_15,
-    GAVL_BGR_15,
-    GAVL_RGB_16,
-    GAVL_BGR_16,
-    GAVL_RGB_24,
-    GAVL_BGR_24,
-    GAVL_RGB_32,
-    GAVL_BGR_32,
-    GAVL_RGBA_32,
-    GAVL_YUY2,
-    GAVL_YUV_420_P,
-    GAVL_YUV_422_P
+    GAVL_COLORSPACE_NONE =  0,
+    GAVL_RGB_15          =  1,
+    GAVL_BGR_15          =  2,
+    GAVL_RGB_16          =  3,
+    GAVL_BGR_16          =  4,
+    GAVL_RGB_24          =  5,
+    GAVL_BGR_24          =  6,
+    GAVL_RGB_32          =  7,
+    GAVL_BGR_32          =  8,
+    GAVL_RGBA_32         =  9,
+    GAVL_YUY2            = 10,
+    GAVL_YUV_420_P       = 11,
+    GAVL_YUV_422_P       = 12,
   } gavl_colorspace_t;
 
 typedef struct 
@@ -338,7 +338,10 @@ typedef struct
   int pixel_height;
     
   gavl_colorspace_t colorspace;
-  double framerate;
+
+  int framerate_num;
+  int framerate_den;
+  
   int free_framerate;   /* Framerate will be based on timestamps only */
   } gavl_video_format_t;
 

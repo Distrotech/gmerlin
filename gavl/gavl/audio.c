@@ -419,10 +419,8 @@ int gavl_audio_init(gavl_audio_converter_t* cnv,
     
     cnv->buffer = gavl_audio_buffer_create(&(cnv->input_format));
     if(cnv->num_conversions)
-      {
       cnv->buffer_frame =
         gavl_audio_frame_create(&(cnv->input_format));
-      }
     cnv->num_conversions++;
     }
   
@@ -447,14 +445,21 @@ int gavl_audio_convert(gavl_audio_converter_t * cnv,
   if(cnv->opt.conversion_flags & GAVL_AUDIO_DO_BUFFER)
     {
     if(cnv->contexts)
+      {
       ret = gavl_buffer_audio(cnv->buffer, input_frame,
                               cnv->buffer_frame);
+      if(cnv->buffer_frame->valid_samples <
+         cnv->output_format.samples_per_frame)
+        return ret;
+      }
     else
+      {
       ret = gavl_buffer_audio(cnv->buffer, input_frame,
                               output_frame);
-    if(cnv->buffer_frame->valid_samples <
-       cnv->output_format.samples_per_frame)
-      return ret;
+      if(output_frame->valid_samples <
+         cnv->output_format.samples_per_frame)
+        return ret;
+      }
     start_frame = cnv->buffer_frame;
     }
   else

@@ -19,13 +19,13 @@ audioformat.c \
 audioframe.c \
 colorspace.c \
 cputest.c \
-framerate.c \
 interleave.c \
 mix.c \
 sampleformat.c \
 time.c \
 timer.c \
 video.c \
+videoformat.c \
 videoframe.c
 
 noinst_HEADERS=colorspace_macros.h
