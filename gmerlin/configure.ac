@@ -34,7 +34,7 @@ AM_PATH_GTK_2_0($GTK_REQUIRED, have_gtk=true, have_gtk=false)
 AM_CONDITIONAL(HAVE_GTK, test x$have_gtk = xtrue)
 AC_SUBST(GTK_REQUIRED)
 
-dnl Always be in sync weith the newest gtk
+dnl Always be in sync with the newest gtk
 GTK_CFLAGS="$GTK_CFLAGS -DGTK_DISABLE_DEPRECATED"
 
 dnl
@@ -136,8 +136,12 @@ AC_ARG_ENABLE(lqt,
                esac],
 	       test_lqt=true)
 
+if test x$test_lqt="xtrue"; then
+PKG_CHECK_MODULES(LQT, libquicktime >= $LQT_REQUIRED, have_lqt=true, have_lqt=false)
+fi
 
-AC_PATH_LQT($LQT_REQUIRED,  have_lqt=true, have_lqt=false)
+dnl AC_PATH_LQT($LQT_REQUIRED,  have_lqt=true, have_lqt=false)
+
 AM_CONDITIONAL(HAVE_LQT, test x$have_lqt = xtrue)
 AC_SUBST(LQT_REQUIRED)
 
@@ -431,7 +435,6 @@ if test x"$GCC" = x"yes"; then
   esac
 AC_TRY_CFLAGS([$TRY_CFLAGS],[OPT_CFLAGS=$TRY_CFLAGS])
 fi
-
 
 dnl
 dnl Now, build the final CFLAGS.

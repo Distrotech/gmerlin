@@ -1274,7 +1274,7 @@ void bg_media_tree_purge_directory(bg_media_tree_t * t)
   if(!dir)
     return;
 
-  fprintf(stderr, "Purging tree...\n");
+  //  fprintf(stderr, "Purging tree...\n");
   
   while(!readdir_r(dir, &(dent.d), &dent_ptr))
     {

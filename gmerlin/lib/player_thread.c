@@ -620,14 +620,23 @@ static int process_command(bg_player_t * player,
           /* Close down everything */
           //          fprintf(stderr, "Finishing...\n");
           bg_player_set_state(player, BG_PLAYER_STATE_FINISHING, NULL, NULL);
-          
+
+          fprintf(stderr, "Joining input thread...");
           pthread_join(player->input_thread, (void**)0);
-
+          fprintf(stderr, "done\n");
+          
           if(player->do_audio)
+            {
+            fprintf(stderr, "Joining audio thread...");
             pthread_join(player->oa_thread, (void**)0);
+            fprintf(stderr, "done\n");
+            }
           if(player->do_video)
+            {
+            fprintf(stderr, "Joining video thread...");
             pthread_join(player->ov_thread, (void**)0);
-
+            fprintf(stderr, "done\n");
+            }
           player_cleanup(player);
           next_track = 1;
           bg_player_set_state(player, BG_PLAYER_STATE_CHANGING, &next_track, NULL);

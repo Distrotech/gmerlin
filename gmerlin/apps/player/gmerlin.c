@@ -343,7 +343,7 @@ int gmerlin_play(gmerlin_t * g, int ignore_flags)
   gavl_time_t duration_before;
   gavl_time_t duration_current;
   gavl_time_t duration_after;
-  fprintf(stderr, "gmerlin_play\n");
+  //  fprintf(stderr, "gmerlin_play\n");
   handle = bg_media_tree_get_current_track(g->tree, &track_index);
   
   if(!handle)

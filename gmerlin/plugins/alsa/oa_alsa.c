@@ -254,15 +254,15 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
       break;
     }
 
-  fprintf(stderr, "Opening card %s...", card);
+  //  fprintf(stderr, "Opening card %s...", card);
     
   priv->pcm = bg_alsa_open_write(card, format, &priv->error_msg);
-  
+#if 0  
   if(priv->pcm)
     fprintf(stderr, "done\n");
   else
     fprintf(stderr, "failed\n");
-  
+#endif
   free(card);
   
   if(!priv->pcm)
@@ -311,7 +311,7 @@ static void write_frame_alsa(void * p, gavl_audio_frame_t * f)
       }
     if(result == -EPIPE)
       {
-      fprintf(stderr, "Warning: Buffer underrun\n");
+      //    fprintf(stderr, "Warning: Buffer underrun\n");
       //    snd_pcm_drop(priv->pcm);
       if(snd_pcm_prepare(priv->pcm) < 0)
         return;
