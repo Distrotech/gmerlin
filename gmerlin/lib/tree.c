@@ -351,10 +351,10 @@ void bg_media_tree_destroy(bg_media_tree_t * t)
   {
   bg_album_t * next_album;
   bg_media_tree_save(t);
-
+  
   if(t->purge_directory)
     bg_media_tree_purge_directory(t);
-
+  
   bg_cfg_section_destroy(t->cfg_section);
   
   while(t->children)
@@ -368,7 +368,7 @@ void bg_media_tree_destroy(bg_media_tree_t * t)
     free(t->com.directory);
   if(t->com.load_handle)
     bg_plugin_unref(t->com.load_handle);
-
+  
   if(t->filename)
     free(t->filename);
   free(t);
@@ -382,7 +382,7 @@ bg_album_t * bg_media_tree_append_album(bg_media_tree_t * tree,
   
   bg_album_t * new_album =
     bg_album_create(&(tree->com), BG_ALBUM_TYPE_REGULAR, parent);
-
+    
   if(parent)
     {
     bg_album_append_child(parent, new_album);
@@ -1304,7 +1304,7 @@ static int albums_have_file(bg_album_t * album, const char * filename)
     if(a->location && !strcmp(a->location, filename))
       return 1;
 
-    else if(a->children && albums_have_file(a->children, filename))
+    else if(albums_have_file(a->children, filename))
       return 1;
     a = a->next;
     }
@@ -1341,7 +1341,7 @@ void bg_media_tree_purge_directory(bg_media_tree_t * t)
     if(!albums_have_file(t->children, dent.d.d_name))
       {
       sprintf(filename, "%s/%s", t->com.directory, dent.d.d_name);
-      //      fprintf(stderr, "Removing %s\n", filename);
+      fprintf(stderr, "Removing %s\n", filename);
       remove(filename);
       }
     }

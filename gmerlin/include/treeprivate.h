@@ -125,6 +125,8 @@ bg_album_t * bg_album_create(bg_album_common_t * com, bg_album_type_t type,
                              bg_album_t * parent);
 
 
+void bg_album_set_default_location(bg_album_t * album);
+
 void bg_album_destroy(bg_album_t * album);
 
 void bg_album_load(bg_album_t * album, const char * filename);

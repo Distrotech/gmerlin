@@ -91,7 +91,8 @@ void bg_gtk_album_enrty_show(const bg_album_entry_t * entry)
   free(text);
 
   bg_gtk_textwindow_show(win, 0);
-  free(utf8_location);
+  if(utf8_location)
+    free(utf8_location);
   }
 
 

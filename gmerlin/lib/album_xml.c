@@ -608,8 +608,12 @@ void bg_album_save(bg_album_t * a, const char * filename)
     {
     xmlSaveFile(filename, xml_doc);
     }
-  else if(a->location)
+  else
     {
+    if(!a->location)
+      {
+      bg_album_set_default_location(a);
+      }
     tmp_filename = bg_sprintf("%s/%s", a->com->directory, a->location);
     xmlSaveFile(tmp_filename, xml_doc);
     free(tmp_filename);

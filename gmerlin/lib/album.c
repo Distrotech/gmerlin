@@ -70,6 +70,15 @@ static char * new_filename(bg_album_t * album)
   return ret;
   }
 
+void bg_album_set_default_location(bg_album_t * album)
+  {
+  if(!album->location)
+    {
+    album->location = new_filename(album);
+    fprintf(stderr, "New location: %s %s\n", album->name, album->location);
+    }
+  }
+
 void bg_album_update_entry(bg_album_t * album,
                            bg_album_entry_t * entry,
                            bg_track_info_t  * track_info)
@@ -135,6 +144,7 @@ bg_album_t * bg_album_create(bg_album_common_t * com, bg_album_type_t type,
   ret->com = com;
   ret->parent = parent;
   ret->type = type;
+  
   return ret;
   }
 
@@ -181,6 +191,7 @@ static void insertion_done(bg_album_t * album)
     {
     case BG_ALBUM_TYPE_INCOMING:
     case BG_ALBUM_TYPE_FAVOURITES:
+      break;
     case BG_ALBUM_TYPE_REGULAR:
       if(!album->location)
         album->location = new_filename(album);
@@ -425,18 +436,12 @@ int bg_album_open(bg_album_t * a)
         
         if(!(testfile = fopen(tmp_filename,"r")))
           {
-          free(a->location);
-          a->location = (char*)0;
+          free(tmp_filename);
           break;
           }
         fclose(testfile);
         
         bg_album_load(a, tmp_filename);
-        if(!a->entries)
-          {
-          free(a->location);
-          a->location = (char*)0;
-          }
         free(tmp_filename);
         }
       break;
@@ -489,7 +494,7 @@ bg_album_entry_t * bg_album_entry_create(bg_album_t * album)
 
 void bg_album_close(bg_album_t *a )
   {
-  char * tmp_filename;
+  //  char * tmp_filename;
   
   a->open_count--;
 
@@ -510,22 +515,9 @@ void bg_album_close(bg_album_t *a )
     {
     case BG_ALBUM_TYPE_REMOVABLE:
       bg_plugin_unref(a->handle);
+      a->handle = (bg_plugin_handle_t*)0;
       break;
     case BG_ALBUM_TYPE_REGULAR:
-      if(a->location)
-        {
-        if(!a->entries) /* If album is empty, delete the file */
-          {
-          tmp_filename = bg_sprintf("%s/%s", a->com->directory, a->location);
-          remove(tmp_filename);
-          free(tmp_filename);
-          free(a->location);
-          a->location = (char*)0;
-          }
-        else
-          bg_album_save(a, NULL);
-        }
-      break;
     case BG_ALBUM_TYPE_INCOMING:
     case BG_ALBUM_TYPE_FAVOURITES:
       bg_album_save(a, NULL);
@@ -574,25 +566,15 @@ int bg_album_is_open(bg_album_t * a)
 
 void bg_album_destroy(bg_album_t * a)
   {
-  char * tmp_filename;
+  //  char * tmp_filename;
   bg_album_t       * tmp_album;
 
   /* Things to do if an album was open */
 
   if(a->open_count)
     {
-    if(a->entries)
-      bg_album_save(a, (const char*)0);
-    else if(a->location)
-      {
-      tmp_filename = bg_sprintf("%s/%s", a->com->directory, a->location);
-      remove(tmp_filename);
-      free(tmp_filename);
-      free(a->location);
-      a->location = (char*)0;
-      }
+    bg_album_save(a, (const char*)0);
     }
-  
   if(a->name)
     free(a->name);
   if(a->location)

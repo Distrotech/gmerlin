@@ -66,7 +66,7 @@ static char * do_convert(iconv_t cd, char * in_string, int len, int * got_error)
           outbuf = &ret[output_pos];
           break;
         default:
-          fprintf(stderr, "Unknown error: %s\n", strerror(errno));
+          // fprintf(stderr, "Unknown error: %s\n", strerror(errno));
           keep_going = 0;
           if(got_error)
             *got_error = 1;
@@ -91,7 +91,7 @@ static char * do_convert(iconv_t cd, char * in_string, int len, int * got_error)
   return ret;
   }
 
-char * try_charsets[] = 
+static char * try_charsets[] = 
   {
     "ISO8859-1",
     "UTF-8",
@@ -115,8 +115,8 @@ char * bg_system_to_utf8(const char * str, int len)
   //    return bg_strndup(NULL, str, str+len);
 
   
-  fprintf(stderr, "System string:\n");
-  bg_hexdump(str, len);
+  //  fprintf(stderr, "System string:\n");
+  //  bg_hexdump(str, len);
   tmp_string = malloc(len+1);
   memcpy(tmp_string, str, len);
   tmp_string[len] = '\0';
@@ -145,7 +145,7 @@ char * bg_system_to_utf8(const char * str, int len)
       if(!got_error)
         {
         free(tmp_string);
-        fprintf(stderr, "Converting from %s succeeded\n", try_charsets[i]);
+        // fprintf(stderr, "Converting from %s succeeded\n", try_charsets[i]);
         return ret;
         }
       else if(ret)

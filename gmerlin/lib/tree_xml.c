@@ -70,8 +70,10 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
     }
   
   if(!ret)
+    {
     ret = bg_album_create(&(tree->com), BG_ALBUM_TYPE_REGULAR, parent);
-    
+    }
+  
   child = node->children;
 
   while(child)
@@ -115,9 +117,11 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
     }
 
   //  fprintf(stderr, "Found Album %s\n", ret->name);
+
+  bg_album_set_default_location(ret);
   
   /* Load the album if necessary */
-
+  
   if(is_open)
     {
     bg_album_open(ret);
