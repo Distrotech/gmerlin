@@ -332,9 +332,6 @@ if test x"$GCC" = x"yes"; then
   CFLAGS="-Wall -finline-functions $CFLAGS"
   TRY_CFLAGS="-O3"
   AC_TRY_CFLAGS([$TRY_CFLAGS],[OPT_CFLAGS=$TRY_CFLAGS])
-  dnl -fomit-frame-pointer
-  TRY_CFLAGS="$OPT_CFLAGS -fomit-frame-pointer -funroll-all-loops -falign-functions=2 -falign-loops=2 -falign-jumps=2"
-  AC_TRY_CFLAGS([$TRY_CFLAGS],[OPT_CFLAGS=$TRY_CFLAGS])
   dnl arch-specific flags
   case "$host_cpu" in
     i386)           TRY_CFLAGS="$OPT_CFLAGS -mcpu=i386";;
