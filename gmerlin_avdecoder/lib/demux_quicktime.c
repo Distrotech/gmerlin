@@ -223,7 +223,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
   for(i = 0; i < priv->moov.num_tracks; i++)
     {
     s = find_stream(ctx, &(priv->moov.tracks[i]));
-
+    
     if(!s)
       continue;
     if(s->type == BGAV_STREAM_VIDEO) /* One video chunk can be more packets (=frames) */
@@ -365,7 +365,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
     priv->mdat_start + priv->mdat_size - priv->packet_table[priv->num_packets-1].offset;
   
   /* Dump this */
-#if 0
+#if 1
   fprintf(stderr, "Mdat: %lld %lld\n", priv->mdat_start, priv->mdat_size);
   for(i = 0; i < priv->num_packets; i++)
     {

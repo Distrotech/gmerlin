@@ -77,6 +77,11 @@ static codec_info_t codec_infos[] =
       (int[]){ BGAV_MK_FOURCC('C', 'Y', 'U', 'V'),
                0x00 } },
 
+    { "FFmpeg MSRLE Decoder", "Microsoft RLE", CODEC_ID_MSRLE,
+      (int[]){ BGAV_MK_FOURCC('m', 'r', 'l', 'e'),
+               BGAV_MK_FOURCC(0x1, 0x0, 0x0, 0x0),
+               0x00 } },
+    
     /************************************************************
      * H263 Variants
      ************************************************************/

@@ -280,7 +280,7 @@ bg_input_plugin_t the_plugin =
       name:          "i_avdec",
       long_name:     "AVDecoder plugin",
       mimetypes:     "video/x-ms-asf",
-      extensions:    "avi asf wmv rm mov wav mp4 3gp au aiff aif ra",
+      extensions:    "avi asf wmv rm mov wav mp4 3gp qt au aiff aif ra",
       type:          BG_PLUGIN_INPUT,
       flags:         BG_PLUGIN_FILE|BG_PLUGIN_URL,
       create:        create_avdec,

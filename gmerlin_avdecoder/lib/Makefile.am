@@ -2,6 +2,8 @@ libdir=@GMERLIN_LIB_DIR@
 
 lib_LTLIBRARIES = libgmerlin_avdec.la
 
+noinst_HEADERS = pnm.h
+
 if HAVE_VORBIS
 vorbis_cflags = @VORBIS_CFLAGS@
 vorbis_libs =   @VORBIS_LIBS@
@@ -75,11 +77,13 @@ demux_rm.c \
 demux_wav.c \
 in_file.c \
 in_memory.c \
+in_pnm.c \
 in_realrtsp.c \
 input.c \
 nanosoft.c \
 packetbuffer.c \
 packet.c \
+pnm.c \
 qt_atom.c \
 qt_cmov.c \
 qt_esds.c \
@@ -107,5 +111,6 @@ video.c \
 video_ffmpeg.c \
 video_xadll.c \
 video_qtraw.c \
+video_qtrle.c \
 video_real.c
 

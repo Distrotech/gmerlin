@@ -35,6 +35,13 @@
 #define DATA_ID BGAV_MK_FOURCC('D', 'A', 'T', 'A')
 #define INDX_ID BGAV_MK_FOURCC('I', 'N', 'D', 'X')
 
+static void dump_string(const char * str, int len)
+  {
+  int  i;
+  for(i = 0; i < len; i++)
+    fputc(str[i], stderr);
+  }
+
 static char * read_data(bgav_input_context_t * input, int len)
   {
   char * ret;
@@ -100,12 +107,32 @@ typedef struct
   uint16_t   flags;
   } rm_prop_t;
 
+static void dump_prop(rm_prop_t * p)
+  {
+  fprintf(stderr, "PROP:");
+  
+  fprintf(stderr, "max_bit_rate:    %d\n", p->max_bit_rate);
+  fprintf(stderr, "avg_bit_rate:    %d\n", p->avg_bit_rate);
+  fprintf(stderr, "max_packet_size: %d\n", p->max_packet_size);
+  fprintf(stderr, "avg_packet_size: %d\n", p->avg_packet_size);
+  fprintf(stderr, "num_packets:     %d\n", p->num_packets);
+  fprintf(stderr, "duration:        %d\n", p->duration);
+  fprintf(stderr, "preroll:         %d\n", p->preroll);
+  fprintf(stderr, "index_offset:    %d\n", p->index_offset);
+  fprintf(stderr, "data_offset:     %d\n", p->data_offset);
+  fprintf(stderr, "num_streams:     %d\n", p->num_streams);
+  fprintf(stderr, "flags:           %d\n", p->flags);
+  
+  }
+
+
 static int
 read_prop(rm_chunk_t * c,
           bgav_input_context_t * input,
           rm_prop_t * ret)
   {
-  return
+  int result;
+  result =
     bgav_input_read_32_be(input, &(ret->max_bit_rate)) &&
     bgav_input_read_32_be(input, &(ret->avg_bit_rate)) &&
     bgav_input_read_32_be(input, &(ret->max_packet_size)) &&
@@ -117,6 +144,8 @@ read_prop(rm_chunk_t * c,
     bgav_input_read_32_be(input, &(ret->data_offset)) &&
     bgav_input_read_16_be(input, &(ret->num_streams)) &&
     bgav_input_read_16_be(input, &(ret->flags));
+  dump_prop(ret);
+  return result;
   }
 
 /* Media properties */
@@ -139,6 +168,24 @@ typedef struct
   uint32_t  type_specific_len;
   uint8_t * type_specific_data;
   } rm_mdpr_t;
+
+static void dump_mdpr(rm_mdpr_t * m)
+  {
+  fprintf(stderr, "MDPR:\n");
+  fprintf(stderr, "stream_number:    %d\n", m->stream_number);
+  fprintf(stderr, "max_bit_rate:     %d\n", m->max_bit_rate);
+  fprintf(stderr, "avg_bit_rate:     %d\n", m->avg_bit_rate);
+  fprintf(stderr, "max_packet_size:  %d\n", m->max_packet_size);
+  fprintf(stderr, "avg_packet_size:  %d\n", m->avg_packet_size);
+  fprintf(stderr, "start_time:       %d\n", m->start_time);
+  fprintf(stderr, "preroll:          %d\n", m->preroll);
+  fprintf(stderr, "duration:         %d\n", m->duration);
+  fprintf(stderr, "stream_name:      ");
+  dump_string(m->stream_name, m->stream_name_size);
+  fprintf(stderr, "\nmime_type:        ");
+  dump_string(m->mime_type, m->mime_type_size);
+  fprintf(stderr, "\ntype_specific_len:  %d\n", m->type_specific_len);
+  }
 
 static int
 read_mdpr(rm_chunk_t * c,
@@ -176,6 +223,9 @@ read_mdpr(rm_chunk_t * c,
   ret->type_specific_data = read_data(input, ret->type_specific_len);
   if(!ret->type_specific_data)
     return 0;
+
+  dump_mdpr(ret);
+
   
   return 1;
   }
@@ -635,6 +685,9 @@ typedef struct
   uint32_t data_size;
   int do_seek;
   uint32_t next_packet;
+
+  uint32_t first_timestamp;
+  int need_first_timestamp;
   } rm_private_t;
 
 static bgav_stream_t * find_stream(bgav_demuxer_context_t * ctx,
@@ -740,7 +793,7 @@ int open_rmff(bgav_demuxer_context_t * ctx)
     switch(chunk.id)
       {
       case PROP_ID:
-        fprintf(stderr, "Properties\n");
+        //        fprintf(stderr, "Properties\n");
         if(!read_prop(&chunk,ctx->input, &prop))
           goto fail;
         break;
@@ -792,8 +845,10 @@ int open_rmff(bgav_demuxer_context_t * ctx)
         /* We reached the data section. Now check if the file is seekabkle
            and read the indices */
         priv->data_start = file_position = ctx->input->position;
-        priv->data_size = chunk.size - 10;
-                
+        if(chunk.size > 10)
+          priv->data_size = chunk.size - 10;
+        else
+          priv->data_size = 0;
         if(ctx->input->input->seek_byte && prop.index_offset)
           {
           bgav_input_seek(ctx->input, prop.index_offset, SEEK_SET);
@@ -864,6 +919,12 @@ int open_rmff(bgav_demuxer_context_t * ctx)
   
   ctx->duration = prop.duration * (GAVL_TIME_SCALE / 1000); 
 
+  if(prop.flags & PN_LIVE_BROADCAST)
+    {
+    fprintf(stderr, "Playing live broadcast\n");
+    priv->need_first_timestamp = 1;
+    }
+  
   if(ctx->input->input->seek_byte)
     {
     ctx->can_seek = 1;
@@ -1270,14 +1331,22 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
   rm_video_stream_t * vs;
   int result = 0;
   rm = (rm_private_t*)(ctx->priv);
-
-  if(ctx->input->position + 10 >= rm->data_start + rm->data_size)
+  //  fprintf(stderr, "Data size: %d\n", rm->data_size);
+    
+  if(rm->data_size && (ctx->input->position + 10 >= rm->data_start + rm->data_size))
     return 0;
   if(!packet_header_read(ctx->input, &h))
     return 0;
+
+  if(rm->need_first_timestamp)
+    {
+    rm->first_timestamp = h.timestamp;
+    rm->need_first_timestamp = 0;
+    }
+  h.timestamp -= rm->first_timestamp;
   
   //  if(rm->do_seek)
-  //  packet_header_dump(&h);
+  packet_header_dump(&h);
   stream = bgav_demuxer_find_stream(ctx, h.stream_number);
 
   if(!stream) /* Skip unknown stuff */
@@ -1369,8 +1438,8 @@ void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
                     GAVL_TIME_SCALE) / 1000;
     }
 
-  fprintf(stderr, "Position: %u, Start Packet: %u, End Packet: %u\n",
-          position, start_packet, end_packet);
+  //  fprintf(stderr, "Position: %u, Start Packet: %u, End Packet: %u\n",
+  //          position, start_packet, end_packet);
     
   /* Seek to the position */
   

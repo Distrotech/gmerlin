@@ -214,6 +214,7 @@ int bgav_input_get_64_be(bgav_input_context_t * ctx, uint64_t * ret)
 
 extern bgav_input_t bgav_input_file;
 extern bgav_input_t bgav_input_realrtsp;
+extern bgav_input_t bgav_input_pnm;
 
 bgav_input_context_t * bgav_input_open(const char *url,
                                        int milliseconds)
@@ -246,6 +247,8 @@ bgav_input_context_t * bgav_input_open(const char *url,
       else
         fprintf(stderr, "Standard rtsp not supported\n");
       }
+    else if(!strcmp(protocol, "pnm"))
+      ret->input = &bgav_input_pnm;
     free(protocol);
     }
   else

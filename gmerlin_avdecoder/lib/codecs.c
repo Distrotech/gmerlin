@@ -64,6 +64,7 @@ extern void bgav_init_video_decoders_xadll();
 
 extern void bgav_init_audio_decoders_aiff();
 
+extern void bgav_init_video_decoders_qtrle();
 
 extern void bgav_init_video_decoders_qtraw();
 
@@ -166,6 +167,7 @@ void bgav_codecs_init()
   bgav_init_audio_decoders_real();
 
   bgav_init_video_decoders_qtraw();
+  bgav_init_video_decoders_qtrle();
 
 #ifdef HAVE_W32DLL
   bgav_init_video_decoders_win32();

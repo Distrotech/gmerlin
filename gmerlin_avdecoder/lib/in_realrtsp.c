@@ -35,13 +35,13 @@ typedef struct
 static int open_realrtsp(bgav_input_context_t * ctx, const char * url,
                          int milliseconds)
   {
+  int ret;
   char * mrl;
   int got_redirected = 0;
-  int ret;
   realrtsp_priv_t * priv = NULL;
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
-
+  ret = 1;
   mrl = bgav_sprintf(url);
   
   if(!bgav_url_split(url, NULL, &(priv->host), &(priv->port), &(priv->path)))
@@ -67,11 +67,9 @@ static int open_realrtsp(bgav_input_context_t * ctx, const char * url,
     fprintf(stderr, "Got redirected to %s\n", mrl);
     ret = open_realrtsp(ctx, mrl, milliseconds);
     }
-
-  
   free(mrl);
   return ret;
-
+  
   fail:
   ctx->priv = NULL;
   if(priv)
