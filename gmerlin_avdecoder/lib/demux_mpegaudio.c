@@ -716,7 +716,7 @@ static void get_metadata_albw(bgav_input_context_t* input,
     id3v2 = bgav_id3v2_read(input);
     if(id3v2)
       {
-      *start_position += id3v2->total_bytes;
+      *start_position += bgav_id3v2_total_bytes(id3v2);
       bgav_id3v2_2_metadata(id3v2, &(metadata_v2));
       }
     }
@@ -849,7 +849,8 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx,
     
     if(ctx->input->input->seek_byte)
       {
-      priv->data_start = (ctx->input->id3v2) ? ctx->input->id3v2->total_bytes : 0;
+      priv->data_start = (ctx->input->id3v2) ?
+        bgav_id3v2_total_bytes(ctx->input->id3v2) : 0;
       priv->data_end   = (id3v1) ? ctx->input->total_bytes - 128 :
         ctx->input->total_bytes;
       }

@@ -176,6 +176,7 @@ $(real_sources) \
 $(xadll_sources) \
 $(vcd_sources) \
 RTjpeg.c \
+apetag.c \
 audio.c \
 audio_pcm.c \
 asmrp.c \

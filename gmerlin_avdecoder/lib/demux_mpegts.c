@@ -151,7 +151,7 @@ typedef struct
   
   } transport_packet_t;
 
-#if 1
+#if 0
 static void transport_packet_dump(transport_packet_t * p)
   {
   fprintf(stderr, "Transport packet:\n");

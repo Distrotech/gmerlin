@@ -33,11 +33,25 @@
  *  features (incl. seeking) without too much code duplication.
  */
 
+
+typedef struct
+  {
+  bgav_input_context_t * ctx;
+
+  /* We shorten the file at the start and end to hide eventual
+     tags from libmusepack */
+    
+  int start_bytes;
+  int end_bytes;
+  
+  } read_struct;
+
 typedef struct
   {
   mpc_reader     reader;
   mpc_streaminfo si;
   mpc_decoder    dec;
+  read_struct    rs;
   } mpc_priv_t;
 
 static int probe_mpc(bgav_input_context_t * input)
@@ -55,44 +69,44 @@ static int probe_mpc(bgav_input_context_t * input)
 
 static mpc_int32_t mpc_read(void *t, void *ptr, mpc_int32_t size)
   {
-  bgav_input_context_t * ctx;
-  ctx = (bgav_input_context_t *)t;
-
-  return bgav_input_read_data(ctx, ptr, size);
+  read_struct * r = (read_struct*)t;
+  return bgav_input_read_data(r->ctx, ptr, size);
   }
 
 static BOOL mpc_seek(void *t, mpc_int32_t offset)
   {
-  bgav_input_context_t * ctx;
-  ctx = (bgav_input_context_t *)t;
-  bgav_input_seek(ctx, offset, SEEK_SET);
+  read_struct * r = (read_struct*)t;
+  bgav_input_seek(r->ctx, offset + r->start_bytes, SEEK_SET);
   return TRUE;
   }
 
 static mpc_int32_t mpc_tell(void *t)
   {
-  bgav_input_context_t * ctx;
-  ctx = (bgav_input_context_t *)t;
-  return ctx->position;
+  read_struct * r = (read_struct*)t;
+  return r->ctx->position - r->start_bytes;
   }
 
 static mpc_int32_t mpc_get_size(void *t)
   {
-  bgav_input_context_t * ctx;
-  ctx = (bgav_input_context_t *)t;
-  return ctx->total_bytes;
+  read_struct * r = (read_struct*)t;
+  return r->ctx->total_bytes - r->start_bytes - r->end_bytes;
   }
 
 static BOOL mpc_canseek(void *t)
   {
-  bgav_input_context_t * ctx;
-  ctx = (bgav_input_context_t *)t;
-  return ctx->input->seek_byte ? TRUE : FALSE;
+  read_struct * r = (read_struct*)t;
+  return r->ctx->input->seek_byte ? TRUE : FALSE;
   }
 
 static int open_mpc(bgav_demuxer_context_t * ctx,
                     bgav_redirector_context_t ** redir)
   {
+  int ape_tag_size;
+  bgav_metadata_t start_metadata, end_metadata;
+
+  bgav_id3v1_tag_t * id3v1  = (bgav_id3v1_tag_t*)0;
+  bgav_ape_tag_t   * apetag = (bgav_ape_tag_t*)0;
+    
   bgav_stream_t * s;
   mpc_priv_t * priv;
 
@@ -101,14 +115,83 @@ static int open_mpc(bgav_demuxer_context_t * ctx,
   
   /* Setup reader */
 
+  priv->rs.ctx = ctx->input;
+  
   priv->reader.seek     = mpc_seek;
   priv->reader.read     = mpc_read;
   priv->reader.tell     = mpc_tell;
   priv->reader.get_size = mpc_get_size;
   priv->reader.canseek  = mpc_canseek;
 
-  priv->reader.data     = ctx->input;
+  priv->reader.data     = &(priv->rs);
 
+  /* Set up track table */
+  
+  ctx->tt = bgav_track_table_create(1);
+  
+  /* Check for tags */
+
+  priv->rs.start_bytes = ctx->input->position;
+
+  if(ctx->input->input->seek_byte && ctx->input->total_bytes)
+    {
+    /* Check for id3v1 */
+
+    bgav_input_seek(ctx->input, -128, SEEK_END);
+
+    if(bgav_id3v1_probe(ctx->input))
+      {
+      id3v1 = bgav_id3v1_read(ctx->input);
+      priv->rs.end_bytes = 128;
+      }
+    else
+      {
+      bgav_input_seek(ctx->input, -32, SEEK_END);
+      if(bgav_ape_tag_probe(ctx->input, &ape_tag_size))
+        {
+        bgav_input_seek(ctx->input, -ape_tag_size, SEEK_END);
+        apetag = bgav_ape_tag_read(ctx->input, ape_tag_size);
+        priv->rs.end_bytes = ape_tag_size;
+        }
+      }
+    bgav_input_seek(ctx->input, priv->rs.start_bytes, SEEK_SET);
+    }
+
+  /* Setup metadata */
+
+  if(ctx->input->id3v2 && ((id3v1) || (apetag)))
+    {
+    memset(&start_metadata, 0, sizeof(start_metadata));
+    memset(&end_metadata, 0, sizeof(end_metadata));
+
+    bgav_id3v2_2_metadata(ctx->input->id3v2, &start_metadata);
+
+    if(id3v1)
+      bgav_id3v1_2_metadata(id3v1, &end_metadata);
+    else if(apetag)
+      bgav_ape_tag_2_metadata(apetag, &end_metadata);
+    
+    bgav_metadata_merge(&(ctx->tt->current_track->metadata),
+                        &start_metadata, &end_metadata);
+    bgav_metadata_free(&start_metadata);
+    bgav_metadata_free(&end_metadata);
+    }
+  
+  else if(ctx->input->id3v2)
+    bgav_id3v2_2_metadata(ctx->input->id3v2,
+                          &(ctx->tt->current_track->metadata));
+  else if(id3v1)
+    bgav_id3v1_2_metadata(id3v1,
+                          &(ctx->tt->current_track->metadata));
+  else if(apetag)
+    bgav_ape_tag_2_metadata(apetag,
+                            &(ctx->tt->current_track->metadata));
+
+  if(id3v1)
+    bgav_id3v1_destroy(id3v1);
+  if(apetag)
+    bgav_ape_tag_destroy(apetag);
+  
   /* Get stream info */
 
   mpc_streaminfo_init(&(priv->si));
@@ -116,15 +199,12 @@ static int open_mpc(bgav_demuxer_context_t * ctx,
   if(mpc_streaminfo_read(&(priv->si), &(priv->reader)) != ERROR_CODE_OK)
     return 0;
 
-  /* Fire up decoder */
+  /* Fire up decoder and set up stream */
 
   mpc_decoder_setup(&(priv->dec), &(priv->reader));
   if(!mpc_decoder_initialize(&(priv->dec), &(priv->si)))
     return 0;
-  
-  /* Set up track table */
-
-  ctx->tt = bgav_track_table_create(1);
+    
   s = bgav_track_add_audio_stream(ctx->tt->current_track);
 
   s->data.audio.format.samplerate   = priv->si.sample_freq;

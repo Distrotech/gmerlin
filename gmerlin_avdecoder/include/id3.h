@@ -17,19 +17,9 @@
  
 *****************************************************************/
 
+/* ID3V1 */
 
-typedef struct
-  {
-  char * title;   /* Song title	 30 characters */
-  char * artist;  /* Artist	 30 characters */
-  char * album;   /* Album Album 30 characters */
-  char * year;    /* Year         4 characters  */
-  char * comment; /* Comment     30/28 characters */
-
-  uint8_t genre;
-  uint8_t track;
-  
-  } bgav_id3v1_tag_t;
+typedef struct bgav_id3v1_tag_s bgav_id3v1_tag_t;
 
 bgav_id3v1_tag_t * bgav_id3v1_read(bgav_input_context_t * input);
 
@@ -41,62 +31,11 @@ void bgav_id3v1_2_metadata(bgav_id3v1_tag_t*, bgav_metadata_t * m);
 
 const char * bgav_id3v1_get_genre(int id);
 
-#define ID3V2_FRAME_TAG_ALTER_PRESERVATION  (1<<14)
-#define ID3V2_FRAME_FILE_ALTER_PRESERVATION (1<<13)
-#define ID3V2_FRAME_READ_ONLY               (1<<12)
-#define ID3V2_FRAME_GROUPING                (1<<6)
-#define ID3V2_FRAME_COMPRESSION             (1<<3)
-#define ID3V2_FRAME_ENCRYPTION              (1<<2)
-#define ID3V2_FRAME_UNSYNCHRONIZED          (1<<1)
-#define ID3V2_FRAME_DATA_LENGTH             (1<<0)
+/* ID3V2 */
 
-typedef struct
-  {
-  struct
-    {
-    uint32_t fourcc;
-    uint32_t size;
-    uint16_t flags;
-    
-    } header;
+typedef struct bgav_id3v2_tag_s bgav_id3v2_tag_t;
 
-  /* Either data or strings is non-null */
-
-  uint8_t * data;  /* Raw data from the file */
-  char ** strings; /* NULL terminated array  */
-  
-  } bgav_id3v2_frame_t;
-
-/* Flags for ID3V2 Tag header */
-
-#define ID3V2_TAG_UNSYNCHRONIZED  (1<<7)
-#define ID3V2_TAG_EXTENDED_HEADER (1<<6)
-#define ID3V2_TAG_EXPERIMENTAL    (1<<5)
-#define ID3V2_TAG_FOOTER_PRESENT  (1<<4)
-
-typedef struct
-  {
-  struct
-    {
-    uint8_t major_version;
-    uint8_t minor_version;
-    uint8_t flags;
-    uint32_t size;
-    } header;
-
-  struct
-    {
-    uint32_t size;
-    uint32_t num_flags;
-    uint8_t * flags;
-    } extended_header;
-  
-  int total_bytes;
- 
-  int num_frames;
-  bgav_id3v2_frame_t * frames;
-  
-  } bgav_id3v2_tag_t;
+/* Offset must be 128 bytes before the end */
 
 int bgav_id3v2_probe(bgav_input_context_t * input);
 
@@ -107,7 +46,24 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input);
 void bgav_id3v2_destroy(bgav_id3v2_tag_t*);
 void bgav_id3v2_2_metadata(bgav_id3v2_tag_t*, bgav_metadata_t*m);
 
-bgav_id3v2_frame_t * bgav_id3v2_find_frame(bgav_id3v2_tag_t*t,
-                                           uint32_t * fourccs);
+int bgav_id3v2_total_bytes(bgav_id3v2_tag_t*);
 
+/*
+  APE Tags
+  http://hydrogenaudio.org/musepack/klemm/www.personal.uni-jena.de/~pfk/mpp/sv8/apetag.html
+*/
+
+typedef struct bgav_ape_tag_s bgav_ape_tag_t;
+
+/* Offset must be 32 bytes before the end */
+
+int bgav_ape_tag_probe(bgav_input_context_t * input, int * tag_size);
+
+bgav_ape_tag_t * bgav_ape_tag_read(bgav_input_context_t * input, int tag_size);
+
+void bgav_ape_tag_2_metadata(bgav_ape_tag_t * tag, bgav_metadata_t * m);
+
+void bgav_ape_tag_destroy(bgav_ape_tag_t * tag);
+
+void bgav_ape_tag_dump(bgav_ape_tag_t * tag);
 

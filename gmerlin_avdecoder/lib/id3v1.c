@@ -22,6 +22,19 @@
 #include <ctype.h>
 #include <avdec_private.h>
 
+struct bgav_id3v1_tag_s
+  {
+  char * title;   /* Song title	 30 characters */
+  char * artist;  /* Artist	 30 characters */
+  char * album;   /* Album Album 30 characters */
+  char * year;    /* Year         4 characters  */
+  char * comment; /* Comment     30/28 characters */
+
+  uint8_t genre;
+  uint8_t track;
+  
+  };
+
 static char * get_string(bgav_charset_converter_t * cnv, char * ptr, int max_size)
   {
   char * end;
