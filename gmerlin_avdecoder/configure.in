@@ -41,20 +41,20 @@ dnl
 dnl AVCodec
 dnl
 
-have_avcodec="false"
-AVCODEC_CFLAGS=
-AVCODEC_LIBS=
+AH_TEMPLATE([HAVE_LIBAVCODEC],
+            [Do we have libavcodec installed?])
 
-AH_TEMPLATE([HAVE_LIBAVCODEC], [ libavcodec present ])
+have_avcodec=false
 
-AC_CHECK_LIB(avcodec, avcodec_open, have_avcodec="true", have_avcodec="false")
-AM_CONDITIONAL(HAVE_LIBAVCODEC, test "x$have_avcodec" = "xtrue")
-if test "x$have_avcodec" = "xtrue"; then
-AVCODEC_LIBS=-lavcodec
-fi
+AVCODEC_REQUIRED="0.4.8acl"
 
-AC_SUBST(AVCODEC_CFLAGS)
+PKG_CHECK_MODULES(AVCODEC, avcodec_acl = $AVCODEC_REQUIRED, have_avcodec="true", have_avcodec="false")
+
+AM_CONDITIONAL(HAVE_LIBAVCODEC, test x$have_avcodec = xtrue)
+
+AC_SUBST(AVCODEC_REQUIRED)
 AC_SUBST(AVCODEC_LIBS)
+AC_SUBST(AVCODEC_CFLAGS)
 
 if test "x$have_avcodec" = "xtrue"; then
 AC_DEFINE([HAVE_LIBAVCODEC])
