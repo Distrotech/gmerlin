@@ -107,10 +107,7 @@ static codec_info_t codec_infos[] =
       (int[]){ BGAV_MK_FOURCC('H', '2', '6', '3'),
                BGAV_MK_FOURCC('h', '2', '6', '3'),
                BGAV_MK_FOURCC('s', '2', '6', '3'),
-               0x00 } },
-
-    { "FFmpeg H263P decoder", "H263+", CODEC_ID_H263P,
-      (int[]){ BGAV_MK_FOURCC('H', '2', '6', '3'),
+               BGAV_MK_FOURCC('u', '2', '6', '3'),
                BGAV_MK_FOURCC('U', '2', '6', '3'),
                BGAV_MK_FOURCC('v', 'i', 'v', '1'),
                0x00 } },
