@@ -51,6 +51,10 @@ struct bg_gtk_plugin_widget_multi_s
 
   bg_parameter_info_t * parameters;
   bg_cfg_section_t * section;
+
+  gulong extensions_changed_id;
+  gulong mimetypes_changed_id;
+  
   };
 
 static void button_callback(GtkWidget * w, gpointer data)
@@ -149,17 +153,22 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
   
   gtk_tree_model_get(model, &iter, COLUMN_PLUGIN,
                      &long_name, -1);
-
+#if 0
   if(win->info)
     {
     if(win->info->flags & BG_PLUGIN_FILE)
+      {
       bg_plugin_registry_set_extensions(win->reg, win->info->name,
                                         gtk_entry_get_text(GTK_ENTRY(win->extensions)));
+      
+      }
     if(win->info->flags & BG_PLUGIN_URL)
+      {
       bg_plugin_registry_set_mimetypes(win->reg, win->info->name,
                                        gtk_entry_get_text(GTK_ENTRY(win->mimetypes)));
+      }
     }
-
+#endif
   if(win->handle)
     bg_plugin_unref(win->handle);
   
@@ -178,7 +187,8 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
     gtk_widget_set_sensitive(win->config_button, 1);
   else
     gtk_widget_set_sensitive(win->config_button, 0);
-  
+
+  g_signal_handler_block(G_OBJECT(win->extensions), win->extensions_changed_id);
   if(win->info->flags & BG_PLUGIN_FILE)
     {
     gtk_entry_set_text(GTK_ENTRY(win->extensions), win->info->extensions);
@@ -189,7 +199,10 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
     gtk_entry_set_text(GTK_ENTRY(win->extensions), "");
     gtk_widget_set_sensitive(win->extensions, 0);
     }
+  g_signal_handler_unblock(G_OBJECT(win->extensions), win->extensions_changed_id);
 
+  
+  g_signal_handler_block(G_OBJECT(win->mimetypes), win->mimetypes_changed_id);
   if(win->info->flags & BG_PLUGIN_URL)
     {
     gtk_entry_set_text(GTK_ENTRY(win->mimetypes), win->info->mimetypes);
@@ -200,10 +213,28 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
     gtk_entry_set_text(GTK_ENTRY(win->mimetypes), "");
     gtk_widget_set_sensitive(win->mimetypes, 0);
     }
+  g_signal_handler_unblock(G_OBJECT(win->mimetypes), win->mimetypes_changed_id);
   gtk_widget_set_sensitive(win->info_button, 1);
   
 
   g_free(long_name);
+  }
+
+static void entry_change_callback(GtkWidget * w, gpointer data)
+  {
+  bg_gtk_plugin_widget_multi_t * win = (bg_gtk_plugin_widget_multi_t*)data;
+  fprintf(stderr, "entry_change_callback\n");
+  if(w == win->extensions)
+    {
+    bg_plugin_registry_set_extensions(win->reg, win->info->name,
+                                      gtk_entry_get_text(GTK_ENTRY(win->extensions)));
+    }
+  else if(w == win->mimetypes)
+    {
+    bg_plugin_registry_set_mimetypes(win->reg, win->info->name,
+                                     gtk_entry_get_text(GTK_ENTRY(win->mimetypes)));
+    
+    }
   }
 
 static GtkWidget * create_pixmap_button(const char * filename)
@@ -334,6 +365,18 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
 
   ret->extensions = gtk_entry_new();
   ret->mimetypes = gtk_entry_new();
+
+  ret->extensions_changed_id =
+    g_signal_connect(G_OBJECT(ret->extensions),
+                     "changed", G_CALLBACK(entry_change_callback),
+                     (gpointer)ret);
+  
+  ret->mimetypes_changed_id =
+    g_signal_connect(G_OBJECT(ret->mimetypes),
+                     "changed", G_CALLBACK(entry_change_callback),
+                     (gpointer)ret);
+  
+
   gtk_widget_show(ret->mimetypes);
   gtk_widget_show(ret->extensions);
     

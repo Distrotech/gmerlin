@@ -1,4 +1,4 @@
-#define INFO_WINDOW
+// #define INFO_WINDOW
 
 #include <stdio.h>
 #include <stdlib.h>
