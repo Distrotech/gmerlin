@@ -1061,8 +1061,10 @@ static void load_plugin(bg_plugin_registry_t * reg,
 int bg_input_plugin_load(bg_plugin_registry_t * reg,
                          const char * location,
                          const bg_plugin_info_t * info,
-                         bg_plugin_handle_t ** ret)
+                         bg_plugin_handle_t ** ret,
+                         char ** error_msg)
   {
+  const char * msg;
   int num_plugins, i;
   uint32_t flags;
   
@@ -1092,6 +1094,14 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
       {
       fprintf(stderr, "Opening %s with %s failed\n", location,
               info->long_name);
+
+      msg = (const char *)0;
+      if((*ret)->plugin->get_error)
+        msg = (*ret)->plugin->get_error((*ret)->priv);
+      if(msg)
+        *error_msg = bg_sprintf(msg);
+      else
+        *error_msg = bg_sprintf("Unknown error");
       return 0;
       }
     else
@@ -1112,20 +1122,32 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
     load_plugin(reg, info, ret);
     
     plugin = (bg_input_plugin_t*)((*ret)->plugin);
-    fprintf(stderr, "Trying to load %s with %s...", location,
-            info->long_name);
+    //    fprintf(stderr, "Trying to load %s with %s...", location,
+    //            info->long_name);
     if(!plugin->open((*ret)->priv, location))
       {
       //        plugin->close(album->com->load_handle->priv);
-      fprintf(stderr, "Failed\n");
+      //      fprintf(stderr, "Failed\n");
+
+      if(*error_msg)
+        free(*error_msg);
+
+      msg = (const char *)0;
+      if((*ret)->plugin->get_error)
+        msg = (*ret)->plugin->get_error((*ret)->priv);
+      if(msg)
+        *error_msg = bg_sprintf(msg);
+      else
+        *error_msg = bg_sprintf("Unknown error");
+
       }
     else
       {
-      fprintf(stderr, "Success\n");
+      //      fprintf(stderr, "Success\n");
       return 1;
       }
     }
-  fprintf(stderr, "Cannot load %s: giving up\n", location);
+  //  fprintf(stderr, "Cannot load %s: giving up\n", location);
   return 0;
   }
 

@@ -216,7 +216,7 @@ const char * bg_player_ov_get_error(bg_player_ov_context_t * ctx);
  */
 void bg_player_ov_sync(bg_player_t * p);
 
-/* player1_video.c */
+/* player_video.c */
 
 int bg_player_video_init(bg_player_t * p, int video_stream);
 void bg_player_video_cleanup(bg_player_t * p);
@@ -254,7 +254,7 @@ void bg_player_oa_set_volume(bg_player_oa_context_t * ctx,
 
 int  bg_player_oa_get_latency(bg_player_oa_context_t * ctx);
 
-/* player1_audio.c */
+/* player_audio.c */
 
 int  bg_player_audio_init(bg_player_t * p, int audio_stream);
 void bg_player_audio_cleanup(bg_player_t * p);

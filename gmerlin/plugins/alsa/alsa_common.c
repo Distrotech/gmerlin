@@ -291,12 +291,11 @@ static snd_pcm_t * bg_alsa_open(const char * card,
       *error_msg = bg_sprintf(*error_msg, "alsa: snd_pcm_hw_params failed");
     goto fail;
     }
-
-  
+#if 0  
   if(error_msg)
-    *error_msg = bg_sprintf(*error_msg, "Test error");
+    *error_msg = bg_sprintf("Test error");
   goto fail;
-  
+#endif
   snd_pcm_hw_params_free(hw_params);
   
   gavl_set_channel_setup(format);

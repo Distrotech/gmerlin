@@ -91,6 +91,7 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   
   if(!bg_player_oa_init(player->oa_context))
     {
+    player->audio_stream.error_msg = bg_player_oa_get_error(player->oa_context);
     return 0;
     }
 

@@ -227,14 +227,24 @@ static void play_cmd(bg_player_t * p,
 
   if(!bg_player_audio_init(p, 0))
     {
-    bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
-                        "Cannot setup audio playback", NULL);
+    //    bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+    //                    "Cannot setup audio playback", NULL);
+    if(p->audio_stream.error_msg)
+      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                          p->audio_stream.error_msg, NULL);
+    else
+      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                          "Cannot setup audio playback (unknown error)", NULL);
     return;
     }
   if(!bg_player_video_init(p, 0))
     {
-    bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
-                        "Cannot setup video playback", NULL);
+    if(p->video_stream.error_msg)
+      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                          p->video_stream.error_msg, NULL);
+    else
+      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                          "Cannot setup video playback (unknown error)", NULL);
     return;
     }
   

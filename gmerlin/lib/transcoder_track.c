@@ -552,6 +552,7 @@ bg_transcoder_track_create(const char * url,
                            int track, bg_plugin_registry_t * plugin_reg,
                            bg_cfg_section_t * track_defaults_section)
   {
+  char * error_msg = (char*)0;
   int i;
 
   bg_transcoder_track_t * ret = (bg_transcoder_track_t *)0;
@@ -619,9 +620,10 @@ bg_transcoder_track_create(const char * url,
   /* Load the plugin */
   
   if(!bg_input_plugin_load(plugin_reg, url,
-                           input_info, &plugin_handle))
+                           input_info, &plugin_handle, &error_msg))
     {
-    fprintf(stderr, __FILE__": Loading %s failed\n", url);
+    fprintf(stderr, __FILE__": Loading %s failed %s\n", url, error_msg);
+    free(error_msg);
     return (bg_transcoder_track_t*)0;
     }
 

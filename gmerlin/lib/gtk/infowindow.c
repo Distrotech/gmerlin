@@ -33,7 +33,7 @@
 
 /* Delay between update calls in Milliseconds */
 
-#define DELAY_TIME 10
+#define DELAY_TIME 50
 
 struct bg_gtk_info_window_s
   {

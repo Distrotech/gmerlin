@@ -944,6 +944,7 @@ bg_plugin_handle_t *
 bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   {
   char * error_message;
+  char * error_msg = (char*)0;
   bg_track_info_t * track_info;
   const bg_plugin_info_t * info;
   bg_input_plugin_t * input_plugin;
@@ -979,15 +980,20 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
     if(!info)
       {
       error_message = bg_sprintf("Cannot open %s: no plugin found",
-                                 system_location);
+                                 t->com.current_entry->location);
       goto fail;
       }
 #endif
     if(!bg_input_plugin_load(t->com.plugin_reg,
                              system_location, info,
-                             &(ret)))
+                             &(ret), &error_msg))
       {
-      error_message = bg_sprintf("Cannot open %s", system_location);
+      if(error_msg)
+        error_message = bg_sprintf("Cannot open %s: %s",
+                                   t->com.current_entry->location, error_msg);
+      else
+        error_message = bg_sprintf("Cannot open %s", ret,
+                                   t->com.current_entry->location);
       goto fail;
       }
     //    ret = bg_plugin_load(t->com.plugin_reg, info);
@@ -1023,6 +1029,8 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   if(t->error_callback)
     t->error_callback(t, t->error_callback_data, error_message);
   free(error_message);
+  if(error_msg)
+    free(error_msg);
   bg_media_tree_mark_error(t, 1);
   return (bg_plugin_handle_t *)0;
   }

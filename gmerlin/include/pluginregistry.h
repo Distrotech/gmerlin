@@ -113,7 +113,8 @@ void bg_plugin_registry_free_plugins(char ** plugins);
 int bg_input_plugin_load(bg_plugin_registry_t * reg,
                          const char * location,
                          const bg_plugin_info_t * info,
-                         bg_plugin_handle_t ** ret);
+                         bg_plugin_handle_t ** ret,
+                         char ** error_msg);
 
 /* Set the supported extensions and mimetypes for a plugin */
 

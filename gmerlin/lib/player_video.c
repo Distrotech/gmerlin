@@ -51,8 +51,10 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
     return 1;
   
   if(!bg_player_ov_init(player->ov_context))
+    {
+    player->video_stream.error_msg = bg_player_ov_get_error(player->ov_context);
     return 0;
-    
+    }
   /* Initialize video fifo */
   
   player->video_stream.fifo = bg_fifo_create(NUM_VIDEO_FRAMES,

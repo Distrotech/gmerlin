@@ -1213,12 +1213,16 @@ static bg_album_entry_t * remove_redirectors(bg_album_t * album,
           {
           entries = new_entry;
           }
-      
         end_entry = new_entry;
         while(end_entry->next)
+          {
+          /* Set plugin so we don't have to set it next time */
+          end_entry->plugin = bg_strdup(end_entry->plugin, album->com->load_handle->info->name);
           end_entry = end_entry->next;
+          }
+        /* Set plugin so we don't have to set it next time */
+        end_entry->plugin = bg_strdup(end_entry->plugin, album->com->load_handle->info->name);
         end_entry->next = e->next;
-      
         bg_album_entry_destroy(e);
         e = new_entry;
         }
@@ -1257,8 +1261,8 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
                                      const char * plugin_long_name)
   {
   int i, num_entries;
-    
-
+  char * error_msg = (char*)0;
+  
   bg_album_entry_t * new_entry;
   bg_album_entry_t * end_entry = (bg_album_entry_t*)0;
   bg_album_entry_t * ret       = (bg_album_entry_t*)0;
@@ -1285,9 +1289,12 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
 
   if(!bg_input_plugin_load(album->com->plugin_reg,
                            url, info,
-                           &(album->com->load_handle)))
+                           &(album->com->load_handle), &error_msg))
+    {
+    fprintf(stderr, "Cannot open %s: %s\n", url, error_msg);
+    free(error_msg);
     return (bg_album_entry_t*)0;
-  
+    }
   plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
   
   /* Open the track */
@@ -1341,6 +1348,7 @@ int bg_album_get_unique_id(bg_album_t * album)
 int bg_album_refresh_entry(bg_album_t * album,
                            bg_album_entry_t * entry)
   {
+  char * error_msg = (char*)0;
   const bg_plugin_info_t * info;
   char * system_location;
 
@@ -1363,10 +1371,12 @@ int bg_album_refresh_entry(bg_album_t * album,
   if(!bg_input_plugin_load(album->com->plugin_reg,
                            system_location,
                            info,
-                           &(album->com->load_handle)))
+                           &(album->com->load_handle), &error_msg))
     {
     entry->flags |= BG_ALBUM_ENTRY_ERROR;
     free(system_location);
+
+    // fprintf(stderr, "Loading %s failed: %s\n", system_location, error_msg);
     return 0;
     }
   free(system_location);

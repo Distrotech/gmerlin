@@ -146,7 +146,7 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
     }
   
   /* Set the track if neccesary */
-    
+  
   if(ctx->plugin->set_track)
     ctx->plugin->set_track(ctx->priv, track_index);
   

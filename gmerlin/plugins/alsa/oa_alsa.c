@@ -187,6 +187,9 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
         GAVL_CHANNEL_STEREO : GAVL_CHANNEL_MONO;
       gavl_set_channel_setup(format);
       card = bg_sprintf("hw:%d,0", priv->card_index);
+
+      //      fprintf(stderr, "Playback mode: generic\n");
+
       break;
     case PLAYBACK_SURROUND40:
       format->num_channels = 4;
@@ -199,6 +202,8 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
       format->channel_locations[3] = GAVL_CHID_REAR_RIGHT;
 
       card = bg_sprintf("surround40");
+
+      //      fprintf(stderr, "Playback mode: surround40\n");
       
       break;
     case PLAYBACK_SURROUND41:
@@ -213,6 +218,8 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
       format->channel_locations[4] = GAVL_CHID_LFE;
 
       card = bg_sprintf("surround41");
+
+      //      fprintf(stderr, "Playback mode: surround41\n");
       
       break;
     case PLAYBACK_SURROUND50:
@@ -227,6 +234,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
       format->channel_locations[4] = GAVL_CHID_FRONT_CENTER;
 
       card = bg_sprintf("surround50");
+      //      fprintf(stderr, "Playback mode: surround50\n");
       
       break;
     case PLAYBACK_SURROUND51:
@@ -242,17 +250,18 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
       format->channel_locations[5] = GAVL_CHID_LFE;
 
       card = bg_sprintf("surround51");
+      //      fprintf(stderr, "Playback mode: surround51\n");
       break;
     }
 
-  //  fprintf(stderr, "Opening card %s...", card);
+  fprintf(stderr, "Opening card %s...", card);
     
   priv->pcm = bg_alsa_open_write(card, format, &priv->error_msg);
   
-  //  if(priv->pcm)
-  //    fprintf(stderr, "done\n");
-  //  else
-  //    fprintf(stderr, "failed\n");
+  if(priv->pcm)
+    fprintf(stderr, "done\n");
+  else
+    fprintf(stderr, "failed\n");
   
   free(card);
   
