@@ -52,7 +52,7 @@ else
 alsa_subdirs = 
 endif
 
-if HAVE_CDROM
+if HAVE_CDAUDIO
 cdaudio_subdirs = cdaudio
 else
 cdaudio_subdirs = 

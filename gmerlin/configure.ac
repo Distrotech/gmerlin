@@ -203,11 +203,12 @@ CFLAGS=""
     AC_MSG_RESULT(yes)
     CDPARANOIA_CFLAGS=$CFLAGS
     CDPARANOIA_LIBS=$LIBS
+    have_cdaudio="true"
 
   ],
     # program could not be run
     AC_MSG_RESULT(no)
-    have_cdrom="false"
+    have_cdaudio="false"
 )
 
 CFLAGS=$OLD_CFLAGS
@@ -220,7 +221,8 @@ AC_SUBST(CDPARANOIA_LIBS)
 AC_SUBST(CDPARANOIA_REQUIRED)
 
 AM_CONDITIONAL(HAVE_CDPARANOIA, test x$have_cdparanoia = xtrue)
-AM_CONDITIONAL(HAVE_CDROM, test x$have_cdrom = xtrue)
+
+AM_CONDITIONAL(HAVE_CDAUDIO, test x$have_cdaudio = xtrue)
 
 if test x$have_cdparanoia = xtrue; then
 AC_DEFINE(HAVE_CDPARANOIA)
@@ -572,7 +574,7 @@ if test x"$GCC" = x"yes"; then
   TRY_CFLAGS="-O3"
   AC_TRY_CFLAGS([$TRY_CFLAGS],[OPT_CFLAGS=$TRY_CFLAGS])  
   dnl -fomit-frame-pointer
-  TRY_CFLAGS="$OPT_CFLAGS -fomit-frame-pointer -funroll-all-loops -falign-functions=2 -falign-loops=2 -falign-jumps=2"
+  TRY_CFLAGS="$OPT_CFLAGS -fomit-frame-pointer -funroll-all-loops"
   AC_TRY_CFLAGS([$TRY_CFLAGS],[OPT_CFLAGS=$TRY_CFLAGS])                       
   dnl arch-specific flags
   case "$host_cpu" in
@@ -764,7 +766,7 @@ else
 echo "Missing"
 fi
 
-echo -n "Audio CD support:    "
+echo -n "CDROM support:    "
 if test "x$have_cdrom" = "xtrue"; then
 echo "Yes"
 else
@@ -778,11 +780,18 @@ else
 echo "Missing"
 fi
 
-echo -n "CDparanoia:          "
+echo -n "cdparanoia:          "
 if test "x$have_cdparanoia" = "xtrue"; then
 echo "Yes (CFLAGS=$CDPARANOIA_CFLAGS LIBS=$CDPARANOIA_LIBS)"
 else
 echo "Missing"
+fi
+
+echo -n "Audio CD:            "
+if test "x$have_cdaudio" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing (Needs CDROM support and cdparanoia)"
 fi
 
 echo
