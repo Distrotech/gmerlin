@@ -80,9 +80,11 @@ static int open_lqt(void * data, const char * filename_base,
 
   if(e->format == FORMAT_AVI)
     e->filename = bg_sprintf("%s.avi", filename_base);
-  else
+  else if(e->format == FORMAT_QUICKTIME)
     e->filename = bg_sprintf("%s.mov", filename_base);
-
+  else if(e->format == FORMAT_QUICKTIME_STREAMABLE)
+    e->filename = bg_sprintf("%s.mov.tmp", filename_base);
+  
   e->file = quicktime_open(e->filename, 0, 1);
 
   /* Set metadata */
@@ -128,10 +130,29 @@ static void add_video_stream_lqt(void * data, bg_video_info_t* info)
   
   }
 
+static void get_audio_format_lqt(void * data, int stream, gavl_audio_format_t * ret)
+  {
+  e_lqt_t * e = (e_lqt_t*)data;
+
+  gavl_audio_format_copy(ret, &(e->audio_streams[stream].format));
+  
+  }
+  
+static void get_video_format_lqt(void * data, int stream, gavl_video_format_t * ret)
+  {
+  e_lqt_t * e = (e_lqt_t*)data;
+  
+  gavl_video_format_copy(ret, &(e->video_streams[stream].format));
+  }
+
+
 static void write_audio_frame_lqt(void * data, gavl_audio_frame_t* frame,
                                   int stream)
   {
-  //  e_lqt_t * e = (e_lqt_t*)data;
+  e_lqt_t * e = (e_lqt_t*)data;
+
+  lqt_encode_audio_track(e->file, (int16_t**)0, frame->channels.f, frame->valid_samples,
+                         stream);
   
   }
 
@@ -155,13 +176,14 @@ static void write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
   else
     rows = frame->planes;
 
-  /* TODO: Lqt encode video!!!! */
+  /* TODO: lqt_encode_video */
   
   quicktime_encode_video(e->file, rows, stream);
   }
 
 static void close_lqt(void * data, int do_delete)
   {
+  char * filename_final, *pos;
   e_lqt_t * e = (e_lqt_t*)data;
 
   if(!e->file)
@@ -171,8 +193,37 @@ static void close_lqt(void * data, int do_delete)
   
   if(do_delete)
     remove(e->filename);
+
+  else if(e->format == FORMAT_QUICKTIME_STREAMABLE)
+    {
+    filename_final = bg_strdup((char*)0, e->filename);
+    pos = strrchr(filename_final, '.');
+    *pos = '\0';
+    fprintf(stderr, "Making streamable....");
+    quicktime_make_streamable(e->filename, filename_final);
+    fprintf(stderr, "done\n");
+    remove(e->filename);
+    free(filename_final);
+    }
+  
   if(e->filename)
+    {
     free(e->filename);
+    e->filename = (char*)0;
+    }
+  if(e->audio_streams)
+    {
+    free(e->audio_streams);
+    e->audio_streams = NULL;
+    }
+  if(e->video_streams)
+    {
+    free(e->video_streams);
+    e->video_streams = NULL;
+    }
+  e->num_audio_streams = 0;
+  e->num_video_streams = 0;
+  
   }
 
 static void destroy_lqt(void * data)
@@ -363,7 +414,11 @@ bg_encoder_plugin_t the_plugin =
         
     set_audio_parameter:  set_audio_parameter_lqt,
     set_video_parameter:  set_video_parameter_lqt,
-        
+
+    get_audio_format:     get_audio_format_lqt,
+    get_video_format:     get_video_format_lqt,
+    
+    
     write_audio_frame: write_audio_frame_lqt,
     write_video_frame: write_video_frame_lqt,
     close:             close_lqt,

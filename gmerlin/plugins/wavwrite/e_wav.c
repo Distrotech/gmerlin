@@ -12,9 +12,10 @@
 typedef struct
   {
   int bytes_per_sample;
-  int num_channels;
   FILE * output;
   char * error_msg;
+
+  gavl_audio_format_t format;
   } wav_t;
 
 #if 0
@@ -105,17 +106,20 @@ static bg_parameter_info_t parameters[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t * get_parameters_wav(void * data)
+static bg_parameter_info_t * get_audio_parameters_wav(void * data)
   {
   return parameters;
   }
 
-static void set_parameter_wav(void * data, char * name,
-                              bg_parameter_value_t * v)
+static void set_audio_parameter_wav(void * data, int stream, char * name,
+                                    bg_parameter_value_t * v)
   {
   wav_t * wav;
   wav = (wav_t*)data;
-
+  
+  if(stream)
+    return;
+    
   if(!name)
     return;
 
@@ -149,11 +153,15 @@ static int open_wav(void * data, const char * filename_base,
   return result;
   }
 
-static void set_audio_format_wav(void * data, int stream, gavl_audio_format_t * format)
+
+static void add_audio_stream_wav(void * data, bg_audio_info_t * audio_info)
   {
   wav_t * wav;
+  
   wav = (wav_t*)data;
 
+  gavl_audio_format_copy(&(wav->format), &(audio_info->format));
+  
   /* Write the header and adjust format */
 
   write_fourcc(wav->output, 'R', 'I', 'F', 'F'); /* "RIFF" */
@@ -163,14 +171,14 @@ static void set_audio_format_wav(void * data, int stream, gavl_audio_format_t * 
   write_16(wav->output, 16);                     /* Size   */
   write_16(wav->output, 0x0001);                 /* WAV ID */
 
-  write_16(wav->output, format->num_channels);   /* nch        */
-  write_32(wav->output, format->samplerate);     /* Samplerate */
+  write_16(wav->output, wav->format.num_channels);   /* nch        */
+  write_32(wav->output, wav->format.samplerate);     /* Samplerate */
     
   /* Bytes per second */
-  write_32(wav->output, wav->bytes_per_sample * format->num_channels * format->samplerate);
+  write_32(wav->output, wav->bytes_per_sample * wav->format.num_channels * wav->format.samplerate);
 
   /* Block align */
-  write_16(wav->output, wav->bytes_per_sample * format->num_channels);
+  write_16(wav->output, wav->bytes_per_sample * wav->format.num_channels);
 
   /* Bits */
 
@@ -186,19 +194,17 @@ static void set_audio_format_wav(void * data, int stream, gavl_audio_format_t * 
   switch(wav->bytes_per_sample)
     {
     case 1:
-      format->sample_format = GAVL_SAMPLE_U8;
+      wav->format.sample_format = GAVL_SAMPLE_U8;
       break;
     case 2:
-      format->sample_format = GAVL_SAMPLE_S16;
+      wav->format.sample_format = GAVL_SAMPLE_S16;
       break;
     case 3:
-      format->sample_format = GAVL_SAMPLE_S32;
+      wav->format.sample_format = GAVL_SAMPLE_S32;
       break;
     }
   
-  format->interleave_mode = GAVL_INTERLEAVE_ALL;
-
-  wav->num_channels = format->num_channels;
+  wav->format.interleave_mode = GAVL_INTERLEAVE_ALL;
   return;
   }
 
@@ -209,7 +215,7 @@ static void write_audio_frame_wav(void * data, gavl_audio_frame_t * frame,
   wav_t * wav;
   wav = (wav_t*)data;
 
-  imax = frame->valid_samples * wav->num_channels;
+  imax = frame->valid_samples * wav->format.num_channels;
   
   switch(wav->bytes_per_sample)
     {
@@ -227,6 +233,16 @@ static void write_audio_frame_wav(void * data, gavl_audio_frame_t * frame,
       break;
     }
   }
+
+static void get_audio_format_wav(void * data, int stream, gavl_audio_format_t * ret)
+  {
+  wav_t * wav;
+  wav = (wav_t*)data;
+
+  gavl_audio_format_copy(ret, &(wav->format));
+  
+  }
+
 
 static void close_wav(void * data, int do_delete)
   {
@@ -258,16 +274,22 @@ bg_encoder_plugin_t the_plugin =
       
       create:            create_wav,
       destroy:           destroy_wav,
-      get_parameters:    get_parameters_wav,
-      set_parameter:     set_parameter_wav,
       get_error:         get_error_wav
 
     },
     max_audio_streams:   1,
     max_video_streams:   0,
-
+    
     open:                open_wav,
-    //    set_audio_format:    set_audio_format_wav,
+    
+    get_audio_parameters:    get_audio_parameters_wav,
+
+    add_audio_stream:        add_audio_stream_wav,
+    
+    set_audio_parameter:     set_audio_parameter_wav,
+
+    get_audio_format:        get_audio_format_wav,
+    
     write_audio_frame:   write_audio_frame_wav,
     close:               close_wav
   };

@@ -378,7 +378,7 @@ bg_transcoder_tracks_load(const char * filename,
   xmlNodePtr node;
 
   bg_transcoder_track_t * ret = (bg_transcoder_track_t *)0;
-  bg_transcoder_track_t * end;
+  bg_transcoder_track_t * end = (bg_transcoder_track_t *)0;
 
   bg_plugin_handle_t * audio_encoder = (bg_plugin_handle_t*)0;
   bg_plugin_handle_t * video_encoder = (bg_plugin_handle_t*)0;

@@ -204,9 +204,6 @@ void bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
             bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
           }
         }
-      else if(plugin->common.get_parameters)
-        track->audio_streams[i].encoder_parameters =
-          bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
       }
     }
 

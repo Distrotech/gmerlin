@@ -469,6 +469,14 @@ typedef struct bg_encoder_plugin_s
   
   void (*set_video_parameter)(void * data, int stream, char * name,
                               bg_parameter_value_t * v);
+
+  /*
+   *  After setting the parameters, get the formats, you need to deliver the frames in
+   */
+
+  void (*get_audio_format)(void * data, int stream, gavl_audio_format_t*ret);
+  void (*get_video_format)(void * data, int stream, gavl_video_format_t*ret);
+  
   
   /*
    *  Encode audio/video
