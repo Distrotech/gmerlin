@@ -694,7 +694,7 @@ void bg_plugin_ref(bg_plugin_handle_t * h)
   bg_plugin_lock(h);
   h->refcount++;
 
-#if 1
+#if 0
   fprintf(stderr, "bg_plugin_ref %p %s %d\n", h, h->info->name, h->refcount);
 #endif
 
@@ -708,7 +708,7 @@ void bg_plugin_unref(bg_plugin_handle_t * h)
   bg_cfg_section_t * section;
   bg_plugin_lock(h);
   h->refcount--;
-#if 1
+#if 0
   fprintf(stderr, "bg_plugin_unref %p %s %d\n", h, h->info->name, h->refcount);
 #endif
   refcount = h->refcount;

@@ -238,7 +238,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
     fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_get_buffer_size failed\n");
     goto fail;
     }
-  fprintf(stderr, "*** Buffer size: %d\n", (int)buffer_size);
+  //  fprintf(stderr, "*** Buffer size: %d\n", (int)buffer_size);
   /* Period time */
   if(snd_pcm_hw_params_set_period_time_near(ret, hw_params, &period_time, &dir) < 0)
     {
@@ -252,7 +252,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
     fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_get_period_size failed\n");
     goto fail;
     }
-  fprintf(stderr, "*** Period size: %d\n", (int)period_size);
+  //  fprintf(stderr, "*** Period size: %d\n", (int)period_size);
 
   format->samples_per_frame = period_size;
   

@@ -59,10 +59,7 @@ char * parse_uri(const char * pos1, int len)
     else /* Gnome Case */
       start = &(pos1[7]);
     }
-  /* TODO: http etc */  
-  else if(!strncmp(pos1, "http://", 7))
-    start = pos1;
-  else if(!strncmp(pos1, "rtsp://", 7))
+  else if(bgav_string_is_url(pos1))
     start = pos1;
   else
     return (char*)0;
@@ -104,6 +101,8 @@ char ** bg_urilist_decode(const char * str, int len)
   int end;
   int num_uris;
   int num_added;
+
+  //  fprintf(stderr, "bg_urilist_decode: %s\n", str);
   
   pos1 = str;
 

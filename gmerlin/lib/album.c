@@ -199,10 +199,10 @@ static bg_album_entry_t * load_urls(bg_album_t * a,
   end_entry = (bg_album_entry_t*)0;
   new_entry = (bg_album_entry_t*)0;
     
-  fprintf(stderr, "Load URL\n");
+  //  fprintf(stderr, "Load URL %s\n", locations[0]);
   while(locations[i])
     {
-    fprintf(stderr, "Load URL: %s\n", locations[i]);
+    //    fprintf(stderr, "Load URL: %s\n", locations[i]);
     new_entry = bg_album_load_url(a,
                                   locations[i],
                                   plugin);
@@ -343,7 +343,7 @@ void bg_album_insert_urilist_after(bg_album_t * a, const char * str,
   char ** uri_list;
   
   uri_list = bg_urilist_decode(str, len);
-
+  
   if(!uri_list)
     return;
 
@@ -1251,17 +1251,6 @@ static int load_plugin_by_filename(bg_album_t * album,
   return 1;
   }
 
-static int load_plugin_by_mimetype(bg_album_t * album,
-                                   const char * mimetype, const char * url)
-  {
-  const bg_plugin_info_t * info;
-  info = bg_plugin_find_by_mimetype(album->com->plugin_reg, mimetype, url);
-  if(!info)
-    return 0;
-    
-  load_plugin(album, info);
-  return 1;
-  }
 
 static int load_plugin_by_name(bg_album_t * album,
                                const char * name)
@@ -1292,20 +1281,23 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
                                      const char * plugin_long_name)
   {
   int i, num_entries;
-  const char * ptr;
-  
+  int have_plugin = 0;
+    
   //  bg_redirector_plugin_t * redir;
 
   bg_album_entry_t * new_entry;
   bg_album_entry_t * end_entry = (bg_album_entry_t*)0;
   bg_album_entry_t * ret       = (bg_album_entry_t*)0;
-    
-  bg_http_connection_t * con = (bg_http_connection_t*)0;
-
+  
   //  char * system_location;
 
   bg_input_plugin_t * plugin;
   bg_track_info_t * track_info;
+  int num_plugins;
+  uint32_t flags;
+  const bg_plugin_info_t * info;
+  int remember_plugin = 0;
+  //  const char * file_plugin_name;
   
   //  fprintf(stderr, "bg_media_tree_load_url %s %s\n", url,
   //          (plugin_long_name ? plugin_long_name : "NULL"));
@@ -1317,66 +1309,75 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
     {
     if(!load_plugin_by_long_name(album, plugin_long_name))
       return (bg_album_entry_t*)0;
-    }
-  /* 2st case: location is a http url so we can fetch the mimetype */
-  else if(!strncmp(url, "http://", 7))
-    {
-    con = bg_http_connection_create();
     
-    if(!bg_http_connection_connect(con, url, NULL))
+    plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
+    if(!plugin->open(album->com->load_handle->priv, url))
       {
-      fprintf(stderr, "Could not connect to %s\n", url);
-      bg_http_connection_destroy(con);
+      fprintf(stderr, "Opening %s with %s failed\n", url,
+              album->com->load_handle->info->name);
+      //      plugin->close(album->com->load_handle->priv);
       return (bg_album_entry_t*)0;
       }
-    
-    ptr = bg_http_connection_get_variable(con, "Content-type");
-    
-    if(!ptr || !load_plugin_by_mimetype(album, ptr, url))
-      {
-      fprintf(stderr, "No plugin found for mimetype %s\n",
-              ptr);
-      bg_http_connection_close(con);
-      bg_http_connection_destroy(con);
-      return (bg_album_entry_t*)0;
-      }
+    remember_plugin = 1;
     }
-  /* 3rd case: Track has a filename so we can look for the extension */
+  /* 2rd case: Track has a filename so we can look for the extension */
   else
     {
-    if(!load_plugin_by_filename(album, url))
+    if(load_plugin_by_filename(album, url))
       {
-      fprintf(stderr, "No plugin found for %s\n", url);
-      return (bg_album_entry_t*)0;
+      plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
+      if(!plugin->open(album->com->load_handle->priv, url))
+        {
+        fprintf(stderr, "Opening %s with %s failed\n", url,
+                album->com->load_handle->info->name);
+        //        plugin->close(album->com->load_handle->priv);
+        return (bg_album_entry_t*)0;
+        }
+      else
+        have_plugin = 1;
+      }
+    }
+  /* 3rd case: We try all plugins if they can open the file */
+  if(!have_plugin)
+    {
+    flags = bgav_string_is_url(url) ? BG_PLUGIN_URL : BG_PLUGIN_FILE;
+
+    num_plugins = bg_plugin_registry_get_num_plugins(album->com->plugin_reg,
+                                                     BG_PLUGIN_INPUT, flags);
+    for(i = 0; i < num_plugins; i++)
+      {
+      info = bg_plugin_find_by_index(album->com->plugin_reg, i,
+                                     BG_PLUGIN_INPUT, flags);
+      load_plugin(album, info);
+      plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
+      fprintf(stderr, "Trying to load %s with %s...", url, info->long_name);
+      if(!plugin->open(album->com->load_handle->priv, url))
+        {
+        //        plugin->close(album->com->load_handle->priv);
+        fprintf(stderr, "Failed\n");
+        }
+      else
+        {
+        have_plugin = 1;
+        remember_plugin = 1;
+        fprintf(stderr, "Success\n");
+        }
       }
     }
 
+  if(!have_plugin)
+    {
+    fprintf(stderr, "Cannot load %s: giving up\n", url);
+    return (bg_album_entry_t*)0;
+    }
   //  fprintf(stderr, "Loaded %s\n", album->com->load_handle->info->long_name);
   
   /* Use track info from the plugin */
   //  fprintf(stderr, "Using input plugin %s\n",
   //          album->com->load_handle->info->name);
   
-  if(con)
-    {
-    bg_http_connection_close(con);
-    bg_http_connection_destroy(con);
-    }
-  
   /* Open the track */
-  
-  plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
-        
-  if(!plugin->open(album->com->load_handle->priv, url))
-    {
-    fprintf(stderr, "Opening %s with %s failed\n", url,
-            album->com->load_handle->info->name);
-    //    bg_hexdump(system_location, strlen(system_location));
-    //      bg_album_entry_destroy(ret);
-    //      free(system_location);
-    return (bg_album_entry_t*)0;
-    }
-  
+    
   if(!plugin->get_num_tracks)
     num_entries = 1;
   else
@@ -1394,7 +1395,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
     track_info = plugin->get_track_info(album->com->load_handle->priv, i);
     bg_album_update_entry(album, new_entry, track_info);
 
-    if(plugin_long_name)
+    if(remember_plugin)
       new_entry->plugin = bg_strdup(new_entry->plugin,
                                     album->com->load_handle->info->name);
         

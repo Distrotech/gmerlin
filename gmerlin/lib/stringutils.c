@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <ctype.h>
 
 /* stat stuff */
 #include <sys/types.h>
@@ -298,4 +299,22 @@ void bg_strbreak_free(char ** retval)
   {
   free(retval[0]);
   free(retval);
+  }
+
+int bgav_string_is_url(const char * str)
+  {
+  const char * pos, * end_pos;
+  pos = str;
+  end_pos = strstr(str, "://");
+
+  if(!end_pos)
+    return 0;
+  
+  while(pos != end_pos)
+    {
+    if(!isalnum(*pos))
+      return 0;
+    pos++;
+    }
+  return 1;
   }

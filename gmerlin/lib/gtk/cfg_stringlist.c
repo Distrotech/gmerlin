@@ -38,7 +38,10 @@ typedef struct
 
 static void get_value(bg_gtk_widget_t * w)
   {
+#ifdef GTK_2_4
   int i;
+#endif
+
   stringlist_t * priv;
   priv = (stringlist_t*)(w->priv);
 #ifdef GTK_2_4

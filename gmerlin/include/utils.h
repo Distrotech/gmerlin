@@ -48,6 +48,8 @@ char * bg_strcat(char * old_string, const char * tail);
 
 char * bg_strncat(char * old_string, const char * start, const char * end);
 
+int bgav_string_is_url(const char * str);
+
 /* Like sprintf, but allocates memory (free with free())*/
 
 char * bg_sprintf(const char * format,...);
