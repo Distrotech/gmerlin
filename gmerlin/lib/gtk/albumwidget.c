@@ -354,7 +354,7 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   else
     {
     gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 0);
-    //    gtk_widget_set_sensitive(w->menu.selected_menu.info_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.info_item, 0);
     w->selected_entry = (bg_album_entry_t*)0;
     }
   
