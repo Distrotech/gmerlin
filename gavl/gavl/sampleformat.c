@@ -1,3 +1,22 @@
+/*****************************************************************
+
+  sampleformat.c
+
+  Copyright (c) 2001-2002 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+
+  http://gmerlin.sourceforge.net
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+
+*****************************************************************/
+
 #include <stdlib.h>
 
 #include <audio.h>
@@ -23,7 +42,7 @@ gavl_sampleformat_context_create(gavl_audio_options_t * opt,
 
   table = gavl_create_sampleformat_table(opt);
 
-  ret = gavl_audio_convert_context_create(opt, in_format, out_format);
+  ret = gavl_audio_convert_context_create(opt, in_format, out_format);gavl_audio_convert_context_create(opt, in_format, out_format);
 
   ret->output_format.sample_format = out_format->sample_format;
 

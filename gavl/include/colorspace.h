@@ -379,56 +379,63 @@ void gavl_init_yuv_rgb_funcs_c(gavl_colorspace_function_table_t *);
 void gavl_init_yuv_rgb_scanline_funcs_c(gavl_colorspace_function_table_t *);
 
 #ifdef ARCH_X86
-void gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t *, int);
+void gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t *,
+                                 int width, int quality);
 void
 gavl_init_rgb_rgb_scanline_funcs_mmx(gavl_colorspace_function_table_t *,
-                                     int);
+                                     int width, int quality);
 
-void gavl_init_rgb_yuv_funcs_mmx(gavl_colorspace_function_table_t *, int);
+void
+gavl_init_rgb_yuv_funcs_mmx(gavl_colorspace_function_table_t *,
+                            int width, int quality);
 
 void
 gavl_init_rgb_yuv_scanline_funcs_mmx(gavl_colorspace_function_table_t *,
-                                     int);
+                                     int width, int quality);
 
-void gavl_init_yuv_yuv_funcs_mmx(gavl_colorspace_function_table_t *, int);
+void
+gavl_init_yuv_yuv_funcs_mmx(gavl_colorspace_function_table_t *,
+                            int width, int quality);
 
 void
 gavl_init_yuv_yuv_scanline_funcs_mmx(gavl_colorspace_function_table_t *,
-                                     int);
+                                     int width, int quality);
 
 void
-gavl_init_yuv_rgb_funcs_mmx(gavl_colorspace_function_table_t *, int);
+gavl_init_yuv_rgb_funcs_mmx(gavl_colorspace_function_table_t *,
+                            int width, int quality);
 
 void
 gavl_init_yuv_rgb_scanline_funcs_mmx(gavl_colorspace_function_table_t *,
-                                     int);
+                                     int width, int quality);
 
 
 void
 gavl_init_rgb_rgb_funcs_mmxext(gavl_colorspace_function_table_t *,
-                               int);
+                               int width, int quality);
 
 void
 gavl_init_rgb_rgb_scanline_funcs_mmxext(gavl_colorspace_function_table_t *,
-                                        int);
+                                        int width, int quality);
 
 void gavl_init_rgb_yuv_funcs_mmxext(gavl_colorspace_function_table_t *,
-                                    int);
+                                    int width, int quality);
 
 void
 gavl_init_rgb_yuv_scanline_funcs_mmxext(gavl_colorspace_function_table_t *,
-                                        int);
+                                        int width, int quality);
 
 void gavl_init_yuv_yuv_funcs_mmxext(gavl_colorspace_function_table_t *,
-                                    int);
+                                    int width, int quality);
 
 void
 gavl_init_yuv_yuv_scanline_funcs_mmxext(gavl_colorspace_function_table_t *,
-                                        int);
+                                        int width, int quality);
 
 void
-gavl_init_yuv_rgb_funcs_mmxext(gavl_colorspace_function_table_t *, int);
+gavl_init_yuv_rgb_funcs_mmxext(gavl_colorspace_function_table_t *,
+                               int width, int quality);
 void
 gavl_init_yuv_rgb_scanline_funcs_mmxext(gavl_colorspace_function_table_t *,
-                                        int);
+                                        int width, int quality);
 #endif

@@ -16,7 +16,9 @@ URL:		http://gmerlin.sourceforge.net/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	libpng-devel >= 1.0.8
+BuildRequires:	libsamplerate-devel >= 0.1.1
 BuildRoot:	/tmp/gavl
+Requires:	libsamplerate >= 0.1.1
 
 %description
 Gavl is a library for handling and converting uncompressed audio and

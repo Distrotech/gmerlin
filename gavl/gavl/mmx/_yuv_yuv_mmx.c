@@ -328,27 +328,31 @@
 #ifdef SCANLINE
 void
 gavl_init_yuv_yuv_scanline_funcs_mmxext(gavl_colorspace_function_table_t * tab,
-                                        int width)
+                                        int width, int quality)
 #else     
 void
 gavl_init_yuv_yuv_funcs_mmxext(gavl_colorspace_function_table_t * tab,
-                               int width)
+                               int width, int quality)
 #endif
 
 #else /* !MMXEXT */     
 
 #ifdef SCANLINE
 void
-gavl_init_yuv_yuv_scanline_funcs_mmx(gavl_colorspace_function_table_t * tab, int width)
+gavl_init_yuv_yuv_scanline_funcs_mmx(gavl_colorspace_function_table_t * tab, int width,
+                                     int quality)
 #else     
 void
-gavl_init_yuv_yuv_funcs_mmx(gavl_colorspace_function_table_t * tab, int width)
+gavl_init_yuv_yuv_funcs_mmx(gavl_colorspace_function_table_t * tab, int width,
+                            int quality)
 #endif
 
 #endif /* MMXEXT */
   {
   if(width % 8)
     return;
+
+  /* These are as good as the C-Functions */
   
   tab->yuy2_to_yuv_420_p      = yuy2_to_yuv_420_p_mmx;
   tab->yuy2_to_yuv_422_p      = yuy2_to_yuv_422_p_mmx;

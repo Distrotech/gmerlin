@@ -1974,10 +1974,10 @@ static mmx_t sign_mask =   { 0x0000008000000080LL };
 #ifdef SCANLINE
 void
 gavl_init_rgb_yuv_scanline_funcs_mmxext(gavl_colorspace_function_table_t * tab,
-                                        int width)
+                                        int width, int quality)
 #else     
 void gavl_init_rgb_yuv_funcs_mmxext(gavl_colorspace_function_table_t * tab,
-                                    int width)
+                                    int width, int quality)
 #endif
 
 #else /* !MMXEXT */
@@ -1985,11 +1985,11 @@ void gavl_init_rgb_yuv_funcs_mmxext(gavl_colorspace_function_table_t * tab,
 #ifdef SCANLINE
 void
 gavl_init_rgb_yuv_scanline_funcs_mmx(gavl_colorspace_function_table_t * tab,
-                                     int width)
+                                     int width, int quality)
 #else     
 void
 gavl_init_rgb_yuv_funcs_mmx(gavl_colorspace_function_table_t * tab,
-                            int width)
+                            int width, int quality)
 #endif
      
 #endif /* MMXEXT */
@@ -1997,6 +1997,9 @@ gavl_init_rgb_yuv_funcs_mmx(gavl_colorspace_function_table_t * tab,
   if(width % 4)
     return;
 
+  if(quality && (quality >= 3))
+    return;
+    
   tab->rgb_15_to_yuy2 =      rgb_15_to_yuy2_mmx;
   tab->rgb_15_to_uyvy =      rgb_15_to_uyvy_mmx;
   tab->rgb_15_to_yuv_420_p = rgb_15_to_yuv_420_p_mmx;

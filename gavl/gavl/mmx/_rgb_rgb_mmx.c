@@ -413,7 +413,7 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 /* Pack 15 bits to 16 bits */
 
 #define INIT_RGB_15_TO_16 movq_m2r(rgb_rgb_rgb15_up_mask, mm3);\
-                           movq_m2r(rgb_rgb_rgb15_lower_mask, mm4);\
+                          movq_m2r(rgb_rgb_rgb15_lower_mask, mm4);                     \
 
 #define RGB_15_TO_16 movq_r2r(mm0, mm2);\
                       pand_r2r(mm3, mm2);\
@@ -1921,10 +1921,12 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 #ifdef SCANLINE
 void
-gavl_init_rgb_rgb_scanline_funcs_mmxext(gavl_colorspace_function_table_t * tab, int width)
+gavl_init_rgb_rgb_scanline_funcs_mmxext(gavl_colorspace_function_table_t * tab,
+                                        int width, int quality)
 #else     
 void
-gavl_init_rgb_rgb_funcs_mmxext(gavl_colorspace_function_table_t * tab, int width)
+gavl_init_rgb_rgb_funcs_mmxext(gavl_colorspace_function_table_t * tab,
+                               int width, int quality)
 #endif
 
 #else /* !MMXEXT */
@@ -1932,11 +1934,11 @@ gavl_init_rgb_rgb_funcs_mmxext(gavl_colorspace_function_table_t * tab, int width
 #ifdef SCANLINE
 void
 gavl_init_rgb_rgb_scanline_funcs_mmx(gavl_colorspace_function_table_t * tab,
-                                     int width)
+                                     int width, int quality)
 #else     
 void
 gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
-                            int width)
+                            int width, int quality)
 #endif
 
 #endif /* MMXEXT */
@@ -1949,13 +1951,31 @@ gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
   tab->swap_rgb_16 = swap_rgb_16_mmx;
   tab->swap_rgb_15 = swap_rgb_15_mmx;
 
-  tab->rgb_15_to_16 = rgb_15_to_16_mmx;
-  tab->rgb_15_to_24 = rgb_15_to_24_mmx;
-  tab->rgb_15_to_32 = rgb_15_to_32_mmx;
+  /* Conversions from fewer to more bits are not that good */
+
+  if(quality < 3)
+    {
+    tab->rgb_15_to_16 = rgb_15_to_16_mmx;
+    tab->rgb_15_to_24 = rgb_15_to_24_mmx;
+    tab->rgb_15_to_32 = rgb_15_to_32_mmx;
+
+    tab->rgb_16_to_24 = rgb_16_to_24_mmx;
+    tab->rgb_16_to_32 = rgb_16_to_32_mmx;
+
+    tab->rgb_15_to_16_swap = rgb_15_to_16_swap_mmx;
+    tab->rgb_15_to_24_swap = rgb_15_to_24_swap_mmx;
+    tab->rgb_15_to_32_swap = rgb_15_to_32_swap_mmx;
+
+    tab->rgb_16_to_24_swap = rgb_16_to_24_swap_mmx;
+    tab->rgb_16_to_32_swap = rgb_16_to_32_swap_mmx;
+
+    tab->rgb_15_to_rgba_32 = rgb_15_to_rgba_32_mmx;
+    tab->bgr_15_to_rgba_32 = bgr_15_to_rgba_32_mmx;
+    tab->rgb_16_to_rgba_32 = rgb_16_to_rgba_32_mmx;
+    tab->bgr_16_to_rgba_32 = bgr_16_to_rgba_32_mmx;
+    }
 
   tab->rgb_16_to_15 = rgb_16_to_15_mmx;
-  tab->rgb_16_to_24 = rgb_16_to_24_mmx;
-  tab->rgb_16_to_32 = rgb_16_to_32_mmx;
   
   tab->rgb_24_to_15 = rgb_24_to_15_mmx;
   tab->rgb_24_to_16 = rgb_24_to_16_mmx;
@@ -1965,13 +1985,7 @@ gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
   tab->rgb_32_to_16 = rgb_32_to_16_mmx;
   tab->rgb_32_to_24 = rgb_32_to_24_mmx;
 
-  tab->rgb_15_to_16_swap = rgb_15_to_16_swap_mmx;
-  tab->rgb_15_to_24_swap = rgb_15_to_24_swap_mmx;
-  tab->rgb_15_to_32_swap = rgb_15_to_32_swap_mmx;
-
   tab->rgb_16_to_15_swap = rgb_16_to_15_swap_mmx;
-  tab->rgb_16_to_24_swap = rgb_16_to_24_swap_mmx;
-  tab->rgb_16_to_32_swap = rgb_16_to_32_swap_mmx;
   
   tab->rgb_24_to_15_swap = rgb_24_to_15_swap_mmx;
   tab->rgb_24_to_16_swap = rgb_24_to_16_swap_mmx;
@@ -1981,13 +1995,8 @@ gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
   tab->rgb_32_to_16_swap = rgb_32_to_16_swap_mmx;
   tab->rgb_32_to_24_swap = rgb_32_to_24_swap_mmx;
 
-
   /* Conversion from RGB formats to RGBA */
 
-  tab->rgb_15_to_rgba_32 = rgb_15_to_rgba_32_mmx;
-  tab->bgr_15_to_rgba_32 = bgr_15_to_rgba_32_mmx;
-  tab->rgb_16_to_rgba_32 = rgb_16_to_rgba_32_mmx;
-  tab->bgr_16_to_rgba_32 = bgr_16_to_rgba_32_mmx;
   tab->rgb_24_to_rgba_32 = rgb_24_to_rgba_32_mmx;
   tab->bgr_24_to_rgba_32 = bgr_24_to_rgba_32_mmx;
   tab->rgb_32_to_rgba_32 = rgb_32_to_rgba_32_mmx;

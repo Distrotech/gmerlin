@@ -33,7 +33,6 @@ void gavl_audio_options_copy(gavl_audio_options_t * dst,
   }
 
 #if 0
-
 static gavl_audio_convert_context_t *
 create_resample_context(gavl_audio_options_t * opt,
                         const gavl_audio_format_t * in_format,

@@ -27,6 +27,7 @@ typedef struct gavl_mix_matrix_s gavl_mix_matrix_t;
 
 typedef void (*gavl_audio_func_t)(struct gavl_audio_convert_context_s * ctx);
 
+typedef struct gavl_samplerate_converter_s gavl_samplerate_converter_t;
 
 struct gavl_audio_convert_context_s
   {
@@ -43,6 +44,7 @@ struct gavl_audio_convert_context_s
   /* Private data */
   
   gavl_mix_matrix_t * mix_matrix;
+  gavl_samplerate_converter_t * samplerate_converter;
   
   /* For chaining */
   
@@ -69,13 +71,25 @@ gavl_sampleformat_context_create(gavl_audio_options_t * opt,
                                  gavl_audio_format_t  * input_format,
                                  gavl_audio_format_t  * output_format);
 
+gavl_audio_convert_context_t *
+gavl_samplerate_context_create(gavl_audio_options_t * opt,
+                               gavl_audio_format_t  * input_format,
+                               gavl_audio_format_t  * output_format);
+
+/* Resampling support */
+
+gavl_audio_convert_context_t *
+gavl_samplerate_context_create(gavl_audio_options_t * opt,
+                               gavl_audio_format_t  * input_format,
+                               gavl_audio_format_t  * output_format);
+
+
+/* Destroy samplerate converter */
+
+void gavl_samplerate_converter_destroy(gavl_samplerate_converter_t * s);
 
 /* Utility function */
 
 int gavl_bytes_per_sample(gavl_sample_format_t format);
 
-gavl_audio_func_t
-gavl_find_sampletype_converter(const gavl_audio_options_t * opt,
-                               gavl_audio_format_t * in,
-                               gavl_audio_format_t * out);
 

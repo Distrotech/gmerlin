@@ -37,20 +37,28 @@ extern "C" {
 /*
  *  SECTION 1: General stuff
  */
+
+/* Quality levels */
+
+#define GAVL_QUALITY_FASTEST 1
+#define GAVL_QUALITY_BEST    5
+
+#define GAVL_QUALITY_DEFAULT 2 /* Faster then standard C */
   
 /* Acceleration flags */
 
 #define GAVL_ACCEL_C       (1<<0)
 #define GAVL_ACCEL_C_HQ    (1<<1)
-
-#define GAVL_ACCEL_MMX     (1<<2)
-#define GAVL_ACCEL_MMXEXT  (1<<3)
+#define GAVL_ACCEL_C_SHQ   (1<<2) /* Super high quality, damn slow */
+  
+#define GAVL_ACCEL_MMX     (1<<3)
+#define GAVL_ACCEL_MMXEXT  (1<<4)
 
 /* The following ones are unsupported right now */
 
-#define GAVL_ACCEL_SSE     (1<<4)
-#define GAVL_ACCEL_SSE2    (1<<5)
-#define GAVL_ACCEL_3DNOW   (1<<6)
+#define GAVL_ACCEL_SSE     (1<<5)
+#define GAVL_ACCEL_SSE2    (1<<6)
+#define GAVL_ACCEL_3DNOW   (1<<7)
   
 /*
  *   Return supported CPU acceleration flags
@@ -307,7 +315,16 @@ GAVL_AUDIO_STEREO_TO_MONO_MIX)
   
 typedef struct
   {
-  int accel_flags;          /* CPU Acceleration flags */
+  /*
+   *  Quality setting from 1 to 5 (0 means undefined).
+   *  3 means Standard C routines or accellerated version with
+   *  equal quality. Lower numbers mean accellerated versions with lower
+   *  quality.
+   */
+  int quality;         
+
+  /* Explicit accel_flags are mainly for debugging purposes */
+  int accel_flags;     /* CPU Acceleration flags */
   uint32_t conversion_flags;
   } gavl_audio_options_t;
   
@@ -330,6 +347,13 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
                               const gavl_audio_format_t * output_format);
   
 /* Convert audio  */
+
+/*
+ *  Be careful when resampling: gavl will
+ *  assume, that your output frame is big enough.
+ *  Make it e.q. 10 samples bigger than
+ *  input_frame_size * output_samplerate / input_samplerate
+ */
   
 void gavl_audio_convert(gavl_audio_converter_t * cnv,
                         gavl_audio_frame_t * input_frame,
@@ -512,7 +536,17 @@ typedef enum
   
 typedef struct
   {
-  int accel_flags; /* CPU Acceleration flags */
+  /*
+   *  Quality setting from 1 to 5 (0 means undefined).
+   *  3 means Standard C routines or accellerated version with
+   *  equal quality. Lower numbers mean accellerated versions with lower
+   *  quality.
+   */
+  int quality;         
+
+  /* Explicit accel_flags are mainly for colorspace_test.c */
+  int accel_flags;     /* CPU Acceleration flags */
+
   int conversion_flags;
 
   float crop_factor; /* Not used yet (for scaling) */

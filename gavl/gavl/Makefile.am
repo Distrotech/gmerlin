@@ -6,6 +6,8 @@ else
 mmx_libs = 
 endif
 
+AM_CFLAGS = @SECRETRABBIT_CFLAGS@
+
 SUBDIRS = c $(mmx_subdirs)
 
 lib_LTLIBRARIES= libgavl.la
@@ -21,6 +23,7 @@ cputest.c \
 interleave.c \
 mix.c \
 sampleformat.c \
+samplerate.c \
 time.c \
 timer.c \
 video.c \
@@ -33,8 +36,7 @@ csp_packed_planar.h  \
 csp_planar_packed.h  \
 csp_planar_planar.h
 
-
-libgavl_la_LIBADD = $(mmx_libs) c/libgavl_c.la -lm
+libgavl_la_LIBADD = $(mmx_libs) c/libgavl_c.la @SECRETRABBIT_LIBS@ -lm
 
 EXTRA_libgavl_la_SOURCES = _video_copy.c _planar_420_422.c
 
