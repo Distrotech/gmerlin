@@ -8,7 +8,6 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-
 #include "vis_plugin.h"
 #include <xmms/plugin.h>
 #include <gmerlin/utils.h>
@@ -183,14 +182,14 @@ vis_plugin_info_t * vis_plugins_find_xmms1(vis_plugin_info_t * list,
 
     while(tmp_info)
       {
-      fprintf(stderr, "%s %s\n", filename, tmp_info->module_filename);
+      // fprintf(stderr, "%s %s\n", filename, tmp_info->module_filename);
       
       if((tmp_info->type == VIS_PLUGIN_TYPE_XMMS1) &&
          !strcmp(filename, tmp_info->module_filename))
         {
         if(st.st_mtime == tmp_info->module_time)
           {
-          fprintf(stderr, "%s already in registry\n", tmp_info->name);
+          fprintf(stderr, "%s already in registry\n", tmp_info->long_name);
           infos_from_file = vis_plugin_list_remove(infos_from_file, tmp_info);
           break;
           }
@@ -219,6 +218,7 @@ vis_plugin_info_t * vis_plugins_find_xmms1(vis_plugin_info_t * list,
         {
         tmp_info = calloc(1, sizeof(*tmp_info));
         tmp_info->module_filename = bg_strdup(tmp_info->module_filename, filename);
+        tmp_info->long_name = bg_strdup(tmp_info->long_name, plugin->description);
         tmp_info->name = bg_strdup(tmp_info->name, plugin->description);
         tmp_info->module_time = st.st_mtime;
         

@@ -101,7 +101,11 @@ int input_create()
 
   the_input->frame->channels.s_16[0] = the_input->audio_frame.pcm_data[0];
   the_input->frame->channels.s_16[1] = the_input->audio_frame.pcm_data[1];
-  
+
+#ifdef HAVE_LIBVISUAL
+  the_input->audio_frame.vis_audio = visual_audio_new();
+#endif
+
   return 1;
   }
 
@@ -160,10 +164,12 @@ void input_remove_plugin(input_t * c, const vis_plugin_info_t * info)
 
 int input_iteration(void * data)
   {
+#ifndef HAVE_LIBVISUAL
   gint16 * ptr1;
   gint16 * ptr2;
   gint16 * ptr3;
   int i;
+#endif
   input_t * c = (input_t*)data;
 
   vis_plugin_handle_t * tmp_plugin;
@@ -179,6 +185,21 @@ int input_iteration(void * data)
     {
     c->input->read_frame(c->input_handle->priv, c->frame, 512);
     }
+#ifdef HAVE_LIBVISUAL
+  memcpy(c->audio_frame.vis_audio->plugpcm[0], c->audio_frame.pcm_data[0], 512 * 2);
+  memcpy(c->audio_frame.vis_audio->plugpcm[1], c->audio_frame.pcm_data[1], 512 * 2);
+  visual_audio_analyze(c->audio_frame.vis_audio);
+
+  /* Copy data for xmms */
+    
+  memcpy(c->audio_frame.pcm_data_mono, c->audio_frame.vis_audio->pcm[2], 512 * 2);
+
+  memcpy(c->audio_frame.freq_data[0], c->audio_frame.vis_audio->freq[0], 256 * 2);
+  memcpy(c->audio_frame.freq_data[1], c->audio_frame.vis_audio->freq[1], 256 * 2);
+
+  memcpy(c->audio_frame.freq_data_mono[0], c->audio_frame.vis_audio->freq[2], 256 * 2);
+  memcpy(c->audio_frame.freq_data_mono[1], c->audio_frame.vis_audio->freq[3], 256 * 2);
+#else
   
   /* Check, if we need mono samples */
 
@@ -203,6 +224,7 @@ int input_iteration(void * data)
   fft_perform(c->audio_frame.pcm_data_mono[0], c->fft_scratch, c->state);
   for(i = 0; i < 256; i++)
     c->audio_frame.freq_data_mono[0][i] = ((gint)sqrt(c->fft_scratch[i + 1])) >> 8;
+#endif
 
   tmp_plugin = c->active_plugins;
   

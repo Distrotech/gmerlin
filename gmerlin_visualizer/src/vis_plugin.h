@@ -4,6 +4,10 @@
 #include <inttypes.h>
 #include "config.h"
 
+#ifdef HAVE_LIBVISUAL
+#include <libvisual/libvisual.h>
+#endif
+
 
 typedef enum
   {
@@ -11,15 +15,27 @@ typedef enum
 #ifdef HAVE_XMMS1
     VIS_PLUGIN_TYPE_XMMS1,
 #endif
+#ifdef HAVE_LIBVISUAL
+    VIS_PLUGIN_TYPE_LIBVISUAL,
+#endif
   } vis_plugin_type_t;
 
 typedef struct vis_plugin_audio_s
   {
+  /* For xmms */
+  
   int16_t pcm_data[2][512];
   int16_t pcm_data_mono[2][512];
   
   int16_t freq_data[2][256];
   int16_t freq_data_mono[2][256];
+
+  /* For libvisual */
+
+#ifdef HAVE_LIBVISUAL
+  VisAudio * vis_audio;
+#endif
+    
   } vis_plugin_audio_t;
 
 #define VIS_PLGUIN_HAS_ABOUT     (1<<0)
@@ -29,7 +45,9 @@ typedef struct vis_plugin_info_s
   {
   int flags; /* See defines above */
   
-  char * name;
+  char * name; /* For interal use only */
+  char * long_name;
+  
   char * module_filename;
   long module_time;
   
@@ -92,5 +110,14 @@ vis_plugin_info_t * vis_plugins_find_xmms1(vis_plugin_info_t * list,
                                            vis_plugin_info_t ** infos_from_file);
 
 #endif // HAVE_XMMS1
+
+#ifdef HAVE_LIBVISUAL
+
+vis_plugin_handle_t * vis_plugin_load_lv(const vis_plugin_info_t *);
+vis_plugin_info_t * vis_plugins_find_lv(vis_plugin_info_t * list,
+                                        vis_plugin_info_t ** infos_from_file);
+
+#endif // HAVE_XMMS1
+
 
 #endif // __VIS_PLUGIN_H_

@@ -55,6 +55,13 @@ vis_plugin_info_t * vis_plugins_find()
   ret = vis_plugins_find_xmms1(ret, &info_from_file);
   
 #endif // HAVE_XMMS1
+
+#ifdef HAVE_LIBVISUAL
+
+  ret = vis_plugins_find_lv(ret, &info_from_file);
+  
+#endif // HAVE_LIBVISUAL
+
   
   /* Save the entries */
   vis_plugins_save(ret);
@@ -86,11 +93,16 @@ vis_plugin_handle_t * vis_plugin_load(const vis_plugin_info_t * info)
   {
   switch(info->type)
     {
-    // #ifdef HAVE_XMMS1
+#ifdef HAVE_XMMS1
     case VIS_PLUGIN_TYPE_XMMS1:
       return vis_plugin_load_xmms1(info);
       break;
-      // #endif
+#endif
+#ifdef HAVE_LIBVISUAL
+    case VIS_PLUGIN_TYPE_LIBVISUAL:
+      return vis_plugin_load_lv(info);
+      break;
+#endif
     case VIS_PLUGIN_TYPE_UNDEFINED:
       break;
     }

@@ -14,7 +14,12 @@ static struct
   }
 type_names[] = 
   {
+#ifdef HAVE_XMMS1
     { "xmms1", VIS_PLUGIN_TYPE_XMMS1 },
+#endif
+#ifdef HAVE_LIBVISUAL
+    { "libvisual", VIS_PLUGIN_TYPE_LIBVISUAL },
+#endif
     { /* End of names */             },
   };
 
@@ -44,6 +49,7 @@ static const vis_plugin_type_t type_from_name(char * name)
 
 static const char * type_name            = "type";
 static const char * name_name            = "name";
+static const char * long_name_name       = "long_name";
 static const char * module_filename_name = "module_filename";
 static const char * module_time_name     = "module_time";
 static const char * enabled_name         = "enabled";
@@ -80,6 +86,10 @@ static vis_plugin_info_t * load_plugin(xmlDocPtr xml_doc, xmlNodePtr node)
     else if(!strcmp(node->name, name_name))
       {
       ret->name = bg_strdup(ret->name, tmp_string);
+      }
+    else if(!strcmp(node->name, long_name_name))
+      {
+      ret->long_name = bg_strdup(ret->long_name, tmp_string);
       }
     else if(!strcmp(node->name, module_filename_name))
       {
@@ -179,6 +189,11 @@ static void save_plugin(xmlNodePtr parent, const vis_plugin_info_t * info)
   xmlAddChild(xml_item, xmlNewText(info->name));
   xmlAddChild(xml_plugin, xmlNewText("\n"));
 
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, long_name_name, NULL);
+  xmlAddChild(xml_item, xmlNewText(info->long_name));
+  xmlAddChild(xml_plugin, xmlNewText("\n"));
+
+  
   xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, module_filename_name, NULL);
   xmlAddChild(xml_item, xmlNewText(info->module_filename));
   xmlAddChild(xml_plugin, xmlNewText("\n"));

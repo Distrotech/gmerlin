@@ -38,61 +38,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* Scan the xmms plugin directory for visualization plugins */
-#if 0
-static GList * get_installed_plugins()
-  {
-  VisPlugin * plugin;
-  GList * ret = (GList*)0;
-
-  struct dirent * entry;
-
-  char * filename;
-  char * pos;
-  xesd_plugin_info * plugin_info;
-  DIR * dir = opendir(XMMS_VISUALIZATION_PLUGIN_DIR);
-  filename = malloc(PATH_MAX + 1);
-  
-  while(1)
-    {
-    if(!(entry = readdir(dir)))
-      break;
-
-    /* Filter out filenames, which are no libraries */
-
-    pos = strchr(entry->d_name, '.');
-
-    if(!pos)
-      continue;
-
-    if(strcmp(pos, ".so"))
-      continue;
-
-    if(strncmp(entry->d_name, "lib", 3))
-      continue;
-    
-    sprintf(filename, "%s/%s", XMMS_VISUALIZATION_PLUGIN_DIR, entry->d_name);
-    
-    plugin = load_vis_plugin(filename);
-    if(!plugin)
-      continue;
-    else
-      {
-      plugin_info = calloc(1, sizeof(xesd_plugin_info));
-      plugin_info->filename = g_strdup(filename);
-      plugin_info->name = g_strdup(plugin->description);
-      plugin_info->enabled = 0;
-      plugin_info->plugin = plugin;
-      ret = g_list_append(ret, (gpointer)plugin_info);
-      unload_plugin(plugin_info);
-      }
-    }
-  free(filename);
-  closedir(dir);
-  return ret;
-  }
-#endif
-
 static void button_callback(GtkWidget * w, gpointer * data)
   {
   main_window_t * win;
@@ -125,7 +70,7 @@ static void button_callback(GtkWidget * w, gpointer * data)
       win->current_plugin_info->enabled = 1;
 #if 0
       fprintf(stderr, "Adding plugin: %s %s",
-              win->current_plugin_info->name,
+              win->current_plugin_info->long_name,
               win->current_plugin_info->filename);
 #endif
       if(!win->current_plugin_handle)
@@ -222,7 +167,7 @@ main_window_t * main_window_create()
   
   while(info)
     {
-    gtk_clist_append(GTK_CLIST(ret->plugin_list), &(info->name));
+    gtk_clist_append(GTK_CLIST(ret->plugin_list), &(info->long_name));
     info = info->next;
     }
   scrolledwindow

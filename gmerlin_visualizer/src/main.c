@@ -34,6 +34,11 @@
 #include "mainwindow.h"
 #include "input.h"
 
+#ifdef HAVE_LIBVISUAL
+#include <libvisual/libvisual.h>
+#endif
+
+
 #if 0
 
 #include <gmerlin/cmdline.h>
@@ -115,6 +120,11 @@ int main(int argc, char ** argv)
   main_window_t * main_window;
     
   gtk_init(&argc, &argv);
+
+#ifdef HAVE_LIBVISUAL
+  visual_init (&argc, &argv);
+#endif
+
 #if 0
   bg_cmdline_parse(options, &argc, &argv, NULL);
 #endif
