@@ -26,9 +26,6 @@ gmerlin_player_SOURCES = player1.c
 
 gmerlin_player_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la -ldl
 
-audiorecorder_SOURCES = audiorecorder.c
-audiorecorder_LDADD = ../lib/libgmerlin.la -ldl
-
 videoplayer1_SOURCES = videoplayer1.c
 videoplayer1_LDADD = ../lib/libgmerlin.la -ldl
 
