@@ -1188,7 +1188,9 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
   bg_album_t * a;
     
   a = bg_media_tree_append_album(t, parent);
-  bg_album_set_expanded(parent, 1);
+
+  if(parent)
+    bg_album_set_expanded(parent, 1);
   
   bg_album_open(a);
   bg_album_set_expanded(a, 1);
