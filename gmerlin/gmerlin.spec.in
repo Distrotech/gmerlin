@@ -1,25 +1,27 @@
-Summary:	Multiformat media player with recording and transcoding capabilities
-Name:		gmerlin
+Summary:	Base libraries for gmerlin applications
+Name:		gmerlin-lib
 Version:	@VERSION@
 Release:	1
 License:	GPL
 Group:		Applications/Multimedia
 Group(de):	Anwendungen/Multimedia
-Source0:	%{name}-%{version}.tar.gz
+Source0:	gmerlin-%{version}.tar.gz
 URL:		http://gmerlin.sourceforge.net/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	gtk2-devel
 BuildRequires:	libxml2-devel
-BuildRequires:  libquicktime-devel >= 0.9.2
 BuildRoot:	/tmp/gmerlin-build
 
 %description
 Multiformat mediaplayer with recording and transcoding capabilities
 
+#
+# gmerlin-lib-devel
+#
+
 %package devel
-Summary:	Header files for compiling gmerlin plugins
-Summary(pl):	Pliki nagЁСwkowe i dokumentacja do libquicktime
+Summary:	Header files for compiling gmerlin applications and plugins
 Group:		Development/Libraries
 Group(de):	Entwicklung/Libraries
 Group(es):	Desarrollo/Bibliotecas
@@ -32,31 +34,157 @@ Requires:	%{name} = %{version}
 Requires:	gtk2-devel
 
 %description devel
-Header files for compiling gmerlin plugins
+Header files for compiling gmerlin applications and plugins
 
-%package lqt
+#
+# gmerlin-gtk
+#
+
+%package -n gmerlin-gtk
+Summary:    Gtk support library for gmerlin
+Group:	    Development/Libraries
+
+%description -n gmerlin-gtk
+Gtk support library for gmerlin
+
+#
+# gmerlin-gtk-devel
+#
+
+%package -n gmerlin-gtk-devel
+Summary:    Header files for compiling gmerlin gtk applications
+Group:	    Development/Libraries
+
+%description -n gmerlin-gtk-devel
+Header files for compiling gmerlin gtk applications
+
+#
+# Libquicktime
+#
+
+%package -n gmerlin-lqt
 Summary:	Libquicktime plugins for gmerlin
-Group:		Development/Libraries
-Group(de):	Entwicklung/Libraries
-Group(es):	Desarrollo/Bibliotecas
-Group(fr):	Development/Librairies
-Group(pl):	Programowanie/Biblioteki
-Group(pt_BR):	Desenvolvimento/Bibliotecas
-Group(ru):	Разработка/Библиотеки
-Group(uk):	Розробка/Б╕бл╕отеки
-Requires:	%{name} = %{version}
+Group:		Applications/Multimedia
 
-%description lqt
+%description -n gmerlin-lqt
 Libquicktime plugins for gmerlin (see http://libquicktime.sf.net)
 
-prep
-%setup -q
+#
+# Alsa
+#
+
+%package -n gmerlin-alsa
+Summary:	Alsa plugins for gmerlin
+Group:		Applications/Multimedia
+
+%description -n gmerlin-alsa
+Alsa plugins for gmerlin (see http://alsa-project.org)
+
+#
+# Jpeg
+#
+
+%package -n gmerlin-jpeg
+Summary:	Jpeg plugins for gmerlin
+Group:		Applications/Multimedia
+
+%description -n gmerlin-jpeg
+Jpeg plugins for gmerlin
+
+#
+# OSS
+#
+
+%package -n gmerlin-oss
+Summary:	OSS plugins for gmerlin
+Group:		Applications/Multimedia
+
+%description -n gmerlin-oss
+OSS plugins for gmerlin
+
+#
+# ESD
+#
+
+%package -n gmerlin-esd
+Summary:	esd plugins for gmerlin
+Group:		Applications/Multimedia
+
+%description -n gmerlin-esd
+esd plugins for gmerlin
+
+#
+# X11
+#
+
+%package -n gmerlin-x11
+Summary:	X11 plugins for gmerlin
+Group:		Applications/Multimedia
+
+%description -n gmerlin-x11
+X11 plugins for gmerlin
+
+#
+# V4l
+#
+
+%package -n gmerlin-v4l
+Summary:	Video4linux plugin for gmerlin
+Group:		Applications/Multimedia
+
+%description -n gmerlin-v4l
+Video4linux plugin for gmerlin
+
+#
+# Applications: Player
+#
+
+%package -n gmerlin-player
+Summary:        Multiformat media player
+Group:          Applications/Multimedia
+
+%description -n gmerlin-player
+Multiformat media player
+
+#
+# Applications: Alsamixer
+#
+
+%package -n gmerlin-alsamixer
+Summary:        Alsa mixer
+Group:          Applications/Multimedia
+
+%description -n gmerlin-alsamixer
+Alsa mixer
+
+#
+# Applications: Camelot
+#
+
+%package -n gmerlin-camelot
+Summary:        Webcam application
+Group:          Applications/Multimedia
+
+%description -n gmerlin-camelot
+Webcam application
+
+#
+# Utilities
+#
+
+%package -n gmerlin-utils
+Summary:       Utilities for gmerlin
+Group:         Applications/Multimedia
+
+%description -n gmerlin-utils
+Gmerlin Utilities
+
+%prep
+%setup -n gmerlin-%{version}
 
 %build
-rm -f missing
-aclocal
-autoconf
-automake -a -c
+./cvs_clean.sh
+./autogen.sh
 %configure
 
 %{__make}
@@ -75,20 +203,72 @@ rm -rf $RPM_BUILD_ROOT
 %postun -p /sbin/ldconfig
 
 %files
-%defattr(644,root,root,755)
+%defattr(644,root,root)
 %doc README.gz
-%attr(755,root,root) %{_libdir}/gmerlin/libgmerlin.so*
+%attr(644,root,root) %{_libdir}/libgmerlin.la
+%attr(755,root,root) %{_libdir}/libgmerlin.so*
+%attr(644,root,root) %{_datadir}/gmerlin/icons/audio_16.png
+%attr(644,root,root) %{_datadir}/gmerlin/icons/video_16.png
 
 %files devel
-%defattr(644,root,root,755)
-%doc docs/*.html
-%attr(755,root,root) %{_libdir}/lib*.so
+%defattr(644,root,root)
+%{_includedir}/gmerlin
+%{_libdir}/pkgconfig/gmerlin.pc
+
+%files -n gmerlin-gtk
+%defattr(644,root,root)
+%attr(644,root,root) %{_libdir}/libgmerlin_gtk.la
+%attr(755,root,root) %{_libdir}/libgmerlin_gtk.so*
 %{_includedir}/gmerlin
 
-%files lqt
-%defattr(644,root,root,755)
-%attr(755,root,root) %{_libdir}/lib*.so
+%files -n gmerlin-lqt
+%attr(644,root,root) %{_libdir}/gmerlin/plugins/*lqt*.la
+%attr(755,root,root) %{_libdir}/gmerlin/plugins/*lqt*.so
 
+%files -n gmerlin-oss
+%attr(644,root,root) %{_libdir}/gmerlin/plugins/*oss*.la
+%attr(755,root,root) %{_libdir}/gmerlin/plugins/*oss*.so
+
+%files -n gmerlin-alsa
+%attr(644,root,root) %{_libdir}/gmerlin/plugins/*alsa*.la
+%attr(755,root,root) %{_libdir}/gmerlin/plugins/*alsa*.so
+
+%files -n gmerlin-esd
+%attr(644,root,root) %{_libdir}/gmerlin/plugins/*esd*.la
+%attr(755,root,root) %{_libdir}/gmerlin/plugins/*esd*.so
+
+%files -n gmerlin-x11
+%attr(644,root,root) %{_libdir}/gmerlin/plugins/*x11*.la
+%attr(755,root,root) %{_libdir}/gmerlin/plugins/*x11*.so
+
+%files -n gmerlin-v4l
+%attr(644,root,root) %{_libdir}/gmerlin/plugins/*v4l*.la
+%attr(755,root,root) %{_libdir}/gmerlin/plugins/*v4l*.so
+
+%files -n gmerlin-jpeg
+%attr(644,root,root) %{_libdir}/gmerlin/plugins/*jpeg*.la
+%attr(755,root,root) %{_libdir}/gmerlin/plugins/*jpeg*.so
+
+%files -n gmerlin-player
+%attr(644,root,root) %{_datadir}/applications/gmerlin-player.desktop
+%attr(644,root,root) %{_datadir}/gmerlin/icons/player_icon.png
+%attr(644,root,root) %{_datadir}/gmerlin/skins/Default/*
+%attr(755,root,root) %{_bindir}/gmerlin
+
+%files -n gmerlin-alsamixer
+%attr(644,root,root) %{_datadir}/applications/gmerlin-alsamixer.desktop
+%attr(644,root,root) %{_datadir}/gmerlin/icons/mixer_icon.png
+%attr(755,root,root) %{_bindir}/gmerlin_alsamixer
+
+%files -n gmerlin-camelot
+%attr(644,root,root) %{_datadir}/applications/gmerlin-camelot.desktop
+%attr(644,root,root) %{_datadir}/gmerlin/icons/camelot_icon.png
+%attr(755,root,root) %{_bindir}/camelot
+
+%files -n gmerlin-utils
+%attr(644,root,root) %{_datadir}/applications/gmerlin-plugincfg.desktop
+%attr(644,root,root) %{_datadir}/gmerlin/icons/plugincfg_icon.png
+%attr(755,root,root) %{_bindir}/gmerlin_plugincfg
 
 %define date	%(echo `LC_ALL="C" date +"%a %b %d %Y"`)
 %changelog

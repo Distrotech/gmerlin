@@ -14,6 +14,7 @@ playermsg.h \
 plugin.h \
 pluginregistry.h \
 remote.h \
+singlepic.h \
 streaminfo.h \
 tree.h \
 utils.h

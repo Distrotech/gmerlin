@@ -3,8 +3,6 @@ pkgdatadir = $(datadir)/gmerlin/icons
 
 icons = \
 audio_16.png \
-bass_32.png \
-cd_32.png \
 camelot_icon.png \
 config_16.png \
 digit_0.png \
@@ -33,9 +31,7 @@ hardware_16.png \
 info_16.png \
 last_16.png \
 left_16.png \
-line_32.png \
 lock_16.png \
-mic_32.png \
 mixer_32.png \
 mixer_icon.png \
 mute_16.png \
@@ -62,7 +58,6 @@ state_seeking.png \
 state_stopped.png \
 tearoff_16.png \
 tracks_dnd_32.png \
-treble_32.png \
 tree_root_16.png \
 up_16.png \
 video_16.png \
