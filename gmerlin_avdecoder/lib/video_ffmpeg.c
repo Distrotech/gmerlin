@@ -491,6 +491,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     {
     got_picture = 1;
     priv->have_first_frame = 0;
+    //    fprintf(stderr, "Have first frame %p\n", f);
     }
   
   while(!got_picture)
@@ -601,95 +602,103 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         }
       }
     
-    if(got_picture)
+    }
+
+  if(got_picture)
+    {
+    if(priv->frame->pict_type == FF_B_TYPE)
+      priv->has_b_frames = 1;
+
+    if(priv->need_first_frame)
       {
-      if(priv->frame->pict_type == FF_B_TYPE)
-        priv->has_b_frames = 1;
-
-      if(priv->need_first_frame)
-        {
-        s->data.video.format.colorspace = get_colorspace(priv->ctx->pix_fmt);
-        priv->need_first_frame = 0;
-        priv->have_first_frame = 1;
-
-        if((priv->ctx->sample_aspect_ratio.num > 1) ||
-           (priv->ctx->sample_aspect_ratio.den > 1))
-          {
-          
-          s->data.video.format.pixel_width  = priv->ctx->sample_aspect_ratio.num;
-          s->data.video.format.pixel_height = priv->ctx->sample_aspect_ratio.den;
-          }
-        /* Sometimes, the size encoded in some mp4 (vol?) headers is different from
-           what is found in the container. In this case, the image must be scaled. */
-        
-        else if(priv->ctx->width < s->data.video.format.image_width)
-          {
-          s->data.video.format.pixel_width  = s->data.video.format.image_width;
-          s->data.video.format.pixel_height = priv->ctx->width;
-          s->data.video.format.image_width = priv->ctx->width;
-          }
-        
-        return 1;
-        }
-
-      if(f)
-        {
-        //    fprintf(stderr, "Got picture\n");
-        //    fprintf(stderr, "Timestamp: %lld\n", timestamp);
-        if(priv->ctx->pix_fmt == PIX_FMT_PAL8)
-          {
-          pal8_to_rgb24(f, priv->frame,
-                        s->data.video.format.image_width, s->data.video.format.image_height);
-          }
-        else if(priv->ctx->pix_fmt == PIX_FMT_RGBA32)
-          {
-          rgba32_to_rgba32(f, priv->frame,
-                           s->data.video.format.image_width, s->data.video.format.image_height);
-          }
-        else if(!priv->do_convert)
-          {
-          priv->gavl_frame->planes[0]  = priv->frame->data[0];
-          priv->gavl_frame->planes[1]  = priv->frame->data[1];
-          priv->gavl_frame->planes[2]  = priv->frame->data[2];
+      //      fprintf(stderr, "First frame\n");
       
-          priv->gavl_frame->strides[0] = priv->frame->linesize[0];
-          priv->gavl_frame->strides[1] = priv->frame->linesize[1];
-          priv->gavl_frame->strides[2] = priv->frame->linesize[2];
-          //        fprintf(stderr, "gavl_video_frame_copy %d %d %d %lld\n",
-          //               priv->frame->linesize[0],
-          //                priv->frame->linesize[1],
-          //                priv->frame->linesize[2],
-          //                s->position);
-        
-          gavl_video_frame_copy(&(s->data.video.format), f, priv->gavl_frame);
-          }
-        else
-          {
-          ffmpeg_frame.data[0]     = f->planes[0];
-          ffmpeg_frame.data[1]     = f->planes[1];
-          ffmpeg_frame.data[2]     = f->planes[2];
-          ffmpeg_frame.linesize[0] = f->strides[0];
-          ffmpeg_frame.linesize[1] = f->strides[1];
-          ffmpeg_frame.linesize[2] = f->strides[2];
-          img_convert(&ffmpeg_frame, priv->dst_format,
-                      (AVPicture*)(priv->frame), priv->ctx->pix_fmt,
-                      s->data.video.format.image_width,
-                      s->data.video.format.image_height);
-          }
-        }
-      //      fprintf(stderr, "Decode %p %d\n", priv->packet_buffer_ptr, priv->have_last_frame);
-      if(!priv->packet_buffer_ptr )
+      s->data.video.format.colorspace = get_colorspace(priv->ctx->pix_fmt);
+      priv->need_first_frame = 0;
+      priv->have_first_frame = 1;
+
+      if((priv->ctx->sample_aspect_ratio.num > 1) ||
+         (priv->ctx->sample_aspect_ratio.den > 1))
         {
-        priv->eof = 1; /* Return 0 the next time */
+          
+        s->data.video.format.pixel_width  = priv->ctx->sample_aspect_ratio.num;
+        s->data.video.format.pixel_height = priv->ctx->sample_aspect_ratio.den;
+        }
+      /* Sometimes, the size encoded in some mp4 (vol?) headers is different from
+         what is found in the container. In this case, the image must be scaled. */
+        
+      else if(priv->ctx->width < s->data.video.format.image_width)
+        {
+        s->data.video.format.pixel_width  = s->data.video.format.image_width;
+        s->data.video.format.pixel_height = priv->ctx->width;
+        s->data.video.format.image_width = priv->ctx->width;
+        }
+        
+      return 1;
+      }
+
+    if(f)
+      {
+      //      fprintf(stderr, "Got picture\n");
+      //        fprintf(stderr, "Timestamp: %lld\n", timestamp);
+      if(priv->ctx->pix_fmt == PIX_FMT_PAL8)
+        {
+        pal8_to_rgb24(f, priv->frame,
+                      s->data.video.format.image_width, s->data.video.format.image_height);
+        }
+      else if(priv->ctx->pix_fmt == PIX_FMT_RGBA32)
+        {
+        rgba32_to_rgba32(f, priv->frame,
+                         s->data.video.format.image_width, s->data.video.format.image_height);
+        }
+      else if(!priv->do_convert)
+        {
+        priv->gavl_frame->planes[0]  = priv->frame->data[0];
+        priv->gavl_frame->planes[1]  = priv->frame->data[1];
+        priv->gavl_frame->planes[2]  = priv->frame->data[2];
+      
+        priv->gavl_frame->strides[0] = priv->frame->linesize[0];
+        priv->gavl_frame->strides[1] = priv->frame->linesize[1];
+        priv->gavl_frame->strides[2] = priv->frame->linesize[2];
+#if 0
+        fprintf(stderr, "gavl_video_frame_copy %d %d %d %lld\n",
+                priv->frame->linesize[0],
+                priv->frame->linesize[1],
+                priv->frame->linesize[2],
+                s->position);
+#endif   
+        gavl_video_frame_copy(&(s->data.video.format), f, priv->gavl_frame);
+        }
+      else
+        {
+        ffmpeg_frame.data[0]     = f->planes[0];
+        ffmpeg_frame.data[1]     = f->planes[1];
+        ffmpeg_frame.data[2]     = f->planes[2];
+        ffmpeg_frame.linesize[0] = f->strides[0];
+        ffmpeg_frame.linesize[1] = f->strides[1];
+        ffmpeg_frame.linesize[2] = f->strides[2];
+        img_convert(&ffmpeg_frame, priv->dst_format,
+                    (AVPicture*)(priv->frame), priv->ctx->pix_fmt,
+                    s->data.video.format.image_width,
+                    s->data.video.format.image_height);
+        //          fprintf(stderr, "img_convert\n");
         }
       }
-    else /* !got_picture */
+    //      fprintf(stderr, "Decode %p %d\n", priv->packet_buffer_ptr, priv->have_last_frame);
+    if(!priv->packet_buffer_ptr )
       {
-      //      fprintf(stderr, "Got no picture\n");
-      if(!priv->packet_buffer_ptr)
-        return 0; /* EOF */
+      priv->eof = 1; /* Return 0 the next time */
       }
     }
+  else /* !got_picture */
+    {
+    //      fprintf(stderr, "Got no picture\n");
+    if(!priv->packet_buffer_ptr)
+      return 0; /* EOF */
+    }
+
+
+
   return 1;
   }
 

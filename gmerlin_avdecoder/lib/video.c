@@ -91,10 +91,11 @@ static int bgav_video_decode(bgav_stream_t * stream, gavl_video_frame_t* frame)
     /* Yes, this sometimes happens due to rounding errors */
     if(frame->time < 0)
       frame->time = 0;
-    
-    //    fprintf(stderr, "Video timestamps: %lld %f %d\n",
-    //            frame->time_scaled, gavl_time_to_seconds(frame->time),
-    //            stream->data.video.format.timescale);
+#if 0
+    fprintf(stderr, "Video timestamps: %lld %f %d\n",
+            frame->time_scaled, gavl_time_to_seconds(frame->time),
+            stream->data.video.format.timescale);
+#endif
     }
   stream->position++;
   return result;
