@@ -12,7 +12,7 @@
 #include <utils.h>
 
 static char * output_plugin_name = "ov_x11";
-static char * input_plugin_name =  "i_mpeg";
+static char * input_plugin_name =  "i_singlepic";
 
 int main(int argc, char ** argv)
   {

@@ -505,6 +505,7 @@ plugins/lqt/Makefile \
 plugins/oss/Makefile \
 plugins/jpeg/Makefile \
 plugins/png/Makefile \
+plugins/tga/Makefile \
 plugins/v4l/Makefile \
 plugins/wavwrite/Makefile \
 skins/Makefile \

@@ -16,4 +16,4 @@ gmerlin_transcoder_LDADD = \
 @top_srcdir@/lib/gtk/libgmerlin_gtk.la \
 @top_srcdir@/lib/libgmerlin.la
 
-noinst_HEADERS = transcoder_window.h tracklist.h pluginwindow.h
+noinst_HEADERS = transcoder_window.h tracklist.h pluginwindow.h trackdialog.h

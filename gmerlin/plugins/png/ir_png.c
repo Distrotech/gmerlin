@@ -139,6 +139,7 @@ int read_header_png(void * priv, const char * filename,
     case PNG_COLOR_TYPE_RGB_ALPHA:  /*  (bit_depths 8, 16) */
       if(bit_depth == 16)
         png_set_strip_16(png->png_ptr);
+      has_alpha = 1;
       break;
     }
 
