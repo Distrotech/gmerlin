@@ -21,6 +21,7 @@
 #define __BG_MSGQUEUE_H_
 
 #include <gavl/gavl.h>
+#include "streaminfo.h"
 
 /* Reserved ID for non valid message */
 
@@ -36,6 +37,9 @@ typedef struct bg_msg_queue_s bg_msg_queue_t;
 typedef struct bg_msg_s bg_msg_t;
 
 void bg_msg_destroy(bg_msg_t * m);
+void bg_msg_free(bg_msg_t * m);
+
+
 bg_msg_t * bg_msg_create();
 
 
@@ -96,8 +100,8 @@ void bg_msg_queue_destroy(bg_msg_queue_t *);
  *  return FALSE on error
  */
 
-int bg_message_read(bg_msg_t * ret,  int fd);
-int bg_message_write(bg_msg_t * msg, int fd);
+int bg_message_read_socket(bg_msg_t * ret,  int fd);
+int bg_message_write_socket(bg_msg_t * msg, int fd);
 
 /*
  *  Lock message queue for reading, block until something arrives,

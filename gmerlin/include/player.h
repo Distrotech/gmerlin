@@ -24,6 +24,8 @@
 #include <pluginregistry.h>
 #include <msgqueue.h>
 
+#define BG_PLAYER_VOLUME_MIN -40.0
+
 typedef struct bg_player_s bg_player_t;
 
 /* player.c */
@@ -58,6 +60,8 @@ void bg_player_seek(bg_player_t *, gavl_time_t time);
 void bg_player_seek_rel(bg_player_t *, gavl_time_t time);
 
 void bg_player_set_volume(bg_player_t *, float volume);
+void bg_player_set_volume_rel(bg_player_t *, float volume);
+
 
 void bg_player_set_track(bg_player_t * p, int track);
 void bg_player_set_duration(bg_player_t * p, gavl_time_t duration);

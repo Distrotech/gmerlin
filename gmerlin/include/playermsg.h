@@ -113,7 +113,11 @@
 
 /* Set volume (float dB value) */
 
-#define BG_PLAYER_CMD_SET_VOLUME    11
+#define BG_PLAYER_CMD_SET_VOLUME     11
+
+/* Set volume (float dB value) */
+
+#define BG_PLAYER_CMD_SET_VOLUME_REL 12
 
 /********************************
  * Messages from the player
@@ -197,5 +201,6 @@
 
 #define BG_PLAYER_MSG_STREAM_DESCRIPTION     12
 
+#define BG_PLAYER_MSG_VOLUME_CHANGED         13
 
 #endif // __BG_PLAYERMSG_H_

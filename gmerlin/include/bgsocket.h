@@ -20,6 +20,8 @@
 #ifndef __BG_SOCKET_H_
 #define __BG_SOCKET_H_
 
+#include <inttypes.h>
+
 /* Opaque address structure so we can support IPv6 in the future */
 
 typedef struct bg_host_address_s bg_host_address_t;
@@ -60,5 +62,11 @@ int bg_listen_socket_create_unix(const char * name,
 int bg_listen_socket_accept(int);
 
 void bg_listen_socket_destroy(int);
+
+int bg_socket_read_data(int fd, uint8_t * data, int len, int block);
+int bg_socket_write_data(int fd, uint8_t * data, int len);
+
+int bg_socket_read_line(int fd, char ** ret,
+                        int * ret_alloc, int block);
 
 #endif // __BG_SOCKET_H_

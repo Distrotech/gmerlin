@@ -37,6 +37,7 @@ player_video.c \
 playercmd.c \
 pluginregistry.c \
 pluginreg_xml.c \
+remote.c \
 searchpath.c \
 singlepic.c \
 socket.c \

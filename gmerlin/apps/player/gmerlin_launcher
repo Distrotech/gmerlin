@@ -1,0 +1,2 @@
+#!/bin/sh
+gmerlin_remote -spawn -addplay "$1"

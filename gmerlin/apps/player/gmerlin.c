@@ -24,6 +24,7 @@
 #include <config.h>
 
 #include "gmerlin.h"
+#include "player_remote.h"
 
 #include <utils.h>
 
@@ -71,6 +72,10 @@ static void gmerlin_apply_config(gmerlin_t * g)
   parameters = bg_media_tree_get_parameters(g->tree);
   bg_cfg_section_apply(g->tree_section, parameters,
                        bg_media_tree_set_parameter, (void*)(g->tree));
+
+  parameters = bg_remote_server_get_parameters(g->remote);
+  bg_cfg_section_apply(g->remote_section, parameters,
+                       bg_remote_server_set_parameter, (void*)(g->remote));
 
   parameters = bg_player_get_audio_parameters(g->player);
   
@@ -177,6 +182,8 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
     bg_cfg_registry_find_section(cfg_reg, "Video");
   ret->lcdproc_section =
     bg_cfg_registry_find_section(cfg_reg, "LCDproc");
+  ret->remote_section =
+    bg_cfg_registry_find_section(cfg_reg, "Remote");
     
   /* Create player instance */
   
@@ -225,6 +232,8 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
                                             ret);
   
   ret->lcdproc = bg_lcdproc_create(ret->player);
+
+  ret->remote = bg_remote_server_create(PLAYER_REMOTE_PORT, PLAYER_REMOTE_ID);
   
   gmerlin_create_dialog(ret);
   
@@ -259,6 +268,7 @@ void gmerlin_destroy(gmerlin_t * g)
   player_window_destroy(g->player_window);
 
   bg_lcdproc_destroy(g->lcdproc);
+  bg_remote_server_destroy(g->remote);
     
   bg_player_destroy(g->player);
 
@@ -572,7 +582,7 @@ static bg_parameter_info_t parameters[] =
       long_name:   "Volume",
       type:        BG_PARAMETER_FLOAT,
       flags:       BG_PARAMETER_HIDE_DIALOG,
-      val_min:     { val_f: VOLUME_MIN },
+      val_min:     { val_f: BG_PLAYER_VOLUME_MIN },
       val_max:     { val_f: VOLUME_MAX },
       val_default: { val_f: VOLUME_MAX },
     },
@@ -648,7 +658,7 @@ void gmerlin_set_parameter(void * data, char * name, bg_parameter_value_t * val)
     g->player_window->volume = val->val_f;
 
     bg_gtk_slider_set_pos(g->player_window->volume_slider,
-                          (g->player_window->volume - VOLUME_MIN)/(VOLUME_MAX - VOLUME_MIN));
+                          (g->player_window->volume - BG_PLAYER_VOLUME_MIN)/(VOLUME_MAX - BG_PLAYER_VOLUME_MIN));
 
     }
   else if(!strcmp(name, "show_tooltips"))
@@ -748,7 +758,7 @@ void gmerlin_play_locations(gmerlin_t * g, char ** locations)
   int i;
   bg_album_t * incoming;
   bg_album_entry_t * entry;
-    
+
   i = 0;
   while(locations[i])
     {

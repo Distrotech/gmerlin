@@ -4,7 +4,7 @@
 
 #include <cmdline.h>
 
-void bg_remove_arg(int * argc, char *** _argv, int arg)
+void bg_cmdline_remove_arg(int * argc, char *** _argv, int arg)
   {
   char ** argv = *_argv;
   /* Move the upper args down */
@@ -14,7 +14,8 @@ void bg_remove_arg(int * argc, char *** _argv, int arg)
   (*argc)--;
   }
 
-void bg_cmdline_parse(bg_cmdline_arg * args, int * argc, char *** _argv, void * callback_data)
+void bg_cmdline_parse(bg_cmdline_arg_t * args, int * argc, char *** _argv,
+                      void * callback_data)
   {
   int found;
   int i, j;
@@ -30,12 +31,11 @@ void bg_cmdline_parse(bg_cmdline_arg * args, int * argc, char *** _argv, void * 
     if(!strcmp(argv[i], "--"))
       break;
     
-    while(args[j].short_arg)
+    while(args[j].arg)
       {
-      if(!strcmp(args[j].short_arg, argv[i]) ||
-         (args[j].long_arg && !strcmp(args[j].long_arg, argv[i])))
+      if(!strcmp(args[j].arg, argv[i]))
         {
-        bg_remove_arg(argc, _argv, i);
+        bg_cmdline_remove_arg(argc, _argv, i);
         args[j].callback(callback_data, argc, _argv, i);
         found = 1;
         break;
@@ -69,6 +69,9 @@ char ** bg_cmdline_get_locations_from_args(int * argc, char *** _argv)
     else if(argv[i][0] != '-')
       num_locations++;
     }
+
+  if(!num_locations)
+    return (char**)0;
   
   /* Allocate return value */
 
@@ -84,12 +87,12 @@ char ** bg_cmdline_get_locations_from_args(int * argc, char *** _argv)
       {
       //      fprintf(stderr, "argv[%d/%d]: %s\n", i, *argc, argv[i]);
       ret[index++] = argv[i];
-      bg_remove_arg(argc, _argv, i);
+      bg_cmdline_remove_arg(argc, _argv, i);
       }
     else if(!strcmp(argv[i], "--"))
       {
       seen_dashdash = 1;
-      bg_remove_arg(argc, _argv, i);
+      bg_cmdline_remove_arg(argc, _argv, i);
       }
     else
       {
@@ -99,8 +102,21 @@ char ** bg_cmdline_get_locations_from_args(int * argc, char *** _argv)
   return ret;
   }
 
-void bg_cmdline_print_help(bg_cmdline_arg * args)
+void bg_cmdline_print_help(bg_cmdline_arg_t* args)
   {
+  int i = 0;
+
+  while(args[i].arg)
+    {
+    fprintf(stderr, "%s", args[i].arg);
+
+    if(args[i].help_arg)
+      fprintf(stderr, " %s\n", args[i].help_arg);
+    else
+      fprintf(stderr, "\n");
+    fprintf(stderr, "  %s\n", args[i].help_string);
+    i++;
+    }
   
   }
 

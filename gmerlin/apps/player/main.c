@@ -60,7 +60,9 @@ int main(int argc, char ** argv)
   /* Get locations from the commandline */
 
   locations = bg_cmdline_get_locations_from_args(&argc, &argv);
-  gmerlin_play_locations(gmerlin, locations);
+
+  if(locations)
+    gmerlin_play_locations(gmerlin, locations);
   
   gmerlin_run(gmerlin);
   

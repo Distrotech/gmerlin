@@ -107,7 +107,7 @@ static int hostbyname(bg_host_address_t * a, const char * hostname)
   gethostbyname_buffer_size = 1024;
   gethostbyname_buffer = malloc(gethostbyname_buffer_size);
 
-  fprintf(stderr, "Resolving host %s\n", hostname);
+  //  fprintf(stderr, "Resolving host %s\n", hostname);
     
   while((result = gethostbyname_r(hostname,
                                   &h_ent,
@@ -144,7 +144,7 @@ static int hostbyname(bg_host_address_t * a, const char * hostname)
     fprintf(stderr, "No known address space\n");
     goto fail;
     }
-  fprintf(stderr, "Done\n");
+  //  fprintf(stderr, "Done\n");
   ret = 1;
 
   fail:
@@ -278,7 +278,7 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
   
   /* Connect the thing */
 
-  fprintf(stderr, "Connecting...");
+  //  fprintf(stderr, "Connecting...");
 
   if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)
     {
@@ -306,7 +306,7 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
       return -1;
       }
     }
-  fprintf(stderr, "Connected\n");
+  //  fprintf(stderr, "Connected\n");
   
   /* Set back to blocking mode */
   
@@ -439,4 +439,102 @@ int bg_listen_socket_accept(int sock)
 void bg_listen_socket_destroy(int sock)
   {
   close(sock);
+  }
+
+int bg_socket_read_data(int fd, uint8_t * data, int len, int block)
+  {
+  int result;
+  fd_set rset;
+  struct timeval timeout;
+
+  if(!block)
+    {
+    FD_ZERO (&rset);
+    FD_SET  (fd, &rset);
+    
+    timeout.tv_sec  = 0;
+    timeout.tv_usec = 0;
+    
+    if(select (fd+1, &rset, NULL, NULL, &timeout) <= 0)
+      {
+      return 0;
+      }
+    }
+
+  result = recv(fd, data, len, MSG_WAITALL);
+  if(result <= 0)
+    {
+    return 0;
+    }
+  return result;
+  }
+
+int bg_socket_write_data(int fd, uint8_t * data, int len)
+  {
+  int result;
+  result = send(fd, data, len, MSG_NOSIGNAL);
+  if(result != len)
+    return 0;
+  return result;
+  }
+
+/*
+ *  Read a single line from a filedescriptor
+ *
+ *  ret will be reallocated if neccesary and ret_alloc will
+ *  be updated then
+ *
+ *  The string will be 0 terminated, a trailing \r or \n will
+ *  be removed
+ */
+
+#define BYTES_TO_ALLOC 1024
+
+int bg_socket_read_line(int fd, char ** ret,
+                        int * ret_alloc, int block)
+  {
+  char * pos;
+  char c;
+  int bytes_read;
+  bytes_read = 0;
+  /* Allocate Memory for the case we have none */
+  if(!(*ret_alloc))
+    {
+    *ret_alloc = BYTES_TO_ALLOC;
+    *ret = realloc(*ret, *ret_alloc);
+    }
+  pos = *ret;
+  while(1)
+    {
+    if(!bg_socket_read_data(fd, &c, 1, (bytes_read) ? 1 : block))
+      {
+      if(!bytes_read)
+        return 0;
+      break;
+      }
+    /*
+     *  Line break sequence
+     *  is starting, remove the rest from the stream
+     */
+    if(c == '\n')
+      {
+      break;
+      }
+    /* Reallocate buffer */
+    else if(c != '\r')
+      {
+      if(bytes_read+2 >= *ret_alloc)
+        {
+        *ret_alloc += BYTES_TO_ALLOC;
+        *ret = realloc(*ret, *ret_alloc);
+        pos = &((*ret)[bytes_read]);
+        }
+      /* Put the byte and advance pointer */
+      *pos = c;
+      pos++;
+      bytes_read++;
+      }
+    }
+  *pos = '\0';
+  return 1;
   }

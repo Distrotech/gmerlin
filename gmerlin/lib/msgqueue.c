@@ -21,6 +21,10 @@
 
 #include <unistd.h>
 
+#include <sys/types.h>
+#include <sys/socket.h>
+
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -31,8 +35,8 @@
 #include <streaminfo.h>
 #include <msgqueue.h>
 
-
 #include <utils.h>
+#include <bgsocket.h>
 
 #define TYPE_INT            0
 #define TYPE_FLOAT          1
@@ -40,9 +44,12 @@
 #define TYPE_POINTER_NOCOPY 3
 #define TYPE_TIME           4
 
+#define FLOAT_FRAC_BITS     16
+#define FLOAT_FRAC_FACTOR   ((float)(1<<(FLOAT_FRAC_BITS-1)))
+
 struct bg_msg_s
   {
-  int id;
+  uint32_t id;
 
   struct
     {
@@ -51,10 +58,10 @@ struct bg_msg_s
       int val_i;
       float val_f;
       void * val_ptr;
-      gavl_time_t time;
+      gavl_time_t val_time;
       } value;
     uint8_t type;
-    int32_t size;
+    uint32_t size;
     } args[BG_MSG_MAX_ARGS];
 
   int num_args;
@@ -105,7 +112,7 @@ void bg_msg_set_arg_time(bg_msg_t * msg, int arg, gavl_time_t value)
   {
   if(!check_arg(arg))
     return;
-  msg->args[arg].value.time = value;
+  msg->args[arg].value.val_time = value;
   msg->args[arg].type = TYPE_TIME;
   if(arg+1 > msg->num_args)
     msg->num_args = arg + 1;
@@ -178,7 +185,7 @@ gavl_time_t bg_msg_get_arg_time(bg_msg_t * msg, int arg)
   {
   if(!check_arg(arg))
     return 0;
-  return msg->args[arg].value.time;
+  return msg->args[arg].value.val_time;
   }
 
 float bg_msg_get_arg_float(bg_msg_t * msg, int arg)
@@ -520,11 +527,24 @@ bg_msg_t * bg_msg_create()
   return ret;
   }
 
+void bg_msg_free(bg_msg_t * m)
+  {
+  int i;
+  for(i = 0; i < m->num_args; i++)
+    {
+    if((m->args[i].type == TYPE_POINTER) &&
+       (m->args[i].value.val_ptr))
+      free(m->args[i].value.val_ptr);
+    }
+  }
+
 void bg_msg_destroy(bg_msg_t * m)
   {
+  bg_msg_free(m);
   sem_destroy(&(m->produced));
   free(m);
   }
+
 
 struct bg_msg_queue_s
   {
@@ -593,19 +613,13 @@ bg_msg_t * bg_msg_queue_try_lock_read(bg_msg_queue_t * m)
 
 void bg_msg_queue_unlock_read(bg_msg_queue_t * m)
   {
-  int i;
 
   bg_msg_t * old_out_message;
 
   pthread_mutex_lock(&(m->chain_mutex));
   old_out_message = m->msg_output;
   
-  for(i = 0; i < old_out_message->num_args; i++)
-    {
-    if((old_out_message->args[i].type == TYPE_POINTER) &&
-       (old_out_message->args[i].value.val_ptr))
-      free(old_out_message->args[i].value.val_ptr);
-    }
+  bg_msg_free(old_out_message);
   
   m->msg_output = m->msg_output->next;
   m->msg_last->next = old_out_message;
@@ -759,7 +773,7 @@ void bg_msg_queue_list_remove(bg_msg_queue_list_t * list,
  * Type is TYPE_INT, byte order is big endian (network byte order)
  *
  *  Floating point arguments are coded with type TYPE_FLOAT and the
- *  value as an integer, which is the value multiplied by 1000000
+ *  value as an integer
  *
  *  String arguments are coded as:
  *  content |length |string including final '\0'|
@@ -768,82 +782,141 @@ void bg_msg_queue_list_remove(bg_msg_queue_list_t * list,
  *  Pointer messages cannot be transmited!
  */
 
-static int read_int32(int fd, int32_t * ret)
+static int read_uint32(int fd, uint32_t * ret, int block)
   {
-  char buf[4];
+  uint8_t buf[4];
 
-  if(read(fd, buf, 4) < 4)
+  if(bg_socket_read_data(fd, buf, 4, block) < 4)
     return 0;
-
-  *ret = (buf[0]<<24) | (buf[1]<<16) | (buf[2]<<8) | buf[0];
+  
+  //  bg_hexdump(buf, 4);
+    
+  *ret = (buf[0]<<24) | (buf[1]<<16) |
+    (buf[2]<<8) | buf[3];
   return 1;
   }
 
-static int write_int32(int fd, int32_t val)
+static int read_time(int fd, gavl_time_t * ret, int block)
   {
-  char buf[4];
+  uint8_t buf[8];
 
-  buf[0] = (val & 0xff000000) >> 24;
-  buf[1] = (val & 0x00ff0000) >> 16;
-  buf[2] = (val & 0x0000ff00) >> 8;
-  buf[3] = (val & 0x000000FF);
+  if(bg_socket_read_data(fd, buf, 8, block) < 4)
+    return 0;
 
-  if(write(fd, buf, 4) < 4)
+  *ret =
+    ((gavl_time_t)(buf[0])<<56) |
+    ((gavl_time_t)(buf[1])<<48) |
+    ((gavl_time_t)(buf[2])<<40) |
+    ((gavl_time_t)(buf[3])<<32) |
+    ((gavl_time_t)(buf[4])<<24) |
+    ((gavl_time_t)(buf[5])<<16) |
+    ((gavl_time_t)(buf[6])<<8) |
+    ((gavl_time_t)(buf[7]));
+  return 1;
+  }
+
+static int write_uint32(int fd, uint32_t * val)
+  {
+  uint8_t buf[4];
+  
+  buf[0] = (*val & 0xff000000) >> 24;
+  buf[1] = (*val & 0x00ff0000) >> 16;
+  buf[2] = (*val & 0x0000ff00) >> 8;
+  buf[3] = (*val & 0x000000ff);
+
+  //  bg_hexdump(buf, 4);
+    
+  if(bg_socket_write_data(fd, buf, 4) < 4)
     return 0;
   return 1;
   }
 
-int bg_message_read(bg_msg_t * ret, int fd)
+static int write_time(int fd, gavl_time_t val)
+  {
+  uint8_t buf[8];
+
+  buf[0] = (val & 0xff00000000000000LL) >> 56;
+  buf[1] = (val & 0x00ff000000000000LL) >> 48;
+  buf[2] = (val & 0x0000ff0000000000LL) >> 40;
+  buf[3] = (val & 0x000000ff00000000LL) >> 32;
+
+  buf[4] = (val & 0x00000000ff000000LL) >> 24;
+  buf[5] = (val & 0x0000000000ff0000LL) >> 16;
+  buf[6] = (val & 0x000000000000ff00LL) >> 8;
+  buf[7] = (val & 0x00000000000000ffLL);
+  
+  if(bg_socket_write_data(fd, buf, 8) < 8)
+    return 0;
+  return 1;
+  }
+
+int bg_message_read_socket(bg_msg_t * ret, int fd)
   {
   int i;
   void * ptr;
   
   int32_t val_i;
+
+  gavl_time_t val_time;
+
   uint8_t val_u8;
   memset(ret, 0, sizeof(*ret));
   
   /* Message ID */
 
-  if(!read_int32(fd, &val_i))
+  if(!read_uint32(fd, &val_i, 0))
     return 0;
 
+  fprintf(stderr, "Read ID: %d\n", val_i);
+  
   ret->id = val_i;
 
   /* Number of arguments */
 
-  if(!read(fd, &val_u8, 1))
+  if(!bg_socket_read_data(fd, &val_u8, 1, 1))
     return 0;
 
   ret->num_args = val_u8;
 
   for(i = 0; i < ret->num_args; i++)
     {
-    if(!read(fd, &val_u8, 1))
+    if(!bg_socket_read_data(fd, &val_u8, 1, 1))
       return 0;
     ret->args[i].type = val_u8;
 
     switch(ret->args[i].type)
       {
       case TYPE_INT:
-        if(!read_int32(fd, &val_i))
+        if(!read_uint32(fd, (uint32_t*)(&val_i), 1))
           return 0;
 
         ret->args[i].value.val_i = val_i;
         break;
       case TYPE_FLOAT:
-        if(!read_int32(fd, &val_i))
+        if(!read_uint32(fd, (uint32_t*)(&val_i), 1))
           return 0;
-        ret->args[i].value.val_f = (float)val_i/1000000.0;
+        ret->args[i].value.val_f = (float)val_i/FLOAT_FRAC_FACTOR;
         break;
       case TYPE_POINTER:
-        if(!read_int32(fd, &val_i)) /* Length */
+        if(!read_uint32(fd, &val_i, 1)) /* Length */
           return 0;
         ptr = bg_msg_set_arg_ptr(ret, i, val_i);
-        
-        if(read(fd, ret->args[i].value.val_ptr, val_i) < val_i)
+        if(bg_socket_read_data(fd, ret->args[i].value.val_ptr,
+                               val_i, 1) < val_i)
+          {
+          //          fprintf(stderr, "Reading pointer failed\n");
           return 0;
+          }
+        break;
+      case TYPE_TIME:
+        if(!read_time(fd, &val_time, 1))
+          return 0;
+        ret->args[i].value.val_time = val_time;
+        break;
+        
       case TYPE_POINTER_NOCOPY:
         break;
+        
       }
 
     }
@@ -851,42 +924,50 @@ int bg_message_read(bg_msg_t * ret, int fd)
   return 1;
   }
 
-int bg_message_write(bg_msg_t * msg, int fd)
+int bg_message_write_socket(bg_msg_t * msg, int fd)
   {
   int i;
   uint8_t val_u8;
-  
+  int32_t i_tmp;
+    
   /* Message id */
 
-  if(!write_int32(fd, msg->id))
+  if(!write_uint32(fd, &msg->id))
     return 0;
 
   /* Number of arguments */
   val_u8 = msg->num_args;
   
-  if(!write(fd, &val_u8, 1))
+  if(!bg_socket_write_data(fd, &val_u8, 1))
     return 0;
 
   /* Arguments */
 
   for(i = 0; i < msg->num_args; i++)
     {
-    write(fd, &msg->args[i].type, 1);
+    bg_socket_write_data(fd, &(msg->args[i].type), 1);
 
     switch(msg->args[i].type)
       {
       case TYPE_INT:
-        if(!write_int32(fd, msg->args[i].value.val_i))
+        if(!write_uint32(fd, (uint32_t*)(&msg->args[i].value.val_i)))
+          return 0;
+        break;
+      case TYPE_TIME:
+        if(!write_time(fd, msg->args[i].value.val_time))
           return 0;
         break;
       case TYPE_FLOAT:
-        if(!write_int32(fd, (int)(msg->args[i].value.val_f * 1000000.0 + 0.5)))
+        i_tmp = (int32_t)(msg->args[i].value.val_f *
+                      FLOAT_FRAC_FACTOR + 0.5);
+        
+        if(!write_uint32(fd, (uint32_t*)(&i_tmp)))
           return 0;
         break;
       case TYPE_POINTER:
-        if(!write_int32(fd, msg->args[i].size))
+        if(!write_uint32(fd, &(msg->args[i].size)))
           return 0;
-        if(write(fd, msg->args[i].value.val_ptr,
+        if(bg_socket_write_data(fd, msg->args[i].value.val_ptr,
                  msg->args[i].size) < msg->args[i].size)
           return 0;
         break;

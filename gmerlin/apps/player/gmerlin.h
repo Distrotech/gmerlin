@@ -29,6 +29,8 @@
 
 #include <cfg_dialog.h>
 
+#include <remote.h>
+
 typedef struct gmerlin_s gmerlin_t;
 
 #include "display.h"
@@ -37,7 +39,6 @@ typedef struct gmerlin_s gmerlin_t;
 
 /* Volume boundaries */
 
-#define VOLUME_MIN -40.0
 #define VOLUME_MAX   0.0
 
 /* Repeat mode */
@@ -104,11 +105,16 @@ struct gmerlin_s
   bg_cfg_section_t * audio_section;
   bg_cfg_section_t * video_section;
   bg_cfg_section_t * lcdproc_section;
+  bg_cfg_section_t * remote_section;
 
   int show_info_window;
   int show_tree_window;
 
   bg_lcdproc_t * lcdproc;
+
+  /* Remote control */
+  bg_remote_server_t * remote;
+  
   };
 
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg);
@@ -168,3 +174,7 @@ int gmerlin_get_parameter(void * data, char * name,
 /* Enable/disable tooltips */
 
 void gmerlin_set_tooltips(gmerlin_t * g, int enable);
+
+/* Handle remote command */
+
+void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg);

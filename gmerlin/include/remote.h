@@ -20,11 +20,27 @@
 #ifndef __BG_REMOTE_H_
 #define __BG_REMOTE_H_
 
+#include <parameter.h>
+#include <msgqueue.h>
+
 /* Remote server */
 
 typedef struct bg_remote_server_s bg_remote_server_t;
 
-bg_remote_server_t * bg_remote_server_create();
+bg_remote_server_t * bg_remote_server_create(int default_listen_port,
+                                             char * protocol_id);
+
+bg_parameter_info_t * bg_remote_server_get_parameters(bg_remote_server_t *);
+
+void bg_remote_server_set_parameter(void * data,
+                                    char * name,
+                                    bg_parameter_value_t * v);
+
+int bg_remote_server_init(bg_remote_server_t *);
+
+bg_msg_t * bg_remote_server_get_msg(bg_remote_server_t *);
+
+void bg_remote_server_put_msg(bg_remote_server_t *, bg_msg_t *);
 
 void bg_remote_server_destroy(bg_remote_server_t *);
 
@@ -34,11 +50,18 @@ typedef struct bg_remote_client_s bg_remote_client_t;
 
 /* Create a remote for a player on the local host */
 
-bg_remote_client_t * bg_remote_client_create_local();
+bg_remote_client_t * bg_remote_client_create(const char * protocol_id,
+                                             int read_messages);
 
-/* Create a remote for a player on another computer */
+int bg_remote_client_init(bg_remote_client_t *,
+                          const char * host, int port, int milliseconds);
 
-bg_remote_client_t *
-bg_remote_client_create_remote(const char * host, int port);
+void bg_remote_client_destroy(bg_remote_client_t * c);
+
+bg_msg_t * bg_remote_client_get_msg_write(bg_remote_client_t * c);
+int bg_remote_client_done_msg_write(bg_remote_client_t * c);
+
+bg_msg_t * bg_remote_client_get_msg_read(bg_remote_client_t * c);
+
 
 #endif // __BG_REMOTE_H_

@@ -72,6 +72,15 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 (void*)(g->tree),
                 parameters);
 
+  parameters = bg_remote_server_get_parameters(g->remote);
+  
+  bg_dialog_add(g->cfg_dialog,
+                "Remote control",
+                g->remote_section,
+                bg_remote_server_set_parameter,
+                (void*)(g->remote),
+                parameters);
+ 
   parameters = bg_lcdproc_get_parameters(g->lcdproc);
   
   bg_dialog_add(g->cfg_dialog,

@@ -151,7 +151,8 @@ void player_window_set_skin(player_window_t * win,
 
   //  fprintf(stderr, "Setting volume: %f\n", win->volume);
   bg_gtk_slider_set_pos(win->volume_slider,
-                        (win->volume - VOLUME_MIN)/(VOLUME_MAX - VOLUME_MIN));
+                        (win->volume - BG_PLAYER_VOLUME_MIN)/
+                        (VOLUME_MAX - BG_PLAYER_VOLUME_MIN));
   
   }
 
@@ -233,7 +234,7 @@ static void volume_change_callback(bg_gtk_slider_t * slider, float perc,
   float volume;
   player_window_t * win = (player_window_t *)data;
   
-  volume = VOLUME_MIN + (VOLUME_MAX - VOLUME_MIN) * perc;
+  volume = BG_PLAYER_VOLUME_MIN + (VOLUME_MAX - BG_PLAYER_VOLUME_MIN) * perc;
   if(volume > 0.0)
     volume = 0.0;
   
@@ -306,6 +307,12 @@ static void handle_message(player_window_t * win,
           bg_gtk_slider_set_pos(win->seek_slider,
                                 (float)(time) / (float)(win->duration));
         }
+      break;
+    case BG_PLAYER_MSG_VOLUME_CHANGED:
+      arg_f_1 = bg_msg_get_arg_float(msg, 0);
+      bg_gtk_slider_set_pos(win->volume_slider,
+                            (arg_f_1 - BG_PLAYER_VOLUME_MIN) /
+                            (VOLUME_MAX - BG_PLAYER_VOLUME_MIN));
       break;
     case BG_PLAYER_MSG_TRACK_CHANGED:
       //      fprintf(stderr, "Got BG_PLAYER_MSG_TRACK_CHANGED\n");
@@ -413,6 +420,15 @@ gboolean idle_callback(gpointer data)
     {
     handle_message(w, msg);
     bg_msg_queue_unlock_read(w->msg_queue);
+    }
+  
+  /* Handle remote control */
+
+  while((msg = bg_remote_server_get_msg(w->gmerlin->remote)))
+    {
+    //    fprintf(stderr, "Got remote message %d\n", bg_msg_get_id(msg));
+    gmerlin_handle_remote(w->gmerlin, msg);
+
     }
   return TRUE;
   }

@@ -39,6 +39,13 @@ static void msg_time(bg_msg_t * msg,
   bg_msg_set_arg_time(msg, 0, *((const gavl_time_t*)data));
   }
 
+static void msg_volume_changed(bg_msg_t * msg,
+                               const void * data)
+  {
+  bg_msg_set_id(msg, BG_PLAYER_MSG_VOLUME_CHANGED);
+  bg_msg_set_arg_float(msg, 0, *((float*)data));
+  }
+
 static void msg_audio_stream(bg_msg_t * msg,
                              const void * data)
   {
@@ -640,11 +647,36 @@ static int process_command(bg_player_t * player,
       break;
     case BG_PLAYER_CMD_SET_VOLUME:
       arg_f1 = bg_msg_get_arg_float(command, 0);
-      if(player->do_bypass)
-        bg_player_input_bypass_set_volume(player->input_context, arg_f1);
-      else
-        bg_player_oa_set_volume(player->oa_context, arg_f1);
       player->volume = arg_f1;
+      if(player->do_bypass)
+        bg_player_input_bypass_set_volume(player->input_context,
+                                          player->volume);
+      else
+        bg_player_oa_set_volume(player->oa_context, player->volume);
+
+      bg_msg_queue_list_send(player->message_queues,
+                             msg_volume_changed,
+                             &(player->volume));
+
+      break;
+    case BG_PLAYER_CMD_SET_VOLUME_REL:
+
+      arg_f1 = bg_msg_get_arg_float(command, 0);
+
+      player->volume += arg_f1;
+      if(player->volume > 1.0)
+        player->volume = 1.0;
+      if(player->volume < BG_PLAYER_VOLUME_MIN)
+        player->volume = BG_PLAYER_VOLUME_MIN;
+      if(player->do_bypass)
+        bg_player_input_bypass_set_volume(player->input_context,
+                                          player->volume);
+      else
+        bg_player_oa_set_volume(player->oa_context, player->volume);
+
+      bg_msg_queue_list_send(player->message_queues,
+                             msg_volume_changed,
+                             &(player->volume));
       break;
     case BG_PLAYER_CMD_SETSTATE:
       arg_i1 = bg_msg_get_arg_int(command, 0);
