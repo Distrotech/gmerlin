@@ -95,21 +95,15 @@ typedef struct
   
   gavl_video_format_t format;
   
-  //  unsigned int window_width;
-  //  unsigned int window_height;
-
-  //  unsigned int window_x;
-  //  unsigned int window_y;
-    
-  //  int screen_width;
-  //  int screen_height;
-  
   /* Supported modes */
 
   int have_shm;
+
   /* X11 Stuff */
   
   Display * dpy;
+
+  int first_open;
   
 #ifdef HAVE_LIBXV
   XvPortID xv_port;
@@ -130,16 +124,11 @@ typedef struct
   int xv_chromakey;  
 
 #endif
-  
-
-  //  Colormap colormap;
 
   int shm_completion_type;
 
   /* Fullscreen stuff */
 
-  //  Pixmap fullscreen_cursor_pixmap;
-  //  Cursor fullscreen_cursor;
   Atom hints_atom;
     
   /* Drawing coords */
@@ -157,9 +146,6 @@ typedef struct
   /* Callbacks */
 
   bg_ov_callbacks_t * callbacks;
-
-  /* Delete atom */
-
   bg_parameter_info_t * parameters;
 
   /* Still image stuff */
@@ -168,9 +154,8 @@ typedef struct
   pthread_mutex_t still_mutex;
   int do_still;
   gavl_video_frame_t * still_frame;
-
-
-  /* Turn Off xscreensaver? */
+  
+  /* Turn off xscreensaver? */
 
   int disable_xscreensaver_fullscreen;
   int disable_xscreensaver_normal;
@@ -948,7 +933,10 @@ static int handle_event(x11_t * priv, XEvent * evt)
     {
     pthread_mutex_lock(&(priv->still_mutex));
     if(priv->do_still)
+      {
       x11_window_show(&(priv->win), 0);
+      priv->do_still = 0; /* Exit still thread *when window is closed */
+      }
     pthread_mutex_unlock(&(priv->still_mutex));
     }
 

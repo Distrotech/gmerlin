@@ -130,7 +130,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     msg = bg_msg_queue_lock_write(win->cmd_queue);
     bg_msg_set_id(msg, CMD_SET_CAPTURE_INTERVAL);
     bg_msg_set_arg_float
-      (msg, 0, gtk_spin_button_get_value_as_float(GTK_SPIN_BUTTON(win->capture_interval)));
+      (msg, 0, gtk_spin_button_get_value(GTK_SPIN_BUTTON(win->capture_interval)));
     bg_msg_queue_unlock_write(win->cmd_queue);
     }
   else if(w == win->input_reopen)
