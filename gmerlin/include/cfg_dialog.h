@@ -1,0 +1,49 @@
+/*****************************************************************
+ 
+  cfg_dialog.h
+ 
+  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
+#ifndef __BG_CFG_DIALOG_H_
+#define __BG_CFG_DIALOG_H_
+
+#include "cfg_registry.h"
+
+/* Opaque pointer, will look different with all toolkits */
+
+typedef struct bg_dialog_s bg_dialog_t;
+
+/* These function prototypes must be defined by the toolkit */
+
+bg_dialog_t * bg_dialog_create(bg_cfg_section_t * config,
+                               bg_parameter_func set_param,
+                               void * callback_data,
+                               bg_parameter_info_t * info);
+
+
+bg_dialog_t * bg_dialog_create_multi();
+
+void bg_dialog_add(bg_dialog_t *d,
+                   const char * section_name,
+                   bg_cfg_section_t * section,
+                   bg_parameter_func set_param,
+                   void * callback_data,
+                   bg_parameter_info_t * info);
+
+void bg_dialog_show(bg_dialog_t *);
+
+void bg_dialog_destroy(bg_dialog_t *);
+#endif // __BG_CFG_DIALOG_H_

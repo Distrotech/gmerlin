@@ -1,0 +1,97 @@
+Summary:	Multiformat media player with recording and transcoding capabilities
+Name:		gmerlin
+Version:	@VERSION@
+Release:	1
+License:	GPL
+Group:		Applications/Multimedia
+Group(de):	Anwendungen/Multimedia
+Source0:	%{name}-%{version}.tar.gz
+URL:		http://gmerlin.sourceforge.net/
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	gtk2-devel
+BuildRequires:	libxml2-devel
+BuildRequires:  libquicktime-devel >= 0.9.2
+BuildRoot:	/tmp/gmerlin-build
+
+%description
+Multiformat mediaplayer with recording and transcoding capabilities
+
+%package devel
+Summary:	Header files for compiling gmerlin plugins
+Summary(pl):	Pliki nagЁСwkowe i dokumentacja do libquicktime
+Group:		Development/Libraries
+Group(de):	Entwicklung/Libraries
+Group(es):	Desarrollo/Bibliotecas
+Group(fr):	Development/Librairies
+Group(pl):	Programowanie/Biblioteki
+Group(pt_BR):	Desenvolvimento/Bibliotecas
+Group(ru):	Разработка/Библиотеки
+Group(uk):	Розробка/Б╕бл╕отеки
+Requires:	%{name} = %{version}
+Requires:	gtk2-devel
+
+%description devel
+Header files for compiling gmerlin plugins
+
+%package lqt
+Summary:	Libquicktime plugins for gmerlin
+Group:		Development/Libraries
+Group(de):	Entwicklung/Libraries
+Group(es):	Desarrollo/Bibliotecas
+Group(fr):	Development/Librairies
+Group(pl):	Programowanie/Biblioteki
+Group(pt_BR):	Desenvolvimento/Bibliotecas
+Group(ru):	Разработка/Библиотеки
+Group(uk):	Розробка/Б╕бл╕отеки
+Requires:	%{name} = %{version}
+
+%description lqt
+Libquicktime plugins for gmerlin (see http://libquicktime.sf.net)
+
+prep
+%setup -q
+
+%build
+rm -f missing
+aclocal
+autoconf
+automake -a -c
+%configure
+
+%{__make}
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+%{__make} install DESTDIR=$RPM_BUILD_ROOT
+
+gzip -9nf README
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post   -p /sbin/ldconfig
+%postun -p /sbin/ldconfig
+
+%files
+%defattr(644,root,root,755)
+%doc README.gz
+%attr(755,root,root) %{_libdir}/gmerlin/libgmerlin.so*
+
+%files devel
+%defattr(644,root,root,755)
+%doc docs/*.html
+%attr(755,root,root) %{_libdir}/lib*.so
+%{_includedir}/gmerlin
+
+%files lqt
+%defattr(644,root,root,755)
+%attr(755,root,root) %{_libdir}/lib*.so
+
+
+%define date	%(echo `LC_ALL="C" date +"%a %b %d %Y"`)
+%changelog
+* Sat Feb 08 2003 Burkhard Plaum <gmerlin@users.sourceforge.net>
+- Initial creation
+
