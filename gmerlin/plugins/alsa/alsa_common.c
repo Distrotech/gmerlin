@@ -221,7 +221,21 @@ static snd_pcm_t * bg_alsa_open(const char * card,
     fprintf(stderr,
             "bg_alsa_open: snd_pcm_hw_params_set_channels failed (Format has %d channels)\n",
             format->num_channels);
-    goto fail;
+
+    if(format->num_channels == 1) /* Mono doesn't work, try stereo */
+      {
+      if(snd_pcm_hw_params_set_channels(ret, hw_params,
+                                        2) < 0)
+        goto fail;
+      else
+        {
+        format->num_channels = 2;
+        format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+        format->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+        }
+      }
+    else
+      goto fail;
     }
 
   /* Buffer time */
