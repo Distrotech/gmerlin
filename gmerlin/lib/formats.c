@@ -87,8 +87,8 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
               format->image_width, format->image_height,
               format->pixel_width, format->pixel_height,
               gavl_colorspace_to_string(format->colorspace),
-              (float)(format->framerate_num)/((float)format->framerate_den),
-              format->framerate_num, format->framerate_den,
+              (float)(format->timescale)/((float)format->frame_duration),
+              format->timescale, format->frame_duration,
               (!(format->free_framerate) ? " (Constant)" : 
                " (Not constant)"));
   }

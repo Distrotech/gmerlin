@@ -282,8 +282,8 @@ int open_v4l(void * priv, gavl_video_format_t * format)
   format->pixel_height = 1;
 
   format->free_framerate = 1;
-  format->framerate_num = 1;
-  format->framerate_den = 1;
+  format->frame_duration = 1;
+  format->timescale = 1;
 
   /* Setup frame */
 

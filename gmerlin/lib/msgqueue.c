@@ -388,7 +388,7 @@ void bg_msg_get_arg_audio_format(bg_msg_t * msg, int arg,
   int pixel_height;
   gavl_colorspace_t colorspace;
   int framerate_num;
-  int framerate_den;
+  int frame_duration;
   
   int free_framerate;
 */
@@ -410,8 +410,8 @@ void bg_msg_set_arg_video_format(bg_msg_t * msg, int arg,
   pos = set_32(pos, format->pixel_width);
   pos = set_32(pos, format->pixel_height);
   pos = set_32(pos, format->colorspace);
-  pos = set_32(pos, format->framerate_num);
-  pos = set_32(pos, format->framerate_den);
+  pos = set_32(pos, format->timescale);
+  pos = set_32(pos, format->frame_duration);
   pos = set_8(pos, format->free_framerate);
   
   }
@@ -433,8 +433,8 @@ void bg_msg_get_arg_video_format(bg_msg_t * msg, int arg,
   pos = get_32(pos, &(format->pixel_width));
   pos = get_32(pos, &(format->pixel_height));
   pos = get_32(pos, &(format->colorspace));
-  pos = get_32(pos, &(format->framerate_num));
-  pos = get_32(pos, &(format->framerate_den));
+  pos = get_32(pos, &(format->timescale));
+  pos = get_32(pos, &(format->frame_duration));
   pos = get_8(pos,  &(format->free_framerate));
   
   free(ptr);

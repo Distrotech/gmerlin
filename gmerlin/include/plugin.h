@@ -172,7 +172,7 @@ typedef struct bg_input_plugin_s
   
   /* Open file/device, return False on failure */
   
-  int (*open)(void * priv, const void * arg);
+  int (*open)(void * priv, const char * arg);
 
   /* Alternative: Open with filedescriptor (used for http mostly) */
 

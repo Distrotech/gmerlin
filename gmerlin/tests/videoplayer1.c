@@ -28,7 +28,6 @@ int main(int argc, char ** argv)
 
   gavl_timer_t * timer;
   int64_t frames_written;
-  gavl_time_t frame_time;
   gavl_time_t diff_time;
 
   bg_cfg_registry_t * cfg_reg;
@@ -173,14 +172,8 @@ int main(int argc, char ** argv)
       if(!input_plugin->read_video_frame(input_handle->priv, input_frame, 0))
         break;
       gavl_video_convert(video_converter, input_frame, output_frame);
-
-      /* TODO: Use timestamps */
-
-      frame_time = gavl_frames_to_time(video_format.framerate_num,
-                                       video_format.framerate_den,
-                                       frames_written);
-      
-      diff_time = frame_time - gavl_timer_get(timer);
+            
+      diff_time = output_frame->time - gavl_timer_get(timer);
 
       if(diff_time > 0)
         {
@@ -197,14 +190,8 @@ int main(int argc, char ** argv)
       {
       if(!input_plugin->read_video_frame(input_handle->priv, output_frame, 0))
         break;
-
-      /* TODO: Use timestamps */
-
-      frame_time = gavl_frames_to_time(video_format.framerate_num,
-                                       video_format.framerate_den,
-                                       frames_written);
-      
-      diff_time = frame_time - gavl_timer_get(timer);
+            
+      diff_time = output_frame->time - gavl_timer_get(timer);
       if(diff_time > 0)
         gavl_time_delay(&diff_time);
       output_plugin->put_video(output_handle->priv, output_frame);

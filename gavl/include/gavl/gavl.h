@@ -421,8 +421,8 @@ typedef struct
     
   gavl_colorspace_t colorspace;
 
-  int framerate_num;
-  int framerate_den;
+  int frame_duration;
+  int timescale;
   
   int free_framerate;   /* If 1, framerate will be based on timestamps only */
   } gavl_video_format_t;
@@ -441,10 +441,10 @@ typedef struct gavl_video_frame_s
   uint8_t * planes[4];
   int strides[4];
   
-  void * user_data;   /* For storing private data             */
+  void * user_data;    /* For storing private data             */
 
-  gavl_time_t time;   /* Timestamp */
-  
+  gavl_time_t time;    /* Timestamp */
+  int64_t time_scaled; /* Timestamp in stream specific units   */
   } gavl_video_frame_t;
 
 /* Create a video frame. Passing NULL for the format doesn't allocate any

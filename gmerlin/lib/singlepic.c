@@ -94,16 +94,16 @@ static void set_plugin_parameter(bg_parameter_info_t * ret,
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:      "framerate_num",
-      long_name: "Framerate numerator",
+      name:      "timescale",
+      long_name: "Timescale",
       type:      BG_PARAMETER_INT,
       val_min:     { val_i: 1 },
       val_max:     { val_i: 100000 },
       val_default: { val_i: 25 }
     },
     {
-      name:      "framerate_den",
-      long_name: "Framerate denominator",
+      name:      "frame_duration",
+      long_name: "Frame duration",
       type:      BG_PARAMETER_INT,
       val_min:     { val_i: 1 },
       val_max:     { val_i: 100000 },
@@ -122,8 +122,8 @@ typedef struct
   bg_parameter_info_t * parameters;
   bg_plugin_registry_t * reg;
   
-  int framerate_num;
-  int framerate_den;
+  int timescale;
+  int frame_duration;
 
   char * template;
   int64_t frame_start;
@@ -164,18 +164,18 @@ static void set_parameter_input(void * priv, char * name,
   if(!name)
     return;
 
-  else if(!strcmp(name, "framerate_num"))
+  else if(!strcmp(name, "timescale"))
     {
-    inp->framerate_num = val->val_i;
+    inp->timescale = val->val_i;
     }
-  else if(!strcmp(name, "framerate_den"))
+  else if(!strcmp(name, "frame_duration"))
     {
-    inp->framerate_den = val->val_i;
+    inp->frame_duration = val->val_i;
     }
   
   }
 
-static int open_input(void * priv, const void * arg)
+static int open_input(void * priv, const char * arg)
   {
   struct stat stat_buf;
   char * tmp_string;
@@ -186,7 +186,7 @@ static int open_input(void * priv, const void * arg)
   
   input_t * inp = (input_t *)priv;
 
-  filename = (const char*)arg;
+  filename = arg;
     
   /* Create template */
 
@@ -249,8 +249,8 @@ static int open_input(void * priv, const void * arg)
   inp->track_info.video_streams =
     calloc(1, sizeof(*inp->track_info.video_streams));
   
-  inp->track_info.duration = gavl_frames_to_time(inp->framerate_num,
-                                                 inp->framerate_den,
+  inp->track_info.duration = gavl_frames_to_time(inp->timescale,
+                                                 inp->frame_duration,
                                                  inp->frame_end -
                                                  inp->frame_start);
   inp->track_info.seekable = 1;
@@ -301,8 +301,8 @@ static void start_input(void * priv)
     return;
 
   inp->header_read = 1;
-  inp->track_info.video_streams[0].format.framerate_num = inp->framerate_num;
-  inp->track_info.video_streams[0].format.framerate_den = inp->framerate_den;
+  inp->track_info.video_streams[0].format.timescale = inp->timescale;
+  inp->track_info.video_streams[0].format.frame_duration = inp->frame_duration;
   inp->track_info.video_streams[0].format.free_framerate = 0;
   }
 
@@ -328,7 +328,7 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
     return 0;
   if(f)
     {
-    f->time = gavl_frames_to_time(inp->framerate_num, inp->framerate_den,
+    f->time = gavl_frames_to_time(inp->timescale, inp->frame_duration,
                                   inp->current_frame - inp->frame_start);
     }
   inp->header_read = 0;
@@ -340,8 +340,8 @@ static void seek_input(void * priv, gavl_time_t time)
   {
   input_t * inp = (input_t *)priv;
 
-  inp->current_frame = inp->frame_start + gavl_time_to_frames(inp->framerate_num,
-                                                              inp->framerate_den,
+  inp->current_frame = inp->frame_start + gavl_time_to_frames(inp->timescale,
+                                                              inp->frame_duration,
                                                               time);
   
   }

@@ -19,6 +19,7 @@
 
 #include <quicktime/lqt.h>
 #include <quicktime/lqt_codecinfo.h>
+#include <quicktime/colormodels.h>
 #include <parameter.h>
 
 void bg_lqt_create_codec_info(bg_parameter_info_t * parameter_info,
@@ -27,3 +28,8 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * parameter_info,
 int bg_lqt_set_parameter(const char * name, bg_parameter_value_t * val,
                          bg_parameter_info_t * info);
 
+extern int * bg_lqt_supported_colormodels;
+
+gavl_colorspace_t bg_lqt_get_gavl_colorspace(int quicktime_colorspace);
+
+int bg_lqt_get_lqt_colorspace(gavl_colorspace_t gavl_colorspace);

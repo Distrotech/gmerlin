@@ -170,3 +170,85 @@ int bg_lqt_set_parameter(const char * name, bg_parameter_value_t * val,
   return done;
   }
 
+static int _colormodels[] =
+  {
+    // Colormodels
+    //    BC_TRANSPARENCY,
+    //    BC_COMPRESSED,
+    //    BC_RGB8,
+    BC_RGB565,
+    BC_BGR565,
+    BC_BGR888,
+    BC_BGR8888,
+    // Working bitmaps are packed to simplify processing
+    BC_RGB888,
+    BC_RGBA8888,
+    //    BC_ARGB8888,
+    //    BC_ABGR8888,
+    //    BC_RGB161616,
+    //    BC_RGBA16161616,
+    //    BC_YUV888,
+    //    BC_YUVA8888,
+    //    BC_YUV161616,
+    //    BC_YUVA16161616,
+    BC_YUV422,
+    //    BC_A8,
+    //    BC_A16,
+    //    BC_YUV101010,
+    //    BC_VYU888,
+    //    BC_UYVA8888,
+// Planar
+    BC_YUV420P,
+    BC_YUV422P,
+    BC_YUV444P,
+    //    BC_YUV411P,
+    LQT_COLORMODEL_NONE
+  };
+
+int * bg_lqt_supported_colormodels = _colormodels;
+
+static struct
+  {
+  int lqt;
+  gavl_colorspace_t gavl;
+  }
+colorspace_table[] =
+  {
+    { BC_RGB565,   GAVL_RGB_16 },
+    { BC_BGR565,   GAVL_BGR_16 },
+    { BC_BGR888,   GAVL_BGR_24 },
+    { BC_BGR8888,  GAVL_BGR_32 },
+    { BC_RGB888,   GAVL_RGB_24 },
+    { BC_RGBA8888, GAVL_RGBA_32 },
+    { BC_YUV422,   GAVL_YUY2 },
+    { BC_YUV420P,  GAVL_YUV_420_P },
+    { BC_YUV422P,  GAVL_YUV_422_P },
+    { BC_YUV444P,  GAVL_YUV_422_P },
+  };
+
+static int colorspace_table_size =
+  sizeof(colorspace_table) / sizeof(colorspace_table[0]);
+
+gavl_colorspace_t bg_lqt_get_gavl_colorspace(int quicktime_colorspace)
+  {
+  int i;
+
+  for(i = 0; i < colorspace_table_size; i++)
+    {
+    if(colorspace_table[i].lqt == quicktime_colorspace)
+      return colorspace_table[i].gavl;
+    }
+  return GAVL_COLORSPACE_NONE;
+  }
+
+int bg_lqt_get_lqt_colorspace(gavl_colorspace_t gavl_colorspace)
+  {
+  int i;
+
+  for(i = 0; i < colorspace_table_size; i++)
+    {
+    if(colorspace_table[i].gavl == gavl_colorspace)
+      return colorspace_table[i].lqt;
+    }
+  return LQT_COLORMODEL_NONE;
+  }

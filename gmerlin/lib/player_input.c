@@ -67,6 +67,7 @@ static void name_changed(void * data, const char * name)
   {
   bg_player_input_context_t * ctx;
   ctx = (bg_player_input_context_t *)data;
+  
   bg_player_set_track_name(ctx->player, name);
   }
 

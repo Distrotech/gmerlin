@@ -12,11 +12,11 @@ void gavl_video_format_dump(const gavl_video_format_t * format)
   fprintf(stderr, "Pixel format: %s\n",
           gavl_colorspace_to_string(format->colorspace));
   fprintf(stderr, "Framerate:    %f",
-          (float)(format->framerate_num)/((float)format->framerate_den));
+          (float)(format->timescale)/((float)format->frame_duration));
 
-  if(format->framerate_den != 1)
-    fprintf(stderr, " [%d / %d]", format->framerate_num,
-            format->framerate_den);
+  if(format->frame_duration != 1)
+    fprintf(stderr, " [%d / %d]", format->timescale,
+            format->frame_duration);
   fprintf(stderr, " fps");
 
   if(!format->free_framerate)

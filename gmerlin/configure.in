@@ -212,7 +212,7 @@ LIBS=$OLD_LIBS
                                                                                
 AC_SUBST(JPEG_LIBS)
 AC_SUBST(JPEG_CFLAGS)
-                                                                               
+AC_SUBST(JPEG_REQUIRED)                                                                               
 AM_CONDITIONAL(HAVE_LIBJPEG, test x$have_libjpeg = xtrue)
 
 dnl
@@ -337,7 +337,6 @@ AC_SUBST(INCLUDES)
 
 dnl Configuration Subdirectiories
 
-dnl AC_CONFIG_SUBDIRS(src/mad src/liba52 src/mpeg2dec)
 AC_CONFIG_FILES([Makefile \
 gmerlin.spec \
 gmerlin.pc \
