@@ -16,36 +16,6 @@ void gavl_time_delay(gavl_time_t * t)
   select(0, NULL, NULL, NULL, &tv);
   }
 
-void gavl_samples_to_time(gavl_time_t * ret,
-                          int samplerate, int64_t samples)
-  {
-  *ret = samples * 1000000 / samplerate; 
-  }
-
-void gavl_frames_to_time(gavl_time_t * ret,
-                         double framerate, int64_t frames)
-  {
-  *ret = (gavl_time_t)((double)frames*1000000.0/framerate);
-  }
-
-
-void gavl_time_to_samples(int64_t * ret,
-                          int samplerate, gavl_time_t time)
-  {
-  *ret = (time*samplerate)/1000000;
-  }
-
-void gavl_time_to_frames(int64_t * ret,
-                         double framerate, gavl_time_t time)
-  {
-  *ret = (int64_t)(((double)time*framerate)/1000000.0+0.5);
-  }
-
-double gavl_time_to_double(gavl_time_t * time)
-  {
-  return (double)(*time) / 1.0e6;
-  }
-
 /*
  *  Pretty print a time in the format:
  *  hhh:mm:ss

@@ -79,6 +79,8 @@ static void get_channel_info(gavl_audio_format_t * format,
       ret->center = 1;
       ret->rear   = 2;
       break;
+    case GAVL_CHANNEL_NONE:
+      break;
     }
   ret->lfe = format->lfe;
   }
@@ -323,21 +325,27 @@ static void create_matrix(gavl_audio_options_t * opt,
     for(j = 0; j < ctx->matrix[i].num_inputs; j++) // Input  Channels
       {
       tmp = ctx->f_matrix[ctx->matrix[i].inputs[j]][i];
-      fprintf(stderr, "Mix %d -> %d: %f\n", j, i, tmp);
+      fprintf(stderr, "Mix %d -> %d: %f\n", ctx->matrix[i].inputs[j], i, tmp);
       switch(output_format->sample_format)
         {
         case GAVL_SAMPLE_S8:
+        case GAVL_SAMPLE_U8:
           i_tmp = (int)(tmp * 127.0);
           CLAMP(i_tmp, -128, 127);
           ctx->matrix[i].factors[j].s_8 = (int8_t)(i_tmp);
           break;
         case GAVL_SAMPLE_S16NE:
+        case GAVL_SAMPLE_S16OE:
+        case GAVL_SAMPLE_U16NE:
+        case GAVL_SAMPLE_U16OE:
           i_tmp = (int)(tmp * 32767.0);
           CLAMP(i_tmp, -32768, 32767);
           ctx->matrix[i].factors[j].s_16 = (int8_t)(i_tmp);
           break;
         case GAVL_SAMPLE_FLOAT:
           ctx->matrix[i].factors[j].f = tmp;
+          break;
+        case GAVL_SAMPLE_NONE:
           break;
         }
       }

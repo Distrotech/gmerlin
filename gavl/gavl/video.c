@@ -19,6 +19,8 @@
 
 #include <stdlib.h> /* calloc, free */
 
+#include <string.h>
+
 #define DEBUG
 
 #ifdef DEBUG
@@ -100,8 +102,8 @@ int gavl_video_init(gavl_video_converter_t * cnv,
     cnv->csp_func = gavl_find_colorspace_converter(options,
                                                    input_format->colorspace,
                                                    output_format->colorspace,
-                                                   input_format->width,
-                                                   input_format->height);
+                                                   input_format->frame_width,
+                                                   input_format->frame_height);
 
     if(!cnv->csp_func)
       {

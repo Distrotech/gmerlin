@@ -57,11 +57,17 @@ int main()
   input_format.colorspace = GAVL_RGB_15;
   output_format.colorspace = GAVL_RGB_15;
 
-  input_format.width = width;
-  input_format.height = height;
+  input_format.image_width = width;
+  input_format.image_height = height;
 
-  output_format.width = width;
-  output_format.height = height;
+  input_format.frame_width = width;
+  input_format.frame_height = height;
+
+  output_format.image_width = width;
+  output_format.image_height = height;
+
+  output_format.frame_width = width;
+  output_format.frame_height = height;
 
   //  char colorspace_buffer[20];
   

@@ -191,6 +191,9 @@ const char * gavl_sample_format_to_string(gavl_sample_format_t);
 const char * gavl_channel_setup_to_string(gavl_channel_setup_t);
 const char * gavl_interleave_mode_to_string(gavl_interleave_mode_t);
 
+void gavl_audio_format_dump(gavl_audio_format_t *);
+  
+  
 /* Copy audio format */
 
 void gavl_audio_format_copy(gavl_audio_format_t * dst,
@@ -319,8 +322,21 @@ typedef enum
 
 typedef struct 
   {
-  int width;
-  int height;
+  /* Physical size of the frame fuffers */
+  
+  int frame_width;
+  int frame_height;
+
+  /* Width and height of the actual displayed image */
+    
+  int image_width;
+  int image_height;
+  
+  /* Support for nonsquare pixels */
+    
+  int pixel_width;
+  int pixel_height;
+    
   gavl_colorspace_t colorspace;
   double framerate;
   int free_framerate;   /* Framerate will be based on timestamps only */
@@ -328,6 +344,8 @@ typedef struct
 
 void gavl_video_format_copy(gavl_video_format_t * dst,
                             const gavl_video_format_t * src);
+
+void gavl_video_format_dump(gavl_video_format_t *);
   
 #define GAVL_SCANLINE (1<<0)
 

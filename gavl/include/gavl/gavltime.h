@@ -7,19 +7,32 @@ typedef int64_t gavl_time_t;
 
 /* Utility functions */
 
+#if 0
 void gavl_samples_to_time(gavl_time_t * ret,
-                          int samplerate, int64_t samples);
+                          int samplerate, int64_t * samples);
 
 void gavl_frames_to_time(gavl_time_t * ret,
-                         double framerate, int64_t frames);
+                         double framerate, int64_t * frames);
 
 void gavl_time_to_samples(int64_t * ret,
-                          int samplerate, gavl_time_t time);
+                          int samplerate, gavl_time_t * time);
 
 void gavl_time_to_frames(int64_t * ret,
-                         double framerate, gavl_time_t time);
+                         double framerate, gavl_time_t * time);
+#endif
 
-double gavl_time_to_double(gavl_time_t * time);
+#define gavl_samples_to_time(rate, samples) \
+((samples)*1000000/(rate))
+
+#define gavl_frames_to_time(rate, frames) \
+((gavl_time_t)((double)(frames)*1000000.0/(rate)+0.5))
+
+#define gavl_time_to_samples(rate, t) \
+  (((t)*(rate))/1000000)
+
+#define gavl_time_to_frames(rate, t) \
+  ((int64_t)(((double)(t)*(rate))/1000000.0+0.5))
+
 
 #define GAVL_TIME_TO_SECONDS(t) (double)(t)/(double)(GAVL_TIME_SCALE)
 

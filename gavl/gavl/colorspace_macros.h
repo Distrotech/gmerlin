@@ -101,7 +101,7 @@ output_type * dst_v = (output_type*)ctx->output_frame->v;
 #define CONVERSION_FUNC_START_PLANAR_PACKED(input_type, output_type, advance_x, advance_y) \
 int i;\
 input_type * end_ptr;\
-int imax = ctx->input_format.height/advance_y;\
+int imax = ctx->input_format.image_height/advance_y;\
 int units_per_line = ctx->input_frame->y_stride/sizeof(input_type);\
 input_type * src_y;\
 input_type * src_u;\
@@ -130,7 +130,7 @@ dst_save += ctx->output_frame->pixels_stride;}
 #define CONVERSION_FUNC_START_PLANAR_PLANAR(input_type, output_type, advance_x, advance_y) \
 int i;\
 input_type * end_ptr;\
-int imax = ctx->input_format.height/advance_y;\
+int imax = ctx->input_format.image_height/advance_y;\
 int units_per_line = ctx->input_frame->y_stride/sizeof(input_type);\
 input_type * src_y;\
 input_type * src_u;\
@@ -171,7 +171,7 @@ input_type * src;\
 output_type * dst_y;\
 output_type * dst_u;\
 output_type * dst_v;\
-int imax = ctx->input_format.height/advance_y;\
+int imax = ctx->input_format.image_height/advance_y;\
 int units_per_line = ctx->input_frame->pixels_stride/sizeof(input_type);\
 uint8_t * src_save = ctx->input_frame->pixels;\
 uint8_t * dst_y_save = ctx->output_frame->y;\
@@ -198,7 +198,7 @@ int i;\
 input_type * end_ptr;\
 input_type * src;\
 output_type * dst;\
-int imax = ctx->input_format.height/advance_y;\
+int imax = ctx->input_format.image_height/advance_y;\
 int units_per_line = ctx->input_frame->pixels_stride/sizeof(input_type);\
 uint8_t * src_save = ctx->input_frame->pixels;\
 uint8_t * dst_save = ctx->output_frame->pixels;

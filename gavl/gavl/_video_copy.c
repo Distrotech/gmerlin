@@ -33,7 +33,7 @@ static void yuv_420_p_to_yuv_422_p_generic(gavl_video_convert_context_t * ctx)
   int uv_size =
     ctx->input_frame->u_stride < ctx->output_frame->u_stride ?
     ctx->input_frame->u_stride : ctx->output_frame->u_stride;
-  int imax = ctx->input_format.height/2;
+  int imax = ctx->input_format.image_height/2;
   
   uint8_t * src_y = ctx->input_frame->y;
   uint8_t * src_u = ctx->input_frame->u;
@@ -79,7 +79,7 @@ static void yuv_422_p_to_yuv_420_p_generic(gavl_video_convert_context_t * ctx)
   int uv_size =
     ctx->input_frame->u_stride < ctx->output_frame->u_stride ?
     ctx->input_frame->u_stride : ctx->output_frame->u_stride;
-  int imax = ctx->input_format.height/2;
+  int imax = ctx->input_format.image_height/2;
   
   uint8_t * src_y = ctx->input_frame->y;
   uint8_t * src_u = ctx->input_frame->u;

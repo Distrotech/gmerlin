@@ -9,7 +9,7 @@ RENAME(interleave_none_to_all)(gavl_audio_convert_context_t * ctx)
     {
     for(j = 0; j < ctx->input_format->num_channels; j++)
       {
-      *(dst++) = SRC(i,j);
+      *(dst++) = SRC(j,i);
       }
     }
   }

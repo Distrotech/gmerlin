@@ -43,7 +43,7 @@ create_mix_context(gavl_audio_options_t * opt,
   gavl_audio_convert_context_t * ret;
   ret = calloc(1, sizeof(*ret));
 
-  fprintf(stderr, "Gavl: initializing mixer\n");
+  //  fprintf(stderr, "Gavl: initializing mixer\n");
   
   ret->input_format  = in_format;
   ret->output_format = copy_format(in_format);
@@ -69,7 +69,7 @@ create_sampleformat_context(gavl_sampleformat_table_t ** table,
   gavl_audio_convert_context_t * ret;
   ret = calloc(1, sizeof(*ret));
 
-  fprintf(stderr, "Gavl: initializing sampleformat converter\n");
+  //  fprintf(stderr, "Gavl: initializing sampleformat converter\n");
   
   if(!(*table))
     *table = gavl_create_sampleformat_table(opt);
@@ -97,7 +97,7 @@ create_interleave_context(gavl_interleave_table_t ** table,
   gavl_audio_convert_context_t * ret;
   ret = calloc(1, sizeof(*ret));
 
-  fprintf(stderr, "Gavl: initializing interleaving converter\n");
+  //  fprintf(stderr, "Gavl: initializing interleaving converter\n");
 
   if(!(*table))
     *table = gavl_create_interleave_table(opt);
@@ -409,6 +409,7 @@ int gavl_audio_init(gavl_audio_converter_t* cnv,
     current_context->output_frame =
       gavl_audio_frame_create(current_context->output_format);
     current_context->next->input_frame = current_context->output_frame;
+    current_context = current_context->next;
     }
 
   if(cnv->opt.conversion_flags & GAVL_AUDIO_DO_BUFFER)
@@ -473,6 +474,8 @@ int gavl_audio_convert(gavl_audio_converter_t * cnv,
       if(!ctx->next)
         ctx->output_frame = output_frame;
 
+      //      fprintf(stderr, "Convert %p %p\n", ctx->input_frame, ctx->output_frame);
+
       ctx->output_frame->valid_samples = 0;
       ctx->func(ctx);
       if(!ctx->output_frame->valid_samples)
@@ -486,3 +489,4 @@ int gavl_audio_convert(gavl_audio_converter_t * cnv,
   return ret;
   }
  
+

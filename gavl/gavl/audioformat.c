@@ -1,4 +1,4 @@
-
+#include <stdio.h>
 #include <gavl/gavl.h>
 
 static struct
@@ -90,4 +90,20 @@ const char * gavl_interleave_mode_to_string(gavl_interleave_mode_t mode)
       return interleave_mode_names[i].name;
     }
   return (char*)0;
+  }
+
+void gavl_audio_format_dump(gavl_audio_format_t * f)
+  {
+  fprintf(stderr, "         Channels: %d (%s", f->num_channels,
+          gavl_channel_setup_to_string(f->channel_setup));
+  if(f->lfe)
+    fprintf(stderr, "+LFE)\n");
+  else
+    fprintf(stderr, ")\n");
+  fprintf(stderr, "       Samplerate: %d\n", f->samplerate);
+  fprintf(stderr, "Samples per frame: %d\n", f->samples_per_frame);
+  fprintf(stderr, "  Interleave Mode: %s\n",
+          gavl_interleave_mode_to_string(f->interleave_mode));
+  fprintf(stderr, "    Sample format: %s\n",
+          gavl_sample_format_to_string(f->sample_format));
   }

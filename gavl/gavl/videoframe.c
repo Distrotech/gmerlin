@@ -49,69 +49,69 @@ void gavl_video_frame_alloc(gavl_video_frame_t * ret,
     case GAVL_BGR_15:
     case GAVL_RGB_16:
     case GAVL_BGR_16:
-      ret->pixels_stride = format->width*2;
+      ret->pixels_stride = format->frame_width*2;
       ALIGN(ret->pixels_stride);
       ret->pixels = memalign(ALIGNMENT_BYTES,
-                             ret->pixels_stride * format->height);
+                             ret->pixels_stride * format->frame_height);
       break;
     case GAVL_RGB_24:
     case GAVL_BGR_24:
-      ret->pixels_stride = format->width*3;
+      ret->pixels_stride = format->frame_width*3;
       ALIGN(ret->pixels_stride);
       ret->pixels = memalign(ALIGNMENT_BYTES,
-                             ret->pixels_stride * format->height);
+                             ret->pixels_stride * format->frame_height);
       break;
     case GAVL_RGB_32:
     case GAVL_BGR_32:
-      ret->pixels_stride = format->width*4;
+      ret->pixels_stride = format->frame_width*4;
       ALIGN(ret->pixels_stride);
       ret->pixels = memalign(ALIGNMENT_BYTES,
-                             ret->pixels_stride * format->height);
+                             ret->pixels_stride * format->frame_height);
       break;
     case GAVL_RGBA_32:
-      ret->pixels_stride = format->width*4;
+      ret->pixels_stride = format->frame_width*4;
       ALIGN(ret->pixels_stride);
       ret->pixels = memalign(ALIGNMENT_BYTES,
-                             ret->pixels_stride * format->height);
+                             ret->pixels_stride * format->frame_height);
       break;
     case GAVL_YUY2:
-      ret->pixels_stride = format->width*2;
+      ret->pixels_stride = format->frame_width*2;
       ALIGN(ret->pixels_stride);
       ret->pixels = memalign(ALIGNMENT_BYTES,
-                             ret->pixels_stride * format->height);
+                             ret->pixels_stride * format->frame_height);
       break;
     case GAVL_YUV_420_P:
-      ret->y_stride = format->width;
-      ret->u_stride = format->width/2;
-      ret->v_stride = format->width/2;
+      ret->y_stride = format->frame_width;
+      ret->u_stride = format->frame_width/2;
+      ret->v_stride = format->frame_width/2;
       ALIGN(ret->y_stride);
       ALIGN(ret->u_stride);
       ALIGN(ret->v_stride);
       
       ret->pixels = memalign(ALIGNMENT_BYTES,
-                             ret->y_stride*format->height+
-                             (ret->u_stride*format->height)/2+
-                             (ret->v_stride*format->height)/2);
+                             ret->y_stride*format->frame_height+
+                             (ret->u_stride*format->frame_height)/2+
+                             (ret->v_stride*format->frame_height)/2);
       ret->y = ret->pixels;
-      ret->u = ret->y + ret->y_stride*format->height;
-      ret->v = ret->u + (ret->u_stride*format->height)/2;
+      ret->u = ret->y + ret->y_stride*format->frame_height;
+      ret->v = ret->u + (ret->u_stride*format->frame_height)/2;
       break;
     case GAVL_YUV_422_P:
-      ret->y_stride = format->width;
-      ret->u_stride = format->width/2;
-      ret->v_stride = format->width/2;
+      ret->y_stride = format->frame_width;
+      ret->u_stride = format->frame_width/2;
+      ret->v_stride = format->frame_width/2;
       ALIGN(ret->y_stride);
       ALIGN(ret->u_stride);
       ALIGN(ret->v_stride);
 
       ret->pixels = memalign(ALIGNMENT_BYTES,
-                             ret->y_stride*format->height+
-                             ret->u_stride*format->height+
-                             ret->v_stride*format->height);
+                             ret->y_stride*format->frame_height+
+                             ret->u_stride*format->frame_height+
+                             ret->v_stride*format->frame_height);
 
       ret->y = ret->pixels;
-      ret->u = ret->y + ret->y_stride*format->height;
-      ret->v = ret->u + ret->u_stride*format->height;
+      ret->u = ret->y + ret->y_stride*format->frame_height;
+      ret->v = ret->u + ret->u_stride*format->frame_height;
       break;
     case GAVL_COLORSPACE_NONE:
       fprintf(stderr, "Colorspace not specified for video frame\n");
@@ -161,12 +161,12 @@ void gavl_clear_video_frame(gavl_video_frame_t * frame,
     case GAVL_BGR_24:
     case GAVL_RGB_32:
     case GAVL_BGR_32:
-      memset(frame->pixels, 0x00, format->height * frame->pixels_stride);
+      memset(frame->pixels, 0x00, format->frame_height * frame->pixels_stride);
       break;
     case GAVL_RGBA_32:
-      for(i = 0; i < format->height; i++)
+      for(i = 0; i < format->frame_height; i++)
         {
-        for(j = 0; j < format->width; j++)
+        for(j = 0; j < format->frame_width; j++)
           {
           frame->pixels[4*j + i*frame->pixels_stride]   = 0x00; /* R */
           frame->pixels[4*j + i*frame->pixels_stride+1] = 0x00; /* G */
@@ -177,9 +177,9 @@ void gavl_clear_video_frame(gavl_video_frame_t * frame,
       
       break;
     case GAVL_YUY2:
-      for(i = 0; i < format->height; i++)
+      for(i = 0; i < format->frame_height; i++)
         {
-        for(j = 0; j < format->width; j++)
+        for(j = 0; j < format->frame_width; j++)
           {
           frame->pixels[2*j + i*frame->pixels_stride]   = 0x00; /* Y   */
           frame->pixels[2*j + i*frame->pixels_stride+1] = 0x80; /* U/V */
@@ -187,14 +187,16 @@ void gavl_clear_video_frame(gavl_video_frame_t * frame,
         }
       break;
     case GAVL_YUV_420_P:
-      memset(frame->y, 0x00, format->height * frame->y_stride);
-      memset(frame->u, 0x80, (format->height * frame->u_stride)/2);
-      memset(frame->v, 0x80, (format->height * frame->v_stride)/2);
+      memset(frame->y, 0x00, format->frame_height * frame->y_stride);
+      memset(frame->u, 0x80, (format->frame_height * frame->u_stride)/2);
+      memset(frame->v, 0x80, (format->frame_height * frame->v_stride)/2);
       break;
     case GAVL_YUV_422_P:
-      memset(frame->y, 0x00, format->height * frame->y_stride);
-      memset(frame->u, 0x80, format->height * frame->u_stride);
-      memset(frame->v, 0x80, format->height * frame->v_stride);
+      memset(frame->y, 0x00, format->frame_height * frame->y_stride);
+      memset(frame->u, 0x80, format->frame_height * frame->u_stride);
+      memset(frame->v, 0x80, format->frame_height * frame->v_stride);
+      break;
+    case GAVL_COLORSPACE_NONE:
       break;
       
     }

@@ -77,12 +77,10 @@ int gavl_framerate_convert(gavl_framerate_converter_t * cnv,
 
   if(cnv->do_resync)
     {
-    gavl_time_to_frames(&(cnv->output_frame_count),
-                        cnv->output_framerate,
-                        cnv->input_time_1);
-    gavl_frames_to_time(&(cnv->next_output_time),
-                        cnv->output_framerate,
-                        cnv->output_frame_count);
+    cnv->output_frame_count = gavl_time_to_frames(cnv->output_framerate,
+                                                  cnv->input_time_1);
+    cnv->next_output_time = gavl_frames_to_time(cnv->output_framerate,
+                                                cnv->output_frame_count);
     cnv->do_resync = 0;
     }
 
@@ -113,9 +111,8 @@ int gavl_framerate_convert(gavl_framerate_converter_t * cnv,
   
   cnv->output_frame_count++;
 
-  gavl_frames_to_time(&(cnv->next_output_time),
-                      cnv->output_framerate,
-                      cnv->output_frame_count);
+  cnv->next_output_time = gavl_frames_to_time(cnv->output_framerate,
+                                              cnv->output_frame_count);
   return ret;
 
   }

@@ -412,16 +412,19 @@ int write_file(const char * name,
       color_type = PNG_COLOR_TYPE_RGB;
     }
   
-  png_set_IHDR(png_ptr, info_ptr, format->width, format->height,
+  png_set_IHDR(png_ptr, info_ptr, format->image_width, format->image_height,
                8, color_type, PNG_INTERLACE_NONE,
                 PNG_COMPRESSION_TYPE_DEFAULT,
                PNG_FILTER_TYPE_DEFAULT);
 
   /* Set up the temporary video frame */
 
-  tmp_format.width = format->width;
-  tmp_format.height = format->height;
+  tmp_format.image_width  = format->image_width;
+  tmp_format.image_height = format->image_height;
 
+  tmp_format.frame_width  = format->frame_width;
+  tmp_format.frame_height = format->frame_height;
+  
   /* We convert everything to either RGB24, BGR24 or RGBA */
   
   switch(format->colorspace)
@@ -447,13 +450,13 @@ int write_file(const char * name,
     case GAVL_RGB_15:
     case GAVL_BGR_15:
       tmp_frame = gavl_video_frame_create(&tmp_format);
-      convert_15_to_24(frame, tmp_frame, format->width, format->height);
+      convert_15_to_24(frame, tmp_frame, format->image_width, format->image_height);
       out_frame = tmp_frame;
       break;
     case GAVL_RGB_16:
     case GAVL_BGR_16:
       tmp_frame = gavl_video_frame_create(&tmp_format);
-      convert_16_to_24(frame, tmp_frame, format->width, format->height);
+      convert_16_to_24(frame, tmp_frame, format->image_width, format->image_height);
       out_frame = tmp_frame;
       break;
     case GAVL_RGB_24:
@@ -464,24 +467,24 @@ int write_file(const char * name,
     case GAVL_RGB_32:
     case GAVL_BGR_32:
       tmp_frame = gavl_video_frame_create(&tmp_format);
-      convert_32_to_24(frame, tmp_frame, format->width, format->height);
+      convert_32_to_24(frame, tmp_frame, format->image_width, format->image_height);
       out_frame = tmp_frame;
       break;
     case GAVL_YUY2:
       tmp_frame = gavl_video_frame_create(&tmp_format);
-      convert_YUY2_to_RGB24(frame, tmp_frame, format->width, format->height);
+      convert_YUY2_to_RGB24(frame, tmp_frame, format->image_width, format->image_height);
       out_frame = tmp_frame;
       break;
     case GAVL_YUV_420_P:
       tmp_frame = gavl_video_frame_create(&tmp_format);
-      convert_YUV_420_P_to_RGB24(frame, tmp_frame, format->width,
-                                 format->height);
+      convert_YUV_420_P_to_RGB24(frame, tmp_frame, format->image_width,
+                                 format->image_height);
       out_frame = tmp_frame;
       break;
     case GAVL_YUV_422_P:
       tmp_frame = gavl_video_frame_create(&tmp_format);
-      convert_YUV_422_P_to_RGB24(frame, tmp_frame, format->width,
-                                 format->height);
+      convert_YUV_422_P_to_RGB24(frame, tmp_frame, format->image_width,
+                                 format->image_height);
       out_frame = tmp_frame;
       break;
     case GAVL_COLORSPACE_NONE:
@@ -490,9 +493,9 @@ int write_file(const char * name,
 
   /* Set up the row pointers */
 
-  row_pointers = malloc(format->height * sizeof(char*));
+  row_pointers = malloc(format->image_height * sizeof(char*));
  
-  for(i = 0; i < format->height; i++)
+  for(i = 0; i < format->image_height; i++)
     row_pointers[i] =
       out_frame->pixels + i * out_frame->pixels_stride;
   
@@ -632,8 +635,11 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
   gavl_video_frame_t * ret;
   gavl_video_format_t format;
   format.colorspace = colorspace;
-  format.width = TEST_PICTURE_WIDTH;
-  format.height = TEST_PICTURE_HEIGHT;
+  format.image_width = TEST_PICTURE_WIDTH;
+  format.image_height = TEST_PICTURE_HEIGHT;
+
+  format.frame_width = TEST_PICTURE_WIDTH;
+  format.frame_height = TEST_PICTURE_HEIGHT;
   
   ret = gavl_video_frame_create(&format);
 
@@ -844,11 +850,17 @@ int main(int argc, char ** argv)
 
   gavl_video_converter_t * cnv = gavl_video_converter_create();
   
-  input_format.width = TEST_PICTURE_WIDTH;
-  input_format.height = TEST_PICTURE_HEIGHT;
+  input_format.image_width = TEST_PICTURE_WIDTH;
+  input_format.image_height = TEST_PICTURE_HEIGHT;
 
-  output_format.width = TEST_PICTURE_WIDTH;
-  output_format.height = TEST_PICTURE_HEIGHT;
+  input_format.frame_width = TEST_PICTURE_WIDTH;
+  input_format.frame_height = TEST_PICTURE_HEIGHT;
+
+  output_format.frame_width = TEST_PICTURE_WIDTH;
+  output_format.frame_height = TEST_PICTURE_HEIGHT;
+
+  output_format.image_width = TEST_PICTURE_WIDTH;
+  output_format.image_height = TEST_PICTURE_HEIGHT;
  
   init_yuv();
  
