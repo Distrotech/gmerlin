@@ -451,7 +451,7 @@ static int decode_a52(bgav_stream_t * s,
         {
         if(f)
           f->valid_samples = samples_decoded;
-        //        fprintf(stderr, "A52: EOF\n");
+        //        fprintf(stderr, "A52: EOF %d\n", samples_decoded);
         return samples_decoded;
         }
       }

@@ -93,6 +93,26 @@ void bgav_set_dll_path_real(const char * path);
 void bgav_set_dll_path_xanim(const char * path);
 void bgav_set_dll_path_win32(const char * path);
 
+/* Device description */
+
+/*
+ *  Device info: Returned by the "find_devices()" function
+ *  Device arrays are NULL terminated
+ */
+
+typedef struct
+  {
+  char * device; /* Can be passed to the open() method */
+  char * name;   /* Might be NULL */
+  } bgav_device_info_t;
+
+void bgav_device_info_destroy(bgav_device_info_t * arr);
+
+/* Scan for devices */
+
+bgav_device_info_t * bgav_find_devices_vcd();
+int bgav_check_device_vcd(const char * device, char ** name);
+
 /******************************************************
  * Open
  ******************************************************/

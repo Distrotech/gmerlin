@@ -433,6 +433,14 @@ fi
 
 AM_CONDITIONAL(HAVE_XADLL, test x"$enable_xadll" = "xtrue")
 
+dnl
+dnl VCD support
+dnl
+
+AC_CHECK_HEADERS([linux/cdrom.h], have_vcd="true", have_vcd="false")
+AM_CONDITIONAL(HAVE_VCD, test x"$have_vcd" = "xtrue")
+
+AC_CHECK_HEADERS([linux/hdreg.h])
 
 dnl
 dnl Common CFLAGS
@@ -584,6 +592,13 @@ fi
 
 echo -n "Xanim DLL Support:      "
 if test "x$enable_xadll" = "xtrue"; then
+echo "Enabled"
+else
+echo "Disabled (Unsupported Architecture)"
+fi
+
+echo -n "VCD Support:            "
+if test "x$have_vcd" = "xtrue"; then
 echo "Enabled"
 else
 echo "Disabled (Unsupported Architecture)"

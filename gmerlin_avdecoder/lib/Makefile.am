@@ -110,6 +110,12 @@ else
 xadll_sources =
 endif
 
+if HAVE_VCD
+vcd_sources = in_vcd.c
+else
+vcd_sources =
+endif
+
 SUBDIRS = $(win32_subdirs) real_rtsp
 
 libgmerlin_avdec_la_LDFLAGS=-export-dynamic
@@ -148,6 +154,7 @@ $(flac_sources) \
 $(avcodec_sources) \
 $(real_sources) \
 $(xadll_sources) \
+$(vcd_sources) \
 audio.c \
 audio_aiff.c \
 base64.c \
@@ -166,6 +173,7 @@ demux_quicktime.c \
 demux_ra.c \
 demux_rm.c \
 demux_wav.c \
+device.c \
 http.c \
 id3v1.c \
 id3v2.c \
@@ -176,7 +184,6 @@ in_memory.c \
 in_mms.c \
 in_pnm.c \
 in_realrtsp.c \
-in_vcd.c \
 input.c \
 metadata.c \
 mms.c \

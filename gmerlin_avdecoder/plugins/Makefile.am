@@ -2,9 +2,15 @@ libdir=@GMERLIN_PLUGIN_DIR@
 
 AM_CFLAGS = @GMERLIN_CFLAGS@
 
+if HAVE_VCD
+vcd_modules = i_vcd.la
+else
+vcd_modules =
+endif
+
 lib_LTLIBRARIES = \
 i_avdec.la \
-i_vcd.la
+$(vcd_modules)
 
 noinst_HEADERS = avdec_common.h
 

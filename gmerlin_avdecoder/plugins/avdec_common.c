@@ -291,10 +291,6 @@ bg_avdec_set_parameter(void * p, char * name,
     {
     avdec->network_buffer_size = val->val_i;
     }
-  else if(!strcmp(name, "device"))
-    {
-    avdec->device = bg_strdup(avdec->device, val->val_str);
-    }
   else if(!strcmp(name, "network_bandwidth"))
     {
     if(!strcmp(val->val_str, "14.4 Kbps (Modem)"))
@@ -402,4 +398,19 @@ void bg_avdec_set_callbacks(void * priv,
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
   avdec->bg_callbacks = callbacks;
+  }
+
+bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t * info)
+  {
+  int i = 0;
+  bg_device_info_t * ret = (bg_device_info_t *)0;
+
+  while(info[i].device)
+    {
+    ret = bg_device_info_append(ret,
+                                info[i].device,
+                                info[i].name);
+    i++;
+    }
+  return ret;
   }

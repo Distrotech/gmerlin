@@ -28,7 +28,6 @@ typedef struct
   int read_timeout;
   int network_bandwidth;
   int network_buffer_size;
-  char * device;
 
   int http_shoutcast_metadata;
   } avdec_priv;
@@ -68,3 +67,5 @@ int bg_avdec_set_track(void * priv, int track);
 
 void bg_avdec_set_callbacks(void * priv,
                             bg_input_callbacks_t * callbacks);
+
+bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t *);

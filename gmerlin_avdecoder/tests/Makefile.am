@@ -4,10 +4,14 @@ noinst_PROGRAMS = bgavdump \
 bgavsave \
 mmstest \
 rtsptest \
+vcdtest \
 ymltest
 
 bgavdump_SOURCES = bgavdump.c
 bgavdump_LDADD = $(top_srcdir)/lib/libgmerlin_avdec.la
+
+vcdtest_SOURCES = vcdtest.c
+vcdtest_LDADD = $(top_srcdir)/lib/libgmerlin_avdec.la
 
 ymltest_SOURCES = ymltest.c
 ymltest_LDADD = $(top_srcdir)/lib/libgmerlin_avdec.la

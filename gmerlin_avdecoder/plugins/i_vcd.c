@@ -35,42 +35,41 @@ static int open_vcd(void * priv, const char * location)
 
   avdec->dec = bgav_create();
   
-  if(!bgav_open_vcd(avdec->dec, avdec->device))
+  if(!bgav_open_vcd(avdec->dec, location))
     return 0;
   return bg_avdec_init(avdec);
   }
 
-
-static bg_parameter_info_t parameters[] =
+bg_device_info_t * find_devices_vcd()
   {
-    {
-      name:        "device",
-      long_name:   "Device",
-      type:        BG_PARAMETER_DEVICE,
-      val_default: { val_str: "/dev/cdrom" }
-    },
-    { /* End of parameters */ }
-  };
-
-static bg_parameter_info_t * get_parameters_vcd(void * priv)
-  {
-  return parameters;
+  bg_device_info_t * ret;
+  bgav_device_info_t * dev;
+  dev = bgav_find_devices_vcd();
+  ret = bg_avdec_get_devices(dev);
+  bgav_device_info_destroy(dev);
+  return ret;
   }
 
-
+int check_device_vcd(const char * device, char ** name)
+  {
+  return bgav_check_device_vcd(device, name);
+  }
 
 bg_input_plugin_t the_plugin =
   {
     common:
     {
       name:          "i_vcd",
-      long_name:     "VCD Plugin",
+      long_name:     "VCD Player",
       type:          BG_PLUGIN_INPUT,
       flags:         BG_PLUGIN_REMOVABLE,
-      create:         bg_avdec_create,
-      destroy:        bg_avdec_destroy,
-      get_parameters: get_parameters_vcd,
-      set_parameter:  bg_avdec_set_parameter
+      create:        bg_avdec_create,
+      destroy:       bg_avdec_destroy,
+      //      get_parameters: get_parameters_vcd,
+      //      set_parameter:  bg_avdec_set_parameter
+      find_devices: find_devices_vcd,
+      check_device: check_device_vcd
+      
     },
   /* Open file/device */
     open: open_vcd,
@@ -104,8 +103,8 @@ bg_input_plugin_t the_plugin =
      *  function is non-NULL AND the duration field of the track info
      *  is > 0
      */
-    seek: bg_avdec_seek,
+    seek:         bg_avdec_seek,
     /* Stop playback, close all decoders */
-    stop: NULL,
-    close: bg_avdec_close,
+    stop:         NULL,
+    close:        bg_avdec_close,
   };

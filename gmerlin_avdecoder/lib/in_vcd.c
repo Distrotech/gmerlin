@@ -16,8 +16,16 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
  
 *****************************************************************/
+#include <config.h>
 
+#ifdef HAVE_LINUX_CDROM_H
 #include <linux/cdrom.h>
+#endif
+
+#ifdef HAVE_LINUX_HDREG_H
+#include <linux/hdreg.h>
+#endif
+
 #include <unistd.h>
 #include <sys/ioctl.h>                                                             
 #include <stdlib.h>
@@ -25,6 +33,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+#include <errno.h>
+
 
 #include <avdec_private.h>
 
@@ -60,7 +70,7 @@ static int read_toc(vcd_priv * priv)
   struct cdrom_tochdr hdr;
   struct cdrom_tocentry entry;
 
-  if(ioctl(priv->fd, CDROMREADTOCHDR, &hdr) == -1 )
+  if(ioctl(priv->fd, CDROMREADTOCHDR, &hdr) < 0 )
     return 0;
 
   priv->num_tracks = hdr.cdth_trk1 - hdr.cdth_trk0+1;
@@ -71,7 +81,7 @@ static int read_toc(vcd_priv * priv)
     entry.cdte_track = hdr.cdth_trk0 + i;
     entry.cdte_format = CDROM_LBA;
     
-    if(ioctl(priv->fd, CDROMREADTOCENTRY, &entry) == -1 )
+    if(ioctl(priv->fd, CDROMREADTOCENTRY, &entry) < 0 )
       return 0;
 
     if(i)
@@ -81,7 +91,7 @@ static int read_toc(vcd_priv * priv)
 
   entry.cdte_track = CDROM_LEADOUT;
   entry.cdte_format = CDROM_LBA;
-  if(ioctl(priv->fd, CDROMREADTOCENTRY, &entry) == -1 )
+  if(ioctl(priv->fd, CDROMREADTOCENTRY, &entry) < 0 )
     return 0;
 
   priv->tracks[priv->num_tracks-1].end_sector =
@@ -128,7 +138,9 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   {
   vcd_priv * priv;
   //  fprintf(stderr, "OPEN VCD\n");
-  
+
+  //  bgav_find_devices_vcd();
+    
   priv = calloc(1, sizeof(*priv));
   
   ctx->priv = priv;
@@ -136,14 +148,23 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   priv->buffer = priv->sector + 24;
   priv->buffer_ptr = priv->buffer + SECTOR_SIZE;
   
-  priv->fd = open(url, O_RDONLY|O_EXCL);
+  priv->fd = open(url, O_RDONLY|O_NONBLOCK);
   if(priv->fd == -1)
+    {
+    fprintf(stderr, "VCD: Open failed\n");
     return 0;
+    }
+  /* Get some infos */
+
+  //  dump_cdrom(priv->fd);
   
   /* Read TOC */
-
+  
   if(!read_toc(priv))
+    {
+    fprintf(stderr, "VCD: Read toc failed\n");
     return 0;
+    }
   toc_2_tt(ctx);
 
   /* Create demuxer */
@@ -279,6 +300,170 @@ bgav_input_t bgav_input_vcd =
     read:          read_vcd,
     seek_byte:     seek_byte_vcd,
     close:         close_vcd,
-    select_track:  select_track_vcd
+    select_track:  select_track_vcd,
   };
 
+static char * device_names_scsi_old[] =
+  {
+    "/dev/sr0",
+    "/dev/sr1",
+    "/dev/sr2",
+    "/dev/sr3",
+    "/dev/sr4",
+    "/dev/sr5",
+    "/dev/sr6",
+    "/dev/sr7",
+    (char*)0
+  };
+
+static char * device_names_scsi_new[] =
+  {
+    "/dev/scd0",
+    "/dev/scd1",
+    "/dev/scd2",
+    "/dev/scd3",
+    "/dev/scd4",
+    "/dev/scd5",
+    "/dev/scd6",
+    "/dev/scd7",
+    (char*)0
+  };
+
+
+static char * device_names_ide[] =
+  {
+    "/dev/hda",
+    "/dev/hdb",
+    "/dev/hdc",
+    "/dev/hdd",
+    "/dev/hde",
+    "/dev/hdf",
+    "/dev/hdg",
+    "/dev/hdh",
+    (char*)0
+  };
+
+static char * get_device_name(int fd, int cap, const char * device)
+  {
+#ifdef HAVE_LINUX_HDREG_H
+  struct hd_driveid driveid;
+
+  if((ioctl(fd, HDIO_GET_IDENTITY, &driveid) >= 0) &&
+     (driveid.model[0] != '\0'))
+    {
+    return bgav_strndup(driveid.model, NULL);
+    }
+  
+#endif
+  
+  if(cap & CDC_DVD_R)
+    {
+    return bgav_sprintf("DVD Writer (%s)", device);
+    }
+  else if(cap & CDC_CD_R)
+    {
+    return bgav_sprintf("CD Writer (%s)", device);
+    }
+  else if(cap & CDC_DVD)
+    {
+    return bgav_sprintf("DVD Drive (%s)", device);
+    }
+  return bgav_sprintf("CDrom Drive (%s)", device);
+  }
+
+int bgav_check_device_vcd(const char * device, char ** name)
+  {
+  int fd, cap;
+
+  /* First step: Try to open the device */
+
+  fd = open(device, O_RDONLY | O_NONBLOCK);
+
+  if(fd < 0)
+    {
+    fprintf(stderr, "Couldn't open device %s: %s\n",
+            device, strerror(errno));
+    return 0;
+    }
+  /* Try a cdrom ioctl and see what happens */
+  
+  //  fprintf(stderr, "Opened %s\n", device);
+  
+  if((cap = ioctl(fd, CDROM_GET_CAPABILITY, 0)) < 0)
+    {
+    fprintf(stderr, "CDROM_GET_CAPABILITY ioctl failed\n");
+    close(fd);
+      return 0;
+    }
+  
+  /* Ok, seems the drive is ok */
+
+  if(name)
+    *name = get_device_name(fd, cap, device);
+  close(fd);
+  return 1;
+  }
+
+bgav_device_info_t * bgav_find_devices_vcd()
+  {
+  int have_scsi_new = 0;
+  
+  int i = -1;
+  char * device_name;
+  
+  bgav_device_info_t * ret = (bgav_device_info_t *)0;
+
+  i = -1;
+  while(device_names_scsi_new[i+1])
+    {
+    i++;
+    
+    device_name = (char*)0;
+    if(bgav_check_device_vcd(device_names_scsi_new[i], &device_name))
+      {
+      have_scsi_new = 1;
+      ret = bgav_device_info_append(ret,
+                                    device_names_scsi_new[i],
+                                    device_name);
+      if(device_name)
+        free(device_name);
+      }
+    }
+  if(!have_scsi_new)
+    {
+    i = -1;
+    while(device_names_scsi_old[i+1])
+      {
+      i++;
+      
+      device_name = (char*)0;
+      if(bgav_check_device_vcd(device_names_scsi_old[i], &device_name))
+        {
+        ret = bgav_device_info_append(ret,
+                                      device_names_scsi_old[i],
+                                      device_name);
+        if(device_name)
+          free(device_name);
+        }
+      }
+    }
+  
+  i = -1;
+  while(device_names_ide[i+1])
+    {
+    i++;
+    
+    device_name = (char*)0;
+    if(bgav_check_device_vcd(device_names_ide[i], &device_name))
+      {
+      ret = bgav_device_info_append(ret,
+                                    device_names_ide[i],
+                                    device_name);
+      if(device_name)
+        free(device_name);
+      }
+    }
+  
+  //  bgav_device_info_dump(ret);
+  return ret;
+  }

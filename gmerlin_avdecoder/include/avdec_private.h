@@ -380,6 +380,8 @@ struct bgav_input_s
 
   void    (*select_track)(bgav_input_context_t*, int);
 
+  /* Some inputs autoscan the available devices */
+  bgav_device_info_t (*find_devices)();
   };
 
 struct bgav_input_context_s
@@ -864,3 +866,17 @@ int bgav_base64decode(const unsigned char *input,
                       int input_length,
                       unsigned char *output, int output_length);
 
+/* device.c */
+
+/*
+ *  Append device info to an existing array and return the new array.
+ *  arr can be NULL
+ */
+
+bgav_device_info_t * bgav_device_info_append(bgav_device_info_t * arr,
+                                             const char * device,
+                                             const char * name);
+
+/* For debuggins only */
+
+void bgav_device_info_dump(bgav_device_info_t * arr);
