@@ -102,6 +102,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
       }
     
 #if CHROMA_SUB_OUT > 1
+#ifdef CONVERT_Y
     dst_y =    (IN_TYPE*)dst_save_y;
     dst_u =    (IN_TYPE*)dst_save_u;
     dst_v =    (IN_TYPE*)dst_save_v;
@@ -120,6 +121,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
       src_u += IN_ADVANCE_UV;
       src_v += IN_ADVANCE_UV;
       }
+#endif    
     src_save_y += ctx->input_frame->strides[0];
     dst_save_y += ctx->output_frame->strides[0];
 
@@ -134,6 +136,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
 #endif
 
 #if CHROMA_SUB_OUT > 2
+#ifdef CONVERT_Y
     dst_y =    (IN_TYPE*)dst_save_y;
     dst_u =    (IN_TYPE*)dst_save_u;
     dst_v =    (IN_TYPE*)dst_save_v;
@@ -152,6 +155,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
       src_u += IN_ADVANCE_UV;
       src_v += IN_ADVANCE_UV;
       }
+#endif
     src_save_y += ctx->input_frame->strides[0];
     dst_save += ctx->output_frame->strides[0];
 
@@ -166,6 +170,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
 #endif
 
 #if CHROMA_SUB_OUT > 3
+#ifdef CONVERT_Y
     dst_y =    (IN_TYPE*)dst_save_y;
     dst_u =    (IN_TYPE*)dst_save_u;
     dst_v =    (IN_TYPE*)dst_save_v;
@@ -184,6 +189,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
       src_u += IN_ADVANCE_UV;
       src_v += IN_ADVANCE_UV;
       }
+#endif
     src_save_y += ctx->input_frame->strides[0];
     dst_save += ctx->output_frame->strides[0];
 

@@ -356,9 +356,9 @@ typedef enum
     //    GAVL_YUV_411_P       = 14,
     //    GAVL_YUV_410_P       = 15,
     
-    //    GAVL_YUVJ_420_P      = 16,
-    //    GAVL_YUVJ_422_P      = 17,
-    //    GAVL_YUVJ_444_P      = 18,
+    GAVL_YUVJ_420_P      = 16,
+    GAVL_YUVJ_422_P      = 17,
+    GAVL_YUVJ_444_P      = 18,
     
   } gavl_colorspace_t;
 

@@ -61,6 +61,28 @@ static int * u_to_g = (int*)0;
 static int * v_to_g = (int*)0;
 static int * u_to_b = (int*)0;
 
+/* JPEG Quantization */
+
+static int * r_to_yj = (int*)0;
+static int * g_to_yj = (int*)0;
+static int * b_to_yj = (int*)0;
+
+static int * r_to_uj = (int*)0;
+static int * g_to_uj = (int*)0;
+static int * b_to_uj = (int*)0;
+
+static int * r_to_vj = (int*)0;
+static int * g_to_vj = (int*)0;
+static int * b_to_vj = (int*)0;
+
+static int * yj_to_rgb = (int*)0;
+static int * vj_to_r = (int*)0;
+static int * uj_to_g = (int*)0;
+static int * vj_to_g = (int*)0;
+static int * uj_to_b = (int*)0;
+
+
+
 void init_yuv()
   {
   int i;
@@ -82,6 +104,27 @@ void init_yuv()
   u_to_g   = malloc(0x100 * sizeof(int));
   v_to_g   = malloc(0x100 * sizeof(int));
   u_to_b   = malloc(0x100 * sizeof(int));
+
+  /* JPEG Quantization */
+
+  r_to_yj = malloc(0x100 * sizeof(int));
+  g_to_yj = malloc(0x100 * sizeof(int));
+  b_to_yj = malloc(0x100 * sizeof(int));
+
+  r_to_uj = malloc(0x100 * sizeof(int));
+  g_to_uj = malloc(0x100 * sizeof(int));
+  b_to_uj = malloc(0x100 * sizeof(int));
+
+  r_to_vj = malloc(0x100 * sizeof(int));
+  g_to_vj = malloc(0x100 * sizeof(int));
+  b_to_vj = malloc(0x100 * sizeof(int));
+
+  yj_to_rgb = malloc(0x100 * sizeof(int));
+  vj_to_r   = malloc(0x100 * sizeof(int));
+  uj_to_g   = malloc(0x100 * sizeof(int));
+  vj_to_g   = malloc(0x100 * sizeof(int));
+  uj_to_b   = malloc(0x100 * sizeof(int));
+  
   
   for(i = 0; i < 0x100; i++)
     {
@@ -99,6 +142,18 @@ void init_yuv()
     g_to_v[i] = (int)(-0.368*0x10000 * i);
     b_to_v[i] = (int)(-0.071*0x10000 * i + 0x800000);
 
+    r_to_yj[i] = (int)((0.29900)*0x10000 * i);
+    g_to_yj[i] = (int)((0.58700)*0x10000 * i);
+    b_to_yj[i] = (int)((0.11400)*0x10000 * i);
+    
+    r_to_uj[i] = (int)(-(0.16874)*0x10000 * i);
+    g_to_uj[i] = (int)(-(0.33126)*0x10000 * i);
+    b_to_uj[i] = (int)( (0.50000)*0x10000 * i + 0x800000);
+    
+    r_to_vj[i] = (int)( (0.50000)*0x10000 * i);
+    g_to_vj[i] = (int)(-(0.41869)*0x10000 * i);
+    b_to_vj[i] = (int)(-(0.08131)*0x10000 * i + 0x800000);
+
 
     // YUV to RGB conversion
 
@@ -108,6 +163,16 @@ void init_yuv()
     u_to_g[i]   = (int)(-0.392  * (i - 0x80) * 0x10000);
     v_to_g[i]   = (int)(-0.813  * (i - 0x80) * 0x10000);
     u_to_b[i]   = (int)( 2.017 * (i - 0x80) * 0x10000);
+
+    /* JPEG Quantization */
+
+    yj_to_rgb[i] = (int)(i * 0x10000);
+    
+    vj_to_r[i]   = (int)( 1.40200 * (i - 0x80) * 0x10000);
+    uj_to_g[i]   = (int)(-0.34414 * (i - 0x80) * 0x10000);
+    vj_to_g[i]   = (int)(-0.71414 * (i - 0x80) * 0x10000);
+    uj_to_b[i]   = (int)( 1.77200 * (i - 0x80) * 0x10000);
+    
     }
   }
 
@@ -120,11 +185,24 @@ void init_yuv()
                                 i_tmp=(y_to_rgb[y]+u_to_b[u])>>16;\
                                 b=RECLIP(i_tmp);
 
+#define YUVJ_2_RGB(y,u,v,r,g,b) i_tmp=(yj_to_rgb[y]+vj_to_r[v])>>16;\
+                                r=RECLIP(i_tmp);\
+                                i_tmp=(yj_to_rgb[y]+uj_to_g[u]+vj_to_g[v])>>16;\
+                                g=RECLIP(i_tmp);\
+                                i_tmp=(yj_to_rgb[y]+uj_to_b[u])>>16;\
+                                b=RECLIP(i_tmp);
+
 #define RGB_TO_YUV(r,g,b,y,u,v) y=(r_to_y[r]+g_to_y[g]+b_to_y[b])>>16;\
                                u=(r_to_u[r]+g_to_u[g]+b_to_u[b])>>16;\
                                v=(r_to_v[r]+g_to_v[g]+b_to_v[b])>>16
 
+#define RGB_TO_YUVJ(r,g,b,y,u,v) y=(r_to_yj[r]+g_to_yj[g]+b_to_yj[b])>>16;\
+                                 u=(r_to_uj[r]+g_to_uj[g]+b_to_uj[b])>>16;\
+                                 v=(r_to_vj[r]+g_to_vj[g]+b_to_vj[b])>>16
+
 #define RGB_TO_Y(r,g,b,y) y=(r_to_y[r]+g_to_y[g]+b_to_y[b])>>16
+
+#define RGB_TO_YJ(r,g,b,y) y=(r_to_yj[r]+g_to_yj[g]+b_to_yj[b])>>16
 
 void convert_15_to_24(gavl_video_frame_t * in_frame,
                       gavl_video_frame_t * out_frame,
@@ -282,6 +360,75 @@ void convert_YUV_420_P_to_RGB24(gavl_video_frame_t * in_frame,
     }
   }
 
+void convert_YUVJ_420_P_to_RGB24(gavl_video_frame_t * in_frame,
+                                 gavl_video_frame_t * out_frame,
+                                 int width, int height)
+  {
+  int i, j, i_tmp;
+  uint8_t * in_y;
+  uint8_t * in_u;
+  uint8_t * in_v;
+
+  uint8_t * out_pixel;
+
+  uint8_t * out_pixel_save = out_frame->planes[0];
+  uint8_t * in_y_save = in_frame->planes[0];
+  uint8_t * in_u_save = in_frame->planes[1];
+  uint8_t * in_v_save = in_frame->planes[2];
+
+  for(i = 0; i < height/2; i++)
+    {
+
+    /* Even Rows */
+
+    out_pixel = out_pixel_save;
+    in_y = in_y_save;
+    in_u = in_u_save;
+    in_v = in_v_save;
+    for(j = 0; j < width/2; j++)
+      {
+      YUVJ_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      YUVJ_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      in_u++;
+      in_v++;
+      out_pixel += 3;
+      }
+    out_pixel_save += out_frame->strides[0];
+    in_y_save += in_frame->strides[0];
+
+    /* Odd Rows */
+
+    out_pixel = out_pixel_save;
+    in_y = in_y_save;
+    in_u = in_u_save;
+    in_v = in_v_save;
+    for(j = 0; j < width/2; j++)
+      {
+      YUVJ_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      YUVJ_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      in_u++;
+      in_v++;
+      out_pixel += 3;
+      }
+    out_pixel_save += out_frame->strides[0];
+    in_y_save += in_frame->strides[0];
+
+    in_u_save += in_frame->strides[1];
+    in_v_save += in_frame->strides[2];
+    }
+  }
+
+
 void convert_YUV_422_P_to_RGB24(gavl_video_frame_t * in_frame,
                                gavl_video_frame_t * out_frame,
                                int width, int height)
@@ -326,6 +473,50 @@ void convert_YUV_422_P_to_RGB24(gavl_video_frame_t * in_frame,
     }
   }
 
+void convert_YUVJ_422_P_to_RGB24(gavl_video_frame_t * in_frame,
+                                 gavl_video_frame_t * out_frame,
+                                 int width, int height)
+  {
+  int i, j, i_tmp;
+
+  uint8_t * in_y;
+  uint8_t * in_u;
+  uint8_t * in_v;
+
+  uint8_t * out_pixel;
+
+  uint8_t * out_pixel_save = out_frame->planes[0];
+  uint8_t * in_y_save = in_frame->planes[0];
+  uint8_t * in_u_save = in_frame->planes[1];
+  uint8_t * in_v_save = in_frame->planes[2];
+
+  for(i = 0; i < height; i++)
+    {
+    in_y = in_y_save;
+    in_u = in_u_save;
+    in_v = in_v_save;
+    out_pixel = out_pixel_save;
+    for(j = 0; j < width/2; j++)
+      {
+      YUVJ_2_RGB(*in_y, *in_u, *in_v,
+                 out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      
+      YUVJ_2_RGB(*in_y, *in_u, *in_v,
+                 out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      in_u++;
+      in_v++;
+      out_pixel += 3;
+      }
+    out_pixel_save += out_frame->strides[0];
+    in_y_save += in_frame->strides[0];
+    in_u_save += in_frame->strides[1];
+    in_v_save += in_frame->strides[2];
+    }
+  }
+
 void convert_YUV_444_P_to_RGB24(gavl_video_frame_t * in_frame,
                                 gavl_video_frame_t * out_frame,
                                 int width, int height)
@@ -353,6 +544,45 @@ void convert_YUV_444_P_to_RGB24(gavl_video_frame_t * in_frame,
       {
       YUV_2_RGB(*in_y, *in_u, *in_v,
                 out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      in_u++;
+      in_v++;
+      out_pixel += 3;
+      }
+    out_pixel_save += out_frame->strides[0];
+    in_y_save += in_frame->strides[0];
+    in_u_save += in_frame->strides[1];
+    in_v_save += in_frame->strides[2];
+    }
+  }
+
+void convert_YUVJ_444_P_to_RGB24(gavl_video_frame_t * in_frame,
+                                 gavl_video_frame_t * out_frame,
+                                 int width, int height)
+  {
+  int i, j, i_tmp;
+
+  uint8_t * in_y;
+  uint8_t * in_u;
+  uint8_t * in_v;
+
+  uint8_t * out_pixel;
+
+  uint8_t * out_pixel_save = out_frame->planes[0];
+  uint8_t * in_y_save = in_frame->planes[0];
+  uint8_t * in_u_save = in_frame->planes[1];
+  uint8_t * in_v_save = in_frame->planes[2];
+
+  for(i = 0; i < height; i++)
+    {
+    in_y = in_y_save;
+    in_u = in_u_save;
+    in_v = in_v_save;
+    out_pixel = out_pixel_save;
+    for(j = 0; j < width; j++)
+      {
+      YUVJ_2_RGB(*in_y, *in_u, *in_v,
+                 out_pixel[0], out_pixel[1], out_pixel[2]);
       in_y++;
       in_u++;
       in_v++;
@@ -529,6 +759,24 @@ int write_file(const char * name,
     case GAVL_YUV_444_P:
       tmp_frame = gavl_video_frame_create(&tmp_format);
       convert_YUV_444_P_to_RGB24(frame, tmp_frame, format->image_width,
+                                 format->image_height);
+      out_frame = tmp_frame;
+      break;
+    case GAVL_YUVJ_420_P:
+      tmp_frame = gavl_video_frame_create(&tmp_format);
+      convert_YUVJ_420_P_to_RGB24(frame, tmp_frame, format->image_width,
+                                 format->image_height);
+      out_frame = tmp_frame;
+      break;
+    case GAVL_YUVJ_422_P:
+      tmp_frame = gavl_video_frame_create(&tmp_format);
+      convert_YUVJ_422_P_to_RGB24(frame, tmp_frame, format->image_width,
+                                 format->image_height);
+      out_frame = tmp_frame;
+      break;
+    case GAVL_YUVJ_444_P:
+      tmp_frame = gavl_video_frame_create(&tmp_format);
+      convert_YUVJ_444_P_to_RGB24(frame, tmp_frame, format->image_width,
                                  format->image_height);
       out_frame = tmp_frame;
       break;
@@ -889,6 +1137,87 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
           }
         }
       break;
+    case GAVL_YUVJ_420_P:
+      for(row = 0; row < TEST_PICTURE_HEIGHT/2; row++)
+        {
+        y = ret->planes[0] + 2 * row * ret->strides[0];
+        u = ret->planes[1] + row * ret->strides[1];
+        v = ret->planes[2] + row * ret->strides[2];
+
+        for(col = 0; col < TEST_PICTURE_WIDTH/2; col++)
+          {
+          get_pixel(2*col, 2*row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+
+          RGB_TO_YUVJ(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+
+          y++;
+          
+          get_pixel(2*col+1, 2*row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_YJ(r_tmp, g_tmp, b_tmp, *y);
+          
+          y++;
+          u++;
+          v++;
+          }
+
+        y = ret->planes[0] + (2 * row + 1) * ret->strides[0];
+
+        for(col = 0; col < TEST_PICTURE_WIDTH/2; col++)
+          {
+          get_pixel(2*col, 2*row+1, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+
+          RGB_TO_YJ(r_tmp, g_tmp, b_tmp, *y);
+
+          y++;
+          
+          get_pixel(2*col+1, 2*row+1, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_YJ(r_tmp, g_tmp, b_tmp, *y);
+          
+          y++;
+          }
+        }
+      break;
+    case GAVL_YUVJ_422_P:
+      for(row = 0; row < TEST_PICTURE_HEIGHT; row++)
+        {
+        y = ret->planes[0] + row * ret->strides[0];
+        u = ret->planes[1] + row * ret->strides[1];
+        v = ret->planes[2] + row * ret->strides[2];
+
+        for(col = 0; col < TEST_PICTURE_WIDTH/2; col++)
+          {
+          get_pixel(2* col, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+
+          RGB_TO_YUVJ(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+
+          y++;
+          
+          get_pixel(2* col + 1, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_YJ(r_tmp, g_tmp, b_tmp, *y);
+          
+          y++;
+          u++;
+          v++;
+          }
+        }
+      break;
+    case GAVL_YUVJ_444_P:
+      for(row = 0; row < TEST_PICTURE_HEIGHT; row++)
+        {
+        y = ret->planes[0] + row * ret->strides[0];
+        u = ret->planes[1] + row * ret->strides[1];
+        v = ret->planes[2] + row * ret->strides[2];
+
+        for(col = 0; col < TEST_PICTURE_WIDTH; col++)
+          {
+          get_pixel(col, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_YUVJ(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+          y++;
+          u++;
+          v++;
+          }
+        }
+      break;
     case GAVL_COLORSPACE_NONE:
       break;
     }
@@ -982,39 +1311,34 @@ int main(int argc, char ** argv)
 #if 1
       opt.accel_flags = GAVL_ACCEL_MMX;
       
-      if(!gavl_video_init(cnv, &opt, &input_format, &output_format))
+      gavl_clear_video_frame(output_frame, &output_format);
+      sprintf(filename_buffer, "%s_to_%s_mmx.png", tmp1, tmp2);
+      if(gavl_video_init(cnv, &opt, &input_format, &output_format) == -1)
         fprintf(stderr, "No MMX Conversion defined yet\n");
       else
         {
-        sprintf(filename_buffer, "%s_to_%s_mmx.png", tmp1, tmp2);
-        gavl_clear_video_frame(output_frame, &output_format);
         fprintf(stderr, "MMX Version:    ");
-        
         gavl_video_convert(cnv, input_frame, output_frame);
-        
-        write_file(filename_buffer,
-                   output_frame, &output_format);
-        fprintf(stderr, "Wrote %s\n", filename_buffer);
         }
-
-      opt.accel_flags = GAVL_ACCEL_MMXEXT;
+      write_file(filename_buffer,
+                 output_frame, &output_format);
+      fprintf(stderr, "Wrote %s\n", filename_buffer);
       
-      if(!gavl_video_init(cnv, &opt, &input_format, &output_format))
-        {
+      
+      opt.accel_flags = GAVL_ACCEL_MMXEXT;
+
+      gavl_clear_video_frame(output_frame, &output_format);
+      sprintf(filename_buffer, "%s_to_%s_mmxext.png", tmp1, tmp2);
+      if(gavl_video_init(cnv, &opt, &input_format, &output_format) == -1)
         fprintf(stderr, "No MMXEXT Conversion defined yet\n");
-        }
       else
         {
-        sprintf(filename_buffer, "%s_to_%s_mmxext.png", tmp1, tmp2);
-        gavl_clear_video_frame(output_frame, &output_format);
         fprintf(stderr, "MMXEXT Version:    ");
-        
         gavl_video_convert(cnv, input_frame, output_frame);
-        
-        write_file(filename_buffer,
-                   output_frame, &output_format);
-        fprintf(stderr, "Wrote %s\n", filename_buffer);
         }
+      write_file(filename_buffer,
+                 output_frame, &output_format);
+      fprintf(stderr, "Wrote %s\n", filename_buffer);
 #endif
       
       gavl_video_frame_destroy(output_frame);

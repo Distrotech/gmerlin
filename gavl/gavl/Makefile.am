@@ -28,7 +28,8 @@ video.c \
 videoformat.c \
 videoframe.c
 
-noinst_HEADERS = csp_packed_packed.h  \
+noinst_HEADERS = \
+csp_packed_packed.h  \
 csp_packed_planar.h  \
 csp_planar_packed.h  \
 csp_planar_planar.h
