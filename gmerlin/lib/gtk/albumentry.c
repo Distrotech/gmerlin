@@ -64,18 +64,19 @@ typedef struct bg_album_entry_s
 
 void bg_gtk_album_enrty_show(const bg_album_entry_t * entry)
   {
-  char * text;
+  char * text, * utf8_location;
   bg_gtk_textwindow_t * win;
   char duration[GAVL_TIME_STRING_LEN];
 
   gavl_time_prettyprint(entry->duration, duration);
 
-  //  if(entry->location)
-  //    utf8_location = bg_system_to_utf8(entry->location);
-  
+  if(entry->location)
+    utf8_location = bg_system_to_utf8(entry->location, -1);
+  else
+    utf8_location = (char*)0;
   
   text = bg_sprintf("Name:\t %s\nLocation:\t %s\nTrack:\t %d/%d\nPlugin:\t %s\nDuration:\t %s\nAudio Streams:\t %d\nVideo Streams:\t %d\nSubpicture Streams:\t %d\nPrograms:\t %d",
-                    S(entry->name), S(entry->location),
+                    S(entry->name), S(utf8_location),
                     entry->index+1,
                     entry->total_tracks,
                     S(entry->plugin),
@@ -90,7 +91,7 @@ void bg_gtk_album_enrty_show(const bg_album_entry_t * entry)
   free(text);
 
   bg_gtk_textwindow_show(win, 0);
-
+  free(utf8_location);
   }
 
 

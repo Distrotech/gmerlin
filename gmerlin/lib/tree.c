@@ -998,7 +998,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   const bg_plugin_info_t * info;
   bg_input_plugin_t * input_plugin;
   bg_plugin_handle_t * ret = (bg_plugin_handle_t *)0;
-  char * system_location = (char*)0;
+  //  char * system_location = (char*)0;
 #if 0
   fprintf(stderr, "bg_media_tree_get_current_track %p %p\n",
           t->com.current_entry, t->com.current_album);
@@ -1016,14 +1016,12 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
     }
   else
     {
-    system_location = bg_utf8_to_system(t->com.current_entry->location,
-                                        strlen(t->com.current_entry->location));
 
     if(t->com.current_entry->plugin)
       info = bg_plugin_find_by_name(t->com.plugin_reg, t->com.current_entry->plugin);
     else
       info = bg_plugin_find_by_filename(t->com.plugin_reg,
-                                        system_location,
+                                        t->com.current_entry->location,
                                         (BG_PLUGIN_INPUT));
 
     //    fprintf(stderr, "bg_plugin_find_by_filename returned %p\n", info);
@@ -1037,7 +1035,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
       }
 #endif
     if(!bg_input_plugin_load(t->com.plugin_reg,
-                             system_location, info,
+                             t->com.current_entry->location, info,
                              &(ret), &error_msg))
       {
       if(error_msg)
@@ -1052,7 +1050,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
     input_plugin = (bg_input_plugin_t*)(ret->plugin);
 #if 0
     if(!input_plugin->open(ret->priv,
-                           system_location))
+                           t->com.current_entry->location))
       {
       if(input_plugin->common.get_error)
         error_message = bg_sprintf("Cannot open %s: %s",
@@ -1068,17 +1066,12 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
                                             t->com.current_entry->index);
   bg_album_update_entry(t->com.current_album, t->com.current_entry, track_info);
   bg_album_changed(t->com.current_album);
-
-  if(system_location)
-    free(system_location);
     
   if(index)
     *index = t->com.current_entry->index;
   return ret;
   
   fail:
-  if(system_location)
-    free(system_location);
   if(t->error_callback)
     t->error_callback(t, t->error_callback_data, error_message);
   free(error_message);

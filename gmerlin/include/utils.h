@@ -67,6 +67,11 @@ char * bg_sprintf(const char * format,...);
 char ** bg_strbreak(const char * str, char delim);
 void bg_strbreak_free(char ** retval);
 
+/* Convert uri to binary string and vice versa */
+
+char * bg_string_to_uri(const char * pos1, int len);
+char * bg_uri_to_string(const char * pos1, int len);
+
 
 /*
  *  This one decodes a string of MIME type text/urilist into
@@ -75,9 +80,13 @@ void bg_strbreak_free(char ** retval);
  *  caller
  */
 
+
+
 char ** bg_urilist_decode(const char * str, int len);
 
 void bg_urilist_free(char ** uri_list);
+
+
 
 /*
  *  Create a "system charset" (as returned by nl_langinfo())

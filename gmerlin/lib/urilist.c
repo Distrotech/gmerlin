@@ -27,8 +27,54 @@
 
 #define HOSTNAME_MAX_LEN 512
 
+char * bg_string_to_uri(const char * _pos, int len)
+  {
+  int i_tmp;
+  char * ret;
+  char * dst;
+  int i;
+  int num_substitutions;
 
-static char * parse_uri(const char * pos1, int len)
+  const uint8_t * pos; 
+  
+  if(!_pos)
+    return NULL;
+
+  pos = (const uint8_t *)_pos;
+  num_substitutions = 0;
+
+  if(len < 0)
+    len = strlen(pos);
+
+  for(i = 0; i < len; i++)
+    {
+    if(pos[i] & 0x80)
+      num_substitutions++;
+    }
+
+  ret = calloc(1, len + num_substitutions * 2 + 1);
+  dst = ret;
+
+  for(i = 0; i < len; i++)
+    {
+    if(pos[i] & 0x80)
+      {
+      i_tmp = (pos[i] ^ 0x80);
+      sprintf(dst, "%%%02X", pos[i]);
+      //      dst[0] = '%';
+      dst += 3;
+      }
+    else
+      {
+      *dst = pos[i];
+      dst++;
+      }
+    }
+  //  fprintf(stderr, "bg_string_to_uri %s %s %d %d\n", _pos, ret, len, num_substitutions);
+  return ret;
+  }
+
+char * bg_uri_to_string(const char * pos1, int len)
   {
   const char * start;
   int real_char;
@@ -36,7 +82,13 @@ static char * parse_uri(const char * pos1, int len)
   char * ret_pos;
   char hostname[HOSTNAME_MAX_LEN];
   int hostname_len;
-      
+
+  if(!pos1)
+    return NULL;
+  
+  if(len < 0)
+    len = strlen(pos1);
+  
   if(!strncmp(pos1, "file:/", 6))
     {
     if(pos1[6] != '/')
@@ -59,10 +111,13 @@ static char * parse_uri(const char * pos1, int len)
     else /* Gnome Case */
       start = &(pos1[7]);
     }
+#if 0
   else if(bg_string_is_url(pos1))
     start = pos1;
   else
     return (char*)0;
+#endif
+  start = pos1;
 
   /* Allocate return value and decode */
   
@@ -157,7 +212,7 @@ char ** bg_urilist_decode(const char * str, int len)
     if(pos2 == pos1)
       break;
         
-    if((ret[num_added] = parse_uri(pos1, pos2-pos1)))
+    if((ret[num_added] = bg_uri_to_string(pos1, pos2-pos1)))
       {
       num_added++;
       }

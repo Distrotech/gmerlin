@@ -137,6 +137,6 @@ char * bg_get_track_name_default(const char * location)
   end_pos = strrchr(start_pos, '.');
   if(!end_pos)
     end_pos = &(start_pos[strlen(start_pos)]);
-  return bg_strndup((char*)0, start_pos, end_pos);
+  return bg_system_to_utf8(start_pos, end_pos - start_pos);
   
   }

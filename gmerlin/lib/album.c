@@ -1433,11 +1433,12 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
     track_info = plugin->get_track_info(album->com->load_handle->priv, i);
 
     new_entry = bg_album_entry_create(album);
-    new_entry->location = bg_system_to_utf8(url, strlen(url));
+    //    new_entry->location = bg_system_to_utf8(url, strlen(url));
+    new_entry->location = bg_strdup(new_entry->location, url);
     new_entry->index = i;
     new_entry->total_tracks = num_entries;
-    //    fprintf(stderr, "Loading [%d/%d]\n", new_entry->total_tracks,
-    //            new_entry->index);
+    fprintf(stderr, "Loading %s [%d/%d]\n", (char*)(new_entry->location), new_entry->total_tracks,
+            new_entry->index);
     
     bg_album_update_entry(album, new_entry, track_info);
     
@@ -1474,7 +1475,7 @@ int bg_album_refresh_entry(bg_album_t * album,
   {
   char * error_msg = (char*)0;
   const bg_plugin_info_t * info;
-  char * system_location;
+  //  char * system_location;
 
   bg_input_plugin_t * plugin;
   bg_track_info_t * track_info;
@@ -1488,22 +1489,19 @@ int bg_album_refresh_entry(bg_album_t * album,
   else
     info = (bg_plugin_info_t*)0;
 
-  system_location = bg_utf8_to_system(entry->location,
-                                      strlen(entry->location));
-
+  // system_location = bg_utf8_to_system(entry->location,
+  //                                     strlen(entry->location));
   
   if(!bg_input_plugin_load(album->com->plugin_reg,
-                           system_location,
+                           entry->location,
                            info,
                            &(album->com->load_handle), &error_msg))
     {
     entry->flags |= BG_ALBUM_ENTRY_ERROR;
-    free(system_location);
 
     // fprintf(stderr, "Loading %s failed: %s\n", system_location, error_msg);
     return 0;
     }
-  free(system_location);
   
   plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
 

@@ -78,7 +78,7 @@ static bg_album_entry_t * load_entry(bg_album_t * album,
       }
     else if(!strcmp(node->name, "LOCATION"))
       {
-      ret->location = (void*)bg_strdup(ret->location, tmp_string);
+      ret->location = (void*)bg_uri_to_string(tmp_string, -1);
       }
     else if(!strcmp(node->name, "PLUGIN"))
       {
@@ -375,7 +375,9 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
   if(entry->location)
     {
     node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, "LOCATION", NULL);
-    xmlAddChild(node, xmlNewText((char*)(entry->location)));
+    c_tmp = bg_string_to_uri((char*)(entry->location), -1);
+    xmlAddChild(node, xmlNewText(c_tmp));
+    free(c_tmp);
     xmlAddChild(xml_entry, xmlNewText("\n"));
     }
 

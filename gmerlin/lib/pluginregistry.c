@@ -166,6 +166,9 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
   char * extension_end;
   bg_plugin_info_t * info, *ret = (bg_plugin_info_t*)0;
   int max_priority = BG_PLUGIN_PRIORITY_MIN - 1;
+
+  if(!filename)
+    return (const bg_plugin_info_t*)0;
   
   //  fprintf(stderr, "bg_plugin_find_by_filename %08x %s\n", typemask, filename);
   
@@ -1133,6 +1136,9 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
   bg_input_plugin_t * plugin;
   int try_and_error = 1;
   const bg_plugin_info_t * first_plugin = (const bg_plugin_info_t*)0;
+
+  if(!location)
+    return 0;
   
   if(!info) /* No plugin given, seek one */
     {
