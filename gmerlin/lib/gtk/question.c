@@ -39,6 +39,7 @@ static void button_callback(GtkWidget * w, gpointer * data)
     q->answer = 1;
   else
     q->answer = 0;
+  gtk_widget_hide(q->window);
   gtk_main_quit();
   }
 
