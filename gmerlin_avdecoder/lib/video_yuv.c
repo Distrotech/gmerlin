@@ -90,33 +90,16 @@ static int init_yuv2(bgav_stream_t * s)
 
 /*
  *   2vuy: Like yuv2 but WITHOUT swapped chroma sign and
- *   packing order vyuy
+ *   packing order uyvy
  */
-
 static void decode_2vuy(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t * f)
   {
-  int i, j;
-  uint8_t * src, *dst;
   yuv_priv_t * priv;
   priv = (yuv_priv_t *)(s->data.video.decoder->priv);
 
   priv->frame->planes[0] = p->data;
-  
-  for(i = 0; i < s->data.video.format.image_height; i++)
-    {
-    src = priv->frame->planes[0] + i * priv->frame->strides[0];
-    dst = f->planes[0]           + i * f->strides[0];
-    
-    for(j = 0; j < s->data.video.format.image_width; j+=2)
-      {
-      dst[0] = src[1];
-      dst[1] = src[2];
-      dst[2] = src[3];
-      dst[3] = src[0];
-      src+=4;
-      dst+=4;
-      }
-    }
+  gavl_video_frame_copy(&(s->data.video.format),
+                        f, priv->frame);
   }
 
 static int init_2vuy(bgav_stream_t * s)
@@ -130,10 +113,9 @@ static int init_2vuy(bgav_stream_t * s)
 
   priv->frame->strides[0] = PADD(s->data.video.format.image_width * 2, 4);
   priv->decode_func = decode_2vuy;
-  s->data.video.format.colorspace = GAVL_YUY2;
+  s->data.video.format.colorspace = GAVL_UYVY;
   return 1;
   }
-
 
 /*
  *  VYUY is just YUY2 colorspace!!!
@@ -146,7 +128,6 @@ static void decode_VYUY(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   priv = (yuv_priv_t *)(s->data.video.decoder->priv);
 
   priv->frame->planes[0] = p->data;
-
   gavl_video_frame_copy(&(s->data.video.format),
                         f, priv->frame);
   }
@@ -481,6 +462,7 @@ static bgav_video_decoder_t yuv2_decoder =
     close:  close,
   };
 
+#if 1
 static bgav_video_decoder_t twovuy_decoder =
   {
     name:   "2vuy video decoder",
@@ -489,6 +471,7 @@ static bgav_video_decoder_t twovuy_decoder =
     decode: decode,
     close:  close,
   };
+#endif
 
 static bgav_video_decoder_t yv12_decoder =
   {
@@ -511,7 +494,9 @@ static bgav_video_decoder_t YV12_decoder =
 static bgav_video_decoder_t VYUY_decoder =
   {
     name:   "VYUY video decoder",
-    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('V', 'Y', 'U', 'Y'), 0x00  },
+    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('V', 'Y', 'U', 'Y'),
+                            BGAV_MK_FOURCC('2', 'v', 'u', 'y'),
+                            0x00 },
     init:   init_VYUY,
     decode: decode,
     close:  close,
