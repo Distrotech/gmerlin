@@ -26,7 +26,7 @@
 
 #define BYTES_INCREMENT 10
 
-char * do_convert(iconv_t cd, char * in_string, int len)
+static char * do_convert(iconv_t cd, char * in_string, int len)
   {
   char * ret;
 
@@ -91,10 +91,13 @@ char * bg_system_to_utf8(const char * str, int len)
   char * ret;
 
   char * tmp_string;
-  tmp_string = bg_strdup((char*)0, str);
-  
+    
   if(len < 0)
     len = strlen(tmp_string);
+
+  tmp_string = malloc(len+1);
+  memcpy(tmp_string, str, len);
+  tmp_string[len] = '\0';
   
   system_charset = nl_langinfo(CODESET);
 
@@ -112,10 +115,13 @@ char * bg_utf8_to_system(const char * str, int len)
   char * ret;
 
   char * tmp_string;
-  tmp_string = bg_strdup((char*)0, str);
-
+  
   if(len < 0)
     len = strlen(tmp_string);
+
+  tmp_string = malloc(len+1);
+  memcpy(tmp_string, str, len);
+  tmp_string[len] = '\0';
 
   system_charset = nl_langinfo(CODESET);
 

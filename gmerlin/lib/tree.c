@@ -529,11 +529,11 @@ bg_album_entry_t * bg_media_tree_load_url(bg_media_tree_t * tree,
     
   bg_http_connection_t * con = (bg_http_connection_t*)0;
 
-  char * system_location;
+  //  char * system_location;
 
   bg_input_plugin_t * plugin;
   bg_track_info_t * track_info;
-
+  
   
   /* Load the appropriate plugin */
 
@@ -649,11 +649,11 @@ bg_album_entry_t * bg_media_tree_load_url(bg_media_tree_t * tree,
         
     if(!plugin->open(tree->load_handle->priv, url))
       {
-      fprintf(stderr, "Opening %s with %s failed\n", system_location,
+      fprintf(stderr, "Opening %s with %s failed\n", url,
               tree->load_handle->info->name);
       //    bg_hexdump(system_location, strlen(system_location));
-      bg_album_entry_destroy(ret);
-      free(system_location);
+      //      bg_album_entry_destroy(ret);
+      //      free(system_location);
       return (bg_album_entry_t*)0;
       }
 

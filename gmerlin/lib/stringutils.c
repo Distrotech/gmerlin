@@ -79,7 +79,6 @@ char * bg_strndup(char * old_string,
   return ret;
   }
 
-
 char * bg_sprintf(const char * format,...)
   {
   va_list argp; /* arg ptr */

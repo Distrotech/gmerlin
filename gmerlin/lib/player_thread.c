@@ -25,23 +25,6 @@
 
 /* Metadata */
 
-/*
-  #define BG_PLAYER_MSG_META_AUTHOR         8
-
-#define BG_PLAYER_MSG_META_TITLE          9
-
-#define BG_PLAYER_MSG_META_ALBUM         10
-
-#define BG_PLAYER_MSG_META_GENRE         11
-
-#define BG_PLAYER_MSG_META_COMMENT       12
-
-#define BG_PLAYER_MSG_META_YEAR          13
-
-#define BG_PLAYER_MSG_META_TRACK         14
-
-*/
-
 static void msg_meta_artist(bg_msg_t * msg, void * data)
   {
   bg_metadata_t * m = (bg_metadata_t *)data;
@@ -90,6 +73,20 @@ static void msg_meta_comment(bg_msg_t * msg, void * data)
   bg_metadata_t * m = (bg_metadata_t *)data;
   bg_msg_set_id(msg, BG_PLAYER_MSG_META_COMMENT);
   bg_msg_set_arg_string(msg, 0, m->comment);
+  }
+
+static void msg_meta_author(bg_msg_t * msg, void * data)
+  {
+  bg_metadata_t * m = (bg_metadata_t *)data;
+  bg_msg_set_id(msg, BG_PLAYER_MSG_META_AUTHOR);
+  bg_msg_set_arg_string(msg, 0, m->author);
+  }
+
+static void msg_meta_copyright(bg_msg_t * msg, void * data)
+  {
+  bg_metadata_t * m = (bg_metadata_t *)data;
+  bg_msg_set_id(msg, BG_PLAYER_MSG_META_COPYRIGHT);
+  bg_msg_set_arg_string(msg, 0, m->copyright);
   }
 
 static void msg_time(bg_msg_t * msg,
@@ -329,6 +326,16 @@ static void play_cmd(bg_player_t * p,
   if(p->track_info->metadata.comment)
     bg_msg_queue_list_send(p->message_queues,
                            msg_meta_comment,
+                           &(p->track_info->metadata));
+
+  if(p->track_info->metadata.copyright)
+    bg_msg_queue_list_send(p->message_queues,
+                           msg_meta_copyright,
+                           &(p->track_info->metadata));
+
+  if(p->track_info->metadata.author)
+    bg_msg_queue_list_send(p->message_queues,
+                           msg_meta_author,
                            &(p->track_info->metadata));
 
   if(p->track_info->metadata.year)

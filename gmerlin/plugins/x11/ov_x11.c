@@ -374,7 +374,11 @@ static Window create_window(x11_t * x11, int width, int height)
   attr.backing_store = NotUseful;
   attr.border_pixel = 0;
   attr.background_pixel = 0;
-  attr.event_mask = StructureNotifyMask | ButtonPressMask | KeyPressMask | ExposureMask;
+  attr.event_mask =
+    StructureNotifyMask |
+    ButtonPressMask |
+    KeyPressMask |
+    ExposureMask;
   
   ret = XCreateWindow (d, DefaultRootWindow (d),
                        0 /* x */, 0 /* y */, width, height,
@@ -950,7 +954,8 @@ static int open_x11(void * data,
       if(priv->format.pixel_width > priv->format.pixel_height)
         {
         window_width =
-          (priv->format.image_width * priv->format.pixel_width) / (priv->format.pixel_height);
+          (priv->format.image_width * priv->format.pixel_width) /
+          (priv->format.pixel_height);
         window_height = priv->format.image_height;
         }
       else if(priv->format.pixel_height > priv->format.pixel_width)
@@ -1036,7 +1041,7 @@ static int handle_event(x11_t * priv, XEvent * evt)
   switch(evt->type)
     {
     case ButtonPress:
-
+      
       if(priv->callbacks &&
          priv->callbacks->button_callback)
         {
@@ -1093,20 +1098,20 @@ static int handle_event(x11_t * priv, XEvent * evt)
             priv->window_height = priv->screen_height;
             set_drawing_coords(priv);
             XMapWindow(priv->dpy, priv->fullscreen_window);
-            XRaiseWindow(priv->dpy, priv->fullscreen_window);
             XMoveWindow(priv->dpy,
                         priv->fullscreen_window, 0, 0);
             }
           /* Fullscreen -> Non Fullscreen */
           else
             {
+            XUnmapWindow(priv->dpy, priv->fullscreen_window);
             get_window_size(priv->dpy,
                             priv->normal_window,
                             &(priv->window_width),
                             &(priv->window_height));
             set_drawing_coords(priv);
+            XRaiseWindow(priv->dpy, priv->normal_window);
             priv->current_window = priv->normal_window;
-            XUnmapWindow(priv->dpy, priv->fullscreen_window);
             }
           break;
         default:

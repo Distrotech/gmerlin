@@ -51,10 +51,14 @@ typedef struct
   char * artist;
   char * title;
   char * album;
+      
   int year;
   int track;
   char * genre;
   char * comment;
+
+  char * author;
+  char * copyright;
   } bg_metadata_t;
 
 typedef struct

@@ -285,6 +285,11 @@ static void update_metadata(bg_gtk_info_window_t * w)
 
   int first = 1;
   
+  if(w->metadata.author)
+    {
+    tmp_string_1 = bg_sprintf("Author: %s\n", w->metadata.author);
+    META_STRCAT();
+    }
   if(w->metadata.artist)
     {
     tmp_string_1 = bg_sprintf("Artist: %s\n", w->metadata.artist);
@@ -298,6 +303,11 @@ static void update_metadata(bg_gtk_info_window_t * w)
   if(w->metadata.album)
     {
     tmp_string_1 = bg_sprintf("Album: %s\n", w->metadata.album);
+    META_STRCAT();
+    }
+  if(w->metadata.copyright)
+    {
+    tmp_string_1 = bg_sprintf("Copyright: %s\n", w->metadata.copyright);
     META_STRCAT();
     }
   if(w->metadata.genre)
@@ -415,6 +425,12 @@ static gboolean idle_callback(gpointer data)
         break;
       case BG_PLAYER_MSG_META_COMMENT:
         w->metadata.comment = bg_msg_get_arg_string(msg, 0);
+        break;
+      case BG_PLAYER_MSG_META_AUTHOR:
+        w->metadata.author = bg_msg_get_arg_string(msg, 0);
+        break;
+      case BG_PLAYER_MSG_META_COPYRIGHT:
+        w->metadata.copyright = bg_msg_get_arg_string(msg, 0);
         break;
       case BG_PLAYER_MSG_META_YEAR:
         w->metadata.year = bg_msg_get_arg_int(msg, 0);

@@ -57,6 +57,8 @@ void bg_track_info_free(bg_track_info_t * info)
   my_free(info->metadata.album);
   my_free(info->metadata.genre);
   my_free(info->metadata.comment);
+  my_free(info->metadata.author);
+  my_free(info->metadata.copyright);
   }
 
 /*

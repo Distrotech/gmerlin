@@ -1,4 +1,4 @@
-// #define INFO_WINDOW
+#define INFO_WINDOW
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,6 +86,7 @@ static void play_file(bg_player_t * player)
   bg_msg_set_arg_int(message, 2, 0);
   bg_msg_queue_unlock_write(queue);
   bg_arg_index++;
+  
   }
 
 static int time_active = 0;
@@ -232,6 +233,16 @@ static int handle_message(bg_player_t * player,
     case BG_PLAYER_MSG_META_COMMENT:
       arg_str1 = bg_msg_get_arg_string(message, 0);
       fprintf(stderr, "Comment: %s\n", arg_str1);
+      free(arg_str1);
+      break;
+    case BG_PLAYER_MSG_META_COPYRIGHT:
+      arg_str1 = bg_msg_get_arg_string(message, 0);
+      fprintf(stderr, "Copyright: %s\n", arg_str1);
+      free(arg_str1);
+      break;
+    case BG_PLAYER_MSG_META_AUTHOR:
+      arg_str1 = bg_msg_get_arg_string(message, 0);
+      fprintf(stderr, "Author: %s\n", arg_str1);
       free(arg_str1);
       break;
     case BG_PLAYER_MSG_META_YEAR:

@@ -90,7 +90,6 @@ void bg_player_ov_destroy_frame(void * data, void * frame)
     gavl_video_frame_destroy((gavl_video_frame_t*)frame);
   }
 
-
 void bg_player_ov_create(bg_player_t * player)
   {
   bg_player_ov_context_t * ctx;
@@ -98,8 +97,6 @@ void bg_player_ov_create(bg_player_t * player)
   ctx->player = player;
   
   /* Load output plugin */
-  
-  //  fprintf(stderr, "Loading video output plugin %s\n", info->long_name);
   
   ctx->callbacks.key_callback    = key_callback;
   ctx->callbacks.button_callback = button_callback;
@@ -114,7 +111,7 @@ void bg_player_ov_standby(bg_player_ov_context_t * ctx)
     return;
 
   bg_plugin_lock(ctx->plugin_handle);
-  if(ctx->plugin->put_still)
+  if((ctx->plugin->put_still) && ctx->logo_frame)
     ctx->plugin->put_still(ctx->priv,
                            &(ctx->logo_format),
                            ctx->logo_frame);

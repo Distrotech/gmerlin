@@ -1,3 +1,22 @@
+/*****************************************************************
+ 
+  playerwindow.c
+ 
+  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -182,6 +201,8 @@ static void seek_release_callback(bg_gtk_slider_t * slider, float perc,
   
   }
 
+
+
 static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
   {
   player_window_t * win = (player_window_t *)data;
@@ -337,6 +358,10 @@ static void handle_message(player_window_t * win,
     case BG_PLAYER_MSG_META_GENRE:
       break;
     case BG_PLAYER_MSG_META_COMMENT:
+      break;
+    case BG_PLAYER_MSG_META_AUTHOR:
+      break;
+    case BG_PLAYER_MSG_META_COPYRIGHT:
       break;
     case BG_PLAYER_MSG_AUDIO_DESCRIPTION:
       break;
