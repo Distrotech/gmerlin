@@ -40,6 +40,7 @@ noinst_HEADERS = \
 	avifmt.h \
 	basetsd.h \
 	com.h \
+        compat.h \
 	debugtools.h \
 	driver.h \
 	elfdll.h \
