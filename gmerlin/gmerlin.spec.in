@@ -398,6 +398,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(644,root,root) %{_datadir}/applications/gmerlin-transcoder.desktop
 %attr(644,root,root) %{_datadir}/gmerlin/icons/transcoder_icon.png
 %attr(755,root,root) %{_bindir}/gmerlin_transcoder
+%attr(755,root,root) %{_bindir}/gmerlin_transcoder_remote
 
 %files -n gmerlin-camelot
 %attr(644,root,root) %{_datadir}/applications/gmerlin-camelot.desktop
