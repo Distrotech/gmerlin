@@ -1255,7 +1255,8 @@ control_widget_t * control_widget_create(alsa_mixer_group_t * c,
   /* Check for volume controls */
   
   if((c->playback_volume) || 
-     (c->capture_volume))
+     (c->capture_volume) || 
+     (c->playback_switch && c->capture_switch))
     {
     ret = calloc(1, sizeof(*ret));
     init_volume(ret, c);

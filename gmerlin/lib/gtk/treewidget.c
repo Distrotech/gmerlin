@@ -284,6 +284,8 @@ static void update_menu(bg_gtk_tree_widget_t * w)
   bg_album_type_t type;
   /* En- or disable menu items */
 
+// fprintf(stderr, "Update menu %p\n", w->current_album);
+
   if(!w->current_album)
     {
     rename_item(w->menu.album_item, "Album...");
@@ -336,6 +338,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         gtk_widget_hide(w->menu.plugin_item);
 
         rename_item(w->menu.album_item, "Album...");
+
         gtk_widget_show(w->menu.album_item);
         gtk_widget_show(w->menu.album_menu.remove_item);
         gtk_widget_show(w->menu.album_menu.new_item);
@@ -831,6 +834,10 @@ static void create_new_album(bg_gtk_tree_widget_t * w)
     w->current_album = (bg_album_t*)0;
     bg_gtk_tree_widget_update(w, 0);
     }
+  else
+    {
+    update_menu(w);
+    }
   }
 
 static void remove_album(bg_gtk_tree_widget_t * w, bg_album_t * a)
@@ -858,7 +865,10 @@ static void remove_album(bg_gtk_tree_widget_t * w, bg_album_t * a)
     {
     bg_gtk_album_window_destroy(album_window, 1);
     }
+  if(a == w->current_album)
+    w->current_album = (bg_album_t*)0;
   bg_media_tree_remove_album(w->tree, a);
+  update_menu(w);
   }
 
 typedef struct
