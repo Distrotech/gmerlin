@@ -2298,7 +2298,7 @@ static int WINAPI expLoadLibraryA(char* name)
     // we skip to the last backslash
     // this is effectively eliminating weird characters in
     // the text output windows
-    fprintf(stderr, "expLoadLibraryA: %s\n", name);
+//    fprintf(stderr, "expLoadLibraryA: %s\n", name);
     lastbc = strrchr(name, '\\');
     if (lastbc)
     {
