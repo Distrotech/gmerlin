@@ -365,6 +365,7 @@ void bgav_track_table_remove_unsupported(bgav_track_table_t * t);
 
 struct bgav_input_s
   {
+  const char * name;
   int     (*open)(bgav_input_context_t*, const char * url);
   int     (*read)(bgav_input_context_t*, uint8_t * buffer, int len);
 
@@ -524,6 +525,7 @@ bgav_input_context_t * bgav_input_open_memory(uint8_t * data,
 bgav_input_context_t *
 bgav_input_open_fd(int fd, int64_t total_bytes, const char * mimetype);
 
+
 /* Demuxer class */
 
 struct bgav_demuxer_s
@@ -613,6 +615,7 @@ bgav_stream_t * bgav_track_find_stream(bgav_track_t * ctx, int stream_id);
 
 struct bgav_redirector_s
   {
+  const char * name;
   int (*probe)(bgav_input_context_t*);
   int (*parse)(bgav_redirector_context_t*);
   };
@@ -635,6 +638,7 @@ struct bgav_redirector_context_s
 
 void bgav_redirector_destroy(bgav_redirector_context_t*r);
 bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input);
+
 
 /* Actual decoder */
 

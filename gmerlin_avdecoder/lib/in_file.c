@@ -57,6 +57,7 @@ static void    close_file(bgav_input_context_t * ctx)
 
 bgav_input_t bgav_input_file =
   {
+    name:      "file",
     open:      open_file,
     read:      read_file,
     seek_byte: seek_byte_file,

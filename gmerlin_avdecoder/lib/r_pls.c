@@ -113,6 +113,7 @@ int parse_pls(bgav_redirector_context_t * r)
 
 bgav_redirector_t bgav_redirector_pls = 
   {
+    name:  "pls (Shoutcast)",
     probe: probe_pls,
     parse: parse_pls
   };

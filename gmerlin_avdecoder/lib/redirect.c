@@ -26,6 +26,17 @@ extern bgav_redirector_t bgav_redirector_m3u;
 extern bgav_redirector_t bgav_redirector_pls;
 extern bgav_redirector_t bgav_redirector_ref;
 
+void bgav_redirectors_dump()
+  {
+  fprintf(stderr, "<h2>Redirectors</h2>\n");
+  fprintf(stderr, "<ul>\n");
+  fprintf(stderr, "<li>%s\n", bgav_redirector_asx.name);
+  fprintf(stderr, "<li>%s\n", bgav_redirector_m3u.name);
+  fprintf(stderr, "<li>%s\n", bgav_redirector_pls.name);
+  fprintf(stderr, "<li>%s\n", bgav_redirector_ref.name);
+  fprintf(stderr, "</ul>\n");
+  }
+
 static struct
   {
   bgav_redirector_t * r;

@@ -320,9 +320,10 @@ bgav_seek(bgav_t * b, gavl_time_t time)
 void bgav_formats_dump()
   {
   int i;
-  
+  fprintf(stderr, "<h2>Formats</h2>\n<ul>");
   for(i = 0; i < num_demuxers; i++)
-    fprintf(stderr, "%s\n", demuxers[i].format_name);
+    fprintf(stderr, "<li>%s\n", demuxers[i].format_name);
   for(i = 0; i < num_sync_demuxers; i++)
-    fprintf(stderr, "%s\n", sync_demuxers[i].format_name);
+    fprintf(stderr, "<li>%s\n", sync_demuxers[i].format_name);
+  fprintf(stderr, "</ul>\n");
   }

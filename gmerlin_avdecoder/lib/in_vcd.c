@@ -317,6 +317,7 @@ static void    close_vcd(bgav_input_context_t * ctx)
 
 bgav_input_t bgav_input_vcd =
   {
+    name:          "vcd",
     open:          open_vcd,
     read:          read_vcd,
     seek_byte:     seek_byte_vcd,

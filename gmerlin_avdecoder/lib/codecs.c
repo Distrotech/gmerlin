@@ -152,81 +152,31 @@ void bgav_codecs_dump()
   {
   bgav_audio_decoder_t * ad;
   bgav_video_decoder_t * vd;
-  int name_len = 0;
-  int i, j, k;
-  int len;
-
+  int i;
   bgav_codecs_init();
-  
-  ad = audio_decoders;
-  for(i = 0; i < num_audio_codecs; i++)
-    {
-    len = strlen(ad->name);
-    if(len > name_len)
-      name_len = len;
-    ad = ad->next;
-    }
-  vd = video_decoders;
-  for(i = 0; i < num_video_codecs; i++)
-    {
-    len = strlen(vd->name);
-    if(len > name_len)
-      name_len = len;
-    vd = vd->next;
-    }
   
   /* Print */
   ad = audio_decoders;
 
-  fprintf(stderr, "=========== Audio codecs ===========\n");
+  fprintf(stderr, "<h2>Audio codecs</h2>\n");
 
+  fprintf(stderr, "<ul>\n");
   for(i = 0; i < num_audio_codecs; i++)
     {
-    len = strlen(ad->name);
-    fprintf(stderr, ad->name);
-    for(j = 0; j < name_len - len; j++)
-      fprintf(stderr, " ");
-
-    j = 0;
-    while(ad->fourccs[j])
-      {
-      if(!j)
-        fprintf(stderr, " ");
-      else
-        {
-        for(k = 0; k <= name_len; k++)
-          fprintf(stderr, " ");
-        }
-      bgav_dump_fourcc(ad->fourccs[j]);
-      fprintf(stderr, "\n");
-      j++;
-      }
+    fprintf(stderr, "<li>%s\n", ad->name);
     ad = ad->next;
     }
-  fprintf(stderr, "=========== Video codecs ===========\n");
+  fprintf(stderr, "</ul>\n");
+  
+  fprintf(stderr, "<h2>Video codecs</h2>\n");
+  fprintf(stderr, "<ul>\n");
   vd = video_decoders;
   for(i = 0; i < num_video_codecs; i++)
     {
-    len = strlen(vd->name);
-    fprintf(stderr, vd->name);
-    for(j = 0; j < name_len - len; j++)
-      fprintf(stderr, " ");
-    j = 0;
-    while(vd->fourccs[j])
-      {
-      if(!j)
-        fprintf(stderr, " ");
-      else
-        {
-        for(k = 0; k <= name_len; k++)
-          fprintf(stderr, " ");
-        }
-      bgav_dump_fourcc(vd->fourccs[j]);
-      fprintf(stderr, "\n");
-      j++;
-      }
+    fprintf(stderr, "<li>%s\n", vd->name);
     vd = vd->next;
     }
+  fprintf(stderr, "</ul>\n");
   }
 
 /*

@@ -19,6 +19,7 @@
 
 #include <avdec.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /* Configuration data */
@@ -47,12 +48,13 @@ int main(int argc, char ** argv)
 
   if(argc == 1)
     {
-    fprintf(stderr, "Usage: bgavdump <location>");
+    fprintf(stderr, "Usage: bgavdump <location>\n");
 
-    fprintf(stderr, "Available formats:\n");
+    bgav_inputs_dump();
+    bgav_redirectors_dump();
+    
     bgav_formats_dump();
-
-    fprintf(stderr, "Available decoders:\n");
+    
     bgav_codecs_dump();
     return 0;
     }

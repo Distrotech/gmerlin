@@ -291,6 +291,19 @@ extern bgav_input_t bgav_input_mms;
 extern bgav_input_t bgav_input_http;
 extern bgav_input_t bgav_input_vcd;
 
+void bgav_inputs_dump()
+  {
+  fprintf(stderr, "<h2>Input modules</h2>\n");
+  fprintf(stderr, "<ul>\n");
+  fprintf(stderr, "<li>%s\n", bgav_input_file.name);
+  fprintf(stderr, "<li>%s\n", bgav_input_rtsp.name);
+  fprintf(stderr, "<li>%s\n", bgav_input_pnm.name);
+  fprintf(stderr, "<li>%s\n", bgav_input_mms.name);
+  fprintf(stderr, "<li>%s\n", bgav_input_http.name);
+  fprintf(stderr, "<li>%s\n", bgav_input_vcd.name);
+  fprintf(stderr, "</ul>\n");
+  }
+
 int bgav_input_open(bgav_input_context_t * ret,
                     const char *url)
   {

@@ -282,3 +282,11 @@ void bgav_codecs_dump();
 /* Dump known media formats */
 
 void bgav_formats_dump();
+
+/* Dump all inputs in html */
+
+void bgav_inputs_dump();
+
+/* Dump all redirectors */
+
+void bgav_redirectors_dump();

@@ -494,6 +494,7 @@ static void close_http(bgav_input_context_t * ctx)
 
 bgav_input_t bgav_input_http =
   {
+    name:          "http",
     open:          open_http,
     read:          read_http,
     read_nonblock: read_nonblock_http,
