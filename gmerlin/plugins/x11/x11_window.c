@@ -79,12 +79,50 @@ netwm_set_state(x11_window_t * w, Window win, int operation, Atom state)
   e.xclient.data.l[1] = state;
   
   XSendEvent(w->dpy, w->root, False,
-             SubstructureRedirectMask, &e);
+             SubstructureNotifyMask|SubstructureRedirectMask, &e);
 
-  //  fprintf(stderr, "netwm_set_state\n");
+  fprintf(stderr, "netwm_set_state\n");
 
   }
 
+static void
+netwm_set_fullscreen(x11_window_t * w, Window win)
+  {
+  long                  propvalue[2];
+    
+  propvalue[0] = w->_NET_WM_STATE_FULLSCREEN;
+  propvalue[1] = 0;
+
+  XChangeProperty (w->dpy, win, 
+		   w->_NET_WM_STATE, XA_ATOM, 
+		       32, PropModeReplace, 
+		       (unsigned char *)propvalue, 1);
+  XFlush(w->dpy);
+
+
+
+  }
+
+#if 0
+static void
+netwm_set_layer(x11_window_t * w, Window win, int layer)
+  {
+  XEvent e;
+  
+  memset(&e,0,sizeof(e));
+  e.xclient.type = ClientMessage;
+  e.xclient.message_type = w->_NET_WM_STATE;
+  e.xclient.display = w->dpy;
+  e.xclient.window = win;
+  e.xclient.format = 32;
+  e.xclient.data.l[0] = operation;
+  e.xclient.data.l[1] = state;
+  
+  XSendEvent(w->dpy, w->root, False,
+             SubstructureRedirectMask, &e);
+  
+  }
+#endif
 static int get_fullscreen_mode(x11_window_t * w)
   {
   if(wm_check_capability(w->dpy, w->root, w->_NET_SUPPORTED, w->_NET_WM_STATE_FULLSCREEN))
@@ -104,13 +142,21 @@ static void init_atoms(x11_window_t * w)
   w->_NET_WM_STATE            = XInternAtom(w->dpy, "_NET_WM_STATE", False);
   w->_NET_WM_STATE_FULLSCREEN = XInternAtom(w->dpy, "_NET_WM_STATE_FULLSCREEN",
                                             False);
+//  w->_NET_WM_STATE_FULLSCREEN = XInternAtom(w->dpy, "_NET_WM_STATE_ABOVE",
+//                                            False);
+
   w->_NET_MOVERESIZE_WINDOW   = XInternAtom(w->dpy, "_NET_MOVERESIZE_WINDOW",
                                             False);
+
   }
 
 
 /* MWM decorations */
+
 #define MWM_HINTS_DECORATIONS (1L << 1)
+#define MWM_HINTS_FUNCTIONS     (1L << 0)
+
+#define MWM_FUNC_ALL                 (1L<<0)
 #define PROP_MOTIF_WM_HINTS_ELEMENTS 5
 typedef struct
   {
@@ -127,8 +173,9 @@ int mwm_set_decorations(x11_window_t * w, Window win, int set)
   Atom hintsatom;
   
   /* setup the property */
-  motif_hints.flags = MWM_HINTS_DECORATIONS;
+  motif_hints.flags = MWM_HINTS_DECORATIONS | MWM_HINTS_FUNCTIONS;
   motif_hints.decorations = set;
+  motif_hints.functions   = set ? MWM_FUNC_ALL : 0;
   
   /* get the atom for the property */
   hintsatom = XInternAtom(w->dpy, "_MOTIF_WM_HINTS", False);
@@ -208,7 +255,7 @@ int x11_window_create(x11_window_t * w,
 
   /* Setup event mask */
 
-  w->event_mask = StructureNotifyMask | PointerMotionMask;
+  w->event_mask = StructureNotifyMask | PointerMotionMask | ExposureMask;
   
   w->colormap = XCreateColormap(w->dpy, RootWindow(w->dpy, w->screen),
                                 visual,
@@ -235,7 +282,9 @@ int x11_window_create(x11_window_t * w,
                                     (CWBackingStore | CWEventMask |
                                      CWBorderPixel | CWBackPixel | CWColormap),
                                     &attr);
-
+  /* Create GC */
+  
+  w->gc = XCreateGC(w->dpy, w->normal_window, 0, NULL);
   set_decorations(w, w->normal_window, 1);
   
   XSetWMProtocols(w->dpy, w->normal_window, wm_protocols, 1);
@@ -247,7 +296,7 @@ int x11_window_create(x11_window_t * w,
   
   /* The fullscreen window will be created with the same size for now */
 
-  //  attr.override_redirect = True;
+//  attr.override_redirect = True;
   w->fullscreen_window = XCreateWindow (w->dpy, w->root,
                                         0 /* x */,
                                         0 /* y */,
@@ -276,6 +325,8 @@ int x11_window_create(x11_window_t * w,
     XCreatePixmapCursor(w->dpy, w->fullscreen_cursor_pixmap,
                         w->fullscreen_cursor_pixmap,
                         &black, &black, 0, 0);
+
+  w->black = BlackPixel(w->dpy, w->screen);
 
   /* Check, which fullscreen modes we have */
 
@@ -479,7 +530,7 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
   int height;
   int x;
   int y;
-  
+  XEvent evt;
   /* Normal->fullscreen */
   if(fullscreen && (w->current_window == w->normal_window))
     {
@@ -496,13 +547,29 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     w->current_window = w->fullscreen_window;
     
     if(w->fullscreen_mode == FULLSCREEN_MODE_NET_WM)
-      netwm_set_state(w,w->fullscreen_window,
-                      _NET_WM_STATE_ADD,w->_NET_WM_STATE_FULLSCREEN);
+      netwm_set_fullscreen(w,w->fullscreen_window);
+
+//    XSetTransientForHint(w->dpy, w->fullscreen_window, None);
+
+    XRaiseWindow(w->dpy, w->fullscreen_window);
     XMapWindow(w->dpy, w->fullscreen_window);
 
-    XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
-    }
+    /* Wait until the window is mapped */ 
+    
+    do
+      {
+      XMaskEvent(w->dpy, ExposureMask, &evt);
+      x11_window_handle_event(w, &evt);
+      } while((evt.type != Expose) && (evt.xexpose.window != w->fullscreen_window));
+    
+    XSetInputFocus(w->dpy, w->fullscreen_window, RevertToNone, CurrentTime);
 
+    XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
+    x11_window_clear(w);	
+//    XRaiseWindow(w->dpy, w->fullscreen_window);
+
+    }
+	
   if(!fullscreen && (w->current_window == w->fullscreen_window))
     {
     XUnmapWindow(w->dpy, w->fullscreen_window);
@@ -519,8 +586,8 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     XMoveResizeWindow(w->dpy, w->normal_window,
                       w->window_x, w->window_y,
                       w->window_width, w->window_height);
+    x11_window_clear(w);
     }
-
   }
 
 void x11_window_destroy(x11_window_t * w)
@@ -535,6 +602,7 @@ void x11_window_destroy(x11_window_t * w)
     XFreePixmap(w->dpy, w->fullscreen_cursor_pixmap);
 
   XFreeColormap(w->dpy, w->colormap);
+  XFreeGC(w->dpy, w->gc);
 
 #ifdef HAVE_LIBXINERAMA
   if(w->xinerama)
@@ -618,13 +686,13 @@ void x11_window_show(x11_window_t * win, int show)
     
     if(win->mapped)
       {
-      fprintf(stderr, "Already mapped\n");
+//      fprintf(stderr, "Already mapped\n");
       XRaiseWindow(win->dpy, win->normal_window);
       }
     else
       {
-      fprintf(stderr, "Mapping window %d %d\n", win->window_x,
-              win->window_y);
+//      fprintf(stderr, "Mapping window %d %d\n", win->window_x,
+//              win->window_y);
       XMapWindow(win->dpy, win->normal_window);
       
       XMoveResizeWindow(win->dpy, win->normal_window,
@@ -645,4 +713,11 @@ void x11_window_resize(x11_window_t * win,
     win->window_height = height;
     XResizeWindow(win->dpy, win->normal_window, width, height);
     }
+  }
+
+void x11_window_clear(x11_window_t * win)
+  {
+  XSetForeground(win->dpy, win->gc, win->black);
+  XFillRectangle(win->dpy, win->normal_window, win->gc, 0, 0, win->window_width, 
+                 win->window_height);  
   }

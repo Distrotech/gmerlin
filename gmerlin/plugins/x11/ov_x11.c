@@ -109,7 +109,6 @@ typedef struct
   /* Supported modes */
 
   int have_shm;
-  
   /* X11 Stuff */
   
   Display * dpy;
@@ -118,6 +117,7 @@ typedef struct
   XvPortID xv_port;
   int do_xv;
   Atom xv_attr_atoms[NUM_XV_PARAMETERS];
+  Atom xv_chromakey_atom;
   int have_xv_yv12;
   int have_xv_yuy2;
   int have_xv_i420;
@@ -127,9 +127,13 @@ typedef struct
   /* Actual mode */
 
   int xv_format;
+
+  int have_xv_chromakey;
+  int xv_chromakey;  
+
 #endif
   
-  GC gc;
+
   //  Colormap colormap;
 
   int shm_completion_type;
@@ -158,9 +162,6 @@ typedef struct
 
   /* Delete atom */
 
-  //  Atom delete_atom;
-  //  Atom protocols_atom;
-
   bg_parameter_info_t * parameters;
 
   /* Still image stuff */
@@ -170,6 +171,8 @@ typedef struct
   int do_still;
   gavl_video_frame_t * still_frame;
   } x11_t;
+
+static void create_parameters(x11_t * x11);	
 
 static int handle_event(x11_t * priv, XEvent * evt);
 static void close_x11(void*);
@@ -350,11 +353,7 @@ static void check_xv(Display * d, Window w,
       break;
     }
    XvFreeAdaptorInfo (adaptorInfo);
-#ifndef HAVE_XV
-  *have_yv12 = 0;
-  *have_yuy2 = 0;
-  *have_i420 = 0;
-#endif
+  fprintf(stderr, "Check xv: %d %d %d %d\n", (int)(*port), *have_i420, *have_yuy2, *have_yv12);
   return;
   }
 
@@ -643,9 +642,7 @@ static void * create_x11()
                           KeyPressMask | ExposureMask);
 
   
-  /* Create GC */
-  
-  priv->gc = XCreateGC(priv->dpy, priv->win.normal_window, 0, NULL);
+
   
   /* Check for XV Support */
 #ifdef HAVE_LIBXV
@@ -654,8 +651,9 @@ static void * create_x11()
            &(priv->have_xv_yv12),
            &(priv->have_xv_yuy2),
            &(priv->have_xv_i420));
+
 #endif // HAVE_LIBXV
-  
+  create_parameters(priv);
   return priv;
   }
 
@@ -689,6 +687,12 @@ static void set_drawing_coords(x11_t * priv)
       priv->dst_x = 0;
       priv->dst_y = (priv->win.window_height - priv->dst_h)/2;
       }
+    if(priv->have_xv_chromakey)
+      {
+      XSetForeground(priv->dpy, priv->win.gc, priv->xv_chromakey);
+      XFillRectangle(priv->dpy, priv->win.current_window, priv->win.gc,
+                     priv->dst_x, priv->dst_y, priv->dst_w, priv->dst_h);
+      }              
     }
   else
     {
@@ -825,6 +829,11 @@ static int open_x11(void * data,
       priv->do_xv = 0;
       format->colorspace = x11_colorspace;
       }
+    else if(priv->have_xv_chromakey)
+      {
+      XvGetPortAttribute(priv->dpy, priv->xv_port, priv->xv_chromakey_atom, 
+                         &(priv->xv_chromakey));
+      }
     }
 #endif // HAVE_LIBXV
   
@@ -871,8 +880,10 @@ static int open_x11(void * data,
     x11_window_resize(&(priv->win), window_width, window_height);
     }
   else
+    {
+    x11_window_clear(&priv->win);
     set_drawing_coords(priv);
-
+    }
   
   return 1;
   }
@@ -896,7 +907,6 @@ static void destroy_x11(void * data)
     bg_parameter_info_destroy_array(priv->parameters);
     }
   
-  XFreeGC(priv->dpy, priv->gc);
 
   x11_window_destroy(&(priv->win));
     
@@ -1014,9 +1024,10 @@ static int handle_event(x11_t * priv, XEvent * evt)
         }
       break;
     case ConfigureNotify:
-      set_drawing_coords(priv);
-      XClearArea(priv->dpy, evt->xconfigure.window, 0, 0,
-                 priv->win.window_width, priv->win.window_height, True);
+      x11_window_clear(&(priv->win));
+	      set_drawing_coords(priv);
+//      XClearArea(priv->dpy, evt->xconfigure.window, 0, 0,
+//                 priv->win.window_width, priv->win.window_height, True);
       /* Send ourselfes an exposure event */
       //      send_expose(priv);
       break;
@@ -1064,7 +1075,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
       XvShmPutImage(priv->dpy,
                     priv->xv_port,
                     priv->win.current_window,
-                    priv->gc,
+                    priv->win.gc,
                     x11_frame->xv_image,
                     0,                   /* src_x  */
                     0,                   /* src_y  */
@@ -1081,7 +1092,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
       XvPutImage(priv->dpy,
                  priv->xv_port,
                  priv->win.current_window,
-                 priv->gc,
+                 priv->win.gc,
                  x11_frame->xv_image,
                  0,                    /* src_x   */
                  0,                    /* src_y   */
@@ -1102,7 +1113,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
       
       XShmPutImage(priv->dpy,            /* dpy        */
                    priv->win.current_window, /* d          */
-                   priv->gc,             /* gc         */
+                   priv->win.gc,             /* gc         */
                    x11_frame->x11_image, /* image      */
                    0,                    /* src_x      */
                    0,                    /* src_y      */
@@ -1116,7 +1127,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
       {
       XPutImage(priv->dpy,            /* display */
                 priv->win.current_window, /* d       */
-                priv->gc,             /* gc      */
+                priv->win.gc,             /* gc      */
                 x11_frame->x11_image, /* image   */
                 0,                    /* src_x   */
                 0,                    /* src_y   */
@@ -1206,15 +1217,12 @@ static void show_window_x11(void * data, int show)
   x11_t * priv = (x11_t*)data;
   XEvent * evt;
   
-  //  fprintf(stderr, "show_window_x11\n");
-  /* Ignore the request if we are in fullscreen mode */
-
   x11_window_show(&(priv->win), show);
 
-    /* Clear the area and wait for the first ExposeEvent to come */
-  
-  XClearArea(priv->win.dpy, priv->win.current_window, 0, 0,
-             priv->win.window_width, priv->win.window_height, True);
+  /* Clear the area and wait for the first ExposeEvent to come */
+  x11_window_clear(&(priv->win));
+//  XClearArea(priv->win.dpy, priv->win.current_window, 0, 0,
+//             priv->win.window_width, priv->win.window_height, True);
   XSync(priv->dpy, False);
   
   /* Get the expose event before we draw the first frame */
@@ -1236,10 +1244,11 @@ static int get_num_xv_parameters(Display * dpy, XvPortID xv_port)
   int i, j;
   int ret = 0;
   attr = XvQueryPortAttributes(dpy, xv_port, &nattr);
-  //  fprintf(stderr, "nattr: %d xv_port: %d\n", nattr, xv_port);
+  fprintf(stderr, "nattr: %d xv_port: %d\n", nattr, (int)xv_port);
 
   for(i = 0; i < nattr; i++)
     {
+    fprintf(stderr, "attr[%d].name: %s\n", i, attr[i].name);
     if((attr[i].flags & XvSettable) && (attr[i].flags & XvGettable))
       {
       for(j = 0; j < NUM_XV_PARAMETERS; j++)
@@ -1275,7 +1284,13 @@ static void get_xv_parameters(x11_t * x11,
 
   for(i = 0; i < nattr; i++)
     {
-    if((attr[i].flags & XvSettable) && (attr[i].flags & XvGettable))
+    if((attr[i].flags & XvGettable) && !strcmp(attr[i].name, "XV_COLORKEY"))
+      {
+      x11->have_xv_chromakey = 1;
+      x11->xv_chromakey_atom = XInternAtom(x11->dpy, attr[i].name,
+                                              False);
+      }
+    else if((attr[i].flags & XvSettable) && (attr[i].flags & XvGettable))
       {
       for(j = 0; j < NUM_XV_PARAMETERS; j++)
         {
@@ -1290,7 +1305,7 @@ static void get_xv_parameters(x11_t * x11,
           info[index].type      = BG_PARAMETER_SLIDER_INT;
           info[index].val_min.val_i = attr[i].min_value;
           info[index].val_max.val_i = attr[i].max_value;
-
+          info[index].flags = BG_PARAMETER_SYNC;
           /* Get the default value from the X Server */
 
           XvGetPortAttribute(x11->dpy, x11->xv_port,
@@ -1357,8 +1372,7 @@ bg_parameter_info_t common_parameters[] =
 
 #define NUM_COMMON_PARAMETERS sizeof(common_parameters)/sizeof(common_parameters[0])
 
-bg_parameter_info_t *
-get_parameters_x11(void * priv)
+static void create_parameters(x11_t * x11)
   {
   int i;
   int index;
@@ -1367,7 +1381,9 @@ get_parameters_x11(void * priv)
 #endif
   int num_parameters;
     
-  x11_t * x11 = (x11_t*)priv;
+
+//  fprintf(stderr, "get_parameters_x11 %p\n", x11->parameters);
+
   if(!x11->parameters)
     {
     /* Count parameters */
@@ -1388,7 +1404,7 @@ get_parameters_x11(void * priv)
                              &(common_parameters[i]));
       index++;
       }
-    //    fprintf(stderr, "num_xv_parameters: %d\n", num_xv_parameters);
+//    fprintf(stderr, "num_xv_parameters: %d\n", num_xv_parameters);
 #ifdef HAVE_LIBXV
     if(num_xv_parameters)
       {
@@ -1397,9 +1413,39 @@ get_parameters_x11(void * priv)
       }
 #endif
     }
+
+
+  }
+
+bg_parameter_info_t *
+get_parameters_x11(void * priv)
+  {
+  x11_t * x11 = (x11_t*)priv;
     
   return x11->parameters;
   }
+
+/* Set xv parameter */
+
+#ifdef HAVE_LIBXV
+static int set_xv_parameter(x11_t * p, const char * name, 
+                             int value)
+  {
+  int j;
+ 
+  for(j = 0; j < NUM_XV_PARAMETERS; j++)
+    {
+    if(!strcmp(name, xv_parameters[j].xv_name))
+      {
+//      fprintf(stderr, "Set xv parameter %s\n", name);
+      XvSetPortAttribute (p->dpy, p->xv_port,
+                        p->xv_attr_atoms[j], value);
+      return 1;
+      }
+    }
+  return 0;
+  }
+#endif
 
 /* Set parameter */
 
@@ -1413,6 +1459,10 @@ set_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
     return;
     }
 
+#ifdef HAVE_LIBXV
+  if(set_xv_parameter(p, name, val->val_i))
+    return;
+#endif
   if(!strcmp(name, "auto_resize"))
     {
     p->auto_resize = val->val_i;

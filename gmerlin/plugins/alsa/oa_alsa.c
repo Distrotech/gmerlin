@@ -195,11 +195,13 @@ get_parameters_alsa(void * p)
 
 static int get_delay_alsa(void * p)
   {
-  //  int unplayed_bytes;
+  int result;
+  snd_pcm_sframes_t frames;
   alsa_t * priv;
-  priv = (alsa_t*)(p);
-  
-  //  return unplayed_bytes/( priv->num_channels_front*priv->bytes_per_sample);
+  priv = (alsa_t*)(p); 
+  result = snd_pcm_delay(priv->pcm, &frames);
+  if(!result)
+    return frames;
   return 0;
   }
 /* Set parameter */
@@ -233,11 +235,11 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
 
     if(val->val_str)
       {
-      while(strcmp(priv->parameters[0].multi_names[priv->card_index],
+      while(strcmp(priv->parameters[0].options[priv->card_index],
                    val->val_str))
         priv->card_index++;
       }
-    //    fprintf(stderr, "Card index: %d\n", priv->card_index);
+    fprintf(stderr, "Card index: %d\n", priv->card_index);
     }
   }
 

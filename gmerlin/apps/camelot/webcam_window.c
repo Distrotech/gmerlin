@@ -13,7 +13,7 @@
 
 #include <gui_gtk/plugin.h>
 #include <gui_gtk/fileentry.h>
-
+#include <gui_gtk/message.h>
 #define DELAY_TIME 100
 
 struct gmerlin_webcam_window_s 
@@ -199,6 +199,11 @@ static gboolean timeout_func(gpointer data)
         
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(w->output_frame_counter), (float)arg_i);
         //        fprintf(stderr, "Frame count: %d\n", arg_i);
+        break;
+      case MSG_ERROR:
+        tmp_string = bg_msg_get_arg_string(msg, 0);
+        bg_gtk_message(tmp_string, BG_GTK_MESSAGE_ERROR);
+        free(tmp_string);
         break;
       }
     bg_msg_queue_unlock_read(w->msg_queue);

@@ -45,9 +45,9 @@ typedef struct
   
   long event_mask;
   int mapped;
-  
+  unsigned long black;  
   Display * dpy;
-  
+  GC gc;  
   Window normal_window;
   Window fullscreen_window;
   Window current_window;
@@ -105,6 +105,9 @@ void x11_window_show(x11_window_t*, int show);
 void x11_window_set_class_hint(x11_window_t*,
                                 char * name,
                                 char * class);
+
+void x11_window_clear(x11_window_t*);
+
 
 /* Timeout is in milliseconds, -1 means block forever */
 

@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <errno.h>
 #include <plugin.h>
 
 #include <linux/videodev.h>
@@ -185,6 +185,7 @@ typedef struct
   int chroma_size;
   char * device;
   int flip;
+  char * error_message;
   } v4l_t;
 
 int open_v4l(void * priv, gavl_video_format_t * format)
@@ -193,13 +194,19 @@ int open_v4l(void * priv, gavl_video_format_t * format)
   //  int i;
   v4l_t * v4l;
   v4l = (v4l_t*)priv;
+  if(v4l->error_message)
+    free(v4l->error_message);
 
   /* Open device */
 
   fprintf(stderr, "Opening %s\n", v4l->device);  
   if((v4l->fd = open(v4l->device, O_RDWR, 0)) < 0)
+    {
+    v4l->error_message = 
+      bg_sprintf("Cannot open device %s: %s",
+                 v4l->device, strerror(errno));
     goto fail;
-
+    }
   /* Check if we have a Phillips webcam */
 
   v4l->have_pwc = bg_pwc_probe(v4l->fd);
@@ -210,8 +217,11 @@ int open_v4l(void * priv, gavl_video_format_t * format)
   /* Set Picture */
   
   if(ioctl(v4l->fd, VIDIOCGPICT, &(v4l->pic)))
+    {
+    v4l->error_message = bg_sprintf("VIDIOCGPICT failed: %s",
+                                    strerror(errno));
     goto fail;
-
+    }
   format->colorspace = get_gavl_colorspace(v4l->pic.palette);
   /* If we have a nonsupported colorspace we try YUV420 */
 
@@ -231,15 +241,23 @@ int open_v4l(void * priv, gavl_video_format_t * format)
   //  dump_video_picture(&(v4l->pic));
   
   if(ioctl(v4l->fd, VIDIOCSPICT, &(v4l->pic)))
-    goto fail;
+    {
+    v4l->error_message = bg_sprintf("VIDIOCSPICT failed: %s",
+                                    strerror(errno));
 
+    goto fail;
+    }
   format->colorspace = get_gavl_colorspace(v4l->pic.palette);
   
   /* Set window */
 
   if(ioctl(v4l->fd, VIDIOCGWIN, &(v4l->win)))
-    goto fail;
+    {
+    v4l->error_message = bg_sprintf("VIDIOCGWIN failed: %s",
+                                    strerror(errno));
 
+    goto fail;
+    }
   v4l->win.x = 0;
   v4l->win.y = 0;
 
@@ -247,8 +265,11 @@ int open_v4l(void * priv, gavl_video_format_t * format)
   v4l->win.height = v4l->cfg_win.height;
 
   if(ioctl(v4l->fd, VIDIOCSWIN, &(v4l->win)))
+    {
+    v4l->error_message = bg_sprintf("VIDIOCSWIN failed: %s",
+                                    strerror(errno));
     goto fail;
-
+    }
   /* Setup format */
       
   format->image_width  = v4l->win.width;
@@ -278,13 +299,19 @@ int open_v4l(void * priv, gavl_video_format_t * format)
   /* Setup mmap */
   
   if(ioctl(v4l->fd, VIDIOCGMBUF, &(v4l->mbuf)))
+    {
+    v4l->error_message = bg_sprintf("VIDIOCGMBUF failed: %s",
+                                    strerror(errno));
+
     goto fail;
-  
+    }  
   v4l->mmap_buf = (uint8_t*)(mmap(0, v4l->mbuf.size, PROT_READ|PROT_WRITE,
                                   MAP_SHARED,v4l->fd,0));
   if((unsigned char*)-1 == v4l->mmap_buf)
+    {
+    v4l->error_message = bg_sprintf("mmap failed");
     goto fail;
-
+    }
   v4l->mmap_struct.width = format->image_width;
   v4l->mmap_struct.height = format->image_height;
   v4l->mmap_struct.format = v4l->pic.palette;
@@ -660,6 +687,12 @@ void set_parameter_v4l(void * priv, char * name,
   //  dump_video_picture(&(v4l->cfg_pic));
   }
 
+const char * get_error_v4l(void * priv)
+  {
+  v4l_t * v4l = (v4l_t*)priv;
+  return v4l->error_message;
+  }
+
 bg_rv_plugin_t the_plugin =
   {
     common:
@@ -674,7 +707,8 @@ bg_rv_plugin_t the_plugin =
       destroy:       destroy_v4l,
 
       get_parameters: get_parameters_v4l,
-      set_parameter:  set_parameter_v4l
+      set_parameter:  set_parameter_v4l,
+      get_error:      get_error_v4l
     },
     
     open:       open_v4l,

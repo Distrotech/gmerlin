@@ -131,7 +131,7 @@ void bg_gtk_message(const char * message, int type)
 
 
   /* Destroy everything */
-  //  gtk_widget_hide(q->window);
-  g_object_unref(q->window);
+  gtk_widget_hide(q->window);
+//  g_object_unref(q->window);
   free(q);
   }

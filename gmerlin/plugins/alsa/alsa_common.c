@@ -202,7 +202,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   if(snd_pcm_hw_params_set_channels(ret, hw_params,
                                     format->num_channels) < 0)
     {
-    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_set_channels failed\n");
+    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_set_channels failed (Format has %d channels)\n", format->num_channels);
     goto fail;
     }
   

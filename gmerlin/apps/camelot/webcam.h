@@ -4,6 +4,7 @@
 
 #define MSG_FRAMERATE   0 /* Current capture rate (float) */
 #define MSG_FRAME_COUNT 1 /* Frame counter (int)          */
+#define MSG_ERROR       2 /* Something went wrong         */
 
 /* Commands to the webcam */
 
