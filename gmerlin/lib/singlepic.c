@@ -185,6 +185,12 @@ static int open_input(void * priv, const char * arg)
 
   filename = arg;
 
+  /* Check if the first file exists */
+  
+  if(stat(filename, &stat_buf))
+    return 0;
+    
+  
   /* First of all, check if there is a plugin for this format */
   
   if(!bg_plugin_find_by_filename(inp->reg, filename,
@@ -243,8 +249,8 @@ static int open_input(void * priv, const char * arg)
       break;
     inp->frame_end++;
     }
-  //  fprintf(stderr, "Frames: %lld .. %lld, template: %s\n",
-  //          inp->frame_start, inp->frame_end, inp->template);
+  fprintf(stderr, "Frames: %lld .. %lld, template: %s\n",
+         inp->frame_start, inp->frame_end, inp->template);
 
   /* Create stream */
     

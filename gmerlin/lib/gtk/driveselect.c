@@ -129,6 +129,7 @@ static void menu_init(menu_t * m, void (*change_callback)(struct menu_s * menu, 
 static void menu_set_options(menu_t * m, char ** options)
   {
 #ifdef GTK_2_4
+  int i;
   for(i = 0; i < m->num_options; i++)
     {
     gtk_combo_box_remove_text(GTK_COMBO_BOX(m->widget), 0);
