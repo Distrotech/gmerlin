@@ -599,9 +599,9 @@ void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
   frame = bgav_id3v2_find_frame(t, genre_tags);
   if(frame && frame->strings)
     {
-    if(isdigit(frame->strings[0][0]))
+    if((frame->strings[0][0] == '(') && isdigit(frame->strings[0][1]))
       {
-      i_tmp = atoi(frame->strings[0]);
+      i_tmp = atoi(&(frame->strings[0][1]));
       m->genre = bgav_strndup(bgav_id3v1_get_genre(i_tmp), NULL);
       }
     else
