@@ -196,15 +196,15 @@ static bg_parameter_info_t info[] =
       multi_descriptions: (char *[]){ "Encoder 1", "Encoder 2", NULL },
       multi_parameters:   encoder_parameters,
     },
-#if 0
+#if 1
     {
       name:               "decoder",
       long_name:          "Decoder",
-      type:               BG_PARAMETER_ENCODER,
-      codec_names:        (char *[]){ "decoder_1", "decoder_2", NULL },
-      codec_long_names:   (char *[]){ "Decoder 1", "Decoder 2", NULL },
-      codec_descriptions: (char *[]){ "Decoder 1", "Decoder 2", NULL },
-      codec_parameters:   encoder_parameters,
+      type:               BG_PARAMETER_MULTI_LIST,
+      multi_names:        (char *[]){ "decoder_1", "decoder_2", NULL },
+      multi_labels:   (char *[]){ "Decoder 1", "Decoder 2", NULL },
+      multi_descriptions: (char *[]){ "Decoder 1", "Decoder 2", NULL },
+      multi_parameters:   encoder_parameters,
     },
 #endif
     { /* End of parameters */ }

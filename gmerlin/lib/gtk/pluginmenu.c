@@ -70,6 +70,9 @@ bg_gtk_plugin_menu_create(char ** plugins,
       index++;
       }
     }
+  /* We always take the 0th option */
+  gtk_combo_box_set_active(GTK_COMBO_BOX(ret->combo), 0);
+    
 #else
   if(auto_supported)
     ret->plugins = g_list_append(ret->plugins, auto_string);
