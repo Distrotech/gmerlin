@@ -496,8 +496,6 @@ static int process_command(bg_player_t * player,
   gavl_video_format_t logo_format;
   gavl_video_frame_t * logo_frame;
   
-  //  fprintf(stderr, "process_command\n");
-  
   switch(bg_msg_get_id(command))
     {
     case BG_PLAYER_CMD_QUIT:
@@ -539,7 +537,7 @@ static int process_command(bg_player_t * player,
       break;
     case BG_PLAYER_CMD_STOP:
       state = bg_player_get_state(player);
-      //      fprintf(stderr, "Command stop\n");
+      fprintf(stderr, "Command stop\n");
       switch(state)
         {
         case BG_PLAYER_STATE_PLAYING:
@@ -648,8 +646,7 @@ static void * player_thread(void * data)
   while(1)
     {
     /* Process commands */
-
-    //    fprintf(stderr, "Blupp 1\n");
+    
     command = bg_msg_queue_try_lock_read(player->command_queue);
     if(command)
       {
@@ -661,15 +658,14 @@ static void * player_thread(void * data)
     if(do_exit)
       break;
 
-    //    fprintf(stderr, "Blupp 2\n");
-
     state = bg_player_get_state(player);
-
     switch(state)
       {
       case BG_PLAYER_STATE_PLAYING:
       case BG_PLAYER_STATE_FINISHING:
+        //        fprintf(stderr, "bg_player_time_get...");
         bg_player_time_get(player, 1, &time);
+        //        fprintf(stderr, "done\n");
         seconds = time / GAVL_TIME_SCALE;
         if(seconds != old_seconds)
           {
@@ -681,9 +677,6 @@ static void * player_thread(void * data)
           }
         break;
       }
-    
-    
-    
     gavl_time_delay(&wait_time);
     }
   return (void*)0;

@@ -166,7 +166,6 @@ void bg_player_time_get(bg_player_t * player, int exact, gavl_time_t * ret)
   bg_player_oa_context_t * ctx;
   int samples_in_soundcard;
   ctx = player->oa_context;
-    
   if(!exact)
     {
     pthread_mutex_lock(&(ctx->time_mutex));
@@ -223,7 +222,8 @@ void * bg_player_oa_thread(void * data)
   bg_player_oa_context_t * ctx;
   bg_player_audio_stream_t * s;
   gavl_audio_frame_t * frame;
-
+  gavl_time_t wait_time;
+  
   bg_fifo_state_t state;
   
   //  fprintf(stderr, "oa thread started\n");
@@ -238,12 +238,15 @@ void * bg_player_oa_thread(void * data)
     {
     if(!bg_player_keep_going(ctx->player))
       break;
+
+    wait_time = GAVL_TIME_UNDEFINED;
+    
     frame = bg_fifo_lock_read(s->fifo, &state);
     if(!frame)
       {
       if(state == BG_FIFO_STOPPED) 
         {
-        fprintf(stderr, "oa thread finisheded\n");
+        //        fprintf(stderr, "oa thread finisheded\n");
         break;
         }
       else if(state == BG_FIFO_PAUSED)
@@ -253,18 +256,24 @@ void * bg_player_oa_thread(void * data)
       }
     if(frame->valid_samples)
       {
-      //      fprintf(stderr, "write frame...");
       bg_plugin_lock(ctx->plugin_handle);
       ctx->plugin->write_frame(ctx->priv, frame);
       bg_plugin_unlock(ctx->plugin_handle);
-      //      fprintf(stderr, "done\n");
 
       pthread_mutex_lock(&(ctx->time_mutex));
       ctx->audio_samples_written += frame->valid_samples;
       pthread_mutex_unlock(&(ctx->time_mutex));
+
+      /* Now, wait a while to give other threads a chance to access the
+         player time */
+      wait_time =
+        gavl_samples_to_time(ctx->player->audio_stream.output_format.samplerate,
+                             frame->valid_samples)/2;
       }
-    
     bg_fifo_unlock_read(s->fifo);
+    
+    if(wait_time != GAVL_TIME_UNDEFINED)
+      gavl_time_delay(&wait_time);
     }
   
   return NULL;
@@ -282,8 +291,6 @@ int bg_player_oa_init(bg_player_oa_context_t * ctx)
     ctx->output_open = 0;
     
   bg_plugin_unlock(ctx->plugin_handle);
-
-  fprintf(stderr, "bg_player_oa_init: %d\n", result);
   
   ctx->audio_samples_written = 0;
   return result;
