@@ -245,10 +245,10 @@ bg_media_tree_t * bg_media_tree_create(const char * filename,
   ret->com.plugin_reg = plugin_reg;
   ret->com.set_current_callback = bg_media_tree_set_current;
   ret->com.set_current_callback_data = ret;
-  
+
+
   //  fprintf(stderr, "ret->plugin_reg: %p\n", ret->plugin_reg);
   //  fprintf(stderr, "ret: %p\n", ret);
-
   
   ret->filename = bg_strdup(ret->filename, filename);
   pos1 = strrchr(ret->filename, '/');
@@ -276,8 +276,6 @@ bg_media_tree_t * bg_media_tree_create(const char * filename,
     plugin_album->name  = bg_strdup(plugin_album->name, info->long_name);
     plugin_album->plugin_info = info;
 
-    
-    
     ret->children = append_album(ret->children, plugin_album);
 
     /* Now, get the number of devices */
@@ -615,6 +613,14 @@ void bg_media_tree_set_current(void * data,
   bg_media_tree_t * t = (bg_media_tree_t*)data;
 
   last_current_album = t->com.current_album;
+
+  if((last_current_album != album) &&
+     t->com.shuffle_list &&
+     (t->last_shuffle_mode == BG_SHUFFLE_MODE_CURRENT))
+    {
+    bg_shuffle_list_destroy(t->com.shuffle_list);
+    t->com.shuffle_list = NULL;
+    }
   
   if(last_current_album && (last_current_album != album))
     {
@@ -634,20 +640,274 @@ void bg_media_tree_set_current(void * data,
     t->change_callback(t, t->change_callback_data);
   }
 
+/* Shuffle list stuff */
+
+static bg_shuffle_list_t * get_shuffle_tracks(bg_album_t * album,
+                                              bg_shuffle_list_t * list,
+                                              bg_shuffle_list_t ** last_entry,
+                                              int all_open)
+  {
+  bg_album_t       * tmp_album;
+  bg_album_entry_t * tmp_entry;
+  
+  if(bg_album_is_open(album))
+    {
+    tmp_entry = album->entries;
+    while(tmp_entry)
+      {
+      if(list)
+        {
+        (*last_entry)->next = calloc(1, sizeof(*((*last_entry)->next)));
+        *last_entry = (*last_entry)->next;
+        }
+      else
+        {
+        list = calloc(1, sizeof(*list));
+        *last_entry = list;
+        }
+      (*last_entry)->album = album;
+      (*last_entry)->entry = tmp_entry;
+
+      tmp_entry = tmp_entry->next;
+      }
+    }
+
+  /* Do the same for the children */
+
+  if(all_open)
+    {
+    tmp_album = album->children;
+    while(tmp_album)
+      {
+      list = get_shuffle_tracks(tmp_album, list, last_entry, 1);
+      tmp_album = tmp_album->next;
+      }
+    }
+
+  return list;
+  }
+
+static void create_shuffle_list(bg_media_tree_t * tree, bg_shuffle_mode_t shuffle_mode)
+  {
+  int rand_max;
+  int64_t index;
+  int i;
+  bg_album_t * tmp;
+  bg_shuffle_list_t * list, *tmp_entry;
+  bg_shuffle_list_t ** array_1;
+  bg_shuffle_list_t ** array_2;
+  int num;
+    
+  /* 1. Create the list */
+  
+  list       = (bg_shuffle_list_t*)0;
+  tmp_entry  = (bg_shuffle_list_t*)0;
+
+  if(shuffle_mode == BG_SHUFFLE_MODE_ALL)
+    {
+    tmp = tree->children;
+    
+    while(tmp)
+      {
+      list = get_shuffle_tracks(tmp, list, &tmp_entry, 1);
+      tmp = tmp->next;
+      }
+    }
+  else
+    list = get_shuffle_tracks(tree->com.current_album, list, &tmp_entry, 0);
+  
+  /* 2. Count the entries */
+
+  num = 0;
+  tmp_entry = list;
+
+  while(tmp_entry)
+    {
+    num++;
+    tmp_entry = tmp_entry->next;
+    }
+
+  /* 3. Create first array */
+
+  array_1 = malloc(num * sizeof(*array_1));
+  array_2 = malloc(num * sizeof(*array_2));
+
+  tmp_entry = list;
+  
+  for(i = 0; i < num; i++)
+    {
+    array_1[i] = tmp_entry;
+    tmp_entry = tmp_entry->next;
+    }
+
+  /* 4. Shuffle */
+
+  for(i = 0; i < num - 1; i++)
+    {
+    rand_max = num - i - 1;
+    index = ((int64_t)rand() * (int64_t)(rand_max-1)) / RAND_MAX;
+    array_2[i] = array_1[index];
+    if(index < rand_max)
+      array_1[index] = array_1[num - i - 1];
+    }
+  array_2[num - 1] = array_1[0];
+  
+  /* 5. Set the next pointers for the list */
+
+  for(i = 0; i < num - 1; i++)
+    {
+    array_2[i]->next   = array_2[i+1];
+    array_2[i+1]->prev = array_2[i];
+    }
+  array_2[0]->prev = NULL;
+  array_2[num-1]->next = NULL;
+    
+  /* 6. Cleanup */
+  
+  tree->com.shuffle_list = array_2[0];
+  tree->last_shuffle_mode = shuffle_mode;
+  tree->shuffle_current = tree->com.shuffle_list;
+  
+  free(array_1);
+  free(array_2);
+  
+  }
+
+static void check_shuffle_list(bg_media_tree_t * tree, bg_shuffle_mode_t shuffle_mode)
+  {
+  if(tree->com.shuffle_list && (tree->last_shuffle_mode != shuffle_mode))
+    {
+    bg_shuffle_list_destroy(tree->com.shuffle_list);
+    tree->com.shuffle_list = NULL;
+    }
+  if(!tree->com.shuffle_list)
+    {
+    create_shuffle_list(tree, shuffle_mode);
+    }
+  }
+
 /* Set the next and previous track */
 
-int bg_media_tree_next(bg_media_tree_t * tree, int wrap)
+int bg_media_tree_next(bg_media_tree_t * tree, int wrap, bg_shuffle_mode_t shuffle_mode)
   {
-  if(tree->com.current_album)
-    return bg_album_next(tree->com.current_album, wrap);
+  if(shuffle_mode == BG_SHUFFLE_MODE_OFF)
+    {
+    if(tree->com.current_album)
+      return bg_album_next(tree->com.current_album, wrap);
+    else
+      return 0;
+    }
+  else
+    {
+    check_shuffle_list(tree, shuffle_mode);
+    
+    if(!tree->shuffle_current->next)
+      {
+      if(wrap)
+        tree->shuffle_current = tree->com.shuffle_list;
+      else
+        return 0;
+      }
+    else
+      tree->shuffle_current = tree->shuffle_current->next;
+    bg_media_tree_set_current(tree, tree->shuffle_current->album,
+                              tree->shuffle_current->entry);
+    return 1;
+    }
   return 0;
   }
 
-int bg_media_tree_previous(bg_media_tree_t * tree, int wrap)
+int bg_media_tree_previous(bg_media_tree_t * tree, int wrap, bg_shuffle_mode_t shuffle_mode)
   {
-  if(tree->com.current_album)
-    return bg_album_previous(tree->com.current_album, wrap);
+  if(shuffle_mode == BG_SHUFFLE_MODE_OFF)
+    {
+    if(tree->com.current_album)
+      return bg_album_previous(tree->com.current_album, wrap);
+    else
+      return 0;
+    }
+  else
+    {
+    check_shuffle_list(tree, shuffle_mode);
+
+    if(!tree->shuffle_current->prev)
+      {
+      if(wrap)
+        {
+        while(tree->shuffle_current->next)
+          tree->shuffle_current = tree->shuffle_current->next;
+        }
+      else
+        return 0;
+      }
+    else
+      tree->shuffle_current = tree->shuffle_current->prev;
+    bg_media_tree_set_current(tree, tree->shuffle_current->album,
+                              tree->shuffle_current->entry);
+    return 1;
+    }
   return 0;
+  }
+
+static int get_open_tracks(bg_album_t * albums)
+  {
+  int ret = 0;
+  bg_album_t * tmp = albums;
+
+  while(tmp)
+    {
+    if(bg_album_is_open(tmp))
+      ret += bg_album_get_num_entries(tmp);
+    if(tmp->children)
+      ret += get_open_tracks(tmp->children);
+    tmp = tmp->next;
+    }
+  return ret;
+  }
+
+static int set_open_track(bg_album_t * albums, int index)
+  {
+  int num_entries;
+  int result;
+  bg_album_entry_t * entry;
+  bg_album_t * tmp = albums;
+  
+  while(tmp)
+    {
+    if(bg_album_is_open(tmp))
+      {
+      num_entries = bg_album_get_num_entries(tmp);
+      if(index < num_entries)
+        {
+        entry = bg_album_get_entry(tmp, index);
+        bg_album_set_current(tmp, entry);
+        return 1;
+        }
+      else
+        index -= num_entries;
+      }
+    if(tmp->children)
+      {
+      result = set_open_track(tmp->children, index);
+      if(result)
+        return 1;
+      }
+    tmp = tmp->next;
+    }
+  return 0;
+  }
+
+void bg_shuffle_list_destroy(bg_shuffle_list_t * l)
+  {
+  bg_shuffle_list_t * tmp;
+  tmp = l;
+
+  while(tmp)
+    {
+    tmp = l->next;
+    free(l);
+    l = tmp;
+    }
   }
 
 void bg_media_tree_set_change_callback(bg_media_tree_t * tree,

@@ -256,7 +256,7 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
     {
     //    fprintf(stderr, "Next button clicked\n");
 
-    bg_media_tree_next(win->gmerlin->tree, 1);
+    bg_media_tree_next(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
     //    fprintf(stderr, "Handle: %p plugin %p\n", handle, handle->plugin);
 
     gmerlin_play(win->gmerlin, BG_PLAYER_IGNORE_IF_STOPPED);
@@ -264,7 +264,7 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
   else if(b == win->prev_button)
     {
     //    fprintf(stderr, "Prev button clicked\n");
-    bg_media_tree_previous(win->gmerlin->tree, 1);
+    bg_media_tree_previous(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
 
     gmerlin_play(win->gmerlin, BG_PLAYER_IGNORE_IF_STOPPED);
     }

@@ -49,6 +49,7 @@ typedef enum
     NUM_REPEAT_MODES = 3,
   } repeat_mode_t;
 
+
 typedef struct
   {
   char * directory;
@@ -67,7 +68,8 @@ struct gmerlin_s
   {
   int playback_flags;
 
-  repeat_mode_t repeat_mode;
+  repeat_mode_t  repeat_mode;
+  bg_shuffle_mode_t shuffle_mode;
   
   /* Core stuff */
   

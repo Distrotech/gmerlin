@@ -29,6 +29,19 @@
 #define BG_ALBUM_ENTRY_SELECTED (1<<1)
 #define BG_ALBUM_ENTRY_PRIVNAME (1<<2)
 
+/*
+ *  Shuffle mode passed to bg_media_tree_next() and
+ *  bg_media_tree_previous()
+ */
+
+typedef enum
+  {
+    BG_SHUFFLE_MODE_OFF     = 0,
+    BG_SHUFFLE_MODE_CURRENT = 1,
+    BG_SHUFFLE_MODE_ALL     = 2,
+    BG_NUM_SHUFFLE_MODES    = 3,
+  } bg_shuffle_mode_t;
+
 typedef struct bg_album_entry_s
   {
   char * name;
@@ -340,8 +353,10 @@ void bg_media_tree_set_current(void * data,
 
 /* Set the next and previous track */
 
-int bg_media_tree_next(bg_media_tree_t *, int wrap);
-int bg_media_tree_previous(bg_media_tree_t *, int wrap);
+int bg_media_tree_next(bg_media_tree_t *, int wrap,
+                       bg_shuffle_mode_t shuffle_mode);
+int bg_media_tree_previous(bg_media_tree_t *, int wrap,
+                           bg_shuffle_mode_t shuffle_mode);
 
 bg_plugin_handle_t *
 bg_media_tree_get_current_track(bg_media_tree_t *, int * index);

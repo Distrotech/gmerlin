@@ -22,6 +22,16 @@
 #define BG_ALBUM_EXPANDED    (1<<1)
 #define BG_ALBUM_ERROR       (1<<2)
 
+typedef struct bg_shuffle_list_s
+  {
+  bg_album_entry_t * entry;
+  bg_album_t       * album;
+  struct bg_shuffle_list_s * next;
+  struct bg_shuffle_list_s * prev;
+  } bg_shuffle_list_t;
+
+void bg_shuffle_list_destroy(bg_shuffle_list_t*l);
+
 /* Types of the album */
 
 typedef struct
@@ -50,6 +60,11 @@ typedef struct
 
   int use_metadata;
   char * metadata_format;
+
+  /* Shuffle list */
+
+  bg_shuffle_list_t * shuffle_list;
+  
   } bg_album_common_t;
 
 struct bg_album_s
@@ -156,7 +171,11 @@ struct bg_mediatree_s
   int y;
   int width;
   int height;
-  
+
+  /* Current entry in shuffle list */
+
+  bg_shuffle_list_t * shuffle_current;
+  bg_shuffle_mode_t last_shuffle_mode;
   };
 
 
@@ -168,6 +187,4 @@ struct bg_mediatree_s
 void bg_album_entry_destroy(bg_album_entry_t * entry);
 
 bg_album_entry_t * bg_album_entry_create(bg_album_t * album);
-
-/* Configzuration stuff */
 

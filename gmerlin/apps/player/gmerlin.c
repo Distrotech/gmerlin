@@ -352,12 +352,13 @@ int gmerlin_play(gmerlin_t * g, int ignore_flags)
 void gmerlin_next_track(gmerlin_t * g)
   {
   int result, keep_going;
-
+  
   if(g->playback_flags & PLAYBACK_NOADVANCE)
     {
     bg_player_stop(g->player);
     return;
     }
+  
   result = 1;
   keep_going = 1;
   while(keep_going)
@@ -366,7 +367,7 @@ void gmerlin_next_track(gmerlin_t * g)
       {
       case REPEAT_MODE_NONE:
         //      fprintf(stderr, "REPEAT_MODE_NONE\n");
-        if(bg_media_tree_next(g->tree, 0))
+        if(bg_media_tree_next(g->tree, 0, g->shuffle_mode))
           {
           result = gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
           if(result)
@@ -387,7 +388,7 @@ void gmerlin_next_track(gmerlin_t * g)
         break;
       case REPEAT_MODE_ALL:
         //        fprintf(stderr, "REPEAT_MODE_ALL\n");
-        bg_media_tree_next(g->tree, 1);
+        bg_media_tree_next(g->tree, 1, g->shuffle_mode);
         result = gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
         if(result)
           keep_going = 0;
@@ -398,6 +399,7 @@ void gmerlin_next_track(gmerlin_t * g)
     if(!result && !(g->playback_flags & PLAYBACK_SKIP_ERROR))
       break;
     }
+  
   }
 
 static bg_parameter_info_t parameters[] =
@@ -418,6 +420,16 @@ static bg_parameter_info_t parameters[] =
       long_name: "Don't advance",
       type:      BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
+    },
+    {
+      name:      "shuffle_mode",
+      long_name: "Shuffle mode",
+      type:      BG_PARAMETER_STRINGLIST,
+      options: (char*[]){"Off",
+                         "Current album",
+                         "All open albums",
+                         (char*)0 },
+      val_default: { val_str: "Off" }
     },
     {
       name:        "mainwin_x",
@@ -499,6 +511,21 @@ void gmerlin_set_parameter(void * data, char * name, bg_parameter_value_t * val)
   else if(!strcmp(name, "mainwin_y"))
     {
     g->player_window->window_y = val->val_i;
+    }
+  else if(!strcmp(name, "shuffle_mode"))
+    {
+    if(!strcmp(val->val_str, "Off"))
+      {
+      g->shuffle_mode = BG_SHUFFLE_MODE_OFF;
+      }
+    else if(!strcmp(val->val_str, "Current album"))
+      {
+      g->shuffle_mode = BG_SHUFFLE_MODE_CURRENT;
+      }
+    else if(!strcmp(val->val_str, "All open albums"))
+      {
+      g->shuffle_mode = BG_SHUFFLE_MODE_ALL;
+      }
     }
   else if(!strcmp(name, "volume"))
     {

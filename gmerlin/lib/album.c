@@ -28,6 +28,17 @@
 #include <utils.h>
 #include <http.h>
 
+/*
+ *  This must be called, whenever the tracks in all open albums
+ *  change.
+ */
+
+static void delete_shuffle_list(bg_album_t * album)
+  {
+  bg_shuffle_list_destroy(album->com->shuffle_list);
+  album->com->shuffle_list = NULL;
+  }
+
 static char * new_filename(bg_album_t * album)
   {
   /*
@@ -196,6 +207,7 @@ static void insertion_done(bg_album_t * album)
     case BG_ALBUM_TYPE_PLUGIN:
       break;
     }
+  delete_shuffle_list(album);
   }
 
 void bg_album_insert_entries_after(bg_album_t * album,
@@ -527,10 +539,11 @@ void bg_album_close(bg_album_t *a )
 
   bg_album_entries_destroy(a->entries);
   a->entries = (bg_album_entry_t*)0;
-  
+
+  /* Delete shuffle list */
+
+  delete_shuffle_list(a);
   }
-
-
 
 void bg_album_set_expanded(bg_album_t * a, int expanded)
   {
@@ -624,6 +637,8 @@ void bg_album_delete_selected(bg_album_t * album)
   if(new_entries)
     new_entries_end->next = (bg_album_entry_t*)0;
   album->entries = new_entries;
+  
+  delete_shuffle_list(album);
   }
 
 void bg_album_select_error_tracks(bg_album_t * album)
