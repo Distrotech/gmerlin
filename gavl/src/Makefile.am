@@ -1,4 +1,3 @@
-CFLAGS = @CFLAGS@ -I@top_srcdir@/include
 noinst_PROGRAMS = colorspace_test colorspace_time
 
 colorspace_test_SOURCES = colorspace_test.c

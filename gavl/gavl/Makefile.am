@@ -1,4 +1,3 @@
-CFLAGS = @CFLAGS@  -I@top_srcdir@/include
 
 if ARCH_X86
 mmx_libs = mmx/libgavl_mmx.la mmxext/libgavl_mmxext.la

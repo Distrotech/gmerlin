@@ -95,6 +95,9 @@ AM_CONDITIONAL(ARCH_X86, test x$CPU_PENTIUM = xtrue)
 
 AM_CONDITIONAL(HAVE_STANDALONE, test x$have_standalone = xtrue)
 
+INCLUDES='-I$(top_builddir)/include'
+AC_SUBST(INCLUDES)
+
 AC_OUTPUT(Makefile \
 gavl.spec \
 gavl.pc \

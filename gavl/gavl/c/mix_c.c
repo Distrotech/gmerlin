@@ -163,6 +163,7 @@ void gavl_setup_mix_funcs_c(gavl_mixer_table_t * t,
   switch(f->sample_format)
     {
     case GAVL_SAMPLE_U8:
+      t->mix_1_to_1 = mix_1_to_1_u8;
       t->mix_2_to_1 = mix_2_to_1_u8;
       t->mix_3_to_1 = mix_3_to_1_u8;
       t->mix_4_to_1 = mix_4_to_1_u8;
@@ -170,6 +171,7 @@ void gavl_setup_mix_funcs_c(gavl_mixer_table_t * t,
       t->mix_6_to_1 = mix_6_to_1_u8;
       break;
     case GAVL_SAMPLE_S8:
+      t->mix_1_to_1 = mix_1_to_1_s8;
       t->mix_2_to_1 = mix_2_to_1_s8;
       t->mix_3_to_1 = mix_3_to_1_s8;
       t->mix_4_to_1 = mix_4_to_1_s8;
@@ -177,12 +179,14 @@ void gavl_setup_mix_funcs_c(gavl_mixer_table_t * t,
       t->mix_6_to_1 = mix_6_to_1_s8;
       break;
     case GAVL_SAMPLE_U16:
+      t->mix_1_to_1 = mix_1_to_1_u16;
       t->mix_2_to_1 = mix_2_to_1_u16;
       t->mix_3_to_1 = mix_3_to_1_u16;
       t->mix_4_to_1 = mix_4_to_1_u16;
       t->mix_5_to_1 = mix_5_to_1_u16;
       t->mix_6_to_1 = mix_6_to_1_u16;
     case GAVL_SAMPLE_S16:
+      t->mix_1_to_1 = mix_1_to_1_s16;
       t->mix_2_to_1 = mix_2_to_1_s16;
       t->mix_3_to_1 = mix_3_to_1_s16;
       t->mix_4_to_1 = mix_4_to_1_s16;
@@ -190,6 +194,7 @@ void gavl_setup_mix_funcs_c(gavl_mixer_table_t * t,
       t->mix_6_to_1 = mix_6_to_1_s16;
       break;
     case GAVL_SAMPLE_S32:
+      t->mix_1_to_1 = mix_1_to_1_s32;
       t->mix_2_to_1 = mix_2_to_1_s32;
       t->mix_3_to_1 = mix_3_to_1_s32;
       t->mix_4_to_1 = mix_4_to_1_s32;
@@ -197,6 +202,7 @@ void gavl_setup_mix_funcs_c(gavl_mixer_table_t * t,
       t->mix_6_to_1 = mix_6_to_1_s32;
       break;
     case GAVL_SAMPLE_FLOAT:
+      t->mix_1_to_1 = mix_1_to_1_float;
       t->mix_2_to_1 = mix_2_to_1_float;
       t->mix_3_to_1 = mix_3_to_1_float;
       t->mix_4_to_1 = mix_4_to_1_float;

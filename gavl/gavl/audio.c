@@ -32,6 +32,8 @@ void gavl_audio_options_copy(gavl_audio_options_t * dst,
   memcpy(dst, src, sizeof(*dst));
   }
 
+#if 0
+
 static gavl_audio_convert_context_t *
 create_resample_context(gavl_audio_options_t * opt,
                         const gavl_audio_format_t * in_format,
@@ -42,7 +44,7 @@ create_resample_context(gavl_audio_options_t * opt,
   fprintf(stderr, "Resampling required but not supported\n");
   return ret;
   }
-
+#endif
 
 void gavl_audio_default_options(gavl_audio_options_t * opt)
   {

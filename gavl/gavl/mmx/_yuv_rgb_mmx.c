@@ -400,7 +400,7 @@ static mmx_t yuv_rgb_lowest_byte = { 0x00000000000000FFLL };
 
 
 
-static mmx_t rgba32_alphamask = {0xff000000ff000000};
+static mmx_t rgba32_alphamask = {0xff000000ff000000LL};
 
 #define OUTPUT_RGBA_32 pxor_r2r (mm3, mm3);\
                        movq_r2r (mm1, mm6);\
@@ -428,9 +428,9 @@ static mmx_t rgba32_alphamask = {0xff000000ff000000};
                        por_m2r (rgba32_alphamask, mm4);\
                        MOVQ_R2M (mm4, *(dst+24));
 
-static mmx_t rgb16_bluemask = {0xf8f8f8f8f8f8f8f8};
-static mmx_t rgb16_greenmask = {0xfcfcfcfcfcfcfcfc};
-static mmx_t rgb16_redmask = {0xf8f8f8f8f8f8f8f8};
+static mmx_t rgb16_bluemask = {0xf8f8f8f8f8f8f8f8LL};
+static mmx_t rgb16_greenmask = {0xfcfcfcfcfcfcfcfcLL};
+static mmx_t rgb16_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #define OUTPUT_RGB_16 pand_m2r (rgb16_bluemask, mm0);/*  mm0 = b7b6b5b4b3______ */\
                       pxor_r2r (mm4, mm4);/*             mm4 = 0                */\
@@ -469,9 +469,9 @@ static mmx_t rgb16_redmask = {0xf8f8f8f8f8f8f8f8};
                       MOVQ_R2M (mm5, *(dst+8));\
 
 
-static mmx_t rgb15_bluemask = {0xf8f8f8f8f8f8f8f8};
-static mmx_t rgb15_greenmask = {0xf8f8f8f8f8f8f8f8};
-static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8};
+static mmx_t rgb15_bluemask = {0xf8f8f8f8f8f8f8f8LL};
+static mmx_t rgb15_greenmask = {0xf8f8f8f8f8f8f8f8LL};
+static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #define OUTPUT_RGB_15 pand_m2r (rgb15_bluemask, mm0);/*  mm0 = b7b6b5b4b3______ */\
                       pxor_r2r (mm4, mm4);/*             mm4 = 0                */\

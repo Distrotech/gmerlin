@@ -1,4 +1,3 @@
-CFLAGS = @CFLAGS@ -I@top_srcdir@/include
 
 noinst_LTLIBRARIES = libgavl_c.la
 

@@ -110,7 +110,7 @@ static void add_context(gavl_audio_converter_t* cnv,
   cnv->current_format = &(ctx->output_format);
   cnv->num_conversions++;
   }
-
+#if 0
 static void dump_context(gavl_audio_convert_context_t * ctx)
   {
   fprintf(stderr, "==== Conversion context ====\n");
@@ -121,6 +121,7 @@ static void dump_context(gavl_audio_convert_context_t * ctx)
   fprintf(stderr, "Func: %p\n", ctx->func);
   
   }
+#endif
 
 int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
                               const gavl_audio_options_t * opt,

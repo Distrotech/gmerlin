@@ -1914,6 +1914,8 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 /* Conversion from RGBA to RGB formats */
 
+#if 0
+
 static void  rgba_32_to_rgb_15_mmx(gavl_video_convert_context_t * ctx)
   {
   }
@@ -1945,7 +1947,7 @@ static void  rgba_32_to_rgb_32_mmx(gavl_video_convert_context_t * ctx)
 static void  rgba_32_to_bgr_32_mmx(gavl_video_convert_context_t * ctx)
   {
   }
-
+#endif
 
 #ifdef MMXEXT
 
