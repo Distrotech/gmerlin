@@ -546,7 +546,7 @@ static int open_encoder(void * data, const char * filename_base,
   return 0;
   }
 
-void add_video_stream_encoder(void * data, bg_video_info_t * info)
+void add_video_stream_encoder(void * data, gavl_video_format_t * format)
   {
   
   }

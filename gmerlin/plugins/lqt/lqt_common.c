@@ -141,39 +141,22 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
   lqt_destroy_codec_info(codec_info);
   }
 
-int bg_lqt_set_parameter(const char * name, bg_parameter_value_t * val,
-                         bg_parameter_info_t * info)
+void bg_lqt_set_audio_parameter(quicktime_t * file,
+                                const char * name,
+                                bg_parameter_value_t * val,
+                                bg_parameter_info_t * info)
   {
-  int i, j, done;
-  if(strncmp(name, "codec_", 6))
-    return 0;
-    
-  done = 0;
-  i = 0;
-  while(info->multi_names[i])
-    {
-    if(info->multi_parameters[i])
-      {
-      j = 0;
-      
-      while(info->multi_parameters[i][j].name)
-        {
-        if(!strcmp(name, info->multi_parameters[i][j].name))
-          {
-          bg_parameter_value_copy(&(info->multi_parameters[i][j].val_default),
-                                  val,
-                                  &(info->multi_parameters[i][j]));
-          done = 1;
-          }
-        j++;
-        }
-      }
-    i++;
-    if(done)
-      break;
-    }
-  return done;
+  
   }
+
+void bg_lqt_set_video_parameter(quicktime_t * file,
+                                const char * name,
+                                bg_parameter_value_t * val,
+                                bg_parameter_info_t * info)
+  {
+  
+  }
+
 
 static int _colormodels[] =
   {

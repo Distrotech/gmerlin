@@ -52,7 +52,7 @@ struct transcoder_window_s
 
   bg_transcoder_t * transcoder;
   bg_transcoder_track_t * transcoder_track;
-  
+  const bg_transcoder_info_t * transcoder_info;
   };
 
 static void
@@ -66,9 +66,9 @@ static void plugin_window_close_notify(plugin_window_t * w,
   gtk_widget_set_sensitive(win->preferences_button, 1);
   }
 
-static void finish_transcoding(transcoder_window_t * win, int do_delete)
+static void finish_transcoding(transcoder_window_t * win)
   {
-  bg_transcoder_destroy(win->transcoder, do_delete);
+  bg_transcoder_destroy(win->transcoder);
   win->transcoder = (bg_transcoder_t*)0;
 
   bg_transcoder_track_destroy(win->transcoder_track);
@@ -83,19 +83,51 @@ static gboolean idle_callback(gpointer data)
   if(!bg_transcoder_iteration(win->transcoder))
     {
     /* Finish transcoding */
-    finish_transcoding(win, 0);
+    finish_transcoding(win);
+
+    bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED);
+    
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
+    
+    fprintf(stderr, "Transcoding done\n");
     return FALSE;
     }
+
+  /* Update status */
+
+  bg_gtk_time_display_update(win->time_remaining,
+                             win->transcoder_info->remaining_time);
+  
+  gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), win->transcoder_info->percentage_done);
   return TRUE;
   }
 
 static void start_transcode(transcoder_window_t * win)
   {
+  bg_cfg_section_t * cfg_section;
+  
+  cfg_section = bg_cfg_registry_find_section(win->cfg_reg, "output");
+
   win->transcoder_track      = track_list_get_track(win->tracklist);
   if(!win->transcoder_track)
     return;
+  
+  win->transcoder            = bg_transcoder_create();
 
-  win->transcoder            = bg_transcoder_create(win->plugin_reg, win->transcoder_track);
+  win->transcoder_info = bg_transcoder_get_info(win->transcoder);
+  
+  bg_cfg_section_apply(cfg_section, bg_transcoder_get_parameters(),
+                       bg_transcoder_set_parameter, win->transcoder);
+
+  if(!bg_transcoder_init(win->transcoder,
+                         win->plugin_reg, win->transcoder_track))
+    {
+    fprintf(stderr, "Failed to initialize transcoder\n");
+    return;
+    }
+  fprintf(stderr, "Initialized transcoder\n");
+
+  g_idle_add(idle_callback, win);
   }
 
 static void button_callback(GtkWidget * w, gpointer data)
@@ -105,7 +137,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   if(w == win->run_button)
     {
     fprintf(stderr, "Run Button\n");
-    
+    start_transcode(win);
     }
   else if(w == win->stop_button)
     {
@@ -216,6 +248,7 @@ transcoder_window_t * transcoder_window_create()
 
   /* Time display */
   ret->time_remaining = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL);
+  bg_gtk_time_display_update(ret->time_remaining, GAVL_TIME_UNDEFINED);
 
   /* Status bar */
 
@@ -308,41 +341,6 @@ void transcoder_window_run(transcoder_window_t * w)
 
 /* Configuration stuff */
 
-
-static bg_parameter_info_t output_parameters[] =
-  {
-    {
-      name:      "output_directory",
-      long_name: "Output Directory",
-      type:      BG_PARAMETER_DIRECTORY,
-      val_default: { val_str: "." },
-    },
-    {
-      name:        "delete_incomplete",
-      long_name:   "Delete incomplete output files",
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-    },
-    { /* End of parameters */ }
-  };
-
-static void set_parameter(void * data, char * name, bg_parameter_value_t * val)
-  {
-  transcoder_window_t * w = (transcoder_window_t*)data;
-
-  if(!name)
-    return;
-
-  if(!strcmp(name, "output_directory"))
-    {
-    w->output_directory = bg_strdup(w->output_directory, val->val_str);
-    }
-  else if(!strcmp(name, "delete_incomplete"))
-    {
-    w->delete_incomplete = val->val_i;
-    }
-  }
-
 static void transcoder_window_preferences(transcoder_window_t * w)
   {
   bg_dialog_t * dlg;
@@ -356,9 +354,9 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   bg_dialog_add(dlg,
                 "Output options",
                 cfg_section,
-                set_parameter,
+                NULL,
                 w,
-                output_parameters);
+                bg_transcoder_get_parameters());
 
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section, "audio");
   

@@ -33,11 +33,18 @@ typedef struct
   char * language;
   } bg_audio_info_t;
 
+void bg_audio_info_copy(bg_audio_info_t * dst, const bg_audio_info_t * src);
+void bg_audio_info_free(bg_audio_info_t * info);
+
+
 typedef struct
   {
   gavl_video_format_t format;
   char * description;
   } bg_video_info_t;
+
+void bg_video_info_copy(bg_video_info_t * dst, const bg_video_info_t * src);
+void bg_video_info_free(bg_video_info_t * info);
 
 typedef struct
   {

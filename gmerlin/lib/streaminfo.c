@@ -34,6 +34,35 @@
     ptr = NULL; \
     }
 
+#define CS(str) dst->str = bg_strdup(dst->str, src->str);
+
+void bg_audio_info_copy(bg_audio_info_t * dst,
+                        const bg_audio_info_t * src)
+  {
+  gavl_audio_format_copy(&(dst->format), &(src->format));
+  
+  CS(language);
+  CS(description);
+  }
+
+void bg_video_info_copy(bg_video_info_t * dst,
+                        const bg_video_info_t * src)
+  {
+  gavl_video_format_copy(&(dst->format), &(src->format));
+  CS(description);
+  }
+
+void bg_audio_info_free(bg_audio_info_t * info)
+  {
+  MY_FREE(info->description);
+  MY_FREE(info->language);
+  }
+
+void bg_video_info_free(bg_video_info_t * info)
+  {
+  MY_FREE(info->description);
+  }
+
 void bg_track_info_free(bg_track_info_t * info)
   {
   int i;
@@ -41,11 +70,16 @@ void bg_track_info_free(bg_track_info_t * info)
   if(info->audio_streams)
     {
     for(i = 0; i < info->num_audio_streams; i++)
-      MY_FREE(info->audio_streams[i].language);
+      bg_audio_info_free(&(info->audio_streams[i]));
     MY_FREE(info->audio_streams);
     }
-  
-  MY_FREE(info->video_streams);
+
+  if(info->video_streams)
+    {
+    for(i = 0; i < info->num_video_streams; i++)
+      bg_video_info_free(&(info->video_streams[i]));
+    MY_FREE(info->video_streams);
+    }
   if(info->subpicture_streams)
     {
     for(i = 0; i < info->num_subpicture_streams; i++)

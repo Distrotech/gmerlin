@@ -16,6 +16,8 @@ typedef struct
   char * error_msg;
 
   gavl_audio_format_t format;
+
+  char * filename;
   } wav_t;
 
 #if 0
@@ -123,22 +125,66 @@ static void set_audio_parameter_wav(void * data, int stream, char * name,
   if(!name)
     return;
 
+  fprintf(stderr, "set_audio_parameter_wav %s\n", name);
+  
   if(!strcmp(name, "bits"))
     {
     wav->bytes_per_sample = atoi(v->val_str) / 8;
+    
+    /* Write the header and adjust format */
+
+    write_fourcc(wav->output, 'R', 'I', 'F', 'F'); /* "RIFF" */
+    write_32(wav->output, 0x00000000);             /*  size  */
+    write_fourcc(wav->output, 'W', 'A', 'V', 'E'); /* "WAVE" */
+    write_fourcc(wav->output, 'f', 'm', 't', ' '); /* "fmt " */
+    write_32(wav->output, 16);                     /* Size   */
+    write_16(wav->output, 0x0001);                 /* WAV ID */
+
+    write_16(wav->output, wav->format.num_channels);   /* nch        */
+    write_32(wav->output, wav->format.samplerate);     /* Samplerate */
+    
+    /* Bytes per second */
+    write_32(wav->output, wav->bytes_per_sample *
+             wav->format.num_channels * wav->format.samplerate);
+
+    /* Block align */
+    write_16(wav->output, wav->bytes_per_sample * wav->format.num_channels);
+
+    /* Bits */
+
+    write_16(wav->output, wav->bytes_per_sample * 8);
+
+    /* Start data section */
+
+    write_fourcc(wav->output, 'd', 'a', 't', 'a'); /* "data" */
+    write_32(wav->output, 0x00000000);             /*  size  */
+
+    /* Adjust format */
+
+    switch(wav->bytes_per_sample)
+      {
+      case 1:
+        wav->format.sample_format = GAVL_SAMPLE_U8;
+        break;
+      case 2:
+        wav->format.sample_format = GAVL_SAMPLE_S16;
+        break;
+      case 3:
+        wav->format.sample_format = GAVL_SAMPLE_S32;
+        break;
+      }
     }
   }
 
 static int open_wav(void * data, const char * filename_base,
                     bg_metadata_t * metadata)
   {
-  char * filename;
   int result;
   wav_t * wav;
   wav = (wav_t*)data;
-
-  filename = bg_sprintf("%s.wav");
-  wav->output = fopen(filename, "wb");
+  
+  wav->filename = bg_sprintf("%s.wav", filename_base);
+  wav->output = fopen(wav->filename, "wb");
 
   if(!wav->output)
     {
@@ -149,61 +195,20 @@ static int open_wav(void * data, const char * filename_base,
   else
     result = 1;
   
-  free(filename);
   return result;
   }
 
 
-static void add_audio_stream_wav(void * data, bg_audio_info_t * audio_info)
+static void add_audio_stream_wav(void * data, gavl_audio_format_t * format)
   {
   wav_t * wav;
   
   wav = (wav_t*)data;
 
-  gavl_audio_format_copy(&(wav->format), &(audio_info->format));
-  
-  /* Write the header and adjust format */
+  gavl_audio_format_copy(&(wav->format), format);
 
-  write_fourcc(wav->output, 'R', 'I', 'F', 'F'); /* "RIFF" */
-  write_32(wav->output, 0x00000000);             /*  size  */
-  write_fourcc(wav->output, 'W', 'A', 'V', 'E'); /* "WAVE" */
-  write_fourcc(wav->output, 'f', 'm', 't', ' '); /* "fmt " */
-  write_16(wav->output, 16);                     /* Size   */
-  write_16(wav->output, 0x0001);                 /* WAV ID */
-
-  write_16(wav->output, wav->format.num_channels);   /* nch        */
-  write_32(wav->output, wav->format.samplerate);     /* Samplerate */
-    
-  /* Bytes per second */
-  write_32(wav->output, wav->bytes_per_sample *
-           wav->format.num_channels * wav->format.samplerate);
-
-  /* Block align */
-  write_16(wav->output, wav->bytes_per_sample * wav->format.num_channels);
-
-  /* Bits */
-
-  write_16(wav->output, wav->bytes_per_sample * 8);
-
-  /* Start data section */
-
-  write_fourcc(wav->output, 'd', 'a', 't', 'a'); /* "data" */
-  write_32(wav->output, 0x00000000);             /*  size  */
-
-  /* Adjust format */
-
-  switch(wav->bytes_per_sample)
-    {
-    case 1:
-      wav->format.sample_format = GAVL_SAMPLE_U8;
-      break;
-    case 2:
-      wav->format.sample_format = GAVL_SAMPLE_S16;
-      break;
-    case 3:
-      wav->format.sample_format = GAVL_SAMPLE_S32;
-      break;
-    }
+  // fprintf(stderr, "add_audio_stream_wav\n");
+  // gavl_audio_format_dump(&(wav->format));
   
   wav->format.interleave_mode = GAVL_INTERLEAVE_ALL;
   return;
@@ -240,9 +245,7 @@ static void get_audio_format_wav(void * data, int stream,
   {
   wav_t * wav;
   wav = (wav_t*)data;
-
   gavl_audio_format_copy(ret, &(wav->format));
-  
   }
 
 
@@ -251,6 +254,9 @@ static void close_wav(void * data, int do_delete)
   wav_t * wav;
   int64_t total_bytes;
   wav = (wav_t*)data;
+
+  fprintf(stderr, "close_wav\n");
+  
   total_bytes = ftell(wav->output);
   
   fseek(wav->output, RIFF_SIZE_OFFSET, SEEK_SET);

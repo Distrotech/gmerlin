@@ -272,8 +272,10 @@ void bg_cfg_section_apply(bg_cfg_section_t * section,
                           bg_set_parameter_func func,
                           void * callback_data)
   {
-  int num;
+  int num, selected;
   bg_cfg_item_t * item;
+  bg_cfg_section_t * subsection;
+  bg_cfg_section_t * subsubsection;
 
   num = 0;
 
@@ -281,6 +283,28 @@ void bg_cfg_section_apply(bg_cfg_section_t * section,
     {
     item = bg_cfg_section_find_item(section, &(infos[num]));
     func(callback_data, item->name, &(item->value));
+
+    /* If this was a menu, apply children */ 
+
+    if((infos[num].type == BG_PARAMETER_MULTI_MENU) &&
+       infos[num].multi_names && infos[num].multi_parameters)
+      {
+      selected = 0;
+      while(infos[num].multi_names[selected] &&
+            strcmp(infos[num].multi_names[selected], item->value.val_str))
+        selected++;
+      if(infos[num].multi_names[selected] && infos[num].multi_parameters[selected])
+        {
+        subsection    = bg_cfg_section_find_subsection(section, infos[num].name);
+        subsubsection = bg_cfg_section_find_subsection(subsection,
+                                                       item->value.val_str);
+        bg_cfg_section_apply(subsubsection,
+                             infos[num].multi_parameters[selected],
+                             func, callback_data);
+        
+        }
+      }
+    
     num++;
     }
   func(callback_data, NULL, NULL);

@@ -459,8 +459,8 @@ typedef struct bg_encoder_plugin_s
   /* Add streams. The formats can be changed, be sure to get the
      final formats with get_[audio|video]_format later on */
   
-  void (*add_audio_stream)(void *, bg_audio_info_t * info);
-  void (*add_video_stream)(void *, bg_video_info_t * info);
+  void (*add_audio_stream)(void *, gavl_audio_format_t * format);
+  void (*add_video_stream)(void *, gavl_video_format_t * format);
 
   /* Set parameters for the streams */
   

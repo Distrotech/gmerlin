@@ -418,11 +418,11 @@ static void set_parameter_lqt(void * data, char * name,
 
   if(!e->parameters)
     create_parameters(e);
-
+#if 0
   if(bg_lqt_set_parameter(name, val, &(e->parameters[PARAM_AUDIO])) ||
      bg_lqt_set_parameter(name, val, &(e->parameters[PARAM_VIDEO])))
     return;
-
+#endif
   if(!strcmp(name, "audio_codecs"))
     {
     e->audio_codec_string = bg_strdup(e->audio_codec_string, val->val_str);
