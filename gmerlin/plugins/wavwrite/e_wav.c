@@ -159,7 +159,7 @@ static void set_audio_parameter_wav(void * data, int stream, char * name,
   if(!name)
     return;
 
-  fprintf(stderr, "set_audio_parameter_wav %s\n", name);
+  //  fprintf(stderr, "set_audio_parameter_wav %s\n", name);
   
   if(!strcmp(name, "bits"))
     {

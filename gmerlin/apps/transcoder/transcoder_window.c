@@ -392,7 +392,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->stop_button)
     {
-    //    fprintf(stderr, "Stop Button\n");
+    fprintf(stderr, "Stop Button\n");
     
     track_list_prepend_track(win->tracklist, win->transcoder_track);
     win->transcoder_track = (bg_transcoder_track_t*)0;

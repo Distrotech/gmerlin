@@ -95,8 +95,12 @@ typedef struct
   int fixed_channel_setup;
   gavl_channel_setup_t channel_setup;
 
+  int64_t samples_to_read;
+  int64_t samples_read;
+
   int64_t samples_written;
   
+  int initialized;
   } audio_stream_t;
 
 static void set_audio_parameter_general(void * data, char * name, bg_parameter_value_t * val)
@@ -208,7 +212,11 @@ typedef struct
   int frame_duration;
   int timescale;
 
-  
+  /* Other stuff */
+
+  int initialized;
+  int64_t start_time_scaled;
+
   } video_stream_t;
 
 static void set_video_parameter_general(void * data,
@@ -616,22 +624,63 @@ static void finalize_video_stream(video_stream_t * ret,
     
   }
 
-static void audio_iteration(audio_stream_t*s)
+static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   {
-  int result;
+  int num_samples;
+  int samples_decoded;
+  
   //  fprintf(stderr, "Audio iteration\n");
   /* Get one frame worth of input data */
 
-  result = s->com.in_plugin->read_audio_samples(s->com.in_handle->priv,
+  if(!s->initialized)
+    {
+    if((t->start_time != GAVL_TIME_UNDEFINED) &&
+       (t->end_time != GAVL_TIME_UNDEFINED) &&
+       (t->end_time > t->start_time))
+      {
+      s->samples_to_read = gavl_time_to_samples(s->out_format.samplerate,
+                                                t->end_time - t->start_time);
+      
+      }
+    else if(t->end_time != GAVL_TIME_UNDEFINED)
+      {
+      s->samples_to_read = gavl_time_to_samples(s->out_format.samplerate,
+                                                t->end_time);
+      }
+    else
+      s->samples_to_read = 0; /* Zero == Infinite */
+
+    s->initialized = 1;
+    }
+
+  if(s->samples_to_read &&
+     (s->samples_read + s->in_format.samples_per_frame > s->samples_to_read))
+    num_samples = s->samples_to_read - s->samples_read;
+  else
+    num_samples = s->in_format.samples_per_frame;
+    
+  samples_decoded = s->com.in_plugin->read_audio_samples(s->com.in_handle->priv,
                                                 s->in_frame,
                                                 s->com.in_index,
-                                                s->in_format.samples_per_frame);
-  if(!result)
+                                                num_samples);
+  /* Nothing more to transcode */
+  
+  if(!samples_decoded)
     {
     s->com.status = STREAM_STATE_FINISHED;
     return;
     }
+
+  s->samples_read += samples_decoded;
+
+  /* Last samples */
   
+  if((samples_decoded < num_samples) ||
+     (s->samples_to_read && (s->samples_to_read <= s->samples_read)))
+    {
+    s->com.status = STREAM_STATE_FINISHED;
+    }
+
   /* Convert and encode it */
   
   if(s->com.do_convert)
@@ -654,18 +703,53 @@ static void audio_iteration(audio_stream_t*s)
   //  fprintf(stderr, "Audio iteration 1 %d\n", s->in_format.samples_per_frame);
   }
 
+static int decode_video_frame(video_stream_t * s, bg_transcoder_t * t,
+                              gavl_video_frame_t * f, int idx)
+  {
+  int result;
+  result = s->com.in_plugin->read_video_frame(s->com.in_handle->priv,
+                                              f, idx);
+
+  if(!result)
+    return 0;
+  
+  /* Check for end of stream */
+  
+  if((t->end_time != GAVL_TIME_UNDEFINED) &&
+     (f->time >= t->end_time))
+    return 0;
+  
+  /* Correct timestamps */
+
+  if(s->start_time_scaled)
+    {
+    f->time_scaled -= s->start_time_scaled;
+    if(f->time_scaled < 0)
+      f->time_scaled = 0;
+    f->time = gavl_samples_to_time(s->in_format.timescale, f->time_scaled);
+    }
+  return 1;
+  }
+
+
 #define SWAP_FRAMES \
   tmp_frame=s->in_frame_1;\
   s->in_frame_1=s->in_frame_2;\
   s->in_frame_2=tmp_frame
 
-
-static void video_iteration(video_stream_t * s)
+static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
   {
   gavl_time_t next_time;
   gavl_video_frame_t * tmp_frame;
   int result;
 
+  if(!s->initialized)
+    {
+    if(t->start_time != GAVL_TIME_UNDEFINED)
+      s->start_time_scaled = gavl_time_to_samples(s->in_format.timescale,
+                                                  t->start_time);
+    }
+  
   //  fprintf(stderr, "Video iteration\n");
   
   if(s->convert_framerate)
@@ -678,18 +762,14 @@ static void video_iteration(video_stream_t * s)
     if(s->in_frame_1->time == GAVL_TIME_UNDEFINED)
       {
       /* Decode initial 2 frame(s) */
-      result = s->com.in_plugin->read_video_frame(s->com.in_handle->priv,
-                                                  s->in_frame_1,
-                                                  s->com.in_index);
+      result = decode_video_frame(s, t, s->in_frame_1, s->com.in_index);
       if(!result)
         {
         s->com.status = STREAM_STATE_FINISHED;
         return;
         }
 
-      result = s->com.in_plugin->read_video_frame(s->com.in_handle->priv,
-                                                  s->in_frame_2,
-                                                  s->com.in_index);
+      result = decode_video_frame(s, t, s->in_frame_2, s->com.in_index);
       if(!result)
         {
         s->com.status = STREAM_STATE_FINISHED;
@@ -703,10 +783,7 @@ static void video_iteration(video_stream_t * s)
     while(s->in_frame_2->time < next_time)
       {
       SWAP_FRAMES;
-      result = s->com.in_plugin->read_video_frame(s->com.in_handle->priv,
-                                                  s->in_frame_1,
-                                                  s->com.in_index);
-      
+      result = decode_video_frame(s, t, s->in_frame_2, s->com.in_index);
       if(!result)
         {
         s->com.status = STREAM_STATE_FINISHED;
@@ -720,7 +797,8 @@ static void video_iteration(video_stream_t * s)
       tmp_frame = s->in_frame_1;
 
     tmp_frame->time = next_time;
-
+    tmp_frame->time_scaled = s->frames_written * s->out_format.frame_duration;
+    
     if(s->com.do_convert)
       {
       gavl_video_convert(s->cnv, tmp_frame, s->out_frame);
@@ -740,9 +818,8 @@ static void video_iteration(video_stream_t * s)
     }
   else
     {
-    result = s->com.in_plugin->read_video_frame(s->com.in_handle->priv,
-                                                s->in_frame_1,
-                                                s->com.in_index);
+    result = decode_video_frame(s, t, s->in_frame_1, s->com.in_index);
+    
     if(!result)
       {
       s->com.status = STREAM_STATE_FINISHED;
@@ -910,7 +987,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   plugin_info = bg_plugin_find_by_name(plugin_reg, ret->plugin);
   if(!plugin_info)
     {
-    ret->error_msg = bg_sprintf("Cannot find plugin %s\n", ret->plugin);
+    ret->error_msg = bg_sprintf("Cannot find plugin %s", ret->plugin);
     ret->error_msg_ret = ret->error_msg;
     goto fail;
     }
@@ -918,7 +995,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   ret->in_handle = bg_plugin_load(plugin_reg, plugin_info);
   if(!ret->in_handle)
     {
-    ret->error_msg = bg_sprintf("Cannot open plugin %s\n", ret->plugin);
+    ret->error_msg = bg_sprintf("Cannot open plugin %s", ret->plugin);
     ret->error_msg_ret = ret->error_msg;
     goto fail;
     }
@@ -927,7 +1004,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
 
   if(!ret->in_plugin->open(ret->in_handle->priv, ret->location))
     {
-    ret->error_msg = bg_sprintf("Cannot open %s with plugin %s\n",
+    ret->error_msg = bg_sprintf("Cannot open %s with plugin %s",
                                   ret->location, ret->plugin);
     ret->error_msg_ret = ret->error_msg;
     goto fail;
@@ -943,7 +1020,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   if(ret->in_plugin->get_num_tracks &&
      (ret->track >= ret->in_plugin->get_num_tracks(ret->in_handle->priv)))
     {
-    ret->error_msg = bg_sprintf("Invalid track number %d\n", ret->track);
+    ret->error_msg = bg_sprintf("Invalid track number %d", ret->track);
     ret->error_msg_ret = ret->error_msg;
     goto fail;
     }
@@ -1017,8 +1094,28 @@ int bg_transcoder_init(bg_transcoder_t * ret,
       goto fail;
       }
     ret->in_plugin->seek(ret->in_handle->priv, &(ret->start_time));
+
+    /* This happens, if the decoder reached EOF during the seek */
+
+    if(ret->start_time == GAVL_TIME_UNDEFINED)
+      {
+      ret->error_msg = bg_sprintf("Cannot seek to start point");
+      ret->error_msg_ret = ret->error_msg;
+      goto fail;
+      }
     }
 
+  /* Check, if the user entered bullshit */
+
+  if((ret->start_time != GAVL_TIME_UNDEFINED) &&
+     (ret->end_time != GAVL_TIME_UNDEFINED) &&
+     (ret->end_time < ret->start_time))
+    {
+    ret->error_msg = bg_sprintf("End time if before start time");
+    ret->error_msg_ret = ret->error_msg;
+    goto fail;
+    }
+  
   /* Check for the encoding plugins */
 
   //  fprintf(stderr, "Checking for mode...");
@@ -1248,8 +1345,8 @@ int bg_transcoder_init(bg_transcoder_t * ret,
       stream_index++;
       }
 
-    encoder_plugin = video_encoder_plugin;
-    encoder_handle = video_encoder_handle;
+    //    encoder_plugin = video_encoder_plugin;
+    //    encoder_handle = video_encoder_handle;
 
     stream_index = 0;
     for(i = 0; i < ret->num_video_streams; i++)
@@ -1361,9 +1458,9 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   /* Do the actual transcoding */
 
   if(stream->type == STREAM_TYPE_AUDIO)
-    audio_iteration((audio_stream_t*)stream);
+    audio_iteration((audio_stream_t*)stream, t);
   else if(stream->type == STREAM_TYPE_VIDEO)
-    video_iteration((video_stream_t*)stream);
+    video_iteration((video_stream_t*)stream, t);
 
   if(stream->time > t->time)
     t->time = stream->time;

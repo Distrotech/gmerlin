@@ -25,7 +25,11 @@ static void button_callback(GtkWidget * w, gpointer data)
     {
     if(!priv->fileselect)
       {
-      priv->fileselect =  gtk_file_selection_new("Select a file");
+      if(priv->is_dir)
+        priv->fileselect =  gtk_file_selection_new("Select a directory");
+      else
+        priv->fileselect =  gtk_file_selection_new("Select a file");
+      
       gtk_window_set_modal(GTK_WINDOW(priv->fileselect), TRUE);
       g_signal_connect(G_OBJECT(GTK_FILE_SELECTION(priv->fileselect)->ok_button),
                        "clicked", G_CALLBACK(button_callback),
