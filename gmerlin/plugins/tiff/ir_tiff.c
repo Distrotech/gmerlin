@@ -238,7 +238,7 @@ static int read_image_tiff(void *priv, gavl_video_frame_t *frame)
     raster = transpose(raster, p->Width, p->Height);
 #endif
   
-  fprintf(stderr, "Orientation: %d\n", p->Orientation);
+  //  fprintf(stderr, "Orientation: %d\n", p->Orientation);
   
   if(p->SampleSperPixel ==4)
     {

@@ -982,6 +982,9 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
       info = bg_plugin_find_by_filename(t->com.plugin_reg,
                                         system_location,
                                         (BG_PLUGIN_INPUT));
+
+    fprintf(stderr, "bg_plugin_find_by_filename returned %p\n", info);
+
 #if 0    
     if(!info)
       {

@@ -167,7 +167,7 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
   bg_plugin_info_t * info, *ret = (bg_plugin_info_t*)0;
   int max_priority = BG_PLUGIN_PRIORITY_MIN - 1;
   
-  // fprintf(stderr, "bg_plugin_find_by_filename %p\n", reg);
+  //  fprintf(stderr, "bg_plugin_find_by_filename %08x %s\n", typemask, filename);
   
   info = reg->entries;
   extension = strrchr(filename, '.');
@@ -183,7 +183,7 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
   
   while(info)
     {
-    //    fprintf(stderr, "Trying: %s %s\n", info->long_name, info->extensions);
+    //    fprintf(stderr, "Trying: %08x %s %s\n", info->type, info->long_name, info->extensions);
     if(!(info->type & typemask) ||
        !(info->flags & BG_PLUGIN_FILE) ||
        !info->extensions)
@@ -195,6 +195,7 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
       }
     if(string_match(extension, extension_end, info->extensions))
       {
+      //      fprintf(stderr, "%s looks good %d %d\n", info->name, max_priority, info->priority);
       if(max_priority < info->priority)
         {
         max_priority = info->priority;
