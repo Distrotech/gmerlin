@@ -17,9 +17,14 @@
  
 *****************************************************************/
 
-#include <avdec_private.h>
 #include <stdlib.h>
+
+#include <inttypes.h>
 #include <mpeg2dec/mpeg2.h>
+
+#include <config.h>
+#include <codecs.h>
+#include <avdec_private.h>
 
 typedef struct
   {

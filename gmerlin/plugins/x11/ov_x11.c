@@ -341,7 +341,7 @@ static void check_xv(Display * d, Window w,
       break;
     }
    XvFreeAdaptorInfo (adaptorInfo);
-  fprintf(stderr, "Check xv: %d %d %d %d\n", (int)(*port), *have_i420, *have_yuy2, *have_yv12);
+   //  fprintf(stderr, "Check xv: %d %d %d %d\n", (int)(*port), *have_i420, *have_yuy2, *have_yv12);
   return;
   }
 
@@ -1230,11 +1230,11 @@ static int get_num_xv_parameters(Display * dpy, XvPortID xv_port)
   int i, j;
   int ret = 0;
   attr = XvQueryPortAttributes(dpy, xv_port, &nattr);
-  fprintf(stderr, "nattr: %d xv_port: %d\n", nattr, (int)xv_port);
+  //  fprintf(stderr, "nattr: %d xv_port: %d\n", nattr, (int)xv_port);
 
   for(i = 0; i < nattr; i++)
     {
-    fprintf(stderr, "attr[%d].name: %s\n", i, attr[i].name);
+    //    fprintf(stderr, "attr[%d].name: %s\n", i, attr[i].name);
     if((attr[i].flags & XvSettable) && (attr[i].flags & XvGettable))
       {
       for(j = 0; j < NUM_XV_PARAMETERS; j++)

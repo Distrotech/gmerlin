@@ -613,6 +613,8 @@ void display_set_state(display_t * d, int state,
   switch(state)
     {
     case BG_PLAYER_STATE_STOPPED:
+
+      fprintf(stderr, "display_set_state: Stopped\n");
       d->state_index = STATE_STOPPED;
       display_set_track_name(d, "Gmerlin player (version "VERSION")");
 

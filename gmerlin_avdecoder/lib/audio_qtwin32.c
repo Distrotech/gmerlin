@@ -19,9 +19,17 @@
 
 /* Ported from xine */
 
+
+
+#include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#include <config.h>
+#include <codecs.h>
 #include <avdec_private.h>
 
 
@@ -440,7 +448,32 @@ static bgav_audio_decoder_t decoder =
     resync:  resync_qtaudio
   };
 
-void bgav_init_audio_decoders_qtwin32()
+/* We won't work unless these files are there */
+
+static char * needed_filenames[] =
   {
+    "QuickTimeEssentials.qtx",
+    "QuickTime.qts",
+    "QuickTimeInternetExtras.qtx",
+    "qtmlClient.dll"
+  };
+
+int bgav_init_audio_decoders_qtwin32()
+  {
+  int i;
+  char dll_filename[PATH_MAX];
+  struct stat stat_buf;
+
+  for(i = 0; i < sizeof(needed_filenames)/sizeof(needed_filenames[0]); i++)
+    {
+    sprintf(dll_filename, "%s/%s", win32_def_path, needed_filenames[i]);
+    if(stat(dll_filename, &stat_buf))
+      {
+      fprintf(stderr, "Cannot find file %s, disabling %s\n",
+              dll_filename, decoder.name);
+      return 0;
+      }
+    }
   bgav_audio_decoder_register(&decoder);
+  return 1;
   }

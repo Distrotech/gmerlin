@@ -110,7 +110,5 @@ void bg_gtk_tree_window_hide(bg_gtk_tree_window_t* w)
     bg_media_tree_set_coords(bg_gtk_tree_widget_get_tree(w->widget),
                              x, y, width, height);
     }
-
-
   gtk_widget_hide(w->window);
   }

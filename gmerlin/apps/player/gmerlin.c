@@ -57,6 +57,80 @@ static void tree_error_callback(bg_media_tree_t * t, void * data, const char * m
   bg_player_error(g->player, message);
   }
 
+static void gmerlin_apply_config(gmerlin_t * g)
+  {
+  bg_parameter_info_t * parameters;
+
+  parameters = display_get_parameters(g->player_window->display);
+
+  bg_cfg_section_apply(g->display_section, parameters,
+                       display_set_parameter, (void*)(g->player_window->display));
+
+  parameters = bg_media_tree_get_parameters(g->tree);
+  bg_cfg_section_apply(g->tree_section, parameters,
+                       bg_media_tree_set_parameter, (void*)(g->tree));
+
+  parameters = bg_player_get_audio_parameters(g->player);
+  
+  bg_cfg_section_apply(g->audio_section, parameters,
+                       bg_player_set_audio_parameter, (void*)(g->player));
+
+  parameters = gmerlin_get_parameters(g);
+
+  bg_cfg_section_apply(g->general_section, parameters,
+                       gmerlin_set_parameter, (void*)(g));
+  
+  }
+
+static void gmerlin_get_config(gmerlin_t * g)
+  {
+  bg_parameter_info_t * parameters;
+#if 0
+  parameters = display_get_parameters(g->player_window->display);
+
+  bg_cfg_section_apply(g->display_section, parameters,
+                       display_set_parameter, (void*)(g->player_window->display));
+  parameters = bg_media_tree_get_parameters(g->tree);
+  bg_cfg_section_apply(g->tree_section, parameters,
+                       bg_media_tree_set_parameter, (void*)(g->tree));
+
+  parameters = bg_player_get_audio_parameters(g->player);
+  
+  bg_cfg_section_apply(g->audio_section, parameters,
+                       bg_player_set_audio_parameter, (void*)(g->player));
+#endif
+
+  parameters = gmerlin_get_parameters(g);
+
+  bg_cfg_section_get(g->general_section, parameters,
+                     gmerlin_get_parameter, (void*)(g));
+  
+  }
+
+static void infowindow_close_callback(bg_gtk_info_window_t * w, void * data)
+  {
+  gmerlin_t * g;
+  g = (gmerlin_t*)data;
+  main_menu_set_info_window_item(g->player_window->main_menu, 0);
+  g->show_info_window = 0;
+  }
+
+static void pluginwindow_close_callback(plugin_window_t * w, void * data)
+  {
+  gmerlin_t * g;
+  g = (gmerlin_t*)data;
+  main_menu_set_plugin_window_item(g->player_window->main_menu, 0);
+  }
+
+void treewindow_close_callback(bg_gtk_tree_window_t * win,
+                               void * data)
+  {
+  gmerlin_t * g;
+  g = (gmerlin_t*)data;
+  main_menu_set_tree_window_item(g->player_window->main_menu, 0);
+  g->show_tree_window = 0;
+  }
+
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   {
   bg_album_t * album;
@@ -108,9 +182,9 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   free(tmp_string);
   
   ret->tree_window = bg_gtk_tree_window_create(ret->tree,
-                                               gmerlin_tree_close_callback,
+                                               treewindow_close_callback,
                                                ret);
-
+  
   /* Create player window */
     
   ret->player_window = player_window_create(ret);
@@ -118,7 +192,20 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   gmerlin_skin_load(&(ret->skin), "Default");
   gmerlin_skin_set(ret);
 
+  /* Create subwindows */
+
+  ret->info_window = bg_gtk_info_window_create(ret->player,
+                                               infowindow_close_callback, 
+                                               ret);
+
+  ret->plugin_window = plugin_window_create(ret,
+                                            pluginwindow_close_callback, 
+                                            ret);
+  
+  
   gmerlin_create_dialog(ret);
+
+  
   
   /* Set playlist times for the display */
   
@@ -136,6 +223,7 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
                                duration_after);
     }
 
+  
   return ret;
   fail:
   gmerlin_destroy(ret);
@@ -158,12 +246,42 @@ void gmerlin_destroy(gmerlin_t * g)
 
 void gmerlin_run(gmerlin_t * g)
   {
+  gmerlin_apply_config(g);
+  
+  if(g->show_tree_window)
+    {
+    bg_gtk_tree_window_show(g->tree_window);
+    main_menu_set_tree_window_item(g->player_window->main_menu, 1);
+    
+    }
+  else
+    main_menu_set_tree_window_item(g->player_window->main_menu, 0);
+  
+  if(g->show_info_window)
+    {
+    bg_gtk_info_window_show(g->info_window);
+    main_menu_set_info_window_item(g->player_window->main_menu, 1);
+    }
+  else
+    {
+    main_menu_set_info_window_item(g->player_window->main_menu, 0);
+    }
   bg_player_run(g->player);
   
-  bg_gtk_tree_window_show(g->tree_window);
   player_window_show(g->player_window);
+
   gtk_main();
+
+  /* The following saves the coords */
+  
+  if(g->show_tree_window)
+    bg_gtk_tree_window_hide(g->tree_window);
+    
+
   bg_player_quit(g->player);
+
+  gmerlin_get_config(g);
+
   }
 
 void gmerlin_skin_destroy(gmerlin_skin_t * s)
@@ -174,7 +292,7 @@ void gmerlin_skin_destroy(gmerlin_skin_t * s)
   
   }
 
-void gmerlin_play(gmerlin_t * g, int ignore_flags)
+int gmerlin_play(gmerlin_t * g, int ignore_flags)
   {
   int track_index;
   bg_plugin_handle_t * handle;
@@ -190,10 +308,10 @@ void gmerlin_play(gmerlin_t * g, int ignore_flags)
                      &duration_current,
                      &duration_after);
 
-  fprintf(stderr, "Durations: %lld %lld %lld\n",
-          duration_before,
-          duration_current,
-          duration_after);
+  //  fprintf(stderr, "Durations: %lld %lld %lld\n",
+  //          duration_before,
+  //          duration_current,
+  //          duration_after);
   
   display_set_playlist_times(g->player_window->display,
                              duration_before,
@@ -203,47 +321,72 @@ void gmerlin_play(gmerlin_t * g, int ignore_flags)
   handle = bg_media_tree_get_current_track(g->tree, &track_index);
   
   if(!handle)
-    return;
+    {
+    fprintf(stderr, "Error playing file\n");
+    return 0;
+    }
+  bg_player_set_track_name(g->player,
+                           bg_media_tree_get_current_track_name(g->tree));
+  fprintf(stderr, "Track name: %s\n",
+          bg_media_tree_get_current_track_name(g->tree));
   
-  if(handle)
-    bg_player_set_track_name(g->player,
-                             bg_media_tree_get_current_track_name(g->tree));
-
-
   
   bg_player_play(g->player, handle, track_index,
                  ignore_flags);
-
+  
+  return 1;
   }
 
 void gmerlin_next_track(gmerlin_t * g)
   {
-  switch(g->repeat_mode)
+  int result, keep_going;
+
+  if(g->playback_flags & PLAYBACK_NOADVANCE)
     {
-    case REPEAT_MODE_NONE:
-      //      fprintf(stderr, "REPEAT_MODE_NONE\n");
-      if(bg_media_tree_next(g->tree, 0))
-        gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
-      else
-        {
-        //        fprintf(stderr, "End of album, stopping\n");
-        bg_player_stop(g->player);
-        }
-      break;
-    case REPEAT_MODE_1:
-      //      fprintf(stderr, "REPEAT_MODE_1\n");
-      gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
-      break;
-    case REPEAT_MODE_ALL:
-      //      fprintf(stderr, "REPEAT_MODE_ALL\n");
-      bg_media_tree_next(g->tree, 1);
-      gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
-      break;
-    case  NUM_REPEAT_MODES:
+    bg_player_stop(g->player);
+    return;
+    }
+  result = 1;
+  keep_going = 1;
+  while(keep_going)
+    {
+    switch(g->repeat_mode)
+      {
+      case REPEAT_MODE_NONE:
+        //      fprintf(stderr, "REPEAT_MODE_NONE\n");
+        if(bg_media_tree_next(g->tree, 0))
+          {
+          result = gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
+          if(result)
+            keep_going = 0;
+          }
+        else
+          {
+          //        fprintf(stderr, "End of album, stopping\n");
+          bg_player_stop(g->player);
+          keep_going = 0;
+          }
+        break;
+      case REPEAT_MODE_1:
+        //      fprintf(stderr, "REPEAT_MODE_1\n");
+        result = gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
+        if(result)
+          keep_going = 0;
+        break;
+      case REPEAT_MODE_ALL:
+        //      fprintf(stderr, "REPEAT_MODE_ALL\n");
+        bg_media_tree_next(g->tree, 1);
+        result = gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
+        if(result)
+          keep_going = 0;
+        break;
+      case  NUM_REPEAT_MODES:
+        break;
+      }
+    if(!result && !(g->playback_flags & PLAYBACK_SKIP_ERROR))
       break;
     }
   }
-
 
 static bg_parameter_info_t parameters[] =
   {
@@ -269,6 +412,34 @@ static bg_parameter_info_t parameters[] =
       long_name: "Don't advance",
       type:      BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
+    },
+    {
+      name:        "mainwin_x",
+      long_name:   "mainwin_x",
+      type:        BG_PARAMETER_INT,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 10 }
+    },
+    {
+      name:        "mainwin_y",
+      long_name:   "mainwin_y",
+      type:        BG_PARAMETER_INT,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 10 }
+    },
+    {
+      name:        "show_tree_window",
+      long_name:   "show_tree_window",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 1 }
+    },
+    {
+      name:        "show_info_window",
+      long_name:   "show_info_window",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 0 }
     },
     { /* End of Parameters */ }
   };
@@ -305,4 +476,48 @@ void gmerlin_set_parameter(void * data, char * name, bg_parameter_value_t * val)
     else
       g->playback_flags &= ~PLAYBACK_NOADVANCE;
     }
+  else if(!strcmp(name, "show_tree_window"))
+    {
+    g->show_tree_window = val->val_i;
+    }
+  else if(!strcmp(name, "show_info_window"))
+    {
+    g->show_info_window = val->val_i;
+    }
+  else if(!strcmp(name, "mainwin_x"))
+    {
+    g->player_window->window_x = val->val_i;
+    }
+  else if(!strcmp(name, "mainwin_y"))
+    {
+    g->player_window->window_y = val->val_i;
+    }
   }
+
+int gmerlin_get_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  gmerlin_t * g = (gmerlin_t*)data;
+  if(!name)
+    return 0;
+  if(!strcmp(name, "show_tree_window"))
+    {
+    val->val_i = g->show_tree_window;
+    return 1;
+    }
+  else if(!strcmp(name, "show_info_window"))
+    {
+    val->val_i = g->show_info_window;
+    return 1;
+    }
+  else if(!strcmp(name, "mainwin_x"))
+    {
+    val->val_i = g->player_window->window_x;
+    }
+  else if(!strcmp(name, "mainwin_y"))
+    {
+    val->val_i = g->player_window->window_y;
+    }
+  
+  return 0;
+  }
+  

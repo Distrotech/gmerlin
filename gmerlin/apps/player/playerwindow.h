@@ -42,6 +42,12 @@ main_menu_update_streams(main_menu_t *,
                          int num_subpicture_streams,
                          int num_programs);
 
+void main_menu_set_tree_window_item(main_menu_t * m, int state);
+void main_menu_set_info_window_item(main_menu_t * m, int state);
+void main_menu_set_plugin_window_item(main_menu_t * m, int state);
+
+
+
 typedef struct player_window_s
   {
   bg_msg_queue_t       * cmd_queue;
@@ -56,8 +62,11 @@ typedef struct player_window_s
 
   /* For moving the window */
   
-  int x;
-  int y;
+  int mouse_x;
+  int mouse_y;
+
+  int window_x;
+  int window_y;
     
   /* Background */
 

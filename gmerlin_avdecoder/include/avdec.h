@@ -238,27 +238,6 @@ int bgav_read_audio(bgav_t *, gavl_audio_frame_t * frame, int stream,
 
 void bgav_seek(bgav_t *, gavl_time_t);
 
-/***************************************************
- * Codec path handling
- ***************************************************/
-
-/*
- *  Note: call these BEFORE the first call to bgav_open()
- *  or bgav_codecs_dump().
- */
-
-/*
- *   Win32 dlls MUST reside in /usr/lib/win32,
- *   for other codecs you can change the dll path globally
- */
-
-/* Default is /usr/lib/RealPlayer8/Codecs/ */
-
-const char * bgav_get_dll_path_real();
-void bgav_set_dll_path_real(const char*);
-
-/* Default is to read the XANMIM_MOD_DIR environment variable */
-
 void bgav_set_dll_path_xanim(const char*);
 const char * bgav_get_dll_path_xanim();
 
@@ -273,3 +252,7 @@ void bgav_dump(bgav_t * bgav);
 /* Dump infos about the installed codecs */
 
 void bgav_codecs_dump();
+
+/* Dump known media formats */
+
+void bgav_formats_dump();

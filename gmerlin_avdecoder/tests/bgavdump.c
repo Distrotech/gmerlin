@@ -44,9 +44,19 @@ int main(int argc, char ** argv)
   const gavl_audio_format_t * audio_format_c;
   gavl_audio_format_t audio_format;
   const gavl_video_format_t * video_format;
-  
-  bgav_codecs_dump();
 
+  if(argc == 1)
+    {
+    fprintf(stderr, "Usage: bgavdump <location>");
+
+    fprintf(stderr, "Available formats:\n");
+    bgav_formats_dump();
+
+    fprintf(stderr, "Available decoders:\n");
+    bgav_codecs_dump();
+    return 0;
+    }
+  
   file = bgav_create();
 
   /* Configure */

@@ -189,7 +189,7 @@ static void free_idx1(idx1_t * idx1)
     free(idx1->entries);
   }
 
-#if 1
+#if 0
 static void dump_idx1(idx1_t * idx1)
   {
   int i;
@@ -326,7 +326,7 @@ static int read_dmlh(bgav_input_context_t * input, dmlh_t * ret,
             ch->ckSize - (input->position - start_pos));
     bgav_input_skip(input, PADD(ch->ckSize) - (input->position - start_pos));
     }
-  
+  return 1;
   }
 
 static void dump_dmlh(dmlh_t * dmlh)
@@ -536,6 +536,7 @@ static int read_indx(bgav_input_context_t * input, indx_t * ret,
   return 1;
   }
 
+#if 0
 static void dump_indx(indx_t * indx)
   {
   int i;
@@ -606,7 +607,7 @@ static void dump_indx(indx_t * indx)
       break;
     }
   }
-
+#endif
 static void free_indx(indx_t * indx)
   {
   int i;
@@ -754,7 +755,7 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
       case ID_INDX:
         if(!read_indx(ctx->input, &avi_as->indx, ch))
           return 0;
-        dump_indx(&avi_as->indx);
+        //        dump_indx(&avi_as->indx);
         avi_as->has_indx = 1;
         break;
       default:
@@ -853,7 +854,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
       case ID_INDX:
         if(!read_indx(ctx->input, &avi_vs->indx, ch))
           return 0;
-        dump_indx(&avi_vs->indx);
+        //        dump_indx(&avi_vs->indx);
         avi_vs->has_indx = 1;
         break;
       default:
@@ -1158,7 +1159,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
       p->has_idx1 = 1;
       ctx->can_seek = 1;
       idx1_calculate_timestamps(ctx);
-      dump_idx1(&(p->idx1));
+      //      dump_idx1(&(p->idx1));
       }
     bgav_input_seek(ctx->input, p->movi_start, SEEK_SET);
     }

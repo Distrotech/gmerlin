@@ -79,23 +79,6 @@ static int open_avdec(void * priv, const char * location)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:       "general_options",
-      long_name:  "General options",
-      type:       BG_PARAMETER_SECTION
-    },
-    {
-      name:        "realcodec_path",
-      long_name:   "Real codec path",
-      type:        BG_PARAMETER_DIRECTORY,
-      val_default: { val_str: "/usr/lib/RealPlayer8/Codecs/" }
-    },
-    {
-      name:        "xanimcodec_path",
-      long_name:   "Xanim codec path",
-      type:        BG_PARAMETER_DIRECTORY,
-      val_default: { val_str: "/usr/lib/xanim/" }
-    },
-    {
       name:       "network_options",
       long_name:  "Network options",
       type:       BG_PARAMETER_SECTION

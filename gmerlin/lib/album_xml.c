@@ -106,8 +106,10 @@ static bg_album_entry_t * load_entry(bg_media_tree_t * tree,
 static bg_album_entry_t * xml_2_album(bg_media_tree_t * tree,
                                       xmlDocPtr xml_doc,
                                       bg_album_entry_t ** last,
-                                      bg_album_entry_t ** current)
+                                      bg_album_entry_t ** current,
+                                      bg_album_t * album)
   {
+  char * tmp_string;
   xmlNodePtr node;
   int is_current;
   bg_album_entry_t * ret = (bg_album_entry_t*)0;
@@ -129,7 +131,25 @@ static bg_album_entry_t * xml_2_album(bg_media_tree_t * tree,
 
   while(node)
     {
-    if(node->name && !strcmp(node->name, "ENTRY"))
+    if(!node->name)
+      {
+      node = node->next;
+      continue;
+      }
+    else if(!strcmp(node->name, "COORDS") && album)
+      {
+      tmp_string = xmlNodeListGetString(xml_doc, node->children, 1);
+      sscanf(tmp_string, "%d %d %d %d", &(album->x), &(album->y),
+             &(album->width), &(album->height));
+      free(tmp_string);
+      }
+    else if(!strcmp(node->name, "OPEN_PATH") && album)
+      {
+      tmp_string = xmlNodeListGetString(xml_doc, node->children, 1);
+      album->open_path = bg_strdup(album->open_path, tmp_string);
+      free(tmp_string);
+      }
+    if(!strcmp(node->name, "ENTRY"))
       {
       new_entry = load_entry(tree, xml_doc, node, &is_current);
       if(new_entry)
@@ -160,7 +180,8 @@ static bg_album_entry_t * xml_2_album(bg_media_tree_t * tree,
 bg_album_entry_t * load_album_file(bg_media_tree_t * tree,
                                    const char * filename,
                                    bg_album_entry_t ** last,
-                                   bg_album_entry_t ** current)
+                                   bg_album_entry_t ** current,
+                                   bg_album_t * album)
   {
   bg_album_entry_t * ret;
   xmlDocPtr xml_doc;
@@ -175,7 +196,7 @@ bg_album_entry_t * load_album_file(bg_media_tree_t * tree,
   
   xml_doc = xmlParseFile(filename);
   
-  ret = xml_2_album(tree, xml_doc, last, current);
+  ret = xml_2_album(tree, xml_doc, last, current, album);
   
   xmlFreeDoc(xml_doc);
   return ret;
@@ -184,13 +205,14 @@ bg_album_entry_t * load_album_file(bg_media_tree_t * tree,
 bg_album_entry_t * load_album_xml(bg_media_tree_t * tree,
                                   const char * string, int len,
                                   bg_album_entry_t ** last,
-                                  bg_album_entry_t ** current)
+                                  bg_album_entry_t ** current,
+                                  bg_album_t * album)
   {
   bg_album_entry_t * ret;
   xmlDocPtr xml_doc;
   xml_doc = xmlParseMemory(string, len);
 
-  ret = xml_2_album(tree, xml_doc, last, current);
+  ret = xml_2_album(tree, xml_doc, last, current, album);
   
   xmlFreeDoc(xml_doc);
   return ret;
@@ -206,7 +228,7 @@ void bg_album_insert_xml_after(bg_album_t * a,
   bg_album_entry_t * current_entry;
   new_entries = load_album_xml(a->tree,
                                xml_string, len,
-                               (bg_album_entry_t**)0, &current_entry);
+                               (bg_album_entry_t**)0, &current_entry, (bg_album_t*)0);
   bg_album_insert_entries_after(a, new_entries, before);
 
   if(current_entry)
@@ -224,7 +246,7 @@ void bg_album_insert_xml_before(bg_album_t * a,
   bg_album_entry_t * new_entries;
   bg_album_entry_t * current_entry;
   new_entries = load_album_xml(a->tree,
-                               xml_string, len, (bg_album_entry_t**)0, &current_entry);
+                               xml_string, len, (bg_album_entry_t**)0, &current_entry, (bg_album_t*)0);
   bg_album_insert_entries_before(a, new_entries, after);
 
   if(current_entry)
@@ -251,12 +273,12 @@ static bg_album_entry_t * load_albums(bg_media_tree_t * tree,
     {
     if(!ret)
       {
-      ret = load_album_file(tree, filenames[i], &tmp_end, current);
+      ret = load_album_file(tree, filenames[i], &tmp_end, current, (bg_album_t*)0);
       end = tmp_end;
       }
     else
       {
-      end->next = load_album_file(tree, filenames[i], &tmp_end, current);
+      end->next = load_album_file(tree, filenames[i], &tmp_end, current, (bg_album_t*)0);
       end = tmp_end;
       }
     
@@ -289,7 +311,7 @@ void bg_album_load(bg_album_t * a, const char * filename)
   {
   bg_album_entry_t * current;
   current = (bg_album_entry_t*)0;
-  a->entries = load_album_file(a->tree, filename, (bg_album_entry_t**)0, &current);
+  a->entries = load_album_file(a->tree, filename, (bg_album_entry_t**)0, &current, a);
   if(current)
     {
     bg_album_set_current(a, current);
@@ -307,7 +329,7 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
   
   xml_entry = xmlNewTextChild(parent, (xmlNsPtr)0, "ENTRY", NULL);
 
-  if(bg_album_entry_is_current(a, entry))  
+  if(a && bg_album_entry_is_current(a, entry))  
     {
     //    fprintf(stderr, "Save Current: %s\n", entry->name);
     xmlSetProp(xml_entry, "current", "1");
@@ -388,6 +410,8 @@ static xmlDocPtr album_2_xml(bg_album_t * a)
   bg_album_entry_t * entry;
   xmlDocPtr  xml_doc;
   xmlNodePtr xml_album;
+  xmlNodePtr node;
+  char * tmp_string;
   
   /* First step: Build the xml tree */
 
@@ -397,6 +421,23 @@ static xmlDocPtr album_2_xml(bg_album_t * a)
 
   xmlAddChild(xml_album, xmlNewText("\n"));
 
+  /* Save coords */
+  node = xmlNewTextChild(xml_album, (xmlNsPtr)0, "COORDS", NULL);
+  tmp_string = bg_sprintf("%d %d %d %d", a->x, a->y,
+                          a->width, a->height);
+  xmlAddChild(node, xmlNewText(tmp_string));
+  free(tmp_string);
+  xmlAddChild(xml_album, xmlNewText("\n"));
+  
+  /* Save open path */
+  if(a->open_path)
+    {
+    node = xmlNewTextChild(xml_album, (xmlNsPtr)0, "OPEN_PATH", NULL);
+    xmlAddChild(node, xmlNewText(a->open_path));
+    xmlAddChild(xml_album, xmlNewText("\n"));
+    }
+  
+  
   entry = a->entries;
 
   while(entry)

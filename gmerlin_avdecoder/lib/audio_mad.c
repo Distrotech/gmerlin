@@ -21,6 +21,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mad.h>
+
+#include <config.h>
+#include <codecs.h>
 #include <avdec_private.h>
 
 typedef struct

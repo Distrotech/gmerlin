@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
 
 #include <tree.h>
 #include <utils.h>
@@ -40,11 +41,13 @@ static GdkPixbuf * dnd_pixbuf       = (GdkPixbuf *)0;
 
 /* Static stuff for deleting drag data */
 
-static bg_gtk_album_widget_t * drag_source = (bg_gtk_album_widget_t*)0;
-static int drag_do_delete = 0;
+// static bg_gtk_album_widget_t * drag_source = (bg_gtk_album_widget_t*)0;
+// static int drag_do_delete = 0;
 
 static char ** file_plugins = (char **)0;
 static char **  url_plugins = (char **)0;
+
+static GtkTargetList * target_list = (GtkTargetList *)0;
 
 /* Drag & Drop struff */
 
@@ -172,6 +175,14 @@ struct bg_gtk_album_widget_s
   bg_gtk_urlsel_t  * add_urls_urlsel;
   
   GtkWidget * parent;
+
+  guint modifier_mask;
+
+  GdkDragAction drag_action;
+
+  int num_selected;
+
+  int mouse_x, mouse_y;
   
   };
 
@@ -208,7 +219,6 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   GtkTreeModel * model;
   int i;
   int num_entries;
-  int num_selected;
   const bg_album_entry_t * current_entry;
   const bg_album_entry_t * entry;
   GtkTreeIter iter;
@@ -223,7 +233,7 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   gtk_list_store_clear(GTK_LIST_STORE(model));
 
   num_entries = bg_album_get_num_entries(w->album);
-  num_selected = 0;
+  w->num_selected = 0;
 
   current_entry = bg_album_get_current_entry(w->album);
   
@@ -319,13 +329,13 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
     
     if(entry->flags & BG_ALBUM_ENTRY_SELECTED)
       {
-      num_selected++;
+      w->num_selected++;
       gtk_tree_selection_select_iter(selection, &iter);
       w->selected_entry = entry;
       }
     }
   
-  if(num_selected == 1)
+  if(w->num_selected == 1)
     {
     gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.info_item, 1);
@@ -343,7 +353,7 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
     {
     gtk_drag_dest_unset(w->treeview);
     gtk_drag_dest_set(w->widget,
-                      GTK_DEST_DEFAULT_ALL,
+                      GTK_DEST_DEFAULT_HIGHLIGHT | GTK_DEST_DEFAULT_DROP | GTK_DEST_DEFAULT_MOTION,
                       dnd_dst_entries,
                       sizeof(dnd_dst_entries)/sizeof(dnd_dst_entries[0]),
                       GDK_ACTION_COPY | GDK_ACTION_MOVE);
@@ -352,7 +362,7 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
     {
     gtk_drag_dest_unset(w->widget);
     gtk_drag_dest_set(w->treeview,
-                      GTK_DEST_DEFAULT_ALL,
+                      GTK_DEST_DEFAULT_HIGHLIGHT | GTK_DEST_DEFAULT_DROP | GTK_DEST_DEFAULT_MOTION,
                       dnd_dst_entries,
                       sizeof(dnd_dst_entries)/sizeof(dnd_dst_entries[0]),
                       GDK_ACTION_COPY | GDK_ACTION_MOVE);
@@ -388,7 +398,7 @@ static void append_urls_callback(char ** urls, const char * plugin,
                                  void * data)
   {
   bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
-  fprintf(stderr, "append_urls_callback: %s\n", (urls[0] ? urls[0] : "NULL"));
+  //  fprintf(stderr, "append_urls_callback: %s\n", (urls[0] ? urls[0] : "NULL"));
   bg_album_insert_urls_before(widget->album, urls, plugin, NULL);
   
   bg_gtk_album_widget_update(widget);
@@ -491,7 +501,7 @@ static void rename_current_entry(bg_gtk_album_widget_t * w)
 static void menu_callback(GtkWidget * w, gpointer data)
   {
   char * tmp_string;
-  
+  const char * path;
   bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
 
   /* Add files */
@@ -513,8 +523,10 @@ static void menu_callback(GtkWidget * w, gpointer data)
                             widget, widget->parent);
     free(tmp_string);
 
+    path = bg_album_get_open_path(widget->album);
+    
     bg_gtk_filesel_set_directory(widget->add_files_filesel,
-                                 bg_album_get_open_path(widget->album));
+                                 path);
     
     bg_gtk_filesel_run(widget->add_files_filesel, 0);
     }
@@ -776,6 +788,10 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
     }
   else if(evt->button == 1)
     {
+    aw->mouse_x = (int)(evt->x);
+    aw->mouse_y = (int)(evt->y);
+    
+    
     if(evt->type == GDK_2BUTTON_PRESS)
       {
       if(aw->selected_entry)
@@ -786,17 +802,7 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
         }
       return TRUE;
       }
-    else
-      {
-      drag_source = aw;
-      drag_do_delete = 1;
-      }
     return FALSE;
-    }
-  else if(evt->button == 2)
-    {
-    drag_source = aw;
-    drag_do_delete = 0;
     }
   return FALSE;
   }
@@ -882,7 +888,7 @@ static void drag_received_callback(GtkWidget *widget,
           }
         else if(is_urilist(data))
           {
-          fprintf(stderr, "DND_TEXT_URI_LIST\n");
+          //          fprintf(stderr, "DND_TEXT_URI_LIST\n");
           bg_album_insert_urilist_before(aw->album, data->data, data->length,
                                          entry);
           }
@@ -898,7 +904,7 @@ static void drag_received_callback(GtkWidget *widget,
         
         else if(is_urilist(data))
           {
-          fprintf(stderr, "DND_TEXT_URI_LIST\n");
+          //          fprintf(stderr, "DND_TEXT_URI_LIST\n");
           bg_album_insert_urilist_after(aw->album, data->data, data->length,
                                          entry);
           }
@@ -922,21 +928,11 @@ static void drag_received_callback(GtkWidget *widget,
       }
     }
   
-  /* If the drag came from our widget, delete the selection */
-  
-  if(drag_source &&
-     (gtk_drag_get_source_widget(drag_context) == drag_source->treeview) &&
-     (drag_do_delete))
-    {
-    bg_album_delete_selected(drag_source->album);
-    bg_gtk_album_widget_update(drag_source);
-    }
-  
   /* Tell source we are ready */
   
   gtk_drag_finish(drag_context,
                   TRUE, /* Success */
-                  FALSE, /* Delete */
+                  (drag_context->action == GDK_ACTION_MOVE) ? TRUE : FALSE, /* Delete */
                   aw->drop_time);
   bg_gtk_album_widget_update(aw);
   
@@ -963,21 +959,6 @@ static gboolean drag_drop_callback(GtkWidget *widget,
 #endif
   }
 
-void bg_gtk_album_widget_delete_drag()
-  {
-  if(!drag_source || !drag_do_delete)
-    return;
-  bg_album_delete_selected(drag_source->album);
-  bg_gtk_album_widget_update(drag_source);
-  }
-
-static void drag_end_callback(GtkWidget *widget,
-                              GdkDragContext *drag_context,
-                              gpointer user_data)
-  {
-  drag_source = (bg_gtk_album_widget_t*)0;
-  drag_do_delete = 0;
-  }
 
 static void drag_get_callback(GtkWidget *widget,
                               GdkDragContext *drag_context,
@@ -1012,7 +993,6 @@ static void select_row_callback(GtkTreeSelection * sel,
                                 gpointer data)
   {
   int num_entries, i;
-  int num_selected;
   GtkTreeIter iter;
   GtkTreeModel * model;
   GtkTreeSelection * selection;
@@ -1026,7 +1006,7 @@ static void select_row_callback(GtkTreeSelection * sel,
     return;
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(w->treeview));
   num_entries = bg_album_get_num_entries(w->album);
-  num_selected = 0;
+  w->num_selected = 0;
   for(i = 0; i < num_entries; i++)
     {
     album_entry = bg_album_get_entry(w->album, i);
@@ -1034,7 +1014,7 @@ static void select_row_callback(GtkTreeSelection * sel,
       {
       album_entry->flags |= BG_ALBUM_ENTRY_SELECTED;
       w->selected_entry = album_entry;
-      num_selected++;
+      w->num_selected++;
       }
     else
       album_entry->flags &= ~BG_ALBUM_ENTRY_SELECTED;
@@ -1042,7 +1022,7 @@ static void select_row_callback(GtkTreeSelection * sel,
     if(!gtk_tree_model_iter_next(model, &iter))
       break;
     }
-  if(num_selected == 1)
+  if(w->num_selected == 1)
     gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 1);
   else
     {
@@ -1062,7 +1042,13 @@ static gboolean drag_motion_callback(GtkWidget *widget,
   GtkTreeViewDropPosition pos;
   
   bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t *)user_data;
-  //  fprintf(stderr, "Drag motion callback\n");
+#if 0
+  fprintf(stderr, "Drag motion callback\nAction: ");
+  print_action(drag_context->action);
+  fprintf(stderr, "Suggtested Action: ");
+  print_action(drag_context->suggested_action);
+#endif
+  gdk_drag_status(drag_context, drag_context->suggested_action, time);
   
   if(gtk_tree_view_get_dest_row_at_pos(GTK_TREE_VIEW(w->treeview),
                                        x, y, &path,
@@ -1081,6 +1067,67 @@ static gboolean drag_motion_callback(GtkWidget *widget,
     gtk_tree_path_free(path);
   
   return TRUE;
+  }
+
+static void drag_delete_callback(GtkWidget *widget,
+                         GdkDragContext *drag_context,
+                         gpointer user_data)
+  {
+  bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t *)user_data;
+
+  //  fprintf(stderr, "Drag delete %s\n", bg_album_get_name(w->album));
+
+  bg_album_delete_selected(w->album);
+  bg_gtk_album_widget_update(w);
+  }
+
+
+static gboolean motion_callback(GtkWidget * w, GdkEventMotion * evt, gpointer user_data)
+  {
+  GdkDragContext* ctx;
+  bg_gtk_album_widget_t * wid = (bg_gtk_album_widget_t *)user_data;
+
+  if(evt->state & GDK_BUTTON1_MASK)
+    {
+    if((abs((int)(evt->x) - wid->mouse_x) + abs((int)(evt->y) - wid->mouse_y) < 5) ||
+       (!wid->num_selected))
+      return FALSE;
+    if(evt->state & GDK_CONTROL_MASK)
+      {
+      //      fprintf(stderr, "Start drag copy\n");
+
+      ctx = gtk_drag_begin(w, target_list,
+                           GDK_ACTION_COPY,
+                           1, (GdkEvent*)(evt));
+      gtk_drag_set_icon_pixbuf(ctx,
+                               dnd_pixbuf,
+                               0, 0);
+      
+      }
+    else
+      {
+      //      fprintf(stderr, "Start drag move\n");
+      ctx = gtk_drag_begin(w, target_list,
+                           GDK_ACTION_MOVE,
+                           1, (GdkEvent*)(evt));
+      gtk_drag_set_icon_pixbuf(ctx,
+                               dnd_pixbuf,
+                               0, 0);
+      }
+    }
+  return FALSE;
+  }
+
+static gboolean key_press_callback(GtkWidget * w, GdkEventKey * evt, gpointer user_data)
+  {
+  //  bg_gtk_album_widget_t * wid = (bg_gtk_album_widget_t *)user_data;
+
+
+  //  fprintf(stderr, "Key Press Callback, state: %08x %08x\n", evt->state, evt->keyval);
+
+  //  if((evt->keyval == GDK_Control_L) || (evt->keyval == GDK_Control_R))
+  //    set_drag_action(wid, GDK_ACTION_COPY);
+  return FALSE;
   }
 
 static void column_resize_callback(GtkTreeViewColumn * col,
@@ -1135,6 +1182,14 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   GtkTreeSelection * selection;
   load_pixmaps();
   bg_gtk_tree_create_atoms();
+
+  if(!target_list)
+    {
+    target_list = gtk_target_list_new(dnd_src_entries,
+                                      sizeof(dnd_src_entries)/sizeof(dnd_src_entries[0]));
+    }
+  else
+    gtk_target_list_ref(target_list);
   
   ret = calloc(1, sizeof(*ret));
   ret->album = album;
@@ -1165,15 +1220,26 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   
   gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(ret->treeview), 0);
 
-  /* Setup Drag & Drop */
+  /* Set callbacks */
+  gtk_widget_set_events(ret->treeview,
+                        GDK_BUTTON_PRESS_MASK |
+                        GDK_KEY_PRESS_MASK |
+                        GDK_BUTTON1_MOTION_MASK );
+  
+  g_signal_connect(G_OBJECT(ret->treeview), "button-press-event",
+                   G_CALLBACK(button_press_callback), (gpointer)ret);
 
-  gtk_drag_source_set(ret->treeview, GDK_BUTTON1_MASK | GDK_BUTTON2_MASK,
-                      dnd_src_entries,
-                      sizeof(dnd_src_entries)/sizeof(dnd_src_entries[0]),
-                      GDK_ACTION_COPY);
+  g_signal_connect(G_OBJECT(ret->treeview), "key-press-event",
+                   G_CALLBACK(key_press_callback), (gpointer)ret);
 
-  gtk_drag_source_set_icon_pixbuf (ret->treeview, 
-                                   dnd_pixbuf);
+  g_signal_connect(G_OBJECT(ret->treeview), "motion-notify-event",
+                   G_CALLBACK(motion_callback), (gpointer)ret);
+
+  
+
+  g_signal_connect(G_OBJECT(ret->treeview), "drag-data-delete",
+                   G_CALLBACK(drag_delete_callback),
+                   (gpointer)ret);
   
   g_signal_connect(G_OBJECT(ret->treeview), "drag-data-received",
                    G_CALLBACK(drag_received_callback),
@@ -1190,17 +1256,6 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   g_signal_connect(G_OBJECT(ret->treeview), "drag-motion",
                    G_CALLBACK(drag_motion_callback),
                    (gpointer)ret);
-
-  g_signal_connect(G_OBJECT(ret->treeview), "drag-end",
-                   G_CALLBACK(drag_end_callback),
-                   (gpointer)ret);
-
-  
-  /* Set callbacks */
-  
-  gtk_widget_set_events(ret->treeview, GDK_BUTTON_PRESS_MASK);
-  g_signal_connect(G_OBJECT(ret->treeview), "button-press-event",
-                   G_CALLBACK(button_press_callback), (gpointer)ret);
   
   /* Create columns */
   /* Index */
@@ -1348,7 +1403,7 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
 
 void bg_gtk_album_widget_destroy(bg_gtk_album_widget_t * w)
   {
-  
+  gtk_target_list_unref(target_list);
   }
 
 GtkWidget * bg_gtk_album_widget_get_widget(bg_gtk_album_widget_t * w)

@@ -21,6 +21,8 @@
 #include <string.h>
 #include <vorbis/codec.h>
 
+#include <config.h>
+#include <codecs.h>
 #include <avdec_private.h>
 
 #define BGAV_VORBIS BGAV_MK_FOURCC('V','B','I','S')

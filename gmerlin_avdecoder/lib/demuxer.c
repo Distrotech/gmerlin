@@ -46,15 +46,15 @@ typedef struct
 
 static demuxer_t demuxers[] =
   {
-    { &bgav_demuxer_asf, "Microsoft ASF" },
-    { &bgav_demuxer_avi, "Microsoft AVI" },
-    { &bgav_demuxer_rmff, "Real Media" },
-    { &bgav_demuxer_quicktime, "Apple Quicktime" },
-    { &bgav_demuxer_wav, "Microsoft WAV" },
-    { &bgav_demuxer_au, "AU" },
-    { &bgav_demuxer_aiff, "AIFF" },
-    { &bgav_demuxer_ra, "Real Audio" },
-    { &bgav_demuxer_flac, "FLAC" },
+    { &bgav_demuxer_asf,       "Microsoft ASF/WMV/WMA" },
+    { &bgav_demuxer_avi,       "Microsoft AVI" },
+    { &bgav_demuxer_rmff,      "Real Media" },
+    { &bgav_demuxer_ra,        "Real Audio" },
+    { &bgav_demuxer_quicktime, "Quicktime/mp4/m4a" },
+    { &bgav_demuxer_wav,       "Microsoft WAV" },
+    { &bgav_demuxer_au,        "Sun AU" },
+    { &bgav_demuxer_aiff,      "Aiff" },
+    { &bgav_demuxer_flac,      "FLAC" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif
@@ -264,3 +264,12 @@ bgav_seek(bgav_t * b, gavl_time_t time)
   //  fprintf(stderr, "Seek done, %d iterations\n", num_iterations);
   }
 
+void bgav_formats_dump()
+  {
+  int i;
+  
+  for(i = 0; i < num_demuxers; i++)
+    fprintf(stderr, "%s\n", demuxers[i].format_name);
+  for(i = 0; i < num_sync_demuxers; i++)
+    fprintf(stderr, "%s\n", sync_demuxers[i].format_name);
+  }

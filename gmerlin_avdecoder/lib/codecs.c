@@ -18,7 +18,24 @@
 *****************************************************************/
 
 #include <string.h>
+#include <stdlib.h>
+#include <config.h>
+#include <codecs.h>
+
 #include <avdec_private.h>
+#include <utils.h>
+
+#ifdef HAVE_REALDLL
+static const char * env_name_real = "GMERLIN_AVDEC_CODEC_PATH_REAL";
+#endif
+
+#ifdef HAVE_XADLL
+static const char * env_name_xanim =  "GMERLIN_AVDEC_CODEC_PATH_XANIM";
+#endif
+
+#ifdef HAVE_W32DLL
+static const char * env_name_win32 = "GMERLIN_AVDEC_CODEC_PATH_WIN32";
+#endif
 
 /* Simple codec registry */
 
@@ -32,56 +49,6 @@ static bgav_video_decoder_t * video_decoders = (bgav_video_decoder_t*)0;
 static int codecs_initialized = 0;
 static int num_audio_codecs = 0;
 static int num_video_codecs = 0;
-
-#ifdef HAVE_LIBAVCODEC
-extern void bgav_init_audio_decoders_ffmpeg();
-extern void bgav_init_video_decoders_ffmpeg();
-#endif
-
-#ifdef HAVE_VORBIS
-extern void bgav_init_audio_decoders_vorbis();
-#endif
-
-#ifdef HAVE_W32DLL
-extern void bgav_init_video_decoders_win32();
-extern void bgav_init_audio_decoders_win32();
-extern void bgav_init_audio_decoders_qtwin32();
-#endif
-
-#ifdef HAVE_LIBPNG
-extern void bgav_init_video_decoders_png();
-#endif
-
-#ifdef HAVE_FAAD2
-extern void bgav_init_audio_decoders_faad2();
-#endif
-
-#ifdef HAVE_FLAC
-extern void bgav_init_audio_decoders_flac();
-#endif
-
-#ifdef HAVE_MAD
-extern void bgav_init_audio_decoders_mad();
-#endif
-
-#ifdef HAVE_LIBA52
-extern void bgav_init_audio_decoders_a52();
-#endif
-
-#ifdef HAVE_LIBMPEG2
-extern void bgav_init_video_decoders_libmpeg2();
-#endif
-
-extern void bgav_init_video_decoders_real();
-extern void bgav_init_audio_decoders_real();
-
-extern void bgav_init_video_decoders_xadll();
-
-extern void bgav_init_audio_decoders_aiff();
-
-extern void bgav_init_video_decoders_qtrle();
-
-extern void bgav_init_video_decoders_qtraw();
 
 void bgav_codecs_dump()
   {
@@ -168,6 +135,7 @@ void bgav_codecs_dump()
 
 void bgav_codecs_init()
   {
+  const char * env_ptr;
   if(codecs_initialized)
     return;
 //  fprintf(stderr, "bgav_codecs_init()\n");
@@ -187,17 +155,11 @@ void bgav_codecs_init()
 #ifdef HAVE_MAD
   bgav_init_audio_decoders_mad();
 #endif
-  bgav_init_video_decoders_real();
-  bgav_init_audio_decoders_real();
 
+  
   bgav_init_video_decoders_qtraw();
   bgav_init_video_decoders_qtrle();
 
-#ifdef HAVE_W32DLL
-  bgav_init_video_decoders_win32();
-  bgav_init_audio_decoders_win32();
-  bgav_init_audio_decoders_qtwin32();
-#endif
 
 #ifdef HAVE_LIBPNG
   bgav_init_video_decoders_png();
@@ -216,8 +178,69 @@ void bgav_codecs_init()
   bgav_init_video_decoders_libmpeg2();
 #endif
   
-  bgav_init_video_decoders_xadll();
+#ifdef HAVE_XADLL
+  env_ptr = getenv(env_name_xanim);
+  if(!env_ptr)
+    fprintf(stderr, "Environment variable %s not set\ndisabling Xanim DLL codecs\n", env_name_xanim);
+  else
+    {
+    bgav_dll_path_xanim = bgav_strndup(env_ptr, NULL);
+    if(!bgav_init_video_decoders_xadll())
+      {
+      fprintf(stderr, "Didn't find some Xanim DLL codecs\nmake sure the environment variable %s is set\n",
+              env_name_xanim);
+      }
+    }
+#endif
 
+#ifdef HAVE_REALDLL
+  env_ptr = getenv(env_name_real);
+  if(!env_ptr)
+    fprintf(stderr, "Environment variable %s not set\ndisabling Real DLL codecs\n", env_name_real);
+  else
+    {
+    bgav_dll_path_real = bgav_strndup(env_ptr, NULL);
+    if(!bgav_init_video_decoders_real())
+      {
+      fprintf(stderr, "Didn't find some Real DLL codecs\nmake sure the environment variable %s is set\n",
+              env_name_real);
+      }
+    if(!bgav_init_audio_decoders_real())
+      {
+      fprintf(stderr, "Didn't find some Real DLL codecs\nmake sure the environment variable %s is set\n",
+              env_name_real);
+      }
+    }
+#endif
+
+#ifdef HAVE_W32DLL
+  env_ptr = getenv(env_name_win32);
+  if(!env_ptr)
+    {
+    fprintf(stderr, "Environment variable %s not set\ndisabling Win32 DLL codecs\n", env_name_win32);
+    win32_def_path = NULL;
+    }
+  else
+    {
+    win32_def_path = bgav_strndup(env_ptr, NULL);
+    if(!bgav_init_video_decoders_win32())
+      {
+      fprintf(stderr, "Didn't find some Win32 DLL codecs\nmake sure the environment variable %s is set\n",
+              env_name_win32);
+      }
+    if(!bgav_init_audio_decoders_win32())
+      {
+      fprintf(stderr, "Didn't find some Win32 DLL codecs\nmake sure the environment variable %s is set\n",
+              env_name_win32);
+      }
+    if(!bgav_init_audio_decoders_qtwin32())
+      {
+      fprintf(stderr, "Didn't find some Win32 DLL codecs\nmake sure the environment variable %s is set\n",
+              env_name_win32);
+      }
+    }
+#endif
+  
   bgav_init_audio_decoders_aiff();
   
   //  fprintf(stderr, "BGAV Codecs initialized: A: %d V: %d\n",

@@ -264,6 +264,7 @@ bg_avdec_set_parameter(void * p, char * name,
   avdec = (avdec_priv*)(p);
   if(!name)
     return;
+#if 0
   else if(!strcmp(name, "realcodec_path"))
     {
     bgav_set_dll_path_real(val->val_str);
@@ -273,6 +274,7 @@ bg_avdec_set_parameter(void * p, char * name,
     {
     bgav_set_dll_path_xanim(val->val_str);
     }
+#endif
   else if(!strcmp(name, "connect_timeout"))
     {
     avdec->connect_timeout = val->val_i;

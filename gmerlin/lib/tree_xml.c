@@ -211,8 +211,8 @@ static void save_album(bg_album_t * album, xmlNodePtr parent)
     }
   xmlAddChild(parent, xmlNewText("\n"));
 
+#if 0
   /* Save coords */
-
   node = xmlNewTextChild(xml_album, (xmlNsPtr)0, "COORDS", NULL);
   tmp_string = bg_sprintf("%d %d %d %d", album->x, album->y,
                           album->width, album->height);
@@ -227,7 +227,7 @@ static void save_album(bg_album_t * album, xmlNodePtr parent)
     xmlAddChild(node, xmlNewText(album->open_path));
     xmlAddChild(parent, xmlNewText("\n"));
     }
-  
+#endif
   child = album->children;
 
   while(child)

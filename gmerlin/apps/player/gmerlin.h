@@ -94,7 +94,9 @@ struct gmerlin_s
   bg_cfg_section_t * tree_section;
   bg_cfg_section_t * general_section;
   bg_cfg_section_t * audio_section;
-  
+
+  int show_info_window;
+  int show_tree_window;
   };
 
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg);
@@ -121,7 +123,7 @@ void gmerlin_create_dialog(gmerlin_t * g);
 void gmerlin_configure(gmerlin_t *);
 
 
-void gmerlin_play(gmerlin_t * g, int ignore_flags);
+int gmerlin_play(gmerlin_t * g, int ignore_flags);
 
 /* This is called when the player signals that it wants a new
    track */
@@ -136,4 +138,7 @@ bg_parameter_info_t * gmerlin_get_parameters(gmerlin_t * g);
 
 void gmerlin_set_parameter(void * data, char * name,
                            bg_parameter_value_t * val);
+
+int gmerlin_get_parameter(void * data, char * name,
+                          bg_parameter_value_t * val);
 

@@ -98,6 +98,17 @@ win32_libs =
 win32_sources =
 endif
 
+if HAVE_REALDLL
+real_sources = audio_real.c video_real.c
+else
+real_sources =
+endif
+
+if HAVE_XADLL
+xadll_sources = video_xadll.c
+else
+xadll_sources =
+endif
 
 SUBDIRS = $(win32_subdirs) real_rtsp
 
@@ -135,8 +146,9 @@ $(mad_sources) \
 $(a52_sources) \
 $(flac_sources) \
 $(avcodec_sources) \
+$(real_sources) \
+$(xadll_sources) \
 audio.c \
-audio_real.c \
 audio_aiff.c \
 base64.c \
 bgav.c \
@@ -210,10 +222,8 @@ track.c \
 tracktable.c \
 utils.c \
 video.c \
-video_xadll.c \
 video_qtraw.c \
 video_qtrle.c \
-video_real.c \
 xing.c \
 yml.c
 

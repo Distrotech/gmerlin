@@ -29,19 +29,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#include <config.h>
+#include <codecs.h>
 #include <avdec_private.h>
 
-static char xanim_codec_path[PATH_MAX];
-
-void bgav_set_dll_path_xanim(const char* path)
-  {
-  strcpy(xanim_codec_path, path);
-  }
-     
-const char * bgav_get_dll_path_xanim()
-  {
-  return xanim_codec_path;
-  }
+char * bgav_dll_path_xanim = (char*)0;
 
 typedef struct
 {
@@ -301,10 +296,8 @@ static int init_xadll(bgav_stream_t * s)
   char dll_filename[PATH_MAX];
   
   priv = calloc(1, sizeof(*priv));
-  if(xanim_codec_path[0] == '\0')
-    strcpy(xanim_codec_path, getenv("XANIM_MOD_DIR"));
            
-  sprintf(dll_filename, "%s/%s", xanim_codec_path, "vid_3ivX.xa");
+  sprintf(dll_filename, "%s/%s", bgav_dll_path_xanim, "vid_3ivX.xa");
   
   priv->dll_handle = dlopen(dll_filename,
                               RTLD_NOW);
@@ -457,8 +450,22 @@ static bgav_video_decoder_t decoder =
     close:  close_xadll,
   };
 
-void bgav_init_video_decoders_xadll()
+int bgav_init_video_decoders_xadll()
   {
-  bgav_video_decoder_register(&decoder);
+  struct stat stat_buf;
+  char dll_filename[PATH_MAX];
+  sprintf(dll_filename, "%s/%s", bgav_dll_path_xanim, "vid_3ivX.xa");
+
+  if(!stat(dll_filename, &stat_buf))
+    {
+    bgav_video_decoder_register(&decoder);
+    return 1;
+    }
+  else
+    {
+    fprintf(stderr, "Cannot find file %s, disabling %s\n",
+            dll_filename, decoder.name);
+    return 0;
+    }
   }
 

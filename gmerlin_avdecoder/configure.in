@@ -364,6 +364,8 @@ dnl We compile them, if we have an intel architecture and
 dnl gcc. Other libs make a more complicated check here.
 dnl
 
+AH_TEMPLATE([HAVE_W32DLL], [ Win32 dll loader enabled ])
+
 enable_w32dll="false"
 
 if test x"$GCC" = x"yes"; then
@@ -371,8 +373,6 @@ if test x"$GCC" = x"yes"; then
     i?86 | k?-* | athlon | pentium) enable_w32dll="true"
  esac
 fi
-
-AH_TEMPLATE([HAVE_W32DLL], [ Win32 dll loader enabled ])
 
 if test "x$enable_w32dll" = "xtrue"; then
 AC_DEFINE([HAVE_W32DLL])
@@ -392,6 +392,46 @@ AC_ARG_WITH(w32-path,[  --with-w32-path=path    Location of WIN32 libraries],
 AC_SUBST(w32_path)
 
 AC_CHECK_HEADERS(sys/mman.h)
+
+dnl
+dnl Real DLLs loader
+dnl
+
+AH_TEMPLATE([HAVE_REALDLL], [ RealPlayer dll loader enabled ])
+
+enable_realdll="false"
+
+if test x"$GCC" = x"yes"; then
+ case "$host_cpu" in
+    i?86 | k?-* | athlon | pentium) enable_realdll="true"
+ esac
+fi
+
+if test "x$enable_realdll" = "xtrue"; then
+AC_DEFINE([HAVE_REALDLL])
+fi
+
+AM_CONDITIONAL(HAVE_REALDLL, test x"$enable_realdll" = "xtrue")
+
+dnl
+dnl Real DLLs loader
+dnl
+
+AH_TEMPLATE([HAVE_XADLL], [ Xanim dll loader enabled ])
+
+enable_xadll="false"
+
+if test x"$GCC" = x"yes"; then
+ case "$host_cpu" in
+    i?86 | k?-* | athlon | pentium) enable_xadll="true"
+ esac
+fi
+
+if test "x$enable_xadll" = "xtrue"; then
+AC_DEFINE([HAVE_XADLL])
+fi
+
+AM_CONDITIONAL(HAVE_XADLL, test x"$enable_xadll" = "xtrue")
 
 
 dnl
@@ -471,21 +511,21 @@ AC_OUTPUT
 
 echo "Configuration: "
 
-echo -n "AVCodec:           "
+echo -n "AVCodec:                "
 if test "x$have_avcodec" = "xtrue"; then
 echo "Yes"
 else
 echo "Missing"
 fi
 
-echo -n "faad2:             "
+echo -n "faad2:                  "
 if test "x$have_faad2" = "xtrue"; then
 echo "Yes"
 else
 echo "Missing"
 fi
 
-echo -n "flac:              "
+echo -n "flac:                   "
 if test "x$have_flac" = "xtrue"; then
 echo "Yes"
 else
@@ -493,43 +533,57 @@ echo "Missing"
 fi
 
 
-echo -n "vorbis:            "
+echo -n "vorbis:                 "
 if test "x$have_vorbis" = "xtrue"; then
 echo "Yes"
 else
 echo "Missing"
 fi
 
-echo -n "libpng:            "
+echo -n "libpng:                 "
 if test "x$have_libpng" = "xtrue"; then
 echo "Yes"
 else
 echo "Missing"
 fi
 
-echo -n "libmpeg2:          "
+echo -n "libmpeg2:               "
 if test "x$have_libmpeg2" = "xtrue"; then
 echo "Yes"
 else
 echo "Missing"
 fi
 
-echo -n "libmad 0.15.x:     "
+echo -n "libmad 0.15.x:          "
 if test "x$have_mad" = "xtrue"; then
 echo "Yes"
 else
 echo "Missing"
 fi
 
-echo -n "liba52:            "
+echo -n "liba52:                 "
 if test "x$have_liba52" = "xtrue"; then
 echo "Yes"
 else
 echo "Missing"
 fi
 
-echo -n "win32 DLL Support: "
+echo -n "win32 DLL Support:      "
 if test "x$enable_w32dll" = "xtrue"; then
+echo "Enabled"
+else
+echo "Disabled (Unsupported Architecture)"
+fi
+
+echo -n "RealPLayer DLL Support: "
+if test "x$enable_realdll" = "xtrue"; then
+echo "Enabled"
+else
+echo "Disabled (Unsupported Architecture)"
+fi
+
+echo -n "Xanim DLL Support:      "
+if test "x$enable_xadll" = "xtrue"; then
 echo "Enabled"
 else
 echo "Disabled (Unsupported Architecture)"

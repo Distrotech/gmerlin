@@ -9,6 +9,9 @@
 
 // #include "config.h"
 #include <bswap.h>
+
+#include <config.h>
+#include <codecs.h>
 #include <avdec_private.h>
 
 #define BE_16(x) (be2me_16(*(unsigned short *)(x)))

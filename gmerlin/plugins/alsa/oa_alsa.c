@@ -104,7 +104,7 @@ static void * create_alsa()
 static int start_alsa(void * data)
   {
   alsa_t * priv = (alsa_t*)(data);
-  fprintf(stderr, "start_alsa\n");
+  //  fprintf(stderr, "start_alsa\n");
 
   if(snd_pcm_prepare(priv->pcm) < 0)
     return 0;
@@ -115,10 +115,10 @@ static int start_alsa(void * data)
 static void stop_alsa(void * data)
   {
   alsa_t * priv = (alsa_t*)(data);
-  fprintf(stderr, "stop_alsa: ");
+  //  fprintf(stderr, "stop_alsa: ");
   snd_pcm_drop(priv->pcm);
 
-  fprintf(stderr, "%s\n", snd_pcm_state_name(snd_pcm_state(priv->pcm)));
+  //  fprintf(stderr, "%s\n", snd_pcm_state_name(snd_pcm_state(priv->pcm)));
   }
 
 static int open_alsa(void * data, gavl_audio_format_t * format)
@@ -148,7 +148,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
 static void close_alsa(void * p)
   {
   alsa_t * priv = (alsa_t*)(p);
-  fprintf(stderr, "close_alsa\n");
+  //  fprintf(stderr, "close_alsa\n");
   if(priv->pcm)
     {
     snd_pcm_close(priv->pcm);
@@ -255,7 +255,7 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
                    val->val_str))
         priv->card_index++;
       }
-    fprintf(stderr, "Card index: %d\n", priv->card_index);
+    //    fprintf(stderr, "Card index: %d\n", priv->card_index);
     }
   }
 

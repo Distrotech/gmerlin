@@ -510,6 +510,7 @@ void card_widget_tearoff_control(card_widget_t * c, control_widget_t * w)
   gtk_container_remove(GTK_CONTAINER(c->upper_table), control_widget_get_widget(w));
   
   win->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title(GTK_WINDOW(win->window), "Gmerlin Alsamixer");
   gtk_window_set_position(GTK_WINDOW(win->window), GTK_WIN_POS_CENTER);
 
   gtk_container_add(GTK_CONTAINER(win->window), control_widget_get_widget(w));

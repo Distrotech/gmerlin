@@ -26,9 +26,14 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+#include <config.h>
+#include <codecs.h>
 #include <avdec_private.h>
 
-static char codec_path[PATH_MAX];
+// static char codec_path[PATH_MAX];
+
+char * bgav_dll_path_real = (char*)0;
 
 static int init_real(bgav_stream_t * s);
 static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f);
@@ -87,22 +92,29 @@ static codec_info_t real_codecs[] =
 
   };
 
-void bgav_init_video_decoders_real()
+int bgav_init_video_decoders_real()
   {
+  int ret = 1;
   struct stat stat_buf;
   char test_filename[PATH_MAX];
   int i;
 
   /* REMOVE */
-
 //  strcpy(codec_path, "/usr/lib/RealPlayer8/Codecs/");
   
   for(i = 0; i < sizeof(real_codecs) / sizeof(real_codecs[0]); i++)
     {
-    sprintf(test_filename, "%s%s", codec_path, real_codecs[i].dll_name);
+    sprintf(test_filename, "%s/%s", bgav_dll_path_real, real_codecs[i].dll_name);
     if(!stat(test_filename, &stat_buf))
       bgav_video_decoder_register(&real_codecs[i].decoder);
+    else
+      {
+      fprintf(stderr, "Cannot find file %s, disabling %s\n",
+              test_filename, real_codecs[i].decoder.name);
+      ret = 0;
+      }
     }
+  return ret;
   }
 
 /*
@@ -213,7 +225,7 @@ static int init_real(bgav_stream_t * s)
   if(!info)
     return 0;
   
-  sprintf(codec_filename, "%s%s", codec_path, info->dll_name);
+  sprintf(codec_filename, "%s/%s", bgav_dll_path_real, info->dll_name);
 
   /* Try to dlopen it */
 
@@ -367,21 +379,3 @@ static void resync_real(bgav_stream_t * s)
   {
   
   };
-
-const char *  bgav_get_dll_path_real()
-  {
-  return codec_path;
-  }
-
-void bgav_set_dll_path_real(const char * path)
-  {
-  int len;
-  len = strlen(path);
-  strncpy(codec_path, path, len);
-  if(codec_path[len-1] != '/')
-    {
-    codec_path[len] = '/';
-    len++;
-    }
-  codec_path[len] = '\0';
-  }

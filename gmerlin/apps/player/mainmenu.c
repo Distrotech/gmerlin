@@ -24,7 +24,9 @@ struct stream_menu_plugin_s
 struct windows_menu_s
   {
   GtkWidget * mediatree;
+  guint       mediatree_id;
   GtkWidget * infowindow;
+  guint       infowindow_id;
   GtkWidget * menu;
   };
 
@@ -64,36 +66,6 @@ static GtkWidget * create_menu()
   return ret;
   }
 
-static void infowindow_close_callback(bg_gtk_info_window_t * w, void * data)
-  {
-  gmerlin_t * g;
-  main_menu_t * the_menu;
-  g = (gmerlin_t*)data;
-  the_menu = g->player_window->main_menu;
-
-  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(the_menu->windows_menu.infowindow), FALSE);
-  }
-
-static void pluginwindow_close_callback(plugin_window_t * w, void * data)
-  {
-  gmerlin_t * g;
-  main_menu_t * the_menu;
-  g = (gmerlin_t*)data;
-  the_menu = g->player_window->main_menu;
-  gtk_widget_set_sensitive(the_menu->options_menu.plugins, 1);
-  }
-
-void gmerlin_tree_close_callback(bg_gtk_tree_window_t * win,
-                                 void * data)
-  {
-  gmerlin_t * g;
-  main_menu_t * the_menu;
-  g = (gmerlin_t*)data;
-  the_menu = g->player_window->main_menu;
-  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(the_menu->windows_menu.mediatree), FALSE);
-  
-  }
-
 
 static void menu_callback(GtkWidget * w, gpointer data)
   {
@@ -105,7 +77,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
   
   if(w == the_menu->options_menu.preferences)
     {
-    fprintf(stderr, "Launching config dialog\n");
+    //    fprintf(stderr, "Launching config dialog\n");
     gmerlin_configure(g);
     }
   else if(w == the_menu->options_menu.plugins)
@@ -119,19 +91,28 @@ static void menu_callback(GtkWidget * w, gpointer data)
     if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(the_menu->windows_menu.infowindow)))
       {
       bg_gtk_info_window_show(g->info_window);
+      g->show_info_window = 1;
       }
     else
+      {
       bg_gtk_info_window_hide(g->info_window);
+      g->show_info_window = 0;
+      }
     }
+  
 
   else if(w == the_menu->windows_menu.mediatree)
     {
     if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(the_menu->windows_menu.mediatree)))
       {
       bg_gtk_tree_window_show(g->tree_window);
+      g->show_tree_window = 1;
       }
     else
+      {
       bg_gtk_tree_window_hide(g->tree_window);
+      g->show_tree_window = 0;
+      }
     }
   }
 
@@ -151,11 +132,11 @@ static GtkWidget * create_item(const char * label,
 
 static GtkWidget * create_toggle_item(const char * label,
                                       gmerlin_t * gmerlin,
-                                      GtkWidget * menu)
+                                      GtkWidget * menu, guint * id)
   {
   GtkWidget * ret;
   ret = gtk_check_menu_item_new_with_label(label);
-  g_signal_connect(G_OBJECT(ret), "toggled",
+  *id = g_signal_connect(G_OBJECT(ret), "toggled",
                    G_CALLBACK(menu_callback),
                    gmerlin);
   gtk_widget_show(ret);
@@ -183,9 +164,9 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   
   ret->windows_menu.menu = create_menu();
   ret->windows_menu.mediatree =
-    create_toggle_item("Media Tree", gmerlin, ret->windows_menu.menu);
+    create_toggle_item("Media Tree", gmerlin, ret->windows_menu.menu, &ret->windows_menu.mediatree_id);
   ret->windows_menu.infowindow =
-    create_toggle_item("Info window", gmerlin, ret->windows_menu.menu);
+    create_toggle_item("Info window", gmerlin, ret->windows_menu.menu, &ret->windows_menu.infowindow_id);
   gtk_widget_show(ret->windows_menu.menu);
   
   ret->options_menu.menu = create_menu();
@@ -204,13 +185,6 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
                                           ret->menu);
   gtk_widget_show(ret->menu);
 
-  gmerlin->info_window = bg_gtk_info_window_create(gmerlin->player,
-                                                   infowindow_close_callback, 
-                                                   gmerlin);
-
-  gmerlin->plugin_window = plugin_window_create(gmerlin,
-                                                pluginwindow_close_callback, 
-                                                gmerlin);
   
   
   return ret;
@@ -219,4 +193,24 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
 GtkWidget * main_menu_get_widget(main_menu_t * m)
   {
   return m->menu;
+  }
+
+void main_menu_set_tree_window_item(main_menu_t * m, int state)
+  {
+  g_signal_handler_block(G_OBJECT(m->windows_menu.mediatree), m->windows_menu.mediatree_id);
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(m->windows_menu.mediatree), state);
+  g_signal_handler_unblock(G_OBJECT(m->windows_menu.mediatree), m->windows_menu.mediatree_id);
+  
+  }
+
+void main_menu_set_info_window_item(main_menu_t * m, int state)
+  {
+  g_signal_handler_block(G_OBJECT(m->windows_menu.infowindow), m->windows_menu.infowindow_id);
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(m->windows_menu.infowindow), state);
+  g_signal_handler_unblock(G_OBJECT(m->windows_menu.infowindow), m->windows_menu.infowindow_id);
+  }
+
+void main_menu_set_plugin_window_item(main_menu_t * m, int state)
+  {
+  gtk_widget_set_sensitive(m->options_menu.plugins, !state);
   }

@@ -26,6 +26,9 @@
 
 #include <stdlib.h>
 #include <string.h>
+
+#include <config.h>
+#include <codecs.h>
 #include <avdec_private.h>
 #include <utils.h>
 
@@ -72,7 +75,7 @@ static codec_info_t real_codecs[] =
     },
     {
       dll_name: "cook.so.6.0",
-      format_name: "Real Audio cook",
+      format_name: "Real Audio cook DLL decoder",
       decoder:
       {
         name:   "Real audio cook decoder",
@@ -89,7 +92,7 @@ static codec_info_t real_codecs[] =
       format_name: "Real Audio 14.4",
       decoder:
       {
-        name:   "Real audio 14.4 decoder",
+        name:   "Real audio 14.4 DLL decoder",
         fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('1', '4', '_', '4'),
                                 BGAV_MK_FOURCC('l', 'p', 'c', 'J'),
                                 0x00  },
@@ -104,7 +107,7 @@ static codec_info_t real_codecs[] =
 #if 0
     {
       dll_name: "28_8.so.6.0",
-      format_name: "Real Audio 28.8",
+      format_name: "Real Audio 28.8 DLL decoder",
       decoder:
       {
         name:   "Real audio 28.8 decoder",
@@ -119,7 +122,7 @@ static codec_info_t real_codecs[] =
 #endif
     {
       dll_name: "atrc.so.6.0",
-      format_name: "Real Audio atrc",
+      format_name: "Real Audio atrc DLL decoder",
       decoder:
       {
         name:   "Real audio atrc decoder",
@@ -133,25 +136,27 @@ static codec_info_t real_codecs[] =
     },
   };
 
-void bgav_init_audio_decoders_real()
+int bgav_init_audio_decoders_real()
   {
+  int ret = 1;
   struct stat stat_buf;
   char test_filename[PATH_MAX];
   int i;
 
-  const char * codec_path;
-  
-  codec_path = bgav_get_dll_path_real();
-  fprintf(stderr, "bgav_init_audio_decoders_real: %s\n", codec_path); 
+  //  fprintf(stderr, "bgav_init_audio_decoders_real: %s\n", bgav_dll_path_real); 
   for(i = 0; i < sizeof(real_codecs) / sizeof(real_codecs[0]); i++)
     {
-    sprintf(test_filename, "%s%s", codec_path, real_codecs[i].dll_name);
+    sprintf(test_filename, "%s/%s", bgav_dll_path_real, real_codecs[i].dll_name);
     if(!stat(test_filename, &stat_buf))
       bgav_audio_decoder_register(&real_codecs[i].decoder);
     else
-      fprintf(stderr, "Codec file %s not found, skipping\n",
-              test_filename);
+      {
+      fprintf(stderr, "Cannot find file %s, disabling %s\n",
+              test_filename, real_codecs[i].decoder.name);
+      ret = 0;
+      }
     }
+  return ret;
   }
 
 typedef struct /*__attribute__((__packed__))*/ {
@@ -216,7 +221,6 @@ static int init_real(bgav_stream_t * s)
   {
   ra_init_t init_data;
   char codec_filename[PATH_MAX];
-  const char * codec_path;
   real_priv_t * priv;
   int i;
   char * path;
@@ -226,7 +230,6 @@ static int init_real(bgav_stream_t * s)
     
   priv = calloc(1, sizeof(*priv));
   s->data.audio.decoder->priv = priv;
-  codec_path = bgav_get_dll_path_real();
   
   for(i = 0; i < sizeof(real_codecs) / sizeof(real_codecs[0]); i++)
     {
@@ -240,7 +243,7 @@ static int init_real(bgav_stream_t * s)
   if(!info)
     return 0;
   
-  sprintf(codec_filename, "%s%s", codec_path, info->dll_name);
+  sprintf(codec_filename, "%s/%s", bgav_dll_path_real, info->dll_name);
   
   
   /* Try to dlopen it */
@@ -276,8 +279,8 @@ static int init_real(bgav_stream_t * s)
        priv->raInitDecoder))
     return 0;
 
-  path = malloc(strlen(codec_path) + 12);
-  sprintf(path, "DT_Codecs=%s", codec_path);
+  path = malloc(strlen(bgav_dll_path_real) + 12);
+  sprintf(path, "DT_Codecs=%s", bgav_dll_path_real);
   if(path[strlen(path)-1]!='/')
     {
     path[strlen(path)+1]=0;

@@ -23,11 +23,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
-#include <avdec_private.h>
-#include <nanosoft.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#include <config.h>
+#include <codecs.h>
+#include <avdec_private.h>
+#include <nanosoft.h>
 
 #include "libw32dll/wine/msacm.h"
 #include "libw32dll/wine/driver.h"
@@ -586,12 +589,13 @@ static void close_dmo(bgav_stream_t * s)
   free(priv);
   }
 
-void bgav_init_video_decoders_win32()
+int bgav_init_video_decoders_win32()
   {
   int i;
   char dll_filename[PATH_MAX];
   struct stat stat_buf;
-
+  int ret = 1;
+  
   for(i = 0; i < MAX_CODECS; i++)
     {
     sprintf(dll_filename, "%s/%s", win32_def_path, codec_infos[i].dll_name);
@@ -623,6 +627,12 @@ void bgav_init_video_decoders_win32()
         }
       bgav_video_decoder_register(&codecs[i]);
       }
-
+    else
+      {
+      fprintf(stderr, "Cannot find file %s, disabling %s\n",
+              dll_filename, codec_infos[i].name);
+      ret = 0;
+      }
     }
+  return ret;
   }

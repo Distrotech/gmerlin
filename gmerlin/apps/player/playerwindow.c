@@ -156,8 +156,8 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
   
   win = (player_window_t*)data;
   
-  win->x = (int)(evt->x);
-  win->y = (int)(evt->y);
+  win->mouse_x = (int)(evt->x);
+  win->mouse_y = (int)(evt->y);
   
   return TRUE;
   }
@@ -170,8 +170,11 @@ static gboolean motion_callback(GtkWidget * w, GdkEventMotion * evt,
 
   win = (player_window_t*)data;
   gtk_window_move(GTK_WINDOW(win->window),
-                  (int)(evt->x_root) - win->x,
-                  (int)(evt->y_root) - win->y);
+                  (int)(evt->x_root) - win->mouse_x,
+                  (int)(evt->y_root) - win->mouse_y);
+
+  win->window_x = (int)(evt->x_root - evt->x);
+  win->window_y = (int)(evt->y_root - evt->y);
   
   return TRUE;
   }
@@ -196,7 +199,7 @@ static void seek_release_callback(bg_gtk_slider_t * slider, float perc,
   {
   player_window_t * win = (player_window_t *)data;
   //  player_window_t * win = (player_window_t *)data;
-  fprintf(stderr, "Seek release callback %f\n", perc);
+  //  fprintf(stderr, "Seek release callback %f\n", perc);
   bg_player_seek(win->gmerlin->player, perc);
   
   }
@@ -281,23 +284,13 @@ static void handle_message(player_window_t * win,
           break;
         case BG_PLAYER_STATE_ERROR:
           arg_str_1 = bg_msg_get_arg_string(msg, 1);
-          fprintf(stderr, "State Error %s\n", arg_str_1);
+          //          fprintf(stderr, "State Error %s\n", arg_str_1);
           display_set_state(win->display, arg_i_1, arg_str_1);
           arg_i_1 = bg_msg_get_arg_int(msg, 2);
 
           switch(arg_i_1)
             {
             case BG_PLAYER_ERROR_TRACK:
-              if(win->gmerlin->playback_flags & PLAYBACK_MARK_ERROR)
-                {
-                /* Mark track as error in the tree */
-                bg_media_tree_mark_error(win->gmerlin->tree, 1);
-                }
-              if(win->gmerlin->playback_flags & PLAYBACK_SKIP_ERROR)
-                {
-                /* Next track */
-                gmerlin_next_track(win->gmerlin);
-                }
               break;
             }
           break;
@@ -334,12 +327,13 @@ static void handle_message(player_window_t * win,
           arg_i_2 = bg_msg_get_arg_int(msg, 1);
           if(arg_i_2)
             gmerlin_next_track(win->gmerlin);
+          break;
         }
       break;
     case BG_PLAYER_MSG_TRACK_NAME:
-      //      fprintf(stderr, "BG_PLAYER_MSG_TRACK_NAME\n");
       arg_str_1 = bg_msg_get_arg_string(msg, 0);
       display_set_track_name(win->display, arg_str_1);
+      fprintf(stderr, "BG_PLAYER_MSG_TRACK_NAME %s\n", arg_str_1);
       free(arg_str_1);
       break;
     case BG_PLAYER_MSG_TRACK_NUM_STREAMS:
@@ -493,6 +487,9 @@ player_window_t * player_window_create(gmerlin_t * g)
 
 void player_window_show(player_window_t * win)
   {
+  gtk_window_move(GTK_WINDOW(win->window),
+                  win->window_x,
+                  win->window_y);
   gtk_widget_show(win->window);
   }
 

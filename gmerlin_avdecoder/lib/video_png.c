@@ -19,10 +19,13 @@
 
 /* PNG decoder for quicktime and avi */
 
-#include <avdec_private.h>
 #include <stdlib.h>
 #include <string.h>
 #include <png.h>
+
+#include <config.h>
+#include <codecs.h>
+#include <avdec_private.h>
 
 typedef struct
   {

@@ -22,7 +22,7 @@ typedef struct
   bg_gtk_plugin_widget_single_t * video_encoder_plugins;
 
   bg_gtk_plugin_widget_multi_t  * image_readers;
-  bg_gtk_plugin_widget_multi_t  * image_writers;
+  bg_gtk_plugin_widget_single_t  * image_writers;
   
   GtkWidget * window;
   } app_window;
@@ -203,17 +203,35 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   /* Image writers */
 
   ret->image_writers =
-    bg_gtk_plugin_widget_multi_create(reg,
-                                      BG_PLUGIN_IMAGE_WRITER,
-                                      BG_PLUGIN_FILE|
-                                      BG_PLUGIN_URL|
-                                      BG_PLUGIN_REMOVABLE);
+    bg_gtk_plugin_widget_single_create(reg,
+                                       BG_PLUGIN_IMAGE_WRITER,
+                                       BG_PLUGIN_FILE|
+                                       BG_PLUGIN_URL|
+                                       BG_PLUGIN_REMOVABLE,
+                                       NULL, NULL);
+  
+
+  table = gtk_table_new(1, 2, 0);
+  gtk_table_set_col_spacings(GTK_TABLE(table), 5);
+  gtk_table_set_row_spacings(GTK_TABLE(table), 5);
+  gtk_container_set_border_width(GTK_CONTAINER(table), 5);
+    
+  label = gtk_label_new("Image writer");
+  gtk_widget_show(label);
+  
+  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1,
+                   GTK_FILL, GTK_SHRINK, 0, 0);
+  gtk_table_attach(GTK_TABLE(table),
+                   bg_gtk_plugin_widget_single_get_widget(ret->image_writers),
+                   1, 2, 0, 1, GTK_EXPAND, GTK_SHRINK, 0, 0);
+
+  gtk_widget_show(table);
   
   label = gtk_label_new("Image writers");
   gtk_widget_show(label);
   
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
-                           bg_gtk_plugin_widget_multi_get_widget(ret->image_writers),
+                           table,
                            label);
   
   gtk_widget_show(notebook);

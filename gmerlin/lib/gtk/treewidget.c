@@ -930,6 +930,7 @@ static void drag_received_callback(GtkWidget *widget,
   GtkTreePath * path;
   GtkTreeViewDropPosition pos;
   int was_open;
+  int do_delete = 0;
   
   bg_gtk_tree_widget_t * w = (bg_gtk_tree_widget_t *)d;
   
@@ -1007,11 +1008,8 @@ static void drag_received_callback(GtkWidget *widget,
       bg_album_insert_xml_before(dest_album, data->data, data->length,
                                  (bg_album_entry_t*)0);
       fprintf(stderr, "Gmerlin entries dropped\n");
-
-      /* Delete selected tracks in the source widget */
-
-      if(gtk_drag_get_source_widget(drag_context))
-        bg_gtk_album_widget_delete_drag();
+      if(drag_context->action == GDK_ACTION_MOVE)
+        do_delete = 1;
       }
     album_window = album_is_open(w, dest_album);
     if(album_window)
@@ -1024,7 +1022,7 @@ static void drag_received_callback(GtkWidget *widget,
   
   gtk_drag_finish(drag_context,
                   TRUE, /* Success */
-                  FALSE, /* Delete */
+                  do_delete, /* Delete */
                   w->drop_time);
   bg_gtk_tree_widget_update(w);
   }

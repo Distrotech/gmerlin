@@ -20,6 +20,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <faad.h>
+
+#include <config.h>
+#include <codecs.h>
 #include <avdec_private.h>
 
 typedef struct

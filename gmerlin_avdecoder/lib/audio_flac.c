@@ -19,8 +19,11 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <avdec_private.h>
 #include <FLAC/stream_decoder.h>
+
+#include <config.h>
+#include <codecs.h>
+#include <avdec_private.h>
 
 #define MAX_FRAME_SAMPLES 65535
 

@@ -36,6 +36,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <config.h>
+#include <codecs.h>
 #include <avdec_private.h>
 
 #define PTR_2_INT_32(d) \

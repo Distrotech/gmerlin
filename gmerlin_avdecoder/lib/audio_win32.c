@@ -23,7 +23,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-
+#include <config.h>
+#include <codecs.h>
 #include <avdec_private.h>
 #include <nanosoft.h>
 
@@ -423,8 +424,9 @@ static void close_w32(bgav_stream_t * s)
   free(priv);
   }
 
-void bgav_init_audio_decoders_win32()
+int bgav_init_audio_decoders_win32()
   {
+  int ret = 1;
   int i;
   char dll_filename[PATH_MAX];
   struct stat stat_buf;
@@ -445,8 +447,10 @@ void bgav_init_audio_decoders_win32()
       }
     else
       {
-      fprintf(stderr, "Didn't find %s, %s will not be enabled\n",
+      fprintf(stderr, "Cannot find file %s, disabling %s\n",
               dll_filename, codec_infos[i].name);
+      ret = 0;
       }
     }
+  return ret;
   }

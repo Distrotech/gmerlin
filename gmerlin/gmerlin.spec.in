@@ -16,6 +16,7 @@ BuildRequires:	alsa-lib-devel >= @ALSA_REQUIRED@
 BuildRequires:	esound >= @ESD_REQUIRED@
 BuildRequires:  gavl-devel = @GAVL_REQUIRED@
 BuildRequires:  libpng-devel >= @PNG_REQUIRED@
+BuildRequires:  libquicktime-devel = @LQT_REQUIRED@
 Requires:       libxml2 >= @XML2_REQUIRED@
 Requires:       gavl = @GAVL_REQUIRED@
 BuildRoot:	/tmp/gmerlin-build
@@ -78,6 +79,7 @@ Summary:	Libquicktime plugins for gmerlin
 Group:		Applications/Multimedia
 Requires:       gmerlin-lib = %{version}
 Provides:       gmerlin-input-plugins
+Requires:       libquicktime = @LQT_REQUIRED@
 
 %description -n gmerlin-lqt
 Libquicktime plugins for gmerlin (see http://libquicktime.sf.net)

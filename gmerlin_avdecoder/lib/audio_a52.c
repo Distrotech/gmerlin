@@ -20,6 +20,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <config.h>
+#include <codecs.h>
+
 #include <avdec_private.h>
 #include <a52dec/a52.h>
 
