@@ -45,7 +45,8 @@ static int     read_file(bgav_input_context_t* ctx,
 static int64_t seek_byte_file(bgav_input_context_t * ctx,
                               int64_t pos, int whence)
   {
-  fseek((FILE*)(ctx->priv), pos, whence);
+  //  fseek((FILE*)(ctx->priv), pos, whence);
+  fseek((FILE*)(ctx->priv), ctx->position, SEEK_SET);
   return ftell((FILE*)(ctx->priv));
   }
 

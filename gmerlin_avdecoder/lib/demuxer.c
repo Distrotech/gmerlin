@@ -293,7 +293,7 @@ bgav_seek(bgav_t * b, gavl_time_t time)
           bgav_track_skipto(track, time);
           break;
           }
-        fprintf(stderr, "Exiting otherwise infinite loop\n");
+        // fprintf(stderr, "Exiting otherwise infinite loop\n");
         }
       
       }

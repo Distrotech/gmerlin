@@ -37,6 +37,8 @@ typedef struct
   gavl_time_t picture_timestamp;
 
   int intra_slice_refresh;
+  
+  int do_resync;
   } mpeg2_priv_t;
 
 static int get_data(bgav_stream_t*s)
@@ -60,8 +62,10 @@ static int get_data(bgav_stream_t*s)
     mpeg2_tag_picture(priv->dec,
                       (priv->p->timestamp) >> 32,
                       priv->p->timestamp & 0xffffffff);
+    if(priv->do_resync)
+      priv->picture_timestamp = priv->p->timestamp;
     }
-
+  
   return 1;
   }
 
@@ -251,9 +255,9 @@ int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
       gavl_video_frame_copy(&(s->data.video.format), f, priv->frame);
       }
     s->time = priv->picture_timestamp;
+    //    fprintf(stderr, "Timestamp: %f\n",
+    //            gavl_time_to_seconds(s->time));
     }
-  //  fprintf(stderr, "Timestamp: %f\n",
-  //          gavl_time_to_seconds(priv->picture_timestamp));
   
   return 1;
   }
@@ -266,6 +270,9 @@ static void resync_mpeg2(bgav_stream_t*s)
   mpeg2_reset(priv->dec, 0);
   mpeg2_buffer(priv->dec, NULL, NULL);
   mpeg2_skip(priv->dec, 1);
+
+  priv->do_resync = 1;
+
   while(1)
     {
     while(1)
@@ -282,6 +289,7 @@ static void resync_mpeg2(bgav_stream_t*s)
       break;
     }
   mpeg2_skip(priv->dec, 0);
+  priv->do_resync = 0;
   }
 
   
