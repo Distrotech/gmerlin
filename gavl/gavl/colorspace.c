@@ -94,6 +94,19 @@ int gavl_colorspace_is_yuv(gavl_colorspace_t colorspace)
   return 0;
   }
 
+int gavl_colorspace_is_planar(gavl_colorspace_t colorspace)
+  {
+  switch(colorspace)
+    {
+    case GAVL_YUV_420_P:
+    case GAVL_YUV_422_P:
+      return 1;
+    default:
+      return 0;
+    }
+  return 0;
+  }
+
 int gavl_colorspace_has_alpha(gavl_colorspace_t colorspace)
   {
   switch(colorspace)

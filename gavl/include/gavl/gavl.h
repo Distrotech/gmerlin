@@ -198,6 +198,16 @@ void gavl_audio_format_dump(gavl_audio_format_t *);
 
 void gavl_audio_format_copy(gavl_audio_format_t * dst,
                             const gavl_audio_format_t * src);
+
+/*
+ *  This sets the channel_setup and lfe of the format according
+ *  to num_channels.
+ *  The result is not necessarily correct, but helps for file formats
+ *  lacking this information. As least it's correct for mono and stereo
+ *  strams.
+ */
+  
+void gavl_set_channel_setup(gavl_audio_format_t * dst);
   
   
 /* Maximum number of supported channels */
@@ -438,6 +448,14 @@ void gavl_video_frame_free(gavl_video_frame_t*);
 void gavl_clear_video_frame(gavl_video_frame_t * frame,
                             gavl_video_format_t * format);
 
+/********************************************************
+ *  Copy one video frame to another as quickly as possible
+ **********************************************************/
+
+void gavl_video_frame_copy(gavl_video_format_t * format,
+                           gavl_video_frame_t * dst,
+                           gavl_video_frame_t * src);
+
 
 /*
  *  Video framerate converter
@@ -481,6 +499,7 @@ int gavl_framerate_convert(gavl_framerate_converter_t *,
 int gavl_colorspace_is_rgb(gavl_colorspace_t colorspace);
 int gavl_colorspace_is_yuv(gavl_colorspace_t colorspace);
 int gavl_colorspace_has_alpha(gavl_colorspace_t colorspace);
+int gavl_colorspace_is_planar(gavl_colorspace_t colorspace);
 
 const char * gavl_colorspace_to_string(gavl_colorspace_t colorspace);
 gavl_colorspace_t gavl_string_to_colorspace(const char *);

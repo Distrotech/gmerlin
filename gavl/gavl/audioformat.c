@@ -107,3 +107,31 @@ void gavl_audio_format_dump(gavl_audio_format_t * f)
   fprintf(stderr, "    Sample format: %s\n",
           gavl_sample_format_to_string(f->sample_format));
   }
+
+void gavl_set_channel_setup(gavl_audio_format_t * dst)
+  {
+  dst->lfe = 0;
+  switch(dst->num_channels)
+    {
+    case 1:
+      dst->channel_setup = GAVL_CHANNEL_MONO;
+      break;
+    case 2:
+      dst->channel_setup = GAVL_CHANNEL_2F;
+      break;
+    case 3:
+      dst->channel_setup = GAVL_CHANNEL_3F;
+      break;
+    case 4:
+      dst->channel_setup = GAVL_CHANNEL_2F2R;
+      break;
+    case 5:
+      dst->channel_setup = GAVL_CHANNEL_3F2R;
+      break;
+    case 6:
+      dst->channel_setup = GAVL_CHANNEL_3F2R;
+      dst->lfe = 1;
+      break;
+    }
+
+  }

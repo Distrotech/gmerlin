@@ -1,5 +1,5 @@
 /**************************************
- * Function table for colorspaces
+* Function table for colorspaces
  **************************************/
 
 typedef struct

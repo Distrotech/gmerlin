@@ -95,6 +95,7 @@ void gavl_video_frame_alloc(gavl_video_frame_t * ret,
       ret->y = ret->pixels;
       ret->u = ret->y + ret->y_stride*format->frame_height;
       ret->v = ret->u + (ret->u_stride*format->frame_height)/2;
+      ret->pixels_stride = ret->y_stride;
       break;
     case GAVL_YUV_422_P:
       ret->y_stride = format->frame_width;
@@ -112,6 +113,7 @@ void gavl_video_frame_alloc(gavl_video_frame_t * ret,
       ret->y = ret->pixels;
       ret->u = ret->y + ret->y_stride*format->frame_height;
       ret->v = ret->u + ret->u_stride*format->frame_height;
+      ret->pixels_stride = ret->y_stride;
       break;
     case GAVL_COLORSPACE_NONE:
       fprintf(stderr, "Colorspace not specified for video frame\n");
@@ -126,7 +128,6 @@ void gavl_video_frame_free(gavl_video_frame_t * frame)
     free(frame->pixels);
   frame->pixels = (uint8_t*)0;
   }
-                            
 
 gavl_video_frame_t * gavl_video_frame_create(gavl_video_format_t * format)
   {
@@ -199,5 +200,81 @@ void gavl_clear_video_frame(gavl_video_frame_t * frame,
     case GAVL_COLORSPACE_NONE:
       break;
       
+    }
+  }
+
+void gavl_video_frame_copy(gavl_video_format_t * format,
+                           gavl_video_frame_t * dst,
+                           gavl_video_frame_t * src)
+  {
+  int i;
+  uint8_t * sp, *dp;
+  int imax;
+  int bytes_per_line;
+  
+  if(dst->pixels_stride != src->pixels_stride)
+    {
+    //    fprintf(stderr, "Strides not equal %d %d\n", dst->pixels_stride, src->pixels_stride);
+    sp = src->pixels;
+    dp = dst->pixels;
+    bytes_per_line = (dst->pixels_stride < src->pixels_stride) ?
+      dst->pixels_stride : src->pixels_stride;      
+    
+    for(i = 0; i < format->image_height; i++)
+      {
+      memcpy(dp, sp, bytes_per_line);
+      dp += dst->pixels_stride;
+      sp += src->pixels_stride;
+      }
+    }
+  else
+    {
+    memcpy(dst->pixels, src->pixels, format->image_height * dst->pixels_stride);
+    }
+  
+  if(gavl_colorspace_is_planar(format->colorspace))
+    {
+    if(format->colorspace == GAVL_YUV_420_P)
+      imax = format->image_height / 2;
+    else
+      imax = format->image_height;
+
+    if(dst->u_stride != src->u_stride)
+      {
+      sp = src->u;
+      dp = dst->u;
+      
+      bytes_per_line = (dst->u_stride < src->u_stride) ?
+        dst->u_stride : src->u_stride;      
+      
+      for(i = 0; i < imax; i++)
+        {
+        memcpy(dp, sp, bytes_per_line);
+        dp += dst->u_stride;
+        sp += src->u_stride;
+        }
+      }
+    else
+      {
+      memcpy(dst->u, src->u, imax * dst->u_stride);
+      }
+    
+    if(dst->v_stride != src->v_stride)
+      {
+      sp = src->v;
+      dp = dst->v;
+      
+      bytes_per_line = (dst->v_stride < src->v_stride) ?
+        dst->v_stride : src->v_stride;      
+      
+      for(i = 0; i < imax; i++)
+        {
+        memcpy(dp, sp, bytes_per_line);
+        dp += dst->v_stride;
+        sp += src->v_stride;
+        }
+      }
+    else
+      memcpy(dst->v, src->v, imax * dst->v_stride);
     }
   }
