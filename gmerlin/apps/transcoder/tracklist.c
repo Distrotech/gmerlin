@@ -11,6 +11,7 @@
 
 #include <gui_gtk/fileselect.h>
 #include <gui_gtk/tree.h>
+#include <gui_gtk/display.h>
 
 #include <transcoder_track.h>
 #include "tracklist.h"
@@ -92,6 +93,7 @@ struct track_list_s
   gulong select_handler_id;
 
   bg_cfg_section_t * track_defaults_section;
+  bg_gtk_time_display_t * time_total;
   
   };
 
@@ -199,7 +201,9 @@ static void track_list_update(track_list_t * w)
   GtkTreeModel * model;
   GtkTreeIter iter;
   bg_transcoder_track_t * track;
-  
+  gavl_time_t duration;
+  gavl_time_t duration_total;
+
   char string_buffer[GAVL_TIME_STRING_LEN + 32];
   GtkTreeSelection * selection;
    
@@ -213,7 +217,9 @@ static void track_list_update(track_list_t * w)
   i = 0;
 
   g_signal_handler_block(G_OBJECT(selection), w->select_handler_id);
-  
+
+  duration_total = 0;
+    
   while(track)
     {
     gtk_list_store_append(GTK_LIST_STORE(model), &iter);
@@ -258,7 +264,16 @@ static void track_list_update(track_list_t * w)
 
     /* Set time */
     
-    gavl_time_prettyprint(bg_transcoder_track_get_duration(track), string_buffer);
+    duration = bg_transcoder_track_get_duration(track);
+    
+    if(duration_total != GAVL_TIME_UNDEFINED)
+      {
+      if(duration == GAVL_TIME_UNDEFINED)
+        duration_total = GAVL_TIME_UNDEFINED;
+      else
+        duration_total += duration;
+      }
+    gavl_time_prettyprint(duration, string_buffer);
     gtk_list_store_set(GTK_LIST_STORE(model),
                        &iter,
                        COLUMN_DURATION,
@@ -268,6 +283,8 @@ static void track_list_update(track_list_t * w)
     track = track->next;
     }
   g_signal_handler_unblock(G_OBJECT(selection), w->select_handler_id);
+
+  bg_gtk_time_display_update(w->time_total, duration_total);
 
   /* Flush events */
 
@@ -562,7 +579,9 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   ret = calloc(1, sizeof(*ret));
 
   ret->track_defaults_section = track_defaults_section;
-    
+
+  ret->time_total = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
+  
   ret->plugin_reg = plugin_reg;
   
   /* Create buttons */
@@ -744,19 +763,22 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   gtk_container_add(GTK_CONTAINER(scrolled), ret->treeview);
   gtk_widget_show(scrolled);
     
-  ret->widget = gtk_table_new(1, 2, 0);
+  ret->widget = gtk_table_new(2, 1, 0);
   gtk_table_attach_defaults(GTK_TABLE(ret->widget), scrolled, 0, 1, 0, 1);
 
-  box = gtk_vbox_new(0, 0);
+  box = gtk_hbox_new(0, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->add_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->delete_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->config_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->up_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->down_button, FALSE, FALSE, 0);
+
+  gtk_box_pack_end(GTK_BOX(box), bg_gtk_time_display_get_widget(ret->time_total),
+                     FALSE, FALSE, 0);
   gtk_widget_show(box);
 
   gtk_table_attach(GTK_TABLE(ret->widget),
-                   box, 1, 2, 0, 1, GTK_FILL, GTK_FILL, 0, 0);
+                   box, 0, 1, 1, 2, GTK_FILL, GTK_FILL, 0, 0);
   
   gtk_widget_show(ret->widget);
 
@@ -810,3 +832,9 @@ bg_transcoder_track_t * track_list_get_track(track_list_t * t)
   return ret;
   }
 
+void track_list_prepend_track(track_list_t * t, bg_transcoder_track_t * track)
+  {
+  track->next = t->tracks;
+  t->tracks = track;
+  track_list_update(t);
+  }

@@ -527,7 +527,7 @@ display_t * display_create(gmerlin_t * gmerlin)
   
   bg_gtk_scrolltext_set_font(ret->scrolltext, "Sans Bold 10");
 
-  ret->time_display = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_NORMAL);
+  ret->time_display = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_NORMAL, 0);
 
   
   /* Set attributes */

@@ -34,9 +34,10 @@ struct transcoder_window_s
   GtkWidget * preferences_button;
   GtkWidget * properties_button;
   GtkWidget * quit_button;
+  GtkWidget * load_button;
+  GtkWidget * save_button;
 
   GtkWidget * progress_bar;
-  GtkWidget * status_bar;
   bg_gtk_time_display_t * time_remaining;
 
   plugin_window_t * plugin_window;
@@ -53,8 +54,62 @@ struct transcoder_window_s
   bg_transcoder_t * transcoder;
   bg_transcoder_track_t * transcoder_track;
   const bg_transcoder_info_t * transcoder_info;
+  
+  guint idle_tag;
+
+  /* Load/Save stuff */
+
+  char * task_path;
+  GtkWidget * task_filesel;
   };
 
+
+static int start_transcode(transcoder_window_t * win);
+
+static bg_parameter_info_t transcoder_window_parameters[] =
+  {
+    {
+      name:        "task_path",
+      long_name:   "Task path",
+      type:        BG_PARAMETER_DIRECTORY,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_str: "." },
+    },
+    { /* End of parameters */ }
+  };
+
+static void
+set_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  transcoder_window_t * win = (transcoder_window_t *)data;
+
+  if(!name)
+    return;
+
+  if(!strcmp(name, "task_path"))
+    {
+    win->task_path = bg_strdup(win->task_path, val->val_str);
+    }
+  
+  }
+
+static int
+get_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  transcoder_window_t * win = (transcoder_window_t *)data;
+
+  if(!name)
+    return 1;
+
+  if(!strcmp(name, "task_path"))
+    {
+    val->val_str = bg_strdup(val->val_str, win->task_path);
+    return 1;
+    }
+  return 0;
+  }
+
+  
 static void
 transcoder_window_preferences(transcoder_window_t * win);
 
@@ -71,14 +126,26 @@ static void finish_transcoding(transcoder_window_t * win)
   bg_transcoder_destroy(win->transcoder);
   win->transcoder = (bg_transcoder_t*)0;
 
-  bg_transcoder_track_destroy(win->transcoder_track);
-  win->transcoder_track = (bg_transcoder_track_t*)0;
+  if(win->transcoder_track)
+    {
+    bg_transcoder_track_destroy(win->transcoder_track);
+    win->transcoder_track = (bg_transcoder_track_t*)0;
+    }
+  
+  g_source_remove(win->idle_tag);
+  win->idle_tag = 0;
+
   }
 
 static gboolean idle_callback(gpointer data)
   {
   transcoder_window_t * win;
   win = (transcoder_window_t*)data;
+
+  /* If the transcoder isn't there, it means that we were interrupted */
+
+  if(!win->transcoder)
+    return FALSE;
   
   if(!bg_transcoder_iteration(win->transcoder))
     {
@@ -86,11 +153,21 @@ static gboolean idle_callback(gpointer data)
     finish_transcoding(win);
 
     bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED);
-    
     gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
-    
+
     fprintf(stderr, "Transcoding done\n");
-    return FALSE;
+
+    if(!start_transcode(win))
+      {
+      gtk_widget_set_sensitive(win->run_button, 1);
+      gtk_widget_set_sensitive(win->stop_button, 0);
+      return FALSE;
+      }
+    else
+      {
+      win->idle_tag = g_idle_add(idle_callback, win);
+      return FALSE;
+      }
     }
 
   /* Update status */
@@ -103,7 +180,7 @@ static gboolean idle_callback(gpointer data)
   return TRUE;
   }
 
-static void start_transcode(transcoder_window_t * win)
+static int start_transcode(transcoder_window_t * win)
   {
   bg_cfg_section_t * cfg_section;
   
@@ -111,7 +188,7 @@ static void start_transcode(transcoder_window_t * win)
 
   win->transcoder_track      = track_list_get_track(win->tracklist);
   if(!win->transcoder_track)
-    return;
+    return 0;
   
   win->transcoder            = bg_transcoder_create();
 
@@ -124,12 +201,61 @@ static void start_transcode(transcoder_window_t * win)
                          win->plugin_reg, win->transcoder_track))
     {
     fprintf(stderr, "Failed to initialize transcoder\n");
-    return;
+    return 0;
     }
   fprintf(stderr, "Initialized transcoder\n");
 
-  g_idle_add(idle_callback, win);
+  gtk_widget_set_sensitive(win->run_button, 0);
+  gtk_widget_set_sensitive(win->stop_button, 1);
+  
+  return 1;
   }
+
+static void task_filesel_button_callback(GtkWidget * w, gpointer * data)
+  {
+  GtkFileSelection * filesel;
+  transcoder_window_t * win = (transcoder_window_t *)data;
+  
+  filesel = GTK_FILE_SELECTION(win->task_filesel);
+
+  if(w == filesel->ok_button)
+    {
+    gtk_widget_hide(win->task_filesel);
+    gtk_main_quit();
+    }
+  else if((w == win->task_filesel) || (w == filesel->cancel_button))
+    {
+    gtk_widget_hide(win->task_filesel);
+    gtk_main_quit();
+    }
+  }
+
+static gboolean task_filesel_delete_callback(GtkWidget * w, GdkEventAny * event,
+                                         gpointer * data)
+  {
+  task_filesel_button_callback(w, data);
+  return TRUE;
+  }
+
+
+
+static GtkWidget * create_task_filesel(transcoder_window_t * win)
+  {
+  GtkWidget * ret;
+
+  ret = gtk_file_selection_new("");
+
+  gtk_window_set_modal(GTK_WINDOW(ret), 1);
+  
+  g_signal_connect(G_OBJECT(ret), "delete-event",
+                   G_CALLBACK(task_filesel_delete_callback), win);
+  g_signal_connect(G_OBJECT(GTK_FILE_SELECTION(ret)->ok_button),
+                   "clicked", G_CALLBACK(task_filesel_button_callback), win);
+  g_signal_connect(G_OBJECT(GTK_FILE_SELECTION(ret)->cancel_button),
+                   "clicked", G_CALLBACK(task_filesel_button_callback), win);
+
+  return ret;
+  }  
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
@@ -139,11 +265,45 @@ static void button_callback(GtkWidget * w, gpointer data)
     {
     fprintf(stderr, "Run Button\n");
     start_transcode(win);
+    win->idle_tag = g_idle_add(idle_callback, win);
     }
   else if(w == win->stop_button)
     {
     fprintf(stderr, "Stop Button\n");
     
+    track_list_prepend_track(win->tracklist, win->transcoder_track);
+    win->transcoder_track = (bg_transcoder_track_t*)0;
+    
+    finish_transcoding(win);
+    gtk_widget_set_sensitive(win->run_button, 1);
+    gtk_widget_set_sensitive(win->stop_button, 0);
+
+    bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED);
+    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
+    }
+  else if(w == win->load_button)
+    {
+    fprintf(stderr, "Load Button\n");
+    
+    if(!win->task_filesel)
+      win->task_filesel = create_task_filesel(win);
+    
+    gtk_window_set_title(GTK_WINDOW(win->task_filesel), "Load task list");
+    
+    gtk_widget_show(win->task_filesel);
+    gtk_main();
+    }
+  else if(w == win->save_button)
+    {
+    fprintf(stderr, "Save Button\n");
+
+    if(!win->task_filesel)
+      win->task_filesel = create_task_filesel(win);
+    
+    gtk_window_set_title(GTK_WINDOW(win->task_filesel), "Save task list");
+
+    gtk_widget_show(win->task_filesel);
+    gtk_main();
     }
   else if(w == win->preferences_button)
     {
@@ -194,12 +354,10 @@ transcoder_window_t * transcoder_window_create()
   GtkWidget * main_table;
   GtkWidget * frame;
   GtkWidget * box;
-  GtkWidget * label;
   char * tmp_path;
   transcoder_window_t * ret;
   bg_cfg_section_t * cfg_section;
-  
-  
+    
   ret = calloc(1, sizeof(*ret));
   
   /* Create window */
@@ -242,19 +400,21 @@ transcoder_window_t * transcoder_window_create()
                                                GTK_STOCK_PROPERTIES);
   ret->quit_button = create_stock_button(ret,
                                          GTK_STOCK_QUIT);
+  ret->load_button  = create_stock_button(ret,
+                                          GTK_STOCK_OPEN);
+  ret->save_button  = create_stock_button(ret,
+                                          GTK_STOCK_SAVE);
+
+  gtk_widget_set_sensitive(ret->stop_button, 0);
   
   /* Progress bar */
   ret->progress_bar = gtk_progress_bar_new();
   gtk_widget_show(ret->progress_bar);
 
   /* Time display */
-  ret->time_remaining = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL);
+  ret->time_remaining = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
   bg_gtk_time_display_update(ret->time_remaining, GAVL_TIME_UNDEFINED);
 
-  /* Status bar */
-
-  ret->status_bar = gtk_statusbar_new();
-  gtk_widget_show(ret->status_bar);
   
   /* Pack everything */
   
@@ -264,6 +424,9 @@ transcoder_window_t * transcoder_window_create()
   gtk_table_set_col_spacings(GTK_TABLE(main_table), 5);
 
   box = gtk_hbox_new(0, 0);
+  
+  gtk_box_pack_start(GTK_BOX(box), ret->load_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->save_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->run_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->stop_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->preferences_button, FALSE, FALSE, 0);
@@ -273,6 +436,22 @@ transcoder_window_t * transcoder_window_create()
   gtk_table_attach(GTK_TABLE(main_table),
                    box,
                    0, 1, 0, 1, GTK_FILL, GTK_FILL, 0, 0);
+
+  box = gtk_hbox_new(0, 0);
+
+  gtk_box_pack_end(GTK_BOX(box),
+                     bg_gtk_time_display_get_widget(ret->time_remaining),
+                     FALSE, FALSE, 0);
+
+  gtk_widget_show(box);
+  
+  gtk_table_attach(GTK_TABLE(main_table),
+                   box,
+                   0, 1, 1, 2, GTK_FILL, GTK_FILL, 0, 0);
+  
+  gtk_table_attach(GTK_TABLE(main_table),
+                   ret->progress_bar,
+                   0, 1, 2, 3, GTK_FILL, GTK_FILL, 0, 0);
   
   frame = gtk_frame_new("Track queue");
   gtk_container_add(GTK_CONTAINER(frame),
@@ -281,29 +460,7 @@ transcoder_window_t * transcoder_window_create()
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(main_table),
                             frame,
-                            0, 1, 1, 2);
-
-  box = gtk_hbox_new(0, 0);
-
-  gtk_box_pack_start_defaults(GTK_BOX(box), ret->progress_bar);
-
-  label = gtk_label_new("Remaining time");
-  gtk_widget_show(label);
-  
-  gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(box),
-                     bg_gtk_time_display_get_widget(ret->time_remaining),
-                     FALSE, FALSE, 0);
-
-  gtk_widget_show(box);
-  gtk_table_attach(GTK_TABLE(main_table),
-                   box,
-                   0, 1, 2, 3, GTK_FILL, GTK_FILL, 0, 0);
-
-  gtk_table_attach(GTK_TABLE(main_table),
-                   ret->status_bar,
-                   0, 1, 3, 4, GTK_FILL, GTK_FILL, 0, 0);
-
+                            0, 1, 3, 4);
   
   gtk_widget_show(main_table);
   gtk_container_add(GTK_CONTAINER(ret->win), main_table);
@@ -313,6 +470,12 @@ transcoder_window_t * transcoder_window_create()
                          ret,
                          plugin_window_close_notify,
                          ret);
+
+  /* Apply config stuff */
+
+  cfg_section = bg_cfg_registry_find_section(ret->cfg_reg, "transcoder_window");
+  bg_cfg_section_apply(cfg_section, transcoder_window_parameters,
+                       set_transcoder_window_parameter, ret);
   
   return ret;
   }
@@ -320,7 +483,14 @@ transcoder_window_t * transcoder_window_create()
 void transcoder_window_destroy(transcoder_window_t* w)
   {
   char * tmp_path;
+  bg_cfg_section_t * cfg_section;
+  
+  cfg_section = bg_cfg_registry_find_section(w->cfg_reg, "transcoder_window");
+  bg_cfg_section_get(cfg_section, transcoder_window_parameters,
+                       get_transcoder_window_parameter, w);
+  
 
+  
   track_list_destroy(w->tracklist);
 
   tmp_path =  bg_search_file_write("transcoder", "config.xml");
@@ -328,9 +498,15 @@ void transcoder_window_destroy(transcoder_window_t* w)
   bg_cfg_registry_save(w->cfg_reg, tmp_path);
   if(tmp_path)
     free(tmp_path);
-   
+
+
+
+  
   bg_cfg_registry_destroy(w->cfg_reg);
 
+  if(w->task_path)
+    free(w->task_path);
+  
   free(w);
   }
 

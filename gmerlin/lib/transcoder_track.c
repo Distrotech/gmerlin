@@ -704,13 +704,46 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
     {
     if(t->audio_streams[i].encoder_parameters)
       bg_parameter_info_destroy_array(t->audio_streams[i].encoder_parameters);
-    }
-  
+
+    if(t->audio_streams[i].encoder_section)
+      bg_cfg_section_destroy(t->audio_streams[i].encoder_section);
+    if(t->audio_streams[i].general_section)
+      bg_cfg_section_destroy(t->audio_streams[i].general_section);
+    }  
   for(i = 0; i < t->num_video_streams; i++)
     {
     if(t->video_streams[i].encoder_parameters)
       bg_parameter_info_destroy_array(t->video_streams[i].encoder_parameters);
+
+    if(t->video_streams[i].encoder_section)
+      bg_cfg_section_destroy(t->video_streams[i].encoder_section);
+    if(t->video_streams[i].general_section)
+      bg_cfg_section_destroy(t->video_streams[i].general_section);
     }
+
+  if(t->audio_streams)
+    free(t->audio_streams);
+  if(t->video_streams)
+    free(t->video_streams);
+
+  if(t->audio_encoder_section)
+    bg_cfg_section_destroy(t->audio_encoder_section);
+  if(t->video_encoder_section)
+    bg_cfg_section_destroy(t->video_encoder_section);
+  if(t->general_section)
+    bg_cfg_section_destroy(t->general_section);
+  if(t->metadata_section)
+    bg_cfg_section_destroy(t->metadata_section);
+
+  if(t->audio_encoder_parameters)
+    bg_parameter_info_destroy_array(t->audio_encoder_parameters);
+  if(t->video_encoder_parameters)
+    bg_parameter_info_destroy_array(t->video_encoder_parameters);
+  if(t->general_parameters)
+    bg_parameter_info_destroy_array(t->general_parameters);
+  if(t->metadata_parameters)
+    bg_parameter_info_destroy_array(t->metadata_parameters);
+    
   free(t);
   }
 

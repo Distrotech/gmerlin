@@ -492,7 +492,7 @@ void bg_cfg_section_set_name(bg_cfg_section_t * s, const char * name)
   s->name = bg_strdup(s->name, name);
   }
 
-void bg_cfg_section_set_defaults(bg_cfg_section_t * section,
+void bg_cfg_section_create_items(bg_cfg_section_t * section,
                                  bg_parameter_info_t * info)
   {
   int i;
@@ -505,9 +505,7 @@ void bg_cfg_section_set_defaults(bg_cfg_section_t * section,
 
   while(info[i].name)
     {
-    bg_cfg_section_set_parameter(section,
-                                 &(info[i]),
-                                 &(info[i].val_default));
+    bg_cfg_section_find_item(section, &(info[i]));
 
     if((info[i].type == BG_PARAMETER_MULTI_LIST) ||
        (info[i].type == BG_PARAMETER_MULTI_MENU))
@@ -522,7 +520,8 @@ void bg_cfg_section_set_defaults(bg_cfg_section_t * section,
           {
           subsubsection =
             bg_cfg_section_find_subsection(subsection, info[i].multi_names[j]);
-          bg_cfg_section_set_defaults(subsubsection,
+          
+          bg_cfg_section_create_items(subsubsection,
                                       info[i].multi_parameters[j]);
           }
         j++;
@@ -531,6 +530,8 @@ void bg_cfg_section_set_defaults(bg_cfg_section_t * section,
     i++;
     }
   }
+
+
 
 void bg_cfg_section_delete_subsection(bg_cfg_section_t * section,
                                    bg_cfg_section_t * subsection)

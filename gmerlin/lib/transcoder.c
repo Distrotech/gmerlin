@@ -1329,7 +1329,9 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
   int do_delete;
   do_delete =
     ((t->state == TRANSCODER_STATE_RUNNING) && t->delete_incomplete) ? 1 : 0;
-  
+
+  fprintf(stderr, "Do delete: %d\n", do_delete);
+    
   /* Cleanup streams */
 
   for(i = 0; i < t->num_audio_streams; i++)

@@ -255,17 +255,22 @@ static void close_wav(void * data, int do_delete)
   int64_t total_bytes;
   wav = (wav_t*)data;
 
-  fprintf(stderr, "close_wav\n");
+  if(!do_delete)
+    {
+    total_bytes = ftell(wav->output);
+    
+    fseek(wav->output, RIFF_SIZE_OFFSET, SEEK_SET);
+    write_32(wav->output, total_bytes - RIFF_SIZE_OFFSET - 4);
+    
+    fseek(wav->output, DATA_SIZE_OFFSET, SEEK_SET);
+    write_32(wav->output, total_bytes - DATA_SIZE_OFFSET - 4);
+    }
   
-  total_bytes = ftell(wav->output);
-  
-  fseek(wav->output, RIFF_SIZE_OFFSET, SEEK_SET);
-  write_32(wav->output, total_bytes - RIFF_SIZE_OFFSET - 4);
-
-  fseek(wav->output, DATA_SIZE_OFFSET, SEEK_SET);
-  write_32(wav->output, total_bytes - DATA_SIZE_OFFSET - 4);
-
   fclose(wav->output);
+
+  if(do_delete)
+    remove(wav->filename);
+  
   wav->output = NULL;
   }
 

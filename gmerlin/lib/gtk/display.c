@@ -88,6 +88,8 @@ struct bg_gtk_time_display_s
   int indices[GAVL_TIME_STRING_LEN];
   
   GdkGC * gc;
+
+  int border_width;
   };
 
 static void set_bg_color(bg_gtk_time_display_t * d)
@@ -105,6 +107,9 @@ static void set_bg_color(bg_gtk_time_display_t * d)
     (bg.blue >> 8);
   gdk_color_alloc(gdk_window_get_colormap(d->widget->window),
                   &(bg));
+
+  gdk_window_set_background(d->widget->window, &bg);
+  
   gdk_gc_set_foreground(d->gc, &bg);
   }
 
@@ -157,7 +162,7 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
     return TRUE;
     
   pos_i = 0;
-  x = 7 * d->digit_width + 2 * d->colon_width;
+  x = 7 * d->digit_width + 2 * d->colon_width + d->border_width;
   
   while(d->indices[pos_i] >= 0)
     {
@@ -170,7 +175,7 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
                       0, // gint src_x,
                       0, // gint src_y,
                       x,
-                      0,
+                      d->border_width,
                       d->colon_width,
                       d->height,
                       GDK_RGB_DITHER_NONE,
@@ -185,7 +190,7 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
                       0, // gint src_x,
                       0, // gint src_y,
                       x,
-                      0,
+                      d->border_width,
                       d->digit_width,
                       d->height,
                       GDK_RGB_DITHER_NONE,
@@ -197,7 +202,7 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
     gdk_draw_rectangle(d->widget->window,
                        d->gc,
                        TRUE,
-                       0, 0, x, d->height);
+                       0, 0, x, d->height + 2 * d->border_width);
   return TRUE;
   }
 
@@ -259,14 +264,14 @@ void bg_gtk_time_display_update(bg_gtk_time_display_t * d,
   }
 
 bg_gtk_time_display_t *
-bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size)
+bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size, int border_width)
   {
   bg_gtk_time_display_t * ret;
 
   load_pixbufs();
   
   ret = calloc(1, sizeof(*ret));
-  
+  ret->border_width = border_width;
   switch(size)
     {
     case BG_GTK_DISPLAY_SIZE_HUGE:   /* 480 x 96, 1/1 */
@@ -309,9 +314,9 @@ bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size)
                    G_CALLBACK(realize_callback), (gpointer)ret);
 
   gtk_widget_set_size_request(ret->widget,
-                              7 * ret->digit_width + 2 * ret->colon_width,
-                              ret->height);
-
+                              2 * ret->border_width + 7 * ret->digit_width + 2 * ret->colon_width,
+                              2 * ret->border_width + ret->height);
+  
   gtk_widget_show(ret->widget);
   bg_gtk_time_display_update(ret, 0);
   return ret;

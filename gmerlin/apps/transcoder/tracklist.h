@@ -8,3 +8,5 @@ void track_list_destroy(track_list_t *);
 GtkWidget * track_list_get_widget(track_list_t *);
 
 bg_transcoder_track_t * track_list_get_track(track_list_t *);
+
+void track_list_prepend_track(track_list_t *, bg_transcoder_track_t *);

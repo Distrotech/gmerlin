@@ -99,7 +99,7 @@ void bg_cfg_section_get_parameter(bg_cfg_section_t * section,
                                   bg_parameter_info_t * info,
                                   bg_parameter_value_t * value);
 
-void bg_cfg_section_set_defaults(bg_cfg_section_t * section,
+void bg_cfg_section_create_items(bg_cfg_section_t * section,
                                  bg_parameter_info_t * info);
 
 /* Delete a subsection (useful for cleaning up */

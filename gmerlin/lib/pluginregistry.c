@@ -377,7 +377,7 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
           
       parameter_info = plugin->get_parameters(plugin_priv);
 
-      bg_cfg_section_set_defaults(plugin_section,
+      bg_cfg_section_create_items(plugin_section,
                                   parameter_info);
       }
     
@@ -393,7 +393,7 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
         stream_section = bg_cfg_section_find_subsection(plugin_section,
                                                         "$audio");
         
-        bg_cfg_section_set_defaults(stream_section,
+        bg_cfg_section_create_items(stream_section,
                                     parameter_info);
         }
 
@@ -403,7 +403,7 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
         stream_section = bg_cfg_section_find_subsection(plugin_section,
                                                         "$video");
         
-        bg_cfg_section_set_defaults(stream_section,
+        bg_cfg_section_create_items(stream_section,
                                     parameter_info);
         }
       
