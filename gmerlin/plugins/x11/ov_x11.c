@@ -111,7 +111,10 @@ typedef struct
   Window current_window;
   Window normal_window;
   Window fullscreen_window;
+  Window normal_parent;
     
+  int mapped;
+  
   XvPortID xv_port;
   Atom xv_attr_atoms[NUM_XV_PARAMETERS];
   
@@ -787,6 +790,7 @@ static void * create_x11()
   priv->screen_height = DisplayHeight(priv->dpy, screen);
   
   priv->normal_window     = create_window(priv, 320, 240);
+  priv->normal_parent     = DefaultRootWindow(priv->dpy);
   priv->fullscreen_window = create_window(priv, 0, 0);
   
   /* Create GC */
@@ -855,7 +859,6 @@ static int open_x11(void * data,
   gavl_colorspace_t x11_colorspace;
   int window_width;
   int window_height;
-  XEvent event;
   priv = (x11_t*)data;
 
   /* Stop still thread if necessary */
@@ -868,7 +871,7 @@ static int open_x11(void * data,
 
   if(still_running)
     pthread_join(priv->still_thread, NULL);
-    
+  
   XmbSetWMProperties(priv->dpy, priv->normal_window, window_title,
                      window_title, NULL, 0, NULL, NULL, NULL);
     
@@ -999,24 +1002,6 @@ static int open_x11(void * data,
     }
   else
     set_drawing_coords(priv);
-
-  XMapWindow(priv->dpy, priv->current_window);
-  
-  XClearArea(priv->dpy, priv->current_window, 0, 0,
-             priv->window_width, priv->window_height, True);
-
-  /* Get the expose event before we draw the first frame */
-
-  while(1)
-    {
-    XNextEvent(priv->dpy, &event);
-    if(event.type == Expose)
-      {
-      break;
-      }
-    else
-      handle_event(priv, &event);
-    }
   
   return 1;
   }
@@ -1194,6 +1179,26 @@ static int handle_event(x11_t * priv, XEvent * evt)
       /* Send ourselfes an exposure event */
       send_expose(priv);
       break;
+    case UnmapNotify:
+      if(evt->xunmap.window == priv->normal_window)
+        priv->mapped = 0;
+      fprintf(stderr, "Unmap Notify %08x %08x\n",
+              (unsigned int)evt->xunmap.window,
+              (unsigned int)priv->normal_window);
+      break;
+    case MapNotify:
+      if(evt->xmap.window == priv->normal_window)
+        priv->mapped = 1;
+      fprintf(stderr, "Map Notify %08x %08x\n",
+              (unsigned int)evt->xmap.window,
+              (unsigned int)priv->normal_window);
+      break;
+    case ReparentNotify:
+      fprintf(stderr, "Reparent Notify %08x %08x\n",
+              (unsigned int)evt->xreparent.window,
+              (unsigned int)evt->xreparent.parent);
+      if(evt->xreparent.window == priv->normal_window)
+        priv->normal_parent = evt->xreparent.parent;
     }
   return 0;
   }
@@ -1360,8 +1365,11 @@ static void put_still_x11(void * data, gavl_video_format_t * format,
   gavl_video_convert(cnv, frame, priv->still_frame);
 
   gavl_video_converter_destroy(cnv);
+  
+  //  write_frame_x11(data, priv->still_frame);
 
-  write_frame_x11(data, priv->still_frame);
+  XClearArea(priv->dpy, priv->current_window, 0, 0,
+             priv->window_width, priv->window_height, True);
   
   priv->do_still = 1;
   pthread_create(&(priv->still_thread),
@@ -1369,6 +1377,65 @@ static void put_still_x11(void * data, gavl_video_format_t * format,
                  thread_func, priv);
   
   }
+
+static void show_window_x11(void * data, int show)
+  {
+  XEvent event;
+  x11_t * priv = (x11_t*)data;
+  fprintf(stderr, "show_window_x11\n");
+  /* Ignore the request if we are in fullscreen mode */
+
+  if(priv->current_window == priv->normal_window)
+    {
+    /* If the window was already mapped, raise it */
+    
+    if(!show)
+      {
+      XUnmapWindow(priv->dpy, priv->normal_window);
+      return;
+      }
+    
+    if(priv->mapped)
+      {
+      //    fprintf(stderr, "Already mapped\n");
+      XRaiseWindow(priv->dpy, priv->normal_window);
+      }
+    else
+      {
+      //    fprintf(stderr, "Mapping window %08x\n",
+      //            (unsigned int)priv->normal_parent);
+      if(priv->normal_parent != DefaultRootWindow(priv->dpy))
+        return;
+      else
+        XMapWindow(priv->dpy, priv->normal_window);
+      }
+    }
+
+  /* Clear the area and wait for the first ExposeEvent to come */
+    
+  XClearArea(priv->dpy, priv->current_window, 0, 0,
+             priv->window_width, priv->window_height, True);
+
+  XFlush(priv->dpy);
+  
+  /* Get the expose event before we draw the first frame */
+
+  while(1)
+    {
+    //    fprintf(stderr, "Next Event...");
+    XNextEvent(priv->dpy, &event);
+    //    fprintf(stderr, "done\n");
+    if(event.type == Expose)
+      {
+      break;
+      }
+    else
+      handle_event(priv, &event);
+    }
+
+  fprintf(stderr, "Show window done\n");
+  }
+
 
 static int get_num_xv_parameters(Display * dpy, XvPortID xv_port)
   {
@@ -1560,4 +1627,5 @@ bg_ov_plugin_t the_plugin =
     close:         close_x11,
     put_still:     put_still_x11,
     set_callbacks: set_callbacks_x11,
+    show_window:   show_window_x11
   };

@@ -332,6 +332,9 @@ typedef struct bg_ov_plugin_callbacks_s
      positions */
   void (*store_parameter)(void * data, const char * name,
                           bg_parameter_value_t * val);
+
+  /* Call this, is the window got (un)-mapped */  
+  void (*show_window)(void * data, int show);
   
   void * data;
   } bg_ov_callbacks_t;
@@ -367,9 +370,11 @@ typedef struct bg_ov_plugin_s
   
   /* The following ones are optional */
 
-  gavl_video_frame_t * (*alloc_frame)(void * priv);
-  void (*free_frame)(void * priv,gavl_video_frame_t*);
+  gavl_video_frame_t * (*alloc_frame)(void*);
+  void (*free_frame)(void*,gavl_video_frame_t*);
 
+  /* Show (raise) the window */
+  void (*show_window)(void*, int show);
 
   } bg_ov_plugin_t;
 

@@ -370,7 +370,15 @@ static void stop_cmd(bg_player_t * player, int new_state)
   player_cleanup(player);
 
   if(new_state == BG_PLAYER_STATE_STOPPED)
-    bg_player_ov_standby(player->ov_context);
+    {
+    if(player->do_video)
+      {
+      bg_player_ov_standby(player->ov_context);
+      player->do_video = 0;
+      }
+    }
+  
+
   }
 
 static void set_ov_plugin_cmd(bg_player_t * player,
