@@ -1,7 +1,7 @@
 
 lib_LTLIBRARIES = libgmerlin_avdec.la
 
-noinst_HEADERS = pnm.h
+noinst_HEADERS = pnm.h targa.h
 
 if HAVE_VORBIS
 vorbis_cflags = @VORBIS_CFLAGS@
@@ -226,6 +226,7 @@ r_ref.c \
 sdp.c \
 stream.c \
 rtsp.c \
+targa.c \
 tcp.c \
 track.c \
 tracktable.c \
@@ -234,6 +235,7 @@ video.c \
 video_qtraw.c \
 video_qtyuv2.c \
 video_aviraw.c \
+video_tga.c \
 xing.c \
 yml.c
 

@@ -47,7 +47,10 @@ int bgav_init_audio_decoders_qtwin32();
 extern char * win32_def_path;
 #endif
 
+/* The following are always supported */
+
 void bgav_init_audio_decoders_pcm();
 void bgav_init_video_decoders_aviraw();
 void bgav_init_video_decoders_qtraw();
 void bgav_init_video_decoders_qtyuv2();
+void bgav_init_video_decoders_tga();
