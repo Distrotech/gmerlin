@@ -213,30 +213,33 @@ int gavl_num_channels(gavl_channel_setup_t s)
 
 void gavl_set_channel_setup(gavl_audio_format_t * dst)
   {
-  dst->lfe = 0;
-  switch(dst->num_channels)
+  if(dst->channel_setup == GAVL_CHANNEL_NONE)
     {
-    case 1:
-      dst->channel_setup = GAVL_CHANNEL_MONO;
-      break;
-    case 2:
-      dst->channel_setup = GAVL_CHANNEL_STEREO;
-      break;
-    case 3:
-      dst->channel_setup = GAVL_CHANNEL_3F;
-      break;
-    case 4:
-      dst->channel_setup = GAVL_CHANNEL_2F2R;
-      break;
-    case 5:
-      dst->channel_setup = GAVL_CHANNEL_3F2R;
-      break;
-    case 6:
-      dst->channel_setup = GAVL_CHANNEL_3F2R;
-      dst->lfe = 1;
-      break;
+    dst->lfe = 0;
+    switch(dst->num_channels)
+      {
+      case 1:
+        dst->channel_setup = GAVL_CHANNEL_MONO;
+        break;
+      case 2:
+        dst->channel_setup = GAVL_CHANNEL_STEREO;
+        break;
+      case 3:
+        dst->channel_setup = GAVL_CHANNEL_3F;
+        break;
+      case 4:
+        dst->channel_setup = GAVL_CHANNEL_2F2R;
+        break;
+      case 5:
+        dst->channel_setup = GAVL_CHANNEL_3F2R;
+        break;
+      case 6:
+        dst->channel_setup = GAVL_CHANNEL_3F2R;
+        dst->lfe = 1;
+        break;
+      }
     }
-  
+
   if(dst->channel_locations[0] == GAVL_CHID_NONE)
     {
     switch(dst->channel_setup)
@@ -280,9 +283,9 @@ void gavl_set_channel_setup(gavl_audio_format_t * dst)
         dst->channel_locations[4] = GAVL_CHID_FRONT_CENTER;
         break;
       }
+    if(dst->lfe)
+      dst->channel_locations[dst->num_channels-1] = GAVL_CHID_LFE;
     }
-  if(dst->lfe)
-    dst->channel_locations[dst->num_channels-1] = GAVL_CHID_LFE;
   }
 
 void gavl_audio_format_copy(gavl_audio_format_t * dst,
