@@ -37,6 +37,12 @@ static GdkPixbuf * root_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * folder_closed_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * folder_open_pixbuf   = (GdkPixbuf *)0;
 
+static GdkPixbuf * favourites_closed_pixbuf = (GdkPixbuf *)0;
+static GdkPixbuf * favourites_open_pixbuf   = (GdkPixbuf *)0;
+
+static GdkPixbuf * incoming_closed_pixbuf = (GdkPixbuf *)0;
+static GdkPixbuf * incoming_open_pixbuf   = (GdkPixbuf *)0;
+
 static GdkPixbuf * removable_closed_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * removable_open_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * removable_error_pixbuf = (GdkPixbuf *)0;
@@ -118,6 +124,37 @@ static void load_pixmaps()
     free(filename);
     }
 
+  filename = bg_search_file_read("icons", "incoming_closed_16.png");
+  if(filename)
+    {
+    incoming_closed_pixbuf =
+      gdk_pixbuf_new_from_file(filename, NULL);
+    free(filename);
+    }
+  
+  filename = bg_search_file_read("icons", "incoming_open_16.png");
+  if(filename)
+    {
+    incoming_open_pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
+    free(filename);
+    }
+  
+  filename = bg_search_file_read("icons", "favourites_closed_16.png");
+  if(filename)
+    {
+    favourites_closed_pixbuf =
+      gdk_pixbuf_new_from_file(filename, NULL);
+    free(filename);
+    }
+  
+  filename = bg_search_file_read("icons", "favourites_open_16.png");
+  if(filename)
+    {
+    favourites_open_pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
+    free(filename);
+    }
+
+  
   filename = bg_search_file_read("icons", "drive_16.png");
   if(filename)
     {
@@ -332,8 +369,6 @@ static void update_menu(bg_gtk_tree_widget_t * w)
           gtk_widget_hide(w->menu.album_menu.close_item);
           }
         break;
-      case BG_ALBUM_TYPE_INCOMING:
-        break;
       case BG_ALBUM_TYPE_REGULAR:
         gtk_widget_hide(w->menu.plugin_item);
 
@@ -356,6 +391,32 @@ static void update_menu(bg_gtk_tree_widget_t * w)
           gtk_widget_hide(w->menu.album_menu.close_item);
           }
         break;
+      case BG_ALBUM_TYPE_INCOMING:
+      case BG_ALBUM_TYPE_FAVOURITES:
+        gtk_widget_hide(w->menu.plugin_item);
+        
+        rename_item(w->menu.album_item, "Album...");
+
+        gtk_widget_show(w->menu.album_item);
+        // gtk_widget_show(w->menu.album_menu.remove_item);
+        gtk_widget_show(w->menu.album_menu.new_item);
+        // gtk_widget_show(w->menu.album_menu.new_from_directory_item);
+        gtk_widget_show(w->menu.album_menu.rename_item);
+        
+        if(album_is_open(w, w->current_album))
+          {
+          gtk_widget_hide(w->menu.album_menu.open_item);
+          gtk_widget_show(w->menu.album_menu.close_item);
+          }
+        else
+          {
+          gtk_widget_show(w->menu.album_menu.open_item);
+          gtk_widget_hide(w->menu.album_menu.close_item);
+          }
+        break;
+        
+        break;
+        
       }
     }
   }
@@ -469,15 +530,11 @@ static void set_album(bg_gtk_tree_widget_t * widget,
     /* Regular album */
     case BG_ALBUM_TYPE_REGULAR:
       if(bg_album_is_open(album))
-        {
         gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
                            folder_open_pixbuf, -1);
-        }
       else
-        {
         gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
                            folder_closed_pixbuf, -1);
-        }
       break;
       /* Drive for removable media */
     case BG_ALBUM_TYPE_REMOVABLE:
@@ -498,7 +555,22 @@ static void set_album(bg_gtk_tree_widget_t * widget,
       break;
     /* Incoming album: Stuff from the commandline and the remote will go there */
     case BG_ALBUM_TYPE_INCOMING:
+      if(bg_album_is_open(album))
+        gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
+                           incoming_open_pixbuf, -1);
+      else
+        gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
+                           incoming_closed_pixbuf, -1);
       break;
+    case BG_ALBUM_TYPE_FAVOURITES:
+      if(bg_album_is_open(album))
+        gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
+                           favourites_open_pixbuf, -1);
+      else
+        gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
+                           favourites_closed_pixbuf, -1);
+      break;
+      
       
     }
   
@@ -723,6 +795,12 @@ static void open_album(bg_gtk_tree_widget_t * widget,
     }
   update_menu(widget);
   }
+
+void bg_gtk_tree_widget_open_incoming(bg_gtk_tree_widget_t * w)
+  {
+  open_album(w, bg_media_tree_get_incoming(w->tree));
+  }
+
 
 static void set_parameter_rename_album(void * data, char * name,
                                  bg_parameter_value_t * val)
@@ -1190,6 +1268,7 @@ static void select_row_callback(GtkTreeSelection * sel,
         break;
       case BG_ALBUM_TYPE_REGULAR:
       case BG_ALBUM_TYPE_INCOMING:
+      case BG_ALBUM_TYPE_FAVOURITES:
         gtk_tree_view_enable_model_drag_source(GTK_TREE_VIEW(w->treeview),
                                                GDK_BUTTON1_MASK,
                                                dnd_src_entries,
@@ -1343,6 +1422,7 @@ static void drag_received_callback(GtkWidget *widget,
         return;
       case BG_ALBUM_TYPE_REGULAR:
       case BG_ALBUM_TYPE_INCOMING:
+      case BG_ALBUM_TYPE_FAVOURITES:
         break;
       }
     
@@ -1444,6 +1524,7 @@ static gboolean drag_motion_callback(GtkWidget *widget,
         {
         case BG_ALBUM_TYPE_REGULAR:
         case BG_ALBUM_TYPE_INCOMING:
+        case BG_ALBUM_TYPE_FAVOURITES:
           if(widget != gtk_drag_get_source_widget(drag_context))
             {
             gtk_tree_view_set_drag_dest_row(GTK_TREE_VIEW(w->treeview),
