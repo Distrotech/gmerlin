@@ -340,16 +340,20 @@ static void set_audio_parameter_vorbis(void * data, int stream, char * name,
 static int open_vorbis(void * data, const char * filename,
                        bg_metadata_t * metadata)
   {
-  int result;
   vorbis_t * vorbis;
   vorbis = (vorbis_t*)data;
   bg_metadata_copy(&(vorbis->metadata), metadata);
 
   vorbis->filename = bg_strdup(vorbis->filename, filename);
-  vorbis->output = fopen(vorbis->filename, "wb");
 
-  
-  return result;
+  //  fprintf(stderr, "Open Vorbis %s...", vorbis->filename);
+  vorbis->output = fopen(vorbis->filename, "wb");
+  //  fprintf(stderr, "Done %p\n", vorbis->output);
+
+  if(!vorbis->output)
+    return 0;
+    
+  return 1;
   }
 
 static char * vorbis_extension = ".ogg";
