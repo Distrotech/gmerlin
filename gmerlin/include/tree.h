@@ -63,12 +63,18 @@ void bg_album_close(bg_album_t *);
 
 void bg_album_select_error_tracks(bg_album_t*);
 
+void bg_album_get_times(bg_album_t * a,
+                        gavl_time_t * duration_before,
+                        gavl_time_t * duration_current,
+                        gavl_time_t * duration_after);
+
 
 int                bg_album_get_num_entries(bg_album_t*);
 bg_album_entry_t * bg_album_get_entry(bg_album_t*, int);
 
 void bg_album_set_change_callback(bg_album_t * a,
-                                  void (*change_callback)(bg_album_t * a, void * data),
+                                  void (*change_callback)(bg_album_t * a,
+                                                          void * data),
                                   void * change_callback_data);
 
 
@@ -216,6 +222,8 @@ void bg_media_tree_destroy(bg_media_tree_t *);
 
 int bg_media_tree_get_num_albums(bg_media_tree_t *);
 
+bg_album_t * bg_media_tree_get_current_album(bg_media_tree_t *);
+
 /* Gets a root album */
 
 bg_album_t * bg_media_tree_get_album(bg_media_tree_t *, int);
@@ -263,7 +271,6 @@ void bg_media_tree_move_album(bg_media_tree_t *,
                               bg_album_t * album,
                               bg_album_t * parent);
 
-bg_album_t * bg_media_tree_get_current_album(bg_media_tree_t*);
 
 /* tree_xml.c */
 

@@ -78,7 +78,8 @@ static void button_callback(GtkWidget * w, gpointer data)
     {
     dialog = bg_dialog_create(win->section,
                               win->handle->plugin->set_parameter,
-                              win->handle->priv, win->parameters);
+                              win->handle->priv, win->parameters,
+                              win->handle->info->long_name);
     bg_dialog_show(dialog);
     bg_dialog_destroy(dialog);
     }

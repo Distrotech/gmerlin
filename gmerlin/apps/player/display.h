@@ -22,11 +22,15 @@ bg_parameter_info_t * display_get_parameters(display_t * display);
 void display_set_parameter(void * data, char * name,
                            bg_parameter_value_t * v);
 
+int display_get_parameter(void * data, char * name,
+                           bg_parameter_value_t * v);
+
 void display_destroy(display_t *);
 
 void display_set_playlist_times(display_t *,
-                                int seconds_before,
-                                int seconds_after);
+                                gavl_time_t duration_before,
+                                gavl_time_t duration_current,
+                                gavl_time_t duration_after);
 
 void display_set_time(display_t *, gavl_time_t time);
 

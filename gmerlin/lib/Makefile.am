@@ -20,7 +20,6 @@ fifo.c \
 formats.c \
 hexdump.c \
 http.c \
-loader.c \
 msgqueue.c \
 parameter.c \
 player.c \
@@ -34,6 +33,7 @@ playercmd.c \
 pluginregistry.c \
 pluginreg_xml.c \
 searchpath.c \
+singlepic.c \
 socket.c \
 streaminfo.c \
 stringutils.c \

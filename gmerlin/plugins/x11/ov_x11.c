@@ -35,9 +35,13 @@
 
 #include <plugin.h>
 #include <utils.h>
+#include <config.h>
+
+
+#include "x11_window.h"
 
 #include <X11/extensions/Xvlib.h>
-
+// #undef HAVE_LIBXV
 
 #define XV_ID_YV12  0x32315659 
 #define XV_ID_I420  0x30323449
@@ -54,9 +58,13 @@ int XShmGetEventBase (Display *);
 typedef struct 
   {
   XImage * x11_image;
-  XvImage * xv_image;
   XShmSegmentInfo shminfo;
+#ifdef HAVE_LIBXV
+  XvImage * xv_image;
+#endif
   } x11_frame_t;
+
+#ifdef HAVE_LIBXV
 
 /* The indices and array MUST match */
 
@@ -80,19 +88,36 @@ xv_parameters[] =
 
 #define NUM_XV_PARAMETERS (sizeof(xv_parameters)/sizeof(xv_parameters[0]))
 
+#endif // HAVE_LIBXV
+
+
 typedef struct
   {
+  x11_window_t win;
+  
   gavl_video_format_t format;
   
-  unsigned int window_width;
-  unsigned int window_height;
+  //  unsigned int window_width;
+  //  unsigned int window_height;
 
-  int screen_width;
-  int screen_height;
+  //  unsigned int window_x;
+  //  unsigned int window_y;
+    
+  //  int screen_width;
+  //  int screen_height;
   
   /* Supported modes */
 
   int have_shm;
+  
+  /* X11 Stuff */
+  
+  Display * dpy;
+  
+#ifdef HAVE_LIBXV
+  XvPortID xv_port;
+  int do_xv;
+  Atom xv_attr_atoms[NUM_XV_PARAMETERS];
   int have_xv_yv12;
   int have_xv_yuy2;
   int have_xv_i420;
@@ -101,32 +126,18 @@ typedef struct
   
   /* Actual mode */
 
-  int do_xv;
   int xv_format;
-  
-  /* X11 Stuff */
-  
-  Display * dpy;
-
-  Window current_window;
-  Window normal_window;
-  Window fullscreen_window;
-  Window normal_parent;
-    
-  int mapped;
-  
-  XvPortID xv_port;
-  Atom xv_attr_atoms[NUM_XV_PARAMETERS];
+#endif
   
   GC gc;
-  Colormap colormap;
+  //  Colormap colormap;
 
   int shm_completion_type;
 
   /* Fullscreen stuff */
 
-  Pixmap fullscreen_cursor_pixmap;
-  Cursor fullscreen_cursor;
+  //  Pixmap fullscreen_cursor_pixmap;
+  //  Cursor fullscreen_cursor;
   Atom hints_atom;
     
   /* Drawing coords */
@@ -147,8 +158,8 @@ typedef struct
 
   /* Delete atom */
 
-  Atom delete_atom;
-  Atom protocols_atom;
+  //  Atom delete_atom;
+  //  Atom protocols_atom;
 
   bg_parameter_info_t * parameters;
 
@@ -236,120 +247,7 @@ static gavl_colorspace_t get_x11_colorspace(Display * d)
   return ret;
   }
 
-/*
- *  Stuff copied from some other Software to make a
- *  fullscreen window
- */
-
-typedef struct {
-    unsigned long flags;
-    unsigned long functions;
-    unsigned long decorations;
-    long input_mode;
-    unsigned long status;
-} MotifWmHints, MwmHints;
-                                                                               
-#define MWM_HINTS_FUNCTIONS     (1L << 0)
-#define MWM_HINTS_DECORATIONS   (1L << 1)
-#define MWM_HINTS_INPUT_MODE    (1L << 2)
-#define MWM_HINTS_STATUS        (1L << 3)
-                                                                               
-#define MWM_FUNC_ALL            (1L << 0)
-#define MWM_FUNC_RESIZE         (1L << 1)
-#define MWM_FUNC_MOVE           (1L << 2)
-#define MWM_FUNC_MINIMIZE       (1L << 3)
-#define MWM_FUNC_MAXIMIZE       (1L << 4)
-#define MWM_FUNC_CLOSE          (1L << 5)
-                                                                               
-#define MWM_DECOR_ALL           (1L << 0)
-#define MWM_DECOR_BORDER        (1L << 1)
-#define MWM_DECOR_RESIZEH       (1L << 2)
-#define MWM_DECOR_TITLE         (1L << 3)
-#define MWM_DECOR_MENU          (1L << 4)
-#define MWM_DECOR_MINIMIZE      (1L << 5)
-#define MWM_DECOR_MAXIMIZE      (1L << 6)
-#define _XA_MOTIF_WM_HINTS              "_MOTIF_WM_HINTS"
-                                                                               
-static unsigned char bm_no_data[] = { 0,0,0,0, 0,0,0,0 };
-
-static MwmHints fullscreen_hints =
-  {
-    flags:       MWM_HINTS_DECORATIONS,
-    functions:   0,  /* Unused */
-    decorations: 0,
-    input_mode:  0,  /* Unused */
-    status:      0,  /* Unused */
-  };
-
-static void make_fullscreen_window(x11_t * x11, Window win)
-  {
-  MotifWmHints *hints;
-  Atom type;
-  int format;
-  unsigned long nitems;
-  unsigned long bytes_after;
-                                                                               
-  /* Stuff for making the cursor */
-  XColor black, dummy;
-  unsigned char * hints_c;
-  
-  /*
-   *   Set the decorations (via Mwm hints)
-   *   This is taken from the sources of gdk-1.2.8
-   */
-  
-  if (!x11->hints_atom)
-    x11->hints_atom = XInternAtom (x11->dpy,
-                                   _XA_MOTIF_WM_HINTS, False);
-  
-  XGetWindowProperty(x11->dpy, win,
-                     x11->hints_atom, 0, sizeof (MotifWmHints)/sizeof (long),
-                     False, AnyPropertyType, &type, &format, &nitems,
-                     &bytes_after, &hints_c);
-
-  hints = (MotifWmHints *)hints_c;
-
-  if(type == None)
-    hints = &fullscreen_hints;
-  else
-    {
-    if (fullscreen_hints.flags & MWM_HINTS_FUNCTIONS)
-      {
-      hints->flags |= MWM_HINTS_FUNCTIONS;
-      hints->functions = fullscreen_hints.functions;
-      }
-    if (fullscreen_hints.flags & MWM_HINTS_DECORATIONS)
-      {
-      hints->flags |= MWM_HINTS_DECORATIONS;
-      hints->decorations = fullscreen_hints.decorations;
-      }
-    }
-
-  XChangeProperty(x11->dpy, win,
-                  x11->hints_atom, x11->hints_atom, 32, PropModeReplace,
-                  (unsigned char *)hints,
-                  sizeof (MotifWmHints)/sizeof (long));
-
-  if (hints != &fullscreen_hints)
-    XFree (hints);
-
-  /* Make fullscreen cursor */
-
-  if(x11->fullscreen_cursor_pixmap == None)
-    {
-    x11->fullscreen_cursor_pixmap =
-      XCreateBitmapFromData(x11->dpy, win,
-                            bm_no_data, 8, 8);
-                                                                                
-    XAllocNamedColor(x11->dpy, x11->colormap, "black", &black, &dummy);
-    x11->fullscreen_cursor=
-      XCreatePixmapCursor(x11->dpy, x11->fullscreen_cursor_pixmap,
-                          x11->fullscreen_cursor_pixmap,
-                          &black, &black, 0, 0);
-    }
-  
-  XDefineCursor(x11->dpy, win, x11->fullscreen_cursor);
-  }
+#if 0
 
 static void send_expose(x11_t * priv)
   {
@@ -357,67 +255,11 @@ static void send_expose(x11_t * priv)
   memset(&evt, 0, sizeof(evt));
 
   evt.type = Expose;
-  XSendEvent(priv->dpy, priv->current_window,
+  XSendEvent(priv->dpy, priv->win.current_window,
              0, 0, &evt);
   }
 
-/*
- *  Create the window, if width and height are zero, a fullscreen
- *  window will be created
- */
-
-static Window create_window(x11_t * x11, int width, int height)
-  {
-  Window ret;
-  Visual * visual;
-  XSetWindowAttributes attr;
-  int screen_number;
-  int depth;
-  Display * d;
-  int fullscreen;
-    
-  d = x11->dpy;
-  
-  screen_number = DefaultScreen(d);
-  visual = DefaultVisual(d, screen_number);
-  depth = DefaultDepth(d, screen_number);
-
-  if(!width || !height)
-    {
-    width = x11->screen_width;
-    height = x11->screen_height;
-    fullscreen = 1;
-    }
-  else
-    fullscreen = 0;
-    
-  attr.background_pixmap = None;
-  attr.backing_store = NotUseful;
-  attr.border_pixel = 0;
-  attr.background_pixel = 0;
-  attr.event_mask =
-    StructureNotifyMask |
-    ButtonPressMask |
-    KeyPressMask |
-    ExposureMask;
-  
-  ret = XCreateWindow (d, DefaultRootWindow (d),
-                       0 /* x */, 0 /* y */, width, height,
-                       0 /* border_width */, depth,
-                       InputOutput, visual,
-                       (CWBackPixmap | CWBackingStore | CWBorderPixel |
-                        CWBackPixel |
-                        CWEventMask), &attr);
-
-  XSetWMProtocols(x11->dpy, ret, &x11->delete_atom, 1);
-  
-  if(fullscreen)
-    {
-    make_fullscreen_window(x11, ret);
-    }
-
-  return ret;
-  }
+#endif
 
 static int check_shm(Display * dpy, int * completion_type)
   {
@@ -439,6 +281,8 @@ static int check_shm(Display * dpy, int * completion_type)
   return ret;
 #endif
   }
+
+#ifdef HAVE_LIBXV
 
 static void check_xv(Display * d, Window w,
                      XvPortID * port,
@@ -505,7 +349,7 @@ static void check_xv(Display * d, Window w,
     if(found)
       break;
     }
-  XvFreeAdaptorInfo (adaptorInfo);
+   XvFreeAdaptorInfo (adaptorInfo);
 #ifndef HAVE_XV
   *have_yv12 = 0;
   *have_yuy2 = 0;
@@ -513,6 +357,8 @@ static void check_xv(Display * d, Window w,
 #endif
   return;
   }
+
+#endif
 
 static int shmerror = 0;
 
@@ -561,6 +407,8 @@ static void destroy_shm(x11_t * priv, x11_frame_t * frame)
   shmdt (frame->shminfo.shmaddr);
   shmctl (frame->shminfo.shmid, IPC_RMID, 0);
   }
+
+#ifdef HAVE_LIBXV
 
 static gavl_video_frame_t *
 alloc_frame_xv(x11_t * priv)
@@ -651,6 +499,8 @@ alloc_frame_xv(x11_t * priv)
   return ret;
   }
 
+#endif // HAVE_LIBXV
+
 static gavl_video_frame_t *
 alloc_frame_ximage(x11_t * priv)
   {
@@ -719,9 +569,11 @@ alloc_frame_ximage(x11_t * priv)
 static gavl_video_frame_t * alloc_frame_x11(void * data)
   {
   x11_t * priv = (x11_t*)(data);
+#ifdef HAVE_LIBXV
   if(priv->do_xv)
     return alloc_frame_xv(priv);
   else
+#endif
     return alloc_frame_ximage(priv);
   }
 
@@ -733,10 +585,12 @@ free_frame_x11(void * data, gavl_video_frame_t * frame)
 
   x11_frame = (x11_frame_t*)(frame->user_data);
   priv = (x11_t*)(data);
-  
+
+#ifdef HAVE_LIBXV
   if(priv->do_xv)
     XFree(x11_frame->xv_image);
   else
+#endif
     XFree(x11_frame->x11_image);
   
   if(priv->have_shm)
@@ -767,8 +621,8 @@ static void * create_x11()
 
   /* Get delete atom */
 
-  priv->delete_atom = XInternAtom(priv->dpy, "WM_DELETE_WINDOW", 0);
-  priv->protocols_atom = XInternAtom(priv->dpy, "WM_PROTOCOLS", 0);
+  //  priv->delete_atom = XInternAtom(priv->dpy, "WM_DELETE_WINDOW", 0);
+  //  priv->protocols_atom = XInternAtom(priv->dpy, "WM_PROTOCOLS", 0);
   
   /* Default screen */
   
@@ -777,49 +631,45 @@ static void * create_x11()
   /* Check for XShm */
 
   priv->have_shm = check_shm(priv->dpy, &(priv->shm_completion_type));
-
-  /* Create colormap */
-  
-  priv->colormap = XCreateColormap(priv->dpy, RootWindow(priv->dpy, screen),
-                                   DefaultVisual(priv->dpy, screen),
-                                   AllocNone);
   
   /* Create windows */
   
-  priv->screen_width  = DisplayWidth(priv->dpy, screen);
-  priv->screen_height = DisplayHeight(priv->dpy, screen);
+  x11_window_create(&(priv->win),
+                    priv->dpy, DefaultVisual(priv->dpy, screen),
+                    DefaultDepth(priv->dpy, screen),
+                    320, 240, "Video output");
   
-  priv->normal_window     = create_window(priv, 320, 240);
-  priv->normal_parent     = DefaultRootWindow(priv->dpy);
-  priv->fullscreen_window = create_window(priv, 0, 0);
+  x11_window_select_input(&(priv->win), ButtonPressMask |
+                          KeyPressMask | ExposureMask);
+
   
   /* Create GC */
   
-  priv->gc = XCreateGC(priv->dpy, priv->normal_window, 0, NULL);
+  priv->gc = XCreateGC(priv->dpy, priv->win.normal_window, 0, NULL);
   
   /* Check for XV Support */
-  
-  check_xv(priv->dpy, priv->normal_window,
+#ifdef HAVE_LIBXV
+  check_xv(priv->dpy, priv->win.normal_window,
            &(priv->xv_port),
            &(priv->have_xv_yv12),
            &(priv->have_xv_yuy2),
            &(priv->have_xv_i420));
-
-  priv->current_window = priv->normal_window;
-
-  //  fprintf(stderr, "XMapWindow: %p\n", priv);
+#endif // HAVE_LIBXV
   
   return priv;
   }
 
 static void set_drawing_coords(x11_t * priv)
   {
+  
+#ifdef HAVE_LIBXV
   float aspect_window;
   float aspect_video;
   if(priv->do_xv)
     {
     /* Check for apsect ratio */
-    aspect_window = (float)(priv->window_width)/(float)(priv->window_height);
+    aspect_window =
+      (float)(priv->win.window_width)/(float)(priv->win.window_height);
     
     aspect_video  =
       (float)(priv->format.image_width  * priv->format.pixel_width)/
@@ -827,27 +677,30 @@ static void set_drawing_coords(x11_t * priv)
 
     if(aspect_window > aspect_video) /* Bars left and right */
       {
-      priv->dst_w = priv->window_height * aspect_video;
-      priv->dst_h = priv->window_height;
-      priv->dst_x = (priv->window_width - priv->dst_w)/2;
+      priv->dst_w = priv->win.window_height * aspect_video;
+      priv->dst_h = priv->win.window_height;
+      priv->dst_x = (priv->win.window_width - priv->dst_w)/2;
       priv->dst_y = 0;
       }
     else                             /* Bars top and bottom */
       {
-      priv->dst_w = priv->window_width;
-      priv->dst_h = priv->window_width / aspect_video;
+      priv->dst_w = priv->win.window_width;
+      priv->dst_h = priv->win.window_width / aspect_video;
       priv->dst_x = 0;
-      priv->dst_y = (priv->window_height - priv->dst_h)/2;
+      priv->dst_y = (priv->win.window_height - priv->dst_h)/2;
       }
     }
   else
     {
-    priv->dst_x = (priv->window_width - priv->format.image_width) / 2;
-    priv->dst_y = (priv->window_height - priv->format.image_height) / 2;
+#endif // HAVE_LIBXV
+    priv->dst_x = (priv->win.window_width - priv->format.image_width) / 2;
+    priv->dst_y = (priv->win.window_height - priv->format.image_height) / 2;
     priv->dst_w = priv->format.image_width;
     priv->dst_h = priv->format.image_height;
-    
+#ifdef HAVE_LIBXV
     }
+#endif // HAVE_LIBXV
+  
   }
 
 static int open_x11(void * data,
@@ -874,9 +727,9 @@ static int open_x11(void * data,
     pthread_join(priv->still_thread, NULL);
     close_x11(priv);
     }
-  XmbSetWMProperties(priv->dpy, priv->normal_window, window_title,
-                     window_title, NULL, 0, NULL, NULL, NULL);
-    
+
+  x11_window_set_title(&(priv->win), window_title);
+  
   /* Decide colorspace */
 
   x11_colorspace = get_x11_colorspace(priv->dpy);
@@ -886,6 +739,7 @@ static int open_x11(void * data,
           gavl_colorspace_to_string(x11_colorspace));
 #endif
   
+#ifdef HAVE_LIBXV
   priv->do_xv = 0;
   
   switch(format->colorspace)
@@ -961,17 +815,28 @@ static int open_x11(void * data,
         format->colorspace = x11_colorspace;
     }
 
-  gavl_video_format_copy(&(priv->format), format);
+  /* Try to grab port, switch to XImage if unsuccessful */
 
-#ifdef DEBUG
+#ifdef HAVE_LIBXV
   if(priv->do_xv)
-    fprintf(stderr, "Using XVideo output\n");
-  else
-    fprintf(stderr, "Using XImage output\n");
-#endif
-
+    {
+    if(Success != XvGrabPort(priv->dpy, priv->xv_port, CurrentTime))
+      {
+      priv->do_xv = 0;
+      format->colorspace = x11_colorspace;
+      }
+    }
+#endif // HAVE_LIBXV
+  
+#else
+  format->colorspace = x11_colorspace;
+#endif // HAVE_LIBXV
+  
+  gavl_video_format_copy(&(priv->format), format);
+  
   if(priv->auto_resize)
     {
+#ifdef HAVE_LIBXV
     if(priv->do_xv)
       {
       if(priv->format.pixel_width > priv->format.pixel_height)
@@ -999,16 +864,14 @@ static int open_x11(void * data,
       window_width =  priv->format.image_width;
       window_height = priv->format.image_height;
       }
-    XResizeWindow(priv->dpy, priv->normal_window, window_width,
-                  window_height);
+#else
+    window_width =  priv->format.image_width;
+    window_height = priv->format.image_height;
+#endif // HAVE_LIBXV
+    x11_window_resize(&(priv->win), window_width, window_height);
     }
   else
     set_drawing_coords(priv);
-
-  if(priv->do_xv)
-    {
-    XvGrabPort(priv->dpy, priv->xv_port, CurrentTime);	
-    }
 
   
   return 1;
@@ -1016,42 +879,32 @@ static int open_x11(void * data,
 
 static void close_x11(void * data)
   {
+#ifdef HAVE_LIBXV
   x11_t * priv = (x11_t*)data;
   if(priv->do_xv)
     XvUngrabPort(priv->dpy, priv->xv_port, CurrentTime);
+#endif
   }
 
 static void destroy_x11(void * data)
   {
+  //  int i;
   x11_t * priv = (x11_t*)data;
-
-  XDestroyWindow(priv->dpy, priv->normal_window);
-  XDestroyWindow(priv->dpy, priv->fullscreen_window);
+  
+  if(priv->parameters)
+    {
+    bg_parameter_info_destroy_array(priv->parameters);
+    }
+  
   XFreeGC(priv->dpy, priv->gc);
 
-  if(priv->fullscreen_cursor)
-    XFreeCursor(priv->dpy, priv->fullscreen_cursor);
-
-  if(priv->fullscreen_cursor_pixmap)
-    XFreePixmap(priv->dpy, priv->fullscreen_cursor_pixmap);
-
-  XFreeColormap(priv->dpy, priv->colormap);
+  x11_window_destroy(&(priv->win));
     
   XCloseDisplay(priv->dpy);
 
   free(priv);
   }
 
-static void get_window_size(Display * dpy, Window win,
-                            unsigned int * width, unsigned int * height)
-  {
-  Window root;
-  int x, y;
-  unsigned int border_width, depth;
-  
-  XGetGeometry(dpy, win, &root, &x, &y,
-               width, height, &border_width, &depth);
-  }
 
 static int handle_event(x11_t * priv, XEvent * evt)
   {
@@ -1062,26 +915,28 @@ static int handle_event(x11_t * priv, XEvent * evt)
   int  x_image;
   int  y_image;
   int  button_number = 0;
-    
+  
+  x11_window_handle_event(&(priv->win), evt);
+
+  //  fprintf(stderr, "Idle: %d, hidden: %d, evt: %p\n", priv->win.idle_counter, 
+  //          priv->win.pointer_hidden, evt);
+  if(priv->win.do_delete)
+    {
+    pthread_mutex_lock(&(priv->still_mutex));
+    if(priv->do_still)
+      x11_window_show(&(priv->win), 0);
+    pthread_mutex_unlock(&(priv->still_mutex));
+    }
+
+  if(!evt)
+    return 0;
+  
   if(evt->type == priv->shm_completion_type)
     {
     return 1;
     }
   switch(evt->type)
     {
-    case ClientMessage:
-      if((evt->xclient.message_type == priv->protocols_atom) &&
-         (evt->xclient.data.l[0] == priv->delete_atom))
-        {
-        //        fprintf(stderr, "Delete window\n");
-
-        pthread_mutex_lock(&(priv->still_mutex));
-        if(priv->do_still)
-          XUnmapWindow(priv->dpy, priv->normal_window);
-        pthread_mutex_unlock(&(priv->still_mutex));
-        
-        }
-      break;
     case ButtonPress:
       
       if(priv->callbacks &&
@@ -1133,30 +988,13 @@ static int handle_event(x11_t * priv, XEvent * evt)
         {
         case XK_Tab:
           /* Non Fullscreen -> Fullscreen */
-          if(priv->current_window == priv->normal_window)
-            {
-            priv->current_window = priv->fullscreen_window;
-            priv->window_width = priv->screen_width;
-            priv->window_height = priv->screen_height;
-            set_drawing_coords(priv);
-            XMapWindow(priv->dpy, priv->fullscreen_window);
-            XMoveWindow(priv->dpy,
-                        priv->fullscreen_window, 0, 0);
-            XRaiseWindow(priv->dpy,
-                         priv->fullscreen_window);
-            }
+          
+          if(priv->win.current_window == priv->win.normal_window)
+            x11_window_set_fullscreen(&(priv->win), 1);
           /* Fullscreen -> Non Fullscreen */
           else
-            {
-            XUnmapWindow(priv->dpy, priv->fullscreen_window);
-            get_window_size(priv->dpy,
-                            priv->normal_window,
-                            &(priv->window_width),
-                            &(priv->window_height));
-            set_drawing_coords(priv);
-            XRaiseWindow(priv->dpy, priv->normal_window);
-            priv->current_window = priv->normal_window;
-            }
+            x11_window_set_fullscreen(&(priv->win), 0);
+          set_drawing_coords(priv);
           break;
         default:
           done = 0;
@@ -1176,64 +1014,37 @@ static int handle_event(x11_t * priv, XEvent * evt)
         }
       break;
     case ConfigureNotify:
-      if(priv->current_window != priv->normal_window)
-        return 0;
-
-      if((priv->window_width != evt->xconfigure.width) ||
-         (priv->window_height != evt->xconfigure.height))
-        {
-        priv->window_width  = evt->xconfigure.width;
-        priv->window_height = evt->xconfigure.height;
-        }
       set_drawing_coords(priv);
-      //      XClearArea(priv->dpy, evt->xconfigure.window, 0, 0,
-      //                 priv->window_width, priv->window_height, True);
+      XClearArea(priv->dpy, evt->xconfigure.window, 0, 0,
+                 priv->win.window_width, priv->win.window_height, True);
       /* Send ourselfes an exposure event */
-      send_expose(priv);
+      //      send_expose(priv);
       break;
-    case UnmapNotify:
-      if(evt->xunmap.window == priv->normal_window)
-        priv->mapped = 0;
-      fprintf(stderr, "Unmap Notify %08x %08x\n",
-              (unsigned int)evt->xunmap.window,
-              (unsigned int)priv->normal_window);
-      break;
-    case MapNotify:
-      if(evt->xmap.window == priv->normal_window)
-        priv->mapped = 1;
-      fprintf(stderr, "Map Notify %08x %08x\n",
-              (unsigned int)evt->xmap.window,
-              (unsigned int)priv->normal_window);
-      break;
-    case ReparentNotify:
-      fprintf(stderr, "Reparent Notify %08x %08x\n",
-              (unsigned int)evt->xreparent.window,
-              (unsigned int)evt->xreparent.parent);
-      if(evt->xreparent.window == priv->normal_window)
-        priv->normal_parent = evt->xreparent.parent;
     }
   return 0;
   }
 
 static void handle_events(x11_t * priv)
   {
-  XEvent event;
+  XEvent * event;
   
   if(priv->have_shm)
     {
     while(1)
       {
-      XNextEvent(priv->dpy, &event);
-      if(handle_event(priv, &event))
+      event = x11_window_next_event(&(priv->win), -1);
+      if(handle_event(priv, event))
         break;
       }
     }
   else
     {
-    while(XPending(priv->dpy))
+    while(1)
       {
-      XNextEvent(priv->dpy, &event);
-      handle_event(priv, &event);
+      event = x11_window_next_event(&(priv->win), -1);
+      handle_event(priv, event);
+      if(!event)
+        break;
       }
     }
   }
@@ -1243,6 +1054,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
   x11_t * priv = (x11_t*)data;
   x11_frame_t * x11_frame = (x11_frame_t*)(frame->user_data);
 
+#ifdef HAVE_LIBXV
   
   if(priv->do_xv)
     {
@@ -1251,7 +1063,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
       //      fprintf(stderr, "Write frame x11 %d %d\n", priv->dst_w, priv->dst_h);
       XvShmPutImage(priv->dpy,
                     priv->xv_port,
-                    priv->current_window,
+                    priv->win.current_window,
                     priv->gc,
                     x11_frame->xv_image,
                     0,                   /* src_x  */
@@ -1268,7 +1080,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
       {
       XvPutImage(priv->dpy,
                  priv->xv_port,
-                 priv->current_window,
+                 priv->win.current_window,
                  priv->gc,
                  x11_frame->xv_image,
                  0,                    /* src_x   */
@@ -1283,11 +1095,13 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
     }
   else
     {
+#endif // HAVE_LIBXV
+
     if(priv->have_shm)
       {
       
       XShmPutImage(priv->dpy,            /* dpy        */
-                   priv->current_window, /* d          */
+                   priv->win.current_window, /* d          */
                    priv->gc,             /* gc         */
                    x11_frame->x11_image, /* image      */
                    0,                    /* src_x      */
@@ -1301,7 +1115,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
     else
       {
       XPutImage(priv->dpy,            /* display */
-                priv->current_window, /* d       */
+                priv->win.current_window, /* d       */
                 priv->gc,             /* gc      */
                 x11_frame->x11_image, /* image   */
                 0,                    /* src_x   */
@@ -1311,18 +1125,19 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
                 priv->format.image_width,          /* width   */
                 priv->format.image_height          /* height  */);
       }
+#ifdef HAVE_LIBXV
     }
+#endif // HAVE_LIBXV
+
   XSync(priv->dpy, False);
   handle_events(priv);
   }
 
 static void * thread_func(void * data)
   {
-  gavl_time_t time;
-  XEvent event;
+  XEvent * event;
 
   x11_t * priv = (x11_t*)data;
-  time = gavl_seconds_to_time(0.05);
 
   while(1)
     {
@@ -1333,18 +1148,14 @@ static void * thread_func(void * data)
       break;
       }
     pthread_mutex_unlock(&(priv->still_mutex));
-        
-    while(XPending(priv->dpy))
+
+    event = x11_window_next_event(&(priv->win), 50);
+    handle_event(priv, event);
+
+    if(event && (event->type == Expose))
       {
-      XNextEvent(priv->dpy, &event);
-      if(event.type == Expose)
-        {
-        write_frame_x11(data, priv->still_frame);
-        }
-      else
-        handle_event(priv, &event);
+      write_frame_x11(data, priv->still_frame);
       }
-    gavl_time_delay(&time);
     }
   
   free_frame_x11(data, priv->still_frame);
@@ -1378,10 +1189,10 @@ static void put_still_x11(void * data, gavl_video_format_t * format,
 
   gavl_video_converter_destroy(cnv);
   
-  //  write_frame_x11(data, priv->still_frame);
+  write_frame_x11(data, priv->still_frame);
 
-  XClearArea(priv->dpy, priv->current_window, 0, 0,
-             priv->window_width, priv->window_height, True);
+  //  XClearArea(priv->dpy, priv->win.current_window, 0, 0,
+  //             priv->win.window_width, priv->win.window_height, True);
   
   priv->do_still = 1;
   pthread_create(&(priv->still_thread),
@@ -1392,57 +1203,31 @@ static void put_still_x11(void * data, gavl_video_format_t * format,
 
 static void show_window_x11(void * data, int show)
   {
-  XEvent event;
   x11_t * priv = (x11_t*)data;
-  fprintf(stderr, "show_window_x11\n");
+  XEvent * evt;
+  
+  //  fprintf(stderr, "show_window_x11\n");
   /* Ignore the request if we are in fullscreen mode */
 
-  if(priv->current_window == priv->normal_window)
-    {
-    /* If the window was already mapped, raise it */
-    
-    if(!show)
-      {
-      XUnmapWindow(priv->dpy, priv->normal_window);
-      return;
-      }
-    
-    if(priv->mapped)
-      {
-      //    fprintf(stderr, "Already mapped\n");
-      XRaiseWindow(priv->dpy, priv->normal_window);
-      }
-    else
-      {
-      //    fprintf(stderr, "Mapping window %08x\n",
-      //            (unsigned int)priv->normal_parent);
-      if(priv->normal_parent != DefaultRootWindow(priv->dpy))
-        return;
-      else
-        XMapWindow(priv->dpy, priv->normal_window);
-      }
-    }
+  x11_window_show(&(priv->win), show);
 
-  /* Clear the area and wait for the first ExposeEvent to come */
-    
-  XClearArea(priv->dpy, priv->current_window, 0, 0,
-             priv->window_width, priv->window_height, True);
-  //  send_expose(
+    /* Clear the area and wait for the first ExposeEvent to come */
+  
+  XClearArea(priv->win.dpy, priv->win.current_window, 0, 0,
+             priv->win.window_width, priv->win.window_height, True);
   XSync(priv->dpy, False);
   
   /* Get the expose event before we draw the first frame */
-
-  while(XPending(priv->dpy))
+  
+  while((evt = x11_window_next_event(&(priv->win), 0)))
     {
-    //    fprintf(stderr, "Next Event...");
-    XNextEvent(priv->dpy, &event);
-    //    fprintf(stderr, "done\n");
-    handle_event(priv, &event);
+    handle_event(priv, evt);
     }
-
-  fprintf(stderr, "Show window done\n");
+  
+  //  fprintf(stderr, "Show window done\n");
   }
 
+#ifdef HAVE_LIBXV
 
 static int get_num_xv_parameters(Display * dpy, XvPortID xv_port)
   {
@@ -1518,6 +1303,7 @@ static void get_xv_parameters(x11_t * x11,
     }
   XFree(attr);
   }
+#endif // HAVE_LIBXV
 
 bg_parameter_info_t common_parameters[] =
   {
@@ -1532,17 +1318,41 @@ bg_parameter_info_t common_parameters[] =
       val_default: { val_i: 1 }
     },
     {
-      name:        "remember_size",
-      long_name:   "Remember Size",
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 }
+      name:        "window_width",
+      long_name:   "Window width",
+      type:        BG_PARAMETER_INT,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 320 }
     },
+    {
+      name:        "window_height",
+      long_name:   "Window height",
+      type:        BG_PARAMETER_INT,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 240 }
+    },
+    {
+      name:        "window_x",
+      long_name:   "Window x",
+      type:        BG_PARAMETER_INT,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 100 }
+    },
+    {
+      name:        "window_y",
+      long_name:   "Window y",
+      type:        BG_PARAMETER_INT,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 100 }
+    },
+#ifdef HAVE_LIBXV
     {
       name:        "force_xv",
       long_name:   "Force XVideo",
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },
+#endif
   };
 
 #define NUM_COMMON_PARAMETERS sizeof(common_parameters)/sizeof(common_parameters[0])
@@ -1552,7 +1362,9 @@ get_parameters_x11(void * priv)
   {
   int i;
   int index;
+#ifdef HAVE_LIBXV
   int num_xv_parameters;
+#endif
   int num_parameters;
     
   x11_t * x11 = (x11_t*)priv;
@@ -1560,10 +1372,10 @@ get_parameters_x11(void * priv)
     {
     /* Count parameters */
     num_parameters = NUM_COMMON_PARAMETERS;
-    
+#ifdef HAVE_LIBXV
     num_xv_parameters = get_num_xv_parameters(x11->dpy, x11->xv_port);
-
     num_parameters += num_xv_parameters;
+#endif // HAVE_LIBXV
 
     /* Create parameter array */
 
@@ -1577,11 +1389,13 @@ get_parameters_x11(void * priv)
       index++;
       }
     //    fprintf(stderr, "num_xv_parameters: %d\n", num_xv_parameters);
+#ifdef HAVE_LIBXV
     if(num_xv_parameters)
       {
       get_xv_parameters(x11, &(x11->parameters[index]));
       index += num_xv_parameters;
       }
+#endif
     }
     
   return x11->parameters;
@@ -1595,7 +1409,10 @@ set_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
   x11_t * p = (x11_t*)priv;
   
   if(!name)
+    {
     return;
+    }
+
   if(!strcmp(name, "auto_resize"))
     {
     p->auto_resize = val->val_i;
@@ -1604,11 +1421,61 @@ set_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
     {
     p->remember_size = val->val_i;
     }
+#ifdef HAVE_LIBXV
   if(!strcmp(name, "force_xv"))
     {
     p->force_xv = val->val_i;
     }
+#endif
+  if(!strcmp(name, "window_x"))
+    {
+    p->win.window_x = val->val_i;
+    }
+  if(!strcmp(name, "window_y"))
+    {
+    p->win.window_y = val->val_i;
+    }
+  if(!strcmp(name, "window_width"))
+    {
+    p->win.window_width = val->val_i;
+    }
+  if(!strcmp(name, "window_height"))
+    {
+    p->win.window_height = val->val_i;
+    }
+  
   }
+
+int
+get_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
+  {
+  x11_t * p = (x11_t*)priv;
+  
+  if(!name)
+    return 0;
+  if(!strcmp(name, "window_x"))
+    {
+    val->val_i = p->win.window_x;
+    return 1;
+    }
+  if(!strcmp(name, "window_y"))
+    {
+    val->val_i = p->win.window_y;
+    return 1;
+    }
+  if(!strcmp(name, "window_width"))
+    {
+    val->val_i = p->win.window_width;
+    return 1;
+    }
+  if(!strcmp(name, "window_height"))
+    {
+    val->val_i = p->win.window_height;
+    return 1;
+    }
+  return 0;
+  }
+
 
 bg_ov_plugin_t the_plugin =
   {
@@ -1624,7 +1491,8 @@ bg_ov_plugin_t the_plugin =
       destroy:       destroy_x11,
 
       get_parameters: get_parameters_x11,
-      set_parameter:  set_parameter_x11
+      set_parameter:  set_parameter_x11,
+      get_parameter:  get_parameter_x11
     },
 
     open:          open_x11,

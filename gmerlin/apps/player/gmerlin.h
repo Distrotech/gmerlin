@@ -70,6 +70,13 @@ struct gmerlin_s
 
   int tree_error;
 
+  /* Configuration stuff */
+
+  bg_cfg_section_t * display_section;
+  bg_cfg_section_t * tree_section;
+  bg_cfg_section_t * general_section;
+  bg_cfg_section_t * audio_section;
+  
   };
 
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg);

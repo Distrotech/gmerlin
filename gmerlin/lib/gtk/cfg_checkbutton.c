@@ -58,10 +58,8 @@ static void attach(void * priv, GtkWidget * table,
     *num_columns = 2;
   
   gtk_table_resize(GTK_TABLE(table), *row+1, *num_columns);
-  //  gtk_table_attach_defaults(GTK_TABLE(table), b->button,
-  //                            0, 1, *row, *row+1);
   gtk_table_attach(GTK_TABLE(table), b->button,
-                    0, 2, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+                    0, 2, *row, *row+1, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
 
   (*row)++;
   }
@@ -81,8 +79,13 @@ void bg_gtk_create_checkbutton(bg_gtk_widget_t * w, bg_parameter_info_t * info)
   priv->button = gtk_check_button_new_with_label(info->long_name);
 
   if(info->flags & BG_PARAMETER_SYNC)
-    g_signal_connect(G_OBJECT(priv->button), "toggled",
-                     G_CALLBACK(bg_gtk_change_callback), (gpointer)w);
+    {
+    w->callback_id = 
+      g_signal_connect(G_OBJECT(priv->button), "toggled",
+                       G_CALLBACK(bg_gtk_change_callback), (gpointer)w);
+    w->callback_widget = priv->button;
+    }
+  
   gtk_widget_show(priv->button);
  
   w->funcs = &funcs;

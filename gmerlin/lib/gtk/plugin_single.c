@@ -33,12 +33,11 @@ struct bg_gtk_plugin_widget_single_s
   GtkWidget * combo;
   GtkWidget * config_button;
   GtkWidget * info_button;
-
+  
   bg_plugin_registry_t * reg;
   const bg_plugin_info_t * info;
   bg_plugin_handle_t * handle;
 
-  bg_parameter_info_t * parameters;
   bg_cfg_section_t * section;
 
   int32_t type_mask;
@@ -83,7 +82,7 @@ static void set_parameter(void * data, char * name,
 static void button_callback(GtkWidget * w, gpointer data)
   {
   bg_gtk_plugin_widget_single_t * widget;
-  //  bg_gtk_plugin_info_t * info_window;
+  bg_parameter_info_t * parameters;
   
   bg_dialog_t * dialog;
   
@@ -95,10 +94,15 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == widget->config_button)
     {
+    bg_plugin_lock(widget->handle);
+    parameters = widget->handle->plugin->get_parameters(widget->handle->priv);
+    bg_plugin_unlock(widget->handle);
+    
     dialog = bg_dialog_create(widget->section,
                               set_parameter,
                               (void*)widget,
-                              widget->parameters);
+                              parameters,
+                              widget->handle->info->long_name);
     bg_dialog_show(dialog);
     bg_dialog_destroy(dialog);
     }
@@ -124,9 +128,10 @@ static void change_callback(GtkWidget * w, gpointer data)
   widget->handle = bg_plugin_load(widget->reg, widget->info);
 
   if(widget->handle->plugin->get_parameters)
-    widget->parameters =
-      widget->handle->plugin->get_parameters(widget->handle->priv);
-
+    gtk_widget_set_sensitive(widget->config_button, 1);
+  else
+    gtk_widget_set_sensitive(widget->config_button, 0);
+  
   widget->section = bg_plugin_registry_get_section(widget->reg,
                                                    widget->info->name);
   
@@ -157,6 +162,20 @@ bg_gtk_plugin_widget_single_create(bg_plugin_registry_t * reg,
   
   ret->reg = reg;
   ret->type_mask = type_mask;
+
+  /* Make buttons */
+    
+  ret->config_button = create_pixmap_button("config_16.png");
+  ret->info_button = create_pixmap_button("info_16.png");
+
+  g_signal_connect(G_OBJECT(ret->config_button), "clicked",
+                   G_CALLBACK(button_callback), (gpointer)ret);
+  g_signal_connect(G_OBJECT(ret->info_button), "clicked",
+                   G_CALLBACK(button_callback), (gpointer)ret);
+
+  gtk_widget_show(ret->config_button);
+  gtk_widget_show(ret->info_button);
+  
   /* Make combo */
     
   ret->combo = gtk_combo_new();
@@ -194,19 +213,6 @@ bg_gtk_plugin_widget_single_create(bg_plugin_registry_t * reg,
   
   gtk_widget_show(ret->combo);
   
-  /* Make buttons */
-    
-  ret->config_button = create_pixmap_button("config_16.png");
-  ret->info_button = create_pixmap_button("info_16.png");
-
-  g_signal_connect(G_OBJECT(ret->config_button), "clicked",
-                   G_CALLBACK(button_callback), (gpointer)ret);
-  g_signal_connect(G_OBJECT(ret->info_button), "clicked",
-                   G_CALLBACK(button_callback), (gpointer)ret);
-
-  gtk_widget_show(ret->config_button);
-  gtk_widget_show(ret->info_button);
-
   /* Pack the objects */
 
   ret->table = gtk_table_new(1, 3, 0);
@@ -225,7 +231,9 @@ bg_gtk_plugin_widget_single_create(bg_plugin_registry_t * reg,
 
 void bg_gtk_plugin_widget_single_destroy(bg_gtk_plugin_widget_single_t * w)
   {
-//  fprintf(stderr, "bg_gtk_plugin_widget_single_destroy\n");
+  if(w->handle)
+    bg_plugin_unref(w->handle);
+  //  fprintf(stderr, "bg_gtk_plugin_widget_single_destroy\n");
   if(w->info)
     bg_plugin_registry_set_default(w->reg, w->type_mask, w->info->name);
   free(w);

@@ -39,7 +39,6 @@ typedef enum
     
   } bg_stream_action_t;
 
-
 /***************************************************
  * Plugin API
  *
@@ -69,8 +68,9 @@ typedef enum
     BG_PLUGIN_RECORDER_VIDEO     = (1<<4),
     BG_PLUGIN_ENCODER_AUDIO      = (1<<5),
     BG_PLUGIN_ENCODER_VIDEO      = (1<<6),
-    BG_PLUGIN_ENCODER            = (1<<7), // Encodetr for both audio and video
-    BG_PLUGIN_IMAGE_READER       = (1<<8)
+    BG_PLUGIN_ENCODER            = (1<<7), // Encoder for both audio and video
+    BG_PLUGIN_IMAGE_READER       = (1<<8),
+    BG_PLUGIN_IMAGE_WRITER       = (1<<9)
   } bg_plugin_type_t;
 
 /* At least one of these must be set */
@@ -117,7 +117,12 @@ typedef struct bg_plugin_common_s
 
   /* Set configuration parameter */
     
-  bg_parameter_func set_parameter;
+  bg_set_parameter_func set_parameter;
+
+  /* Get parameter is optional, also, it needs to return values for
+     all parameters. */
+  
+  bg_get_parameter_func get_parameter;
 
   /* OPTIONAL: Return a readable description of the last error */
 
@@ -388,7 +393,7 @@ typedef struct bg_rv_plugin_s
 
   int (*open)(void *, gavl_video_format_t*);
   void (*close)(void * priv);
-  void (*read_frame)(void * priv, gavl_video_frame_t*);
+  int (*read_frame)(void * priv, gavl_video_frame_t*);
   
   /* The following ones are optional */
   gavl_video_frame_t * (*alloc_frame)(void * priv);
@@ -451,5 +456,27 @@ typedef struct bg_image_reader_plugin_s
    */
   int (*read_image)(void * priv, gavl_video_frame_t * frame);
   } bg_image_reader_plugin_t;
+
+/*******************************************
+ * Image writer
+ *******************************************/
+
+typedef struct bg_image_writer_plugin_s
+  {
+  bg_plugin_common_t common;
+
+  /*
+   *  Write the file header.
+   *  Return FALSE on error
+   */
+  
+  int (*write_header)(void * priv, const char * filename_base,
+                      gavl_video_format_t * format);
+  /*
+   *  Read the image, cleanup after so read_header can be calles
+   *  again after that. If frame == NULL, do cleanup only
+   */
+  int (*write_image)(void * priv, gavl_video_frame_t * frame);
+  } bg_image_writer_plugin_t;
 
 #endif // __BG_PLUGIN_H_

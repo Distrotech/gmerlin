@@ -3,6 +3,8 @@
 #include <stdio.h>
 
 #include <cfg_dialog.h>
+#include <gui_gtk/gtkutils.h>
+
 
 static bg_parameter_info_t encoder_1_info[] =
   {
@@ -187,12 +189,12 @@ static bg_parameter_info_t info[] =
     {
       name:               "encoder",
       long_name:          "Encoder",
-      type:               BG_PARAMETER_ENCODER,
+      type:               BG_PARAMETER_MULTI_MENU,
       val_default:        { val_str: "Encoder 1" },
-      codec_names:        (char *[]){ "encoder_1", "encoder_2", NULL },
-      codec_long_names:   (char *[]){ "Encoder 1", "Encoder 2", NULL },
-      codec_descriptions: (char *[]){ "Encoder 1", "Encoder 2", NULL },
-      codec_parameters:   encoder_parameters,
+      multi_names:        (char *[]){ "encoder_1", "encoder_2", NULL },
+      multi_labels:   (char *[]){ "Encoder 1", "Encoder 2", NULL },
+      multi_descriptions: (char *[]){ "Encoder 1", "Encoder 2", NULL },
+      multi_parameters:   encoder_parameters,
     },
 #if 0
     {
@@ -262,7 +264,7 @@ static void set_param(void * data, char * name,
     case BG_PARAMETER_STRINGLIST:
     case BG_PARAMETER_FONT:
     case BG_PARAMETER_DEVICE:
-    case BG_PARAMETER_ENCODER:
+    case BG_PARAMETER_MULTI_MENU:
       fprintf(stderr, "String %s: %s\n", tmp_info->name,
               v->val_str);
       break;
@@ -278,14 +280,14 @@ int main(int argc, char ** argv)
   bg_cfg_registry_t * registry;
   bg_cfg_section_t  * section;
     
-  gtk_init(&argc, &argv);
+  bg_gtk_init(&argc, &argv);
 
   registry = bg_cfg_registry_create();
   bg_cfg_registry_load(registry, "config.xml");
 
   section = bg_cfg_registry_find_section(registry, "section_1");
   
-  test_dialog = bg_dialog_create(section, set_param, NULL, info);
+  test_dialog = bg_dialog_create(section, set_param, NULL, info, "Test dialog");
 
   bg_dialog_show(test_dialog);
   bg_cfg_registry_save(registry, "config.xml");

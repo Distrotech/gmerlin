@@ -56,7 +56,7 @@ bg_gtk_textwindow_create(const char * text, const char * title)
   ret = calloc(1, sizeof(*ret));
 
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-
+  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback), (gpointer)ret);
 

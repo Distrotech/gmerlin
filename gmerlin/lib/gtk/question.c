@@ -62,6 +62,10 @@ int bg_gtk_question(const char * question)
   /* Create objects */
   
   q->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+
+  gtk_window_set_position(GTK_WINDOW(q->window), GTK_WIN_POS_CENTER);
+
+  
   q->ok_button = gtk_button_new_from_stock(GTK_STOCK_OK);
   q->cancel_button = gtk_button_new_from_stock(GTK_STOCK_CANCEL);
   q->label = gtk_label_new(question);

@@ -60,8 +60,8 @@ bg_cfg_item_t * bg_cfg_create_item(bg_parameter_info_t * info,
     case BG_PARAMETER_DEVICE:
     case BG_PARAMETER_FILE:
     case BG_PARAMETER_DIRECTORY:
-    case BG_PARAMETER_ENCODER:
-    case BG_PARAMETER_DECODER:
+    case BG_PARAMETER_MULTI_MENU:
+    case BG_PARAMETER_MULTI_LIST:
       ret->type = BG_CFG_STRING;
       break;
     default:

@@ -73,3 +73,9 @@ GdkPixbuf * bg_gtk_pixbuf_scale_alpha(GdkPixbuf * src,
   
   return ret;
   }
+
+void bg_gtk_init(int * argc, char *** argv)
+  {
+  gtk_disable_setlocale();
+  gtk_init(argc, argv);
+  }

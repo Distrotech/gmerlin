@@ -1004,7 +1004,8 @@ void bg_media_tree_set_error_callback(bg_media_tree_t * tree,
   }
 
 void bg_media_tree_set_play_callback(bg_media_tree_t * tree,
-                                     void (*play_callback)(bg_media_tree_t*, void*),
+                                     void (*play_callback)(bg_media_tree_t*,
+                                                           void*),
                                      void* play_callback_data)
   {
   tree->play_callback      = play_callback;
@@ -1092,7 +1093,8 @@ const char * bg_media_tree_get_current_track_name(bg_media_tree_t * t)
   return t->current_entry->name;
   }
 
-void bg_media_tree_set_coords(bg_media_tree_t * t, int x, int y, int width, int height)
+void bg_media_tree_set_coords(bg_media_tree_t * t, int x, int y,
+                              int width, int height)
   {
   t->x = x;
   t->y = y;
@@ -1139,7 +1141,8 @@ bg_parameter_info_t * bg_media_tree_get_parameters(bg_media_tree_t * tree)
   return parameters;
   }
 
-void bg_media_tree_set_parameter(void * priv, char * name, bg_parameter_value_t * val)
+void bg_media_tree_set_parameter(void * priv, char * name,
+                                 bg_parameter_value_t * val)
   {
   bg_media_tree_t * tree;
   tree = (bg_media_tree_t*)priv;

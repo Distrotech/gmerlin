@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <gtk/gtk.h>
 #include <gui_gtk/question.h>
+#include <gui_gtk/gtkutils.h>
 
 int main(int argc, char ** argv)
   {
   int ans;
-  gtk_init(&argc, &argv);
+  bg_gtk_init(&argc, &argv);
   
   ans = bg_gtk_question("Switch coffemachine to backwards\rOr not?");
 

@@ -85,14 +85,13 @@ static void attach(void * priv, GtkWidget * table,
     *num_columns = 3;
   
   gtk_table_resize(GTK_TABLE(table), *row+1, *num_columns);
-  //  gtk_table_attach_defaults(GTK_TABLE(table), b->button,
-  //                            0, 1, *row, *row+1);
+
   gtk_table_attach(GTK_TABLE(table), f->label,
                     0, 1, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
 
-  gtk_table_attach_defaults(GTK_TABLE(table), f->entry,
-                    1, 2, *row, *row+1);
-
+  gtk_table_attach(GTK_TABLE(table), f->entry,
+                   1, 2, *row, *row+1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+  
   gtk_table_attach(GTK_TABLE(table), f->button,
                    2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
 

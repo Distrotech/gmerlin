@@ -14,6 +14,7 @@
 #include <utils.h>
 
 #include <pluginregistry.h>
+#include <gui_gtk/gtkutils.h>
 
 #include "monitor.h"
 
@@ -275,7 +276,7 @@ int main(int argc, char ** argv)
 
   plugin_section = bg_cfg_registry_find_section(reg, "plugins");
     
-  gtk_init(&argc, &argv);
+  bg_gtk_init(&argc, &argv);
 
   w = mixer_window_create(reg);
 

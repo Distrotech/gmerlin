@@ -82,13 +82,12 @@ static void attach(void * priv, GtkWidget * table,
     *num_columns = 2;
   
   gtk_table_resize(GTK_TABLE(table), *row+1, *num_columns);
-  //  gtk_table_attach_defaults(GTK_TABLE(table), b->button,
-  //                            0, 1, *row, *row+1);
-  gtk_table_attach(GTK_TABLE(table), s->label,
-                    0, 1, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
 
-  gtk_table_attach_defaults(GTK_TABLE(table), s->combo,
-                            1, 2, *row, *row+1);
+  gtk_table_attach(GTK_TABLE(table), s->label,
+                   0, 1, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+
+  gtk_table_attach(GTK_TABLE(table), s->combo,
+                   1, 2, *row, *row+1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
   
   (*row)++;
   }
@@ -101,6 +100,15 @@ static gtk_widget_funcs_t funcs =
     attach:    attach
   };
 
+static void change_callback(GtkWidget * w, gpointer data)
+  {
+  const char * str;
+  str = gtk_entry_get_text(GTK_ENTRY(w));
+
+  if(str && (*str != '\0'))
+    bg_gtk_change_callback(w, data);
+  }
+
 void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
   {
   int i;
@@ -108,7 +116,8 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
   stringlist_t * priv = calloc(1, sizeof(*priv));
 
   priv->combo = gtk_combo_new();
-  gtk_editable_set_editable(GTK_EDITABLE(GTK_COMBO(priv->combo)->entry), FALSE);
+  gtk_editable_set_editable(GTK_EDITABLE(GTK_COMBO(priv->combo)->entry),
+                            FALSE);
   
   i = 0;
   while(info->options[i])
@@ -118,6 +127,15 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
     i++;
     }
   gtk_combo_set_popdown_strings(GTK_COMBO(priv->combo), priv->strings);
+
+  if(info->flags & BG_PARAMETER_SYNC)
+    {
+    w->callback_widget = GTK_COMBO(priv->combo)->entry;
+    w->callback_id = g_signal_connect(G_OBJECT(w->callback_widget),
+                     "changed", G_CALLBACK(change_callback),
+                     (gpointer)w);
+    }
+  
   gtk_widget_show(priv->combo);
 
   priv->label = gtk_label_new(info->long_name);

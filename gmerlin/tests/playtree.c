@@ -3,6 +3,7 @@
 #include <tree.h>
 #include <utils.h>
 #include <gui_gtk/tree.h>
+#include <gui_gtk/gtkutils.h>
 
 
 int main(int argc, char ** argv)
@@ -14,7 +15,7 @@ int main(int argc, char ** argv)
   bg_cfg_section_t     * cfg_section;
   bg_plugin_registry_t * plugin_reg;
   
-  gtk_init(&argc, &argv);
+  bg_gtk_init(&argc, &argv);
   
   cfg_reg = bg_cfg_registry_create();
     

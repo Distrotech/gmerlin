@@ -1,4 +1,16 @@
 
+if HAVE_OSS
+oss_subdirs = oss
+else
+oss_subdirs =
+endif
+
+if HAVE_V4L
+v4l_subdirs = v4l
+else
+v4l_subdirs =
+endif
+
 if HAVE_ESD
 esd_subdirs = esd
 else
@@ -17,10 +29,18 @@ else
 lqt_subdirs = 
 endif
 
+if HAVE_ALSA
+alsa_subdirs = alsa
+else
+alsa_subdirs = 
+endif
+
 SUBDIRS = \
+$(alsa_subdirs) \
 $(lqt_subdirs) \
 $(jpeg_subdirs) \
 $(esd_subdirs) \
-oss \
+$(v4l_subdirs) \
+$(oss_subdirs) \
 x11
 

@@ -76,7 +76,10 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   
   /* Set up formats */
   
-  bg_player_oa_init(player->oa_context);
+  if(!bg_player_oa_init(player->oa_context))
+    {
+    return 0;
+    }
 
   player->audio_stream.input_format.samples_per_frame =
     player->audio_stream.output_format.samples_per_frame;

@@ -387,7 +387,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     put_config(v);
     dialog = bg_dialog_create(v->config_section,
                               set_parameter,
-                              v, v->parameters);
+                              v, v->parameters, "Mixer control");
     bg_dialog_show(dialog);
     bg_dialog_destroy(dialog);
     }

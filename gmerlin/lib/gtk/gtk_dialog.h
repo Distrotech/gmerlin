@@ -40,8 +40,13 @@ struct bg_gtk_widget_s
   gtk_widget_funcs_t * funcs;
   bg_parameter_value_t value;
   const bg_parameter_info_t * info;
-  bg_parameter_func change_callback;
+
+  /* For change callbacks */
+  
+  bg_set_parameter_func change_callback;
   void * change_callback_data;
+  gulong callback_id;
+  GtkWidget * callback_widget;
   };
 
 void 
@@ -94,16 +99,16 @@ bg_gtk_create_file(bg_gtk_widget_t *,
 
 
 void
-bg_gtk_create_decoder(bg_gtk_widget_t *, bg_parameter_info_t * info,
-                      bg_cfg_section_t * cfg_section,
-                      bg_parameter_func set_param,
-                      void * data);
+bg_gtk_create_multi_list(bg_gtk_widget_t *, bg_parameter_info_t * info,
+                         bg_cfg_section_t * cfg_section,
+                         bg_set_parameter_func set_param,
+                         void * data);
 
 void
-bg_gtk_create_encoder(bg_gtk_widget_t *, bg_parameter_info_t * info,
-                      bg_cfg_section_t * cfg_section,
-                      bg_parameter_func set_param,
-                      void * data);
+bg_gtk_create_multi_menu(bg_gtk_widget_t *, bg_parameter_info_t * info,
+                         bg_cfg_section_t * cfg_section,
+                         bg_set_parameter_func set_param,
+                         void * data);
 
 
 void 
@@ -112,3 +117,4 @@ bg_gtk_create_directory(bg_gtk_widget_t *,
 
 void bg_gtk_change_callback(GtkWidget * gw, gpointer data);
 
+void bg_gtk_change_callback_block(bg_gtk_widget_t * w, int block);

@@ -204,7 +204,7 @@ void bg_cfg_destroy_section(bg_cfg_section_t * s)
 
 void bg_cfg_section_apply(bg_cfg_section_t * section,
                           bg_parameter_info_t * infos,
-                          bg_parameter_func func,
+                          bg_set_parameter_func func,
                           void * callback_data)
   {
   int num;
@@ -220,6 +220,28 @@ void bg_cfg_section_apply(bg_cfg_section_t * section,
     }
   func(callback_data, NULL, NULL);
   }
+
+void bg_cfg_section_get(bg_cfg_section_t * section,
+                        bg_parameter_info_t * infos,
+                        bg_get_parameter_func func,
+                        void * callback_data)
+  {
+  int num;
+  bg_cfg_item_t * item;
+
+  if(!func)
+    return;
+  
+  num = 0;
+
+  while(infos[num].name)
+    {
+    item = bg_cfg_section_find_item(section, &(infos[num]));
+    func(callback_data, item->name, &(item->value));
+    num++;
+    }
+  }
+
 
 static bg_cfg_item_t * find_item_by_name(bg_cfg_section_t * section,
                                          const char * name,

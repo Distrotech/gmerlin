@@ -20,20 +20,134 @@ dnl Required
 PKG_CHECK_MODULES(XML2, libxml-2.0 >= 2.4.0, , AC_MSG_ERROR("libxml2 not found"))
 PKG_CHECK_MODULES(GAVL, gavl >= 0.2.0, , AC_MSG_ERROR("gavl not found"))
 
+dnl
 dnl Gtk
+dnl
 
 AM_PATH_GTK_2_0(2.2.0, have_gtk=true, have_gtk=false)
 AM_CONDITIONAL(HAVE_GTK, test x$have_gtk = xtrue)
 
+dnl
+dnl X11
+dnl
+
+have_x="false"
+
+X_CLAGS=""
+X_LIBS=""
+AC_PATH_X
+
+if test x$no_x != xyes; then
+X_FLAGS="-I$x_includes"
+X_LIBS="-L$x_libraries -lX11 -lXext"
+have_x="true"
+fi
+
+AC_SUBST(X_CFLAGS)
+AC_SUBST(X_LIBS)
+AM_CONDITIONAL(HAVE_X, test x$no_x != xyes)
+
+dnl
+dnl Xinerama
+dnl
+
+AH_TEMPLATE([HAVE_LIBXINERAMA],
+            [Do we have xinerama installed?])
+
+have_xinerama="false"
+XINERAMA_LIBS=""
+
+if test x$no_x != xyes; then
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+                                                                               
+CFLAGS=$X_FLAGS
+LIBS=$X_LIBS
+
+AC_CHECK_LIB(Xinerama, XineramaQueryExtension,
+             XINERAMA_LIBS="-lXinerama";have_xinerama="true")
+
+if test x$have_xinerama="xtrue"; then
+AC_DEFINE(HAVE_LIBXINERAMA)
+fi
+
+AC_SUBST(XINERAMA_LIBS)
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+fi
+
+dnl
+dnl Xv
+dnl
+
+AH_TEMPLATE([HAVE_LIBXV],
+            [Do we have xv installed?])
+
+have_xv="false"
+XV_LIBS=""
+
+if test x$no_x != xyes; then
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+                                                                               
+CFLAGS=$X_FLAGS
+LIBS=$X_LIBS
+
+AC_CHECK_LIB(Xv, XvQueryExtension,
+             XV_LIBS="-lXv";have_xv="true")
+
+if test x$have_xinerama="xtrue"; then
+AC_DEFINE(HAVE_LIBXV)
+fi
+
+AC_SUBST(XV_LIBS)
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+fi
+
+
+dnl
 dnl Libquicktime
+dnl
 
 AC_PATH_LQT(0.9.2,  have_lqt=true, have_lqt=false)
 AM_CONDITIONAL(HAVE_LQT, test x$have_lqt = xtrue)
 
+dnl
 dnl ESounD
+dnl
 
 AM_PATH_ESD(0.2.19, have_esd=true, have_esd=false)
 AM_CONDITIONAL(HAVE_ESD,           test x$have_esd = xtrue)
+
+dnl
+dnl ALSA
+dnl
+
+AM_PATH_ALSA(1.0.0, have_alsa=true, have_alsa=false)
+AM_CONDITIONAL(HAVE_ALSA, test x$have_alsa = xtrue)
+
+dnl
+dnl OSS
+dnl
+
+have_oss=false
+AC_CHECK_HEADERS(sys/soundcard.h soundcard.h, have_oss=true)
+AM_CONDITIONAL(HAVE_OSS, test x$have_oss = xtrue)
+
+dnl
+dnl Video4linux
+dnl
+
+have_v4l=false
+AC_CHECK_HEADERS(linux/videodev.h, have_v4l=true)
+AM_CONDITIONAL(HAVE_V4L, test x$have_v4l = xtrue)
 
 dnl libjpeg
 
@@ -83,6 +197,7 @@ AC_SUBST(JPEG_LIBS)
 AC_SUBST(JPEG_CFLAGS)
                                                                                
 AM_CONDITIONAL(HAVE_LIBJPEG, test x$have_libjpeg = xtrue)
+
 
 dnl
 dnl Common CFLAGS
@@ -173,6 +288,8 @@ apps/Makefile \
 apps/ossmixer/Makefile \
 apps/plugincfg/Makefile \
 apps/player/Makefile \
+apps/alsamixer/Makefile \
+apps/camelot/Makefile \
 icons/Makefile \
 tests/Makefile \
 include/Makefile \
@@ -180,13 +297,87 @@ include/gui_gtk/Makefile \
 lib/Makefile \
 lib/gtk/Makefile \
 plugins/Makefile \
+plugins/alsa/Makefile \
 plugins/x11/Makefile \
 plugins/esd/Makefile \
 plugins/lqt/Makefile \
 plugins/oss/Makefile \
 plugins/jpeg/Makefile \
+plugins/v4l/Makefile \
 skins/Makefile \
 skins/Default/Makefile])
 
 AC_OUTPUT
+
+echo "Configuration: "
+
+echo -n "Gtk-2.0:          "
+if test "x$have_gtk" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing (GUI applications won't be compiled!)"
+fi
+
+echo -n "EsounD:           "
+if test "x$have_esd" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "Alsa:             "
+if test "x$have_alsa" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "Libquicktime:     "
+if test "x$have_lqt" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "Libjpeg:          "
+if test "x$have_libjpeg" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "OSS:              "
+if test "x$have_oss" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "Video4Linux:      "
+if test "x$have_v4l" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "X11:              "
+if test "x$have_x" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "Xinerama:         "
+if test "x$have_xinerama" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "Xvideo extension: "
+if test "x$have_xinerama" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
 

@@ -610,7 +610,7 @@ static void rename_current_album(bg_gtk_tree_widget_t * w)
   dialog = bg_dialog_create((bg_cfg_section_t*)0,
                             set_parameter,
                             w,
-                            info);
+                            info, "Rename album");
   
   bg_dialog_show(dialog);
   

@@ -26,6 +26,15 @@
 #define DIGIT_HEIGHT      32
 #define DIGIT_WIDTH       20
 
+typedef enum
+  {
+    DISPLAY_MODE_NONE,
+    DISPLAY_MODE_ALL,
+    DISPLAY_MODE_REM,
+    DISPLAY_MODE_ALL_REM,
+    NUM_DISPLAY_MODES
+  } display_mode_t; /* Mode for the time display */
+
 static bg_parameter_info_t parameters[] =
   {
     {
@@ -52,6 +61,22 @@ static bg_parameter_info_t parameters[] =
       type: BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 1.0, 0.0, 0.0, 1.0 } },
     },
+    {
+      name:      "display_mode",
+      long_name: "Display mode",
+      type: BG_PARAMETER_INT,
+      val_min:     { val_i:  DISPLAY_MODE_NONE },
+      val_max:     { val_i:  NUM_DISPLAY_MODES - 1 },
+      val_default: { val_i:  DISPLAY_MODE_NONE },
+    },
+    {
+      name:      "repeat_mode",
+      long_name: "Repeat mode",
+      type: BG_PARAMETER_INT,
+      val_min:     { val_i:  REPEAT_MODE_NONE },
+      val_max:     { val_i:  NUM_REPEAT_MODES - 1 },
+      val_default: { val_i:  REPEAT_MODE_NONE },
+    },
     { /* End of parameters */ }
   };
 
@@ -59,15 +84,6 @@ bg_parameter_info_t * display_get_parameters(display_t * display)
   {
   return parameters;
   }
-
-typedef enum
-  {
-    DISPLAY_MODE_NONE,
-    DISPLAY_MODE_ALL,
-    DISPLAY_MODE_REM,
-    DISPLAY_MODE_ALL_REM,
-    NUM_DISPLAY_MODES
-  } display_mode_t; /* Mode for the time display */
 
 int pixbufs_loaded = 0;
 
@@ -156,6 +172,11 @@ struct display_s
   int error_active;
 
   char * track_name;
+
+  gavl_time_t duration_before;
+  gavl_time_t duration_after;
+  gavl_time_t duration_current;
+  gavl_time_t last_time;
   };
 
 static void update_background(display_t * d)
@@ -181,7 +202,7 @@ static void update_background(display_t * d)
 static void update_colors(display_t * d)
   {
   int i;
-  fprintf(stderr, "Update colors\n");
+  //  fprintf(stderr, "Update colors\n");
   
   for(i = 0; i < NUM_STATES; i++)
     {
@@ -235,56 +256,12 @@ static void update_colors(display_t * d)
   
   
   }
-
-void display_set_parameter(void * data, char * name,
-                           bg_parameter_value_t * v)
-  {
-  display_t * d = (display_t*)data;
-  if(!name)
-    {
-    if(d->get_colors_from_skin && d->skin)
-      {
-      memcpy(d->foreground_normal, d->skin->foreground_normal,
-             3 * sizeof(float));
-      memcpy(d->foreground_error, d->skin->foreground_error,
-             3 * sizeof(float));
-      memcpy(d->background, d->skin->background,
-             3 * sizeof(float));
-      update_colors(d);
-      }
-    else
-      {
-      memcpy(d->foreground_normal, d->foreground_normal_cfg,
-             3 * sizeof(float));
-      memcpy(d->foreground_error, d->foreground_error_cfg,
-             3 * sizeof(float));
-      memcpy(d->background, d->background_cfg,
-             3 * sizeof(float));
-      update_colors(d);
-      }
-    }
-  else if(!strcmp(name, "get_colors_from_skin"))
-    d->get_colors_from_skin = v->val_i;
-  else if(!strcmp(name, "foreground_error"))
-    memcpy(d->foreground_error_cfg, v->val_color, 3 * sizeof(float));
-  else if(!strcmp(name, "foreground_normal"))
-    memcpy(d->foreground_normal_cfg, v->val_color, 3 * sizeof(float));
-  else if(!strcmp(name, "background"))
-    memcpy(d->background_cfg, v->val_color, 3 * sizeof(float));
-  }
-
-static void realize_callback(GtkWidget * w, gpointer data)
-  {
-  display_t * d = (display_t*)data;
-  d->gc = gdk_gc_new(d->widget->window);
-  update_background(d);
-  }
-
 static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
                                 gpointer data)
   {
   display_t * d = (display_t*)data;
-
+  if(!d->gc)
+    return TRUE;
   if(w == d->widget)
     {
     gdk_draw_rectangle(GTK_LAYOUT(d->widget)->bin_window,
@@ -343,30 +320,112 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
   return TRUE;
   }
 
+static void set_display_mode(display_t * d)
+  {
+  if(d->display_mode == NUM_DISPLAY_MODES)
+    d->display_mode = 0;
+  expose_callback(d->display_area, (GdkEventExpose*)0,
+                  d);
+  display_set_time(d, d->last_time);
+  
+  }
+
+static void set_repeat_mode(display_t * d)
+  {
+  if(d->repeat_mode == NUM_REPEAT_MODES)
+    d->repeat_mode = 0;
+  expose_callback(d->repeat_area, (GdkEventExpose*)0,
+                  d);
+  d->gmerlin->repeat_mode = d->repeat_mode;
+  }
+
+void display_set_parameter(void * data, char * name,
+                           bg_parameter_value_t * v)
+  {
+  display_t * d = (display_t*)data;
+  if(!name)
+    {
+    if(d->get_colors_from_skin && d->skin)
+      {
+      memcpy(d->foreground_normal, d->skin->foreground_normal,
+             3 * sizeof(float));
+      memcpy(d->foreground_error, d->skin->foreground_error,
+             3 * sizeof(float));
+      memcpy(d->background, d->skin->background,
+             3 * sizeof(float));
+      update_colors(d);
+      }
+    else
+      {
+      memcpy(d->foreground_normal, d->foreground_normal_cfg,
+             3 * sizeof(float));
+      memcpy(d->foreground_error, d->foreground_error_cfg,
+             3 * sizeof(float));
+      memcpy(d->background, d->background_cfg,
+             3 * sizeof(float));
+      update_colors(d);
+      }
+    }
+  else if(!strcmp(name, "get_colors_from_skin"))
+    d->get_colors_from_skin = v->val_i;
+  else if(!strcmp(name, "foreground_error"))
+    memcpy(d->foreground_error_cfg, v->val_color, 3 * sizeof(float));
+  else if(!strcmp(name, "foreground_normal"))
+    memcpy(d->foreground_normal_cfg, v->val_color, 3 * sizeof(float));
+  else if(!strcmp(name, "background"))
+    memcpy(d->background_cfg, v->val_color, 3 * sizeof(float));
+  else if(!strcmp(name, "display_mode"))
+    {
+    d->display_mode = v->val_i;
+    set_display_mode(d);
+    }
+  else if(!strcmp(name, "repeat_mode"))
+    d->repeat_mode = v->val_i;
+  }
+
+int display_get_parameter(void * data, char * name,
+                           bg_parameter_value_t * v)
+  {
+  display_t * d = (display_t*)data;
+
+  // fprintf(stderr, "display_get_parameter, %s\n", name);
+
+  if(!strcmp(name, "display_mode"))
+    {
+    v->val_i = d->display_mode;
+    return 1;
+    }
+  else if(!strcmp(name, "repeat_mode"))
+    {
+    v->val_i = d->repeat_mode;
+    return 1;
+    }
+  return 0;
+  }
+
+static void realize_callback(GtkWidget * w, gpointer data)
+  {
+  display_t * d = (display_t*)data;
+  d->gc = gdk_gc_new(d->widget->window);
+  update_background(d);
+  }
+
 static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
                                       gpointer data)
   {
   display_t * d = (display_t*)data;
   if(w == d->repeat_area)
     {
-    fprintf(stderr, "Repeat mode %d", d->repeat_mode);
+    //    fprintf(stderr, "Repeat mode %d", d->repeat_mode);
     d->repeat_mode++;
-    if(d->repeat_mode == NUM_REPEAT_MODES)
-      d->repeat_mode = 0;
-    fprintf(stderr, ", %d\n", d->repeat_mode);
-    expose_callback(d->repeat_area, (GdkEventExpose*)0,
-                    data);
-    d->gmerlin->repeat_mode = d->repeat_mode;
+    set_repeat_mode(d);
     }
   if(w == d->display_area)
     {
-    fprintf(stderr, "Display mode %d", d->display_mode);
+    //    fprintf(stderr, "Display mode %d", d->display_mode);
     d->display_mode++;
-    if(d->display_mode == NUM_DISPLAY_MODES)
-      d->display_mode = 0;
-    expose_callback(d->display_area, (GdkEventExpose*)0,
-                    data);
-    fprintf(stderr, ", %d\n", d->display_mode);
+    set_display_mode(d);
+    //    fprintf(stderr, ", %d\n", d->display_mode);
     }
   return TRUE;
   }
@@ -488,15 +547,44 @@ void display_destroy(display_t * d)
   }
 
 void display_set_playlist_times(display_t * d,
-                                int seconds_before,
-                                int seconds_total)
+                                gavl_time_t duration_before,
+                                gavl_time_t duration_current,
+                                gavl_time_t duration_after)
   {
-  
+  d->duration_before  = duration_before;
+  d->duration_current = duration_current;
+  d->duration_after   = duration_after;
   }
 
 void display_set_time(display_t * d, gavl_time_t time)
   {
-  bg_gtk_time_display_update(d->time_display, time);
+  gavl_time_t display_time;
+  d->last_time = time;
+  if(d->state_index ==  STATE_STOPPED)
+    display_time = d->duration_current + d->duration_before +
+      d->duration_after;
+  else
+    {
+    switch(d->display_mode)
+      {
+      case DISPLAY_MODE_NONE:
+        display_time = time;
+      break;
+      case DISPLAY_MODE_ALL:
+        display_time = time + d->duration_before;
+        break;
+      case DISPLAY_MODE_REM:
+        display_time = d->duration_current - time;
+        break;
+      case DISPLAY_MODE_ALL_REM:
+        display_time = d->duration_after + d->duration_current - time;
+        break;
+      default:
+        display_time = time;
+        break;
+      }
+    }
+  bg_gtk_time_display_update(d->time_display, display_time);
   }
 
 void display_set_state(display_t * d, int state,
@@ -508,6 +596,10 @@ void display_set_state(display_t * d, int state,
     case BG_PLAYER_STATE_STOPPED:
       d->state_index = STATE_STOPPED;
       display_set_track_name(d, "Gmerlin player (version "VERSION")");
+
+      bg_gtk_time_display_update(d->time_display,
+                                 d->duration_before+d->duration_current+
+                                 d->duration_after);
       break;
     case BG_PLAYER_STATE_SEEKING:
       d->state_index = STATE_SEEKING;

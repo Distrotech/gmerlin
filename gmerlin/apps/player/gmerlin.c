@@ -27,6 +27,7 @@ static void set_logo(bg_plugin_registry_t * reg, bg_player_t * player)
 static void tree_play_callback(bg_media_tree_t * t, void * data)
   {
   gmerlin_t * g = (gmerlin_t*)data;
+  
   gmerlin_play(g, 0);
   }
 
@@ -39,8 +40,10 @@ static void tree_error_callback(bg_media_tree_t * t, void * data, const char * m
 
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   {
+  bg_album_t * album;
+  gavl_time_t duration_before, duration_current, duration_after;
   char * tmp_string;
-  
+    
   gmerlin_t * ret;
   bg_cfg_section_t * cfg_section;
   ret = calloc(1, sizeof(*ret));
@@ -51,6 +54,15 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   cfg_section     = bg_cfg_registry_find_section(cfg_reg, "plugins");
   ret->plugin_reg = bg_plugin_registry_create(cfg_section);
 
+  ret->display_section =
+    bg_cfg_registry_find_section(cfg_reg, "Display");
+  ret->tree_section =
+    bg_cfg_registry_find_section(cfg_reg, "Tree");
+  ret->general_section =
+    bg_cfg_registry_find_section(cfg_reg, "General");
+  ret->audio_section =
+    bg_cfg_registry_find_section(cfg_reg, "Audio");
+    
   /* Create player instance */
   
   ret->player = bg_player_create();
@@ -89,6 +101,22 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
 
   gmerlin_create_dialog(ret);
   
+  /* Set playlist times for the display */
+  
+  album = bg_media_tree_get_current_album(ret->tree);
+
+  if(album)
+    {
+    bg_album_get_times(album,
+                       &duration_before,
+                       &duration_current,
+                       &duration_after);
+    display_set_playlist_times(ret->player_window->display,
+                               duration_before,
+                               duration_current,
+                               duration_after);
+    }
+
   return ret;
   fail:
   gmerlin_destroy(ret);
@@ -131,7 +159,28 @@ void gmerlin_play(gmerlin_t * g, int ignore_flags)
   {
   int track_index;
   bg_plugin_handle_t * handle;
+  bg_album_t * album;
+  gavl_time_t duration_before;
+  gavl_time_t duration_current;
+  gavl_time_t duration_after;
+
+  album = bg_media_tree_get_current_album(g->tree);
+
+  bg_album_get_times(album,
+                     &duration_before,
+                     &duration_current,
+                     &duration_after);
+
+  fprintf(stderr, "Durations: %lld %lld %lld\n",
+          duration_before,
+          duration_current,
+          duration_after);
   
+  display_set_playlist_times(g->player_window->display,
+                             duration_before,
+                             duration_current,
+                             duration_after);
+
   handle = bg_media_tree_get_current_track(g->tree, &track_index);
   
   if(!handle)
@@ -140,6 +189,8 @@ void gmerlin_play(gmerlin_t * g, int ignore_flags)
   if(handle)
     bg_player_set_track_name(g->player,
                              bg_media_tree_get_current_track_name(g->tree));
+
+
   
   bg_player_play(g->player, handle, track_index,
                  ignore_flags);

@@ -10,6 +10,7 @@
 #include "gmerlin.h"
 
 #include <utils.h>
+#include <gui_gtk/gtkutils.h>
 
 int main(int argc, char ** argv)
   {
@@ -27,7 +28,7 @@ int main(int argc, char ** argv)
 
   /* Fire up the actual player */
 
-  gtk_init(&argc, &argv);
+  bg_gtk_init(&argc, &argv);
   
   gmerlin = gmerlin_create(cfg_reg);
 

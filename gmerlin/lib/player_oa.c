@@ -269,13 +269,16 @@ int bg_player_oa_init(bg_player_oa_context_t * ctx)
   {
   int result;
   bg_plugin_lock(ctx->plugin_handle);
-  result = ctx->plugin->open(ctx->priv, &(ctx->player->audio_stream.output_format));
+  result =
+    ctx->plugin->open(ctx->priv, &(ctx->player->audio_stream.output_format));
   if(result)
     ctx->output_open = 1;
   else
     ctx->output_open = 0;
     
   bg_plugin_unlock(ctx->plugin_handle);
+
+  fprintf(stderr, "bg_player_oa_init: %d\n", result);
   
   ctx->audio_samples_written = 0;
   return result;

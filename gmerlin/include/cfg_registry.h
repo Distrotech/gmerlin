@@ -91,8 +91,14 @@ int bg_cfg_section_get_parameter_string(bg_cfg_section_t * section,
 
 void bg_cfg_section_apply(bg_cfg_section_t * section,
                           bg_parameter_info_t * infos,
-                          bg_parameter_func func,
+                          bg_set_parameter_func func,
                           void * callback_data);
+
+
+void bg_cfg_section_get(bg_cfg_section_t * section,
+                        bg_parameter_info_t * infos,
+                        bg_get_parameter_func func,
+                        void * callback_data);
 
 int bg_cfg_section_has_subsection(bg_cfg_section_t * section,
                                   const char * name);

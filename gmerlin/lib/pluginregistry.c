@@ -31,11 +31,15 @@
 #include <pluginregistry.h>
 #include <config.h>
 #include <utils.h>
+#include <singlepic.h>
 
 struct bg_plugin_registry_s
   {
   bg_plugin_info_t * entries;
   bg_cfg_section_t * config_section;
+
+  bg_plugin_info_t * singlepic_input;
+  bg_plugin_info_t * singlepic_output;
   };
 
 static void free_info(bg_plugin_info_t * info)
@@ -436,8 +440,8 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
       free_info(file_info);
       file_info = tmp_info;
       }
-    } 
-
+    }
+  
   if(changed)
     {
     filename = bg_search_file_write("", "plugins.xml");
@@ -447,9 +451,30 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
       free(filename);
       }
     }
+
+  /* Now we have all external plugins, time to create the meta plugins */
+
+  tmp_info = ret->entries;
+  while(tmp_info->next)
+    tmp_info = tmp_info->next;
+  
+  ret->singlepic_input = bg_singlepic_input_info(ret);
+
+  if(ret->singlepic_input)
+    {
+    //    fprintf(stderr, "Found Singlepicture input\n");
+    tmp_info->next = ret->singlepic_input;
+    tmp_info = tmp_info->next;
+    }
+  
+  //  ret->singlepic_output = bg_singlepic_output_info(ret);
+  
+  /* Lets sort them */
+  
   sort_string = (const char*)0;
   
-  bg_cfg_section_get_parameter_string(ret->config_section, "Order", &sort_string);
+  bg_cfg_section_get_parameter_string(ret->config_section,
+                                      "Order", &sort_string);
   if(sort_string)
     bg_plugin_registry_sort(ret, sort_string);
   
@@ -590,7 +615,7 @@ static struct
     
   };
 
-const char * get_default_key(bg_plugin_type_t type)
+static const char * get_default_key(bg_plugin_type_t type)
   {
   int i = 0;
   while(default_keys[i].key)
@@ -692,7 +717,7 @@ void bg_plugin_ref(bg_plugin_handle_t * h)
 void bg_plugin_unref(bg_plugin_handle_t * h)
   {
   int refcount;
-
+  bg_cfg_section_t * section;
   bg_plugin_lock(h);
   h->refcount--;
 #if 1
@@ -703,9 +728,19 @@ void bg_plugin_unref(bg_plugin_handle_t * h)
 
   if(!refcount)
     {
+    if(h->plugin->get_parameter)
+      {
+      bg_plugin_lock(h);
+      section = bg_plugin_registry_get_section(h->plugin_reg, h->info->name);
+      bg_cfg_section_get(section,
+                         h->plugin->get_parameters(h->priv),
+                         h->plugin->get_parameter,
+                         h->priv);
+      bg_plugin_unlock(h);
+      }
     if(h->priv && h->plugin->destroy)
       h->plugin->destroy(h->priv);
-    dlclose(h->dll_handle);
+    //    dlclose(h->dll_handle);
     free(h);
     }
   }
@@ -748,4 +783,112 @@ gavl_video_frame_t * bg_plugin_registry_load_image(bg_plugin_registry_t * r,
     gavl_video_frame_destroy(ret);
     return (gavl_video_frame_t*)0;
   
+  }
+
+bg_plugin_handle_t * bg_plugin_load(bg_plugin_registry_t * reg,
+                                    const bg_plugin_info_t * info)
+  {
+  bg_plugin_handle_t * ret;
+  bg_parameter_info_t * parameters;
+  bg_cfg_section_t * section;
+
+  if(!info)
+    return (bg_plugin_handle_t*)0;
+  
+  ret = calloc(1, sizeof(*ret));
+
+  ret->plugin_reg = reg;
+  
+  pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
+
+  if(info->module_filename)
+    {
+    /* We need all symbols global because some plugins might reference them */
+    ret->dll_handle = dlopen(info->module_filename, RTLD_NOW | RTLD_GLOBAL);
+    if(!ret->dll_handle)
+      {
+      fprintf(stderr, "Cannot dlopen plugin %s: %s\n", info->module_filename,
+              dlerror());
+      goto fail;
+      }
+
+    ret->plugin = dlsym(ret->dll_handle, "the_plugin");
+    if(!ret->plugin)
+      goto fail;
+    
+    ret->priv = ret->plugin->create();
+    }
+  else if(reg->singlepic_input &&
+          !strcmp(reg->singlepic_input->name, info->name))
+    {
+    ret->plugin = bg_singlepic_input_get();
+    ret->priv = bg_singlepic_input_create(reg);
+    }
+  else if(reg->singlepic_output &&
+          !strcmp(reg->singlepic_output->name, info->name))
+    {
+    
+    }
+  ret->info = info;
+
+  /* Apply saved parameters */
+
+  if(ret->plugin->get_parameters)
+    {
+    parameters = ret->plugin->get_parameters(ret->priv);
+    
+    section = bg_plugin_registry_get_section(reg, info->name);
+    
+    bg_cfg_section_apply(section, parameters, ret->plugin->set_parameter,
+                         ret->priv);
+    }
+  bg_plugin_ref(ret);
+  return ret;
+
+fail:
+  pthread_mutex_destroy(&(ret->mutex));
+  if(ret->dll_handle)
+    dlclose(ret->dll_handle);
+  free(ret);
+  return (bg_plugin_handle_t*)0;
+  }
+
+bg_plugin_handle_t * bg_plugin_copy(bg_plugin_registry_t * plugin_reg,
+                                    bg_plugin_handle_t * h)
+  {
+  bg_parameter_info_t * parameters;
+  bg_cfg_section_t * section;
+  bg_plugin_handle_t * ret;
+
+  ret = calloc(1, sizeof(*ret));
+  
+  memcpy(ret, h, sizeof(*ret));
+
+  ret->priv = ret->plugin->create();
+
+  /* Apply saved parameters */
+
+  if(ret->plugin->get_parameters)
+    {
+    parameters = ret->plugin->get_parameters(ret->priv);
+    
+    section = bg_plugin_registry_get_section(plugin_reg, ret->info->name);
+    
+    bg_cfg_section_apply(section, parameters, ret->plugin->set_parameter,
+                         ret->priv);
+    }
+  ret->refcount = 0;
+  bg_plugin_ref(ret);
+  return ret;
+  }
+
+
+void bg_plugin_lock(bg_plugin_handle_t * h)
+  {
+  pthread_mutex_lock(&(h->mutex));
+  }
+
+void bg_plugin_unlock(bg_plugin_handle_t * h)
+  {
+  pthread_mutex_unlock(&(h->mutex));
   }

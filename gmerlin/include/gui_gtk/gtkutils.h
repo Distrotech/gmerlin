@@ -22,3 +22,5 @@ GdkPixbuf * bg_gtk_pixbuf_scale_alpha(GdkPixbuf * src,
                                       int dest_height,
                                       float * foreground,
                                       float * background);
+
+void bg_gtk_init(int * argc, char *** argv);

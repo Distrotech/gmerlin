@@ -25,7 +25,6 @@ typedef struct
   {
   GtkWidget * label;
   GtkWidget * slider;
-  GtkObject * adj;
   } slider_t;
 
 /*
@@ -47,8 +46,8 @@ void get_value_int(bg_gtk_widget_t * w)
   {
   slider_t * priv;
   priv = (slider_t*)(w->priv);
-  gtk_adjustment_set_value(GTK_ADJUSTMENT(priv->adj),
-                           (gdouble)w->value.val_i);
+  gtk_range_set_value(GTK_RANGE(priv->slider),
+                      (gdouble)w->value.val_i);
   
   }
 
@@ -58,7 +57,7 @@ static void set_value_int(bg_gtk_widget_t * w)
   priv = (slider_t*)(w->priv);
 
   w->value.val_i =
-    (int)(gtk_adjustment_get_value(GTK_ADJUSTMENT(priv->adj)));
+    (int)(gtk_range_get_value(GTK_RANGE(priv->slider)));
   
   }
 
@@ -66,8 +65,8 @@ static void get_value_float(bg_gtk_widget_t * w)
   {
   slider_t * priv;
   priv = (slider_t*)(w->priv);
-  gtk_adjustment_set_value(GTK_ADJUSTMENT(priv->adj),
-                           (gdouble)w->value.val_f);
+  gtk_range_set_value(GTK_RANGE(priv->slider),
+                      (gdouble)w->value.val_f);
   
   }
 
@@ -76,7 +75,7 @@ static void set_value_float(bg_gtk_widget_t * w)
   slider_t * priv;
   priv = (slider_t*)(w->priv);
   w->value.val_f =
-    gtk_adjustment_get_value(GTK_ADJUSTMENT(priv->adj));
+    gtk_range_get_value(GTK_RANGE(priv->slider));
   }
 
 static void attach(void * priv, GtkWidget * table, int * row, int * num_columns)
@@ -89,10 +88,10 @@ static void attach(void * priv, GtkWidget * table, int * row, int * num_columns)
   gtk_table_resize(GTK_TABLE(table), *row + 1, *num_columns);
 
   gtk_table_attach(GTK_TABLE(table), s->label,
-                   0, 1, *row, *row+1, GTK_FILL, GTK_FILL, 0, 0);
+                   0, 1, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
   
-  gtk_table_attach_defaults(GTK_TABLE(table), s->slider,
-                            1, 2, *row, *row+1);
+  gtk_table_attach(GTK_TABLE(table), s->slider,
+                   1, 2, *row, *row+1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
   *row += 1;
   }
 
@@ -124,17 +123,15 @@ static void create_common(bg_gtk_widget_t * w,
   gtk_misc_set_alignment(GTK_MISC(s->label), 0.0, 0.5);
   gtk_widget_show(s->label);
 
-  s->adj =  gtk_adjustment_new(min_value, min_value, max_value,
-                               1.0, 0.0, 0.0);
   s->slider =
-    gtk_hscale_new(GTK_ADJUSTMENT(s->adj));
+    gtk_hscale_new_with_range(min_value, max_value, 1.0);
 
   if(info->flags & BG_PARAMETER_SYNC)
     {
-    /*    fprintf(stderr, "BG_PARAMETER_SYNC\n"); */
-    
-    g_signal_connect(G_OBJECT(s->adj), "value_changed",
-                     G_CALLBACK(bg_gtk_change_callback), (gpointer)w);
+    w->callback_id =
+      g_signal_connect(G_OBJECT(s->slider), "value-changed",
+                       G_CALLBACK(bg_gtk_change_callback), (gpointer)w);
+    w->callback_widget = s->slider;
     }
   
   gtk_scale_set_value_pos(GTK_SCALE(s->slider), GTK_POS_LEFT);

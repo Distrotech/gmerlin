@@ -928,3 +928,47 @@ void bg_album_free_plugins(bg_album_t * a, char ** plugins)
   free(plugins);
   }
 
+void bg_album_get_times(bg_album_t * a,
+                        gavl_time_t * duration_before,
+                        gavl_time_t * duration_current,
+                        gavl_time_t * duration_after)
+  {
+  bg_album_entry_t * e;
+
+  if(!a->current_entry)
+    {
+    *duration_before = GAVL_TIME_UNDEFINED;
+    *duration_current = GAVL_TIME_UNDEFINED;
+    *duration_after = GAVL_TIME_UNDEFINED;
+    return;
+    }
+
+  e = a->entries;
+  *duration_before = 0;
+  while(e != a->current_entry)
+    {
+    if(e->duration == GAVL_TIME_UNDEFINED)
+      {
+      *duration_before = GAVL_TIME_UNDEFINED;
+      break;
+      }
+    *duration_before += e->duration;
+    e = e->next;
+    }
+
+  *duration_current = a->current_entry->duration;
+  
+  *duration_after = 0;
+
+  e = a->current_entry->next;
+  while(e)
+    {
+    if(e->duration == GAVL_TIME_UNDEFINED)
+      {
+      *duration_after = GAVL_TIME_UNDEFINED;
+      break;
+      }
+    *duration_after += e->duration;
+    e = e->next;
+    }
+  }

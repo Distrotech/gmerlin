@@ -35,6 +35,8 @@ typedef struct bg_gtk_album_widget_s bg_gtk_album_widget_t;
 typedef struct bg_gtk_tree_widget_s bg_gtk_tree_widget_t;
 typedef struct bg_gtk_album_window_s bg_gtk_album_window_t;
 
+/* Tree widget */
+
 bg_gtk_tree_widget_t * bg_gtk_tree_widget_create(bg_media_tree_t * tree);
 
 bg_media_tree_t      * bg_gtk_tree_widget_get_tree(bg_gtk_tree_widget_t *);
@@ -47,6 +49,7 @@ void
 bg_gtk_tree_widget_close_album(bg_gtk_tree_widget_t * widget,
                                bg_gtk_album_window_t * win);
 
+/* Tree window */
 
 bg_gtk_tree_window_t *
 bg_gtk_tree_window_create(bg_media_tree_t * tree,
@@ -59,6 +62,7 @@ void bg_gtk_tree_window_show(bg_gtk_tree_window_t*);
 
 void bg_gtk_tree_window_hide(bg_gtk_tree_window_t*);
 
+/* Album widget */
 
 bg_gtk_album_widget_t * bg_gtk_album_widget_create(bg_album_t * album,
                                                    GtkWidget * parent);
@@ -71,6 +75,8 @@ void bg_gtk_album_widget_delete_drag();
 
 void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w);
 
+/* Album window */
+
 bg_gtk_album_window_t * bg_gtk_album_window_create(bg_album_t * album,
                                                    bg_gtk_tree_widget_t*);
 
@@ -78,7 +84,6 @@ void bg_gtk_album_window_destroy(bg_gtk_album_window_t*, int notify);
 
 void bg_gtk_album_window_raise(bg_gtk_album_window_t*);
 void bg_gtk_album_window_update(bg_gtk_album_window_t * w);
-
 
 bg_album_t * bg_gtk_album_window_get_album(bg_gtk_album_window_t*);
 

@@ -159,10 +159,16 @@ int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
   int i;
   int num_lines;
   jpeg_t * jpeg = (jpeg_t*)priv;
+
+  if(!frame)
+    {
+    return 1;
+    jpeg_abort_decompress(&jpeg->cinfo);
+    }
   
   if(jpeg->format.colorspace != GAVL_RGB_24)
     jpeg->cinfo.raw_data_out = TRUE;
-
+  
   jpeg_start_decompress(&jpeg->cinfo);
   
   switch(jpeg->format.colorspace)

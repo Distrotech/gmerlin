@@ -8,6 +8,7 @@
 #include <cfg_dialog.h>
 
 #include <gui_gtk/plugin.h>
+#include <gui_gtk/gtkutils.h>
 
 typedef struct
   {
@@ -15,8 +16,14 @@ typedef struct
   bg_gtk_plugin_widget_single_t * audio_output_plugins;
   bg_gtk_plugin_widget_single_t * video_output_plugins;
   bg_gtk_plugin_widget_single_t * audio_recorder_plugins;
+  bg_gtk_plugin_widget_single_t * video_recorder_plugins;
+
   bg_gtk_plugin_widget_single_t * audio_encoder_plugins;
   bg_gtk_plugin_widget_single_t * video_encoder_plugins;
+
+  bg_gtk_plugin_widget_multi_t  * image_readers;
+  bg_gtk_plugin_widget_multi_t  * image_writers;
+  
   GtkWidget * window;
   } app_window;
 
@@ -39,7 +46,8 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   ret = calloc(1, sizeof(*ret));
 
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-
+  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
+  
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback), (gpointer)ret);
 
@@ -50,12 +58,11 @@ static app_window * create_window(bg_plugin_registry_t * reg)
     
   ret->input_plugins =
     bg_gtk_plugin_widget_multi_create(reg,
-                                      BG_PLUGIN_INPUT|
-                                      BG_PLUGIN_IMAGE_READER,
+                                      BG_PLUGIN_INPUT,
                                       BG_PLUGIN_FILE|
                                       BG_PLUGIN_URL|
                                       BG_PLUGIN_REMOVABLE);
-
+  
   label = gtk_label_new("Input plugins");
   gtk_widget_show(label);
   
@@ -75,6 +82,11 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   ret->audio_recorder_plugins =
     bg_gtk_plugin_widget_single_create(reg,
                                        BG_PLUGIN_RECORDER_AUDIO,
+                                       BG_PLUGIN_RECORDER, NULL, NULL);
+
+  ret->video_recorder_plugins =
+    bg_gtk_plugin_widget_single_create(reg,
+                                       BG_PLUGIN_RECORDER_VIDEO,
                                        BG_PLUGIN_RECORDER, NULL, NULL);
 
   ret->audio_encoder_plugins =
@@ -141,7 +153,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
                            table, label);
 
-  table = gtk_table_new(1, 2, 0);
+  table = gtk_table_new(2, 2, 0);
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
@@ -155,6 +167,15 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                    bg_gtk_plugin_widget_single_get_widget(ret->audio_recorder_plugins),
                    1, 2, 0, 1, GTK_EXPAND, GTK_SHRINK, 0, 0);
 
+  label = gtk_label_new("Video");
+  gtk_widget_show(label);
+  
+  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 1, 2,
+                   GTK_FILL, GTK_SHRINK, 0, 0);
+  gtk_table_attach(GTK_TABLE(table),
+                   bg_gtk_plugin_widget_single_get_widget(ret->video_recorder_plugins),
+                   1, 2, 1, 2, GTK_EXPAND, GTK_SHRINK, 0, 0);
+  
   gtk_widget_show(table);
   
   label = gtk_label_new("Recorder");
@@ -162,6 +183,38 @@ static app_window * create_window(bg_plugin_registry_t * reg)
 
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
                            table, label);
+
+  /* Image readers */
+
+  ret->image_readers =
+    bg_gtk_plugin_widget_multi_create(reg,
+                                      BG_PLUGIN_IMAGE_READER,
+                                      BG_PLUGIN_FILE|
+                                      BG_PLUGIN_URL|
+                                      BG_PLUGIN_REMOVABLE);
+  
+  label = gtk_label_new("Image readers");
+  gtk_widget_show(label);
+  
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
+                           bg_gtk_plugin_widget_multi_get_widget(ret->image_readers),
+                           label);
+
+  /* Image writers */
+
+  ret->image_writers =
+    bg_gtk_plugin_widget_multi_create(reg,
+                                      BG_PLUGIN_IMAGE_WRITER,
+                                      BG_PLUGIN_FILE|
+                                      BG_PLUGIN_URL|
+                                      BG_PLUGIN_REMOVABLE);
+  
+  label = gtk_label_new("Image writers");
+  gtk_widget_show(label);
+  
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
+                           bg_gtk_plugin_widget_multi_get_widget(ret->image_writers),
+                           label);
   
   gtk_widget_show(notebook);
   gtk_container_add(GTK_CONTAINER(ret->window), notebook);
@@ -191,7 +244,7 @@ int main(int argc, char ** argv)
   bg_cfg_registry_t * cfg_reg;
   bg_cfg_section_t * cfg_section;
 
-  gtk_init(&argc, &argv);
+  bg_gtk_init(&argc, &argv);
   cfg_reg = bg_cfg_registry_create();
     
   config_path = bg_search_file_read("generic", "config.xml");

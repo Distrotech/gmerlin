@@ -205,21 +205,16 @@ char * bg_create_unique_filename(char * template)
 
 char * bg_strcat(char * old_string, const char * tail)
   {
-  char * ret;
-
   if(!old_string)
     return bg_strdup((char*)0, tail);
 
-  ret = malloc(strlen(old_string) + strlen(tail) + 1);
-  strcpy(ret, old_string);
-  strcat(ret, tail);
-  free(old_string);
-  return ret;
+  old_string = realloc(old_string, strlen(old_string) + strlen(tail) + 1);
+  strcat(old_string, tail);
+  return old_string;
   }
 
 char * bg_strncat(char * old_string, const char * start, const char * end)
   {
-  char * ret;
   int old_len;
   
   if(!old_string)
@@ -227,12 +222,10 @@ char * bg_strncat(char * old_string, const char * start, const char * end)
 
   old_len = strlen(old_string);
   
-  ret = malloc(old_len + end - start + 1);
-  strcpy(ret, old_string);
-  strncpy(&(ret[old_len]), start, end - start);
-  ret[old_len + end - start] = '\0';
-  free(old_string);
-  return ret;
+  old_string = realloc(old_string, old_len + end - start + 1);
+  strncpy(&(old_string[old_len]), start, end - start);
+  old_string[old_len + end - start] = '\0';
+  return old_string;
   }
 
 char ** bg_strbreak(const char * str, char delim)

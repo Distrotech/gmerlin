@@ -42,6 +42,7 @@ type_names[] =
     { "EncoderVideo",  BG_PLUGIN_ENCODER_VIDEO },
     { "Encoder",       BG_PLUGIN_ENCODER },
     { "ImageReader",   BG_PLUGIN_IMAGE_READER },
+    { "ImageWriter",   BG_PLUGIN_IMAGE_WRITER },
     { (char*)0,        BG_PLUGIN_NONE }
   };
 

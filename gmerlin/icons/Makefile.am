@@ -24,11 +24,14 @@ display_mode_rem.png \
 down_16.png \
 drive_16.png \
 drive_running_16.png \
+first_16.png \
 folder_closed_16.png \
 folder_open_16.png \
 gmerlin_icon.png \
 hardware_16.png \
 info_16.png \
+last_16.png \
+left_16.png \
 line_32.png \
 lock_16.png \
 mic_32.png \
@@ -40,6 +43,7 @@ record_32.png \
 repeat_mode_1.png \
 repeat_mode_all.png \
 repeat_mode_none.png \
+right_16.png \
 speaker_32.png \
 state_buffering_1.png \
 state_buffering_2.png \
@@ -52,6 +56,7 @@ state_paused.png \
 state_playing.png \
 state_seeking.png \
 state_stopped.png \
+tearoff_16.png \
 tracks_dnd_32.png \
 treble_32.png \
 tree_root_16.png \

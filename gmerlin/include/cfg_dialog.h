@@ -29,17 +29,18 @@ typedef struct bg_dialog_s bg_dialog_t;
 /* These function prototypes must be defined by the toolkit */
 
 bg_dialog_t * bg_dialog_create(bg_cfg_section_t * config,
-                               bg_parameter_func set_param,
+                               bg_set_parameter_func set_param,
                                void * callback_data,
-                               bg_parameter_info_t * info);
+                               bg_parameter_info_t * info,
+                               const char * title);
 
 
-bg_dialog_t * bg_dialog_create_multi();
+bg_dialog_t * bg_dialog_create_multi(const char * label);
 
 void bg_dialog_add(bg_dialog_t *d,
                    const char * section_name,
                    bg_cfg_section_t * section,
-                   bg_parameter_func set_param,
+                   bg_set_parameter_func set_param,
                    void * callback_data,
                    bg_parameter_info_t * info);
 

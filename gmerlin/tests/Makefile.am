@@ -15,6 +15,7 @@ videoplayer1 \
 msgtest \
 server \
 client \
+v4ltest \
 $(gtk_programs)
 
 bin_PROGRAMS = gmerlin_player
@@ -35,6 +36,9 @@ videoplayer1_LDADD = ../lib/libgmerlin.la -ldl
 
 cfgtest_SOURCES = cfgtest.c
 cfgtest_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
+
+v4ltest_SOURCES = v4ltest.c
+v4ltest_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
 
 scrolltext_SOURCES = scrolltext.c
 scrolltext_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la

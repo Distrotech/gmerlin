@@ -46,8 +46,8 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
     case BG_PARAMETER_FILE:
     case BG_PARAMETER_DIRECTORY:
     case BG_PARAMETER_STRINGLIST:
-    case BG_PARAMETER_ENCODER:
-    case BG_PARAMETER_DECODER:
+    case BG_PARAMETER_MULTI_MENU:
+    case BG_PARAMETER_MULTI_LIST:
       dst->val_str = bg_strdup(dst->val_str, src->val_str);
       break;
     case BG_PARAMETER_COLOR_RGB:
@@ -107,8 +107,8 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
     case BG_PARAMETER_DEVICE:
     case BG_PARAMETER_FILE:
     case BG_PARAMETER_DIRECTORY:
-    case BG_PARAMETER_ENCODER:
-    case BG_PARAMETER_DECODER:
+    case BG_PARAMETER_MULTI_MENU:
+    case BG_PARAMETER_MULTI_LIST:
       dst->val_default.val_str = bg_strdup(dst->val_default.val_str,
                                            src->val_default.val_str);
       break;
@@ -220,45 +220,45 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
       case BG_PARAMETER_SLIDER_INT:
       case BG_PARAMETER_SLIDER_FLOAT:
         break;
-      case BG_PARAMETER_ENCODER:
-      case BG_PARAMETER_DECODER:
+      case BG_PARAMETER_MULTI_MENU:
+      case BG_PARAMETER_MULTI_LIST:
         if(info[index].val_default.val_str)
           free(info[index].val_default.val_str);
 
         num_codecs = 0;
         
-        while(info[index].codec_names[num_codecs])
+        while(info[index].multi_names[num_codecs])
           {
-          free(info[index].codec_names[num_codecs]);
+          free(info[index].multi_names[num_codecs]);
           num_codecs++;
           }
 
-        if(info[index].codec_long_names)
+        if(info[index].multi_labels)
           {
           for(i = 0; i < num_codecs; i++)
             {
-            free(info[index].codec_long_names[i]);
+            free(info[index].multi_labels[i]);
             }
-          free(info[index].codec_long_names);
+          free(info[index].multi_labels);
           }
 
-        if(info[index].codec_descriptions)
+        if(info[index].multi_descriptions)
           {
           for(i = 0; i < num_codecs; i++)
             {
-            free(info[index].codec_descriptions[i]);
+            free(info[index].multi_descriptions[i]);
             }
-          free(info[index].codec_descriptions);
+          free(info[index].multi_descriptions);
           }
 
-        if(info[index].codec_parameters)
+        if(info[index].multi_parameters)
           {
           for(i = 0; i < num_codecs; i++)
             {
-            if(info[index].codec_parameters[i])
-              bg_parameter_info_destroy_array(info[index].codec_parameters[i]);
+            if(info[index].multi_parameters[i])
+              bg_parameter_info_destroy_array(info[index].multi_parameters[i]);
             }
-          free(info[index].codec_parameters[i]);
+          free(info[index].multi_parameters[i]);
           }
       }
     index++;

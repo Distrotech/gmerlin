@@ -96,10 +96,10 @@ attach(void * priv, GtkWidget * table, int * row, int * num_columns)
   gtk_table_resize(GTK_TABLE(table), *row + 1, *num_columns);
 
   gtk_table_attach(GTK_TABLE(table), s->label,
-                   0, 1, *row, *row+1, GTK_FILL, GTK_FILL, 0, 0);
+                   0, 1, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
   
-  gtk_table_attach_defaults(GTK_TABLE(table), s->spinbutton,
-                            1, 2, *row, *row+1);
+  gtk_table_attach(GTK_TABLE(table), s->spinbutton,
+                   1, 2, *row, *row+1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
   *row += 1;
   }
 

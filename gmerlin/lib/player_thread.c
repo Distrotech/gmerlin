@@ -212,6 +212,19 @@ static void play_cmd(bg_player_t * p,
   
   bg_player_input_init(p->input_context,
                        handle, track_index);
+
+  if(!bg_player_audio_init(p, 0))
+    {
+    bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                        "Cannot setup audio playback", NULL);
+    return;
+    }
+  if(bg_player_video_init(p, 0))
+    {
+    bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                        "Cannot setup video playback", NULL);
+    return;
+    }
   
   /* Send messages about the stream */
   /*
@@ -231,10 +244,7 @@ static void play_cmd(bg_player_t * p,
   bg_msg_queue_list_send(p->message_queues,
                          msg_metadata,
                          &(p->track_info->metadata));
-      
-  bg_player_audio_init(p, 0);
-  bg_player_video_init(p, 0);
-
+  
   if(p->track_info->description)
     bg_msg_queue_list_send(p->message_queues,
                            msg_stream_description,
@@ -327,10 +337,10 @@ static void stop_cmd(bg_player_t * player, int new_state)
   {
   int want_new;
   int old_state;
-
+  
   old_state = bg_player_get_state(player);
   //  fprintf(stderr, "STOP CMD\n");
-
+  
   if(old_state == BG_PLAYER_STATE_STOPPED)
     return;
   
@@ -343,8 +353,17 @@ static void stop_cmd(bg_player_t * player, int new_state)
     bg_player_set_state(player, new_state, NULL, NULL);
 
   if(old_state == BG_PLAYER_STATE_CHANGING)
+    {
+    if(new_state == BG_PLAYER_STATE_STOPPED)
+      {
+      if(player->do_video)
+        {
+        bg_player_ov_standby(player->ov_context);
+        player->do_video = 0;
+        }
+      }
     return;
-  
+    }
   /* Set the stop flag */
   if(player->do_audio)
     bg_fifo_set_state(player->audio_stream.fifo, BG_FIFO_STOPPED);

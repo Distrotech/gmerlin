@@ -23,7 +23,7 @@
 
 typedef struct
   {
-  bg_parameter_func set_param;
+  bg_set_parameter_func set_param;
 
   void * callback_data;
 
@@ -49,25 +49,29 @@ struct bg_dialog_s
 
 static void apply_section(dialog_section_t * s)
   {
-  int i;
+  int i, parameter_index;
   bg_parameter_value_t val;
   char * pos;
     
   /*  fprintf(stderr, "Apply section\n"); */
-    
+  parameter_index = 0;
+
   for(i = 0; i < s->num_widgets; i++)
     {
+    while(s->infos[parameter_index].flags & BG_PARAMETER_HIDE_DIALOG)
+      parameter_index++;
+    
     s->widgets[i].funcs->set_value(&(s->widgets[i]));
     if(s->cfg_section)
       {
       bg_cfg_section_set_parameter(s->cfg_section,
-                                   &(s->infos[i]),
+                                   &(s->infos[parameter_index]),
                                    &(s->widgets[i].value));
       }
 
     if(s->set_param)
       {
-      if((s->infos[i].type == BG_PARAMETER_DEVICE) &&
+      if((s->infos[parameter_index].type == BG_PARAMETER_DEVICE) &&
          (s->widgets[i].value.val_str) &&
          strchr(s->widgets[i].value.val_str, ':'))
         {
@@ -75,14 +79,15 @@ static void apply_section(dialog_section_t * s)
         strcpy(val.val_str, s->widgets[i].value.val_str);
         pos = strchr(val.val_str, ':');
         *pos = '\0';
-        s->set_param(s->callback_data, s->infos[i].name,
+        s->set_param(s->callback_data, s->infos[parameter_index].name,
                      &val);
         free(val.val_str);
         }
       else
-        s->set_param(s->callback_data, s->infos[i].name,
+        s->set_param(s->callback_data, s->infos[parameter_index].name,
                      &(s->widgets[i].value));
       }
+    parameter_index++;
     }
 
   s->set_param(s->callback_data, NULL, NULL);
@@ -125,7 +130,7 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
   return TRUE;
   }
 
-bg_dialog_t * create_dialog()
+bg_dialog_t * create_dialog(const char * title)
   {
   bg_dialog_t * ret;
   GtkWidget * buttonbox;
@@ -133,7 +138,9 @@ bg_dialog_t * create_dialog()
   ret = calloc(1, sizeof(*ret));
 
   ret->window       = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-
+  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
+  gtk_window_set_title(GTK_WINDOW(ret->window), title);
+    
   ret->apply_button = gtk_button_new_from_stock(GTK_STOCK_APPLY);
   ret->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
   ret->ok_button    = gtk_button_new_from_stock(GTK_STOCK_OK);
@@ -175,19 +182,21 @@ bg_dialog_t * create_dialog()
 GtkWidget * create_section(dialog_section_t * section,
                            bg_parameter_info_t * info,
                            bg_cfg_section_t * cfg_section,
-                           bg_parameter_func set_param,
+                           bg_set_parameter_func set_param,
                            void * data)
   {
-  int i;
+  int i, count;
   int row, column, num_columns;
   GtkWidget * table;
     
   section->num_widgets = 0;
-
-  while(info[section->num_widgets].name &&
-        (info[section->num_widgets].type != BG_PARAMETER_SECTION))
+  i = 0;
+  while(info[i].name &&
+        (info[i].type != BG_PARAMETER_SECTION))
     {
-    section->num_widgets++;
+    if(!(info[i].flags & BG_PARAMETER_HIDE_DIALOG))
+      section->num_widgets++;
+    i++;
     }
   section->infos = info;
   section->cfg_section = cfg_section;
@@ -207,82 +216,97 @@ GtkWidget * create_section(dialog_section_t * section,
   num_columns = 1;
     
   section->widgets = calloc(section->num_widgets, sizeof(bg_gtk_widget_t));
-  
-  for(i = 0; i < section->num_widgets; i++)
+
+  i = 0;
+  count = 0;
+
+  while(count  < section->num_widgets)
     {
+    if(info[i].flags & BG_PARAMETER_HIDE_DIALOG)
+      {
+      i++;
+      continue;
+      }
+    
     if(info[i].flags & BG_PARAMETER_SYNC)
       {
-      section->widgets[i].change_callback = set_param;
-      section->widgets[i].change_callback_data = data;
+      section->widgets[count].change_callback = set_param;
+      section->widgets[count].change_callback_data = data;
       }
-    section->widgets[i].info = &(info[i]);
+    section->widgets[count].info = &(info[i]);
     switch(info[i].type)
       {
       case BG_PARAMETER_CHECKBUTTON:
-        bg_gtk_create_checkbutton(&(section->widgets[i]), &(info[i]));
+        bg_gtk_create_checkbutton(&(section->widgets[count]), &(info[i]));
         break;
       case BG_PARAMETER_INT:
-        bg_gtk_create_int(&(section->widgets[i]), &(info[i]));
+        bg_gtk_create_int(&(section->widgets[count]), &(info[i]));
         break;
       case BG_PARAMETER_FLOAT:
-        bg_gtk_create_float(&(section->widgets[i]), &(info[i]));
+        bg_gtk_create_float(&(section->widgets[count]), &(info[i]));
         break;
       case BG_PARAMETER_SLIDER_INT:
-        bg_gtk_create_slider_int(&(section->widgets[i]), &(info[i]));
+        bg_gtk_create_slider_int(&(section->widgets[count]), &(info[i]));
         break;
       case BG_PARAMETER_SLIDER_FLOAT:
-        bg_gtk_create_slider_float(&(section->widgets[i]), &(info[i]));
+        bg_gtk_create_slider_float(&(section->widgets[count]), &(info[i]));
         break;
       case BG_PARAMETER_STRING:
-        bg_gtk_create_string(&(section->widgets[i]), &(info[i]));
+        bg_gtk_create_string(&(section->widgets[count]), &(info[i]));
         break;
       case BG_PARAMETER_STRINGLIST:
-        bg_gtk_create_stringlist(&(section->widgets[i]), &(info[i]));
+        bg_gtk_create_stringlist(&(section->widgets[count]), &(info[i]));
         break;
       case BG_PARAMETER_COLOR_RGB:
-        bg_gtk_create_color_rgb(&(section->widgets[i]), &(info[i]));
+        bg_gtk_create_color_rgb(&(section->widgets[count]), &(info[i]));
         break;
       case BG_PARAMETER_COLOR_RGBA:
-        bg_gtk_create_color_rgba(&(section->widgets[i]), &(info[i]));
+        bg_gtk_create_color_rgba(&(section->widgets[count]), &(info[i]));
         break;
       case BG_PARAMETER_FILE:
-        bg_gtk_create_file(&(section->widgets[i]), &(info[i]));
+        bg_gtk_create_file(&(section->widgets[count]), &(info[i]));
         break;
       case BG_PARAMETER_DIRECTORY:
-        bg_gtk_create_directory(&(section->widgets[i]), &(info[i]));
+        bg_gtk_create_directory(&(section->widgets[count]), &(info[i]));
         break;
       case BG_PARAMETER_FONT:
-        bg_gtk_create_font(&(section->widgets[i]), &(info[i]));
+        bg_gtk_create_font(&(section->widgets[count]), &(info[i]));
         break;
       case BG_PARAMETER_DEVICE:
-        bg_gtk_create_device(&(section->widgets[i]), &(info[i]));
+        bg_gtk_create_device(&(section->widgets[count]), &(info[i]));
         break;
-      case BG_PARAMETER_ENCODER:
-        bg_gtk_create_encoder(&(section->widgets[i]), &(info[i]),
-                              cfg_section, set_param, data);
+      case BG_PARAMETER_MULTI_MENU:
+        bg_gtk_create_multi_menu(&(section->widgets[count]), &(info[i]),
+                                 cfg_section, set_param, data);
         break;
-      case BG_PARAMETER_DECODER:
-        bg_gtk_create_decoder(&(section->widgets[i]), &(info[i]),
-                              cfg_section, set_param, data);
+      case BG_PARAMETER_MULTI_LIST:
+        bg_gtk_create_multi_list(&(section->widgets[count]), &(info[i]),
+                                 cfg_section, set_param, data);
         break;
       default:
         break;
       }
-    section->widgets[i].funcs->attach(section->widgets[i].priv, table,
+    section->widgets[count].funcs->attach(section->widgets[count].priv, table,
                                  &row, &num_columns);
 
     /* Get the value from the config data... */
     if(cfg_section)
       bg_cfg_section_get_parameter(cfg_section, &(info[i]),
-                                   &(section->widgets[i].value));
+                                   &(section->widgets[count].value));
     /* ... or from the parameter default */
     else
       {
-      bg_parameter_value_copy(&(section->widgets[i].value),
+      bg_parameter_value_copy(&(section->widgets[count].value),
                               &(info[i].val_default),
                               &(info[i]));
       }
-    section->widgets[i].funcs->get_value(&(section->widgets[i]));    
+    if(section->widgets[count].info->flags & BG_PARAMETER_SYNC)
+      bg_gtk_change_callback_block(&section->widgets[count], 1);
+    section->widgets[count].funcs->get_value(&(section->widgets[count]));    
+    if(section->widgets[count].info->flags & BG_PARAMETER_SYNC)
+      bg_gtk_change_callback_block(&section->widgets[count], 0);
+    i++;
+    count++;
     }
   gtk_widget_show(table);
   return table;
@@ -310,16 +334,17 @@ static int count_sections(bg_parameter_info_t * info)
   }
 
 bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
-                               bg_parameter_func set_param,
+                               bg_set_parameter_func set_param,
                                void * callback_data,
-                               bg_parameter_info_t * info)
+                               bg_parameter_info_t * info,
+                               const char * title)
   {
   int i, index;
   int num_sections;
   GtkWidget * label;
   GtkWidget * table;
   
-  bg_dialog_t * ret = create_dialog();
+  bg_dialog_t * ret = create_dialog(title);
 
   num_sections = count_sections(info);
   
@@ -361,9 +386,9 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
   return ret;
   }
 
-bg_dialog_t * bg_dialog_create_multi()
+bg_dialog_t * bg_dialog_create_multi(const char * title)
   {
-  bg_dialog_t * ret = create_dialog();
+  bg_dialog_t * ret = create_dialog(title);
   ret->notebook = gtk_notebook_new();
   gtk_widget_show(ret->notebook);
   gtk_box_pack_start(GTK_BOX(ret->mainbox), ret->notebook, TRUE, TRUE, 0);
@@ -373,7 +398,7 @@ bg_dialog_t * bg_dialog_create_multi()
 void bg_dialog_add(bg_dialog_t *d,
                    const char * name,
                    bg_cfg_section_t * section,
-                   bg_parameter_func set_param,
+                   bg_set_parameter_func set_param,
                    void * callback_data,
                    bg_parameter_info_t * info)
   {
@@ -463,4 +488,17 @@ void bg_gtk_change_callback(GtkWidget * gw, gpointer data)
   w->funcs->set_value(w);
   w->change_callback(w->change_callback_data,
                      w->info->name, &(w->value));
+  }
+
+void bg_gtk_change_callback_block(bg_gtk_widget_t * w, int block)
+  {
+  if(!w->callback_widget)
+    {
+    fprintf(stderr, "bg_gtk_change_callback_block: No callback installed\n");
+    return;
+    }
+  if(block)
+    g_signal_handler_block(w->callback_widget, w->callback_id);
+  else
+    g_signal_handler_unblock(w->callback_widget, w->callback_id);
   }

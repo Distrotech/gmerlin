@@ -42,8 +42,8 @@ typedef enum
     BG_PARAMETER_DEVICE,
     BG_PARAMETER_FILE,
     BG_PARAMETER_DIRECTORY,
-    BG_PARAMETER_ENCODER,
-    BG_PARAMETER_DECODER
+    BG_PARAMETER_MULTI_MENU,
+    BG_PARAMETER_MULTI_LIST,
   } bg_parameter_type_t;
 
 /* Container for a parameter value */
@@ -87,13 +87,13 @@ typedef struct bg_parameter_info_s
 
   /* Codec stuff */
 
-  char ** codec_names;
+  char ** multi_names;
 
   /* Long names are optional, if they are NULL,
      the short names are used */
 
-  char ** codec_long_names;
-  char ** codec_descriptions;
+  char ** multi_labels;
+  char ** multi_descriptions;
     
   /*
    *  These are parameters for each codec.
@@ -101,7 +101,7 @@ typedef struct bg_parameter_info_s
    *  of the parameters passed to the same set_parameter func
    */
 
-  struct bg_parameter_info_s ** codec_parameters;
+  struct bg_parameter_info_s ** multi_parameters;
   
   /* For floating point inputs */
   
@@ -112,12 +112,15 @@ typedef struct bg_parameter_info_s
 /* Prototype for setting/getting parameters */
 
 /*
- *  NOTE: All applications MUST call a bg_parameter_func with
+ *  NOTE: All applications MUST call a bg_set_parameter_func with
  *  a NULL name argument to signal, that all parameters are set now
  */
 
-typedef void (*bg_parameter_func)(void * data, char * name,
-                                  bg_parameter_value_t * v);
+typedef void (*bg_set_parameter_func)(void * data, char * name,
+                                      bg_parameter_value_t * v);
+
+typedef int (*bg_get_parameter_func)(void * data, char * name,
+                                     bg_parameter_value_t * v);
 
 
 bg_parameter_info_t *

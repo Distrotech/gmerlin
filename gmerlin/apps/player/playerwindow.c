@@ -498,7 +498,12 @@ void player_window_show(player_window_t * win)
 
 void player_window_destroy(player_window_t * win)
   {
+  /* Fetch parameters */
   
+  bg_cfg_section_get(win->gmerlin->display_section,
+                     display_get_parameters(win->display),
+                     display_get_parameter, (void*)(win->display));
+
   }
 
 void player_window_skin_load(player_window_skin_t * s,

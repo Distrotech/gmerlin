@@ -44,12 +44,19 @@ typedef struct bg_plugin_registry_s bg_plugin_registry_t;
 
 typedef struct bg_plugin_handle_s
   {
+  /* Private members, should not be accessed! */
+    
   void * dll_handle;
+  pthread_mutex_t mutex;
+  int refcount;
+  bg_plugin_registry_t * plugin_reg;
+  
+  /* These are for use by applications */
+  
   bg_plugin_common_t * plugin;
   const bg_plugin_info_t * info;
   void * priv;
-  pthread_mutex_t mutex;
-  int refcount;
+  
   } bg_plugin_handle_t;
 
 /*

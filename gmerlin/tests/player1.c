@@ -316,7 +316,7 @@ int main(int argc, char ** argv)
 
   bg_msg_queue_t * message_queue;
 #ifdef INFO_WINDOW
-  gtk_init(&argc, &argv);
+  bg_gtk_init(&argc, &argv);
 #endif
   
   player = bg_player_create();

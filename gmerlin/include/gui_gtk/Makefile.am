@@ -2,8 +2,9 @@ pkginclude_HEADERS =  \
 albumentry.h \
 audio.h \
 button.h \
-codecinfo.h \
+multiinfo.h \
 display.h \
+fileentry.h \
 fileselect.h \
 gtkutils.h \
 infowindow.h \

@@ -21,14 +21,12 @@
 #include <string.h>
 
 #include "gtk_dialog.h"
+#include <gui_gtk/fileentry.h>
 
 typedef struct
   {
-  GtkWidget * entry;
+  bg_gtk_file_entry_t * fe;
   GtkWidget * label;
-  GtkWidget * button;
-  int is_dir;
-  GtkWidget * fileselect;
   } file_t;
 
 static void get_value(bg_gtk_widget_t * w)
@@ -38,10 +36,10 @@ static void get_value(bg_gtk_widget_t * w)
 
   if(!w->value.val_str || (*w->value.val_str == '\0'))
     {
-    gtk_entry_set_text(GTK_ENTRY(priv->entry), "");
+    bg_gtk_file_entry_set_filename(priv->fe, "");
     return;
     }
-  gtk_entry_set_text(GTK_ENTRY(priv->entry), w->value.val_str);
+  bg_gtk_file_entry_set_filename(priv->fe, w->value.val_str);
   }
 
 static void set_value(bg_gtk_widget_t * w)
@@ -51,7 +49,7 @@ static void set_value(bg_gtk_widget_t * w)
   
   priv = (file_t*)(w->priv);
 
-  filename = gtk_entry_get_text(GTK_ENTRY(priv->entry));
+  filename = bg_gtk_file_entry_get_filename(priv->fe);
 
   if(w->value.val_str)
     {
@@ -70,8 +68,8 @@ static void set_value(bg_gtk_widget_t * w)
 static void destroy(bg_gtk_widget_t * w)
   {
   file_t * priv = (file_t*)w->priv;
-  if(priv->fileselect)
-    gtk_widget_destroy(priv->fileselect);
+
+  bg_gtk_file_entry_destroy(priv->fe);
   if(w->value.val_str)
     free(w->value.val_str);
   free(priv);
@@ -87,15 +85,15 @@ static void attach(void * priv, GtkWidget * table,
     *num_columns = 3;
   
   gtk_table_resize(GTK_TABLE(table), *row+1, *num_columns);
-  //  gtk_table_attach_defaults(GTK_TABLE(table), b->button,
-  //                            0, 1, *row, *row+1);
   gtk_table_attach(GTK_TABLE(table), f->label,
-                    0, 1, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+                    0, 1, *row, *row+1, GTK_FILL, GTK_FILL, 0, 0);
 
-  gtk_table_attach_defaults(GTK_TABLE(table), f->entry,
-                    1, 2, *row, *row+1);
+  gtk_table_attach(GTK_TABLE(table),
+                   bg_gtk_file_entry_get_entry(f->fe),
+                   1, 2, *row, *row+1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 
-  gtk_table_attach(GTK_TABLE(table), f->button,
+  gtk_table_attach(GTK_TABLE(table),
+                   bg_gtk_file_entry_get_button(f->fe),
                    2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
 
   (*row)++;
@@ -109,71 +107,17 @@ static gtk_widget_funcs_t funcs =
     attach:    attach
   };
 
-static void button_callback(GtkWidget * w, gpointer data)
-  {
-  file_t * priv = (file_t*)data;
-
-  if(w == priv->button)
-    {
-    if(!priv->fileselect)
-      {
-      priv->fileselect =  gtk_file_selection_new("Select a file");
-      gtk_window_set_modal(GTK_WINDOW(priv->fileselect), TRUE);
-      g_signal_connect(G_OBJECT(GTK_FILE_SELECTION(priv->fileselect)->ok_button),
-                       "clicked", G_CALLBACK(button_callback),
-                         (gpointer)priv);
-      g_signal_connect(G_OBJECT(GTK_FILE_SELECTION(priv->fileselect)->cancel_button),
-                         "clicked", G_CALLBACK(button_callback),
-                         (gpointer)priv);
-      if(priv->is_dir)
-        gtk_widget_set_sensitive(GTK_FILE_SELECTION(priv->fileselect)->file_list, 0);
-      }
-
-    gtk_file_selection_set_filename(GTK_FILE_SELECTION(priv->fileselect),
-                                    gtk_entry_get_text(GTK_ENTRY(priv->entry)));
-    
-    
-    gtk_widget_show(priv->fileselect);
-    gtk_main();
-    }
-  else if(priv->fileselect)
-    {
-    if(w == GTK_FILE_SELECTION(priv->fileselect)->ok_button)
-      {
-      gtk_widget_hide(priv->fileselect);
-      gtk_main_quit();
-      gtk_entry_set_text(GTK_ENTRY(priv->entry),
-                         gtk_file_selection_get_filename(GTK_FILE_SELECTION(priv->fileselect)));
-      }
-    if(w == GTK_FILE_SELECTION(priv->fileselect)->cancel_button)
-      {
-      gtk_widget_hide(priv->fileselect);
-      gtk_main_quit();
-      }
-    }
-  
-  }
 
 void bg_gtk_create_file(bg_gtk_widget_t * w, bg_parameter_info_t * info)
   {
   file_t * priv = calloc(1, sizeof(*priv));
 
-  priv->entry = gtk_entry_new();
-  gtk_widget_show(priv->entry);
-
+  priv->fe = bg_gtk_file_entry_create((info->type == BG_PARAMETER_DIRECTORY) ? 1 : 0,
+                                      NULL, NULL);
+  
   priv->label = gtk_label_new(info->long_name);
   gtk_misc_set_alignment(GTK_MISC(priv->label), 0.0, 0.5);
-
   gtk_widget_show(priv->label);
-
-  priv->button = gtk_button_new_with_label("Browse...");
-
-  g_signal_connect(G_OBJECT(priv->button),
-                     "clicked", G_CALLBACK(button_callback),
-                     (gpointer)priv);
-
-
-  gtk_widget_show(priv->button);
   
   w->funcs = &funcs;
   w->priv = priv;
@@ -184,5 +128,4 @@ void bg_gtk_create_directory(bg_gtk_widget_t * w, bg_parameter_info_t * info)
   file_t * f;
   bg_gtk_create_file(w, info);
   f = (file_t*)(w->priv);
-  f->is_dir = 1;
   }
