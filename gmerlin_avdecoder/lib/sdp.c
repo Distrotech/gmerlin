@@ -1,4 +1,3 @@
-
 /*****************************************************************
  
   sdp.c
@@ -413,7 +412,7 @@ static void dump_attributes(bgav_sdp_attr_t * attr)
         fprintf(stderr, "(generic): %s\n", attr[index].val.str);
         break;
       case BGAV_SDP_TYPE_DATA:
-        fprintf(stderr, "Binary data %d bytes, hexdump follows\n",
+        fprintf(stderr, ": binary data (%d bytes), hexdump follows\n",
                 attr[index].data_len);
         bgav_hexdump(attr[index].val.data, attr[index].data_len, 16);
         break;
@@ -573,11 +572,11 @@ static void dump_media(bgav_sdp_media_desc_t * m)
   int i;
   print_string("Media", m->media); /* audio, video etc */
 
-  fprintf(stderr, "Port %d\n", m->port);
-  fprintf(stderr, "Num Ports %d\n", m->num_ports);
-  print_string("Protocol", m->protocol);
+  fprintf(stderr, "  Port %d\n", m->port);
+  fprintf(stderr, "  Num Ports %d\n", m->num_ports);
+  print_string("  Protocol", m->protocol);
 
-  fprintf(stderr, "Formats: ");
+  fprintf(stderr, "  Formats: ");
   
   for(i = 0; i < m->num_formats; i++)
     {
@@ -587,7 +586,7 @@ static void dump_media(bgav_sdp_media_desc_t * m)
 
   /* Additional stuff */
 
-  print_string("Title", m->media_title);                    /* i=* (media title) */
+  print_string("  Title", m->media_title);                    /* i=* (media title) */
 
   dump_connection_desc(&(m->connection));
   dump_bandwidth_desc(&(m->bandwidth));
@@ -794,11 +793,11 @@ void bgav_sdp_dump(bgav_sdp_t * s)
   print_string("  Address Type", s->origin.addr_type);
   print_string("  Address", s->origin.addr);
   
-  print_string("Session name", s->session_name);               /* s= */
-  print_string("Session description", s->session_description); /* i= */
-  print_string("URI", s->uri);                                 /* u= */
-  print_string("email", s->email);                             /* e= */
-  print_string("phone", s->phone);                             /* p= */
+  print_string("  Session name", s->session_name);               /* s= */
+  print_string("  Session description", s->session_description); /* i= */
+  print_string("  URI", s->uri);                                 /* u= */
+  print_string("  email", s->email);                             /* e= */
+  print_string("  phone", s->phone);                             /* p= */
   //  bgav_sdp_connection_desc_t connection; /* c= */
 
   dump_bandwidth_desc(&(s->bandwidth));
@@ -811,9 +810,71 @@ void bgav_sdp_dump(bgav_sdp_t * s)
   
   /* Media */
 
+  fprintf(stderr, "Num Media: %d\n", s->num_media);
+  
   for(i = 0; i < s->num_media; i++)
     {
     dump_media(&(s->media[i]));
     }
   
+  }
+
+/*
+ *  These functions return FALSE if
+ *  there is a type mismatch, or no attribute with the
+ *  specified name is found
+ */
+
+int bgav_sdp_get_attr_string(bgav_sdp_attr_t * attrs, int num_attrs,
+                             const char * name, char ** ret)
+  {
+  int i;
+  for(i = 0; i < num_attrs; i++)
+    {
+    if(!strcmp(attrs[i].name, name))
+      {
+      if((attrs[i].type != BGAV_SDP_TYPE_STRING) &&
+         (attrs[i].type != BGAV_SDP_TYPE_GENERIC))
+        return 0;
+      *ret = attrs[i].val.str;
+      return 1;
+      }
+    }
+  return 0;
+  }
+
+int bgav_sdp_get_attr_data(bgav_sdp_attr_t * attrs, int num_attrs,
+                           const char * name, uint8_t ** ret, int * size)
+  {
+  int i;
+
+  for(i = 0; i < num_attrs; i++)
+    {
+    if(!strcmp(attrs[i].name, name))
+      {
+      if(attrs[i].type != BGAV_SDP_TYPE_DATA)
+        return 0;
+      *ret = attrs[i].val.str;
+      *size = attrs[i].data_len;
+      return 1;
+      }
+    }
+  return 0;
+  }
+
+int bgav_sdp_get_attr_int(bgav_sdp_attr_t * attrs, int num_attrs,
+                          const char * name, int* ret)
+  {
+  int i;
+  for(i = 0; i < num_attrs; i++)
+    {
+    if(!strcmp(attrs[i].name, name))
+      {
+      if(attrs[i].type != BGAV_SDP_TYPE_INT)
+        return 0;
+      *ret = attrs[i].val.i;
+      return 1;
+      }
+    }
+  return 0;
   }

@@ -17,6 +17,9 @@
  
 *****************************************************************/
 
+#ifndef __BGAV_SDP_H_
+#define __BGAV_SDP_H_
+
 typedef struct bgav_sdp_s bgav_sdp_t;
 
  /* Origin (o=) */
@@ -172,15 +175,14 @@ struct bgav_sdp_s
  *  specified name is found
  */
 
-int bgav_sdp_get_attr_string(bgav_sdp_attr_t *,
-                             char * name, char ** ret);
+int bgav_sdp_get_attr_string(bgav_sdp_attr_t * attrs, int num_attrs,
+                             const char * name, char ** ret);
 
-int bgav_sdp_get_attr_data(bgav_sdp_attr_t *,
-                           char * name, char ** ret, int * size);
+int bgav_sdp_get_attr_data(bgav_sdp_attr_t * attrs, int num_attrs,
+                           const char * name, uint8_t ** ret, int * size);
 
-int bgav_sdp_get_attr_int(bgav_sdp_attr_t *,
-                          char * name, int*);
-
+int bgav_sdp_get_attr_int(bgav_sdp_attr_t * attrs, int num_attrs,
+                          const char * name, int*);
 
 /* Init, free */
 
@@ -190,3 +192,5 @@ void bgav_sdp_free(bgav_sdp_t * s);
 /* Dump the entire struct to stderr */
 
 void bgav_sdp_dump(bgav_sdp_t * s);
+
+#endif // __BGAV_SDP_H_

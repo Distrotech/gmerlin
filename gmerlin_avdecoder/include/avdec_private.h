@@ -861,7 +861,8 @@ typedef struct bgav_rtsp_s bgav_rtsp_t;
 
 bgav_rtsp_t *
 bgav_rtsp_open(const char * url, int milliseconds,
-               const char * user_agent);
+               const char * user_agent,
+               int network_bandwidth);
 
 void bgav_rtsp_close(bgav_rtsp_t *);
 

@@ -157,6 +157,7 @@ $(xadll_sources) \
 $(vcd_sources) \
 audio.c \
 audio_aiff.c \
+asmrp.c \
 base64.c \
 bgav.c \
 charset.c \
@@ -217,6 +218,7 @@ qt_trak.c \
 qt_udta.c \
 qt_utils.c \
 redirect.c \
+rmff.c \
 r_asx.c \
 r_m3u.c \
 r_pls.c \

@@ -10,6 +10,7 @@ int main(int argc, char ** argv)
 
   rtsp = bgav_rtsp_open(argv[1],
                         5000,
-                        "RealMedia Player Version 6.0.9.1235 (linux-2.0-libc6-i386-gcc2.95)");
+                        "RealMedia Player Version 6.0.9.1235 (linux-2.0-libc6-i386-gcc2.95)",
+                        768000);
   return 0;
   }

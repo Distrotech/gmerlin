@@ -141,7 +141,7 @@ const char * bgav_http_header_get_var(bgav_http_header_t * h,
     //    fprintf(stderr, "bgav_http_header_get_var %s\n",
     //           h->lines[i].line);
     
-    if(!strncmp(h->lines[i].line, name, name_len) &&
+    if(!strncasecmp(h->lines[i].line, name, name_len) &&
        h->lines[i].line[name_len] == ':')
       {
       ret = &(h->lines[i].line[name_len+1]);
@@ -159,7 +159,7 @@ void bgav_http_header_dump(bgav_http_header_t*h)
   fprintf(stderr, "HTTP Header\n");
   for(i = 0; i < h->num_lines; i++)
     {
-    fprintf(stderr, "%s\n", h->lines[i].line);
+    fprintf(stderr, "  %s\n", h->lines[i].line);
     }
   fprintf(stderr, "End of HTTP Header\n");
   }

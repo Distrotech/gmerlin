@@ -55,7 +55,7 @@ void bgav_hexdump(uint8_t * data, int len, int linebreak)
     imax = (bytes_written + linebreak > len) ? len - bytes_written : linebreak;
     for(i = 0; i < imax; i++)
       fprintf(stderr, "%02x ", data[bytes_written + i]);
-    for(i = imax; i < linebreak - imax; i++)
+    for(i = imax; i < linebreak; i++)
       fprintf(stderr, "   ");
     for(i = 0; i < imax; i++)
       {

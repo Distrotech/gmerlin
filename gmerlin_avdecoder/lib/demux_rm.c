@@ -22,333 +22,19 @@
 #include <stdio.h>
 #include <avdec_private.h>
 
+#include <rmff.h>
+
 #define PN_SAVE_ENABLED 0x0001
 #define PN_PERFECT_PLAY_ENABLED 0x0002
 #define PN_LIVE_BROADCAST 0x0004
 
 #define PN_KEYFRAME_FLAG 0x0002
 
-#define FILE_ID BGAV_MK_FOURCC('.', 'R', 'M', 'F')
-#define PROP_ID BGAV_MK_FOURCC('P', 'R', 'O', 'P')
-#define MDPR_ID BGAV_MK_FOURCC('M', 'D', 'P', 'R')
-#define CONT_ID BGAV_MK_FOURCC('C', 'O', 'N', 'T')
-#define DATA_ID BGAV_MK_FOURCC('D', 'A', 'T', 'A')
-#define INDX_ID BGAV_MK_FOURCC('I', 'N', 'D', 'X')
-#if 0
-static void dump_string(const char * str, int len)
-  {
-  int  i;
-  for(i = 0; i < len; i++)
-    fputc(str[i], stderr);
-  }
-#endif
-static char * read_data(bgav_input_context_t * input, int len)
-  {
-  char * ret;
-  ret = malloc(len+1);
-  if(bgav_input_read_data(input, ret, len) < len)
-    {
-    free(ret);
-    return (char*)0;
-    }
-  ret[len] = '\0';
-  return ret;
-  }
-
-/* Chunk header */
-
-typedef struct
-  {
-  uint32_t id;
-  uint32_t size;
-  uint16_t version;
-  } rm_chunk_t;
-
-static int read_chunk_header(rm_chunk_t * c, bgav_input_context_t * input)
-  {
-  return bgav_input_read_fourcc(input, &(c->id)) &&
-    bgav_input_read_32_be(input, &(c->size))&&
-    bgav_input_read_16_be(input, &(c->version));
-  }
-
-/* File header */
-
-typedef struct
-  {
-  /* Version 0 */
-  uint32_t file_version;
-  uint32_t num_headers;
-  } rm_file_header_t;
-
-static int
-read_file_header(rm_chunk_t * c,
-                 bgav_input_context_t * input,
-                 rm_file_header_t * ret)
-  {
-  return bgav_input_read_32_be(input, &(ret->file_version)) &&
-    bgav_input_read_32_be(input, &(ret->num_headers));
-  }
-
-/* Properties header */
-
-typedef struct
-  {
-  /* Version 0 */
-  uint32_t   max_bit_rate;
-  uint32_t   avg_bit_rate;
-  uint32_t   max_packet_size;
-  uint32_t   avg_packet_size;
-  uint32_t   num_packets;
-  uint32_t   duration;
-  uint32_t   preroll;
-  uint32_t   index_offset;
-  uint32_t   data_offset;
-  uint16_t   num_streams;
-  uint16_t   flags;
-  } rm_prop_t;
-#if 0
-static void dump_prop(rm_prop_t * p)
-  {
-  fprintf(stderr, "PROP:");
-  
-  fprintf(stderr, "max_bit_rate:    %d\n", p->max_bit_rate);
-  fprintf(stderr, "avg_bit_rate:    %d\n", p->avg_bit_rate);
-  fprintf(stderr, "max_packet_size: %d\n", p->max_packet_size);
-  fprintf(stderr, "avg_packet_size: %d\n", p->avg_packet_size);
-  fprintf(stderr, "num_packets:     %d\n", p->num_packets);
-  fprintf(stderr, "duration:        %d\n", p->duration);
-  fprintf(stderr, "preroll:         %d\n", p->preroll);
-  fprintf(stderr, "index_offset:    %d\n", p->index_offset);
-  fprintf(stderr, "data_offset:     %d\n", p->data_offset);
-  fprintf(stderr, "num_streams:     %d\n", p->num_streams);
-  fprintf(stderr, "flags:           %d\n", p->flags);
-  
-  }
-#endif
-
-static int
-read_prop(rm_chunk_t * c,
-          bgav_input_context_t * input,
-          rm_prop_t * ret)
-  {
-  int result;
-  result =
-    bgav_input_read_32_be(input, &(ret->max_bit_rate)) &&
-    bgav_input_read_32_be(input, &(ret->avg_bit_rate)) &&
-    bgav_input_read_32_be(input, &(ret->max_packet_size)) &&
-    bgav_input_read_32_be(input, &(ret->avg_packet_size)) &&
-    bgav_input_read_32_be(input, &(ret->num_packets)) &&
-    bgav_input_read_32_be(input, &(ret->duration)) &&
-    bgav_input_read_32_be(input, &(ret->preroll)) &&
-    bgav_input_read_32_be(input, &(ret->index_offset)) &&
-    bgav_input_read_32_be(input, &(ret->data_offset)) &&
-    bgav_input_read_16_be(input, &(ret->num_streams)) &&
-    bgav_input_read_16_be(input, &(ret->flags));
-  //  dump_prop(ret);
-  return result;
-  }
-
-/* Media properties */
-
-typedef struct
-  {
-  /* Version 0 */
-  uint16_t  stream_number;
-  uint32_t  max_bit_rate;
-  uint32_t  avg_bit_rate;
-  uint32_t  max_packet_size;
-  uint32_t  avg_packet_size;
-  uint32_t  start_time;
-  uint32_t  preroll;
-  uint32_t  duration;
-  uint8_t   stream_name_size;
-  uint8_t * stream_name;
-  uint8_t   mime_type_size;
-  uint8_t * mime_type;
-  uint32_t  type_specific_len;
-  uint8_t * type_specific_data;
-  } rm_mdpr_t;
-
-#if 0
-static void dump_mdpr(rm_mdpr_t * m)
-  {
-  fprintf(stderr, "MDPR:\n");
-  fprintf(stderr, "stream_number:    %d\n", m->stream_number);
-  fprintf(stderr, "max_bit_rate:     %d\n", m->max_bit_rate);
-  fprintf(stderr, "avg_bit_rate:     %d\n", m->avg_bit_rate);
-  fprintf(stderr, "max_packet_size:  %d\n", m->max_packet_size);
-  fprintf(stderr, "avg_packet_size:  %d\n", m->avg_packet_size);
-  fprintf(stderr, "start_time:       %d\n", m->start_time);
-  fprintf(stderr, "preroll:          %d\n", m->preroll);
-  fprintf(stderr, "duration:         %d\n", m->duration);
-  fprintf(stderr, "stream_name:      ");
-  dump_string(m->stream_name, m->stream_name_size);
-  fprintf(stderr, "\nmime_type:        ");
-  dump_string(m->mime_type, m->mime_type_size);
-  fprintf(stderr, "\ntype_specific_len:  %d\n", m->type_specific_len);
-  }
-#endif
-static int
-read_mdpr(rm_chunk_t * c,
-          bgav_input_context_t * input,
-          rm_mdpr_t * ret)
-  {
-  if(!bgav_input_read_16_be(input, &(ret->stream_number)) ||
-     !bgav_input_read_32_be(input, &(ret->max_bit_rate)) ||
-     !bgav_input_read_32_be(input, &(ret->avg_bit_rate)) ||
-     !bgav_input_read_32_be(input, &(ret->max_packet_size)) ||
-     !bgav_input_read_32_be(input, &(ret->avg_packet_size)) ||
-     !bgav_input_read_32_be(input, &(ret->start_time)) ||
-     !bgav_input_read_32_be(input, &(ret->preroll)) ||
-     !bgav_input_read_32_be(input, &(ret->duration)) ||
-     !bgav_input_read_8(input, &(ret->stream_name_size)))
-    return 0;
-
-  ret->stream_name = read_data(input, ret->stream_name_size);
-  if(!ret->stream_name)
-    return 0;
-
-  if(!bgav_input_read_8(input, &(ret->mime_type_size)))
-    return 0;
-
-  ret->mime_type = read_data(input, ret->mime_type_size);
-  if(!ret->mime_type)
-    return 0;
-
-  if(!bgav_input_read_32_be(input, &(ret->type_specific_len)))
-    return 0;
-
-  if(!ret->type_specific_len)
-    return 1;
-  
-  ret->type_specific_data = read_data(input, ret->type_specific_len);
-  if(!ret->type_specific_data)
-    return 0;
-
-  //  dump_mdpr(ret);
-
-  
-  return 1;
-  }
-
-static void destroy_mdpr(rm_mdpr_t * m)
-  {
-  if(m->stream_name)
-    free(m->stream_name);
-  if(m->mime_type)
-    free(m->mime_type);
-  if(m->type_specific_data)
-    free(m->type_specific_data);
-  }
-
-/* Content description */
-
-typedef struct
-  {
-  /* Version 0 */
-  uint16_t  title_len;
-  uint8_t * title;
-  uint16_t  author_len;
-  uint8_t * author;
-  uint16_t  copyright_len;
-  uint8_t * copyright;
-  uint16_t  comment_len;
-  uint8_t * comment;
-  } rm_cont_t;
-
 /* Data chunk header */
 
-typedef struct
-  {
-  /* Version 0 */
-  uint32_t num_packets;
-  uint32_t next_data_header;
-  } rm_data_t;
 
-static int
-read_data_chunk_header(bgav_input_context_t * input, rm_data_t * data)
-  {
-  return bgav_input_read_32_be(input, &(data->num_packets)) &&
-    bgav_input_read_32_be(input, &(data->next_data_header));
-  }
 
-/* Index stuff */
-
-typedef struct
-  {
-  uint16_t version;
-  uint32_t timestamp;
-  uint32_t offset;
-  uint32_t packet_count_for_this_packet;
-  } rm_index_record_t;
-
-static int read_index_record(bgav_input_context_t * input,
-                             rm_index_record_t * ret)
-  {
-  return
-    bgav_input_read_16_be(input, &(ret->version)) &&
-    bgav_input_read_32_be(input, &(ret->timestamp)) &&
-    bgav_input_read_32_be(input, &(ret->offset)) &&
-    bgav_input_read_32_be(input, &(ret->packet_count_for_this_packet));
-  }
-
-typedef struct
-  {
-  uint32_t            num_indices;
-  uint16_t            stream_number;
-  uint32_t            next_index_header;
-  rm_index_record_t * records;
-  } rm_indx_t;
-
-static int read_indx(bgav_input_context_t * input,
-                     rm_indx_t * ret)
-  {
-  int i;
-  if(!bgav_input_read_32_be(input, &(ret->num_indices)) ||
-     !bgav_input_read_16_be(input, &(ret->stream_number)) ||
-     !bgav_input_read_32_be(input, &(ret->next_index_header)))
-    return 0;
-  if(ret->num_indices)
-    {
-    ret->records = malloc(ret->num_indices * sizeof(*(ret->records)));
-    for(i = 0; i < ret->num_indices; i++)
-      {
-      if(!read_index_record(input, &(ret->records[i])))
-        return 0;
-      }
-    }
-  return 1;
-  }
-
-static void free_indx(rm_indx_t * ret)
-  {
-  if(ret->records)
-    free(ret->records);
-  memset(ret, 0, sizeof(*ret));
-  }
-#if 0
-static void dump_indx(rm_indx_t * indx)
-  {
-  int i;
-  fprintf(stderr, "num_indices:       %d",   indx->num_indices);
-  fprintf(stderr, "stream_number:     %d\n", indx->stream_number);
-  fprintf(stderr, "next_index_header: %d\n", indx->next_index_header);
-  /*
-    uint32_t timestamp;
-    uint32_t offset;
-    uint32_t packet_count_for_this_packet;
-  */
-
-  for(i = 0; i < indx->num_indices; i++)
-    {
-    fprintf(stderr, "Time: %d, offset: %d, count: %d\n",
-            indx->records[i].timestamp,
-            indx->records[i].offset,
-            indx->records[i].packet_count_for_this_packet);
-    }
-  }
-#endif
-static uint32_t seek_indx(rm_indx_t * indx, uint32_t millisecs,
+static uint32_t seek_indx(bgav_rmff_indx_t * indx, uint32_t millisecs,
                           int32_t * position, int32_t * start_packet,
                           int32_t * end_packet)
   {
@@ -377,7 +63,6 @@ static uint32_t seek_indx(rm_indx_t * indx, uint32_t millisecs,
   
   return ret;
   }
-
 
 /* Data packet header */
 
@@ -416,9 +101,8 @@ static void packet_header_dump(rm_packet_header_t * h)
 
 typedef struct
   {
-  rm_mdpr_t mdpr;
-  rm_indx_t indx;
-
+  bgav_rmff_stream_t * stream;
+  
   uint16_t version;
   uint16_t flavor;
   uint32_t coded_frame_size;
@@ -428,7 +112,6 @@ typedef struct
   
   //  uint8_t * extradata;
   int bytes_to_read;
-  int has_index;
   uint32_t index_record;
   } rm_audio_stream_t;
 #if 0
@@ -448,7 +131,7 @@ static void dump_audio(rm_audio_stream_t*s)
   }
 #endif
 static void init_audio_stream(bgav_demuxer_context_t * ctx,
-                              rm_mdpr_t * mdpr,
+                              bgav_rmff_stream_t * stream,
                               uint8_t * data)
   {
   uint16_t codecdata_length;
@@ -542,7 +225,6 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
   memcpy(&(((short*)(bg_as->ext_data))[5]), data, codecdata_length);
   
   //  gavl_audio_format_dump(&(bg_as->data.audio.format));
-  bg_as->stream_id = mdpr->stream_number;
   
   if(bg_as->fourcc == BGAV_MK_FOURCC('1','4','_','4'))
     {
@@ -553,14 +235,14 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
     rm_as->bytes_to_read = bg_as->data.audio.block_align * rm_as->sub_packet_h;
     }
   //  dump_audio(rm_as);
+
+  bg_as->stream_id = stream->mdpr.stream_number;
+  rm_as->stream = stream;
   }
 
 typedef struct
   {
-  rm_mdpr_t mdpr;
-  rm_indx_t indx;
-  int has_index;
-
+  bgav_rmff_stream_t * stream;
   uint32_t index_record;
   
   uint32_t kf_pts;
@@ -569,7 +251,7 @@ typedef struct
   } rm_video_stream_t;
 
 static void init_video_stream(bgav_demuxer_context_t * ctx,
-                              rm_mdpr_t * mdpr,
+                              bgav_rmff_stream_t * stream,
                               uint8_t * data)
   {
   uint32_t tmp;
@@ -682,13 +364,14 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   data++;
   } 
   
-  bg_vs->stream_id = mdpr->stream_number;
-  //  gavl_video_format_dump(&(bg_vs->format));
+  bg_vs->stream_id = stream->mdpr.stream_number;
+  rm_vs->stream = stream;
   }
 
 typedef struct
   {
-  rm_data_t data_chunk_header;
+  bgav_rmff_header_t * header;
+  
   uint32_t data_start;
   uint32_t data_size;
   int do_seek;
@@ -698,70 +381,111 @@ typedef struct
   int need_first_timestamp;
   } rm_private_t;
 
-static bgav_stream_t * find_stream(bgav_demuxer_context_t * ctx,
-                                   int id)
+int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
+                                   bgav_rmff_header_t * h)
   {
-  int i;
-  bgav_track_t * track = ctx->tt->current_track;
-  
-  for(i = 0; i < track->num_audio_streams; i++)
-    {
-    if(track->audio_streams[i].stream_id == id)
-      return &(track->audio_streams[i]);
-    }
-  for(i = 0; i < track->num_video_streams; i++)
-    {
-    if(track->video_streams[i].stream_id == id)
-      return &(track->video_streams[i]);
-    }
-  return (bgav_stream_t*)0;
-  }
+  rm_private_t * priv;
+  uint8_t * pos;
+  int i, j;
+  bgav_rmff_mdpr_t * mdpr;
+  uint32_t header = 0;
+  bgav_track_t * track;
 
-/*
- *  The metadata are ASCII format, so we can read them
- *  here as UTF-8
- */
-
-#define READ_STRING(dst) \
-  if(!bgav_input_read_16_be(ctx->input, &len)) \
-    return 0;\
-  if(len) \
-    { \
-    buf = malloc(len); \
-    if(bgav_input_read_data(ctx->input, buf, len) < len) \
-      { \
-      free(buf); \
-      return 0; \
-      } \
-    ctx->tt->current_track->metadata.dst = bgav_convert_string(cnv, buf, len, NULL); \
-    free(buf); \
-    }
-
-static int read_cont(bgav_demuxer_context_t * ctx)
-  {
-  uint16_t len;
-  char * buf;
   bgav_charset_converter_t * cnv;
+
+  bgav_rmff_header_dump(h);
+  
+  priv = calloc(1, sizeof(*priv));
+  ctx->priv = priv;
+
+  priv->header = h;
+  
+  /* Create track */
+  ctx->tt = bgav_track_table_create(1);
+  track = ctx->tt->current_track;
+
+  /* Create streams */
+
+  for(i = 0; i < h->num_streams; i++)
+    {
+    mdpr = &(h->streams[i].mdpr);
+    j = mdpr->type_specific_len - 4;
+    pos = mdpr->type_specific_data;
+    while(j)
+      {
+      header = BGAV_PTR_2_FOURCC(pos);
+      if((header == BGAV_MK_FOURCC('.', 'r', 'a', 0xfd)) ||
+         (header == BGAV_MK_FOURCC('V', 'I', 'D', 'O')))
+        break;
+      pos++;
+      j--;
+      }
+    if(header == BGAV_MK_FOURCC('.', 'r', 'a', 0xfd))
+      {
+      fprintf(stderr, "Found audio stream\n");
+      init_audio_stream(ctx, &(h->streams[i]), pos);
+      }
+    else if(header == BGAV_MK_FOURCC('V', 'I', 'D', 'O'))
+      {
+      fprintf(stderr, "Found video stream\n");
+      init_video_stream(ctx, &(h->streams[i]), pos);
+      }
+    else
+      {
+      fprintf(stderr, "Unknown stream\n");
+      }
+    }
+  
+  /* Update global fields */
+  
+  track->duration = h->prop.duration * (GAVL_TIME_SCALE / 1000); 
+
+  priv->need_first_timestamp = 1;
+  
+  if(ctx->input->input->seek_byte)
+    {
+    ctx->can_seek = 1;
+    for(i = 0; i < track->num_audio_streams; i++)
+      {
+      if(!((rm_audio_stream_t*)(track->audio_streams[i].priv))->stream->has_indx)
+        ctx->can_seek = 0;
+      }
+    for(i = 0; i < track->num_video_streams; i++)
+      {
+      if(!((rm_video_stream_t*)(track->video_streams[i].priv))->stream->has_indx)
+        ctx->can_seek = 0;
+      }
+    }
+
+  //  fprintf(stderr, "Can seek: %d\n", ctx->can_seek);
+
+  ctx->stream_description = bgav_sprintf("Real Media file format");
+
+  /* Handle metadata */
+
   cnv = bgav_charset_converter_create("ISO-8859-1", "UTF-8");
 
-  //  fprintf(stderr, "Read Cont\n");
-  
-  /* Title */
-  
-  READ_STRING(title);
-  
-  /* Author */
+  if(priv->header->cont.title_len)
+    track->metadata.title = bgav_convert_string(cnv,
+                                                priv->header->cont.title,
+                                                priv->header->cont.title_len,
+                                                NULL);
+  if(priv->header->cont.author_len)
+    track->metadata.title = bgav_convert_string(cnv,
+                                                priv->header->cont.author,
+                                                priv->header->cont.author_len,
+                                                NULL);
+  if(priv->header->cont.copyright_len)
+    track->metadata.title = bgav_convert_string(cnv,
+                                                priv->header->cont.copyright,
+                                                priv->header->cont.copyright_len,
+                                                NULL);
 
-  READ_STRING(author);
-
-  /* Copyright */
-
-  READ_STRING(copyright);
-  
-  /* Comment */
-
-  READ_STRING(comment);
-
+  if(priv->header->cont.comment_len)
+    track->metadata.title = bgav_convert_string(cnv,
+                                                priv->header->cont.comment,
+                                                priv->header->cont.comment_len,
+                                                NULL);
   bgav_charset_converter_destroy(cnv);
   return 1;
   }
@@ -769,211 +493,17 @@ static int read_cont(bgav_demuxer_context_t * ctx)
 int open_rmff(bgav_demuxer_context_t * ctx,
               bgav_redirector_context_t ** redir)
   {
-  int i;
-  int keep_going = 1;
-  bgav_stream_t * index_stream;
-  int64_t file_position;
-  rm_audio_stream_t * as;
-  rm_video_stream_t * vs;
-  
-  rm_chunk_t chunk;
-  rm_prop_t prop;
-  rm_mdpr_t mdpr;
-  rm_file_header_t file_header;
-  rm_private_t * priv;
-  uint8_t * pos;
-  /* File header */
-  uint32_t header = 0;
-  uint32_t next_index_header;
-  bgav_track_t * track;
-  
-  rm_indx_t indx;
+  bgav_rmff_header_t * h =
+    bgav_rmff_header_read(ctx->input);
 
-  /* Create track */
-  ctx->tt = bgav_track_table_create(1);
-  track = ctx->tt->current_track;
-  
-  if(!read_chunk_header(&chunk, ctx->input))
+  if(!h)
     return 0;
   
-  if(chunk.id != FILE_ID)
-    return 0;
-
-  if(!read_file_header(&chunk,ctx->input, &file_header))
-    return 0;
-
+  return bgav_demux_rm_open_with_header(ctx, h);
+  }
+  
   //  fprintf(stderr, "Header size: %d\n", chunk.size);
 
-  priv = calloc(1, sizeof(*priv));
-  ctx->priv = priv;
-  
-  while(keep_going)
-    {
-    if(!read_chunk_header(&chunk, ctx->input))
-      return 0;
-    switch(chunk.id)
-      {
-      case PROP_ID:
-        //        fprintf(stderr, "Properties\n");
-        if(!read_prop(&chunk,ctx->input, &prop))
-          goto fail;
-        break;
-      case MDPR_ID:
-        //        fprintf(stderr, "Media Properties\n");
-        if(!read_mdpr(&chunk,ctx->input, &mdpr))
-          return 0;
-        
-        /* Check, what stream this is (From here on, it gets ugly) */
-        i = mdpr.type_specific_len - 4;
-        pos = mdpr.type_specific_data;
-        while(i)
-          {
-          header = BGAV_PTR_2_FOURCC(pos);
-          if((header == BGAV_MK_FOURCC('.', 'r', 'a', 0xfd)) ||
-             (header == BGAV_MK_FOURCC('V', 'I', 'D', 'O')))
-            break;
-          pos++;
-          i--;
-          }
-        if(header == BGAV_MK_FOURCC('.', 'r', 'a', 0xfd))
-          {
-          //          fprintf(stderr, "Found audio stream\n");
-          init_audio_stream(ctx, &mdpr, pos);
-          }
-        else if(header == BGAV_MK_FOURCC('V', 'I', 'D', 'O'))
-          {
-          //          fprintf(stderr, "Found video stream\n");
-          init_video_stream(ctx, &mdpr, pos);
-          }
-        else
-          {
-          //          fprintf(stderr, "Unknown stream type: %s\n", mdpr.mime_type);
-          }
-        destroy_mdpr(&mdpr);
-        break;
-      case CONT_ID:
-        //        fprintf(stderr, "Content description\n");
-        if(!read_cont(ctx))
-          goto fail;
-        break;
-      case DATA_ID:
-        //        fprintf(stderr, "Data\n");
-        
-        /* Read data chunk header */
-        if(!read_data_chunk_header(ctx->input, &(priv->data_chunk_header)))
-          goto fail;
-        
-        /* We reached the data section. Now check if the file is seekabkle
-           and read the indices */
-        priv->data_start = file_position = ctx->input->position;
-        if(chunk.size > 10)
-          priv->data_size = chunk.size - 10;
-        else
-          priv->data_size = 0;
-        if(ctx->input->input->seek_byte && prop.index_offset)
-          {
-          bgav_input_seek(ctx->input, prop.index_offset, SEEK_SET);
-          
-          /* TODO: Read stream indices */
-          
-          while(1)
-            {
-            read_chunk_header(&chunk, ctx->input);
-            //            fprintf(stderr, "Index fourcc: ");
-            if(chunk.id != INDX_ID)
-              {
-              fprintf(stderr, "No index found, where I expected one\n");
-              break;
-              }
-            read_indx(ctx->input, &indx);
-            next_index_header = indx.next_index_header;
-            
-            //            dump_indx(&indx);
-            index_stream = find_stream(ctx, indx.stream_number);
-            if(index_stream)
-              {
-              if(index_stream->type == BGAV_STREAM_AUDIO)
-                {
-                as = (rm_audio_stream_t*)(index_stream->priv);
-                as->has_index = 1;
-                memcpy(&(as->indx), &indx, sizeof(indx));
-                memset(&indx, 0, sizeof(indx));
-                }
-              else if(index_stream->type == BGAV_STREAM_VIDEO)
-                {
-                vs = (rm_video_stream_t*)(index_stream->priv);
-                vs->has_index = 1;
-                memcpy(&(vs->indx), &indx, sizeof(indx));
-                memset(&indx, 0, sizeof(indx));
-                }
-              else
-                free_indx(&indx);
-              }
-            else
-              {
-              free_indx(&indx);
-              }
-            
-            if(next_index_header)
-              {
-              bgav_input_skip(ctx->input,
-                              next_index_header - ctx->input->position);
-              //              fprintf(stderr, "Skipping %lld bytes",
-              //                      next_index_header - ctx->input->position);
-              }
-            else
-              break;
-            }
-          bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
-          }
-        keep_going = 0;
-        //        bgav_input_skip(ctx->input, chunk.size - 10);
-        break;
-      case INDX_ID:
-        //        fprintf(stderr, "Index\n");
-        bgav_input_skip(ctx->input, chunk.size - 10);
-        break;
-      }
-    }
-
-  /* Update global fields */
-  
-  track->duration = prop.duration * (GAVL_TIME_SCALE / 1000); 
-
-  //  if((prop.flags & PN_LIVE_BROADCAST) || !(ctx->input->
-  //    {
-    //    fprintf(stderr, "Playing live broadcast\n");
-    priv->need_first_timestamp = 1;
-    //    }
-  
-  if(ctx->input->input->seek_byte)
-    {
-    ctx->can_seek = 1;
-    for(i = 0; i < track->num_audio_streams; i++)
-      {
-      if(!((rm_audio_stream_t*)(track->audio_streams[i].priv))->has_index)
-        ctx->can_seek = 0;
-      //      else
-      //        dump_indx(&(((rm_audio_stream_t*)(ctx->audio_streams[i].priv))->indx));
-      }
-    for(i = 0; i < track->num_video_streams; i++)
-      {
-      if(!((rm_video_stream_t*)(track->video_streams[i].priv))->has_index)
-        ctx->can_seek = 0;
-      //      else
-      //        dump_indx(&(((rm_video_stream_t*)(ctx->video_streams[i].priv))->indx));
-      }
-    }
-
-  //  fprintf(stderr, "Can seek: %d\n", ctx->can_seek);
-
-  ctx->stream_description = bgav_sprintf("Real Media file format");
-  
-  return 1;
-  fail:
-  
-  return 0;
-  }
 
 int probe_rmff(bgav_input_context_t * input)
   {
@@ -982,7 +512,7 @@ int probe_rmff(bgav_input_context_t * input)
   if(!bgav_input_get_fourcc(input, &header))
     return 0;
   
-  if(header == FILE_ID)
+  if(header == BGAV_MK_FOURCC('.', 'R', 'M', 'F'))
     {
     //    fprintf(stderr, "Detected Real video format\n");
     return 1;
@@ -1372,8 +902,11 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
     rm->need_first_timestamp = 0;
     //    fprintf(stderr, "First timestamp: %d\n", rm->first_timestamp);
     }
-  h.timestamp -= rm->first_timestamp;
-  
+  if(h.timestamp > rm->first_timestamp)
+    h.timestamp -= rm->first_timestamp;
+  else
+    h.timestamp = 0;
+    
   //  if(rm->do_seek)
   //  packet_header_dump(&h);
   stream = bgav_track_find_stream(track, h.stream_number);
@@ -1389,7 +922,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
       {
       vs = (rm_video_stream_t*)(stream->priv);
       //      dump_indx(
-      if(vs->indx.records[vs->index_record].packet_count_for_this_packet > rm->next_packet)
+      if(vs->stream->indx.records[vs->index_record].packet_count_for_this_packet > rm->next_packet)
         {
         //        fprintf(stderr, "Skipping video packet\n");
         bgav_input_skip(ctx->input, h.length - 12);
@@ -1406,7 +939,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
     if(rm->do_seek)
       {
       as = (rm_audio_stream_t*)(stream->priv);
-      if(as->indx.records[as->index_record].packet_count_for_this_packet > rm->next_packet)
+      if(as->stream->indx.records[as->index_record].packet_count_for_this_packet > rm->next_packet)
         {
         //        fprintf(stderr, "Skipping audio packet\n");
         bgav_input_skip(ctx->input, h.length - 12);
@@ -1452,19 +985,19 @@ void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
     {
     stream = &(track->video_streams[i]);
     vs = (rm_video_stream_t*)(stream->priv);
-    vs->index_record = seek_indx(&(vs->indx), real_time,
+    vs->index_record = seek_indx(&(vs->stream->indx), real_time,
                                  &position, &start_packet, &end_packet);
-    stream->time = ((int64_t)(vs->indx.records[vs->index_record].timestamp) *
+    stream->time = ((int64_t)(vs->stream->indx.records[vs->index_record].timestamp) *
                     GAVL_TIME_SCALE) / 1000;
-    vs->kf_pts = vs->indx.records[vs->index_record].timestamp;
+    vs->kf_pts = vs->stream->indx.records[vs->index_record].timestamp;
     }
   for(i = 0; i < track->num_audio_streams; i++)
     {
     stream = &(track->audio_streams[i]);
     as = (rm_audio_stream_t*)(stream->priv);
-    as->index_record = seek_indx(&(as->indx), real_time,
+    as->index_record = seek_indx(&(as->stream->indx), real_time,
                                  &position, &start_packet, &end_packet);
-    stream->time = ((int64_t)(as->indx.records[as->index_record].timestamp) *
+    stream->time = ((int64_t)(as->stream->indx.records[as->index_record].timestamp) *
                     GAVL_TIME_SCALE) / 1000;
     }
 
@@ -1499,12 +1032,6 @@ void close_rmff(bgav_demuxer_context_t * ctx)
     as = (rm_audio_stream_t*)(track->audio_streams[i].priv);
     if(track->audio_streams[i].ext_data)
       free(track->audio_streams[i].ext_data);
-    if(as->has_index)
-      {
-      //      fprintf(stderr, "Audio stream index\n");
-      //      dump_indx(&(as->indx));
-      free_indx(&(as->indx));
-      }
     free(as);
     } 
   for(i = 0; i < track->num_video_streams; i++)
@@ -1512,14 +1039,9 @@ void close_rmff(bgav_demuxer_context_t * ctx)
     vs = (rm_video_stream_t*)(track->video_streams[i].priv);
     if(track->video_streams[i].ext_data)
       free(track->video_streams[i].ext_data);
-    if(vs->has_index)
-      {
-      //      fprintf(stderr, "Video stream index\n");
-      //      dump_indx(&(vs->indx));
-      free_indx(&(vs->indx));
-      }
     free(vs);
     }
+  
   free(priv);
   }
 
