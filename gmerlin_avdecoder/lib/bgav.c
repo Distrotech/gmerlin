@@ -289,7 +289,7 @@ void bgav_stop(bgav_t * b)
 
 void bgav_select_track(bgav_t * b, int track)
   {
-  fprintf(stderr, "bgav_select_track %d\n", track);
+//  fprintf(stderr, "bgav_select_track %d\n", track);
   
   if(b->is_running)
     bgav_stop(b);
