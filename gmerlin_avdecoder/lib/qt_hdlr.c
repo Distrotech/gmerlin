@@ -92,6 +92,9 @@ int bgav_qt_hdlr_read(qt_atom_header_t * h,
     return 0;
   ret->component_name[name_len] = '\0';
   //  fprintf(stderr, "Component name: %s\n", ret->component_name);
+
+  bgav_qt_atom_skip(input, h);
+  
   return 1;
   }
 
