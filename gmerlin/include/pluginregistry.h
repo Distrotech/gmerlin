@@ -36,8 +36,13 @@ typedef struct bg_plugin_info_s
 
   int type;
   int flags;
-    
+
+  /* Device list returned by the plugin */
+  bg_device_info_t * devices;
+  
   struct bg_plugin_info_s * next;
+
+
   } bg_plugin_info_t;
 
 typedef struct bg_plugin_registry_s bg_plugin_registry_t;
@@ -110,6 +115,30 @@ const bg_plugin_info_t * bg_plugin_registry_get_default(bg_plugin_registry_t *,
 
 
 /*
+ *  Add a device to a plugin
+ */
+
+void bg_plugin_registry_add_device(bg_plugin_registry_t *,
+                                   const char * plugin_name,
+                                   const char * device,
+                                   const char * name);
+
+void bg_plugin_registry_set_device_name(bg_plugin_registry_t *,
+                                        const char * plugin_name,
+                                        const char * device,
+                                        const char * name);
+
+/* Rescan the available devices */
+
+void bg_plugin_registry_find_devices(bg_plugin_registry_t *,
+                                     const char * plugin_name);
+void bg_plugin_registry_remove_device(bg_plugin_registry_t * reg,
+                                      const char * plugin_name,
+                                      const char * device,
+                                      const char * name);
+
+
+/*
  *  Sort the plugin registry
  *  sort_string is a comma separated list of plugin names
  *  Plugins in the registry, which are not
@@ -142,9 +171,12 @@ gavl_video_frame_t * bg_plugin_registry_load_image(bg_plugin_registry_t * r,
  *  a file (used by registry.c only)
  */
 
-bg_plugin_info_t * bg_load_plugin_file(const char * filename);
+bg_plugin_info_t * bg_plugin_registry_load(const char * filename);
 
-void bg_save_plugin_file(bg_plugin_info_t * , const char * filename);
+void bg_plugin_registry_save(bg_plugin_info_t * info);
+
+
+
 
 /*
  *  These are the actual loading/unloading functions
@@ -155,10 +187,6 @@ void bg_save_plugin_file(bg_plugin_info_t * , const char * filename);
 
 bg_plugin_handle_t * bg_plugin_load(bg_plugin_registry_t * reg,
                                     const bg_plugin_info_t * info);
-
-/* Copy a plugin with the same dll handle but with a new instance */
-
-bg_plugin_handle_t * bg_plugin_copy(bg_plugin_registry_t * reg, bg_plugin_handle_t *);
 
 // void bg_plugin_unload(bg_plugin_handle_t *);
 
@@ -172,5 +200,7 @@ void bg_plugin_ref(bg_plugin_handle_t *);
 /* Plugin will be unloaded when refcount is zero */
 
 void bg_plugin_unref(bg_plugin_handle_t *);
+
+
 
 #endif // __BG_PLUGINREGISTRY_H_

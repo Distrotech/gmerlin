@@ -61,14 +61,69 @@ flag_names[] =
     { (char*)0,    0                   },
   };
 
-static const char * name_key            = "name";
-static const char * long_name_key       = "long_name";
-static const char * mimetypes_key       = "mimetypes";
-static const char * extensions_key      = "extensions";
-static const char * module_filename_key = "module_filename";
-static const char * module_time_key     = "module_time";
-static const char * type_key            = "type";
-static const char * flags_key           = "flags";
+static const char * plugin_key          = "PLUGIN";
+static const char * plugin_registry_key = "PLUGIN_REGISTRY";
+
+static const char * name_key            = "NAME";
+static const char * long_name_key       = "LONG_NAME";
+static const char * mimetypes_key       = "MIMETYPES";
+static const char * extensions_key      = "EXTENSIONS";
+static const char * module_filename_key = "MODULE_FILENAME";
+static const char * module_time_key     = "MODULE_TIME";
+static const char * type_key            = "TYPE";
+static const char * flags_key           = "FLAGS";
+static const char * device_info_key     = "DEVICE_INFO";
+static const char * device_key          = "DEVICE";
+
+
+
+static bg_device_info_t *
+load_device(bg_device_info_t * arr, xmlDocPtr doc, xmlNodePtr node)
+  {
+  char * tmp_string;
+  xmlNodePtr cur;
+  char * device = (char*)0;
+  char * name = (char*)0;
+  
+  cur = node->children;
+  while(cur)
+    {
+    if(!cur->name)
+      {
+      cur = cur->next;
+      continue;
+      }
+    tmp_string = xmlNodeListGetString(doc, cur->children, 1);
+
+    if(!strcmp(cur->name, name_key))
+      {
+      name = tmp_string;
+      tmp_string = (char*)0;
+      }
+    else if(!strcmp(cur->name, device_key))
+      {
+      device = tmp_string;
+      tmp_string = (char*)0;
+      }
+    if(tmp_string)
+      free(tmp_string);
+    cur =  cur->next;
+    }
+  
+  if(device)
+    {
+    arr = bg_device_info_append(arr,
+                                device,
+                                name);
+    
+    xmlFree(device);
+    }
+  if(name)
+    {
+    xmlFree(name);
+    }
+  return arr;
+  }
 
 static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
   {
@@ -82,7 +137,14 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
 
   ret = calloc(1, sizeof(*ret));
 
-  ret->name = xmlGetProp(node, name_key);
+  tmp_string = xmlGetProp(node, name_key);
+  
+  if(tmp_string)
+    {
+    ret->name = bg_strdup(ret->name, tmp_string);
+    free(tmp_string);
+    }
+    
   cur = node->children;
     
   while(cur)
@@ -156,6 +218,10 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
         start_ptr++;
         }
       }
+    else if(!strcmp(cur->name, device_info_key))
+      {
+      ret->devices = load_device(ret->devices, doc, cur);
+      }
     xmlFree(tmp_string);
     cur = cur->next;
     }
@@ -178,6 +244,35 @@ static const char * get_flag_name(uint32_t flag)
   return flag_names[index].name;
   }
 
+static void save_devices(xmlNodePtr parent, const bg_device_info_t * info)
+  {
+  int i;
+  xmlNodePtr xml_device, xml_item;
+
+  i = 0;
+  while(info[i].device)
+    {
+    xmlAddChild(parent, xmlNewText("\n"));
+    
+    xml_device = xmlNewTextChild(parent, (xmlNsPtr)0,
+                                 device_info_key, NULL);
+        
+    xmlAddChild(xml_device, xmlNewText("\n"));
+    
+    xml_item = xmlNewTextChild(xml_device, (xmlNsPtr)0, device_key, NULL);
+    xmlAddChild(xml_item, xmlNewText(info[i].device));
+    xmlAddChild(xml_device, xmlNewText("\n"));
+
+    if(info[i].name)
+      {
+      xml_item = xmlNewTextChild(xml_device, (xmlNsPtr)0, name_key, NULL);
+      xmlAddChild(xml_item, xmlNewText(info[i].name));
+      xmlAddChild(xml_device, xmlNewText("\n"));
+      }
+    i++;
+    }
+  }
+
 static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
   {
   char buffer[1024];
@@ -193,7 +288,8 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
 
   xmlAddChild(parent, xmlNewText("\n"));
     
-  xml_plugin = xmlNewTextChild(parent, (xmlNsPtr)0, "PLUGIN", NULL);
+  xml_plugin = xmlNewTextChild(parent, (xmlNsPtr)0,
+                               plugin_key, NULL);
   xmlAddChild(xml_plugin, xmlNewText("\n"));
 
   xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, name_key, NULL);
@@ -268,20 +364,23 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
   sprintf(buffer, "%ld", info->module_time);
   xmlAddChild(xml_item, xmlNewText(buffer));
   xmlAddChild(xml_plugin, xmlNewText("\n"));
-  
+
+  if(info->devices && info->devices->device)
+    save_devices(xml_plugin, info->devices);
   }
 
-bg_plugin_info_t * bg_load_plugin_file(const char * filename)
+bg_plugin_info_t * bg_plugin_registry_load(const char * filename)
   {
   bg_plugin_info_t * ret;
   bg_plugin_info_t * end;
 
   xmlDocPtr xml_doc;
   xmlNodePtr node;
-
   ret = (bg_plugin_info_t *)0;
   end = (bg_plugin_info_t *)0;
 
+  
+  
   xml_doc = xmlParseFile(filename);
 
   if(!xml_doc)
@@ -289,7 +388,7 @@ bg_plugin_info_t * bg_load_plugin_file(const char * filename)
 
   node = xml_doc->children;
 
-  if(strcmp(node->name, "PLUGIN_REGISTRY"))
+  if(strcmp(node->name, plugin_registry_key))
     {
     fprintf(stderr, "File %s contains no plugin registry\n", filename);
     xmlFreeDoc(xml_doc);
@@ -300,7 +399,7 @@ bg_plugin_info_t * bg_load_plugin_file(const char * filename)
     
   while(node)
     {
-    if(node->name && !strcmp(node->name, "PLUGIN"))
+    if(node->name && !strcmp(node->name, plugin_key))
       {
       if(!ret)
         {
@@ -317,18 +416,27 @@ bg_plugin_info_t * bg_load_plugin_file(const char * filename)
     }
       
   xmlFreeDoc(xml_doc);
+  
   return ret;
   }
 
-void bg_save_plugin_file(bg_plugin_info_t * info, const char * filename)
+
+void bg_plugin_registry_save(bg_plugin_info_t * info)
   {
   xmlDocPtr  xml_doc;
   xmlNodePtr xml_registry;
   char * old_locale;
-    
+  char * filename;
+
+  filename = bg_search_file_write("", "plugins.xml");
+  if(!filename)
+    {
+    return;
+    }
+  
   old_locale = setlocale(LC_NUMERIC, "C");
   xml_doc = xmlNewDoc("1.0");
-  xml_registry = xmlNewDocRawNode(xml_doc, NULL, "PLUGIN_REGISTRY", NULL);
+  xml_registry = xmlNewDocRawNode(xml_doc, NULL, plugin_registry_key, NULL);
   xmlDocSetRootElement(xml_doc, xml_registry);
     
   while(info)
@@ -340,4 +448,5 @@ void bg_save_plugin_file(bg_plugin_info_t * info, const char * filename)
   xmlSaveFile(filename, xml_doc);
   xmlFreeDoc(xml_doc);
   setlocale(LC_NUMERIC, old_locale);
+  free(filename);
   }

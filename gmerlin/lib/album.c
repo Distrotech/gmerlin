@@ -26,12 +26,114 @@
 #include <treeprivate.h>
 
 #include <utils.h>
+#include <http.h>
 
-bg_album_t * bg_album_create(bg_media_tree_t * tree, bg_album_t * parent)
+static char * new_filename(bg_album_t * album)
+  {
+  /*
+   *  Album filenames are constructed like "aXXXXXXXX.xml",
+   *  where XXXXXXXX is a hexadecimal unique identifier
+   */
+  char * template = (char*)0;
+  char * path = (char*)0;
+  char * ret = (char*)0;
+  char * pos;
+  
+  template = bg_sprintf("%s/a%%08x.xml", album->com->directory);
+
+  path = bg_create_unique_filename(template);
+
+  if(!path)
+    goto fail;
+
+  pos = strrchr(path, '/');
+
+  pos++;
+  ret = bg_strdup((char*)0, pos);
+  free(path);
+    
+  fail:
+  if(template)
+    free(template);
+  
+  return ret;
+  }
+
+void bg_album_update_entry(bg_album_t * album,
+                           bg_album_entry_t * entry,
+                           bg_track_info_t  * track_info)
+  {
+  char * start_pos;
+  char * end_pos;
+  int name_set = 0;
+  //  fprintf(stderr, "Update entry!\n");
+  entry->num_audio_streams = track_info->num_audio_streams;
+  entry->num_video_streams = track_info->num_video_streams;
+
+  entry->num_subpicture_streams = track_info->num_subpicture_streams;
+  entry->num_programs           = track_info->num_programs;
+
+  if(!(entry->flags & BG_ALBUM_ENTRY_PRIVNAME))
+    {
+    if(entry->name)
+      {
+      free(entry->name);
+      entry->name = (char*)0;
+      }
+    /* Track info has a name */
+    
+    if(album->com->use_metadata && album->com->metadata_format)
+      {
+      entry->name = bg_create_track_name(track_info,
+                                         album->com->metadata_format);
+      if(entry->name)
+        name_set = 1;
+      }
+    
+    if(!name_set)
+      {
+      if(track_info->name)
+        {
+        entry->name = bg_strdup(entry->name, track_info->name);
+        //      fprintf(stderr, "entry->name: %s\n", entry->name);
+        }
+      /* Take filename minus extension */
+      else
+        {
+        start_pos = strrchr(entry->location, '/');
+        if(start_pos)
+          start_pos++;
+        else
+          start_pos = entry->location;
+        end_pos = strrchr(start_pos, '.');
+        if(!end_pos)
+          end_pos = &(start_pos[strlen(start_pos)]);
+        entry->name = bg_strndup(entry->name, start_pos, end_pos);
+        }
+      }
+    }
+  entry->duration = track_info->duration;
+  entry->flags &= ~BG_ALBUM_ENTRY_ERROR;
+  
+  if(track_info->url)
+    {
+    entry->location = bg_strdup(entry->location, track_info->url);
+    entry->index = 0;
+    entry->total_tracks = 1;
+    }
+  if(track_info->plugin)
+    entry->plugin   = bg_strdup(entry->plugin, track_info->plugin);
+  
+  }
+
+
+bg_album_t * bg_album_create(bg_album_common_t * com, bg_album_type_t type,
+                             bg_album_t * parent)
   {
   bg_album_t * ret = calloc(1, sizeof(*ret));
-  ret->tree = tree;
+  ret->com = com;
   ret->parent = parent;
+  ret->type = type;
   pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
   return ret;
   }
@@ -44,11 +146,6 @@ char * bg_album_get_name(bg_album_t * a)
 char * bg_album_get_location(bg_album_t * a)
   {
   return a->location;
-  }
-
-void bg_album_set_name(bg_album_t * a, const char * name)
-  {
-  a->name = bg_strdup(a->name, name);
   }
 
 int bg_album_get_num_entries(bg_album_t * a)
@@ -106,9 +203,9 @@ static bg_album_entry_t * load_urls(bg_album_t * a,
   while(locations[i])
     {
     fprintf(stderr, "Load URL: %s\n", locations[i]);
-    new_entry = bg_media_tree_load_url(a->tree,
-                                       locations[i],
-                                       plugin);
+    new_entry = bg_album_load_url(a,
+                                  locations[i],
+                                  plugin);
     if(!new_entry)
       {
       i++;
@@ -129,6 +226,21 @@ static bg_album_entry_t * load_urls(bg_album_t * a,
     i++;
     }
   return ret;
+  }
+
+static void insertion_done(bg_album_t * album)
+  {
+  switch(album->type)
+    {
+    case BG_ALBUM_TYPE_REGULAR:
+      if(!album->location)
+        album->location = new_filename(album);
+      break;
+    case BG_ALBUM_TYPE_INCOMING:
+    case BG_ALBUM_TYPE_REMOVABLE:
+    case BG_ALBUM_TYPE_PLUGIN:
+      break;
+    }
   }
 
 void bg_album_insert_entries_after(bg_album_t * album,
@@ -155,12 +267,8 @@ void bg_album_insert_entries_after(bg_album_t * album,
     before->next = new_entries;
     }
 
-  if(!(album->flags & BG_ALBUM_REMOVABLE) &&
-     !album->location &&
-     album->tree)
-    {
-    album->location = bg_media_tree_new_album_filename(album->tree);
-    }
+  insertion_done(album);
+  
   }
 
 void bg_album_insert_entries_before(bg_album_t * album,
@@ -200,12 +308,8 @@ void bg_album_insert_entries_before(bg_album_t * album,
     last_new_entry->next = after;
     }
 
-  if(!(album->flags & BG_ALBUM_REMOVABLE) &&
-     !album->location &&
-     album->tree)
-    {
-    album->location = bg_media_tree_new_album_filename(album->tree);
-    }
+  insertion_done(album);
+
   }
 
 void bg_album_insert_urls_before(bg_album_t * a,
@@ -267,32 +371,23 @@ void bg_album_insert_urilist_before(bg_album_t * a, const char * str,
 
 static int open_removable(bg_album_t * a)
   {
-  bg_parameter_value_t val;
+  //  bg_parameter_value_t val;
   bg_track_info_t * track_info;
   int i;
   int num_tracks;
-  const bg_plugin_info_t * info;
+  //  const bg_plugin_info_t * info;
   bg_input_plugin_t * plugin;
   bg_album_entry_t * new_entry;
-    
-  info =
-    bg_plugin_find_by_long_name(a->tree->plugin_reg,
-                                a->plugin_name);
-
-  a->handle = bg_plugin_load(a->tree->plugin_reg, info);
+  
+  a->handle = bg_plugin_load(a->com->plugin_reg, a->plugin_info);
   
   bg_plugin_lock(a->handle);
 
   plugin = (bg_input_plugin_t*)a->handle->plugin;
   
-  /* Select device */
-  val.val_str = a->location;
-  plugin->common.set_parameter(a->handle->priv, "device", &val);
-  plugin->common.set_parameter(a->handle->priv, NULL, NULL);
-
   /* Open the plugin */
 
-  if(!plugin->open(a->handle->priv, (void*)0))
+  if(!plugin->open(a->handle->priv, a->location))
     {
     bg_plugin_unlock(a->handle);
     return 0;
@@ -328,6 +423,11 @@ static int open_removable(bg_album_t * a)
   return 1;
   }
 
+bg_album_type_t bg_album_get_type(bg_album_t * a)
+  {
+  return a->type;
+  }
+
 int bg_album_open(bg_album_t * a)
   {
   char * tmp_filename;
@@ -335,27 +435,39 @@ int bg_album_open(bg_album_t * a)
   if(a->open_count)
     return 1;
 
-  if(bg_album_is_removable(a))
+  switch(a->type)
     {
-    /* Get infos from the plugin */
-    if(open_removable(a))
-      {
-      a->open_count++;
-      return 1;
-      }
-    else
-      return 0;
-    }
-  else if(a->location)
-    {
-    tmp_filename = bg_sprintf("%s/%s", a->tree->directory, a->location);
-    bg_album_load(a, tmp_filename);
-    if(!a->entries)
-      {
-      free(a->location);
-      a->location = (char*)0;
-      }
-    free(tmp_filename);
+    case BG_ALBUM_TYPE_REGULAR:
+      if(a->location)
+        {
+        tmp_filename = bg_sprintf("%s/%s", a->com->directory, a->location);
+        bg_album_load(a, tmp_filename);
+        if(!a->entries)
+          {
+          free(a->location);
+          a->location = (char*)0;
+          }
+        free(tmp_filename);
+        }
+      break;
+    case BG_ALBUM_TYPE_REMOVABLE:
+      /* Get infos from the plugin */
+      if(!open_removable(a))
+        return 0;
+      break;
+    case BG_ALBUM_TYPE_PLUGIN:
+      return 0; /* Cannot be opened */
+      break;
+    case BG_ALBUM_TYPE_INCOMING:
+      tmp_filename = bg_sprintf("%s/incoming.xml", a->com->directory);
+      bg_album_load(a, tmp_filename);
+      if(!a->entries)
+        {
+        free(a->location);
+        a->location = (char*)0;
+        }
+      free(tmp_filename);
+      break;
     }
   a->open_count++;
   return 1;
@@ -372,11 +484,11 @@ void bg_album_entry_destroy(bg_album_entry_t * entry)
   free(entry);
   }
 
-bg_album_entry_t * bg_album_entry_create(bg_media_tree_t * tree)
+bg_album_entry_t * bg_album_entry_create(bg_album_t * album)
   {
   bg_album_entry_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->id = bg_media_tree_get_unique_id(tree);
+  ret->id = bg_album_get_unique_id(album);
   return ret;
   }
 
@@ -388,29 +500,29 @@ void bg_album_close(bg_album_t *a )
   char * tmp_filename;
   
   a->open_count--;
-  
-  if(!a->open_count)
-    {
-    /* Tell the tree, if we are the current album */
 
-    if(a->tree && (a == a->tree->current_album))
-      {
-      bg_media_tree_set_current(a->tree,
-                                (bg_album_t*)0,
-                                (const bg_album_entry_t*)0);
-      }
+  if(a->open_count)
+    return;
     
-    if(bg_album_is_removable(a) && !a->children)
-      {
+  /* Tell the tree, if we are the current album */
+  
+  if((a == a->com->current_album) && a->com->set_current_callback)
+    {
+    a->com->set_current_callback(a->com->set_current_callback_data,
+                                 (bg_album_t*)0,
+                                 (const bg_album_entry_t*)0);
+    }
+  switch(a->type)
+    {
+    case BG_ALBUM_TYPE_REMOVABLE:
       bg_plugin_unref(a->handle);
-      }
-    else
-      {
-      if(!a->entries) /* If album is empty, delete the file */
+      break;
+    case BG_ALBUM_TYPE_REGULAR:
+      if(a->location)
         {
-        if(a->tree && a->location)
+        if(!a->entries) /* If album is empty, delete the file */
           {
-          tmp_filename = bg_sprintf("%s/%s", a->tree->directory, a->location);
+          tmp_filename = bg_sprintf("%s/%s", a->com->directory, a->location);
           remove(tmp_filename);
           free(tmp_filename);
           free(a->location);
@@ -419,23 +531,22 @@ void bg_album_close(bg_album_t *a )
         }
       else
         bg_album_save(a, NULL);
-      }
-    
-    /* Delete entries */
-    
-    while(a->entries)
-      {
-      tmp_entry = a->entries->next;
-      bg_album_entry_destroy(a->entries);
-      a->entries = tmp_entry;
-      }
+      break;
+    case BG_ALBUM_TYPE_INCOMING:
+      bg_album_save(a, NULL);
+      break;
+    case BG_ALBUM_TYPE_PLUGIN:
+      break;
     }
-  }
-
-
-int bg_album_is_removable(bg_album_t * a)
-  {
-  return (a->flags & BG_ALBUM_REMOVABLE) ? 1 : 0;
+  
+  /* Delete entries */
+  
+  while(a->entries)
+    {
+    tmp_entry = a->entries->next;
+    bg_album_entry_destroy(a->entries);
+    a->entries = tmp_entry;
+    }
   }
 
 void bg_album_set_expanded(bg_album_t * a, int expanded)
@@ -561,7 +672,7 @@ void bg_album_refresh_selected(bg_album_t * album)
   while(cur)
     {
     if(cur->flags & BG_ALBUM_ENTRY_SELECTED)
-      bg_media_tree_refresh_entry(album->tree, cur);
+      bg_album_refresh_entry(album, cur);
     cur = cur->next;
     }
   }
@@ -755,20 +866,20 @@ void bg_album_rename_track(bg_album_t * album,
 
 bg_album_entry_t * bg_album_get_current_entry(bg_album_t * a)
   {
-  return a->current_entry;
+  return a->com->current_entry;
   }
 
 int bg_album_next(bg_album_t * a, int wrap)
   {
-  if(a->current_entry)
+  if(a->com->current_entry)
     {
-    if(!a->current_entry->next)
+    if(!a->com->current_entry->next)
       {
       if(wrap)
         {
-        a->current_entry = a->entries;
-        if(a->tree)
-          bg_media_tree_set_current(a->tree, a, a->current_entry);
+        if(a->com->set_current_callback)
+          a->com->set_current_callback(a->com->set_current_callback_data,
+                                       a, a->entries);
         bg_album_changed(a);
         return 1;
         }
@@ -777,9 +888,9 @@ int bg_album_next(bg_album_t * a, int wrap)
       }
     else
       {
-      a->current_entry = a->current_entry->next;
-      if(a->tree)
-        bg_media_tree_set_current(a->tree, a, a->current_entry);
+      if(a->com->set_current_callback)
+        a->com->set_current_callback(a->com->set_current_callback_data,
+                                     a, a->com->current_entry->next);
       bg_album_changed(a);
       return 1;
       }
@@ -793,10 +904,10 @@ int bg_album_previous(bg_album_t * a, int wrap)
   {
   bg_album_entry_t * tmp_entry;
   
-  if(!a->current_entry)
+  if(!a->com->current_entry)
     return 0;
     
-  if(a->current_entry == a->entries)
+  if(a->com->current_entry == a->entries)
     {
     if(!wrap)
       return 0;
@@ -804,22 +915,21 @@ int bg_album_previous(bg_album_t * a, int wrap)
 
     while(tmp_entry->next)
       tmp_entry = tmp_entry->next;
-    a->current_entry = tmp_entry;
-    if(a->tree)
-      bg_media_tree_set_current(a->tree, a, a->current_entry);
-
+    if(a->com->set_current_callback)
+      a->com->set_current_callback(a->com->set_current_callback_data,
+                                   a, tmp_entry);
     bg_album_changed(a);
     return 1;
     }
   else
     {
     tmp_entry = a->entries; 
-    while(tmp_entry->next != a->current_entry)
+    while(tmp_entry->next != a->com->current_entry)
       tmp_entry = tmp_entry->next;
-    a->current_entry = tmp_entry;
-    if(a->tree)
-      bg_media_tree_set_current(a->tree, a, a->current_entry);
-
+    if(a->com->set_current_callback)
+      a->com->set_current_callback(a->com->set_current_callback_data,
+                                   a, tmp_entry);
+    
     bg_album_changed(a);
     return 1;    
     }
@@ -843,23 +953,23 @@ void bg_album_changed(bg_album_t * a)
 void bg_album_set_current(bg_album_t * a, const bg_album_entry_t * e)
   {
   bg_album_entry_t * tmp_entry;
-  
-  if(a->tree)
-    bg_media_tree_set_current(a->tree, a, e);
-
+    
   tmp_entry = a->entries;
   while(tmp_entry != e)
     tmp_entry = tmp_entry->next;
   
-  a->current_entry = tmp_entry;
+  if(a->com->set_current_callback)
+    a->com->set_current_callback(a->com->set_current_callback_data,
+                                 a, tmp_entry);
+  
   bg_album_changed(a);
   }
 
 
 void bg_album_play(bg_album_t * a)
   {
-  if(a->tree && a->tree->play_callback)
-    a->tree->play_callback(a->tree, a->tree->play_callback_data);
+  if(a->com->play_callback)
+    a->com->play_callback(a->com->play_callback_data);
   }
 
 
@@ -892,18 +1002,14 @@ const char * bg_album_get_open_path(bg_album_t * a)
 
 int bg_album_is_current(bg_album_t * a)
   {
-  if(!a->tree)
-    return 1;
-  return (a == a->tree->current_album) ? 1 : 0;
+  return (a == a->com->current_album) ? 1 : 0;
   }
 
 int bg_album_entry_is_current(bg_album_t * a,
                               bg_album_entry_t * e)
   {
-  if(!a->tree)
-    return 0;
-  return ((a == a->tree->current_album) &&
-          (e == a->tree->current_entry)) ? 1 : 0; 
+  return ((a == a->com->current_album) &&
+          (e == a->com->current_entry)) ? 1 : 0; 
   }
 
 char ** bg_album_get_plugins(bg_album_t * a,
@@ -914,10 +1020,8 @@ char ** bg_album_get_plugins(bg_album_t * a,
   char ** ret;
   bg_plugin_registry_t * reg;
   const bg_plugin_info_t * info;
-  if(!a->tree)
-    return (char**)0;
     
-  reg = a->tree->plugin_reg;
+  reg = a->com->plugin_reg;
   
   num_plugins = bg_plugin_registry_get_num_plugins(reg, type_mask, flag_mask);
   ret = calloc(num_plugins + 1, sizeof(char*));
@@ -949,7 +1053,7 @@ void bg_album_get_times(bg_album_t * a,
   {
   bg_album_entry_t * e;
 
-  if(!a->current_entry)
+  if(a != a->com->current_album)
     {
     *duration_before = GAVL_TIME_UNDEFINED;
     *duration_current = GAVL_TIME_UNDEFINED;
@@ -959,7 +1063,7 @@ void bg_album_get_times(bg_album_t * a,
 
   e = a->entries;
   *duration_before = 0;
-  while(e != a->current_entry)
+  while(e != a->com->current_entry)
     {
     if(e->duration == GAVL_TIME_UNDEFINED)
       {
@@ -970,11 +1074,11 @@ void bg_album_get_times(bg_album_t * a,
     e = e->next;
     }
 
-  *duration_current = a->current_entry->duration;
+  *duration_current = a->com->current_entry->duration;
   
   *duration_after = 0;
 
-  e = a->current_entry->next;
+  e = a->com->current_entry->next;
   while(e)
     {
     if(e->duration == GAVL_TIME_UNDEFINED)
@@ -989,10 +1093,388 @@ void bg_album_get_times(bg_album_t * a,
 
 void bg_album_set_error(bg_album_t * a, int err)
   {
-  a->err = err;
+  if(err)
+    a->flags |= BG_ALBUM_ERROR;
+  else
+    a->flags &= ~BG_ALBUM_ERROR;
   }
 
 int  bg_album_get_error(bg_album_t * a)
   {
-  return a->err;
+  return !!(a->flags & BG_ALBUM_ERROR);
+  }
+
+void bg_album_append_child(bg_album_t * parent, bg_album_t * child)
+  {
+  bg_album_t * album_before;
+  if(parent->children)
+    {
+    album_before = parent->children;
+    while(album_before->next)
+      album_before = album_before->next;
+    album_before->next = child;
+    }
+  else
+    parent->children = child;
+  }
+
+static void add_device(bg_album_t * album,
+                       const char * device,
+                       const char * name)
+  {
+  bg_album_t * device_album;
+  device_album = bg_album_create(album->com, BG_ALBUM_TYPE_REMOVABLE, album);
+  device_album->location = bg_strdup(device_album->location, device);
+  if(name)
+    {
+    device_album->name = bg_strdup(device_album->name,
+                                   name);
+    }
+  else
+    {
+    device_album->name = bg_strdup(device_album->name,
+                                   device);
+    }
+
+  device_album->plugin_info = album->plugin_info;
+  bg_album_append_child(album, device_album);
+  }
+
+void bg_album_add_device(bg_album_t * album,
+                         const char * device,
+                         const char * name)
+  {
+  add_device(album, device, name);
+  bg_plugin_registry_add_device(album->com->plugin_reg,
+                                album->plugin_info->name,
+                                device, name);
+  }
+
+static bg_album_t *
+remove_from_list(bg_album_t * list, bg_album_t * album, int * index)
+  {
+  bg_album_t * sibling_before;
+
+  *index = 0;
+  
+  if(album == list)
+    return album->next;
+  else
+    {
+    sibling_before = list;
+    (*index)++;
+    while(sibling_before->next != album)
+      {
+      sibling_before = sibling_before->next;
+      (*index)++;
+      }
+    sibling_before->next = album->next;
+    return list;
+    }
+  }
+
+void bg_album_remove_from_parent(bg_album_t * album)
+  {
+  int index;
+  if(!album->parent)
+    return;
+  
+  album->parent->children = remove_from_list(album->parent->children, album, &index);
+
+  fprintf(stderr, "bg_album_remove_from_parent: %d\n", index);
+  
+  if(album->type == BG_ALBUM_TYPE_REMOVABLE)
+    {
+    bg_plugin_registry_remove_device(album->com->plugin_reg,
+                                     album->plugin_info->name,
+                                     album->plugin_info->devices[index].device,
+                                     album->plugin_info->devices[index].name);
+    }
+  }
+
+void bg_album_set_devices(bg_album_t * a)
+  {
+  bg_album_t * tmp_album;
+  int j;
+
+  /* Delete previous children */
+  while(a->children)
+    {
+    tmp_album = a->children->next;
+    bg_album_destroy(a->children);
+    a->children = tmp_album;
+    }
+  
+  if(a->plugin_info->devices && a->plugin_info->devices->device)
+    {
+    j = 0;
+    
+    while(a->plugin_info->devices[j].device)
+      {
+      add_device(a, a->plugin_info->devices[j].device,
+                 a->plugin_info->devices[j].name);
+      j++;
+      } /* Device loop */
+    }
+
+  }
+
+void bg_album_find_devices(bg_album_t * a)
+  {
+  bg_plugin_registry_find_devices(a->com->plugin_reg, a->plugin_info->name);
+  bg_album_set_devices(a);
+  }
+
+static void load_plugin(bg_album_t * album,
+                        const bg_plugin_info_t * info)
+  {
+  if(!album->com->load_handle || strcmp(album->com->load_handle->info->name,
+                                  info->name))
+    {
+    if(album->com->load_handle)
+      bg_plugin_unref(album->com->load_handle);
+    album->com->load_handle = bg_plugin_load(album->com->plugin_reg, info);
+    //    album->com->plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
+    }
+  }
+
+static int load_plugin_by_filename(bg_album_t * album,
+                                   const char * filename)
+  {
+  const bg_plugin_info_t * info;
+  info = bg_plugin_find_by_filename(album->com->plugin_reg, filename,
+                                    (BG_PLUGIN_INPUT));
+  if(!info)
+    return 0;
+  load_plugin(album, info);
+  return 1;
+  }
+
+static int load_plugin_by_mimetype(bg_album_t * album,
+                                   const char * mimetype, const char * url)
+  {
+  const bg_plugin_info_t * info;
+  info = bg_plugin_find_by_mimetype(album->com->plugin_reg, mimetype, url);
+  if(!info)
+    return 0;
+    
+  load_plugin(album, info);
+  return 1;
+  }
+
+static int load_plugin_by_name(bg_album_t * album,
+                               const char * name)
+  {
+  const bg_plugin_info_t * info;
+  info = bg_plugin_find_by_name(album->com->plugin_reg, name);
+  if(!info)
+    return 0;
+  load_plugin(album, info);
+  return 1;
+  }
+
+static int load_plugin_by_long_name(bg_album_t * album,
+                               const char * name)
+  {
+  const bg_plugin_info_t * info;
+  info = bg_plugin_find_by_long_name(album->com->plugin_reg, name);
+  if(!info)
+    return 0;
+  load_plugin(album, info);
+  return 1;
+  }
+
+
+
+bg_album_entry_t * bg_album_load_url(bg_album_t * album,
+                                     char * url,
+                                     const char * plugin_long_name)
+  {
+  int i, num_entries;
+  const char * ptr;
+  
+  //  bg_redirector_plugin_t * redir;
+
+  bg_album_entry_t * new_entry;
+  bg_album_entry_t * end_entry = (bg_album_entry_t*)0;
+  bg_album_entry_t * ret       = (bg_album_entry_t*)0;
+    
+  bg_http_connection_t * con = (bg_http_connection_t*)0;
+
+  //  char * system_location;
+
+  bg_input_plugin_t * plugin;
+  bg_track_info_t * track_info;
+  
+  //  fprintf(stderr, "bg_media_tree_load_url %s %s\n", url,
+  //          (plugin_long_name ? plugin_long_name : "NULL"));
+  
+  /* Load the appropriate plugin */
+
+  /* 1st case: We know the plugin in advance */
+  if(plugin_long_name)
+    {
+    if(!load_plugin_by_long_name(album, plugin_long_name))
+      return (bg_album_entry_t*)0;
+    }
+  /* 2st case: location is a http url so we can fetch the mimetype */
+  else if(!strncmp(url, "http://", 7))
+    {
+    con = bg_http_connection_create();
+    
+    if(!bg_http_connection_connect(con, url, NULL))
+      {
+      fprintf(stderr, "Could not connect to %s\n", url);
+      bg_http_connection_destroy(con);
+      return (bg_album_entry_t*)0;
+      }
+    
+    ptr = bg_http_connection_get_variable(con, "Content-type");
+    
+    if(!ptr || !load_plugin_by_mimetype(album, ptr, url))
+      {
+      fprintf(stderr, "No plugin found for mimetype %s\n",
+              ptr);
+      bg_http_connection_close(con);
+      bg_http_connection_destroy(con);
+      return (bg_album_entry_t*)0;
+      }
+    }
+  /* 3rd case: Track has a filename so we can look for the extension */
+  else
+    {
+    if(!load_plugin_by_filename(album, url))
+      {
+      fprintf(stderr, "No plugin found for %s\n", url);
+      return (bg_album_entry_t*)0;
+      }
+    }
+
+  //  fprintf(stderr, "Loaded %s\n", album->com->load_handle->info->long_name);
+  
+  /* Use track info from the plugin */
+  //  fprintf(stderr, "Using input plugin %s\n",
+  //          album->com->load_handle->info->name);
+  
+  if(con)
+    {
+    bg_http_connection_close(con);
+    bg_http_connection_destroy(con);
+    }
+  
+  /* Open the track */
+  
+  plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
+        
+  if(!plugin->open(album->com->load_handle->priv, url))
+    {
+    fprintf(stderr, "Opening %s with %s failed\n", url,
+            album->com->load_handle->info->name);
+    //    bg_hexdump(system_location, strlen(system_location));
+    //      bg_album_entry_destroy(ret);
+    //      free(system_location);
+    return (bg_album_entry_t*)0;
+    }
+  
+  if(!plugin->get_num_tracks)
+    num_entries = 1;
+  else
+    num_entries = plugin->get_num_tracks(album->com->load_handle->priv);
+  
+  for(i = 0; i < num_entries; i++)
+    {
+    new_entry = bg_album_entry_create(album);
+    new_entry->location = bg_system_to_utf8(url, strlen(url));
+    new_entry->index = i;
+    new_entry->total_tracks = num_entries;
+    //    fprintf(stderr, "Loading [%d/%d]\n", new_entry->total_tracks,
+    //            new_entry->index);
+    
+    track_info = plugin->get_track_info(album->com->load_handle->priv, i);
+    bg_album_update_entry(album, new_entry, track_info);
+
+    if(plugin_long_name)
+      new_entry->plugin = bg_strdup(new_entry->plugin,
+                                    album->com->load_handle->info->name);
+        
+    if(ret)
+      {
+      end_entry->next = new_entry;
+      end_entry = end_entry->next;
+      }
+    else
+      {
+      ret = new_entry;
+      end_entry = ret;
+      }
+    }
+  plugin->close(album->com->load_handle->priv);
+  return ret;
+  }
+
+int bg_album_get_unique_id(bg_album_t * album)
+  {
+  album->com->highest_id++;
+  return album->com->highest_id;
+  }
+
+static int refresh_entry(bg_album_t * album,
+                         bg_album_entry_t * entry)
+  {
+  char * system_location;
+
+  bg_input_plugin_t * plugin;
+  bg_track_info_t * track_info;
+    
+  /* Open the track */
+  
+  system_location = bg_utf8_to_system(entry->location,
+                                      strlen(entry->location));
+
+  plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
+  
+  if(!plugin->open(album->com->load_handle->priv, system_location))
+    {
+    fprintf(stderr, "Opening %s with %s failed\n", system_location,
+            album->com->load_handle->info->name);
+    //    bg_hexdump(system_location, strlen(system_location));
+        
+    free(system_location);
+    entry->flags |= BG_ALBUM_ENTRY_ERROR;
+    return 0;
+    }
+
+  free(system_location);
+  //  fprintf(stderr, "Refresh entry: %d\n", entry->index);
+  track_info = plugin->get_track_info(album->com->load_handle->priv,
+                                      entry->index);
+
+  bg_album_update_entry(album, entry, track_info);
+  plugin->close(album->com->load_handle->priv);
+  return 1;
+  }
+
+int bg_album_refresh_entry(bg_album_t * album,
+                            bg_album_entry_t * entry)
+  {
+  int result = 0;
+  
+  //  fprintf(stderr, "Opening %s %p\n", (char*)(entry->location), tree);
+  
+  /* Check, which plugin to use */
+
+  if(entry->plugin)
+    result = load_plugin_by_name(album, entry->plugin);
+  else if(entry->location)
+    result = load_plugin_by_filename(album,
+                                     (char*)(entry->location));
+
+  if(!result)
+    {
+    fprintf(stderr, "No plugin found for %s\n",
+            (char*)(entry->location));
+    entry->flags |= BG_ALBUM_ENTRY_ERROR;
+    return 0;
+    }
+  return refresh_entry(album, entry);
   }

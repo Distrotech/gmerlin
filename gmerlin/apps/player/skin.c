@@ -7,13 +7,13 @@
 
 void gmerlin_skin_load(gmerlin_skin_t * s, const char * name)
   {
-  xmlDocPtr doc;
   xmlNodePtr node;
   xmlNodePtr child;
   char * tmp;
   
   const char * path_end;
   char * filename = (char*)0;
+  xmlDocPtr doc = (xmlDocPtr)0;
   
   tmp = bg_sprintf("skins/%s", name);
 

@@ -50,7 +50,7 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
   char * tmp_string;
   xmlNodePtr child;
 
-  ret = bg_album_create(tree, parent);
+  ret = bg_album_create(&(tree->com), BG_ALBUM_TYPE_REGULAR, parent);
     
   child = node->children;
 
@@ -107,7 +107,7 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
 
   if(ret->open_count && ret->location)
     {
-    tmp_string = bg_sprintf("%s/%s", tree->directory, ret->location);
+    tmp_string = bg_sprintf("%s/%s", tree->com.directory, ret->location);
     bg_album_load(ret, tmp_string);
     free(tmp_string);
     }
@@ -186,7 +186,8 @@ static void save_album(bg_album_t * album, xmlNodePtr parent)
   bg_album_t * child;
   xmlNodePtr node;
   
-  if(album->flags & BG_ALBUM_REMOVABLE)
+  if((album->type == BG_ALBUM_TYPE_REMOVABLE) ||
+     (album->type == BG_ALBUM_TYPE_PLUGIN))
     return;
   
   /* Create XML album */
@@ -267,7 +268,7 @@ void bg_media_tree_save(bg_media_tree_t * tree)
     child = child->next;
     }
 
-  filename = bg_sprintf("%s/%s", tree->directory, "tree.xml");
+  filename = bg_sprintf("%s/%s", tree->com.directory, "tree.xml");
   xmlSaveFile(filename, xml_doc);
   free(filename);
 

@@ -26,6 +26,8 @@
 #include <X11/Xutil.h>
 
 #include <x11_window.h>
+#include <time.h>
+#include <stdlib.h>
 
 #define _NET_WM_STATE_REMOVE        0    /* remove/unset property */
 #define _NET_WM_STATE_ADD           1    /* add/set property */
@@ -389,8 +391,34 @@ static void get_window_coords(x11_window_t * w,
 
 void x11_window_handle_event(x11_window_t * w, XEvent*evt)
   {
-  w->do_delete = 0;
+  time_t current_time;
 
+  if(!w->xscreensaver_error)
+    {
+    current_time = time(NULL);
+    if((current_time < w->last_xscreensaver_time) ||
+       (current_time - w->last_xscreensaver_time) >= 60)
+      {
+      if(((w->current_window == w->fullscreen_window) &&
+          (w->disable_xscreensaver_fullscreen)) ||
+         ((w->current_window == w->normal_window) &&
+          (w->disable_xscreensaver_normal)))
+        {
+        if(system("xscreensaver-command -deactivate >&- 2>&- &"))
+          {
+          fprintf(stderr, "Cannot ping xscreensaver!\n");
+          w->xscreensaver_error = 1;
+          }
+        else
+          {
+          fprintf(stderr, "xscreensaver pinged!\n");
+          w->last_xscreensaver_time = current_time;
+          }
+        }
+      }
+    }
+  w->do_delete = 0;
+  
   if(!evt || (evt->type != MotionNotify))
     {
     w->idle_counter++;

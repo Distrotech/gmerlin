@@ -19,17 +19,52 @@
 
 /* Flags should not be changed */
 
-#define BG_ALBUM_REMOVABLE   (1<<0)
 #define BG_ALBUM_EXPANDED    (1<<1)
+#define BG_ALBUM_ERROR       (1<<2)
+
+/* Types of the album */
+
+typedef struct
+  {
+  bg_plugin_registry_t * plugin_reg;
+  char * filename_template;
+  char * directory;
+
+  /* Highest Track ID */
+  
+  int highest_id;
+
+  bg_album_t       * current_album;
+  bg_album_entry_t * current_entry;
+
+  void (*set_current_callback)(void * data, bg_album_t * current_album,
+                               const bg_album_entry_t * current_entry);
+  void * set_current_callback_data;
+
+  void (*play_callback)(void * data);
+  void * play_callback_data;
+
+  bg_plugin_handle_t * load_handle;
+
+  /* Configuration stuff */
+
+  int use_metadata;
+  char * metadata_format;
+  } bg_album_common_t;
 
 struct bg_album_s
   {
+  bg_album_type_t type;
+
+  bg_album_common_t * com;
+
   int open_count;
   
   char * name;        /* Name for dialog boxes      */
   char * location;    /* Album filename or device   */
 
-  char * plugin_name;
+  const bg_plugin_info_t * plugin_info;
+  bg_plugin_handle_t      * handle;
   
   int    flags;
 
@@ -38,12 +73,10 @@ struct bg_album_s
   struct bg_album_s       * parent;
   
   bg_album_entry_t * entries;
-  bg_album_entry_t * current_entry;
   
-  bg_media_tree_t         * tree;
+  //  bg_media_tree_t         * tree;
   pthread_mutex_t         mutex;
 
-  bg_plugin_handle_t      * handle;
 
   void (*change_callback)(bg_album_t * a, void * data);
   void * change_callback_data;
@@ -59,12 +92,19 @@ struct bg_album_s
     
   char * open_path;
 
-  /* Error condition */
-  int err;
   };
 
-bg_album_t * bg_album_create(bg_media_tree_t * tree,
+/* album.c */
+
+void bg_album_update_entry(bg_album_t * album,
+                           bg_album_entry_t * entry,
+                           bg_track_info_t  * track_info);
+
+int bg_album_get_unique_id(bg_album_t * album);
+
+bg_album_t * bg_album_create(bg_album_common_t * com, bg_album_type_t type,
                              bg_album_t * parent);
+
 
 void bg_album_destroy(bg_album_t * album);
 
@@ -82,25 +122,31 @@ void bg_album_insert_entries_before(bg_album_t * album,
                                     bg_album_entry_t * new_entries,
                                     bg_album_entry_t * after);
 
+int bg_album_refresh_entry(bg_album_t *,
+                           bg_album_entry_t * entry);
+
+/*
+ *   Load a single URL, perform redirection and return
+ *   zero (for error) or more entries
+ */
+
+bg_album_entry_t * bg_album_load_url(bg_album_t * album,
+                                     char * url,
+                                     const char * plugin_long_name);
+
 struct bg_mediatree_s
   {
-  char * directory;
+  bg_album_common_t com;
+
   char * filename;
   
   bg_album_t       * children;
-  bg_album_t       * current_album;
-  bg_album_entry_t * current_entry;
-    
-  bg_plugin_registry_t * plugin_reg;
-
+  
   bg_plugin_handle_t * load_handle;
   
   void (*change_callback)(bg_media_tree_t*, void*);
   void * change_callback_data;
-
-  void (*play_callback)(bg_media_tree_t*, void*);
-  void * play_callback_data;
-
+    
   void (*error_callback)(bg_media_tree_t*, void*, const char*);
   void * error_callback_data;
 
@@ -110,38 +156,18 @@ struct bg_mediatree_s
   int y;
   int width;
   int height;
-
-  /* Highest Track ID */
-
-  int highest_id;
-
-  /* Configuration stuff */
-
-  int use_metadata;
-  char * metadata_format;
+  
   };
 
-int bg_media_tree_get_unique_id(bg_media_tree_t * tree);
 
-int bg_media_tree_refresh_entry(bg_media_tree_t * tree,
-                                bg_album_entry_t * entry);
-
-/*
- *   Load a single URL, perform redirection and return
- *   zero (for error) or more entries
- */
-
-bg_album_entry_t * bg_media_tree_load_url(bg_media_tree_t * tree,
-                                          char * url,
-                                          const char * plugin_long_name);
 
 /* Create a unique filename */
 
-char * bg_media_tree_new_album_filename(bg_media_tree_t * tree);
+// char * bg_media_tree_new_album_filename(bg_media_tree_t * tree);
 
 void bg_album_entry_destroy(bg_album_entry_t * entry);
 
-bg_album_entry_t * bg_album_entry_create(bg_media_tree_t * tree);
+bg_album_entry_t * bg_album_entry_create(bg_album_t * album);
 
 /* Configzuration stuff */
 

@@ -61,6 +61,20 @@ typedef struct bg_mediatree_s bg_media_tree_t;
 
 /* Can return 0 if CD is missing or so */
 
+typedef enum
+  {
+    /* Regular album */
+    BG_ALBUM_TYPE_REGULAR    = 0,
+    /* Drive for removable media */
+    BG_ALBUM_TYPE_REMOVABLE  = 1,
+    /* Hardware plugin (Subalbums are devices) */
+    BG_ALBUM_TYPE_PLUGIN     = 2,
+    /* Incoming album: Stuff from the commandline and the remote will go there */
+    BG_ALBUM_TYPE_INCOMING   = 3,
+  } bg_album_type_t;
+
+bg_album_type_t bg_album_get_type(bg_album_t *); 
+
 int bg_album_open(bg_album_t *);
 void bg_album_close(bg_album_t *);
 
@@ -102,14 +116,10 @@ bg_album_t * bg_album_get_child(bg_album_t *, int);
 char * bg_album_get_name(bg_album_t * a);
 char * bg_album_get_location(bg_album_t * a);
 
-void bg_album_set_name(bg_album_t * a, const char *);
-
-int bg_album_is_removable(bg_album_t * a);
-
 void bg_album_set_error(bg_album_t * a, int err);
 int  bg_album_get_error(bg_album_t * a);
 
-
+void bg_album_append_child(bg_album_t * parent, bg_album_t * child);
 
 /*
  *  Mark an album as expanded i.e. itself and all the
@@ -209,6 +219,10 @@ void bg_album_rename_track(bg_album_t * album,
 char * bg_album_save_to_memory(bg_album_t * a, int * len);
 char * bg_album_save_selected_to_memory(bg_album_t * a, int * len);
 
+/*
+ *  tree.c
+ */
+
 /* Media tree */
 
 bg_media_tree_t * bg_media_tree_create(const char * filename,
@@ -219,11 +233,14 @@ void bg_media_tree_set_change_callback(bg_media_tree_t *,
                                        void*);
 
 void bg_media_tree_set_play_callback(bg_media_tree_t *,
-                                     void (*play_callback)(bg_media_tree_t*, void*),
+                                     void (*play_callback)(void*),
                                      void*);
 
+/* Will be called if an error occured while opening a track */
+
 void bg_media_tree_set_error_callback(bg_media_tree_t *,
-                                      void (*error_callback)(bg_media_tree_t*, void*,const char*),
+                                      void (*error_callback)(bg_media_tree_t*, void*,
+                                                             const char*),
                                       void*);
 
 void bg_media_tree_destroy(bg_media_tree_t *);
@@ -235,6 +252,18 @@ bg_album_t * bg_media_tree_get_current_album(bg_media_tree_t *);
 /* Gets a root album */
 
 bg_album_t * bg_media_tree_get_album(bg_media_tree_t *, int);
+
+void bg_album_set_devices(bg_album_t * a);
+
+void bg_album_find_devices(bg_album_t * a);
+
+
+void bg_album_add_device(bg_album_t * a,
+                          const char * device,
+                          const char * name);
+
+void bg_album_remove_from_parent(bg_album_t * album);
+
 
 /*
  *  Returns an array of indices to the given album
@@ -250,6 +279,9 @@ bg_album_t * bg_media_tree_append_album(bg_media_tree_t *,
 
 void bg_media_tree_remove_album(bg_media_tree_t *,
                                 bg_album_t * album);
+
+void bg_media_tree_rename_album(bg_media_tree_t *,
+                                bg_album_t * a, const char *);
 
 /* Check if we can move an album */
 
@@ -287,7 +319,7 @@ void bg_media_tree_save(bg_media_tree_t *);
 
 /* Set and get entries for playback */
 
-void bg_media_tree_set_current(bg_media_tree_t *,
+void bg_media_tree_set_current(void * data,
                                bg_album_t * album,
                                const bg_album_entry_t * entry);
 
@@ -309,7 +341,6 @@ bg_media_tree_set_coords(bg_media_tree_t * t,
 void bg_media_tree_get_coords(bg_media_tree_t * t,
                               int * x, int * y,
                               int * width, int * height);
-
 
 /* Configuration stuff */
 

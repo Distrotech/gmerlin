@@ -45,8 +45,8 @@ int main(int argc, char ** argv)
 
   /* Frames */
   
-  gavl_video_frame_t * input_frame;
-  gavl_video_frame_t * output_frame;
+  gavl_video_frame_t * input_frame = (gavl_video_frame_t *)0;
+  gavl_video_frame_t * output_frame = (gavl_video_frame_t *)0;
 
   /* Converter */
 
@@ -58,8 +58,6 @@ int main(int argc, char ** argv)
     return -1;
     }
   
-  /* Open the input */
-
   /* Create registries */
 
   cfg_reg = bg_cfg_registry_create();

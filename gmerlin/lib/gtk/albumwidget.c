@@ -51,9 +51,11 @@ static GtkTargetList * target_list = (GtkTargetList *)0;
 
 /* Drag & Drop struff */
 
-#define DND_GMERLIN_TRACKS 0
-#define DND_TEXT_URI_LIST  1
-#define DND_TEXT_PLAIN     2
+/* 0 means unset */
+
+#define DND_GMERLIN_TRACKS 1
+#define DND_TEXT_URI_LIST  2
+#define DND_TEXT_PLAIN     3
 
 static GtkTargetEntry dnd_src_entries[] = 
   {
@@ -692,6 +694,9 @@ create_item(bg_gtk_album_widget_t * w, GtkWidget * parent,
 
 static void init_menu(bg_gtk_album_widget_t * w)
   {
+  bg_album_type_t type;
+  type = bg_album_get_type(w->album);
+  
   /* Add... */
   
   w->menu.add_menu.menu = gtk_menu_new();
@@ -729,7 +734,7 @@ static void init_menu(bg_gtk_album_widget_t * w)
   w->menu.selected_menu.info_item =
     create_item(w, w->menu.selected_menu.menu, "Info...");
 
-  if(!bg_album_is_removable(w->album))
+  if(type != BG_ALBUM_TYPE_REMOVABLE)
     w->menu.selected_menu.refresh_item =
       create_item(w, w->menu.selected_menu.menu, "Refresh");
   
@@ -857,7 +862,7 @@ static void drag_received_callback(GtkWidget *widget,
   GtkTreeModel * model;
   bg_gtk_album_widget_t * aw;
   int do_delete = 0;
-  int source_type;
+  int source_type = 0;
   
   aw = (bg_gtk_album_widget_t *)d;
 
@@ -884,6 +889,9 @@ static void drag_received_callback(GtkWidget *widget,
     gtk_tree_path_free(path);
 
     if(!entry)
+      return;
+
+    if(!source_type)
       return;
     
     switch(pos)

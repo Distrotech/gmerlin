@@ -376,14 +376,15 @@ static void stop_cmd(bg_player_t * player, int new_state)
       }
     return;
     }
-  /* Set the stop flag */
-  if(player->do_audio)
-    bg_fifo_set_state(player->audio_stream.fifo, BG_FIFO_STOPPED);
-  if(player->do_video)
-    bg_fifo_set_state(player->video_stream.fifo, BG_FIFO_STOPPED);
 
   if(old_state == BG_PLAYER_STATE_PLAYING)
     {  
+    /* Set the stop flag */
+    if(player->do_audio)
+      bg_fifo_set_state(player->audio_stream.fifo, BG_FIFO_STOPPED);
+    if(player->do_video)
+      bg_fifo_set_state(player->video_stream.fifo, BG_FIFO_STOPPED);
+    
     fprintf(stderr, "Joining input thread...");
     pthread_join(player->input_thread, (void**)0);
     fprintf(stderr, "done\n");

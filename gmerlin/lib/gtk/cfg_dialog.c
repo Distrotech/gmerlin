@@ -167,6 +167,8 @@ bg_dialog_t * create_dialog(const char * title)
   
   ret->mainbox = gtk_vbox_new(0, 5);
   buttonbox = gtk_hbutton_box_new();
+  gtk_box_set_spacing(GTK_BOX(buttonbox), 10);
+  
   gtk_container_set_border_width(GTK_CONTAINER(buttonbox), 10);
   
   gtk_container_add(GTK_CONTAINER(buttonbox), ret->ok_button);

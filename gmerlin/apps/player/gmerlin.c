@@ -43,7 +43,7 @@ static void set_logo(bg_plugin_registry_t * reg, bg_player_t * player)
   bg_player_set_logo(player, &format, frame);
   }
 
-static void tree_play_callback(bg_media_tree_t * t, void * data)
+static void tree_play_callback(void * data)
   {
   gmerlin_t * g = (gmerlin_t*)data;
   
@@ -300,9 +300,17 @@ int gmerlin_play(gmerlin_t * g, int ignore_flags)
   gavl_time_t duration_before;
   gavl_time_t duration_current;
   gavl_time_t duration_after;
+  
+  handle = bg_media_tree_get_current_track(g->tree, &track_index);
+  
+  if(!handle)
+    {
+    //    fprintf(stderr, "Error playing file\n");
+    return 0;
+    }
 
   album = bg_media_tree_get_current_album(g->tree);
-
+  
   bg_album_get_times(album,
                      &duration_before,
                      &duration_current,
@@ -318,13 +326,7 @@ int gmerlin_play(gmerlin_t * g, int ignore_flags)
                              duration_current,
                              duration_after);
 
-  handle = bg_media_tree_get_current_track(g->tree, &track_index);
   
-  if(!handle)
-    {
-    //    fprintf(stderr, "Error playing file\n");
-    return 0;
-    }
   //  fprintf(stderr, "Track name: %s\n",
   //          bg_media_tree_get_current_track_name(g->tree));
   

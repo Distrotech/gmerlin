@@ -54,6 +54,8 @@ static void free_info(bg_plugin_info_t * info)
     free(info->extensions);
   if(info->module_filename)
     free(info->module_filename);
+  if(info->devices)
+    bg_device_info_destroy(info->devices);
   free(info);
   }
 
@@ -364,10 +366,12 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
 
     plugin_section =
       bg_cfg_section_find_subsection(cfg_section, plugin->name);
+
+    plugin_priv = plugin->create();
+    
     if(plugin->get_parameters)
       {
       parameter_index = 0;    
-      plugin_priv = plugin->create();
       parameter_info = plugin->get_parameters(plugin_priv);
       while(parameter_info[parameter_index].name)
         {
@@ -376,8 +380,12 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
                                      (bg_parameter_value_t*)0);
         parameter_index++;
         }
-      plugin->destroy(plugin_priv);
       }
+
+    if(plugin->find_devices)
+      new_info->devices = plugin->find_devices();
+    
+    plugin->destroy(plugin_priv);
     dlclose(test_module);
     if(ret)
       {
@@ -420,7 +428,7 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   filename = bg_search_file_read("", "plugins.xml");
   if(filename)
     {
-    file_info = bg_load_plugin_file(filename);
+    file_info = bg_plugin_registry_load(filename);
     free(filename);
     }
   
@@ -443,14 +451,8 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
     }
   
   if(changed)
-    {
-    filename = bg_search_file_write("", "plugins.xml");
-    if(filename)
-      {
-      bg_save_plugin_file(ret->entries, filename);
-      free(filename);
-      }
-    }
+    bg_plugin_registry_save(ret->entries);
+  
 
   /* Now we have all external plugins, time to create the meta plugins */
 
@@ -554,7 +556,6 @@ void bg_plugin_registry_set_extensions(bg_plugin_registry_t * reg,
                                        const char * extensions)
   {
   bg_plugin_info_t * info;
-  char * filename;
   info = find_by_name(reg->entries, plugin_name);
   if(!info)
     return;
@@ -562,14 +563,8 @@ void bg_plugin_registry_set_extensions(bg_plugin_registry_t * reg,
     return;
   info->extensions = bg_strdup(info->extensions, extensions);
 
-  filename = bg_search_file_write("", "plugins.xml");
-  if(filename)
-    {
-    bg_save_plugin_file(reg->entries, filename);
-    free(filename);
-    }
-
-
+  bg_plugin_registry_save(reg->entries);
+  
   }
 
 void bg_plugin_registry_set_mimetypes(bg_plugin_registry_t * reg,
@@ -577,20 +572,13 @@ void bg_plugin_registry_set_mimetypes(bg_plugin_registry_t * reg,
                                       const char * mimetypes)
   {
   bg_plugin_info_t * info;
-  char * filename;
   info = find_by_name(reg->entries, plugin_name);
   if(!info)
     return;
   if(!(info->flags & BG_PLUGIN_URL))
     return;
   info->mimetypes = bg_strdup(info->mimetypes, mimetypes);
-
-  filename = bg_search_file_write("", "plugins.xml");
-  if(filename)
-    {
-    bg_save_plugin_file(reg->entries, filename);
-    free(filename);
-    }
+  bg_plugin_registry_save(reg->entries);
 
   }
 
@@ -853,36 +841,6 @@ fail:
   return (bg_plugin_handle_t*)0;
   }
 
-bg_plugin_handle_t * bg_plugin_copy(bg_plugin_registry_t * plugin_reg,
-                                    bg_plugin_handle_t * h)
-  {
-  bg_parameter_info_t * parameters;
-  bg_cfg_section_t * section;
-  bg_plugin_handle_t * ret;
-
-  ret = calloc(1, sizeof(*ret));
-  
-  memcpy(ret, h, sizeof(*ret));
-
-  ret->priv = ret->plugin->create();
-
-  /* Apply saved parameters */
-
-  if(ret->plugin->get_parameters)
-    {
-    parameters = ret->plugin->get_parameters(ret->priv);
-    
-    section = bg_plugin_registry_get_section(plugin_reg, ret->info->name);
-    
-    bg_cfg_section_apply(section, parameters, ret->plugin->set_parameter,
-                         ret->priv);
-    }
-  ret->refcount = 0;
-  bg_plugin_ref(ret);
-  return ret;
-  }
-
-
 void bg_plugin_lock(bg_plugin_handle_t * h)
   {
   pthread_mutex_lock(&(h->mutex));
@@ -891,4 +849,114 @@ void bg_plugin_lock(bg_plugin_handle_t * h)
 void bg_plugin_unlock(bg_plugin_handle_t * h)
   {
   pthread_mutex_unlock(&(h->mutex));
+  }
+
+void bg_plugin_registry_add_device(bg_plugin_registry_t * reg,
+                                   const char * plugin_name,
+                                   const char * device,
+                                   const char * name)
+  {
+  bg_plugin_info_t * info;
+
+  info = find_by_name(reg->entries, plugin_name);
+  if(!info)
+    return;
+
+  info->devices = bg_device_info_append(info->devices,
+                                        device, name);
+
+  fprintf(stderr, "bg_plugin_registry_save...");
+  bg_plugin_registry_save(reg->entries);
+  fprintf(stderr, "done\n");
+  }
+
+void bg_plugin_registry_set_device_name(bg_plugin_registry_t * reg,
+                                        const char * plugin_name,
+                                        const char * device,
+                                        const char * name)
+  {
+  int i;
+  bg_plugin_info_t * info;
+
+  info = find_by_name(reg->entries, plugin_name);
+  if(!info || !info->devices)
+    return;
+  
+  i = 0;
+  while(info->devices[i].device)
+    {
+    if(!strcmp(info->devices[i].device, device))
+      {
+      info->devices[i].name = bg_strdup(info->devices[i].name, name);
+      bg_plugin_registry_save(reg->entries);
+      return;
+      }
+    i++;
+    }
+  
+  }
+
+static int my_strcmp(const char * str1, const char * str2)
+  {
+  if(!str1 && !str2)
+    return 0;
+  else if(str1 && str2)
+    return strcmp(str1, str2); 
+  return 1;
+  }
+
+void bg_plugin_registry_remove_device(bg_plugin_registry_t * reg,
+                                      const char * plugin_name,
+                                      const char * device,
+                                      const char * name)
+  {
+  bg_plugin_info_t * info;
+  int index;
+  int num_devices;
+  info = find_by_name(reg->entries, plugin_name);
+  if(!info)
+    return;
+    
+  index = -1;
+  num_devices = 0;
+  while(info->devices[num_devices].device)
+    {
+    if(!my_strcmp(info->devices[num_devices].name, name) &&
+       !strcmp(info->devices[num_devices].device, device))
+      {
+      index = num_devices;
+      }
+    num_devices++;
+    }
+
+  //  fprintf(stderr, "bg_plugin_registry_remove_device %s %s %d %d %d\n",
+  //          device, name, index, num_devices, sizeof(*(info->devices)));
+
+  if(index != -1)
+    memmove(&(info->devices[index]), &(info->devices[index+1]),
+            sizeof(*(info->devices)) * (num_devices - index));
+    
+  bg_plugin_registry_save(reg->entries);
+  }
+
+void bg_plugin_registry_find_devices(bg_plugin_registry_t * reg,
+                                     const char * plugin_name)
+  {
+  bg_plugin_info_t * info;
+  bg_plugin_handle_t * handle;
+  
+  info = find_by_name(reg->entries, plugin_name);
+  if(!info)
+    return;
+
+  handle = bg_plugin_load(reg, info);
+    
+  bg_device_info_destroy(info->devices);
+  info->devices = (bg_device_info_t*)0;
+  
+  if(!handle || !handle->plugin->find_devices)
+    return;
+
+  info->devices = handle->plugin->find_devices();
+  bg_plugin_registry_save(reg->entries);
   }

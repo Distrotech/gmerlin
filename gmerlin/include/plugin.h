@@ -78,6 +78,30 @@ typedef enum
 
 #define BG_PLUGIN_ALL 0xFFFFFFFF
 
+/*
+ *  Device info: Returned by the "find_devices()" function
+ *  Device arrays are NULL terminated
+ */
+
+typedef struct
+  {
+  char * device; /* Can be passed to the open() method */
+  char * name;   /* Might be NULL */
+  } bg_device_info_t;
+
+/*
+ *  Append device info to an existing array and return the new array.
+ *  arr can be NULL
+ */
+
+bg_device_info_t * bg_device_info_append(bg_device_info_t * arr,
+                                         const char * device,
+                                         const char * name);
+
+void bg_device_info_destroy(bg_device_info_t * arr);
+
+
+
 /* Common part */
 
 typedef struct bg_plugin_common_s
@@ -121,7 +145,18 @@ typedef struct bg_plugin_common_s
   /* OPTIONAL: Return a readable description of the last error */
 
   const char * (*get_error)(void* priv);
+
+  /* Optional: */
   
+  int (*check_device)(const char * device, char ** name);
+  
+  /*
+   *  Even more optional: Scan for available devices (will most likely call
+   *  check_device internally
+   */
+  
+  bg_device_info_t * (*find_devices)();
+    
   } bg_plugin_common_t;
 
 /*
@@ -165,6 +200,10 @@ typedef struct bg_input_callbacks_s
   
   void * data;
   } bg_input_callbacks_t;
+
+/*************************************************
+ * MEDIA INPUT
+ *************************************************/
 
 typedef struct bg_input_plugin_s
   {
@@ -261,7 +300,7 @@ typedef struct bg_input_plugin_s
   } bg_input_plugin_t;
 
 /*******************************************
- * Audio OUTPUT
+ * AUDIO OUTPUT
  *******************************************/
 
 typedef struct bg_oa_plugin_s
@@ -309,7 +348,7 @@ typedef struct bg_oa_plugin_s
   } bg_oa_plugin_t;
 
 /*******************************************
- * Audio Recorder
+ * AUDIO RECORDER
  *******************************************/
 
 typedef struct bg_ra_plugin_s

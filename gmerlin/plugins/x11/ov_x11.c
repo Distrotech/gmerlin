@@ -174,7 +174,6 @@ typedef struct
 
   int disable_xscreensaver_fullscreen;
   int disable_xscreensaver_normal;
-  gavl_time_t xscreensaver_time;
   } x11_t;
 
 static void create_parameters(x11_t * x11);	
@@ -700,9 +699,9 @@ static void set_drawing_coords(x11_t * priv)
   
   }
 
-static int open_x11(void * data,
-                    gavl_video_format_t * format,
-                    const char * window_title)
+static int _open_x11(void * data,
+                     gavl_video_format_t * format,
+                     const char * window_title, int still)
   {
   int still_running;
   x11_t * priv;
@@ -725,6 +724,20 @@ static int open_x11(void * data,
     close_x11(priv);
     }
 
+  /* Set screensaver options, but not in still image mode */
+
+  if(still)
+    {
+    priv->win.disable_xscreensaver_fullscreen = 0;
+    priv->win.disable_xscreensaver_normal     = 0;
+    }
+  else
+    {
+    priv->win.disable_xscreensaver_fullscreen = priv->disable_xscreensaver_fullscreen;
+    priv->win.disable_xscreensaver_normal     = priv->disable_xscreensaver_normal;
+    }
+
+  
   x11_window_set_title(&(priv->win), window_title);
   
   /* Decide colorspace */
@@ -879,6 +892,14 @@ static int open_x11(void * data,
     }
   
   return 1;
+  }
+
+
+static int open_x11(void * data,
+                    gavl_video_format_t * format,
+                    const char * window_title)
+  {
+  return _open_x11(data, format, window_title, 0);
   }
 
 static void close_x11(void * data)
@@ -1175,7 +1196,7 @@ static void put_still_x11(void * data, gavl_video_format_t * format,
   /* Initialize as if we displayed video */
 
   gavl_video_format_copy(&tmp_format, format);
-  open_x11(data, &tmp_format, "Video output");
+  _open_x11(data, &tmp_format, "Video output", 1);
   
   /* Create the output frame for the format */
 

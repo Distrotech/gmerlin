@@ -25,6 +25,8 @@
  *  animation/video playback programs should do.
  */
 
+#include <time.h>
+
 #include <config.h>
 
 #ifdef HAVE_LIBXINERAMA
@@ -37,11 +39,18 @@ typedef struct
 
   int min_width;
   int min_height;
-    
+
+  int disable_xscreensaver_normal;
+  int disable_xscreensaver_fullscreen;
+  
 #ifdef HAVE_LIBXINERAMA
   XineramaScreenInfo *xinerama;
   int                nxinerama;
 #endif
+
+  int xscreensaver_error;
+
+  time_t last_xscreensaver_time;
   
   long event_mask;
   int mapped;
