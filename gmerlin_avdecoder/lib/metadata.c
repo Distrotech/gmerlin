@@ -71,6 +71,29 @@ void bgav_metadata_merge(bgav_metadata_t * dst,
   MERGE_I(track);
   }
 
+#define MERGE2_S(s) \
+if((!dst->s) && (src->s)) dst->s=bgav_strndup(src->s,NULL)
+
+#define MERGE2_I(s) \
+if((!dst->s) && (src->s)) dst->s=src->s
+
+void bgav_metadata_merge2(bgav_metadata_t * dst,
+                          bgav_metadata_t * src)
+  {
+  MERGE2_S(author);
+  MERGE2_S(title);
+  MERGE2_S(comment);
+  MERGE2_S(copyright);
+  MERGE2_S(album);
+  MERGE2_S(artist);
+  MERGE2_S(date);
+  MERGE2_S(genre);
+
+  MERGE2_I(track);
+  }
+
+
+
 #define PS(label, str) if(str)fprintf(stderr, "%s%s\n", label, str);
 #define PI(label, i)   if(i)fprintf(stderr, "%s%d\n", label, i);
 
@@ -88,4 +111,49 @@ void bgav_metadata_dump(bgav_metadata_t*m)
   PI("Track:     ", m->track);
   PS("Date:      ", m->date);
   fprintf(stderr, "==== End Metadata ==\n");
+  }
+
+const char * bgav_metadata_get_author(const bgav_metadata_t*m)
+  {
+  return m->author;
+  }
+
+const char * bgav_metadata_get_title(const bgav_metadata_t*m)
+  {
+  return m->title;
+  }
+
+const char * bgav_metadata_get_comment(const bgav_metadata_t*m)
+  {
+  return m->comment;
+  }
+
+const char * bgav_metadata_get_copyright(const bgav_metadata_t*m)
+  {
+  return m->copyright;
+  }
+
+const char * bgav_metadata_get_album(const bgav_metadata_t*m)
+  {
+  return m->album;
+  }
+
+const char * bgav_metadata_get_artist(const bgav_metadata_t*m)
+  {
+  return m->artist;
+  }
+
+const char * bgav_metadata_get_genre(const bgav_metadata_t*m)
+  {
+  return m->genre;
+  }
+
+const char * bgav_metadata_get_date(const bgav_metadata_t*m)
+  {
+  return m->date;
+  }
+
+int bgav_metadata_get_track(const bgav_metadata_t*m)
+  {
+  return m->track;
   }

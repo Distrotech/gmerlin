@@ -26,6 +26,9 @@
 bgav_input_context_t * create_input(bgav_t * b)
   {
   bgav_input_context_t * ret;
+
+  fprintf(stderr, "CREATE INPUT %p\n", b->name_change_callback);
+  
   ret = calloc(1, sizeof(*ret));
 
   ret->http_use_proxy =            b->http_use_proxy;
@@ -40,11 +43,34 @@ bgav_input_context_t * create_input(bgav_t * b)
   ret->name_change_callback       = b->name_change_callback;
   ret->name_change_callback_data  = b->name_change_callback_data;
 
+  ret->metadata_change_callback       = b->metadata_change_callback;
+  ret->metadata_change_callback_data  = b->metadata_change_callback_data;
+
   ret->track_change_callback      = b->track_change_callback;
   ret->track_change_callback_data = b->track_change_callback_data;
 
   ret->buffer_callback            = b->buffer_callback;
   ret->buffer_callback_data       = b->buffer_callback_data;
+  
+  return ret;
+  }
+
+bgav_demuxer_context_t * create_demuxer(bgav_t * b, bgav_demuxer_t * demuxer)
+  {
+  bgav_demuxer_context_t * ret;
+
+  fprintf(stderr, "CREATE DEMUXER %p\n", b->name_change_callback);
+
+  ret = bgav_demuxer_create(demuxer, b->input);
+  
+  ret->name_change_callback       = b->name_change_callback;
+  ret->name_change_callback_data  = b->name_change_callback_data;
+  
+  ret->metadata_change_callback       = b->metadata_change_callback;
+  ret->metadata_change_callback_data  = b->metadata_change_callback_data;
+
+  ret->track_change_callback      = b->track_change_callback;
+  ret->track_change_callback_data = b->track_change_callback_data;
   
   return ret;
   }
@@ -85,9 +111,9 @@ int bgav_init(bgav_t * ret)
     
     if(demuxer)
       {
-      ret->demuxer = bgav_demuxer_create(demuxer,
-                                         ret->input);
-      bgav_demuxer_start(ret->demuxer, &(ret->redirector));
+      ret->demuxer = create_demuxer(ret, demuxer);
+      if(!bgav_demuxer_start(ret->demuxer, &(ret->redirector)))
+        goto fail;
       }
     else
       {
@@ -103,19 +129,20 @@ int bgav_init(bgav_t * ret)
       }
     if(!ret->demuxer)
       goto fail;
-
-    ret->tt = ret->demuxer->tt;
-    bgav_track_table_ref(ret->tt);
-    return 1;
     }
   else
     {
     ret->demuxer = ret->input->demuxer;
-    ret->tt = ret->demuxer->tt;
-    bgav_track_table_ref(ret->tt);
-    return 1;
     }
   
+  ret->tt = ret->demuxer->tt;
+  bgav_track_table_ref(ret->tt);
+
+  bgav_track_table_merge_metadata(ret->tt,
+                                  &(ret->input->metadata));
+  
+  return 1;
+    
   fail:
 
   if(!demuxer && !redirector)
@@ -151,12 +178,8 @@ int bgav_open(bgav_t * ret, const char * location)
   {
   ret->input = create_input(ret);
   if(!bgav_input_open(ret->input, location))
-    return 0;
+    goto fail;
   
-  if(!ret->input)
-    {
-    return 0;
-    }
   if(!bgav_init(ret))
     goto fail;
   return 1;
@@ -254,9 +277,7 @@ void bgav_start(bgav_t * b)
   {
   b->is_running = 1;
   /* Create buffers */
-
   //  fprintf(stderr, "bgav_start\n");
-
   bgav_input_buffer(b->input);
   bgav_track_start(b->tt->current_track, b->demuxer);
   }
@@ -266,53 +287,9 @@ int bgav_can_seek(bgav_t * b)
   return b->demuxer->can_seek;
   }
 
-#define GET(key) b->tt->tracks[track].metadata.key ? \
-b->tt->tracks[track].metadata.key : \
-b->input->metadata.key
-
-const char * bgav_get_author(bgav_t*b, int track)
+const bgav_metadata_t * bgav_get_metadata(bgav_t*b, int track)
   {
-  return GET(author);
-  }
-
-const char * bgav_get_title(bgav_t*b, int track)
-  {
-  return GET(title);
-  }
-
-const char * bgav_get_copyright(bgav_t*b, int track)
-  {
-  return GET(copyright);
-  }
-
-const char * bgav_get_comment(bgav_t*b, int track)
-  {
-  return GET(comment);
-  }
-
-char * bgav_get_album(bgav_t*b, int track)
-  {
-  return GET(album);
-  }
-
-char * bgav_get_artist(bgav_t*b, int track)
-  {
-  return GET(artist);
-  }
-
-char * bgav_get_genre(bgav_t*b, int track)
-  {
-  return GET(genre);
-  }
-
-char * bgav_get_date(bgav_t*b, int track)
-  {
-  return GET(date);
-  }
-
-int bgav_get_track(bgav_t*b, int track)
-  {
-  return GET(track);
+  return &(b->tt->tracks[track].metadata);
   }
 
 const char * bgav_get_description(bgav_t * b)
@@ -376,14 +353,41 @@ bgav_set_name_change_callback(bgav_t * b,
   {
   b->name_change_callback      = callback;
   b->name_change_callback_data = data;
-
+  fprintf(stderr, "bgav_set_name_change_callback\n");
+  
   if(b->input)
     {
     b->input->name_change_callback      = callback;
     b->input->name_change_callback_data = data;
     }
+  if(b->demuxer)
+    {
+    b->demuxer->name_change_callback      = callback;
+    b->demuxer->name_change_callback_data = data;
+    }
 
   }
+
+void
+bgav_set_metadata_change_callback(bgav_t * b,
+                                  void (callback)(void*data, const bgav_metadata_t*),
+                                  void * data)
+  {
+  b->metadata_change_callback      = callback;
+  b->metadata_change_callback_data = data;
+
+  if(b->input)
+    {
+    b->input->metadata_change_callback      = callback;
+    b->input->metadata_change_callback_data = data;
+    }
+  if(b->demuxer)
+    {
+    b->demuxer->metadata_change_callback      = callback;
+    b->demuxer->metadata_change_callback_data = data;
+    }
+  }
+
 
 void
 bgav_set_track_change_callback(bgav_t * b,
@@ -397,6 +401,11 @@ bgav_set_track_change_callback(bgav_t * b,
     {
     b->input->track_change_callback      = callback;
     b->input->track_change_callback_data = data;
+    }
+  if(b->demuxer)
+    {
+    b->demuxer->track_change_callback      = callback;
+    b->demuxer->track_change_callback_data = data;
     }
   }
 

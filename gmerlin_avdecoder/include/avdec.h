@@ -28,6 +28,9 @@
 
 typedef struct bgav_s bgav_t;
 
+/* Anonymous Metadata structure to ensure binary compatibility */
+typedef struct bgav_metadata_s bgav_metadata_t;
+
 /***************************************************
  * Housekeeping Functions
  ***************************************************/
@@ -68,6 +71,11 @@ void
 bgav_set_name_change_callback(bgav_t*,
                               void (callback)(void*data, const char * name),
                               void * data);
+
+void
+bgav_set_metadata_change_callback(bgav_t*,
+                                  void (callback)(void*data, const bgav_metadata_t * name),
+                                  void * data);
 
 void
 bgav_set_track_change_callback(bgav_t*,
@@ -145,22 +153,19 @@ const char * bgav_get_track_name(bgav_t *, int track);
 
 int bgav_can_seek(bgav_t *);
 
-/*
- *  Metadata: These will return NULL for the fields,
- *  which are not present in the stream
- */
 
-const char * bgav_get_author(bgav_t*, int track);
-const char * bgav_get_title(bgav_t*, int track);
-const char * bgav_get_copyright(bgav_t*, int track);
-const char * bgav_get_comment(bgav_t*, int track);
 
-char * bgav_get_album(bgav_t*, int track);
-char * bgav_get_artist(bgav_t*, int track);
-char * bgav_get_genre(bgav_t*, int track);
-char * bgav_get_date(bgav_t*, int track);
-int bgav_get_track(bgav_t*, int track);
+const char * bgav_metadata_get_author(const bgav_metadata_t*);
+const char * bgav_metadata_get_title(const bgav_metadata_t*);
+const char * bgav_metadata_get_comment(const bgav_metadata_t*);
+const char * bgav_metadata_get_copyright(const bgav_metadata_t*);
+const char * bgav_metadata_get_album(const bgav_metadata_t*);
+const char * bgav_metadata_get_artist(const bgav_metadata_t*);
+const char * bgav_metadata_get_genre(const bgav_metadata_t*);
+const char * bgav_metadata_get_date(const bgav_metadata_t*);
+int bgav_metadata_get_track(const bgav_metadata_t*);
 
+const bgav_metadata_t * bgav_get_metadata(bgav_t*,int track);
 
 void bgav_select_track(bgav_t *, int);
 

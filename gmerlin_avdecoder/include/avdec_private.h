@@ -45,9 +45,7 @@ typedef struct bgav_stream_s   bgav_stream_t;
 
 typedef struct bgav_packet_buffer_s   bgav_packet_buffer_t;
 
-/* Metadata structure */
-
-typedef struct
+struct bgav_metadata_s
   {
   char * author;
   char * title;
@@ -58,13 +56,16 @@ typedef struct
   char * genre;
   char * date;
   int track;
-  } bgav_metadata_t;
+  };
 
 void bgav_metadata_dump(bgav_metadata_t*m);
 
 void bgav_metadata_merge(bgav_metadata_t * dst,
                          bgav_metadata_t * src1,
                          bgav_metadata_t * src2);
+
+void bgav_metadata_merge2(bgav_metadata_t * dst,
+                          bgav_metadata_t * src);
 
 void bgav_metadata_free(bgav_metadata_t*);
 
@@ -344,6 +345,9 @@ void bgav_track_table_ref(bgav_track_table_t*);
 void bgav_track_table_select_track(bgav_track_table_t*,int);
 void bgav_track_table_dump(bgav_track_table_t*);
 
+void bgav_track_table_merge_metadata(bgav_track_table_t*,
+                                     bgav_metadata_t * m);
+
 /* Overloadable input module */
 
 struct bgav_input_s
@@ -398,7 +402,7 @@ struct bgav_input_context_s
      need to prebuffer data */
     
   int do_buffer;
-    
+  
   /* Configuration stuff is set here */
 
   int http_use_proxy;
@@ -414,6 +418,9 @@ struct bgav_input_context_s
   
   void (*name_change_callback)(void * data, const char * name);
   void * name_change_callback_data;
+
+  void (*metadata_change_callback)(void * data, const bgav_metadata_t * m);
+  void * metadata_change_callback_data;
 
   void (*track_change_callback)(void * data, int track);
   void * track_change_callback_data;
@@ -524,6 +531,15 @@ struct bgav_demuxer_context_s
   char * stream_description;
      
   int can_seek;
+
+  void (*name_change_callback)(void * data, const char * name);
+  void * name_change_callback_data;
+
+  void (*metadata_change_callback)(void * data, const bgav_metadata_t * m);
+  void * metadata_change_callback_data;
+
+  void (*track_change_callback)(void * data, int track);
+  void * track_change_callback_data;
   };
 
 /* demuxer.c */
@@ -620,6 +636,9 @@ struct bgav_s
 
   void (*name_change_callback)(void * data, const char * name);
   void * name_change_callback_data;
+
+  void (*metadata_change_callback)(void * data, const bgav_metadata_t * m);
+  void * metadata_change_callback_data;
   
   void (*track_change_callback)(void * data, int track);
   void * track_change_callback_data;
@@ -627,8 +646,7 @@ struct bgav_s
   void (*buffer_callback)(void * data, float percentage);
   void * buffer_callback_data;
   
-  
-
+  bgav_metadata_t metadata;
   };
 
 /* bgav.c */

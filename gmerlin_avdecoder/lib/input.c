@@ -48,6 +48,7 @@ int bgav_input_read_line(bgav_input_context_t* input,
     {
     if(!bgav_input_read_data(input, &c, 1))
       {
+      return 0;
       //      return pos;
       break;
       }
@@ -55,13 +56,14 @@ int bgav_input_read_line(bgav_input_context_t* input,
       break;
     else if(c != '\r')
       {
+      //      fprintf(stderr, "Read line %02x\n", c);
       add_char(buffer, buffer_alloc, pos, c);
       pos++;
       }
     }
   add_char(buffer, buffer_alloc, pos, 0);
   fprintf(stderr, "Read line: %s\n", *buffer);
-  return pos;
+  return 1;
   }
 
 int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
@@ -69,6 +71,18 @@ int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
   int bytes_to_copy = 0;
   int ret;
   int result;
+
+  if(ctx->total_bytes)
+    {
+    //    fprintf(stderr, "Total bytes: %lld, pos: %lld\n",
+    //            ctx->total_bytes, ctx->position);
+    if(ctx->position + len > ctx->total_bytes)
+      len = ctx->total_bytes - ctx->position;
+    if(!len)
+      return 0;
+    }
+
+  
   if(ctx->buffer_size)
     {
     if(len > ctx->buffer_size)
@@ -81,17 +95,11 @@ int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
       memmove(ctx->buffer, &(ctx->buffer[bytes_to_copy]),
               ctx->buffer_size - bytes_to_copy);
     ctx->buffer_size -= bytes_to_copy; 
-
-    if(ctx->do_buffer)
-      {
-      //      fprintf(stderr, "Do buffer %d %d\n",  ctx->buffer_alloc, ctx->buffer_size);
-      ctx->buffer_size += ctx->input->read_nonblock(ctx, ctx->buffer + ctx->buffer_size,
-                                                    ctx->buffer_alloc - ctx->buffer_size);
-      }
     }
   if(len > bytes_to_copy)
     {
-    result = ctx->input->read(ctx, &(buffer[bytes_to_copy]), len - bytes_to_copy);
+    result =
+      ctx->input->read(ctx, &(buffer[bytes_to_copy]), len - bytes_to_copy);
     if(result < 0)
       result = 0;
     ret = bytes_to_copy + result;
@@ -99,6 +107,14 @@ int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
   else
     ret = len;
   ctx->position += ret;
+
+  if(ctx->do_buffer)
+    {
+    //      fprintf(stderr, "Do buffer %d %d\n",  ctx->buffer_alloc, ctx->buffer_size);
+    ctx->buffer_size +=
+      ctx->input->read_nonblock(ctx, ctx->buffer + ctx->buffer_size,
+                                ctx->buffer_alloc - ctx->buffer_size);
+    }
   return ret;
   }
 

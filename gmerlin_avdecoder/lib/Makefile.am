@@ -7,7 +7,7 @@ noinst_HEADERS = pnm.h
 if HAVE_VORBIS
 vorbis_cflags = @VORBIS_CFLAGS@
 vorbis_libs =   @VORBIS_LIBS@
-vorbis_sources = audio_vorbis.c
+vorbis_sources = audio_vorbis.c demux_ogg.c
 else
 vorbis_cflags =
 vorbis_libs =

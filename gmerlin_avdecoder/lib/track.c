@@ -203,7 +203,7 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
 
     if(s->time == GAVL_TIME_UNDEFINED)
       {
-      fprintf(stderr, "Demuxer is buggy!\n");
+      fprintf(stderr, "Couldn't resync after seeking, maybe EOF\n");
       return GAVL_TIME_UNDEFINED;
       }
     s->position =
@@ -219,7 +219,7 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
 
     if(s->time == GAVL_TIME_UNDEFINED)
       {
-      fprintf(stderr, "Demuxer is buggy!\n");
+      fprintf(stderr, "Couldn't resync after seeking, maybe EOF\n");
       return GAVL_TIME_UNDEFINED;
       }
     s->position =

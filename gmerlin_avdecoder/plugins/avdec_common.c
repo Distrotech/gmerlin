@@ -26,6 +26,59 @@
 #include <avdec.h>
 #include "avdec_common.h"
 
+static void convert_metadata(bg_metadata_t * dst,
+                             const bgav_metadata_t * m)
+  {
+  const char * str;
+  
+  str = bgav_metadata_get_author(m);
+  if(str)
+    dst->author =
+      bg_strdup(dst->author, str);
+
+  str = bgav_metadata_get_artist(m);
+  if(str)
+    dst->artist =
+      bg_strdup(dst->artist, str);
+
+  str = bgav_metadata_get_artist(m);
+  if(str)
+    dst->artist =
+      bg_strdup(dst->artist, str);
+
+  str = bgav_metadata_get_album(m);
+  if(str)
+    dst->album =
+      bg_strdup(dst->album, str);
+
+  str = bgav_metadata_get_genre(m);
+  if(str)
+    dst->genre =
+      bg_strdup(dst->genre, str);
+    
+  str = bgav_metadata_get_title(m);
+  //    fprintf(stderr, "Title: %s\n", str);
+  if(str)
+    dst->title =
+      bg_strdup(dst->title, str);
+    
+  str = bgav_metadata_get_copyright(m);
+  if(str)
+    dst->copyright = bg_strdup(dst->copyright, str);
+    
+  str = bgav_metadata_get_comment(m);
+  if(str)
+    dst->comment = bg_strdup(dst->comment, str);
+
+  str = bgav_metadata_get_date(m);
+  if(str)
+    dst->date = bg_strdup(dst->date, str);
+
+  dst->track =
+    bgav_metadata_get_track(m);
+  
+  }
+
 void * bg_avdec_create()
   {
   avdec_priv * ret = calloc(1, sizeof(*ret));
@@ -132,22 +185,6 @@ void bg_avdec_start(void * priv)
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
   
-  if(avdec->bg_callbacks)
-    {
-    //    fprintf(stderr, "**** SET CALLBACKS *****\n");
-    
-    bgav_set_name_change_callback(avdec->dec,
-                                  avdec->bg_callbacks->name_changed,
-                                  avdec->bg_callbacks->data);
-    bgav_set_track_change_callback(avdec->dec,
-                                   avdec->bg_callbacks->track_changed,
-                                   avdec->bg_callbacks->data);
-    bgav_set_buffer_callback(avdec->dec,
-                             avdec->bg_callbacks->buffer_notify,
-                             avdec->bg_callbacks->data);
-    }
-
-
   bgav_start(avdec->dec);
   for(i = 0; i < avdec->current_track->num_video_streams; i++)
     {
@@ -182,7 +219,8 @@ void bg_avdec_seek(void * priv, gavl_time_t t)
 int bg_avdec_init(avdec_priv * avdec)
   {
   int i;
-  const char * str;
+  const bgav_metadata_t * m;
+  
   avdec->num_tracks = bgav_num_tracks(avdec->dec);
   avdec->track_info = calloc(avdec->num_tracks, sizeof(*(avdec->track_info)));
 
@@ -212,43 +250,8 @@ int bg_avdec_init(avdec_priv * avdec)
 
     /* Get metadata */
     
-    str = bgav_get_author(avdec->dec, i);
-    if(str)
-      avdec->track_info[i].metadata.author = bg_strdup(avdec->track_info[i].metadata.author, str);
-
-    str = bgav_get_artist(avdec->dec, i);
-    if(str)
-      avdec->track_info[i].metadata.artist = bg_strdup(avdec->track_info[i].metadata.artist, str);
-
-    str = bgav_get_artist(avdec->dec, i);
-    if(str)
-      avdec->track_info[i].metadata.artist = bg_strdup(avdec->track_info[i].metadata.artist, str);
-
-    str = bgav_get_album(avdec->dec, i);
-    if(str)
-      avdec->track_info[i].metadata.album = bg_strdup(avdec->track_info[i].metadata.album, str);
-
-    str = bgav_get_genre(avdec->dec, i);
-    if(str)
-      avdec->track_info[i].metadata.genre = bg_strdup(avdec->track_info[i].metadata.genre, str);
-    
-    str = bgav_get_title(avdec->dec, i);
-    //    fprintf(stderr, "Title: %s\n", str);
-    if(str)
-      avdec->track_info[i].metadata.title = bg_strdup(avdec->track_info[i].metadata.title, str);
-    
-    str = bgav_get_copyright(avdec->dec, i);
-    if(str)
-      avdec->track_info[i].metadata.copyright = bg_strdup(avdec->track_info[i].metadata.copyright, str);
-    
-    str = bgav_get_comment(avdec->dec, i);
-    if(str)
-      avdec->track_info[i].metadata.comment = bg_strdup(avdec->track_info[i].metadata.comment, str);
-
-    str = bgav_get_date(avdec->dec, i);
-    if(str)
-      avdec->track_info[i].metadata.date = bg_strdup(avdec->track_info[i].metadata.date, str);
-    avdec->track_info[i].metadata.track = bgav_get_track(avdec->dec, i);
+    m = bgav_get_metadata(avdec->dec, i);
+    convert_metadata(&(avdec->track_info[i].metadata), m);
     }
   return 1;
   }
@@ -326,11 +329,53 @@ int bg_avdec_get_num_tracks(void * p)
   return avdec->num_tracks;
   }
 
+#define COPY_STRING(dst,src) if(src)dst=bg_strdup(src);
+
+static void metadata_change_callback(void * priv,
+                                     const bgav_metadata_t * metadata)
+  {
+  avdec_priv * avdec;
+  avdec = (avdec_priv*)(priv);
+
+  bg_metadata_t m;
+
+  memset(&m, 0, sizeof(m));
+
+  convert_metadata(&m, metadata);
+
+  avdec->bg_callbacks->metadata_changed(avdec->bg_callbacks->data,
+                                        &m);
+  bg_metadata_free(&m);
+  }
+
 int bg_avdec_set_track(void * priv, int track)
   {
   const char * str;
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
+
+  if(avdec->bg_callbacks)
+    {
+    //    fprintf(stderr, "**** SET CALLBACKS *****\n");
+    
+    bgav_set_name_change_callback(avdec->dec,
+                                  avdec->bg_callbacks->name_changed,
+                                  avdec->bg_callbacks->data);
+    bgav_set_track_change_callback(avdec->dec,
+                                   avdec->bg_callbacks->track_changed,
+                                   avdec->bg_callbacks->data);
+    bgav_set_buffer_callback(avdec->dec,
+                             avdec->bg_callbacks->buffer_notify,
+                             avdec->bg_callbacks->data);
+    if(avdec->bg_callbacks->metadata_changed)
+      {
+      bgav_set_metadata_change_callback(avdec->dec,
+                                        metadata_change_callback,
+                                        priv);
+      }
+    }
+
+
   bgav_select_track(avdec->dec, track);
   avdec->current_track = &(avdec->track_info[track]);
   

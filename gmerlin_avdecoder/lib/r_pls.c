@@ -28,15 +28,23 @@ int probe_pls(bgav_input_context_t * input)
   uint8_t probe_data[10];
   
   if(input->mimetype &&
-     (!strcmp(input->mimetype, "audio/x-scpls") || !strcmp(input->mimetype, "audio/scpls")))
+     (!strcmp(input->mimetype, "audio/x-scpls") ||
+      !strcmp(input->mimetype, "audio/scpls")))
     return 1;
 
-  if(!bgav_input_get_data(input, probe_data, 10) < 10)
+  
+  if(bgav_input_get_data(input, probe_data, 10) < 10)
     return 0;
+  
   if(!strncasecmp(probe_data, "[playlist]", 10))
     return 1;
   return 0;
   }
+
+/*
+ *  This routine parses a .pls file.
+ *  We completely ignore all fields except File= and Title=
+ */
 
 int parse_pls(bgav_redirector_context_t * r)
   {
@@ -48,7 +56,7 @@ int parse_pls(bgav_redirector_context_t * r)
   if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc))
     return 0;
 
-  if(!strncasecmp(buffer, "[playlist]", 10))
+  if(strncasecmp(buffer, "[playlist]", 10))
     return 0;
 
   /* Get number of entries */
@@ -56,21 +64,18 @@ int parse_pls(bgav_redirector_context_t * r)
   while(1)
     {
     if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc))
-      return 0;
-    if(!strncasecmp(buffer, "numberofentries=", 16))
-      break;
-    }
-
-  r->num_urls = atoi(buffer+16);
-  r->urls = calloc(r->num_urls, sizeof(*(r->urls)));
-
-  while(1)
-    {
-    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc))
       break;
     if(!strncasecmp(buffer, "Title", 5))
       {
       index = atoi(buffer + 5);
+
+      if(index > r->num_urls)
+        {
+        r->urls = realloc(r->urls, index * sizeof(*(r->urls)));
+        memset(r->urls + r->num_urls, 0,
+               (index - r->num_urls) * sizeof(*(r->urls)));
+        r->num_urls = index;
+        }
       pos = strchr(buffer, '=');
       if(pos)
         {
@@ -81,6 +86,15 @@ int parse_pls(bgav_redirector_context_t * r)
     else if(!strncasecmp(buffer, "File", 4))
       {
       index = atoi(buffer + 4);
+      
+      if(index > r->num_urls)
+        {
+        r->urls = realloc(r->urls, index * sizeof(*(r->urls)));
+        memset(r->urls + r->num_urls, 0,
+               (index - r->num_urls) * sizeof(*(r->urls)));
+        r->num_urls = index;
+        }
+
       pos = strchr(buffer, '=');
       if(pos)
         {

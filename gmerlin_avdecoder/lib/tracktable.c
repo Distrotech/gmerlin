@@ -66,3 +66,13 @@ void bgav_track_table_select_track(bgav_track_table_t * t, int track)
 void bgav_track_table_dump(bgav_track_table_t * t)
   {
   }
+
+void bgav_track_table_merge_metadata(bgav_track_table_t*t,
+                                     bgav_metadata_t * m)
+  {
+  int i;
+  for(i = 0; i < t->num_tracks; i++)
+    {
+    bgav_metadata_merge2(&(t->tracks[i].metadata), m);
+    }
+  }

@@ -33,6 +33,10 @@ extern bgav_demuxer_t bgav_demuxer_ra;
 extern bgav_demuxer_t bgav_demuxer_mpegaudio;
 extern bgav_demuxer_t bgav_demuxer_mpegps;
 
+#ifdef HAVE_VORBIS
+extern bgav_demuxer_t bgav_demuxer_ogg;
+#endif
+
 static struct
   {
   bgav_demuxer_t * demuxer;
@@ -50,6 +54,9 @@ demuxers[] =
     { &bgav_demuxer_ra, "Real Audio" },
     { &bgav_demuxer_mpegaudio, "Mpeg Audio" },
     { &bgav_demuxer_mpegps, "Mpeg System" },
+#ifdef HAVE_VORBIS
+    { &bgav_demuxer_ogg, "Ogg Bitstream" },
+#endif
   };
 
 static struct
@@ -180,6 +187,10 @@ bgav_seek(bgav_t * b, gavl_time_t time)
     b->demuxer->demuxer->seek(b->demuxer, seek_time);
    
     sync_time = bgav_track_resync_decoders(track);
+
+    if(sync_time == GAVL_TIME_UNDEFINED)
+      return;
+    
     diff_time = time - sync_time;
     fprintf(stderr, "Seeked, time: %f sync_time: %f, diff: %f\n",
             gavl_time_to_seconds(time),
