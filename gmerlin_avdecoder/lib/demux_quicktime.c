@@ -637,7 +637,7 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
                      priv->mdat_start);
   //  fprintf(stderr, "Start offset: %lld\n", ctx->input->position);
 
-  ctx->stream_description = bgav_sprintf("Quicktime format");
+  ctx->stream_description = bgav_sprintf("Quicktime/mp4/m4a format");
   
   return 1;
   }
