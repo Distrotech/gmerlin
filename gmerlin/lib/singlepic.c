@@ -411,7 +411,7 @@ static bg_input_plugin_t input_plugin =
       extensions:     NULL, /* Filled in later */
       type:           BG_PLUGIN_INPUT,
       flags:          BG_PLUGIN_FILE,
-      priority:       5,
+      priority:       BG_PLUGIN_PRIORITY_MAX,
       create:         NULL,
       destroy:        destroy_input,
       get_parameters: get_parameters_input,
@@ -790,7 +790,7 @@ bg_encoder_plugin_t encoder_plugin =
       extensions:     NULL, /* Filled in later */
       type:           BG_PLUGIN_ENCODER_VIDEO,
       flags:          BG_PLUGIN_FILE,
-      priority:       5,
+      priority:       BG_PLUGIN_PRIORITY_MAX,
       create:         NULL,
       destroy:        destroy_encoder,
       get_parameters: get_parameters_encoder,

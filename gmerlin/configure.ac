@@ -391,7 +391,7 @@ OLD_LIBS=$LIBS
 CFLAGS=""
 LIBS=""
 
-AC_CHECK_LIB(tiff,TIFFClientOpen, , have_libtiff="false")
+AC_CHECK_LIB(tiff, TIFFReadRGBAImageOriented, , have_libtiff="false")
 
 case $have_libtiff in
   "true") AC_DEFINE(HAVE_LIBTIFF)

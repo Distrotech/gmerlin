@@ -273,7 +273,7 @@ static int check_plugin_version(void * handle)
   if(!get_plugin_api_version)
     return 0;
 
-  if(get_plugin_api_version() != PLUGIN_API_VERSION)
+  if(get_plugin_api_version() != BG_PLUGIN_API_VERSION)
     return 0;
   return 1;
   }

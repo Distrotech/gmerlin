@@ -676,7 +676,7 @@ bg_encoder_plugin_t the_plugin =
       extensions:        "wav",
       type:              BG_PLUGIN_ENCODER_AUDIO,
       flags:             BG_PLUGIN_FILE,
-      priority:          5,
+      priority:          BG_PLUGIN_PRIORITY_MAX,
       create:            create_wav,
       destroy:           destroy_wav,
       get_error:         get_error_wav,
@@ -704,4 +704,4 @@ bg_encoder_plugin_t the_plugin =
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
-API_VERSION;
+BG_GET_PLUGIN_API_VERSION;

@@ -190,7 +190,7 @@ bg_image_reader_plugin_t the_plugin =
       extensions:    "tga",
       type:          BG_PLUGIN_IMAGE_READER,
       flags:         BG_PLUGIN_FILE,
-      priority:      10,
+      priority:      BG_PLUGIN_PRIORITY_MAX,
       create:        create_tga,
       destroy:       destroy_tga,
     },
@@ -200,4 +200,4 @@ bg_image_reader_plugin_t the_plugin =
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
-API_VERSION;
+BG_GET_PLUGIN_API_VERSION;

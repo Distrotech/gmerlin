@@ -24,13 +24,13 @@
 #include "parameter.h"
 #include "streaminfo.h"
 
-#define PLUGIN_API_VERSION 1
+#define BG_PLUGIN_API_VERSION 1
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
 
-#define API_VERSION \
-  extern int get_plugin_api_version() { return PLUGIN_API_VERSION; }
+#define BG_GET_PLUGIN_API_VERSION \
+  extern int get_plugin_api_version() { return BG_PLUGIN_API_VERSION; }
 
 #define BG_PLUGIN_PRIORITY_MIN 1
 #define BG_PLUGIN_PRIORITY_MAX 10

@@ -1637,7 +1637,7 @@ bg_ov_plugin_t the_plugin =
       long_name:     "X11 display driver",
       type:          BG_PLUGIN_OUTPUT_VIDEO,
       flags:         BG_PLUGIN_PLAYBACK,
-      priority:      10,
+      priority:      BG_PLUGIN_PRIORITY_MAX,
       mimetypes:     (char*)0,
       extensions:    (char*)0,
       create:        create_x11,
@@ -1660,4 +1660,4 @@ bg_ov_plugin_t the_plugin =
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
-API_VERSION;
+BG_GET_PLUGIN_API_VERSION;
