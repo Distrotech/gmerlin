@@ -86,6 +86,22 @@ codec_info_t codec_infos[] =
       guid:        { 0x4009f700, 0xaeba, 0x11d1,
                      { 0x83, 0x44, 0x00, 0xc0, 0x4f, 0xb9, 0x2e, 0xb7 } }
     },
+    {
+      name:        "msgsm ACM decoder",
+      format_name: "msgsm",
+      fourccs:     (int[]){ BGAV_WAVID_2_FOURCC(0x0031), 0x00 },
+      dll_name:    "msgsm32.acm",
+      type:        CODEC_STD,
+    },
+    {
+      name:        "Vivo G.723/Siren Audio Codec",
+      format_name: "Vivo G.723/Siren",
+      fourccs:     (int[]){ BGAV_WAVID_2_FOURCC(0x0111),
+                            BGAV_WAVID_2_FOURCC(0x0112),
+                            0x00 },
+      dll_name:    "vivog723.acm",
+      type:        CODEC_STD,
+    },
   };
 
 #define MAX_CODECS (sizeof(codec_infos)/sizeof(codec_infos[0]))
@@ -113,9 +129,10 @@ typedef struct
   {
   gavl_audio_frame_t * frame;
   ldt_fs_t           * ldt_fs;
-  DS_AudioDecoder    * ds_dec;
-  DMO_AudioDecoder   * dmo_dec;
-
+  DS_AudioDecoder    * ds_dec;  /* DirectShow */
+  DMO_AudioDecoder   * dmo_dec; /* DMO */
+  HACMSTREAM         acmstream;
+  
   int bytes_per_sample;
   
   int src_size;
@@ -191,7 +208,6 @@ static void buffer_done(win32_priv_t * priv, int bytes)
   priv->buffer_size -= bytes;
   }
 
-
 static int decode_frame_DS(bgav_stream_t * s)
   {
   int result;
@@ -233,8 +249,64 @@ static int decode_frame_DS(bgav_stream_t * s)
   return priv->last_frame_size;
   }
 
+static int decode_frame_std(bgav_stream_t * s)
+  {
+  win32_priv_t * priv;
+  ACMSTREAMHEADER ash;
+  HRESULT hr = 0;
+  priv = (win32_priv_t*)(s->data.audio.decoder->priv);
+
+  /* Get new data */
+
+  while(priv->buffer_size < priv->src_size)
+    if(!get_data(s))
+      return 0;
+
+  /* Decode gthis stuff */
+    
+  memset(&ash, 0, sizeof(ash));
+  ash.cbStruct=sizeof(ash);
+  ash.fdwStatus=0;
+  ash.dwUser=0; 
+  ash.pbSrc=priv->buffer;
+  ash.cbSrcLength=priv->src_size;
+  ash.pbDst=priv->frame->samples.s_8;
+  ash.cbDstLength=priv->dst_size;
+
+    
+  hr=acmStreamPrepareHeader(priv->acmstream,&ash,0);
+  if(hr)
+    {
+    fprintf(stderr, "(ACM_Decoder) acmStreamPrepareHeader failed %d\n",(int)hr);
+    return 0;
+    }
+
+  hr=acmStreamConvert(priv->acmstream,&ash,0);
+  if(hr)
+    {
+    fprintf(stderr, "(ACM_Decoder) acmStreamConvert failed %d\n",(int)hr);
+    return 0;
+    }
+
+  if(ash.cbSrcLengthUsed)
+    buffer_done(priv, ash.cbSrcLengthUsed);
+  priv->frame->valid_samples = ash.cbDstLengthUsed /
+    (s->data.audio.format.num_channels*priv->bytes_per_sample);
+  priv->last_frame_size = priv->frame->valid_samples;
+
+  hr=acmStreamUnprepareHeader(priv->acmstream,&ash,0);
+  if(hr)
+    {
+    fprintf(stderr, "(ACM_Decoder) acmStreamUnprepareHeader failed %d\n",(int)hr);
+    }
+  
+  return priv->last_frame_size;
+  }
+
 static int init_w32(bgav_stream_t * s)
   {
+  int result;
+  unsigned long out_size;
   int codec_index;
   codec_info_t * info;
   win32_priv_t * priv = NULL;
@@ -302,6 +374,32 @@ static int init_w32(bgav_stream_t * s)
   switch(info->type)
     {
     case CODEC_STD:
+      MSACM_RegisterDriver(info->dll_name, in_format->wFormatTag, 0);
+      result=acmStreamOpen(&(priv->acmstream),(HACMDRIVER)NULL,
+                           in_format,
+                           &out_format,
+                           NULL,0,0,0);
+      if(result)
+        {
+        if(result == ACMERR_NOTPOSSIBLE)
+          fprintf(stderr, "(ACM_Decoder) Unappropriate audio format\n");
+        else
+          fprintf(stderr, "(ACM_Decoder) acmStreamOpen error %d\n", result);
+        priv->acmstream = 0;
+        return 0;
+        }
+      acmStreamSize(priv->acmstream, s->data.audio.block_align,
+                    &out_size, ACM_STREAMSIZEF_SOURCE);    
+#if 0
+      fprintf(stderr, "Opened ACM decoder, in_size: %d, out_size: %ld\n",
+              s->data.audio.block_align, out_size);
+#endif
+      s->data.audio.format.samples_per_frame =
+        out_size / (s->data.audio.format.num_channels * 2);
+      priv->bytes_per_sample = gavl_bytes_per_sample(s->data.audio.format.sample_format);
+      priv->src_size = s->data.audio.block_align;
+      priv->dst_size = out_size;
+      priv->decode_frame = decode_frame_std;
       break;
     case CODEC_DS:
       s->data.audio.format.samples_per_frame = SAMPLES_PER_FRAME;
@@ -427,8 +525,12 @@ static void close_w32(bgav_stream_t * s)
   if(priv->ds_dec)
     DS_AudioDecoder_Destroy(priv->ds_dec);
 
+  if(priv->acmstream )
+    acmStreamClose(priv->acmstream, 0);
+  
   if(priv->ldt_fs)
     Restore_LDT_Keeper(priv->ldt_fs);
+  
   
   free(priv);
   }

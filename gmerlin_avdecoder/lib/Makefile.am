@@ -180,6 +180,7 @@ demux_mpegps.c \
 demux_quicktime.c \
 demux_ra.c \
 demux_rm.c \
+demux_vivo.c \
 demux_wav.c \
 device.c \
 http.c \
