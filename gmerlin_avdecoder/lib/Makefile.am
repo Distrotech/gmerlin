@@ -129,7 +129,6 @@ $(flac_libs) \
 $(mad_libs) \
 $(a52_libs) \
 $(avcodec_libs) \
-real_rtsp/librealrtsp.la \
 -lm
 
 AM_CFLAGS = \
