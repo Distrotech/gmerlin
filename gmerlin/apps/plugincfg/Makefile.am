@@ -1,7 +1,4 @@
-CFLAGS = @CFLAGS@ @GTK_CFLAGS@
-LIBS = @LIBS@
-
-LDFLAGS = -export-dynamic
+AM_CFLAGS = @GTK_CFLAGS@
 
 bin_PROGRAMS = gmerlin_plugincfg
 

@@ -1,7 +1,6 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
-CFLAGS = @CFLAGS@ @ESD_CFLAGS@
-LIBS = @LIBS@ @ESD_LIBS@
+AM_CFLAGS = @ESD_CFLAGS@
 
 lib_LTLIBRARIES = oa_esd.la i_esd.la
 
@@ -11,4 +10,6 @@ i_esd_la_SOURCES  = i_esd.c
 oa_esd_la_LDFLAGS = -avoid-version -module
 i_esd_la_LDFLAGS  = -avoid-version -module
 
+oa_esd_la_LIBADD = @ESD_LIBS@
+i_esd_la_LIBADD = @ESD_LIBS@
 

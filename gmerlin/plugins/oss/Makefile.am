@@ -1,8 +1,5 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
-CFLAGS = @CFLAGS@
-LIBS = @LIBS@
-
 lib_LTLIBRARIES = oa_oss.la i_oss.la
 
 oa_oss_la_SOURCES = oa_oss.c oss_common.c

@@ -6,7 +6,7 @@ endif
 
 SUBDIRS = $(gtk_subdirs)
 
-CFLAGS = @CFLAGS@ -I@top_srcdir@/gavl/include @XML2_CFLAGS@
+AM_CFLAGS = -I@top_srcdir@/gavl/include @XML2_CFLAGS@
 
 lib_LTLIBRARIES = libgmerlin.la
 libgmerlin_la_SOURCES = \

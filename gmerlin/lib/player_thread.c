@@ -264,7 +264,6 @@ static void play_cmd(bg_player_t * p,
     }
   else if(had_video)
     bg_player_ov_standby(p->ov_context);
-
   
   /* Count the threads */
 

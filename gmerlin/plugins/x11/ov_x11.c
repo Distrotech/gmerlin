@@ -176,7 +176,7 @@ static gavl_colorspace_t get_x11_colorspace(Display * d)
 
   if(visual->class != TrueColor)
     {
-    fprintf(stderr, "No True Color Visual\n");
+    //    fprintf(stderr, "No True Color Visual\n");
     return ret;
     }
 
@@ -283,7 +283,8 @@ static void make_fullscreen_window(x11_t * x11, Window win)
                                                                                
   /* Stuff for making the cursor */
   XColor black, dummy;
-
+  unsigned char * hints_c;
+  
   /*
    *   Set the decorations (via Mwm hints)
    *   This is taken from the sources of gdk-1.2.8
@@ -292,11 +293,13 @@ static void make_fullscreen_window(x11_t * x11, Window win)
   if (!x11->hints_atom)
     x11->hints_atom = XInternAtom (x11->dpy,
                                    _XA_MOTIF_WM_HINTS, False);
-
+  
   XGetWindowProperty(x11->dpy, win,
                      x11->hints_atom, 0, sizeof (MotifWmHints)/sizeof (long),
                      False, AnyPropertyType, &type, &format, &nitems,
-                     &bytes_after, (unsigned char **)&hints);
+                     &bytes_after, &hints_c);
+
+  hints = (MotifWmHints *)hints_c;
 
   if(type == None)
     hints = &fullscreen_hints;
@@ -637,8 +640,8 @@ alloc_frame_ximage(x11_t * priv)
   Visual * visual;
   int depth;
   gavl_video_format_t video_format;
-  gavl_video_frame_t * ret;
   x11_frame_t * x11_frame;
+  gavl_video_frame_t * ret = (gavl_video_frame_t*)0;
 
   x11_frame = calloc(1, sizeof(*x11_frame));
   
@@ -962,7 +965,8 @@ static int open_x11(void * data,
       else if(priv->format.pixel_height > priv->format.pixel_width)
         {
         window_height =
-          (priv->format.image_height * priv->format.pixel_height) / priv->format.pixel_width;
+          (priv->format.image_height * priv->format.pixel_height) /
+          priv->format.pixel_width;
         window_width = priv->format.image_width;
         }
       else
@@ -1148,16 +1152,18 @@ static int handle_event(x11_t * priv, XEvent * evt)
         }
       break;
     case ConfigureNotify:
-      if(((priv->window_width != evt->xconfigure.width) ||
-          (priv->window_height != evt->xconfigure.height)) &&
-         (priv->current_window == priv->normal_window))
+      if(priv->current_window != priv->normal_window)
+        return 0;
+
+      if((priv->window_width != evt->xconfigure.width) ||
+         (priv->window_height != evt->xconfigure.height))
         {
         priv->window_width  = evt->xconfigure.width;
         priv->window_height = evt->xconfigure.height;
-        XClearArea(priv->dpy, evt->xconfigure.window, 0, 0,
-                   priv->window_width, priv->window_height, True);
-        set_drawing_coords(priv);
         }
+      set_drawing_coords(priv);
+      //      XClearArea(priv->dpy, evt->xconfigure.window, 0, 0,
+      //                 priv->window_width, priv->window_height, True);
       break;
     }
   return 0;
@@ -1196,6 +1202,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
     {
     if(priv->have_shm)
       {
+      //      fprintf(stderr, "Write frame x11 %d %d\n", priv->dst_w, priv->dst_h);
       XvShmPutImage(priv->dpy,
                     priv->xv_port,
                     priv->current_window,
@@ -1464,7 +1471,7 @@ get_parameters_x11(void * priv)
                              &(common_parameters[i]));
       index++;
       }
-    fprintf(stderr, "num_xv_parameters: %d\n", num_xv_parameters);
+    //    fprintf(stderr, "num_xv_parameters: %d\n", num_xv_parameters);
     if(num_xv_parameters)
       {
       get_xv_parameters(x11, &(x11->parameters[index]));

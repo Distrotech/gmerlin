@@ -159,6 +159,10 @@ AC_DEFINE_UNQUOTED(GMERLIN_PLUGIN_DIR, "$GMERLIN_PLUGIN_DIR", Directory for plug
 AC_SUBST(GMERLIN_DATA_DIR)
 AC_SUBST(GMERLIN_PLUGIN_DIR)
 
+INCLUDES='-I$(top_builddir)/include'
+AC_SUBST(INCLUDES)
+
+
 dnl Configuration Subdirectiories
 
 dnl AC_CONFIG_SUBDIRS(src/mad src/liba52 src/mpeg2dec)

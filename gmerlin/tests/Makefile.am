@@ -1,16 +1,21 @@
-CFLAGS = @CFLAGS@ -I@top_srcdir@/gavl/include @GTK_CFLAGS@
+AM_CFLAGS = -I@top_srcdir@/gavl/include @GTK_CFLAGS@
 
-LDFLAGS = -export-dynamic
+
+if HAVE_GTK
+gtk_programs = cfgtest \
+playtree \
+question \
+scrolltext
+else
+gtk_programs =
+endif
 
 noinst_PROGRAMS = audioplayer1 \
 videoplayer1 \
-cfgtest \
-playtree \
 msgtest \
-question \
 server \
 client \
-scrolltext
+$(gtk_programs)
 
 bin_PROGRAMS = gmerlin_player
 
@@ -23,8 +28,7 @@ msgtest_SOURCES = msgtest.c
 msgtest_LDADD = ../lib/libgmerlin.la -ldl
 
 gmerlin_player_SOURCES = player1.c
-
-gmerlin_player_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la -ldl
+gmerlin_player_LDADD = ../lib/libgmerlin.la -ldl
 
 videoplayer1_SOURCES = videoplayer1.c
 videoplayer1_LDADD = ../lib/libgmerlin.la -ldl

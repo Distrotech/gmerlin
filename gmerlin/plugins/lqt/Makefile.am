@@ -1,7 +1,6 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
-CFLAGS = @CFLAGS@ @LQT_CFLAGS@
-LIBS = @LIBS@ @LQT_LIBS@
+AM_CFLAGS = @LQT_CFLAGS@
 
 lib_LTLIBRARIES = e_lqt.la i_lqt.la
 
@@ -10,5 +9,9 @@ i_lqt_la_SOURCES  = i_lqt.c lqt_common.c
 
 e_lqt_la_LDFLAGS = -avoid-version -module
 i_lqt_la_LDFLAGS  = -avoid-version -module
+
+e_lqt_la_LIBADD = @LQT_LIBS@
+i_lqt_la_LIBADD = @LQT_LIBS@
+
 
 noinst_HEADERS = lqt_common.h

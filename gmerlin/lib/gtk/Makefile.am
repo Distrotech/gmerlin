@@ -1,4 +1,4 @@
-CFLAGS = @CFLAGS@ -I/@top_srcdir@/include -I@top_srcdir@/gavl/include -DGTK_DISABLE_DEPRECATED @XML2_CFLAGS@ @GTK_CFLAGS@
+AM_CFLAGS = -DGTK_DISABLE_DEPRECATED @XML2_CFLAGS@ @GTK_CFLAGS@
 
 lib_LTLIBRARIES = libgmerlin_gtk.la
 noinst_HEADERS = gtk_dialog.h
