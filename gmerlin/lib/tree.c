@@ -1168,11 +1168,12 @@ void bg_media_tree_rename_album(bg_media_tree_t * t,
     }
   }
 
-/* Add an entire directory */
-
-void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
-                                 const char * directory,
-                                 int recursive, const char * plugin)
+static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
+                          const char * directory,
+                          int recursive,
+                          int subdirs_to_subalbums,
+                          const char * plugin,
+                          int depth)
   {
   char * tmp_string;
   DIR * dir;
@@ -1189,21 +1190,28 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
   struct stat stat_buf;
   char * urls[2];
   bg_album_t * a;
-    
-  a = bg_media_tree_append_album(t, parent);
 
+  if(subdirs_to_subalbums || !depth)
+    a = bg_media_tree_append_album(t, parent);
+  else
+    a = parent;
+    
   if(parent)
     bg_album_set_expanded(parent, 1);
   
   bg_album_open(a);
   bg_album_set_expanded(a, 1);
-  
-  pos1 = strrchr(directory, '/');
-  pos1++;
 
-  tmp_string = bg_system_to_utf8(pos1, -1);
-  bg_media_tree_rename_album(t, a, tmp_string);
-  free(tmp_string);
+
+  if(subdirs_to_subalbums || !depth)
+    {
+    pos1 = strrchr(directory, '/');
+    pos1++;
+    
+    tmp_string = bg_system_to_utf8(pos1, -1);
+    bg_media_tree_rename_album(t, a, tmp_string);
+    free(tmp_string);
+    }
   
   /* Scan for regular files and directories */
   
@@ -1234,8 +1242,8 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
     /* Add directory as subalbum */
     if(recursive && S_ISDIR(stat_buf.st_mode))
       {
-      bg_media_tree_add_directory(t, a, filename,
-                                  recursive, plugin);
+      add_directory(t, a, filename, recursive, subdirs_to_subalbums,
+                    plugin, depth + 1);
       }
     else if(S_ISREG(stat_buf.st_mode))
       {
@@ -1252,6 +1260,21 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
 
   if(t->change_callback)
     t->change_callback(t, t->change_callback_data);
+  
+  }
+
+
+/* Add an entire directory */
+
+void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
+                                 const char * directory,
+                                 int recursive,
+                                 int subdirs_to_subalbums,
+                                 const char * plugin)
+  {
+  add_directory(t, parent, directory, recursive, subdirs_to_subalbums,
+                plugin, 0);
+
   }
 
 static int albums_have_file(bg_album_t * album, const char * filename)

@@ -268,7 +268,9 @@ bg_album_t * bg_media_tree_get_current_album(bg_media_tree_t *);
 
 void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
                                  const char * directory,
-                                 int recursive, const char * plugin);
+                                 int recursive,
+                                 int subdirs_to_subalbums,
+                                 const char * plugin);
 
 /* Gets a root album */
 

@@ -773,6 +773,7 @@ static void rename_current_album(bg_gtk_tree_widget_t * w)
   }
 
 static void add_dir_callback(char * dir, int recursive,
+                             int subdirs_as_subalbums,
                              const char * plugin,
                              void * data)
   {
@@ -781,7 +782,7 @@ static void add_dir_callback(char * dir, int recursive,
   gtk_widget_set_sensitive(w->treeview, 0);
   bg_media_tree_add_directory(w->tree, w->current_album,
                               dir,
-                              recursive, plugin);
+                              recursive, subdirs_as_subalbums, plugin);
   gtk_widget_set_sensitive(w->treeview, 1);
   }
 

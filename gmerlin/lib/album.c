@@ -399,11 +399,13 @@ int bg_album_open(bg_album_t * a)
   {
   char * tmp_filename;
   FILE * testfile;
-  
-  
+   
   if(a->open_count)
+    {
+    a->open_count++;
     return 1;
-
+    }
+  
   //  fprintf(stderr, "Open album\n");
   
   a->cfg_section = bg_cfg_section_create((char*)0);

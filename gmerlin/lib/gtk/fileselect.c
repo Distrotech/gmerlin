@@ -39,7 +39,8 @@ struct bg_gtk_filesel_s
   bg_gtk_plugin_menu_t * plugins;
   void (*add_files)(char ** files, const char * plugin,
                     void * data);
-  void (*add_dir)(char * dir, int recursive, const char * plugin,
+
+  void (*add_dir)(char * dir, int recursive, int subdirs_as_subalbums, const char * plugin,
                   void * data);
     
   void (*close_notify)(bg_gtk_filesel_t * f, void * data);
@@ -52,6 +53,7 @@ struct bg_gtk_filesel_s
   int unsensitive;
 
   GtkWidget * recursive;
+  GtkWidget * subdirs_as_subalbums;
   };
 
 static void add_files(bg_gtk_filesel_t * f)
@@ -89,6 +91,7 @@ static void add_dir(bg_gtk_filesel_t * f)
   gtk_widget_set_sensitive(f->filesel, 0);
   f->add_dir(tmp,
              gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(f->recursive)),
+             gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(f->subdirs_as_subalbums)),
              plugin,
              f->callback_data);
   gtk_widget_set_sensitive(f->filesel, 1);
@@ -145,7 +148,8 @@ static bg_gtk_filesel_t *
 filesel_create(const char * title,
                void (*add_files)(char ** files, const char * plugin,
                                  void * data),
-               void (*add_dir)(char * dir, int recursive, const char * plugin,
+               void (*add_dir)(char * dir, int recursive, int subdirs_as_subalbums,
+                               const char * plugin,
                                void * data),
                void (*close_notify)(bg_gtk_filesel_t *,
                                     void * data),
@@ -179,15 +183,23 @@ filesel_create(const char * title,
     {
     gtk_widget_set_sensitive(GTK_FILE_SELECTION(ret->filesel)->file_list, 0);
 
-    ret->recursive = gtk_check_button_new_with_label("Recursive");
+    ret->recursive =
+      gtk_check_button_new_with_label("Recursive");
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ret->recursive), 1);
-    
+
     gtk_widget_show(ret->recursive);
-    
     gtk_box_pack_start_defaults(GTK_BOX(GTK_DIALOG(ret->filesel)->vbox),
                                 ret->recursive);
-    }
+    
+    ret->subdirs_as_subalbums =
+      gtk_check_button_new_with_label("Add subdirectories as subalbums");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ret->subdirs_as_subalbums), 1);
 
+    gtk_widget_show(ret->subdirs_as_subalbums);
+    gtk_box_pack_start_defaults(GTK_BOX(GTK_DIALOG(ret->filesel)->vbox),
+                                ret->subdirs_as_subalbums);
+    }
+  
   /* Create plugin menu */
     
   if(plugins)
@@ -245,7 +257,8 @@ bg_gtk_filesel_create(const char * title,
 
 bg_gtk_filesel_t *
 bg_gtk_dirsel_create(const char * title,
-                     void (*add_dir)(char * dir, int recursive, const char * plugin,
+                     void (*add_dir)(char * dir, int recursive, int subdirs_as_subalbums,
+                                     const char * plugin,
                                      void * data),
                      void (*close_notify)(bg_gtk_filesel_t *,
                                           void * data),

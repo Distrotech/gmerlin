@@ -532,27 +532,6 @@ typedef struct
     
   } encoder_t;
 
-#if 0
-bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg)
-  {
-  bg_plugin_info_t * ret;
-  
-  if(!bg_plugin_registry_get_num_plugins(reg, BG_PLUGIN_IMAGE_WRITER,
-                                         BG_PLUGIN_FILE))
-    {
-    fprintf(stderr, "No singlepicture encoding possible\n");
-    return (bg_plugin_info_t *)0;
-    }
-  ret = calloc(1, sizeof(*ret));
-  
-  ret->name = bg_strdup(ret->name, bg_singlepic_input_name);
-  ret->long_name = "Single picture encoder";
-  ret->extensions = get_extensions(reg, BG_PLUGIN_IMAGE_WRITER,
-                                   BG_PLUGIN_FILE);
-  return ret;
-  }
-#endif
-
 static bg_parameter_info_t * get_parameters_encoder(void * priv)
   {
   int i;
@@ -573,16 +552,6 @@ static bg_parameter_info_t * get_parameters_encoder(void * priv)
     }
   return enc->parameters;
   }
-
-#if 0
-void * bg_singlepic_encoder_create(bg_plugin_registry_t * reg)
-  {
-  encoder_t * ret;
-  ret = calloc(1, sizeof(*ret));
-  ret->reg = reg;
-  return ret;
-  }
-#endif
 
 static void set_parameter_encoder(void * priv, char * name, 
                                   bg_parameter_value_t * val)
@@ -840,10 +809,10 @@ bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg)
   ret->long_name = bg_strdup(ret->long_name, encoder_plugin.common.long_name);
   ret->extensions = get_extensions(reg, BG_PLUGIN_IMAGE_READER,
                                    BG_PLUGIN_FILE);
-  ret->type  =  encoder_plugin.common.type;
-  ret->flags =  encoder_plugin.common.flags;
-  
-  
+  ret->type     = encoder_plugin.common.type;
+  ret->flags    = encoder_plugin.common.flags;
+  ret->priority = encoder_plugin.common.priority;
+   
   return ret;
   }
 
