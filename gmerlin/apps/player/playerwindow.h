@@ -96,6 +96,7 @@ typedef struct player_window_s
   float volume;
 
   GtkTooltips * tooltips;
+  
   } player_window_t;
 
 player_window_t * player_window_create(gmerlin_t*);

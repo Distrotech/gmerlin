@@ -11,26 +11,26 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
   char * locations[2];
     
   id = bg_msg_get_id(msg);
-  fprintf(stderr, "Got message %d\n", id);
+  //  fprintf(stderr, "Got message %d\n", id);
   switch(id)
     {
     case PLAYER_COMMAND_PLAY:
-      gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
+      gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_PLAYING);
       break;
     case PLAYER_COMMAND_STOP:
       bg_player_stop(g->player);
       break;
     case PLAYER_COMMAND_NEXT:
       bg_media_tree_next(g->tree, 1, g->shuffle_mode);
-      gmerlin_play(g, BG_PLAYER_IGNORE_IF_STOPPED);
+      gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
       break;
     case PLAYER_COMMAND_PREV:
       bg_media_tree_previous(g->tree, 1,
                              g->shuffle_mode);
-      gmerlin_play(g, BG_PLAYER_IGNORE_IF_STOPPED);
+      gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
       break;
     case PLAYER_COMMAND_PAUSE:
-      bg_player_pause(g->player);
+      gmerlin_pause(g);
       break;
     case PLAYER_COMMAND_ADD_LOCATION:
       arg_str = bg_msg_get_arg_string(msg, 0);
@@ -53,12 +53,12 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
 
     case PLAYER_COMMAND_SET_VOLUME:
       arg_f = bg_msg_get_arg_float(msg, 0);
-      fprintf(stderr, "PLAYER_COMMAND_SET_VOLUME: %f\n", arg_f);
+      //      fprintf(stderr, "PLAYER_COMMAND_SET_VOLUME: %f\n", arg_f);
       bg_player_set_volume(g->player, arg_f);
       break;
     case PLAYER_COMMAND_SET_VOLUME_REL:
       arg_f = bg_msg_get_arg_float(msg, 0);
-      fprintf(stderr, "PLAYER_COMMAND_SET_VOLUME_REL: %f\n", arg_f);
+      //      fprintf(stderr, "PLAYER_COMMAND_SET_VOLUME_REL: %f\n", arg_f);
       bg_player_set_volume_rel(g->player, arg_f);
       break;
 

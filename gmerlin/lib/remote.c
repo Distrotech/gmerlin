@@ -79,7 +79,7 @@ int bg_remote_server_init(bg_remote_server_t * s)
     return 0;
     }
 
-  fprintf(stderr, "Remote socket listening at port %d\n", s->listen_port);
+  //  fprintf(stderr, "Remote socket listening at port %d\n", s->listen_port);
   return 1;
   }
 

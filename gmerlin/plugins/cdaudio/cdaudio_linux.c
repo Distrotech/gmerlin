@@ -23,9 +23,9 @@
 int bg_cdaudio_open(const char * device)
   {
   int ret;
-  fprintf(stderr, "Opening CD device...");
+  //  fprintf(stderr, "Opening CD device...");
   ret = open(device, O_RDONLY | O_NONBLOCK);
-  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done\n");
   return ret;
   }
 
@@ -287,7 +287,7 @@ void bg_cdaudio_play(int fd,
   {
   struct cdrom_msf msf;
 
-  fprintf(stderr, "bg_cdaudio_play %d %d\n", start_sector, end_sector);
+  //  fprintf(stderr, "bg_cdaudio_play %d %d\n", start_sector, end_sector);
   
   msf.cdmsf_frame0 = start_sector % 75;
   start_sector /= 75;
@@ -295,22 +295,22 @@ void bg_cdaudio_play(int fd,
   start_sector /= 60;
   msf.cdmsf_min0 = start_sector;
 
-  fprintf(stderr, "Start %02d:%02d.%d\n", msf.cdmsf_min0, msf.cdmsf_sec0, msf.cdmsf_frame0);
+  //  fprintf(stderr, "Start %02d:%02d.%d\n", msf.cdmsf_min0, msf.cdmsf_sec0, msf.cdmsf_frame0);
     
   msf.cdmsf_frame1 = end_sector % 75;
   end_sector /= 75;
   msf.cdmsf_sec1 = end_sector % 60;
   end_sector /= 60;
   msf.cdmsf_min1 = end_sector;
-  fprintf(stderr, "End %02d:%02d.%d\n", msf.cdmsf_min1, msf.cdmsf_sec1, msf.cdmsf_frame1);
+  //  fprintf(stderr, "End %02d:%02d.%d\n", msf.cdmsf_min1, msf.cdmsf_sec1, msf.cdmsf_frame1);
   
   ioctl(fd, CDROMPLAYMSF, &msf);
-  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done\n");
   }
 
 void bg_cdaudio_stop(int fd)
   {
-  fprintf(stderr, "bg_cdaudio_stop\n");
+  //  fprintf(stderr, "bg_cdaudio_stop\n");
   ioctl(fd, CDROMSTOP, 0);
   }
 
@@ -325,9 +325,10 @@ int bg_cdaudio_get_status(int fd, bg_cdaudio_status_t *st)
     fprintf(stderr, "CDROMSUBCHNL ioctl failed\n");
     return 0;
     }
-  if(subchnl.cdsc_audiostatus != CDROM_AUDIO_PLAY)
+  if((subchnl.cdsc_audiostatus != CDROM_AUDIO_PLAY) &&
+     (subchnl.cdsc_audiostatus != CDROM_AUDIO_PAUSED))
     {
-    fprintf(stderr, "subchnl.cdsc_audiostatus != CDROM_AUDIO_PLAY\n");
+    fprintf(stderr, "subchnl.cdsc_audiostatus: %d\n", subchnl.cdsc_audiostatus);
     return 0;
     }
   //  fprintf(stderr, "Track: %d\n", subchnl.cdsc_trk);  
@@ -343,7 +344,7 @@ void bg_cdaudio_set_volume(int fd, float volume)
   int volume_i;
   struct cdrom_volctrl volctrl;
   volume_i = (int)(255.0 * pow(10, volume/20.0) + 0.5);
-  fprintf(stderr, "bg_cdaudio_set_volume %f\n", volume);
+  //  fprintf(stderr, "bg_cdaudio_set_volume %f\n", volume);
 
   if(volume_i > 255)
     volume_i = 255;
@@ -362,7 +363,7 @@ void bg_cdaudio_set_volume(int fd, float volume)
 
 void bg_cdaudio_set_pause(int fd, int pause)
   {
-  fprintf(stderr, "bg_cdaudio_set_pause %d\n", pause);
+  //  fprintf(stderr, "bg_cdaudio_set_pause %d\n", pause);
 
   if(pause)
     ioctl(fd, CDROMPAUSE, 0);

@@ -47,8 +47,9 @@ static void wait_unnotify(bg_player_t * p)
 
 int bg_player_keep_going(bg_player_t * p)
   {
-  int state = bg_player_get_state(p);
-  switch(state)
+  int state, old_state;
+  old_state = bg_player_get_state(p);
+  switch(old_state)
     {
     case BG_PLAYER_STATE_STOPPED:
     case BG_PLAYER_STATE_CHANGING:
@@ -75,8 +76,20 @@ int bg_player_keep_going(bg_player_t * p)
       wait_unnotify(p);
       
       pthread_mutex_unlock(&(p->start_mutex));
+
+      // fprintf(stderr, "Old state: 
+      
+      if(old_state == BG_PLAYER_STATE_PAUSED)
+        {
+        state = bg_player_get_state(p);
+        if((state == BG_PLAYER_STATE_STOPPED) ||
+           (state == BG_PLAYER_STATE_CHANGING))
+          return 0;
+        }
+
       break;
     }
+  //  fprintf(stderr, "Keep going: 1\n");
   return 1;
   }
 
@@ -169,7 +182,6 @@ struct state_struct
   {
   int state;
   float percentage;
-  float can_seek;
   int want_new;
   const char * error_msg;
   };
@@ -192,10 +204,6 @@ static void msg_state(bg_msg_t * msg,
     {
     //    fprintf(stderr, "SET ERROR: %s\n", s->error_msg);
     bg_msg_set_arg_string(msg, 1, s->error_msg);
-    }
-  else if(s->state == BG_PLAYER_STATE_PLAYING)
-    {
-    bg_msg_set_arg_int(msg, 1, s->can_seek);
     }
   else if(s->state == BG_PLAYER_STATE_CHANGING)
     {
@@ -226,8 +234,6 @@ void bg_player_set_state(bg_player_t * player, int state,
     s.error_msg =  (const char *)arg1;
     }
   
-  else if(state == BG_PLAYER_STATE_PLAYING)
-    s.can_seek = *((const int*)arg1);
   else if(state == BG_PLAYER_STATE_CHANGING)
     s.want_new = *((const int*)arg1);
   

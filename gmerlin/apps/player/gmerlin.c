@@ -351,7 +351,7 @@ void gmerlin_skin_destroy(gmerlin_skin_t * s)
   
   }
 
-int gmerlin_play(gmerlin_t * g, int ignore_flags)
+int gmerlin_play(gmerlin_t * g, int flags)
   {
   int track_index;
   bg_plugin_handle_t * handle;
@@ -390,15 +390,23 @@ int gmerlin_play(gmerlin_t * g, int ignore_flags)
   //          bg_media_tree_get_current_track_name(g->tree));
   
   bg_player_play(g->player, handle, track_index,
-                 ignore_flags, bg_media_tree_get_current_track_name(g->tree));
+                flags, bg_media_tree_get_current_track_name(g->tree));
   
   return 1;
+  }
+
+void gmerlin_pause(gmerlin_t * g)
+  {
+  if(g->player_state == BG_PLAYER_STATE_STOPPED)
+    gmerlin_play(g, BG_PLAY_FLAG_INIT_THEN_PAUSE);
+  else
+    bg_player_pause(g->player);
   }
 
 void gmerlin_next_track(gmerlin_t * g)
   {
   int result, keep_going;
-  
+  fprintf(stderr, "***************** Next track\n");
   if(g->playback_flags & PLAYBACK_NOADVANCE)
     {
     bg_player_stop(g->player);
@@ -415,7 +423,7 @@ void gmerlin_next_track(gmerlin_t * g)
         //      fprintf(stderr, "REPEAT_MODE_NONE\n");
         if(bg_media_tree_next(g->tree, 0, g->shuffle_mode))
           {
-          result = gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
+          result = gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_PLAYING);
           if(result)
             keep_going = 0;
           }
@@ -428,7 +436,7 @@ void gmerlin_next_track(gmerlin_t * g)
         break;
       case REPEAT_MODE_1:
         //      fprintf(stderr, "REPEAT_MODE_1\n");
-        result = gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
+        result = gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_PLAYING);
         if(!result)
           bg_player_stop(g->player);
         keep_going = 0;
@@ -442,7 +450,7 @@ void gmerlin_next_track(gmerlin_t * g)
           }
         else
           {
-          result = gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
+          result = gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_PLAYING);
           if(result)
             keep_going = 0;
           }

@@ -124,11 +124,21 @@ static void msg_subpicture_description(bg_msg_t * msg, const void * data)
 
 static void interrupt_cmd(bg_player_t * p, int new_state)
   {
+  int old_state;
+  
   pthread_mutex_lock(&(p->stop_mutex));
-  /* Set the new state */
 
+  /* Get the old state */
+  old_state = bg_player_get_state(p);
+  
+  /* Set the new state */
   bg_player_set_state(p, new_state, NULL, NULL);
 
+  if(old_state == BG_PLAYER_STATE_PAUSED)
+    {
+    pthread_mutex_unlock(&p->stop_mutex);
+    return;
+    }
   /* Tell it to the fifos */
 
   if(p->do_audio)
@@ -161,11 +171,20 @@ static void preload(bg_player_t * p)
 
 /* Start playback */
 
-static void start_playback(bg_player_t * p)
+static void start_playback(bg_player_t * p, int new_state)
   {
+  int want_new;
   pthread_mutex_lock(&(p->start_mutex));
-  bg_player_set_state(p, BG_PLAYER_STATE_PLAYING, &(p->can_seek), NULL);
-  //  fprintf(stderr, "start_playback\n");
+
+  if(new_state == BG_PLAYER_STATE_CHANGING)
+    {
+    want_new = 0;
+    bg_player_set_state(p, new_state, &want_new, NULL);
+    }
+  else
+    bg_player_set_state(p, new_state, NULL, NULL);
+    
+    //  fprintf(stderr, "start_playback\n");
 
   /* Initialize timing */
   
@@ -198,7 +217,7 @@ static void pause_cmd(bg_player_t * p)
     if(p->do_bypass)
       bg_player_input_bypass_set_pause(p->input_context, 0);
 
-    start_playback(p);
+    start_playback(p, BG_PLAYER_STATE_PLAYING);
     }
   }
 
@@ -237,7 +256,7 @@ static void player_cleanup(bg_player_t * player)
   {
   gavl_time_t t = 0;
 
-  fprintf(stderr, "Player cleanup\n");
+  //  fprintf(stderr, "Player cleanup\n");
   
   bg_player_input_cleanup(player->input_context);
   player->input_handle = (bg_plugin_handle_t*)0;
@@ -267,10 +286,13 @@ static void player_cleanup(bg_player_t * player)
 
 static void play_cmd(bg_player_t * p,
                      bg_plugin_handle_t * handle,
-                     int track_index, char * track_name)
+                     int track_index, char * track_name, int flags)
   {
   int had_video;
-
+  gavl_time_t time = 0;
+    
+  // fprintf(stderr, "Play_cmd %d\n", flags);
+  
   /* Shut down from last playback if necessary */
 
   if(p->input_handle && !bg_plugin_equal(p->input_handle, handle))
@@ -311,7 +333,7 @@ static void play_cmd(bg_player_t * p,
                          msg_num_streams,
                          p->track_info);
 
-  bg_player_set_duration(p, p->track_info->duration);
+  bg_player_set_duration(p, p->track_info->duration, p->can_seek);
   
   /* Send metadata */
 
@@ -390,7 +412,21 @@ static void play_cmd(bg_player_t * p,
   
   bg_player_time_set(p, 0);
   preload(p);
-  start_playback(p);
+
+  if(flags & BG_PLAY_FLAG_INIT_THEN_PAUSE)
+    {
+    bg_player_set_state(p, BG_PLAYER_STATE_PAUSED, NULL, NULL);
+    if(p->do_bypass)
+      bg_player_input_bypass_set_pause(p->input_context, 1);
+    }
+  else
+    start_playback(p, BG_PLAYER_STATE_PLAYING);
+  
+  /* Set start time to zero */
+
+  bg_msg_queue_list_send(p->message_queues,
+                         msg_time,
+                         &time);
   }
 
 static void stop_cmd(bg_player_t * player, int new_state)
@@ -408,24 +444,34 @@ static void stop_cmd(bg_player_t * player, int new_state)
     {
     want_new = 0;
     bg_player_set_state(player, new_state, &want_new, NULL);
+    //    fprintf(stderr, "*** Changing 1\n");
     }
   else
     bg_player_set_state(player, new_state, NULL, NULL);
 
-  if(old_state == BG_PLAYER_STATE_CHANGING)
+  switch(old_state)
     {
-    if(new_state == BG_PLAYER_STATE_STOPPED)
-      {
-      if(player->do_video)
+    case BG_PLAYER_STATE_CHANGING:
+      if(new_state == BG_PLAYER_STATE_STOPPED)
         {
-        bg_player_ov_standby(player->ov_context);
-        player->do_video = 0;
+        if(player->do_video)
+          {
+          bg_player_ov_standby(player->ov_context);
+          player->do_video = 0;
+          }
         }
-      }
-    return;
+      return;
+      break;
+    case BG_PLAYER_STATE_STARTING:
+    case BG_PLAYER_STATE_PAUSED:
+    case BG_PLAYER_STATE_SEEKING:
+    case BG_PLAYER_STATE_BUFFERING:
+      /* If the threads are sleeping, wake them up now so they'll end */
+      start_playback(player, new_state);
     }
-
-  if(old_state == BG_PLAYER_STATE_PLAYING)
+  
+  if((old_state == BG_PLAYER_STATE_PLAYING) ||
+     (old_state == BG_PLAYER_STATE_PAUSED))
     {
     /* Set the stop flag */
     if(player->do_audio)
@@ -494,8 +540,11 @@ static void set_oa_plugin_cmd(bg_player_t * player,
 
 static void seek_cmd(bg_player_t * player, gavl_time_t t)
   {
+  int old_state;
   gavl_time_t sync_time = t;
 
+  old_state = bg_player_get_state(player);
+  
   //  gavl_video_frame_t * vf;
   //  fprintf(stderr, "Seek cmd\n");
   interrupt_cmd(player, BG_PLAYER_STATE_SEEKING);
@@ -523,7 +572,16 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
   //  fprintf(stderr, "Preload done\n");
   
   bg_player_time_set(player, t);
-  start_playback(player);
+
+  if(old_state == BG_PLAYER_STATE_PAUSED)
+    {
+    bg_player_set_state(player, BG_PLAYER_STATE_PAUSED, NULL, NULL);
+    
+    // if(p->do_bypass)
+    // bg_player_input_bypass_set_pause(p->input_context, 1);
+    }
+  else
+    start_playback(player, BG_PLAYER_STATE_PLAYING);
   }
 
 
@@ -532,6 +590,7 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
 static int process_command(bg_player_t * player,
                             bg_msg_t * command)
   {
+  int play_flags;
   int arg_i1;
   float arg_f1;
   int state;
@@ -554,6 +613,7 @@ static int process_command(bg_player_t * player,
         {
         case BG_PLAYER_STATE_PLAYING:
         case BG_PLAYER_STATE_CHANGING:
+        case BG_PLAYER_STATE_PAUSED:
           stop_cmd(player, BG_PLAYER_STATE_STOPPED);
           break;
         }
@@ -561,39 +621,44 @@ static int process_command(bg_player_t * player,
       break;
     case BG_PLAYER_CMD_PLAY:
       //      fprintf(stderr, "Command play\n");
-      arg_i1   = bg_msg_get_arg_int(command, 2);
+      play_flags = bg_msg_get_arg_int(command, 2);
       state = bg_player_get_state(player);
-      if(state == BG_PLAYER_STATE_PAUSED)
-        {
-        pause_cmd(player);
-        return 1;
-        }
-      if(arg_i1)
+
+      if(play_flags)
         {
         if((state == BG_PLAYER_STATE_PLAYING) &&
-           (arg_i1 & BG_PLAYER_IGNORE_IF_PLAYING))
+           (play_flags & BG_PLAY_FLAG_IGNORE_IF_PLAYING))
           return 1;
         else if((state == BG_PLAYER_STATE_STOPPED) &&
-           (arg_i1 & BG_PLAYER_IGNORE_IF_STOPPED))
+           (play_flags & BG_PLAY_FLAG_IGNORE_IF_STOPPED))
           return 1;
         }
+      /* TODO: Shut down pause */
+      if(state == BG_PLAYER_STATE_PAUSED)
+        {
+        //        pause_cmd(player);
+        //        stop_cmd(player, BG_PLAYER_STATE_CHANGING);
+        play_flags |= BG_PLAY_FLAG_INIT_THEN_PAUSE;
+        }
 
+      
       arg_ptr1 = bg_msg_get_arg_ptr_nocopy(command, 0);
       arg_i1   = bg_msg_get_arg_int(command, 1);
       arg_str1 = bg_msg_get_arg_string(command, 3);
       
-      if(state == BG_PLAYER_STATE_PLAYING)
+      if((state == BG_PLAYER_STATE_PLAYING) ||
+         (state == BG_PLAYER_STATE_PAUSED))
+        {
         stop_cmd(player, BG_PLAYER_STATE_CHANGING);
-
+        }
       if(!arg_ptr1)
         {
         error_code = BG_PLAYER_ERROR_GENERAL;
         bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
                             "No Track selected", &error_code);
-        
         }
       else
-        play_cmd(player, arg_ptr1, arg_i1, arg_str1);
+        play_cmd(player, arg_ptr1, arg_i1, arg_str1, play_flags);
 
       if(arg_str1)
         free(arg_str1);
@@ -607,6 +672,7 @@ static int process_command(bg_player_t * player,
       switch(state)
         {
         case BG_PLAYER_STATE_PLAYING:
+        case BG_PLAYER_STATE_PAUSED:
         case BG_PLAYER_STATE_CHANGING:
           stop_cmd(player, BG_PLAYER_STATE_STOPPED);
           break;
@@ -787,7 +853,7 @@ static void * player_thread(void * data)
           bg_msg_queue_list_send(player->message_queues,
                                  msg_time,
                                  &time);
-          //      fprintf(stderr, "%d\n", seconds);
+          //          fprintf(stderr, "%d\n", seconds);
           }
         break;
       }

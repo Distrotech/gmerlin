@@ -340,8 +340,9 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
 
     if(w->menu.selected_menu.refresh_item)
       gtk_widget_set_sensitive(w->menu.selected_menu.refresh_item, 0);
-    
-    gtk_widget_set_sensitive(w->menu.selected_menu.copy_to_favourites_item, 0);
+
+    if(w->menu.selected_menu.copy_to_favourites_item)
+      gtk_widget_set_sensitive(w->menu.selected_menu.copy_to_favourites_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 0);
     gtk_widget_set_sensitive(w->move_selected_up_button, 0);
@@ -360,8 +361,10 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
 
     if(w->menu.selected_menu.refresh_item)
       gtk_widget_set_sensitive(w->menu.selected_menu.refresh_item, 1);
-        
-    gtk_widget_set_sensitive(w->menu.selected_menu.copy_to_favourites_item, 1);
+
+    if(w->menu.selected_menu.copy_to_favourites_item)
+      gtk_widget_set_sensitive(w->menu.selected_menu.copy_to_favourites_item, 1);
+
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 1);
     gtk_widget_set_sensitive(w->move_selected_up_button, 1);

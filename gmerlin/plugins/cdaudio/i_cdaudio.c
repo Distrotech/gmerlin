@@ -49,7 +49,8 @@ typedef struct
   bg_cdaudio_status_t status;
 
   uint32_t samples_written;
-  
+
+  int paused;
   } cdaudio_t;
 
 static void close_cdaudio(void * priv);
@@ -108,7 +109,7 @@ static int open_cdaudio(void * data, const char * arg)
   if(!cd->index)
     return 0;
 
-  bg_cdaudio_index_dump(cd->index);
+  //  bg_cdaudio_index_dump(cd->index);
   
   /* Create track infos */
 
@@ -477,6 +478,11 @@ static void seek_cdaudio(void * priv, gavl_time_t * time)
       }
     *time = ((int64_t)sector * GAVL_TIME_SCALE) / 75;
     bg_cdaudio_play(cd->fd, sector, last_sector);
+
+    if(cd->paused)
+      {
+      bg_cdaudio_set_pause(cd->fd, 1);
+      }
     }
   else /* TODO */
     {
@@ -504,6 +510,7 @@ void bypass_set_pause_cdaudio(void * priv, int pause)
   {
   cdaudio_t * cd = (cdaudio_t*)priv;
   bg_cdaudio_set_pause(cd->fd, pause);
+  cd->paused = pause;
   }
 
 void bypass_set_volume_cdaudio(void * priv, float volume)

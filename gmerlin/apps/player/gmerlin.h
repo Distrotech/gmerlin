@@ -112,6 +112,7 @@ struct gmerlin_s
   /* Remote control */
   bg_remote_server_t * remote;
   
+  int player_state;
   };
 
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg);
@@ -145,6 +146,7 @@ void gmerlin_configure(gmerlin_t *);
 
 
 int gmerlin_play(gmerlin_t * g, int ignore_flags);
+void gmerlin_pause(gmerlin_t * g);
 
 /* This is called when the player signals that it wants a new
    track */

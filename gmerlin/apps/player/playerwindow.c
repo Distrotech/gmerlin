@@ -247,14 +247,14 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
   player_window_t * win = (player_window_t *)data;
   if(b == win->play_button)
     {
-    //    fprintf(stderr, "Play button clicked\n");
+    // fprintf(stderr, "Play button clicked\n");
 
-    gmerlin_play(win->gmerlin, BG_PLAYER_IGNORE_IF_PLAYING);
+    gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_PLAYING);
     
     }
   else if(b == win->pause_button)
     {
-    bg_player_pause(win->gmerlin->player);
+    gmerlin_pause(win->gmerlin);
     }
   else if(b == win->stop_button)
     {
@@ -268,14 +268,14 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
     bg_media_tree_next(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
     //    fprintf(stderr, "Handle: %p plugin %p\n", handle, handle->plugin);
 
-    gmerlin_play(win->gmerlin, BG_PLAYER_IGNORE_IF_STOPPED);
+    gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
     }
   else if(b == win->prev_button)
     {
     //    fprintf(stderr, "Prev button clicked\n");
     bg_media_tree_previous(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
 
-    gmerlin_play(win->gmerlin, BG_PLAYER_IGNORE_IF_STOPPED);
+    gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
     }
   else if(b == win->close_button)
     {
@@ -322,24 +322,24 @@ static void handle_message(player_window_t * win,
 
       break;
     case BG_PLAYER_MSG_STATE_CHANGED:
-      arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      win->gmerlin->player_state = bg_msg_get_arg_int(msg, 0);
       
-      switch(arg_i_1)
+      switch(win->gmerlin->player_state)
         {
         case BG_PLAYER_STATE_PAUSED:
-          display_set_state(win->display, arg_i_1, NULL);
+          display_set_state(win->display, win->gmerlin->player_state, NULL);
           break;
         case BG_PLAYER_STATE_SEEKING:
-          display_set_state(win->display, arg_i_1, NULL);
+          display_set_state(win->display, win->gmerlin->player_state, NULL);
           win->seek_active = 0;
           break;
         case BG_PLAYER_STATE_ERROR:
           arg_str_1 = bg_msg_get_arg_string(msg, 1);
           //          fprintf(stderr, "State Error %s\n", arg_str_1);
-          display_set_state(win->display, arg_i_1, arg_str_1);
-          arg_i_1 = bg_msg_get_arg_int(msg, 2);
+          display_set_state(win->display, win->gmerlin->player_state, arg_str_1);
+          arg_i_2 = bg_msg_get_arg_int(msg, 2);
 
-          switch(arg_i_1)
+          switch(arg_i_2)
             {
             case BG_PLAYER_ERROR_TRACK:
               break;
@@ -347,37 +347,24 @@ static void handle_message(player_window_t * win,
           break;
         case BG_PLAYER_STATE_BUFFERING:
           arg_f_1 = bg_msg_get_arg_float(msg, 1);
-          display_set_state(win->display, arg_i_1, &arg_f_1);
+          display_set_state(win->display, win->gmerlin->player_state, &arg_f_1);
           break;
         case BG_PLAYER_STATE_PLAYING:
-          arg_i_2 = bg_msg_get_arg_int(msg, 1);
-          if(arg_i_2)
-            {
-            bg_gtk_slider_set_state(win->seek_slider,
-                                    BG_GTK_SLIDER_ACTIVE);
-            }
-          else if(win->duration != GAVL_TIME_UNDEFINED)
-            {
-            bg_gtk_slider_set_state(win->seek_slider,
-                                    BG_GTK_SLIDER_INACTIVE);
-            }
-          else
-            {
-            bg_gtk_slider_set_state(win->seek_slider,
-                                    BG_GTK_SLIDER_HIDDEN);
-            }
-          display_set_state(win->display, arg_i_1, NULL);
+          display_set_state(win->display, win->gmerlin->player_state, NULL);
           bg_media_tree_mark_error(win->gmerlin->tree, 0);
           break;
         case BG_PLAYER_STATE_STOPPED:
           bg_gtk_slider_set_state(win->seek_slider,
                                   BG_GTK_SLIDER_INACTIVE);
           //          fprintf(stderr, "Player is now stopped\n");
-          display_set_state(win->display, arg_i_1, NULL);
+          display_set_state(win->display, win->gmerlin->player_state, NULL);
           break;
         case BG_PLAYER_STATE_CHANGING:
           arg_i_2 = bg_msg_get_arg_int(msg, 1);
-          display_set_state(win->display, arg_i_1, NULL);
+
+          //          fprintf(stderr, "Changing 2 %d\n", arg_i_2);
+          
+          display_set_state(win->display, win->gmerlin->player_state, NULL);
           if(arg_i_2)
             gmerlin_next_track(win->gmerlin);
           break;
@@ -393,6 +380,21 @@ static void handle_message(player_window_t * win,
       break;
     case BG_PLAYER_MSG_TRACK_DURATION:
       win->duration = bg_msg_get_arg_time(msg, 0);
+
+      arg_i_2 = bg_msg_get_arg_int(msg, 1);
+
+      //      fprintf(stderr, "Duration: %f %d\n", gavl_time_to_seconds(win->duration),
+      //              arg_i_2);
+
+      if(arg_i_2)
+        bg_gtk_slider_set_state(win->seek_slider,
+                                BG_GTK_SLIDER_ACTIVE);
+      else if(win->duration != GAVL_TIME_UNDEFINED)
+        bg_gtk_slider_set_state(win->seek_slider,
+                                BG_GTK_SLIDER_INACTIVE);
+      else
+        bg_gtk_slider_set_state(win->seek_slider,
+                                BG_GTK_SLIDER_HIDDEN);
       break;
     case BG_PLAYER_MSG_AUDIO_STREAM:
       break;

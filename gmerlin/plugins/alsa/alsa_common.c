@@ -210,7 +210,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
         alsa_format = SND_PCM_FORMAT_S16_BE;
 #endif
       }
-    fprintf(stderr, "Trying 2 %s\n", snd_pcm_format_name(alsa_format));    
+    //    fprintf(stderr, "Trying 2 %s\n", snd_pcm_format_name(alsa_format));    
     if(snd_pcm_hw_params_set_format(ret, hw_params,
                                     alsa_format) < 0)
       {

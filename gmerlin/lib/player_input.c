@@ -84,7 +84,7 @@ static void duration_changed(void * data, gavl_time_t duration)
   fprintf(stderr, "Duration changed callback, new duration: %f\n",
           gavl_time_to_seconds(duration));
 
-  bg_player_set_duration(ctx->player, duration);
+  bg_player_set_duration(ctx->player, duration, ctx->player->can_seek);
 
 
   //  bg_player_time_set(ctx->player, time);

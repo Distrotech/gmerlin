@@ -53,7 +53,10 @@ void bg_player_quit(bg_player_t *);
  */
 
 void bg_player_play(bg_player_t *, bg_plugin_handle_t * handle,
-                    int track, int ignore_flags, const char * track_name);
+                    int track, int flags, const char * track_name);
+
+void bg_player_play_pause(bg_player_t *, bg_plugin_handle_t * handle,
+                          int track, int ignore_flags, const char * track_name);
 
 void bg_player_seek(bg_player_t *, gavl_time_t time);
 
@@ -64,7 +67,7 @@ void bg_player_set_volume_rel(bg_player_t *, float volume);
 
 
 void bg_player_set_track(bg_player_t * p, int track);
-void bg_player_set_duration(bg_player_t * p, gavl_time_t duration);
+void bg_player_set_duration(bg_player_t * p, gavl_time_t duration, int can_seek);
 
 void bg_player_stop(bg_player_t *);
 void bg_player_stop_sync(bg_player_t *);

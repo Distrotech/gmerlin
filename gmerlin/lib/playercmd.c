@@ -55,7 +55,6 @@ void bg_player_set_logo(bg_player_t * p, gavl_video_format_t * format, gavl_vide
   bg_msg_queue_unlock_write(p->command_queue);
   }
 
-
 void bg_player_play(bg_player_t * p, bg_plugin_handle_t * handle,
                     int track, int ignore_flags, const char * track_name)
   {
@@ -121,19 +120,29 @@ void bg_player_set_track(bg_player_t * p, int track)
 
   }
 
+typedef struct
+  {
+  gavl_time_t duration;
+  int can_seek;
+  } duration_struct;
+
 static void msg_duration(bg_msg_t * msg,
                          const void * data)
   {
-  gavl_time_t * duration;
-  duration = (gavl_time_t*)data;
+  duration_struct * d;
+  d = (duration_struct*)data;
   bg_msg_set_id(msg, BG_PLAYER_MSG_TRACK_DURATION);
-  bg_msg_set_arg_time(msg, 0, *duration);
+  bg_msg_set_arg_time(msg, 0, d->duration);
+  bg_msg_set_arg_int(msg, 1, d->can_seek);
   }
 
-void bg_player_set_duration(bg_player_t * p, gavl_time_t duration)
+void bg_player_set_duration(bg_player_t * p, gavl_time_t duration, int can_seek)
   {
+  duration_struct d;
+  d.duration = duration;
+  d.can_seek = can_seek;
   bg_msg_queue_list_send(p->message_queues,
-                         msg_duration, &duration);
+                         msg_duration, &d);
   }
 
 static void msg_metadata(bg_msg_t * msg,

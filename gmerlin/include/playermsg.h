@@ -47,13 +47,13 @@
 /* Start playing                                        */
 /* arg1: Input plugin handle                            */
 /* arg2: Track index for plugins with multiple tracks   */
-/* arg3: When to ignore this command, see defines below */
+/* arg3: Play flags, see defines below                  */
 
 #define BG_PLAYER_CMD_PLAY     0
 
-#define BG_PLAYER_IGNORE_IF_PLAYING (1<<0)
-#define BG_PLAYER_IGNORE_IF_STOPPED (1<<1)
-
+#define BG_PLAY_FLAG_IGNORE_IF_PLAYING (1<<0)
+#define BG_PLAY_FLAG_IGNORE_IF_STOPPED (1<<1)
+#define BG_PLAY_FLAG_INIT_THEN_PAUSE   (1<<2)
 
 /* Stop playing                              */
 
@@ -118,6 +118,11 @@
 /* Set volume (float dB value) */
 
 #define BG_PLAYER_CMD_SET_VOLUME_REL 12
+
+/* Like BG_PLAYER_CMD_PLAY but go into the pause state right after the
+   playback is set up */
+
+#define BG_PLAYER_CMD_PLAY_PAUSE     13
 
 /********************************
  * Messages from the player
