@@ -93,16 +93,17 @@ static void write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
   //  e_lqt_t * e = (e_lqt_t*)data;
   }
 
-static void close_lqt(void * data)
+static void close_lqt(void * data, int do_delete)
   {
   //  e_lqt_t * e = (e_lqt_t*)data;
+  
   }
 
 static void destroy_lqt(void * data)
   {
   e_lqt_t * e = (e_lqt_t*)data;
 
-  close_lqt(data);
+  close_lqt(data, 1);
     
   if(e->audio_parameters)
     bg_parameter_info_destroy_array(e->audio_parameters);

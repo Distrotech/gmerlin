@@ -228,7 +228,7 @@ static void write_audio_frame_wav(void * data, gavl_audio_frame_t * frame,
     }
   }
 
-static void close_wav(void * data)
+static void close_wav(void * data, int do_delete)
   {
   wav_t * wav;
   int64_t total_bytes;

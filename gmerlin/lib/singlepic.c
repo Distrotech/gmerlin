@@ -568,7 +568,7 @@ static void write_video_frame_encoder(void * priv,gavl_video_frame_t * frame,int
   }
 
 
-static void close_encoder(void * priv)
+static void close_encoder(void * priv, int do_delete)
   {
   
   }

@@ -52,7 +52,6 @@ int bg_player_keep_going(bg_player_t * p)
         pthread_cond_broadcast(&(p->stop_cond));
         }
       pthread_mutex_unlock(&p->stop_mutex);
-      
 
       pthread_cond_wait(&(p->start_cond), &(p->start_mutex));
       p->waiting_plugin_threads--;
