@@ -141,7 +141,6 @@ static int tiff_read_mem(tiff_t *tiff, const char *filename)
   if((fread(tiff->buffer, 1, tiff->buffer_size, file)) < tiff->buffer_size)
     return 0;
 
-  
   tiff->buffer_position = 0;
   
   fclose(file);
@@ -253,14 +252,20 @@ bg_image_reader_plugin_t the_plugin =
     common:
     {
       name:          "ir_tiff",
-      long_name:     "TIFF loader",
+      long_name:     "TIFF loader ",
       mimetypes:     (char*)0,
       extensions:    "tif tiff",
       type:          BG_PLUGIN_IMAGE_READER,
       flags:         BG_PLUGIN_FILE,
+      priority:      BG_PLUGIN_PRIORITY_MAX,
       create:        create_tiff,
       destroy:       destroy_tiff,
     },
     read_header: read_header_tiff,
     read_image:  read_image_tiff,
   };
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+BG_GET_PLUGIN_API_VERSION;
+
