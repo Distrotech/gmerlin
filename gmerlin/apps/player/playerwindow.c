@@ -279,7 +279,11 @@ static void handle_message(player_window_t * win,
       
       switch(arg_i_1)
         {
+        case BG_PLAYER_STATE_PAUSED:
+          display_set_state(win->display, arg_i_1, NULL);
+          break;
         case BG_PLAYER_STATE_SEEKING:
+          display_set_state(win->display, arg_i_1, NULL);
           win->seek_active = 0;
           break;
         case BG_PLAYER_STATE_ERROR:
@@ -328,6 +332,7 @@ static void handle_message(player_window_t * win,
           break;
         case BG_PLAYER_STATE_CHANGING:
           arg_i_2 = bg_msg_get_arg_int(msg, 1);
+          display_set_state(win->display, arg_i_1, NULL);
           if(arg_i_2)
             gmerlin_next_track(win->gmerlin);
           break;

@@ -731,5 +731,6 @@ void x11_window_clear(x11_window_t * win)
 //                 win->window_height);  
    XClearArea(win->dpy, win->normal_window, 0, 0,
               win->window_width, win->window_height, True);
-
+   //   fprintf(stderr, "XSync\n");
+   //   XSync(win->dpy, False);
   }

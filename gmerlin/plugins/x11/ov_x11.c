@@ -107,8 +107,8 @@ typedef struct
   XvPortID xv_port;
   int do_xv;
   Atom xv_attr_atoms[NUM_XV_PARAMETERS];
-  Atom xv_chromakey_atom;
-  int xv_chromakey_settable;
+  Atom xv_colorkey_atom;
+  int xv_colorkey_settable;
   int have_xv_yv12;
   int have_xv_yuy2;
   int have_xv_i420;
@@ -119,8 +119,9 @@ typedef struct
 
   int xv_format;
 
-  int have_xv_chromakey;
-  int xv_chromakey;  
+  int have_xv_colorkey;
+  int xv_colorkey;  
+  int xv_colorkey_orig;
 
 #endif
 
@@ -665,12 +666,14 @@ static void set_drawing_coords(x11_t * priv)
       priv->dst_x = 0;
       priv->dst_y = (priv->win.window_height - priv->dst_h)/2;
       }
-    if(priv->have_xv_chromakey)
+#if 1
+    if(priv->have_xv_colorkey)
       {
-      XSetForeground(priv->dpy, priv->win.gc, priv->xv_chromakey);
+      XSetForeground(priv->dpy, priv->win.gc, priv->xv_colorkey);
       XFillRectangle(priv->dpy, priv->win.current_window, priv->win.gc,
                      priv->dst_x, priv->dst_y, priv->dst_w, priv->dst_h);
-      }              
+      }
+#endif
     }
   else
     {
@@ -821,19 +824,18 @@ static int _open_x11(void * data,
       priv->do_xv = 0;
       format->colorspace = x11_colorspace;
       }
-    else if(priv->have_xv_chromakey)
+    else if(priv->have_xv_colorkey)
       {
-      if(priv->xv_chromakey_settable)
+      XvGetPortAttribute(priv->dpy, priv->xv_port, priv->xv_colorkey_atom, 
+                         &(priv->xv_colorkey_orig));
+      if(priv->xv_colorkey_settable)
         {
-        priv->xv_chromakey = 0;
-        XvSetPortAttribute(priv->dpy, priv->xv_port, priv->xv_chromakey_atom, 
-                           priv->xv_chromakey);
+        priv->xv_colorkey = 0;
+        XvSetPortAttribute(priv->dpy, priv->xv_port, priv->xv_colorkey_atom, 
+                           priv->xv_colorkey);
         }
       else
-        {
-        XvGetPortAttribute(priv->dpy, priv->xv_port, priv->xv_chromakey_atom, 
-                           &(priv->xv_chromakey));
-        }
+        priv->xv_colorkey = priv->xv_colorkey_orig;
       }
     }
 #endif // HAVE_LIBXV
@@ -902,8 +904,16 @@ static void close_x11(void * data)
 #ifdef HAVE_LIBXV
   x11_t * priv = (x11_t*)data;
   if(priv->do_xv)
+    {
     XvUngrabPort(priv->dpy, priv->xv_port, CurrentTime);
+    XvStopVideo(priv->dpy, priv->xv_port, priv->win.current_window);
+    if(priv->xv_colorkey_settable)
+      XvSetPortAttribute(priv->dpy, priv->xv_port, priv->xv_colorkey_atom, 
+                         priv->xv_colorkey_orig);
+    
+    }
 #endif
+  x11_window_clear(&priv->win);
   }
 
 static void destroy_x11(void * data)
@@ -1217,9 +1227,6 @@ static void put_still_x11(void * data, gavl_video_format_t * format,
   gavl_video_converter_destroy(cnv);
   
   write_frame_x11(data, priv->still_frame);
-
-  //  XClearArea(priv->dpy, priv->win.current_window, 0, 0,
-  //             priv->win.window_width, priv->win.window_height, True);
   
   priv->do_still = 1;
   pthread_create(&(priv->still_thread),
@@ -1304,11 +1311,11 @@ static void get_xv_parameters(x11_t * x11,
     {
     if((attr[i].flags & XvGettable) && !strcmp(attr[i].name, "XV_COLORKEY"))
       {
-      x11->have_xv_chromakey = 1;
-      x11->xv_chromakey_atom = XInternAtom(x11->dpy, attr[i].name,
+      x11->have_xv_colorkey = 1;
+      x11->xv_colorkey_atom = XInternAtom(x11->dpy, attr[i].name,
                                            False);
       if(attr[i].flags & XvSettable)
-        x11->xv_chromakey_settable = 1;
+        x11->xv_colorkey_settable = 1;
       }
     else if((attr[i].flags & XvSettable) && (attr[i].flags & XvGettable))
       {

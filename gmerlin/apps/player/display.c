@@ -642,10 +642,12 @@ void display_set_state(display_t * d, int state,
                                  d->duration_after);
       break;
     case BG_PLAYER_STATE_SEEKING:
+      //      fprintf(stderr, "STATE SEEKING\n");
       d->state_index = STATE_SEEKING;
       break;
     case BG_PLAYER_STATE_CHANGING:
     case BG_PLAYER_STATE_STARTING:
+      //      fprintf(stderr, "STATE SEEKING\n");
       d->state_index = STATE_CHANGING;
       break;
     case BG_PLAYER_STATE_BUFFERING:
