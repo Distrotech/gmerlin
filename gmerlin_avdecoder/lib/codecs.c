@@ -167,6 +167,7 @@ void bgav_codecs_init()
   {
   if(codecs_initialized)
     return;
+//  fprintf(stderr, "bgav_codecs_init()\n");
   codecs_initialized = 1;
 #ifdef HAVE_LIBAVCODEC
   bgav_init_audio_decoders_ffmpeg();

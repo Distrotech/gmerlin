@@ -267,6 +267,7 @@ bg_avdec_set_parameter(void * p, char * name,
   else if(!strcmp(name, "realcodec_path"))
     {
     bgav_set_dll_path_real(val->val_str);
+    fprintf(stderr, "Real codec path: %s\n", val->val_str);
     }
   else if(!strcmp(name, "xanimcodec_path"))
     {

@@ -47,7 +47,12 @@ int bgav_video_start(bgav_stream_t * stream)
 
   dec = bgav_find_video_decoder(stream);
   if(!dec)
+    {
+    fprintf(stderr, "No video decoder found for fourcc ");
+    bgav_dump_fourcc(stream->fourcc);
+    fprintf(stderr, "\n");
     return 0;
+    }
   ctx = calloc(1, sizeof(*ctx));
   stream->data.video.decoder = ctx;
   stream->data.video.decoder->decoder = dec;

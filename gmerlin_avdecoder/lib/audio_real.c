@@ -142,12 +142,15 @@ void bgav_init_audio_decoders_real()
   const char * codec_path;
   
   codec_path = bgav_get_dll_path_real();
-  
+  fprintf(stderr, "bgav_init_audio_decoders_real: %s\n", codec_path); 
   for(i = 0; i < sizeof(real_codecs) / sizeof(real_codecs[0]); i++)
     {
     sprintf(test_filename, "%s%s", codec_path, real_codecs[i].dll_name);
     if(!stat(test_filename, &stat_buf))
       bgav_audio_decoder_register(&real_codecs[i].decoder);
+    else
+      fprintf(stderr, "Codec file %s not found, skipping\n",
+              test_filename);
     }
   }
 

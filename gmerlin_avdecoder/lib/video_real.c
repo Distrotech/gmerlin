@@ -95,7 +95,7 @@ void bgav_init_video_decoders_real()
 
   /* REMOVE */
 
-  strcpy(codec_path, "/usr/lib/RealPlayer8/Codecs/");
+//  strcpy(codec_path, "/usr/lib/RealPlayer8/Codecs/");
   
   for(i = 0; i < sizeof(real_codecs) / sizeof(real_codecs[0]); i++)
     {

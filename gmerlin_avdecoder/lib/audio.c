@@ -48,7 +48,9 @@ int bgav_audio_start(bgav_stream_t * stream)
   dec = bgav_find_audio_decoder(stream);
   if(!dec)
     {
-    fprintf(stderr, "No decoder found\n");
+    fprintf(stderr, "No audio decoder found for fourcc ");
+    bgav_dump_fourcc(stream->fourcc);
+    fprintf(stderr, "\n");
     return 0;
     }
   ctx = calloc(1, sizeof(*ctx));
