@@ -32,4 +32,4 @@ pluginwindow.h
 gmerlin_LDADD = ../../lib/libgmerlin.la ../../lib/gtk/libgmerlin_gtk.la
 gmerlin_remote_LDADD = ../../lib/libgmerlin.la
 
-EXTRA_DIST = gmerlin_laucher
+EXTRA_DIST = gmerlin_launcher
