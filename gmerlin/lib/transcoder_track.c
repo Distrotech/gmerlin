@@ -192,9 +192,10 @@ static bg_parameter_info_t parameters_general[] =
     { /* End of parameters */ }
   };
 
-void bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
-                                           bg_plugin_handle_t * audio_encoder,
-                                           bg_plugin_handle_t * video_encoder)
+void
+bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
+                                      bg_plugin_handle_t * audio_encoder,
+                                      bg_plugin_handle_t * video_encoder)
   {
   int i;
   bg_encoder_plugin_t * plugin;

@@ -78,8 +78,10 @@ static void * create_lqt()
 static int open_lqt(void * data, const char * filename_base,
                     bg_metadata_t * metadata)
   {
+  char * track_string;
   e_lqt_t * e = (e_lqt_t*)data;
 
+  
   if(e->format == FORMAT_AVI)
     e->filename = bg_sprintf("%s.avi", filename_base);
   else if(e->format == FORMAT_QUICKTIME)
@@ -95,9 +97,23 @@ static int open_lqt(void * data, const char * filename_base,
     quicktime_set_copyright(e->file, metadata->copyright);
   if(metadata->title)
     quicktime_set_name(e->file, metadata->title);
+
   if(metadata->comment)
-    quicktime_set_info(e->file, metadata->comment);
-    
+    lqt_set_comment(e->file, metadata->comment);
+  if(metadata->artist)
+    lqt_set_artist(e->file, metadata->artist);
+  if(metadata->genre)
+    lqt_set_genre(e->file, metadata->genre);
+  if(metadata->track)
+    {
+    track_string = bg_sprintf("%d", metadata->track);
+    lqt_set_track(e->file, track_string);
+    free(track_string);
+    }
+  if(metadata->album)
+    lqt_set_album(e->file, metadata->album);
+  if(metadata->author)
+    lqt_set_author(e->file, metadata->author);
   return 0;
   }
 

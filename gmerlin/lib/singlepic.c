@@ -134,7 +134,6 @@ typedef struct
   bg_stream_action_t action;
   } input_t;
 
-
 static bg_parameter_info_t * get_parameters_input(void * priv)
   {
   input_t * inp = (input_t *)priv;
@@ -173,8 +172,8 @@ static int open_input(void * priv, const char * arg)
   char * tmp_string;
   const char * filename;
   const char * pos;
-  const char * digits_start;
-  const char * digits_end;
+  const char * pos_start;
+  const char * pos_end;
   
   input_t * inp = (input_t *)priv;
 
@@ -205,28 +204,28 @@ static int open_input(void * priv, const char * arg)
 
   /* pos points now to the last digit */
 
-  digits_end = pos+1;
+  pos_end = pos+1;
 
   while(isdigit(*pos) && (pos != filename))
     pos--;
 
   if(pos != filename)
-    digits_start = pos+1;
+    pos_start = pos+1;
   else
-    digits_start = pos;
+    pos_start = pos;
 
   /* Now, cut the pieces together */
 
-  if(digits_start != filename)
-    inp->template = bg_strncat(inp->template, filename, digits_start);
+  if(pos_start != filename)
+    inp->template = bg_strncat(inp->template, filename, pos_start);
 
-  tmp_string = bg_sprintf("%%0%dd", (int)(digits_end - digits_start));
+  tmp_string = bg_sprintf("%%0%dd", (int)(pos_end - pos_start));
   inp->template = bg_strcat(inp->template, tmp_string);
   free(tmp_string);
 
-  inp->template = bg_strcat(inp->template, digits_end);
+  inp->template = bg_strcat(inp->template, pos_end);
 
-  inp->frame_start = strtoll(digits_start, NULL, 10);
+  inp->frame_start = strtoll(pos_start, NULL, 10);
   inp->frame_end = inp->frame_start+1;
 
   inp->filename_buffer = malloc(strlen(filename)+1);
@@ -251,6 +250,11 @@ static int open_input(void * priv, const char * arg)
                                                  inp->frame_duration,
                                                  inp->frame_end -
                                                  inp->frame_start);
+
+  /* Get track name */
+
+  bg_set_track_name_default(&(inp->track_info), arg);
+  
   inp->track_info.seekable = 1;
   return 1;
   }
@@ -360,10 +364,15 @@ static void close_input(void * priv)
   {
   input_t * inp = (input_t *)priv;
   if(inp->template)
+    {
     free(inp->template);
-  
+    inp->template = (char*)0;
+    }
   if(inp->filename_buffer)
+    {
     free(inp->filename_buffer);
+    inp->filename_buffer = (char*)0;
+    }
   }
 
 static void destroy_input(void* priv)

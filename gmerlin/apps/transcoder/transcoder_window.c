@@ -98,7 +98,8 @@ static gboolean idle_callback(gpointer data)
   bg_gtk_time_display_update(win->time_remaining,
                              win->transcoder_info->remaining_time);
   
-  gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), win->transcoder_info->percentage_done);
+  gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar),
+                                win->transcoder_info->percentage_done);
   return TRUE;
   }
 

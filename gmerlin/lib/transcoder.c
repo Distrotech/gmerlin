@@ -889,7 +889,8 @@ int bg_transcoder_init(bg_transcoder_t * ret,
 
   fprintf(stderr, "Selecting track...");
     
-  if(ret->track >= ret->in_plugin->get_num_tracks(ret->in_handle->priv))
+  if(ret->in_plugin->get_num_tracks &&
+     (ret->track >= ret->in_plugin->get_num_tracks(ret->in_handle->priv)))
     {
     fprintf(stderr, "Invalid track number %d\n", ret->track);
     goto fail;
@@ -902,19 +903,23 @@ int bg_transcoder_init(bg_transcoder_t * ret,
     {
     ret->in_plugin->set_track(ret->in_handle->priv, ret->track);
     }
-
+  
   fprintf(stderr, "done\n");
 
   /* Allocate streams */
 
   ret->num_audio_streams = ret->track_info->num_audio_streams;
-  ret->audio_streams = calloc(ret->num_audio_streams,
-                              sizeof(*(ret->audio_streams)));
+  if(ret->num_audio_streams)
+    ret->audio_streams = calloc(ret->num_audio_streams,
+                                sizeof(*(ret->audio_streams)));
 
+  
   ret->num_video_streams = ret->track_info->num_video_streams;
-  ret->video_streams = calloc(ret->num_video_streams,
-                              sizeof(*(ret->video_streams)));
 
+  if(ret->num_video_streams)
+    ret->video_streams = calloc(ret->num_video_streams,
+                                sizeof(*(ret->video_streams)));
+  
   /* Prepare streams */
     
   num_audio_streams = 0;
@@ -1256,9 +1261,21 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   t->transcoder_info.percentage_done =
     gavl_time_to_seconds(t->time) /
     gavl_time_to_seconds(t->track_info->duration);
+
+  if(t->transcoder_info.percentage_done < 0.0)
+    t->transcoder_info.percentage_done = 0.0;
+  if(t->transcoder_info.percentage_done > 1.0)
+    t->transcoder_info.percentage_done = 1.0;
+  if(t->transcoder_info.percentage_done == 0.0)
+    remaining_seconds = 0.0;
+  else
+    {
+    remaining_seconds = real_seconds *
+      (1.0 / t->transcoder_info.percentage_done - 1.0);
+    }
   
-  remaining_seconds = real_seconds * (1.0 - t->transcoder_info.percentage_done);
-  t->transcoder_info.remaining_time = gavl_seconds_to_time(remaining_seconds);
+  t->transcoder_info.remaining_time =
+    gavl_seconds_to_time(remaining_seconds);
   return 1;
   }
 

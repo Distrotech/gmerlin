@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <string.h>
+#include <ctype.h>
 #include <plugin.h>
 #include <utils.h>
 
@@ -87,6 +88,7 @@ static void * create_lqt()
 
 static int open_lqt(void * data, const char * arg)
   {
+  char * tmp_string;
   int i;
   char * filename;
   gavl_time_t duration;
@@ -106,6 +108,24 @@ static int open_lqt(void * data, const char * arg)
     return 0;
 
   bg_set_track_name_default(&(e->track_info), arg);
+
+  /* Set metadata */
+
+  e->track_info.metadata.title = bg_strdup((char*)0, quicktime_get_name(e->file));
+  e->track_info.metadata.copyright = bg_strdup((char*)0, quicktime_get_copyright(e->file));
+
+  e->track_info.metadata.comment = bg_strdup((char*)0, lqt_get_comment(e->file));
+  if(!e->track_info.metadata.comment)
+    e->track_info.metadata.comment = bg_strdup((char*)0, quicktime_get_info(e->file));
+
+  tmp_string = lqt_get_track(e->file);
+  if(tmp_string && isdigit(*tmp_string))
+    e->track_info.metadata.track = atoi(tmp_string);
+
+  e->track_info.metadata.artist = bg_strdup((char*)0, lqt_get_artist(e->file));
+  e->track_info.metadata.album  = bg_strdup((char*)0, lqt_get_album(e->file));
+  e->track_info.metadata.genre  = bg_strdup((char*)0, lqt_get_genre(e->file));
+  e->track_info.metadata.author  = bg_strdup((char*)0, lqt_get_author(e->file));
   
   /* Query streams */
 
