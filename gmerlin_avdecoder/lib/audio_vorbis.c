@@ -42,6 +42,8 @@ typedef struct
   gavl_audio_frame_t * frame;
   bgav_packet_t * p;
   int stream_initialized;
+
+
   } vorbis_audio_priv;
 
 uint8_t * parse_packet(ogg_packet * op, uint8_t * str)
@@ -312,8 +314,10 @@ static int init_vorbis(bgav_stream_t * s)
   s->data.audio.format.sample_format   = GAVL_SAMPLE_FLOAT;
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE;
   s->data.audio.format.samples_per_frame = 1024;
-  gavl_set_channel_setup(&(s->data.audio.format));
+
   priv->frame = gavl_audio_frame_create(NULL);
+    
+  gavl_set_channel_setup(&(s->data.audio.format));
   s->description = bgav_sprintf("Ogg Vorbis");
   return 1;
   }
@@ -322,7 +326,10 @@ static int decode_vorbis(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samp
   {
   vorbis_audio_priv * priv;
   int samples_copied;
+  float ** channels;
+  int i;
   int samples_decoded = 0;
+  
   priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
     
   while(samples_decoded < num_samples)
@@ -330,8 +337,9 @@ static int decode_vorbis(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samp
     if(!priv->frame->valid_samples)
       {
       /* Decode stuff */
+      
       while((priv->last_block_size =
-             vorbis_synthesis_pcmout(&priv->dec_vd, &(priv->frame->channels.f))) < 1)
+             vorbis_synthesis_pcmout(&priv->dec_vd, &(channels))) < 1)
         {
         //        fprintf(stderr, "Decode Next Packet\n");
         if(!next_packet(s))
@@ -346,6 +354,10 @@ static int decode_vorbis(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samp
           vorbis_synthesis_blockin(&priv->dec_vd,
                                    &priv->dec_vb);
           }
+        }
+      for(i = 0; i < s->data.audio.format.num_channels; i++)
+        {
+        priv->frame->channels.f[i] = channels[i];
         }
       //      fprintf(stderr, "Decoded %d samples\n", priv->last_block_size);
       priv->frame->valid_samples = priv->last_block_size;

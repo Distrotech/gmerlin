@@ -115,6 +115,7 @@ static int decode_frame(bgav_stream_t * s)
       return 0;
 
   //  fprintf(stderr, "Decode %d\n", priv->data_buffer_size);
+  
   priv->frame->samples.f = faacDecDecode(priv->dec,
                                          &frame_info,
                                          priv->data_buffer_ptr,
