@@ -20,7 +20,7 @@ XMMS_REQUIRED="1.2.2"
 AM_PATH_XMMS($XMMS_REQUIRED, , AC_MSG_ERROR(gmerlin_visualizer needs xmms with headers, 1))
 AC_SUBST(XMMS_REQUIRED)
 
-GTK_REQUIRED="1.2.2"
+GTK_REQUIRED="1.2.8"
 AM_PATH_GTK($GTK_REQUIRED, , AC_MSG_ERROR(gmerlin_visualizer needs gtk with headers, 1))
 AC_SUBST(GTK_REQUIRED)
 
