@@ -7,8 +7,8 @@ WORKING_DIRECTORY=`pwd`
 
 # rm -rf xine-lib 
 rm -f files.txt diff.txt diff-total.txt
-# cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/xine login
-# cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/xine co xine-lib
+cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/xine login
+cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/xine co xine-lib
 cd $XINEDIR
 
 for i in $SUBDIRS; do 

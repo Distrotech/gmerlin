@@ -630,7 +630,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
           goto fail;
         pos = buf;
         bgav_WAVEFORMATEX_read(&wf, &pos);
-        bgav_WAVEFORMATEX_dump(&wf);
+        //        bgav_WAVEFORMATEX_dump(&wf);
         bgav_WAVEFORMATEX_get_format(&wf, bgav_as);
 
         if(wf.cbSize)

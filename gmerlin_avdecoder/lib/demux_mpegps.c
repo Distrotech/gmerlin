@@ -289,7 +289,7 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
             stream = bgav_track_add_audio_stream(ctx->tt->current_track);
             stream->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
             stream->stream_id = priv->pes_header.stream_id;
-            //            fprintf(stderr, "Found audio stream\n");
+            fprintf(stderr, "Found AC3 audio stream\n");
             }
           }
         else if((c >= 0xA0) && (c <= 0xA7)) /* LPCM Audio */
@@ -405,11 +405,31 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
           {
           if(priv->start_pts < 0)
             {
-            priv->start_pts = priv->pes_header.pts;
-            //            fprintf(stderr, "Start PTS: %f\n",
-            //                    priv->start_pts / 90000.0);
+            if(ctx->tt->current_track->num_audio_streams &&
+               ctx->tt->current_track->num_video_streams)
+              {
+              if(stream->type == BGAV_STREAM_AUDIO)
+                {
+                priv->start_pts = priv->pes_header.pts;
+#if 0
+                fprintf(stderr, "Start PTS: %f\n",
+                        priv->start_pts / 90000.0);
+#endif
+                }
+              }
+            else
+              {
+              priv->start_pts = priv->pes_header.pts;
+#if 0
+              fprintf(stderr, "Start PTS 1: %f %d %d\n",
+                      priv->start_pts / 90000.0,
+                      ctx->tt->current_track->num_audio_streams,
+                      ctx->tt->current_track->num_video_streams);
+#endif
+              }
             }
-          if(priv->pes_header.pts > priv->start_pts)
+          
+          if((priv->pes_header.pts > priv->start_pts) && (priv->start_pts >= 0))
             {
             p->timestamp =
               ((priv->pes_header.pts - priv->start_pts) * GAVL_TIME_SCALE) / 90000;
@@ -502,10 +522,11 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
     ctx->tt = bgav_track_table_create(1);
     find_streams(ctx);
     }
-  fprintf(stderr, "Duration: %lld, Mux rate: %d, total_bytes: %lld\n",
-          ctx->tt->current_track->duration,
-          priv->pack_header.mux_rate,
-          ctx->input->total_bytes);
+  
+  //  fprintf(stderr, "Duration: %lld, Mux rate: %d, total_bytes: %lld\n",
+  //          ctx->tt->current_track->duration,
+  //          priv->pack_header.mux_rate,
+  //          ctx->input->total_bytes);
   if((ctx->tt->current_track->duration == GAVL_TIME_UNDEFINED) &&
      priv->pack_header.mux_rate)
     {
@@ -514,10 +535,10 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
       (ctx->input->total_bytes * GAVL_TIME_SCALE)/(priv->pack_header.mux_rate*50);
     }
 
-  fprintf(stderr, "Duration: %lld, Mux rate: %d, total_bytes: %lld\n",
-          ctx->tt->current_track->duration,
-          priv->pack_header.mux_rate,
-          ctx->input->total_bytes);
+  //  fprintf(stderr, "Duration: %lld, Mux rate: %d, total_bytes: %lld\n",
+  //          ctx->tt->current_track->duration,
+  //          priv->pack_header.mux_rate,
+  //          ctx->input->total_bytes);
   
   if(ctx->input->input->seek_byte)
     ctx->can_seek = 1;

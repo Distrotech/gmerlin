@@ -209,8 +209,7 @@ static int init(bgav_stream_t * s)
   s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
   gavl_set_channel_setup(&(s->data.audio.format));
 
-  s->data.audio.format.samples_per_frame = AVCODEC_MAX_AUDIO_FRAME_SIZE /
-    (2 * s->data.audio.format.num_channels);
+  s->data.audio.format.samples_per_frame = AVCODEC_MAX_AUDIO_FRAME_SIZE;
 
   priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
     
@@ -257,7 +256,7 @@ static int decode_frame(bgav_stream_t * s)
                                     &frame_size,
                                     priv->packet_buffer_ptr,
                                     priv->bytes_in_packet_buffer);
-  //    fprintf(stderr, "Used: %d bytes, frame_size: %d\n", bytes_used, frame_size);
+  //  fprintf(stderr, "Used: %d bytes, frame_size: %d\n", bytes_used, frame_size);
     
   /* Check for error */
     
@@ -282,11 +281,13 @@ static int decode_frame(bgav_stream_t * s)
 
   /* Sometimes, frame_size is terribly wrong */
 
-  if(frame_size > AVCODEC_MAX_AUDIO_FRAME_SIZE /
-     (2 * s->data.audio.format.num_channels));
-    frame_size = AVCODEC_MAX_AUDIO_FRAME_SIZE /
-      (2 * s->data.audio.format.num_channels);
-      
+  if(frame_size > AVCODEC_MAX_AUDIO_FRAME_SIZE)
+    {
+    fprintf(stderr, "Adjusting frame size %d -> ", frame_size);
+    frame_size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+    fprintf(stderr, "%d\n", frame_size);
+    }
+  
   frame_size /= (2 * s->data.audio.format.num_channels);
   priv->last_frame_size = frame_size;
   priv->frame->valid_samples = frame_size;
@@ -314,6 +315,13 @@ static int decode(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
         }
       //      fprintf(stderr, "done\n");
       }
+#if 0
+    fprintf(stderr, "Copy out_pos: %d, in_pos: %d, out_size: %d, in_size: %d\n",
+            samples_decoded, /* out_pos */
+            priv->last_frame_size - priv->frame->valid_samples,  /* in_pos */
+            num_samples - samples_decoded, /* out_size, */
+            priv->frame->valid_samples);
+#endif       
     samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
                                            f,
                                            priv->frame,

@@ -219,27 +219,72 @@ bgav_seek(bgav_t * b, gavl_time_t time)
   gavl_time_t diff_time;
   gavl_time_t sync_time;
   gavl_time_t seek_time;
-  
+
+  gavl_time_t last_seek_time = GAVL_TIME_UNDEFINED;
+  gavl_time_t last_seek_time_2nd = GAVL_TIME_UNDEFINED;
+
+  gavl_time_t last_sync_time = GAVL_TIME_UNDEFINED;
+  gavl_time_t last_sync_time_2nd = GAVL_TIME_UNDEFINED;
+    
   bgav_track_t * track = b->tt->current_track;
   int num_iterations = 0;
   seek_time = time;
-  
+      
   while(1)
     {
     num_iterations++;
-    /* First step: Flush all fifos */
     
+    /* First step: Flush all fifos */
     bgav_track_clear(track);
     
     /* Second step: Let the demuxer seek */
     /* This will set the "time" members of all streams */
-    
     b->demuxer->demuxer->seek(b->demuxer, seek_time);
-   
     sync_time = bgav_track_resync_decoders(track);
-
     if(sync_time == GAVL_TIME_UNDEFINED)
       return;
+
+    /* Check if we should end this */
+
+    if((last_sync_time != GAVL_TIME_UNDEFINED) &&
+       (last_sync_time_2nd != GAVL_TIME_UNDEFINED))
+      {
+      if((sync_time == last_sync_time) || 
+         (sync_time == last_sync_time_2nd))
+        {
+        /* Go to the smaller of both times */
+        
+        if(last_sync_time < time) /* Go to last sync time */
+          {
+          if(last_sync_time != sync_time)
+            {
+            b->demuxer->demuxer->seek(b->demuxer, seek_time);
+            sync_time = bgav_track_resync_decoders(track);
+            }
+          }
+        else /* Go to 2nd last sync time */
+          {
+          if(last_sync_time != sync_time)
+            {
+            b->demuxer->demuxer->seek(b->demuxer, seek_time);
+            sync_time = bgav_track_resync_decoders(track);
+            }
+          }
+        if(time > sync_time)
+          {
+          bgav_track_skipto(track, time);
+          break;
+          }
+        fprintf(stderr, "Exiting otherwise infinite loop\n");
+        }
+      }
+
+    last_seek_time_2nd = last_seek_time;
+    last_sync_time_2nd = last_sync_time;
+
+    last_seek_time = seek_time;
+    last_sync_time = sync_time;
+    
     
     diff_time = time - sync_time;
     fprintf(stderr, "Seeked, time: %f sync_time: %f, diff: %f\n",

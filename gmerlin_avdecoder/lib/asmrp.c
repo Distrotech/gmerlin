@@ -421,8 +421,8 @@ static int asmrp_operand (asmrp_t *p) {
     asmrp_get_sym (p);
     
     if (p->sym != ASMRP_SYM_ID) {
-      printf ("error: identifier expected.\n");
-      abort();
+      printf ("error: identifier expected 1.\n");
+      return -1;
     }
 
     i = asmrp_find_id (p, p->str);
@@ -447,7 +447,7 @@ static int asmrp_operand (asmrp_t *p) {
 
     if (p->sym != ASMRP_SYM_RPAREN) {
       printf ("error: ) expected.\n");
-      abort();
+      return -1;
     }
 
     asmrp_get_sym (p);
@@ -455,7 +455,7 @@ static int asmrp_operand (asmrp_t *p) {
 
   default:
     printf ("syntax error, $ number or ( expected\n");
-    abort();
+    return -1;
   }
 
 #ifdef LOG
@@ -475,6 +475,9 @@ static int asmrp_comp_expression (asmrp_t *p) {
 
   a = asmrp_operand (p);
 
+  if(a < 0)
+    return -1;
+    
   while ( (p->sym == ASMRP_SYM_LESS)
           || (p->sym == ASMRP_SYM_LEQ)
           || (p->sym == ASMRP_SYM_EQUALS)
@@ -487,6 +490,9 @@ static int asmrp_comp_expression (asmrp_t *p) {
 
     b = asmrp_operand (p);
 
+    if(b < 0)
+      return -1;
+    
     switch (op) {
     case ASMRP_SYM_LESS:
       a = a<b;
@@ -523,6 +529,9 @@ static int asmrp_condition (asmrp_t *p) {
 
   a = asmrp_comp_expression (p);
 
+  if(a < 0)
+    return -1;
+  
   while ( (p->sym == ASMRP_SYM_AND) || (p->sym == ASMRP_SYM_OR) ) {
     int op, b;
 
@@ -548,34 +557,35 @@ static int asmrp_condition (asmrp_t *p) {
   return a;
 }
 
-static void asmrp_assignment (asmrp_t *p) {
+static int asmrp_assignment (asmrp_t *p) {
 
 #ifdef LOG
   printf ("assignment\n");
 #endif
 
   if (p->sym != ASMRP_SYM_ID) {
-    printf ("error: identifier expected\n");
-    abort ();
+    printf ("error: identifier expected 2\n");
+    return 0;
   }
   asmrp_get_sym (p);
 
   if (p->sym != ASMRP_SYM_EQUALS) {
     printf ("error: = expected\n");
-    abort ();
+    return 0;
   }
   asmrp_get_sym (p);
 
   if ( (p->sym != ASMRP_SYM_NUM) && (p->sym != ASMRP_SYM_STRING) 
        && (p->sym != ASMRP_SYM_ID)) {
     printf ("error: number or string expected\n");
-    abort ();
+    return 0;
   }
   asmrp_get_sym (p);
 
 #ifdef LOG
   printf ("assignment done\n");
 #endif
+  return 1;
 }
 
 static int asmrp_rule (asmrp_t *p) {
@@ -593,21 +603,27 @@ static int asmrp_rule (asmrp_t *p) {
     asmrp_get_sym (p);
     ret = asmrp_condition (p);
 
+    if(ret < 0)
+      return -1;
+    
     while (p->sym == ASMRP_SYM_COMMA) {
       
       asmrp_get_sym (p);
       
-      asmrp_assignment (p);
+      if(!asmrp_assignment (p))
+        return -1;
     }
 
   } else if (p->sym != ASMRP_SYM_SEMICOLON) {
 
-    asmrp_assignment (p);
+    if(!asmrp_assignment (p))
+      return -1;
 
     while (p->sym == ASMRP_SYM_COMMA) {
 
       asmrp_get_sym (p);
-      asmrp_assignment (p);
+      if(!asmrp_assignment (p))
+        return -1;
     }
   }
 
@@ -627,7 +643,7 @@ static int asmrp_rule (asmrp_t *p) {
 
 static int asmrp_eval (asmrp_t *p, int *matches) {
 
-  int rule_num, num_matches;
+int rule_num, num_matches, result;
 
 #ifdef LOG
   printf ("eval\n");
@@ -638,7 +654,10 @@ static int asmrp_eval (asmrp_t *p, int *matches) {
   rule_num = 0; num_matches = 0;
   while (p->sym != ASMRP_SYM_EOF) {
 
-    if (asmrp_rule (p)) {
+    result = asmrp_rule (p);
+    if(result < 0)
+      return -1;
+    else if (result) {
 #ifdef LOG
       printf ("rule #%d is true\n", rule_num);
 #endif
@@ -669,5 +688,5 @@ int bgav_asmrp_match (const char *rules, int bandwidth, int *matches) {
 
   asmrp_dispose (p);
 
-  return num_matches;
+  return (num_matches < 0) ? 0 : num_matches;
 }

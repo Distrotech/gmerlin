@@ -799,6 +799,8 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
     if(len>0)
       bgav_input_skip(ctx->input, len);
       // stream_skip(demuxer->stream, len);
+    else
+      return 0;
     }
   return 1;
   }

@@ -135,29 +135,31 @@ void bgav_BITMAPINFOHEADER_set_format(bgav_BITMAPINFOHEADER * bh,
 void bgav_BITMAPINFOHEADER_dump(bgav_BITMAPINFOHEADER * ret)
   {
   uint32_t fourcc_be;
-  fprintf(stderr, "biSize: %d\n", ret->biSize); /* sizeof(BITMAPINFOHEADER) */
-  fprintf(stderr, "biWidth: %d\n", ret->biWidth);
-  fprintf(stderr, "biHeight: %d\n", ret->biHeight);
-  fprintf(stderr, "biPlanes: %d\n", ret->biPlanes);
-  fprintf(stderr, "biBitCount: %d\n", ret->biBitCount);
+  fprintf(stderr, "BITMAPINFOHEADER:\n");
+  fprintf(stderr, "  biSize: %d\n", ret->biSize); /* sizeof(BITMAPINFOHEADER) */
+  fprintf(stderr, "  biWidth: %d\n", ret->biWidth);
+  fprintf(stderr, "  biHeight: %d\n", ret->biHeight);
+  fprintf(stderr, "  biPlanes: %d\n", ret->biPlanes);
+  fprintf(stderr, "  biBitCount: %d\n", ret->biBitCount);
   fourcc_be = swap_endian(ret->biCompression);
-  fprintf(stderr, "biCompression: ");
+  fprintf(stderr, "  biCompression: ");
   bgav_dump_fourcc(fourcc_be);
   fprintf(stderr, "\n");
-  fprintf(stderr, "biSizeImage: %d\n", ret->biSizeImage);
-  fprintf(stderr, "biXPelsPerMeter: %d\n", ret->biXPelsPerMeter);
-  fprintf(stderr, "biYPelsPerMeter: %d\n", ret->biXPelsPerMeter);
-  fprintf(stderr, "biClrUsed: %d\n", ret->biClrUsed);
-  fprintf(stderr, "biClrImportant: %d\n", ret->biClrImportant);
+  fprintf(stderr, "  biSizeImage: %d\n", ret->biSizeImage);
+  fprintf(stderr, "  biXPelsPerMeter: %d\n", ret->biXPelsPerMeter);
+  fprintf(stderr, "  biYPelsPerMeter: %d\n", ret->biXPelsPerMeter);
+  fprintf(stderr, "  biClrUsed: %d\n", ret->biClrUsed);
+  fprintf(stderr, "  biClrImportant: %d\n", ret->biClrImportant);
   }
 
 void bgav_WAVEFORMATEX_dump(bgav_WAVEFORMATEX * ret)
   {
-  fprintf(stderr, "wFormatTag:      %04x\n", ret->wFormatTag);
-  fprintf(stderr, "nChannels:       %d\n",   ret->nChannels);
-  fprintf(stderr, "nSamplesPerSec:  %d\n", ret->nSamplesPerSec);
-  fprintf(stderr, "nAvgBytesPerSec: %d\n", ret->nAvgBytesPerSec);
-  fprintf(stderr, "nBlockAlign:     %d\n", ret->nBlockAlign);
-  fprintf(stderr, "wBitsPerSample:  %d\n", ret->wBitsPerSample);
-  fprintf(stderr, "cbSize:          %d\n", ret->cbSize);
+  fprintf(stderr, "WAVEFORMATEX\n");
+  fprintf(stderr, "  wFormatTag:      %04x\n", ret->wFormatTag);
+  fprintf(stderr, "  nChannels:       %d\n",   ret->nChannels);
+  fprintf(stderr, "  nSamplesPerSec:  %d\n", ret->nSamplesPerSec);
+  fprintf(stderr, "  nAvgBytesPerSec: %d\n", ret->nAvgBytesPerSec);
+  fprintf(stderr, "  nBlockAlign:     %d\n", ret->nBlockAlign);
+  fprintf(stderr, "  wBitsPerSample:  %d\n", ret->wBitsPerSample);
+  fprintf(stderr, "  cbSize:          %d\n", ret->cbSize);
   }

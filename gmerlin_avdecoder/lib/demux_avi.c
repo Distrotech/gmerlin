@@ -150,7 +150,7 @@ int read_avih(bgav_input_context_t* input,
     }
   return result;
   }
-
+#if 0
 void dump_avih(avih_t * h)
   {
   fprintf(stderr, "avih:\n");
@@ -168,7 +168,7 @@ void dump_avih(avih_t * h)
   fprintf(stderr, "  dwRate: %d\n",                h->dwRate);
   fprintf(stderr, "  dwLength: %d\n",              h->dwLength);
   }
-
+#endif
 typedef struct
   {
   uint32_t num_entries;
@@ -1059,7 +1059,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
   p = calloc(1, sizeof(*p));
   ctx->priv = p;
   read_avih(ctx->input, &(p->avih), &ch);
-  dump_avih(&(p->avih));
+  //  dump_avih(&(p->avih));
       
   /* Streams */
 

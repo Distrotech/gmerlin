@@ -328,7 +328,8 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
         bgav_rmff_header_create_from_sdp(sdp,
                                          ctx->network_bandwidth,
                                          &stream_rules);
-
+      if(!priv->rmff_header)
+        goto fail;
       ctx->demuxer = bgav_demuxer_create(&bgav_demuxer_rmff, ctx);
       if(!bgav_demux_rm_open_with_header(ctx->demuxer,
                                          priv->rmff_header))

@@ -666,6 +666,11 @@ bgav_rmff_header_create_from_sdp(bgav_sdp_t * sdp, int network_bandwidth, char *
 
     num_matches = bgav_asmrp_match(asm_rulebook, network_bandwidth, matches);
 
+    if(!num_matches)
+      {
+      fprintf(stderr, "Bad ASMRuleBook\n");
+      goto fail;
+      }
     for(j = 0; j < num_matches; j++)
       {
       buf = bgav_sprintf("stream=%u;rule=%u,", ret->streams[i].mdpr.stream_number, matches[j]);
