@@ -119,6 +119,8 @@ void bg_cfg_section_set_parameter_float(bg_cfg_section_t * section,
                                         const char * name, float value);
 void bg_cfg_section_set_parameter_string(bg_cfg_section_t * section,
                                          const char * name, const char * value);
+void bg_cfg_section_set_parameter_time(bg_cfg_section_t * section,
+                                       const char * name, gavl_time_t value);
 
 /* Get parameter values, return 0 if no such entry */
 
@@ -130,6 +132,9 @@ int bg_cfg_section_get_parameter_float(bg_cfg_section_t * section,
 
 int bg_cfg_section_get_parameter_string(bg_cfg_section_t * section,
                                         const char * name, const char ** value);
+
+int bg_cfg_section_get_parameter_time(bg_cfg_section_t * section,
+                                      const char * name, gavl_time_t * value);
 
 
 /* Apply all values found in the parameter info */

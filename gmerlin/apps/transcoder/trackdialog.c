@@ -14,8 +14,8 @@ struct track_dialog_s
 
   bg_dialog_t * cfg_dialog;
 
-  void (*set_name)(void * priv, const char * name);
-  void * set_name_priv
+  void (*update_callback)(void * priv);
+  void * update_priv;
   };
 
 static void set_parameter_general(void * priv, char * name, bg_parameter_value_t * val)
@@ -24,17 +24,15 @@ static void set_parameter_general(void * priv, char * name, bg_parameter_value_t
   d = (track_dialog_t *)priv;
 
   if(!name)
-    return;
-  else if(!strcmp(name, "name"))
     {
-    if(d->set_name)
-      d->set_name(d->set_name_priv, val->val_str);
+    if(d->update_callback)
+      d->update_callback(d->update_priv);
     }
   }
 
 track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
-                                     void (*set_name)(void * priv, const char * name),
-                                     void * set_name_priv)
+                                     void (*update_callback)(void * priv),
+                                     void * update_priv)
   {
   int i;
   char * label;
@@ -43,10 +41,10 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
     
   ret = calloc(1, sizeof(*ret));
 
-  ret->set_name = set_name;
-  ret->set_name_priv = set_name_priv;
+  ret->update_callback = update_callback;
+  ret->update_priv     = update_priv;
   
-  ret->cfg_dialog = bg_dialog_create_multi("Transcode options");
+  ret->cfg_dialog = bg_dialog_create_multi("Track options");
   
   /* General */
   

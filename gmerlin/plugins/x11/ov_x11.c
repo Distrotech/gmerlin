@@ -960,10 +960,10 @@ static void destroy_x11(void * data)
 
   if(still_running)
     {
-    fprintf(stderr, "Stopping still thread...");
+    //    fprintf(stderr, "Stopping still thread...");
     pthread_join(priv->still_thread, NULL);
     close_x11(priv);
-    fprintf(stderr, "done\n");
+    //    fprintf(stderr, "done\n");
     }
 
   

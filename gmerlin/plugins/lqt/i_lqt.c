@@ -382,34 +382,42 @@ static void close_lqt(void * data)
   bg_track_info_free(&(e->track_info));  
   }
 
-static void seek_lqt(void * data, gavl_time_t time)
+static void seek_lqt(void * data, gavl_time_t * time)
   {
   int i;
   int64_t position;
   
   i_lqt_t * e = (i_lqt_t*)data;
-  
-  for(i = 0; i < e->track_info.num_audio_streams; i++)
-    {
-    position = gavl_time_to_samples(e->track_info.audio_streams[i].format.samplerate,
-                                    time);
-    quicktime_set_audio_position(e->file, position,
-                                 e->audio_streams[i].quicktime_index);
-    e->audio_streams[i].sample_position = position;
-    }
-  
+    
   for(i = 0; i < e->track_info.num_video_streams; i++)
     {
     position = gavl_time_to_samples(e->track_info.video_streams[i].format.timescale,
-                                    time);
+                                    *time);
     lqt_seek_video(e->file, e->video_streams[i].quicktime_index,
                    position);
 
     e->video_streams[i].frame_position =
       quicktime_video_position(e->file,
                                e->video_streams[i].quicktime_index);
+
+    /* We sync to the first video stream */
+
+    if(!i)
+      {
+      position = lqt_frame_time(e->file, e->video_streams[i].quicktime_index);
+      *time = gavl_samples_to_time(e->track_info.video_streams[i].format.timescale,
+                                   position);
+      }
     }
 
+  for(i = 0; i < e->track_info.num_audio_streams; i++)
+    {
+    position = gavl_time_to_samples(e->track_info.audio_streams[i].format.samplerate,
+                                    *time);
+    quicktime_set_audio_position(e->file, position,
+                                 e->audio_streams[i].quicktime_index);
+    e->audio_streams[i].sample_position = position;
+    }
   }
 
 static void destroy_lqt(void * data)

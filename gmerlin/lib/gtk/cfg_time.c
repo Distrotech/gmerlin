@@ -29,6 +29,7 @@ typedef struct
   GtkWidget * spinbutton_s;  /* Seconds      */
   GtkWidget * spinbutton_ms; /* Milleseconds */
   GtkWidget * box;
+  int no_change_callback;
   } spinbutton_t;
 
 /*
@@ -47,16 +48,10 @@ destroy(bg_gtk_widget_t * w)
   free(s);
   }
 
-static void
-get_value(bg_gtk_widget_t * w)
+static void set_time(spinbutton_t * s, gavl_time_t t)
   {
   int i;
-  gavl_time_t t;
-  spinbutton_t * s = (spinbutton_t*)(w->priv);
-
   /* Fraction of a second */
-
-  t = w->value.val_time;
   
   i = t % GAVL_TIME_SCALE;
   i /= (GAVL_TIME_SCALE / 1000);
@@ -85,29 +80,79 @@ get_value(bg_gtk_widget_t * w)
   
   gtk_spin_button_set_value(GTK_SPIN_BUTTON(s->spinbutton_h),
                             (gdouble)(t));
-  
+
   }
 
 static void
-set_value(bg_gtk_widget_t * w)
+get_value(bg_gtk_widget_t * w)
   {
-  int hours, minutes, seconds, milliseconds;
-
   spinbutton_t * s = (spinbutton_t*)(w->priv);
+  set_time(s, w->value.val_time);
+  }
 
+static gavl_time_t get_time(spinbutton_t * s)
+  {
+  gavl_time_t ret;
+  int hours, minutes, seconds, milliseconds;
+  
   milliseconds = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->spinbutton_ms));
   seconds      = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->spinbutton_s));
   minutes      = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->spinbutton_m));
   hours        = gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(s->spinbutton_h));
 
-  w->value.val_time = hours;
-  w->value.val_time *= 60;
-  w->value.val_time += minutes;
-  w->value.val_time *= 60;
-  w->value.val_time += seconds;
-  w->value.val_time *= GAVL_TIME_SCALE;
+  ret = hours;
+  ret *= 60;
+  ret += minutes;
+  ret *= 60;
+  ret += seconds;
+  ret *= GAVL_TIME_SCALE;
 
-  w->value.val_time += milliseconds * (GAVL_TIME_SCALE / 1000);
+  ret += milliseconds * (GAVL_TIME_SCALE / 1000);
+  return ret;
+  }
+
+static void
+set_value(bg_gtk_widget_t * w)
+  {
+  spinbutton_t * s = (spinbutton_t*)(w->priv);
+  w->value.val_time = get_time(s);
+  }
+
+static void change_callback(GtkWidget * w, gpointer data)
+  {
+  bg_gtk_widget_t * wid = (bg_gtk_widget_t *)data;
+  spinbutton_t * s = (spinbutton_t*)(wid->priv);
+  gavl_time_t t;
+  int do_change = 0;
+
+  //  fprintf(stderr, "Change callback\n");
+  
+  if(s->no_change_callback)
+    return;
+  
+  t = get_time(s);
+
+  if(wid->info->val_max.val_time > wid->info->val_min.val_time)
+    {
+    
+    if(t > wid->info->val_max.val_time)
+      {
+      do_change = 1;
+      t = wid->info->val_max.val_time;
+      }
+    if(t < wid->info->val_min.val_time)
+      {
+      do_change = 1;
+      t = wid->info->val_min.val_time;
+      }
+    }
+
+  if(do_change)
+    {
+    s->no_change_callback = 1;
+    set_time(s, t);
+    s->no_change_callback = 0;
+    }
   }
 
 static void
@@ -161,22 +206,40 @@ bg_gtk_create_time(bg_gtk_widget_t * w,
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(s->spinbutton_m), 0);
   gtk_spin_button_set_digits(GTK_SPIN_BUTTON(s->spinbutton_h), 0);
 
+  g_signal_connect(G_OBJECT(s->spinbutton_ms), "value-changed",
+                   G_CALLBACK(change_callback), w);
+  
+  g_signal_connect(G_OBJECT(s->spinbutton_s), "value-changed",
+                   G_CALLBACK(change_callback), w);
+  
+  g_signal_connect(G_OBJECT(s->spinbutton_m), "value-changed",
+                   G_CALLBACK(change_callback), w);
+  
+  g_signal_connect(G_OBJECT(s->spinbutton_h), "value-changed",
+                   G_CALLBACK(change_callback), w);
+  
+  
   gtk_widget_show(s->spinbutton_ms);
   gtk_widget_show(s->spinbutton_s);
   gtk_widget_show(s->spinbutton_m);
   gtk_widget_show(s->spinbutton_h);
 
   s->box = gtk_hbox_new(0, 2);
-  gtk_box_pack_start_defaults(GTK_BOX(s->box), s->spinbutton_h);
-  label = gtk_label_new(":");
+
+  label = gtk_label_new("h:");
   gtk_widget_show(label);
   gtk_box_pack_start(GTK_BOX(s->box), label, FALSE, FALSE, 0);
-  gtk_box_pack_start_defaults(GTK_BOX(s->box), s->spinbutton_m);
-  label = gtk_label_new(":");
+
+  gtk_box_pack_start(GTK_BOX(s->box), s->spinbutton_h, FALSE, FALSE, 0);
+  label = gtk_label_new("m:");
   gtk_widget_show(label);
   gtk_box_pack_start(GTK_BOX(s->box), label, FALSE, FALSE, 0);
-  gtk_box_pack_start_defaults(GTK_BOX(s->box), s->spinbutton_s);
-  label = gtk_label_new(".");
+  gtk_box_pack_start(GTK_BOX(s->box), s->spinbutton_m, FALSE, FALSE, 0);
+  label = gtk_label_new("s:");
+  gtk_widget_show(label);
+  gtk_box_pack_start(GTK_BOX(s->box), label, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(s->box), s->spinbutton_s, FALSE, FALSE, 0);
+  label = gtk_label_new("ms:");
   gtk_widget_show(label);
   gtk_box_pack_start(GTK_BOX(s->box), label, FALSE, FALSE, 0);
   gtk_box_pack_start_defaults(GTK_BOX(s->box), s->spinbutton_ms);

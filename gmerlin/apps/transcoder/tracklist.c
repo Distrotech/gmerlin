@@ -242,11 +242,16 @@ static void track_list_update(track_list_t * w)
   GtkTreeModel * model;
   GtkTreeIter iter;
   bg_transcoder_track_t * track;
-  gavl_time_t duration;
+  gavl_time_t track_duration;
+  gavl_time_t track_duration_total;
+
   gavl_time_t duration_total;
   char * name;
   
   char string_buffer[GAVL_TIME_STRING_LEN + 32];
+  char string_buffer1[GAVL_TIME_STRING_LEN + 32];
+  char * buf;
+  
   GtkTreeSelection * selection;
    
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(w->treeview));
@@ -311,21 +316,36 @@ static void track_list_update(track_list_t * w)
 
     /* Set time */
     
-    duration = bg_transcoder_track_get_duration(track);
+    bg_transcoder_track_get_duration(track, &track_duration, &track_duration_total);
     
     if(duration_total != GAVL_TIME_UNDEFINED)
       {
-      if(duration == GAVL_TIME_UNDEFINED)
+      if(track_duration == GAVL_TIME_UNDEFINED)
         duration_total = GAVL_TIME_UNDEFINED;
       else
-        duration_total += duration;
+        duration_total += track_duration;
       }
-    gavl_time_prettyprint(duration, string_buffer);
-    gtk_list_store_set(GTK_LIST_STORE(model),
-                       &iter,
-                       COLUMN_DURATION,
-                       string_buffer, -1);
 
+    if(track_duration == track_duration_total)
+      {
+      gavl_time_prettyprint(track_duration, string_buffer);
+      gtk_list_store_set(GTK_LIST_STORE(model),
+                         &iter,
+                         COLUMN_DURATION,
+                         string_buffer, -1);
+      }
+    else
+      {
+      gavl_time_prettyprint(track_duration, string_buffer);
+      gavl_time_prettyprint(track_duration_total, string_buffer1);
+      buf = bg_sprintf("%s/%s", string_buffer, string_buffer1);
+      gtk_list_store_set(GTK_LIST_STORE(model),
+                         &iter,
+                         COLUMN_DURATION,
+                         buf, -1);
+      free(buf);
+      }
+    
     /* Select track */
 
     //    fprintf(stderr, "Selected: %d\n", track->selected);
@@ -572,14 +592,14 @@ static void drivesel_close_callback(bg_gtk_drivesel_t * f , void * data)
 
 /* Set track name */
 
-static void set_track_name(void * data, const char * name)
+static void update_track(void * data)
   {
   track_list_t * l = (track_list_t *)data;
 
   //  fprintf(stderr, "Set Track name %s\n", name);
-
   track_list_update(l);
   }
+
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
@@ -677,7 +697,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   if(w == t->config_button)
     {
     //    fprintf(stderr, "Config button\n");
-    track_dialog = track_dialog_create(t->selected_track, set_track_name, t);
+    track_dialog = track_dialog_create(t->selected_track, update_track, t);
     track_dialog_run(track_dialog);
     track_dialog_destroy(track_dialog);
 

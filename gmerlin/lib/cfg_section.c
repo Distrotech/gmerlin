@@ -390,6 +390,16 @@ void bg_cfg_section_set_parameter_string(bg_cfg_section_t * section,
   item->value.val_str = bg_strdup(item->value.val_str, value);
   }
 
+void bg_cfg_section_set_parameter_time(bg_cfg_section_t * section,
+                                       const char * name, gavl_time_t value)
+  {
+  bg_cfg_item_t * item;
+  item = find_item_by_name(section, name, 1);
+  item->type = BG_CFG_TIME;
+  item->value.val_time = value;
+  }
+
+
 /* Get parameter values, return 0 if no such entry */
 
 int bg_cfg_section_get_parameter_int(bg_cfg_section_t * section,
@@ -423,6 +433,17 @@ int bg_cfg_section_get_parameter_string(bg_cfg_section_t * section,
   if(!item)
     return 0;
   *value = item->value.val_str;
+  return 1;
+  }
+
+int bg_cfg_section_get_parameter_time(bg_cfg_section_t * section,
+                                      const char * name, gavl_time_t * value)
+  {
+  bg_cfg_item_t * item;
+  item = find_item_by_name(section, name, 0);
+  if(!item)
+    return 0;
+  *value = item->value.val_time;
   return 1;
   }
 

@@ -446,12 +446,18 @@ static void set_oa_plugin_cmd(bg_player_t * player,
 
 static void seek_cmd(bg_player_t * player, gavl_time_t t)
   {
-  gavl_video_frame_t * vf;
-  fprintf(stderr, "Seek cmd\n");
+  gavl_time_t sync_time = t;
+
+  //  gavl_video_frame_t * vf;
+  //  fprintf(stderr, "Seek cmd\n");
   interrupt_cmd(player, BG_PLAYER_STATE_SEEKING);
 
-  bg_player_input_seek(player->input_context, t);
+  bg_player_input_seek(player->input_context, &sync_time);
 
+  fprintf(stderr, "Player seeked: %f %f\n", gavl_time_to_seconds(t), gavl_time_to_seconds(sync_time));
+
+  
+  
   /* Clear fifos */
 
   if(player->do_audio)
@@ -468,15 +474,7 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
   preload(player);
   //  fprintf(stderr, "Preload done\n");
   
-  if(player->do_video)
-    {
-    /* Ok, now we set the time from the video stream */
-    vf = bg_fifo_get_read(player->video_stream.fifo);
-    bg_player_time_set(player, vf->time);
-    fprintf(stderr, "Time is now: %lld\n", vf->time);
-    }
-  else
-    bg_player_time_set(player, t);
+  bg_player_time_set(player, t);
   start_playback(player);
   }
 

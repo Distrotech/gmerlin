@@ -104,8 +104,8 @@ char * bg_transcoder_track_get_name(bg_transcoder_track_t * t);
 char * bg_transcoder_track_get_audio_encoder(bg_transcoder_track_t * t);
 char * bg_transcoder_track_get_video_encoder(bg_transcoder_track_t * t);
 
-gavl_time_t  bg_transcoder_track_get_duration(bg_transcoder_track_t * t);
-
+void bg_transcoder_track_get_duration(bg_transcoder_track_t * t,
+                                      gavl_time_t * ret, gavl_time_t * ret_total);
 
 /*
  *  The following function is for internal use ONLY

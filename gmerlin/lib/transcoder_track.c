@@ -178,6 +178,12 @@ static bg_parameter_info_t parameters_general[] =
       flags:     BG_PARAMETER_HIDE_DIALOG,
     },
     {
+      name:      "seekable",
+      long_name: "Seekable",
+      type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
       name:      "audio_encoder",
       long_name: "Audio encoder",
       type:      BG_PARAMETER_STRING,
@@ -189,6 +195,30 @@ static bg_parameter_info_t parameters_general[] =
       type:      BG_PARAMETER_STRING,
       flags:     BG_PARAMETER_HIDE_DIALOG,
     },
+    {
+      name:      "set_start_time",
+      long_name: "Set start time",
+      type:      BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 0 }
+    },
+    {
+      name:      "start_time",
+      long_name: "Start time",
+      type:      BG_PARAMETER_TIME,
+      val_default: { val_time: 0 }
+    },
+    {
+      name:      "set_end_time",
+      long_name: "Set end time",
+      type:      BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 0 }
+    },
+    {
+      name:      "end_time",
+      long_name: "End time",
+      type:      BG_PARAMETER_TIME,
+      val_default: { val_time: 0 }
+    },
     { /* End of parameters */ }
   };
 
@@ -197,11 +227,44 @@ bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
                                       bg_plugin_handle_t * audio_encoder,
                                       bg_plugin_handle_t * video_encoder)
   {
+  gavl_time_t duration = GAVL_TIME_UNDEFINED;
   int i;
   bg_encoder_plugin_t * plugin;
   void * priv;
+  int seekable = 0;
   
   track->general_parameters = bg_parameter_info_copy_array(parameters_general);
+
+  bg_cfg_section_get_parameter_time(track->general_section,
+                                    "duration", &duration);
+  bg_cfg_section_get_parameter_int(track->general_section,
+                                   "seekable", &seekable);
+
+  if((duration != GAVL_TIME_UNDEFINED) && seekable)
+    {
+    i = 0;
+
+    while(track->general_parameters[i].name)
+      {
+      if(!strcmp(track->general_parameters[i].name, "start_time") ||
+         !strcmp(track->general_parameters[i].name, "end_time"))
+        track->general_parameters[i].val_max.val_time = duration;
+      i++;
+      }
+    }
+  else
+    {
+    i = 0;
+
+    while(track->general_parameters[i].name)
+      {
+      if(!strcmp(track->general_parameters[i].name, "start_time") ||
+         !strcmp(track->general_parameters[i].name, "set_start_time"))
+        track->general_parameters[i].flags |= BG_PARAMETER_HIDE_DIALOG;
+      i++;
+      }
+    }
+  
   track->metadata_parameters = bg_metadata_get_parameters((bg_metadata_t*)0);
   
   /* Audio streams */
@@ -318,7 +381,8 @@ static void set_track(bg_transcoder_track_t * track,
     
     else if(!strcmp(track->general_parameters[i].name, "duration"))
       track->general_parameters[i].val_default.val_time = track_info->duration;
-
+    else if(!strcmp(track->general_parameters[i].name, "seekable"))
+      track->general_parameters[i].val_default.val_i = track_info->seekable;
     else if(!strcmp(track->general_parameters[i].name, "location"))
       track->general_parameters[i].val_default.val_str = bg_strdup((char*)0, location);
 
@@ -327,7 +391,33 @@ static void set_track(bg_transcoder_track_t * track,
 
     else if(!strcmp(track->general_parameters[i].name, "track"))
       track->general_parameters[i].val_default.val_i = track_index;
-    
+
+    else if(!strcmp(track->general_parameters[i].name, "set_start_time"))
+      {
+      if(!track_info->seekable)
+        {
+        track->general_parameters[i].flags |= BG_PARAMETER_HIDE_DIALOG;
+        }
+      }
+    else if(!strcmp(track->general_parameters[i].name, "start_time"))
+      {
+      if(!track_info->seekable)
+        {
+        track->general_parameters[i].flags |= BG_PARAMETER_HIDE_DIALOG;
+        }
+      else
+        {
+        track->general_parameters[i].val_max.val_time = track_info->duration;
+        }
+      }
+    else if(!strcmp(track->general_parameters[i].name, "end_time"))
+      {
+      if(track_info->duration != GAVL_TIME_UNDEFINED)
+        {
+        track->general_parameters[i].val_max.val_time = track_info->duration;
+        track->general_parameters[i].val_default.val_time = track_info->duration;
+        }
+      }
     i++;
     }
   
@@ -916,16 +1006,57 @@ char * bg_transcoder_track_get_video_encoder(bg_transcoder_track_t * t)
   return val.val_str;
   }
 
-
-gavl_time_t  bg_transcoder_track_get_duration(bg_transcoder_track_t * t)
+void bg_transcoder_track_get_duration(bg_transcoder_track_t * t, gavl_time_t * ret,
+                                      gavl_time_t * ret_total)
   {
-  bg_parameter_value_t val;
-  bg_parameter_info_t info;
-
-  memset(&val, 0, sizeof(val));
-  memset(&info, 0, sizeof(info));
-  info.name = "duration";
+  gavl_time_t start_time = 0, end_time = 0, duration_total = 0;
+  int set_start_time = 0, set_end_time = 0;
   
-  bg_cfg_section_get_parameter(t->general_section, &info, &val);
-  return val.val_time;
+  bg_cfg_section_get_parameter_int(t->general_section,  "set_start_time", &set_start_time);
+  bg_cfg_section_get_parameter_int(t->general_section,  "set_end_time", &set_end_time);
+
+  bg_cfg_section_get_parameter_time(t->general_section, "duration",   &duration_total);
+  bg_cfg_section_get_parameter_time(t->general_section, "start_time", &start_time);
+  bg_cfg_section_get_parameter_time(t->general_section, "end_time",   &end_time);
+
+  *ret_total = duration_total;
+
+  if(duration_total == GAVL_TIME_UNDEFINED)
+    {
+    if(set_end_time)
+      *ret = end_time;
+    else
+      *ret = duration_total;
+    }
+  else
+    {
+    if(set_start_time)
+      {
+      if(set_end_time) /* Start and end */
+        {
+        *ret = end_time - start_time;
+        if(*ret < 0)
+          *ret = 0;
+        }
+      else /* Start only */
+        {
+        *ret = duration_total - start_time;
+        if(*ret < 0)
+          *ret = 0;
+        }
+      }
+    else
+      {
+      if(set_end_time) /* End only */
+        {
+        *ret = end_time;
+        }
+      else
+        {
+        *ret = duration_total;
+        }
+      }
+    }
+  
+  return;
   }

@@ -482,15 +482,15 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
   }
 
 void bg_player_input_seek(bg_player_input_context_t * ctx,
-                          gavl_time_t time)
+                          gavl_time_t * time)
   {
   bg_plugin_lock(ctx->plugin_handle);
   //  fprintf(stderr, "bg_player_input_seek\n");
   ctx->plugin->seek(ctx->priv, time);
   bg_plugin_unlock(ctx->plugin_handle);
 
-  ctx->audio_time = time;
-  ctx->video_time = ctx->audio_time;
+  ctx->audio_time = *time;
+  ctx->video_time = *time;
   
   ctx->audio_samples_written = gavl_time_to_samples(ctx->player->audio_stream.input_format.samplerate,
                                                     ctx->audio_time);

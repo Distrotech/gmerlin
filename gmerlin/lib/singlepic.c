@@ -350,14 +350,16 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
   return 1;
   }
 
-static void seek_input(void * priv, gavl_time_t time)
+static void seek_input(void * priv, gavl_time_t * time)
   {
   input_t * inp = (input_t *)priv;
 
   inp->current_frame = inp->frame_start + gavl_time_to_frames(inp->timescale,
                                                               inp->frame_duration,
-                                                              time);
-  
+                                                              *time);
+  *time = gavl_frames_to_time(inp->timescale,
+                              inp->frame_duration,
+                              inp->current_frame - inp->frame_start);
   }
 
 static void stop_input(void * priv)

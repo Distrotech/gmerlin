@@ -269,8 +269,14 @@ struct bg_transcoder_s
   
   int track;
 
+  gavl_time_t start_time;
+  gavl_time_t end_time;
+  int set_start_time;
+  int set_end_time;
+  
   bg_metadata_t metadata;
 
+    
   /* General configuration stuff */
 
   char * output_directory;
@@ -625,7 +631,7 @@ static void audio_iteration(audio_stream_t*s)
     s->com.status = STREAM_STATE_FINISHED;
     return;
     }
-
+  
   /* Convert and encode it */
   
   if(s->com.do_convert)
@@ -773,6 +779,13 @@ static void video_iteration(video_stream_t * s)
 #define SP_INT(s) if(!strcmp(name, # s)) \
     { \
     t->s = val->val_i; \
+    return; \
+    }
+
+#define SP_TIME(s) if(!strcmp(name, # s)) \
+    { \
+    t->s = val->val_time; \
+    return; \
     }
 
 static void
@@ -782,8 +795,16 @@ set_parameter_general(void * data, char * name, bg_parameter_value_t * val)
   t = (bg_transcoder_t *)data;
 
   if(!name)
-    return;
+    {
+    /* Set start and end times */
 
+    if(!t->set_start_time)
+      t->start_time = GAVL_TIME_UNDEFINED;
+
+    if(!t->set_end_time)
+      t->end_time = GAVL_TIME_UNDEFINED;
+    return;
+    }
   SP_STR(name);
   SP_STR(location);
   SP_STR(plugin);
@@ -791,9 +812,14 @@ set_parameter_general(void * data, char * name, bg_parameter_value_t * val)
   SP_STR(video_encoder);
   SP_INT(track);
 
+  SP_INT(set_start_time);
+  SP_INT(set_end_time);
+  SP_TIME(start_time);
+  SP_TIME(end_time);
   }
 
 #undef SP_INT
+#undef SP_TIME
 #undef SP_STR
 
 static bg_plugin_handle_t * load_encoder_by_name(bg_plugin_registry_t * plugin_reg,
@@ -884,14 +910,16 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   plugin_info = bg_plugin_find_by_name(plugin_reg, ret->plugin);
   if(!plugin_info)
     {
-    fprintf(stderr, "Cannot find plugin %s\n", ret->plugin);
+    ret->error_msg = bg_sprintf("Cannot find plugin %s\n", ret->plugin);
+    ret->error_msg_ret = ret->error_msg;
     goto fail;
     }
 
   ret->in_handle = bg_plugin_load(plugin_reg, plugin_info);
   if(!ret->in_handle)
     {
-    fprintf(stderr, "Cannot open plugin %s\n", ret->plugin);
+    ret->error_msg = bg_sprintf("Cannot open plugin %s\n", ret->plugin);
+    ret->error_msg_ret = ret->error_msg;
     goto fail;
     }
 
@@ -899,8 +927,9 @@ int bg_transcoder_init(bg_transcoder_t * ret,
 
   if(!ret->in_plugin->open(ret->in_handle->priv, ret->location))
     {
-    fprintf(stderr, "Cannot open %s with plugin %s\n",
-            ret->location, ret->plugin);
+    ret->error_msg = bg_sprintf("Cannot open %s with plugin %s\n",
+                                  ret->location, ret->plugin);
+    ret->error_msg_ret = ret->error_msg;
     goto fail;
     }
 
@@ -914,7 +943,8 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   if(ret->in_plugin->get_num_tracks &&
      (ret->track >= ret->in_plugin->get_num_tracks(ret->in_handle->priv)))
     {
-    fprintf(stderr, "Invalid track number %d\n", ret->track);
+    ret->error_msg = bg_sprintf("Invalid track number %d\n", ret->track);
+    ret->error_msg_ret = ret->error_msg;
     goto fail;
     }
 
@@ -975,6 +1005,19 @@ int bg_transcoder_init(bg_transcoder_t * ret,
 
   if(ret->in_plugin->start)
     ret->in_plugin->start(ret->in_handle->priv);
+
+  /* Check if we must seek to the start position */
+
+  if(ret->start_time != GAVL_TIME_UNDEFINED)
+    {
+    if(!ret->in_plugin->seek)
+      {
+      ret->error_msg = bg_sprintf("Cannot seek to start point");
+      ret->error_msg_ret = ret->error_msg;
+      goto fail;
+      }
+    ret->in_plugin->seek(ret->in_handle->priv, &(ret->start_time));
+    }
 
   /* Check for the encoding plugins */
 

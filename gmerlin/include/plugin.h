@@ -283,10 +283,11 @@ typedef struct bg_input_plugin_s
   /*
    *  Media streams are supposed to be seekable, if this
    *  function is non-NULL AND the duration field of the track info
-   *  is > 0 AND the seekable flag in the track info is nonzero
+   *  is > 0 AND the seekable flag in the track info is nonzero.
+   *  The time argument might be changed to the correct value
    */
-  
-  void (*seek)(void * priv, gavl_time_t time);
+
+  void (*seek)(void * priv, gavl_time_t * time);
 
   /* Stop playback (plugin can be started again after) */
 

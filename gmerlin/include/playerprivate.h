@@ -181,7 +181,7 @@ bg_player_input_set_video_stream(bg_player_input_context_t * ctx,
                                  int audio_stream);
 
 void bg_player_input_seek(bg_player_input_context_t * ctx,
-                          gavl_time_t time);
+                          gavl_time_t * time);
 
 
 /* player1_ov.c */
