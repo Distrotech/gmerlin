@@ -1500,7 +1500,8 @@ static void button_callback(GtkWidget * wid, gpointer data)
     }
   }
 
-static GtkWidget * create_pixmap_button(bg_gtk_album_widget_t * w, const char * filename)
+static GtkWidget * create_pixmap_button(bg_gtk_album_widget_t * w,
+                                        const char * filename)
   {
   GtkWidget * button;
   GtkWidget * image;
@@ -1770,8 +1771,8 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
     }
   ret->remove_selected_button    = create_pixmap_button(ret, "trash_16.png");
   ret->info_button               = create_pixmap_button(ret, "info_16.png");
-  ret->move_selected_up_button   = create_pixmap_button(ret, "up_16.png");
-  ret->move_selected_down_button = create_pixmap_button(ret, "down_16.png");
+  ret->move_selected_up_button   = create_pixmap_button(ret, "top_16.png");
+  ret->move_selected_down_button = create_pixmap_button(ret, "bottom_16.png");
 
   ret->total_time                = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
   ret->toolbar                   = gtk_hbox_new(0, 0);
