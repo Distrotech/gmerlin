@@ -244,6 +244,13 @@ bgav_seek(bgav_t * b, gavl_time_t time)
     if(sync_time == GAVL_TIME_UNDEFINED)
       return;
 
+    /* If demuxer already seeked, break here */
+
+    if(!b->demuxer->demuxer->seek_iterative)
+      {
+      bgav_track_skipto(track, time);
+      break;
+      }
     /* Check if we should end this */
 
     if((last_sync_time != GAVL_TIME_UNDEFINED) &&
@@ -277,6 +284,7 @@ bgav_seek(bgav_t * b, gavl_time_t time)
           }
         fprintf(stderr, "Exiting otherwise infinite loop\n");
         }
+      
       }
 
     last_seek_time_2nd = last_seek_time;

@@ -77,7 +77,7 @@ static int read_chunk_header(bgav_input_context_t * input,
   return bgav_input_read_fourcc(input, &(chunk->ckID)) &&
     bgav_input_read_32_le(input, &(chunk->ckSize));
   }
-
+#if 0
 static void dump_chunk_header(chunk_header_t * chunk)
   {
   fprintf(stderr, "chunk header:\n");
@@ -85,7 +85,7 @@ static void dump_chunk_header(chunk_header_t * chunk)
   bgav_dump_fourcc(chunk->ckID);
   fprintf(stderr, "\n  ckSize %d\n", chunk->ckSize);
   }
-
+#endif
 typedef struct
   {
   uint32_t ckID;
@@ -322,19 +322,20 @@ static int read_dmlh(bgav_input_context_t * input, dmlh_t * ret,
 
   if(input->position - start_pos < ch->ckSize)
     {
-    fprintf(stderr, "dmlh: Skipping %lld bytes\n",
-            ch->ckSize - (input->position - start_pos));
-    bgav_input_skip_dump(input, PADD(ch->ckSize) - (input->position - start_pos));
+    //    fprintf(stderr, "dmlh: Skipping %lld bytes\n",
+    //            ch->ckSize - (input->position - start_pos));
+    bgav_input_skip(input, PADD(ch->ckSize) - (input->position - start_pos));
     }
   return 1;
   }
 
+#if 0
 static void dump_dmlh(dmlh_t * dmlh)
   {
   fprintf(stderr, "dmlh:\n");
   fprintf(stderr, "  dwTotalFrames: %d\n", dmlh->dwTotalFrames);
   }
-
+#endif
 /* odml */
 
 typedef struct
@@ -368,8 +369,8 @@ static int read_odml(bgav_input_context_t * input, odml_t * ret,
         ret->has_dmlh = 1;
         break;
       default:
-        fprintf(stderr, "Unknown chunk inside odml list, skipping rest:\n");
-        dump_chunk_header(&ch1);
+        //        fprintf(stderr, "Unknown chunk inside odml list, skipping rest:\n");
+        //        dump_chunk_header(&ch1);
         keep_going = 0;
         break;
       }
@@ -377,20 +378,20 @@ static int read_odml(bgav_input_context_t * input, odml_t * ret,
   
   if(input->position - start_pos < ch->ckSize - 4)
     {
-    fprintf(stderr, "odml: Skipping %lld bytes\n",
-            ch->ckSize - 4 - input->position - start_pos);
+    //    fprintf(stderr, "odml: Skipping %lld bytes\n",
+    //            ch->ckSize - 4 - input->position - start_pos);
     bgav_input_skip(input, ch->ckSize - 4 - input->position - start_pos);
     }
   return 1;
   }
-
+#if 0
 static void dump_odml(odml_t * odml)
   {
   fprintf(stderr, "odml:\n");
   if(odml->has_dmlh)
     dump_dmlh(&(odml->dmlh));
   }
-
+#endif
 /* indx */
 
 typedef struct indx_s
@@ -511,8 +512,8 @@ static int read_indx(bgav_input_context_t * input, indx_t * ret,
   
   if(input->position - pos < ch->ckSize)
     {
-    fprintf(stderr, "indx: Skipping %lld bytes\n",
-            ch->ckSize - (input->position - pos));
+    //    fprintf(stderr, "indx: Skipping %lld bytes\n",
+    //            ch->ckSize - (input->position - pos));
     
     bgav_input_skip(input, PADD(ch->ckSize) - (input->position - pos));
     }
@@ -533,7 +534,7 @@ static int read_indx(bgav_input_context_t * input, indx_t * ret,
       }
     bgav_input_seek(input, pos, SEEK_SET);
     }
-  fprintf(stderr, "Read indx\n");
+  //  fprintf(stderr, "Read indx\n");
   return 1;
   }
 
@@ -760,9 +761,9 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
         avi_as->has_indx = 1;
         break;
       default:
-        fprintf(stderr, "Unknown subchunk ");
-        bgav_dump_fourcc(ch->ckID);
-        fprintf(stderr, "\n");
+        //        fprintf(stderr, "Unknown subchunk ");
+        //        bgav_dump_fourcc(ch->ckID);
+        //        fprintf(stderr, "\n");
         bgav_input_skip(ctx->input, PADD(ch->ckSize));
         break;
       }
@@ -859,9 +860,9 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
         avi_vs->has_indx = 1;
         break;
       default:
-        fprintf(stderr, "Unknown subchunk ");
-        bgav_dump_fourcc(ch->ckID);
-        fprintf(stderr, "\n");
+        //        fprintf(stderr, "Unknown subchunk ");
+        //        bgav_dump_fourcc(ch->ckID);
+        //        fprintf(stderr, "\n");
         bgav_input_skip(ctx->input, PADD(ch->ckSize));
         break;
       }
@@ -1082,12 +1083,14 @@ static int open_avi(bgav_demuxer_context_t * ctx,
       init_audio_stream(ctx, &strh, &ch);
     else if(strh.fccType == ID_VIDS)
       init_video_stream(ctx, &strh, &ch);
+#if 0
     else
       {
       fprintf(stderr, "Unknown stream type: ");
       bgav_dump_fourcc(strh.fccType);
       fprintf(stderr, "\n");
       }
+#endif
     }
 
   keep_going = 1;
@@ -1117,15 +1120,17 @@ static int open_avi(bgav_demuxer_context_t * ctx,
           goto fail;
         p->has_odml = 1;
 
-        dump_odml(&(p->odml));
+        //        dump_odml(&(p->odml));
         
         //        bgav_input_skip(ctx->input, ch.ckSize-4);
         break;
       default:
+#if 0
         fprintf(stderr, "Skipping unknown chunk\n");
         bgav_dump_fourcc(fourcc);
         fprintf(stderr, "\n");
         dump_chunk_header(&ch);
+#endif
         bgav_input_skip(ctx->input, ch.ckSize-4);
         break;
       }
@@ -1161,7 +1166,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
       ctx->can_seek = 1;
       idx1_calculate_timestamps(ctx);
       //      dump_idx1(&(p->idx1));
-      fprintf(stderr, "Found standard index\n");
+      //      fprintf(stderr, "Found standard index\n");
       }
     bgav_input_seek(ctx->input, p->movi_start, SEEK_SET);
     }
@@ -1502,7 +1507,7 @@ static void seek_avi(bgav_demuxer_context_t * ctx, gavl_time_t time)
       chunk_min = avi_as->index_position;
     if(avi_as->index_position > chunk_max)
       chunk_max = avi_as->index_position;
-    fprintf(stderr, "AS: %d\n", avi_as->index_position);
+    //    fprintf(stderr, "AS: %d\n", avi_as->index_position);
     }
 
   for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
@@ -1512,7 +1517,7 @@ static void seek_avi(bgav_demuxer_context_t * ctx, gavl_time_t time)
       chunk_min = avi_vs->index_position;
     if(avi_vs->index_position > chunk_max)
       chunk_max = avi_vs->index_position;
-    fprintf(stderr, "VS: %d\n", avi_vs->index_position);
+    //    fprintf(stderr, "VS: %d\n", avi_vs->index_position);
     }
 
   /* Ok we have everything, let's seek */

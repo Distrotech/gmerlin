@@ -587,9 +587,10 @@ static void close_mpegps(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_mpegps =
   {
-    probe:       probe_mpegps,
-    open:        open_mpegps,
-    next_packet: next_packet_mpegps,
-    seek:        seek_mpegps,
-    close:       close_mpegps
+    seek_iterative: 1,
+    probe:          probe_mpegps,
+    open:           open_mpegps,
+    next_packet:    next_packet_mpegps,
+    seek:           seek_mpegps,
+    close:          close_mpegps
   };

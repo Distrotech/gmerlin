@@ -75,10 +75,10 @@ static codec_info_t real_codecs[] =
     },
     {
       dll_name: "cook.so.6.0",
-      format_name: "Real Audio cook DLL decoder",
+      format_name: "Real Audio cook",
       decoder:
       {
-        name:   "Real audio cook decoder",
+        name:   "Real audio cook DLL decoder",
         fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('c', 'o', 'o', 'k'), 0x00  },
         init:   init_real,
         decode: decode_real,
@@ -122,10 +122,10 @@ static codec_info_t real_codecs[] =
 #endif
     {
       dll_name: "atrc.so.6.0",
-      format_name: "Real Audio atrc DLL decoder",
+      format_name: "Real Audio atrc",
       decoder:
       {
-        name:   "Real audio atrc decoder",
+        name:   "Real audio atrc DLL decoder",
         fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('a', 't', 'r', 'c'), 0x00  },
         init:   init_real,
         decode: decode_real,

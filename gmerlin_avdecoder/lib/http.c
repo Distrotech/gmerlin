@@ -277,7 +277,7 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
     goto fail;
     }
   
-  bgav_http_header_dump(ret->header);
+  //  bgav_http_header_dump(ret->header);
 
   if(host)
     free(host);

@@ -60,7 +60,6 @@ static void stsd_dump_audio(qt_sample_description_t * d)
     fprintf(stderr, "bytes_per_sample:     %d\n", d->format.audio.bytes_per_sample);
     }
   }
-#endif
 static void stsd_dump_video(qt_sample_description_t * d)
   {
   fprintf(stderr, "stsd:\n  fourcc: ");
@@ -87,6 +86,7 @@ static void stsd_dump_video(qt_sample_description_t * d)
   fprintf(stderr, "  ctab_id:               %d\n", d->format.video.ctab_id);
   fprintf(stderr, "  ctab_size:             %d\n", d->format.video.ctab_size);
   }
+#endif
 
 static int stsd_read_common(bgav_input_context_t * input,
                             qt_sample_description_t * ret)
@@ -143,9 +143,9 @@ static int stsd_read_audio(bgav_input_context_t * input,
                                 ret->format.audio.wave_atom.data,
                                 ret->format.audio.wave_atom.size) < ret->format.audio.wave_atom.size)
           return 0;
-        fprintf(stderr, "Found wave atom, %d bytes\n", ret->format.audio.wave_atom.size);
-        bgav_hexdump(ret->format.audio.wave_atom.data,
-                     ret->format.audio.wave_atom.size, 16); 
+        // fprintf(stderr, "Found wave atom, %d bytes\n", ret->format.audio.wave_atom.size);
+        // bgav_hexdump(ret->format.audio.wave_atom.data,
+        //             ret->format.audio.wave_atom.size, 16); 
         
         /* Sometimes, the ess atom is INSIDE the wav atom, so let's catch this */
 
@@ -158,8 +158,8 @@ static int stsd_read_audio(bgav_input_context_t * input,
             break;
           if(h1.fourcc == BGAV_MK_FOURCC('e', 's', 'd', 's'))
             {
-            fprintf(stderr, "Found esds atom inside of wave atom, %lld bytes\n",
-                    h1.size);
+            //            fprintf(stderr, "Found esds atom inside of wave atom, %lld bytes\n",
+            //                    h1.size);
             if(!bgav_qt_esds_read(&h1, input_mem, &(ret->esds)))
               return 0;
             ret->has_esds = 1;
@@ -301,7 +301,7 @@ static int stsd_read_video(bgav_input_context_t * input,
         break;
       }
     }
-  stsd_dump_video(ret);
+  //  stsd_dump_video(ret);
   return 1;
   }
   

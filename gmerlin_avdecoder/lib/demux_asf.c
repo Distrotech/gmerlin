@@ -1291,9 +1291,10 @@ static void close_asf(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_asf =
   {
-    probe:       probe_asf,
-    open:        open_asf,
-    next_packet: next_packet_asf,
-    seek:        seek_asf,
-    close:       close_asf
+    seek_iterative: 1,
+    probe:          probe_asf,
+    open:           open_asf,
+    next_packet:    next_packet_asf,
+    seek:           seek_asf,
+    close:          close_asf
   };

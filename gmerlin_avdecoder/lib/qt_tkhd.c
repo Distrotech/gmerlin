@@ -126,7 +126,7 @@ int bgav_qt_tkhd_read(qt_atom_header_t * h, bgav_input_context_t * input,
      !bgav_qt_read_fixed32(input, &(ret->track_height)))
     return 0;
 
-  bgav_qt_tkhd_dump(ret);
+  //  bgav_qt_tkhd_dump(ret);
   
   return 1;
   }

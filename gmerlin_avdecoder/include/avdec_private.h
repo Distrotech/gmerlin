@@ -530,6 +530,8 @@ bgav_input_open_fd(int fd, int64_t total_bytes, const char * mimetype);
 
 struct bgav_demuxer_s
   {
+  /* If 1, perform iterative seeking */
+  int seek_iterative;
   int  (*probe)(bgav_input_context_t*);
 
   int  (*open)(bgav_demuxer_context_t * ctx,
