@@ -1,0 +1,16 @@
+
+* Mediatree/Album + Widets (tests/playtree.c)
+
+* audioplayer1.c, videoplayer1.c -> plugin registry
+* player1.c
+
+* Audio-/Video FIFO
+
+* lqt
+* vorbis
+* avifile
+* sndfile
+
+* Player     engine & GUI
+* Recorder   engine & GUI
+* Transcoder engine & GUI

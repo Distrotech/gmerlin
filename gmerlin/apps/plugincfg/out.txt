@@ -1,0 +1,118 @@
+==26259== Memcheck, a.k.a. Valgrind, a memory error detector for x86-linux.
+==26259== Copyright (C) 2002, and GNU GPL'd, by Julian Seward.
+==26259== Using valgrind-1.9.3, a program instrumentation system for x86-linux.
+==26259== Copyright (C) 2000-2002, and GNU GPL'd, by Julian Seward.
+==26259== Estimated CPU clock rate is 910 MHz
+==26259== For more details, rerun with: -v
+==26259== 
+bg_plugin_ref 0x42d0b9f0 oa_oss 1
+bg_plugin_ref 0x42d42770 ov_x11 1
+bg_plugin_ref 0x42d68d38 i_oss 1
+
+(lt-gmerlin_plugincfg:26259): Gtk-CRITICAL **: file gtkcombo.c: line 1116 (gtk_combo_set_popdown_strings): assertion `strings != NULL' failed
+Reading codec file ...done, found 9 audio codecs, 28 video codecs
+Scanning /home/pix/lib/libquicktime for plugins
+Found lqt_audiocodec.so...Already in database, registering all codecs
+Registering audio codec ima4
+Registering audio codec rawaudio
+Registering audio codec twos
+Registering audio codec ulaw
+Found lqt_videocodec.so...Already in database, registering all codecs
+Registering video codec raw
+Registering video codec v308
+Registering video codec v408
+Registering video codec v410
+Registering video codec yuv2
+Registering video codec yuv4
+Registering video codec yv12
+Found lqt_opendivx.so...Already in database, registering all codecs
+Registering video codec opendivx
+Found lqt_ferguson.so...Already in database, registering all codecs
+Registering video codec cinepak
+Found lqt_mjpeg.so...Already in database, registering all codecs
+Registering video codec jpeg
+Registering video codec mjpa
+Found lqt_png.so...Already in database, registering all codecs
+Registering video codec png
+Found lqt_vorbis.so...Already in database, registering all codecs
+Registering audio codec vorbis
+Found lqt_xanim.so...Already in database, registering all codecs
+Registering video codec xa_rle
+Registering video codec xa_raw
+Registering video codec xa_rpza
+Registering video codec xa_smc
+Found lqt_rtjpeg.so...Already in database, registering all codecs
+Registering video codec rtjpeg
+Found lqt_svq.so...Already in database, registering all codecs
+Registering video codec svq1
+Found lqt_ffmpeg.so...Already in database, registering all codecs
+Registering audio codec ffmpeg_ac3
+Registering audio codec ffmpeg_mp2
+Registering audio codec ffmpeg_mp3
+Registering video codec ffmpeg_mpg1
+Registering video codec ffmpeg_h263
+Registering video codec ffmpeg_h263p
+Registering video codec ffmpeg_mjpg
+Registering video codec ffmpeg_mpg4
+Registering video codec ffmpeg_msmpeg4v1
+Registering video codec ffmpeg_msmpeg4v2
+Registering video codec ffmpeg_msmpeg4v3
+Registering video codec ffmpeg_i263
+Found lqt_dv.so...Already in database, registering all codecs
+Registering video codec dv
+Found lqt_lame.so...Already in database, registering all codecs
+Registering audio codec lame
+Sorting codecs, sort string: ima4,rawaudio,twos,ulaw,vorbis,ffmpeg_ac3,ffmpeg_mp2,ffmpeg_mp3,lame
+Sorting codecs, sort string: raw,v308,v408,v410,yuv2,yuv4,yv12,opendivx,cinepak,jpeg,mjpa,png,xa_rle,xa_raw,xa_rpza,xa_smc,rtjpeg,svq1,ffmpeg_mpg1,ffmpeg_h263,ffmpeg_h263p,ffmpeg_mjpg,ffmpeg_mpg4,ffmpeg_msmpeg4v1,ffmpeg_msmpeg4v2,ffmpeg_msmpeg4v3,ffmpeg_i263,dv
+Writing codec file /home/pix/.libquicktime_codecs...done
+bg_plugin_ref 0x42239e7c e_lqt 1
+bg_plugin_ref 0x422bd8cc i_mpeg 1
+bg_plugin_unref 0x422bd8cc i_mpeg 0
+==26259== discard syms in /home/pix/lib/gmerlin/plugins/i_mpeg.so due to munmap()
+==26259== discard syms in /home/pix/lib/gmerlin/libgmerlin_mpeg.so.0.0.0 due to munmap()
+==26259== discard syms in /opt/gnome/lib/libesd.so.0.2.29 due to munmap()
+==26259== discard syms in /opt/gnome/lib/libaudiofile.so.0.0.2 due to munmap()
+bg_plugin_ref 0x422f3354 i_lqt 1
+==26259== Invalid read of size 1
+==26259==    at 0x4015DD7A: strcmp (vg_clientfuncs.c:470)
+==26259==    by 0x4020930F: get_value (cfg_decoder.c:158)
+==26259==    by 0x4020B9EE: create_section (cfg_dialog.c:192)
+==26259==    by 0x4020BBBC: bg_dialog_create (cfg_dialog.c:323)
+==26259==    Address 0x42D81BA8 is 0 bytes inside a block of size 64 free'd
+==26259==    at 0x4015D79D: free (vg_clientfuncs.c:182)
+==26259==    by 0x4020926E: get_value (cfg_decoder.c:135)
+==26259==    by 0x4020B9EE: create_section (cfg_dialog.c:192)
+==26259==    by 0x4020BBBC: bg_dialog_create (cfg_dialog.c:323)
+==26259== 
+==26259== Invalid read of size 1
+==26259==    at 0x4015DD7A: strcmp (vg_clientfuncs.c:470)
+==26259==    by 0x40209475: get_value (cfg_decoder.c:194)
+==26259==    by 0x4020B9EE: create_section (cfg_dialog.c:192)
+==26259==    by 0x4020BBBC: bg_dialog_create (cfg_dialog.c:323)
+==26259==    Address 0x42D81BA8 is 0 bytes inside a block of size 64 free'd
+==26259==    at 0x4015D79D: free (vg_clientfuncs.c:182)
+==26259==    by 0x4020926E: get_value (cfg_decoder.c:135)
+==26259==    by 0x4020B9EE: create_section (cfg_dialog.c:192)
+==26259==    by 0x4020BBBC: bg_dialog_create (cfg_dialog.c:323)
+==26259== 
+==26259== Invalid free() / delete / delete[]
+==26259==    at 0x4015D79D: free (vg_clientfuncs.c:182)
+==26259==    by 0x402091B1: bg_strbreak_free (cfg_decoder.c:113)
+==26259==    by 0x40209571: get_value (cfg_decoder.c:220)
+==26259==    by 0x4020B9EE: create_section (cfg_dialog.c:192)
+==26259==    Address 0x42D81BA8 is 0 bytes inside a block of size 64 free'd
+==26259==    at 0x4015D79D: free (vg_clientfuncs.c:182)
+==26259==    by 0x4020926E: get_value (cfg_decoder.c:135)
+==26259==    by 0x4020B9EE: create_section (cfg_dialog.c:192)
+==26259==    by 0x4020BBBC: bg_dialog_create (cfg_dialog.c:323)
+==26259== 
+==26259== Syscall param writev(vector[...]) contains uninitialised or unaddressable byte(s)
+==26259==    at 0x406DC41D: my_do_syscall3 (vg_libpthread.c:2389)
+==26259==    by 0x406DB6A0: vgIntercept_writev (vg_libpthread.c:94)
+==26259==    by 0x4016F368: __writev (vg_intercept.c:287)
+==26259==    by 0x407F188F: (within /usr/X11R6/lib/libX11.so.6.2)
+==26259==    Address 0x422798C1 is 137 bytes inside a block of size 2048 alloc'd
+==26259==    at 0x4015D978: calloc (vg_clientfuncs.c:242)
+==26259==    by 0x407C452B: XOpenDisplay (in /usr/X11R6/lib/libX11.so.6.2)
+==26259==    by 0x404572A4: gdk_display_open (gdkdisplay-x11.c:122)
+==26259==    by 0x4043CABF: gdk_display_open_default_libgtk_only (gdk.c:402)
