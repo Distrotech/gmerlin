@@ -18,6 +18,7 @@ BuildRequires:  gavl-devel = @GAVL_REQUIRED@
 BuildRequires:  libpng-devel >= @PNG_REQUIRED@
 BuildRequires:  libquicktime-devel = @LQT_REQUIRED@
 BuildRequires:  libmusicbrainz-devel >= @MUSICBRAINZ_REQUIRED@
+BuildRequires:  libtiff-devel >= @TIFF_REQUIRED@
 
 Requires:       libxml2 >= @XML2_REQUIRED@
 Requires:       gavl = @GAVL_REQUIRED@

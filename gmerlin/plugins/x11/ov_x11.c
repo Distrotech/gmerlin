@@ -20,6 +20,7 @@
 #include <pthread.h>
 
 #include <string.h>
+#include <math.h>
 
 // #define DEBUG
 
@@ -163,6 +164,11 @@ typedef struct
   int disable_xscreensaver_normal;
   
   int window_visible;
+
+  int squeeze_zoom_active;
+  float squeeze;
+  float zoom;
+
   } x11_t;
 
 static void create_parameters(x11_t * x11);	
@@ -653,6 +659,13 @@ static void set_drawing_coords(x11_t * priv)
 #ifdef HAVE_LIBXV
   float aspect_window;
   float aspect_video;
+
+  float zoom_factor;
+  float squeeze_factor;
+
+  zoom_factor = (priv->squeeze_zoom_active) ? priv->zoom * 0.01 : 1.0;
+  squeeze_factor = (priv->squeeze_zoom_active) ? pow(2.0, priv->squeeze) : 1.0;
+    
   if(priv->do_xv)
     {
     /* Check for apsect ratio */
@@ -660,8 +673,11 @@ static void set_drawing_coords(x11_t * priv)
       (float)(priv->win.window_width)/(float)(priv->win.window_height);
     
     aspect_video  =
+      squeeze_factor *
       (float)(priv->format.image_width  * priv->format.pixel_width)/
       (float)(priv->format.image_height * priv->format.pixel_height);
+    
+
 #if 0
     fprintf(stderr, "Aspect window: %f (%d x %d), aspect video: %f\n",
             aspect_window, priv->win.window_width, priv->win.window_height,
@@ -669,18 +685,17 @@ static void set_drawing_coords(x11_t * priv)
 #endif
     if(aspect_window > aspect_video) /* Bars left and right */
       {
-      priv->dst_w = (int)((float)priv->win.window_height * aspect_video + 0.5);
-      priv->dst_h = priv->win.window_height;
-      priv->dst_x = (priv->win.window_width - priv->dst_w)/2;
-      priv->dst_y = 0;
+      priv->dst_w = (int)((float)priv->win.window_height * aspect_video * zoom_factor + 0.5);
+      priv->dst_h = (int)((float)priv->win.window_height * zoom_factor + 0.5); 
       }
     else                             /* Bars top and bottom */
       {
-      priv->dst_w = priv->win.window_width;
-      priv->dst_h = (int)((float)priv->win.window_width / aspect_video + 0.5);
-      priv->dst_x = 0;
-      priv->dst_y = (priv->win.window_height - priv->dst_h)/2;
+      priv->dst_w = (int)((float)(priv->win.window_width) * zoom_factor + 0.5);
+      priv->dst_h = (int)((float)priv->win.window_width   * zoom_factor / aspect_video + 0.5);
       }
+    priv->dst_x = (priv->win.window_width - priv->dst_w)/2;
+    priv->dst_y = (priv->win.window_height - priv->dst_h)/2;
+    
 #if 1
     if(priv->have_xv_colorkey)
       {
@@ -1461,8 +1476,32 @@ bg_parameter_info_t common_parameters[] =
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },
-
-
+    {
+      name:        "squeeze_zoom_active",
+      long_name:   "Enable Squeeze/Zoom",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      flags:       BG_PARAMETER_SYNC,
+      val_default: { val_i: 0 }
+    },
+    {
+      name:        "squeeze",
+      long_name:   "Squeeze",
+      type:        BG_PARAMETER_SLIDER_FLOAT,
+      flags:       BG_PARAMETER_SYNC,
+      val_default: { val_f: 0.0 },
+      val_min:     { val_f: -1.0 },
+      val_max:     { val_f:  1.0 },
+      num_digits:  3
+    },
+    {
+      name:        "zoom",
+      long_name:   "Zoom",
+      type:        BG_PARAMETER_SLIDER_FLOAT,
+      flags:       BG_PARAMETER_SYNC,
+      val_default: { val_f: 100.0 },
+      val_min:     { val_f: 20.0 },
+      val_max:     { val_f: 180.0 },
+    },
   };
 
 #define NUM_COMMON_PARAMETERS sizeof(common_parameters)/sizeof(common_parameters[0])
@@ -1595,6 +1634,21 @@ set_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
   if(!strcmp(name, "disable_xscreensaver_fullscreen"))
     {
     p->disable_xscreensaver_fullscreen = val->val_i;
+    }
+  if(!strcmp(name, "squeeze_zoom_active"))
+    {
+    p->squeeze_zoom_active = val->val_i;
+    set_drawing_coords(p);
+    }
+  if(!strcmp(name, "squeeze"))
+    {
+    p->squeeze = val->val_f;
+    set_drawing_coords(p);
+    }
+  if(!strcmp(name, "zoom"))
+    {
+    p->zoom = val->val_f;
+    set_drawing_coords(p);
     }
   }
 
