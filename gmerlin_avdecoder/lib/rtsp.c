@@ -75,7 +75,7 @@ void bgav_rtsp_set_user_agent(bgav_rtsp_t * r, const char * user_agent)
   r->user_agent = bgav_strndup(user_agent, NULL);
   }
 
-#define DUMP_REQUESTS
+// #define DUMP_REQUESTS
 
 static int rtsp_send_request(bgav_rtsp_t * rtsp,
                              const char * command,

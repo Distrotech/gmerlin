@@ -603,7 +603,7 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
       break;
       }
     /* Check if we should end this */
-
+    
     if((last_sync_time != GAVL_TIME_UNDEFINED) &&
        (last_sync_time_2nd != GAVL_TIME_UNDEFINED))
       {
@@ -634,8 +634,8 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
         if(*time > sync_time)
           {
           skip_to(b, track, time);
-          break;
           }
+        break;
         // fprintf(stderr, "Exiting otherwise infinite loop\n");
         }
       
@@ -649,10 +649,10 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
     
     
     diff_time = *time - sync_time;
-    fprintf(stderr, "Seeked, time: %f sync_time: %f, diff: %f\n",
+    fprintf(stderr, "Seeked, time: %f seek_time: %f, last_seek_time: %f\n",
             gavl_time_to_seconds(*time),
-            gavl_time_to_seconds(sync_time),
-            gavl_time_to_seconds(diff_time));
+            gavl_time_to_seconds(seek_time),
+            gavl_time_to_seconds(last_seek_time));
 
     if(diff_time > MAX_SKIP_TIME)
       {

@@ -35,9 +35,12 @@ bgav_track_table_t * bgav_track_table_create(int num_tracks)
   
   ret->num_tracks = num_tracks;
   ret->current_track = ret->tracks;
+  
   ret->refcount = 1;
   return ret;
   }
+
+
 
 void bgav_track_table_ref(bgav_track_table_t * t)
   {

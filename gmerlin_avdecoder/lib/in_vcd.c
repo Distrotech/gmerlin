@@ -73,11 +73,15 @@ static void select_track_vcd(bgav_input_context_t * ctx, int track)
 
   priv->current_track = track+1;
   priv->next_sector = priv->tracks[priv->current_track].start_sector;
+  priv->last_sector = -1;
   ctx->position = 0;
   ctx->total_bytes = SECTOR_SIZE *
     (priv->tracks[priv->current_track].end_sector -
      priv->tracks[priv->current_track].start_sector + 1);
-  priv->buffer_ptr = priv->buffer;
+
+  /* Data should be read after next call */
+
+  priv->buffer_ptr = priv->buffer + SECTOR_SIZE;
   }
 
 static int read_toc(vcd_priv * priv)
@@ -222,10 +226,7 @@ static int read_sector(vcd_priv * priv)
   //  do
   //    {
 #if 0
-    fprintf(stderr, "read_sector %d %d %d\n",
-            priv->next_sector,
-            priv->current_track,
-            priv->tracks[priv->current_track].end_sector);
+  fprintf(stderr, "read_sector %d", priv->next_sector);
 #endif    
     if(priv->next_sector > priv->tracks[priv->current_track].end_sector)
       return 0;

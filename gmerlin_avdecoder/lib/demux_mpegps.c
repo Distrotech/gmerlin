@@ -32,8 +32,13 @@
 
 //#define NDEBUG
 
+/* We scan at most one megabyte */
+
+#define SYNC_SIZE (1024*1024)
+
 static uint32_t next_start_code(bgav_input_context_t * ctx)
   {
+  int bytes_skipped = 0;
   uint32_t c;
   while(1)
     {
@@ -44,6 +49,9 @@ static uint32_t next_start_code(bgav_input_context_t * ctx)
       return c;
       }
     bgav_input_skip(ctx, 1);
+    bytes_skipped++;
+    if(bytes_skipped > SYNC_SIZE)
+      return 0;
     }
   return 0;
   }
