@@ -85,3 +85,18 @@ bgav_input_context_t * bgav_input_open_memory(uint8_t * data,
   
   return ret;
   }
+
+void bgav_input_reopen_memory(bgav_input_context_t * ctx,
+                              uint8_t * data,
+                              uint32_t data_size)
+  {
+  mem_priv_t * priv;
+
+  priv = calloc(1, sizeof(*priv));
+  ctx->priv = priv;
+
+  priv->data     = data;
+  priv->data_ptr = data;
+  ctx->total_bytes = data_size;
+  
+  }

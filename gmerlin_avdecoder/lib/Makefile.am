@@ -178,6 +178,7 @@ demux_au.c \
 demux_flac.c \
 demux_mpegaudio.c \
 demux_mpegps.c \
+demux_mpegts.c \
 demux_quicktime.c \
 demux_ra.c \
 demux_rm.c \

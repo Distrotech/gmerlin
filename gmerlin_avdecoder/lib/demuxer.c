@@ -35,6 +35,7 @@ extern bgav_demuxer_t bgav_demuxer_aiff;
 extern bgav_demuxer_t bgav_demuxer_ra;
 extern bgav_demuxer_t bgav_demuxer_mpegaudio;
 extern bgav_demuxer_t bgav_demuxer_mpegps;
+extern bgav_demuxer_t bgav_demuxer_mpegts;
 extern bgav_demuxer_t bgav_demuxer_flac;
 extern bgav_demuxer_t bgav_demuxer_aac;
 
@@ -76,6 +77,7 @@ static demuxer_t demuxers[] =
 
 static demuxer_t sync_demuxers[] =
   {
+    { &bgav_demuxer_mpegts,    "MPEG-2 transport stream" },
     { &bgav_demuxer_mpegaudio, "Mpeg Audio" },
     { &bgav_demuxer_mpegps, "Mpeg System" },
   };

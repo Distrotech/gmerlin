@@ -544,6 +544,13 @@ void bgav_input_buffer(bgav_input_context_t * ctx);
 bgav_input_context_t * bgav_input_open_memory(uint8_t * data,
                                               uint32_t data_size);
 
+/* Reopen a memory input with new data and minimal CPU overhead */
+
+void bgav_input_reopen_memory(bgav_input_context_t * ctx,
+                              uint8_t * data,
+                              uint32_t data_size);
+
+
 /* Input module to read from a filedescriptor */
 
 bgav_input_context_t *
