@@ -98,7 +98,9 @@ static int open_lqt(void * data, const char * arg)
   int num_audio_streams = 0;
   int num_video_streams = 0;
   i_lqt_t * e = (i_lqt_t*)data;
-  
+
+  lqt_codec_info_t ** codec_info;
+    
   /* We want to keep the thing const-clean */
   filename = bg_strdup((char*)0, arg);
   e->file = quicktime_open(filename, 1, 0);
@@ -111,12 +113,16 @@ static int open_lqt(void * data, const char * arg)
 
   /* Set metadata */
 
-  e->track_info.metadata.title = bg_strdup((char*)0, quicktime_get_name(e->file));
-  e->track_info.metadata.copyright = bg_strdup((char*)0, quicktime_get_copyright(e->file));
+  e->track_info.metadata.title =
+    bg_strdup((char*)0, quicktime_get_name(e->file));
+  e->track_info.metadata.copyright =
+    bg_strdup((char*)0, quicktime_get_copyright(e->file));
 
-  e->track_info.metadata.comment = bg_strdup((char*)0, lqt_get_comment(e->file));
+  e->track_info.metadata.comment =
+    bg_strdup((char*)0, lqt_get_comment(e->file));
   if(!e->track_info.metadata.comment)
-    e->track_info.metadata.comment = bg_strdup((char*)0, quicktime_get_info(e->file));
+    e->track_info.metadata.comment =
+      bg_strdup((char*)0, quicktime_get_info(e->file));
 
   tmp_string = lqt_get_track(e->file);
   if(tmp_string && isdigit(*tmp_string))
@@ -145,6 +151,12 @@ static int open_lqt(void * data, const char * arg)
       if(quicktime_supported_audio(e->file, i))
         {
         e->audio_streams[e->track_info.num_audio_streams].quicktime_index = i;
+
+        codec_info = lqt_audio_codec_from_file(e->file, i);
+        e->track_info.audio_streams[e->track_info.num_audio_streams].description =
+          bg_strdup(e->track_info.audio_streams[e->track_info.num_audio_streams].description,
+                    codec_info[0]->long_name);
+        lqt_destroy_codec_info(codec_info);
         
         audio_format =
           &e->track_info.audio_streams[e->track_info.num_audio_streams].format;
@@ -154,10 +166,10 @@ static int open_lqt(void * data, const char * arg)
         audio_format->sample_format = GAVL_SAMPLE_FLOAT;
         audio_format->interleave_mode = GAVL_INTERLEAVE_NONE;
         audio_format->samples_per_frame = 1024;
-
+        
         gavl_set_channel_setup(audio_format);
 
-        gavl_audio_format_dump(audio_format);
+        //        gavl_audio_format_dump(audio_format);
 
         e->audio_streams[e->track_info.num_audio_streams].total_samples
           = quicktime_audio_length(e->file, i);
@@ -188,7 +200,13 @@ static int open_lqt(void * data, const char * arg)
       if(quicktime_supported_video(e->file, i))
         {
         e->video_streams[e->track_info.num_video_streams].quicktime_index = i;
-
+        
+        codec_info = lqt_video_codec_from_file(e->file, i);
+        e->track_info.video_streams[e->track_info.num_video_streams].description =
+          bg_strdup(e->track_info.video_streams[e->track_info.num_audio_streams].description,
+                    codec_info[0]->long_name);
+        lqt_destroy_codec_info(codec_info);
+        
         video_format =
           &e->track_info.video_streams[e->track_info.num_video_streams].format;
 

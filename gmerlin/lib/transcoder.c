@@ -567,7 +567,7 @@ static void finalize_video_stream(video_stream_t * ret,
                                            ret->com.out_index, &(ret->out_format));
 
   /* Dump formats */
-#if 0
+#if 1
   fprintf(stderr, "Input format:\n");
   gavl_video_format_dump(&(ret->in_format));
   fprintf(stderr, "Output format:\n");

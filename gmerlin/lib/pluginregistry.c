@@ -773,14 +773,17 @@ void bg_plugin_unref(bg_plugin_handle_t * h)
       }
     if(h->priv && h->plugin->destroy)
       h->plugin->destroy(h->priv);
-    //    dlclose(h->dll_handle);
+    if(h->dll_handle)
+      dlclose(h->dll_handle);
     free(h);
     }
+  
   }
 
-gavl_video_frame_t * bg_plugin_registry_load_image(bg_plugin_registry_t * r,
-                                                   const char * filename,
-                                                   gavl_video_format_t * format)
+gavl_video_frame_t *
+bg_plugin_registry_load_image(bg_plugin_registry_t * r,
+                              const char * filename,
+                              gavl_video_format_t * format)
   {
   const bg_plugin_info_t * info;
   
