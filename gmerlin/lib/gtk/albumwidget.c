@@ -163,6 +163,7 @@ typedef struct
 typedef struct
   {
   GtkWidget * copy_to_favourites_item;
+  GtkWidget * transcode_item;
   GtkWidget * move_up_item;
   GtkWidget * move_down_item;
   GtkWidget * remove_item;
@@ -342,6 +343,9 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
     if(w->menu.selected_menu.refresh_item)
       gtk_widget_set_sensitive(w->menu.selected_menu.refresh_item, 0);
 
+    if(w->menu.selected_menu.transcode_item)
+      gtk_widget_set_sensitive(w->menu.selected_menu.transcode_item, 0);
+        
     if(w->menu.selected_menu.copy_to_favourites_item)
       gtk_widget_set_sensitive(w->menu.selected_menu.copy_to_favourites_item, 0);
 
@@ -370,6 +374,9 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
     if(w->menu.selected_menu.copy_to_favourites_item)
       gtk_widget_set_sensitive(w->menu.selected_menu.copy_to_favourites_item, 1);
 
+    if(w->menu.selected_menu.transcode_item)
+      gtk_widget_set_sensitive(w->menu.selected_menu.transcode_item, 1);
+        
     if(w->copy_to_favourites_button)
       gtk_widget_set_sensitive(w->copy_to_favourites_button, 1);
     
@@ -395,8 +402,10 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
     
     if(w->copy_to_favourites_button)
       gtk_widget_set_sensitive(w->copy_to_favourites_button, 1);
-    
 
+    if(w->menu.selected_menu.transcode_item)
+      gtk_widget_set_sensitive(w->menu.selected_menu.transcode_item, 1);
+    
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 1);
     gtk_widget_set_sensitive(w->move_selected_up_button, 1);
@@ -855,6 +864,35 @@ static void move_selected_down(bg_gtk_album_widget_t * widget)
   bg_gtk_album_widget_update(widget);
   }
 
+static void transcode_selected(bg_gtk_album_widget_t * w)
+  {
+  FILE * file;
+  char * filename;
+  char * str;
+  int len;
+  char * command;
+    
+  str = bg_album_save_selected_to_memory(w->album, &len, 0);
+  filename = bg_create_unique_filename("/tmp/gmerlin-%08x.xml");
+  file = fopen(filename, "w");
+  if(!file)
+    {
+    fprintf(stderr, "Cannot open temporary file %s\n", filename);
+    free(filename);
+    return;
+    }
+
+  fwrite(str, 1, len, file);
+  fclose(file);
+  
+  command = bg_sprintf("gmerlin_transcoder_remote -launch -addalbum %s",
+                       filename);
+  system(command);
+  remove(filename);
+  free(filename);
+  free(str);
+  free(command);
+  }
 
 static void menu_callback(GtkWidget * w, gpointer data)
   {
@@ -915,10 +953,13 @@ static void menu_callback(GtkWidget * w, gpointer data)
   /* Remove selected */
 
   else if(w == widget->menu.selected_menu.remove_item)
-    {
     remove_selected(widget);
-    }
 
+  /* Transcode selected */
+  
+  else if(w == widget->menu.selected_menu.transcode_item)
+    transcode_selected(widget);
+  
   /* Select error tracks */
   
   else if(w == widget->menu.select_error_item)
@@ -930,23 +971,16 @@ static void menu_callback(GtkWidget * w, gpointer data)
   /* Copy to favourites */
 
   else if(w == widget->menu.selected_menu.copy_to_favourites_item)
-    {
     bg_album_copy_selected_to_favourites(widget->album);
-    }
-
   
   /* Move up/down */
   
   else if(w == widget->menu.selected_menu.move_up_item)
-    {
     move_selected_up(widget);
-    }
-
+  
   else if(w == widget->menu.selected_menu.move_down_item)
-    {
     move_selected_down(widget);
-    }
-
+  
   /* Rename */
     
   else if(w == widget->menu.selected_menu.rename_item)
@@ -1078,6 +1112,10 @@ static void init_menu(bg_gtk_album_widget_t * w)
   w->menu.selected_menu.info_item =
     create_item(w, w->menu.selected_menu.menu, "Info...");
 
+  if(bg_search_file_exec("gmerlin_transcoder_remote"))  
+    w->menu.selected_menu.transcode_item =
+      create_item(w, w->menu.selected_menu.menu, "Tanscode");
+  
   if(type == BG_ALBUM_TYPE_REGULAR)
     w->menu.selected_menu.refresh_item =
       create_item(w, w->menu.selected_menu.menu, "Refresh");

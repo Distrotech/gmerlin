@@ -23,6 +23,8 @@
 #include <parameter.h>
 #include <msgqueue.h>
 
+#define BG_REMOTE_PORT_BASE 10100
+
 /* Remote server */
 
 typedef struct bg_remote_server_s bg_remote_server_t;

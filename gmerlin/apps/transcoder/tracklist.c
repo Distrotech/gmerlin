@@ -793,6 +793,18 @@ static int is_albumentries(GtkSelectionData * data)
   return ret;
   }
 
+void track_list_add_xml(track_list_t * l, char * xml_string, int len)
+  {
+  bg_transcoder_track_t * new_tracks;
+  new_tracks =
+    bg_transcoder_track_create_from_albumentries(xml_string, len,
+                                                 l->plugin_reg,
+                                                 l->track_defaults_section);
+  add_track(l, new_tracks);
+  track_list_update(l);  
+  }
+
+
 static void drag_received_callback(GtkWidget *widget,
                                    GdkDragContext *drag_context,
                                    gint x,
@@ -816,22 +828,14 @@ static void drag_received_callback(GtkWidget *widget,
                                               l->plugin_reg,
                                               l->track_defaults_section);
     add_track(l, new_tracks);
+    track_list_update(l);  
     }
   else if(is_albumentries(data))
     {
     //    fprintf(stderr, "Album entries\n");
-    
-    new_tracks =
-      bg_transcoder_track_create_from_albumentries(data->data,
-                                                   data->length,
-                                                   l->plugin_reg,
-                                                   l->track_defaults_section);
-
-    add_track(l, new_tracks);
-    
+    track_list_add_xml(l, data->data, data->length);
     }
 
-  track_list_update(l);  
   gtk_drag_finish(drag_context,
                   TRUE, /* Success */
                   0, /* Delete */

@@ -29,11 +29,14 @@
 #include <cfg_dialog.h>
 #include <transcoder_track.h>
 #include <transcoder.h>
+#include <remote.h>
 
 #include <gui_gtk/display.h>
 #include <gui_gtk/scrolltext.h>
 
 #include "transcoder_window.h"
+#include "transcoder_remote.h"
+
 #include "tracklist.h"
 
 #include "pluginwindow.h"
@@ -88,6 +91,9 @@ struct transcoder_window_s
   GtkWidget * task_filesel;
 
   GtkTooltips * tooltips;
+
+  bg_remote_server_t * remote;
+  
   };
 
 
@@ -660,7 +666,10 @@ transcoder_window_t * transcoder_window_create()
   bg_cfg_section_apply(cfg_section, transcoder_window_parameters,
                        set_transcoder_window_parameter, ret);
   
+  ret->remote = bg_remote_server_create(TRANSCODER_REMOTE_PORT, TRANSCODER_REMOTE_ID);
 
+  if(!bg_remote_server_init(ret->remote))
+    fprintf(stderr, "Cannot open remote server (Port %d busy?)\n", TRANSCODER_REMOTE_PORT);
   
   return ret;
   }
@@ -697,9 +706,38 @@ void transcoder_window_destroy(transcoder_window_t* w)
   free(w);
   }
 
+static gboolean remote_callback(gpointer data)
+  {
+  int id;
+  char * arg_str;
+  bg_msg_t * msg;
+  transcoder_window_t * win;
+  win = (transcoder_window_t*)data;
+
+  while((msg = bg_remote_server_get_msg(win->remote)))
+    {
+    id = bg_msg_get_id(msg);
+
+    switch(id)
+      {
+      case TRANSCODER_REMOTE_ADD_ALBUM:
+        arg_str = bg_msg_get_arg_string(msg, 0);
+        track_list_add_xml(win->tracklist, arg_str, strlen(arg_str));
+        free(arg_str);
+        break;
+      }
+    }
+  return TRUE;
+  }
+
+
 void transcoder_window_run(transcoder_window_t * w)
   {
   gtk_widget_show(w->win);
+  remote_callback(w);
+
+  g_timeout_add(50, remote_callback, w);
+  
   gtk_main();
   }
 

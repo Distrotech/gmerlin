@@ -545,7 +545,7 @@ static bg_parameter_info_t parameters[] =
       long_name:   "Trackname template",
       type:        BG_PARAMETER_STRING,
       val_default: { val_str: "%p - %t" },
-      help_string: "Template for track name generation from metadata\
+      help_string: "Template for track name generation from metadata\n\
 %p:    Artist\n\
 %a:    Album\n\
 %g:    Genre\n\

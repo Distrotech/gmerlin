@@ -71,6 +71,9 @@ bg_remote_server_t * bg_remote_server_create(int default_listen_port,
 
 int bg_remote_server_init(bg_remote_server_t * s)
   {
+  if(!s->listen_port)
+    s->listen_port = s->default_listen_port;
+  
   s->fd = bg_listen_socket_create_inet(s->listen_port,
                                        s->max_connections);
   if(s->fd < 0)
@@ -79,7 +82,7 @@ int bg_remote_server_init(bg_remote_server_t * s)
     return 0;
     }
 
-  //  fprintf(stderr, "Remote socket listening at port %d\n", s->listen_port);
+  fprintf(stderr, "Remote socket listening at port %d\n", s->listen_port);
   return 1;
   }
 
@@ -173,6 +176,8 @@ static void check_connections(bg_remote_server_t * s)
 
   if(new_fd >= 0)
     {
+    fprintf(stderr, "New client connection\n");
+    
     conn = add_connection(s, new_fd);
 
     if(conn)
@@ -378,7 +383,7 @@ int bg_remote_client_init(bg_remote_client_t * c,
   if(!bg_socket_read_line(c->fd, &(buffer),
                           &buffer_alloc, 1))
     {
-    fprintf(stderr, "Reading welcome line failed\n");
+    //    fprintf(stderr, "Reading welcome line failed\n");
     goto fail;
     }
   //  fprintf(stderr, "Got welcome line: %s\n", buffer);

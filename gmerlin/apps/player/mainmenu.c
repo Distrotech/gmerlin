@@ -151,6 +151,14 @@ static void menu_callback(GtkWidget * w, gpointer data)
       g->show_tree_window = 0;
       }
     }
+  else if(w == the_menu->accessories_menu.visualizer)
+    {
+    system("gmerlin_visualizer_launcher");
+    }
+  else if(w == the_menu->accessories_menu.transcoder)
+    {
+    system("gmerlin_transcoder &");
+    }
   }
 
 static GtkWidget * create_item(const char * label,

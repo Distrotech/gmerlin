@@ -17,7 +17,7 @@
  
 *****************************************************************/
 
-#define PLAYER_REMOTE_PORT 10101
+#define PLAYER_REMOTE_PORT (BG_REMOTE_PORT_BASE+1)
 #define PLAYER_REMOTE_ID "gmerlin_player"
 
 
