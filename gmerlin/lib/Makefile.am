@@ -16,6 +16,7 @@ cfg_item.c \
 cfg_registry.c \
 cfg_section.c \
 cfg_xml.c \
+cmdline.c \
 device.c \
 fifo.c \
 formats.c \

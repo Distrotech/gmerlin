@@ -30,6 +30,7 @@
 #include "gmerlin.h"
 
 #include <utils.h>
+#include <cmdline.h>
 #include <gui_gtk/gtkutils.h>
 
 int main(int argc, char ** argv)
@@ -37,7 +38,8 @@ int main(int argc, char ** argv)
   gmerlin_t * gmerlin;
   bg_cfg_registry_t * cfg_reg;
   char * tmp_path;
-
+  char ** locations;
+    
   /* Initialize random generator (for shuffle) */
 
   srand(time(NULL));
@@ -48,14 +50,18 @@ int main(int argc, char ** argv)
   bg_cfg_registry_load(cfg_reg, tmp_path);
   if(tmp_path)
     free(tmp_path);
-
-
+  
   /* Fire up the actual player */
 
   bg_gtk_init(&argc, &argv);
   
   gmerlin = gmerlin_create(cfg_reg);
 
+  /* Get locations from the commandline */
+
+  locations = bg_cmdline_get_locations_from_args(&argc, &argv);
+  gmerlin_play_locations(gmerlin, locations);
+  
   gmerlin_run(gmerlin);
   
   gmerlin_destroy(gmerlin);

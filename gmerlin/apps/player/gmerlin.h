@@ -113,6 +113,12 @@ struct gmerlin_s
 
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg);
 
+/* Right after creating, urls can be added */
+
+void gmerlin_add_locations(gmerlin_t * g, char ** locations);
+void gmerlin_play_locations(gmerlin_t * g, char ** locations);
+
+
 void gmerlin_destroy(gmerlin_t*);
 
 void gmerlin_run(gmerlin_t*);

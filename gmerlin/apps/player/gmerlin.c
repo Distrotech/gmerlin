@@ -707,3 +707,69 @@ void gmerlin_set_tooltips(gmerlin_t * g, int enable)
   bg_dialog_set_tooltips(g->cfg_dialog, enable);
   
   }
+
+void gmerlin_add_locations(gmerlin_t * g, char ** locations)
+  {
+  int was_open;
+  int i;
+  bg_album_t * incoming;
+  
+  i = 0;
+  while(locations[i])
+    {
+    fprintf(stderr, "Add location: %s\n", locations[i]);
+    i++;
+    }
+  
+  incoming = bg_media_tree_get_incoming(g->tree);
+
+  if(bg_album_is_open(incoming))
+    {
+    was_open = 1;
+    }
+  else
+    {
+    was_open = 0;
+    bg_album_open(incoming);
+    }
+
+  bg_album_insert_urls_before(incoming,
+                              locations,
+                              (const char *)0,
+                              (bg_album_entry_t *)0);
+
+  if(!was_open)
+    bg_album_close(incoming);
+  }
+
+void gmerlin_play_locations(gmerlin_t * g, char ** locations)
+  {
+  int old_num_tracks, new_num_tracks;
+  int i;
+  bg_album_t * incoming;
+  bg_album_entry_t * entry;
+    
+  i = 0;
+  while(locations[i])
+    {
+    fprintf(stderr, "Play location: %s\n", locations[i]);
+    i++;
+    }
+
+  bg_gtk_tree_window_open_incoming(g->tree_window);
+
+  incoming = bg_media_tree_get_incoming(g->tree);
+
+  old_num_tracks = bg_album_get_num_entries(incoming);
+
+  gmerlin_add_locations(g, locations);
+
+  new_num_tracks = bg_album_get_num_entries(incoming);
+
+  if(new_num_tracks > old_num_tracks)
+    {
+    entry = bg_album_get_entry(incoming, old_num_tracks);
+    bg_album_set_current(incoming, entry);
+    bg_album_play(incoming);
+    }
+  }

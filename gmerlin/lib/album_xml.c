@@ -447,6 +447,7 @@ static xmlDocPtr album_2_xml(bg_album_t * a)
 
   xml_doc = xmlNewDoc("1.0");
   xml_album = xmlNewDocRawNode(xml_doc, NULL, "ALBUM", NULL);
+  
   xmlDocSetRootElement(xml_doc, xml_album);
 
   xmlAddChild(xml_album, xmlNewText("\n"));

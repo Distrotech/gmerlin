@@ -3,7 +3,8 @@ AM_CFLAGS = @XML2_CFLAGS@ @GTK_CFLAGS@
 Desktopdir = $(datadir)/applications
 Desktop_DATA = gmerlin-player.desktop
 
-bin_PROGRAMS = gmerlin
+bin_PROGRAMS = gmerlin gmerlin_remote
+
 gmerlin_SOURCES = \
 cfgdialog.c \
 display.c \

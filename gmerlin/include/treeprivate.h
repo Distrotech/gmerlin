@@ -64,6 +64,10 @@ typedef struct
   /* Shuffle list */
 
   bg_shuffle_list_t * shuffle_list;
+
+  /* Favourites album */
+
+  bg_album_t       * favourites;
   
   } bg_album_common_t;
 
@@ -156,6 +160,10 @@ struct bg_mediatree_s
   char * filename;
   
   bg_album_t       * children;
+
+  /* The following ones must always be there */
+
+  bg_album_t       * incoming;
   
   bg_plugin_handle_t * load_handle;
   

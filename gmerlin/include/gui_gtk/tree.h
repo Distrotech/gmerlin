@@ -58,6 +58,7 @@ bg_gtk_tree_widget_close_album(bg_gtk_tree_widget_t * widget,
 
 void bg_gtk_tree_widget_set_tooltips(bg_gtk_tree_widget_t*, int enable);
 
+void bg_gtk_tree_widget_open_incoming(bg_gtk_tree_widget_t*);
 
 /* Tree window */
 
@@ -74,6 +75,7 @@ void bg_gtk_tree_window_hide(bg_gtk_tree_window_t*);
 
 void bg_gtk_tree_window_set_tooltips(bg_gtk_tree_window_t*, int enable);
 
+void bg_gtk_tree_window_open_incoming(bg_gtk_tree_window_t*);
 
 /* Album widget */
 

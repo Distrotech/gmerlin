@@ -45,14 +45,32 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
                                bg_media_tree_t * tree, xmlNodePtr node,
                                bg_album_t * parent)
   {
-  bg_album_t * ret;
+  bg_album_t * ret = (bg_album_t *)0;
   bg_album_t * child_album;
   char * tmp_string;
   xmlNodePtr child;
 
   int is_open = 0;
-    
-  ret = bg_album_create(&(tree->com), BG_ALBUM_TYPE_REGULAR, parent);
+
+  tmp_string = xmlGetProp(node, "incoming");
+  if(tmp_string)
+    {
+    ret = bg_album_create(&(tree->com), BG_ALBUM_TYPE_INCOMING, parent);
+    xmlFree(tmp_string);
+    }
+
+  if(!ret)
+    {
+    tmp_string = xmlGetProp(node, "favourites");
+    if(tmp_string)
+      {
+      ret = bg_album_create(&(tree->com), BG_ALBUM_TYPE_FAVOURITES, parent);
+      xmlFree(tmp_string);
+      }
+    }
+  
+  if(!ret)
+    ret = bg_album_create(&(tree->com), BG_ALBUM_TYPE_REGULAR, parent);
     
   child = node->children;
 
@@ -194,6 +212,11 @@ static void save_album(bg_album_t * album, xmlNodePtr parent)
   if(bg_album_get_expanded(album))
     xmlSetProp(xml_album, "expanded", "1");
 
+  if(album->type == BG_ALBUM_TYPE_INCOMING)
+    xmlSetProp(xml_album, "incoming", "1");
+  else if(album->type == BG_ALBUM_TYPE_FAVOURITES)
+    xmlSetProp(xml_album, "favourites", "1");
+  
   node = xmlNewTextChild(xml_album, (xmlNsPtr)0, "NAME", NULL);
   xmlAddChild(node, xmlNewText(album->name));
   

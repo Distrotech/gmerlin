@@ -27,10 +27,14 @@ drive_16.png \
 drive_error_16.png \
 drive_running_16.png \
 earth_16.png \
+favourites_closed_16.png \
+favourites_open_16.png \
 first_16.png \
 folder_closed_16.png \
 folder_open_16.png \
 hardware_16.png \
+incoming_closed_16.png \
+incoming_open_16.png \
 info_16.png \
 last_16.png \
 left_16.png \

@@ -227,7 +227,25 @@ bg_media_tree_get_plugin_registry(bg_media_tree_t * t)
   return t->com.plugin_reg;
   }
 
+static void check_special(bg_media_tree_t * tree, bg_album_t * children)
+  {
+  bg_album_t * a;
 
+  a = children;
+  
+  while(a)
+    {
+    if(a->type == BG_ALBUM_TYPE_INCOMING)
+      tree->incoming = a;
+    else if(a->type == BG_ALBUM_TYPE_FAVOURITES)
+      tree->com.favourites = a;
+    a = a->next;
+
+    /* Check children */
+    if(a && a->children)
+      check_special(tree, a->children);
+    }
+  }
 
 bg_media_tree_t * bg_media_tree_create(const char * filename,
                                        bg_plugin_registry_t * plugin_reg)
@@ -246,7 +264,6 @@ bg_media_tree_t * bg_media_tree_create(const char * filename,
   ret->com.set_current_callback = bg_media_tree_set_current;
   ret->com.set_current_callback_data = ret;
 
-
   //  fprintf(stderr, "ret->plugin_reg: %p\n", ret->plugin_reg);
   //  fprintf(stderr, "ret: %p\n", ret);
   
@@ -258,9 +275,28 @@ bg_media_tree_t * bg_media_tree_create(const char * filename,
   /* Load the entire tree */
   
   bg_media_tree_load(ret);
-  
-  /* Check for removable devices */
 
+  /* Create special albums if necessary */
+
+  check_special(ret, ret->children);
+
+  if(!ret->incoming)
+    {
+    ret->incoming = bg_album_create(&(ret->com), BG_ALBUM_TYPE_INCOMING, NULL);
+    ret->incoming->name  = bg_strdup(ret->incoming->name, "Incoming");
+    ret->incoming->location  = bg_strdup(ret->incoming->location, "incoming.xml");
+    ret->children = append_album(ret->children, ret->incoming);
+    }
+  if(!ret->com.favourites)
+    {
+    ret->com.favourites = bg_album_create(&(ret->com), BG_ALBUM_TYPE_FAVOURITES, NULL);
+    ret->com.favourites->name  = bg_strdup(ret->com.favourites->name, "Favourites");
+    ret->com.favourites->location  = bg_strdup(ret->com.favourites->location, "favourites.xml");
+    ret->children = append_album(ret->children, ret->com.favourites);
+    }
+
+  /* Check for removable devices */
+  
   num_removable =
     bg_plugin_registry_get_num_plugins(ret->com.plugin_reg,
                                        BG_PLUGIN_INPUT, BG_PLUGIN_REMOVABLE);
@@ -442,6 +478,7 @@ int bg_media_tree_check_move_album_before(bg_media_tree_t * t,
     case BG_ALBUM_TYPE_PLUGIN:
       return 0;
     case BG_ALBUM_TYPE_INCOMING:
+    case BG_ALBUM_TYPE_FAVOURITES:
     case BG_ALBUM_TYPE_REGULAR:
       return 1;
     }
@@ -465,6 +502,7 @@ int bg_media_tree_check_move_album_after(bg_media_tree_t * t,
     case BG_ALBUM_TYPE_PLUGIN:
       return 0;
     case BG_ALBUM_TYPE_INCOMING:
+    case BG_ALBUM_TYPE_FAVOURITES:
     case BG_ALBUM_TYPE_REGULAR:
       return 1;
     }
@@ -566,9 +604,10 @@ int bg_media_tree_check_move_album(bg_media_tree_t * t,
     {
     case BG_ALBUM_TYPE_REMOVABLE:
     case BG_ALBUM_TYPE_PLUGIN:
-    case BG_ALBUM_TYPE_INCOMING:
       return 0;
     case BG_ALBUM_TYPE_REGULAR:
+    case BG_ALBUM_TYPE_INCOMING:
+    case BG_ALBUM_TYPE_FAVOURITES:
       return 1;
     }
   
@@ -1330,4 +1369,9 @@ void bg_media_tree_purge_directory(bg_media_tree_t * t)
     }
   closedir(dir);
   //  fprintf(stderr, "Purging tree done\n");
+  }
+
+bg_album_t * bg_media_tree_get_incoming(bg_media_tree_t *t)
+  {
+  return t->incoming;
   }

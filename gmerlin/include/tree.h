@@ -85,6 +85,8 @@ typedef enum
     BG_ALBUM_TYPE_PLUGIN     = 2,
     /* Incoming album: Stuff from the commandline and the remote will go there */
     BG_ALBUM_TYPE_INCOMING   = 3,
+    /* Favourites */
+    BG_ALBUM_TYPE_FAVOURITES = 4,
   } bg_album_type_t;
 
 bg_album_type_t bg_album_get_type(bg_album_t *); 
@@ -108,6 +110,8 @@ void bg_album_set_change_callback(bg_album_t * a,
                                                           void * data),
                                   void * change_callback_data);
 
+void bg_album_move_selected_to_favourites(bg_album_t * a);
+void bg_album_copy_selected_to_favourites(bg_album_t * a);
 
 /* Return the current entry (might be NULL) */
 
@@ -242,6 +246,7 @@ bg_media_tree_t * bg_media_tree_create(const char * filename,
 bg_plugin_registry_t *
 bg_media_tree_get_plugin_registry(bg_media_tree_t *);
 
+bg_album_t * bg_media_tree_get_incoming(bg_media_tree_t *);
 
 void
 bg_media_tree_set_change_callback(bg_media_tree_t *,

@@ -4,6 +4,7 @@ pkginclude_HEADERS = \
 bgsocket.h \
 cfg_dialog.h \
 cfg_registry.h \
+cmdline.h \
 config.h \
 fifo.h \
 http.h \

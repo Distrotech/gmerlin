@@ -179,11 +179,12 @@ static void insertion_done(bg_album_t * album)
   {
   switch(album->type)
     {
+    case BG_ALBUM_TYPE_INCOMING:
+    case BG_ALBUM_TYPE_FAVOURITES:
     case BG_ALBUM_TYPE_REGULAR:
       if(!album->location)
         album->location = new_filename(album);
       break;
-    case BG_ALBUM_TYPE_INCOMING:
     case BG_ALBUM_TYPE_REMOVABLE:
     case BG_ALBUM_TYPE_PLUGIN:
       break;
@@ -413,6 +414,8 @@ int bg_album_open(bg_album_t * a)
   switch(a->type)
     {
     case BG_ALBUM_TYPE_REGULAR:
+    case BG_ALBUM_TYPE_FAVOURITES:
+    case BG_ALBUM_TYPE_INCOMING:
       if(a->location)
         {
         tmp_filename = bg_sprintf("%s/%s", a->com->directory, a->location);
@@ -444,16 +447,6 @@ int bg_album_open(bg_album_t * a)
       break;
     case BG_ALBUM_TYPE_PLUGIN:
       return 0; /* Cannot be opened */
-      break;
-    case BG_ALBUM_TYPE_INCOMING:
-      tmp_filename = bg_sprintf("%s/incoming.xml", a->com->directory);
-      bg_album_load(a, tmp_filename);
-      if(!a->entries)
-        {
-        free(a->location);
-        a->location = (char*)0;
-        }
-      free(tmp_filename);
       break;
     }
   a->open_count++;
@@ -534,6 +527,7 @@ void bg_album_close(bg_album_t *a )
         }
       break;
     case BG_ALBUM_TYPE_INCOMING:
+    case BG_ALBUM_TYPE_FAVOURITES:
       bg_album_save(a, NULL);
       break;
     case BG_ALBUM_TYPE_PLUGIN:
@@ -1519,4 +1513,36 @@ int bg_album_refresh_entry(bg_album_t * album,
   bg_album_update_entry(album, entry, track_info);
   plugin->close(album->com->load_handle->priv);
   return 1;
+  }
+
+void bg_album_copy_selected_to_favourites(bg_album_t * a)
+  {
+  char * xml;
+  int len;
+  int was_open;
+
+  
+  xml = bg_album_save_selected_to_memory(a, &len);
+
+  if(!bg_album_is_open(a->com->favourites))
+    {
+    bg_album_open(a->com->favourites);
+    was_open = 0;
+    }
+  was_open = 1;
+  
+  bg_album_insert_xml_before(a->com->favourites, xml, len, (bg_album_entry_t*)0);
+
+  if(!was_open)
+    bg_album_close(a->com->favourites);
+  else
+    bg_album_changed(a->com->favourites);  
+  
+  }
+
+void bg_album_move_selected_to_favourites(bg_album_t * a)
+  {
+  bg_album_copy_selected_to_favourites(a);
+  bg_album_delete_selected(a);
+  bg_album_changed(a);  
   }
