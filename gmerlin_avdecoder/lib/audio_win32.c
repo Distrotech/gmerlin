@@ -161,7 +161,7 @@ static void pack_wf(WAVEFORMATEX * dst, bgav_WAVEFORMAT_t * src)
   dst->wBitsPerSample  = src->f.PCMWAVEFORMAT.wBitsPerSample;
   dst->cbSize          = src->f.WAVEFORMATEX.cbSize;
   }
-#if 0
+#if 1
 static void dump_wf(WAVEFORMATEX * wf)
   {
   fprintf(stderr, "WAVEFORMATEX:\n");
@@ -382,7 +382,13 @@ static int init_w32(bgav_stream_t * s)
       if(result)
         {
         if(result == ACMERR_NOTPOSSIBLE)
+          {
           fprintf(stderr, "(ACM_Decoder) Unappropriate audio format\n");
+          fprintf(stderr, "in_format:\n");
+          dump_wf(in_format);
+          fprintf(stderr, "out_format:\n");
+          dump_wf(&out_format);
+          }
         else
           fprintf(stderr, "(ACM_Decoder) acmStreamOpen error %d\n", result);
         priv->acmstream = 0;

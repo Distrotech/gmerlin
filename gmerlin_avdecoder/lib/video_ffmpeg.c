@@ -616,7 +616,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       s->data.video.format.colorspace = get_colorspace(priv->ctx->pix_fmt);
       priv->need_first_frame = 0;
       priv->have_first_frame = 1;
-
+      
       if((priv->ctx->sample_aspect_ratio.num > 1) ||
          (priv->ctx->sample_aspect_ratio.den > 1))
         {
@@ -626,14 +626,23 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         }
       /* Sometimes, the size encoded in some mp4 (vol?) headers is different from
          what is found in the container. In this case, the image must be scaled. */
-        
-      else if(priv->ctx->width < s->data.video.format.image_width)
+      
+      if(!s->data.video.format.image_width)
+        {
+        s->data.video.format.image_width = priv->ctx->width;
+        s->data.video.format.frame_width = priv->ctx->width;
+
+        s->data.video.format.image_height = priv->ctx->height;
+        s->data.video.format.frame_height = priv->ctx->height;
+        //        fprintf(stderr, "Got size: %d x %d\n", priv->ctx->width, priv->ctx->height);
+        }
+      else if(s->data.video.format.image_width &&
+              (priv->ctx->width < s->data.video.format.image_width))
         {
         s->data.video.format.pixel_width  = s->data.video.format.image_width;
         s->data.video.format.pixel_height = priv->ctx->width;
         s->data.video.format.image_width = priv->ctx->width;
         }
-        
       return 1;
       }
 

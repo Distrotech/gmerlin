@@ -94,6 +94,13 @@ static codec_info_t codec_infos[] =
       type:        CODEC_STD,
     },
     {
+      name:        "Vivo H.263 decoder",
+      format_name: "Vivo H.263",
+      fourccs:     (int[]){ BGAV_MK_FOURCC('v', 'i', 'v', '2'), 0x00 },
+      dll_name:    "ivvideo.dll",
+      type:        CODEC_STD,
+    },
+    {
       name:        "Win32 Indeo 4.1 decoder",
       format_name: "Indeo 4.1",
       fourccs:     (int[]){ BGAV_MK_FOURCC('I', 'V', '4', '1'), 0x00 },
@@ -270,6 +277,9 @@ static int init_std(bgav_stream_t * s)
         {
         case 24:
           s->data.video.format.colorspace = GAVL_RGB_24;
+          break;
+        case 16:
+          s->data.video.format.colorspace = GAVL_RGB_16;
           break;
         default:
           fprintf(stderr, "Warning: Unsupported depth %d\n",

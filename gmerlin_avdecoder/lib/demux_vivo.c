@@ -29,8 +29,9 @@
 
 /*
  *  VIVO demuxer
- *  Written from MPlayer, cleaned up a lot and made
- *  reentrant
+ *  Written with MPlayer source as reference.
+ *  cleaned up a lot and made reentrant
+ *  (actually rewritten from scratch)
  */
 
 /* VIVO audio standards from vivog723.acm:
@@ -430,22 +431,47 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
 
   if(priv->header.version == 1)
     {
+    /* G.723 */
     audio_stream->fourcc = BGAV_WAVID_2_FOURCC(0x0111);
     audio_stream->data.audio.format.samplerate = 8000;
+    audio_stream->container_bitrate = 800 * 8;
+    audio_stream->data.audio.block_align = 24;
+    audio_stream->data.audio.bits_per_sample = 8;
     }
   else if(priv->header.version == 2)
     {
+    /* Siren */
     audio_stream->fourcc = BGAV_WAVID_2_FOURCC(0x0112);
     audio_stream->data.audio.format.samplerate = 16000;
+    audio_stream->container_bitrate = 2000 * 8;
+    audio_stream->data.audio.block_align = 40;
+    audio_stream->data.audio.bits_per_sample = 16;
     }
   audio_stream->data.audio.format.num_channels = 1;
-    
+  audio_stream->codec_bitrate = audio_stream->container_bitrate;
   /* Set up video stream */
   
   video_stream = bgav_track_add_video_stream(ctx->tt->current_track);
-  //  video_stream->fourcc = BGAV_MK_FOURCC('v', 'i', 'v', '1');
-  video_stream->stream_id = VIDEO_STREAM_ID;
 
+  if(priv->header.version == 1)
+    {
+    video_stream->fourcc = BGAV_MK_FOURCC('v', 'i', 'v', '1');
+    }
+  else if(priv->header.version == 2)
+    {
+    video_stream->fourcc = BGAV_MK_FOURCC('v', 'i', 'v', '2');
+    video_stream->data.video.format.image_width = priv->header.width;
+    video_stream->data.video.format.frame_width = priv->header.width;
+
+    video_stream->data.video.format.image_height = priv->header.height;
+    video_stream->data.video.format.frame_height = priv->header.height;
+    }
+
+  
+  video_stream->stream_id = VIDEO_STREAM_ID;
+  video_stream->data.video.format.timescale = 1000;
+  video_stream->data.video.format.frame_duration = (int)(1000.0 / (priv->header.fps) +0.5);
+  
   /* Set up metadata */
 
   ctx->tt->current_track->metadata.title     = bgav_strndup(priv->header.title, NULL);
@@ -462,11 +488,110 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
 
 static int next_packet_vivo(bgav_demuxer_context_t * ctx)
   {
-  bgav_packet_t * p;
-  bgav_stream_t * s;
+  uint8_t c;
+  int prefix = 0;
+  int len;
+  int seq;
+  bgav_stream_t * stream;
   vivo_priv_t * priv;
-  priv = (vivo_priv_t *)(ctx->priv);
+  int do_audio = 0;
+  int do_video = 0;
   
+  priv = (vivo_priv_t *)(ctx->priv);
+
+  if(!bgav_input_read_data(ctx->input, &c, 1))
+    return 0;
+
+  if(c == 0x82)
+    {
+    prefix = 1;
+    
+    if(!bgav_input_read_data(ctx->input, &c, 1))
+      return 0;
+    
+    }
+
+  switch(c & 0xf0)
+    {
+    case 0x00: /* Thought we already have all headers */
+      len = read_length(ctx->input);
+      if(len < 0)
+        return 0;
+      bgav_input_skip(ctx->input, len);
+      break;
+    case 0x10: /* Video packet */
+    case 0x20:
+      if(prefix || ((c & 0xf0) == 0x20))
+        {
+        if(!bgav_input_read_data(ctx->input, &c, 1))
+          return 0;
+        len = c;
+        }
+      else
+        len = 128;
+      do_video = 1;
+      break;
+    case 0x30:
+    case 0x40:
+      if(prefix)
+        {
+        if(!bgav_input_read_data(ctx->input, &c, 1))
+          return 0;
+        len = c;
+        }
+      else if((c & 0xf0) == 0x30)
+        len = 40;
+      else
+        len = 24;
+      do_audio = 1;
+      break;
+    default:
+      fprintf(stderr, "Unknown packet type\n");
+      return 0;
+    }
+    
+  if(do_audio)
+    {
+    stream = &(ctx->tt->current_track->audio_streams[0]);
+    }
+  else if(do_video)
+    {
+    stream = &(ctx->tt->current_track->video_streams[0]);
+    }
+  else
+    return 1;
+  
+  seq = (c & 0x0f);
+
+  fprintf(stderr, "h: 0x%02x, %s, len: %d, prefix: %d, seq: %d\n",
+          c, (do_audio ? "Audio" : "Video"), len, prefix, seq);
+  
+  /* Finish packet */
+
+  if(stream->packet && (stream->packet_seq != seq))
+    {
+    bgav_packet_done_write(stream->packet);
+    stream->packet = (bgav_packet_t*)0;
+    }
+
+  /* Get new packet */
+  
+  if(!stream->packet)
+    {
+    stream->packet = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
+    stream->packet_seq = seq;
+    }
+
+  /* Append data */
+  bgav_packet_alloc(stream->packet,
+                    stream->packet->data_size + len);
+  if(bgav_input_read_data(ctx->input,
+                          stream->packet->data + stream->packet->data_size,
+                          len) < len)
+    {
+    return 0;
+    }
+  stream->packet->data_size += len;
   return 1;
   }
 
