@@ -34,6 +34,62 @@
 #include "mainwindow.h"
 #include "input.h"
 
+typedef struct
+  {
+  GtkWidget * window;
+  } info_window_t;
+
+static void button_callback(GtkWidget * w, gpointer data)
+  {
+  info_window_t * win;
+  win = (info_window_t*)data;
+  gtk_widget_hide(win->window);
+  }
+
+static gboolean delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
+  {
+  button_callback(w, data);
+  return TRUE;
+  }
+
+static void message(const char * text)
+  {
+  GtkWidget * label;
+  GtkWidget * button;
+  info_window_t win;
+  GtkWidget * table;
+  win.window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_title(GTK_WINDOW(win.window), "Error");
+  button = gtk_button_new_with_label("Ok");
+
+  gtk_signal_connect(GTK_OBJECT(button), "clicked", GTK_SIGNAL_FUNC(button_callback),
+                     (gpointer)(&win));
+  gtk_signal_connect(GTK_OBJECT(win.window), "delete-event",
+                     GTK_SIGNAL_FUNC(delete_callback),
+                     (gpointer)(&win));
+
+  gtk_widget_show(button);
+  
+  label = gtk_label_new(text);
+  
+  gtk_widget_show(label);
+  
+  table = gtk_table_new(2, 1, 0);
+  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1,
+                   GTK_SHRINK|GTK_FILL, GTK_SHRINK|GTK_FILL, 0, 0);
+
+  gtk_table_attach(GTK_TABLE(table), button, 0, 1, 1, 2,
+                   GTK_SHRINK|GTK_FILL, GTK_SHRINK|GTK_FILL, 0, 0);
+
+  gtk_widget_show(table);
+  gtk_container_add(GTK_CONTAINER(win.window), table);
+
+  gtk_widget_show(win.window);
+  gtk_main();
+  
+  }
+
+
 int main(int argc, char ** argv)
   {
   xesd_main_window * main_window;
@@ -43,11 +99,11 @@ int main(int argc, char ** argv)
 
   if(!input_create())
     {
-    fprintf(stderr, "Cannot load audio recording plugin. Call gmerlin_plugincfg to check settings\n");
+    message("Could not open recording plugin!\nMake sure the soundcard is not\nused by other applications\nor use gmerlin_plugincfg to set things up");
     return -1;
     }
   
-  main_window = xesd_create_main_window();
+  main_window =  xesd_create_main_window();
 
   gtk_widget_show(main_window->window);
   //  gtk_timeout_add(10, input_iteration, the_input);
