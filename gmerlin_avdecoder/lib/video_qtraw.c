@@ -166,16 +166,8 @@ static void scanline_raw_2_gray(uint8_t * src,
       counter = 0;
       src++;
       }
-    *dst = *src & 0xc0;
+    BGAV_PALETTE_2_RGB24(pal[(*src & 0xC0) >> 6], dst);
     
-    /* Fill byte */
-        
-    *dst |= (*dst >> 2);
-    *dst |= (*dst >> 4);
-
-    dst[1] = dst[0];
-    dst[2] = dst[0];
-
     /* Advance */
 
     *src <<= 2;
@@ -199,15 +191,8 @@ static void scanline_raw_4_gray(uint8_t * src,
       counter = 0;
       src++;
       }
-    *dst = *src & 0xF0;
+    BGAV_PALETTE_2_RGB24(pal[(*src & 0xF0) >> 4], dst);
     
-    /* Fill byte */
-        
-    *dst |= (*dst >> 4);
-    
-    dst[1] = dst[0];
-    dst[2] = dst[0];
-
     /* Advance */
 
     *src <<= 4;
@@ -224,9 +209,7 @@ static void scanline_raw_8_gray(uint8_t * src,
   int i;
   for(i = 0; i < num_pixels; i++)
     {
-    dst[0] = *src;
-    dst[1] = *src;
-    dst[2] = *src;
+    BGAV_PALETTE_2_RGB24(pal[*src], dst);
     dst += 3;
     src++;
     }

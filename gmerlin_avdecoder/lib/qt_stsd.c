@@ -30,6 +30,10 @@ extern bgav_palette_entry_t bgav_qt_default_palette_4[];
 extern bgav_palette_entry_t bgav_qt_default_palette_16[];
 extern bgav_palette_entry_t bgav_qt_default_palette_256[];
 
+extern bgav_palette_entry_t bgav_qt_default_palette_4_gray[];
+extern bgav_palette_entry_t bgav_qt_default_palette_16_gray[];
+extern bgav_palette_entry_t bgav_qt_default_palette_256_gray[];
+
 /*
  *  Sample description
  */
@@ -270,6 +274,18 @@ static int stsd_read_video(bgav_input_context_t * input,
           break;
         case 8:
           ret->format.video.ctab = bgav_qt_default_palette_256;
+          ret->format.video.ctab_size = 256;
+          break;
+        case 34:
+          ret->format.video.ctab = bgav_qt_default_palette_4_gray;
+          ret->format.video.ctab_size = 4;
+          break;
+        case 36:
+          ret->format.video.ctab = bgav_qt_default_palette_16_gray;
+          ret->format.video.ctab_size = 16;
+          break;
+        case 40:
+          ret->format.video.ctab = bgav_qt_default_palette_256_gray;
           ret->format.video.ctab_size = 256;
           break;
         }
