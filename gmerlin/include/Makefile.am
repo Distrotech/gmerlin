@@ -1,6 +1,10 @@
 SUBDIRS=gui_gtk
 
 pkginclude_HEADERS = \
+bgsocket.h \
+cfg_dialog.h \
+cfg_registry.h \
+config.h \
 fifo.h \
 http.h \
 msgqueue.h \
@@ -9,15 +13,14 @@ player.h \
 playermsg.h \
 plugin.h \
 pluginregistry.h \
-cfg_dialog.h \
-cfg_registry.h \
-msgqueue.h \
+remote.h \
 streaminfo.h \
 tree.h \
-utils.h \
-bgsocket.h
+utils.h
 
-noinst_HEADERS = player.h \
-registry_priv.h \
+
+noinst_HEADERS = \
 playerprivate.h \
-treeprivate.h
+treeprivate.h \
+registry_priv.h
+
