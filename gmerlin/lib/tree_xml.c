@@ -185,7 +185,6 @@ static void save_album(bg_album_t * album, xmlNodePtr parent)
   xmlNodePtr xml_album;
   bg_album_t * child;
   xmlNodePtr node;
-  char * tmp_string;
   
   if(album->flags & BG_ALBUM_REMOVABLE)
     return;

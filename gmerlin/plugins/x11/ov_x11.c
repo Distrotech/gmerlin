@@ -170,6 +170,13 @@ typedef struct
   pthread_mutex_t still_mutex;
   int do_still;
   gavl_video_frame_t * still_frame;
+
+
+  /* Turn Off xscreensaver? */
+
+  int disable_xscreensaver_fullscreen;
+  int disable_xscreensaver_normal;
+  gavl_time_t xscreensaver_time;
   } x11_t;
 
 static void create_parameters(x11_t * x11);	
@@ -1310,11 +1317,11 @@ bg_parameter_info_t common_parameters[] =
   {
     {
       name:        "window",
-      long_name:   "Window",
+      long_name:   "General",
     },
     {
       name:        "auto_resize",
-      long_name:   "Auto Resize",
+      long_name:   "Auto resize window",
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },
@@ -1354,6 +1361,20 @@ bg_parameter_info_t common_parameters[] =
       val_default: { val_i: 1 }
     },
 #endif
+    {
+      name:        "disable_xscreensaver_normal",
+      long_name:   "Disable XScreensaver for normal playback",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 0 }
+    },
+    {
+      name:        "disable_xscreensaver_fullscreen",
+      long_name:   "Disable XScreensaver for fullscreen playback",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 }
+    },
+
+
   };
 
 #define NUM_COMMON_PARAMETERS sizeof(common_parameters)/sizeof(common_parameters[0])
@@ -1479,7 +1500,14 @@ set_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
     {
     p->win.window_height = val->val_i;
     }
-  
+  if(!strcmp(name, "disable_xscreensaver_normal"))
+    {
+    p->disable_xscreensaver_normal = val->val_i;
+    }
+  if(!strcmp(name, "disable_xscreensaver_fullscreen"))
+    {
+    p->disable_xscreensaver_fullscreen = val->val_i;
+    }
   }
 
 int

@@ -856,8 +856,9 @@ static void drag_received_callback(GtkWidget *widget,
   bg_album_entry_t * entry;
   GtkTreeModel * model;
   bg_gtk_album_widget_t * aw;
+  int do_delete = 0;
+  int source_type;
   
-    
   aw = (bg_gtk_album_widget_t *)d;
 
   //  fprintf(stderr, "album drop %d\n", data->length);
@@ -868,6 +869,15 @@ static void drag_received_callback(GtkWidget *widget,
   gtk_tree_view_get_dest_row_at_pos(GTK_TREE_VIEW(aw->treeview),
                                     x, y, &path,
                                     &pos);
+  if(is_entries(data))
+    {
+    source_type = DND_GMERLIN_TRACKS;
+    if(drag_context->action == GDK_ACTION_MOVE)
+      do_delete = 1;
+    }
+  else if(is_urilist(data))
+    source_type = DND_TEXT_URI_LIST;
+  
   if(path)
     {
     entry = path_2_entry(aw, path);
@@ -880,51 +890,46 @@ static void drag_received_callback(GtkWidget *widget,
       {
       case GTK_TREE_VIEW_DROP_INTO_OR_BEFORE:
       case GTK_TREE_VIEW_DROP_BEFORE:
-        if(is_entries(data))
+        switch(source_type)
           {
-          bg_album_insert_xml_before(aw->album, data->data, data->length,
-                                     entry);
-          //          fprintf(stderr, "DND_GMERLIN_TRACKS\n");
-          }
-        else if(is_urilist(data))
-          {
-          //          fprintf(stderr, "DND_TEXT_URI_LIST\n");
-          bg_album_insert_urilist_before(aw->album, data->data, data->length,
-                                         entry);
+          case DND_GMERLIN_TRACKS:
+            bg_album_insert_xml_before(aw->album, data->data, data->length,
+                                       entry);
+            break;
+          case DND_TEXT_URI_LIST:
+            bg_album_insert_urilist_before(aw->album, data->data, data->length,
+                                           entry);
+            break;
           }
         break;
       case GTK_TREE_VIEW_DROP_AFTER:
       case GTK_TREE_VIEW_DROP_INTO_OR_AFTER:
-        if(is_entries(data))
+        switch(source_type)
           {
-          bg_album_insert_xml_after(aw->album, data->data, data->length,
-                                     entry);
-          //          fprintf(stderr, "DND_GMERLIN_TRACKS\n");
-          }
-        
-        else if(is_urilist(data))
-          {
-          //          fprintf(stderr, "DND_TEXT_URI_LIST\n");
-          bg_album_insert_urilist_after(aw->album, data->data, data->length,
-                                         entry);
+          case DND_GMERLIN_TRACKS:
+            bg_album_insert_xml_after(aw->album, data->data, data->length,
+                                      entry);
+            break;
+          case DND_TEXT_URI_LIST:
+            bg_album_insert_urilist_after(aw->album, data->data, data->length,
+                                          entry);
+            break;
           }
         break;
       }
     }
   else
     {
-    if(is_entries(data))
+    switch(source_type)
       {
-      bg_album_insert_xml_before(aw->album, data->data, data->length,
-                                (bg_album_entry_t*)0);
-      //          fprintf(stderr, "DND_GMERLIN_TRACKS\n");
-      }
-    
-    else if(is_urilist(data))
-      {
-      //          fprintf(stderr, "DND_TEXT_URI_LIST\n");
-      bg_album_insert_urilist_before(aw->album, data->data, data->length,
-                                     (bg_album_entry_t*)0);
+      case DND_GMERLIN_TRACKS:
+        bg_album_insert_xml_before(aw->album, data->data, data->length,
+                                   (bg_album_entry_t*)0);
+        break;
+      case DND_TEXT_URI_LIST:
+        bg_album_insert_urilist_before(aw->album, data->data, data->length,
+                                       (bg_album_entry_t*)0);
+        break;
       }
     }
   
@@ -932,7 +937,7 @@ static void drag_received_callback(GtkWidget *widget,
   
   gtk_drag_finish(drag_context,
                   TRUE, /* Success */
-                  (drag_context->action == GDK_ACTION_MOVE) ? TRUE : FALSE, /* Delete */
+                  do_delete, /* Delete */
                   aw->drop_time);
   bg_gtk_album_widget_update(aw);
   

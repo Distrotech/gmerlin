@@ -41,6 +41,7 @@ gavl_time_prettyprint_seconds(int total_seconds,
   int hours;
   int negative;
   int digits_started;
+  
   if(total_seconds < 0)
     {
     negative = 1;
@@ -113,7 +114,7 @@ gavl_time_prettyprint(gavl_time_t time, char ret[GAVL_TIME_STRING_LEN])
     }
   else
     {
-    total_seconds = time / 1000000;
+    total_seconds = time / GAVL_TIME_SCALE;
     gavl_time_prettyprint_seconds(total_seconds, ret);
     }
   }

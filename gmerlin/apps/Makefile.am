@@ -1,16 +1,29 @@
 
-if HAVE_GTK
-gtk_subdirs = plugincfg player camelot
-
-if HAVE_ALSA
-alsa_subdirs = alsamixer
+if HAVE_PLAYER
+player_subdirs = player
 else
-alsa_subdirs =
+player_subdirs =
 endif
 
+if HAVE_PLUGINCFG
+plugincfg_subdirs = plugincfg
 else
-gtk_subdirs =
+plugincfg_subdirs =
 endif
 
+if HAVE_ALSAMIXER
+alsamixer_subdirs = alsamixer
+else
+alsamixer_subdirs =
+endif
 
-SUBDIRS = $(alsa_subdirs) $(gtk_subdirs)
+if HAVE_CAMELOT
+camelot_subdirs = camelot
+else
+camelot_subdirs =
+endif
+
+SUBDIRS = $(player_subdirs) \
+$(plugincfg_subdirs) \
+$(alsamixer_subdirs) \
+$(camelot_subdirs)

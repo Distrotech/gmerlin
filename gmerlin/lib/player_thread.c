@@ -538,6 +538,7 @@ static int process_command(bg_player_t * player,
       break;
     case BG_PLAYER_CMD_STOP:
       state = bg_player_get_state(player);
+      //      fprintf(stderr, "Command stop\n");
       switch(state)
         {
         case BG_PLAYER_STATE_PLAYING:

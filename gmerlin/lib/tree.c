@@ -417,14 +417,19 @@ static void update_entry(bg_media_tree_t * tree,
 
   entry->num_subpicture_streams = track_info->num_subpicture_streams;
   entry->num_programs           = track_info->num_programs;
-  
+
+  if(entry->name)
+    {
+    free(entry->name);
+    entry->name = (char*)0;
+    }
   /* Track info has a name */
 
+  
+  
   if(tree->use_metadata && tree->metadata_format)
     {
-    entry->name = bg_strdup(entry->name,
-                            bg_create_track_name(track_info,
-                                                 tree->metadata_format));
+    entry->name = bg_create_track_name(track_info, tree->metadata_format);
     if(entry->name)
       name_set = 1;
     }
@@ -626,7 +631,9 @@ bg_album_entry_t * bg_media_tree_load_url(bg_media_tree_t * tree,
     new_entry->location = bg_system_to_utf8(url, strlen(url));
     new_entry->index = i;
     new_entry->total_tracks = num_entries;
-        
+    //    fprintf(stderr, "Loading [%d/%d]\n", new_entry->total_tracks,
+    //            new_entry->index);
+    
     track_info = plugin->get_track_info(tree->load_handle->priv, i);
     update_entry(tree, new_entry, track_info);
 

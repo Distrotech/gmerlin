@@ -196,6 +196,8 @@ struct display_s
   gavl_time_t duration_after;
   gavl_time_t duration_current;
   gavl_time_t last_time;
+  
+  guint32 last_click_time;
   };
 
 static void update_background(display_t * d)
@@ -346,7 +348,6 @@ static void set_display_mode(display_t * d)
   expose_callback(d->display_area, (GdkEventExpose*)0,
                   d);
   display_set_time(d, d->last_time);
-  
   }
 
 static void set_repeat_mode(display_t * d)
@@ -399,7 +400,10 @@ void display_set_parameter(void * data, char * name,
     set_display_mode(d);
     }
   else if(!strcmp(name, "repeat_mode"))
+    {
     d->repeat_mode = v->val_i;
+    set_repeat_mode(d);
+    }
   }
 
 int display_get_parameter(void * data, char * name,
@@ -433,20 +437,25 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
                                       gpointer data)
   {
   display_t * d = (display_t*)data;
+
+  if(evt->time == d->last_click_time)
+    return FALSE;
+  
   if(w == d->repeat_area)
     {
-    //    fprintf(stderr, "Repeat mode %d", d->repeat_mode);
     d->repeat_mode++;
     set_repeat_mode(d);
+    d->last_click_time = evt->time;
+    return TRUE;
     }
-  if(w == d->display_area)
+  else if(w == d->display_area)
     {
-    //    fprintf(stderr, "Display mode %d", d->display_mode);
     d->display_mode++;
     set_display_mode(d);
-    //    fprintf(stderr, ", %d\n", d->display_mode);
+    d->last_click_time = evt->time;
+    return TRUE;
     }
-  return TRUE;
+  return FALSE;
   }
 
 display_t * display_create(gmerlin_t * gmerlin)
@@ -590,13 +599,23 @@ void display_set_time(display_t * d, gavl_time_t time)
         display_time = time;
       break;
       case DISPLAY_MODE_ALL:
-        display_time = time + d->duration_before;
+        if(d->duration_before == GAVL_TIME_UNDEFINED)
+          display_time = GAVL_TIME_UNDEFINED;
+        else
+          display_time = time + d->duration_before;
         break;
       case DISPLAY_MODE_REM:
-        display_time = d->duration_current - time;
+        if(d->duration_current == GAVL_TIME_UNDEFINED)
+          display_time = GAVL_TIME_UNDEFINED;
+        else
+          display_time = d->duration_current - time;
         break;
       case DISPLAY_MODE_ALL_REM:
-        display_time = d->duration_after + d->duration_current - time;
+        if((d->duration_current == GAVL_TIME_UNDEFINED) ||
+           (d->duration_after == GAVL_TIME_UNDEFINED))
+          display_time = GAVL_TIME_UNDEFINED;
+        else
+          display_time = d->duration_after + d->duration_current - time;
         break;
       default:
         display_time = time;
@@ -614,7 +633,7 @@ void display_set_state(display_t * d, int state,
     {
     case BG_PLAYER_STATE_STOPPED:
 
-      fprintf(stderr, "display_set_state: Stopped\n");
+      //      fprintf(stderr, "display_set_state: Stopped\n");
       d->state_index = STATE_STOPPED;
       display_set_track_name(d, "Gmerlin player (version "VERSION")");
 

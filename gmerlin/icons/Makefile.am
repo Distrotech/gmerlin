@@ -16,6 +16,7 @@ digit_7.png \
 digit_8.png \
 digit_9.png \
 digit_colon.png \
+digit_minus.png \
 display_mode_all.png \
 display_mode_all_rem.png \
 display_mode_none.png \

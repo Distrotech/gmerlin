@@ -113,7 +113,7 @@ char * bg_create_track_name(const bg_track_info_t * info,
           {
           //          fprintf(stderr,  "Artist: %s ", info->metadata.artist);
           ret = bg_strcat(ret, info->metadata.artist);
-          fprintf(stderr,  "%s\n", ret);
+          //          fprintf(stderr,  "%s\n", ret);
           }
         else
           {

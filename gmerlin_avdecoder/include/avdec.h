@@ -87,6 +87,12 @@ bgav_set_buffer_callback(bgav_t*,
                          void (callback)(void*data, float percentage),
                          void * data);
 
+/* These will become active, when the next file is opened */
+
+void bgav_set_dll_path_real(const char * path);
+void bgav_set_dll_path_xanim(const char * path);
+void bgav_set_dll_path_win32(const char * path);
+
 /******************************************************
  * Open
  ******************************************************/

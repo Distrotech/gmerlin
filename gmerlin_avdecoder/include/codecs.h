@@ -1,5 +1,3 @@
-
-
 #ifdef HAVE_LIBAVCODEC
 void bgav_init_audio_decoders_ffmpeg();
 void bgav_init_video_decoders_ffmpeg();

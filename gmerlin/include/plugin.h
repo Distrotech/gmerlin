@@ -332,10 +332,6 @@ typedef struct bg_ov_plugin_callbacks_s
   void (*key_callback)(void * data, int key);
   /* Button can be 1, 2 or 3, coordinates are in IMAGE space */
   void (*button_callback)(void * data, int x, int y, int button);
-  /* Store parameter: This lets the plugin save window sizes and
-     positions */
-  void (*store_parameter)(void * data, const char * name,
-                          bg_parameter_value_t * val);
 
   /* Call this, is the window got (un)-mapped */  
   void (*show_window)(void * data, int show);

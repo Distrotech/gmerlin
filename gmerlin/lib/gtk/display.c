@@ -41,10 +41,11 @@
 #define DIGIT_8     8
 #define DIGIT_9     9
 #define DIGIT_COLON 10
+#define DIGIT_MINUS 11
 
 static int pixbufs_loaded = 0;
 
-static GdkPixbuf * digit_pixbufs[11];
+static GdkPixbuf * digit_pixbufs[12];
 
 static void load_pixbufs()
   {
@@ -65,22 +66,25 @@ static void load_pixbufs()
     free(c_tmp1);
     free(c_tmp2);
     }
-
+  
   c_tmp2 = bg_search_file_read("icons", "digit_colon.png");
-  digit_pixbufs[10] = gdk_pixbuf_new_from_file(c_tmp2, NULL);    
+  digit_pixbufs[DIGIT_COLON] = gdk_pixbuf_new_from_file(c_tmp2, NULL);    
+  free(c_tmp2);
+  
+  c_tmp2 = bg_search_file_read("icons", "digit_minus.png");
+  digit_pixbufs[DIGIT_MINUS] = gdk_pixbuf_new_from_file(c_tmp2, NULL);    
   free(c_tmp2);
   }
 
 struct bg_gtk_time_display_s
   {
-  GdkPixbuf * pixbufs[11];
+  GdkPixbuf * pixbufs[12];
   float foreground_color[3];
   float background_color[3];
   int height;
   int digit_width;
   int colon_width;
   GtkWidget * widget;
-  int seconds;
   int indices[GAVL_TIME_STRING_LEN];
   
   GdkGC * gc;
@@ -112,7 +116,7 @@ static void create_pixmaps(bg_gtk_time_display_t * d)
   
   if(d->pixbufs[0])
     {
-    for(i = 0; i < 11; i++)
+    for(i = 0; i < 12; i++)
       g_object_unref(G_OBJECT(d->pixbufs[i]));
     }
 
@@ -129,6 +133,12 @@ static void create_pixmaps(bg_gtk_time_display_t * d)
     }
   d->pixbufs[10] = bg_gtk_pixbuf_scale_alpha(digit_pixbufs[10],
                                              d->colon_width,
+                                             d->height,
+                                             d->foreground_color,
+                                             d->background_color);
+
+  d->pixbufs[11] = bg_gtk_pixbuf_scale_alpha(digit_pixbufs[11],
+                                             d->digit_width,
                                              d->height,
                                              d->foreground_color,
                                              d->background_color);
@@ -222,10 +232,8 @@ void bg_gtk_time_display_update(bg_gtk_time_display_t * d,
   char buf[GAVL_TIME_STRING_LEN];
   int pos_i;
   
-  d->seconds = time / GAVL_TIME_SCALE;
-  gavl_time_prettyprint_seconds(d->seconds,
-                                buf);
-
+  gavl_time_prettyprint(time, buf);
+  
   pos = &(buf[strlen(buf)]);
 
   
@@ -235,6 +243,8 @@ void bg_gtk_time_display_update(bg_gtk_time_display_t * d,
     pos--;
     if(*pos == ':')
       d->indices[pos_i] = DIGIT_COLON;
+    if(*pos == '-')
+      d->indices[pos_i] = DIGIT_MINUS;
     else if(isdigit(*pos))
       d->indices[pos_i] = (int)(*pos) - (int)('0');
     pos_i++;

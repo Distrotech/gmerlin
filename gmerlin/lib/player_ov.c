@@ -57,12 +57,6 @@ static void button_callback(void * data, int x, int y, int button)
   fprintf(stderr, "Button callback %d %d (Button %d)\n", x, y, button);
   }
 
-static void store_parameter(void * data, const char * name,
-                            bg_parameter_value_t * val)
-  {
-  fprintf(stderr, "Store parameter %s\n", name);
-  }
-
 /* Create frame */
 
 void * bg_player_ov_create_frame(void * data)
@@ -108,14 +102,13 @@ void bg_player_ov_create(bg_player_t * player)
   
   ctx->callbacks.key_callback    = key_callback;
   ctx->callbacks.button_callback = button_callback;
-  ctx->callbacks.store_parameter = store_parameter;
   ctx->callbacks.data = ctx;
   player->ov_context = ctx;
   }
 
 void bg_player_ov_standby(bg_player_ov_context_t * ctx)
   {
-  fprintf(stderr, "bg_player_ov_standby\n");
+  //  fprintf(stderr, "bg_player_ov_standby\n");
   
   if(!ctx->plugin_handle)
     return;

@@ -26,16 +26,68 @@
 #include <avdec_private.h>
 #include <utils.h>
 
+static void codecs_lock();
+static void codecs_unlock();
+
+static void codecs_uninit();
+
 #ifdef HAVE_REALDLL
 static const char * env_name_real = "GMERLIN_AVDEC_CODEC_PATH_REAL";
+
+void bgav_set_dll_path_real(const char * path)
+  {
+  codecs_lock();
+  if(bgav_dll_path_real)
+    {
+    free(bgav_dll_path_real);
+    }
+  bgav_dll_path_real = bgav_strndup(path, NULL);
+  codecs_uninit();
+  codecs_unlock();
+  }
+#else
+void bgav_set_dll_path_real(const char * path) { }
 #endif
 
 #ifdef HAVE_XADLL
+
 static const char * env_name_xanim =  "GMERLIN_AVDEC_CODEC_PATH_XANIM";
+
+void bgav_set_dll_path_xanim(const char * path)
+  {
+  codecs_lock();
+  if(bgav_dll_path_xanim)
+    {
+    free(bgav_dll_path_xanim);
+    bgav_dll_path_xanim = (char*)0;
+    }
+  bgav_dll_path_xanim = bgav_strndup(path, NULL);
+
+  codecs_uninit();
+  codecs_unlock();
+  }
+#else
+void bgav_set_dll_path_xanim(const char * path) {}
 #endif
 
 #ifdef HAVE_W32DLL
 static const char * env_name_win32 = "GMERLIN_AVDEC_CODEC_PATH_WIN32";
+
+static int win_path_needs_delete = 0;
+
+void bgav_set_dll_path_win32(const char * path)
+  {
+  codecs_lock();
+  if(win_path_needs_delete)
+    {
+    free(win32_def_path);
+    }
+  win32_def_path = bgav_strndup(path, (char*)0);
+  codecs_uninit();
+  codecs_unlock();
+  }
+#else
+void bgav_set_dll_path_win32(const char * path) {}
 #endif
 
 /* Simple codec registry */
@@ -54,6 +106,15 @@ static int num_video_codecs = 0;
 
 static pthread_mutex_t codec_mutex;
 static int mutex_initialized = 0;
+
+static void codecs_uninit()
+  {
+  audio_decoders = (bgav_audio_decoder_t*)0;
+  video_decoders = (bgav_video_decoder_t*)0;
+  codecs_initialized = 0;
+  num_audio_codecs = 0;
+  num_video_codecs = 0;
+  }
 
 static void codecs_lock()
   {
@@ -169,9 +230,27 @@ void bgav_codecs_dump()
     }
   }
 
+/*
+ *  Print some verbose error messages so users will know
+ *  how to set up their systems
+ */
+
+static void print_error_nopath(const char * name, const char * env_name)
+  {
+  fprintf(stderr, "Didn't find path for %s\n", name);
+  fprintf(stderr, "Configure it in the application or via the environment variable %s\n",
+          env_name);
+  }
+
+static void print_error_nofile(const char * name, const char * env_name)
+  {
+  fprintf(stderr, "Didn't find some %s\n", name);
+  fprintf(stderr, "Configure codec paths in the application or via the environment variable %s\n",
+          env_name);
+  }
+
 void bgav_codecs_init()
   {
-  const char * env_ptr;
   codecs_lock();
   if(codecs_initialized)
     {
@@ -219,66 +298,65 @@ void bgav_codecs_init()
 #endif
   
 #ifdef HAVE_XADLL
-  env_ptr = getenv(env_name_xanim);
-  if(!env_ptr)
-    fprintf(stderr, "Environment variable %s not set\ndisabling Xanim DLL codecs\n", env_name_xanim);
+
+  if(!bgav_dll_path_xanim)
+    bgav_dll_path_xanim = bgav_strndup(getenv(env_name_xanim), NULL);
+  
+  if(!bgav_dll_path_xanim)
+    print_error_nopath("Xanim dlls", env_name_xanim);
   else
     {
-    bgav_dll_path_xanim = bgav_strndup(env_ptr, NULL);
     if(!bgav_init_video_decoders_xadll())
       {
-      fprintf(stderr, "Didn't find some Xanim DLL codecs\nmake sure the environment variable %s is set\n",
-              env_name_xanim);
+      print_error_nofile("Xanim dlls", env_name_xanim);
       }
     }
 #endif
 
 #ifdef HAVE_REALDLL
-  env_ptr = getenv(env_name_real);
-  if(!env_ptr)
-    fprintf(stderr, "Environment variable %s not set\ndisabling Real DLL codecs\n", env_name_real);
+  if(!bgav_dll_path_real)
+    bgav_dll_path_real = bgav_strndup(getenv(env_name_real), NULL);
+
+  if(!bgav_dll_path_real)
+    print_error_nopath("Real DLLs", env_name_real);
   else
     {
-    bgav_dll_path_real = bgav_strndup(env_ptr, NULL);
     if(!bgav_init_video_decoders_real())
       {
-      fprintf(stderr, "Didn't find some Real DLL codecs\nmake sure the environment variable %s is set\n",
-              env_name_real);
+      print_error_nofile("Real video DLLs", env_name_real);
       }
     if(!bgav_init_audio_decoders_real())
       {
-      fprintf(stderr, "Didn't find some Real DLL codecs\nmake sure the environment variable %s is set\n",
-              env_name_real);
+      print_error_nofile("Real audio DLLs", env_name_real);
       }
     }
 #endif
 
 #ifdef HAVE_W32DLL
-  env_ptr = getenv(env_name_win32);
-  if(!env_ptr)
+
+  if(!win32_def_path)
     {
-    fprintf(stderr, "Environment variable %s not set\ndisabling Win32 DLL codecs\n", env_name_win32);
-    win32_def_path = NULL;
+    win32_def_path = bgav_strndup(getenv(env_name_win32), NULL);
     }
+
+  if(!win32_def_path)
+    print_error_nopath("Win32 DLLs", env_name_real);
   else
     {
-    win32_def_path = bgav_strndup(env_ptr, NULL);
     if(!bgav_init_video_decoders_win32())
       {
-      fprintf(stderr, "Didn't find some Win32 DLL codecs\nmake sure the environment variable %s is set\n",
-              env_name_win32);
+      print_error_nofile("Win32 video DLLs", env_name_win32);
       }
     if(!bgav_init_audio_decoders_win32())
       {
-      fprintf(stderr, "Didn't find some Win32 DLL codecs\nmake sure the environment variable %s is set\n",
-              env_name_win32);
+      print_error_nofile("Win32 audio DLLs", env_name_win32);
       }
     if(!bgav_init_audio_decoders_qtwin32())
       {
-      fprintf(stderr, "Didn't find some Win32 DLL codecs\nmake sure the environment variable %s is set\n",
-              env_name_win32);
+      print_error_nofile("Win32 Quicktime audio DLLs", env_name_win32);
       }
     }
+  
 #endif
   
   bgav_init_audio_decoders_aiff();
@@ -388,3 +466,4 @@ bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
   codecs_unlock();
   return (bgav_video_decoder_t*)0;
   }
+

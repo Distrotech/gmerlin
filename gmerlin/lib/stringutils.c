@@ -30,6 +30,35 @@
 
 #include <utils.h>
 
+char * bg_fix_path(char * path)
+  {
+  char * ret;
+  int len;
+  
+  if(!path)
+    return path;
+
+  len = strlen(path);
+  
+  if(!len)
+    {
+    free(path);
+    return (char*)0;
+    }
+  if(path[len-1] != '/')
+    {
+    ret = malloc(len+2);
+    strcpy(ret, path);
+    free(path);
+    ret[len] = '/';
+    ret[len+1] = '\0';
+    
+    return ret;
+    }
+  else
+    return path;
+  }
+
 char * bg_strdup(char * old_string, const char * new_string)
   {
   char * ret;
@@ -179,7 +208,7 @@ char * bg_create_unique_filename(char * template)
 
   while(1)
     {
-    fprintf(stderr, "Trying %s\n", filename);
+    //    fprintf(stderr, "Trying %s\n", filename);
     
     if(stat(filename, &stat_buf) == -1)
       {

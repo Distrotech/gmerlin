@@ -37,7 +37,7 @@ static bg_album_entry_t * load_entry(bg_media_tree_t * tree,
   char * tmp_string;
 
   ret = bg_album_entry_create(tree);
-  
+  ret->total_tracks = 1;
   if(current)
     *current = 0;
   
@@ -94,6 +94,11 @@ static bg_album_entry_t * load_entry(bg_media_tree_t * tree,
       {
       sscanf(tmp_string, "%d", &(ret->index));
       }
+    else if(!strcmp(node->name, "TOTAL_TRACKS"))
+      {
+      sscanf(tmp_string, "%d", &(ret->total_tracks));
+      }
+    
     if(tmp_string)
       xmlFree(tmp_string);
     node = node->next;
@@ -390,11 +395,20 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
 
   /* Index */
 
-  c_tmp = bg_sprintf("%d", entry->index);
-  node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, "INDEX", NULL);
-  xmlAddChild(node, xmlNewText(c_tmp));
-  free(c_tmp);
-  xmlAddChild(xml_entry, xmlNewText("\n"));
+  if(entry->total_tracks > 1)
+    {
+    c_tmp = bg_sprintf("%d", entry->index);
+    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, "INDEX", NULL);
+    xmlAddChild(node, xmlNewText(c_tmp));
+    free(c_tmp);
+    xmlAddChild(xml_entry, xmlNewText("\n"));
+
+    c_tmp = bg_sprintf("%d", entry->total_tracks);
+    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, "TOTAL_TRACKS", NULL);
+    xmlAddChild(node, xmlNewText(c_tmp));
+    free(c_tmp);
+    xmlAddChild(xml_entry, xmlNewText("\n"));
+    }
   
   /* Duration */
 

@@ -322,13 +322,11 @@ int gmerlin_play(gmerlin_t * g, int ignore_flags)
   
   if(!handle)
     {
-    fprintf(stderr, "Error playing file\n");
+    //    fprintf(stderr, "Error playing file\n");
     return 0;
     }
-  bg_player_set_track_name(g->player,
-                           bg_media_tree_get_current_track_name(g->tree));
-  fprintf(stderr, "Track name: %s\n",
-          bg_media_tree_get_current_track_name(g->tree));
+  //  fprintf(stderr, "Track name: %s\n",
+  //          bg_media_tree_get_current_track_name(g->tree));
   
   
   bg_player_play(g->player, handle, track_index,
@@ -362,7 +360,7 @@ void gmerlin_next_track(gmerlin_t * g)
           }
         else
           {
-          //        fprintf(stderr, "End of album, stopping\n");
+          //          fprintf(stderr, "End of album, stopping\n");
           bg_player_stop(g->player);
           keep_going = 0;
           }
@@ -374,7 +372,7 @@ void gmerlin_next_track(gmerlin_t * g)
           keep_going = 0;
         break;
       case REPEAT_MODE_ALL:
-        //      fprintf(stderr, "REPEAT_MODE_ALL\n");
+        //        fprintf(stderr, "REPEAT_MODE_ALL\n");
         bg_media_tree_next(g->tree, 1);
         result = gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
         if(result)

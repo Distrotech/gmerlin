@@ -1,6 +1,8 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <gtk/gtk.h>
 #include <gui_gtk/fileentry.h>
+#include <utils.h>
 
 struct bg_gtk_file_entry_s
   {
@@ -16,6 +18,7 @@ struct bg_gtk_file_entry_s
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
+  char * tmp_string;
   bg_gtk_file_entry_t * priv = (bg_gtk_file_entry_t*)data;
 
   if(w == priv->button)
@@ -34,9 +37,20 @@ static void button_callback(GtkWidget * w, gpointer data)
         gtk_widget_set_sensitive(GTK_FILE_SELECTION(priv->fileselect)->file_list, 0);
       }
 
-    gtk_file_selection_set_filename(GTK_FILE_SELECTION(priv->fileselect),
-                                    gtk_entry_get_text(GTK_ENTRY(priv->entry)));
-    
+    // fprintf(stderr, "Set filename %s\n", gtk_entry_get_text(GTK_ENTRY(priv->entry)));
+
+    if(priv->is_dir)
+      {
+      tmp_string = bg_strdup((char*)0, gtk_entry_get_text(GTK_ENTRY(priv->entry)));
+      tmp_string = bg_fix_path(tmp_string);
+
+      gtk_file_selection_set_filename(GTK_FILE_SELECTION(priv->fileselect),
+                                      tmp_string);
+      free(tmp_string);
+      }
+    else
+      gtk_file_selection_set_filename(GTK_FILE_SELECTION(priv->fileselect),
+                                      gtk_entry_get_text(GTK_ENTRY(priv->entry)));
     
     gtk_widget_show(priv->fileselect);
     gtk_main();

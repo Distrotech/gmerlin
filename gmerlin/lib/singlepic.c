@@ -240,8 +240,8 @@ static int open_input(void * priv, const char * arg)
       break;
     inp->frame_end++;
     }
-  fprintf(stderr, "Frames: %lld .. %lld, template: %s\n",
-          inp->frame_start, inp->frame_end, inp->template);
+  //  fprintf(stderr, "Frames: %lld .. %lld, template: %s\n",
+  //          inp->frame_start, inp->frame_end, inp->template);
 
   /* Create stream */
     

@@ -78,7 +78,7 @@ Header files for compiling gmerlin gtk applications
 Summary:	Libquicktime plugins for gmerlin
 Group:		Applications/Multimedia
 Requires:       gmerlin-lib = %{version}
-Provides:       gmerlin-input-plugins
+Provides:       gmerlin-input-plugin
 Requires:       libquicktime = @LQT_REQUIRED@
 
 %description -n gmerlin-lqt
@@ -93,7 +93,7 @@ Summary:	Alsa plugins for gmerlin
 Group:		Applications/Multimedia
 Requires:       gmerlin-lib = %{version}
 Requires:	alsa-lib >= @ALSA_REQUIRED@
-Provides:       gmerlin-soundcard-plugins
+Provides:       gmerlin-soundcard-plugin
 
 %description -n gmerlin-alsa
 Alsa plugins for gmerlin (see http://alsa-project.org)
@@ -107,6 +107,8 @@ Summary:	Jpeg plugins for gmerlin
 Group:		Applications/Multimedia
 Requires:       gmerlin-lib = %{version}
 Requires:	libjpeg >= @JPEG_REQUIRED@
+Provides:       gmerlin-image-reader-plugin
+Provides:       gmerlin-image-writer-plugin
 
 %description -n gmerlin-jpeg
 Jpeg plugins for gmerlin
@@ -120,6 +122,8 @@ Summary:	png plugins for gmerlin
 Group:		Applications/Multimedia
 Requires:       gmerlin-lib = %{version}
 Requires:	libpng >= @PNG_REQUIRED@
+Provides:       gmerlin-image-reader-plugin
+Provides:       gmerlin-image-writer-plugin
 
 %description -n gmerlin-png
 PNG plugins for gmerlin
@@ -132,7 +136,7 @@ PNG plugins for gmerlin
 Summary:	OSS plugins for gmerlin
 Group:		Applications/Multimedia
 Requires:       gmerlin-lib = %{version}
-Provides:       gmerlin-soundcard-plugins
+Provides:       gmerlin-soundcard-plugin
 
 %description -n gmerlin-oss
 OSS plugins for gmerlin
@@ -146,7 +150,7 @@ Summary:	esd plugins for gmerlin
 Group:		Applications/Multimedia
 Requires:       gmerlin-lib = %{version}
 Requires:	esound >= @ESD_REQUIRED@
-Provides:       gmerlin-soundcard-plugins
+Provides:       gmerlin-soundcard-plugin
 
 %description -n gmerlin-esd
 esd plugins for gmerlin
@@ -159,6 +163,7 @@ esd plugins for gmerlin
 Summary:	X11 plugins for gmerlin
 Group:		Applications/Multimedia
 Requires:       gmerlin-lib = %{version}
+Provides:       gmerlin-video-playback-plugin
 
 %description -n gmerlin-x11
 X11 plugins for gmerlin
@@ -171,6 +176,7 @@ X11 plugins for gmerlin
 Summary:	Video4linux plugin for gmerlin
 Group:		Applications/Multimedia
 Requires:       gmerlin-lib = %{version}
+Provides:       gmerlin-video-recorder-plugin
 
 %description -n gmerlin-v4l
 Video4linux plugin for gmerlin
@@ -183,8 +189,8 @@ Video4linux plugin for gmerlin
 Summary:        Multiformat media player
 Group:          Applications/Multimedia
 Requires:       gmerlin-gtk = %{version}
-Requires:       gmerlin-soundcard-plugins
-Requires:       gmerlin-x11 = %{version}
+Requires:       gmerlin-soundcard-plugin
+Requires:       gmerlin-video-playback-plugin
 
 %description -n gmerlin-player
 Multiformat media player
@@ -211,6 +217,9 @@ Group:          Applications/Multimedia
 Requires:       gmerlin-gtk = %{version}
 Requires:       gmerlin-x11 = %{version}
 Requires:       gmerlin-v4l = %{version}
+Requires:       gmerlin-video-playback-plugin
+Requires:       gmerlin-video-recorder-plugin
+Requires:       gmerlin-image-writer-plugin
 
 %description -n gmerlin-camelot
 Webcam application

@@ -22,6 +22,10 @@
 
 #include <gavl/gavl.h>
 
+/* Append a trailing '/' if it's missing. Argument must be free()able */
+
+char * bg_fix_path(char * path);
+
 /*
  *  Searchpath support
  */

@@ -264,17 +264,21 @@ bg_avdec_set_parameter(void * p, char * name,
   avdec = (avdec_priv*)(p);
   if(!name)
     return;
-#if 0
-  else if(!strcmp(name, "realcodec_path"))
+  else if(!strcmp(name, "codec_path_real"))
     {
     bgav_set_dll_path_real(val->val_str);
     fprintf(stderr, "Real codec path: %s\n", val->val_str);
     }
-  else if(!strcmp(name, "xanimcodec_path"))
+  else if(!strcmp(name, "codec_path_xanim"))
     {
     bgav_set_dll_path_xanim(val->val_str);
+    fprintf(stderr, "Xanim codec path: %s\n", val->val_str);
     }
-#endif
+  else if(!strcmp(name, "codec_path_win32"))
+    {
+    bgav_set_dll_path_win32(val->val_str);
+    fprintf(stderr, "Win32 codec path: %s\n", val->val_str);
+    }
   else if(!strcmp(name, "connect_timeout"))
     {
     avdec->connect_timeout = val->val_i;
