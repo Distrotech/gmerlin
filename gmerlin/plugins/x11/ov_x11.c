@@ -250,19 +250,7 @@ static gavl_colorspace_t get_x11_colorspace(Display * d)
   return ret;
   }
 
-#if 0
 
-static void send_expose(x11_t * priv)
-  {
-  XEvent evt;
-  memset(&evt, 0, sizeof(evt));
-
-  evt.type = Expose;
-  XSendEvent(priv->dpy, priv->win.current_window,
-             0, 0, &evt);
-  }
-
-#endif
 
 static int check_shm(Display * dpy, int * completion_type)
   {
@@ -1025,11 +1013,7 @@ static int handle_event(x11_t * priv, XEvent * evt)
       break;
     case ConfigureNotify:
       x11_window_clear(&(priv->win));
-	      set_drawing_coords(priv);
-//      XClearArea(priv->dpy, evt->xconfigure.window, 0, 0,
-//                 priv->win.window_width, priv->win.window_height, True);
-      /* Send ourselfes an exposure event */
-      //      send_expose(priv);
+      set_drawing_coords(priv);
       break;
     }
   return 0;
@@ -1146,6 +1130,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
 
 static void * thread_func(void * data)
   {
+  Window win;
   XEvent * event;
 
   x11_t * priv = (x11_t*)data;
@@ -1160,13 +1145,14 @@ static void * thread_func(void * data)
       }
     pthread_mutex_unlock(&(priv->still_mutex));
 
+    win = priv->win.current_window;
     event = x11_window_next_event(&(priv->win), 50);
     handle_event(priv, event);
+    if(win != priv->win.current_window)
+      write_frame_x11(data, priv->still_frame);
 
     if(event && (event->type == Expose))
-      {
       write_frame_x11(data, priv->still_frame);
-      }
     }
   
   free_frame_x11(data, priv->still_frame);

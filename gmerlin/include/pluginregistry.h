@@ -23,7 +23,7 @@
 /* Plugin registry */
 #include <pthread.h>
 #include <plugin.h>
-#include <cfg_registry.h>
+#include "cfg_registry.h"
 
 typedef struct bg_plugin_info_s
   {

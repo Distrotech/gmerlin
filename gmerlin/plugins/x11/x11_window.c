@@ -63,7 +63,7 @@ wm_check_capability(Display *dpy, Window root, Atom list, Atom wanted)
   XFree(ldata);
   return retval;
   }
-
+#if 0
 static void
 netwm_set_state(x11_window_t * w, Window win, int operation, Atom state)
   {
@@ -84,7 +84,7 @@ netwm_set_state(x11_window_t * w, Window win, int operation, Atom state)
   fprintf(stderr, "netwm_set_state\n");
 
   }
-
+#endif
 static void
 netwm_set_fullscreen(x11_window_t * w, Window win)
   {
@@ -102,7 +102,6 @@ netwm_set_fullscreen(x11_window_t * w, Window win)
 
 
   }
-
 #if 0
 static void
 netwm_set_layer(x11_window_t * w, Window win, int layer)
@@ -123,6 +122,7 @@ netwm_set_layer(x11_window_t * w, Window win, int layer)
   
   }
 #endif
+
 static int get_fullscreen_mode(x11_window_t * w)
   {
   if(wm_check_capability(w->dpy, w->root, w->_NET_SUPPORTED, w->_NET_WM_STATE_FULLSCREEN))
@@ -142,9 +142,6 @@ static void init_atoms(x11_window_t * w)
   w->_NET_WM_STATE            = XInternAtom(w->dpy, "_NET_WM_STATE", False);
   w->_NET_WM_STATE_FULLSCREEN = XInternAtom(w->dpy, "_NET_WM_STATE_FULLSCREEN",
                                             False);
-//  w->_NET_WM_STATE_FULLSCREEN = XInternAtom(w->dpy, "_NET_WM_STATE_ABOVE",
-//                                            False);
-
   w->_NET_MOVERESIZE_WINDOW   = XInternAtom(w->dpy, "_NET_MOVERESIZE_WINDOW",
                                             False);
 
@@ -534,7 +531,6 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
   /* Normal->fullscreen */
   if(fullscreen && (w->current_window == w->normal_window))
     {
-    XWithdrawWindow(w->dpy, w->normal_window, DefaultScreen(w->dpy));
     
     get_fullscreen_coords(w, &x, &y, &width, &height);
 
@@ -553,7 +549,8 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
 
     XRaiseWindow(w->dpy, w->fullscreen_window);
     XMapWindow(w->dpy, w->fullscreen_window);
-
+    XWithdrawWindow(w->dpy, w->normal_window, DefaultScreen(w->dpy));
+		
     /* Wait until the window is mapped */ 
     
     do
@@ -561,32 +558,44 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
       XMaskEvent(w->dpy, ExposureMask, &evt);
       x11_window_handle_event(w, &evt);
       } while((evt.type != Expose) && (evt.xexpose.window != w->fullscreen_window));
-    
+//    fprintf(stderr, "Set Input focus: %d\n", w->fullscreen_window);
+
     XSetInputFocus(w->dpy, w->fullscreen_window, RevertToNone, CurrentTime);
 
     XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
-    x11_window_clear(w);	
+//    XSync(w->dpy, False);
+    x11_window_clear(w);
 //    XRaiseWindow(w->dpy, w->fullscreen_window);
-
+    XFlush(w->dpy);
     }
 	
   if(!fullscreen && (w->current_window == w->fullscreen_window))
     {
-    XUnmapWindow(w->dpy, w->fullscreen_window);
     w->current_window = w->normal_window;
     XMapWindow(w->dpy, w->normal_window);
     
     w->window_width  = w->normal_width;
     w->window_height = w->normal_height;
 
-    fprintf(stderr, "Move normal window: %d x %d, %d %d\n",
-            w->window_width, w->window_height,
-            w->window_x, w->window_y);
-    
+//    fprintf(stderr, "Move normal window: %d x %d, %d %d\n",
+//            w->window_width, w->window_height,
+//            w->window_x, w->window_y);
+
+    do
+      {
+      XMaskEvent(w->dpy, ExposureMask, &evt);
+      x11_window_handle_event(w, &evt);
+      } while((evt.type != Expose) && (evt.xexpose.window != w->normal_window));
     XMoveResizeWindow(w->dpy, w->normal_window,
                       w->window_x, w->window_y,
                       w->window_width, w->window_height);
+
+    XUnmapWindow(w->dpy, w->fullscreen_window);
+
+    XSetInputFocus(w->dpy, w->normal_window, RevertToNone, CurrentTime);
+    
     x11_window_clear(w);
+    XFlush(w->dpy);
     }
   }
 
@@ -717,7 +726,10 @@ void x11_window_resize(x11_window_t * win,
 
 void x11_window_clear(x11_window_t * win)
   {
-  XSetForeground(win->dpy, win->gc, win->black);
-  XFillRectangle(win->dpy, win->normal_window, win->gc, 0, 0, win->window_width, 
-                 win->window_height);  
+//  XSetForeground(win->dpy, win->gc, win->black);
+//  XFillRectangle(win->dpy, win->normal_window, win->gc, 0, 0, win->window_width, 
+//                 win->window_height);  
+   XClearArea(win->dpy, win->normal_window, 0, 0,
+              win->window_width, win->window_height, True);
+
   }
