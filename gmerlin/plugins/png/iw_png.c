@@ -32,7 +32,6 @@
 
 typedef struct
   {
-  char * filename;
   FILE * output;
   gavl_video_format_t format;
 
@@ -57,15 +56,14 @@ static void destroy_png(void * priv)
   free(png);
   }
 
-static int write_header_png(void * priv, const char * filename_base,
+static int write_header_png(void * priv, const char * filename,
                      gavl_video_format_t * format)
   {
   int color_type;
   
   png_t * png = (png_t*)priv;
   
-  png->filename = bg_sprintf("%s.png", filename_base);
-  png->output = fopen(png->filename, "wb");
+  png->output = fopen(filename, "wb");
   if(!png->output)
     return 0;
 
@@ -116,7 +114,6 @@ static int write_image_png(void * priv, gavl_video_frame_t * frame)
   png_destroy_write_struct(&png->png_ptr, &png->info_ptr);
   fclose(png->output);
   free(rows);
-  free(png->filename);
   return 1;
   }
 
@@ -153,11 +150,11 @@ static void set_parameter_png(void * p, char * name,
     png->compression_level = val->val_i;
   }
 
-static const char * get_filename_png(void * p)
+static char * png_extension = ".png";
+
+static const char * get_extension_png(void * p)
   {
-  png_t * priv;
-  priv = (png_t *)p;
-  return priv->filename;
+  return png_extension;
   }
 
 bg_image_writer_plugin_t the_plugin =
@@ -175,7 +172,7 @@ bg_image_writer_plugin_t the_plugin =
       get_parameters: get_parameters_png,
       set_parameter:  set_parameter_png
     },
-    write_header: write_header_png,
-    get_filename: get_filename_png,
-    write_image:  write_image_png,
+    get_extension: get_extension_png,
+    write_header:  write_header_png,
+    write_image:   write_image_png,
   };

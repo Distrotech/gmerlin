@@ -401,6 +401,13 @@ static void destroy_lqt(void * data)
 
   if(e->parameters)
     bg_parameter_info_destroy_array(e->parameters);
+
+  if(e->audio_codec_string)
+    free(e->audio_codec_string);
+
+  if(e->video_codec_string)
+    free(e->video_codec_string);
+      
   
   free(e);
   }

@@ -60,8 +60,8 @@ struct transcoder_window_s
   guint idle_tag;
 
   float fg_color[3];
+  float fg_color_e[3]; /* Foreground color for error messages */
   float bg_color[3];
-  
   
   /* Load/Save stuff */
   
@@ -87,6 +87,12 @@ static bg_parameter_info_t transcoder_window_parameters[] =
       long_name:   "Foreground",
       type:        BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 1.0, 1.0, 0.0, 1.0 } }
+    },
+    {
+      name:        "display_foreground_error",
+      long_name:   "Error foreground",
+      type:        BG_PARAMETER_COLOR_RGB,
+      val_default: { val_color: (float[]){ 1.0, 0.0, 0.0, 1.0 } }
     },
     {
       name:        "display_background",
@@ -117,7 +123,6 @@ set_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t *
 
   if(!name)
     {
-
     bg_gtk_scrolltext_set_colors(win->scrolltext, win->fg_color, win->bg_color);
     bg_gtk_time_display_set_colors(win->time_remaining, win->fg_color, win->bg_color);
     track_list_set_display_colors(win->tracklist, win->fg_color, win->bg_color);
@@ -131,12 +136,14 @@ set_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t *
   else if(!strcmp(name, "display_foreground"))
     {
     memcpy(win->fg_color, val->val_color, 3 * sizeof(float));
-    
+    }
+  else if(!strcmp(name, "display_foreground_error"))
+    {
+    memcpy(win->fg_color_e, val->val_color, 3 * sizeof(float));
     }
   else if(!strcmp(name, "display_background"))
     {
     memcpy(win->bg_color, val->val_color, 3 * sizeof(float));
-
     }
   else if(!strcmp(name, "display_font"))
     {
@@ -212,6 +219,7 @@ static gboolean idle_callback(gpointer data)
       {
       gtk_widget_set_sensitive(win->run_button, 1);
       gtk_widget_set_sensitive(win->stop_button, 0);
+
       return FALSE;
       }
     else
@@ -223,8 +231,11 @@ static gboolean idle_callback(gpointer data)
 
   /* Update status */
 
+  //  fprintf(stderr, "bg_gtk_time_display_update...");
   bg_gtk_time_display_update(win->time_remaining,
                              win->transcoder_info->remaining_time);
+  
+  //  fprintf(stderr, "done\n");
   
   gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar),
                                 win->transcoder_info->percentage_done);
@@ -235,6 +246,8 @@ static int start_transcode(transcoder_window_t * win)
   {
   char * name, * message;
   bg_cfg_section_t * cfg_section;
+
+  const char * error_msg;
   
   cfg_section = bg_cfg_registry_find_section(win->cfg_reg, "output");
 
@@ -255,7 +268,19 @@ static int start_transcode(transcoder_window_t * win)
   if(!bg_transcoder_init(win->transcoder,
                          win->plugin_reg, win->transcoder_track))
     {
-    fprintf(stderr, "Failed to initialize transcoder\n");
+    error_msg = bg_transcoder_get_error(win->transcoder);
+    
+    if(error_msg)
+      bg_gtk_scrolltext_set_text(win->scrolltext, error_msg, win->fg_color_e, win->bg_color);
+    else
+      bg_gtk_scrolltext_set_text(win->scrolltext, "Failed to initialize transcoder",
+                                 win->fg_color_e, win->bg_color);
+    
+    track_list_prepend_track(win->tracklist, win->transcoder_track);
+    win->transcoder_track = (bg_transcoder_track_t*)0;
+
+    bg_transcoder_destroy(win->transcoder);
+    win->transcoder = (bg_transcoder_t*)0;
     return 0;
     }
   fprintf(stderr, "Initialized transcoder\n");
@@ -340,8 +365,8 @@ static void button_callback(GtkWidget * w, gpointer data)
   if(w == win->run_button)
     {
     //    fprintf(stderr, "Run Button\n");
-    start_transcode(win);
-    win->idle_tag = g_idle_add(idle_callback, win);
+    if(start_transcode(win))
+      win->idle_tag = g_idle_add(idle_callback, win);
     }
   else if(w == win->stop_button)
     {

@@ -100,8 +100,6 @@ bg_device_info_t * bg_device_info_append(bg_device_info_t * arr,
 
 void bg_device_info_destroy(bg_device_info_t * arr);
 
-
-
 /* Common part */
 
 typedef struct bg_plugin_common_s
@@ -152,7 +150,7 @@ typedef struct bg_plugin_common_s
   
   /*
    *  Even more optional: Scan for available devices (will most likely call
-   *  check_device internally
+   *  check_device internally)
    */
   
   bg_device_info_t * (*find_devices)();
@@ -215,7 +213,8 @@ typedef struct bg_input_plugin_s
 
   /* Alternative: Open with filedescriptor (used for http mostly) */
 
-  int (*open_fd)(void * priv, int fd, int64_t total_bytes, const char * mimetype);
+  int (*open_fd)(void * priv, int fd, int64_t total_bytes,
+                 const char * mimetype);
   
   /*
    * Set callback functions, which can be called by plugin
@@ -446,12 +445,15 @@ typedef struct bg_encoder_plugin_s
 
   int max_audio_streams;
   int max_video_streams;
+
+  /* Return the file extension, which will be appended to the file */
+
+  const char * (*get_extension)(void * priv);
   
   /* Open a file, filename base is without extension, which
      will be added by the plugin */
   
-  int (*open)(void *, const char * filename_base,
-              bg_metadata_t * metadata);
+  int (*open)(void *, const char * filename, bg_metadata_t * metadata);
   
   bg_parameter_info_t * (*get_audio_parameters)(void * data);
   bg_parameter_info_t * (*get_video_parameters)(void * data);
@@ -523,17 +525,17 @@ typedef struct bg_image_writer_plugin_s
   {
   bg_plugin_common_t common;
 
+  /* Return the file extension */
+
+  const char * (*get_extension)(void * priv);
+  
   /*
    *  Write the file header.
    *  Return FALSE on error
    */
   
-  int (*write_header)(void * priv, const char * filename_base,
+  int (*write_header)(void * priv, const char * filename,
                       gavl_video_format_t * format);
-
-  /* Return the filename */
-
-  const char * (*get_filename)(void * priv);
   
   /*
    *  Read the image, cleanup after so read_header can be calles

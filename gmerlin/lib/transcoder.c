@@ -280,6 +280,11 @@ struct bg_transcoder_s
 
   gavl_timer_t * timer;
   gavl_time_t time;
+
+  /* Error handling */
+
+  char * error_msg;
+  const char * error_msg_ret;
   };
 
 static bg_parameter_info_t parameters[] =
@@ -560,9 +565,17 @@ static void finalize_video_stream(video_stream_t * ret,
 
   ret->com.out_plugin->get_video_format(ret->com.out_handle->priv,
                                            ret->com.out_index, &(ret->out_format));
+
+  /* Dump formats */
+
+  fprintf(stderr, "Input format:\n");
+  gavl_video_format_dump(&(ret->in_format));
+  fprintf(stderr, "Output format:\n");
+  gavl_video_format_dump(&(ret->out_format));
+  fprintf(stderr, "\n");
   
   /* Initialize converter */
-
+  
   ret->com.do_convert = gavl_video_converter_init(ret->cnv, &(ret->opt),
                                                   &(ret->in_format),
                                                   &(ret->out_format));
@@ -579,14 +592,22 @@ static void finalize_video_stream(video_stream_t * ret,
   /* Create frames */
 
   ret->in_frame_1 = gavl_video_frame_create(&(ret->in_format));
+  gavl_video_frame_clear(ret->in_frame_1, &(ret->in_format));
+  
   ret->in_frame_1->time = GAVL_TIME_UNDEFINED;
   
   if(ret->convert_framerate)
+    {
     ret->in_frame_2 = gavl_video_frame_create(&(ret->in_format));
+    gavl_video_frame_clear(ret->in_frame_2, &(ret->in_format));
+    }
   
   if(ret->com.do_convert)
+    {
     ret->out_frame = gavl_video_frame_create(&(ret->out_format));
-  
+    gavl_video_frame_clear(ret->out_frame, &(ret->out_format));
+    }
+    
   }
 
 static void audio_iteration(audio_stream_t*s)
@@ -825,7 +846,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   char * audio_encoder_name = (char*)0;
   char * video_encoder_name = (char*)0;
   
-  char * output_base = (char*)0;
+  char * output_filename = (char*)0;
   
   bg_plugin_handle_t  * audio_encoder_handle = (bg_plugin_handle_t  *)0;
   bg_encoder_plugin_t * audio_encoder_plugin;
@@ -857,6 +878,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   fprintf(stderr, "done\n");
     
   fprintf(stderr, "Opening input...");
+
   /* Open input plugin */
 
   plugin_info = bg_plugin_find_by_name(plugin_reg, ret->plugin);
@@ -1061,9 +1083,21 @@ int bg_transcoder_init(bg_transcoder_t * ret,
         encoder_plugin = audio_encoder_plugin;
         }
 
-      output_base = bg_sprintf("%s/%s_audio_%02d", ret->output_directory, ret->name, i+1);
-      encoder_plugin->open(encoder_handle->priv, output_base, &(ret->metadata));
-      free(output_base);
+      output_filename =
+        bg_sprintf("%s/%s_audio_%02d%s", ret->output_directory, ret->name, i+1,
+                   encoder_plugin->get_extension(encoder_handle->priv));
+
+      if(!strcmp(output_filename, ret->location))
+        {
+        ret->error_msg = bg_sprintf("Input and output are the same file");
+        ret->error_msg_ret = ret->error_msg;
+        free(output_filename);
+        bg_plugin_unref(encoder_handle);
+        goto fail;
+        }
+      
+      encoder_plugin->open(encoder_handle->priv, output_filename, &(ret->metadata));
+      free(output_filename);
       
       finalize_audio_stream(&(ret->audio_streams[i]), &(track->audio_streams[i]),
                             encoder_handle, 0, ret->track_info, 1);
@@ -1083,10 +1117,22 @@ int bg_transcoder_init(bg_transcoder_t * ret,
                                                     track->video_encoder_section,
                                                     &video_encoder_plugin);
         }
+      
+      output_filename =
+        bg_sprintf("%s/%s_video_%02d%s", ret->output_directory, ret->name, i+1,
+                   video_encoder_plugin->get_extension(video_encoder_handle->priv));
 
-      output_base = bg_sprintf("%s/%s_video_%02d", ret->output_directory, ret->name, i+1);
-      video_encoder_plugin->open(video_encoder_handle->priv, output_base, &(ret->metadata));
-      free(output_base);
+      if(!strcmp(output_filename, ret->location))
+        {
+        ret->error_msg = bg_sprintf("Input and output are the same file");
+        ret->error_msg_ret = ret->error_msg;
+        free(output_filename);
+        bg_plugin_unref(video_encoder_handle);
+        goto fail;
+        }
+      
+      video_encoder_plugin->open(video_encoder_handle->priv, output_filename, &(ret->metadata));
+      free(output_filename);
 
       finalize_video_stream(&(ret->video_streams[i]), &(track->video_streams[i]),
                             video_encoder_handle, 0, ret->track_info, 1);
@@ -1112,10 +1158,21 @@ int bg_transcoder_init(bg_transcoder_t * ret,
       encoder_handle = audio_encoder_handle;
       }
     
-    output_base = bg_sprintf("%s/%s", ret->output_directory, ret->name);
-    encoder_plugin->open(encoder_handle->priv, output_base, &(ret->metadata));
-    free(output_base);
+    output_filename = bg_sprintf("%s/%s%s", ret->output_directory, ret->name,
+                                 encoder_plugin->get_extension(encoder_handle->priv));
 
+    if(!strcmp(output_filename, ret->location))
+      {
+      ret->error_msg = bg_sprintf("Input and output are the same file");
+      ret->error_msg_ret = ret->error_msg;
+      free(output_filename);
+      bg_plugin_unref(encoder_handle);
+      goto fail;
+      }
+    
+    encoder_plugin->open(encoder_handle->priv, output_filename, &(ret->metadata));
+    free(output_filename);
+    
     stream_index = 0;
     for(i = 0; i < ret->num_audio_streams; i++)
       {
@@ -1150,6 +1207,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
                             encoder_handle, stream_index, ret->track_info, do_close);
       stream_index++;
       }
+    bg_plugin_unref(encoder_handle);
     }
   
   free(audio_encoder_name);
@@ -1170,7 +1228,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
 
   if(video_encoder_name)
     free(video_encoder_name);
-  
+
   return 0;
   
   }
@@ -1198,21 +1256,10 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   
   int done = 1;
     
-  time = 0;
+  time = GAVL_TIME_MAX;
   
   /* Find the stream with the smallest time */
   
-  if(t->audio_streams)
-    {
-    time = t->audio_streams->com.time;
-    stream = &(t->audio_streams->com);
-    }
-  else if(t->video_streams)
-    {
-    time = t->video_streams->com.time;
-    stream = &(t->video_streams->com);
-    }
-
   for(i = 0; i < t->num_audio_streams; i++)
     {
     if(t->audio_streams[i].com.status != STREAM_STATE_ON)
@@ -1276,6 +1323,10 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   
   t->transcoder_info.remaining_time =
     gavl_seconds_to_time(remaining_seconds);
+
+  //  fprintf(stderr, "t->transcoder_info.remaining_time: %lld\n",
+  //          t->transcoder_info.remaining_time);
+  
   return 1;
   }
 
@@ -1286,17 +1337,18 @@ static void cleanup_stream(stream_t * s, int do_delete)
   if(s->action == STREAM_ACTION_FORGET)
     return;
       
-  if(s->do_close)
+  if((s->do_close) && (s->out_handle))
     {
     s->out_plugin->close(s->out_handle->priv, do_delete);
     }
-  bg_plugin_unref(s->out_handle);
+  if(s->out_handle)
+    bg_plugin_unref(s->out_handle);
   }
 
 static void cleanup_audio_stream(audio_stream_t * s, int do_delete)
   {
   cleanup_stream(&(s->com), do_delete);
-
+  
   /* Free all resources */
 
   if(s->in_frame)
@@ -1322,6 +1374,8 @@ static void cleanup_video_stream(video_stream_t * s, int do_delete)
   if(s->cnv)
     gavl_video_converter_destroy(s->cnv);
   }
+
+#define FREE_STR(str) if(str)free(str);
 
 void bg_transcoder_destroy(bg_transcoder_t * t)
   {
@@ -1355,8 +1409,27 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
 
   t->in_plugin->close(t->in_handle->priv);
   bg_plugin_unref(t->in_handle);
-  
+
   /* Free rest */
 
+  FREE_STR(t->name);
+  FREE_STR(t->location);
+  FREE_STR(t->plugin);
+  FREE_STR(t->audio_encoder);
+  FREE_STR(t->video_encoder);
+  FREE_STR(t->output_directory);
+
+  gavl_timer_destroy(t->timer);
+  if(t->error_msg)
+    free(t->error_msg);
+
+
+  
   free(t);
   }
+
+const char * bg_transcoder_get_error(bg_transcoder_t * t)
+  {
+  return t->error_msg_ret;
+  }
+

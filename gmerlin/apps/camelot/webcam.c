@@ -238,6 +238,10 @@ static char * create_filename(gmerlin_webcam_t * cam)
       pos++;
       }
     }
+
+  filename =
+    bg_strcat(filename, cam->capture->get_extension(cam->capture_handle->priv));
+  
   return filename;
   }
 

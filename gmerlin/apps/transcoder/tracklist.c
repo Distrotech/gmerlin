@@ -565,6 +565,18 @@ static void drivesel_close_callback(bg_gtk_drivesel_t * f , void * data)
   gtk_widget_set_sensitive(t->add_removable_button, 1);
   }
 
+
+/* Set track name */
+
+static void set_track_name(void * data, const char * name)
+  {
+  track_list_t * l = (track_list_t *)data;
+
+  fprintf(stderr, "Set Track name %s\n", name);
+
+  track_list_update(l);
+  }
+
 static void button_callback(GtkWidget * w, gpointer data)
   {
   track_list_t * t;
@@ -662,7 +674,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   if(w == t->config_button)
     {
     fprintf(stderr, "Config button\n");
-    track_dialog = track_dialog_create(t->selected_track);
+    track_dialog = track_dialog_create(t->selected_track, set_track_name, t);
     track_dialog_run(track_dialog);
     track_dialog_destroy(track_dialog);
 
@@ -1039,6 +1051,8 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
 void track_list_destroy(track_list_t * t)
   {
   char * tmp_path;
+  bg_transcoder_track_t * tmp_track;
+
   tmp_path = bg_search_file_write("transcoder", "tracks.xml");
 
   if(tmp_path)
@@ -1046,6 +1060,17 @@ void track_list_destroy(track_list_t * t)
     bg_transcoder_tracks_save(t->tracks, tmp_path);
     free(tmp_path);
     }
+
+  tmp_track = t->tracks;
+
+  while(t->tracks)
+    {
+    tmp_track = t->tracks->next;
+    bg_transcoder_track_destroy(t->tracks);
+    t->tracks = tmp_track;
+    }
+    
+
   free(t);
   }
 

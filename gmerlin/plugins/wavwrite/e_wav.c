@@ -211,14 +211,14 @@ static void set_audio_parameter_wav(void * data, int stream, char * name,
     }
   }
 
-static int open_wav(void * data, const char * filename_base,
+static int open_wav(void * data, const char * filename,
                     bg_metadata_t * metadata)
   {
   int result;
   wav_t * wav;
   wav = (wav_t*)data;
   
-  wav->filename = bg_sprintf("%s.wav", filename_base);
+  wav->filename = bg_strdup(wav->filename, filename);
   wav->output = fopen(wav->filename, "wb");
 
   if(!wav->output)
@@ -233,6 +233,12 @@ static int open_wav(void * data, const char * filename_base,
   return result;
   }
 
+static char * wav_extension = ".wav";
+
+static const char * get_extension_wav(void * data)
+  {
+  return wav_extension;
+  }
 
 static void add_audio_stream_wav(void * data, gavl_audio_format_t * format)
   {
@@ -332,6 +338,8 @@ bg_encoder_plugin_t the_plugin =
     },
     max_audio_streams:   1,
     max_video_streams:   0,
+    
+    get_extension:       get_extension_wav,
     
     open:                open_wav,
     

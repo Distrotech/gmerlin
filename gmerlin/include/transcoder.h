@@ -39,6 +39,8 @@ int bg_transcoder_init(bg_transcoder_t * t,
                        bg_plugin_registry_t * plugin_reg, bg_transcoder_track_t * track);
 
 
+const char * bg_transcoder_get_error(bg_transcoder_t * t);
+
 /*
  *  Do one iteration (Will be called as an idle function in the GUI main loop)
  *  If return value is FALSE, we are done

@@ -77,6 +77,12 @@ static void set_plugin_parameter(bg_parameter_info_t * ret,
     info = bg_plugin_find_by_index(reg, i,
                                    type_mask, flag_mask);
     ret->multi_names[i] = bg_strdup(NULL, info->name);
+
+    if(!i) /* First plugin is the default one */
+      {
+      ret->val_default.val_str = bg_strdup(NULL, info->name);
+      }
+
     ret->multi_labels[i] = bg_strdup(NULL, info->long_name);
 
     h = bg_plugin_load(reg, info);
@@ -485,16 +491,38 @@ static bg_parameter_info_t parameters_encoder[] =
       val_min:     { val_i: 1 },
       val_max:     { val_i: 9 },
       val_default: { val_i: 4 },
+    },
+    {
+      name:        "frame_offset",
+      long_name:   "Framenumber offset",
+      type:        BG_PARAMETER_INT,
+      val_min:     { val_i: 0 },
+      val_max:     { val_i: 1000000 },
+      val_default: { val_i: 0 },
     }
   };
 
 typedef struct
   {
-  char * mask;
-  bg_plugin_handle_t * handle;
+  bg_plugin_handle_t * plugin_handle;
+  bg_image_writer_plugin_t * image_writer;
+  
   bg_parameter_info_t * parameters;
 
-  bg_plugin_registry_t * reg;
+  bg_plugin_registry_t * plugin_reg;
+  
+  int frame_digits, frame_offset;
+  int64_t frame_counter;
+  
+  char * extension;
+  char * extension_mask;
+  char * mask;
+  char * filename_buffer;
+  
+  gavl_video_format_t format;
+
+  int have_header;
+    
   } encoder_t;
 
 #if 0
@@ -518,7 +546,7 @@ bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg)
   }
 #endif
 
-static bg_parameter_info_t * get_video_parameters_encoder(void * priv)
+static bg_parameter_info_t * get_parameters_encoder(void * priv)
   {
   int i;
   encoder_t * enc = (encoder_t *)priv;
@@ -534,7 +562,7 @@ static bg_parameter_info_t * get_video_parameters_encoder(void * priv)
       bg_parameter_info_copy(&enc->parameters[i], &parameters_encoder[i]);
       }
     set_plugin_parameter(&enc->parameters[0],
-                         enc->reg, BG_PLUGIN_IMAGE_WRITER, BG_PLUGIN_FILE);
+                         enc->plugin_reg, BG_PLUGIN_IMAGE_WRITER, BG_PLUGIN_FILE);
     }
   return enc->parameters;
   }
@@ -549,44 +577,203 @@ void * bg_singlepic_encoder_create(bg_plugin_registry_t * reg)
   }
 #endif
 
-static int open_encoder(void * data, const char * filename_base,
+static void set_parameter_encoder(void * priv, char * name, 
+                                  bg_parameter_value_t * val)
+  {
+  const bg_plugin_info_t * info;
+  
+  encoder_t * e;
+  e = (encoder_t *)priv;
+  
+  if(!name)
+    {
+    return;
+    }
+  else if(!strcmp(name, "plugin"))
+    {
+    /* Load plugin */
+
+    if(!e->plugin_handle || strcmp(e->plugin_handle->info->name, val->val_str))
+      {
+      if(e->plugin_handle)
+        {
+        bg_plugin_unref(e->plugin_handle);
+        e->plugin_handle = (bg_plugin_handle_t*)0;
+        }
+      info = bg_plugin_find_by_name(e->plugin_reg, val->val_str);
+      e->plugin_handle = bg_plugin_load(e->plugin_reg, info);
+      e->image_writer = (bg_image_writer_plugin_t*)(e->plugin_handle->plugin);
+      }
+    }
+  else if(!strcmp(name, "frame_digits"))
+    {
+    e->frame_digits = val->val_i;
+    }
+  else if(!strcmp(name, "frame_offset"))
+    {
+    e->frame_offset = val->val_i;
+    }
+  else
+    {
+    if(e->plugin_handle && e->plugin_handle->plugin->set_parameter)
+      {
+      e->plugin_handle->plugin->set_parameter(e->plugin_handle->priv, name, val);
+      }
+    }
+  }
+
+
+static const char * get_extension_encoder(void * data)
+  {
+  const char * plugin_extension;
+  
+  encoder_t * e;
+  e = (encoder_t *)data;
+
+  if(!e->extension)
+    {
+    /* Create extension */
+    
+    plugin_extension = e->image_writer->get_extension(e->plugin_handle->priv);
+
+    e->extension_mask = bg_sprintf("-%%0%dlld%s", e->frame_digits, plugin_extension);
+    e->extension      = bg_sprintf(e->extension_mask, (int64_t)e->frame_offset);
+
+    fprintf(stderr, "Extension mask: %s, extension: %s\n",
+            e->extension_mask,e->extension);
+    }
+  return e->extension;
+  }
+
+static int open_encoder(void * data, const char * filename,
                         bg_metadata_t * metadata)
   {
+  encoder_t * e;
+  int filename_len;
+  
+  e = (encoder_t *)data;
+
+  /* Create the final mask */
+
+  e->mask = bg_strdup(e->mask, filename);
+
+  filename_len = strlen(filename);
+  
+  e->mask[filename_len - strlen(get_extension_encoder(data))] = '\0';
+
+  e->mask = bg_strcat(e->mask, e->extension_mask);
+
+  fprintf(stderr, "Mask: %s\n", e->mask);
+
+  e->filename_buffer = malloc(filename_len+1);
+
+  e->frame_counter = e->frame_offset;
   return 0;
   }
 
-void add_video_stream_encoder(void * data, gavl_video_format_t * format)
+
+static int write_frame_header(encoder_t * e)
   {
+  e->have_header = 1;
+
+  /* Create filename */
+
+  sprintf(e->filename_buffer, e->mask, e->frame_counter);
+
+  //  fprintf(stderr, "Write header...");
   
+  e->image_writer->write_header(e->plugin_handle->priv,
+                                e->filename_buffer,
+                                &(e->format));
+  //  fprintf(stderr, "done\n");
+
+  e->frame_counter++;
+  return 1;
   }
 
 
-static void set_video_parameter_encoder(void * priv, int stream, char * name, 
-                                        bg_parameter_value_t * val)
+static void add_video_stream_encoder(void * data, gavl_video_format_t * format)
   {
+  encoder_t * e;
+  e = (encoder_t *)data;
+
+  gavl_video_format_copy(&(e->format), format);
+
+  /* Write image header so we know the format */
   
+  write_frame_header(e);
   }
 
-static void get_video_format_encoder(void * priv, int stream,
+static void get_video_format_encoder(void * data, int stream,
                                      gavl_video_format_t * format)
   {
-  
+  encoder_t * e;
+
+  e = (encoder_t *)data;
+  gavl_video_format_copy(format, &(e->format));
   }
 
-static void write_video_frame_encoder(void * priv,gavl_video_frame_t * frame,int stream)
+static void write_video_frame_encoder(void * data, gavl_video_frame_t * frame,int stream)
   {
+  encoder_t * e;
 
+  e = (encoder_t *)data;
+
+  if(!e->have_header)
+    {
+    write_frame_header(e);
+    }
+  //  fprintf(stderr, "Write image...");
+  e->image_writer->write_image(e->plugin_handle->priv, frame);
+  //  fprintf(stderr, "done\n");
+  e->have_header = 0;
   }
 
+#define STR_FREE(s) if(s){free(s);s=(char*)0;}
 
-static void close_encoder(void * priv, int do_delete)
+static void close_encoder(void * data, int do_delete)
   {
+  int64_t i;
   
+  encoder_t * e;
+  e = (encoder_t *)data;
+
+  if(do_delete)
+    {
+    for(i = e->frame_offset; i < e->frame_counter; i++)
+      {
+      sprintf(e->filename_buffer, e->mask, i);
+      fprintf(stderr, "Removing %s\n", e->filename_buffer);
+      remove(e->filename_buffer);
+      }
+    }
+  
+  STR_FREE(e->extension);
+  STR_FREE(e->extension_mask);
+  STR_FREE(e->mask);
+  STR_FREE(e->filename_buffer);
+
+  if(e->plugin_handle)
+    {
+    bg_plugin_unref(e->plugin_handle);
+    e->plugin_handle = (bg_plugin_handle_t*)0;
+    }
   }
 
 static void destroy_encoder(void * data)
   {
+  encoder_t * e;
+  e = (encoder_t *)data;
+  close_encoder(data, 0);
+
+  if(e->parameters)
+    {
+    bg_parameter_info_destroy_array(e->parameters);
+    }
+
+  free(e);
   }
+
 
 bg_encoder_plugin_t encoder_plugin =
   {
@@ -599,8 +786,8 @@ bg_encoder_plugin_t encoder_plugin =
       flags:         BG_PLUGIN_FILE,
       create:         NULL,
       destroy:        destroy_encoder,
-      //      get_parameters: get_parameters_encoder,
-      //      set_parameter:  set_parameter_encoder
+      get_parameters: get_parameters_encoder,
+      set_parameter:  set_parameter_encoder
     },
     
     /* Maximum number of audio/video streams. -1 means infinite */
@@ -608,17 +795,15 @@ bg_encoder_plugin_t encoder_plugin =
     max_audio_streams: 0,
     max_video_streams: 1,
 
-    get_video_parameters: get_video_parameters_encoder,
+    get_extension:     get_extension_encoder,
     
     /* Open a file, filename base is without extension, which
        will be added by the plugin */
-
-    
+        
     open: open_encoder,
 
     add_video_stream: add_video_stream_encoder,
     
-    set_video_parameter: set_video_parameter_encoder,
     get_video_format:    get_video_format_encoder,
     
     write_video_frame: write_video_frame_encoder,
@@ -659,12 +844,7 @@ void * bg_singlepic_encoder_create(bg_plugin_registry_t * reg)
   encoder_t * ret;
   ret = calloc(1, sizeof(*ret));
 
-  ret->reg = reg;
+  ret->plugin_reg = reg;
 
   return ret;
-  }
-
-void bg_singlepic_encoder_destroy(bg_plugin_common_t * p)
-  {
-  
   }

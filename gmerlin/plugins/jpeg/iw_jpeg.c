@@ -32,7 +32,7 @@
 
 typedef struct
   {
-  char * filename;
+  //  char * filename;
   struct jpeg_compress_struct cinfo;
   struct jpeg_error_mgr jerr;
  
@@ -44,8 +44,9 @@ typedef struct
   uint8_t *  rows_2[16];
   
   FILE * output;
-  gavl_video_format_t format;
 
+  gavl_colorspace_t colorspace;
+  
   int quality;
   } jpeg_t;
 
@@ -71,13 +72,12 @@ static void destroy_jpeg(void * priv)
   }
 
 static
-int write_header_jpeg(void * priv, const char * filename_base,
+int write_header_jpeg(void * priv, const char * filename,
                       gavl_video_format_t * format)
   {
   jpeg_t * jpeg = (jpeg_t*)priv;
   
-  jpeg->filename = bg_sprintf("%s.jpg", filename_base);
-  jpeg->output = fopen(jpeg->filename, "wb");
+  jpeg->output = fopen(filename, "wb");
   if(!jpeg->output)
     return 0;
   
@@ -96,7 +96,7 @@ int write_header_jpeg(void * priv, const char * filename_base,
   
   /* Adjust colorspaces */
 
-  format->colorspace = jpeg->format.colorspace;
+  format->colorspace = jpeg->colorspace;
 
   jpeg_set_colorspace(&(jpeg->cinfo), JCS_YCbCr);
   jpeg->cinfo.raw_data_in = TRUE;
@@ -147,7 +147,7 @@ int write_header_jpeg(void * priv, const char * filename_base,
       break;
     default:
       fprintf(stderr, "Illegal colorspace: %s\n",
-              gavl_colorspace_to_string(jpeg->format.colorspace));      
+              gavl_colorspace_to_string(jpeg->colorspace));      
       break;
     }
 
@@ -155,8 +155,6 @@ int write_header_jpeg(void * priv, const char * filename_base,
 
   jpeg_set_quality(&jpeg->cinfo, jpeg->quality, TRUE);
   jpeg_start_compress(&jpeg->cinfo, TRUE);
-
-  gavl_video_format_copy(&(jpeg->format), format);
   
   return 1;
   }
@@ -168,7 +166,7 @@ int write_image_jpeg(void * priv, gavl_video_frame_t * frame)
   int num_lines;
   jpeg_t * jpeg = (jpeg_t*)priv;
 
-  switch(jpeg->format.colorspace)
+  switch(jpeg->colorspace)
     {
     case GAVL_YUVJ_420_P:
       while(jpeg->cinfo.next_scanline < jpeg->cinfo.image_height)
@@ -216,7 +214,6 @@ int write_image_jpeg(void * priv, gavl_video_frame_t * frame)
     }
   jpeg_finish_compress(&(jpeg->cinfo));
   fclose(jpeg->output);
-  free(jpeg->filename);
   return 1;
   }
 
@@ -266,26 +263,25 @@ static void set_parameter_jpeg(void * p, char * name,
     {
     if(!strcmp(val->val_str, "4:2:0"))
       {
-      jpeg->format.colorspace = GAVL_YUVJ_420_P;
+      jpeg->colorspace = GAVL_YUVJ_420_P;
       }
     else if(!strcmp(val->val_str, "4:2:2"))
       {
-      jpeg->format.colorspace = GAVL_YUVJ_422_P;
+      jpeg->colorspace = GAVL_YUVJ_422_P;
       }
     else if(!strcmp(val->val_str, "4:4:4"))
       {
-      jpeg->format.colorspace = GAVL_YUVJ_444_P;
+      jpeg->colorspace = GAVL_YUVJ_444_P;
       }
     }
   }
 
-static const char * get_filename_jpeg(void * p)
-  {
-  jpeg_t * priv;
-  priv = (jpeg_t *)p;
-  return priv->filename;
-  }
+static char * jpeg_extension = ".jpg";
 
+static const char * get_extension_jpeg(void * p)
+  {
+  return jpeg_extension;
+  }
 
 bg_image_writer_plugin_t the_plugin =
   {
@@ -302,7 +298,7 @@ bg_image_writer_plugin_t the_plugin =
       get_parameters: get_parameters_jpeg,
       set_parameter:  set_parameter_jpeg
     },
+    get_extension: get_extension_jpeg,
     write_header: write_header_jpeg,
-    get_filename: get_filename_jpeg,
     write_image:  write_image_jpeg,
   };

@@ -41,6 +41,7 @@ typedef struct
   {
   char * filename;
   quicktime_t * file;
+  
   //  bg_parameter_info_t * parameters;
 
   char * audio_codec_name;
@@ -66,7 +67,7 @@ typedef struct
     uint8_t ** rows;
     lqt_codec_info_t ** codec_info;
     } * video_streams;
-  
+  char * error_msg;
   } e_lqt_t;
 
 static void * create_lqt()
@@ -75,22 +76,45 @@ static void * create_lqt()
   return ret;
   }
 
-static int open_lqt(void * data, const char * filename_base,
+static const char * get_error_lqt(void * priv)
+  {
+  e_lqt_t * lqt;
+  lqt = (e_lqt_t*)priv;
+  return lqt->error_msg;
+  }
+
+static const char * extension_qt  = ".mov";
+static const char * extension_avi = ".avi";
+
+static const char * get_extension_lqt(void * data)
+  {
+  e_lqt_t * e = (e_lqt_t*)data;
+
+  if(e->format == FORMAT_AVI)
+    return extension_avi;
+  else
+    return extension_qt;
+  }
+
+static int open_lqt(void * data, const char * filename,
                     bg_metadata_t * metadata)
   {
   char * track_string;
   e_lqt_t * e = (e_lqt_t*)data;
+  
+  if(e->format == FORMAT_QUICKTIME_STREAMABLE)
+    e->filename = bg_sprintf("%s.tmp", filename);
+  else
+    e->filename = bg_strdup(e->filename, filename);
 
-  
-  if(e->format == FORMAT_AVI)
-    e->filename = bg_sprintf("%s.avi", filename_base);
-  else if(e->format == FORMAT_QUICKTIME)
-    e->filename = bg_sprintf("%s.mov", filename_base);
-  else if(e->format == FORMAT_QUICKTIME_STREAMABLE)
-    e->filename = bg_sprintf("%s.mov.tmp", filename_base);
-  
   e->file = quicktime_open(e->filename, 0, 1);
 
+  if(!e->file)
+    {
+    e->error_msg = bg_sprintf("Cannot open file %s", e->filename);
+    return 0;
+    }
+  
   /* Set metadata */
 
   if(metadata->copyright)
@@ -114,7 +138,7 @@ static int open_lqt(void * data, const char * filename_base,
     lqt_set_album(e->file, metadata->album);
   if(metadata->author)
     lqt_set_author(e->file, metadata->author);
-  return 0;
+  return 1;
   }
 
 static void add_audio_stream_lqt(void * data, gavl_audio_format_t * format)
@@ -275,6 +299,9 @@ static void destroy_lqt(void * data)
     bg_parameter_info_destroy_array(e->audio_parameters);
   if(e->video_parameters)
     bg_parameter_info_destroy_array(e->video_parameters);
+
+  if(e->error_msg)
+    free(e->error_msg);
   free(e);
   }
 
@@ -447,6 +474,7 @@ bg_encoder_plugin_t the_plugin =
       destroy:        destroy_lqt,
       get_parameters: get_parameters_lqt,
       set_parameter:  set_parameter_lqt,
+      get_error:      get_error_lqt,
     },
 
     max_audio_streams: -1,
@@ -454,6 +482,8 @@ bg_encoder_plugin_t the_plugin =
 
     get_audio_parameters: get_audio_parameters_lqt,
     get_video_parameters: get_video_parameters_lqt,
+
+    get_extension:        get_extension_lqt,
     
     open:                 open_lqt,
 

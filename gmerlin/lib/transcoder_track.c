@@ -259,10 +259,6 @@ bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
         track->video_streams[i].encoder_parameters =
           bg_parameter_info_copy_array(plugin->get_video_parameters(priv));
         }
-      else if(plugin->common.get_parameters)
-        track->video_streams[i].encoder_parameters =
-          bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
-
       }
 
     if(!track->video_encoder_parameters && plugin->common.get_parameters)

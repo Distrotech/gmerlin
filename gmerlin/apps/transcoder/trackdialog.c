@@ -13,10 +13,28 @@ struct track_dialog_s
   /* Config dialog */
 
   bg_dialog_t * cfg_dialog;
-  
+
+  void (*set_name)(void * priv, const char * name);
+  void * set_name_priv
   };
 
-track_dialog_t * track_dialog_create(bg_transcoder_track_t * t)
+static void set_parameter_general(void * priv, char * name, bg_parameter_value_t * val)
+  {
+  track_dialog_t * d;
+  d = (track_dialog_t *)priv;
+
+  if(!name)
+    return;
+  else if(!strcmp(name, "name"))
+    {
+    if(d->set_name)
+      d->set_name(d->set_name_priv, val->val_str);
+    }
+  }
+
+track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
+                                     void (*set_name)(void * priv, const char * name),
+                                     void * set_name_priv)
   {
   int i;
   char * label;
@@ -24,14 +42,18 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t)
   void * parent;
     
   ret = calloc(1, sizeof(*ret));
-  ret->cfg_dialog = bg_dialog_create_multi("Transcode options");
 
+  ret->set_name = set_name;
+  ret->set_name_priv = set_name_priv;
+  
+  ret->cfg_dialog = bg_dialog_create_multi("Transcode options");
+  
   /* General */
   
   bg_dialog_add(ret->cfg_dialog,
                 "General",
                 t->general_section,
-                NULL, NULL,
+                set_parameter_general, ret,
                 t->general_parameters);
 
   
@@ -131,5 +153,6 @@ void track_dialog_run(track_dialog_t * d)
 void track_dialog_destroy(track_dialog_t * d)
   {
   bg_dialog_destroy(d->cfg_dialog);
+  free(d);
   }
 

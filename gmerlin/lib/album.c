@@ -29,7 +29,7 @@
 #include <http.h>
 
 /*
- *  This must be called, whenever the tracks in all open albums
+ *  This must be called, whenever the tracks in an album
  *  change.
  */
 

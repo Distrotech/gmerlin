@@ -50,16 +50,15 @@ static void destroy_tga(void * priv)
   free(tga);
   }
 
-static int write_header_tga(void * priv, const char * filename_base,
-                     gavl_video_format_t * format)
+static int write_header_tga(void * priv, const char * filename,
+                            gavl_video_format_t * format)
   {
   tga_t * tga = (tga_t*)priv;
 
   format->colorspace = GAVL_BGR_24;
 
   gavl_video_format_copy(&(tga->format), format);
-  tga->filename = bg_sprintf("%s.tga", filename_base);
-  
+  tga->filename = bg_strdup(tga->filename, filename);
   return 1;
   }
 
@@ -84,6 +83,7 @@ static int write_image_tga(void * priv, gavl_video_frame_t * frame)
       return 0;
     }
   free(tga->filename);
+  tga->filename = (char*)0;
   return 1;
   }
 
@@ -118,12 +118,11 @@ static void set_parameter_tga(void * p, char * name,
     tga->rle = val->val_i;
   }
 
+static char * tga_extension = ".tga";
 
-static const char * get_filename_tga(void * p)
+static const char * get_extension_tga(void * p)
   {
-  tga_t * priv;
-  priv = (tga_t *)p;
-  return priv->filename;
+  return tga_extension;
   }
 
 bg_image_writer_plugin_t the_plugin =
@@ -142,6 +141,6 @@ bg_image_writer_plugin_t the_plugin =
       set_parameter:  set_parameter_tga
     },
     write_header: write_header_tga,
-    get_filename: get_filename_tga,
+    get_extension: get_extension_tga,
     write_image:  write_image_tga,
   };

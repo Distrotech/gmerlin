@@ -227,11 +227,13 @@ static int xml_2_track(bg_transcoder_track_t * t,
                        bg_plugin_handle_t ** audio_encoder,
                        bg_plugin_handle_t ** video_encoder)
   {
+  int ret = 0;
+
   xmlNodePtr node, child_node;
   int i;
   const bg_plugin_info_t * plugin_info;
-  char * audio_encoder_name;
-  char * video_encoder_name;
+  char * audio_encoder_name = (char*)0;
+  char * video_encoder_name = (char*)0;
   
   node = xml_track->children;
   
@@ -347,7 +349,7 @@ static int xml_2_track(bg_transcoder_track_t * t,
       plugin_info = bg_plugin_find_by_name(plugin_reg, audio_encoder_name);
       
       if(!plugin_info)
-        return 0;
+        goto fail;
       *audio_encoder = bg_plugin_load(plugin_reg, plugin_info);
       }
     }
@@ -368,7 +370,7 @@ static int xml_2_track(bg_transcoder_track_t * t,
       plugin_info = bg_plugin_find_by_name(plugin_reg, video_encoder_name);
       
       if(!plugin_info)
-        return 0;
+        goto fail;
       *video_encoder = bg_plugin_load(plugin_reg, plugin_info);
       }
     }
@@ -379,7 +381,15 @@ static int xml_2_track(bg_transcoder_track_t * t,
     }
   bg_transcoder_track_create_parameters(t, *audio_encoder,
                                         *video_encoder);
-  return 1;
+  
+  ret = 1;
+  fail:
+  if(audio_encoder_name)
+    free(audio_encoder_name);
+  if(video_encoder_name)
+    free(video_encoder_name);
+  
+  return ret;
   }
 
 bg_transcoder_track_t *
