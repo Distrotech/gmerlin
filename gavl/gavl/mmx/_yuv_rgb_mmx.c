@@ -55,10 +55,27 @@ static mmx_t mmx_ff00w =   { 0xff00ff00ff00ff00LL };
 
 /* Macros for loading the YUV images into the MMX registers */
 
-#define LOAD_YUV_PLANAR movd_m2r (*src_u, mm0);\
-                        movd_m2r (*src_v, mm1);\
-                        movq_m2r (*src_y, mm6);\
-                        pxor_r2r (mm4, mm4);
+#define LOAD_YUV_PLANAR_2 movq_m2r (*src_y, mm6);\
+                          movd_m2r (*src_u, mm0);\
+                          movd_m2r (*src_v, mm1);\
+                          pxor_r2r (mm4, mm4);
+
+#define INIT_YUV_PLANAR_4 int32_t i_tmp;
+
+#define LOAD_YUV_PLANAR_4 movq_m2r (*src_y, mm6);\
+                          i_tmp = (((int32_t)src_u[1])) << 8 | src_u[0];\
+                          movd_m2r (i_tmp, mm0); \
+                          i_tmp = (((int32_t)src_v[1])) << 8 | src_v[0];\
+                          movd_m2r (i_tmp, mm1);\
+                          pxor_r2r (mm4, mm4);\
+                          punpcklbw_r2r(mm4, mm0);\
+                          punpcklbw_r2r(mm4, mm1);\
+                          movq_r2r (mm0, mm2);\
+                          psllw_i2r(8,mm2);\
+                          por_r2r(mm2, mm0);\
+                          movq_r2r (mm1, mm2);\
+                          psllw_i2r(8,mm2);\
+                          por_r2r(mm2, mm1);
 
 #define LOAD_YUY2  movq_m2r(*src,mm0);/*          mm0: V2 Y3 U2 Y2 V0 Y1 U0 Y0 */\
                    movq_m2r(*(src+8),mm1);/*      mm1: V6 Y7 U6 Y6 V4 Y5 U4 Y4 */\
@@ -853,7 +870,6 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #include "../csp_packed_packed.h"
 
-
 /***************************************************
  * YUV 420 P ->
  ***************************************************/
@@ -866,7 +882,7 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_RGB_15
 
@@ -885,7 +901,7 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_BGR_15
 
@@ -904,7 +920,7 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_RGB_16
 
@@ -923,7 +939,7 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_BGR_16
 
@@ -942,7 +958,7 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   24
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_RGB_24
 
@@ -962,7 +978,7 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   24
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_BGR_24
 
@@ -981,7 +997,7 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   32
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_RGB_32
 
@@ -1000,7 +1016,7 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   32
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_BGR_32
 
@@ -1019,13 +1035,189 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   32
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_RGBA_32
 
 #define CHROMA_SUB 2
 
 // #define INIT
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+/***************************************************
+ * YUV 410 P ->
+ ***************************************************/
+
+#define FUNC_NAME     yuv_410_p_to_rgb_15_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_RGB_15
+
+#define CHROMA_SUB 4
+
+#define INIT INIT_YUV_PLANAR_4
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_410_p_to_bgr_15_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_BGR_15
+
+#define CHROMA_SUB 4
+
+#define INIT INIT_YUV_PLANAR_4
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_410_p_to_rgb_16_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_RGB_16
+
+#define CHROMA_SUB 4
+
+#define INIT INIT_YUV_PLANAR_4
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_410_p_to_bgr_16_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_BGR_16
+
+#define CHROMA_SUB 4
+
+#define INIT INIT_YUV_PLANAR_4
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_410_p_to_rgb_24_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   24
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_RGB_24
+
+#define CHROMA_SUB 4
+
+#define INIT INIT_YUV_PLANAR_4
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+
+#define FUNC_NAME     yuv_410_p_to_bgr_24_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   24
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_BGR_24
+
+#define CHROMA_SUB 4
+
+#define INIT INIT_YUV_PLANAR_4
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_410_p_to_rgb_32_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   32
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_RGB_32
+
+#define CHROMA_SUB 4
+
+#define INIT INIT_YUV_PLANAR_4
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_410_p_to_bgr_32_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   32
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_BGR_32
+
+#define CHROMA_SUB 4
+
+#define INIT INIT_YUV_PLANAR_4
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_410_p_to_rgba_32_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   32
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_RGBA_32
+
+#define CHROMA_SUB 4
+
+#define INIT INIT_YUV_PLANAR_4
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1042,13 +1234,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_RGB_15
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1061,13 +1253,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_BGR_15
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1080,13 +1272,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_RGB_16
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1099,13 +1291,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_BGR_16
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1118,13 +1310,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   24
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_RGB_24
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1138,13 +1330,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   24
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_BGR_24
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1157,13 +1349,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   32
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_RGB_32
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1176,13 +1368,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   32
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_BGR_32
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1195,13 +1387,197 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   32
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUV_2_RGB \
   OUTPUT_RGBA_32
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+/********************************************************
+ * YUV 411 ->
+ ********************************************************/
+
+#define FUNC_NAME     yuv_411_p_to_rgb_15_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_RGB_15
+
+#define CHROMA_SUB 1
+#define INIT INIT_YUV_PLANAR_4
+
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_411_p_to_bgr_15_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_BGR_15
+
+#define CHROMA_SUB 1
+#define INIT INIT_YUV_PLANAR_4
+
+
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_411_p_to_rgb_16_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_RGB_16
+
+#define CHROMA_SUB 1
+#define INIT INIT_YUV_PLANAR_4
+
+
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_411_p_to_bgr_16_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_BGR_16
+
+#define CHROMA_SUB 1
+#define INIT INIT_YUV_PLANAR_4
+
+
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_411_p_to_rgb_24_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   24
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_RGB_24
+
+#define CHROMA_SUB 1
+#define INIT INIT_YUV_PLANAR_4
+
+
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+
+#define FUNC_NAME     yuv_411_p_to_bgr_24_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   24
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_BGR_24
+
+#define CHROMA_SUB 1
+#define INIT INIT_YUV_PLANAR_4
+
+
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_411_p_to_rgb_32_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   32
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_RGB_32
+
+#define CHROMA_SUB 1
+#define INIT INIT_YUV_PLANAR_4
+
+
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_411_p_to_bgr_32_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   32
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_BGR_32
+
+#define CHROMA_SUB 1
+#define INIT INIT_YUV_PLANAR_4
+
+
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_411_p_to_rgba_32_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 2
+#define OUT_ADVANCE   32
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR_4 \
+  YUV_2_RGB \
+  OUTPUT_RGBA_32
+
+#define CHROMA_SUB 1
+#define INIT INIT_YUV_PLANAR_4
+
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1220,13 +1596,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_RGB_15
 
 #define CHROMA_SUB 2
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1239,13 +1615,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_BGR_15
 
 #define CHROMA_SUB 2
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1258,13 +1634,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_RGB_16
 
 #define CHROMA_SUB 2
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1277,13 +1653,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_BGR_16
 
 #define CHROMA_SUB 2
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1296,13 +1672,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   24
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_RGB_24
 
 #define CHROMA_SUB 2
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1316,13 +1692,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   24
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_BGR_24
 
 #define CHROMA_SUB 2
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1335,13 +1711,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   32
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_RGB_32
 
 #define CHROMA_SUB 2
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1354,13 +1730,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   32
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_BGR_32
 
 #define CHROMA_SUB 2
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1373,13 +1749,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   32
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_RGBA_32
 
 #define CHROMA_SUB 2
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1396,13 +1772,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_RGB_15
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1415,13 +1791,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_BGR_15
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1434,13 +1810,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_RGB_16
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1453,13 +1829,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   16
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_BGR_16
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1472,13 +1848,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   24
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_RGB_24
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1492,13 +1868,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   24
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_BGR_24
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1511,13 +1887,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   32
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_RGB_32
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1530,13 +1906,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   32
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_BGR_32
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1549,13 +1925,13 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 #define OUT_ADVANCE   32
 #define NUM_PIXELS    8
 #define CONVERT       \
-  LOAD_YUV_PLANAR \
+  LOAD_YUV_PLANAR_2 \
   YUVJ_2_RGB \
   OUTPUT_RGBA_32
 
 #define CHROMA_SUB 1
 
-// #define INIT
+
 #define CLEANUP emms();
 
 #include "../csp_planar_packed.h"
@@ -1615,6 +1991,17 @@ void gavl_init_yuv_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
   tab->yuv_420_p_to_bgr_32 = yuv_420_p_to_bgr_32_mmx;
   tab->yuv_420_p_to_rgba_32 = yuv_420_p_to_rgba_32_mmx;
 
+  tab->yuv_410_p_to_rgb_15 = yuv_410_p_to_rgb_15_mmx;
+  tab->yuv_410_p_to_bgr_15 = yuv_410_p_to_bgr_15_mmx;
+  tab->yuv_410_p_to_rgb_16 = yuv_410_p_to_rgb_16_mmx;
+  tab->yuv_410_p_to_bgr_16 = yuv_410_p_to_bgr_16_mmx;
+  tab->yuv_410_p_to_rgb_24 = yuv_410_p_to_rgb_24_mmx;
+  tab->yuv_410_p_to_bgr_24 = yuv_410_p_to_bgr_24_mmx;
+  tab->yuv_410_p_to_rgb_32 = yuv_410_p_to_rgb_32_mmx;
+  tab->yuv_410_p_to_bgr_32 = yuv_410_p_to_bgr_32_mmx;
+  tab->yuv_410_p_to_rgba_32 = yuv_410_p_to_rgba_32_mmx;
+
+  
   tab->yuv_422_p_to_rgb_15 = yuv_422_p_to_rgb_15_mmx;
   tab->yuv_422_p_to_bgr_15 = yuv_422_p_to_bgr_15_mmx;
   tab->yuv_422_p_to_rgb_16 = yuv_422_p_to_rgb_16_mmx;
@@ -1625,6 +2012,17 @@ void gavl_init_yuv_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
   tab->yuv_422_p_to_bgr_32 = yuv_422_p_to_bgr_32_mmx;
   tab->yuv_422_p_to_rgba_32 = yuv_422_p_to_rgba_32_mmx;
 
+  tab->yuv_411_p_to_rgb_15 = yuv_411_p_to_rgb_15_mmx;
+  tab->yuv_411_p_to_bgr_15 = yuv_411_p_to_bgr_15_mmx;
+  tab->yuv_411_p_to_rgb_16 = yuv_411_p_to_rgb_16_mmx;
+  tab->yuv_411_p_to_bgr_16 = yuv_411_p_to_bgr_16_mmx;
+  tab->yuv_411_p_to_rgb_24 = yuv_411_p_to_rgb_24_mmx;
+  tab->yuv_411_p_to_bgr_24 = yuv_411_p_to_bgr_24_mmx;
+  tab->yuv_411_p_to_rgb_32 = yuv_411_p_to_rgb_32_mmx;
+  tab->yuv_411_p_to_bgr_32 = yuv_411_p_to_bgr_32_mmx;
+  tab->yuv_411_p_to_rgba_32 = yuv_411_p_to_rgba_32_mmx;
+
+  
   tab->yuvj_420_p_to_rgb_15 = yuvj_420_p_to_rgb_15_mmx;
   tab->yuvj_420_p_to_bgr_15 = yuvj_420_p_to_bgr_15_mmx;
   tab->yuvj_420_p_to_rgb_16 = yuvj_420_p_to_rgb_16_mmx;

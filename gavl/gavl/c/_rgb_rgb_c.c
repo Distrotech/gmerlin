@@ -743,6 +743,7 @@ void gavl_init_rgb_rgb_scanline_funcs_c(gavl_colorspace_function_table_t * tab)
 void gavl_init_rgb_rgb_funcs_c(gavl_colorspace_function_table_t * tab)
 #endif
   {
+
   tab->swap_rgb_24 = swap_rgb_24_c;
   tab->swap_rgb_32 = swap_rgb_32_c;
   tab->swap_rgb_16 = swap_rgb_16_c;

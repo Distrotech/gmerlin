@@ -140,27 +140,30 @@ static mmx_t rgb_rgb_rgb24_u = { 0x0000FFFFFF000000LL };
  *   Write pixels for 24 bit formats (Start format is RGB32)
  */
 
-static mmx_t rgb_rgb_lower_dword = { 0x00000000FFFFFFFFLL };
-static mmx_t rgb_rgb_upper_dword = { 0xFFFFFFFF00000000LL };
+static mmx_t rgb_rgb_lower_dword   = { 0x00000000FFFFFFFFLL };
+static mmx_t rgb_rgb_upper_dword   = { 0xFFFFFFFF00000000LL };
+
+static mmx_t write_24_lower_mask   = { 0x0000000000FFFFFFLL };
+static mmx_t write_24_upper_mask   = { 0x00FFFFFF00000000LL };
 
 #define WRITE_24 movq_r2r(mm0, mm4);\
-                 pand_m2r(rgb_rgb_upper_dword, mm4);\
-                 pand_m2r(rgb_rgb_lower_dword, mm0);\
+                 pand_m2r(write_24_upper_mask, mm4);\
+                 pand_m2r(write_24_lower_mask, mm0);\
                  psrlq_i2r(8, mm4);\
                  por_r2r(mm4, mm0);\
                  movq_r2r(mm1, mm4);\
-                 pand_m2r(rgb_rgb_upper_dword, mm4);\
-                 pand_m2r(rgb_rgb_lower_dword, mm1);\
+                 pand_m2r(write_24_upper_mask, mm4);\
+                 pand_m2r(write_24_lower_mask, mm1);\
                  psrlq_i2r(8, mm4);\
                  por_r2r(mm4, mm1);\
                  movq_r2r(mm2, mm4);\
-                 pand_m2r(rgb_rgb_upper_dword, mm4);\
-                 pand_m2r(rgb_rgb_lower_dword, mm2);\
+                 pand_m2r(write_24_upper_mask, mm4);\
+                 pand_m2r(write_24_lower_mask, mm2);\
                  psrlq_i2r(8, mm4);\
                  por_r2r(mm4, mm2);\
                  movq_r2r(mm3, mm4);\
-                 pand_m2r(rgb_rgb_upper_dword, mm4);\
-                 pand_m2r(rgb_rgb_lower_dword, mm3);\
+                 pand_m2r(write_24_upper_mask, mm4);\
+                 pand_m2r(write_24_lower_mask, mm3);\
                  psrlq_i2r(8, mm4);\
                  por_r2r(mm4, mm3);\
                  movq_r2r(mm1, mm5);\
@@ -1914,41 +1917,6 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 /* Conversion from RGBA to RGB formats */
 
-#if 0
-
-static void  rgba_32_to_rgb_15_mmx(gavl_video_convert_context_t * ctx)
-  {
-  }
-
-static void  rgba_32_to_bgr_15_mmx(gavl_video_convert_context_t * ctx)
-  {
-  }
-
-static void  rgba_32_to_rgb_16_mmx(gavl_video_convert_context_t * ctx)
-  {
-  }
-
-static void  rgba_32_to_bgr_16_mmx(gavl_video_convert_context_t * ctx)
-  {
-  }
-
-static void  rgba_32_to_rgb_24_mmx(gavl_video_convert_context_t * ctx)
-  {
-  }
-                                 
-static void  rgba_32_to_bgr_24_mmx(gavl_video_convert_context_t * ctx)
-  {
-  }
-
-static void  rgba_32_to_rgb_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  }
-
-static void  rgba_32_to_bgr_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  }
-#endif
-
 #ifdef MMXEXT
 
 #ifdef SCANLINE
@@ -2013,16 +1981,6 @@ gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
   tab->rgb_32_to_16_swap = rgb_32_to_16_swap_mmx;
   tab->rgb_32_to_24_swap = rgb_32_to_24_swap_mmx;
 
-  /* Conversion from RGBA to RGB formats */
-
-  //  tab->rgba_32_to_rgb_15 = rgba_32_to_rgb_15_mmx;
-  //  tab->rgba_32_to_bgr_15 = rgba_32_to_bgr_15_mmx;
-  //  tab->rgba_32_to_rgb_16 = rgba_32_to_rgb_16_mmx;
-  //  tab->rgba_32_to_bgr_16 = rgba_32_to_bgr_16_mmx;
-  //  tab->rgba_32_to_rgb_24 = rgba_32_to_rgb_24_mmx; */
-/*   tab->rgba_32_to_bgr_24 = rgba_32_to_bgr_24_mmx; */
-/*   tab->rgba_32_to_rgb_32 = rgba_32_to_rgb_32_mmx; */
-/*   tab->rgba_32_to_bgr_32 = rgba_32_to_bgr_32_mmx; */
 
   /* Conversion from RGB formats to RGBA */
 

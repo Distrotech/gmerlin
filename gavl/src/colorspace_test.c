@@ -995,7 +995,7 @@ int write_file(const char * name,
       break;
     case GAVL_YUV_411_P:
       tmp_frame = gavl_video_frame_create(&tmp_format);
-      convert_YUV_422_P_to_RGB24(frame, tmp_frame, format->image_width,
+      convert_YUV_411_P_to_RGB24(frame, tmp_frame, format->image_width,
                                  format->image_height);
       out_frame = tmp_frame;
       break;
@@ -1363,21 +1363,21 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
 
         for(col = 0; col < TEST_PICTURE_WIDTH/4; col++)
           {
-          get_pixel(2*col, 2*row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          get_pixel(4*col, 4*row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
           RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
 
           y++;
           
-          get_pixel(2*col+1, 2*row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
-          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+          get_pixel(4*col+1, 4*row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
           
           y++;
-          get_pixel(2*col+2, 2*row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
-          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+          get_pixel(4*col+2, 4*row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
           
           y++;
-          get_pixel(2*col+3, 2*row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
-          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+          get_pixel(4*col+3, 4*row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
           
           y++;
 
@@ -1483,22 +1483,22 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
 
         for(col = 0; col < TEST_PICTURE_WIDTH/4; col++)
           {
-          get_pixel(2* col, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          get_pixel(4* col, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
 
           RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
 
           y++;
           
-          get_pixel(2* col + 1, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
-          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+          get_pixel(4* col + 1, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
           
           y++;
-          get_pixel(2* col + 2, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
-          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+          get_pixel(4* col + 2, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
           
           y++;
-          get_pixel(2* col + 3, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
-          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+          get_pixel(4* col + 3, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
           
           y++;
 
@@ -1657,7 +1657,8 @@ int main(int argc, char ** argv)
     for(j = 0; j < gavl_num_colorspaces(); j++)
       {
       gavl_video_default_options(&opt);
-
+      opt.alpha_mode = GAVL_ALPHA_IGNORE;
+      
       output_format.colorspace = gavl_get_colorspace(j);
 
       if(input_format.colorspace == output_format.colorspace)

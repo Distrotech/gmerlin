@@ -88,7 +88,6 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
       src_v += IN_ADVANCE_UV;
       }
     
-    
 #ifndef SCANLINE
     src_save_y += ctx->input_frame->strides[0];
     dst_save_y += ctx->output_frame->strides[0];
@@ -157,7 +156,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
       }
 #endif
     src_save_y += ctx->input_frame->strides[0];
-    dst_save += ctx->output_frame->strides[0];
+    dst_save_y += ctx->output_frame->strides[0];
 
     in_row_counter++;
     if(in_row_counter == CHROMA_SUB_IN)
@@ -180,7 +179,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
     
     for(j = 0; j < jmax; j++)
       {
-      CONVERT
+      CONVERT_Y
       dst_y += OUT_ADVANCE_Y;
       dst_u += OUT_ADVANCE_UV;
       dst_v += OUT_ADVANCE_UV;
@@ -191,7 +190,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
       }
 #endif
     src_save_y += ctx->input_frame->strides[0];
-    dst_save += ctx->output_frame->strides[0];
+    dst_save_y += ctx->output_frame->strides[0];
 
     in_row_counter++;
     if(in_row_counter == CHROMA_SUB_IN)

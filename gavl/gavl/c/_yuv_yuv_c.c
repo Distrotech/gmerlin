@@ -153,6 +153,32 @@ static uint8_t uv_2_uvj[256] =
 
 #include "../csp_packed_planar.h"
 
+/* yuy2_to_yuv_410_p_c */
+
+#define FUNC_NAME      yuy2_to_yuv_410_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     8
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB     4
+#define CONVERT_YUV \
+    dst_y[0] = src[0];\
+    *dst_u   = src[1];\
+    dst_y[1] = src[2];\
+    *dst_v   = src[3];\
+    dst_y[2] = src[4];\
+    dst_y[3] = src[6];
+
+#define CONVERT_Y \
+    dst_y[0] = src[0];\
+    dst_y[1] = src[2];\
+    dst_y[2] = src[4];\
+    dst_y[3] = src[6];
+
+#include "../csp_packed_planar.h"
+
 /* yuy2_to_yuv_422_p_c */
 
 #define FUNC_NAME      yuy2_to_yuv_422_p_c
@@ -170,6 +196,27 @@ static uint8_t uv_2_uvj[256] =
     *dst_v   = src[3];
 
 #include "../csp_packed_planar.h"
+
+/* yuy2_to_yuv_411_p_c */
+
+#define FUNC_NAME      yuy2_to_yuv_411_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     8
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB     1
+#define CONVERT_YUV \
+    dst_y[0] = src[0];\
+    *dst_u   = src[1];\
+    dst_y[1] = src[2];\
+    *dst_v   = src[3];\
+    dst_y[2] = src[4];\
+    dst_y[3] = src[6];
+
+#include "../csp_packed_planar.h"
+
 
 /* yuy2_to_yuv_444_p_c */
 
@@ -276,6 +323,33 @@ static uint8_t uv_2_uvj[256] =
 
 #include "../csp_packed_planar.h"
 
+/* uyvy_to_yuv_410_p_c */
+
+#define FUNC_NAME      uyvy_to_yuv_410_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     8
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB     4
+#define CONVERT_YUV \
+    dst_y[0] = src[1];\
+    *dst_u   = src[0];\
+    dst_y[1] = src[3];\
+    *dst_v   = src[2];\
+    dst_y[2] = src[5];\
+    dst_y[3] = src[7];\
+
+
+#define CONVERT_Y \
+    dst_y[0] = src[1];\
+    dst_y[1] = src[3];\
+    dst_y[2] = src[5];\
+    dst_y[3] = src[7];
+
+#include "../csp_packed_planar.h"
+
 /* uyvy_to_yuv_422_p_c */
 
 #define FUNC_NAME      uyvy_to_yuv_422_p_c
@@ -291,6 +365,26 @@ static uint8_t uv_2_uvj[256] =
     *dst_u   = src[0];\
     dst_y[1] = src[3];\
     *dst_v   = src[2];
+
+#include "../csp_packed_planar.h"
+
+/* uyvy_to_yuv_411_p_c */
+
+#define FUNC_NAME      uyvy_to_yuv_411_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     8
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB     1
+#define CONVERT_YUV \
+    dst_y[0] = src[1];\
+    *dst_u   = src[0];\
+    dst_y[1] = src[3];\
+    *dst_v   = src[2];\
+    dst_y[2] = src[5];\
+    dst_y[3] = src[7];
 
 #include "../csp_packed_planar.h"
 
@@ -394,6 +488,28 @@ static uint8_t uv_2_uvj[256] =
 
 #include "../csp_planar_packed.h"
 
+/* yuv_410_p_to_yuy2_c */
+
+#define FUNC_NAME     yuv_410_p_to_yuy2_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  4
+#define IN_ADVANCE_UV 1
+#define OUT_ADVANCE   8
+#define NUM_PIXELS    4
+#define CHROMA_SUB    4
+#define CONVERT       \
+    dst[0] = src_y[0];\
+    dst[1] = *src_u;\
+    dst[2] = src_y[1];\
+    dst[3] = *src_v;\
+    dst[4] = src_y[2];\
+    dst[5] = *src_u;\
+    dst[6] = src_y[3];\
+    dst[7] = *src_v;
+
+#include "../csp_planar_packed.h"
+
 /* yuv_422_p_to_yuy2_c */
 
 #define FUNC_NAME     yuv_422_p_to_yuy2_c
@@ -409,6 +525,28 @@ static uint8_t uv_2_uvj[256] =
     dst[1] = *src_u;\
     dst[2] = src_y[1];\
     dst[3] = *src_v;
+
+#include "../csp_planar_packed.h"
+
+/* yuv_411_p_to_yuy2_c */
+
+#define FUNC_NAME     yuv_411_p_to_yuy2_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  4
+#define IN_ADVANCE_UV 1
+#define OUT_ADVANCE   8
+#define NUM_PIXELS    4
+#define CHROMA_SUB    1
+#define CONVERT       \
+    dst[0] = src_y[0];\
+    dst[1] = *src_u;\
+    dst[2] = src_y[1];\
+    dst[3] = *src_v;\
+    dst[4] = src_y[2];\
+    dst[5] = *src_u;\
+    dst[6] = src_y[3];\
+    dst[7] = *src_v;
 
 #include "../csp_planar_packed.h"
 
@@ -504,6 +642,28 @@ static uint8_t uv_2_uvj[256] =
 
 #include "../csp_planar_packed.h"
 
+/* yuv_410_p_to_uyvy_c */
+
+#define FUNC_NAME     yuv_410_p_to_uyvy_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  4
+#define IN_ADVANCE_UV 1
+#define OUT_ADVANCE   8
+#define NUM_PIXELS    4
+#define CHROMA_SUB    4
+#define CONVERT       \
+    dst[1] = src_y[0];\
+    dst[0] = *src_u;\
+    dst[3] = src_y[1];\
+    dst[2] = *src_v;\
+    dst[5] = src_y[2];\
+    dst[4] = *src_u;\
+    dst[7] = src_y[3];\
+    dst[6] = *src_v;
+
+#include "../csp_planar_packed.h"
+
 /* yuv_422_p_to_uyvy_c */
 
 #define FUNC_NAME     yuv_422_p_to_uyvy_c
@@ -519,6 +679,29 @@ static uint8_t uv_2_uvj[256] =
     dst[0] = *src_u;\
     dst[3] = src_y[1];\
     dst[2] = *src_v;
+
+#include "../csp_planar_packed.h"
+
+/* yuv_411_p_to_uyvy_c */
+
+#define FUNC_NAME     yuv_411_p_to_uyvy_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  4
+#define IN_ADVANCE_UV 1
+#define OUT_ADVANCE   8
+#define NUM_PIXELS    4
+#define CHROMA_SUB    1
+#define CONVERT       \
+    dst[1] = src_y[0];\
+    dst[0] = *src_u;\
+    dst[3] = src_y[1];\
+    dst[2] = *src_v;\
+    dst[5] = src_y[2];\
+    dst[4] = *src_u;\
+    dst[7] = src_y[3];\
+    dst[6] = *src_v;
+
 
 #include "../csp_planar_packed.h"
 
@@ -594,11 +777,15 @@ static uint8_t uv_2_uvj[256] =
 
 #include "../csp_planar_packed.h"
 
-/* Planar -> planar */
+/*********************************
+  Planar -> planar
+ *********************************/
 
-/* 420 -> 444 */
+/*********************************
+ * 420 -> 444 
+ *********************************/
 
-#define FUNC_NAME     yuv_420_p_to_yuv_444_p
+#define FUNC_NAME     yuv_420_p_to_yuv_444_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -618,7 +805,7 @@ dst_v[1]=src_v[0];
 
 #include "../csp_planar_planar.h"
 
-#define FUNC_NAME     yuv_420_p_to_yuvj_444_p
+#define FUNC_NAME     yuv_420_p_to_yuvj_444_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -638,7 +825,7 @@ dst_v[1]=uv_2_uvj[src_v[0]];
 
 #include "../csp_planar_planar.h"
 
-#define FUNC_NAME     yuvj_420_p_to_yuv_444_p
+#define FUNC_NAME     yuvj_420_p_to_yuv_444_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -658,9 +845,67 @@ dst_v[1]=uvj_2_uv[src_v[0]];
 
 #include "../csp_planar_planar.h"
 
-/* 420 -> 422 */
+/*********************************
+ * 410 -> 444 
+ *********************************/
 
-#define FUNC_NAME     yuv_420_p_to_yuvj_422_p
+#define FUNC_NAME     yuv_410_p_to_yuv_444_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  1
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 4
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  4
+#define CHROMA_SUB_OUT 1
+#define CONVERT_YUV    \
+dst_y[0]=src_y[0];\
+dst_u[0]=src_u[0];\
+dst_v[0]=src_v[0];\
+dst_y[1]=src_y[1];\
+dst_u[1]=src_u[0];\
+dst_v[1]=src_v[0];\
+dst_y[2]=src_y[2];\
+dst_u[2]=src_u[0];\
+dst_v[2]=src_v[0];\
+dst_y[3]=src_y[3];\
+dst_u[3]=src_u[0];\
+dst_v[3]=src_v[0];
+
+#include "../csp_planar_planar.h"
+
+#define FUNC_NAME     yuv_410_p_to_yuvj_444_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  1
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 4
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  4
+#define CHROMA_SUB_OUT 1
+#define CONVERT_YUV    \
+dst_y[0]=  y_2_yj[src_y[0]];\
+dst_u[0]=uv_2_uvj[src_u[0]];\
+dst_v[0]=uv_2_uvj[src_v[0]];\
+dst_y[1]=  y_2_yj[src_y[1]];\
+dst_u[1]=uv_2_uvj[src_u[0]];\
+dst_v[1]=uv_2_uvj[src_v[0]];\
+dst_y[2]=  y_2_yj[src_y[2]];\
+dst_u[2]=uv_2_uvj[src_u[0]];\
+dst_v[2]=uv_2_uvj[src_v[0]];\
+dst_y[3]=  y_2_yj[src_y[3]];\
+dst_u[3]=uv_2_uvj[src_u[0]];\
+dst_v[3]=uv_2_uvj[src_v[0]];
+
+#include "../csp_planar_planar.h"
+
+/*********************************
+ * 420 -> 422 
+ *********************************/
+
+#define FUNC_NAME     yuv_420_p_to_yuvj_422_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -678,7 +923,7 @@ dst_y[1]=y_2_yj[src_y[1]];
 
 #include "../csp_planar_planar.h"
 
-#define FUNC_NAME     yuvj_420_p_to_yuv_422_p
+#define FUNC_NAME     yuvj_420_p_to_yuv_422_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -696,9 +941,103 @@ dst_y[1]=yj_2_y[src_y[1]];
 
 #include "../csp_planar_planar.h"
 
-/* 422 -> 420 */
+/*********************************
+ * 410 -> 422 
+ *********************************/
 
-#define FUNC_NAME     yuv_422_p_to_yuvj_420_p
+#define FUNC_NAME      yuv_410_p_to_yuvj_422_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  1
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 2
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  4
+#define CHROMA_SUB_OUT 1
+#define CONVERT_YUV    \
+dst_y[0]=  y_2_yj[src_y[0]];\
+dst_u[0]=uv_2_uvj[src_u[0]];\
+dst_v[0]=uv_2_uvj[src_v[0]];\
+dst_y[1]=  y_2_yj[src_y[1]];\
+dst_y[2]=  y_2_yj[src_y[2]];\
+dst_u[1]=uv_2_uvj[src_u[0]];\
+dst_v[1]=uv_2_uvj[src_v[0]];\
+dst_y[3]=  y_2_yj[src_y[3]];
+
+#include "../csp_planar_planar.h"
+
+#define FUNC_NAME      yuv_410_p_to_yuv_422_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  1
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 2
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  4
+#define CHROMA_SUB_OUT 1
+#define CONVERT_YUV    \
+dst_y[0]=src_y[0];\
+dst_u[0]=src_u[0];\
+dst_v[0]=src_v[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_u[1]=src_u[0];\
+dst_v[1]=src_v[0];\
+dst_y[3]=src_y[3];
+
+#include "../csp_planar_planar.h"
+
+/*********************************
+ * 420 -> 411 
+ *********************************/
+
+#define FUNC_NAME     yuv_420_p_to_yuv_411_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  2
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  2
+#define CHROMA_SUB_OUT 1
+#define CONVERT_YUV    \
+dst_y[0]=src_y[0];\
+dst_u[0]=src_u[0];\
+dst_v[0]=src_v[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_y[3]=src_y[3];
+
+#include "../csp_planar_planar.h"
+
+#define FUNC_NAME     yuvj_420_p_to_yuv_411_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  2
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  2
+#define CHROMA_SUB_OUT 1
+#define CONVERT_YUV    \
+dst_y[0]=  yj_2_y[src_y[0]];\
+dst_u[0]=uvj_2_uv[src_u[0]];\
+dst_v[0]=uvj_2_uv[src_v[0]];\
+dst_y[1]=  yj_2_y[src_y[1]];\
+dst_y[2]=  yj_2_y[src_y[2]];\
+dst_y[3]=  yj_2_y[src_y[3]];
+
+#include "../csp_planar_planar.h"
+
+/*********************************
+ * 422 -> 420 
+ *********************************/
+
+#define FUNC_NAME     yuv_422_p_to_yuvj_420_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -720,7 +1059,7 @@ dst_y[1]=y_2_yj[src_y[1]];
 
 #include "../csp_planar_planar.h"
 
-#define FUNC_NAME     yuvj_422_p_to_yuv_420_p
+#define FUNC_NAME     yuvj_422_p_to_yuv_420_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -742,9 +1081,130 @@ dst_y[1]=yj_2_y[src_y[1]];
 
 #include "../csp_planar_planar.h"
 
-/* 422 -> 444 */
+/*********************************
+ * 422 -> 410 
+ *********************************/
 
-#define FUNC_NAME     yuv_422_p_to_yuv_444_p
+#define FUNC_NAME     yuvj_422_p_to_yuv_410_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  2
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  1
+#define CHROMA_SUB_OUT 4
+#define CONVERT_YUV    \
+dst_u[0]=uvj_2_uv[src_u[0]];\
+dst_v[0]=uvj_2_uv[src_v[0]];\
+dst_y[0]=yj_2_y[src_y[0]];\
+dst_y[1]=yj_2_y[src_y[1]];\
+dst_y[2]=yj_2_y[src_y[2]];\
+dst_y[3]=yj_2_y[src_y[3]];
+
+#define CONVERT_Y    \
+dst_y[0]=yj_2_y[src_y[0]];\
+dst_y[1]=yj_2_y[src_y[1]];\
+dst_y[2]=yj_2_y[src_y[2]];\
+dst_y[3]=yj_2_y[src_y[3]];
+
+#include "../csp_planar_planar.h"
+
+#define FUNC_NAME     yuv_422_p_to_yuv_410_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  2
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  1
+#define CHROMA_SUB_OUT 4
+#define CONVERT_YUV    \
+dst_u[0]=src_u[0];\
+dst_v[0]=src_v[0];\
+dst_y[0]=src_y[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_y[3]=src_y[3];
+
+#define CONVERT_Y    \
+dst_y[0]=src_y[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_y[3]=src_y[3];
+
+#include "../csp_planar_planar.h"
+
+
+/*********************************
+ * 411 -> 420 
+ *********************************/
+
+#define FUNC_NAME     yuv_411_p_to_yuvj_420_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  1
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 2
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  1
+#define CHROMA_SUB_OUT 2
+#define CONVERT_YUV    \
+dst_y[0]=  y_2_yj[src_y[0]];\
+dst_y[1]=  y_2_yj[src_y[1]];\
+dst_y[2]=  y_2_yj[src_y[2]];\
+dst_y[3]=  y_2_yj[src_y[3]];\
+dst_u[0]=uv_2_uvj[src_u[0]];\
+dst_v[0]=uv_2_uvj[src_v[0]];\
+dst_u[1]=uv_2_uvj[src_u[0]];\
+dst_v[1]=uv_2_uvj[src_v[0]];
+
+#define CONVERT_Y    \
+dst_y[0]=y_2_yj[src_y[0]];\
+dst_y[1]=y_2_yj[src_y[1]];\
+dst_y[2]=y_2_yj[src_y[2]];\
+dst_y[3]=y_2_yj[src_y[3]];
+
+#include "../csp_planar_planar.h"
+
+#define FUNC_NAME     yuv_411_p_to_yuv_420_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  1
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 2
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  1
+#define CHROMA_SUB_OUT 2
+#define CONVERT_YUV    \
+dst_y[0]=src_y[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_y[3]=src_y[3];\
+dst_u[0]=src_u[0];\
+dst_v[0]=src_v[0];\
+dst_u[1]=src_u[0];\
+dst_v[1]=src_v[0];
+
+#define CONVERT_Y    \
+dst_y[0]=src_y[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_y[3]=src_y[3];
+
+#include "../csp_planar_planar.h"
+
+
+
+/*********************************
+ * 422 -> 444 
+ *********************************/
+
+#define FUNC_NAME     yuv_422_p_to_yuv_444_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -764,7 +1224,7 @@ dst_v[1]=src_v[0];
 
 #include "../csp_planar_planar.h"
 
-#define FUNC_NAME     yuv_422_p_to_yuvj_444_p
+#define FUNC_NAME     yuv_422_p_to_yuvj_444_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -784,7 +1244,7 @@ dst_v[1]=uv_2_uvj[src_v[0]];
 
 #include "../csp_planar_planar.h"
 
-#define FUNC_NAME     yuvj_422_p_to_yuv_444_p
+#define FUNC_NAME     yuvj_422_p_to_yuv_444_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -804,9 +1264,11 @@ dst_v[1]=uvj_2_uv[src_v[0]];
 
 #include "../csp_planar_planar.h"
 
-/* 444 -> 420 */
+/*********************************
+ * 444 -> 420 
+ *********************************/
 
-#define FUNC_NAME     yuv_444_p_to_yuv_420_p
+#define FUNC_NAME     yuv_444_p_to_yuv_420_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -828,7 +1290,7 @@ dst_y[1]=src_y[1];
 
 #include "../csp_planar_planar.h"
 
-#define FUNC_NAME     yuv_444_p_to_yuvj_420_p
+#define FUNC_NAME     yuv_444_p_to_yuvj_420_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -850,7 +1312,7 @@ dst_y[1]=y_2_yj[src_y[1]];
 
 #include "../csp_planar_planar.h"
 
-#define FUNC_NAME     yuvj_444_p_to_yuv_420_p
+#define FUNC_NAME     yuvj_444_p_to_yuv_420_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -872,9 +1334,68 @@ dst_y[1]=yj_2_y[src_y[1]];
 
 #include "../csp_planar_planar.h"
 
-/* 444 -> 422 */
+/*********************************
+ * 444 -> 410 
+ *********************************/
 
-#define FUNC_NAME     yuv_444_p_to_yuv_422_p
+#define FUNC_NAME     yuvj_444_p_to_yuv_410_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  4
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  1
+#define CHROMA_SUB_OUT 4
+#define CONVERT_YUV    \
+dst_u[0]=uvj_2_uv[src_u[0]];\
+dst_v[0]=uvj_2_uv[src_v[0]];\
+dst_y[0]=yj_2_y[src_y[0]];\
+dst_y[1]=yj_2_y[src_y[1]];\
+dst_y[2]=yj_2_y[src_y[2]];\
+dst_y[3]=yj_2_y[src_y[3]];
+
+#define CONVERT_Y    \
+dst_y[0]=yj_2_y[src_y[0]];\
+dst_y[1]=yj_2_y[src_y[1]];\
+dst_y[2]=yj_2_y[src_y[2]];\
+dst_y[3]=yj_2_y[src_y[3]];
+
+#include "../csp_planar_planar.h"
+
+
+#define FUNC_NAME     yuv_444_p_to_yuv_410_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  4
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  1
+#define CHROMA_SUB_OUT 4
+#define CONVERT_YUV    \
+dst_u[0]=src_u[0];\
+dst_v[0]=src_v[0];\
+dst_y[0]=src_y[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_y[3]=src_y[3];
+
+#define CONVERT_Y    \
+dst_y[0]=src_y[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_y[3]=src_y[3];
+
+#include "../csp_planar_planar.h"
+
+/*********************************
+ * 444 -> 422 
+ *********************************/
+
+#define FUNC_NAME     yuv_444_p_to_yuv_422_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -892,7 +1413,7 @@ dst_y[1]=src_y[1];
 
 #include "../csp_planar_planar.h"
 
-#define FUNC_NAME     yuv_444_p_to_yuvj_422_p
+#define FUNC_NAME     yuv_444_p_to_yuvj_422_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -910,7 +1431,7 @@ dst_y[1]=y_2_yj[src_y[1]];
 
 #include "../csp_planar_planar.h"
 
-#define FUNC_NAME     yuvj_444_p_to_yuv_422_p
+#define FUNC_NAME     yuvj_444_p_to_yuv_422_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -928,9 +1449,56 @@ dst_y[1]=yj_2_y[src_y[1]];
 
 #include "../csp_planar_planar.h"
 
-/* 420 -> 420 */
+/*********************************
+ * 444 -> 411 
+ *********************************/
 
-#define FUNC_NAME     yuv_420_p_to_yuvj_420_p
+#define FUNC_NAME     yuvj_444_p_to_yuv_411_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  4
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  1
+#define CHROMA_SUB_OUT 1
+#define CONVERT_YUV    \
+dst_u[0]=uvj_2_uv[src_u[0]];\
+dst_v[0]=uvj_2_uv[src_v[0]];\
+dst_y[0]=yj_2_y[src_y[0]];\
+dst_y[1]=yj_2_y[src_y[1]];\
+dst_y[2]=yj_2_y[src_y[2]];\
+dst_y[3]=yj_2_y[src_y[3]];
+
+#include "../csp_planar_planar.h"
+
+#define FUNC_NAME     yuv_444_p_to_yuv_411_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  4
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  1
+#define CHROMA_SUB_OUT 1
+#define CONVERT_YUV    \
+dst_u[0]=src_u[0];\
+dst_v[0]=src_v[0];\
+dst_y[0]=src_y[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_y[3]=src_y[3];
+
+#include "../csp_planar_planar.h"
+
+
+/*********************************
+ * 420 -> 420 
+ *********************************/
+
+#define FUNC_NAME     yuv_420_p_to_yuvj_420_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -952,7 +1520,7 @@ dst_y[1]=y_2_yj[src_y[1]];
 
 #include "../csp_planar_planar.h"
 
-#define FUNC_NAME     yuvj_420_p_to_yuv_420_p
+#define FUNC_NAME     yuvj_420_p_to_yuv_420_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -975,9 +1543,128 @@ dst_y[1]=yj_2_y[src_y[1]];
 
 #include "../csp_planar_planar.h"
 
-/* 422 -> 422 */
+/*********************************
+ * 420 -> 410 
+ *********************************/
 
-#define FUNC_NAME     yuv_422_p_to_yuvj_422_p
+#define FUNC_NAME     yuvj_420_p_to_yuv_410_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  2
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  2
+#define CHROMA_SUB_OUT 4
+#define CONVERT_YUV    \
+dst_u[0]=uvj_2_uv[src_u[0]];\
+dst_v[0]=uvj_2_uv[src_v[0]];\
+dst_y[0]=yj_2_y[src_y[0]];\
+dst_y[1]=yj_2_y[src_y[1]];\
+dst_y[2]=yj_2_y[src_y[2]];\
+dst_y[3]=yj_2_y[src_y[3]];
+
+#define CONVERT_Y    \
+dst_y[0]=yj_2_y[src_y[0]];\
+dst_y[1]=yj_2_y[src_y[1]];\
+dst_y[2]=yj_2_y[src_y[2]];\
+dst_y[3]=yj_2_y[src_y[3]];
+
+#include "../csp_planar_planar.h"
+
+#define FUNC_NAME     yuv_420_p_to_yuv_410_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  2
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  2
+#define CHROMA_SUB_OUT 4
+#define CONVERT_YUV    \
+dst_u[0]=src_u[0];\
+dst_v[0]=src_v[0];\
+dst_y[0]=src_y[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_y[3]=src_y[3];
+
+#define CONVERT_Y    \
+dst_y[0]=src_y[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_y[3]=src_y[3];
+
+#include "../csp_planar_planar.h"
+
+/*********************************
+ * 410 -> 420 
+ *********************************/
+
+#define FUNC_NAME     yuv_410_p_to_yuvj_420_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  1
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 2
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  4
+#define CHROMA_SUB_OUT 2
+#define CONVERT_YUV    \
+dst_y[0]=  y_2_yj[src_y[0]];\
+dst_u[0]=uv_2_uvj[src_u[0]];\
+dst_v[0]=uv_2_uvj[src_v[0]];\
+dst_y[1]=  y_2_yj[src_y[1]];\
+dst_y[2]=  y_2_yj[src_y[2]];\
+dst_u[1]=uv_2_uvj[src_u[0]];\
+dst_v[1]=uv_2_uvj[src_v[0]];\
+dst_y[3]=  y_2_yj[src_y[3]];
+
+#define CONVERT_Y    \
+dst_y[0]=y_2_yj[src_y[0]];\
+dst_y[1]=y_2_yj[src_y[1]];\
+dst_y[2]=y_2_yj[src_y[2]];\
+dst_y[3]=y_2_yj[src_y[3]];
+
+
+#include "../csp_planar_planar.h"
+
+#define FUNC_NAME     yuv_410_p_to_yuv_420_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  1
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 2
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  4
+#define CHROMA_SUB_OUT 2
+#define CONVERT_YUV    \
+dst_y[0]=src_y[0];\
+dst_u[0]=src_u[0];\
+dst_v[0]=src_v[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_u[1]=src_u[0];\
+dst_v[1]=src_v[0];\
+dst_y[3]=src_y[3];
+
+#define CONVERT_Y    \
+dst_y[0]=src_y[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_y[3]=src_y[3];
+
+#include "../csp_planar_planar.h"
+
+/*********************************
+ * 422 -> 422 
+ *********************************/
+
+#define FUNC_NAME     yuv_422_p_to_yuvj_422_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -995,7 +1682,7 @@ dst_y[1]=y_2_yj[src_y[1]];
 
 #include "../csp_planar_planar.h"
 
-#define FUNC_NAME     yuvj_422_p_to_yuv_422_p
+#define FUNC_NAME     yuvj_422_p_to_yuv_422_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   2
@@ -1013,9 +1700,160 @@ dst_y[1]=yj_2_y[src_y[1]];
 
 #include "../csp_planar_planar.h"
 
-/* 444 -> 444 */
+/*********************************
+ * 422 -> 411 
+ *********************************/
 
-#define FUNC_NAME     yuv_444_p_to_yuvj_444_p
+#define FUNC_NAME     yuvj_422_p_to_yuv_411_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  2
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  1
+#define CHROMA_SUB_OUT 1
+#define CONVERT_YUV    \
+dst_u[0]=uvj_2_uv[src_u[0]];\
+dst_v[0]=uvj_2_uv[src_v[0]];\
+dst_y[0]=yj_2_y[src_y[0]];\
+dst_y[1]=yj_2_y[src_y[1]];\
+dst_y[2]=yj_2_y[src_y[2]];\
+dst_y[3]=yj_2_y[src_y[3]];
+
+#include "../csp_planar_planar.h"
+
+#define FUNC_NAME     yuv_422_p_to_yuv_411_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  2
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  1
+#define CHROMA_SUB_OUT 1
+#define CONVERT_YUV    \
+dst_u[0]=src_u[0];\
+dst_v[0]=src_v[0];\
+dst_y[0]=src_y[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_y[3]=src_y[3];
+
+#include "../csp_planar_planar.h"
+
+/*********************************
+ * 411 -> 422 
+ *********************************/
+
+#define FUNC_NAME     yuv_411_p_to_yuvj_422_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  1
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 2
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  1
+#define CHROMA_SUB_OUT 1
+#define CONVERT_YUV    \
+dst_u[0]=uv_2_uvj[src_u[0]];\
+dst_v[0]=uv_2_uvj[src_v[0]];\
+dst_u[1]=uv_2_uvj[src_u[0]];\
+dst_v[1]=uv_2_uvj[src_v[0]];\
+dst_y[0]=  y_2_yj[src_y[0]];\
+dst_y[1]=  y_2_yj[src_y[1]];\
+dst_y[2]=  y_2_yj[src_y[2]];\
+dst_y[3]=  y_2_yj[src_y[3]];
+
+#include "../csp_planar_planar.h"
+
+#define FUNC_NAME     yuv_411_p_to_yuv_422_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  1
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 2
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  1
+#define CHROMA_SUB_OUT 1
+#define CONVERT_YUV    \
+dst_u[0]=src_u[0];\
+dst_v[0]=src_v[0];\
+dst_u[1]=src_u[0];\
+dst_v[1]=src_v[0];\
+dst_y[0]=src_y[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_y[3]=src_y[3];
+
+#include "../csp_planar_planar.h"
+
+/*********************************
+ * 411 -> 444 
+ *********************************/
+
+#define FUNC_NAME     yuv_411_p_to_yuvj_444_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  1
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 4
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  1
+#define CHROMA_SUB_OUT 1
+#define CONVERT_YUV    \
+dst_u[0]=uv_2_uvj[src_u[0]];\
+dst_v[0]=uv_2_uvj[src_v[0]];\
+dst_u[1]=uv_2_uvj[src_u[0]];\
+dst_v[1]=uv_2_uvj[src_v[0]];\
+dst_u[2]=uv_2_uvj[src_u[0]];\
+dst_v[2]=uv_2_uvj[src_v[0]];\
+dst_u[3]=uv_2_uvj[src_u[0]];\
+dst_v[3]=uv_2_uvj[src_v[0]];\
+dst_y[0]=  y_2_yj[src_y[0]];\
+dst_y[1]=  y_2_yj[src_y[1]];\
+dst_y[2]=  y_2_yj[src_y[2]];\
+dst_y[3]=  y_2_yj[src_y[3]];
+
+#include "../csp_planar_planar.h"
+
+
+#define FUNC_NAME     yuv_411_p_to_yuv_444_p_c
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y   4
+#define IN_ADVANCE_UV  1
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 4
+#define NUM_PIXELS     4
+#define CHROMA_SUB_IN  1
+#define CHROMA_SUB_OUT 1
+#define CONVERT_YUV    \
+dst_u[0]=src_u[0];\
+dst_v[0]=src_v[0];\
+dst_u[1]=src_u[0];\
+dst_v[1]=src_v[0];\
+dst_u[2]=src_u[0];\
+dst_v[2]=src_v[0];\
+dst_u[3]=src_u[0];\
+dst_v[3]=src_v[0];\
+dst_y[0]=src_y[0];\
+dst_y[1]=src_y[1];\
+dst_y[2]=src_y[2];\
+dst_y[3]=src_y[3];
+
+#include "../csp_planar_planar.h"
+
+/*********************************
+ * 444 -> 444 
+ *********************************/
+
+#define FUNC_NAME     yuv_444_p_to_yuvj_444_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   1
@@ -1032,7 +1870,7 @@ dst_v[0]=uv_2_uvj[src_v[0]];
 
 #include "../csp_planar_planar.h"
 
-#define FUNC_NAME     yuvj_444_p_to_yuv_444_p
+#define FUNC_NAME     yuvj_444_p_to_yuv_444_p_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint8_t
 #define IN_ADVANCE_Y   1
@@ -1056,71 +1894,110 @@ void gavl_init_yuv_yuv_scanline_funcs_c(gavl_colorspace_function_table_t * tab)
 void gavl_init_yuv_yuv_funcs_c(gavl_colorspace_function_table_t * tab)
 #endif
   {
-  tab->uyvy_to_yuy2           = uyvy_to_yuy2_c;
+  tab->uyvy_to_yuy2            = uyvy_to_yuy2_c;
   
-  tab->yuy2_to_yuv_420_p      = yuy2_to_yuv_420_p_c;
-  tab->yuy2_to_yuv_422_p      = yuy2_to_yuv_422_p_c;
-  tab->yuy2_to_yuv_444_p      = yuy2_to_yuv_444_p_c;
+  tab->yuy2_to_yuv_420_p       = yuy2_to_yuv_420_p_c;
+  tab->yuy2_to_yuv_410_p       = yuy2_to_yuv_410_p_c;
+  tab->yuy2_to_yuv_422_p       = yuy2_to_yuv_422_p_c;
+  tab->yuy2_to_yuv_411_p       = yuy2_to_yuv_411_p_c;
+  tab->yuy2_to_yuv_444_p       = yuy2_to_yuv_444_p_c;
 
   tab->yuy2_to_yuvj_420_p      = yuy2_to_yuvj_420_p_c;
   tab->yuy2_to_yuvj_422_p      = yuy2_to_yuvj_422_p_c;
   tab->yuy2_to_yuvj_444_p      = yuy2_to_yuvj_444_p_c;
   
-  tab->yuv_420_p_to_yuy2      = yuv_420_p_to_yuy2_c;
-  tab->yuv_422_p_to_yuy2      = yuv_422_p_to_yuy2_c;
-  tab->yuv_444_p_to_yuy2      = yuv_444_p_to_yuy2_c;
+  tab->yuv_420_p_to_yuy2       = yuv_420_p_to_yuy2_c;
+  tab->yuv_422_p_to_yuy2       = yuv_422_p_to_yuy2_c;
+  tab->yuv_444_p_to_yuy2       = yuv_444_p_to_yuy2_c;
 
   tab->yuvj_420_p_to_yuy2      = yuvj_420_p_to_yuy2_c;
   tab->yuvj_422_p_to_yuy2      = yuvj_422_p_to_yuy2_c;
   tab->yuvj_444_p_to_yuy2      = yuvj_444_p_to_yuy2_c;
 
-  tab->uyvy_to_yuv_420_p      = uyvy_to_yuv_420_p_c;
-  tab->uyvy_to_yuv_422_p      = uyvy_to_yuv_422_p_c;
-  tab->uyvy_to_yuv_444_p      = uyvy_to_yuv_444_p_c;
+  tab->uyvy_to_yuv_420_p       = uyvy_to_yuv_420_p_c;
+  tab->uyvy_to_yuv_410_p       = uyvy_to_yuv_410_p_c;
+  tab->uyvy_to_yuv_422_p       = uyvy_to_yuv_422_p_c;
+  tab->uyvy_to_yuv_411_p       = uyvy_to_yuv_411_p_c;
+  tab->uyvy_to_yuv_444_p       = uyvy_to_yuv_444_p_c;
 
   tab->uyvy_to_yuvj_420_p      = uyvy_to_yuvj_420_p_c;
   tab->uyvy_to_yuvj_422_p      = uyvy_to_yuvj_422_p_c;
   tab->uyvy_to_yuvj_444_p      = uyvy_to_yuvj_444_p_c;
   
-  tab->yuv_420_p_to_uyvy      = yuv_420_p_to_uyvy_c;
-  tab->yuv_422_p_to_uyvy      = yuv_422_p_to_uyvy_c;
-  tab->yuv_444_p_to_uyvy      = yuv_444_p_to_uyvy_c;
+  tab->yuv_420_p_to_uyvy       = yuv_420_p_to_uyvy_c;
+  tab->yuv_422_p_to_uyvy       = yuv_422_p_to_uyvy_c;
+  tab->yuv_444_p_to_uyvy       = yuv_444_p_to_uyvy_c;
 
   tab->yuvj_420_p_to_uyvy      = yuvj_420_p_to_uyvy_c;
   tab->yuvj_422_p_to_uyvy      = yuvj_422_p_to_uyvy_c;
   tab->yuvj_444_p_to_uyvy      = yuvj_444_p_to_uyvy_c;
   
-  tab->yuv_420_p_to_yuv_444_p = yuv_420_p_to_yuv_444_p;
-  tab->yuv_420_p_to_yuvj_444_p = yuv_420_p_to_yuvj_444_p;
-  tab->yuvj_420_p_to_yuv_444_p = yuvj_420_p_to_yuv_444_p;
+  tab->yuv_420_p_to_yuv_444_p  = yuv_420_p_to_yuv_444_p_c;
+  tab->yuv_420_p_to_yuvj_444_p = yuv_420_p_to_yuvj_444_p_c;
+  tab->yuvj_420_p_to_yuv_444_p = yuvj_420_p_to_yuv_444_p_c;
 
-  tab->yuv_422_p_to_yuv_444_p = yuv_422_p_to_yuv_444_p;
-  tab->yuv_422_p_to_yuvj_444_p = yuv_422_p_to_yuvj_444_p;
-  tab->yuvj_422_p_to_yuv_444_p = yuvj_422_p_to_yuv_444_p;
+  tab->yuv_422_p_to_yuv_444_p  = yuv_422_p_to_yuv_444_p_c;
+  tab->yuv_422_p_to_yuvj_444_p = yuv_422_p_to_yuvj_444_p_c;
+  tab->yuvj_422_p_to_yuv_444_p = yuvj_422_p_to_yuv_444_p_c;
   
-  tab->yuv_444_p_to_yuv_420_p = yuv_444_p_to_yuv_420_p;
-  tab->yuv_444_p_to_yuvj_420_p = yuv_444_p_to_yuvj_420_p;
-  tab->yuvj_444_p_to_yuv_420_p = yuvj_444_p_to_yuv_420_p;
+  tab->yuv_444_p_to_yuv_420_p  = yuv_444_p_to_yuv_420_p_c;
+  tab->yuv_444_p_to_yuvj_420_p = yuv_444_p_to_yuvj_420_p_c;
+  tab->yuvj_444_p_to_yuv_420_p = yuvj_444_p_to_yuv_420_p_c;
 
-  tab->yuv_444_p_to_yuv_422_p = yuv_444_p_to_yuv_422_p;
-  tab->yuv_444_p_to_yuvj_422_p = yuv_444_p_to_yuvj_422_p;
-  tab->yuvj_444_p_to_yuv_422_p = yuvj_444_p_to_yuv_422_p;
+  tab->yuv_444_p_to_yuv_422_p  = yuv_444_p_to_yuv_422_p_c;
+  tab->yuv_444_p_to_yuvj_422_p = yuv_444_p_to_yuvj_422_p_c;
+  tab->yuvj_444_p_to_yuv_422_p = yuvj_444_p_to_yuv_422_p_c;
+  tab->yuvj_444_p_to_yuv_411_p = yuvj_444_p_to_yuv_411_p_c;
+  tab->yuvj_444_p_to_yuv_410_p = yuvj_444_p_to_yuv_410_p_c;
+
+  tab->yuv_444_p_to_yuv_411_p = yuv_444_p_to_yuv_411_p_c;
+  tab->yuv_444_p_to_yuv_410_p = yuv_444_p_to_yuv_410_p_c;
   
-  tab->yuv_420_p_to_yuv_422_p = yuv_420_p_to_yuv_422_p_generic;
-  tab->yuv_420_p_to_yuvj_422_p = yuv_420_p_to_yuvj_422_p;
-  tab->yuvj_420_p_to_yuv_422_p = yuvj_420_p_to_yuv_422_p;
+  tab->yuv_420_p_to_yuv_422_p  = yuv_420_p_to_yuv_422_p_generic;
+  tab->yuv_420_p_to_yuv_411_p  = yuv_420_p_to_yuv_411_p_c;
+  tab->yuv_420_p_to_yuv_410_p  = yuv_420_p_to_yuv_410_p_c;
+  tab->yuv_420_p_to_yuvj_422_p = yuv_420_p_to_yuvj_422_p_c;
+  tab->yuvj_420_p_to_yuv_422_p = yuvj_420_p_to_yuv_422_p_c;
+  tab->yuvj_420_p_to_yuv_411_p = yuvj_420_p_to_yuv_411_p_c;
+  tab->yuvj_420_p_to_yuv_410_p = yuvj_420_p_to_yuv_410_p_c;
+
+  tab->yuv_410_p_to_yuv_411_p  = yuv_410_p_to_yuv_411_p_generic;
+  tab->yuv_410_p_to_yuy2       = yuv_410_p_to_yuy2_c;
+  tab->yuv_410_p_to_uyvy       = yuv_410_p_to_uyvy_c;
+  tab->yuv_410_p_to_yuv_444_p  = yuv_410_p_to_yuv_444_p_c;
+  tab->yuv_410_p_to_yuvj_444_p = yuv_410_p_to_yuvj_444_p_c;
+  tab->yuv_410_p_to_yuv_420_p  = yuv_410_p_to_yuv_420_p_c;
+  tab->yuv_410_p_to_yuvj_420_p = yuv_410_p_to_yuvj_420_p_c;
+  tab->yuv_410_p_to_yuvj_422_p = yuv_410_p_to_yuvj_422_p_c;
+  tab->yuv_410_p_to_yuv_422_p  = yuv_410_p_to_yuv_422_p_c;
+  tab->yuv_410_p_to_yuv_420_p  = yuv_410_p_to_yuv_420_p_c;
   
-  tab->yuv_422_p_to_yuv_420_p = yuv_422_p_to_yuv_420_p_generic;
-  tab->yuv_422_p_to_yuvj_420_p = yuv_422_p_to_yuvj_420_p;
-  tab->yuvj_422_p_to_yuv_420_p = yuvj_422_p_to_yuv_420_p;
+  tab->yuv_422_p_to_yuv_420_p  = yuv_422_p_to_yuv_420_p_generic;
+  tab->yuv_422_p_to_yuvj_420_p = yuv_422_p_to_yuvj_420_p_c;
+  tab->yuvj_422_p_to_yuv_420_p = yuvj_422_p_to_yuv_420_p_c;
+  tab->yuv_422_p_to_yuv_411_p  = yuv_422_p_to_yuv_411_p_c;
+  tab->yuvj_422_p_to_yuv_411_p = yuvj_422_p_to_yuv_411_p_c;
+  tab->yuv_422_p_to_yuv_410_p  = yuv_422_p_to_yuv_410_p_c;
+  tab->yuvj_422_p_to_yuv_410_p = yuvj_422_p_to_yuv_410_p_c;
 
-  tab->yuv_420_p_to_yuvj_420_p = yuv_420_p_to_yuvj_420_p;
-  tab->yuvj_420_p_to_yuv_420_p = yuvj_420_p_to_yuv_420_p;
+  tab->yuv_411_p_to_yuv_410_p  = yuv_411_p_to_yuv_410_p_generic;
+  tab->yuv_411_p_to_yuy2       = yuv_411_p_to_yuy2_c;
+  tab->yuv_411_p_to_uyvy       = yuv_411_p_to_uyvy_c;
+  tab->yuv_411_p_to_yuv_420_p  = yuv_411_p_to_yuv_420_p_c;
+  tab->yuv_411_p_to_yuvj_420_p = yuv_411_p_to_yuvj_420_p_c;
+  tab->yuv_411_p_to_yuv_444_p  = yuv_411_p_to_yuv_444_p_c;
+  tab->yuv_411_p_to_yuvj_444_p = yuv_411_p_to_yuvj_444_p_c;
+  tab->yuv_411_p_to_yuv_422_p  = yuv_411_p_to_yuv_422_p_c;
+  tab->yuv_411_p_to_yuvj_422_p = yuv_411_p_to_yuvj_422_p_c;
+  
+  
+  tab->yuv_420_p_to_yuvj_420_p = yuv_420_p_to_yuvj_420_p_c;
+  tab->yuvj_420_p_to_yuv_420_p = yuvj_420_p_to_yuv_420_p_c;
 
-  tab->yuv_422_p_to_yuvj_422_p = yuv_422_p_to_yuvj_422_p;
-  tab->yuvj_422_p_to_yuv_422_p = yuvj_422_p_to_yuv_422_p;
+  tab->yuv_422_p_to_yuvj_422_p = yuv_422_p_to_yuvj_422_p_c;
+  tab->yuvj_422_p_to_yuv_422_p = yuvj_422_p_to_yuv_422_p_c;
 
-  tab->yuv_444_p_to_yuvj_444_p = yuv_444_p_to_yuvj_444_p;
-  tab->yuvj_444_p_to_yuv_444_p = yuvj_444_p_to_yuv_444_p;
+  tab->yuv_444_p_to_yuvj_444_p = yuv_444_p_to_yuvj_444_p_c;
+  tab->yuvj_444_p_to_yuv_444_p = yuvj_444_p_to_yuv_444_p_c;
 
   }

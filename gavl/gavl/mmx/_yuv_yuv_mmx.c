@@ -360,7 +360,11 @@ gavl_init_yuv_yuv_funcs_mmx(gavl_colorspace_function_table_t * tab, int width)
   tab->yuv_420_p_to_yuy2      = yuv_420_p_to_yuy2_mmx;
   tab->yuv_420_p_to_uyvy      = yuv_420_p_to_uyvy_mmx;
 
+  tab->yuv_410_p_to_yuv_411_p = yuv_410_p_to_yuv_411_p_generic;
+  
   tab->yuv_422_p_to_yuv_420_p = yuv_422_p_to_yuv_420_p_generic;
   tab->yuv_422_p_to_yuy2      = yuv_422_p_to_yuy2_mmx;
   tab->yuv_422_p_to_uyvy      = yuv_422_p_to_uyvy_mmx;
+
+  tab->yuv_411_p_to_yuv_410_p = yuv_411_p_to_yuv_410_p_generic;
   }

@@ -70,7 +70,9 @@ typedef struct
   gavl_video_func_t rgb_15_to_yuy2;
   gavl_video_func_t rgb_15_to_uyvy;
   gavl_video_func_t rgb_15_to_yuv_420_p;
+  gavl_video_func_t rgb_15_to_yuv_410_p;
   gavl_video_func_t rgb_15_to_yuv_422_p;
+  gavl_video_func_t rgb_15_to_yuv_411_p;
   gavl_video_func_t rgb_15_to_yuv_444_p;
   gavl_video_func_t rgb_15_to_yuvj_420_p;
   gavl_video_func_t rgb_15_to_yuvj_422_p;
@@ -79,16 +81,21 @@ typedef struct
   gavl_video_func_t bgr_15_to_yuy2;
   gavl_video_func_t bgr_15_to_uyvy;
   gavl_video_func_t bgr_15_to_yuv_420_p;
+  gavl_video_func_t bgr_15_to_yuv_410_p;
   gavl_video_func_t bgr_15_to_yuv_422_p;
+  gavl_video_func_t bgr_15_to_yuv_411_p;
   gavl_video_func_t bgr_15_to_yuv_444_p;
   gavl_video_func_t bgr_15_to_yuvj_420_p;
   gavl_video_func_t bgr_15_to_yuvj_422_p;
+  gavl_video_func_t bgr_15_to_yuvj_411_p;
   gavl_video_func_t bgr_15_to_yuvj_444_p;
 
   gavl_video_func_t rgb_16_to_yuy2;
   gavl_video_func_t rgb_16_to_uyvy;
   gavl_video_func_t rgb_16_to_yuv_420_p;
+  gavl_video_func_t rgb_16_to_yuv_410_p;
   gavl_video_func_t rgb_16_to_yuv_422_p;
+  gavl_video_func_t rgb_16_to_yuv_411_p;
   gavl_video_func_t rgb_16_to_yuv_444_p;
   gavl_video_func_t rgb_16_to_yuvj_420_p;
   gavl_video_func_t rgb_16_to_yuvj_422_p;
@@ -97,7 +104,9 @@ typedef struct
   gavl_video_func_t bgr_16_to_yuy2;
   gavl_video_func_t bgr_16_to_uyvy;
   gavl_video_func_t bgr_16_to_yuv_420_p;
+  gavl_video_func_t bgr_16_to_yuv_410_p;
   gavl_video_func_t bgr_16_to_yuv_422_p;
+  gavl_video_func_t bgr_16_to_yuv_411_p;
   gavl_video_func_t bgr_16_to_yuv_444_p;
   gavl_video_func_t bgr_16_to_yuvj_420_p;
   gavl_video_func_t bgr_16_to_yuvj_422_p;
@@ -106,7 +115,9 @@ typedef struct
   gavl_video_func_t rgb_24_to_yuy2;
   gavl_video_func_t rgb_24_to_uyvy;
   gavl_video_func_t rgb_24_to_yuv_420_p;
+  gavl_video_func_t rgb_24_to_yuv_410_p;
   gavl_video_func_t rgb_24_to_yuv_422_p;
+  gavl_video_func_t rgb_24_to_yuv_411_p;
   gavl_video_func_t rgb_24_to_yuv_444_p;
   gavl_video_func_t rgb_24_to_yuvj_420_p;
   gavl_video_func_t rgb_24_to_yuvj_422_p;
@@ -115,7 +126,9 @@ typedef struct
   gavl_video_func_t bgr_24_to_yuy2;
   gavl_video_func_t bgr_24_to_uyvy;
   gavl_video_func_t bgr_24_to_yuv_420_p;
+  gavl_video_func_t bgr_24_to_yuv_410_p;
   gavl_video_func_t bgr_24_to_yuv_422_p;
+  gavl_video_func_t bgr_24_to_yuv_411_p;
   gavl_video_func_t bgr_24_to_yuv_444_p;
   gavl_video_func_t bgr_24_to_yuvj_420_p;
   gavl_video_func_t bgr_24_to_yuvj_422_p;
@@ -124,7 +137,9 @@ typedef struct
   gavl_video_func_t rgb_32_to_yuy2;
   gavl_video_func_t rgb_32_to_uyvy;
   gavl_video_func_t rgb_32_to_yuv_420_p;
+  gavl_video_func_t rgb_32_to_yuv_410_p;
   gavl_video_func_t rgb_32_to_yuv_422_p;
+  gavl_video_func_t rgb_32_to_yuv_411_p;
   gavl_video_func_t rgb_32_to_yuv_444_p;
   gavl_video_func_t rgb_32_to_yuvj_420_p;
   gavl_video_func_t rgb_32_to_yuvj_422_p;
@@ -133,7 +148,9 @@ typedef struct
   gavl_video_func_t bgr_32_to_yuy2;
   gavl_video_func_t bgr_32_to_uyvy;
   gavl_video_func_t bgr_32_to_yuv_420_p;
+  gavl_video_func_t bgr_32_to_yuv_410_p;
   gavl_video_func_t bgr_32_to_yuv_422_p;
+  gavl_video_func_t bgr_32_to_yuv_411_p;
   gavl_video_func_t bgr_32_to_yuv_444_p;
   gavl_video_func_t bgr_32_to_yuvj_420_p;
   gavl_video_func_t bgr_32_to_yuvj_422_p;
@@ -142,7 +159,9 @@ typedef struct
   gavl_video_func_t rgba_32_to_yuy2;
   gavl_video_func_t rgba_32_to_uyvy;
   gavl_video_func_t rgba_32_to_yuv_420_p;
+  gavl_video_func_t rgba_32_to_yuv_410_p;
   gavl_video_func_t rgba_32_to_yuv_422_p;
+  gavl_video_func_t rgba_32_to_yuv_411_p;
   gavl_video_func_t rgba_32_to_yuv_444_p;
   gavl_video_func_t rgba_32_to_yuvj_420_p;
   gavl_video_func_t rgba_32_to_yuvj_422_p;
@@ -180,6 +199,16 @@ typedef struct
   gavl_video_func_t yuv_420_p_to_bgr_32;
   gavl_video_func_t yuv_420_p_to_rgba_32;
 
+  gavl_video_func_t yuv_410_p_to_rgb_15;
+  gavl_video_func_t yuv_410_p_to_bgr_15;
+  gavl_video_func_t yuv_410_p_to_rgb_16;
+  gavl_video_func_t yuv_410_p_to_bgr_16;
+  gavl_video_func_t yuv_410_p_to_rgb_24;
+  gavl_video_func_t yuv_410_p_to_bgr_24;
+  gavl_video_func_t yuv_410_p_to_rgb_32;
+  gavl_video_func_t yuv_410_p_to_bgr_32;
+  gavl_video_func_t yuv_410_p_to_rgba_32;
+  
   gavl_video_func_t yuvj_420_p_to_rgb_15;
   gavl_video_func_t yuvj_420_p_to_bgr_15;
   gavl_video_func_t yuvj_420_p_to_rgb_16;
@@ -199,6 +228,16 @@ typedef struct
   gavl_video_func_t yuv_422_p_to_rgb_32;
   gavl_video_func_t yuv_422_p_to_bgr_32;
   gavl_video_func_t yuv_422_p_to_rgba_32;
+
+  gavl_video_func_t yuv_411_p_to_rgb_15;
+  gavl_video_func_t yuv_411_p_to_bgr_15;
+  gavl_video_func_t yuv_411_p_to_rgb_16;
+  gavl_video_func_t yuv_411_p_to_bgr_16;
+  gavl_video_func_t yuv_411_p_to_rgb_24;
+  gavl_video_func_t yuv_411_p_to_bgr_24;
+  gavl_video_func_t yuv_411_p_to_rgb_32;
+  gavl_video_func_t yuv_411_p_to_bgr_32;
+  gavl_video_func_t yuv_411_p_to_rgba_32;
 
   gavl_video_func_t yuvj_422_p_to_rgb_15;
   gavl_video_func_t yuvj_422_p_to_bgr_15;
@@ -233,7 +272,9 @@ typedef struct
   /* Conversions among YUV formats */
 
   gavl_video_func_t yuy2_to_yuv_420_p;
+  gavl_video_func_t yuy2_to_yuv_410_p;
   gavl_video_func_t yuy2_to_yuv_422_p;
+  gavl_video_func_t yuy2_to_yuv_411_p;
   gavl_video_func_t yuy2_to_yuv_444_p;
   gavl_video_func_t yuy2_to_yuvj_420_p;
   gavl_video_func_t yuy2_to_yuvj_422_p;
@@ -241,21 +282,37 @@ typedef struct
 
   gavl_video_func_t uyvy_to_yuy2;
   gavl_video_func_t uyvy_to_yuv_420_p;
+  gavl_video_func_t uyvy_to_yuv_410_p;
   gavl_video_func_t uyvy_to_yuv_422_p;
+  gavl_video_func_t uyvy_to_yuv_411_p;
   gavl_video_func_t uyvy_to_yuv_444_p;
   gavl_video_func_t uyvy_to_yuvj_420_p;
   gavl_video_func_t uyvy_to_yuvj_422_p;
   gavl_video_func_t uyvy_to_yuvj_444_p;
   
   gavl_video_func_t yuv_420_p_to_yuv_422_p;
+  gavl_video_func_t yuv_420_p_to_yuv_411_p;
   gavl_video_func_t yuv_420_p_to_yuv_444_p;
+  gavl_video_func_t yuv_420_p_to_yuv_410_p;
   gavl_video_func_t yuv_420_p_to_yuvj_420_p;
   gavl_video_func_t yuv_420_p_to_yuvj_422_p;
   gavl_video_func_t yuv_420_p_to_yuvj_444_p;
   gavl_video_func_t yuv_420_p_to_yuy2;
   gavl_video_func_t yuv_420_p_to_uyvy;
 
+  gavl_video_func_t yuv_410_p_to_yuv_420_p;
+  gavl_video_func_t yuv_410_p_to_yuv_422_p;
+  gavl_video_func_t yuv_410_p_to_yuv_411_p;
+  gavl_video_func_t yuv_410_p_to_yuv_444_p;
+  gavl_video_func_t yuv_410_p_to_yuvj_420_p;
+  gavl_video_func_t yuv_410_p_to_yuvj_422_p;
+  gavl_video_func_t yuv_410_p_to_yuvj_444_p;
+  gavl_video_func_t yuv_410_p_to_yuy2;
+  gavl_video_func_t yuv_410_p_to_uyvy;
+
   gavl_video_func_t yuv_422_p_to_yuv_420_p;
+  gavl_video_func_t yuv_422_p_to_yuv_410_p;
+  gavl_video_func_t yuv_422_p_to_yuv_411_p;
   gavl_video_func_t yuv_422_p_to_yuv_444_p;
   gavl_video_func_t yuv_422_p_to_yuvj_420_p;
   gavl_video_func_t yuv_422_p_to_yuvj_422_p;
@@ -263,8 +320,20 @@ typedef struct
   gavl_video_func_t yuv_422_p_to_yuy2;
   gavl_video_func_t yuv_422_p_to_uyvy;
 
+  gavl_video_func_t yuv_411_p_to_yuv_420_p;
+  gavl_video_func_t yuv_411_p_to_yuv_410_p;
+  gavl_video_func_t yuv_411_p_to_yuv_444_p;
+  gavl_video_func_t yuv_411_p_to_yuv_422_p;
+  gavl_video_func_t yuv_411_p_to_yuvj_420_p;
+  gavl_video_func_t yuv_411_p_to_yuvj_422_p;
+  gavl_video_func_t yuv_411_p_to_yuvj_444_p;
+  gavl_video_func_t yuv_411_p_to_yuy2;
+  gavl_video_func_t yuv_411_p_to_uyvy;
+  
   gavl_video_func_t yuv_444_p_to_yuv_420_p;
+  gavl_video_func_t yuv_444_p_to_yuv_410_p;
   gavl_video_func_t yuv_444_p_to_yuv_422_p;
+  gavl_video_func_t yuv_444_p_to_yuv_411_p;
   gavl_video_func_t yuv_444_p_to_yuvj_420_p;
   gavl_video_func_t yuv_444_p_to_yuvj_422_p;
   gavl_video_func_t yuv_444_p_to_yuvj_444_p;
@@ -272,19 +341,25 @@ typedef struct
   gavl_video_func_t yuv_444_p_to_uyvy;
 
   gavl_video_func_t yuvj_420_p_to_yuv_420_p;
+  gavl_video_func_t yuvj_420_p_to_yuv_410_p;
   gavl_video_func_t yuvj_420_p_to_yuv_422_p;
+  gavl_video_func_t yuvj_420_p_to_yuv_411_p;
   gavl_video_func_t yuvj_420_p_to_yuv_444_p;
   gavl_video_func_t yuvj_420_p_to_yuy2;
   gavl_video_func_t yuvj_420_p_to_uyvy;
 
   gavl_video_func_t yuvj_422_p_to_yuv_420_p;
+  gavl_video_func_t yuvj_422_p_to_yuv_410_p;
   gavl_video_func_t yuvj_422_p_to_yuv_422_p;
+  gavl_video_func_t yuvj_422_p_to_yuv_411_p;
   gavl_video_func_t yuvj_422_p_to_yuv_444_p;
   gavl_video_func_t yuvj_422_p_to_yuy2;
   gavl_video_func_t yuvj_422_p_to_uyvy;
 
   gavl_video_func_t yuvj_444_p_to_yuv_420_p;
+  gavl_video_func_t yuvj_444_p_to_yuv_410_p;
   gavl_video_func_t yuvj_444_p_to_yuv_422_p;
+  gavl_video_func_t yuvj_444_p_to_yuv_411_p;
   gavl_video_func_t yuvj_444_p_to_yuv_444_p;
   gavl_video_func_t yuvj_444_p_to_yuy2;
   gavl_video_func_t yuvj_444_p_to_uyvy;

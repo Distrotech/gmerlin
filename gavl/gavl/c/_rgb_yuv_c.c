@@ -420,7 +420,6 @@ dst_y=(r_to_yj[r_tmp]+g_to_yj[g_tmp]+b_to_yj[b_tmp])>>16;
 
 #include "../csp_packed_packed.h"
 
-
 /****************************************************
  * Conversions to YUV 422 P
  ****************************************************/
@@ -444,7 +443,6 @@ RGB_TO_Y(RGB15_TO_R(src[1]), \
          RGB15_TO_B(src[1]), \
          dst_y[1])
 
-// #define CONVERT_Y      
 #define CHROMA_SUB     1
 
 #include "../csp_packed_planar.h"
@@ -468,7 +466,6 @@ RGB_TO_Y(BGR15_TO_R(src[1]), \
          BGR15_TO_B(src[1]), \
          dst_y[1])
 
-// #define CONVERT_Y      
 #define CHROMA_SUB     1
 
 #include "../csp_packed_planar.h"
@@ -492,7 +489,6 @@ RGB_TO_Y(RGB16_TO_R(src[1]), \
          RGB16_TO_B(src[1]), \
          dst_y[1])
 
-// #define CONVERT_Y      
 #define CHROMA_SUB     1
 
 #include "../csp_packed_planar.h"
@@ -516,7 +512,6 @@ RGB_TO_Y(BGR16_TO_R(src[1]), \
          BGR16_TO_B(src[1]), \
          dst_y[1])
 
-// #define CONVERT_Y      
 #define CHROMA_SUB     1
 
 #include "../csp_packed_planar.h"
@@ -535,7 +530,6 @@ RGB_TO_Y(BGR16_TO_R(src[1]), \
                dst_y[0],*dst_u,*dst_v) \
     RGB_TO_Y(src[3],src[4],src[5],dst_y[1])
 
-// #define CONVERT_Y      
 #define CHROMA_SUB     1
 
 #include "../csp_packed_planar.h"
@@ -554,7 +548,6 @@ RGB_TO_Y(BGR16_TO_R(src[1]), \
                dst_y[0],*dst_u,*dst_v) \
     RGB_TO_Y(src[5],src[4],src[3],dst_y[1])
 
-// #define CONVERT_Y      
 #define CHROMA_SUB     1
 
 #include "../csp_packed_planar.h"
@@ -573,7 +566,6 @@ RGB_TO_Y(BGR16_TO_R(src[1]), \
                dst_y[0],*dst_u,*dst_v) \
     RGB_TO_Y(src[4],src[5],src[6],dst_y[1])
 
-// #define CONVERT_Y      
 #define CHROMA_SUB     1
 
 #include "../csp_packed_planar.h"
@@ -592,7 +584,215 @@ RGB_TO_Y(BGR16_TO_R(src[1]), \
                dst_y[0],*dst_u,*dst_v) \
     RGB_TO_Y(src[6],src[5],src[4],dst_y[1])
 
-// #define CONVERT_Y      
+#define CHROMA_SUB     1
+
+#include "../csp_packed_planar.h"
+
+/****************************************************
+ * Conversions to YUV 411 P
+ ****************************************************/
+
+/* rgb_15_to_yuv_411_p_c */
+
+#define FUNC_NAME      rgb_15_to_yuv_411_p_c
+#define IN_TYPE        uint16_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     4
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+RGB_TO_YUV(RGB15_TO_R(src[0]), \
+           RGB15_TO_G(src[0]), \
+           RGB15_TO_B(src[0]), \
+           dst_y[0],*dst_u,*dst_v) \
+RGB_TO_Y(RGB15_TO_R(src[1]), \
+         RGB15_TO_G(src[1]), \
+         RGB15_TO_B(src[1]), \
+         dst_y[1]) \
+RGB_TO_Y(RGB15_TO_R(src[2]), \
+         RGB15_TO_G(src[2]), \
+         RGB15_TO_B(src[2]), \
+         dst_y[2]) \
+RGB_TO_Y(RGB15_TO_R(src[3]), \
+         RGB15_TO_G(src[3]), \
+         RGB15_TO_B(src[3]), \
+         dst_y[3])
+
+#define CHROMA_SUB     1
+
+#include "../csp_packed_planar.h"
+
+/* bgr_15_to_yuv_411_p_c */
+
+#define FUNC_NAME      bgr_15_to_yuv_411_p_c
+#define IN_TYPE        uint16_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     4
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+RGB_TO_YUV(BGR15_TO_R(src[0]), \
+           BGR15_TO_G(src[0]), \
+           BGR15_TO_B(src[0]), \
+           dst_y[0],*dst_u,*dst_v) \
+RGB_TO_Y(BGR15_TO_R(src[1]), \
+         BGR15_TO_G(src[1]), \
+         BGR15_TO_B(src[1]), \
+         dst_y[1]) \
+RGB_TO_Y(BGR15_TO_R(src[2]), \
+         BGR15_TO_G(src[2]), \
+         BGR15_TO_B(src[2]), \
+         dst_y[2]) \
+RGB_TO_Y(BGR15_TO_R(src[3]), \
+         BGR15_TO_G(src[3]), \
+         BGR15_TO_B(src[3]), \
+         dst_y[3])
+
+#define CHROMA_SUB     1
+
+#include "../csp_packed_planar.h"
+
+/* rgb_16_to_yuv_411_p_c */
+
+#define FUNC_NAME      rgb_16_to_yuv_411_p_c
+#define IN_TYPE        uint16_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     4
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+RGB_TO_YUV(RGB16_TO_R(src[0]), \
+           RGB16_TO_G(src[0]), \
+           RGB16_TO_B(src[0]), \
+           dst_y[0],*dst_u,*dst_v) \
+RGB_TO_Y(RGB16_TO_R(src[1]), \
+         RGB16_TO_G(src[1]), \
+         RGB16_TO_B(src[1]), \
+         dst_y[1]) \
+RGB_TO_Y(RGB16_TO_R(src[2]), \
+         RGB16_TO_G(src[2]), \
+         RGB16_TO_B(src[2]), \
+         dst_y[2]) \
+RGB_TO_Y(RGB16_TO_R(src[3]), \
+         RGB16_TO_G(src[3]), \
+         RGB16_TO_B(src[3]), \
+         dst_y[3])
+
+
+#define CHROMA_SUB     1
+
+#include "../csp_packed_planar.h"
+
+/* bgr_16_to_yuv_411_p_c */
+
+#define FUNC_NAME      bgr_16_to_yuv_411_p_c
+#define IN_TYPE        uint16_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     4
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+RGB_TO_YUV(BGR16_TO_R(src[0]), \
+           BGR16_TO_G(src[0]), \
+           BGR16_TO_B(src[0]), \
+           dst_y[0],*dst_u,*dst_v) \
+RGB_TO_Y(BGR16_TO_R(src[1]), \
+         BGR16_TO_G(src[1]), \
+         BGR16_TO_B(src[1]), \
+         dst_y[1]) \
+RGB_TO_Y(BGR16_TO_R(src[2]), \
+         BGR16_TO_G(src[2]), \
+         BGR16_TO_B(src[2]), \
+         dst_y[2]) \
+RGB_TO_Y(BGR16_TO_R(src[3]), \
+         BGR16_TO_G(src[3]), \
+         BGR16_TO_B(src[3]), \
+         dst_y[3]) \
+
+#define CHROMA_SUB     1
+
+#include "../csp_packed_planar.h"
+
+/* rgb_24_to_yuv_411_p_c */
+
+#define FUNC_NAME      rgb_24_to_yuv_411_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     12
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+    RGB_TO_YUV(src[0],src[1],src[2], \
+               dst_y[0],*dst_u,*dst_v) \
+    RGB_TO_Y(src[3],src[4],src[5],dst_y[1]) \
+    RGB_TO_Y(src[6],src[7],src[8],dst_y[2]) \
+    RGB_TO_Y(src[9],src[10],src[11],dst_y[3])
+
+#define CHROMA_SUB     1
+
+#include "../csp_packed_planar.h"
+
+/* bgr_24_to_yuv_411_p_c */
+
+#define FUNC_NAME      bgr_24_to_yuv_411_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     12
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+    RGB_TO_YUV(src[2],src[1],src[0], \
+               dst_y[0],*dst_u,*dst_v) \
+    RGB_TO_Y(src[5],src[4],src[3],dst_y[1]) \
+    RGB_TO_Y(src[8],src[7],src[6],dst_y[2]) \
+    RGB_TO_Y(src[11],src[10],src[9],dst_y[3])
+
+#define CHROMA_SUB     1
+
+#include "../csp_packed_planar.h"
+
+/* rgb_32_to_yuv_411_p_c */
+
+#define FUNC_NAME      rgb_32_to_yuv_411_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     16
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+    RGB_TO_YUV(src[0],src[1],src[2], \
+               dst_y[0],*dst_u,*dst_v) \
+    RGB_TO_Y(src[4],src[5],src[6],dst_y[1]) \
+    RGB_TO_Y(src[8],src[9],src[10],dst_y[2]) \
+    RGB_TO_Y(src[12],src[13],src[14],dst_y[3])
+
+#define CHROMA_SUB     1
+
+#include "../csp_packed_planar.h"
+
+/* bgr_32_to_yuv_411_p_c */
+
+#define FUNC_NAME      bgr_32_to_yuv_411_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     16
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+    RGB_TO_YUV(src[2],src[1],src[0], \
+               dst_y[0],*dst_u,*dst_v) \
+    RGB_TO_Y(src[6],src[5],src[4],dst_y[1]) \
+    RGB_TO_Y(src[10],src[9],src[8],dst_y[2]) \
+    RGB_TO_Y(src[14],src[13],src[12],dst_y[3])
+
 #define CHROMA_SUB     1
 
 #include "../csp_packed_planar.h"
@@ -751,7 +951,6 @@ RGB_TO_YUV(BGR16_TO_R(src[0]), \
 #define CHROMA_SUB     1
 
 #include "../csp_packed_planar.h"
-
 
 /****************************************************
  * Conversions to YUV 420 P
@@ -978,6 +1177,313 @@ RGB_TO_Y(BGR16_TO_R(src[1]), \
 
 #include "../csp_packed_planar.h"
 
+/****************************************************
+ * Conversions to YUV 410 P
+ ****************************************************/
+
+/* rgb_15_to_yuv_410_p_c */
+
+#define FUNC_NAME      rgb_15_to_yuv_410_p_c
+#define IN_TYPE        uint16_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     4
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+RGB_TO_YUV(RGB15_TO_R(src[0]), \
+           RGB15_TO_G(src[0]), \
+           RGB15_TO_B(src[0]), \
+           dst_y[0],*dst_u,*dst_v) \
+RGB_TO_Y(RGB15_TO_R(src[1]), \
+         RGB15_TO_G(src[1]), \
+         RGB15_TO_B(src[1]), \
+         dst_y[1]) \
+RGB_TO_Y(RGB15_TO_R(src[2]), \
+         RGB15_TO_G(src[2]), \
+         RGB15_TO_B(src[2]), \
+         dst_y[2]) \
+RGB_TO_Y(RGB15_TO_R(src[3]), \
+         RGB15_TO_G(src[3]), \
+         RGB15_TO_B(src[3]), \
+         dst_y[3])
+
+#define CONVERT_Y \
+RGB_TO_Y(RGB15_TO_R(src[0]), \
+         RGB15_TO_G(src[0]), \
+         RGB15_TO_B(src[0]), \
+         dst_y[0]) \
+RGB_TO_Y(RGB15_TO_R(src[1]), \
+         RGB15_TO_G(src[1]), \
+         RGB15_TO_B(src[1]), \
+         dst_y[1]) \
+RGB_TO_Y(RGB15_TO_R(src[2]), \
+         RGB15_TO_G(src[2]), \
+         RGB15_TO_B(src[2]), \
+         dst_y[2]) \
+RGB_TO_Y(RGB15_TO_R(src[3]), \
+         RGB15_TO_G(src[3]), \
+         RGB15_TO_B(src[3]), \
+         dst_y[3])
+
+#define CHROMA_SUB     4
+
+#include "../csp_packed_planar.h"
+
+/* bgr_15_to_yuv_410_p_c */
+
+#define FUNC_NAME      bgr_15_to_yuv_410_p_c
+#define IN_TYPE        uint16_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     4
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+RGB_TO_YUV(BGR15_TO_R(src[0]), \
+           BGR15_TO_G(src[0]), \
+           BGR15_TO_B(src[0]), \
+           dst_y[0],*dst_u,*dst_v) \
+RGB_TO_Y(BGR15_TO_R(src[1]), \
+         BGR15_TO_G(src[1]), \
+         BGR15_TO_B(src[1]), \
+         dst_y[1]) \
+RGB_TO_Y(BGR15_TO_R(src[2]), \
+         BGR15_TO_G(src[2]), \
+         BGR15_TO_B(src[2]), \
+         dst_y[2]) \
+RGB_TO_Y(BGR15_TO_R(src[3]), \
+         BGR15_TO_G(src[3]), \
+         BGR15_TO_B(src[3]), \
+         dst_y[3])
+
+#define CONVERT_Y \
+RGB_TO_Y(BGR15_TO_R(src[0]), \
+         BGR15_TO_G(src[0]), \
+         BGR15_TO_B(src[0]), \
+         dst_y[0]) \
+RGB_TO_Y(BGR15_TO_R(src[1]), \
+         BGR15_TO_G(src[1]), \
+         BGR15_TO_B(src[1]), \
+         dst_y[1]) \
+RGB_TO_Y(BGR15_TO_R(src[2]), \
+         BGR15_TO_G(src[2]), \
+         BGR15_TO_B(src[2]), \
+         dst_y[2]) \
+RGB_TO_Y(BGR15_TO_R(src[3]), \
+         BGR15_TO_G(src[3]), \
+         BGR15_TO_B(src[3]), \
+         dst_y[3])
+
+#define CHROMA_SUB     4
+
+#include "../csp_packed_planar.h"
+
+/* rgb_16_to_yuv_410_p_c */
+
+#define FUNC_NAME      rgb_16_to_yuv_410_p_c
+#define IN_TYPE        uint16_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     4
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+RGB_TO_YUV(RGB16_TO_R(src[0]), \
+           RGB16_TO_G(src[0]), \
+           RGB16_TO_B(src[0]), \
+           dst_y[0],*dst_u,*dst_v) \
+RGB_TO_Y(RGB16_TO_R(src[1]), \
+         RGB16_TO_G(src[1]), \
+         RGB16_TO_B(src[1]), \
+         dst_y[1]) \
+RGB_TO_Y(RGB16_TO_R(src[2]), \
+         RGB16_TO_G(src[2]), \
+         RGB16_TO_B(src[2]), \
+         dst_y[2]) \
+RGB_TO_Y(RGB16_TO_R(src[3]), \
+         RGB16_TO_G(src[3]), \
+         RGB16_TO_B(src[3]), \
+         dst_y[3])
+
+#define CONVERT_Y    \
+RGB_TO_Y(RGB16_TO_R(src[0]), \
+         RGB16_TO_G(src[0]), \
+         RGB16_TO_B(src[0]), \
+         dst_y[0]) \
+RGB_TO_Y(RGB16_TO_R(src[1]), \
+         RGB16_TO_G(src[1]), \
+         RGB16_TO_B(src[1]), \
+         dst_y[1]) \
+RGB_TO_Y(RGB16_TO_R(src[2]), \
+         RGB16_TO_G(src[2]), \
+         RGB16_TO_B(src[2]), \
+         dst_y[2]) \
+RGB_TO_Y(RGB16_TO_R(src[3]), \
+         RGB16_TO_G(src[3]), \
+         RGB16_TO_B(src[3]), \
+         dst_y[3])
+
+
+#define CHROMA_SUB     4
+
+#include "../csp_packed_planar.h"
+
+/* bgr_16_to_yuv_410_p_c */
+
+#define FUNC_NAME      bgr_16_to_yuv_410_p_c
+#define IN_TYPE        uint16_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     4
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+RGB_TO_YUV(BGR16_TO_R(src[0]), \
+           BGR16_TO_G(src[0]), \
+           BGR16_TO_B(src[0]), \
+           dst_y[0],*dst_u,*dst_v) \
+RGB_TO_Y(BGR16_TO_R(src[1]), \
+         BGR16_TO_G(src[1]), \
+         BGR16_TO_B(src[1]), \
+         dst_y[1]) \
+RGB_TO_Y(BGR16_TO_R(src[2]), \
+         BGR16_TO_G(src[2]), \
+         BGR16_TO_B(src[2]), \
+         dst_y[2]) \
+RGB_TO_Y(BGR16_TO_R(src[3]), \
+         BGR16_TO_G(src[3]), \
+         BGR16_TO_B(src[3]), \
+         dst_y[3])
+
+#define CONVERT_Y \
+RGB_TO_Y(BGR16_TO_R(src[0]), \
+         BGR16_TO_G(src[0]), \
+         BGR16_TO_B(src[0]), \
+         dst_y[0]) \
+RGB_TO_Y(BGR16_TO_R(src[1]), \
+         BGR16_TO_G(src[1]), \
+         BGR16_TO_B(src[1]), \
+         dst_y[1]) \
+RGB_TO_Y(BGR16_TO_R(src[2]), \
+         BGR16_TO_G(src[2]), \
+         BGR16_TO_B(src[2]), \
+         dst_y[2]) \
+RGB_TO_Y(BGR16_TO_R(src[3]), \
+         BGR16_TO_G(src[3]), \
+         BGR16_TO_B(src[3]), \
+         dst_y[3])
+
+#define CHROMA_SUB     4
+
+#include "../csp_packed_planar.h"
+
+/* rgb_24_to_yuv_410_p_c */
+
+#define FUNC_NAME      rgb_24_to_yuv_410_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     12
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+    RGB_TO_YUV(src[0],src[1],src[2], \
+               dst_y[0],*dst_u,*dst_v) \
+    RGB_TO_Y(src[3],src[4],src[5],dst_y[1]) \
+    RGB_TO_Y(src[6],src[7],src[8],dst_y[2]) \
+    RGB_TO_Y(src[9],src[10],src[11],dst_y[3])
+         
+
+#define CONVERT_Y      \
+    RGB_TO_Y(src[0],src[1],src[2],dst_y[0]) \
+    RGB_TO_Y(src[3],src[4],src[5],dst_y[1]) \
+    RGB_TO_Y(src[6],src[7],src[8],dst_y[2]) \
+    RGB_TO_Y(src[9],src[10],src[11],dst_y[3])
+
+#define CHROMA_SUB     4
+
+#include "../csp_packed_planar.h"
+
+/* bgr_24_to_yuv_410_p_c */
+
+#define FUNC_NAME      bgr_24_to_yuv_410_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     12
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+    RGB_TO_YUV(src[2],src[1],src[0], \
+               dst_y[0],*dst_u,*dst_v) \
+    RGB_TO_Y(src[5],src[4],src[3],dst_y[1]) \
+    RGB_TO_Y(src[8],src[7],src[6],dst_y[2]) \
+    RGB_TO_Y(src[11],src[10],src[9],dst_y[3])
+
+#define CONVERT_Y      \
+    RGB_TO_Y(src[2],src[1],src[0],dst_y[0]) \
+    RGB_TO_Y(src[5],src[4],src[3],dst_y[1]) \
+    RGB_TO_Y(src[8],src[7],src[6],dst_y[2]) \
+    RGB_TO_Y(src[11],src[10],src[9],dst_y[3])
+
+#define CHROMA_SUB     4
+
+#include "../csp_packed_planar.h"
+
+/* rgb_32_to_yuv_410_p_c */
+
+#define FUNC_NAME      rgb_32_to_yuv_410_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     16
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+    RGB_TO_YUV(src[0],src[1],src[2], \
+               dst_y[0],*dst_u,*dst_v) \
+    RGB_TO_Y(src[4],src[5],src[6],dst_y[1]) \
+    RGB_TO_Y(src[8],src[9],src[10],dst_y[2]) \
+    RGB_TO_Y(src[12],src[13],src[14],dst_y[3])
+
+#define CONVERT_Y      \
+    RGB_TO_Y(src[0],src[1],src[2],dst_y[0]) \
+    RGB_TO_Y(src[4],src[5],src[6],dst_y[1]) \
+    RGB_TO_Y(src[8],src[9],src[10],dst_y[2]) \
+    RGB_TO_Y(src[12],src[13],src[14],dst_y[3])
+
+#define CHROMA_SUB     4
+
+#include "../csp_packed_planar.h"
+
+/* bgr_32_to_yuv_410_p_c */
+
+#define FUNC_NAME      bgr_32_to_yuv_410_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     16
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+    RGB_TO_YUV(src[2],src[1],src[0], \
+               dst_y[0],*dst_u,*dst_v) \
+    RGB_TO_Y(src[6],src[5],src[4],dst_y[1]) \
+    RGB_TO_Y(src[10],src[9],src[8],dst_y[2]) \
+    RGB_TO_Y(src[14],src[13],src[12],dst_y[3])
+
+#define CONVERT_Y      \
+    RGB_TO_Y(src[2],src[1],src[0], \
+             dst_y[0]) \
+    RGB_TO_Y(src[6],src[5],src[4],dst_y[1]) \
+    RGB_TO_Y(src[10],src[9],src[8],dst_y[2]) \
+    RGB_TO_Y(src[14],src[13],src[12],dst_y[3])
+
+#define CHROMA_SUB     4
+
+#include "../csp_packed_planar.h"
+
 /* RGBA -> ... */
 
 /* rgba_32_to_yuy2_c */
@@ -1027,6 +1533,29 @@ RGB_TO_Y(BGR16_TO_R(src[1]), \
 
 // #define CONVERT_Y      
 #define CHROMA_SUB     1
+#include "../csp_packed_planar.h"
+
+/* rgba_32_to_yuv_411_p_c */
+
+#define FUNC_NAME      rgba_32_to_yuv_411_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     16
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+    RGBA_TO_YUV(src[0],src[1],src[2],src[3], \
+               dst_y[0],*dst_u,*dst_v) \
+    RGBA_TO_Y(src[4],src[5],src[6],src[7],dst_y[1]) \
+    RGBA_TO_Y(src[8],src[9],src[10],src[11],dst_y[2]) \
+    RGBA_TO_Y(src[12],src[13],src[14],src[15],dst_y[3])
+
+#define INIT   INIT_RGBA32
+
+// #define CONVERT_Y      
+#define CHROMA_SUB     1
+
 
 #include "../csp_packed_planar.h"
 
@@ -1053,6 +1582,36 @@ RGB_TO_Y(BGR16_TO_R(src[1]), \
 #define CHROMA_SUB     2
 
 #include "../csp_packed_planar.h"
+
+/* rgba_32_to_yuv_410_p_c */
+
+#define FUNC_NAME      rgba_32_to_yuv_410_p_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     16
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CONVERT_YUV    \
+    RGBA_TO_YUV(src[0],src[1],src[2],src[3], \
+               dst_y[0],*dst_u,*dst_v) \
+    RGBA_TO_Y(src[4],src[5],src[6],src[7],dst_y[1]) \
+    RGBA_TO_Y(src[8],src[9],src[10],src[11],dst_y[2]) \
+    RGBA_TO_Y(src[12],src[13],src[14],src[15],dst_y[3])
+
+#define INIT   INIT_RGBA32
+
+#define CONVERT_Y      \
+    RGBA_TO_Y(src[0],src[1],src[2],src[3],dst_y[0]) \
+    RGBA_TO_Y(src[4],src[5],src[6],src[7],dst_y[1]) \
+    RGBA_TO_Y(src[8],src[9],src[10],src[11],dst_y[2]) \
+    RGBA_TO_Y(src[12],src[13],src[14],src[15],dst_y[3])
+
+#define CHROMA_SUB     4
+
+#include "../csp_packed_planar.h"
+
+
 
 /* rgba_32_to_yuv_444_p_c */
 
@@ -1709,7 +2268,9 @@ void gavl_init_rgb_yuv_funcs_c(gavl_colorspace_function_table_t * tab)
   tab->rgb_15_to_yuy2 =      rgb_15_to_yuy2_c;
   tab->rgb_15_to_uyvy =      rgb_15_to_uyvy_c;
   tab->rgb_15_to_yuv_420_p = rgb_15_to_yuv_420_p_c;
+  tab->rgb_15_to_yuv_410_p = rgb_15_to_yuv_410_p_c;
   tab->rgb_15_to_yuv_422_p = rgb_15_to_yuv_422_p_c;
+  tab->rgb_15_to_yuv_411_p = rgb_15_to_yuv_411_p_c;
   tab->rgb_15_to_yuv_444_p = rgb_15_to_yuv_444_p_c;
   tab->rgb_15_to_yuvj_420_p = rgb_15_to_yuvj_420_p_c;
   tab->rgb_15_to_yuvj_422_p = rgb_15_to_yuvj_422_p_c;
@@ -1718,7 +2279,9 @@ void gavl_init_rgb_yuv_funcs_c(gavl_colorspace_function_table_t * tab)
   tab->bgr_15_to_yuy2 =      bgr_15_to_yuy2_c;
   tab->bgr_15_to_uyvy =      bgr_15_to_uyvy_c;
   tab->bgr_15_to_yuv_420_p = bgr_15_to_yuv_420_p_c;
+  tab->bgr_15_to_yuv_410_p = bgr_15_to_yuv_410_p_c;
   tab->bgr_15_to_yuv_422_p = bgr_15_to_yuv_422_p_c;
+  tab->bgr_15_to_yuv_411_p = bgr_15_to_yuv_411_p_c;
   tab->bgr_15_to_yuv_444_p = bgr_15_to_yuv_444_p_c;
   tab->bgr_15_to_yuvj_420_p = bgr_15_to_yuvj_420_p_c;
   tab->bgr_15_to_yuvj_422_p = bgr_15_to_yuvj_422_p_c;
@@ -1727,7 +2290,9 @@ void gavl_init_rgb_yuv_funcs_c(gavl_colorspace_function_table_t * tab)
   tab->rgb_16_to_yuy2 =      rgb_16_to_yuy2_c;
   tab->rgb_16_to_uyvy =      rgb_16_to_uyvy_c;
   tab->rgb_16_to_yuv_420_p = rgb_16_to_yuv_420_p_c;
+  tab->rgb_16_to_yuv_410_p = rgb_16_to_yuv_410_p_c;
   tab->rgb_16_to_yuv_422_p = rgb_16_to_yuv_422_p_c;
+  tab->rgb_16_to_yuv_411_p = rgb_16_to_yuv_411_p_c;
   tab->rgb_16_to_yuv_444_p = rgb_16_to_yuv_444_p_c;
   tab->rgb_16_to_yuvj_420_p = rgb_16_to_yuvj_420_p_c;
   tab->rgb_16_to_yuvj_422_p = rgb_16_to_yuvj_422_p_c;
@@ -1736,7 +2301,9 @@ void gavl_init_rgb_yuv_funcs_c(gavl_colorspace_function_table_t * tab)
   tab->bgr_16_to_yuy2 =      bgr_16_to_yuy2_c;
   tab->bgr_16_to_uyvy =      bgr_16_to_uyvy_c;
   tab->bgr_16_to_yuv_420_p = bgr_16_to_yuv_420_p_c;
+  tab->bgr_16_to_yuv_410_p = bgr_16_to_yuv_410_p_c;
   tab->bgr_16_to_yuv_422_p = bgr_16_to_yuv_422_p_c;
+  tab->bgr_16_to_yuv_411_p = bgr_16_to_yuv_411_p_c;
   tab->bgr_16_to_yuv_444_p = bgr_16_to_yuv_444_p_c;
   tab->bgr_16_to_yuvj_420_p = bgr_16_to_yuvj_420_p_c;
   tab->bgr_16_to_yuvj_422_p = bgr_16_to_yuvj_422_p_c;
@@ -1745,7 +2312,9 @@ void gavl_init_rgb_yuv_funcs_c(gavl_colorspace_function_table_t * tab)
   tab->rgb_24_to_yuy2 =      rgb_24_to_yuy2_c;
   tab->rgb_24_to_uyvy =      rgb_24_to_uyvy_c;
   tab->rgb_24_to_yuv_420_p = rgb_24_to_yuv_420_p_c;
+  tab->rgb_24_to_yuv_410_p = rgb_24_to_yuv_410_p_c;
   tab->rgb_24_to_yuv_422_p = rgb_24_to_yuv_422_p_c;
+  tab->rgb_24_to_yuv_411_p = rgb_24_to_yuv_411_p_c;
   tab->rgb_24_to_yuv_444_p = rgb_24_to_yuv_444_p_c;
   tab->rgb_24_to_yuvj_420_p = rgb_24_to_yuvj_420_p_c;
   tab->rgb_24_to_yuvj_422_p = rgb_24_to_yuvj_422_p_c;
@@ -1754,7 +2323,9 @@ void gavl_init_rgb_yuv_funcs_c(gavl_colorspace_function_table_t * tab)
   tab->bgr_24_to_yuy2 =      bgr_24_to_yuy2_c;
   tab->bgr_24_to_uyvy =      bgr_24_to_uyvy_c;
   tab->bgr_24_to_yuv_420_p = bgr_24_to_yuv_420_p_c;
+  tab->bgr_24_to_yuv_410_p = bgr_24_to_yuv_410_p_c;
   tab->bgr_24_to_yuv_422_p = bgr_24_to_yuv_422_p_c;
+  tab->bgr_24_to_yuv_411_p = bgr_24_to_yuv_411_p_c;
   tab->bgr_24_to_yuv_444_p = bgr_24_to_yuv_444_p_c;
   tab->bgr_24_to_yuvj_420_p = bgr_24_to_yuvj_420_p_c;
   tab->bgr_24_to_yuvj_422_p = bgr_24_to_yuvj_422_p_c;
@@ -1763,7 +2334,9 @@ void gavl_init_rgb_yuv_funcs_c(gavl_colorspace_function_table_t * tab)
   tab->rgb_32_to_yuy2 =      rgb_32_to_yuy2_c;
   tab->rgb_32_to_uyvy =      rgb_32_to_uyvy_c;
   tab->rgb_32_to_yuv_420_p = rgb_32_to_yuv_420_p_c;
+  tab->rgb_32_to_yuv_410_p = rgb_32_to_yuv_410_p_c;
   tab->rgb_32_to_yuv_422_p = rgb_32_to_yuv_422_p_c;
+  tab->rgb_32_to_yuv_411_p = rgb_32_to_yuv_411_p_c;
   tab->rgb_32_to_yuv_444_p = rgb_32_to_yuv_444_p_c;
   tab->rgb_32_to_yuvj_420_p = rgb_32_to_yuvj_420_p_c;
   tab->rgb_32_to_yuvj_422_p = rgb_32_to_yuvj_422_p_c;
@@ -1772,7 +2345,9 @@ void gavl_init_rgb_yuv_funcs_c(gavl_colorspace_function_table_t * tab)
   tab->bgr_32_to_yuy2 =      bgr_32_to_yuy2_c;
   tab->bgr_32_to_uyvy =      bgr_32_to_uyvy_c;
   tab->bgr_32_to_yuv_420_p = bgr_32_to_yuv_420_p_c;
+  tab->bgr_32_to_yuv_410_p = bgr_32_to_yuv_410_p_c;
   tab->bgr_32_to_yuv_422_p = bgr_32_to_yuv_422_p_c;
+  tab->bgr_32_to_yuv_411_p = bgr_32_to_yuv_411_p_c;
   tab->bgr_32_to_yuv_444_p = bgr_32_to_yuv_444_p_c;
   tab->bgr_32_to_yuvj_420_p = bgr_32_to_yuvj_420_p_c;
   tab->bgr_32_to_yuvj_422_p = bgr_32_to_yuvj_422_p_c;
@@ -1781,7 +2356,9 @@ void gavl_init_rgb_yuv_funcs_c(gavl_colorspace_function_table_t * tab)
   tab->rgba_32_to_yuy2 =      rgba_32_to_yuy2_c;
   tab->rgba_32_to_uyvy =      rgba_32_to_uyvy_c;
   tab->rgba_32_to_yuv_420_p = rgba_32_to_yuv_420_p_c;
+  tab->rgba_32_to_yuv_410_p = rgba_32_to_yuv_410_p_c;
   tab->rgba_32_to_yuv_422_p = rgba_32_to_yuv_422_p_c;
+  tab->rgba_32_to_yuv_411_p = rgba_32_to_yuv_411_p_c;
   tab->rgba_32_to_yuv_444_p = rgba_32_to_yuv_444_p_c;
   tab->rgba_32_to_yuvj_420_p = rgba_32_to_yuvj_420_p_c;
   tab->rgba_32_to_yuvj_422_p = rgba_32_to_yuvj_422_p_c;
