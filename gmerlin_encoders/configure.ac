@@ -175,7 +175,7 @@ OLD_LIBS=$LIBS
 
 AH_TEMPLATE([HAVE_FAAC], [Enable faac])
 
-AC_CHECK_LIB(faac,faacEncOpen, , have_faac="true", -lm)
+AC_CHECK_LIB(faac,faacEncOpen, , have_faac="false", -lm)
 
 FAAC_CFLAGS=""
 FAAC_LIBS="$LIBS -lm"

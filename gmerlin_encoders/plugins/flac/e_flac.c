@@ -381,12 +381,7 @@ static void set_audio_parameter_flac(void * data, int stream, char * name,
       }
     FLAC__file_encoder_set_bits_per_sample(flac->enc, flac->bits_per_sample);
 
-    flac->divisor = 1;
-    for(i = 0; i < flac->shift_bits; i++)
-      {
-      flac->divisor <<= 1;
-      }
-    
+    flac->divisor = (1 << flac->shift_bits); 
     /* Initialize encoder */
     
     if(FLAC__file_encoder_init(flac->enc) != FLAC__FILE_ENCODER_OK)

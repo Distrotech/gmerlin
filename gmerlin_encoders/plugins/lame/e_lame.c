@@ -137,7 +137,7 @@ static int get_bitrate(int bitrate, int samplerate)
     }
   if(min_i >= 0)
     return bitrates[min_i];
-  return 128000;
+  return 128;
   }
 
 typedef struct
