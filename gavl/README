@@ -1,8 +1,10 @@
 This is gavl, a library for handling uncompressed audio- and video data.
 
-It defines generic types for audio and video formats,
+Read the file INSTALL for detailed installation instructions.
+
+Gavl defines generic types for audio and video formats,
 which are applicable to a wide range of multimedia applications.
-In addition, it provides conversion functions for all possible formats
+In addition, it provides conversion functions from all possible formats
 to all other formats.
 
 If you want to write a multimedia application, gavl will help you a lot:
@@ -21,7 +23,9 @@ Current features:
 - Audio samples can be 8 bit and 16 PCM (signed and unsigned),
   32 bit signed and floating point.
 
-- Video frames will allocated with memory aligned scanelines for faster
+- High quality samplerate conversion using the Secret Rabbit Code
+
+- Video frames will allocated with memory aligned scanlines for faster
   processing.
 
 See the header file include/gavl.h and the sample files
