@@ -219,6 +219,7 @@ bg_ra_plugin_t the_plugin =
       extensions:    (char*)0,
       type:          BG_PLUGIN_RECORDER_AUDIO,
       flags:         BG_PLUGIN_RECORDER,
+      priority:      1,
       create:        create_esd,
       destroy:       destroy_esd,
 
@@ -230,3 +231,6 @@ bg_ra_plugin_t the_plugin =
     read_frame:          read_frame_esd,
     close:               close_esd,
   };
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;

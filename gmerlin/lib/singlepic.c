@@ -406,11 +406,12 @@ static bg_input_plugin_t input_plugin =
   {
     common:
     {
-      name:          "i_singlepic",
-      long_name:     "Singlepicture input plugin",
-      extensions:    NULL, /* Filled in later */
-      type:          BG_PLUGIN_INPUT,
-      flags:         BG_PLUGIN_FILE,
+      name:           "i_singlepic",
+      long_name:      "Singlepicture input plugin",
+      extensions:     NULL, /* Filled in later */
+      type:           BG_PLUGIN_INPUT,
+      flags:          BG_PLUGIN_FILE,
+      priority:       5,
       create:         NULL,
       destroy:        destroy_input,
       get_parameters: get_parameters_input,
@@ -784,11 +785,12 @@ bg_encoder_plugin_t encoder_plugin =
   {
     common:
     {
-      name:          "e_singlepic",
-      long_name:     "Singlepicture encoder",
-      extensions:    NULL, /* Filled in later */
-      type:          BG_PLUGIN_ENCODER_VIDEO,
-      flags:         BG_PLUGIN_FILE,
+      name:           "e_singlepic",
+      long_name:      "Singlepicture encoder",
+      extensions:     NULL, /* Filled in later */
+      type:           BG_PLUGIN_ENCODER_VIDEO,
+      flags:          BG_PLUGIN_FILE,
+      priority:       5,
       create:         NULL,
       destroy:        destroy_encoder,
       get_parameters: get_parameters_encoder,

@@ -115,7 +115,6 @@
 
 #define BG_PLAYER_CMD_SET_VOLUME    11
 
-
 /********************************
  * Messages from the player
 ********************************/

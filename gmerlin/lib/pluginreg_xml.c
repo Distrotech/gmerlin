@@ -53,12 +53,15 @@ static struct
   }
 flag_names[] =
   {
-    { "Removable", BG_PLUGIN_REMOVABLE }, /* Removable media (CD, DVD etc.) */
-    { "Recorder",  BG_PLUGIN_RECORDER  }, /* Plugin can record              */
-    { "File",      BG_PLUGIN_FILE      }, /* Plugin reads/writes files      */
-    { "URL",       BG_PLUGIN_URL       }, /* Plugin reads URLs or streams   */
-    { "Playback",  BG_PLUGIN_PLAYBACK  }, /* Output plugins for playback    */
-    { (char*)0,    0                   },
+    { "Removable",    BG_PLUGIN_REMOVABLE      }, /* Removable media (CD, DVD etc.) */
+    { "Recorder",     BG_PLUGIN_RECORDER       }, /* Plugin can record              */
+    { "File",         BG_PLUGIN_FILE           }, /* Plugin reads/writes files      */
+    { "URL",          BG_PLUGIN_URL            }, /* Plugin reads URLs or streams   */
+    { "Playback",     BG_PLUGIN_PLAYBACK       }, /* Output plugins for playback    */
+    { "Bypass",       BG_PLUGIN_BYPASS         }, /* Plugin can bypass playback engine */
+    { "KeepRunning", BG_PLUGIN_KEEP_RUNNING   }, /* Plugin should not be stopped and restarted if tracks change */
+    { "HasSync",     BG_PLUGIN_INPUT_HAS_SYNC }, /* FOR INPUTS ONLY: Plugin will set the time via callback */
+    { (char*)0,    0                           },
   };
 
 static const char * plugin_key          = "PLUGIN";
@@ -72,10 +75,9 @@ static const char * module_filename_key = "MODULE_FILENAME";
 static const char * module_time_key     = "MODULE_TIME";
 static const char * type_key            = "TYPE";
 static const char * flags_key           = "FLAGS";
+static const char * priority_key        = "PRIORITY";
 static const char * device_info_key     = "DEVICE_INFO";
 static const char * device_key          = "DEVICE";
-
-
 
 static bg_device_info_t *
 load_device(bg_device_info_t * arr, xmlDocPtr doc, xmlNodePtr node)
@@ -180,6 +182,10 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
     else if(!strcmp(cur->name, module_time_key))
       {
       sscanf(tmp_string, "%ld", &(ret->module_time));
+      }
+    else if(!strcmp(cur->name, priority_key))
+      {
+      sscanf(tmp_string, "%d", &(ret->priority));
       }
     else if(!strcmp(cur->name, type_key))
       {
@@ -362,6 +368,11 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
   
   xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, module_time_key, NULL);
   sprintf(buffer, "%ld", info->module_time);
+  xmlAddChild(xml_item, xmlNewText(buffer));
+  xmlAddChild(xml_plugin, xmlNewText("\n"));
+
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, priority_key, NULL);
+  sprintf(buffer, "%d", info->priority);
   xmlAddChild(xml_item, xmlNewText(buffer));
   xmlAddChild(xml_plugin, xmlNewText("\n"));
 

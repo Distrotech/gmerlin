@@ -52,6 +52,12 @@ else
 alsa_subdirs = 
 endif
 
+if HAVE_CDROM
+cdaudio_subdirs = cdaudio
+else
+cdaudio_subdirs = 
+endif
+
 SUBDIRS = \
 $(alsa_subdirs) \
 $(lqt_subdirs) \
@@ -62,6 +68,7 @@ $(oss_subdirs) \
 $(png_subdirs) \
 $(tiff_subdirs) \
 $(x11_subdirs) \
+$(cdaudio_subdirs) \
 wavwrite \
 tga
 

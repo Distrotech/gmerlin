@@ -24,12 +24,30 @@
 #include "parameter.h"
 #include "streaminfo.h"
 
+#define PLUGIN_API_VERSION 1
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+
+#define API_VERSION \
+  extern int get_plugin_api_version() { return PLUGIN_API_VERSION; }
+
+#define BG_PLUGIN_PRIORITY_MIN 1
+#define BG_PLUGIN_PRIORITY_MAX 10
+
 typedef enum
   {
     BG_STREAM_ACTION_OFF = 0,
     BG_STREAM_ACTION_DECODE,
-    BG_STREAM_ACTION_STANDBY
-
+    BG_STREAM_ACTION_STANDBY,
+    
+    /*
+     *  A/V data will bypass the player. It will only be chosen if the
+     *  BG_PLUGIN_BYPASS flag (see below) is present
+     */
+    
+    BG_STREAM_ACTION_BYPASS,
+    
     /*
      *  Future support for compressed frames
      *  must go here
@@ -69,12 +87,19 @@ typedef enum
 
 /* At least one of these must be set */
 
-#define BG_PLUGIN_REMOVABLE (1<<0)  /* Removable media (CD, DVD etc.) */
-#define BG_PLUGIN_FILE      (1<<1)  /* Plugin reads/writes files      */
-#define BG_PLUGIN_RECORDER  (1<<2)
+#define BG_PLUGIN_REMOVABLE    (1<<0)  /* Removable media (CD, DVD etc.) */
+#define BG_PLUGIN_FILE         (1<<1)  /* Plugin reads/writes files      */
+#define BG_PLUGIN_RECORDER     (1<<2)
 
-#define BG_PLUGIN_URL       (1<<3)
-#define BG_PLUGIN_PLAYBACK  (1<<4)  /* Output plugins for playback    */
+#define BG_PLUGIN_URL          (1<<3)
+#define BG_PLUGIN_PLAYBACK     (1<<4)  /* Output plugins for playback    */
+
+#define BG_PLUGIN_BYPASS       (1<<5)  /* Plugin can send A/V data directly to the output bypassing
+                                          the player engine */
+
+#define BG_PLUGIN_KEEP_RUNNING (1<<6) /* Plugin should not be stopped and restarted if tracks change */
+
+#define BG_PLUGIN_INPUT_HAS_SYNC (1<<7) /* FOR INPUTS ONLY: Plugin will set the time via callback    */
 
 #define BG_PLUGIN_ALL 0xFFFFFFFF
 
@@ -110,6 +135,14 @@ typedef struct bg_plugin_common_s
   char             * extensions;
   bg_plugin_type_t type;
   int              flags;
+
+  /*
+   *  If there might be more than one plugin for the same
+   *  job, there is a priority (0..10) which is used for the
+   *  decision
+   */
+  
+  int              priority;
   
   /*
    *  Open the plugin, return handle, handle is the first
@@ -176,14 +209,16 @@ typedef struct bg_input_callbacks_s
   void (*track_changed)(void * data, int track);
 
   /*
-   *  Update the start time and the total time
-   *  (For files containing multiple tracks)
+   *  Time changed (only for bypass mode)
    */
-
-  void (*update_track_times)(void * data,
-                             gavl_time_t start_time,
-                             gavl_time_t duration);
   
+  void (*time_changed)(void * data, gavl_time_t time);
+    
+  /*
+   *  Update the duration
+   */
+  void (*duration_changed)(void * data,
+                           gavl_time_t duration);
   /* Track name changed */
   
   void (*name_changed)(void * data, const char * name);
@@ -279,7 +314,26 @@ typedef struct bg_input_plugin_s
   /* Read one video frame (returns FALSE on EOF) */
 
   int (*read_video_frame)(void * priv, gavl_video_frame_t*, int stream);
+
+  /* The following 3 functions are only meaningful for plugins, which
+     have the BG_PLUGIN_BYPASS flag set. */
+
+  /* This will be called periodically during playback so the plugin
+     can call the callbacks (to update time and track infos */
+    
+  int (*bypass)(void * priv);
   
+  /*
+   *  For plugins, which can be paused
+   *  pause = 1: pause, pause = 0: resume
+   */
+
+  void (*bypass_set_pause)(void * priv, int pause);
+
+  /* Volume control */
+
+  void (*bypass_set_volume)(void * priv, float volume);
+    
   /*
    *  Media streams are supposed to be seekable, if this
    *  function is non-NULL AND the duration field of the track info

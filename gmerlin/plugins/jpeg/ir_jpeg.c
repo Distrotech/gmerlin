@@ -250,6 +250,7 @@ bg_image_reader_plugin_t the_plugin =
       extensions:    "jpeg jpg",
       type:          BG_PLUGIN_IMAGE_READER,
       flags:         BG_PLUGIN_FILE,
+      priority:      10,
       create:        create_jpeg,
       destroy:       destroy_jpeg,
       //      get_parameters: get_parameters_vorbis,
@@ -258,3 +259,7 @@ bg_image_reader_plugin_t the_plugin =
     read_header: read_header_jpeg,
     read_image:  read_image_jpeg,
   };
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;

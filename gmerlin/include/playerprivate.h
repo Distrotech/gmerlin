@@ -31,7 +31,8 @@ typedef struct bg_player_oa_context_s    bg_player_oa_context_t;
 typedef enum
   {
     SYNC_SOFTWARE,
-    SYNC_SOUNDCARD
+    SYNC_SOUNDCARD,
+    SYNC_INPUT,
   } bg_player_sync_mode_t;
 
 /* Stream structures */
@@ -70,6 +71,8 @@ typedef struct
   const char * error_msg;
   } bg_player_video_stream_t;
 
+/* The player */
+
 struct bg_player_s
   {
   pthread_t input_thread;
@@ -105,6 +108,7 @@ struct bg_player_s
   /* Can we seek? */
 
   int can_seek;
+  int do_bypass; /* Bypass mode */
   
   /* Message stuff */
 
@@ -132,7 +136,9 @@ struct bg_player_s
   pthread_mutex_t waiting_plugin_threads_mutex;
   
   int total_plugin_threads;
-    
+  bg_plugin_handle_t * input_handle;
+
+  float volume; /* Current volume in dB (0 == max) */
   };
 
 int  bg_player_get_state(bg_player_t * player);
@@ -163,6 +169,7 @@ void bg_player_input_create(bg_player_t * player);
 void bg_player_input_destroy(bg_player_t * player);
 
 void * bg_player_input_thread(void *);
+void * bg_player_input_thread_bypass(void *);
 
 int bg_player_input_init(bg_player_input_context_t * ctx,
                          bg_plugin_handle_t * handle,
@@ -183,6 +190,13 @@ bg_player_input_set_video_stream(bg_player_input_context_t * ctx,
 
 void bg_player_input_seek(bg_player_input_context_t * ctx,
                           gavl_time_t * time);
+
+void bg_player_input_bypass_set_volume(bg_player_input_context_t * ctx,
+                                       float volume);
+
+void bg_player_input_bypass_set_pause(bg_player_input_context_t * ctx,
+                                      int pause);
+
 
 
 /* player1_ov.c */

@@ -714,6 +714,7 @@ bg_rv_plugin_t the_plugin =
       extensions:    (char*)0,
       type:          BG_PLUGIN_RECORDER_VIDEO,
       flags:         BG_PLUGIN_RECORDER,
+      priority:      10,
       create:        create_v4l,
       destroy:       destroy_v4l,
 
@@ -727,3 +728,7 @@ bg_rv_plugin_t the_plugin =
     read_frame: read_frame_v4l,
     
   };
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;

@@ -36,7 +36,8 @@ typedef struct bg_plugin_info_s
 
   int type;
   int flags;
-
+  int priority;
+  
   /* Device list returned by the plugin */
   bg_device_info_t * devices;
   
@@ -228,5 +229,10 @@ void bg_plugin_ref(bg_plugin_handle_t *);
 /* Plugin will be unloaded when refcount is zero */
 
 void bg_plugin_unref(bg_plugin_handle_t *);
+
+/* Check if 2 plugins handles are equal */
+
+int bg_plugin_equal(bg_plugin_handle_t * h1,
+                     bg_plugin_handle_t * h2);                    
 
 #endif // __BG_PLUGINREGISTRY_H_

@@ -142,6 +142,11 @@ int gmerlin_play(gmerlin_t * g, int ignore_flags);
 
 void gmerlin_next_track(gmerlin_t * g);
 
+/* Check if the next track in the tree has the index
+   specified by track */
+
+void gmerlin_check_next_track(gmerlin_t * g, int track);
+
 
 void gmerlin_tree_close_callback(bg_gtk_tree_window_t * win,
                                  void * data);

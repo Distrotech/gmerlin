@@ -38,7 +38,6 @@ void bg_player_audio_destroy(bg_player_t * p)
 
 int bg_player_audio_init(bg_player_t * player, int audio_stream)
   {
-  player->do_audio = 0;
   
   if(player->track_info->num_audio_streams)
     player->do_audio =

@@ -135,6 +135,7 @@ bg_image_writer_plugin_t the_plugin =
       extensions:     "tga",
       type:           BG_PLUGIN_IMAGE_WRITER,
       flags:          BG_PLUGIN_FILE,
+      priority:       5,
       create:         create_tga,
       destroy:        destroy_tga,
       get_parameters: get_parameters_tga,
@@ -144,3 +145,7 @@ bg_image_writer_plugin_t the_plugin =
     get_extension: get_extension_tga,
     write_image:  write_image_tga,
   };
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;

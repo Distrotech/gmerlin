@@ -60,7 +60,34 @@ static void track_changed(void * data, int track)
   {
   bg_player_input_context_t * ctx;
   ctx = (bg_player_input_context_t *)data;
+
+  fprintf(stderr, "Track changed callback, new track: %d\n", track);
+
+  bg_player_set_track(ctx->player, track);
   
+  }
+
+static void time_changed(void * data, gavl_time_t time)
+  {
+  bg_player_input_context_t * ctx;
+  ctx = (bg_player_input_context_t *)data;
+
+  //  fprintf(stderr, "Time changed callback, new track: %f\n", gavl_time_to_seconds(time));
+  bg_player_time_set(ctx->player, time);
+  }
+
+static void duration_changed(void * data, gavl_time_t duration)
+  {
+  bg_player_input_context_t * ctx;
+  ctx = (bg_player_input_context_t *)data;
+
+  fprintf(stderr, "Duration changed callback, new duration: %f\n",
+          gavl_time_to_seconds(duration));
+
+  bg_player_set_duration(ctx->player, duration);
+
+
+  //  bg_player_time_set(ctx->player, time);
   }
 
 static void name_changed(void * data, const char * name)
@@ -95,7 +122,9 @@ void bg_player_input_create(bg_player_t * player)
 
   ctx->callbacks.data = ctx;
   ctx->callbacks.track_changed    = track_changed;
+  ctx->callbacks.time_changed     = time_changed;
   ctx->callbacks.name_changed     = name_changed;
+  ctx->callbacks.duration_changed = duration_changed;
   ctx->callbacks.metadata_changed = metadata_changed;
   ctx->callbacks.buffer_notify    = buffer_notify;
   
@@ -136,7 +165,7 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
     ctx->player->can_seek = 1;
   else
     ctx->player->can_seek = 0;
-    
+  
   if(!ctx->player->track_info->num_audio_streams &&
      !ctx->player->track_info->num_video_streams)
     {
@@ -149,15 +178,28 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
   
   if(ctx->plugin->set_track)
     ctx->plugin->set_track(ctx->priv, track_index);
-  
-  /* Select streams */
 
+  /* Check for bypass mode */
+  
+  if(ctx->plugin_handle->info->flags & BG_PLUGIN_BYPASS)
+    {
+    /* Initialize volume for bypass mode */
+    bg_player_input_bypass_set_volume(ctx, ctx->player->volume);
+    ctx->player->do_bypass = 1;
+    }
+  else
+    ctx->player->do_bypass = 0;
+  //  fprintf(stderr, "Bypass mode: %d\n", ctx->player->do_bypass);
+  /* Select streams */
+      
   if(ctx->plugin->set_audio_stream)
     {
     for(i = 0; i < ctx->player->track_info->num_audio_streams; i++)
       {
       if(i == ctx->player->current_audio_stream) 
         ctx->plugin->set_audio_stream(ctx->priv, i,
+                                      ctx->player->do_bypass ?
+                                      BG_STREAM_ACTION_BYPASS :
                                       BG_STREAM_ACTION_DECODE);
       else
         ctx->plugin->set_audio_stream(ctx->priv, i,
@@ -170,6 +212,8 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
       {
       if(i == ctx->player->current_video_stream) 
         ctx->plugin->set_video_stream(ctx->priv, i,
+                                      ctx->player->do_bypass ?
+                                      BG_STREAM_ACTION_BYPASS :
                                       BG_STREAM_ACTION_DECODE);
       else
         ctx->plugin->set_video_stream(ctx->priv, i,
@@ -471,6 +515,40 @@ void * bg_player_input_thread(void * data)
   return NULL;
   }
 
+void * bg_player_input_thread_bypass(void * data)
+  {
+  bg_msg_t * msg;
+  bg_player_input_context_t * ctx;
+  ctx = (bg_player_input_context_t*)data;
+
+  gavl_time_t delay_time = GAVL_TIME_SCALE / 20;
+    
+  while(1)
+    {
+    if(!bg_player_keep_going(ctx->player))
+      {
+      return NULL;
+      }
+    bg_plugin_lock(ctx->plugin_handle);
+
+    if(ctx->plugin->bypass && !ctx->plugin->bypass(ctx->priv))
+      {
+      bg_plugin_unlock(ctx->plugin_handle);
+      break;
+      }
+    bg_plugin_unlock(ctx->plugin_handle);
+    
+    gavl_time_delay(&delay_time);
+    }
+
+  msg = bg_msg_queue_lock_write(ctx->player->command_queue);
+  bg_msg_set_id(msg, BG_PLAYER_CMD_SETSTATE);
+  bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_FINISHING);
+  bg_msg_queue_unlock_write(ctx->player->command_queue);
+  return NULL;
+  }
+
+
 void bg_player_input_preload(bg_player_input_context_t * ctx)
   {
   int do_audio;
@@ -500,8 +578,9 @@ void bg_player_input_seek(bg_player_input_context_t * ctx,
   ctx->audio_time = *time;
   ctx->video_time = *time;
   
-  ctx->audio_samples_written = gavl_time_to_samples(ctx->player->audio_stream.input_format.samplerate,
-                                                    ctx->audio_time);
+  ctx->audio_samples_written =
+    gavl_time_to_samples(ctx->player->audio_stream.input_format.samplerate,
+                         ctx->audio_time);
   
   }
 
@@ -511,3 +590,23 @@ const char * bg_player_input_get_error(bg_player_input_context_t * ctx)
     return ctx->plugin->common.get_error(ctx->priv);
   return (char*)0;
   }
+
+
+void bg_player_input_bypass_set_volume(bg_player_input_context_t * ctx,
+                                       float volume)
+  {
+  bg_plugin_lock(ctx->plugin_handle);
+  if(ctx->plugin->bypass_set_volume)
+    ctx->plugin->bypass_set_volume(ctx->priv, volume);
+  bg_plugin_unlock(ctx->plugin_handle);
+  }
+
+void bg_player_input_bypass_set_pause(bg_player_input_context_t * ctx,
+                                      int pause)
+  {
+  bg_plugin_lock(ctx->plugin_handle);
+  if(ctx->plugin->bypass_set_pause)
+    ctx->plugin->bypass_set_pause(ctx->priv, pause);
+  bg_plugin_unlock(ctx->plugin_handle);
+  }
+

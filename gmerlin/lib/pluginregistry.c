@@ -162,10 +162,10 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
                                                     const char * filename,
                                                     int typemask)
   {
-  bg_plugin_info_t * info;
-  
   char * extension;
   char * extension_end;
+  bg_plugin_info_t * info, *ret = (bg_plugin_info_t*)0;
+  int max_priority = BG_PLUGIN_PRIORITY_MIN - 1;
   
   // fprintf(stderr, "bg_plugin_find_by_filename %p\n", reg);
   
@@ -194,10 +194,17 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
       continue;
       }
     if(string_match(extension, extension_end, info->extensions))
-      return info;
+      {
+      if(max_priority < info->priority)
+        {
+        max_priority = info->priority;
+        ret = info;
+        }
+      // return info;
+      }
     info = info->next;
     }
-  return (const bg_plugin_info_t *)0;
+  return ret;
   }
 
 const bg_plugin_info_t *
@@ -256,6 +263,19 @@ static bg_plugin_info_t * remove_from_list(bg_plugin_info_t * list,
   before->next = info->next;
   info->next = (bg_plugin_info_t*)0;
   return list;
+  }
+
+static int check_plugin_version(void * handle)
+  {
+  int (*get_plugin_api_version)();
+
+  get_plugin_api_version = dlsym(handle, "get_plugin_api_version");
+  if(!get_plugin_api_version)
+    return 0;
+
+  if(get_plugin_api_version() != PLUGIN_API_VERSION)
+    return 0;
+  return 1;
   }
 
 static bg_plugin_info_t *
@@ -342,6 +362,12 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
       fprintf(stderr, "Cannot dlopen %s: %s\n", filename, dlerror());
       continue;
       }
+    if(!check_plugin_version(test_module))
+      {
+      fprintf(stderr, "Plugin %s has no or wrong version\n", filename);
+      dlclose(test_module);
+      continue;
+      }
     plugin = (bg_plugin_common_t*)(dlsym(test_module, "the_plugin"));
     if(!plugin)
       {
@@ -349,6 +375,9 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
       dlclose(test_module);
       continue;
       }
+    if(!plugin->priority)
+      fprintf(stderr, "Warning: Plugin %s has zero priority\n",
+              plugin->name);
     *changed = 1;
     new_info = calloc(1, sizeof(*new_info));
     new_info->name = bg_strdup(new_info->name, plugin->name);
@@ -362,9 +391,10 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
     new_info->module_filename = bg_strdup(new_info->module_filename,
                                           filename);
     new_info->module_time = st.st_mtime;
-    new_info->type = plugin->type;
-    new_info->flags = plugin->flags;
-
+    new_info->type        = plugin->type;
+    new_info->flags       = plugin->flags;
+    new_info->priority    = plugin->priority;
+        
     /* Create parameter entries in the registry */
 
     plugin_section =
@@ -565,6 +595,30 @@ static bg_plugin_info_t * find_by_index(bg_plugin_info_t * info,
   return (bg_plugin_info_t*)0;
   }
 
+static bg_plugin_info_t * find_by_priority(bg_plugin_info_t * info,
+                                           uint32_t type_mask,
+                                           uint32_t flag_mask)
+  {
+  bg_plugin_info_t * test_info, *ret = (bg_plugin_info_t*)0;
+  int priority_max = BG_PLUGIN_PRIORITY_MIN - 1;
+  
+  test_info = info;
+
+  while(test_info)
+    {
+    if((test_info->type & type_mask) &&
+       (test_info->flags & flag_mask))
+      {
+      if(priority_max < test_info->priority)
+        {
+        priority_max = test_info->priority;
+        ret = test_info;
+        }
+      }
+    test_info = test_info->next;
+    }
+  return ret;
+  }
 
 const bg_plugin_info_t *
 bg_plugin_find_by_index(bg_plugin_registry_t * reg, int index,
@@ -683,8 +737,8 @@ const bg_plugin_info_t * bg_plugin_registry_get_default(bg_plugin_registry_t * r
 
   if(!name)
     {
-    return find_by_index(r->entries,
-                         0, type, BG_PLUGIN_ALL);
+    return find_by_priority(r->entries,
+                            type, BG_PLUGIN_ALL);
     }
   else
     {
@@ -847,7 +901,15 @@ bg_plugin_handle_t * bg_plugin_load(bg_plugin_registry_t * reg,
               dlerror());
       goto fail;
       }
+    if(!check_plugin_version(ret->dll_handle))
+      {
+      fprintf(stderr, "Plugin %s has no or wrong version\n",
+              info->module_filename);
+      goto fail;
+      }
 
+
+    
     ret->plugin = dlsym(ret->dll_handle, "the_plugin");
     if(!ret->plugin)
       goto fail;
@@ -1067,14 +1129,15 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
   const char * msg;
   int num_plugins, i;
   uint32_t flags;
-  
   bg_input_plugin_t * plugin;
-
   int try_and_error = 1;
+  const bg_plugin_info_t * first_plugin = (const bg_plugin_info_t*)0;
+  
   if(!info) /* No plugin given, seek one */
     {
     info = bg_plugin_find_by_filename(reg, location,
                                       (BG_PLUGIN_INPUT));
+    first_plugin = info;
     }
   else
     try_and_error = 0; /* We never try other plugins than the given one */
@@ -1119,6 +1182,9 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
     {
     info = bg_plugin_find_by_index(reg, i, BG_PLUGIN_INPUT, flags);
 
+    if(info == first_plugin)
+      continue;
+        
     load_plugin(reg, info, ret);
     
     plugin = (bg_input_plugin_t*)((*ret)->plugin);
@@ -1161,4 +1227,10 @@ void bg_plugin_registry_set_encode_audio_to_video(bg_plugin_registry_t * reg,
 int bg_plugin_registry_get_encode_audio_to_video(bg_plugin_registry_t * reg)
   {
   return reg->encode_audio_to_video;
+  }
+
+int bg_plugin_equal(bg_plugin_handle_t * h1,
+                     bg_plugin_handle_t * h2)
+  {
+  return h1 == h2;
   }

@@ -188,6 +188,7 @@ bg_image_reader_plugin_t the_plugin =
       extensions:    "png",
       type:          BG_PLUGIN_IMAGE_READER,
       flags:         BG_PLUGIN_FILE,
+      priority:      10,
       create:        create_png,
       destroy:       destroy_png,
     },
@@ -195,4 +196,6 @@ bg_image_reader_plugin_t the_plugin =
     read_image:  read_image_png,
   };
 
-
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;

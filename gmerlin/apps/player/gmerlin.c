@@ -446,6 +446,64 @@ void gmerlin_next_track(gmerlin_t * g)
   
   }
 
+void gmerlin_check_next_track(gmerlin_t * g, int track)
+  {
+  gavl_time_t duration_before, duration_current, duration_after;
+  int result;
+  bg_album_t * old_album, *new_album;
+  bg_album_entry_t * current_entry;
+  
+  if(g->playback_flags & PLAYBACK_NOADVANCE)
+    {
+    bg_player_stop(g->player);
+    return;
+    }
+  switch(g->repeat_mode)
+    {
+    case REPEAT_MODE_ALL:
+    case REPEAT_MODE_NONE:
+      old_album = bg_media_tree_get_current_album(g->tree);
+      
+      if(!bg_media_tree_next(g->tree,
+                             (g->repeat_mode == REPEAT_MODE_ALL) ? 1 : 0,
+                             g->shuffle_mode))
+        {
+        bg_player_stop(g->player);
+        }
+
+      new_album = bg_media_tree_get_current_album(g->tree);
+      
+      if(old_album != new_album)
+        gmerlin_play(g, 0);
+      else
+        {
+        current_entry = bg_album_get_current_entry(new_album);
+        if(current_entry->index != track)
+          gmerlin_play(g, 0);
+        else
+          {
+          bg_album_get_times(new_album,
+                             &duration_before,
+                             &duration_current,
+                             &duration_after);
+          display_set_playlist_times(g->player_window->display,
+                                     duration_before,
+                                     duration_current,
+                                     duration_after);
+          }
+        }
+      break;
+    case REPEAT_MODE_1:
+      result = gmerlin_play(g, 0);
+      if(!result)
+        bg_player_stop(g->player);
+      break;
+    case NUM_REPEAT_MODES:
+      break;
+    }
+  }
+
+
 static bg_parameter_info_t parameters[] =
   {
     {

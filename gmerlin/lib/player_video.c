@@ -41,7 +41,6 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   
   s = &(player->video_stream);
 
-  player->do_video = 0;
   
   if(player->track_info->num_video_streams)
     player->do_video = bg_player_input_set_video_stream(player->input_context,

@@ -110,17 +110,6 @@ static void msg_subpicture_description(bg_msg_t * msg, const void * data)
 #endif
 
 
-
-static void msg_duration(bg_msg_t * msg,
-                         const void * data)
-  {
-  bg_track_info_t * info;
-  info = (bg_track_info_t *)data;
-  bg_msg_set_id(msg, BG_PLAYER_MSG_TRACK_DURATION);
-  bg_msg_set_arg_time(msg, 0, info->duration);
-  
-  }
-
 /*
  *  Interrupt playback so all plugin threads are waiting inside
  *  keep_going();
@@ -193,38 +182,23 @@ static void pause_cmd(bg_player_t * p)
     {
     interrupt_cmd(p, BG_PLAYER_STATE_PAUSED);
 
-    
+    if(p->do_bypass)
+      bg_player_input_bypass_set_pause(p->input_context, 1);
     }
   else if(state == BG_PLAYER_STATE_PAUSED)
     {
     preload(p);
+    if(p->do_bypass)
+      bg_player_input_bypass_set_pause(p->input_context, 0);
+
     start_playback(p);
     }
   }
 
+/* Initialize playback pipelines */
 
-/* Play a file. This must be called ONLY if the player is in
-   a defined stopped state
-*/
-
-
-static void play_cmd(bg_player_t * p,
-                     bg_plugin_handle_t * handle,
-                     int track_index, char * track_name)
+static int init_streams(bg_player_t * p)
   {
-  int had_video;
-
-  had_video = p->do_video;
-  
-  bg_player_set_state(p, BG_PLAYER_STATE_STARTING, NULL, NULL);
-
-  //  fprintf(stderr, "Track name: %s\n", track_name);
-  
-  bg_player_set_track_name(p, track_name);
-  
-  bg_player_input_init(p->input_context,
-                       handle, track_index);
-
   if(!bg_player_audio_init(p, 0))
     {
     //    bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
@@ -235,7 +209,7 @@ static void play_cmd(bg_player_t * p,
     else
       bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
                           "Cannot setup audio playback (unknown error)", NULL);
-    return;
+    return 0;
     }
   if(!bg_player_video_init(p, 0))
     {
@@ -245,7 +219,79 @@ static void play_cmd(bg_player_t * p,
     else
       bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
                           "Cannot setup video playback (unknown error)", NULL);
-    return;
+    return 0;
+    }
+  return 1;
+  }
+
+/* Cleanup everything */
+
+static void player_cleanup(bg_player_t * player)
+  {
+  gavl_time_t t = 0;
+
+  fprintf(stderr, "Player cleanup\n");
+  
+  bg_player_input_cleanup(player->input_context);
+  player->input_handle = (bg_plugin_handle_t*)0;
+  
+  //  fprintf(stderr, "bg_player_oa_cleanup...");
+  
+  bg_player_oa_cleanup(player->oa_context);
+  //  fprintf(stderr, "bg_player_oa_cleanup done\n");
+  
+  bg_player_ov_cleanup(player->ov_context);
+  
+  bg_player_time_stop(player);
+  
+  bg_player_video_cleanup(player);
+  bg_player_audio_cleanup(player);
+  bg_player_time_reset(player);
+
+  bg_msg_queue_list_send(player->message_queues,
+                         msg_time,
+                         &t);
+  }
+
+
+/* Play a file. This must be called ONLY if the player is in
+   a defined stopped state
+*/
+
+static void play_cmd(bg_player_t * p,
+                     bg_plugin_handle_t * handle,
+                     int track_index, char * track_name)
+  {
+  int had_video;
+
+  /* Shut down from last playback if necessary */
+
+  if(p->input_handle && !bg_plugin_equal(p->input_handle, handle))
+    player_cleanup(p);
+
+  
+  had_video = p->do_video;
+  
+  bg_player_set_state(p, BG_PLAYER_STATE_STARTING, NULL, NULL);
+
+  //  fprintf(stderr, "play_cmd %p\n", handle);
+  
+  bg_player_set_track_name(p, track_name);
+
+
+  p->input_handle = handle;
+  bg_player_input_init(p->input_context,
+                       handle, track_index);
+
+  /* Initialize audio and video streams if not in bypass mode */
+
+  p->do_audio = 0;
+  p->do_video = 0;
+
+  if(!p->do_bypass)
+    {
+    if(!init_streams(p))
+      return;
     }
   
   /* Send messages about the stream */
@@ -257,10 +303,9 @@ static void play_cmd(bg_player_t * p,
   bg_msg_queue_list_send(p->message_queues,
                          msg_num_streams,
                          p->track_info);
-  bg_msg_queue_list_send(p->message_queues,
-                         msg_duration,
-                         p->track_info);
 
+  bg_player_set_duration(p, p->track_info->duration);
+  
   /* Send metadata */
 
   bg_msg_queue_list_send(p->message_queues,
@@ -311,11 +356,17 @@ static void play_cmd(bg_player_t * p,
   /* Start playback */
   
   pthread_mutex_lock(&(p->stop_mutex));
+
+  if(p->do_bypass)
+    pthread_create(&(p->input_thread),
+                   (pthread_attr_t*)0,
+                   bg_player_input_thread_bypass, p->input_context);
+  else
+    pthread_create(&(p->input_thread),
+                   (pthread_attr_t*)0,
+                   bg_player_input_thread, p->input_context);
+    
   
-  pthread_create(&(p->input_thread),
-                 (pthread_attr_t*)0,
-                 bg_player_input_thread, p->input_context);
-      
   if(p->do_audio)
     pthread_create(&(p->oa_thread),
                    (pthread_attr_t*)0,
@@ -333,29 +384,6 @@ static void play_cmd(bg_player_t * p,
   bg_player_time_set(p, 0);
   preload(p);
   start_playback(p);
-  }
-
-static void player_cleanup(bg_player_t * player)
-  {
-  gavl_time_t t = 0;
-  bg_player_input_cleanup(player->input_context);
-
-  //  fprintf(stderr, "bg_player_oa_cleanup...");
-  
-  bg_player_oa_cleanup(player->oa_context);
-  //  fprintf(stderr, "bg_player_oa_cleanup done\n");
-  
-  bg_player_ov_cleanup(player->ov_context);
-  
-  bg_player_time_stop(player);
-  
-  bg_player_video_cleanup(player);
-  bg_player_audio_cleanup(player);
-  bg_player_time_reset(player);
-
-  bg_msg_queue_list_send(player->message_queues,
-                         msg_time,
-                         &t);
   }
 
 static void stop_cmd(bg_player_t * player, int new_state)
@@ -416,7 +444,10 @@ static void stop_cmd(bg_player_t * player, int new_state)
       }
     if(player->do_audio)
       bg_player_oa_stop(player->oa_context);
-    player_cleanup(player);
+
+    if((new_state == BG_PLAYER_STATE_STOPPED) ||
+       !(player->input_handle->info->flags & BG_PLUGIN_KEEP_RUNNING))
+      player_cleanup(player);
     
     if(new_state == BG_PLAYER_STATE_STOPPED)
       {
@@ -582,8 +613,7 @@ static int process_command(bg_player_t * player,
         }
       else
         {
-        arg_f1 = bg_msg_get_arg_float(command, 0);
-        time = (gavl_time_t)(player->track_info->duration*arg_f1);
+        time = bg_msg_get_arg_time(command, 0);
         seek_cmd(player, time);
         }
       break;
@@ -610,7 +640,11 @@ static int process_command(bg_player_t * player,
       break;
     case BG_PLAYER_CMD_SET_VOLUME:
       arg_f1 = bg_msg_get_arg_float(command, 0);
-      bg_player_oa_set_volume(player->oa_context, arg_f1);
+      if(player->do_bypass)
+        bg_player_input_bypass_set_volume(player->input_context, arg_f1);
+      else
+        bg_player_oa_set_volume(player->oa_context, arg_f1);
+      player->volume = arg_f1;
       break;
     case BG_PLAYER_CMD_SETSTATE:
       arg_i1 = bg_msg_get_arg_int(command, 0);

@@ -397,6 +397,7 @@ bg_input_plugin_t the_plugin =
       extensions:    "ogg",
       type:          BG_PLUGIN_INPUT,
       flags:         BG_PLUGIN_FILE,
+      priority:      5,
       create:        create_vorbis,
       destroy:       destroy_vorbis,
       get_parameters: get_parameters_vorbis,
@@ -437,3 +438,7 @@ bg_input_plugin_t the_plugin =
     stop: NULL,
     close: close_vorbis,
   };
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;

@@ -209,16 +209,21 @@ static void seek_change_callback(bg_gtk_slider_t * slider, float perc,
   //  player_window_t * win = (player_window_t *)data;
   //  fprintf(stderr, "Seek change callback %f\n", perc);
 
-  display_set_time(win->display, (gavl_time_t)(perc * (float)win->duration + 0.5));
+  display_set_time(win->display, (gavl_time_t)(perc *
+                                               (float)win->duration + 0.5));
   }
 
 static void seek_release_callback(bg_gtk_slider_t * slider, float perc,
                                   void * data)
   {
+  gavl_time_t time;
   player_window_t * win = (player_window_t *)data;
+
+  time = (gavl_time_t)(perc * (double)win->duration);
+  
   //  player_window_t * win = (player_window_t *)data;
   //  fprintf(stderr, "Seek release callback %f\n", perc);
-  bg_player_seek(win->gmerlin->player, perc);
+  bg_player_seek(win->gmerlin->player, time);
   
   }
 
@@ -303,6 +308,11 @@ static void handle_message(player_window_t * win,
         }
       break;
     case BG_PLAYER_MSG_TRACK_CHANGED:
+      //      fprintf(stderr, "Got BG_PLAYER_MSG_TRACK_CHANGED\n");
+      arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      gmerlin_check_next_track(win->gmerlin, arg_i_1);
+      
+
       break;
     case BG_PLAYER_MSG_STATE_CHANGED:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);

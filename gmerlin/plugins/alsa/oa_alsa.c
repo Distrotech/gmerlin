@@ -408,6 +408,7 @@ bg_oa_plugin_t the_plugin =
       extensions:    (char*)0,
       type:          BG_PLUGIN_OUTPUT_AUDIO,
       flags:         BG_PLUGIN_PLAYBACK,
+      priority:      BG_PLUGIN_PRIORITY_MAX,
       create:        create_alsa,
       destroy:       destroy_alsa,
       
@@ -423,3 +424,7 @@ bg_oa_plugin_t the_plugin =
     close:         close_alsa,
     get_delay:     get_delay_alsa,
   };
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;

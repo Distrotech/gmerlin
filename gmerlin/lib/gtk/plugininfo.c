@@ -55,11 +55,14 @@ static struct
 flag_names[] =
   {
     { "Removable Device", BG_PLUGIN_REMOVABLE }, /* Removable media (CD, DVD etc.) */
-    { "Recorder",  BG_PLUGIN_RECORDER  }, /* Plugin can record              */
-    { "File",      BG_PLUGIN_FILE      }, /* Plugin reads/writes files      */
-    { "URL",       BG_PLUGIN_URL       }, /* Plugin reads URLs or streams   */
-    { "Playback",  BG_PLUGIN_PLAYBACK  }, /* Output plugins for playback    */
-    { (char*)0,    0                   },
+    { "Recorder",    BG_PLUGIN_RECORDER       }, /* Plugin can record              */
+    { "File",        BG_PLUGIN_FILE           }, /* Plugin reads/writes files      */
+    { "URL",         BG_PLUGIN_URL            }, /* Plugin reads URLs or streams   */
+    { "Playback",    BG_PLUGIN_PLAYBACK       }, /* Output plugins for playback    */
+    { "Bypass",      BG_PLUGIN_BYPASS         }, /* Bypass                         */
+    { "Keep Running", BG_PLUGIN_KEEP_RUNNING   }, /* Plugin should not be stopped and restarted if tracks change */
+    { "Has Sync",     BG_PLUGIN_INPUT_HAS_SYNC }, /* FOR INPUTS ONLY: Plugin will set the time via callback */
+    { (char*)0,      0                        },
   };
 
 static char * get_flag_string(uint32_t flags)
@@ -128,9 +131,9 @@ void bg_gtk_plugin_info_show(const bg_plugin_info_t * info)
   bg_gtk_textwindow_t * win;
 
   flag_string = get_flag_string(info->flags);
-  text = bg_sprintf("Name:\t %s\nLong name:\t %s\nType:\t %s\nFlags:\t %s\nDLL Filename:\t %s",
+  text = bg_sprintf("Name:\t %s\nLong name:\t %s\nType:\t %s\nFlags:\t %s\nPriority:\t %d\nDLL Filename:\t %s",
                     info->name, info->long_name, get_type_string(info->type),
-                    flag_string, info->module_filename);
+                    flag_string, info->priority, info->module_filename);
   win = bg_gtk_textwindow_create(text, info->long_name);
   
   free(text);

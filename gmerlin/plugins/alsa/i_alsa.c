@@ -319,6 +319,7 @@ bg_ra_plugin_t the_plugin =
       extensions:    (char*)0,
       type:          BG_PLUGIN_RECORDER_AUDIO,
       flags:         BG_PLUGIN_RECORDER,
+      priority:      BG_PLUGIN_PRIORITY_MAX,
       create:        create_alsa,
       destroy:       destroy_alsa,
 
@@ -331,3 +332,6 @@ bg_ra_plugin_t the_plugin =
     read_frame:    read_frame_alsa,
     close:         close_alsa,
   };
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;

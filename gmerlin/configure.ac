@@ -12,6 +12,13 @@ dnl AM_DISABLE_STATIC
 AC_PROG_LIBTOOL
 
 dnl
+dnl General features
+dnl
+
+AC_CHECK_SIZEOF(long)
+AC_C_BIGENDIAN
+
+dnl
 dnl Check for Libraries
 dnl
 
@@ -145,6 +152,52 @@ dnl AC_PATH_LQT($LQT_REQUIRED,  have_lqt=true, have_lqt=false)
 AM_CONDITIONAL(HAVE_LQT, test x$have_lqt = xtrue)
 AC_SUBST(LQT_REQUIRED)
 
+
+dnl
+dnl CDrom support
+dnl
+
+have_cdrom="false"
+
+AC_CHECK_HEADERS([linux/cdrom.h], have_cdrom="true", )
+
+AC_CHECK_HEADERS([linux/hdreg.h])
+
+AM_CONDITIONAL(HAVE_CDROM, test x$have_cdrom = xtrue)
+
+dnl
+dnl Musicbrainz
+dnl
+
+AH_TEMPLATE([HAVE_MUSICBRAINZ],
+            [Do we have xinerama installed?])
+
+MUSICBRAINZ_REQUIRED="2.0.2"
+have_musicbrainz=false
+AC_ARG_ENABLE(lqt,
+              AC_HELP_STRING(--disable-musicbrainz, [Disable musicbrainz support (default: autodetect)]),
+              [case "${enableval}" in
+                 yes) test_musicbrainz=true ;;
+                 no) test_musicbrainz=false ;;
+               esac],
+	       test_musicbrainz=true)
+
+dnl We check for musicbrainz only of we already detected CDROM support
+if test x$have_cdrom = "xfalse"; then
+test_musicbrainz=false
+fi
+
+if test x$test_musicbrainz="xtrue"; then
+PKG_CHECK_MODULES(MUSICBRAINZ, libmusicbrainz >= $MUSICBRAINZ_REQUIRED, have_musicbrainz=true, have_musicbrainz=false)
+fi
+
+if test x$have_musicbrainz="xtrue"; then
+AC_DEFINE(HAVE_MUSICBRAINZ)
+fi
+
+AM_CONDITIONAL(HAVE_MUSICBRAINZ, test x$have_musicbrainz = xtrue)
+AC_SUBST(MUSICBRAINZ_REQUIRED)
+
 dnl
 dnl ESounD
 dnl
@@ -184,6 +237,11 @@ AC_ARG_ENABLE(alsa,
 if test x$test_alsa = xtrue; then
   AM_PATH_ALSA(1.0.0, have_alsa="true", have_alsa="false")
 fi
+
+dnl CFLAGS and LIBS must be cleared after AM_PATH_ALSA
+CFLAGS=""
+LIBS=""
+
 
 AM_CONDITIONAL(HAVE_ALSA, test x$have_alsa = xtrue)
 AC_SUBST(ALSA_REQUIRED)
@@ -325,12 +383,15 @@ dnl
 AH_TEMPLATE([HAVE_LIBTIFF], [Do we have libtiff installed?])
 
 TIFF_REQUIRED="3.6.1"
-have_libtiff="false"
+have_libtiff="true"
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
-AC_CHECK_LIB(tiff,TIFFClientOpen, have_libtiff="true", AC_MSG_WARN(libtiff not found))
+CFLAGS=""
+LIBS=""
+
+AC_CHECK_LIB(tiff,TIFFClientOpen, , have_libtiff="false")
 
 case $have_libtiff in
   "true") AC_DEFINE(HAVE_LIBTIFF)
@@ -532,6 +593,7 @@ lib/gtk/Makefile \
 plugins/Makefile \
 plugins/alsa/Makefile \
 plugins/x11/Makefile \
+plugins/cdaudio/Makefile \
 plugins/esd/Makefile \
 plugins/lqt/Makefile \
 plugins/oss/Makefile \
@@ -560,42 +622,42 @@ echo "=== Plugins: ======================================"
 
 echo -n "EsounD:              "
 if test "x$have_esd" = "xtrue"; then
-echo "Yes"
+echo "Yes (CFLAGS=$ESD_CFLAGS LIBS=$ESD_LIBS)"
 else
 echo "Missing"
 fi
 
 echo -n "Alsa:                "
 if test "x$have_alsa" = "xtrue"; then
-echo "Yes"
+echo "Yes (CFLAGS=$ALSA_CFLAGS LIBS=$ALSA_LIBS)"
 else
 echo "Missing"
 fi
 
 echo -n "Libquicktime:        "
 if test "x$have_lqt" = "xtrue"; then
-echo "Yes"
+echo "Yes (CFLAGS=$LQT_CFLAGS LIBS=$LQT_LIBS)"
 else
 echo "Missing"
 fi
 
 echo -n "Libjpeg:             "
 if test "x$have_libjpeg" = "xtrue"; then
-echo "Yes"
+echo "Yes (CFLAGS=$JPEG_CFLAGS LIBS=$JPEG_LIBS)"
 else
 echo "Missing"
 fi
 
 echo -n "Libpng:              "
 if test "x$have_libpng" = "xtrue"; then
-echo "Yes"
+echo "Yes (CFLAGS=$PNG_CFLAGS LIBS=$PNG_LIBS)"
 else
 echo "Missing"
 fi
 
 echo -n "Libtiff:             "
 if test "x$have_libtiff" = "xtrue"; then
-echo "Yes"
+echo "Yes (CFLAGS=$TIFF_CFLAGS LIBS=$TIFF_LIBS)"
 else
 echo "Missing"
 fi
@@ -631,6 +693,20 @@ fi
 echo -n "Xvideo extension:    "
 if test "x$have_xinerama" = "xtrue"; then
 echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "Audio CD support:    "
+if test "x$have_cdrom" = "xtrue"; then
+echo "Yes"
+else
+echo "Unsupported architecture"
+fi
+
+echo -n "Musicbrainz:         "
+if test "x$have_musicbrainz" = "xtrue"; then
+echo "Yes (CFLAGS=$MUSICBRAINZ_CFLAGS LIBS=$MUSICBRAINZ_LIBS)"
 else
 echo "Missing"
 fi

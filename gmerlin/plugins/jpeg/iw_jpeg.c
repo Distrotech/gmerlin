@@ -293,6 +293,7 @@ bg_image_writer_plugin_t the_plugin =
       extensions:     "jpeg jpg",
       type:           BG_PLUGIN_IMAGE_WRITER,
       flags:          BG_PLUGIN_FILE,
+      priority:       10,
       create:         create_jpeg,
       destroy:        destroy_jpeg,
       get_parameters: get_parameters_jpeg,
@@ -302,3 +303,7 @@ bg_image_writer_plugin_t the_plugin =
     write_header: write_header_jpeg,
     write_image:  write_image_jpeg,
   };
+
+/* Include this into all plugin modules exactly once
+   to let the plugin loader obtain the API version */
+API_VERSION;

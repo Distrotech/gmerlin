@@ -122,8 +122,10 @@ void bg_player_time_start(bg_player_t * player)
   {
   bg_player_oa_context_t * ctx;
   ctx = player->oa_context;
-  
-  if((ctx->plugin->get_delay) && (ctx->player->do_audio))
+
+  if(player->input_handle->info->flags & BG_PLUGIN_INPUT_HAS_SYNC)
+    ctx->sync_mode = SYNC_INPUT;
+  else if((ctx->plugin->get_delay) && (ctx->player->do_audio))
     ctx->sync_mode = SYNC_SOUNDCARD;
   else
     ctx->sync_mode = SYNC_SOFTWARE;
@@ -176,7 +178,7 @@ void bg_player_time_get(bg_player_t * player, int exact, gavl_time_t * ret)
   bg_player_oa_context_t * ctx;
   int samples_in_soundcard;
   ctx = player->oa_context;
-  if(!exact)
+  if(!exact || (ctx->sync_mode == SYNC_INPUT))
     {
     pthread_mutex_lock(&(ctx->time_mutex));
     *ret = ctx->current_time;
@@ -226,9 +228,10 @@ void bg_player_time_set(bg_player_t * player, gavl_time_t time)
   ctx = player->oa_context;
 
   pthread_mutex_lock(&(ctx->time_mutex));
+
   if(ctx->sync_mode == SYNC_SOFTWARE)
     gavl_timer_set(ctx->timer, time);
-  else
+  else if(ctx->sync_mode == SYNC_SOUNDCARD)
     ctx->audio_samples_written =
       gavl_time_to_samples(ctx->player->audio_stream.output_format.samplerate,
                            time);
@@ -374,7 +377,6 @@ void bg_player_oa_set_volume(bg_player_oa_context_t * ctx,
   gavl_volume_control_set_volume(ctx->volume, volume);
   pthread_mutex_unlock(&(ctx->volume_mutex));
   }
-
 
 int bg_player_oa_get_latency(bg_player_oa_context_t * ctx)
   {

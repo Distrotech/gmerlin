@@ -80,6 +80,11 @@ static GtkTargetEntry dnd_dst_entries[] =
     {bg_gtk_atom_entries_name, 0, DND_GMERLIN_TRACKS },
   };
 
+static GtkTargetEntry dnd_dst_entries_r[] = 
+  {
+    { bg_gtk_atom_entries_name_r, GTK_TARGET_SAME_WIDGET, DND_GMERLIN_TRACKS_R },
+  };
+
 static void load_pixmaps()
   {
   char * filename;
@@ -392,6 +397,9 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   char string_buffer[GAVL_TIME_STRING_LEN + 32];
   GtkTreeSelection * selection;
   gavl_time_t total_time = 0;
+
+  GtkTargetEntry * dst_targets;
+  int num_dst_targets;
     
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(w->treeview));
   g_signal_handler_block(G_OBJECT(selection), w->select_handler_id);
@@ -518,13 +526,24 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   
   /* Set up drag destination */
 
+  if(bg_album_get_type(w->album) == BG_ALBUM_TYPE_REMOVABLE)
+    {
+    dst_targets = dnd_dst_entries_r;
+    num_dst_targets = sizeof(dnd_dst_entries_r)/sizeof(dnd_dst_entries_r[0]);
+    }
+  else
+    {
+    dst_targets = dnd_dst_entries;
+    num_dst_targets = sizeof(dnd_dst_entries)/sizeof(dnd_dst_entries[0]);
+    }
+  
   if(!num_entries)
     {
     gtk_drag_dest_unset(w->treeview);
     gtk_drag_dest_set(w->drag_dest,
                       GTK_DEST_DEFAULT_HIGHLIGHT | GTK_DEST_DEFAULT_DROP | GTK_DEST_DEFAULT_MOTION,
-                      dnd_dst_entries,
-                      sizeof(dnd_dst_entries)/sizeof(dnd_dst_entries[0]),
+                      dst_targets,
+                      num_dst_targets,
                       GDK_ACTION_COPY | GDK_ACTION_MOVE);
     }
   else
@@ -532,8 +551,8 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
     gtk_drag_dest_unset(w->drag_dest);
     gtk_drag_dest_set(w->treeview,
                       GTK_DEST_DEFAULT_HIGHLIGHT | GTK_DEST_DEFAULT_DROP | GTK_DEST_DEFAULT_MOTION,
-                      dnd_dst_entries,
-                      sizeof(dnd_dst_entries)/sizeof(dnd_dst_entries[0]),
+                      dst_targets,
+                      num_dst_targets,
                       GDK_ACTION_COPY | GDK_ACTION_MOVE);
     }
   g_signal_handler_unblock(G_OBJECT(selection), w->select_handler_id);
@@ -1147,6 +1166,24 @@ static int is_entries(GtkSelectionData * data)
   return ret;
   }
 
+static int is_entries_r(GtkSelectionData * data)
+  {
+  int ret;
+  char * target_name;
+  target_name = gdk_atom_name(data->target);
+  if(!target_name)
+    return 0;
+
+  if(!strcmp(target_name, bg_gtk_atom_entries_name_r))
+    ret = 1;
+  else
+    ret = 0;
+  
+  g_free(target_name);
+  return ret;
+  }
+
+
 static void drag_received_callback(GtkWidget *widget,
                                    GdkDragContext *drag_context,
                                    gint x,
@@ -1180,6 +1217,12 @@ static void drag_received_callback(GtkWidget *widget,
     if(drag_context->action == GDK_ACTION_MOVE)
       do_delete = 1;
     }
+  else if(is_entries_r(data))
+    {
+    source_type = DND_GMERLIN_TRACKS_R;
+    if(drag_context->action == GDK_ACTION_MOVE)
+      do_delete = 1;
+    }
   else if(is_urilist(data))
     source_type = DND_TEXT_URI_LIST;
   
@@ -1201,6 +1244,7 @@ static void drag_received_callback(GtkWidget *widget,
         switch(source_type)
           {
           case DND_GMERLIN_TRACKS:
+          case DND_GMERLIN_TRACKS_R:
             bg_album_insert_xml_before(aw->album, data->data, data->length,
                                        entry);
             break;
@@ -1217,6 +1261,7 @@ static void drag_received_callback(GtkWidget *widget,
         switch(source_type)
           {
           case DND_GMERLIN_TRACKS:
+          case DND_GMERLIN_TRACKS_R:
             bg_album_insert_xml_after(aw->album, data->data, data->length,
                                       entry);
             break;
