@@ -893,9 +893,17 @@ static int next_packet_quicktime_noninterleaved(bgav_demuxer_context_t * ctx)
     }
   
   stream_priv = (stream_priv_t*)(stream->priv);
-  
-  bgav_input_seek(ctx->input, priv->packet_table[stream_priv->index_position].offset, SEEK_SET);
 
+  while(priv->packet_table[stream_priv->index_position].stream_id !=
+        stream->stream_id)
+    {
+    stream_priv->index_position++;
+    }
+  
+  bgav_input_seek(ctx->input,
+                  priv->packet_table[stream_priv->index_position].offset,
+                  SEEK_SET);
+  
   p = bgav_packet_buffer_get_packet_write(stream->packet_buffer);
   p->data_size = priv->packet_table[stream_priv->index_position].size;
   bgav_packet_alloc(p, p->data_size);

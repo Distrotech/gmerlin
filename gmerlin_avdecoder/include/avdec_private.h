@@ -1,4 +1,3 @@
-
 /*****************************************************************
  
   avdec_private.h
@@ -207,6 +206,13 @@ struct bgav_stream_s
   /* Support for custom timescales (optional) */
 
   int64_t time_scaled;
+  int timescale;
+
+  /* Positions in the superindex */
+  
+  int first_index_position;
+  int last_index_position;
+  int index_position;
   
   /* Where to get data */
   bgav_demuxer_context_t * demuxer;
@@ -528,6 +534,40 @@ bgav_input_context_t * bgav_input_open_memory(uint8_t * data,
 bgav_input_context_t *
 bgav_input_open_fd(int fd, int64_t total_bytes, const char * mimetype);
 
+/*
+ *  Some demuxer will create a superindex. If this is the case,
+ *  generic next_packet() and seek() functions will be used
+ */
+
+typedef struct 
+  {
+  int num_entries;
+  int entries_alloc;
+  struct
+    {
+    int64_t offset;
+    int32_t size;
+    int stream_id;
+    int keyframe;
+    int64_t time; /* Time is scaled with the timescale of the stream */
+    } * entries;
+  } bgav_superindex_t;
+
+/* Create superindex, nothing will be allocated if size == 0 */
+
+bgav_superindex_t * bgav_superindex_create(int size);
+void bgav_superindex_destroy(bgav_superindex_t *);
+
+void bgav_superindex_add_packet(bgav_superindex_t * idx,
+                                bgav_stream_t * s,
+                                int64_t offset,
+                                int stream_id,
+                                int64_t timestamp,
+                                int keyframe);
+
+void bgav_superindex_seek(bgav_superindex_t * idx,
+                          bgav_stream_t * s,
+                          gavl_time_t time);
 
 /* Demuxer class */
 

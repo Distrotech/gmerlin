@@ -21,6 +21,7 @@
 #include <avdec_private.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 void bgav_stream_start(bgav_stream_t * stream)
   {
@@ -62,6 +63,9 @@ void bgav_stream_alloc(bgav_stream_t * stream)
   memset(stream, 0, sizeof(*stream));
   stream->packet_buffer = bgav_packet_buffer_create();
   stream->time = GAVL_TIME_UNDEFINED;
+  stream->first_index_position = INT_MAX;
+  stream->last_index_position = 0;
+  stream->index_position = -1;
   }
 
 void bgav_stream_free(bgav_stream_t * s)

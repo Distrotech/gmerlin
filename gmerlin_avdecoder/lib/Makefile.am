@@ -229,9 +229,10 @@ r_asx.c \
 r_m3u.c \
 r_pls.c \
 r_ref.c \
+rtsp.c \
 sdp.c \
 stream.c \
-rtsp.c \
+superindex.c \
 targa.c \
 tcp.c \
 track.c \

@@ -43,7 +43,6 @@ extern bgav_demuxer_t bgav_demuxer_ogg;
 extern bgav_demuxer_t bgav_demuxer_a52;
 #endif
 
-
 typedef struct
   {
   bgav_demuxer_t * demuxer;
@@ -255,7 +254,7 @@ bgav_seek(bgav_t * b, gavl_time_t time)
     if(sync_time == GAVL_TIME_UNDEFINED)
       return;
 
-    /* If demuxer already seeked, break here */
+    /* If demuxer already seeked perfectly, break here */
 
     if(!b->demuxer->demuxer->seek_iterative)
       {

@@ -147,14 +147,31 @@ static int decode_frame(bgav_stream_t * s)
 
   //  fprintf(stderr, "Decode %d\n", priv->data_size);
 
+  /*
+   * Dirty trick: Frames from some mp4 files are randomly padded with
+   * one byte, padding bits are (hopefully always) set to zero.
+   * Doing this cleanly would require heavy changes in the mp4 demuxer
+   * code.
+   */
+    
+  if(*priv->data_ptr == 0x00)
+    {
+    priv->data_ptr++;
+    priv->data_size--;
+    }
+
   while(1)
     {
+    //    fprintf(stderr, "faacDecDecode:\n");
+    //    bgav_hexdump(priv->data_ptr, 16, 16);
     priv->frame->samples.f = faacDecDecode(priv->dec,
                                            &frame_info,
                                            priv->data_ptr,
                                            priv->data_size);
     priv->data_ptr  += frame_info.bytesconsumed;
     priv->data_size -= frame_info.bytesconsumed;
+
+    //    fprintf(stderr, "Bytes used: %ld\n", frame_info.bytesconsumed);
     
     if(!priv->frame->samples.f)
       {
