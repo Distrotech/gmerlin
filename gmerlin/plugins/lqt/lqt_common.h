@@ -33,3 +33,15 @@ extern int * bg_lqt_supported_colormodels;
 gavl_colorspace_t bg_lqt_get_gavl_colorspace(int quicktime_colorspace);
 
 int bg_lqt_get_lqt_colorspace(gavl_colorspace_t gavl_colorspace);
+                     
+void bg_lqt_set_audio_parameter(quicktime_t * file,
+                                int stream,
+                                char * name,
+                                bg_parameter_value_t * val,
+                                lqt_parameter_info_t * lqt_parameter_info);
+
+void bg_lqt_set_video_parameter(quicktime_t * file,
+                                int stream,
+                                char * name,
+                                bg_parameter_value_t * val,
+                                lqt_parameter_info_t * lqt_parameter_info);

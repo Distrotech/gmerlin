@@ -84,6 +84,7 @@ static bg_parameter_info_t parameters[] =
       name:      "display_mode",
       long_name: "Display mode",
       type: BG_PARAMETER_INT,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
       val_min:     { val_i:  DISPLAY_MODE_NONE },
       val_max:     { val_i:  NUM_DISPLAY_MODES - 1 },
       val_default: { val_i:  DISPLAY_MODE_NONE },
@@ -92,9 +93,16 @@ static bg_parameter_info_t parameters[] =
       name:      "repeat_mode",
       long_name: "Repeat mode",
       type: BG_PARAMETER_INT,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
       val_min:     { val_i:  REPEAT_MODE_NONE },
       val_max:     { val_i:  NUM_REPEAT_MODES - 1 },
       val_default: { val_i:  REPEAT_MODE_NONE },
+    },
+    {
+      name:      "font",
+      long_name: "Font",
+      type: BG_PARAMETER_FONT,
+      val_default: { val_str:  "Sans Bold 10" },
     },
     { /* End of parameters */ }
   };
@@ -403,6 +411,10 @@ void display_set_parameter(void * data, char * name,
     {
     d->repeat_mode = v->val_i;
     set_repeat_mode(d);
+    }
+  else if(!strcmp(name, "font"))
+    {
+    bg_gtk_scrolltext_set_font(d->scrolltext, v->val_str);
     }
   }
 

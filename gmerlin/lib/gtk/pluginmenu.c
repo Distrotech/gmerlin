@@ -89,6 +89,8 @@ bg_gtk_plugin_menu_create(char ** plugins,
     }
   
   ret->combo = gtk_combo_new();
+  gtk_editable_set_editable(GTK_EDITABLE(GTK_COMBO(ret->combo)->entry), FALSE);
+
   gtk_combo_set_popdown_strings(GTK_COMBO(ret->combo), ret->plugins);
 #endif
   gtk_widget_show(ret->combo);
@@ -140,5 +142,12 @@ GtkWidget * bg_gtk_plugin_menu_get_widget(bg_gtk_plugin_menu_t * m)
 
 void bg_gtk_plugin_menu_destroy(bg_gtk_plugin_menu_t * m)
   {
+#ifdef GTK_2_4
   
+#else
+  if(m->plugins)
+    {
+    g_list_free(m->plugins);
+    }
+#endif
   }

@@ -7,6 +7,7 @@ button.h \
 multiinfo.h \
 display.h \
 fileentry.h \
+driveselect.h \
 fileselect.h \
 gtkutils.h \
 infowindow.h \

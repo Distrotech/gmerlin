@@ -137,24 +137,66 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
       
       }
     }
-  
   lqt_destroy_codec_info(codec_info);
   }
 
-void bg_lqt_set_audio_parameter(quicktime_t * file,
-                                const char * name,
-                                bg_parameter_value_t * val,
-                                bg_parameter_info_t * info)
+static void * get_value(lqt_parameter_info_t * lqt_parameter_info,
+                        const char * name,
+                        bg_parameter_value_t * val)
   {
+  int index;
+  index = 0;
+
+  while(lqt_parameter_info[index].name)
+    {
+    if(!strcmp(lqt_parameter_info[index].name, name))
+      {
+      switch(lqt_parameter_info[index].type)
+        {
+        case LQT_PARAMETER_INT:
+          return &(val->val_i);
+          break;
+        case LQT_PARAMETER_STRING:
+        case LQT_PARAMETER_STRINGLIST:
+          return val->val_str;
+          break;
+        case LQT_PARAMETER_SECTION:
+          return (void*)0;
+        }
+      break;
+      }
+    index++;
+    }
+  return (void*)0;
+  }
+                        
+void bg_lqt_set_audio_parameter(quicktime_t * file,
+                                int stream,
+                                char * name,
+                                bg_parameter_value_t * val,
+                                lqt_parameter_info_t * lqt_parameter_info)
+  {
+  void * val_ptr;
+  val_ptr = get_value(lqt_parameter_info, name, val);
+  if(val_ptr)
+    {
+    lqt_set_audio_parameter(file, stream, name, val_ptr);
+    }
   
   }
 
 void bg_lqt_set_video_parameter(quicktime_t * file,
-                                const char * name,
+                                int stream,
+                                char * name,
                                 bg_parameter_value_t * val,
-                                bg_parameter_info_t * info)
+                                lqt_parameter_info_t * lqt_parameter_info)
   {
-  
+  void * val_ptr;
+  val_ptr = get_value(lqt_parameter_info, name, val);
+  if(val_ptr)
+    {
+    lqt_set_video_parameter(file, stream, name, val_ptr);
+    }
   }
 
 

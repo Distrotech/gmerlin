@@ -22,6 +22,7 @@ cfg_string.c \
 cfg_stringlist.c \
 cfg_time.c \
 display.c \
+driveselect.c \
 fileselect.c \
 fileentry.c \
 gtkutils.c \

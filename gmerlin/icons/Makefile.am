@@ -2,7 +2,6 @@
 pkgdatadir = $(datadir)/gmerlin/icons
 
 icons = \
-add_16.png \
 audio_16.png \
 camelot_icon.png \
 config_16.png \
@@ -26,6 +25,7 @@ down_16.png \
 drive_16.png \
 drive_error_16.png \
 drive_running_16.png \
+earth_16.png \
 first_16.png \
 folder_closed_16.png \
 folder_open_16.png \

@@ -37,7 +37,7 @@ static void write_16(FILE * output, uint32_t val)
   
   fwrite(c, 1, 2, output);
   }
-
+#if 0
 static void write_24(FILE * output, uint32_t val)
   {
   uint8_t c[3];
@@ -47,7 +47,7 @@ static void write_24(FILE * output, uint32_t val)
   c[2] = (val >> 16) & 0xff;
   fwrite(c, 1, 3, output);
   }
-
+#endif
 static void write_32(FILE * output, uint32_t val)
   {
   uint8_t c[4];
@@ -58,6 +58,40 @@ static void write_32(FILE * output, uint32_t val)
   c[3] = (val >> 24) & 0xff;
   fwrite(c, 1, 4, output);
   }
+
+/* Functions for writing signed integers */
+
+static void write_16_s(FILE * output, int32_t val)
+  {
+  uint8_t c[2];
+  
+  c[0] = val & 0xff;
+  c[1] = (val >> 8) & 0xff;
+  
+  fwrite(c, 1, 2, output);
+  }
+
+static void write_24_s(FILE * output, int32_t val)
+  {
+  uint8_t c[3];
+
+  c[0] = (val >> 8) & 0xff;
+  c[1] = (val >> 16) & 0xff;
+  c[2] = (val >> 24) & 0xff;
+  fwrite(c, 1, 3, output);
+  }
+
+static void write_32_s(FILE * output, int32_t val)
+  {
+  uint8_t c[4];
+
+  c[0] = val & 0xff;
+  c[1] = (val >> 8) & 0xff;
+  c[2] = (val >> 16) & 0xff;
+  c[3] = (val >> 24) & 0xff;
+  fwrite(c, 1, 4, output);
+  }
+
 
 static void write_fourcc(FILE * output, char c1, char c2, char c3, char c4)
   {
@@ -103,7 +137,7 @@ static bg_parameter_info_t parameters[] =
       long_name:   "Bits per sample",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "16" },
-      multi_names:     (char*[]){ "8", "16", "24", (char*)0 },
+      multi_names:     (char*[]){ "8", "16", "24", "32", (char*)0 },
     },
     { /* End of parameters */ }
   };
@@ -170,6 +204,7 @@ static void set_audio_parameter_wav(void * data, int stream, char * name,
         wav->format.sample_format = GAVL_SAMPLE_S16;
         break;
       case 3:
+      case 4:
         wav->format.sample_format = GAVL_SAMPLE_S32;
         break;
       }
@@ -219,6 +254,7 @@ static void write_audio_frame_wav(void * data, gavl_audio_frame_t * frame,
   {
   int i, imax;
   wav_t * wav;
+  
   wav = (wav_t*)data;
 
   imax = frame->valid_samples * wav->format.num_channels;
@@ -230,12 +266,16 @@ static void write_audio_frame_wav(void * data, gavl_audio_frame_t * frame,
       break;
     case 2:
       for(i = 0; i < imax; i++)
-        write_16(wav->output, frame->samples.s_16[i]);
+        write_16_s(wav->output, frame->samples.s_16[i]);
       
       break;
     case 3:
       for(i = 0; i < imax; i++)
-        write_24(wav->output, frame->samples.s_32[i]);
+        write_24_s(wav->output, frame->samples.s_32[i]);
+      break;
+    case 4:
+      for(i = 0; i < imax; i++)
+        write_32_s(wav->output, frame->samples.s_32[i]);
       break;
     }
   }

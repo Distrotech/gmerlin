@@ -57,14 +57,14 @@ typedef struct
   struct
     {
     gavl_audio_format_t format;
-    int codec_index;
+    lqt_codec_info_t ** codec_info;
     } * audio_streams;
 
   struct
     {
     gavl_video_format_t format;
     uint8_t ** rows;
-    int codec_index;
+    lqt_codec_info_t ** codec_info;
     } * video_streams;
   
   } e_lqt_t;
@@ -201,6 +201,7 @@ static void write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
 
 static void close_lqt(void * data, int do_delete)
   {
+  int i;
   char * filename_final, *pos;
   e_lqt_t * e = (e_lqt_t*)data;
 
@@ -234,11 +235,28 @@ static void close_lqt(void * data, int do_delete)
     }
   if(e->audio_streams)
     {
+    for(i = 0; i < e->num_audio_streams; i++)
+      {
+      if(e->audio_streams[i].codec_info)
+        lqt_destroy_codec_info(e->audio_streams[i].codec_info);
+      }
+
     free(e->audio_streams);
     e->audio_streams = NULL;
     }
   if(e->video_streams)
     {
+    for(i = 0; i < e->num_video_streams; i++)
+      {
+      if(e->video_streams[i].codec_info)
+        lqt_destroy_codec_info(e->video_streams[i].codec_info);
+      if(e->video_streams[i].rows)
+        {
+        free(e->video_streams[i].rows);
+        }
+      }
+
+
     free(e->video_streams);
     e->video_streams = NULL;
     }
@@ -336,7 +354,6 @@ static void set_audio_parameter_lqt(void * data, int stream, char * name,
                                     bg_parameter_value_t * val)
   {
   e_lqt_t * e = (e_lqt_t*)data;
-  lqt_codec_info_t ** info;
     
   if(!name)
     return;
@@ -345,27 +362,30 @@ static void set_audio_parameter_lqt(void * data, int stream, char * name,
     {
     /* Now we can add the stream */
 
-    info = lqt_find_audio_codec_by_name(val->val_str);
+    e->audio_streams[stream].codec_info = lqt_find_audio_codec_by_name(val->val_str);
     
     lqt_add_audio_track(e->file, e->audio_streams[stream].format.num_channels,
                         e->audio_streams[stream].format.samplerate, 16,
-                        *info);
+                        *e->audio_streams[stream].codec_info);
 
     e->audio_streams[stream].format.interleave_mode = GAVL_INTERLEAVE_NONE;
     e->audio_streams[stream].format.sample_format = GAVL_SAMPLE_FLOAT;
     
-    lqt_destroy_codec_info(info);
     }
   else
     {
     fprintf(stderr, "set_audio_parameter_lqt %s\n", name);
+
+    bg_lqt_set_audio_parameter(e->file,
+                               stream,
+                               name,
+                               val,
+                               e->audio_streams[stream].codec_info[0]->encoding_parameters);
+      
     }
+
   
-#if 0  
-  if(bg_lqt_set_parameter(name, val, &(e->parameters[PARAM_AUDIO])) ||
-     bg_lqt_set_parameter(name, val, &(e->parameters[PARAM_VIDEO])))
-    return;
-#endif
+
   }
 
 static void set_video_parameter_lqt(void * data, int stream, char * name,
@@ -374,8 +394,6 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
   e_lqt_t * e = (e_lqt_t*)data;
   int quicktime_colormodel;
   
-  lqt_codec_info_t ** info;
-    
   if(!name)
     return;
 
@@ -383,15 +401,13 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
     {
     /* Now we can add the stream */
 
-    info = lqt_find_video_codec_by_name(val->val_str);
+    e->video_streams[stream].codec_info = lqt_find_video_codec_by_name(val->val_str);
     
     lqt_add_video_track(e->file, e->video_streams[stream].format.image_width,
                         e->video_streams[stream].format.image_height,
                         e->video_streams[stream].format.frame_duration,
                         e->video_streams[stream].format.timescale,
-                        *info);
-    lqt_destroy_codec_info(info);
-
+                        *e->video_streams[stream].codec_info);
     quicktime_colormodel = lqt_get_best_colormodel(e->file, stream,
                                                    bg_lqt_supported_colormodels);
     e->video_streams[stream].format.colorspace =
@@ -406,14 +422,14 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
   else
     {
     fprintf(stderr, "set_video_parameter_lqt %s\n", name);
-    }
-  
 
-#if 0  
-  if(bg_lqt_set_parameter(name, val, &(e->parameters[PARAM_AUDIO])) ||
-     bg_lqt_set_parameter(name, val, &(e->parameters[PARAM_VIDEO])))
-    return;
-#endif
+    bg_lqt_set_video_parameter(e->file,
+                               stream,
+                               name,
+                               val,
+                               e->video_streams[stream].codec_info[0]->encoding_parameters);
+
+    }
   }
 
 

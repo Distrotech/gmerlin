@@ -72,6 +72,9 @@ static void button_callback(GtkWidget * w, gpointer data)
   
   else if((w == f->window) || (w == f->close_button))
     {
+    if(f->close_notify)
+      f->close_notify(f, f->callback_data);
+    
     gtk_widget_hide(f->window);
     if(f->is_modal)
       gtk_main_quit();
@@ -115,7 +118,9 @@ bg_gtk_urlsel_create(const char * title,
 
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(ret->window), title);
-  
+  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
+  gtk_container_set_border_width(GTK_CONTAINER(ret->window), 5);
+    
   if(parent_window)
     {
     gtk_window_set_transient_for(GTK_WINDOW(ret->window),
@@ -168,7 +173,8 @@ bg_gtk_urlsel_create(const char * title,
   gtk_box_pack_start_defaults(GTK_BOX(mainbox), box);
 
   if(ret->plugins)
-    gtk_box_pack_start_defaults(GTK_BOX(mainbox), bg_gtk_plugin_menu_get_widget(ret->plugins));
+    gtk_box_pack_start_defaults(GTK_BOX(mainbox),
+                                bg_gtk_plugin_menu_get_widget(ret->plugins));
 
   box = gtk_hbutton_box_new();
 

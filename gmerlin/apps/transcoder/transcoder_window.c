@@ -14,6 +14,7 @@
 #include <transcoder.h>
 
 #include <gui_gtk/display.h>
+#include <gui_gtk/scrolltext.h>
 
 #include "transcoder_window.h"
 #include "tracklist.h"
@@ -39,7 +40,8 @@ struct transcoder_window_s
 
   GtkWidget * progress_bar;
   bg_gtk_time_display_t * time_remaining;
-
+  bg_gtk_scrolltext_t   * scrolltext;
+  
   plugin_window_t * plugin_window;
   
   /* Configuration stuff */
@@ -57,10 +59,17 @@ struct transcoder_window_s
   
   guint idle_tag;
 
+  float fg_color[3];
+  float bg_color[3];
+  
+  
   /* Load/Save stuff */
-
+  
   char * task_path;
+  char * task_file;
+    
   GtkWidget * task_filesel;
+  
   };
 
 
@@ -68,6 +77,29 @@ static int start_transcode(transcoder_window_t * win);
 
 static bg_parameter_info_t transcoder_window_parameters[] =
   {
+    {
+      name:        "display",
+      long_name:   "Display",
+      type:        BG_PARAMETER_SECTION,
+    },
+    {
+      name:        "display_foreground",
+      long_name:   "Foreground",
+      type:        BG_PARAMETER_COLOR_RGB,
+      val_default: { val_color: (float[]){ 1.0, 1.0, 0.0, 1.0 } }
+    },
+    {
+      name:        "display_background",
+      long_name:   "Background",
+      type:        BG_PARAMETER_COLOR_RGB,
+      val_default: { val_color: (float[]){ 0.0, 0.0, 0.0, 1.0 } }
+    },
+    {
+      name:        "display_font",
+      long_name:   "Font",
+      type:        BG_PARAMETER_FONT,
+      val_default: { val_str: "Sans Bold 10" }
+    },
     {
       name:        "task_path",
       long_name:   "Task path",
@@ -84,13 +116,32 @@ set_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t *
   transcoder_window_t * win = (transcoder_window_t *)data;
 
   if(!name)
+    {
+
+    bg_gtk_scrolltext_set_colors(win->scrolltext, win->fg_color, win->bg_color);
+    bg_gtk_time_display_set_colors(win->time_remaining, win->fg_color, win->bg_color);
+    track_list_set_display_colors(win->tracklist, win->fg_color, win->bg_color);
     return;
+    }
 
   if(!strcmp(name, "task_path"))
     {
     win->task_path = bg_strdup(win->task_path, val->val_str);
     }
-  
+  else if(!strcmp(name, "display_foreground"))
+    {
+    memcpy(win->fg_color, val->val_color, 3 * sizeof(float));
+    
+    }
+  else if(!strcmp(name, "display_background"))
+    {
+    memcpy(win->bg_color, val->val_color, 3 * sizeof(float));
+
+    }
+  else if(!strcmp(name, "display_font"))
+    {
+    bg_gtk_scrolltext_set_font(win->scrolltext, val->val_str);
+    }
   }
 
 static int
@@ -182,14 +233,18 @@ static gboolean idle_callback(gpointer data)
 
 static int start_transcode(transcoder_window_t * win)
   {
+  char * name, * message;
   bg_cfg_section_t * cfg_section;
   
   cfg_section = bg_cfg_registry_find_section(win->cfg_reg, "output");
 
   win->transcoder_track      = track_list_get_track(win->tracklist);
   if(!win->transcoder_track)
+    {
+    bg_gtk_scrolltext_set_text(win->scrolltext, "Gmerlin transcoder version "VERSION,
+                               win->fg_color, win->bg_color);
     return 0;
-  
+    }
   win->transcoder            = bg_transcoder_create();
 
   win->transcoder_info = bg_transcoder_get_info(win->transcoder);
@@ -205,6 +260,13 @@ static int start_transcode(transcoder_window_t * win)
     }
   fprintf(stderr, "Initialized transcoder\n");
 
+  name = bg_transcoder_track_get_name(win->transcoder_track);
+  message = bg_sprintf("Transcoding %s", name);
+
+  bg_gtk_scrolltext_set_text(win->scrolltext, message, win->fg_color, win->bg_color);
+  free(message);
+  free(name);
+    
   gtk_widget_set_sensitive(win->run_button, 0);
   gtk_widget_set_sensitive(win->stop_button, 1);
   
@@ -213,6 +275,8 @@ static int start_transcode(transcoder_window_t * win)
 
 static void task_filesel_button_callback(GtkWidget * w, gpointer * data)
   {
+  const char * end_pos;
+
   GtkFileSelection * filesel;
   transcoder_window_t * win = (transcoder_window_t *)data;
   
@@ -220,7 +284,16 @@ static void task_filesel_button_callback(GtkWidget * w, gpointer * data)
 
   if(w == filesel->ok_button)
     {
+    win->task_file = bg_strdup((char*)0,
+                                   gtk_file_selection_get_filename(filesel));
     gtk_widget_hide(win->task_filesel);
+
+    end_pos = strrchr(win->task_file, '/');
+    if(end_pos)
+      {
+      end_pos++;
+      win->task_path = bg_strndup(win->task_path, win->task_file, end_pos);
+      }
     gtk_main_quit();
     }
   else if((w == win->task_filesel) || (w == filesel->cancel_button))
@@ -254,6 +327,9 @@ static GtkWidget * create_task_filesel(transcoder_window_t * win)
   g_signal_connect(G_OBJECT(GTK_FILE_SELECTION(ret)->cancel_button),
                    "clicked", G_CALLBACK(task_filesel_button_callback), win);
 
+  if(win->task_path)
+    gtk_file_selection_set_filename(GTK_FILE_SELECTION(ret), win->task_path);
+  
   return ret;
   }  
 
@@ -280,6 +356,10 @@ static void button_callback(GtkWidget * w, gpointer data)
 
     bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED);
     gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
+
+    bg_gtk_scrolltext_set_text(win->scrolltext, "Gmerlin transcoder version "VERSION,
+                               win->fg_color, win->bg_color);
+    
     }
   else if(w == win->load_button)
     {
@@ -292,6 +372,13 @@ static void button_callback(GtkWidget * w, gpointer data)
     
     gtk_widget_show(win->task_filesel);
     gtk_main();
+
+    if(win->task_file)
+      {
+      track_list_load(win->tracklist, win->task_file);
+      free(win->task_file);
+      win->task_file = (char*)0;
+      }
     }
   else if(w == win->save_button)
     {
@@ -304,6 +391,13 @@ static void button_callback(GtkWidget * w, gpointer data)
 
     gtk_widget_show(win->task_filesel);
     gtk_main();
+
+    if(win->task_file)
+      {
+      track_list_save(win->tracklist, win->task_file);
+      free(win->task_file);
+      win->task_file = (char*)0;
+      }
     }
   else if(w == win->preferences_button)
     {
@@ -415,6 +509,9 @@ transcoder_window_t * transcoder_window_create()
   ret->time_remaining = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
   bg_gtk_time_display_update(ret->time_remaining, GAVL_TIME_UNDEFINED);
 
+  /* Scrolltext */
+
+  ret->scrolltext = bg_gtk_scrolltext_create(100, 24);
   
   /* Pack everything */
   
@@ -440,8 +537,10 @@ transcoder_window_t * transcoder_window_create()
   box = gtk_hbox_new(0, 0);
 
   gtk_box_pack_end(GTK_BOX(box),
-                     bg_gtk_time_display_get_widget(ret->time_remaining),
-                     FALSE, FALSE, 0);
+                   bg_gtk_time_display_get_widget(ret->time_remaining),
+                   FALSE, FALSE, 0);
+  gtk_box_pack_start_defaults(GTK_BOX(box),
+                              bg_gtk_scrolltext_get_widget(ret->scrolltext));
 
   gtk_widget_show(box);
   
@@ -471,11 +570,17 @@ transcoder_window_t * transcoder_window_create()
                          plugin_window_close_notify,
                          ret);
 
+  bg_gtk_scrolltext_set_text(ret->scrolltext, "Gmerlin transcoder version "VERSION,
+                             ret->fg_color, ret->bg_color);
+
   /* Apply config stuff */
+
 
   cfg_section = bg_cfg_registry_find_section(ret->cfg_reg, "transcoder_window");
   bg_cfg_section_apply(cfg_section, transcoder_window_parameters,
                        set_transcoder_window_parameter, ret);
+  
+
   
   return ret;
   }
@@ -534,11 +639,11 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 NULL,
                 w,
                 bg_transcoder_get_parameters());
-
+  
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section, "audio");
   
   bg_dialog_add(dlg,
-                "Audio options",
+                "Audio defaults",
                 cfg_section,
                 NULL,
                 NULL,
@@ -547,14 +652,21 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section, "video");
   
   bg_dialog_add(dlg,
-                "Video options",
+                "Video defaults",
                 cfg_section,
                 NULL,
                 NULL,
                 bg_transcoder_track_video_get_general_parameters());
 
-    
-  
+  cfg_section = bg_cfg_registry_find_section(w->cfg_reg, "transcoder_window");
+
+  bg_dialog_add(dlg,
+                "Window",
+                cfg_section,
+                set_transcoder_window_parameter,
+                w,
+                transcoder_window_parameters);
+
   bg_dialog_show(dlg);
   bg_dialog_destroy(dlg);
   

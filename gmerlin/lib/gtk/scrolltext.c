@@ -53,13 +53,41 @@ struct bg_gtk_scrolltext_s
   GdkPixmap * pixmap_2; /* Pixmap for the drawingarea  */
 
   GdkGC * gc;
+
+  int pixmap_width;
+  int pixmap_height;
   
   };
+
+static void set_color(bg_gtk_scrolltext_t * st,
+                      float * color,
+                      GdkColor * gdk_color)
+  {
+  if(!st->is_realized)
+    return;
+   
+  gdk_color->red   = (guint16)(color[0] * 65535.0);
+  gdk_color->green = (guint16)(color[1] * 65535.0);
+  gdk_color->blue  = (guint16)(color[2] * 65535.0);
+ 
+  gdk_color->pixel =
+    ((gdk_color->red >> 8)   << 16) |
+    ((gdk_color->green >> 8) << 8) |
+    ((gdk_color->blue >> 8));
+ 
+  gdk_color_alloc(gdk_window_get_colormap(st->drawingarea->window),
+                  gdk_color);
+   
+  }
+
+
+static void create_text_pixmap(bg_gtk_scrolltext_t * st);
 
 static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
                                 gpointer data)
   {
   bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t *)data;
+  //  fprintf(stderr, "Expose %d %d\n", st->width, st->height);
   gdk_draw_drawable(st->drawingarea->window, st->gc, st->pixmap_2,
                     0, 0, 0, 0, st->width, st->height);
   
@@ -69,8 +97,60 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
 static gboolean configure_callback(GtkWidget * w, GdkEventConfigure * evt,
                                    gpointer data)
   {
+  GdkColor bg;
   bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t *)data;
-  fprintf(stderr, "Configure: %d %d\n", evt->width, evt->height);
+  
+  //  fprintf(stderr, "Configure: %d %d\n", evt->width, evt->height);
+
+  st->width = evt->width;
+  st->height = evt->height;
+  
+  if(st->pixmap_2)
+    {
+    if((st->pixmap_width < evt->width) || (st->pixmap_height < evt->height))
+      {
+      /* Enlarge pixmap */
+      
+      st->pixmap_width  = evt->width + 10;
+      st->pixmap_height = evt->height + 10;
+
+      g_object_unref(st->pixmap_2);
+      st->pixmap_2 = gdk_pixmap_new(st->drawingarea->window,
+                                    st->pixmap_width, st->pixmap_height, -1);
+      
+      //      fprintf(stderr, "Enlarging text pixmap_2\n");
+      }
+
+    /* Put pixmap_1 onto pixmap_2 if we won't scroll */
+    if(st->width >= st->text_width)
+      {
+      set_color(st, st->background_color, &bg);
+      
+      gdk_gc_set_foreground(st->gc, &bg);
+      gdk_draw_rectangle(st->pixmap_2,
+                         st->gc, TRUE,
+                         0, 0, st->width, st->height);
+      gdk_draw_drawable(st->pixmap_2, st->gc, st->pixmap_1,
+                        0, 0, (st->width - st->text_width)/2,
+                        0, st->width, st->height);
+      }
+    }
+  else
+    {
+    st->pixmap_width  = evt->width + 10;
+    st->pixmap_height = evt->height + 10;
+    }
+
+  if(st->pixmap_1)
+    {
+    if(((st->width < st->text_width) && !st->do_scroll) ||
+       ((st->width >= st->text_width) && st->do_scroll))
+      {
+      create_text_pixmap(st);
+      //      fprintf(stderr, "Creating pixmap_1\n");
+      }
+    }
+  //  expose_callback(w, NULL, data);
   return FALSE;
   }
 
@@ -106,26 +186,6 @@ static gboolean timeout_func(gpointer data)
   return TRUE;
   }
 
-static void set_color(bg_gtk_scrolltext_t * st,
-                      float * color,
-                      GdkColor * gdk_color)
-  {
-  if(!st->is_realized)
-    return;
-   
-  gdk_color->red   = (guint16)(color[0] * 65535.0);
-  gdk_color->green = (guint16)(color[1] * 65535.0);
-  gdk_color->blue  = (guint16)(color[2] * 65535.0);
- 
-  gdk_color->pixel =
-    ((gdk_color->red >> 8)   << 16) |
-    ((gdk_color->green >> 8) << 8) |
-    ((gdk_color->blue >> 8));
- 
-  gdk_color_alloc(gdk_window_get_colormap(st->drawingarea->window),
-                  gdk_color);
-   
-  }
 
 static void create_text_pixmap(bg_gtk_scrolltext_t * st)
   {
@@ -228,10 +288,8 @@ static void create_text_pixmap(bg_gtk_scrolltext_t * st)
                                     timeout_func,
                                     st);
     }
-  
-  
   g_object_unref(layout);
-
+  
   expose_callback(st->drawingarea, (GdkEventExpose*)0,
                   st);
   //  fprintf(stderr, "done\n");
@@ -241,12 +299,12 @@ static void create_text_pixmap(bg_gtk_scrolltext_t * st)
 static void realize_callback(GtkWidget * w, gpointer data)
   {
   bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t *)data;
-  fprintf(stderr, "Realize!!\n");
+  //  fprintf(stderr, "Realize!!\n");
   st->is_realized = 1;
   st->gc = gdk_gc_new(st->drawingarea->window);
 
   st->pixmap_2 = gdk_pixmap_new(st->drawingarea->window,
-                                st->width, st->height, -1);
+                                st->pixmap_width, st->pixmap_height, -1);
   
   if(st->text)
     create_text_pixmap(st);
@@ -264,7 +322,7 @@ bg_gtk_scrolltext_t * bg_gtk_scrolltext_create(int width, int height)
   ret->drawingarea = gtk_drawing_area_new();
   gtk_widget_set_size_request(ret->drawingarea,
                               ret->width, ret->height);
-
+  
   g_signal_connect(G_OBJECT(ret->drawingarea),
                    "realize", G_CALLBACK(realize_callback),
                    ret);
@@ -314,6 +372,12 @@ void bg_gtk_scrolltext_destroy(bg_gtk_scrolltext_t * d)
     pango_font_description_free(d->font_desc);
   if(d->text)
     free(d->text);
+  if(d->pixmap_1)
+    g_object_unref(d->pixmap_1);
+  if(d->pixmap_2)
+    g_object_unref(d->pixmap_2);
+  
+
   free(d);
   }
 
