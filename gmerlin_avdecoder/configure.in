@@ -2,11 +2,17 @@ AC_INIT
 AC_CONFIG_SRCDIR([include/avdec.h])
 
 AM_CONFIG_HEADER(include/config.h)
-AM_INIT_AUTOMAKE(gmerlin_avdec, 0.1.0)
+AM_INIT_AUTOMAKE(gmerlin_avdec, 0.1.1pre1)
 
 AC_DISABLE_STATIC
 AM_PROG_AS_MOD
 AC_PROG_LIBTOOL
+
+dnl
+dnl General stuff
+dnl
+
+AC_CHECK_HEADERS(byteswap.h)
 
 dnl
 dnl Check for Libraries
@@ -27,7 +33,7 @@ dnl
 
 have_gmerlin="false"
 
-GMERLIN_REQUIRED="0.3.0"
+GMERLIN_REQUIRED="0.3.1pre1"
 
 PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, have_gmerlin="true")
 

@@ -156,6 +156,7 @@ $(xadll_sources) \
 $(vcd_sources) \
 audio.c \
 audio_aiff.c \
+audio_pcm.c \
 asmrp.c \
 base64.c \
 bgav.c \
@@ -231,7 +232,6 @@ tracktable.c \
 utils.c \
 video.c \
 video_qtraw.c \
-video_qtrle.c \
 xing.c \
 yml.c
 
