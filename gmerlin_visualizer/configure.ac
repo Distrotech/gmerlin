@@ -5,7 +5,7 @@ AM_CONFIG_HEADER(src/config.h)
 AM_INIT_AUTOMAKE(gmerlin-visualizer, 1.1.0pre2)
 AC_PROG_LIBTOOL
 
-GMERLIN_REQUIRED="0.3.2pre1"
+GMERLIN_REQUIRED="0.3.2pre2"
 
 PKG_CHECK_MODULES(GMERLIN, gmerlin = $GMERLIN_REQUIRED, ,
                   AC_MSG_ERROR(gmerlin_visualizer needs gmerlin with headers))
