@@ -115,11 +115,11 @@ static void button_callback(GtkWidget * w, gpointer * data)
     if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->enable_button)))
       {
       win->current_plugin_info->enabled = 1;
-
+#if 0
       fprintf(stderr, "Adding plugin: %s %s",
               win->current_plugin_info->name,
               win->current_plugin_info->filename);
-      
+#endif
 
       input_add_plugin(the_input,
                        win->current_plugin_info->plugin);
@@ -131,6 +131,11 @@ static void button_callback(GtkWidget * w, gpointer * data)
                                    win->current_plugin_info->plugin);
       }
     }
+  }
+
+static void delete_callback(GtkWidget * w, GdkEventAny * evt, gpointer * data)
+  {
+  gtk_main_quit();
   }
 
 static void select_row_callback(GtkWidget * w, int row, int column,
@@ -187,7 +192,11 @@ xesd_main_window * xesd_create_main_window()
 
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(ret->window), "Gmerlin visualizer "VERSION);
-
+  
+  gtk_signal_connect(GTK_OBJECT(ret->window),
+                     "delete_event", GTK_SIGNAL_FUNC(delete_callback),
+                     ret);
+  
   ret->plugin_list = gtk_clist_new_with_titles(1, &_title);
 
   gtk_signal_connect(GTK_OBJECT(ret->plugin_list), "select_row",
