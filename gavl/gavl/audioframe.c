@@ -57,7 +57,6 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
       ret->samples.u_8 =
         memalign(ALIGNMENT_BYTES, num_samples * format->num_channels);
 
-      ret->channels.u_8 = calloc(format->num_channels, sizeof(uint8_t*));
       for(i = 0; i < format->num_channels; i++)
         ret->channels.u_8[i] = &(ret->samples.u_8[i*num_samples]);
 
@@ -66,7 +65,6 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
       ret->samples.s_8 =
         memalign(ALIGNMENT_BYTES, num_samples * format->num_channels);
 
-      ret->channels.s_8 = calloc(format->num_channels, sizeof(int8_t*));
       for(i = 0; i < format->num_channels; i++)
         ret->channels.s_8[i] = &(ret->samples.s_8[i*num_samples]);
 
@@ -74,8 +72,6 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
     case GAVL_SAMPLE_U16:
       ret->samples.u_16 =
         memalign(ALIGNMENT_BYTES, 2 * num_samples * format->num_channels);
-
-      ret->channels.u_16 = calloc(format->num_channels, sizeof(uint16_t*));
       for(i = 0; i < format->num_channels; i++)
         ret->channels.u_16[i] = &(ret->samples.u_16[i*num_samples]);
 
@@ -83,7 +79,6 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
     case GAVL_SAMPLE_S16:
       ret->samples.s_16 =
         memalign(ALIGNMENT_BYTES, 2 * num_samples * format->num_channels);
-      ret->channels.s_16 = calloc(format->num_channels, sizeof(int16_t*));
       for(i = 0; i < format->num_channels; i++)
         ret->channels.s_16[i] = &(ret->samples.s_16[i*num_samples]);
 
@@ -92,7 +87,6 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
     case GAVL_SAMPLE_S32:
       ret->samples.s_32 =
         memalign(ALIGNMENT_BYTES, 4 * num_samples * format->num_channels);
-      ret->channels.s_32 = calloc(format->num_channels, sizeof(int32_t*));
       for(i = 0; i < format->num_channels; i++)
         ret->channels.s_32[i] = &(ret->samples.s_32[i*num_samples]);
 
@@ -102,7 +96,6 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
       ret->samples.f =
         memalign(ALIGNMENT_BYTES, sizeof(float) * num_samples * format->num_channels);
 
-      ret->channels.f = calloc(format->num_channels, sizeof(float*));
       for(i = 0; i < format->num_channels; i++)
         ret->channels.f[i] = &(ret->samples.f[i*num_samples]);
 
@@ -120,8 +113,6 @@ void gavl_audio_frame_destroy(gavl_audio_frame_t * frame)
   {
   if(frame->samples.s_8)
     free(frame->samples.s_8);
-  if(frame->channels.s_8)
-    free(frame->channels.s_8);
   free(frame);
   }
 
@@ -189,6 +180,10 @@ int gavl_audio_frame_copy(gavl_audio_format_t * format,
     case GAVL_INTERLEAVE_NONE:
       for(i = 0; i < format->num_channels; i++)
         {
+        fprintf(stderr, "MEMCPY %p %p %d\n",
+                &(dst->channels.s_8[i][out_pos * bytes_per_sample]),
+                &(src->channels.s_8[i][in_pos * bytes_per_sample]),
+                samples_to_copy * bytes_per_sample);
         memcpy(&(dst->channels.s_8[i][out_pos * bytes_per_sample]),
                &(src->channels.s_8[i][in_pos * bytes_per_sample]),
                samples_to_copy * bytes_per_sample);

@@ -89,19 +89,19 @@ typedef union gavl_audio_samples_u
 
 typedef union gavl_audio_channels_u
   {
-  uint8_t ** u_8;
-  int8_t **  s_8;
+  uint8_t * u_8[GAVL_MAX_CHANNELS];
+  int8_t *  s_8[GAVL_MAX_CHANNELS];
 
-  uint16_t ** u_16;
-  int16_t  ** s_16;
+  uint16_t * u_16[GAVL_MAX_CHANNELS];
+  int16_t  * s_16[GAVL_MAX_CHANNELS];
 
   /* We don't have 32 bit ints yet, but we need a
      generic 32 bit type if we handle floats for example */
   
-  uint32_t ** u_32;
-  int32_t  ** s_32;
+  uint32_t * u_32[GAVL_MAX_CHANNELS];
+  int32_t  * s_32[GAVL_MAX_CHANNELS];
 
-  float ** f;
+  float * f[GAVL_MAX_CHANNELS];
   
   } gavl_audio_channels_t;
   
