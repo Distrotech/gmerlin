@@ -25,12 +25,13 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-
-
 #include <config.h>
 #include <utils.h>
 
 #include "gmerlin.h"
+
+#include <gui_gtk/fileselect.h>
+#include <gui_gtk/message.h>
 
 
 enum
@@ -156,7 +157,16 @@ static skin_info_t * skin_info_create()
 
 void skin_info_destroy(skin_info_t * info)
   {
-  
+  skin_info_t * tmp_info;
+
+  while(info)
+    {
+    tmp_info = info->next;
+    free(info->name);
+    free(info->directory);
+    free(info);
+    info = tmp_info;
+    }
   }
 
 struct gmerlin_skin_browser_s
@@ -181,7 +191,7 @@ static void update_list(gmerlin_skin_browser_t * b)
   GtkTreeModel * model;
   GtkTreeIter iter;
 
-  fprintf(stderr, "update_list\n");
+  //  fprintf(stderr, "update_list\n");
   
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(b->treeview));
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(b->treeview));
@@ -211,7 +221,7 @@ static void update_list(gmerlin_skin_browser_t * b)
     gtk_main_iteration();
   
   g_signal_handler_unblock(G_OBJECT(selection), b->select_handler_id);
-  fprintf(stderr, "update_list done\n");
+  //  fprintf(stderr, "update_list done\n");
   }
 
 static void select_row_callback(GtkTreeSelection * sel,
@@ -258,22 +268,90 @@ static void select_row_callback(GtkTreeSelection * sel,
   //  fprintf(stderr, "Skin Directory: %s\n", b->g->skin_dir);
   gmerlin_skin_load(&(b->g->skin), b->g->skin_dir);
   gmerlin_skin_set(b->g);
+ 
+  //  fprintf(stderr, "Selected skin %s\n", skin->name);
+  }
 
+static void filesel_close_callback(bg_gtk_filesel_t * f , void * data)
+  {
+  gmerlin_skin_browser_t * b;
+  b = (gmerlin_skin_browser_t*)data;
+  //  fprintf(stderr, "Filesel close\n");
+  gtk_widget_set_sensitive(b->new_button, 1);
+  }
+
+static int install_skin(const char * filename)
+  {
+  int ret = 0;
+  char * command;
+  char * home_dir;
+  char * error_msg;
   
-  fprintf(stderr, "Selected skin %s\n", skin->name);
+  home_dir = getenv("HOME");
+
+  command = bg_sprintf("tar -C %s/.gmerlin/skins -xvzf %s", home_dir, filename);
+  if(system(command))
+    {
+    //    fprintf(stderr, "Install failed, command was %s\n", command);
+    error_msg = bg_sprintf("Installing skin from\n%s\nfailed", filename);
+    bg_gtk_message(error_msg, BG_GTK_MESSAGE_ERROR);
+    free(error_msg);
+    }
+  else
+    ret = 1;
+  free(command);
+  return ret;
+  }
+
+static void add_file_callback(char ** files, const char * plugin,
+                              void * data)
+  {
+  int rescan = 0;
+  int i;
+  gmerlin_skin_browser_t * b;
+  b = (gmerlin_skin_browser_t*)data;
+
+  //  fprintf(stderr, "Add files %s\n", files[0]);
+
+  i = 0;
+  while(files[i])
+    {
+    if(install_skin(files[i]))
+      rescan = 1;
+    i++;
+    }
+  if(rescan)
+    {
+    skin_info_destroy(b->skins);
+    b->skins = skin_info_create();
+    update_list(b);
+    }
   }
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
+  bg_gtk_filesel_t * filesel;
+    
   gmerlin_skin_browser_t * b;
   b = (gmerlin_skin_browser_t*)data;
-
-  fprintf(stderr, "button_callback\n");
   
   if((w == b->window) ||
      (w == b->close_button))
     {
     gtk_widget_hide(b->window);
+    }
+  else if(w == b->new_button)
+    {
+    //    fprintf(stderr, "Install skin\n");
+
+    filesel = bg_gtk_filesel_create("Install skin",
+                                    add_file_callback,
+                                    filesel_close_callback,
+                                    NULL,
+                                    b, b->window /* parent */ );
+
+    gtk_widget_set_sensitive(b->new_button, 0);
+    bg_gtk_filesel_run(filesel, 0);     
     }
   
   }
@@ -387,6 +465,8 @@ gmerlin_skin_browser_t * gmerlin_skin_browser_create(gmerlin_t * g)
 
 void gmerlin_skin_browser_destroy(gmerlin_skin_browser_t * b)
   {
+  
+  g_object_unref(b->window);
   free(b);
   }
 
