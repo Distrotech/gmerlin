@@ -172,6 +172,8 @@ bg_gtk_album_window_create(bg_album_t * album,
 
 void bg_gtk_album_window_destroy(bg_gtk_album_window_t * w, int notify)
   {
+  fprintf(stderr, "album_window_destroy\n");
+  
   /* Get the window coordinates */
   
   if(w->window->window)
@@ -185,14 +187,16 @@ void bg_gtk_album_window_destroy(bg_gtk_album_window_t * w, int notify)
     bg_cfg_section_get(w->cfg_section, parameters, get_parameter, w);
     }
 
-  if(w->widget)
-    bg_gtk_album_widget_destroy(w->widget);
+  bg_gtk_album_widget_put_config(w->widget);
   
   if(w->tree_widget && notify)
     {
     bg_gtk_tree_widget_close_album(w->tree_widget, w);
     }
 
+  if(w->widget)
+    bg_gtk_album_widget_destroy(w->widget);
+    
   gtk_widget_destroy(w->window);
   free(w);
   }

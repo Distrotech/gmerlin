@@ -60,4 +60,4 @@ GtkWidget * bg_gtk_button_get_widget(bg_gtk_button_t *);
 void bg_gtk_button_skin_load(bg_gtk_button_skin_t * s,
                              xmlDocPtr doc, xmlNodePtr node);
 
-void bg_gtk_button_skin_destroy(bg_gtk_button_skin_t * s);
+void bg_gtk_button_skin_free(bg_gtk_button_skin_t * s);

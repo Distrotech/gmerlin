@@ -280,7 +280,7 @@ GtkWidget * bg_gtk_button_get_widget(bg_gtk_button_t * b)
 
 #define FREE(ptr) if(ptr)free(ptr);
 
-void bg_gtk_button_skin_destroy(bg_gtk_button_skin_t * s)
+void bg_gtk_button_skin_free(bg_gtk_button_skin_t * s)
   {
   FREE(s->pixmap_normal);
   FREE(s->pixmap_highlight);

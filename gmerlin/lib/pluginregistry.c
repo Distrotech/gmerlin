@@ -773,8 +773,8 @@ void bg_plugin_unref(bg_plugin_handle_t * h)
       }
     if(h->priv && h->plugin->destroy)
       h->plugin->destroy(h->priv);
-    if(h->dll_handle)
-      dlclose(h->dll_handle);
+    //    if(h->dll_handle)
+    //      dlclose(h->dll_handle);
     free(h);
     }
   

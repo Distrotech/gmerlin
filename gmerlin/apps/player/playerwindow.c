@@ -541,6 +541,12 @@ void player_window_destroy(player_window_t * win)
                      display_get_parameters(win->display),
                      display_get_parameter, (void*)(win->display));
 
+  bg_msg_queue_destroy(win->msg_queue);
+
+  bg_gtk_slider_destroy(win->seek_slider);
+  bg_gtk_slider_destroy(win->volume_slider);
+  
+  free(win);
   }
 
 void player_window_skin_load(player_window_skin_t * s,
@@ -592,11 +598,14 @@ void player_window_skin_destroy(player_window_skin_t * s)
   {
   if(s->background)
     free(s->background);
-  bg_gtk_button_skin_destroy(&(s->play_button));
-  bg_gtk_button_skin_destroy(&(s->stop_button));
-  bg_gtk_button_skin_destroy(&(s->pause_button));
-  bg_gtk_button_skin_destroy(&(s->next_button));
-  bg_gtk_button_skin_destroy(&(s->prev_button));
-  bg_gtk_button_skin_destroy(&(s->close_button));
-  bg_gtk_button_skin_destroy(&(s->menu_button));
+  bg_gtk_button_skin_free(&(s->play_button));
+  bg_gtk_button_skin_free(&(s->stop_button));
+  bg_gtk_button_skin_free(&(s->pause_button));
+  bg_gtk_button_skin_free(&(s->next_button));
+  bg_gtk_button_skin_free(&(s->prev_button));
+  bg_gtk_button_skin_free(&(s->close_button));
+  bg_gtk_button_skin_free(&(s->menu_button));
+  bg_gtk_slider_skin_free(&(s->seek_slider));
+  bg_gtk_slider_skin_free(&(s->volume_slider));
+  
   }

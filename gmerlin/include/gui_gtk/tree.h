@@ -82,6 +82,8 @@ void bg_gtk_album_widget_delete_drag();
 
 void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w);
 
+void bg_gtk_album_widget_put_config(bg_gtk_album_widget_t * w);
+
 /* Album window */
 
 bg_gtk_album_window_t * bg_gtk_album_window_create(bg_album_t * album,

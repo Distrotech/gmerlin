@@ -162,11 +162,15 @@ void bg_player_ov_set_plugin(bg_player_t * player, bg_plugin_handle_t * handle)
 void bg_player_ov_destroy(bg_player_t * player)
   {
   bg_player_ov_context_t * ctx;
-
+  
   ctx = player->ov_context;
   
   if(ctx->plugin_handle)
     bg_plugin_unref(ctx->plugin_handle);
+
+  if(ctx->logo_frame)
+    gavl_video_frame_destroy(ctx->logo_frame);
+  
   free(ctx);
   }
 

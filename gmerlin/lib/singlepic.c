@@ -385,6 +385,7 @@ static void close_input(void * priv)
     free(inp->filename_buffer);
     inp->filename_buffer = (char*)0;
     }
+  bg_track_info_free(&(inp->track_info));
   }
 
 static void destroy_input(void* priv)

@@ -247,13 +247,15 @@ void gmerlin_destroy(gmerlin_t * g)
   {
   plugin_window_destroy(g->plugin_window);
   player_window_destroy(g->player_window);
+
+  bg_player_destroy(g->player);
   
   bg_gtk_tree_window_destroy(g->tree_window);
-  
+  bg_gtk_info_window_destroy(g->info_window);
   bg_media_tree_destroy(g->tree);
   bg_plugin_registry_destroy(g->plugin_reg);
   gmerlin_skin_destroy(&(g->skin));
-  
+  bg_dialog_destroy(g->cfg_dialog);
   free(g);
   }
 

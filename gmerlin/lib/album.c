@@ -580,6 +580,8 @@ void bg_album_destroy(bg_album_t * a)
     free(a->name);
   if(a->location)
     free(a->location);
+  if(a->cfg_section)
+    bg_cfg_section_destroy(a->cfg_section);
   
   /* Free entries */
 

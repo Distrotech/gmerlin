@@ -316,5 +316,7 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)
     
     if(!i)
       ret->val_default.val_str = bg_strdup(NULL, c_tmp);
+
+    free(c_tmp);
     }
   }

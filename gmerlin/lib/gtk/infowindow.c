@@ -517,8 +517,29 @@ bg_gtk_info_window_create(bg_player_t * player,
 
 void bg_gtk_info_window_destroy(bg_gtk_info_window_t * w)
   {
-  gtk_widget_destroy(w->window);
+  FREE(w->name);
+  FREE(w->location);
+  FREE(w->description);
+  FREE(w->audio_description);
+  FREE(w->video_description);
+
+  bg_gtk_textview_destroy(w->w_audio_format_i);
+  bg_gtk_textview_destroy(w->w_audio_format_o);
+  bg_gtk_textview_destroy(w->w_video_format_i);
+  bg_gtk_textview_destroy(w->w_video_format_o);
+  bg_gtk_textview_destroy(w->w_metadata);
+  
+  bg_gtk_textview_destroy(w->w_description);
+  bg_gtk_textview_destroy(w->w_audio_description);
+  bg_gtk_textview_destroy(w->w_video_description);
+  bg_gtk_textview_destroy(w->w_name);
+
+  bg_gtk_textview_destroy(w->w_audio_stream);
+  bg_gtk_textview_destroy(w->w_video_stream);
+    
   bg_msg_queue_destroy(w->queue);
+  
+  free(w);
   }
 
 /*

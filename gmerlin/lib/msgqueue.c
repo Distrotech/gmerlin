@@ -507,7 +507,7 @@ void bg_msg_get_arg_metadata(bg_msg_t * msg, int arg,
   pos = get_str(pos, &(m->copyright));
   pos = get_32(pos,  &(m->track));
   
-  
+  free(ptr);
   }
 
 bg_msg_t * bg_msg_create()

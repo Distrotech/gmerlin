@@ -41,6 +41,8 @@ static GdkPixbuf * has_audio_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * has_video_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * dnd_pixbuf       = (GdkPixbuf *)0;
 
+int num_album_widgets = 0;
+
 /* Static stuff for deleting drag data */
 
 // static bg_gtk_album_widget_t * drag_source = (bg_gtk_album_widget_t*)0;
@@ -82,8 +84,13 @@ static void load_pixmaps()
   {
   char * filename;
   
-  if(has_audio_pixbuf)
+  if(num_album_widgets)
+    {
+    num_album_widgets++;
     return;
+    }
+
+  num_album_widgets++;
   
   filename = bg_search_file_read("icons", "audio_16.png");
   if(filename)
@@ -102,6 +109,23 @@ static void load_pixmaps()
     {
     dnd_pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
     free(filename);
+    }
+  }
+
+static void unload_pixmaps()
+  {
+  num_album_widgets--;
+  if(!num_album_widgets)
+    {
+    fprintf(stderr, "albumwidget.c: unload_pixmaps\n");
+    
+    g_object_unref(has_audio_pixbuf);
+    g_object_unref(has_video_pixbuf);
+    g_object_unref(dnd_pixbuf);
+    
+    has_audio_pixbuf = (GdkPixbuf *)0;
+    has_video_pixbuf = (GdkPixbuf *)0;
+    dnd_pixbuf       = (GdkPixbuf *)0;
     }
   }
 
@@ -1812,7 +1836,7 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   return ret;
   }
 
-void bg_gtk_album_widget_destroy(bg_gtk_album_widget_t * w)
+void bg_gtk_album_widget_put_config(bg_gtk_album_widget_t * w)
   {
   bg_cfg_section_t * section, * subsection;
 
@@ -1820,6 +1844,18 @@ void bg_gtk_album_widget_destroy(bg_gtk_album_widget_t * w)
   subsection = bg_cfg_section_find_subsection(section, "gtk_albumwidget");
   
   bg_cfg_section_get(subsection, parameters, get_parameter, w);
+  }
+
+
+void bg_gtk_album_widget_destroy(bg_gtk_album_widget_t * w)
+  {
+  if(w->open_path)
+    free(w->open_path);
+  bg_gtk_time_display_destroy(w->total_time);
+  
+  free(w);
+
+  unload_pixmaps();
   }
 
 GtkWidget * bg_gtk_album_widget_get_widget(bg_gtk_album_widget_t * w)

@@ -43,6 +43,8 @@ static GdkPixbuf * removable_error_pixbuf = (GdkPixbuf *)0;
 
 static GdkPixbuf * hardware_pixbuf = (GdkPixbuf *)0;
 
+static int num_tree_widgets = 0;
+
 /* Atoms */
 
 static int atoms_created = 0;
@@ -92,9 +94,14 @@ static void open_album(bg_gtk_tree_widget_t * widget,
 static void load_pixmaps()
   {
   char * filename;
-  
-  if(folder_closed_pixbuf)
+
+  if(num_tree_widgets)
+    {
+    num_tree_widgets++;
     return;
+    }
+
+  num_tree_widgets++;
   
   filename = bg_search_file_read("icons", "folder_closed_16.png");
   if(filename)
@@ -141,6 +148,35 @@ static void load_pixmaps()
     root_pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
     free(filename);
     }
+  }
+
+static void unload_pixmaps()
+  {
+  num_tree_widgets--;
+  if(num_tree_widgets)
+    return;
+
+  g_object_unref(root_pixbuf);
+  g_object_unref(folder_closed_pixbuf);
+  g_object_unref(folder_open_pixbuf);
+  
+  g_object_unref(removable_closed_pixbuf);
+  g_object_unref(removable_open_pixbuf);
+  g_object_unref(removable_error_pixbuf);
+  
+  g_object_unref(hardware_pixbuf);
+    
+  root_pixbuf = (GdkPixbuf *)0;
+  folder_closed_pixbuf = (GdkPixbuf *)0;
+  folder_open_pixbuf   = (GdkPixbuf *)0;
+  
+  removable_closed_pixbuf = (GdkPixbuf *)0;
+  removable_open_pixbuf = (GdkPixbuf *)0;
+  removable_error_pixbuf = (GdkPixbuf *)0;
+  
+  hardware_pixbuf = (GdkPixbuf *)0;
+
+  
   }
 
 enum

@@ -44,13 +44,16 @@ typedef struct
 void bg_gtk_slider_skin_load(bg_gtk_slider_skin_t * s,
                              xmlDocPtr doc, xmlNodePtr node);
 
+void bg_gtk_slider_skin_free(bg_gtk_slider_skin_t * s);
+
+
 typedef struct bg_gtk_slider_s bg_gtk_slider_t;
 
 bg_gtk_slider_t * bg_gtk_slider_create();
 
 void bg_gtk_slider_set_state(bg_gtk_slider_t *, bg_gtk_slider_state_t);
 
-void bg_slider_destroy(bg_gtk_slider_t *);
+void bg_gtk_slider_destroy(bg_gtk_slider_t *);
 
 /* Set attributes */
 

@@ -43,20 +43,25 @@
 #define DIGIT_COLON 10
 #define DIGIT_MINUS 11
 
-static int pixbufs_loaded = 0;
+#define NUM_PIXBUFS 12
 
-static GdkPixbuf * digit_pixbufs[12];
+static int num_time_displays = 0;
+
+static GdkPixbuf * digit_pixbufs[NUM_PIXBUFS];
 
 static void load_pixbufs()
   {
   char * c_tmp1 = (char*)0;
   char * c_tmp2 = (char*)0;
   int i;
-  
-  if(pixbufs_loaded)
-    return;
-  pixbufs_loaded = 1;
 
+  if(num_time_displays)
+    {
+    num_time_displays++;
+    return;
+    }
+  num_time_displays++;
+  
   for(i = 0; i < 10; i++)
     {
     c_tmp1 = bg_sprintf("digit_%d.png", i);
@@ -74,6 +79,21 @@ static void load_pixbufs()
   c_tmp2 = bg_search_file_read("icons", "digit_minus.png");
   digit_pixbufs[DIGIT_MINUS] = gdk_pixbuf_new_from_file(c_tmp2, NULL);    
   free(c_tmp2);
+  }
+
+static void unload_pixbufs()
+  {
+  int i;
+
+  num_time_displays--;
+  if(!num_time_displays)
+    {
+    for(i = 0; i < NUM_PIXBUFS; i++)
+      {
+      g_object_unref(digit_pixbufs[i]);
+      digit_pixbufs[i] = (GdkPixbuf*)0;
+      }
+    }
   }
 
 struct bg_gtk_time_display_s
@@ -331,4 +351,16 @@ bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size, int border_width)
 GtkWidget * bg_gtk_time_display_get_widget(bg_gtk_time_display_t * d)
   {
   return d->widget;
+  }
+
+void bg_gtk_time_display_destroy(bg_gtk_time_display_t * d)
+  {
+  int i;
+  for(i = 0; i < NUM_PIXBUFS; i++)
+    {
+    g_object_unref(d->pixbufs[i]);
+    }
+  free(d);
+  unload_pixbufs();
+
   }

@@ -368,10 +368,14 @@ void bg_gtk_slider_set_state(bg_gtk_slider_t * s,
     }
   }
 
-
-void bg_slider_destroy(bg_gtk_slider_t * s)
+void bg_gtk_slider_destroy(bg_gtk_slider_t * s)
   {
-  
+  g_object_unref(s->pixbuf_background);
+  g_object_unref(s->pixbuf_normal);
+  g_object_unref(s->pixbuf_highlight);
+  g_object_unref(s->pixbuf_pressed);
+  g_object_unref(s->pixbuf_inactive);
+  free(s);
   }
 
 /* Set attributes */
@@ -510,6 +514,18 @@ void bg_gtk_slider_skin_load(bg_gtk_slider_skin_t * s,
     }
 
   }
+
+#define MY_FREE(ptr) if(ptr){free(ptr);ptr=NULL;}
+
+void bg_gtk_slider_skin_free(bg_gtk_slider_skin_t * s)
+  {
+  MY_FREE(s->pixmap_normal);
+  MY_FREE(s->pixmap_highlight);
+  MY_FREE(s->pixmap_pressed);
+  MY_FREE(s->pixmap_inactive);
+  MY_FREE(s->pixmap_background);
+  }
+#undef MY_FREE
 
 void bg_gtk_slider_set_pos(bg_gtk_slider_t * s, float position)
   {
