@@ -38,6 +38,7 @@ singlepic.c \
 socket.c \
 streaminfo.c \
 stringutils.c \
+transcoder.c \
 tree.c \
 tree_xml.c \
 urilist.c \

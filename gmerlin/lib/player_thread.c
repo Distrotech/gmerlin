@@ -210,13 +210,17 @@ static void pause_cmd(bg_player_t * p)
 
 static void play_cmd(bg_player_t * p,
                      bg_plugin_handle_t * handle,
-                     int track_index)
+                     int track_index, char * track_name)
   {
   int had_video;
 
   had_video = p->do_video;
   
   bg_player_set_state(p, BG_PLAYER_STATE_STARTING, NULL, NULL);
+
+  fprintf(stderr, "Track name: %s\n", track_name);
+  
+  bg_player_set_track_name(p, track_name);
   
   bg_player_input_init(p->input_context,
                        handle, track_index);
@@ -257,7 +261,6 @@ static void play_cmd(bg_player_t * p,
     bg_msg_queue_list_send(p->message_queues,
                            msg_stream_description,
                            p->track_info->description);
-
   
   /* Send messages about formats */
   if(p->do_audio)
@@ -522,7 +525,8 @@ static int process_command(bg_player_t * player,
 
       arg_ptr1 = bg_msg_get_arg_ptr_nocopy(command, 0);
       arg_i1   = bg_msg_get_arg_int(command, 1);
-
+      arg_str1 = bg_msg_get_arg_string(command, 3);
+      
       if(state == BG_PLAYER_STATE_PLAYING)
         stop_cmd(player, BG_PLAYER_STATE_CHANGING);
 
@@ -534,7 +538,10 @@ static int process_command(bg_player_t * player,
         
         }
       else
-        play_cmd(player, arg_ptr1, arg_i1);
+        play_cmd(player, arg_ptr1, arg_i1, arg_str1);
+
+      if(arg_str1)
+        free(arg_str1);
       
       //      fprintf(stderr, "Command playfile %s\n", arg_str1);
                   

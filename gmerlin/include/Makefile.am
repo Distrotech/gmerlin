@@ -16,6 +16,7 @@ pluginregistry.h \
 remote.h \
 singlepic.h \
 streaminfo.h \
+transcoder.h \
 tree.h \
 utils.h
 

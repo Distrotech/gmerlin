@@ -1319,6 +1319,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
       return (bg_album_entry_t*)0;
       }
     remember_plugin = 1;
+    have_plugin = 1;
     }
   /* 2rd case: Track has a filename so we can look for the extension */
   else
@@ -1361,6 +1362,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
         have_plugin = 1;
         remember_plugin = 1;
         fprintf(stderr, "Success\n");
+        break;
         }
       }
     }
@@ -1377,7 +1379,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   //          album->com->load_handle->info->name);
   
   /* Open the track */
-    
+  
   if(!plugin->get_num_tracks)
     num_entries = 1;
   else

@@ -321,8 +321,6 @@ static void handle_message(player_window_t * win,
             }
           display_set_state(win->display, arg_i_1, NULL);
           bg_media_tree_mark_error(win->gmerlin->tree, 0);
-          bg_player_set_track_name(win->gmerlin->player,
-                                   bg_media_tree_get_current_track_name(win->gmerlin->tree));
           break;
         case BG_PLAYER_STATE_STOPPED:
           bg_gtk_slider_set_state(win->seek_slider,

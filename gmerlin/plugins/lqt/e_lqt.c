@@ -166,11 +166,11 @@ bg_encoder_plugin_t the_plugin =
       set_parameter:  set_parameter_lqt,
     },
 
-    open:              open_lqt,
-    add_audio_stream:  add_audio_stream_lqt,
-    add_video_stream:  add_video_stream_lqt,
-    
+    max_audio_streams: -1,
+    max_video_streams: -1,
 
+    open:              open_lqt,
+    
     write_audio_frame: write_audio_frame_lqt,
     write_video_frame: write_video_frame_lqt,
     close:             close_lqt,

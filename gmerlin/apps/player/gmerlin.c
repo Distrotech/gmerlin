@@ -330,9 +330,8 @@ int gmerlin_play(gmerlin_t * g, int ignore_flags)
   //  fprintf(stderr, "Track name: %s\n",
   //          bg_media_tree_get_current_track_name(g->tree));
   
-  
   bg_player_play(g->player, handle, track_index,
-                 ignore_flags);
+                 ignore_flags, bg_media_tree_get_current_track_name(g->tree));
   
   return 1;
   }

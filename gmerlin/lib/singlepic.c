@@ -31,8 +31,8 @@
 #include <config.h>
 #include <utils.h>
 
-char * bg_singlepic_ouput_name = "i_singlepic";
-char * bg_singlepic_input_name = "ev_singlepic";
+char * bg_singlepic_ouput_name = "ev_singlepic";
+char * bg_singlepic_input_name = "i_singlepic";
 
 static char * get_extensions(bg_plugin_registry_t * reg,
                              uint32_t type_mask, uint32_t flag_mask)

@@ -442,28 +442,69 @@ typedef struct bg_encoder_plugin_s
   {
   bg_plugin_common_t common;
 
+  /* Maximum number of audio/video streams. -1 means infinite */
+
+  int max_audio_streams;
+  int max_video_streams;
+  
   /* Open a file, filename base is without extension, which
      will be added by the plugin */
   
   int (*open)(void *, const char * filename_base,
               bg_metadata_t * metadata);
-
+  
   /*
    *  Add audio/video streams
-   *  The plugin can change the format members
-   *  of the info structures
+   *  For plugins, which always procude exactly one stream,
+   *  these can be ommitted
+   */
+
+  void (*set_num_audio_streams)(void *, int);
+  void (*set_num_video_streams)(void *, int);
+  
+  /*
+   *  Purely optional functions for multiple codec support
+   *  These allow parameters to be set on a per stream basis.
+   *  All the parameters MUST also be accessible via the
+   *  common parameter mechanism. The standard dialog set the defaults.
+   */
+
+  int (*num_audio_codecs)(void * data);
+  int (*num_video_codecs)(void * data);
+
+  const char * (*audio_codec_name)(void * data, int codec_index);
+  const char * (*video_codec_name)(void * data, int codec_index);
+
+  void (*set_audio_codec)(void*data,int codec_index);
+  void (*set_video_codec)(void*data,int codec_index);
+  
+  bg_parameter_info_t * (*get_audio_parameters)(void * data, int codec_index);
+  bg_parameter_info_t * (*get_video_parameters)(void * data, int codec_index);
+
+  /* If the following are NOT called, the plugin MUST use defaults
+     from set_parameter() */
+  
+  void (*set_audio_parameter)(void * data, int stream, char * name,
+                              bg_parameter_value_t * v);
+  
+  void (*set_video_parameter)(void * data, int stream, char * name,
+                              bg_parameter_value_t * v);
+
+  /*
+   *  Set the audio/video formats.
+   *  The arguments might be changed by the plugin
    */
   
-  void (*add_audio_stream)(void *, bg_audio_info_t*);
-  void (*add_video_stream)(void *, bg_video_info_t*);
-
+  void (*set_audio_format)(void *, gavl_audio_format_t*);
+  void (*set_video_format)(void *, gavl_video_format_t*);
+  
   /*
    *  Encode audio/video
    */
 
   void (*write_audio_frame)(void*,gavl_audio_frame_t*,int stream);
   void (*write_video_frame)(void*,gavl_video_frame_t*,int stream);
-
+  
   /* Close it */
 
   void (*close)(void*);

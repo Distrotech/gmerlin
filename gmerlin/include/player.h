@@ -51,7 +51,7 @@ void bg_player_quit(bg_player_t *);
  */
 
 void bg_player_play(bg_player_t *, bg_plugin_handle_t * handle,
-                    int track, int ignore_flags);
+                    int track, int ignore_flags, const char * track_name);
 
 void bg_player_seek(bg_player_t *, float percentage);
 
