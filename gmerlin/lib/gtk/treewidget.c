@@ -339,7 +339,8 @@ static bg_album_t * iter_2_album(bg_gtk_tree_widget_t * w,
 static void set_album(bg_gtk_tree_widget_t * widget,
                       bg_album_t   * album,
                       GtkTreeIter  * iter,
-                      int set_children)
+                      int set_children,
+                      int open_window)
   {
   int num_children = 0;
   bg_album_t * child;
@@ -347,6 +348,7 @@ static void set_album(bg_gtk_tree_widget_t * widget,
   GtkTreeIter child_iter;
   GtkTreeModel * model;
   bg_album_t * current_album;
+  bg_gtk_album_window_t * album_window;
   
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(widget->treeview));
 
@@ -375,7 +377,7 @@ static void set_album(bg_gtk_tree_widget_t * widget,
       gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_NAME,
                          bg_album_get_location(album), -1);
 
-      if(album_is_open(widget, album))
+      if(bg_album_is_open(album))
         gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
                            removable_open_pixbuf, -1);
       else if(bg_album_get_error(album))
@@ -391,12 +393,16 @@ static void set_album(bg_gtk_tree_widget_t * widget,
     gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_NAME,
                        bg_album_get_name(album), -1);
 
-    if(album_is_open(widget, album))
+    if(bg_album_is_open(album))
+      {
       gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
                          folder_open_pixbuf, -1);
+      }
     else
+      {
       gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
                          folder_closed_pixbuf, -1);
+      }
     }
 
   if(album == current_album)
@@ -422,7 +428,14 @@ static void set_album(bg_gtk_tree_widget_t * widget,
                        COLUMN_COLOR,
                        "#000000", -1);
 
-  
+  if(open_window && bg_album_is_open(album))
+    {
+    album_window = bg_gtk_album_window_create(album,
+                                              widget);
+    
+    widget->album_windows = g_list_append(widget->album_windows,
+                                          album_window);
+    }
   
   /* Append all subalbums of one album */
 
@@ -436,7 +449,7 @@ static void set_album(bg_gtk_tree_widget_t * widget,
                             &child_iter,
                             iter);
       child = bg_album_get_child(album, i);
-      set_album(widget, child, &child_iter, set_children);
+      set_album(widget, child, &child_iter, set_children, open_window);
       }
     }
   }
@@ -488,7 +501,8 @@ static void expand_album(bg_gtk_tree_widget_t * w, bg_album_t * album)
 
 /* Update the entire tree */
 
-static void bg_gtk_tree_widget_update(bg_gtk_tree_widget_t * w)
+static void bg_gtk_tree_widget_update(bg_gtk_tree_widget_t * w,
+                                      int open_albums)
   {
   GtkTreeModel * model;
   GtkTreeIter iter;
@@ -527,7 +541,7 @@ static void bg_gtk_tree_widget_update(bg_gtk_tree_widget_t * w)
                           &iter,
                           &root_iter);
     album = bg_media_tree_get_album(w->tree, i);
-    set_album(w, album, &iter, 1);
+    set_album(w, album, &iter, 1, open_albums);
     }
 
   path = gtk_tree_model_get_path(model, &root_iter);
@@ -561,7 +575,7 @@ bg_gtk_tree_widget_close_album(bg_gtk_tree_widget_t * widget,
   bg_album_close(album);
   
   album_2_iter(widget, album, &iter);
-  set_album(widget, album, &iter, 0);
+  set_album(widget, album, &iter, 0, 0);
   update_menu(widget);
   }
 
@@ -571,7 +585,6 @@ static void open_album(bg_gtk_tree_widget_t * widget,
                        bg_album_t * album)
   {
   int result;
-  bg_gtk_album_window_t * album_window;
   GtkTreeIter iter;
   
   if(!album)
@@ -587,22 +600,9 @@ static void open_album(bg_gtk_tree_widget_t * widget,
     if(!bg_album_is_open(album))
       result = bg_album_open(album);
 
-    if(result)
-      {
-      /* Open Album and create window */
-      album_window = bg_gtk_album_window_create(album,
-                                              widget);
-      
-      widget->album_windows = g_list_append(widget->album_windows,
-                                            album_window);
-      bg_album_set_error(album, 0);
-      }
-    else
-      {
-      bg_album_set_error(album, 1);
-      }
+    bg_album_set_error(album, !result);
     album_2_iter(widget, album, &iter);
-    set_album(widget, album, &iter, 0);
+    set_album(widget, album, &iter, 0, 1);
     }
   update_menu(widget);
   }
@@ -622,7 +622,7 @@ static void set_parameter(void * data, char * name,
       {
       bg_album_set_name(w->current_album, val->val_str);
       album_2_iter(w, w->current_album, &iter);
-      set_album(w, w->current_album, &iter, 0);
+      set_album(w, w->current_album, &iter, 0, 0);
       }
         
     }
@@ -652,7 +652,7 @@ static void rename_current_album(bg_gtk_tree_widget_t * w)
   bg_dialog_destroy(dialog);
 
   album_2_iter(w, w->current_album, &iter);
-  set_album(w, w->current_album, &iter, 0);
+  set_album(w, w->current_album, &iter, 0, 0);
   }
 
 static void create_new_album(bg_gtk_tree_widget_t * w)
@@ -667,7 +667,7 @@ static void create_new_album(bg_gtk_tree_widget_t * w)
     
   w->current_album = new_album;
   
-  bg_gtk_tree_widget_update(w);
+  bg_gtk_tree_widget_update(w, 0);
     
   rename_current_album(w);
 
@@ -675,7 +675,7 @@ static void create_new_album(bg_gtk_tree_widget_t * w)
     {
     bg_media_tree_remove_album(w->tree, w->current_album);
     w->current_album = (bg_album_t*)0;
-    bg_gtk_tree_widget_update(w);
+    bg_gtk_tree_widget_update(w, 0);
     }
   }
 
@@ -693,7 +693,7 @@ static void remove_album(bg_gtk_tree_widget_t * w)
     }
 
   bg_media_tree_remove_album(w->tree, w->current_album);
-  bg_gtk_tree_widget_update(w);
+  bg_gtk_tree_widget_update(w, 0);
   }
 
 static void menu_callback(GtkWidget * w, gpointer data)
@@ -1059,7 +1059,7 @@ static void drag_received_callback(GtkWidget *widget,
                   TRUE, /* Success */
                   do_delete, /* Delete */
                   w->drop_time);
-  bg_gtk_tree_widget_update(w);
+  bg_gtk_tree_widget_update(w, 0);
   }
 
 static gboolean drag_drop_callback(GtkWidget *widget,
@@ -1161,7 +1161,7 @@ static gboolean drag_motion_callback(GtkWidget *widget,
 void tree_changed_callback(bg_media_tree_t * t, void * data)
   {
   bg_gtk_tree_widget_t * w = (bg_gtk_tree_widget_t *)data;
-  bg_gtk_tree_widget_update(w);
+  bg_gtk_tree_widget_update(w, 0);
   }
 
 /* Constructor */
@@ -1300,7 +1300,7 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree)
 
   init_menu(ret);
   
-  bg_gtk_tree_widget_update(ret);    
+  bg_gtk_tree_widget_update(ret, 1);
   
   return ret;
   }

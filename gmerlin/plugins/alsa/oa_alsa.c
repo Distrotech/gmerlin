@@ -33,6 +33,15 @@
 #include <utils.h>
 #include "alsa_common.h"
 
+/* Playback modes */
+
+#define PLAYBACK_NONE       0
+#define PLAYBACK_GENERIC    1
+#define PLAYBACK_SURROUND40 2
+#define PLAYBACK_SURROUND41 3
+#define PLAYBACK_SURROUND50 4
+#define PLAYBACK_SURROUND51 5
+
 
 static bg_parameter_info_t global_parameters[] =
   {
@@ -75,13 +84,12 @@ typedef struct
 
   /* Configuration stuff */
 
-  int surround40;
-  int surround41;
-  int surround50;
-  int surround51;
+  int enable_surround40;
+  int enable_surround41;
+  int enable_surround50;
+  int enable_surround51;
   
   int card_index;
-  
   } alsa_t;
 
 static void * create_alsa()
@@ -123,19 +131,124 @@ static void stop_alsa(void * data)
 
 static int open_alsa(void * data, gavl_audio_format_t * format)
   {
+  int playback_mode;
+  int num_front_channels;
+  int num_rear_channels;
+  
   char * card = (char*)0;
   alsa_t * priv = (alsa_t*)(data);
-
-  card = bg_sprintf("hw:%d,0", priv->card_index);
   
-  /* Check, which card we want to have */
-#if 0
-  switch(format->channel_setup)
+  /* Figure out the right channel setup */
+  
+  num_front_channels = gavl_front_channels(format);
+  num_rear_channels = gavl_rear_channels(format);
+
+  playback_mode = PLAYBACK_NONE;
+  
+  if(num_front_channels > 2)
     {
-    
+    if(format->lfe)
+      {
+      if(priv->enable_surround51)
+        playback_mode = PLAYBACK_SURROUND51;
+      else if(priv->enable_surround50)
+        playback_mode = PLAYBACK_SURROUND50;
+      }
+    else if(priv->enable_surround50)
+      playback_mode = PLAYBACK_SURROUND50;
     }
-#endif
+  
+  else if((playback_mode == PLAYBACK_NONE) && num_rear_channels)
+    {
+    if(format->lfe)
+      {
+      if(priv->enable_surround41)
+        playback_mode = PLAYBACK_SURROUND41;
+      else if(priv->enable_surround40)
+        playback_mode = PLAYBACK_SURROUND40;
+      }
+    else if(priv->enable_surround40)
+      playback_mode = PLAYBACK_SURROUND40;
+    }
+
+  if(playback_mode == PLAYBACK_NONE)
+    playback_mode = PLAYBACK_GENERIC;
+
+  switch(playback_mode)
+    {
+    case PLAYBACK_GENERIC:
+      if(format->num_channels > 2)
+        format->num_channels = 2;
+      format->lfe = 0;
+      format->channel_locations[0] = GAVL_CHID_NONE;
+      gavl_set_channel_setup(format);
+      card = bg_sprintf("hw:%d,0", priv->card_index);
+      break;
+    case PLAYBACK_SURROUND40:
+      format->num_channels = 4;
+      format->channel_setup = GAVL_CHANNEL_2F2R;
+      format->lfe = 0;
+
+      format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+      format->channel_locations[2] = GAVL_CHID_REAR_LEFT;
+      format->channel_locations[3] = GAVL_CHID_REAR_RIGHT;
+
+      card = bg_sprintf("surround40");
+      
+      break;
+    case PLAYBACK_SURROUND41:
+      format->num_channels = 5;
+      format->channel_setup = GAVL_CHANNEL_2F2R;
+      format->lfe = 1;
+
+      format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+      format->channel_locations[2] = GAVL_CHID_REAR_LEFT;
+      format->channel_locations[3] = GAVL_CHID_REAR_RIGHT;
+      format->channel_locations[4] = GAVL_CHID_LFE;
+
+      card = bg_sprintf("surround41");
+      
+      break;
+    case PLAYBACK_SURROUND50:
+      format->num_channels = 5;
+      format->channel_setup = GAVL_CHANNEL_3F2R;
+      format->lfe = 0;
+
+      format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+      format->channel_locations[2] = GAVL_CHID_REAR_LEFT;
+      format->channel_locations[3] = GAVL_CHID_REAR_RIGHT;
+      format->channel_locations[4] = GAVL_CHID_FRONT_CENTER;
+
+      card = bg_sprintf("surround50");
+      
+      break;
+    case PLAYBACK_SURROUND51:
+      format->num_channels = 6;
+      format->channel_setup = GAVL_CHANNEL_3F2R;
+      format->lfe = 1;
+
+      format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+      format->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+      format->channel_locations[2] = GAVL_CHID_REAR_LEFT;
+      format->channel_locations[3] = GAVL_CHID_REAR_RIGHT;
+      format->channel_locations[4] = GAVL_CHID_FRONT_CENTER;
+      format->channel_locations[5] = GAVL_CHID_LFE;
+
+      card = bg_sprintf("surround51");
+      break;
+    }
+
+  fprintf(stderr, "Opening card %s...", card);
+    
   priv->pcm = bg_alsa_open_write(card, format);
+
+  if(priv->pcm)
+    fprintf(stderr, "done\n");
+  else
+    fprintf(stderr, "failed\n");
   
   free(card);
   
@@ -231,19 +344,19 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
 
   if(!strcmp(name, "surround40"))
     {
-    priv->surround40 = val->val_i;
+    priv->enable_surround40 = val->val_i;
     }
   else if(!strcmp(name, "surround41"))
     {
-    priv->surround41 = val->val_i;
+    priv->enable_surround41 = val->val_i;
     }
   else if(!strcmp(name, "surround50"))
     {
-    priv->surround50 = val->val_i;
+    priv->enable_surround50 = val->val_i;
     }
   else if(!strcmp(name, "surround51"))
     {
-    priv->surround51 = val->val_i;
+    priv->enable_surround51 = val->val_i;
     }
   else if(!strcmp(name, "card"))
     {

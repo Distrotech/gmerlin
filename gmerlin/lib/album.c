@@ -310,7 +310,9 @@ static int open_removable(bg_album_t * a)
 
     new_entry->index = i;
     new_entry->total_tracks = num_tracks;
-    new_entry->name = bg_strdup((char*)0, track_info->name);
+    new_entry->name   = bg_strdup((char*)0, track_info->name);
+    new_entry->plugin = bg_strdup((char*)0, a->handle->info->name);
+    
     new_entry->location = bg_strdup(new_entry->location,
                                       a->location);
     new_entry->num_video_streams = track_info->num_video_streams;
