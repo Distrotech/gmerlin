@@ -75,7 +75,7 @@ interleave_mode_names[] =
   {
     { GAVL_INTERLEAVE_NONE, "Not interleaved" },
     { GAVL_INTERLEAVE_2,    "Interleaved channel pairs" },
-    { GAVL_INTERLEAVE_ALL,  "ALl channels interleaved" },
+    { GAVL_INTERLEAVE_ALL,  "All channels interleaved" },
   };
 
 

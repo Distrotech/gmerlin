@@ -31,16 +31,15 @@ static char digit_to_char(int digit)
   }
 
 void
-gavl_time_prettyprint(gavl_time_t time, char ret[GAVL_TIME_STRING_LEN])
+gavl_time_prettyprint_seconds(int total_seconds,
+                              char ret[GAVL_TIME_STRING_LEN])
   {
-  int64_t total_seconds;
   char * pos;
   int seconds;
   int minutes;
   int hours;
   int negative;
-    
-  total_seconds = time / 1000000;
+  int digits_started;
   if(total_seconds < 0)
     {
     negative = 1;
@@ -50,69 +49,63 @@ gavl_time_prettyprint(gavl_time_t time, char ret[GAVL_TIME_STRING_LEN])
     {
     negative = 0;
     }
-
-  pos = &(ret[GAVL_TIME_STRING_LEN-1]);
-  *pos = '\0';
-  pos--;
-
+  
   seconds = total_seconds % 60;
   total_seconds /= 60;
   minutes = total_seconds % 60;
   total_seconds /= 60;
   hours = total_seconds;
 
-  /* Print seconds */
-
-  *pos = digit_to_char(seconds % 10);
-  pos--;
-  *pos = digit_to_char(seconds / 10);
-  pos--;
-
-  *pos = ':';
-  pos--;
-
-  *pos = digit_to_char(minutes % 10);
-  pos--;
-  
-  if((minutes / 10) || hours)
-    {
-    /* Print minutes */
-
-    *pos = digit_to_char(minutes / 10);
-    pos--;
+  pos = ret;
+  digits_started = 0;
     
-    if(hours)
-      {
-      *pos = ':';
-      pos--;
-
-      *pos = digit_to_char(hours % 10);
-      pos--;
-
-      hours /= 10;
-      if(hours)
-        {
-        *pos = digit_to_char(hours % 10);
-        pos--;
-        hours /= 10;
-        }
-      if(hours)
-        {
-        *pos = digit_to_char(hours % 10);
-        pos--;
-        }
-      }
-    }
-
   if(negative)
     {
-    *pos = '-';
-    pos--;
+    *(pos++) = '-';
     }
 
-  while(pos >= ret)
+  /* Print hours */
+  
+  if(hours / 100)
     {
-    *pos = ' ';
-    pos--;
+    *(pos++) = digit_to_char(hours/100);
+    digits_started = 1;
     }
+  if(digits_started || (hours % 100) / 10)
+    {
+    *(pos++) = digit_to_char((hours % 100) / 10);
+    digits_started = 1;
+    }
+  if(digits_started || (hours % 10))
+    {
+    *(pos++) = digit_to_char(hours % 10);
+    digits_started = 1;
+    }
+
+  if(digits_started)
+    *(pos++) = ':';
+
+
+  if(digits_started || (minutes / 10))
+    {
+    *(pos++) = digit_to_char(minutes / 10);
+    digits_started = 1;
+    }
+
+  *(pos++) = digit_to_char(minutes % 10);
+  
+  *(pos++) = ':';
+  *(pos++) =   digit_to_char(seconds / 10);
+  *(pos++) =   digit_to_char(seconds % 10);
+  *pos = '\0';
+ 
+  }
+
+void
+gavl_time_prettyprint(gavl_time_t time, char ret[GAVL_TIME_STRING_LEN])
+  {
+  int total_seconds;
+    
+  total_seconds = time / 1000000;
+  gavl_time_prettyprint_seconds(total_seconds, ret);
   }

@@ -10,11 +10,11 @@ gavl_find_interleave_converter(gavl_interleave_table_t * t,
                                gavl_audio_format_t * out)
   {
   int bytes_per_sample = gavl_bytes_per_sample(in->sample_format);
-
+#if 0
   fprintf(stderr, "gavl_find_interleave_converter %s -> %s\n",
           gavl_interleave_mode_to_string(in->interleave_mode),
           gavl_interleave_mode_to_string(out->interleave_mode));
-  
+#endif
   switch(in->interleave_mode)
     {
     case GAVL_INTERLEAVE_ALL:
