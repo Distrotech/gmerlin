@@ -317,7 +317,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
   bg_fifo_state_t state;
   gavl_video_frame_t * video_frame;
   bg_player_video_stream_t * s;
-  //  fprintf(stderr, "Process video\n");
+  //  fprintf(stderr, "Process video...");
   s = &(ctx->player->video_stream);
   
   if(s->do_convert)
@@ -365,9 +365,8 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     ctx->video_frames_written ++;
     }
   bg_fifo_unlock_write(s->fifo, ctx->video_finished);
-
-  return 1;
   //  fprintf(stderr, "done\n");
+  return 1;
   }
 
 void * bg_player_input_thread(void * data)
@@ -458,7 +457,7 @@ void * bg_player_input_thread(void * data)
   bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_FINISHING);
   bg_msg_queue_unlock_write(ctx->player->command_queue);
   
-  //  fprintf(stderr, "input thread finished\n");
+  fprintf(stderr, "input thread finished\n");
   return NULL;
   }
 

@@ -333,7 +333,7 @@ int bg_album_open(bg_album_t * a)
   char * tmp_filename;
   
   if(a->open_count)
-    return;
+    return 1;
 
   if(bg_album_is_removable(a))
     {
@@ -750,6 +750,7 @@ void bg_album_rename_track(bg_album_t * album,
     entry = entry->next;
     }
   entry->name = bg_strdup(entry->name, name);
+  entry->flags |= BG_ALBUM_ENTRY_PRIVNAME;
   }
 
 bg_album_entry_t * bg_album_get_current_entry(bg_album_t * a)

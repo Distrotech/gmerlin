@@ -251,13 +251,18 @@ void * bg_player_oa_thread(void * data)
         continue;
         }
       }
-    bg_plugin_lock(ctx->plugin_handle);
-    ctx->plugin->write_frame(ctx->priv, frame);
-    bg_plugin_unlock(ctx->plugin_handle);
+    if(frame->valid_samples)
+      {
+      //      fprintf(stderr, "write frame...");
+      bg_plugin_lock(ctx->plugin_handle);
+      ctx->plugin->write_frame(ctx->priv, frame);
+      bg_plugin_unlock(ctx->plugin_handle);
+      //      fprintf(stderr, "done\n");
 
-    pthread_mutex_lock(&(ctx->time_mutex));
-    ctx->audio_samples_written += frame->valid_samples;
-    pthread_mutex_unlock(&(ctx->time_mutex));
+      pthread_mutex_lock(&(ctx->time_mutex));
+      ctx->audio_samples_written += frame->valid_samples;
+      pthread_mutex_unlock(&(ctx->time_mutex));
+      }
     
     bg_fifo_unlock_read(s->fifo);
     }

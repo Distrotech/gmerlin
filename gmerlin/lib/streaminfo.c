@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 #include <ctype.h>
 
@@ -69,8 +70,7 @@ void bg_track_info_free(bg_track_info_t * info)
   my_free(info->description);
   my_free(info->url);
   my_free(info->plugin);
-  
-  
+  memset(info, 0, sizeof(*info));
   }
 
 /*

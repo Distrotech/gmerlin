@@ -54,6 +54,12 @@ static bg_album_entry_t * load_entry(bg_media_tree_t * tree,
       ret->flags |= BG_ALBUM_ENTRY_ERROR;
     xmlFree(tmp_string);
     }
+  if((tmp_string = xmlGetProp(node, "privname")))
+    {
+    if(atoi(tmp_string))
+      ret->flags |= BG_ALBUM_ENTRY_PRIVNAME;
+    xmlFree(tmp_string);
+    }
   
   node = node->children;
   
@@ -342,6 +348,10 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
   if(entry->flags & BG_ALBUM_ENTRY_ERROR)
     {
     xmlSetProp(xml_entry, "error", "1");
+    }
+  if(entry->flags & BG_ALBUM_ENTRY_PRIVNAME)
+    {
+    xmlSetProp(xml_entry, "privname", "1");
     }
   
   xmlAddChild(xml_entry, xmlNewText("\n"));

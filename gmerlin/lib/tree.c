@@ -418,41 +418,42 @@ static void update_entry(bg_media_tree_t * tree,
   entry->num_subpicture_streams = track_info->num_subpicture_streams;
   entry->num_programs           = track_info->num_programs;
 
-  if(entry->name)
+  if(!(entry->flags & BG_ALBUM_ENTRY_PRIVNAME))
     {
-    free(entry->name);
-    entry->name = (char*)0;
-    }
-  /* Track info has a name */
-
-  
-  
-  if(tree->use_metadata && tree->metadata_format)
-    {
-    entry->name = bg_create_track_name(track_info, tree->metadata_format);
     if(entry->name)
-      name_set = 1;
-    }
-
-  if(!name_set)
-    {
-    if(track_info->name)
       {
-      entry->name = bg_strdup(entry->name, track_info->name);
-      //      fprintf(stderr, "entry->name: %s\n", entry->name);
+      free(entry->name);
+      entry->name = (char*)0;
       }
-    /* Take filename minus extension */
-    else
+    /* Track info has a name */
+    
+    if(tree->use_metadata && tree->metadata_format)
       {
-      start_pos = strrchr(entry->location, '/');
-      if(start_pos)
-        start_pos++;
+      entry->name = bg_create_track_name(track_info, tree->metadata_format);
+      if(entry->name)
+        name_set = 1;
+      }
+    
+    if(!name_set)
+      {
+      if(track_info->name)
+        {
+        entry->name = bg_strdup(entry->name, track_info->name);
+        //      fprintf(stderr, "entry->name: %s\n", entry->name);
+        }
+      /* Take filename minus extension */
       else
-        start_pos = entry->location;
-      end_pos = strrchr(start_pos, '.');
-      if(!end_pos)
-        end_pos = &(start_pos[strlen(start_pos)]);
-      entry->name = bg_strndup(entry->name, start_pos, end_pos);
+        {
+        start_pos = strrchr(entry->location, '/');
+        if(start_pos)
+          start_pos++;
+        else
+          start_pos = entry->location;
+        end_pos = strrchr(start_pos, '.');
+        if(!end_pos)
+          end_pos = &(start_pos[strlen(start_pos)]);
+        entry->name = bg_strndup(entry->name, start_pos, end_pos);
+        }
       }
     }
   entry->duration = track_info->duration;

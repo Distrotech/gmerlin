@@ -53,8 +53,6 @@
 /* since it doesn't seem to be defined on some platforms */
 int XShmGetEventBase (Display *);
 
-
-
 typedef struct 
   {
   XImage * x11_image;

@@ -62,7 +62,7 @@ find_by_dll(bg_plugin_info_t * info, const char * filename)
   {
   while(info)
     {
-    if(!strcmp(info->module_filename, filename))
+    if(info->module_filename && !strcmp(info->module_filename, filename))
       return info;
     info = info->next;
     }

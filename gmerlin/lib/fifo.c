@@ -137,7 +137,7 @@ void * bg_fifo_lock_read(bg_fifo_t*f, bg_fifo_state_t * state)
   pthread_mutex_unlock(&(f->output_frame_mutex));
   if(f->output_frame->eof)
     {
-    fprintf(stderr, "FIFO EOF\n");
+    //    fprintf(stderr, "FIFO EOF\n");
     *state = BG_FIFO_STOPPED;
     return (void*)0;
     }

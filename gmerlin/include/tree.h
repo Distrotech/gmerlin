@@ -27,6 +27,7 @@
 
 #define BG_ALBUM_ENTRY_ERROR    (1<<0)
 #define BG_ALBUM_ENTRY_SELECTED (1<<1)
+#define BG_ALBUM_ENTRY_PRIVNAME (1<<2)
 
 typedef struct bg_album_entry_s
   {
