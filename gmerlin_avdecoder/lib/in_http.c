@@ -176,7 +176,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
   else
     ctx->do_buffer = 1;
 
-  ctx->filename = bgav_strndup(url, NULL);
+  ctx->url = bgav_strndup(url, NULL);
   return 1;
   }
 

@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <avdec_private.h>
+#include <nanosoft.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -49,6 +50,9 @@ typedef struct
   int32_t data_size;
   uint32_t data_start;
   int packet_size;
+  
+  int have_info; /* INFO chunk found */
+  bgav_RIFFINFO_t * info;
   } wav_priv_t;
 
 static int probe_wav(bgav_input_context_t * input)
@@ -72,14 +76,24 @@ static int find_tag(bgav_demuxer_context_t * ctx, uint32_t tag)
   {
   uint32_t fourcc;
   uint32_t size;
+  wav_priv_t * priv;
+  priv = (wav_priv_t *)(ctx->priv);
   
   while(1)
     {
+    /* We also could get an INFO chunk */
+    if(bgav_RIFFINFO_probe(ctx->input))
+      {
+      priv->info = bgav_RIFFINFO_read(ctx->input);
+      continue;
+      }
     if(!bgav_input_read_fourcc(ctx->input, &fourcc) ||
        !bgav_input_read_32_le(ctx->input, &size))
       return -1;
+
     if(fourcc == tag)
       return size;
+    
     bgav_input_skip(ctx->input, size);
     }
   return -1;
@@ -209,6 +223,25 @@ static int open_wav(bgav_demuxer_context_t * ctx,
     goto fail;
   priv->data_start = ctx->input->position;
 
+  /* If we don't have an INFO chunk yet, it could come after the data chunk */
+
+  if(!priv->info &&
+     ctx->input->input->seek_byte &&
+     (ctx->input->total_bytes - 12 > priv->data_start + priv->data_size))
+    {
+    bgav_input_seek(ctx->input, priv->data_start + priv->data_size, SEEK_SET);
+    if(bgav_RIFFINFO_probe(ctx->input))
+      priv->info = bgav_RIFFINFO_read(ctx->input);
+    bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
+    }
+
+  /* Convert info to metadata */
+
+  if(priv->info)
+    {
+    bgav_RIFFINFO_get_metadata(priv->info, &(ctx->tt->current_track->metadata));
+    }
+
   /* Packet size will be at least 1024 bytes */
 
   priv->packet_size = ((1024 + s->data.audio.block_align - 1) / 
@@ -294,6 +327,10 @@ static void close_wav(bgav_demuxer_context_t * ctx)
   priv = (wav_priv_t *)(ctx->priv);
   if(ctx->tt->current_track->audio_streams[0].ext_data)
     free(ctx->tt->current_track->audio_streams[0].ext_data);
+
+  if(priv->info)
+    bgav_RIFFINFO_destroy(priv->info);
+
   free(priv);
   }
 

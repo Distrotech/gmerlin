@@ -75,7 +75,7 @@ void bgav_rtsp_set_user_agent(bgav_rtsp_t * r, const char * user_agent)
   r->user_agent = bgav_strndup(user_agent, NULL);
   }
 
-// #define DUMP_REQUESTS
+#define DUMP_REQUESTS
 
 static int rtsp_send_request(bgav_rtsp_t * rtsp,
                              const char * command,
@@ -111,7 +111,10 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
     write(rtsp->fd, line, strlen(line));
     free(line);
     }
- 
+#ifdef DUMP_REQUESTS
+  bgav_http_header_dump(rtsp->request_fields);
+#endif
+  
   bgav_http_header_send(rtsp->request_fields, rtsp->fd);
   if(!bgav_tcp_send(rtsp->fd, "\r\n\r\n", 4))
     goto fail;
@@ -125,7 +128,12 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   /* Read answers */
   bgav_http_header_reset(rtsp->answers);
   bgav_http_header_revc(rtsp->answers, rtsp->fd, rtsp->read_timeout);
+  
+#ifdef DUMP_REQUESTS
+  bgav_http_header_dump(rtsp->answers);
+#endif  
 
+  
   /* Handle redirection */
   
   if(strstr(rtsp->answers->lines[0].line, "REDIRECT"))
@@ -214,7 +222,7 @@ int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected)
   if(!bgav_sdp_parse(buf, &(rtsp->sdp)))
     goto fail;
 
-  //  bgav_sdp_dump(&(rtsp->sdp));
+  bgav_sdp_dump(&(rtsp->sdp));
   
   
   free(buf);

@@ -393,6 +393,8 @@ void bgav_input_close(bgav_input_context_t * ctx)
     free(ctx->mimetype);
   if(ctx->filename)
     free(ctx->filename);
+  if(ctx->url)
+    free(ctx->url);
   if(ctx->id3v2)
     bgav_id3v2_destroy(ctx->id3v2);
 

@@ -25,6 +25,7 @@ extern bgav_redirector_t bgav_redirector_asx;
 extern bgav_redirector_t bgav_redirector_m3u;
 extern bgav_redirector_t bgav_redirector_pls;
 extern bgav_redirector_t bgav_redirector_ref;
+extern bgav_redirector_t bgav_redirector_smil;
 
 void bgav_redirectors_dump()
   {
@@ -34,6 +35,7 @@ void bgav_redirectors_dump()
   fprintf(stderr, "<li>%s\n", bgav_redirector_m3u.name);
   fprintf(stderr, "<li>%s\n", bgav_redirector_pls.name);
   fprintf(stderr, "<li>%s\n", bgav_redirector_ref.name);
+  fprintf(stderr, "<li>%s\n", bgav_redirector_smil.name);
   fprintf(stderr, "</ul>\n");
   }
 
@@ -48,6 +50,7 @@ redirectors[] =
     { &bgav_redirector_asx, "asx" },
     { &bgav_redirector_pls, "pls" },
     { &bgav_redirector_ref, "MS Referece" },
+    { &bgav_redirector_smil, "smil" },
   };
 
 static int num_redirectors = sizeof(redirectors)/sizeof(redirectors[0]);

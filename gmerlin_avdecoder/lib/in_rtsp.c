@@ -25,18 +25,26 @@
 #include <rmff.h>
 #include <bswap.h>
 
-#define SERVER_TYPE_UNKNOWN 0
-#define SERVER_TYPE_REAL    1
+/* We support multiple server types */
+
+#define SERVER_TYPE_GENERIC   0
+#define SERVER_TYPE_REAL      1
+#define SERVER_TYPE_QTSS      2
+#define SERVER_TYPE_DARWIN    3
 
 extern bgav_demuxer_t bgav_demuxer_rmff;
 
 /* See bottom of this file */
 
-static void real_calc_response_and_checksum (char *response, char *chksum, char *challenge);
+static void
+real_calc_response_and_checksum (char *response,
+                                 char *chksum, char *challenge);
 
 
 typedef struct rtsp_priv_s
   {
+  int has_smil; /* One if we want to fetch a smil file */
+  
   int type;
   char * challenge1;
   bgav_rtsp_t * r;
@@ -75,18 +83,20 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
   uint32_t timestamp;
   bgav_rmff_packet_header_t ph;
   //  int unknown1;
-
+  uint8_t * pos;
   char * buf;
     
   int fd;
   uint8_t header[8];
   int seq;
   rtsp_priv_t * priv = (rtsp_priv_t *)(ctx->priv);
+
+  //  fprintf(stderr, "Next packet rdt...\n");
+
   fd = bgav_rtsp_get_fd(priv->r);
 
   while(1)
     {
-  
     if(block)
       {
       if(bgav_read_data_fd(fd, header, 8, ctx->read_timeout) < 8)
@@ -97,7 +107,10 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
       if(bgav_read_data_fd(fd, header, 4, 0) < 4)
         return 0;
       }
-
+    
+    fprintf(stderr, "Header:\n");
+    bgav_hexdump(header, 8, 8);
+    
     /* Check for a ping request */
     
     if(!strncmp(header, "SET_PARA", 8))
@@ -129,19 +142,24 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
       buf = bgav_sprintf("CSeq: %u\r\n\r\n", seq);
       bgav_tcp_send(fd, buf, strlen(buf));
       free(buf);
+      fprintf(stderr, "Answered ping request\n");
       }
     else if(header[0] == '$')
       {
-      //    fprintf(stderr, "Got RDT header\n");
-      //    bgav_hexdump(header, 8, 8);
-      size = BGAV_PTR_2_16BE(&(header[2]));
+      //      fprintf(stderr, "Got RDT header\n");
+      //      bgav_hexdump(header, 8, 8);
+      size = BGAV_PTR_2_24BE(&(header[1]));
     
       flags1 = header[4];
 
       if ((flags1!=0x40)&&(flags1!=0x42))
         {
-      
         //      fprintf(stderr, "got flags1: 0x%02x\n",flags1);
+        if(header[6] == 0x06)
+          {
+          fprintf(stderr, "in_rtsp.c: Detected end of stream in RDT header\n");
+          return 0; /* End of stream */
+          }
         header[0]=header[5];
         header[1]=header[6];
         header[2]=header[7];
@@ -169,7 +187,6 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
 
       //    bgav_rmff_packet_header_dump(&ph);
 
-
       packet_alloc(priv, size);
     
       size -= 12;
@@ -177,16 +194,44 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
       if(bgav_read_data_fd(fd, priv->packet + 12, size,
                            ctx->read_timeout) < size)
         return 0;
+
+      if(priv->has_smil)
+        {
+        pos = strstr(priv->packet + 12, "<smil>");
+        if(pos)
+          {
+          priv->packet_len -= (pos - priv->packet);
+          memmove(priv->packet, pos, priv->packet_len);
+          }
+
+        pos = strstr(priv->packet + 12, "</smil>");
+        if(pos)
+          {
+          pos += strlen("</smil>");
+          *pos = '\0';
+          priv->packet_len = (pos - priv->packet) + 1;
+          }
+
+
+        //        fprintf(stderr, "Got rdt chunk %d bytes\n", size);
+        //        bgav_hexdump(priv->packet, priv->packet_len, 16);
+        }
+#if 1
+      else
+        {
+        //        fprintf(stderr, "Got rdt chunk %d bytes\n", size);
+        //        bgav_hexdump(priv->packet, size, 16);
+        }
+#endif
       return 1;
       }
     else
       {
-      fprintf(stderr, "Unknown chunk\n");
+      fprintf(stderr, "in_rtsp.c: Unknown RDT chunk\n");
       bgav_hexdump(header, 8, 8);
       return 0;
       }
     }
-  
   return 0;
   }
 
@@ -234,31 +279,63 @@ static int open_and_describe(bgav_input_context_t * ctx, const char * url, int *
     {
     priv->challenge1 = bgav_strndup(var, NULL);
     priv->type = SERVER_TYPE_REAL;
-    //    fprintf(stderr, "Real Server, challenge %s\n", challenge1);
+    fprintf(stderr, "Real Server, challenge %s\n", var);
+    }
+  else
+    {
+    var = bgav_rtsp_get_answer(priv->r, "Server");
+    if(var)
+      {
+      if(!strncmp(var, "QTSS", 4))
+        {
+        priv->type = SERVER_TYPE_QTSS;
+        fprintf(stderr, "QTSS Server\n");
+        }
+      }
     }
 
-  if(priv->type == SERVER_TYPE_UNKNOWN)
+#if 0
+  if(priv->type == SERVER_TYPE_GENERIC)
     {
-    fprintf(stderr, "Don't know how to handle this server\n");
-    return 0;
+    //    fprintf(stderr, "Generic RTSP code\n");
+    //    return 0;
     }
-  
-  bgav_rtsp_schedule_field(priv->r,
-                           "Accept: application/sdp");
-  bgav_rtsp_schedule_field(priv->r,
-                           "Bandwidth: 10485800");
-  bgav_rtsp_schedule_field(priv->r,
-                           "GUID: 00000000-0000-0000-0000-000000000000");
-  bgav_rtsp_schedule_field(priv->r,
-                           "RegionData: 0");
-  bgav_rtsp_schedule_field(priv->r,
-                           "ClientID: Linux_2.4_6.0.9.1235_play32_RN01_EN_586");
-  bgav_rtsp_schedule_field(priv->r,
-                           "SupportsMaximumASMBandwidth: 1");
-  bgav_rtsp_schedule_field(priv->r,
-                           "Language: en-US");
-  bgav_rtsp_schedule_field(priv->r,
-                           "Require: com.real.retain-entity-for-setup");
+#endif
+
+  /* The describe request looks a bit different depending on what server type we have */
+
+  switch(priv->type)
+    {
+    case SERVER_TYPE_REAL:
+      bgav_rtsp_schedule_field(priv->r,
+                               "Accept: application/sdp");
+      bgav_rtsp_schedule_field(priv->r,
+                               "Bandwidth: 10485800");
+      bgav_rtsp_schedule_field(priv->r,
+                               "GUID: 00000000-0000-0000-0000-000000000000");
+      bgav_rtsp_schedule_field(priv->r,
+                               "RegionData: 0");
+      bgav_rtsp_schedule_field(priv->r,
+                               "ClientID: Linux_2.4_6.0.9.1235_play32_RN01_EN_586");
+      bgav_rtsp_schedule_field(priv->r,
+                               "SupportsMaximumASMBandwidth: 1");
+      bgav_rtsp_schedule_field(priv->r,
+                               "Language: en-US");
+      bgav_rtsp_schedule_field(priv->r,
+                               "Require: com.real.retain-entity-for-setup");
+      break;
+    case SERVER_TYPE_QTSS:
+      bgav_rtsp_schedule_field(priv->r,
+                               "Accept: application/sdp");
+      bgav_rtsp_schedule_field(priv->r,
+                               "Accept-Language: en");
+      bgav_rtsp_schedule_field(priv->r,
+                               "User-Agent: QTS (qtver=6.0;os=Windows NT 5.0Service Pack 3)");
+      break;
+    default:
+      bgav_rtsp_schedule_field(priv->r,
+                               "Accept: application/sdp");
+    }
     
   if(!bgav_rtsp_request_describe(priv->r, got_redirected))
     return 0;
@@ -266,6 +343,14 @@ static int open_and_describe(bgav_input_context_t * ctx, const char * url, int *
   return 1;
   }
 
+
+static int is_real_smil(bgav_sdp_t * s)
+  {
+  if((s->num_media == 1) && !strcmp(s->media[0].media, "data"))
+    return 1;
+  return 0;
+  }
+     
 static int open_rtsp(bgav_input_context_t * ctx, const char * url)
   {
   rtsp_priv_t * priv;
@@ -300,7 +385,7 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
       }
     if(got_redirected)
       {
-      //      fprintf(stderr, "Got redirected to: %s\n", bgav_rtsp_get_url(priv->r));
+      // fprintf(stderr, "Got redirected to: %s\n", bgav_rtsp_get_url(priv->r));
       num_redirections++;
       }
     else
@@ -324,17 +409,26 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
   switch(priv->type)
     {
     case SERVER_TYPE_REAL:
-      priv->rmff_header =
-        bgav_rmff_header_create_from_sdp(sdp,
-                                         ctx->network_bandwidth,
-                                         &stream_rules);
-      if(!priv->rmff_header)
-        goto fail;
-      ctx->demuxer = bgav_demuxer_create(&bgav_demuxer_rmff, ctx);
-      if(!bgav_demux_rm_open_with_header(ctx->demuxer,
-                                         priv->rmff_header))
-        return 0;
       priv->next_packet = next_packet_rdt;
+
+      if(is_real_smil(sdp))
+        {
+        fprintf(stderr, "Got smil redirector\n");
+        priv->has_smil = 1;
+        }
+      else
+        {
+        priv->rmff_header =
+          bgav_rmff_header_create_from_sdp(sdp,
+                                           ctx->network_bandwidth,
+                                           &stream_rules);
+        if(!priv->rmff_header)
+          goto fail;
+        ctx->demuxer = bgav_demuxer_create(&bgav_demuxer_rmff, ctx);
+        if(!bgav_demux_rm_open_with_header(ctx->demuxer,
+                                           priv->rmff_header))
+          return 0;
+        }
       break;
     }
   
@@ -359,7 +453,7 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
     }
   free(field);
   
-  if(priv->rmff_header->prop.num_streams > 1)
+  if(priv->rmff_header && (priv->rmff_header->prop.num_streams > 1))
     {
     field = bgav_sprintf("If-Match: %s", session_id);
     bgav_rtsp_schedule_field(priv->r, field);free(field);
@@ -391,6 +485,8 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
     }
   if(session_id)
     free(session_id);
+
+  ctx->url = bgav_strndup(url, NULL);
   
   return 1;
 
@@ -435,7 +531,7 @@ static int do_read(bgav_input_context_t* ctx,
   rtsp_priv_t * priv;
   int bytes_to_copy;
   priv = (rtsp_priv_t*)(ctx->priv);
-  //  fprintf(stderr, "do read %d\n", len);
+  //  fprintf(stderr, "do read %d", len);
   bytes_read = 0;
   while(bytes_read < len)
     {
@@ -453,6 +549,8 @@ static int do_read(bgav_input_context_t* ctx,
     priv->packet_ptr += bytes_to_copy;
     priv->packet_len -= bytes_to_copy;
     }
+  //  fprintf(stderr, "Done %d bytes\n", bytes_read);
+  //  bgav_hexdump(buffer, bytes_read, 16);
   return bytes_read;
   }
 
@@ -465,7 +563,7 @@ static int read_rtsp(bgav_input_context_t* ctx,
 static int read_nonblock_rtsp(bgav_input_context_t * ctx,
                               uint8_t * buffer, int len)
   {
-  return do_read(ctx, buffer, len, 1);
+  return do_read(ctx, buffer, len, 0);
   }
 
 

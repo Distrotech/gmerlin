@@ -218,13 +218,14 @@ int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
   /* Decode frame */
 
-  //  fprintf(stderr, "Decode frame\n");
-  
+  //  if(!f)
+  //    fprintf(stderr, "Skipping frame\n");
+#if 1
   if(f)
     mpeg2_skip(priv->dec, 0);
   else
     mpeg2_skip(priv->dec, 1);
-
+#endif
   while(1)
     {
     if(!parse(s, &state))
@@ -311,7 +312,10 @@ static void resync_mpeg2(bgav_stream_t*s)
        (priv->info->current_picture->flags & PIC_FLAG_CODING_TYPE_P))
       break;
     else if(priv->info->current_picture->flags & PIC_FLAG_CODING_TYPE_I)
+      {
+      //      fprintf(stderr, "resync_mpeg2: Got I Frame\n");
       break;
+      }
     }
   mpeg2_skip(priv->dec, 0);
   priv->do_resync = 0;

@@ -434,6 +434,7 @@ struct bgav_input_context_s
    */
   
   char * filename;
+  char * url;
   char * mimetype;
 
   /* For multiple track support */

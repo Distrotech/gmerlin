@@ -35,9 +35,8 @@ static int probe_asx(bgav_input_context_t * input)
     pos = strrchr(input->filename, '.');
     if(pos)
       {
-      if((pos[1] == 'a') &&
-         (pos[2] == 's') &&
-         (pos[3] == 'x'))
+      pos++;
+      if(!strcasecmp(pos, "asx"))
         return 1;
       }
     }

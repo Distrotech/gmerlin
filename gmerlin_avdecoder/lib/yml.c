@@ -32,6 +32,7 @@ typedef struct
   char * buffer_ptr;
   int buffer_size;
   int buffer_alloc;
+  int eof;
   } parser_t;
 
 static bgav_yml_node_t * parse_node(parser_t * p, int * is_comment);
@@ -43,6 +44,9 @@ static int more_data(parser_t * p)
   {
   int buffer_pos;
   int bytes_read;
+  if(p->eof)
+    return 0;
+  
   if(p->buffer_size + BYTES_TO_READ + 1 > p->buffer_alloc)
     {
     p->buffer_alloc = p->buffer_size + BYTES_TO_READ + 1 + 128;
@@ -51,6 +55,9 @@ static int more_data(parser_t * p)
     p->buffer_ptr = p->buffer + buffer_pos;
     }
   bytes_read = bgav_input_read_data(p->input, p->buffer + p->buffer_size, BYTES_TO_READ);
+
+  if(bytes_read < BYTES_TO_READ)
+    p->eof = 1;
   if(!bytes_read)
     return 0;
 
@@ -136,30 +143,50 @@ static char * parse_attribute_name(parser_t * p)
 static char * parse_attribute_value(parser_t * p)
   {
   char * ret;
-  char * end;
-  char accept[2];
-
-  //  fprintf(stderr, "Parse attribute value: %s %d\n",
-  //          p->buffer, p->buffer_size);
-
+  char * end = (char*)0;
+  char close_seq[3];
+  
   if(!p->buffer_size)
     {
     if(!more_data(p))
       return (char*)0;
     }
-  accept[0] = *(p->buffer);
-  accept[1] = '\0';
-  if((accept[0] != '\'') && (accept[0] != '"'))
-    return (char*)0;
-  advance(p, 1);
+#if 0
+  fprintf(stderr, "Parse attribute value: %s %d\n",
+          p->buffer, p->buffer_size);
+#endif
+  if((p->buffer[0] == '\\') && (p->buffer[1] == '"'))
+    {
+    close_seq[0] = p->buffer[0];
+    close_seq[1] = p->buffer[1];
+    close_seq[2] = '\0';
+    advance(p, 2);
+    }
+  else
+    {
+    close_seq[0] = *(p->buffer);
+    close_seq[1] = '\0';
+    if((close_seq[0] != '\'') && (close_seq[0] != '"'))
+      return (char*)0;
+    advance(p, 1);
+    }
 
-  end = find_chars(p, accept);
+  while(1)
+    {
+    end = strstr(p->buffer, close_seq);
+
+    if(end)
+      break;
+    if(!more_data(p))
+      break;
+    }
+  
 
   if(!end)
     return(char*)0;
   ret = bgav_strndup(p->buffer, end);
   
-  advance(p, (int)(end - p->buffer) + 1);
+  advance(p, (int)(end - p->buffer) + strlen(close_seq));
   return ret;
   }
 
@@ -568,6 +595,7 @@ const char * bgav_yml_get_attribute(bgav_yml_node_t * n, const char * name)
     {
     if(attr->name && !strcmp(attr->name, name))
       return attr->value;
+    attr = attr->next;
     }
   return (const char*)0;
   }
@@ -580,6 +608,7 @@ const char * bgav_yml_get_attribute_i(bgav_yml_node_t * n, const char * name)
     {
     if(attr->name && !strcasecmp(attr->name, name))
       return attr->value;
+    attr = attr->next;
     }
   return (const char*)0;
   

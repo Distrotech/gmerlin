@@ -298,7 +298,7 @@ void bgav_select_track(bgav_t * b, int track)
     b->input->input->select_track(b->input, track);
     bgav_demuxer_start(b->demuxer, &(b->redirector));
     }
-  else if(b->demuxer->demuxer->select_track)
+  else if(b->demuxer && b->demuxer->demuxer->select_track)
     {
     /* Demuxer switches track */
     bgav_track_table_select_track(b->tt, track);

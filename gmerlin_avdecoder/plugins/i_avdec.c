@@ -67,8 +67,6 @@ static int open_avdec(void * priv, const char * location)
       else
         avdec->track_info[i].name = bg_strdup(avdec->track_info[i].name,
                                               avdec->track_info[i].url);
-
-      avdec->track_info[i].plugin = bg_strdup(avdec->track_info[i].plugin, "i_avdec");
       }
     return 1;
     }

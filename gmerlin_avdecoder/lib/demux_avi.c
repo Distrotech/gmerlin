@@ -27,10 +27,8 @@
 /* Define the variable below to get a detailed file dump
    on each open call */
 
-#define DUMP_HEADERS
-
+// #define DUMP_HEADERS
 // #define DUMP_INDICES
-
 // #define DUMP_AUDIO_TYPE
 
 /* AVI Flags */
@@ -62,9 +60,13 @@
 #define ID_STRD BGAV_MK_FOURCC('s','t','r','d')
 #define ID_JUNK BGAV_MK_FOURCC('J','U','N','K')
 
+#define ID_IDX1 BGAV_MK_FOURCC('i','d','x','1')
+
 #define ID_VIDS BGAV_MK_FOURCC('v','i','d','s')
 #define ID_AUDS BGAV_MK_FOURCC('a','u','d','s')
 #define ID_MOVI BGAV_MK_FOURCC('m','o','v','i')
+
+#define ID_INFO BGAV_MK_FOURCC('I','N','F','O')
 
 /* OpenDML Extensions */
 
@@ -220,7 +222,8 @@ typedef struct
 
   odml_t odml;
   int has_odml;
-  
+
+  bgav_RIFFINFO_t * info;
   } avi_priv;
 
 typedef struct
@@ -481,6 +484,18 @@ static void dump_idx1(idx1_t * idx1)
   }
 #endif
 
+static int probe_idx1(bgav_input_context_t * input)
+  {
+  uint32_t fourcc;
+
+  if(!bgav_input_get_fourcc(input, &fourcc))
+    return 0;
+
+  if(fourcc == ID_IDX1)
+    return 1;
+  return 0;
+  }
+
 static int read_idx1(bgav_input_context_t * input, idx1_t * ret)
   {
   int i;
@@ -490,6 +505,9 @@ static int read_idx1(bgav_input_context_t * input, idx1_t * ret)
     return 0;
   //  bgav_dump_fourcc(ch.ckID);
   ret->num_entries = ch.ckSize / 16;
+
+  //  fprintf(stderr, "Entries: %d\n", ret->num_entries);
+
   ret->entries = calloc(ret->num_entries, sizeof(*ret->entries));
   for(i = 0; i < ret->num_entries; i++)
     {
@@ -1373,7 +1391,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
 
   read_chunk_header(ctx->input, &ch);
   
-  for(i = 0; i < (p->avih).dwStreams; i++)
+  for(i = 0; i < p->avih.dwStreams; i++)
     {
     if(!bgav_input_read_fourcc(ctx->input, &fourcc))
       {
@@ -1441,12 +1459,15 @@ static int open_avi(bgav_demuxer_context_t * ctx,
         
         //        bgav_input_skip(ctx->input, ch.ckSize-4);
         break;
+      case ID_INFO:
+        p->info = bgav_RIFFINFO_read_without_header(ctx->input, ch.ckSize-4);
+        break;
       default:
-#if 0
+#if 1
         fprintf(stderr, "Skipping unknown chunk\n");
         bgav_dump_fourcc(fourcc);
         fprintf(stderr, "\n");
-        dump_chunk_header(&ch);
+        //        dump_chunk_header(&ch);
 #endif
         bgav_input_skip(ctx->input, ch.ckSize-4);
         break;
@@ -1472,13 +1493,14 @@ static int open_avi(bgav_demuxer_context_t * ctx,
     if(ctx->input->total_bytes)
       p->movi_size = ctx->input->total_bytes - p->movi_start;
     }
-  fprintf(stderr, "Reached MOVI atom start: %lld size: %d\n", p->movi_start, p->movi_size);
+  //  fprintf(stderr, "Reached MOVI atom start: %lld size: %d\n", p->movi_start, p->movi_size);
   //  bgav_dump_fourcc(fourcc);
-  if((p->avih.dwFlags & AVI_HASINDEX) && (ctx->input->input->seek_byte))
+
+  if(ctx->input->input->seek_byte)
     {
-    /* The index must come after the MOVI chunk */
     bgav_input_seek(ctx->input, p->movi_start + p->movi_size, SEEK_SET);
-    if(read_idx1(ctx->input, &(p->idx1)))
+
+    if(probe_idx1(ctx->input) && read_idx1(ctx->input, &(p->idx1)))
       {
       p->has_idx1 = 1;
       ctx->can_seek = 1;
@@ -1516,11 +1538,16 @@ static int open_avi(bgav_demuxer_context_t * ctx,
   if(!ctx->si && p->has_idx1)
     {
     idx1_build_superindex(ctx);
-    fprintf(stderr, "Using idx1\n");
+    //    fprintf(stderr, "Using idx1\n");
     }
 
   if(!ctx->tt->current_track->duration)
     ctx->tt->current_track->duration = GAVL_TIME_UNDEFINED;
+
+  /* Build metadata */
+
+  if(p->info)
+    bgav_RIFFINFO_get_metadata(p->info, &(ctx->tt->current_track->metadata));
   
 
   ctx->stream_description = bgav_sprintf("Microsoft AVI");
@@ -1566,7 +1593,9 @@ static void close_avi(bgav_demuxer_context_t * ctx)
 
     free(avi_vs);
     }
-  
+
+  if(priv->info)
+    bgav_RIFFINFO_destroy(priv->info);
   free(priv);
   }
 
