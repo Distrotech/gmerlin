@@ -1,3 +1,5 @@
+pkgincludedir=$(includedir)/gmerlin/gui_gtk
+
 pkginclude_HEADERS =  \
 albumentry.h \
 audio.h \

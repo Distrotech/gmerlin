@@ -276,7 +276,7 @@ static void do_capture(gmerlin_webcam_t * cam)
   if(!cam->capture_initialized)
     {
     cam->do_convert_capture =
-      gavl_video_init(cam->capture_cnv, &cam->capture_opt,
+      gavl_video_converter_init(cam->capture_cnv, &cam->capture_opt,
                       &cam->input_format, &cam->capture_format);
     cam->capture_frame = gavl_video_frame_create(&cam->capture_format);
     }
@@ -325,7 +325,7 @@ static void open_monitor(gmerlin_webcam_t * cam)
   /* Fire up video converter */
   
   cam->do_convert_monitor =
-    gavl_video_init(cam->monitor_cnv, &cam->monitor_opt, &cam->input_format,
+    gavl_video_converter_init(cam->monitor_cnv, &cam->monitor_opt, &cam->input_format,
                     &cam->monitor_format);
   
   /* Allocate video image */

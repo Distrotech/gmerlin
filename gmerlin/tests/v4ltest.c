@@ -117,7 +117,7 @@ int main(int argc, char ** argv)
   cnv = gavl_video_converter_create();
   gavl_video_default_options(&opt);
 
-  do_convert = gavl_video_init(cnv, &opt, &input_format, &output_format);
+  do_convert = gavl_video_converter_init(cnv, &opt, &input_format, &output_format);
 
   /* Allocate video image */
 

@@ -1,4 +1,4 @@
-Summary:	Base libraries for gmerlin applications
+Summary:	Base library for gmerlin applications
 Name:		gmerlin-lib
 Version:	@VERSION@
 Release:	1
@@ -10,11 +10,17 @@ URL:		http://gmerlin.sourceforge.net/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	gtk2-devel
-BuildRequires:	libxml2-devel
+BuildRequires:	libxml2-devel >= @XML2_REQUIRED@
+BuildRequires:	libjpeg-devel
+BuildRequires:	alsa-lib-devel >= @ALSA_REQUIRED@
+BuildRequires:	esound >= @ESD_REQUIRED@
+BuildRequires:  gavl-devel = @GAVL_REQUIRED@
+Requires:       libxml2 >= @XML2_REQUIRED@
+Requires:       gavl = @GAVL_REQUIRED@
 BuildRoot:	/tmp/gmerlin-build
 
 %description
-Multiformat mediaplayer with recording and transcoding capabilities
+Base library for gmerlin applications
 
 #
 # gmerlin-lib-devel
@@ -30,8 +36,8 @@ Group(pl):	Programowanie/Biblioteki
 Group(pt_BR):	Desenvolvimento/Bibliotecas
 Group(ru):	Разработка/Библиотеки
 Group(uk):	Розробка/Б╕бл╕отеки
+Requires:       gavl-devel = @GAVL_REQUIRED@
 Requires:	%{name} = %{version}
-Requires:	gtk2-devel
 
 %description devel
 Header files for compiling gmerlin applications and plugins
@@ -43,6 +49,8 @@ Header files for compiling gmerlin applications and plugins
 %package -n gmerlin-gtk
 Summary:    Gtk support library for gmerlin
 Group:	    Development/Libraries
+Requires:   gtk2 >= @GTK_REQUIRED@
+Requires:   gmerlin-lib = %{version}
 
 %description -n gmerlin-gtk
 Gtk support library for gmerlin
@@ -54,6 +62,8 @@ Gtk support library for gmerlin
 %package -n gmerlin-gtk-devel
 Summary:    Header files for compiling gmerlin gtk applications
 Group:	    Development/Libraries
+Requires:   gtk2-devel >= @GTK_REQUIRED@
+Requires:   gmerlin-lib-devel = %{version}
 
 %description -n gmerlin-gtk-devel
 Header files for compiling gmerlin gtk applications
@@ -65,6 +75,8 @@ Header files for compiling gmerlin gtk applications
 %package -n gmerlin-lqt
 Summary:	Libquicktime plugins for gmerlin
 Group:		Applications/Multimedia
+Requires:       gmerlin-lib = %{version}
+Provides:       gmerlin-input-plugins
 
 %description -n gmerlin-lqt
 Libquicktime plugins for gmerlin (see http://libquicktime.sf.net)
@@ -76,6 +88,9 @@ Libquicktime plugins for gmerlin (see http://libquicktime.sf.net)
 %package -n gmerlin-alsa
 Summary:	Alsa plugins for gmerlin
 Group:		Applications/Multimedia
+Requires:       gmerlin-lib = %{version}
+Requires:	alsa-lib >= @ALSA_REQUIRED@
+Provides:       gmerlin-soundcard-plugins
 
 %description -n gmerlin-alsa
 Alsa plugins for gmerlin (see http://alsa-project.org)
@@ -87,6 +102,8 @@ Alsa plugins for gmerlin (see http://alsa-project.org)
 %package -n gmerlin-jpeg
 Summary:	Jpeg plugins for gmerlin
 Group:		Applications/Multimedia
+Requires:       gmerlin-lib = %{version}
+Requires:	libjpeg
 
 %description -n gmerlin-jpeg
 Jpeg plugins for gmerlin
@@ -98,6 +115,8 @@ Jpeg plugins for gmerlin
 %package -n gmerlin-oss
 Summary:	OSS plugins for gmerlin
 Group:		Applications/Multimedia
+Requires:       gmerlin-lib = %{version}
+Provides:       gmerlin-soundcard-plugins
 
 %description -n gmerlin-oss
 OSS plugins for gmerlin
@@ -109,6 +128,9 @@ OSS plugins for gmerlin
 %package -n gmerlin-esd
 Summary:	esd plugins for gmerlin
 Group:		Applications/Multimedia
+Requires:       gmerlin-lib = %{version}
+Requires:	esound >= @ESD_REQUIRED@
+Provides:       gmerlin-soundcard-plugins
 
 %description -n gmerlin-esd
 esd plugins for gmerlin
@@ -120,6 +142,7 @@ esd plugins for gmerlin
 %package -n gmerlin-x11
 Summary:	X11 plugins for gmerlin
 Group:		Applications/Multimedia
+Requires:       gmerlin-lib = %{version}
 
 %description -n gmerlin-x11
 X11 plugins for gmerlin
@@ -131,6 +154,7 @@ X11 plugins for gmerlin
 %package -n gmerlin-v4l
 Summary:	Video4linux plugin for gmerlin
 Group:		Applications/Multimedia
+Requires:       gmerlin-lib = %{version}
 
 %description -n gmerlin-v4l
 Video4linux plugin for gmerlin
@@ -142,6 +166,9 @@ Video4linux plugin for gmerlin
 %package -n gmerlin-player
 Summary:        Multiformat media player
 Group:          Applications/Multimedia
+Requires:       gmerlin-gtk = %{version}
+Requires:       gmerlin-soundcard-plugins
+Requires:       gmerlin-x11 = %{version}
 
 %description -n gmerlin-player
 Multiformat media player
@@ -153,6 +180,7 @@ Multiformat media player
 %package -n gmerlin-alsamixer
 Summary:        Alsa mixer
 Group:          Applications/Multimedia
+Requires:       gmerlin-gtk = %{version}
 
 %description -n gmerlin-alsamixer
 Alsa mixer
@@ -164,6 +192,9 @@ Alsa mixer
 %package -n gmerlin-camelot
 Summary:        Webcam application
 Group:          Applications/Multimedia
+Requires:       gmerlin-gtk = %{version}
+Requires:       gmerlin-x11 = %{version}
+Requires:       gmerlin-v4l = %{version}
 
 %description -n gmerlin-camelot
 Webcam application
@@ -175,6 +206,7 @@ Webcam application
 %package -n gmerlin-utils
 Summary:       Utilities for gmerlin
 Group:         Applications/Multimedia
+Requires:      gmerlin-gtk = %{version}
 
 %description -n gmerlin-utils
 Gmerlin Utilities
@@ -207,12 +239,22 @@ rm -rf $RPM_BUILD_ROOT
 %doc README.gz
 %attr(644,root,root) %{_libdir}/libgmerlin.la
 %attr(755,root,root) %{_libdir}/libgmerlin.so*
-%attr(644,root,root) %{_datadir}/gmerlin/icons/audio_16.png
-%attr(644,root,root) %{_datadir}/gmerlin/icons/video_16.png
+%attr(755,root,root) %dir %{_datadir}/gmerlin
+%attr(755,root,root) %dir %{_datadir}/gmerlin/icons
+%attr(755,root,root) %dir %{_libdir}/gmerlin/
+%attr(755,root,root) %dir %{_libdir}/gmerlin/plugins
+%attr(644,root,root) %{_datadir}/gmerlin/icons/*_16.png
+%attr(644,root,root) %{_datadir}/gmerlin/icons/digit_*.png
+%attr(644,root,root) %{_datadir}/gmerlin/icons/display_mode_*.png
+%attr(644,root,root) %{_datadir}/gmerlin/icons/repeat_mode_*.png
+%attr(644,root,root) %{_datadir}/gmerlin/icons/state_*.png
+%attr(644,root,root) %{_datadir}/gmerlin/icons/gmerlin.jpg
+%attr(644,root,root) %{_datadir}/gmerlin/icons/tracks_dnd_32.png
 
 %files devel
+%attr(755,root,root) %dir %{_includedir}/gmerlin
 %defattr(644,root,root)
-%{_includedir}/gmerlin
+%{_includedir}/gmerlin/*.h
 %{_libdir}/pkgconfig/gmerlin.pc
 
 %files -n gmerlin-gtk
@@ -220,6 +262,11 @@ rm -rf $RPM_BUILD_ROOT
 %attr(644,root,root) %{_libdir}/libgmerlin_gtk.la
 %attr(755,root,root) %{_libdir}/libgmerlin_gtk.so*
 %{_includedir}/gmerlin
+
+%files -n gmerlin-gtk-devel
+%defattr(644,root,root)
+%attr(644,root,root) %{_includedir}/gmerlin/gui_gtk/*.h
+%{_libdir}/pkgconfig/gmerlin-gtk.pc
 
 %files -n gmerlin-lqt
 %attr(644,root,root) %{_libdir}/gmerlin/plugins/*lqt*.la
@@ -272,6 +319,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %define date	%(echo `LC_ALL="C" date +"%a %b %d %Y"`)
 %changelog
+* Sat May 29 2004 Burkhard Plaum <gmerlin@users.sourceforge.net>
+- Made it actually working
 * Sat Feb 08 2003 Burkhard Plaum <gmerlin@users.sourceforge.net>
 - Initial creation
 

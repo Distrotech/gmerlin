@@ -136,10 +136,10 @@ int main(int argc, char ** argv)
 
   gavl_video_default_options(&opt);
   
-  do_convert = gavl_video_init(video_converter,
-                               &opt,
-                               &(info->video_streams[0].format),
-                               &video_format);
+  do_convert = gavl_video_converter_init(video_converter,
+                                         &opt,
+                                         &(info->video_streams[0].format),
+                                         &video_format);
 
   if(do_convert)
     fprintf(stderr, "Doing Video Conversion\n");

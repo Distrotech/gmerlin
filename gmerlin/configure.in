@@ -17,15 +17,22 @@ dnl
 
 dnl Required
 
-PKG_CHECK_MODULES(XML2, libxml-2.0 >= 2.4.0, , AC_MSG_ERROR("libxml2 not found"))
-PKG_CHECK_MODULES(GAVL, gavl >= 0.2.0, , AC_MSG_ERROR("gavl not found"))
+XML2_REQUIRED="2.4.0"
+PKG_CHECK_MODULES(XML2, libxml-2.0 >= $XML2_REQUIRED, , AC_MSG_ERROR("libxml2 not found"))
+AC_SUBST(XML2_REQUIRED)
+
+GAVL_REQUIRED=0.2.0
+PKG_CHECK_MODULES(GAVL, gavl >= $GAVL_REQUIRED, , AC_MSG_ERROR("gavl not found"))
+AC_SUBST(GAVL_REQUIRED)
 
 dnl
 dnl Gtk
 dnl
 
-AM_PATH_GTK_2_0(2.2.0, have_gtk=true, have_gtk=false)
+GTK_REQUIRED="2.2.0"
+AM_PATH_GTK_2_0($GTK_REQUIRED, have_gtk=true, have_gtk=false)
 AM_CONDITIONAL(HAVE_GTK, test x$have_gtk = xtrue)
+AC_SUBST(GTK_REQUIRED)
 
 dnl
 dnl X11
@@ -116,22 +123,30 @@ dnl
 dnl Libquicktime
 dnl
 
-AC_PATH_LQT(0.9.2,  have_lqt=true, have_lqt=false)
+LQT_REQUIRED="0.9.2"
+
+AC_PATH_LQT($LQT_REQUIRED,  have_lqt=true, have_lqt=false)
 AM_CONDITIONAL(HAVE_LQT, test x$have_lqt = xtrue)
+AC_SUBST(LQT_REQUIRED)
 
 dnl
 dnl ESounD
 dnl
 
-AM_PATH_ESD(0.2.19, have_esd=true, have_esd=false)
+ESD_REQUIRED="0.2.19"
+
+AM_PATH_ESD($ESD_REQUIRED, have_esd=true, have_esd=false)
 AM_CONDITIONAL(HAVE_ESD,           test x$have_esd = xtrue)
+AC_SUBST(ESD_REQUIRED)
 
 dnl
 dnl ALSA
 dnl
 
+ALSA_REQUIRED="1.0.0"
 AM_PATH_ALSA(1.0.0, have_alsa=true, have_alsa=false)
 AM_CONDITIONAL(HAVE_ALSA, test x$have_alsa = xtrue)
+AC_SUBST(ALSA_REQUIRED)
 
 dnl
 dnl OSS
@@ -282,6 +297,7 @@ dnl AC_CONFIG_SUBDIRS(src/mad src/liba52 src/mpeg2dec)
 AC_CONFIG_FILES([Makefile \
 gmerlin.spec \
 gmerlin.pc \
+gmerlin-gtk.pc \
 apps/Makefile \
 apps/plugincfg/Makefile \
 apps/plugincfg/gmerlin-plugincfg.desktop \

@@ -79,7 +79,7 @@ void * bg_player_ov_create_frame(void * data)
     }
   else
     ret = gavl_video_frame_create(&(ctx->player->video_stream.output_format));
-  gavl_clear_video_frame(ret, &(ctx->player->video_stream.output_format));
+  gavl_video_frame_clear(ret, &(ctx->player->video_stream.output_format));
   return ret;
   }
 

@@ -1181,7 +1181,7 @@ static void put_still_x11(void * data, gavl_video_format_t * format,
   cnv = gavl_video_converter_create();
   gavl_video_default_options(&opt);
   
-  gavl_video_init(cnv, &opt, format, &tmp_format);
+  gavl_video_converter_init(cnv, &opt, format, &tmp_format);
   gavl_video_convert(cnv, frame, priv->still_frame);
 
   gavl_video_converter_destroy(cnv);

@@ -26,25 +26,20 @@ drive_running_16.png \
 first_16.png \
 folder_closed_16.png \
 folder_open_16.png \
-gmerlin_icon.png \
 hardware_16.png \
 info_16.png \
 last_16.png \
 left_16.png \
 lock_16.png \
-mixer_32.png \
 mixer_icon.png \
 mute_16.png \
-pcm_32.png \
 player_icon.png \
 plugincfg_icon.png \
 record_16.png \
-record_32.png \
 repeat_mode_1.png \
 repeat_mode_all.png \
 repeat_mode_none.png \
 right_16.png \
-speaker_32.png \
 state_buffering_1.png \
 state_buffering_2.png \
 state_buffering_3.png \
@@ -61,7 +56,6 @@ tracks_dnd_32.png \
 tree_root_16.png \
 up_16.png \
 video_16.png \
-video_32.png \
 gmerlin.jpg
 
 pkgdata_DATA = $(icons)

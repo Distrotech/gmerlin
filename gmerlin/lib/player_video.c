@@ -62,10 +62,10 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
 
   //  fprintf(stderr, "Initializing video converter...");
   
-  if(!gavl_video_init(s->cnv,
-                      &(s->opt),
-                      &(player->video_stream.input_format),
-                      &(player->video_stream.output_format)))
+  if(!gavl_video_converter_init(s->cnv,
+                                &(s->opt),
+                                &(player->video_stream.input_format),
+                                &(player->video_stream.output_format)))
     {
     s->do_convert = 0;
     }
