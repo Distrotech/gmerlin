@@ -405,6 +405,9 @@ bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t * info)
   int i = 0;
   bg_device_info_t * ret = (bg_device_info_t *)0;
 
+  if(!info)
+    return ret;
+  
   while(info[i].device)
     {
     ret = bg_device_info_append(ret,
