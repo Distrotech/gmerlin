@@ -107,7 +107,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
     }
   
   p->h = bgav_http_open(url, ctx->connect_timeout,
-                        &redirect_url, extra_header);
+                        &redirect_url, extra_header, &ctx->error_msg);
 
   if(!p->h && redirect_url)
     {
@@ -116,7 +116,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
       //      fprintf(stderr, "Got redirection, new URL: %s\n",
       //              redirect_url);
       p->h = bgav_http_open(redirect_url, ctx->connect_timeout,
-                            &redirect_url, extra_header);
+                            &redirect_url, extra_header, &ctx->error_msg);
       if(p->h)
         break;
       else if(!redirect_url)

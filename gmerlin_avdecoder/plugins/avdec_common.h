@@ -68,4 +68,6 @@ int bg_avdec_set_track(void * priv, int track);
 void bg_avdec_set_callbacks(void * priv,
                             bg_input_callbacks_t * callbacks);
 
+const char * bg_avdec_get_error(void * priv);
+
 bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t *);

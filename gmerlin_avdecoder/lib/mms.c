@@ -181,12 +181,12 @@ static void set_command_header(bgav_mms_t * mms, int command,
   mms->cmd_data_write = ptr;
   }
 
-static int flush_command(bgav_mms_t * mms)
+static int flush_command(bgav_mms_t * mms, char ** error_msg)
   {
   //  fprintf(stderr, "Sending command\n");
   //  bgav_hexdump(mms->write_buffer, mms->write_buffer_len, 16);
 
-  return bgav_tcp_send(mms->fd, mms->write_buffer, mms->write_buffer_len);
+  return bgav_tcp_send(mms->fd, mms->write_buffer, mms->write_buffer_len, error_msg);
   }
 
 static int read_command_header(bgav_mms_t * mms)
@@ -274,7 +274,7 @@ static void dump_command_header(bgav_mms_t * mms)
   bgav_hexdump(mms->cmd_data_read, mms->command_header.data_len, 16);
   }
 #endif
-static int next_packet(bgav_mms_t * mms, int block)
+static int next_packet(bgav_mms_t * mms, int block, char ** error_msg)
   {
   uint8_t * ptr;
   uint32_t i_tmp1;
@@ -331,7 +331,7 @@ static int next_packet(bgav_mms_t * mms, int block)
         {
         //        fprintf(stderr, "MMS: Sending keep alive message\n");
         set_command_header(mms, 0x1b, 0x00000001, 0x0001ffff, 0);
-        if(!flush_command(mms))
+        if(!flush_command(mms, error_msg))
           return 0;
         continue;
         }
@@ -409,7 +409,7 @@ static void mms_gen_guid(char guid[])
 #define NUM_ZEROS 8
 
 bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
-                           int read_timeout)
+                           int read_timeout, char ** error_msg)
   {
   char * host     = (char*)0;
   char * protocol = (char*)0;
@@ -440,7 +440,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
                      &port,
                      &path))
     {
-    fprintf(stderr, "Invalid URL: %s\n", url);
+    *error_msg = bgav_sprintf("Invalid URL: %s", url);
     goto fail;
     }
   ret = calloc(1, sizeof(*ret));
@@ -455,7 +455,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   if(port < 0)
     port = 1755;
 
-  ret->fd = bgav_tcp_connect(host, port, connect_timeout);
+  ret->fd = bgav_tcp_connect(host, port, connect_timeout, error_msg);
   
   if(ret->fd < 0)
     goto fail;
@@ -467,7 +467,6 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
     fprintf(stderr, "Cannot set nonblocking mode\n");
     goto fail;
     }
-
   
   /* Begin negotiations */
 
@@ -488,17 +487,16 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
 
   memcpy(ret->cmd_data_write, utf16, len_out);
   memset(ret->cmd_data_write + len_out, 0, 2);
-  if(!flush_command(ret))
+  if(!flush_command(ret, error_msg))
     {
-    fprintf(stderr, "Remote end closed connection\n");
     goto fail;
     }
   free(buf);
   free(utf16);
       
-  if(!next_packet(ret, 1))
+  if(!next_packet(ret, 1, error_msg))
     {
-    fprintf(stderr, "Cannot get Software version number and stuff\n");
+    *error_msg = bgav_sprintf("mms: Cannot get software version number and stuff");
     goto fail;
     }
   /* S->C: 0x01 Software version number and stuff */
@@ -507,8 +505,8 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
      (ret->command_header.prefix1) ||
      (ret->command_header.command != 0x01))
     {
-    fprintf(stderr, "Invalid answer 1 %08x %08x\n", ret->command_header.prefix1,
-            ret->command_header.command);
+    *error_msg = bgav_sprintf("mms: Invalid answer 1 %08x %08x", ret->command_header.prefix1,
+                              ret->command_header.command);
     goto fail;
     }
   pos = ret->cmd_data_read + 32;
@@ -558,16 +556,15 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   set_command_header(ret, 0x02, 0, 0, len_out + 8 + 1);
   memset(ret->cmd_data_write, 0, 8);
   memcpy(ret->cmd_data_write + 8, utf16, len_out + 1);
-  if(!flush_command(ret))
+  if(!flush_command(ret, error_msg))
     {
-    fprintf(stderr, "Remote end closed connection\n");
     goto fail;
     }
   free(utf16);
 
   /* S->C: 0x03: Protocol not accepted OR 0x02: Protocol accepted */
   
-  if(!next_packet(ret, 1))
+  if(!next_packet(ret, 1, error_msg))
     {
     fprintf(stderr, "Next packet failed 1\n");
     goto fail;
@@ -598,14 +595,14 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   memset(ret->cmd_data_write, 0, 8);
   memcpy(ret->cmd_data_write + 8, utf16, len_out);
   memset(ret->cmd_data_write + 8 + len_out, 0, 2);
-  if(!flush_command(ret))
+  if(!flush_command(ret, error_msg))
     {
     fprintf(stderr, "Remote end closed connection\n");
     goto fail;
     }
   free(utf16);
   
-  if(!next_packet(ret, 1))
+  if(!next_packet(ret, 1, error_msg))
     {
     fprintf(stderr, "Next packet failed 2\n");
     goto fail;
@@ -671,7 +668,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   set_command_header(ret, 0x15, 1, 0, 40);
   memset (ret->cmd_data_write, 0, 40);
   ret->cmd_data_write[32] = 2;
-  if(!flush_command(ret))
+  if(!flush_command(ret, error_msg))
     {
     fprintf(stderr, "Remote end closed connection\n");
     goto fail;
@@ -679,7 +676,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   
   /* S->C: 0x11: Header comes */
 
-  if(!next_packet(ret, 1))
+  if(!next_packet(ret, 1, error_msg))
     return 0;
   if((!ret->command) ||
      (ret->command_header.prefix1) ||
@@ -696,7 +693,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
     {
     //    fprintf(stderr, "** Next packet %d %d...", ret->header_size,
     //            ret->header_alloc);
-    if(!next_packet(ret, 1))
+    if(!next_packet(ret, 1, error_msg))
       {
       fprintf(stderr, "Next packet failed\n");
       goto fail;
@@ -763,7 +760,7 @@ uint8_t * bgav_mms_get_header(bgav_mms_t * mms, int * len)
   }
 
 int bgav_mms_select_streams(bgav_mms_t * mms,
-                            int * stream_ids, int num_streams)
+                            int * stream_ids, int num_streams, char ** error_msg)
   {
   uint8_t * ptr;
   int i;
@@ -776,10 +773,10 @@ int bgav_mms_select_streams(bgav_mms_t * mms,
     BGAV_16LE_2_PTR(stream_ids[i], ptr);ptr+=2; /* Stream_id    */
     BGAV_16LE_2_PTR(0x0000, ptr);ptr+=2;        /* Switch it on */
     }
-  if(!flush_command(mms))
+  if(!flush_command(mms, error_msg))
     return 0;
 
-  if(!next_packet(mms, 1))
+  if(!next_packet(mms, 1, error_msg))
     return 0;
 
   if((!mms->command) ||
@@ -799,12 +796,12 @@ int bgav_mms_select_streams(bgav_mms_t * mms,
   /* The following 2 must be equal */
   mms->cmd_data_write[20] = 0x04;
   mms->data_id = 0x04;
-  if(!flush_command(mms))
+  if(!flush_command(mms, error_msg))
     return 0;
   
   /* Now we need 0x05 (media packets follow) */
 
-  if(!next_packet(mms, 1))
+  if(!next_packet(mms, 1, error_msg))
     return 0;
 
   if((!mms->command) ||
@@ -815,11 +812,11 @@ int bgav_mms_select_streams(bgav_mms_t * mms,
   return 1;
   }
 
-uint8_t * bgav_mms_read_data(bgav_mms_t * mms, int * len, int block)
+uint8_t * bgav_mms_read_data(bgav_mms_t * mms, int * len, int block, char ** error_msg)
   {
   //  fprintf(stderr, "bgav_mms_read_data...");
   mms->got_data = 0;
-  if(!next_packet(mms, block))
+  if(!next_packet(mms, block, error_msg))
     return (char*)0;
 
   if(mms->packet_buffer && mms->got_data)

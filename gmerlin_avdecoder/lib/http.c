@@ -75,7 +75,7 @@ void bgav_http_header_add_line(bgav_http_header_t * h, const char * line)
   h->num_lines++;
   }
 
-int bgav_http_header_send(bgav_http_header_t * h, int fd)
+int bgav_http_header_send(bgav_http_header_t * h, int fd, char ** error_msg)
   {
   int i;
 
@@ -84,8 +84,8 @@ int bgav_http_header_send(bgav_http_header_t * h, int fd)
   
   for(i = 0; i < h->num_lines; i++)
     {
-    if(!bgav_tcp_send(fd, h->lines[i].line, strlen(h->lines[i].line)) ||
-       !bgav_tcp_send(fd, "\r\n", 2))
+    if(!bgav_tcp_send(fd, h->lines[i].line, strlen(h->lines[i].line), error_msg) ||
+       !bgav_tcp_send(fd, "\r\n", 2, error_msg))
       return 0;
     
     //    write(fd, h->lines[i].line, strlen(h->lines[i].line));
@@ -172,7 +172,8 @@ struct bgav_http_s
 
 bgav_http_t * bgav_http_open(const char * url, int milliseconds,
                              char ** redirect_url,
-                             bgav_http_header_t * extra_header)
+                             bgav_http_header_t * extra_header,
+                             char ** error_msg)
   {
   int port;
   int status;
@@ -193,8 +194,10 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
                      &host,
                      &port,
                      &path))
+    {
+    *error_msg = bgav_sprintf("Unvalid URL");
     goto fail;
-
+    }
   
   if(port == -1)
     port = 80;
@@ -203,7 +206,7 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
     goto fail;
 
   //  fprintf(stderr, "Connecting...");
-  ret->fd = bgav_tcp_connect(host, port, milliseconds);
+  ret->fd = bgav_tcp_connect(host, port, milliseconds, error_msg);
 
   if(ret->fd == -1)
     goto fail;
@@ -225,7 +228,7 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
   bgav_http_header_add_line(request_header, "Accept: */*");
 
   //  fprintf(stderr, "Sending request:\n");
-  if(!bgav_http_header_send(request_header, ret->fd))
+  if(!bgav_http_header_send(request_header, ret->fd, error_msg))
     goto fail;
   
   //  bgav_http_header_send(request_header, ret->fd);
@@ -236,9 +239,12 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
   if(extra_header)
     {
     //    bgav_http_header_dump(extra_header);
-    bgav_http_header_send(extra_header, ret->fd);
+    if(!bgav_http_header_send(extra_header, ret->fd, error_msg))
+      goto fail;
     }
-  write(ret->fd, "\r\n", 2);
+  if(!bgav_tcp_send(ret->fd, "\r\n", 2, error_msg))
+    goto fail;
+  
   bgav_http_header_destroy(request_header);
   
   ret->header = bgav_http_header_create();

@@ -175,6 +175,8 @@ static void channel_mask_2_format(uint32_t channel_mask, gavl_audio_format_t * f
       {
       format->channel_setup = channel_setups[i].channel_setup;
       format->lfe           = channel_setups[i].lfe;
+
+      //      fprintf(stderr, "channel_mask_2_format: %d\n", format->lfe);
       
       if(format->num_channels != channel_setups[i].num_channels)
         {

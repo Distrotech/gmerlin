@@ -17,6 +17,8 @@
  
 *****************************************************************/
 
+#include <errno.h>
+#include <string.h>
 #include <stdio.h>
 #include <avdec_private.h>
 
@@ -24,7 +26,10 @@ static int open_file(bgav_input_context_t * ctx, const char * url)
   {
   FILE * f = fopen(url, "rb");
   if(!f)
+    {
+    ctx->error_msg = bgav_sprintf(strerror(errno));
     return 0;
+    }
   ctx->priv = f;
 
   fseek((FILE*)(ctx->priv), 0, SEEK_END);

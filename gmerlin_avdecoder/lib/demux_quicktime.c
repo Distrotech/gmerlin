@@ -659,10 +659,10 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
 
         priv->mdats[priv->num_mdats].start = ctx->input->position;
         priv->mdats[priv->num_mdats].size  = h.size - (ctx->input->position - h.start_position);
-
+#if 0
         fprintf(stderr, "Found mdat atom, start: %lld, size: %lld\n", priv->mdats[priv->num_mdats].start,
                 priv->mdats[priv->num_mdats].size);
-
+#endif
         priv->num_mdats++;
         
         /* Some files have the moov atom at the end */

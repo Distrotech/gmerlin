@@ -195,8 +195,10 @@ int bgav_open(bgav_t * ret, const char * location)
   {
   ret->input = create_input(ret);
   if(!bgav_input_open(ret->input, location))
+    {
+    ret->error_msg = bgav_sprintf(ret->input->error_msg);
     goto fail;
-  
+    }
   if(!bgav_init(ret))
     goto fail;
 
@@ -256,6 +258,9 @@ void bgav_close(bgav_t * b)
     }
   if(b->tt)
     bgav_track_table_unref(b->tt);
+  if(b->error_msg)
+    free(b->error_msg);
+
   free(b);
   }
 
@@ -459,3 +464,7 @@ bgav_set_buffer_callback(bgav_t * b,
   
   }
 
+const char * bgav_get_error(bgav_t * b)
+  {
+  return b->error_msg;
+  }

@@ -473,7 +473,7 @@ struct bgav_input_context_s
   void (*buffer_callback)(void * data, float percentage);
   void * buffer_callback_data;
 
-
+  char * error_msg;
   };
 
 /* input.c */
@@ -762,6 +762,8 @@ struct bgav_s
   /* Set by the seek function */
 
   int eof;
+
+  char * error_msg;
   };
 
 /* bgav.c */
@@ -893,8 +895,8 @@ int bgav_read_data_fd(int fd, uint8_t * ret, int size, int milliseconds);
 
 /* tcp.c */
 
-int bgav_tcp_connect(const char * host, int port, int milliseconds);
-int bgav_tcp_send(int fd, uint8_t * data, int len);
+int bgav_tcp_connect(const char * host, int port, int milliseconds, char ** error_msg);
+int bgav_tcp_send(int fd, uint8_t * data, int len, char ** error_msg);
 
 /* Charset utilities (charset.c) */
 

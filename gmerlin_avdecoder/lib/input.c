@@ -399,8 +399,9 @@ void bgav_input_close(bgav_input_context_t * ctx)
     free(ctx->url);
   if(ctx->id3v2)
     bgav_id3v2_destroy(ctx->id3v2);
-
-  
+  if(ctx->error_msg)
+    free(ctx->error_msg);
+    
   bgav_metadata_free(&(ctx->metadata));
   //  free(ctx);
   memset(ctx, 0, sizeof(*ctx));

@@ -400,6 +400,16 @@ void bg_avdec_set_callbacks(void * priv,
   avdec->bg_callbacks = callbacks;
   }
 
+const char * bg_avdec_get_error(void * priv)
+  {
+  avdec_priv * avdec;
+  avdec = (avdec_priv*)(priv);
+  if(avdec->dec)
+    return bgav_get_error(avdec->dec);
+  return (const char *)0;
+  }
+
+
 bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t * info)
   {
   int i = 0;
@@ -417,3 +427,4 @@ bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t * info)
     }
   return ret;
   }
+

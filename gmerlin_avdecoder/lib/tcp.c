@@ -33,6 +33,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <avdec_private.h>
+
 
 // #include <sys/un.h>
 
@@ -49,7 +51,7 @@ typedef struct
   int port;
   } host_address_t;
 
-static int hostbyname(host_address_t * a, const char * hostname)
+static int hostbyname(host_address_t * a, const char * hostname, char ** error_msg)
   {
   struct hostent   h_ent;
   struct hostent * h_ent_p;
@@ -69,8 +71,7 @@ static int hostbyname(host_address_t * a, const char * hostname)
   
   gethostbyname_buffer_size = 1024;
   gethostbyname_buffer = malloc(gethostbyname_buffer_size);
-                                                                               
-                                                                               
+  
   while((result = gethostbyname_r(hostname,
                                   &h_ent,
                                   gethostbyname_buffer,
@@ -86,7 +87,7 @@ static int hostbyname(host_address_t * a, const char * hostname)
                                                                                
   if(result || (h_ent_p == NULL))
     {
-    fprintf(stderr, "Could not resolve address\n");
+    *error_msg = bgav_sprintf("Could not resolve address %s", hostname);
     goto fail;
     }
   if(h_ent_p->h_addrtype == AF_INET)
@@ -103,7 +104,8 @@ static int hostbyname(host_address_t * a, const char * hostname)
     }
   else
     {
-    fprintf(stderr, "No known address space\n");
+    *error_msg = bgav_sprintf("Could not resolve address %s: No known address space",
+                              hostname);
     goto fail;
     }
   //  fprintf(stderr, "Done\n");
@@ -118,7 +120,7 @@ static int hostbyname(host_address_t * a, const char * hostname)
 
 /* Client connection (stream oriented) */
                                                                                
-static int socket_connect_inet(host_address_t * a, int milliseconds)
+static int socket_connect_inet(host_address_t * a, int milliseconds, char ** error_msg)
   {
   int ret = -1;
   struct sockaddr_in  addr_in;
@@ -141,10 +143,9 @@ static int socket_connect_inet(host_address_t * a, int milliseconds)
   if(a->addr_type == AF_INET)
     {
     addr = &addr_in;
-    addr_len = sizeof(addr_in);
-                                                                               
+    addr_len = sizeof(addr_in);   
     memset(&addr_in, 0, sizeof(addr_len));
-                                                                               
+    
     addr_in.sin_family = AF_INET;
     memcpy(&(addr_in.sin_addr),
            &(a->addr.ipv4_addr),
@@ -188,13 +189,13 @@ static int socket_connect_inet(host_address_t * a, int milliseconds)
       FD_SET (ret, &write_fds);
       if(!select(ret+1, (fd_set*)0, &write_fds,(fd_set*)0,&timeout))
         {
-        //        fprintf(stderr, "Connection timed out\n");
+        *error_msg = bgav_sprintf("Connection timed out");
         return -1;
         }
       }
     else
       {
-      //      fprintf(stderr, "Failed\n");
+      *error_msg = bgav_sprintf("Connecting failed: %s", strerror(errno));
       return -1;
       }
     }
@@ -210,23 +211,26 @@ static int socket_connect_inet(host_address_t * a, int milliseconds)
   return ret;
   }
 
-int bgav_tcp_connect(const char * host, int port, int milliseconds)
+int bgav_tcp_connect(const char * host, int port, int milliseconds, char ** error_msg)
   {
   host_address_t addr;
-  if(!hostbyname(&addr, host))
+  if(!hostbyname(&addr, host, error_msg))
     return -1;
   addr.port = port;
-  return socket_connect_inet(&addr, milliseconds);
+  return socket_connect_inet(&addr, milliseconds, error_msg);
   }
 
-int bgav_tcp_send(int fd, uint8_t * data, int len)
+int bgav_tcp_send(int fd, uint8_t * data, int len, char ** error_msg)
   {
+  char error_buffer[1024];
   int result;
   result = send(fd, data, len, MSG_NOSIGNAL);
   if(result != len)
     {
-    fprintf(stderr, "Send returned %d, len: %d %s\n", result, len,
-            strerror(errno));
+    if(!strerror_r(errno, error_buffer, 1024))
+      *error_msg = bgav_sprintf("Could not send data: %s", error_buffer);
+    else
+      *error_msg = bgav_sprintf("Could not send data");
     return 0;
     }
   return 1;

@@ -39,6 +39,8 @@ typedef struct
   int intra_slice_refresh;
   
   int do_resync;
+
+  const mpeg2_picture_t * first_iframe;
   } mpeg2_priv_t;
 
 int dump_packet = 1;
@@ -220,7 +222,7 @@ int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
 
   //  if(!f)
   //    fprintf(stderr, "Skipping frame\n");
-#if 1
+#if 0
   if(f)
     mpeg2_skip(priv->dec, 0);
   else
@@ -232,10 +234,24 @@ int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
       return 0;
     if(((state == STATE_END) || (state == STATE_SLICE) ||
         (state == STATE_INVALID_END)) && priv->info->display_fbuf)
-      break;
+      {
+      if(priv->first_iframe)
+        {
+        if(priv->info->display_picture == priv->first_iframe)
+          {
+          // fprintf(stderr, "Got I Frame 1: %p\n", priv->info->display_picture); 
+          priv->first_iframe = (mpeg2_picture_t*)0;
+          break;
+          }
+        }
+      else
+        break;
+      }
     }
-  
-
+#if 0
+  if(priv->info->display_picture->flags & PIC_FLAG_SKIP)
+    fprintf(stderr, "BUG: Displaying skipped picture\n");
+#endif
   /* Calculate timestamp */
     
   if(priv->info->display_picture->flags & PIC_FLAG_TAGS)
@@ -274,11 +290,11 @@ int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
 #if 0
-  if(priv->info->display_picture->flags & PIC_FLAG_CODING_TYPE_I)
+  if((priv->info->display_picture->flags & PIC_MASK_CODING_TYPE) == PIC_FLAG_CODING_TYPE_I)
     fprintf(stderr, "I-Frame\n");
-  else if(priv->info->display_picture->flags & PIC_FLAG_CODING_TYPE_P)
+  else if((priv->info->display_picture->flags & PIC_MASK_CODING_TYPE) == PIC_FLAG_CODING_TYPE_P)
     fprintf(stderr, "P-Frame\n");
-  else if(priv->info->display_picture->flags & PIC_FLAG_CODING_TYPE_B)
+  else if((priv->info->display_picture->flags & PIC_MASK_CODING_TYPE) == PIC_FLAG_CODING_TYPE_B)
     fprintf(stderr, "B-Frame\n");
 #endif
   
@@ -301,6 +317,7 @@ static void resync_mpeg2(bgav_stream_t*s)
 
   while(1)
     {
+    /* Get the next picture header */
     while(1)
       {
       if(!parse(s, &state))
@@ -308,12 +325,18 @@ static void resync_mpeg2(bgav_stream_t*s)
       if(state == STATE_PICTURE)
         break;
       }
+    //    fprintf(stderr, "Resync: Current: %p display: %p\n",
+    //            priv->info->current_picture, priv->info->display_picture);
+    
+    /* Check if we can start decoding again */
     if((priv->intra_slice_refresh)  &&
-       (priv->info->current_picture->flags & PIC_FLAG_CODING_TYPE_P))
+       ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) == PIC_FLAG_CODING_TYPE_P))
       break;
-    else if(priv->info->current_picture->flags & PIC_FLAG_CODING_TYPE_I)
+    else if(priv->info->current_picture &&
+            ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) == PIC_FLAG_CODING_TYPE_I))
       {
-      //      fprintf(stderr, "resync_mpeg2: Got I Frame\n");
+      // fprintf(stderr, "resync_mpeg2: Got I Frame %p\n", priv->info->current_picture);
+      priv->first_iframe = priv->info->current_picture;
       break;
       }
     }

@@ -125,7 +125,6 @@ int bgav_open(bgav_t *, const char * location);
 
 int bgav_open_vcd(bgav_t *, const char * location);
 
-
 /*
  *  Open with existing file descriptor (e.g. http socket)
  *  total size must be 0 if unknown
@@ -134,6 +133,11 @@ int bgav_open_vcd(bgav_t *, const char * location);
 int bgav_open_fd(bgav_t *, int fd,
                  int64_t total_size,
                  const char * mimetype);
+
+/* If either open call fails, get the reason with: */
+
+const char * bgav_get_error(bgav_t *);
+
 
 /* Close and destroy everything */
 

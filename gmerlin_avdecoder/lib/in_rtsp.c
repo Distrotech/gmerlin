@@ -153,9 +153,9 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
       /* Make the server happy */
 
       bgav_tcp_send(fd, "RTSP/1.0 451 Parameter Not Understood\r\n",
-                    strlen("RTSP/1.0 451 Parameter Not Understood\r\n"));
+                    strlen("RTSP/1.0 451 Parameter Not Understood\r\n"), &ctx->error_msg);
       buf = bgav_sprintf("CSeq: %u\r\n\r\n", seq);
-      bgav_tcp_send(fd, buf, strlen(buf));
+      bgav_tcp_send(fd, buf, strlen(buf), &ctx->error_msg);
       free(buf);
       //      fprintf(stderr, "Answered ping request\n");
       }
@@ -252,7 +252,8 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
   }
 
 
-static int open_and_describe(bgav_input_context_t * ctx, const char * url, int * got_redirected)
+static int open_and_describe(bgav_input_context_t * ctx,
+                             const char * url, int * got_redirected)
   {
   const char * var;
   rtsp_priv_t * priv = (rtsp_priv_t *)(ctx->priv);
@@ -282,7 +283,7 @@ static int open_and_describe(bgav_input_context_t * ctx, const char * url, int *
   bgav_rtsp_schedule_field(priv->r,
                            "Pragma: initiate-session");
 
-  if(!bgav_rtsp_open(priv->r, url, got_redirected))
+  if(!bgav_rtsp_open(priv->r, url, got_redirected, &ctx->error_msg))
     return 0;
 
   if(*got_redirected)
@@ -353,7 +354,7 @@ static int open_and_describe(bgav_input_context_t * ctx, const char * url, int *
                                "Accept: application/sdp");
     }
     
-  if(!bgav_rtsp_request_describe(priv->r, got_redirected))
+  if(!bgav_rtsp_request_describe(priv->r, got_redirected, &(ctx->error_msg)))
     return 0;
   
   return 1;
@@ -462,7 +463,7 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
   bgav_rtsp_schedule_field(priv->r, "Transport: x-pn-tng/tcp;mode=play,rtp/avp/tcp;unicast;mode=play");
   field = bgav_sprintf("%s/streamid=0", url);
 
-  if(!bgav_rtsp_request_setup(priv->r,field))
+  if(!bgav_rtsp_request_setup(priv->r,field, &ctx->error_msg))
     {
     free(field);
     goto fail;
@@ -475,19 +476,24 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
     bgav_rtsp_schedule_field(priv->r, field);free(field);
     bgav_rtsp_schedule_field(priv->r, "Transport: x-pn-tng/tcp;mode=play,rtp/avp/tcp;unicast;mode=play");
     field = bgav_sprintf("%s/streamid=1", url);
-    bgav_rtsp_request_setup(priv->r,field);free(field);
+    if(!bgav_rtsp_request_setup(priv->r,field, &ctx->error_msg))
+      {
+      free(field);
+      goto fail;
+      }
+    free(field);
     }
 
   /* Set Parameter */
 
   field = bgav_sprintf("Subscribe: %s", stream_rules);
   bgav_rtsp_schedule_field(priv->r, field);free(field);
-  if(!bgav_rtsp_request_setparameter(priv->r))
+  if(!bgav_rtsp_request_setparameter(priv->r, &ctx->error_msg))
     goto fail;
   /* Play */
 
   bgav_rtsp_schedule_field(priv->r, "Range: npt=0-");
-  if(!bgav_rtsp_request_play(priv->r))
+  if(!bgav_rtsp_request_play(priv->r, &ctx->error_msg))
     goto fail;
   
   ctx->do_buffer = 1;

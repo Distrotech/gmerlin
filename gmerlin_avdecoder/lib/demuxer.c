@@ -246,7 +246,7 @@ int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
 #endif
     if(ctx->non_interleaved)
       {
-      fprintf(stderr, "Non interleaved\n");
+      //      fprintf(stderr, "Non interleaved\n");
       
       if(!ctx->input->input->seek_byte)
         {

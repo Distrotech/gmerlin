@@ -47,7 +47,9 @@ static int open_avdec(void * priv, const char * location)
   bgav_set_http_shoutcast_metadata(avdec->dec, avdec->http_shoutcast_metadata);
     
   if(!bgav_open(avdec->dec, location))
+    {
     return 0;
+    }
   
   if(bgav_is_redirector(avdec->dec))
     {
@@ -190,7 +192,8 @@ bg_input_plugin_t the_plugin =
       create:         bg_avdec_create,
       destroy:        bg_avdec_destroy,
       get_parameters: get_parameters_avdec,
-      set_parameter:  bg_avdec_set_parameter
+      set_parameter:  bg_avdec_set_parameter,
+      get_error:      bg_avdec_get_error
     },
   /* Open file/device */
     open: open_avdec,

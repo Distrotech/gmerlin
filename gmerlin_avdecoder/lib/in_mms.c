@@ -52,7 +52,7 @@ static int open_mms(bgav_input_context_t * ctx, const char * url)
 
   /* Open mms connection */
   
-  priv->mms = bgav_mms_open(url, ctx->connect_timeout, ctx->read_timeout);
+  priv->mms = bgav_mms_open(url, ctx->connect_timeout, ctx->read_timeout, &ctx->error_msg);
   if(!priv->mms)
     goto fail;
 
@@ -91,8 +91,9 @@ static int open_mms(bgav_input_context_t * ctx, const char * url)
     stream_ids[i + track->num_audio_streams] =
       track->video_streams[i].stream_id;
   
-  bgav_mms_select_streams(priv->mms, stream_ids, num_streams);
-
+  bgav_mms_select_streams(priv->mms, stream_ids, num_streams, &(ctx->error_msg));
+  
+  
   free(stream_ids);
   /* Set the input context of the demuxer */
   ctx->do_buffer = 1;
@@ -130,7 +131,8 @@ static int do_read(bgav_input_context_t* ctx,
     {
     if(!priv->buffer_size)
       {
-      priv->buffer = bgav_mms_read_data(priv->mms, &(priv->buffer_size), block);
+      priv->buffer = bgav_mms_read_data(priv->mms, &(priv->buffer_size), block,
+                                        &ctx->error_msg);
       if(!priv->buffer)
         return bytes_read;
       priv->buffer_ptr = priv->buffer;
