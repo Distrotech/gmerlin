@@ -117,6 +117,8 @@ bg_player_t * bg_player_create()
 
 void bg_player_destroy(bg_player_t * player)
   {
+  //  fprintf(stderr, "bg_player_destroy...\n");
+    
   bg_player_input_destroy(player);
   bg_player_oa_destroy(player);
   bg_player_ov_destroy(player);
@@ -133,6 +135,7 @@ void bg_player_destroy(bg_player_t * player)
   pthread_mutex_destroy(&(player->state_mutex));
   
   free(player);
+  //  fprintf(stderr, "bg_player_destroy done\n");
   }
 
 bg_msg_queue_t * bg_player_get_command_queue(bg_player_t * player)

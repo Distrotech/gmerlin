@@ -32,6 +32,7 @@ void bg_player_video_create(bg_player_t * p)
 void bg_player_video_destroy(bg_player_t * p)
   {
   gavl_video_converter_destroy(p->video_stream.cnv);
+  pthread_mutex_destroy(&(p->video_stream.config_mutex));
   }
 
 int bg_player_video_init(bg_player_t * player, int video_stream)

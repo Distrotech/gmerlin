@@ -245,18 +245,40 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
 
 void gmerlin_destroy(gmerlin_t * g)
   {
+  //  fprintf(stderr, "gmerlin_destroy...\n");
+    
   plugin_window_destroy(g->plugin_window);
   player_window_destroy(g->player_window);
 
   bg_player_destroy(g->player);
+
+  //  fprintf(stderr, "Blupp 1\n");
   
   bg_gtk_tree_window_destroy(g->tree_window);
+
+  //  fprintf(stderr, "Blupp 2\n");
+
   bg_gtk_info_window_destroy(g->info_window);
+
+  //  fprintf(stderr, "Blupp 3\n");
+  
   bg_media_tree_destroy(g->tree);
+
+  //  fprintf(stderr, "Blupp 4\n");
+
   bg_plugin_registry_destroy(g->plugin_reg);
+
+  //  fprintf(stderr, "Blupp 5\n");
+  
   gmerlin_skin_destroy(&(g->skin));
+
+  //  fprintf(stderr, "Blupp 6\n");
   bg_dialog_destroy(g->cfg_dialog);
+
+  //  fprintf(stderr, "Blupp 7\n");
   free(g);
+  
+  //  fprintf(stderr, "gmerlin_destroy done\n");
   }
 
 void gmerlin_run(gmerlin_t * g)

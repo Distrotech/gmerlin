@@ -947,8 +947,25 @@ static void close_x11(void * data)
 
 static void destroy_x11(void * data)
   {
-  //  int i;
+  int still_running;
   x11_t * priv = (x11_t*)data;
+
+  /* Stop still thread if necessary */
+  
+  pthread_mutex_lock(&(priv->still_mutex));
+  still_running = priv->do_still;
+  if(priv->do_still)
+    priv->do_still = 0;
+  pthread_mutex_unlock(&(priv->still_mutex));
+
+  if(still_running)
+    {
+    fprintf(stderr, "Stopping still thread...");
+    pthread_join(priv->still_thread, NULL);
+    close_x11(priv);
+    fprintf(stderr, "done\n");
+    }
+
   
   if(priv->parameters)
     {

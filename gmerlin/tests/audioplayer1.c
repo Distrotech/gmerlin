@@ -9,8 +9,6 @@
 #include <pluginregistry.h>
 #include <utils.h>
 
-static char * output_plugin_name = "oa_oss";
-
 #if 0
 static void dump_format(gavl_audio_format_t * format)
   {
@@ -84,8 +82,9 @@ int main(int argc, char ** argv)
   input_plugin = (bg_input_plugin_t*)(input_handle->plugin);
 
   /* Load output plugin */
-    
-  plugin_info = bg_plugin_find_by_name(plugin_reg, output_plugin_name);
+  
+  plugin_info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_OUTPUT_AUDIO);
+
   if(!plugin_info)
     {
     fprintf(stderr, "Output plugin not found\n");
@@ -101,11 +100,13 @@ int main(int argc, char ** argv)
     fprintf(stderr, "Cannot open %s\n", argv[1]);
     return -1;
     }
-  
-  info = input_plugin->get_track_info(input_handle->priv, 0);
 
+  /* Select the first track */
+  
   if(input_plugin->set_track)
     input_plugin->set_track(input_handle->priv, 0);
+
+  info = input_plugin->get_track_info(input_handle->priv, 0);
   
   if(!info->num_audio_streams)
     {
