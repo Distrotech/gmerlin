@@ -22,7 +22,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
   gavl_audio_frame_t * ret;
   int num_samples;
   int i;
-  ret = calloc(1, sizeof(gavl_audio_frame_t));
+  ret = calloc(1, sizeof(*ret));
   
   num_samples = ALIGNMENT_BYTES *
     ((format->samples_per_frame + ALIGNMENT_BYTES - 1) / ALIGNMENT_BYTES);
@@ -61,9 +61,6 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
     case GAVL_SAMPLE_S16BE:
       ret->samples.s_16 =
         memalign(ALIGNMENT_BYTES, 2 * num_samples * format->num_channels);
-      fprintf(stderr, "Frame bytes: %d %p\n",
-              2 * num_samples * format->num_channels, ret->samples.s_16);
-    
       ret->channels.s_16 = calloc(format->num_channels, sizeof(int16_t*));
       for(i = 0; i < format->num_channels; i++)
         ret->channels.s_16[i] = &(ret->samples.s_16[i*num_samples]);

@@ -8,8 +8,8 @@
 
 #define SAMPLE_TYPE uint8_t
 #define RENAME(a) a ## _8
-#define SRC(c,s) ctx->input_frame->channels.u_8[c][s]
-#define DST(c,s) ctx->output_frame->channels.u_8[c][s]
+#define SRC(c,s) (ctx->input_frame->channels.u_8[c][s])
+#define DST(c,s) (ctx->output_frame->channels.u_8[c][s])
 #include "_interleave_c.c"
 
 #undef SAMPLE_TYPE
@@ -19,8 +19,8 @@
 
 #define SAMPLE_TYPE uint16_t
 #define RENAME(a) a ## _16
-#define SRC(c,s) ctx->input_frame->channels.u_16[c][s]
-#define DST(c,s) ctx->output_frame->channels.u_16[c][s]
+#define SRC(c,s) (ctx->input_frame->channels.u_16[c][s])
+#define DST(c,s) (ctx->output_frame->channels.u_16[c][s])
 #include "_interleave_c.c"
 
 #undef SAMPLE_TYPE
@@ -30,8 +30,8 @@
 
 #define SAMPLE_TYPE uint32_t
 #define RENAME(a) a ## _32
-#define SRC(c,s) ctx->input_frame->channels.u_32[c][s]
-#define DST(c,s) ctx->output_frame->channels.u_32[c][s]
+#define SRC(c,s) (ctx->input_frame->channels.u_32[c][s])
+#define DST(c,s) (ctx->output_frame->channels.u_32[c][s])
 #include "_interleave_c.c"
 
 #undef SAMPLE_TYPE

@@ -36,8 +36,8 @@ static void copy_video_options(gavl_video_options_t * dst,
   memcpy(dst, src, sizeof(*dst));
   }
 
-static void copy_video_format(gavl_video_format_t  * dst,
-                              const gavl_video_format_t  * src)
+void gavl_video_format_copy(gavl_video_format_t * dst,
+                            const gavl_video_format_t * src)
   {
   memcpy(dst, src, sizeof(*dst));
   }
@@ -91,11 +91,11 @@ int gavl_video_init(gavl_video_converter_t * cnv,
   
   if(input_format->colorspace != output_format->colorspace)
     {
-    copy_video_format(&(cnv->csp_context.input_format),
-                      input_format);
+    gavl_video_format_copy(&(cnv->csp_context.input_format),
+                           input_format);
 
-    copy_video_format(&(cnv->csp_context.output_format),
-                      output_format);
+    gavl_video_format_copy(&(cnv->csp_context.output_format),
+                           output_format);
 
     cnv->csp_func = gavl_find_colorspace_converter(options,
                                                    input_format->colorspace,

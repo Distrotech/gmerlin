@@ -41,6 +41,11 @@ void gavl_time_to_frames(int64_t * ret,
   *ret = (int64_t)(((double)time*framerate)/1000000.0+0.5);
   }
 
+double gavl_time_to_double(gavl_time_t * time)
+  {
+  return (double)(*time) / 1.0e6;
+  }
+
 /*
  *  Pretty print a time in the format:
  *  hhh:mm:ss

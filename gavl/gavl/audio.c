@@ -20,9 +20,14 @@ struct gavl_audio_converter_s
   gavl_audio_frame_t * buffer_frame;
   };
 
+void gavl_audio_format_copy(gavl_audio_format_t * dst,
+                            const gavl_audio_format_t * src)
+  {
+  memcpy(dst, src, sizeof(*dst));
+  }
 
 
-static gavl_audio_format_t * copy_format(gavl_audio_format_t * format)
+static gavl_audio_format_t * copy_format(const gavl_audio_format_t * format)
   {
   gavl_audio_format_t * ret;
   ret = calloc(1, sizeof(*ret));

@@ -190,6 +190,12 @@ typedef struct gavl_audio_format_s
 const char * gavl_sample_format_to_string(gavl_sample_format_t);
 const char * gavl_channel_setup_to_string(gavl_channel_setup_t);
 const char * gavl_interleave_mode_to_string(gavl_interleave_mode_t);
+
+/* Copy audio format */
+
+void gavl_audio_format_copy(gavl_audio_format_t * dst,
+                            const gavl_audio_format_t * src);
+  
   
 /* Maximum number of supported channels */
   
@@ -320,6 +326,9 @@ typedef struct
   int free_framerate;   /* Framerate will be based on timestamps only */
   } gavl_video_format_t;
 
+void gavl_video_format_copy(gavl_video_format_t * dst,
+                            const gavl_video_format_t * src);
+  
 #define GAVL_SCANLINE (1<<0)
 
 typedef struct

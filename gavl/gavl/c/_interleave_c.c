@@ -26,7 +26,6 @@ RENAME(interleave_none_to_all_stereo)(gavl_audio_convert_context_t * ctx)
   src1 = &(SRC(0,0));
   src2 = &(SRC(1,0));
   dst  = &(DST(0,0));
-  
   for(i = 0; i < ctx->input_frame->valid_samples; i++)
     {
     *(dst++) = *(src1++);

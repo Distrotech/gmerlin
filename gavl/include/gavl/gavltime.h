@@ -19,6 +19,8 @@ void gavl_time_to_samples(int64_t * ret,
 void gavl_time_to_frames(int64_t * ret,
                          double framerate, gavl_time_t time);
 
+double gavl_time_to_double(gavl_time_t * time);
+
 #define GAVL_TIME_TO_SECONDS(t) (double)(t)/(double)(GAVL_TIME_SCALE)
 
 #define GAVL_SECONDS_TO_TIME(s) \
