@@ -58,6 +58,8 @@ dnl
 dnl Vorbis
 dnl 
 
+VORBIS_REQUIRED="1.0"
+
 have_vorbis=false
 AH_TEMPLATE([HAVE_VORBIS], [Vorbis libraries are there])
  
@@ -67,6 +69,8 @@ AM_CONDITIONAL(HAVE_VORBIS, test x$have_vorbis = xtrue)
 if test x$have_vorbis = xtrue; then
 AC_DEFINE(HAVE_VORBIS)
 fi
+
+AC_SUBST(VORBIS_REQUIRED)
 
 dnl
 dnl libmpeg2
@@ -137,7 +141,7 @@ OLD_LIBS=$LIBS
  
 LIBS="-lfaad -lm"
 CFLAGS=""
-
+FAAD2_REQUIRED="2.0"
 AH_TEMPLATE([HAVE_FAAD2], [Enable FAAD2])
 AC_MSG_CHECKING(for faad2)
 have_faad2="false"
@@ -176,7 +180,7 @@ LIBS=$OLD_LIBS
 
 AC_SUBST(FAAD2_CFLAGS)
 AC_SUBST(FAAD2_LIBS)
-
+AC_SUBST(FAAD2_REQUIRED)
 AM_CONDITIONAL(HAVE_FAAD2, test x$have_faad2 = xtrue)
 
 if test x$have_faad2 = xtrue; then
@@ -305,7 +309,7 @@ OLD_LIBS=$LIBS
  
 LIBS="-la52 -lm"
 CFLAGS=""
-
+LIBA52_REQUIRED="0.7.4"
 AH_TEMPLATE([HAVE_LIBA52], [Enable liba52])
 AC_MSG_CHECKING(for liba52)
 have_liba52="false"
@@ -336,6 +340,7 @@ LIBS=$OLD_LIBS
 
 AC_SUBST(LIBA52_CFLAGS)
 AC_SUBST(LIBA52_LIBS)
+AC_SUBST(LIBA52_REQUIRED)
 
 AM_CONDITIONAL(HAVE_LIBA52, test x$have_mad = xtrue)
 

@@ -16,7 +16,20 @@ URL:		http://gmerlin.sourceforge.net/
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	gmerlin-lib-devel = @GMERLIN_REQUIRED@
-Requires:       gmerlin-lib = @GMERLIN_REQUIRED@
+BuildRequires:  libvorbis-devel >= @VORBIS_REQUIRED@
+BuildRequires:  flac-devel >= @FLAC_REQUIRED@
+BuildRequires:  gavl-devel = @GAVL_REQUIRED@
+BuildRequires:  mpeg2dec-devel >= @LIBMPEG2_REQUIRED@
+BuildRequires:  faad2-devel >= @FAAD2_REQUIRED@
+BuildRequires:  libmad-devel >= @MAD_REQUIRED@
+BuildRequires:  a52dec-devel >= @LIBA52_REQUIRED@
+Requires:       libvorbis >= @VORBIS_REQUIRED@
+Requires:       flac >= @FLAC_REQUIRED@
+Requires:       gavl = @GAVL_REQUIRED@
+Requires:       mpeg2dec >= @LIBMPEG2_REQUIRED@
+Requires:       faad2 >= @FAAD2_REQUIRED@
+Requires:       libmad = @MAD_REQUIRED@
+Requires:       a52dec >= @LIBA52_REQUIRED@
 BuildRoot:	/tmp/gmerlin-build
 
 %description
