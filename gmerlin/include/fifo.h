@@ -30,9 +30,9 @@
 
 typedef enum
   {
-    BG_FIFO_NORMAL,  /* Normal operation */
+    BG_FIFO_PLAYING, /* Normal operation */
     BG_FIFO_STOPPED, /* Playback is stopped, threads should be terminated */
-    BG_FIFO_PAUSED,   /* Playback is paused for a time, threads should wait until
+    BG_FIFO_PAUSED,  /* Playback is paused for a time, threads should wait until
                         playback starts again */
   } bg_fifo_state_t;
 

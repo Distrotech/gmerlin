@@ -214,7 +214,7 @@ void * bg_player_ov_thread(void * data)
 
   while(1)
     {
-     if(!bg_player_keep_going(ctx->player))
+    if(!bg_player_keep_going(ctx->player))
       break;
     frame = bg_fifo_lock_read(ctx->player->video_stream.fifo, &state);
     if(!frame)
