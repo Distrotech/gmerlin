@@ -35,7 +35,7 @@ typedef struct
   } bg_transcoder_track_audio_t;
 
 bg_parameter_info_t *
-bg_transcoder_track_audio_get_format_parameters();
+bg_transcoder_track_audio_get_general_parameters();
 
 typedef struct
   {
@@ -45,7 +45,7 @@ typedef struct
   } bg_transcoder_track_video_t;
 
 bg_parameter_info_t *
-bg_transcoder_track_video_get_format_parameters();
+bg_transcoder_track_video_get_general_parameters();
 
 typedef struct bg_transcoder_track_s
   {

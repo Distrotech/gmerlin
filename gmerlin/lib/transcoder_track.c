@@ -416,7 +416,7 @@ bg_transcoder_track_create(const char * url,
   {
   int i;
   bg_transcoder_track_t * new_track = (bg_transcoder_track_t *)0;
-  bg_transcoder_track_t * end_track;
+  bg_transcoder_track_t * end_track = (bg_transcoder_track_t *)0;
   
   bg_input_plugin_t      * input;
   bg_track_info_t        * track_info;
@@ -558,7 +558,7 @@ bg_transcoder_track_create_from_urilist(const char * list,
   {
   int i;
   char ** uri_list;
-  bg_transcoder_track_t * ret_last;
+  bg_transcoder_track_t * ret_last = (bg_transcoder_track_t*)0;
   bg_transcoder_track_t * ret = (bg_transcoder_track_t*)0;
   
   uri_list = bg_urilist_decode(list, len);
@@ -610,7 +610,7 @@ bg_transcoder_track_create_from_albumentries(const char * xml_string,
                                              bg_cfg_section_t * track_defaults_section)
   {
   bg_album_entry_t * new_entries, *entry;
-  bg_transcoder_track_t * ret_last;
+  bg_transcoder_track_t * ret_last = (bg_transcoder_track_t*)0;
   bg_transcoder_track_t * ret = (bg_transcoder_track_t*)0;
   const bg_plugin_info_t * plugin_info;
 
@@ -672,7 +672,7 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
   free(t);
   }
 
-static bg_parameter_info_t format_parameters_video[] =
+static bg_parameter_info_t general_parameters_video[] =
   {
     {
       name:        "action",
@@ -707,7 +707,7 @@ static bg_parameter_info_t format_parameters_video[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t format_parameters_audio[] =
+static bg_parameter_info_t general_parameters_audio[] =
   {
     {
       name:        "action",
@@ -777,17 +777,17 @@ static bg_parameter_info_t format_parameters_audio[] =
 /* Audio stream parameters */
 
 bg_parameter_info_t *
-bg_transcoder_track_audio_get_format_parameters()
+bg_transcoder_track_audio_get_general_parameters()
   {
-  return format_parameters_audio;
+  return general_parameters_audio;
   }
 
 /* Video stream parameters */
 
 bg_parameter_info_t *
-bg_transcoder_track_video_get_format_parameters()
+bg_transcoder_track_video_get_general_parameters()
   {
-  return format_parameters_video;
+  return general_parameters_video;
   }
 
 char * bg_transcoder_track_get_name(bg_transcoder_track_t * t)

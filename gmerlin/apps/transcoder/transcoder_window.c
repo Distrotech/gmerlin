@@ -330,7 +330,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 cfg_section,
                 NULL,
                 NULL,
-                bg_transcoder_track_audio_get_format_parameters());
+                bg_transcoder_track_audio_get_general_parameters());
 
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section, "video");
   
@@ -339,7 +339,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 cfg_section,
                 NULL,
                 NULL,
-                bg_transcoder_track_video_get_format_parameters());
+                bg_transcoder_track_video_get_general_parameters());
 
     
   

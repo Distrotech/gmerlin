@@ -141,6 +141,8 @@ static void change_callback(GtkWidget * wid, gpointer data)
   priv->selected = gtk_combo_box_get_active(GTK_COMBO_BOX(priv->combo));
 #endif
 
+  if(w->info->flags & BG_PARAMETER_SYNC)
+    bg_gtk_change_callback(wid, data);
   
   }
 
@@ -175,13 +177,10 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
       }
     }
   
-  if(info->flags & BG_PARAMETER_SYNC)
-    {
-    w->callback_widget = priv->combo;
-    w->callback_id = g_signal_connect(G_OBJECT(w->callback_widget),
+  w->callback_widget = priv->combo;
+  w->callback_id = g_signal_connect(G_OBJECT(w->callback_widget),
                                       "changed", G_CALLBACK(change_callback),
                                       (gpointer)w);
-    }
 #else
   priv->combo = gtk_combo_new();
   gtk_editable_set_editable(GTK_EDITABLE(GTK_COMBO(priv->combo)->entry),
@@ -209,13 +208,10 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
     }
   gtk_combo_set_popdown_strings(GTK_COMBO(priv->combo), priv->strings);
 
-  if(info->flags & BG_PARAMETER_SYNC)
-    {
-    w->callback_widget = GTK_COMBO(priv->combo)->entry;
-    w->callback_id = g_signal_connect(G_OBJECT(w->callback_widget),
-                     "changed", G_CALLBACK(change_callback),
-                     (gpointer)w);
-    }
+  w->callback_widget = GTK_COMBO(priv->combo)->entry;
+  w->callback_id = g_signal_connect(G_OBJECT(w->callback_widget),
+                   "changed", G_CALLBACK(change_callback),
+                   (gpointer)w);
 #endif
   
   

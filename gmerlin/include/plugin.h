@@ -453,33 +453,22 @@ typedef struct bg_encoder_plugin_s
   int (*open)(void *, const char * filename_base,
               bg_metadata_t * metadata);
   
-  /*
-   *  Add audio/video streams
-   *  For plugins, which always procude exactly one stream,
-   *  these can be ommitted
-   */
-
-  void (*set_audio_streams)(void *, int);
-  void (*set_video_streams)(void *, int);
-  
   bg_parameter_info_t * (*get_audio_parameters)(void * data);
   bg_parameter_info_t * (*get_video_parameters)(void * data);
+
+  /* Add streams. The formats can be changed, be sure to get the
+     final formats with get_[audio|video]_format later on */
   
-  /* If the following are NOT called, the plugin MUST use resonable 
-     defaults from set_parameter() */
+  void (*add_audio_stream)(void *, gavl_audio_format_t * format);
+  void (*add_video_stream)(void *, gavl_video_format_t * format);
+
+  /* Set parameters for the streams */
   
   void (*set_audio_parameter)(void * data, int stream, char * name,
                               bg_parameter_value_t * v);
   
   void (*set_video_parameter)(void * data, int stream, char * name,
                               bg_parameter_value_t * v);
-  /*
-   *  Set the audio/video formats.
-   *  The arguments might be changed by the plugin
-   */
-  
-  void (*set_audio_format)(void *, int stream, gavl_audio_format_t*);
-  void (*set_video_format)(void *, int stream, gavl_video_format_t*);
   
   /*
    *  Encode audio/video
