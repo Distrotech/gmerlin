@@ -488,9 +488,12 @@ typedef struct bg_encoder_plugin_s
   void (*write_audio_frame)(void*,gavl_audio_frame_t*,int stream);
   void (*write_video_frame)(void*,gavl_video_frame_t*,int stream);
   
-  /* Close it */
+  /*
+   *  Close it. if do_delete = 1, all output files should be erased
+   *  again
+   */
 
-  void (*close)(void*);
+  void (*close)(void*, int do_delete);
   } bg_encoder_plugin_t;
 
 /*******************************************
@@ -530,6 +533,11 @@ typedef struct bg_image_writer_plugin_s
   
   int (*write_header)(void * priv, const char * filename_base,
                       gavl_video_format_t * format);
+
+  /* Return the filename */
+
+  const char (*get_filename)(void * priv);
+  
   /*
    *  Read the image, cleanup after so read_header can be calles
    *  again after that. If frame == NULL, do cleanup only

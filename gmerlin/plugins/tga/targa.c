@@ -12,7 +12,7 @@
  * -------------------------------------------------------------------------*/
 
 /*@unused@*/ static const char rcsid[] =
-    "$Id: targa.c,v 1.1 2004-08-20 23:46:38 gmerlin Exp $";
+    "$Id: targa.c,v 1.2 2004-08-24 22:40:44 gmerlin Exp $";
 
 #define TGA_KEEP_MACROS /* BIT, htole16, letoh16 */
 #include "targa.h"
@@ -195,10 +195,10 @@ tga_result tga_read_from_memory(tga_image *dest, uint8_t * buf, int len)
         { tga_free_buffers(dest);  return errcode; }
 
     #define READ(destptr, size) \
-        if (memread(destptr, size, &s) != 1) BARF(TGAERR_EOF)
+        if (memread(destptr, size, &s) < size) BARF(TGAERR_EOF)
 
     #define READ16(dest) \
-        { if (memread(&(dest), 2, &s) != 1) BARF(TGAERR_EOF);  \
+        { if (memread(&(dest), 2, &s) < 2) BARF(TGAERR_EOF);  \
           dest = letoh16(dest); }
 
     struct read_struct s;
@@ -338,7 +338,7 @@ static tga_result tga_read_rle(tga_image *dest, struct read_struct * s)
 {
     #define RLE_BIT BIT(7)
     #define READ(dest, size) \
-        if (memread(dest, size, s) != 1) return TGAERR_EOF
+        if (memread(dest, size, s) < size) return TGAERR_EOF
 
     uint8_t *pos;
     uint32_t p_loaded = 0,
@@ -392,12 +392,13 @@ static tga_result tga_read_rle(tga_image *dest, struct read_struct * s)
  *
  * Returns: TGA_NOERR on success, or a matching TGAERR_* code on failure.
  */
-tga_result tga_write(const char *filename, const tga_image *src)
+tga_result tga_write(const char *filename, const tga_image *src,
+                              int stride)
 {
     tga_result result;
     FILE *fp = fopen(filename, "wb");
     if (fp == NULL) return TGAERR_FOPEN;
-    result = tga_write_to_FILE(fp, src);
+    result = tga_write_to_FILE(fp, src, stride);
     fclose(fp);
     return result;
 }
@@ -519,7 +520,7 @@ static uint8_t rle_packet_len(const uint8_t *row, const uint16_t pos,
  *          On failure, the contents of the file are not guaranteed
  *          to be valid.
  */
-tga_result tga_write_to_FILE(FILE *fp, const tga_image *src)
+tga_result tga_write_to_FILE(FILE *fp, const tga_image *src, int stride)
 {
     #define WRITE(srcptr, size) \
         if (fwrite(srcptr, size, 1, fp) != 1) return TGAERR_WRITE
@@ -593,15 +594,19 @@ tga_result tga_write_to_FILE(FILE *fp, const tga_image *src)
         for (row=0; row<src->height; row++)
         {
             tga_result result = tga_write_row_RLE(fp, src,
-                src->image_data + row*src->width*src->pixel_depth/8);
+                src->image_data + row*stride);
             if (result != TGA_NOERR) return result;
         }
     }
     else
     {
         /* uncompressed */
-        WRITE(src->image_data,
-              src->width * src->height * src->pixel_depth / 8);
+        uint16_t row;
+        for (row=0; row<src->height; row++)
+        {
+           WRITE(src->image_data + row * stride,
+                 src->width * src->pixel_depth / 8);
+        }
     }
 
     WRITE(tga_id, tga_id_length);
@@ -642,71 +647,77 @@ static void init_tga_image(tga_image *img, uint8_t *image,
 
 
 tga_result tga_write_mono(const char *filename, uint8_t *image,
-    const uint16_t width, const uint16_t height)
+    const uint16_t width, const uint16_t height,
+                              int stride)
 {
     tga_image img;
     init_tga_image(&img, image, width, height, 8);
     img.image_type = TGA_IMAGE_TYPE_MONO;
-    return tga_write(filename, &img);
+    return tga_write(filename, &img, stride);
 }
 
 
 
 tga_result tga_write_mono_rle(const char *filename, uint8_t *image,
-    const uint16_t width, const uint16_t height)
+    const uint16_t width, const uint16_t height,
+                              int stride)
 {
     tga_image img;
     init_tga_image(&img, image, width, height, 8);
     img.image_type = TGA_IMAGE_TYPE_MONO_RLE;
-    return tga_write(filename, &img);
+    return tga_write(filename, &img, stride);
 }
 
 
 
 tga_result tga_write_bgr(const char *filename, uint8_t *image,
-    const uint16_t width, const uint16_t height, const uint8_t depth)
+    const uint16_t width, const uint16_t height, const uint8_t depth,
+                              int stride)
 {
     tga_image img;
     init_tga_image(&img, image, width, height, depth);
     img.image_type = TGA_IMAGE_TYPE_BGR;
-    return tga_write(filename, &img);
+    return tga_write(filename, &img, stride);
 }
 
 
 
 tga_result tga_write_bgr_rle(const char *filename, uint8_t *image,
-    const uint16_t width, const uint16_t height, const uint8_t depth)
+    const uint16_t width, const uint16_t height, const uint8_t depth,
+                              int stride)
 {
     tga_image img;
     init_tga_image(&img, image, width, height, depth);
     img.image_type = TGA_IMAGE_TYPE_BGR_RLE;
-    return tga_write(filename, &img);
+    return tga_write(filename, &img, stride);
 }
 
 
 
 /* Note: this function will MODIFY <image> */
 tga_result tga_write_rgb(const char *filename, uint8_t *image,
-    const uint16_t width, const uint16_t height, const uint8_t depth)
+    const uint16_t width, const uint16_t height, const uint8_t depth,
+                              int stride)
 {
     tga_image img;
     init_tga_image(&img, image, width, height, depth);
     img.image_type = TGA_IMAGE_TYPE_BGR;
     (void)tga_swap_red_blue(&img);
-    return tga_write(filename, &img);
+    return tga_write(filename, &img, stride);
 }
 
 
 
 /* Note: this function will MODIFY <image> */
 tga_result tga_write_rgb_rle(const char *filename, uint8_t *image,
-    const uint16_t width, const uint16_t height, const uint8_t depth)
+    const uint16_t width, const uint16_t height, const uint8_t depth,
+                             int stride)
 {
     tga_image img;
     init_tga_image(&img, image, width, height, depth);
     img.image_type = TGA_IMAGE_TYPE_BGR_RLE;
     (void)tga_swap_red_blue(&img);
-    return tga_write(filename, &img);
+    return tga_write(filename, &img,stride);
 }
 
 

@@ -40,7 +40,7 @@ int main(int argc, char ** argv)
   /* Create config registry */
   
   cfg_reg = bg_cfg_registry_create();
-  tmp_path =  bg_search_file_read("webcam", "config.xml");
+  tmp_path =  bg_search_file_read("camelot", "config.xml");
   bg_cfg_registry_load(cfg_reg, tmp_path);
   if(tmp_path)
     free(tmp_path);
@@ -70,7 +70,7 @@ int main(int argc, char ** argv)
   gmerlin_webcam_window_destroy(ww);
   gmerlin_webcam_destroy(w);
 
-  tmp_path =  bg_search_file_write("webcam", "config.xml");
+  tmp_path =  bg_search_file_write("camelot", "config.xml");
   
   if(tmp_path)
     {

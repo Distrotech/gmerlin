@@ -19,10 +19,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <plugin.h>
 
-#include <targa.h>
+#include "targa.h"
 
 typedef struct
   {
@@ -30,6 +31,9 @@ typedef struct
   gavl_video_format_t format;
   gavl_video_frame_t * frame;
   int bytes_per_pixel;
+
+  char * filename;
+  
   } tga_t;
 
 static void * create_tga()
@@ -43,8 +47,12 @@ static void * create_tga()
 static void destroy_tga(void* priv)
   {
   tga_t * tga = (tga_t*)priv;
-  gavl_video_frame_null(tga->frame);
-  gavl_video_frame_destroy(tga->frame);
+
+  if(tga->frame)
+    {
+    gavl_video_frame_null(tga->frame);
+    gavl_video_frame_destroy(tga->frame);
+    }
   free(tga);
   }
 
@@ -75,8 +83,10 @@ int read_header_tga(void * priv, const char * filename,
   tga_t * tga = (tga_t*)priv;
   
   if(tga_read(&(tga->tga), filename) != TGA_NOERR)
+    {
+    fprintf(stderr, "Read tga failed\n");
     return 0;
-
+    }
   /* Get header */
 
   format->frame_width = tga->tga.width;
@@ -113,7 +123,7 @@ int read_header_tga(void * priv, const char * filename,
 
 int read_image_tga(void * priv, gavl_video_frame_t * frame)
   {
-  int i, ret;
+  int ret;
   tga_t * tga = (tga_t*)priv;
 
   ret = 0;
@@ -129,6 +139,9 @@ int read_image_tga(void * priv, gavl_video_frame_t * frame)
       break;
     }
 
+  if(tga->format.colorspace == GAVL_RGBA_32)
+    tga_swap_red_blue(&(tga->tga));
+  
   tga->frame->strides[0] = tga->bytes_per_pixel * tga->format.image_width;
   tga->frame->planes[0] = tga->tga.image_data;
   
@@ -162,6 +175,8 @@ int read_image_tga(void * priv, gavl_video_frame_t * frame)
 
   /* Free anything */
 
+  tga_free_buffers(&tga->tga);
+  memset(&tga->tga, 0, sizeof(tga->tga));
   return ret;
   }
 

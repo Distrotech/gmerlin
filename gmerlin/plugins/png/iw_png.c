@@ -32,6 +32,7 @@
 
 typedef struct
   {
+  char * filename;
   FILE * output;
   gavl_video_format_t format;
 
@@ -58,14 +59,12 @@ void destroy_png(void * priv)
 int write_header_png(void * priv, const char * filename_base,
                      gavl_video_format_t * format)
   {
-  char * filename;
   int color_type;
   
   png_t * png = (png_t*)priv;
   
-  filename = bg_sprintf("%s.png", filename_base);
-  png->output = fopen(filename, "wb");
-  free(filename);
+  png->filename = bg_sprintf("%s.png", filename_base);
+  png->output = fopen(png->filename, "wb");
   if(!png->output)
     return 0;
 
@@ -116,6 +115,7 @@ int write_image_png(void * priv, gavl_video_frame_t * frame)
   png_destroy_write_struct(&png->png_ptr, &png->info_ptr);
   fclose(png->output);
   free(rows);
+  free(png->filename);
   return 1;
   }
 

@@ -138,8 +138,9 @@ typedef struct
 static bg_parameter_info_t * get_parameters_input(void * priv)
   {
   input_t * inp = (input_t *)priv;
-  inp->parameters = calloc(sizeof(parameters_input)/sizeof(parameters_input[0])+1,
-                           sizeof(*inp->parameters));
+  inp->parameters =
+    calloc(sizeof(parameters_input)/sizeof(parameters_input[0])+1,
+           sizeof(*inp->parameters));
   
   bg_parameter_info_copy(&inp->parameters[0], &parameters_input[0]);
   bg_parameter_info_copy(&inp->parameters[1], &parameters_input[1]);

@@ -117,7 +117,7 @@ colorspaces[] =
     { VIDEO_PALETTE_RGB555, GAVL_RGB_15 },       /* 555 15bit RGB */
     //    VIDEO_PALETTE_YUV422    7       /* YUV422 capture */
     { VIDEO_PALETTE_YUYV,   GAVL_YUY2 },
-    // VIDEO_PALETTE_UYVY      9       /* The great thing about standards is ... */
+    { VIDEO_PALETTE_UYVY,   GAVL_UYVY },  /* The great thing about standards is ... */
     // VIDEO_PALETTE_YUV420    10
     // VIDEO_PALETTE_YUV411    11      /* YUV411 capture */
     // VIDEO_PALETTE_RAW       12      /* RAW capture (BT848) */
@@ -421,7 +421,7 @@ static bg_parameter_info_t parameters[] =
       name:        "device",
       long_name:   "V4L Device",
       type:        BG_PARAMETER_DEVICE,
-      val_default: { val_str: "/dev/video" },
+      val_default: { val_str: "/dev/video0" },
     },
     {
       name:        "res",

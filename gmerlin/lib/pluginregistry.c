@@ -474,7 +474,7 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
 
   if(ret->singlepic_encoder)
     {
-    fprintf(stderr, "Found Singlepicture encoder\n");
+    //    fprintf(stderr, "Found Singlepicture encoder\n");
     tmp_info->next = ret->singlepic_encoder;
     tmp_info = tmp_info->next;
     }
@@ -610,6 +610,7 @@ static struct
     { BG_PLUGIN_OUTPUT_VIDEO,   "default_video_output"   },
     { BG_PLUGIN_RECORDER_AUDIO, "default_audio_recorder" },
     { BG_PLUGIN_RECORDER_VIDEO, "default_video_recorder" },
+    { BG_PLUGIN_IMAGE_WRITER,   "default_image_writer" },
     { BG_PLUGIN_NONE,           (char*)NULL              },
     
   };

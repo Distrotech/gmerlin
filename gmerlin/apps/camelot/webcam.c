@@ -458,9 +458,9 @@ static void handle_cmd(gmerlin_webcam_t * cam, bg_msg_t * msg)
 
       break;
     case CMD_SET_CAPTURE_PLUGIN:
-      if(cam->capture)
+      if(cam->capture_handle)
         {
-        bg_plugin_unref(cam->monitor_handle);
+        bg_plugin_unref(cam->capture_handle);
         }
       h = bg_msg_get_arg_ptr_nocopy(msg, 0);
 

@@ -32,6 +32,7 @@
 
 typedef struct
   {
+  char * filename;
   struct jpeg_compress_struct cinfo;
   struct jpeg_error_mgr jerr;
  
@@ -72,12 +73,10 @@ void destroy_jpeg(void * priv)
 int write_header_jpeg(void * priv, const char * filename_base,
                       gavl_video_format_t * format)
   {
-  char * filename;
   jpeg_t * jpeg = (jpeg_t*)priv;
   
-  filename = bg_sprintf("%s.jpg", filename_base);
-  jpeg->output = fopen(filename, "wb");
-  free(filename);
+  jpeg->filename = bg_sprintf("%s.jpg", filename_base);
+  jpeg->output = fopen(jpeg->filename, "wb");
   if(!jpeg->output)
     return 0;
   
@@ -215,6 +214,7 @@ int write_image_jpeg(void * priv, gavl_video_frame_t * frame)
     }
   jpeg_finish_compress(&(jpeg->cinfo));
   fclose(jpeg->output);
+  free(jpeg->filename);
   return 1;
   }
 

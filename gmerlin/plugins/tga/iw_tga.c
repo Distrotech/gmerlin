@@ -33,7 +33,8 @@
 typedef struct
   {
   gavl_video_format_t format;
-
+  int rle;
+  char * filename;
   } tga_t;
 
 void * create_tga()
@@ -52,12 +53,37 @@ void destroy_tga(void * priv)
 int write_header_tga(void * priv, const char * filename_base,
                      gavl_video_format_t * format)
   {
+  tga_t * tga = (tga_t*)priv;
+
+  format->colorspace = GAVL_BGR_24;
+
+  gavl_video_format_copy(&(tga->format), format);
+  tga->filename = bg_sprintf("%s.tga", filename_base);
   
   return 1;
   }
 
 int write_image_tga(void * priv, gavl_video_frame_t * frame)
   {
+  tga_t * tga = (tga_t*)priv;
+  
+  if(tga->rle)
+    {
+    if(tga_write_bgr(tga->filename, frame->planes[0],
+                     tga->format.image_width,
+                     tga->format.image_height, 24,
+                     frame->strides[0]) != TGA_NOERR)
+      return 0;
+    }
+  else
+    {
+    if(tga_write_bgr_rle(tga->filename, frame->planes[0],
+                         tga->format.image_width,
+                         tga->format.image_height, 24,
+                         frame->strides[0]) != TGA_NOERR)
+      return 0;
+    }
+  free(tga->filename);
   return 1;
   }
 
@@ -66,12 +92,10 @@ int write_image_tga(void * priv, gavl_video_frame_t * frame)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "compression",
-      long_name:   "Compression level",
-      type:        BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 9 },
-      val_default: { val_i: 9 },
+      name:        "rle",
+      long_name:   "Do RLE compression",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 0 },
     },
     { /* End of parameters */ }
   };
@@ -90,8 +114,8 @@ static void set_parameter_tga(void * p, char * name,
   if(!name)
     return;
 
-  //  if(!strcmp(name, "compression"))
-  //    tga->compression_level = val->val_i;
+  if(!strcmp(name, "rle"))
+    tga->rle = val->val_i;
   }
 
 bg_image_writer_plugin_t the_plugin =
