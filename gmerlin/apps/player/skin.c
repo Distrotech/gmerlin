@@ -1,3 +1,23 @@
+/*****************************************************************
+ 
+  skin.c
+ 
+  Copyright (c) 2005 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
+
 #include <stdio.h>
 #include <string.h>
 
@@ -5,32 +25,24 @@
 
 #include <utils.h>
 
-void gmerlin_skin_load(gmerlin_skin_t * s, const char * name)
+void gmerlin_skin_load(gmerlin_skin_t * s, const char * directory)
   {
   xmlNodePtr node;
   xmlNodePtr child;
-  char * tmp;
   
-  const char * path_end;
   char * filename = (char*)0;
   xmlDocPtr doc = (xmlDocPtr)0;
   
-  tmp = bg_sprintf("skins/%s", name);
-
-  filename = bg_search_file_read(tmp, "skin.xml");
-
-  free(tmp);
-
+  filename = bg_sprintf("%s/skin.xml", directory);
+  
   if(!filename)
     goto fail;
   doc = xmlParseFile(filename);
 
   if(!doc)
     goto fail;
-
   
-  path_end = strrchr(filename, '/');
-  s->directory = bg_strndup(s->directory, filename, path_end);
+  s->directory = bg_strdup(s->directory, directory);
   
   node = doc->children;
   

@@ -56,6 +56,9 @@ static void set_background(player_window_t * win)
     {
     gdk_window_shape_combine_mask(MASK_WIDNOW, mask, 0, 0);
     }
+  
+  if(BACKGROUND_WINDOW)
+    gdk_window_clear_area_e(BACKGROUND_WINDOW, 0, 0, width, height);
   }
 
 void player_window_set_skin(player_window_t * win,

@@ -12,7 +12,8 @@ main.c \
 mainmenu.c \
 playerwindow.c \
 pluginwindow.c \
-skin.c
+skin.c \
+skinbrowser.c
 
 noinst_HEADERS = \
 display.h \

@@ -34,6 +34,7 @@ struct options_menu_s
   {
   GtkWidget * preferences;
   GtkWidget * plugins;
+  GtkWidget * skins;
   GtkWidget * menu;
   };
 
@@ -79,6 +80,13 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     //    fprintf(stderr, "Launching config dialog\n");
     gmerlin_configure(g);
+    }
+  else if(w == the_menu->options_menu.skins)
+    {
+    //    fprintf(stderr, "Launching config dialog\n");
+    if(!g->skin_browser)
+      g->skin_browser = gmerlin_skin_browser_create(g);
+    gmerlin_skin_browser_show(g->skin_browser);
     }
   else if(w == the_menu->options_menu.plugins)
     {
@@ -175,6 +183,9 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   ret->options_menu.plugins =
     create_item("Plugins...", gmerlin, ret->options_menu.menu);
 
+  ret->options_menu.skins =
+    create_item("Skins...", gmerlin, ret->options_menu.menu);
+  
   ret->menu = create_menu();
   
   ret->windows_item = create_submenu_item("Windows...",

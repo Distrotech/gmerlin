@@ -21,6 +21,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <config.h>
+
 #include "gmerlin.h"
 
 #include <utils.h>
@@ -209,8 +211,8 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
     
   ret->player_window = player_window_create(ret);
   
-  gmerlin_skin_load(&(ret->skin), "Default");
-  gmerlin_skin_set(ret);
+  //  gmerlin_skin_load(&(ret->skin), "Default");
+  //  gmerlin_skin_set(ret);
 
   /* Create subwindows */
 
@@ -512,6 +514,13 @@ static bg_parameter_info_t parameters[] =
       val_max:     { val_f: VOLUME_MAX },
       val_default: { val_f: VOLUME_MAX },
     },
+    {
+      name:        "skin_dir",
+      long_name:   "Skin Directory",
+      type:        BG_PARAMETER_DIRECTORY,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_str: GMERLIN_DATA_DIR"/skins/Default" },
+    },
     { /* End of Parameters */ }
   };
 
@@ -584,7 +593,13 @@ void gmerlin_set_parameter(void * data, char * name, bg_parameter_value_t * val)
     {
     gmerlin_set_tooltips(g, val->val_i);
     }
-
+  else if(!strcmp(name, "skin_dir"))
+    {
+    g->skin_dir = bg_strdup(g->skin_dir, val->val_str);
+    fprintf(stderr, "Skin Directory: %s\n", g->skin_dir);
+    gmerlin_skin_load(&(g->skin), g->skin_dir);
+    gmerlin_skin_set(g);
+    }
   }
 
 int gmerlin_get_parameter(void * data, char * name, bg_parameter_value_t * val)
@@ -613,6 +628,10 @@ int gmerlin_get_parameter(void * data, char * name, bg_parameter_value_t * val)
   else if(!strcmp(name, "volume"))
     {
     val->val_f = g->player_window->volume;
+    }
+  else if(!strcmp(name, "skin_dir"))
+    {
+    val->val_str = bg_strdup(val->val_str, g->skin_dir);
     }
   
   return 0;

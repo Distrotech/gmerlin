@@ -88,7 +88,8 @@ struct gmerlin_s
   player_window_t * player_window;
   bg_gtk_info_window_t * info_window;
   gmerlin_skin_t skin;
-
+  char * skin_dir;
+  
   plugin_window_t * plugin_window;
     
   gmerlin_skin_browser_t * skin_browser;
@@ -118,7 +119,7 @@ void gmerlin_run(gmerlin_t*);
 
 /* Skin stuff */
 
-void gmerlin_skin_load(gmerlin_skin_t *, const char * name);
+void gmerlin_skin_load(gmerlin_skin_t *, const char * directory);
 void gmerlin_skin_set(gmerlin_t*);
 void gmerlin_skin_free(gmerlin_skin_t*);
 
