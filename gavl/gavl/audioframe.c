@@ -180,10 +180,6 @@ int gavl_audio_frame_copy(gavl_audio_format_t * format,
     case GAVL_INTERLEAVE_NONE:
       for(i = 0; i < format->num_channels; i++)
         {
-        fprintf(stderr, "MEMCPY %p %p %d\n",
-                &(dst->channels.s_8[i][out_pos * bytes_per_sample]),
-                &(src->channels.s_8[i][in_pos * bytes_per_sample]),
-                samples_to_copy * bytes_per_sample);
         memcpy(&(dst->channels.s_8[i][out_pos * bytes_per_sample]),
                &(src->channels.s_8[i][in_pos * bytes_per_sample]),
                samples_to_copy * bytes_per_sample);
