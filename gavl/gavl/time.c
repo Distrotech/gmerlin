@@ -4,6 +4,7 @@
 
 #include <inttypes.h>
 #include <gavltime.h>
+#include <string.h>
 
 /* Sleep for a specified time */
 
@@ -105,7 +106,14 @@ void
 gavl_time_prettyprint(gavl_time_t time, char ret[GAVL_TIME_STRING_LEN])
   {
   int total_seconds;
-    
-  total_seconds = time / 1000000;
-  gavl_time_prettyprint_seconds(total_seconds, ret);
+
+  if(time == GAVL_TIME_UNDEFINED)
+    {
+    strcpy(ret, "-:--");
+    }
+  else
+    {
+    total_seconds = time / 1000000;
+    gavl_time_prettyprint_seconds(total_seconds, ret);
+    }
   }
