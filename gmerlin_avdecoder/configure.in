@@ -229,7 +229,7 @@ dnl
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
  
-LIBS="-la52"
+LIBS="-la52 -lm"
 CFLAGS=""
 
 AH_TEMPLATE([HAVE_LIBA52], [Enable liba52])
@@ -373,9 +373,6 @@ fi
 if test "x$exec_prefix" = xNONE; then
    exec_prefix="${prefix}"
 fi
-
-
-LIBS='$(top_srcdir)/lib/libgmerlin_avdec.la -lm'
 
 AC_CONFIG_FILES([Makefile \
 include/Makefile \

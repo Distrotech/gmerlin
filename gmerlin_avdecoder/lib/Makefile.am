@@ -91,7 +91,8 @@ $(png_libs) \
 $(faad2_libs) \
 $(mad_libs) \
 $(a52_libs) \
-real_rtsp/librealrtsp.la
+real_rtsp/librealrtsp.la \
+-lm
 
 AM_CFLAGS = \
 $(vorbis_cflags) \
