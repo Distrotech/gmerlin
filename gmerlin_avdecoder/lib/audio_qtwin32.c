@@ -248,6 +248,9 @@ static int init_qtaudio(bgav_stream_t * s)
     case BGAV_MK_FOURCC('Q','c','l','p'):
       s->description = bgav_strndup("Qclp", NULL);
       break;
+    case BGAV_MK_FOURCC('M','A','C','6'):
+      s->description = bgav_strndup("MACE 6", NULL);
+      break;
     }
 
   if(priv->SoundConverterOpen (&priv->InputFormatInfo, 
@@ -453,6 +456,7 @@ static bgav_audio_decoder_t decoder =
     fourccs: (int[]){ BGAV_MK_FOURCC('Q','D','M','C'),
                       BGAV_MK_FOURCC('Q','D','M','2'),
                       BGAV_MK_FOURCC('Q','c','l','p'),
+                      //                      BGAV_MK_FOURCC('M','A','C','6'),
                       0x0 },
     
     init:    init_qtaudio,

@@ -100,11 +100,12 @@ static codec_info_t codec_infos[] =
       (int[]){ BGAV_WAVID_2_FOURCC(0x160), 0x00 } },
     { "FFmpeg WMA2 decoder", "Window Media Audio 2", CODEC_ID_WMAV2,
       (int[]){ BGAV_WAVID_2_FOURCC(0x161), 0x00 } },
-
     { "FFmpeg MACE3 decoder", "Apple MACE 3", CODEC_ID_MACE3,
       (int[]){ BGAV_MK_FOURCC('M', 'A', 'C', '3'), 0x00 } },
+#if 1
     { "FFmpeg MACE6 decoder", "Apple MACE 6", CODEC_ID_MACE6,
       (int[]){ BGAV_MK_FOURCC('M', 'A', 'C', '6'), 0x00 } },
+#endif
   };
 
 
@@ -210,7 +211,7 @@ static int init(bgav_stream_t * s)
   s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
   gavl_set_channel_setup(&(s->data.audio.format));
 
-  s->data.audio.format.samples_per_frame = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+  s->data.audio.format.samples_per_frame = 2*AVCODEC_MAX_AUDIO_FRAME_SIZE;
 
   priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
     
@@ -282,10 +283,10 @@ static int decode_frame(bgav_stream_t * s)
 
   /* Sometimes, frame_size is terribly wrong */
 
-  if(frame_size > AVCODEC_MAX_AUDIO_FRAME_SIZE)
+  if(frame_size > AVCODEC_MAX_AUDIO_FRAME_SIZE*2)
     {
     fprintf(stderr, "Adjusting frame size %d -> ", frame_size);
-    frame_size = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+    frame_size = AVCODEC_MAX_AUDIO_FRAME_SIZE*2;
     fprintf(stderr, "%d\n", frame_size);
     }
   
