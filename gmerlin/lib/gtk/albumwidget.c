@@ -234,7 +234,8 @@ struct bg_gtk_album_widget_s
   GtkWidget * info_button;
   GtkWidget * move_selected_up_button;
   GtkWidget * move_selected_down_button;
-
+  GtkWidget * copy_to_favourites_button;
+    
   /* Display */
 
   bg_gtk_time_display_t * total_time;
@@ -343,6 +344,10 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
 
     if(w->menu.selected_menu.copy_to_favourites_item)
       gtk_widget_set_sensitive(w->menu.selected_menu.copy_to_favourites_item, 0);
+
+    if(w->copy_to_favourites_button)
+      gtk_widget_set_sensitive(w->copy_to_favourites_button, 0);
+
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 0);
     gtk_widget_set_sensitive(w->move_selected_up_button, 0);
@@ -365,6 +370,9 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
     if(w->menu.selected_menu.copy_to_favourites_item)
       gtk_widget_set_sensitive(w->menu.selected_menu.copy_to_favourites_item, 1);
 
+    if(w->copy_to_favourites_button)
+      gtk_widget_set_sensitive(w->copy_to_favourites_button, 1);
+    
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 1);
     gtk_widget_set_sensitive(w->move_selected_up_button, 1);
@@ -381,8 +389,14 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
 
     if(w->menu.selected_menu.refresh_item)
       gtk_widget_set_sensitive(w->menu.selected_menu.refresh_item, 1);
+
+    if(w->menu.selected_menu.copy_to_favourites_item)
+      gtk_widget_set_sensitive(w->menu.selected_menu.copy_to_favourites_item, 1);
     
-    gtk_widget_set_sensitive(w->menu.selected_menu.copy_to_favourites_item, 1);
+    if(w->copy_to_favourites_button)
+      gtk_widget_set_sensitive(w->copy_to_favourites_button, 1);
+    
+
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 1);
     gtk_widget_set_sensitive(w->move_selected_up_button, 1);
@@ -1358,7 +1372,7 @@ static void drag_get_callback(GtkWidget *widget,
   bg_gtk_album_widget_t * w;
   w = (bg_gtk_album_widget_t *)user_data;
   //  fprintf(stderr, "Drag get callback\n");
-  str = bg_album_save_selected_to_memory(w->album, &len);
+  str = bg_album_save_selected_to_memory(w->album, &len, 1);
 #if 0
   fprintf(stderr, "selection: %s\n", gdk_atom_name(data->selection));
   fprintf(stderr, "target:    %s\n", gdk_atom_name(data->target));
@@ -1591,6 +1605,10 @@ static void button_callback(GtkWidget * wid, gpointer data)
   else if(wid == w->move_selected_down_button)
     {
     move_selected_down(w);
+    }
+  else if(wid == w->copy_to_favourites_button)
+    {
+    bg_album_copy_selected_to_favourites(w->album);
     }
   }
 
@@ -1875,6 +1893,13 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
                                                         "Add URLs", "Append URLs to the track list");
     }
 
+  if((type == BG_ALBUM_TYPE_REGULAR) ||
+     (type == BG_ALBUM_TYPE_INCOMING))
+    ret->copy_to_favourites_button = create_pixmap_button(ret, "favourites_16.png",
+                                                          "Copy to favourites",
+                                                          "Copy selected tracks to favourites");
+         
+  
   ret->remove_selected_button    = create_pixmap_button(ret, "trash_16.png",
                                                         "Delete", "Delete selected tracks");
   ret->info_button               = create_pixmap_button(ret, "info_16.png",
@@ -1904,6 +1929,12 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->move_selected_up_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->move_selected_down_button, FALSE, FALSE, 0);
 
+  if((type == BG_ALBUM_TYPE_REGULAR) ||
+     (type == BG_ALBUM_TYPE_INCOMING))
+    {
+    gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->copy_to_favourites_button, FALSE, FALSE, 0);
+    }
+  
   gtk_box_pack_end(GTK_BOX(ret->toolbar),
                    bg_gtk_time_display_get_widget(ret->total_time), FALSE, FALSE, 0);
 
