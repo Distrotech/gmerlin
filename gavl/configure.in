@@ -84,31 +84,9 @@ case $have_debug in
 esac
 
 dnl
-dnl Check for compiling mode
-dnl
-
-have_standalone="false"
-AC_ARG_ENABLE(standalone,
-AC_HELP_STRING([--enable-standalone],[Create standalone package]),
-[case "${enableval}" in
-  yes) have_standalone=true ;;
-  no)  have_standalone=false ;;
-esac], have_standalone=false)
-
-if test x"$have_standalone" = x"true"; then
-  STANDALONE_TRUE="#"
-  STANDALONE_FALSE=
-else
-  STANDALONE_TRUE=
-  STANDALONE_FALSE="#"
-fi
-
-AC_SUBST(STANDALONE_TRUE)
-AC_SUBST(STANDALONE_FALSE)
-
-dnl
 dnl Output variables
 dnl
+dnl CPU_PENTIUM="false"
 
 case $CPU_PENTIUM in
 true) AC_DEFINE_UNQUOTED(ARCH_X86, , [X86 Architecture])
@@ -129,6 +107,3 @@ gavl/c/Makefile \
 gavl/mmx/Makefile \
 gavl/mmxext/Makefile)
 
-if test x"$have_standalone" = x"true"; then
-  echo "Standalone compilation required, rerun autoconf, automake and configure"
-fi

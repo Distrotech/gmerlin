@@ -478,500 +478,518 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8};
                       por_r2r (mm7, mm5);\
                       MOVQ_R2M(mm5, *(dst+8));
 
-static void yuy2_to_rgb_15_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
 
-  LOAD_YUY2
-  YUV_2_RGB
+/***********************************************************
+ * YUY2 ->
+ ***********************************************************/
+
+#define FUNC_NAME   yuy2_to_rgb_15_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_YUY2 \
+  YUV_2_RGB \
   OUTPUT_RGB_15
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(16, 16)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
 
-static void yuy2_to_bgr_15_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+#define CLEANUP emms();
 
-  LOAD_YUY2
-  YUV_2_RGB
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   yuy2_to_bgr_15_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_YUY2 \
+  YUV_2_RGB \
   OUTPUT_BGR_15
 
-  SCANLINE_LOOP_END_PACKED_PACKED(16, 16)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-                             
-static void yuy2_to_rgb_16_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+#define CLEANUP emms();
 
-  LOAD_YUY2
-  YUV_2_RGB
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   yuy2_to_rgb_16_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_YUY2 \
+  YUV_2_RGB \
   OUTPUT_RGB_16
 
-  SCANLINE_LOOP_END_PACKED_PACKED(16, 16)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
+#define CLEANUP emms();
 
-static void yuy2_to_bgr_16_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+// #define INIT
 
-  LOAD_YUY2
-  YUV_2_RGB
+#include "../csp_packed_packed.h"
+
+
+#define FUNC_NAME   yuy2_to_bgr_16_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_YUY2 \
+  YUV_2_RGB \
   OUTPUT_BGR_16
 
-  SCANLINE_LOOP_END_PACKED_PACKED(16, 16)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
+#define CLEANUP emms();
 
-static void yuy2_to_rgb_24_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+// #define INIT
 
-  LOAD_YUY2
-  YUV_2_RGB
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   yuy2_to_rgb_24_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 24
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_YUY2 \
+  YUV_2_RGB \
   OUTPUT_RGB_24
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(16, 24)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
 
-static void yuy2_to_bgr_24_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+#define CLEANUP emms();
 
-  LOAD_YUY2
-  YUV_2_RGB
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   yuy2_to_bgr_24_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 24
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_YUY2 \
+  YUV_2_RGB \
   OUTPUT_BGR_24
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(16, 24)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
 
-static void yuy2_to_rgb_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+#define CLEANUP emms();
 
-  LOAD_YUY2
-  YUV_2_RGB
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+
+#define FUNC_NAME   yuy2_to_rgb_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_YUY2 \
+  YUV_2_RGB \
   OUTPUT_RGB_32
 
-  SCANLINE_LOOP_END_PACKED_PACKED(16, 32)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
+#define CLEANUP emms();
 
-static void yuy2_to_bgr_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+// #define INIT
 
-  LOAD_YUY2
-  YUV_2_RGB
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   yuy2_to_bgr_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_YUY2 \
+  YUV_2_RGB \
   OUTPUT_BGR_32
 
-  SCANLINE_LOOP_END_PACKED_PACKED(16, 32)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
+#define CLEANUP emms();
 
-static void yuy2_to_rgba_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+// #define INIT
 
-  LOAD_YUY2
-  YUV_2_RGB
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   yuy2_to_rgba_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_YUY2 \
+  YUV_2_RGB \
   OUTPUT_RGBA_32
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(16, 32)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-  
-static void yuv_420_p_to_rgb_15_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 2)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
 
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+/***************************************************
+ * YUV 420 P ->
+ ***************************************************/
+
+#define FUNC_NAME     yuv_420_p_to_rgb_15_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
   OUTPUT_RGB_15
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
-#ifndef SCANLINE
-  CONVERSION_FUNC_MIDDLE_420_TO_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
 
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
+#define CHROMA_SUB 2
+
+// #define INIT
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_420_p_to_bgr_15_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
+  OUTPUT_BGR_15
+
+#define CHROMA_SUB 2
+
+// #define INIT
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_420_p_to_rgb_16_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
+  OUTPUT_RGB_16
+
+#define CHROMA_SUB 2
+
+// #define INIT
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_420_p_to_bgr_16_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
+  OUTPUT_BGR_16
+
+#define CHROMA_SUB 2
+
+// #define INIT
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_420_p_to_rgb_24_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   24
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
+  OUTPUT_RGB_24
+
+#define CHROMA_SUB 2
+
+// #define INIT
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+
+#define FUNC_NAME     yuv_420_p_to_bgr_24_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   24
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
+  OUTPUT_BGR_24
+
+#define CHROMA_SUB 2
+
+// #define INIT
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_420_p_to_rgb_32_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   32
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
+  OUTPUT_RGB_32
+
+#define CHROMA_SUB 2
+
+// #define INIT
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_420_p_to_bgr_32_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   32
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
+  OUTPUT_BGR_32
+
+#define CHROMA_SUB 2
+
+// #define INIT
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_420_p_to_rgba_32_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   32
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
+  OUTPUT_RGBA_32
+
+#define CHROMA_SUB 2
+
+// #define INIT
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+/********************************************************
+ * YUV 422 ->
+ ********************************************************/
+
+#define FUNC_NAME     yuv_422_p_to_rgb_15_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
   OUTPUT_RGB_15
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
-#endif
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
 
-static void yuv_420_p_to_bgr_15_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 2)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
+#define CHROMA_SUB 1
 
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
+// #define INIT
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_422_p_to_bgr_15_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
   OUTPUT_BGR_15
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
-#ifndef SCANLINE
-  CONVERSION_FUNC_MIDDLE_420_TO_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
 
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_BGR_15
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
-#endif
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
+#define CHROMA_SUB 1
 
-static void yuv_420_p_to_rgb_16_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 2)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
+// #define INIT
+#define CLEANUP emms();
 
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_422_p_to_rgb_16_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
   OUTPUT_RGB_16
 
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
-#ifndef SCANLINE
-  CONVERSION_FUNC_MIDDLE_420_TO_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
+#define CHROMA_SUB 1
 
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_RGB_16
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
-#endif
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
+// #define INIT
+#define CLEANUP emms();
 
-static void yuv_420_p_to_bgr_16_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 2)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
+#include "../csp_planar_packed.h"
 
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
+#define FUNC_NAME     yuv_422_p_to_bgr_16_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
   OUTPUT_BGR_16
 
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
-#ifndef SCANLINE
-  CONVERSION_FUNC_MIDDLE_420_TO_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
+#define CHROMA_SUB 1
 
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_BGR_16
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
-#endif
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
+// #define INIT
+#define CLEANUP emms();
 
-static void yuv_420_p_to_rgb_24_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 2)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
+#include "../csp_planar_packed.h"
 
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
+#define FUNC_NAME     yuv_422_p_to_rgb_24_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   24
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
   OUTPUT_RGB_24
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 24)
-#ifndef SCANLINE
-  CONVERSION_FUNC_MIDDLE_420_TO_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
 
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_RGB_24
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 24)
-#endif
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
+#define CHROMA_SUB 1
 
-static void yuv_420_p_to_bgr_24_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 2)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
+// #define INIT
+#define CLEANUP emms();
 
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
+#include "../csp_planar_packed.h"
+
+
+#define FUNC_NAME     yuv_422_p_to_bgr_24_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   24
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
   OUTPUT_BGR_24
 
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 24)
-#ifndef SCANLINE
-  CONVERSION_FUNC_MIDDLE_420_TO_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
+#define CHROMA_SUB 1
 
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_BGR_24
-  
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 24)
-#endif
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
+// #define INIT
+#define CLEANUP emms();
 
-static void yuv_420_p_to_rgb_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 2)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
+#include "../csp_planar_packed.h"
 
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_RGB_32
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 32)
-#ifndef SCANLINE
-  CONVERSION_FUNC_MIDDLE_420_TO_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
-
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_RGB_32
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 32)
-#endif
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
-
-static void yuv_420_p_to_bgr_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 2)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
-
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_BGR_32
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 32)
-#ifndef SCANLINE
-  CONVERSION_FUNC_MIDDLE_420_TO_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
-
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_BGR_32
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 32)
-#endif
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
-
-static void yuv_420_p_to_rgba_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 2)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
-
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_RGBA_32
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 32)
-#ifndef SCANLINE
-  CONVERSION_FUNC_MIDDLE_420_TO_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
-
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_RGBA_32
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 32)
-#endif
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
-
-static void yuv_422_p_to_rgb_15_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
-
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_RGB_15
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
-
-static void yuv_422_p_to_bgr_15_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
-
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_BGR_15
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
-
-static void yuv_422_p_to_rgb_16_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
-
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_RGB_16
-
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
-
-static void yuv_422_p_to_bgr_16_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
-
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_BGR_16
-
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
-
-static void yuv_422_p_to_rgb_24_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
-
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_RGB_24
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 24)
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
-
-static void yuv_422_p_to_bgr_24_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
-
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
-  OUTPUT_BGR_24
-
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 24)
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
-
-static void yuv_422_p_to_rgb_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
-
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
+#define FUNC_NAME     yuv_422_p_to_rgb_32_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   32
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
   OUTPUT_RGB_32
 
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 32)
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
+#define CHROMA_SUB 1
 
-static void yuv_422_p_to_bgr_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
+// #define INIT
+#define CLEANUP emms();
 
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_422_p_to_bgr_32_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   32
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
   OUTPUT_BGR_32
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 32)
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
 
-static void yuv_422_p_to_rgba_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PLANAR
-    
-  LOAD_YUV_PLANAR
-  YUV_2_RGB
+#define CHROMA_SUB 1
+
+// #define INIT
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
+#define FUNC_NAME     yuv_422_p_to_rgba_32_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   32
+#define NUM_PIXELS    8
+#define CONVERT       \
+  LOAD_YUV_PLANAR \
+  YUV_2_RGB \
   OUTPUT_RGBA_32
-    
-  SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 32)
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
+
+#define CHROMA_SUB 1
+
+// #define INIT
+#define CLEANUP emms();
+
+#include "../csp_planar_packed.h"
+
 
 #ifdef MMXEXT
 

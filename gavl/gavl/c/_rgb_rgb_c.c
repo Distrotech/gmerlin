@@ -17,7 +17,6 @@
 
 *****************************************************************/
 
-#include "../colorspace_macros.h"
 #include <stdio.h>
 
 /*
@@ -80,657 +79,663 @@ dst_r=((src_a*src_r)+(anti_alpha*background_r))>>8;\
 dst_g=((src_a*src_g)+(anti_alpha*background_g))>>8;\
 dst_b=((src_a*src_b)+(anti_alpha*background_b))>>8;
 
-static void swap_rgb_24_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
+/*
+ *  Needs the following macros:
+ *  IN_TYPE:     Type of the input pointer
+ *  OUT_TYPE:    Type of the output pointer
+ *  IN_ADVANCE:  Input advance
+ *  OUT_ADVANCE: Output advance
+ *  FUNC_NAME:   Name of the function
+ *  NUM_PIXELS:  The number of pixels the conversion processes at once
+ *  CONVERT:     This macro takes no arguments and makes the appropriate conversion
+ *               from <src> to <dst>
+ *  INIT:        Variable declarations and initialization (can be empty)
+ */
 
-  SCANLINE_LOOP_START_PACKED
+/* swap_rgb_24_c */
 
-  SWAP_24
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(3,3)
-     
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  3
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME swap_rgb_24_c
+#define CONVERT    SWAP_24
 
-static void swap_rgb_32_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_START_PACKED
+/* swap_rgb_32_c */
 
-  SWAP_24
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME swap_rgb_32_c
+#define CONVERT    SWAP_24
 
-  SCANLINE_LOOP_END_PACKED_PACKED(4,4)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+#include "../csp_packed_packed.h"
 
-static void swap_rgb_16_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint16_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint16_t)
+/* swap_rgb_16_c */
 
-  SCANLINE_LOOP_START_PACKED
-
-  *dst = (((*src & RGB16_UPPER_MASK) >> 11)|\
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME swap_rgb_16_c
+#define CONVERT \
+   *dst = (((*src & RGB16_UPPER_MASK) >> 11)|\
            (*src & RGB16_MIDDLE_MASK)|\
           ((*src & RGB16_LOWER_MASK) << 11));
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(1,1)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
 
-static void swap_rgb_15_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint16_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint16_t)
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_START_PACKED
+/* swap_rgb_15_c */
 
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME swap_rgb_15_c
+#define CONVERT \
   *dst = (((*src & RGB15_UPPER_MASK) >> 10)|\
           (*src & RGB15_MIDDLE_MASK)|\
          ((*src & RGB15_LOWER_MASK) << 10));
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_END_PACKED_PACKED(1,1)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
 
-static void rgb_15_to_16_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint16_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint16_t)
+/* rgb_15_to_16_c */
 
-  SCANLINE_LOOP_START_PACKED
-
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_15_to_16_c
+#define CONVERT \
   *dst = *src + (*src & 0xFFE0);
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_END_PACKED_PACKED(1,1)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+/* rgb_15_to_24_c */
 
-static void rgb_15_to_24_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint8_t)
-
-  SCANLINE_LOOP_START_PACKED
-
-  dst[0] = RGB15_TO_R(*src);
-  dst[1] = RGB15_TO_G(*src);
-  dst[2] = RGB15_TO_B(*src);
-      
-  SCANLINE_LOOP_END_PACKED_PACKED(1,3)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-static void rgb_15_to_32_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint8_t)
-
-  SCANLINE_LOOP_START_PACKED
-
-  dst[0] = RGB15_TO_R(*src);
-  dst[1] = RGB15_TO_G(*src);
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_15_to_24_c
+#define CONVERT \
+  dst[0] = RGB15_TO_R(*src);\
+  dst[1] = RGB15_TO_G(*src);\
   dst[2] = RGB15_TO_B(*src);
 
-  SCANLINE_LOOP_END_PACKED_PACKED(1,4)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+#include "../csp_packed_packed.h"
 
-static void rgb_16_to_15_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint16_t, 1, 1) 
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint16_t)
+/* rgb_15_to_32_c */
 
-  SCANLINE_LOOP_START_PACKED
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_15_to_32_c
+#define CONVERT \
+  dst[0] = RGB15_TO_R(*src);\
+  dst[1] = RGB15_TO_G(*src);\
+  dst[2] = RGB15_TO_B(*src);
 
-    *dst = (*src & RGB16_LOWER_MASK) |
-    (((*src & (RGB16_MIDDLE_MASK|RGB16_UPPER_MASK)) >> 1) &
-    (RGB15_UPPER_MASK | RGB15_MIDDLE_MASK));
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_END_PACKED_PACKED(1,1)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+/* rgb_16_to_15_c */
 
-static void rgb_16_to_24_c(gavl_video_convert_context_t * ctx)
-  {
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_16_to_15_c
+#define CONVERT \
+    *dst = (*src & RGB16_LOWER_MASK) | \
+   (((*src & (RGB16_MIDDLE_MASK|RGB16_UPPER_MASK)) >> 1) & \
+   (RGB15_UPPER_MASK | RGB15_MIDDLE_MASK));
 
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint8_t)
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_START_PACKED
+/* rgb_16_to_24_c */
 
-  dst[0] = RGB16_TO_R(*src);
-  dst[1] = RGB16_TO_G(*src);
-  dst[2] = RGB16_TO_B(*src);
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(1,3)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-static void rgb_16_to_32_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint8_t)
-
-  SCANLINE_LOOP_START_PACKED
-
-  dst[0] = RGB16_TO_R(*src);
-  dst[1] = RGB16_TO_G(*src);
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_16_to_24_c
+#define CONVERT \
+  dst[0] = RGB16_TO_R(*src); \
+  dst[1] = RGB16_TO_G(*src); \
   dst[2] = RGB16_TO_B(*src);
 
-  SCANLINE_LOOP_END_PACKED_PACKED(1,4)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-  
-static void rgb_24_to_15_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint16_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint16_t)
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_START_PACKED
+/* rgb_16_to_32_c */
 
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_16_to_32_c
+#define CONVERT \
+  dst[0] = RGB16_TO_R(*src); \
+  dst[1] = RGB16_TO_G(*src); \
+  dst[2] = RGB16_TO_B(*src);
+
+#include "../csp_packed_packed.h"
+
+/* rgb_24_to_15_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  3
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_24_to_15_c
+#define CONVERT \
   PACK_RGB15(src[0],src[1],src[2],*dst)
 
-  SCANLINE_LOOP_END_PACKED_PACKED(3,1)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+#include "../csp_packed_packed.h"
 
-static void rgb_24_to_16_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint16_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint16_t)
+/* rgb_24_to_16_c */
 
-  SCANLINE_LOOP_START_PACKED
-
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  3
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_24_to_16_c
+#define CONVERT \
   PACK_RGB16(src[0],src[1],src[2],*dst)
 
-  SCANLINE_LOOP_END_PACKED_PACKED(3,1)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+#include "../csp_packed_packed.h"
 
-static void rgb_24_to_32_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
+/* rgb_24_to_32_c */
 
-  SCANLINE_LOOP_START_PACKED
-
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  3
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_24_to_32_c
+#define CONVERT \
   COPY_24
 
-  SCANLINE_LOOP_END_PACKED_PACKED(3,4)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-  
-static void rgb_32_to_15_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint16_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint16_t)
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_START_PACKED
+/* rgb_32_to_15_c */
 
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_32_to_15_c
+#define CONVERT \
   PACK_RGB15(src[0],src[1],src[2],*dst)
 
-  SCANLINE_LOOP_END_PACKED_PACKED(4,1)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+#include "../csp_packed_packed.h"
 
-static void rgb_32_to_16_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint16_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint16_t)
+/* rgb_32_to_16_c */
 
-  SCANLINE_LOOP_START_PACKED
-
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_32_to_16_c
+#define CONVERT \
   PACK_RGB16(src[0],src[1],src[2],*dst)
-  
-  SCANLINE_LOOP_END_PACKED_PACKED(4,1)
- 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
 
-static void rgb_32_to_24_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_START_PACKED
+/* rgb_32_to_24_c */
 
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_32_to_24_c
+#define CONVERT \
   COPY_24  
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(4,3)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
 
-static void rgb_15_to_16_swap_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint16_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint16_t)
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_START_PACKED
+/* rgb_15_to_16_swap_c */
 
-  *dst = ((*src & RGB15_UPPER_MASK) >> 10) |
-    ((*src & RGB15_MIDDLE_MASK) << 1) | 
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_15_to_16_swap_c
+#define CONVERT \
+  *dst = ((*src & RGB15_UPPER_MASK) >> 10) | \
+    ((*src & RGB15_MIDDLE_MASK) << 1) | \
     ((*src & RGB15_LOWER_MASK) << 11);
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(1,1)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+#include "../csp_packed_packed.h"
 
-static void  rgb_15_to_24_swap_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint8_t)
+/* rgb_15_to_24_swap_c */
 
-  SCANLINE_LOOP_START_PACKED
-
-  dst[2] = RGB15_TO_R(*src);
-  dst[1] = RGB15_TO_G(*src);
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_15_to_24_swap_c
+#define CONVERT \
+  dst[2] = RGB15_TO_R(*src); \
+  dst[1] = RGB15_TO_G(*src); \
   dst[0] = RGB15_TO_B(*src);
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_END_PACKED_PACKED(1,3)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
 
-static void  rgb_15_to_32_swap_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint8_t)
+/* rgb_15_to_32_swap_c */
 
-  SCANLINE_LOOP_START_PACKED
-
-  dst[2] = RGB15_TO_R(*src);
-  dst[1] = RGB15_TO_G(*src);
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_15_to_32_swap_c
+#define CONVERT \
+  dst[2] = RGB15_TO_R(*src); \
+  dst[1] = RGB15_TO_G(*src); \
   dst[0] = RGB15_TO_B(*src);
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_END_PACKED_PACKED(1,4)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+/* rgb_16_to_15_swap_c */
 
-static void  rgb_16_to_15_swap_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint16_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint16_t)
-
-  SCANLINE_LOOP_START_PACKED
-
-  *dst = ((*src & RGB16_UPPER_MASK) >> 11) |
-    (((*src & RGB16_MIDDLE_MASK) >> 1) & RGB15_MIDDLE_MASK) | 
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_16_to_15_swap_c
+#define CONVERT \
+  *dst = ((*src & RGB16_UPPER_MASK) >> 11) | \
+    (((*src & RGB16_MIDDLE_MASK) >> 1) & RGB15_MIDDLE_MASK) |\
     ((*src & RGB16_LOWER_MASK) << 10);
-  
-  SCANLINE_LOOP_END_PACKED_PACKED(1,1)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+#include "../csp_packed_packed.h"
 
-static void  rgb_16_to_24_swap_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint8_t)
+/* rgb_16_to_24_swap_c */
 
-  SCANLINE_LOOP_START_PACKED
-
-  dst[2]=RGB16_TO_R(*src);
-  dst[1]=RGB16_TO_G(*src);
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_16_to_24_swap_c
+#define CONVERT \
+  dst[2]=RGB16_TO_R(*src);\
+  dst[1]=RGB16_TO_G(*src);\
   dst[0]=RGB16_TO_B(*src);
-      
-  SCANLINE_LOOP_END_PACKED_PACKED(1,3)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+#include "../csp_packed_packed.h"
 
-static void  rgb_16_to_32_swap_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint8_t)
+/* rgb_16_to_32_swap_c */
 
-  SCANLINE_LOOP_START_PACKED
-
-  dst[2]=RGB16_TO_R(*src);
-  dst[1]=RGB16_TO_G(*src);
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_16_to_32_swap_c
+#define CONVERT \
+  dst[2]=RGB16_TO_R(*src);\
+  dst[1]=RGB16_TO_G(*src);\
   dst[0]=RGB16_TO_B(*src);
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_END_PACKED_PACKED(1,4)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+/* rgb_24_to_15_swap_c */
 
-static void  rgb_24_to_15_swap_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint16_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint16_t)
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  3
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_24_to_15_swap_c
+#define CONVERT \
+  PACK_BGR15(src[0],src[1],src[2],*dst)
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_START_PACKED
+/* rgb_24_to_16_swap_c */
 
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  3
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_24_to_16_swap_c
+#define CONVERT \
+  PACK_BGR16(src[0],src[1],src[2],*dst)
+#include "../csp_packed_packed.h"
+
+/* rgb_24_to_32_swap_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  3
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_24_to_32_swap_c
+#define CONVERT \
+  SWAP_24
+#include "../csp_packed_packed.h"
+
+/* rgb_32_to_15_swap_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_32_to_15_swap_c
+#define CONVERT \
   PACK_BGR15(src[0],src[1],src[2],*dst)
 
-  SCANLINE_LOOP_END_PACKED_PACKED(3,1)
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+/* rgb_32_to_16_swap_c */
 
-static void  rgb_24_to_16_swap_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint16_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint16_t)
-
-  SCANLINE_LOOP_START_PACKED
-
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_32_to_16_swap_c
+#define CONVERT \
   PACK_BGR16(src[0],src[1],src[2],*dst)
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(3,1)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
 
-static void  rgb_24_to_32_swap_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_START_PACKED
+/* rgb_32_to_24_swap_c */
 
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_32_to_24_swap_c
+#define CONVERT \
   SWAP_24
 
-  SCANLINE_LOOP_END_PACKED_PACKED(3,4)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-  
-static void  rgb_32_to_15_swap_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint16_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint16_t)
+#include "../csp_packed_packed.h"
 
-  SCANLINE_LOOP_START_PACKED
+/* rgba_32_to_rgb_15_c */
 
-  PACK_BGR15(src[0],src[1],src[2],*dst)
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(4,1)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-static void  rgb_32_to_16_swap_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint16_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint16_t)
-
-  SCANLINE_LOOP_START_PACKED
-
-  PACK_BGR16(src[0],src[1],src[2],*dst)
-  
-  SCANLINE_LOOP_END_PACKED_PACKED(4,1)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-static void  rgb_32_to_24_swap_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-  SCANLINE_LOOP_START_PACKED
-  SWAP_24
-  SCANLINE_LOOP_END_PACKED_PACKED(4,3)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-/* Conversion from RGBA to RGB formats */
-
-static void  rgba_32_to_rgb_15_c(gavl_video_convert_context_t * ctx)
-  {
-  uint8_t r_tmp;
-  uint8_t g_tmp;
-  uint8_t b_tmp;
-  
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint16_t, 1, 1)
-  INIT_RGBA32
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint16_t)
-
-  SCANLINE_LOOP_START_PACKED
-  RGBA_2_RGB(src[0], src[1], src[2], src[3], r_tmp, g_tmp, b_tmp)
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_rgb_15_c
+#define CONVERT \
+  RGBA_2_RGB(src[0], src[1], src[2], src[3], r_tmp, g_tmp, b_tmp)\
   PACK_RGB15(r_tmp, g_tmp, b_tmp, *dst)
-  SCANLINE_LOOP_END_PACKED_PACKED(4,1)
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-static void  rgba_32_to_bgr_15_c(gavl_video_convert_context_t * ctx)
-  {
-  uint8_t r_tmp;
-  uint8_t g_tmp;
-  uint8_t b_tmp;
-
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint16_t, 1, 1)
+#define INIT \
+  uint8_t r_tmp;\
+  uint8_t g_tmp;\
+  uint8_t b_tmp;\
   INIT_RGBA32
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint16_t)
 
-  SCANLINE_LOOP_START_PACKED
-  RGBA_2_RGB(src[0], src[1], src[2], src[3], r_tmp, g_tmp, b_tmp)
+#include "../csp_packed_packed.h"
+
+/* rgba_32_to_bgr_15_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_bgr_15_c
+#define CONVERT \
+  RGBA_2_RGB(src[0], src[1], src[2], src[3], r_tmp, g_tmp, b_tmp) \
   PACK_BGR15(r_tmp, g_tmp, b_tmp, *dst)
-  SCANLINE_LOOP_END_PACKED_PACKED(4,1)
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-static void  rgba_32_to_rgb_16_c(gavl_video_convert_context_t * ctx)
-  {
-  uint8_t r_tmp;
-  uint8_t g_tmp;
-  uint8_t b_tmp;
-
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint16_t, 1, 1)
+#define INIT \
+  uint8_t r_tmp;\
+  uint8_t g_tmp;\
+  uint8_t b_tmp;\
   INIT_RGBA32
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint16_t)
 
-  SCANLINE_LOOP_START_PACKED
-  RGBA_2_RGB(src[0], src[1], src[2], src[3], r_tmp, g_tmp, b_tmp)
+#include "../csp_packed_packed.h"
+
+/* rgba_32_to_rgb_16_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_rgb_16_c
+#define CONVERT \
+  RGBA_2_RGB(src[0], src[1], src[2], src[3], r_tmp, g_tmp, b_tmp) \
   PACK_RGB16(r_tmp, g_tmp, b_tmp, *dst)
 
-  SCANLINE_LOOP_END_PACKED_PACKED(4,1)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-static void  rgba_32_to_bgr_16_c(gavl_video_convert_context_t * ctx)
-  {
-  uint8_t r_tmp;
-  uint8_t g_tmp;
-  uint8_t b_tmp;
-
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint16_t, 1, 1)
+#define INIT \
+  uint8_t r_tmp;\
+  uint8_t g_tmp;\
+  uint8_t b_tmp;\
   INIT_RGBA32
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint16_t)
 
-  SCANLINE_LOOP_START_PACKED
-  RGBA_2_RGB(src[0], src[1], src[2], src[3], r_tmp, g_tmp, b_tmp)
+#include "../csp_packed_packed.h"
+
+/* rgba_32_to_bgr_16_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_bgr_16_c
+#define CONVERT \
+  RGBA_2_RGB(src[0], src[1], src[2], src[3], r_tmp, g_tmp, b_tmp) \
   PACK_BGR16(r_tmp, g_tmp, b_tmp, *dst)
 
-  SCANLINE_LOOP_END_PACKED_PACKED(4,1)
-  
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-static void  rgba_32_to_rgb_24_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 1, 1)
+#define INIT \
+  uint8_t r_tmp;\
+  uint8_t g_tmp;\
+  uint8_t b_tmp;\
   INIT_RGBA32
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+
+#include "../csp_packed_packed.h"
+
+/* rgba_32_to_rgb_24_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_rgb_24_c
+#define CONVERT \
   RGBA_2_RGB(src[0], src[1], src[2], src[3], dst[0], dst[1], dst[2])
 
-  SCANLINE_LOOP_END_PACKED_PACKED(4,3)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-                                 
-static void  rgba_32_to_bgr_24_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 1, 1)
+#define INIT \
   INIT_RGBA32
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+
+#include "../csp_packed_packed.h"
+
+/* rgba_32_to_bgr_24_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_bgr_24_c
+#define CONVERT \
   RGBA_2_RGB(src[0], src[1], src[2], src[3], dst[2], dst[1], dst[0])
 
-  SCANLINE_LOOP_END_PACKED_PACKED(4,3)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-static void  rgba_32_to_rgb_32_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 1, 1)
+#define INIT \
   INIT_RGBA32
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+
+#include "../csp_packed_packed.h"
+
+/* rgba_32_to_rgb_32_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_rgb_32_c
+#define CONVERT \
   RGBA_2_RGB(src[0], src[1], src[2], src[3], dst[0], dst[1], dst[2])
 
-  SCANLINE_LOOP_END_PACKED_PACKED(4,4)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-static void  rgba_32_to_bgr_32_c(gavl_video_convert_context_t * ctx)
-  {
-  //  fprintf(stderr, "rgba_32_to_bgr_32_c\n");
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 1, 1)
+#define INIT \
   INIT_RGBA32
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+
+#include "../csp_packed_packed.h"
+
+/* rgba_32_to_bgr_32_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_bgr_32_c
+#define CONVERT \
   RGBA_2_RGB(src[0], src[1], src[2], src[3], dst[2], dst[1], dst[0])
 
-  SCANLINE_LOOP_END_PACKED_PACKED(4,4)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+#define INIT \
+  INIT_RGBA32
 
-  /* Conversion from RGB formats to RGBA */
+#include "../csp_packed_packed.h"
 
-static void  rgb_15_to_rgba_32_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+/* Conversion from RGB formats to RGBA */
 
-  dst[0] = RGB15_TO_R(*src);
-  dst[1] = RGB15_TO_G(*src);
-  dst[2] = RGB15_TO_B(*src);
-  dst[3] = 0xff;
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(1,4)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+/* rgb_15_to_rgba_32_c */
 
-static void  bgr_15_to_rgba_32_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
-
-  dst[0] = BGR15_TO_R(*src);
-  dst[1] = BGR15_TO_G(*src);
-  dst[2] = BGR15_TO_B(*src);
-  dst[3] = 0xff;
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(1,4)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-static void  rgb_16_to_rgba_32_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint8_t)
-
-  SCANLINE_LOOP_START_PACKED
-
-  dst[0] = RGB16_TO_R(*src);
-  dst[1] = RGB16_TO_G(*src);
-  dst[2] = RGB16_TO_B(*src);
-  dst[3] = 0xff;
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(1,4)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-static void  bgr_16_to_rgba_32_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint16_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint16_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
-
-  dst[0] = BGR16_TO_R(*src);
-  dst[1] = BGR16_TO_G(*src);
-  dst[2] = BGR16_TO_B(*src);
-  dst[3] = 0xff;
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(1,4)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-static void  rgb_24_to_rgba_32_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
-
-  COPY_24
-  dst[3] = 0xff;
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(3,4)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
-
-static void  bgr_24_to_rgba_32_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
-
-  SWAP_24
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_15_to_rgba_32_c
+#define CONVERT \
+  dst[0] = RGB15_TO_R(*src);\
+  dst[1] = RGB15_TO_G(*src);\
+  dst[2] = RGB15_TO_B(*src);\
   dst[3] = 0xff;
 
-  SCANLINE_LOOP_END_PACKED_PACKED(3,4)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+#include "../csp_packed_packed.h"
 
-static void  rgb_32_to_rgba_32_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+/* bgr_15_to_rgba_32_c */
 
-  COPY_24
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME bgr_15_to_rgba_32_c
+#define CONVERT \
+  dst[0] = BGR15_TO_R(*src);\
+  dst[1] = BGR15_TO_G(*src);\
+  dst[2] = BGR15_TO_B(*src);\
   dst[3] = 0xff;
 
-  SCANLINE_LOOP_END_PACKED_PACKED(4,4)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+#include "../csp_packed_packed.h"
 
-static void  bgr_32_to_rgba_32_c(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 1, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-  SCANLINE_LOOP_START_PACKED
+/* rgb_16_to_rgba_32_c */
 
-  SWAP_24
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_16_to_rgba_32_c
+#define CONVERT \
+  dst[0] = RGB16_TO_R(*src);\
+  dst[1] = RGB16_TO_G(*src);\
+  dst[2] = RGB16_TO_B(*src);\
   dst[3] = 0xff;
-    
-  SCANLINE_LOOP_END_PACKED_PACKED(4,4)
-  CONVERSION_FUNC_END_PACKED_PACKED
-  }
+
+#include "../csp_packed_packed.h"
+
+/* bgr_16_to_rgba_32_c */
+
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  1
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME bgr_16_to_rgba_32_c
+#define CONVERT \
+  dst[0] = BGR16_TO_R(*src);\
+  dst[1] = BGR16_TO_G(*src);\
+  dst[2] = BGR16_TO_B(*src);\
+  dst[3] = 0xff;
+
+#include "../csp_packed_packed.h"
+
+/* rgb_24_to_rgba_32_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  3
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_24_to_rgba_32_c
+#define CONVERT \
+  COPY_24 \
+  dst[3] = 0xff;
+
+#include "../csp_packed_packed.h"
+
+/* bgr_24_to_rgba_32_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  3
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME bgr_24_to_rgba_32_c
+#define CONVERT \
+  SWAP_24 \
+  dst[3] = 0xff;
+
+#include "../csp_packed_packed.h"
+
+/* rgb_32_to_rgba_32_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgb_32_to_rgba_32_c
+#define CONVERT \
+  COPY_24 \
+  dst[3] = 0xff;
+
+#include "../csp_packed_packed.h"
+
+/* bgr_32_to_rgba_32_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME bgr_32_to_rgba_32_c
+#define CONVERT \
+  SWAP_24 \
+  dst[3] = 0xff;
+
+#include "../csp_packed_packed.h"
 
 #ifdef SCANLINE
 void gavl_init_rgb_rgb_scanline_funcs_c(gavl_colorspace_function_table_t * tab)

@@ -1417,750 +1417,535 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
                      MOVQ_R2M(mm6, *(dst+8));
 
 
-static void swap_rgb_24_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-    
-    SCANLINE_LOOP_START_PACKED
+#define FUNC_NAME   swap_rgb_24_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  24
+#define OUT_ADVANCE 24
+#define NUM_PIXELS  8
+#define CONVERT     SWAP_24
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-    SWAP_24
-    
-    SCANLINE_LOOP_END_PACKED_PACKED(24, 24)
-    
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void swap_rgb_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
-
-    SWAP_32
-    
+#define FUNC_NAME   swap_rgb_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  32
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_32 \
+    SWAP_32 \
     WRITE_32
-    
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 32)
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-static void swap_rgb_16_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  INIT_SWAP_16
-    CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
+#define FUNC_NAME   swap_rgb_16_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
+    SWAP_16 \
+    WRITE_16
+#define INIT INIT_SWAP_16
 
-    SCANLINE_LOOP_START_PACKED
 
-    LOAD_16
-    SWAP_16
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   swap_rgb_15_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
+    SWAP_15 \
+    WRITE_16
+#define INIT INIT_SWAP_15
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   rgb_15_to_16_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
+    RGB_15_TO_16 \
     WRITE_16
 
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 16)
+#define INIT        INIT_RGB_15_TO_16
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void swap_rgb_15_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  INIT_SWAP_15
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
-    SWAP_15
-    WRITE_16
-
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 16)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void rgb_15_to_16_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  INIT_RGB_15_TO_16
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
-
-    RGB_15_TO_16
-
-    WRITE_16
-    
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 16)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void rgb_15_to_24_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
-
+#define FUNC_NAME   rgb_15_to_24_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 24
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
     RGB_15_TO_24_SWAP
-    
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 24)
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-static void rgb_15_to_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
-
+#define FUNC_NAME   rgb_15_to_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
     RGB_15_TO_32_SWAP
-    
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 32)
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-static void rgb_16_to_15_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  INIT_RGB_16_TO_15
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
-
-    RGB_16_TO_15
-    
+#define FUNC_NAME   rgb_16_to_15_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define INIT   INIT_RGB_16_TO_15
+#define CONVERT     \
+    LOAD_16 \
+    RGB_16_TO_15 \
     WRITE_16
-    
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 16)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void rgb_16_to_24_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
-
+#define FUNC_NAME   rgb_16_to_24_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 24
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
     RGB_16_TO_24_SWAP
 
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 24)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void rgb_16_to_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
-
+#define FUNC_NAME   rgb_16_to_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
     RGB_16_TO_32_SWAP
 
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 32)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-  
-static void rgb_24_to_15_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_24
+#define FUNC_NAME   rgb_24_to_15_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  24
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_24 \
     RGB_32_TO_15_SWAP
 
-    SCANLINE_LOOP_END_PACKED_PACKED(24, 16)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void rgb_24_to_16_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_24
-
+#define FUNC_NAME   rgb_24_to_16_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  24
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_24 \
     RGB_32_TO_16_SWAP
 
-    SCANLINE_LOOP_END_PACKED_PACKED(24, 16)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void rgb_24_to_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_24
-
+#define FUNC_NAME   rgb_24_to_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  24
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_24 \
     WRITE_32
 
-    SCANLINE_LOOP_END_PACKED_PACKED(24, 32)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-  
-static void rgb_32_to_15_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
+#define FUNC_NAME   rgb_32_to_15_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  32
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_32 \
     RGB_32_TO_15_SWAP
-    
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 16)
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-static void rgb_32_to_16_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
+#define FUNC_NAME   rgb_32_to_16_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  32
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_32 \
     RGB_32_TO_16_SWAP
 
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 16)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void rgb_32_to_24_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
-
+#define FUNC_NAME   rgb_32_to_24_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  32
+#define OUT_ADVANCE 24
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_32 \
     WRITE_24
 
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 24)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void rgb_15_to_16_swap_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  INIT_SWAP_15_TO_16
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
-    
-    SWAP_15_TO_16
-
+#define FUNC_NAME   rgb_15_to_16_swap_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
+    SWAP_15_TO_16 \
     WRITE_16
 
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 16)
+#define INIT INIT_SWAP_15_TO_16
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-static void  rgb_15_to_24_swap_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
+#define FUNC_NAME   rgb_15_to_24_swap_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 24
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
     RGB_15_TO_24
 
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 24)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void  rgb_15_to_32_swap_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
-
+#define FUNC_NAME   rgb_15_to_32_swap_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
     RGB_15_TO_32
-    
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 32)
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-static void  rgb_16_to_15_swap_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  INIT_SWAP_16_TO_15
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
-    SWAP_16_TO_15
+#define FUNC_NAME   rgb_16_to_15_swap_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
+    SWAP_16_TO_15 \
     WRITE_16
 
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 16)
+#define INIT INIT_SWAP_16_TO_15
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-static void  rgb_16_to_24_swap_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
+#define FUNC_NAME   rgb_16_to_24_swap_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 24
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
     RGB_16_TO_24
-    
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 24)
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-static void  rgb_16_to_32_swap_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
+#define FUNC_NAME   rgb_16_to_32_swap_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
     RGB_16_TO_32
 
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 32)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void  rgb_24_to_15_swap_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_24
+#define FUNC_NAME   rgb_24_to_15_swap_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  24
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_24 \
     RGB_32_TO_15
 
-    SCANLINE_LOOP_END_PACKED_PACKED(24, 16)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void  rgb_24_to_16_swap_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_24
+#define FUNC_NAME   rgb_24_to_16_swap_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  24
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_24 \
     RGB_32_TO_16
 
-    SCANLINE_LOOP_END_PACKED_PACKED(24, 16)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void  rgb_24_to_32_swap_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_24
-    SWAP_32
+#define FUNC_NAME   rgb_24_to_32_swap_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  24
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_24 \
+    SWAP_32 \
     WRITE_32
 
-    SCANLINE_LOOP_END_PACKED_PACKED(24, 32)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-  
-static void  rgb_32_to_15_swap_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
+#define FUNC_NAME   rgb_32_to_15_swap_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  32
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_32 \
     RGB_32_TO_15
 
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 16)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void  rgb_32_to_16_swap_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
+#define FUNC_NAME   rgb_32_to_16_swap_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  32
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_32 \
     RGB_32_TO_16
-    
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 16)
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-static void  rgb_32_to_24_swap_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
-    SWAP_32
+#define FUNC_NAME   rgb_32_to_24_swap_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  32
+#define OUT_ADVANCE 24
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_32 \
+    SWAP_32 \
     WRITE_24
 
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 24)
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
+/* Conversion from RGB formats to RGBA */
+
+#define FUNC_NAME   rgb_15_to_rgba_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
+    RGB_15_TO_32_SWAP_RGBA
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   bgr_15_to_rgba_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
+    RGB_15_TO_32_RGBA
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+
+
+#define FUNC_NAME   rgb_16_to_rgba_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
+    RGB_16_TO_32_SWAP_RGBA
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   bgr_16_to_rgba_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_16 \
+    RGB_16_TO_32_RGBA
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+    
+#define FUNC_NAME   rgb_24_to_rgba_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  24
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_24 \
+    WRITE_RGBA_32
+
+#define INIT INIT_WRITE_RGBA_32
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+    
+    
+#define FUNC_NAME   bgr_24_to_rgba_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  24
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_24 \
+    SWAP_32 \
+    WRITE_RGBA_32
+
+#define INIT INIT_WRITE_RGBA_32
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   rgb_32_to_rgba_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  32
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_32 \
+    WRITE_RGBA_32
+
+#define INIT INIT_WRITE_RGBA_32
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   bgr_32_to_rgba_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  32
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+    LOAD_32 \
+    SWAP_32 \
+    WRITE_RGBA_32
+
+#define INIT INIT_WRITE_RGBA_32
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
 
 /* Conversion from RGBA to RGB formats */
 
 static void  rgba_32_to_rgb_15_mmx(gavl_video_convert_context_t * ctx)
   {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
-    WRITE_16
-
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 16)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
   }
 
 static void  rgba_32_to_bgr_15_mmx(gavl_video_convert_context_t * ctx)
   {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
-    WRITE_16
-
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 16)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
   }
 
 static void  rgba_32_to_rgb_16_mmx(gavl_video_convert_context_t * ctx)
   {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
-    WRITE_16
-
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 16)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
   }
 
 static void  rgba_32_to_bgr_16_mmx(gavl_video_convert_context_t * ctx)
   {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
-    WRITE_16
-
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 16)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
   }
 
 static void  rgba_32_to_rgb_24_mmx(gavl_video_convert_context_t * ctx)
   {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
-    WRITE_24
-
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 24)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
   }
                                  
 static void  rgba_32_to_bgr_24_mmx(gavl_video_convert_context_t * ctx)
   {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
-    WRITE_24
-
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 24)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
   }
 
 static void  rgba_32_to_rgb_32_mmx(gavl_video_convert_context_t * ctx)
   {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
-    WRITE_32
-
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 32)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
   }
 
 static void  rgba_32_to_bgr_32_mmx(gavl_video_convert_context_t * ctx)
   {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
-    WRITE_32
-
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 32)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
   }
 
-  /* Conversion from RGB formats to RGBA */
-
-static void  rgb_15_to_rgba_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
-    RGB_15_TO_32_SWAP_RGBA
-
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 32)
-    
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void  bgr_15_to_rgba_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
-    RGB_15_TO_32_RGBA
-
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 32)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void  rgb_16_to_rgba_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
-    RGB_16_TO_32_SWAP_RGBA
-
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 32)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void  bgr_16_to_rgba_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_16
-    RGB_16_TO_32_RGBA
-
-    SCANLINE_LOOP_END_PACKED_PACKED(16, 32)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void  rgb_24_to_rgba_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  INIT_WRITE_RGBA_32
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_24
-    WRITE_RGBA_32
-
-    SCANLINE_LOOP_END_PACKED_PACKED(24, 32)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void  bgr_24_to_rgba_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  INIT_WRITE_RGBA_32
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_24
-    SWAP_32
-    WRITE_RGBA_32
-
-    SCANLINE_LOOP_END_PACKED_PACKED(24, 32)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void  rgb_32_to_rgba_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  INIT_WRITE_RGBA_32
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
-    WRITE_RGBA_32
-
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 32)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
-
-static void  bgr_32_to_rgba_32_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PACKED(uint8_t, uint8_t, 8, 1)
-  INIT_WRITE_RGBA_32
-  CONVERSION_LOOP_START_PACKED_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PACKED
-
-    LOAD_32
-    SWAP_32
-    WRITE_RGBA_32
-    WRITE_32
-
-    SCANLINE_LOOP_END_PACKED_PACKED(32, 32)
-
-  CONVERSION_FUNC_END_PACKED_PACKED
-  emms();
-  }
 
 #ifdef MMXEXT
 

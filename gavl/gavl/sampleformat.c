@@ -42,6 +42,8 @@ gavl_audio_func_t gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t
         case GAVL_SAMPLE_FLOAT:
           return t->convert_u8_to_float;
           break;
+        case GAVL_SAMPLE_NONE:
+          break;
         }
       break;
     case GAVL_SAMPLE_S8:
@@ -67,6 +69,8 @@ gavl_audio_func_t gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t
           break;
         case GAVL_SAMPLE_FLOAT:
           return t->convert_s8_to_float;
+          break;
+        case GAVL_SAMPLE_NONE:
           break;
         }
       break;
@@ -94,6 +98,8 @@ gavl_audio_func_t gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t
         case GAVL_SAMPLE_FLOAT:
           return t->convert_u16ne_to_float;
           break;
+        case GAVL_SAMPLE_NONE:
+          break;
         }
       break;
     case GAVL_SAMPLE_S16NE:
@@ -119,6 +125,8 @@ gavl_audio_func_t gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t
           break;
         case GAVL_SAMPLE_FLOAT:
           return t->convert_s16ne_to_float;
+          break;
+        case GAVL_SAMPLE_NONE:
           break;
         }
       break;
@@ -146,6 +154,8 @@ gavl_audio_func_t gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t
         case GAVL_SAMPLE_FLOAT:
           return t->convert_u16oe_to_float;
           break;
+        case GAVL_SAMPLE_NONE:
+          break;
         }
       break;
     case GAVL_SAMPLE_S16OE:
@@ -171,6 +181,8 @@ gavl_audio_func_t gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t
           break;
         case GAVL_SAMPLE_FLOAT:
           return t->convert_s16oe_to_float;
+          break;
+        case GAVL_SAMPLE_NONE:
           break;
         }
       break;
@@ -198,9 +210,12 @@ gavl_audio_func_t gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t
         case GAVL_SAMPLE_FLOAT:
           // Nothing
           break;
+        case GAVL_SAMPLE_NONE:
+          break;
         }
       break;
-
+    case GAVL_SAMPLE_NONE:
+      break;
     }
   return (gavl_audio_func_t)0;
   }

@@ -326,6 +326,45 @@ void convert_YUV_422_P_to_RGB24(gavl_video_frame_t * in_frame,
     }
   }
 
+void convert_YUV_444_P_to_RGB24(gavl_video_frame_t * in_frame,
+                                gavl_video_frame_t * out_frame,
+                                int width, int height)
+  {
+  int i, j, i_tmp;
+
+  uint8_t * in_y;
+  uint8_t * in_u;
+  uint8_t * in_v;
+
+  uint8_t * out_pixel;
+
+  uint8_t * out_pixel_save = out_frame->planes[0];
+  uint8_t * in_y_save = in_frame->planes[0];
+  uint8_t * in_u_save = in_frame->planes[1];
+  uint8_t * in_v_save = in_frame->planes[2];
+
+  for(i = 0; i < height; i++)
+    {
+    in_y = in_y_save;
+    in_u = in_u_save;
+    in_v = in_v_save;
+    out_pixel = out_pixel_save;
+    for(j = 0; j < width; j++)
+      {
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      in_u++;
+      in_v++;
+      out_pixel += 3;
+      }
+    out_pixel_save += out_frame->strides[0];
+    in_y_save += in_frame->strides[0];
+    in_u_save += in_frame->strides[1];
+    in_v_save += in_frame->strides[2];
+    }
+  }
+
 void convert_YUY2_to_RGB24(gavl_video_frame_t * in_frame,
                            gavl_video_frame_t * out_frame,
                            int width, int height)
@@ -484,6 +523,12 @@ int write_file(const char * name,
     case GAVL_YUV_422_P:
       tmp_frame = gavl_video_frame_create(&tmp_format);
       convert_YUV_422_P_to_RGB24(frame, tmp_frame, format->image_width,
+                                 format->image_height);
+      out_frame = tmp_frame;
+      break;
+    case GAVL_YUV_444_P:
+      tmp_frame = gavl_video_frame_create(&tmp_format);
+      convert_YUV_444_P_to_RGB24(frame, tmp_frame, format->image_width,
                                  format->image_height);
       out_frame = tmp_frame;
       break;
@@ -827,6 +872,23 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
           }
         }
       break;
+    case GAVL_YUV_444_P:
+      for(row = 0; row < TEST_PICTURE_HEIGHT; row++)
+        {
+        y = ret->planes[0] + row * ret->strides[0];
+        u = ret->planes[1] + row * ret->strides[1];
+        v = ret->planes[2] + row * ret->strides[2];
+
+        for(col = 0; col < TEST_PICTURE_WIDTH; col++)
+          {
+          get_pixel(col, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+          y++;
+          u++;
+          v++;
+          }
+        }
+      break;
     case GAVL_COLORSPACE_NONE:
       break;
     }
@@ -917,6 +979,7 @@ int main(int argc, char ** argv)
       
       /* Now, initialize with MMX */
 
+#if 1
       opt.accel_flags = GAVL_ACCEL_MMX;
       
       if(!gavl_video_init(cnv, &opt, &input_format, &output_format))
@@ -952,10 +1015,9 @@ int main(int argc, char ** argv)
                    output_frame, &output_format);
         fprintf(stderr, "Wrote %s\n", filename_buffer);
         }
-
+#endif
       
       gavl_video_frame_destroy(output_frame);
-
       
       }
     

@@ -17,7 +17,6 @@
 
 *****************************************************************/
 
-#include "../colorspace_macros.h"
 #include "mmx_macros.h"
 #include "../_video_copy.c"
 
@@ -108,92 +107,74 @@
                            MOVQ_R2M(mm0, *dst);\
                            MOVQ_R2M(mm7, *(dst+8));
 
+/* YUY2 -> */
 
-static void yuy2_to_yuv_420_p_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PLANAR(uint8_t, uint8_t, 8, 2)
-
-  CONVERSION_LOOP_START_PACKED_PLANAR(uint8_t, uint8_t)
-
-  SCANLINE_LOOP_START_PACKED
-
+#define FUNC_NAME      yuy2_to_yuv_420_p_mmx
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     16
+#define OUT_ADVANCE_Y  8
+#define OUT_ADVANCE_UV 4
+#define NUM_PIXELS     8
+#define CONVERT_YUV    \
   YUY2_TO_YUV_PLANAR
 
-  SCANLINE_LOOP_END_PACKED_PLANAR(16, 8, 4)
-
-#ifndef SCANLINE
-      
-  CONVERSION_FUNC_MIDDLE_PACKED_TO_420(uint8_t, uint8_t)
-
-  SCANLINE_LOOP_START_PACKED
-
+#define CONVERT_Y      \
   YUY2_TO_Y_PLANAR
 
-  SCANLINE_LOOP_END_PACKED_TO_420_Y(16, 8)
+#define CHROMA_SUB     2
+#define CLEANUP        emms();
 
-#endif
-      
-  CONVERSION_FUNC_END_PACKED_PLANAR
-  emms();
-  }
+#include "../csp_packed_planar.h"
 
-static void yuy2_to_yuv_422_p_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PACKED_PLANAR(uint8_t, uint8_t, 8, 1)
-
-  CONVERSION_LOOP_START_PACKED_PLANAR(uint8_t, uint8_t)
-
-  SCANLINE_LOOP_START_PACKED
-
+#define FUNC_NAME      yuy2_to_yuv_422_p_mmx
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     16
+#define OUT_ADVANCE_Y  8
+#define OUT_ADVANCE_UV 4
+#define NUM_PIXELS     8
+#define CONVERT_YUV    \
   YUY2_TO_YUV_PLANAR
 
-  SCANLINE_LOOP_END_PACKED_PLANAR(16, 8, 4)
-      
-  CONVERSION_FUNC_END_PACKED_PLANAR
-  emms();
-  }
+#define CHROMA_SUB     1
+#define CLEANUP        emms();
 
-static void yuv_420_p_to_yuy2_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 2)
+#include "../csp_packed_planar.h"
 
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PLANAR
-
+#define FUNC_NAME     yuv_422_p_to_yuy2_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
     PLANAR_TO_YUY2
 
-    SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
+#define CHROMA_SUB 1
 
-#ifndef SCANLINE
-      
-  CONVERSION_FUNC_MIDDLE_420_TO_PACKED(uint8_t, uint8_t)
+// #define INIT
+#define CLEANUP emms();
 
-    SCANLINE_LOOP_START_PLANAR
+#include "../csp_planar_packed.h"
 
+#define FUNC_NAME     yuv_420_p_to_yuy2_mmx
+#define IN_TYPE       uint8_t
+#define OUT_TYPE      uint8_t
+#define IN_ADVANCE_Y  8
+#define IN_ADVANCE_UV 4
+#define OUT_ADVANCE   16
+#define NUM_PIXELS    8
+#define CONVERT       \
     PLANAR_TO_YUY2
 
-    SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
+#define CHROMA_SUB 2
 
-#endif
-      
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
+// #define INIT
+#define CLEANUP emms();
 
-static void yuv_422_p_to_yuy2_mmx(gavl_video_convert_context_t * ctx)
-  {
-  CONVERSION_FUNC_START_PLANAR_PACKED(uint8_t, uint8_t, 8, 1)
-
-  CONVERSION_LOOP_START_PLANAR_PACKED(uint8_t, uint8_t)
-
-    SCANLINE_LOOP_START_PLANAR
-    PLANAR_TO_YUY2
-    SCANLINE_LOOP_END_PLANAR_PACKED(8, 4, 16)
-      
-  CONVERSION_FUNC_END_PLANAR_PACKED
-  emms();
-  }
+#include "../csp_planar_packed.h"
 
 #ifdef MMXEXT
 

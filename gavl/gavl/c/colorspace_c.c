@@ -17,7 +17,6 @@
 
 *****************************************************************/
 
-#include "../colorspace_macros.h"
 
 #include <gavl/gavl.h>
 #include "video.h"

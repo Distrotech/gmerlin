@@ -28,7 +28,11 @@ video.c \
 videoformat.c \
 videoframe.c
 
-noinst_HEADERS=colorspace_macros.h
+noinst_HEADERS = csp_packed_packed.h  \
+csp_packed_planar.h  \
+csp_planar_packed.h  \
+csp_planar_planar.h
+
 
 libgavl_la_LIBADD = $(mmx_libs) c/libgavl_c.la
 
