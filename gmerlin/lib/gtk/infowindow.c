@@ -85,7 +85,7 @@ struct bg_gtk_info_window_s
   bg_gtk_textview_t * w_video_stream;
 
   bg_gtk_textview_t * w_name;
-  bg_gtk_textview_t * w_stream;
+  bg_gtk_textview_t * w_description;
   bg_gtk_textview_t * w_metadata;
   
   bg_msg_queue_t * queue;
@@ -124,8 +124,12 @@ static void clear_info(bg_gtk_info_window_t * w)
   bg_gtk_textview_update(w->w_audio_format_o, "");
   bg_gtk_textview_update(w->w_video_format_i, "");
   bg_gtk_textview_update(w->w_video_format_o, "");
-
   bg_gtk_textview_update(w->w_metadata, "");
+  
+  bg_gtk_textview_update(w->w_description, "");
+  bg_gtk_textview_update(w->w_audio_description, "");
+  bg_gtk_textview_update(w->w_audio_description, "");
+  bg_gtk_textview_update(w->w_name, "");
   
   }
 
@@ -194,7 +198,7 @@ static void update_video(bg_gtk_info_window_t * w)
 static void update_stream(bg_gtk_info_window_t * w)
   {
   if(w->description)
-    bg_gtk_textview_update(w->w_stream, w->description);
+    bg_gtk_textview_update(w->w_description, w->description);
   }
 
 #define META_STRCAT() \
@@ -220,7 +224,7 @@ static void update_metadata(bg_gtk_info_window_t * w)
   char * window_string = (char*)0;
 
   int first = 1;
-  
+  bg_gtk_textview_update(w->w_metadata, "");
   if(w->metadata.author)
     {
     tmp_string_1 = bg_sprintf("Author:\t %s\n", w->metadata.author);
@@ -302,13 +306,12 @@ static gboolean idle_callback(gpointer data)
           {
           case BG_PLAYER_STATE_STARTING:
             /* New info on the way, clean up everything */
-            fprintf(stderr, "Cleaning info\n");
+            //            fprintf(stderr, "Cleaning info\n");
             clear_info(w);
             break;
           case BG_PLAYER_STATE_PLAYING:
             /* All infos sent, update display */
             update_stream(w);
-            update_metadata(w);
             break;
           case BG_PLAYER_STATE_CHANGING:
             /* Current track is over, let's clear all data */
@@ -347,32 +350,10 @@ static gboolean idle_callback(gpointer data)
         bg_msg_get_arg_video_format(msg, 2, &(w->video_format_o));
         update_video(w);
         break;
-      case BG_PLAYER_MSG_META_ARTIST:
-        w->metadata.artist = bg_msg_get_arg_string(msg, 0);
-        break;
-      case BG_PLAYER_MSG_META_TITLE:
-        w->metadata.title = bg_msg_get_arg_string(msg, 0);
-        break;
-      case BG_PLAYER_MSG_META_ALBUM:
-        w->metadata.album = bg_msg_get_arg_string(msg, 0);
-        break;
-      case BG_PLAYER_MSG_META_GENRE:
-        w->metadata.genre = bg_msg_get_arg_string(msg, 0);
-        break;
-      case BG_PLAYER_MSG_META_COMMENT:
-        w->metadata.comment = bg_msg_get_arg_string(msg, 0);
-        break;
-      case BG_PLAYER_MSG_META_AUTHOR:
-        w->metadata.author = bg_msg_get_arg_string(msg, 0);
-        break;
-      case BG_PLAYER_MSG_META_COPYRIGHT:
-        w->metadata.copyright = bg_msg_get_arg_string(msg, 0);
-        break;
-      case BG_PLAYER_MSG_META_DATE:
-        w->metadata.date = bg_msg_get_arg_string(msg, 0);
-        break;
-      case BG_PLAYER_MSG_META_TRACK:
-        w->metadata.track = bg_msg_get_arg_int(msg, 0);
+      case BG_PLAYER_MSG_METADATA:
+        bg_metadata_free(&(w->metadata));
+        bg_msg_get_arg_metadata(msg, 0, &(w->metadata));
+        update_metadata(w);
         break;
       }
     bg_msg_queue_unlock_read(w->queue);
@@ -433,9 +414,9 @@ bg_gtk_info_window_create(bg_player_t * player,
   ret->w_audio_stream = bg_gtk_textview_create();
   ret->w_video_stream = bg_gtk_textview_create();
 
-  ret->w_name     = bg_gtk_textview_create();
-  ret->w_stream   = bg_gtk_textview_create();
-  ret->w_metadata = bg_gtk_textview_create();
+  ret->w_name        = bg_gtk_textview_create();
+  ret->w_description = bg_gtk_textview_create();
+  ret->w_metadata    = bg_gtk_textview_create();
   
   /* Set callbacks */
   
@@ -457,7 +438,8 @@ bg_gtk_info_window_create(bg_player_t * player,
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 0, 1);
 
   frame = gtk_frame_new("Stream type");
-  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_stream));
+  gtk_container_add(GTK_CONTAINER(frame),
+                    bg_gtk_textview_get_widget(ret->w_description));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 1, 2);
 

@@ -35,10 +35,6 @@ dnl ESounD
 AM_PATH_ESD(0.2.19, have_esd=true, have_esd=false)
 AM_CONDITIONAL(HAVE_ESD,           test x$have_esd = xtrue)
 
-dnl Vorbis
-XIPH_PATH_VORBIS(have_vorbis=true,have_vorbis=false)
-AM_CONDITIONAL(HAVE_VORBIS, test x$have_vorbis = xtrue)
-
 dnl libjpeg
 
 AH_TEMPLATE([HAVE_LIBJPEG],
@@ -183,7 +179,6 @@ plugins/Makefile \
 plugins/x11/Makefile \
 plugins/esd/Makefile \
 plugins/lqt/Makefile \
-plugins/vorbis/Makefile \
 plugins/oss/Makefile \
 plugins/jpeg/Makefile \
 skins/Makefile \

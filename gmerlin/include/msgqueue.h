@@ -68,12 +68,17 @@ gavl_time_t bg_msg_get_arg_time(bg_msg_t * msg, int arg);
 void bg_msg_get_arg_audio_format(bg_msg_t * msg, int arg,
                                  gavl_audio_format_t * format);
 void bg_msg_set_arg_audio_format(bg_msg_t * msg, int arg,
-                                 gavl_audio_format_t * format);
+                                 const gavl_audio_format_t * format);
 
 void bg_msg_get_arg_video_format(bg_msg_t * msg, int arg,
                                  gavl_video_format_t * format);
 void bg_msg_set_arg_video_format(bg_msg_t * msg, int arg,
-                                 gavl_video_format_t * format);
+                                 const gavl_video_format_t * format);
+
+void bg_msg_set_arg_metadata(bg_msg_t * msg, int arg,
+                             const bg_metadata_t * m);
+void bg_msg_get_arg_metadata(bg_msg_t * msg, int arg,
+                             bg_metadata_t * m);
 
 
 /*
@@ -120,8 +125,9 @@ void bg_msg_queue_list_destroy(bg_msg_queue_list_t *);
 
 void 
 bg_msg_queue_list_send(bg_msg_queue_list_t *,
-                       void (*set_message)(bg_msg_t * message, void * data),
-                       void * data);
+                       void (*set_message)(bg_msg_t * message,
+                                           const void * data),
+                       const void * data);
 
 void bg_msg_queue_list_add(bg_msg_queue_list_t * list,
                         bg_msg_queue_t * queue);

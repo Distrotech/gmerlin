@@ -34,7 +34,7 @@ bg_gtk_time_display_t * bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size);
 GtkWidget * bg_gtk_time_display_get_widget(bg_gtk_time_display_t *);
 
 void bg_gtk_time_display_update(bg_gtk_time_display_t * d,
-                                int seconds);
+                                gavl_time_t time);
 
 void bg_gtk_time_display_set_colors(bg_gtk_time_display_t * d,
                                     float * foreground,

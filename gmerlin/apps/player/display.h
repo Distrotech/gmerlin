@@ -28,7 +28,7 @@ void display_set_playlist_times(display_t *,
                                 int seconds_before,
                                 int seconds_after);
 
-void display_set_time(display_t *, int seconds);
+void display_set_time(display_t *, gavl_time_t time);
 
 GtkWidget * display_get_widget(display_t *);
 

@@ -188,7 +188,7 @@ static void seek_change_callback(bg_gtk_slider_t * slider, float perc,
   //  player_window_t * win = (player_window_t *)data;
   //  fprintf(stderr, "Seek change callback %f\n", perc);
 
-  display_set_time(win->display, (int)(perc * (float)win->duration + 0.5));
+  display_set_time(win->display, (gavl_time_t)(perc * (float)win->duration + 0.5));
   }
 
 static void seek_release_callback(bg_gtk_slider_t * slider, float perc,
@@ -254,16 +254,19 @@ static void handle_message(player_window_t * win,
   float arg_f_1;
   char * arg_str_1;
   id = bg_msg_get_id(msg);
+
+  gavl_time_t time;
+
   switch(id)
     {
     case BG_PLAYER_MSG_TIME_CHANGED:
       if(!win->seek_active)
         {
-        arg_i_1 = (bg_msg_get_arg_time(msg, 0)/GAVL_TIME_SCALE);
-        display_set_time(win->display, arg_i_1);
-        if(win->duration)
+        time = bg_msg_get_arg_time(msg, 0);
+        display_set_time(win->display, time);
+        if(win->duration != GAVL_TIME_UNDEFINED)
           bg_gtk_slider_set_pos(win->seek_slider,
-                                (float)(arg_i_1) / (float)(win->duration));
+                                (float)(time) / (float)(win->duration));
         }
       break;
     case BG_PLAYER_MSG_TRACK_CHANGED:
@@ -309,7 +312,7 @@ static void handle_message(player_window_t * win,
             bg_gtk_slider_set_state(win->seek_slider,
                                     BG_GTK_SLIDER_ACTIVE);
             }
-          else if(win->duration > 0)
+          else if(win->duration != GAVL_TIME_UNDEFINED)
             {
             bg_gtk_slider_set_state(win->seek_slider,
                                     BG_GTK_SLIDER_INACTIVE);
@@ -342,26 +345,11 @@ static void handle_message(player_window_t * win,
     case BG_PLAYER_MSG_TRACK_NUM_STREAMS:
       break;
     case BG_PLAYER_MSG_TRACK_DURATION:
-      arg_i_1 = bg_msg_get_arg_int(msg, 0);
-      win->duration = arg_i_1;
+      win->duration = bg_msg_get_arg_time(msg, 0);
       break;
     case BG_PLAYER_MSG_AUDIO_STREAM:
       break;
     case BG_PLAYER_MSG_VIDEO_STREAM:
-      break;
-    case BG_PLAYER_MSG_META_ARTIST:
-      break;
-    case BG_PLAYER_MSG_META_TITLE:
-      break;
-    case BG_PLAYER_MSG_META_ALBUM:
-      break;
-    case BG_PLAYER_MSG_META_GENRE:
-      break;
-    case BG_PLAYER_MSG_META_COMMENT:
-      break;
-    case BG_PLAYER_MSG_META_AUTHOR:
-      break;
-    case BG_PLAYER_MSG_META_COPYRIGHT:
       break;
     case BG_PLAYER_MSG_AUDIO_DESCRIPTION:
       break;
@@ -370,10 +358,6 @@ static void handle_message(player_window_t * win,
     case BG_PLAYER_MSG_SUBPICTURE_DESCRIPTION:
       break;
     case BG_PLAYER_MSG_STREAM_DESCRIPTION:
-      break;
-    case BG_PLAYER_MSG_META_DATE:
-      break;
-    case BG_PLAYER_MSG_META_TRACK:
       break;
     }
   

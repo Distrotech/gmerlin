@@ -32,6 +32,17 @@
     ptr = NULL; \
     }
 
+void bg_metadata_free(bg_metadata_t * m)
+  {
+  my_free(m->artist);
+  my_free(m->title);
+  my_free(m->album);
+  my_free(m->genre);
+  my_free(m->comment);
+  my_free(m->author);
+  my_free(m->copyright);
+
+  }
 
 void bg_track_info_free(bg_track_info_t * info)
   {
@@ -52,14 +63,8 @@ void bg_track_info_free(bg_track_info_t * info)
     my_free(info->subpicture_streams);
     }
 
-  my_free(info->metadata.artist);
-  my_free(info->metadata.title);
-  my_free(info->metadata.album);
-  my_free(info->metadata.genre);
-  my_free(info->metadata.comment);
-  my_free(info->metadata.author);
-  my_free(info->metadata.copyright);
-
+  bg_metadata_free(&(info->metadata));
+  
   my_free(info->name);
   my_free(info->description);
   my_free(info->url);

@@ -27,7 +27,9 @@
 #include <pthread.h>
 #include <semaphore.h>
 
+#include <streaminfo.h>
 #include <msgqueue.h>
+
 
 #include <utils.h>
 
@@ -240,6 +242,22 @@ static inline uint8_t * get_32(uint8_t * data, uint32_t * val)
   return data;
   }
 
+static inline uint8_t * get_str(uint8_t * data, char ** val)
+  {
+  uint32_t len;
+  uint8_t * ret;
+
+  ret = get_32(data, &len);
+
+  if(len)
+    {
+    *val = malloc(len+1);
+    memcpy(*val, ret, len);
+    (*val)[len] = '\0';
+    }
+  return ret + len;
+  }
+
 static inline uint8_t * set_8(uint8_t * data, uint8_t val)
   {
   *data = val;
@@ -265,6 +283,28 @@ static inline uint8_t * set_32(uint8_t * data, uint32_t val)
   return data;
   }
 
+static int str_len(const char * str)
+  {
+  int ret = 4;
+  if(str)
+    ret += strlen(str);
+  return ret;
+  }
+
+static inline uint8_t * set_str(uint8_t * data, const char * val)
+  {
+  uint32_t len;
+  if(val)
+    len = strlen(val);
+  else
+    len = 0;
+  
+  data = set_32(data, len);
+  if(len)
+    memcpy(data, val, len);
+  return data + len;
+  }
+
 /*
   int samples_per_frame; 
   int samplerate;
@@ -276,7 +316,7 @@ static inline uint8_t * set_32(uint8_t * data, uint32_t val)
 */
 
 void bg_msg_set_arg_audio_format(bg_msg_t * msg, int arg,
-                                 gavl_audio_format_t * format)
+                                 const gavl_audio_format_t * format)
   {
   uint8_t * ptr;
   uint8_t * pos;
@@ -354,7 +394,7 @@ void bg_msg_get_arg_audio_format(bg_msg_t * msg, int arg,
 */
 
 void bg_msg_set_arg_video_format(bg_msg_t * msg, int arg,
-                                 gavl_video_format_t * format)
+                                 const gavl_video_format_t * format)
   {
   uint8_t * ptr;
   uint8_t * pos;
@@ -401,6 +441,73 @@ void bg_msg_get_arg_video_format(bg_msg_t * msg, int arg,
   
   }
 
+/*
+  char * artist;
+  char * title;
+  char * album;
+      
+  int track;
+  char * date;
+  char * genre;
+  char * comment;
+
+  char * author;
+  char * copyright;
+*/
+
+
+void bg_msg_set_arg_metadata(bg_msg_t * msg, int arg,
+                             const bg_metadata_t * m)
+  {
+  uint8_t * ptr;
+  uint8_t * pos;
+
+  int len = 4;
+  len += str_len(m->artist);
+  len += str_len(m->title);
+  len += str_len(m->album);
+  len += str_len(m->date);
+  len += str_len(m->genre);
+  len += str_len(m->comment);
+  len += str_len(m->author);
+  len += str_len(m->copyright);
+  
+  ptr = bg_msg_set_arg_ptr(msg, arg, len);
+  pos = ptr;
+
+  pos = set_str(pos, m->artist);
+  pos = set_str(pos, m->title);
+  pos = set_str(pos, m->album);
+  pos = set_str(pos, m->date);
+  pos = set_str(pos, m->genre);
+  pos = set_str(pos, m->comment);
+  pos = set_str(pos, m->author);
+  pos = set_str(pos, m->copyright);
+  pos = set_32(pos, m->track);
+  }
+
+void bg_msg_get_arg_metadata(bg_msg_t * msg, int arg,
+                             bg_metadata_t * m)
+  {
+  uint8_t * ptr;
+  uint8_t * pos;
+
+  ptr = bg_msg_get_arg_ptr(msg, arg, NULL);
+  
+  pos = ptr;
+
+  pos = get_str(pos, &(m->artist));
+  pos = get_str(pos, &(m->title));
+  pos = get_str(pos, &(m->album));
+  pos = get_str(pos, &(m->date));
+  pos = get_str(pos, &(m->genre));
+  pos = get_str(pos, &(m->comment));
+  pos = get_str(pos, &(m->author));
+  pos = get_str(pos, &(m->copyright));
+  pos = get_32(pos,  &(m->track));
+  
+  
+  }
 
 bg_msg_t * bg_msg_create()
   {
@@ -570,8 +677,9 @@ void bg_msg_queue_list_destroy(bg_msg_queue_list_t * l)
 
 void 
 bg_msg_queue_list_send(bg_msg_queue_list_t * l,
-                       void (*set_message)(bg_msg_t * message, void * data),
-                       void * data)
+                       void (*set_message)(bg_msg_t * message,
+                                           const void * data),
+                       const void * data)
   {
   bg_msg_t * msg;
   list_entry_t * entry;

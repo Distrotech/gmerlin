@@ -78,7 +78,7 @@ typedef struct player_window_s
   main_menu_t * main_menu;
 
   display_t * display;
-  int duration;
+  gavl_time_t duration;
 
   int seek_active;
   } player_window_t;

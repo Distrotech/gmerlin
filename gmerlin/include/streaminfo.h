@@ -61,6 +61,8 @@ typedef struct
   char * copyright;
   } bg_metadata_t;
 
+void bg_metadata_free(bg_metadata_t * m);
+
 typedef struct
   {
   int seekable; /* 1 is track is seekable (duration MUST be > 0 then) */

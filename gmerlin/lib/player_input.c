@@ -70,6 +70,14 @@ static void name_changed(void * data, const char * name)
   bg_player_set_track_name(ctx->player, name);
   }
 
+static void metadata_changed(void * data, const bg_metadata_t * m)
+  {
+  bg_player_input_context_t * ctx;
+  ctx = (bg_player_input_context_t *)data;
+  bg_player_set_metadata(ctx->player, m);
+  //  fprintf(stderr, "** Set metadata **\n");
+  }
+
 static void buffer_notify(void * data, float percentage)
   {
   bg_player_input_context_t * ctx;
@@ -85,9 +93,10 @@ void bg_player_input_create(bg_player_t * player)
   /* Set up callbacks */
 
   ctx->callbacks.data = ctx;
-  ctx->callbacks.track_changed = track_changed;
-  ctx->callbacks.name_changed  = name_changed;
-  ctx->callbacks.buffer_notify = buffer_notify;
+  ctx->callbacks.track_changed    = track_changed;
+  ctx->callbacks.name_changed     = name_changed;
+  ctx->callbacks.metadata_changed = metadata_changed;
+  ctx->callbacks.buffer_notify    = buffer_notify;
   
   ctx->player = player;
   

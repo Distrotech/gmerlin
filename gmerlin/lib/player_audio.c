@@ -54,8 +54,8 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
 
   if(player->audio_stream.fixed_channel_setup)
     {
-    fprintf(stderr, "Fixed channel setup: %s\n",
-            gavl_channel_setup_to_string(player->audio_stream.channel_setup));
+    //    fprintf(stderr, "Fixed channel setup: %s\n",
+    //            gavl_channel_setup_to_string(player->audio_stream.channel_setup));
 
     player->audio_stream.output_format.channel_setup =
       player->audio_stream.channel_setup;
@@ -63,8 +63,8 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
       gavl_num_channels(player->audio_stream.channel_setup);
     player->audio_stream.output_format.lfe = 0;
     }
-  else
-    fprintf(stderr, "NO Fixed channel setup\n");
+  //  else
+  //    fprintf(stderr, "NO Fixed channel setup\n");
 
 
   pthread_mutex_unlock(&(player->audio_stream.config_mutex));
@@ -107,8 +107,8 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
     player->audio_stream.do_convert = 1;
     player->audio_stream.frame =
       gavl_audio_frame_create(&(player->audio_stream.input_format));
-    fprintf(stderr, "**** Doing Conversion %d ****\n",
-            player->audio_stream.input_format.samples_per_frame);
+    //    fprintf(stderr, "**** Doing Conversion %d ****\n",
+    //            player->audio_stream.input_format.samples_per_frame);
     }
   
   return 1;

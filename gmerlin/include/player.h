@@ -20,9 +20,9 @@
 #ifndef __BG_PLAYER_H_
 #define __BG_PLAYER_H_
 
-#include <msgqueue.h>
 #include <playermsg.h>
 #include <pluginregistry.h>
+#include <msgqueue.h>
 
 typedef struct bg_player_s bg_player_t;
 
@@ -72,6 +72,7 @@ void bg_player_set_logo(bg_player_t * p,
                         gavl_video_frame_t * frame);
 
 void bg_player_set_track_name(bg_player_t *, const char *);
+void bg_player_set_metadata(bg_player_t *, const bg_metadata_t *);
 
 bg_parameter_info_t * bg_player_get_audio_parameters(bg_player_t *);
 void bg_player_set_audio_parameter(void*, char *, bg_parameter_value_t*);

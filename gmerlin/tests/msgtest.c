@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <streaminfo.h>
 #include <msgqueue.h>
 #include <gavl/gavl.h>
 

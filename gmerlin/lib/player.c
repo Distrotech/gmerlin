@@ -148,7 +148,7 @@ struct state_struct
   };
 
 static void msg_state(bg_msg_t * msg,
-                      void * data)
+                      const void * data)
   {
   struct state_struct * s;
   s = (struct state_struct *)data;

@@ -156,6 +156,10 @@ typedef struct bg_input_callbacks_s
   
   void (*name_changed)(void * data, const char * name);
 
+  /* Metadata changed */
+  
+  void (*metadata_changed)(void * data, const bg_metadata_t * m);
+
   /* Buffering progress */
 
   void (*buffer_notify)(void * data, float percentage);

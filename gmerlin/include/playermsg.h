@@ -183,34 +183,15 @@
 
 /* Arg1 : string */
 
-#define BG_PLAYER_MSG_META_ARTIST             8
+#define BG_PLAYER_MSG_METADATA                8
 
-#define BG_PLAYER_MSG_META_TITLE              9
+#define BG_PLAYER_MSG_AUDIO_DESCRIPTION       9
 
-#define BG_PLAYER_MSG_META_ALBUM             10
+#define BG_PLAYER_MSG_VIDEO_DESCRIPTION      10
 
-#define BG_PLAYER_MSG_META_GENRE             11
+#define BG_PLAYER_MSG_SUBPICTURE_DESCRIPTION 11
 
-#define BG_PLAYER_MSG_META_COMMENT           12
+#define BG_PLAYER_MSG_STREAM_DESCRIPTION     12
 
-#define BG_PLAYER_MSG_META_AUTHOR            13
-
-#define BG_PLAYER_MSG_META_COPYRIGHT         14
-
-
-#define BG_PLAYER_MSG_AUDIO_DESCRIPTION      15
-
-#define BG_PLAYER_MSG_VIDEO_DESCRIPTION      16
-
-#define BG_PLAYER_MSG_SUBPICTURE_DESCRIPTION 17
-
-#define BG_PLAYER_MSG_STREAM_DESCRIPTION     18
-
-#define BG_PLAYER_MSG_META_DATE              19
-
-/* Arg1 : Integer */
-
-
-#define BG_PLAYER_MSG_META_TRACK             20
 
 #endif // __BG_PLAYERMSG_H_

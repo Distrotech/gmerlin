@@ -90,7 +90,7 @@ static void play_file(bg_player_t * player)
   }
 
 static int time_active = 0;
-static int total_seconds  = 0;
+static gavl_time_t total_time  = 0;
 
 static void print_time(int seconds)
   {
@@ -121,7 +121,7 @@ static void print_time(int seconds)
     }
   fprintf(stderr, "%s ]/", str);
 
-  gavl_time_prettyprint_seconds(total_seconds, str);
+  gavl_time_prettyprint(total_time, str);
 
   fprintf(stderr, "[ ");
   len = strlen(str);
@@ -135,6 +135,21 @@ static void print_time(int seconds)
   time_active = 1;
   }
 
+#define DO_PRINT(f, s) if(s)fprintf(stderr, f, s);
+
+static void dump_metadata(bg_metadata_t * m)
+  {
+  DO_PRINT("Artist:    %s\n", m->artist);
+  DO_PRINT("Author:    %s\n", m->author);
+  DO_PRINT("Title:     %s\n", m->title);
+  DO_PRINT("Album:     %s\n", m->album);
+  DO_PRINT("Genre:     %s\n", m->genre);
+  DO_PRINT("Copyright: %s\n", m->copyright);
+  DO_PRINT("Date:      %s\n", m->date);
+  DO_PRINT("Track:     %d\n", m->track);
+  DO_PRINT("Comment:   %s\n", m->comment);
+  }
+
 static int handle_message(bg_player_t * player,
                           bg_msg_t * message)
   {
@@ -143,7 +158,8 @@ static int handle_message(bg_player_t * player,
   gavl_time_t t;
   gavl_audio_format_t audio_format;
   gavl_video_format_t video_format;
-  
+  bg_metadata_t metadata;
+
   switch(bg_msg_get_id(message))
     {
     case BG_PLAYER_MSG_TIME_CHANGED:
@@ -151,7 +167,7 @@ static int handle_message(bg_player_t * player,
       print_time(t/GAVL_TIME_SCALE);
       break;
     case BG_PLAYER_MSG_TRACK_DURATION:
-      total_seconds = bg_msg_get_arg_int(message, 0);
+      total_time = bg_msg_get_arg_time(message, 0);
       break;
     case BG_PLAYER_MSG_TRACK_NAME:
       arg_str1 = bg_msg_get_arg_string(message, 0);
@@ -211,52 +227,13 @@ static int handle_message(bg_player_t * player,
 
       /* Metadata */
 
-    case BG_PLAYER_MSG_META_ARTIST:
-      arg_str1 = bg_msg_get_arg_string(message, 0);
-      fprintf(stderr, "Artist: %s\n", arg_str1);
-      free(arg_str1);
-      break;
-    case BG_PLAYER_MSG_META_TITLE:
-      arg_str1 = bg_msg_get_arg_string(message, 0);
-      fprintf(stderr, "Title:   %s\n", arg_str1);
-      free(arg_str1);
-      break;
-    case BG_PLAYER_MSG_META_ALBUM:
-      arg_str1 = bg_msg_get_arg_string(message, 0);
-      fprintf(stderr, "Album:   %s\n", arg_str1);
-      free(arg_str1);
-      break;
-    case BG_PLAYER_MSG_META_GENRE:
-      arg_str1 = bg_msg_get_arg_string(message, 0);
-      fprintf(stderr, "Genre:   %s\n", arg_str1);
-      free(arg_str1);
-      break;
-    case BG_PLAYER_MSG_META_COMMENT:
-      arg_str1 = bg_msg_get_arg_string(message, 0);
-      fprintf(stderr, "Comment: %s\n", arg_str1);
-      free(arg_str1);
-      break;
-    case BG_PLAYER_MSG_META_COPYRIGHT:
-      arg_str1 = bg_msg_get_arg_string(message, 0);
-      fprintf(stderr, "Copyright: %s\n", arg_str1);
-      free(arg_str1);
-      break;
-    case BG_PLAYER_MSG_META_AUTHOR:
-      arg_str1 = bg_msg_get_arg_string(message, 0);
-      fprintf(stderr, "Author: %s\n", arg_str1);
-      free(arg_str1);
-      break;
-    case BG_PLAYER_MSG_META_DATE:
-      arg_str1 = bg_msg_get_arg_string(message, 0);
-      fprintf(stderr, "Date:     %s\n", arg_str1);
-      free(arg_str1);
-      break;
-    case BG_PLAYER_MSG_META_TRACK:
-      arg_i1 = bg_msg_get_arg_int(message, 0);
-      fprintf(stderr, "Track:   %d\n", arg_i1);
+    case BG_PLAYER_MSG_METADATA:
+      memset(&metadata, 0, sizeof(metadata));
+      bg_msg_get_arg_metadata(message, 0, &metadata);
+      dump_metadata(&metadata);
+      bg_metadata_free(&metadata);
       break;
     case BG_PLAYER_MSG_STATE_CHANGED:
-
       arg_i1 = bg_msg_get_arg_int(message, 0);
       switch(arg_i1)
         {

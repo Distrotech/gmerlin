@@ -494,9 +494,9 @@ void display_set_playlist_times(display_t * d,
   
   }
 
-void display_set_time(display_t * d, int seconds)
+void display_set_time(display_t * d, gavl_time_t time)
   {
-  bg_gtk_time_display_update(d->time_display, seconds);
+  bg_gtk_time_display_update(d->time_display, time);
   }
 
 void display_set_state(display_t * d, int state,

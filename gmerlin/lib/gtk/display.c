@@ -216,13 +216,13 @@ void bg_gtk_time_display_set_colors(bg_gtk_time_display_t * d,
 
 
 void bg_gtk_time_display_update(bg_gtk_time_display_t * d,
-                                int seconds)
+                                gavl_time_t time)
   {
   char * pos;
   char buf[GAVL_TIME_STRING_LEN];
   int pos_i;
   
-  d->seconds = seconds;
+  d->seconds = time / GAVL_TIME_SCALE;
   gavl_time_prettyprint_seconds(d->seconds,
                                 buf);
 

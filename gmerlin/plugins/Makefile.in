@@ -96,10 +96,6 @@ PKG_CONFIG = @PKG_CONFIG@
 RANLIB = @RANLIB@
 STRIP = @STRIP@
 VERSION = @VERSION@
-VORBISENC_LIBS = @VORBISENC_LIBS@
-VORBISFILE_LIBS = @VORBISFILE_LIBS@
-VORBIS_CFLAGS = @VORBIS_CFLAGS@
-VORBIS_LIBS = @VORBIS_LIBS@
 am__include = @am__include@
 am__quote = @am__quote@
 install_sh = @install_sh@
@@ -110,16 +106,12 @@ install_sh = @install_sh@
 @HAVE_LIBJPEG_TRUE@jpeg_subdirs = jpeg
 @HAVE_LIBJPEG_FALSE@jpeg_subdirs = 
 
-@HAVE_VORBIS_TRUE@vorbis_subdirs = vorbis
-@HAVE_VORBIS_FALSE@vorbis_subdirs = 
-
 @HAVE_LQT_TRUE@lqt_subdirs = lqt
 @HAVE_LQT_FALSE@lqt_subdirs = 
 
 SUBDIRS = \
 $(lqt_subdirs) \
 $(jpeg_subdirs) \
-$(vorbis_subdirs) \
 $(esd_subdirs) \
 oss \
 x11
@@ -135,7 +127,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive install-info-recursive \
 	install-exec-recursive installdirs-recursive install-recursive \
 	uninstall-recursive check-recursive installcheck-recursive
 DIST_COMMON = Makefile.am Makefile.in
-DIST_SUBDIRS = lqt jpeg vorbis esd oss x11
+DIST_SUBDIRS = lqt jpeg esd oss x11
 all: all-recursive
 
 .SUFFIXES:

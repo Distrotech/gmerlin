@@ -11,12 +11,6 @@ else
 jpeg_subdirs =
 endif
 
-if HAVE_VORBIS
-vorbis_subdirs = vorbis
-else
-vorbis_subdirs =
-endif
-
 if HAVE_LQT
 lqt_subdirs = lqt
 else
@@ -26,7 +20,6 @@ endif
 SUBDIRS = \
 $(lqt_subdirs) \
 $(jpeg_subdirs) \
-$(vorbis_subdirs) \
 $(esd_subdirs) \
 oss \
 x11

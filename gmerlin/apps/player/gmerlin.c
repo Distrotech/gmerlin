@@ -136,12 +136,13 @@ void gmerlin_play(gmerlin_t * g, int ignore_flags)
   if(!handle)
     return;
   
-  bg_player_play(g->player, handle, track_index,
-                 ignore_flags);
-
   if(handle)
     bg_player_set_track_name(g->player,
                              bg_media_tree_get_current_track_name(g->tree));
+  
+  bg_player_play(g->player, handle, track_index,
+                 ignore_flags);
+
   }
 
 void gmerlin_next_track(gmerlin_t * g)

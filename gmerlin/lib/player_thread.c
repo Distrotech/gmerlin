@@ -25,82 +25,25 @@
 
 /* Metadata */
 
-static void msg_meta_artist(bg_msg_t * msg, void * data)
+static void msg_metadata(bg_msg_t * msg, const void * data)
   {
   bg_metadata_t * m = (bg_metadata_t *)data;
-  bg_msg_set_id(msg, BG_PLAYER_MSG_META_ARTIST);
-  bg_msg_set_arg_string(msg, 0, m->artist);
-  }
-
-static void msg_meta_title(bg_msg_t * msg, void * data)
-  {
-  bg_metadata_t * m = (bg_metadata_t *)data;
-  bg_msg_set_id(msg, BG_PLAYER_MSG_META_TITLE);
-  bg_msg_set_arg_string(msg, 0, m->title);
-  
-  }
-
-static void msg_meta_album(bg_msg_t * msg, void * data)
-  {
-  bg_metadata_t * m = (bg_metadata_t *)data;
-  bg_msg_set_id(msg, BG_PLAYER_MSG_META_ALBUM);
-  bg_msg_set_arg_string(msg, 0, m->album);
-  }
-
-static void msg_meta_genre(bg_msg_t * msg, void * data)
-  {
-  bg_metadata_t * m = (bg_metadata_t *)data;
-  bg_msg_set_id(msg, BG_PLAYER_MSG_META_GENRE);
-  bg_msg_set_arg_string(msg, 0, m->genre);
-  }
-
-static void msg_meta_track(bg_msg_t * msg, void * data)
-  {
-  bg_metadata_t * m = (bg_metadata_t *)data;
-  bg_msg_set_id(msg, BG_PLAYER_MSG_META_TRACK);
-  bg_msg_set_arg_int(msg, 0, m->track);
-  }
-
-static void msg_meta_date(bg_msg_t * msg, void * data)
-  {
-  bg_metadata_t * m = (bg_metadata_t *)data;
-  bg_msg_set_id(msg, BG_PLAYER_MSG_META_DATE);
-  bg_msg_set_arg_string(msg, 0, m->date);
-  }
-
-static void msg_meta_comment(bg_msg_t * msg, void * data)
-  {
-  bg_metadata_t * m = (bg_metadata_t *)data;
-  bg_msg_set_id(msg, BG_PLAYER_MSG_META_COMMENT);
-  bg_msg_set_arg_string(msg, 0, m->comment);
-  }
-
-static void msg_meta_author(bg_msg_t * msg, void * data)
-  {
-  bg_metadata_t * m = (bg_metadata_t *)data;
-  bg_msg_set_id(msg, BG_PLAYER_MSG_META_AUTHOR);
-  bg_msg_set_arg_string(msg, 0, m->author);
-  }
-
-static void msg_meta_copyright(bg_msg_t * msg, void * data)
-  {
-  bg_metadata_t * m = (bg_metadata_t *)data;
-  bg_msg_set_id(msg, BG_PLAYER_MSG_META_COPYRIGHT);
-  bg_msg_set_arg_string(msg, 0, m->copyright);
+  bg_msg_set_id(msg, BG_PLAYER_MSG_METADATA);
+  bg_msg_set_arg_metadata(msg, 0, m);
   }
 
 static void msg_time(bg_msg_t * msg,
-                     void * data)
+                     const void * data)
   {
   bg_msg_set_id(msg, BG_PLAYER_MSG_TIME_CHANGED);
-  bg_msg_set_arg_time(msg, 0, *((gavl_time_t*)data));
+  bg_msg_set_arg_time(msg, 0, *((const gavl_time_t*)data));
   }
 
 static void msg_audio_stream(bg_msg_t * msg,
-                             void * data)
+                             const void * data)
   {
-  bg_player_t * player;
-  player = (bg_player_t*)data;
+  const bg_player_t * player;
+  player = (const bg_player_t*)data;
   //  fprintf(stderr, "msg_audio_stream\n");
   bg_msg_set_id(msg, BG_PLAYER_MSG_AUDIO_STREAM);
   bg_msg_set_arg_int(msg, 0, player->current_audio_stream);
@@ -112,7 +55,7 @@ static void msg_audio_stream(bg_msg_t * msg,
   }
 
 static void msg_video_stream(bg_msg_t * msg,
-                             void * data)
+                             const void * data)
   {
   bg_player_t * player;
   player = (bg_player_t*)data;
@@ -127,7 +70,7 @@ static void msg_video_stream(bg_msg_t * msg,
   }
 
 static void msg_num_streams(bg_msg_t * msg,
-                            void * data)
+                            const void * data)
   {
   bg_track_info_t * info;
   info = (bg_track_info_t *)data;
@@ -138,19 +81,19 @@ static void msg_num_streams(bg_msg_t * msg,
   bg_msg_set_arg_int(msg, 2, info->num_subpicture_streams);
   }
 
-static void msg_video_description(bg_msg_t * msg, void * data)
+static void msg_video_description(bg_msg_t * msg, const void * data)
   {
   bg_msg_set_id(msg, BG_PLAYER_MSG_VIDEO_DESCRIPTION);
   bg_msg_set_arg_string(msg, 0, (char*)data);
   }
 
-static void msg_audio_description(bg_msg_t * msg, void * data)
+static void msg_audio_description(bg_msg_t * msg, const void * data)
   {
   bg_msg_set_id(msg, BG_PLAYER_MSG_AUDIO_DESCRIPTION);
   bg_msg_set_arg_string(msg, 0, (char*)data);
   }
 
-static void msg_stream_description(bg_msg_t * msg, void * data)
+static void msg_stream_description(bg_msg_t * msg, const void * data)
   {
   bg_msg_set_id(msg, BG_PLAYER_MSG_STREAM_DESCRIPTION);
   bg_msg_set_arg_string(msg, 0, (char*)data);
@@ -158,7 +101,7 @@ static void msg_stream_description(bg_msg_t * msg, void * data)
 
 #if 0 
 
-static void msg_subpicture_description(bg_msg_t * msg, void * data)
+static void msg_subpicture_description(bg_msg_t * msg, const void * data)
   {
   bg_msg_set_id(msg, BG_PLAYER_MSG_SUBPICTURE_DESCRIPTION);
   bg_msg_set_arg_string(msg, 0, (char*)data);
@@ -166,23 +109,15 @@ static void msg_subpicture_description(bg_msg_t * msg, void * data)
 
 #endif
 
-static void msg_name(bg_msg_t * msg,
-                     void * data)
-  {
-  char * name = (char*)(data);
-  bg_msg_set_id(msg, BG_PLAYER_MSG_TRACK_NAME);
-  bg_msg_set_arg_string(msg, 0, name);
-  }
 
 
 static void msg_duration(bg_msg_t * msg,
-                         void * data)
+                         const void * data)
   {
   bg_track_info_t * info;
   info = (bg_track_info_t *)data;
   bg_msg_set_id(msg, BG_PLAYER_MSG_TRACK_DURATION);
-  bg_msg_set_arg_int(msg, 0,
-                     (int)(info->duration / GAVL_TIME_SCALE));
+  bg_msg_set_arg_time(msg, 0, info->duration);
   
   }
 
@@ -293,50 +228,9 @@ static void play_cmd(bg_player_t * p,
 
   /* Send metadata */
 
-  if(p->track_info->metadata.artist)
-    bg_msg_queue_list_send(p->message_queues,
-                           msg_meta_artist,
-                           &(p->track_info->metadata));
-
-  if(p->track_info->metadata.title)
-    bg_msg_queue_list_send(p->message_queues,
-                           msg_meta_title,
-                           &(p->track_info->metadata));
-
-  if(p->track_info->metadata.album)
-    bg_msg_queue_list_send(p->message_queues,
-                           msg_meta_album,
-                           &(p->track_info->metadata));
-
-  if(p->track_info->metadata.genre)
-    bg_msg_queue_list_send(p->message_queues,
-                           msg_meta_genre,
-                           &(p->track_info->metadata));
-
-  if(p->track_info->metadata.comment)
-    bg_msg_queue_list_send(p->message_queues,
-                           msg_meta_comment,
-                           &(p->track_info->metadata));
-
-  if(p->track_info->metadata.copyright)
-    bg_msg_queue_list_send(p->message_queues,
-                           msg_meta_copyright,
-                           &(p->track_info->metadata));
-
-  if(p->track_info->metadata.author)
-    bg_msg_queue_list_send(p->message_queues,
-                           msg_meta_author,
-                           &(p->track_info->metadata));
-
-  if(p->track_info->metadata.date)
-    bg_msg_queue_list_send(p->message_queues,
-                           msg_meta_date,
-                           &(p->track_info->metadata));
-
-  if(p->track_info->metadata.track)
-    bg_msg_queue_list_send(p->message_queues,
-                           msg_meta_track,
-                           &(p->track_info->metadata));
+  bg_msg_queue_list_send(p->message_queues,
+                         msg_metadata,
+                         &(p->track_info->metadata));
       
   bg_player_audio_init(p, 0);
   bg_player_video_init(p, 0);
@@ -696,11 +590,6 @@ static int process_command(bg_player_t * player,
       bg_player_ov_set_logo(player->ov_context, &logo_format, logo_frame);
       if(!player->do_video)
         bg_player_ov_standby(player->ov_context);
-      break;
-    case BG_PLAYER_CMD_SET_NAME:
-      arg_str1 = bg_msg_get_arg_string(command, 0);
-      bg_msg_queue_list_send(player->message_queues,
-                             msg_name, arg_str1);
       break;
     case BG_PLAYER_CMD_PAUSE:
       pause_cmd(player);
