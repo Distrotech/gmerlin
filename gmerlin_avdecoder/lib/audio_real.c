@@ -33,7 +33,7 @@ static int init_real(bgav_stream_t * s);
 static int decode_real(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples);
 static void close_real(bgav_stream_t * s);
 static void resync_real(bgav_stream_t * s);
-static void skip_real(bgav_stream_t * s,int);
+// static void skip_real(bgav_stream_t * s,int);
 
 typedef struct
   {
@@ -166,7 +166,7 @@ typedef struct /*__attribute__((__packed__))*/ {
     void* extradata;
 } ra_init_t;
 
-
+#if 0
 static void dump_init_data(ra_init_t * i)
   {
   fprintf(stderr, "*** INIT DATA ******\n");
@@ -180,6 +180,7 @@ static void dump_init_data(ra_init_t * i)
   bgav_hexdump(i->extradata, i->extradata_len, 16);
   fprintf(stderr, "*** END INIT DATA **\n");
   }
+#endif
 
 typedef struct
   {
@@ -530,6 +531,7 @@ static int decode_real(bgav_stream_t * s, gavl_audio_frame_t * f, int num_sample
   
   return samples_decoded;
   }
+#if 0
 
 static void skip_real(bgav_stream_t * s, int num_samples)
   {
@@ -540,7 +542,6 @@ static void skip_real(bgav_stream_t * s, int num_samples)
     }
   }
 
-#if 0
 typedef struct
   {
   unsigned long (*raCloseCodec)(void*);

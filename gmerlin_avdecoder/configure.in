@@ -437,6 +437,7 @@ lib/libw32dll/qtx/qtxsdk/Makefile \
 lib/libw32dll/wine/Makefile \
 lib/libw32dll/DirectShow/Makefile \
 lib/real_rtsp/Makefile \
+lib/musepack/Makefile \
 plugins/Makefile \
 tests/Makefile ])
 

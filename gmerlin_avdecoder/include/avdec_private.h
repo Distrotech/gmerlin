@@ -785,6 +785,7 @@ int bgav_read_data_fd(int fd, uint8_t * ret, int size, int milliseconds);
 /* tcp.c */
 
 int bgav_tcp_connect(const char * host, int port, int milliseconds);
+int bgav_tcp_send(int fd, uint8_t * data, int len);
 
 /* Charset utilities (charset.c) */
 

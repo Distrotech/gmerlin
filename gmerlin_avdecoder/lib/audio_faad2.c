@@ -75,6 +75,9 @@ static int init_faad2(bgav_stream_t * s)
   faacDecSetConfiguration(priv->dec, cfg);
   
   s->data.audio.decoder->priv = priv;
+
+  s->description = bgav_sprintf("%s", "AAC Audio stream");
+  
   return 1;
   }
 
@@ -126,9 +129,7 @@ static int decode_frame(bgav_stream_t * s)
   priv->data_buffer_size -= frame_info.bytesconsumed;
   priv->last_block_size = frame_info.samples / s->data.audio.format.num_channels;
   priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
-
-  s->description = bgav_sprintf("%s", "AAC Audio stream");
-
+  
   return 1;
   }
 

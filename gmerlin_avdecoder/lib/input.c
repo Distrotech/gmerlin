@@ -48,8 +48,8 @@ int bgav_input_read_line(bgav_input_context_t* input,
     {
     if(!bgav_input_read_data(input, &c, 1))
       {
-      return 0;
-      //      return pos;
+      //      return 0;
+      return !!pos;
       break;
       }
     else if(c == '\n')

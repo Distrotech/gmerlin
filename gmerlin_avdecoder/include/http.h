@@ -41,7 +41,7 @@ void bgav_http_header_reset(bgav_http_header_t*);
 void bgav_http_header_destroy(bgav_http_header_t*);
 
 void bgav_http_header_add_line(bgav_http_header_t*, const char * line);
-void bgav_http_header_send(bgav_http_header_t*, int fd);
+int bgav_http_header_send(bgav_http_header_t*, int fd);
 
 int bgav_http_header_status_code(bgav_http_header_t * h);
 

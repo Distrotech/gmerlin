@@ -34,14 +34,14 @@
 #define CONT_ID BGAV_MK_FOURCC('C', 'O', 'N', 'T')
 #define DATA_ID BGAV_MK_FOURCC('D', 'A', 'T', 'A')
 #define INDX_ID BGAV_MK_FOURCC('I', 'N', 'D', 'X')
-
+#if 0
 static void dump_string(const char * str, int len)
   {
   int  i;
   for(i = 0; i < len; i++)
     fputc(str[i], stderr);
   }
-
+#endif
 static char * read_data(bgav_input_context_t * input, int len)
   {
   char * ret;
@@ -106,7 +106,7 @@ typedef struct
   uint16_t   num_streams;
   uint16_t   flags;
   } rm_prop_t;
-
+#if 0
 static void dump_prop(rm_prop_t * p)
   {
   fprintf(stderr, "PROP:");
@@ -124,7 +124,7 @@ static void dump_prop(rm_prop_t * p)
   fprintf(stderr, "flags:           %d\n", p->flags);
   
   }
-
+#endif
 
 static int
 read_prop(rm_chunk_t * c,
@@ -169,6 +169,7 @@ typedef struct
   uint8_t * type_specific_data;
   } rm_mdpr_t;
 
+#if 0
 static void dump_mdpr(rm_mdpr_t * m)
   {
   fprintf(stderr, "MDPR:\n");
@@ -186,7 +187,7 @@ static void dump_mdpr(rm_mdpr_t * m)
   dump_string(m->mime_type, m->mime_type_size);
   fprintf(stderr, "\ntype_specific_len:  %d\n", m->type_specific_len);
   }
-
+#endif
 static int
 read_mdpr(rm_chunk_t * c,
           bgav_input_context_t * input,
@@ -325,7 +326,7 @@ static void free_indx(rm_indx_t * ret)
     free(ret->records);
   memset(ret, 0, sizeof(*ret));
   }
-
+#if 0
 static void dump_indx(rm_indx_t * indx)
   {
   int i;
@@ -346,7 +347,7 @@ static void dump_indx(rm_indx_t * indx)
             indx->records[i].packet_count_for_this_packet);
     }
   }
-
+#endif
 static uint32_t seek_indx(rm_indx_t * indx, uint32_t millisecs,
                           int32_t * position, int32_t * start_packet,
                           int32_t * end_packet)
@@ -404,13 +405,13 @@ int packet_header_read(bgav_input_context_t * input,
     bgav_input_read_8(input, &(ret->reserved)) &&
     bgav_input_read_8(input, &(ret->flags));
   }
-
+#if 0
 static void packet_header_dump(rm_packet_header_t * h)
   {
   fprintf(stderr, "Packet L: %d, S: %d, T: %d, F: %x\n",
           h->length, h->stream_number, h->timestamp, h->flags);
   }
-
+#endif
 /* Audio and video stream specific stuff */
 
 typedef struct
@@ -430,7 +431,7 @@ typedef struct
   int has_index;
   uint32_t index_record;
   } rm_audio_stream_t;
-
+#if 0
 static void dump_audio(rm_audio_stream_t*s)
   {
   fprintf(stderr, "Audio stream:\n");
@@ -445,7 +446,7 @@ static void dump_audio(rm_audio_stream_t*s)
   //  uint8_t * extradata;
 
   }
-
+#endif
 static void init_audio_stream(bgav_demuxer_context_t * ctx,
                               rm_mdpr_t * mdpr,
                               uint8_t * data)

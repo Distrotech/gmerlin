@@ -167,7 +167,7 @@ static int pack_header_read(bgav_input_context_t * input,
   //    }
   return 1;
   }
-
+#if 0
 static void pack_header_dump(pack_header_t * h)
   {
   fprintf(stderr,
@@ -175,7 +175,7 @@ static void pack_header_dump(pack_header_t * h)
           h->version, h->scr, (float)(h->scr)/90000.0,
           h->mux_rate * 400);
   }
-
+#endif
 /* System header */
 
 typedef struct
@@ -192,12 +192,12 @@ static int system_header_read(bgav_input_context_t * input,
   bgav_input_skip(input, len);
   return 1;
   }
-
+#if 0
 static void system_header_dump(system_header_t * h)
   {
   fprintf(stderr, "System header (skipped)\n");
   }
-
+#endif
 /* Demuxer structure */
 
 typedef struct

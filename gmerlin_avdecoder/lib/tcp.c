@@ -213,3 +213,16 @@ int bgav_tcp_connect(const char * host, int port, int milliseconds)
   addr.port = port;
   return socket_connect_inet(&addr, milliseconds);
   }
+
+int bgav_tcp_send(int fd, uint8_t * data, int len)
+  {
+  int result;
+  result = send(fd, data, len, MSG_NOSIGNAL);
+  if(result != len)
+    {
+    fprintf(stderr, "Send returned %d, len: %d %s\n", result, len,
+            strerror(errno));
+    return 0;
+    }
+  return 1;
+  }

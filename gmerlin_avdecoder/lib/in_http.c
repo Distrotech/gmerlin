@@ -148,7 +148,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
   else if(bgav_http_header_get_var(header, "icy-notice1"))
     ctx->mimetype = bgav_strndup("audio/mpeg", NULL);
   
-
+  
   var = bgav_http_header_get_var(header, "icy-metaint");
   if(var)
     {

@@ -75,15 +75,23 @@ void bgav_http_header_add_line(bgav_http_header_t * h, const char * line)
   h->num_lines++;
   }
 
-void bgav_http_header_send(bgav_http_header_t * h, int fd)
+int bgav_http_header_send(bgav_http_header_t * h, int fd)
   {
   int i;
+
+  /* We don't want a SIGPIPE, because we don't want any
+     kind of signal handling for now */
+  
   for(i = 0; i < h->num_lines; i++)
     {
-    write(fd, h->lines[i].line, strlen(h->lines[i].line));
-    write(fd, "\r\n", 2);
+    if(!bgav_tcp_send(fd, h->lines[i].line, strlen(h->lines[i].line)) ||
+       !bgav_tcp_send(fd, "\r\n", 2))
+      return 0;
+    
+    //    write(fd, h->lines[i].line, strlen(h->lines[i].line));
+    //    write(fd, "\r\n", 2);
     }
-  //  write(fd, "\r\n", 2);
+  return 1;
   }
 
 /* Reading of http header */
@@ -194,10 +202,12 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
   if(strcasecmp(protocol, "http"))
     goto fail;
 
+  //  fprintf(stderr, "Connecting...");
   ret->fd = bgav_tcp_connect(host, port, milliseconds);
 
   if(ret->fd == -1)
     goto fail;
+  //  fprintf(stderr, "connected\n");
 
   /* Build request */
 
@@ -213,11 +223,14 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
 
   bgav_http_header_add_line(request_header, "User-Agent: gmerlin/0.3.0");
   bgav_http_header_add_line(request_header, "Accept: */*");
-  
-  bgav_http_header_send(request_header, ret->fd);
 
-  //  fprintf(stderr, "Sent request:\n");
-  //  bgav_http_header_send(request_header, fileno(stderr));
+  //  fprintf(stderr, "Sending request:\n");
+  if(!bgav_http_header_send(request_header, ret->fd))
+    goto fail;
+  
+  //  bgav_http_header_send(request_header, ret->fd);
+  //  fprintf(stderr, "Request sent\n");
+
   //  bgav_http_header_dump(request_header);
   
   if(extra_header)
@@ -227,7 +240,7 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
     }
   write(ret->fd, "\r\n", 2);
   bgav_http_header_destroy(request_header);
-        
+  
   ret->header = bgav_http_header_create();
   
   bgav_http_header_revc(ret->header, ret->fd, milliseconds);
@@ -264,7 +277,7 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
     goto fail;
     }
   
-  //  bgav_http_header_dump(ret->header);
+  bgav_http_header_dump(ret->header);
 
   if(host)
     free(host);

@@ -13,7 +13,7 @@
 
 #define BE_16(x) (be2me_16(*(unsigned short *)(x)))
 #define BE_32(x) (be2me_32(*(unsigned int *)(x)))
-
+#if 0
 static void qt_decode_rle8(
   unsigned char *encoded,
   int encoded_size,
@@ -91,7 +91,7 @@ static void qt_decode_rle8(
     row_ptr += row_inc;
   }
 }
-
+#endif
 static void qt_decode_rle16(
   unsigned char *encoded,
   int encoded_size,

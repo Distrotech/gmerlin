@@ -125,14 +125,14 @@ static int parse_origin(const char * line, bgav_sdp_origin_t * ret)
   }
 
 /* Parse connection description */
-
+#if 0
 static int parse_connection_desc(const char * line,
                                  bgav_sdp_connection_desc_t * ret)
   {
   
   return 1;
   }
-
+#endif
 static void dump_connection_desc(bgav_sdp_connection_desc_t * c)
   {
   fprintf(stderr, "Connection: type: %s addr: %s ttl: %d num: %d\n",
