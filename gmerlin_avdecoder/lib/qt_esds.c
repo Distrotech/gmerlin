@@ -23,7 +23,7 @@
 #include <avdec_private.h>
 #include <qt.h>
 
-#define ENABLE_DUMP
+// #define ENABLE_DUMP
 
 #if 0
 typedef struct

@@ -268,7 +268,7 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
   bgav_stream_t * stream;
   bgav_packet_t * p;
 
-  fprintf(stderr, "next_packet_interleaved\n");
+  //  fprintf(stderr, "next_packet_interleaved\n");
   
   if(ctx->si->current_position >= ctx->si->num_entries)
     {
@@ -314,7 +314,7 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
   bgav_packet_alloc(p, ctx->si->entries[ctx->si->current_position].size);
   p->data_size = ctx->si->entries[ctx->si->current_position].size;
 
-  fprintf(stderr, "size: %d\n", p->data_size);
+  //  fprintf(stderr, "size: %d\n", p->data_size);
   
   p->timestamp_scaled = ctx->si->entries[ctx->si->current_position].time;
   p->timestamp = (p->timestamp_scaled * GAVL_TIME_SCALE) / stream->timescale;

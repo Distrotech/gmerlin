@@ -173,7 +173,7 @@ static int stsd_read_audio(bgav_input_context_t * input,
         bgav_input_destroy(input_mem);
         break;
       case BGAV_MK_FOURCC('e', 's', 'd', 's'):
-        fprintf(stderr, "Found esds atom, %lld bytes\n", h.size);
+        //        fprintf(stderr, "Found esds atom, %lld bytes\n", h.size);
         if(!bgav_qt_esds_read(&h, input, &(ret->esds)))
           return 0;
         ret->has_esds = 1;
@@ -344,9 +344,7 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak)
     if(trak->mdia.minf.has_vmhd) /* Video sample description */
       {
       //      fprintf(stderr, "Reading video stsd\n");
-
-      fprintf(stderr, "Reading video stsd\n");
-      bgav_hexdump(c->entries[i].data, c->entries[i].data_size, 16);
+      //      bgav_hexdump(c->entries[i].data, c->entries[i].data_size, 16);
       
       input_mem = bgav_input_open_memory(c->entries[i].data,
                                          c->entries[i].data_size);
@@ -368,8 +366,8 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak)
       }
     else if(trak->mdia.minf.has_smhd) /* Audio sample description */
       {
-      fprintf(stderr, "Reading audio stsd\n");
-      bgav_hexdump(c->entries[i].data, c->entries[i].data_size, 16);
+      //      fprintf(stderr, "Reading audio stsd\n");
+      //      bgav_hexdump(c->entries[i].data, c->entries[i].data_size, 16);
       
       input_mem = bgav_input_open_memory(c->entries[i].data,
                                          c->entries[i].data_size);
