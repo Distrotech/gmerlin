@@ -636,11 +636,15 @@ static int process_command(bg_player_t * player,
       /* TODO: Shut down pause */
       if(state == BG_PLAYER_STATE_PAUSED)
         {
-        //        pause_cmd(player);
-        //        stop_cmd(player, BG_PLAYER_STATE_CHANGING);
-        play_flags |= BG_PLAY_FLAG_INIT_THEN_PAUSE;
+        if(play_flags & BG_PLAY_FLAG_RESUME)
+          {
+          pause_cmd(player);
+          return 1;
+          }
+        else
+          play_flags |= BG_PLAY_FLAG_INIT_THEN_PAUSE;
         }
-
+      
       
       arg_ptr1 = bg_msg_get_arg_ptr_nocopy(command, 0);
       arg_i1   = bg_msg_get_arg_int(command, 1);

@@ -15,7 +15,7 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
   switch(id)
     {
     case PLAYER_COMMAND_PLAY:
-      gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_PLAYING);
+      gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_PLAYING | BG_PLAY_FLAG_RESUME);
       break;
     case PLAYER_COMMAND_STOP:
       bg_player_stop(g->player);

@@ -406,7 +406,7 @@ void gmerlin_pause(gmerlin_t * g)
 void gmerlin_next_track(gmerlin_t * g)
   {
   int result, keep_going;
-  fprintf(stderr, "***************** Next track\n");
+//  fprintf(stderr, "***************** Next track\n");
   if(g->playback_flags & PLAYBACK_NOADVANCE)
     {
     bg_player_stop(g->player);

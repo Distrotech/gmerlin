@@ -249,8 +249,7 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
     {
     // fprintf(stderr, "Play button clicked\n");
 
-    gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_PLAYING);
-    
+    gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_PLAYING | BG_PLAY_FLAG_RESUME);
     }
   else if(b == win->pause_button)
     {

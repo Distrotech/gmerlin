@@ -54,6 +54,7 @@
 #define BG_PLAY_FLAG_IGNORE_IF_PLAYING (1<<0)
 #define BG_PLAY_FLAG_IGNORE_IF_STOPPED (1<<1)
 #define BG_PLAY_FLAG_INIT_THEN_PAUSE   (1<<2)
+#define BG_PLAY_FLAG_RESUME            (1<<3)
 
 /* Stop playing                              */
 
