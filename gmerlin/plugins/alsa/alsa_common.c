@@ -238,6 +238,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
       goto fail;
     }
 
+  dir = 0;
   /* Buffer time */
   if(snd_pcm_hw_params_set_buffer_time_near(ret, hw_params,
                                             &buffer_time, &dir) < 0)

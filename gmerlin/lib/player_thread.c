@@ -577,7 +577,16 @@ static int process_command(bg_player_t * player,
         {
         bg_player_time_get(player, 1, &current_time);
         time = bg_msg_get_arg_time(command, 0);
-        seek_cmd(player, current_time + time);
+        time += current_time;
+        if(time < 0)
+          time = 0;
+        else if(time > player->track_info->duration)
+          {
+          /* Seeked beyond end -> finish track */
+          stop_cmd(player, BG_PLAYER_STATE_CHANGING);
+          break;
+          }
+        seek_cmd(player, time);
         }
       break;
     case BG_PLAYER_CMD_SET_VOLUME:

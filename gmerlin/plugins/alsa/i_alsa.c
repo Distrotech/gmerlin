@@ -204,6 +204,8 @@ static int read_frame(alsa_t * priv)
   {
   int result = 0;
 
+  //  fprintf(stderr, "Read frame: %d\n", priv->format.samples_per_frame);
+  
   while(1)
     {
     if(priv->format.interleave_mode == GAVL_INTERLEAVE_ALL)
@@ -262,7 +264,6 @@ static void read_frame_alsa(void * p, gavl_audio_frame_t * f,
       {
       read_frame(priv);
       }
-    
     samples_copied =
       gavl_audio_frame_copy(&priv->format,                                  /* format  */
                             f,                                              /* dst     */
