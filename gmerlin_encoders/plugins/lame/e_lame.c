@@ -238,8 +238,8 @@ Auto (recommended): Select one of the above depending on quality or bitrate sett
       val_min:     { val_i: 0 },
       val_max:     { val_i: 9 },
       val_default: { val_i: 2 },
-      help_string: "0: Slowest encoding, highest quality\n\
-9: Fastest encoding, highest quality" 
+      help_string: "0: Slowest encoding, best quality\n\
+9: Fastest encoding, worst quality" 
     },
     {
       name:        "lame_cbr_options",
