@@ -53,6 +53,7 @@ struct bg_gtk_plugin_widget_single_s
   int32_t flag_mask;
   void (*set_plugin)(bg_plugin_handle_t *, void*);
   void * set_plugin_data;
+
   };
 
 static void set_parameter(void * data, char * name,
@@ -207,8 +208,9 @@ static void change_callback(GtkWidget * w, gpointer data)
 #endif
   
   bg_gtk_plugin_widget_single_t * widget;
-  widget = (bg_gtk_plugin_widget_single_t *)data;
 
+  widget = (bg_gtk_plugin_widget_single_t *)data;
+    
 #ifdef GTK_2_4
   widget->info = bg_plugin_find_by_index(widget->reg,
                                          gtk_combo_box_get_active(GTK_COMBO_BOX(widget->combo)),
@@ -457,16 +459,53 @@ void bg_gtk_plugin_widget_single_set_sensitive(bg_gtk_plugin_widget_single_t * w
   
   }
 
-#if 0
-GtkWidget *
-bg_gtk_plugin_widget_single_get_widget(bg_gtk_plugin_widget_single_t * w)
-  {
-  return w->table;
-  }
-#endif
-
 bg_plugin_handle_t *
 bg_gtk_plugin_widget_single_get_plugin(bg_gtk_plugin_widget_single_t * w)
   {
   return w->handle;
+  }
+
+void bg_gtk_plugin_widget_single_set_plugin(bg_gtk_plugin_widget_single_t * w, char * name)
+  {
+#ifdef GTK_2_4
+  int index;
+  int num_plugins;
+  int i;
+  const bg_plugin_info_t * test_info;
+#endif
+
+  const bg_plugin_info_t * info;
+  
+  info = bg_plugin_find_by_name(w->reg, name);
+
+  
+#ifdef GTK_2_4
+  index = -1;
+
+  num_plugins = bg_plugin_registry_get_num_plugins(w->reg,
+                                                   w->type_mask,
+                                                   w->flag_mask);
+  
+  for(i = 0; i < num_plugins; i++)
+    {
+    test_info = bg_plugin_find_by_index(w->reg, i, w->type_mask, w->flag_mask);
+    
+    if(info == test_info)
+      {
+      index = i;
+      break;
+      }
+    }
+  if(index >= 0)
+    gtk_combo_box_set_active(GTK_COMBO_BOX(w->combo), index);
+#else
+  
+  if(info)
+    {
+    gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(w->combo)->entry),
+                       default_info->long_name);
+    }
+#endif
+
+  
   }

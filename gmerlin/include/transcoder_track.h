@@ -82,7 +82,7 @@ bg_transcoder_track_t *
 bg_transcoder_track_create(const char * url,
                            const bg_plugin_info_t * plugin,
                            int track, bg_plugin_registry_t * plugin_reg,
-                           bg_cfg_section_t * section);
+                           bg_cfg_section_t * section, char * name);
 
 bg_transcoder_track_t *
 bg_transcoder_track_create_from_urilist(const char * list,
@@ -103,6 +103,7 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t);
 /* strings must be freed after */
 
 char * bg_transcoder_track_get_name(bg_transcoder_track_t * t);
+
 char * bg_transcoder_track_get_audio_encoder(bg_transcoder_track_t * t);
 char * bg_transcoder_track_get_video_encoder(bg_transcoder_track_t * t);
 
@@ -118,7 +119,14 @@ void
 bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
                                       bg_plugin_handle_t * audio_encoder,
                                       bg_plugin_handle_t * video_encoder);
+
+void
+bg_transcoder_track_set_encoders(bg_transcoder_track_t * track,
+                                 bg_plugin_registry_t * plugin_reg,
+                                 bg_plugin_handle_t * audio_encoder,
+                                 bg_plugin_handle_t * video_encoder);
   
+
 /* transcoder_track_xml.c */
 
 void bg_transcoder_tracks_save(bg_transcoder_track_t * t, const char * filename);
@@ -126,6 +134,5 @@ void bg_transcoder_tracks_save(bg_transcoder_track_t * t, const char * filename)
 bg_transcoder_track_t *
 bg_transcoder_tracks_load(const char * filename,
                           bg_plugin_registry_t * plugin_reg);
-
 
 #endif

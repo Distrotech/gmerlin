@@ -67,6 +67,9 @@ void bg_gtk_plugin_widget_single_set_sensitive(bg_gtk_plugin_widget_single_t * w
 bg_plugin_handle_t *
 bg_gtk_plugin_widget_single_get_plugin(bg_gtk_plugin_widget_single_t * w);
 
+void bg_gtk_plugin_widget_single_set_plugin(bg_gtk_plugin_widget_single_t * w, char * name);
+
+
 /* Menu for plugins, will be used for file selectors to select the plugin */
 
 typedef struct bg_gtk_plugin_menu_s bg_gtk_plugin_menu_t;

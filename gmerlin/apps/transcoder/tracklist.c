@@ -32,10 +32,12 @@
 #include <gui_gtk/driveselect.h>
 #include <gui_gtk/tree.h>
 #include <gui_gtk/display.h>
+#include <gui_gtk/plugin.h>
 
 #include <transcoder_track.h>
 #include "tracklist.h"
 #include "trackdialog.h"
+#include "encoderwidget.h"
 
 static void track_list_update(track_list_t * w);
 
@@ -107,6 +109,33 @@ static void load_pixmaps()
     }
   }
 
+typedef struct
+  {
+  GtkWidget * add_files_item;
+  GtkWidget * add_urls_item;
+  GtkWidget * add_drives_item;
+  GtkWidget * menu;
+  } add_menu_t;
+
+typedef struct
+  {
+  GtkWidget * move_up_item;
+  GtkWidget * move_down_item;
+  GtkWidget * remove_item;
+  GtkWidget * configure_item;
+  GtkWidget * encoder_item;
+  GtkWidget * menu;
+  } selected_menu_t;
+
+typedef struct
+  {
+  GtkWidget *      add_item;
+  add_menu_t       add_menu;
+  GtkWidget *      selected_item;
+  selected_menu_t  selected_menu;
+
+  GtkWidget      * menu;
+  } menu_t;
 
 enum
   {
@@ -151,7 +180,13 @@ struct track_list_s
   GtkTooltips * tooltips;
 
   int show_tooltips;
+
+  menu_t menu;
+
+  encoder_window_t * encoder_window;
   };
+
+/* Buttons */
 
 static GtkWidget * create_pixmap_button(track_list_t * l, const char * filename,
                                         const char * tooltip, const char * tooltip_private)
@@ -208,8 +243,6 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->delete_button, 0);
     return;
     }
-
-  
   
   while(1)
     {
@@ -555,8 +588,6 @@ static void move_down(track_list_t * l)
   track_list_update(l);
   }
 
-
-
 static void add_file_callback(char ** files, const char * plugin,
                               void * data)
   {
@@ -575,14 +606,14 @@ static void add_file_callback(char ** files, const char * plugin,
     {
     //  fprintf(stderr, "Add file %s with %s\n", files[i], plugin);
     
-    new_track = bg_transcoder_track_create(files[i], plugin_info,
-                                           -1, l->plugin_reg, l->track_defaults_section);
-
+    new_track =
+      bg_transcoder_track_create(files[i], plugin_info,
+                                 -1, l->plugin_reg,
+                                 l->track_defaults_section, (char*)0);
     add_track(l, new_track);
     track_list_update(l);
     i++;
     }
-  
   }
 
 static void filesel_close_callback(bg_gtk_filesel_t * f , void * data)
@@ -632,7 +663,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   
   t = (track_list_t*)data;
 
-  if(w == t->add_file_button)
+  if((w == t->add_file_button) || (w == t->menu.add_menu.add_files_item))
     {
     //    fprintf(stderr, "Add button\n");
 
@@ -656,7 +687,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     //    bg_gtk_filesel_destroy(filesel);
     
     }
-  if(w == t->add_url_button)
+  else if((w == t->add_url_button) || (w == t->menu.add_menu.add_urls_item))
     {
     //    fprintf(stderr, "Add URL\n");
 
@@ -676,7 +707,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     bg_gtk_urlsel_run(urlsel, 0);
     //    bg_gtk_urlsel_destroy(urlsel);
     }
-  if(w == t->add_removable_button)
+  else if((w == t->add_removable_button) || (w == t->menu.add_menu.add_drives_item))
     {
     //    fprintf(stderr, "Add Removable\n");
     
@@ -699,22 +730,22 @@ static void button_callback(GtkWidget * w, gpointer data)
 
     
     }
-  if(w == t->delete_button)
+  else if((w == t->delete_button) || (w == t->menu.selected_menu.remove_item))
     {
     //    fprintf(stderr, "Delete button\n");
     delete_selected(t);
     }
-  if(w == t->up_button)
+  else if((w == t->up_button) || (w == t->menu.selected_menu.move_up_item))
     {
     //    fprintf(stderr, "Up button\n");
     move_up(t);
     }
-  if(w == t->down_button)
+  else if((w == t->down_button) || (w == t->menu.selected_menu.move_down_item))
     {
     //    fprintf(stderr, "Down button\n");
     move_down(t);
     }
-  if(w == t->config_button)
+  else if((w == t->config_button) || (w == t->menu.selected_menu.configure_item))
     {
     //    fprintf(stderr, "Config button\n");
     track_dialog = track_dialog_create(t->selected_track, update_track,
@@ -723,7 +754,96 @@ static void button_callback(GtkWidget * w, gpointer data)
     track_dialog_destroy(track_dialog);
 
     }
+  else if(w == t->menu.selected_menu.encoder_item)
+    {
+    if(!t->encoder_window)
+      t->encoder_window = encoder_window_create(t->plugin_reg);
+    encoder_window_run(t->encoder_window, t->tracks);
+    }
   }
+
+/* Menu stuff */
+
+static GtkWidget *
+create_item(track_list_t * t, GtkWidget * parent,
+            const char * label)
+  {
+  GtkWidget * ret;
+  ret = gtk_menu_item_new_with_label(label);
+  g_signal_connect(G_OBJECT(ret), "activate", G_CALLBACK(button_callback),
+                   (gpointer)t);
+  gtk_widget_show(ret);
+  gtk_menu_shell_append(GTK_MENU_SHELL(parent), ret);
+  return ret;
+  }
+
+static void init_menu(track_list_t * t)
+  {
+  /* Add */
+
+  t->menu.add_menu.menu = gtk_menu_new();
+
+  t->menu.add_menu.add_files_item =
+    create_item(t, t->menu.add_menu.menu, "Add Files...");
+  t->menu.add_menu.add_urls_item =
+    create_item(t, t->menu.add_menu.menu, "Add Urls...");
+  t->menu.add_menu.add_drives_item =
+    create_item(t, t->menu.add_menu.menu, "Add Drives...");
+  gtk_widget_show(t->menu.add_menu.menu);
+  
+  /* Selected */
+
+  t->menu.selected_menu.menu = gtk_menu_new();
+
+  t->menu.selected_menu.move_up_item =
+    create_item(t, t->menu.selected_menu.menu, "Move Up");
+  t->menu.selected_menu.move_down_item =
+    create_item(t, t->menu.selected_menu.menu, "Move Down");
+  t->menu.selected_menu.remove_item =
+    create_item(t, t->menu.selected_menu.menu, "Remove");
+  t->menu.selected_menu.configure_item =
+    create_item(t, t->menu.selected_menu.menu, "Configure...");
+  t->menu.selected_menu.encoder_item =
+    create_item(t, t->menu.selected_menu.menu, "Change encoders...");
+
+  /* Root menu */
+
+  t->menu.menu = gtk_menu_new();
+  
+  t->menu.add_item =
+    create_item(t, t->menu.menu, "Add...");
+  
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(t->menu.add_item),
+                            t->menu.add_menu.menu);
+
+  t->menu.selected_item =
+    create_item(t, t->menu.menu, "Selected...");
+
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(t->menu.selected_item),
+                            t->menu.selected_menu.menu);
+  
+  
+  }
+
+static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
+                                      gpointer data)
+  {
+  track_list_t * t = (track_list_t*)data;
+
+  if(evt->button == 3)
+    {
+    gtk_menu_popup(GTK_MENU(t->menu.menu),
+                   (GtkWidget *)0,
+                   (GtkWidget *)0,
+                   (GtkMenuPositionFunc)0,
+                   (gpointer)0,
+                   3, evt->time);
+    return TRUE;
+    }
+  return FALSE;
+  }
+
+/* */
 
 static void column_resize_callback(GtkTreeViewColumn * col,
                                    gint * width_val,
@@ -948,7 +1068,11 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   g_signal_connect(G_OBJECT(ret->treeview), "drag-data-received",
                    G_CALLBACK(drag_received_callback),
                    (gpointer)ret);
-    
+
+  g_signal_connect(G_OBJECT(ret->treeview), "button-press-event",
+                   G_CALLBACK(button_press_callback), (gpointer)ret);
+  
+  
   /* Create columns */
 
   /* Index */
@@ -1097,6 +1221,8 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
 
     track_list_update(ret);
     }
+
+  init_menu(ret);
   
   return ret;
   }
