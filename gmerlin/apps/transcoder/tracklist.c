@@ -241,6 +241,13 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->up_button, 0);
     gtk_widget_set_sensitive(w->down_button, 0);
     gtk_widget_set_sensitive(w->delete_button, 0);
+
+    gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.configure_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 0);
+    
     return;
     }
   
@@ -268,6 +275,13 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->up_button, 1);
     gtk_widget_set_sensitive(w->down_button, 1);
     gtk_widget_set_sensitive(w->delete_button, 1);
+    
+    gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.configure_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 1);
+
     }
   else if(w->num_selected == 0)
     {
@@ -276,6 +290,13 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->up_button, 0);
     gtk_widget_set_sensitive(w->down_button, 0);
     gtk_widget_set_sensitive(w->delete_button, 0);
+
+    gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.configure_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 0);
+
     }
   else
     {
@@ -284,6 +305,13 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->up_button, 1);
     gtk_widget_set_sensitive(w->down_button, 1);
     gtk_widget_set_sensitive(w->delete_button, 1);
+
+    gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.configure_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 1);
+
     }
   }
 
@@ -1207,6 +1235,7 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
                    box, 0, 1, 1, 2, GTK_FILL, GTK_FILL, 0, 0);
   
   gtk_widget_show(ret->widget);
+  init_menu(ret);
 
   /* Load tracks */
 
@@ -1222,7 +1251,6 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
     track_list_update(ret);
     }
 
-  init_menu(ret);
   
   return ret;
   }
