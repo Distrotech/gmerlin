@@ -880,6 +880,7 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
 static void
 set_parameter_general(void * data, char * name, bg_parameter_value_t * val)
   {
+  int i, name_len;
   bg_transcoder_t * t;
   t = (bg_transcoder_t *)data;
 
@@ -892,6 +893,19 @@ set_parameter_general(void * data, char * name, bg_parameter_value_t * val)
 
     if(!t->set_end_time)
       t->end_time = GAVL_TIME_UNDEFINED;
+
+    /* Replace all '/' by '-' */
+
+    if(t->name)
+      {
+      name_len = strlen(t->name);
+      for(i = 0; i < name_len; i++)
+        {
+        if(t->name[i] == '/')
+          t->name[i] = '-';
+        }
+      }
+    
     return;
     }
   SP_STR(name);

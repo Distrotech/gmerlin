@@ -14,7 +14,7 @@ int main(int argc, char ** argv)
 
   bg_gtk_init(&argc, &argv);
 
-  /* We must initialize the random number generator if we want to
+  /* We must initialize the random number generator if we want the
      Vorbis encoder to work */
 
   srand(time(NULL));
