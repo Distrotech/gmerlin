@@ -56,6 +56,9 @@ void
 bg_gtk_tree_widget_close_album(bg_gtk_tree_widget_t * widget,
                                bg_gtk_album_window_t * win);
 
+void bg_gtk_tree_widget_set_tooltips(bg_gtk_tree_widget_t*, int enable);
+
+
 /* Tree window */
 
 bg_gtk_tree_window_t *
@@ -68,6 +71,9 @@ void bg_gtk_tree_window_destroy(bg_gtk_tree_window_t *);
 void bg_gtk_tree_window_show(bg_gtk_tree_window_t*);
 
 void bg_gtk_tree_window_hide(bg_gtk_tree_window_t*);
+
+void bg_gtk_tree_window_set_tooltips(bg_gtk_tree_window_t*, int enable);
+
 
 /* Album widget */
 
@@ -84,6 +90,9 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w);
 
 void bg_gtk_album_widget_put_config(bg_gtk_album_widget_t * w);
 
+void bg_gtk_album_widget_set_tooltips(bg_gtk_album_widget_t * w, int enable);
+
+
 /* Album window */
 
 bg_gtk_album_window_t * bg_gtk_album_window_create(bg_album_t * album,
@@ -95,5 +104,8 @@ void bg_gtk_album_window_raise(bg_gtk_album_window_t*);
 void bg_gtk_album_window_update(bg_gtk_album_window_t * w);
 
 bg_album_t * bg_gtk_album_window_get_album(bg_gtk_album_window_t*);
+
+void bg_gtk_album_window_set_tooltips(bg_gtk_album_window_t * w, int enable);
+
 
 #endif // __BG_GTK_TREE_H_

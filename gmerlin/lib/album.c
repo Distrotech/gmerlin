@@ -1248,47 +1248,15 @@ int bg_album_get_unique_id(bg_album_t * album)
   return album->com->highest_id;
   }
 
-static int refresh_entry(bg_album_t * album,
-                         bg_album_entry_t * entry)
+int bg_album_refresh_entry(bg_album_t * album,
+                           bg_album_entry_t * entry)
   {
+  const bg_plugin_info_t * info;
   char * system_location;
 
   bg_input_plugin_t * plugin;
   bg_track_info_t * track_info;
     
-  /* Open the track */
-  
-  system_location = bg_utf8_to_system(entry->location,
-                                      strlen(entry->location));
-
-  plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
-  
-  if(!plugin->open(album->com->load_handle->priv, system_location))
-    {
-    fprintf(stderr, "Opening %s with %s failed\n", system_location,
-            album->com->load_handle->info->name);
-    //    bg_hexdump(system_location, strlen(system_location));
-        
-    free(system_location);
-    entry->flags |= BG_ALBUM_ENTRY_ERROR;
-    return 0;
-    }
-
-  free(system_location);
-  //  fprintf(stderr, "Refresh entry: %d\n", entry->index);
-  track_info = plugin->get_track_info(album->com->load_handle->priv,
-                                      entry->index);
-
-  bg_album_update_entry(album, entry, track_info);
-  plugin->close(album->com->load_handle->priv);
-  return 1;
-  }
-
-int bg_album_refresh_entry(bg_album_t * album,
-                           bg_album_entry_t * entry)
-  {
-  const bg_plugin_info_t * info;
-  
   /* Check, which plugin to use */
 
   if(entry->plugin)
@@ -1297,16 +1265,28 @@ int bg_album_refresh_entry(bg_album_t * album,
     }
   else
     info = (bg_plugin_info_t*)0;
+
+  system_location = bg_utf8_to_system(entry->location,
+                                      strlen(entry->location));
+
   
   if(!bg_input_plugin_load(album->com->plugin_reg,
-                           entry->location,
+                           system_location,
                            info,
                            &(album->com->load_handle)))
     {
-    fprintf(stderr, "No plugin found for %s\n",
-            (char*)(entry->location));
     entry->flags |= BG_ALBUM_ENTRY_ERROR;
+    free(system_location);
     return 0;
     }
-  return refresh_entry(album, entry);
+  free(system_location);
+  
+  plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
+
+  track_info = plugin->get_track_info(album->com->load_handle->priv,
+                                      entry->index);
+  
+  bg_album_update_entry(album, entry, track_info);
+  plugin->close(album->com->load_handle->priv);
+  return 1;
   }

@@ -147,12 +147,13 @@ static gboolean enter_notify_callback(GtkWidget *widget,
   bg_gtk_slider_t * s;
   s = (bg_gtk_slider_t *)data;
 
-  s->mouse_inside = 1;
   if(s->state != BG_GTK_SLIDER_ACTIVE)
-    return TRUE;
+    return FALSE;
+
+  s->mouse_inside = 1;
   if(!s->action)
     gtk_image_set_from_pixbuf(GTK_IMAGE(s->slider_image), s->pixbuf_highlight);
-  return TRUE;
+  return FALSE;
   }
 
 static gboolean leave_notify_callback(GtkWidget *widget,
@@ -162,12 +163,12 @@ static gboolean leave_notify_callback(GtkWidget *widget,
   bg_gtk_slider_t * s;
   s = (bg_gtk_slider_t *)data;
   if(s->state != BG_GTK_SLIDER_ACTIVE)
-    return TRUE;
+    return FALSE;
 
   s->mouse_inside = 0;
   if(!s->action)
     gtk_image_set_from_pixbuf(GTK_IMAGE(s->slider_image), s->pixbuf_normal);
-  return TRUE;
+  return FALSE;
   }
 
 static gboolean motion_callback(GtkWidget * w, GdkEventMotion * evt,
@@ -288,7 +289,9 @@ bg_gtk_slider_t * bg_gtk_slider_create()
                         GDK_BUTTON1_MOTION_MASK|
                         GDK_BUTTON2_MOTION_MASK|
                         GDK_BUTTON3_MOTION_MASK|
-                        GDK_BUTTON_PRESS_MASK);
+                        GDK_BUTTON_PRESS_MASK|
+                        GDK_ENTER_NOTIFY_MASK|
+                        GDK_LEAVE_NOTIFY_MASK);
   
   
   /* Set Callbacks */
@@ -478,6 +481,11 @@ void bg_gtk_slider_get_coords(bg_gtk_slider_t * s, int * x, int * y)
 GtkWidget * bg_gtk_slider_get_widget(bg_gtk_slider_t * s)
   {
   return s->background_layout;  
+  }
+
+GtkWidget * bg_gtk_slider_get_slider_widget(bg_gtk_slider_t * s)
+  {
+  return s->slider_eventbox;
   }
 
 void bg_gtk_slider_skin_load(bg_gtk_slider_skin_t * s,

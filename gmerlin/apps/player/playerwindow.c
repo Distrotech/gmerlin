@@ -411,6 +411,11 @@ player_window_t * player_window_create(gmerlin_t * g)
   ret = calloc(1, sizeof(*ret));
   ret->gmerlin = g;
 
+  ret->tooltips = gtk_tooltips_new();
+  
+  g_object_ref (G_OBJECT (ret->tooltips));
+  gtk_object_sink (GTK_OBJECT (ret->tooltips));
+  
   ret->msg_queue = bg_msg_queue_create();
 
   bg_player_add_message_queue(g->player,
@@ -458,10 +463,10 @@ player_window_t * player_window_create(gmerlin_t * g)
 
   ret->seek_slider = bg_gtk_slider_create();
   ret->volume_slider = bg_gtk_slider_create();
-
+  
   ret->main_menu = main_menu_create(g);
 
-  ret->display = display_create(g);
+  ret->display = display_create(g, ret->tooltips);
   
   /* Set callbacks */
 
@@ -483,7 +488,29 @@ player_window_t * player_window_create(gmerlin_t * g)
 
   bg_gtk_button_set_menu(ret->menu_button,
                          main_menu_get_widget(ret->main_menu));
+
+  /* Set tooltips */
   
+  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->play_button),
+                       "Play", "Play");
+  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->stop_button),
+                       "Stop", "Stop");
+  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->pause_button),
+                       "Pause", "Pause");
+  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->next_button),
+                       "Next track", "Next track");
+  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->prev_button),
+                       "Previous track", "Previous track");
+  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->menu_button),
+                       "Main menu", "Main menu");
+  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->close_button),
+                       "Quit program", "Quit program");
+
+  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_slider_get_slider_widget(ret->volume_slider),
+                       "Volume", "Volume");
+
+  gtk_tooltips_set_tip(ret->tooltips, bg_gtk_slider_get_slider_widget(ret->seek_slider),
+                       "Seek", "Seek");
   
   /* Pack Objects */
 
@@ -547,10 +574,19 @@ void player_window_destroy(player_window_t * win)
   bg_gtk_slider_destroy(win->volume_slider);
 
   main_menu_destroy(win->main_menu);
-
+  g_object_unref(win->tooltips);
   
   free(win);
   }
+
+void player_window_set_tooltips(player_window_t * win, int enable)
+  {
+  if(enable)
+    gtk_tooltips_enable(win->tooltips);
+  else
+    gtk_tooltips_disable(win->tooltips);
+  }
+
 
 void player_window_skin_load(player_window_skin_t * s,
                              xmlDocPtr doc, xmlNodePtr node)

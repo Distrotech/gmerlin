@@ -142,8 +142,8 @@ bg_gtk_urlsel_create(const char * title,
   
   /* Create Buttons */
 
-  ret->add_button = gtk_button_new_with_label("Add");
-  ret->close_button = gtk_button_new_with_label("Close");
+  ret->add_button = gtk_button_new_from_stock(GTK_STOCK_ADD);
+  ret->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
     
   /* Set callbacks */
 
@@ -178,8 +178,8 @@ bg_gtk_urlsel_create(const char * title,
 
   box = gtk_hbutton_box_new();
 
-  gtk_container_add(GTK_CONTAINER(box), ret->add_button);
   gtk_container_add(GTK_CONTAINER(box), ret->close_button);
+  gtk_container_add(GTK_CONTAINER(box), ret->add_button);
   gtk_widget_show(box);
   gtk_box_pack_start_defaults(GTK_BOX(mainbox), box);
   

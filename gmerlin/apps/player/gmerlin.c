@@ -407,8 +407,8 @@ void gmerlin_next_track(gmerlin_t * g)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:      "playback_options",
-      long_name: "Playback Options",
+      name:      "general_options",
+      long_name: "General Options",
       type:      BG_PARAMETER_SECTION,
     },
     {
@@ -432,6 +432,12 @@ static bg_parameter_info_t parameters[] =
                          "All open albums",
                          (char*)0 },
       val_default: { val_str: "Off" }
+    },
+    {
+      name:        "show_tooltips",
+      long_name:   "Show tooltips",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 },
     },
     {
       name:        "mainwin_x",
@@ -538,6 +544,11 @@ void gmerlin_set_parameter(void * data, char * name, bg_parameter_value_t * val)
                           (g->player_window->volume - VOLUME_MIN)/(VOLUME_MAX - VOLUME_MIN));
 
     }
+  else if(!strcmp(name, "show_tooltips"))
+    {
+    gmerlin_set_tooltips(g, val->val_i);
+    }
+
   }
 
 int gmerlin_get_parameter(void * data, char * name, bg_parameter_value_t * val)
@@ -571,3 +582,9 @@ int gmerlin_get_parameter(void * data, char * name, bg_parameter_value_t * val)
   return 0;
   }
   
+void gmerlin_set_tooltips(gmerlin_t * g, int enable)
+  {
+  bg_gtk_tree_window_set_tooltips(g->tree_window, enable);
+  player_window_set_tooltips(g->player_window, enable);
+  plugin_window_set_tooltips(g->plugin_window, enable);
+  }

@@ -23,6 +23,8 @@ struct plugin_window_s
 
   transcoder_window_t * tw;
   bg_plugin_registry_t * plugin_reg;
+
+  GtkTooltips * tooltips;
   };
 
  
@@ -91,6 +93,12 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
   GtkWidget * notebook;
   int row, num_columns;
   ret = calloc(1, sizeof(*ret));
+
+  ret->tooltips = gtk_tooltips_new();
+
+  g_object_ref (G_OBJECT (ret->tooltips));
+  gtk_object_sink (GTK_OBJECT (ret->tooltips));
+    
   ret->tw = win;
   ret->plugin_reg = plugin_reg;
     
@@ -106,7 +114,7 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
                                        BG_PLUGIN_ENCODER_AUDIO,
                                        BG_PLUGIN_FILE,
                                        NULL,
-                                       ret);
+                                       ret, ret->tooltips);
 
   ret->audio_to_video =
     gtk_check_button_new_with_label("Encode audio into video file");
@@ -124,19 +132,19 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
                                        BG_PLUGIN_ENCODER,
                                        BG_PLUGIN_FILE,
                                        set_video_encoder,
-                                       ret);
+                                       ret, ret->tooltips);
   
   ret->inputs =
     bg_gtk_plugin_widget_multi_create(plugin_reg,
                                       BG_PLUGIN_INPUT,
                                       BG_PLUGIN_FILE|
                                       BG_PLUGIN_URL|
-                                      BG_PLUGIN_REMOVABLE);
+                                      BG_PLUGIN_REMOVABLE, ret->tooltips);
 
   ret->image_readers =
     bg_gtk_plugin_widget_multi_create(plugin_reg,
                                       BG_PLUGIN_IMAGE_READER,
-                                      BG_PLUGIN_FILE);
+                                      BG_PLUGIN_FILE, ret->tooltips);
     
   ret->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
 
@@ -215,6 +223,9 @@ void plugin_window_destroy(plugin_window_t * w)
   bg_gtk_plugin_widget_single_destroy(w->audio_encoder);
   bg_gtk_plugin_widget_single_destroy(w->video_encoder);
   bg_gtk_plugin_widget_multi_destroy(w->inputs);
+
+  g_object_unref(w->tooltips);
+
   free(w);
   }
 
@@ -226,4 +237,12 @@ void plugin_window_show(plugin_window_t * w)
 void plugin_window_hide(plugin_window_t * w)
   {
   gtk_widget_show(w->window);
+  }
+
+void plugin_window_set_tooltips(plugin_window_t * w, int enable)
+  {
+  if(enable)
+    gtk_tooltips_enable(w->tooltips);
+  else
+    gtk_tooltips_disable(w->tooltips);
   }

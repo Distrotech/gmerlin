@@ -30,7 +30,8 @@ typedef struct bg_gtk_plugin_widget_multi_s bg_gtk_plugin_widget_multi_t;
 bg_gtk_plugin_widget_multi_t *
 bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
                                   uint32_t type_mask,
-                                  uint32_t flag_mask);
+                                  uint32_t flag_mask,
+                                  GtkTooltips * tooltips);
 
 void bg_gtk_plugin_widget_multi_destroy(bg_gtk_plugin_widget_multi_t * w);
 
@@ -48,7 +49,8 @@ bg_gtk_plugin_widget_single_create(char * label,
                                    uint32_t flag_mask,
                                    void (*set_plugin)(bg_plugin_handle_t *,
                                                       void*),
-                                   void * set_plugin_data);
+                                   void * set_plugin_data,
+                                   GtkTooltips * tooltips);
 
 void bg_gtk_plugin_widget_single_destroy(bg_gtk_plugin_widget_single_t * w);
 

@@ -238,7 +238,8 @@ static void entry_change_callback(GtkWidget * w, gpointer data)
     }
   }
 
-static GtkWidget * create_pixmap_button(const char * filename)
+static GtkWidget * create_pixmap_button(const char * filename, GtkTooltips * tooltips,
+                                        const char * tooltip, const char * tooltip_private)
   {
   GtkWidget * button;
   GtkWidget * image;
@@ -251,17 +252,21 @@ static GtkWidget * create_pixmap_button(const char * filename)
     }
   else
     image = gtk_image_new();
-                                                                                
+  
   gtk_widget_show(image);
   button = gtk_button_new();
   gtk_container_add(GTK_CONTAINER(button), image);
+
+  gtk_tooltips_set_tip(tooltips, button, tooltip, tooltip_private);
+
   return button;
   }
 
 bg_gtk_plugin_widget_multi_t *
 bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
                                   uint32_t type_mask,
-                                  uint32_t flag_mask)
+                                  uint32_t flag_mask,
+                                  GtkTooltips * tooltips)
   {
   bg_gtk_plugin_widget_multi_t * ret;
   GtkListStore *store;
@@ -282,13 +287,16 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
 
   /* Create buttons */
 
-  ret->info_button = create_pixmap_button("info_16.png");
+  ret->info_button = create_pixmap_button("info_16.png", tooltips, "Plugin info", "Plugin info");
+  
+  ret->config_button = create_pixmap_button("config_16.png", tooltips,
+                                            "Plugin options", "Plugin options");
                                                                                 
-  ret->config_button = create_pixmap_button("config_16.png");
-                                                                                
-  ret->up_button = create_pixmap_button("up_16.png");
-                                                                                
-  ret->down_button = create_pixmap_button("down_16.png");
+  ret->up_button = create_pixmap_button("top_16.png", tooltips, "Move plugin to top",
+                                        "Move plugin to top");
+  
+  ret->down_button = create_pixmap_button("bottom_16.png", tooltips, "Move plugin to bottom",
+                                        "Move plugin to bottom");
                                                                                 
   g_signal_connect(G_OBJECT(ret->info_button),
                    "clicked", G_CALLBACK(button_callback),

@@ -209,10 +209,13 @@ filesel_create(const char * title,
   /* Re-label buttons */
 
   gtk_button_set_label(GTK_BUTTON(GTK_FILE_SELECTION(ret->filesel)->ok_button),
-                       "Add");
+                       GTK_STOCK_ADD);
   gtk_button_set_label(GTK_BUTTON(GTK_FILE_SELECTION(ret->filesel)->cancel_button),
-                       "Close");
-    
+                       GTK_STOCK_CLOSE);
+
+  gtk_button_set_use_stock(GTK_BUTTON(GTK_FILE_SELECTION(ret->filesel)->ok_button), 1);
+  gtk_button_set_use_stock(GTK_BUTTON(GTK_FILE_SELECTION(ret->filesel)->cancel_button), 1);
+                           
   ret->add_files     = add_files;
   ret->add_dir       = add_dir;
   ret->close_notify  = close_notify;

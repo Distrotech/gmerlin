@@ -172,7 +172,6 @@ bg_gtk_album_window_create(bg_album_t * album,
 
 void bg_gtk_album_window_destroy(bg_gtk_album_window_t * w, int notify)
   {
-  fprintf(stderr, "album_window_destroy\n");
   
   /* Get the window coordinates */
   
@@ -215,4 +214,9 @@ void bg_gtk_album_window_raise(bg_gtk_album_window_t* w)
 void bg_gtk_album_window_update(bg_gtk_album_window_t* w)
   {
   bg_gtk_album_widget_update(w->widget);
+  }
+
+void bg_gtk_album_window_set_tooltips(bg_gtk_album_window_t * w, int enable)
+  {
+  bg_gtk_album_widget_set_tooltips(w->widget, enable);
   }

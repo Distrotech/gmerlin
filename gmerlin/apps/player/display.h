@@ -35,7 +35,7 @@ typedef struct display_skin_s
   float foreground_error[3];
   } display_skin_t;
 
-display_t * display_create(gmerlin_t * gmerlin);
+display_t * display_create(gmerlin_t * gmerlin, GtkTooltips * tooltips);
 
 bg_parameter_info_t * display_get_parameters(display_t * display);
 

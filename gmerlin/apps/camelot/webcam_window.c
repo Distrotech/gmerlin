@@ -51,6 +51,8 @@ struct gmerlin_webcam_window_s
   int framerate_set;
 
   bg_cfg_section_t * section;
+
+  GtkTooltips * tooltips;
   };
 
 static void set_input_plugin(bg_plugin_handle_t * h, void * data)
@@ -255,7 +257,12 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   gmerlin_webcam_window_t * ret;
   
   ret = calloc(1, sizeof(*ret));
-  
+
+  ret->tooltips = gtk_tooltips_new();
+
+  g_object_ref (G_OBJECT (ret->tooltips));
+  gtk_object_sink (GTK_OBJECT (ret->tooltips));
+    
   ret->cam = w;
 
   gmerlin_webcam_get_message_queues(ret->cam,
@@ -278,7 +285,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
                                        BG_PLUGIN_RECORDER_VIDEO,
                                        BG_PLUGIN_RECORDER,
                                        set_input_plugin,
-                                       ret);
+                                       ret, ret->tooltips);
 
   ret->input_reopen = gtk_button_new_with_label("Reopen");
   g_signal_connect(G_OBJECT(ret->input_reopen), "clicked",
@@ -292,7 +299,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
                                        BG_PLUGIN_IMAGE_WRITER,
                                        BG_PLUGIN_FILE,
                                        set_capture_plugin,
-                                       ret);
+                                       ret, ret->tooltips);
 
   ret->capture_button = gtk_button_new_with_label("Take picture");
   g_signal_connect(G_OBJECT(ret->capture_button), "clicked", G_CALLBACK(button_callback),
@@ -317,7 +324,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
                                        BG_PLUGIN_OUTPUT_VIDEO,
                                        BG_PLUGIN_PLAYBACK,
                                        set_monitor_plugin,
-                                       ret);
+                                       ret, ret->tooltips);
 
   ret->monitor_button = gtk_check_button_new_with_label("Enable Monitor");
   g_signal_connect(G_OBJECT(ret->monitor_button), "toggled",

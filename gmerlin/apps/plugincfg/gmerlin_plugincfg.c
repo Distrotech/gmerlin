@@ -28,6 +28,8 @@ typedef struct
     
   GtkWidget * window;
   bg_plugin_registry_t * plugin_reg;
+
+  GtkTooltips * tooltips;
   } app_window;
 
 static void encode_audio_to_video_callback(GtkWidget * w, gpointer data)
@@ -82,6 +84,11 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   
   ret = calloc(1, sizeof(*ret));
 
+  ret->tooltips = gtk_tooltips_new();
+
+  g_object_ref (G_OBJECT (ret->tooltips));
+  gtk_object_sink (GTK_OBJECT (ret->tooltips));
+    
   ret->plugin_reg = reg;
   
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -100,7 +107,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                       BG_PLUGIN_INPUT,
                                       BG_PLUGIN_FILE|
                                       BG_PLUGIN_URL|
-                                      BG_PLUGIN_REMOVABLE);
+                                      BG_PLUGIN_REMOVABLE, ret->tooltips);
   
   label = gtk_label_new("Input plugins");
   gtk_widget_show(label);
@@ -112,26 +119,26 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   ret->audio_output_plugins =
     bg_gtk_plugin_widget_single_create("Audio", reg,
                                        BG_PLUGIN_OUTPUT_AUDIO,
-                                       BG_PLUGIN_PLAYBACK, NULL, NULL);
+                                       BG_PLUGIN_PLAYBACK, NULL, NULL, ret->tooltips);
   ret->video_output_plugins =
     bg_gtk_plugin_widget_single_create("Video", reg,
                                        BG_PLUGIN_OUTPUT_VIDEO,
-                                       BG_PLUGIN_PLAYBACK, NULL, NULL);
+                                       BG_PLUGIN_PLAYBACK, NULL, NULL, ret->tooltips);
 
   ret->audio_recorder_plugins =
     bg_gtk_plugin_widget_single_create("Audio", reg,
                                        BG_PLUGIN_RECORDER_AUDIO,
-                                       BG_PLUGIN_RECORDER, NULL, NULL);
+                                       BG_PLUGIN_RECORDER, NULL, NULL, ret->tooltips);
 
   ret->video_recorder_plugins =
     bg_gtk_plugin_widget_single_create("Video", reg,
                                        BG_PLUGIN_RECORDER_VIDEO,
-                                       BG_PLUGIN_RECORDER, NULL, NULL);
+                                       BG_PLUGIN_RECORDER, NULL, NULL, ret->tooltips);
 
   ret->audio_encoder_plugins =
     bg_gtk_plugin_widget_single_create("Audio", reg,
                                        BG_PLUGIN_ENCODER_AUDIO,
-                                       BG_PLUGIN_FILE, NULL, NULL);
+                                       BG_PLUGIN_FILE, NULL, NULL, ret->tooltips);
 
   ret->audio_to_video = gtk_check_button_new_with_label("Encode audio into video file");
   
@@ -148,7 +155,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
     bg_gtk_plugin_widget_single_create("Video", reg,
                                        BG_PLUGIN_ENCODER_VIDEO |
                                        BG_PLUGIN_ENCODER,
-                                       BG_PLUGIN_FILE, set_video_encoder, ret);
+                                       BG_PLUGIN_FILE, set_video_encoder, ret, ret->tooltips);
 
   
   table = gtk_table_new(1, 1, 0);
@@ -232,7 +239,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                       BG_PLUGIN_IMAGE_READER,
                                       BG_PLUGIN_FILE|
                                       BG_PLUGIN_URL|
-                                      BG_PLUGIN_REMOVABLE);
+                                      BG_PLUGIN_REMOVABLE, ret->tooltips);
   
   label = gtk_label_new("Image readers");
   gtk_widget_show(label);
@@ -249,7 +256,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                        BG_PLUGIN_FILE|
                                        BG_PLUGIN_URL|
                                        BG_PLUGIN_REMOVABLE,
-                                       NULL, NULL);
+                                       NULL, NULL, ret->tooltips);
   
 
   table = gtk_table_new(1, 1, 0);
@@ -286,6 +293,7 @@ static void destroy_window(app_window * win)
   bg_gtk_plugin_widget_single_destroy(win->video_output_plugins);
   bg_gtk_plugin_widget_single_destroy(win->audio_recorder_plugins);
 
+  g_object_unref(win->tooltips);
                                       
   free(win);
   }

@@ -149,3 +149,6 @@ void gmerlin_set_parameter(void * data, char * name,
 int gmerlin_get_parameter(void * data, char * name,
                           bg_parameter_value_t * val);
 
+/* Enable/disable tooltips */
+
+void gmerlin_set_tooltips(gmerlin_t * g, int enable);

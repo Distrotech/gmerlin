@@ -94,6 +94,8 @@ typedef struct player_window_s
   int seek_active;
   
   float volume;
+
+  GtkTooltips * tooltips;
   } player_window_t;
 
 player_window_t * player_window_create(gmerlin_t*);
@@ -106,3 +108,4 @@ void player_window_set_skin(player_window_t * win,
 
 void player_window_destroy(player_window_t * win);
 
+void player_window_set_tooltips(player_window_t * win, int enable);

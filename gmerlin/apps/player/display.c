@@ -470,7 +470,7 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
   return FALSE;
   }
 
-display_t * display_create(gmerlin_t * gmerlin)
+display_t * display_create(gmerlin_t * gmerlin, GtkTooltips * tooltips)
   {
   display_t * ret;
   bg_cfg_section_t * cfg_section;
@@ -492,21 +492,31 @@ display_t * display_create(gmerlin_t * gmerlin)
   ret->state_index = STATE_STOPPED;
   
   ret->scrolltext = bg_gtk_scrolltext_create(226, 18);
+
+  /* State area */
+  
   ret->state_area = gtk_drawing_area_new();
   gtk_widget_set_size_request(ret->state_area, 20, 32);
 
   g_signal_connect(G_OBJECT(ret->state_area),
                    "expose_event", G_CALLBACK(expose_callback),
                    (gpointer)ret);
+
   
   gtk_widget_show(ret->state_area);
 
+  /* Repeat area */
+  
   ret->repeat_area = gtk_drawing_area_new();
   gtk_widget_set_size_request(ret->repeat_area, 40, 16);
 
   gtk_widget_set_events(ret->repeat_area,
-                        GDK_BUTTON_PRESS_MASK);
+                        GDK_BUTTON_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
 
+  gtk_tooltips_set_tip(tooltips, ret->repeat_area,
+                       "Repeat mode\nClick to change",
+                       "Repeat mode\nClick to change");
+  
   g_signal_connect(G_OBJECT(ret->repeat_area),
                    "button_press_event",
                    G_CALLBACK (button_press_callback),
@@ -518,12 +528,18 @@ display_t * display_create(gmerlin_t * gmerlin)
   
   gtk_widget_show(ret->repeat_area);
 
+  /* Display mode area */
+  
   ret->display_area = gtk_drawing_area_new();
   gtk_widget_set_size_request(ret->display_area, 40, 16);
 
   gtk_widget_set_events(ret->display_area,
-                        GDK_BUTTON_PRESS_MASK);
-
+                        GDK_BUTTON_PRESS_MASK | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
+  gtk_tooltips_set_tip(tooltips, ret->display_area,
+                       "Time display mode\nClick to change",
+                       "Time display mode\nClick to change");
+  
+  
   g_signal_connect(G_OBJECT(ret->display_area),
                    "button_press_event",
                    G_CALLBACK (button_press_callback),
@@ -535,7 +551,7 @@ display_t * display_create(gmerlin_t * gmerlin)
   
   gtk_widget_show(ret->display_area);
 
-  
+  /* Scrolltext */
   
   bg_gtk_scrolltext_set_font(ret->scrolltext, "Sans Bold 10");
 

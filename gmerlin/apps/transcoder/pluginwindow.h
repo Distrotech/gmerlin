@@ -10,3 +10,5 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
 void plugin_window_destroy(plugin_window_t*);
 
 void plugin_window_show(plugin_window_t*);
+
+void plugin_window_set_tooltips(plugin_window_t * w, int enable);

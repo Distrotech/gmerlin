@@ -169,7 +169,7 @@ set_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t *
       gtk_tooltips_disable(win->tooltips);
 
     track_list_set_tooltips(win->tracklist, val->val_i);
-
+    plugin_window_set_tooltips(win->plugin_window, val->val_i);
     }
   }
 

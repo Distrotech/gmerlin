@@ -673,6 +673,22 @@ bg_gtk_tree_widget_close_album(bg_gtk_tree_widget_t * widget,
   update_menu(widget);
   }
 
+static void set_tooltips_func(gpointer data,
+                              gpointer user_data)
+  {
+  int * enable;
+  bg_gtk_album_window_t * widget;
+  enable = (int*)user_data;
+  widget = (bg_gtk_album_window_t *)data;
+
+  bg_gtk_album_window_set_tooltips(widget, *enable);
+  }
+
+void bg_gtk_tree_widget_set_tooltips(bg_gtk_tree_widget_t* widget, int enable)
+  {
+  g_list_foreach(widget->album_windows, set_tooltips_func, &enable);
+  }
+
 /* Open the current album if it isn't already open */
 
 static void open_album(bg_gtk_tree_widget_t * widget,

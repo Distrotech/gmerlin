@@ -55,26 +55,6 @@ struct bg_gtk_plugin_widget_single_s
   void * set_plugin_data;
   };
 
-static GtkWidget * create_pixmap_button(const char * filename)
-  {
-  GtkWidget * button;
-  GtkWidget * image;
-  char * path;
-  path = bg_search_file_read("icons", filename);
-  if(path)
-    {
-    image = gtk_image_new_from_file(path);
-    free(path);
-    }
-  else
-    image = gtk_image_new();
-
-  gtk_widget_show(image);
-  button = gtk_button_new();
-  gtk_container_add(GTK_CONTAINER(button), image);
-  return button;
-  }
-
 static void set_parameter(void * data, char * name,
                           bg_parameter_value_t * v)
   {
@@ -88,6 +68,7 @@ static void set_parameter(void * data, char * name,
     bg_plugin_unlock(widget->handle);
     }
   }
+
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
@@ -151,6 +132,38 @@ static void button_callback(GtkWidget * w, gpointer data)
     bg_dialog_destroy(dialog);
     }
   
+  }
+
+
+static GtkWidget * create_pixmap_button(bg_gtk_plugin_widget_single_t * w,
+                                        const char * filename,
+                                        GtkTooltips * tooltips,
+                                        const char * tooltip,
+                                        const char * tooltip_private)
+  {
+  GtkWidget * button;
+  GtkWidget * image;
+  char * path;
+  path = bg_search_file_read("icons", filename);
+  if(path)
+    {
+    image = gtk_image_new_from_file(path);
+    free(path);
+    }
+  else
+    image = gtk_image_new();
+
+  gtk_widget_show(image);
+  button = gtk_button_new();
+  gtk_container_add(GTK_CONTAINER(button), image);
+
+  gtk_tooltips_set_tip(tooltips, button, tooltip, tooltip_private);
+
+  g_signal_connect(G_OBJECT(button), "clicked",
+                   G_CALLBACK(button_callback), (gpointer)w);
+  
+  gtk_widget_show(button);
+  return button;
   }
 
 static void update_sensitive(bg_gtk_plugin_widget_single_t * widget)
@@ -251,7 +264,8 @@ bg_gtk_plugin_widget_single_create(char * label,
                                    uint32_t flag_mask,
                                    void (*set_plugin)(bg_plugin_handle_t * plugin,
                                                      void * data),
-                                   void * set_plugin_data)
+                                   void * set_plugin_data,
+                                   GtkTooltips * tooltips)
   {
 #ifdef GTK_2_4
   int default_index;
@@ -282,31 +296,24 @@ bg_gtk_plugin_widget_single_create(char * label,
   /* Make buttons */
 
   /* Config */
-    
-  ret->config_button = create_pixmap_button("config_16.png");
-
-  g_signal_connect(G_OBJECT(ret->config_button), "clicked",
-                   G_CALLBACK(button_callback), (gpointer)ret);
-  gtk_widget_show(ret->config_button);
-
+  
+  ret->config_button = create_pixmap_button(ret, "config_16.png", tooltips,
+                                            "Plugin options", "Plugin options");
+  
   /* Info */
     
-  ret->info_button = create_pixmap_button("info_16.png");
-  g_signal_connect(G_OBJECT(ret->info_button), "clicked",
-                   G_CALLBACK(button_callback), (gpointer)ret);
-
-  gtk_widget_show(ret->info_button);
-
-
+  ret->info_button = create_pixmap_button(ret, "info_16.png", tooltips,
+                                          "Plugin info", "Plugin info");
+  
   /* Audio */
 
   if(type_mask & (BG_PLUGIN_ENCODER_AUDIO | BG_PLUGIN_ENCODER))
     {
-    ret->audio_button = create_pixmap_button("audio_16.png");
+    ret->audio_button = create_pixmap_button(ret, "audio_16.png", tooltips,
+                                            "Audio options", "Audio options");
     
     g_signal_connect(G_OBJECT(ret->audio_button), "clicked",
                      G_CALLBACK(button_callback), (gpointer)ret);
-    gtk_widget_show(ret->audio_button);
     
     }
 
@@ -314,11 +321,11 @@ bg_gtk_plugin_widget_single_create(char * label,
     
   if(type_mask & (BG_PLUGIN_ENCODER_VIDEO | BG_PLUGIN_ENCODER))
     {
-    ret->video_button = create_pixmap_button("video_16.png");
+    ret->video_button = create_pixmap_button(ret, "video_16.png", tooltips,
+                                            "Video options", "Video options");
     
     g_signal_connect(G_OBJECT(ret->video_button), "clicked",
                      G_CALLBACK(button_callback), (gpointer)ret);
-    gtk_widget_show(ret->video_button);
     }
     
   /* Create combo */

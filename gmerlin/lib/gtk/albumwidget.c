@@ -117,7 +117,7 @@ static void unload_pixmaps()
   num_album_widgets--;
   if(!num_album_widgets)
     {
-    fprintf(stderr, "albumwidget.c: unload_pixmaps\n");
+    //    fprintf(stderr, "albumwidget.c: unload_pixmaps\n");
     
     g_object_unref(has_audio_pixbuf);
     g_object_unref(has_video_pixbuf);
@@ -241,7 +241,10 @@ struct bg_gtk_album_widget_s
   /* Open path */
 
   char * open_path;
-    
+
+  /* Tooltips */
+
+  GtkTooltips * tooltips;
   };
 
 /* Utilities */
@@ -1525,7 +1528,9 @@ static void button_callback(GtkWidget * wid, gpointer data)
   }
 
 static GtkWidget * create_pixmap_button(bg_gtk_album_widget_t * w,
-                                        const char * filename)
+                                        const char * filename,
+                                        const char * tooltip,
+                                        const char * tooltip_private)
   {
   GtkWidget * button;
   GtkWidget * image;
@@ -1547,6 +1552,8 @@ static GtkWidget * create_pixmap_button(bg_gtk_album_widget_t * w,
                    G_CALLBACK(button_callback), w);
 
   gtk_widget_show(button);
+
+  gtk_tooltips_set_tip(w->tooltips, button, tooltip, tooltip_private);
   
   return button;
   }
@@ -1583,6 +1590,11 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   ret->album = album;
   ret->parent = parent;
 
+  ret->tooltips = gtk_tooltips_new();
+
+  g_object_ref (G_OBJECT (ret->tooltips));
+  gtk_object_sink (GTK_OBJECT (ret->tooltips));
+  
   bg_album_set_change_callback(album, album_changed_callback, ret);
 
   /* Create list */
@@ -1790,15 +1802,29 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
 
   if(type == BG_ALBUM_TYPE_REGULAR)
     {
-    ret->add_files_button          = create_pixmap_button(ret, "folder_open_16.png");
-    ret->add_urls_button           = create_pixmap_button(ret, "earth_16.png");
+    ret->add_files_button        = create_pixmap_button(ret, "folder_open_16.png",
+                                                        "Add files", "Append files to the track list");
+    ret->add_urls_button         = create_pixmap_button(ret, "earth_16.png",
+                                                        "Add URLs", "Append URLs to the track list");
     }
-  ret->remove_selected_button    = create_pixmap_button(ret, "trash_16.png");
-  ret->info_button               = create_pixmap_button(ret, "info_16.png");
-  ret->move_selected_up_button   = create_pixmap_button(ret, "top_16.png");
-  ret->move_selected_down_button = create_pixmap_button(ret, "bottom_16.png");
 
+  ret->remove_selected_button    = create_pixmap_button(ret, "trash_16.png",
+                                                        "Delete", "Delete selected tracks");
+  ret->info_button               = create_pixmap_button(ret, "info_16.png",
+                                                        "Show track info", "Show track info");
+  ret->move_selected_up_button   = create_pixmap_button(ret, "top_16.png",
+                                                        "Move to top", "Move to top");
+  ret->move_selected_down_button = create_pixmap_button(ret, "bottom_16.png",
+                                                        "Move to bottom", "Move to bottom");
+  
   ret->total_time                = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
+
+  gtk_tooltips_set_tip(ret->tooltips,
+                       bg_gtk_time_display_get_widget(ret->total_time),
+                       "Total playback time",
+                       "Total playback time");
+
+
   ret->toolbar                   = gtk_hbox_new(0, 0);
 
   if(type == BG_ALBUM_TYPE_REGULAR)
@@ -1852,6 +1878,8 @@ void bg_gtk_album_widget_destroy(bg_gtk_album_widget_t * w)
   if(w->open_path)
     free(w->open_path);
   bg_gtk_time_display_destroy(w->total_time);
+
+  g_object_unref(w->tooltips);
   
   free(w);
 
@@ -1866,4 +1894,12 @@ GtkWidget * bg_gtk_album_widget_get_widget(bg_gtk_album_widget_t * w)
 bg_album_t * bg_gtk_album_widget_get_album(bg_gtk_album_widget_t * w)
   {
   return w->album;
+  }
+
+void bg_gtk_album_widget_set_tooltips(bg_gtk_album_widget_t * w, int enable)
+  {
+  if(enable)
+    gtk_tooltips_enable(w->tooltips);
+  else
+    gtk_tooltips_disable(w->tooltips);
   }

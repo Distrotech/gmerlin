@@ -356,6 +356,10 @@ GtkWidget * bg_gtk_time_display_get_widget(bg_gtk_time_display_t * d)
 void bg_gtk_time_display_destroy(bg_gtk_time_display_t * d)
   {
   int i;
+
+  if(d->gc)
+    g_object_unref(d->gc);
+
   for(i = 0; i < NUM_PIXBUFS; i++)
     {
     g_object_unref(d->pixbufs[i]);

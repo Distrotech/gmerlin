@@ -80,3 +80,5 @@ void bg_gtk_slider_set_pos(bg_gtk_slider_t *, float position);
 void bg_gtk_slider_get_coords(bg_gtk_slider_t *, int * x, int * y);
 
 GtkWidget * bg_gtk_slider_get_widget(bg_gtk_slider_t *);
+
+GtkWidget * bg_gtk_slider_get_slider_widget(bg_gtk_slider_t *);

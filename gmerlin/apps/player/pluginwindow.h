@@ -9,3 +9,4 @@ void plugin_window_destroy(plugin_window_t*);
 
 void plugin_window_show(plugin_window_t*);
 
+void plugin_window_set_tooltips(plugin_window_t * w, int enable);
