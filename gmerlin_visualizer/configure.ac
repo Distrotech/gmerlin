@@ -2,7 +2,7 @@ AC_INIT(src/mainwindow.c)
 
 AM_CONFIG_HEADER(src/config.h)
 
-AM_INIT_AUTOMAKE(gmerlin-visualizer, 1.0.1)
+AM_INIT_AUTOMAKE(gmerlin-visualizer, 1.1.0pre2)
 AC_PROG_LIBTOOL
 
 GMERLIN_REQUIRED="0.3.2pre1"
@@ -28,7 +28,7 @@ if test x$have_xmms1 = xtrue; then
 AC_DEFINE(HAVE_XMMS1)
 fi
 
-AC_SUBST(XMMS_REQUIRED)
+AC_SUBST(XMMS1_REQUIRED)
 
 GTK_REQUIRED="1.2.8"
 AM_PATH_GTK($GTK_REQUIRED, , AC_MSG_ERROR(gmerlin_visualizer needs gtk with headers, 1))

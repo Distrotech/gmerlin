@@ -28,5 +28,6 @@ gmerlin_visualizer_LDADD = $(xmms1_libs) @GMERLIN_LIBS@ -lXxf86vm
 noinst_HEADERS = \
 mainwindow.h \
 input.h \
-fft.h
+fft.h \
+vis_plugin.h
 
