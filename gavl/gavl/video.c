@@ -112,10 +112,10 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
     gavl_video_format_copy(&(cnv->csp_context.output_format),
                            output_format);
 
-    
+    cnv->csp_context.input_format.colorspace = input_colorspace;
     
     cnv->csp_func = gavl_find_colorspace_converter(options,
-                                                   input_format->colorspace,
+                                                   input_colorspace,
                                                    output_format->colorspace,
                                                    input_format->frame_width,
                                                    input_format->frame_height);
