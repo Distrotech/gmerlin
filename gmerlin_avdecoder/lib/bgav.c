@@ -196,7 +196,7 @@ int bgav_open(bgav_t * ret, const char * location)
   ret->input = create_input(ret);
   if(!bgav_input_open(ret->input, location))
     {
-    ret->error_msg = bgav_sprintf(ret->input->error_msg);
+    ret->error_msg = bgav_strndup(ret->input->error_msg, NULL);
     goto fail;
     }
   if(!bgav_init(ret))

@@ -566,7 +566,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   
   if(!next_packet(ret, 1, error_msg))
     {
-    fprintf(stderr, "Next packet failed 1\n");
+    *error_msg = bgav_sprintf("mms: Next packet failed 1");
     goto fail;
     }
   if((!ret->command) ||
@@ -576,12 +576,12 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   if(ret->command_header.command == 0x03)
     {
     /* Protocol not supported, dammit */
-    fprintf(stderr, "Protocol not supported, dammit\n");
+    *error_msg = bgav_sprintf("mms: Protocol not supported");
     goto fail;
     }
   else if(ret->command_header.command != 0x02)
     {
-    fprintf(stderr, "Got answer: %d\n", ret->command_header.command);
+    *error_msg = bgav_sprintf("mms: Got answer: %d", ret->command_header.command);
     goto fail;
     }
 
@@ -597,30 +597,30 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   memset(ret->cmd_data_write + 8 + len_out, 0, 2);
   if(!flush_command(ret, error_msg))
     {
-    fprintf(stderr, "Remote end closed connection\n");
+    *error_msg = bgav_sprintf("mms: Remote end closed connection");
     goto fail;
     }
   free(utf16);
   
   if(!next_packet(ret, 1, error_msg))
     {
-    fprintf(stderr, "Next packet failed 2\n");
+    *error_msg = bgav_sprintf("mms: Next packet failed 2");
     goto fail;
     }
   if((!ret->command) || (ret->command_header.prefix1))
     {
-    fprintf(stderr, "Invalid answer 2 %08x\n", ret->command_header.prefix1);
+    *error_msg = bgav_sprintf("mms: Invalid answer 2 %08x", ret->command_header.prefix1);
     goto fail;
     }
   if(ret->command_header.command == 0x1a)
     {
     /* Passwords not supported, dammit */
-    fprintf(stderr, "Passwords not supported, dammit\n");
+    *error_msg = bgav_sprintf("mms: Passwords not supported");
     goto fail;
     }
   else if(ret->command_header.command != 0x06)
     {
-    fprintf(stderr, "Invalid answer 3: %d\n", ret->command_header.command);
+    *error_msg = bgav_sprintf("mms: Invalid answer 3: %d", ret->command_header.command);
     goto fail;
     }
   
@@ -629,7 +629,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
 
   if(i_tmp & 0x80000000)
     {
-    fprintf(stderr, "Request not accepted %08x\n", i_tmp);
+    *error_msg = bgav_sprintf("mms: Request not accepted %08x", i_tmp);
     goto fail;
     }
   pos+=4; /* 00000000 */
@@ -670,7 +670,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   ret->cmd_data_write[32] = 2;
   if(!flush_command(ret, error_msg))
     {
-    fprintf(stderr, "Remote end closed connection\n");
+    *error_msg = bgav_sprintf("mms: Remote end closed connection");
     goto fail;
     }
   
@@ -682,7 +682,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
      (ret->command_header.prefix1) ||
      (ret->command_header.command != 0x11))
     {
-    fprintf(stderr, "Invalid answer 4\n");
+    *error_msg = bgav_sprintf("mms: Invalid answer 4");
     goto fail;
     }
   ret->header_id = ret->command_header.prefix2;
@@ -695,7 +695,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
     //            ret->header_alloc);
     if(!next_packet(ret, 1, error_msg))
       {
-      fprintf(stderr, "Next packet failed\n");
+      *error_msg = bgav_sprintf("mms: Next packet failed");
       goto fail;
       }
     //    fprintf(stderr, "done %d %d\n",
@@ -706,7 +706,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
 
   if(!ret->header)
     {
-    fprintf(stderr, "Read header failed\n");
+    *error_msg = bgav_sprintf("mms: Read header failed");
     goto fail;
     }
   mms_dump(ret);

@@ -51,7 +51,10 @@ static uint32_t next_start_code(bgav_input_context_t * ctx)
 static uint32_t previous_start_code(bgav_input_context_t * ctx)
   {
   uint32_t c;
+  //  int skipped = 0;
   bgav_input_seek(ctx, -1, SEEK_CUR);
+  //  fprintf(stderr, "previous_start_code...");
+
   while(ctx->position >= 0)
     {
     if(!bgav_input_get_32_be(ctx, &c))
@@ -63,8 +66,14 @@ static uint32_t previous_start_code(bgav_input_context_t * ctx)
       return 0;
       }
     if(IS_START_CODE(c))
+      {
+#if 0
+      fprintf(stderr, "previous_start_code: skipped %d bytes\n", skipped);
+#endif
       return c;
+      }
     bgav_input_seek(ctx, -1, SEEK_CUR);
+    //    skipped++;
     }
   return 0;
   }
@@ -512,6 +521,8 @@ static void get_duration(bgav_demuxer_context_t * ctx)
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
 
+  fprintf(stderr, "get duration...\n");
+  
   if(!ctx->input->total_bytes)
     return;
   
@@ -556,6 +567,7 @@ static void get_duration(bgav_demuxer_context_t * ctx)
       (ctx->input->total_bytes * GAVL_TIME_SCALE)/
       (priv->pack_header.mux_rate*50);
     }
+  fprintf(stderr, "get duration done\n");
   }
 
 
