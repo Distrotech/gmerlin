@@ -75,6 +75,12 @@ static void gmerlin_apply_config(gmerlin_t * g)
   bg_cfg_section_apply(g->audio_section, parameters,
                        bg_player_set_audio_parameter, (void*)(g->player));
 
+  parameters = bg_player_get_video_parameters(g->player);
+  
+  bg_cfg_section_apply(g->video_section, parameters,
+                       bg_player_set_video_parameter, (void*)(g->player));
+
+  
   parameters = gmerlin_get_parameters(g);
 
   bg_cfg_section_apply(g->general_section, parameters,
@@ -98,6 +104,11 @@ static void gmerlin_get_config(gmerlin_t * g)
   
   bg_cfg_section_apply(g->audio_section, parameters,
                        bg_player_set_audio_parameter, (void*)(g->player));
+
+  parameters = bg_player_get_video_parameters(g->player);
+  
+  bg_cfg_section_apply(g->video_section, parameters,
+                       bg_player_set_video_parameter, (void*)(g->player));
 #endif
 
   parameters = gmerlin_get_parameters(g);
@@ -155,6 +166,8 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
     bg_cfg_registry_find_section(cfg_reg, "General");
   ret->audio_section =
     bg_cfg_registry_find_section(cfg_reg, "Audio");
+  ret->video_section =
+    bg_cfg_registry_find_section(cfg_reg, "Video");
     
   /* Create player instance */
   

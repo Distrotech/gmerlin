@@ -46,6 +46,7 @@
 #define XV_ID_YV12  0x32315659 
 #define XV_ID_I420  0x30323449
 #define XV_ID_YUY2  0x32595559
+#define XV_ID_UYVY  0x59565955
 
 #define HAVE_XV
 #define HAVE_XSHM
@@ -112,6 +113,7 @@ typedef struct
   int have_xv_yv12;
   int have_xv_yuy2;
   int have_xv_i420;
+  int have_xv_uyvy;
 
   int force_xv;
   
@@ -269,7 +271,7 @@ static int check_shm(Display * dpy, int * completion_type)
 static void check_xv(Display * d, Window w,
                      XvPortID * port,
                      int * have_yv12, int * have_yuy2,
-                     int * have_i420)
+                     int * have_i420, int * have_uyvy)
   {
   unsigned int version;
   unsigned int release;
@@ -286,6 +288,7 @@ static void check_xv(Display * d, Window w,
   *have_yv12 = 0;
   *have_yuy2 = 0;
   *have_i420 = 0;
+  *have_uyvy = 0;
   if ((XvQueryExtension (d, &version, &release,
                          &dummy, &dummy, &dummy) != Success) ||
       (version < 2) || ((version == 2) && (release < 2)))
@@ -317,6 +320,11 @@ static void check_xv(Display * d, Window w,
           else if(formatValues[k].id == XV_ID_I420)
             {
             *have_i420 = 1;
+            found = 1;
+            }
+          else if(formatValues[k].id == XV_ID_UYVY)
+            {
+            *have_uyvy = 1;
             found = 1;
             }
           }
@@ -467,6 +475,7 @@ alloc_frame_xv(x11_t * priv)
       ret->strides[2] = x11_frame->xv_image->pitches[2];
       break;
     case XV_ID_YUY2:
+    case XV_ID_UYVY:
       ret->planes[0] =
         x11_frame->xv_image->data + x11_frame->xv_image->offsets[0];
       ret->strides[0] = x11_frame->xv_image->pitches[0];
@@ -629,7 +638,8 @@ static void * create_x11()
            &(priv->xv_port),
            &(priv->have_xv_yv12),
            &(priv->have_xv_yuy2),
-           &(priv->have_xv_i420));
+           &(priv->have_xv_i420),
+           &(priv->have_xv_uyvy));
 
 #endif // HAVE_LIBXV
   create_parameters(priv);
@@ -761,6 +771,12 @@ static int _open_x11(void * data,
         priv->xv_format = XV_ID_YUY2;
         format->colorspace = GAVL_YUY2;
         }
+      else if(priv->have_xv_uyvy)
+        {
+        priv->do_xv = 1;
+        priv->xv_format = XV_ID_UYVY;
+        format->colorspace = GAVL_UYVY;
+        }
       else
         format->colorspace = x11_colorspace;
       break;
@@ -769,6 +785,12 @@ static int _open_x11(void * data,
         {
         priv->do_xv = 1;
         priv->xv_format = XV_ID_YUY2;
+        }
+      if(priv->have_xv_uyvy)
+        {
+        priv->do_xv = 1;
+        priv->xv_format = XV_ID_UYVY;
+        format->colorspace = GAVL_UYVY;
         }
       else if(priv->have_xv_yv12)
         {
@@ -789,7 +811,13 @@ static int _open_x11(void * data,
       if(gavl_colorspace_is_yuv(format->colorspace) ||
          priv->force_xv)
         {
-        if(priv->have_xv_yuy2)
+        if(priv->have_xv_uyvy)
+          {
+          priv->do_xv = 1;
+          priv->xv_format = XV_ID_UYVY;
+          format->colorspace = GAVL_UYVY;
+          }
+        else if(priv->have_xv_yuy2)
           {
           priv->do_xv = 1;
           priv->xv_format = XV_ID_YUY2;

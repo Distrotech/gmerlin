@@ -74,6 +74,11 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   //  else
   //    fprintf(stderr, "NO Fixed channel setup\n");
 
+  if(player->audio_stream.fixed_samplerate)
+    {
+    player->audio_stream.output_format.samplerate =
+      player->audio_stream.samplerate; 
+    }
 
   pthread_mutex_unlock(&(player->audio_stream.config_mutex));
   
@@ -89,8 +94,19 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
     return 0;
     }
 
-  player->audio_stream.input_format.samples_per_frame =
-    player->audio_stream.output_format.samples_per_frame;
+  if(player->audio_stream.input_format.samplerate !=
+     player->audio_stream.output_format.samplerate)
+    {
+    player->audio_stream.input_format.samples_per_frame =
+      ((player->audio_stream.output_format.samples_per_frame - 10) *
+       player->audio_stream.input_format.samplerate) /
+      player->audio_stream.output_format.samplerate;
+    }
+  else
+    {
+    player->audio_stream.input_format.samples_per_frame =
+      player->audio_stream.output_format.samples_per_frame;
+    }
   
   /* Initialize audio fifo */
 
@@ -148,6 +164,28 @@ static bg_parameter_info_t parameters[] =
       name:      "audio",
       long_name: "Audio",
       type:      BG_PARAMETER_SECTION,
+    },
+    {
+      name:        "conversion_quality",
+      long_name:   "Conversion Quality",
+      type:        BG_PARAMETER_SLIDER_INT,
+      val_min:     { val_i: GAVL_QUALITY_FASTEST },
+      val_max:     { val_i: GAVL_QUALITY_BEST    },
+      val_default: { val_i: GAVL_QUALITY_DEFAULT }
+    },
+    {
+      name:      "fixed_samplerate",
+      long_name: "Fixed samplerate",
+      type:      BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 0 },
+    },
+    {
+      name:        "samplerate",
+      long_name:   "Samplerate",
+      type:        BG_PARAMETER_INT,
+      val_min:     { val_i: 8000 },
+      val_max:     { val_i: 192000 },
+      val_default: { val_i: 44100 },
     },
     {
       name:      "fixed_channel_setup",
@@ -210,7 +248,11 @@ void bg_player_set_audio_parameter(void * data, char * name,
 
   pthread_mutex_lock(&(player->audio_stream.config_mutex));
 
-  if(!strcmp(name, "fixed_channel_setup"))
+  if(!strcmp(name, "conversion_quality"))
+    {
+    player->audio_stream.opt.quality = val->val_i;
+    }
+  else if(!strcmp(name, "fixed_channel_setup"))
     {
     player->audio_stream.fixed_channel_setup = val->val_i;
     }
@@ -230,6 +272,14 @@ void bg_player_set_audio_parameter(void * data, char * name,
       player->audio_stream.channel_setup = GAVL_CHANNEL_2F2R;
     else if(!strcmp(val->val_str, "3 Front 2 Rear"))
       player->audio_stream.channel_setup = GAVL_CHANNEL_3F2R;
+    }
+  else if(!strcmp(name, "fixed_samplerate"))
+    {
+    player->audio_stream.fixed_samplerate = val->val_i;
+    }
+  else if(!strcmp(name, "samplerate"))
+    {
+    player->audio_stream.samplerate = val->val_i;
     }
   else if(!strcmp(name, "front_to_rear"))
     {

@@ -28,7 +28,7 @@ typedef struct bg_transcoder_s bg_transcoder_t;
 typedef struct
   {
   float percentage_done;
-  gavl_time_t remaining_time;
+  gavl_time_t remaining_time; /* Remaining time (Transcoding time, NOT track time!!!) */
   } bg_transcoder_status_t;
 
 bg_transcoder_t * bg_transcoder_create();

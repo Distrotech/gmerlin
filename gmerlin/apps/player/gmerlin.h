@@ -93,6 +93,7 @@ struct gmerlin_s
   bg_cfg_section_t * tree_section;
   bg_cfg_section_t * general_section;
   bg_cfg_section_t * audio_section;
+  bg_cfg_section_t * video_section;
 
   int show_info_window;
   int show_tree_window;

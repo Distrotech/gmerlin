@@ -61,7 +61,7 @@ static int open_lqt(void * data, const char * filename_base,
   //  e_lqt_t * e = (e_lqt_t*)data;
   return 0;
   }
-
+#if 0
 static void add_audio_stream_lqt(void * data, bg_audio_info_t * info)
   {
   //  e_lqt_t * e = (e_lqt_t*)data;
@@ -71,7 +71,7 @@ static void add_video_stream_lqt(void * data, bg_video_info_t* info)
   {
   //  e_lqt_t * e = (e_lqt_t*)data;
   }
-
+#endif
 static void write_audio_frame_lqt(void * data, gavl_audio_frame_t* frame,
                                   int stream)
   {

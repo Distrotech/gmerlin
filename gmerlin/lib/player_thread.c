@@ -218,7 +218,7 @@ static void play_cmd(bg_player_t * p,
   
   bg_player_set_state(p, BG_PLAYER_STATE_STARTING, NULL, NULL);
 
-  fprintf(stderr, "Track name: %s\n", track_name);
+  //  fprintf(stderr, "Track name: %s\n", track_name);
   
   bg_player_set_track_name(p, track_name);
   

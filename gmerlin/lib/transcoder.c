@@ -42,6 +42,7 @@ typedef struct
 
   bg_plugin_handle_t  * output_handle;
   bg_encoder_plugin_t * output_plugin;
+  int do_convert;
   } stream_t;
 
 typedef struct
@@ -51,7 +52,6 @@ typedef struct
   gavl_audio_converter_t * cnv;
   gavl_audio_frame_t * in_frame;
   gavl_audio_frame_t * out_frame;
-  int do_convert;
   } audio_stream_t;
 
 typedef struct
@@ -61,9 +61,29 @@ typedef struct
   gavl_video_converter_t * cnv;
   gavl_video_frame_t * in_frame;
   gavl_video_frame_t * out_frame;
-  int do_convert;
   } video_stream_t;
 
+#if 0
+static int video_init(video_stream_t * s)
+  {
+  return 0;
+  }
+
+static int audio_init(audio_stream_t * s)
+  {
+  return 0;
+  }
+
+static int video_transcode(video_stream_t * s)
+  {
+  return 0;
+  }
+
+static int audio_transcode(audio_stream_t * s)
+  {
+  return 0;
+  }
+#endif
 struct bg_transcoder_s
   {
   int num_audio_streams;
@@ -143,5 +163,46 @@ void bg_transcoder_set_video_stream(bg_transcoder_t * t,
 
 int bg_transcoder_iteration(bg_transcoder_t * t)
   {
+  int i;
+  gavl_time_t time;
+  stream_t * stream;
+
+  /* Find the stream with the smallest time */
+  
+  if(t->audio_streams)
+    {
+    time = t->audio_streams->com.time;
+    stream = &(t->audio_streams->com);
+    }
+  else if(t->video_streams)
+    {
+    time = t->video_streams->com.time;
+    stream = &(t->video_streams->com);
+    }
+
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    if(t->audio_streams[i].com.time < time)
+      {
+      time = t->audio_streams[i].com.time;
+      stream = &(t->audio_streams[i].com);
+      }
+    }
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    if(t->video_streams[i].com.time < time)
+      {
+      time = t->video_streams[i].com.time;
+      stream = &(t->video_streams[i].com);
+      }
+    }
+
+  /* Do the transcoding */
+
+  if(stream->type == STREAM_AUDIO)
+    {
+        
+    }
+  
   return 0;
   }

@@ -55,6 +55,7 @@ state_seeking.png \
 state_stopped.png \
 tearoff_16.png \
 tracks_dnd_32.png \
+transcoder_icon.png \
 tree_root_16.png \
 up_16.png \
 video_16.png \

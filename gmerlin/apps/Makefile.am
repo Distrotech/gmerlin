@@ -23,7 +23,15 @@ else
 camelot_subdirs =
 endif
 
+if HAVE_TRANSCODER
+transcoder_subdirs = transcoder
+else
+transcoder_subdirs =
+endif
+
 SUBDIRS = $(player_subdirs) \
 $(plugincfg_subdirs) \
 $(alsamixer_subdirs) \
-$(camelot_subdirs)
+$(camelot_subdirs) \
+$(transcoder_subdirs)
+

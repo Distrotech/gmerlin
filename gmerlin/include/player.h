@@ -77,7 +77,7 @@ void bg_player_set_metadata(bg_player_t *, const bg_metadata_t *);
 bg_parameter_info_t * bg_player_get_audio_parameters(bg_player_t *);
 void bg_player_set_audio_parameter(void*, char *, bg_parameter_value_t*);
 
-bg_parameter_info_t * player_get_video_parameters(bg_player_t *);
-void bg_player_set_video_parameter(void*, const char *, bg_parameter_value_t*);
+bg_parameter_info_t * bg_player_get_video_parameters(bg_player_t *);
+void bg_player_set_video_parameter(void*, char *, bg_parameter_value_t*);
 
 #endif // __BG_PLAYER_H_

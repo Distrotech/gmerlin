@@ -45,6 +45,14 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 (void*)(g->player),
                 parameters);
 
+  parameters = bg_player_get_video_parameters(g->player);
+  
+  bg_dialog_add(g->cfg_dialog,
+                (char*)0,
+                g->video_section,
+                bg_player_set_video_parameter,
+                (void*)(g->player),
+                parameters);
   
   parameters = display_get_parameters(g->player_window->display);
 

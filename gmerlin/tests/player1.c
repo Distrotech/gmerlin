@@ -36,7 +36,10 @@ static void play_file(bg_player_t * player)
   
   const bg_plugin_info_t * info;
   bg_input_plugin_t * plugin;
-
+  char * track_name;
+  const char * start_pos;
+  const char * end_pos;
+  
   /* Open input */
   
   /* Load input plugin */
@@ -76,6 +79,17 @@ static void play_file(bg_player_t * player)
   
   /* Create message */
 
+  start_pos = strrchr(bg_argv[bg_arg_index], '/');
+  if(start_pos)
+    start_pos++;
+
+  end_pos = strrchr(bg_argv[bg_arg_index], '.');
+
+  if(start_pos && end_pos && (end_pos > start_pos))
+    track_name = bg_strndup(NULL, start_pos, end_pos);
+  else
+    track_name = bg_strdup(NULL, bg_argv[bg_arg_index]);
+  
   queue = bg_player_get_command_queue(player);
 
   message = bg_msg_queue_lock_write(queue);
@@ -84,9 +98,11 @@ static void play_file(bg_player_t * player)
   bg_msg_set_arg_ptr_nocopy(message, 0, input_handle);
   bg_msg_set_arg_int(message, 1, 0);
   bg_msg_set_arg_int(message, 2, 0);
+  bg_msg_set_arg_string(message, 3, track_name);
   bg_msg_queue_unlock_write(queue);
   bg_arg_index++;
-  
+
+  free(track_name);
   }
 
 static int time_active = 0;
