@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
  *
- * $Id: w32codec.h,v 1.4 2004-07-18 23:31:30 gmerlin Exp $
+ * $Id: w32codec.h,v 1.5 2005-01-08 16:30:35 gmerlin Exp $
  *
  * routines for using w32 codecs
  *

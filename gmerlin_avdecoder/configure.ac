@@ -486,8 +486,10 @@ TRY_CFLAGS=""
 CPU_PENTIUM=false
 
 if test x"$GCC" = x"yes"; then
-  CFLAGS="-Wall -finline-functions $CFLAGS"
+  CFLAGS="-Wall $CFLAGS"
   TRY_CFLAGS="-O3"
+  AC_TRY_CFLAGS([$TRY_CFLAGS],[OPT_CFLAGS=$TRY_CFLAGS])
+  TRY_CFLAGS="-finline-functions"
   AC_TRY_CFLAGS([$TRY_CFLAGS],[OPT_CFLAGS=$TRY_CFLAGS])
   dnl arch-specific flags
   case "$host_cpu" in
@@ -515,9 +517,10 @@ AC_HELP_STRING([--enable-debug],[Enable debugging (disable optimization)]),
 esac],have_debug=false)
 
 case $have_debug in
-  true) CFLAGS="-g $CFLAGS";;
-  false) CFLAGS="$CFLAGS $OPT_CFLAGS";;
+  true) CFLAGS="-g $CFLAGS"; OPT_CFLAGS="";;
 esac
+
+AC_SUBST(OPT_CFLAGS)
 
 LIBS="$GAVL_LIBS"
 

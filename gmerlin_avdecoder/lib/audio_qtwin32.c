@@ -46,7 +46,8 @@
 #endif
 #define FOUR_CHAR_CODE BE_FOURCC
 
-
+extern void bgav_windll_lock();
+extern void bgav_windll_unlock();
 
 HMODULE   WINAPI LoadLibraryA(LPCSTR);
 FARPROC   WINAPI GetProcAddress(HMODULE,LPCSTR);
@@ -132,7 +133,7 @@ static int init_qtaudio(bgav_stream_t * s)
   int result;
   qta_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
-  
+  bgav_windll_lock();
   priv->ldt_fs = Setup_LDT_Keeper();
   
   priv->qtml_dll = LoadLibraryA("qtmlClient.dll");
@@ -300,12 +301,12 @@ static int init_qtaudio(bgav_stream_t * s)
   priv->frame->samples.s_16 = priv->out_buffer;
 
   gavl_set_channel_setup(&(s->data.audio.format));
-  Restore_LDT_Keeper(priv->ldt_fs);
+  //  Restore_LDT_Keeper(priv->ldt_fs);
+  bgav_windll_unlock();
 
   return 1;
   fail:
-  
-  
+  bgav_windll_unlock();
   return 0;
   }
 
@@ -341,7 +342,7 @@ static int decode(bgav_stream_t * s)
   long out_frames, out_bytes;
   qta_priv_t * priv = (qta_priv_t*)s->data.audio.decoder->priv;
   //  fprintf(stderr, "decode qtwin32...");
-  priv->ldt_fs = Setup_LDT_Keeper();
+  //  priv->ldt_fs = Setup_LDT_Keeper();
     
   while(priv->in_buffer_size < priv->InFrameSize)
     {
@@ -349,7 +350,8 @@ static int decode(bgav_stream_t * s)
       return 0;
     }
   Check_FS_Segment();
-
+  bgav_windll_lock();
+  
   num_frames = priv->in_buffer_size / priv->InFrameSize;
   
   if(priv->SoundConverterConvertBuffer(priv->myConverter,
@@ -359,6 +361,7 @@ static int decode(bgav_stream_t * s)
                                        &out_frames, &out_bytes))
     {
     fprintf(stderr, "SoundConverterConvertBuffer failed\n");
+    bgav_windll_unlock();
     return 0;
     }
   priv->frame->valid_samples = out_bytes / (2 * s->data.audio.format.num_channels);
@@ -370,9 +373,9 @@ static int decode(bgav_stream_t * s)
   priv->in_buffer_size -= priv->InFrameSize * num_frames;
   if(priv->in_buffer_size > 0)
     memmove(priv->in_buffer, priv->in_buffer + num_frames * priv->InFrameSize, priv->in_buffer_size);
-  Restore_LDT_Keeper(priv->ldt_fs);
+  //  Restore_LDT_Keeper(priv->ldt_fs);
   //  fprintf(stderr, "decode qtwin32 done\n");
-  
+  bgav_windll_unlock();
   return 1;
   }
 
@@ -416,7 +419,10 @@ static void close_qtaudio(bgav_stream_t * s)
   unsigned long ConvertedBytes=0;
 
   qta_priv_t * priv = (qta_priv_t*)s->data.audio.decoder->priv;
-  priv->ldt_fs = Setup_LDT_Keeper();
+
+  bgav_windll_lock();
+  
+  //  priv->ldt_fs = Setup_LDT_Keeper();
 
   priv->SoundConverterEndConversion (priv->myConverter,NULL,
                                      &ConvertedFrames,&ConvertedBytes);
@@ -424,6 +430,7 @@ static void close_qtaudio(bgav_stream_t * s)
 
   FreeLibrary(priv->qtml_dll);
   Restore_LDT_Keeper(priv->ldt_fs);
+  bgav_windll_unlock();
 
   free(priv->in_buffer);
   free(priv->out_buffer);

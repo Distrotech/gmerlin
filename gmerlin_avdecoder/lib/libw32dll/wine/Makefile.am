@@ -14,7 +14,7 @@ AM_CFLAGS = $(X_CFLAGS) @W32_NO_OPTIMIZE@ \
 # CFLAGS is here to filter out -fomit-frame-pointer,
 # -finline-functions and -frename-registers because they cause bad
 # behavior of wine
-CFLAGS = `echo @CFLAGS@ | sed -e 's/-fomit-frame-pointer//g;s/-finline-functions//g;s/-frename-registers//g'`
+# CFLAGS = `echo @CFLAGS@ | sed -e 's/-fomit-frame-pointer//g;s/-finline-functions//g;s/-frename-registers//g'`
 
 if HAVE_W32DLL
 wine_lib = libwine.la
@@ -40,7 +40,6 @@ noinst_HEADERS = \
 	avifmt.h \
 	basetsd.h \
 	com.h \
-        compat.h \
 	debugtools.h \
 	driver.h \
 	elfdll.h \

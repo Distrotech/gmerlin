@@ -147,9 +147,9 @@ int bgav_audio_skipto(bgav_stream_t * s, gavl_time_t * t)
     fprintf(stderr, "bgav_audio_skipto: EOF (%d %lld)\n", samples_skipped, num_samples);
     return 0;
     }
-  fprintf(stderr, "bgav_audio_skip: Samples: %lld, stream time: %f, time: %f\n",
-          num_samples, gavl_time_to_seconds(stream_time), 
-          gavl_time_to_seconds(*t));
+  //  fprintf(stderr, "bgav_audio_skip: Samples: %lld, stream time: %f, time: %f\n",
+  //          num_samples, gavl_time_to_seconds(stream_time), 
+  //          gavl_time_to_seconds(*t));
   
   return 1;
   }

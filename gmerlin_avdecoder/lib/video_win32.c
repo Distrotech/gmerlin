@@ -19,6 +19,7 @@
 
 /* Ported from xine */
 
+#include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -55,6 +56,22 @@
 #define CODEC_STD 0
 #define CODEC_DS  1
 #define CODEC_DMO 2
+
+/* Global locking for win32 codecs */
+
+pthread_mutex_t win32_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void bgav_windll_lock()
+  {
+  pthread_mutex_lock(&win32_mutex);
+  }
+
+void bgav_windll_unlock()
+  {
+  pthread_mutex_unlock(&win32_mutex);
+  }
+
+
 
 typedef struct
   {

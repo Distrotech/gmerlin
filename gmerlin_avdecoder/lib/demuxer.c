@@ -474,7 +474,7 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
   int32_t end_packet;
   bgav_track_t * track;
   
-  fprintf(stderr, "Seek si %f %lld\n", gavl_time_to_seconds(time), time);
+  //  fprintf(stderr, "Seek si %f %lld\n", gavl_time_to_seconds(time), time);
   track = ctx->tt->current_track;
   
   /* Set the packet indices of the streams to -1 */
@@ -494,12 +494,12 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
   for(j = 0; j < track->num_audio_streams; j++)
     {
     bgav_superindex_seek(ctx->si, &(track->audio_streams[j]), time);
-    fprintf(stderr, "Audio position %d\n", track->audio_streams[j].index_position);
+    //    fprintf(stderr, "Audio position %d\n", track->audio_streams[j].index_position);
     }
   for(j = 0; j < track->num_video_streams; j++)
     {
     bgav_superindex_seek(ctx->si, &(track->video_streams[j]), time);
-    fprintf(stderr, "Video position %d\n", track->video_streams[j].index_position);
+    //    fprintf(stderr, "Video position %d\n", track->video_streams[j].index_position);
     }
 
   //  fprintf(stderr, "Blupp 2\n");
@@ -526,7 +526,7 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
         end_packet = track->video_streams[j].index_position;
       }
 
-    fprintf(stderr, "Blupp 3 %d %d\n", start_packet, end_packet);
+    //    fprintf(stderr, "Blupp 3 %d %d\n", start_packet, end_packet);
 
     /* Do the seek */
     ctx->si->current_position = start_packet;
@@ -537,12 +537,12 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
     for(i = start_packet; i <= end_packet; i++)
       next_packet_interleaved(ctx);
 
-    fprintf(stderr, "Blupp 4\n");
+    //    fprintf(stderr, "Blupp 4\n");
 
     ctx->seeking = 0;
     }
 
-  fprintf(stderr, "seek done\n");
+  //  fprintf(stderr, "seek done\n");
   }
 
 /* Maximum allowed seek tolerance, decrease if you want it more exact */

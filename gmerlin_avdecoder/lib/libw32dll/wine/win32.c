@@ -441,9 +441,9 @@ static int my_release(void* memory)
 
     alccnt--;
 
-    if (last_alloc)
-	pthread_mutex_unlock(&memmut);
-    else
+    /* xine: mutex must be unlocked on entrance of pthread_mutex_destroy */
+    pthread_mutex_unlock(&memmut);
+    if (!last_alloc)
 	pthread_mutex_destroy(&memmut);
 
     //if (alccnt < 40000) printf("MY_RELEASE: %p\t%ld    (%d)\n", header, header->size, alccnt);
@@ -1355,8 +1355,12 @@ static void WINAPI expEnterCriticalSection(CRITICAL_SECTION* c)
 	printf("wine/win32: Win32 Warning: Accessed uninitialized Critical Section (%p)!\n", c);
     }
     if(cs->locked)
+	/* xine: recursive locking */
 	if(cs->id==pthread_self())
+	{
+	    cs->locked++;
 	    return;
+	}
     pthread_mutex_lock(&(cs->mutex));
     cs->locked=1;
     cs->id=pthread_self();
@@ -1376,8 +1380,14 @@ static void WINAPI expLeaveCriticalSection(CRITICAL_SECTION* c)
 	printf("Win32 Warning: Leaving uninitialized Critical Section %p!!\n", c);
 	return;
     }
-    cs->locked=0;
-    pthread_mutex_unlock(&(cs->mutex));
+    
+    /* xine: recursive unlocking */
+    if( cs->locked )
+    {
+	cs->locked--;
+	if( !cs->locked )
+	    pthread_mutex_unlock(&(cs->mutex));
+    }
     return;
 }
 static void WINAPI expDeleteCriticalSection(CRITICAL_SECTION *c)
@@ -1391,6 +1401,10 @@ static void WINAPI expDeleteCriticalSection(CRITICAL_SECTION *c)
     dbgprintf("DeleteCriticalSection(0x%x)\n",c);
 
 #ifndef GARBAGE
+
+    /* xine: mutex must be unlocked on entrance of pthread_mutex_destroy */
+    if( cs->locked )
+	pthread_mutex_unlock(&(cs->mutex));
     pthread_mutex_destroy(&(cs->mutex));
     // released by GarbageCollector in my_relase otherwise
 #endif
@@ -4229,10 +4243,15 @@ static void exp_ftol(void)
 	);
 }
 
-/* #warning check for _CIpow */
-static double exp_CIpow(double x, double y)
+#define FPU_DOUBLES(var1,var2) double var1,var2; \
+  __asm__ __volatile__( "fstpl %0;fwait" : "=m" (var2) : ); \
+  __asm__ __volatile__( "fstpl %0;fwait" : "=m" (var1) : )
+
+static double exp_CIpow(void)
 {
-    /*printf("Pow %f  %f    0x%Lx  0x%Lx  => %f\n", x, y, *((int64_t*)&x), *((int64_t*)&y), pow(x, y));*/
+    FPU_DOUBLES(x,y);
+
+    dbgprintf("_CIpow(%lf, %lf)\n", x, y);
     return pow(x, y);
 }
 
@@ -4602,6 +4621,31 @@ static void *exprealloc(void *ptr, size_t size)
 	return my_realloc(ptr, size);        
 }
 
+static double expfloor(double x)
+{
+    dbgprintf("floor(%lf)\n", x);
+    return floor(x);
+}
+
+#define FPU_DOUBLE(var) double var; \
+  __asm__ __volatile__( "fstpl %0;fwait" : "=m" (var) : )
+
+static double exp_CIcos(void)
+{
+    FPU_DOUBLE(x);
+
+    dbgprintf("_CIcos(%lf)\n", x);
+    return cos(x);
+}
+
+static double exp_CIsin(void)
+{
+    FPU_DOUBLE(x);
+
+    dbgprintf("_CIsin(%lf)\n", x);
+    return sin(x);
+}
+
 struct exports
 {
     char name[64];
@@ -4806,6 +4850,8 @@ struct exports exp_msvcrt[]={
     FF(cos, -1)
     FF(_ftol,-1)
     FF(_CIpow,-1)
+    FF(_CIcos,-1)
+    FF(_CIsin,-1)
     FF(ldexp,-1)
     FF(frexp,-1)
     FF(sprintf,-1)
@@ -4814,6 +4860,7 @@ struct exports exp_msvcrt[]={
     FF(fprintf,-1)
     FF(printf,-1)
     FF(getenv,-1)
+    FF(floor,-1)
     FF(_EH_prolog,-1)
     FF(calloc,-1)
     {"ceil",-1,(void*)&ceil},
@@ -5065,6 +5112,24 @@ static void* add_stub(void)
 {
     // generated code in runtime!
     char* answ = (char*)extcode+pos*0x30;
+    int i;
+
+    /* xine: check if stub for this export was created before */
+    for(i = 0; i < pos; i++) 
+    {
+      if(strcmp(export_names[pos], export_names[i])==0)
+        return extcode+i*0x30; /* return existing stub */
+    }
+
+    /* xine: side effect of the stub fix. we must not
+     * allocate a stub for this function otherwise QT dll
+     * will try to call it.
+     */      
+    if( strcmp(export_names[pos], "AllocateAndInitializeSid") == 0 )
+    {
+      return 0;
+    }
+      
 #if 0
     memcpy(answ, &unk_exp1, 0x64);
     *(int*)(answ+9)=pos;
@@ -5079,7 +5144,15 @@ static void* add_stub(void)
     *((long*) (answ + 18)) = (long)export_names;
     //answ[23] = 0x68; // pushl $0  (0x68 0x00000000)
     *((long*) (answ + 24)) = (long)called_unk;
-    pos++;
+
+    /* xine: don't overflow the stub tables */    
+    if( (pos+1) < sizeof(extcode) / 0x30 &&
+        (pos+1) < sizeof(export_names) / sizeof(export_names[0]) ) {
+      pos++;
+    } else {
+      strcpy(export_names[pos], "too many unresolved exports");
+    }
+      
     return (void*)answ;
 }
 
@@ -5139,7 +5212,9 @@ void* LookupExternal(const char* library, int ordinal)
 
 no_dll:
 #endif
+/* xine: pos is now tested inside add_stub()
     if(pos>150)return 0;
+*/
     sprintf(export_names[pos], "%s:%d", library, ordinal);
     return add_stub();
 }
@@ -5172,7 +5247,9 @@ void* LookupExternalByName(const char* library, const char* name)
 	    return libraries[i].exps[j].func;
 	}
     }
+/* xine: pos is now tested inside add_stub()
     if(pos>150)return 0;// to many symbols
+*/
     strcpy(export_names[pos], name);
     return add_stub();
 }

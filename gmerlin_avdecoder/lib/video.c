@@ -162,11 +162,11 @@ int bgav_video_skipto(bgav_stream_t * s, gavl_time_t * time)
                                            s->data.video.last_frame_time +
                                            s->data.video.last_frame_duration);
     } while((next_frame_time < *time) && result);
-  
+#if 0  
   fprintf(stderr, "bgav_video_skipto: Time: %f, next frame time: %f\n",
           gavl_time_to_seconds(*time),
           gavl_time_to_seconds(next_frame_time));
-  
+#endif
   s->time_scaled = gavl_time_to_samples(s->timescale, *time);
   return 1;
   }

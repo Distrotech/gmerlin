@@ -138,6 +138,7 @@ $(xadll_libs) \
 -lm
 
 AM_CFLAGS = \
+@OPT_CFLAGS@ \
 $(vorbis_cflags) \
 $(mad_cflags) \
 $(png_cflags) \

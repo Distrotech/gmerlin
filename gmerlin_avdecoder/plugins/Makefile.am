@@ -1,6 +1,6 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
-AM_CFLAGS = @GMERLIN_CFLAGS@
+AM_CFLAGS = @OPT_CFLAGS@ @GMERLIN_CFLAGS@
 
 if HAVE_VCD
 vcd_modules = i_vcd.la
