@@ -105,6 +105,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
                                 unsigned int period_time,
                                 char ** error_msg)
   {
+  int bytes_per_sample;
   int dir;
   snd_pcm_format_t alsa_format;
   snd_pcm_hw_params_t *hw_params = (snd_pcm_hw_params_t *)0;
@@ -186,27 +187,34 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   if(snd_pcm_hw_params_set_format(ret, hw_params,
                                   alsa_format) < 0)
     {
-    alsa_format = sample_format_gavl_2_alsa(GAVL_SAMPLE_S16);
-    //    if(error_msg) *error_msg = bgav_sprintf("Trying 2 %s\n", snd_pcm_format_name(alsa_format)); 
+    bytes_per_sample = gavl_bytes_per_sample(format->sample_format);
 
-    if(snd_pcm_hw_params_set_format(ret, hw_params,
-                                    alsa_format) < 0)
+    switch(bytes_per_sample)
       {
-      if(gavl_bytes_per_sample(format->sample_format) == 1)
+      case 1:
         alsa_format = SND_PCM_FORMAT_U8;
-      else
+        break;
+      case 4:
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+        alsa_format = SND_PCM_FORMAT_S32_LE;
+#else
+        alsa_format = SND_PCM_FORMAT_S32_BE;
+#endif
+        break;
+      case 2:
+      default:
 #ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
         alsa_format = SND_PCM_FORMAT_S16_LE;
 #else
-      alsa_format = SND_PCM_FORMAT_S16_BE;
+        alsa_format = SND_PCM_FORMAT_S16_BE;
 #endif
-      //      fprintf(stderr, "Trying 3 %s\n", snd_pcm_format_name(alsa_format)); 
-      if(snd_pcm_hw_params_set_format(ret, hw_params,
-                                      alsa_format) < 0)
-        {
-        if(error_msg) *error_msg = bg_sprintf(*error_msg, "alsa: snd_pcm_hw_params_set_format failed");
-        goto fail;
-        }
+      }
+    
+    if(snd_pcm_hw_params_set_format(ret, hw_params,
+                                    alsa_format) < 0)
+      {
+      if(error_msg) *error_msg = bg_sprintf(*error_msg, "alsa: snd_pcm_hw_params_set_format failed");
+      goto fail;
       }
     }
   format->sample_format = sample_format_alsa_2_gavl(alsa_format);
