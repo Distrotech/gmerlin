@@ -233,14 +233,14 @@ typedef struct
   int scramble_buffer_size;
   
   } asf_audio_stream_t;
-
+#if 0
 static void dump_audio_stream(asf_audio_stream_t * as)
   {
   fprintf(stderr, "descramble_h: %d\n", as->descramble_h);
   fprintf(stderr, "descramble_w: %d\n", as->descramble_w);
   fprintf(stderr, "descramble_b: %d\n", as->descramble_b);
   }
-
+#endif
 static void asf_descramble(asf_audio_stream_t * as,
                     uint8_t * data,
                     int data_size)
@@ -672,7 +672,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
           asf_as->descramble_h = 1;
           asf_as->descramble_w = 1;
           }
-        dump_audio_stream(asf_as);
+        //        dump_audio_stream(asf_as);
         }
       
       /* Found video stream */
@@ -827,15 +827,16 @@ typedef struct
 #if 0
 static void dump_packet_header(asf_packet_header_t * h)
   {
-  fprintf(stderr, "packet_flags:    0x%02x\n", h->flags);
-  fprintf(stderr, "packet_property: 0x%02x\n", h->segtype);
-  fprintf(stderr, "packet_length:   %d\n",     h->plen);
-  fprintf(stderr, "sequence:        %d\n",     h->sequence);
-  fprintf(stderr, "padsize:         %d\n",     h->padding);
-  fprintf(stderr, "timestamp:       %d\n",     h->time);
-  fprintf(stderr, "duration:        %d\n",     h->duration);
-  fprintf(stderr, "segsizetype:     0x%02x\n", h->segsizetype);
-  fprintf(stderr, "segments:        %d\n",     h->segs);
+  fprintf(stderr, "asf packet header\n");
+  fprintf(stderr, "  packet_flags:    0x%02x\n", h->flags);
+  fprintf(stderr, "  packet_property: 0x%02x\n", h->segtype);
+  fprintf(stderr, "  packet_length:   %d\n",     h->plen);
+  fprintf(stderr, "  sequence:        %d\n",     h->sequence);
+  fprintf(stderr, "  padsize:         %d\n",     h->padding);
+  fprintf(stderr, "  timestamp:       %d\n",     h->time);
+  fprintf(stderr, "  duration:        %d\n",     h->duration);
+  fprintf(stderr, "  segsizetype:     0x%02x\n", h->segsizetype);
+  fprintf(stderr, "  segments:        %d\n",     h->segs);
   }
 #endif
 /* Returns the number of bytes used or -1 */
@@ -912,6 +913,7 @@ static int read_packet_header(asf_t * asf,
     ret->segs=data_ptr[0] & 0x3F;
     ++data_ptr;
     }
+  //  dump_packet_header(ret);
   return data_ptr - data;
   }
   
@@ -929,13 +931,14 @@ typedef struct
 #if 0
 static void dump_segment_header(asf_segment_header_t*h)
   {
-  fprintf(stderr, "Stream number: %d\n", h->streamno);
-  fprintf(stderr, "Seq:           %d\n", h->seq);
-  fprintf(stderr, "x:             %d\n", h->x);   // offset or timestamp
-  fprintf(stderr, "rlen:          %d\n", h->rlen);
-  fprintf(stderr, "len:           %d\n", h->len);
-  fprintf(stderr, "time2:         %d\n", h->time2);
-  fprintf(stderr, "keyframe:      %d\n", h->keyframe);
+  fprintf(stderr, "Segment header:\n");
+  fprintf(stderr, "  Stream number: %d\n", h->streamno);
+  fprintf(stderr, "  Seq:           %d\n", h->seq);
+  fprintf(stderr, "  x:             %d\n", h->x);   // offset or timestamp
+  fprintf(stderr, "  rlen:          %d\n", h->rlen);
+  fprintf(stderr, "  len:           %d\n", h->len);
+  fprintf(stderr, "  time2:         %d\n", h->time2);
+  fprintf(stderr, "  keyframe:      %d\n", h->keyframe);
   }
 #endif
 static int read_segment_header(asf_t * asf,
@@ -1103,13 +1106,19 @@ static void add_packet(bgav_demuxer_context_t * ctx,
     {
     asf->first_timestamp = time;
     asf->need_first_timestamp = 0;
-    //    fprintf(stderr, "First timestamp: %d\n", rm->first_timestamp);
+    //    fprintf(stderr, "First timestamp: %d\n", asf->first_timestamp);
     }
-  time -= asf->first_timestamp;
+  if(time > asf->first_timestamp)
+    time -= asf->first_timestamp;
+  else
+    time = 0;
   
   stream->packet->timestamp = ((gavl_time_t)time * GAVL_TIME_SCALE) / 1000;
   stream->packet->timestamp_scaled = time;
 
+  //  fprintf(stderr, "timestamp: %lld, timestamp_scaled: %llx\n", 
+  //          stream->packet->timestamp, stream->packet->timestamp_scaled);
+  
   // stream->packet->timestamp -= ((gavl_time_t)(asf->hdr.preroll) * GAVL_TIME_SCALE) / 1000;
   
   if(asf->do_sync && (stream->time == GAVL_TIME_UNDEFINED))
@@ -1164,7 +1173,7 @@ static int next_packet_asf(bgav_demuxer_context_t * ctx)
           len2 = *data_ptr;
           data_ptr++;
           //          if(seg_hdr.streamno == 1)
-          //            fprintf(stderr, "Add packet 1 Time: %d Stream: %d\n", seg_hdr.x, seg_hdr.streamno);
+          //          fprintf(stderr, "Add packet 1 Time: %d Stream: %d\n", seg_hdr.x, seg_hdr.streamno);
           add_packet(ctx,
                      data_ptr,          /* Data     */
                      len2,              /* Len      */
@@ -1182,7 +1191,7 @@ static int next_packet_asf(bgav_demuxer_context_t * ctx)
       default:
         {
         //        if(seg_hdr.streamno == 1)
-        //          fprintf(stderr, "Add packet 2 Time: %d Stream: %d\n", seg_hdr.time2, seg_hdr.streamno);
+        //        fprintf(stderr, "Add packet 2 Time: %d Stream: %d\n", seg_hdr.time2, seg_hdr.streamno);
         add_packet(ctx,
                    data_ptr,          /* Data     */
                    seg_hdr.len,       /* Len      */

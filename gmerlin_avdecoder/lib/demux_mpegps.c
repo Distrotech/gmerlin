@@ -409,9 +409,16 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
             //            fprintf(stderr, "Start PTS: %f\n",
             //                    priv->start_pts / 90000.0);
             }
-          p->timestamp =
-            ((priv->pes_header.pts - priv->start_pts) * GAVL_TIME_SCALE) / 90000;
-
+          if(priv->pes_header.pts > priv->start_pts)
+            {
+            p->timestamp =
+              ((priv->pes_header.pts - priv->start_pts) * GAVL_TIME_SCALE) / 90000;
+            }
+          else
+            {
+            p->timestamp = 0;
+            }
+          
 
           if(priv->do_sync && (stream->time == GAVL_TIME_UNDEFINED))
             stream->time = p->timestamp;
