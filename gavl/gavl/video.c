@@ -68,12 +68,9 @@ void gavl_video_converter_destroy(gavl_video_converter_t* cnv)
 
 void gavl_video_default_options(gavl_video_options_t * opt)
   {
-  opt->background_red   = 0;
-  opt->background_green = 0;
-  opt->background_blue  = 0;
+  memset(opt, 0, sizeof(*opt));
   opt->accel_flags = GAVL_ACCEL_C;
   opt->crop_factor = 0.0;
-  opt->conversion_flags = 0;
   }
 
 /***************************************************
@@ -89,9 +86,25 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
   int ret = 0;
   /* Set the options */
 
+  gavl_colorspace_t input_colorspace;
+    
   copy_video_options(&(cnv->options), options);
+
+  input_colorspace = input_format->colorspace;
   
-  if(input_format->colorspace != output_format->colorspace)
+  if(options->alpha_mode == GAVL_ALPHA_IGNORE)
+    {
+    switch(input_colorspace)
+      {
+      case GAVL_RGBA_32:
+        input_colorspace = GAVL_RGB_32;
+        break;
+      default:
+        break;
+      }
+    }
+  
+  if(input_colorspace != output_format->colorspace)
     {
     gavl_video_format_copy(&(cnv->csp_context.input_format),
                            input_format);
@@ -99,6 +112,8 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
     gavl_video_format_copy(&(cnv->csp_context.output_format),
                            output_format);
 
+    
+    
     cnv->csp_func = gavl_find_colorspace_converter(options,
                                                    input_format->colorspace,
                                                    output_format->colorspace,

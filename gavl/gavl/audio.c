@@ -48,7 +48,7 @@ create_resample_context(gavl_audio_options_t * opt,
 
 void gavl_audio_default_options(gavl_audio_options_t * opt)
   {
-  /* Switch buffering on by default */
+  memset(opt, 0, sizeof(*opt));
   
   opt->conversion_flags =
     GAVL_AUDIO_FRONT_TO_REAR_COPY |

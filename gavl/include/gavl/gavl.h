@@ -499,15 +499,23 @@ void gavl_video_frame_dump(gavl_video_frame_t *,
   
 #define GAVL_SCANLINE (1<<0)
 
+typedef enum
+  {
+    GAVL_ALPHA_IGNORE      = 0, /* Ignore alpha channel      */
+    GAVL_ALPHA_BLEND_COLOR      /* Blend in background color */
+    //    GAVL_ALPHA_BLEND_IMAGE /* Blend over an image       */
+  } gavl_alpha_mode_t;
+  
 typedef struct
   {
   int accel_flags; /* CPU Acceleration flags */
   int conversion_flags;
 
   float crop_factor; /* Not used yet (for scaling) */
+
+  gavl_alpha_mode_t alpha_mode;
   
   /* Background color (0x0000 - 0xFFFF) */
-
   uint16_t background_red;
   uint16_t background_green;
   uint16_t background_blue;

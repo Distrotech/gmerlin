@@ -299,7 +299,8 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
   gavl_video_func_t ret = NULL;
   gavl_colorspace_function_table_t * tab =
     create_colorspace_function_table(opt, width, height);
-  
+
+
   switch(input_colorspace)
     {
     case GAVL_RGB_15:
