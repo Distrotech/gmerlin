@@ -47,7 +47,9 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
   GtkWidget * label;
   GtkWidget * table;
   GtkWidget * notebook;
-  
+  int row = 0;
+  int num_columns = 0;
+    
   ret = calloc(1, sizeof(*ret));
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(ret->window), "Plugins");
@@ -58,13 +60,15 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
   ret->close_notify_data = close_notify_data;
   
   ret->audio_output = 
-    bg_gtk_plugin_widget_single_create(g->plugin_reg,
+    bg_gtk_plugin_widget_single_create("Audio",
+                                       g->plugin_reg,
                                        BG_PLUGIN_OUTPUT_AUDIO,
                                        BG_PLUGIN_PLAYBACK,
                                        set_audio_output,
                                        g);
   ret->video_output = 
-    bg_gtk_plugin_widget_single_create(g->plugin_reg,
+    bg_gtk_plugin_widget_single_create("Video",
+                                       g->plugin_reg,
                                        BG_PLUGIN_OUTPUT_VIDEO,
                                        BG_PLUGIN_PLAYBACK,
                                        set_video_output,
@@ -97,34 +101,25 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
   /* Pack */
 
   notebook = gtk_notebook_new();
-    
-  table = gtk_table_new(2, 2, 0);
-  gtk_table_set_row_spacings(GTK_TABLE(table), 5);
-  gtk_table_set_col_spacings(GTK_TABLE(table), 5);
-  gtk_container_set_border_width(GTK_CONTAINER(table), 5);
-
+  
   label = gtk_label_new("Inputs");
   gtk_widget_show(label);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
                            bg_gtk_plugin_widget_multi_get_widget(ret->inputs),
                            label);
   
-  
-  label = gtk_label_new("Audio");
-  gtk_widget_show(label);
-  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1,
-                   GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table),
-                   bg_gtk_plugin_widget_single_get_widget(ret->audio_output),
-                   1, 2, 0, 1, GTK_EXPAND, GTK_SHRINK, 0, 0);
-  
-  label = gtk_label_new("Video");
-  gtk_widget_show(label);
-  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 1, 2,
-                   GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table),
-                   bg_gtk_plugin_widget_single_get_widget(ret->video_output),
-                   1, 2, 1, 2, GTK_EXPAND, GTK_SHRINK, 0, 0);
+  table = gtk_table_new(1, 1, 0);
+  gtk_table_set_row_spacings(GTK_TABLE(table), 5);
+  gtk_table_set_col_spacings(GTK_TABLE(table), 5);
+  gtk_container_set_border_width(GTK_CONTAINER(table), 5);
+
+  bg_gtk_plugin_widget_single_attach(ret->audio_output,
+                                     table,
+                                     &row, &num_columns);
+
+  bg_gtk_plugin_widget_single_attach(ret->video_output,
+                                     table,
+                                     &row, &num_columns);
   
   gtk_widget_show(table);
 

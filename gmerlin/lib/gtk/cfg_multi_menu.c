@@ -254,6 +254,10 @@ static void button_callback(GtkWidget * wid, gpointer data)
   multi_menu_t * priv;
   bg_dialog_t * dialog;
   const char * label;
+
+  bg_cfg_section_t * section;
+  bg_cfg_section_t * subsection;
+    
   w = (bg_gtk_widget_t *)data;
   priv = (multi_menu_t *)(w->priv);
 
@@ -263,12 +267,16 @@ static void button_callback(GtkWidget * wid, gpointer data)
     }
   else if(wid == priv->config_button)
     {
+    section = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
+    subsection = bg_cfg_section_find_subsection(section,
+                                                w->info->multi_names[priv->selected]);
+    
     if(w->info->multi_labels && w->info->multi_labels[priv->selected])
       label = w->info->multi_labels[priv->selected];
     else
       label = w->info->multi_names[priv->selected];
     
-    dialog = bg_dialog_create(priv->cfg_section, priv->set_param,
+    dialog = bg_dialog_create(subsection, priv->set_param,
                               priv->data,
                               w->info->multi_parameters[priv->selected],
                               label);

@@ -181,8 +181,10 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
 
       /* Copy stringlist options */
       
-      if(src->options)
-        dst->options = copy_string_array(src->options);
+      if(src->multi_names)
+        dst->multi_names = copy_string_array(src->multi_names);
+      if(src->multi_labels)
+        dst->multi_labels = copy_string_array(src->multi_labels);
       break;
     case BG_PARAMETER_COLOR_RGB:
       if(src->val_default.val_color)
@@ -248,7 +250,9 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
           free(info[index].val_default.val_color);
         break;
       case BG_PARAMETER_STRINGLIST:
-        free_string_array(info[index].options);
+        free_string_array(info[index].multi_names);
+        free_string_array(info[index].multi_labels);
+        
         if(info[index].val_default.val_str)
           free(info[index].val_default.val_str);
         break;

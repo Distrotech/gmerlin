@@ -117,7 +117,7 @@ static bg_parameter_info_t parameters[] =
       long_name:   "Alpha mode",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "Ignore" },
-      options:     (char*[]){"Ignore", "Blend background color", (char*)0}
+      multi_names: (char*[]){"Ignore", "Blend background color", (char*)0}
     },
     {
       name:        "background_color",

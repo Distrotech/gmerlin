@@ -91,8 +91,8 @@ struct track_list_s
 
   gulong select_handler_id;
 
-  bg_plugin_handle_t * audio_encoder;
-  bg_plugin_handle_t * video_encoder;
+  bg_cfg_section_t * track_defaults_section;
+  
   };
 
 static GtkWidget * create_pixmap_button(const char * filename)
@@ -230,8 +230,8 @@ static void track_list_update(track_list_t * w)
     gtk_list_store_set(GTK_LIST_STORE(model),
                        &iter,
                        COLUMN_NAME,
-                       track->name, -1);
-
+                       bg_transcoder_track_get_name(track), -1);
+    
     /* Audio */
     if(track->num_audio_streams)
       gtk_list_store_set(GTK_LIST_STORE(model),
@@ -258,7 +258,7 @@ static void track_list_update(track_list_t * w)
 
     /* Set time */
     
-    gavl_time_prettyprint(track->duration, string_buffer);
+    gavl_time_prettyprint(bg_transcoder_track_get_duration(track), string_buffer);
     gtk_list_store_set(GTK_LIST_STORE(model),
                        &iter,
                        COLUMN_DURATION,
@@ -360,8 +360,7 @@ static void add_file_callback(char ** files, const char * plugin,
     fprintf(stderr, "Add file %s with %s\n", files[i], plugin);
     
     new_track = bg_transcoder_track_create(files[i], plugin_info,
-                                           -1, l->plugin_reg, (bg_cfg_section_t*)0,
-                                           l->audio_encoder, l->video_encoder);
+                                           -1, l->plugin_reg, l->track_defaults_section);
 
     add_track(l, new_track);
     track_list_update(l);
@@ -520,8 +519,7 @@ static void drag_received_callback(GtkWidget *widget,
       bg_transcoder_track_create_from_urilist(data->data,
                                               data->length,
                                               l->plugin_reg,
-                                              (bg_cfg_section_t*)0,
-                                              l->audio_encoder, l->video_encoder);
+                                              l->track_defaults_section);
     add_track(l, new_tracks);
     }
   else if(is_albumentries(data))
@@ -532,8 +530,7 @@ static void drag_received_callback(GtkWidget *widget,
       bg_transcoder_track_create_from_albumentries(data->data,
                                                    data->length,
                                                    l->plugin_reg,
-                                                   (bg_cfg_section_t*)0,
-                                                   l->audio_encoder, l->video_encoder);
+                                                   l->track_defaults_section);
 
     add_track(l, new_tracks);
     
@@ -546,7 +543,7 @@ static void drag_received_callback(GtkWidget *widget,
                   time);
   }
 
-track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg)
+track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg, bg_cfg_section_t * track_defaults_section)
   {
   GtkWidget * scrolled;
   GtkWidget * box;
@@ -556,11 +553,15 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg)
   GtkListStore *store;
   GtkCellRenderer *renderer;
   GtkTreeSelection * selection;
-
+  char * tmp_path;
+  
+  
   load_pixmaps();
   
   ret = calloc(1, sizeof(*ret));
 
+  ret->track_defaults_section = track_defaults_section;
+    
   ret->plugin_reg = plugin_reg;
   
   /* Create buttons */
@@ -757,12 +758,38 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg)
                    box, 1, 2, 0, 1, GTK_FILL, GTK_FILL, 0, 0);
   
   gtk_widget_show(ret->widget);
+
+  /* Load tracks */
+
+  tmp_path = bg_search_file_read("transcoder", "tracks.xml");
+  
+  if(tmp_path)
+    {
+    ret->tracks = bg_transcoder_tracks_load(tmp_path, ret->plugin_reg);
+
+    fprintf(stderr, "Loading tracks from %s\n", tmp_path);
+    free(tmp_path);
+
+    track_list_update(ret);
+    }
+  else
+    {
+    fprintf(stderr, "No tracks found\n");
+    }
   
   return ret;
   }
 
 void track_list_destroy(track_list_t * t)
   {
+  char * tmp_path;
+  tmp_path = bg_search_file_write("transcoder", "tracks.xml");
+
+  if(tmp_path)
+    {
+    bg_transcoder_tracks_save(t->tracks, tmp_path);
+    free(tmp_path);
+    }
   free(t);
   }
 
@@ -771,14 +798,3 @@ GtkWidget * track_list_get_widget(track_list_t * t)
   return t->widget;
   }
 
-void track_list_set_audio_encoder(track_list_t * t,
-                                  bg_plugin_handle_t * enc)
-  {
-  t->audio_encoder = enc;
-  }
-
-void track_list_set_video_encoder(track_list_t * t,
-                                  bg_plugin_handle_t * enc)
-  {
-  t->video_encoder = enc;
-  }

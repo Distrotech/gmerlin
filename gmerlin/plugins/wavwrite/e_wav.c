@@ -100,7 +100,7 @@ static bg_parameter_info_t parameters[] =
       long_name:   "Bits per sample",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "16" },
-      options:     (char*[]){ "8", "16", "24", (char*)0 },
+      multi_names:     (char*[]){ "8", "16", "24", (char*)0 },
     },
     { /* End of parameters */ }
   };
@@ -263,6 +263,9 @@ bg_encoder_plugin_t the_plugin =
       get_error:         get_error_wav
 
     },
+    max_audio_streams:   1,
+    max_video_streams:   0,
+
     open:                open_wav,
     set_audio_format:    set_audio_format_wav,
     write_audio_frame:   write_audio_frame_wav,

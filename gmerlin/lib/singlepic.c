@@ -591,7 +591,7 @@ bg_encoder_plugin_t encoder_plugin =
     /* Maximum number of audio/video streams. -1 means infinite */
     
     max_audio_streams: 0,
-    max_video_streams: 0,
+    max_video_streams: 1,
     
     /* Open a file, filename base is without extension, which
        will be added by the plugin */
@@ -610,8 +610,6 @@ bg_encoder_plugin_t encoder_plugin =
     //  bg_parameter_info_t * (*get_audio_parameters)(void * data);
     //  bg_parameter_info_t * (*get_video_parameters)(void * data);
   
-  /* If the following are NOT called, the plugin MUST use resonable 
-     defaults from set_parameter() */
   
     //  void (*set_audio_parameter)(void * data, int stream, char * name,
     //                              bg_parameter_value_t * v);

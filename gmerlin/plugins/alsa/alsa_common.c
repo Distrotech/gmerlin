@@ -306,13 +306,13 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)
   ret->long_name = bg_strdup((char*)0, "Card");
   ret->type = BG_PARAMETER_STRINGLIST;
   
-  ret->options   = calloc(num_cards+1,
-                          sizeof(*(ret->options)));
+  ret->multi_names   = calloc(num_cards+1,
+                          sizeof(*(ret->multi_names)));
   for(i = 0; i < num_cards; i++)
     {
     snd_card_get_name(i, &c_tmp);
     //    snd_card_get_longname(i, &c_tmp);
-    ret->options[i] = bg_strdup(NULL, c_tmp);
+    ret->multi_names[i] = bg_strdup(NULL, c_tmp);
     
     if(!i)
       ret->val_default.val_str = bg_strdup(NULL, c_tmp);

@@ -54,7 +54,7 @@ static bg_parameter_info_t parameters[] =
       long_name:   "Input Mode:",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "Record" },
-      options:     (char*[]){ "Record", "Monitor", (char*)0 },
+      multi_names:     (char*[]){ "Record", "Monitor", (char*)0 },
     },
     { /* End of parameters */ }
   };

@@ -237,7 +237,7 @@ static bg_parameter_info_t parameters[] =
       long_name:          "Chroma Sampling",
       type:               BG_PARAMETER_STRINGLIST,
       val_default:        { val_str: "4:2:0" },
-      options: (char*[]) { "4:2:0",
+      multi_names: (char*[]) { "4:2:0",
                            "4:2:2",
                            "4:4:4",
                            (char*)0 },

@@ -33,6 +33,7 @@ typedef struct
   {
   int status;
   int type;
+
   int in_index;
   int out_index;
   gavl_time_t time;
@@ -52,6 +53,7 @@ typedef struct
   gavl_audio_converter_t * cnv;
   gavl_audio_frame_t * in_frame;
   gavl_audio_frame_t * out_frame;
+  
   } audio_stream_t;
 
 typedef struct
@@ -63,27 +65,6 @@ typedef struct
   gavl_video_frame_t * out_frame;
   } video_stream_t;
 
-#if 0
-static int video_init(video_stream_t * s)
-  {
-  return 0;
-  }
-
-static int audio_init(audio_stream_t * s)
-  {
-  return 0;
-  }
-
-static int video_transcode(video_stream_t * s)
-  {
-  return 0;
-  }
-
-static int audio_transcode(audio_stream_t * s)
-  {
-  return 0;
-  }
-#endif
 struct bg_transcoder_s
   {
   int num_audio_streams;
@@ -99,7 +80,23 @@ struct bg_transcoder_s
   bg_track_info_t * track_info;
   };
 
-bg_transcoder_t * bg_transcoder_create()
+static void create_audio_stream(audio_stream_t * ret, bg_transcoder_track_audio_t * s,
+                                bg_plugin_handle_t * input_plugin, int input_index,
+                                bg_plugin_handle_t * encoder_plugin, int output_index,
+                                bg_track_info_t * track_info)
+  {
+  
+  }
+
+static void create_video_stream(video_stream_t * ret, bg_transcoder_track_video_t * s,
+                                bg_plugin_handle_t * input_plugin, int input_index,
+                                bg_plugin_handle_t * encoder_plugin, int output_index,
+                                bg_track_info_t * track_info)
+  {
+  
+  }
+
+bg_transcoder_t * bg_transcoder_create(bg_plugin_registry_t * plugin_reg, bg_transcoder_track_t * track)
   {
   bg_transcoder_t * ret;
   ret = calloc(1, sizeof(*ret));
@@ -112,49 +109,6 @@ const bg_transcoder_status_t * bg_transcoder_get_status(bg_transcoder_t * t)
   return &(t->status);
   }
 
-void bg_transcoder_set_input(bg_transcoder_t * t, bg_plugin_handle_t * h, int track)
-  {
-  int i;
-
-  t->input_handle = h;
-  t->input_plugin  = (bg_input_plugin_t*)(h->plugin);
-  t->track_info    = t->input_plugin->get_track_info(h->priv, track);
-
-  if(t->track_info->num_audio_streams)
-    {
-    t->num_audio_streams = t->track_info->num_audio_streams;
-    t->audio_streams = calloc(t->num_audio_streams, sizeof(*(t->audio_streams)));
-    
-    for(i = 0; i < t->track_info->num_audio_streams; i++)
-      {
-      t->audio_streams[i].com.type = STREAM_AUDIO;
-      }
-    }
-  
-  }
-
-/*
- *  Set the output plugins for audio and video streams
- *  You can pass the same handle in multiple function calls.
- *  The streams on the output side must be initialized by the caller.
- *  The formats for the output must be passed separately.
- */
-
-void bg_transcoder_set_audio_stream(bg_transcoder_t * t,
-                                    bg_plugin_handle_t * encoder,
-                                    int in_index, int out_index,
-                                    gavl_audio_format_t * format)
-  {
-
-  }
-
-void bg_transcoder_set_video_stream(bg_transcoder_t * t,
-                                    bg_plugin_handle_t * encoder,
-                                    int in_index, int out_index,
-                                    gavl_video_format_t * format)
-  {
-  
-  }
 
 /*
  *  Do one iteration (Will be called as an idle function in the GUI main loop)

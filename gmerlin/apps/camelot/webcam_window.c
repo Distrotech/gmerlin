@@ -250,6 +250,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   GtkWidget * table;
   GtkWidget * box;
   GtkWidget * frame;
+  int row, num_columns;
   
   gmerlin_webcam_window_t * ret;
   
@@ -273,7 +274,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   /* Create input stuff */
     
   ret->input_plugin =
-    bg_gtk_plugin_widget_single_create(ret->plugin_reg,
+    bg_gtk_plugin_widget_single_create("Plugin", ret->plugin_reg,
                                        BG_PLUGIN_RECORDER_VIDEO,
                                        BG_PLUGIN_RECORDER,
                                        set_input_plugin,
@@ -287,7 +288,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   /* Create capture stuff */
   
   ret->capture_plugin =
-    bg_gtk_plugin_widget_single_create(ret->plugin_reg,
+    bg_gtk_plugin_widget_single_create("Plugin", ret->plugin_reg,
                                        BG_PLUGIN_IMAGE_WRITER,
                                        BG_PLUGIN_FILE,
                                        set_capture_plugin,
@@ -312,7 +313,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   /* Create monitor stuff */
   
   ret->monitor_plugin =
-    bg_gtk_plugin_widget_single_create(ret->plugin_reg,
+    bg_gtk_plugin_widget_single_create("Plugin", ret->plugin_reg,
                                        BG_PLUGIN_OUTPUT_VIDEO,
                                        BG_PLUGIN_PLAYBACK,
                                        set_monitor_plugin,
@@ -349,22 +350,25 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
 
   /* Pack input stuff */
     
-  table = gtk_table_new(2, 1, 0);
+  table = gtk_table_new(1, 1, 0);
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
-  
   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
-  
-  gtk_table_attach(GTK_TABLE(table),
-                   bg_gtk_plugin_widget_single_get_widget(ret->input_plugin), 
-                   0, 1, 0, 1, GTK_EXPAND | GTK_FILL, GTK_FILL, 0, 0);
+
+  row = 0;
+  num_columns = 0;
+
+  bg_gtk_plugin_widget_single_attach(ret->input_plugin,
+                                     table,
+                                     &row, &num_columns);
+
+  gtk_table_resize(GTK_TABLE(table), row+1, num_columns);
 
   gtk_table_attach(GTK_TABLE(table),
                    ret->input_reopen, 
-                   0, 1, 1, 2, GTK_EXPAND | GTK_FILL, GTK_FILL, 0, 0);
+                   0, num_columns, row, row+1, GTK_EXPAND | GTK_FILL, GTK_FILL, 0, 0);
   
   gtk_widget_show(table);
-  
   
   label = gtk_label_new("Input");
   gtk_widget_show(label);
@@ -373,20 +377,22 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
 
   /* Pack monitor stuff */
     
-  table = gtk_table_new(2, 1, 0);
+  table = gtk_table_new(1, 1, 0);
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
   
   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
+  row = 0;
+  num_columns = 0;
+
+  bg_gtk_plugin_widget_single_attach(ret->monitor_plugin,
+                                     table,
+                                     &row, &num_columns);
+  gtk_table_resize(GTK_TABLE(table), row+1, num_columns);
   
   gtk_table_attach(GTK_TABLE(table),
                    ret->monitor_button, 
-                   0, 1, 0, 1, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
-
-  
-  gtk_table_attach(GTK_TABLE(table),
-                   bg_gtk_plugin_widget_single_get_widget(ret->monitor_plugin), 
-                   0, 1, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
+                   0, num_columns, row, row+1, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
   
   gtk_widget_show(table);
   
@@ -397,33 +403,36 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
 
   /* Pack Capture stuff */
   
-  table = gtk_table_new(4, 2, 0);
+  table = gtk_table_new(1, 1, 0);
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
   
   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
+  row = 0;
+  num_columns = 0;
 
-  gtk_table_attach(GTK_TABLE(table),
-                   bg_gtk_plugin_widget_single_get_widget(ret->capture_plugin), 
-                   0, 2, 0, 1, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
-    
+  bg_gtk_plugin_widget_single_attach(ret->capture_plugin,
+                                     table,
+                                     &row, &num_columns);
+
+  gtk_table_resize(GTK_TABLE(table), row+3, num_columns);
+  
   gtk_table_attach(GTK_TABLE(table),
                    ret->auto_capture, 
-                   0, 2, 1, 2, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
+                   0, num_columns, row, row+1, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
   
   label = gtk_label_new("Interval (sec)");
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(table),
                    label, 
-                   0, 1, 2, 3, GTK_FILL, GTK_FILL, 0, 0);
+                   0, 1, row+1, row+2, GTK_FILL, GTK_FILL, 0, 0);
   gtk_table_attach(GTK_TABLE(table),
                    ret->capture_interval, 
-                   1, 2, 2, 3, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
+                   1, num_columns, row+1, row+2, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
 
   gtk_table_attach(GTK_TABLE(table),
                    ret->capture_button, 
-                   0, 2, 3, 4, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
-  
+                   0, num_columns, row+2, row+3, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
   
   gtk_widget_show(table);
   

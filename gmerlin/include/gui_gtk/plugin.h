@@ -42,7 +42,8 @@ bg_gtk_plugin_widget_multi_get_widget(bg_gtk_plugin_widget_multi_t * w);
 typedef struct bg_gtk_plugin_widget_single_s bg_gtk_plugin_widget_single_t;
 
 bg_gtk_plugin_widget_single_t *
-bg_gtk_plugin_widget_single_create(bg_plugin_registry_t * reg,
+bg_gtk_plugin_widget_single_create(char * label,
+                                   bg_plugin_registry_t * reg,
                                    uint32_t type_mask,
                                    uint32_t flag_mask,
                                    void (*set_plugin)(bg_plugin_handle_t *,
@@ -51,8 +52,15 @@ bg_gtk_plugin_widget_single_create(bg_plugin_registry_t * reg,
 
 void bg_gtk_plugin_widget_single_destroy(bg_gtk_plugin_widget_single_t * w);
 
-GtkWidget *
-bg_gtk_plugin_widget_single_get_widget(bg_gtk_plugin_widget_single_t * w);
+// GtkWidget *
+// bg_gtk_plugin_widget_single_get_widget(bg_gtk_plugin_widget_single_t * w);
+
+void bg_gtk_plugin_widget_single_attach(bg_gtk_plugin_widget_single_t * w,
+                                        GtkWidget * table,
+                                        int * row, int * num_columns);
+
+void bg_gtk_plugin_widget_single_set_sensitive(bg_gtk_plugin_widget_single_t * w,
+                                               int sensitive);
 
 bg_plugin_handle_t *
 bg_gtk_plugin_widget_single_get_plugin(bg_gtk_plugin_widget_single_t * w);

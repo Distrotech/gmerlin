@@ -44,7 +44,7 @@ static bg_parameter_info_t parameters[] =
       long_name:   "Multichannel Mode",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "None (Downmix)" },
-      options:    (char*[]){  "None (Downmix)",
+      multi_names:    (char*[]){  "None (Downmix)",
                               "Multiple devices",
                               "Creative Multichannel",
                               (char*)0 },

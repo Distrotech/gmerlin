@@ -17,6 +17,8 @@
   
 *****************************************************************/
 
+#ifndef __BG_TRANSCODER_TRACK_H_
+#define __BG_TRANSCODER_TRACK_H__
 
 #include <libxml/tree.h>
 #include <libxml/parser.h>
@@ -27,70 +29,44 @@
 
 typedef struct
   {
-  gavl_audio_format_t input_format;
-  gavl_audio_format_t output_format;
-
-  int fixed_samplerate;
-  int fixed_channel_setup;
-
-  bg_parameter_info_t * format_parameters;
   bg_parameter_info_t * encoder_parameters;
-
-  bg_cfg_section_t * format_section;
   bg_cfg_section_t * encoder_section;
-  
-  gavl_audio_options_t opt;
-  } bg_transcoder_audio_stream_t;
+  bg_cfg_section_t * general_section;
+  } bg_transcoder_track_audio_t;
 
 bg_parameter_info_t *
-bg_transcoder_audio_stream_get_parameters(bg_transcoder_audio_stream_t*);
-
-void bg_transcoder_audio_stream_set_format_parameter(void * data, char * name,
-                                                     bg_parameter_value_t * val);
-
-void bg_transcoder_audio_stream_set_encoder_parameter(void * data, char * name,
-                                                      bg_parameter_value_t * val);
+bg_transcoder_track_audio_get_format_parameters();
 
 typedef struct
   {
-  gavl_video_format_t input_format;
-  gavl_video_format_t output_format;
-
-  bg_parameter_info_t * format_parameters;
   bg_parameter_info_t * encoder_parameters;
-
-  bg_cfg_section_t * format_section;
   bg_cfg_section_t * encoder_section;
-  
-  int fixed_framerate;
-    
-  gavl_video_options_t opt;
-  } bg_transcoder_video_stream_t;
+  bg_cfg_section_t * general_section;
+  } bg_transcoder_track_video_t;
 
 bg_parameter_info_t *
-bg_transcoder_video_stream_get_parameters(bg_transcoder_video_stream_t*);
-
-void bg_transcoder_video_stream_set_format_parameter(void * data, char * name,
-                                                     bg_parameter_value_t * val);
-
-void bg_transcoder_video_stream_set_encoder_parameter(void * data, char * name,
-                                                      bg_parameter_value_t * val);
+bg_transcoder_track_video_get_format_parameters();
 
 typedef struct bg_transcoder_track_s
   {
-  char * name;
-  char * plugin;
-  gavl_time_t duration;
+  bg_parameter_info_t * metadata_parameters;
+  bg_cfg_section_t    * metadata_section;
+
+  bg_parameter_info_t * general_parameters;
+  bg_cfg_section_t    * general_section;
+
+  bg_parameter_info_t * audio_encoder_parameters;
+  bg_cfg_section_t    * audio_encoder_section;
+  
+  bg_parameter_info_t * video_encoder_parameters;
+  bg_cfg_section_t    * video_encoder_section;
   
   int num_audio_streams;
   int num_video_streams;
 
-  bg_transcoder_audio_stream_t * audio_streams;
-  bg_transcoder_video_stream_t * video_streams;
-  
-  bg_metadata_t metadata;
-  bg_cfg_section_t * metadata_section;
-    
+  bg_transcoder_track_audio_t * audio_streams;
+  bg_transcoder_track_video_t * video_streams;
+      
   /* For chaining */
   struct bg_transcoder_track_s * next;
 
@@ -104,35 +80,50 @@ bg_transcoder_track_t *
 bg_transcoder_track_create(const char * url,
                            const bg_plugin_info_t * plugin,
                            int track, bg_plugin_registry_t * plugin_reg,
-                           bg_cfg_section_t * section,
-                           bg_plugin_handle_t * audio_encoder,
-                           bg_plugin_handle_t * video_encoder);
+                           bg_cfg_section_t * section);
 
 bg_transcoder_track_t *
 bg_transcoder_track_create_from_urilist(const char * list,
                                         int len,
                                         bg_plugin_registry_t * plugin_reg,
-                                        bg_cfg_section_t * section,
-                                        bg_plugin_handle_t * audio_encoder,
-                                        bg_plugin_handle_t * video_encoder);
+                                        bg_cfg_section_t * section);
 
 bg_transcoder_track_t *
 bg_transcoder_track_create_from_albumentries(const char * xml_string,
                                              int len,
                                              bg_plugin_registry_t * plugin_reg,
-                                             bg_cfg_section_t * section,
-                                             bg_plugin_handle_t * audio_encoder,
-                                             bg_plugin_handle_t * video_encoder);
+                                             bg_cfg_section_t * section);
 
 void bg_transcoder_track_destroy(bg_transcoder_track_t * t);
 
-bg_parameter_info_t *
-bg_transcoder_track_get_parameters_general(bg_transcoder_track_t * t);
+/* For putting informations into the track list */
 
-void bg_transcoder_track_set_parameter_general(void * data, char * name,
-                                               bg_parameter_value_t * val);
+/* strings must be freed after */
+
+char * bg_transcoder_track_get_name(bg_transcoder_track_t * t);
+char * bg_transcoder_track_get_audio_encoder(bg_transcoder_track_t * t);
+char * bg_transcoder_track_get_video_encoder(bg_transcoder_track_t * t);
+
+gavl_time_t  bg_transcoder_track_get_duration(bg_transcoder_track_t * t);
+
+
+/*
+ *  The following function is for internal use ONLY
+ *  (not worth making a private header file for one routine)
+ */
+
+void
+bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
+                                      bg_plugin_handle_t * audio_encoder,
+                                      bg_plugin_handle_t * video_encoder);
+  
 /* transcoder_track_xml.c */
 
 void bg_transcoder_tracks_save(bg_transcoder_track_t * t, const char * filename);
-bg_transcoder_track_t * bg_transcoder_tracks_load(const char * filename);
 
+bg_transcoder_track_t *
+bg_transcoder_tracks_load(const char * filename,
+                          bg_plugin_registry_t * plugin_reg);
+
+
+#endif

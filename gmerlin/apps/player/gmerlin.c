@@ -425,7 +425,7 @@ static bg_parameter_info_t parameters[] =
       name:      "shuffle_mode",
       long_name: "Shuffle mode",
       type:      BG_PARAMETER_STRINGLIST,
-      options: (char*[]){"Off",
+      multi_names: (char*[]){"Off",
                          "Current album",
                          "All open albums",
                          (char*)0 },

@@ -17,6 +17,8 @@
  
 *****************************************************************/
 
+#include <transcoder_track.h>
+
 typedef struct bg_transcoder_s bg_transcoder_t;
 
 typedef struct
@@ -25,28 +27,8 @@ typedef struct
   gavl_time_t remaining_time; /* Remaining time (Transcoding time, NOT track time!!!) */
   } bg_transcoder_status_t;
 
-bg_transcoder_t * bg_transcoder_create();
+bg_transcoder_t * bg_transcoder_create(bg_plugin_registry_t * plugin_reg, bg_transcoder_track_t * track);
 const bg_transcoder_status_t * bg_transcoder_get_status(bg_transcoder_t * t);
-
-void bg_transcoder_set_input(bg_transcoder_t * t, bg_plugin_handle_t * h, int track);
-
-/*
- *  Set the output plugins for audio and video streams
- *  You can pass the same handle in multiple function calls.
- *  The streams on the output side must be initialized by the caller.
- *  The formats for the output must be passed separately.
- */
-
-void bg_transcoder_set_audio_stream(bg_transcoder_t * t,
-                                    bg_plugin_handle_t * encoder,
-                                    int in_index, int out_index,
-                                    gavl_audio_format_t * format);
-  
-
-void bg_transcoder_set_video_stream(bg_transcoder_t * t,
-                                    bg_plugin_handle_t * encoder,
-                                    int in_index, int out_index,
-                                    gavl_video_format_t * format);
 
 /*
  *  Do one iteration (Will be called as an idle function in the GUI main loop)
@@ -54,3 +36,5 @@ void bg_transcoder_set_video_stream(bg_transcoder_t * t,
  */
 
 int bg_transcoder_iteration(bg_transcoder_t * t);
+
+void bg_transcoder_destroy(bg_transcoder_t * t);

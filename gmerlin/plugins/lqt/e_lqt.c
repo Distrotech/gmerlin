@@ -128,8 +128,8 @@ static void destroy_lqt(void * data)
 
 static void create_parameters(e_lqt_t * e)
   {
-  e->audio_parameters = calloc(1, sizeof(*(e->audio_parameters)));
-  e->video_parameters = calloc(1, sizeof(*(e->video_parameters)));
+  e->audio_parameters = calloc(2, sizeof(*(e->audio_parameters)));
+  e->video_parameters = calloc(2, sizeof(*(e->video_parameters)));
 
   bg_parameter_info_copy(&(e->audio_parameters[0]), &(audio_parameters[0]));
   bg_parameter_info_copy(&(e->video_parameters[0]), &(video_parameters[0]));
@@ -138,6 +138,29 @@ static void create_parameters(e_lqt_t * e)
                            1, 0, 1, 0);
   bg_lqt_create_codec_info(&(e->video_parameters[0]),
                            0, 1, 1, 0);
+  
+  }
+
+static bg_parameter_info_t common_parameters[] =
+  {
+    {
+      name:      "format",
+      long_name: "Format",
+      type:      BG_PARAMETER_STRINGLIST,
+      multi_names:   (char*[]) { "Quicktime", "Quicktime (streamable)", "AVI", (char*)0 },
+      val_default: { val_str: "Quicktime" },
+    },
+    { /* End of parameters */ }
+  };
+
+static bg_parameter_info_t * get_parameters_lqt(void * data)
+  {
+  return common_parameters;
+  }
+
+static void set_parameter_lqt(void * data, char * name,
+                              bg_parameter_value_t * val)
+  {
   
   }
 
@@ -228,8 +251,8 @@ bg_encoder_plugin_t the_plugin =
       flags:          BG_PLUGIN_FILE,
       create:         create_lqt,
       destroy:        destroy_lqt,
-      //      get_parameters: get_parameters_lqt,
-      //      set_parameter:  set_parameter_lqt,
+      get_parameters: get_parameters_lqt,
+      set_parameter:  set_parameter_lqt,
     },
 
     max_audio_streams: -1,

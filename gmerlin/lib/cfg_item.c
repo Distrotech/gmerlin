@@ -24,14 +24,14 @@
 #include <registry_priv.h>
 #include <utils.h>
 
-bg_cfg_item_t * bg_cfg_create_item_empty(const char * name)
+bg_cfg_item_t * bg_cfg_item_create_empty(const char * name)
   {
   bg_cfg_item_t * ret = calloc(1, sizeof(*ret));
   ret->name = bg_strdup(ret->name, name);
   return ret;
   }
 
-bg_cfg_item_t * bg_cfg_create_item(bg_parameter_info_t * info,
+bg_cfg_item_t * bg_cfg_item_create(bg_parameter_info_t * info,
                                    bg_parameter_value_t * value)
   {
   bg_cfg_item_t * ret = calloc(1, sizeof(*ret));
@@ -140,3 +140,36 @@ void bg_cfg_destroy_item(bg_cfg_item_t * item)
   free(item);
   }
 
+bg_cfg_item_t * bg_cfg_item_copy(bg_cfg_item_t * src)
+  {
+  bg_parameter_info_t info;
+  
+  bg_cfg_item_t * ret;
+  ret = calloc(1, sizeof(*ret));
+
+  memset(&info, 0, sizeof(info));
+    
+  ret->name = bg_strdup(ret->name, src->name);
+  ret->type = src->type;
+
+  switch(ret->type)
+    {
+    case BG_CFG_INT:
+      info.type = BG_PARAMETER_INT;
+      break;
+    case BG_CFG_FLOAT:
+      info.type = BG_PARAMETER_FLOAT;
+      break;
+    case BG_CFG_STRING:
+      info.type = BG_PARAMETER_STRING;
+      break;
+    case BG_CFG_COLOR:
+      info.type = BG_PARAMETER_COLOR_RGBA;
+      break;
+    case BG_CFG_TIME: /* int64 */
+      info.type = BG_PARAMETER_TIME;
+      break;
+    }
+  bg_parameter_value_copy(&(ret->value), &(src->value), &info);
+  return ret;
+  }

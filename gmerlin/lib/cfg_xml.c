@@ -264,7 +264,9 @@ void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
     xml_child = xmlNewTextChild(xml_section, (xmlNsPtr)0, "SECTION", NULL);
     xmlSetProp(xml_child, "name", tmp_section->name);
 
-    bg_cfg_section_2_xml(tmp_section, xml_section);
+    bg_cfg_section_2_xml(tmp_section, xml_child);
+    xmlAddChild(xml_section, xmlNewText("\n"));
+    
     tmp_section = tmp_section->next;
     }
   }

@@ -34,16 +34,20 @@
 
 struct bg_gtk_plugin_widget_single_s
   {
-  GtkWidget * table;
+  GtkWidget * label;
   GtkWidget * combo;
   GtkWidget * config_button;
   GtkWidget * info_button;
-  
+  GtkWidget * audio_button;
+  GtkWidget * video_button;
+    
   bg_plugin_registry_t * reg;
   const bg_plugin_info_t * info;
   bg_plugin_handle_t * handle;
 
   bg_cfg_section_t * section;
+  bg_cfg_section_t * audio_section;
+  bg_cfg_section_t * video_section;
 
   int32_t type_mask;
   int32_t flag_mask;
@@ -87,6 +91,8 @@ static void set_parameter(void * data, char * name,
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
+  bg_encoder_plugin_t * encoder;
+
   bg_gtk_plugin_widget_single_t * widget;
   bg_parameter_info_t * parameters;
   
@@ -112,10 +118,77 @@ static void button_callback(GtkWidget * w, gpointer data)
     bg_dialog_show(dialog);
     bg_dialog_destroy(dialog);
     }
+
+  else if(w == widget->audio_button)
+    {
+    encoder = (bg_encoder_plugin_t*)(widget->handle->plugin);
+
+    bg_plugin_lock(widget->handle);
+    parameters = encoder->get_audio_parameters(widget->handle->priv);
+    bg_plugin_unlock(widget->handle);
+    
+    dialog = bg_dialog_create(widget->audio_section,
+                              NULL, NULL,
+                              parameters,
+                              widget->handle->info->long_name);
+    bg_dialog_show(dialog);
+    bg_dialog_destroy(dialog);
+    }
+
+  else if(w == widget->video_button)
+    {
+    encoder = (bg_encoder_plugin_t*)(widget->handle->plugin);
+
+    bg_plugin_lock(widget->handle);
+    parameters = encoder->get_video_parameters(widget->handle->priv);
+    bg_plugin_unlock(widget->handle);
+    
+    dialog = bg_dialog_create(widget->video_section,
+                              NULL, NULL,
+                              parameters,
+                              widget->handle->info->long_name);
+    bg_dialog_show(dialog);
+    bg_dialog_destroy(dialog);
+    }
+  
+  }
+
+static void update_sensitive(bg_gtk_plugin_widget_single_t * widget)
+  {
+  bg_encoder_plugin_t * encoder;
+
+  if(widget->handle->plugin->get_parameters)
+    gtk_widget_set_sensitive(widget->config_button, 1);
+  else
+    gtk_widget_set_sensitive(widget->config_button, 0);
+
+  if(widget->info->type & (BG_PLUGIN_ENCODER_AUDIO|BG_PLUGIN_ENCODER_VIDEO|BG_PLUGIN_ENCODER))
+    {
+    encoder = (bg_encoder_plugin_t*)(widget->handle->plugin);
+
+    if(widget->audio_button)
+      {
+      if(encoder->get_audio_parameters)
+        gtk_widget_set_sensitive(widget->audio_button, 1);
+      else
+        gtk_widget_set_sensitive(widget->audio_button, 0);
+      }
+    
+    if(widget->video_button)
+      {
+      if(encoder->get_video_parameters)
+        gtk_widget_set_sensitive(widget->video_button, 1);
+      else
+        gtk_widget_set_sensitive(widget->video_button, 0);
+      }
+    }
+
   }
 
 static void change_callback(GtkWidget * w, gpointer data)
   {
+  bg_encoder_plugin_t * encoder;
+
 #ifndef GTK_2_4
   const char * long_name;
 #endif
@@ -137,26 +210,43 @@ static void change_callback(GtkWidget * w, gpointer data)
   
 #endif
 
+  if(widget->info)
+    bg_plugin_registry_set_default(widget->reg, widget->type_mask, widget->info->name);
+  
   if(widget->handle)
     bg_plugin_unref(widget->handle);
   
   widget->handle = bg_plugin_load(widget->reg, widget->info);
-
-  if(widget->handle->plugin->get_parameters)
-    gtk_widget_set_sensitive(widget->config_button, 1);
-  else
-    gtk_widget_set_sensitive(widget->config_button, 0);
+    
+  update_sensitive(widget);
   
   widget->section = bg_plugin_registry_get_section(widget->reg,
                                                    widget->info->name);
+
+  if(widget->info->type & (BG_PLUGIN_ENCODER_AUDIO|BG_PLUGIN_ENCODER_VIDEO|BG_PLUGIN_ENCODER))
+    {
+    encoder = (bg_encoder_plugin_t*)(widget->handle->plugin);
+    if(encoder->get_audio_parameters)
+      widget->audio_section = bg_cfg_section_find_subsection(widget->section, "$audio");
+    else
+      widget->audio_section = (bg_cfg_section_t*)0;
+
+    if(encoder->get_video_parameters)
+      widget->video_section = bg_cfg_section_find_subsection(widget->section, "$video");
+    else
+      widget->video_section = (bg_cfg_section_t*)0;
+    
+    }
+  
   
   if(widget->set_plugin)
     widget->set_plugin(widget->handle, widget->set_plugin_data);
-    
+  
   }
 
 bg_gtk_plugin_widget_single_t *
-bg_gtk_plugin_widget_single_create(bg_plugin_registry_t * reg,
+bg_gtk_plugin_widget_single_create(char * label,
+                                   bg_plugin_registry_t * reg,
                                    uint32_t type_mask,
                                    uint32_t flag_mask,
                                    void (*set_plugin)(bg_plugin_handle_t * plugin,
@@ -184,19 +274,55 @@ bg_gtk_plugin_widget_single_create(bg_plugin_registry_t * reg,
   ret->type_mask = type_mask;
   ret->flag_mask = flag_mask;
 
+  /* Make label */
+
+  ret->label = gtk_label_new(label);
+  gtk_widget_show(ret->label);
+    
   /* Make buttons */
+
+  /* Config */
     
   ret->config_button = create_pixmap_button("config_16.png");
-  ret->info_button = create_pixmap_button("info_16.png");
 
   g_signal_connect(G_OBJECT(ret->config_button), "clicked",
                    G_CALLBACK(button_callback), (gpointer)ret);
+  gtk_widget_show(ret->config_button);
+
+  /* Info */
+    
+  ret->info_button = create_pixmap_button("info_16.png");
   g_signal_connect(G_OBJECT(ret->info_button), "clicked",
                    G_CALLBACK(button_callback), (gpointer)ret);
 
-  gtk_widget_show(ret->config_button);
   gtk_widget_show(ret->info_button);
 
+
+  /* Audio */
+
+  if(type_mask & (BG_PLUGIN_ENCODER_AUDIO | BG_PLUGIN_ENCODER))
+    {
+    ret->audio_button = create_pixmap_button("audio_16.png");
+    
+    g_signal_connect(G_OBJECT(ret->audio_button), "clicked",
+                     G_CALLBACK(button_callback), (gpointer)ret);
+    gtk_widget_show(ret->audio_button);
+    
+    }
+
+  /* Video */
+    
+  if(type_mask & (BG_PLUGIN_ENCODER_VIDEO | BG_PLUGIN_ENCODER))
+    {
+    ret->video_button = create_pixmap_button("video_16.png");
+    
+    g_signal_connect(G_OBJECT(ret->video_button), "clicked",
+                     G_CALLBACK(button_callback), (gpointer)ret);
+    gtk_widget_show(ret->video_button);
+    }
+    
+  /* Create combo */
+    
   num_plugins = bg_plugin_registry_get_num_plugins(reg,
                                                    type_mask,
                                                    flag_mask);
@@ -253,18 +379,7 @@ bg_gtk_plugin_widget_single_create(bg_plugin_registry_t * reg,
   
   gtk_widget_show(ret->combo);
   
-  /* Pack the objects */
 
-  ret->table = gtk_table_new(1, 3, 0);
-  gtk_table_set_col_spacings(GTK_TABLE(ret->table), 5);
-  gtk_table_attach_defaults(GTK_TABLE(ret->table), ret->combo,
-                           0, 1, 0, 1);
-  gtk_table_attach(GTK_TABLE(ret->table), ret->config_button,
-                   1, 2, 0, 1, GTK_FILL, GTK_FILL, 0, 0);
-  gtk_table_attach(GTK_TABLE(ret->table), ret->info_button,
-                   2, 3, 0, 1, GTK_FILL, GTK_FILL, 0, 0);
-  
-  gtk_widget_show(ret->table);
 
   return ret;
   }
@@ -274,16 +389,81 @@ void bg_gtk_plugin_widget_single_destroy(bg_gtk_plugin_widget_single_t * w)
   if(w->handle)
     bg_plugin_unref(w->handle);
   //  fprintf(stderr, "bg_gtk_plugin_widget_single_destroy\n");
-  if(w->info)
-    bg_plugin_registry_set_default(w->reg, w->type_mask, w->info->name);
   free(w);
   }
 
+void bg_gtk_plugin_widget_single_attach(bg_gtk_plugin_widget_single_t * w,
+                                        GtkWidget * table,
+                                        int * row, int * num_columns)
+  {
+  int columns_needed = 4;
+  int col;
+    
+  if(w->audio_button)
+    columns_needed++;
+  if(w->video_button)
+    columns_needed++;
+  if(*num_columns < columns_needed)
+    *num_columns = columns_needed;
+
+  gtk_table_resize(GTK_TABLE(table), *row+1, *num_columns);
+  
+  gtk_table_attach(GTK_TABLE(table), w->label,
+                   0, 1, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+
+  gtk_table_attach(GTK_TABLE(table),
+                   w->combo,
+                   1, 2, *row, *row+1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+
+  gtk_table_attach(GTK_TABLE(table),
+                   w->info_button,
+                   2, 3, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+
+  gtk_table_attach(GTK_TABLE(table),
+                   w->config_button,
+                   3, 4, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+
+  col = 4;
+  if(w->audio_button)
+    {
+    gtk_table_attach(GTK_TABLE(table),
+                     w->audio_button,
+                     col, col+1, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+    col++;
+    }
+  if(w->video_button)
+    {
+    gtk_table_attach(GTK_TABLE(table),
+                     w->video_button,
+                     col, col+1, *row, *row+1, GTK_FILL, GTK_SHRINK, 0, 0);
+    }
+  
+  (*row)++;
+  }
+
+void bg_gtk_plugin_widget_single_set_sensitive(bg_gtk_plugin_widget_single_t * w,
+                                               int sensitive)
+  {
+  gtk_widget_set_sensitive(w->combo, sensitive);
+  gtk_widget_set_sensitive(w->info_button, sensitive);
+  gtk_widget_set_sensitive(w->config_button, sensitive);
+  if(w->audio_button)
+    gtk_widget_set_sensitive(w->audio_button, sensitive);
+  if(w->video_button)
+    gtk_widget_set_sensitive(w->video_button, sensitive);
+
+  if(sensitive)
+    update_sensitive(w);
+  
+  }
+
+#if 0
 GtkWidget *
 bg_gtk_plugin_widget_single_get_widget(bg_gtk_plugin_widget_single_t * w)
   {
   return w->table;
   }
+#endif
 
 bg_plugin_handle_t *
 bg_gtk_plugin_widget_single_get_plugin(bg_gtk_plugin_widget_single_t * w)

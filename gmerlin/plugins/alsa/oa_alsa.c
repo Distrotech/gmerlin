@@ -364,7 +364,7 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
 
     if(val->val_str)
       {
-      while(strcmp(priv->parameters[0].options[priv->card_index],
+      while(strcmp(priv->parameters[0].multi_names[priv->card_index],
                    val->val_str))
         priv->card_index++;
       }

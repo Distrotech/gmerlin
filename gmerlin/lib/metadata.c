@@ -143,6 +143,9 @@ bg_parameter_info_t * bg_metadata_get_parameters(bg_metadata_t * m)
   bg_parameter_info_t * ret;
   ret = bg_parameter_info_copy_array(parameters);
 
+  if(!m)
+    return ret;
+  
   i = 0;
   while(ret[i].name)
     {

@@ -10,9 +10,9 @@
 #include <utils.h>
 
 #include <cfg_dialog.h>
+#include <transcoder_track.h>
 
 #include <gui_gtk/display.h>
-
 
 #include "transcoder_window.h"
 #include "tracklist.h"
@@ -44,21 +44,12 @@ struct transcoder_window_s
 
   char * output_directory;
   int delete_incomplete;
+
+  bg_cfg_section_t * track_defaults_section;
   
   };
 
 
-void transcoder_window_set_audio_encoder(transcoder_window_t * t,
-                                         bg_plugin_handle_t * h)
-  {
-  track_list_set_audio_encoder(t->tracklist, h);
-  }
-
-void transcoder_window_set_video_encoder(transcoder_window_t * t,
-                                         bg_plugin_handle_t * h)
-  {
-  track_list_set_video_encoder(t->tracklist, h);
-  }
 
 static void
 transcoder_window_preferences(transcoder_window_t * win);
@@ -166,7 +157,8 @@ transcoder_window_t * transcoder_window_create()
 
   /* Create track list */
 
-  ret->tracklist = track_list_create(ret->plugin_reg);
+  ret->track_defaults_section = bg_cfg_registry_find_section(ret->cfg_reg, "track_defaults");
+  ret->tracklist = track_list_create(ret->plugin_reg, ret->track_defaults_section);
 
   /* Create buttons */
 
@@ -257,6 +249,9 @@ transcoder_window_t * transcoder_window_create()
 void transcoder_window_destroy(transcoder_window_t* w)
   {
   char * tmp_path;
+
+  track_list_destroy(w->tracklist);
+
   tmp_path =  bg_search_file_write("transcoder", "config.xml");
  
   bg_cfg_registry_save(w->cfg_reg, tmp_path);
@@ -277,7 +272,7 @@ void transcoder_window_run(transcoder_window_t * w)
 /* Configuration stuff */
 
 
-static bg_parameter_info_t parameters[] =
+static bg_parameter_info_t output_parameters[] =
   {
     {
       name:      "output_directory",
@@ -316,15 +311,38 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   bg_dialog_t * dlg;
   bg_cfg_section_t * cfg_section;
   
-  cfg_section     = bg_cfg_registry_find_section(w->cfg_reg, "general");
 
+  dlg = bg_dialog_create_multi("Transcoder configuration");
 
-  dlg = bg_dialog_create(cfg_section,
-                         set_parameter,
-                         w,
-                         parameters,
-                         "Transcoder configuration");
+  cfg_section     = bg_cfg_registry_find_section(w->cfg_reg, "output");
 
+  bg_dialog_add(dlg,
+                "Output options",
+                cfg_section,
+                set_parameter,
+                w,
+                output_parameters);
+
+  cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section, "audio");
+  
+  bg_dialog_add(dlg,
+                "Audio options",
+                cfg_section,
+                NULL,
+                NULL,
+                bg_transcoder_track_audio_get_format_parameters());
+
+  cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section, "video");
+  
+  bg_dialog_add(dlg,
+                "Video options",
+                cfg_section,
+                NULL,
+                NULL,
+                bg_transcoder_track_video_get_format_parameters());
+
+    
+  
   bg_dialog_show(dlg);
   bg_dialog_destroy(dlg);
   

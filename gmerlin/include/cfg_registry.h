@@ -69,7 +69,23 @@ bg_cfg_section_t * bg_cfg_section_find_subsection(bg_cfg_section_t *,
  */
 
 bg_cfg_section_t * bg_cfg_section_create(const char * name);
+
+bg_cfg_section_t *
+bg_cfg_section_create_from_parameters(const char * name,
+                                      bg_parameter_info_t * parameters);
+                        
+
 void bg_cfg_section_destroy(bg_cfg_section_t * s);
+
+bg_cfg_section_t * bg_cfg_section_copy(bg_cfg_section_t * src);
+
+/*
+ *  Get/Set section names
+ */
+
+const char * bg_cfg_section_get_name(bg_cfg_section_t * s);
+void bg_cfg_section_set_name(bg_cfg_section_t * s, const char * name);
+
 
 /*
  *  Get/Set values
@@ -82,6 +98,15 @@ void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
 void bg_cfg_section_get_parameter(bg_cfg_section_t * section,
                                   bg_parameter_info_t * info,
                                   bg_parameter_value_t * value);
+
+void bg_cfg_section_set_defaults(bg_cfg_section_t * section,
+                                 bg_parameter_info_t * info);
+
+/* Delete a subsection (useful for cleaning up */
+
+void bg_cfg_section_delete_subsection(bg_cfg_section_t * section,
+                                      bg_cfg_section_t * subsection);
+
 
 /*
  *  Type specific get/set functions, which don't require
@@ -101,10 +126,10 @@ int bg_cfg_section_get_parameter_int(bg_cfg_section_t * section,
                                       const char * name, int * value);
 
 int bg_cfg_section_get_parameter_float(bg_cfg_section_t * section,
-                                        const char * name, float * value);
+                                       const char * name, float * value);
 
 int bg_cfg_section_get_parameter_string(bg_cfg_section_t * section,
-                                         const char * name, const char ** value);
+                                        const char * name, const char ** value);
 
 
 /* Apply all values found in the parameter info */

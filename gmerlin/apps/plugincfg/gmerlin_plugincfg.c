@@ -23,9 +23,28 @@ typedef struct
 
   bg_gtk_plugin_widget_multi_t  * image_readers;
   bg_gtk_plugin_widget_single_t  * image_writers;
-  
+
+  GtkWidget * audio_to_video;
+    
   GtkWidget * window;
+  bg_plugin_registry_t * plugin_reg;
   } app_window;
+
+static void encode_audio_to_video_callback(GtkWidget * w, gpointer data)
+  {
+  app_window * win;
+  int audio_to_video;
+  
+  win = (app_window*)data;
+
+  audio_to_video = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w));
+
+  bg_gtk_plugin_widget_single_set_sensitive(win->audio_encoder_plugins,
+                                            !audio_to_video);
+  
+  bg_plugin_registry_set_encode_audio_to_video(win->plugin_reg, audio_to_video);
+  
+  }
 
 static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
                                 gpointer data)
@@ -36,15 +55,35 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
   return TRUE;
   }
 
+static void set_video_encoder(bg_plugin_handle_t * handle, void * data)
+  {
+  app_window * win = (app_window *)data;
+  if(handle->info->type == BG_PLUGIN_ENCODER_VIDEO)
+    {
+    gtk_widget_set_sensitive(win->audio_to_video, 0);
+    
+    bg_gtk_plugin_widget_single_set_sensitive(win->audio_encoder_plugins, 1);
+    }
+  else
+    {
+    gtk_widget_set_sensitive(win->audio_to_video, 1);
+    bg_gtk_plugin_widget_single_set_sensitive(win->audio_encoder_plugins,
+                                              !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->audio_to_video)));
+    }
+  }
+
 static app_window * create_window(bg_plugin_registry_t * reg)
   {
   app_window * ret;
   GtkWidget * notebook;
   GtkWidget * label;
   GtkWidget * table;
+  int row, num_columns;
   
   ret = calloc(1, sizeof(*ret));
 
+  ret->plugin_reg = reg;
+  
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
   
@@ -55,7 +94,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                        "Gmerlin Plugin Configurator");
   
   notebook = gtk_notebook_new();
-    
+  
   ret->input_plugins =
     bg_gtk_plugin_widget_multi_create(reg,
                                       BG_PLUGIN_INPUT,
@@ -71,110 +110,112 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                            label);
 
   ret->audio_output_plugins =
-    bg_gtk_plugin_widget_single_create(reg,
+    bg_gtk_plugin_widget_single_create("Audio", reg,
                                        BG_PLUGIN_OUTPUT_AUDIO,
                                        BG_PLUGIN_PLAYBACK, NULL, NULL);
   ret->video_output_plugins =
-    bg_gtk_plugin_widget_single_create(reg,
+    bg_gtk_plugin_widget_single_create("Video", reg,
                                        BG_PLUGIN_OUTPUT_VIDEO,
                                        BG_PLUGIN_PLAYBACK, NULL, NULL);
 
   ret->audio_recorder_plugins =
-    bg_gtk_plugin_widget_single_create(reg,
+    bg_gtk_plugin_widget_single_create("Audio", reg,
                                        BG_PLUGIN_RECORDER_AUDIO,
                                        BG_PLUGIN_RECORDER, NULL, NULL);
 
   ret->video_recorder_plugins =
-    bg_gtk_plugin_widget_single_create(reg,
+    bg_gtk_plugin_widget_single_create("Video", reg,
                                        BG_PLUGIN_RECORDER_VIDEO,
                                        BG_PLUGIN_RECORDER, NULL, NULL);
 
   ret->audio_encoder_plugins =
-    bg_gtk_plugin_widget_single_create(reg,
+    bg_gtk_plugin_widget_single_create("Audio", reg,
                                        BG_PLUGIN_ENCODER_AUDIO,
                                        BG_PLUGIN_FILE, NULL, NULL);
 
+  ret->audio_to_video = gtk_check_button_new_with_label("Encode audio into video file");
+  
+  g_signal_connect(G_OBJECT(ret->audio_to_video), "toggled",
+                   G_CALLBACK(encode_audio_to_video_callback), ret);
+
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ret->audio_to_video),
+                              bg_plugin_registry_get_encode_audio_to_video(reg));
+                              
+  gtk_widget_show(ret->audio_to_video);
+
+  
   ret->video_encoder_plugins =
-    bg_gtk_plugin_widget_single_create(reg,
+    bg_gtk_plugin_widget_single_create("Video", reg,
                                        BG_PLUGIN_ENCODER_VIDEO |
                                        BG_PLUGIN_ENCODER,
-                                       BG_PLUGIN_FILE, NULL, NULL);
+                                       BG_PLUGIN_FILE, set_video_encoder, ret);
+
   
-  table = gtk_table_new(4, 2, 0);
+  table = gtk_table_new(1, 1, 0);
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
-    
-  label = gtk_label_new("Audio");
-  gtk_widget_show(label);
-  
-  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1,
-                   GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table),
-                   bg_gtk_plugin_widget_single_get_widget(ret->audio_output_plugins),
-                   1, 2, 0, 1, GTK_EXPAND, GTK_SHRINK, 0, 0);
+  row = 0;
+  num_columns = 0;
 
-  label = gtk_label_new("Video");
-  gtk_widget_show(label);
-  
-  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 1, 2,
-                   GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table),
-                   bg_gtk_plugin_widget_single_get_widget(ret->video_output_plugins),
-                   1, 2, 1, 2,
-                   GTK_EXPAND, GTK_SHRINK, 0, 0);
+  bg_gtk_plugin_widget_single_attach(ret->audio_output_plugins,
+                                     table,
+                                     &row, &num_columns);
+  bg_gtk_plugin_widget_single_attach(ret->video_output_plugins,
+                                     table,
+                                     &row, &num_columns);
 
-  label = gtk_label_new("Audio Encoder");
-  gtk_widget_show(label);
-  
-  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 2, 3,
-                   GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table),
-                   bg_gtk_plugin_widget_single_get_widget(ret->audio_encoder_plugins),
-                   1, 2, 2, 3,
-                   GTK_EXPAND, GTK_SHRINK, 0, 0);
-
-  label = gtk_label_new("Video Encoder");
-  gtk_widget_show(label);
-  
-  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 3, 4,
-                   GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table),
-                   bg_gtk_plugin_widget_single_get_widget(ret->video_encoder_plugins),
-                   1, 2, 3, 4,
-                   GTK_EXPAND, GTK_SHRINK, 0, 0);
-
-  
   gtk_widget_show(table);
   
   label = gtk_label_new("Output");
   gtk_widget_show(label);
-
+  
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
                            table, label);
 
-  table = gtk_table_new(2, 2, 0);
+  table = gtk_table_new(1, 1, 0);
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
-    
-  label = gtk_label_new("Audio");
-  gtk_widget_show(label);
-  
-  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1,
-                   GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table),
-                   bg_gtk_plugin_widget_single_get_widget(ret->audio_recorder_plugins),
-                   1, 2, 0, 1, GTK_EXPAND, GTK_SHRINK, 0, 0);
+  row = 0;
+  num_columns = 0;
 
-  label = gtk_label_new("Video");
-  gtk_widget_show(label);
+  bg_gtk_plugin_widget_single_attach(ret->audio_encoder_plugins,
+                                     table,
+                                     &row, &num_columns);
+  bg_gtk_plugin_widget_single_attach(ret->video_encoder_plugins,
+                                     table,
+                                     &row, &num_columns);
   
-  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 1, 2,
-                   GTK_FILL, GTK_SHRINK, 0, 0);
+  gtk_table_resize(GTK_TABLE(table), row+1, num_columns);
+  
   gtk_table_attach(GTK_TABLE(table),
-                   bg_gtk_plugin_widget_single_get_widget(ret->video_recorder_plugins),
-                   1, 2, 1, 2, GTK_EXPAND, GTK_SHRINK, 0, 0);
+                   ret->audio_to_video,
+                   0, num_columns, row, row+1,
+                   GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+  
+  gtk_widget_show(table);
+  
+  label = gtk_label_new("Encoders");
+  gtk_widget_show(label);
+
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
+                           table, label);
+  
+
+  table = gtk_table_new(1, 1, 0);
+  gtk_table_set_col_spacings(GTK_TABLE(table), 5);
+  gtk_table_set_row_spacings(GTK_TABLE(table), 5);
+  gtk_container_set_border_width(GTK_CONTAINER(table), 5);
+  row = 0;
+  num_columns = 0;
+
+  bg_gtk_plugin_widget_single_attach(ret->audio_recorder_plugins,
+                                     table,
+                                     &row, &num_columns);
+  bg_gtk_plugin_widget_single_attach(ret->video_recorder_plugins,
+                                     table,
+                                     &row, &num_columns);
   
   gtk_widget_show(table);
   
@@ -203,7 +244,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   /* Image writers */
 
   ret->image_writers =
-    bg_gtk_plugin_widget_single_create(reg,
+    bg_gtk_plugin_widget_single_create("Image writer", reg,
                                        BG_PLUGIN_IMAGE_WRITER,
                                        BG_PLUGIN_FILE|
                                        BG_PLUGIN_URL|
@@ -211,20 +252,17 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                        NULL, NULL);
   
 
-  table = gtk_table_new(1, 2, 0);
+  table = gtk_table_new(1, 1, 0);
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
-    
-  label = gtk_label_new("Image writer");
-  gtk_widget_show(label);
-  
-  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1,
-                   GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table),
-                   bg_gtk_plugin_widget_single_get_widget(ret->image_writers),
-                   1, 2, 0, 1, GTK_EXPAND, GTK_SHRINK, 0, 0);
+  row = 0;
+  num_columns = 0;
 
+  bg_gtk_plugin_widget_single_attach(ret->image_writers,
+                                     table,
+                                     &row, &num_columns);
+  
   gtk_widget_show(table);
   
   label = gtk_label_new("Image writers");

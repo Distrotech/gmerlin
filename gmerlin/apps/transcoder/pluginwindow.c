@@ -21,14 +21,9 @@ struct plugin_window_s
   void * close_notify_data;
 
   transcoder_window_t * tw;
+  bg_plugin_registry_t * plugin_reg;
   };
 
-static void set_audio_encoder(bg_plugin_handle_t * handle, void * data)
-  {
-  plugin_window_t * win = (plugin_window_t *)data;
-  transcoder_window_set_audio_encoder(win->tw, handle);
-  
-  }
  
 static void set_video_encoder(bg_plugin_handle_t * handle, void * data)
   {
@@ -37,17 +32,15 @@ static void set_video_encoder(bg_plugin_handle_t * handle, void * data)
     {
     gtk_widget_set_sensitive(win->audio_to_video, 0);
 
-    gtk_widget_set_sensitive(bg_gtk_plugin_widget_single_get_widget(win->audio_encoder),
-                             1);
+    bg_gtk_plugin_widget_single_set_sensitive(win->audio_encoder, 1);
     }
   else
     {
     gtk_widget_set_sensitive(win->audio_to_video, 1);
-    gtk_widget_set_sensitive(bg_gtk_plugin_widget_single_get_widget(win->audio_encoder),
-                             !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->audio_to_video)));
+    bg_gtk_plugin_widget_single_set_sensitive(win->audio_encoder,
+                                              !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->audio_to_video)));
     }
   
-  transcoder_window_set_video_encoder(win->tw, handle);
   }
 
 
@@ -66,16 +59,13 @@ static void button_callback(GtkWidget * w, gpointer data)
     {
     if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->audio_to_video)))
       {
-      gtk_widget_set_sensitive(bg_gtk_plugin_widget_single_get_widget(win->audio_encoder),
-                               0);
-      transcoder_window_set_audio_encoder(win->tw, NULL);
+      bg_gtk_plugin_widget_single_set_sensitive(win->audio_encoder, 0);
+      bg_plugin_registry_set_encode_audio_to_video(win->plugin_reg, 1);
       }
     else
       {
-      gtk_widget_set_sensitive(bg_gtk_plugin_widget_single_get_widget(win->audio_encoder),
-                               1);
-      transcoder_window_set_audio_encoder(win->tw,
-                                          bg_gtk_plugin_widget_single_get_plugin(win->audio_encoder));
+      bg_gtk_plugin_widget_single_set_sensitive(win->audio_encoder, 1);
+      bg_plugin_registry_set_encode_audio_to_video(win->plugin_reg, 0);
       }
     
     }
@@ -98,25 +88,37 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
   GtkWidget * label;
   GtkWidget * table;
   GtkWidget * notebook;
+  int row, num_columns;
   ret = calloc(1, sizeof(*ret));
   ret->tw = win;
+  ret->plugin_reg = plugin_reg;
+    
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(ret->window), "Plugins");
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
   ret->close_notify      = close_notify;
   ret->close_notify_data = close_notify_data;
 
-  ret->audio_to_video =
-    gtk_check_button_new_with_label("Encode audio into video file");
   
   ret->audio_encoder =
-    bg_gtk_plugin_widget_single_create(plugin_reg,
+    bg_gtk_plugin_widget_single_create("Audio", plugin_reg,
                                        BG_PLUGIN_ENCODER_AUDIO,
                                        BG_PLUGIN_FILE,
-                                       set_audio_encoder,
+                                       NULL,
                                        ret);
+
+  ret->audio_to_video =
+    gtk_check_button_new_with_label("Encode audio into video file");
+
+  g_signal_connect(G_OBJECT(ret->audio_to_video), "toggled",
+                   G_CALLBACK(button_callback),
+                   ret);
+
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ret->audio_to_video),
+                               bg_plugin_registry_get_encode_audio_to_video(plugin_reg));
+
   ret->video_encoder =
-    bg_gtk_plugin_widget_single_create(plugin_reg,
+    bg_gtk_plugin_widget_single_create("Video", plugin_reg,
                                        BG_PLUGIN_ENCODER_VIDEO |
                                        BG_PLUGIN_ENCODER,
                                        BG_PLUGIN_FILE,
@@ -141,42 +143,39 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
                    G_CALLBACK(button_callback),
                    ret);
 
-  g_signal_connect(G_OBJECT(ret->audio_to_video), "clicked",
-                   G_CALLBACK(button_callback),
-                   ret);
   /* Show */
   gtk_widget_show(ret->close_button);
   gtk_widget_show(ret->audio_to_video);
   
   /* Pack */
   notebook = gtk_notebook_new();
-  table = gtk_table_new(3, 2, 0);
-  gtk_table_set_row_spacings(GTK_TABLE(table), 5);
-  gtk_table_set_col_spacings(GTK_TABLE(table), 5);
-  gtk_container_set_border_width(GTK_CONTAINER(table), 5);
   label = gtk_label_new("Inputs");
   gtk_widget_show(label);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
                            bg_gtk_plugin_widget_multi_get_widget(ret->inputs),
                            label);
-  label = gtk_label_new("Audio");
-  gtk_widget_show(label);
-  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 0, 1,
-                   GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table),
-                   bg_gtk_plugin_widget_single_get_widget(ret->audio_encoder),
-                   1, 2, 0, 1, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
-  label = gtk_label_new("Video");
-  gtk_widget_show(label);
-  gtk_table_attach(GTK_TABLE(table), label, 0, 1, 1, 2,
-                   GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table),
-                   bg_gtk_plugin_widget_single_get_widget(ret->video_encoder),
-                   1, 2, 1, 2, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
 
+  table = gtk_table_new(1, 1, 0);
+  gtk_table_set_row_spacings(GTK_TABLE(table), 5);
+  gtk_table_set_col_spacings(GTK_TABLE(table), 5);
+  gtk_container_set_border_width(GTK_CONTAINER(table), 5);
+
+  row = 0;
+  num_columns = 0;
+
+  bg_gtk_plugin_widget_single_attach(ret->audio_encoder,
+                                     table,
+                                     &row, &num_columns);
+  bg_gtk_plugin_widget_single_attach(ret->video_encoder,
+                                     table,
+                                     &row, &num_columns);
+
+  gtk_table_resize(GTK_TABLE(table), row+1, num_columns);
+   
   gtk_table_attach(GTK_TABLE(table),
                    ret->audio_to_video,
-                   0, 2, 2, 3, GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+                   0, num_columns, row, row+1,
+                   GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
   
   gtk_widget_show(table);
   label = gtk_label_new("Encoders");

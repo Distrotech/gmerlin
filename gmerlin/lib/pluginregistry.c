@@ -40,6 +40,8 @@ struct bg_plugin_registry_s
 
   bg_plugin_info_t * singlepic_input;
   bg_plugin_info_t * singlepic_encoder;
+
+  int encode_audio_to_video;
   };
 
 static void free_info(bg_plugin_info_t * info)
@@ -273,9 +275,10 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
   
   bg_plugin_info_t * file_info;
   bg_plugin_info_t *  new_info;
-
+  bg_encoder_plugin_t * encoder;
+  
   bg_cfg_section_t * plugin_section;
-  int parameter_index;
+  bg_cfg_section_t * stream_section;
   bg_parameter_info_t * parameter_info;
   void * plugin_priv;
   
@@ -371,17 +374,41 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
     
     if(plugin->get_parameters)
       {
-      parameter_index = 0;    
+          
       parameter_info = plugin->get_parameters(plugin_priv);
-      while(parameter_info[parameter_index].name)
-        {
-        bg_cfg_section_get_parameter(plugin_section,
-                                     &(parameter_info[parameter_index]), 
-                                     (bg_parameter_value_t*)0);
-        parameter_index++;
-        }
-      }
 
+      bg_cfg_section_set_defaults(plugin_section,
+                                  parameter_info);
+      }
+    
+    if(plugin->type & (BG_PLUGIN_ENCODER_AUDIO|
+                       BG_PLUGIN_ENCODER_VIDEO|
+                       BG_PLUGIN_ENCODER))
+      {
+      encoder = (bg_encoder_plugin_t*)plugin;
+
+      if(encoder->get_audio_parameters)
+        {
+        parameter_info = encoder->get_audio_parameters(plugin_priv);
+        stream_section = bg_cfg_section_find_subsection(plugin_section,
+                                                        "$audio");
+        
+        bg_cfg_section_set_defaults(stream_section,
+                                    parameter_info);
+        }
+
+      if(encoder->get_video_parameters)
+        {
+        parameter_info = encoder->get_video_parameters(plugin_priv);
+        stream_section = bg_cfg_section_find_subsection(plugin_section,
+                                                        "$video");
+        
+        bg_cfg_section_set_defaults(stream_section,
+                                    parameter_info);
+        }
+      
+      }
+    
     if(plugin->find_devices)
       new_info->devices = plugin->find_devices();
     
@@ -488,7 +515,12 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
                                       "Order", &sort_string);
   if(sort_string)
     bg_plugin_registry_sort(ret, sort_string);
-  
+
+  /* Get flags */
+
+  bg_cfg_section_get_parameter_int(ret->config_section, "encode_audio_to_video",
+                                   &(ret->encode_audio_to_video));
+    
   return ret;
   }
 
@@ -606,13 +638,14 @@ static struct
   char * key;
   } default_keys[] =
   {
-    { BG_PLUGIN_OUTPUT_AUDIO,   "default_audio_output"   },
-    { BG_PLUGIN_OUTPUT_VIDEO,   "default_video_output"   },
-    { BG_PLUGIN_RECORDER_AUDIO, "default_audio_recorder" },
-    { BG_PLUGIN_RECORDER_VIDEO, "default_video_recorder" },
-    { BG_PLUGIN_IMAGE_WRITER,   "default_image_writer" },
-    { BG_PLUGIN_NONE,           (char*)NULL              },
-    
+    { BG_PLUGIN_OUTPUT_AUDIO,                    "default_audio_output"   },
+    { BG_PLUGIN_OUTPUT_VIDEO,                    "default_video_output"   },
+    { BG_PLUGIN_RECORDER_AUDIO,                  "default_audio_recorder" },
+    { BG_PLUGIN_RECORDER_VIDEO,                  "default_video_recorder" },
+    { BG_PLUGIN_ENCODER_AUDIO,                   "default_audio_encoder"  },
+    { BG_PLUGIN_ENCODER_VIDEO|BG_PLUGIN_ENCODER, "default_video_encoder" },
+    { BG_PLUGIN_IMAGE_WRITER,                    "default_image_writer"   },
+    { BG_PLUGIN_NONE,                            (char*)NULL              },
   };
 
 static const char * get_default_key(bg_plugin_type_t type)
@@ -634,7 +667,7 @@ void bg_plugin_registry_set_default(bg_plugin_registry_t * r,
   const char * key;
 
   key = get_default_key(type);
-  if(key)  
+  if(key)
     bg_cfg_section_set_parameter_string(r->config_section, key, name);
   }
 
@@ -1091,4 +1124,16 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
     }
   fprintf(stderr, "Cannot load %s: giving up\n", location);
   return 0;
+  }
+
+void bg_plugin_registry_set_encode_audio_to_video(bg_plugin_registry_t * reg,
+                                                  int audio_to_video)
+  {
+  reg->encode_audio_to_video = audio_to_video;
+  bg_cfg_section_set_parameter_int(reg->config_section, "encode_audio_to_video", audio_to_video);
+  }
+
+int bg_plugin_registry_get_encode_audio_to_video(bg_plugin_registry_t * reg)
+  {
+  return reg->encode_audio_to_video;
   }

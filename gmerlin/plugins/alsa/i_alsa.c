@@ -41,14 +41,14 @@ static bg_parameter_info_t static_parameters[] =
       long_name:   "Channel Mode",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "Stereo" },
-      options:     (char*[]){ "Mono", "Stereo", (char*)0 },
+      multi_names:     (char*[]){ "Mono", "Stereo", (char*)0 },
     },
     {
       name:        "bits",
       long_name:   "Bits",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "16" },
-      options:     (char*[]){ "8", "16", (char*)0 },
+      multi_names:     (char*[]){ "8", "16", (char*)0 },
     },
     {
       name:        "samplerate",
@@ -133,7 +133,7 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
 
     if(val->val_str)
       {
-      while(strcmp(priv->parameters[0].options[priv->card_index],
+      while(strcmp(priv->parameters[0].multi_names[priv->card_index],
                    val->val_str))
         priv->card_index++;
       }

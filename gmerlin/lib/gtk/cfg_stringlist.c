@@ -34,56 +34,44 @@ typedef struct
 #ifndef GTK_2_4
   GList * strings;
 #endif
+  int selected;
   } stringlist_t;
 
 static void get_value(bg_gtk_widget_t * w)
   {
-#ifdef GTK_2_4
-  int i;
-#endif
-
   stringlist_t * priv;
   priv = (stringlist_t*)(w->priv);
-#ifdef GTK_2_4
-  if(!w->value.val_str || (*w->value.val_str == '\0'))
-    {
-    gtk_combo_box_set_active(GTK_COMBO_BOX(priv->combo), 0);
-    return;
-    }
 
-  i = 0;
-  while(w->info->options[i])
-    {
-    if(!strcmp(w->value.val_str, w->info->options[i]))
-      {
-      gtk_combo_box_set_active(GTK_COMBO_BOX(priv->combo), i);
-      break; 
-      }
-    i++;
-    }
-#else
   if(!w->value.val_str || (*w->value.val_str == '\0'))
-    {
-    gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry), "");
-    return;
+    priv->selected = 0;
+  else
+    {  
+    priv->selected = 0;
+    while(w->info->multi_names[priv->selected])
+      {
+      if(!strcmp(w->value.val_str, w->info->multi_names[priv->selected]))
+        break; 
+      priv->selected++;
+      }
     }
-  gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry),
-                     w->value.val_str);
+#ifdef GTK_2_4
+  gtk_combo_box_set_active(GTK_COMBO_BOX(priv->combo), priv->selected);
+#else
+  if(w->info->multi_labels)
+    gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry),
+                       w->info->multi_labels[priv->selected]);
+  else
+    gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry),
+                       w->info->multi_names[priv->selected]);
 #endif
   }
 
 static void set_value(bg_gtk_widget_t * w)
   {
   stringlist_t * priv;
-  const char * str;
   
   priv = (stringlist_t*)(w->priv);
-#ifdef GTK_2_4
-  str = w->info->options[gtk_combo_box_get_active(GTK_COMBO_BOX(priv->combo))];
-#else
-  str = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry));
-#endif
-  w->value.val_str = bg_strdup(w->value.val_str, str);
+  w->value.val_str = bg_strdup(w->value.val_str, w->info->multi_names[priv->selected]);
   }
 
 static void destroy(bg_gtk_widget_t * w)
@@ -122,15 +110,38 @@ static gtk_widget_funcs_t funcs =
     attach:    attach
   };
 
-static void change_callback(GtkWidget * w, gpointer data)
+static void change_callback(GtkWidget * wid, gpointer data)
   {
 #ifndef GTK_2_4
   const char * str;
+#endif
+  bg_gtk_widget_t * w;
+  stringlist_t * priv;
+
+  w = (bg_gtk_widget_t *)data;
+  priv = (stringlist_t *)w->priv;
+  
+#ifndef GTK_2_4
   str = gtk_entry_get_text(GTK_ENTRY(w));
 
-  if(str && (*str != '\0'))
+  priv->selected = 0;
+
+  if(w->info->multi_labels)
+    {
+    while(strcmp(w->info->multi_labels[priv->selected], str))
+      priv->selected++;
+    }
+  else
+    {
+    while(strcmp(w->info->multi_names[priv->selected], str))
+      priv->selected++;
+    }
+  
+#else
+  priv->selected = gtk_combo_box_get_active(GTK_COMBO_BOX(priv->combo));
 #endif
-    bg_gtk_change_callback(w, data);
+
+  
   }
 
 void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
@@ -144,12 +155,26 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
 #ifdef GTK_2_4
   priv->combo = gtk_combo_box_new_text();
   i = 0;
-  while(info->options[i])
+
+  if(info->multi_labels)
     {
-    gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
-                              info->options[i]);
-    i++;
+    while(info->multi_labels[i])
+      {
+      gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
+                                info->multi_labels[i]);
+      i++;
+      }
     }
+  else
+    {
+    while(info->multi_names[i])
+      {
+      gtk_combo_box_append_text(GTK_COMBO_BOX(priv->combo),
+                                info->multi_names[i]);
+      i++;
+      }
+    }
+  
   if(info->flags & BG_PARAMETER_SYNC)
     {
     w->callback_widget = priv->combo;
@@ -163,11 +188,24 @@ void bg_gtk_create_stringlist(bg_gtk_widget_t * w, bg_parameter_info_t * info)
                             FALSE);
   
   i = 0;
-  while(info->options[i])
+
+  if(info->multi_labels)
     {
-    c = g_strdup(info->options[i]);
-    priv->strings = g_list_append(priv->strings, c);
-    i++;
+    while(info->multi_labels[i])
+      {
+      c = g_strdup(info->multi_labels[i]);
+      priv->strings = g_list_append(priv->strings, c);
+      i++;
+      }
+    }
+  else
+    {
+    while(info->multi_names[i])
+      {
+      c = g_strdup(info->multi_names[i]);
+      priv->strings = g_list_append(priv->strings, c);
+      i++;
+      }
     }
   gtk_combo_set_popdown_strings(GTK_COMBO(priv->combo), priv->strings);
 

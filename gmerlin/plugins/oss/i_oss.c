@@ -48,14 +48,14 @@ static bg_parameter_info_t parameters[] =
       long_name:   "Channel Mode",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "Stereo" },
-      options:     (char*[]){ "Mono", "Stereo", (char*)0 },
+      multi_names:     (char*[]){ "Mono", "Stereo", (char*)0 },
     },
     {
       name:        "bits",
       long_name:   "Bits",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "16" },
-      options:     (char*[]){ "8", "16", (char*)0 },
+      multi_names:     (char*[]){ "8", "16", (char*)0 },
     },
     {
       name:        "samplerate",

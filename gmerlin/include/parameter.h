@@ -84,12 +84,8 @@ typedef struct bg_parameter_info_s
   bg_parameter_value_t val_default;
   bg_parameter_value_t val_min;
   bg_parameter_value_t val_max;
-
-  /* NULL-terminated array of options */
   
-  char ** options;
-
-  /* Codec stuff */
+  /* Names which can be passed to set_parameter (NULL terminated) */
 
   char ** multi_names;
 

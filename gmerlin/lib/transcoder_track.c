@@ -26,8 +26,222 @@
 #include <transcoder_track.h>
 #include <utils.h>
 
+static void create_sections(bg_transcoder_track_t * t,
+                            bg_cfg_section_t * track_defaults_section,
+                            bg_cfg_section_t * audio_encoder_section,
+                            bg_cfg_section_t * video_encoder_section,
+                            bg_plugin_handle_t * audio_encoder,
+                            bg_plugin_handle_t * video_encoder)
+  {
+  int i;
+
+  bg_cfg_section_t * encoder_section;
+  bg_cfg_section_t * general_section;
+
+  char * encoder_label;
+    
+  t->metadata_section =
+    bg_cfg_section_create_from_parameters("Metadata", t->metadata_parameters);
+
+  t->general_section =
+    bg_cfg_section_create_from_parameters("General", t->general_parameters);
+
+  if(t->audio_encoder_parameters)
+    {
+    encoder_label = bg_sprintf("%s options", audio_encoder->info->long_name);
+    t->audio_encoder_section = bg_cfg_section_copy(audio_encoder_section);
+    bg_cfg_section_set_name(t->audio_encoder_section, encoder_label);
+
+    if(bg_cfg_section_has_subsection(t->audio_encoder_section, "$audio"))
+      {
+      bg_cfg_section_delete_subsection(t->audio_encoder_section,
+                                       bg_cfg_section_find_subsection(t->audio_encoder_section, "$audio"));
+      }
+    
+    free(encoder_label);
+    }
+
+  if(t->video_encoder_parameters)
+    {
+    encoder_label = bg_sprintf("%s options", video_encoder->info->long_name);
+    t->video_encoder_section = bg_cfg_section_copy(video_encoder_section);
+    bg_cfg_section_set_name(t->video_encoder_section, encoder_label);
+        
+    if(bg_cfg_section_has_subsection(t->video_encoder_section, "$audio"))
+      {
+      bg_cfg_section_delete_subsection(t->video_encoder_section,
+                                       bg_cfg_section_find_subsection(t->video_encoder_section, "$audio"));
+      }
+
+    if(bg_cfg_section_has_subsection(t->video_encoder_section, "$video"))
+      {
+      bg_cfg_section_delete_subsection(t->video_encoder_section,
+                                       bg_cfg_section_find_subsection(t->video_encoder_section, "$video"));
+      }
+    
+    free(encoder_label);
+    }
+  
+  if(t->num_audio_streams)
+    {
+    if(bg_cfg_section_has_subsection(audio_encoder_section, "$audio"))
+      {
+      encoder_section = bg_cfg_section_find_subsection(audio_encoder_section, "$audio");
+      //      encoder_label;
+      }
+    else
+      {
+      encoder_section = audio_encoder_section;
+      }
+    
+    general_section = bg_cfg_section_find_subsection(track_defaults_section, "audio");
+    
+    for(i = 0; i < t->num_audio_streams; i++)
+      {
+      t->audio_streams[i].general_section = bg_cfg_section_copy(general_section);
+      t->audio_streams[i].encoder_section = bg_cfg_section_copy(encoder_section);
+      }
+    }
+
+  if(t->num_video_streams)
+    {
+    encoder_section = bg_cfg_section_has_subsection(video_encoder_section, "$video") ?
+      bg_cfg_section_find_subsection(video_encoder_section, "$video") : video_encoder_section;
+    
+    general_section = bg_cfg_section_find_subsection(track_defaults_section, "video");
+    
+    for(i = 0; i < t->num_video_streams; i++)
+      {
+      t->video_streams[i].general_section = bg_cfg_section_copy(general_section);
+      t->video_streams[i].encoder_section = bg_cfg_section_copy(encoder_section);
+      }
+    }
+  }
+
+static bg_parameter_info_t parameters_general[] =
+  {
+    {
+      name:      "name",
+      long_name: "Name",
+      type:      BG_PARAMETER_STRING,
+    },
+    {
+      name:      "location",
+      long_name: "Location",
+      type:      BG_PARAMETER_STRING,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
+      name:      "plugin",
+      long_name: "Plugin",
+      type:      BG_PARAMETER_STRING,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
+      name:      "track",
+      long_name: "Track",
+      type:      BG_PARAMETER_INT,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
+      name:      "duration",
+      long_name: "Duration",
+      type:      BG_PARAMETER_TIME,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
+      name:      "audio_encoder",
+      long_name: "Audio encoder",
+      type:      BG_PARAMETER_STRING,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
+    },
+    {
+      name:      "video_encoder",
+      long_name: "Video encoder",
+      type:      BG_PARAMETER_STRING,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
+    },
+    { /* End of parameters */ }
+  };
+
+void bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
+                                           bg_plugin_handle_t * audio_encoder,
+                                           bg_plugin_handle_t * video_encoder)
+  {
+  int i;
+  bg_encoder_plugin_t * plugin;
+  void * priv;
+  
+  track->general_parameters = bg_parameter_info_copy_array(parameters_general);
+  track->metadata_parameters = bg_metadata_get_parameters((bg_metadata_t*)0);
+  
+  /* Audio streams */
+  
+  if(track->num_audio_streams)
+    {
+    if(audio_encoder)
+      {
+      plugin = (bg_encoder_plugin_t*)(audio_encoder->plugin);
+      priv = audio_encoder->priv;
+      }
+    else
+      {
+      plugin = (bg_encoder_plugin_t*)(video_encoder->plugin);
+      priv = video_encoder->priv;
+      }
+    
+    for(i = 0; i < track->num_audio_streams; i++)
+      {
+      if(plugin->get_audio_parameters)
+        {
+        track->audio_streams[i].encoder_parameters =
+          bg_parameter_info_copy_array(plugin->get_audio_parameters(priv));
+
+        if(audio_encoder && !track->audio_encoder_parameters &&
+           plugin->common.get_parameters)
+          {
+          track->audio_encoder_parameters =
+            bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
+          }
+        }
+      else if(plugin->common.get_parameters)
+        track->audio_streams[i].encoder_parameters =
+          bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
+      }
+    }
+
+  /* Video streams */
+  
+  if(track->num_video_streams)
+    {
+    plugin = (bg_encoder_plugin_t*)(video_encoder->plugin);
+    priv = video_encoder->priv;
+    
+    for(i = 0; i < track->num_video_streams; i++)
+      {
+      if(plugin->get_video_parameters)
+        {
+        track->video_streams[i].encoder_parameters =
+          bg_parameter_info_copy_array(plugin->get_video_parameters(priv));
+
+        if(!track->video_encoder_parameters && plugin->common.get_parameters)
+          {
+          track->video_encoder_parameters =
+            bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
+          }
+        }
+      else if(plugin->common.get_parameters)
+        track->video_streams[i].encoder_parameters =
+          bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
+      }
+    }
+  }
+
 static void set_track(bg_transcoder_track_t * track,
                       bg_track_info_t * track_info,
+                      bg_plugin_handle_t * input_plugin,
+                      const char * location,
+                      int track_index,
                       bg_plugin_handle_t * audio_encoder,
                       bg_plugin_handle_t * video_encoder)
   {
@@ -35,6 +249,54 @@ static void set_track(bg_transcoder_track_t * track,
 
   bg_encoder_plugin_t * plugin;
   void * priv;
+
+  fprintf(stderr, "set_track, Encoders: %p %p\n",
+          audio_encoder, video_encoder);
+
+  /* General parameters */
+
+  track->general_parameters = bg_parameter_info_copy_array(parameters_general);
+
+  i = 0;
+  while(track->general_parameters[i].name)
+    {
+    if(!strcmp(track->general_parameters[i].name, "name"))
+      track->general_parameters[i].val_default.val_str = bg_strdup((char*)0,
+                                                                   track_info->name);
+    else if(!strcmp(track->general_parameters[i].name, "audio_encoder"))
+      {
+      if(audio_encoder)
+        track->general_parameters[i].val_default.val_str = bg_strdup((char*)0,
+                                                                     audio_encoder->info->name);
+      else
+        track->general_parameters[i].val_default.val_str = bg_strdup((char*)0,
+                                                                     video_encoder->info->name);
+      }
+
+    else if(!strcmp(track->general_parameters[i].name, "video_encoder"))
+      track->general_parameters[i].val_default.val_str = bg_strdup((char*)0,
+                                                                   video_encoder->info->name);
+    
+    else if(!strcmp(track->general_parameters[i].name, "duration"))
+      track->general_parameters[i].val_default.val_time = track_info->duration;
+
+    else if(!strcmp(track->general_parameters[i].name, "location"))
+      track->general_parameters[i].val_default.val_str = bg_strdup((char*)0, location);
+
+    else if(!strcmp(track->general_parameters[i].name, "plugin"))
+      track->general_parameters[i].val_default.val_str = bg_strdup((char*)0, input_plugin->info->name);
+
+    else if(!strcmp(track->general_parameters[i].name, "track"))
+      track->general_parameters[i].val_default.val_i = track_index;
+    
+    i++;
+    }
+  
+  /* Metadata */
+    
+  track->metadata_parameters = bg_metadata_get_parameters(&(track_info->metadata));
+
+  /* Audio streams */
   
   if(track_info->num_audio_streams)
     {
@@ -55,19 +317,29 @@ static void set_track(bg_transcoder_track_t * track,
 
     for(i = 0; i < track_info->num_audio_streams; i++)
       {
-      gavl_audio_format_copy(&(track->audio_streams[i].input_format),
-                             &(track_info->audio_streams[i].format));
-      gavl_audio_format_copy(&(track->audio_streams[i].output_format),
-                             &(track_info->audio_streams[i].format));
-
       if(plugin->get_audio_parameters)
+        {
         track->audio_streams[i].encoder_parameters =
           bg_parameter_info_copy_array(plugin->get_audio_parameters(priv));
+
+        if(audio_encoder && !track->audio_encoder_parameters &&
+           plugin->common.get_parameters)
+          {
+          track->audio_encoder_parameters =
+            bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
+          }
+        }
+      
       else if(plugin->common.get_parameters)
         track->audio_streams[i].encoder_parameters =
           bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
       }
     }
+
+  plugin = (bg_encoder_plugin_t*)(video_encoder->plugin);
+  priv = video_encoder->priv;
+  
+  /* Video streams */
   
   if(track_info->num_video_streams)
     {
@@ -75,28 +347,35 @@ static void set_track(bg_transcoder_track_t * track,
     track->video_streams = calloc(track_info->num_video_streams,
                                   sizeof(*(track->video_streams)));
 
-    plugin = (bg_encoder_plugin_t*)(video_encoder->plugin);
-    priv = video_encoder->priv;
     
     for(i = 0; i < track_info->num_video_streams; i++)
       {
-      gavl_video_format_copy(&(track->video_streams[i].input_format),
-                             &(track_info->video_streams[i].format));
-      gavl_video_format_copy(&(track->video_streams[i].output_format),
-                             &(track_info->video_streams[i].format));
-
       if(plugin->get_video_parameters)
+        {
         track->video_streams[i].encoder_parameters =
           bg_parameter_info_copy_array(plugin->get_video_parameters(priv));
+
+        if(!track->video_encoder_parameters &&
+           plugin->common.get_parameters)
+          {
+          track->video_encoder_parameters =
+            bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
+          }
+
+        }
       else if(plugin->common.get_parameters)
         track->video_streams[i].encoder_parameters =
           bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
       }
     }
-  track->duration = track_info->duration;
-  bg_metadata_copy(&(track->metadata), &(track_info->metadata));
-  track->name = bg_strdup(track->name, track_info->name);
+  else if(plugin->common.get_parameters && !audio_encoder)
+    {
+    track->video_encoder_parameters =
+      bg_parameter_info_copy_array(plugin->common.get_parameters(priv));
+    }
+  
   //  fprintf(stderr, "Track name: %s\n", track->name);
+  
   }
 
 static void enable_streams(bg_input_plugin_t * plugin, void * priv, 
@@ -131,11 +410,9 @@ static void enable_streams(bg_input_plugin_t * plugin, void * priv,
 
 bg_transcoder_track_t *
 bg_transcoder_track_create(const char * url,
-                           const bg_plugin_info_t * plugin_info,
+                           const bg_plugin_info_t * input_info,
                            int track, bg_plugin_registry_t * plugin_reg,
-                           bg_cfg_section_t * section,
-                           bg_plugin_handle_t * audio_encoder,
-                           bg_plugin_handle_t * video_encoder)
+                           bg_cfg_section_t * track_defaults_section)
   {
   int i;
   bg_transcoder_track_t * new_track = (bg_transcoder_track_t *)0;
@@ -146,10 +423,63 @@ bg_transcoder_track_create(const char * url,
   bg_plugin_handle_t     * plugin_handle = (bg_plugin_handle_t*)0;
   int num_tracks;
 
+  bg_plugin_handle_t * audio_encoder;
+  bg_plugin_handle_t * video_encoder;
+
+  bg_cfg_section_t * audio_encoder_section;
+  bg_cfg_section_t * video_encoder_section;
+  
+  const bg_plugin_info_t * encoder_info;
+    
+  /* Load video encoder */
+  
+  encoder_info = bg_plugin_registry_get_default(plugin_reg,
+                                                BG_PLUGIN_ENCODER | BG_PLUGIN_ENCODER_VIDEO);
+
+  if(encoder_info)
+    video_encoder = bg_plugin_load(plugin_reg, encoder_info);
+  else
+    {
+    fprintf(stderr, "No video encoder found, check installation\n");
+    return (bg_transcoder_track_t*)0;
+    }
+
+  /* Load audio encoder */
+  
+  if((encoder_info->type == BG_PLUGIN_ENCODER_VIDEO) ||
+     !bg_plugin_registry_get_encode_audio_to_video(plugin_reg))
+    {
+    encoder_info = bg_plugin_registry_get_default(plugin_reg,
+                                                  BG_PLUGIN_ENCODER_AUDIO);
+
+    if(encoder_info)
+      audio_encoder = bg_plugin_load(plugin_reg, encoder_info);
+    else
+      {
+      fprintf(stderr, "No audio encoder found, check installation\n");
+      return (bg_transcoder_track_t*)0;
+      }
+    }
+  else
+    {
+    audio_encoder = (bg_plugin_handle_t*)0;
+    }
+
+  video_encoder_section =
+    bg_plugin_registry_get_section(plugin_reg,
+                                   video_encoder->info->name);
+
+  if(audio_encoder)
+    audio_encoder_section =
+      bg_plugin_registry_get_section(plugin_reg,
+                                     audio_encoder->info->name);
+  else
+    audio_encoder_section = video_encoder_section;
+  
   /* Load the plugin */
   
   if(!bg_input_plugin_load(plugin_reg, url,
-                           plugin_info, &plugin_handle))
+                           input_info, &plugin_handle))
     {
     return (bg_transcoder_track_t*)0;
     }
@@ -169,7 +499,11 @@ bg_transcoder_track_create(const char * url,
                    track_info->num_audio_streams,
                    track_info->num_video_streams);
 
-    set_track(new_track, track_info, audio_encoder, video_encoder);
+    set_track(new_track, track_info, plugin_handle, url, track,
+              audio_encoder, video_encoder);
+    create_sections(new_track, track_defaults_section,
+                    audio_encoder_section, video_encoder_section,
+                    audio_encoder, video_encoder);
     }
   else
     {
@@ -197,11 +531,21 @@ bg_transcoder_track_create(const char * url,
                      i,
                      track_info->num_audio_streams,
                      track_info->num_video_streams);
-      
-      set_track(end_track, track_info, audio_encoder, video_encoder);
+
+      set_track(new_track, track_info, plugin_handle, url, i,
+                audio_encoder, video_encoder);
+      create_sections(new_track, track_defaults_section,
+                      audio_encoder_section, video_encoder_section,
+                      audio_encoder, video_encoder);
       }
     }
   bg_plugin_unref(plugin_handle);
+
+  bg_plugin_unref(video_encoder);
+
+  if(audio_encoder)
+    bg_plugin_unref(audio_encoder);
+  
   return new_track;
   }
 
@@ -210,9 +554,7 @@ bg_transcoder_track_t *
 bg_transcoder_track_create_from_urilist(const char * list,
                                         int len,
                                         bg_plugin_registry_t * plugin_reg,
-                                        bg_cfg_section_t * section,
-                                        bg_plugin_handle_t * audio_encoder,
-                                        bg_plugin_handle_t * video_encoder)
+                                        bg_cfg_section_t * track_defaults_section)
   {
   int i;
   char ** uri_list;
@@ -234,9 +576,7 @@ bg_transcoder_track_create_from_urilist(const char * list,
                                        (const bg_plugin_info_t*)0,
                                        -1,
                                        plugin_reg,
-                                       section,
-                                       audio_encoder,
-                                       video_encoder);
+                                       track_defaults_section);
       if(ret)
         {
         ret_last = ret;
@@ -250,9 +590,7 @@ bg_transcoder_track_create_from_urilist(const char * list,
                                                   (const bg_plugin_info_t*)0,
                                                   -1,
                                                   plugin_reg,
-                                                  section,
-                                                  audio_encoder,
-                                                  video_encoder);
+                                                  track_defaults_section);
       if(ret)
         {
         while(ret_last->next)
@@ -269,9 +607,7 @@ bg_transcoder_track_t *
 bg_transcoder_track_create_from_albumentries(const char * xml_string,
                                              int len,
                                              bg_plugin_registry_t * plugin_reg,
-                                             bg_cfg_section_t * section,
-                                             bg_plugin_handle_t * audio_encoder,
-                                             bg_plugin_handle_t * video_encoder)
+                                             bg_cfg_section_t * track_defaults_section)
   {
   bg_album_entry_t * new_entries, *entry;
   bg_transcoder_track_t * ret_last;
@@ -297,7 +633,7 @@ bg_transcoder_track_create_from_albumentries(const char * xml_string,
                                        plugin_info,
                                        entry->index,
                                        plugin_reg,
-                                       section, audio_encoder, video_encoder);
+                                       track_defaults_section);
       ret_last = ret;
       }
     else
@@ -306,11 +642,9 @@ bg_transcoder_track_create_from_albumentries(const char * xml_string,
                                                   plugin_info,
                                                   entry->index,
                                                   plugin_reg,
-                                                  section,
-                                                  audio_encoder, video_encoder);
+                                                  track_defaults_section);
       ret_last = ret_last->next;
       }
-    ret_last->name = bg_strdup(ret_last->name, entry->name);
     entry = entry->next;
     }
   bg_album_entries_destroy(new_entries);
@@ -326,41 +660,28 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
 
   for(i = 0; i < t->num_audio_streams; i++)
     {
-    if(t->audio_streams[i].format_parameters)
-      bg_parameter_info_destroy_array(t->audio_streams[i].format_parameters);
-
     if(t->audio_streams[i].encoder_parameters)
       bg_parameter_info_destroy_array(t->audio_streams[i].encoder_parameters);
     }
   
   for(i = 0; i < t->num_video_streams; i++)
     {
-    if(t->video_streams[i].format_parameters)
-      bg_parameter_info_destroy_array(t->video_streams[i].format_parameters);
-
     if(t->video_streams[i].encoder_parameters)
       bg_parameter_info_destroy_array(t->video_streams[i].encoder_parameters);
     }
-  if(t->name)
-    free(t->name);
-  if(t->plugin)
-    free(t->plugin);
-  bg_metadata_free(&(t->metadata));
   free(t);
   }
 
-static bg_parameter_info_t parameters_general[] =
+static bg_parameter_info_t format_parameters_video[] =
   {
     {
-      name:      "name",
-      long_name: "Name",
-      type:      BG_PARAMETER_STRING,
+      name:        "action",
+      long_name:   "Action",
+      type:        BG_PARAMETER_STRINGLIST,
+      multi_names: (char*[]){ "transcode", "forget", (char*)0 },
+      multi_labels:  (char*[]){ "Transcode", "Forget", (char*)0 },
+      val_default: { val_str: "transcode" },
     },
-    { /* End of parameters */ }
-  };
-
-static bg_parameter_info_t parameters_video[] =
-  {
     {
       name:      "fixed_framerate",
       long_name: "Fixed framerate",
@@ -386,8 +707,16 @@ static bg_parameter_info_t parameters_video[] =
     { /* End of parameters */ }
   };
 
-static bg_parameter_info_t parameters_audio[] =
+static bg_parameter_info_t format_parameters_audio[] =
   {
+    {
+      name:        "action",
+      long_name:   "Action",
+      type:        BG_PARAMETER_STRINGLIST,
+      multi_names: (char*[]){ "transcode", "forget", (char*)0 },
+      multi_labels:  (char*[]){ "Transcode", "Forget", (char*)0 },
+      val_default: { val_str: "transcode" },
+    },
     {
       name:      "fixed_samplerate",
       long_name: "Fixed samplerate",
@@ -413,7 +742,7 @@ static bg_parameter_info_t parameters_audio[] =
       long_name:   "Channel setup",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "Stereo" },
-      options:     (char*[]){ "Mono",
+      multi_names: (char*[]){ "Mono",
                               "Stereo",
                               "3 Front",
                               "2 Front 1 Rear",
@@ -427,7 +756,7 @@ static bg_parameter_info_t parameters_audio[] =
       long_name:   "Front to rear mode",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "Copy" },
-      options:     (char*[]){ "Mute",
+      multi_names:  (char*[]){ "Mute",
                               "Copy",
                               "Diff",
                               (char*)0 },
@@ -437,7 +766,7 @@ static bg_parameter_info_t parameters_audio[] =
       long_name:   "Stereo to mono mode",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "Mix" },
-      options:     (char*[]){ "Choose left",
+      multi_names:  (char*[]){ "Choose left",
                               "Choose right",
                               "Mix",
                               (char*)0 },
@@ -445,76 +774,71 @@ static bg_parameter_info_t parameters_audio[] =
     { /* End of parameters */ }
   };
 
-bg_parameter_info_t *
-bg_transcoder_track_get_parameters_general(bg_transcoder_track_t * t)
-  {
-  int i;
-  bg_parameter_info_t * ret;
-
-  ret = bg_parameter_info_copy_array(parameters_general);
-
-  i = 0;
-  while(ret[i].name)
-    {
-    if(!strcmp(ret[i].name, "name"))
-      ret[i].val_default.val_str = bg_strdup(ret[i].val_default.val_str,
-                                             t->name); 
-    i++;
-    }
-  return ret;
-  }
-
 /* Audio stream parameters */
 
 bg_parameter_info_t *
-bg_transcoder_audio_stream_get_parameters(bg_transcoder_audio_stream_t * t)
+bg_transcoder_track_audio_get_format_parameters()
   {
-  return parameters_audio;
+  return format_parameters_audio;
   }
-
-void
-bg_transcoder_audio_stream_set_format_parameter(void * data, char * name,
-                                                bg_parameter_value_t * val)
-  {
-  
-  }
-
-void
-bg_transcoder_audio_stream_set_encoder_parameter(void * data, char * name,
-                                                 bg_parameter_value_t * val)
-  {
-  
-  }
-
 
 /* Video stream parameters */
 
 bg_parameter_info_t *
-bg_transcoder_video_stream_get_parameters(bg_transcoder_video_stream_t * t)
+bg_transcoder_track_video_get_format_parameters()
   {
-  return parameters_video;
+  return format_parameters_video;
+  }
+
+char * bg_transcoder_track_get_name(bg_transcoder_track_t * t)
+  {
+  bg_parameter_value_t val;
+  bg_parameter_info_t info;
+
+  memset(&val, 0, sizeof(val));
+  memset(&info, 0, sizeof(info));
+  info.name = "name";
+    
+  bg_cfg_section_get_parameter(t->general_section, &info, &val);
+  return val.val_str;
+  }
+
+char * bg_transcoder_track_get_audio_encoder(bg_transcoder_track_t * t)
+  {
+  bg_parameter_value_t val;
+  bg_parameter_info_t info;
+
+  memset(&val, 0, sizeof(val));
+  memset(&info, 0, sizeof(info));
+  info.name = "audio_encoder";
+    
+  bg_cfg_section_get_parameter(t->general_section, &info, &val);
+  return val.val_str;
+  }
+
+char * bg_transcoder_track_get_video_encoder(bg_transcoder_track_t * t)
+  {
+  bg_parameter_value_t val;
+  bg_parameter_info_t info;
+
+  memset(&val, 0, sizeof(val));
+  memset(&info, 0, sizeof(info));
+  info.name = "video_encoder";
+    
+  bg_cfg_section_get_parameter(t->general_section, &info, &val);
+  return val.val_str;
   }
 
 
-void
-bg_transcoder_video_stream_set_format_parameter(void * data, char * name,
-                                                bg_parameter_value_t * val)
+gavl_time_t  bg_transcoder_track_get_duration(bg_transcoder_track_t * t)
   {
+  bg_parameter_value_t val;
+  bg_parameter_info_t info;
+
+  memset(&val, 0, sizeof(val));
+  memset(&info, 0, sizeof(info));
+  info.name = "duration";
   
+  bg_cfg_section_get_parameter(t->general_section, &info, &val);
+  return val.val_time;
   }
-
-void
-bg_transcoder_video_stream_set_encoder_parameter(void * data, char * name,
-                                                 bg_parameter_value_t * val)
-  {
-  
-  }
-
-/* General parameters */
-
-void bg_transcoder_track_set_parameter_general(void * data, char * name,
-                                               bg_parameter_value_t * val)
-  {
-  
-  }
-

@@ -143,7 +143,7 @@ static bg_parameter_info_t info[] =
       long_name:   "Stringlist",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "Option 2" },
-      options:     (char *[]){ "Option 1", "Option 2", "Option 3", NULL }
+      multi_names:     (char *[]){ "Option 1", "Option 2", "Option 3", NULL }
     },
     {
       name:      "section_2",

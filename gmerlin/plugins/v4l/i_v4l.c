@@ -433,7 +433,7 @@ static bg_parameter_info_t parameters[] =
       long_name: "Resolution",
       type:      BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "QVGA (320x240)" },
-      options:     (char*[]){ "QSIF (160x112)",
+      multi_names:     (char*[]){ "QSIF (160x112)",
                               "QCIF (176x144)", 
                               "QVGA (320x240)", 
                               "SIF(352x240)", 

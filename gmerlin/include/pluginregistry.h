@@ -136,6 +136,11 @@ const bg_plugin_info_t * bg_plugin_registry_get_default(bg_plugin_registry_t *,
                                                         bg_plugin_type_t type);
 
 
+void bg_plugin_registry_set_encode_audio_to_video(bg_plugin_registry_t *,
+                                                  int audio_to_video);
+
+int bg_plugin_registry_get_encode_audio_to_video(bg_plugin_registry_t *);
+
 /*
  *  Add a device to a plugin
  */

@@ -53,6 +53,10 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
     {
     lqt_parameter_info = (encode) ? codec_info[i]->encoding_parameters :
       codec_info[i]->decoding_parameters;
+
+    if(!i)
+      info->val_default.val_str = bg_strdup((char*)0,
+                                            codec_info[i]->name);
     
     info->multi_names[i] = bg_strdup((char*)0,
                                      codec_info[i]->name);
@@ -70,9 +74,10 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
     
     for(j = 0; j < num_parameters; j++)
       {
-      info->multi_parameters[i][j].name =
-        bg_sprintf("codec_%s_%s", info->multi_names[i],
-                   lqt_parameter_info[j].name);
+      info->multi_parameters[i][j].name = bg_strdup(info->multi_parameters[i][j].name,
+                                                    lqt_parameter_info[j].name);
+      //        bg_sprintf("codec_%s_%s", info->multi_names[i],
+      //                   lqt_parameter_info[j].name);
       info->multi_parameters[i][j].long_name = 
         bg_strdup((char*)0, lqt_parameter_info[j].real_name);
 
@@ -115,13 +120,13 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
             bg_strdup((char*)0,
                       lqt_parameter_info[j].val_default.val_string);
 
-          info->multi_parameters[i][j].options =
+          info->multi_parameters[i][j].multi_names =
             calloc(lqt_parameter_info[j].num_stringlist_options+1,
                    sizeof(char*));
           
           for(k = 0; k < lqt_parameter_info[j].num_stringlist_options; k++)
             {
-            info->multi_parameters[i][j].options[k] =
+            info->multi_parameters[i][j].multi_names[k] =
               bg_strdup((char*)0, lqt_parameter_info[j].stringlist_options[k]);
             }
           break;

@@ -10,14 +10,6 @@
 
 struct track_dialog_s
   {
-  /* Metadata */
-
-  bg_parameter_info_t * param_metadata;
-
-  /* General info */
-  
-  bg_parameter_info_t * param_general;
-
   /* Config dialog */
 
   bg_dialog_t * cfg_dialog;
@@ -29,77 +21,101 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t)
   int i;
   char * label;
   track_dialog_t * ret;
-
+  void * parent;
+    
   ret = calloc(1, sizeof(*ret));
   ret->cfg_dialog = bg_dialog_create_multi("Transcode options");
 
   /* General */
-
-  ret->param_general  = bg_transcoder_track_get_parameters_general(t);
-
+  
   bg_dialog_add(ret->cfg_dialog,
                 "General",
-                (bg_cfg_section_t*)0,
-                bg_transcoder_track_set_parameter_general,
-                t,
-                ret->param_general);
+                t->general_section,
+                NULL, NULL,
+                t->general_parameters);
 
   
   /* Metadata */
-
-  ret->param_metadata = bg_metadata_get_parameters(&(t->metadata));
-
+  
   bg_dialog_add(ret->cfg_dialog,
                 "Metadata",
-                (bg_cfg_section_t*)0,
-                bg_metadata_set_parameter,
-                &(t->metadata),
-                ret->param_metadata);
+                t->metadata_section,
+                NULL,
+                NULL,
+                t->metadata_parameters);
 
+  /* Audio encoder */
+
+  if(t->audio_encoder_parameters)
+    {
+    bg_dialog_add(ret->cfg_dialog,
+                  bg_cfg_section_get_name(t->audio_encoder_section),
+                  t->audio_encoder_section,
+                  NULL,
+                  NULL,
+                  t->audio_encoder_parameters);
+    }
+
+  /* Video encoder */
+
+  if(t->video_encoder_parameters)
+    {
+    bg_dialog_add(ret->cfg_dialog,
+                  bg_cfg_section_get_name(t->video_encoder_section),
+                  t->video_encoder_section,
+                  NULL,
+                  NULL,
+                  t->video_encoder_parameters);
+    }
+  
+  
   /* Audio streams */
 
   for(i = 0; i < t->num_audio_streams; i++)
     {
-    label = bg_sprintf("Audio format %d", i+1);
-    bg_dialog_add(ret->cfg_dialog,
-                  label,
-                  (bg_cfg_section_t*)0,
-                  bg_transcoder_audio_stream_set_format_parameter,
-                  &(t->audio_streams[i]),
-                  bg_transcoder_audio_stream_get_parameters(&(t->audio_streams[i])));
+    label = bg_sprintf("Audio stream %d", i+1);
+    parent = bg_dialog_add_parent(ret->cfg_dialog, NULL,
+                                  label);
     free(label);
-
-    label = bg_sprintf("Audio encoder %d", i+1);
-    bg_dialog_add(ret->cfg_dialog,
-                  label,
-                  (bg_cfg_section_t*)0,
-                  bg_transcoder_audio_stream_set_encoder_parameter,
-                  &(t->audio_streams[i]),
-                  t->audio_streams[i].encoder_parameters);
-    free(label);
+    
+    bg_dialog_add_child(ret->cfg_dialog, parent,
+                        "General",
+                        t->audio_streams[i].general_section,
+                        NULL,
+                        NULL,
+                        bg_transcoder_track_audio_get_format_parameters());
+    bg_dialog_add_child(ret->cfg_dialog, parent,
+                        "Encoder",
+                        t->audio_streams[i].encoder_section,
+                        NULL,
+                        NULL,
+                        t->audio_streams[i].encoder_parameters);
     }
 
   /* Video streams */
 
   for(i = 0; i < t->num_video_streams; i++)
     {
-    label = bg_sprintf("Video format %d", i+1);
-    bg_dialog_add(ret->cfg_dialog,
-                  label,
-                  (bg_cfg_section_t*)0,
-                  bg_transcoder_video_stream_set_format_parameter,
-                  &(t->video_streams[i]),
-                  bg_transcoder_video_stream_get_parameters(&(t->video_streams[i])));
-    free(label);
+    label = bg_sprintf("Video stream %d", i+1);
 
-    label = bg_sprintf("Video encoder %d", i+1);
-    bg_dialog_add(ret->cfg_dialog,
-                  label,
-                  (bg_cfg_section_t*)0,
-                  bg_transcoder_video_stream_set_encoder_parameter,
-                  &(t->video_streams[i]),
-                  t->video_streams[i].encoder_parameters);
+    parent = bg_dialog_add_parent(ret->cfg_dialog, NULL,
+                                  label);
     free(label);
+    
+
+    bg_dialog_add_child(ret->cfg_dialog, parent,
+                        "General",
+                        t->video_streams[i].general_section,
+                        NULL,
+                        NULL,
+                        bg_transcoder_track_video_get_format_parameters());
+
+    bg_dialog_add_child(ret->cfg_dialog, parent,
+                        "Encoder",
+                        t->video_streams[i].encoder_section,
+                        NULL,
+                        NULL,
+                        t->video_streams[i].encoder_parameters);
     }
   
   

@@ -21,7 +21,7 @@
 #include <string.h>
 #include "gtk_dialog.h"
 
-typedef struct
+typedef struct dialog_section_s
   {
   bg_set_parameter_func set_param;
 
@@ -33,6 +33,13 @@ typedef struct
   bg_parameter_info_t * infos;
   bg_cfg_section_t * cfg_section;
 
+  /* Dialog sections can be nested */
+
+  struct dialog_section_s * children;
+  int num_children;
+
+  GtkWidget * notebook;
+  
   } dialog_section_t;
 
 struct bg_dialog_s
@@ -41,10 +48,8 @@ struct bg_dialog_s
   GtkWidget * apply_button;
   GtkWidget * close_button;
   GtkWidget * window;
-  GtkWidget * notebook;
   GtkWidget * mainbox;
-  dialog_section_t * sections;
-  int num_sections;
+  dialog_section_t root_section;
   };
 
 static void apply_section(dialog_section_t * s)
@@ -90,16 +95,18 @@ static void apply_section(dialog_section_t * s)
     parameter_index++;
     }
 
-  s->set_param(s->callback_data, NULL, NULL);
+  
+  if(s->set_param)
+    s->set_param(s->callback_data, NULL, NULL);
+
+  for(i = 0; i < s->num_children; i++)
+    apply_section(&(s->children[i]));
   
   }
 
 static void apply_values(bg_dialog_t * d)
   {
-  int i;
-  /*  fprintf(stderr, "Apply Section %d\n", d->num_sections); */
-  for(i = 0; i < d->num_sections; i++)
-    apply_section(&(d->sections[i]));
+  apply_section(&(d->root_section));
   }
 
 static void button_callback(GtkWidget * w, gpointer * data)
@@ -355,37 +362,37 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
   
   if(num_sections)
     {
-    ret->notebook = gtk_notebook_new();
+    ret->root_section.notebook = gtk_notebook_new();
 
-    ret->num_sections = num_sections;
-    ret->sections = calloc(ret->num_sections, sizeof(dialog_section_t));
+    ret->root_section.num_children = num_sections;
+    ret->root_section.children = calloc(ret->root_section.num_children, sizeof(dialog_section_t));
     
     index = 0;
 
-    for(i = 0; i < ret->num_sections; i++)
+    for(i = 0; i < ret->root_section.num_children; i++)
       {
       label = gtk_label_new(info[index].long_name);
       gtk_widget_show(label);
       
       while(info[index].type == BG_PARAMETER_SECTION)
         index++;
-      table = create_section(&(ret->sections[i]), &(info[index]),
+      table = create_section(&(ret->root_section.children[i]), &(info[index]),
                              section, set_param, callback_data);
-      gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook),
+      gtk_notebook_append_page(GTK_NOTEBOOK(ret->root_section.notebook),
                                table, label);
       while(info[index].name &&
             (info[index].type != BG_PARAMETER_SECTION))
         index++;
       }
-    gtk_widget_show(ret->notebook);
-    gtk_box_pack_start(GTK_BOX(ret->mainbox), ret->notebook, TRUE, TRUE, 0);
+    gtk_widget_show(ret->root_section.notebook);
+    gtk_box_pack_start(GTK_BOX(ret->mainbox), ret->root_section.notebook, TRUE, TRUE, 0);
     }
   else
     {
-    ret->num_sections = 1;
-    ret->sections = calloc(1,
-                           ret->num_sections * sizeof(dialog_section_t));
-    table = create_section(ret->sections, info, section, set_param, callback_data);
+    ret->root_section.num_children = 1;
+    ret->root_section.children = calloc(1,
+                           ret->root_section.num_children * sizeof(dialog_section_t));
+    table = create_section(ret->root_section.children, info, section, set_param, callback_data);
     gtk_box_pack_start(GTK_BOX(ret->mainbox), table, TRUE, TRUE, 0);
     }
   return ret;
@@ -394,18 +401,18 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
 bg_dialog_t * bg_dialog_create_multi(const char * title)
   {
   bg_dialog_t * ret = create_dialog(title);
-  ret->notebook = gtk_notebook_new();
-  gtk_widget_show(ret->notebook);
-  gtk_box_pack_start(GTK_BOX(ret->mainbox), ret->notebook, TRUE, TRUE, 0);
+  ret->root_section.notebook = gtk_notebook_new();
+  gtk_widget_show(ret->root_section.notebook);
+  gtk_box_pack_start(GTK_BOX(ret->mainbox), ret->root_section.notebook, TRUE, TRUE, 0);
   return ret;
   }
 
-void bg_dialog_add(bg_dialog_t *d,
-                   const char * name,
-                   bg_cfg_section_t * section,
-                   bg_set_parameter_func set_param,
-                   void * callback_data,
-                   bg_parameter_info_t * info)
+void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
+                         const char * name,
+                         bg_cfg_section_t * section,
+                         bg_set_parameter_func set_param,
+                         void * callback_data,
+                         bg_parameter_info_t * info)
   {
   int num_items;
   int num_sections;
@@ -414,7 +421,8 @@ void bg_dialog_add(bg_dialog_t *d,
   num_sections = 0;
   GtkWidget * tab_label;
   int i, item_index, section_index;
-  
+  dialog_section_t * parent = (dialog_section_t*)_parent;
+    
   while(info[num_items+num_sections].name)
     {
     if(info[num_items+num_sections].type == BG_PARAMETER_SECTION)
@@ -425,23 +433,30 @@ void bg_dialog_add(bg_dialog_t *d,
  
   if(!num_sections)
     {
-    d->sections = realloc(d->sections,
-                            (d->num_sections+1)*sizeof(dialog_section_t));
-    table = create_section(&(d->sections[d->num_sections]),
+    parent->children = realloc(parent->children,
+                            (parent->num_children+1)*sizeof(dialog_section_t));
+    memset(&(parent->children[parent->num_children]),0,
+           sizeof(parent->children[parent->num_children]));
+    
+    table = create_section(&(parent->children[parent->num_children]),
                            info, section, set_param, callback_data);
     tab_label = gtk_label_new(name);
     gtk_widget_show(tab_label);
-    gtk_notebook_append_page(GTK_NOTEBOOK(d->notebook),
+    gtk_notebook_append_page(GTK_NOTEBOOK(parent->notebook),
                              table, tab_label);
-    d->num_sections++;
+    parent->num_children++;
     }
   else
     {
-    d->sections = realloc(d->sections,
-                            (d->num_sections+num_sections)*
-                            sizeof(dialog_section_t));
+    parent->children = realloc(parent->children,
+                               (parent->num_children+num_sections)*
+                               sizeof(dialog_section_t));
+
+    memset(&(parent->children[parent->num_children]),0,
+           sizeof(parent->children[parent->num_children]) * num_sections);
+    
     item_index = 0;
-    section_index = d->num_sections;
+    section_index = parent->num_children;
     for(i = 0; i < num_sections; i++)
       {
       tab_label = gtk_label_new(info[item_index].long_name);
@@ -449,10 +464,10 @@ void bg_dialog_add(bg_dialog_t *d,
 
       item_index++;
       
-      table = create_section(&(d->sections[section_index]),
+      table = create_section(&(parent->children[section_index]),
                              &(info[item_index]),
                              section, set_param, callback_data);
-      gtk_notebook_append_page(GTK_NOTEBOOK(d->notebook),
+      gtk_notebook_append_page(GTK_NOTEBOOK(parent->notebook),
                                table, tab_label);
 
       while((info[item_index].name) &&
@@ -460,9 +475,20 @@ void bg_dialog_add(bg_dialog_t *d,
         item_index++;
       section_index++;
       }
-    d->num_sections += num_sections;
+    parent->num_children += num_sections;
     }
 
+  }
+
+void bg_dialog_add(bg_dialog_t *d,
+                   const char * name,
+                   bg_cfg_section_t * section,
+                   bg_set_parameter_func set_param,
+                   void * callback_data,
+                   bg_parameter_info_t * info)
+  {
+  bg_dialog_add_child(d, &(d->root_section), name,
+                      section, set_param, callback_data, info);
   }
 
 void bg_dialog_show(bg_dialog_t * d)
@@ -471,17 +497,34 @@ void bg_dialog_show(bg_dialog_t * d)
   gtk_main();
   }
 
+static void destroy_section(dialog_section_t * s)
+  {
+  int i;
+
+  if(s->num_widgets)
+    {
+    for(i = 0; i < s->num_widgets; i++)
+      {
+      s->widgets[i].funcs->destroy(&(s->widgets[i]));
+      }
+    free(s->widgets);
+    }
+  
+  if(s->num_children)
+    {
+    for(i = 0; i < s->num_children; i++)
+      {
+      destroy_section(&(s->children[i]));
+      }
+    free(s->children);
+    }
+  
+  }
+
 void bg_dialog_destroy(bg_dialog_t * d)
   {
-  int i, j;
 
-  for(i = 0; i < d->num_sections; i++)
-    {
-    for(j = 0; j < d->sections[i].num_widgets; j++)
-      d->sections[i].widgets[j].funcs->destroy(&d->sections[i].widgets[j]);
-    free(d->sections[i].widgets);
-    }
-  free(d->sections);
+  destroy_section(&(d->root_section));
   gtk_widget_destroy(d->window);
   free(d);
   }
@@ -506,4 +549,46 @@ void bg_gtk_change_callback_block(bg_gtk_widget_t * w, int block)
     g_signal_handler_block(w->callback_widget, w->callback_id);
   else
     g_signal_handler_unblock(w->callback_widget, w->callback_id);
+  }
+
+
+void * bg_dialog_add_parent(bg_dialog_t *d, void * _parent, const char * label)
+  {
+  GtkWidget * tab_label;
+  GtkWidget * table;
+
+  dialog_section_t * parent;
+
+  if(_parent)
+    parent = (dialog_section_t*)_parent;
+  else
+    parent = &(d->root_section);
+  
+  parent->children = realloc(parent->children,
+                             sizeof(*(parent->children))*(parent->num_children+1));
+
+  memset(&(parent->children[parent->num_children]),0,
+         sizeof(parent->children[parent->num_children]));
+
+  tab_label = gtk_label_new(label);
+  gtk_widget_show(tab_label);
+    
+  parent->children[parent->num_children].notebook = gtk_notebook_new();
+
+  gtk_widget_show(parent->children[parent->num_children].notebook);
+
+  table = gtk_table_new(1, 1, 0);
+  gtk_container_set_border_width(GTK_CONTAINER(table), 5);
+
+  gtk_table_attach_defaults(GTK_TABLE(table),
+                            parent->children[parent->num_children].notebook,
+                            0, 1, 0, 1);
+  gtk_widget_show(table);
+  
+  gtk_notebook_append_page(GTK_NOTEBOOK(parent->notebook),
+                           table,
+                           tab_label);
+  parent->num_children++;
+  
+  return &(parent->children[parent->num_children-1]);
   }
