@@ -55,9 +55,15 @@ static int init_faad2(bgav_stream_t * s)
   /* Init the library using a DecoderSpecificInfo */
 
   //  fprintf(stderr, "Extradata size: %d\n", s->ext_size);
-  result = faacDecInit2(priv->dec, s->ext_data,
-                        s->ext_size,
-                        &samplerate, &channels);
+
+  if(s->fourcc == BGAV_MK_FOURCC('a', 'a', 'c', ' '))
+    result = faacDecInit(priv->dec, s->ext_data,
+                         s->ext_size,
+                         &samplerate, &channels);
+  else
+    result = faacDecInit2(priv->dec, s->ext_data,
+                          s->ext_size,
+                          &samplerate, &channels);
   //  fprintf(stderr, "Result: %d %d %d\n", result, samplerate, channels);
 
   /* Some mp4 files have a wrong samplerate in the sample description,
@@ -136,13 +142,14 @@ static int decode_frame(bgav_stream_t * s)
             faacDecGetErrorMessage(frame_info.error));
     //    priv->data_buffer_size = 0;
     //    priv->frame->valid_samples = 0;
-    return 0; /* Recatching the stream is doomed top failure, so we end here */
+    return 0; /* Recatching the stream is doomed to failure, so we end here */
     }
-  //  fprintf(stderr, "Decoded %d samples, used %d bytes\n", frame_info.samples,
-  //          frame_info.bytesconsumed);
 
   priv->last_block_size = frame_info.samples / s->data.audio.format.num_channels;
   priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
+
+  //  fprintf(stderr, "Decoded %d samples, used %d bytes\n", priv->last_block_size,
+  //          frame_info.bytesconsumed);
   
   return 1;
   }
@@ -208,6 +215,7 @@ static bgav_audio_decoder_t decoder =
   {
     name:   "FAAD AAC audio decoder",
     fourccs: (int[]){ BGAV_MK_FOURCC('m','p','4','a'),
+                      BGAV_MK_FOURCC('a','a','c',' '),
                       0x0 },
     
     init:   init_faad2,
