@@ -465,15 +465,20 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
     video_stream->data.video.format.image_height = priv->header.height;
     video_stream->data.video.format.frame_height = priv->header.height;
     }
+  video_stream->data.video.format.pixel_width = 1;
+  video_stream->data.video.format.pixel_height = 1;
+  
   video_stream->stream_id = VIDEO_STREAM_ID;
   
   //  video_stream->data.video.format.timescale = (int)(priv->header.fps * 1000.0);
   
   video_stream->data.video.format.timescale = 1000;
   video_stream->timescale = 1000;
-
-  video_stream->data.video.format.frame_duration = 1000.0;
   
+  video_stream->data.video.format.frame_duration = 1000.0;
+  video_stream->data.video.depth = 24;
+  video_stream->data.video.image_size = video_stream->data.video.format.image_width *
+    video_stream->data.video.format.image_height * 3;
   /* Set up metadata */
 
   ctx->tt->current_track->metadata.title     = bgav_strndup(priv->header.title, NULL);
@@ -549,6 +554,7 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
       else
         len = 24;
       do_audio = 1;
+      priv->audio_pos += len;
       break;
     default:
       fprintf(stderr, "Unknown packet type\n");
@@ -609,11 +615,6 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
     return 0;
     }
   stream->packet->data_size += len;
-
-  if(do_audio)
-    {
-    priv->audio_pos += len;
-    }
 
   return 1;
   }

@@ -317,6 +317,8 @@ static int init_w32(bgav_stream_t * s)
 
   WAVEFORMATEX out_format;
 
+  fprintf(stderr, "OPEN AUDIO\n");
+  
   codec_index = find_codec_index(s);
   if(codec_index == -1)
     goto fail;
@@ -456,6 +458,8 @@ static int init_w32(bgav_stream_t * s)
     free(in_fmt_buffer);
 
   s->description = bgav_sprintf("%s", info->format_name);
+
+  fprintf(stderr, "OPEN AUDIO DONE\n");
   
   return 1;
   fail:

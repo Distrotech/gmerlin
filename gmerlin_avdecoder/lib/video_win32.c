@@ -233,7 +233,8 @@ static int init_std(bgav_stream_t * s)
   win32_priv_t * priv;
   bgav_BITMAPINFOHEADER_t bih_in;
   bgav_BITMAPINFOHEADER_t bih_out;
-    
+
+  fprintf(stderr, "OPEN VIDEO\n");
   priv = calloc(1, sizeof(*priv));
   priv->ldt_fs = Setup_LDT_Keeper();
 
@@ -242,6 +243,7 @@ static int init_std(bgav_stream_t * s)
   priv->ex_functions = info->ex_functions;
     
   bgav_BITMAPINFOHEADER_set_format(&bih_in, s);
+  bih_in.biCompression = 0x6f766976;
   
   priv->hic = ICOpen ((int)(info->dll_name), bih_in.biCompression,
                       ICMODE_FASTDECOMPRESS);
@@ -258,15 +260,16 @@ static int init_std(bgav_stream_t * s)
 
   unpack_bih(&bih_out, &priv->bih_out);
   
-  if(result)
+  if(result < 0)
     {
     fprintf(stderr, "Cannot get format\n");
-    bgav_BITMAPINFOHEADER_dump(&bih_in);
+    //    bgav_BITMAPINFOHEADER_dump(&bih_in);
     }
 
-  //  fprintf(stderr, "Formats:");
-  //  bgav_BITMAPINFOHEADER_dump(&bih_in);
-  //  bgav_BITMAPINFOHEADER_dump(&bih_out);
+  fprintf(stderr, "Input Format:");
+  bgav_BITMAPINFOHEADER_dump(&bih_in);
+  fprintf(stderr, "Output Format:");
+  bgav_BITMAPINFOHEADER_dump(&bih_out);
     
   s->data.video.decoder->priv = priv;
 
@@ -337,6 +340,8 @@ static int init_std(bgav_stream_t * s)
 
   s->description = bgav_strndup(info->format_name, (char*)0);
 
+  fprintf(stderr, "OPEN VIDEO DONE\n");
+
   return 1;
   }
 
@@ -362,6 +367,8 @@ static int decode_std(bgav_stream_t * s, gavl_video_frame_t * frame)
   if(!frame)
     flags |= ICDECOMPRESS_HURRYUP|ICDECOMPRESS_PREROL;
 
+  fprintf(stderr, "ICDecompressn %d\n", p->data_size);
+  
   result = (!priv->ex_functions)
     ?ICDecompress(priv->hic, flags,
                   &priv->bih_in, p->data, &priv->bih_out, 
