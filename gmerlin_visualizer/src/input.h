@@ -22,6 +22,7 @@
 #include <gmerlin/pluginregistry.h>
 #include <gmerlin/utils.h>
 
+#include "vis_plugin.h"
 
 /* This file is part of gmerlin_vizualizer */
 
@@ -34,7 +35,6 @@
 typedef struct
   {
   int do_convert_gavl;
-  int conversion_mode;
   
   gavl_audio_frame_t * input_frame;
   gavl_audio_frame_t * frame;  
@@ -46,13 +46,9 @@ typedef struct
   bg_plugin_handle_t * input_handle;
   bg_ra_plugin_t     * input;
 
-  gint16 pcm_data[2][512];
-  gint16 pcm_data_mono[2][512];
-  
-  gint16 freq_data[2][256];
-  gint16 freq_data_mono[2][256];
-
-  GList * active_plugins;
+  vis_plugin_audio_t audio_frame;
+    
+  vis_plugin_handle_t * active_plugins;
 
   fft_state * state;
 
@@ -64,8 +60,8 @@ extern input_t * the_input;
 
 int input_create();
 
-void input_add_plugin(input_t * c, VisPlugin * plugin);
-void input_remove_plugin(input_t * c, VisPlugin * plugin);
+void input_add_plugin(input_t * c, vis_plugin_handle_t * plugin);
+void input_remove_plugin(input_t * c, const vis_plugin_info_t * info);
 
 int input_iteration(void * data);
 

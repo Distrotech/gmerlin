@@ -47,9 +47,7 @@ int input_create()
   char * tmp_path;
   the_input = calloc(1, sizeof(*the_input));
   
-  the_input->active_plugins = (GList*)0;
   
-  the_input->conversion_mode = 0;
   the_input->state = fft_init();
 
   /* Create plugin regsitry */
@@ -101,65 +99,63 @@ int input_create()
     }
   the_input->frame = gavl_audio_frame_create(NULL);
 
-  the_input->frame->channels.s_16[0] = the_input->pcm_data[0];
-  the_input->frame->channels.s_16[1] = the_input->pcm_data[1];
+  the_input->frame->channels.s_16[0] = the_input->audio_frame.pcm_data[0];
+  the_input->frame->channels.s_16[1] = the_input->audio_frame.pcm_data[1];
   
   return 1;
   }
 
-static int check_conversion_flags(VisPlugin * plugin)
-  {
-  int ret = 0;
-  if((plugin->num_pcm_chs_wanted == 1) && (plugin->render_pcm))
-    ret |= INPUT_NEED_MONO;
-  if(plugin->render_freq)
-    {
-    if(plugin->num_freq_chs_wanted == 2)
-      ret |= INPUT_NEED_FREQ_STEREO;
-    else
-      ret |= (INPUT_NEED_FREQ_MONO|INPUT_NEED_MONO);
-    }
-  return ret;
-  }
 
-void input_add_plugin(input_t * c, VisPlugin * plugin)
+void input_add_plugin(input_t * c, vis_plugin_handle_t * plugin)
   {
   /*  fprintf(stderr, "esd_connection_add_plugin..."); */
-  
-  c->active_plugins = g_list_append(c->active_plugins, (gpointer)plugin);
 
-  c->conversion_mode |= check_conversion_flags(plugin);
+  plugin->next = c->active_plugins;
+  c->active_plugins = plugin;
 
-  if(plugin->init)
-    plugin->init();
+  if(plugin->start)
+    plugin->start(plugin);
   
-  if(plugin->playback_start)
-    plugin->playback_start();
   /* fprintf(stderr, "done\n"); */
   }
 
-void input_remove_plugin(input_t * c, VisPlugin * plugin)
+vis_plugin_handle_t * list_remove(vis_plugin_handle_t * l, vis_plugin_handle_t * handle)
   {
-  VisPlugin * tmp_plugin;
-  int num_plugins, i;
+  vis_plugin_handle_t * tmp_handle;
   
-  c->active_plugins = g_list_remove(c->active_plugins, (gpointer)plugin);
-
-  if(plugin->playback_stop)
-    plugin->playback_stop();
-
-  if(plugin->cleanup)
-    plugin->cleanup();
-    
-  num_plugins = g_list_length(c->active_plugins);
-  
-  c->conversion_mode = 0;
-  for(i = 0; i < num_plugins; i++)
+  if(handle == l)
     {
-    tmp_plugin = (VisPlugin*)g_list_nth_data(c->active_plugins, i);
-    
-    c->conversion_mode |= check_conversion_flags(tmp_plugin);
+    l = l->next;
+    return l;
     }
+  
+  tmp_handle = l;
+  while(tmp_handle->next != handle)
+    tmp_handle = tmp_handle->next;
+
+  tmp_handle->next = handle->next;
+  return l;
+  }
+
+
+void input_remove_plugin(input_t * c, const vis_plugin_info_t * info)
+  {
+  vis_plugin_handle_t * plugin;
+  plugin = c->active_plugins;
+  while(plugin)
+    {
+    if(plugin->info == info)
+      break;
+    plugin = plugin->next;
+    }
+  if(!plugin)
+    return;
+  
+  c->active_plugins = list_remove(c->active_plugins, plugin);
+
+  if(plugin->stop)
+    plugin->stop(plugin);
+  plugin->unload(plugin);
   }
 
 int input_iteration(void * data)
@@ -167,14 +163,11 @@ int input_iteration(void * data)
   gint16 * ptr1;
   gint16 * ptr2;
   gint16 * ptr3;
-  int i, num_plugins;
-  GList * node;
-  VisPlugin* plugin;
-  
+  int i;
   input_t * c = (input_t*)data;
-  
-  num_plugins = g_list_length(c->active_plugins);
 
+  vis_plugin_handle_t * tmp_plugin;
+  
   /* Read data from the input */
   
   if(c->do_convert_gavl)
@@ -189,58 +182,36 @@ int input_iteration(void * data)
   
   /* Check, if we need mono samples */
 
-  if(c->conversion_mode & INPUT_NEED_MONO)
-    {
-    ptr1 = c->pcm_data[0];
-    ptr2 = c->pcm_data[1];
-    ptr3 = c->pcm_data_mono[0];
-    for(i = 0; i < 512; i++)
-      *(ptr3++) = (*(ptr1++) + *(ptr2++)) >> 1;
-    }
-
+  ptr1 = c->audio_frame.pcm_data[0];
+  ptr2 = c->audio_frame.pcm_data[1];
+  ptr3 = c->audio_frame.pcm_data_mono[0];
+  for(i = 0; i < 512; i++)
+    *(ptr3++) = (*(ptr1++) + *(ptr2++)) >> 1;
+  
   /* Check if we need the fft of the stereo samples */
   
-  if(c->conversion_mode & INPUT_NEED_FREQ_STEREO)
-    {
-    fft_perform(c->pcm_data[0], c->fft_scratch, c->state);
-    for(i = 0; i < 256; i++)
-      c->freq_data[0][i] = ((gint)sqrt(c->fft_scratch[i + 1])) >> 8;
-
-    fft_perform(c->pcm_data[1], c->fft_scratch, c->state);
-    for(i = 0; i < 256; i++)
-      c->freq_data[1][i] = ((gint)sqrt(c->fft_scratch[i + 1])) >> 8;
-    }
+  fft_perform(c->audio_frame.pcm_data[0], c->fft_scratch, c->state);
+  for(i = 0; i < 256; i++)
+    c->audio_frame.freq_data[0][i] = ((gint)sqrt(c->fft_scratch[i + 1])) >> 8;
+  
+  fft_perform(c->audio_frame.pcm_data[1], c->fft_scratch, c->state);
+  for(i = 0; i < 256; i++)
+    c->audio_frame.freq_data[1][i] = ((gint)sqrt(c->fft_scratch[i + 1])) >> 8;
   
   /* Check if we need the fft of the mono samples */
 
-  if(c->conversion_mode & INPUT_NEED_FREQ_MONO)
-    {
-    fft_perform(c->pcm_data_mono[0], c->fft_scratch, c->state);
-    for(i = 0; i < 256; i++)
-      c->freq_data_mono[0][i] = ((gint)sqrt(c->fft_scratch[i + 1])) >> 8;
-    }
+  fft_perform(c->audio_frame.pcm_data_mono[0], c->fft_scratch, c->state);
+  for(i = 0; i < 256; i++)
+    c->audio_frame.freq_data_mono[0][i] = ((gint)sqrt(c->fft_scratch[i + 1])) >> 8;
 
-  node = g_list_first(c->active_plugins);
-
-  for(i = 0; i < num_plugins; i++)
+  tmp_plugin = c->active_plugins;
+  
+  while(tmp_plugin)
     {
-    plugin = (VisPlugin*)node->data;
-        
-    if(plugin->render_pcm)
-      {
-      if(plugin->num_pcm_chs_wanted == 1)
-        plugin->render_pcm(c->pcm_data_mono);
-      else if(plugin->num_pcm_chs_wanted == 2)
-        plugin->render_pcm(c->pcm_data);
-      }
-    if(plugin->render_freq)
-      {
-      if(plugin->num_freq_chs_wanted == 1)
-        plugin->render_freq(c->freq_data_mono);
-      else
-        plugin->render_freq(c->freq_data);
-      }
-    node = node->next;
+    if(tmp_plugin->render)
+      tmp_plugin->render(tmp_plugin, &(c->audio_frame));
+
+    tmp_plugin = tmp_plugin->next;
     }
 
   /* Handle gtk events */
@@ -250,3 +221,10 @@ int input_iteration(void * data)
   return 1;
   }
 
+void input_cleanup()
+  {
+  while(the_input->active_plugins)
+    {
+    input_remove_plugin(the_input, the_input->active_plugins->info);
+    }
+  }

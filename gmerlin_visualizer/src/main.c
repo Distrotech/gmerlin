@@ -34,6 +34,26 @@
 #include "mainwindow.h"
 #include "input.h"
 
+#if 0
+
+#include <gmerlin/cmdline.h>
+int iconify = 0;
+
+static void cmd_iconify(void * data, int * argc, char *** _argv, int arg)
+  {
+  iconify = 1;
+  }
+
+bg_cmdline_arg_t options[] =
+  {
+    {
+      arg:         "-iconify",
+      help_string: "Iconify after startup",
+      callback:    cmd_iconify,
+    },
+    { /* End of options */ }
+  };
+#endif
 typedef struct
   {
   GtkWidget * window;
@@ -92,9 +112,12 @@ static void message(const char * text)
 
 int main(int argc, char ** argv)
   {
-  xesd_main_window * main_window;
+  main_window_t * main_window;
     
   gtk_init(&argc, &argv);
+#if 0
+  bg_cmdline_parse(options, &argc, &argv, NULL);
+#endif
   gdk_rgb_init();
 
   if(!input_create())
@@ -103,12 +126,17 @@ int main(int argc, char ** argv)
     return -1;
     }
   
-  main_window =  xesd_create_main_window();
+  main_window =  main_window_create();
 
   gtk_widget_show(main_window->window);
+#if 0
+  if(iconify)
+    gtk_window_iconify(GTK_WINDOW(main_window->window));
+#endif
   //  gtk_timeout_add(10, input_iteration, the_input);
   gtk_idle_add(input_iteration, the_input);
   gtk_main();
+
+  main_window_destroy(main_window);
   return 0;
-  
   }

@@ -39,7 +39,7 @@
 #include <stdlib.h>
 
 /* Scan the xmms plugin directory for visualization plugins */
-
+#if 0
 static GList * get_installed_plugins()
   {
   VisPlugin * plugin;
@@ -50,7 +50,7 @@ static GList * get_installed_plugins()
   char * filename;
   char * pos;
   xesd_plugin_info * plugin_info;
-  DIR * dir = opendir(PLUGIN_DIR);
+  DIR * dir = opendir(XMMS_VISUALIZATION_PLUGIN_DIR);
   filename = malloc(PATH_MAX + 1);
   
   while(1)
@@ -71,7 +71,7 @@ static GList * get_installed_plugins()
     if(strncmp(entry->d_name, "lib", 3))
       continue;
     
-    sprintf(filename, "%s/%s", PLUGIN_DIR, entry->d_name);
+    sprintf(filename, "%s/%s", XMMS_VISUALIZATION_PLUGIN_DIR, entry->d_name);
     
     plugin = load_vis_plugin(filename);
     if(!plugin)
@@ -91,23 +91,31 @@ static GList * get_installed_plugins()
   closedir(dir);
   return ret;
   }
+#endif
 
 static void button_callback(GtkWidget * w, gpointer * data)
   {
-  xesd_main_window * win;
-  win = (xesd_main_window*)data;
+  main_window_t * win;
+  win = (main_window_t*)data;
 
   if(w == win->quit_button)
     gtk_main_quit();
   else if(w == win->configure_button)
     {
     if(win->current_plugin_info)
-      win->current_plugin_info->plugin->configure();
+      {
+      if(!win->current_plugin_handle)
+        win->current_plugin_handle = vis_plugin_load(win->current_plugin_info);
+      if(win->current_plugin_handle->configure)
+        win->current_plugin_handle->configure(win->current_plugin_handle);
+      }
     }
   else if(w == win->about_button)
     {
-    if(win->current_plugin_info)
-      win->current_plugin_info->plugin->about();
+    if(!win->current_plugin_handle)
+      win->current_plugin_handle = vis_plugin_load(win->current_plugin_info);
+    if(win->current_plugin_handle->about)
+      win->current_plugin_handle->about(win->current_plugin_handle);
     }
   else if((w == win->enable_button) && !(win->no_enable_callback) &&
           (win->current_plugin_info))
@@ -120,15 +128,19 @@ static void button_callback(GtkWidget * w, gpointer * data)
               win->current_plugin_info->name,
               win->current_plugin_info->filename);
 #endif
-
+      if(!win->current_plugin_handle)
+        win->current_plugin_handle = vis_plugin_load(win->current_plugin_info);
+      
       input_add_plugin(the_input,
-                       win->current_plugin_info->plugin);
+                       win->current_plugin_handle);
       }
     else
       {
       win->current_plugin_info->enabled = 0;
+      vis_plugins_save(win->plugins);
+      
       input_remove_plugin(the_input,
-                                   win->current_plugin_info->plugin);
+                          win->current_plugin_info);
       }
     }
   }
@@ -142,36 +154,41 @@ static void select_row_callback(GtkWidget * w, int row, int column,
                                 GdkEvent * event,
                                 gpointer * data)
   {
-  xesd_main_window * win;
-  win = (xesd_main_window*)data;
+  int i;
+  main_window_t * win;
+  win = (main_window_t*)data;
 
   if(!win->current_plugin_info)
     gtk_widget_set_sensitive(win->enable_button, 1);
 
   /* Unload old plugins */
   
-  if((win->current_plugin_info) && !(win->current_plugin_info->enabled))
-    unload_plugin(win->current_plugin_info);
+  if((win->current_plugin_handle) && !(win->current_plugin_info->enabled))
+    {
+    win->current_plugin_handle->unload(win->current_plugin_handle);
+    win->current_plugin_handle = (vis_plugin_handle_t*)0;
+    }
   
-  win->current_plugin_info = (xesd_plugin_info*)g_list_nth_data(win->plugins,
-                                                                row);
+  win->current_plugin_info = win->plugins;
+  for(i = 0; i < row; i++)
+    win->current_plugin_info = win->current_plugin_info->next;
 
   /* Load the plugin if not already loaded */
 
-  if(!win->current_plugin_info->plugin)
-    load_plugin(win->current_plugin_info);
+  //  if(!win->current_plugin_info->plugin)
+  //    load_plugin(win->current_plugin_info);
   
   win->no_enable_callback = 1;
   gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(win->enable_button),
                               win->current_plugin_info->enabled);
   win->no_enable_callback = 0;
       
-  if(win->current_plugin_info->plugin->configure)
+  if(win->current_plugin_info->flags & VIS_PLGUIN_HAS_CONFIGURE)
     gtk_widget_set_sensitive(win->configure_button, 1);
   else
     gtk_widget_set_sensitive(win->configure_button, 0);
 
-  if(win->current_plugin_info->plugin->about)
+  if(win->current_plugin_info->flags & VIS_PLGUIN_HAS_ABOUT)
     gtk_widget_set_sensitive(win->about_button, 1);
   else
     gtk_widget_set_sensitive(win->about_button, 0);
@@ -179,17 +196,16 @@ static void select_row_callback(GtkWidget * w, int row, int column,
 
 static char * _title = "XMMS Visualization Plugins";
 
-xesd_main_window * xesd_create_main_window()
+main_window_t * main_window_create()
   {
-  int num_plugins, i;
-  xesd_plugin_info * info;
+  vis_plugin_info_t * info;
   GtkWidget * mainbox, * buttonbox, *scrolledwindow;
   
-  xesd_main_window * ret = calloc(1, sizeof(xesd_main_window));
-  
-  ret->current_plugin_info = (xesd_plugin_info*)0;
-  ret->no_enable_callback = 0;
+  main_window_t * ret = calloc(1, sizeof(*ret));
 
+  ret->plugins = vis_plugins_find();
+  
+  
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(ret->window), "Gmerlin visualizer "VERSION);
   
@@ -201,15 +217,13 @@ xesd_main_window * xesd_create_main_window()
 
   gtk_signal_connect(GTK_OBJECT(ret->plugin_list), "select_row",
                      GTK_SIGNAL_FUNC(select_row_callback), (gpointer)ret);
-  
-  ret->plugins = get_installed_plugins();
 
-  num_plugins = g_list_length(ret->plugins);
+  info = ret->plugins;
   
-  for(i = 0; i < num_plugins; i++)
+  while(info)
     {
-    info = (xesd_plugin_info*)g_list_nth_data(ret->plugins, i);
     gtk_clist_append(GTK_CLIST(ret->plugin_list), &(info->name));
+    info = info->next;
     }
   scrolledwindow
     = gtk_scrolled_window_new(gtk_clist_get_hadjustment(GTK_CLIST(ret->plugin_list)),
@@ -269,6 +283,25 @@ xesd_main_window * xesd_create_main_window()
   gtk_widget_show(mainbox);
   
   gtk_container_add(GTK_CONTAINER(ret->window), mainbox);
+
+  info = ret->plugins;
+  while(info)
+    {
+    if(info->enabled)
+      {
+      fprintf(stderr, "Enabling %s\n", info->name);
+      ret->current_plugin_handle = vis_plugin_load(info);
+      input_add_plugin(the_input, ret->current_plugin_handle);
+      ret->current_plugin_handle = (vis_plugin_handle_t*)0;
+      }
+    info = info->next;
+    }
   
   return ret;
+  }
+
+void main_window_destroy(main_window_t * main_win)
+  {
+  vis_plugins_save(main_win->plugins);
+  free(main_win);
   }

@@ -6,8 +6,11 @@ Icon_DATA = visualizer_icon.png
 
 SUBDIRS = src
 
+bin_SCRIPTS = gmerlin_visualizer_launcher
+
 EXTRA_DIST = visualizer_icon.png \
 gmerlin-visualizer.desktop.in \
 gmerlin-visualizer.spec.in \
 autogen.sh \
-cvs_clean.sh
+cvs_clean.sh \
+gmerlin_visualizer_launcher

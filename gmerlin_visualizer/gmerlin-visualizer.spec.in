@@ -13,7 +13,7 @@ BuildRequires:  gmerlin-lib-devel = @GMERLIN_REQUIRED@
 BuildRequires:  xmms-devel >=       @XMMS_REQUIRED@
 BuildRequires:  gtk+-devel >=       @GTK_REQUIRED@
 Requires:       gmerlin-lib =       @GMERLIN_REQUIRED@
-Requires:       xmms >=             @XMMS_REQUIRED@
+Requires:       xmms >=             @XMMS1_REQUIRED@
 Requires:       gtk+ >=             @GTK_REQUIRED@
 Requires:       gmerlin-utils =     @GMERLIN_REQUIRED@
 Requires:       gmerlin-soundcard-plugin

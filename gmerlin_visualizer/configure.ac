@@ -16,8 +16,18 @@ GMERLIN_DATA_DIR=`pkg-config --variable=prefix gmerlin`
 GMERLIN_DATA_DIR="$GMERLIN_DATA_DIR/share/gmerlin"
 echo "Gmerlin data dir: $GMERLIN_DATA_DIR"
 
-XMMS_REQUIRED="1.2.2"
-AM_PATH_XMMS($XMMS_REQUIRED, , AC_MSG_ERROR(gmerlin_visualizer needs xmms with headers, 1))
+XMMS1_REQUIRED="1.2.2"
+have_xmms1="false"
+AH_TEMPLATE([HAVE_XMMS1], [Vorbis libraries are there])
+
+AM_PATH_XMMS($XMMS_REQUIRED, have_xmms1="true", AC_MSG_ERROR(gmerlin_visualizer needs xmms with headers, 1))
+
+AM_CONDITIONAL(HAVE_XMMS1, test x$have_xmms1 = xtrue)
+ 
+if test x$have_xmms1 = xtrue; then
+AC_DEFINE(HAVE_XMMS1)
+fi
+
 AC_SUBST(XMMS_REQUIRED)
 
 GTK_REQUIRED="1.2.8"
@@ -65,7 +75,7 @@ else
  CFLAGS="-O2 $CFLAGS"
 fi
 
-AC_DEFINE_UNQUOTED(PLUGIN_DIR, "$XMMS_VISUALIZATION_PLUGIN_DIR", Directory for xmms plugins)
+AC_DEFINE_UNQUOTED(XMMS_VISUALIZATION_PLUGIN_DIR, "$XMMS_VISUALIZATION_PLUGIN_DIR", Directory for xmms plugins)
 
 dnl AC_SUBST(DGA_LIBS)
 AC_SUBST(VM_LIBS)

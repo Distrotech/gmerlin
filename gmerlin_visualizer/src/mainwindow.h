@@ -17,6 +17,8 @@
 
 *****************************************************************/
 
+#include <vis_plugin.h>
+
 /* This file is part of vizualizer4esd */
 
 typedef struct
@@ -31,11 +33,12 @@ typedef struct
 
 typedef struct
   {
-  xesd_plugin_info * current_plugin_info;
-
+  vis_plugin_info_t * current_plugin_info;
+  vis_plugin_handle_t * current_plugin_handle;
+  
   int no_enable_callback;
   
-  GList * plugins;
+  vis_plugin_info_t * plugins;
     
   GtkWidget * window;
   GtkWidget * plugin_list;
@@ -44,14 +47,7 @@ typedef struct
   GtkWidget * about_button;
   GtkWidget * configure_button;
   GtkWidget * enable_button;
-  } xesd_main_window;
+  } main_window_t;
 
-xesd_main_window * xesd_create_main_window();
-
-/* Load a visualization plugin from file, */
-/* Retrun 0 if something failed */
-
-VisPlugin * load_vis_plugin(char * filename);
-
-void load_plugin(xesd_plugin_info *);
-void unload_plugin(xesd_plugin_info *);
+main_window_t * main_window_create();
+void main_window_destroy(main_window_t*);
