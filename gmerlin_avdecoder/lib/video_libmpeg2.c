@@ -41,6 +41,8 @@ typedef struct
   int do_resync;
   } mpeg2_priv_t;
 
+int dump_packet = 1;
+
 static int get_data(bgav_stream_t*s)
   {
   mpeg2_priv_t * priv;
@@ -53,6 +55,9 @@ static int get_data(bgav_stream_t*s)
   priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!priv->p)
     return 0;
+
+  //  fprintf(stderr, "Got data %d\n", priv->p->data_size);
+  //  bgav_hexdump(priv->p->data, 16, 16);
   
   mpeg2_buffer(priv->dec, priv->p->data, priv->p->data + priv->p->data_size);
   
@@ -194,7 +199,8 @@ static int init_mpeg2(bgav_stream_t*s)
       break;
     }
   /*
-   *  If the first frame after a sequence header is a P-Frame, we have most likely an
+   *  If the first frame after a sequence header is a P-Frame,
+   *  we have most likely an
    *  intra slice refresh stream
    */
 
@@ -212,6 +218,8 @@ int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
   /* Decode frame */
 
+  //  fprintf(stderr, "Decode frame\n");
+  
   if(f)
     mpeg2_skip(priv->dec, 0);
   else
@@ -222,8 +230,7 @@ int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     if(!parse(s, &state))
       return 0;
     if(((state == STATE_END) || (state == STATE_SLICE) ||
-        (state == STATE_INVALID_END)) &&
-       priv->info->display_fbuf)
+        (state == STATE_INVALID_END)) && priv->info->display_fbuf)
       break;
     }
   
@@ -265,6 +272,14 @@ int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
+#if 0
+  if(priv->info->display_picture->flags & PIC_FLAG_CODING_TYPE_I)
+    fprintf(stderr, "I-Frame\n");
+  else if(priv->info->display_picture->flags & PIC_FLAG_CODING_TYPE_P)
+    fprintf(stderr, "P-Frame\n");
+  else if(priv->info->display_picture->flags & PIC_FLAG_CODING_TYPE_B)
+    fprintf(stderr, "B-Frame\n");
+#endif
   
   //  fprintf(stderr, "Timestamp: %lld, duration: %d\n",
   //          s->data.video.last_frame_time,

@@ -28,6 +28,7 @@
 int bgav_pes_header_read(bgav_input_context_t * input,
                          bgav_pes_header_t * ret)
   {
+  int i;
   uint8_t c;
   uint16_t len;
   int64_t pos;
@@ -84,8 +85,8 @@ int bgav_pes_header_read(bgav_input_context_t * input,
         ret->pts |= (tmp_16 >> 1);
         header_size -= 5;
         }
-      bgav_input_skip(input, header_size);
       }
+    bgav_input_skip(input, header_size);
     }
   else /* MPEG-1 */
     {

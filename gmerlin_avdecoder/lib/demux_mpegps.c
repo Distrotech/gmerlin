@@ -97,6 +97,8 @@ static int pack_header_read(bgav_input_context_t * input,
   uint16_t tmp_16;
   uint32_t tmp_32;
 
+  int stuffing;
+  
   bgav_input_skip(input, 4);
     
   if(!bgav_input_read_8(input, &c))
@@ -160,12 +162,14 @@ static int pack_header_read(bgav_input_context_t * input,
     ret->mux_rate |= (c>>2);
 
     ret->version = 2;
-
-    bgav_input_skip(input, 1);
+    
     /* Now, some stuffing bytes might come.
        They are set to 0xff and will be skipped by the
        next_start_code function */
-    
+    bgav_input_read_8(input, &c);
+    stuffing = c & 0x03;
+    bgav_input_skip(input, stuffing);
+
     }
   //  else
   //    {
@@ -186,22 +190,22 @@ static void pack_header_dump(pack_header_t * h)
 
 typedef struct
   {
-  int dummy;
+  uint16_t size;
   } system_header_t;
 
 static int system_header_read(bgav_input_context_t * input,
                               system_header_t * ret)
   {
-  int16_t len;
-  if(!bgav_input_read_16_le(input, &len))
+  bgav_input_skip(input, 4); /* Skip start code */  
+  if(!bgav_input_read_16_be(input, &(ret->size)))
     return 0;
-  bgav_input_skip(input, len);
+  bgav_input_skip(input, ret->size);
   return 1;
   }
 #if 0
 static void system_header_dump(system_header_t * h)
   {
-  fprintf(stderr, "System header (skipped)\n");
+  fprintf(stderr, "System header (skipped %d bytes)\n", h->size);
   }
 #endif
 /* Demuxer structure */
@@ -636,7 +640,7 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
     }
   else
     ctx->stream_description =
-      bgav_sprintf("MPEG-%d %s stream, bitrate: %f kb/sec",
+      bgav_sprintf("MPEG-%d %s stream, bitrate: %.2f kb/sec",
                    priv->pack_header.version,
                    (priv->pack_header.version == 1 ?
                     "system" : "program"),
