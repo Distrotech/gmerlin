@@ -107,8 +107,8 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   snd_pcm_hw_params_t *hw_params = (snd_pcm_hw_params_t *)0;
   snd_pcm_t *ret                 = (snd_pcm_t *)0;
 
-  unsigned int buffer_time = 30000; /* ring buffer length in us */
-  unsigned int period_time = 10000;  /* period time in us */
+  unsigned int buffer_time = 350000; /* ring buffer length in us */
+  unsigned int period_time = 30000;  /* period time in us */
 
   snd_pcm_sframes_t buffer_size;
   snd_pcm_sframes_t period_size;
