@@ -522,6 +522,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     
       memset(&(priv->packet_buffer[p->data_size]), 0, FF_INPUT_BUFFER_PADDING_SIZE);
       bgav_demuxer_done_packet_read(s->demuxer, p);
+      //      fprintf(stderr, "Got packet, %d bytes\n", priv->bytes_in_packet_buffer);
       }
     len = priv->bytes_in_packet_buffer;
 

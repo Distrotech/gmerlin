@@ -382,7 +382,7 @@ static void vivo_header_free(vivo_header_t * h)
 typedef struct
   {
   vivo_header_t header;
-  
+  uint32_t audio_pos;
   } vivo_priv_t;
 
 static int probe_vivo(bgav_input_context_t * input)
@@ -403,7 +403,6 @@ static int probe_vivo(bgav_input_context_t * input)
   return 0;
   }
 
-  
 static int open_vivo(bgav_demuxer_context_t * ctx,
                     bgav_redirector_context_t ** redir)
   {
@@ -466,11 +465,14 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
     video_stream->data.video.format.image_height = priv->header.height;
     video_stream->data.video.format.frame_height = priv->header.height;
     }
-
-  
   video_stream->stream_id = VIDEO_STREAM_ID;
+  
+  //  video_stream->data.video.format.timescale = (int)(priv->header.fps * 1000.0);
+  
   video_stream->data.video.format.timescale = 1000;
-  video_stream->data.video.format.frame_duration = (int)(1000.0 / (priv->header.fps) +0.5);
+  video_stream->timescale = 1000;
+
+  video_stream->data.video.format.frame_duration = 1000.0;
   
   /* Set up metadata */
 
@@ -488,11 +490,11 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
 
 static int next_packet_vivo(bgav_demuxer_context_t * ctx)
   {
-  uint8_t c;
+  uint8_t c, h;
   int prefix = 0;
   int len;
   int seq;
-  bgav_stream_t * stream;
+  bgav_stream_t * stream = (bgav_stream_t*)0;
   vivo_priv_t * priv;
   int do_audio = 0;
   int do_video = 0;
@@ -511,17 +513,20 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
     
     }
 
-  switch(c & 0xf0)
+  h = c;
+  
+  switch(h & 0xf0)
     {
     case 0x00: /* Thought we already have all headers */
       len = read_length(ctx->input);
       if(len < 0)
         return 0;
       bgav_input_skip(ctx->input, len);
+      return 1;
       break;
     case 0x10: /* Video packet */
     case 0x20:
-      if(prefix || ((c & 0xf0) == 0x20))
+      if(prefix || ((h & 0xf0) == 0x20))
         {
         if(!bgav_input_read_data(ctx->input, &c, 1))
           return 0;
@@ -539,7 +544,7 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
           return 0;
         len = c;
         }
-      else if((c & 0xf0) == 0x30)
+      else if((h & 0xf0) == 0x30)
         len = 40;
       else
         len = 24;
@@ -550,27 +555,38 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
       return 0;
     }
     
-  if(do_audio)
+  if(do_audio && ctx->tt->current_track->num_audio_streams)
     {
     stream = &(ctx->tt->current_track->audio_streams[0]);
     }
-  else if(do_video)
+  else if(do_video && ctx->tt->current_track->num_video_streams)
     {
     stream = &(ctx->tt->current_track->video_streams[0]);
     }
-  else
-    return 1;
-  
-  seq = (c & 0x0f);
 
-  fprintf(stderr, "h: 0x%02x, %s, len: %d, prefix: %d, seq: %d\n",
-          c, (do_audio ? "Audio" : "Video"), len, prefix, seq);
+  if(!stream)
+    {
+    bgav_input_skip(ctx->input, len);
+    return 1;
+    }
   
+  seq = (h & 0x0f);
+#if 0
+  fprintf(stderr, "h: 0x%02x, %s, len: %d, prefix: %d, seq: %d\n",
+          h, (do_audio ? "Audio" : "Video"), len, prefix, seq);
+#endif
   /* Finish packet */
 
   if(stream->packet && (stream->packet_seq != seq))
     {
     bgav_packet_done_write(stream->packet);
+
+    if(do_video)
+      {
+      stream->packet->timestamp_scaled = (priv->audio_pos * 8000) /
+        ctx->tt->current_track->audio_streams[0].container_bitrate;
+      }
+
     stream->packet = (bgav_packet_t*)0;
     }
 
@@ -580,6 +596,7 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
     {
     stream->packet = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
     stream->packet_seq = seq;
+    stream->packet->data_size = 0;
     }
 
   /* Append data */
@@ -592,6 +609,12 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
     return 0;
     }
   stream->packet->data_size += len;
+
+  if(do_audio)
+    {
+    priv->audio_pos += len;
+    }
+
   return 1;
   }
 
