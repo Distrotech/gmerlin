@@ -70,28 +70,15 @@
 
 #define PADD(s) (((s)&1)?((s)+1):(s))
 
+/* Chunk */
+
 typedef struct
   {
   uint32_t ckID;
   uint32_t ckSize;
   } chunk_header_t;
 
-static int read_chunk_header(bgav_input_context_t * input,
-                             chunk_header_t * chunk)
-  {
-  return bgav_input_read_fourcc(input, &(chunk->ckID)) &&
-    bgav_input_read_32_le(input, &(chunk->ckSize));
-  }
-
-#ifdef ENABLE_DUMP
-static void dump_chunk_header(chunk_header_t * chunk)
-  {
-  fprintf(stderr, "chunk header:\n");
-  fprintf(stderr, "  ckID: ");
-  bgav_dump_fourcc(chunk->ckID);
-  fprintf(stderr, "\n  ckSize %d\n", chunk->ckSize);
-  }
-#endif
+/* RIFF */
 
 typedef struct
   {
@@ -100,13 +87,38 @@ typedef struct
   uint32_t fccType;
   } riff_header_t;
 
-static int read_riff_header(bgav_input_context_t * input,
-                            riff_header_t * chunk)
+/* idx1 */
+
+typedef struct
   {
-  return bgav_input_read_fourcc(input, &(chunk->ckID)) &&
-    bgav_input_read_32_le(input, &(chunk->ckSize)) &&
-    bgav_input_read_fourcc(input, &(chunk->fccType));
-  }
+  uint32_t num_entries;
+  struct
+    {
+    uint32_t ckid;
+    uint32_t dwFlags;
+    uint32_t dwChunkOffset;
+    uint32_t dwChunkLength;
+    } * entries;
+  } idx1_t;
+
+/* strh */
+
+typedef struct
+  {
+  uint32_t fccType;
+  uint32_t fccHandler;
+  uint32_t dwFlags;
+  uint32_t dwReserved1;
+  uint32_t dwInitialFrames;
+  uint32_t dwScale;
+  uint32_t dwRate;
+  uint32_t dwStart;
+  uint32_t dwLength;
+  uint32_t dwSuggestedBufferSize;
+  uint32_t dwQuality;
+  uint32_t dwSampleSize;
+  } strh_t;
+
 
 typedef struct
   {
@@ -125,6 +137,223 @@ typedef struct
   uint32_t dwStart;
   uint32_t dwLength;
   } avih_t;
+
+/* dmlh */
+
+typedef struct
+  {
+  uint32_t dwTotalFrames;
+  } dmlh_t;
+
+/* odml */
+
+typedef struct
+  {
+  int has_dmlh;
+  dmlh_t dmlh;
+  } odml_t;
+
+/* indx */
+
+typedef struct indx_s
+  {
+  uint16_t wLongsPerEntry;
+  uint8_t  bIndexSubType;
+  uint8_t  bIndexType;
+  uint32_t nEntriesInUse;
+  uint32_t dwChunkID;
+  //  uint32_t dwReserved[3];
+  
+  union
+    {
+    struct
+      {
+      uint64_t qwBaseOffset;
+      uint32_t dwReserved3;
+      struct
+        {
+        uint32_t dwOffset;
+        uint32_t dwSize;
+        } * entries;
+      } chunk;
+    struct
+      {
+      uint64_t qwBaseOffset;
+      uint32_t dwReserved3;
+      struct
+        {
+        uint32_t dwOffset;
+        uint32_t dwSize;
+        uint32_t dwOffsetField2;
+        } * entries;
+      } field_chunk;
+    struct
+      {
+      uint32_t dwReserved[3];
+      struct
+        {
+        int64_t qwOffset;
+        int32_t dwSize;
+        uint32_t dwDuration;
+        struct indx_s * subindex;
+        } * entries;
+      } index;
+    } i;
+  } indx_t;
+
+
+/* Master structures */
+
+typedef struct
+  {
+  avih_t avih;
+  idx1_t idx1;
+  int has_idx1;
+  int64_t movi_start;
+  uint32_t movi_size;
+
+  int do_seek; /* Are wee seeking? */
+
+  odml_t odml;
+  int has_odml;
+  
+  } avi_priv;
+
+typedef struct
+  {
+  strh_t strh;
+  int vbr;
+  int64_t total_bytes;
+  int64_t total_blocks;
+
+  indx_t indx;
+  int has_indx;
+  } audio_priv_t;
+
+typedef struct
+  {
+  strh_t strh;
+  int64_t total_frames;
+
+  indx_t indx;
+  int has_indx;
+  } video_priv_t;
+
+/* Chunk */
+
+static int read_chunk_header(bgav_input_context_t * input,
+                             chunk_header_t * chunk)
+  {
+  return bgav_input_read_fourcc(input, &(chunk->ckID)) &&
+    bgav_input_read_32_le(input, &(chunk->ckSize));
+  }
+
+#ifdef ENABLE_DUMP
+static void dump_chunk_header(chunk_header_t * chunk)
+  {
+  fprintf(stderr, "chunk header:\n");
+  fprintf(stderr, "  ckID: ");
+  bgav_dump_fourcc(chunk->ckID);
+  fprintf(stderr, "\n  ckSize %d\n", chunk->ckSize);
+  }
+#endif
+
+static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
+                             int64_t offset, int size, int keyframe)
+  {
+  audio_priv_t * avi_as;
+  video_priv_t * avi_vs;
+  int samplerate;
+  int64_t time;
+
+  
+  if(stream->type == BGAV_STREAM_AUDIO)
+    {
+    avi_as = (audio_priv_t*)(stream->priv);
+    samplerate = stream->data.audio.format.samplerate;
+    
+    /* Now, we must distinguish between VBR and CBR audio */
+
+    if ((avi_as->strh.dwSampleSize == 0) && (avi_as->strh.dwScale > 1))
+      {
+      /* variable bitrate */
+      time = (samplerate * (gavl_time_t)avi_as->total_blocks *
+              (gavl_time_t)avi_as->strh.dwScale) / avi_as->strh.dwRate;
+      }
+    else
+      {
+      /* constant bitrate */
+      //        lprintf("get_audio_pts: CBR: nBlockAlign=%d, dwSampleSize=%d\n",
+      //                at->wavex->nBlockAlign, at->dwSampleSize);
+      if(stream->data.audio.block_align)
+        {
+        time =
+          ((gavl_time_t)avi_as->total_bytes * (gavl_time_t)avi_as->strh.dwScale *
+           samplerate) /
+          (stream->data.audio.block_align * avi_as->strh.dwRate);
+        }
+      else
+        {
+        time =
+          (samplerate * (gavl_time_t)avi_as->total_bytes *
+           (gavl_time_t)avi_as->strh.dwScale) /
+          (avi_as->strh.dwSampleSize * avi_as->strh.dwRate);
+        }
+      }
+
+    bgav_superindex_add_packet(si,
+                               stream,
+                               offset,
+                               size,
+                               stream->stream_id,
+                               time,
+                               1);
+      
+    /* Increase block count */
+            
+    if(stream->data.audio.block_align)
+      {
+      avi_as->total_blocks +=
+        (size + stream->data.audio.block_align - 1)
+        / stream->data.audio.block_align;
+      }
+    else
+      {
+      avi_as->total_blocks++;
+      }
+    avi_as->total_bytes += size;
+    }
+  else if(stream->type == BGAV_STREAM_VIDEO)
+    {
+    avi_vs = (video_priv_t*)(stream->priv);
+    time = stream->data.video.format.frame_duration *
+      avi_vs->total_frames;
+      
+    bgav_superindex_add_packet(si,
+                               stream,
+                               offset,
+                               size,
+                               stream->stream_id,
+                               time,
+                               keyframe);
+
+
+
+    avi_vs->total_frames++;
+    }
+  
+  }
+
+
+/* RIFF */
+
+static int read_riff_header(bgav_input_context_t * input,
+                            riff_header_t * chunk)
+  {
+  return bgav_input_read_fourcc(input, &(chunk->ckID)) &&
+    bgav_input_read_32_le(input, &(chunk->ckSize)) &&
+    bgav_input_read_fourcc(input, &(chunk->fccType));
+  }
 
 
 #ifdef ENABLE_DUMP
@@ -182,17 +411,7 @@ static int read_avih(bgav_input_context_t* input,
   return result;
   }
 
-typedef struct
-  {
-  uint32_t num_entries;
-  struct
-    {
-    uint32_t ckid;
-    uint32_t dwFlags;
-    uint32_t dwChunkOffset;
-    uint32_t dwChunkLength;
-    } * entries;
-  } idx1_t;
+/* indx */
 
 static void free_idx1(idx1_t * idx1)
   {
@@ -210,8 +429,8 @@ static void dump_idx1(idx1_t * idx1)
     fprintf(stderr, "ID: ");
     bgav_dump_fourcc(idx1->entries[i].ckid);
     fprintf(stderr, " Flags: %08x", idx1->entries[i].dwFlags);
-    fprintf(stderr, " O: %08x", idx1->entries[i].dwChunkOffset);
-    fprintf(stderr, " L: %08x\n", idx1->entries[i].dwChunkLength);
+    fprintf(stderr, " Offset: %d", idx1->entries[i].dwChunkOffset);
+    fprintf(stderr, " Size: %d\n", idx1->entries[i].dwChunkLength);
     }
   }
 #endif
@@ -239,22 +458,6 @@ static int read_idx1(bgav_input_context_t * input, idx1_t * ret)
   }
 
 /* strh */
-
-typedef struct
-  {
-  uint32_t fccType;
-  uint32_t fccHandler;
-  uint32_t dwFlags;
-  uint32_t dwReserved1;
-  uint32_t dwInitialFrames;
-  uint32_t dwScale;
-  uint32_t dwRate;
-  uint32_t dwStart;
-  uint32_t dwLength;
-  uint32_t dwSuggestedBufferSize;
-  uint32_t dwQuality;
-  uint32_t dwSampleSize;
-  } strh_t;
 
 
 #ifdef ENABLE_DUMP
@@ -321,11 +524,6 @@ static int read_strh(bgav_input_context_t * input, strh_t * ret,
 
 /* dmlh */
 
-typedef struct
-  {
-  uint32_t dwTotalFrames;
-  } dmlh_t;
-
 
 #ifdef ENABLE_DUMP
 static void dump_dmlh(dmlh_t * dmlh)
@@ -353,12 +551,6 @@ static int read_dmlh(bgav_input_context_t * input, dmlh_t * ret,
   return 1;
   }
 /* odml */
-
-typedef struct
-  {
-  int has_dmlh;
-  dmlh_t dmlh;
-  } odml_t;
 
 #ifdef ENABLE_DUMP
 static void dump_odml(odml_t * odml)
@@ -415,52 +607,6 @@ static int read_odml(bgav_input_context_t * input, odml_t * ret,
   }
 
 /* indx */
-
-typedef struct indx_s
-  {
-  uint16_t wLongsPerEntry;
-  uint8_t  bIndexSubType;
-  uint8_t  bIndexType;
-  uint32_t nEntriesInUse;
-  uint32_t dwChunkID;
-  //  uint32_t dwReserved[3];
-  
-  union
-    {
-    struct
-      {
-      uint64_t qwBaseOffset;
-      uint32_t dwReserved3;
-      struct
-        {
-        uint32_t dwOffset;
-        uint32_t dwSize;
-        } * entries;
-      } chunk;
-    struct
-      {
-      uint64_t qwBaseOffset;
-      uint32_t dwReserved3;
-      struct
-        {
-        uint32_t dwOffset;
-        uint32_t dwSize;
-        uint32_t dwOffsetField2;
-        } * entries;
-      } field_chunk;
-    struct
-      {
-      uint32_t dwReserved[3];
-      struct
-        {
-        int64_t qwOffset;
-        int32_t dwSize;
-        uint32_t dwDuration;
-        struct indx_s * subindex;
-        } * entries;
-      } index;
-    } i;
-  } indx_t;
 
 static int read_indx(bgav_input_context_t * input, indx_t * ret,
                      chunk_header_t * ch)
@@ -657,44 +803,170 @@ static void free_indx(indx_t * indx)
     default:
       break;
     }
+  }
+
+static void indx_build_superindex(bgav_demuxer_context_t * ctx)
+  {
+  int num_entries, num_streams;
+  int64_t offset, test_offset;
+  int i, j;
   
+  audio_priv_t * avi_as;
+  video_priv_t * avi_vs;
+  uint32_t size, test_size;
+  
+  struct
+    {
+    int index_position;
+    int index_index;
+    indx_t * indx;
+    indx_t * indx_cur;
+    bgav_stream_t * s;
+    } * streams;
+  int stream_index;
+  
+  /* Check if we can build this and reset timestamps */
+
+  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
+    {
+    avi_as = (audio_priv_t *)(ctx->tt->current_track->audio_streams[i].priv);
+
+    if(!avi_as->has_indx)
+      {
+      fprintf(stderr, "Audio stream %d has no indx\n", i);
+      return;
+      }
+    avi_as->total_bytes = 0;
+    avi_as->total_blocks = 0;
+    }
+  for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
+    {
+    avi_vs = (video_priv_t *)(ctx->tt->current_track->video_streams[i].priv);
+    
+    if(!avi_vs->has_indx)
+      {
+      fprintf(stderr, "Video stream %d has no indx\n", i);
+      return;
+      }
+    avi_vs->total_frames = 0;
+    }
+
+  /* Count the entries */
+
+  fprintf(stderr, "Using indx\n");
+
+  num_entries = 0;
+  num_streams = ctx->tt->current_track->num_audio_streams +
+    ctx->tt->current_track->num_video_streams;
+  
+  streams = calloc(num_streams, sizeof(*streams));
+
+  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
+    {
+    streams[i].s = &(ctx->tt->current_track->audio_streams[i]);
+    
+    avi_as = (audio_priv_t *)(streams[i].s->priv);
+
+    streams[i].indx = &(avi_as->indx);
+    
+    if(avi_as->indx.bIndexType == AVI_INDEX_OF_INDEXES)
+      {
+      for(j = 0; j < avi_as->indx.nEntriesInUse; j++)
+        num_entries += avi_as->indx.i.index.entries[j].subindex->nEntriesInUse;
+      streams[i].indx_cur = avi_as->indx.i.index.entries[0].subindex;
+      streams[i].index_index = 0;
+      }
+    else
+      {
+      num_entries += avi_as->indx.nEntriesInUse;
+      streams[i].indx_cur = &(avi_as->indx);
+      streams[i].index_index = -1;
+      }
+    }
+
+  for(i = ctx->tt->current_track->num_audio_streams;
+      i < ctx->tt->current_track->num_video_streams + ctx->tt->current_track->num_audio_streams; i++)
+    {
+    streams[i].s = &(ctx->tt->current_track->video_streams[i-ctx->tt->current_track->num_audio_streams]);
+
+    avi_vs = (video_priv_t *)(streams[i].s->priv);
+
+    streams[i].indx = &(avi_vs->indx);
+    
+    if(avi_vs->indx.bIndexType == AVI_INDEX_OF_INDEXES)
+      {
+      for(j = 0; j < avi_vs->indx.nEntriesInUse; j++)
+        num_entries += avi_vs->indx.i.index.entries[j].subindex->nEntriesInUse;
+      streams[i].indx_cur = avi_vs->indx.i.index.entries[0].subindex;
+      streams[i].index_index = 0;
+      }
+    else
+      {
+      num_entries += avi_vs->indx.nEntriesInUse;
+      streams[i].indx_cur = &(avi_vs->indx);
+      streams[i].index_index = -1;
+      }
+    }
+    
+  ctx->si = bgav_superindex_create(num_entries);
+  
+  /* Add the packets */
+
+  stream_index = -1;
+  for(i = 0; i < num_entries; i++)
+    {
+    /* Find packet with the lowest chunk offset */
+    offset = 0x7fffffffffffffffLL;
+    for(j = 0; j < num_streams; j++)
+      {
+      if(streams[j].index_position < 0)
+        continue;
+
+      if(streams[j].indx_cur->bIndexSubType == AVI_INDEX_2FIELD)
+        {
+        test_offset = streams[j].indx_cur->i.field_chunk.entries[streams[j].index_position].dwOffset + streams[j].indx_cur->i.field_chunk.qwBaseOffset;
+        test_size   = streams[j].indx_cur->i.field_chunk.entries[streams[j].index_position].dwSize;
+        }
+      else
+        {
+        test_offset = streams[j].indx_cur->i.chunk.entries[streams[j].index_position].dwOffset + streams[j].indx_cur->i.chunk.qwBaseOffset;
+        test_size   = streams[j].indx_cur->i.chunk.entries[streams[j].index_position].dwSize;
+        }
+      if(test_offset < offset)
+        {
+        stream_index = j;
+        offset = test_offset;
+        size = test_size;
+        }
+      }
+
+    if(stream_index >= 0)
+      add_index_packet(ctx->si, streams[stream_index].s,
+                       offset, size & 0x7FFFFFFF, !(size & 0x80000000));
+
+    /* Increase indices */
+
+    streams[stream_index].index_position++;
+    if(streams[stream_index].index_position >= streams[stream_index].indx_cur->nEntriesInUse)
+      {
+      if(streams[stream_index].index_index >= 0)
+        {
+        streams[stream_index].index_index++;
+        streams[stream_index].index_position = 0;
+        if(streams[stream_index].index_index >= streams[stream_index].indx->nEntriesInUse)
+          {
+          streams[stream_index].index_position = -1;
+          }
+        }
+      else
+        streams[stream_index].index_position = -1;
+      }
+    }
+
+  free(streams);
   }
 
 
-typedef struct
-  {
-  avih_t avih;
-  idx1_t idx1;
-  int has_idx1;
-  int64_t movi_start;
-  uint32_t movi_size;
-
-  int do_seek; /* Are wee seeking? */
-
-  odml_t odml;
-  int has_odml;
-  
-  } avi_priv;
-
-typedef struct
-  {
-  strh_t strh;
-  int vbr;
-  int64_t total_bytes;
-  int64_t total_blocks;
-
-  indx_t indx;
-  int has_indx;
-  } audio_priv_t;
-
-typedef struct
-  {
-  strh_t strh;
-  int64_t total_frames;
-
-  indx_t indx;
-  int has_indx;
-  } video_priv_t;
 
 static int probe_avi(bgav_input_context_t * input)
   {
@@ -779,7 +1051,9 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
       case ID_INDX:
         if(!read_indx(ctx->input, &avi_as->indx, ch))
           return 0;
-        //        dump_indx(&avi_as->indx);
+#ifdef ENABLE_DUMP
+        dump_indx(&avi_as->indx);
+#endif
         avi_as->has_indx = 1;
         break;
       default:
@@ -810,7 +1084,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
   avih = &(((avi_priv*)(ctx->priv))->avih);
     
   bgav_stream_t * bg_vs;
-  audio_priv_t * avi_vs;
+  video_priv_t * avi_vs;
   
   bg_vs = bgav_track_add_video_stream(ctx->tt->current_track);
   avi_vs = calloc(1, sizeof(*avi_vs));
@@ -879,9 +1153,13 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
         keep_going = 0;
         break;
       case ID_INDX:
+        fprintf(stderr, "Found video indx\n");
         if(!read_indx(ctx->input, &avi_vs->indx, ch))
           return 0;
-        //        dump_indx(&avi_vs->indx);
+
+#ifdef ENABLE_DUMP
+        dump_indx(&avi_vs->indx);
+#endif
         avi_vs->has_indx = 1;
         break;
       default:
@@ -947,8 +1225,6 @@ static void idx1_build_superindex(bgav_demuxer_context_t * ctx)
   video_priv_t * avi_vs;
   bgav_stream_t * stream;
   avi_priv * avi;
-  int samplerate;
-  int64_t time;
   int64_t base_offset;
   
   avi = (avi_priv*)(ctx->priv);
@@ -975,7 +1251,8 @@ static void idx1_build_superindex(bgav_demuxer_context_t * ctx)
   if(avi->idx1.entries[0].dwChunkOffset == 4)
     base_offset = 4 + avi->movi_start;
   else
-    base_offset = 4; /* For invalid files, which have the index relative to file start */
+    /* For invalid files, which have the index relative to file start */
+    base_offset = 4 + avi->movi_start - (avi->idx1.entries[0].dwChunkOffset - 4);
   
   for(i = 0; i < avi->idx1.num_entries; i++)
     {
@@ -985,80 +1262,10 @@ static void idx1_build_superindex(bgav_demuxer_context_t * ctx)
     if(!stream) /* Stream not used */
       continue;
 
-    if(stream->type == BGAV_STREAM_AUDIO)
-      {
-      avi_as = (audio_priv_t*)(stream->priv);
-      samplerate = stream->data.audio.format.samplerate;
-            
-      /* Now, we must distinguish between VBR and CBR audio */
-
-      if ((avi_as->strh.dwSampleSize == 0) && (avi_as->strh.dwScale > 1))
-        {
-        /* variable bitrate */
-        time = (samplerate * (gavl_time_t)avi_as->total_blocks *
-                (gavl_time_t)avi_as->strh.dwScale) / avi_as->strh.dwRate;
-        }
-      else
-        {
-        /* constant bitrate */
-        //        lprintf("get_audio_pts: CBR: nBlockAlign=%d, dwSampleSize=%d\n",
-        //                at->wavex->nBlockAlign, at->dwSampleSize);
-        if(stream->data.audio.block_align)
-          {
-          time =
-            ((gavl_time_t)avi_as->total_bytes * (gavl_time_t)avi_as->strh.dwScale *
-             samplerate) /
-            (stream->data.audio.block_align * avi_as->strh.dwRate);
-          }
-        else
-          {
-          time =
-            (samplerate * (gavl_time_t)avi_as->total_bytes *
-             (gavl_time_t)avi_as->strh.dwScale) /
-            (avi_as->strh.dwSampleSize * avi_as->strh.dwRate);
-          }
-        }
-
-      bgav_superindex_add_packet(ctx->si,
-                                 stream,
-                                 avi->idx1.entries[i].dwChunkOffset + base_offset,
-                                 avi->idx1.entries[i].dwChunkLength,
-                                 stream_id,
-                                 time,
-                                 1);
-      
-      /* Increase block count */
-            
-      if(stream->data.audio.block_align)
-        {
-        avi_as->total_blocks +=
-          (avi->idx1.entries[i].dwChunkLength + stream->data.audio.block_align - 1)
-          / stream->data.audio.block_align;
-        }
-      else
-        {
-        avi_as->total_blocks++;
-        }
-      avi_as->total_bytes += avi->idx1.entries[i].dwChunkLength;
-      }
-    else if(stream->type == BGAV_STREAM_VIDEO)
-      {
-      avi_vs = (video_priv_t*)(stream->priv);
-      time = stream->data.video.format.frame_duration *
-        avi_vs->total_frames;
-      
-      bgav_superindex_add_packet(ctx->si,
-                                 stream,
-                                 avi->idx1.entries[i].dwChunkOffset + base_offset,
-                                 avi->idx1.entries[i].dwChunkLength,
-                                 stream_id,
-                                 time,
-                                 !!(avi->idx1.entries[i].dwFlags & AVI_KEYFRAME));
-
-
-
-      avi_vs->total_frames++;
-      }
+    add_index_packet(ctx->si, stream,
+                     avi->idx1.entries[i].dwChunkOffset + base_offset,
+                     avi->idx1.entries[i].dwChunkLength,
+                     !!(avi->idx1.entries[i].dwFlags & AVI_KEYFRAME));
     }
   }
 
@@ -1091,7 +1298,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
   strh_t strh;
   uint32_t fourcc;
   int keep_going;
-  
+    
   /* Create track */
   ctx->tt = bgav_track_table_create(1);
   
@@ -1264,9 +1471,12 @@ static int open_avi(bgav_demuxer_context_t * ctx,
 
   /* Check, which index to build */
 
-  if(p->has_idx1)
+  //  indx_build_superindex(ctx);
+  
+  if(!ctx->si && p->has_idx1)
     {
     idx1_build_superindex(ctx);
+    fprintf(stderr, "Using idx1\n");
     }
 
   if(!ctx->tt->current_track->duration)

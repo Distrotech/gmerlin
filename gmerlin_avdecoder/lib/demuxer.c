@@ -267,12 +267,12 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * stream;
   bgav_packet_t * p;
-
+  
   //  fprintf(stderr, "next_packet_interleaved\n");
   
   if(ctx->si->current_position >= ctx->si->num_entries)
     {
-    //    fprintf(stderr, "EOF %d %d\n", priv->current_packet, priv->num_packets);
+    //    fprintf(stderr, "EOF\n");
     return 0;
     }
 
@@ -335,7 +335,7 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   bgav_stream_t * test_stream;
   bgav_packet_t * p;
   
-  //  fprintf(stderr, "next_packet_quicktime_noninterleaved\n");
+  //  fprintf(stderr, "next_packet_noninterleaved\n");
   
   /* We read data for the first stream with an empty packet buffer */
 
@@ -452,11 +452,11 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
 static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
   uint32_t i, j;
-  uint32_t start_packet;
-  uint32_t end_packet;
+  int32_t start_packet;
+  int32_t end_packet;
   bgav_track_t * track;
   
-  //  fprintf(stderr, "Seek quicktime %f %lld\n", gavl_time_to_seconds(time), time);
+  fprintf(stderr, "Seek si %f %lld\n", gavl_time_to_seconds(time), time);
   track = ctx->tt->current_track;
   
   /* Set the packet indices of the streams to -1 */
@@ -468,23 +468,29 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
     {
     track->video_streams[j].index_position = -1;
     }
-    
+
+  fprintf(stderr, "Blupp 1\n");
+  
   /* Seek the start chunks indices of all streams */
   
   for(j = 0; j < track->num_audio_streams; j++)
     {
     bgav_superindex_seek(ctx->si, &(track->audio_streams[j]), time);
+    fprintf(stderr, "Audio position %d\n", track->audio_streams[j].index_position);
     }
   for(j = 0; j < track->num_video_streams; j++)
     {
     bgav_superindex_seek(ctx->si, &(track->video_streams[j]), time);
+    fprintf(stderr, "Video position %d\n", track->video_streams[j].index_position);
     }
+
+  fprintf(stderr, "Blupp 2\n");
 
   /* Find the start and end packet */
 
   if(!ctx->non_interleaved)
     {
-    start_packet = ~0x0;
+    start_packet = 0x7FFFFFFF;
     end_packet   = 0x0;
     
     for(j = 0; j < track->num_audio_streams; j++)
@@ -502,6 +508,8 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
         end_packet = track->video_streams[j].index_position;
       }
 
+    fprintf(stderr, "Blupp 3 %d %d\n", start_packet, end_packet);
+
     /* Do the seek */
     ctx->si->current_position = start_packet;
     bgav_input_seek(ctx->input, ctx->si->entries[ctx->si->current_position].offset,
@@ -510,8 +518,13 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
     ctx->seeking = 1;
     for(i = start_packet; i <= end_packet; i++)
       next_packet_interleaved(ctx);
+
+    fprintf(stderr, "Blupp 4\n");
+
     ctx->seeking = 0;
     }
+
+  fprintf(stderr, "seek done\n");
   }
 
 /* Maximum allowed seek tolerance, decrease if you want it more exact */

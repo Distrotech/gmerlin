@@ -420,6 +420,9 @@ typedef struct
 
   int need_first_frame;
   int have_first_frame;
+
+  int have_last_frame;
+  int eof;
   } ffmpeg_video_priv;
 
 static codec_info_t * lookup_codec(bgav_stream_t * s)
@@ -460,7 +463,10 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
 
-  //  fprintf(stderr, "Decode Video 1: %lld\n", priv->bytes_in_packet_buffer);
+  if(priv->eof)
+    return 0;
+  
+  //  fprintf(stderr, "Decode Video 1: %d\n", priv->bytes_in_packet_buffer);
   
   if(priv->have_first_frame)
     {
@@ -470,7 +476,6 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   
   while(!got_picture)
     {
-  
     /* Read data if necessary */
     while(!priv->bytes_in_packet_buffer)
       {
@@ -478,6 +483,9 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       if(!p)
         {
         priv->packet_buffer_ptr = (uint8_t*)0;
+        //        fprintf(stderr, "EOF %d\n", priv->has_b_frames);
+        if(priv->has_b_frames)
+          priv->have_last_frame = 1;
         break;
         }
       if(!p->data_size)
@@ -498,12 +506,13 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       memset(&(priv->packet_buffer[p->data_size]), 0, FF_INPUT_BUFFER_PADDING_SIZE);
       bgav_demuxer_done_packet_read(s->demuxer, p);
       }
-        
     len = priv->bytes_in_packet_buffer;
 
     /* If we are out of data and the codec has no B-Frames, we are done */
 
-    if(!priv->has_b_frames && !priv->packet_buffer_ptr)
+    //    fprintf(stderr, "%d %p\n", priv->have_last_frame, priv->packet_buffer_ptr);
+    
+    if(!priv->have_last_frame && !priv->packet_buffer_ptr)
       return 0;
 
     /* Other Real Video oddities */
@@ -549,28 +558,33 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
 
     //    fprintf(stderr, "Sample aspect ratio: %d %d\n", priv->ctx->sample_aspect_ratio.num,
     //            priv->ctx->sample_aspect_ratio.den);
+
+    //    fprintf(stderr, "Image size: %d %d\n", priv->ctx->width, priv->ctx->height);
     
     //    fprintf(stderr, "Used %d bytes, %d %d\n",
     //            bytes_used,
     //            priv->frame->coded_picture_number,
     //            priv->frame->display_picture_number);
 
-    /* Check for error */
-  
-    if(bytes_used <= 0)
+
+    if(priv->packet_buffer_ptr)
       {
-      //      fprintf(stderr, "Skipping corrupted frame\n");
-      priv->packet_buffer_ptr += len;
-      priv->bytes_in_packet_buffer -= len;
+      /* Check for error */
+      if(bytes_used <= 0)
+        {
+        //      fprintf(stderr, "Skipping corrupted frame\n");
+        priv->packet_buffer_ptr += len;
+        priv->bytes_in_packet_buffer -= len;
+        }
+      /* Advance packet buffer */
+      else
+        {
+        priv->packet_buffer_ptr += bytes_used;
+        priv->bytes_in_packet_buffer -= bytes_used;
+        
+        }
       }
-    /* Advance packet buffer */
-    else
-      {
-      priv->packet_buffer_ptr += bytes_used;
-      priv->bytes_in_packet_buffer -= bytes_used;
-      
-      }
-  
+    
     if(timestamp >= 0)
       s->time = timestamp;
     if(timestamp_scaled >= 0)
@@ -588,6 +602,24 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         s->data.video.format.colorspace = get_colorspace(priv->ctx->pix_fmt);
         priv->need_first_frame = 0;
         priv->have_first_frame = 1;
+
+        if((priv->ctx->sample_aspect_ratio.num > 1) ||
+           (priv->ctx->sample_aspect_ratio.den > 1))
+          {
+          
+          s->data.video.format.pixel_width  = priv->ctx->sample_aspect_ratio.num;
+          s->data.video.format.pixel_height = priv->ctx->sample_aspect_ratio.den;
+          }
+        /* Sometimes, the size encoded in some mp4 (vol?) headers is different from
+           what is found in the container. In this case, the image must be scaled. */
+        
+        else if(priv->ctx->width < s->data.video.format.image_width)
+          {
+          s->data.video.format.pixel_width  = s->data.video.format.image_width;
+          s->data.video.format.pixel_height = priv->ctx->width;
+          s->data.video.format.image_width = priv->ctx->width;
+          }
+        
         return 1;
         }
 
@@ -635,6 +667,11 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
                       s->data.video.format.image_width,
                       s->data.video.format.image_height);
           }
+        }
+      //      fprintf(stderr, "Decode %p %d\n", priv->packet_buffer_ptr, priv->have_last_frame);
+      if(!priv->packet_buffer_ptr )
+        {
+        priv->eof = 1; /* Return 0 the next time */
         }
       }
     else /* !got_picture */

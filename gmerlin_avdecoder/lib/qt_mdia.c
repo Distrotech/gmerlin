@@ -47,17 +47,25 @@ int bgav_qt_mdia_read(qt_atom_header_t * h, bgav_input_context_t * input,
     {
     if(!bgav_qt_atom_read_header(input, &ch))
       return 0;
+#if 0
+    fprintf(stderr, "Found ");
+    bgav_dump_fourcc(ch.fourcc);
+    fprintf(stderr, "\n");
+#endif   
     switch(ch.fourcc)
       {
       case BGAV_MK_FOURCC('m', 'd', 'h', 'd'):
+        //        fprintf(stderr, "Found mdhd\n");
         if(!bgav_qt_mdhd_read(&ch, input, &(ret->mdhd)))
           return 0;
         break;
       case BGAV_MK_FOURCC('h', 'd', 'l', 'r'):
+        //        fprintf(stderr, "Found hdlr\n");
         if(!bgav_qt_hdlr_read(&ch, input, &(ret->hdlr)))
           return 0;
         break;
       case BGAV_MK_FOURCC('m', 'i', 'n', 'f'):
+        // fprintf(stderr, "Found minf\n");
         if(!bgav_qt_minf_read(&ch, input, &(ret->minf)))
           return 0;
         break;

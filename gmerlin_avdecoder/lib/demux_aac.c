@@ -337,8 +337,7 @@ static int open_adif(bgav_demuxer_context_t * ctx)
   int skip_size;
   aac_priv_t * priv;
   priv = (aac_priv_t*)(ctx->priv);
-  
-  //  fprintf(stderr, "ADIF header not supported yet\n");
+
   /* Try to get the bitrate */
 
   if(bgav_input_get_data(ctx->input, buf, ADIF_SIZE) < ADIF_SIZE)

@@ -84,17 +84,29 @@ int bgav_qt_hdlr_read(qt_atom_header_t * h,
     }
   else /* Quicktime case */
     {
-    if(!bgav_input_read_8(input, &tmp_8))
-      return 0;
-    name_len = tmp_8;
+    if(h->start_position + h->size == input->position)
+      name_len = 0;
+    else
+      {
+      if(!bgav_input_read_8(input, &tmp_8))
+        return 0;
+      name_len = tmp_8;
+      }
     }
-  ret->component_name = malloc(name_len + 1);
-  if(bgav_input_read_data(input, ret->component_name, name_len) <
-     name_len)
-    return 0;
-  ret->component_name[name_len] = '\0';
+  //  fprintf(stderr, "Name len: %d\n", name_len);
+
+  if(name_len)
+    {
+    ret->component_name = malloc(name_len + 1);
+    if(bgav_input_read_data(input, ret->component_name, name_len) <
+       name_len)
+      return 0;
+    ret->component_name[name_len] = '\0';
+    }
   //  fprintf(stderr, "Component name: %s\n", ret->component_name);
 
+  //  fprintf(stderr, "Read hdlr: %lld %lld\n", h->start_position + h->size, input->position);
+  
   bgav_qt_atom_skip(input, h);
   
   return 1;

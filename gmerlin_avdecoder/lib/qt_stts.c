@@ -57,6 +57,8 @@ int bgav_qt_stts_read(qt_atom_header_t * h,
     if(!bgav_input_read_32_be(input, &(ret->entries[i].count)) ||
        !bgav_input_read_32_be(input, &(ret->entries[i].duration)))
       return 0;
+    if(ret->entries[i].duration & 0x80000000)
+      ret->entries[i].duration = 0;
     }
   return 1;
   }

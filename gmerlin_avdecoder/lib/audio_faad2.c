@@ -44,9 +44,11 @@ static int get_data(bgav_stream_t * s)
   {
   faad_priv_t * priv;
   bgav_packet_t * p;
+  int buffer_offset;
+  
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
 
-  //  fprintf(stderr, "Get data %d...", priv->data_size);
+  fprintf(stderr, "Get data %d\n", priv->data_size);
   
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!p)
@@ -54,16 +56,19 @@ static int get_data(bgav_stream_t * s)
   
   if(priv->data_alloc < p->data_size + priv->data_size)
     {
+    buffer_offset = priv->data_ptr - priv->data;
+    
     priv->data_alloc = p->data_size + priv->data_size + 32;
     priv->data = realloc(priv->data, priv->data_alloc);
+    priv->data_ptr = priv->data + buffer_offset;
     }
 
   if(priv->data_size)
     memmove(priv->data, priv->data_ptr, priv->data_size);
+  priv->data_ptr = priv->data;
   
   memcpy(priv->data + priv->data_size, p->data, p->data_size);
   priv->data_size += p->data_size;
-  priv->data_ptr = priv->data;
   bgav_demuxer_done_packet_read(s->demuxer, p);
 
   //  fprintf(stderr, "done %d\n", priv->data_size);
@@ -111,24 +116,25 @@ static int init_faad2(bgav_stream_t * s)
 
   s->data.audio.format.samplerate = samplerate;
   s->data.audio.format.num_channels = channels;
-  //  s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
-  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
+  s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+  //  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
   s->data.audio.format.samples_per_frame = 1024;
 
   gavl_set_channel_setup(&(s->data.audio.format));
   
   cfg = faacDecGetCurrentConfiguration(priv->dec);
-  //  cfg->outputFormat = FAAD_FMT_FLOAT;
-  cfg->outputFormat = FAAD_FMT_16BIT;
+  cfg->outputFormat = FAAD_FMT_FLOAT;
+  // cfg->outputFormat = FAAD_FMT_16BIT;
   faacDecSetConfiguration(priv->dec, cfg);
-  
 
   s->description = bgav_sprintf("%s", "AAC Audio stream");
   
   return 1;
   }
 
+
+static int frame_number = 0;
 
 static int decode_frame(bgav_stream_t * s)
   {
@@ -141,7 +147,7 @@ static int decode_frame(bgav_stream_t * s)
   
   memset(&frame_info, 0, sizeof(&frame_info));
   
-  if(priv->data_size < 30)
+  if(priv->data_size < FAAD_MIN_STREAMSIZE*GAVL_MAX_CHANNELS)
     if(!get_data(s))
       return 0;
 
@@ -153,16 +159,16 @@ static int decode_frame(bgav_stream_t * s)
    * Doing this cleanly would require heavy changes in the mp4 demuxer
    * code.
    */
-    
+#if 1
   if(*priv->data_ptr == 0x00)
     {
     priv->data_ptr++;
     priv->data_size--;
     }
-
+#endif
   while(1)
     {
-    //    fprintf(stderr, "faacDecDecode:\n");
+    fprintf(stderr, "faacDecDecode %d, buf: %d: ", frame_number, priv->data_size);
     //    bgav_hexdump(priv->data_ptr, 16, 16);
     priv->frame->samples.f = faacDecDecode(priv->dec,
                                            &frame_info,
@@ -193,12 +199,12 @@ static int decode_frame(bgav_stream_t * s)
     else
       break;
     }
-
+  frame_number++;
   priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
   priv->last_block_size = priv->frame->valid_samples;
   
-  //  fprintf(stderr, "Decoded %d samples, used %d bytes\n", priv->last_block_size,
-  //          frame_info.bytesconsumed);
+  fprintf(stderr, "Decoded %d samples, used %d bytes\n", priv->last_block_size,
+          frame_info.bytesconsumed);
   
   return 1;
   }

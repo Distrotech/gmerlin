@@ -262,8 +262,10 @@ static void build_index(bgav_demuxer_context_t * ctx)
     }
   
   if(!num_packets)
+    {
+    fprintf(stderr, "No packets in movie\n");
     return;
-
+    }
   ctx->si = bgav_superindex_create(num_packets);
   
   chunk_indices = calloc(priv->moov.num_tracks, sizeof(*chunk_indices));
@@ -467,6 +469,11 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
     /* Audio stream */
     if(moov->tracks[i].mdia.minf.has_smhd)
       {
+      if(!moov->tracks[i].mdia.minf.stbl.stsd.entries)
+        {
+        fprintf(stderr, "No sample desciption present\n");
+        continue;
+        }
       bg_as = bgav_track_add_audio_stream(track);
       desc = &(moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc);
       stream_priv = stream_create(&(moov->tracks[i]));
@@ -517,7 +524,14 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
     /* Video stream */
     else if(moov->tracks[i].mdia.minf.has_vmhd)
       {
+      if(!moov->tracks[i].mdia.minf.stbl.stsd.entries)
+        {
+        fprintf(stderr, "No sample desciption present\n");
+        continue;
+        }
+
       bg_vs = bgav_track_add_video_stream(track);
+      
       desc = &(moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc);
       stream_priv = stream_create(&(moov->tracks[i]));
       
@@ -579,6 +593,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       stream_duration = stream_get_duration(bg_vs);
       if(ctx->tt->current_track->duration < stream_duration)
         ctx->tt->current_track->duration = stream_duration;
+      //      bgav_qt_trak_dump(&moov->tracks[i]);
       }
     else
       {
@@ -664,6 +679,10 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
   
   build_index(ctx);
 
+  /* No packets are found */
+  if(!ctx->si)
+    return 0;
+  
   priv->current_mdat = 0;
   
   if((ctx->input->position != priv->mdats[priv->current_mdat].start) &&

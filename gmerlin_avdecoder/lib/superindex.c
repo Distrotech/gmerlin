@@ -97,7 +97,7 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
     {
     if((idx->entries[i].stream_id == s->stream_id) &&
        (idx->entries[i].keyframe) &&
-       (idx->entries[i].time < time_scaled))
+       (idx->entries[i].time <= time_scaled))
       {
       s->index_position = i;
       s->time_scaled = idx->entries[i].time;
@@ -114,8 +114,10 @@ void bgav_superindex_dump(bgav_superindex_t * idx)
   fprintf(stderr, "superindex %d entries:\n", idx->num_entries);
   for(i = 0; i < idx->num_entries; i++)
     {
-    fprintf(stderr, "  ID: %d O: %lld T: %lld S: %d\n", 
+    fprintf(stderr, "  No: %d ID: %d K: %d Offset: %lld T: %lld S: %d\n", 
+            i,
             idx->entries[i].stream_id,
+            idx->entries[i].keyframe,
             idx->entries[i].offset,
             idx->entries[i].time,
             idx->entries[i].size);

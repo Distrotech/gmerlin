@@ -5,7 +5,7 @@
 
 /* ---------------------------------------------------------------------------
  * Truevision Targa Reader/Writer
- * $Id: targa.h,v 1.1 2004-08-24 21:05:54 gmerlin Exp $
+ * $Id: targa.h,v 1.2 2004-11-13 16:48:09 gmerlin Exp $
  *
  * Copyright (C) 2001-2003, Emil Mikulic.
  *
@@ -148,7 +148,7 @@ const char *tga_error(const tga_result errcode);
 /* Load/save ---------------------------------------------------------------*/
 tga_result tga_read(tga_image *dest, const char *filename);
 tga_result tga_read_from_FILE(tga_image *dest, FILE *fp);
-tga_result tga_read_from_memory(tga_image *dest, uint8_t * mem, int len);
+tga_result tga_read_from_memory(tga_image *dest, uint8_t * mem, int len, uint8_t * cmap, int cmap_size);
 
 tga_result tga_write(const char *filename, const tga_image *src, int stride);
 tga_result tga_write_to_FILE(FILE *fp, const tga_image *src, int stride);

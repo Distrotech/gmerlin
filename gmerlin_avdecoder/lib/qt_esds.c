@@ -131,7 +131,7 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
   // ret->decoderConfigLen = input->total_bytes - input->position;
   // fprintf(stderr, "decoderConfigLen 2: %d\n", ret->decoderConfigLen);
     
-  ret->decoderConfig = malloc(ret->decoderConfigLen);
+  ret->decoderConfig = calloc(ret->decoderConfigLen + 16, 1);
   if(bgav_input_read_data(input, ret->decoderConfig,
                           ret->decoderConfigLen) < ret->decoderConfigLen)
     return 0;

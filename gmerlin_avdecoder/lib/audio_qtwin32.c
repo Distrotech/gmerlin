@@ -313,10 +313,15 @@ static int read_data(bgav_stream_t * s)
   {
   bgav_packet_t * p;
   qta_priv_t * priv = (qta_priv_t*)s->data.audio.decoder->priv;
-
+  //  fprintf(stderr, "read data...");
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  //  fprintf(stderr, "read data 1");
   if(!p)
+    {
+    //    fprintf(stderr, " -> EOF\n");
     return 0;
+    }
+  //  fprintf(stderr, "Read %d bytes\n", p->data_size);
 
   if(p->data_size + priv->in_buffer_size > priv->in_buffer_alloc)
     {
@@ -325,8 +330,8 @@ static int read_data(bgav_stream_t * s)
     }
   memcpy(priv->in_buffer + priv->in_buffer_size, p->data, p->data_size);
   priv->in_buffer_size += p->data_size;
-  //  fprintf(stderr, "Read %d bytes\n", p->data_size);
   bgav_demuxer_done_packet_read(s->demuxer, p);
+  //  fprintf(stderr, "read data done\n");
   return 1;
   }
 
@@ -335,7 +340,7 @@ static int decode(bgav_stream_t * s)
   int num_frames;
   long out_frames, out_bytes;
   qta_priv_t * priv = (qta_priv_t*)s->data.audio.decoder->priv;
-
+  //  fprintf(stderr, "decode qtwin32...");
   priv->ldt_fs = Setup_LDT_Keeper();
     
   while(priv->in_buffer_size < priv->InFrameSize)
@@ -366,7 +371,8 @@ static int decode(bgav_stream_t * s)
   if(priv->in_buffer_size > 0)
     memmove(priv->in_buffer, priv->in_buffer + num_frames * priv->InFrameSize, priv->in_buffer_size);
   Restore_LDT_Keeper(priv->ldt_fs);
-
+  //  fprintf(stderr, "decode qtwin32 done\n");
+  
   return 1;
   }
 

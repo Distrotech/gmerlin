@@ -24,14 +24,6 @@
 
 #include <qt.h>
 
-/*
-typedef struct
-  {
-  int num_tracks;
-  qt_trak_t * tracks;
-  } qt_moov_t;
-*/
-
 int bgav_qt_moov_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_moov_t * ret)
   {
@@ -63,6 +55,7 @@ int bgav_qt_moov_read(qt_atom_header_t * h, bgav_input_context_t * input,
                sizeof(*ret->tracks));
         if(!bgav_qt_trak_read(&ch, input, &(ret->tracks[ret->num_tracks-1])))
           return 0;
+        //        bgav_qt_trak_dump(&(ret->tracks[ret->num_tracks-1]));
         break;
       case BGAV_MK_FOURCC('m', 'v', 'h', 'd'):
         if(!bgav_qt_mvhd_read(&ch, input, &(ret->mvhd)))

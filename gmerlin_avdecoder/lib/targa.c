@@ -12,7 +12,7 @@
  * -------------------------------------------------------------------------*/
 
 /*@unused@*/ static const char rcsid[] =
-    "$Id: targa.c,v 1.1 2004-08-24 21:05:54 gmerlin Exp $";
+    "$Id: targa.c,v 1.2 2004-11-13 16:48:09 gmerlin Exp $";
 
 #define TGA_KEEP_MACROS /* BIT, htole16, letoh16 */
 #include "targa.h"
@@ -189,7 +189,8 @@ static int memread(void * dst, int len, struct read_struct * s)
     }
   }
 
-tga_result tga_read_from_memory(tga_image *dest, uint8_t * buf, int len)
+tga_result tga_read_from_memory(tga_image *dest, uint8_t * buf, int len, uint8_t * ctab,
+                                int ctab_size)
 {
     #define BARF(errcode) \
         { tga_free_buffers(dest);  return errcode; }
@@ -227,23 +228,46 @@ tga_result tga_read_from_memory(tga_image *dest, uint8_t * buf, int len)
         dest->image_type != TGA_IMAGE_TYPE_MONO_RLE)
             BARF(TGAERR_IMG_TYPE);
 
-    if (tga_is_colormapped(dest) &&
-        dest->color_map_type == TGA_COLOR_MAP_ABSENT)
-            BARF(TGAERR_CMAP_MISSING);
-
+#if 0
     if (!tga_is_colormapped(dest) &&
         dest->color_map_type == TGA_COLOR_MAP_PRESENT)
             BARF(TGAERR_CMAP_PRESENT);
-
+#endif
     READ16(dest->color_map_origin);
     READ16(dest->color_map_length);
     READ(&dest->color_map_depth, 1);
+
+    //    fprintf(stderr, "Colormap: origin: %d, len: %d, depth: %d\n",
+    //            dest->color_map_origin, dest->color_map_length, dest->color_map_depth); 
+    
+    if (tga_is_colormapped(dest) &&
+        dest->color_map_type == TGA_COLOR_MAP_ABSENT)
+      {
+      if(dest->color_map_length)
+        { /* OOPs, colormap is there, read it */
+        dest->color_map_type = TGA_COLOR_MAP_PRESENT;
+        }
+      else if(!ctab_size)
+        {
+        BARF(TGAERR_CMAP_MISSING);
+        }
+      else
+        {
+        dest->color_map_origin = 0;
+        dest->color_map_length = ctab_size / 4;
+        dest->color_map_depth = 32;
+        dest->color_map_data = malloc(ctab_size);
+        memcpy(dest->color_map_data, ctab, ctab_size);
+        dest->color_map_type = TGA_COLOR_MAP_PRESENT;
+        }
+      }
+    
     if (dest->color_map_type == TGA_COLOR_MAP_PRESENT)
     {
-        if (dest->color_map_length == 0)
+    if ((dest->color_map_length == 0) && tga_is_colormapped(dest))
             BARF(TGAERR_CMAP_LENGTH);
 
-        if (!UNMAP_DEPTH(dest->color_map_depth))
+    if (!UNMAP_DEPTH(dest->color_map_depth) && tga_is_colormapped(dest))
             BARF(TGAERR_CMAP_DEPTH);
     }
 
@@ -269,7 +293,7 @@ tga_result tga_read_from_memory(tga_image *dest, uint8_t * buf, int len)
         READ(dest->image_id, dest->image_id_length);
     }
 
-    if (dest->color_map_type == TGA_COLOR_MAP_PRESENT)
+    if ((dest->color_map_type == TGA_COLOR_MAP_PRESENT) && !(dest->color_map_data))
     {
         dest->color_map_data = (uint8_t*)malloc(
             (dest->color_map_origin + dest->color_map_length) *
@@ -325,7 +349,7 @@ tga_result tga_read_from_FILE(tga_image *dest, FILE *fp)
   buf = malloc(len);
   fread(buf, 1, len, fp);
     
-  result = tga_read_from_memory(dest, buf, len);
+  result = tga_read_from_memory(dest, buf, len, NULL, 0);
   free(buf);
   return result;
   }

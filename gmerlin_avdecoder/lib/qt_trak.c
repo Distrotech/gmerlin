@@ -77,25 +77,16 @@ void bgav_qt_trak_dump(qt_trak_t * c)
   fprintf(stderr, "end of trak\n");
   }
 
-int64_t bgav_qt_trak_samples(qt_trak_t * c)
+int64_t bgav_qt_trak_samples(qt_trak_t * trak)
   {
-  int j;
-
-  int64_t stco_pos = 0;
-  int64_t stsc_pos = 0;
+  int i;
   int64_t ret = 0;
-
-  for(j = 0; j < c->mdia.minf.stbl.stco.num_entries; j++) // Loop over chunks
+  
+  qt_stts_t * stts = &(trak->mdia.minf.stbl.stts);
+  
+  for(i = 0; i < stts->num_entries; i++)
     {
-    ret += c->mdia.minf.stbl.stsc.entries[stsc_pos].samples_per_chunk;
-    stco_pos++;
-
-    /* Update sample to chunk */
-    if(stsc_pos < c->mdia.minf.stbl.stsc.num_entries - 1)
-      {
-      if(c->mdia.minf.stbl.stsc.entries[stsc_pos+1].first_chunk - 1 == stco_pos)
-        stsc_pos++;
-      }
+    ret += stts->entries[i].count;
     }
   return ret;
   }

@@ -37,17 +37,28 @@ typedef struct
   /* Read the first frame during initialization to get the format */
   int do_init;
   int have_frame;
+
+  /* Colormap */
+  uint8_t * ctab;
+  int ctab_size;
   
+  int is_mono;
   } tga_priv_t;
 
 
-static gavl_colorspace_t get_colorspace(int depth, int * bytes_per_pixel)
+static gavl_colorspace_t get_colorspace(int depth, int * bytes_per_pixel, int * is_mono)
   {
+  //  fprintf(stderr, "GET COLORSPACE %d\n", depth);
   switch(depth)
     {
+    case 8: /* Grayscale */
+      *bytes_per_pixel = 3;
+      *is_mono = 1;
+      return GAVL_RGB_24;
+      break;
     case 16:
       *bytes_per_pixel = 2;
-      return GAVL_BGR_15;
+      return GAVL_RGB_15;
       break;
     case 24:
       *bytes_per_pixel = 3;
@@ -62,8 +73,44 @@ static gavl_colorspace_t get_colorspace(int depth, int * bytes_per_pixel)
     }
   }
 
+#if 0
+static int packet_count = 0;
+static void dump_packet(uint8_t * data, int size)
+  {
+  FILE * f;
+  char filename_buffer[512];
+  sprintf(filename_buffer, "out%03d.tga", packet_count++);
+  f = fopen(filename_buffer, "w");
+  fwrite(data, 1, size, f);
+  fclose(f);
+  }
+#endif
+
+static void gray_2_rgb(tga_image * tga, gavl_video_frame_t * f)
+  {
+  int i, j;
+  uint8_t * dst;
+  uint8_t * src;
+
+  src = tga->image_data;
+
+  for(i = 0; i < tga->height; i++)
+    {
+    dst = f->planes[0] + i * f->strides[0];
+    for(j = 0; j < tga->width; j++)
+      {
+      dst[0] = src[0];
+      dst[1] = src[0];
+      dst[2] = src[0];
+      dst += 3;
+      src++;
+      }
+    }
+  }
+
 static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
+  int result;
   bgav_packet_t * p;
   tga_priv_t * priv;
   
@@ -77,8 +124,17 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
     if(!p)
       return 0;
 
-    if(tga_read_from_memory(&(priv->tga), p->data, p->data_size) != TGA_NOERR)
+    //    fprintf(stderr, "Read tga:\n");
+    //    bgav_hexdump(p->data, p->data_size, 16);
+    
+    result = tga_read_from_memory(&(priv->tga), p->data, p->data_size, priv->ctab, priv->ctab_size);
+    if(result != TGA_NOERR)
+      {
+      fprintf(stderr, "tga_read_from_memory failed: %s (%d bytes)\n",
+              tga_error(result), p->data_size);
+      //      dump_packet(p->data, p->data_size);
       return 0;
+      }
     
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
@@ -101,15 +157,24 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
       case TGA_IMAGE_TYPE_COLORMAP:
       case TGA_IMAGE_TYPE_COLORMAP_RLE:
         s->data.video.format.colorspace = get_colorspace(priv->tga.color_map_depth,
-                                                         &(priv->bytes_per_pixel));
+                                                         &(priv->bytes_per_pixel),
+                                                         &(priv->is_mono));
         break;
       default:
         s->data.video.format.colorspace = get_colorspace(priv->tga.pixel_depth,
-                                                         &(priv->bytes_per_pixel));
+                                                         &(priv->bytes_per_pixel),
+                                                         &(priv->is_mono));
         break;
       }
     if(s->data.video.format.colorspace == GAVL_COLORSPACE_NONE)
+      {
+      fprintf(stderr, "Cannot detect image type: %d\n", priv->tga.image_type);
       return 0;
+      }
+    if(priv->is_mono)
+      priv->frame = gavl_video_frame_create(&(s->data.video.format));
+    else
+      priv->frame = gavl_video_frame_create(NULL);
     return 1;
     }
   /* Copy it */
@@ -132,9 +197,16 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
       }
     if(s->data.video.format.colorspace == GAVL_RGBA_32)
       tga_swap_red_blue(&(priv->tga));
-    
-    priv->frame->strides[0] = priv->bytes_per_pixel * s->data.video.format.image_width;
-    priv->frame->planes[0] = priv->tga.image_data;
+
+    if(priv->is_mono)
+      {
+      gray_2_rgb(&(priv->tga), priv->frame);
+      }
+    else
+      {
+      priv->frame->strides[0] = priv->bytes_per_pixel * s->data.video.format.image_width;
+      priv->frame->planes[0] = priv->tga.image_data;
+      }
     
     /* Figure out the copy function */
     
@@ -172,23 +244,41 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
 
 static int init_tga(bgav_stream_t * s)
   {
+  int i;
   tga_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
+
+  //  fprintf(stderr, "init_tga, ext_size: %d\n", s->ext_size);
+  
+  s->data.video.decoder->priv = priv;
+
+  if(s->data.video.palette_size)
+    {
+    priv->ctab_size = s->data.video.palette_size * 4;
+    
+    priv->ctab = malloc(priv->ctab_size);
+    for(i = 0; i < s->data.video.palette_size; i++)
+      {
+      priv->ctab[i*4+0] = (s->data.video.palette[i].r) >> 8;
+      priv->ctab[i*4+1] = (s->data.video.palette[i].g) >> 8;
+      priv->ctab[i*4+2] = (s->data.video.palette[i].b) >> 8;
+      priv->ctab[i*4+3] = (s->data.video.palette[i].a) >> 8;
+      }
+    fprintf(stderr, "Setting palette %d entries\n", s->data.video.palette_size);
+    }
+  
+  /* Get format by decoding first frame */
+
+  priv->do_init = 1;
+  
+  if(!decode_tga(s, (gavl_video_frame_t *)0))
+    return 0;
+  
+  priv->do_init = 0;
   
   s->description = bgav_sprintf("TGA Video (%s)",
                                 ((s->data.video.format.colorspace ==
                                   GAVL_RGBA_32) ? "RGBA" : "RGB")); 
-  
-  s->data.video.decoder->priv = priv;
-
-  /* Get format by decoding first frame */
-
-  priv->do_init = 1;
-  priv->frame = gavl_video_frame_create(NULL);
-  
-  if(!decode_tga(s, (gavl_video_frame_t *)0))
-    return 0;
-  priv->do_init = 0;
   return 1;
   }
 
@@ -196,7 +286,8 @@ static void close_tga(bgav_stream_t * s)
   {
   tga_priv_t * priv;
   priv = (tga_priv_t*)(s->data.video.decoder->priv);
-  gavl_video_frame_null(priv->frame);
+  if(!priv->is_mono)
+    gavl_video_frame_null(priv->frame);
   gavl_video_frame_destroy(priv->frame);
   free(priv);
   
