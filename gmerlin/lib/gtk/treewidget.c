@@ -404,6 +404,8 @@ static void set_album(bg_gtk_tree_widget_t * widget,
   GtkTreeModel * model;
   bg_album_t * current_album;
   bg_gtk_album_window_t * album_window;
+
+  //  fprintf(stderr, "Set album %p\n", album);
   
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(widget->treeview));
 

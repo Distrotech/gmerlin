@@ -89,24 +89,24 @@ struct bg_album_s
   
   bg_album_entry_t * entries;
   
-  //  bg_media_tree_t         * tree;
-  pthread_mutex_t         mutex;
-
-
   void (*change_callback)(bg_album_t * a, void * data);
   void * change_callback_data;
 
   /* Coordinates in the screen */
 
-  int x;
-  int y;
-  int width;
-  int height;
+  //  int x;
+  //  int y;
+  //  int width;
+  //  int height;
   
   /* Path for loading files */
     
-  char * open_path;
+  //  char * open_path;
 
+  /* Here, dialogs can store additional config data */
+    
+  bg_cfg_section_t * cfg_section;
+    
   };
 
 /* album.c */

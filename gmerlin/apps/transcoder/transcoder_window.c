@@ -339,13 +339,13 @@ static void button_callback(GtkWidget * w, gpointer data)
 
   if(w == win->run_button)
     {
-    fprintf(stderr, "Run Button\n");
+    //    fprintf(stderr, "Run Button\n");
     start_transcode(win);
     win->idle_tag = g_idle_add(idle_callback, win);
     }
   else if(w == win->stop_button)
     {
-    fprintf(stderr, "Stop Button\n");
+    //    fprintf(stderr, "Stop Button\n");
     
     track_list_prepend_track(win->tracklist, win->transcoder_track);
     win->transcoder_track = (bg_transcoder_track_t*)0;
@@ -357,13 +357,14 @@ static void button_callback(GtkWidget * w, gpointer data)
     bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED);
     gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
 
-    bg_gtk_scrolltext_set_text(win->scrolltext, "Gmerlin transcoder version "VERSION,
+    bg_gtk_scrolltext_set_text(win->scrolltext,
+                               "Gmerlin transcoder version "VERSION,
                                win->fg_color, win->bg_color);
     
     }
   else if(w == win->load_button)
     {
-    fprintf(stderr, "Load Button\n");
+    //    fprintf(stderr, "Load Button\n");
     
     if(!win->task_filesel)
       win->task_filesel = create_task_filesel(win);
@@ -382,7 +383,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->save_button)
     {
-    fprintf(stderr, "Save Button\n");
+    //    fprintf(stderr, "Save Button\n");
 
     if(!win->task_filesel)
       win->task_filesel = create_task_filesel(win);
@@ -401,19 +402,19 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->preferences_button)
     {
-    fprintf(stderr, "Preferences Button\n");
+    //    fprintf(stderr, "Preferences Button\n");
     gtk_widget_set_sensitive(win->preferences_button, 0);
     plugin_window_show(win->plugin_window);
     }
   else if(w == win->quit_button)
     {
-    fprintf(stderr, "Quit Button\n");
+    //    fprintf(stderr, "Quit Button\n");
     gtk_widget_hide(win->win);
     gtk_main_quit();
     }
   else if(w == win->properties_button)
     {
-    fprintf(stderr, "Properties Button\n");
+    //    fprintf(stderr, "Properties Button\n");
     transcoder_window_preferences(win);
     }
   }
@@ -640,7 +641,8 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 w,
                 bg_transcoder_get_parameters());
   
-  cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section, "audio");
+  cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
+                                               "audio");
   
   bg_dialog_add(dlg,
                 "Audio defaults",
@@ -649,7 +651,8 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 NULL,
                 bg_transcoder_track_audio_get_general_parameters());
 
-  cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section, "video");
+  cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
+                                               "video");
   
   bg_dialog_add(dlg,
                 "Video defaults",
@@ -658,7 +661,8 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 NULL,
                 bg_transcoder_track_video_get_general_parameters());
 
-  cfg_section = bg_cfg_registry_find_section(w->cfg_reg, "transcoder_window");
+  cfg_section = bg_cfg_registry_find_section(w->cfg_reg,
+                                             "transcoder_window");
 
   bg_dialog_add(dlg,
                 "Window",

@@ -50,6 +50,8 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
   char * tmp_string;
   xmlNodePtr child;
 
+  int is_open = 0;
+    
   ret = bg_album_create(&(tree->com), BG_ALBUM_TYPE_REGULAR, parent);
     
   child = node->children;
@@ -71,15 +73,6 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
       {
       ret->location = bg_strdup(ret->location, tmp_string);
       }
-    else if(!strcmp(child->name, "COORDS"))
-      {
-      sscanf(tmp_string, "%d %d %d %d", &(ret->x), &(ret->y),
-             &(ret->width), &(ret->height));
-      }
-    else if(!strcmp(child->name, "OPEN_PATH"))
-      {
-      ret->open_path = bg_strdup(ret->open_path, tmp_string);
-      }
     if(tmp_string)
       xmlFree(tmp_string);
     child = child->next;
@@ -97,19 +90,19 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
   if(tmp_string)
     {
     if(atoi(tmp_string))
-      ret->open_count = 1;
+      {
+      is_open = 1;
+      }
     xmlFree(tmp_string);
     }
-  
+
   //  fprintf(stderr, "Found Album %s\n", ret->name);
   
   /* Load the album if necessary */
 
-  if(ret->open_count && ret->location)
+  if(is_open)
     {
-    tmp_string = bg_sprintf("%s/%s", tree->com.directory, ret->location);
-    bg_album_load(ret, tmp_string);
-    free(tmp_string);
+    bg_album_open(ret);
     }
   
   /* Read children */

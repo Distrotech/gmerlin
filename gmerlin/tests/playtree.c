@@ -5,6 +5,10 @@
 #include <gui_gtk/tree.h>
 #include <gui_gtk/gtkutils.h>
 
+static void close_callback(bg_gtk_tree_window_t * w,void * data)
+  {
+  gtk_main_quit();
+  }
 
 int main(int argc, char ** argv)
   {
@@ -26,10 +30,10 @@ int main(int argc, char ** argv)
 
   cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
   plugin_reg = bg_plugin_registry_create(cfg_section);
-    
+  
   tree = bg_media_tree_create("./tree.xml", plugin_reg);
   
-  win = bg_gtk_tree_window_create(tree, NULL, NULL);
+  win = bg_gtk_tree_window_create(tree, close_callback, NULL);
   bg_gtk_tree_window_show(win);
   gtk_main();
   bg_gtk_tree_window_hide(win);

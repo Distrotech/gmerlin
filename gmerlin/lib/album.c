@@ -144,7 +144,6 @@ bg_album_t * bg_album_create(bg_album_common_t * com, bg_album_type_t type,
   ret->com = com;
   ret->parent = parent;
   ret->type = type;
-  pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);
   return ret;
   }
 
@@ -182,15 +181,6 @@ bg_album_entry_t * bg_album_get_entry(bg_album_t * a, int i)
   return ret;
   }
 
-void bg_album_lock(bg_album_t * a)
-  {
-  pthread_mutex_lock(&(a->mutex));
-  }
-
-void bg_album_unlock(bg_album_t * a)
-  {
-  pthread_mutex_unlock(&(a->mutex));
-  }
 
 /* Add items */
 
@@ -418,6 +408,10 @@ int bg_album_open(bg_album_t * a)
   if(a->open_count)
     return 1;
 
+  //  fprintf(stderr, "Open album\n");
+  
+  a->cfg_section = bg_cfg_section_create((char*)0);
+  
   switch(a->type)
     {
     case BG_ALBUM_TYPE_REGULAR:
@@ -499,7 +493,9 @@ void bg_album_close(bg_album_t *a )
 
   if(a->open_count)
     return;
-    
+
+  //  fprintf(stderr, "Close album\n");
+
   /* Tell the tree, if we are the current album */
   
   if((a == a->com->current_album) && a->com->set_current_callback)
@@ -543,6 +539,13 @@ void bg_album_close(bg_album_t *a )
   /* Delete shuffle list */
 
   delete_shuffle_list(a);
+  
+  /* Destroy config data */
+  if(a->cfg_section)
+    {
+    bg_cfg_section_destroy(a->cfg_section);
+    a->cfg_section = (bg_cfg_section_t*)0;
+    }
   }
 
 void bg_album_set_expanded(bg_album_t * a, int expanded)
@@ -577,10 +580,6 @@ void bg_album_destroy(bg_album_t * a)
     free(a->name);
   if(a->location)
     free(a->location);
-  if(a->open_path)
-    free(a->open_path);
-
-  pthread_mutex_destroy(&(a->mutex));
   
   /* Free entries */
 
@@ -962,33 +961,11 @@ void bg_album_play(bg_album_t * a)
     a->com->play_callback(a->com->play_callback_data);
   }
 
-
-void bg_album_set_coords(bg_album_t * a, int x, int y, int width, int height)
+bg_cfg_section_t * bg_album_get_cfg_section(bg_album_t * album)
   {
-  a->x      = x;
-  a->y      = y;
-  a->width  = width;
-  a->height = height;
+  return album->cfg_section;
   }
 
-void bg_album_get_coords(bg_album_t * a, int * x, int * y,
-                         int * width, int * height)
-  {
-  *x      = a->x;
-  *y      = a->y;
-  *width  = a->width;
-  *height = a->height;
-  }
-     
-void bg_album_set_open_path(bg_album_t * a, const char * path)
-  {
-  a->open_path = bg_strdup(a->open_path, path);
-  }
-
-const char * bg_album_get_open_path(bg_album_t * a)
-  {
-  return a->open_path;
-  }
 
 int bg_album_is_current(bg_album_t * a)
   {

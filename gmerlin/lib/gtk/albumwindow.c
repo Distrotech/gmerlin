@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <stdlib.h>
+#include <string.h>
 #include <gtk/gtk.h>
 
 #include <tree.h>
@@ -34,7 +35,96 @@ struct bg_gtk_album_window_s
   bg_gtk_album_widget_t * widget;
   bg_gtk_tree_widget_t * tree_widget;
   GtkWidget * window;
+  
+  int x, y, width, height;
+
+  bg_cfg_section_t * cfg_section;
+  
   };
+
+/* Configuration stuff */
+
+static bg_parameter_info_t parameters[] =
+  {
+    {
+      name: "x",
+      long_name: "X",
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 100 }
+    },
+    {
+      name: "y",
+      long_name: "Y",
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 100 }
+    },
+    {
+      name: "width",
+      long_name: "Width",
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 200 }
+    },
+    {
+      name: "height",
+      long_name: "Height",
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 300 }
+    },
+    { /* End of parameters */ }
+  };
+
+static void set_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  bg_gtk_album_window_t * win;
+  win = (bg_gtk_album_window_t*)data;
+  if(!name)
+    return;
+  else if(!strcmp(name, "x"))
+    {
+    win->x = val->val_i;
+    }
+  else if(!strcmp(name, "y"))
+    {
+    win->y = val->val_i;
+    }
+  else if(!strcmp(name, "width"))
+    {
+    win->width = val->val_i;
+    }
+  else if(!strcmp(name, "height"))
+    {
+    win->height = val->val_i;
+    }
+  }
+
+static int get_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  bg_gtk_album_window_t * win;
+  win = (bg_gtk_album_window_t*)data;
+  if(!name)
+    return 1;
+  else if(!strcmp(name, "x"))
+    {
+    val->val_i = win->x;
+    return 1;
+    }
+  else if(!strcmp(name, "y"))
+    {
+    val->val_i = win->y;
+    return 1;
+    }
+  else if(!strcmp(name, "width"))
+    {
+    val->val_i = win->width;
+    return 1;
+    }
+  else if(!strcmp(name, "height"))
+    {
+    val->val_i = win->height;
+    return 1;
+    }
+  return 0;
+  }
 
 static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
                                 gpointer data)
@@ -49,11 +139,7 @@ bg_gtk_album_window_t *
 bg_gtk_album_window_create(bg_album_t * album,
                            bg_gtk_tree_widget_t * tree_widget)
   {
-  int x;
-  int y;
-  int width;
-  int height;
-
+  
   bg_gtk_album_window_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->tree_widget = tree_widget;
@@ -72,43 +158,40 @@ bg_gtk_album_window_create(bg_album_t * album,
       
   gtk_widget_show(ret->window);
 
-  /* Set the screen coordinates */
+  /* Set config stuff */
 
-  bg_album_get_coords(album, &x, &y, &width, &height);
+  ret->cfg_section =
+    bg_cfg_section_find_subsection(bg_album_get_cfg_section(album), "gtk_albumwindow");
 
-  if((width > 0) && (height > 0))
-    {
-    gtk_decorated_window_move_resize_window(GTK_WINDOW(ret->window),
-                                            x, y, width, height);
-    }
+  bg_cfg_section_apply(ret->cfg_section, parameters, set_parameter, ret);
   
+  gtk_decorated_window_move_resize_window(GTK_WINDOW(ret->window),
+                                          ret->x, ret->y, ret->width, ret->height);
   return ret;
   }
 
 void bg_gtk_album_window_destroy(bg_gtk_album_window_t * w, int notify)
   {
   /* Get the window coordinates */
-  int x, y, width, height;
   
   if(w->window->window)
     {
     gdk_window_get_geometry(w->window->window,
-                            (gint *)0, (gint *)0, &width, &height,
+                            (gint *)0, (gint *)0, &(w->width), &(w->height),
                             (gint *)0);
 
-    gdk_window_get_root_origin(w->window->window, &x, &y);
-    
-    bg_album_set_coords(bg_gtk_album_widget_get_album(w->widget),
-                        x, y, width, height);
+    gdk_window_get_root_origin(w->window->window, &(w->x), &(w->y));
 
+    bg_cfg_section_get(w->cfg_section, parameters, get_parameter, w);
     }
 
+  if(w->widget)
+    bg_gtk_album_widget_destroy(w->widget);
+  
   if(w->tree_widget && notify)
     {
     bg_gtk_tree_widget_close_album(w->tree_widget, w);
     }
-  if(w->widget)
-    bg_gtk_album_widget_destroy(w->widget);
 
   gtk_widget_destroy(w->window);
   free(w);

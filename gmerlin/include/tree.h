@@ -115,9 +115,6 @@ bg_album_entry_t * bg_album_get_current_entry(bg_album_t*);
 int bg_album_next(bg_album_t*, int wrap);
 int bg_album_previous(bg_album_t*, int wrap);
 
-void bg_album_lock(bg_album_t *);
-void bg_album_unlock(bg_album_t *);
-
 void bg_album_set_current(bg_album_t * a, const bg_album_entry_t * e);
 
 int bg_album_is_current(bg_album_t*);
@@ -188,15 +185,9 @@ void bg_album_insert_urilist_before(bg_album_t * a, const char * xml_string,
 
 void bg_album_play(bg_album_t * a);
 
-void bg_album_set_coords(bg_album_t * a, int x, int y, int width, int height);
+/* Get the config section */
 
-void bg_album_get_coords(bg_album_t * a, int * x, int * y,
-                         int * width, int * height);
-
-/* The Open Path of an album can be stored as well */
-
-void bg_album_set_open_path(bg_album_t * a, const char * path);
-const char * bg_album_get_open_path(bg_album_t * a);
+bg_cfg_section_t * bg_album_get_cfg_section(bg_album_t * album);
 
 bg_plugin_registry_t * bg_album_get_plugin_registry(bg_album_t * album);
 

@@ -118,7 +118,6 @@ static bg_album_entry_t * xml_2_album(bg_album_t * album,
                                       bg_album_entry_t ** current,
                                       int load_globals)
   {
-  char * tmp_string;
   xmlNodePtr node;
   int is_current;
   bg_album_entry_t * ret = (bg_album_entry_t*)0;
@@ -145,20 +144,11 @@ static bg_album_entry_t * xml_2_album(bg_album_t * album,
       node = node->next;
       continue;
       }
-    else if(!strcmp(node->name, "COORDS") && load_globals)
+    else if(!strcmp(node->name, "CFG_SECTION") && load_globals)
       {
-      tmp_string = xmlNodeListGetString(xml_doc, node->children, 1);
-      sscanf(tmp_string, "%d %d %d %d", &(album->x), &(album->y),
-             &(album->width), &(album->height));
-      free(tmp_string);
+      bg_cfg_xml_2_section(xml_doc, node, album->cfg_section);
       }
-    else if(!strcmp(node->name, "OPEN_PATH") && load_globals)
-      {
-      tmp_string = xmlNodeListGetString(xml_doc, node->children, 1);
-      album->open_path = bg_strdup(album->open_path, tmp_string);
-      free(tmp_string);
-      }
-    if(!strcmp(node->name, "ENTRY"))
+    else if(!strcmp(node->name, "ENTRY"))
       {
       new_entry = load_entry(album, xml_doc, node, &is_current);
       if(new_entry)
@@ -450,7 +440,6 @@ static xmlDocPtr album_2_xml(bg_album_t * a)
   xmlDocPtr  xml_doc;
   xmlNodePtr xml_album;
   xmlNodePtr node;
-  char * tmp_string;
   
   /* First step: Build the xml tree */
 
@@ -460,22 +449,14 @@ static xmlDocPtr album_2_xml(bg_album_t * a)
 
   xmlAddChild(xml_album, xmlNewText("\n"));
 
-  /* Save coords */
-  node = xmlNewTextChild(xml_album, (xmlNsPtr)0, "COORDS", NULL);
-  tmp_string = bg_sprintf("%d %d %d %d", a->x, a->y,
-                          a->width, a->height);
-  xmlAddChild(node, xmlNewText(tmp_string));
-  free(tmp_string);
-  xmlAddChild(xml_album, xmlNewText("\n"));
-  
-  /* Save open path */
-  if(a->open_path)
+  /* Save config data */
+
+  if(a->cfg_section)
     {
-    node = xmlNewTextChild(xml_album, (xmlNsPtr)0, "OPEN_PATH", NULL);
-    xmlAddChild(node, xmlNewText(a->open_path));
+    node = xmlNewTextChild(xml_album, (xmlNsPtr)0, "CFG_SECTION", NULL);
+    bg_cfg_section_2_xml(a->cfg_section, node);
     xmlAddChild(xml_album, xmlNewText("\n"));
     }
-  
   
   entry = a->entries;
 

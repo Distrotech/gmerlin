@@ -31,6 +31,8 @@
 #include <gui_gtk/fileselect.h>
 #include <gui_gtk/urlselect.h>
 #include <gui_gtk/albumentry.h>
+#include <gui_gtk/display.h>
+
 
 /* Since the gtk part is single threaded,
    we can load the pixbufs globally */
@@ -159,7 +161,8 @@ typedef struct
   album_menu_t  album_menu;
 
   GtkWidget * select_error_item;
-    
+  GtkWidget * show_toolbar_item;
+  
   GtkWidget * menu;
   } menu_t;
 
@@ -192,10 +195,33 @@ struct bg_gtk_album_widget_s
   int num_selected;
 
   int mouse_x, mouse_y;
-  
+
+  /* Buttons */
+
+  GtkWidget * add_files_button;
+  GtkWidget * add_urls_button;
+  GtkWidget * remove_selected_button;
+  GtkWidget * info_button;
+  GtkWidget * move_selected_up_button;
+  GtkWidget * move_selected_down_button;
+
+  /* Display */
+
+  bg_gtk_time_display_t * total_time;
+
+  /* Toolbar (can be hidden) */
+
+  GtkWidget * toolbar;
+  GtkWidget * drag_dest;
+
+  /* Open path */
+
+  char * open_path;
+    
   };
 
 /* Utilities */
+
 
 static bg_album_entry_t * path_2_entry(bg_gtk_album_widget_t * w,
                                 GtkTreePath * path)
@@ -208,22 +234,125 @@ static bg_album_entry_t * path_2_entry(bg_gtk_album_widget_t * w,
   return (bg_album_get_entry(w->album, index));
   }
 
-#if 0
-static bg_album_entry_t * iter_2_entry(bg_gtk_album_widget_t * w,
-                                GtkTreeIter * iter)
-  {
-  GtkTreePath * path;
-  GtkTreeModel * model;
-  bg_album_entry_t * ret;
-  
-  model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
-  path = gtk_tree_model_get_path(model, iter);
+/* Configuration stuff */
 
-  ret = path_2_entry(w, path) ;
-  gtk_tree_path_free(path);
-  return ret;
+static bg_parameter_info_t parameters[] =
+  {
+    {
+      name:       "open_path",
+      long_name:  "Open path",
+      type:       BG_PARAMETER_DIRECTORY,
+      flags:      BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_str: "." },
+    },
+    {
+      name:       "show_toolbar",
+      long_name:  "Show toolbar",
+      type:       BG_PARAMETER_CHECKBUTTON,
+      flags:      BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 1 },
+    },
+    { /* End of parameters */ }
+  };
+
+static void set_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  bg_gtk_album_widget_t * w;
+  w = (bg_gtk_album_widget_t *)data;
+
+  if(!name)
+    return;
+
+  if(!strcmp(name, "open_path"))
+    {
+    w->open_path = bg_strdup(w->open_path, val->val_str);
+    }
+  else if(!strcmp(name, "show_toolbar"))
+    {
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(w->menu.show_toolbar_item), val->val_i);
+    }
   }
-#endif
+
+static int get_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  bg_gtk_album_widget_t * w;
+  w = (bg_gtk_album_widget_t *)data;
+
+  if(!name)
+    return 1;
+
+  if(!strcmp(name, "open_path"))
+    {
+    val->val_str = bg_strdup(val->val_str, w->open_path);
+    return 1;
+    }
+  else if(!strcmp(name, "show_toolbar"))
+    {
+    val->val_i = gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(w->menu.show_toolbar_item));
+    }
+
+  return 0;
+  }
+
+static void set_sensitive(bg_gtk_album_widget_t * w)
+  {
+  if(!w->num_selected)
+    {
+    gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.info_item, 0);
+    gtk_widget_set_sensitive(w->info_button, 0);
+
+    gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 0);
+    gtk_widget_set_sensitive(w->remove_selected_button, 0);
+
+    if(w->menu.selected_menu.refresh_item)
+      gtk_widget_set_sensitive(w->menu.selected_menu.refresh_item, 0);
+    
+    gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 0);
+    gtk_widget_set_sensitive(w->move_selected_up_button, 0);
+    gtk_widget_set_sensitive(w->move_selected_down_button, 0);
+
+    w->selected_entry = (bg_album_entry_t*)0;
+    }
+  else if(w->num_selected == 1)
+    {
+    gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.info_item, 1);
+    gtk_widget_set_sensitive(w->info_button, 1);
+
+    gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 1);
+    gtk_widget_set_sensitive(w->remove_selected_button, 1);
+
+    if(w->menu.selected_menu.refresh_item)
+      gtk_widget_set_sensitive(w->menu.selected_menu.refresh_item, 1);
+        
+    gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 1);
+    gtk_widget_set_sensitive(w->move_selected_up_button, 1);
+    gtk_widget_set_sensitive(w->move_selected_down_button, 1);
+    }
+  else
+    {
+    gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.info_item, 0);
+    gtk_widget_set_sensitive(w->info_button, 0);
+
+    gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 1);
+    gtk_widget_set_sensitive(w->remove_selected_button, 1);
+
+    if(w->menu.selected_menu.refresh_item)
+      gtk_widget_set_sensitive(w->menu.selected_menu.refresh_item, 1);
+    
+    gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 1);
+    gtk_widget_set_sensitive(w->move_selected_up_button, 1);
+    gtk_widget_set_sensitive(w->move_selected_down_button, 1);
+    w->selected_entry = (bg_album_entry_t*)0;
+    }
+
+  }
+
 
 void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   {
@@ -235,7 +364,8 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   GtkTreeIter iter;
   char string_buffer[GAVL_TIME_STRING_LEN + 32];
   GtkTreeSelection * selection;
-  
+  gavl_time_t total_time = 0;
+    
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(w->treeview));
   g_signal_handler_block(G_OBJECT(selection), w->select_handler_id);
   
@@ -297,6 +427,14 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
                        &iter,
                        COLUMN_DURATION,
                        string_buffer, -1);
+
+    if(total_time != GAVL_TIME_UNDEFINED)
+      {
+      if(entry->duration != GAVL_TIME_UNDEFINED)
+        total_time += entry->duration;
+      else
+        total_time = GAVL_TIME_UNDEFINED;
+      }
     
     /* Color */
 
@@ -345,25 +483,18 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
       w->selected_entry = entry;
       }
     }
-  
-  if(w->num_selected == 1)
-    {
-    gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 1);
-    gtk_widget_set_sensitive(w->menu.selected_menu.info_item, 1);
-    }
-  else
-    {
-    gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 0);
-    gtk_widget_set_sensitive(w->menu.selected_menu.info_item, 0);
-    w->selected_entry = (bg_album_entry_t*)0;
-    }
+
+  bg_gtk_time_display_update(w->total_time, total_time);
+
+  set_sensitive(w);
+    
   
   /* Set up drag destination */
 
   if(!num_entries)
     {
     gtk_drag_dest_unset(w->treeview);
-    gtk_drag_dest_set(w->widget,
+    gtk_drag_dest_set(w->drag_dest,
                       GTK_DEST_DEFAULT_HIGHLIGHT | GTK_DEST_DEFAULT_DROP | GTK_DEST_DEFAULT_MOTION,
                       dnd_dst_entries,
                       sizeof(dnd_dst_entries)/sizeof(dnd_dst_entries[0]),
@@ -371,7 +502,7 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
     }
   else
     {
-    gtk_drag_dest_unset(w->widget);
+    gtk_drag_dest_unset(w->drag_dest);
     gtk_drag_dest_set(w->treeview,
                       GTK_DEST_DEFAULT_HIGHLIGHT | GTK_DEST_DEFAULT_DROP | GTK_DEST_DEFAULT_MOTION,
                       dnd_dst_entries,
@@ -394,10 +525,9 @@ static void append_file_callback(char ** files, const char * plugin,
   gtk_widget_set_sensitive(widget->treeview, 1);
   
   //  bg_gtk_album_widget_update(widget);
-  
-  
-  bg_album_set_open_path(widget->album,
-                         bg_gtk_filesel_get_directory(widget->add_files_filesel));
+
+  widget->open_path = bg_strdup(widget->open_path,
+                                bg_gtk_filesel_get_directory(widget->add_files_filesel));
   }
 
 static void prepend_file_callback(char ** files, const char * plugin,
@@ -410,8 +540,8 @@ static void prepend_file_callback(char ** files, const char * plugin,
   gtk_widget_set_sensitive(widget->treeview, 1);
 
   //  bg_gtk_album_widget_update(widget);
-  bg_album_set_open_path(widget->album,
-                         bg_gtk_filesel_get_directory(widget->add_files_filesel));
+  widget->open_path = bg_strdup(widget->open_path,
+                                bg_gtk_filesel_get_directory(widget->add_files_filesel));
   }
 
 static void append_urls_callback(char ** urls, const char * plugin,
@@ -466,12 +596,20 @@ static void filesel_close_callback(bg_gtk_filesel_t * f, void * data)
     {
     widget->add_files_filesel = (bg_gtk_filesel_t*)0;
     }
+  gtk_widget_set_sensitive(widget->add_files_button, 1);
+  gtk_widget_set_sensitive(widget->menu.add_menu.append_files_item, 1);
+  gtk_widget_set_sensitive(widget->menu.add_menu.prepend_files_item, 1);
   }
 
 static void urlsel_close_callback(bg_gtk_urlsel_t * f, void * data)
   {
   bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
   widget->add_urls_urlsel = (bg_gtk_urlsel_t*)0;
+
+  gtk_widget_set_sensitive(widget->add_urls_button, 1);
+  gtk_widget_set_sensitive(widget->menu.add_menu.append_urls_item, 1);
+  gtk_widget_set_sensitive(widget->menu.add_menu.prepend_urls_item, 1);
+
   }
 
 static void set_name(void * data, char * name,
@@ -522,103 +660,162 @@ static void rename_current_entry(bg_gtk_album_widget_t * w)
   
   }
 
+static void append_files(bg_gtk_album_widget_t * widget)
+  {
+  char * tmp_string;
+
+  tmp_string = bg_sprintf("Append files to album %s",
+                          bg_album_get_name(widget->album));
+  if(!file_plugins)
+    file_plugins = bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
+                                                  BG_PLUGIN_INPUT,
+                                                  BG_PLUGIN_FILE);
+    
+  widget->add_files_filesel =
+    bg_gtk_filesel_create(tmp_string,
+                          append_file_callback,
+                          filesel_close_callback,
+                          file_plugins,
+                          widget, widget->parent);
+  free(tmp_string);
+
+  bg_gtk_filesel_set_directory(widget->add_files_filesel,
+                               widget->open_path);
+
+  gtk_widget_set_sensitive(widget->add_files_button, 0);
+  gtk_widget_set_sensitive(widget->menu.add_menu.append_files_item, 0);
+  gtk_widget_set_sensitive(widget->menu.add_menu.prepend_files_item, 0);
+  
+  bg_gtk_filesel_run(widget->add_files_filesel, 0);
+  }
+
+static void prepend_files(bg_gtk_album_widget_t * widget)
+  {
+  char * tmp_string;
+  tmp_string = bg_sprintf("Prepend files to album %s",
+                          bg_album_get_name(widget->album));
+
+  if(!file_plugins)
+    file_plugins =
+      bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
+                                     BG_PLUGIN_INPUT,
+                                     BG_PLUGIN_FILE);
+    
+  widget->add_files_filesel =
+    bg_gtk_filesel_create(tmp_string,
+                          prepend_file_callback,
+                          filesel_close_callback,
+                          file_plugins,
+                          widget, widget->parent);
+  free(tmp_string);
+  
+  bg_gtk_filesel_set_directory(widget->add_files_filesel,
+                               widget->open_path);
+
+  gtk_widget_set_sensitive(widget->add_files_button, 0);
+  gtk_widget_set_sensitive(widget->menu.add_menu.append_files_item, 0);
+  gtk_widget_set_sensitive(widget->menu.add_menu.prepend_files_item, 0);
+  
+  bg_gtk_filesel_run(widget->add_files_filesel, 0);
+  
+  }
+
+static void append_urls(bg_gtk_album_widget_t * widget)
+  {
+  char * tmp_string;
+
+  tmp_string = bg_sprintf("Append URLS to album %s",
+                          bg_album_get_name(widget->album));
+  if(!url_plugins)
+    url_plugins =
+      bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
+                                     BG_PLUGIN_INPUT,
+                                     BG_PLUGIN_URL);
+  
+  widget->add_urls_urlsel =
+    bg_gtk_urlsel_create(tmp_string,
+                         append_urls_callback,
+                         urlsel_close_callback,
+                         url_plugins,
+                         widget, widget->parent);
+  free(tmp_string);
+
+  gtk_widget_set_sensitive(widget->add_urls_button, 0);
+  gtk_widget_set_sensitive(widget->menu.add_menu.append_urls_item, 0);
+  gtk_widget_set_sensitive(widget->menu.add_menu.prepend_urls_item, 0);
+  
+  bg_gtk_urlsel_run(widget->add_urls_urlsel, 0);
+
+  }
+
+static void prepend_urls(bg_gtk_album_widget_t * widget)
+  {
+  char * tmp_string;
+
+  tmp_string = bg_sprintf("Prepend URLS to album %s",
+                          bg_album_get_name(widget->album));
+  if(!url_plugins)
+    url_plugins =
+      bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
+                                     BG_PLUGIN_INPUT,
+                                     BG_PLUGIN_URL);
+  
+  widget->add_urls_urlsel =
+    bg_gtk_urlsel_create(tmp_string,
+                         prepend_urls_callback,
+                         urlsel_close_callback,
+                         url_plugins,
+                         widget, widget->parent);
+  free(tmp_string);
+  bg_gtk_urlsel_run(widget->add_urls_urlsel, 0);
+  }
+
+static void remove_selected(bg_gtk_album_widget_t * widget)
+  {
+  bg_album_delete_selected(widget->album);
+  bg_gtk_album_widget_update(widget);
+  }
+
+static void move_selected_up(bg_gtk_album_widget_t * widget)
+  {
+  bg_album_move_selected_up(widget->album);
+  bg_gtk_album_widget_update(widget);
+  }
+
+static void move_selected_down(bg_gtk_album_widget_t * widget)
+  {
+  bg_album_move_selected_down(widget->album);
+  bg_gtk_album_widget_update(widget);
+  }
+
 
 static void menu_callback(GtkWidget * w, gpointer data)
   {
   char * tmp_string;
-  const char * path;
   bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
 
   /* Add files */
   
   if(w == widget->menu.add_menu.append_files_item)
     {
-    tmp_string = bg_sprintf("Append files to album %s",
-                               bg_album_get_name(widget->album));
-    if(!file_plugins)
-      file_plugins = bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
-                                          BG_PLUGIN_INPUT,
-                                          BG_PLUGIN_FILE);
-    
-    widget->add_files_filesel =
-      bg_gtk_filesel_create(tmp_string,
-                            append_file_callback,
-                            filesel_close_callback,
-                            file_plugins,
-                            widget, widget->parent);
-    free(tmp_string);
-
-    path = bg_album_get_open_path(widget->album);
-    
-    bg_gtk_filesel_set_directory(widget->add_files_filesel,
-                                 path);
-    
-    bg_gtk_filesel_run(widget->add_files_filesel, 0);
+    append_files(widget);
     }
   else if(w == widget->menu.add_menu.prepend_files_item)
     {
-    tmp_string = bg_sprintf("Prepend files to album %s",
-                            bg_album_get_name(widget->album));
-
-    if(!file_plugins)
-      file_plugins =
-        bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
-                                          BG_PLUGIN_INPUT,
-                                          BG_PLUGIN_FILE);
-    
-    widget->add_files_filesel =
-      bg_gtk_filesel_create(tmp_string,
-                            prepend_file_callback,
-                            filesel_close_callback,
-                            file_plugins,
-                            widget, widget->parent);
-    free(tmp_string);
-    bg_gtk_filesel_set_directory(widget->add_files_filesel,
-                                 bg_album_get_open_path(widget->album));
-    bg_gtk_filesel_run(widget->add_files_filesel, 0);
+    prepend_files(widget);
     }
 
   /* Add URLS */
 
   else if(w == widget->menu.add_menu.append_urls_item)
     {
-    tmp_string = bg_sprintf("Append URLS to album %s",
-                            bg_album_get_name(widget->album));
-    if(!url_plugins)
-      url_plugins =
-        bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
-                                       BG_PLUGIN_INPUT,
-                                       BG_PLUGIN_URL);
-    
-    widget->add_urls_urlsel =
-      bg_gtk_urlsel_create(tmp_string,
-                           append_urls_callback,
-                           urlsel_close_callback,
-                           url_plugins,
-                           widget, widget->parent);
-    free(tmp_string);
-    bg_gtk_urlsel_run(widget->add_urls_urlsel, 0);
+    append_urls(widget);
     }
   else if(w == widget->menu.add_menu.prepend_urls_item)
     {
-    tmp_string = bg_sprintf("Prepend URLS to album %s",
-                            bg_album_get_name(widget->album));
-    if(!url_plugins)
-      url_plugins =
-        bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
-                                       BG_PLUGIN_INPUT,
-                                       BG_PLUGIN_URL);
-    
-    widget->add_urls_urlsel =
-      bg_gtk_urlsel_create(tmp_string,
-                           prepend_urls_callback,
-                           urlsel_close_callback,
-                           url_plugins,
-                           widget, widget->parent);
-    free(tmp_string);
-    bg_gtk_urlsel_run(widget->add_urls_urlsel, 0);
+    prepend_urls(widget);
     }
-  
+
   /* Add Albums */
   
   else if(w == widget->menu.add_menu.append_albums_item)
@@ -647,50 +844,61 @@ static void menu_callback(GtkWidget * w, gpointer data)
     free(tmp_string);
     bg_gtk_filesel_run(widget->add_files_filesel, 0);
     }
+
+  /* Remove selected */
+
   else if(w == widget->menu.selected_menu.remove_item)
     {
-    bg_album_delete_selected(widget->album);
-    bg_gtk_album_widget_update(widget);
+    remove_selected(widget);
     }
+
+  /* Select error tracks */
+  
   else if(w == widget->menu.select_error_item)
     {
     bg_album_select_error_tracks(widget->album);
     bg_gtk_album_widget_update(widget);
     }
+
+  /* Move up/down */
+  
   else if(w == widget->menu.selected_menu.move_up_item)
     {
-    bg_album_move_selected_up(widget->album);
-    bg_gtk_album_widget_update(widget);
+    move_selected_up(widget);
     }
   else if(w == widget->menu.selected_menu.move_down_item)
     {
-    bg_album_move_selected_down(widget->album);
-    bg_gtk_album_widget_update(widget);
+    move_selected_down(widget);
     }
-  else if(w == widget->menu.selected_menu.move_down_item)
-    {
-    bg_album_move_selected_down(widget->album);
-    bg_gtk_album_widget_update(widget);
-    }
+
+  /* Rename */
+    
   else if(w == widget->menu.selected_menu.rename_item)
     {
     rename_current_entry(widget);
     bg_gtk_album_widget_update(widget);
     }
+
+  /* Info */
+  
   else if(w == widget->menu.selected_menu.info_item)
     {
     bg_gtk_album_enrty_show(widget->selected_entry);
     }
+  
+  /* Refresh */
   else if(w == widget->menu.selected_menu.refresh_item)
     {
     bg_album_refresh_selected(widget->album);
     bg_gtk_album_widget_update(widget);
     }
+  /* Sort */
   else if(w == widget->menu.album_menu.sort_item)
     {
     bg_album_sort(widget->album);
     bg_gtk_album_widget_update(widget);
     }
+  /* Save */
   else if(w == widget->menu.album_menu.save_item)
     {
     tmp_string = bg_gtk_get_filename_write("Save album as",
@@ -702,6 +910,17 @@ static void menu_callback(GtkWidget * w, gpointer data)
       free(tmp_string);
       }
     }
+  
+  /* Show toolbar */
+
+  else if(w == widget->menu.show_toolbar_item)
+    {
+    if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(widget->menu.show_toolbar_item)))
+      gtk_widget_show(widget->toolbar);
+    else
+      gtk_widget_hide(widget->toolbar);
+    }
+  
   }
 
 
@@ -718,30 +937,47 @@ create_item(bg_gtk_album_widget_t * w, GtkWidget * parent,
   return ret;
   }
 
+static GtkWidget *
+create_toggle_item(bg_gtk_album_widget_t * w, GtkWidget * parent,
+                   const char * label)
+  {
+  GtkWidget * ret;
+  ret = gtk_check_menu_item_new_with_label(label);
+  g_signal_connect(G_OBJECT(ret), "toggled", G_CALLBACK(menu_callback),
+                   (gpointer)w);
+  gtk_widget_show(ret);
+  gtk_menu_shell_append(GTK_MENU_SHELL(parent), ret);
+  return ret;
+  }
+
+
 static void init_menu(bg_gtk_album_widget_t * w)
   {
   bg_album_type_t type;
   type = bg_album_get_type(w->album);
   
   /* Add... */
-  
-  w->menu.add_menu.menu = gtk_menu_new();
-  w->menu.add_menu.append_files_item =
-    create_item(w, w->menu.add_menu.menu, "Append Files");
-  w->menu.add_menu.prepend_files_item =
-    create_item(w, w->menu.add_menu.menu, "Prepend Files");
 
-  w->menu.add_menu.append_albums_item =
-    create_item(w, w->menu.add_menu.menu, "Append Albums");
-  w->menu.add_menu.prepend_albums_item =
-    create_item(w, w->menu.add_menu.menu, "Prepend Albums");
+  if(type == BG_ALBUM_TYPE_REGULAR)
+    {
+    w->menu.add_menu.menu = gtk_menu_new();
+    w->menu.add_menu.append_files_item =
+      create_item(w, w->menu.add_menu.menu, "Append Files");
+    w->menu.add_menu.prepend_files_item =
+      create_item(w, w->menu.add_menu.menu, "Prepend Files");
+    
+    w->menu.add_menu.append_albums_item =
+      create_item(w, w->menu.add_menu.menu, "Append Albums");
+    w->menu.add_menu.prepend_albums_item =
+      create_item(w, w->menu.add_menu.menu, "Prepend Albums");
+    
+    w->menu.add_menu.append_urls_item =
+      create_item(w, w->menu.add_menu.menu, "Append URLs");
+    w->menu.add_menu.prepend_urls_item =
+      create_item(w, w->menu.add_menu.menu, "Prepend URLs");
+    gtk_widget_show(w->menu.add_menu.menu);
+    }
 
-  w->menu.add_menu.append_urls_item =
-    create_item(w, w->menu.add_menu.menu, "Append URLs");
-  w->menu.add_menu.prepend_urls_item =
-    create_item(w, w->menu.add_menu.menu, "Prepend URLs");
-  
-  gtk_widget_show(w->menu.add_menu.menu);
     
   /* Selected */
 
@@ -760,7 +996,7 @@ static void init_menu(bg_gtk_album_widget_t * w)
   w->menu.selected_menu.info_item =
     create_item(w, w->menu.selected_menu.menu, "Info...");
 
-  if(type != BG_ALBUM_TYPE_REMOVABLE)
+  if(type == BG_ALBUM_TYPE_REGULAR)
     w->menu.selected_menu.refresh_item =
       create_item(w, w->menu.selected_menu.menu, "Refresh");
   
@@ -772,19 +1008,27 @@ static void init_menu(bg_gtk_album_widget_t * w)
   /* Album */
 
   w->menu.album_menu.menu = gtk_menu_new();
-  w->menu.album_menu.save_item =
-    create_item(w, w->menu.album_menu.menu, "Save as...");
+
+  if(type == BG_ALBUM_TYPE_REGULAR)
+    {
+    w->menu.album_menu.save_item =
+      create_item(w, w->menu.album_menu.menu, "Save as...");
+    }
   w->menu.album_menu.sort_item =
     create_item(w, w->menu.album_menu.menu, "Sort");
     
   /* Root menu */
   
   w->menu.menu = gtk_menu_new();
-  w->menu.add_item =
-    create_item(w, w->menu.menu, "Add...");
 
-  gtk_menu_item_set_submenu(GTK_MENU_ITEM(w->menu.add_item),
-                            w->menu.add_menu.menu);
+  if(type == BG_ALBUM_TYPE_REGULAR)
+    {
+    w->menu.add_item =
+      create_item(w, w->menu.menu, "Add...");
+    
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(w->menu.add_item),
+                              w->menu.add_menu.menu);
+    }
 
   w->menu.selected_item =
     create_item(w, w->menu.menu, "Selected...");
@@ -800,6 +1044,9 @@ static void init_menu(bg_gtk_album_widget_t * w)
                             w->menu.album_menu.menu);
   w->menu.select_error_item =
     create_item(w, w->menu.menu, "Select error tracks");
+
+  w->menu.show_toolbar_item =
+    create_toggle_item(w, w->menu.menu, "Show toolbar");
   }
 
 static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
@@ -1016,7 +1263,7 @@ static void drag_get_callback(GtkWidget *widget,
   
   bg_gtk_album_widget_t * w;
   w = (bg_gtk_album_widget_t *)user_data;
-  fprintf(stderr, "Drag get callback\n");
+  //  fprintf(stderr, "Drag get callback\n");
   str = bg_album_save_selected_to_memory(w->album, &len);
 #if 0
   fprintf(stderr, "selection: %s\n", gdk_atom_name(data->selection));
@@ -1065,17 +1312,7 @@ static void select_row_callback(GtkTreeSelection * sel,
     if(!gtk_tree_model_iter_next(model, &iter))
       break;
     }
-  if(w->num_selected == 1)
-    {
-    gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 1);
-    gtk_widget_set_sensitive(w->menu.selected_menu.info_item, 1);
-    }
-  else
-    {
-    gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 0);
-    gtk_widget_set_sensitive(w->menu.selected_menu.info_item, 0);
-    w->selected_entry = (bg_album_entry_t*)0;
-    }
+  set_sensitive(w);
   }
 
 static gboolean drag_motion_callback(GtkWidget *widget,
@@ -1232,6 +1469,63 @@ static void album_changed_callback(bg_album_t * a, void * data)
     gtk_main_iteration();
   }
 
+
+static void button_callback(GtkWidget * wid, gpointer data)
+  {
+  bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
+  
+  if(wid == w->add_files_button)
+    {
+    append_files(w);
+    }
+  else if(wid == w->add_urls_button)
+    {
+    append_urls(w);
+    }
+  else if(wid == w->remove_selected_button)
+    {
+    remove_selected(w);
+    }
+  else if(wid == w->info_button)
+    {
+    bg_gtk_album_enrty_show(w->selected_entry);
+    }
+  else if(wid == w->move_selected_up_button)
+    {
+    move_selected_up(w);
+    }
+  else if(wid == w->move_selected_down_button)
+    {
+    move_selected_down(w);
+    }
+  }
+
+static GtkWidget * create_pixmap_button(bg_gtk_album_widget_t * w, const char * filename)
+  {
+  GtkWidget * button;
+  GtkWidget * image;
+  char * path;
+  path = bg_search_file_read("icons", filename);
+  if(path)
+    {
+    image = gtk_image_new_from_file(path);
+    free(path);
+    }
+  else
+    image = gtk_image_new();
+
+  gtk_widget_show(image);
+  button = gtk_button_new();
+  gtk_container_add(GTK_CONTAINER(button), image);
+
+  g_signal_connect(G_OBJECT(button), "clicked",
+                   G_CALLBACK(button_callback), w);
+
+  gtk_widget_show(button);
+  
+  return button;
+  }
+
 bg_gtk_album_widget_t *
 bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   {
@@ -1240,6 +1534,13 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   GtkListStore *store;
   GtkCellRenderer *renderer;
   GtkTreeSelection * selection;
+  GtkWidget * scrolledwin;
+
+  bg_cfg_section_t * section, * subsection;
+
+  bg_album_type_t type;
+  type = bg_album_get_type(album);
+  
   load_pixmaps();
   bg_gtk_tree_create_atoms();
 
@@ -1258,7 +1559,8 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   ret->parent = parent;
 
   bg_album_set_change_callback(album, album_changed_callback, ret);
-  
+
+  /* Create list */
   
   store = gtk_list_store_new(NUM_COLUMNS,
                              G_TYPE_STRING,     // Index
@@ -1282,7 +1584,7 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   
   gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(ret->treeview), 0);
 
-  /* Set callbacks */
+  /* Set list callbacks */
   gtk_widget_set_events(ret->treeview,
                         GDK_BUTTON_PRESS_MASK |
                         GDK_KEY_PRESS_MASK |
@@ -1437,27 +1739,73 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
                                col);
 
   ret->col_duration = col;
+
   /* Done with columns */
     
   gtk_widget_show(ret->treeview);
-
-  ret->widget =
+  
+  scrolledwin =
     gtk_scrolled_window_new(gtk_tree_view_get_hadjustment(GTK_TREE_VIEW(ret->treeview)),
                             gtk_tree_view_get_vadjustment(GTK_TREE_VIEW(ret->treeview)));
 
-  g_signal_connect(G_OBJECT(ret->widget), "drag-data-received",
+  ret->drag_dest = scrolledwin;
+  
+  g_signal_connect(G_OBJECT(ret->drag_dest), "drag-data-received",
                    G_CALLBACK(drag_received_callback),
                    (gpointer)ret);
   
   
-  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ret->widget),
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwin),
                                  GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
-  gtk_container_add(GTK_CONTAINER(ret->widget), ret->treeview);
+  gtk_container_add(GTK_CONTAINER(scrolledwin), ret->treeview);
 
-  init_menu(ret);
-
-  bg_gtk_album_widget_update(ret);
+  gtk_widget_show(scrolledwin);
     
+  /* Create toolbar */
+
+  if(type == BG_ALBUM_TYPE_REGULAR)
+    {
+    ret->add_files_button          = create_pixmap_button(ret, "folder_open_16.png");
+    ret->add_urls_button           = create_pixmap_button(ret, "earth_16.png");
+    }
+  ret->remove_selected_button    = create_pixmap_button(ret, "trash_16.png");
+  ret->info_button               = create_pixmap_button(ret, "info_16.png");
+  ret->move_selected_up_button   = create_pixmap_button(ret, "up_16.png");
+  ret->move_selected_down_button = create_pixmap_button(ret, "down_16.png");
+
+  ret->total_time                = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
+  ret->toolbar                   = gtk_hbox_new(0, 0);
+
+  if(type == BG_ALBUM_TYPE_REGULAR)
+    {
+    gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->add_files_button, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->add_urls_button, FALSE, FALSE, 0);
+    }
+  gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->remove_selected_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->info_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->move_selected_up_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->move_selected_down_button, FALSE, FALSE, 0);
+
+  gtk_box_pack_end(GTK_BOX(ret->toolbar),
+                   bg_gtk_time_display_get_widget(ret->total_time), FALSE, FALSE, 0);
+
+  //  gtk_widget_show(ret->toolbar);
+  
+  ret->widget = gtk_vbox_new(0, 0);
+
+  gtk_box_pack_start_defaults(GTK_BOX(ret->widget), scrolledwin);
+  gtk_box_pack_start(GTK_BOX(ret->widget), ret->toolbar, FALSE, FALSE, 0);
+  
+  init_menu(ret);
+  
+  /* Get config params from the album */
+
+  section = bg_album_get_cfg_section(album);
+  subsection = bg_cfg_section_find_subsection(section, "gtk_albumwidget");
+
+  bg_cfg_section_apply(subsection, parameters, set_parameter, ret);
+  
+  bg_gtk_album_widget_update(ret);
   gtk_widget_show(ret->widget);
   
   return ret;
@@ -1465,7 +1813,12 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
 
 void bg_gtk_album_widget_destroy(bg_gtk_album_widget_t * w)
   {
+  bg_cfg_section_t * section, * subsection;
 
+  section = bg_album_get_cfg_section(w->album);
+  subsection = bg_cfg_section_find_subsection(section, "gtk_albumwidget");
+  
+  bg_cfg_section_get(subsection, parameters, get_parameter, w);
   }
 
 GtkWidget * bg_gtk_album_widget_get_widget(bg_gtk_album_widget_t * w)

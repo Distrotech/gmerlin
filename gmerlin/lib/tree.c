@@ -313,7 +313,7 @@ void bg_media_tree_destroy(bg_media_tree_t * t)
   {
   bg_album_t * next_album;
   bg_media_tree_save(t);
-
+  
   while(t->children)
     {
     next_album = t->children->next;
@@ -325,6 +325,9 @@ void bg_media_tree_destroy(bg_media_tree_t * t)
     free(t->com.directory);
   if(t->com.load_handle)
     bg_plugin_unref(t->com.load_handle);
+
+  if(t->filename)
+    free(t->filename);
   free(t);
   }
 
