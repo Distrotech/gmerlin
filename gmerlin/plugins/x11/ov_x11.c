@@ -161,7 +161,7 @@ typedef struct
   } x11_t;
 
 static int handle_event(x11_t * priv, XEvent * evt);
-
+static void close_x11(void*);
 
 void set_callbacks_x11(void * data, bg_ov_callbacks_t * callbacks)
   {
@@ -870,8 +870,10 @@ static int open_x11(void * data,
   pthread_mutex_unlock(&(priv->still_mutex));
 
   if(still_running)
+    {
     pthread_join(priv->still_thread, NULL);
-  
+    close_x11(priv);
+    }
   XmbSetWMProperties(priv->dpy, priv->normal_window, window_title,
                      window_title, NULL, 0, NULL, NULL, NULL);
     
@@ -1002,13 +1004,21 @@ static int open_x11(void * data,
     }
   else
     set_drawing_coords(priv);
+
+  if(priv->do_xv)
+    {
+    XvGrabPort(priv->dpy, priv->xv_port, CurrentTime);	
+    }
+
   
   return 1;
   }
 
 static void close_x11(void * data)
   {
-  //  x11_t * priv = (x11_t*)data;
+  x11_t * priv = (x11_t*)data;
+  if(priv->do_xv)
+    XvUngrabPort(priv->dpy, priv->xv_port, CurrentTime);
   }
 
 static void destroy_x11(void * data)
@@ -1132,6 +1142,8 @@ static int handle_event(x11_t * priv, XEvent * evt)
             XMapWindow(priv->dpy, priv->fullscreen_window);
             XMoveWindow(priv->dpy,
                         priv->fullscreen_window, 0, 0);
+            XRaiseWindow(priv->dpy,
+                         priv->fullscreen_window);
             }
           /* Fullscreen -> Non Fullscreen */
           else
@@ -1300,7 +1312,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
                 priv->format.image_height          /* height  */);
       }
     }
-
+  XSync(priv->dpy, False);
   handle_events(priv);
   }
 
@@ -1415,22 +1427,17 @@ static void show_window_x11(void * data, int show)
     
   XClearArea(priv->dpy, priv->current_window, 0, 0,
              priv->window_width, priv->window_height, True);
-
-  XFlush(priv->dpy);
+  //  send_expose(
+  XSync(priv->dpy, False);
   
   /* Get the expose event before we draw the first frame */
 
-  while(1)
+  while(XPending(priv->dpy))
     {
     //    fprintf(stderr, "Next Event...");
     XNextEvent(priv->dpy, &event);
     //    fprintf(stderr, "done\n");
-    if(event.type == Expose)
-      {
-      break;
-      }
-    else
-      handle_event(priv, &event);
+    handle_event(priv, &event);
     }
 
   fprintf(stderr, "Show window done\n");

@@ -185,11 +185,14 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
 
 void bg_player_input_cleanup(bg_player_input_context_t * ctx)
   {
+
   if(ctx->plugin->stop)
     ctx->plugin->stop(ctx->priv);
   if(ctx->plugin_handle)
     bg_plugin_unref(ctx->plugin_handle);
-
+  ctx->plugin_handle = NULL;
+  ctx->plugin = NULL;
+  
   //  if(!(ctx->plugin_handle->info->flags & BG_PLUGIN_REMOVABLE))
   //    ctx->plugin->close(ctx->priv);
   }

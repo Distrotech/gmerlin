@@ -350,35 +350,36 @@ static void stop_cmd(bg_player_t * player, int new_state)
     bg_fifo_set_state(player->audio_stream.fifo, BG_FIFO_STOPPED);
   if(player->do_video)
     bg_fifo_set_state(player->video_stream.fifo, BG_FIFO_STOPPED);
-  
-  fprintf(stderr, "Joining input thread...");
-  pthread_join(player->input_thread, (void**)0);
-  fprintf(stderr, "done\n");
-  
-  if(player->do_audio)
-    {
-    fprintf(stderr, "Joining audio thread...");
-    pthread_join(player->oa_thread, (void**)0);
-    fprintf(stderr, "done\n");
-    }
-  if(player->do_video)
-    {
-    fprintf(stderr, "Joining video thread...");
-    pthread_join(player->ov_thread, (void**)0);
-    fprintf(stderr, "done\n");
-    }
-  player_cleanup(player);
 
-  if(new_state == BG_PLAYER_STATE_STOPPED)
-    {
+  if(old_state == BG_PLAYER_STATE_PLAYING)
+    {  
+    fprintf(stderr, "Joining input thread...");
+    pthread_join(player->input_thread, (void**)0);
+    fprintf(stderr, "done\n");
+    
+    if(player->do_audio)
+      {
+      fprintf(stderr, "Joining audio thread...");
+      pthread_join(player->oa_thread, (void**)0);
+      fprintf(stderr, "done\n");
+      }
     if(player->do_video)
       {
-      bg_player_ov_standby(player->ov_context);
-      player->do_video = 0;
+      fprintf(stderr, "Joining video thread...");
+      pthread_join(player->ov_thread, (void**)0);
+      fprintf(stderr, "done\n");
+      }
+    player_cleanup(player);
+    
+    if(new_state == BG_PLAYER_STATE_STOPPED)
+      {
+      if(player->do_video)
+        {
+        bg_player_ov_standby(player->ov_context);
+        player->do_video = 0;
+        }
       }
     }
-  
-
   }
 
 static void set_ov_plugin_cmd(bg_player_t * player,
