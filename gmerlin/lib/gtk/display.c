@@ -310,11 +310,17 @@ bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE size, int border_width)
   g_signal_connect(G_OBJECT(ret->widget), "expose_event",
                      G_CALLBACK(expose_callback), (gpointer)ret);
 
+  gtk_widget_set_events(ret->widget,
+                        GDK_EXPOSURE_MASK |
+                        GDK_ENTER_NOTIFY_MASK |
+                        GDK_LEAVE_NOTIFY_MASK);
+  
   g_signal_connect(G_OBJECT(ret->widget), "realize",
                    G_CALLBACK(realize_callback), (gpointer)ret);
 
   gtk_widget_set_size_request(ret->widget,
-                              2 * ret->border_width + 7 * ret->digit_width + 2 * ret->colon_width,
+                              2 * ret->border_width +
+                              7 * ret->digit_width + 2 * ret->colon_width,
                               2 * ret->border_width + ret->height);
   
   gtk_widget_show(ret->widget);

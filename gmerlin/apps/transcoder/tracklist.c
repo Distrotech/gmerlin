@@ -129,10 +129,12 @@ struct track_list_s
 
   bg_cfg_section_t * track_defaults_section;
   bg_gtk_time_display_t * time_total;
-  
+
+  GtkTooltips * tooltips;
   };
 
-static GtkWidget * create_pixmap_button(const char * filename)
+static GtkWidget * create_pixmap_button(track_list_t * l, const char * filename,
+                                        const char * tooltip, const char * tooltip_private)
   {
   GtkWidget * button;
   GtkWidget * image;
@@ -149,6 +151,8 @@ static GtkWidget * create_pixmap_button(const char * filename)
   gtk_widget_show(image);
   button = gtk_button_new();
   gtk_container_add(GTK_CONTAINER(button), image);
+
+  gtk_tooltips_set_tip(l->tooltips, button, tooltip, tooltip_private);
   return button;
   }
 
@@ -165,7 +169,7 @@ static void select_row_callback(GtkTreeSelection * sel,
   
   track_list_t * w = (track_list_t *)data;
 
-  fprintf(stderr, "Select row callback\n");
+  //  fprintf(stderr, "Select row callback\n");
   
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
   
@@ -545,7 +549,7 @@ static void filesel_close_callback(bg_gtk_filesel_t * f , void * data)
   {
   track_list_t * t;
   t = (track_list_t*)data;
-  fprintf(stderr, "Filesel close\n");
+  //  fprintf(stderr, "Filesel close\n");
   gtk_widget_set_sensitive(t->add_file_button, 1);
   }
 
@@ -553,7 +557,7 @@ static void urlsel_close_callback(bg_gtk_urlsel_t * f , void * data)
   {
   track_list_t * t;
   t = (track_list_t*)data;
-  fprintf(stderr, "Urlsel close\n");
+  //  fprintf(stderr, "Urlsel close\n");
   gtk_widget_set_sensitive(t->add_url_button, 1);
   }
 
@@ -561,7 +565,7 @@ static void drivesel_close_callback(bg_gtk_drivesel_t * f , void * data)
   {
   track_list_t * t;
   t = (track_list_t*)data;
-  fprintf(stderr, "Drivesel close\n");
+  //  fprintf(stderr, "Drivesel close\n");
   gtk_widget_set_sensitive(t->add_removable_button, 1);
   }
 
@@ -572,7 +576,7 @@ static void set_track_name(void * data, const char * name)
   {
   track_list_t * l = (track_list_t *)data;
 
-  fprintf(stderr, "Set Track name %s\n", name);
+  //  fprintf(stderr, "Set Track name %s\n", name);
 
   track_list_update(l);
   }
@@ -614,7 +618,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   if(w == t->add_url_button)
     {
-    fprintf(stderr, "Add URL\n");
+    //    fprintf(stderr, "Add URL\n");
 
     if(!url_plugins)
       {
@@ -634,9 +638,8 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   if(w == t->add_removable_button)
     {
-    fprintf(stderr, "Add Removable\n");
+    //    fprintf(stderr, "Add Removable\n");
     
-
     if(!drive_plugins)
       {
       init_drives(t->plugin_reg);
@@ -658,22 +661,22 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   if(w == t->delete_button)
     {
-    fprintf(stderr, "Delete button\n");
+    //    fprintf(stderr, "Delete button\n");
     delete_selected(t);
     }
   if(w == t->up_button)
     {
-    fprintf(stderr, "Up button\n");
+    //    fprintf(stderr, "Up button\n");
     move_up(t);
     }
   if(w == t->down_button)
     {
-    fprintf(stderr, "Down button\n");
+    //    fprintf(stderr, "Down button\n");
     move_down(t);
     }
   if(w == t->config_button)
     {
-    fprintf(stderr, "Config button\n");
+    //    fprintf(stderr, "Config button\n");
     track_dialog = track_dialog_create(t->selected_track, set_track_name, t);
     track_dialog_run(track_dialog);
     track_dialog_destroy(track_dialog);
@@ -761,11 +764,11 @@ static void drag_received_callback(GtkWidget *widget,
   bg_transcoder_track_t * new_tracks;
   track_list_t * l = (track_list_t *)d;
   
-  fprintf(stderr, "Drag received callback\n");
+  //  fprintf(stderr, "Drag received callback\n");
 
   if(is_urilist(data))
     {
-    fprintf(stderr, "Urilist\n");
+    //    fprintf(stderr, "Urilist\n");
     new_tracks =
       bg_transcoder_track_create_from_urilist(data->data,
                                               data->length,
@@ -775,7 +778,7 @@ static void drag_received_callback(GtkWidget *widget,
     }
   else if(is_albumentries(data))
     {
-    fprintf(stderr, "Album entries\n");
+    //    fprintf(stderr, "Album entries\n");
     
     new_tracks =
       bg_transcoder_track_create_from_albumentries(data->data,
@@ -812,21 +815,30 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   
   ret = calloc(1, sizeof(*ret));
 
+  ret->tooltips = gtk_tooltips_new();
   ret->track_defaults_section = track_defaults_section;
-
   ret->time_total = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
-  
+
+  gtk_tooltips_set_tip(ret->tooltips,
+                       bg_gtk_time_display_get_widget(ret->time_total),
+                       "Total playback time",
+                       "Total playback time");
+
   ret->plugin_reg = plugin_reg;
   
   /* Create buttons */
-  ret->add_file_button = create_pixmap_button("folder_open_16.png");
-  ret->add_url_button = create_pixmap_button("earth_16.png");
-  ret->add_removable_button = create_pixmap_button("drive_running_16.png");
+  ret->add_file_button = create_pixmap_button(ret,      "folder_open_16.png", "Add files", "Append files to the track list");
+  ret->add_url_button = create_pixmap_button(ret,       "earth_16.png",       "Add URLs", "Append URLs to the track list");
+  ret->add_removable_button = create_pixmap_button(ret, "drive_running_16.png", "Add removable media",
+                                                   "Append removable media tot he track_list");
+  
+  ret->delete_button = create_pixmap_button(ret,        "trash_16.png", "Delete", "Delete selected tracks");
+  ret->config_button = create_pixmap_button(ret,        "config_16.png", "Configure", "Configure selected track");
+  ret->up_button = create_pixmap_button(ret,            "top_16.png", "Move to top",
+                                        "Move selected tracks to the top of the tracklist");
 
-  ret->delete_button = create_pixmap_button("trash_16.png");
-  ret->config_button = create_pixmap_button("config_16.png");
-  ret->up_button = create_pixmap_button("up_16.png");
-  ret->down_button = create_pixmap_button("down_16.png");
+  ret->down_button = create_pixmap_button(ret,          "bottom_16.png", "Move to bottom",
+                                          "Move selected tracks to the bottom of the tracklist");
 
   g_signal_connect(G_OBJECT(ret->down_button), "clicked",
                    G_CALLBACK(button_callback), ret);
@@ -1035,14 +1047,10 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
     {
     ret->tracks = bg_transcoder_tracks_load(tmp_path, ret->plugin_reg);
 
-    fprintf(stderr, "Loading tracks from %s\n", tmp_path);
+    //    fprintf(stderr, "Loading tracks from %s\n", tmp_path);
     free(tmp_path);
 
     track_list_update(ret);
-    }
-  else
-    {
-    fprintf(stderr, "No tracks found\n");
     }
   
   return ret;
@@ -1069,8 +1077,7 @@ void track_list_destroy(track_list_t * t)
     bg_transcoder_track_destroy(t->tracks);
     t->tracks = tmp_track;
     }
-    
-
+  //  g_object_unref(t->tooltips);
   free(t);
   }
 
@@ -1125,4 +1132,12 @@ void track_list_save(track_list_t * t, const char * filename)
 void track_list_set_display_colors(track_list_t * t, float * fg, float * bg)
   {
   bg_gtk_time_display_set_colors(t->time_total, fg, bg);
+  }
+
+void track_list_set_tooltips(track_list_t * t, int show_tooltips)
+  {
+  if(show_tooltips)
+    gtk_tooltips_enable(t->tooltips);
+  else
+    gtk_tooltips_disable(t->tooltips);
   }

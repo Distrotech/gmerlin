@@ -490,13 +490,13 @@ static void finalize_audio_stream(audio_stream_t * ret,
                                         &(ret->out_format));
 
   /* Dump formats */
-
+#if 0
   fprintf(stderr, "Input format:\n");
   gavl_audio_format_dump(&(ret->in_format));
   fprintf(stderr, "Output format:\n");
   gavl_audio_format_dump(&(ret->out_format));
   fprintf(stderr, "\n");
-  
+#endif
   /* Initialize converter */
 
   ret->com.do_convert = gavl_audio_converter_init(ret->cnv, &(ret->opt),
@@ -567,13 +567,13 @@ static void finalize_video_stream(video_stream_t * ret,
                                            ret->com.out_index, &(ret->out_format));
 
   /* Dump formats */
-
+#if 0
   fprintf(stderr, "Input format:\n");
   gavl_video_format_dump(&(ret->in_format));
   fprintf(stderr, "Output format:\n");
   gavl_video_format_dump(&(ret->out_format));
   fprintf(stderr, "\n");
-  
+#endif
   /* Initialize converter */
   
   ret->com.do_convert = gavl_video_converter_init(ret->cnv, &(ret->opt),
@@ -859,7 +859,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   
   const bg_plugin_info_t * plugin_info;
 
-  fprintf(stderr, "Setting global parameters...");
+  //  fprintf(stderr, "Setting global parameters...");
   
   /* Set general parameter */
 
@@ -875,9 +875,9 @@ int bg_transcoder_init(bg_transcoder_t * ret,
                        bg_metadata_set_parameter,
                        &(ret->metadata));
 
-  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done\n");
     
-  fprintf(stderr, "Opening input...");
+  //  fprintf(stderr, "Opening input...");
 
   /* Open input plugin */
 
@@ -904,12 +904,12 @@ int bg_transcoder_init(bg_transcoder_t * ret,
     goto fail;
     }
 
-  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done\n");
 
   
   /* Select track and get track info */
 
-  fprintf(stderr, "Selecting track...");
+  //  fprintf(stderr, "Selecting track...");
     
   if(ret->in_plugin->get_num_tracks &&
      (ret->track >= ret->in_plugin->get_num_tracks(ret->in_handle->priv)))
@@ -926,7 +926,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
     ret->in_plugin->set_track(ret->in_handle->priv, ret->track);
     }
   
-  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done\n");
 
   /* Allocate streams */
 
@@ -948,27 +948,27 @@ int bg_transcoder_init(bg_transcoder_t * ret,
     
   for(i = 0; i < ret->num_audio_streams; i++)
     {
-    fprintf(stderr, "Preparing audio stream %d...", i);
+    //    fprintf(stderr, "Preparing audio stream %d...", i);
 
     prepare_audio_stream(&(ret->audio_streams[i]),
                          &(track->audio_streams[i]),
                          ret->in_handle, i);
     if(ret->audio_streams[i].com.action == STREAM_ACTION_TRANSCODE)
       num_audio_streams++;
-    fprintf(stderr, "done\n");
+    //    fprintf(stderr, "done\n");
     }
 
   num_video_streams = 0;
   
   for(i = 0; i < ret->num_video_streams; i++)
     {
-    fprintf(stderr, "Preparing video stream %d...", i);
+    //    fprintf(stderr, "Preparing video stream %d...", i);
     prepare_video_stream(&(ret->video_streams[i]),
                          &(track->video_streams[i]),
                          ret->in_handle, i);
     if(ret->video_streams[i].com.action == STREAM_ACTION_TRANSCODE)
       num_video_streams++;
-    fprintf(stderr, "done\n");
+    //    fprintf(stderr, "done\n");
     }
   
   /* Start input plugin */
@@ -978,7 +978,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
 
   /* Check for the encoding plugins */
 
-  fprintf(stderr, "Checking for mode...");
+  //  fprintf(stderr, "Checking for mode...");
 
   audio_encoder_name = bg_transcoder_track_get_audio_encoder(track);
   video_encoder_name = bg_transcoder_track_get_video_encoder(track);
@@ -1029,8 +1029,8 @@ int bg_transcoder_init(bg_transcoder_t * ret,
       }
     }
 
-  fprintf(stderr, "done, separate_streams: %d, audio_to_video: %d\n",
-          separate_streams, audio_to_video);
+  //  fprintf(stderr, "done, separate_streams: %d, audio_to_video: %d\n",
+  //          separate_streams, audio_to_video);
   
   if(!separate_streams)
     {
@@ -1384,7 +1384,7 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
   do_delete =
     ((t->state == TRANSCODER_STATE_RUNNING) && t->delete_incomplete) ? 1 : 0;
 
-  fprintf(stderr, "Do delete: %d\n", do_delete);
+  //  fprintf(stderr, "Do delete: %d\n", do_delete);
     
   /* Cleanup streams */
 

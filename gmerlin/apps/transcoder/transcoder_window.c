@@ -69,7 +69,8 @@ struct transcoder_window_s
   char * task_file;
     
   GtkWidget * task_filesel;
-  
+
+  GtkTooltips * tooltips;
   };
 
 
@@ -113,6 +114,17 @@ static bg_parameter_info_t transcoder_window_parameters[] =
       flags:       BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_str: "." },
     },
+    {
+      name:        "gui",
+      long_name:   "GUI",
+      type:        BG_PARAMETER_SECTION,
+    },
+    {
+      name:        "show_tooltips",
+      long_name:   "Show Tooltips",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 },
+    },
     { /* End of parameters */ }
   };
 
@@ -148,6 +160,16 @@ set_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t *
   else if(!strcmp(name, "display_font"))
     {
     bg_gtk_scrolltext_set_font(win->scrolltext, val->val_str);
+    }
+  else if(!strcmp(name, "show_tooltips"))
+    {
+    if(val->val_i)
+      gtk_tooltips_enable(win->tooltips);
+    else
+      gtk_tooltips_disable(win->tooltips);
+
+    track_list_set_tooltips(win->tracklist, val->val_i);
+
     }
   }
 
@@ -213,7 +235,7 @@ static gboolean idle_callback(gpointer data)
     bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED);
     gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
 
-    fprintf(stderr, "Transcoding done\n");
+    //    fprintf(stderr, "Transcoding done\n");
 
     if(!start_transcode(win))
       {
@@ -283,7 +305,7 @@ static int start_transcode(transcoder_window_t * win)
     win->transcoder = (bg_transcoder_t*)0;
     return 0;
     }
-  fprintf(stderr, "Initialized transcoder\n");
+  //  fprintf(stderr, "Initialized transcoder\n");
 
   name = bg_transcoder_track_get_name(win->transcoder_track);
   message = bg_sprintf("Transcoding %s", name);
@@ -445,7 +467,8 @@ static void button_callback(GtkWidget * w, gpointer data)
   }
 
 static GtkWidget * create_stock_button(transcoder_window_t * win,
-                                       const char * stock_id)
+                                       const char * stock_id,
+                                       const char * tooltip, const char * tooltip_private)
   {
   GtkWidget * ret;
   GtkWidget * image;
@@ -457,6 +480,9 @@ static GtkWidget * create_stock_button(transcoder_window_t * win,
   g_signal_connect(G_OBJECT(ret), "clicked", G_CALLBACK(button_callback),
                    win);
   gtk_widget_show(ret);
+
+  gtk_tooltips_set_tip(win->tooltips, ret, tooltip, tooltip_private);
+
   return ret;
   }
 
@@ -479,6 +505,8 @@ transcoder_window_t * transcoder_window_create()
   bg_cfg_section_t * cfg_section;
     
   ret = calloc(1, sizeof(*ret));
+
+  ret->tooltips = gtk_tooltips_new();
   
   /* Create window */
   
@@ -510,20 +538,22 @@ transcoder_window_t * transcoder_window_create()
 
   /* Create buttons */
 
-  ret->run_button  = create_stock_button(ret,
-                                         GTK_STOCK_EXECUTE);
+  ret->run_button  = create_stock_button(ret, GTK_STOCK_EXECUTE, "Start transcoding", "Start transcoding");
   ret->stop_button = create_stock_button(ret,
-                                         GTK_STOCK_STOP);
+                                         GTK_STOCK_STOP, "Stop transcoding", "Stop transcoding");
+
   ret->preferences_button = create_stock_button(ret,
-                                                GTK_STOCK_PREFERENCES);
+                                                GTK_STOCK_PREFERENCES, "Change and configure plugins\nfor newly added tracks",
+                                                "Change and configure plugins\nfor newly added tracks");
   ret->properties_button = create_stock_button(ret,
-                                               GTK_STOCK_PROPERTIES);
+                                               GTK_STOCK_PROPERTIES, "Set global options and track defaults",
+                                               "Set global options and track defaults");
   ret->quit_button = create_stock_button(ret,
-                                         GTK_STOCK_QUIT);
+                                         GTK_STOCK_QUIT, "Quit program", "Quit program");
   ret->load_button  = create_stock_button(ret,
-                                          GTK_STOCK_OPEN);
+                                          GTK_STOCK_OPEN, "Load track list", "Load track list");
   ret->save_button  = create_stock_button(ret,
-                                          GTK_STOCK_SAVE);
+                                          GTK_STOCK_SAVE, "Save track list", "Save track list");
 
   gtk_widget_set_sensitive(ret->stop_button, 0);
   
@@ -533,6 +563,13 @@ transcoder_window_t * transcoder_window_create()
 
   /* Time display */
   ret->time_remaining = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
+
+  gtk_tooltips_set_tip(ret->tooltips,
+                       bg_gtk_time_display_get_widget(ret->time_remaining),
+                       "Estimated remaining transcoding time",
+                       "Estimated remaining transcoding time");
+
+
   bg_gtk_time_display_update(ret->time_remaining, GAVL_TIME_UNDEFINED);
 
   /* Scrolltext */
@@ -637,6 +674,8 @@ void transcoder_window_destroy(transcoder_window_t* w)
 
   if(w->task_path)
     free(w->task_path);
+
+  //  g_object_unref(w->tooltips);
   
   free(w);
   }

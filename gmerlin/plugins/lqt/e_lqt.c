@@ -232,7 +232,7 @@ static void close_lqt(void * data, int do_delete)
   if(!e->file)
     return;
 
-  fprintf(stderr, "close_lqt\n");
+  //  fprintf(stderr, "close_lqt\n");
   
   quicktime_close(e->file);
   e->file = (quicktime_t*)0;
@@ -401,7 +401,7 @@ static void set_audio_parameter_lqt(void * data, int stream, char * name,
     }
   else
     {
-    fprintf(stderr, "set_audio_parameter_lqt %s\n", name);
+    //    fprintf(stderr, "set_audio_parameter_lqt %s\n", name);
 
     bg_lqt_set_audio_parameter(e->file,
                                stream,
@@ -448,7 +448,7 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
     }
   else
     {
-    fprintf(stderr, "set_video_parameter_lqt %s\n", name);
+    //    fprintf(stderr, "set_video_parameter_lqt %s\n", name);
 
     bg_lqt_set_video_parameter(e->file,
                                stream,
