@@ -105,7 +105,6 @@ static int open_lqt(void * data, const char * arg)
   if(!e->file)
     return 0;
 
-
   /* Query streams */
 
   num_audio_streams = quicktime_audio_tracks(e->file);
@@ -204,12 +203,13 @@ static int open_lqt(void * data, const char * arg)
           
         duration = gavl_samples_to_time(lqt_video_time_scale(e->file, i),
                                         lqt_video_duration(e->file, i));
-
+#if 0
         fprintf(stderr, "Video Duration: %d %lld %lld, Total frames: %lld\n",
                 lqt_video_time_scale(e->file, i),
                 lqt_video_duration(e->file, i),
                 duration,
                 e->video_streams[e->track_info.num_video_streams].total_frames);
+#endif
         if(e->track_info.duration < duration)
           e->track_info.duration = duration;
         
@@ -217,8 +217,8 @@ static int open_lqt(void * data, const char * arg)
         }
       }
     }
-  if(!e->track_info.num_audio_streams && !e->track_info.num_video_streams)
-    return 0;
+  //  if(!e->track_info.num_audio_streams && !e->track_info.num_video_streams)
+  //    return 0;
   return 1;
   }
 
@@ -279,15 +279,17 @@ int read_video_frame_lqt(void * data, gavl_video_frame_t * f, int stream)
 
   //  fprintf(stderr, "read video\n");
 
-  if(e->video_streams[stream].frame_position >= e->video_streams[stream].total_frames)
+  if(e->video_streams[stream].frame_position >=
+     e->video_streams[stream].total_frames)
     return 0;
   e->video_streams[stream].frame_position++;
-  
-  
-  f->time_scaled = lqt_frame_time(e->file, e->video_streams[stream].quicktime_index);
+    
+  f->time_scaled =
+    lqt_frame_time(e->file, e->video_streams[stream].quicktime_index);
 
-  f->time = gavl_samples_to_time(e->track_info.video_streams[stream].format.timescale,
-                                 f->time_scaled);
+  f->time =
+    gavl_samples_to_time(e->track_info.video_streams[stream].format.timescale,
+                         f->time_scaled);
   
   if(e->video_streams[stream].rows)
     {
@@ -303,6 +305,8 @@ int read_video_frame_lqt(void * data, gavl_video_frame_t * f, int stream)
     {
     lqt_set_row_span(e->file, e->video_streams[stream].quicktime_index,
                      f->strides[0]);
+    lqt_set_row_span_uv(e->file, e->video_streams[stream].quicktime_index,
+                        f->strides[1]);
     lqt_decode_video(e->file, f->planes,
                      e->video_streams[stream].quicktime_index);
     }

@@ -201,7 +201,7 @@ static int _colormodels[] =
     BC_YUV420P,
     BC_YUV422P,
     BC_YUV444P,
-    //    BC_YUV411P,
+    BC_YUV411P,
     LQT_COLORMODEL_NONE
   };
 
@@ -223,7 +223,8 @@ colorspace_table[] =
     { BC_YUV422,   GAVL_YUY2 },
     { BC_YUV420P,  GAVL_YUV_420_P },
     { BC_YUV422P,  GAVL_YUV_422_P },
-    { BC_YUV444P,  GAVL_YUV_422_P },
+    { BC_YUV411P,  GAVL_YUV_411_P },
+    { BC_YUV444P,  GAVL_YUV_444_P },
   };
 
 static int colorspace_table_size =

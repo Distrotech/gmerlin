@@ -81,7 +81,8 @@ static codec_info_t codec_infos[] =
                0x00 } },
 
     { "FFmpeg MSRLE Decoder", "Microsoft RLE", CODEC_ID_MSRLE,
-      (int[]){ BGAV_MK_FOURCC('m', 'r', 'l', 'e'),
+      (int[]){ BGAV_MK_FOURCC('W', 'R', 'L', 'E'),
+               BGAV_MK_FOURCC('m', 'r', 'l', 'e'),
                BGAV_MK_FOURCC(0x1, 0x0, 0x0, 0x0),
                0x00 } },
 
@@ -163,9 +164,15 @@ static codec_info_t codec_infos[] =
         
     { "FFmpeg DV decoder", "DV Video", CODEC_ID_DVVIDEO,
       (int[]){ BGAV_MK_FOURCC('d', 'v', 's', 'd'), 
+               BGAV_MK_FOURCC('D', 'V', 'S', 'D'), 
                BGAV_MK_FOURCC('d', 'v', 'h', 'd'), 
+               BGAV_MK_FOURCC('d', 'v', 'c', ' '), 
+               BGAV_MK_FOURCC('d', 'v', 'c', 'p'), 
+               BGAV_MK_FOURCC('d', 'v', 'p', 'p'), 
                BGAV_MK_FOURCC('d', 'v', 's', 'l'), 
                BGAV_MK_FOURCC('d', 'v', '2', '5'),
+               //               BGAV_MK_FOURCC('d', 'v', '5', 'n'),
+               //               BGAV_MK_FOURCC('d', 'v', '5', 'p'),
                0x00 } },
 
     /*************************************************************
@@ -179,8 +186,11 @@ static codec_info_t codec_infos[] =
                BGAV_MK_FOURCC('J', 'P', 'G', 'L'),
                BGAV_MK_FOURCC('j', 'p', 'e', 'g'),
                BGAV_MK_FOURCC('m', 'j', 'p', 'a'),
-               BGAV_MK_FOURCC('m', 'j', 'p', 'b'),
                BGAV_MK_FOURCC('A', 'V', 'D', 'J'),
+               0x00 } },
+
+    { "FFmpeg motion Jpeg-B decoder", "Motion Jpeg B", CODEC_ID_MJPEGB,
+      (int[]){ BGAV_MK_FOURCC('m', 'j', 'p', 'b'),
                0x00 } },
     
     { "FFmpeg Ljpeg decoder", "Lossless Motion Jpeg", CODEC_ID_LJPEG,
@@ -401,6 +411,9 @@ typedef struct
   int has_b_frames;
   int last_frame_sent;
   AVPaletteControl palette;
+
+  int need_first_frame;
+  int have_first_frame;
   } ffmpeg_video_priv;
 
 static codec_info_t * lookup_codec(bgav_stream_t * s)
@@ -412,6 +425,220 @@ static codec_info_t * lookup_codec(bgav_stream_t * s)
       return codecs[i].info;
     }
   return (codec_info_t *)0;
+  }
+
+
+/* This MUST match demux_rm.c!! */
+
+typedef struct dp_hdr_s {
+    uint32_t chunks;    // number of chunks
+    uint32_t timestamp; // timestamp from packet header
+    uint32_t len;       // length of actual data
+    uint32_t chunktab;  // offset to chunk offset array
+} dp_hdr_t;
+
+// static int data_dumped = 0;
+
+static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
+  {
+  int i;
+  int got_picture = 0;
+  int bytes_used;
+  int len;
+  AVPicture ffmpeg_frame;
+  dp_hdr_t *hdr;
+  ffmpeg_video_priv * priv;
+  bgav_packet_t * p;
+  int64_t timestamp = 0;
+  int64_t timestamp_scaled = 0;
+  
+  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
+
+  //  fprintf(stderr, "Decode Video 1: %lld\n", priv->bytes_in_packet_buffer);
+  
+  if(priv->have_first_frame)
+    {
+    got_picture = 1;
+    priv->have_first_frame = 0;
+    }
+  
+  while(!got_picture)
+    {
+  
+    /* Read data if necessary */
+    while(!priv->bytes_in_packet_buffer)
+      {
+      p = bgav_demuxer_get_packet_read(s->demuxer, s);
+      if(!p)
+        {
+        priv->packet_buffer_ptr = (uint8_t*)0;
+        break;
+        }
+      if(!p->data_size)
+        s->position++;
+      timestamp        = p->timestamp;
+      timestamp_scaled = p->timestamp_scaled;
+    
+      //      fprintf(stderr, "Packet timestamp: %lld, size: %d\n", p->timestamp, p->data_size);
+      if(p->data_size + FF_INPUT_BUFFER_PADDING_SIZE > priv->packet_buffer_alloc)
+        {
+        priv->packet_buffer_alloc = p->data_size + FF_INPUT_BUFFER_PADDING_SIZE + 32;
+        priv->packet_buffer = realloc(priv->packet_buffer, priv->packet_buffer_alloc);
+        }
+      priv->bytes_in_packet_buffer = p->data_size;
+      memcpy(priv->packet_buffer, p->data, p->data_size);
+      priv->packet_buffer_ptr = priv->packet_buffer;
+    
+      memset(&(priv->packet_buffer[p->data_size]), 0, FF_INPUT_BUFFER_PADDING_SIZE);
+      bgav_demuxer_done_packet_read(s->demuxer, p);
+      }
+        
+    len = priv->bytes_in_packet_buffer;
+
+    /* If we are out of data and the codec has no B-Frames, we are done */
+
+    if(!priv->has_b_frames && !priv->packet_buffer_ptr)
+      return 0;
+
+    /* Other Real Video oddities */
+    
+    if((s->fourcc == BGAV_MK_FOURCC('R', 'V', '1', '0')) ||
+       (s->fourcc == BGAV_MK_FOURCC('R', 'V', '1', '3')) ||
+       (s->fourcc == BGAV_MK_FOURCC('R', 'V', '2', '0')))
+      {
+      if(priv->ctx->extradata_size == 8)
+        {
+        hdr= (dp_hdr_t*)(priv->packet_buffer_ptr);
+        if(priv->ctx->slice_offset==NULL)
+          priv->ctx->slice_offset= malloc(sizeof(int)*1000);
+        priv->ctx->slice_count= hdr->chunks+1;
+        for(i=0; i<priv->ctx->slice_count; i++)
+          priv->ctx->slice_offset[i]= ((uint32_t*)(priv->packet_buffer_ptr+hdr->chunktab))[2*i+1];
+        len=hdr->len;
+        priv->packet_buffer_ptr += sizeof(dp_hdr_t);
+        priv->bytes_in_packet_buffer = len;
+        }
+      }
+    
+    /* Decode one frame */
+
+    //    fprintf(stderr, "Decode Video: %d %p\n", len, priv->packet_buffer_ptr);
+    //    bgav_hexdump(priv->packet_buffer_ptr, 128, 16);
+    
+    if(!f && !priv->need_first_frame)
+      priv->ctx->hurry_up = 1;
+    else
+      priv->ctx->hurry_up = 0;
+    //    fprintf(stderr, "Decode: %lld %d\n", s->position, len);
+
+    //    fprintf(stderr, "Decode %d...", priv->ctx->pix_fmt);
+    
+    bytes_used = avcodec_decode_video(priv->ctx,
+                                      priv->frame,
+                                      &got_picture,
+                                      priv->packet_buffer_ptr,
+                                      len);
+
+    //    fprintf(stderr, "%d\n", priv->ctx->pix_fmt);
+
+    //    fprintf(stderr, "Sample aspect ratio: %d %d\n", priv->ctx->sample_aspect_ratio.num,
+    //            priv->ctx->sample_aspect_ratio.den);
+    
+    //    fprintf(stderr, "Used %d bytes, %d %d\n",
+    //            bytes_used,
+    //            priv->frame->coded_picture_number,
+    //            priv->frame->display_picture_number);
+
+    /* Check for error */
+  
+    if(bytes_used <= 0)
+      {
+      //      fprintf(stderr, "Skipping corrupted frame\n");
+      priv->packet_buffer_ptr += len;
+      priv->bytes_in_packet_buffer -= len;
+      }
+    /* Advance packet buffer */
+    else
+      {
+      priv->packet_buffer_ptr += bytes_used;
+      priv->bytes_in_packet_buffer -= bytes_used;
+      
+      }
+  
+    if(timestamp >= 0)
+      s->time = timestamp;
+    if(timestamp_scaled >= 0)
+      s->time_scaled = timestamp_scaled;
+
+    //    fprintf(stderr, "time: %f, time_scaled: %lld\n", gavl_time_to_seconds(s->time), s->time_scaled);
+    
+    if(got_picture)
+      {
+      if(priv->frame->pict_type == FF_B_TYPE)
+        priv->has_b_frames = 1;
+
+      if(priv->need_first_frame)
+        {
+        s->data.video.format.colorspace = get_colorspace(priv->ctx->pix_fmt);
+        priv->need_first_frame = 0;
+        priv->have_first_frame = 1;
+        return 1;
+        }
+
+      if(f)
+        {
+        //    fprintf(stderr, "Got picture\n");
+        //    fprintf(stderr, "Timestamp: %lld\n", timestamp);
+        if(priv->ctx->pix_fmt == PIX_FMT_PAL8)
+          {
+          pal8_to_rgb24(f, priv->frame,
+                        s->data.video.format.image_width, s->data.video.format.image_height);
+          }
+        else if(priv->ctx->pix_fmt == PIX_FMT_RGBA32)
+          {
+          rgba32_to_rgba32(f, priv->frame,
+                           s->data.video.format.image_width, s->data.video.format.image_height);
+          }
+        else if(!priv->do_convert)
+          {
+          priv->gavl_frame->planes[0]  = priv->frame->data[0];
+          priv->gavl_frame->planes[1]  = priv->frame->data[1];
+          priv->gavl_frame->planes[2]  = priv->frame->data[2];
+      
+          priv->gavl_frame->strides[0] = priv->frame->linesize[0];
+          priv->gavl_frame->strides[1] = priv->frame->linesize[1];
+          priv->gavl_frame->strides[2] = priv->frame->linesize[2];
+          //        fprintf(stderr, "gavl_video_frame_copy %d %d %d %lld\n",
+          //               priv->frame->linesize[0],
+          //                priv->frame->linesize[1],
+          //                priv->frame->linesize[2],
+          //                s->position);
+        
+          gavl_video_frame_copy(&(s->data.video.format), f, priv->gavl_frame);
+          }
+        else
+          {
+          ffmpeg_frame.data[0]     = f->planes[0];
+          ffmpeg_frame.data[1]     = f->planes[1];
+          ffmpeg_frame.data[2]     = f->planes[2];
+          ffmpeg_frame.linesize[0] = f->strides[0];
+          ffmpeg_frame.linesize[1] = f->strides[1];
+          ffmpeg_frame.linesize[2] = f->strides[2];
+          img_convert(&ffmpeg_frame, priv->dst_format,
+                      (AVPicture*)(priv->frame), priv->ctx->pix_fmt,
+                      s->data.video.format.image_width,
+                      s->data.video.format.image_height);
+          }
+        }
+      }
+    else /* !got_picture */
+      {
+      //      fprintf(stderr, "Got no picture\n");
+      if(!priv->packet_buffer_ptr)
+        return 0; /* EOF */
+      }
+    }
+  return 1;
   }
 
 static int init(bgav_stream_t * s)
@@ -519,8 +746,11 @@ static int init(bgav_stream_t * s)
 
   //  fprintf(stderr, "Colorspace: %s\n",
   //          avcodec_get_pix_fmt_name(priv->ctx->pix_fmt));
+
+  priv->need_first_frame = 1;
+
+  decode(s, NULL);
   
-  s->data.video.format.colorspace = get_colorspace(priv->ctx->pix_fmt);
   /* TODO Handle unsupported colormodels */
   if(s->data.video.format.colorspace == GAVL_COLORSPACE_NONE)
     {
@@ -534,198 +764,7 @@ static int init(bgav_stream_t * s)
   return 1;
   }
 
-/* This MUST match demux_rm.c!! */
 
-typedef struct dp_hdr_s {
-    uint32_t chunks;    // number of chunks
-    uint32_t timestamp; // timestamp from packet header
-    uint32_t len;       // length of actual data
-    uint32_t chunktab;  // offset to chunk offset array
-} dp_hdr_t;
-
-// static int data_dumped = 0;
-
-static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
-  {
-  int i;
-  int got_picture = 0;
-  int bytes_used;
-  int len;
-  AVPicture ffmpeg_frame;
-  dp_hdr_t *hdr;
-  ffmpeg_video_priv * priv;
-  bgav_packet_t * p;
-  int64_t timestamp = 0;
-  int64_t timestamp_scaled = 0;
-  
-  priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
-
-  //  fprintf(stderr, "Decode Video 1: %lld\n", priv->bytes_in_packet_buffer);
-
-  while(!got_picture)
-    {
-  
-    /* Read data if necessary */
-    while(!priv->bytes_in_packet_buffer)
-      {
-      p = bgav_demuxer_get_packet_read(s->demuxer, s);
-      if(!p)
-        {
-        priv->packet_buffer_ptr = (uint8_t*)0;
-        break;
-        }
-      if(!p->data_size)
-        s->position++;
-      timestamp        = p->timestamp;
-      timestamp_scaled = p->timestamp_scaled;
-    
-      //      fprintf(stderr, "Packet timestamp: %lld, size: %d\n", p->timestamp, p->data_size);
-      if(p->data_size + FF_INPUT_BUFFER_PADDING_SIZE > priv->packet_buffer_alloc)
-        {
-        priv->packet_buffer_alloc = p->data_size + FF_INPUT_BUFFER_PADDING_SIZE + 32;
-        priv->packet_buffer = realloc(priv->packet_buffer, priv->packet_buffer_alloc);
-        }
-      priv->bytes_in_packet_buffer = p->data_size;
-      memcpy(priv->packet_buffer, p->data, p->data_size);
-      priv->packet_buffer_ptr = priv->packet_buffer;
-    
-      memset(&(priv->packet_buffer[p->data_size]), 0, FF_INPUT_BUFFER_PADDING_SIZE);
-      bgav_demuxer_done_packet_read(s->demuxer, p);
-      }
-        
-    len = priv->bytes_in_packet_buffer;
-
-    /* If we are out of data and the codec has no B-Frames, we are done */
-
-    if(!priv->has_b_frames && !priv->packet_buffer_ptr)
-      return 0;
-
-    /* Other Real Video oddities */
-    
-    if((s->fourcc == BGAV_MK_FOURCC('R', 'V', '1', '0')) ||
-       (s->fourcc == BGAV_MK_FOURCC('R', 'V', '1', '3')) ||
-       (s->fourcc == BGAV_MK_FOURCC('R', 'V', '2', '0')))
-      {
-      if(priv->ctx->extradata_size == 8)
-        {
-        hdr= (dp_hdr_t*)(priv->packet_buffer_ptr);
-        if(priv->ctx->slice_offset==NULL)
-          priv->ctx->slice_offset= malloc(sizeof(int)*1000);
-        priv->ctx->slice_count= hdr->chunks+1;
-        for(i=0; i<priv->ctx->slice_count; i++)
-          priv->ctx->slice_offset[i]= ((uint32_t*)(priv->packet_buffer_ptr+hdr->chunktab))[2*i+1];
-        len=hdr->len;
-        priv->packet_buffer_ptr += sizeof(dp_hdr_t);
-        priv->bytes_in_packet_buffer = len;
-        }
-      }
-    
-    /* Decode one frame */
-
-    //    fprintf(stderr, "Decode Video: %d %p\n", len, priv->packet_buffer_ptr);
-
-    if(!f)
-      priv->ctx->hurry_up = 1;
-    else
-      priv->ctx->hurry_up = 0;
-    //    fprintf(stderr, "Decode: %lld %d\n", s->position, len);
-    
-    bytes_used = avcodec_decode_video(priv->ctx,
-                                      priv->frame,
-                                      &got_picture,
-                                      priv->packet_buffer_ptr,
-                                      len);
-
-    //    fprintf(stderr, "Sample aspect ratio: %d %d\n", priv->ctx->sample_aspect_ratio.num,
-    //            priv->ctx->sample_aspect_ratio.den);
-    
-    //    fprintf(stderr, "Used %d bytes, %d %d\n",
-    //            bytes_used,
-    //            priv->frame->coded_picture_number,
-    //            priv->frame->display_picture_number);
-
-    /* Check for error */
-  
-    if(bytes_used <= 0)
-      {
-      //      fprintf(stderr, "Skipping corrupted frame\n");
-      priv->packet_buffer_ptr += len;
-      priv->bytes_in_packet_buffer -= len;
-      }
-    /* Advance packet buffer */
-    else
-      {
-      priv->packet_buffer_ptr += bytes_used;
-      priv->bytes_in_packet_buffer -= bytes_used;
-      
-      }
-  
-    if(timestamp >= 0)
-      s->time = timestamp;
-    if(timestamp_scaled >= 0)
-      s->time_scaled = timestamp_scaled;
-
-    //    fprintf(stderr, "time: %f, time_scaled: %lld\n", gavl_time_to_seconds(s->time), s->time_scaled);
-    
-    if(got_picture)
-      {
-      if(priv->frame->pict_type == FF_B_TYPE)
-        priv->has_b_frames = 1;
-      if(f)
-        {
-        //    fprintf(stderr, "Got picture\n");
-        //    fprintf(stderr, "Timestamp: %lld\n", timestamp);
-        if(priv->ctx->pix_fmt == PIX_FMT_PAL8)
-          {
-          pal8_to_rgb24(f, priv->frame,
-                        s->data.video.format.image_width, s->data.video.format.image_height);
-          }
-        else if(priv->ctx->pix_fmt == PIX_FMT_RGBA32)
-          {
-          rgba32_to_rgba32(f, priv->frame,
-                           s->data.video.format.image_width, s->data.video.format.image_height);
-          }
-        else if(!priv->do_convert)
-          {
-          priv->gavl_frame->planes[0]  = priv->frame->data[0];
-          priv->gavl_frame->planes[1]  = priv->frame->data[1];
-          priv->gavl_frame->planes[2]  = priv->frame->data[2];
-      
-          priv->gavl_frame->strides[0] = priv->frame->linesize[0];
-          priv->gavl_frame->strides[1] = priv->frame->linesize[1];
-          priv->gavl_frame->strides[2] = priv->frame->linesize[2];
-          //        fprintf(stderr, "gavl_video_frame_copy %d %d %d %lld\n",
-          //               priv->frame->linesize[0],
-          //                priv->frame->linesize[1],
-          //                priv->frame->linesize[2],
-          //                s->position);
-        
-          gavl_video_frame_copy(&(s->data.video.format), f, priv->gavl_frame);
-          }
-        else
-          {
-          ffmpeg_frame.data[0]     = f->planes[0];
-          ffmpeg_frame.data[1]     = f->planes[1];
-          ffmpeg_frame.data[2]     = f->planes[2];
-          ffmpeg_frame.linesize[0] = f->strides[0];
-          ffmpeg_frame.linesize[1] = f->strides[1];
-          ffmpeg_frame.linesize[2] = f->strides[2];
-          img_convert(&ffmpeg_frame, priv->dst_format,
-                      (AVPicture*)(priv->frame), priv->ctx->pix_fmt,
-                      s->data.video.format.image_width,
-                      s->data.video.format.image_height);
-          }
-        }
-      }
-    else /* !got_picture */
-      {
-      //      fprintf(stderr, "Got no picture\n");
-      if(!priv->packet_buffer_ptr)
-        return 0; /* EOF */
-      }
-    }
-  return 1;
-  }
 
 static void resync_ffmpeg(bgav_stream_t * s)
   {

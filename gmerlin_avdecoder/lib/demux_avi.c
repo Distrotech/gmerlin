@@ -894,9 +894,16 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
 static int get_stream_id(uint32_t fourcc)
   {
   int ret;
-  ret = 10 * (((fourcc & 0xff000000) >> 24) - '0');
-  ret += ((fourcc & 0x00ff0000) >> 16) - '0';
+  unsigned char c1, c2;
 
+  c1 = ((fourcc & 0xff000000) >> 24);
+  c2 = ((fourcc & 0x00ff0000) >> 16);
+
+  if((c1 > '9') || (c1 < '0') ||
+     (c2 > '9') || (c2 < '0'))
+    return -1;
+  
+  ret = 10 * (c1 - '0') + (c2 - '0');
   return ret;  
   }
 
@@ -1019,6 +1026,22 @@ void idx1_calculate_timestamps(bgav_demuxer_context_t * ctx)
   avi->has_idx1_timestamps = 1;
   }
 
+/* Fix offsets (yes, some files have the index offset relative to the file start,
+   indstead of relative to the movi atom */
+
+static void idx1_fix_offsets(bgav_demuxer_context_t * ctx)
+  {
+  int i, err;
+  avi_priv * avi;
+  avi = (avi_priv*)(ctx->priv);
+  if(avi->idx1.entries[0].dwChunkOffset == 4)
+    return;
+
+  err = avi->idx1.entries[0].dwChunkOffset - 4;
+
+  for(i = 0; i < avi->idx1.num_entries; i++)
+    avi->idx1.entries[i].dwChunkOffset -= err;
+  }
 
 
 static int open_avi(bgav_demuxer_context_t * ctx,
@@ -1068,10 +1091,20 @@ static int open_avi(bgav_demuxer_context_t * ctx,
   
   for(i = 0; i < (p->avih).dwStreams; i++)
     {
-    if(!bgav_input_read_fourcc(ctx->input, &fourcc) ||
-       (fourcc != ID_STRL))
+    if(!bgav_input_read_fourcc(ctx->input, &fourcc))
+      {
+      fprintf(stderr, "EOF during header parsing\n");
       goto fail;
-    
+      }
+    if(fourcc != ID_STRL)
+      {
+      fprintf(stderr, "Wrong fourcc ");
+      bgav_dump_fourcc(fourcc);
+      fprintf(stderr, "\nExpected ");
+      bgav_dump_fourcc(ID_STRL);
+      fprintf(stderr, "\n");
+      goto fail;
+      }
     if(!read_chunk_header(ctx->input, &ch) ||
        (ch.ckID != ID_STRH))
       goto fail;
@@ -1165,6 +1198,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
       p->has_idx1 = 1;
       ctx->can_seek = 1;
       idx1_calculate_timestamps(ctx);
+      idx1_fix_offsets(ctx);
       //      dump_idx1(&(p->idx1));
       //      fprintf(stderr, "Found standard index\n");
       }
@@ -1284,7 +1318,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
                     priv->movi_start +
                     priv->idx1.entries[priv->index_position].dwChunkOffset + 4 -
                     ctx->input->position);
-    
+    //    fprintf(stderr, "Position: %x\n", priv->idx1.entries[priv->index_position].dwChunkOffset);
 
     }
   else /* No index present */
@@ -1316,7 +1350,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
     ch.ckSize,
     priv->idx1.entries[priv->index_position].dwChunkLength);
   */
-    
+  
   //  dump_chunk_header(&ch);
   
   /* Skip ignored streams */

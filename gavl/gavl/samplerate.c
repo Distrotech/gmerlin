@@ -109,15 +109,18 @@ static void resample_interleave_2(gavl_audio_convert_context_t * ctx)
                        ctx->samplerate_converter->ratio);
   for(i = 0; i < ctx->samplerate_converter->num_resamplers; i++)
     {
-    ctx->samplerate_converter->data.data_in  = ctx->input_frame->channels.f[2*i];
-    ctx->samplerate_converter->data.data_out = ctx->output_frame->channels.f[2*i];
+    ctx->samplerate_converter->data.data_in  =
+      ctx->input_frame->channels.f[2*i];
+    ctx->samplerate_converter->data.data_out =
+      ctx->output_frame->channels.f[2*i];
     src_process(ctx->samplerate_converter->resamplers[i],
                 &(ctx->samplerate_converter->data));
     }
   ctx->output_frame->valid_samples =
     ctx->samplerate_converter->data.output_frames_gen;
 #if 0
-  fprintf(stderr, "resample_interleave_2 %d %d %d\n", ctx->input_frame->valid_samples,
+  fprintf(stderr, "resample_interleave_2 %d %d %d\n",
+          ctx->input_frame->valid_samples,
           ctx->samplerate_converter->data.input_frames_used,
           ctx->samplerate_converter->data.output_frames_gen);
 #endif

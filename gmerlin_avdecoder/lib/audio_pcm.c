@@ -199,7 +199,7 @@ static void decode_s_32(bgav_stream_t * s)
   priv->packet_ptr += num_bytes;
   priv->bytes_in_packet -= num_bytes;
   priv->frame->valid_samples = num_samples;
-  fprintf(stderr, "Decode %d %d\n", num_bytes, num_samples);
+  //  fprintf(stderr, "Decode %d %d\n", num_bytes, num_samples);
   
   }
 
@@ -290,11 +290,13 @@ static int init_pcm(bgav_stream_t * s)
     case BGAV_WAVID_2_FOURCC(0x01):
       if(s->data.audio.bits_per_sample <= 8)
         {
+        s->description = bgav_sprintf("%d bit PCM", s->data.audio.bits_per_sample);
         s->data.audio.format.sample_format = GAVL_SAMPLE_U8;
         priv->decode_func = decode_8;
         }
       else if(s->data.audio.bits_per_sample <= 16)
         {
+        s->description = bgav_sprintf("%d bit PCM (little endian)", s->data.audio.bits_per_sample);
         s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
 #ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
         priv->decode_func = decode_s_16;
@@ -304,11 +306,13 @@ static int init_pcm(bgav_stream_t * s)
         }
       else if(s->data.audio.bits_per_sample <= 24)
         {
+        s->description = bgav_sprintf("%d bit PCM (little endian)", s->data.audio.bits_per_sample);
         s->data.audio.format.sample_format = GAVL_SAMPLE_S32;
         priv->decode_func = decode_s_24_le;
         }
       else if(s->data.audio.bits_per_sample <= 32)
         {
+        s->description = bgav_sprintf("%d bit PCM (little endian)", s->data.audio.bits_per_sample);
         s->data.audio.format.sample_format = GAVL_SAMPLE_S32;
 #ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
         priv->decode_func = decode_s_32;

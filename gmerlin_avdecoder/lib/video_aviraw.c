@@ -58,8 +58,18 @@ static void scanline_8(uint8_t * src, uint8_t * dst,
 static void scanline_16(uint8_t * src, uint8_t * dst,
                         int num_pixels, bgav_palette_entry_t * pal)
   {
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
   memcpy(dst, src, num_pixels * 2);
+#else
+  int i;
+  for(i = 0; i < num_pixels; i++)
+    {
+    dst[2*i]   = src[2*i+1];
+    dst[2*i+1] = src[2*i];
+    }
+#endif
   }
+
 
 static void scanline_24(uint8_t * src, uint8_t * dst,
                         int num_pixels, bgav_palette_entry_t * pal)

@@ -161,7 +161,17 @@ int gavl_colorspace_is_rgb(gavl_colorspace_t colorspace)
     case GAVL_BGR_32:
     case GAVL_RGBA_32:
       return 1;
-    default:
+    case GAVL_YUY2:
+    case GAVL_UYVY:
+    case GAVL_YUV_420_P:
+    case GAVL_YUV_410_P:
+    case GAVL_YUV_422_P:
+    case GAVL_YUV_411_P:
+    case GAVL_YUV_444_P:
+    case GAVL_YUVJ_420_P:
+    case GAVL_YUVJ_422_P:
+    case GAVL_YUVJ_444_P:
+    case GAVL_COLORSPACE_NONE:
       return 0;
     }
   return 0;
@@ -182,7 +192,16 @@ int gavl_colorspace_is_yuv(gavl_colorspace_t colorspace)
     case GAVL_YUVJ_422_P:
     case GAVL_YUVJ_444_P:
       return 1;
-    default:
+    case GAVL_RGB_15:
+    case GAVL_BGR_15:
+    case GAVL_RGB_16:
+    case GAVL_BGR_16:
+    case GAVL_RGB_24:
+    case GAVL_BGR_24:
+    case GAVL_RGB_32:
+    case GAVL_BGR_32:
+    case GAVL_RGBA_32:
+    case GAVL_COLORSPACE_NONE:
       return 0;
     }
   return 0;

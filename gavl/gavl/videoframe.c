@@ -94,7 +94,6 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
                              ret->strides[0]*format->frame_height+
                              (ret->strides[1]*format->frame_height)/2+
                              (ret->strides[2]*format->frame_height)/2);
-      ret->planes[0] = ret->planes[0];
       ret->planes[1] = ret->planes[0] + ret->strides[0]*format->frame_height;
       ret->planes[2] = ret->planes[1] + (ret->strides[1]*format->frame_height)/2;
       break;
@@ -110,7 +109,6 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
                              ret->strides[0]*format->frame_height+
                              (ret->strides[1]*format->frame_height)/4+
                              (ret->strides[2]*format->frame_height)/4);
-      ret->planes[0] = ret->planes[0];
       ret->planes[1] = ret->planes[0] + ret->strides[0]*format->frame_height;
       ret->planes[2] = ret->planes[1] + (ret->strides[1]*format->frame_height)/4;
       break;
@@ -128,7 +126,6 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
                              ret->strides[1]*format->frame_height+
                              ret->strides[2]*format->frame_height);
 
-      ret->planes[0] = ret->planes[0];
       ret->planes[1] = ret->planes[0] + ret->strides[0]*format->frame_height;
       ret->planes[2] = ret->planes[1] + ret->strides[1]*format->frame_height;
       break;
@@ -145,7 +142,6 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
                              ret->strides[1]*format->frame_height+
                              ret->strides[2]*format->frame_height);
 
-      ret->planes[0] = ret->planes[0];
       ret->planes[1] = ret->planes[0] + ret->strides[0]*format->frame_height;
       ret->planes[2] = ret->planes[1] + ret->strides[1]*format->frame_height;
       break;
@@ -163,7 +159,6 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
                                 ret->strides[1]*format->frame_height+
                                 ret->strides[2]*format->frame_height);
 
-      ret->planes[0] = ret->planes[0];
       ret->planes[1] = ret->planes[0] + ret->strides[0]*format->frame_height;
       ret->planes[2] = ret->planes[1] + ret->strides[1]*format->frame_height;
       break;
