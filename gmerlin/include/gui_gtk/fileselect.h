@@ -31,6 +31,20 @@ bg_gtk_filesel_create(const char * title,
                       void * user_data,
                       GtkWidget * parent_window);
 
+/* Create directory selector (for addig directories to the tree) */
+
+bg_gtk_filesel_t *
+bg_gtk_dirsel_create(const char * title,
+                     void (*add_dir)(char * dir, int recursive,
+                                     const char * plugin,
+                                     void * data),
+                     void (*close_notify)(bg_gtk_filesel_t *,
+                                          void * data),
+                     char ** plugins,
+                     void * user_data,
+                     GtkWidget * parent_window);
+
+
 /* Destroy fileselector */
 
 void bg_gtk_filesel_destroy(bg_gtk_filesel_t * filesel);

@@ -29,6 +29,9 @@
 //#include <parameter.h>
 #include <cfg_dialog.h>
 #include <gui_gtk/tree.h>
+#include <gui_gtk/fileselect.h>
+
+static char ** file_plugins = (char **)0;
 
 static GdkPixbuf * root_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * folder_closed_pixbuf = (GdkPixbuf *)0;
@@ -155,6 +158,7 @@ typedef struct
 typedef struct
   {
   GtkWidget * new_item;
+  GtkWidget * new_from_directory_item;
   GtkWidget * rename_item;
   GtkWidget * open_item;
   GtkWidget * close_item;
@@ -249,8 +253,8 @@ static void update_menu(bg_gtk_tree_widget_t * w)
     gtk_widget_hide(w->menu.album_menu.open_item);
     gtk_widget_hide(w->menu.album_menu.close_item);
     gtk_widget_show(w->menu.album_menu.new_item);
-   
-
+    gtk_widget_show(w->menu.album_menu.new_from_directory_item);
+    
     gtk_widget_hide(w->menu.plugin_item);
     return;
     }
@@ -272,6 +276,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         gtk_widget_show(w->menu.album_menu.remove_item);
         gtk_widget_show(w->menu.album_menu.rename_item);
         gtk_widget_hide(w->menu.album_menu.new_item);
+        gtk_widget_hide(w->menu.album_menu.new_from_directory_item);
         
         if(album_is_open(w, w->current_album))
           {
@@ -293,6 +298,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         gtk_widget_show(w->menu.album_item);
         gtk_widget_show(w->menu.album_menu.remove_item);
         gtk_widget_show(w->menu.album_menu.new_item);
+        gtk_widget_show(w->menu.album_menu.new_from_directory_item);
             
         if(album_is_open(w, w->current_album))
           {
@@ -703,6 +709,46 @@ static void rename_current_album(bg_gtk_tree_widget_t * w)
   set_album(w, w->current_album, &iter, 0, 0);
   }
 
+static void add_dir_callback(char * dir, int recursive,
+                             const char * plugin,
+                             void * data)
+  {
+  bg_gtk_tree_widget_t * w = (bg_gtk_tree_widget_t*)data;
+  
+  gtk_widget_set_sensitive(w->treeview, 0);
+  bg_media_tree_add_directory(w->tree, w->current_album,
+                              dir,
+                              recursive, plugin);
+  gtk_widget_set_sensitive(w->treeview, 1);
+  }
+
+static void add_dir_close_notify(bg_gtk_filesel_t * s, void * data)
+  {
+  fprintf(stderr, "add_dir_close_notify\n");
+  }
+
+static void add_directory(bg_gtk_tree_widget_t * w)
+  {
+  bg_gtk_filesel_t * dirsel;
+
+  if(!file_plugins)
+    file_plugins =
+      bg_plugin_registry_get_plugins(bg_media_tree_get_plugin_registry(w->tree),
+                                     BG_PLUGIN_INPUT,
+                                     BG_PLUGIN_FILE);
+
+  dirsel =
+    bg_gtk_dirsel_create("Add directory",
+                         add_dir_callback,
+                         add_dir_close_notify,
+                         file_plugins,
+                         w,
+                         (GtkWidget*)0 /* parent_window */);
+  
+  bg_gtk_filesel_run(dirsel, 1);
+    
+  }
+
 static void create_new_album(bg_gtk_tree_widget_t * w)
   {
   bg_album_t * new_album =
@@ -881,7 +927,11 @@ static void menu_callback(GtkWidget * w, gpointer data)
       add_device(widget);
       }
     }
-
+  
+  if(w == widget->menu.album_menu.new_from_directory_item)
+    {
+    add_directory(widget);
+    }
   if(w == widget->menu.album_menu.new_item)
     {
     create_new_album(widget);
@@ -937,6 +987,10 @@ static void init_menu(bg_gtk_tree_widget_t * w)
   w->menu.album_menu.new_item = create_item(w, "New...");
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.album_menu.menu),
                         w->menu.album_menu.new_item);
+
+  w->menu.album_menu.new_from_directory_item = create_item(w, "New from directory...");
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.album_menu.menu),
+                        w->menu.album_menu.new_from_directory_item);
   
   w->menu.album_menu.rename_item = create_item(w, "Rename...");
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.album_menu.menu),
@@ -1362,6 +1416,13 @@ void tree_changed_callback(bg_media_tree_t * t, void * data)
   {
   bg_gtk_tree_widget_t * w = (bg_gtk_tree_widget_t *)data;
   bg_gtk_tree_widget_update(w, 0);
+
+  /* This is also called during loading of huge amounts of
+     urls, so we update the GUI a bit */
+  
+  while(gdk_events_pending() || gtk_events_pending())
+    gtk_main_iteration();
+
   }
 
 /* Constructor */

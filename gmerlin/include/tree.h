@@ -175,12 +175,7 @@ void bg_album_get_coords(bg_album_t * a, int * x, int * y,
 void bg_album_set_open_path(bg_album_t * a, const char * path);
 const char * bg_album_get_open_path(bg_album_t * a);
 
-char ** bg_album_get_plugins(bg_album_t * a,
-                             uint32_t type_mask,
-                             uint32_t flag_mask);
-
-void bg_album_free_plugins(bg_album_t * a, char ** plugins);
-
+bg_plugin_registry_t * bg_album_get_plugin_registry(bg_album_t * album);
 
 /* album_xml.c */
 
@@ -228,9 +223,15 @@ char * bg_album_save_selected_to_memory(bg_album_t * a, int * len);
 bg_media_tree_t * bg_media_tree_create(const char * filename,
                                        bg_plugin_registry_t * plugin_reg);
 
-void bg_media_tree_set_change_callback(bg_media_tree_t *,
-                                       void (*change_callback)(bg_media_tree_t*, void*),
-                                       void*);
+bg_plugin_registry_t *
+bg_media_tree_get_plugin_registry(bg_media_tree_t *);
+
+
+void
+bg_media_tree_set_change_callback(bg_media_tree_t *,
+                                  void (*change_callback)(bg_media_tree_t*,
+                                                          void*),
+                                  void*);
 
 void bg_media_tree_set_play_callback(bg_media_tree_t *,
                                      void (*play_callback)(void*),
@@ -248,6 +249,10 @@ void bg_media_tree_destroy(bg_media_tree_t *);
 int bg_media_tree_get_num_albums(bg_media_tree_t *);
 
 bg_album_t * bg_media_tree_get_current_album(bg_media_tree_t *);
+
+void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
+                                 const char * directory,
+                                 int recursive, const char * plugin);
 
 /* Gets a root album */
 

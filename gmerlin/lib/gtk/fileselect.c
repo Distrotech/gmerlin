@@ -38,17 +38,23 @@ struct bg_gtk_filesel_s
   GtkWidget * plugin_menu;
   bg_gtk_plugin_menu_t * plugins;
   void (*add_files)(char ** files, const char * plugin,
-                   void * data);
-
+                    void * data);
+  void (*add_dir)(char * dir, int recursive, const char * plugin,
+                  void * data);
+    
   void (*close_notify)(bg_gtk_filesel_t * f, void * data);
   
   void * callback_data;
 
   char * cwd;
   int is_modal;
+
+  int unsensitive;
+
+  GtkWidget * recursive;
   };
 
-static void add_selected(bg_gtk_filesel_t * f)
+static void add_files(bg_gtk_filesel_t * f)
   {
   char ** filenames;
   const char * plugin = (const char*)0;
@@ -60,11 +66,34 @@ static void add_selected(bg_gtk_filesel_t * f)
   if(f->plugins)
     plugin = bg_gtk_plugin_menu_get_plugin(f->plugins);
 
-  fprintf(stderr, "Add Selected: %s\n", plugin);
-  
+  //  fprintf(stderr, "Add Selected: %s\n", plugin);
+
+  f->unsensitive = 1;
+  gtk_widget_set_sensitive(f->filesel, 0);
   f->add_files(filenames, plugin,
                f->callback_data);
+  gtk_widget_set_sensitive(f->filesel, 1);
+  f->unsensitive = 0;
   g_strfreev(filenames);
+  }
+
+static void add_dir(bg_gtk_filesel_t * f)
+  {
+  const char * plugin = (const char*)0;
+  char * tmp = bg_strdup(NULL, gtk_file_selection_get_filename(GTK_FILE_SELECTION(f->filesel)));
+
+  if(f->plugins)
+    plugin = bg_gtk_plugin_menu_get_plugin(f->plugins);
+
+  f->unsensitive = 1;
+  gtk_widget_set_sensitive(f->filesel, 0);
+  f->add_dir(tmp,
+             gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(f->recursive)),
+             plugin,
+             f->callback_data);
+  gtk_widget_set_sensitive(f->filesel, 1);
+  f->unsensitive = 0;
+  free(tmp);
   }
 
 static void button_callback(GtkWidget * w, gpointer data)
@@ -75,6 +104,9 @@ static void button_callback(GtkWidget * w, gpointer data)
   f = (bg_gtk_filesel_t *)data;
   filesel = GTK_FILE_SELECTION(f->filesel);
 
+  if(f->unsensitive)
+    return;
+  
   if((w == f->filesel) || (w == filesel->cancel_button))
     {
     gtk_widget_hide(f->filesel);
@@ -84,7 +116,10 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w ==  filesel->ok_button)
     {
-    add_selected(f);
+    if(f->add_files)
+      add_files(f);
+    else if(add_dir)
+      add_dir(f);
     }
   }
 
@@ -103,14 +138,16 @@ static gboolean destroy_callback(GtkWidget * w, GdkEvent * event,
   }
 
 bg_gtk_filesel_t *
-bg_gtk_filesel_create(const char * title,
-                      void (*add_files)(char ** files, const char * plugin,
-                                       void * data),
-                      void (*close_notify)(bg_gtk_filesel_t *,
-                                           void * data),
-                      char ** plugins,
-                      void * user_data,
-                      GtkWidget * parent_window)
+filesel_create(const char * title,
+               void (*add_files)(char ** files, const char * plugin,
+                                 void * data),
+               void (*add_dir)(char * dir, int recursive, const char * plugin,
+                               void * data),
+               void (*close_notify)(bg_gtk_filesel_t *,
+                                    void * data),
+               char ** plugins,
+               void * user_data,
+               GtkWidget * parent_window)
   {
   bg_gtk_filesel_t * ret;
 
@@ -128,12 +165,27 @@ bg_gtk_filesel_create(const char * title,
     g_signal_connect(G_OBJECT(ret->filesel), "destroy-event",
                      G_CALLBACK(destroy_callback), ret);
     }
-  
-  gtk_file_selection_set_select_multiple(GTK_FILE_SELECTION(ret->filesel),
-                                         TRUE);
-  
-  /* Create plugin menu */
 
+  if(add_files)
+    {
+    gtk_file_selection_set_select_multiple(GTK_FILE_SELECTION(ret->filesel),
+                                           TRUE);
+    }
+  else if(add_dir)
+    {
+    gtk_widget_set_sensitive(GTK_FILE_SELECTION(ret->filesel)->file_list, 0);
+
+    ret->recursive = gtk_check_button_new_with_label("Recursive");
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ret->recursive), 1);
+    
+    gtk_widget_show(ret->recursive);
+    
+    gtk_box_pack_start_defaults(GTK_BOX(GTK_DIALOG(ret->filesel)->vbox),
+                                ret->recursive);
+    }
+
+  /* Create plugin menu */
+    
   if(plugins)
     {
     ret->plugins = bg_gtk_plugin_menu_create(plugins, 1);
@@ -157,11 +209,50 @@ bg_gtk_filesel_create(const char * title,
   gtk_button_set_label(GTK_BUTTON(GTK_FILE_SELECTION(ret->filesel)->cancel_button),
                        "Close");
     
-  ret->add_files = add_files;
-  ret->close_notify = close_notify;
+  ret->add_files     = add_files;
+  ret->add_dir       = add_dir;
+  ret->close_notify  = close_notify;
   ret->callback_data = user_data;
 
   return ret;
+  }
+
+bg_gtk_filesel_t *
+bg_gtk_filesel_create(const char * title,
+                      void (*add_file)(char ** files, const char * plugin,
+                                       void * data),
+                      void (*close_notify)(bg_gtk_filesel_t *,
+                                           void * data),
+                      char ** plugins,
+                      void * user_data,
+                      GtkWidget * parent_window)
+  {
+  return filesel_create(title,
+                        add_file,
+                        NULL,
+                        close_notify,
+                        plugins,
+                        user_data,
+                        parent_window);
+  }
+
+bg_gtk_filesel_t *
+bg_gtk_dirsel_create(const char * title,
+                     void (*add_dir)(char * dir, int recursive, const char * plugin,
+                                     void * data),
+                     void (*close_notify)(bg_gtk_filesel_t *,
+                                          void * data),
+                     char ** plugins,
+                     void * user_data,
+                     GtkWidget * parent_window)
+  {
+  return filesel_create(title,
+                        NULL,
+                        add_dir,
+                        close_notify,
+                        plugins,
+                        user_data,
+                        parent_window);
   }
 
 /* Destroy fileselector */

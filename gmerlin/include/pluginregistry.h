@@ -93,6 +93,14 @@ bg_plugin_find_by_mimetype(bg_plugin_registry_t *,
 const bg_plugin_info_t *
 bg_plugin_find_by_long_name(bg_plugin_registry_t *, const char * long_name);
 
+/* Another method: Return long names as strings (NULL terminated) */
+
+char ** bg_plugin_registry_get_plugins(bg_plugin_registry_t*reg,
+                                       uint32_t type_mask,
+                                       uint32_t flag_mask);
+
+void bg_plugin_registry__free_plugins(char ** plugins);
+
 /* Set the supported extensions and mimetypes for a plugin */
 
 void bg_plugin_registry_set_extensions(bg_plugin_registry_t *,
@@ -200,7 +208,5 @@ void bg_plugin_ref(bg_plugin_handle_t *);
 /* Plugin will be unloaded when refcount is zero */
 
 void bg_plugin_unref(bg_plugin_handle_t *);
-
-
 
 #endif // __BG_PLUGINREGISTRY_H_

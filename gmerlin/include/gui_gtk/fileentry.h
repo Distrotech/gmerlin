@@ -19,10 +19,11 @@
 
 typedef struct bg_gtk_file_entry_s bg_gtk_file_entry_t;
 
-bg_gtk_file_entry_t * bg_gtk_file_entry_create(int dir,
-                                               void (*name_changed_callback)(bg_gtk_file_entry_t *,
-                                                                    void * data),
-                                               void * name_changed_callback_data);
+bg_gtk_file_entry_t *
+bg_gtk_file_entry_create(int dir,
+                         void (*name_changed_callback)(bg_gtk_file_entry_t *,
+                                                       void * data),
+                         void * name_changed_callback_data);
 
 void bg_gtk_file_entry_destroy(bg_gtk_file_entry_t *);
 

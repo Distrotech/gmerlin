@@ -126,7 +126,6 @@ void bg_album_update_entry(bg_album_t * album,
   
   }
 
-
 bg_album_t * bg_album_create(bg_album_common_t * com, bg_album_type_t type,
                              bg_album_t * parent)
   {
@@ -183,26 +182,19 @@ void bg_album_unlock(bg_album_t * a)
   }
 
 /* Add items */
-
-static bg_album_entry_t * load_urls(bg_album_t * a,
-                                    char ** locations,
-                                    const char * plugin)
+#if 0
+static bg_album_entry_t * load_url(bg_album_t * a,
+                                   char * location,
+                                   const char * plugin)
   {
-  int i;
   bg_album_entry_t * new_entry;
   bg_album_entry_t * ret;
   bg_album_entry_t * end_entry;
   
-  i = 0;
-
   ret       = (bg_album_entry_t*)0;
   end_entry = (bg_album_entry_t*)0;
   new_entry = (bg_album_entry_t*)0;
     
-  //  fprintf(stderr, "Load URL %s\n", locations[0]);
-  while(locations[i])
-    {
-    //    fprintf(stderr, "Load URL: %s\n", locations[i]);
     new_entry = bg_album_load_url(a,
                                   locations[i],
                                   plugin);
@@ -227,7 +219,7 @@ static bg_album_entry_t * load_urls(bg_album_t * a,
     }
   return ret;
   }
-
+#endif
 static void insertion_done(bg_album_t * album)
   {
   switch(album->type)
@@ -317,11 +309,16 @@ void bg_album_insert_urls_before(bg_album_t * a,
                                  const char * plugin,
                                  bg_album_entry_t * after)
   {
+  int i = 0;
   bg_album_entry_t * new_entries;
-  new_entries = load_urls(a, locations, plugin);
 
-  bg_album_insert_entries_before(a, new_entries, after);
-  
+  while(locations[i])
+    {
+    new_entries = bg_album_load_url(a, locations[i], plugin);
+    bg_album_insert_entries_before(a, new_entries, after);
+    bg_album_changed(a);
+    i++;
+    }
   }
 
 void bg_album_insert_urls_after(bg_album_t * a,
@@ -329,10 +326,20 @@ void bg_album_insert_urls_after(bg_album_t * a,
                                 const char * plugin,
                                 bg_album_entry_t * before)
   {
+  int i = 0;
   bg_album_entry_t * new_entries;
-  new_entries = load_urls(a, locations, plugin);
-  
-  bg_album_insert_entries_after(a, new_entries, before);
+
+  while(locations[i])
+    {
+    new_entries = bg_album_load_url(a, locations[i], plugin);
+    bg_album_insert_entries_after(a, new_entries, before);
+
+    before = new_entries;
+    while(before->next)
+      before = before->next;
+    bg_album_changed(a);
+    i++;
+    }
   }
 
 /* Inserts a string of the type text/uri-list into the album */
@@ -1013,38 +1020,9 @@ int bg_album_entry_is_current(bg_album_t * a,
           (e == a->com->current_entry)) ? 1 : 0; 
   }
 
-char ** bg_album_get_plugins(bg_album_t * a,
-                             uint32_t type_mask,
-                             uint32_t flag_mask)
+bg_plugin_registry_t * bg_album_get_plugin_registry(bg_album_t * a)
   {
-  int num_plugins, i;
-  char ** ret;
-  bg_plugin_registry_t * reg;
-  const bg_plugin_info_t * info;
-    
-  reg = a->com->plugin_reg;
-  
-  num_plugins = bg_plugin_registry_get_num_plugins(reg, type_mask, flag_mask);
-  ret = calloc(num_plugins + 1, sizeof(char*));
-  for(i = 0; i < num_plugins; i++)
-    {
-    info = bg_plugin_find_by_index(reg, i, type_mask, flag_mask);
-    ret[i] = bg_strdup(NULL, info->long_name);
-    }
-  return ret;
-  }
-
-void bg_album_free_plugins(bg_album_t * a, char ** plugins)
-  {
-  int index = 0;
-  if(!plugins)
-    return;
-  while(plugins[index])
-    {
-    free(plugins[index]);
-    index++;
-    }
-  free(plugins);
+  return a->com->plugin_reg;
   }
 
 void bg_album_get_times(bg_album_t * a,

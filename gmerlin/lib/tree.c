@@ -21,6 +21,15 @@
 #include <stdio.h>
 #include <string.h>
 
+/* For stat/opendir */
+
+#include <limits.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <dirent.h>
+
+/* Gmerlin includes */
 
 #include <tree.h>
 #include <treeprivate.h>
@@ -212,6 +221,13 @@ bg_album_t * bg_media_tree_get_album(bg_media_tree_t * t, int i)
   return get_album(t->children, i);
   }
 
+bg_plugin_registry_t *
+bg_media_tree_get_plugin_registry(bg_media_tree_t * t)
+  {
+  return t->com.plugin_reg;
+  }
+
+
 
 bg_media_tree_t * bg_media_tree_create(const char * filename,
                                        bg_plugin_registry_t * plugin_reg)
@@ -313,11 +329,6 @@ void bg_media_tree_destroy(bg_media_tree_t * t)
     bg_plugin_unref(t->com.load_handle);
   free(t);
   }
-
-
-
-
-
 
 bg_album_t * bg_media_tree_append_album(bg_media_tree_t * tree,
                                         bg_album_t * parent)
@@ -842,3 +853,81 @@ void bg_media_tree_rename_album(bg_media_tree_t * t,
     }
   }
 
+/* Add an entire directory */
+
+void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
+                                 const char * directory,
+                                 int recursive, const char * plugin)
+  {
+  DIR * dir;
+  char filename[PATH_MAX];
+
+  struct
+    {
+    struct dirent d;
+    char b[NAME_MAX]; /* Make sure there is enough memory */
+    } dent;
+
+  struct dirent * dent_ptr;
+  const char * pos1;
+  struct stat stat_buf;
+  char * urls[2];
+  bg_album_t * a;
+
+  a = bg_media_tree_append_album(t, parent);
+  
+  bg_album_open(a);
+  bg_album_set_expanded(a, 1);
+  
+  pos1 = strrchr(directory, '/');
+  pos1++;
+    
+  bg_media_tree_rename_album(t, a, pos1);
+
+  /* Scan for regular files and directories */
+  
+  dir = opendir(directory);
+  if(!dir)
+    return;
+
+  urls[0] = filename;
+  urls[1] = (char*)0;
+  
+  while(!readdir_r(dir, &(dent.d), &dent_ptr))
+    {
+    if(!dent_ptr)
+      break;
+    
+    fprintf(stderr, "d_name: %s\n", dent.d.d_name);
+
+    if(!strcmp(dent.d.d_name, ".") || !strcmp(dent.d.d_name, ".."))
+      continue;
+
+    
+    sprintf(filename, "%s/%s", directory, dent.d.d_name);
+    
+    if(stat(filename, &stat_buf))
+      {
+      continue;
+      }
+    /* Add directory as subalbum */
+    if(recursive && S_ISDIR(stat_buf.st_mode))
+      {
+      bg_media_tree_add_directory(t, a, filename,
+                                  recursive, plugin);
+      }
+    else if(S_ISREG(stat_buf.st_mode))
+      {
+      fprintf(stderr, "Loading %s\n", urls[0]);
+      bg_album_insert_urls_before(a, urls, plugin, NULL);
+      }
+    if(t->change_callback)
+      t->change_callback(t, t->change_callback_data);
+    }
+  closedir(dir);
+  bg_album_sort(a);
+  bg_album_close(a);
+
+  if(t->change_callback)
+    t->change_callback(t, t->change_callback_data);
+  }

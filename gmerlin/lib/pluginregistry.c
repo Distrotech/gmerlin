@@ -960,3 +960,36 @@ void bg_plugin_registry_find_devices(bg_plugin_registry_t * reg,
   info->devices = handle->plugin->find_devices();
   bg_plugin_registry_save(reg->entries);
   }
+
+char ** bg_plugin_registry_get_plugins(bg_plugin_registry_t*reg,
+                                       uint32_t type_mask,
+                                       uint32_t flag_mask)
+  {
+  int num_plugins, i;
+  char ** ret;
+  const bg_plugin_info_t * info;
+  
+  num_plugins = bg_plugin_registry_get_num_plugins(reg, type_mask, flag_mask);
+  ret = calloc(num_plugins + 1, sizeof(char*));
+  for(i = 0; i < num_plugins; i++)
+    {
+    info = bg_plugin_find_by_index(reg, i, type_mask, flag_mask);
+    ret[i] = bg_strdup(NULL, info->long_name);
+    }
+  return ret;
+  
+  }
+
+void bg_plugin_registry_free_plugins(char ** plugins)
+  {
+  int index = 0;
+  if(!plugins)
+    return;
+  while(plugins[index])
+    {
+    free(plugins[index]);
+    index++;
+    }
+  free(plugins);
+  
+  }

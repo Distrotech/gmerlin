@@ -379,9 +379,14 @@ static void append_file_callback(char ** files, const char * plugin,
   {
   bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
   //  fprintf(stderr, "append_file_callback: %s\n", (plugin ? plugin : "NULL"));
+
+  gtk_widget_set_sensitive(widget->treeview, 0);
   bg_album_insert_urls_before(widget->album, files, plugin, NULL);
+  gtk_widget_set_sensitive(widget->treeview, 1);
   
-  bg_gtk_album_widget_update(widget);
+  //  bg_gtk_album_widget_update(widget);
+  
+  
   bg_album_set_open_path(widget->album,
                          bg_gtk_filesel_get_directory(widget->add_files_filesel));
   }
@@ -390,8 +395,12 @@ static void prepend_file_callback(char ** files, const char * plugin,
                                   void * data)
   {
   bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
+  
+  gtk_widget_set_sensitive(widget->treeview, 0);
   bg_album_insert_urls_after(widget->album, files, plugin, NULL);
-  bg_gtk_album_widget_update(widget);
+  gtk_widget_set_sensitive(widget->treeview, 1);
+
+  //  bg_gtk_album_widget_update(widget);
   bg_album_set_open_path(widget->album,
                          bg_gtk_filesel_get_directory(widget->add_files_filesel));
   }
@@ -401,17 +410,22 @@ static void append_urls_callback(char ** urls, const char * plugin,
   {
   bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
   //  fprintf(stderr, "append_urls_callback: %s\n", (urls[0] ? urls[0] : "NULL"));
+  gtk_widget_set_sensitive(widget->treeview, 0);
   bg_album_insert_urls_before(widget->album, urls, plugin, NULL);
+  gtk_widget_set_sensitive(widget->treeview, 1);
   
-  bg_gtk_album_widget_update(widget);
+  //  bg_gtk_album_widget_update(widget);
   }
 
 static void prepend_urls_callback(char ** urls, const char * plugin,
                                   void * data)
   {
   bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
+  gtk_widget_set_sensitive(widget->treeview, 0);
   bg_album_insert_urls_after(widget->album, urls, plugin, NULL);
-  bg_gtk_album_widget_update(widget);
+  gtk_widget_set_sensitive(widget->treeview, 1);
+  
+  //  bg_gtk_album_widget_update(widget);
   }
 
 
@@ -513,7 +527,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
     tmp_string = bg_sprintf("Append files to album %s",
                                bg_album_get_name(widget->album));
     if(!file_plugins)
-      file_plugins = bg_album_get_plugins(widget->album,
+      file_plugins = bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
                                           BG_PLUGIN_INPUT,
                                           BG_PLUGIN_FILE);
     
@@ -538,7 +552,8 @@ static void menu_callback(GtkWidget * w, gpointer data)
                             bg_album_get_name(widget->album));
 
     if(!file_plugins)
-      file_plugins = bg_album_get_plugins(widget->album,
+      file_plugins =
+        bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
                                           BG_PLUGIN_INPUT,
                                           BG_PLUGIN_FILE);
     
@@ -561,9 +576,10 @@ static void menu_callback(GtkWidget * w, gpointer data)
     tmp_string = bg_sprintf("Append URLS to album %s",
                             bg_album_get_name(widget->album));
     if(!url_plugins)
-      url_plugins = bg_album_get_plugins(widget->album,
-                                         BG_PLUGIN_INPUT,
-                                         BG_PLUGIN_URL);
+      url_plugins =
+        bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
+                                       BG_PLUGIN_INPUT,
+                                       BG_PLUGIN_URL);
     
     widget->add_urls_urlsel =
       bg_gtk_urlsel_create(tmp_string,
@@ -579,9 +595,10 @@ static void menu_callback(GtkWidget * w, gpointer data)
     tmp_string = bg_sprintf("Prepend URLS to album %s",
                             bg_album_get_name(widget->album));
     if(!url_plugins)
-      url_plugins = bg_album_get_plugins(widget->album,
-                                         BG_PLUGIN_INPUT,
-                                         BG_PLUGIN_URL);
+      url_plugins =
+        bg_plugin_registry_get_plugins(bg_album_get_plugin_registry(widget->album),
+                                       BG_PLUGIN_INPUT,
+                                       BG_PLUGIN_URL);
     
     widget->add_urls_urlsel =
       bg_gtk_urlsel_create(tmp_string,
@@ -905,8 +922,10 @@ static void drag_received_callback(GtkWidget *widget,
                                        entry);
             break;
           case DND_TEXT_URI_LIST:
+            gtk_widget_set_sensitive(aw->treeview, 0);
             bg_album_insert_urilist_before(aw->album, data->data, data->length,
                                            entry);
+            gtk_widget_set_sensitive(aw->treeview, 1);
             break;
           }
         break;
@@ -919,8 +938,10 @@ static void drag_received_callback(GtkWidget *widget,
                                       entry);
             break;
           case DND_TEXT_URI_LIST:
+            gtk_widget_set_sensitive(aw->treeview, 0);
             bg_album_insert_urilist_after(aw->album, data->data, data->length,
                                           entry);
+            gtk_widget_set_sensitive(aw->treeview, 1);
             break;
           }
         break;
@@ -1183,6 +1204,14 @@ static void album_changed_callback(bg_album_t * a, void * data)
   {
   bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
   bg_gtk_album_widget_update(w);
+
+  fprintf(stderr, "Change callback\n");
+  
+  /* This is also called during loading of huge amounts of
+     urls, so we update the GUI a bit */
+
+  while(gdk_events_pending() || gtk_events_pending())
+    gtk_main_iteration();
   }
 
 bg_gtk_album_widget_t *
