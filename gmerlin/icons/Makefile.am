@@ -26,6 +26,7 @@ drive_16.png \
 drive_running_16.png \
 folder_closed_16.png \
 folder_open_16.png \
+gmerlin_icon.png \
 hardware_16.png \
 info_16.png \
 line_32.png \

@@ -49,6 +49,8 @@
 /* since it doesn't seem to be defined on some platforms */
 int XShmGetEventBase (Display *);
 
+
+
 typedef struct 
   {
   XImage * x11_image;
@@ -154,6 +156,9 @@ typedef struct
   int do_still;
   gavl_video_frame_t * still_frame;
   } x11_t;
+
+static int handle_event(x11_t * priv, XEvent * evt);
+
 
 void set_callbacks_x11(void * data, bg_ov_callbacks_t * callbacks)
   {
@@ -343,6 +348,15 @@ static void make_fullscreen_window(x11_t * x11, Window win)
   XDefineCursor(x11->dpy, win, x11->fullscreen_cursor);
   }
 
+static void send_expose(x11_t * priv)
+  {
+  XEvent evt;
+  memset(&evt, 0, sizeof(evt));
+
+  evt.type = Expose;
+  XSendEvent(priv->dpy, priv->current_window,
+             0, 0, &evt);
+  }
 
 /*
  *  Create the window, if width and height are zero, a fullscreen
@@ -841,7 +855,7 @@ static int open_x11(void * data,
   gavl_colorspace_t x11_colorspace;
   int window_width;
   int window_height;
-  
+  XEvent event;
   priv = (x11_t*)data;
 
   /* Stop still thread if necessary */
@@ -990,6 +1004,19 @@ static int open_x11(void * data,
   
   XClearArea(priv->dpy, priv->current_window, 0, 0,
              priv->window_width, priv->window_height, True);
+
+  /* Get the expose event before we draw the first frame */
+
+  while(1)
+    {
+    XNextEvent(priv->dpy, &event);
+    if(event.type == Expose)
+      {
+      break;
+      }
+    else
+      handle_event(priv, &event);
+    }
   
   return 1;
   }
@@ -1164,6 +1191,8 @@ static int handle_event(x11_t * priv, XEvent * evt)
       set_drawing_coords(priv);
       //      XClearArea(priv->dpy, evt->xconfigure.window, 0, 0,
       //                 priv->window_width, priv->window_height, True);
+      /* Send ourselfes an exposure event */
+      send_expose(priv);
       break;
     }
   return 0;
@@ -1317,7 +1346,7 @@ static void put_still_x11(void * data, gavl_video_format_t * format,
 
   gavl_video_format_copy(&tmp_format, format);
   open_x11(data, &tmp_format, "Video output");
-
+  
   /* Create the output frame for the format */
 
   priv->still_frame = alloc_frame_x11(data);
@@ -1332,6 +1361,8 @@ static void put_still_x11(void * data, gavl_video_format_t * format,
 
   gavl_video_converter_destroy(cnv);
 
+  write_frame_x11(data, priv->still_frame);
+  
   priv->do_still = 1;
   pthread_create(&(priv->still_thread),
                  (pthread_attr_t*)0,
