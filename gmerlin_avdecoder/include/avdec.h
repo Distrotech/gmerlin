@@ -262,7 +262,7 @@ int bgav_read_audio(bgav_t *, gavl_audio_frame_t * frame, int stream,
  * Seek to a timestamp. This also resyncs all streams
  ***************************************************/
 
-void bgav_seek(bgav_t *, gavl_time_t);
+void bgav_seek(bgav_t *, gavl_time_t*);
 
 void bgav_set_dll_path_xanim(const char*);
 const char * bgav_get_dll_path_xanim();

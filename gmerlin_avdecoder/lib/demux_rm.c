@@ -205,6 +205,8 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
   //  dump_audio(rm_as);
 
   bg_as->stream_id = stream->mdpr.stream_number;
+  bg_as->timescale = 1000;
+    
   rm_as->stream = stream;
   }
 
@@ -557,7 +559,7 @@ fix_timestamp(bgav_stream_t * stream, uint8_t * s, uint32_t timestamp)
     }
 #endif
   //  fprintf(stderr, "Real fix timestamp: %d\n", (kf * GAVL_TIME_SCALE) / 1000);
-  return ((int64_t)kf * GAVL_TIME_SCALE) / 1000;
+  return (int64_t)kf;
   }
 
 static int process_video_chunk(bgav_demuxer_context_t * ctx,
@@ -668,9 +670,8 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
         //        fprintf(stderr,
         //                "closing probably incomplete packet\n");
 
-        p->timestamp=(dp_hdr->len<3)?0:
+        p->timestamp_scaled=(dp_hdr->len<3)?0:
           fix_timestamp(stream,dp_data,dp_hdr->timestamp);
-        p->timestamp_scaled = (p->timestamp*1000)/GAVL_TIME_SCALE;
         bgav_packet_done_write(p);
         // ds_add_packet(ds,dp);
         stream->packet = (bgav_packet_t*)0;
@@ -717,9 +718,8 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
           // we know that this is the last fragment -> we can close the packet!
           /* TODO: Timestamp */
 #if 1
-          p->timestamp=(dp_hdr->len<3)?0:
+          p->timestamp_scaled=(dp_hdr->len<3)?0:
             fix_timestamp(stream,dp_data,dp_hdr->timestamp);
-          p->timestamp_scaled = (p->timestamp*1000)/GAVL_TIME_SCALE;
 #endif
           bgav_packet_done_write(p);
           stream->packet = (bgav_packet_t*)0;
@@ -746,7 +746,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
       }
     // create new packet!
 
-    p = bgav_packet_buffer_get_packet_write(stream->packet_buffer);
+    p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
     bgav_packet_alloc(p, sizeof(dp_hdr_t)+vpkg_length+8*(1+2*(vpkg_header&0x3F)));
     p->data_size = sizeof(dp_hdr_t)+vpkg_length+8*(1+2*(vpkg_header&0x3F));
         
@@ -784,9 +784,8 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
 
     //    stream_read(demuxer->stream, dp_data, vpkg_length);
     /* TODO: Timestanp */
-    p->timestamp=(dp_hdr->len<3)?0:
+    p->timestamp_scaled=(dp_hdr->len<3)?0:
       fix_timestamp(stream,dp_data,dp_hdr->timestamp);
-    p->timestamp_scaled = (p->timestamp * 1000)/GAVL_TIME_SCALE;
 
     bgav_packet_done_write(p);
     
@@ -820,7 +819,7 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
   
   if(!stream->packet) /* Get a new packet */
     {
-    stream->packet = bgav_packet_buffer_get_packet_write(stream->packet_buffer);
+    stream->packet = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
     bgav_packet_alloc(stream->packet, as->bytes_to_read);
     stream->packet->data_size = 0;
     }
@@ -961,8 +960,7 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
     vs = (rm_video_stream_t*)(stream->priv);
     vs->index_record = seek_indx(&(vs->stream->indx), real_time,
                                  &position, &start_packet, &end_packet);
-    stream->time = ((int64_t)(vs->stream->indx.records[vs->index_record].timestamp) *
-                    GAVL_TIME_SCALE) / 1000;
+    stream->time_scaled = (int64_t)(vs->stream->indx.records[vs->index_record].timestamp);
     vs->kf_pts = vs->stream->indx.records[vs->index_record].timestamp;
     }
   for(i = 0; i < track->num_audio_streams; i++)
@@ -971,8 +969,7 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
     as = (rm_audio_stream_t*)(stream->priv);
     as->index_record = seek_indx(&(as->stream->indx), real_time,
                                  &position, &start_packet, &end_packet);
-    stream->time = ((int64_t)(as->stream->indx.records[as->index_record].timestamp) *
-                    GAVL_TIME_SCALE) / 1000;
+    stream->time_scaled = (int64_t)(as->stream->indx.records[as->index_record].timestamp);
     }
 
   //  fprintf(stderr, "Position: %u, Start Packet: %u, End Packet: %u\n",

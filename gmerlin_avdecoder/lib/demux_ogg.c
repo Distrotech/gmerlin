@@ -196,7 +196,7 @@ typedef struct
   int track;
   //  int stream_changed;
   
-  gavl_time_t timestamp;
+  int64_t timestamp_scaled;
   } ogg_priv;
 
 static void seek_byte(bgav_demuxer_context_t * ctx, int64_t pos)
@@ -351,12 +351,10 @@ static int get_next_packet(bgav_demuxer_context_t * ctx)
        for the next packet of the next page */
     
     if((ctx->tt->current_track->audio_streams) &&
-       (priv->timestamp == GAVL_TIME_UNDEFINED))
+       (priv->timestamp_scaled < 0))
       {
       s = &(ctx->tt->current_track->audio_streams[0]);
-      priv->timestamp =
-        gavl_samples_to_time(s->data.audio.format.samplerate,
-                             priv->current_page_granulepos);
+      priv->timestamp_scaled = priv->current_page_granulepos;
       }
     
     /* Read the next page */
@@ -413,10 +411,10 @@ static void set_packet(ogg_priv * priv, bgav_packet_t * p)
   p->data_size = sizeof(ogg_packet) + priv->current_packet.bytes;
   p->keyframe = 1;
 
-  if(priv->timestamp != GAVL_TIME_UNDEFINED)
+  if(priv->timestamp_scaled >= 0)
     {
-    p->timestamp = priv->timestamp ;
-    priv->timestamp = GAVL_TIME_UNDEFINED;
+    p->timestamp_scaled = priv->timestamp_scaled ;
+    priv->timestamp_scaled = -1;
     }
   }
 
@@ -443,7 +441,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
     vorbis_info_init(&vi);
     vorbis_comment_init(&vc);
 
-    p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
+    p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
     set_packet(priv, p);
     bgav_packet_done_write(p);
 
@@ -458,14 +456,14 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
     
     if(!get_next_packet(ctx))
       return 0;
-    p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
+    p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
     set_packet(priv, p);
     bgav_packet_done_write(p);
     vorbis_synthesis_headerin(&vi, &vc, &(priv->current_packet));
 
     if(!get_next_packet(ctx))
       return 0;
-    p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
+    p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
     set_packet(priv, p);
     bgav_packet_done_write(p);
     vorbis_synthesis_headerin(&vi, &vc, &(priv->current_packet));
@@ -510,7 +508,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
     }
   else
     {
-    p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
+    p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
     set_packet(priv, p);
     bgav_packet_done_write(p);
     }
@@ -938,10 +936,7 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, gavl_time_t time)
     }
   pos = page_pos + priv->current_page_size;
 
-          
-  
-  s->time = gavl_samples_to_time(s->data.audio.format.samplerate,
-                                 priv->current_page_granulepos);
+  s->time_scaled = priv->current_page_granulepos;
 #if 0
   fprintf(stderr, "Samplerate: %d, granulepos: %lld, time: %f\n",
           s->data.audio.format.samplerate,
@@ -955,7 +950,7 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, gavl_time_t time)
   if(page_pos == -1)
     {
     //    fprintf(stderr, "Lost sync during seeking 2, %lld\n", pos);
-    s->time = GAVL_TIME_UNDEFINED;
+    s->time_scaled = -1;
     }
   
   //  seek_byte(

@@ -469,6 +469,9 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
     /* Audio stream */
     if(moov->tracks[i].mdia.minf.has_smhd)
       {
+      //      fprintf(stderr, "Found audio stream\n");
+      //      bgav_qt_trak_dump(&(moov->tracks[i]));
+
       if(!moov->tracks[i].mdia.minf.stbl.stsd.entries)
         {
         fprintf(stderr, "No sample desciption present\n");
@@ -524,6 +527,9 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
     /* Video stream */
     else if(moov->tracks[i].mdia.minf.has_vmhd)
       {
+      //      fprintf(stderr, "Found video stream\n");
+      //      bgav_qt_trak_dump(&(moov->tracks[i]));
+      
       if(!moov->tracks[i].mdia.minf.stbl.stsd.entries)
         {
         fprintf(stderr, "No sample desciption present\n");
@@ -545,9 +551,13 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       bg_vs->data.video.format.pixel_width = 1;
       bg_vs->data.video.format.pixel_height = 1;
       bg_vs->data.video.depth = desc->format.video.depth;
-      bg_vs->timescale = moov->tracks[i].mdia.mdhd.time_scale;
       
       bg_vs->data.video.format.timescale = moov->tracks[i].mdia.mdhd.time_scale;
+
+      /* We set the timescale here, because we need it before the dmuxer sets it. */
+
+      bg_vs->timescale = moov->tracks[i].mdia.mdhd.time_scale;
+      
       bg_vs->data.video.format.frame_duration =
         moov->tracks[i].mdia.minf.stbl.stts.entries[0].duration;
 

@@ -133,8 +133,6 @@ void bgav_track_dump(bgav_t * b, bgav_track_t * t)
                                    "Not specified"));
   //  fprintf(stderr, "Seekable: %s\n", (bgav->demuxer->can_seek ? "Yes" : "No"));
 
-  bgav_metadata_dump(&(t->metadata));
-  
   fprintf(stderr, "Duration: ");
   if(t->duration != GAVL_TIME_UNDEFINED)
     {
@@ -143,6 +141,10 @@ void bgav_track_dump(bgav_t * b, bgav_track_t * t)
     }
   else
     fprintf(stderr, "Not specified (maybe live)\n");
+
+  
+  bgav_metadata_dump(&(t->metadata));
+  
   
   for(i = 0; i < t->num_audio_streams; i++)
     {
@@ -236,6 +238,8 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
   {
   int i;
   gavl_time_t ret = 0;
+  gavl_time_t test_time;
+  
   bgav_stream_t * s;
 
   for(i = 0; i < track->num_audio_streams; i++)
@@ -243,52 +247,69 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
     s = &(track->audio_streams[i]);
     bgav_stream_resync_decoder(s);
 
-    if(s->time == GAVL_TIME_UNDEFINED)
+    if(s->time_scaled < 0)
       {
-      fprintf(stderr, "Couldn't resync after seeking, maybe EOF\n");
+      fprintf(stderr, "Couldn't resync audio stream after seeking, maybe EOF\n");
       return GAVL_TIME_UNDEFINED;
       }
+    test_time = gavl_samples_to_time(s->timescale, s->time_scaled);
     s->position =
       gavl_time_to_samples(s->data.audio.format.samplerate,
-                           s->time);
-    if(s->time > ret)
-      ret = track->audio_streams[i].time;
+                           test_time);
+    if(test_time > ret)
+      ret = test_time;
     }
   for(i = 0; i < track->num_video_streams; i++)
     {
     s = &(track->video_streams[i]);
     bgav_stream_resync_decoder(s);
 
-    if(s->time == GAVL_TIME_UNDEFINED)
+    if(s->time_scaled < 0)
       {
-      fprintf(stderr, "Couldn't resync after seeking, maybe EOF\n");
+      fprintf(stderr, "Couldn't resync video stream after seeking, maybe EOF\n");
       return GAVL_TIME_UNDEFINED;
       }
+    test_time = gavl_samples_to_time(s->timescale, s->time_scaled);
+
     s->position =
       gavl_time_to_frames(s->data.video.format.timescale,
                           s->data.video.format.frame_duration,
-                          s->time);
-    if(s->time > ret)
-      ret = s->time;
+                          test_time);
+    if(test_time > ret)
+      ret = test_time;
     }
   return ret;
   }
 
-void bgav_track_skipto(bgav_track_t * track, gavl_time_t time)
+int bgav_track_skipto(bgav_track_t * track, gavl_time_t * time)
   {
   int i;
   bgav_stream_t * s;
+  gavl_time_t t;
 
+  
+  for(i = 0; i < track->num_video_streams; i++)
+    {
+    t = *time;
+    s = &(track->video_streams[i]);
+    
+    if(!bgav_stream_skipto(s, &t))
+      {
+      return 0;
+      }
+    if(!i)
+      *time = t;
+    }
   for(i = 0; i < track->num_audio_streams; i++)
     {
     s = &(track->audio_streams[i]);
-    bgav_stream_skipto(s, time);
+
+    if(!bgav_stream_skipto(s, time))
+      {
+      return 0;
+      }
     }
-  for(i = 0; i < track->num_video_streams; i++)
-    {
-    s = &(track->video_streams[i]);
-    bgav_stream_skipto(s, time);
-    }
+  return 1;
   }
 
 int bgav_track_has_sync(bgav_track_t * t)
@@ -299,14 +320,14 @@ int bgav_track_has_sync(bgav_track_t * t)
     {
     if(((t->audio_streams[i].action == BGAV_STREAM_DECODE) ||
         (t->audio_streams[i].action == BGAV_STREAM_SYNC)) &&
-       (t->audio_streams[i].time == GAVL_TIME_UNDEFINED))
+       (t->audio_streams[i].time_scaled < 0))
       return 0;
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
     if(((t->video_streams[i].action == BGAV_STREAM_DECODE) ||
         (t->video_streams[i].action == BGAV_STREAM_SYNC)) &&
-       (t->video_streams[i].time == GAVL_TIME_UNDEFINED))
+       (t->video_streams[i].time_scaled < 0))
       return 0;
     }
   return 1;

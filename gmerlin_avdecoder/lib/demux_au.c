@@ -73,26 +73,23 @@ static int probe_au(bgav_input_context_t * input)
   return 0;
   }
 
-static gavl_time_t pos_2_time(bgav_demuxer_context_t * ctx, int64_t pos)
+static int64_t pos_2_time(bgav_demuxer_context_t * ctx, int64_t pos)
   {
   au_priv_t * priv;
   priv = (au_priv_t*)(ctx->priv);
   
-  return ((pos - priv->data_start) * GAVL_TIME_SCALE * priv->samples_per_block) /
-    (ctx->tt->current_track->audio_streams[0].data.audio.format.samplerate * 
-     ctx->tt->current_track->audio_streams[0].data.audio.block_align);
-  
+  return ((pos - priv->data_start) * priv->samples_per_block) /
+    (ctx->tt->current_track->audio_streams[0].data.audio.block_align);
   }
 
-static int64_t time_2_pos(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static int64_t time_2_pos(bgav_demuxer_context_t * ctx, int64_t time)
   {
   au_priv_t * priv;
   priv = (au_priv_t*)(ctx->priv);
   return priv->data_start +
     (time *
-     ctx->tt->current_track->audio_streams[0].data.audio.format.samplerate *
      ctx->tt->current_track->audio_streams[0].data.audio.block_align)/
-    (priv->samples_per_block * GAVL_TIME_SCALE);
+    (priv->samples_per_block);
   
   }
 
@@ -189,7 +186,10 @@ static int open_au(bgav_demuxer_context_t * ctx,
     priv->data_size = ctx->input->total_bytes;
   priv->samples_per_block = samples_per_block;
   if(priv->data_size)
-    ctx->tt->current_track->duration = pos_2_time(ctx, priv->data_start + priv->data_size);
+    ctx->tt->current_track->duration =
+      gavl_samples_to_time(as->data.audio.format.samplerate,
+                          pos_2_time(ctx, priv->data_start + priv->data_size));
+  
   if(ctx->input->input->seek_byte)
     ctx->can_seek = 1;
   
@@ -208,13 +208,13 @@ static int next_packet_au(bgav_demuxer_context_t * ctx)
   int bytes_read;
   au_priv_t * priv;
   s = &(ctx->tt->current_track->audio_streams[0]);
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
+  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
 
   priv = (au_priv_t*)(ctx->priv);
   
   bgav_packet_alloc(p, s->data.audio.block_align * BLOCKS_PER_PACKET);
 
-  p->timestamp = pos_2_time(ctx, ctx->input->position);
+  p->timestamp_scaled = pos_2_time(ctx, ctx->input->position);
   p->keyframe = 1;
   bytes_read = bgav_input_read_data(ctx->input, p->data,
                                     s->data.audio.block_align * BLOCKS_PER_PACKET);
@@ -239,7 +239,7 @@ static void seek_au(bgav_demuxer_context_t * ctx, gavl_time_t time)
   position *= s->data.audio.block_align;
   position += priv->data_start;
   bgav_input_seek(ctx->input, position, SEEK_SET);
-  s->time = pos_2_time(ctx, position);
+  s->time_scaled = pos_2_time(ctx, position);
   }
 
 static void close_au(bgav_demuxer_context_t * ctx)

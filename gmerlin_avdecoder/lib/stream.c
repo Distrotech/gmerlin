@@ -62,7 +62,7 @@ void bgav_stream_alloc(bgav_stream_t * stream)
   {
   memset(stream, 0, sizeof(*stream));
   stream->packet_buffer = bgav_packet_buffer_create();
-  stream->time = GAVL_TIME_UNDEFINED;
+  stream->time_scaled = -1;
   stream->first_index_position = INT_MAX;
   stream->last_index_position = 0;
   stream->index_position = -1;
@@ -88,26 +88,28 @@ void bgav_stream_dump(bgav_stream_t * s)
       break;
       
     }
-  fprintf(stderr, "Type:              %s\n",
+  fprintf(stderr, "  Type:              %s\n",
           (s->description ? s->description : "Not specified"));
-  fprintf(stderr, "Fourcc:            ");
+  fprintf(stderr, "  Fourcc:            ");
   bgav_dump_fourcc(s->fourcc);
   fprintf(stderr, "\n");
   
-  fprintf(stderr, "Stream ID:         %d (0x%x)\n",
+  fprintf(stderr, "  Stream ID:         %d (0x%x)\n",
           s->stream_id,
           s->stream_id);
-  fprintf(stderr, "Codec bitrate:     ");
+  fprintf(stderr, "  Codec bitrate:     ");
   if(s->codec_bitrate)
     fprintf(stderr, "%d\n", s->codec_bitrate);
   else
     fprintf(stderr, "Unspecified\n");
 
-  fprintf(stderr, "Container bitrate: ");
+  fprintf(stderr, "  Container bitrate: ");
   if(s->container_bitrate)
     fprintf(stderr, "%d\n", s->container_bitrate);
   else
     fprintf(stderr, "Unspecified\n");
+
+  fprintf(stderr, "  Timescale:         %d\n", s->timescale);
   }
 
 void bgav_stream_clear(bgav_stream_t * s)
@@ -116,7 +118,7 @@ void bgav_stream_clear(bgav_stream_t * s)
     bgav_packet_buffer_clear(s->packet_buffer);
   s->packet = (bgav_packet_t*)0;
   s->position = -1;
-  s->time = GAVL_TIME_UNDEFINED;
+  s->time_scaled = -1;
   }
 
 void bgav_stream_resync_decoder(bgav_stream_t * s)
@@ -136,28 +138,21 @@ void bgav_stream_resync_decoder(bgav_stream_t * s)
     }
   }
 
-void bgav_stream_skipto(bgav_stream_t * s, gavl_time_t time)
+int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time)
   {
-  gavl_time_t diff_time;
   
   if((s->action != BGAV_STREAM_DECODE) &&
      (s->action != BGAV_STREAM_SYNC))
-    return;
-  
-  diff_time = time - s->time;
-  if(diff_time < 0)
-    {
-    fprintf(stderr, "Warning: cannot skip backwards\n");
-    return;
-    }
+    return 1;
   
   switch(s->type)
     {
     case BGAV_STREAM_AUDIO:
-      bgav_audio_skip(s, diff_time);
+      return bgav_audio_skipto(s, time);
       break;
     case BGAV_STREAM_VIDEO:
-      bgav_video_skipto(s, time);
+      return bgav_video_skipto(s, time);
       break;
     }
+  return 0;
   }

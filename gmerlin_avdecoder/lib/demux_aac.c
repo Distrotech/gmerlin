@@ -173,7 +173,7 @@ typedef struct
   struct
     {
     int64_t position;
-    gavl_time_t time;
+    int64_t time_scaled;
     } * seek_table;
   
   } aac_priv_t;
@@ -278,7 +278,7 @@ static int open_adts(bgav_demuxer_context_t * ctx)
     sample_count = 0;
 
     priv->seek_table[0].position = priv->data_start;
-    priv->seek_table[0].time     = 0;
+    priv->seek_table[0].time_scaled     = 0;
     priv->seek_table_size = 1;
     
     while(1)
@@ -301,8 +301,7 @@ static int open_adts(bgav_demuxer_context_t * ctx)
         }
 
       priv->seek_table[priv->seek_table_size].position = ctx->input->position;
-      priv->seek_table[priv->seek_table_size].time     =
-        gavl_samples_to_time(adts.samplerate, sample_count);
+      priv->seek_table[priv->seek_table_size].time_scaled = sample_count;
       priv->seek_table_size++;
 
       priv->data_size = ctx->input->position - priv->data_start;
@@ -498,16 +497,10 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
   //  fprintf(stderr, "next_packet_adts: %d blocks %d bytes\n",
   //          adts.num_blocks, adts.frame_bytes);
   
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
+  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
   
   p->timestamp_scaled = priv->sample_count;
-
-  if(s->data.audio.format.samplerate)
-    p->timestamp = gavl_samples_to_time(s->data.audio.format.samplerate,
-                                        priv->sample_count);
-  else
-    p->timestamp = 0;
-  
+    
   p->keyframe = 1;
 
   bgav_packet_alloc(p, adts.frame_bytes);
@@ -536,7 +529,7 @@ static int next_packet_adif(bgav_demuxer_context_t * ctx)
   /* Just copy the bytes, we have no idea about
      aac frame boundaries or timestamps here */
 
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
+  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
   bgav_packet_alloc(p, BYTES_TO_READ);
   
   bytes_read = bgav_input_read_data(ctx->input, p->data, BYTES_TO_READ);
@@ -570,15 +563,19 @@ static void seek_aac(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
   aac_priv_t * priv;
   uint32_t i;
+  int64_t time_scaled;
+  time_scaled =
+    gavl_time_to_samples(ctx->tt->current_track->audio_streams[0].data.audio.format.samplerate,
+                         time);
   
   priv = (aac_priv_t *)(ctx->priv);
   i = priv->seek_table_size - 1;
-
-  while(priv->seek_table[i].time > time)
+  
+  while(priv->seek_table[i].time_scaled > time_scaled)
     i--;
   
   bgav_input_seek(ctx->input, priv->seek_table[i].position, SEEK_SET);
-  ctx->tt->current_track->audio_streams->time = priv->seek_table[i].time;
+  ctx->tt->current_track->audio_streams->time_scaled = priv->seek_table[i].time_scaled;
   }
 
 static void close_aac(bgav_demuxer_context_t * ctx)

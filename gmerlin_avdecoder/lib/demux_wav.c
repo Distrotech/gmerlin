@@ -243,10 +243,10 @@ static int next_packet_wav(bgav_demuxer_context_t * ctx)
   if(!s)
     return 1;
 
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
+  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
   
-  p->timestamp =
-    ((ctx->input->position - priv->data_start) * GAVL_TIME_SCALE) /
+  p->timestamp_scaled =
+    ((ctx->input->position - priv->data_start) * s->data.audio.format.samplerate) /
     (s->codec_bitrate / 8);
   
   bgav_packet_alloc(p, priv->packet_size);
@@ -281,7 +281,7 @@ static void seek_wav(bgav_demuxer_context_t * ctx, gavl_time_t time)
   file_position *= s->data.audio.block_align;
 
   /* Calculate the time before we add the start offset */
-  s->time = ((int64_t)file_position * GAVL_TIME_SCALE) /
+  s->time_scaled = ((int64_t)file_position * s->data.audio.format.samplerate) /
     (s->codec_bitrate / 8);
   
   file_position += priv->data_start;

@@ -53,7 +53,7 @@ int bg_avdec_set_video_stream(void * priv,
                               int stream,
                               bg_stream_action_t action);
 void bg_avdec_start(void * priv);
-void bg_avdec_seek(void * priv, gavl_time_t t);
+void bg_avdec_seek(void * priv, gavl_time_t * t);
 
 int bg_avdec_init(avdec_priv * avdec);
 

@@ -286,7 +286,7 @@ static int next_packet_flac(bgav_demuxer_context_t * ctx)
   
   /* We play dumb and read just 1024 bytes */
 
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
+  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
   
   bgav_packet_alloc(p, PACKET_BYTES);
   p->data_size = bgav_input_read_data(ctx->input, 
@@ -327,9 +327,7 @@ static void seek_flac(bgav_demuxer_context_t * ctx, gavl_time_t time)
                   priv->seektable.entries[i].offset + priv->data_start,
                   SEEK_SET);
   
-  ctx->tt->current_track->audio_streams[0].time =
-    gavl_samples_to_time(priv->streaminfo.samplerate,
-                         priv->seektable.entries[i].sample_number);
+  ctx->tt->current_track->audio_streams[0].time_scaled = priv->seektable.entries[i].sample_number;
   }
 
 static void close_flac(bgav_demuxer_context_t * ctx)

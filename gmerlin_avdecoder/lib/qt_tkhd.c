@@ -66,6 +66,7 @@ void bgav_qt_tkhd_dump(qt_tkhd_t * c)
   fprintf(stderr, "  Matrix:\n");
   for(i = 0; i < 3; i++)
     {
+    fprintf(stderr, "    ");
     for(j = 0; j < 3; j++)
       fprintf(stderr, "%f ", c->matrix[3*i+j]);
     fprintf(stderr, "\n");

@@ -34,20 +34,18 @@ typedef struct
 
 #define PADD(n) ((n&1)?(n+1):n)
 
-static gavl_time_t pos_2_time(bgav_demuxer_context_t * ctx, int64_t pos)
+static int64_t pos_2_time(bgav_demuxer_context_t * ctx, int64_t pos)
   {
   aiff_priv_t * priv;
   bgav_stream_t * s;
   s = &(ctx->tt->current_track->audio_streams[0]);
   priv = (aiff_priv_t*)(ctx->priv);
   
-  return ((pos - priv->data_start) * GAVL_TIME_SCALE) /
-    (s->data.audio.format.samplerate * 
-     s->data.audio.block_align);
+  return ((pos - priv->data_start)/s->data.audio.block_align);
   
   }
 
-static int64_t time_2_pos(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static int64_t time_2_pos(bgav_demuxer_context_t * ctx, int64_t time)
   {
   aiff_priv_t * priv;
   priv = (aiff_priv_t*)(ctx->priv);
@@ -55,10 +53,7 @@ static int64_t time_2_pos(bgav_demuxer_context_t * ctx, gavl_time_t time)
   bgav_stream_t * s;
   s = &(ctx->tt->current_track->audio_streams[0]);
   
-  return priv->data_start +
-    (time *
-     s->data.audio.format.samplerate *
-     s->data.audio.block_align)/ (GAVL_TIME_SCALE);
+  return priv->data_start + time * s->data.audio.block_align;
   }
 
 static int read_chunk_header(bgav_input_context_t * input,
@@ -196,7 +191,9 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
         bgav_input_skip(ctx->input, 4); /* Blocksize */
         priv->data_start = ctx->input->position;
         priv->data_size = ch.size - 8;
-        track->duration = pos_2_time(ctx, priv->data_size + priv->data_start);
+        track->duration =
+          (pos_2_time(ctx, priv->data_size + priv->data_start) * GAVL_TIME_SCALE)/
+          s->data.audio.format.samplerate;
         keep_going = 0;
         break;
       default:
@@ -223,13 +220,13 @@ static int next_packet_aiff(bgav_demuxer_context_t * ctx)
   priv = (aiff_priv_t *)ctx->priv;
 
   s = &(ctx->tt->current_track->audio_streams[0]);
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
+  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
   
   bytes_to_read = s->data.audio.format.samples_per_frame * s->data.audio.block_align;
   
   bgav_packet_alloc(p, bytes_to_read);
   
-  p->timestamp = pos_2_time(ctx, ctx->input->position);
+  p->timestamp_scaled = pos_2_time(ctx, ctx->input->position);
   
   bytes_read = bgav_input_read_data(ctx->input, p->data, bytes_to_read);
   p->data_size = bytes_read;
@@ -246,11 +243,16 @@ static void seek_aiff(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
   aiff_priv_t * priv;
   int64_t pos;
+  int64_t time_scaled;
+  time_scaled =
+    gavl_time_to_samples(ctx->tt->current_track->audio_streams[0].data.audio.format.samplerate,
+                         time);
+
   priv = (aiff_priv_t *)ctx->priv;
 
-  pos = time_2_pos(ctx, time);
+  pos = time_2_pos(ctx, time_scaled);
   bgav_input_seek(ctx->input, pos, SEEK_SET);
-  ctx->tt->current_track->audio_streams[0].time = time;
+  ctx->tt->current_track->audio_streams[0].time_scaled = time_scaled;
   }
 
 static void close_aiff(bgav_demuxer_context_t * ctx)

@@ -672,6 +672,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
           asf_as->descramble_h = 1;
           asf_as->descramble_w = 1;
           }
+        bgav_as->timescale = 1000;
         //        dump_audio_stream(asf_as);
         }
       
@@ -1063,10 +1064,10 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   if(asf->do_sync)
     {
     if((stream->type == BGAV_STREAM_VIDEO) &&
-       (stream->time == GAVL_TIME_UNDEFINED) && (!keyframe || (offs > 0)))
+       (stream->time_scaled < 0) && (!keyframe || (offs > 0)))
       return;
     else if((stream->type == BGAV_STREAM_AUDIO) &&
-            (stream->time == GAVL_TIME_UNDEFINED) && (offs > 0))
+            (stream->time_scaled < 0) && (offs > 0))
       return;
     }
   
@@ -1102,7 +1103,7 @@ static void add_packet(bgav_demuxer_context_t * ctx,
       }
     }
   
-  stream->packet = bgav_packet_buffer_get_packet_write(stream->packet_buffer);
+  stream->packet = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
   bgav_packet_alloc(stream->packet, len);
   
   if(asf->need_first_timestamp)
@@ -1116,7 +1117,6 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   else
     time = 0;
   
-  stream->packet->timestamp = ((gavl_time_t)time * GAVL_TIME_SCALE) / 1000;
   stream->packet->timestamp_scaled = time;
 
   //  fprintf(stderr, "timestamp: %lld, timestamp_scaled: %llx\n", 
@@ -1124,11 +1124,10 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   
   // stream->packet->timestamp -= ((gavl_time_t)(asf->hdr.preroll) * GAVL_TIME_SCALE) / 1000;
   
-  if(asf->do_sync && (stream->time == GAVL_TIME_UNDEFINED))
+  if(asf->do_sync && (stream->time_scaled < 0))
     {
     //    fprintf(stderr, "Sync %d %f\n", id, gavl_time_to_seconds(stream->packet->timestamp));
-    stream->time = stream->packet->timestamp;
-    stream->time_scaled = stream->packet->timestamp_scaled;
+    stream->time_scaled = time;
     }
   //  if(id == 2)
   //    fprintf(stderr, "Timestamps: %d %lld\n", time, stream->packet->timestamp);

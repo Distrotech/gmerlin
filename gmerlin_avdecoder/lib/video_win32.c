@@ -165,7 +165,7 @@ typedef struct
   /* dmo */
   
   DMO_VideoDecoder *dmo_dec;
-  
+
   } win32_priv_t;
 
 static void pack_bih(BITMAPINFOHEADER * dst, bgav_BITMAPINFOHEADER * src)
@@ -315,18 +315,18 @@ static int init_std(bgav_stream_t * s)
 
 static int decode_std(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
-  bgav_packet_t * p;
   uint32_t flags;
   HRESULT result;
   win32_priv_t * priv;
-
+  bgav_packet_t * p;
+    
   priv = (win32_priv_t*)(s->data.video.decoder->priv);
   priv->ldt_fs = Setup_LDT_Keeper();
-  
+
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!p)
     return 0;
-
+  
   flags = 0;
 
   if(!p->keyframe)
@@ -350,9 +350,9 @@ static int decode_std(bgav_stream_t * s, gavl_video_frame_t * frame)
   if(frame)
     {
     gavl_video_frame_copy(&s->data.video.format, frame, priv->frame);
-    frame->time = p->timestamp;
     }
   bgav_demuxer_done_packet_read(s->demuxer, p);
+  
   Restore_LDT_Keeper(priv->ldt_fs);
   return 1;
   }
@@ -442,12 +442,13 @@ static int init_ds(bgav_stream_t * s)
 
 static int decode_ds(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
-  bgav_packet_t * p;
   HRESULT result;
   win32_priv_t * priv;
+  bgav_packet_t * p;
+
   priv = (win32_priv_t*)(s->data.video.decoder->priv);
   priv->ldt_fs = Setup_LDT_Keeper();
-  
+
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!p)
     return 0;
@@ -457,8 +458,7 @@ static int decode_ds(bgav_stream_t * s, gavl_video_frame_t * frame)
                                            p->keyframe,
                                            priv->frame->planes[0]);
   //  fprintf(stderr, "done\n");
-
-
+  
   if(result)
     {
     fprintf(stderr, "Decode failed\n");
@@ -466,9 +466,11 @@ static int decode_ds(bgav_stream_t * s, gavl_video_frame_t * frame)
   if(frame)
     {
     gavl_video_frame_copy(&s->data.video.format, frame, priv->frame);
-    frame->time = p->timestamp;
     }
+  
   bgav_demuxer_done_packet_read(s->demuxer, p);
+  
+
   Restore_LDT_Keeper(priv->ldt_fs);
   
   return 1;
@@ -556,9 +558,10 @@ static int init_dmo(bgav_stream_t * s)
 
 static int decode_dmo(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
-  bgav_packet_t * p;
   HRESULT result;
   win32_priv_t * priv;
+  bgav_packet_t * p;
+
   priv = (win32_priv_t*)(s->data.video.decoder->priv);
   priv->ldt_fs = Setup_LDT_Keeper();
   
@@ -580,7 +583,6 @@ static int decode_dmo(bgav_stream_t * s, gavl_video_frame_t * frame)
   if(frame)
     {
     gavl_video_frame_copy(&s->data.video.format, frame, priv->frame);
-    frame->time = p->timestamp;
     }
   bgav_demuxer_done_packet_read(s->demuxer, p);
   Restore_LDT_Keeper(priv->ldt_fs);

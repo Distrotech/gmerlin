@@ -72,8 +72,8 @@ void bgav_qt_trak_free(qt_trak_t * c)
 void bgav_qt_trak_dump(qt_trak_t * c)
   {
   fprintf(stderr, "trak\n");
-  bgav_qt_mdia_dump(&c->mdia);
   bgav_qt_tkhd_dump(&c->tkhd);
+  bgav_qt_mdia_dump(&c->mdia);
   fprintf(stderr, "end of trak\n");
   }
 

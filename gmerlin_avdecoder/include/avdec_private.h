@@ -119,9 +119,9 @@ struct bgav_packet_s
   int data_size;
   int data_alloc;
   uint8_t * data;
-  int64_t timestamp;
   int64_t timestamp_scaled;
   int keyframe;
+  bgav_stream_t * stream; /* The stream this packet belongs to */
   struct bgav_packet_s * next;
   };
 
@@ -139,15 +139,15 @@ bgav_packet_buffer_t * bgav_packet_buffer_create();
 void bgav_packet_buffer_destroy(bgav_packet_buffer_t*);
 
 bgav_packet_t * bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t*);
+bgav_packet_t * bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b);
 
-bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t*);
+bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t*, bgav_stream_t * s);
 
 void bgav_packet_buffer_clear(bgav_packet_buffer_t*);
 
-int bgav_packet_buffer_get_timestamp(bgav_packet_buffer_t*,
-                                     gavl_time_t * ret);
-
 int bgav_packet_buffer_is_empty(bgav_packet_buffer_t * b);
+
+
 
 /* Palette support */
 
@@ -201,9 +201,13 @@ struct bgav_stream_s
   uint32_t fourcc;
 
   int64_t position; /* In samples/frames */
-  gavl_time_t time; /* Timestamp (used mainly for seeking) */
 
-  /* Support for custom timescales (optional) */
+  /*
+   *  Support for custom timescales
+   *  Default timescales are the samplerate for audio
+   *  streams and the timescale from the format for video streams.
+   *  Demuxers can, however, define other timescales.
+   */
 
   int64_t time_scaled;
   int timescale;
@@ -223,6 +227,8 @@ struct bgav_stream_s
   bgav_packet_t * packet;
   int             packet_seq;
 
+  /* Description of the stream */
+  
   char * description;
 
   /*
@@ -242,7 +248,7 @@ struct bgav_stream_s
       bgav_audio_decoder_context_t * decoder;
       int bits_per_sample; /* In some cases, this must be set from the
                               Container to distinguish between 8 and 16 bit
-                              PCM codecs. For compressed codecss like mp3, this
+                              PCM codecs. For compressed codecs like mp3, this
                               field is nonsense*/
       
       /* The following ones are mainly for Microsoft formats and codecs */
@@ -256,9 +262,17 @@ struct bgav_stream_s
             
       bgav_video_decoder_context_t * decoder;
       gavl_video_format_t format;
-
       int palette_size;
       bgav_palette_entry_t * palette;
+
+      /*
+       *  Codecs should update this field, even if they are
+       *  skipping frames. Units are timescale tics from the CODEC timescale
+       *  By using these, we can do more accurate seeks
+       */
+      
+      int64_t last_frame_time;
+      int     last_frame_duration;
       } video;
     } data;
   };
@@ -289,7 +303,7 @@ void bgav_stream_resync_decoder(bgav_stream_t * s);
  * Skip to a specific point which must be larger than the current stream time
  */
 
-void bgav_stream_skipto(bgav_stream_t * s, gavl_time_t time);
+int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time);
 
 typedef struct
   {
@@ -326,7 +340,7 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t*);
 
 /* Skip to a specific point */
 
-void bgav_track_skipto(bgav_track_t*, gavl_time_t time);
+int bgav_track_skipto(bgav_track_t*, gavl_time_t * time);
 
 /* Find stream among ALL streams, also switched off ones */
 
@@ -659,6 +673,7 @@ void
 bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
                               bgav_packet_t *);
 
+
 void
 bgav_demuxer_seek(bgav_demuxer_context_t * demuxer,
                   gavl_time_t time);
@@ -742,6 +757,10 @@ struct bgav_s
   void * buffer_callback_data;
   
   bgav_metadata_t metadata;
+
+  /* Set by the seek function */
+
+  int eof;
   };
 
 /* bgav.c */
@@ -901,8 +920,10 @@ int bgav_audio_decode(bgav_stream_t * stream, gavl_audio_frame_t * frame,
                       int num_samples);
 
 void bgav_audio_resync(bgav_stream_t * stream);
-void bgav_audio_skip(bgav_stream_t * stream, gavl_time_t delta_t);
 
+/* Skip to a point in the stream, return 0 on EOF */
+
+int bgav_audio_skipto(bgav_stream_t * stream, gavl_time_t * t);
 
 /* video.c */
 
@@ -912,7 +933,8 @@ int bgav_video_start(bgav_stream_t * s);
 void bgav_video_stop(bgav_stream_t * s);
 
 void bgav_video_resync(bgav_stream_t * stream);
-void bgav_video_skipto(bgav_stream_t * stream, gavl_time_t time);
+
+int bgav_video_skipto(bgav_stream_t * stream, gavl_time_t * time);
 
 
 /* codecs.c */

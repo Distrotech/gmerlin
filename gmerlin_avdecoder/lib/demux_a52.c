@@ -77,7 +77,7 @@ static int open_a52(bgav_demuxer_context_t * ctx,
   
   s = bgav_track_add_audio_stream(ctx->tt->current_track);
   s->container_bitrate = bitrate;
-  
+    
   /* We just set the fourcc, everything else will be set by the decoder */
 
   s->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
@@ -118,7 +118,7 @@ static int next_packet_a52(bgav_demuxer_context_t * ctx)
   
   s = ctx->tt->current_track->audio_streams;
   
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
+  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
   
   for(i = 0; i < SYNC_BYTES; i++)
     {
@@ -136,8 +136,6 @@ static int next_packet_a52(bgav_demuxer_context_t * ctx)
 
   p->timestamp_scaled = FRAME_SAMPLES * priv->frame_count;
 
-  p->timestamp = gavl_samples_to_time(priv->samplerate,
-                                      p->timestamp_scaled);
   p->keyframe = 1;
 
   priv->frame_count++;
@@ -161,18 +159,23 @@ static void seek_a52(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
   int64_t file_position;
   a52_priv_t * priv;
+  gavl_time_t t;
+
   priv = (a52_priv_t *)(ctx->priv);
   bgav_stream_t * s;
-
+  
+  
   s = ctx->tt->current_track->audio_streams;
     
   file_position = (time * (s->container_bitrate / 8)) /
     GAVL_TIME_SCALE;
 
   /* Calculate the time before we add the start offset */
-  s->time = ((int64_t)file_position * GAVL_TIME_SCALE) /
+  t = ((int64_t)file_position * GAVL_TIME_SCALE) /
     (s->container_bitrate / 8);
-  priv->frame_count = gavl_time_to_samples(priv->samplerate, s->time) / FRAME_SAMPLES;
+
+  s->time_scaled = gavl_time_to_samples(priv->samplerate, t);
+  priv->frame_count = s->time_scaled / FRAME_SAMPLES;
   
   file_position += priv->data_start;
   bgav_input_seek(ctx->input, file_position, SEEK_SET);

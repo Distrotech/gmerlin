@@ -64,13 +64,12 @@ void bgav_packet_buffer_clear(bgav_packet_buffer_t * b)
 
   do{
   tmp_packet->data_size = 0;
-  tmp_packet->timestamp = GAVL_TIME_UNDEFINED;
+  tmp_packet->timestamp_scaled = -1;
   tmp_packet->valid = 0;
   tmp_packet = tmp_packet->next;
   }while(tmp_packet != b->packets);
   b->read_packet = b->write_packet;
   }
-
 
 bgav_packet_t * bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t * b)
   {
@@ -82,7 +81,14 @@ bgav_packet_t * bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t * b)
   return ret;
   }
 
-bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t * b)
+bgav_packet_t * bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b)
+  {
+  if(!b->read_packet->valid)
+    return (bgav_packet_t*)0;
+  return b->read_packet;
+  }
+
+bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t * b, bgav_stream_t * s)
   {
   bgav_packet_t * cur;
   bgav_packet_t * ret;
@@ -98,19 +104,10 @@ bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t * b)
     }
   ret = b->write_packet;
   b->write_packet = b->write_packet->next;
-  ret->timestamp = GAVL_TIME_UNDEFINED;
   ret->timestamp_scaled = -1;
   //  fprintf(stderr, "Get packet write: %p\n", ret);  
+  ret->stream = s;
   return ret;
-  }
-
-int bgav_packet_buffer_get_timestamp(bgav_packet_buffer_t * b,
-                                     gavl_time_t * ret)
-  {
-  if(!b->read_packet->valid)
-    return 0;
-  *ret = b->read_packet->timestamp;
-  return 1;
   }
 
 int bgav_packet_buffer_is_empty(bgav_packet_buffer_t * b)

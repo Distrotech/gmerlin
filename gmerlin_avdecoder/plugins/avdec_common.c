@@ -206,7 +206,7 @@ void bg_avdec_start(void * priv)
   //  bgav_dump(avdec->dec);
   }
 
-void bg_avdec_seek(void * priv, gavl_time_t t)
+void bg_avdec_seek(void * priv, gavl_time_t * t)
   {
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);

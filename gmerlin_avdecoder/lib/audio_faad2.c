@@ -48,7 +48,7 @@ static int get_data(bgav_stream_t * s)
   
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
 
-  fprintf(stderr, "Get data %d\n", priv->data_size);
+  //  fprintf(stderr, "Get data %d\n", priv->data_size);
   
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!p)
@@ -115,6 +115,7 @@ static int init_faad2(bgav_stream_t * s)
      so we correct it here */
 
   s->data.audio.format.samplerate = samplerate;
+    
   s->data.audio.format.num_channels = channels;
   s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
   //  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
@@ -134,7 +135,7 @@ static int init_faad2(bgav_stream_t * s)
   }
 
 
-static int frame_number = 0;
+// static int frame_number = 0;
 
 static int decode_frame(bgav_stream_t * s)
   {
@@ -168,7 +169,7 @@ static int decode_frame(bgav_stream_t * s)
 #endif
   while(1)
     {
-    fprintf(stderr, "faacDecDecode %d, buf: %d: ", frame_number, priv->data_size);
+    //    fprintf(stderr, "faacDecDecode %d, buf: %d: ", frame_number, priv->data_size);
     //    bgav_hexdump(priv->data_ptr, 16, 16);
     priv->frame->samples.f = faacDecDecode(priv->dec,
                                            &frame_info,
@@ -199,12 +200,11 @@ static int decode_frame(bgav_stream_t * s)
     else
       break;
     }
-  frame_number++;
   priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
   priv->last_block_size = priv->frame->valid_samples;
   
-  fprintf(stderr, "Decoded %d samples, used %d bytes\n", priv->last_block_size,
-          frame_info.bytesconsumed);
+  //  fprintf(stderr, "Decoded %d samples, used %ud bytes\n", priv->last_block_size,
+  //          frame_info.bytesconsumed);
   
   return 1;
   }

@@ -868,7 +868,7 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
     return 0;
     }
   s = ctx->tt->current_track->audio_streams;
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
+  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
   bgav_packet_alloc(p, priv->header.frame_bytes);
 
   if(bgav_input_read_data(ctx->input, p->data, priv->header.frame_bytes) <
@@ -880,10 +880,8 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
   p->data_size = priv->header.frame_bytes;
   
   p->keyframe  = 1;
-  p->timestamp =
-    gavl_samples_to_time(s->data.audio.format.samplerate,
-                         priv->frames *
-                         (int64_t)priv->header.samples_per_frame);
+  p->timestamp_scaled = priv->frames * (int64_t)priv->header.samples_per_frame;
+
   bgav_packet_done_write(p);
 
   //  fprintf(stderr, "Frame: %lld\n", priv->frames);
@@ -913,7 +911,10 @@ static void seek_mpegaudio(bgav_demuxer_context_t * ctx, gavl_time_t time)
     {
     pos = ((priv->data_end - priv->data_start) * time) / ctx->tt->current_track->duration;
     }
-  s->time = time;
+
+  s->time_scaled =
+    gavl_time_to_samples(ctx->tt->current_track->audio_streams[0].data.audio.format.samplerate, time);
+  
   pos += priv->data_start;
   //  fprintf(stderr, "Seeking: %lld %lld %lld %f %f %f\n", pos, priv->data_start, priv->data_end,
   //          (float)time / (float)(ctx->duration), gavl_time_to_seconds(time),

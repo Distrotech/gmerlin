@@ -101,7 +101,6 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
       {
       s->index_position = i;
       s->time_scaled = idx->entries[i].time;
-      s->time = (s->time_scaled * GAVL_TIME_SCALE)/s->timescale;
       break;
       }
     i--;

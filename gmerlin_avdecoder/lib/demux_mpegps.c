@@ -297,6 +297,7 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
           if(!stream && priv->find_streams)
             {
             stream = bgav_track_add_audio_stream(ctx->tt->current_track);
+            stream->timescale = 90000;
             stream->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
             stream->stream_id = priv->pes_header.stream_id;
             //            fprintf(stderr, "Found AC3 audio stream\n");
@@ -317,6 +318,7 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
           if(!stream && priv->find_streams)
             {
             stream = bgav_track_add_audio_stream(ctx->tt->current_track);
+            stream->timescale = 90000;
             stream->fourcc = BGAV_MK_FOURCC('l', 'p', 'c', 'm');
             stream->stream_id = priv->pes_header.stream_id;
             //            fprintf(stderr, "Found LPCM stream\n");
@@ -368,6 +370,7 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
           {
           stream = bgav_track_add_audio_stream(ctx->tt->current_track);
           stream->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
+          stream->timescale = 90000;
           stream->stream_id = priv->pes_header.stream_id;
           //          fprintf(stderr, "Found audio stream\n");
           }
@@ -386,6 +389,7 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
           stream = bgav_track_add_video_stream(ctx->tt->current_track);
           stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
           stream->stream_id = priv->pes_header.stream_id;
+          stream->timescale = 90000;
           //          fprintf(stderr, "Found video stream\n");
           }
         }
@@ -393,13 +397,13 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
       if(stream)
         {
         if((priv->do_sync) &&
-           (stream->time == GAVL_TIME_UNDEFINED) &&
+           (stream->time_scaled < 0) &&
            (priv->pes_header.pts < 0))
           {
           bgav_input_skip(ctx->input, priv->pes_header.payload_size);
           return 1;
           }
-        p = bgav_packet_buffer_get_packet_write(stream->packet_buffer);
+        p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
         
         bgav_packet_alloc(p, priv->pes_header.payload_size);
         if(bgav_input_read_data(ctx->input, p->data, 
@@ -441,17 +445,16 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
           
           if((priv->pes_header.pts > priv->start_pts) && (priv->start_pts >= 0))
             {
-            p->timestamp =
-              ((priv->pes_header.pts - priv->start_pts) * GAVL_TIME_SCALE) / 90000;
+            p->timestamp_scaled = (priv->pes_header.pts - priv->start_pts);
             }
           else
             {
-            p->timestamp = 0;
+            p->timestamp_scaled = 0;
             }
           
 
-          if(priv->do_sync && (stream->time == GAVL_TIME_UNDEFINED))
-            stream->time = p->timestamp;
+          if(priv->do_sync && (stream->time_scaled < 0))
+            stream->time_scaled = p->timestamp_scaled;
           
           //          fprintf(stderr, "Stream: %04x, pts: %lld\n",
           //                  stream->stream_id, priv->pes_header.pts - priv->start_pts);
@@ -559,8 +562,8 @@ static int do_sync(bgav_demuxer_context_t * ctx)
   priv->do_sync = 1;
   while(!bgav_track_has_sync(ctx->tt->current_track))
     {
-    fprintf(stderr, "next_packet_mpegps %lld %lld\n",
-            ctx->input->position, ctx->input->total_bytes);
+    //    fprintf(stderr, "next_packet_mpegps %lld %lld\n",
+    //            ctx->input->position, ctx->input->total_bytes);
     if(!next_packet_mpegps(ctx))
       {
       priv->do_sync = 0;

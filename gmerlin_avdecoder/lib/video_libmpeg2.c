@@ -56,14 +56,15 @@ static int get_data(bgav_stream_t*s)
   
   mpeg2_buffer(priv->dec, priv->p->data, priv->p->data + priv->p->data_size);
   
-  if(priv->p->timestamp >= 0)
+  if(priv->p->timestamp_scaled >= 0)
     {
-    //    fprintf(stderr, "Got pts %f\n", gavl_time_to_seconds(priv->p->timestamp));
+    //    fprintf(stderr, "Got pts %lld\n", priv->p->timestamp_scaled);
     mpeg2_tag_picture(priv->dec,
-                      (priv->p->timestamp) >> 32,
-                      priv->p->timestamp & 0xffffffff);
+                      (priv->p->timestamp_scaled) >> 32,
+                      priv->p->timestamp_scaled & 0xffffffff);
     if(priv->do_resync)
-      priv->picture_timestamp = priv->p->timestamp;
+      priv->picture_timestamp =
+        (priv->p->timestamp_scaled * s->data.video.format.timescale) / s->timescale;
     }
   
   return 1;
@@ -93,37 +94,43 @@ static void get_format(gavl_video_format_t * ret,
   switch(sequence->frame_period)
     {
     /* Original timscale is 27.000.000, a bit too much for us */
-    case 1126125:
-      ret->timescale = 24000;
-      ret->frame_duration = 1001;
+
+    /* We choose duration/scale so that the furation is always even.
+       Since the MPEG-2 repeat stuff happens at half-frametime level,
+       we nevertheless get 100% precise timestamps
+    */
+    
+    case 1126125: /* 24000 / 1001 */
+      ret->timescale = 48000;
+      ret->frame_duration = 2002;
       break;
-    case 1125000:
-      ret->timescale = 24;
-      ret->frame_duration = 1;
+    case 1125000: /* 24 / 1 */
+      ret->timescale = 48;
+      ret->frame_duration = 2;
       break;
-    case 1080000:
-      ret->timescale = 25;
-      ret->frame_duration = 1;
-      break;
-    case 900900:
-      ret->timescale = 30000;
-      ret->frame_duration = 1001;
-      break;
-    case 900000:
-      ret->timescale = 30;
-      ret->frame_duration = 1;
-      break;
-    case 540000:
+    case 1080000: /* 25 / 1 */
       ret->timescale = 50;
-      ret->frame_duration = 1;
+      ret->frame_duration = 2;
       break;
-    case 450450:
+    case 900900: /* 30000 / 1001 */
       ret->timescale = 60000;
-      ret->frame_duration = 1001;
+      ret->frame_duration = 2002;
       break;
-    case 450000:
+    case 900000: /* 30 / 1 */
       ret->timescale = 60;
-      ret->frame_duration = 1;
+      ret->frame_duration = 2;
+      break;
+    case 540000: /* 50 / 1 */
+      ret->timescale = 100;
+      ret->frame_duration = 2;
+      break;
+    case 450450: /* 60000 / 1001 */
+      ret->timescale = 120000;
+      ret->frame_duration = 2002;
+      break;
+    case 450000: /* 60 / 1 */
+      ret->timescale = 120;
+      ret->frame_duration = 2;
       break;
     }
 
@@ -199,6 +206,7 @@ static int init_mpeg2(bgav_stream_t*s)
 
 int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   {
+  int64_t tmp;
   mpeg2_priv_t * priv;
   mpeg2_state_t state;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
@@ -213,52 +221,54 @@ int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     {
     if(!parse(s, &state))
       return 0;
-    if((state == STATE_END) || (state == STATE_SLICE) ||
-       (state == STATE_INVALID_END))
+    if(((state == STATE_END) || (state == STATE_SLICE) ||
+        (state == STATE_INVALID_END)) &&
+       priv->info->display_fbuf)
       break;
     }
   
-  /* Copy frame */
 
-  if(priv->info->display_fbuf)
+  /* Calculate timestamp */
+    
+  if(priv->info->display_picture->flags & PIC_FLAG_TAGS)
     {
-    /* Calculate timestamp */
-    
-    if(priv->info->display_picture->flags & PIC_FLAG_TAGS)
-      {
-      priv->picture_timestamp = priv->info->display_picture->tag;
-      priv->picture_timestamp <<= 32;
-      priv->picture_timestamp |= priv->info->display_picture->tag2;
-      }
-    else
-      {
-      priv->picture_timestamp += priv->picture_duration;
-      }
-    /* Get this pictures duration */
-
+    tmp = priv->info->display_picture->tag;
+    tmp <<= 32;
+    tmp |= priv->info->display_picture->tag2;
+    priv->picture_timestamp = (tmp * s->data.video.format.timescale) / s->timescale;
+    //    fprintf(stderr, "Got time from pts: %lld\n", priv->picture_timestamp);
+    }
+  else
+    {
+    priv->picture_timestamp += priv->picture_duration;
+    //    fprintf(stderr, "Calculated time: %lld\n", priv->picture_timestamp);
+    }
+  /* Get this pictures duration */
+  
+  priv->picture_duration = s->data.video.format.frame_duration;
+  
+  if((priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
+     (priv->info->display_picture->nb_fields > 2))
+    {
     priv->picture_duration =
-      (GAVL_TIME_SCALE * s->data.video.format.frame_duration) /
-      s->data.video.format.timescale;
-    
-    if((priv->info->display_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
-       (priv->info->display_picture->nb_fields > 2))
-      {
-      priv->picture_duration =
-        (priv->picture_duration * priv->info->current_picture->nb_fields) / 2;
-      }
-    
-    if(f)
-      {
-      priv->frame->planes[0] = priv->info->display_fbuf->buf[0];
-      priv->frame->planes[1] = priv->info->display_fbuf->buf[1];
-      priv->frame->planes[2] = priv->info->display_fbuf->buf[2];
-      gavl_video_frame_copy(&(s->data.video.format), f, priv->frame);
-      }
-    s->time = priv->picture_timestamp;
-    //    fprintf(stderr, "Timestamp: %f\n",
-    //            gavl_time_to_seconds(s->time));
+      (priv->picture_duration * priv->info->current_picture->nb_fields) / 2;
     }
   
+  if(f)
+    {
+    priv->frame->planes[0] = priv->info->display_fbuf->buf[0];
+    priv->frame->planes[1] = priv->info->display_fbuf->buf[1];
+    priv->frame->planes[2] = priv->info->display_fbuf->buf[2];
+    gavl_video_frame_copy(&(s->data.video.format), f, priv->frame);
+    }
+  s->time_scaled = priv->picture_timestamp;
+    
+  s->data.video.last_frame_time     = priv->picture_timestamp;
+  s->data.video.last_frame_duration = priv->picture_duration;
+  
+  //  fprintf(stderr, "Timestamp: %lld, duration: %d\n",
+  //          s->data.video.last_frame_time,
+  //          s->data.video.last_frame_duration);
   return 1;
   }
 
