@@ -65,3 +65,4 @@ void input_remove_plugin(input_t * c, const vis_plugin_info_t * info);
 
 int input_iteration(void * data);
 
+void input_cleanup();

@@ -146,7 +146,10 @@ int main(int argc, char ** argv)
   //  gtk_timeout_add(10, input_iteration, the_input);
   gtk_idle_add(input_iteration, the_input);
   gtk_main();
-
+  
   main_window_destroy(main_window);
+
+  input_cleanup();
+
   return 0;
   }
