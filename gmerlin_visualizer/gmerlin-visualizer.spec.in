@@ -23,7 +23,7 @@ BuildRoot:      /tmp/gmerlin-build
 Run xmms visualization plugins without having to run xmms
 
 %prep
-%setup -n gmerlin-viszalizer-%{version}
+%setup -n gmerlin-visualizer-%{version}
 
 %build
 ./cvs_clean.sh
