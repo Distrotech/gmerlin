@@ -37,7 +37,7 @@
 extern int bg_pwc_probe(int fd);
 
 extern void * bg_pwc_get_parameters(int fd,
-                                  bg_parameter_info_t ** parameters);
+                                    bg_parameter_info_t ** parameters);
 
 extern void bg_pwc_destroy(void*);
 
@@ -199,7 +199,7 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
 
   /* Open device */
 
-  fprintf(stderr, "Opening %s\n", v4l->device);  
+  //  fprintf(stderr, "Opening %s\n", v4l->device);
   if((v4l->fd = open(v4l->device, O_RDWR, 0)) < 0)
     {
     v4l->error_message = 
@@ -211,8 +211,8 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
 
   v4l->have_pwc = bg_pwc_probe(v4l->fd);
 
-  if(v4l->have_pwc)
-    fprintf(stderr, "Phillips webcam detected\n");
+  //  if(v4l->have_pwc)
+  //    fprintf(stderr, "Phillips webcam detected\n");
   
   /* Set Picture */
   
@@ -266,7 +266,7 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
 
   if(ioctl(v4l->fd, VIDIOCSWIN, &(v4l->win)))
     {
-    v4l->error_message = bg_sprintf("VIDIOCSWIN failed: %s",
+    v4l->error_message = bg_sprintf("VIDIOCSWIN failed: %s (invalaid picture dimensions?)",
                                     strerror(errno));
     goto fail;
     }
@@ -322,6 +322,11 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
   
   return 1;
   fail:
+  if(v4l->fd >= 0)
+    {
+    close(v4l->fd);
+    v4l->fd = -1;
+    }
   return 0;
   
   }
@@ -331,12 +336,7 @@ static void close_v4l(void * priv)
   v4l_t * v4l;
   v4l = (v4l_t*)priv;
 
-  if(v4l->pwc_priv)
-    {
-    bg_pwc_destroy(v4l->pwc_priv);
-    v4l->pwc_priv = (void*)0;
-    }
-  if(v4l->fd != -1)
+  if(v4l->fd >= 0)
     {
     close(v4l->fd);
     if(v4l->mmap_buf)
@@ -347,7 +347,6 @@ static void close_v4l(void * priv)
     free(v4l->error_message);
     v4l->error_message = (char*)0;
     }
-  
   v4l->fd = -1;
   }
 
@@ -404,7 +403,13 @@ static void  destroy_v4l(void * priv)
   gavl_video_frame_null(v4l->frame);
   gavl_video_frame_destroy(v4l->frame);
   close_v4l(priv);
-  free(v4l);
+
+  if(v4l->pwc_priv)
+    {
+    bg_pwc_destroy(v4l->pwc_priv);
+    v4l->pwc_priv = (void*)0;
+    }
+    free(v4l);
   
   }
 

@@ -4,7 +4,7 @@ AC_CONFIG_SRCDIR([include/player.h])
 
 AM_CONFIG_HEADER(include/config.h)
 
-AM_INIT_AUTOMAKE(gmerlin, 0.3.1pre1)
+AM_INIT_AUTOMAKE(gmerlin, 0.3.1)
 
 AC_DISABLE_STATIC
 dnl AM_DISABLE_STATIC
@@ -21,7 +21,7 @@ XML2_REQUIRED="2.4.0"
 PKG_CHECK_MODULES(XML2, libxml-2.0 >= $XML2_REQUIRED, , AC_MSG_ERROR("libxml2 not found"))
 AC_SUBST(XML2_REQUIRED)
 
-GAVL_REQUIRED=0.2.1pre1
+GAVL_REQUIRED="0.2.1"
 PKG_CHECK_MODULES(GAVL, gavl >= $GAVL_REQUIRED, , AC_MSG_ERROR("gavl not found"))
 AC_SUBST(GAVL_REQUIRED)
 
@@ -126,7 +126,7 @@ dnl
 dnl Libquicktime
 dnl
 
-LQT_REQUIRED="0.9.4pre3"
+LQT_REQUIRED="0.9.4"
 have_lqt=false
 AC_ARG_ENABLE(lqt,
               AC_HELP_STRING(--disable-lqt, [Disable Libquicktime support (default: autodetect)]),

@@ -719,9 +719,11 @@ static void create_shuffle_list(bg_media_tree_t * tree, bg_shuffle_mode_t shuffl
       tmp = tmp->next;
       }
     }
-  else
+  else if(tree->com.current_album)
     list = get_shuffle_tracks(tree->com.current_album, list, &tmp_entry, 0);
-  
+  else
+    return;
+    
   /* 2. Count the entries */
 
   num = 0;
@@ -794,7 +796,8 @@ static void check_shuffle_list(bg_media_tree_t * tree, bg_shuffle_mode_t shuffle
 
 /* Set the next and previous track */
 
-int bg_media_tree_next(bg_media_tree_t * tree, int wrap, bg_shuffle_mode_t shuffle_mode)
+int bg_media_tree_next(bg_media_tree_t * tree, int wrap,
+                       bg_shuffle_mode_t shuffle_mode)
   {
   if(shuffle_mode == BG_SHUFFLE_MODE_OFF)
     {
@@ -806,6 +809,9 @@ int bg_media_tree_next(bg_media_tree_t * tree, int wrap, bg_shuffle_mode_t shuff
   else
     {
     check_shuffle_list(tree, shuffle_mode);
+
+    if(!tree->com.shuffle_list)
+      return 0;
     
     if(!tree->shuffle_current->next)
       {
@@ -956,7 +962,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
 #endif
   if(!t->com.current_entry || !t->com.current_album)
     {
-    error_message = bg_sprintf("Select a track first");
+    error_message = bg_sprintf("Doubleclick on a track first");
     goto fail;
     }
   if(t->com.current_album->type == BG_ALBUM_TYPE_REMOVABLE)
