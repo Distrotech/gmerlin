@@ -118,6 +118,14 @@ static void set_parameter_tga(void * p, char * name,
     tga->rle = val->val_i;
   }
 
+
+static const char * get_filename_tga(void * p)
+  {
+  tga_t * priv;
+  priv = (tga_t *)p;
+  return priv->filename;
+  }
+
 bg_image_writer_plugin_t the_plugin =
   {
     common:
@@ -134,5 +142,6 @@ bg_image_writer_plugin_t the_plugin =
       set_parameter:  set_parameter_tga
     },
     write_header: write_header_tga,
+    get_filename: get_filename_tga,
     write_image:  write_image_tga,
   };

@@ -536,7 +536,7 @@ typedef struct bg_image_writer_plugin_s
 
   /* Return the filename */
 
-  const char (*get_filename)(void * priv);
+  const char * (*get_filename)(void * priv);
   
   /*
    *  Read the image, cleanup after so read_header can be calles

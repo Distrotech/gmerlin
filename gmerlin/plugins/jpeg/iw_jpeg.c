@@ -279,6 +279,14 @@ static void set_parameter_jpeg(void * p, char * name,
     }
   }
 
+static const char * get_filename_jpeg(void * p)
+  {
+  jpeg_t * priv;
+  priv = (jpeg_t *)p;
+  return priv->filename;
+  }
+
+
 bg_image_writer_plugin_t the_plugin =
   {
     common:
@@ -295,5 +303,6 @@ bg_image_writer_plugin_t the_plugin =
       set_parameter:  set_parameter_jpeg
     },
     write_header: write_header_jpeg,
+    get_filename: get_filename_jpeg,
     write_image:  write_image_jpeg,
   };

@@ -58,8 +58,9 @@ typedef struct bg_transcoder_track_s
 
   bg_transcoder_audio_stream_t * audio_streams;
   bg_transcoder_video_stream_t * video_streams;
+  
   bg_metadata_t metadata;
-
+    
   /* For chaining */
   struct bg_transcoder_track_s * next;
 

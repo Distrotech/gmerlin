@@ -153,6 +153,13 @@ static void set_parameter_png(void * p, char * name,
     png->compression_level = val->val_i;
   }
 
+static const char * get_filename_png(void * p)
+  {
+  png_t * priv;
+  priv = (png_t *)p;
+  return priv->filename;
+  }
+
 bg_image_writer_plugin_t the_plugin =
   {
     common:
@@ -169,5 +176,6 @@ bg_image_writer_plugin_t the_plugin =
       set_parameter:  set_parameter_png
     },
     write_header: write_header_png,
+    get_filename: get_filename_png,
     write_image:  write_image_png,
   };

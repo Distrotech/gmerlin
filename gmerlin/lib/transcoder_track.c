@@ -299,11 +299,35 @@ bg_transcoder_track_create_from_albumentries(const char * xml_string,
   return ret;
   }
 
-
-
 void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
   {
+  int i;
   
+  /* Shredder everything */
+
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    if(t->audio_streams[i].format_parameters)
+      bg_parameter_info_destroy_array(t->audio_streams[i].format_parameters);
+
+    if(t->audio_streams[i].encoder_parameters)
+      bg_parameter_info_destroy_array(t->audio_streams[i].encoder_parameters);
+    }
+  
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    if(t->video_streams[i].format_parameters)
+      bg_parameter_info_destroy_array(t->video_streams[i].format_parameters);
+
+    if(t->video_streams[i].encoder_parameters)
+      bg_parameter_info_destroy_array(t->video_streams[i].encoder_parameters);
+    }
+  if(t->name)
+    free(t->name);
+  if(t->plugin)
+    free(t->plugin);
+  bg_metadata_free(&(t->metadata));
+  free(t);
   }
 
 static bg_parameter_info_t parameters_general[] =
@@ -340,6 +364,7 @@ static bg_parameter_info_t parameters_video[] =
       val_max:     { val_i: 100000 },
       val_default: { val_i: 1 }
     },
+    { /* End of parameters */ }
   };
 
 static bg_parameter_info_t parameters_audio[] =
@@ -398,6 +423,7 @@ static bg_parameter_info_t parameters_audio[] =
                               "Mix",
                               (char*)0 },
     },
+    { /* End of parameters */ }
   };
 
 bg_parameter_info_t *

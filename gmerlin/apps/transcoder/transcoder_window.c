@@ -60,8 +60,6 @@ void transcoder_window_set_video_encoder(transcoder_window_t * t,
   track_list_set_video_encoder(t->tracklist, h);
   }
 
-
-
 static void
 transcoder_window_preferences(transcoder_window_t * win);
 
@@ -146,6 +144,7 @@ transcoder_window_t * transcoder_window_create()
   /* Create window */
   
   ret->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_position(GTK_WINDOW(ret->win), GTK_WIN_POS_CENTER);
   gtk_window_set_title(GTK_WINDOW(ret->win),
                        "Gmerlin transcoder "VERSION);
   g_signal_connect(G_OBJECT(ret->win), "delete_event",

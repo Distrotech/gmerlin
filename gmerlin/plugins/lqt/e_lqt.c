@@ -45,6 +45,7 @@ static bg_parameter_info_t video_parameters[] =
 
 typedef struct
   {
+  char * filename;
   quicktime_t * file;
   //  bg_parameter_info_t * parameters;
 
@@ -66,9 +67,12 @@ static void * create_lqt()
 static int open_lqt(void * data, const char * filename_base,
                     bg_metadata_t * metadata)
   {
-  //  e_lqt_t * e = (e_lqt_t*)data;
+  e_lqt_t * e = (e_lqt_t*)data;
+  e->filename = bg_sprintf("%s.mov", filename_base);
+  
   return 0;
   }
+
 #if 0
 static void add_audio_stream_lqt(void * data, bg_audio_info_t * info)
   {
@@ -80,6 +84,7 @@ static void add_video_stream_lqt(void * data, bg_video_info_t* info)
   //  e_lqt_t * e = (e_lqt_t*)data;
   }
 #endif
+
 static void write_audio_frame_lqt(void * data, gavl_audio_frame_t* frame,
                                   int stream)
   {
@@ -95,8 +100,17 @@ static void write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
 
 static void close_lqt(void * data, int do_delete)
   {
-  //  e_lqt_t * e = (e_lqt_t*)data;
+  e_lqt_t * e = (e_lqt_t*)data;
+
+  if(!e->file)
+    return;
+  quicktime_close(e->file);
+  e->file = (quicktime_t*)0;
   
+  if(do_delete)
+    remove(e->filename);
+  if(e->filename)
+    free(e->filename);
   }
 
 static void destroy_lqt(void * data)
@@ -104,7 +118,7 @@ static void destroy_lqt(void * data)
   e_lqt_t * e = (e_lqt_t*)data;
 
   close_lqt(data, 1);
-    
+  
   if(e->audio_parameters)
     bg_parameter_info_destroy_array(e->audio_parameters);
   if(e->video_parameters)
@@ -141,7 +155,7 @@ static bg_parameter_info_t * get_video_parameters_lqt(void * data)
   {
   e_lqt_t * e = (e_lqt_t*)data;
   
-  if(!e->audio_parameters)
+  if(!e->video_parameters)
     create_parameters(e);
   
   return e->video_parameters;

@@ -162,7 +162,7 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
         while(src->multi_names[num_options])
           num_options++;
         
-        dst->multi_parameters = calloc(1, sizeof(*(src->multi_parameters)));
+        dst->multi_parameters = calloc(num_options, sizeof(*(src->multi_parameters)));
         i = 0;
         
         while(src->multi_names[i])
