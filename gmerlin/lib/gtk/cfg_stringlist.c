@@ -122,21 +122,23 @@ static void change_callback(GtkWidget * wid, gpointer data)
   priv = (stringlist_t *)w->priv;
   
 #ifndef GTK_2_4
-  str = gtk_entry_get_text(GTK_ENTRY(w));
-
+  str = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry));
+  
   priv->selected = 0;
 
-  if(w->info->multi_labels)
+  if(!str)
     {
-    while(strcmp(w->info->multi_labels[priv->selected], str))
-      priv->selected++;
+    if(w->info->multi_labels)
+      {
+      while(strcmp(w->info->multi_labels[priv->selected], str))
+        priv->selected++;
+      }
+    else
+      {
+      while(strcmp(w->info->multi_names[priv->selected], str))
+        priv->selected++;
+      }
     }
-  else
-    {
-    while(strcmp(w->info->multi_names[priv->selected], str))
-      priv->selected++;
-    }
-  
 #else
   priv->selected = gtk_combo_box_get_active(GTK_COMBO_BOX(priv->combo));
 #endif
