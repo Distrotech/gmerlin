@@ -299,7 +299,8 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         gtk_widget_show(w->menu.album_menu.remove_item);
         gtk_widget_show(w->menu.album_menu.new_item);
         gtk_widget_show(w->menu.album_menu.new_from_directory_item);
-            
+        gtk_widget_show(w->menu.album_menu.rename_item);
+        
         if(album_is_open(w, w->current_album))
           {
           gtk_widget_hide(w->menu.album_menu.open_item);

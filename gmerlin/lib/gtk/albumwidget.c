@@ -1204,8 +1204,6 @@ static void album_changed_callback(bg_album_t * a, void * data)
   {
   bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
   bg_gtk_album_widget_update(w);
-
-  fprintf(stderr, "Change callback\n");
   
   /* This is also called during loading of huge amounts of
      urls, so we update the GUI a bit */
