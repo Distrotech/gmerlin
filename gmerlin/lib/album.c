@@ -93,7 +93,7 @@ void bg_album_update_entry(bg_album_t * album,
     
     if(album->com->use_metadata && album->com->metadata_format)
       {
-      entry->name = bg_create_track_name(track_info,
+      entry->name = bg_create_track_name(&(track_info->metadata),
                                          album->com->metadata_format);
       if(entry->name)
         name_set = 1;

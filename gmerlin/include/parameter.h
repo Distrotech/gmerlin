@@ -138,5 +138,9 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
                              bg_parameter_info_t * info);
 
 
+bg_parameter_info_t *
+bg_parameter_info_merge_arrays(bg_parameter_info_t ** srcs);
+  
+
 #endif /* __BG_PARAMETER_H_ */
 

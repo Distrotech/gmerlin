@@ -23,7 +23,9 @@
 int bg_cdaudio_open(const char * device)
   {
   int ret;
+  fprintf(stderr, "Opening CD device...");
   ret = open(device, O_RDONLY | O_NONBLOCK);
+  fprintf(stderr, "done\n");
   return ret;
   }
 

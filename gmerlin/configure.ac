@@ -152,6 +152,64 @@ dnl AC_PATH_LQT($LQT_REQUIRED,  have_lqt=true, have_lqt=false)
 AM_CONDITIONAL(HAVE_LQT, test x$have_lqt = xtrue)
 AC_SUBST(LQT_REQUIRED)
 
+dnl
+dnl cdparanoia
+dnl
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+LIBS="-lcdda_paranoia -lcdda_interface -lm"
+CFLAGS=""
+
+CDPARANOIA_REQUIRED="alpha9.8"
+
+AH_TEMPLATE([HAVE_CDPARANOIA], [Enable cdparanoia])
+AC_MSG_CHECKING(for cdparanoia)
+have_cdparanoia="false"
+
+  AC_TRY_RUN([
+    #include <cdda/cdda_interface.h>
+    #include <cdda/cdda_paranoia.h>
+    #include <stdlib.h>
+    main()
+    {
+    int i = 0;
+    cdrom_drive d;
+    cdrom_paranoia * p;
+    /* We ensure that the function is there but never call it */
+    if(i)
+      {
+      p = paranoia_init(&d);
+      paranoia_read_limited(p,NULL,10);
+      }
+    return 0;
+    }
+  ],
+  [
+    # program could be run
+    have_cdparanoia="true"
+    AC_MSG_RESULT(yes)
+    CDPARANOIA_CFLAGS=$CFLAGS
+    CDPARANOIA_LIBS=$LIBS
+
+  ],
+    # program could not be run
+    AC_MSG_RESULT(no)
+)
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+AC_SUBST(CDPARANOIA_CFLAGS)
+AC_SUBST(CDPARANOIA_LIBS)
+AC_SUBST(CDPARANOIA_REQUIRED)
+
+AM_CONDITIONAL(HAVE_CDPARANOIA, test x$have_cdparanoia = xtrue)
+
+if test x$have_cdparanoia = xtrue; then
+AC_DEFINE(HAVE_CDPARANOIA)
+fi
 
 dnl
 dnl CDrom support
@@ -544,6 +602,12 @@ case $have_debug in
   false) CFLAGS="$CFLAGS $OPT_CFLAGS";;
 esac
 
+dnl
+dnl libxml is necessary for all sources
+dnl
+
+CFLAGS="$CFLAGS $XML2_CFLAGS"
+
 LIBS="$GAVL_LIBS"
 
 dnl Output variables
@@ -707,6 +771,13 @@ fi
 echo -n "Musicbrainz:         "
 if test "x$have_musicbrainz" = "xtrue"; then
 echo "Yes (CFLAGS=$MUSICBRAINZ_CFLAGS LIBS=$MUSICBRAINZ_LIBS)"
+else
+echo "Missing"
+fi
+
+echo -n "CDparanoia:          "
+if test "x$have_cdparanoia" = "xtrue"; then
+echo "Yes (CFLAGS=$CDPARANOIA_CFLAGS LIBS=$CDPARANOIA_LIBS)"
 else
 echo "Missing"
 fi

@@ -1610,6 +1610,9 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
   
   /* Close and destroy the input plugin */
 
+  if(t->in_plugin->stop)
+    t->in_plugin->stop(t->in_handle->priv);
+
   t->in_plugin->close(t->in_handle->priv);
   bg_plugin_unref(t->in_handle);
 

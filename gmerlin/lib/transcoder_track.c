@@ -75,13 +75,15 @@ static void create_sections(bg_transcoder_track_t * t,
     if(bg_cfg_section_has_subsection(t->video_encoder_section, "$audio"))
       {
       bg_cfg_section_delete_subsection(t->video_encoder_section,
-                                       bg_cfg_section_find_subsection(t->video_encoder_section, "$audio"));
+                                       bg_cfg_section_find_subsection(t->video_encoder_section,
+                                                                      "$audio"));
       }
 
     if(bg_cfg_section_has_subsection(t->video_encoder_section, "$video"))
       {
       bg_cfg_section_delete_subsection(t->video_encoder_section,
-                                       bg_cfg_section_find_subsection(t->video_encoder_section, "$video"));
+                                       bg_cfg_section_find_subsection(t->video_encoder_section,
+                                                                      "$video"));
       }
     
     free(encoder_label);
@@ -551,6 +553,12 @@ static void enable_streams(bg_input_plugin_t * plugin, void * priv,
 
   }
 
+static void disable_streams(bg_input_plugin_t * plugin, void * priv)
+  {
+  if(plugin->stop)
+    plugin->stop(priv);
+  }
+
 bg_transcoder_track_t *
 bg_transcoder_track_create(const char * url,
                            const bg_plugin_info_t * input_info,
@@ -568,7 +576,8 @@ bg_transcoder_track_create(const char * url,
   bg_track_info_t        * track_info;
   bg_plugin_handle_t     * plugin_handle = (bg_plugin_handle_t*)0;
   int num_tracks;
-
+  int streams_enabled = 0;
+    
   bg_plugin_handle_t * audio_encoder;
   bg_plugin_handle_t * video_encoder;
 
@@ -646,7 +655,7 @@ bg_transcoder_track_create(const char * url,
     if(track_info->url)
       {
       new_track->url = bg_strdup(new_track->url, track_info->url);
-      fprintf(stderr, "Track: %d, URL: %s\n", track, new_track->url);
+      //      fprintf(stderr, "Track: %d, URL: %s\n", track, new_track->url);
       }
     else
       {
@@ -654,6 +663,7 @@ bg_transcoder_track_create(const char * url,
                      track,
                      track_info->num_audio_streams,
                      track_info->num_video_streams);
+      streams_enabled = 1;
       }
     
     set_track(new_track, track_info, plugin_handle, url, track,
@@ -661,6 +671,8 @@ bg_transcoder_track_create(const char * url,
     create_sections(new_track, track_defaults_section,
                     audio_encoder_section, video_encoder_section,
                     audio_encoder, video_encoder);
+    if(streams_enabled)
+      disable_streams(input, plugin_handle->priv);
     }
   else
     {
@@ -689,7 +701,7 @@ bg_transcoder_track_create(const char * url,
       if(track_info->url)
         {
         new_track->url = bg_strdup(new_track->url, track_info->url);
-        fprintf(stderr, "Track: %d, URL: %s\n", i, new_track->url);
+        //        fprintf(stderr, "Track: %d, URL: %s\n", i, new_track->url);
         }
       else
         {
@@ -697,6 +709,7 @@ bg_transcoder_track_create(const char * url,
                        i,
                        track_info->num_audio_streams,
                        track_info->num_video_streams);
+        streams_enabled = 1;
         }
       
       set_track(new_track, track_info, plugin_handle, url, i,
@@ -704,6 +717,11 @@ bg_transcoder_track_create(const char * url,
       create_sections(new_track, track_defaults_section,
                       audio_encoder_section, video_encoder_section,
                       audio_encoder, video_encoder);
+      if(streams_enabled)
+        {
+        disable_streams(input, plugin_handle->priv);
+        streams_enabled = 0;
+        }
       }
     }
   bg_plugin_unref(plugin_handle);

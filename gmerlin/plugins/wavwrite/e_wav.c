@@ -179,7 +179,6 @@ typedef struct
     len = strlen(info.tag)+1; \
     if(len > 1) \
       { \
-      fprintf(stderr, "Writing tag %s len: %d\n", #tag, len); \
       fwrite(#tag, 1, 4, output);\
       write_32(output, len); \
       fwrite(info.tag, 1, len, output); \

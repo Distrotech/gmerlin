@@ -22,6 +22,9 @@
 
 #include <gavl/gavl.h>
 
+#include <libxml/tree.h>
+#include <libxml/parser.h>
+
 /************************************************
  * Types for describing media streams
  ************************************************/
@@ -76,6 +79,15 @@ void bg_metadata_copy(bg_metadata_t * dst, const bg_metadata_t * src);
 
 int bg_metadata_get_year(const bg_metadata_t * m);
 
+/* XML Interface */
+
+void bg_xml_2_metadata(xmlDocPtr xml_doc, xmlNodePtr xml_metadata,
+                       bg_metadata_t * ret);
+
+void bg_metadata_2_xml(xmlNodePtr xml_metadata,
+                       bg_metadata_t * ret);
+
+char * bg_create_track_name(const bg_metadata_t *, const char * format);
 
 /*
  *  Get parameters for configuring metadata
@@ -125,8 +137,6 @@ typedef struct
  */
 
 void bg_track_info_free(bg_track_info_t *);
-
-char * bg_create_track_name(const bg_track_info_t *, const char * format);
 
 void bg_set_track_name_default(bg_track_info_t *,
                                const char * location);

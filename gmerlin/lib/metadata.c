@@ -70,25 +70,6 @@ void bg_metadata_copy(bg_metadata_t * dst, const bg_metadata_t * src)
 #undef MY_STRCPY
 #undef MY_INTCPY
 
-#if 0
-
-typedef struct
-  {
-  /* Strings here MUST be in UTF-8 */
-  char * artist;
-  char * title;
-  char * album;
-      
-  int track;
-  char * date;
-  char * genre;
-  char * comment;
-
-  char * author;
-  char * copyright;
-  } bg_metadata_t;
-#endif
-
 static bg_parameter_info_t parameters[] =
   {
     {
@@ -239,7 +220,7 @@ int bg_metadata_get_year(const bg_metadata_t * m)
   {
   int result;
 
-  const char * pos1, *pos2;
+  const char * pos1;
   
   if(!m->date)
     return 0;
@@ -268,4 +249,142 @@ int bg_metadata_get_year(const bg_metadata_t * m)
       return 0;
     }
   return 0;
+  }
+
+/*
+ *  %p:    Artist
+ *  %a:    Album
+ *  %g:    Genre
+ *  %t:    Track name
+ *  %<d>n: Track number (d = number of digits, 1-9)
+ *  %y:    Year
+ *  %c:    Comment
+ */
+
+char * bg_create_track_name(const bg_metadata_t * metadata,
+                            const char * format)
+  {
+  char * buf;
+  const char * end;
+  const char * f;
+  char * ret = (char*)0;
+  char track_format[5];
+  f = format;
+
+  while(*f != '\0')
+    {
+    end = f;
+    while((*end != '%') && (*end != '\0'))
+      end++;
+    if(end != f)
+      ret = bg_strncat(ret, f, end);
+
+    if(*end == '%')
+      {
+      end++;
+
+      /* %p:    Artist */
+      if(*end == 'p')
+        {
+        end++;
+        if(metadata->artist)
+          {
+          //          fprintf(stderr,  "Artist: %s ", metadata->artist);
+          ret = bg_strcat(ret, metadata->artist);
+          //          fprintf(stderr,  "%s\n", ret);
+          }
+        else
+          {
+          //          fprintf(stderr, "No Artist\n");
+          goto fail;
+          }
+        }
+      /* %a:    Album */
+      else if(*end == 'a')
+        {
+        end++;
+        if(metadata->album)
+          ret = bg_strcat(ret, metadata->album);
+        else
+          goto fail;
+        }
+      /* %g:    Genre */
+      else if(*end == 'g')
+        {
+        end++;
+        if(metadata->genre)
+          ret = bg_strcat(ret, metadata->genre);
+        else
+          goto fail;
+        }
+      /* %t:    Track name */
+      else if(*end == 't')
+        {
+        end++;
+        if(metadata->title)
+          {
+          //          fprintf(stderr, "Ret: %s\n", ret);
+          ret = bg_strcat(ret, metadata->title);
+          //          fprintf(stderr, "Title: %s\n", metadata->title);
+          }
+        else
+          {
+          //          fprintf(stderr, "No Title\n");
+          goto fail;
+          }
+        }
+      /* %c:    Comment */
+      else if(*end == 'c')
+        {
+        end++;
+        if(metadata->comment)
+          ret = bg_strcat(ret, metadata->comment);
+        else
+          goto fail;
+        }
+      /* %y:    Year */
+      else if(*end == 'y')
+        {
+        end++;
+        if(metadata->date)
+          {
+          buf = bg_sprintf("%d", bg_metadata_get_year(metadata->date));
+          ret = bg_strcat(ret, buf);
+          free(buf);
+          }
+        else
+          goto fail;
+        }
+      /* %<d>n: Track number (d = number of digits, 1-9) */
+      else if(isdigit(*end) && end[1] == 'n')
+        {
+        if(metadata->track)
+          {
+          track_format[0] = '%';
+          track_format[1] = '0';
+          track_format[2] = *end;
+          track_format[3] = 'd';
+          track_format[4] = '\0';
+          
+          buf = bg_sprintf(track_format, metadata->track);
+          ret = bg_strcat(ret, buf);
+          free(buf);
+          end+=2;
+          }
+        else
+          goto fail;
+        }
+      else
+        {
+        ret = bg_strcat(ret, "%");
+        end++;
+        }
+      f = end;
+      }
+    }
+  return ret;
+  fail:
+  if(ret)
+    free(ret);
+  return (char*)0;
   }

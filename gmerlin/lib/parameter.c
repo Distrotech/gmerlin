@@ -299,3 +299,52 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
     }
   free(info);
   }
+
+bg_parameter_info_t *
+bg_parameter_info_merge_arrays(bg_parameter_info_t ** srcs)
+  {
+  int i, j, dst, num_parameters;
+
+  bg_parameter_info_t * ret;
+
+  /* Count the parameters */
+  num_parameters = 0;
+  i = 0;
+
+  while(srcs[i])
+    {
+    j = 0;
+
+    while(srcs[i][j].name)
+      {
+      num_parameters++;
+      j++;
+      }
+    i++;
+    }
+
+  /* Allocate destination */
+
+  ret = calloc(num_parameters+1, sizeof(*ret));
+
+  /* Copy stuff */
+  
+  i = 0;
+  dst = 0;
+
+  while(srcs[i])
+    {
+    j = 0;
+    
+    while(srcs[i][j].name)
+      {
+      bg_parameter_info_copy(&(ret[dst]), &(srcs[i][j]));
+      dst++;
+      j++;
+      }
+    i++;
+    }
+
+  
+  return ret;
+  }

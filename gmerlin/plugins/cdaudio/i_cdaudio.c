@@ -3,19 +3,29 @@
 #include <stdio.h>
 
 #include <utils.h>
+#include <unistd.h>
 
 #include "cdaudio.h"
 
 typedef struct
   {
+  bg_parameter_info_t * parameters;
+  char * device_name;
   bg_track_info_t * track_info;
 
-  int start_seconds;
-  
+  void * ripper;
+  gavl_audio_frame_t * frame;
+  int last_read_samples;
+  int read_sectors; /* Sectors to read at once */
+
+  char disc_id[DISCID_SIZE];
+
   int fd;
 
   bg_cdaudio_index_t * index;
-  
+
+  char * trackname_template;
+    
   /* Configuration stuff */
 
 #ifdef HAVE_MUSICBRAINZ
@@ -27,6 +37,8 @@ typedef struct
 #endif
 
   int current_track;
+  int current_sector; /* For ripping only */
+      
   int first_sector;
   
   int do_bypass;
@@ -35,12 +47,18 @@ typedef struct
 
   int old_seconds;
   bg_cdaudio_status_t status;
+
+  uint32_t samples_written;
+  
   } cdaudio_t;
+
+static void close_cdaudio(void * priv);
 
 static void * create_cdaudio()
   {
   cdaudio_t * ret;
   ret = calloc(1, sizeof(*ret));
+  ret->ripper = bg_cdaudio_rip_create();
   return ret;
   }
 
@@ -56,17 +74,33 @@ static void destroy_cdaudio(void * data)
   {
   cdaudio_t * cd;
   cd = (cdaudio_t *)data;
+  
+  if(cd->device_name)
+    free(cd->device_name);
+
+  if(cd->ripper)
+    bg_cdaudio_rip_destroy(cd->ripper);
+
+  if(cd->parameters)
+    bg_parameter_info_destroy_array(cd->parameters);
+  
+  
   free(data);
   }
 
 static int open_cdaudio(void * data, const char * arg)
   {
+  int have_local_metadata = 0;
   int have_metadata = 0;
   int i, j;
 
+  char * tmp_filename;
+    
   cdaudio_t * cd = (cdaudio_t*)data;
 
-  cd->fd = bg_cdaudio_open(arg);
+  cd->device_name = bg_strdup(cd->device_name, arg);
+
+  cd->fd = bg_cdaudio_open(cd->device_name);
   if(cd->fd < 0)
     return 0;
 
@@ -108,11 +142,30 @@ static int open_cdaudio(void * data, const char * arg)
       }
     }
 
+  /* Create the disc ID */
+
+  bg_cdaudio_get_disc_id(cd->index, cd->disc_id);
+  
   /* Now, try to get the metadata */
+
+  /* 1st try: Local file */
+
+  tmp_filename = bg_search_file_read("cdaudio_metadata", cd->disc_id);
+  if(tmp_filename)
+    {
+    if(bg_cdaudio_load(cd->track_info, tmp_filename))
+      {
+      have_metadata = 1;
+      have_local_metadata = 1;
+      }
+    free(tmp_filename);
+    }
+  
 #ifdef HAVE_MUSICBRAINZ
-  if(cd->use_musicbrainz)
+  if(cd->use_musicbrainz && !have_metadata)
     {
     if(bg_cdaudio_get_metadata_musicbrainz(cd->index, cd->track_info,
+                                           cd->disc_id,
                                            cd->musicbrainz_host,
                                            cd->musicbrainz_port,
                                            cd->musicbrainz_proxy_host,
@@ -121,6 +174,16 @@ static int open_cdaudio(void * data, const char * arg)
     }
 #endif
 
+  if(have_metadata && !have_local_metadata)
+    {
+    tmp_filename = bg_search_file_write("cdaudio_metadata", cd->disc_id);
+    if(tmp_filename)
+      {
+      bg_cdaudio_save(cd->track_info, cd->index->num_audio_tracks, tmp_filename);
+      free(tmp_filename);
+      }
+    }
+  
   if(!have_metadata)
     {
     for(i = 0; i < cd->index->num_tracks; i++)
@@ -133,6 +196,23 @@ static int open_cdaudio(void * data, const char * arg)
         }
       }
     }
+  else
+    {
+    for(i = 0; i < cd->index->num_tracks; i++)
+      {
+      if(cd->index->tracks[i].is_audio)
+        {
+        j = cd->index->tracks[i].index;
+        if(cd->index->tracks[i].is_audio)
+          cd->track_info[j].name = bg_create_track_name(&(cd->track_info[j].metadata),
+                                                        cd->trackname_template);
+        }
+      }
+    }
+
+  /* We close it again, so cdparanoia won't cry */
+
+  close_cdaudio(cd);
   
   return 1;
   }
@@ -188,6 +268,10 @@ static void start_cdaudio(void * priv)
   
   if(cd->do_bypass)
     {
+    cd->fd = bg_cdaudio_open(cd->device_name);
+    if(cd->fd < 0)
+      return;
+
     last_sector = cd->index->tracks[cd->current_track].last_sector;
 
     for(i = cd->current_track; i < cd->index->num_tracks; i++)
@@ -198,6 +282,31 @@ static void start_cdaudio(void * priv)
     bg_cdaudio_play(cd->fd, cd->first_sector, last_sector);
     cd->status.sector = cd->first_sector;
     cd->status.track  = cd->current_track;
+
+    for(i = 0; i < cd->index->num_audio_tracks; i++)
+      {
+      cd->track_info[i].audio_streams[0].format.samples_per_frame = 588;
+      }
+    }
+  else
+    {
+    /* Rip */
+    bg_cdaudio_rip_init(cd->ripper, cd->device_name,
+                        cd->first_sector,
+                        cd->first_sector - cd->index->tracks[0].first_sector,
+                        &(cd->read_sectors));
+
+    for(i = 0; i < cd->index->num_audio_tracks; i++)
+      {
+      cd->track_info[i].audio_streams[0].format.samples_per_frame =
+        cd->read_sectors * 588;
+      }
+    
+    
+    cd->frame =
+      gavl_audio_frame_create(&(cd->track_info[0].audio_streams[0].format));
+    cd->current_sector = cd->first_sector;
+    cd->samples_written = 0;
     }
   }
 
@@ -206,17 +315,75 @@ static void stop_cdaudio(void * priv)
   cdaudio_t * cd = (cdaudio_t*)priv;
   if(cd->do_bypass)
     {
-    fprintf(stderr, "stop_cdaudio\n");
+    //    fprintf(stderr, "stop_cdaudio\n");
     bg_cdaudio_stop(cd->fd);
+    close_cdaudio(cd);
     }
-  
+  else
+    {
+    bg_cdaudio_rip_close(cd->ripper);
+    fprintf(stderr, "Processed %d samples\n", cd->samples_written);
+    }
+  }
+
+static void read_frame(cdaudio_t * cd)
+  {
+  bg_cdaudio_rip_rip(cd->ripper, cd->frame);
+
+  if(cd->current_sector + cd->read_sectors >
+     cd->index->tracks[cd->current_track].last_sector)
+    {
+    cd->frame->valid_samples =
+      (cd->index->tracks[cd->current_track].last_sector - 
+       cd->current_sector + 1) * 588;
+    }
+  else
+    cd->frame->valid_samples = cd->read_sectors * 588;
+  cd->last_read_samples = cd->frame->valid_samples;
+  cd->current_sector += cd->read_sectors;
   }
 
 static int read_audio_cdaudio(void * priv,
                               gavl_audio_frame_t * frame, int stream,
                               int num_samples)
   {
-  return num_samples;
+  int samples_read = 0, samples_copied;
+  cdaudio_t * cd = (cdaudio_t*)priv;
+
+
+  //  fprintf(stderr, "Sector: %d %d\n", cd->current_sector,
+  //          cd->index->tracks[cd->current_track].last_sector);
+  
+  if(cd->current_sector > cd->index->tracks[cd->current_track].last_sector)
+    {
+    fprintf(stderr, "EOF: %d %d\n", cd->current_sector,
+            cd->index->tracks[cd->current_track].last_sector);
+    return 0;
+    }
+  while(samples_read < num_samples)
+    {
+    if(cd->current_sector > cd->index->tracks[cd->current_track].last_sector)
+      break;
+    
+    if(!cd->frame->valid_samples)
+      read_frame(cd);
+
+    samples_copied = gavl_audio_frame_copy(&(cd->track_info[0].audio_streams[0].format),
+                                           frame,
+                                           cd->frame,
+                                           samples_read, /* out_pos */
+                                           cd->last_read_samples - cd->frame->valid_samples,  /* in_pos */
+                                           num_samples - samples_read, /* out_size, */
+                                           cd->frame->valid_samples /* in_size */);
+    cd->frame->valid_samples -= samples_copied;
+    samples_read += samples_copied;
+    
+    //    fprintf(stderr, "cd->frame->valid_samples: %d\n", cd->frame->valid_samples);
+    }
+  if(frame)
+    frame->valid_samples = samples_read;
+  cd->samples_written += samples_read;
+  return samples_read;
   }
 
 static int bypass_cdaudio(void * priv)
@@ -291,6 +458,7 @@ static void seek_cdaudio(void * priv, gavl_time_t * time)
 
   int i, last_sector;
   int sector;
+  uint32_t sample_position, samples_to_skip;
   
   cdaudio_t * cd = (cdaudio_t*)priv;
   //  fprintf(stderr, "Seek cdaudio\n");
@@ -312,7 +480,23 @@ static void seek_cdaudio(void * priv, gavl_time_t * time)
     }
   else /* TODO */
     {
+    sample_position = gavl_time_to_samples(44100, *time);
+        
+    cd->current_sector =
+      sample_position / 588 + cd->index->tracks[cd->current_track].first_sector;
+    samples_to_skip = sample_position % 588;
 
+    /* Seek to the point */
+
+    bg_cdaudio_rip_seek(cd->ripper, cd->current_sector,
+                        cd->current_sector - cd->index->tracks[0].first_sector);
+
+    /* Read one frame os samples (can be more than one sector) */
+    read_frame(cd);
+
+    /* Set skipped samples */
+    
+    cd->frame->valid_samples -= samples_to_skip;
     }
   }
 
@@ -331,13 +515,39 @@ void bypass_set_volume_cdaudio(void * priv, float volume)
 static void close_cdaudio(void * priv)
   {
   cdaudio_t * cd = (cdaudio_t*)priv;
-  close(cd->fd);
+  if(cd->fd >= 0)
+    {
+    //    fprintf(stderr, "Closing CD device, read %d samples", cd->samples_written);
+    close(cd->fd);
+    //    fprintf(stderr, "done\n");
+    }
+  cd->fd = -1;
   }
 
 /* Configuration stuff */
 
 static bg_parameter_info_t parameters[] =
   {
+    {
+      name:      "General",
+      long_name: "general",
+      type:      BG_PARAMETER_SECTION
+    },
+    {
+      name:        "trackname_template",
+      long_name:   "Trackname template",
+      type:        BG_PARAMETER_STRING,
+      val_default: { val_str: "%p - %t" },
+      help_string: "Template for track name generation from metadata\
+%p:    Artist\n\
+%a:    Album\n\
+%g:    Genre\n\
+%t:    Track name\n\
+%<d>n: Track number (d = number of digits, 1-9)\n\
+%y:    Year\n\
+%c:    Comment\n"
+    },
+#ifdef HAVE_MUSICBRAINZ
     {
       name:      "musicbrainz",
       long_name: "Musicbrainz",
@@ -378,23 +588,24 @@ static bg_parameter_info_t parameters[] =
       val_default:  { val_i: 80 },
       help_string: "Proxy port"
     },
-    {
-      name:         "cdparanoia",
-      long_name:    "CDparanoia options",
-      type:      BG_PARAMETER_SECTION
-    },
-    {
-      name:        "enable_paranoia",
-      long_name:   "Enable paranoia",
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 }
-    },
+#endif
     { /* End of parmeters */ }
   };
 
 static bg_parameter_info_t * get_parameters_cdaudio(void * data)
   {
-  return parameters;
+  cdaudio_t * cd = (cdaudio_t*)data;
+  bg_parameter_info_t * srcs[3];
+
+  if(!cd->parameters)
+    {
+    srcs[0] = parameters;
+    srcs[1] = bg_cdaudio_rip_get_parameters();
+    srcs[2] = (bg_parameter_info_t*)0;
+    cd->parameters = bg_parameter_info_merge_arrays(srcs);
+    }
+    
+  return cd->parameters;
   }
 
 static void set_parameter_cdaudio(void * data, char * name, bg_parameter_value_t * val)
@@ -404,6 +615,12 @@ static void set_parameter_cdaudio(void * data, char * name, bg_parameter_value_t
   if(!name)
     return;
 
+  if(bg_cdaudio_rip_set_parameter(cd->ripper, name, val))
+    return;
+
+  if(!strcmp(name, "trackname_template"))
+    cd->trackname_template = bg_strdup(cd->trackname_template, val->val_str);
+  
 #ifdef HAVE_MUSICBRAINZ
   if(!strcmp(name, "use_musicbrainz"))
     cd->use_musicbrainz = val->val_i;
@@ -412,7 +629,7 @@ static void set_parameter_cdaudio(void * data, char * name, bg_parameter_value_t
   if(!strcmp(name, "musicbrainz_port"))
     cd->musicbrainz_port = val->val_i;
 #endif
-
+  
   }
 
 bg_input_plugin_t the_plugin =
