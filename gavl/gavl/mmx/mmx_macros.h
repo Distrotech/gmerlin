@@ -1,5 +1,7 @@
 #include <stdlib.h> /* size_t */
 
+#if 0
+
 /* MMX memcpy stuff taken from MPlayer (http://www.mplayerhq.hu) */
 
 #define BLOCK_SIZE 4096
@@ -229,6 +231,8 @@ static inline void * fast_memcpy(void * to, const void * from, size_t len)
         if(len) small_memcpy(to, from, len);
         return retval;
 }
+
+#endif
 
 /* Common macros */
 
