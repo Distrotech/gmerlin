@@ -1,4 +1,4 @@
-LIBS = @LIBS@ ../lib/libgmerlin_avdec.la -lm
+
 
 noinst_PROGRAMS = bgavdump \
 bgavsave \

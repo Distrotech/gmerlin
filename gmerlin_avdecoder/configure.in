@@ -374,6 +374,9 @@ if test "x$exec_prefix" = xNONE; then
    exec_prefix="${prefix}"
 fi
 
+
+LIBS='$(top_srcdir)/lib/libgmerlin_avdec.la -lm'
+
 AC_CONFIG_FILES([Makefile \
 include/Makefile \
 lib/Makefile \

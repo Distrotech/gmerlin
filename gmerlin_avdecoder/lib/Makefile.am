@@ -93,8 +93,7 @@ $(mad_libs) \
 $(a52_libs) \
 real_rtsp/librealrtsp.la
 
-CFLAGS = \
-@CFLAGS@ \
+AM_CFLAGS = \
 $(vorbis_cflags) \
 $(mad_cflags) \
 $(png_cflags) \
