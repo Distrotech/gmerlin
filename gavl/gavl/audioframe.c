@@ -1,3 +1,23 @@
+/*****************************************************************
+ 
+  audioframe.c
+ 
+  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -51,8 +71,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
         ret->channels.s_8[i] = &(ret->samples.s_8[i*num_samples]);
 
       break;
-    case GAVL_SAMPLE_U16LE:
-    case GAVL_SAMPLE_U16BE:
+    case GAVL_SAMPLE_U16:
       ret->samples.u_16 =
         memalign(ALIGNMENT_BYTES, 2 * num_samples * format->num_channels);
 
@@ -61,8 +80,7 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
         ret->channels.u_16[i] = &(ret->samples.u_16[i*num_samples]);
 
       break;
-    case GAVL_SAMPLE_S16LE:
-    case GAVL_SAMPLE_S16BE:
+    case GAVL_SAMPLE_S16:
       ret->samples.s_16 =
         memalign(ALIGNMENT_BYTES, 2 * num_samples * format->num_channels);
       ret->channels.s_16 = calloc(format->num_channels, sizeof(int16_t*));
@@ -70,6 +88,16 @@ gavl_audio_frame_create(const gavl_audio_format_t * format)
         ret->channels.s_16[i] = &(ret->samples.s_16[i*num_samples]);
 
       break;
+
+    case GAVL_SAMPLE_S32:
+      ret->samples.s_32 =
+        memalign(ALIGNMENT_BYTES, 4 * num_samples * format->num_channels);
+      ret->channels.s_32 = calloc(format->num_channels, sizeof(int32_t*));
+      for(i = 0; i < format->num_channels; i++)
+        ret->channels.s_32[i] = &(ret->samples.s_32[i*num_samples]);
+
+      break;
+
     case GAVL_SAMPLE_FLOAT:
       ret->samples.f =
         memalign(ALIGNMENT_BYTES, sizeof(float) * num_samples * format->num_channels);
@@ -116,19 +144,19 @@ void gavl_audio_frame_mute(gavl_audio_frame_t * frame,
       for(i = 0; i < imax; i++)
         frame->samples.u_8[i] = 0x00;
       break;
-    case GAVL_SAMPLE_U16NE:
+    case GAVL_SAMPLE_U16:
       for(i = 0; i < imax; i++)
         frame->samples.u_16[i] = 0x8000;
       break;
-    case GAVL_SAMPLE_U16OE:
-      for(i = 0; i < imax; i++)
-        frame->samples.u_16[i] = 0x0080;
-      break;
-    case GAVL_SAMPLE_S16NE:
-    case GAVL_SAMPLE_S16OE:
+    case GAVL_SAMPLE_S16:
       for(i = 0; i < imax; i++)
         frame->samples.s_16[i] = 0x0000;
       break;
+    case GAVL_SAMPLE_S32:
+      for(i = 0; i < imax; i++)
+        frame->samples.s_32[i] = 0x00000000;
+      break;
+      
     case GAVL_SAMPLE_FLOAT:
       for(i = 0; i < imax; i++)
         frame->samples.f[i] = 0.0;

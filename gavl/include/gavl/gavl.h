@@ -64,6 +64,9 @@ int gavl_real_accel_flags(int wanted_flags);
 /*************************************
  *  Audio conversions
  *************************************/
+  
+/* Maximum number of supported channels */
+#define GAVL_MAX_CHANNELS 6
 
 typedef struct gavl_audio_converter_s gavl_audio_converter_t;
 
@@ -114,24 +117,11 @@ typedef enum
     GAVL_SAMPLE_NONE  = 0,
     GAVL_SAMPLE_U8    = 1,
     GAVL_SAMPLE_S8    = 2,
-    GAVL_SAMPLE_U16LE = 3,
-    GAVL_SAMPLE_S16LE = 4,
-    GAVL_SAMPLE_U16BE = 5,
-    GAVL_SAMPLE_S16BE = 6,
-    GAVL_SAMPLE_FLOAT = 7
+    GAVL_SAMPLE_U16   = 3,
+    GAVL_SAMPLE_S16   = 4,
+    GAVL_SAMPLE_S32   = 5,
+    GAVL_SAMPLE_FLOAT = 6
   } gavl_sample_format_t;
-
-#ifdef  GAVL_PROCESSOR_BIG_ENDIAN
-#define GAVL_SAMPLE_U16NE GAVL_SAMPLE_U16BE
-#define GAVL_SAMPLE_S16NE GAVL_SAMPLE_S16BE
-#define GAVL_SAMPLE_U16OE GAVL_SAMPLE_U16LE
-#define GAVL_SAMPLE_S16OE GAVL_SAMPLE_S16LE
-#else
-#define GAVL_SAMPLE_U16NE GAVL_SAMPLE_U16LE
-#define GAVL_SAMPLE_S16NE GAVL_SAMPLE_S16LE
-#define GAVL_SAMPLE_U16OE GAVL_SAMPLE_U16BE
-#define GAVL_SAMPLE_S16OE GAVL_SAMPLE_S16BE
-#endif
 
 typedef enum
   {
@@ -144,55 +134,69 @@ typedef enum
  *  Audio channel setup: This can be used with
  *  AC3 decoders to support all speaker configurations
  */
-
-/*
-   This is the GAVL Channel order:
-   GAVL_CHANNEL_MONO  |Front  | (lfe) |      |      |      |      |
-   GAVL_CHANNEL_1     |Front  | (lfe) |      |      |      |      |
-   GAVL_CHANNEL_2     |Front  | (lfe) |      |      |      |      |
-   GAVL_CHANNEL_2F    |Front L|Front R| (lfe)|      |      |      |
-   GAVL_CHANNEL_3F    |Front L|Front R|Center| (lfe)|      |      |
-   GAVL_CHANNEL_2F1R  |Front L|Front R|Rear  | (lfe)|      |      |
-   GAVL_CHANNEL_3F1R  |Front L|Front R|Rear  |Center| (lfe)|      |
-   GAVL_CHANNEL_2F2R  |Front L|Front R|Rear L|Rear R|Center|      |
-   GAVL_CHANNEL_3F2R  |Front L|Front R|Rear L|Rear R|Center| (lfe)|
-*/
   
 typedef enum
   {
-    GAVL_CHANNEL_NONE = 0,
-    GAVL_CHANNEL_MONO = 1,
-    GAVL_CHANNEL_1    = 2,      /* First (left) channel */
-    GAVL_CHANNEL_2    = 3,      /* Second (right) channel */
-    GAVL_CHANNEL_2F   = 4,     /* 2 Front channels (Stereo or Dual channels) */
-    GAVL_CHANNEL_3F   = 5,
-    GAVL_CHANNEL_2F1R = 6,
-    GAVL_CHANNEL_3F1R = 7,
-    GAVL_CHANNEL_2F2R = 8,
-    GAVL_CHANNEL_3F2R = 9
+    GAVL_CHANNEL_NONE   = 0,
+    GAVL_CHANNEL_MONO   = 1,
+    GAVL_CHANNEL_STEREO = 2, /* 2 Front channels (Stereo or Dual channels) */
+    GAVL_CHANNEL_3F     = 3,
+    GAVL_CHANNEL_2F1R   = 4,
+    GAVL_CHANNEL_3F1R   = 5,
+    GAVL_CHANNEL_2F2R   = 6,
+    GAVL_CHANNEL_3F2R   = 7
   } gavl_channel_setup_t;
 
+typedef enum
+  {
+    GAVL_CHID_NONE         = 0,
+    GAVL_CHID_FRONT,
+    GAVL_CHID_FRONT_LEFT,
+    GAVL_CHID_FRONT_RIGHT,
+    GAVL_CHID_FRONT_CENTER,
+    GAVL_CHID_REAR,
+    GAVL_CHID_REAR_LEFT,
+    GAVL_CHID_REAR_RIGHT,
+    GAVL_CHID_LFE
+  } gavl_channel_id_t;
+  
 /* Structure describing an audio format */
   
 typedef struct gavl_audio_format_s
   {
-  int samples_per_frame; /* Maximum number of samples per frame */
+  int samples_per_frame;  /* Maximum number of samples per frame */
   int samplerate;
   int num_channels;
   gavl_sample_format_t   sample_format;
   gavl_interleave_mode_t interleave_mode;
   gavl_channel_setup_t   channel_setup;
   int lfe;
+  
+  float center_level; /* linear factor for mixing center to front */
+  float rear_level;   /* linear factor for mixing rear to front */
+
+  /* Which channel is stored where */
+
+  gavl_channel_id_t channel_locations[GAVL_MAX_CHANNELS];
   } gavl_audio_format_t;
 
-/* Audio format <-> string conversions */
+/* Audio format -> string conversions */
   
 const char * gavl_sample_format_to_string(gavl_sample_format_t);
+const char * gavl_channel_id_to_string(gavl_channel_id_t);
 const char * gavl_channel_setup_to_string(gavl_channel_setup_t);
 const char * gavl_interleave_mode_to_string(gavl_interleave_mode_t);
 
 void gavl_audio_format_dump(const gavl_audio_format_t *);
-  
+
+int gavl_channel_index(const gavl_audio_format_t *, gavl_channel_id_t);
+
+int gavl_front_channels(const gavl_audio_format_t *);
+int gavl_rear_channels(const gavl_audio_format_t *);
+int gavl_lfe_channels(const gavl_audio_format_t *);
+
+int gavl_num_channels(gavl_channel_setup_t);
+
   
 /* Copy audio format */
 
@@ -208,19 +212,35 @@ void gavl_audio_format_copy(gavl_audio_format_t * dst,
  */
   
 void gavl_set_channel_setup(gavl_audio_format_t * dst);
+
+/* Conversion flags */
   
-  
-/* Maximum number of supported channels */
-  
-#define GAVL_MAX_CHANNELS 6
-  
-#define GAVL_AUDIO_DO_BUFFER     (1<<0)
-#define GAVL_AUDIO_DOWNMIX_DOLBY (1<<1)
+#define GAVL_AUDIO_DOWNMIX_DOLBY      (1<<0)
+
+/* Options for mixing front to rear channels */
+
+#define GAVL_AUDIO_FRONT_TO_REAR_COPY (1<<1) /* Just copy                                 */
+#define GAVL_AUDIO_FRONT_TO_REAR_MUTE (1<<2) /* Mute rear channels                        */
+#define GAVL_AUDIO_FRONT_TO_REAR_DIFF (1<<3) /* Send the difference between front to rear */
+
+#define GAVL_AUDIO_FRONT_TO_REAR_MASK \
+(GAVL_AUDIO_FRONT_TO_REAR_COPY | \
+GAVL_AUDIO_FRONT_TO_REAR_MUTE | \
+ GAVL_AUDIO_FRONT_TO_REAR_DIFF)
+
+#define GAVL_AUDIO_STEREO_TO_MONO_LEFT  (1<<4) /* Left channel       */
+#define GAVL_AUDIO_STEREO_TO_MONO_RIGHT (1<<5) /* Right channel      */
+#define GAVL_AUDIO_STEREO_TO_MONO_MIX   (1<<6) /* Mix left and right */
+
+#define GAVL_AUDIO_STEREO_TO_MONO_MASK \
+(GAVL_AUDIO_STEREO_TO_MONO_LEFT | \
+GAVL_AUDIO_STEREO_TO_MONO_RIGHT | \
+GAVL_AUDIO_STEREO_TO_MONO_MIX)
   
 typedef struct
   {
   int accel_flags;          /* CPU Acceleration flags */
-  int conversion_flags;
+  uint32_t conversion_flags;
   } gavl_audio_options_t;
 
 /* Convenience function */
@@ -267,16 +287,19 @@ void gavl_audio_converter_destroy(gavl_audio_converter_t*);
 
 void gavl_audio_default_options(gavl_audio_options_t * opt);
 
-int gavl_audio_init(gavl_audio_converter_t* cnv,
-                    const gavl_audio_options_t * options,
-                    const gavl_audio_format_t * input_format,
-                    const gavl_audio_format_t * output_format);
+void gavl_audio_options_copy(gavl_audio_options_t * dst,
+                             const gavl_audio_options_t * src);
 
+int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
+                              const gavl_audio_options_t * options,
+                              const gavl_audio_format_t * input_format,
+                              const gavl_audio_format_t * output_format);
+  
 /* Convert audio  */
   
-int gavl_audio_convert(gavl_audio_converter_t * cnv,
-                       gavl_audio_frame_t * input_frame,
-                       gavl_audio_frame_t * output_frame);
+void gavl_audio_convert(gavl_audio_converter_t * cnv,
+                        gavl_audio_frame_t * input_frame,
+                        gavl_audio_frame_t * output_frame);
 
 /* Audio buffer: Can be used if samples_per_frame is different in the
    input and output format, or if the samples, which will be read at

@@ -176,3 +176,22 @@ void gavl_destroy_interleave_table(gavl_interleave_table_t * t)
   {
   free(t);
   }
+
+gavl_audio_convert_context_t *
+gavl_interleave_context_create(gavl_audio_options_t * opt,
+                               gavl_audio_format_t  * input_format,
+                               gavl_audio_format_t  * output_format)
+  {
+  gavl_interleave_table_t * table;
+  gavl_audio_convert_context_t * ret;
+  ret = gavl_audio_convert_context_create(opt, input_format, output_format);
+  ret->output_format.interleave_mode = output_format->interleave_mode;
+
+  table = gavl_create_interleave_table(opt);
+  ret->func =
+    gavl_find_interleave_converter(table, &(ret->input_format),
+                                   &(ret->output_format));
+  
+  gavl_destroy_interleave_table(table);
+  return ret;
+  }

@@ -1,15 +1,28 @@
 This is gavl, a library for handling uncompressed video-
-and (soon) audio data.
+and audio data.
 
-It is developed as an integral part of the gmerlin sourcetree,
-but the neccesary stuff was added to make it usable as a 
-standalone library.
+It defines generic types for audio and video formats,
+which are applicable to a wide range of multimedia application.
+In addition, it provides conversion functions for all
+possible formats to all other prossible formats.
+
+Current features:
+
+- Support for the following colorspaces:
+  15 bpp RGB, 15 bpp BGR, 16 bpp RGB, 16 bpp BGR, 24 bpp RGB, 24 bpp BGR
+  32 bpp RGB, 32 bpp BGR, 32 bpp RGBA, YUV 422 (YUY2), YUV 420 Planar,
+  YUV 422 Planar (mpeg and jpeg), YUV 444 Planar (mpeg and jpeg)
+  Conversions from all colorspace to all others (NO multistep conversions,
+  each conversion has it's own function)
+
+- Audio samples can be 8 bit and 16 PCM (signed and unsigned),
+  32 bit signed and floating point.
+
+
 
 See the header file include/gavl.h and the sample files
 src/colorspace_test.c and src/colorspace_time.c for
 information and how to use this thing.
-
-By default, gavl is compiled as a static library.
 
 For testing the library, the src directory contains
 some test programs.

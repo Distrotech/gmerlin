@@ -1,13 +1,14 @@
 
-static void RENAME(mix_1_to_1)(gavl_audio_convert_context_t * ctx,
-                               int output_index)
+static void RENAME(mix_1_to_1)(gavl_mix_output_channel_t * channel,
+                               gavl_audio_frame_t * input_frame,
+                               gavl_audio_frame_t * output_frame)
   {
   int i;
   TMP_TYPE tmp;
 
   SAMPLE_TYPE factor1 = FACTOR(0);
   
-  i = ctx->input_frame->valid_samples;
+  i = input_frame->valid_samples;
   
   while(i--)
     {
@@ -18,8 +19,9 @@ static void RENAME(mix_1_to_1)(gavl_audio_convert_context_t * ctx,
   }
 
 
-static void RENAME(mix_2_to_1)(gavl_audio_convert_context_t * ctx,
-                               int output_index)
+static void RENAME(mix_2_to_1)(gavl_mix_output_channel_t * channel,
+                               gavl_audio_frame_t * input_frame,
+                               gavl_audio_frame_t * output_frame)
   {
   int i;
   TMP_TYPE tmp;
@@ -27,7 +29,7 @@ static void RENAME(mix_2_to_1)(gavl_audio_convert_context_t * ctx,
   SAMPLE_TYPE factor1 = FACTOR(0);
   SAMPLE_TYPE factor2 = FACTOR(1);
   
-  i = ctx->input_frame->valid_samples;
+  i = input_frame->valid_samples;
   
   while(i--)
     {
@@ -37,8 +39,9 @@ static void RENAME(mix_2_to_1)(gavl_audio_convert_context_t * ctx,
     }
   }
 
-static void RENAME(mix_3_to_1)(gavl_audio_convert_context_t * ctx,
-                               int output_index)
+static void RENAME(mix_3_to_1)(gavl_mix_output_channel_t * channel,
+                               gavl_audio_frame_t * input_frame,
+                               gavl_audio_frame_t * output_frame)
   {
   int i;
   TMP_TYPE tmp;
@@ -47,7 +50,7 @@ static void RENAME(mix_3_to_1)(gavl_audio_convert_context_t * ctx,
   SAMPLE_TYPE factor2 = FACTOR(1);
   SAMPLE_TYPE factor3 = FACTOR(2);
   
-  i = ctx->input_frame->valid_samples;
+  i = input_frame->valid_samples;
   
   while(i--)
     {
@@ -57,8 +60,9 @@ static void RENAME(mix_3_to_1)(gavl_audio_convert_context_t * ctx,
     }
   }
 
-static void RENAME(mix_4_to_1)(gavl_audio_convert_context_t * ctx,
-                               int output_index)
+static void RENAME(mix_4_to_1)(gavl_mix_output_channel_t * channel,
+                               gavl_audio_frame_t * input_frame,
+                               gavl_audio_frame_t * output_frame)
   {
   int i;
   TMP_TYPE tmp;
@@ -68,7 +72,7 @@ static void RENAME(mix_4_to_1)(gavl_audio_convert_context_t * ctx,
   SAMPLE_TYPE factor3 = FACTOR(2);
   SAMPLE_TYPE factor4 = FACTOR(3);
   
-  i = ctx->input_frame->valid_samples;
+  i = input_frame->valid_samples;
   
   while(i--)
     {
@@ -80,8 +84,9 @@ static void RENAME(mix_4_to_1)(gavl_audio_convert_context_t * ctx,
   }
 
 
-static void RENAME(mix_5_to_1)(gavl_audio_convert_context_t * ctx,
-                               int output_index)
+static void RENAME(mix_5_to_1)(gavl_mix_output_channel_t * channel,
+                               gavl_audio_frame_t * input_frame,
+                               gavl_audio_frame_t * output_frame)
   {
   int i;
   TMP_TYPE tmp;
@@ -92,7 +97,7 @@ static void RENAME(mix_5_to_1)(gavl_audio_convert_context_t * ctx,
   SAMPLE_TYPE factor4 = FACTOR(3);
   SAMPLE_TYPE factor5 = FACTOR(4);
   
-  i = ctx->input_frame->valid_samples;
+  i = input_frame->valid_samples;
   
   while(i--)
     {
@@ -103,8 +108,9 @@ static void RENAME(mix_5_to_1)(gavl_audio_convert_context_t * ctx,
     }
   }
 
-static void RENAME(mix_6_to_1)(gavl_audio_convert_context_t * ctx,
-                               int output_index)
+static void RENAME(mix_6_to_1)(gavl_mix_output_channel_t * channel,
+                               gavl_audio_frame_t * input_frame,
+                               gavl_audio_frame_t * output_frame)
   {
   int i;
   TMP_TYPE tmp;
@@ -116,7 +122,7 @@ static void RENAME(mix_6_to_1)(gavl_audio_convert_context_t * ctx,
   SAMPLE_TYPE factor5 = FACTOR(4);
   SAMPLE_TYPE factor6 = FACTOR(5);
 
-  i = ctx->input_frame->valid_samples;
+  i = input_frame->valid_samples;
   
   while(i--)
     {

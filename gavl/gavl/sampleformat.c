@@ -12,6 +12,31 @@ gavl_sampleformat_table_t * gavl_create_sampleformat_table(gavl_audio_options_t 
   return ret;
   }
 
+gavl_audio_convert_context_t *
+gavl_sampleformat_context_create(gavl_audio_options_t * opt,
+                                 gavl_audio_format_t * in_format,
+                                 gavl_audio_format_t * out_format)
+  {
+  gavl_audio_convert_context_t * ret;
+  gavl_sampleformat_table_t * table;
+  //  fprintf(stderr, "Gavl: initializing sampleformat converter\n");
+
+  table = gavl_create_sampleformat_table(opt);
+
+  ret = gavl_audio_convert_context_create(opt, in_format, out_format);
+
+  ret->output_format.sample_format = out_format->sample_format;
+
+  ret->func =
+    gavl_find_sampleformat_converter(table, &(ret->input_format),
+                                     &(ret->output_format));
+/*   if(!ret->func) */
+/*     fprintf(stderr, "No function found\n"); */
+  gavl_destroy_sampleformat_table(table);
+  return ret;
+  }
+
+
 gavl_audio_func_t gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t,
                                                    gavl_audio_format_t * in,
                                                    gavl_audio_format_t * out)
@@ -27,17 +52,14 @@ gavl_audio_func_t gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t
         case GAVL_SAMPLE_S8:
           return t->swap_sign_8;
           break;
-        case GAVL_SAMPLE_U16NE:
+        case GAVL_SAMPLE_U16:
           return t->u_8_to_u_16;
           break;
-        case GAVL_SAMPLE_S16NE:
+        case GAVL_SAMPLE_S16:
           return t->u_8_to_s_16;
           break;
-        case GAVL_SAMPLE_U16OE:
-          return t->u_8_to_u_16;
-          break;
-        case GAVL_SAMPLE_S16OE:
-          return t->u_8_to_s_16_oe;
+        case GAVL_SAMPLE_S32:
+          return t->u_8_to_s_32;
           break;
         case GAVL_SAMPLE_FLOAT:
           return t->convert_u8_to_float;
@@ -55,17 +77,14 @@ gavl_audio_func_t gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t
         case GAVL_SAMPLE_S8:
           // Nothing
           break;
-        case GAVL_SAMPLE_U16NE:
+        case GAVL_SAMPLE_U16:
           return t->s_8_to_u_16;
           break;
-        case GAVL_SAMPLE_S16NE:
+        case GAVL_SAMPLE_S16:
           return t->s_8_to_s_16;
           break;
-        case GAVL_SAMPLE_U16OE:
-          return t->s_8_to_u_16;
-          break;
-        case GAVL_SAMPLE_S16OE:
-          return t->s_8_to_s_16_oe;
+        case GAVL_SAMPLE_S32:
+          return t->s_8_to_s_32;
           break;
         case GAVL_SAMPLE_FLOAT:
           return t->convert_s8_to_float;
@@ -74,113 +93,76 @@ gavl_audio_func_t gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t
           break;
         }
       break;
-    case GAVL_SAMPLE_U16NE:
+    case GAVL_SAMPLE_U16:
       switch(out->sample_format)
         {
         case GAVL_SAMPLE_U8:
           return t->convert_16_to_8;
           break;
         case GAVL_SAMPLE_S8:
-          return t->convert_16_to_8_sign;
+          return t->convert_16_to_8_swap;
           break;
-        case GAVL_SAMPLE_U16NE:
+        case GAVL_SAMPLE_U16:
           // Nothing
           break;
-        case GAVL_SAMPLE_S16NE:
+        case GAVL_SAMPLE_S16:
           return t->swap_sign_16;
           break;
-        case GAVL_SAMPLE_U16OE:
-          return t->swap_endian_16;
-          break;
-        case GAVL_SAMPLE_S16OE:
-          return t->swap_sign_endian_16;
+        case GAVL_SAMPLE_S32:
+          return t->u_16_to_s_32;
           break;
         case GAVL_SAMPLE_FLOAT:
-          return t->convert_u16ne_to_float;
+          return t->convert_u16_to_float;
           break;
         case GAVL_SAMPLE_NONE:
           break;
         }
       break;
-    case GAVL_SAMPLE_S16NE:
+    case GAVL_SAMPLE_S16:
       switch(out->sample_format)
         {
         case GAVL_SAMPLE_U8:
-          return t->convert_16_to_8_sign;
+          return t->convert_16_to_8_swap;
           break;
         case GAVL_SAMPLE_S8:
           return t->convert_16_to_8;
           break;
-        case GAVL_SAMPLE_U16NE:
+        case GAVL_SAMPLE_U16:
           return t->swap_sign_16;
           break;
-        case GAVL_SAMPLE_S16NE:
+        case GAVL_SAMPLE_S16:
           // Nothing
           break;
-        case GAVL_SAMPLE_U16OE:
-          return t->swap_sign_endian_16;
-          break;
-        case GAVL_SAMPLE_S16OE:
-          return t->swap_endian_16;
+        case GAVL_SAMPLE_S32:
+          return t->s_16_to_s_32;
           break;
         case GAVL_SAMPLE_FLOAT:
-          return t->convert_s16ne_to_float;
+          return t->convert_s16_to_float;
           break;
         case GAVL_SAMPLE_NONE:
           break;
         }
       break;
-    case GAVL_SAMPLE_U16OE:
+    case GAVL_SAMPLE_S32:
       switch(out->sample_format)
         {
         case GAVL_SAMPLE_U8:
-          return t->convert_16_to_8_oe;
+          return t->convert_32_to_8_swap;
           break;
         case GAVL_SAMPLE_S8:
-          return t->convert_16_to_8_sign_oe;
+          return t->convert_32_to_8;
           break;
-        case GAVL_SAMPLE_U16NE:
-          return t->swap_endian_16;
+        case GAVL_SAMPLE_U16:
+          return t->convert_32_to_16_swap;
           break;
-        case GAVL_SAMPLE_S16NE:
-          return t->swap_endian_sign_16;
+        case GAVL_SAMPLE_S16:
+          return t->convert_32_to_16;
           break;
-        case GAVL_SAMPLE_U16OE:
-          // Nothing
-          break;
-        case GAVL_SAMPLE_S16OE:
-          return t->swap_sign_16_oe;
-          break;
-        case GAVL_SAMPLE_FLOAT:
-          return t->convert_u16oe_to_float;
-          break;
-        case GAVL_SAMPLE_NONE:
-          break;
-        }
-      break;
-    case GAVL_SAMPLE_S16OE:
-      switch(out->sample_format)
-        {
-        case GAVL_SAMPLE_U8:
-          return t->convert_16_to_8_sign_oe;
-          break;
-        case GAVL_SAMPLE_S8:
-          return t->convert_16_to_8_oe;
-          break;
-        case GAVL_SAMPLE_U16NE:
-          return t->swap_endian_sign_16;
-          break;
-        case GAVL_SAMPLE_S16NE:
-          return t->swap_endian_16;
-          break;
-        case GAVL_SAMPLE_U16OE:
-          return t->swap_sign_16_oe;
-          break;
-        case GAVL_SAMPLE_S16OE:
+        case GAVL_SAMPLE_S32:
           // Nothing
           break;
         case GAVL_SAMPLE_FLOAT:
-          return t->convert_s16oe_to_float;
+          return t->convert_s32_to_float;
           break;
         case GAVL_SAMPLE_NONE:
           break;
@@ -195,17 +177,14 @@ gavl_audio_func_t gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t
         case GAVL_SAMPLE_S8:
           return t->convert_float_to_s8;
           break;
-        case GAVL_SAMPLE_U16NE:
-          return t->convert_float_to_u16ne;
+        case GAVL_SAMPLE_U16:
+          return t->convert_float_to_u16;
           break;
-        case GAVL_SAMPLE_S16NE:
-          return t->convert_float_to_s16ne;
+        case GAVL_SAMPLE_S16:
+          return t->convert_float_to_s16;
           break;
-        case GAVL_SAMPLE_U16OE:
-          return t->convert_float_to_u16oe;
-          break;
-        case GAVL_SAMPLE_S16OE:
-          return t->convert_float_to_s16oe;
+        case GAVL_SAMPLE_S32:
+          return t->convert_float_to_s32;
           break;
         case GAVL_SAMPLE_FLOAT:
           // Nothing
@@ -219,7 +198,6 @@ gavl_audio_func_t gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t
     }
   return (gavl_audio_func_t)0;
   }
-
 
 void gavl_destroy_sampleformat_table(gavl_sampleformat_table_t * t)
   {

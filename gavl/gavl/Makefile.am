@@ -15,6 +15,7 @@ lib_LTLIBRARIES= libgavl.la
 libgavl_la_SOURCES = \
 audio.c \
 audiobuffer.c \
+audioconverter.c \
 audioformat.c \
 audioframe.c \
 colorspace.c \
@@ -35,7 +36,7 @@ csp_planar_packed.h  \
 csp_planar_planar.h
 
 
-libgavl_la_LIBADD = $(mmx_libs) c/libgavl_c.la
+libgavl_la_LIBADD = $(mmx_libs) c/libgavl_c.la -lm
 
 EXTRA_libgavl_la_SOURCES = _video_copy.c _planar_420_422.c
 

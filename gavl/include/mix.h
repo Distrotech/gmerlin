@@ -1,8 +1,13 @@
-typedef void (*gavl_mix_func_t)(gavl_audio_convert_context_t * ctx,
-                                int output_index);
 
+typedef struct gavl_mix_output_channel_s gavl_mix_output_channel_t;
+
+typedef void (*gavl_mix_func_t)(gavl_mix_output_channel_t * channel,
+                                gavl_audio_frame_t * input_frame,
+                                gavl_audio_frame_t * output_frame);
+                                
 typedef struct
   {
+  gavl_mix_func_t copy_func;
   gavl_mix_func_t mix_1_to_1;
   gavl_mix_func_t mix_2_to_1;
   gavl_mix_func_t mix_3_to_1;
@@ -11,39 +16,38 @@ typedef struct
   gavl_mix_func_t mix_6_to_1;
   } gavl_mixer_table_t;
 
-struct gavl_mix_context_s
+typedef struct gavl_mix_input_channel_s
   {
-  struct
+  int index; /* Which input channel */
+  union      /* Weighing factor     */
     {
-    int num_inputs;
-    int inputs[GAVL_MAX_CHANNELS];
+    float    f_float;
+    int8_t   f_8;
+    int16_t  f_16;
+    int32_t  f_32;
+    } factor;
+  } gavl_mix_input_channel_t;
 
-    union
-      {
-      float f;
-      int8_t s_8;
-      uint8_t u_8;
-      int16_t s_16;
-      uint16_t u_16;
-      } factors[GAVL_MAX_CHANNELS];
-
-    gavl_mix_func_t func;
-    } matrix[GAVL_MAX_CHANNELS];
-
-  //  int out_channels;
-
-  float f_matrix[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS];
-
-  float clev;
-  float slev;
+struct gavl_mix_output_channel_s
+  {
+  int num_inputs;
+  int index;
+  gavl_mix_input_channel_t inputs[GAVL_MAX_CHANNELS];
+  gavl_mix_func_t func;
   };
 
-gavl_mix_context_t *
-gavl_create_mix_context(gavl_audio_options_t * opt,
-                        gavl_audio_format_t * in,
-                        gavl_audio_format_t * out);
+struct gavl_mix_matrix_s
+  {
+  gavl_mix_output_channel_t output_channels[GAVL_MAX_CHANNELS];
+  gavl_mixer_table_t mixer_table;
+  };
 
-void gavl_destroy_mix_context(gavl_mix_context_t *);
+gavl_mix_matrix_t *
+gavl_create_mix_matrix(gavl_audio_options_t * opt,
+                       gavl_audio_format_t * in,
+                       gavl_audio_format_t * out);
+
+void gavl_destroy_mix_matrix(gavl_mix_matrix_t *);
 
 void gavl_mix_audio(gavl_audio_convert_context_t * ctx);
 
