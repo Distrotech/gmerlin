@@ -40,8 +40,8 @@ void * memalign (size_t align, size_t size);
 
 #define ALIGN(a) a=((a+ALIGNMENT_BYTES-1)/ALIGNMENT_BYTES)*ALIGNMENT_BYTES
 
-void gavl_video_frame_alloc(gavl_video_frame_t * ret,
-                            const gavl_video_format_t * format)
+static void video_frame_alloc(gavl_video_frame_t * ret,
+                              const gavl_video_format_t * format)
   {
   switch(format->colorspace)
     {
@@ -140,7 +140,7 @@ void gavl_video_frame_alloc(gavl_video_frame_t * ret,
 
   }
 
-void gavl_video_frame_free(gavl_video_frame_t * frame)
+static void video_frame_free(gavl_video_frame_t * frame)
   {
   if(frame->planes[0])
     free(frame->planes[0]);
@@ -151,13 +151,13 @@ gavl_video_frame_t * gavl_video_frame_create(const gavl_video_format_t * format)
   {
   gavl_video_frame_t * ret = calloc(1, sizeof(gavl_video_frame_t));
   if(format)
-    gavl_video_frame_alloc(ret, format);
+    video_frame_alloc(ret, format);
   return ret;
   }
 
 void gavl_video_frame_destroy(gavl_video_frame_t * frame)
   {
-  gavl_video_frame_free(frame);
+  video_frame_free(frame);
   free(frame);
   }
 
@@ -166,7 +166,7 @@ void gavl_video_frame_null(gavl_video_frame_t* frame)
   frame->planes[0] = (char*)0;
   }
 
-void gavl_clear_video_frame(gavl_video_frame_t * frame,
+void gavl_video_frame_clear(gavl_video_frame_t * frame,
                             gavl_video_format_t * format)
   {
   int i, j;

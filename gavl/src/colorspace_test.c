@@ -1285,7 +1285,7 @@ int main(int argc, char ** argv)
 
       opt.accel_flags = GAVL_ACCEL_C;
         
-      if(!gavl_video_init(cnv, &opt, &input_format, &output_format))
+      if(!gavl_video_converter_init(cnv, &opt, &input_format, &output_format))
         {
         fprintf(stderr, "No Conversion defined yet\n");
         continue;
@@ -1295,7 +1295,7 @@ int main(int argc, char ** argv)
 
       sprintf(filename_buffer, "%s_to_%s_c.png", tmp1, tmp2);
 
-      gavl_clear_video_frame(output_frame, &output_format);
+      gavl_video_frame_clear(output_frame, &output_format);
       
       fprintf(stderr, "ANSI C Version: ");
       
@@ -1311,9 +1311,9 @@ int main(int argc, char ** argv)
 #if 1
       opt.accel_flags = GAVL_ACCEL_MMX;
       
-      gavl_clear_video_frame(output_frame, &output_format);
+      gavl_video_frame_clear(output_frame, &output_format);
       sprintf(filename_buffer, "%s_to_%s_mmx.png", tmp1, tmp2);
-      if(gavl_video_init(cnv, &opt, &input_format, &output_format) == -1)
+      if(gavl_video_converter_init(cnv, &opt, &input_format, &output_format) == -1)
         fprintf(stderr, "No MMX Conversion defined yet\n");
       else
         {
@@ -1327,9 +1327,9 @@ int main(int argc, char ** argv)
       
       opt.accel_flags = GAVL_ACCEL_MMXEXT;
 
-      gavl_clear_video_frame(output_frame, &output_format);
+      gavl_video_frame_clear(output_frame, &output_format);
       sprintf(filename_buffer, "%s_to_%s_mmxext.png", tmp1, tmp2);
-      if(gavl_video_init(cnv, &opt, &input_format, &output_format) == -1)
+      if(gavl_video_converter_init(cnv, &opt, &input_format, &output_format) == -1)
         fprintf(stderr, "No MMXEXT Conversion defined yet\n");
       else
         {

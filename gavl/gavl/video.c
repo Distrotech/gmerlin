@@ -81,10 +81,10 @@ void gavl_video_default_options(gavl_video_options_t * opt)
  * be performed
  ***************************************************/
 
-int gavl_video_init(gavl_video_converter_t * cnv,
-                   const gavl_video_options_t * options,
-                   const gavl_video_format_t * input_format,
-                   const gavl_video_format_t * output_format)
+int gavl_video_converter_init(gavl_video_converter_t * cnv,
+                              const gavl_video_options_t * options,
+                              const gavl_video_format_t * input_format,
+                              const gavl_video_format_t * output_format)
   {
   int ret = 0;
   /* Set the options */

@@ -22,9 +22,9 @@ BuildRoot:	/tmp/gavl
 Gavl is a library for handling and converting uncompressed audio and
 video data. It provides datatypes for audio/video formats and standardized
 structures to store the data. It supports converting between all formats.
-Some conversion functions are available in multiple versions (High Quality, 
-MMX...), which are selected by compile time configuration, CPU 
-autodetection and user options.
+Some conversion functions are available in multiple versions (MMX...),
+which are selected by compile time configuration, CPU autodetection and
+user options.
 
 %package devel
 Summary:	Header files and static library for gavl
@@ -41,9 +41,6 @@ Requires:	%{name} = %{version}
 
 %description devel
 Header files and static library for gavl
-
-%description -l de devel
-Header Dateien und statische Bibliothek für gavl
 
 %prep
 %setup -q
@@ -87,5 +84,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %define date	%(echo `LC_ALL="C" date +"%a %b %d %Y"`)
 %changelog
-* Sat Mar 05 2003 Burkhard Plaum <plaum@ipf.uni-stuttagrt.de>
+* Sat May 29 2004 Burkhard Plaum <gmerlin@users.sourceforge.net>
+- Update
+* Sat Mar 05 2003 Burkhard Plaum <gmerlin@users.sourceforge.net>
 - First working release.

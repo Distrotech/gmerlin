@@ -92,7 +92,7 @@ int main()
         gavl_video_default_options(&opt);
         opt.accel_flags |= GAVL_ACCEL_C;
         
-        if(!gavl_video_init(cnv, &opt, &input_format, &output_format))
+        if(!gavl_video_converter_init(cnv, &opt, &input_format, &output_format))
           fprintf(stderr, "No Conversion defined yet\n");
         else
           {
@@ -110,7 +110,7 @@ int main()
 
         opt.accel_flags = GAVL_ACCEL_MMX;
 
-        if(!gavl_video_init(cnv, &opt, &input_format, &output_format))
+        if(!gavl_video_converter_init(cnv, &opt, &input_format, &output_format))
           fprintf(stderr, "No Conversion defined yet\n");
         else
           {
@@ -125,7 +125,7 @@ int main()
         opt.accel_flags = GAVL_ACCEL_MMX;
         fprintf(stderr, "MMXEXT Version: ");
         
-        if(!gavl_video_init(cnv, &opt, &input_format, &output_format))
+        if(!gavl_video_converter_init(cnv, &opt, &input_format, &output_format))
           fprintf(stderr, "No Conversion defined yet\n");
         else
           {
