@@ -1,0 +1,198 @@
+WHAT THIS IS
+
+This is bgav, a multimedia decoding library. It it primarly a support
+library for gmerlin, but it can also be used as a standalone library for
+getting sophisticated media file decoding support for your application.
+
+It needs gavl, the support library for handling uncompressed audio-
+and video data.
+
+In the include directory, you'll find the headers. The public API
+is in bgav.h. You might also take a look at the gavl headers for the
+definition of the AV-formats and -frames.
+
+The API is damn simple: look at tests/bgavdump.c. This program dumps all
+informations, it can find about a media file onto stderr. After that, it
+tries to decode one frame of each audio- or video stream.
+
+For further information, you can also consult plugins/i_avdec.c, which is
+the actual gmerlin plugin.
+
+REQUIREMENTS:
+
+The configure script autodetects all installed libraries.
+
+* Latest ffmpeg with shared library support. Download ffmpeg, unpack the
+  source and do ./configure --enable-shared; make install
+  It is stronly recommended to install this, otherwise you won't be able to
+  decode much.
+
+* Ogg Vorbis libraries from http://www.vorbis.com
+
+* FAAD from http://www.audiocoding.com
+
+* Win32 codecs. Go to http://mplayerhq.hu and download
+  the files win32codecs.tar.bz2 and qt5dlls.tar.bz2. All
+  codec dlls must be in /usr/lib/win32
+
+* You can also get the xanim 3ivx codec from http://www.3ivx.com.
+  Copy the dll file (vid_3ivX.xa) to a directory and let the
+  XANIM_MOD_DIR environment variable point to it.
+
+
+SUPPORTED FORMATS:
+
+* AVI
+* ASF (aka WMV, WMA)
+* Quicktime
+* RealMedia (.rm)
+* WAV
++ mp4
+* aiff
+* au
+* Real Audio (.ra) (todo)
+
+SUPPORTED CODECS:
+
+Audio 
+Decoder                       FOURCCs and WAV IDs
+
+FFmpeg mp2 decoder            WavID: 0x0050
+FFmpeg mp3 decoder            WavID: 0x0055
+                              .mp3 (2e6d7033)
+                              msU (6d730055)
+FFmpeg PCM decoder            WavID: 0x0001
+                              sowt (736f7774)
+FFmpeg PCM decoder            WavID: 0x0001
+                              twos (74776f73)
+FFmpeg PCM decoder            WavID: 0x0001
+                              raw  (72617720)
+FFmpeg alaw decoder           WavID: 0x0006
+                              alaw (616c6177)
+FFmpeg mulaw decoder          WavID: 0x0007
+                              ulaw (756c6177)
+FFmpeg MS ADPCM decoder       WavID: 0x0002
+                              ms (6d730002)
+FFmpeg WAV ADPCM decoder      WavID: 0x0011
+                              ms (6d730011)
+FFmpeg IMA DK4 decoder        WavID: 0x0061
+FFmpeg IMA DK3 decoder        WavID: 0x0062
+FFmpeg ima4 decoder           ima4 (696d6134)
+FFmpeg WMA1 decoder           WavID: 0x0160
+FFmpeg WMA2 decoder           WavID: 0x0161
+FFmpeg MACE3 decoder          MAC3 (4d414333)
+FFmpeg MACE6 decoder          MAC6 (4d414336)
+Ogg vorbis audio decoder      OggS (4f676753)
+                              OggV (4f676756)
+                              WavID: 0xfffe
+Real audio dnet DLL decoder   dnet (646e6574)
+Real audio sipr DLL decoder   sipr (73697072)
+Real audio cook decoder       cook (636f6f6b)
+Real audio 14.4 decoder       14_4 (31345f34)
+Real audio 28.8 decoder       28_8 (32385f38)
+Real audio atrc decoder       atrc (61747263)
+Win32 Quicktime audio decoder QDMC (51444d43)
+                              QDM2 (51444d32)
+                              Qclp (51636c70)
+FAAD AAC audio decoder        mp4a (6d703461)
+
+Video
+Decoder                       FOURCCs
+
+FFmpeg Raw decoder            Y422 (59343232)
+                              I420 (49343230)
+FFmpeg 8BPS decoder           8BPS (38425053)
+FFmpeg Inteo 3 decoder        IV31 (49563331)
+                              IV32 (49563332)
+FFmpeg rpza decoder           rpza (72707a61)
+FFmpeg SMC decoder            smc  (736d6320)
+FFmpeg cinepak decoder        cvid (63766964)
+FFmpeg MSVideo 1 decoder      MSVC (4d535643)
+                              msvc (6d737663)
+                              CRAM (4352414d)
+                              cram (6372616d)
+                              WHAM (5748414d)
+                              wham (7768616d)
+FFmpeg Creative YUV decoder   CYUV (43595556)
+FFmpeg H263 decoder           H263 (48323633)
+                              h263 (68323633)
+                              s263 (73323633)
+FFmpeg H263I decoder          I263 (49323633)
+FFmpeg MPEG-4 decoder         DIVX (44495658)
+                              DX50 (44583530)
+                              XVID (58564944)
+                              XVID (58564944)
+                              MP4S (4d503453)
+                              M4S2 (4d345332)
+                               (04000000)
+                              DIV1 (44495631)
+                              BLZ0 (424c5a30)
+                              mp4v (6d703476)
+                              UMP4 (554d5034)
+FFmpeg MSMPEG4V3 decoder      DIV3 (44495633)
+                              MP43 (4d503433)
+                              MPG3 (4d504733)
+                              DIV5 (44495635)
+                              DIV6 (44495636)
+                              DIV4 (44495634)
+                              AP41 (41503431)
+                              COL1 (434f4c31)
+                              COL0 (434f4c30)
+FFmpeg MSMPEG4V2 decoder      MP42 (4d503432)
+                              DIV2 (44495632)
+FFmpeg MSMPEG4V1 decoder      MPG4 (4d504734)
+                              DIV4 (44495634)
+FFmpeg WMV1 decoder           WMV1 (574d5631)
+FFmpeg WMV2 decoder           WMV2 (574d5632)
+FFmpeg DV decoder             dvsd (64767364)
+                              dvhd (64766864)
+                              dvsl (6476736c)
+                              dv25 (64763235)
+FFmpeg motion Jpeg decoder    MJPG (4d4a5047)
+                              LJPG (4c4a5047)
+                              AVRn (4156526e)
+                              JPGL (4a50474c)
+                              jpeg (6a706567)
+                              mjpa (6d6a7061)
+                              mjpb (6d6a7062)
+                              AVDJ (4156444a)
+FFmpeg Real Video 1.0 decoder RV10 (52563130)
+                              RV13 (52563133)
+FFmpeg Sorenson 1 decoder     SVQ1 (53565131)
+                              svq1 (73767131)
+                              svqi (73767169)
+FFmpeg Sorenson 3 decoder     SVQ3 (53565133)
+FFmpeg Mpeg1 decoder          mpg1 (6d706731)
+                              mpg2 (6d706732)
+                              PIM1 (50494d31)
+                              VCR2 (56435232)
+FFmpeg Hufyuv decoder         HFYU (48465955)
+FFmpeg VP32 decoder           VP31 (56503331)
+FFmpeg ASV1 decoder           ASV1 (41535631)
+FFmpeg ASV2 decoder           ASV2 (41535632)
+FFmpeg VCR1 decoder           VCR1 (56435231)
+FFmpeg FFV1 decoder           FFV1 (46465631)
+Real Video 2.0 DLL decoder    RV20 (52563230)
+Real Video 3.0 DLL decoder    RV30 (52563330)
+Real Video 4.0 DLL decoder    RV40 (52563430)
+Quicktime raw video decoder   raw  (72617720)
+Win32 Indeo 3.2 decoder       IV32 (49563332)
+Win32 Indeo 4.1 decoder       IV41 (49563431)
+DirectShow Indeo 5.0 decoder  IV50 (49563530)
+Win32 Indeo 5.0 decoder       IV50 (49563530)
+Win32 VP4 decoder             VP40 (56503430)
+DMO WMV9 decoder              WMV3 (574d5633)
+PNG video decoder             png  (706e6720)
+                              MPNG (4d504e47)
+Xanim dll decoder             3IV1 (33495631)
+                              3iv1 (33697631)
+
+PLEASE NOTE:
+
+This library has no and will never get any support for MPEG-1/2 formats.
+MPEG-Support is in a separate library (along with VCD and DVD support),
+OggVorbis has just a gmerlin plugin.
+
+If you use the libgmerlin library instead of bgav, you'll get support for
+all other formats, for which gmerlin plugins exist.
+

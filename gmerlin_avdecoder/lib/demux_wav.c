@@ -1,0 +1,252 @@
+/*****************************************************************
+ 
+  demux_wav.c
+ 
+  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
+#include <avdec_private.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+/* WAV demuxer */
+
+typedef struct
+  {
+  int32_t data_size;
+  uint32_t data_start;
+  int packet_size;
+  } wav_priv_t;
+
+static int probe_wav(bgav_input_context_t * input)
+  {
+  uint8_t test_data[12];
+  if(bgav_input_get_data(input, test_data, 12) < 12)
+    return 0;
+  if((test_data[0] ==  'R') &&
+     (test_data[1] ==  'I') &&
+     (test_data[2] ==  'F') &&
+     (test_data[3] ==  'F') &&
+     (test_data[8] ==  'W') &&
+     (test_data[9] ==  'A') &&
+     (test_data[10] == 'V') &&
+     (test_data[11] == 'E'))
+    return 1;
+  return 0;
+  }
+
+static int find_tag(bgav_demuxer_context_t * ctx, uint32_t tag)
+  {
+  uint32_t fourcc;
+  uint32_t size;
+  
+  while(1)
+    {
+    if(!bgav_input_read_fourcc(ctx->input, &fourcc) ||
+       !bgav_input_read_32_le(ctx->input, &size))
+      return -1;
+    if(fourcc == tag)
+      return size;
+    }
+  return -1;
+  }
+
+static int open_wav(bgav_demuxer_context_t * ctx)
+  {
+  uint32_t fourcc;
+  //  int size;
+  uint32_t file_size;
+  int format_size;
+  bgav_stream_t * s;
+
+  uint16_t tmp_16;
+  uint32_t tmp_32;
+  
+  wav_priv_t * priv;
+
+  priv = calloc(1, sizeof(*priv));
+  ctx->priv = priv;
+
+  /* Recheck the header */
+  
+  if(!bgav_input_read_fourcc(ctx->input, &fourcc) ||
+     (fourcc != BGAV_MK_FOURCC('R', 'I', 'F', 'F')))
+    goto fail;
+  
+  if(!bgav_input_read_32_le(ctx->input, &file_size))
+    goto fail;
+
+  fprintf(stderr, "File size: %d\n", file_size);
+    
+  if(!bgav_input_read_fourcc(ctx->input, &fourcc) ||
+     (fourcc != BGAV_MK_FOURCC('W', 'A', 'V', 'E')))
+    goto fail;
+
+  /* Search for the format tag */
+
+  format_size = find_tag(ctx, BGAV_MK_FOURCC('f', 'm', 't', ' '));
+
+  if(format_size < 0)
+    goto fail;
+
+  s = bgav_demuxer_add_audio_stream(ctx);
+
+  if(!bgav_input_read_16_le(ctx->input, &tmp_16))
+    goto fail;
+
+  s->fourcc = BGAV_WAVID_2_FOURCC(tmp_16);
+
+  if(!bgav_input_read_16_le(ctx->input, &tmp_16))
+    goto fail;
+
+  s->data.audio.format.num_channels = tmp_16;
+
+  if(!bgav_input_read_32_le(ctx->input, &tmp_32))
+    goto fail;
+  s->data.audio.format.samplerate = tmp_32;
+
+  if(!bgav_input_read_32_le(ctx->input, &tmp_32))
+    goto fail;
+  s->data.audio.bitrate = tmp_32 * 8;
+
+  if(!bgav_input_read_16_le(ctx->input, &tmp_16))
+    goto fail;
+  s->data.audio.block_align = tmp_16 * 8;
+
+  if(format_size == 14)
+    {
+    s->data.audio.bits_per_sample = 8;
+    }
+  else
+    {
+    if(!bgav_input_read_16_le(ctx->input, &tmp_16))
+      goto fail;
+    s->data.audio.bits_per_sample = tmp_16;
+
+    if(format_size > 16)
+      {
+      if(!bgav_input_read_16_le(ctx->input, &tmp_16))
+        goto fail;
+      if(tmp_16)
+        {
+        s->ext_size = tmp_16;
+        s->ext_data = malloc(s->ext_size);
+        if(bgav_input_read_data(ctx->input, s->ext_data, s->ext_size) <
+           s->ext_size)
+          goto fail;
+        }
+
+      /* It is possible for the chunk to contain garbage at the end */
+      if(format_size - s->ext_size - 18 > 0)
+        bgav_input_skip(ctx->input, format_size - s->ext_size - 18);
+      }
+    }
+  
+  priv->data_size = find_tag(ctx, BGAV_MK_FOURCC('d', 'a', 't', 'a'));
+  if(priv->data_size < 0)
+    goto fail;
+  priv->data_start = ctx->input->position;
+
+  /* Packet size will be at least 1024 bytes */
+
+  priv->packet_size = ((1024 + s->data.audio.block_align - 1) / 
+                       s->data.audio.block_align) * s->data.audio.block_align;
+  //  fprintf(stderr, "Packet size: %d\n", priv->packet_size);
+
+  if(ctx->input->input->seek_byte)
+    ctx->can_seek = 1;
+
+  ctx->duration = ((int64_t)priv->data_size * (int64_t)GAVL_TIME_SCALE) / 
+    (ctx->audio_streams[0].data.audio.bitrate / 8);
+
+  ctx->stream_description = bgav_sprintf("WAV Format");
+  
+  return 1;
+  
+  fail:
+  return 0;
+  }
+
+static int next_packet_wav(bgav_demuxer_context_t * ctx)
+  {
+  bgav_packet_t * p;
+  bgav_stream_t * s;
+  wav_priv_t * priv;
+  priv = (wav_priv_t *)(ctx->priv);
+    
+  s = bgav_demuxer_find_stream(ctx, 0);
+
+  if(!s)
+    return 1;
+
+  p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
+  
+  p->timestamp = ((ctx->input->position - priv->data_start) * GAVL_TIME_SCALE) /
+    (s->data.audio.bitrate / 8);
+  
+  bgav_packet_alloc(p, priv->packet_size);
+    
+  p->data_size = bgav_input_read_data(ctx->input, p->data, priv->packet_size);
+
+  //  fprintf(stderr, "Read packet 1");
+  
+  p->keyframe = 1;
+  
+  if(!p->data_size)
+    return 0;
+  
+  bgav_packet_done_write(p);
+  //  fprintf(stderr, "done\n");
+  
+  return 1;
+  }
+
+static void seek_wav(bgav_demuxer_context_t * ctx, gavl_time_t time)
+  {
+  int64_t file_position;
+  wav_priv_t * priv;
+  priv = (wav_priv_t *)(ctx->priv);
+  
+  file_position = (time * (ctx->audio_streams[0].data.audio.bitrate / 8)) /
+    GAVL_TIME_SCALE;
+  file_position /= ctx->audio_streams[0].data.audio.block_align;
+  file_position *= ctx->audio_streams[0].data.audio.block_align;
+
+  /* Calculate the time before we add the start offset */
+  ctx->audio_streams[0].time = ((int64_t)file_position * GAVL_TIME_SCALE) /
+    (ctx->audio_streams[0].data.audio.bitrate / 8);
+  
+  file_position += priv->data_start;
+  bgav_input_seek(ctx->input, file_position, SEEK_SET);
+  }
+
+static void close_wav(bgav_demuxer_context_t * ctx)
+  {
+  wav_priv_t * priv;
+  priv = (wav_priv_t *)(ctx->priv);
+  if(ctx->audio_streams[0].ext_data)
+    free(ctx->audio_streams[0].ext_data);
+  free(priv);
+  }
+
+bgav_demuxer_t bgav_demuxer_wav =
+  {
+    probe:       probe_wav,
+    open:        open_wav,
+    next_packet: next_packet_wav,
+    seek:        seek_wav,
+    close:       close_wav
+  };
+
