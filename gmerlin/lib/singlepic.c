@@ -511,6 +511,8 @@ static bg_parameter_info_t parameters_encoder[] =
 
 typedef struct
   {
+  char * first_filename;
+  
   bg_plugin_handle_t * plugin_handle;
   bg_image_writer_plugin_t * image_writer;
   
@@ -639,14 +641,23 @@ static int open_encoder(void * data, const char * filename,
 
   e->mask = bg_strcat(e->mask, e->extension_mask);
 
-  fprintf(stderr, "Mask: %s\n", e->mask);
+  //  fprintf(stderr, "Mask: %s\n", e->mask);
 
   e->filename_buffer = malloc(filename_len+1);
 
   e->frame_counter = e->frame_offset;
-  return 0;
+
+  e->first_filename = bg_sprintf(e->mask, e->frame_counter);
+
+  return 1;
   }
 
+static const char * get_filename_encoder(void * data)
+  {
+  encoder_t * e;
+  e = (encoder_t *)data;
+  return e->first_filename;
+  }
 
 static int write_frame_header(encoder_t * e)
   {
@@ -728,7 +739,8 @@ static void close_encoder(void * data, int do_delete)
   STR_FREE(e->extension_mask);
   STR_FREE(e->mask);
   STR_FREE(e->filename_buffer);
-
+  STR_FREE(e->first_filename);
+  
   if(e->plugin_handle)
     {
     bg_plugin_unref(e->plugin_handle);
@@ -777,17 +789,18 @@ bg_encoder_plugin_t encoder_plugin =
     /* Open a file, filename base is without extension, which
        will be added by the plugin */
         
-    open: open_encoder,
+    open:              open_encoder,
+    get_filename:      get_filename_encoder,
+    
+    add_video_stream:  add_video_stream_encoder,
+    
+    get_video_format:  get_video_format_encoder,
 
-    add_video_stream: add_video_stream_encoder,
-    
-    get_video_format:    get_video_format_encoder,
-    
     write_video_frame: write_video_frame_encoder,
     
     /* Close it */
 
-    close: close_encoder,
+    close:             close_encoder,
   };
 
 bg_plugin_common_t * bg_singlepic_encoder_get()

@@ -24,7 +24,7 @@
 #include "parameter.h"
 #include "streaminfo.h"
 
-#define BG_PLUGIN_API_VERSION 1
+#define BG_PLUGIN_API_VERSION 2
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -509,7 +509,15 @@ typedef struct bg_encoder_plugin_s
      will be added by the plugin */
   
   int (*open)(void *, const char * filename, bg_metadata_t * metadata);
-  
+
+  /* Return the filename which can be passed to the player.
+     This must be implemented only if it's different
+     from the filename passed to the open function */
+
+  const char * (*get_filename)(void*);
+
+  /* Return per stream parameters */
+    
   bg_parameter_info_t * (*get_audio_parameters)(void * data);
   bg_parameter_info_t * (*get_video_parameters)(void * data);
 
