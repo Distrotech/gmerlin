@@ -505,7 +505,11 @@ static int process_command(bg_player_t * player,
       //      fprintf(stderr, "Command play\n");
       arg_i1   = bg_msg_get_arg_int(command, 2);
       state = bg_player_get_state(player);
-      
+      if(state == BG_PLAYER_STATE_PAUSED)
+        {
+        pause_cmd(player);
+        return 1;
+        }
       if(arg_i1)
         {
         if((state == BG_PLAYER_STATE_PLAYING) &&
