@@ -1,0 +1,29 @@
+rgb_yuv_mmx.lo rgb_yuv_mmx.o: rgb_yuv_mmx.c _rgb_yuv_mmx.c \
+  ../../include/gavl.h /usr/include/inttypes.h /usr/include/features.h \
+  /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h /usr/include/stdint.h \
+  /usr/include/bits/wchar.h /usr/include/bits/wordsize.h \
+  ../../include/video.h ../../include/config.h ../../include/colorspace.h
+
+_rgb_yuv_mmx.c:
+
+../../include/gavl.h:
+
+/usr/include/inttypes.h:
+
+/usr/include/features.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/gnu/stubs.h:
+
+/usr/include/stdint.h:
+
+/usr/include/bits/wchar.h:
+
+/usr/include/bits/wordsize.h:
+
+../../include/video.h:
+
+../../include/config.h:
+
+../../include/colorspace.h:

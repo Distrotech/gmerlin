@@ -1,0 +1,29 @@
+This is gavl, a library for handling uncompressed video-
+and (soon) audio data.
+
+It is developed as an integral part of the gmerlin sourcetree,
+but the neccesary stuff was added to make it usable as a 
+standalone library.
+
+See the header file include/gavl.h and the sample files
+src/colorspace_test.c and src/colorspace_time.c for
+information and how to use this thing.
+
+By default, gavl is compiled as a static library.
+
+For testing the library, the src directory contains
+some test programs.
+
+colorspace_test:
+Makes your current directory full of pngs, one test file
+for each colorspace and one for each conversion.
+Ideally, all these pictures should look the same.
+
+colorspace_time:
+Makes all defined conversions 20 times and prints, how long
+it needed. Good for making C <-> MMX speed comparisons.
+
+Every programmer, who agrees to this kind of API is welcome to
+integrate gavl into his/her project so we can save some
+energy while writing/searching the best and fastest
+conversion routines.

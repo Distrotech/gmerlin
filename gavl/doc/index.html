@@ -1,0 +1,73 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.75 [de] (X11; U; Linux 2.4.18 i686) [Netscape]">
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+
+<h1>
+GAVL</h1>
+GAVL stands for <b>G</b>merlin <b>A</b>udio <b>V</b>ideo <b>L</b>ibrary.
+It is an attempt to write an optimized, general purpose conversion library
+for uncompressed audio- and video data. The goal is to have a central location,
+where everyone can put his/her routines.
+<p>It currently supports only colorspace conversions and the allocation
+of video frames with pointers aligned at proper boundaries. In future versions,
+video scaling as well as audio resampling might also appear here.
+<p>It has the following features:
+<ul>
+<li>
+Extremely simple C API, which hides the internals of the conversion but
+gives a reasonable level of user control</li>
+
+<li>
+Complete set of colorspace conversions, every colorspace can be converted
+to every other.</li>
+
+<li>
+The use of function tables makes it possible to have several versions (C,
+MMX etc.) of a routine. Selection of the routines is based on&nbsp; compile
+time configuration, runtime detection and user settable flags.</li>
+
+<li>
+Heavy use of C macros creates 100s of conversion functions using only few,
+easily optimziable lines of code.</li>
+
+<li>
+Integrated testsuite automatically creates timing comparisons for the different
+versions of all conversion routines</li>
+
+<li>
+You need nothing but gcc to compile this. All other library dependencies
+were removed (only for the testsuite, you need the png library)</li>
+
+<li>
+This library released is under the GPL license and cannot used by commercial
+applications, unfortunately :-)</li>
+</ul>
+Planned features are:
+<ul>
+<li>
+High quality mode with slower routines, which are fully standards compilant
+and suitable for high end applications</li>
+
+<li>
+Maybe a few more colorspaces</li>
+
+<li>
+Audio conversion routines: Mixing, resampling</li>
+
+<li>
+Video scaling and deinterlacing</li>
+
+<li>
+.....</li>
+</ul>
+This library is a side project of the gmerlin project. It replaces gmerlins
+own colorspace converter (which was too bad, really...). It is planned
+also to port gmerlins audio conversion engine (which isn't too bad) to
+gavl.
+<br>&nbsp;
+</body>
+</html>

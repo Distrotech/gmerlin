@@ -1,0 +1,528 @@
+************* Colorspace conversion RGB_15 -> BGR_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.142865 (0.007143 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.049627 (0.002481 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.049682 (0.002484 per conversion)
+************* Colorspace conversion RGB_15 -> RGB_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.094555 (0.004728 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.047693 (0.002385 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.047595 (0.002380 per conversion)
+************* Colorspace conversion RGB_15 -> BGR_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.151084 (0.007554 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.049668 (0.002483 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.049474 (0.002474 per conversion)
+************* Colorspace conversion RGB_15 -> RGB_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.173526 (0.008676 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.066221 (0.003311 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.066148 (0.003307 per conversion)
+************* Colorspace conversion RGB_15 -> BGR_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.167637 (0.008382 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.066634 (0.003332 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.066552 (0.003328 per conversion)
+************* Colorspace conversion RGB_15 -> RGB_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.213640 (0.010682 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.100921 (0.005046 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.099317 (0.004966 per conversion)
+************* Colorspace conversion RGB_15 -> BGR_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.216148 (0.010807 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.100498 (0.005025 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.099387 (0.004969 per conversion)
+************* Colorspace conversion RGB_15 -> RGBA_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.223118 (0.011156 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.087509 (0.004375 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.088118 (0.004406 per conversion)
+************* Colorspace conversion RGB_15 -> YUY2 *************
+ANSI C Version: Made 20 conversions, Time: 0.443246 (0.022162 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion RGB_15 -> YUV_420_P *************
+ANSI C Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion RGB_15 -> YUV_422_P *************
+ANSI C Version: Made 20 conversions, Time: 0.318788 (0.015939 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000000 (0.000000 per conversion)
+************* Colorspace conversion BGR_15 -> RGB_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.140705 (0.007035 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.050583 (0.002529 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.049846 (0.002492 per conversion)
+************* Colorspace conversion BGR_15 -> RGB_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.150854 (0.007543 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.050641 (0.002532 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.050004 (0.002500 per conversion)
+************* Colorspace conversion BGR_15 -> BGR_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.093063 (0.004653 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.047674 (0.002384 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.048350 (0.002417 per conversion)
+************* Colorspace conversion BGR_15 -> RGB_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.166757 (0.008338 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.067168 (0.003358 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.066529 (0.003326 per conversion)
+************* Colorspace conversion BGR_15 -> BGR_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.174233 (0.008712 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.066349 (0.003317 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.066425 (0.003321 per conversion)
+************* Colorspace conversion BGR_15 -> RGB_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.216294 (0.010815 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.099218 (0.004961 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.100004 (0.005000 per conversion)
+************* Colorspace conversion BGR_15 -> BGR_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.214660 (0.010733 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.099130 (0.004956 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.099836 (0.004992 per conversion)
+************* Colorspace conversion BGR_15 -> RGBA_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.221667 (0.011083 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.088085 (0.004404 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.087323 (0.004366 per conversion)
+************* Colorspace conversion BGR_15 -> YUY2 *************
+ANSI C Version: Made 20 conversions, Time: 0.440494 (0.022025 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion BGR_15 -> YUV_420_P *************
+ANSI C Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion BGR_15 -> YUV_422_P *************
+ANSI C Version: Made 20 conversions, Time: 0.313604 (0.015680 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion RGB_16 -> RGB_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.096943 (0.004847 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.048030 (0.002402 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.047442 (0.002372 per conversion)
+************* Colorspace conversion RGB_16 -> BGR_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.146852 (0.007343 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.050398 (0.002520 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.050193 (0.002510 per conversion)
+************* Colorspace conversion RGB_16 -> BGR_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.141524 (0.007076 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.049788 (0.002489 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.049993 (0.002500 per conversion)
+************* Colorspace conversion RGB_16 -> RGB_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.173800 (0.008690 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.066562 (0.003328 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.067126 (0.003356 per conversion)
+************* Colorspace conversion RGB_16 -> BGR_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.167744 (0.008387 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.067139 (0.003357 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.066657 (0.003333 per conversion)
+************* Colorspace conversion RGB_16 -> RGB_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.213189 (0.010659 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.098750 (0.004938 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.099410 (0.004971 per conversion)
+************* Colorspace conversion RGB_16 -> BGR_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.216081 (0.010804 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.099679 (0.004984 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.098966 (0.004948 per conversion)
+************* Colorspace conversion RGB_16 -> RGBA_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.222525 (0.011126 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.087574 (0.004379 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.087139 (0.004357 per conversion)
+************* Colorspace conversion RGB_16 -> YUY2 *************
+ANSI C Version: Made 20 conversions, Time: 0.444058 (0.022203 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000002 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000000 (0.000000 per conversion)
+************* Colorspace conversion RGB_16 -> YUV_420_P *************
+ANSI C Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion RGB_16 -> YUV_422_P *************
+ANSI C Version: Made 20 conversions, Time: 0.323260 (0.016163 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion BGR_16 -> RGB_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.146823 (0.007341 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.050080 (0.002504 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.050076 (0.002504 per conversion)
+************* Colorspace conversion BGR_16 -> BGR_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.096361 (0.004818 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.047791 (0.002390 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.047541 (0.002377 per conversion)
+************* Colorspace conversion BGR_16 -> RGB_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.141078 (0.007054 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.049965 (0.002498 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.049794 (0.002490 per conversion)
+************* Colorspace conversion BGR_16 -> RGB_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.167432 (0.008372 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.066549 (0.003327 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.067421 (0.003371 per conversion)
+************* Colorspace conversion BGR_16 -> BGR_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.173939 (0.008697 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.066353 (0.003318 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.066958 (0.003348 per conversion)
+************* Colorspace conversion BGR_16 -> RGB_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.215350 (0.010768 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.099550 (0.004977 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.098755 (0.004938 per conversion)
+************* Colorspace conversion BGR_16 -> BGR_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.213022 (0.010651 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.100131 (0.005007 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.099230 (0.004961 per conversion)
+************* Colorspace conversion BGR_16 -> RGBA_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.221556 (0.011078 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.087619 (0.004381 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.088179 (0.004409 per conversion)
+************* Colorspace conversion BGR_16 -> YUY2 *************
+ANSI C Version: Made 20 conversions, Time: 0.443790 (0.022189 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion BGR_16 -> YUV_420_P *************
+ANSI C Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion BGR_16 -> YUV_422_P *************
+ANSI C Version: Made 20 conversions, Time: 0.319232 (0.015962 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000000 (0.000000 per conversion)
+************* Colorspace conversion RGB_24 -> RGB_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.114197 (0.005710 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.050274 (0.002514 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.051135 (0.002557 per conversion)
+************* Colorspace conversion RGB_24 -> BGR_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.114318 (0.005716 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.050309 (0.002515 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.051043 (0.002552 per conversion)
+************* Colorspace conversion RGB_24 -> RGB_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.113691 (0.005685 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.050340 (0.002517 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.050264 (0.002513 per conversion)
+************* Colorspace conversion RGB_24 -> BGR_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.116128 (0.005806 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.050257 (0.002513 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.050295 (0.002515 per conversion)
+************* Colorspace conversion RGB_24 -> BGR_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.173747 (0.008687 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.079617 (0.003981 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.080359 (0.004018 per conversion)
+************* Colorspace conversion RGB_24 -> RGB_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.185994 (0.009300 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.087938 (0.004397 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.087871 (0.004394 per conversion)
+************* Colorspace conversion RGB_24 -> BGR_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.186941 (0.009347 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.087861 (0.004393 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.088504 (0.004425 per conversion)
+************* Colorspace conversion RGB_24 -> RGBA_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.189941 (0.009497 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.087841 (0.004392 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.087894 (0.004395 per conversion)
+************* Colorspace conversion RGB_24 -> YUY2 *************
+ANSI C Version: Made 20 conversions, Time: 0.272471 (0.013624 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion RGB_24 -> YUV_420_P *************
+ANSI C Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000000 (0.000000 per conversion)
+************* Colorspace conversion RGB_24 -> YUV_422_P *************
+ANSI C Version: Made 20 conversions, Time: 0.310265 (0.015513 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion BGR_24 -> RGB_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.115284 (0.005764 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.050516 (0.002526 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.051335 (0.002567 per conversion)
+************* Colorspace conversion BGR_24 -> BGR_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.114545 (0.005727 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.050552 (0.002528 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.051112 (0.002556 per conversion)
+************* Colorspace conversion BGR_24 -> RGB_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.114864 (0.005743 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.050502 (0.002525 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.050506 (0.002525 per conversion)
+************* Colorspace conversion BGR_24 -> BGR_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.115237 (0.005762 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.050545 (0.002527 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.050539 (0.002527 per conversion)
+************* Colorspace conversion BGR_24 -> RGB_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.175428 (0.008771 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.079554 (0.003978 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.080316 (0.004016 per conversion)
+************* Colorspace conversion BGR_24 -> RGB_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.185838 (0.009292 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.087733 (0.004387 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.087560 (0.004378 per conversion)
+************* Colorspace conversion BGR_24 -> BGR_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.185355 (0.009268 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.087418 (0.004371 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.088752 (0.004438 per conversion)
+************* Colorspace conversion BGR_24 -> RGBA_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.191109 (0.009555 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.087624 (0.004381 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.087574 (0.004379 per conversion)
+************* Colorspace conversion BGR_24 -> YUY2 *************
+ANSI C Version: Made 20 conversions, Time: 0.272701 (0.013635 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion BGR_24 -> YUV_420_P *************
+ANSI C Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000000 (0.000000 per conversion)
+************* Colorspace conversion BGR_24 -> YUV_422_P *************
+ANSI C Version: Made 20 conversions, Time: 0.309783 (0.015489 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion RGB_32 -> RGB_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.129066 (0.006453 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.056685 (0.002834 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.056311 (0.002816 per conversion)
+************* Colorspace conversion RGB_32 -> BGR_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.123210 (0.006160 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.067177 (0.003359 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.066781 (0.003339 per conversion)
+************* Colorspace conversion RGB_32 -> RGB_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.127466 (0.006373 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.056847 (0.002842 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.056164 (0.002808 per conversion)
+************* Colorspace conversion RGB_32 -> BGR_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.123254 (0.006163 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.057167 (0.002858 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.056392 (0.002820 per conversion)
+************* Colorspace conversion RGB_32 -> RGB_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.149921 (0.007496 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.074802 (0.003740 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.074084 (0.003704 per conversion)
+************* Colorspace conversion RGB_32 -> BGR_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.143649 (0.007182 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.074213 (0.003711 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.074328 (0.003716 per conversion)
+************* Colorspace conversion RGB_32 -> BGR_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.192877 (0.009644 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.091574 (0.004579 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.092379 (0.004619 per conversion)
+************* Colorspace conversion RGB_32 -> RGBA_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.188632 (0.009432 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.091242 (0.004562 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.091257 (0.004563 per conversion)
+************* Colorspace conversion RGB_32 -> YUY2 *************
+ANSI C Version: Made 20 conversions, Time: 0.275097 (0.013755 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000000 (0.000000 per conversion)
+************* Colorspace conversion RGB_32 -> YUV_420_P *************
+ANSI C Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000000 (0.000000 per conversion)
+************* Colorspace conversion RGB_32 -> YUV_422_P *************
+ANSI C Version: Made 20 conversions, Time: 0.318261 (0.015913 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion BGR_32 -> RGB_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.123445 (0.006172 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.067689 (0.003384 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.067359 (0.003368 per conversion)
+************* Colorspace conversion BGR_32 -> BGR_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.128646 (0.006432 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.056711 (0.002836 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.056289 (0.002814 per conversion)
+************* Colorspace conversion BGR_32 -> RGB_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.123572 (0.006179 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.056148 (0.002807 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.056162 (0.002808 per conversion)
+************* Colorspace conversion BGR_32 -> BGR_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.128603 (0.006430 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.056450 (0.002823 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.056409 (0.002820 per conversion)
+************* Colorspace conversion BGR_32 -> RGB_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.143107 (0.007155 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.074176 (0.003709 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.074864 (0.003743 per conversion)
+************* Colorspace conversion BGR_32 -> BGR_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.149703 (0.007485 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.074178 (0.003709 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.074769 (0.003738 per conversion)
+************* Colorspace conversion BGR_32 -> RGB_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.192443 (0.009622 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.092069 (0.004603 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.091489 (0.004574 per conversion)
+************* Colorspace conversion BGR_32 -> RGBA_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.202498 (0.010125 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.091321 (0.004566 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.092884 (0.004644 per conversion)
+************* Colorspace conversion BGR_32 -> YUY2 *************
+ANSI C Version: Made 20 conversions, Time: 0.277202 (0.013860 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion BGR_32 -> YUV_420_P *************
+ANSI C Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion BGR_32 -> YUV_422_P *************
+ANSI C Version: Made 20 conversions, Time: 0.320536 (0.016027 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000002 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion RGBA_32 -> RGB_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.018545 (0.000927 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.057839 (0.002892 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.056840 (0.002842 per conversion)
+************* Colorspace conversion RGBA_32 -> BGR_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.018569 (0.000928 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.057089 (0.002854 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.056099 (0.002805 per conversion)
+************* Colorspace conversion RGBA_32 -> RGB_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.018548 (0.000927 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.058614 (0.002931 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.056175 (0.002809 per conversion)
+************* Colorspace conversion RGBA_32 -> BGR_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.018544 (0.000927 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.057113 (0.002856 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.056156 (0.002808 per conversion)
+************* Colorspace conversion RGBA_32 -> RGB_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.018497 (0.000925 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.076367 (0.003818 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.074201 (0.003710 per conversion)
+************* Colorspace conversion RGBA_32 -> BGR_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.018500 (0.000925 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.075722 (0.003786 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.074923 (0.003746 per conversion)
+************* Colorspace conversion RGBA_32 -> RGB_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.018521 (0.000926 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.093419 (0.004671 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.091908 (0.004595 per conversion)
+************* Colorspace conversion RGBA_32 -> BGR_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.018547 (0.000927 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.093566 (0.004678 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.091361 (0.004568 per conversion)
+************* Colorspace conversion RGBA_32 -> YUY2 *************
+ANSI C Version: Made 20 conversions, Time: 0.009353 (0.000468 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion RGBA_32 -> YUV_420_P *************
+ANSI C Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion RGBA_32 -> YUV_422_P *************
+ANSI C Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000000 (0.000000 per conversion)
+************* Colorspace conversion YUY2 -> RGB_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.438872 (0.021944 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.107806 (0.005390 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.107065 (0.005353 per conversion)
+************* Colorspace conversion YUY2 -> BGR_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.463876 (0.023194 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.107056 (0.005353 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.106179 (0.005309 per conversion)
+************* Colorspace conversion YUY2 -> RGB_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.439714 (0.021986 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.103473 (0.005174 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.104182 (0.005209 per conversion)
+************* Colorspace conversion YUY2 -> BGR_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.463411 (0.023171 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.103521 (0.005176 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.104119 (0.005206 per conversion)
+************* Colorspace conversion YUY2 -> RGB_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.405990 (0.020299 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.059652 (0.002983 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.060586 (0.003029 per conversion)
+************* Colorspace conversion YUY2 -> BGR_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.403619 (0.020181 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.060360 (0.003018 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.059586 (0.002979 per conversion)
+************* Colorspace conversion YUY2 -> RGB_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.433957 (0.021698 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.137680 (0.006884 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.137445 (0.006872 per conversion)
+************* Colorspace conversion YUY2 -> BGR_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.433492 (0.021675 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.136801 (0.006840 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.137415 (0.006871 per conversion)
+************* Colorspace conversion YUY2 -> RGBA_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.420722 (0.021036 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.151388 (0.007569 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.152124 (0.007606 per conversion)
+************* Colorspace conversion YUY2 -> YUV_420_P *************
+ANSI C Version: Made 20 conversions, Time: 0.070552 (0.003528 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.048084 (0.002404 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.048401 (0.002420 per conversion)
+************* Colorspace conversion YUY2 -> YUV_422_P *************
+ANSI C Version: Made 20 conversions, Time: 0.083956 (0.004198 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.062518 (0.003126 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.063601 (0.003180 per conversion)
+************* Colorspace conversion YUV_420_P -> RGB_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.550037 (0.027502 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.081997 (0.004100 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.081973 (0.004099 per conversion)
+************* Colorspace conversion YUV_420_P -> BGR_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.534917 (0.026746 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.081893 (0.004095 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.081929 (0.004096 per conversion)
+************* Colorspace conversion YUV_420_P -> RGB_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.549784 (0.027489 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.082577 (0.004129 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.081672 (0.004084 per conversion)
+************* Colorspace conversion YUV_420_P -> BGR_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.534483 (0.026724 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.081621 (0.004081 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.081557 (0.004078 per conversion)
+************* Colorspace conversion YUV_420_P -> RGB_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.505900 (0.025295 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.046232 (0.002312 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.046897 (0.002345 per conversion)
+************* Colorspace conversion YUV_420_P -> BGR_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.498358 (0.024918 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.046315 (0.002316 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.046215 (0.002311 per conversion)
+************* Colorspace conversion YUV_420_P -> RGB_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.514322 (0.025716 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.121877 (0.006094 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.121855 (0.006093 per conversion)
+************* Colorspace conversion YUV_420_P -> BGR_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.512126 (0.025606 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.121774 (0.006089 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.121747 (0.006087 per conversion)
+************* Colorspace conversion YUV_420_P -> RGBA_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.532310 (0.026615 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.154364 (0.007718 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.154269 (0.007713 per conversion)
+************* Colorspace conversion YUV_420_P -> YUY2 *************
+ANSI C Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion YUV_420_P -> YUV_422_P *************
+ANSI C Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000000 (0.000000 per conversion)
+************* Colorspace conversion YUV_422_P -> RGB_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.550083 (0.027504 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.097544 (0.004877 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.097512 (0.004876 per conversion)
+************* Colorspace conversion YUV_422_P -> BGR_15 *************
+ANSI C Version: Made 20 conversions, Time: 0.545088 (0.027254 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.097550 (0.004878 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.096856 (0.004843 per conversion)
+************* Colorspace conversion YUV_422_P -> RGB_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.550804 (0.027540 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.097561 (0.004878 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.096835 (0.004842 per conversion)
+************* Colorspace conversion YUV_422_P -> BGR_16 *************
+ANSI C Version: Made 20 conversions, Time: 0.545824 (0.027291 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.096900 (0.004845 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.096731 (0.004837 per conversion)
+************* Colorspace conversion YUV_422_P -> RGB_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.506364 (0.025318 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.048809 (0.002440 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.048042 (0.002402 per conversion)
+************* Colorspace conversion YUV_422_P -> BGR_24 *************
+ANSI C Version: Made 20 conversions, Time: 0.499188 (0.024959 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.048089 (0.002404 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.048060 (0.002403 per conversion)
+************* Colorspace conversion YUV_422_P -> RGB_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.507644 (0.025382 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.132107 (0.006605 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.131478 (0.006574 per conversion)
+************* Colorspace conversion YUV_422_P -> BGR_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.510551 (0.025528 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.131339 (0.006567 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.132175 (0.006609 per conversion)
+************* Colorspace conversion YUV_422_P -> RGBA_32 *************
+ANSI C Version: Made 20 conversions, Time: 0.533879 (0.026694 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.154432 (0.007722 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.153690 (0.007685 per conversion)
+************* Colorspace conversion YUV_422_P -> YUY2 *************
+ANSI C Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000000 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+************* Colorspace conversion YUV_422_P -> YUV_420_P *************
+ANSI C Version: Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMX Version:    Made 20 conversions, Time: 0.000001 (0.000000 per conversion)
+MMXEXT Version: Made 20 conversions, Time: 0.000000 (0.000000 per conversion)

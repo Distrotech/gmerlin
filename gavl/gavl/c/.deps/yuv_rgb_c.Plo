@@ -1,0 +1,29 @@
+yuv_rgb_c.lo yuv_rgb_c.o: yuv_rgb_c.c _yuv_rgb_c.c ../../include/gavl.h \
+  /usr/include/inttypes.h /usr/include/features.h \
+  /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h /usr/include/stdint.h \
+  /usr/include/bits/wchar.h /usr/include/bits/wordsize.h \
+  ../../include/video.h ../../include/config.h ../../include/colorspace.h
+
+_yuv_rgb_c.c:
+
+../../include/gavl.h:
+
+/usr/include/inttypes.h:
+
+/usr/include/features.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/gnu/stubs.h:
+
+/usr/include/stdint.h:
+
+/usr/include/bits/wchar.h:
+
+/usr/include/bits/wordsize.h:
+
+../../include/video.h:
+
+../../include/config.h:
+
+../../include/colorspace.h:

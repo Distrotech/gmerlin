@@ -1,0 +1,51 @@
+sampleformat_c.lo sampleformat_c.o: sampleformat_c.c \
+  ../../include/audio.h ../../include/gavl/gavl.h /usr/include/inttypes.h \
+  /usr/include/features.h /usr/include/sys/cdefs.h \
+  /usr/include/gnu/stubs.h /usr/include/stdint.h \
+  /usr/include/bits/wchar.h /usr/include/bits/wordsize.h \
+  ../../include/gavlconfig.h ../../include/gavl/gavltime.h \
+  ../../include/gavl/config.h ../../include/sampleformat.h \
+  ../../include/float_cast.h /usr/include/math.h \
+  /usr/include/bits/huge_val.h /usr/include/bits/nan.h \
+  /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h \
+  /usr/include/bits/mathinline.h
+
+../../include/audio.h:
+
+../../include/gavl/gavl.h:
+
+/usr/include/inttypes.h:
+
+/usr/include/features.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/gnu/stubs.h:
+
+/usr/include/stdint.h:
+
+/usr/include/bits/wchar.h:
+
+/usr/include/bits/wordsize.h:
+
+../../include/gavlconfig.h:
+
+../../include/gavl/gavltime.h:
+
+../../include/gavl/config.h:
+
+../../include/sampleformat.h:
+
+../../include/float_cast.h:
+
+/usr/include/math.h:
+
+/usr/include/bits/huge_val.h:
+
+/usr/include/bits/nan.h:
+
+/usr/include/bits/mathdef.h:
+
+/usr/include/bits/mathcalls.h:
+
+/usr/include/bits/mathinline.h:
