@@ -187,6 +187,17 @@ static void get_video_format_lqt(void * data, int stream, gavl_video_format_t * 
   gavl_video_format_copy(ret, &(e->video_streams[stream].format));
   }
 
+static int start_lqt(void * data)
+  {
+  e_lqt_t * e = (e_lqt_t*)data;
+  
+  if(e->format == FORMAT_AVI)
+    {
+    quicktime_set_avi(e->file, 1);
+    }
+  return 1;
+  }
+
 
 static void write_audio_frame_lqt(void * data, gavl_audio_frame_t* frame,
                                   int stream)
@@ -492,10 +503,11 @@ bg_encoder_plugin_t the_plugin =
         
     set_audio_parameter:  set_audio_parameter_lqt,
     set_video_parameter:  set_video_parameter_lqt,
-
+    
     get_audio_format:     get_audio_format_lqt,
     get_video_format:     get_video_format_lqt,
-    
+
+    start:                start_lqt,
     
     write_audio_frame: write_audio_frame_lqt,
     write_video_frame: write_video_frame_lqt,

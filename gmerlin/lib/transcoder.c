@@ -1102,6 +1102,14 @@ int bg_transcoder_init(bg_transcoder_t * ret,
       finalize_audio_stream(&(ret->audio_streams[i]), &(track->audio_streams[i]),
                             encoder_handle, 0, ret->track_info, 1);
 
+      if(encoder_plugin->start && !encoder_plugin->start(encoder_handle->priv))
+        {
+        ret->error_msg = bg_sprintf("Cannot setup %s", encoder_handle->info->long_name);
+        ret->error_msg_ret = ret->error_msg;
+        bg_plugin_unref(encoder_handle);
+        goto fail;
+        }
+      
       bg_plugin_unref(encoder_handle);
       if(audio_to_video)
         video_encoder_handle = (bg_plugin_handle_t*)0;
@@ -1136,6 +1144,14 @@ int bg_transcoder_init(bg_transcoder_t * ret,
 
       finalize_video_stream(&(ret->video_streams[i]), &(track->video_streams[i]),
                             video_encoder_handle, 0, ret->track_info, 1);
+
+      if(video_encoder_plugin->start && !video_encoder_plugin->start(video_encoder_handle->priv))
+        {
+        ret->error_msg = bg_sprintf("Cannot setup %s", video_encoder_handle->info->long_name);
+        ret->error_msg_ret = ret->error_msg;
+        bg_plugin_unref(video_encoder_handle);
+        goto fail;
+        }
       
       bg_plugin_unref(video_encoder_handle);
       video_encoder_handle = (bg_plugin_handle_t*)0;
@@ -1207,6 +1223,15 @@ int bg_transcoder_init(bg_transcoder_t * ret,
                             encoder_handle, stream_index, ret->track_info, do_close);
       stream_index++;
       }
+
+    if(encoder_plugin->start && !encoder_plugin->start(encoder_handle->priv))
+      {
+      ret->error_msg = bg_sprintf("Cannot setup %s", encoder_handle->info->long_name);
+      ret->error_msg_ret = ret->error_msg;
+      bg_plugin_unref(video_encoder_handle);
+      goto fail;
+      }
+    
     bg_plugin_unref(encoder_handle);
     }
   

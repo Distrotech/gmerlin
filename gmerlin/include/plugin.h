@@ -473,6 +473,13 @@ typedef struct bg_encoder_plugin_s
                               bg_parameter_value_t * v);
 
   /*
+   *  Optional function for preparing the actual encoding.
+   *  It might return FALSE is something went wrong
+   */
+
+  int (*start)(void * data);
+  
+  /*
    *  After setting the parameters, get the formats, you need to deliver the frames in
    */
 

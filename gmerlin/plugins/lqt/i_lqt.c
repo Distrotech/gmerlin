@@ -203,7 +203,7 @@ static int open_lqt(void * data, const char * arg)
         
         codec_info = lqt_video_codec_from_file(e->file, i);
         e->track_info.video_streams[e->track_info.num_video_streams].description =
-          bg_strdup(e->track_info.video_streams[e->track_info.num_audio_streams].description,
+          bg_strdup(e->track_info.video_streams[e->track_info.num_video_streams].description,
                     codec_info[0]->long_name);
         lqt_destroy_codec_info(codec_info);
         
