@@ -391,7 +391,8 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
   if(num_sections)
     {
     ret->root_section.notebook = gtk_notebook_new();
-
+    gtk_notebook_set_scrollable(GTK_NOTEBOOK(ret->root_section.notebook), TRUE);
+    gtk_notebook_popup_enable(GTK_NOTEBOOK(ret->root_section.notebook));
     ret->root_section.num_children = num_sections;
     ret->root_section.children = calloc(ret->root_section.num_children, sizeof(dialog_section_t));
     
@@ -408,6 +409,9 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
                              section, set_param, callback_data, ret->tooltips);
       gtk_notebook_append_page(GTK_NOTEBOOK(ret->root_section.notebook),
                                table, label);
+      gtk_notebook_set_menu_label_text(GTK_NOTEBOOK(ret->root_section.notebook),
+                                       table, info[index].long_name);
+      
       while(info[index].name &&
             (info[index].type != BG_PARAMETER_SECTION))
         index++;
@@ -430,6 +434,9 @@ bg_dialog_t * bg_dialog_create_multi(const char * title)
   {
   bg_dialog_t * ret = create_dialog(title);
   ret->root_section.notebook = gtk_notebook_new();
+  gtk_notebook_set_scrollable(GTK_NOTEBOOK(ret->root_section.notebook), TRUE);
+  gtk_notebook_popup_enable(GTK_NOTEBOOK(ret->root_section.notebook));
+
   gtk_widget_show(ret->root_section.notebook);
   gtk_box_pack_start(GTK_BOX(ret->mainbox), ret->root_section.notebook, TRUE, TRUE, 0);
   return ret;
@@ -475,6 +482,11 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
     gtk_widget_show(tab_label);
     gtk_notebook_append_page(GTK_NOTEBOOK(parent->notebook),
                              table, tab_label);
+
+    gtk_notebook_set_menu_label_text(GTK_NOTEBOOK(parent->notebook),
+                                     table, name);
+
+
     parent->num_children++;
     }
   else
@@ -610,7 +622,10 @@ void * bg_dialog_add_parent(bg_dialog_t *d, void * _parent, const char * label)
   gtk_widget_show(tab_label);
     
   parent->children[parent->num_children].notebook = gtk_notebook_new();
-
+  gtk_notebook_popup_enable(GTK_NOTEBOOK(parent->children[parent->num_children].notebook));
+  gtk_notebook_set_scrollable(GTK_NOTEBOOK(parent->children[parent->num_children].notebook),
+                             TRUE);
+  
   gtk_widget_show(parent->children[parent->num_children].notebook);
 
   table = gtk_table_new(1, 1, 0);
