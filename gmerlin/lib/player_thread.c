@@ -447,7 +447,7 @@ static void set_oa_plugin_cmd(bg_player_t * player,
 static void seek_cmd(bg_player_t * player, gavl_time_t t)
   {
   gavl_video_frame_t * vf;
-  //  fprintf(stderr, "Seek cmd\n");
+  fprintf(stderr, "Seek cmd\n");
   interrupt_cmd(player, BG_PLAYER_STATE_SEEKING);
 
   bg_player_input_seek(player->input_context, t);
@@ -473,7 +473,7 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
     /* Ok, now we set the time from the video stream */
     vf = bg_fifo_get_read(player->video_stream.fifo);
     bg_player_time_set(player, vf->time);
-    //    fprintf(stderr, "Time is now: %lld\n", vf->time);
+    fprintf(stderr, "Time is now: %lld\n", vf->time);
     }
   else
     bg_player_time_set(player, t);
@@ -582,8 +582,10 @@ static int process_command(bg_player_t * player,
         seek_cmd(player, current_time + time);
         }
       break;
-      
-
+    case BG_PLAYER_CMD_SET_VOLUME:
+      arg_f1 = bg_msg_get_arg_float(command, 0);
+      bg_player_oa_set_volume(player->oa_context, arg_f1);
+      break;
     case BG_PLAYER_CMD_SETSTATE:
       arg_i1 = bg_msg_get_arg_int(command, 0);
       switch(arg_i1)

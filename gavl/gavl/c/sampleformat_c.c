@@ -218,7 +218,7 @@ static void convert_float_to_u8(gavl_audio_convert_context_t * ctx)
   long tmp;
   CONVERSION_FUNC_START
   tmp = lrintf((ctx->input_frame->channels.f[i][j]+1.0) * 128.0);
-  CLAMP(tmp, -128, 127);
+  CLAMP(tmp, 0, 255);
   ctx->output_frame->channels.u_8[i][j] = tmp;
   CONVERSION_FUNC_END
   }
@@ -239,7 +239,7 @@ static void convert_float_to_u16(gavl_audio_convert_context_t * ctx)
   long tmp;
   CONVERSION_FUNC_START
   tmp = lrintf((ctx->input_frame->channels.f[i][j]+1.0) * 32768.0);
-  CLAMP(tmp, -32768, 32767);
+  CLAMP(tmp, 0, 65535);
   ctx->output_frame->channels.u_8[i][j] = tmp;
 
   CONVERSION_FUNC_END

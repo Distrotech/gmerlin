@@ -10,7 +10,8 @@ float_cast.h \
 interleave.h \
 mix.h \
 sampleformat.h \
-video.h
+video.h \
+volume.h
 
 include_HEADERS = gavlconfig.h
 

@@ -31,7 +31,6 @@ typedef enum
 typedef struct
   {
   char * name;
-  int type;
   
   char * pixmap_background;
   char * pixmap_normal;
@@ -47,7 +46,7 @@ void bg_gtk_slider_skin_load(bg_gtk_slider_skin_t * s,
 
 typedef struct bg_gtk_slider_s bg_gtk_slider_t;
 
-bg_gtk_slider_t * bg_gtk_slider_create(int vertical);
+bg_gtk_slider_t * bg_gtk_slider_create();
 
 void bg_gtk_slider_set_state(bg_gtk_slider_t *, bg_gtk_slider_state_t);
 

@@ -24,6 +24,11 @@ seek_slider_highlight.png \
 seek_slider_inactive.png \
 seek_slider_normal.png \
 seek_slider_pressed.png \
+volume_slider_background.png \
+volume_slider_highlight.png \
+volume_slider_inactive.png \
+volume_slider_normal.png \
+volume_slider_pressed.png \
 skin.xml \
 stop_button_highlight.png \
 stop_button_normal.png \

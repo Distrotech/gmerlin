@@ -67,7 +67,6 @@ typedef struct
 
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;
-
   } bg_player_video_stream_t;
 
 struct bg_player_s
@@ -240,6 +239,9 @@ void * bg_player_oa_thread(void *);
 
 void bg_player_oa_set_plugin(bg_player_t * player,
                              bg_plugin_handle_t * handle);
+
+void bg_player_oa_set_volume(bg_player_oa_context_t * ctx,
+                             float volume);
 
 
 /*

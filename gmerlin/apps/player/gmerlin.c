@@ -447,6 +447,15 @@ static bg_parameter_info_t parameters[] =
       flags:       BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_i: 0 }
     },
+    {
+      name:        "volume",
+      long_name:   "Volume",
+      type:        BG_PARAMETER_FLOAT,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_min:     { val_f: VOLUME_MIN },
+      val_max:     { val_f: VOLUME_MAX },
+      val_default: { val_f: VOLUME_MAX },
+    },
     { /* End of Parameters */ }
   };
 
@@ -491,6 +500,15 @@ void gmerlin_set_parameter(void * data, char * name, bg_parameter_value_t * val)
     {
     g->player_window->window_y = val->val_i;
     }
+  else if(!strcmp(name, "volume"))
+    {
+    bg_player_set_volume(g->player, val->val_f);
+    g->player_window->volume = val->val_f;
+
+    bg_gtk_slider_set_pos(g->player_window->volume_slider,
+                          (g->player_window->volume - VOLUME_MIN)/(VOLUME_MAX - VOLUME_MIN));
+
+    }
   }
 
 int gmerlin_get_parameter(void * data, char * name, bg_parameter_value_t * val)
@@ -515,6 +533,10 @@ int gmerlin_get_parameter(void * data, char * name, bg_parameter_value_t * val)
   else if(!strcmp(name, "mainwin_y"))
     {
     val->val_i = g->player_window->window_y;
+    }
+  else if(!strcmp(name, "volume"))
+    {
+    val->val_f = g->player_window->volume;
     }
   
   return 0;

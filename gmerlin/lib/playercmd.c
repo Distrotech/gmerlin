@@ -138,6 +138,17 @@ void bg_player_seek_rel(bg_player_t * p, gavl_time_t t)
   bg_msg_queue_unlock_write(p->command_queue);
   }
 
+void bg_player_set_volume(bg_player_t * p, float volume)
+  {
+  bg_msg_t * msg;
+  
+  msg = bg_msg_queue_lock_write(p->command_queue);
+  bg_msg_set_id(msg, BG_PLAYER_CMD_SET_VOLUME);
+  bg_msg_set_arg_float(msg, 0, volume);
+  bg_msg_queue_unlock_write(p->command_queue);
+  }
+
+
 void bg_player_error(bg_player_t * p, const char * message)
   {
   bg_msg_t * msg;

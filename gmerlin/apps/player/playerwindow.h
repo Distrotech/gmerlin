@@ -15,6 +15,7 @@ typedef struct
   bg_gtk_button_skin_t close_button;
 
   bg_gtk_slider_skin_t seek_slider;
+  bg_gtk_slider_skin_t volume_slider;
 
   display_skin_t display;
   
@@ -45,8 +46,6 @@ main_menu_update_streams(main_menu_t *,
 void main_menu_set_tree_window_item(main_menu_t * m, int state);
 void main_menu_set_info_window_item(main_menu_t * m, int state);
 void main_menu_set_plugin_window_item(main_menu_t * m, int state);
-
-
 
 typedef struct player_window_s
   {
@@ -83,13 +82,16 @@ typedef struct player_window_s
   bg_gtk_button_t * menu_button;
 
   bg_gtk_slider_t * seek_slider;
-
+  bg_gtk_slider_t * volume_slider;
+  
   main_menu_t * main_menu;
 
   display_t * display;
   gavl_time_t duration;
 
   int seek_active;
+  
+  float volume;
   } player_window_t;
 
 player_window_t * player_window_create(gmerlin_t*);

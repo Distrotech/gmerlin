@@ -10,31 +10,31 @@
     </DISPLAY>
     <BACKGROUND>mainwin.png</BACKGROUND>
     <PLAYBUTTON>
-      <X>273</X><Y>34</Y>
+      <X>297</X><Y>34</Y>
       <NORMAL>play_button_normal.png</NORMAL>
       <HIGHLIGHT>play_button_highlight.png</HIGHLIGHT>
       <PRESSED>play_button_pressed.png</PRESSED>
     </PLAYBUTTON>
     <PAUSEBUTTON>
-      <X>261</X><Y>62</Y>
+      <X>285</X><Y>62</Y>
       <NORMAL>pause_button_normal.png</NORMAL>
       <HIGHLIGHT>pause_button_highlight.png</HIGHLIGHT>
       <PRESSED>pause_button_pressed.png</PRESSED>
     </PAUSEBUTTON>
     <NEXTBUTTON>
-      <X>301</X><Y>22</Y>
+      <X>325</X><Y>22</Y>
       <NORMAL>next_button_normal.png</NORMAL>
       <HIGHLIGHT>next_button_highlight.png</HIGHLIGHT>
       <PRESSED>next_button_pressed.png</PRESSED>
     </NEXTBUTTON>
     <PREVBUTTON>
-      <X>249</X><Y>22</Y>
+      <X>273</X><Y>22</Y>
       <NORMAL>prev_button_normal.png</NORMAL>
       <HIGHLIGHT>prev_button_highlight.png</HIGHLIGHT>
       <PRESSED>prev_button_pressed.png</PRESSED>
     </PREVBUTTON>
     <STOPBUTTON>
-      <X>261</X><Y>10</Y>
+      <X>285</X><Y>10</Y>
       <NORMAL>stop_button_normal.png</NORMAL>
       <HIGHLIGHT>stop_button_highlight.png</HIGHLIGHT>
       <PRESSED>stop_button_pressed.png</PRESSED>
@@ -59,5 +59,13 @@
       <PRESSED>seek_slider_pressed.png</PRESSED>
       <INACTIVE>seek_slider_inactive.png</INACTIVE>
     </SEEKSLIDER>
+    <VOLUMESLIDER>
+      <X>247</X><Y>8</Y>
+      <BACKGROUND>volume_slider_background.png</BACKGROUND>
+      <NORMAL>volume_slider_normal.png</NORMAL>
+      <HIGHLIGHT>volume_slider_highlight.png</HIGHLIGHT>
+      <PRESSED>volume_slider_pressed.png</PRESSED>
+      <INACTIVE>volume_slider_inactive.png</INACTIVE>
+    </VOLUMESLIDER>
   </PLAYERWIN>
 </SKIN>

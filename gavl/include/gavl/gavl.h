@@ -188,7 +188,7 @@ void gavl_audio_format_copy(gavl_audio_format_t * dst,
  *  to num_channels.
  *  The result is not necessarily correct, but helps for file formats
  *  lacking this information. As least it's correct for mono and stereo
- *  strams.
+ *  streams.
  */
   
 void gavl_set_channel_setup(gavl_audio_format_t * dst);
@@ -358,6 +358,32 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
 void gavl_audio_convert(gavl_audio_converter_t * cnv,
                         gavl_audio_frame_t * input_frame,
                         gavl_audio_frame_t * output_frame);
+
+/**********************************************
+ * Section 2.4: Volume control
+ **********************************************/
+
+typedef struct gavl_volume_control_s gavl_volume_control_t;
+
+/* Create / destroy */
+  
+gavl_volume_control_t * gavl_volume_control_create();
+void gavl_volume_control_destroy(gavl_volume_control_t *);
+
+/* Set format: can be called multiple times with one instance */
+
+void gavl_volume_control_set_format(gavl_volume_control_t *,
+                                    gavl_audio_format_t * format);
+
+/* Set volume: volume is in dB */
+  
+void gavl_volume_control_set_volume(gavl_volume_control_t *,
+                                    float volume);
+
+/* Apply the volume control to one audio frame */
+  
+void gavl_volume_control_apply(gavl_volume_control_t *,
+                               gavl_audio_frame_t * frame);
   
 /**********************************************
  *  Section 3: Video stuff

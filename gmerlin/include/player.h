@@ -57,6 +57,8 @@ void bg_player_seek(bg_player_t *, float percentage);
 
 void bg_player_seek_rel(bg_player_t *, gavl_time_t time);
 
+void bg_player_set_volume(bg_player_t *, float volume);
+
 void bg_player_stop(bg_player_t *);
 void bg_player_stop_sync(bg_player_t *);
 

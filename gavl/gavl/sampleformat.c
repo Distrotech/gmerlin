@@ -42,8 +42,7 @@ gavl_sampleformat_context_create(gavl_audio_options_t * opt,
 
   table = gavl_create_sampleformat_table(opt);
 
-  ret = gavl_audio_convert_context_create(opt, in_format, out_format);gavl_audio_convert_context_create(opt, in_format, out_format);
-
+  ret = gavl_audio_convert_context_create(opt, in_format, out_format);
   ret->output_format.sample_format = out_format->sample_format;
 
   ret->func =

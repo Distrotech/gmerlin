@@ -124,11 +124,17 @@ static gboolean button_release_callback(GtkWidget * w, GdkEventButton * evt,
     else
       gtk_layout_move(GTK_LAYOUT(s->background_layout), s->slider_eventbox,
                       s->pos, 0);
-    
-    s->release_callback(s,
-                        (float)(s->pos)/(float)(s->total_size -
-                                                s->slider_size),
-                        s->release_callback_data);
+
+    if(s->vertical)
+      s->release_callback(s,
+                          1.0 - (float)(s->pos)/(float)(s->total_size -
+                                                        s->slider_size),
+                          s->release_callback_data);
+    else
+      s->release_callback(s,
+                          (float)(s->pos)/(float)(s->total_size -
+                                                  s->slider_size),
+                          s->release_callback_data);
     }
 
   return TRUE;
@@ -194,9 +200,14 @@ static gboolean motion_callback(GtkWidget * w, GdkEventMotion * evt,
 
   if(s->change_callback)
     {
-    s->change_callback(s,
-                       (float)(s->pos)/(float)(s->total_size - s->slider_size),
-                       s->change_callback_data);
+    if(s->vertical)
+      s->change_callback(s,
+                         1.0 - (float)(s->pos)/(float)(s->total_size - s->slider_size),
+                         s->change_callback_data);
+    else
+      s->change_callback(s,
+                         (float)(s->pos)/(float)(s->total_size - s->slider_size),
+                         s->change_callback_data);
     }
   s->mouse_root = mouse_root_1;
   return TRUE;
@@ -210,12 +221,12 @@ static void set_background(bg_gtk_slider_t * s)
   
   s->width  = gdk_pixbuf_get_width(s->pixbuf_background);
   s->height = gdk_pixbuf_get_height(s->pixbuf_background);
-
+#if 0
   if(s->vertical)
     s->total_size = s->height;
   else
     s->total_size = s->width;
-    
+#endif
   gtk_widget_set_size_request(s->background_layout, s->width, s->height);
 
   gdk_window_set_back_pixmap(GTK_LAYOUT(s->background_layout)->bin_window,
@@ -227,12 +238,12 @@ static void set_background(bg_gtk_slider_t * s)
 static void set_shape(bg_gtk_slider_t * s)
   {
   GdkBitmap * mask;
-
+#if 0
   if(s->vertical)
     s->slider_size = gdk_pixbuf_get_height(s->pixbuf_normal);
   else
     s->slider_size = gdk_pixbuf_get_width(s->pixbuf_normal);
-  
+#endif
   gdk_pixbuf_render_pixmap_and_mask(s->pixbuf_normal,
                                     NULL, &mask, 0x80);
 
@@ -257,10 +268,10 @@ static void realize_callback(GtkWidget * w,
   //    set_shape(b);
   }
 
-bg_gtk_slider_t * bg_gtk_slider_create(int vertical)
+bg_gtk_slider_t * bg_gtk_slider_create()
   {
   bg_gtk_slider_t * ret = calloc(1, sizeof(*ret));
-  ret->vertical = vertical;
+  //  ret->vertical = vertical;
 
   /* Create objects */
 
@@ -433,7 +444,22 @@ void bg_gtk_slider_set_skin(bg_gtk_slider_t * s,
     set_shape(s);
     
   gtk_image_set_from_pixbuf(GTK_IMAGE(s->slider_image), s->pixbuf_normal);
-  
+
+  /* Determine if it's a vertical or horizontal layout */
+
+  if(gdk_pixbuf_get_width(s->pixbuf_background) ==
+     gdk_pixbuf_get_width(s->pixbuf_normal))
+    {
+    s->vertical = 1;
+    s->total_size  = gdk_pixbuf_get_height(s->pixbuf_background);
+    s->slider_size = gdk_pixbuf_get_height(s->pixbuf_normal);
+    }
+  else
+    {
+    s->vertical = 0;
+    s->total_size  = gdk_pixbuf_get_width(s->pixbuf_background);
+    s->slider_size = gdk_pixbuf_get_width(s->pixbuf_normal);
+    }
   }
 
 /* Get stuff */
@@ -487,16 +513,24 @@ void bg_gtk_slider_skin_load(bg_gtk_slider_skin_t * s,
 
 void bg_gtk_slider_set_pos(bg_gtk_slider_t * s, float position)
   {
-  s->pos = (int)(position * (float)(s->total_size - s->slider_size) + 0.5);
-
+  if(s->vertical)
+    s->pos = (int)((1.0 - position) * (float)(s->total_size - s->slider_size) + 0.5);
+  else
+    s->pos = (int)(position * (float)(s->total_size - s->slider_size) + 0.5);
+  //  fprintf(stderr, "Position: %f Slider pos 1: %d\n", position, s->pos);
   if(s->pos < 0)
     s->pos = 0;
   else if(s->pos > s->total_size - s->slider_size)
     s->pos = s->total_size - s->slider_size;
+  //  fprintf(stderr, "Slider pos 2: %d\n", s->pos);
   
   if(s->vertical)
+    {
     gtk_layout_move(GTK_LAYOUT(s->background_layout), s->slider_eventbox,
                     0, s->pos);
+    //    fprintf(stderr, "Total size: %d, slider_size: %d, Slider pos: %d\n",
+    //            s->total_size, s->slider_size, s->pos);
+    }
   else
     gtk_layout_move(GTK_LAYOUT(s->background_layout), s->slider_eventbox,
                     s->pos, 0);

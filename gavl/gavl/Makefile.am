@@ -28,7 +28,8 @@ time.c \
 timer.c \
 video.c \
 videoformat.c \
-videoframe.c
+videoframe.c \
+volume.c
 
 noinst_HEADERS = \
 csp_packed_packed.h  \

@@ -121,12 +121,22 @@ void player_window_set_skin(player_window_t * win,
                  bg_gtk_button_get_widget(win->menu_button),
                  x, y);
 
+  /* Apply slider skins */
+  
   bg_gtk_slider_set_skin(win->seek_slider, &(s->seek_slider), directory);
   bg_gtk_slider_get_coords(win->seek_slider, &x, &y);
   gtk_layout_move(GTK_LAYOUT(win->layout),
                  bg_gtk_slider_get_widget(win->seek_slider),
                  x, y);
 
+  bg_gtk_slider_set_skin(win->volume_slider, &(s->volume_slider), directory);
+  bg_gtk_slider_get_coords(win->volume_slider, &x, &y);
+  gtk_layout_move(GTK_LAYOUT(win->layout),
+                  bg_gtk_slider_get_widget(win->volume_slider),
+                  x, y);
+
+  /* Apply display skin */
+  
   display_set_skin(win->display, &(s->display));
   display_get_coords(win->display, &x, &y);
   
@@ -134,7 +144,12 @@ void player_window_set_skin(player_window_t * win,
                   display_get_widget(win->display),
                   x, y);
 
+  /* Update slider positions */
 
+  //  fprintf(stderr, "Setting volume: %f\n", win->volume);
+  bg_gtk_slider_set_pos(win->volume_slider,
+                        (win->volume - VOLUME_MIN)/(VOLUME_MAX - VOLUME_MIN));
+  
   }
 
 /* Gtk Callbacks */
@@ -204,7 +219,19 @@ static void seek_release_callback(bg_gtk_slider_t * slider, float perc,
   
   }
 
-
+static void volume_change_callback(bg_gtk_slider_t * slider, float perc,
+                                   void * data)
+  {
+  float volume;
+  player_window_t * win = (player_window_t *)data;
+  
+  volume = VOLUME_MIN + (VOLUME_MAX - VOLUME_MIN) * perc;
+  if(volume > 0.0)
+    volume = 0.0;
+  
+  bg_player_set_volume(win->gmerlin->player, volume);
+  win->volume = volume;
+  }
 
 static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
   {
@@ -392,7 +419,6 @@ player_window_t * player_window_create(gmerlin_t * g)
   g_timeout_add(DELAY_TIME, idle_callback, (gpointer)ret);
   
   /* Create objects */
-
   
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_decorated(GTK_WINDOW(ret->window), FALSE);
@@ -430,7 +456,8 @@ player_window_t * player_window_create(gmerlin_t * g)
   ret->menu_button = bg_gtk_button_create();
   ret->close_button = bg_gtk_button_create();
 
-  ret->seek_slider = bg_gtk_slider_create(0);
+  ret->seek_slider = bg_gtk_slider_create();
+  ret->volume_slider = bg_gtk_slider_create();
 
   ret->main_menu = main_menu_create(g);
 
@@ -440,8 +467,12 @@ player_window_t * player_window_create(gmerlin_t * g)
 
   bg_gtk_slider_set_change_callback(ret->seek_slider,
                                     seek_change_callback, ret);
+  
   bg_gtk_slider_set_release_callback(ret->seek_slider,
                                      seek_release_callback, ret);
+
+  bg_gtk_slider_set_change_callback(ret->volume_slider,
+                                    volume_change_callback, ret);
   
   bg_gtk_button_set_callback(ret->play_button, gmerlin_button_callback, ret);
   bg_gtk_button_set_callback(ret->stop_button, gmerlin_button_callback, ret);
@@ -479,6 +510,9 @@ player_window_t * player_window_create(gmerlin_t * g)
                  0, 0);
   gtk_layout_put(GTK_LAYOUT(ret->layout),
                  bg_gtk_slider_get_widget(ret->seek_slider),
+                 0, 0);
+  gtk_layout_put(GTK_LAYOUT(ret->layout),
+                 bg_gtk_slider_get_widget(ret->volume_slider),
                  0, 0);
 
   gtk_layout_put(GTK_LAYOUT(ret->layout),
@@ -546,6 +580,8 @@ void player_window_skin_load(player_window_skin_t * s,
       bg_gtk_button_skin_load(&(s->close_button), doc, child);
     else if(!strcmp(child->name, "SEEKSLIDER"))
       bg_gtk_slider_skin_load(&(s->seek_slider), doc, child);
+    else if(!strcmp(child->name, "VOLUMESLIDER"))
+      bg_gtk_slider_skin_load(&(s->volume_slider), doc, child);
     else if(!strcmp(child->name, "DISPLAY"))
       display_skin_load(&(s->display), doc, child);
     child = child->next;
@@ -563,5 +599,4 @@ void player_window_skin_destroy(player_window_skin_t * s)
   bg_gtk_button_skin_destroy(&(s->prev_button));
   bg_gtk_button_skin_destroy(&(s->close_button));
   bg_gtk_button_skin_destroy(&(s->menu_button));
-  
   }
