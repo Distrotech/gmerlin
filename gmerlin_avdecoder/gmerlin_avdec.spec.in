@@ -25,6 +25,7 @@ BuildRequires:  libmad-devel >= @MAD_REQUIRED@
 BuildRequires:  a52dec-devel >= @LIBA52_REQUIRED@
 BuildRequires:  libpng-devel >= @PNG_REQUIRED@
 BuildRequires:  ffmpeg-devel = @AVCODEC_REQUIRED@
+BuildRequires:  libmusepack-devel >= @MUSEPACK_REQUIRED@
 Requires:       libvorbis >= @VORBIS_REQUIRED@
 Requires:       flac >= @FLAC_REQUIRED@
 Requires:       gavl = @GAVL_REQUIRED@
@@ -34,6 +35,7 @@ Requires:       libmad >= @MAD_REQUIRED@
 Requires:       a52dec >= @LIBA52_REQUIRED@
 Requires:       libpng >= @PNG_REQUIRED@
 Requires:       ffmpeg = @AVCODEC_REQUIRED@
+Requires:       libmusepack >= @MUSEPACK_REQUIRED@
 BuildRoot:	/tmp/gmerlin-build
 
 %description
