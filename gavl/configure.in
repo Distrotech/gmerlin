@@ -34,8 +34,12 @@ AC_CHECK_FUNCS([memalign])
 AC_C99_FUNC_LRINT
 AC_C99_FUNC_LRINTF
 
-PKG_CHECK_MODULES(SECRETRABBIT, samplerate >= 0.1.1, ,
+SAMPLERATE_REQUIRED="0.1.1"
+
+PKG_CHECK_MODULES(SECRETRABBIT, samplerate >= $SAMPLERATE_REQUIRED, ,
                   AC_MSG_ERROR("libsamplerate not found! Go to http://www.mega-nerd.com/SRC/"))
+
+AC_SUBST(SAMPLERATE_REQUIRED)
 
 dnl
 dnl Build optimization flags
