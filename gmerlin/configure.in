@@ -52,7 +52,7 @@ fi
 
 AC_SUBST(X_CFLAGS)
 AC_SUBST(X_LIBS)
-AM_CONDITIONAL(HAVE_X, test x$no_x != xyes)
+AM_CONDITIONAL(HAVE_X11, test x$no_x != xyes)
 
 dnl
 dnl Xinerama
@@ -164,7 +164,9 @@ have_v4l=false
 AC_CHECK_HEADERS(linux/videodev.h, have_v4l=true)
 AM_CONDITIONAL(HAVE_V4L, test x$have_v4l = xtrue)
 
+dnl
 dnl libjpeg
+dnl
 
 AH_TEMPLATE([HAVE_LIBJPEG],
             [Do we have libjpeg installed?])
@@ -173,7 +175,7 @@ have_libjpeg=false
                                                                                
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
-                                                                               
+JPEG_REQUIRED="6b"
 LIBS=-ljpeg-mmx
 CFLAGS=""
                                                                                
@@ -212,6 +214,48 @@ AC_SUBST(JPEG_LIBS)
 AC_SUBST(JPEG_CFLAGS)
                                                                                
 AM_CONDITIONAL(HAVE_LIBJPEG, test x$have_libjpeg = xtrue)
+
+dnl
+dnl png
+dnl
+
+AH_TEMPLATE([HAVE_LIBPNG], [Do we have libjpeg installed?])
+
+PNG_REQUIRED="1.2.2"
+have_libpng=false
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+                                                                               
+LIBS="-lpng -lm -lz"
+CFLAGS=""
+                                                                               
+AC_MSG_CHECKING(for libpng)
+AC_TRY_LINK([#include <png.h>],
+            [png_structp png_ptr;
+             png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
+                                               (png_voidp)0,
+                                                NULL, NULL);],
+            [have_libpng=true])
+                                                                               
+case $have_libpng in
+  true) AC_DEFINE(HAVE_LIBPNG)
+        AC_MSG_RESULT(yes)
+        PNG_LIBS=$LIBS ;
+        PNG_CFLAGS=$CFLAGS ;;
+  false) AC_MSG_RESULT(no); PNG_LIBS=""; PNG_CFLAGS="";;
+esac
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+                                                                               
+AC_SUBST(PNG_CFLAGS)
+AC_SUBST(PNG_LIBS)
+AC_SUBST(PNG_REQUIRED)
+AM_CONDITIONAL(HAVE_LIBPNG, test x$have_libpng = xtrue)
+                                                                               
+if test x$have_libpng = xtrue; then
+AC_DEFINE(HAVE_LIBPNG)
+fi
 
 
 dnl
@@ -320,6 +364,7 @@ plugins/esd/Makefile \
 plugins/lqt/Makefile \
 plugins/oss/Makefile \
 plugins/jpeg/Makefile \
+plugins/png/Makefile \
 plugins/v4l/Makefile \
 skins/Makefile \
 skins/Default/Makefile])
@@ -358,6 +403,13 @@ fi
 
 echo -n "Libjpeg:          "
 if test "x$have_libjpeg" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "Libpng:           "
+if test "x$have_libpng" = "xtrue"; then
 echo "Yes"
 else
 echo "Missing"

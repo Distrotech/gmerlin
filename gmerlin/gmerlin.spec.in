@@ -11,10 +11,11 @@ BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	gtk2-devel
 BuildRequires:	libxml2-devel >= @XML2_REQUIRED@
-BuildRequires:	libjpeg-devel
+BuildRequires:	libjpeg-devel >= @JPEG_REQUIRED@
 BuildRequires:	alsa-lib-devel >= @ALSA_REQUIRED@
 BuildRequires:	esound >= @ESD_REQUIRED@
 BuildRequires:  gavl-devel = @GAVL_REQUIRED@
+BuildRequires:  libpng-devel >= @PNG_REQUIRED@
 Requires:       libxml2 >= @XML2_REQUIRED@
 Requires:       gavl = @GAVL_REQUIRED@
 BuildRoot:	/tmp/gmerlin-build
@@ -103,10 +104,23 @@ Alsa plugins for gmerlin (see http://alsa-project.org)
 Summary:	Jpeg plugins for gmerlin
 Group:		Applications/Multimedia
 Requires:       gmerlin-lib = %{version}
-Requires:	libjpeg
+Requires:	libjpeg >= @JPEG_REQUIRED@
 
 %description -n gmerlin-jpeg
 Jpeg plugins for gmerlin
+
+#
+# PNG
+#
+
+%package -n gmerlin-png
+Summary:	png plugins for gmerlin
+Group:		Applications/Multimedia
+Requires:       gmerlin-lib = %{version}
+Requires:	libpng >= @PNG_REQUIRED@
+
+%description -n gmerlin-png
+PNG plugins for gmerlin
 
 #
 # OSS
@@ -295,6 +309,10 @@ rm -rf $RPM_BUILD_ROOT
 %files -n gmerlin-jpeg
 %attr(644,root,root) %{_libdir}/gmerlin/plugins/*jpeg*.la
 %attr(755,root,root) %{_libdir}/gmerlin/plugins/*jpeg*.so
+
+%files -n gmerlin-png
+%attr(644,root,root) %{_libdir}/gmerlin/plugins/*png*.la
+%attr(755,root,root) %{_libdir}/gmerlin/plugins/*png*.so
 
 %files -n gmerlin-player
 %attr(644,root,root) %{_datadir}/applications/gmerlin-player.desktop

@@ -1,8 +1,19 @@
+if HAVE_X11
+x11_subdirs = x11
+else
+x11_subdirs =
+endif
 
 if HAVE_OSS
 oss_subdirs = oss
 else
 oss_subdirs =
+endif
+
+if HAVE_LIBPNG
+png_subdirs = png
+else
+png_subdirs =
 endif
 
 if HAVE_V4L
@@ -42,5 +53,6 @@ $(jpeg_subdirs) \
 $(esd_subdirs) \
 $(v4l_subdirs) \
 $(oss_subdirs) \
-x11
+$(png_subdirs) \
+$(x11_subdirs)
 
