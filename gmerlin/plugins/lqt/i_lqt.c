@@ -205,7 +205,11 @@ static int open_lqt(void * data, const char * arg)
         duration = gavl_samples_to_time(lqt_video_time_scale(e->file, i),
                                         lqt_video_duration(e->file, i));
 
-        //        fprintf(stderr, "Video Duration: %lld\n", duration);
+        fprintf(stderr, "Video Duration: %d %lld %lld, Total frames: %lld\n",
+                lqt_video_time_scale(e->file, i),
+                lqt_video_duration(e->file, i),
+                duration,
+                e->video_streams[e->track_info.num_video_streams].total_frames);
         if(e->track_info.duration < duration)
           e->track_info.duration = duration;
         
@@ -284,8 +288,6 @@ int read_video_frame_lqt(void * data, gavl_video_frame_t * f, int stream)
 
   f->time = gavl_samples_to_time(e->track_info.video_streams[stream].format.timescale,
                                  f->time_scaled);
-
-  //  fprintf(stderr, "Timestamp %lld\n", f->time);
   
   if(e->video_streams[stream].rows)
     {

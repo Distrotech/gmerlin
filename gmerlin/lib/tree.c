@@ -683,6 +683,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   if(t->com.current_album->type == BG_ALBUM_TYPE_REMOVABLE)
     {
     ret = t->com.current_album->handle;
+    bg_plugin_ref(ret);
     input_plugin = (bg_input_plugin_t*)(ret->plugin);
     }
   else

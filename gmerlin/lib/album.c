@@ -380,7 +380,7 @@ static int open_removable(bg_album_t * a)
   bg_album_entry_t * new_entry;
   
   a->handle = bg_plugin_load(a->com->plugin_reg, a->plugin_info);
-  
+
   bg_plugin_lock(a->handle);
 
   plugin = (bg_input_plugin_t*)a->handle->plugin;
@@ -415,6 +415,7 @@ static int open_removable(bg_album_t * a)
     new_entry->num_subpicture_streams =
       track_info->num_subpicture_streams;
     new_entry->num_programs = track_info->num_programs;
+    //    fprintf(stderr, "Album Duration: %lld\n", track_info->duration);
     new_entry->duration = track_info->duration;
 
     bg_album_insert_entries_before(a, new_entry, (bg_album_entry_t*)0);

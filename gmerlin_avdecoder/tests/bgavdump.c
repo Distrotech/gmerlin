@@ -141,6 +141,7 @@ int main(int argc, char ** argv)
       else
         fprintf(stderr, "Failed\n");
 #endif
+      //      gavl_video_frame_dump(vf, video_format, "frame");
       gavl_video_frame_destroy(vf);
       }
     }

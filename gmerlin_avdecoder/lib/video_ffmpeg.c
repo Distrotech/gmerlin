@@ -322,6 +322,45 @@ static void pal8_to_rgb24(gavl_video_frame_t * dst, AVFrame * src,
     }
   }
 
+/* Real stupid rgba format conversion */
+
+static void rgba32_to_rgba32(gavl_video_frame_t * dst, AVFrame * src,
+                             int width, int height)
+  {
+  int i, j;
+  uint32_t r, g, b, a;
+  uint8_t * dst_ptr;
+  uint8_t * dst_save;
+  
+  uint32_t * src_ptr;
+  uint8_t  * src_save;
+  
+  src_save = src->data[0];
+  dst_save = dst->planes[0];
+  for(i = 0; i < height; i++)
+    {
+    src_ptr = (uint32_t*)src_save;
+    dst_ptr = dst_save;
+    
+    for(j = 0; j < width; j++)
+      {
+      a = ((*src_ptr) & 0xff000000) >> 24;
+      r = ((*src_ptr) & 0x00ff0000) >> 16;
+      g = ((*src_ptr) & 0x0000ff00) >> 8;
+      b = ((*src_ptr) & 0x000000ff);
+      dst_ptr[0] = r;
+      dst_ptr[1] = g;
+      dst_ptr[2] = b;
+      dst_ptr[3] = a;
+      
+      dst_ptr+=4;
+      src_ptr++;
+      }
+    src_save += src->linesize[0];
+    dst_save += dst->strides[0];
+    }
+  }
+
 static gavl_colorspace_t get_colorspace(enum PixelFormat p)
   {
   int i;
@@ -636,6 +675,11 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
           {
           pal8_to_rgb24(f, priv->frame,
                         s->data.video.format.image_width, s->data.video.format.image_height);
+          }
+        else if(priv->ctx->pix_fmt == PIX_FMT_RGBA32)
+          {
+          rgba32_to_rgba32(f, priv->frame,
+                           s->data.video.format.image_width, s->data.video.format.image_height);
           }
         else if(!priv->do_convert)
           {

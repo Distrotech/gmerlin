@@ -259,6 +259,10 @@ void bgav_codecs_init()
     }
 //  fprintf(stderr, "bgav_codecs_init()\n");
   codecs_initialized = 1;
+
+  bgav_init_video_decoders_qtraw();
+  //  bgav_init_video_decoders_qtrle();
+  
 #ifdef HAVE_LIBAVCODEC
   bgav_init_audio_decoders_ffmpeg();
   bgav_init_video_decoders_ffmpeg();
@@ -354,8 +358,6 @@ void bgav_codecs_init()
   
 #endif
 
-  bgav_init_video_decoders_qtraw();
-  //  bgav_init_video_decoders_qtrle();
   
   bgav_init_audio_decoders_aiff();
   

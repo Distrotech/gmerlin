@@ -172,8 +172,8 @@ static int hctl_enum_callback(snd_hctl_elem_t *elem, unsigned int mask)
       
       val_str = g_list_nth_data(arr->popdown_strings, value);
 
-      fprintf(stderr, "hctl_enum_callback i: %d, value: %d, val_str: %s\n",
-              i, value, val_str);
+      //      fprintf(stderr, "hctl_enum_callback i: %d, value: %d, val_str: %s\n",
+      //              i, value, val_str);
       
       widget_block(&(arr->widgets[i]));
       gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(arr->widgets[i].w)->entry),

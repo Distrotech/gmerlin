@@ -92,7 +92,8 @@ static int header_check(uint32_t head)
                 return 0;
         if (((head >> 10) & 0x3) == 0x3)
                 return 0;
-        if (((head >> 19) & 1) == 1 && ((head >> 17) & 3) == 3 &&
+        if (((head >> 19) & 1) == 1 &&
+            ((head >> 17) & 3) == 3 &&
             ((head >> 16) & 1) == 1)
                 return 0;
         if ((head & 0xffff0000) == 0xfffe0000)

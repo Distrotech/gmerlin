@@ -64,6 +64,22 @@ typedef struct
     
   } vcd_priv;
 
+static void select_track_vcd(bgav_input_context_t * ctx, int track)
+  {
+  vcd_priv * priv;
+  priv = (vcd_priv*)(ctx->priv);
+
+  fprintf(stderr, "Select track VCD\n");
+
+  priv->current_track = track+1;
+  priv->current_sector = priv->tracks[priv->current_track].start_sector;
+  ctx->position = 0;
+  ctx->total_bytes = SECTOR_SIZE *
+    (priv->tracks[priv->current_track].end_sector -
+     priv->tracks[priv->current_track].start_sector + 1);
+  priv->buffer_ptr = priv->buffer;
+  }
+
 static int read_toc(vcd_priv * priv)
   {
   int i;
@@ -85,7 +101,7 @@ static int read_toc(vcd_priv * priv)
     if(ioctl(priv->fd, CDROMREADTOCENTRY, &entry) < 0 )
       return 0;
 
-    fprintf(stderr, "Track %d: Datamode: %d\n", i+1, entry.cdte_datamode);
+    //    fprintf(stderr, "Track %d: Datamode: %d\n", i+1, entry.cdte_datamode);
     if(i)
       priv->tracks[i-1].end_sector = entry.cdte_addr.lba - 1;
     priv->tracks[i].start_sector = entry.cdte_addr.lba;
@@ -139,6 +155,7 @@ void toc_2_tt(bgav_input_context_t * ctx)
 
 static int open_vcd(bgav_input_context_t * ctx, const char * url)
   {
+  int i;
   vcd_priv * priv;
   //  fprintf(stderr, "OPEN VCD\n");
 
@@ -173,7 +190,17 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   /* Create demuxer */
   
   ctx->demuxer = bgav_demuxer_create(&bgav_demuxer_mpegps, ctx);
-  
+  ctx->demuxer->tt = ctx->tt;
+
+  /* Now, loop through all tracks and let the demuxer find the durations */
+
+  for(i = 0; i < ctx->tt->num_tracks; i++)
+    {
+    select_track_vcd(ctx, i);
+    bgav_track_table_select_track(ctx->tt, i);
+    bgav_demuxer_start(ctx->demuxer, NULL);
+    bgav_demuxer_stop(ctx->demuxer);
+    }
   return 1;
   }
 
@@ -224,6 +251,8 @@ static int read_vcd(bgav_input_context_t* ctx,
     
   vcd_priv * priv;
   priv = (vcd_priv*)(ctx->priv);
+
+  //  fprintf(stderr, "Read VCD %d\n", len);
   
   while(bytes_read < len)
     {
@@ -279,21 +308,6 @@ static void    close_vcd(bgav_input_context_t * ctx)
     free(priv->tracks);
   free(priv);
   return;
-  }
-
-static void select_track_vcd(bgav_input_context_t * ctx, int track)
-  {
-  vcd_priv * priv;
-  priv = (vcd_priv*)(ctx->priv);
-
-  //  fprintf(stderr, "Select track VCD\n");
-
-  priv->current_track = track+1;
-  priv->current_sector = priv->tracks[priv->current_track].start_sector;
-  ctx->position = 0;
-  ctx->total_bytes = SECTOR_SIZE *
-    (priv->tracks[priv->current_track].end_sector -
-     priv->tracks[priv->current_track].start_sector + 1);
   }
 
 bgav_input_t bgav_input_vcd =

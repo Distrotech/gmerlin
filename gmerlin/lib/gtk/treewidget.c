@@ -241,7 +241,16 @@ static void update_menu(bg_gtk_tree_widget_t * w)
 
   if(!w->current_album)
     {
-    gtk_widget_hide(w->menu.album_item);
+    rename_item(w->menu.album_item, "Album...");
+    gtk_widget_show(w->menu.album_item);
+
+    gtk_widget_hide(w->menu.album_menu.remove_item);
+    gtk_widget_hide(w->menu.album_menu.rename_item);
+    gtk_widget_hide(w->menu.album_menu.open_item);
+    gtk_widget_hide(w->menu.album_menu.close_item);
+    gtk_widget_show(w->menu.album_menu.new_item);
+   
+
     gtk_widget_hide(w->menu.plugin_item);
     return;
     }

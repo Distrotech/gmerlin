@@ -173,14 +173,17 @@ card_widget_t * card_widget_create(alsa_card_t * c, bg_cfg_section_t * section)
       {
       w = control_widget_get_widget(ret->upper_controls[i]);
       g_object_ref(G_OBJECT(w));
-      gtk_table_attach_defaults(GTK_TABLE(ret->upper_table), w,
-                                i*2, i*2+1, 0, 1);
+      gtk_table_attach(GTK_TABLE(ret->upper_table), w,
+                       i*2, i*2+1, 0, 1, GTK_FILL|GTK_SHRINK, GTK_EXPAND|GTK_FILL, 0, 0);
 
-      sep = gtk_vseparator_new();
-      gtk_widget_show(sep);
-
-      gtk_table_attach_defaults(GTK_TABLE(ret->upper_table), sep,
-                                i*2+1, i*2+2, 0, 1);
+      if(i < ret->num_upper_controls - 1)
+        {
+        sep = gtk_vseparator_new();
+        gtk_widget_show(sep);
+        gtk_table_attach(GTK_TABLE(ret->upper_table), sep,
+                         i*2+1, i*2+2, 0, 1,
+                         GTK_FILL|GTK_SHRINK, GTK_EXPAND|GTK_FILL, 0, 0);
+        }
       }
     gtk_widget_show(ret->upper_table);
     gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolledwin),
@@ -488,7 +491,7 @@ static void map_callback(GtkWidget * w, gpointer data)
 
   control_widget_get_coords(win->control, &x, &y, &width, &height);
 
-  fprintf(stderr, "Map %d %d %d %d\n", x, y, width, height);
+  //  fprintf(stderr, "Map %d %d %d %d\n", x, y, width, height);
   
   gtk_window_resize(GTK_WINDOW(win->window), width, height);
   gtk_window_move(GTK_WINDOW(win->window), x, y);
