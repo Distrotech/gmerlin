@@ -547,64 +547,74 @@ tests/Makefile ])
 
 AC_OUTPUT
 
-echo "Configuration: "
+echo ""
+echo "=== Libraries: ================================="
 
-echo -n "AVCodec:                "
+echo -n "gmerlin:                "
+if test "x$have_gmerlin" = "xtrue"; then
+echo "Found (CFLAGS=$GMERLIN_CFLAGS LIBS=$GMERLIN_LIBS)"
+else
+echo "Missing"
+fi
+
+echo -n "libavcodec (ffmpeg):    "
 if test "x$have_avcodec" = "xtrue"; then
-echo "Yes"
+echo "Found (CFLAGS=$AVCODEC_CFLAGS LIBS=$AVCODEC_LIBS)"
 else
 echo "Missing"
 fi
 
 echo -n "faad2:                  "
 if test "x$have_faad2" = "xtrue"; then
-echo "Yes CFLAGS=$FAAD2_CFLAGS LIBS=$FAAD2_LIBS"
+echo "Found (CFLAGS=$FAAD2_CFLAGS LIBS=$FAAD2_LIBS)"
 else
 echo "Missing"
 fi
 
 echo -n "flac:                   "
 if test "x$have_flac" = "xtrue"; then
-echo "Yes"
+echo "Found (CFLAGS=$FLAC_CFLAGS LIBS=$FLAC_LIBS)"
 else
 echo "Missing"
 fi
 
-
 echo -n "vorbis:                 "
 if test "x$have_vorbis" = "xtrue"; then
-echo "Yes"
+echo "Found (CFLAGS=$VORBIS_CFLAGS LIBS=$VORBIS_LIBS)"
 else
 echo "Missing"
 fi
 
 echo -n "libpng:                 "
 if test "x$have_libpng" = "xtrue"; then
-echo "Yes"
+echo "Found (CFLAGS=$PNG_CFLAGS LIBS=$PNG_LIBS)"
 else
 echo "Missing"
 fi
 
 echo -n "libmpeg2:               "
 if test "x$have_libmpeg2" = "xtrue"; then
-echo "Yes"
+echo "Found (CFLAGS=$LIBMPEG2_CFLAGS LIBS=$LIBMPEG2_LIBS)"
 else
 echo "Missing"
 fi
 
 echo -n "libmad 0.15.x:          "
 if test "x$have_mad" = "xtrue"; then
-echo "Yes"
+echo "Found (CFLAGS=$MAD_CFLAGS LIBS=$MAD_LIBS)"
 else
 echo "Missing"
 fi
 
 echo -n "liba52:                 "
 if test "x$have_liba52" = "xtrue"; then
-echo "Yes"
+echo "Found (CFLAGS=$LIBA52_CFLAGS LIBS=$LIBA52_LIBS)"
 else
 echo "Missing"
 fi
+
+echo ""
+echo "=== Other features: ============================"
 
 echo -n "win32 DLL Support:      "
 if test "x$enable_w32dll" = "xtrue"; then
@@ -633,3 +643,7 @@ echo "Enabled"
 else
 echo "Disabled (Unsupported Architecture)"
 fi
+
+echo
+echo "If you installed a library but it was not detected, check the file INSTALL"
+echo "for troubleshooting tips"

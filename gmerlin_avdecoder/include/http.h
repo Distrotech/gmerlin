@@ -52,6 +52,7 @@ void bgav_http_header_revc(bgav_http_header_t*, int fd, int milliseconds);
 const char * bgav_http_header_get_var(bgav_http_header_t*,
                                       const char * name);
 
+
 void bgav_http_header_dump(bgav_http_header_t*);
 
 /* http connection */

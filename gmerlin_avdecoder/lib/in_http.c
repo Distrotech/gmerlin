@@ -44,7 +44,8 @@ typedef struct
   int chunk_buffer_size;
   int chunk_buffer_alloc;
   char * chunk_buffer;
-  
+
+  bgav_charset_converter_t * charset_cnv;
   } http_priv;
 
 static char * title_vars[] =
@@ -154,6 +155,10 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
     p->icy_metaint = atoi(var);
     //    p->icy_bytes = p->icy_metaint;
     //    fprintf(stderr, "icy-metaint: %d\n", p->icy_metaint);
+
+    /* Then, we'll also need a charset converter */
+
+    p->charset_cnv = bgav_charset_converter_create("ISO-8859-1", "UTF-8");
     }
   if(extra_header)
     bgav_http_header_destroy(extra_header);
@@ -359,11 +364,14 @@ static int read_data(bgav_input_context_t* ctx,
 
 static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
   {
-  char * meta_buffer, * meta_name;
+  char * meta_buffer, *meta_name;
+  
   const char * pos, *end_pos;
   uint8_t icy_len;
   int meta_bytes;
-
+  http_priv * priv;
+  priv = (http_priv*)(ctx->priv);
+    
   if(!read_data(ctx, &icy_len, 1, block))
     {
     return 0;
@@ -404,7 +412,12 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
         end_pos = strchr(pos, ';');
         while((end_pos > pos) && (*end_pos != '\''))
           end_pos--;
-        meta_name = bgav_strndup(pos, end_pos);
+
+        //        meta_name = bgav_strndup(pos, end_pos);
+        meta_name = bgav_convert_string(priv->charset_cnv ,
+                                        pos, end_pos - pos,
+                                        (int*)0);
+        
         ctx->name_change_callback(ctx->name_change_callback_data,
                                   meta_name);
         

@@ -470,6 +470,12 @@ static int open_aac(bgav_demuxer_context_t * ctx,
     }
   
   //  bgav_stream_dump(s);
+
+  if(!ctx->tt->tracks[0].name && ctx->input->metadata.title)
+    {
+    ctx->tt->tracks[0].name = bgav_strndup(ctx->input->metadata.title,
+                                           NULL);
+    }
   
   //  ctx->stream_description = bgav_sprintf("AAC");
   return 1;
