@@ -267,6 +267,14 @@ static int open_lqt(void * data, const char * arg)
         }
       }
     }
+
+  if(lqt_is_avi(e->file))
+     e->track_info.description = bg_strdup(e->track_info.description,
+                                           "AVI (lqt)");
+  else
+    e->track_info.description = bg_strdup(e->track_info.description,
+                                            "Quicktime (lqt)");
+  
   //  if(!e->track_info.num_audio_streams && !e->track_info.num_video_streams)
   //    return 0;
   return 1;

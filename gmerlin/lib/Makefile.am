@@ -21,6 +21,7 @@ fifo.c \
 formats.c \
 hexdump.c \
 http.c \
+lcdproc.c \
 metadata.c \
 msgqueue.c \
 parameter.c \
@@ -39,6 +40,7 @@ singlepic.c \
 socket.c \
 streaminfo.c \
 stringutils.c \
+tcp.c \
 transcoder.c \
 transcoder_track.c \
 transcoder_track_xml.c \

@@ -122,7 +122,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     {
     if(f->add_files)
       add_files(f);
-    else if(add_dir)
+    else if(f->add_dir)
       add_dir(f);
     }
   }

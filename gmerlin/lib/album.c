@@ -74,8 +74,6 @@ void bg_album_update_entry(bg_album_t * album,
                            bg_album_entry_t * entry,
                            bg_track_info_t  * track_info)
   {
-  char * start_pos;
-  char * end_pos;
   int name_set = 0;
   //  fprintf(stderr, "Update entry!\n");
   entry->num_audio_streams = track_info->num_audio_streams;
@@ -106,21 +104,11 @@ void bg_album_update_entry(bg_album_t * album,
       if(track_info->name)
         {
         entry->name = bg_strdup(entry->name, track_info->name);
-        fprintf(stderr, "entry->name: %s\n", entry->name);
         }
       /* Take filename minus extension */
       else
         {
-        start_pos = strrchr(entry->location, '/');
-        if(start_pos)
-          start_pos++;
-        else
-          start_pos = entry->location;
-        end_pos = strrchr(start_pos, '.');
-        if(!end_pos)
-          end_pos = &(start_pos[strlen(start_pos)]);
-        entry->name = bg_strndup(entry->name, start_pos, end_pos);
-        fprintf(stderr, "Filename minus extension\n");
+        entry->name = bg_get_track_name_default(entry->location);
         }
       }
     }
@@ -134,8 +122,8 @@ void bg_album_update_entry(bg_album_t * album,
     entry->total_tracks = 1;
     entry->flags = BG_ALBUM_ENTRY_REDIRECTOR;
     }
-  fprintf(stderr, "Name:     %s\n", entry->name);
-  fprintf(stderr, "Location: %s\n", entry->location);
+  //  fprintf(stderr, "Name:     %s\n", entry->name);
+  //  fprintf(stderr, "Location: %s\n", entry->location);
   
   
   }

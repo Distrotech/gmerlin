@@ -134,7 +134,7 @@ char ** bg_urilist_decode(const char * str, int len)
   end = 0;
   pos1 = str;
 
-  ret = calloc(num_uris, sizeof(char*));
+  ret = calloc(num_uris+1, sizeof(char*));
     
   while(1)
     {

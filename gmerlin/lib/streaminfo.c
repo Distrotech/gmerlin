@@ -256,3 +256,25 @@ void bg_set_track_name_default(bg_track_info_t * info,
   info->name = bg_strndup(info->name, start_pos, end_pos);
   
   }
+
+char * bg_get_track_name_default(const char * location)
+  {
+  const char * start_pos;
+  const char * end_pos;
+  
+  if(bg_string_is_url(location))
+    {
+    return bg_strdup((char*)0, location);
+    }
+  
+  start_pos = strrchr(location, '/');
+  if(start_pos)
+    start_pos++;
+  else
+    start_pos = location;
+  end_pos = strrchr(start_pos, '.');
+  if(!end_pos)
+    end_pos = &(start_pos[strlen(start_pos)]);
+  return bg_strndup((char*)0, start_pos, end_pos);
+  
+  }

@@ -866,7 +866,7 @@ static int _open_x11(void * data,
                          &(priv->xv_colorkey_orig));
       if(priv->xv_colorkey_settable)
         {
-        priv->xv_colorkey = 0;
+        priv->xv_colorkey = 0x00010100;
         XvSetPortAttribute(priv->dpy, priv->xv_port, priv->xv_colorkey_atom, 
                            priv->xv_colorkey);
         }

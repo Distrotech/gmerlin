@@ -85,6 +85,11 @@ static void gmerlin_apply_config(gmerlin_t * g)
 
   bg_cfg_section_apply(g->general_section, parameters,
                        gmerlin_set_parameter, (void*)(g));
+
+  parameters = bg_lcdproc_get_parameters(g->lcdproc);
+  bg_cfg_section_apply(g->lcdproc_section, parameters,
+                       bg_lcdproc_set_parameter, (void*)(g->lcdproc));
+  
   
   }
 
@@ -168,6 +173,8 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
     bg_cfg_registry_find_section(cfg_reg, "Audio");
   ret->video_section =
     bg_cfg_registry_find_section(cfg_reg, "Video");
+  ret->lcdproc_section =
+    bg_cfg_registry_find_section(cfg_reg, "LCDproc");
     
   /* Create player instance */
   
@@ -215,10 +222,9 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
                                             pluginwindow_close_callback, 
                                             ret);
   
+  ret->lcdproc = bg_lcdproc_create(ret->player);
   
   gmerlin_create_dialog(ret);
-
-  
   
   /* Set playlist times for the display */
   

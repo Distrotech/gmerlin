@@ -368,8 +368,13 @@ static void set_track(bg_transcoder_track_t * track,
   while(track->general_parameters[i].name)
     {
     if(!strcmp(track->general_parameters[i].name, "name"))
-      track->general_parameters[i].val_default.val_str = bg_strdup((char*)0,
-                                                                   track_info->name);
+      {
+      if(track_info->name)
+        track->general_parameters[i].val_default.val_str = bg_strdup((char*)0,
+                                                                     track_info->name);
+      else
+        track->general_parameters[i].val_default.val_str = bg_get_track_name_default(location);
+      }
     else if(!strcmp(track->general_parameters[i].name, "audio_encoder"))
       {
       if(audio_encoder)
@@ -622,7 +627,7 @@ bg_transcoder_track_create(const char * url,
   if(!bg_input_plugin_load(plugin_reg, url,
                            input_info, &plugin_handle, &error_msg))
     {
-    fprintf(stderr, __FILE__": Loading %s failed %s\n", url, error_msg);
+    fprintf(stderr, __FILE__": Loading %s failed: %s\n", url, error_msg);
     free(error_msg);
     return (bg_transcoder_track_t*)0;
     }
@@ -794,8 +799,6 @@ static bg_transcoder_track_t * remove_redirectors(bg_transcoder_track_t * entrie
       e = e->next;
       }
     }
-  fprintf(stderr, "Remove redirectors %p %p\n", entries, entries->next);
-
   return entries;
   }
 #endif

@@ -25,6 +25,7 @@
 #include <tree.h>
 #include <gui_gtk/tree.h>
 #include <gui_gtk/infowindow.h>
+#include <lcdproc.h>
 
 #include <cfg_dialog.h>
 
@@ -77,7 +78,7 @@ struct gmerlin_s
   bg_plugin_registry_t * plugin_reg;
   bg_player_t          * player;
   bg_media_tree_t      * tree;
-      
+  
   /* GUI */
 
   bg_dialog_t * cfg_dialog;
@@ -101,9 +102,12 @@ struct gmerlin_s
   bg_cfg_section_t * general_section;
   bg_cfg_section_t * audio_section;
   bg_cfg_section_t * video_section;
+  bg_cfg_section_t * lcdproc_section;
 
   int show_info_window;
   int show_tree_window;
+
+  bg_lcdproc_t * lcdproc;
   };
 
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg);

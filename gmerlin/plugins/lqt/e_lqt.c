@@ -168,6 +168,12 @@ static void add_video_stream_lqt(void * data, gavl_video_format_t* format)
   
   gavl_video_format_copy(&(e->video_streams[e->num_video_streams].format),
                          format);
+
+  /* AVIs are made with constant framerates only */
+  if(e->format == FORMAT_AVI)
+    e->video_streams[e->num_video_streams].format.free_framerate = 0;
+  
+  
   e->num_video_streams++;
   
   }

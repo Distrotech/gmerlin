@@ -64,7 +64,6 @@ typedef struct bg_album_entry_s
 
 void bg_gtk_album_enrty_show(const bg_album_entry_t * entry)
   {
-  char * utf8_location;
   char * text;
   bg_gtk_textwindow_t * win;
   char duration[GAVL_TIME_STRING_LEN];

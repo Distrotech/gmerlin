@@ -7,6 +7,7 @@ cfg_registry.h \
 config.h \
 fifo.h \
 http.h \
+lcdproc.h \
 msgqueue.h \
 parameter.h \
 player.h \
@@ -16,6 +17,7 @@ pluginregistry.h \
 remote.h \
 singlepic.h \
 streaminfo.h \
+tcp.h \
 transcoder.h \
 transcoder_track.h \
 tree.h \

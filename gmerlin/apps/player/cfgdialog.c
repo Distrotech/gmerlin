@@ -72,8 +72,15 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 (void*)(g->tree),
                 parameters);
 
-
-
+  parameters = bg_lcdproc_get_parameters(g->lcdproc);
+  
+  bg_dialog_add(g->cfg_dialog,
+                "LCDproc",
+                g->lcdproc_section,
+                bg_lcdproc_set_parameter,
+                (void*)(g->lcdproc),
+                parameters);
+  
   }
 
 

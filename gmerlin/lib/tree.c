@@ -1165,6 +1165,7 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
                                  const char * directory,
                                  int recursive, const char * plugin)
   {
+  char * tmp_string;
   DIR * dir;
   char filename[PATH_MAX];
 
@@ -1187,9 +1188,11 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
   
   pos1 = strrchr(directory, '/');
   pos1++;
-    
-  bg_media_tree_rename_album(t, a, pos1);
 
+  tmp_string = bg_system_to_utf8(pos1, -1);
+  bg_media_tree_rename_album(t, a, tmp_string);
+  free(tmp_string);
+  
   /* Scan for regular files and directories */
   
   dir = opendir(directory);
