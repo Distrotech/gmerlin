@@ -1418,7 +1418,7 @@ static gboolean drag_motion_callback(GtkWidget *widget,
   return TRUE;
   }
 
-void tree_changed_callback(bg_media_tree_t * t, void * data)
+static void tree_changed_callback(bg_media_tree_t * t, void * data)
   {
   bg_gtk_tree_widget_t * w = (bg_gtk_tree_widget_t *)data;
   bg_gtk_tree_widget_update(w, 0);

@@ -197,7 +197,7 @@ struct bg_gtk_album_widget_s
 
 /* Utilities */
 
-bg_album_entry_t * path_2_entry(bg_gtk_album_widget_t * w,
+static bg_album_entry_t * path_2_entry(bg_gtk_album_widget_t * w,
                                 GtkTreePath * path)
   {
   int * indices;
@@ -208,7 +208,8 @@ bg_album_entry_t * path_2_entry(bg_gtk_album_widget_t * w,
   return (bg_album_get_entry(w->album, index));
   }
 
-bg_album_entry_t * iter_2_entry(bg_gtk_album_widget_t * w,
+#if 0
+static bg_album_entry_t * iter_2_entry(bg_gtk_album_widget_t * w,
                                 GtkTreeIter * iter)
   {
   GtkTreePath * path;
@@ -222,6 +223,7 @@ bg_album_entry_t * iter_2_entry(bg_gtk_album_widget_t * w,
   gtk_tree_path_free(path);
   return ret;
   }
+#endif
 
 void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   {

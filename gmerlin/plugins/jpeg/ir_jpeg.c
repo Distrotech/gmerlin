@@ -45,6 +45,7 @@ typedef struct
   gavl_video_format_t format;
   } jpeg_t;
 
+static
 void * create_jpeg()
   {
   jpeg_t * ret;
@@ -59,7 +60,7 @@ void * create_jpeg()
   return ret;
   }
 
-void destroy_jpeg(void* priv)
+static void destroy_jpeg(void* priv)
   {
   jpeg_t * jpeg = (jpeg_t*)priv;
   jpeg_destroy_decompress(&(jpeg->cinfo));
@@ -77,7 +78,7 @@ void destroy_jpeg(void* priv)
 /* OPTIONAL: Return a readable description of the last error */
 
 // char * (*get_error)(void* priv);
-
+static
 int read_header_jpeg(void * priv, const char * filename,
                      gavl_video_format_t * format)
   {
@@ -154,6 +155,7 @@ int read_header_jpeg(void * priv, const char * filename,
   return 1;
   }
 
+static 
 int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
   {
   int i;

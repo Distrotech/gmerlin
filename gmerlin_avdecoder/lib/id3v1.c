@@ -21,7 +21,7 @@
 #include <string.h>
 #include <avdec_private.h>
 
-char * get_string(char * ptr, int max_size)
+static char * get_string(char * ptr, int max_size)
   {
   int i;
   char * end = ptr;

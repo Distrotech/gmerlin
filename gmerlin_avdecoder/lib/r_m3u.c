@@ -25,7 +25,7 @@
 
 #define PROBE_BYTES 10
 
-int probe_m3u(bgav_input_context_t * input)
+static int probe_m3u(bgav_input_context_t * input)
   {
   uint8_t probe_buffer[PROBE_BYTES];
   /* Most likely, we get this via http, so we can check the mimetype */
@@ -73,7 +73,7 @@ static char * strip_spaces(char * buffer)
   return ret;
   }
 
-int parse_m3u(bgav_redirector_context_t * r)
+static int parse_m3u(bgav_redirector_context_t * r)
   {
   char * buffer = (char*)0;
   int buffer_alloc = 0;

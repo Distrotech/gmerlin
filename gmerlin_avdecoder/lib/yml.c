@@ -90,7 +90,7 @@ static char * find_chars(parser_t * p, const char * chars)
   return (char*)0;
   }
 
-int skip_space(parser_t * p)
+static int skip_space(parser_t * p)
   {
   if(!p->buffer_size)
     {
@@ -468,7 +468,7 @@ bgav_yml_node_t * bgav_yml_parse(bgav_input_context_t * input)
   return ret;
   }
 
-void dump_attribute(bgav_yml_attr_t * a)
+static void dump_attribute(bgav_yml_attr_t * a)
   {
   char * pos;
 
@@ -483,7 +483,7 @@ void dump_attribute(bgav_yml_attr_t * a)
   
   }
 
-void dump_node(bgav_yml_node_t * n)
+static void dump_node(bgav_yml_node_t * n)
   {
   bgav_yml_attr_t * attr;
   bgav_yml_node_t * child;

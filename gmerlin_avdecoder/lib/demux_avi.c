@@ -119,7 +119,7 @@ typedef struct
   uint32_t dwLength;
   } avih_t;
 
-int read_avih(bgav_input_context_t* input,
+static int read_avih(bgav_input_context_t* input,
               avih_t * ret, chunk_header_t * ch)
   {
   int64_t start_pos;
@@ -912,7 +912,7 @@ static int get_stream_id(uint32_t fourcc)
  *  Calculate the timestamp field of each chunk in the index
  */
 
-void idx1_calculate_timestamps(bgav_demuxer_context_t * ctx)
+static void idx1_calculate_timestamps(bgav_demuxer_context_t * ctx)
   {
   uint32_t i, j;
   int stream_id;

@@ -23,7 +23,7 @@
 #include <yml.h>
 #include <stdlib.h>
 
-int probe_asx(bgav_input_context_t * input)
+static int probe_asx(bgav_input_context_t * input)
   {
   char * pos;
   char buf[4];
@@ -122,7 +122,7 @@ static int get_urls(bgav_yml_node_t * n,
   return 1;
   }
 
-int xml_2_asx(bgav_redirector_context_t * r, bgav_yml_node_t * n)
+static int xml_2_asx(bgav_redirector_context_t * r, bgav_yml_node_t * n)
   {
   int index;
   char * title;
@@ -172,7 +172,7 @@ int xml_2_asx(bgav_redirector_context_t * r, bgav_yml_node_t * n)
   }
 
 
-int parse_asx(bgav_redirector_context_t * r)
+static int parse_asx(bgav_redirector_context_t * r)
   {
   int result;
 

@@ -236,7 +236,7 @@ bg_plugin_find_by_mimetype(bg_plugin_registry_t * reg,
   return (const bg_plugin_info_t *)0;
   }
 
-bg_plugin_info_t * remove_from_list(bg_plugin_info_t * list,
+static bg_plugin_info_t * remove_from_list(bg_plugin_info_t * list,
                                     bg_plugin_info_t * info)
   {
   bg_plugin_info_t * before;
@@ -256,7 +256,7 @@ bg_plugin_info_t * remove_from_list(bg_plugin_info_t * list,
   return list;
   }
 
-bg_plugin_info_t *
+static bg_plugin_info_t *
 scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
                int * changed,
                bg_cfg_section_t * cfg_section)

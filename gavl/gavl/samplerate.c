@@ -20,7 +20,7 @@
 
 /* Interface file for the Sectret Rabbit samplerate converter */
 
-// http://www.mega-nerd.com/SRC/ 
+// http://www.mega-nerd.com/SRC/
 // http://freshmeat.net/projects/libsamplerate
 
 #include <stdlib.h>

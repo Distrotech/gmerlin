@@ -170,6 +170,7 @@ static void create_parameters(x11_t * x11);
 static int handle_event(x11_t * priv, XEvent * evt);
 static void close_x11(void*);
 
+static
 void set_callbacks_x11(void * data, bg_ov_callbacks_t * callbacks)
   {
   ((x11_t*)(data))->callbacks = callbacks;
@@ -1486,7 +1487,7 @@ static void create_parameters(x11_t * x11)
 
   }
 
-bg_parameter_info_t *
+static bg_parameter_info_t *
 get_parameters_x11(void * priv)
   {
   x11_t * x11 = (x11_t*)priv;
@@ -1518,7 +1519,7 @@ static int set_xv_parameter(x11_t * p, const char * name,
 
 /* Set parameter */
 
-void
+static void
 set_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
   {
   x11_t * p = (x11_t*)priv;
@@ -1572,7 +1573,7 @@ set_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
     }
   }
 
-int
+static int
 get_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
   {
   x11_t * p = (x11_t*)priv;

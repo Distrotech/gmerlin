@@ -164,6 +164,7 @@ typedef struct
     CARD32 status;
   } PropMotifWmHints;
 
+static
 int mwm_set_decorations(x11_window_t * w, Window win, int set)
   {
   PropMotifWmHints motif_hints;

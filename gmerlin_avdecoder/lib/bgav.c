@@ -55,7 +55,8 @@ bgav_input_context_t * create_input(bgav_t * b)
   return ret;
   }
 
-bgav_demuxer_context_t * create_demuxer(bgav_t * b, bgav_demuxer_t * demuxer)
+static bgav_demuxer_context_t *
+create_demuxer(bgav_t * b, bgav_demuxer_t * demuxer)
   {
   bgav_demuxer_context_t * ret;
 

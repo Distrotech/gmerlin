@@ -68,7 +68,7 @@ static void packet_alloc(rtsp_priv_t * priv, int size)
 
 /* Get one RDT packet */
 
-int next_packet_rdt(bgav_input_context_t * ctx, int block)
+static int next_packet_rdt(bgav_input_context_t * ctx, int block)
   {
   int size;
   int flags1;

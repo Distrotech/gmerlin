@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <utils.h>
 
-char * get_dB(float val)
+static char * get_dB(float val)
   {
   if(val == 0.0)
     return bg_strdup((char*)0, "Zero");

@@ -48,7 +48,7 @@ typedef struct
 
   } vorbis_audio_priv;
 
-uint8_t * parse_packet(ogg_packet * op, uint8_t * str)
+static uint8_t * parse_packet(ogg_packet * op, uint8_t * str)
   {
   memcpy(op, str, sizeof(*op));
   op->packet = str + sizeof(*op);

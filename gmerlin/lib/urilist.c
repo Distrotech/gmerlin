@@ -28,7 +28,7 @@
 #define HOSTNAME_MAX_LEN 512
 
 
-char * parse_uri(const char * pos1, int len)
+static char * parse_uri(const char * pos1, int len)
   {
   const char * start;
   int real_char;

@@ -186,7 +186,7 @@ static bg_album_entry_t * xml_2_album(bg_album_t * album,
   return ret;
   }
 
-bg_album_entry_t * load_album_file(bg_album_t * album,
+static bg_album_entry_t * load_album_file(bg_album_t * album,
                                    const char * filename,
                                    bg_album_entry_t ** last,
                                    bg_album_entry_t ** current,
@@ -211,7 +211,7 @@ bg_album_entry_t * load_album_file(bg_album_t * album,
   return ret;
   }
 
-bg_album_entry_t * load_album_xml(bg_album_t * album,
+static bg_album_entry_t * load_album_xml(bg_album_t * album,
                                   const char * string, int len,
                                   bg_album_entry_t ** last,
                                   bg_album_entry_t ** current,
@@ -524,7 +524,7 @@ typedef struct output_mem_s
 
 #define BLOCK_SIZE 2048
 
-int xml_write_callback(void * context, const char * buffer,
+static int xml_write_callback(void * context, const char * buffer,
                        int len)
   {
   output_mem_t * o = (output_mem_t*)context;
@@ -541,9 +541,7 @@ int xml_write_callback(void * context, const char * buffer,
   return len;
   }
 
-/* Nop */
-
-int xml_close_callback(void * context)
+static int xml_close_callback(void * context)
   {
   output_mem_t * o = (output_mem_t*)context;
   o->buffer[o->bytes_written] = '\0';

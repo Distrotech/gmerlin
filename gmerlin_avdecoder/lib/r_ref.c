@@ -24,7 +24,7 @@
 #include <avdec_private.h>
 
 
-int probe_ref(bgav_input_context_t * input)
+static int probe_ref(bgav_input_context_t * input)
   {
   uint8_t probe_data[11];
   if(bgav_input_get_data(input, probe_data, 11) < 11)
@@ -35,7 +35,7 @@ int probe_ref(bgav_input_context_t * input)
   return 0;
   }
 
-int parse_ref(bgav_redirector_context_t * r)
+static int parse_ref(bgav_redirector_context_t * r)
   {
   char * buffer = (char *)0;
   int buffer_alloc = 0;

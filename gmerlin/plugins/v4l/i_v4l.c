@@ -188,7 +188,7 @@ typedef struct
   char * error_message;
   } v4l_t;
 
-int open_v4l(void * priv, gavl_video_format_t * format)
+static int open_v4l(void * priv, gavl_video_format_t * format)
   {
   int sub_h, sub_v;
   //  int i;
@@ -326,7 +326,7 @@ int open_v4l(void * priv, gavl_video_format_t * format)
   
   }
 
-void close_v4l(void * priv)
+static void close_v4l(void * priv)
   {
   v4l_t * v4l;
   v4l = (v4l_t*)priv;
@@ -351,7 +351,7 @@ void close_v4l(void * priv)
   v4l->fd = -1;
   }
 
-int read_frame_v4l(void * priv, gavl_video_frame_t * frame)
+static int read_frame_v4l(void * priv, gavl_video_frame_t * frame)
   {
   v4l_t * v4l;
   v4l = (v4l_t*)priv;
@@ -386,7 +386,7 @@ int read_frame_v4l(void * priv, gavl_video_frame_t * frame)
   return 1;
   }
 
-void * create_v4l()
+static void * create_v4l()
   {
   v4l_t * v4l;
 
@@ -397,7 +397,7 @@ void * create_v4l()
   return v4l;
   }
 
-void  destroy_v4l(void * priv)
+static void  destroy_v4l(void * priv)
   {
   v4l_t * v4l;
   v4l = (v4l_t*)priv;
@@ -531,7 +531,7 @@ static void create_parameters(v4l_t * v4l)
     }
   }
 
-bg_parameter_info_t * get_parameters_v4l(void * priv)
+static bg_parameter_info_t * get_parameters_v4l(void * priv)
   {
   v4l_t * v4l;
   v4l = (v4l_t*)priv;
@@ -545,7 +545,7 @@ bg_parameter_info_t * get_parameters_v4l(void * priv)
   return v4l->parameters;
   }
 
-void set_parameter_v4l(void * priv, char * name,
+static void set_parameter_v4l(void * priv, char * name,
                        bg_parameter_value_t * val)
   {
   v4l_t * v4l;

@@ -130,7 +130,7 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
   return TRUE;
   }
 
-bg_dialog_t * create_dialog(const char * title)
+static bg_dialog_t * create_dialog(const char * title)
   {
   bg_dialog_t * ret;
   GtkWidget * buttonbox;
@@ -181,7 +181,7 @@ bg_dialog_t * create_dialog(const char * title)
   return ret;
   }
 
-GtkWidget * create_section(dialog_section_t * section,
+static GtkWidget * create_section(dialog_section_t * section,
                            bg_parameter_info_t * info,
                            bg_cfg_section_t * cfg_section,
                            bg_set_parameter_func set_param,

@@ -109,7 +109,7 @@ static void dump_matrix(gavl_audio_format_t * in,
 
 #endif
 
-void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
+static void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
                  gavl_audio_options_t * opt,
                  gavl_audio_format_t * in,
                  gavl_audio_format_t * out)

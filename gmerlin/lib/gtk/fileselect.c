@@ -141,7 +141,7 @@ static gboolean destroy_callback(GtkWidget * w, GdkEvent * event,
   return TRUE;
   }
 
-bg_gtk_filesel_t *
+static bg_gtk_filesel_t *
 filesel_create(const char * title,
                void (*add_files)(char ** files, const char * plugin,
                                  void * data),

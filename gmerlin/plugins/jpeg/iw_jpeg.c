@@ -49,7 +49,7 @@ typedef struct
   int quality;
   } jpeg_t;
 
-void * create_jpeg()
+static void * create_jpeg()
   {
   jpeg_t * ret;
   ret = calloc(1, sizeof(*ret));
@@ -63,13 +63,14 @@ void * create_jpeg()
   return ret;
   }
 
-void destroy_jpeg(void * priv)
+static void destroy_jpeg(void * priv)
   {
   jpeg_t * jpeg = (jpeg_t*)priv;
   jpeg_destroy_compress(&(jpeg->cinfo));
   free(jpeg);
   }
 
+static
 int write_header_jpeg(void * priv, const char * filename_base,
                       gavl_video_format_t * format)
   {
@@ -160,6 +161,7 @@ int write_header_jpeg(void * priv, const char * filename_base,
   return 1;
   }
 
+static
 int write_image_jpeg(void * priv, gavl_video_frame_t * frame)
   {
   int i;

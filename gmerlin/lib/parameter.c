@@ -95,7 +95,7 @@ static char ** copy_string_array(char ** arr)
   return ret;
   }
 
-void free_string_array(char ** arr)
+static void free_string_array(char ** arr)
   {
   int i = 0;
   if(!arr)

@@ -42,7 +42,7 @@ static void destroy(bg_gtk_widget_t * w)
   free(priv);
   }
 
-void get_value_int(bg_gtk_widget_t * w)
+static void get_value_int(bg_gtk_widget_t * w)
   {
   slider_t * priv;
   priv = (slider_t*)(w->priv);

@@ -236,7 +236,7 @@ static bg_track_info_t * get_track_info_lqt(void * data, int track)
   }
 
 /* Read one audio frame (returns FALSE on EOF) */
-  
+static  
 int read_audio_samples_lqt(void * data, gavl_audio_frame_t * f, int stream,
                           int num_samples)
   {
@@ -273,7 +273,7 @@ int read_audio_samples_lqt(void * data, gavl_audio_frame_t * f, int stream,
 
 
 /* Read one video frame (returns FALSE on EOF) */
-
+static
 int read_video_frame_lqt(void * data, gavl_video_frame_t * f, int stream)
   {
   int i;

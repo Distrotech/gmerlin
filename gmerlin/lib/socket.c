@@ -78,7 +78,7 @@ static struct
  *  registered protocol is found
  */
 
-int get_default_port(const char * url)
+static int get_default_port(const char * url)
   {
   int index;
   index = 0;

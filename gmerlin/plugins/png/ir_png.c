@@ -35,7 +35,7 @@ typedef struct
   FILE * file;
   } png_t;
 
-void * create_png()
+static void * create_png()
   {
   png_t * ret;
   ret = calloc(1, sizeof(*ret));
@@ -43,14 +43,14 @@ void * create_png()
   return ret;
   }
 
-void destroy_png(void* priv)
+static void destroy_png(void* priv)
   {
   png_t * png = (png_t*)priv;
 
   free(png);
   }
 
-int read_header_png(void * priv, const char * filename,
+static int read_header_png(void * priv, const char * filename,
                      gavl_video_format_t * format)
   {
   int bit_depth;
@@ -155,7 +155,7 @@ int read_header_png(void * priv, const char * filename,
 
   }
 
-int read_image_png(void * priv, gavl_video_frame_t * frame)
+static int read_image_png(void * priv, gavl_video_frame_t * frame)
   {
   int i;
   unsigned char ** rows;

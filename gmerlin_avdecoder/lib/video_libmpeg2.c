@@ -141,7 +141,7 @@ static void get_format(gavl_video_format_t * ret,
     ret->free_framerate = 1;
   }
 
-int init_mpeg2(bgav_stream_t*s)
+static int init_mpeg2(bgav_stream_t*s)
   {
   mpeg2_state_t state;
   mpeg2_priv_t * priv;
@@ -258,7 +258,7 @@ int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   return 1;
   }
 
-void resync_mpeg2(bgav_stream_t*s)
+static void resync_mpeg2(bgav_stream_t*s)
   {
   mpeg2_state_t state;
   mpeg2_priv_t * priv;

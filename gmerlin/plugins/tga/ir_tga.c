@@ -77,7 +77,7 @@ static gavl_colorspace_t get_colorspace(int depth, int * bytes_per_pixel)
     }
   }
 
-int read_header_tga(void * priv, const char * filename,
+static int read_header_tga(void * priv, const char * filename,
                     gavl_video_format_t * format)
   {
   tga_t * tga = (tga_t*)priv;
@@ -121,7 +121,7 @@ int read_header_tga(void * priv, const char * filename,
 
   }
 
-int read_image_tga(void * priv, gavl_video_frame_t * frame)
+static int read_image_tga(void * priv, gavl_video_frame_t * frame)
   {
   int ret;
   tga_t * tga = (tga_t*)priv;

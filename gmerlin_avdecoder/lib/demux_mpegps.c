@@ -32,7 +32,7 @@
 
 //#define NDEBUG
 
-uint32_t next_start_code(bgav_input_context_t * ctx)
+static uint32_t next_start_code(bgav_input_context_t * ctx)
   {
   uint32_t c;
   while(1)
@@ -48,7 +48,7 @@ uint32_t next_start_code(bgav_input_context_t * ctx)
   return 0;
   }
 
-uint32_t previous_start_code(bgav_input_context_t * ctx)
+static uint32_t previous_start_code(bgav_input_context_t * ctx)
   {
   uint32_t c;
   bgav_input_seek(ctx, -1, SEEK_CUR);

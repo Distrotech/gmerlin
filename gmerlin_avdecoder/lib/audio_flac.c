@@ -160,7 +160,7 @@ static void copy_samples_32(gavl_audio_frame_t * f,
     }
   }
 
-FLAC__StreamDecoderWriteStatus
+static FLAC__StreamDecoderWriteStatus
 write_callback(const FLAC__StreamDecoder *decoder,
                const FLAC__Frame *frame,
                const FLAC__int32 *const buffer[],

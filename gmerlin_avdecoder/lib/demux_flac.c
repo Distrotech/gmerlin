@@ -47,7 +47,7 @@ typedef struct
 
 #define STREAMINFO_SIZE 38
 
-int streaminfo_read(bgav_input_context_t * ctx,
+static int streaminfo_read(bgav_input_context_t * ctx,
                     streaminfo_t * ret)
   {
   uint64_t tmp_1;

@@ -461,7 +461,7 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-int open_rmff(bgav_demuxer_context_t * ctx,
+static int open_rmff(bgav_demuxer_context_t * ctx,
               bgav_redirector_context_t ** redir)
   {
   bgav_rmff_header_t * h =
@@ -476,7 +476,7 @@ int open_rmff(bgav_demuxer_context_t * ctx,
   //  fprintf(stderr, "Header size: %d\n", chunk.size);
 
 
-int probe_rmff(bgav_input_context_t * input)
+static int probe_rmff(bgav_input_context_t * input)
   {
   uint32_t header;
 
@@ -504,7 +504,8 @@ typedef struct dp_hdr_s {
 #define SKIP_BITS(n) buffer<<=n
 #define SHOW_BITS(n) ((buffer)>>(32-(n)))
 
-int64_t fix_timestamp(bgav_stream_t * stream, uint8_t * s, uint32_t timestamp)
+static int64_t
+fix_timestamp(bgav_stream_t * stream, uint8_t * s, uint32_t timestamp)
   {
   uint32_t buffer= (s[0]<<24) + (s[1]<<16) + (s[2]<<8) + s[3];
   int kf=timestamp;
@@ -928,7 +929,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
   return result;
   }
 
-void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
   uint32_t i;
   bgav_stream_t * stream;
@@ -990,7 +991,7 @@ void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
   rm->do_seek = 0;
   }
 
-void close_rmff(bgav_demuxer_context_t * ctx)
+static void close_rmff(bgav_demuxer_context_t * ctx)
   {
   rm_audio_stream_t * as;
   rm_video_stream_t * vs;

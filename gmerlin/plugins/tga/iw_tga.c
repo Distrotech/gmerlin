@@ -37,20 +37,20 @@ typedef struct
   char * filename;
   } tga_t;
 
-void * create_tga()
+static void * create_tga()
   {
   tga_t * ret;
   ret = calloc(1, sizeof(*ret));
   return ret;
   }
 
-void destroy_tga(void * priv)
+static void destroy_tga(void * priv)
   {
   tga_t * tga = (tga_t*)priv;
   free(tga);
   }
 
-int write_header_tga(void * priv, const char * filename_base,
+static int write_header_tga(void * priv, const char * filename_base,
                      gavl_video_format_t * format)
   {
   tga_t * tga = (tga_t*)priv;
@@ -63,7 +63,7 @@ int write_header_tga(void * priv, const char * filename_base,
   return 1;
   }
 
-int write_image_tga(void * priv, gavl_video_frame_t * frame)
+static int write_image_tga(void * priv, gavl_video_frame_t * frame)
   {
   tga_t * tga = (tga_t*)priv;
   
