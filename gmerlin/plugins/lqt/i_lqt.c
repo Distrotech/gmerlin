@@ -100,7 +100,9 @@ static int open_lqt(void * data, const char * arg)
   i_lqt_t * e = (i_lqt_t*)data;
 
   lqt_codec_info_t ** codec_info;
-    
+
+  //  fprintf(stderr, "** OPEN LQT **\n");
+  
   /* We want to keep the thing const-clean */
   filename = bg_strdup((char*)0, arg);
   e->file = quicktime_open(filename, 1, 0);
@@ -138,6 +140,9 @@ static int open_lqt(void * data, const char * arg)
   num_audio_streams = quicktime_audio_tracks(e->file);
   num_video_streams = quicktime_video_tracks(e->file);
 
+  //  fprintf(stderr, "Audio streams: %d, video streams: %d\n", num_audio_streams,
+  //          num_video_streams);
+  
   e->track_info.duration = 0;
   e->track_info.seekable = 1;
   if(num_audio_streams)
@@ -148,6 +153,8 @@ static int open_lqt(void * data, const char * arg)
     
     for(i = 0; i < num_audio_streams; i++)
       {
+      //      fprintf(stderr, "i: %d, num_audio_streams: %d\n", i, e->track_info.num_audio_streams);
+      
       if(quicktime_supported_audio(e->file, i))
         {
         e->audio_streams[e->track_info.num_audio_streams].quicktime_index = i;

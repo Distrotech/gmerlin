@@ -203,6 +203,12 @@ void bg_player_time_get(bg_player_t * player, int exact, gavl_time_t * ret)
       ctx->current_time =
         gavl_samples_to_time(ctx->player->audio_stream.output_format.samplerate,
                              ctx->audio_samples_written-samples_in_soundcard);
+#if 0
+      fprintf(stderr, "Samples: %lld (%lld - %d), time: %f\n",
+              ctx->audio_samples_written-samples_in_soundcard,
+              ctx->audio_samples_written, samples_in_soundcard,
+              gavl_time_to_seconds(ctx->current_time));
+#endif
       *ret = ctx->current_time;
       pthread_mutex_unlock(&(ctx->time_mutex));
       }
@@ -266,6 +272,7 @@ void * bg_player_oa_thread(void * data)
       }
     if(frame->valid_samples)
       {
+      //      fprintf(stderr, "Got samples: %d\n", frame->valid_samples);
       pthread_mutex_lock(&(ctx->volume_mutex));
       gavl_volume_control_apply(ctx->volume, frame);
       pthread_mutex_unlock(&(ctx->volume_mutex));
@@ -307,6 +314,9 @@ int bg_player_oa_init(bg_player_oa_context_t * ctx)
     if(ctx->plugin->common.get_error)
       ctx->error_msg = ctx->plugin->common.get_error(ctx->priv);
     }
+
+  //  fprintf(stderr, "Output format:\n");
+  //  gavl_audio_format_dump(&(ctx->player->audio_stream.output_format));
   
 
   bg_plugin_unlock(ctx->plugin_handle);

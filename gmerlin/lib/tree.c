@@ -951,8 +951,8 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   bg_plugin_handle_t * ret = (bg_plugin_handle_t *)0;
   char * system_location = (char*)0;
   
-  //  fprintf(stderr, "bg_media_tree_get_current_track %p %p\n",
-  //          t->com.current_entry, t->com.current_album);
+  fprintf(stderr, "bg_media_tree_get_current_track %p %p\n",
+          t->com.current_entry, t->com.current_album);
   
   if(!t->com.current_entry || !t->com.current_album)
     {
@@ -998,7 +998,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
       }
     //    ret = bg_plugin_load(t->com.plugin_reg, info);
     input_plugin = (bg_input_plugin_t*)(ret->plugin);
-
+#if 0
     if(!input_plugin->open(ret->priv,
                            system_location))
       {
@@ -1010,6 +1010,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
         error_message = bg_sprintf("Cannot open %s", t->com.current_entry->location);
       goto fail;
       }
+#endif
     }
   track_info = input_plugin->get_track_info(ret->priv,
                                             t->com.current_entry->index);

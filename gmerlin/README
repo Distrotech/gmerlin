@@ -1,0 +1,48 @@
+This is gmerlin, a set of multimedia libraries bundled with an application suite.
+
+This package contains the core libraries, some plugins and most applications.
+To get the full functionality of the software, you need some other packages:
+
+- gavl (http://gmerlin.sourceforge.net/gavl.html) This handles most of the low
+  level processing/conversion of audio/video data and is required to compile
+  gmerlin.
+
+- gmerlin_avdecoder (http://gmerlin.sourceforge.net/avdec.html) This is the media
+  decoding library for gmerlin. It was split into a separate package, because it
+  can be used as a standalone library by 3rd party applications.
+  It is optional but you will definitely want it. Without gmerlin_avdecoder,
+  gmerlin applications won't be able to play much.
+
+To install gmerlin, use the usual "configure; make; make install" procedure. Type
+configure --help to get a list of options.
+
+The following applications are included in this package:
+
+- Player: Just type gmerlin to start this. It's a media player with a mediatree
+  where you can store your media collection in virtual directories (albums).
+  In the tree window and in the album windows, right-click and context sensitive menus
+  will tell you your options. There are also tooltips helping you through the software.
+
+- Transcoder: Type gmerlin_transcoder to start this. It works very simple:
+  First, add tracks to the tasklist. Then, edit options (Metadata, encoder settings...)
+  for each track. The task list can then be saved for later use. After all tracks are
+  configured, start transcoding.
+
+- Alsamixer: Type gmerlin_alsamixer to start this. It's a mixer application which handles
+  100s of mixer controls without needing too much desktop space. Right click onto the
+  controls, and you can reorder them.
+  You can also move important controls to separate windows and iconify the main window after.
+  Supported are an arbitrary number of soundcards with an arbitrary number of controls each.
+
+- Camelot: A small and simple webcam application. It lets you save webcam images either manually
+  or automatically.
+
+- Plugin configurator: If you want to write a command line application, which uses gmerlin plugins,
+  you might want to avoid translating 100s of plugin options into command line options.
+  This can be done by typing gmerlin_plugincfg. It lets you configure all plugin options and
+  save them at a location, where other applications can find them. One application, which uses
+  this, is gmerlin_visualizer.
+
+
+
+

@@ -239,7 +239,7 @@ void * bg_player_ov_thread(void * data)
       break;
 
     bg_player_time_get(ctx->player, 1, &current_time);
-#if 0
+#if 1
     fprintf(stderr, "F: %f, C: %f\n",
             gavl_time_to_seconds(frame->time),
             gavl_time_to_seconds(current_time));
