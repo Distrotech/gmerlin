@@ -385,6 +385,8 @@ bgav_rmff_header_t * bgav_rmff_header_read(bgav_input_context_t * ctx)
         ret->data_start = ctx->position;
         if(chunk.size > 10)
           ret->data_size = chunk.size - 10;
+        else if(ret->prop.index_offset)
+          ret->data_size = ret->prop.index_offset - ret->data_start;
         else
           ret->data_size = 0;
         if(ctx->input->seek_byte && ret->prop.index_offset)
@@ -443,6 +445,7 @@ bgav_rmff_header_t * bgav_rmff_header_read(bgav_input_context_t * ctx)
         break;
       }
     }
+  bgav_rmff_header_dump(ret);
   return ret;
   fail:
   bgav_rmff_header_destroy(ret);

@@ -342,8 +342,8 @@ typedef struct
   {
   bgav_rmff_header_t * header;
   
-  uint32_t data_start;
-  uint32_t data_size;
+  //  uint32_t data_start;
+  //  uint32_t data_size;
   int do_seek;
   uint32_t next_packet;
 
@@ -460,6 +460,7 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
                                                 priv->header->cont.comment_len,
                                                 NULL);
   bgav_charset_converter_destroy(cnv);
+  
   return 1;
   }
 
@@ -833,8 +834,9 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
 
   if(bytes_to_read < packet_size)
     {
-    fprintf(stderr, "Warning: Packet doesn't fit into buffer\n");
-    bgav_input_skip(ctx->input, packet_size - bytes_to_read);
+    fprintf(stderr, "Packet doesn't fit into buffer, exiting\n");
+    //    bgav_input_skip(ctx->input, packet_size - bytes_to_read);
+    return 0;
     }
   
   stream->packet->data_size += bytes_to_read;
@@ -861,10 +863,12 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
   
   rm = (rm_private_t*)(ctx->priv);
   track = ctx->tt->current_track;
-  
-  //  fprintf(stderr, "Data size: %d\n", rm->data_size);
-    
-  if(rm->data_size && (ctx->input->position + 10 >= rm->data_start + rm->data_size))
+#if 0
+  fprintf(stderr, "Data start: %lld, data size: %lld, input_pos: %lld\n",
+          rm->header->data_start, rm->header->data_size, ctx->input->position);
+#endif
+  if(rm->header->data_size && (ctx->input->position + 10 >=
+                               rm->header->data_start + rm->header->data_size))
     return 0;
   if(!bgav_rmff_packet_header_read(ctx->input, &h))
     return 0;
