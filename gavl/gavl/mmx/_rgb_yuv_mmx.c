@@ -294,7 +294,7 @@ static mmx_t sign_mask =   { 0x0000008000000080LL };
                     psllq_i2r(32, mm3);        /* mm3: 00 V2 V2 V2 00 00 00 00 */\
                     por_r2r(mm3, mm5);/*          mm4: 00 V2 V2 V2 00 V0 V0 V0 */\
                     psrad_i2r(15, mm4);/*         mm4: 00 00 00 U2 00 00 00 U0 */\
-                    psrad_i2r(15, mm5);/*         mm4: 00 00 00 V2 00 00 00 V0 */\
+                    psrad_i2r(15, mm5);/*         mm5: 00 00 00 V2 00 00 00 V0 */\
                     pand_m2r(chroma_mask, mm4);\
                     pand_m2r(chroma_mask, mm5);\
                     pxor_m2r(sign_mask, mm4);\
@@ -456,7 +456,7 @@ static mmx_t sign_mask =   { 0x0000008000000080LL };
                     psllq_i2r(32, mm3);        /* mm3: 00 V2 V2 V2 00 00 00 00 */\
                     por_r2r(mm3, mm5);/*          mm4: 00 V2 V2 V2 00 V0 V0 V0 */\
                     psrad_i2r(15, mm4);/*         mm4: 00 00 00 U2 00 00 00 U0 */\
-                    psrad_i2r(15, mm5);/*         mm4: 00 00 00 V2 00 00 00 V0 */\
+                    psrad_i2r(15, mm5);/*         mm5: 00 00 00 V2 00 00 00 V0 */\
                     pand_m2r(chroma_mask, mm4);\
                     pand_m2r(chroma_mask, mm5);\
                     pxor_m2r(sign_mask, mm4);\
@@ -494,17 +494,21 @@ static mmx_t sign_mask =   { 0x0000008000000080LL };
                     psllq_i2r(32, mm3);        /* mm3: 00 V2 V2 V2 00 00 00 00 */\
                     por_r2r(mm3, mm5);/*          mm4: 00 V2 V2 V2 00 V0 V0 V0 */\
                     psrad_i2r(15, mm4);/*         mm4: 00 00 00 U2 00 00 00 U0 */\
-                    psrad_i2r(15, mm5);/*         mm4: 00 00 00 V2 00 00 00 V0 */\
+                    psrad_i2r(15, mm5);/*         mm5: 00 00 00 V2 00 00 00 V0 */\
                     pand_m2r(chroma_mask, mm4);\
                     pand_m2r(chroma_mask, mm5);\
                     pxor_m2r(sign_mask, mm4);\
                     pxor_m2r(sign_mask, mm5); 
 
-
-
 #define OUTPUT_YUY2 psllq_i2r(8, mm4);\
                     por_r2r(mm4, mm6);\
                     psllq_i2r(24, mm5);\
+                    por_r2r(mm5, mm6);\
+                    MOVQ_R2M(mm6, *dst);
+
+#define OUTPUT_UYVY psllq_i2r(8, mm6);          \
+                    por_r2r(mm4, mm6);\
+                    psllq_i2r(16, mm5);\
                     por_r2r(mm5, mm6);\
                     MOVQ_R2M(mm6, *dst);
 
@@ -671,6 +675,158 @@ static mmx_t sign_mask =   { 0x0000008000000080LL };
 // #define INIT
 
 #include "../csp_packed_packed.h"
+
+/***************************************
+ * -> UYVY
+ ***************************************/
+
+#define FUNC_NAME   rgb_15_to_uyvy_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  8
+#define OUT_ADVANCE 8
+#define NUM_PIXELS  4
+#define CONVERT     \
+    LOAD_RGB_15 \
+    BGR_TO_Y \
+    BGR_TO_UV_2 \
+    OUTPUT_UYVY
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   bgr_15_to_uyvy_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  8
+#define OUT_ADVANCE 8
+#define NUM_PIXELS  4
+#define CONVERT     \
+    LOAD_RGB_15 \
+    RGB_TO_Y \
+    RGB_TO_UV_2 \
+    OUTPUT_UYVY
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   rgb_16_to_uyvy_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  8
+#define OUT_ADVANCE 8
+#define NUM_PIXELS  4
+#define CONVERT     \
+    LOAD_RGB_16 \
+    BGR_TO_Y \
+    BGR_TO_UV_2 \
+    OUTPUT_UYVY
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   bgr_16_to_uyvy_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  8
+#define OUT_ADVANCE 8
+#define NUM_PIXELS  4
+#define CONVERT     \
+    LOAD_RGB_16 \
+    RGB_TO_Y \
+    RGB_TO_UV_2 \
+    OUTPUT_UYVY
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+
+#define FUNC_NAME   rgb_24_to_uyvy_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  12
+#define OUT_ADVANCE 8
+#define NUM_PIXELS  4
+#define CONVERT     \
+    RGB_YUV_LOAD_RGB_24 \
+    RGB_TO_Y \
+    RGB_TO_UV_2 \
+    OUTPUT_UYVY
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   bgr_24_to_uyvy_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  12
+#define OUT_ADVANCE 8
+#define NUM_PIXELS  4
+#define CONVERT     \
+    RGB_YUV_LOAD_RGB_24 \
+    BGR_TO_Y \
+    BGR_TO_UV_2 \
+    OUTPUT_UYVY
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   rgb_32_to_uyvy_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 8
+#define NUM_PIXELS  4
+#define CONVERT     \
+    LOAD_RGB_32 \
+    RGB_TO_Y \
+    RGB_TO_UV_2 \
+    OUTPUT_UYVY
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   bgr_32_to_uyvy_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 8
+#define NUM_PIXELS  4
+#define CONVERT     \
+    LOAD_RGB_32 \
+    BGR_TO_Y \
+    BGR_TO_UV_2 \
+    OUTPUT_UYVY
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+
+
 
 /***************************************
  * -> YUV 420 P
@@ -1482,48 +1638,56 @@ gavl_init_rgb_yuv_funcs_mmx(gavl_colorspace_function_table_t * tab,
     return;
 
   tab->rgb_15_to_yuy2 =      rgb_15_to_yuy2_mmx;
+  tab->rgb_15_to_uyvy =      rgb_15_to_uyvy_mmx;
   tab->rgb_15_to_yuv_420_p = rgb_15_to_yuv_420_p_mmx;
   tab->rgb_15_to_yuv_422_p = rgb_15_to_yuv_422_p_mmx;
   tab->rgb_15_to_yuvj_420_p = rgb_15_to_yuvj_420_p_mmx;
   tab->rgb_15_to_yuvj_422_p = rgb_15_to_yuvj_422_p_mmx;
 
   tab->bgr_15_to_yuy2 =      bgr_15_to_yuy2_mmx;
+  tab->bgr_15_to_uyvy =      bgr_15_to_uyvy_mmx;
   tab->bgr_15_to_yuv_420_p = bgr_15_to_yuv_420_p_mmx;
   tab->bgr_15_to_yuv_422_p = bgr_15_to_yuv_422_p_mmx;
   tab->bgr_15_to_yuvj_420_p = bgr_15_to_yuvj_420_p_mmx;
   tab->bgr_15_to_yuvj_422_p = bgr_15_to_yuvj_422_p_mmx;
 
   tab->rgb_16_to_yuy2 =      rgb_16_to_yuy2_mmx;
+  tab->rgb_16_to_uyvy =      rgb_16_to_uyvy_mmx;
   tab->rgb_16_to_yuv_420_p = rgb_16_to_yuv_420_p_mmx;
   tab->rgb_16_to_yuv_422_p = rgb_16_to_yuv_422_p_mmx;
   tab->rgb_16_to_yuvj_420_p = rgb_16_to_yuvj_420_p_mmx;
   tab->rgb_16_to_yuvj_422_p = rgb_16_to_yuvj_422_p_mmx;
 
   tab->bgr_16_to_yuy2 =      bgr_16_to_yuy2_mmx;
+  tab->bgr_16_to_uyvy =      bgr_16_to_uyvy_mmx;
   tab->bgr_16_to_yuv_420_p = bgr_16_to_yuv_420_p_mmx;
   tab->bgr_16_to_yuv_422_p = bgr_16_to_yuv_422_p_mmx;
   tab->bgr_16_to_yuvj_420_p = bgr_16_to_yuvj_420_p_mmx;
   tab->bgr_16_to_yuvj_422_p = bgr_16_to_yuvj_422_p_mmx;
 
   tab->rgb_24_to_yuy2 =      rgb_24_to_yuy2_mmx;
+  tab->rgb_24_to_uyvy =      rgb_24_to_uyvy_mmx;
   tab->rgb_24_to_yuv_420_p = rgb_24_to_yuv_420_p_mmx;
   tab->rgb_24_to_yuv_422_p = rgb_24_to_yuv_422_p_mmx;
   tab->rgb_24_to_yuvj_420_p = rgb_24_to_yuvj_420_p_mmx;
   tab->rgb_24_to_yuvj_422_p = rgb_24_to_yuvj_422_p_mmx;
 
   tab->bgr_24_to_yuy2 =      bgr_24_to_yuy2_mmx;
+  tab->bgr_24_to_uyvy =      bgr_24_to_uyvy_mmx;
   tab->bgr_24_to_yuv_420_p = bgr_24_to_yuv_420_p_mmx;
   tab->bgr_24_to_yuv_422_p = bgr_24_to_yuv_422_p_mmx;
   tab->bgr_24_to_yuvj_420_p = bgr_24_to_yuvj_420_p_mmx;
   tab->bgr_24_to_yuvj_422_p = bgr_24_to_yuvj_422_p_mmx;
   
   tab->rgb_32_to_yuy2 =      rgb_32_to_yuy2_mmx;
+  tab->rgb_32_to_uyvy =      rgb_32_to_uyvy_mmx;
   tab->rgb_32_to_yuv_420_p = rgb_32_to_yuv_420_p_mmx;
   tab->rgb_32_to_yuv_422_p = rgb_32_to_yuv_422_p_mmx;
   tab->rgb_32_to_yuvj_420_p = rgb_32_to_yuvj_420_p_mmx;
   tab->rgb_32_to_yuvj_422_p = rgb_32_to_yuvj_422_p_mmx;
 
   tab->bgr_32_to_yuy2 =      bgr_32_to_yuy2_mmx;
+  tab->bgr_32_to_uyvy =      bgr_32_to_uyvy_mmx;
   tab->bgr_32_to_yuv_420_p = bgr_32_to_yuv_420_p_mmx;
   tab->bgr_32_to_yuv_422_p = bgr_32_to_yuv_422_p_mmx;
   tab->bgr_32_to_yuvj_420_p = bgr_32_to_yuvj_420_p_mmx;

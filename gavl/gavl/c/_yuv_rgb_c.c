@@ -88,7 +88,9 @@ static void _init_yuv2rgb_c()
 #define PACK_RGB15(r,g,b,pixel) pixel=((((((r<<5)&0xff00)|g)<<5)&0xfff00)|b)>>3
 #define PACK_BGR15(r,g,b,pixel) pixel=((((((b<<5)&0xff00)|g)<<5)&0xfff00)|r)>>3
 
-/* YUY2 -> */
+/*************************************************
+  YUY2 ->
+ *************************************************/
 
 /* yuy2_to_rgb_15_c */
 
@@ -133,7 +135,6 @@ static void _init_yuv2rgb_c()
   int i_tmp;
 
 #include "../csp_packed_packed.h"
-
 
 /* yuy2_to_rgb_16_c */
 
@@ -265,6 +266,186 @@ static void _init_yuv2rgb_c()
   int i_tmp;
 
 #include "../csp_packed_packed.h"
+
+/*************************************************
+  UYVY ->
+ *************************************************/
+
+/* uyvy_to_rgb_15_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 2
+#define NUM_PIXELS  2
+#define FUNC_NAME uyvy_to_rgb_15_c
+#define CONVERT  \
+  YUV_2_RGB(src[1], src[0], src[2], r, g, b) \
+  PACK_RGB15(r, g, b, dst[0]); \
+  YUV_2_RGB(src[3], src[0], src[2], r, g, b) \
+  PACK_RGB15(r, g, b, dst[1]);
+
+#define INIT \
+  uint8_t r; \
+  uint8_t g; \
+  uint8_t b; \
+  int i_tmp;
+
+#include "../csp_packed_packed.h"
+
+/* uyvy_to_bgr_15_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 2
+#define NUM_PIXELS  2
+#define FUNC_NAME uyvy_to_bgr_15_c
+#define CONVERT  \
+  YUV_2_RGB(src[1], src[0], src[2], r, g, b) \
+  PACK_BGR15(r, g, b, dst[0]); \
+  YUV_2_RGB(src[3], src[0], src[2], r, g, b) \
+  PACK_BGR15(r, g, b, dst[1]);
+
+#define INIT \
+  uint8_t r; \
+  uint8_t g; \
+  uint8_t b; \
+  int i_tmp;
+
+#include "../csp_packed_packed.h"
+
+/* uyvy_to_rgb_16_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 2
+#define NUM_PIXELS  2
+#define FUNC_NAME uyvy_to_rgb_16_c
+#define CONVERT  \
+  YUV_2_RGB(src[1], src[0], src[2], r, g, b) \
+  PACK_RGB16(r, g, b, dst[0]); \
+  YUV_2_RGB(src[3], src[0], src[2], r, g, b) \
+  PACK_RGB16(r, g, b, dst[1]);
+
+#define INIT \
+  uint8_t r; \
+  uint8_t g; \
+  uint8_t b; \
+  int i_tmp;
+
+#include "../csp_packed_packed.h"
+
+/* uyvy_to_bgr_16_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 2
+#define NUM_PIXELS  2
+#define FUNC_NAME uyvy_to_bgr_16_c
+#define CONVERT  \
+  YUV_2_RGB(src[1], src[0], src[2], r, g, b) \
+  PACK_BGR16(r, g, b, dst[0]); \
+  YUV_2_RGB(src[3], src[0], src[2], r, g, b) \
+  PACK_BGR16(r, g, b, dst[1]);
+
+#define INIT \
+  uint8_t r; \
+  uint8_t g; \
+  uint8_t b; \
+  int i_tmp;
+
+#include "../csp_packed_packed.h"
+
+/* uyvy_to_rgb_24_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 6
+#define NUM_PIXELS  2
+#define FUNC_NAME uyvy_to_rgb_24_c
+#define CONVERT  \
+  YUV_2_RGB(src[1], src[0], src[2], dst[0], dst[1], dst[2]) \
+  YUV_2_RGB(src[3], src[0], src[2], dst[3], dst[4], dst[5])
+
+#define INIT \
+  int i_tmp;
+
+#include "../csp_packed_packed.h"
+
+/* uyvy_to_rgb_24_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 6
+#define NUM_PIXELS  2
+#define FUNC_NAME uyvy_to_bgr_24_c
+#define CONVERT  \
+  YUV_2_RGB(src[1], src[0], src[2], dst[2], dst[1], dst[0]) \
+  YUV_2_RGB(src[3], src[0], src[2], dst[5], dst[4], dst[3])
+
+#define INIT \
+  int i_tmp;
+
+#include "../csp_packed_packed.h"
+
+/* uyvy_to_rgb_32_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 8
+#define NUM_PIXELS  2
+#define FUNC_NAME uyvy_to_rgb_32_c
+#define CONVERT  \
+  YUV_2_RGB(src[1], src[0], src[2], dst[0], dst[1], dst[2]) \
+  YUV_2_RGB(src[3], src[0], src[2], dst[4], dst[5], dst[6])
+
+#define INIT \
+  int i_tmp;
+
+#include "../csp_packed_packed.h"
+
+/* uyvy_to_bgr_32_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 8
+#define NUM_PIXELS  2
+#define FUNC_NAME uyvy_to_bgr_32_c
+#define CONVERT  \
+  YUV_2_RGB(src[1], src[0], src[2], dst[2], dst[1], dst[0]) \
+  YUV_2_RGB(src[3], src[0], src[2], dst[6], dst[5], dst[4])
+
+#define INIT \
+  int i_tmp;
+
+#include "../csp_packed_packed.h"
+
+/* uyvy_to_rgba_32_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 8
+#define NUM_PIXELS  2
+#define FUNC_NAME uyvy_to_rgba_32_c
+#define CONVERT  \
+  YUV_2_RGB(src[1], src[0], src[2], dst[0], dst[1], dst[2]) \
+  dst[3] = 0xFF;\
+  YUV_2_RGB(src[3], src[0], src[2], dst[4], dst[5], dst[6]) \
+  dst[7] = 0xFF;
+
+#define INIT \
+  int i_tmp;
+
+#include "../csp_packed_packed.h"
+
 
 /*************************************************
   YUV420P ->
@@ -1397,6 +1578,16 @@ void gavl_init_yuv_rgb_funcs_c(gavl_colorspace_function_table_t * tab)
   tab->yuy2_to_rgb_32 = yuy2_to_rgb_32_c;
   tab->yuy2_to_bgr_32 = yuy2_to_bgr_32_c;
   tab->yuy2_to_rgba_32 = yuy2_to_rgba_32_c;
+
+  tab->uyvy_to_rgb_15 = uyvy_to_rgb_15_c;
+  tab->uyvy_to_bgr_15 = uyvy_to_bgr_15_c;
+  tab->uyvy_to_rgb_16 = uyvy_to_rgb_16_c;
+  tab->uyvy_to_bgr_16 = uyvy_to_bgr_16_c;
+  tab->uyvy_to_rgb_24 = uyvy_to_rgb_24_c;
+  tab->uyvy_to_bgr_24 = uyvy_to_bgr_24_c;
+  tab->uyvy_to_rgb_32 = uyvy_to_rgb_32_c;
+  tab->uyvy_to_bgr_32 = uyvy_to_bgr_32_c;
+  tab->uyvy_to_rgba_32 = uyvy_to_rgba_32_c;
   
   tab->yuv_420_p_to_rgb_15 = yuv_420_p_to_rgb_15_c;
   tab->yuv_420_p_to_bgr_15 = yuv_420_p_to_bgr_15_c;

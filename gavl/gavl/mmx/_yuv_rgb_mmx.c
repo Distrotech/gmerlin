@@ -51,6 +51,7 @@ static mmx_t mmx_YJ_coeff = { 0x2000200020002000LL }; // Y Coeff:  8192 (=      
 
 static mmx_t mmx_10w =     { 0x1010101010101010LL };
 static mmx_t mmx_00ffw =   { 0x00ff00ff00ff00ffLL };
+static mmx_t mmx_ff00w =   { 0xff00ff00ff00ff00LL };
 
 /* Macros for loading the YUV images into the MMX registers */
 
@@ -77,7 +78,29 @@ static mmx_t mmx_00ffw =   { 0x00ff00ff00ff00ffLL };
                    pand_m2r(mmx_00ffw,mm0);/*     mm0: 00 U6 00 U4 00 U2 00 U0 */\
                    psrlw_i2r(8,mm1);/*            mm1: 00 V6 00 V4 00 V2 00 V0 */\
                    packuswb_r2r(mm4,mm0);/*       mm0: 00 00 00 00 U6 U4 U2 U0 */\
-                   packuswb_r2r(mm4,mm1);/*       mm0: 00 00 00 00 V6 V4 V2 V0 */
+                   packuswb_r2r(mm4,mm1);/*       mm1: 00 00 00 00 V6 V4 V2 V0 */
+
+#define LOAD_UYVY  movq_m2r(*src,mm0);/*          mm0: Y3 V2 Y2 U2 Y1 V0 Y0 U0 */\
+                   movq_m2r(*(src+8),mm1);/*      mm1: Y7 V6 Y6 U6 Y5 V4 Y4 U4 */\
+                   movq_r2r(mm0,mm2);/*           mm2: Y3 V2 Y2 U2 Y1 V0 Y0 U0 */\
+                   pand_m2r(mmx_ff00w,mm2);/*     mm2: Y3 00 Y2 00 Y1 00 Y0 00 */\
+                   psrlw_i2r(8,mm2);/*            mm2: 00 Y3 00 Y2 00 Y1 00 Y0 */\
+                   pxor_r2r(mm4, mm4);/*          Zero mm4 */                    \
+                   packuswb_r2r(mm4,mm2);/*       mm2: 00 00 00 00 Y3 Y2 Y1 Y0 */\
+                   movq_r2r(mm1,mm3);/*           mm3: Y7 V6 Y6 U6 Y5 V4 Y4 U4 */\
+                   pand_m2r(mmx_ff00w,mm3);/*     mm3: Y7 00 Y6 00 Y5 00 Y4 00 */\
+                   psrlw_i2r(8,mm3);/*            mm3: 00 Y7 00 Y6 00 Y5 00 Y4 */\
+                   pxor_r2r(mm6, mm6);/*          Zero mm6 */\
+                   packuswb_r2r(mm3,mm6);/*       mm6: Y7 Y6 Y5 Y4 00 00 00 00 */\
+                   por_r2r(mm2,mm6);/*            mm6: Y7 Y6 Y5 Y4 Y3 Y2 Y1 Y0 */\
+                   pand_m2r(mmx_00ffw,mm0);/*     mm0: 00 V2 00 U2 00 V0 00 U0 */\
+                   pand_m2r(mmx_00ffw,mm1);/*     mm1: 00 V6 00 U6 00 V4 00 U4 */\
+                   packuswb_r2r(mm1,mm0);/*       mm0: V6 U6 V4 U4 V2 U2 V0 U0 */\
+                   movq_r2r(mm0,mm1);/*           mm1: V6 U6 V4 U4 V2 U2 V0 U0 */\
+                   pand_m2r(mmx_00ffw,mm0);/*     mm0: 00 U6 00 U4 00 U2 00 U0 */\
+                   psrlw_i2r(8,mm1);/*            mm1: 00 V6 00 V4 00 V2 00 V0 */\
+                   packuswb_r2r(mm4,mm0);/*       mm0: 00 00 00 00 U6 U4 U2 U0 */\
+                   packuswb_r2r(mm4,mm1);/*       mm1: 00 00 00 00 V6 V4 V2 V0 */
 
 /* This macro converts 8 Pixels at once (taken from mpeg2dec) */
 
@@ -670,6 +693,166 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 // #define INIT
 
 #include "../csp_packed_packed.h"
+
+/***********************************************************
+ * UYVY ->
+ ***********************************************************/
+
+#define FUNC_NAME   uyvy_to_rgb_15_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_UYVY \
+  YUV_2_RGB \
+  OUTPUT_RGB_15
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   uyvy_to_bgr_15_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_UYVY \
+  YUV_2_RGB \
+  OUTPUT_BGR_15
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   uyvy_to_rgb_16_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_UYVY \
+  YUV_2_RGB \
+  OUTPUT_RGB_16
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+
+#define FUNC_NAME   uyvy_to_bgr_16_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 16
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_UYVY \
+  YUV_2_RGB \
+  OUTPUT_BGR_16
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   uyvy_to_rgb_24_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 24
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_UYVY \
+  YUV_2_RGB \
+  OUTPUT_RGB_24
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   uyvy_to_bgr_24_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 24
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_UYVY \
+  YUV_2_RGB \
+  OUTPUT_BGR_24
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+
+#define FUNC_NAME   uyvy_to_rgb_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_UYVY \
+  YUV_2_RGB \
+  OUTPUT_RGB_32
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   uyvy_to_bgr_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_UYVY \
+  YUV_2_RGB \
+  OUTPUT_BGR_32
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
+#define FUNC_NAME   uyvy_to_rgba_32_mmx
+#define IN_TYPE     uint8_t
+#define OUT_TYPE    uint8_t
+#define IN_ADVANCE  16
+#define OUT_ADVANCE 32
+#define NUM_PIXELS  8
+#define CONVERT     \
+  LOAD_UYVY \
+  YUV_2_RGB \
+  OUTPUT_RGBA_32
+
+#define CLEANUP emms();
+
+// #define INIT
+
+#include "../csp_packed_packed.h"
+
 
 /***************************************************
  * YUV 420 P ->
@@ -1411,6 +1594,16 @@ void gavl_init_yuv_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
   tab->yuy2_to_rgb_32 = yuy2_to_rgb_32_mmx;
   tab->yuy2_to_bgr_32 = yuy2_to_bgr_32_mmx;
   tab->yuy2_to_rgba_32 = yuy2_to_rgba_32_mmx;
+
+  tab->uyvy_to_rgb_15 = uyvy_to_rgb_15_mmx;
+  tab->uyvy_to_bgr_15 = uyvy_to_bgr_15_mmx;
+  tab->uyvy_to_rgb_16 = uyvy_to_rgb_16_mmx;
+  tab->uyvy_to_bgr_16 = uyvy_to_bgr_16_mmx;
+  tab->uyvy_to_rgb_24 = uyvy_to_rgb_24_mmx;
+  tab->uyvy_to_bgr_24 = uyvy_to_bgr_24_mmx;
+  tab->uyvy_to_rgb_32 = uyvy_to_rgb_32_mmx;
+  tab->uyvy_to_bgr_32 = uyvy_to_bgr_32_mmx;
+  tab->uyvy_to_rgba_32 = uyvy_to_rgba_32_mmx;
   
   tab->yuv_420_p_to_rgb_15 = yuv_420_p_to_rgb_15_mmx;
   tab->yuv_420_p_to_bgr_15 = yuv_420_p_to_bgr_15_mmx;

@@ -356,20 +356,24 @@ typedef enum
     GAVL_BGR_32          =  8,
     GAVL_RGBA_32         =  9,
     GAVL_YUY2            = 10,
-    GAVL_YUV_420_P       = 11,
-    GAVL_YUV_422_P       = 12,
-    GAVL_YUV_444_P       = 13,
-
-    /* TODO */
-
-    //    GAVL_YUV_411_P       = 14,
-    //    GAVL_YUV_410_P       = 15,
-    //    GAVL_UYVY            = 16
+    GAVL_UYVY            = 11,
+    GAVL_YUV_420_P       = 12,
+    GAVL_YUV_422_P       = 13,
+    GAVL_YUV_444_P       = 14,
+    GAVL_YUV_411_P       = 15,
+    GAVL_YUV_410_P       = 16,
     
     /* JPEG compliant YUV formats */
     GAVL_YUVJ_420_P      = 17,
     GAVL_YUVJ_422_P      = 18,
     GAVL_YUVJ_444_P      = 19,
+
+    /* TODO: High Quality formats (16 Bits/channel) */
+
+    // GAVL_YUV_48       = 20
+    // GAVL_YUVA_64      = 21
+    // GAVL_RGB_48       = 22
+    // GAVL_RGBA_64      = 23
     
   } gavl_colorspace_t;
 

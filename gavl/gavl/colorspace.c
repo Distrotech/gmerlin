@@ -43,7 +43,10 @@ colorspace_tab_t colorspace_tab[] =
     { GAVL_BGR_32, "32 bpp BGR" },
     { GAVL_RGBA_32, "32 bpp RGBA" },
     { GAVL_YUY2, "YUV 422 (YUY2)" },
+    { GAVL_UYVY, "YUV 422 (UYVY)" },
     { GAVL_YUV_420_P, "YUV 420 Planar" },
+    { GAVL_YUV_410_P, "YUV 410 Planar" },
+    { GAVL_YUV_411_P, "YUV 411 Planar" },
     { GAVL_YUV_422_P, "YUV 422 Planar" },
     { GAVL_YUV_444_P, "YUV 444 Planar" },
     { GAVL_YUVJ_420_P, "YUVJ 420 Planar" },
@@ -68,10 +71,13 @@ int gavl_colorspace_num_planes(gavl_colorspace_t csp)
     case GAVL_BGR_32:
     case GAVL_RGBA_32:
     case GAVL_YUY2:
+    case GAVL_UYVY:
       return 1;
       break;
     case GAVL_YUV_420_P:
+    case GAVL_YUV_410_P:
     case GAVL_YUV_422_P:
+    case GAVL_YUV_411_P:
     case GAVL_YUV_444_P:
     case GAVL_YUVJ_420_P:
     case GAVL_YUVJ_422_P:
@@ -102,6 +108,7 @@ void gavl_colorspace_chroma_sub(gavl_colorspace_t csp, int * sub_h,
     case GAVL_YUV_444_P:
     case GAVL_YUVJ_444_P:
     case GAVL_YUY2:
+    case GAVL_UYVY:
       *sub_h = 1;
       *sub_v = 1;
       break;
@@ -114,6 +121,14 @@ void gavl_colorspace_chroma_sub(gavl_colorspace_t csp, int * sub_h,
     case GAVL_YUVJ_422_P:
       *sub_h = 2;
       *sub_v = 1;
+      break;
+    case GAVL_YUV_411_P:
+      *sub_h = 4;
+      *sub_v = 1;
+      break;
+    case GAVL_YUV_410_P:
+      *sub_h = 4;
+      *sub_v = 4;
       break;
     case GAVL_COLORSPACE_NONE:
       *sub_h = 0;
@@ -157,8 +172,11 @@ int gavl_colorspace_is_yuv(gavl_colorspace_t colorspace)
   switch(colorspace)
     {
     case GAVL_YUY2:
+    case GAVL_UYVY:
     case GAVL_YUV_420_P:
+    case GAVL_YUV_410_P:
     case GAVL_YUV_422_P:
+    case GAVL_YUV_411_P:
     case GAVL_YUV_444_P:
     case GAVL_YUVJ_420_P:
     case GAVL_YUVJ_422_P:
@@ -175,7 +193,9 @@ int gavl_colorspace_is_planar(gavl_colorspace_t colorspace)
   switch(colorspace)
     {
     case GAVL_YUV_420_P:
+    case GAVL_YUV_410_P:
     case GAVL_YUV_422_P:
+    case GAVL_YUV_411_P:
     case GAVL_YUV_444_P:
     case GAVL_YUVJ_420_P:
     case GAVL_YUVJ_422_P:
@@ -333,6 +353,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUY2:
           ret = tab->rgb_15_to_yuy2;
           break;
+        case GAVL_UYVY:
+          ret = tab->rgb_15_to_uyvy;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->rgb_15_to_yuv_420_p;
           break;
@@ -386,6 +409,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           break;
         case GAVL_YUY2:
           ret = tab->bgr_15_to_yuy2;
+          break;
+        case GAVL_UYVY:
+          ret = tab->bgr_15_to_uyvy;
           break;
         case GAVL_YUV_420_P:
           ret = tab->bgr_15_to_yuv_420_p;
@@ -441,6 +467,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUY2:
           ret = tab->rgb_16_to_yuy2;
           break;
+        case GAVL_UYVY:
+          ret = tab->rgb_16_to_uyvy;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->rgb_16_to_yuv_420_p;
           break;
@@ -495,6 +524,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUY2:
           ret = tab->bgr_16_to_yuy2;
           break;
+        case GAVL_UYVY:
+          ret = tab->bgr_16_to_uyvy;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->bgr_16_to_yuv_420_p;
           break;
@@ -513,6 +545,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUVJ_444_P:
           ret = tab->bgr_16_to_yuvj_444_p;
           break;
+        /* Keep GCC happy */
         case GAVL_COLORSPACE_NONE:
         case GAVL_BGR_16:
           break;
@@ -548,6 +581,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUY2:
           ret = tab->rgb_24_to_yuy2;
           break;
+        case GAVL_UYVY:
+          ret = tab->rgb_24_to_uyvy;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->rgb_24_to_yuv_420_p;
           break;
@@ -566,6 +602,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUVJ_444_P:
           ret = tab->rgb_24_to_yuvj_444_p;
           break;
+        /* Keep GCC happy */
         case GAVL_COLORSPACE_NONE:
         case GAVL_RGB_24:
           break;
@@ -601,6 +638,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUY2:
           ret = tab->bgr_24_to_yuy2;
           break;
+        case GAVL_UYVY:
+          ret = tab->bgr_24_to_uyvy;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->bgr_24_to_yuv_420_p;
           break;
@@ -619,6 +659,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUVJ_444_P:
           ret = tab->bgr_24_to_yuvj_444_p;
           break;
+        /* Keep GCC happy */
         case GAVL_COLORSPACE_NONE:
         case GAVL_BGR_24:
           break;
@@ -654,6 +695,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUY2:
           ret = tab->rgb_32_to_yuy2;
           break;
+        case GAVL_UYVY:
+          ret = tab->rgb_32_to_uyvy;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->rgb_32_to_yuv_420_p;
           break;
@@ -672,6 +716,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUVJ_444_P:
           ret = tab->rgb_32_to_yuvj_444_p;
           break;
+        /* Keep GCC happy */
         case GAVL_COLORSPACE_NONE:
         case GAVL_RGB_32:
           break;
@@ -707,6 +752,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUY2:
           ret = tab->bgr_32_to_yuy2;
           break;
+        case GAVL_UYVY:
+          ret = tab->bgr_32_to_uyvy;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->bgr_32_to_yuv_420_p;
           break;
@@ -725,6 +773,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUVJ_444_P:
           ret = tab->bgr_32_to_yuvj_444_p;
           break;
+        /* Keep GCC happy */
         case GAVL_COLORSPACE_NONE:
         case GAVL_BGR_32:
           break;
@@ -760,6 +809,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUY2:
           ret = tab->rgba_32_to_yuy2;
           break;
+        case GAVL_UYVY:
+          ret = tab->rgba_32_to_uyvy;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->rgba_32_to_yuv_420_p;
           break;
@@ -778,6 +830,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUVJ_444_P:
           ret = tab->rgba_32_to_yuvj_444_p;
           break;
+        /* Keep GCC happy */
         case GAVL_COLORSPACE_NONE:
         case GAVL_RGBA_32:
           break;
@@ -831,8 +884,69 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUVJ_444_P:
           ret = tab->yuy2_to_yuvj_444_p;
           break;
+        case GAVL_UYVY:
+          ret = tab->uyvy_to_yuy2;
+          break;
+        /* Keep GCC happy */
         case GAVL_COLORSPACE_NONE:
         case GAVL_YUY2:
+          break;
+        }
+      break;
+    case GAVL_UYVY:
+      switch(output_colorspace)
+        {
+        case GAVL_RGB_15:
+          ret = tab->uyvy_to_rgb_15;
+          break;
+        case GAVL_BGR_15:
+          ret = tab->uyvy_to_bgr_15;
+          break;
+        case GAVL_RGB_16:
+          ret = tab->uyvy_to_rgb_16;
+          break;
+        case GAVL_BGR_16:
+          ret = tab->uyvy_to_bgr_16;
+          break;
+        case GAVL_RGB_24:
+          ret = tab->uyvy_to_rgb_24;
+          break;
+        case GAVL_BGR_24:
+          ret = tab->uyvy_to_bgr_24;
+          break;
+        case GAVL_RGB_32:
+          ret = tab->uyvy_to_rgb_32;
+          break;
+        case GAVL_BGR_32:
+          ret = tab->uyvy_to_bgr_32;
+          break;
+        case GAVL_RGBA_32:
+          ret = tab->uyvy_to_rgba_32;
+          break;
+        case GAVL_YUV_420_P:
+          ret = tab->uyvy_to_yuv_420_p;
+          break;
+        case GAVL_YUV_422_P:
+          ret = tab->uyvy_to_yuv_422_p;
+          break;
+        case GAVL_YUV_444_P:
+          ret = tab->uyvy_to_yuv_444_p;
+          break;
+        case GAVL_YUVJ_420_P:
+          ret = tab->uyvy_to_yuvj_420_p;
+          break;
+        case GAVL_YUVJ_422_P:
+          ret = tab->uyvy_to_yuvj_422_p;
+          break;
+        case GAVL_YUVJ_444_P:
+          ret = tab->uyvy_to_yuvj_444_p;
+          break;
+        case GAVL_YUY2:
+          ret = tab->uyvy_to_yuy2;
+          break;
+        /* Keep GCC happy */
+        case GAVL_COLORSPACE_NONE:
+        case GAVL_UYVY:
           break;
         }
       break;
@@ -869,6 +983,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUY2:
           ret = tab->yuv_420_p_to_yuy2;
           break;
+        case GAVL_UYVY:
+          ret = tab->yuv_420_p_to_uyvy;
+          break;
         case GAVL_YUV_422_P:
           ret = tab->yuv_420_p_to_yuv_422_p;
           break;
@@ -884,6 +1001,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUVJ_444_P:
           ret = tab->yuv_420_p_to_yuvj_444_p;
           break;
+        /* Keep GCC happy */
         case GAVL_COLORSPACE_NONE:
         case GAVL_YUV_420_P:
           break;
@@ -922,6 +1040,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUY2:
           ret = tab->yuv_422_p_to_yuy2;
           break;
+        case GAVL_UYVY:
+          ret = tab->yuv_422_p_to_uyvy;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->yuv_422_p_to_yuv_420_p;
           break;
@@ -937,6 +1058,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUVJ_444_P:
           ret = tab->yuv_422_p_to_yuvj_444_p;
           break;
+        /* Keep GCC happy */
         case GAVL_COLORSPACE_NONE:
         case GAVL_YUV_422_P:
           break;
@@ -975,6 +1097,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUY2:
           ret = tab->yuv_444_p_to_yuy2;
           break;
+        case GAVL_UYVY:
+          ret = tab->yuv_444_p_to_uyvy;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->yuv_444_p_to_yuv_420_p;
           break;
@@ -990,6 +1115,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUVJ_444_P:
           ret = tab->yuv_444_p_to_yuvj_444_p;
           break;
+        /* Keep GCC happy */
         case GAVL_COLORSPACE_NONE:
         case GAVL_YUV_444_P:
           break;
@@ -1028,6 +1154,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUY2:
           ret = tab->yuvj_420_p_to_yuy2;
           break;
+        case GAVL_UYVY:
+          ret = tab->yuvj_420_p_to_uyvy;
+          break;
         case GAVL_YUV_422_P:
           ret = tab->yuvj_420_p_to_yuv_422_p;
           break;
@@ -1043,6 +1172,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUVJ_444_P:
           ret = tab->yuv_420_p_to_yuv_444_p;
           break;
+        /* Keep GCC happy */
         case GAVL_COLORSPACE_NONE:
         case GAVL_YUVJ_420_P:
           break;
@@ -1081,6 +1211,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUY2:
           ret = tab->yuvj_422_p_to_yuy2;
           break;
+        case GAVL_UYVY:
+          ret = tab->yuvj_422_p_to_uyvy;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->yuvj_422_p_to_yuv_420_p;
           break;
@@ -1096,6 +1229,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUVJ_444_P:
           ret = tab->yuv_422_p_to_yuv_444_p;
           break;
+        /* Keep GCC happy */
         case GAVL_COLORSPACE_NONE:
         case GAVL_YUVJ_422_P:
           break;
@@ -1134,6 +1268,9 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUY2:
           ret = tab->yuvj_444_p_to_yuy2;
           break;
+        case GAVL_UYVY:
+          ret = tab->yuvj_444_p_to_uyvy;
+          break;
         case GAVL_YUV_420_P:
           ret = tab->yuvj_444_p_to_yuv_420_p;
           break;
@@ -1149,6 +1286,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
         case GAVL_YUV_444_P:
           ret = tab->yuvj_444_p_to_yuv_444_p;
           break;
+        /* Keep GCC happy */
         case GAVL_COLORSPACE_NONE:
         case GAVL_YUVJ_444_P:
           break;

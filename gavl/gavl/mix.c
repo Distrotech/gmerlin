@@ -47,6 +47,8 @@
 
 #define CLAMP(x,a,b) if(x<a)x=a;if(x>b)x=b;
 
+#if 0
+
 static void input_channel_dump(gavl_mix_input_channel_t * c)
   {
   fprintf(stderr, "Index: %d, Factor [ 0x%02x 0x%04x 0x%08x %f ]\n",
@@ -63,7 +65,7 @@ static void output_channel_dump(gavl_mix_output_channel_t * c)
     input_channel_dump(&(c->inputs[i]));
     }
   }
-
+#endif
 
 void gavl_mix_audio(gavl_audio_convert_context_t * ctx)
   {
@@ -400,7 +402,7 @@ static void init_context(gavl_mix_matrix_t * ctx,
   int i, j;
   int num_inputs;
   gavl_mixer_table_t tab;
-  fprintf(stderr, "init_context...");
+  //  fprintf(stderr, "init_context...");
   memset(&tab, 0, sizeof(tab));
 
   gavl_setup_mix_funcs_c(&tab, in_format);
@@ -431,9 +433,11 @@ static void init_context(gavl_mix_matrix_t * ctx,
        (fabs(matrix[i][ctx->output_channels[i].inputs[0].index]- 1.0) < 0.01))
       {
       ctx->output_channels[i].func = tab.copy_func;
+#if 0
       fprintf(stderr, "Copying channel %s to %s\n",
               gavl_channel_id_to_string(in_format->channel_locations[ctx->output_channels[i].inputs[0].index]),
               gavl_channel_id_to_string(out_format->channel_locations[i]));
+#endif
       }
     else
       {
@@ -462,10 +466,10 @@ static void init_context(gavl_mix_matrix_t * ctx,
         }
       }
 
-    output_channel_dump(&(ctx->output_channels[i]));
+    //    output_channel_dump(&(ctx->output_channels[i]));
     }
   
-  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done\n");
   }
 
 gavl_mix_matrix_t *
@@ -481,14 +485,14 @@ gavl_create_mix_matrix(gavl_audio_options_t * opt,
 
   //  gavl_audio_format_dump(out);
 
-  fprintf(stderr, "Init Matrix...");
+  //  fprintf(stderr, "Init Matrix...");
   
   init_matrix(mix_matrix, opt, in, out);
-  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done\n");
   
-  fprintf(stderr, "Init mix context\n");
+  //  fprintf(stderr, "Init mix context\n");
   init_context(ret, mix_matrix, in, out);
-  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done\n");
                  
   return ret;
   }

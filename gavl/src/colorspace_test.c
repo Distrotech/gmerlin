@@ -360,6 +360,147 @@ void convert_YUV_420_P_to_RGB24(gavl_video_frame_t * in_frame,
     }
   }
 
+void convert_YUV_410_P_to_RGB24(gavl_video_frame_t * in_frame,
+                                gavl_video_frame_t * out_frame,
+                                int width, int height)
+  {
+  int i, j, i_tmp;
+  uint8_t * in_y;
+  uint8_t * in_u;
+  uint8_t * in_v;
+
+  uint8_t * out_pixel;
+
+  uint8_t * out_pixel_save = out_frame->planes[0];
+  uint8_t * in_y_save = in_frame->planes[0];
+  uint8_t * in_u_save = in_frame->planes[1];
+  uint8_t * in_v_save = in_frame->planes[2];
+
+  for(i = 0; i < height/4; i++)
+    {
+
+    /* Even Rows */
+
+    out_pixel = out_pixel_save;
+    in_y = in_y_save;
+    in_u = in_u_save;
+    in_v = in_v_save;
+    for(j = 0; j < width/4; j++)
+      {
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      in_u++;
+      in_v++;
+      out_pixel += 3;
+      }
+    out_pixel_save += out_frame->strides[0];
+    in_y_save += in_frame->strides[0];
+
+    /* Odd Rows */
+
+    out_pixel = out_pixel_save;
+    in_y = in_y_save;
+    in_u = in_u_save;
+    in_v = in_v_save;
+    for(j = 0; j < width/4; j++)
+      {
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      in_u++;
+      in_v++;
+      out_pixel += 3;
+      }
+    out_pixel_save += out_frame->strides[0];
+    in_y_save += in_frame->strides[0];
+
+    out_pixel = out_pixel_save;
+    in_y = in_y_save;
+    in_u = in_u_save;
+    in_v = in_v_save;
+    for(j = 0; j < width/4; j++)
+      {
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      in_u++;
+      in_v++;
+      out_pixel += 3;
+      }
+    out_pixel_save += out_frame->strides[0];
+    in_y_save += in_frame->strides[0];
+
+    out_pixel = out_pixel_save;
+    in_y = in_y_save;
+    in_u = in_u_save;
+    in_v = in_v_save;
+    for(j = 0; j < width/4; j++)
+      {
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      in_u++;
+      in_v++;
+      out_pixel += 3;
+      }
+    out_pixel_save += out_frame->strides[0];
+    in_y_save += in_frame->strides[0];
+
+    
+    in_u_save += in_frame->strides[1];
+    in_v_save += in_frame->strides[2];
+    }
+  }
+
 void convert_YUVJ_420_P_to_RGB24(gavl_video_frame_t * in_frame,
                                  gavl_video_frame_t * out_frame,
                                  int width, int height)
@@ -428,7 +569,6 @@ void convert_YUVJ_420_P_to_RGB24(gavl_video_frame_t * in_frame,
     }
   }
 
-
 void convert_YUV_422_P_to_RGB24(gavl_video_frame_t * in_frame,
                                gavl_video_frame_t * out_frame,
                                int width, int height)
@@ -472,6 +612,61 @@ void convert_YUV_422_P_to_RGB24(gavl_video_frame_t * in_frame,
     in_v_save += in_frame->strides[2];
     }
   }
+
+void convert_YUV_411_P_to_RGB24(gavl_video_frame_t * in_frame,
+                               gavl_video_frame_t * out_frame,
+                               int width, int height)
+  {
+  int i, j, i_tmp;
+
+  uint8_t * in_y;
+  uint8_t * in_u;
+  uint8_t * in_v;
+
+  uint8_t * out_pixel;
+
+  uint8_t * out_pixel_save = out_frame->planes[0];
+  uint8_t * in_y_save = in_frame->planes[0];
+  uint8_t * in_u_save = in_frame->planes[1];
+  uint8_t * in_v_save = in_frame->planes[2];
+
+  for(i = 0; i < height; i++)
+    {
+    in_y = in_y_save;
+    in_u = in_u_save;
+    in_v = in_v_save;
+    out_pixel = out_pixel_save;
+    for(j = 0; j < width/4; j++)
+      {
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      out_pixel += 3;
+      
+      YUV_2_RGB(*in_y, *in_u, *in_v,
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      in_y++;
+      in_u++;
+      in_v++;
+      out_pixel += 3;
+      }
+    out_pixel_save += out_frame->strides[0];
+    in_y_save += in_frame->strides[0];
+    in_u_save += in_frame->strides[1];
+    in_v_save += in_frame->strides[2];
+    }
+  }
+
 
 void convert_YUVJ_422_P_to_RGB24(gavl_video_frame_t * in_frame,
                                  gavl_video_frame_t * out_frame,
@@ -626,6 +821,37 @@ void convert_YUY2_to_RGB24(gavl_video_frame_t * in_frame,
     }
   }
 
+void convert_UYVY_to_RGB24(gavl_video_frame_t * in_frame,
+                           gavl_video_frame_t * out_frame,
+                           int width, int height)
+  {
+  int i, j, i_tmp;
+
+  uint8_t * in_pixel;
+  uint8_t * out_pixel;
+
+  uint8_t * out_pixel_save = out_frame->planes[0];
+  uint8_t * in_pixel_save = in_frame->planes[0];
+
+  for(i = 0; i < height; i++)
+    {
+    in_pixel = in_pixel_save;
+    out_pixel = out_pixel_save;
+    for(j = 0; j < width/2; j++)
+      {
+      YUV_2_RGB(in_pixel[1], in_pixel[0], in_pixel[2],
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      out_pixel+=3;
+      YUV_2_RGB(in_pixel[3], in_pixel[0], in_pixel[2],
+                out_pixel[0], out_pixel[1], out_pixel[2]);
+      out_pixel+=3;
+      in_pixel += 4;
+      }
+    in_pixel_save += in_frame->strides[0];
+    out_pixel_save +=  out_frame->strides[0];
+    }
+  }
+
 /*
  *  This function writes a png file of the video frame in the given format
  *  The format can have all supported colorspaces, so we'll convert them
@@ -744,13 +970,30 @@ int write_file(const char * name,
       convert_YUY2_to_RGB24(frame, tmp_frame, format->image_width, format->image_height);
       out_frame = tmp_frame;
       break;
+    case GAVL_UYVY:
+      tmp_frame = gavl_video_frame_create(&tmp_format);
+      convert_UYVY_to_RGB24(frame, tmp_frame, format->image_width, format->image_height);
+      out_frame = tmp_frame;
+      break;
     case GAVL_YUV_420_P:
       tmp_frame = gavl_video_frame_create(&tmp_format);
       convert_YUV_420_P_to_RGB24(frame, tmp_frame, format->image_width,
                                  format->image_height);
       out_frame = tmp_frame;
       break;
+    case GAVL_YUV_410_P:
+      tmp_frame = gavl_video_frame_create(&tmp_format);
+      convert_YUV_410_P_to_RGB24(frame, tmp_frame, format->image_width,
+                                 format->image_height);
+      out_frame = tmp_frame;
+      break;
     case GAVL_YUV_422_P:
+      tmp_frame = gavl_video_frame_create(&tmp_format);
+      convert_YUV_422_P_to_RGB24(frame, tmp_frame, format->image_width,
+                                 format->image_height);
+      out_frame = tmp_frame;
+      break;
+    case GAVL_YUV_411_P:
       tmp_frame = gavl_video_frame_create(&tmp_format);
       convert_YUV_422_P_to_RGB24(frame, tmp_frame, format->image_width,
                                  format->image_height);
@@ -1056,6 +1299,21 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
           }
         }
       break;
+    case GAVL_UYVY:
+      for(row = 0; row < TEST_PICTURE_HEIGHT; row++)
+        {
+        pixel = ret->planes[0] + row * ret->strides[0];
+        for(col = 0; col < TEST_PICTURE_WIDTH/2; col++)
+          {
+          get_pixel(2*col, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, pixel[1], pixel[0], pixel[2]);
+                    
+          get_pixel(2*col+1, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, pixel[3]);
+          pixel+= 4;
+          }
+        }
+      break;
     case GAVL_YUV_420_P:
       for(row = 0; row < TEST_PICTURE_HEIGHT/2; row++)
         {
@@ -1096,6 +1354,102 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
           }
         }
       break;
+    case GAVL_YUV_410_P:
+      for(row = 0; row < TEST_PICTURE_HEIGHT/4; row++)
+        {
+        y = ret->planes[0] + 4 * row * ret->strides[0];
+        u = ret->planes[1] + row * ret->strides[1];
+        v = ret->planes[2] + row * ret->strides[2];
+
+        for(col = 0; col < TEST_PICTURE_WIDTH/4; col++)
+          {
+          get_pixel(2*col, 2*row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+
+          y++;
+          
+          get_pixel(2*col+1, 2*row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+          
+          y++;
+          get_pixel(2*col+2, 2*row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+          
+          y++;
+          get_pixel(2*col+3, 2*row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+          
+          y++;
+
+          u++;
+          v++;
+          }
+
+        y = ret->planes[0] + (4 * row + 1) * ret->strides[0];
+
+        for(col = 0; col < TEST_PICTURE_WIDTH/4; col++)
+          {
+          get_pixel(4*col, 4*row+1, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
+          y++;
+          
+          get_pixel(4*col+1, 4*row+1, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
+          y++;
+
+          get_pixel(4*col+2, 4*row+1, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
+          y++;
+
+          get_pixel(4*col+3, 4*row+1, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
+          y++;
+          }
+
+        y = ret->planes[0] + (4 * row + 2) * ret->strides[0];
+
+        for(col = 0; col < TEST_PICTURE_WIDTH/4; col++)
+          {
+          get_pixel(4*col, 4*row+2, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
+          y++;
+          
+          get_pixel(4*col+1, 4*row+2, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
+          y++;
+
+          get_pixel(4*col+2, 4*row+2, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
+          y++;
+
+          get_pixel(4*col+3, 4*row+2, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
+          y++;
+          }
+
+        y = ret->planes[0] + (4 * row + 3) * ret->strides[0];
+
+        for(col = 0; col < TEST_PICTURE_WIDTH/4; col++)
+          {
+          get_pixel(4*col, 4*row+3, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
+          y++;
+          
+          get_pixel(4*col+1, 4*row+3, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
+          y++;
+
+          get_pixel(4*col+2, 4*row+3, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
+          y++;
+
+          get_pixel(4*col+3, 4*row+3, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_Y(r_tmp, g_tmp, b_tmp, *y);
+          y++;
+          }
+
+        }
+      break;
     case GAVL_YUV_422_P:
       for(row = 0; row < TEST_PICTURE_HEIGHT; row++)
         {
@@ -1115,6 +1469,39 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
           RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
           
           y++;
+          u++;
+          v++;
+          }
+        }
+      break;
+    case GAVL_YUV_411_P:
+      for(row = 0; row < TEST_PICTURE_HEIGHT; row++)
+        {
+        y = ret->planes[0] + row * ret->strides[0];
+        u = ret->planes[1] + row * ret->strides[1];
+        v = ret->planes[2] + row * ret->strides[2];
+
+        for(col = 0; col < TEST_PICTURE_WIDTH/4; col++)
+          {
+          get_pixel(2* col, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+
+          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+
+          y++;
+          
+          get_pixel(2* col + 1, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+          
+          y++;
+          get_pixel(2* col + 2, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+          
+          y++;
+          get_pixel(2* col + 3, row, &r_tmp, &g_tmp, &b_tmp, &a_tmp);
+          RGB_TO_YUV(r_tmp, g_tmp, b_tmp, *y, *u, *v);
+          
+          y++;
+
           u++;
           v++;
           }

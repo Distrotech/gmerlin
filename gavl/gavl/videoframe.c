@@ -75,6 +75,7 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
                              ret->strides[0] * format->frame_height);
       break;
     case GAVL_YUY2:
+    case GAVL_UYVY:
       ret->strides[0] = format->frame_width*2;
       ALIGN(ret->strides[0]);
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
@@ -97,11 +98,44 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
       ret->planes[1] = ret->planes[0] + ret->strides[0]*format->frame_height;
       ret->planes[2] = ret->planes[1] + (ret->strides[1]*format->frame_height)/2;
       break;
+    case GAVL_YUV_410_P:
+      ret->strides[0] = format->frame_width;
+      ret->strides[1] = format->frame_width/4;
+      ret->strides[2] = format->frame_width/4;
+      ALIGN(ret->strides[0]);
+      ALIGN(ret->strides[1]);
+      ALIGN(ret->strides[2]);
+      
+      ret->planes[0] = memalign(ALIGNMENT_BYTES,
+                             ret->strides[0]*format->frame_height+
+                             (ret->strides[1]*format->frame_height)/4+
+                             (ret->strides[2]*format->frame_height)/4);
+      ret->planes[0] = ret->planes[0];
+      ret->planes[1] = ret->planes[0] + ret->strides[0]*format->frame_height;
+      ret->planes[2] = ret->planes[1] + (ret->strides[1]*format->frame_height)/4;
+      break;
     case GAVL_YUV_422_P:
     case GAVL_YUVJ_422_P:
       ret->strides[0] = format->frame_width;
       ret->strides[1] = format->frame_width/2;
       ret->strides[2] = format->frame_width/2;
+      ALIGN(ret->strides[0]);
+      ALIGN(ret->strides[1]);
+      ALIGN(ret->strides[2]);
+
+      ret->planes[0] = memalign(ALIGNMENT_BYTES,
+                             ret->strides[0]*format->frame_height+
+                             ret->strides[1]*format->frame_height+
+                             ret->strides[2]*format->frame_height);
+
+      ret->planes[0] = ret->planes[0];
+      ret->planes[1] = ret->planes[0] + ret->strides[0]*format->frame_height;
+      ret->planes[2] = ret->planes[1] + ret->strides[1]*format->frame_height;
+      break;
+    case GAVL_YUV_411_P:
+      ret->strides[0] = format->frame_width;
+      ret->strides[1] = format->frame_width/4;
+      ret->strides[2] = format->frame_width/4;
       ALIGN(ret->strides[0]);
       ALIGN(ret->strides[1]);
       ALIGN(ret->strides[2]);
@@ -205,13 +239,29 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
           }
         }
       break;
+    case GAVL_UYVY:
+      for(i = 0; i < format->frame_height; i++)
+        {
+        for(j = 0; j < format->frame_width; j++)
+          {
+          frame->planes[0][2*j + i*frame->strides[0]+1] = 0x00; /* Y */
+          frame->planes[0][2*j + i*frame->strides[0]]   = 0x80; /* U/V   */
+          }
+        }
+      break;
     case GAVL_YUV_420_P:
     case GAVL_YUVJ_420_P:
       memset(frame->planes[0], 0x00, format->frame_height * frame->strides[0]);
       memset(frame->planes[1], 0x80, (format->frame_height * frame->strides[1])/2);
       memset(frame->planes[2], 0x80, (format->frame_height * frame->strides[2])/2);
       break;
+    case GAVL_YUV_410_P:
+      memset(frame->planes[0], 0x00, format->frame_height * frame->strides[0]);
+      memset(frame->planes[1], 0x80, (format->frame_height * frame->strides[1])/4);
+      memset(frame->planes[2], 0x80, (format->frame_height * frame->strides[2])/4);
+      break;
     case GAVL_YUV_422_P:
+    case GAVL_YUV_411_P:
     case GAVL_YUV_444_P:
     case GAVL_YUVJ_422_P:
     case GAVL_YUVJ_444_P:
@@ -344,6 +394,7 @@ static flip_scanline_func find_flip_scanline_func(gavl_colorspace_t csp)
     case GAVL_RGB_16:
     case GAVL_BGR_16:
     case GAVL_YUY2:
+    case GAVL_UYVY:
       return flip_scanline_2;
       break;
     case GAVL_RGB_24:
@@ -356,7 +407,9 @@ static flip_scanline_func find_flip_scanline_func(gavl_colorspace_t csp)
       return flip_scanline_4;
       break;
     case GAVL_YUV_420_P:
+    case GAVL_YUV_410_P:
     case GAVL_YUV_422_P:
+    case GAVL_YUV_411_P:
     case GAVL_YUV_444_P:
     case GAVL_YUVJ_420_P:
     case GAVL_YUVJ_422_P:
