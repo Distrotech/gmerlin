@@ -85,7 +85,8 @@ int gavl_colorspace_num_planes(gavl_colorspace_t csp)
   return 0;
   }
 
-void gavl_colorspace_chroma_sub(gavl_colorspace_t csp, int * sub_h, int * sub_v)
+void gavl_colorspace_chroma_sub(gavl_colorspace_t csp, int * sub_h,
+                                int * sub_v)
   {
   switch(csp)
     {

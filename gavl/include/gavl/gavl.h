@@ -513,6 +513,25 @@ void gavl_video_frame_copy(gavl_video_format_t * format,
                            gavl_video_frame_t * dst,
                            gavl_video_frame_t * src);
 
+/********************************************************
+ *  Same as above but with flipping
+ **********************************************************/
+
+void gavl_video_frame_copy_flip_x(gavl_video_format_t * format,
+                                  gavl_video_frame_t * dst,
+                                  gavl_video_frame_t * src);
+
+void gavl_video_frame_copy_flip_y(gavl_video_format_t * format,
+                                  gavl_video_frame_t * dst,
+                                  gavl_video_frame_t * src);
+
+void gavl_video_frame_copy_flip_xy(gavl_video_format_t * format,
+                                  gavl_video_frame_t * dst,
+                                  gavl_video_frame_t * src);
+
+
+
+  
 /**********************************************************
   This is purely for optimizing purposes:
   Dump all planes into files names <filebase>.p1,

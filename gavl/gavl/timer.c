@@ -10,7 +10,7 @@ static void get_time(gavl_time_t * ret)
   {
   struct timeval time;
   gettimeofday(&time, NULL);
-  *ret = time.tv_sec*1000000 + time.tv_usec;
+  *ret = (int64_t)(time.tv_sec)*1000000LL + time.tv_usec;
   }
 
 struct gavl_timer_s
