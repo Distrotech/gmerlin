@@ -64,39 +64,7 @@ static uint32_t seek_indx(bgav_rmff_indx_t * indx, uint32_t millisecs,
   return ret;
   }
 
-/* Data packet header */
 
-typedef struct
-  {
-  uint16_t    object_version;
-
-  /* if (object_version == 0) */
-
-  uint16_t   length;
-  uint16_t   stream_number;
-  uint32_t   timestamp;
-  uint8_t   reserved; 
-  uint8_t   flags; 
-  } rm_packet_header_t;
-
-int packet_header_read(bgav_input_context_t * input,
-                       rm_packet_header_t * ret)
-  {
-  return
-    bgav_input_read_16_be(input, &(ret->object_version)) &&
-    bgav_input_read_16_be(input, &(ret->length)) &&
-    bgav_input_read_16_be(input, &(ret->stream_number)) &&
-    bgav_input_read_32_be(input, &(ret->timestamp)) &&
-    bgav_input_read_8(input, &(ret->reserved)) &&
-    bgav_input_read_8(input, &(ret->flags));
-  }
-#if 0
-static void packet_header_dump(rm_packet_header_t * h)
-  {
-  fprintf(stderr, "Packet L: %d, S: %d, T: %d, F: %x\n",
-          h->length, h->stream_number, h->timestamp, h->flags);
-  }
-#endif
 /* Audio and video stream specific stuff */
 
 typedef struct
@@ -393,7 +361,7 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
 
   bgav_charset_converter_t * cnv;
 
-  bgav_rmff_header_dump(h);
+  //  bgav_rmff_header_dump(h);
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
@@ -422,12 +390,12 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
       }
     if(header == BGAV_MK_FOURCC('.', 'r', 'a', 0xfd))
       {
-      fprintf(stderr, "Found audio stream\n");
+      //      fprintf(stderr, "Found audio stream\n");
       init_audio_stream(ctx, &(h->streams[i]), pos);
       }
     else if(header == BGAV_MK_FOURCC('V', 'I', 'D', 'O'))
       {
-      fprintf(stderr, "Found video stream\n");
+      //      fprintf(stderr, "Found video stream\n");
       init_video_stream(ctx, &(h->streams[i]), pos);
       }
     else
@@ -437,9 +405,12 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
     }
   
   /* Update global fields */
-  
-  track->duration = h->prop.duration * (GAVL_TIME_SCALE / 1000); 
 
+  if(!h->prop.duration)
+    track->duration = GAVL_TIME_UNDEFINED;
+  else
+    track->duration = h->prop.duration * (GAVL_TIME_SCALE / 1000); 
+    
   priv->need_first_timestamp = 1;
   
   if(ctx->input->input->seek_byte)
@@ -471,18 +442,18 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
                                                 priv->header->cont.title_len,
                                                 NULL);
   if(priv->header->cont.author_len)
-    track->metadata.title = bgav_convert_string(cnv,
+    track->metadata.author = bgav_convert_string(cnv,
                                                 priv->header->cont.author,
                                                 priv->header->cont.author_len,
                                                 NULL);
   if(priv->header->cont.copyright_len)
-    track->metadata.title = bgav_convert_string(cnv,
+    track->metadata.copyright = bgav_convert_string(cnv,
                                                 priv->header->cont.copyright,
                                                 priv->header->cont.copyright_len,
                                                 NULL);
 
   if(priv->header->cont.comment_len)
-    track->metadata.title = bgav_convert_string(cnv,
+    track->metadata.comment = bgav_convert_string(cnv,
                                                 priv->header->cont.comment,
                                                 priv->header->cont.comment_len,
                                                 NULL);
@@ -589,7 +560,7 @@ int64_t fix_timestamp(bgav_stream_t * stream, uint8_t * s, uint32_t timestamp)
   }
 
 static int process_video_chunk(bgav_demuxer_context_t * ctx,
-                               rm_packet_header_t * h,
+                               bgav_rmff_packet_header_t * h,
                                bgav_stream_t * stream)
   {
   /* Video sub multiplexing */
@@ -833,7 +804,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
   }
 
 static int process_audio_chunk(bgav_demuxer_context_t * ctx,
-                               rm_packet_header_t * h,
+                               bgav_rmff_packet_header_t * h,
                                bgav_stream_t * stream)
   {
   int bytes_to_read;
@@ -880,7 +851,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
   //  bgav_packet_t * p;
   bgav_stream_t * stream;
   rm_private_t * rm;
-  rm_packet_header_t h;
+  bgav_rmff_packet_header_t h;
   rm_audio_stream_t * as;
   rm_video_stream_t * vs;
   int result = 0;
@@ -893,7 +864,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
     
   if(rm->data_size && (ctx->input->position + 10 >= rm->data_start + rm->data_size))
     return 0;
-  if(!packet_header_read(ctx->input, &h))
+  if(!bgav_rmff_packet_header_read(ctx->input, &h))
     return 0;
 
   if(rm->need_first_timestamp)
@@ -906,9 +877,9 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
     h.timestamp -= rm->first_timestamp;
   else
     h.timestamp = 0;
-    
-  //  if(rm->do_seek)
-  //  packet_header_dump(&h);
+
+  //  fprintf(stderr, "Got packet\n");
+  //  bgav_rmff_packet_header_dump(&h);
   stream = bgav_track_find_stream(track, h.stream_number);
 
   if(!stream) /* Skip unknown stuff */
@@ -1041,7 +1012,9 @@ void close_rmff(bgav_demuxer_context_t * ctx)
       free(track->video_streams[i].ext_data);
     free(vs);
     }
-  
+
+  if(priv->header)
+    bgav_rmff_header_destroy(priv->header);
   free(priv);
   }
 

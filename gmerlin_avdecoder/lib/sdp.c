@@ -26,6 +26,7 @@
 #include <sdp.h>
 
 #define ISSEP(c) ((*c == '\n') || (*c == '\r') || (*c == '\0'))
+
 #define MY_FREE(p) if(p){free(p);p=NULL;}
 
 
@@ -55,7 +56,7 @@ static void free_origin(bgav_sdp_origin_t*o)
   MY_FREE(o->username);
   MY_FREE(o->network_type);
   MY_FREE(o->addr_type);
-  MY_FREE(o->addr_type);
+  MY_FREE(o->addr);
   }
 
 static int parse_origin(const char * line, bgav_sdp_origin_t * ret)
@@ -312,6 +313,9 @@ static int parse_attr(const char * line,
       pos1++;
       pos2 = strrchr(pos1, '"');
 
+      if(!pos2)
+        pos2 = pos1 + strlen(pos1);
+      
       ret->val.str = malloc((int)(pos2 - pos1) + 1);
 
       dst = ret->val.str;
@@ -427,7 +431,7 @@ static void dump_attributes(bgav_sdp_attr_t * attr)
 static void free_attributes(bgav_sdp_attr_t ** attr)
   {
   int index;
-  if(!attr)
+  if(!attr || !(*attr))
     return;
   index = 0;
   while((*attr)[index].type != BGAV_SDP_TYPE_NONE)
@@ -528,7 +532,9 @@ static int parse_media(char ** lines, bgav_sdp_media_desc_t * ret)
       {
       fprintf(stderr, "sdp: Invalid line %d: %s\n",
               line_index, lines[line_index]);
-      goto fail;
+      line_index++;
+      continue;
+      //      goto fail;
       }
     switch(lines[line_index][0])
       {
@@ -618,12 +624,17 @@ static void free_media(bgav_sdp_media_desc_t * m)
   }
 
 /* Parse everything */
-   
+
+#define SKIP_SEP                                                    \
+  while(((*pos == '\n') || (*pos == '\r')) && (*pos != '\0')) pos++
+
+#define SKIP_NOSEP                                                  \
+  while((*pos != '\n') && (*pos != '\r') && (*pos != '\0')) pos++
 
 int bgav_sdp_parse(const char * data, bgav_sdp_t * ret)
   {
-  char *  buf;
-  char ** lines;
+  char *  buf = (char*)0;
+  char ** lines = (char**)0;
   char * pos;
   int num_lines;
   int line_index;
@@ -642,13 +653,25 @@ int bgav_sdp_parse(const char * data, bgav_sdp_t * ret)
 
   while(1)
     {
-    while(!ISSEP(pos))
-      pos++;
+    //    fprintf(stderr, "pos 1: %p\n", pos);
+
+    SKIP_NOSEP;
+    //    while(!ISSEP(pos))
+    //    fprintf(stderr, "pos 2: %p\n", pos);
+    //      pos++;
     if(*pos == '\0')
       break;
     num_lines++;
-    while(ISSEP(pos))
-      pos++;
+        
+    SKIP_SEP;
+    
+    if(*pos == '\0')
+      break;
+    
+    //    while(ISSEP(pos))
+    //      pos++;
+    //    if(*pos == '\0')
+    //      break;
     }
 
   /* 3. Create lines array */
@@ -656,20 +679,20 @@ int bgav_sdp_parse(const char * data, bgav_sdp_t * ret)
   //  fprintf(stderr, "Num lines: %d\n", num_lines);  
   pos = buf;
   line_index = 0;
-  while(1)
+  for(line_index = 0; line_index < num_lines; line_index++)
     {
-    if(line_index >= num_lines)
-      break;
-    
     lines[line_index] = pos;
-    line_index++;
-    while(!ISSEP(pos))
-      pos++;
-    if(*pos == '\0')
-      break;
+    
+    SKIP_NOSEP;
+    //    fprintf(stderr, "pos: %s\n", pos);
     *pos = '\0';
-    while(ISSEP(pos))
+    if(line_index < num_lines-1)
+      {
       pos++;
+      SKIP_SEP;
+      }
+    //    while(ISSEP(pos))
+    //      pos++;
     }
 
   /* 4. Parse the stuff */
@@ -682,7 +705,9 @@ int bgav_sdp_parse(const char * data, bgav_sdp_t * ret)
       {
       fprintf(stderr, "sdp: Invalid line %d: %s\n",
               line_index, lines[line_index]);
-      goto fail;
+      line_index++;
+      continue;
+      //      goto fail;
       }
     switch(lines[line_index][0])
       {
@@ -751,11 +776,17 @@ int bgav_sdp_parse(const char * data, bgav_sdp_t * ret)
         break;
       }
     }
-  
+
+  free(buf);
+  free(lines);
   return 1;
   
   fail:
-  return 0;    
+  if(buf)
+    free(buf);
+  if(lines)
+    free(lines);
+  return 0;
   }
 
 void bgav_sdp_free(bgav_sdp_t * s)

@@ -210,11 +210,13 @@ typedef struct
   int read_buffer_alloc;
   int read_buffer_size;
 
-  int16_t * sample_buffer;
-  int16_t * sample_buffer_ptr;
-  int sample_buffer_size;
+  //  int16_t * sample_buffer;
+  //  int16_t * sample_buffer_ptr;
+  //  int sample_buffer_size;
 
-  } real_priv_t;
+  gavl_audio_frame_t * frame;
+  int last_frame_size;
+    } real_priv_t;
 
 
 static int init_real(bgav_stream_t * s)
@@ -279,14 +281,14 @@ static int init_real(bgav_stream_t * s)
        priv->raInitDecoder))
     return 0;
 
-  path = malloc(strlen(bgav_dll_path_real) + 12);
-  sprintf(path, "DT_Codecs=%s", bgav_dll_path_real);
+  path= bgav_sprintf("DT_Codecs=%s", bgav_dll_path_real);
   if(path[strlen(path)-1]!='/')
-    {
-    path[strlen(path)+1]=0;
-    path[strlen(path)]='/';
-    }
-  path[strlen(path)+1]=0;
+    path = bgav_strncat(path, "/", NULL);
+
+  /* Append one zero byte */
+
+  path = realloc(path, strlen(path)+2);
+  path[strlen(path)+1] = '\0';
   
   /* Set the codec path */
 
@@ -352,12 +354,16 @@ static int init_real(bgav_stream_t * s)
   prop = priv->raGetFlavorProperty(priv->real_handle, ((short*)(s->ext_data))[2], 1, &len);
   
   /* Allocate sample buffer and set audio format */
-
-  priv->sample_buffer = malloc(2 * s->data.audio.format.num_channels * 10240);
-  s->data.audio.format.samples_per_frame = 1024;
+    
+  
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
   s->data.audio.format.sample_format   = GAVL_SAMPLE_S16;
   gavl_set_channel_setup(&(s->data.audio.format));
+
+  s->data.audio.format.samples_per_frame = 10240;
+  priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+  s->data.audio.format.samples_per_frame = 1024;
+  
   return 1;
   }
 
@@ -469,14 +475,20 @@ static int decode_frame(bgav_stream_t * s)
   real_priv_t * priv;
   priv = (real_priv_t*)(s->data.audio.decoder->priv);
   if(!priv->read_buffer_size)
+    {
     if(!fill_buffer(s))
+      {
+      //      fprintf(stderr, "No more data\n");
       return 0;
-
+      }
+    //    else
+    //      fprintf(stderr, "Read data: %d\n", priv->read_buffer_size);
+    }
   /* Call the decoder */
 
   if(priv->raDecode(priv->real_handle, priv->read_buffer_ptr,
                     s->data.audio.block_align,
-                    (uint8_t*)priv->sample_buffer, &len, -1))
+                    (uint8_t*)priv->frame->samples.s_8, &len, -1))
     {
     fprintf(stderr, "raDecode failed\n");
     }
@@ -485,54 +497,48 @@ static int decode_frame(bgav_stream_t * s)
   priv->read_buffer_ptr += s->data.audio.block_align;
   priv->read_buffer_size -= s->data.audio.block_align;
   
-  priv->sample_buffer_size = len / (2 * s->data.audio.format.num_channels);
-  priv->sample_buffer_ptr = priv->sample_buffer;
+  priv->frame->valid_samples = len / (2 * s->data.audio.format.num_channels);
+  priv->last_frame_size = priv->frame->valid_samples;
   return 1;
   }
 
 static int decode_real(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
   {
-  real_priv_t * priv;
-  int samples_to_copy;
-  int block_size;
-
+  int samples_copied;
   int samples_decoded = 0;
-  //  fprintf(stderr, "Decode real\n");
-  block_size = 2 * s->data.audio.format.num_channels;
-  
+  real_priv_t * priv;
   priv = (real_priv_t*)(s->data.audio.decoder->priv);
-  if(f)
-    f->valid_samples = 0;
   
   while(samples_decoded < num_samples)
     {
-    if(!priv->sample_buffer_size)
+    if(!priv->frame->valid_samples)
       {
+      //      fprintf(stderr, "decode frame...");
       if(!decode_frame(s))
         {
-        fprintf(stderr, "Decoding frame failed\n");
+        if(f)
+          f->valid_samples = samples_decoded;
+        //        fprintf(stderr, "Decode frame failed %d\n", samples_decoded);
         return samples_decoded;
         }
+      //      fprintf(stderr, "done\n");
       }
-    
-    samples_to_copy = 
-      (priv->sample_buffer_size < num_samples - samples_decoded) ?
-      priv->sample_buffer_size : num_samples - samples_decoded;
-    if(f)
-      {
-      memcpy(&(f->samples.s_16[f->valid_samples * (block_size/2)]),
-             priv->sample_buffer_ptr, samples_to_copy * block_size);
-      f->valid_samples += samples_to_copy;
-      }
-    
-    priv->sample_buffer_ptr += samples_to_copy * (block_size/2);
-    priv->sample_buffer_size -= samples_to_copy;
-    samples_decoded += samples_to_copy;
+    samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
+                                           f,
+                                           priv->frame,
+                                           samples_decoded, /* out_pos */
+                                           priv->last_frame_size - priv->frame->valid_samples,  /* in_pos */
+                                           num_samples - samples_decoded, /* out_size, */
+                                           priv->frame->valid_samples /* in_size */);
+    priv->frame->valid_samples -= samples_copied;
+    samples_decoded += samples_copied;
+    //    fprintf(stderr, "Samples decoded %d\n", samples_decoded);
     }
-  //  if(!f)
-  //    fprintf(stderr, "Skipped %d samples\n", samples_decoded);
-  
+  if(f)
+    f->valid_samples = samples_decoded;
   return samples_decoded;
+
+
   }
 #if 0
 
@@ -578,8 +584,10 @@ typedef struct
 static void close_real(bgav_stream_t * s)
   {
   real_priv_t * p = (real_priv_t*)s->data.audio.decoder->priv;
-  if(p->sample_buffer)
-    free(p->sample_buffer);
+
+  if(p->frame)
+    gavl_audio_frame_destroy(p->frame);
+  
   if(p->read_buffer)
     free(p->read_buffer);
 #if 1
@@ -598,7 +606,7 @@ static void close_real(bgav_stream_t * s)
 static void resync_real(bgav_stream_t * s)
   {
   real_priv_t * p = (real_priv_t*)s->data.audio.decoder->priv;
-  p->sample_buffer_size = 0;
+  p->frame->valid_samples = 0;
   p->read_buffer_size = 0;
 
   //  fprintf(stderr, "clear realaud\n");

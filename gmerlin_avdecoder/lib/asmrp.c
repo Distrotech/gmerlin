@@ -117,7 +117,7 @@ static void asmrp_dispose (asmrp_t *p) {
 
   for (i=0; i<p->sym_tab_num; i++) 
     free (p->sym_tab[i].id);
-
+  if(p->buf) free(p->buf);
   free (p);
 }
 

@@ -27,7 +27,7 @@
 
 int probe_m3u(bgav_input_context_t * input)
   {
-  //  uint8_t probe_buffer[PROBE_BYTES];
+  uint8_t probe_buffer[PROBE_BYTES];
   /* Most likely, we get this via http, so we can check the mimetype */
   if(input->mimetype)
     {
@@ -39,11 +39,14 @@ int probe_m3u(bgav_input_context_t * input)
        !strcmp(input->mimetype, "audio/mpegurl") ||
        !strcmp(input->mimetype, "audio/m3u"))
       return 1;
-    else
-      return 0;
     }
-  //  if(bgav_input_get_data(input, probe_buffer, PROBE_BYTES) < PROBE_BYTES)
-  //    return 0;
+  if(bgav_input_get_data(input, probe_buffer, PROBE_BYTES) < PROBE_BYTES)
+    return 0;
+
+  if(!strncmp(probe_buffer, "mms://", 6) ||
+     !strncmp(probe_buffer, "http://", 7) ||
+     !strncmp(probe_buffer, "rtsp://", 7))
+    return 1;
   return 0;
   }
 
@@ -81,8 +84,12 @@ int parse_m3u(bgav_redirector_context_t * r)
     if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc))
       break;
     pos = strip_spaces(buffer);
-    if((*pos == '#') || (*pos == '\0') || !strcmp(pos, "--stop--"))
+    //    fprintf(stderr, "Got line: %s\n", pos);
+    if((*pos == '#') || (*pos == '\0'))
       continue;
+    if(!strcmp(pos, "--stop--"))
+      break;
+
     else
       {
       add_url(r);

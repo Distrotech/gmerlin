@@ -798,8 +798,10 @@ static int open_asf(bgav_demuxer_context_t * ctx,
     free(buf);
   
   if(ctx->input->input->seek_byte && asf->hdr.packets_count)
+    {
+    //    fprintf(stderr, "Can SEEK %p\n", ctx->input->input->seek_byte);
     ctx->can_seek = 1;
-
+    }
   ctx->stream_description = bgav_sprintf("Windows media format (ASF)");
   
   return 1;
@@ -1004,6 +1006,7 @@ static int read_segment_header(asf_t * asf,
                "unknown segment type (rlen): 0x%02X  \n",ret->rlen);
         ret->time2=0; // unknown
         data_ptr+=ret->rlen;
+        return -1;
         }
     }
   if(pkt_hdr->flags&1)
@@ -1138,7 +1141,7 @@ static void add_packet(bgav_demuxer_context_t * ctx,
 
 static int next_packet_asf(bgav_demuxer_context_t * ctx)
   {
-  int i, len2;
+  int i, len2, result;
   asf_t * asf;
   asf = (asf_t*)(ctx->priv);
   uint8_t * data_ptr;
@@ -1161,7 +1164,13 @@ static int next_packet_asf(bgav_demuxer_context_t * ctx)
   
   for(i = 0; i < pkt_hdr.segs; i++)
     {
-    data_ptr += read_segment_header(asf, &pkt_hdr, &seg_hdr, data_ptr);
+    result = read_segment_header(asf, &pkt_hdr, &seg_hdr, data_ptr);
+    if(result < 0)
+      {
+      fprintf(stderr, "Read segment header failed\n");
+      return 0;
+      }
+    data_ptr += result;
         
     //    fprintf(stderr, "* * * Segment header:\n");
     //    dump_segment_header(&seg_hdr);

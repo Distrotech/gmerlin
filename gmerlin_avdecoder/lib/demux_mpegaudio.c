@@ -98,7 +98,7 @@ static int header_check(uint32_t head)
                 return 0;
         if ((head & 0xffff0000) == 0xfffe0000)
                 return 0;
-         
+        //        fprintf(stderr, "Head check ok %08x\n", head);
         return 1;
 }
 
@@ -494,7 +494,7 @@ static int probe_mpegaudio(bgav_input_context_t * input)
   
   /* Check for audio header */
 
-  if(bgav_albw_probe(input))
+  if(input->id3v2 && bgav_albw_probe(input))
     return 1;
   
   if(bgav_input_get_data(input, probe_data, 4) < 4)

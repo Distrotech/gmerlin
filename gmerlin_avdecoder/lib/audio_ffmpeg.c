@@ -121,10 +121,9 @@ typedef struct
   {
   AVCodecContext * ctx;
   codec_info_t * info;
-  
-  int16_t * sample_buffer;
-  int16_t * sample_buffer_ptr;
-  int samples_in_buffer;
+
+  gavl_audio_frame_t * frame;
+  int last_frame_size;
   
   uint8_t * packet_buffer;
   uint8_t * packet_buffer_ptr;
@@ -195,9 +194,7 @@ static int init(bgav_stream_t * s)
     ((s->fourcc & 0xff000000) >> 24);
   priv->ctx->codec_id =
     codec->id;
-  
-  priv->sample_buffer = malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
-  
+    
   /* Some codecs need extra stuff */
     
   /* Open codec */
@@ -207,147 +204,125 @@ static int init(bgav_stream_t * s)
   s->data.audio.decoder->priv = priv;
 
   /* Set missing format values */
-
+  
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
   s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
-  s->data.audio.format.samples_per_frame = 1024;
   gavl_set_channel_setup(&(s->data.audio.format));
-  
+
+  s->data.audio.format.samples_per_frame = AVCODEC_MAX_AUDIO_FRAME_SIZE /
+    (2 * s->data.audio.format.num_channels);
+
+  priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+    
+  s->data.audio.format.samples_per_frame = 1024;
+    
   s->description = bgav_sprintf(priv->info->format_name);
+  return 1;
+  }
+
+static int decode_frame(bgav_stream_t * s)
+  {
+  int frame_size;
+  int bytes_used;
+
+  bgav_packet_t * p;
+  ffmpeg_audio_priv * priv;
+  priv= (ffmpeg_audio_priv*)(s->data.audio.decoder->priv);
+
+  /* Read data if necessary */
+  if(!priv->bytes_in_packet_buffer)
+    {
+    p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    if(!p)
+      {
+      //        fprintf(stderr, "Got no packet\n");
+      return 0;
+      }
+    if(p->data_size + FF_INPUT_BUFFER_PADDING_SIZE > priv->packet_buffer_alloc)
+      {
+      priv->packet_buffer_alloc = p->data_size + FF_INPUT_BUFFER_PADDING_SIZE + 32;
+      priv->packet_buffer = realloc(priv->packet_buffer, priv->packet_buffer_alloc);
+      }
+    //      fprintf(stderr, "Got packet: %d bytes\n", p->data_size);      
+    priv->bytes_in_packet_buffer = p->data_size;
+    memcpy(priv->packet_buffer, p->data, p->data_size);
+    priv->packet_buffer_ptr = priv->packet_buffer;
+    
+    memset(&(priv->packet_buffer[p->data_size]), 0, FF_INPUT_BUFFER_PADDING_SIZE);
+    bgav_demuxer_done_packet_read(s->demuxer, p);
+    }
+  
+  bytes_used = avcodec_decode_audio(priv->ctx,
+                                    priv->frame->samples.s_16,
+                                    &frame_size,
+                                    priv->packet_buffer_ptr,
+                                    priv->bytes_in_packet_buffer);
+  //    fprintf(stderr, "Used: %d bytes, frame_size: %d\n", bytes_used, frame_size);
+    
+  /* Check for error */
+    
+  if(frame_size < 0)
+    {
+    fprintf(stderr, "Decoding failed %d\n", bytes_used);
+    //      if(f)
+    //        f->valid_samples = samples_decoded;
+    //      return samples_decoded;
+    }
+  /* Advance packet buffer */
+    
+  priv->packet_buffer_ptr += bytes_used;
+  priv->bytes_in_packet_buffer -= bytes_used;
+
+  //  fprintf(stderr, "Frame size: %d\n", frame_size);
+  
+  /* No Samples decoded, get next packet */
+
+  if(frame_size < 0)
+    return 1;
+
+  /* Sometimes, frame_size is terribly wrong */
+
+  if(frame_size > AVCODEC_MAX_AUDIO_FRAME_SIZE /
+     (2 * s->data.audio.format.num_channels));
+    frame_size = AVCODEC_MAX_AUDIO_FRAME_SIZE /
+      (2 * s->data.audio.format.num_channels);
+      
+  frame_size /= (2 * s->data.audio.format.num_channels);
+  priv->last_frame_size = frame_size;
+  priv->frame->valid_samples = frame_size;
+
   return 1;
   }
 
 static int decode(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
   {
   ffmpeg_audio_priv * priv;
-  bgav_packet_t * p;
-  int frame_size;
-  int bytes_used;
-  int samples_left;
   int samples_decoded = 0;
+  int samples_copied;
   priv= (ffmpeg_audio_priv*)(s->data.audio.decoder->priv);
-  
-  /* Check if there are samples in the buffer left */
- 
-  if(priv->samples_in_buffer)
-    {
-    if(priv->samples_in_buffer > num_samples)
-      {
-      if(f)
-        {
-        memcpy(f->samples.s_16, priv->sample_buffer_ptr,
-               s->data.audio.format.num_channels * 2 * num_samples);
-        f->valid_samples = num_samples;
-        }
-      priv->samples_in_buffer -= num_samples;
-      priv->sample_buffer_ptr += num_samples *
-        s->data.audio.format.num_channels;
-      return num_samples;
-      }
-    else
-      {
-      if(f)
-        {
-        memcpy(f->samples.s_16, priv->sample_buffer_ptr,
-               s->data.audio.format.num_channels * 2 * priv->samples_in_buffer);
-        samples_decoded = priv->samples_in_buffer;
-        }
-      priv->samples_in_buffer = 0;
-      }
-    }
-  
+
   while(samples_decoded < num_samples)
     {
-    /* Read data if necessary */
-    if(!priv->bytes_in_packet_buffer)
+    if(!priv->frame->valid_samples)
       {
-      p = bgav_demuxer_get_packet_read(s->demuxer, s);
-      if(!p)
+      //      fprintf(stderr, "decode frame...");
+      if(!decode_frame(s))
         {
-        //        fprintf(stderr, "Got no packet\n");
         if(f)
           f->valid_samples = samples_decoded;
         return samples_decoded;
         }
-      if(p->data_size + FF_INPUT_BUFFER_PADDING_SIZE > priv->packet_buffer_alloc)
-        {
-        priv->packet_buffer_alloc = p->data_size + FF_INPUT_BUFFER_PADDING_SIZE + 32;
-        priv->packet_buffer = realloc(priv->packet_buffer, priv->packet_buffer_alloc);
-        }
-      //      fprintf(stderr, "Got packet: %d bytes\n", p->data_size);      
-      priv->bytes_in_packet_buffer = p->data_size;
-      memcpy(priv->packet_buffer, p->data, p->data_size);
-      priv->packet_buffer_ptr = priv->packet_buffer;
-
-      memset(&(priv->packet_buffer[p->data_size]), 0, FF_INPUT_BUFFER_PADDING_SIZE);
-      bgav_demuxer_done_packet_read(s->demuxer, p);
+      //      fprintf(stderr, "done\n");
       }
-    
-    /* Decode one frame */
-
-    //    fprintf(stderr, "Decode: %d\n", priv->bytes_in_packet_buffer);
-    bytes_used = avcodec_decode_audio(priv->ctx,
-                                      priv->sample_buffer,
-                                      &frame_size,
-                                      priv->packet_buffer_ptr,
-                                      priv->bytes_in_packet_buffer);
-    //    fprintf(stderr, "Used: %d bytes, frame_size: %d\n", bytes_used, frame_size);
-    
-    /* Check for error */
-    
-    if(frame_size < 0)
-      {
-      fprintf(stderr, "Decoding failed %d\n", bytes_used);
-      //      if(f)
-      //        f->valid_samples = samples_decoded;
-      //      return samples_decoded;
-      }
-    /* Advance packet buffer */
-    
-    priv->packet_buffer_ptr += bytes_used;
-    priv->bytes_in_packet_buffer -= bytes_used;
-
-    /* No Samples decoded, get next packet */
-
-    if(frame_size < 0)
-      continue;
-    
-    /* Copy samples */
-
-    samples_left = num_samples - samples_decoded;
-    
-    /* Frame is full, remember samples for next time */
-
-    frame_size /= (2 * s->data.audio.format.num_channels);
-    //    fprintf(stderr, "Decoded %d samples, used %d bytes\n",
-    //            frame_size, bytes_used);
-    
-    if(samples_left < frame_size)
-      {
-      if(f)
-        memcpy(&(f->samples.s_16[samples_decoded*s->data.audio.format.num_channels]),
-               priv->sample_buffer,
-               samples_left * 2 * s->data.audio.format.num_channels);
-      priv->samples_in_buffer = frame_size - samples_left;
-      priv->sample_buffer_ptr =
-        &(priv->sample_buffer[samples_left*s->data.audio.format.num_channels]);
-      samples_decoded += samples_left;
-      }
-    else
-      {
-      if(f)
-        {
-        //        fprintf(stderr, "samples_decoded: %d, num_channels: %d frame_size: %d\n",
-        //                samples_decoded, s->data.audio.format.num_channels,
-        //                frame_size * 2 * s->data.audio.format.num_channels);
-        memcpy(&(f->samples.s_16[samples_decoded*s->data.audio.format.num_channels]),
-               priv->sample_buffer,
-               frame_size * 2 * s->data.audio.format.num_channels);
-        }
-      priv->samples_in_buffer = 0;
-      priv->sample_buffer_ptr = priv->sample_buffer;
-      samples_decoded += frame_size;
-      }
+    samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
+                                           f,
+                                           priv->frame,
+                                           samples_decoded, /* out_pos */
+                                           priv->last_frame_size - priv->frame->valid_samples,  /* in_pos */
+                                           num_samples - samples_decoded, /* out_size, */
+                                           priv->frame->valid_samples /* in_size */);
+    priv->frame->valid_samples -= samples_copied;
+    samples_decoded += samples_copied;
     }
   if(f)
     f->valid_samples = samples_decoded;
@@ -359,7 +334,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
   ffmpeg_audio_priv * priv;
   priv = (ffmpeg_audio_priv*)(s->data.audio.decoder->priv);
   avcodec_flush_buffers(priv->ctx);
-  priv->samples_in_buffer = 0;
+  priv->frame->valid_samples = 0;
   priv->bytes_in_packet_buffer = 0;
   }
 
@@ -368,8 +343,9 @@ static void close_ffmpeg(bgav_stream_t * s)
   ffmpeg_audio_priv * priv;
   priv= (ffmpeg_audio_priv*)(s->data.audio.decoder->priv);
 
-  if(priv->sample_buffer)
-    free(priv->sample_buffer);
+  if(priv->frame)
+    gavl_audio_frame_destroy(priv->frame);
+  
   if(priv->packet_buffer)
     free(priv->packet_buffer);
 

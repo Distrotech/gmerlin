@@ -13,6 +13,7 @@ nanosoft.h \
 pes_header.h \
 qt.h \
 rmff.h \
+rtsp.h \
 sdp.h \
 utils.h \
 xing.h \

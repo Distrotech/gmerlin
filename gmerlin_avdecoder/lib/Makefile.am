@@ -116,7 +116,7 @@ else
 vcd_sources =
 endif
 
-SUBDIRS = $(win32_subdirs) real_rtsp
+SUBDIRS = $(win32_subdirs)
 
 libgmerlin_avdec_la_LDFLAGS=-export-dynamic
 libgmerlin_avdec_la_LIBADD= \
@@ -184,7 +184,7 @@ in_http.c \
 in_memory.c \
 in_mms.c \
 in_pnm.c \
-in_realrtsp.c \
+in_rtsp.c \
 input.c \
 metadata.c \
 mms.c \

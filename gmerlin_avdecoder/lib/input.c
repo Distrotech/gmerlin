@@ -33,7 +33,7 @@ static void add_char(char ** buffer, int * buffer_alloc,
   if(pos + 1 > *buffer_alloc)
     {
     while(pos + 1 > *buffer_alloc)
-      *buffer_alloc += ALLOC_SIZE;
+      (*buffer_alloc) += ALLOC_SIZE;
     *buffer = realloc(*buffer, *buffer_alloc);
     }
   (*buffer)[pos] = c;
@@ -49,6 +49,7 @@ int bgav_input_read_line(bgav_input_context_t* input,
     if(!bgav_input_read_data(input, &c, 1))
       {
       //      return 0;
+      add_char(buffer, buffer_alloc, pos, 0);
       return !!pos;
       break;
       }
@@ -284,7 +285,8 @@ int bgav_input_get_64_be(bgav_input_context_t * ctx, uint64_t * ret)
 /* Open input */
 
 extern bgav_input_t bgav_input_file;
-extern bgav_input_t bgav_input_realrtsp;
+// extern bgav_input_t bgav_input_realrtsp;
+extern bgav_input_t bgav_input_rtsp;
 extern bgav_input_t bgav_input_pnm;
 extern bgav_input_t bgav_input_mms;
 extern bgav_input_t bgav_input_http;
@@ -294,9 +296,6 @@ int bgav_input_open(bgav_input_context_t * ret,
                     const char *url)
   {
   char * protocol = (char*)0;
-  int url_len;
-  /* TODO: Check for http etc */
-  const char * pos;
 
   if(bgav_url_split(url,
                     &protocol,
@@ -305,25 +304,7 @@ int bgav_input_open(bgav_input_context_t * ret,
                     NULL))
     {
     if(!strcmp(protocol, "rtsp"))
-      {
-      pos = strchr(url, '?');
-      if(!pos)
-        pos = url + strlen(url);
-      
-      url_len = (int)(pos - url);
-      if(((url[url_len-3] == '.') &&
-          (url[url_len-2] == 'r') &&
-          (url[url_len-1] == 'm')) ||
-         ((url[url_len-3] == '.') &&
-          (url[url_len-2] == 'r') &&
-          (url[url_len-1] == 'a')))
-        {
-        fprintf(stderr, "Opening Real RTSP Session\n");
-        ret->input = &bgav_input_realrtsp;
-        }
-      else
-        fprintf(stderr, "Standard rtsp not supported\n");
-     }
+      ret->input = &bgav_input_rtsp;
     else if(!strcmp(protocol, "pnm"))
       ret->input = &bgav_input_pnm;
     else if(!strcmp(protocol, "mms"))
@@ -357,6 +338,8 @@ int bgav_input_open(bgav_input_context_t * ret,
     ret->buffer = malloc(ret->buffer_alloc);
     }
   
+  if(protocol)
+    free(protocol);
   return 1;
 
   fail:

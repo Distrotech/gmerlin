@@ -99,6 +99,20 @@ char * bgav_strndup(const char * start, const char * end)
   return ret;
   }
 
+char * bgav_strncat(char * old, const char * start, const char * end)
+  {
+  int len, old_len;
+  //  fprintf(stderr, "BGAV_STRNCAT %s %s...", old, start);
+  old_len = old ? strlen(old) : 0;
+  
+  len = (end) ? (end - start) : strlen(start);
+  old = realloc(old, len + old_len + 1);
+  strncpy(old + old_len, start, len);
+  old[old_len + len] = '\0';
+  //  fprintf(stderr, "%s\n", old);
+  return old;
+  }
+
 int bgav_url_split(const char * url,
                    char ** protocol,
                    char ** hostname,
@@ -231,30 +245,30 @@ int bgav_read_data_fd(int fd, uint8_t * ret, int len, int milliseconds)
   struct timeval timeout;
 
   int flags = 0;
-  if(!milliseconds)
-    flags = MSG_WAITALL;
+  //  if(milliseconds < 0)
+  //    flags = MSG_WAITALL;
   
   while(bytes_read < len)
     {
-    result = recv(fd, ret + bytes_read, len - bytes_read, flags);
-    if(result < 0)
+    FD_ZERO (&rset);
+    FD_SET  (fd, &rset);
+    
+    timeout.tv_sec  = milliseconds / 1000;
+    timeout.tv_usec = (milliseconds % 1000) * 1000;
+    
+    if(select (fd+1, &rset, NULL, NULL, &timeout) <= 0)
       {
-      if(!milliseconds)
-        return 0;
-      
-      FD_ZERO (&rset);
-      FD_SET  (fd, &rset);
-      
-      timeout.tv_sec  = milliseconds / 1000;
-      timeout.tv_usec = (milliseconds % 1000) * 1000;
-      
-      if (select (fd+1, &rset, NULL, NULL, &timeout) <= 0)
-        {
-        return bytes_read;
-        }
+      return bytes_read;
       }
-    else
+    
+    result = recv(fd, ret + bytes_read, len - bytes_read, flags);
+    if(result > 0)
       bytes_read += result;
+    else if(result <= 0)
+      {
+      //      fprintf(stderr, "recv returned %d\n", result);
+      return 0;
+      }
     }
   return 
     bytes_read;

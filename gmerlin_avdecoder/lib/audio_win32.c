@@ -77,6 +77,15 @@ codec_info_t codec_infos[] =
       guid:        { 0x73f7a062, 0x8829, 0x11d1,
                      { 0xb5, 0x50, 0x00, 0x60, 0x97, 0x24, 0x2d, 0x8d } }
     },
+    {
+      name:        "ACELP.net DirectShow decoder",
+      format_name: "ACELP.net",
+      fourccs:     (int[]){ BGAV_WAVID_2_FOURCC(0x0130), 0x00 },
+      dll_name:    "acelpdec.ax",
+      type:        CODEC_DS,
+      guid:        { 0x4009f700, 0xaeba, 0x11d1,
+                     { 0x83, 0x44, 0x00, 0xc0, 0x4f, 0xb9, 0x2e, 0xb7 } }
+    },
   };
 
 #define MAX_CODECS (sizeof(codec_infos)/sizeof(codec_infos[0]))

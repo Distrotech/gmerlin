@@ -439,6 +439,7 @@ static bgav_yml_node_t * parse_node(parser_t * p, int * is_comment)
 
 bgav_yml_node_t * bgav_yml_parse(bgav_input_context_t * input)
   {
+  char c;
   bgav_yml_node_t * ret;
   parser_t parser;
   int is_comment = 1;
@@ -446,6 +447,19 @@ bgav_yml_node_t * bgav_yml_parse(bgav_input_context_t * input)
   memset(&parser, 0, sizeof(parser));
   parser.input = input;
 
+  /* Skip leading spaces */
+
+  while(1)
+    {
+    if(!bgav_input_get_data(input, &c, 1))
+      return (bgav_yml_node_t *)0;
+    if(isspace(c))
+      bgav_input_skip(input, 1);
+    else
+      break;
+    }
+  
+  
   while(is_comment)
     ret = parse_node(&parser, &is_comment);
   

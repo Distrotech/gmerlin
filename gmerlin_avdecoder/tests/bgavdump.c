@@ -78,6 +78,7 @@ int main(int argc, char ** argv)
     {
     fprintf(stderr, "Could not open file %s\n",
             argv[1]);
+    free(file);
     return -1;
     }
   
@@ -90,6 +91,7 @@ int main(int argc, char ** argv)
       fprintf(stderr, "Name %d: %s\n", i+1, bgav_redirector_get_name(file, i));
       fprintf(stderr, "URL %d: %s\n",  i+1, bgav_redirector_get_url(file, i));
       }
+    bgav_close(file);
     return 0;
     }
   num_tracks = bgav_num_tracks(file);

@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
  *
- * $Id: pnm.c,v 1.1 2003-12-27 11:39:02 gmerlin Exp $
+ * $Id: pnm.c,v 1.2 2004-07-18 00:35:14 gmerlin Exp $
  *
  * pnm protocol implementation 
  * based upon code from joschka
@@ -751,7 +751,7 @@ static int pnm_get_stream_chunk(pnm_t *p) {
 // pnm_t *pnm_connect(const char *mrl) {
 pnm_t *pnm_connect(int fd, char *path) {
   
-  pnm_t *p=malloc(sizeof(pnm_t));
+pnm_t *p=calloc(1, sizeof(pnm_t));
   int need_response=0;
   
   p->path=strdup(path);
@@ -793,12 +793,11 @@ int pnm_read (pnm_t *this, char *data, int len) {
     dest += fill;
     this->recv_read=0;
 
-    if (!pnm_get_stream_chunk (this)) {
-#ifdef LOG
-      printf ("input_pnm: %d of %d bytes provided\n", len-to_copy, len);
-#endif
+    if (!pnm_get_stream_chunk (this))
+      {
+      fprintf (stderr, "input_pnm: %d of %d bytes provided\n", len-to_copy, len);
       return len-to_copy;
-    }
+      }
     source = this->recv;
     fill = this->recv_size - this->recv_read;
   }

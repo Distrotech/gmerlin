@@ -59,7 +59,6 @@ void bgav_set_dll_path_xanim(const char * path)
   if(bgav_dll_path_xanim)
     {
     free(bgav_dll_path_xanim);
-    bgav_dll_path_xanim = (char*)0;
     }
   bgav_dll_path_xanim = bgav_strndup(path, NULL);
 
@@ -467,3 +466,38 @@ bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
   return (bgav_video_decoder_t*)0;
   }
 
+/* Free codec strings */
+
+/***************************************************************
+ * This will hopefully make the destruction for dynamic loading
+ * (Trick comes from a 1995 version of the ELF Howto, so it
+ * should work everywhere now)
+ ***************************************************************/
+
+#if defined(__GNUC__) && defined(__ELF__)
+static void __cleanup() __attribute__ ((destructor));
+ 
+static void __cleanup()
+  {
+
+#ifdef HAVE_W32DLL
+  if(win_path_needs_delete)
+    {
+    free(win32_def_path);
+    }
+#endif
+#ifdef HAVE_REALDLL
+  if(bgav_dll_path_real)
+    {
+    free(bgav_dll_path_real);
+    }
+#endif  
+#ifdef HAVE_XADLL
+  if(bgav_dll_path_xanim)
+    {
+    free(bgav_dll_path_xanim);
+    }
+#endif
+  }
+
+#endif

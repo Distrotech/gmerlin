@@ -173,7 +173,31 @@ typedef struct
 int bgav_rmff_data_header_read(bgav_input_context_t * ctx,
                                bgav_rmff_data_header_t * ret);
   
-                               
+
+/* Data packet header */
+
+typedef struct
+  {
+  uint16_t    object_version;
+
+  /* if (object_version == 0) */
+
+  uint16_t   length;
+  uint16_t   stream_number;
+  uint32_t   timestamp;
+  uint8_t   reserved; 
+  uint8_t   flags; 
+  } bgav_rmff_packet_header_t;
+
+int bgav_rmff_packet_header_read(bgav_input_context_t * input,
+                                 bgav_rmff_packet_header_t * ret);
+
+void bgav_rmff_packet_header_dump(bgav_rmff_packet_header_t * h);
+
+void bgav_rmff_packet_header_to_pointer(bgav_rmff_packet_header_t * h,
+                                        uint8_t * ptr);
+
+  
 typedef struct
   {
   bgav_rmff_file_header_t file_header;

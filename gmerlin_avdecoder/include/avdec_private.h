@@ -617,6 +617,12 @@ struct bgav_redirector_s
   int (*parse)(bgav_redirector_context_t*);
   };
 
+typedef struct
+  {
+  char * url;
+  char * name;
+  } bgav_url_info_t;
+
 struct bgav_redirector_context_s
   {
   bgav_redirector_t * redirector;
@@ -624,12 +630,7 @@ struct bgav_redirector_context_s
 
   int parsed;
   int num_urls;
-  
-  struct
-    {
-    char * url;
-    char * name;
-    } * urls;
+  bgav_url_info_t * urls;
   };
 
 void bgav_redirector_destroy(bgav_redirector_context_t*r);
@@ -786,6 +787,8 @@ void bgav_hexdump(uint8_t * data, int len, int linebreak);
 char * bgav_sprintf(const char * format,...);
 char * bgav_strndup(const char * start, const char * end);
 
+char * bgav_strncat(char * old, const char * start, const char * end);
+
 int bgav_url_split(const char * url,
                    char ** protocol,
                    char ** hostname,
@@ -854,17 +857,6 @@ bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t*);
 bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t*);
 void bgav_audio_decoder_register(bgav_audio_decoder_t * dec);
 void bgav_video_decoder_register(bgav_video_decoder_t * dec);
-
-/* rtsp.c */
-
-typedef struct bgav_rtsp_s bgav_rtsp_t;
-
-bgav_rtsp_t *
-bgav_rtsp_open(const char * url, int milliseconds,
-               const char * user_agent,
-               int network_bandwidth);
-
-void bgav_rtsp_close(bgav_rtsp_t *);
 
 /* base64.c */
 

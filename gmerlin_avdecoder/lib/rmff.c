@@ -189,13 +189,13 @@ void bgav_rmff_mdpr_destroy(bgav_rmff_mdpr_t * m)
  *  here as UTF-8
  */
 
-#define READ_STRING(dst) \
-  if(!bgav_input_read_16_be(input, &len)) \
+#define READ_STRING(dst, dst_len)                 \
+  if(!bgav_input_read_16_be(input, &(dst_len)))   \
     return 0;\
-  if(len) \
+  if(dst_len) \
     { \
-    ret->dst = malloc(len); \
-    if(bgav_input_read_data(input, ret->dst, len) < len) \
+    ret->dst = malloc(dst_len); \
+    if(bgav_input_read_data(input, ret->dst, dst_len) < dst_len) \
       { \
       free(ret->dst); \
       ret->dst = (char*)0; \
@@ -207,11 +207,10 @@ int bgav_rmff_cont_read(bgav_rmff_chunk_t * c,
                         bgav_input_context_t * input,
                         bgav_rmff_cont_t * ret)
   {
-  uint16_t len;
-  READ_STRING(title);
-  READ_STRING(author);
-  READ_STRING(copyright);
-  READ_STRING(comment);
+  READ_STRING(title, ret->title_len);
+  READ_STRING(author, ret->author_len);
+  READ_STRING(copyright, ret->copyright_len);
+  READ_STRING(comment, ret->comment_len);
   return 1;
   }
 
@@ -367,6 +366,9 @@ bgav_rmff_header_t * bgav_rmff_header_read(bgav_input_context_t * ctx)
       case MDPR_ID:
         ret->streams = realloc(ret->streams, (ret->num_streams+1) *
                                sizeof(*(ret->streams)));
+
+        memset(ret->streams + ret->num_streams, 0, sizeof(*(ret->streams)));
+        
         if(!bgav_rmff_mdpr_read(&chunk,ctx,&(ret->streams[ret->num_streams].mdpr)))
           goto fail;
         ret->num_streams++;
@@ -464,7 +466,10 @@ void bgav_rmff_header_destroy(bgav_rmff_header_t * h)
   if(h->streams)
     {
     for(i = 0; i < h->num_streams; i++)
+      {
       bgav_rmff_indx_free(&(h->streams[i].indx));
+      bgav_rmff_mdpr_destroy(&(h->streams[i].mdpr));
+      }
     free(h->streams);
     }
   bgav_rmff_cont_free(&(h->cont));
@@ -568,8 +573,9 @@ static int select_mlti_data(const uint8_t *mlti_chunk, int mlti_size, int select
 bgav_rmff_header_t *
 bgav_rmff_header_create_from_sdp(bgav_sdp_t * sdp, int network_bandwidth, char ** stream_rules)
   {
+  char * buf;
   char * pos;
-  int i;
+  int i, j;
   int i_tmp;
   uint8_t * buffer;
   char * str;
@@ -581,7 +587,7 @@ bgav_rmff_header_create_from_sdp(bgav_sdp_t * sdp, int network_bandwidth, char *
   uint8_t * opaque_data;
   int opaque_data_len;
     
-  bgav_sdp_dump(sdp);
+  //  bgav_sdp_dump(sdp);
 
   /* Set up global stuff */
 
@@ -635,28 +641,7 @@ bgav_rmff_header_create_from_sdp(bgav_sdp_t * sdp, int network_bandwidth, char *
                     "mimetype", ret->streams[i].mdpr.mime_type,
                     ret->streams[i].mdpr.mime_type_size);
 
-    if(!bgav_sdp_get_attr_string(sdp->media[i].attributes, sdp->media[i].num_attributes,
-                                 "ASMRuleBook", &asm_rulebook))
-      {
-      fprintf(stderr, "No ASMRuleBook found\n");
-      goto fail;
-      }
-
-    num_matches = bgav_asmrp_match(asm_rulebook, network_bandwidth, matches);
-
-    if(!bgav_sdp_get_attr_data(sdp->media[i].attributes, sdp->media[i].num_attributes,
-                               "OpaqueData", &opaque_data, &opaque_data_len))
-      {
-      fprintf(stderr, "No Opaque data there\n");
-      goto fail;
-      }
-
-    ret->streams[i].mdpr.type_specific_len =
-      select_mlti_data(opaque_data, opaque_data_len, matches[0],
-                       &(ret->streams[i].mdpr.type_specific_data));
-
     /* Get stream ID */
-
     if(!bgav_sdp_get_attr_string(sdp->media[i].attributes, sdp->media[i].num_attributes,
                                  "control", &str))
       {
@@ -672,11 +657,37 @@ bgav_rmff_header_create_from_sdp(bgav_sdp_t * sdp, int network_bandwidth, char *
     pos += 9;
     ret->streams[i].mdpr.stream_number = atoi(pos);
     
+    if(!bgav_sdp_get_attr_string(sdp->media[i].attributes, sdp->media[i].num_attributes,
+                                 "ASMRuleBook", &asm_rulebook))
+      {
+      fprintf(stderr, "No ASMRuleBook found\n");
+      goto fail;
+      }
+
+    num_matches = bgav_asmrp_match(asm_rulebook, network_bandwidth, matches);
+
+    for(j = 0; j < num_matches; j++)
+      {
+      buf = bgav_sprintf("stream=%u;rule=%u,", ret->streams[i].mdpr.stream_number, matches[j]);
+      *stream_rules = bgav_strncat(*stream_rules, buf, NULL);
+      free(buf);
+      }
+
+    if(!bgav_sdp_get_attr_data(sdp->media[i].attributes, sdp->media[i].num_attributes,
+                               "OpaqueData", &opaque_data, &opaque_data_len))
+      {
+      fprintf(stderr, "No Opaque data there\n");
+      goto fail;
+      }
+
+    ret->streams[i].mdpr.type_specific_len =
+      select_mlti_data(opaque_data, opaque_data_len, matches[0],
+                       &(ret->streams[i].mdpr.type_specific_data));
+    
     }
 
-  
-  
-  bgav_rmff_header_dump(ret);
+    
+  //  bgav_rmff_header_dump(ret);
   
   return ret;
 
@@ -685,3 +696,31 @@ bgav_rmff_header_create_from_sdp(bgav_sdp_t * sdp, int network_bandwidth, char *
   return (bgav_rmff_header_t*)0;
   }
 
+int bgav_rmff_packet_header_read(bgav_input_context_t * input,
+                                 bgav_rmff_packet_header_t * ret)
+  {
+  return
+    bgav_input_read_16_be(input, &(ret->object_version)) &&
+    bgav_input_read_16_be(input, &(ret->length)) &&
+    bgav_input_read_16_be(input, &(ret->stream_number)) &&
+    bgav_input_read_32_be(input, &(ret->timestamp)) &&
+    bgav_input_read_8(input, &(ret->reserved)) &&
+    bgav_input_read_8(input, &(ret->flags));
+  }
+
+void bgav_rmff_packet_header_dump(bgav_rmff_packet_header_t * h)
+  {
+  fprintf(stderr, "Packet L: %d, S: %d, T: %d, F: %x\n",
+          h->length, h->stream_number, h->timestamp, h->flags);
+  }
+
+void bgav_rmff_packet_header_to_pointer(bgav_rmff_packet_header_t * h,
+                                        uint8_t * ptr)
+  {
+  BGAV_16BE_2_PTR(h->object_version, ptr);ptr+=2;
+  BGAV_16BE_2_PTR(h->length, ptr);ptr+=2;
+  BGAV_16BE_2_PTR(h->stream_number, ptr);ptr+=2;
+  BGAV_32BE_2_PTR(h->timestamp, ptr);ptr+=4;
+  *ptr = h->reserved;ptr++;
+  *ptr = h->flags;ptr++;
+  }

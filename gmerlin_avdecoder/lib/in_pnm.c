@@ -26,7 +26,7 @@ typedef struct
   {
   char * url;
   int fd;
-  
+  int eof;
   pnm_t * s;
   } pnm_priv_t;
 
@@ -58,7 +58,11 @@ static int open_pnm(bgav_input_context_t * ctx, const char * url)
     //    fprintf(stderr, "Cannot open %s\n", url);
     return 0;
     }
-  
+
+  if(host)
+    free(host);
+  if(path)
+    free(path);
   return 1;
 
   fail:
@@ -76,13 +80,27 @@ static int open_pnm(bgav_input_context_t * ctx, const char * url)
 static int     read_pnm(bgav_input_context_t* ctx,
                              uint8_t * buffer, int len)
   {
+  int result;
   pnm_priv_t * priv = (pnm_priv_t*)(ctx->priv);
-  return pnm_read(priv->s, buffer, len);
+
+  if(priv->eof)
+    return 0;
+
+  result = pnm_read(priv->s, buffer, len);
+
+  if(!result)
+    priv->eof = 1;
+  //  fprintf(stderr, "Result: %d\n", result);
+  return result;
   }
 
 static void    close_pnm(bgav_input_context_t * ctx)
   {
   pnm_priv_t * priv = (pnm_priv_t*)(ctx->priv);
+
+  if(priv->url)
+    free(priv->url);
+
   if(priv->s)
     pnm_close(priv->s);
   free(priv);
