@@ -10,7 +10,6 @@
 #include <utils.h>
 
 static char * output_plugin_name = "oa_oss";
-static char * input_plugin_name =  "i_mpeg";
 
 #if 0
 static void dump_format(gavl_audio_format_t * format)
@@ -33,9 +32,8 @@ int main(int argc, char ** argv)
   char * tmp_path;
   const bg_plugin_info_t * plugin_info;
   bg_cfg_section_t * cfg_section;
-  
+  int do_convert;
   gavl_audio_options_t opt;
-  int input_done;
   bg_plugin_registry_t * plugin_reg;
   bg_cfg_registry_t    * cfg_reg;
   
@@ -54,7 +52,7 @@ int main(int argc, char ** argv)
   /* Frames */
   
   gavl_audio_frame_t * input_frame;
-  gavl_audio_frame_t * output_frame;
+  gavl_audio_frame_t * output_frame = (gavl_audio_frame_t*)0;
 
   /* Converter */
 
@@ -76,7 +74,7 @@ int main(int argc, char ** argv)
 
   /* Load input plugin */
 
-  plugin_info = bg_plugin_find_by_name(plugin_reg, input_plugin_name);
+  plugin_info = bg_plugin_find_by_filename(plugin_reg, argv[1], BG_PLUGIN_INPUT);
   if(!plugin_info)
     {
     fprintf(stderr, "Input plugin not found\n");
@@ -106,6 +104,9 @@ int main(int argc, char ** argv)
   
   info = input_plugin->get_track_info(input_handle->priv, 0);
 
+  if(input_plugin->set_track)
+    input_plugin->set_track(input_handle->priv, 0);
+  
   if(!info->num_audio_streams)
     {
     fprintf(stderr, "File %s has no audio\n", argv[1]);
@@ -123,9 +124,8 @@ int main(int argc, char ** argv)
   
   /* Get audio format */
 
-  memcpy(&audio_format, &(info->audio_streams[0].format),
-         sizeof(gavl_audio_format_t));
-
+  gavl_audio_format_copy(&audio_format, &(info->audio_streams[0].format));
+  
   /* Initialize output plugin */
   
   output_plugin->open(output_handle->priv, &audio_format);
@@ -135,12 +135,15 @@ int main(int argc, char ** argv)
   audio_converter = gavl_audio_converter_create();
 
   gavl_audio_default_options(&opt);
-  
-  gavl_audio_init(audio_converter,
-                  &opt,
-                  &(info->audio_streams[0].format),
-                  &audio_format);
 
+  fprintf(stderr, "gavl_audio_converter_init...");
+  
+  do_convert = gavl_audio_converter_init(audio_converter,
+                                         &opt,
+                                         &(info->audio_streams[0].format),
+                                         &audio_format);
+  fprintf(stderr, "done\n");
+  
   /* Dump formats */
 
   /*
@@ -154,37 +157,39 @@ int main(int argc, char ** argv)
   
   /* Allocate frames */
 
+  info->audio_streams[0].format.samples_per_frame = audio_format.samples_per_frame;
+  
   input_frame = gavl_audio_frame_create(&(info->audio_streams[0].format));
-  output_frame = gavl_audio_frame_create(&audio_format);
+
+  if(do_convert)
+    output_frame = gavl_audio_frame_create(&audio_format);
   
   /* Playback until we are done */
 
-  input_done = 1;
   
   while(1)
     {
-    if(input_done)
-      {
-      if(!input_plugin->read_audio_samples(input_handle->priv,
-                                           input_frame, 0,
-                                           info->audio_streams[0].format.samples_per_frame))
-        break;
-      }
+    //    fprintf(stderr, "Read audio %d\n", audio_format.samples_per_frame);
+    if(!input_plugin->read_audio_samples(input_handle->priv,
+                                         input_frame, 0,
+                                         audio_format.samples_per_frame))
+      break;
     
-    input_done =
-      gavl_audio_convert(audio_converter, input_frame, output_frame);
-    if(output_frame->valid_samples == audio_format.samples_per_frame)
+    if(do_convert)
       {
+      gavl_audio_convert(audio_converter, input_frame, output_frame);
       output_plugin->write_frame(output_handle->priv, output_frame);
-      output_frame->valid_samples = 0;
       }
+    else
+      output_plugin->write_frame(output_handle->priv, input_frame);
     }
-
+  
   /* Clean up */
 
   gavl_audio_converter_destroy(audio_converter);
   gavl_audio_frame_destroy(input_frame);
-  gavl_audio_frame_destroy(output_frame);
+  if(output_frame)
+    gavl_audio_frame_destroy(output_frame);
 
   if(input_plugin->stop)
     input_plugin->stop(input_handle->priv);
@@ -194,8 +199,7 @@ int main(int argc, char ** argv)
 
   bg_plugin_unref(input_handle);
   bg_plugin_unref(output_handle);
-  
-  
+    
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);
   

@@ -188,6 +188,11 @@ static void entry_change_callback(GtkWidget * wid, gpointer data)
       i++;
       }
     }
+  if(w->info->codec_parameters[priv->selected])
+    gtk_widget_set_sensitive(priv->config_button, 1);
+  else
+    gtk_widget_set_sensitive(priv->config_button, 0);
+  
   }
 
 static void button_callback(GtkWidget * wid, gpointer data)
@@ -230,6 +235,17 @@ void bg_gtk_create_encoder(bg_gtk_widget_t * w,
   w->funcs = &funcs;
   w->priv = priv;
   
+  priv->config_button = create_pixmap_button("config_16.png");
+  priv->info_button   = create_pixmap_button("info_16.png");
+
+  g_signal_connect(G_OBJECT(priv->config_button), "clicked",
+                   G_CALLBACK(button_callback), w);
+  g_signal_connect(G_OBJECT(priv->info_button), "clicked",
+                   G_CALLBACK(button_callback), w);
+  
+  gtk_widget_show(priv->config_button);
+  gtk_widget_show(priv->info_button);
+  
   priv->combo = gtk_combo_new();
   gtk_editable_set_editable(GTK_EDITABLE(GTK_COMBO(priv->combo)->entry), FALSE);
 
@@ -251,16 +267,6 @@ void bg_gtk_create_encoder(bg_gtk_widget_t * w,
   gtk_combo_set_popdown_strings(GTK_COMBO(priv->combo), priv->strings);
   gtk_widget_show(priv->combo);
 
-  priv->config_button = create_pixmap_button("config_16.png");
-  priv->info_button   = create_pixmap_button("info_16.png");
-
-  g_signal_connect(G_OBJECT(priv->config_button), "clicked",
-                   G_CALLBACK(button_callback), w);
-  g_signal_connect(G_OBJECT(priv->info_button), "clicked",
-                   G_CALLBACK(button_callback), w);
-  
-  gtk_widget_show(priv->config_button);
-  gtk_widget_show(priv->info_button);
   
   
   priv->label = gtk_label_new(info->long_name);

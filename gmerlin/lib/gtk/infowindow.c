@@ -27,76 +27,12 @@
 #include <player.h>
 #include <playermsg.h>
 #include <gui_gtk/infowindow.h>
+#include <gui_gtk/textview.h>
 #include <utils.h>
-
-/* Font stuff */
-
-static const char * font_name = "Courier 8";
 
 /* Delay between update calls in Milliseconds */
 
 #define DELAY_TIME 10
-
-static GtkTextTag      * text_tag  = (GtkTextTag *)0;
-static GtkTextTagTable * tag_table = (GtkTextTagTable *)0;
-
-typedef struct
-  {
-  GtkWidget * textview;
-  GtkTextBuffer * buffer;
-  } text_view_t;
-
-static void text_view_create(text_view_t * t)
-  {
-  PangoFontDescription* d;
-  if(!tag_table)
-    {
-    tag_table = gtk_text_tag_table_new();
-    
-    text_tag = gtk_text_tag_new("Font");
-    d = pango_font_description_from_string(font_name);
-    g_object_set(text_tag, "font-desc", d, NULL);
-    g_object_set(text_tag, "editable", 0, NULL);
-
-    gtk_text_tag_table_add(tag_table,
-                           text_tag);
-    }
-  
-  t->buffer = gtk_text_buffer_new(tag_table);
-  t->textview = gtk_text_view_new_with_buffer(t->buffer);
-
-  
-
-  gtk_widget_show(t->textview);
-  }
-
-#if 0
-static void text_view_destroy(text_view_t * t)
-  {
-  
-  }
-#endif
-
-static void text_view_update(text_view_t * t,
-                             const char * text)
-  {
-  GtkTextIter start_iter;
-  GtkTextIter end_iter;
-  
-  gtk_text_buffer_set_text(t->buffer, text, -1);
-
-  gtk_text_buffer_get_bounds(t->buffer,
-                             &start_iter,
-                             &end_iter);
-
-  gtk_text_buffer_apply_tag(t->buffer,
-                            text_tag,
-                            &start_iter,
-                            &end_iter);
-
-  
-  
-  }
 
 struct bg_gtk_info_window_s
   {
@@ -137,20 +73,20 @@ struct bg_gtk_info_window_s
 
   /* The text views */
 
-  text_view_t w_audio_description;
-  text_view_t w_audio_format_i;
-  text_view_t w_audio_format_o;
+  bg_gtk_textview_t * w_audio_description;
+  bg_gtk_textview_t * w_audio_format_i;
+  bg_gtk_textview_t * w_audio_format_o;
   
-  text_view_t w_video_description;
-  text_view_t w_video_format_i;
-  text_view_t w_video_format_o;
+  bg_gtk_textview_t * w_video_description;
+  bg_gtk_textview_t * w_video_format_i;
+  bg_gtk_textview_t * w_video_format_o;
 
-  text_view_t w_audio_stream;
-  text_view_t w_video_stream;
+  bg_gtk_textview_t * w_audio_stream;
+  bg_gtk_textview_t * w_video_stream;
 
-  text_view_t w_name;
-  text_view_t w_stream;
-  text_view_t w_metadata;
+  bg_gtk_textview_t * w_name;
+  bg_gtk_textview_t * w_stream;
+  bg_gtk_textview_t * w_metadata;
   
   bg_msg_queue_t * queue;
 
@@ -184,12 +120,12 @@ static void clear_info(bg_gtk_info_window_t * w)
   
   memset(&(w->metadata), 0, sizeof(w->metadata));
 
-  text_view_update(&(w->w_audio_format_i), "");
-  text_view_update(&(w->w_audio_format_o), "");
-  text_view_update(&(w->w_video_format_i), "");
-  text_view_update(&(w->w_video_format_o), "");
+  bg_gtk_textview_update(w->w_audio_format_i, "");
+  bg_gtk_textview_update(w->w_audio_format_o, "");
+  bg_gtk_textview_update(w->w_video_format_i, "");
+  bg_gtk_textview_update(w->w_video_format_o, "");
 
-  text_view_update(&(w->w_metadata), "");
+  bg_gtk_textview_update(w->w_metadata, "");
   
   }
 
@@ -199,13 +135,13 @@ static void update_audio(bg_gtk_info_window_t * w)
 
   /* Audio formats */
 
-  tmp_string = bg_audio_format_to_string(&(w->audio_format_i));
-  text_view_update(&(w->w_audio_format_i), tmp_string);
+  tmp_string = bg_audio_format_to_string(&(w->audio_format_i), 1);
+  bg_gtk_textview_update(w->w_audio_format_i, tmp_string);
   
   free(tmp_string);
   
-  tmp_string = bg_audio_format_to_string(&(w->audio_format_o));
-  text_view_update(&(w->w_audio_format_o), tmp_string);
+  tmp_string = bg_audio_format_to_string(&(w->audio_format_o), 1);
+  bg_gtk_textview_update(w->w_audio_format_o, tmp_string);
   
   free(tmp_string);
 
@@ -220,7 +156,7 @@ static void update_audio(bg_gtk_info_window_t * w)
     tmp_string = bg_sprintf("Audio stream %d",
                             w->current_audio_stream +1);
     }
-  text_view_update(&(w->w_audio_description), tmp_string);
+  bg_gtk_textview_update(w->w_audio_description, tmp_string);
   free(tmp_string);
   
   }
@@ -230,13 +166,13 @@ static void update_video(bg_gtk_info_window_t * w)
   char * tmp_string;
   /* Video formats */
 
-  tmp_string = bg_video_format_to_string(&(w->video_format_i));
-  text_view_update(&(w->w_video_format_i), tmp_string);
+  tmp_string = bg_video_format_to_string(&(w->video_format_i), 1);
+  bg_gtk_textview_update(w->w_video_format_i, tmp_string);
   
   free(tmp_string);
   
-  tmp_string = bg_video_format_to_string(&(w->video_format_o));
-  text_view_update(&(w->w_video_format_o), tmp_string);
+  tmp_string = bg_video_format_to_string(&(w->video_format_o), 1);
+  bg_gtk_textview_update(w->w_video_format_o, tmp_string);
   
   free(tmp_string);
 
@@ -251,14 +187,14 @@ static void update_video(bg_gtk_info_window_t * w)
     tmp_string = bg_sprintf("Video stream %d",
                             w->current_video_stream +1);
     }
-  text_view_update(&(w->w_video_description), tmp_string);
+  bg_gtk_textview_update(w->w_video_description, tmp_string);
   free(tmp_string);
   }
 
 static void update_stream(bg_gtk_info_window_t * w)
   {
   if(w->description)
-    text_view_update(&(w->w_stream), w->description);
+    bg_gtk_textview_update(w->w_stream, w->description);
   }
 
 #define META_STRCAT() \
@@ -287,47 +223,47 @@ static void update_metadata(bg_gtk_info_window_t * w)
   
   if(w->metadata.author)
     {
-    tmp_string_1 = bg_sprintf("Author: %s\n", w->metadata.author);
+    tmp_string_1 = bg_sprintf("Author:\t %s\n", w->metadata.author);
     META_STRCAT();
     }
   if(w->metadata.artist)
     {
-    tmp_string_1 = bg_sprintf("Artist: %s\n", w->metadata.artist);
+    tmp_string_1 = bg_sprintf("Artist:\t %s\n", w->metadata.artist);
     META_STRCAT();
     }
   if(w->metadata.title)
     {
-    tmp_string_1 = bg_sprintf("Title: %s\n", w->metadata.title);
+    tmp_string_1 = bg_sprintf("Title:\t %s\n", w->metadata.title);
     META_STRCAT();
     }
   if(w->metadata.album)
     {
-    tmp_string_1 = bg_sprintf("Album: %s\n", w->metadata.album);
+    tmp_string_1 = bg_sprintf("Album:\t %s\n", w->metadata.album);
     META_STRCAT();
     }
   if(w->metadata.copyright)
     {
-    tmp_string_1 = bg_sprintf("Copyright: %s\n", w->metadata.copyright);
+    tmp_string_1 = bg_sprintf("Copyright:\t %s\n", w->metadata.copyright);
     META_STRCAT();
     }
   if(w->metadata.genre)
     {
-    tmp_string_1 = bg_sprintf("Genre: %s\n", w->metadata.genre);
+    tmp_string_1 = bg_sprintf("Genre:\t %s\n", w->metadata.genre);
     META_STRCAT();
     }
   if(w->metadata.comment)
     {
-    tmp_string_1 = bg_sprintf("Comment: %s\n", w->metadata.comment);
+    tmp_string_1 = bg_sprintf("Comment:\t %s\n", w->metadata.comment);
     META_STRCAT();
     }
-  if(w->metadata.year)
+  if(w->metadata.date)
     {
-    tmp_string_1 = bg_sprintf("Year: %d\n", w->metadata.year);
+    tmp_string_1 = bg_sprintf("Date:\t %s\n", w->metadata.date);
     META_STRCAT();
     }
   if(w->metadata.track)
     {
-    tmp_string_1 = bg_sprintf("Track: %d\n", w->metadata.track);
+    tmp_string_1 = bg_sprintf("Track:\t %d\n", w->metadata.track);
     META_STRCAT();
     }
   if(window_string)
@@ -335,7 +271,7 @@ static void update_metadata(bg_gtk_info_window_t * w)
     /* Delete trailing newline */
 
     window_string[strlen(window_string) - 1] = '\0';
-    text_view_update(&(w->w_metadata), window_string);
+    bg_gtk_textview_update(w->w_metadata, window_string);
     free(window_string);
     }
   }
@@ -383,7 +319,7 @@ static gboolean idle_callback(gpointer data)
         break;
       case BG_PLAYER_MSG_TRACK_NAME:
         arg_str = bg_msg_get_arg_string(msg, 0);
-        text_view_update(&(w->w_name), arg_str);
+        bg_gtk_textview_update(w->w_name, arg_str);
         free(arg_str);
         break;
       case BG_PLAYER_MSG_TRACK_NUM_STREAMS:
@@ -432,8 +368,8 @@ static gboolean idle_callback(gpointer data)
       case BG_PLAYER_MSG_META_COPYRIGHT:
         w->metadata.copyright = bg_msg_get_arg_string(msg, 0);
         break;
-      case BG_PLAYER_MSG_META_YEAR:
-        w->metadata.year = bg_msg_get_arg_int(msg, 0);
+      case BG_PLAYER_MSG_META_DATE:
+        w->metadata.date = bg_msg_get_arg_string(msg, 0);
         break;
       case BG_PLAYER_MSG_META_TRACK:
         w->metadata.track = bg_msg_get_arg_int(msg, 0);
@@ -485,21 +421,21 @@ bg_gtk_info_window_create(bg_player_t * player,
 
   bg_player_add_message_queue(player, ret->queue);
   
-  text_view_create(&(ret->w_audio_description));
-  text_view_create(&(ret->w_video_description));
+  ret->w_audio_description = bg_gtk_textview_create();
+  ret->w_video_description = bg_gtk_textview_create();
 
-  text_view_create(&(ret->w_audio_format_i));
-  text_view_create(&(ret->w_audio_format_o));
+  ret->w_audio_format_i = bg_gtk_textview_create();
+  ret->w_audio_format_o = bg_gtk_textview_create();
   
-  text_view_create(&(ret->w_video_format_i));
-  text_view_create(&(ret->w_video_format_o));
+  ret->w_video_format_i = bg_gtk_textview_create();
+  ret->w_video_format_o = bg_gtk_textview_create();
 
-  text_view_create(&(ret->w_audio_stream));
-  text_view_create(&(ret->w_video_stream));
+  ret->w_audio_stream = bg_gtk_textview_create();
+  ret->w_video_stream = bg_gtk_textview_create();
 
-  text_view_create(&(ret->w_name));
-  text_view_create(&(ret->w_stream));
-  text_view_create(&(ret->w_metadata));
+  ret->w_name     = bg_gtk_textview_create();
+  ret->w_stream   = bg_gtk_textview_create();
+  ret->w_metadata = bg_gtk_textview_create();
   
   /* Set callbacks */
   
@@ -516,17 +452,17 @@ bg_gtk_info_window_create(bg_player_t * player,
   table = gtk_table_new(3, 1, 0);
   
   frame = gtk_frame_new("Name");
-  gtk_container_add(GTK_CONTAINER(frame), ret->w_name.textview);
+  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_name));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 0, 1);
 
   frame = gtk_frame_new("Stream type");
-  gtk_container_add(GTK_CONTAINER(frame), ret->w_stream.textview);
+  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_stream));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 1, 2);
 
   frame = gtk_frame_new("Meta info");
-  gtk_container_add(GTK_CONTAINER(frame), ret->w_metadata.textview);
+  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_metadata));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 2, 3);
 
@@ -543,17 +479,17 @@ bg_gtk_info_window_create(bg_player_t * player,
   table = gtk_table_new(2, 2, 0);
 
   frame = gtk_frame_new("Stream type");
-  gtk_container_add(GTK_CONTAINER(frame), ret->w_audio_description.textview);
+  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_audio_description));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 0, 1);
 
   frame = gtk_frame_new("Input format");
-  gtk_container_add(GTK_CONTAINER(frame), ret->w_audio_format_i.textview);
+  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_audio_format_i));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 1, 1, 2);
 
   frame = gtk_frame_new("Output format");
-  gtk_container_add(GTK_CONTAINER(frame), ret->w_audio_format_o.textview);
+  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_audio_format_o));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 1, 2, 1, 2);
   
@@ -570,17 +506,17 @@ bg_gtk_info_window_create(bg_player_t * player,
   table = gtk_table_new(2, 2, 0);
 
   frame = gtk_frame_new("Stream type");
-  gtk_container_add(GTK_CONTAINER(frame), ret->w_video_description.textview);
+  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_video_description));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 0, 1);
 
   frame = gtk_frame_new("Input format");
-  gtk_container_add(GTK_CONTAINER(frame), ret->w_video_format_i.textview);
+  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_video_format_i));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 1, 1, 2);
 
   frame = gtk_frame_new("Output format");
-  gtk_container_add(GTK_CONTAINER(frame), ret->w_video_format_o.textview);
+  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_video_format_o));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 1, 2, 1, 2);
   

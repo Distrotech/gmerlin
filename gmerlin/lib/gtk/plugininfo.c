@@ -20,15 +20,12 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
 #include <string.h>
+#include <utils.h>
 
 #include <pluginregistry.h>
 #include <gui_gtk/plugin.h>
+#include <gui_gtk/textview.h>
 
-struct bg_gtk_plugin_info_s
-  {
-  GtkWidget * window;
-  GtkWidget * close_button;
-  };
 
 static struct
   {
@@ -42,7 +39,6 @@ type_names[] =
     { "Video output",   BG_PLUGIN_OUTPUT_VIDEO },
     { "Audio recorder", BG_PLUGIN_RECORDER_AUDIO },
     { "Video recorder", BG_PLUGIN_RECORDER_VIDEO },
-    { "Redirector",     BG_PLUGIN_REDIRECTOR    },
     { "Image Reader",   BG_PLUGIN_IMAGE_READER  },
     { (char*)0,         BG_PLUGIN_NONE }
   };
@@ -108,135 +104,33 @@ static char * get_flag_string(uint32_t flags)
   return ret;
   }
 
-static void button_callback(GtkWidget * w, gpointer data)
+static const char * get_type_string(bg_plugin_type_t type)
   {
-  bg_gtk_plugin_info_t * win;
-  win = (bg_gtk_plugin_info_t*)data;
-
-  gtk_widget_hide(win->window);
-  gtk_widget_destroy(win->window);
-  free(win);
-  } 
-
-static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
-                                gpointer data)
-  {
-  button_callback(w, data);
-  return TRUE;
-  } 
-
-static bg_gtk_plugin_info_t *
-bg_gtk_plugin_info_create(const bg_plugin_info_t * info)
-  {
-  GtkWidget * label;
-  GtkWidget * table;
-  int index;
-  char * tmp_string;
-  
-  bg_gtk_plugin_info_t * ret;
-  ret = calloc(1, sizeof(*ret));
-
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-
-  g_signal_connect(G_OBJECT(ret->window), "delete_event",
-                   G_CALLBACK(delete_callback), (gpointer)ret);
-
-  gtk_window_set_title(GTK_WINDOW(ret->window), info->long_name);
-
-  /* Create close button */
-
-  ret->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
-
-  g_signal_connect(G_OBJECT(ret->close_button), "clicked",
-                   G_CALLBACK(button_callback), (gpointer)ret);
-  gtk_widget_show(ret->close_button);
-    
-  table = gtk_table_new(6, 2, 0);
-  gtk_table_set_row_spacings(GTK_TABLE(table), 5);
-  gtk_table_set_col_spacings(GTK_TABLE(table), 5);
-  gtk_container_set_border_width(GTK_CONTAINER(table), 5);
-  
-  /* Create labels */
-
-  label = gtk_label_new("Name:");
-  gtk_misc_set_alignment(GTK_MISC(label), 1.0, 0.5);
-  gtk_widget_show(label);
-  gtk_table_attach_defaults(GTK_TABLE(table), label, 0, 1, 0, 1);
-
-  label = gtk_label_new(info->name);
-  gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
-  gtk_widget_show(label);
-  gtk_table_attach_defaults(GTK_TABLE(table), label, 1, 2, 0, 1);
-  
-  label = gtk_label_new("Long Name:");
-  gtk_misc_set_alignment(GTK_MISC(label), 1.0, 0.5);
-  gtk_widget_show(label);
-  gtk_table_attach_defaults(GTK_TABLE(table), label, 0, 1, 1, 2);
-
-  label = gtk_label_new(info->long_name);
-  gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
-  gtk_widget_show(label);
-  gtk_table_attach_defaults(GTK_TABLE(table), label, 1, 2, 1, 2);
-  
-  label = gtk_label_new("Type:");
-  gtk_misc_set_alignment(GTK_MISC(label), 1.0, 0.5);
-  gtk_widget_show(label);
-  gtk_table_attach_defaults(GTK_TABLE(table), label, 0, 1, 2, 3);
-
-  index = 0;
-  while(type_names[index].name)
+  int i = 0;
+  while(type_names[i].name)
     {
-    if(type_names[index].type == info->type)
-      {
-      label = gtk_label_new(type_names[index].name);
-      gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
-      gtk_widget_show(label);
-      gtk_table_attach_defaults(GTK_TABLE(table), label, 1, 2, 2, 3);
-      }
-    index++;
+    if(type_names[i].type == type)
+      return type_names[i].name;
+    i++;
     }
-  
-  label = gtk_label_new("Flags:");
-  gtk_misc_set_alignment(GTK_MISC(label), 1.0, 0.5);
-  gtk_widget_show(label);
-  gtk_table_attach_defaults(GTK_TABLE(table), label, 0, 1, 3, 4);
-
-  tmp_string = get_flag_string(info->flags);
-  
-  label = gtk_label_new(tmp_string);
-  gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
-  gtk_widget_show(label);
-  gtk_table_attach_defaults(GTK_TABLE(table), label, 1, 2, 3, 4);
-  free(tmp_string);
-  
-  
-  label = gtk_label_new("DLL Filename:");
-  gtk_misc_set_alignment(GTK_MISC(label), 1.0, 0.5);
-  gtk_widget_show(label);
-  gtk_table_attach_defaults(GTK_TABLE(table), label, 0, 1, 4, 5);
-  
-  label = gtk_label_new(info->module_filename);
-  gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
-  gtk_widget_show(label);
-  gtk_table_attach_defaults(GTK_TABLE(table), label, 1, 2, 4, 5);
-
-  gtk_table_attach(GTK_TABLE(table), ret->close_button, 0, 2, 5, 6,
-                   GTK_SHRINK, GTK_SHRINK, 0, 0);
-  
-  
-  gtk_widget_show(table);
-  gtk_container_add(GTK_CONTAINER(ret->window), table);
-    
-  return ret;
+  return (char*)0;
   }
 
-
-void bg_gtk_plugin_info_show(const bg_plugin_info_t * i)
+void bg_gtk_plugin_info_show(const bg_plugin_info_t * info)
   {
-  bg_gtk_plugin_info_t * info;
-  info = bg_gtk_plugin_info_create(i);
+  char * text;
+  char * flag_string;
   
-  gtk_widget_show(info->window);
+  bg_gtk_textwindow_t * win;
+
+  flag_string = get_flag_string(info->flags);
+  text = bg_sprintf("Name:\t %s\nLong name:\t %s\nType:\t %s\nFlags:\t %s\nDLL Filename:\t %s",
+                    info->name, info->long_name, get_type_string(info->type),
+                    flag_string, info->module_filename);
+  win = bg_gtk_textwindow_create(text, info->long_name);
+  
+  free(text);
+  free(flag_string);
+  
+  bg_gtk_textwindow_show(win, 0);
   }
-
-

@@ -46,6 +46,18 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 (void*)(g),
                 parameters);
 
+  cfg_section = bg_cfg_registry_find_section(g->cfg_reg, "Audio");
+  parameters = bg_player_get_audio_parameters(g->player);
+  
+  bg_cfg_section_apply(cfg_section, parameters,
+                       bg_player_set_audio_parameter, (void*)(g->player));
+  bg_dialog_add(g->cfg_dialog,
+                (char*)0,
+                cfg_section,
+                bg_player_set_audio_parameter,
+                (void*)(g->player),
+                parameters);
+
 
   }
 

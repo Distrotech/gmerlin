@@ -63,9 +63,9 @@ sizeof(scale_tics)/sizeof(scale_tics[0]);
 
 /* Return value is overflow (boolean) */
 
-static int get_level_s_16_ne(gavl_audio_frame_t * frame,
-                             int channel,
-                             float * level)
+static int get_level_s_16(gavl_audio_frame_t * frame,
+                          int channel,
+                          float * level)
   {
   int i;
   int ret = 0;
@@ -109,24 +109,8 @@ static int get_level_s_16_ne(gavl_audio_frame_t * frame,
   return ret;
   }
 
-static int get_level_s_16_oe(gavl_audio_frame_t * frame,
-                             int channel,
-                             float * level)
-  {
-  int ret = 0;
-  return ret;
-  
-  }
 
-static int get_level_u_16_ne(gavl_audio_frame_t * frame,
-                             int channel,
-                             float * level)
-  {
-  int ret = 0;
-  return ret;
-  }
-
-static int get_level_u_16_oe(gavl_audio_frame_t * frame,
+static int get_level_u_16(gavl_audio_frame_t * frame,
                              int channel,
                              float * level)
   {
@@ -137,6 +121,16 @@ static int get_level_u_16_oe(gavl_audio_frame_t * frame,
 static int get_level_s_8(gavl_audio_frame_t * frame,
                          int channel,
                          float * level)
+  {
+  int ret = 0;
+  return ret;
+  
+
+  }
+
+static int get_level_s_32(gavl_audio_frame_t * frame,
+                          int channel,
+                          float * level)
   {
   int ret = 0;
   return ret;
@@ -767,17 +761,14 @@ void bg_gtk_vumeter_set_format(bg_gtk_vumeter_t * m,
     case GAVL_SAMPLE_S8:
       m->get_level = get_level_s_8;
       break;
-    case GAVL_SAMPLE_U16NE:
-      m->get_level = get_level_u_16_ne;
+    case GAVL_SAMPLE_U16:
+      m->get_level = get_level_u_16;
       break;
-    case GAVL_SAMPLE_S16NE:
-      m->get_level = get_level_s_16_ne;
+    case GAVL_SAMPLE_S16:
+      m->get_level = get_level_s_16;
       break;
-    case GAVL_SAMPLE_U16OE:
-      m->get_level = get_level_u_16_oe;
-      break;
-    case GAVL_SAMPLE_S16OE:
-      m->get_level = get_level_s_16_oe;
+    case GAVL_SAMPLE_S32:
+      m->get_level = get_level_s_32;
       break;
     case GAVL_SAMPLE_FLOAT:
       m->get_level = get_level_float;
@@ -788,9 +779,8 @@ void bg_gtk_vumeter_set_format(bg_gtk_vumeter_t * m,
       break;
     }
   gavl_audio_default_options(&opt);
-  opt.conversion_flags &= ~GAVL_AUDIO_DO_BUFFER;
   
-  gavl_audio_init(m->cnv,
+  gavl_audio_converter_init(m->cnv,
                   &opt,
                   format,
                   &(m->internal_format));

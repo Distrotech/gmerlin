@@ -89,8 +89,8 @@ void bg_hexdump(const void * data, int len);
  *  Implemented in formats.c
  */
 
-char * bg_audio_format_to_string(gavl_audio_format_t * format);
-char * bg_video_format_to_string(gavl_video_format_t * format);
+char * bg_audio_format_to_string(gavl_audio_format_t * format, int use_tabs);
+char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs);
 
 /*
  *  Read a single line from a filedescriptor

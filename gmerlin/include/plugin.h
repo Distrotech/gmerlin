@@ -63,15 +63,14 @@ typedef enum
   {
     BG_PLUGIN_NONE               = 0,
     BG_PLUGIN_INPUT              = (1<<0),
-    BG_PLUGIN_REDIRECTOR         = (1<<1),
-    BG_PLUGIN_OUTPUT_AUDIO       = (1<<2),
-    BG_PLUGIN_OUTPUT_VIDEO       = (1<<3),
-    BG_PLUGIN_RECORDER_AUDIO     = (1<<4),
-    BG_PLUGIN_RECORDER_VIDEO     = (1<<5),
-    BG_PLUGIN_ENCODER_AUDIO      = (1<<6),
-    BG_PLUGIN_ENCODER_VIDEO      = (1<<7),
-    BG_PLUGIN_ENCODER            = (1<<8), // Encodetr for both audio and video
-    BG_PLUGIN_IMAGE_READER       = (1<<9)
+    BG_PLUGIN_OUTPUT_AUDIO       = (1<<1),
+    BG_PLUGIN_OUTPUT_VIDEO       = (1<<2),
+    BG_PLUGIN_RECORDER_AUDIO     = (1<<3),
+    BG_PLUGIN_RECORDER_VIDEO     = (1<<4),
+    BG_PLUGIN_ENCODER_AUDIO      = (1<<5),
+    BG_PLUGIN_ENCODER_VIDEO      = (1<<6),
+    BG_PLUGIN_ENCODER            = (1<<7), // Encodetr for both audio and video
+    BG_PLUGIN_IMAGE_READER       = (1<<8)
   } bg_plugin_type_t;
 
 /* At least one of these must be set */
@@ -122,7 +121,7 @@ typedef struct bg_plugin_common_s
 
   /* OPTIONAL: Return a readable description of the last error */
 
-  char * (*get_error)(void* priv);
+  const char * (*get_error)(void* priv);
   
   } bg_plugin_common_t;
 
@@ -160,7 +159,7 @@ typedef struct bg_input_callbacks_s
   /* Buffering progress */
 
   void (*buffer_notify)(void * data, float percentage);
-    
+  
   void * data;
   } bg_input_callbacks_t;
 
@@ -172,6 +171,10 @@ typedef struct bg_input_plugin_s
   
   int (*open)(void * priv, const void * arg);
 
+  /* Alternative: Open with filedescriptor (used for http mostly) */
+
+  int (*open_fd)(void * priv, int fd, int64_t total_bytes, const char * mimetype);
+  
   /*
    * Set callback functions, which can be called by plugin
    * This can be NULL is the plugin doesn't support any of these
@@ -237,13 +240,12 @@ typedef struct bg_input_plugin_s
   int (*read_video_frame)(void * priv, gavl_video_frame_t*, int stream);
   
   /*
-   *  Do percentage seeking (can be NULL)
    *  Media streams are supposed to be seekable, if this
    *  function is non-NULL AND the duration field of the track info
    *  is > 0 AND the seekable flag in the track info is nonzero
    */
   
-  void (*seek)(void * priv, float percentage);
+  void (*seek)(void * priv, gavl_time_t time);
 
   /* Stop playback (plugin can be started again after) */
 
@@ -254,21 +256,6 @@ typedef struct bg_input_plugin_s
   void (*close)(void * priv);
   
   } bg_input_plugin_t;
-
-/* Redirector plugin */
-
-typedef struct
-  {
-  bg_plugin_common_t common;
-  
-  int (*parse)(void * priv, const char * file);
-  
-  int (*get_num_streams)(void * priv);
-  const char * (*get_stream_name)(void * priv, int stream);
-  const char * (*get_stream_url)(void * priv, int stream);
-  const char * (*get_stream_plugin)(void * priv, int stream);
-  
-  } bg_redirector_plugin_t;
 
 /*******************************************
  * Audio OUTPUT

@@ -259,7 +259,7 @@ static void handle_message(player_window_t * win,
     case BG_PLAYER_MSG_TIME_CHANGED:
       if(!win->seek_active)
         {
-        arg_i_1 = bg_msg_get_arg_int(msg, 0);
+        arg_i_1 = (bg_msg_get_arg_time(msg, 0)/GAVL_TIME_SCALE);
         display_set_time(win->display, arg_i_1);
         if(win->duration)
           bg_gtk_slider_set_pos(win->seek_slider,
@@ -277,8 +277,8 @@ static void handle_message(player_window_t * win,
           win->seek_active = 0;
           break;
         case BG_PLAYER_STATE_ERROR:
-          fprintf(stderr, "State Error\n");
           arg_str_1 = bg_msg_get_arg_string(msg, 1);
+          fprintf(stderr, "State Error %s\n", arg_str_1);
           display_set_state(win->display, arg_i_1, arg_str_1);
           arg_i_1 = bg_msg_get_arg_int(msg, 2);
 
@@ -334,7 +334,7 @@ static void handle_message(player_window_t * win,
         }
       break;
     case BG_PLAYER_MSG_TRACK_NAME:
-      fprintf(stderr, "BG_PLAYER_MSG_TRACK_NAME\n");
+      //      fprintf(stderr, "BG_PLAYER_MSG_TRACK_NAME\n");
       arg_str_1 = bg_msg_get_arg_string(msg, 0);
       display_set_track_name(win->display, arg_str_1);
       free(arg_str_1);
@@ -371,7 +371,7 @@ static void handle_message(player_window_t * win,
       break;
     case BG_PLAYER_MSG_STREAM_DESCRIPTION:
       break;
-    case BG_PLAYER_MSG_META_YEAR:
+    case BG_PLAYER_MSG_META_DATE:
       break;
     case BG_PLAYER_MSG_META_TRACK:
       break;

@@ -29,6 +29,7 @@
 #include <cfg_dialog.h>
 #include <gui_gtk/fileselect.h>
 #include <gui_gtk/urlselect.h>
+#include <gui_gtk/albumentry.h>
 
 /* Since the gtk part is single threaded,
    we can load the pixbufs globally */
@@ -124,6 +125,7 @@ typedef struct
   GtkWidget * remove_delete_item;
   GtkWidget * rename_item;
   GtkWidget * refresh_item;
+  GtkWidget * info_item;
   GtkWidget * menu;
   } selected_menu_t;
 
@@ -324,10 +326,14 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
     }
   
   if(num_selected == 1)
+    {
     gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.info_item, 1);
+    }
   else
     {
     gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 0);
+    //    gtk_widget_set_sensitive(w->menu.selected_menu.info_item, 0);
     w->selected_entry = (bg_album_entry_t*)0;
     }
   
@@ -449,7 +455,6 @@ static void set_name(void * data, char * name,
     }
   }
 
-
 static void rename_current_entry(bg_gtk_album_widget_t * w)
   {
   bg_dialog_t * dialog;
@@ -496,7 +501,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
                                bg_album_get_name(widget->album));
     if(!file_plugins)
       file_plugins = bg_album_get_plugins(widget->album,
-                                          BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR,
+                                          BG_PLUGIN_INPUT,
                                           BG_PLUGIN_FILE);
     
     widget->add_files_filesel =
@@ -519,7 +524,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
 
     if(!file_plugins)
       file_plugins = bg_album_get_plugins(widget->album,
-                                          BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR,
+                                          BG_PLUGIN_INPUT,
                                           BG_PLUGIN_FILE);
     
     widget->add_files_filesel =
@@ -542,7 +547,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
                             bg_album_get_name(widget->album));
     if(!url_plugins)
       url_plugins = bg_album_get_plugins(widget->album,
-                                         BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR,
+                                         BG_PLUGIN_INPUT,
                                          BG_PLUGIN_URL);
     
     widget->add_urls_urlsel =
@@ -560,7 +565,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
                             bg_album_get_name(widget->album));
     if(!url_plugins)
       url_plugins = bg_album_get_plugins(widget->album,
-                                         BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR,
+                                         BG_PLUGIN_INPUT,
                                          BG_PLUGIN_URL);
     
     widget->add_urls_urlsel =
@@ -630,6 +635,10 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     rename_current_entry(widget);
     bg_gtk_album_widget_update(widget);
+    }
+  else if(w == widget->menu.selected_menu.info_item)
+    {
+    bg_gtk_album_enrty_show(widget->selected_entry);
     }
   else if(w == widget->menu.selected_menu.refresh_item)
     {
@@ -704,6 +713,8 @@ static void init_menu(bg_gtk_album_widget_t * w)
 
   w->menu.selected_menu.rename_item =
     create_item(w, w->menu.selected_menu.menu, "Rename...");
+  w->menu.selected_menu.info_item =
+    create_item(w, w->menu.selected_menu.menu, "Info...");
 
   if(!bg_album_is_removable(w->album))
     w->menu.selected_menu.refresh_item =

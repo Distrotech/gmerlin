@@ -108,3 +108,26 @@ void bg_player_seek(bg_player_t * p, float percentage)
   bg_msg_set_arg_float(msg, 0, percentage);
   bg_msg_queue_unlock_write(p->command_queue);
   }
+
+void bg_player_seek_rel(bg_player_t * p, gavl_time_t t)
+  {
+  bg_msg_t * msg;
+  
+  msg = bg_msg_queue_lock_write(p->command_queue);
+  bg_msg_set_id(msg, BG_PLAYER_CMD_SEEK_REL);
+  bg_msg_set_arg_time(msg, 0, t);
+  bg_msg_queue_unlock_write(p->command_queue);
+  }
+
+void bg_player_error(bg_player_t * p, const char * message)
+  {
+  bg_msg_t * msg;
+
+  fprintf(stderr, "bg_player_error: %s\n", message);
+  
+  msg = bg_msg_queue_lock_write(p->command_queue);
+  bg_msg_set_id(msg, BG_PLAYER_CMD_SETSTATE);
+  bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_ERROR);
+  bg_msg_set_arg_string(msg, 1, message);
+  bg_msg_queue_unlock_write(p->command_queue);
+  }

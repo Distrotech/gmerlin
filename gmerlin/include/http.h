@@ -43,15 +43,13 @@ int bg_http_connection_connect(bg_http_connection_t *,
                                const char * url,
                                char ** extra_request);
 
-/* Get Informations about the contents */
-
-const char * bg_http_connection_get_mimetype(bg_http_connection_t *);
-
 /* NULL terminated array of header lines */
 
 int bg_http_connection_get_num_header_lines(bg_http_connection_t *);
 
 const char * bg_http_connection_get_header_line(bg_http_connection_t *, int);
+
+const char * bg_http_connection_get_variable(bg_http_connection_t *, const char * label);
 
 /* Close the connection */
 

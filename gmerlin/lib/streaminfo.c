@@ -59,6 +59,13 @@ void bg_track_info_free(bg_track_info_t * info)
   my_free(info->metadata.comment);
   my_free(info->metadata.author);
   my_free(info->metadata.copyright);
+
+  my_free(info->name);
+  my_free(info->description);
+  my_free(info->url);
+  my_free(info->plugin);
+  
+  
   }
 
 /*
@@ -105,7 +112,7 @@ char * bg_create_track_name(const bg_track_info_t * info,
           }
         else
           {
-          fprintf(stderr, "No Artist\n");
+          //          fprintf(stderr, "No Artist\n");
           goto fail;
           }
         }
@@ -133,13 +140,13 @@ char * bg_create_track_name(const bg_track_info_t * info,
         end++;
         if(info->metadata.title)
           {
-          fprintf(stderr, "Ret: %s\n", ret);
+          //          fprintf(stderr, "Ret: %s\n", ret);
           ret = bg_strcat(ret, info->metadata.title);
-          fprintf(stderr, "Title: %s\n", info->metadata.title);
+          //          fprintf(stderr, "Title: %s\n", info->metadata.title);
           }
         else
           {
-          fprintf(stderr, "No Title\n");
+          //          fprintf(stderr, "No Title\n");
           goto fail;
           }
         }
@@ -156,9 +163,9 @@ char * bg_create_track_name(const bg_track_info_t * info,
       else if(*end == 'y')
         {
         end++;
-        if(info->metadata.year)
+        if(info->metadata.date)
           {
-          buf = bg_sprintf("%d", info->metadata.year);
+          buf = bg_sprintf("%s", info->metadata.date);
           ret = bg_strcat(ret, buf);
           free(buf);
           }

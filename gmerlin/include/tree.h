@@ -205,8 +205,12 @@ void bg_media_tree_set_change_callback(bg_media_tree_t *,
                                        void*);
 
 void bg_media_tree_set_play_callback(bg_media_tree_t *,
-                                     void (*change_callback)(bg_media_tree_t*, void*),
+                                     void (*play_callback)(bg_media_tree_t*, void*),
                                      void*);
+
+void bg_media_tree_set_error_callback(bg_media_tree_t *,
+                                      void (*error_callback)(bg_media_tree_t*, void*,const char*),
+                                      void*);
 
 void bg_media_tree_destroy(bg_media_tree_t *);
 

@@ -107,14 +107,16 @@ const bg_plugin_info_t * bg_plugin_find_by_long_name(bg_plugin_registry_t *
   return find_by_long_name(reg->entries, name);
   }
 
-static int string_match(const char * key, const char * key_end, const char * key_list)
+static int string_match(const char * key,
+                        const char * key_end,
+                        const char * key_list)
   {
   const char * pos;
   const char * end;
 
   pos = key_list;
       
-  fprintf(stderr, "string_match: %s %d %s\n", key, (int)(key_end - key), key_list);
+  //  fprintf(stderr, "string_match: %s %d %s\n", key, (int)(key_end - key), key_list);
 
   if(!key_list)
     return 0;
@@ -126,9 +128,14 @@ static int string_match(const char * key, const char * key_end, const char * key
       end++;
     if(end == pos)
       break;
+
+    //    fprintf(stderr,
+    //            "String match Key: %s, keylist: %s, ley_len: %d, key_list_len: %d\n",
+    //            key, pos, (int)(key_end - key), (int)(end-pos));
     if(((int)(key_end - key) == (int)(end-pos)) &&
        !strncasecmp(pos, key, (int)(end-pos)))
       {
+      //      fprintf(stderr, "BINGOOOOOO\n");
       return 1;
       }
     pos = end;
@@ -168,13 +175,13 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
   
   while(info)
     {
-    fprintf(stderr, "Trying: %s %s\n", info->long_name, info->extensions);
+    //    fprintf(stderr, "Trying: %s %s\n", info->long_name, info->extensions);
     if(!(info->type & typemask) ||
        !(info->flags & BG_PLUGIN_FILE) ||
        !info->extensions)
       {
-      fprintf(stderr, "skipping plugin: %s\n",
-              info->long_name);
+      //      fprintf(stderr, "skipping plugin: %s\n",
+      //              info->long_name);
       info = info->next;
       continue;
       }
@@ -185,58 +192,16 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
   return (const bg_plugin_info_t *)0;
   }
 
-const bg_plugin_info_t * bg_plugin_find_by_mimetype(bg_plugin_registry_t * reg,
-                                                    const char * mimetype,
-                                                    const char * url)
+const bg_plugin_info_t *
+bg_plugin_find_by_mimetype(bg_plugin_registry_t * reg,
+                           const char * mimetype,
+                           const char * url)
   {
   bg_plugin_info_t * info;
   const char * mimetype_end;
-
-  const char * extension;
-  const char * extension_end;
-    
+  
   mimetype_end = &mimetype[strlen(mimetype)];
-
-  /* Set extension and extension_end */
-
-  extension = strchr(url, '?');
-  if(extension)
-    {
-    while(*extension != '.')
-      {
-      if(extension == url)
-        {
-        extension = (const char*)0;
-        break;
-        }
-      extension--;
-      }
-    }
-  else
-    {
-    extension = strrchr(url, '/');
-    
-    extension++;
-    while(*extension != '.')
-      {
-      if(*extension == '\0')
-        {
-        extension = (const char*)0;
-        break;
-        }
-      extension++;
-      }
-    }
-
-  if(extension)
-    {
-    extension++;
-    extension_end = extension;
-    while(isalnum(*extension_end))
-      {
-      extension_end++;
-      }
-    }
+  
   //  fprintf(stderr, "bg_plugin_find_by_mimetype %p\n", reg);
     
   //  fprintf(stderr, "info %p\n", info);
@@ -245,26 +210,19 @@ const bg_plugin_info_t * bg_plugin_find_by_mimetype(bg_plugin_registry_t * reg,
   
   while(info)
     {
-    if(((info->type != BG_PLUGIN_INPUT) &&
-        (info->type != BG_PLUGIN_REDIRECTOR)) ||
+    if((info->type != BG_PLUGIN_INPUT) ||
        !(info->flags & BG_PLUGIN_URL) ||
        !info->mimetypes)
       {
-      fprintf(stderr, "skipping plugin: %s\n",
-              info->long_name);
+      //      fprintf(stderr, "skipping plugin: %s\n",
+      //              info->long_name);
       info = info->next;
       continue;
       }
 
     if(string_match(mimetype, mimetype_end, info->mimetypes))
       {
-      if(extension)
-        {
-        if(string_match(extension, extension_end, info->extensions))
-          return info;
-        }
-      else
-        return info;
+      return info;
       }
 
     info = info->next;
@@ -361,6 +319,7 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
           {
           end->next = new_info;
           end = end->next;
+          end->next = NULL;
           }
         continue;
         }
@@ -427,8 +386,8 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
       end = ret;
       }
 
-    if(new_info)
-      fprintf(stderr, "Loaded plugin %s\n", new_info->name);
+    //    if(new_info)
+    //      fprintf(stderr, "Loaded plugin %s\n", new_info->name);
     }
   
   closedir(dir);
@@ -689,6 +648,12 @@ void bg_plugin_registry_sort(bg_plugin_registry_t * r, const char * sort_string)
   while(names[index])
     {
     info = find_by_name(r->entries, names[index]);
+
+    if(!info)
+      {
+      index++;
+      continue;
+      }
 
     r->entries = remove_from_list(r->entries, info);
     

@@ -35,6 +35,7 @@
 #define TYPE_FLOAT          1
 #define TYPE_POINTER        2
 #define TYPE_POINTER_NOCOPY 3
+#define TYPE_TIME           4
 
 struct bg_msg_s
   {
@@ -47,6 +48,7 @@ struct bg_msg_s
       int val_i;
       float val_f;
       void * val_ptr;
+      gavl_time_t time;
       } value;
     uint8_t type;
     int32_t size;
@@ -95,6 +97,17 @@ void bg_msg_set_arg_int(bg_msg_t * msg, int arg, int value)
   if(arg+1 > msg->num_args)
     msg->num_args = arg + 1;
   }
+
+void bg_msg_set_arg_time(bg_msg_t * msg, int arg, gavl_time_t value)
+  {
+  if(!check_arg(arg))
+    return;
+  msg->args[arg].value.time = value;
+  msg->args[arg].type = TYPE_TIME;
+  if(arg+1 > msg->num_args)
+    msg->num_args = arg + 1;
+  }
+
 
 void * bg_msg_set_arg_ptr(bg_msg_t * msg, int arg, int len)
   {
@@ -156,6 +169,13 @@ int bg_msg_get_arg_int(bg_msg_t * msg, int arg)
   if(!check_arg(arg))
     return 0;
   return msg->args[arg].value.val_i;
+  }
+
+gavl_time_t bg_msg_get_arg_time(bg_msg_t * msg, int arg)
+  {
+  if(!check_arg(arg))
+    return 0;
+  return msg->args[arg].value.time;
   }
 
 float bg_msg_get_arg_float(bg_msg_t * msg, int arg)
@@ -260,8 +280,9 @@ void bg_msg_set_arg_audio_format(bg_msg_t * msg, int arg,
   {
   uint8_t * ptr;
   uint8_t * pos;
-
-  ptr = bg_msg_set_arg_ptr(msg, arg, 16);
+  int i;
+    
+  ptr = bg_msg_set_arg_ptr(msg, arg, 24 + 8 * format->num_channels);
   
   pos = ptr;
   
@@ -272,7 +293,13 @@ void bg_msg_set_arg_audio_format(bg_msg_t * msg, int arg,
   pos = set_8(pos, format->interleave_mode);
   pos = set_8(pos, format->channel_setup);
   pos = set_8(pos, format->lfe);
-                           
+
+  pos = set_32(pos, (int32_t)(format->center_level*1.0e6));
+  pos = set_32(pos, (int32_t)(format->rear_level*1.0e6));
+  
+  for(i = 0; i < format->num_channels; i++)
+    pos = set_8(pos, format->channel_locations[i]);
+
   //  msg->args[arg];
   
   }
@@ -282,7 +309,9 @@ void bg_msg_get_arg_audio_format(bg_msg_t * msg, int arg,
   {
   uint8_t * ptr;
   uint8_t * pos;
-
+  int i;
+  int32_t tmp;
+    
   ptr = bg_msg_get_arg_ptr(msg, arg, NULL);
   
   pos = ptr;
@@ -294,6 +323,16 @@ void bg_msg_get_arg_audio_format(bg_msg_t * msg, int arg,
   pos = get_8(pos,  &(format->interleave_mode));
   pos = get_8(pos,  &(format->channel_setup));
   pos = get_8(pos,  &(format->lfe));
+
+  pos = get_32(pos, &tmp);
+  format->center_level = (float)(tmp)*1.0e-6;
+
+  pos = get_32(pos, &tmp);
+  format->rear_level = (float)(tmp)*1.0e-6;
+  
+  
+  for(i = 0; i < format->num_channels; i++)
+    pos = get_8(pos, &(format->channel_locations[i]));
   
   free(ptr);
   }

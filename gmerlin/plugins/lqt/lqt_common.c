@@ -125,6 +125,9 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
               bg_strdup((char*)0, lqt_parameter_info[j].stringlist_options[k]);
             }
           break;
+        case LQT_PARAMETER_SECTION:
+          info->codec_parameters[i][j].type = BG_PARAMETER_SECTION;
+          break;
         }
       
       }

@@ -145,7 +145,6 @@ struct state_struct
   float can_seek;
   int want_new;
   const char * error_msg;
-  int error_code;
   };
 
 static void msg_state(bg_msg_t * msg,
@@ -164,8 +163,8 @@ static void msg_state(bg_msg_t * msg,
     }
   else if(s->state == BG_PLAYER_STATE_ERROR)
     {
+    //    fprintf(stderr, "SET ERROR: %s\n", s->error_msg);
     bg_msg_set_arg_string(msg, 1, s->error_msg);
-    bg_msg_set_arg_int(msg, 2, s->error_code);
     }
   else if(s->state == BG_PLAYER_STATE_PLAYING)
     {
@@ -198,7 +197,6 @@ void bg_player_set_state(bg_player_t * player, int state,
   else if(state == BG_PLAYER_STATE_ERROR)
     {
     s.error_msg =  (const char *)arg1;
-    s.error_code = *((const int*)arg2);
     }
   
   else if(state == BG_PLAYER_STATE_PLAYING)

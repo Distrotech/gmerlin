@@ -105,6 +105,12 @@
    
 #define BG_PLAYER_CMD_SETLOGO       9
 
+/*
+ *  Seek relative (gavl_time_t)
+ */
+
+#define BG_PLAYER_CMD_SEEK_REL      10
+
 /********************************
  * Messages from the player
 ********************************/
@@ -200,9 +206,10 @@
 
 #define BG_PLAYER_MSG_STREAM_DESCRIPTION     18
 
+#define BG_PLAYER_MSG_META_DATE              19
+
 /* Arg1 : Integer */
 
-#define BG_PLAYER_MSG_META_YEAR              19
 
 #define BG_PLAYER_MSG_META_TRACK             20
 

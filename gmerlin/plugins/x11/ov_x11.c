@@ -143,6 +143,7 @@ typedef struct
   /* Delete atom */
 
   Atom delete_atom;
+  Atom protocols_atom;
 
   bg_parameter_info_t * parameters;
 
@@ -747,6 +748,7 @@ static void * create_x11()
   /* Get delete atom */
 
   priv->delete_atom = XInternAtom(priv->dpy, "WM_DELETE_WINDOW", 0);
+  priv->protocols_atom = XInternAtom(priv->dpy, "WM_PROTOCOLS", 0);
   
   /* Default screen */
   
@@ -786,7 +788,6 @@ static void * create_x11()
 
   //  fprintf(stderr, "XMapWindow: %p\n", priv);
   
-  XMapWindow(priv->dpy, priv->normal_window);
   return priv;
   }
 
@@ -981,6 +982,8 @@ static int open_x11(void * data,
   else
     set_drawing_coords(priv);
 
+  XMapWindow(priv->dpy, priv->current_window);
+  
   XClearArea(priv->dpy, priv->current_window, 0, 0,
              priv->window_width, priv->window_height, True);
   
@@ -1040,6 +1043,19 @@ static int handle_event(x11_t * priv, XEvent * evt)
     }
   switch(evt->type)
     {
+    case ClientMessage:
+      if((evt->xclient.message_type == priv->protocols_atom) &&
+         (evt->xclient.data.l[0] == priv->delete_atom))
+        {
+        //        fprintf(stderr, "Delete window\n");
+
+        pthread_mutex_lock(&(priv->still_mutex));
+        if(priv->do_still)
+          XUnmapWindow(priv->dpy, priv->normal_window);
+        pthread_mutex_unlock(&(priv->still_mutex));
+        
+        }
+      break;
     case ButtonPress:
       
       if(priv->callbacks &&

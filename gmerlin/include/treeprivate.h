@@ -99,6 +99,9 @@ struct bg_mediatree_s
   void (*play_callback)(bg_media_tree_t*, void*);
   void * play_callback_data;
 
+  void (*error_callback)(bg_media_tree_t*, void*, const char*);
+  void * error_callback_data;
+
   /* Coordinates in the screen */
 
   int x;

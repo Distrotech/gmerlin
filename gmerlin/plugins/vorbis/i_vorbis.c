@@ -35,7 +35,6 @@ typedef struct vorbis_priv_s
   
   int64_t * start_positions; /* Start positions for each bitstream */
   
-  int use_float;
   int streams_are_tracks_cfg;
   int streams_are_tracks;
   
@@ -141,16 +140,15 @@ static int read_audio_vorbis(void * priv, gavl_audio_frame_t * frame,
   return ret;
   }
 
-static void seek_vorbis(void * priv, float percentage)
+static void seek_vorbis(void * priv, gavl_time_t t)
   {
   vorbis_priv * p = (vorbis_priv *)priv;
 
   fprintf(stderr, "Vorbis seek...");
   
-  p->position = (int64_t)((double)ov_pcm_total(&(p->vorbisfile),
-                                               p->current_bitstream) *
-                          percentage + 0.5) +
-    p->start_positions[p->current_bitstream];
+  p->position =
+    gavl_time_to_samples(p->track_info[p->current_bitstream].audio_streams[0].format.samplerate,
+                         t);
   ov_pcm_seek(&(p->vorbisfile), p->position);
   fprintf(stderr, "Done\n");
   }
@@ -284,58 +282,15 @@ static int open_vorbis(void * data, const void * arg)
     p->track_info[i].num_audio_streams = 1;
     p->track_info[i].audio_streams =
       calloc(1, sizeof(*(p->track_info[i].audio_streams)));
-    if(p->use_float)
-      {
-      p->track_info[i].audio_streams[0].format.sample_format
-        = GAVL_SAMPLE_FLOAT;
-      p->track_info[i].audio_streams[0].format.interleave_mode
-        = GAVL_INTERLEAVE_NONE;
-      p->read_audio_func = read_audio_float;
-      }
-    else
-      {
-      p->track_info[i].audio_streams[0].format.sample_format
-        = GAVL_SAMPLE_S16NE;
-      if(p->track_info[i].audio_streams[0].format.sample_format
-         == GAVL_SAMPLE_S16BE)
-        p->bigendianp = 1;
-      else
-        p->bigendianp = 0;
-      p->track_info[i].audio_streams[0].format.interleave_mode
-        = GAVL_INTERLEAVE_ALL;
-      p->read_audio_func = read_audio_int16;
-      }
+    p->track_info[i].audio_streams[0].format.sample_format
+      = GAVL_SAMPLE_FLOAT;
+    p->track_info[i].audio_streams[0].format.interleave_mode
+      = GAVL_INTERLEAVE_NONE;
+    p->read_audio_func = read_audio_float;
+
     p->track_info[i].audio_streams[0].format.num_channels = info->channels;
 
-    switch(info->channels)
-      {
-      case 1:
-        p->track_info[i].audio_streams[0].format.channel_setup =
-          GAVL_CHANNEL_MONO;
-        break;
-      case 2:
-        p->track_info[i].audio_streams[0].format.channel_setup =
-          GAVL_CHANNEL_2F;
-        break;
-      case 3:
-        p->track_info[i].audio_streams[0].format.channel_setup =
-          GAVL_CHANNEL_3F;
-        break;
-      case 4:
-        p->track_info[i].audio_streams[0].format.channel_setup =
-          GAVL_CHANNEL_2F2R;
-        break;
-      case 5:
-        p->track_info[i].audio_streams[0].format.channel_setup =
-          GAVL_CHANNEL_3F2R;
-        break;
-      case 6:
-        p->track_info[i].audio_streams[0].format.channel_setup =
-          GAVL_CHANNEL_3F2R;
-        p->track_info[i].audio_streams[0].format.lfe
-          = 1;
-        break;
-      }
+    gavl_set_channel_setup(&(p->track_info[i].audio_streams[0].format));
     p->track_info[i].audio_streams[0].format.samplerate = info->rate;
     p->track_info[i].audio_streams[0].format.samples_per_frame = 1024;
 
@@ -406,12 +361,6 @@ static void close_vorbis(void * priv)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "use_float",
-      long_name:   "Use floating point audio",
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 }
-    },
-    {
       name:        "streams_are_tracks",
       long_name:   "Handle logical streams as separate tracks",
       type:        BG_PARAMETER_CHECKBUTTON,
@@ -434,8 +383,6 @@ static void set_parameter_vorbis(void * priv, char * name,
   if(!name)
     return;
   
-  if(!strcmp(name, "use_float"))
-    v->use_float = val->val_i;
   else if(!strcmp(name, "streams_are_tracks"))
     v->streams_are_tracks_cfg = val->val_i;
   }

@@ -305,11 +305,14 @@ static void open_removable(bg_album_t * a)
     new_entry = calloc(1, sizeof(*new_entry));
 
     new_entry->index = i;
+    new_entry->total_tracks = num_tracks;
     new_entry->name = bg_strdup((char*)0, track_info->name);
-
+    new_entry->location = bg_strdup(new_entry->location,
+                                      a->location);
     new_entry->num_video_streams = track_info->num_video_streams;
     new_entry->num_audio_streams = track_info->num_audio_streams;
-    new_entry->num_subpicture_streams = track_info->num_subpicture_streams;
+    new_entry->num_subpicture_streams =
+      track_info->num_subpicture_streams;
     new_entry->num_programs = track_info->num_programs;
     new_entry->duration = track_info->duration;
 
@@ -442,19 +445,6 @@ int bg_album_is_open(bg_album_t * a)
   return (a->open_count) ? 1 : 0;
   }
 
-static void free_entry(bg_album_entry_t * e)
-  {
-  if(e->name)
-    free(e->name);
-  
-  if(e->location)
-    free(e->location);
-  
-  if(e->plugin)
-    free(e->plugin);
-  free(e);
-
-  }
 
 void bg_album_destroy(bg_album_t * a)
   {
@@ -479,7 +469,7 @@ void bg_album_destroy(bg_album_t * a)
     {
     tmp_entry = a->entries->next;
 
-    free_entry(a->entries);
+    bg_album_entry_destroy(a->entries);
     
     a->entries = tmp_entry;
     }
@@ -516,7 +506,7 @@ void bg_album_delete_selected(bg_album_t * album)
     cur_next = cur->next;
 
     if(cur->flags & BG_ALBUM_ENTRY_SELECTED)
-      free_entry(cur);
+      bg_album_entry_destroy(cur);
     else
       {
       if(!new_entries)

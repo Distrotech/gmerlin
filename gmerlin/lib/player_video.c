@@ -41,7 +41,7 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   s = &(player->video_stream);
   
   player->do_video = bg_player_input_set_video_stream(player->input_context,
-                                                   video_stream);
+                                                      video_stream);
 
   if(!player->do_video)
     return 0;
@@ -50,24 +50,25 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   
   /* Initialize video fifo */
 
-  player->video_stream.fifo = bg_fifo_create(NUM_VIDEO_FRAMES, bg_player_ov_create_frame,
+  player->video_stream.fifo = bg_fifo_create(NUM_VIDEO_FRAMES,
+                                             bg_player_ov_create_frame,
                                              (void*)(player->ov_context));
                                       
   /* Initialize audio converter */
 
   //  fprintf(stderr, "Initializing video converter...");
-    
+  
   if(!gavl_video_init(s->cnv,
                       &(s->opt),
-                      &(player->video_format_i),
-                      &(player->video_format_o)))
+                      &(player->video_stream.input_format),
+                      &(player->video_stream.output_format)))
     {
     s->do_convert = 0;
     }
   else
     {
     s->do_convert = 1;
-    s->frame = gavl_video_frame_create(&(player->video_format_i));
+    s->frame = gavl_video_frame_create(&(player->video_stream.input_format));
     }
   //  fprintf(stderr, "done\n");
   return 1;

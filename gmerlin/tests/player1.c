@@ -45,7 +45,7 @@ static void play_file(bg_player_t * player)
   
   info = bg_plugin_find_by_filename(plugin_reg,
                                     bg_argv[bg_arg_index],
-                                    BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR);
+                                    BG_PLUGIN_INPUT);
 
   if(!info)
     {
@@ -140,14 +140,15 @@ static int handle_message(bg_player_t * player,
   {
   int arg_i1;
   char * arg_str1;
+  gavl_time_t t;
   gavl_audio_format_t audio_format;
   gavl_video_format_t video_format;
   
   switch(bg_msg_get_id(message))
     {
     case BG_PLAYER_MSG_TIME_CHANGED:
-      arg_i1 = bg_msg_get_arg_int(message, 0);
-      print_time(arg_i1);
+      t = bg_msg_get_arg_time(message, 0);
+      print_time(t/GAVL_TIME_SCALE);
       break;
     case BG_PLAYER_MSG_TRACK_DURATION:
       total_seconds = bg_msg_get_arg_int(message, 0);
@@ -245,9 +246,10 @@ static int handle_message(bg_player_t * player,
       fprintf(stderr, "Author: %s\n", arg_str1);
       free(arg_str1);
       break;
-    case BG_PLAYER_MSG_META_YEAR:
-      arg_i1 = bg_msg_get_arg_int(message, 0);
-      fprintf(stderr, "Year:    %d\n", arg_i1);
+    case BG_PLAYER_MSG_META_DATE:
+      arg_str1 = bg_msg_get_arg_string(message, 0);
+      fprintf(stderr, "Date:     %s\n", arg_str1);
+      free(arg_str1);
       break;
     case BG_PLAYER_MSG_META_TRACK:
       arg_i1 = bg_msg_get_arg_int(message, 0);

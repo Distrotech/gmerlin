@@ -150,7 +150,7 @@ static int open_oss(void * data,
       format->sample_format = GAVL_SAMPLE_U8;
       break;
     case 2:
-      format->sample_format = GAVL_SAMPLE_S16NE;
+      format->sample_format = GAVL_SAMPLE_S16;
       break;
     default:
       fprintf(stderr, "Invalid number of bits\n");
@@ -167,7 +167,7 @@ static int open_oss(void * data,
     case 2:
       format->num_channels = 2;
       format->interleave_mode = GAVL_INTERLEAVE_ALL;
-      format->channel_setup  = GAVL_CHANNEL_2F;
+      format->channel_setup  = GAVL_CHANNEL_STEREO;
       break;
     default:
       fprintf(stderr, "Invalid number of channels\n");

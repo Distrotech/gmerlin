@@ -45,6 +45,9 @@ bg_msg_t * bg_msg_create();
 void bg_msg_set_id(bg_msg_t * msg, int id);
 
 void bg_msg_set_arg_int(bg_msg_t * msg, int arg, int value);
+
+void bg_msg_set_arg_time(bg_msg_t * msg, int arg, gavl_time_t time);
+
 void bg_msg_set_arg_string(bg_msg_t * msg, int arg, const char * value);
 void bg_msg_set_arg_float(bg_msg_t * msg, int arg, float value);
 void * bg_msg_set_arg_ptr(bg_msg_t * msg, int arg, int len);
@@ -58,7 +61,7 @@ float  bg_msg_get_arg_float(bg_msg_t * msg, int arg);
 void * bg_msg_get_arg_ptr(bg_msg_t * msg, int arg, int * len);
 
 void * bg_msg_get_arg_ptr_nocopy(bg_msg_t * msg, int arg);
-
+gavl_time_t bg_msg_get_arg_time(bg_msg_t * msg, int arg);
 
 /* Get/set specific types */
 

@@ -46,7 +46,6 @@ struct bg_http_connection_s
   {
   int fd;
 
-  char * mimetype;
   char ** header;
 
   char * proxy_host;
@@ -105,176 +104,6 @@ void bg_http_connection_set_timeouts(bg_http_connection_t * c,
   c->read_timeout    = read_ms;
   }
 
-#if 0
-
-/* Connect, return FALSE on failure */
-
-static int parse_url(bg_http_connection_t * c,
-                     const char * url,
-                     char **host,
-                     int  * port,
-                     char ** path,
-                     char ** real_host)
-  {
-  int len;
-  const char * pos1;
-  const char * pos2;
-
-  if(strncmp(url, "http://", 7))
-    {
-    fprintf(stderr, "URL must start with http://\n");
-    return 0;
-    }
-
-  /* Get Hostname */
-
-  pos1 = url + 7;
-
-  pos2 = pos1;
-  len = 0;
-  while(((*pos2) != ':') && ((*pos2) != '/') && ((*pos2) != '\0'))
-    {
-    len++;
-    pos2++;
-    }
-  if(!len)
-    {
-    fprintf(stderr, "Invalid URL\n");
-    return 0;
-    }
-  
-  if(c->proxy_host)
-    {
-    *host = bg_strdup(*host, c->proxy_host);
-    *port = c->proxy_port;
-    *path = bg_strdup(*path, url);
-    
-    *real_host = malloc(len+1);
-    strncpy(*real_host, pos1, len);
-    (*real_host)[len] = '\0';
-    return 1;
-    }
-
-  *host = malloc(len+1);  
-  strncpy(*host, pos1, len);
-  (*host)[len] = '\0';
-  
-  /* Get Port */
-  
-  if(*pos2 == ':')
-    {
-    pos2++;
-    *port = atoi(pos2);
-
-    pos1 = pos2;
-
-    while(isdigit(*pos1))
-      pos1++;
-    
-    if(pos1 == pos2)
-      {
-      fprintf(stderr, "Invalid port\n");
-      return 0;
-      }
-    pos2 = pos1;
-    }
-  else
-    *port = 80;
-  
-  /* Get Path */
-
-  if(*pos2 == '\0')
-    *path = bg_strdup(*path, "/");
-  else if(*pos2 == '/')
-    *path = bg_strdup(*path, pos2);
-  else
-    {
-    fprintf(stderr, "Invalid URL %s\n", url);
-    return 0;
-    }
-  return 1;
-  }
-
-
-/* Connects to a host at port, returns -1 if failure */
-/* Timeout is in milliseconds */
-
-static int connect_tcp(const char * host, int port, int milliseconds)
-  {
-  int ret;
-  struct sockaddr_in sock;
-  struct hostent * hp;
-
-  struct timeval timeout;
-  fd_set write_fds;
-  
-  /* Create the socket */
-
-  if((ret = socket (PF_INET, SOCK_STREAM, 0)) < 0)
-    {
-    fprintf(stderr, "Cannot create socket\n");
-    return -1;
-    }
-  
-  if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)
-    {
-    fprintf(stderr, "Cannot set nonblocking mode\n");
-    return -1;
-    }
-
-  /* Set up the address */
-
-  sock.sin_family = AF_INET;
-  sock.sin_port = htons(port);
-
-  fprintf(stderr, "Resolving host...");
-  if(!(hp = gethostbyname(host)))
-    {
-    fprintf(stderr, "Cannot resolve address for %s\n", host);
-    return -1;
-    }
-  fprintf(stderr, "done\n");
-    
-  memcpy(&sock.sin_addr, hp->h_addr, hp->h_length);
-  
-  /* Now, connect */
-
-  fprintf(stderr, "Connecting...");
-  
-  if(connect(ret,(struct sockaddr*)&sock,sizeof(sock))<0)
-    {
-    if(errno == EINPROGRESS)
-      {
-      timeout.tv_sec = milliseconds / 1000;
-      timeout.tv_usec = 1000 * (milliseconds % 1000);
-      FD_ZERO (&write_fds);
-      FD_SET (ret, &write_fds);
-      if(!select(ret+1, (fd_set*)0, &write_fds,(fd_set*)0,&timeout))
-        {
-        fprintf(stderr, "Connection timed out\n");
-        return -1;
-        }
-      }
-    else
-      {
-      fprintf(stderr, "Failed\n");
-      return -1;
-      }
-    }
-
-  /* Set back to blocking mode */
-  
-  if(fcntl(ret, F_SETFL, 0) < 0)
-    {
-    fprintf(stderr, "Cannot set blocking mode\n");
-    return -1;
-    }
-
-  fprintf(stderr, "Connected\n");
-  return ret;
-  }
-#endif
-
 /* Tolerant function for getting the status code */
 
 static int get_status_code(char * line)
@@ -327,6 +156,15 @@ static char * get_hostname(char * old, const char * url)
   return bg_strndup(old, pos1, pos2);
   }
 
+void bg_http_connection_dump(bg_http_connection_t * c)
+  {
+  int i;
+  fprintf(stderr, "HTTP header:\n");
+  for(i = 0; i < c->num_header_lines; i++)
+    fprintf(stderr, "%s\n", c->header[i]);
+  }
+
+
 int bg_http_connection_connect(bg_http_connection_t * c,
                                const char * _url,
                                char ** extra_request)
@@ -346,7 +184,7 @@ int bg_http_connection_connect(bg_http_connection_t * c,
 
   int lines_alloc;
   int i;
-  char * pos;
+  //  char * pos;
   int done = 0;
   
   bg_host_address_t * addr;
@@ -458,19 +296,12 @@ int bg_http_connection_connect(bg_http_connection_t * c,
     
     c->header[c->num_header_lines] = bg_strdup(c->header[c->num_header_lines],
                                                buffer);
-    /* Catch mimetype */
-    
-    if(!strncasecmp(c->header[c->num_header_lines], "Content-Type: ", 14))
-      {
-      pos = &(c->header[c->num_header_lines][14]);
-      while(isspace(*pos))
-        pos++;
-      c->mimetype = pos;
-      //      fprintf(stderr, "Content-Type: %s\n", c->mimetype);
-      }
     c->num_header_lines++;
     }
   ret = 1;
+
+  bg_http_connection_dump(c);
+
   
   fail:
 
@@ -481,13 +312,6 @@ int bg_http_connection_connect(bg_http_connection_t * c,
   if(request)
     free(request);
   return ret;
-  }
-
-/* Get Informations about the contents */
-
-const char * bg_http_connection_get_mimetype(bg_http_connection_t * c)
-  {
-  return c->mimetype;
   }
 
 /* NULL terminated array of header lines */
@@ -567,4 +391,24 @@ const char * bg_http_connection_get_header_line(bg_http_connection_t * c,
                                                 int index)
   {
   return c->header[index];
+  }
+
+const char * bg_http_connection_get_variable(bg_http_connection_t * c, const char * label)
+  {
+  int i;
+  const char * pos;
+  int label_len = strlen(label);
+  
+  for(i = 0; i < c->num_header_lines; i++)
+    {
+    if(!strncasecmp(c->header[i], label, label_len) &&
+       c->header[i][label_len] == ':')
+      {
+      pos = c->header[i] + label_len + 1;
+      while(isspace(*pos))
+        pos++;
+      return pos;
+      }
+    }
+  return (const char*)0;
   }

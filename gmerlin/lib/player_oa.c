@@ -52,7 +52,7 @@ struct bg_player_oa_context_s
 void * bg_player_oa_create_frame(void * data)
   {
   bg_player_oa_context_t * ctx = (bg_player_oa_context_t *)data;
-  return gavl_audio_frame_create(&(ctx->player->audio_format_o));
+  return gavl_audio_frame_create(&(ctx->player->audio_stream.output_format));
   }
 
 void bg_player_oa_destroy_frame(void * data, void * frame)
@@ -192,7 +192,7 @@ void bg_player_time_get(bg_player_t * player, int exact, gavl_time_t * ret)
 
       pthread_mutex_lock(&(ctx->time_mutex));
       ctx->current_time =
-        gavl_samples_to_time(ctx->player->audio_format_o.samplerate,
+        gavl_samples_to_time(ctx->player->audio_stream.output_format.samplerate,
                              ctx->audio_samples_written-samples_in_soundcard);
       *ret = ctx->current_time;
       pthread_mutex_unlock(&(ctx->time_mutex));
@@ -209,8 +209,9 @@ void bg_player_time_set(bg_player_t * player, gavl_time_t time)
   if(ctx->sync_mode == SYNC_SOFTWARE)
     gavl_timer_set(ctx->timer, time);
   else
-    ctx->audio_samples_written = gavl_time_to_samples(ctx->player->audio_format_o.samplerate,
-                                                      time);
+    ctx->audio_samples_written =
+      gavl_time_to_samples(ctx->player->audio_stream.output_format.samplerate,
+                           time);
   ctx->current_time = time;
   pthread_mutex_unlock(&(ctx->time_mutex));
   }
@@ -267,10 +268,8 @@ void * bg_player_oa_thread(void * data)
 int bg_player_oa_init(bg_player_oa_context_t * ctx)
   {
   int result;
-  gavl_audio_format_copy(&(ctx->player->audio_format_o),
-                         &(ctx->player->audio_format_i));
   bg_plugin_lock(ctx->plugin_handle);
-  result = ctx->plugin->open(ctx->priv, &(ctx->player->audio_format_o));
+  result = ctx->plugin->open(ctx->priv, &(ctx->player->audio_stream.output_format));
   if(result)
     ctx->output_open = 1;
   else

@@ -363,7 +363,7 @@ static int load_plugin_by_filename(bg_media_tree_t * tree,
   {
   const bg_plugin_info_t * info;
   info = bg_plugin_find_by_filename(tree->plugin_reg, filename,
-                                    (BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR));
+                                    (BG_PLUGIN_INPUT));
   if(!info)
     return 0;
   load_plugin(tree, info);
@@ -411,7 +411,7 @@ static void update_entry(bg_media_tree_t * tree,
   char * start_pos;
   char * end_pos;
   int name_set = 0;
-  fprintf(stderr, "Update entry!");
+  fprintf(stderr, "Update entry!\n");
   entry->num_audio_streams = track_info->num_audio_streams;
   entry->num_video_streams = track_info->num_video_streams;
 
@@ -434,6 +434,7 @@ static void update_entry(bg_media_tree_t * tree,
     if(track_info->name)
       {
       entry->name = bg_strdup(entry->name, track_info->name);
+      //      fprintf(stderr, "entry->name: %s\n", entry->name);
       }
     /* Take filename minus extension */
     else
@@ -451,6 +452,16 @@ static void update_entry(bg_media_tree_t * tree,
     }
   entry->duration = track_info->duration;
   entry->flags &= ~BG_ALBUM_ENTRY_ERROR;
+  
+  if(track_info->url)
+    {
+    entry->location = bg_strdup(entry->location, track_info->url);
+    entry->index = 0;
+    entry->total_tracks = 1;
+    }
+  if(track_info->plugin)
+    entry->plugin   = bg_strdup(entry->plugin, track_info->plugin);
+  
   }
 
 static int refresh_entry(bg_media_tree_t * tree,
@@ -519,10 +530,9 @@ bg_album_entry_t * bg_media_tree_load_url(bg_media_tree_t * tree,
                                           const char * plugin_long_name)
   {
   int i, num_entries;
-  char * tmp_file_name;
   const char * ptr;
   
-  bg_redirector_plugin_t * redir;
+  //  bg_redirector_plugin_t * redir;
 
   bg_album_entry_t * new_entry;
   bg_album_entry_t * end_entry = (bg_album_entry_t*)0;
@@ -535,8 +545,8 @@ bg_album_entry_t * bg_media_tree_load_url(bg_media_tree_t * tree,
   bg_input_plugin_t * plugin;
   bg_track_info_t * track_info;
   
-  fprintf(stderr, "bg_media_tree_load_url %s %s\n", url,
-          (plugin_long_name ? plugin_long_name : "NULL"));
+  //  fprintf(stderr, "bg_media_tree_load_url %s %s\n", url,
+  //          (plugin_long_name ? plugin_long_name : "NULL"));
   
   /* Load the appropriate plugin */
 
@@ -546,7 +556,7 @@ bg_album_entry_t * bg_media_tree_load_url(bg_media_tree_t * tree,
     if(!load_plugin_by_long_name(tree, plugin_long_name))
       return (bg_album_entry_t*)0;
     }
-  /* 2st case: URL is a http url so we can fetch the mimetype */
+  /* 2st case: location is a http url so we can fetch the mimetype */
   else if(!strncmp(url, "http://", 7))
     {
     con = bg_http_connection_create();
@@ -557,10 +567,10 @@ bg_album_entry_t * bg_media_tree_load_url(bg_media_tree_t * tree,
       bg_http_connection_destroy(con);
       return (bg_album_entry_t*)0;
       }
-
-    ptr = bg_http_connection_get_mimetype(con);
     
-    if(!load_plugin_by_mimetype(tree, ptr, url))
+    ptr = bg_http_connection_get_variable(con, "Content-type");
+    
+    if(!ptr || !load_plugin_by_mimetype(tree, ptr, url))
       {
       fprintf(stderr, "No plugin found for mimetype %s\n",
               ptr);
@@ -579,119 +589,63 @@ bg_album_entry_t * bg_media_tree_load_url(bg_media_tree_t * tree,
       }
     }
 
-  fprintf(stderr, "Loaded %s\n", tree->load_handle->info->long_name);
+  //  fprintf(stderr, "Loaded %s\n", tree->load_handle->info->long_name);
   
-  if(tree->load_handle->info->type == BG_PLUGIN_REDIRECTOR)
-    {
-    /* Open redirector */
-    redir = (bg_redirector_plugin_t*)(tree->load_handle->plugin);
-
-    fprintf(stderr, "Using redirector plugin %s\n",
-            tree->load_handle->info->name);
-    
-    if(con) /* Get redirector via http */
-      {
-      tmp_file_name = bg_create_unique_filename("/tmp/gmerlin_tmp%08x");
-      
-      bg_http_connection_save(con, tmp_file_name);
-      bg_http_connection_close(con);
-      bg_http_connection_destroy(con);
-
-      redir->parse(tree->load_handle->priv, tmp_file_name);
-      remove(tmp_file_name);
-      free(tmp_file_name);
-      }
-    else
-      redir->parse(tree->load_handle->priv, url);
-    
-    num_entries = redir->get_num_streams(tree->load_handle->priv);
-      
-    for(i = 0; i < num_entries; i++)
-      {
-      new_entry = calloc(1, sizeof(*new_entry));
-      
-      ptr = redir->get_stream_url(tree->load_handle->priv, i);
-      new_entry->location = bg_strdup((char*)0, ptr);
-      
-      ptr = redir->get_stream_name(tree->load_handle->priv, i);
-      
-      if(ptr)
-        new_entry->name = bg_strdup((char*)0, ptr);
-      else
-        new_entry->name = bg_strdup((char*)0, new_entry->location);
-      
-      ptr = redir->get_stream_plugin(tree->load_handle->priv, i);
-      if(ptr)
-        new_entry->plugin = bg_strdup((char*)0, ptr);
-      
-      if(ret)
-        {
-        end_entry->next = new_entry;
-        end_entry = end_entry->next;
-        }
-      else
-        {
-        ret = new_entry;
-        end_entry = ret;
-        }
-      }
-    }
   /* Use track info from the plugin */
-  else
-    {
-    fprintf(stderr, "Using input plugin %s\n",
-            tree->load_handle->info->name);
-    
-    if(con)
-      {
-      bg_http_connection_close(con);
-      bg_http_connection_destroy(con);
-      }
-
-    /* Open the track */
+  //  fprintf(stderr, "Using input plugin %s\n",
+  //          tree->load_handle->info->name);
   
-    plugin = (bg_input_plugin_t*)(tree->load_handle->plugin);
-        
-    if(!plugin->open(tree->load_handle->priv, url))
-      {
-      fprintf(stderr, "Opening %s with %s failed\n", url,
-              tree->load_handle->info->name);
-      //    bg_hexdump(system_location, strlen(system_location));
-      //      bg_album_entry_destroy(ret);
-      //      free(system_location);
-      return (bg_album_entry_t*)0;
-      }
-
-    if(!plugin->get_num_tracks)
-      num_entries = 1;
-    else
-      num_entries = plugin->get_num_tracks(tree->load_handle->priv);
-    
-    for(i = 0; i < num_entries; i++)
-      {
-      new_entry = bg_album_entry_create(tree);
-      new_entry->location = bg_system_to_utf8(url, strlen(url));
-      new_entry->index = i;
-      new_entry->total_tracks = num_entries;
-      
-      track_info = plugin->get_track_info(tree->load_handle->priv,
-                                          i);
-      update_entry(tree, new_entry, track_info);
-
-      if(ret)
-        {
-        end_entry->next = new_entry;
-        end_entry = end_entry->next;
-        }
-      else
-        {
-        ret = new_entry;
-        end_entry = ret;
-        }
-      }
-    plugin->close(tree->load_handle->priv);
+  if(con)
+    {
+    bg_http_connection_close(con);
+    bg_http_connection_destroy(con);
     }
   
+  /* Open the track */
+  
+  plugin = (bg_input_plugin_t*)(tree->load_handle->plugin);
+        
+  if(!plugin->open(tree->load_handle->priv, url))
+    {
+    fprintf(stderr, "Opening %s with %s failed\n", url,
+            tree->load_handle->info->name);
+    //    bg_hexdump(system_location, strlen(system_location));
+    //      bg_album_entry_destroy(ret);
+    //      free(system_location);
+    return (bg_album_entry_t*)0;
+    }
+  
+  if(!plugin->get_num_tracks)
+    num_entries = 1;
+  else
+    num_entries = plugin->get_num_tracks(tree->load_handle->priv);
+  
+  for(i = 0; i < num_entries; i++)
+    {
+    new_entry = bg_album_entry_create(tree);
+    new_entry->location = bg_system_to_utf8(url, strlen(url));
+    new_entry->index = i;
+    new_entry->total_tracks = num_entries;
+        
+    track_info = plugin->get_track_info(tree->load_handle->priv, i);
+    update_entry(tree, new_entry, track_info);
+
+    if(plugin_long_name)
+      new_entry->plugin = bg_strdup(new_entry->plugin,
+                                    tree->load_handle->info->name);
+        
+    if(ret)
+      {
+      end_entry->next = new_entry;
+      end_entry = end_entry->next;
+      }
+    else
+      {
+      ret = new_entry;
+      end_entry = ret;
+      }
+    }
+  plugin->close(tree->load_handle->priv);
   return ret;
   }
 
@@ -1046,6 +1000,14 @@ void bg_media_tree_set_change_callback(bg_media_tree_t * tree,
   tree->change_callback_data = change_callback_data;
   }
 
+void bg_media_tree_set_error_callback(bg_media_tree_t * tree,
+                                      void (*error_callback)(bg_media_tree_t*, void*,const char*),
+                                      void* error_callback_data)
+  {
+  tree->error_callback      = error_callback;
+  tree->error_callback_data = error_callback_data;
+  }
+
 void bg_media_tree_set_play_callback(bg_media_tree_t * tree,
                                      void (*play_callback)(bg_media_tree_t*, void*),
                                      void* play_callback_data)
@@ -1057,15 +1019,22 @@ void bg_media_tree_set_play_callback(bg_media_tree_t * tree,
 bg_plugin_handle_t *
 bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   {
+  char * error_message;
   bg_track_info_t * track_info;
   const bg_plugin_info_t * info;
   bg_input_plugin_t * input_plugin;
+
   
   if(!t->current_entry || !t->current_album)
-    return (bg_plugin_handle_t *)0;
-  
+    {
+    error_message = bg_sprintf("Select a track first");
+    goto fail;
+    }
   if(bg_album_is_removable(t->current_album))
     {
+    if(t->current_handle)
+      bg_plugin_unref(t->current_handle);
+
     t->current_handle = t->current_album->handle;
     bg_plugin_ref(t->current_handle);
     input_plugin = (bg_input_plugin_t*)(t->current_handle->plugin);
@@ -1074,19 +1043,37 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
     {
     if(t->current_handle)
       bg_plugin_unref(t->current_handle);
+
+    //    fprintf(stderr, "Get current track %s\n", t->current_entry->plugin);
     
     if(t->current_entry->plugin)
       info = bg_plugin_find_by_name(t->plugin_reg, t->current_entry->plugin);
     else
       info = bg_plugin_find_by_filename(t->plugin_reg,
                                         t->current_entry->location,
-                                        (BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR));
+                                        (BG_PLUGIN_INPUT));
     
+    if(!info)
+      {
+      error_message = bg_sprintf("Cannot open %s: no plugin found",
+                                 t->current_entry->location);
+      goto fail;
+      }
     t->current_handle = bg_plugin_load(t->plugin_reg, info);
     input_plugin = (bg_input_plugin_t*)(t->current_handle->plugin);
-    input_plugin->open(t->current_handle->priv, t->current_entry->location);
-    }
 
+    if(!input_plugin->open(t->current_handle->priv,
+                           t->current_entry->location))
+      {
+      if(input_plugin->common.get_error)
+        error_message = bg_sprintf("Cannot open %s: %s",
+                                   t->current_entry->location,
+                                   input_plugin->common.get_error(t->current_handle->priv));
+      else
+        error_message = bg_sprintf("Cannot open %s");
+      goto fail;
+      }
+    }
   track_info = input_plugin->get_track_info(t->current_handle->priv,
                                             t->current_entry->index);
   update_entry(t, t->current_entry, track_info);
@@ -1095,6 +1082,14 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   if(index)
     *index = t->current_entry->index;
   return t->current_handle;
+
+  fail:
+
+  if(t->error_callback)
+    t->error_callback(t, t->error_callback_data, error_message);
+  free(error_message);
+  bg_media_tree_mark_error(t, 1);
+  return (bg_plugin_handle_t *)0;
   }
 
 bg_album_t * bg_media_tree_get_current_album(bg_media_tree_t * t)

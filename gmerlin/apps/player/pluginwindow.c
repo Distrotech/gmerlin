@@ -71,7 +71,7 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
 
   ret->inputs = 
     bg_gtk_plugin_widget_multi_create(g->plugin_reg,
-                                      BG_PLUGIN_INPUT|BG_PLUGIN_REDIRECTOR,
+                                      BG_PLUGIN_INPUT,
                                       BG_PLUGIN_FILE|
                                       BG_PLUGIN_URL|
                                       BG_PLUGIN_REMOVABLE);

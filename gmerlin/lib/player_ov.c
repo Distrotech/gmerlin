@@ -46,6 +46,14 @@ static void key_callback(void * data, int key)
 
 static void button_callback(void * data, int x, int y, int button)
   {
+  bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
+
+  if(button == 4)
+    bg_player_seek_rel(ctx->player, 2 * GAVL_TIME_SCALE );
+  else if(button == 5)
+    bg_player_seek_rel(ctx->player, - 2 * GAVL_TIME_SCALE );
+    
+  
   fprintf(stderr, "Button callback %d %d (Button %d)\n", x, y, button);
   }
 
@@ -70,8 +78,8 @@ void * bg_player_ov_create_frame(void * data)
     bg_plugin_unlock(ctx->plugin_handle);
     }
   else
-    ret = gavl_video_frame_create(&(ctx->player->video_format_o));
-  gavl_clear_video_frame(ret, &(ctx->player->video_format_o));
+    ret = gavl_video_frame_create(&(ctx->player->video_stream.output_format));
+  gavl_clear_video_frame(ret, &(ctx->player->video_stream.output_format));
   return ret;
   }
 
@@ -171,12 +179,12 @@ int bg_player_ov_init(bg_player_ov_context_t * ctx)
   {
   int result;
   
-  gavl_video_format_copy(&(ctx->player->video_format_o),
-                         &(ctx->player->video_format_i));
+  gavl_video_format_copy(&(ctx->player->video_stream.output_format),
+                         &(ctx->player->video_stream.input_format));
 
   bg_plugin_lock(ctx->plugin_handle);
   result = ctx->plugin->open(ctx->priv,
-                             &(ctx->player->video_format_o),
+                             &(ctx->player->video_stream.output_format),
                              "Video output");
   bg_plugin_unlock(ctx->plugin_handle);
   return result;

@@ -61,11 +61,11 @@ static void msg_meta_track(bg_msg_t * msg, void * data)
   bg_msg_set_arg_int(msg, 0, m->track);
   }
 
-static void msg_meta_year(bg_msg_t * msg, void * data)
+static void msg_meta_date(bg_msg_t * msg, void * data)
   {
   bg_metadata_t * m = (bg_metadata_t *)data;
-  bg_msg_set_id(msg, BG_PLAYER_MSG_META_YEAR);
-  bg_msg_set_arg_int(msg, 0, m->year);
+  bg_msg_set_id(msg, BG_PLAYER_MSG_META_DATE);
+  bg_msg_set_arg_string(msg, 0, m->date);
   }
 
 static void msg_meta_comment(bg_msg_t * msg, void * data)
@@ -93,7 +93,7 @@ static void msg_time(bg_msg_t * msg,
                      void * data)
   {
   bg_msg_set_id(msg, BG_PLAYER_MSG_TIME_CHANGED);
-  bg_msg_set_arg_int(msg, 0, *((int*)data));
+  bg_msg_set_arg_time(msg, 0, *((gavl_time_t*)data));
   }
 
 static void msg_audio_stream(bg_msg_t * msg,
@@ -105,9 +105,9 @@ static void msg_audio_stream(bg_msg_t * msg,
   bg_msg_set_id(msg, BG_PLAYER_MSG_AUDIO_STREAM);
   bg_msg_set_arg_int(msg, 0, player->current_audio_stream);
   bg_msg_set_arg_audio_format(msg, 1,
-                              &(player->audio_format_i));
+                              &(player->audio_stream.input_format));
   bg_msg_set_arg_audio_format(msg, 2,
-                              &(player->audio_format_o));
+                              &(player->audio_stream.output_format));
   
   }
 
@@ -120,9 +120,9 @@ static void msg_video_stream(bg_msg_t * msg,
   bg_msg_set_id(msg, BG_PLAYER_MSG_VIDEO_STREAM);
   bg_msg_set_arg_int(msg, 0, player->current_video_stream);
   bg_msg_set_arg_video_format(msg, 1,
-                              &(player->video_format_i));
+                              &(player->video_stream.input_format));
   bg_msg_set_arg_video_format(msg, 2,
-                              &(player->video_format_o));
+                              &(player->video_stream.output_format));
   
   }
 
@@ -269,24 +269,14 @@ static void play_cmd(bg_player_t * p,
                      bg_plugin_handle_t * handle,
                      int track_index)
   {
-  int error_code;
-  char * error_msg;
   int had_video;
 
   had_video = p->do_video;
   
   bg_player_set_state(p, BG_PLAYER_STATE_STARTING, NULL, NULL);
   
-  if(!bg_player_input_init(p->input_context,
-                           handle, track_index))
-    {
-    error_msg = bg_player_input_get_error(p->input_context);
-    if(!error_msg)
-      error_msg = "Error loading track";
-    error_code = BG_PLAYER_ERROR_TRACK;
-    bg_player_set_state(p, BG_PLAYER_STATE_ERROR, error_msg, &error_code);
-    return;
-    }
+  bg_player_input_init(p->input_context,
+                       handle, track_index);
   
   /* Send messages about the stream */
   /*
@@ -338,9 +328,9 @@ static void play_cmd(bg_player_t * p,
                            msg_meta_author,
                            &(p->track_info->metadata));
 
-  if(p->track_info->metadata.year)
+  if(p->track_info->metadata.date)
     bg_msg_queue_list_send(p->message_queues,
-                           msg_meta_year,
+                           msg_meta_date,
                            &(p->track_info->metadata));
 
   if(p->track_info->metadata.track)
@@ -423,7 +413,7 @@ static void play_cmd(bg_player_t * p,
 
 static void player_cleanup(bg_player_t * player)
   {
-  int seconds = 0;
+  gavl_time_t t = 0;
   bg_player_input_cleanup(player->input_context);
   bg_player_oa_cleanup(player->oa_context);
   bg_player_ov_cleanup(player->ov_context);
@@ -437,7 +427,7 @@ static void player_cleanup(bg_player_t * player)
 
   bg_msg_queue_list_send(player->message_queues,
                          msg_time,
-                         &seconds);
+                         &t);
   }
 
 static void stop_cmd(bg_player_t * player, int new_state)
@@ -447,6 +437,9 @@ static void stop_cmd(bg_player_t * player, int new_state)
 
   old_state = bg_player_get_state(player);
   //  fprintf(stderr, "STOP CMD\n");
+
+  if(old_state == BG_PLAYER_STATE_STOPPED)
+    return;
   
   if(new_state == BG_PLAYER_STATE_CHANGING)
     {
@@ -512,13 +505,13 @@ static void set_oa_plugin_cmd(bg_player_t * player,
   bg_player_oa_set_plugin(player, handle);
   }
 
-static void seek_cmd(bg_player_t * player, float percentage)
+static void seek_cmd(bg_player_t * player, gavl_time_t t)
   {
   gavl_video_frame_t * vf;
   fprintf(stderr, "Seek cmd\n");
   interrupt_cmd(player, BG_PLAYER_STATE_SEEKING);
 
-  bg_player_input_seek(player->input_context, percentage);
+  bg_player_input_seek(player->input_context, t);
 
   /* Clear fifos */
 
@@ -544,8 +537,7 @@ static void seek_cmd(bg_player_t * player, float percentage)
     fprintf(stderr, "Time is now: %lld\n", vf->time);
     }
   else
-    bg_player_time_set(player,
-                       (gavl_time_t)(player->track_info->duration * percentage));
+    bg_player_time_set(player, t);
   
   if((player->do_video) && (player->do_audio))
     {
@@ -576,7 +568,9 @@ static int process_command(bg_player_t * player,
   char * arg_str1;
   int next_track;
   int error_code;
-
+  gavl_time_t time;
+  gavl_time_t current_time;
+  
   gavl_video_format_t logo_format;
   gavl_video_frame_t * logo_frame;
   
@@ -640,9 +634,24 @@ static int process_command(bg_player_t * player,
       else
         {
         arg_f1 = bg_msg_get_arg_float(command, 0);
-        seek_cmd(player, arg_f1);
+        time = (gavl_time_t)(player->track_info->duration*arg_f1);
+        seek_cmd(player, time);
         }
       break;
+    case BG_PLAYER_CMD_SEEK_REL:
+      if(!player->can_seek)
+        {
+        fprintf(stderr, "Cannot seek in this stream\n");
+        }
+      else
+        {
+        bg_player_time_get(player, 1, &current_time);
+        time = bg_msg_get_arg_time(command, 0);
+        seek_cmd(player, current_time + time);
+        }
+      break;
+      
+
     case BG_PLAYER_CMD_SETSTATE:
       arg_i1 = bg_msg_get_arg_int(command, 0);
       switch(arg_i1)
@@ -664,7 +673,11 @@ static int process_command(bg_player_t * player,
           bg_player_set_state(player, BG_PLAYER_STATE_CHANGING, &next_track, NULL);
           //          fprintf(stderr, "Finishing done\n");
           break;
-          
+        case BG_PLAYER_STATE_ERROR:
+          arg_str1 = bg_msg_get_arg_string(command, 1);
+          stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+          bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
+                              arg_str1, NULL);
         }
       break;
     case BG_PLAYER_CMD_SET_OA_PLUGIN:
@@ -672,12 +685,12 @@ static int process_command(bg_player_t * player,
       set_oa_plugin_cmd(player, arg_ptr1);
       break;
     case BG_PLAYER_CMD_SET_OV_PLUGIN:
-      fprintf(stderr, "***** Set OV Plugin\n");
+      //      fprintf(stderr, "***** Set OV Plugin\n");
       arg_ptr1 = bg_msg_get_arg_ptr_nocopy(command, 0);
       set_ov_plugin_cmd(player, arg_ptr1);
       break;
     case BG_PLAYER_CMD_SETLOGO:
-      fprintf(stderr, "***** Set Logo\n");
+      //      fprintf(stderr, "***** Set Logo\n");
       bg_msg_get_arg_video_format(command, 0, &logo_format);
       (gavl_video_frame_t*)logo_frame = bg_msg_get_arg_ptr_nocopy(command, 1);
       bg_player_ov_set_logo(player->ov_context, &logo_format, logo_frame);
@@ -745,7 +758,7 @@ static void * player_thread(void * data)
           old_seconds = seconds;
           bg_msg_queue_list_send(player->message_queues,
                                  msg_time,
-                                 &seconds);
+                                 &time);
           //      fprintf(stderr, "%d\n", seconds);
           }
         break;

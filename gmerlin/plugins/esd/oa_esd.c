@@ -87,8 +87,6 @@ static int open_esd(void * data, gavl_audio_format_t * format)
 
   switch(format->channel_setup)
     {
-    case GAVL_CHANNEL_1:
-    case GAVL_CHANNEL_2:
     case GAVL_CHANNEL_MONO:
       esd_format |= ESD_MONO;
       format->num_channels = 1;
@@ -96,7 +94,7 @@ static int open_esd(void * data, gavl_audio_format_t * format)
     default:
       e->bytes_per_sample *= 2;
       esd_format |= ESD_STEREO;
-      format->channel_setup = GAVL_CHANNEL_2F;
+      format->channel_setup = GAVL_CHANNEL_STEREO;
       format->num_channels = 2;
       break;
     }
@@ -111,7 +109,7 @@ static int open_esd(void * data, gavl_audio_format_t * format)
     }
   else
     {
-    format->sample_format = GAVL_SAMPLE_S16NE;
+    format->sample_format = GAVL_SAMPLE_S16;
     esd_format |= ESD_BITS16;
     e->bytes_per_sample *= 2;
     }

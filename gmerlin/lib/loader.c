@@ -31,6 +31,9 @@ bg_plugin_handle_t * bg_plugin_load(bg_plugin_registry_t * reg,
   bg_plugin_handle_t * ret;
   bg_parameter_info_t * parameters;
   bg_cfg_section_t * section;
+
+  if(!info)
+    return (bg_plugin_handle_t*)0;
   
   ret = calloc(1, sizeof(*ret));
   pthread_mutex_init(&(ret->mutex),(pthread_mutexattr_t *)0);

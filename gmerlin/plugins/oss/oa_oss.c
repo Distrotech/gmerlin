@@ -298,11 +298,9 @@ static int open_oss(void * data, gavl_audio_format_t * format)
   switch(format->channel_setup)
     {
     case GAVL_CHANNEL_MONO:
-    case GAVL_CHANNEL_1:      /* First (left) channel */
-    case GAVL_CHANNEL_2:      /* Second (right) channel */
       front_channels = 1;
       break;
-    case GAVL_CHANNEL_2F:     /* 2 Front channels (Stereo or Dual channels) */
+    case GAVL_CHANNEL_STEREO:     /* 2 Front channels (Stereo or Dual channels) */
       front_channels = 2;
       break;
     case GAVL_CHANNEL_3F:
@@ -332,7 +330,7 @@ static int open_oss(void * data, gavl_audio_format_t * format)
         format->num_channels = 2;
       front_channels = format->num_channels;
     }
-
+  
   switch(priv->multichannel_mode)
     {
     /* No multichannel support -> downmix everything */
@@ -344,6 +342,14 @@ static int open_oss(void * data, gavl_audio_format_t * format)
       priv->num_channels_rear = 0;
       priv->num_channels_center_lfe = 0;
       format->interleave_mode = GAVL_INTERLEAVE_ALL;
+
+      if(priv->num_channels_front == 1)
+        format->channel_locations[0] = GAVL_CHID_FRONT;
+      else
+        {
+        format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+        format->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+        }
       break;
     /* Multiple devices */
     case MULTICHANNEL_DEVICES:
@@ -368,6 +374,8 @@ static int open_oss(void * data, gavl_audio_format_t * format)
     /* All Channels to one device */
     case MULTICHANNEL_CREATIVE:
       /* We need 2 rear channels */
+      //      fprintf(stderr, "Creative Multichannel!\n");
+      
       if(center_channel || format->lfe || rear_channels)
         rear_channels = 2;
       if(rear_channels)
@@ -379,8 +387,19 @@ static int open_oss(void * data, gavl_audio_format_t * format)
       priv->num_channels_rear = 0;
       priv->num_channels_center_lfe = 0;
       format->interleave_mode = GAVL_INTERLEAVE_ALL;
-    }
 
+      if(front_channels > 1)
+        {
+        format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+        format->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+        format->channel_locations[2] = GAVL_CHID_REAR_LEFT;
+        format->channel_locations[3] = GAVL_CHID_REAR_RIGHT;
+        format->channel_locations[4] = GAVL_CHID_FRONT_CENTER;
+        format->channel_locations[5] = GAVL_CHID_LFE;
+        }
+      else
+        format->channel_locations[0] = GAVL_CHID_FRONT;
+    }
   /* Reconstruct the speaker setup */
 
   format->num_channels = front_channels +
@@ -398,7 +417,7 @@ static int open_oss(void * data, gavl_audio_format_t * format)
           if(center_channel)
             format->channel_setup = GAVL_CHANNEL_3F;
           else
-            format->channel_setup = GAVL_CHANNEL_2F;
+            format->channel_setup = GAVL_CHANNEL_STEREO;
           break;
         }
       break;
@@ -416,8 +435,6 @@ static int open_oss(void * data, gavl_audio_format_t * format)
       break;
     }
 
-  /* HIER */  
-  
   ret = open_devices(priv, format);
   
   if(ret)

@@ -109,9 +109,9 @@ static int open_esd(void * data,
 
   format->interleave_mode = GAVL_INTERLEAVE_ALL;
   format->num_channels = 2;
-  format->channel_setup = GAVL_CHANNEL_2F;
+  format->channel_setup = GAVL_CHANNEL_STEREO;
   format->samplerate = 44100;
-  format->sample_format = GAVL_SAMPLE_S16NE;
+  format->sample_format = GAVL_SAMPLE_S16;
   format->lfe = 0;
 
   if(!e->hostname || (*(e->hostname) == '\0'))

@@ -40,9 +40,17 @@ typedef struct
   {
   gavl_audio_converter_t * cnv;
   bg_fifo_t * fifo;
-  gavl_audio_options_t opt;
   int do_convert;
   gavl_audio_frame_t * frame;
+
+  pthread_mutex_t config_mutex;
+  gavl_audio_options_t opt;
+  int fixed_channel_setup;
+  gavl_channel_setup_t channel_setup;
+
+  gavl_audio_format_t input_format;
+  gavl_audio_format_t output_format;
+  
   } bg_player_audio_stream_t;
 
 typedef struct
@@ -52,6 +60,10 @@ typedef struct
   gavl_video_options_t opt;
   int do_convert;
   gavl_video_frame_t * frame;
+
+  gavl_video_format_t input_format;
+  gavl_video_format_t output_format;
+
   } bg_player_video_stream_t;
 
 struct bg_player_s
@@ -82,11 +94,11 @@ struct bg_player_s
    *  used by the threads during playback
    */
     
-  gavl_audio_format_t audio_format_i;
-  gavl_audio_format_t audio_format_o;
+  //  gavl_audio_format_t audio_format_i;
+  //  gavl_audio_format_t audio_format_o;
 
-  gavl_video_format_t video_format_i;
-  gavl_video_format_t video_format_o;
+  //  gavl_video_format_t video_format_i;
+  //  gavl_video_format_t video_format_o;
 
   /*
    *  Stream selection
@@ -162,7 +174,7 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
                          bg_plugin_handle_t * handle,
                          int track_index);
 
-char * bg_player_input_get_error(bg_player_input_context_t * ctx);
+const char * bg_player_input_get_error(bg_player_input_context_t * ctx);
 
 void bg_player_input_cleanup(bg_player_input_context_t * ctx);
 
@@ -176,7 +188,7 @@ bg_player_input_set_video_stream(bg_player_input_context_t * ctx,
                                  int audio_stream);
 
 void bg_player_input_seek(bg_player_input_context_t * ctx,
-                          float percentage);
+                          gavl_time_t time);
 
 
 /* player1_ov.c */

@@ -4,6 +4,7 @@ lib_LTLIBRARIES = libgmerlin_gtk.la
 noinst_HEADERS = gtk_dialog.h
 
 libgmerlin_gtk_la_SOURCES = \
+albumentry.c \
 albumwidget.c \
 albumwindow.c \
 button.c \
@@ -32,6 +33,8 @@ pluginmenu.c \
 question.c \
 slider.c \
 scrolltext.c \
+textview.c \
+textwindow.c \
 treewidget.c \
 treewindow.c \
 urlselect.c \

@@ -30,6 +30,13 @@ static void tree_play_callback(bg_media_tree_t * t, void * data)
   gmerlin_play(g, 0);
   }
 
+static void tree_error_callback(bg_media_tree_t * t, void * data, const char * message)
+  {
+  gmerlin_t * g = (gmerlin_t*)data;
+
+  bg_player_error(g->player, message);
+  }
+
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   {
   char * tmp_string;
@@ -65,6 +72,7 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   ret->tree = bg_media_tree_create(tmp_string, ret->plugin_reg);
 
   bg_media_tree_set_play_callback(ret->tree, tree_play_callback, ret);
+  bg_media_tree_set_error_callback(ret->tree, tree_error_callback, ret);
   
   free(tmp_string);
   
@@ -122,8 +130,12 @@ void gmerlin_play(gmerlin_t * g, int ignore_flags)
   {
   int track_index;
   bg_plugin_handle_t * handle;
-
+  
   handle = bg_media_tree_get_current_track(g->tree, &track_index);
+  
+  if(!handle)
+    return;
+  
   bg_player_play(g->player, handle, track_index,
                  ignore_flags);
 
@@ -137,21 +149,21 @@ void gmerlin_next_track(gmerlin_t * g)
   switch(g->repeat_mode)
     {
     case REPEAT_MODE_NONE:
-      fprintf(stderr, "REPEAT_MODE_NONE\n");
+      //      fprintf(stderr, "REPEAT_MODE_NONE\n");
       if(bg_media_tree_next(g->tree, 0))
         gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
       else
         {
-        fprintf(stderr, "End of album, stopping\n");
+        //        fprintf(stderr, "End of album, stopping\n");
         bg_player_stop(g->player);
         }
       break;
     case REPEAT_MODE_1:
-      fprintf(stderr, "REPEAT_MODE_1\n");
+      //      fprintf(stderr, "REPEAT_MODE_1\n");
       gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
       break;
     case REPEAT_MODE_ALL:
-      fprintf(stderr, "REPEAT_MODE_ALL\n");
+      //      fprintf(stderr, "REPEAT_MODE_ALL\n");
       bg_media_tree_next(g->tree, 1);
       gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
       break;

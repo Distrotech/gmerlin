@@ -67,6 +67,9 @@ struct gmerlin_s
   plugin_window_t * plugin_window;
     
   gmerlin_skin_browser_t * skin_browser;
+
+  int tree_error;
+
   };
 
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg);

@@ -52,8 +52,8 @@ typedef struct
   char * title;
   char * album;
       
-  int year;
   int track;
+  char * date;
   char * genre;
   char * comment;
 
@@ -64,12 +64,16 @@ typedef struct
 typedef struct
   {
   int seekable; /* 1 is track is seekable (duration MUST be > 0 then) */
+  int redirector; /* 1 if we are a redirector, the url field must be
+                     valid then */
+    
   int num_audio_streams;
   int num_video_streams;
   int num_subpicture_streams;
   int num_programs;
   char * name;
   char * description;
+    
   int64_t duration;
 
   bg_audio_info_t *    audio_streams;
@@ -80,6 +84,11 @@ typedef struct
   
   bg_metadata_t metadata;
 
+  /* The following are only meaningful for redirectors */
+  
+  char * url;
+  char * plugin;
+  
   } bg_track_info_t;
 
 /*
