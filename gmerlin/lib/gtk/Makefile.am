@@ -26,7 +26,6 @@ fileentry.c \
 gtkutils.c \
 infowindow.c \
 message.c \
-mixercontrol.c \
 multiinfo.c \
 plugininfo.c \
 plugin_multi.c \

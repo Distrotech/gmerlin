@@ -49,38 +49,3 @@ bg_gtk_vumeter_get_parameters(bg_gtk_vumeter_t * m);
 void bg_gtk_vumeter_set_parameter(void * vumeter, const char * name,
                                   bg_parameter_value_t * val);
 
-
-/* Mixer control */
-
-typedef struct bg_gtk_mixer_control_s bg_gtk_mixer_control_t;
-
-typedef struct
-  {
-  void (*change)(bg_gtk_mixer_control_t *, float*, void*);
-  void (*set_record)(bg_gtk_mixer_control_t *, int, void*);
-  void (*set_mute)(bg_gtk_mixer_control_t *, int, void*);
-  } bg_gtk_mixer_callbacks_t;
-
-bg_gtk_mixer_control_t *
-bg_gtk_mixer_control_create(const char * label, int stereo, int record,
-                            bg_gtk_mixer_callbacks_t * callbacks,
-                            void * callback_data);
-
-void bg_gtk_mixer_control_configure(bg_gtk_mixer_control_t * ctrl,
-                                    bg_cfg_section_t * section);
-
-void
-bg_gtk_mixer_control_destroy(bg_gtk_mixer_control_t *);
-
-void
-bg_gtk_mixer_control_set_value(bg_gtk_mixer_control_t *, float * value,
-                                int send_callback);
-
-void
-bg_gtk_mixer_control_set_record(bg_gtk_mixer_control_t *, int record);
-
-void bg_gtk_mixer_control_get_value(bg_gtk_mixer_control_t *, float*);
-
-GtkWidget *
-bg_gtk_mixer_control_get_widget(bg_gtk_mixer_control_t*);
-
