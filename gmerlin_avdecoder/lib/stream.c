@@ -20,6 +20,7 @@
 
 #include <avdec_private.h>
 #include <stdlib.h>
+#include <string.h>
 
 void bgav_stream_start(bgav_stream_t * stream)
   {

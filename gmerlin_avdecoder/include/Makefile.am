@@ -5,7 +5,7 @@ http.h \
 id3.h \
 mms.h \
 nanosoft.h \
-pes_packet.h \
+pes_header.h \
 qt.h \
 sdp.h \
 utils.h \

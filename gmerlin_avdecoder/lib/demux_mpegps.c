@@ -86,7 +86,8 @@ static int pack_header_read(bgav_input_context_t * input,
   {
   uint8_t c;
   uint16_t tmp_16;
-  
+  uint32_t tmp_32;
+    
   if(bgav_input_read_8(input, &c))
     return 0;
 
@@ -102,27 +103,67 @@ static int pack_header_read(bgav_input_context_t * input,
     
     bgav_input_read_8(input, &c);
     ret->mux_rate = (c & 0x7F) << 15;
-                                                                                
+                                                                               
     bgav_input_read_8(input, &c);
     ret->mux_rate |= ((c & 0x7F) << 7);
-                                                                                
+                                                                               
     bgav_input_read_8(input, &c);
     ret->mux_rate |= (((c & 0xFE)) >> 1);
     ret->version = 1;
     //    fprintf(stderr, "SCR: %f\n", demuxer->pack_header.scr / 90000.0);
     }
-  else
+  else if(c & 0x40) /* MPEG-2 */
     {
+    /* SCR */
+
+    if(!bgav_input_read_32_be(input, &tmp_32))
+      return 0;
+    
+    ret->scr = c & 0x03;
+
+    ret->scr <<= 13;
+    ret->scr |= ((tmp_32 & 0xfff80000) >> 19);
+    
+    ret->scr <<= 15;
+    ret->scr |= ((tmp_32 & 0x0003fff8) >> 3);
+
+    /* Skip SCR extension (would give 27 MHz resolution) */
+
+    bgav_input_skip(input, 1);
+        
+    /* Mux rate (22 bits) */
+    
+    if(!bgav_input_read_8(input, &c))
+      return 0;
+    ret->mux_rate = c;
+
+    ret->mux_rate <<= 14;
+    if(!bgav_input_read_8(input, &c))
+      return 0;
+    ret->mux_rate |= c;
+
+    ret->mux_rate <<= 6;
+    if(!bgav_input_read_8(input, &c))
+      return 0;
+    ret->mux_rate |= (c>>2);
+
+    ret->version = 2;
+
+    bgav_input_skip(input, 1);
+    /* Now, some stuffing bytes might come.
+       They are set to 0xff and will be skipped by the
+       next_start_code function */
     
     }
-  
-
-  return 0;
+  return 1;
   }
 
 static void pack_header_dump(pack_header_t * h)
   {
-  
+  fprintf(stderr,
+          "Pack header: MPEG-%d, SCR: %lld (%f secs), Mux rate: %d bits/s\n",
+          h->version, h->scr, (float)(h->scr)/90000.0,
+          h->mux_rate * 400);
   }
 
 /* System header */
@@ -153,7 +194,7 @@ typedef struct
   {
   /* Actions for next_packet */
   
-  int add_streams;
+  int find_streams;
   int do_seek;
 
   /* Headers */
@@ -166,19 +207,18 @@ typedef struct
 
 static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
   {
-  mpegps_priv_t * priv;
   system_header_t system_header;
   
   int got_packet = 0;
   uint32_t start_code;
 
+  mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
   
   while(!got_packet)
     {
     if(!(start_code = next_start_code(ctx->input)))
       return 0;
-
     if(start_code == SYSTEM_HEADER)
       {
       if(!system_header_read(ctx->input, &system_header))
@@ -191,6 +231,14 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
         return 0;
       pack_header_dump(&(priv->pack_header));
       }
+
+    else /* PES Packet */
+      {
+      if(!bgav_bgav_pes_packet_read(input, &(priv->pes_header)))
+        return 0;
+
+      if(priv->pes_header->
+      }
     
     }
   
@@ -199,9 +247,24 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
 
 #define NUM_PACKETS 200
 
-static int find_streams(bgav_demuxer_context_t * ctx)
+static void find_streams(bgav_demuxer_context_t * ctx)
   {
-  return 0;
+  int i;
+  mpegps_priv_t * priv;
+  priv = (mpegps_priv_t*)(ctx->priv);
+
+  priv->find_streams = 1;
+
+  for(i = 0; i < NUM_PACKETS; i++)
+    {
+    if(!next_packet_mpegps(ctx))
+      {
+      priv->find_streams = 0;
+      return;
+      }
+    }
+  priv->find_streams = 0;
+  return;
   }
 
 static int open_mpegps(bgav_demuxer_context_t * ctx,
@@ -215,10 +278,9 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
   if(!ctx->tt)
     {
     ctx->tt = bgav_track_table_create(1);
-    //    find_streams(
+    find_streams(ctx);
     }
-    
-  return 0;
+  return 1;
   }
 
 static void seek_mpegps(bgav_demuxer_context_t * ctx, gavl_time_t time)

@@ -20,8 +20,11 @@
 #include <avdec_private.h>
 #include <pes_packet.h>
 
-int bgav_pes_packet_read(bgav_input_context_t * input,
-                         bgav_pes_packet_t * ret)
+#define PADDING_STREAM   0xbe
+#define PRIVATE_STREAM_2 0xbf
+
+int bgav_pes_header_read(bgav_input_context_t * input,
+                         bgav_pes_header_t * ret)
   {
   uint8_t c;
   uint16_t len;
@@ -33,14 +36,22 @@ int bgav_pes_packet_read(bgav_input_context_t * input,
 
   uint32_t header;
 
+  memset(ret, 0, sizeof(*ret));
+  
   if(!bgav_input_read_32_be(input, &header))
     return 0;
-
   ret->stream_id = header & 0x000000ff;
-  
+
   if(!bgav_input_read_16_be(input, &len))
     return 0;
-  
+
+  if((ret->stream_id == PADDING_STREAM)
+     (ret->stream_id == PRIVATE_STREAM_2))
+    {
+    ret->payload_size = len;
+    return 1;
+    }
+
   pos = input->position;
 
   if(!bgav_input_read_8(input, &c))
@@ -123,7 +134,7 @@ int bgav_pes_packet_read(bgav_input_context_t * input,
   return 1;
   }
 
-void bgav_pes_packet_dump(bgav_pes_packet_t * p)
+void bgav_pes_header_dump(bgav_pes_header_t * p)
   {
   fprintf(stderr, "PES Header: PTS: %f, Stream ID: %02x, payload_size: %d\n",
           (float)p->pts / 90000.0, p->stream_id, p->payload_size);

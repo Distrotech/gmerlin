@@ -105,7 +105,7 @@ mms.c \
 nanosoft.c \
 packetbuffer.c \
 packet.c \
-pes_packet.c \
+pes_header.c \
 pnm.c \
 qt_atom.c \
 qt_cmov.c \

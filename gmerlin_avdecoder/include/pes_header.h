@@ -1,6 +1,6 @@
 /*****************************************************************
  
-  pes_packet.h
+  pes_header.h
  
   Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
@@ -23,11 +23,11 @@ typedef struct
   {
   int64_t pts;
   int stream_id;     /* For private streams: stream_id | (substream_id << 8)   */
-  int payload_size;  /* To be read from the input after bgav_pes_packet_read() */
-  } bgav_pes_packet_t;
+  int payload_size;  /* To be read from the input after bgav_pes_header_read() */
+  } bgav_pes_header_t;
 
-int bgav_pes_packet_read(bgav_input_context_t * input,
-                         bgav_pes_packet_t * ret);
+int bgav_pes_header_read(bgav_input_context_t * input,
+                         bgav_pes_header_t * ret);
 
-void bgav_pes_packet_dump(bgav_pes_packet_t * p);
+void bgav_pes_header_dump(bgav_pes_header_t * p);
 
