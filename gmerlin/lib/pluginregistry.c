@@ -865,9 +865,9 @@ void bg_plugin_registry_add_device(bg_plugin_registry_t * reg,
   info->devices = bg_device_info_append(info->devices,
                                         device, name);
 
-  fprintf(stderr, "bg_plugin_registry_save...");
+  //  fprintf(stderr, "bg_plugin_registry_save...");
   bg_plugin_registry_save(reg->entries);
-  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done\n");
   }
 
 void bg_plugin_registry_set_device_name(bg_plugin_registry_t * reg,

@@ -1,7 +1,10 @@
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <gtk/gtk.h>
 
 #include <pluginregistry.h>
+#include <utils.h>
 
 #include "track.h"
 #include "tracklist.h"
@@ -32,8 +35,57 @@ struct track_list_s
   track_t * tracks;
   };
 
+static GtkWidget * create_pixmap_button(const char * filename)
+  {
+  GtkWidget * button;
+  GtkWidget * image;
+  char * path;
+  path = bg_search_file_read("icons", filename);
+  if(path)
+    {
+    image = gtk_image_new_from_file(path);
+    free(path);
+    }
+  else
+    image = gtk_image_new();
+
+  gtk_widget_show(image);
+  button = gtk_button_new();
+  gtk_container_add(GTK_CONTAINER(button), image);
+  return button;
+  }
+
+static void button_callback(GtkWidget * w, gpointer data)
+  {
+  track_list_t * t;
+  t = (track_list_t*)data;
+
+  if(w == t->add_button)
+    {
+    fprintf(stderr, "Add button\n");
+    }
+  if(w == t->delete_button)
+    {
+    fprintf(stderr, "Delete button\n");
+    }
+  if(w == t->up_button)
+    {
+    fprintf(stderr, "Up button\n");
+    }
+  if(w == t->down_button)
+    {
+    fprintf(stderr, "Down button\n");
+    }
+  if(w == t->config_button)
+    {
+    fprintf(stderr, "Config button\n");
+    }
+  }
+
 track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg)
   {
+  GtkWidget * scrolled;
+  GtkWidget * box;
   track_list_t * ret;
 
   GtkTreeViewColumn * col;
@@ -42,6 +94,32 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg)
   GtkTreeSelection * selection;
 
   ret = calloc(1, sizeof(*ret));
+
+  /* Create buttons */
+  ret->add_button = create_pixmap_button("add_16.png");
+  ret->delete_button = create_pixmap_button("trash_16.png");
+  ret->config_button = create_pixmap_button("config_16.png");
+  ret->up_button = create_pixmap_button("up_16.png");
+  ret->down_button = create_pixmap_button("down_16.png");
+
+  g_signal_connect(G_OBJECT(ret->down_button), "clicked",
+                   G_CALLBACK(button_callback), ret);
+  g_signal_connect(G_OBJECT(ret->up_button), "clicked",
+                   G_CALLBACK(button_callback), ret);
+  g_signal_connect(G_OBJECT(ret->add_button), "clicked",
+                   G_CALLBACK(button_callback), ret);
+  g_signal_connect(G_OBJECT(ret->delete_button), "clicked",
+                   G_CALLBACK(button_callback), ret);
+  g_signal_connect(G_OBJECT(ret->config_button), "clicked",
+                   G_CALLBACK(button_callback), ret);
+
+  gtk_widget_show(ret->add_button);
+  gtk_widget_show(ret->delete_button);
+  gtk_widget_show(ret->config_button);
+  gtk_widget_show(ret->up_button);
+  gtk_widget_show(ret->down_button);
+
+  /* Create list view */
   
   store = gtk_list_store_new(NUM_COLUMNS,
                              G_TYPE_STRING,   // Index
@@ -51,8 +129,7 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg)
                              G_TYPE_STRING);  // Duration
   ret->treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
   gtk_widget_set_size_request(ret->treeview, 200, 100);
-  /* Create columns */
-
+  
   /* Create columns */
 
   /* Index */
@@ -92,8 +169,7 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg)
                                                                                 
   gtk_tree_view_append_column (GTK_TREE_VIEW(ret->treeview),
                                col);
-                                                                                
-
+  
   /* Audio */
                                                                                 
   renderer = gtk_cell_renderer_text_new();
@@ -155,16 +231,32 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg)
 
   /* Done with columns */
   
-  
   gtk_widget_show(ret->treeview);
+
+  /* Pack */
   
-  ret->widget =
+  scrolled =
     gtk_scrolled_window_new(gtk_tree_view_get_hadjustment(GTK_TREE_VIEW(ret->treeview)),
                             gtk_tree_view_get_vadjustment(GTK_TREE_VIEW(ret->treeview)));
   
-  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ret->widget),
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled),
                                  GTK_POLICY_NEVER, GTK_POLICY_ALWAYS);
-  gtk_container_add(GTK_CONTAINER(ret->widget), ret->treeview);
+  gtk_container_add(GTK_CONTAINER(scrolled), ret->treeview);
+  gtk_widget_show(scrolled);
+    
+  ret->widget = gtk_table_new(1, 2, 0);
+  gtk_table_attach_defaults(GTK_TABLE(ret->widget), scrolled, 0, 1, 0, 1);
+
+  box = gtk_vbox_new(0, 0);
+  gtk_box_pack_start_defaults(GTK_BOX(box), ret->add_button);
+  gtk_box_pack_start_defaults(GTK_BOX(box), ret->delete_button);
+  gtk_box_pack_start_defaults(GTK_BOX(box), ret->config_button);
+  gtk_box_pack_start_defaults(GTK_BOX(box), ret->up_button);
+  gtk_box_pack_start_defaults(GTK_BOX(box), ret->down_button);
+  gtk_widget_show(box);
+
+  gtk_table_attach_defaults(GTK_TABLE(ret->widget), box, 1, 2, 0, 1);
+  
   gtk_widget_show(ret->widget);
   
   return ret;
