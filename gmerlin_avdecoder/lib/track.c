@@ -160,7 +160,7 @@ void bgav_track_dump(bgav_t * b, bgav_track_t * t)
 void bgav_track_free(bgav_track_t * t)
   {
   int i;
-
+  
   bgav_metadata_free(&(t->metadata));
   
   if(t->num_audio_streams)
@@ -169,7 +169,7 @@ void bgav_track_free(bgav_track_t * t)
       bgav_stream_free(&(t->audio_streams[i]));
     free(t->audio_streams);
     }
-  if(t->num_audio_streams)
+  if(t->num_video_streams)
     {
     for(i = 0; i < t->num_video_streams; i++)
       bgav_stream_free(&(t->video_streams[i]));

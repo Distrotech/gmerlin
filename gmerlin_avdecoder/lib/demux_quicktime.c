@@ -385,6 +385,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
             priv->packet_table[i].keyframe);
     }
 #endif
+  free(chunk_indices);
   }
 
 #define SET_UDTA_STRING(dst, src) \

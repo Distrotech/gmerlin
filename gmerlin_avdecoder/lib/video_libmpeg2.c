@@ -297,6 +297,17 @@ void close_mpeg2(bgav_stream_t*s)
   {
   mpeg2_priv_t * priv;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
+
+  if(priv->frame)
+    {
+    gavl_video_frame_null(priv->frame);
+    gavl_video_frame_destroy(priv->frame);
+    }
+
+  if(priv->dec)
+    mpeg2_close(priv->dec);
+  
+  free(priv);
   
   }
 

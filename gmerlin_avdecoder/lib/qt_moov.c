@@ -92,4 +92,5 @@ void bgav_qt_moov_free(qt_moov_t * c)
     free(c->tracks);
     }
   bgav_qt_mvhd_free(&(c->mvhd));
+  bgav_qt_udta_free(&(c->udta));
   }
