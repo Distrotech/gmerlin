@@ -106,6 +106,7 @@ static codec_info_t codec_infos[] =
       type:        CODEC_STD,
       ex_functions: 1,
     },
+#if 0
     {
       name:        "DMO WMV9 decoder",
       format_name: "WMV9",
@@ -115,6 +116,17 @@ static codec_info_t codec_infos[] =
       guid:     { 0x724bb6a4, 0xe526, 0x450f,
                   {0xaf, 0xfa, 0xab, 0x9b, 0x45, 0x12, 0x91, 0x11} },
     },
+#else
+    {
+      name:        "DMO WMV9 decoder",
+      format_name: "WMV9",
+      fourccs:  (int[]){ BGAV_MK_FOURCC('W', 'M', 'V', '3'), 0x00 },
+      dll_name: "wmvdmod.dll",
+      type:     CODEC_DMO,
+      guid:     { 0x82d353df, 0x90bd, 0x4382,
+                  {0x8b, 0xc2, 0x3f, 0x61, 0x92, 0xb7, 0x6e, 0x34} }
+    },
+#endif
   };
 
 extern char*   win32_def_path;
@@ -381,7 +393,7 @@ static int init_ds(bgav_stream_t * s)
   info = find_decoder(s->data.video.decoder->decoder);
     
   bgav_BITMAPINFOHEADER_set_format(&bih_in, s);
-  bgav_BITMAPINFOHEADER_dump(&bih_in);
+  //  bgav_BITMAPINFOHEADER_dump(&bih_in);
   pack_bih(&priv->bih_in, &bih_in);
 
   if(!s->ext_size)
@@ -494,7 +506,7 @@ static int init_dmo(bgav_stream_t * s)
   info = find_decoder(s->data.video.decoder->decoder);
     
   bgav_BITMAPINFOHEADER_set_format(&bih_in, s);
-  bgav_BITMAPINFOHEADER_dump(&bih_in);
+  //  bgav_BITMAPINFOHEADER_dump(&bih_in);
   pack_bih(&priv->bih_in, &bih_in);
 
   if(!s->ext_size)

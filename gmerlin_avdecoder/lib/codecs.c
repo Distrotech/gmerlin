@@ -187,14 +187,14 @@ void bgav_codecs_dump()
 static void print_error_nopath(const char * name, const char * env_name)
   {
   fprintf(stderr, "Didn't find path for %s\n", name);
-  fprintf(stderr, "Configure it in the application or via the environment variable %s\n",
+  fprintf(stderr, "Configure it in the application or via the environment variable\n%s\n\n",
           env_name);
   }
 
 static void print_error_nofile(const char * name, const char * env_name)
   {
   fprintf(stderr, "Didn't find some %s\n", name);
-  fprintf(stderr, "Configure codec paths in the application or via the environment variable %s\n",
+  fprintf(stderr, "Configure codec paths in the application or via the environment variable\n%s\n\n",
           env_name);
   }
 
@@ -281,14 +281,14 @@ void bgav_codecs_init()
 #endif
 
 #ifdef HAVE_W32DLL
-
-  if(!win32_def_path)
+  
+  if(!win_path_needs_delete || !win32_def_path)
     {
     win32_def_path = bgav_strndup(getenv(env_name_win32), NULL);
     }
 
   if(!win32_def_path)
-    print_error_nopath("Win32 DLLs", env_name_real);
+    print_error_nopath("Win32 DLLs", env_name_win32);
   else
     {
     if(!bgav_init_video_decoders_win32())

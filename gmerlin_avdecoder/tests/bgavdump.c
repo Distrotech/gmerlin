@@ -28,6 +28,8 @@ static int connect_timeout   = 5000;
 static int read_timeout      = 5000;
 static int network_bandwidth = 524300; /* 524.3 Kbps (Cable/DSL) */
 
+static int samples_to_read = 10240;
+
 int main(int argc, char ** argv)
   {
   int i;
@@ -125,10 +127,11 @@ int main(int argc, char ** argv)
       {
       audio_format_c = bgav_get_audio_format(file, i);
       gavl_audio_format_copy(&audio_format, audio_format_c);
-      audio_format.samples_per_frame = 1024;
+      audio_format.samples_per_frame = samples_to_read;
       af = gavl_audio_frame_create(&audio_format);
-      fprintf(stderr, "Reading 1024 samples from audio stream %d...", i+1);
-      if(bgav_read_audio(file, af, i, 1024))
+      fprintf(stderr, "Reading %d samples from audio stream %d...",
+              samples_to_read, i+1);
+      if(bgav_read_audio(file, af, i,  samples_to_read))
         fprintf(stderr, "Done\n");
       else
         fprintf(stderr, "Failed\n");
