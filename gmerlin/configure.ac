@@ -280,14 +280,14 @@ dnl
 dnl png
 dnl
 
-AH_TEMPLATE([HAVE_LIBPNG], [Do we have libjpeg installed?])
+AH_TEMPLATE([HAVE_LIBPNG], [Do we have libpng installed?])
 
 PNG_REQUIRED="1.2.2"
 have_libpng=false
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
-                                                                               
+
 LIBS="-lpng -lm -lz"
 CFLAGS=""
                                                                                
@@ -317,6 +317,35 @@ AM_CONDITIONAL(HAVE_LIBPNG, test x$have_libpng = xtrue)
 if test x$have_libpng = xtrue; then
 AC_DEFINE(HAVE_LIBPNG)
 fi
+
+dnl
+dnl libtiff
+dnl 
+
+AH_TEMPLATE([HAVE_LIBTIFF], [Do we have libtiff installed?])
+
+TIFF_REQUIRED="3.6.1"
+have_libtiff="false"
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+AC_CHECK_LIB(tiff,TIFFClientOpen, have_libtiff="true", AC_MSG_WARN(libtiff not found))
+
+case $have_libtiff in
+  "true") AC_DEFINE(HAVE_LIBTIFF)
+          TIFF_LIBS=$LIBS ;
+          TIFF_CFLAGS=$CFLAGS ;;
+  "false") TIFF_LIBS=""; TIFF_CFLAGS="";;
+esac
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+AC_SUBST(TIFF_CFLAGS)
+AC_SUBST(TIFF_LIBS)
+AC_SUBST(TIFF_REQUIRED)
+AM_CONDITIONAL(HAVE_LIBTIFF, test x$have_libtiff = xtrue)
 
 dnl
 dnl Applications
@@ -509,6 +538,7 @@ plugins/oss/Makefile \
 plugins/jpeg/Makefile \
 plugins/png/Makefile \
 plugins/tga/Makefile \
+plugins/tiff/Makefile \
 plugins/v4l/Makefile \
 plugins/wavwrite/Makefile \
 skins/Makefile \
@@ -558,6 +588,13 @@ fi
 
 echo -n "Libpng:              "
 if test "x$have_libpng" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "Libtiff:             "
+if test "x$have_libtiff" = "xtrue"; then
 echo "Yes"
 else
 echo "Missing"

@@ -16,6 +16,12 @@ else
 png_subdirs =
 endif
 
+if HAVE_LIBTIFF
+tiff_subdirs = tiff
+else
+tiff_subdirs =
+endif
+
 if HAVE_V4L
 v4l_subdirs = v4l
 else
@@ -54,6 +60,7 @@ $(esd_subdirs) \
 $(v4l_subdirs) \
 $(oss_subdirs) \
 $(png_subdirs) \
+$(tiff_subdirs) \
 $(x11_subdirs) \
 wavwrite \
 tga
