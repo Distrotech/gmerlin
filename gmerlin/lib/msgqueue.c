@@ -534,7 +534,10 @@ void bg_msg_free(bg_msg_t * m)
     {
     if((m->args[i].type == TYPE_POINTER) &&
        (m->args[i].value.val_ptr))
+      {
       free(m->args[i].value.val_ptr);
+      m->args[i].value.val_ptr = (void*)0;
+      }
     }
   }
 
