@@ -147,9 +147,42 @@ int gavl_accel_supported()
 #endif
   }
 
-int gavl_real_accel_flags(int wanted_flags)
+uint32_t gavl_real_accel_flags(uint32_t wanted_flags)
   {
   int ret;
-  ret = wanted_flags & (gavl_accel_supported()|GAVL_ACCEL_C|GAVL_ACCEL_C_HQ);
+  ret = wanted_flags & (gavl_accel_supported()|GAVL_ACCEL_C|GAVL_ACCEL_C_HQ|GAVL_ACCEL_C_SHQ);
   return ret;
+  }
+
+void gavl_set_conversion_parameters(uint32_t * flags, int * quality)
+  {
+  if(!(*flags))
+    {
+    if(*quality < 3)
+      {
+      *flags = GAVL_ACCEL_MMX | GAVL_ACCEL_MMXEXT | GAVL_ACCEL_SSE | GAVL_ACCEL_SSE2 |
+        GAVL_ACCEL_3DNOW;
+      *flags = gavl_real_accel_flags(*flags);
+      }
+    else if(*quality == 3)
+      {
+      *flags = GAVL_ACCEL_C | GAVL_ACCEL_C_HQ;
+      }
+    else if(*quality == 4)
+      {
+      *flags = GAVL_ACCEL_C | GAVL_ACCEL_C_HQ | GAVL_ACCEL_C_SHQ;
+      }
+    }
+  else if(!(*quality))
+    {
+    if(*flags & (GAVL_ACCEL_MMX | GAVL_ACCEL_MMXEXT | GAVL_ACCEL_SSE | GAVL_ACCEL_SSE2 |
+                GAVL_ACCEL_3DNOW))
+      *quality = 2;
+    else if(*flags & GAVL_ACCEL_C_SHQ)
+      *quality = 5;
+    else if(*flags & GAVL_ACCEL_C_HQ)
+      *quality = 4;
+    else if(*flags & GAVL_ACCEL_C)
+      *quality = 3;
+    }
   }

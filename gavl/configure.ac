@@ -112,6 +112,7 @@ include/Makefile \
 include/gavlconfig.h \
 include/gavl/Makefile \
 gavl/Makefile \
+gavl/libgdither/Makefile \
 gavl/c/Makefile \
 gavl/mmx/Makefile \
 gavl/mmxext/Makefile)

@@ -24,6 +24,8 @@
 #include <audio.h>
 #include <mix.h>
 
+#include <libgdither/gdither.h>
+
 struct gavl_audio_converter_s
   {
   gavl_audio_format_t input_format;
@@ -45,6 +47,10 @@ static void destroy_context(gavl_audio_convert_context_t * ctx)
 
   if(ctx->samplerate_converter)
     gavl_samplerate_converter_destroy(ctx->samplerate_converter);
+
+  if(ctx->dither_context)
+    gavl_audio_dither_context_destroy(ctx->dither_context);
+
   free(ctx);
   }
 
@@ -152,16 +158,8 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
   
   gavl_audio_options_copy(&(cnv->opt), opt);
 
-  if(cnv->opt.accel_flags & GAVL_ACCEL_C_SHQ)
-    {
-    cnv->opt.quality = 5;
-    }
-  else if(cnv->opt.accel_flags & GAVL_ACCEL_C_HQ)
-    {
-    cnv->opt.quality = 4;
-    }
-  else if(!cnv->opt.quality)
-    cnv->opt.quality = GAVL_QUALITY_DEFAULT;
+  gavl_set_conversion_parameters(&(cnv->opt.accel_flags),
+                                 &(cnv->opt.quality));
   
   memset(&tmp_format, 0, sizeof(tmp_format));
   cnv->current_format = &(cnv->input_format);

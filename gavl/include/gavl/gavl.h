@@ -73,8 +73,16 @@ int gavl_accel_supported();
  *  the actually supported flags. Used mostly internally.
  */
 
-int gavl_real_accel_flags(int wanted_flags);
+uint32_t gavl_real_accel_flags(uint32_t wanted_flags);
 
+/*
+ *  Set accel_flags from quality or vice versa
+ *  (depending of what is zero)
+ */
+
+void gavl_set_conversion_parameters(uint32_t * flags, int * quality);
+  
+  
 /*********************************************
  *  SECTION 2: Audio stuff
  *********************************************/
@@ -125,7 +133,7 @@ typedef enum
     GAVL_CHANNEL_3F2R   = 7
   } gavl_channel_setup_t;
 
-/* Channel ids */
+/* Channel IDs */
   
 typedef enum
   {
@@ -325,6 +333,9 @@ typedef struct
 
   /* Explicit accel_flags are mainly for debugging purposes */
   int accel_flags;     /* CPU Acceleration flags */
+
+  /* #defines from above */
+    
   uint32_t conversion_flags;
   } gavl_audio_options_t;
   

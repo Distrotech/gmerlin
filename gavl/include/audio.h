@@ -29,6 +29,8 @@ typedef void (*gavl_audio_func_t)(struct gavl_audio_convert_context_s * ctx);
 
 typedef struct gavl_samplerate_converter_s gavl_samplerate_converter_t;
 
+typedef struct gavl_audio_dither_context_s gavl_audio_dither_context_t;
+
 struct gavl_audio_convert_context_s
   {
   gavl_audio_frame_t * input_frame;
@@ -45,7 +47,8 @@ struct gavl_audio_convert_context_s
   
   gavl_mix_matrix_t * mix_matrix;
   gavl_samplerate_converter_t * samplerate_converter;
-  
+  gavl_audio_dither_context_t * dither_context;
+    
   /* For chaining */
   
   struct gavl_audio_convert_context_s * next;
@@ -87,6 +90,10 @@ gavl_samplerate_context_create(gavl_audio_options_t * opt,
 /* Destroy samplerate converter */
 
 void gavl_samplerate_converter_destroy(gavl_samplerate_converter_t * s);
+
+/* Destroy dither context */
+
+void gavl_audio_dither_context_destroy(gavl_audio_dither_context_t * s);
 
 /* Utility function */
 
