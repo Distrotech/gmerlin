@@ -58,13 +58,17 @@ static int num_redirectors = sizeof(redirectors)/sizeof(redirectors[0]);
 bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input)
   {
   int i;
+
   for(i = 0; i < num_redirectors; i++)
     {
+//    fprintf(stderr, "bgav_redirector_probe...");
     if(redirectors[i].r->probe(input))
       {
+//      fprintf(stderr, "done\n");
       fprintf(stderr, "Detected %s redirector\n", redirectors[i].format_name);
       return redirectors[i].r;
       }
+//    fprintf(stderr, "done\n");
     }
   return (bgav_redirector_t*)0;
   }
