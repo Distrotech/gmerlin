@@ -103,3 +103,30 @@ int64_t bgav_xing_get_seek_position(bgav_xing_header_t * xing, float percent)
   return seekpoint;
   
   }
+
+void bgav_xing_header_dump(bgav_xing_header_t * xing)
+  {
+  int i, j;
+  fprintf(stderr, "Xing header:\n");
+  fprintf(stderr, "Flags: %08x, ", xing->flags);
+  if(xing->flags & FRAMES_FLAG)
+    fprintf(stderr, "FRAMES_FLAG ");
+  if(xing->flags & BYTES_FLAG)
+    fprintf(stderr, "BYTES_FLAG ");
+  if(xing->flags & TOC_FLAG)
+    fprintf(stderr, "TOC_FLAG ");
+  if(xing->flags & VBR_SCALE_FLAG)
+    fprintf(stderr, "VBR_SCALE_FLAG ");
+  
+  fprintf(stderr, "\nFrames: %u\n", xing->frames);
+  fprintf(stderr, "Bytes: %u\n", xing->bytes);
+  fprintf(stderr, "TOC:\n");
+  for(i = 0; i < 10; i++)
+    {
+    for(j = 0; j < 10; j++)
+      {
+      fprintf(stderr, "%02x ", xing->toc[i*10+j]);
+      }
+    fprintf(stderr, "\n");
+    }
+  }

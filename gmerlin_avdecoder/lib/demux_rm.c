@@ -934,7 +934,7 @@ int open_rmff(bgav_demuxer_context_t * ctx,
 
   /* Update global fields */
   
-  ctx->duration = prop.duration * (GAVL_TIME_SCALE / 1000); 
+  track->duration = prop.duration * (GAVL_TIME_SCALE / 1000); 
 
   //  if((prop.flags & PN_LIVE_BROADCAST) || !(ctx->input->
   //    {

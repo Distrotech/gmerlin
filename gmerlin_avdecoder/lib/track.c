@@ -44,6 +44,23 @@ bgav_track_add_video_stream(bgav_track_t * t)
   return &(t->video_streams[t->num_video_streams-1]);
   }
 
+bgav_stream_t *
+bgav_track_find_stream_all(bgav_track_t * t, int stream_id)
+  {
+  int i;
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    if(t->audio_streams[i].stream_id == stream_id)
+      return &(t->audio_streams[i]);
+    }
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    if(t->video_streams[i].stream_id == stream_id)
+      return &(t->video_streams[i]);
+    }
+  return (bgav_stream_t *)0;
+  }
+
 bgav_stream_t * bgav_track_find_stream(bgav_track_t * t, int stream_id)
   {
   int i;
@@ -108,10 +125,9 @@ void bgav_track_dump(bgav_t * b, bgav_track_t * t)
   const char * description;
   
   char duration_string[GAVL_TIME_STRING_LEN];
-  gavl_time_t duration;
   
   //  fprintf(stderr, "Track %d:\n", (int)(bgav->current_track - bgav->tracks) +1);
-  fprintf(stderr, "Name  %s:\n", t->name);
+  fprintf(stderr, "Name:  %s\n", t->name);
 
   description = bgav_get_description(b);
   
@@ -120,13 +136,11 @@ void bgav_track_dump(bgav_t * b, bgav_track_t * t)
   //  fprintf(stderr, "Seekable: %s\n", (bgav->demuxer->can_seek ? "Yes" : "No"));
 
   bgav_metadata_dump(&(t->metadata));
-
-  duration = t->duration;
-
+  
   fprintf(stderr, "Duration: ");
-  if(duration)
+  if(t->duration != GAVL_TIME_UNDEFINED)
     {
-    gavl_time_prettyprint(duration, duration_string);
+    gavl_time_prettyprint(t->duration, duration_string);
     fprintf(stderr, "%s\n", duration_string);
     }
   else
@@ -165,4 +179,93 @@ void bgav_track_free(bgav_track_t * t)
     }
   if(t->name)
     free(t->name);
+  }
+
+void bgav_track_clear(bgav_track_t * track)
+  {
+  int i;
+  for(i = 0; i < track->num_audio_streams; i++)
+    bgav_stream_clear(&(track->audio_streams[i]));
+  for(i = 0; i < track->num_video_streams; i++)
+    bgav_stream_clear(&(track->video_streams[i]));
+  }
+
+gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
+  {
+  int i;
+  gavl_time_t ret = 0;
+  bgav_stream_t * s;
+
+  for(i = 0; i < track->num_audio_streams; i++)
+    {
+    s = &(track->audio_streams[i]);
+    bgav_stream_resync_decoder(s);
+
+    if(s->time == GAVL_TIME_UNDEFINED)
+      {
+      fprintf(stderr, "Demuxer is buggy!\n");
+      return GAVL_TIME_UNDEFINED;
+      }
+    s->position =
+      gavl_time_to_samples(s->data.audio.format.samplerate,
+                           s->time);
+    if(s->time > ret)
+      ret = track->audio_streams[i].time;
+    }
+  for(i = 0; i < track->num_video_streams; i++)
+    {
+    s = &(track->video_streams[i]);
+    bgav_stream_resync_decoder(s);
+
+    if(s->time == GAVL_TIME_UNDEFINED)
+      {
+      fprintf(stderr, "Demuxer is buggy!\n");
+      return GAVL_TIME_UNDEFINED;
+      }
+    s->position =
+      gavl_time_to_frames(s->data.video.format.framerate_num,
+                          s->data.video.format.framerate_den,
+                          s->time);
+    if(s->time > ret)
+      ret = s->time;
+    }
+  return ret;
+  }
+
+void bgav_track_skipto(bgav_track_t * track, gavl_time_t time)
+  {
+  int i;
+  bgav_stream_t * s;
+
+  for(i = 0; i < track->num_audio_streams; i++)
+    {
+    s = &(track->audio_streams[i]);
+    bgav_stream_skipto(s, time);
+    }
+  for(i = 0; i < track->num_video_streams; i++)
+    {
+    s = &(track->video_streams[i]);
+    bgav_stream_skipto(s, time);
+    }
+  }
+
+int bgav_track_has_sync(bgav_track_t * t)
+  {
+  int i;
+
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    if(((t->audio_streams[i].action == BGAV_STREAM_DECODE) ||
+        (t->audio_streams[i].action == BGAV_STREAM_SYNC)) &&
+       (t->audio_streams[i].time == GAVL_TIME_UNDEFINED))
+      return 0;
+    }
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    if(((t->video_streams[i].action == BGAV_STREAM_DECODE) ||
+        (t->video_streams[i].action == BGAV_STREAM_SYNC)) &&
+       (t->video_streams[i].time == GAVL_TIME_UNDEFINED))
+      return 0;
+    }
+  return 1;
   }

@@ -22,6 +22,9 @@
 #include <stdlib.h>
 
 extern bgav_redirector_t bgav_redirector_asx;
+extern bgav_redirector_t bgav_redirector_m3u;
+extern bgav_redirector_t bgav_redirector_pls;
+extern bgav_redirector_t bgav_redirector_ref;
 
 static struct
   {
@@ -31,6 +34,9 @@ static struct
 redirectors[] =
   {
     { &bgav_redirector_asx, "asx" },
+    { &bgav_redirector_m3u, "m3u" },
+    { &bgav_redirector_pls, "pls" },
+    { &bgav_redirector_ref, "MS Referece" },
   };
 
 static int num_redirectors = sizeof(redirectors)/sizeof(redirectors[0]);

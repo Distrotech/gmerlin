@@ -686,7 +686,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
   read_avih(ctx->input, &(p->avih), &ch);
   //  dump_avih(&(p->avih));
 
-  ctx->duration = p->avih.dwMicroSecPerFrame * p->avih.dwTotalFrames;
+  ctx->tt->current_track->duration = p->avih.dwMicroSecPerFrame * p->avih.dwTotalFrames;
     
   /* Streams */
 

@@ -385,12 +385,6 @@ static void close_qtraw(bgav_stream_t * s)
   free(priv);
   }
 
-static void clear_qtraw(bgav_stream_t * stream)
-  {
-  
-  }
-
-
 static bgav_video_decoder_t decoder =
   {
     name:   "Quicktime raw video decoder",
@@ -398,7 +392,6 @@ static bgav_video_decoder_t decoder =
     init:   init_qtraw,
     decode: decode_qtraw,
     close:  close_qtraw,
-    clear:  clear_qtraw,
   };
 
 void bgav_init_video_decoders_qtraw()

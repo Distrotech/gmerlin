@@ -572,7 +572,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
 
       // fprintf(stderr, "Send time: 0x%llx\n", asf->hdr.send_time);
       if(asf->hdr.send_time)
-        ctx->duration = (asf->hdr.send_time - asf->hdr.preroll) 
+        ctx->tt->current_track->duration = (asf->hdr.send_time - asf->hdr.preroll) 
           / (10000000/GAVL_TIME_SCALE);
       //      fprintf(stderr, "**** Duration: %lld\n", ctx->duration);
       }
@@ -1054,9 +1054,11 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   
   if(asf->do_sync)
     {
-    if((stream->type == BGAV_STREAM_VIDEO) && (stream->time == -1) && (!keyframe || (offs > 0)))
+    if((stream->type == BGAV_STREAM_VIDEO) &&
+       (stream->time == GAVL_TIME_UNDEFINED) && (!keyframe || (offs > 0)))
       return;
-    else if((stream->type == BGAV_STREAM_AUDIO) && (stream->time == -1) && (offs > 0))
+    else if((stream->type == BGAV_STREAM_AUDIO) &&
+            (stream->time == GAVL_TIME_UNDEFINED) && (offs > 0))
       return;
     }
   
@@ -1106,9 +1108,9 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   stream->packet->timestamp = ((gavl_time_t)time * GAVL_TIME_SCALE) / 1000;
   // stream->packet->timestamp -= ((gavl_time_t)(asf->hdr.preroll) * GAVL_TIME_SCALE) / 1000;
   
-  if(asf->do_sync && (stream->time == -1))
+  if(asf->do_sync && (stream->time == GAVL_TIME_UNDEFINED))
     {
-    fprintf(stderr, "Sync %d %f\n", id, gavl_time_to_seconds(stream->packet->timestamp));
+    //    fprintf(stderr, "Sync %d %f\n", id, gavl_time_to_seconds(stream->packet->timestamp));
     stream->time = stream->packet->timestamp;
     }
   //  if(id == 2)
@@ -1193,68 +1195,12 @@ static int next_packet_asf(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static gavl_time_t resync(bgav_demuxer_context_t * ctx)
-  {
-  gavl_time_t ret;
-  int keep_going;
-  int i;
-  asf_t * asf = (asf_t*)(ctx->priv);
-
-  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
-    {
-    ctx->tt->current_track->audio_streams[i].time = -1;
-    ctx->tt->current_track->audio_streams[i].packet = (bgav_packet_t*)0;
-    if(ctx->tt->current_track->audio_streams[i].packet_buffer)
-      bgav_packet_buffer_clear(ctx->tt->current_track->audio_streams[i].packet_buffer);
-    }
-  for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
-    {
-    ctx->tt->current_track->video_streams[i].time = -1;
-    ctx->tt->current_track->video_streams[i].packet = (bgav_packet_t*)0;
-    if(ctx->tt->current_track->video_streams[i].packet_buffer)
-      bgav_packet_buffer_clear(ctx->tt->current_track->video_streams[i].packet_buffer);
-    }
-  
-  keep_going = 1;
-  asf->do_sync = 1;
-  while(keep_going)
-    {
-    next_packet_asf(ctx);
-    keep_going = 0;
-    for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
-      {
-      if(ctx->tt->current_track->audio_streams[i].time == -1)
-        keep_going = 1;
-      }
-    for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
-      {
-      if(ctx->tt->current_track->video_streams[i].time == -1)
-        keep_going = 1;
-      }
-    }
-  
-  asf->do_sync = 0;
-
-  ret = 0;
-  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
-    {
-    if(ctx->tt->current_track->audio_streams[i].time > ret)
-      ret = ctx->tt->current_track->audio_streams[i].time;
-    }
-  for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
-    {
-    if(ctx->tt->current_track->video_streams[i].time > ret)
-      ret = ctx->tt->current_track->video_streams[i].time;
-    }
-  return ret;
-  }
-
 static void seek_asf(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
-  gavl_time_t resync_time;
   int64_t filepos;
   asf_t * asf = (asf_t*)(ctx->priv);
   /* Reset all the streams */
+  
 #if 0
   fprintf(stderr, "Start: %lld, count: %lld size: %d, Perc: %f, Time: %f/%f\n",
           asf->data_start, asf->hdr.packets_count, asf->packet_size,
@@ -1264,24 +1210,24 @@ static void seek_asf(bgav_demuxer_context_t * ctx, gavl_time_t time)
   filepos = asf->data_start +
     asf->packet_size *
     (int64_t)((double)asf->hdr.packets_count *
-              (gavl_time_to_seconds(time)/gavl_time_to_seconds(ctx->duration)));
+              (gavl_time_to_seconds(time)/gavl_time_to_seconds(ctx->tt->current_track->duration)));
 
-  while(1)
-    {
+  //  while(1)
+  //    {
     //    fprintf(stderr, "Filepos: %lld\n", filepos);
 
     bgav_input_seek(ctx->input, filepos, SEEK_SET);
     //    fprintf(stderr, "Resync...");
-    resync_time = resync(ctx);
-    //    fprintf(stderr, "done: %f %f\n",
-    //            gavl_time_to_seconds(time), gavl_time_to_seconds(resync_time));
-    if((resync_time <= time) || (filepos <= asf->data_start))
-      break;
+
+    asf->do_sync = 1;
+    while(!bgav_track_has_sync(ctx->tt->current_track))
+      {
+      next_packet_asf(ctx);
+      }
+    asf->do_sync = 0;
     
-    filepos -= asf->packet_size;
-    
-    }
   }
+
 
 static void close_asf(bgav_demuxer_context_t * ctx)
   {

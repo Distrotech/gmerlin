@@ -77,7 +77,7 @@ struct bgav_audio_decoder_s
   int (*init)(bgav_stream_t*);
   int (*decode)(bgav_stream_t*, gavl_audio_frame_t*, int num_samples);
   void (*close)(bgav_stream_t*);
-  void (*clear)(bgav_stream_t*);
+  void (*resync)(bgav_stream_t*);
 
   bgav_audio_decoder_t * next;
   };
@@ -87,15 +87,13 @@ struct bgav_video_decoder_s
   uint32_t * fourccs;
   const char * name;
   int (*init)(bgav_stream_t*);
-
   /*
    *  Decodes one frame. If frame is NULL;
    *  the frame is skipped
    */
-    
   int (*decode)(bgav_stream_t*, gavl_video_frame_t*);
   void (*close)(bgav_stream_t*);
-  void (*clear)(bgav_stream_t*);
+  void (*resync)(bgav_stream_t*);
   bgav_video_decoder_t * next;
   };
 
@@ -181,6 +179,8 @@ dst[0] = pal.b >> 8;
 
 /* Stream structure */ 
 
+#define BGAV_BITRATE_VBR -1
+
 struct bgav_stream_s
   {
   void * priv;
@@ -196,7 +196,7 @@ struct bgav_stream_s
 
   int64_t position; /* In samples/frames */
   gavl_time_t time; /* Timestamp (used mainly for seeking) */
-
+  
   /* Where to get data */
   bgav_demuxer_context_t * demuxer;
 
@@ -250,9 +250,29 @@ struct bgav_stream_s
 
 void bgav_stream_start(bgav_stream_t * stream);
 void bgav_stream_stop(bgav_stream_t * stream);
+void bgav_stream_alloc(bgav_stream_t * stream);
 void bgav_stream_free(bgav_stream_t * stream);
-
 void bgav_stream_dump(bgav_stream_t * s);
+
+/* Which timestamp would come if we would decode right now? */
+
+gavl_time_t bgav_stream_next_timestamp(bgav_stream_t *);
+
+/* Clear the packet buffer, called before seeking */
+
+void bgav_stream_clear(bgav_stream_t * s);
+
+/* Resynchronize the stream to the next point
+   where decoding can start again (this is a nop for
+   many decoders) Called AFTER seeking */
+
+void bgav_stream_resync_decoder(bgav_stream_t * s);
+
+/*
+ * Skip to a specific point which must be larger than the current stream time
+ */
+
+void bgav_stream_skipto(bgav_stream_t * s, gavl_time_t time);
 
 typedef struct
   {
@@ -279,12 +299,32 @@ bgav_track_add_video_stream(bgav_track_t * t);
 bgav_stream_t *
 bgav_track_find_stream(bgav_track_t * t, int stream_id);
 
+/* Clear all buffers (call BEFORE seeking) */
+
+void bgav_track_clear(bgav_track_t * track);
+
+/* Resync the decoders, return the latest time, where we can start decoding again */
+
+gavl_time_t bgav_track_resync_decoders(bgav_track_t*);
+
+/* Skip to a specific point */
+
+void bgav_track_skipto(bgav_track_t*, gavl_time_t time);
+
+/* Find stream among ALL streams, also switched off ones */
+
+bgav_stream_t *
+bgav_track_find_stream_all(bgav_track_t * t, int stream_id);
+
 void bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer);
 void bgav_track_stop(bgav_track_t * t);
 
 void bgav_track_free(bgav_track_t * t);
 
 void bgav_track_dump(bgav_t * b, bgav_track_t * t);
+
+int bgav_track_has_sync(bgav_track_t * t);
+
 
 typedef struct
   {
@@ -308,22 +348,28 @@ void bgav_track_table_dump(bgav_track_table_t*);
 
 struct bgav_input_s
   {
-  int     (*open)(bgav_input_context_t*, const char * url,
-                  int connect_timeout);
+  int     (*open)(bgav_input_context_t*, const char * url);
   int     (*read)(bgav_input_context_t*, uint8_t * buffer, int len);
+
+  /* Attempts to read data but returns immediately if there is nothing
+     available */
+    
+  int     (*read_nonblock)(bgav_input_context_t*, uint8_t * buffer, int len);
+  
   int64_t (*seek_byte)(bgav_input_context_t*, int64_t pos, int whence);
   void    (*close)(bgav_input_context_t*);
 
   /* Some inputs support multiple tracks */
 
   void    (*select_track)(bgav_input_context_t*, int);
+
   };
 
 struct bgav_input_context_s
   {
-  char * get_buffer;
-  int    get_buffer_size;
-  int    get_buffer_alloc;
+  char * buffer;
+  int    buffer_size;
+  int    buffer_alloc;
   
   void * priv;
   int64_t total_bytes; /* Maybe 0 for non seekable streams */
@@ -345,6 +391,37 @@ struct bgav_input_context_s
   /* For multiple track support */
 
   bgav_track_table_t * tt;
+
+  bgav_metadata_t metadata;
+
+  /* This is set by the modules to signal that we
+     need to prebuffer data */
+    
+  int do_buffer;
+    
+  /* Configuration stuff is set here */
+
+  int http_use_proxy;
+  const char * http_proxy_host;
+  int http_proxy_port;
+  int http_shoutcast_metadata;
+  int connect_timeout;
+  int read_timeout;
+  int network_bandwidth;
+  int network_buffer_size;
+    
+  /* Callbacks */
+  
+  void (*name_change_callback)(void * data, const char * name);
+  void * name_change_callback_data;
+
+  void (*track_change_callback)(void * data, int track);
+  void * track_change_callback_data;
+
+  void (*buffer_callback)(void * data, float percentage);
+  void * buffer_callback_data;
+
+
   };
 
 /* input.c */
@@ -378,7 +455,22 @@ int bgav_input_get_64_be(bgav_input_context_t*,uint64_t*);
 #define bgav_input_read_fourcc(a,b) bgav_input_read_32_be(a,b)
 #define bgav_input_get_fourcc(a,b)  bgav_input_get_32_be(a,b)
 
-bgav_input_context_t * bgav_input_open(const char * url, int milliseconds);
+/*
+ *  Read one line from the input. Linebreak characters
+ *  (\r, \n) are NOT stored in the buffer, return values is
+ *  the number of characters in the line
+ */
+
+int bgav_input_read_line(bgav_input_context_t*,
+                         char ** buffer, int * buffer_alloc);
+
+bgav_input_context_t * bgav_input_create();
+
+int bgav_input_open(bgav_input_context_t *, const char * url);
+
+bgav_input_context_t * bgav_input_open_vcd(const char * device);
+
+
 void bgav_input_close(bgav_input_context_t * ctx);
 
 void bgav_input_skip(bgav_input_context_t *, int);
@@ -387,6 +479,8 @@ void bgav_input_seek(bgav_input_context_t * ctx,
                      int64_t position,
                      int whence);
 
+void bgav_input_buffer(bgav_input_context_t * ctx);
+
 /* Input module to read from memory */
 
 bgav_input_context_t * bgav_input_open_memory(uint8_t * data,
@@ -394,7 +488,8 @@ bgav_input_context_t * bgav_input_open_memory(uint8_t * data,
 
 /* Input module to read from a filedescriptor */
 
-bgav_input_context_t * bgav_input_open_fd(int fd, int64_t total_bytes, const char * mimetype);
+bgav_input_context_t *
+bgav_input_open_fd(int fd, int64_t total_bytes, const char * mimetype);
 
 /* Demuxer class */
 
@@ -419,21 +514,12 @@ struct bgav_demuxer_s
   void (*select_track)(bgav_demuxer_context_t*, int track);
   };
 
-
 struct bgav_demuxer_context_s
   {
   void * priv;
   bgav_demuxer_t * demuxer;
   bgav_input_context_t * input;
-  gavl_time_t duration;
-
-  //  bgav_metadata_t metadata;
-
-  //  int num_audio_streams;
-  //  int num_video_streams;
-  //  bgav_stream_t * audio_streams;
-  //  bgav_stream_t * video_streams;
-
+  
   bgav_track_table_t * tt;
   char * stream_description;
      
@@ -513,9 +599,14 @@ struct bgav_s
   {
   /* Configuration parameters */
 
+  int http_use_proxy;
+  char * http_proxy_host;
+  int http_proxy_port;
+  int http_shoutcast_metadata;
   int connect_timeout;
   int read_timeout;
   int network_bandwidth;
+  int network_buffer_size;
   
   bgav_input_context_t * input;
   bgav_demuxer_context_t * demuxer;
@@ -524,6 +615,20 @@ struct bgav_s
   bgav_track_table_t * tt;
   
   int is_running;
+
+  /* Callbacks */
+
+  void (*name_change_callback)(void * data, const char * name);
+  void * name_change_callback_data;
+  
+  void (*track_change_callback)(void * data, int track);
+  void * track_change_callback_data;
+  
+  void (*buffer_callback)(void * data, float percentage);
+  void * buffer_callback_data;
+  
+  
+
   };
 
 /* bgav.c */
@@ -677,12 +782,20 @@ void bgav_audio_stop(bgav_stream_t * s);
 int bgav_audio_decode(bgav_stream_t * stream, gavl_audio_frame_t * frame,
                       int num_samples);
 
+void bgav_audio_resync(bgav_stream_t * stream);
+void bgav_audio_skip(bgav_stream_t * stream, gavl_time_t delta_t);
+
+
 /* video.c */
 
 void bgav_video_dump(bgav_stream_t * s);
 
 int bgav_video_start(bgav_stream_t * s);
 void bgav_video_stop(bgav_stream_t * s);
+
+void bgav_video_resync(bgav_stream_t * stream);
+void bgav_video_skipto(bgav_stream_t * stream, gavl_time_t time);
+
 
 /* codecs.c */
 

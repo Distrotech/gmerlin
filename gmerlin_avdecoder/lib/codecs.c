@@ -57,6 +57,18 @@ extern void bgav_init_video_decoders_png();
 extern void bgav_init_audio_decoders_faad2();
 #endif
 
+#ifdef HAVE_MAD
+extern void bgav_init_audio_decoders_mad();
+#endif
+
+#ifdef HAVE_LIBA52
+extern void bgav_init_audio_decoders_a52();
+#endif
+
+#ifdef HAVE_LIBMPEG2
+extern void bgav_init_video_decoders_libmpeg2();
+#endif
+
 extern void bgav_init_video_decoders_real();
 extern void bgav_init_audio_decoders_real();
 
@@ -163,6 +175,14 @@ void bgav_codecs_init()
 #ifdef HAVE_VORBIS
   bgav_init_audio_decoders_vorbis();
 #endif
+
+#ifdef HAVE_LIBA52
+  bgav_init_audio_decoders_a52();
+#endif
+
+#ifdef HAVE_MAD
+  bgav_init_audio_decoders_mad();
+#endif
   bgav_init_video_decoders_real();
   bgav_init_audio_decoders_real();
 
@@ -180,6 +200,10 @@ void bgav_codecs_init()
 
 #ifdef HAVE_FAAD2
   bgav_init_audio_decoders_faad2();
+#endif
+
+#ifdef HAVE_LIBMPEG2
+  bgav_init_video_decoders_libmpeg2();
 #endif
   
   bgav_init_video_decoders_xadll();

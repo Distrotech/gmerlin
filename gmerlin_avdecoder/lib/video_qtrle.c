@@ -443,14 +443,13 @@ int decode_qtrle(bgav_stream_t * s, gavl_video_frame_t * frame)
   return 1;
   }
 
-void clear_qtrle(bgav_stream_t * s)
-  {
-
-  }
-
 void close_qtrle(bgav_stream_t * s)
   {
-
+  qtrle_priv_t * priv;
+  priv = (qtrle_priv_t *)(s->data.video.decoder->priv);
+  if(priv->buffer)
+    free(priv->buffer);
+  free(priv);
   }
 
 static bgav_video_decoder_t decoder =
@@ -461,7 +460,6 @@ static bgav_video_decoder_t decoder =
     init:   init_qtrle,
     decode: decode_qtrle,
     close:  close_qtrle,
-    clear:  clear_qtrle,
   };
 
 void bgav_init_video_decoders_qtrle()

@@ -59,6 +59,7 @@ static int find_tag(bgav_demuxer_context_t * ctx, uint32_t tag)
       return -1;
     if(fourcc == tag)
       return size;
+    bgav_input_skip(ctx->input, size);
     }
   return -1;
   }
@@ -92,8 +93,6 @@ static int open_wav(bgav_demuxer_context_t * ctx,
   
   if(!bgav_input_read_32_le(ctx->input, &file_size))
     goto fail;
-
-  fprintf(stderr, "File size: %d\n", file_size);
     
   if(!bgav_input_read_fourcc(ctx->input, &fourcc) ||
      (fourcc != BGAV_MK_FOURCC('W', 'A', 'V', 'E')))
@@ -160,6 +159,7 @@ static int open_wav(bgav_demuxer_context_t * ctx,
     }
   
   priv->data_size = find_tag(ctx, BGAV_MK_FOURCC('d', 'a', 't', 'a'));
+
   if(priv->data_size < 0)
     goto fail;
   priv->data_start = ctx->input->position;
@@ -168,12 +168,14 @@ static int open_wav(bgav_demuxer_context_t * ctx,
 
   priv->packet_size = ((1024 + s->data.audio.block_align - 1) / 
                        s->data.audio.block_align) * s->data.audio.block_align;
-  //  fprintf(stderr, "Packet size: %d\n", priv->packet_size);
+  //  fprintf(stderr, "Packet size: %d Block align: %d\n", priv->packet_size,
+  //          s->data.audio.block_align);
 
   if(ctx->input->input->seek_byte)
     ctx->can_seek = 1;
 
-  ctx->duration = ((int64_t)priv->data_size * (int64_t)GAVL_TIME_SCALE) / 
+  ctx->tt->current_track->duration
+    = ((int64_t)priv->data_size * (int64_t)GAVL_TIME_SCALE) / 
     (ctx->tt->current_track->audio_streams[0].codec_bitrate / 8);
 
   ctx->stream_description = bgav_sprintf("WAV Format");
@@ -190,22 +192,23 @@ static int next_packet_wav(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   wav_priv_t * priv;
   priv = (wav_priv_t *)(ctx->priv);
-    
+  
   s = bgav_track_find_stream(ctx->tt->current_track, 0);
-
+  
   if(!s)
     return 1;
 
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer);
   
-  p->timestamp = ((ctx->input->position - priv->data_start) * GAVL_TIME_SCALE) /
+  p->timestamp =
+    ((ctx->input->position - priv->data_start) * GAVL_TIME_SCALE) /
     (s->codec_bitrate / 8);
   
   bgav_packet_alloc(p, priv->packet_size);
     
   p->data_size = bgav_input_read_data(ctx->input, p->data, priv->packet_size);
 
-  //  fprintf(stderr, "Read packet 1");
+  //  fprintf(stderr, "Read packet %d\n", priv->packet_size);
   
   p->keyframe = 1;
   

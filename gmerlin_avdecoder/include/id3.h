@@ -1,6 +1,6 @@
 /*****************************************************************
  
-  id3v2.h
+  id3.h
  
   Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
@@ -38,6 +38,8 @@ int bgav_id3v1_probe(bgav_input_context_t * input);
 void bgav_id3v1_destroy(bgav_id3v1_tag_t *);
 
 void bgav_id3v1_2_metadata(bgav_id3v1_tag_t*, bgav_metadata_t * m);
+
+const char * bgav_id3v1_get_genre(int id);
 
 #define ID3V2_FRAME_TAG_ALTER_PRESERVATION  (1<<14)
 #define ID3V2_FRAME_FILE_ALTER_PRESERVATION (1<<13)
@@ -97,6 +99,8 @@ typedef struct
   } bgav_id3v2_tag_t;
 
 int bgav_id3v2_probe(bgav_input_context_t * input);
+
+void bgav_id3v2_dump(bgav_id3v2_tag_t * t);
 
 bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input);
 

@@ -20,8 +20,7 @@
 #include <stdio.h>
 #include <avdec_private.h>
 
-static int open_file(bgav_input_context_t * ctx, const char * url,
-                     int milliseconds)
+static int open_file(bgav_input_context_t * ctx, const char * url)
   {
   FILE * f = fopen(url, "rb");
   if(!f)

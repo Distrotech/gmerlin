@@ -189,7 +189,7 @@ static int open_au(bgav_demuxer_context_t * ctx,
     priv->data_size = ctx->input->total_bytes;
   priv->samples_per_block = samples_per_block;
   if(priv->data_size)
-    ctx->duration = pos_2_time(ctx, priv->data_start + priv->data_size);
+    ctx->tt->current_track->duration = pos_2_time(ctx, priv->data_start + priv->data_size);
   if(ctx->input->input->seek_byte)
     ctx->can_seek = 1;
   

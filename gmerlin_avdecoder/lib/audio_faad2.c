@@ -63,7 +63,7 @@ static int init_faad2(bgav_stream_t * s)
   s->data.audio.format.samplerate = samplerate;
   s->data.audio.format.num_channels = channels;
   //  s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
-  s->data.audio.format.sample_format = GAVL_SAMPLE_S16NE;
+  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
   s->data.audio.format.samples_per_frame = 1024;
 
@@ -171,7 +171,7 @@ static void close_faad2(bgav_stream_t * s)
   free(priv);
   }
 
-static void clear_faad2(bgav_stream_t * s)
+static void resync_faad2(bgav_stream_t * s)
   {
   faad_priv_t * priv;
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
@@ -190,7 +190,7 @@ static bgav_audio_decoder_t decoder =
     init:   init_faad2,
     decode: decode_faad2,
     close:  close_faad2,
-    clear:  clear_faad2
+    resync:  resync_faad2
   };
 
 void bgav_init_audio_decoders_faad2()

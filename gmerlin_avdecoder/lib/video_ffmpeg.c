@@ -207,14 +207,14 @@ static codec_info_t codec_infos[] =
     /*************************************************************
      * Misc other stuff
      *************************************************************/
-        
+#if 0        
     { "FFmpeg Mpeg1 decoder", "MPEG-1", CODEC_ID_MPEG1VIDEO,
       (int[]){ BGAV_MK_FOURCC('m', 'p', 'g', '1'), 
                BGAV_MK_FOURCC('m', 'p', 'g', '2'),
                BGAV_MK_FOURCC('P', 'I', 'M', '1'), 
                BGAV_MK_FOURCC('V', 'C', 'R', '2'),
                0x00 } }, 
-    
+#endif    
     
     { "FFmpeg Hufyuv decoder", "Huff YUV", CODEC_ID_HUFFYUV,
       (int[]){ BGAV_MK_FOURCC('H', 'F', 'Y', 'U'),
@@ -579,7 +579,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       priv->ctx->hurry_up = 1;
     else
       priv->ctx->hurry_up = 0;
-    fprintf(stderr, "Decode: %lld %d\n", s->position, len);
+    //    fprintf(stderr, "Decode: %lld %d\n", s->position, len);
     
     bytes_used = avcodec_decode_video(priv->ctx,
                                       priv->frame,
@@ -587,10 +587,10 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
                                       priv->packet_buffer_ptr,
                                       len);
 
-    fprintf(stderr, "Used %d bytes, %d %d\n",
-            bytes_used,
-            priv->frame->coded_picture_number,
-            priv->frame->display_picture_number);
+    //    fprintf(stderr, "Used %d bytes, %d %d\n",
+    //            bytes_used,
+    //            priv->frame->coded_picture_number,
+    //            priv->frame->display_picture_number);
 
     /* Check for error */
   
@@ -666,14 +666,14 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   return 1;
   }
 
-static void clear(bgav_stream_t * s)
+static void resync_ffmpeg(bgav_stream_t * s)
   {
   ffmpeg_video_priv * priv;
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
   avcodec_flush_buffers(priv->ctx);
   }
 
-static void close(bgav_stream_t * s)
+static void close_ffmpeg(bgav_stream_t * s)
   {
   ffmpeg_video_priv * priv;
   priv= (ffmpeg_video_priv*)(s->data.video.decoder->priv);
@@ -709,8 +709,8 @@ void bgav_init_video_decoders_ffmpeg()
       codecs[real_num_codecs].decoder.fourccs = codecs[real_num_codecs].info->fourccs;
       codecs[real_num_codecs].decoder.init = init;
       codecs[real_num_codecs].decoder.decode = decode;
-      codecs[real_num_codecs].decoder.close = close;
-      codecs[real_num_codecs].decoder.clear = clear;
+      codecs[real_num_codecs].decoder.close = close_ffmpeg;
+      codecs[real_num_codecs].decoder.resync = resync_ffmpeg;
       //      fprintf(stderr, "Registering Codec %s\n", codecs[real_num_codecs].decoder.name);
       bgav_video_decoder_register(&codecs[real_num_codecs].decoder);
       real_num_codecs++;

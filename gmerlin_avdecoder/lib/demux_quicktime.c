@@ -366,7 +366,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
     priv->mdat_start + priv->mdat_size - priv->packet_table[priv->num_packets-1].offset;
   
   /* Dump this */
-#if 1
+#if 0
   fprintf(stderr, "Mdat: %lld %lld\n", priv->mdat_start, priv->mdat_size);
   for(i = 0; i < priv->num_packets; i++)
     {
@@ -423,7 +423,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   track = ctx->tt->current_track;
     
   qt_moov_t * moov = &(priv->moov);
-  ctx->duration = 0;
+  ctx->tt->current_track->duration = 0;
   for(i = 0; i < moov->num_tracks; i++)
     {
     /* Audio stream */
@@ -435,8 +435,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       stream_priv = stream_create(&(moov->tracks[i]), BGAV_STREAM_AUDIO);
       
       stream_duration = stream_get_duration(stream_priv);
-      if(ctx->duration < stream_duration)
-        ctx->duration = stream_duration;
+      if(ctx->tt->current_track->duration < stream_duration)
+        ctx->tt->current_track->duration = stream_duration;
       bg_as->priv = stream_priv;
       
       bg_as->fourcc = desc->fourcc;
@@ -477,8 +477,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       stream_priv = stream_create(&(moov->tracks[i]), BGAV_STREAM_VIDEO);
       
       stream_duration = stream_get_duration(stream_priv);
-      if(ctx->duration < stream_duration)
-        ctx->duration = stream_duration;
+      if(ctx->tt->current_track->duration < stream_duration)
+        ctx->tt->current_track->duration = stream_duration;
       
       bg_vs->priv = stream_priv;
       
@@ -675,7 +675,7 @@ static void seek_quicktime(bgav_demuxer_context_t * ctx, gavl_time_t time)
   int keep_going;
   stream_priv_t * s;
   bgav_track_t * track;
-
+  fprintf(stderr, "Seek quicktime %f %lld\n", gavl_time_to_seconds(time), time);
   track = ctx->tt->current_track;
   
   qt_priv_t * priv = (qt_priv_t*)(ctx->priv);

@@ -24,7 +24,7 @@
  *  we support any bit depth from 1 to 32, which can occur in AIFF
  *  files.
  * 
- *  This decodetr assumes, that the samples_per_frame member of the
+ *  This decoder assumes, that the bits_per_sample member of the
  *  audio format is already set by the demuxer.
  */
 
@@ -125,7 +125,7 @@ static int init_aiff(bgav_stream_t * s)
     }
   else if(s->data.audio.bits_per_sample <= 16)
     {
-    s->data.audio.format.sample_format = GAVL_SAMPLE_S16BE;
+    s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
     priv->decode_func = decode_16;
     }
   else if(s->data.audio.bits_per_sample <= 24)
@@ -211,7 +211,7 @@ static void close_aiff(bgav_stream_t * s)
   free(priv);
   }
 
-static void clear_aiff(bgav_stream_t * s)
+static void resync_aiff(bgav_stream_t * s)
   {
   aiff_audio_t * priv;
   priv = (aiff_audio_t*)(s->data.audio.decoder->priv);
@@ -225,7 +225,7 @@ static bgav_audio_decoder_t decoder =
     name: "AIFF audio decoder",
     init: init_aiff,
     close: close_aiff,
-    clear: clear_aiff,
+    resync: resync_aiff,
     decode: decode_aiff
   };
 

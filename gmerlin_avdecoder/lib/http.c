@@ -48,6 +48,7 @@ void bgav_http_header_destroy(bgav_http_header_t * h)
     }
   if(h->lines)
     free(h->lines);
+  free(h);
   }
 
 void bgav_http_header_add_line(bgav_http_header_t * h, const char * line)
@@ -82,7 +83,7 @@ void bgav_http_header_send(bgav_http_header_t * h, int fd)
     write(fd, h->lines[i].line, strlen(h->lines[i].line));
     write(fd, "\r\n", 2);
     }
-  write(fd, "\r\n", 2);
+  //  write(fd, "\r\n", 2);
   }
 
 /* Reading of http header */
@@ -100,6 +101,24 @@ void bgav_http_header_revc(bgav_http_header_t * h, int fd, int milliseconds)
     }
   if(answer)
     free(answer);
+  }
+
+int bgav_http_header_status_code(bgav_http_header_t * h)
+  {
+  char * pos;
+  if(!h->num_lines)
+    return 0;
+
+  pos = h->lines[0].line;
+  while(!isspace(*pos) && (*pos != '\0'))
+    pos++;
+
+  while(isspace(*pos) && (*pos != '\0'))
+    pos++;
+
+  if(isdigit(*pos))
+    return atoi(pos);
+  return -1;
   }
 
 const char * bgav_http_header_get_var(bgav_http_header_t * h,
@@ -144,13 +163,17 @@ struct bgav_http_s
   };
 
 bgav_http_t * bgav_http_open(const char * url, int milliseconds,
-                             char ** redirect_url)
+                             char ** redirect_url,
+                             bgav_http_header_t * extra_header)
   {
-  char * host;
   int port;
-  char * path;
-  char * protocol;
-  char * line;
+  int status;
+  const char * location;
+  
+  char * host = (char*)0;
+  char * path = (char*)0;
+  char * protocol = (char*)0;
+  char * line = (char*)0;
   bgav_http_header_t * request_header;
   
   bgav_http_t * ret;
@@ -164,8 +187,10 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
                      &path))
     goto fail;
 
+  
   if(port == -1)
     port = 80;
+
   if(strcasecmp(protocol, "http"))
     goto fail;
 
@@ -178,7 +203,7 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
 
   request_header = bgav_http_header_create();
 
-  line = bgav_sprintf("GET %s HTTP/1.1", ((*path != '\0') ? path : "/"));
+  line = bgav_sprintf("GET %s HTTP/1.1", ((path) ? path : "/"));
   bgav_http_header_add_line(request_header, line);
   free(line);
 
@@ -186,29 +211,97 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
   bgav_http_header_add_line(request_header, line);
   free(line);
 
-  bgav_http_header_add_line(request_header, "User-Agent: Blubberlutsch/1.2.3");
+  bgav_http_header_add_line(request_header, "User-Agent: gmerlin/0.3.0");
   bgav_http_header_add_line(request_header, "Accept: */*");
-
+  
   bgav_http_header_send(request_header, ret->fd);
 
+  //  fprintf(stderr, "Sent request:\n");
+  //  bgav_http_header_send(request_header, fileno(stderr));
+  //  bgav_http_header_dump(request_header);
+  
+  if(extra_header)
+    {
+    bgav_http_header_dump(extra_header);
+    bgav_http_header_send(extra_header, ret->fd);
+    }
+  write(ret->fd, "\r\n", 2);
+  bgav_http_header_destroy(request_header);
+        
   ret->header = bgav_http_header_create();
   
   bgav_http_header_revc(ret->header, ret->fd, milliseconds);
 
-  bgav_http_header_dump(ret->header);
+  /* Check status code */
+
+  status = bgav_http_header_status_code(ret->header);
+
+  if(status >= 400) /* Error */
+    {
+    goto fail;
+    }
+  else if(status >= 300) /* Redirection */
+    {
+    /* Extract redirect URL */
+
+    if(*redirect_url)
+      {
+      free(*redirect_url);
+      *redirect_url = (char*)0;
+      }
+    location = bgav_http_header_get_var(ret->header, "Location");
+
+    if(location)
+      *redirect_url = bgav_strndup(location, (char*)0);
+    
+    bgav_http_header_destroy(ret->header);
+    free(ret);
+    
+    return (bgav_http_t*)0;
+    }
+  else if(status < 200)  /* Error */
+    {
+    goto fail;
+    }
+  
+  //  bgav_http_header_dump(ret->header);
+
+  if(host)
+    free(host);
+  if(path)
+    free(path);
+  if(protocol)
+    free(protocol);
   
   return ret;
   
   fail:
 
+  if(*redirect_url)
+    {
+    free(*redirect_url);
+    *redirect_url = (char*)0;
+    }
+  
+  if(host)
+    free(host);
+  if(path)
+    free(path);
+  if(protocol)
+    free(protocol);
+  if(ret->header)
+    bgav_http_header_destroy(ret->header);
+  
   free(ret);
   return (bgav_http_t*)0;
   }
 
-
 void bgav_http_close(bgav_http_t * h)
   {
-
+  if(h->fd >= 0)
+    close(h->fd);
+  bgav_http_header_destroy(h->header);
+  free(h);
   }
 
 int bgav_http_get_fd(bgav_http_t * h)

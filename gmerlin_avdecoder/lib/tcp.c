@@ -29,6 +29,11 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+
 // #include <sys/un.h>
 
 typedef struct 
@@ -53,11 +58,18 @@ static int hostbyname(host_address_t * a, const char * hostname)
   char * gethostbyname_buffer = (char*)0;
   int result, herr;
   int ret = 0;
-                                                                               
+
+  if(inet_aton(hostname, &(a->addr.ipv4_addr)))
+    {
+    a->addr_type = AF_INET;
+    return 1;
+    }
+
+  fprintf(stderr, "Resolving host %s\n", hostname);
+  
   gethostbyname_buffer_size = 1024;
   gethostbyname_buffer = malloc(gethostbyname_buffer_size);
                                                                                
-  fprintf(stderr, "Resolving host %s\n", hostname);
                                                                                
   while((result = gethostbyname_r(hostname,
                                   &h_ent,

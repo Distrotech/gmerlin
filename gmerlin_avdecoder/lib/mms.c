@@ -270,20 +270,36 @@ static void dump_command_header(bgav_mms_t * mms)
   bgav_hexdump(mms->cmd_data_read, mms->command_header.data_len, 16);
   }
 
-static int next_packet(bgav_mms_t * mms)
+static int next_packet(bgav_mms_t * mms, int block)
   {
   uint8_t * ptr;
   uint32_t i_tmp1;
   uint32_t i_tmp2;
+  fd_set rset;
+  struct timeval timeout;
+
+
   //  fprintf(stderr, "Next packet 1\n");
   mms->command = NULL;
   //  mms->header  = NULL;
 
+  if(!block)
+    {
+    FD_ZERO (&rset);
+    FD_SET  (mms->fd, &rset);
+    
+    timeout.tv_sec  = 0;
+    timeout.tv_usec = 0;
+    
+    if(select (mms->fd+1, &rset, NULL, NULL, &timeout) <= 0)
+      return 0;
+    }
+  
   while(1)
     {
     //    fprintf(stderr, "Read data 1...");
     mms->read_buffer_len = read_data(mms->fd, mms->read_buffer,
-                                   8, mms->read_timeout);
+                                     8, mms->read_timeout);
     //    fprintf(stderr, "done\n");
     if(mms->read_buffer_len < 8)
       {
@@ -304,12 +320,12 @@ static int next_packet(bgav_mms_t * mms)
       
       if(!read_command_header(mms))
         return 0;
-
+      
       /* Check for commands sent during playback */
-
+      
       if(mms->command_header.command == 0x1b)
         {
-        fprintf(stderr, "MMS: Sending keep alive message\n");
+        //        fprintf(stderr, "MMS: Sending keep alive message\n");
         set_command_header(mms, 0x1b, 0x00000001, 0x0001ffff, 0);
         flush_command(mms);
         continue;
@@ -467,7 +483,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   free(buf);
   free(utf16);
       
-  if(!next_packet(ret))
+  if(!next_packet(ret, 1))
     goto fail;
     
   /* S->C: 0x01 Software version number and stuff */
@@ -529,7 +545,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
 
   /* S->C: 0x03: Protocol not accepted OR 0x02: Protocol accepted */
   
-  if(!next_packet(ret))
+  if(!next_packet(ret, 1))
     {
     fprintf(stderr, "Next packet failed\n");
     goto fail;
@@ -552,7 +568,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
 
   /* C->S: Request file */
 
-  fprintf(stderr, "Path: %s\n", path);
+  //  fprintf(stderr, "Path: %s\n", path);
   utf16 = bgav_convert_string(ascii_2_utf16, path, strlen(path),
                               &len_out);
   
@@ -563,7 +579,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   flush_command(ret);
   free(utf16);
   
-  if(!next_packet(ret))
+  if(!next_packet(ret, 1))
     {
     fprintf(stderr, "Next packet failed\n");
     goto fail;
@@ -580,7 +596,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
     }
   else if(ret->command_header.command != 0x06)
     {
-    fprintf(stderr, "Got answer: %d\n", ret->command_header.command);
+    //    fprintf(stderr, "Got answer: %d\n", ret->command_header.command);
     goto fail;
     }
   
@@ -600,26 +616,26 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   pos+=8; /* Time point */
 
   i_tmp = BGAV_PTR_2_32LE(pos);pos+=4;
-  fprintf(stderr, "Length: %u seconds\n", i_tmp);
+  //  fprintf(stderr, "Length: %u seconds\n", i_tmp);
 
   pos += 16; /* Zeros */
 
   i_tmp = BGAV_PTR_2_32LE(pos);pos+=4;
-  fprintf(stderr, "Packet length: %u\n", i_tmp);
+  //  fprintf(stderr, "Packet length: %u\n", i_tmp);
 
   ret->packet_buffer = malloc(i_tmp);
   ret->packet_len = i_tmp;
   
   i_tmp = BGAV_PTR_2_32LE(pos);pos+=4;
-  fprintf(stderr, "Total Packets: %u (0x%08x)\n", i_tmp, i_tmp);
+  //  fprintf(stderr, "Total Packets: %u (0x%08x)\n", i_tmp, i_tmp);
   
   pos+=4; /* Zeros */
   
   i_tmp = BGAV_PTR_2_32LE(pos);pos+=4;
-  fprintf(stderr, "Highest Bitrate: %f kbit/sec\n", (float)(i_tmp)/1000.0);
+  //  fprintf(stderr, "Highest Bitrate: %f kbit/sec\n", (float)(i_tmp)/1000.0);
   
   i_tmp = BGAV_PTR_2_32LE(pos);pos+=4;
-  fprintf(stderr, "Header size: %d\n", i_tmp);
+  //  fprintf(stderr, "Header size: %d\n", i_tmp);
   ret->header_alloc = i_tmp;
   ret->header = malloc(ret->header_alloc);
   
@@ -632,7 +648,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   
   /* S->C: 0x11: Header comes */
 
-  if(!next_packet(ret))
+  if(!next_packet(ret, 1))
     return 0;
   if((!ret->command) ||
      (ret->command_header.prefix1) ||
@@ -645,13 +661,13 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
 
   while(ret->header_size < ret->header_alloc)
     {
-    fprintf(stderr, "** Next packet %d %d...", ret->header_size,
-            ret->header_alloc);
-    if(!next_packet(ret))
+    //    fprintf(stderr, "** Next packet %d %d...", ret->header_size,
+    //            ret->header_alloc);
+    if(!next_packet(ret, 1))
       return 0;
-    fprintf(stderr, "done %d %d\n",
-            ret->header_size,
-            ret->header_alloc);
+    //    fprintf(stderr, "done %d %d\n",
+    //            ret->header_size,
+    //            ret->header_alloc);
     }
   //  dump_data(ret->read_buffer+8, ret->read_buffer_len-8, "header.dat");
 
@@ -724,7 +740,7 @@ int bgav_mms_select_streams(bgav_mms_t * mms,
     }
   flush_command(mms);
 
-  if(!next_packet(mms))
+  if(!next_packet(mms, 1))
     return 0;
 
   if((!mms->command) ||
@@ -748,7 +764,7 @@ int bgav_mms_select_streams(bgav_mms_t * mms,
 
   /* Now we need 0x05 (media packets follow) */
 
-  if(!next_packet(mms))
+  if(!next_packet(mms, 1))
     return 0;
 
   if((!mms->command) ||
@@ -759,11 +775,11 @@ int bgav_mms_select_streams(bgav_mms_t * mms,
   return 1;
   }
 
-uint8_t * bgav_mms_read_data(bgav_mms_t * mms, int * len)
+uint8_t * bgav_mms_read_data(bgav_mms_t * mms, int * len, int block)
   {
   //  fprintf(stderr, "bgav_mms_read_data...");
   mms->got_data = 0;
-  if(!next_packet(mms))
+  if(!next_packet(mms, block))
     return (char*)0;
 
   if(mms->packet_buffer && mms->got_data)

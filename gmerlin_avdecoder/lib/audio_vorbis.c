@@ -325,7 +325,7 @@ static int decode_vorbis(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samp
   return samples_decoded;
   }
 
-static void clear_vorbis(bgav_stream_t * s)
+static void resync_vorbis(bgav_stream_t * s)
   {
   vorbis_audio_priv * priv;
   priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
@@ -365,9 +365,9 @@ static bgav_audio_decoder_t decoder =
                            BGAV_MK_FOURCC('O','g', 'g', 'V'),
                            BGAV_WAVID_2_FOURCC(0xfffe), 0x00 },
     name: "Ogg vorbis audio decoder",
-    init: init_vorbis,
-    close: close_vorbis,
-    clear: clear_vorbis,
+    init:   init_vorbis,
+    close:  close_vorbis,
+    resync: resync_vorbis,
     decode: decode_vorbis
   };
 

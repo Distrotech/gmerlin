@@ -52,12 +52,34 @@ demuxers[] =
     { &bgav_demuxer_mpegps, "Mpeg System" },
   };
 
+static struct
+  {
+  bgav_demuxer_t * demuxer;
+  char * mimetype;
+  }
+mimetypes[] =
+  {
+    { &bgav_demuxer_mpegaudio, "audio/mpeg" }
+  };
+
 static int num_demuxers = sizeof(demuxers)/sizeof(demuxers[0]);
+static int num_mimetypes = sizeof(mimetypes)/sizeof(mimetypes[0]);
 
 bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
   {
   int i;
-  uint8_t header[32];
+  //  uint8_t header[32];
+  if(input->mimetype)
+    {
+    for(i = 0; i < num_mimetypes; i++)
+      {
+      if(!strcmp(mimetypes[i].mimetype, input->mimetype))
+        {
+        return mimetypes[i].demuxer;
+        }
+      }
+    }
+    
   for(i = 0; i < num_demuxers; i++)
     {
     if(demuxers[i].demuxer->probe(input))
@@ -66,10 +88,6 @@ bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
       return demuxers[i].demuxer;
       }
     }
-  fprintf(stderr, "Cannot detect format, first 32 bytes follow\n");
-
-  if(bgav_input_get_data(input, header, 32) == 32)
-    bgav_hexdump(header, 32, 16);
   return (bgav_demuxer_t *)0;
   }
 
@@ -87,7 +105,7 @@ bgav_demuxer_create(bgav_demuxer_t * demuxer,
   return ret;
   }
 
-#define FREE(p) if(p)free(p)
+#define FREE(p) if(p){free(p);p=NULL;}
 
 void bgav_demuxer_destroy(bgav_demuxer_context_t * ctx)
   {
@@ -107,9 +125,6 @@ int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
 
 void bgav_demuxer_stop(bgav_demuxer_context_t * ctx)
   {
-  if(ctx->stream_description)
-    free(ctx->stream_description);
-  
   ctx->demuxer->close(ctx);
   ctx->priv = NULL;
   FREE(ctx->stream_description);
@@ -137,131 +152,58 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
   p->valid = 0;
   }
 
+/* Maximum allowed seek tolerance, decrease if you want it more exact */
+
+#define SEEK_TOLERANCE (GAVL_TIME_SCALE/2)
+
 void
 bgav_seek(bgav_t * b, gavl_time_t time)
   {
-  int i;
-  gavl_time_t packet_time;
   gavl_time_t diff_time;
-  gavl_time_t new_time;
-  bgav_stream_t * s;
-  /* First step: Flush all fifos and decoders */
-  bgav_demuxer_context_t * demuxer = b->demuxer;
+  gavl_time_t sync_time;
+  gavl_time_t seek_time;
+  
   bgav_track_t * track = b->tt->current_track;
+  int num_iterations = 0;
+  seek_time = time;
   
-  for(i = 0; i < track->num_audio_streams; i++)
+  while(1)
     {
-    s = &(track->audio_streams[i]);
-
-    if(s->packet_buffer)
-      bgav_packet_buffer_clear(s->packet_buffer);
-    if(s->data.audio.decoder &&
-       s->data.audio.decoder->decoder->clear)
-      s->data.audio.decoder->decoder->clear(&(track->audio_streams[i]));
-
-    s->packet = NULL;
-    }
-  for(i = 0; i < track->num_video_streams; i++)
-    {
-    s = &(track->video_streams[i]);
-    if(s->packet_buffer)
-      bgav_packet_buffer_clear(s->packet_buffer);
-    if(s->data.video.decoder &&
-       s->data.video.decoder->decoder->clear)
-      s->data.video.decoder->decoder->clear(s);
-    s->packet = NULL;
-    s->position = -1;
-    s->time     = -1;
-    }
-  
-  /* Second step: Let the demuxer seek */
-  /* This will set the "time" members of all streams */
-  
-  demuxer->demuxer->seek(demuxer, time);
-  
-  /* Third step: Resync this mess */
-  new_time = time;
-  for(i = 0; i < track->num_video_streams; i++)
-    {
-    s = &(track->video_streams[i]);
-    if(s->time == -1)
-      {
-      if(s->position == -1)
-        fprintf(stderr, "Demuxer is buggy!\n");
-      s->time =
-        gavl_frames_to_time(s->data.video.format.framerate_num,
-                            s->data.video.format.framerate_den,
-                            s->position);
-      }
-    else if(s->position == -1)
-      {
-      if(s->time == -1)
-        fprintf(stderr, "Demuxer is buggy!\n");
-      s->position =
-        gavl_time_to_frames(s->data.video.format.framerate_num,
-                            s->data.video.format.framerate_den,
-                            s->time);
-      }
-
-    /* Resync video stream */
-
-    while(1)
-      {
-      while(!bgav_packet_buffer_get_timestamp(s->packet_buffer, &packet_time))
-        demuxer->demuxer->next_packet(demuxer);
-      if(packet_time < 0)
-        packet_time = gavl_frames_to_time(s->data.video.format.framerate_num,
-                                               s->data.video.format.framerate_den,
-                                               s->position+1);
-      if(packet_time < time)
-        bgav_read_video(b, (gavl_video_frame_t*)0, i);
-      else
-        break;
-      }
-    fprintf(stderr,
-            "Video stream %d, time: %lld diff: %lld\n",
-            i+1, s->time,
-            time - s->time);
-    if(!i) /* We use the first video stream as the official new time */
-      new_time = packet_time;
-    }
-  for(i = 0; i < track->num_audio_streams; i++)
-    {
+    num_iterations++;
+    /* First step: Flush all fifos */
     
-    s = &(track->audio_streams[i]);
-    diff_time = new_time - s->time;
-
-    if(s->time == -1)
-      {
-      if(s->position == -1)
-        fprintf(stderr, "Demuxer is buggy!\n");
-      s->time =
-        gavl_samples_to_time(s->data.audio.format.samplerate,
-                             s->position);
-      }
-    else if(s->position == -1)
-      {
-      if(s->time == -1)
-        fprintf(stderr, "Demuxer is buggy!\n");
-      s->position =
-        gavl_time_to_samples(s->data.audio.format.samplerate,
-                             s->time);
-      }
-    diff_time = new_time - s->time;
-    /* Skip audio samples */
+    bgav_track_clear(track);
     
-    fprintf(stderr,
-            "Audio stream %d, time: %lld diff: %lld Samples: %lld\n",
-            i+1, s->time,
-            new_time - s->time,
-            gavl_time_to_samples(s->data.audio.format.samplerate,
-                                 diff_time));
+    /* Second step: Let the demuxer seek */
+    /* This will set the "time" members of all streams */
+    
+    b->demuxer->demuxer->seek(b->demuxer, seek_time);
+   
+    sync_time = bgav_track_resync_decoders(track);
+    diff_time = time - sync_time;
+    fprintf(stderr, "Seeked, time: %f sync_time: %f, diff: %f\n",
+            gavl_time_to_seconds(time),
+            gavl_time_to_seconds(sync_time),
+            gavl_time_to_seconds(diff_time));
+    
     if(diff_time > 0)
       {
-      bgav_audio_decode(s, (gavl_audio_frame_t*)0,
-                        gavl_time_to_samples(s->data.audio.format.samplerate,
-                                             diff_time));
+      bgav_track_skipto(track, time);
+      break;
+      }
+    else if(diff_time < -SEEK_TOLERANCE)
+      {
+      /* We get a bit more back than the error was */
+      seek_time += (diff_time * 3)/2;
+      if(seek_time < 0)
+        seek_time = 0;
+      }
+    else
+      {
+      bgav_track_skipto(track, sync_time);
+      break;
       }
     }
+  fprintf(stderr, "Seek done, %d iterations\n", num_iterations);
   }
 

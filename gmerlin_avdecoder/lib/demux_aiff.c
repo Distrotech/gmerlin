@@ -124,9 +124,11 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
   uint16_t num_bits;
   uint16_t num_channels;
   uint32_t samplerate;
-
+  bgav_track_t * track;
+  
   /* Create track */
   ctx->tt = bgav_track_table_create(1);
+  track = ctx->tt->current_track;
   
   /* Check file magic */
   
@@ -150,7 +152,7 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
     switch(ch.fourcc)
       {
       case BGAV_MK_FOURCC('C','O','M','M'):
-        s = bgav_track_add_audio_stream(ctx->tt->current_track);
+        s = bgav_track_add_audio_stream(track);
         s->fourcc = BGAV_MK_FOURCC('a','i','f','f');
         
         if(!bgav_input_read_16_be(ctx->input, &(num_channels)) ||
@@ -194,7 +196,7 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
         bgav_input_skip(ctx->input, 4); /* Blocksize */
         priv->data_start = ctx->input->position;
         priv->data_size = ch.size - 8;
-        ctx->duration = pos_2_time(ctx, priv->data_size + priv->data_start);
+        track->duration = pos_2_time(ctx, priv->data_size + priv->data_start);
         keep_going = 0;
         break;
       default:

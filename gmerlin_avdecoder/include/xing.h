@@ -29,8 +29,8 @@ typedef struct
   {
   int flags;
   
-  int frames;             /* total bit stream frames from Xing header data */
-  int bytes;              /* total bit stream bytes from Xing header data  */
+  uint32_t frames;             /* total bit stream frames from Xing header data */
+  uint32_t bytes;              /* total bit stream bytes from Xing header data  */
   unsigned char toc[100]; /* "table of contents" */
   } bgav_xing_header_t;
 
@@ -39,3 +39,5 @@ typedef struct
 int bgav_xing_header_read(bgav_xing_header_t * xing, unsigned char *buf);
 
 int64_t bgav_xing_get_seek_position(bgav_xing_header_t * xing, float percent);
+
+void bgav_xing_header_dump(bgav_xing_header_t * xing);

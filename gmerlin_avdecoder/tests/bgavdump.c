@@ -19,6 +19,7 @@
 
 #include <avdec.h>
 #include <stdio.h>
+#include <string.h>
 
 /* Configuration data */
 
@@ -34,15 +35,16 @@ int main(int argc, char ** argv)
   int num_urls;
   int num_tracks;
   int track;
-  
+    
   bgav_t * file;
   
   gavl_audio_frame_t * af;
   gavl_video_frame_t * vf;
 
-  gavl_audio_format_t * audio_format;
-  gavl_video_format_t * video_format;
-
+  const gavl_audio_format_t * audio_format_c;
+  gavl_audio_format_t audio_format;
+  const gavl_video_format_t * video_format;
+  
   //  bgav_codecs_dump();
 
   file = bgav_create();
@@ -52,8 +54,17 @@ int main(int argc, char ** argv)
   bgav_set_connect_timeout(file,   connect_timeout);
   bgav_set_read_timeout(file,      read_timeout);
   bgav_set_network_bandwidth(file, network_bandwidth);
-  
-  if(!bgav_open(file, argv[1]))
+
+  if(!strncmp(argv[1], "vcd://", 6))
+    {
+    if(!bgav_open_vcd(file, argv[1] + 5))
+      {
+      fprintf(stderr, "Could not open VCD Device %s\n",
+              argv[1] + 5);
+      return -1;
+      }
+    }
+  else if(!bgav_open(file, argv[1]))
     {
     fprintf(stderr, "Could not open file %s\n",
             argv[1]);
@@ -97,10 +108,13 @@ int main(int argc, char ** argv)
   
     for(i = 0; i < num_audio_streams; i++)
       {
-      audio_format = bgav_get_audio_format(file, i);
-      af = gavl_audio_frame_create(audio_format);
-      fprintf(stderr, "Reading frame from audio stream %d...", i+1);
-      if(bgav_read_audio(file, af, i))
+      audio_format_c = bgav_get_audio_format(file, i);
+
+      gavl_audio_format_copy(&audio_format, audio_format_c);
+      audio_format.samples_per_frame = 1024;
+      af = gavl_audio_frame_create(&audio_format);
+      fprintf(stderr, "Reading 1024 samples from audio stream %d...", i+1);
+      if(bgav_read_audio(file, af, i, 1024))
         fprintf(stderr, "Done\n");
       else
         fprintf(stderr, "Failed\n");

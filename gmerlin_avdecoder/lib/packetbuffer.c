@@ -64,7 +64,7 @@ void bgav_packet_buffer_clear(bgav_packet_buffer_t * b)
 
   do{
   tmp_packet->data_size = 0;
-  tmp_packet->timestamp = -1;
+  tmp_packet->timestamp = GAVL_TIME_UNDEFINED;
   tmp_packet->valid = 0;
   tmp_packet = tmp_packet->next;
   }while(tmp_packet != b->packets);
@@ -94,12 +94,12 @@ bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t * b)
       cur = cur->next;
     cur->next = bgav_packet_create();
     cur->next->next = b->write_packet;
-
     b->write_packet = cur->next;
     }
   ret = b->write_packet;
   b->write_packet = b->write_packet->next;
-  ret->timestamp = -1;
+  ret->timestamp = GAVL_TIME_UNDEFINED;
+  //  fprintf(stderr, "Get packet write: %p\n", ret);  
   return ret;
   }
 

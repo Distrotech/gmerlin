@@ -139,8 +139,8 @@ static char * parse_attribute_value(parser_t * p)
   char * end;
   char accept[2];
 
-  fprintf(stderr, "Parse attribute value: %s %d\n",
-          p->buffer, p->buffer_size);
+  //  fprintf(stderr, "Parse attribute value: %s %d\n",
+  //          p->buffer, p->buffer_size);
 
   if(!p->buffer_size)
     {
@@ -184,25 +184,25 @@ static int parse_attributes(parser_t * p, bgav_yml_node_t * ret)
   ret->attributes = calloc(1, sizeof(*(ret->attributes)));
   attr_end = ret->attributes;
 
-  fprintf(stderr, "p1: %s\n", p->buffer);
+  //  fprintf(stderr, "p1: %s\n", p->buffer);
   
   attr_end->name = parse_attribute_name(p);
-  fprintf(stderr, "p2: %s\n", p->buffer);
+  //  fprintf(stderr, "p2: %s\n", p->buffer);
       
   if(!skip_space(p))
     return 0;
-  fprintf(stderr, "p3: %s\n", p->buffer);
+  //  fprintf(stderr, "p3: %s\n", p->buffer);
   if(p->buffer[0] != '=')
     return 0;
-  fprintf(stderr, "p4: %s\n", p->buffer);
+  //  fprintf(stderr, "p4: %s\n", p->buffer);
   advance(p, 1); /* '=' */
-  fprintf(stderr, "p5: %s\n", p->buffer);
+  //  fprintf(stderr, "p5: %s\n", p->buffer);
   if(!skip_space(p))
     return 0;
-  fprintf(stderr, "p6: %s\n", p->buffer);
+  //  fprintf(stderr, "p6: %s\n", p->buffer);
   attr_end->value = parse_attribute_value(p);
 
-  fprintf(stderr, "Attribute: %s: %s\n", attr_end->name, attr_end->value);
+  //  fprintf(stderr, "Attribute: %s: %s\n", attr_end->name, attr_end->value);
   
   while(1)
     {
@@ -233,7 +233,7 @@ static int parse_attributes(parser_t * p, bgav_yml_node_t * ret)
 static int parse_children(parser_t * p, bgav_yml_node_t * ret)
   {
   int is_comment;
-  bgav_yml_node_t * child_end;
+  bgav_yml_node_t * child_end = (bgav_yml_node_t*)0;
   bgav_yml_node_t * new_node;
   while(1)
     {
@@ -273,7 +273,7 @@ static int parse_tag_node(parser_t * p, bgav_yml_node_t * ret)
   {
   char * pos;
   advance(p, 1);
-  fprintf(stderr, "Parse tag node: %s\n", p->buffer);
+  //  fprintf(stderr, "Parse tag node: %s\n", p->buffer);
   ret->name = parse_tag_name(p);
 
   switch(*(p->buffer))

@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -75,7 +76,7 @@ static void dump_frame(bgav_id3v2_frame_t * frame)
     }
   }
 
-static void bgav_id3v2_dump(bgav_id3v2_tag_t * t)
+void bgav_id3v2_dump(bgav_id3v2_tag_t * t)
   {
   int i;
   fprintf(stderr, "============= ID3V2 tag =============\n");
@@ -479,9 +480,30 @@ static uint32_t artist_tags[] =
     0x00,
   };
 
+static uint32_t date_tags[] =
+  {
+    BGAV_MK_FOURCC('T','Y','E',0x00),
+    BGAV_MK_FOURCC('T','Y','E','R'),
+    0x00,
+  };
+
+static uint32_t track_tags[] =
+  {
+    BGAV_MK_FOURCC('T', 'R', 'C', 'K'),
+    BGAV_MK_FOURCC('T', 'R', 'K', 0x00),
+    0x00,
+  };
+
+static uint32_t genre_tags[] =
+  {
+    BGAV_MK_FOURCC('T', 'C', 'O', 'N'),
+    BGAV_MK_FOURCC('T', 'C', 'O', 0x00),
+    0x00,
+  };
 
 void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
   {
+  int i_tmp;
   bgav_id3v2_frame_t * frame;
   
   /* Title */
@@ -507,6 +529,34 @@ void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
   frame = bgav_id3v2_find_frame(t, artist_tags);
   if(frame && frame->strings)
     m->artist = bgav_strndup(frame->strings[0], NULL);
+
+  /* Date */
+  
+  frame = bgav_id3v2_find_frame(t, date_tags);
+  if(frame && frame->strings)
+    m->date = bgav_strndup(frame->strings[0], NULL);
+
+  /* Track */
+
+  frame = bgav_id3v2_find_frame(t, track_tags);
+  if(frame && frame->strings)
+    m->track = atoi(frame->strings[0]);
+
+  /* Genre */
+  
+  frame = bgav_id3v2_find_frame(t, genre_tags);
+  if(frame && frame->strings)
+    {
+    if(isdigit(frame->strings[0][0]))
+      {
+      i_tmp = atoi(frame->strings[0]);
+      m->genre = bgav_strndup(bgav_id3v1_get_genre(i_tmp), NULL);
+      }
+    else
+      {
+      m->genre = bgav_strndup(frame->strings[0], NULL);
+      }
+    }
   
   }
 

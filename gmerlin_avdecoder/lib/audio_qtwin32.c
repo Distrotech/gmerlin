@@ -270,7 +270,7 @@ static int init_qtaudio(bgav_stream_t * s)
     goto fail;
     }
   
-  s->data.audio.format.sample_format = GAVL_SAMPLE_S16LE;
+  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
   s->data.audio.format.samples_per_frame = 1024;
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
   s->data.audio.decoder->priv = priv;
@@ -406,7 +406,7 @@ static void close_qtaudio(bgav_stream_t * s)
   free(priv);
   }
 
-static void clear_qtaudio(bgav_stream_t * s)
+static void resync_qtaudio(bgav_stream_t * s)
   {
   qta_priv_t * priv = (qta_priv_t*)s->data.audio.decoder->priv;
   priv->in_buffer_size = 0;
@@ -421,10 +421,10 @@ static bgav_audio_decoder_t decoder =
                       BGAV_MK_FOURCC('Q','c','l','p'),
                       0x0 },
     
-    init:   init_qtaudio,
-    decode: decode_qtaudio,
-    close:  close_qtaudio,
-    clear:  clear_qtaudio
+    init:    init_qtaudio,
+    decode:  decode_qtaudio,
+    close:   close_qtaudio,
+    resync:  resync_qtaudio
   };
 
 void bgav_init_audio_decoders_qtwin32()

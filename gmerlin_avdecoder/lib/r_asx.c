@@ -77,7 +77,7 @@ int xml_2_asx(bgav_redirector_context_t * r, bgav_yml_node_t * n)
       }
     node = node->next;
     }
-  fprintf(stderr, "Num entries: %d\n", r->num_urls);
+  //  fprintf(stderr, "Num entries: %d\n", r->num_urls);
   r->urls = calloc(r->num_urls, sizeof(*(r->urls)));
 
   
@@ -107,12 +107,13 @@ int xml_2_asx(bgav_redirector_context_t * r, bgav_yml_node_t * n)
           {
           if(!r->urls[index].url)
             r->urls[index].url =
-              bgav_strndup(bgav_yml_get_attribute_i(child_node, "href"), NULL);
+              bgav_strndup(bgav_yml_get_attribute_i(child_node, "href"),
+                           NULL);
           }
-        else
-          {
-          fprintf(stderr, "Child name: %s\n", child_node->name);
-          }
+        //        else
+        //          {
+        //          fprintf(stderr, "Child name: %s\n", child_node->name);
+        //          }
         child_node = child_node->next;
         }
       //      fprintf(stderr, "Name: %s\nLocation: %s\n", r->names[index],

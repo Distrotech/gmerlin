@@ -45,6 +45,9 @@ static codec_info_t codec_infos[] =
                BGAV_MK_FOURCC('l', 'p', 'c', 'J'),
                0x00 } },
 #endif
+
+    /* MPEG audio is handled by mad */
+#if 0    
     { "FFmpeg mp2 decoder", "MPEG audio Layer 1/2/3", CODEC_ID_MP2,
       (int[]){ BGAV_WAVID_2_FOURCC(0x50), 0x00 } },
 
@@ -53,10 +56,10 @@ static codec_info_t codec_infos[] =
                BGAV_MK_FOURCC('.', 'm', 'p', '3'),
                BGAV_MK_FOURCC('m', 's', 0x00, 0x55),
                0x00 } },
-      
     { "FFmpeg ac3 decoder", "AC3", CODEC_ID_AC3,
       (int[]){ BGAV_WAVID_2_FOURCC(0x2000), BGAV_MK_FOURCC('.', 'a', 'c', '3'), 0x00 } },
     
+#endif
     { "FFmpeg PCM decoder", "16bit linear PCM (little endian)", CODEC_ID_PCM_S16LE,
       (int[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('s', 'o', 'w', 't'), 0x00 } },
 
@@ -204,7 +207,7 @@ static int init(bgav_stream_t * s)
   /* Set missing format values */
 
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
-  s->data.audio.format.sample_format = GAVL_SAMPLE_S16NE;
+  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
   s->data.audio.format.samples_per_frame = 1024;
   gavl_set_channel_setup(&(s->data.audio.format));
   
@@ -349,7 +352,7 @@ static int decode(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
   return samples_decoded;
   }
 
-static void clear(bgav_stream_t * s)
+static void resync_ffmpeg(bgav_stream_t * s)
   {
   ffmpeg_audio_priv * priv;
   priv = (ffmpeg_audio_priv*)(s->data.audio.decoder->priv);
@@ -358,7 +361,7 @@ static void clear(bgav_stream_t * s)
   priv->bytes_in_packet_buffer = 0;
   }
 
-static void close(bgav_stream_t * s)
+static void close_ffmpeg(bgav_stream_t * s)
   {
   ffmpeg_audio_priv * priv;
   priv= (ffmpeg_audio_priv*)(s->data.audio.decoder->priv);
@@ -396,8 +399,8 @@ bgav_init_audio_decoders_ffmpeg()
         codecs[real_num_codecs].info->fourccs;
       codecs[real_num_codecs].decoder.init = init;
       codecs[real_num_codecs].decoder.decode = decode;
-      codecs[real_num_codecs].decoder.close = close;
-      codecs[real_num_codecs].decoder.clear = clear;
+      codecs[real_num_codecs].decoder.close = close_ffmpeg;
+      codecs[real_num_codecs].decoder.resync = resync_ffmpeg;
       // fprintf(stderr, "Registering Codec %s\n",
       //         codecs[real_num_codecs].decoder.name);
       bgav_audio_decoder_register(&codecs[real_num_codecs].decoder);

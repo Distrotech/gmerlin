@@ -59,6 +59,21 @@ AC_DEFINE(HAVE_VORBIS)
 fi
 
 dnl
+dnl libmpeg2
+dnl 
+
+have_libmpeg2=false
+AH_TEMPLATE([HAVE_LIBMPEG2], [libmpeg2 found])
+
+PKG_CHECK_MODULES(LIBMPEG2, libmpeg2 >= 0.4.0, have_libmpeg2=true, )
+
+AM_CONDITIONAL(HAVE_LIBMPEG2, test x$have_libmpeg2 = xtrue)
+
+if test x$have_libmpeg2 = xtrue; then
+AC_DEFINE(HAVE_LIBMPEG2)
+fi
+
+dnl
 dnl PNG
 dnl 
 
@@ -152,6 +167,106 @@ AM_CONDITIONAL(HAVE_FAAD2, test x$have_faad2 = xtrue)
 
 if test x$have_faad2 = xtrue; then
 AC_DEFINE(HAVE_FAAD2)
+fi
+
+
+dnl
+dnl MAD
+dnl
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+ 
+LIBS="-lmad"
+CFLAGS=""
+
+AH_TEMPLATE([HAVE_MAD], [Enable MAD])
+AC_MSG_CHECKING(for libmad 0.15.x)
+have_mad="false"
+
+  AC_TRY_RUN([
+    #include "mad.h"
+    #include <stdio.h>
+    main()
+    {
+    struct mad_stream stream;
+    int version_major = MAD_VERSION_MAJOR;
+    int version_minor = MAD_VERSION_MINOR;
+    if((version_major != 0) || (version_minor != 15))
+      return -1;
+    mad_stream_init(&stream);
+    return 0;
+    }
+  ],
+  [
+    # program could be run
+    have_mad="true"
+    AC_MSG_RESULT(yes)
+    MAD_CFLAGS=$CFLAGS
+    MAD_LIBS=$LIBS
+
+  ],
+    # program could not be run
+    AC_MSG_RESULT(no)
+)
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+AC_SUBST(MAD_CFLAGS)
+AC_SUBST(MAD_LIBS)
+
+AM_CONDITIONAL(HAVE_MAD, test x$have_mad = xtrue)
+
+if test x$have_mad = xtrue; then
+AC_DEFINE(HAVE_MAD)
+fi
+
+dnl
+dnl liba52
+dnl
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+ 
+LIBS="-la52"
+CFLAGS=""
+
+AH_TEMPLATE([HAVE_LIBA52], [Enable liba52])
+AC_MSG_CHECKING(for liba52)
+have_liba52="false"
+
+  AC_TRY_RUN([
+    #include <inttypes.h>
+    #include <a52dec/a52.h>
+    main()
+    {
+    a52_state_t * state = a52_init(0);
+    return 0;
+    }
+  ],
+  [
+    # program could be run
+    have_liba52="true"
+    AC_MSG_RESULT(yes)
+    LIBA52_CFLAGS=$CFLAGS
+    LIBA52_LIBS=$LIBS
+
+  ],
+    # program could not be run
+    AC_MSG_RESULT(no)
+)
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+AC_SUBST(LIBA52_CFLAGS)
+AC_SUBST(LIBA52_LIBS)
+
+AM_CONDITIONAL(HAVE_LIBA52, test x$have_mad = xtrue)
+
+if test x$have_liba52 = xtrue; then
+AC_DEFINE(HAVE_LIBA52)
 fi
 
 dnl
@@ -304,12 +419,26 @@ else
 echo "Missing"
 fi
 
-dnl echo -n "libxml2:           "
-dnl if test "x$have_libxml2" = "xtrue"; then
-dnl echo "Yes"
-dnl else
-dnl echo "Missing"
-dnl fi
+echo -n "libmpeg2:          "
+if test "x$have_libmpeg2" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "libmad 0.15.x:     "
+if test "x$have_mad" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "liba52:            "
+if test "x$have_liba52" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
 
 echo -n "win32 DLL Support: "
 if test "x$enable_w32dll" = "xtrue"; then

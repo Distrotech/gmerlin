@@ -23,8 +23,16 @@
 bgav_track_table_t * bgav_track_table_create(int num_tracks)
   {
   bgav_track_table_t * ret;
+  int i;
+  
   ret = calloc(1, sizeof(*ret));
   ret->tracks = calloc(num_tracks, sizeof(*(ret->tracks)));
+
+  /* Set all durations to undefined */
+
+  for(i = 0; i < num_tracks; i++)
+    ret->tracks[i].duration = GAVL_TIME_UNDEFINED;
+  
   ret->num_tracks = num_tracks;
   ret->current_track = ret->tracks;
   ret->refcount = 1;

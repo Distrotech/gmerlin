@@ -10,6 +10,7 @@ qt.h \
 sdp.h \
 utils.h \
 xing.h \
-yml.h
+yml.h \
+avdec.h
 
-include_HEADERS = avdec.h
+# include_HEADERS = avdec.h

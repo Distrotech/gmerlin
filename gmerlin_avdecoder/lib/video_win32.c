@@ -334,7 +334,7 @@ static int decode_std(bgav_stream_t * s, gavl_video_frame_t * frame)
   return 1;
   }
 
-static void clear_std(bgav_stream_t * s)
+static void resync_std(bgav_stream_t * s)
   {
 
   }
@@ -449,7 +449,7 @@ static int decode_ds(bgav_stream_t * s, gavl_video_frame_t * frame)
   return 1;
   }
 
-static void clear_ds(bgav_stream_t * s)
+static void resync_ds(bgav_stream_t * s)
   {
 
   }
@@ -562,7 +562,7 @@ static int decode_dmo(bgav_stream_t * s, gavl_video_frame_t * frame)
   return 1;
   }
 
-static void clear_dmo(bgav_stream_t * s)
+static void resync_dmo(bgav_stream_t * s)
   {
 
   }
@@ -602,19 +602,19 @@ void bgav_init_video_decoders_win32()
           codecs[i].init   = init_std;
           codecs[i].decode = decode_std;
           codecs[i].close = close_std;
-          codecs[i].clear = clear_std;
+          codecs[i].resync = resync_std;
           break;
         case CODEC_DS:
           codecs[i].init   = init_ds;
           codecs[i].decode = decode_ds;
           codecs[i].close = close_ds;
-          codecs[i].clear = clear_ds;
+          codecs[i].resync = resync_ds;
           break;
         case CODEC_DMO:
           codecs[i].init   = init_dmo;
           codecs[i].decode = decode_dmo;
           codecs[i].close = close_dmo;
-          codecs[i].clear = clear_dmo;
+          codecs[i].resync = resync_dmo;
           break;
         }
       bgav_video_decoder_register(&codecs[i]);

@@ -436,12 +436,6 @@ static int decode_xadll(bgav_stream_t * s, gavl_video_frame_t * frame)
   return 1;
   }
 
-
-static void clear_xadll(bgav_stream_t * s)
-  {
-
-  }
-
 static void close_xadll(bgav_stream_t * s)
   {
   xanim_priv_t * priv;
@@ -461,7 +455,6 @@ static bgav_video_decoder_t decoder =
     init:   init_xadll,
     decode: decode_xadll,
     close:  close_xadll,
-    clear:  clear_xadll
   };
 
 void bgav_init_video_decoders_xadll()

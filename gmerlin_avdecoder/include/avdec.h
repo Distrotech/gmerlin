@@ -52,9 +52,44 @@ void bgav_set_read_timeout(bgav_t *, int timeout);
 
 void bgav_set_network_bandwidth(bgav_t *, int bandwidth);
 
+void bgav_set_network_buffer_size(bgav_t *, int size);
+
+
+/* HTTP Options */
+
+void bgav_set_http_use_proxy(bgav_t*, int use_proxy);
+void bgav_set_http_proxy_host(bgav_t*, const char *);
+void bgav_set_http_proxy_port(bgav_t*, int);
+void bgav_set_http_shoutcast_metadata(bgav_t*, int);
+
+/* Set callbacks */
+
+void
+bgav_set_name_change_callback(bgav_t*,
+                              void (callback)(void*data, const char * name),
+                              void * data);
+
+void
+bgav_set_track_change_callback(bgav_t*,
+                               void (callback)(void*data, int track),
+                               void * data);
+
+void
+bgav_set_buffer_callback(bgav_t*,
+                         void (callback)(void*data, float percentage),
+                         void * data);
+
+/******************************************************
+ * Open
+ ******************************************************/
+
 /* Open a file or URL, return handle on success */
 
 int bgav_open(bgav_t *, const char * location);
+
+/* Open VCD Device */
+
+int bgav_open_vcd(bgav_t *, const char * location);
 
 
 /*
@@ -194,7 +229,8 @@ void bgav_start(bgav_t *);
  ***************************************************/
 
 int bgav_read_video(bgav_t *, gavl_video_frame_t * frame, int stream);
-int bgav_read_audio(bgav_t *, gavl_audio_frame_t * frame, int stream);
+int bgav_read_audio(bgav_t *, gavl_audio_frame_t * frame, int stream,
+                    int num_samples);
 
 /***************************************************
  * Seek to a timestanmp. This also resyncs all streams

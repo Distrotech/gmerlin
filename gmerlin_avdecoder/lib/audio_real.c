@@ -32,7 +32,7 @@
 static int init_real(bgav_stream_t * s);
 static int decode_real(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples);
 static void close_real(bgav_stream_t * s);
-static void clear_real(bgav_stream_t * s);
+static void resync_real(bgav_stream_t * s);
 static void skip_real(bgav_stream_t * s,int);
 
 typedef struct
@@ -54,7 +54,7 @@ static codec_info_t real_codecs[] =
         init:   init_real,
         decode: decode_real,
         close:  close_real,
-        clear:  clear_real,
+        resync: resync_real,
       },
     },
     {
@@ -67,7 +67,7 @@ static codec_info_t real_codecs[] =
         init:   init_real,
         decode: decode_real,
         close:  close_real,
-        clear:  clear_real,
+        resync: resync_real,
       },
     },
     {
@@ -80,7 +80,7 @@ static codec_info_t real_codecs[] =
         init:   init_real,
         decode: decode_real,
         close:  close_real,
-        clear:  clear_real,
+        resync: resync_real,
       },
     },
 #if 0
@@ -96,7 +96,7 @@ static codec_info_t real_codecs[] =
         init:   init_real,
         decode: decode_real,
         close:  close_real,
-        clear:  clear_real,
+        resync: resync_real,
       },
       
     },
@@ -112,7 +112,7 @@ static codec_info_t real_codecs[] =
         init:   init_real,
         decode: decode_real,
         close:  close_real,
-        clear:  clear_real,
+        resync: resync_real,
       },
       
     },
@@ -127,7 +127,7 @@ static codec_info_t real_codecs[] =
         init:   init_real,
         decode: decode_real,
         close:  close_real,
-        clear:  clear_real,
+        resync: resync_real,
       },
       
     },
@@ -349,7 +349,7 @@ static int init_real(bgav_stream_t * s)
   priv->sample_buffer = malloc(2 * s->data.audio.format.num_channels * 10240);
   s->data.audio.format.samples_per_frame = 1024;
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
-  s->data.audio.format.sample_format   = GAVL_SAMPLE_S16NE;
+  s->data.audio.format.sample_format   = GAVL_SAMPLE_S16;
   gavl_set_channel_setup(&(s->data.audio.format));
   return 1;
   }
@@ -588,12 +588,12 @@ static void close_real(bgav_stream_t * s)
   free(p);
   }
 
-static void clear_real(bgav_stream_t * s)
+static void resync_real(bgav_stream_t * s)
   {
   real_priv_t * p = (real_priv_t*)s->data.audio.decoder->priv;
   p->sample_buffer_size = 0;
   p->read_buffer_size = 0;
 
-  fprintf(stderr, "clear realaud\n");
+  //  fprintf(stderr, "clear realaud\n");
   }
 

@@ -145,6 +145,7 @@ int bgav_url_split(const char * url,
         *port = atoi(pos2);
       while(isdigit(*pos2))
         pos2++;
+      break;
     default:
       if(port)
         *port = -1;
@@ -155,10 +156,10 @@ int bgav_url_split(const char * url,
     {
     pos1 = pos2;
     pos2 = pos1 + strlen(pos1);
-    if(pos1 == pos2)
-      *path = bgav_sprintf("/");
-    else
+    if(pos1 != pos2)
       *path = bgav_strndup(pos1, pos2);
+    else
+      *path = (char*)0;
     }
   return 1;
   }
@@ -181,7 +182,7 @@ int bgav_read_line_fd(int fd, char ** ret, int * ret_alloc, int milliseconds)
   int bytes_read;
   bytes_read = 0;
   /* Allocate Memory for the case we have none */
-  if(!ret_alloc)
+  if(!(*ret_alloc))
     {
     *ret_alloc = BYTES_TO_ALLOC;
     *ret = realloc(*ret, *ret_alloc);

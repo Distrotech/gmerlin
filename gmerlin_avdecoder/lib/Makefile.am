@@ -14,6 +14,16 @@ vorbis_libs =
 vorbis_sources =
 endif
 
+if HAVE_LIBA52
+a52_cflags = @LIBA52_CFLAGS@
+a52_libs =   @LIBA52_LIBS@
+a52_sources = audio_a52.c
+else
+a52_cflags =
+a52_libs =
+a52_sources =
+endif
+
 if HAVE_FAAD2
 faad2_cflags = @FAAD2_CFLAGS@
 faad2_libs =   @FAAD2_LIBS@
@@ -34,6 +44,27 @@ png_libs =
 png_sources =
 endif
 
+if HAVE_LIBMPEG2
+libmpeg2_cflags =  @LIBMPEG2_CFLAGS@
+libmpeg2_libs =    @LIBMPEG2_LIBS@
+libmpeg2_sources = video_libmpeg2.c
+else
+libmpeg2_cflags =
+libmpeg2_libs =
+libmpeg2_sources =
+endif
+
+if HAVE_MAD
+mad_cflags =  @MAD_CFLAGS@
+mad_libs =    @MAD_LIBS@
+mad_sources = audio_mad.c
+else
+mad_cflags =
+mad_libs =
+mad_sources =
+endif
+
+
 if HAVE_W32DLL
 win32_subdirs = libw32dll
 win32_libs = \
@@ -48,28 +79,37 @@ win32_libs =
 win32_sources =
 endif
 
-# if HAVE_LIBXML2
-# xml2_sources = r_asx.c
-# xml2_cflags = @XML2_CFLAGS@
-# xml2_libs =   @XML2_LIBS@
-# else
-# xml2_sources =
-# xml2_cflags =
-# xml2_libs =
-# endif
 
 SUBDIRS = $(win32_subdirs) real_rtsp
 
 libgmerlin_avdec_la_LDFLAGS=-export-dynamic
-libgmerlin_avdec_la_LIBADD=$(vorbis_libs) $(win32_libs) $(png_libs) $(faad2_libs) real_rtsp/librealrtsp.la
-CFLAGS = @CFLAGS@ $(vorbis_cflags) $(png_cflags) $(faad2_cflags)
+libgmerlin_avdec_la_LIBADD= \
+$(vorbis_libs) \
+$(libmpeg2_libs) \
+$(win32_libs) \
+$(png_libs) \
+$(faad2_libs) \
+$(mad_libs) \
+$(a52_libs) \
+real_rtsp/librealrtsp.la
+
+CFLAGS = \
+@CFLAGS@ \
+$(vorbis_cflags) \
+$(mad_cflags) \
+$(png_cflags) \
+$(faad2_cflags) \
+$(libmpeg2_cflags) \
+$(a52_cflags)
 
 libgmerlin_avdec_la_SOURCES = \
+$(libmpeg2_sources) \
 $(vorbis_sources) \
 $(faad2_sources) \
 $(png_sources) \
 $(win32_sources) \
-$(xml2_sources) \
+$(mad_sources) \
+$(a52_sources) \
 audio.c \
 audio_ffmpeg.c \
 audio_real.c \
@@ -99,6 +139,7 @@ in_memory.c \
 in_mms.c \
 in_pnm.c \
 in_realrtsp.c \
+in_vcd.c \
 input.c \
 metadata.c \
 mms.c \
@@ -133,7 +174,9 @@ qt_udta.c \
 qt_utils.c \
 redirect.c \
 r_asx.c \
-r_ram.c \
+r_m3u.c \
+r_pls.c \
+r_ref.c \
 sdp.c \
 stream.c \
 rtsp.c \

@@ -35,8 +35,7 @@ typedef struct
 
 extern bgav_demuxer_t bgav_demuxer_asf;
 
-static int open_mms(bgav_input_context_t * ctx, const char * url,
-                    int milliseconds)
+static int open_mms(bgav_input_context_t * ctx, const char * url)
   {
   uint8_t * header;
   int header_len;
@@ -53,7 +52,7 @@ static int open_mms(bgav_input_context_t * ctx, const char * url,
 
   /* Open mms connection */
   
-  priv->mms = bgav_mms_open(url, milliseconds, 5000);
+  priv->mms = bgav_mms_open(url, ctx->connect_timeout, ctx->read_timeout);
   if(!priv->mms)
     goto fail;
 
@@ -96,7 +95,7 @@ static int open_mms(bgav_input_context_t * ctx, const char * url,
 
   free(stream_ids);
   /* Set the input context of the demuxer */
-  
+  ctx->do_buffer = 1;
   ctx->demuxer->input = ctx;
   ctx->position = header_len;
   bgav_input_close(input);
@@ -109,8 +108,8 @@ static int open_mms(bgav_input_context_t * ctx, const char * url,
 
 #define __MIN(a, b) (((a)<(b))?(a):(b))
 
-static int read_mms(bgav_input_context_t* ctx,
-                    uint8_t * buffer, int len)
+static int do_read(bgav_input_context_t* ctx,
+                   uint8_t * buffer, int len, int block)
   {
   mms_priv_t * priv;
   //  int buffer_size;
@@ -122,14 +121,13 @@ static int read_mms(bgav_input_context_t* ctx,
   //  fprintf(stderr, "read_mms\n");
   
   priv = (mms_priv_t *)(ctx->priv);
-
-
+  
   bytes_read = 0;
   while(bytes_read < len)
     {
     if(!priv->buffer_size)
       {
-      priv->buffer = bgav_mms_read_data(priv->mms, &(priv->buffer_size));
+      priv->buffer = bgav_mms_read_data(priv->mms, &(priv->buffer_size), block);
       if(!priv->buffer)
         return bytes_read;
       priv->buffer_ptr = priv->buffer;
@@ -145,6 +143,20 @@ static int read_mms(bgav_input_context_t* ctx,
   return bytes_read; 
   }
 
+static int read_mms(bgav_input_context_t* ctx,
+                    uint8_t * buffer, int len)
+  {
+  return do_read(ctx, buffer, len, 1);
+
+  }
+
+static int read_mms_nonblock(bgav_input_context_t* ctx,
+                             uint8_t * buffer, int len)
+  {
+  return do_read(ctx, buffer, len, 0);
+
+  }
+
 static void    close_mms(bgav_input_context_t * ctx)
   {
   mms_priv_t * mms;
@@ -156,9 +168,10 @@ static void    close_mms(bgav_input_context_t * ctx)
 
 bgav_input_t bgav_input_mms =
   {
-    open:      open_mms,
-    read:      read_mms,
+    open:          open_mms,
+    read:          read_mms,
+    read_nonblock: read_mms_nonblock,
     //    seek_byte: seek_byte_mms,
-    close:     close_mms
+    close:         close_mms
   };
 

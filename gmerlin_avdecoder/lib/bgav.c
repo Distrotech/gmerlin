@@ -21,8 +21,39 @@
 
 #include <avdec_private.h>
 
+#define DUMP_SIZE 1024
+
+bgav_input_context_t * create_input(bgav_t * b)
+  {
+  bgav_input_context_t * ret;
+  ret = calloc(1, sizeof(*ret));
+
+  ret->http_use_proxy =            b->http_use_proxy;
+  ret->http_proxy_host =           b->http_proxy_host;
+  ret->http_proxy_port =           b->http_proxy_port;
+  ret->http_shoutcast_metadata =   b->http_shoutcast_metadata;
+  ret->connect_timeout =           b->connect_timeout;
+  ret->read_timeout =              b->read_timeout;
+  ret->network_bandwidth =         b->network_bandwidth;
+  ret->network_buffer_size =       b->network_buffer_size;
+
+  ret->name_change_callback       = b->name_change_callback;
+  ret->name_change_callback_data  = b->name_change_callback_data;
+
+  ret->track_change_callback      = b->track_change_callback;
+  ret->track_change_callback_data = b->track_change_callback_data;
+
+  ret->buffer_callback            = b->buffer_callback;
+  ret->buffer_callback_data       = b->buffer_callback_data;
+  
+  return ret;
+  }
+
 int bgav_init(bgav_t * ret)
   {
+  uint8_t dump_buffer[DUMP_SIZE];
+  int dump_len;
+    
   bgav_demuxer_t * demuxer;
   bgav_redirector_t * redirector;
 
@@ -35,10 +66,19 @@ int bgav_init(bgav_t * ret)
     {
     ret->tt = ret->input->tt;
     bgav_track_table_ref(ret->tt);
+
+    ret->demuxer = ret->input->demuxer;
+
+    if(ret->demuxer)
+      ret->demuxer->tt = ret->input->tt;
+
+    
     if(ret->tt->num_tracks > 1)
       return 1;
+    
     }
-
+  
+  
   if(!ret->input->demuxer)
     {
     demuxer = bgav_demuxer_probe(ret->input);
@@ -77,6 +117,15 @@ int bgav_init(bgav_t * ret)
     }
   
   fail:
+
+  if(!demuxer && !redirector)
+    {
+    dump_len =  bgav_input_get_data(ret->input, dump_buffer, DUMP_SIZE);
+
+    fprintf(stderr, "Cannot detect stream type, first %d bytes of stream follow\n",
+            dump_len);
+    bgav_hexdump(dump_buffer, dump_len, 16);
+    }
   
   if(ret->demuxer)
     bgav_demuxer_destroy(ret->demuxer);
@@ -100,7 +149,10 @@ bgav_t * bgav_create()
 
 int bgav_open(bgav_t * ret, const char * location)
   {
-  ret->input = bgav_input_open(location, ret->connect_timeout);
+  ret->input = create_input(ret);
+  if(!bgav_input_open(ret->input, location))
+    return 0;
+  
   if(!ret->input)
     {
     return 0;
@@ -111,6 +163,20 @@ int bgav_open(bgav_t * ret, const char * location)
   fail:
   return 0;
   }
+
+int bgav_open_vcd(bgav_t * b, const char * device)
+  {
+  b->input = bgav_input_open_vcd(device);
+  if(!b->input)
+    return 0;
+  if(!bgav_init(b))
+    goto fail;
+  return 1;
+  fail:
+  return 0;
+  
+  }
+
 
 int bgav_open_fd(bgav_t * ret, int fd, int64_t total_size, const char * mimetype)
   {
@@ -131,7 +197,8 @@ void bgav_close(bgav_t * b)
 
   if(b->input)
     bgav_input_close(b->input);
-  bgav_track_table_unref(b->tt);
+  if(b->tt)
+    bgav_track_table_unref(b->tt);
   free(b);
   }
 
@@ -160,6 +227,8 @@ void bgav_stop(bgav_t * b)
 
 void bgav_select_track(bgav_t * b, int track)
   {
+  fprintf(stderr, "bgav_select_track %d\n", track);
+  
   if(b->is_running)
     bgav_stop(b);
   
@@ -171,7 +240,6 @@ void bgav_select_track(bgav_t * b, int track)
     
     bgav_track_table_select_track(b->tt, track);
     b->input->input->select_track(b->input, track);
-    
     bgav_demuxer_start(b->demuxer, &(b->redirector));
     }
   else if(b->demuxer->demuxer->select_track)
@@ -186,6 +254,10 @@ void bgav_start(bgav_t * b)
   {
   b->is_running = 1;
   /* Create buffers */
+
+  //  fprintf(stderr, "bgav_start\n");
+
+  bgav_input_buffer(b->input);
   bgav_track_start(b->tt->current_track, b->demuxer);
   }
 
@@ -194,55 +266,61 @@ int bgav_can_seek(bgav_t * b)
   return b->demuxer->can_seek;
   }
 
+#define GET(key) b->tt->tracks[track].metadata.key ? \
+b->tt->tracks[track].metadata.key : \
+b->input->metadata.key
+
 const char * bgav_get_author(bgav_t*b, int track)
   {
-  return b->tt->tracks[track].metadata.author;
+  return GET(author);
   }
 
 const char * bgav_get_title(bgav_t*b, int track)
   {
-  return b->tt->tracks[track].metadata.title;
+  return GET(title);
   }
 
 const char * bgav_get_copyright(bgav_t*b, int track)
   {
-  return b->tt->tracks[track].metadata.copyright;
+  return GET(copyright);
   }
 
 const char * bgav_get_comment(bgav_t*b, int track)
   {
-  return b->tt->tracks[track].metadata.comment;
+  return GET(comment);
   }
 
 char * bgav_get_album(bgav_t*b, int track)
   {
-  return b->tt->tracks[track].metadata.album;
+  return GET(album);
   }
 
 char * bgav_get_artist(bgav_t*b, int track)
   {
-  return b->tt->tracks[track].metadata.artist;
+  return GET(artist);
   }
 
 char * bgav_get_genre(bgav_t*b, int track)
   {
-  return b->tt->tracks[track].metadata.genre;
+  return GET(genre);
   }
 
 char * bgav_get_date(bgav_t*b, int track)
   {
-  return b->tt->tracks[track].metadata.date;
+  return GET(date);
   }
 
 int bgav_get_track(bgav_t*b, int track)
   {
-  return b->tt->tracks[track].metadata.track;
+  return GET(track);
   }
 
 const char * bgav_get_description(bgav_t * b)
   {
   return b->demuxer->stream_description;
   }
+
+/* Configuration stuff */
 
 void bgav_set_connect_timeout(bgav_t *b, int timeout)
   {
@@ -262,3 +340,80 @@ void bgav_set_network_bandwidth(bgav_t *b, int bandwidth)
   {
   b->network_bandwidth = bandwidth;
   }
+
+void bgav_set_network_buffer_size(bgav_t *b, int size)
+  {
+  b->network_buffer_size = size;
+  }
+
+
+void bgav_set_http_use_proxy(bgav_t*b, int use_proxy)
+  {
+  b->http_use_proxy = use_proxy;
+  }
+
+void bgav_set_http_proxy_host(bgav_t*b, const char * h)
+  {
+  if(b->http_proxy_host)
+    free(b->http_proxy_host);
+  b->http_proxy_host = bgav_strndup(h, NULL);
+  }
+
+void bgav_set_http_proxy_port(bgav_t*b, int p)
+  {
+  b->http_proxy_port = p;
+  }
+
+void bgav_set_http_shoutcast_metadata(bgav_t*b, int m)
+  {
+  b->http_shoutcast_metadata = m;
+  }
+
+void
+bgav_set_name_change_callback(bgav_t * b,
+                              void (callback)(void*data, const char * name),
+                              void * data)
+  {
+  b->name_change_callback      = callback;
+  b->name_change_callback_data = data;
+
+  if(b->input)
+    {
+    b->input->name_change_callback      = callback;
+    b->input->name_change_callback_data = data;
+    }
+
+  }
+
+void
+bgav_set_track_change_callback(bgav_t * b,
+                               void (callback)(void*data, int track),
+                               void * data)
+  {
+  b->track_change_callback      = callback;
+  b->track_change_callback_data = data;
+
+  if(b->input)
+    {
+    b->input->track_change_callback      = callback;
+    b->input->track_change_callback_data = data;
+    }
+  }
+
+
+void
+bgav_set_buffer_callback(bgav_t * b,
+                         void (callback)(void*data, float percentage),
+                         void * data)
+  {
+  b->buffer_callback      = callback;
+  b->buffer_callback_data = data;
+
+  if(b->input)
+    {
+    b->input->buffer_callback      = callback;
+    b->input->buffer_callback_data = data;
+    }
+  
+  }
+

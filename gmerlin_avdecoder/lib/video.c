@@ -51,6 +51,10 @@ int bgav_video_start(bgav_stream_t * stream)
   ctx = calloc(1, sizeof(*ctx));
   stream->data.video.decoder = ctx;
   stream->data.video.decoder->decoder = dec;
+
+  stream->position = 0;
+  stream->time = 0;
+
   //  fprintf(stderr, "Opening codec %s\n", dec->name);
   result = dec->init(stream);
   return result;
@@ -61,18 +65,14 @@ const char * bgav_get_video_description(bgav_t * b, int s)
   return b->tt->current_track->video_streams[s].description;
   }
 
-int bgav_read_video(bgav_t * b, gavl_video_frame_t * frame, int s)
+static int bgav_video_decode(bgav_stream_t * stream, gavl_video_frame_t* frame)
   {
   int result;
-  bgav_stream_t * stream;
-
-  stream = &(b->tt->current_track->video_streams[s]);
-  
-  stream->time = -1;
+  stream->time = GAVL_TIME_UNDEFINED;
   
   result = stream->data.video.decoder->decoder->decode(stream,
                                                        frame);
-  if(stream->time == -1)
+  if(stream->time == GAVL_TIME_UNDEFINED)
     {
     stream->time = gavl_frames_to_time(stream->data.video.format.framerate_num,
                                       stream->data.video.format.framerate_den,
@@ -84,9 +84,15 @@ int bgav_read_video(bgav_t * b, gavl_video_frame_t * frame, int s)
   return result;
   }
 
+
+int bgav_read_video(bgav_t * b, gavl_video_frame_t * frame, int s)
+  {
+  return bgav_video_decode(&(b->tt->current_track->video_streams[s]), frame);
+  }
+
 void bgav_video_dump(bgav_stream_t * s)
   {
-  fprintf(stderr, "Depth: %d\n", s->data.video.depth);
+  fprintf(stderr, "Depth:             %d\n", s->data.video.depth);
   fprintf(stderr, "Format:\n");
   gavl_video_format_dump(&(s->data.video.format));
   }
@@ -100,3 +106,22 @@ void bgav_video_stop(bgav_stream_t * s)
     s->data.video.decoder = (bgav_video_decoder_context_t*)0;
     }
   }
+
+void bgav_video_resync(bgav_stream_t * s)
+  {
+  if(s->data.video.decoder &&
+     s->data.video.decoder->decoder->resync)
+    s->data.video.decoder->decoder->resync(s);
+  
+  }
+
+void bgav_video_skipto(bgav_stream_t * s, gavl_time_t time)
+  {
+  if(s->time >= time)
+    return;
+  do
+    {
+    bgav_video_decode(s, (gavl_video_frame_t*)0);
+    }while(s->time < time);
+  }
+

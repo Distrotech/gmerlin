@@ -162,7 +162,12 @@ typedef struct
 
 #endif
 
-
+const char * bgav_id3v1_get_genre(int id)
+  {
+  if(id < GENRE_MAX)
+    return id3_genres[id];
+  return (const char*)0;
+  }
 
 void bgav_id3v1_2_metadata(bgav_id3v1_tag_t * t, bgav_metadata_t * m)
   {
@@ -171,8 +176,8 @@ void bgav_id3v1_2_metadata(bgav_id3v1_tag_t * t, bgav_metadata_t * m)
   CS(album, album);
   CS(year, date);
   CS(comment, comment);
-
+  
   if(t->genre < GENRE_MAX)
-    m->genre = bgav_strndup(id3_genres[t->genre], NULL);
+    m->genre = bgav_strndup(bgav_id3v1_get_genre(t->genre), NULL);
   m->track = t->track;
   }

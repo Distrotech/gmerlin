@@ -32,8 +32,7 @@ typedef struct
   rtsp_session_t * s;
   } realrtsp_priv_t;
 
-static int open_realrtsp(bgav_input_context_t * ctx, const char * url,
-                         int milliseconds)
+static int open_realrtsp(bgav_input_context_t * ctx, const char * url)
   {
   int ret;
   char * mrl;
@@ -54,7 +53,8 @@ static int open_realrtsp(bgav_input_context_t * ctx, const char * url,
 
   //  fprintf(stderr, "Port: %d\n", priv->port);
   
-  if((priv->fd = bgav_tcp_connect(priv->host, priv->port, milliseconds)) == -1)
+  if((priv->fd = bgav_tcp_connect(priv->host, priv->port,
+                                  ctx->connect_timeout)) == -1)
     return 0;
   
   priv->s = rtsp_session_start(priv->fd,
@@ -67,7 +67,7 @@ static int open_realrtsp(bgav_input_context_t * ctx, const char * url,
   if(got_redirected)
     {
     fprintf(stderr, "Got redirected to %s\n", mrl);
-    ret = open_realrtsp(ctx, mrl, milliseconds);
+    ret = open_realrtsp(ctx, mrl);
     }
   free(mrl);
   return ret;

@@ -43,6 +43,8 @@ void bgav_http_header_destroy(bgav_http_header_t*);
 void bgav_http_header_add_line(bgav_http_header_t*, const char * line);
 void bgav_http_header_send(bgav_http_header_t*, int fd);
 
+int bgav_http_header_status_code(bgav_http_header_t * h);
+
 /* Reading of http header */
 
 void bgav_http_header_revc(bgav_http_header_t*, int fd, int milliseconds);
@@ -54,8 +56,8 @@ void bgav_http_header_dump(bgav_http_header_t*);
 
 /* http connection */
 
-bgav_http_t * bgav_http_open(const char * url, int milliseconds, char ** redirect_url);
-
+bgav_http_t * bgav_http_open(const char * url, int milliseconds, char ** redirect_url,
+                             bgav_http_header_t* extra_header);
 
 void bgav_http_close(bgav_http_t *);
 

@@ -30,8 +30,7 @@ typedef struct
   pnm_t * s;
   } pnm_priv_t;
 
-static int open_pnm(bgav_input_context_t * ctx, const char * url,
-                    int milliseconds)
+static int open_pnm(bgav_input_context_t * ctx, const char * url)
   {
   int port;
   char * path = (char*)0;
@@ -49,7 +48,7 @@ static int open_pnm(bgav_input_context_t * ctx, const char * url,
   if(port < 0)
     port = 7070;
   
-  if((priv->fd = bgav_tcp_connect(host, port, milliseconds)) == -1)
+  if((priv->fd = bgav_tcp_connect(host, port, ctx->connect_timeout)) == -1)
     return 0;
 
   priv->s = pnm_connect(priv->fd, path);

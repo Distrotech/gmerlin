@@ -33,7 +33,7 @@ static char codec_path[PATH_MAX];
 static int init_real(bgav_stream_t * s);
 static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f);
 static void close_real(bgav_stream_t * s);
-static void clear_real(bgav_stream_t * s);
+static void resync_real(bgav_stream_t * s);
 
 typedef struct
   {
@@ -54,7 +54,7 @@ static codec_info_t real_codecs[] =
         init:   init_real,
         decode: decode_real,
         close:  close_real,
-        clear:  clear_real,
+        resync: resync_real,
       },
     },
     {
@@ -67,7 +67,7 @@ static codec_info_t real_codecs[] =
         init:   init_real,
         decode: decode_real,
         close:  close_real,
-        clear:  clear_real,
+        resync: resync_real,
       },
     },
     {
@@ -80,7 +80,7 @@ static codec_info_t real_codecs[] =
         init:   init_real,
         decode: decode_real,
         close:  close_real,
-        clear:  clear_real,
+        resync: resync_real,
       },
       
     }
@@ -194,7 +194,7 @@ static int init_real(bgav_stream_t * s)
   
   char codec_filename[PATH_MAX];
   rv_init_t init_data;
-  codec_info_t * info;
+  codec_info_t * info = (codec_info_t*)0;
   real_priv_t * priv;
 
   priv = calloc(1, sizeof(*priv));
@@ -363,7 +363,7 @@ static void close_real(bgav_stream_t * s)
   free(priv);
   };
 
-static void clear_real(bgav_stream_t * s)
+static void resync_real(bgav_stream_t * s)
   {
   
   };

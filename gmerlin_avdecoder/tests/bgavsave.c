@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <avdec_private.h>
 
 #define BUFFER_SIZE 4096
@@ -8,8 +9,12 @@ int main(int argc, char ** argv)
   char buffer[BUFFER_SIZE];
   int bytes_read;
   bgav_input_context_t * input;
+
+  input = calloc(1, sizeof(*input));
   
-  input = bgav_input_open(argv[1], 1000);
+  if(!bgav_input_open(input, argv[1]))
+    return -1;
+  
   out = fopen(argv[2], "w");
   do
     {

@@ -83,20 +83,40 @@ int bgav_audio_decode(bgav_stream_t * s, gavl_audio_frame_t * frame,
   }
 
 int bgav_read_audio(bgav_t * b, gavl_audio_frame_t * frame,
-                    int stream)
+                    int stream, int num_samples)
   {
-  int num_samples;
+  int result;
   bgav_stream_t * s = &(b->tt->current_track->audio_streams[stream]);
-  num_samples = s->data.audio.format.samples_per_frame;
-  return bgav_audio_decode(s, frame, num_samples);
+  //  fprintf(stderr, "Read audio %d\n", num_samples);
+  result = bgav_audio_decode(s, frame, num_samples);
+  s->position += result;
+  return result;
   }
 
 void bgav_audio_dump(bgav_stream_t * s)
   {
-  fprintf(stderr, "Bits per sample: %d\n", s->data.audio.bits_per_sample);
-  fprintf(stderr, "Block align:     %d\n", s->data.audio.block_align);
+  fprintf(stderr, "Bits per sample:   %d\n", s->data.audio.bits_per_sample);
+  fprintf(stderr, "Block align:       %d\n", s->data.audio.block_align);
   //  fprintf(stderr, "Bitrate:         %d\n", s->data.audio.bitrate);
   fprintf(stderr, "Format:\n");
   gavl_audio_format_dump(&(s->data.audio.format));
   }
 
+
+void bgav_audio_resync(bgav_stream_t * s)
+  {
+  if(s->data.audio.decoder &&
+     s->data.audio.decoder->decoder->resync)
+    s->data.audio.decoder->decoder->resync(s);
+  
+  }
+
+void bgav_audio_skip(bgav_stream_t * s, gavl_time_t delta_t)
+  {
+  if(delta_t)
+    bgav_audio_decode(s, (gavl_audio_frame_t*)0,
+                      gavl_time_to_samples(s->data.audio.format.samplerate,
+                                           delta_t));
+  }
+
+ 

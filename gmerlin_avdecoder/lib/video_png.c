@@ -149,11 +149,6 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
   return 1;
   }
 
-static void clear_png(bgav_stream_t * s)
-  {
-  /* NOP */
-  }
-
 static void close_png(bgav_stream_t * s)
   {
   png_priv_t * priv;
@@ -172,7 +167,7 @@ static bgav_video_decoder_t decoder =
     init:   init_png,
     decode: decode_png,
     close:  close_png,
-    clear:  clear_png,
+    resync: NULL,
   };
 
 void bgav_init_video_decoders_png()

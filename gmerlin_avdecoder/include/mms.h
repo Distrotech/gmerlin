@@ -40,7 +40,7 @@ int bgav_mms_select_streams(bgav_mms_t * mms,
  *  NULL is returned on EOF 
  */
 
-uint8_t * bgav_mms_read_data(bgav_mms_t * mms, int * len);
+uint8_t * bgav_mms_read_data(bgav_mms_t * mms, int * len, int block);
 
 void bgav_mms_close(bgav_mms_t*);
 
