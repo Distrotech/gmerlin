@@ -158,6 +158,9 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
   if(!(TIFFGetField(p->tiff, TIFFTAG_IMAGEWIDTH, &p->Width))) return 0;
   if(!(TIFFGetField(p->tiff, TIFFTAG_IMAGELENGTH, &p->Height))) return 0;
   if(!(TIFFGetField(p->tiff, TIFFTAG_SAMPLESPERPIXEL, &p->SampleSperPixel)))return 0;
+
+  if(!(TIFFGetField(p->tiff, TIFFTAG_ORIENTATION, &p->Orientation)))
+    p->Orientation = ORIENTATION_TOPLEFT;
   
   format->frame_width  = p->Width;
   format->frame_height = p->Height;
@@ -178,6 +181,39 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
   return 1;
   }
 
+#if 0
+static uint32_t * transpose(uint32_t * raster, int width, int height)
+  {
+  int i, j;
+  uint32_t * ret;
+
+  ret = malloc(width * height * sizeof(*ret));
+
+  for(i = 0; i < height; i++)
+    {
+    for(j = 0; j < width; j++)
+      {
+      ret[i * width + j] = raster[j * height + i];
+      }
+    }
+  free(raster);
+  return ret;
+  }
+#endif
+
+#define GET_RGBA(fp, rp)  \
+  fp[0]=TIFFGetR(*rp); \
+  fp[1]=TIFFGetG(*rp); \
+  fp[2]=TIFFGetB(*rp); \
+  fp[3]=TIFFGetA(*rp); \
+  fp += 4;
+
+#define GET_RGB(fp, rp)  \
+  fp[0]=TIFFGetR(*rp); \
+  fp[1]=TIFFGetG(*rp); \
+  fp[2]=TIFFGetB(*rp); \
+  fp += 3;
+
 static int read_image_tiff(void *priv, gavl_video_frame_t *frame)
   {
   int i, j;
@@ -191,57 +227,56 @@ static int read_image_tiff(void *priv, gavl_video_frame_t *frame)
     
   raster = (uint32_t*)_TIFFmalloc(p->Height * p->Width * sizeof(uint32_t));
 
+  if(!TIFFReadRGBAImage(p->tiff, p->Width, p->Height, (uint32*)raster, 0))
+    return 0;
+
+#if 0
+  if((p->Orientation == ORIENTATION_LEFTTOP) ||
+     (p->Orientation == ORIENTATION_RIGHTTOP) ||
+     (p->Orientation == ORIENTATION_LEFTBOT) ||
+     (p->Orientation == ORIENTATION_RIGHTBOT))
+    raster = transpose(raster, p->Width, p->Height);
+#endif
+  
+  fprintf(stderr, "Orientation: %d\n", p->Orientation);
+  
   if(p->SampleSperPixel ==4)
     {
-    if(TIFFReadRGBAImageOriented(p->tiff, p->Width, p->Height, (uint32*)raster, ORIENTATION_TOPLEFT , 0))
+    frame_ptr_start = frame->planes[0];
+    
+    for (i=0;i<p->Height; i++)
       {
-      raster_ptr = raster;
-      frame_ptr_start = frame->planes[0];
+      frame_ptr = frame_ptr_start;
       
-      for (i=0;i<p->Height; i++)
+      raster_ptr = raster + (p->Height - 1 - i) * p->Width;
+      
+      for(j=0;j<p->Width; j++)
         {
-        frame_ptr = frame_ptr_start;
-               
-        for(j=0;j<p->Width; j++)
-          {
-          frame_ptr[0]=TIFFGetR(*raster_ptr);
-          frame_ptr[1]=TIFFGetG(*raster_ptr);
-          frame_ptr[2]=TIFFGetB(*raster_ptr);
-          frame_ptr[3]=TIFFGetA(*raster_ptr);
-          
-          raster_ptr++;
-          frame_ptr += 4;
-          
-          }
-        frame_ptr_start += frame->strides[0];
+        GET_RGBA(frame_ptr, raster_ptr);
+        raster_ptr++;
         }
+      frame_ptr_start += frame->strides[0];
       }
     }
   else
     {
-    if(TIFFReadRGBAImageOriented(p->tiff, p->Width, p->Height, (uint32*)raster, ORIENTATION_TOPLEFT, 0))
-      {
-      raster_ptr = raster;
-      frame_ptr_start = frame->planes[0];
-      
-      for (i=0;i<p->Height; i++)
-        {
-        frame_ptr = frame_ptr_start;
+    frame_ptr_start = frame->planes[0];
         
-        for(j=0;j<p->Width; j++)
-          {
-          frame_ptr[0]=TIFFGetR(*raster_ptr);
-          frame_ptr[1]=TIFFGetG(*raster_ptr);
-          frame_ptr[2]=TIFFGetB(*raster_ptr);
-                    
-          raster_ptr++;
-          frame_ptr += 3;
-          
-          }
-        frame_ptr_start += frame->strides[0];
+    for (i=0;i<p->Height; i++)
+      {
+      frame_ptr = frame_ptr_start;
+      
+      raster_ptr = raster + (p->Height - 1 - i) * p->Width;
+      
+      for(j=0;j<p->Width; j++)
+        {
+        GET_RGB(frame_ptr, raster_ptr);
+        raster_ptr++;
         }
+      frame_ptr_start += frame->strides[0];
       }
     }
+
   if (raster) _TIFFfree(raster);
   TIFFClose( p->tiff );
   return 1;

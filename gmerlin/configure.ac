@@ -382,7 +382,7 @@ dnl
 
 AH_TEMPLATE([HAVE_LIBTIFF], [Do we have libtiff installed?])
 
-TIFF_REQUIRED="3.6.1"
+TIFF_REQUIRED="3.5.0"
 have_libtiff="true"
 
 OLD_CFLAGS=$CFLAGS
@@ -391,7 +391,7 @@ OLD_LIBS=$LIBS
 CFLAGS=""
 LIBS=""
 
-AC_CHECK_LIB(tiff, TIFFReadRGBAImageOriented, , have_libtiff="false")
+AC_CHECK_LIB(tiff, TIFFReadRGBAImage, , have_libtiff="false")
 
 case $have_libtiff in
   "true") AC_DEFINE(HAVE_LIBTIFF)
