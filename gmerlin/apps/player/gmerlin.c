@@ -396,12 +396,6 @@ static bg_parameter_info_t parameters[] =
       type:      BG_PARAMETER_SECTION,
     },
     {
-      name:      "mark_error_tracks",
-      long_name: "Mark error tracks",
-      type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-    },
-    {
       name:      "skip_error_tracks",
       long_name: "Skip error tracks",
       type:      BG_PARAMETER_CHECKBUTTON,
@@ -455,14 +449,7 @@ void gmerlin_set_parameter(void * data, char * name, bg_parameter_value_t * val)
   if(!name)
     return;
 
-  if(!strcmp(name, "mark_error_tracks"))
-    {
-    if(val->val_i)
-      g->playback_flags |= PLAYBACK_MARK_ERROR;
-    else
-      g->playback_flags &= ~PLAYBACK_MARK_ERROR;
-    }
-  else if(!strcmp(name, "skip_error_tracks"))
+  if(!strcmp(name, "skip_error_tracks"))
     {
     if(val->val_i)
       g->playback_flags |= PLAYBACK_SKIP_ERROR;

@@ -55,9 +55,8 @@ void gmerlin_skin_destroy(gmerlin_skin_t * s);
 
 typedef struct gmerlin_skin_browser_s gmerlin_skin_browser_t;
 
-#define PLAYBACK_MARK_ERROR (1<<0)
-#define PLAYBACK_SKIP_ERROR (1<<1)
-#define PLAYBACK_NOADVANCE  (1<<2)
+#define PLAYBACK_SKIP_ERROR (1<<0)
+#define PLAYBACK_NOADVANCE  (1<<1)
 
 struct gmerlin_s
   {

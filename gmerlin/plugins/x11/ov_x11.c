@@ -102,14 +102,13 @@ typedef struct
   /* X11 Stuff */
   
   Display * dpy;
-
-  int first_open;
   
 #ifdef HAVE_LIBXV
   XvPortID xv_port;
   int do_xv;
   Atom xv_attr_atoms[NUM_XV_PARAMETERS];
   Atom xv_chromakey_atom;
+  int xv_chromakey_settable;
   int have_xv_yv12;
   int have_xv_yuy2;
   int have_xv_i420;
@@ -159,6 +158,8 @@ typedef struct
 
   int disable_xscreensaver_fullscreen;
   int disable_xscreensaver_normal;
+  
+  int window_visible;
   } x11_t;
 
 static void create_parameters(x11_t * x11);	
@@ -652,7 +653,7 @@ static void set_drawing_coords(x11_t * priv)
 
     if(aspect_window > aspect_video) /* Bars left and right */
       {
-      priv->dst_w = priv->win.window_height * aspect_video;
+      priv->dst_w = (int)((float)priv->win.window_height * aspect_video + 0.5);
       priv->dst_h = priv->win.window_height;
       priv->dst_x = (priv->win.window_width - priv->dst_w)/2;
       priv->dst_y = 0;
@@ -660,7 +661,7 @@ static void set_drawing_coords(x11_t * priv)
     else                             /* Bars top and bottom */
       {
       priv->dst_w = priv->win.window_width;
-      priv->dst_h = priv->win.window_width / aspect_video;
+      priv->dst_h = (int)((float)priv->win.window_width / aspect_video + 0.5);
       priv->dst_x = 0;
       priv->dst_y = (priv->win.window_height - priv->dst_h)/2;
       }
@@ -822,8 +823,17 @@ static int _open_x11(void * data,
       }
     else if(priv->have_xv_chromakey)
       {
-      XvGetPortAttribute(priv->dpy, priv->xv_port, priv->xv_chromakey_atom, 
-                         &(priv->xv_chromakey));
+      if(priv->xv_chromakey_settable)
+        {
+        priv->xv_chromakey = 0;
+        XvSetPortAttribute(priv->dpy, priv->xv_port, priv->xv_chromakey_atom, 
+                           priv->xv_chromakey);
+        }
+      else
+        {
+        XvGetPortAttribute(priv->dpy, priv->xv_port, priv->xv_chromakey_atom, 
+                           &(priv->xv_chromakey));
+        }
       }
     }
 #endif // HAVE_LIBXV
@@ -1181,8 +1191,14 @@ static void put_still_x11(void * data, gavl_video_format_t * format,
   gavl_video_options_t opt;
   
   x11_t * priv = (x11_t*)data;
-  /* Initialize as if we displayed video */
 
+  /* If window isn't visible, return */
+
+  if(!priv->window_visible)
+    return;
+  
+  /* Initialize as if we displayed video */
+  
   gavl_video_format_copy(&tmp_format, format);
   _open_x11(data, &tmp_format, "Video output", 1);
   
@@ -1219,6 +1235,8 @@ static void show_window_x11(void * data, int show)
   
   x11_window_show(&(priv->win), show);
 
+  priv->window_visible = show;
+  
   /* Clear the area and wait for the first ExposeEvent to come */
   x11_window_clear(&(priv->win));
 //  XClearArea(priv->win.dpy, priv->win.current_window, 0, 0,
@@ -1288,7 +1306,9 @@ static void get_xv_parameters(x11_t * x11,
       {
       x11->have_xv_chromakey = 1;
       x11->xv_chromakey_atom = XInternAtom(x11->dpy, attr[i].name,
-                                              False);
+                                           False);
+      if(attr[i].flags & XvSettable)
+        x11->xv_chromakey_settable = 1;
       }
     else if((attr[i].flags & XvSettable) && (attr[i].flags & XvGettable))
       {
