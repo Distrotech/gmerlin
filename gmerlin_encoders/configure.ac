@@ -11,7 +11,7 @@ dnl
 dnl Required libraries
 dnl
 
-GMERLIN_REQUIRED="0.3.2pre1"
+GMERLIN_REQUIRED="0.3.2pre2"
 PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, , AC_MSG_ERROR("gmerlin not found"))
 have_gmerlin="false"
 
@@ -255,6 +255,7 @@ if test "x$exec_prefix" = xNONE; then
 fi
 
 AC_CONFIG_FILES([Makefile \
+gmerlin_encoders.spec \
 include/Makefile \
 lib/Makefile \
 plugins/Makefile \

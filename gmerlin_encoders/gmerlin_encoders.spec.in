@@ -1,0 +1,57 @@
+Summary:        Various encoder plugins for gmerlin
+Name:           gmerlin_encoders
+Version:        @VERSION@
+Release:        1
+License:        GPL
+Group:          Applications/Multimedia
+Group(de):      Anwendungen/Multimedia
+Source0:        gmerlin_encoders-%{version}.tar.gz
+URL:            http://gmerlin.sourceforge.net/
+BuildRequires:  autoconf
+BuildRequires:  automake
+BuildRequires:  gmerlin-lib-devel = @GMERLIN_REQUIRED@
+BuildRequires:  flac-devel >=       @FLAC_REQUIRED@
+BuildRequires:  faac-devel >=       @FAAC_REQUIRED@
+BuildRequires:  libvorbis-devel >=  @VORBIS_REQUIRED@
+BuildRequires:  lame-devel >=       @LAME_REQUIRED@
+Requires:       gmerlin-lib =       @GMERLIN_REQUIRED@
+Requires:       flac >=             @FLAC_REQUIRED@
+Requires:       faac >=             @FAAC_REQUIRED@
+Requires:       libvorbis >=        @VORBIS_REQUIRED@
+Requires:       lame >=             @LAME_REQUIRED@
+BuildRoot:      /tmp/gmerlin-build
+
+%description
+Various encoder plugins for gmerlin
+
+%prep
+%setup -n gmerlin_encoders-%{version}
+
+%build
+./cvs_clean.sh
+./autogen.sh
+
+%configure
+
+%{__make}
+%install
+rm -rf $RPM_BUILD_ROOT
+%{__make} install DESTDIR=$RPM_BUILD_ROOT
+
+gzip -9nf README
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%post   -p /sbin/ldconfig
+%postun -p /sbin/ldconfig
+
+%files
+%doc README.gz
+%attr(755,root,root) @GMERLIN_PLUGIN_DIR@/*.so*
+%attr(644,root,root) @GMERLIN_PLUGIN_DIR@/*.la
+
+%define date    %(echo `LC_ALL="C" date +"%a %b %d %Y"`)
+%changelog
+* Sat Mar 19 2005 Burkhard Plaum <gmerlin@users.sourceforge.net>
+- Initial creation
