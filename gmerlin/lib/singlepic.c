@@ -121,7 +121,7 @@ typedef struct
   {
   bg_track_info_t track_info;
   bg_parameter_info_t * parameters;
-  bg_plugin_registry_t * reg;
+  bg_plugin_registry_t * plugin_reg;
   
   int timescale;
   int frame_duration;
@@ -193,7 +193,7 @@ static int open_input(void * priv, const char * arg)
   
   /* First of all, check if there is a plugin for this format */
   
-  if(!bg_plugin_find_by_filename(inp->reg, filename,
+  if(!bg_plugin_find_by_filename(inp->plugin_reg, filename,
                                  BG_PLUGIN_IMAGE_READER))
     return 0;
   
@@ -249,8 +249,8 @@ static int open_input(void * priv, const char * arg)
       break;
     inp->frame_end++;
     }
-  fprintf(stderr, "Frames: %lld .. %lld, template: %s\n",
-         inp->frame_start, inp->frame_end, inp->template);
+  //  fprintf(stderr, "Frames: %lld .. %lld, template: %s\n",
+  //         inp->frame_start, inp->frame_end, inp->template);
 
   /* Create stream */
     
@@ -299,10 +299,10 @@ static void start_input(void * priv)
 
   /* Load plugin */
 
-  info = bg_plugin_find_by_filename(inp->reg, inp->template,
+  info = bg_plugin_find_by_filename(inp->plugin_reg, inp->template,
                                     BG_PLUGIN_IMAGE_READER);
 
-  inp->handle = bg_plugin_load(inp->reg, info);
+  inp->handle = bg_plugin_load(inp->plugin_reg, info);
   inp->image_reader = (bg_image_reader_plugin_t*)inp->handle->plugin;
 
   inp->current_frame = inp->frame_start;
@@ -471,14 +471,9 @@ void * bg_singlepic_input_create(bg_plugin_registry_t * reg)
   input_t * ret;
   ret = calloc(1, sizeof(*ret));
 
-  ret->reg = reg;
+  ret->plugin_reg = reg;
 
   return ret;
-  }
-
-void bg_singlepic_input_destroy(bg_plugin_common_t * p)
-  {
-  
   }
 
 /* Encoder stuff */

@@ -12,6 +12,7 @@ struct plugin_window_s
   {
   GtkWidget * window;
   bg_gtk_plugin_widget_multi_t * inputs;
+  bg_gtk_plugin_widget_multi_t * image_readers;
   bg_gtk_plugin_widget_single_t * video_encoder;
   bg_gtk_plugin_widget_single_t * audio_encoder;
   GtkWidget * close_button;
@@ -132,7 +133,11 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
                                       BG_PLUGIN_URL|
                                       BG_PLUGIN_REMOVABLE);
 
-  
+  ret->image_readers =
+    bg_gtk_plugin_widget_multi_create(plugin_reg,
+                                      BG_PLUGIN_IMAGE_READER,
+                                      BG_PLUGIN_FILE);
+    
   ret->close_button = gtk_button_new_from_stock(GTK_STOCK_CLOSE);
 
   /* Set callbacks */
@@ -183,6 +188,12 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
                            table, label);
 
+
+  label = gtk_label_new("Image readers");
+  gtk_widget_show(label);
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
+                           bg_gtk_plugin_widget_multi_get_widget(ret->image_readers),
+                           label);
   
   gtk_widget_show(notebook);
   table = gtk_table_new(2, 1, 0);
