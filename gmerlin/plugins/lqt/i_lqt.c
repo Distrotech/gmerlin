@@ -340,7 +340,7 @@ int read_video_frame_lqt(void * data, gavl_video_frame_t * f, int stream)
   f->time =
     gavl_samples_to_time(e->track_info.video_streams[stream].format.timescale,
                          f->time_scaled);
-  
+  //  fprintf(stderr, "Frame time: %f\n", gavl_time_to_seconds(f->time));
   if(e->video_streams[stream].rows)
     {
     for(i = 0; i < e->track_info.video_streams[stream].format.frame_height; i++)
