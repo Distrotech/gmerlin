@@ -145,7 +145,7 @@ static bg_parameter_info_t parameters[] =
       long_name:   "Bandwidth",
       type:        BG_PARAMETER_STRINGLIST,
       val_default: { val_str:  "524.3 Kbps (Cable/DSL)" },
-      options:     (char*[]){ "14.4 Kbps (Modem)",
+      multi_names:     (char*[]){ "14.4 Kbps (Modem)",
                               "19.2 Kbps (Modem)",
                               "28.8 Kbps (Modem)",
                               "33.6 Kbps (Modem)",
