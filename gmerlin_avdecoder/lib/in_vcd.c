@@ -47,8 +47,8 @@ typedef struct
   int fd;
 
   int current_track;
-  int current_sector;
-
+  int next_sector; /* Next sector to be read */
+  int last_sector; /* Sector currently in buffer */
   int num_tracks; 
   
   struct
@@ -69,10 +69,10 @@ static void select_track_vcd(bgav_input_context_t * ctx, int track)
   vcd_priv * priv;
   priv = (vcd_priv*)(ctx->priv);
 
-  fprintf(stderr, "Select track VCD\n");
+//  fprintf(stderr, "Select track VCD\n");
 
   priv->current_track = track+1;
-  priv->current_sector = priv->tracks[priv->current_track].start_sector;
+  priv->next_sector = priv->tracks[priv->current_track].start_sector;
   ctx->position = 0;
   ctx->total_bytes = SECTOR_SIZE *
     (priv->tracks[priv->current_track].end_sector -
@@ -177,7 +177,7 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   priv->buffer_ptr = priv->buffer + SECTOR_SIZE;
   
   priv->fd = open(url, O_RDONLY|O_NONBLOCK);
-  if(priv->fd == -1)
+  if(priv->fd < 0)
     {
     fprintf(stderr, "VCD: Open failed\n");
     return 0;
@@ -217,17 +217,20 @@ static int read_sector(vcd_priv * priv)
   struct cdrom_msf cdrom_msf;
   int secnum;
 
+  fprintf(stderr, "Read sector %d ", priv->next_sector);
+
   do
     {
-    //    fprintf(stderr, "read_sector %d %d %d\n",
-    //            priv->current_sector,
-    //            priv->current_track,
-    //            priv->tracks[priv->current_track].end_sector);
-    
-    if(priv->current_sector > priv->tracks[priv->current_track].end_sector)
+#if 0
+    fprintf(stderr, "read_sector %d %d %d\n",
+            priv->next_sector,
+            priv->current_track,
+            priv->tracks[priv->current_track].end_sector);
+#endif    
+    if(priv->next_sector > priv->tracks[priv->current_track].end_sector)
       return 0;
 
-    secnum = priv->current_sector;
+    secnum = priv->next_sector;
     
     cdrom_msf.cdmsf_frame0 = secnum % 75;
     secnum /= 75;
@@ -242,12 +245,13 @@ static int read_sector(vcd_priv * priv)
       fprintf(stderr, "CDROMREADRAW ioctl failed\n");
       return 0;
       }
-    priv->current_sector++;
-    
+    priv->next_sector++;
     } while((priv->sector[18] & ~0x01) == 0x60);
-  //  fprintf(stderr, "read sector done\n");
+  priv->last_sector = priv->next_sector - 1;
+  fprintf(stderr, " %d\n", priv->last_sector);
   priv->buffer_ptr = priv->buffer;
   //  bgav_hexdump(priv->sector, 2352, 16);
+
   return 1;
   }
 
@@ -260,7 +264,7 @@ static int read_vcd(bgav_input_context_t* ctx,
   vcd_priv * priv;
   priv = (vcd_priv*)(ctx->priv);
 
-  //  fprintf(stderr, "Read VCD %d\n", len);
+//  fprintf(stderr, "Read VCD %d\n", len);
   
   while(bytes_read < len)
     {
@@ -290,15 +294,19 @@ static int64_t seek_byte_vcd(bgav_input_context_t * ctx,
   int sector_offset;
   priv = (vcd_priv*)(ctx->priv);
   sector =
-    priv->tracks[priv->current_track].start_sector + ctx->position / SECTOR_SIZE;
+    priv->tracks[priv->current_track].start_sector + 
+    ctx->position / SECTOR_SIZE;
 
   sector_offset = ctx->position % SECTOR_SIZE;
 
-  if(sector == priv->current_sector - 1)
+  fprintf(stderr, "Seek: Pos: %lld, whence: %d, S: %d, O: %d\n", 
+          pos, whence, sector, sector_offset);
+
+  if(sector == priv->last_sector)
     priv->buffer_ptr = priv->buffer + sector_offset;
   else
     {
-    priv->current_sector = sector;
+    priv->next_sector = sector;
     read_sector(priv);
     priv->buffer_ptr = priv->buffer + sector_offset;
     }
@@ -416,7 +424,9 @@ int bgav_check_device_vcd(const char * device, char ** name)
   
   if((cap = ioctl(fd, CDROM_GET_CAPABILITY, 0)) < 0)
     {
-    fprintf(stderr, "CDROM_GET_CAPABILITY ioctl failed for device %s\n", device);
+    fprintf(stderr, 
+            "CDROM_GET_CAPABILITY ioctl failed for device %s\n",
+            device);
     close(fd);
     return 0;
     }

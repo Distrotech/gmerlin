@@ -53,10 +53,11 @@ static uint32_t previous_start_code(bgav_input_context_t * ctx)
   uint32_t c;
   //  int skipped = 0;
   bgav_input_seek(ctx, -1, SEEK_CUR);
-  //  fprintf(stderr, "previous_start_code...");
 
   while(ctx->position >= 0)
     {
+//    fprintf(stderr, "previous_start_code, pos: %lld\n", 
+//            ctx->position);
     if(!bgav_input_get_32_be(ctx, &c))
       {
 #if 0
@@ -537,7 +538,7 @@ static void get_duration(bgav_demuxer_context_t * ctx)
     while(start_code != PACK_HEADER)
       {
       start_code = previous_start_code(ctx->input);
-#if 0
+#if 1
       fprintf(stderr, "previous_start_code %lld %lld ",
               ctx->input->position, ctx->input->total_bytes);
       bgav_dump_fourcc(start_code);
