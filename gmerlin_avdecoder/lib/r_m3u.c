@@ -81,7 +81,7 @@ int parse_m3u(bgav_redirector_context_t * r)
     if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc))
       break;
     pos = strip_spaces(buffer);
-    if((*pos == '#') || (*pos == '\0'))
+    if((*pos == '#') || (*pos == '\0') || !strcmp(pos, "--stop--"))
       continue;
     else
       {
