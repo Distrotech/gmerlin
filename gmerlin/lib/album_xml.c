@@ -327,6 +327,8 @@ void bg_album_load(bg_album_t * a, const char * filename)
   {
   bg_album_entry_t * current;
   current = (bg_album_entry_t*)0;
+
+
   a->entries = load_album_file(a, filename, (bg_album_entry_t**)0, &current, 1);
   if(current)
     {

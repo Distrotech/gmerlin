@@ -141,7 +141,7 @@ int send_command(bg_lcdproc_t * l, char * command)
   if(!bg_tcp_send(l->fd, command, strlen(command), &error_msg))
     return 0;
 
-  fprintf(stderr, "Sent command %s", command);
+  //  fprintf(stderr, "Sent command %s", command);
 
   while(1)
     {
@@ -165,15 +165,15 @@ static int do_connect(bg_lcdproc_t* l)
   {
   char * error_msg = (char*)0;
 
-  fprintf(stderr, "Connecting to %s:%d...", l->hostname_cfg, l->port_cfg);
+  //  fprintf(stderr, "Connecting to %s:%d...", l->hostname_cfg, l->port_cfg);
   l->fd = bg_tcp_connect(l->hostname_cfg, l->port_cfg, 500,
                          &error_msg);
   if(l->fd < 0)
     {
-    fprintf(stderr, "Failed\n");
+    //    fprintf(stderr, "Failed\n");
     goto fail;
     }
-  fprintf(stderr, "Done\n");
+  //  fprintf(stderr, "Done\n");
   /* Send hello and get answer */
   if(!bg_tcp_send(l->fd, "hello\n", 6, &error_msg))
     goto fail;
@@ -181,7 +181,7 @@ static int do_connect(bg_lcdproc_t* l)
   if(!bg_tcp_read_line(l->fd, &(l->answer), &(l->answer_alloc), 500))
     goto fail;
 
-  fprintf(stderr, "Got answer: %s\n", l->answer);
+  //  fprintf(stderr, "Got answer: %s\n", l->answer);
 
   if(strncmp(l->answer, "connect LCDproc", 15))
     {
@@ -198,7 +198,7 @@ static int do_connect(bg_lcdproc_t* l)
   fail:
   if(error_msg)
     {
-    fprintf(stderr, "Connecting failed: %s\n", error_msg);
+    //    fprintf(stderr, "Connecting failed: %s\n", error_msg);
     free(error_msg);
     }
   return 0;

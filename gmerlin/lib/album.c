@@ -398,6 +398,8 @@ bg_album_type_t bg_album_get_type(bg_album_t * a)
 int bg_album_open(bg_album_t * a)
   {
   char * tmp_filename;
+  FILE * testfile;
+  
   
   if(a->open_count)
     return 1;
@@ -412,6 +414,18 @@ int bg_album_open(bg_album_t * a)
       if(a->location)
         {
         tmp_filename = bg_sprintf("%s/%s", a->com->directory, a->location);
+
+        /* If the file cannot be opened, it was deleted earlier
+           we exit quietly here */
+        
+        if(!(testfile = fopen(tmp_filename,"r")))
+          {
+          free(a->location);
+          a->location = (char*)0;
+          break;
+          }
+        fclose(testfile);
+        
         bg_album_load(a, tmp_filename);
         if(!a->entries)
           {
@@ -480,7 +494,6 @@ bg_album_entry_t * bg_album_entry_create(bg_album_t * album)
 
 void bg_album_close(bg_album_t *a )
   {
-
   char * tmp_filename;
   
   a->open_count--;
@@ -565,11 +578,25 @@ int bg_album_is_open(bg_album_t * a)
 
 void bg_album_destroy(bg_album_t * a)
   {
+  char * tmp_filename;
   bg_album_t       * tmp_album;
 
-  if(a->open_count && a->entries)
-    bg_album_save(a, (const char*)0);
-   
+  /* Things to do if an album was open */
+
+  if(a->open_count)
+    {
+    if(a->entries)
+      bg_album_save(a, (const char*)0);
+    else if(a->location)
+      {
+      tmp_filename = bg_sprintf("%s/%s", a->com->directory, a->location);
+      remove(tmp_filename);
+      free(tmp_filename);
+      free(a->location);
+      a->location = (char*)0;
+      }
+    }
+  
   if(a->name)
     free(a->name);
   if(a->location)
