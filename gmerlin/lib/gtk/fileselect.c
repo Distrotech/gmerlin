@@ -23,9 +23,12 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <gtk/gtk.h>
 #include <gui_gtk/fileselect.h>
 #include <gui_gtk/question.h>
+#include <pluginregistry.h>
+#include <gui_gtk/plugin.h>
 
 #include <utils.h>
 
@@ -33,7 +36,7 @@ struct bg_gtk_filesel_s
   {
   GtkWidget * filesel;
   GtkWidget * plugin_menu;
-
+  bg_gtk_plugin_menu_t * plugins;
   void (*add_files)(char ** files, const char * plugin,
                    void * data);
 
@@ -48,13 +51,18 @@ struct bg_gtk_filesel_s
 static void add_selected(bg_gtk_filesel_t * f)
   {
   char ** filenames;
+  const char * plugin = (const char*)0;
   int i;
   
   filenames =
     gtk_file_selection_get_selections(GTK_FILE_SELECTION(f->filesel));
   i = 0;
+  if(f->plugins)
+    plugin = bg_gtk_plugin_menu_get_plugin(f->plugins);
+
+  fprintf(stderr, "Add Selected: %s\n", plugin);
   
-  f->add_files(filenames, (const char *)NULL,
+  f->add_files(filenames, plugin,
                f->callback_data);
   g_strfreev(filenames);
   }
@@ -70,9 +78,9 @@ static void button_callback(GtkWidget * w, gpointer data)
   if((w == f->filesel) || (w == filesel->cancel_button))
     {
     gtk_widget_hide(f->filesel);
-    bg_gtk_filesel_destroy(f);
     if(f->is_modal)
       gtk_main_quit();
+    bg_gtk_filesel_destroy(f);
     }
   else if(w ==  filesel->ok_button)
     {
@@ -108,6 +116,8 @@ bg_gtk_filesel_create(const char * title,
 
   ret = calloc(1, sizeof(*ret));
 
+  /* Create fileselection */
+  
   ret->filesel = gtk_file_selection_new(title);
 
   if(parent_window)
@@ -121,7 +131,16 @@ bg_gtk_filesel_create(const char * title,
   
   gtk_file_selection_set_select_multiple(GTK_FILE_SELECTION(ret->filesel),
                                          TRUE);
+  
+  /* Create plugin menu */
 
+  if(plugins)
+    {
+    ret->plugins = bg_gtk_plugin_menu_create(plugins, 1);
+    gtk_box_pack_start_defaults(GTK_BOX(GTK_DIALOG(ret->filesel)->vbox),
+                                bg_gtk_plugin_menu_get_widget(ret->plugins));
+    }
+  
   /* Set callbacks */
 
   g_signal_connect(G_OBJECT(ret->filesel), "delete-event",
@@ -140,8 +159,6 @@ bg_gtk_filesel_create(const char * title,
     
   ret->add_files = add_files;
   ret->close_notify = close_notify;
-  
-
   ret->callback_data = user_data;
 
   return ret;

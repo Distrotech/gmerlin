@@ -102,8 +102,10 @@ static bg_album_entry_t * load_urls(bg_album_t * a,
   end_entry = (bg_album_entry_t*)0;
   new_entry = (bg_album_entry_t*)0;
     
+  fprintf(stderr, "Load URL\n");
   while(locations[i])
     {
+    fprintf(stderr, "Load URL: %s\n", locations[i]);
     new_entry = bg_media_tree_load_url(a->tree,
                                        locations[i],
                                        plugin);
@@ -225,7 +227,7 @@ void bg_album_insert_urls_after(bg_album_t * a,
   {
   bg_album_entry_t * new_entries;
   new_entries = load_urls(a, locations, plugin);
-
+  
   bg_album_insert_entries_after(a, new_entries, before);
   }
 
@@ -466,6 +468,8 @@ void bg_album_destroy(bg_album_t * a)
     free(a->name);
   if(a->location)
     free(a->location);
+  if(a->open_path)
+    free(a->open_path);
 
   pthread_mutex_destroy(&(a->mutex));
   
@@ -897,3 +901,40 @@ int bg_album_entry_is_current(bg_album_t * a,
   return ((a == a->tree->current_album) &&
           (e == a->tree->current_entry)) ? 1 : 0; 
   }
+
+char ** bg_album_get_plugins(bg_album_t * a,
+                             uint32_t type_mask,
+                             uint32_t flag_mask)
+  {
+  int num_plugins, i;
+  char ** ret;
+  bg_plugin_registry_t * reg;
+  const bg_plugin_info_t * info;
+  if(!a->tree)
+    return (char**)0;
+    
+  reg = a->tree->plugin_reg;
+  
+  num_plugins = bg_plugin_registry_get_num_plugins(reg, type_mask, flag_mask);
+  ret = calloc(num_plugins + 1, sizeof(char*));
+  for(i = 0; i < num_plugins; i++)
+    {
+    info = bg_plugin_find_by_index(reg, i, type_mask, flag_mask);
+    ret[i] = bg_strdup(NULL, info->long_name);
+    }
+  return ret;
+  }
+
+void bg_album_free_plugins(bg_album_t * a, char ** plugins)
+  {
+  int index = 0;
+  if(!plugins)
+    return;
+  while(plugins[index])
+    {
+    free(plugins[index]);
+    index++;
+    }
+  free(plugins);
+  }
+

@@ -62,6 +62,8 @@ char * parse_uri(const char * pos1, int len)
   /* TODO: http etc */  
   else if(!strncmp(pos1, "http://", 7))
     start = pos1;
+  else if(!strncmp(pos1, "rtsp://", 7))
+    start = pos1;
   else
     return (char*)0;
 

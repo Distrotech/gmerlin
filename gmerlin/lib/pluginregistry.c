@@ -107,115 +107,140 @@ const bg_plugin_info_t * bg_plugin_find_by_long_name(bg_plugin_registry_t *
   return find_by_long_name(reg->entries, name);
   }
 
+static int string_match(const char * key, const char * key_end, const char * key_list)
+  {
+  const char * pos;
+  const char * end;
+
+  pos = key_list;
+      
+  fprintf(stderr, "string_match: %s %d %s\n", key, (int)(key_end - key), key_list);
+
+  if(!key_list)
+    return 0;
+  
+  while(1)
+    {
+    end = pos;
+    while(!isspace(*end) && (*end != '\0'))
+      end++;
+    if(end == pos)
+      break;
+    if(((int)(key_end - key) == (int)(end-pos)) &&
+       !strncasecmp(pos, key, (int)(end-pos)))
+      {
+      return 1;
+      }
+    pos = end;
+    if(pos == '\0')
+      break;
+    else
+      {
+      while(isspace(*pos) && (pos != '\0'))
+        pos++;
+      }
+    }
+  return 0;
+  }
+
 const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
                                                     const char * filename,
                                                     int typemask)
   {
   bg_plugin_info_t * info;
-  char * pos;
-  char * end;
-
-  char * extension = (char*)0;
-
-  //  fprintf(stderr, "bg_plugin_find_by_filename %p\n", reg);
+  
+  char * extension;
+  char * extension_end;
+  
+  // fprintf(stderr, "bg_plugin_find_by_filename %p\n", reg);
   
   info = reg->entries;
-  pos = strrchr(filename, '.');
+  extension = strrchr(filename, '.');
 
-  if(!pos)
+  if(!extension)
     {
     return (const bg_plugin_info_t *)0;
     }
-
-  pos++;
-  extension = bg_strdup(extension, pos);
-
-  /* Convert to lower case */
-
-  pos = extension;
-  while(*pos != '\0')
-    {
-    *pos = tolower(*pos);
-    pos++;
-    }
-
+  extension++;
+  extension_end = &(extension[strlen(extension)]);
+  
   //  fprintf(stderr, "info %p\n", info);
   
   while(info)
     {
+    fprintf(stderr, "Trying: %s %s\n", info->long_name, info->extensions);
     if(!(info->type & typemask) ||
        !(info->flags & BG_PLUGIN_FILE) ||
        !info->extensions)
       {
+      fprintf(stderr, "skipping plugin: %s\n",
+              info->long_name);
       info = info->next;
-      //      fprintf(stderr, "skipping plugin: %s\n",
-      //              info->long_name);
       continue;
       }
-    pos = info->extensions;
-    //    fprintf(stderr, "plugin: %s, extension: %s\n",
-    //            info->long_name, extension);
-    while(1)
-      {
-      end = pos;
-      while(!isspace(*end) && (*end != '\0'))
-        end++;
-      if(end == pos)
-        break;
-      if((strlen(extension) == (int)(end-pos)) &&
-         !strncmp(pos, extension, (int)(end-pos)))
-        {
-        free(extension);
-        return info;
-        }
-      pos = end;
-      if(pos == '\0')
-        break;
-      else
-        {
-        while(isspace(*pos) && (pos != '\0'))
-          pos++;
-        }
-      }
+    if(string_match(extension, extension_end, info->extensions))
+      return info;
     info = info->next;
     }
-  free(extension);
   return (const bg_plugin_info_t *)0;
   }
 
-#if 0
-const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
-                                                    const char * filename)
-  {
-  return bg_plugin_find_by_filename_and_mask(reg, filename, (BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR));
-  }
-#endif
-
 const bg_plugin_info_t * bg_plugin_find_by_mimetype(bg_plugin_registry_t * reg,
-                                                    const char * mimetype)
+                                                    const char * mimetype,
+                                                    const char * url)
   {
   bg_plugin_info_t * info;
-  char * pos;
-  char * end;
+  const char * mimetype_end;
 
-  char * tmp_string = (char*)0;
+  const char * extension;
+  const char * extension_end;
+    
+  mimetype_end = &mimetype[strlen(mimetype)];
 
-  //  fprintf(stderr, "bg_plugin_find_by_filename %p\n", reg);
-  
-  tmp_string = bg_strdup((char*)0, mimetype);
-      
-  /* Convert to lower case */
+  /* Set extension and extension_end */
 
-  pos = tmp_string;
-  while(*pos != '\0')
+  extension = strchr(url, '?');
+  if(extension)
     {
-    *pos = tolower(*pos);
-    pos++;
+    while(*extension != '.')
+      {
+      if(extension == url)
+        {
+        extension = (const char*)0;
+        break;
+        }
+      extension--;
+      }
     }
-  
+  else
+    {
+    extension = strrchr(url, '/');
+    
+    extension++;
+    while(*extension != '.')
+      {
+      if(*extension == '\0')
+        {
+        extension = (const char*)0;
+        break;
+        }
+      extension++;
+      }
+    }
+
+  if(extension)
+    {
+    extension++;
+    extension_end = extension;
+    while(isalnum(*extension_end))
+      {
+      extension_end++;
+      }
+    }
+  //  fprintf(stderr, "bg_plugin_find_by_mimetype %p\n", reg);
+    
   //  fprintf(stderr, "info %p\n", info);
-
-
+  
   info = reg->entries;
   
   while(info)
@@ -230,33 +255,20 @@ const bg_plugin_info_t * bg_plugin_find_by_mimetype(bg_plugin_registry_t * reg,
       info = info->next;
       continue;
       }
-    pos = info->mimetypes;
-    while(1)
-      {
-      end = pos;
-      while(!isspace(*end) && (*end != '\0'))
-        end++;
 
-      if(end == pos)
-        break;
-      if((strlen(tmp_string) == (int)(end-pos)) &&
-         !strncmp(pos, tmp_string, (int)(end-pos)))
+    if(string_match(mimetype, mimetype_end, info->mimetypes))
+      {
+      if(extension)
         {
-        free(tmp_string);
-        return info;
+        if(string_match(extension, extension_end, info->extensions))
+          return info;
         }
-      pos = end;
-      if(pos == '\0')
-        break;
       else
-        {
-        while(isspace(*pos) && (pos != '\0'))
-          pos++;
-        }
+        return info;
       }
+
     info = info->next;
     }
-  free(tmp_string);
   return (const bg_plugin_info_t *)0;
   }
 
@@ -535,8 +547,6 @@ bg_plugin_find_by_index(bg_plugin_registry_t * reg, int index,
                        type_mask, flag_mask);
   }
 
-
-
 int bg_plugin_registry_get_num_plugins(bg_plugin_registry_t * reg,
                                        uint32_t type_mask, uint32_t flag_mask)
   {
@@ -747,6 +757,12 @@ gavl_video_frame_t * bg_plugin_registry_load_image(bg_plugin_registry_t * r,
   
   info = bg_plugin_find_by_filename(r, filename, BG_PLUGIN_IMAGE_READER);
 
+  if(!info)
+    {
+    fprintf(stderr, "No plugin found for image %s\n", filename);
+    goto fail;
+    }
+  
   handle = bg_plugin_load(r, info);
   if(!handle)
     goto fail;

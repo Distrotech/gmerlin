@@ -230,7 +230,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   bg_fifo_state_t state;
   s = &(ctx->player->audio_stream);
   
-  //  fprintf(stderr, "Process audio...");
+  //  fprintf(stderr, "Process audio\n");
 
   if(ctx->send_silence)
     {
@@ -321,8 +321,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
   bg_fifo_state_t state;
   gavl_video_frame_t * video_frame;
   bg_player_video_stream_t * s;
-  //  if(preload)
-  //    fprintf(stderr, "Prelaod video...\n");
+  //  fprintf(stderr, "Process video\n");
   s = &(ctx->player->video_stream);
   
   if(s->do_convert)

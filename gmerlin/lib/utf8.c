@@ -93,7 +93,7 @@ char * bg_system_to_utf8(const char * str, int len)
   char * tmp_string;
     
   if(len < 0)
-    len = strlen(tmp_string);
+    len = strlen(str);
 
   tmp_string = malloc(len+1);
   memcpy(tmp_string, str, len);
@@ -117,7 +117,7 @@ char * bg_utf8_to_system(const char * str, int len)
   char * tmp_string;
   
   if(len < 0)
-    len = strlen(tmp_string);
+    len = strlen(str);
 
   tmp_string = malloc(len+1);
   memcpy(tmp_string, str, len);

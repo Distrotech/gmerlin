@@ -45,7 +45,7 @@ static void play_file(bg_player_t * player)
   
   info = bg_plugin_find_by_filename(plugin_reg,
                                     bg_argv[bg_arg_index],
-                                    BG_PLUGIN_INPUT);
+                                    BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR);
 
   if(!info)
     {
@@ -54,7 +54,7 @@ static void play_file(bg_player_t * player)
     }
   //  else
   //    fprintf(stderr, "Found %s\n", info->long_name);
-    
+  
   if(!input_handle ||
      strcmp(input_handle->info->name, info->name))
     {

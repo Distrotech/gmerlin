@@ -114,9 +114,9 @@ void bg_album_insert_urls_before(bg_album_t * a,
                                  bg_album_entry_t * after);
 
 void bg_album_insert_urls_after(bg_album_t * a,
-                                 char ** urls,
-                                 const char * plugin,
-                                 bg_album_entry_t * before);
+                                char ** urls,
+                                const char * plugin,
+                                bg_album_entry_t * before);
 
 /* Inserts an xml-string */
 
@@ -150,6 +150,12 @@ void bg_album_get_coords(bg_album_t * a, int * x, int * y,
 
 void bg_album_set_open_path(bg_album_t * a, const char * path);
 const char * bg_album_get_open_path(bg_album_t * a);
+
+char ** bg_album_get_plugins(bg_album_t * a,
+                             uint32_t type_mask,
+                             uint32_t flag_mask);
+
+void bg_album_free_plugins(bg_album_t * a, char ** plugins);
 
 
 /* album_xml.c */

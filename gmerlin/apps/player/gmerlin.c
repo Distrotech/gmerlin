@@ -20,6 +20,7 @@ static void set_logo(bg_plugin_registry_t * reg, bg_player_t * player)
     free(filename);
     return;
     }
+  free(filename);
   bg_player_set_logo(player, &format, frame);
   }
 

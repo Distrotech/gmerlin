@@ -57,3 +57,11 @@ bg_gtk_plugin_widget_single_get_widget(bg_gtk_plugin_widget_single_t * w);
 const bg_plugin_info_t *
 bg_gtk_plugin_widget_single_get_plugin(bg_gtk_plugin_widget_single_t * w);
 
+/* Menu for plugins, will be used for file selectors to select the plugin */
+
+typedef struct bg_gtk_plugin_menu_s bg_gtk_plugin_menu_t;
+
+bg_gtk_plugin_menu_t * bg_gtk_plugin_menu_create(char ** plugins, int auto_supported);
+const char * bg_gtk_plugin_menu_get_plugin(bg_gtk_plugin_menu_t *);
+GtkWidget * bg_gtk_plugin_menu_get_widget(bg_gtk_plugin_menu_t *);
+void bg_gtk_plugin_menu_destroy(bg_gtk_plugin_menu_t *);

@@ -28,11 +28,13 @@ mixercontrol.c \
 plugininfo.c \
 plugin_multi.c \
 plugin_single.c \
+pluginmenu.c \
 question.c \
 slider.c \
 scrolltext.c \
 treewidget.c \
 treewindow.c \
+urlselect.c \
 vumeter.c
 
 libgmerlin_gtk_la_LIBADD = @GTK_LIBS@

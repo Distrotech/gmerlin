@@ -371,12 +371,13 @@ static int load_plugin_by_filename(bg_media_tree_t * tree,
   }
 
 static int load_plugin_by_mimetype(bg_media_tree_t * tree,
-                                    const char * mimetype)
+                                   const char * mimetype, const char * url)
   {
   const bg_plugin_info_t * info;
-  info = bg_plugin_find_by_mimetype(tree->plugin_reg, mimetype);
+  info = bg_plugin_find_by_mimetype(tree->plugin_reg, mimetype, url);
   if(!info)
     return 0;
+    
   load_plugin(tree, info);
   return 1;
   }
@@ -534,6 +535,8 @@ bg_album_entry_t * bg_media_tree_load_url(bg_media_tree_t * tree,
   bg_input_plugin_t * plugin;
   bg_track_info_t * track_info;
   
+  fprintf(stderr, "bg_media_tree_load_url %s %s\n", url,
+          (plugin_long_name ? plugin_long_name : "NULL"));
   
   /* Load the appropriate plugin */
 
@@ -557,7 +560,7 @@ bg_album_entry_t * bg_media_tree_load_url(bg_media_tree_t * tree,
 
     ptr = bg_http_connection_get_mimetype(con);
     
-    if(!load_plugin_by_mimetype(tree, ptr))
+    if(!load_plugin_by_mimetype(tree, ptr, url))
       {
       fprintf(stderr, "No plugin found for mimetype %s\n",
               ptr);
@@ -576,6 +579,8 @@ bg_album_entry_t * bg_media_tree_load_url(bg_media_tree_t * tree,
       }
     }
 
+  fprintf(stderr, "Loaded %s\n", tree->load_handle->info->long_name);
+  
   if(tree->load_handle->info->type == BG_PLUGIN_REDIRECTOR)
     {
     /* Open redirector */
@@ -1180,3 +1185,4 @@ void bg_media_tree_mark_error(bg_media_tree_t * t, int err)
   if(t->current_album)
     bg_album_changed(t->current_album);
   }
+

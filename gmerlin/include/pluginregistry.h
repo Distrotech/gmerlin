@@ -75,7 +75,8 @@ const bg_plugin_info_t *
 bg_plugin_find_by_filename(bg_plugin_registry_t *, const char * filename, int type_mask);
 
 const bg_plugin_info_t *
-bg_plugin_find_by_mimetype(bg_plugin_registry_t *, const char * mimetype);
+bg_plugin_find_by_mimetype(bg_plugin_registry_t *,
+                           const char * mimetype, const char * url);
 
 const bg_plugin_info_t *
 bg_plugin_find_by_long_name(bg_plugin_registry_t *, const char * long_name);

@@ -28,6 +28,7 @@
 #include <gui_gtk/tree.h>
 #include <cfg_dialog.h>
 #include <gui_gtk/fileselect.h>
+#include <gui_gtk/urlselect.h>
 
 /* Since the gtk part is single threaded,
    we can load the pixbufs globally */
@@ -40,6 +41,9 @@ static GdkPixbuf * dnd_pixbuf       = (GdkPixbuf *)0;
 
 static bg_gtk_album_widget_t * drag_source = (bg_gtk_album_widget_t*)0;
 static int drag_do_delete = 0;
+
+static char ** file_plugins = (char **)0;
+static char **  url_plugins = (char **)0;
 
 /* Drag & Drop struff */
 
@@ -105,6 +109,10 @@ typedef struct
 
   GtkWidget * append_albums_item;
   GtkWidget * prepend_albums_item;
+  
+  GtkWidget * append_urls_item;
+  GtkWidget * prepend_urls_item;
+  
   GtkWidget * menu;
   } add_menu_t;
 
@@ -159,7 +167,8 @@ struct bg_gtk_album_widget_s
 
   bg_gtk_filesel_t * add_files_filesel;
   bg_gtk_filesel_t * add_albums_filesel;
-
+  bg_gtk_urlsel_t  * add_urls_urlsel;
+  
   GtkWidget * parent;
   
   };
@@ -351,12 +360,12 @@ static void append_file_callback(char ** files, const char * plugin,
                                  void * data)
   {
   bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
+  //  fprintf(stderr, "append_file_callback: %s\n", (plugin ? plugin : "NULL"));
   bg_album_insert_urls_before(widget->album, files, plugin, NULL);
+  
   bg_gtk_album_widget_update(widget);
   bg_album_set_open_path(widget->album,
                          bg_gtk_filesel_get_directory(widget->add_files_filesel));
-  
-
   }
 
 static void prepend_file_callback(char ** files, const char * plugin,
@@ -369,9 +378,27 @@ static void prepend_file_callback(char ** files, const char * plugin,
                          bg_gtk_filesel_get_directory(widget->add_files_filesel));
   }
 
-#if 1
-static void append_albums_callback(char ** files, const char * plugin,
+static void append_urls_callback(char ** urls, const char * plugin,
+                                 void * data)
+  {
+  bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
+  fprintf(stderr, "append_urls_callback: %s\n", (urls[0] ? urls[0] : "NULL"));
+  bg_album_insert_urls_before(widget->album, urls, plugin, NULL);
+  
+  bg_gtk_album_widget_update(widget);
+  }
+
+static void prepend_urls_callback(char ** urls, const char * plugin,
                                   void * data)
+  {
+  bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
+  bg_album_insert_urls_after(widget->album, urls, plugin, NULL);
+  bg_gtk_album_widget_update(widget);
+  }
+
+
+static void append_albums_callback(char ** files, const char * plugin,
+                                   void * data)
   {
   bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
   bg_album_insert_albums_before(widget->album, files, NULL);
@@ -379,13 +406,12 @@ static void append_albums_callback(char ** files, const char * plugin,
   }
 
 static void prepend_albums_callback(char ** files, const char * plugin,
-                                   void * data)
+                                    void * data)
   {
   bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
   bg_album_insert_albums_after(widget->album, files, NULL);
   bg_gtk_album_widget_update(widget);
   }
-#endif
 
 static void filesel_close_callback(bg_gtk_filesel_t * f, void * data)
   {
@@ -401,11 +427,19 @@ static void filesel_close_callback(bg_gtk_filesel_t * f, void * data)
     }
   }
 
+static void urlsel_close_callback(bg_gtk_urlsel_t * f, void * data)
+  {
+  bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
+  widget->add_urls_urlsel = (bg_gtk_urlsel_t*)0;
+  }
+
 static void set_name(void * data, char * name,
                      bg_parameter_value_t * val)
   {
-  bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
-
+  bg_gtk_album_widget_t * w;
+  if(!name)
+    return;
+  w = (bg_gtk_album_widget_t*)data;
   if(!strcmp(name, "track_name") && w->selected_entry)
     {
     bg_album_rename_track(w->album,
@@ -454,15 +488,22 @@ static void menu_callback(GtkWidget * w, gpointer data)
   
   bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
 
+  /* Add files */
+  
   if(w == widget->menu.add_menu.append_files_item)
     {
     tmp_string = bg_sprintf("Append files to album %s",
                                bg_album_get_name(widget->album));
+    if(!file_plugins)
+      file_plugins = bg_album_get_plugins(widget->album,
+                                          BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR,
+                                          BG_PLUGIN_FILE);
+    
     widget->add_files_filesel =
       bg_gtk_filesel_create(tmp_string,
                             append_file_callback,
                             filesel_close_callback,
-                            (char **)0,
+                            file_plugins,
                             widget, widget->parent);
     free(tmp_string);
 
@@ -474,22 +515,70 @@ static void menu_callback(GtkWidget * w, gpointer data)
   else if(w == widget->menu.add_menu.prepend_files_item)
     {
     tmp_string = bg_sprintf("Prepend files to album %s",
-                               bg_album_get_name(widget->album));
+                            bg_album_get_name(widget->album));
+
+    if(!file_plugins)
+      file_plugins = bg_album_get_plugins(widget->album,
+                                          BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR,
+                                          BG_PLUGIN_FILE);
+    
     widget->add_files_filesel =
       bg_gtk_filesel_create(tmp_string,
                             prepend_file_callback,
                             filesel_close_callback,
-                            (char **)0,
+                            file_plugins,
                             widget, widget->parent);
     free(tmp_string);
     bg_gtk_filesel_set_directory(widget->add_files_filesel,
                                  bg_album_get_open_path(widget->album));
     bg_gtk_filesel_run(widget->add_files_filesel, 0);
     }
+
+  /* Add URLS */
+
+  else if(w == widget->menu.add_menu.append_urls_item)
+    {
+    tmp_string = bg_sprintf("Append URLS to album %s",
+                            bg_album_get_name(widget->album));
+    if(!url_plugins)
+      url_plugins = bg_album_get_plugins(widget->album,
+                                         BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR,
+                                         BG_PLUGIN_URL);
+    
+    widget->add_urls_urlsel =
+      bg_gtk_urlsel_create(tmp_string,
+                           append_urls_callback,
+                           urlsel_close_callback,
+                           url_plugins,
+                           widget, widget->parent);
+    free(tmp_string);
+    bg_gtk_urlsel_run(widget->add_urls_urlsel, 0);
+    }
+  else if(w == widget->menu.add_menu.prepend_urls_item)
+    {
+    tmp_string = bg_sprintf("Prepend URLS to album %s",
+                            bg_album_get_name(widget->album));
+    if(!url_plugins)
+      url_plugins = bg_album_get_plugins(widget->album,
+                                         BG_PLUGIN_INPUT | BG_PLUGIN_REDIRECTOR,
+                                         BG_PLUGIN_URL);
+    
+    widget->add_urls_urlsel =
+      bg_gtk_urlsel_create(tmp_string,
+                           prepend_urls_callback,
+                           urlsel_close_callback,
+                           url_plugins,
+                           widget, widget->parent);
+    free(tmp_string);
+    bg_gtk_urlsel_run(widget->add_urls_urlsel, 0);
+    }
+  
+  /* Add Albums */
+  
   else if(w == widget->menu.add_menu.append_albums_item)
     {
     tmp_string = bg_sprintf("Append albums to %s",
-                               bg_album_get_name(widget->album));
+                            bg_album_get_name(widget->album));
     widget->add_files_filesel =
       bg_gtk_filesel_create(tmp_string,
                             append_albums_callback,
@@ -502,7 +591,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
   else if(w == widget->menu.add_menu.prepend_albums_item)
     {
     tmp_string = bg_sprintf("Prepend albums to %s",
-                               bg_album_get_name(widget->album));
+                            bg_album_get_name(widget->album));
     widget->add_files_filesel =
       bg_gtk_filesel_create(tmp_string,
                             prepend_albums_callback,
@@ -591,9 +680,13 @@ static void init_menu(bg_gtk_album_widget_t * w)
 
   w->menu.add_menu.append_albums_item =
     create_item(w, w->menu.add_menu.menu, "Append Albums");
-
   w->menu.add_menu.prepend_albums_item =
     create_item(w, w->menu.add_menu.menu, "Prepend Albums");
+
+  w->menu.add_menu.append_urls_item =
+    create_item(w, w->menu.add_menu.menu, "Append URLs");
+  w->menu.add_menu.prepend_urls_item =
+    create_item(w, w->menu.add_menu.menu, "Prepend URLs");
   
   gtk_widget_show(w->menu.add_menu.menu);
     
@@ -777,7 +870,7 @@ static void drag_received_callback(GtkWidget *widget,
           }
         else if(is_urilist(data))
           {
-          //          fprintf(stderr, "DND_TEXT_URI_LIST\n");
+          fprintf(stderr, "DND_TEXT_URI_LIST\n");
           bg_album_insert_urilist_before(aw->album, data->data, data->length,
                                          entry);
           }
@@ -793,7 +886,7 @@ static void drag_received_callback(GtkWidget *widget,
         
         else if(is_urilist(data))
           {
-          //          fprintf(stderr, "DND_TEXT_URI_LIST\n");
+          fprintf(stderr, "DND_TEXT_URI_LIST\n");
           bg_album_insert_urilist_after(aw->album, data->data, data->length,
                                          entry);
           }
