@@ -110,7 +110,7 @@ char * bg_system_to_utf8(const char * str, int len)
 
   //  fprintf(stderr, "System charset: %s\n", system_charset);
 
-  system_charset = "ISO-8859-1";
+  //  system_charset = "ISO-8859-1";
   
   cd = iconv_open("UTF-8", system_charset);
   ret = do_convert(cd, tmp_string, len);
@@ -136,8 +136,8 @@ char * bg_utf8_to_system(const char * str, int len)
 
   system_charset = nl_langinfo(CODESET);
   //  fprintf(stderr, "System charset: %s\n", system_charset);
-
-  system_charset = "ISO-8859-1";
+  
+  //  system_charset = "ISO-8859-1";
 
   cd = iconv_open(system_charset, "UTF-8");
   ret = do_convert(cd, tmp_string, len);

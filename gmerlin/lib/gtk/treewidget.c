@@ -854,7 +854,7 @@ static void remove_album(bg_gtk_tree_widget_t * w, bg_album_t * a)
   num_children = bg_album_get_num_children(a);
   for(i = 0; i < num_children; i++)
     {
-    child = bg_album_get_child(a, i);
+    child = bg_album_get_child(a, 0);
     remove_album(w, child);
     }
 

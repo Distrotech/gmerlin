@@ -186,13 +186,13 @@ static codec_info_t codec_infos[] =
      *************************************************************/
 
     { "FFmpeg motion Jpeg decoder", "Motion Jpeg", CODEC_ID_MJPEG,
-      (int[]){ BGAV_MK_FOURCC('M', 'J', 'P', 'G'),
-               BGAV_MK_FOURCC('L', 'J', 'P', 'G'),
+      (int[]){ BGAV_MK_FOURCC('L', 'J', 'P', 'G'),
                BGAV_MK_FOURCC('A', 'V', 'R', 'n'),
                BGAV_MK_FOURCC('J', 'P', 'G', 'L'),
                BGAV_MK_FOURCC('j', 'p', 'e', 'g'),
                BGAV_MK_FOURCC('m', 'j', 'p', 'a'),
                BGAV_MK_FOURCC('A', 'V', 'D', 'J'),
+               BGAV_MK_FOURCC('M', 'J', 'P', 'G'),
                0x00 } },
 
     { "FFmpeg motion Jpeg-B decoder", "Motion Jpeg B", CODEC_ID_MJPEGB,

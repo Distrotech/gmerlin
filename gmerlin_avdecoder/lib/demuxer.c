@@ -92,7 +92,7 @@ static int num_demuxers = sizeof(demuxers)/sizeof(demuxers[0]);
 static int num_sync_demuxers = sizeof(sync_demuxers)/sizeof(sync_demuxers[0]);
 static int num_mimetypes = sizeof(mimetypes)/sizeof(mimetypes[0]);
 
-#define SYNC_BYTES 2048
+#define SYNC_BYTES 4096
 
 bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
   {

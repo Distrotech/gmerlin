@@ -842,9 +842,11 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx,
     ctx->can_seek = 1;
 
   if(!ctx->tt->tracks[0].name && ctx->input->metadata.title)
+    {
+    // fprintf(stderr, "demux_mpegaudio: Setting track name from metadata title\n");
     ctx->tt->tracks[0].name = bgav_strndup(ctx->input->metadata.title,
                                            NULL);
-  
+    }
   return 1;
   }
 

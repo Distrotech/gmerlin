@@ -67,7 +67,7 @@ static void name_changed(void * data, const char * name)
   {
   bg_player_input_context_t * ctx;
   ctx = (bg_player_input_context_t *)data;
-  
+  //  fprintf(stderr, "Name changed callback\n");
   bg_player_set_track_name(ctx->player, name);
   }
 
@@ -253,6 +253,10 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
     audio_frame->valid_samples =
       ctx->player->audio_stream.output_format.samples_per_frame;
     ctx->audio_samples_written += audio_frame->valid_samples;
+#if 0
+    fprintf(stderr, "Rate: %d\n",
+            ctx->player->audio_stream.input_format.samplerate);
+#endif
     ctx->audio_time =
       gavl_samples_to_time(ctx->player->audio_stream.input_format.samplerate,
                            ctx->audio_samples_written);
@@ -277,7 +281,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
                                         ctx->player->current_audio_stream,
                                         ctx->player->audio_stream.input_format.samples_per_frame))
       ctx->audio_finished = 1;
-    ctx->audio_samples_written += audio_frame->valid_samples;
+    ctx->audio_samples_written += s->frame->valid_samples;
     bg_plugin_unlock(ctx->plugin_handle);
     //    fprintf(stderr, "Convert audio %d\n", s->frame->valid_samples);
     
@@ -300,6 +304,10 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
     ctx->audio_samples_written += audio_frame->valid_samples;
     }
   bg_fifo_unlock_write(s->fifo, (ctx->audio_finished && ctx->video_finished));
+#if 0
+  fprintf(stderr, "Rate: %d\n",
+          ctx->player->audio_stream.input_format.samplerate);
+#endif
   ctx->audio_time =
     gavl_samples_to_time(ctx->player->audio_stream.input_format.samplerate,
                          ctx->audio_samples_written);

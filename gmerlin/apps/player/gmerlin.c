@@ -337,7 +337,7 @@ int gmerlin_play(gmerlin_t * g, int ignore_flags)
   gavl_time_t duration_before;
   gavl_time_t duration_current;
   gavl_time_t duration_after;
-  
+  fprintf(stderr, "gmerlin_play\n");
   handle = bg_media_tree_get_current_track(g->tree, &track_index);
   
   if(!handle)
@@ -407,15 +407,23 @@ void gmerlin_next_track(gmerlin_t * g)
       case REPEAT_MODE_1:
         //      fprintf(stderr, "REPEAT_MODE_1\n");
         result = gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
-        if(result)
-          keep_going = 0;
+        if(!result)
+          bg_player_stop(g->player);
+        keep_going = 0;
         break;
       case REPEAT_MODE_ALL:
         //        fprintf(stderr, "REPEAT_MODE_ALL\n");
-        bg_media_tree_next(g->tree, 1, g->shuffle_mode);
-        result = gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
-        if(result)
+        if(!bg_media_tree_next(g->tree, 1, g->shuffle_mode))
+          {
+          bg_player_stop(g->player);
           keep_going = 0;
+          }
+        else
+          {
+          result = gmerlin_play(g, BG_PLAYER_IGNORE_IF_PLAYING);
+          if(result)
+            keep_going = 0;
+          }
         break;
       case  NUM_REPEAT_MODES:
         break;

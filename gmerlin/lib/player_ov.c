@@ -256,6 +256,7 @@ void * bg_player_ov_thread(void * data)
       /* TODO: Drop frames */
       else if(diff_time < -100000)
         {
+        //        fprintf(stderr, "Warning, frame dropping not yet implemented\n");
         }
       }
     //    fprintf(stderr, "Frame time: %lld\n", frame->time);

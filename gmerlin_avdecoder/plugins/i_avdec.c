@@ -75,12 +75,12 @@ static int open_avdec(void * priv, const char * location)
   result = bg_avdec_init(avdec);
 
   /* Set default track name */
-  
+#if 0
   if(result && (avdec->num_tracks == 1) && !avdec->track_info->name)
     {
     bg_set_track_name_default(avdec->track_info, location);
     }
-  
+#endif
   return result;
   }
 

@@ -464,7 +464,7 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
 
   bg_player_input_seek(player->input_context, &sync_time);
 
-  fprintf(stderr, "Player seeked: %f %f\n", gavl_time_to_seconds(t), gavl_time_to_seconds(sync_time));
+  //  fprintf(stderr, "Player seeked: %f %f\n", gavl_time_to_seconds(t), gavl_time_to_seconds(sync_time));
 
   
   
@@ -510,6 +510,15 @@ static int process_command(bg_player_t * player,
   switch(bg_msg_get_id(command))
     {
     case BG_PLAYER_CMD_QUIT:
+      state = bg_player_get_state(player);
+      //      fprintf(stderr, "Command quit\n");
+      switch(state)
+        {
+        case BG_PLAYER_STATE_PLAYING:
+        case BG_PLAYER_STATE_CHANGING:
+          stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+          break;
+        }
       return 0;
       break;
     case BG_PLAYER_CMD_PLAY:
@@ -556,7 +565,7 @@ static int process_command(bg_player_t * player,
       break;
     case BG_PLAYER_CMD_STOP:
       state = bg_player_get_state(player);
-      fprintf(stderr, "Command stop\n");
+      //      fprintf(stderr, "Command stop\n");
       switch(state)
         {
         case BG_PLAYER_STATE_PLAYING:
@@ -569,7 +578,7 @@ static int process_command(bg_player_t * player,
     case BG_PLAYER_CMD_SEEK:
       if(!player->can_seek)
         {
-        fprintf(stderr, "Cannot seek in this stream\n");
+        //        fprintf(stderr, "Cannot seek in this stream\n");
         }
       else
         {
@@ -581,7 +590,7 @@ static int process_command(bg_player_t * player,
     case BG_PLAYER_CMD_SEEK_REL:
       if(!player->can_seek)
         {
-        fprintf(stderr, "Cannot seek in this stream\n");
+        //        fprintf(stderr, "Cannot seek in this stream\n");
         }
       else
         {

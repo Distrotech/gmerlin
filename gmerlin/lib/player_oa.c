@@ -203,11 +203,16 @@ void bg_player_time_get(bg_player_t * player, int exact, gavl_time_t * ret)
       ctx->current_time =
         gavl_samples_to_time(ctx->player->audio_stream.output_format.samplerate,
                              ctx->audio_samples_written-samples_in_soundcard);
+
+      //      ctx->current_time *= ctx->player->audio_stream.output_format.samplerate;
+      //      ctx->current_time /= ctx->player->audio_stream.input_format.samplerate;
+      
 #if 0
-      fprintf(stderr, "Samples: %lld (%lld - %d), time: %f\n",
+      fprintf(stderr, "Samples: %lld (%lld - %d), time: %f, rate: %d\n",
               ctx->audio_samples_written-samples_in_soundcard,
               ctx->audio_samples_written, samples_in_soundcard,
-              gavl_time_to_seconds(ctx->current_time));
+              gavl_time_to_seconds(ctx->current_time),
+              ctx->player->audio_stream.output_format.samplerate);
 #endif
       *ret = ctx->current_time;
       pthread_mutex_unlock(&(ctx->time_mutex));

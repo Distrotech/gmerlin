@@ -64,11 +64,16 @@ typedef struct bg_album_entry_s
 
 void bg_gtk_album_enrty_show(const bg_album_entry_t * entry)
   {
+  char * utf8_location;
   char * text;
   bg_gtk_textwindow_t * win;
   char duration[GAVL_TIME_STRING_LEN];
 
   gavl_time_prettyprint(entry->duration, duration);
+
+  //  if(entry->location)
+  //    utf8_location = bg_system_to_utf8(entry->location);
+  
   
   text = bg_sprintf("Name:\t %s\nLocation:\t %s\nTrack:\t %d/%d\nPlugin:\t %s\nDuration:\t %s\nAudio Streams:\t %d\nVideo Streams:\t %d\nSubpicture Streams:\t %d\nPrograms:\t %d",
                     S(entry->name), S(entry->location),

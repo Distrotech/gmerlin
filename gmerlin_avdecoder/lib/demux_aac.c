@@ -184,7 +184,9 @@ static int probe_aac(bgav_input_context_t * input)
 
   /* Support aac live streams */
 
-  if(input->mimetype && !strcmp(input->mimetype, "audio/aacp"))
+  if(input->mimetype &&
+     (!strcmp(input->mimetype, "audio/aacp") ||
+      !strcmp(input->mimetype, "audio/aac")))
     return 1;
 
   if(bgav_input_get_data(input, header, 4) < 4)

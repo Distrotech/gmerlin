@@ -649,7 +649,7 @@ static void * create_x11()
 
 static void set_drawing_coords(x11_t * priv)
   {
-  
+  //  fprintf(stderr, "set_drawing_coords\n");
 #ifdef HAVE_LIBXV
   float aspect_window;
   float aspect_video;
@@ -662,7 +662,11 @@ static void set_drawing_coords(x11_t * priv)
     aspect_video  =
       (float)(priv->format.image_width  * priv->format.pixel_width)/
       (float)(priv->format.image_height * priv->format.pixel_height);
-
+#if 0
+    fprintf(stderr, "Aspect window: %f (%d x %d), aspect video: %f\n",
+            aspect_window, priv->win.window_width, priv->win.window_height,
+            aspect_video);
+#endif
     if(aspect_window > aspect_video) /* Bars left and right */
       {
       priv->dst_w = (int)((float)priv->win.window_height * aspect_video + 0.5);
@@ -696,7 +700,10 @@ static void set_drawing_coords(x11_t * priv)
 #ifdef HAVE_LIBXV
     }
 #endif // HAVE_LIBXV
-  
+#if 0
+  fprintf(stderr, "x: %d, y: %d, w: %d, h: %d\n",
+          priv->dst_x, priv->dst_y, priv->dst_w, priv->dst_h);
+#endif
   }
 
 static int _open_x11(void * data,
@@ -910,6 +917,7 @@ static int _open_x11(void * data,
     window_height = priv->format.image_height;
 #endif // HAVE_LIBXV
     x11_window_resize(&(priv->win), window_width, window_height);
+    set_drawing_coords(priv);
     }
   else
     {

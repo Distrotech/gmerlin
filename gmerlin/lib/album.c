@@ -106,7 +106,7 @@ void bg_album_update_entry(bg_album_t * album,
       if(track_info->name)
         {
         entry->name = bg_strdup(entry->name, track_info->name);
-        //      fprintf(stderr, "entry->name: %s\n", entry->name);
+        fprintf(stderr, "entry->name: %s\n", entry->name);
         }
       /* Take filename minus extension */
       else
@@ -120,6 +120,7 @@ void bg_album_update_entry(bg_album_t * album,
         if(!end_pos)
           end_pos = &(start_pos[strlen(start_pos)]);
         entry->name = bg_strndup(entry->name, start_pos, end_pos);
+        fprintf(stderr, "Filename minus extension\n");
         }
       }
     }
@@ -133,6 +134,9 @@ void bg_album_update_entry(bg_album_t * album,
     entry->total_tracks = 1;
     entry->flags = BG_ALBUM_ENTRY_REDIRECTOR;
     }
+  fprintf(stderr, "Name:     %s\n", entry->name);
+  fprintf(stderr, "Location: %s\n", entry->location);
+  
   
   }
 
@@ -621,7 +625,15 @@ void bg_album_delete_selected(bg_album_t * album)
     cur_next = cur->next;
 
     if(cur->flags & BG_ALBUM_ENTRY_SELECTED)
+      {
+      if(cur == album->com->current_entry)
+        {
+        album->com->current_entry = (bg_album_entry_t*)0;
+        album->com->current_album = (bg_album_t*)0;
+        }
       bg_album_entry_destroy(cur);
+
+      }
     else
       {
       if(!new_entries)
@@ -1274,8 +1286,8 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   const bg_plugin_info_t * info;
   //  const char * file_plugin_name;
   
-  //  fprintf(stderr, "bg_media_tree_load_url %s %s\n", url,
-  //          (plugin_long_name ? plugin_long_name : "NULL"));
+  fprintf(stderr, "bg_media_tree_load_url %s %s\n", url,
+          (plugin_long_name ? plugin_long_name : "NULL"));
   
   /* Load the appropriate plugin */
 

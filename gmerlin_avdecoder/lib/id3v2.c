@@ -75,6 +75,24 @@ static void dump_frame(bgav_id3v2_frame_t * frame)
     }
   }
 
+static void free_frame(bgav_id3v2_frame_t * frame)
+  {
+  int j;
+  if(frame->strings)
+    {
+    j = 0;
+    
+    while(frame->strings[j])
+      {
+      free(frame->strings[j]);
+      j++;
+      }
+    free(frame->strings);
+    }
+  else if(frame->data)
+    free(frame->data);
+  }
+
 void bgav_id3v2_dump(bgav_id3v2_tag_t * t)
   {
   int i;
@@ -281,6 +299,13 @@ static int read_frame(bgav_input_context_t * input,
        !bgav_input_read_16_be(input, &(ret->header.flags)))
       return 0;
     }
+#if 0
+  fprintf(stderr, "Header fourcc: ");
+  bgav_dump_fourcc(ret->header.fourcc);
+  fprintf(stderr, "Header size: %d\n", ret->header.size);
+#endif
+  if(ret->header.size > input->total_bytes - input->position)
+    return 0;
   
   data = malloc(ret->header.size);
   if(bgav_input_read_data(input, data, ret->header.size) <
@@ -301,6 +326,7 @@ static int read_frame(bgav_input_context_t * input,
     ret->data = data;
     
     }
+  //  dump_frame(ret);  
   return 1;
   }
 
@@ -312,7 +338,10 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
   int64_t tag_start_pos;
   int64_t start_pos;
   int frames_alloc = 0;
-  
+  bgav_input_context_t * input_mem;
+  uint8_t * data;
+  int data_size;
+      
   bgav_id3v2_tag_t * ret = (bgav_id3v2_tag_t *)0;
   
   //  fprintf(stderr, "Reading ID3V2 tag...\n");
@@ -350,12 +379,22 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
   
   /* Read frames */
 
-  while(input->position < tag_start_pos + ret->header.size)
+  //  fprintf(stderr, "ID3 size: %d\n", ret->header.size);
+
+  data_size = tag_start_pos + ret->header.size - input->position;
+  data = malloc(data_size);
+  if(bgav_input_read_data(input, data, data_size) < data_size)
+    goto fail;
+
+  input_mem = bgav_input_open_memory(data, data_size);
+    
+  while(input_mem->position < data_size)
     {
-    if(input->position >= tag_start_pos + ret->header.size - 4)
+    //    fprintf(stderr, "Input position: %lld\n", input->position);    
+    if(input_mem->position >= data_size - 4)
       break;
     
-    if(bgav_input_read_data(input, probe_data, 3) < 3)
+    if(bgav_input_read_data(input_mem, probe_data, 3) < 3)
       goto fail;
 
     if(!probe_data[0] && !probe_data[1] && !probe_data[2])
@@ -365,7 +404,7 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
             (probe_data[1] == 'D') && 
             (probe_data[2] == 'I'))
       {
-      bgav_input_skip(input, 7);
+      bgav_input_skip(input_mem, 7);
       break;
       }
     if(frames_alloc < ret->num_frames + 1)
@@ -376,14 +415,18 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
              FRAMES_TO_ALLOC * sizeof(*ret->frames));
       }
     
-    if(!read_frame(input,
+    if(!read_frame(input_mem,
                    &(ret->frames[ret->num_frames]),
                    probe_data,
                    ret->header.major_version))
-      goto fail;
+      {
+      free_frame(&(ret->frames[ret->num_frames]));
+      break;
+      }
     ret->num_frames++;
     }
-    
+  bgav_input_close(input_mem);
+  
   ret->total_bytes = ret->header.size + 10;
   /* Read footer */
   
@@ -621,22 +664,10 @@ void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
 
 void bgav_id3v2_destroy(bgav_id3v2_tag_t * t)
   {
-  int i, j;
+  int i;
   for(i = 0; i < t->num_frames; i++)
     {
-    if(t->frames[i].strings)
-      {
-      j = 0;
-
-      while(t->frames[i].strings[j])
-        {
-        free(t->frames[i].strings[j]);
-        j++;
-        }
-      free(t->frames[i].strings);
-      }
-    else if(t->frames[i].data)
-      free(t->frames[i].data);
+    free_frame(&(t->frames[i]));
     }
   free(t->frames);
   free(t);

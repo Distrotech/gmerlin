@@ -22,7 +22,7 @@
 #include <ctype.h>
 #include <avdec_private.h>
 
-static char * get_string(char * ptr, int max_size)
+static char * get_string(bgav_charset_converter_t * cnv, char * ptr, int max_size)
   {
   char * end;
   
@@ -37,38 +37,47 @@ static char * get_string(char * ptr, int max_size)
   if(end == ptr)
     return (char*)0;
   end++;
-  return bgav_strndup(ptr, end);
+
+  return bgav_convert_string(cnv, ptr, end - ptr, (int*)0);
+  //  return bgav_strndup(ptr, end);
   }
 
 bgav_id3v1_tag_t * bgav_id3v1_read(bgav_input_context_t * input)
   {
+  
   char buffer[128];
   char * pos;
   
   bgav_id3v1_tag_t * ret;
-
+  bgav_charset_converter_t * cnv;
+  
   if(bgav_input_read_data(input, buffer, 128) < 128)
     return (bgav_id3v1_tag_t *)0;
 
+  cnv = bgav_charset_converter_create("ISO-8859-1", "UTF-8");
+  
   ret = calloc(1, sizeof(*ret));
   
   pos = buffer + 3;
-  ret->title = get_string(pos, 30);
+  ret->title = get_string(cnv, pos, 30);
 
   pos = buffer + 33;
-  ret->artist = get_string(pos, 30);
+  ret->artist = get_string(cnv, pos, 30);
 
   pos = buffer + 63;
-  ret->album = get_string(pos, 30);
+  ret->album = get_string(cnv, pos, 30);
 
   pos = buffer + 93;
-  ret->year = get_string(pos, 4);
+  ret->year = get_string(cnv, pos, 4);
 
   pos = buffer + 97;
-  ret->comment = get_string(pos, 30);
+  ret->comment = get_string(cnv, pos, 30);
   if(ret->comment && strlen(ret->comment) <= 28)
     ret->track = buffer[126];
   ret->genre = buffer[127];
+
+  bgav_charset_converter_destroy(cnv);
+
   return ret;
   }
 

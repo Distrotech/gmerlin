@@ -127,7 +127,7 @@ void bgav_audio_resync(bgav_stream_t * s)
 int bgav_audio_skipto(bgav_stream_t * s, gavl_time_t * t)
   {
   int64_t num_samples;
-  int samples_skipped;  
+  int samples_skipped = 0;  
   gavl_time_t stream_time;
 
   stream_time = gavl_samples_to_time(s->timescale,

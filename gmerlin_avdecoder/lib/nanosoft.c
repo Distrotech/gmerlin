@@ -301,7 +301,7 @@ static uint32_t guid_2_fourcc(bgav_GUID_t * g)
 void bgav_WAVEFORMAT_get_format(bgav_WAVEFORMAT_t * wf,
                                 bgav_stream_t * s)
   {
-  bgav_WAVEFORMAT_dump(wf);
+  //  bgav_WAVEFORMAT_dump(wf);
   
   s->data.audio.format.num_channels = wf->f.WAVEFORMAT.nChannels;
   s->data.audio.format.samplerate   = wf->f.WAVEFORMAT.nSamplesPerSec;

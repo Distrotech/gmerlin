@@ -474,7 +474,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
     //    fprintf(stderr, "Metadata:\n");
     //    bgav_metadata_dump(&metadata);
     
-    if(ctx->name_change_callback)
+    if(ctx->name_change_callback && !ctx->input->input->seek_byte)
       {
       if(metadata.artist && metadata.title)
         {

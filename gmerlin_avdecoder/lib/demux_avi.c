@@ -897,7 +897,7 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
 
     if(!avi_as->has_indx)
       {
-      fprintf(stderr, "Audio stream %d has no indx\n", i);
+      //      fprintf(stderr, "Audio stream %d has no indx\n", i);
       return;
       }
     avi_as->total_bytes = 0;
@@ -909,7 +909,7 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
     
     if(!avi_vs->has_indx)
       {
-      fprintf(stderr, "Video stream %d has no indx\n", i);
+      //      fprintf(stderr, "Video stream %d has no indx\n", i);
       return;
       }
     avi_vs->total_frames = 0;
@@ -1170,7 +1170,11 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
 #ifdef DUMP_HEADERS
         bgav_BITMAPINFOHEADER_dump(&bh);
 #endif
-        if(ch->ckSize > 40)
+
+        /* We don't add extradata if the fourcc is MJPG */
+        /* This lets us play blender AVIs. */
+                
+        if((ch->ckSize > 40) && (bg_vs->fourcc != BGAV_MK_FOURCC('M','J','P','G')))
           {
           //          fprintf(stderr, "Adding extradata %d bytes\n",
           //                  ch->ckSize - 40);
