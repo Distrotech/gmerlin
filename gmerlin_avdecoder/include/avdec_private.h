@@ -327,6 +327,14 @@ bgav_track_add_audio_stream(bgav_track_t * t);
 bgav_stream_t *
 bgav_track_add_video_stream(bgav_track_t * t);
 
+void
+bgav_track_remove_audio_stream(bgav_track_t * track, int stream);
+
+void
+bgav_track_remove_video_stream(bgav_track_t * track, int stream);
+
+
+
 bgav_stream_t *
 bgav_track_find_stream(bgav_track_t * t, int stream_id);
 
@@ -458,7 +466,9 @@ struct bgav_input_context_s
   int read_timeout;
   int network_bandwidth;
   int network_buffer_size;
-    
+
+  const char * ftp_anonymous_password;
+  
   /* Callbacks */
   
   void (*name_change_callback)(void * data, const char * name);
@@ -741,6 +751,9 @@ struct bgav_s
   int read_timeout;
   int network_bandwidth;
   int network_buffer_size;
+
+  char * ftp_anonymous_password;
+
   
   bgav_input_context_t * input;
   bgav_demuxer_context_t * demuxer;

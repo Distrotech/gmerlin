@@ -291,6 +291,8 @@ extern bgav_input_t bgav_input_rtsp;
 extern bgav_input_t bgav_input_pnm;
 extern bgav_input_t bgav_input_mms;
 extern bgav_input_t bgav_input_http;
+extern bgav_input_t bgav_input_ftp;
+
 extern bgav_input_t bgav_input_vcd;
 
 void bgav_inputs_dump()
@@ -302,6 +304,7 @@ void bgav_inputs_dump()
   fprintf(stderr, "<li>%s\n", bgav_input_pnm.name);
   fprintf(stderr, "<li>%s\n", bgav_input_mms.name);
   fprintf(stderr, "<li>%s\n", bgav_input_http.name);
+  fprintf(stderr, "<li>%s\n", bgav_input_ftp.name);
   fprintf(stderr, "<li>%s\n", bgav_input_vcd.name);
   fprintf(stderr, "</ul>\n");
   }
@@ -325,6 +328,8 @@ int bgav_input_open(bgav_input_context_t * ret,
       ret->input = &bgav_input_mms;
     else if(!strcmp(protocol, "http"))
       ret->input = &bgav_input_http;
+    else if(!strcmp(protocol, "ftp"))
+      ret->input = &bgav_input_ftp;
     else
       {
       fprintf(stderr, "Unknown protocol: %s\n", protocol);

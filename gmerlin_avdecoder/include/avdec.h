@@ -65,6 +65,10 @@ void bgav_set_http_proxy_host(bgav_t*, const char *);
 void bgav_set_http_proxy_port(bgav_t*, int);
 void bgav_set_http_shoutcast_metadata(bgav_t*, int);
 
+/* Set FTP options */
+
+void bgav_set_ftp_anonymous_password(bgav_t*, const char*);
+
 /* Set callbacks */
 
 void

@@ -194,6 +194,18 @@ static void remove_stream(bgav_stream_t * stream_array, int index, int num)
     }
   }
 
+void bgav_track_remove_audio_stream(bgav_track_t * track, int stream)
+  {
+  remove_stream(track->audio_streams, stream, track->num_audio_streams);
+  track->num_audio_streams--;
+  }
+
+void bgav_track_remove_video_stream(bgav_track_t * track, int stream)
+  {
+  remove_stream(track->video_streams, stream, track->num_video_streams);
+  track->num_video_streams--;
+  }
+
 void bgav_track_remove_unsupported(bgav_track_t * track)
   {
   int i;
@@ -204,10 +216,7 @@ void bgav_track_remove_unsupported(bgav_track_t * track)
     {
     s = &(track->audio_streams[i]);
     if(!bgav_find_audio_decoder(s))
-      {
-      remove_stream(track->audio_streams, i, track->num_audio_streams);
-      track->num_audio_streams--;
-      }
+      bgav_track_remove_audio_stream(track, i);
     else
       i++;
     }
@@ -216,10 +225,7 @@ void bgav_track_remove_unsupported(bgav_track_t * track)
     {
     s = &(track->video_streams[i]);
     if(!bgav_find_video_decoder(s))
-      {
-      remove_stream(track->video_streams, i, track->num_video_streams);
-      track->num_video_streams--;
-      }
+      bgav_track_remove_video_stream(track, i);
     else
       i++;
     }

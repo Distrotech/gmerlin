@@ -64,7 +64,9 @@ void bgav_stream_alloc(bgav_stream_t * stream)
   stream->packet_buffer = bgav_packet_buffer_create();
   stream->time_scaled = -1;
   stream->first_index_position = INT_MAX;
-  stream->last_index_position = 0;
+
+  /* need to set this to -1 so we know, if this stream has packets at all */
+  stream->last_index_position = -1; 
   stream->index_position = -1;
   }
 

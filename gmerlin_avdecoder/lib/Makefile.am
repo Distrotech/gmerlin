@@ -190,6 +190,7 @@ id3v1.c \
 id3v2.c \
 in_fd.c \
 in_file.c \
+in_ftp.c \
 in_http.c \
 in_memory.c \
 in_mms.c \

@@ -35,6 +35,9 @@ bgav_input_context_t * create_input(bgav_t * b)
   ret->http_proxy_host =           b->http_proxy_host;
   ret->http_proxy_port =           b->http_proxy_port;
   ret->http_shoutcast_metadata =   b->http_shoutcast_metadata;
+
+  ret->ftp_anonymous_password  =   b->ftp_anonymous_password;
+  
   ret->connect_timeout =           b->connect_timeout;
   ret->read_timeout =              b->read_timeout;
   ret->network_bandwidth =         b->network_bandwidth;
@@ -383,6 +386,14 @@ void bgav_set_http_shoutcast_metadata(bgav_t*b, int m)
   {
   b->http_shoutcast_metadata = m;
   }
+
+void bgav_set_ftp_anonymous_password(bgav_t*b, const char * h)
+  {
+  if(b->ftp_anonymous_password)
+    free(b->ftp_anonymous_password);
+  b->ftp_anonymous_password = bgav_strndup(h, NULL);
+  }
+
 
 void
 bgav_set_name_change_callback(bgav_t * b,

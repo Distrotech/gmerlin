@@ -145,9 +145,13 @@ typedef struct
 
   int payload_size;
 
+  /* Adaption field */
+  
+  int64_t pcr;
+  
   } transport_packet_t;
 
-#if 0
+#if 1
 static void transport_packet_dump(transport_packet_t * p)
   {
   fprintf(stderr, "Transport packet:\n");
@@ -159,7 +163,10 @@ static void transport_packet_dump(transport_packet_t * p)
           (p->has_payload ? "Yes" : "No"));
   fprintf(stderr, "  Continuity counter: %d\n", p->continuity_counter);
   fprintf(stderr, "  Payload size: %d\n", p->payload_size);
-  
+  if(p->pcr >= 0)
+    fprintf(stderr, "  PCR: %f\n", (float)p->pcr / 90000.0);
+  else
+    fprintf(stderr, "  PCR: None\n");
   }
 
 #endif
@@ -168,8 +175,10 @@ static int transport_packet_read(bgav_input_context_t * input,
                                  transport_packet_t * ret)
   {
   uint32_t header, tmp;
-  uint8_t adaption_field_length;
-    
+  uint8_t adaption_field_length, adaption_field_flags, c_tmp;
+
+  ret->pcr = -1;
+  
   if(!bgav_input_read_32_be(input, &header))
     return 0;
 
@@ -209,6 +218,27 @@ static int transport_packet_read(bgav_input_context_t * input,
       return 0;
     ret->payload_size = 184 - adaption_field_length - 1;
 
+    if(adaption_field_length)
+      {
+      if(!bgav_input_read_data(input, &adaption_field_flags, 1))
+        return 0;
+
+      adaption_field_length--;
+      //      fprintf(stderr, "Adaption field flags: 0x%02x\n", adaption_field_flags);
+      if(adaption_field_flags & 0x10) /* PCR_flag */
+        {
+        if(!bgav_input_read_32_be(input, &tmp))
+          return 0;
+        ret->pcr = tmp;
+        ret->pcr <<= 1;
+        if(!bgav_input_read_data(input, &c_tmp, 1))
+          return 0;
+        ret->pcr |= (c_tmp >> 7);
+        bgav_input_skip(input, 1);
+        adaption_field_length -= 6;
+        }
+      }
+    
     /* TODO: Something useful in the adaption field?? */
     bgav_input_skip(input, adaption_field_length);
     }
@@ -435,10 +465,11 @@ typedef struct
   stream_priv_t * video_streams;
 
   uint16_t program_map_pid;
-  uint16_t pts_pid; /* Stream ID from which the start- and end pts's are taken */
   
-  int64_t start_pts;
-  int64_t end_pts;
+  int64_t start_pcr;
+  int64_t end_pcr;
+
+  uint16_t pcr_pid;
 
   } program_priv_t;
 
@@ -477,12 +508,15 @@ static int probe_mpegts(bgav_input_context_t * input)
 
 static void get_program_durations(bgav_demuxer_context_t * ctx)
   {
+  int64_t total_packets, position;
+
   int i, j;
-  
-  int keep_going, keep_going1;
+  uint8_t data[188];
+    
+  int keep_going;
   
   mpegts_t * priv;
-  transport_packet_t packet;
+  transport_packet_t tp;
 
   priv = (mpegts_t*)(ctx->priv);
 
@@ -493,8 +527,68 @@ static void get_program_durations(bgav_demuxer_context_t * ctx)
 
   keep_going = 1;
 
+  fprintf(stderr, "Getting start timestamps...\n");
+  
   while(keep_going)
     {
+
+    if(bgav_input_read_data(ctx->input, data, 188) < 188)
+      {
+      fprintf(stderr, "Premature EOF\n");
+      break;
+      }
+    bgav_input_reopen_memory(priv->input_mem, data, 188);
+    
+    if(!transport_packet_read(priv->input_mem, &tp))
+      {
+      fprintf(stderr, "Reading transport packet failed\n");
+      break;
+      }
+
+    //    transport_packet_dump(&tp);
+      
+    if(tp.pcr < 0)
+      continue;
+    
+    /* Check what this packet is for */
+    
+    for(i = 0; i < priv->num_programs; i++)
+      {
+      if(tp.pid == priv->programs[i].pcr_pid)
+        {
+        if(priv->programs[i].start_pcr < 0)
+          priv->programs[i].start_pcr = tp.pcr;
+        
+        /* Check if we are done */
+        keep_going = 0;
+        for(j = 0; j < priv->num_programs; j++)
+          {
+          if(priv->programs[j].start_pcr < 0)
+            {
+            keep_going = 1;
+            break;
+            }
+          }
+        break;
+        }
+      }
+    }
+
+  fprintf(stderr, "Getting start timestamps done\n");
+  
+  /* Now, get the end timestamps */
+
+  total_packets = (ctx->input->total_bytes - priv->first_packet_pos) / 188;
+
+  position = priv->first_packet_pos + (total_packets - 1) * 188;
+
+  keep_going = 1;
+
+  fprintf(stderr, "Getting end timestamps...\n");
+
+  while(keep_going)
+    {
+    bgav_input_seek(ctx->input, position, SEEK_SET);
 
     if(bgav_input_read_data(ctx->input, data, 188) < 188)
       break;
@@ -506,33 +600,63 @@ static void get_program_durations(bgav_demuxer_context_t * ctx)
       fprintf(stderr, "Reading transport packet failed\n");
       break;
       }
+    
+    if(tp.pcr < 0)
+      {
+      position -= 188;
 
-    /* Check to which stream this belongs */
-
-    keep_going1 = 1;
+      if(position < 0)
+        break;
+      else
+        continue;
+      }
     
     for(i = 0; i < priv->num_programs; i++)
       {
-      for(j = 0; j < priv->programs[i].num_audio_streams; j++)
+      if(tp.pid == priv->programs[i].pcr_pid)
         {
-        if(priv->programs[i].audio_streams[i].pid == tp.pid)
-          {
-          keep_going1 = 0;
-          
-          }
-        }
-
-      if(!keep_going1)
-        break;
-      
-      for(j = 0; j < priv->programs[i].num_video_streams; j++)
-        {
+        if(priv->programs[i].end_pcr < 0)
+          priv->programs[i].end_pcr = tp.pcr;
         
+        /* Checkl if we are done */
+        keep_going = 0;
+        for(j = 0; j < priv->num_programs; j++)
+          {
+          if(priv->programs[j].end_pcr < 0)
+            {
+            keep_going = 1;
+            break;
+            }
+          }
+        break;
         }
-      
       }
-
+        
+    position -= 188;
+    if(position < 0)
+      break;
     }
+
+  fprintf(stderr, "Getting end timestamps done\n");
+    
+  /* Dump this */
+
+  for(i = 0; i < priv->num_programs; i++)
+    {
+    fprintf(stderr, "Program %d: [%.2f .. %.2f], %.2f\n",
+            i+1,
+            (float)(priv->programs[i].start_pcr)/90000.0,
+            (float)(priv->programs[i].end_pcr)/90000.0,
+            (float)(priv->programs[i].end_pcr -
+                    priv->programs[i].start_pcr)/90000.0);
+    }
+
+  /* Get the start timestamps of all streams and the durations */
+
+  /* Seek to the beginning */
+    
+  bgav_input_seek(ctx->input, priv->first_packet_pos,
+                  SEEK_SET);
   
   }
 
@@ -552,7 +676,8 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
   mpegts_t * priv;
   stream_type_t * stream_type;
   bgav_stream_t * bgav_stream;
-
+  stream_priv_t * stream_priv;
+    
   /* Allocate private data */
 
   priv = calloc(1, sizeof(*priv));
@@ -691,8 +816,10 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
          */
         
         bgav_stream->stream_id = pmts.streams[i].pid;
-        priv->programs[program].audio_streams[priv->programs[program].num_audio_streams].pid =
-          pmts.streams[i].pid;
+
+        stream_priv =
+          &(priv->programs[program].audio_streams[priv->programs[program].num_audio_streams]);
+        stream_priv->pid = pmts.streams[i].pid;
         
         priv->programs[program].num_audio_streams++;
 
@@ -712,6 +839,12 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
         bgav_stream->fourcc = stream_type->fourcc;
 
         bgav_stream->stream_id = pmts.streams[i].pid;
+
+        stream_priv =
+          &(priv->programs[program].video_streams[priv->programs[program].num_video_streams]);
+        stream_priv->pid = pmts.streams[i].pid;
+        
+
         priv->programs[program].num_video_streams++;
         
         }
@@ -732,11 +865,17 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
       ctx->tt->tracks[program].video_streams[i].priv =
         &(priv->programs[program].video_streams[i]);
       }
+
+    /* Assign program wide data */
+
+    priv->programs[program].pcr_pid = pmts.pcr_pid;
+    priv->programs[program].start_pcr = -1;
+    priv->programs[program].end_pcr = -1;
     
     priv->programs[program].initialized = 1;
-    priv->programs[program].start_pts = -1;
-    priv->programs[program].end_pts = -1;
-        
+    //    priv->programs[program].start_pts = -1;
+    //    priv->programs[program].end_pts = -1;
+    
     /* Check if we are done */
     keep_going = 0;
     for(i = 0; i < priv->num_programs; i++)
@@ -749,10 +888,9 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
       }
     }
 
-  if(ctx->input->input->seek_byte)
+  if(ctx->input->input->seek_byte && ctx->input->total_bytes)
     {
-    bgav_input_seek(ctx->input, priv->first_packet_pos,
-                    SEEK_SET);
+    get_program_durations(ctx);
     }
   
   //  fprintf(stderr, "Got transport packet:\n");
@@ -840,7 +978,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
       //      bgav_pes_header_dump(&(stream_priv->pes_header));
       
       bgav_packet_alloc(s->packet, 1024);
-
+#if 0
       if(stream_priv->pes_header.pts >= 0)
         {
         if(priv->programs[priv->current_program].start_pts < 0)
@@ -853,6 +991,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
         if(s->packet->timestamp_scaled < 0)
           s->packet->timestamp_scaled = 0;
         }
+#endif
       /* Read data */
 
       s->packet->data_size =

@@ -189,18 +189,46 @@ void bgav_demuxer_destroy(bgav_demuxer_context_t * ctx)
   free(ctx);
   }
 
+/* Check and kick out streams, for which a header exists but no
+   packets */
+
+static void check_missing_streams(bgav_demuxer_context_t * ctx)
+  {
+  int i;
+
+  i = 0;
+  while(i < ctx->tt->current_track->num_audio_streams)
+    {
+    if(ctx->tt->current_track->audio_streams[i].last_index_position < 0)
+      bgav_track_remove_audio_stream(ctx->tt->current_track, i);
+    else
+      i++;
+    }
+
+  i = 0;
+  while(i < ctx->tt->current_track->num_video_streams)
+    {
+    if(ctx->tt->current_track->video_streams[i].last_index_position < 0)
+      bgav_track_remove_video_stream(ctx->tt->current_track, i);
+    else
+      i++;
+    }
+  }
+
 static void check_interleave(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * s1;
   bgav_stream_t * s2;
   int i;
   
-  if(ctx->tt->current_track->num_audio_streams + ctx->tt->current_track->num_video_streams <= 1)
+  if(ctx->tt->current_track->num_audio_streams +
+     ctx->tt->current_track->num_video_streams <= 1)
     {
     return; /* Only one stream */
     }
   
-  if(ctx->tt->current_track->num_audio_streams && ctx->tt->current_track->num_video_streams)
+  if(ctx->tt->current_track->num_audio_streams &&
+     ctx->tt->current_track->num_video_streams)
     {
     s1 = &(ctx->tt->current_track->audio_streams[0]);
     s2 = &(ctx->tt->current_track->video_streams[0]);
@@ -244,6 +272,7 @@ int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
   
   if(ctx->si)
     {
+    check_missing_streams(ctx);
     check_interleave(ctx);
 #ifdef DUMP_SUPERINDEX    
     bgav_superindex_dump(ctx->si);
