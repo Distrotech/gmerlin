@@ -159,20 +159,36 @@ static void close_alsa(void * p)
 
 static void write_frame_alsa(void * p, gavl_audio_frame_t * f)
   {
+  int result = -1;
   alsa_t * priv = (alsa_t*)(p);
-
+  
   //  fprintf(stderr, "PCM: %p\n", priv->pcm);
-  if(priv->format.interleave_mode == GAVL_INTERLEAVE_ALL)
+
+  while(result <= 0)
     {
-    snd_pcm_writei(priv->pcm,
-                   f->samples.s_8,
-                   f->valid_samples);
-    }
-  else if(priv->format.interleave_mode == GAVL_INTERLEAVE_NONE)
-    {
-    snd_pcm_writen(priv->pcm,
-                   (void**)(f->channels.s_8),
-                   f->valid_samples);
+    if(priv->format.interleave_mode == GAVL_INTERLEAVE_ALL)
+      {
+      result = snd_pcm_writei(priv->pcm,
+                              f->samples.s_8,
+                              f->valid_samples);
+      }
+    else if(priv->format.interleave_mode == GAVL_INTERLEAVE_NONE)
+      {
+      result = snd_pcm_writen(priv->pcm,
+                              (void**)(f->channels.s_8),
+                              f->valid_samples);
+      }
+    if(result == -EPIPE)
+      {
+      fprintf(stderr, "Warning: Buffer underrun\n");
+      //    snd_pcm_drop(priv->pcm);
+      if(snd_pcm_prepare(priv->pcm) < 0)
+        return;
+      }
+    else if(result < 0)
+      {
+      fprintf(stderr, "snd_pcm_write returned %s\n", snd_strerror(result));
+      }
     }
   }
 

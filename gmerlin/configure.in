@@ -283,7 +283,6 @@ AC_CONFIG_FILES([Makefile \
 gmerlin.spec \
 gmerlin.pc \
 apps/Makefile \
-apps/ossmixer/Makefile \
 apps/plugincfg/Makefile \
 apps/plugincfg/gmerlin-plugincfg.desktop \
 apps/player/Makefile \

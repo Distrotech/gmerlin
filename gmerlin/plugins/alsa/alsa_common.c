@@ -102,9 +102,16 @@ static snd_pcm_t * bg_alsa_open(const char * card,
                                 gavl_audio_format_t * format,
                                 snd_pcm_stream_t stream)
   {
+  int dir;
   snd_pcm_format_t alsa_format;
   snd_pcm_hw_params_t *hw_params = (snd_pcm_hw_params_t *)0;
   snd_pcm_t *ret                 = (snd_pcm_t *)0;
+
+  unsigned int buffer_time = 30000; /* ring buffer length in us */
+  unsigned int period_time = 10000;  /* period time in us */
+
+  snd_pcm_sframes_t buffer_size;
+  snd_pcm_sframes_t period_size;
   
   if(snd_pcm_open(&ret,
                   card,
@@ -198,14 +205,51 @@ static snd_pcm_t * bg_alsa_open(const char * card,
     fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_set_rate_near failed\n");
     goto fail;
     }
+
+  /* Channels */
   
   if(snd_pcm_hw_params_set_channels(ret, hw_params,
                                     format->num_channels) < 0)
     {
-    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_set_channels failed (Format has %d channels)\n", format->num_channels);
+    fprintf(stderr,
+            "bg_alsa_open: snd_pcm_hw_params_set_channels failed (Format has %d channels)\n",
+            format->num_channels);
     goto fail;
     }
+
+  /* Buffer time */
+  if(snd_pcm_hw_params_set_buffer_time_near(ret, hw_params,
+                                            &buffer_time, &dir) < 0)
+    {
+    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_set_buffer_time_near failed\n");
+    goto fail;
+    }
+
+  /* Buffer size */
+  if(snd_pcm_hw_params_get_buffer_size(hw_params, &buffer_size) < 0)
+    {
+    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_get_buffer_size failed\n");
+    goto fail;
+    }
+  fprintf(stderr, "*** Buffer size: %d\n", (int)buffer_size);
+  /* Period time */
+  if(snd_pcm_hw_params_set_period_time_near(ret, hw_params, &period_time, &dir) < 0)
+    {
+    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_set_period_time_near failed\n");
+    goto fail;
+    }
+  /* Period size */
   
+  if(snd_pcm_hw_params_get_period_size(hw_params, &period_size, &dir) < 0)
+    {
+    fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_get_period_size failed\n");
+    goto fail;
+    }
+  fprintf(stderr, "*** Period size: %d\n", (int)period_size);
+
+  format->samples_per_frame = period_size;
+  
+  /* Write params to card */
   if(snd_pcm_hw_params (ret, hw_params) < 0)
     {
     fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params failed\n");
@@ -213,7 +257,8 @@ static snd_pcm_t * bg_alsa_open(const char * card,
     }
   snd_pcm_hw_params_free(hw_params);
   
-  gavl_audio_format_dump(format);
+  gavl_set_channel_setup(format);
+  //  gavl_audio_format_dump(format);
   
   return ret;
   fail:

@@ -1,6 +1,6 @@
 
 if HAVE_GTK
-gtk_subdirs = ossmixer plugincfg player camelot
+gtk_subdirs = plugincfg player camelot
 endif
 
 if HAVE_ALSA

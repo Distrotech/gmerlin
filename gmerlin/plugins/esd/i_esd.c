@@ -31,9 +31,15 @@ typedef struct
   {
   int esd_socket;
   char * hostname;
-  int bytes_per_sample;
+  int bytes_per_frame;
 
   int do_monitor;
+  gavl_audio_frame_t * f;
+  gavl_audio_format_t format;
+  
+  int last_frame_size;
+  
+  
   } esd_t;
 
 bg_parameter_info_t parameters[] =
@@ -54,7 +60,7 @@ bg_parameter_info_t parameters[] =
   };
 
 static void set_parameter_esd(void * data, char * name,
-                          bg_parameter_value_t * val)
+                              bg_parameter_value_t * val)
   {
   esd_t * e = (esd_t *)data;
 
@@ -107,13 +113,21 @@ static int open_esd(void * data,
   
   /* Set up format */
 
+  memset(format, 0, sizeof(*format));
+    
   format->interleave_mode = GAVL_INTERLEAVE_ALL;
-  format->num_channels = 2;
-  format->channel_setup = GAVL_CHANNEL_STEREO;
   format->samplerate = 44100;
   format->sample_format = GAVL_SAMPLE_S16;
-  format->lfe = 0;
+  format->samples_per_frame = ESD_BUF_SIZE / 4;
 
+  format->num_channels = 2;
+  format->lfe = 0;
+  gavl_set_channel_setup(format);
+  
+  gavl_audio_format_copy(&e->format, format);
+  
+  e->f = gavl_audio_frame_create(format);
+    
   if(!e->hostname || (*(e->hostname) == '\0'))
     {
     esd_host = (const char*)0;
@@ -147,8 +161,7 @@ static int open_esd(void * data,
     fprintf(stderr, "i_esd: Cannot connect to daemon\n");
     return 0;
     }
-  
-  
+  e->bytes_per_frame = 4;
   return 1;
   }
 
@@ -156,17 +169,44 @@ static void close_esd(void * data)
   {
   esd_t * e = (esd_t*)(data);
   esd_close(e->esd_socket);
+  gavl_audio_frame_destroy(e->f);
   }
 
-static void read_frame_esd(void * p, gavl_audio_frame_t * f)
+static void read_frame_esd(void * p, gavl_audio_frame_t * f, int num_samples)
   {
+  int samples_read;
+  int samples_copied;
+  
   esd_t * priv = (esd_t*)(p);
   
-  f->valid_samples = read(priv->esd_socket,
-                          f->samples.s_8,
-                          ESD_BUF_SIZE);
+  samples_read = 0;
 
-  f->valid_samples /= priv->bytes_per_sample;
+  while(samples_read < num_samples)
+    {
+    if(!priv->f->valid_samples)
+      {
+      priv->f->valid_samples = read(priv->esd_socket,
+                                    priv->f->samples.s_8,
+                                    ESD_BUF_SIZE);
+      priv->f->valid_samples /= priv->bytes_per_frame;
+      priv->last_frame_size = priv->f->valid_samples;
+      }
+    
+    samples_copied =
+      gavl_audio_frame_copy(&priv->format,         /* format  */
+                            f,                     /* dst     */
+                            priv->f,               /* src     */
+                            samples_read,          /* dst_pos */
+                            priv->last_frame_size - priv->f->valid_samples, /* src_pos */
+                            num_samples - samples_read, /* dst_size */
+                            priv->f->valid_samples      /* src_size */ );
+    
+    priv->f->valid_samples -= samples_copied;
+    samples_read += samples_copied;
+    }
+
+  if(f)
+    f->valid_samples = samples_read;
   }
 
 bg_ra_plugin_t the_plugin =

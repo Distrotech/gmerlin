@@ -42,12 +42,6 @@ typedef enum
 /***************************************************
  * Plugin API
  *
- * Plugins are distinguished by their filename:
- *
- * i_*.so: Input plugin
- * oa_*.so: Audio output plugin
- * ov_*.so: Video output plugin
- * 
  * Plugin dlls contain a symbol "the_plugin",
  * which points to one of the structures below.
  * The member functions are described below.
@@ -323,7 +317,7 @@ typedef struct bg_ra_plugin_s
   bg_plugin_common_t common;
   int (*open)(void * priv, gavl_audio_format_t*);
   void (*close)(void * priv);
-  void (*read_frame)(void * priv, gavl_audio_frame_t*);
+  void (*read_frame)(void * priv, gavl_audio_frame_t*,int num_samples);
   } bg_ra_plugin_t;
 
 /*******************************************

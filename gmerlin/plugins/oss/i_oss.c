@@ -138,6 +138,8 @@ static int open_oss(void * data,
   oss_t * priv = (oss_t*)data;
 
   priv->fd = -1;
+
+  memset(format, 0, sizeof(*format));
   
   /* Set up the format */
 
@@ -177,7 +179,8 @@ static int open_oss(void * data,
   format->samplerate = priv->samplerate;
   format->samples_per_frame = SAMPLES_PER_FRAME;
   format->lfe = 0;
-
+  gavl_set_channel_setup(format);
+  
   fprintf(stderr, "Opening device %s\n", priv->device);
   
   priv->fd = open(priv->device, O_RDONLY, 0);
@@ -232,13 +235,13 @@ static void close_oss(void * p)
     }
   }
 
-static void read_frame_oss(void * p, gavl_audio_frame_t * f)
+static void read_frame_oss(void * p, gavl_audio_frame_t * f, int num_samples)
   {
   oss_t * priv = (oss_t*)(p);
   
   f->valid_samples = read(priv->fd,
                           f->samples.s_8,
-                          SAMPLES_PER_FRAME * priv->bytes_per_frame);
+                          num_samples * priv->bytes_per_frame);
   f->valid_samples /= priv->bytes_per_frame;
   }
 

@@ -33,9 +33,8 @@
 #include <utils.h>
 #include "alsa_common.h"
 
-#define SAMPLES_PER_FRAME 1024
 
-static bg_parameter_info_t per_card_parameters[] =
+static bg_parameter_info_t static_parameters[] =
   {
     {
       name:        "channel_mode",
@@ -59,23 +58,45 @@ static bg_parameter_info_t per_card_parameters[] =
       val_min:     { val_i:  8000 },
       val_max:     { val_i: 96000 },
     },
-    { /* End of parameters */ }
   };
+
+static int num_static_parameters =
+  sizeof(static_parameters)/sizeof(static_parameters[0]);
 
 typedef struct
   {
-  bg_parameter_info_t parameters[2];
+  bg_parameter_info_t * parameters;
   
   gavl_audio_format_t format;
   int num_channels;
   int bytes_per_sample;
   int samplerate;
+  int card_index;
+  
+  snd_pcm_t * pcm;
+
+  gavl_audio_frame_t * f;
+  int last_frame_size;
+  
   } alsa_t;
 
 static bg_parameter_info_t *
 get_parameters_alsa(void * p)
   {
+  int i;
   alsa_t * priv = (alsa_t*)(p);
+  if(!priv->parameters)
+    {
+    priv->parameters = calloc(num_static_parameters + 2,
+                              sizeof(*(priv->parameters)));
+
+    bg_alsa_create_card_parameters(priv->parameters);
+    
+    for(i = 0; i < num_static_parameters; i++)
+      {
+      bg_parameter_info_copy(&(priv->parameters[i+1]), &static_parameters[i]);
+      }
+    }
   return priv->parameters;
   }
 
@@ -106,6 +127,18 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
     {
     priv->samplerate = val->val_i;
     }
+  else if(!strcmp(name, "card"))
+    {
+    priv->card_index = 0;
+
+    if(val->val_str)
+      {
+      while(strcmp(priv->parameters[0].options[priv->card_index],
+                   val->val_str))
+        priv->card_index++;
+      }
+    fprintf(stderr, "Card index: %d\n", priv->card_index);
+    }
   }
 
 
@@ -113,28 +146,140 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
 static void * create_alsa()
   {
   alsa_t * ret = calloc(1, sizeof(*ret));
-
-  bg_alsa_create_card_parameters(ret->parameters);
-  
+    
   return ret;
   }
 
 static int open_alsa(void * data,
                     gavl_audio_format_t * format)
   {
-  //  alsa_t * priv = (alsa_t*)data;
-  return 0;
+  char * card = (char*)0;
+  alsa_t * priv = (alsa_t*)(data);
+
+  card = bg_sprintf("hw:%d,0", priv->card_index);
+
+  memset(format, 0, sizeof(*format));
+  
+  format->num_channels      = priv->num_channels;
+  format->samples_per_frame = 1024;
+  
+  if(priv->bytes_per_sample == 1)
+    format->sample_format = GAVL_SAMPLE_U8;
+  else if(priv->bytes_per_sample == 2)
+    format->sample_format = GAVL_SAMPLE_S16;
+  format->samplerate = priv->samplerate;
+    
+  priv->pcm = bg_alsa_open_read(card, format);
+  free(card);
+  
+  if(!priv->pcm)
+    return 0;
+  gavl_audio_format_copy(&(priv->format), format);
+
+  priv->f = gavl_audio_frame_create(&(priv->format));
+    
+  if(snd_pcm_prepare(priv->pcm) < 0)
+    return 0;
+  snd_pcm_start(priv->pcm);
+
+  return 1;
   }
 
 static void close_alsa(void * p)
   {
-  //  alsa_t * priv = (alsa_t*)(p);
-  
+  alsa_t * priv = (alsa_t*)(p);
+  if(priv->pcm)
+    {
+    snd_pcm_close(priv->pcm);
+    priv->pcm = NULL;
+    }
+  if(priv->f)
+    {
+    gavl_audio_frame_destroy(priv->f);
+    priv->f = (gavl_audio_frame_t*)0;
+    }
   }
 
-static void read_frame_alsa(void * p, gavl_audio_frame_t * f)
+static int read_frame(alsa_t * priv)
   {
-  //  alsa_t * priv = (alsa_t*)(p);
+  int result = 0;
+
+  while(1)
+    {
+    if(priv->format.interleave_mode == GAVL_INTERLEAVE_ALL)
+      {
+      result = snd_pcm_readi(priv->pcm,
+                             priv->f->samples.s_8,
+                             priv->format.samples_per_frame);
+      }
+    else if(priv->format.interleave_mode == GAVL_INTERLEAVE_NONE)
+      {
+      result = snd_pcm_readn(priv->pcm,
+                             (void**)(priv->f->channels.s_8),
+                             priv->format.samples_per_frame);
+      }
+    
+    if(result > 0)
+      {
+      priv->f->valid_samples = result;
+      priv->last_frame_size = result;
+      //      fprintf(stderr, "Read %d\n", result);
+      return 1;
+      }
+    else if(result == -EPIPE)
+      {
+      fprintf(stderr, "Warning: Dropping samples\n");
+      snd_pcm_drop(priv->pcm);
+      if(snd_pcm_prepare(priv->pcm) < 0)
+        return 0;
+      snd_pcm_start(priv->pcm);
+      }
+    else
+      break;
+    }
+  return 0;
+  }
+
+static void read_frame_alsa(void * p, gavl_audio_frame_t * f,
+                            int num_samples)
+  {
+  int samples_read;
+  int samples_copied;
+
+  alsa_t * priv = (alsa_t*)(p);
+
+  samples_read = 0;
+
+  while(samples_read < num_samples)
+    {
+    if(!priv->f->valid_samples)
+      {
+      read_frame(priv);
+      }
+    
+    samples_copied =
+      gavl_audio_frame_copy(&priv->format,                                  /* format  */
+                            f,                                              /* dst     */
+                            priv->f,                                        /* src     */
+                            samples_read,                                   /* dst_pos */
+                            priv->last_frame_size - priv->f->valid_samples, /* src_pos */
+                            num_samples - samples_read,                     /* dst_size */
+                            priv->f->valid_samples                          /* src_size */ );
+#if 0
+    fprintf(stderr, "Copy %d %d %d %d\n",
+            samples_read,                                   /* dst_pos */
+            priv->last_frame_size - priv->f->valid_samples, /* src_pos */
+            num_samples - samples_read,                     /* dst_size */
+            priv->f->valid_samples                          /* src_size */ );
+#endif
+    priv->f->valid_samples -= samples_copied;
+    samples_read += samples_copied;
+    }
+
+  if(f)
+    f->valid_samples = samples_read;
+
+  
   
   }
 

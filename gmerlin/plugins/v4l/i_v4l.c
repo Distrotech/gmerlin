@@ -342,6 +342,12 @@ void close_v4l(void * priv)
     if(v4l->mmap_buf)
       munmap(v4l->mmap_buf, v4l->mbuf.size);
     }
+  if(v4l->error_message)
+    {
+    free(v4l->error_message);
+    v4l->error_message = (char*)0;
+    }
+  
   v4l->fd = -1;
   }
 
