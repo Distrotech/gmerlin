@@ -141,8 +141,6 @@ int send_command(bg_lcdproc_t * l, char * command)
   if(!bg_tcp_send(l->fd, command, strlen(command), &error_msg))
     return 0;
 
-  //  fprintf(stderr, "Sent command %s", command);
-
   while(1)
     {
     if(!bg_tcp_read_line(l->fd, &(l->answer), &(l->answer_alloc), 500))
@@ -318,7 +316,16 @@ static int set_audio_format(bg_lcdproc_t * l, gavl_audio_format_t * f)
     }
   else
     {
-    command = bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {Audio format: %d Hz %d Channels *** }\n",
+    if(f->num_channels == 1)
+      command = 
+        bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {Audio format: %d Hz Mono *** }\n", 
+                  formats_name, audio_format_name, f->samplerate);
+    else if((f->num_channels == 2) && 
+            (f->channel_setup == GAVL_CHANNEL_STEREO))
+      command =         bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {Audio format: %d Hz Stereo *** }\n",
+                  formats_name, audio_format_name, f->samplerate);
+    else
+      command = bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {Audio format: %d Hz %d Channels *** }\n",
                          formats_name, audio_format_name, f->samplerate, f->num_channels);
     }
 
@@ -345,13 +352,13 @@ static int set_video_format(bg_lcdproc_t * l, gavl_video_format_t * f)
     {
     if(f->free_framerate)
       {
-      command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {Video format: %dx%d}\n",
+      command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {Video format: %dx%d *** }\n",
                            formats_name, video_format_name, f->image_width,
                            f->image_height);
       }
     else
       {
-      command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {Video format: %dx%d %.2f fps}\n",
+      command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {Video format: %dx%d %.2f fps *** }\n",
                            formats_name, video_format_name, f->image_width,
                            f->image_height, (float)(f->timescale)/
                            (float)(f->frame_duration));
