@@ -52,5 +52,5 @@ extern char * win32_def_path;
 void bgav_init_audio_decoders_pcm();
 void bgav_init_video_decoders_aviraw();
 void bgav_init_video_decoders_qtraw();
-void bgav_init_video_decoders_qtyuv2();
+void bgav_init_video_decoders_yuv();
 void bgav_init_video_decoders_tga();

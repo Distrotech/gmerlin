@@ -236,6 +236,22 @@ static int init_vorbis(bgav_stream_t * s)
                               &priv->dec_op);
     //    ptr += header_sizes[1];
     }
+  else if(s->fourcc == BGAV_WAVID_2_FOURCC(0x674f))
+    {
+    fprintf(stderr, "Extradata:\n");
+    bgav_hexdump(s->ext_data, s->ext_size, 16);
+    }
+  else if(s->fourcc == BGAV_WAVID_2_FOURCC(0x6750))
+    {
+    fprintf(stderr, "Extradata:\n");
+    bgav_hexdump(s->ext_data, s->ext_size, 16);
+    }
+  else if(s->fourcc == BGAV_WAVID_2_FOURCC(0x6751))
+    {
+    fprintf(stderr, "Extradata:\n");
+    bgav_hexdump(s->ext_data, s->ext_size, 16);
+    }
+  
   /*
    *  OggV method (qtcomponents.sf.net):
    *  In the sample description, we have an atom of type
@@ -432,7 +448,11 @@ static bgav_audio_decoder_t decoder =
     fourccs: (uint32_t[]){ BGAV_MK_FOURCC('O','g', 'g', 'S'),
                            BGAV_MK_FOURCC('O','g', 'g', 'V'),
                            BGAV_VORBIS,
-                           BGAV_WAVID_2_FOURCC(0xfffe), 0x00 },
+                           BGAV_WAVID_2_FOURCC(0xfffe),
+                           BGAV_WAVID_2_FOURCC(0x674f),
+                           BGAV_WAVID_2_FOURCC(0x6750),
+                           BGAV_WAVID_2_FOURCC(0x6751),
+                           0x00 },
     name: "Ogg vorbis audio decoder",
     init:   init_vorbis,
     close:  close_vorbis,

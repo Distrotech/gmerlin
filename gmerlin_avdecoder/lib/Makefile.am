@@ -240,9 +240,9 @@ tracktable.c \
 utils.c \
 video.c \
 video_qtraw.c \
-video_qtyuv2.c \
 video_aviraw.c \
 video_tga.c \
+video_yuv.c \
 xing.c \
 yml.c
 
