@@ -89,7 +89,7 @@ static int open_avdec(void * priv, const void * location)
 
   str = bgav_get_description(avdec->dec);
   if(str)
-    avdec->track_info.description = bg_strdup(avdec->track_info.metadata.comment, str);
+    avdec->track_info.description = bg_strdup(avdec->track_info.description, str);
   
   return 1;
   }

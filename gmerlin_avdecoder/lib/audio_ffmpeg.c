@@ -140,7 +140,7 @@ static codec_info_t * lookup_codec(bgav_stream_t * s)
       else if((s->data.audio.bits_per_sample == 8) && (codecs[i].info->ffmpeg_id == CODEC_ID_PCM_U8))
         return codecs[i].info;
       }
-    if(s->fourcc == BGAV_MK_FOURCC('t', 'w', 'o', 's'))
+    else if(s->fourcc == BGAV_MK_FOURCC('t', 'w', 'o', 's'))
       {
       if((s->data.audio.bits_per_sample == 16) && (codecs[i].info->ffmpeg_id == CODEC_ID_PCM_S16BE))
         return codecs[i].info;

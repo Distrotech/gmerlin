@@ -219,7 +219,7 @@ extern bgav_input_t bgav_input_pnm;
 bgav_input_context_t * bgav_input_open(const char *url,
                                        int milliseconds)
   {
-  bgav_input_context_t * ret;
+  bgav_input_context_t * ret = (bgav_input_context_t *)0;
   char * protocol = (char*)0;
   ret = calloc(1, sizeof(*ret));
   int url_len;
@@ -249,6 +249,11 @@ bgav_input_context_t * bgav_input_open(const char *url,
       }
     else if(!strcmp(protocol, "pnm"))
       ret->input = &bgav_input_pnm;
+    else
+      {
+      fprintf(stderr, "Unknown protocol: %s\n", protocol);
+      goto fail;
+      }
     free(protocol);
     }
   else
@@ -256,11 +261,18 @@ bgav_input_context_t * bgav_input_open(const char *url,
   
   if(!ret->input->open(ret, url, milliseconds))
     {
-    free(ret);
     fprintf(stderr, "Cannot open file %s\n", url);
-    return (bgav_input_context_t*)0;
+    goto fail;
     }
   return ret;
+
+  fail:
+  if(ret)
+    free(ret);
+  if(protocol)
+    free(protocol);
+  
+  return (bgav_input_context_t*)0;
   }
 
 

@@ -375,7 +375,7 @@ static int fill_buffer(bgav_stream_t * s)
 
   if(!p)
     {
-    fprintf(stderr, "Got no packet\n");
+    //    fprintf(stderr, "Got no packet\n");
     return 0;
     }
   if(p->data_size > priv->read_buffer_alloc)
@@ -473,8 +473,8 @@ static int decode_frame(bgav_stream_t * s)
     {
     fprintf(stderr, "raDecode failed\n");
     }
-  fprintf(stderr, "Used %d bytes, decoded %d samples\n",
-          s->data.audio.block_align, len / (2 * s->data.audio.format.num_channels));
+  //  fprintf(stderr, "Used %d bytes, decoded %d samples\n",
+  //          s->data.audio.block_align, len / (2 * s->data.audio.format.num_channels));
   priv->read_buffer_ptr += s->data.audio.block_align;
   priv->read_buffer_size -= s->data.audio.block_align;
   

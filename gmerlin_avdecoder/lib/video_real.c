@@ -375,5 +375,13 @@ const char *  bgav_get_dll_path_real()
 
 void bgav_set_dll_path_real(const char * path)
   {
-  strcpy(codec_path, path);
+  int len;
+  len = strlen(path);
+  strncpy(codec_path, path, len);
+  if(codec_path[len-1] != '/')
+    {
+    codec_path[len] = '/';
+    len++;
+    }
+  codec_path[len] = '\0';
   }

@@ -144,7 +144,7 @@ read_prop(rm_chunk_t * c,
     bgav_input_read_32_be(input, &(ret->data_offset)) &&
     bgav_input_read_16_be(input, &(ret->num_streams)) &&
     bgav_input_read_16_be(input, &(ret->flags));
-  dump_prop(ret);
+  //  dump_prop(ret);
   return result;
   }
 
@@ -224,7 +224,7 @@ read_mdpr(rm_chunk_t * c,
   if(!ret->type_specific_data)
     return 0;
 
-  dump_mdpr(ret);
+  //  dump_mdpr(ret);
 
   
   return 1;
@@ -548,7 +548,7 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
     {
     rm_as->bytes_to_read = bg_as->data.audio.block_align * rm_as->sub_packet_h;
     }
-  dump_audio(rm_as);
+  //  dump_audio(rm_as);
   }
 
 typedef struct
@@ -919,11 +919,11 @@ int open_rmff(bgav_demuxer_context_t * ctx)
   
   ctx->duration = prop.duration * (GAVL_TIME_SCALE / 1000); 
 
-  if(prop.flags & PN_LIVE_BROADCAST)
-    {
-    fprintf(stderr, "Playing live broadcast\n");
+  //  if((prop.flags & PN_LIVE_BROADCAST) || !(ctx->input->
+  //    {
+    //    fprintf(stderr, "Playing live broadcast\n");
     priv->need_first_timestamp = 1;
-    }
+    //    }
   
   if(ctx->input->input->seek_byte)
     {
@@ -1342,11 +1342,12 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
     {
     rm->first_timestamp = h.timestamp;
     rm->need_first_timestamp = 0;
+    //    fprintf(stderr, "First timestamp: %d\n", rm->first_timestamp);
     }
   h.timestamp -= rm->first_timestamp;
   
   //  if(rm->do_seek)
-  packet_header_dump(&h);
+  //  packet_header_dump(&h);
   stream = bgav_demuxer_find_stream(ctx, h.stream_number);
 
   if(!stream) /* Skip unknown stuff */

@@ -51,7 +51,9 @@ static int open_realrtsp(bgav_input_context_t * ctx, const char * url,
 
   if(priv->port < 0)
     priv->port = 554;
-    
+
+  //  fprintf(stderr, "Port: %d\n", priv->port);
+  
   if((priv->fd = bgav_tcp_connect(priv->host, priv->port, milliseconds)) == -1)
     return 0;
   
