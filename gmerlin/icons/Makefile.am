@@ -23,6 +23,7 @@ display_mode_none.png \
 display_mode_rem.png \
 down_16.png \
 drive_16.png \
+drive_error_16.png \
 drive_running_16.png \
 first_16.png \
 folder_closed_16.png \

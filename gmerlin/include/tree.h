@@ -58,7 +58,9 @@ typedef struct bg_album_entry_s
 typedef struct bg_album_s bg_album_t;
 typedef struct bg_mediatree_s bg_media_tree_t;
 
-void bg_album_open(bg_album_t *);
+/* Can return 0 if CD is missing or so */
+
+int bg_album_open(bg_album_t *);
 void bg_album_close(bg_album_t *);
 
 void bg_album_select_error_tracks(bg_album_t*);
@@ -102,6 +104,11 @@ char * bg_album_get_location(bg_album_t * a);
 void bg_album_set_name(bg_album_t * a, const char *);
 
 int bg_album_is_removable(bg_album_t * a);
+
+void bg_album_set_error(bg_album_t * a, int err);
+int  bg_album_get_error(bg_album_t * a);
+
+
 
 /*
  *  Mark an album as expanded i.e. itself and all the

@@ -36,6 +36,8 @@ static GdkPixbuf * folder_open_pixbuf   = (GdkPixbuf *)0;
 
 static GdkPixbuf * removable_closed_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * removable_open_pixbuf = (GdkPixbuf *)0;
+static GdkPixbuf * removable_error_pixbuf = (GdkPixbuf *)0;
+
 static GdkPixbuf * hardware_pixbuf = (GdkPixbuf *)0;
 
 /* Atoms */
@@ -113,6 +115,12 @@ static void load_pixmaps()
     removable_open_pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
     free(filename);
     }
+  filename = bg_search_file_read("icons", "drive_error_16.png");
+  if(filename)
+    {
+    removable_error_pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
+    free(filename);
+    }
   filename = bg_search_file_read("icons", "hardware_16.png");
   if(filename)
     {
@@ -132,6 +140,7 @@ enum
   COLUMN_NAME,
   COLUMN_PIXMAP,
   COLUMN_WEIGHT,
+  COLUMN_COLOR,
   NUM_COLUMNS
 };
 
@@ -343,8 +352,8 @@ static void set_album(bg_gtk_tree_widget_t * widget,
 
   /* Open window if necessary */
   
-  if(bg_album_is_open(album))
-    open_album(widget, album);
+  //  if(bg_album_is_open(album))
+  //    open_album(widget, album);
   
   /* Set values */
 
@@ -369,6 +378,9 @@ static void set_album(bg_gtk_tree_widget_t * widget,
       if(album_is_open(widget, album))
         gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
                            removable_open_pixbuf, -1);
+      else if(bg_album_get_error(album))
+        gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
+                           removable_error_pixbuf, -1);
       else
         gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
                            removable_closed_pixbuf, -1);
@@ -397,6 +409,20 @@ static void set_album(bg_gtk_tree_widget_t * widget,
                        iter,
                        COLUMN_WEIGHT,
                        PANGO_WEIGHT_NORMAL, -1);
+
+
+  if(bg_album_get_error(album))
+    gtk_tree_store_set(GTK_TREE_STORE(model),
+                       iter,
+                       COLUMN_COLOR,
+                       "#FF0000", -1);
+  else
+    gtk_tree_store_set(GTK_TREE_STORE(model),
+                       iter,
+                       COLUMN_COLOR,
+                       "#000000", -1);
+
+  
   
   /* Append all subalbums of one album */
 
@@ -544,6 +570,7 @@ bg_gtk_tree_widget_close_album(bg_gtk_tree_widget_t * widget,
 static void open_album(bg_gtk_tree_widget_t * widget,
                        bg_album_t * album)
   {
+  int result;
   bg_gtk_album_window_t * album_window;
   GtkTreeIter iter;
   
@@ -558,14 +585,22 @@ static void open_album(bg_gtk_tree_widget_t * widget,
   if(!album_is_open(widget, album))
     {
     if(!bg_album_is_open(album))
-      bg_album_open(album);
-    
-    /* Open Album and create window */
-    album_window = bg_gtk_album_window_create(album,
+      result = bg_album_open(album);
+
+    if(result)
+      {
+      /* Open Album and create window */
+      album_window = bg_gtk_album_window_create(album,
                                               widget);
-    
-    widget->album_windows = g_list_append(widget->album_windows,
-                                          album_window);
+      
+      widget->album_windows = g_list_append(widget->album_windows,
+                                            album_window);
+      bg_album_set_error(album, 0);
+      }
+    else
+      {
+      bg_album_set_error(album, 1);
+      }
     album_2_iter(widget, album, &iter);
     set_album(widget, album, &iter, 0);
     }
@@ -1153,7 +1188,8 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree)
   store = gtk_tree_store_new (NUM_COLUMNS,
                               G_TYPE_STRING,
                               GDK_TYPE_PIXBUF,
-                              G_TYPE_INT);
+                              G_TYPE_INT,
+                              G_TYPE_STRING);
   
   ret->treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
 
@@ -1225,6 +1261,9 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree)
   gtk_tree_view_column_add_attribute(column,
                                      text_renderer,
                                      "weight", COLUMN_WEIGHT);
+  gtk_tree_view_column_add_attribute(column,
+                                     text_renderer,
+                                     "foreground", COLUMN_COLOR);
 
   gtk_tree_view_column_add_attribute(column,
                                      pixmap_renderer,

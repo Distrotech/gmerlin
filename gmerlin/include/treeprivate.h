@@ -58,6 +58,9 @@ struct bg_album_s
   /* Path for loading files */
     
   char * open_path;
+
+  /* Error condition */
+  int err;
   };
 
 bg_album_t * bg_album_create(bg_media_tree_t * tree,

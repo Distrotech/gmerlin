@@ -265,7 +265,7 @@ void bg_album_insert_urilist_before(bg_album_t * a, const char * str,
 
 /* Open / close */
 
-static void open_removable(bg_album_t * a)
+static int open_removable(bg_album_t * a)
   {
   bg_parameter_value_t val;
   bg_track_info_t * track_info;
@@ -292,8 +292,12 @@ static void open_removable(bg_album_t * a)
 
   /* Open the plugin */
 
-  plugin->open(a->handle->priv, (void*)0);
-
+  if(!plugin->open(a->handle->priv, (void*)0))
+    {
+    bg_plugin_unlock(a->handle);
+    return 0;
+    }
+  
   /* Get number of tracks */
 
   num_tracks = plugin->get_num_tracks(a->handle->priv);
@@ -319,21 +323,26 @@ static void open_removable(bg_album_t * a)
     bg_album_insert_entries_before(a, new_entry, (bg_album_entry_t*)0);
     }
   bg_plugin_unlock(a->handle);
+  return 1;
   }
 
-void bg_album_open(bg_album_t * a)
+int bg_album_open(bg_album_t * a)
   {
   char * tmp_filename;
-
-  a->open_count++;
-
-  if(a->open_count > 1)
+  
+  if(a->open_count)
     return;
 
   if(bg_album_is_removable(a))
     {
     /* Get infos from the plugin */
-    open_removable(a);
+    if(open_removable(a))
+      {
+      a->open_count++;
+      return 1;
+      }
+    else
+      return 0;
     }
   else if(a->location)
     {
@@ -346,6 +355,8 @@ void bg_album_open(bg_album_t * a)
       }
     free(tmp_filename);
     }
+  a->open_count++;
+  return 1;
   }
 
 void bg_album_entry_destroy(bg_album_entry_t * entry)
@@ -971,4 +982,14 @@ void bg_album_get_times(bg_album_t * a,
     *duration_after += e->duration;
     e = e->next;
     }
+  }
+
+void bg_album_set_error(bg_album_t * a, int err)
+  {
+  a->err = err;
+  }
+
+int  bg_album_get_error(bg_album_t * a)
+  {
+  return a->err;
   }
