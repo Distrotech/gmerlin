@@ -341,9 +341,11 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
       ctx->video_finished = 1;
     ctx->video_time = ctx->player->video_stream.frame->time;
     gavl_video_convert(s->cnv, ctx->player->video_stream.frame, video_frame);
-    /*    fprintf(stderr, "Video Frame time: %lld %lld\n",
+#if 0
+    fprintf(stderr, "Video Frame time: %lld %lld\n",
             ctx->player->video_stream.frame->time,
-            video_frame->time); */
+            video_frame->time);
+#endif
     }
   else
     {

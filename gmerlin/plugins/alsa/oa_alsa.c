@@ -241,14 +241,14 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
       break;
     }
 
-  fprintf(stderr, "Opening card %s...", card);
+  //  fprintf(stderr, "Opening card %s...", card);
     
   priv->pcm = bg_alsa_open_write(card, format);
-
-  if(priv->pcm)
-    fprintf(stderr, "done\n");
-  else
-    fprintf(stderr, "failed\n");
+  
+  //  if(priv->pcm)
+  //    fprintf(stderr, "done\n");
+  //  else
+  //    fprintf(stderr, "failed\n");
   
   free(card);
   

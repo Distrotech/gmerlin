@@ -100,16 +100,15 @@ static gavl_sample_format_t sample_format_alsa_2_gavl(snd_pcm_format_t f)
 
 static snd_pcm_t * bg_alsa_open(const char * card,
                                 gavl_audio_format_t * format,
-                                snd_pcm_stream_t stream)
+                                snd_pcm_stream_t stream,
+                                unsigned int buffer_time,
+                                unsigned int period_time)
   {
   int dir;
   snd_pcm_format_t alsa_format;
   snd_pcm_hw_params_t *hw_params = (snd_pcm_hw_params_t *)0;
   snd_pcm_t *ret                 = (snd_pcm_t *)0;
-
-  unsigned int buffer_time = 350000; /* ring buffer length in us */
-  unsigned int period_time = 30000;  /* period time in us */
-
+  
   snd_pcm_sframes_t buffer_size;
   snd_pcm_sframes_t period_size;
 
@@ -279,12 +278,14 @@ static snd_pcm_t * bg_alsa_open(const char * card,
 
 snd_pcm_t * bg_alsa_open_read(const char * card, gavl_audio_format_t * format)
   {
-  return bg_alsa_open(card, format, SND_PCM_STREAM_CAPTURE);
+  return bg_alsa_open(card, format, SND_PCM_STREAM_CAPTURE,
+                      30000, 10000);
   }
 
 snd_pcm_t * bg_alsa_open_write(const char * card, gavl_audio_format_t * format)
   {
-  return bg_alsa_open(card, format, SND_PCM_STREAM_PLAYBACK);
+  return bg_alsa_open(card, format, SND_PCM_STREAM_PLAYBACK,
+                      350000, 30000);
   }
 
 void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)
