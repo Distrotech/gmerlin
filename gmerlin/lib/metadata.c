@@ -19,6 +19,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <parameter.h>
 #include <streaminfo.h>
@@ -40,6 +41,7 @@ void bg_metadata_free(bg_metadata_t * m)
   MY_FREE(m->comment);
   MY_FREE(m->author);
   MY_FREE(m->copyright);
+  MY_FREE(m->date);
 
   memset(m, 0, sizeof(*m));
   }
@@ -115,11 +117,6 @@ static bg_parameter_info_t parameters[] =
       type:      BG_PARAMETER_STRING,
     },
     {
-      name:      "comment",
-      long_name: "Comment",
-      type:      BG_PARAMETER_STRING,
-    },
-    {
       name:      "author",
       long_name: "Author",
       type:      BG_PARAMETER_STRING,
@@ -127,6 +124,17 @@ static bg_parameter_info_t parameters[] =
     {
       name:      "copyright",
       long_name: "Copyright",
+      type:      BG_PARAMETER_STRING,
+    },
+    {
+      name:        "date",
+      long_name:   "Date",
+      type:        BG_PARAMETER_STRING,
+      help_string: "Complete date or year only"
+    },
+    {
+      name:      "comment",
+      long_name: "Comment",
       type:      BG_PARAMETER_STRING,
     },
     { /* End of parameters */ }
@@ -205,3 +213,59 @@ void bg_metadata_set_parameter(void * data, char * name,
 
 #undef SP_STR
 #undef SP_INT
+
+/* Tries to get a 4 digit year from an arbitrary formatted
+   date string.
+   Return 0 is this wasn't possible.
+*/
+
+static int check_year(const char * pos1)
+  {
+  if(isdigit(pos1[0]) &&
+     isdigit(pos1[1]) &&
+     isdigit(pos1[2]) &&
+     isdigit(pos1[3]))
+    {
+    return
+      (int)(pos1[0] -'0') * 1000 + 
+      (int)(pos1[1] -'0') * 100 + 
+      (int)(pos1[2] -'0') * 10 + 
+      (int)(pos1[3] -'0');
+    }
+  return 0;
+  }
+
+int bg_metadata_get_year(const bg_metadata_t * m)
+  {
+  int result;
+
+  const char * pos1, *pos2;
+  
+  if(!m->date)
+    return 0;
+
+  pos1 = m->date;
+
+  while(1)
+    {
+    /* Skip nondigits */
+    
+    while(!isdigit(*pos1) && (*pos1 != '\0'))
+      pos1++;
+    if(pos1 == '\0')
+      return 0;
+
+    /* Check if we have a 4 digit number */
+    result = check_year(pos1);
+    if(result)
+      return result;
+
+    /* Skip digits */
+
+    while(isdigit(*pos1) && (*pos1 != '\0'))
+      pos1++;
+    if(pos1 == '\0')
+      return 0;
+    }
+  return 0;
+  }

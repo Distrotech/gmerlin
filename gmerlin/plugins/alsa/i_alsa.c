@@ -106,7 +106,7 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
   {
   alsa_t * priv = (alsa_t*)(p);
 
-  fprintf(stderr, "Set parameter %s\n", name);
+  //  fprintf(stderr, "Set parameter %s\n", name);
 
   if(!name)
     return;
@@ -138,7 +138,7 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
                    val->val_str))
         priv->card_index++;
       }
-    fprintf(stderr, "Card index: %d\n", priv->card_index);
+    //    fprintf(stderr, "Card index: %d\n", priv->card_index);
     }
   }
 

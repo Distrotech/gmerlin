@@ -71,6 +71,12 @@ typedef struct
 void bg_metadata_free(bg_metadata_t * m);
 void bg_metadata_copy(bg_metadata_t * dst, const bg_metadata_t * src);
 
+/* Tries to get the year from an (almost) arbitrary 
+   formatted date string. */
+
+int bg_metadata_get_year(const bg_metadata_t * m);
+
+
 /*
  *  Get parameters for configuring metadata
  *  call bg_parameter_info_destroy_array(bg_parameter_info_t * info);

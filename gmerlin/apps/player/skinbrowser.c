@@ -286,9 +286,36 @@ static int install_skin(const char * filename)
   char * command;
   char * home_dir;
   char * error_msg;
-  
+  struct stat st;
+  char * test_dir;
+    
   home_dir = getenv("HOME");
 
+  /* Create skin directory if it doesn't exist */
+
+  test_dir = bg_sprintf("%s/.gmerlin", home_dir);
+  if(stat(test_dir, &st))
+    {
+    if(mkdir(test_dir, S_IRUSR|S_IWUSR|S_IXUSR) == -1)
+      {
+      free(test_dir);
+      return 0;
+      }
+    }
+  free(test_dir);
+
+
+  test_dir = bg_sprintf("%s/.gmerlin/skins", home_dir);
+  if(stat(test_dir, &st))
+    {
+    if(mkdir(test_dir, S_IRUSR|S_IWUSR|S_IXUSR) == -1)
+      {
+      free(test_dir);
+      return 0;
+      }
+    }
+  free(test_dir);
+    
   command = bg_sprintf("tar -C %s/.gmerlin/skins -xvzf %s", home_dir, filename);
   if(system(command))
     {
