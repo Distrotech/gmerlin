@@ -1,6 +1,6 @@
 #!/bin/sh
 echo -n "doing aclocal..."
-aclocal -I . 
+aclocal -I /usr/local/share/aclocal 
 echo "done"
 echo -n "doing libtoolize..."
 libtoolize --automake --copy --force
