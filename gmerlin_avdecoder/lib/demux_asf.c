@@ -983,7 +983,7 @@ static int read_segment_header(asf_t * asf,
   //  fprintf(stderr,
   //          "  seg #%d: streamno=%d  seq=%d  type=%02X  len=%d\n",
   //          seg,streamno,seq,rlen,len);
-  
+  //  dump_segment_header(ret);
   return (data_ptr - data);
   }
 
@@ -1109,7 +1109,6 @@ static int next_packet_asf(bgav_demuxer_context_t * ctx)
     read_packet_header(asf, &pkt_hdr, asf->packet_buffer);
 
   //  fprintf(stderr, "* * * Packet header:\n");
-  
   //  dump_packet_header(&pkt_hdr);
   
   for(i = 0; i < pkt_hdr.segs; i++)

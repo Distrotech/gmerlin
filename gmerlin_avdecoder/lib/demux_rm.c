@@ -400,10 +400,12 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
       //      fprintf(stderr, "Found video stream\n");
       init_video_stream(ctx, &(h->streams[i]), pos);
       }
+#if 0
     else
       {
       fprintf(stderr, "Unknown stream\n");
       }
+#endif
     }
   
   /* Update global fields */
