@@ -208,6 +208,19 @@ Requires:       gmerlin-gtk = %{version}
 Alsa mixer
 
 #
+# Applications: Transcoder
+#
+
+%package -n gmerlin-transcoder
+Summary:        Audio/Video transcoder
+Group:          Applications/Multimedia
+Requires:       gmerlin-gtk = %{version}
+
+%description -n gmerlin-transcoder
+Audio/Video transcoder
+
+
+#
 # Applications: Camelot
 #
 
@@ -335,6 +348,11 @@ rm -rf $RPM_BUILD_ROOT
 %attr(644,root,root) %{_datadir}/applications/gmerlin-alsamixer.desktop
 %attr(644,root,root) %{_datadir}/gmerlin/icons/mixer_icon.png
 %attr(755,root,root) %{_bindir}/gmerlin_alsamixer
+
+%files -n gmerlin-transcoder
+%attr(644,root,root) %{_datadir}/applications/gmerlin-transcoder.desktop
+%attr(644,root,root) %{_datadir}/gmerlin/icons/transcoder_icon.png
+%attr(755,root,root) %{_bindir}/gmerlin_transcoder
 
 %files -n gmerlin-camelot
 %attr(644,root,root) %{_datadir}/applications/gmerlin-camelot.desktop
