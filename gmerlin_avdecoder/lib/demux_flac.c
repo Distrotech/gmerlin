@@ -114,7 +114,7 @@ static int seektable_read(bgav_input_context_t * input,
     }
   return 1;
   }
-#if 1
+#if 0
 static void seektable_dump(seektable_t * t)
   {
   int i;
@@ -248,7 +248,7 @@ static int open_flac(bgav_demuxer_context_t * ctx,
         //        bgav_input_skip(ctx->input, size);
         break;
       case 1: // PADDING
-        fprintf(stderr, "PADDING %d bytes\n", size);
+        //        fprintf(stderr, "PADDING %d bytes\n", size);
         bgav_input_skip(ctx->input, size);
         break;
       case 2: // APPLICATION
@@ -260,7 +260,7 @@ static int open_flac(bgav_demuxer_context_t * ctx,
 
         if(!seektable_read(ctx->input, &(priv->seektable), size))
           goto fail;
-        seektable_dump(&(priv->seektable));
+        //        seektable_dump(&(priv->seektable));
         //        bgav_input_skip(ctx->input, size);
         break;
       case 4: // VORBIS_COMMENT

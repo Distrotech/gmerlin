@@ -157,7 +157,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == the_menu->accessories_menu.transcoder)
     {
-    system("gmerlin_transcoder &");
+    system("gmerlin_transcoder_remote -launch");
     }
   }
 
@@ -232,12 +232,14 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   ret->accessories_menu.menu = create_menu();
 
   if(bg_search_file_exec("gmerlin_transcoder"))
-    ret->accessories_menu.transcoder = create_item("Launch transcoder", gmerlin, ret->accessories_menu.menu);
+    ret->accessories_menu.transcoder =
+      create_item("Transcoder", gmerlin, ret->accessories_menu.menu);
   else
     fprintf(stderr, "gmerlin_transcoder not found\n");
 
   if(bg_search_file_exec("gmerlin_visualizer"))
-    ret->accessories_menu.visualizer = create_item("Launch visualizer", gmerlin, ret->accessories_menu.menu);
+    ret->accessories_menu.visualizer =
+      create_item("Visualizer", gmerlin, ret->accessories_menu.menu);
   else
     fprintf(stderr, "gmerlin_visualizer not found\n");
   

@@ -4,7 +4,7 @@ AC_CONFIG_SRCDIR([include/player.h])
 
 AM_CONFIG_HEADER(include/config.h)
 
-AM_INIT_AUTOMAKE(gmerlin, 0.3.2pre1)
+AM_INIT_AUTOMAKE(gmerlin, 0.3.2pre2)
 
 AC_DISABLE_STATIC
 dnl AM_DISABLE_STATIC
@@ -28,7 +28,7 @@ XML2_REQUIRED="2.4.0"
 PKG_CHECK_MODULES(XML2, libxml-2.0 >= $XML2_REQUIRED, , AC_MSG_ERROR("libxml2 not found"))
 AC_SUBST(XML2_REQUIRED)
 
-GAVL_REQUIRED="0.2.2pre1"
+GAVL_REQUIRED="0.2.2pre2"
 PKG_CHECK_MODULES(GAVL, gavl >= $GAVL_REQUIRED, , AC_MSG_ERROR("gavl not found"))
 AC_SUBST(GAVL_REQUIRED)
 
@@ -153,20 +153,31 @@ AM_CONDITIONAL(HAVE_LQT, test x$have_lqt = xtrue)
 AC_SUBST(LQT_REQUIRED)
 
 dnl
+dnl CDrom support
+dnl
+
+have_cdrom="false"
+
+AC_CHECK_HEADERS([linux/cdrom.h], have_cdrom="true", )
+AC_CHECK_HEADERS([linux/hdreg.h])
+
+dnl
 dnl cdparanoia
 dnl
 
+CDPARANOIA_REQUIRED="alpha9.8"
+
+AH_TEMPLATE([HAVE_CDPARANOIA], [Enable cdparanoia])
+
+if test x$have_cdrom = xtrue; then
+
+AC_MSG_CHECKING(for cdparanoia)
+have_cdparanoia="false"
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
 LIBS="-lcdda_paranoia -lcdda_interface -lm"
 CFLAGS=""
-
-CDPARANOIA_REQUIRED="alpha9.8"
-
-AH_TEMPLATE([HAVE_CDPARANOIA], [Enable cdparanoia])
-AC_MSG_CHECKING(for cdparanoia)
-have_cdparanoia="false"
 
   AC_TRY_RUN([
     #include <cdda/cdda_interface.h>
@@ -196,32 +207,24 @@ have_cdparanoia="false"
   ],
     # program could not be run
     AC_MSG_RESULT(no)
+    have_cdrom="false"
 )
 
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
+
+fi
 
 AC_SUBST(CDPARANOIA_CFLAGS)
 AC_SUBST(CDPARANOIA_LIBS)
 AC_SUBST(CDPARANOIA_REQUIRED)
 
 AM_CONDITIONAL(HAVE_CDPARANOIA, test x$have_cdparanoia = xtrue)
+AM_CONDITIONAL(HAVE_CDROM, test x$have_cdrom = xtrue)
 
 if test x$have_cdparanoia = xtrue; then
 AC_DEFINE(HAVE_CDPARANOIA)
 fi
-
-dnl
-dnl CDrom support
-dnl
-
-have_cdrom="false"
-
-AC_CHECK_HEADERS([linux/cdrom.h], have_cdrom="true", )
-
-AC_CHECK_HEADERS([linux/hdreg.h])
-
-AM_CONDITIONAL(HAVE_CDROM, test x$have_cdrom = xtrue)
 
 dnl
 dnl Musicbrainz
