@@ -33,7 +33,7 @@ extern bgav_palette_entry_t bgav_qt_default_palette_256[];
 /*
  *  Sample description
  */
-
+#if 0
 static void stsd_dump_audio(qt_sample_description_t * d)
   {
   fprintf(stderr, "stsd:\nfourcc: ");
@@ -59,6 +59,33 @@ static void stsd_dump_audio(qt_sample_description_t * d)
     fprintf(stderr, "bytes_per_frame:      %d\n", d->format.audio.bytes_per_frame);
     fprintf(stderr, "bytes_per_sample:     %d\n", d->format.audio.bytes_per_sample);
     }
+  }
+#endif
+static void stsd_dump_video(qt_sample_description_t * d)
+  {
+  fprintf(stderr, "stsd:\n  fourcc: ");
+  bgav_dump_fourcc(d->fourcc);
+  fprintf(stderr, "\n");
+    
+  fprintf(stderr, "  data_reference_index:  %d\n", d->data_reference_index);
+  fprintf(stderr, "  version:               %d\n", d->version);
+  fprintf(stderr, "  revision_level:        %d\n", d->revision_level);
+  fprintf(stderr, "  vendor:                ");
+  bgav_dump_fourcc(d->vendor);
+  fprintf(stderr, "\n");
+
+  fprintf(stderr, "  temporal_quality:      %d\n", d->format.video.temporal_quality);
+  fprintf(stderr, "  spatial_quality:       %d\n", d->format.video.spatial_quality);
+  fprintf(stderr, "  width:                 %d\n", d->format.video.width);
+  fprintf(stderr, "  height:                %d\n", d->format.video.height);
+  fprintf(stderr, "  horizontal_resolution: %f\n", d->format.video.horizontal_resolution);
+  fprintf(stderr, "  vertical_resolution:   %f\n", d->format.video.vertical_resolution);
+  fprintf(stderr, "  data_size:             %d\n", d->format.video.data_size);
+  fprintf(stderr, "  frame_count:           %d\n", d->format.video.frame_count); /* Frames / sample */
+  fprintf(stderr, "  compressor_name:       %s\n", d->format.video.compressor_name);
+  fprintf(stderr, "  depth:                 %d\n", d->format.video.depth);
+  fprintf(stderr, "  ctab_id:               %d\n", d->format.video.ctab_id);
+  fprintf(stderr, "  ctab_size:             %d\n", d->format.video.ctab_size);
   }
 
 static int stsd_read_common(bgav_input_context_t * input,
@@ -256,7 +283,7 @@ static int stsd_read_video(bgav_input_context_t * input,
     if(!bgav_qt_atom_read_header(input, &h))
       {
       //      fprintf(stderr, "failed\n");
-      return 0;
+      break;
       }
     //    fprintf(stderr, "done\n");
     switch(h.fourcc)
@@ -274,8 +301,7 @@ static int stsd_read_video(bgav_input_context_t * input,
         break;
       }
     }
-
-  
+  stsd_dump_video(ret);
   return 1;
   }
   

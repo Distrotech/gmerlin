@@ -112,6 +112,8 @@ static int decode_frame(bgav_stream_t * s)
   faad_priv_t * priv;
   
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
+
+  memset(&frame_info, 0, sizeof(&frame_info));
   
   if(!priv->data_buffer_size)
     if(!get_data(s))
@@ -124,13 +126,21 @@ static int decode_frame(bgav_stream_t * s)
                                          priv->data_buffer_ptr,
                                          priv->data_buffer_size);
 
-  if(!priv->frame->samples.f)
-    return 0;
-  //  fprintf(stderr, "Decoded %d samples, used %d bytes\n", frame_info.samples,
-  //          frame_info.bytesconsumed);
 
   priv->data_buffer_ptr += frame_info.bytesconsumed;
   priv->data_buffer_size -= frame_info.bytesconsumed;
+
+  if(!priv->frame->samples.f)
+    {
+    fprintf(stderr, "faad2: faacDecDecode failed %s\n",
+            faacDecGetErrorMessage(frame_info.error));
+    //    priv->data_buffer_size = 0;
+    //    priv->frame->valid_samples = 0;
+    return 0; /* Recatching the stream is doomed top failure, so we end here */
+    }
+  //  fprintf(stderr, "Decoded %d samples, used %d bytes\n", frame_info.samples,
+  //          frame_info.bytesconsumed);
+
   priv->last_block_size = frame_info.samples / s->data.audio.format.num_channels;
   priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
   

@@ -417,12 +417,12 @@ typedef struct
 
   uint32_t version;
   uint32_t flags;
-  uint32_t creation_time;
-  uint32_t modification_time;
+  uint64_t creation_time;
+  uint64_t modification_time;
   
   uint32_t track_id;
   uint32_t reserved1;
-  uint32_t duration;
+  uint64_t duration;
   uint8_t reserved2[8];
   uint16_t layer;
   uint16_t alternate_group;

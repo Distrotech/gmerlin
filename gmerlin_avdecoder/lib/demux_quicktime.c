@@ -45,6 +45,12 @@ typedef struct
   int64_t mdat_size;
 
   int seeking;
+
+  /* Ohhhh, no, MPEG-4 can have multiple mdats... */
+  
+  int num_mdats;
+  int mdats_alloc;
+  qt_atom_header_t * mdats;
   } qt_priv_t;
 
 /*
@@ -419,10 +425,10 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   bgav_track_t * track;
     
   qt_priv_t * priv = (qt_priv_t*)(ctx->priv);
+  qt_moov_t * moov = &(priv->moov);
 
   track = ctx->tt->current_track;
     
-  qt_moov_t * moov = &(priv->moov);
   ctx->tt->current_track->duration = 0;
   for(i = 0; i < moov->num_tracks; i++)
     {
@@ -568,9 +574,14 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
       {
       case BGAV_MK_FOURCC('m','d','a','t'):
         /* Reached the movie data atom, stop here */
-        have_mdat = 1;
-        priv->mdat_start = ctx->input->position;
-        priv->mdat_size  = h.size - (ctx->input->position - h.start_position);
+        fprintf(stderr, "Found mdat atom\n");
+        bgav_qt_atom_dump_header(&h);
+        if(!have_mdat)
+          {
+          have_mdat = 1;
+          priv->mdat_start = ctx->input->position;
+          priv->mdat_size  = h.size - (ctx->input->position - h.start_position);
+          }
         if(!have_moov)
           {
           /* Some files have the moov atom at the end */

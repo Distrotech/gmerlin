@@ -635,6 +635,9 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
                                       priv->packet_buffer_ptr,
                                       len);
 
+    //    fprintf(stderr, "Sample aspect ratio: %d %d\n", priv->ctx->sample_aspect_ratio.num,
+    //            priv->ctx->sample_aspect_ratio.den);
+    
     //    fprintf(stderr, "Used %d bytes, %d %d\n",
     //            bytes_used,
     //            priv->frame->coded_picture_number,
