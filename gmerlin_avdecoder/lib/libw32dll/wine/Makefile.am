@@ -39,6 +39,7 @@ libwine_la_SOURCES = \
 noinst_HEADERS = \
 	avifmt.h \
 	basetsd.h \
+        compat.h \
 	com.h \
 	debugtools.h \
 	driver.h \
