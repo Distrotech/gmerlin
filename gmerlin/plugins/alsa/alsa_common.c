@@ -112,17 +112,25 @@ static snd_pcm_t * bg_alsa_open(const char * card,
 
   snd_pcm_sframes_t buffer_size;
   snd_pcm_sframes_t period_size;
+
+  /* We open in non blocking mode so our process won't hang if the card is
+     busy */
   
   if(snd_pcm_open(&ret,
                   card,
-                  stream, // SND_PCM_STREAM_PLAYBACK SND_PCM_STREAM_CAPTURE
-                  0      //  SND_PCM_NONBLOCK SND_PCM_ASYNC
+                  stream,           // SND_PCM_STREAM_PLAYBACK SND_PCM_STREAM_CAPTURE
+                  SND_PCM_NONBLOCK  //   SND_PCM_ASYNC
                   ) < 0)
     {
     ret = (snd_pcm_t *)0;
     fprintf(stderr, "bg_alsa_open: snd_pcm_open failed\n");
     goto fail;
     }
+
+  /* Now, set blocking mode */
+
+  snd_pcm_nonblock(ret, 0);
+  
   if(snd_pcm_hw_params_malloc(&hw_params) < 0)
     {
     fprintf(stderr, "bg_alsa_open: snd_pcm_hw_params_malloc failed\n");
