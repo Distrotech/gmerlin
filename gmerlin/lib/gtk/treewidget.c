@@ -835,11 +835,24 @@ static void create_new_album(bg_gtk_tree_widget_t * w)
 
 static void remove_album(bg_gtk_tree_widget_t * w, bg_album_t * a)
   {
+  int i, num_children;
   bg_gtk_album_window_t * album_window;
+  bg_album_t * child;
   
   if(!a)
     return;
 
+  /* Delete children as long as the parent still exists */
+
+  num_children = bg_album_get_num_children(a);
+  for(i = 0; i < num_children; i++)
+    {
+    child = bg_album_get_child(a, i);
+    remove_album(w, child);
+    }
+
+  /* Delete parent */
+  
   album_window = album_is_open(w, a);
   if(album_window)
     {
