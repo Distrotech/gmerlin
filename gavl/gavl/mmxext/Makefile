@@ -38,10 +38,10 @@ pkglibdir = $(libdir)/gavl
 pkgincludedir = $(includedir)/gavl
 top_builddir = ../..
 
-ACLOCAL = ${SHELL} /home/pix/Src/Babygmerlin/missing --run aclocal-1.6
-AUTOCONF = ${SHELL} /home/pix/Src/Babygmerlin/missing --run autoconf
-AUTOMAKE = ${SHELL} /home/pix/Src/Babygmerlin/missing --run automake-1.6
-AUTOHEADER = ${SHELL} /home/pix/Src/Babygmerlin/missing --run autoheader
+ACLOCAL = ${SHELL} /home/pix/Src/gavl/missing --run aclocal-1.6
+AUTOCONF = ${SHELL} /home/pix/Src/gavl/missing --run autoconf
+AUTOMAKE = ${SHELL} /home/pix/Src/gavl/missing --run automake-1.6
+AUTOHEADER = ${SHELL} /home/pix/Src/gavl/missing --run autoheader
 
 am__cd = CDPATH="$${ZSH_VERSION+.}$(PATH_SEPARATOR)" && cd
 INSTALL = /usr/bin/install -c
@@ -65,7 +65,7 @@ host_triplet = i686-pc-linux-gnu
 EXEEXT = 
 OBJEXT = o
 PATH_SEPARATOR = :
-AMTAR = ${SHELL} /home/pix/Src/Babygmerlin/missing --run tar
+AMTAR = ${SHELL} /home/pix/Src/gavl/missing --run tar
 AS = @AS@
 AWK = gawk
 CC = gcc
@@ -85,7 +85,7 @@ STRIP = strip
 VERSION = 0.2.0
 am__include = include
 am__quote = 
-install_sh = /home/pix/Src/Babygmerlin/install-sh
+install_sh = /home/pix/Src/gavl/install-sh
 CFLAGS = -Wall -finline-functions -g -O2 -O3 -fomit-frame-pointer -funroll-all-loops -falign-functions=2 -falign-loops=2 -falign-jumps=2 -mcpu=pentiumpro -I../../include
 
 noinst_LTLIBRARIES = libgavl_mmxext.la
@@ -95,7 +95,7 @@ colorspace_mmxext.c \
 colorspace_scanline_mmxext.c
 
 subdir = gavl/mmxext
-mkinstalldirs = $(SHELL) $(top_srcdir)/../mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/gavl/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
@@ -111,7 +111,7 @@ DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include/gavl
 CPPFLAGS = 
 LDFLAGS = 
 LIBS = 
-depcomp = $(SHELL) $(top_srcdir)/../depcomp
+depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 DEP_FILES = ./$(DEPDIR)/colorspace_mmxext.Plo \
 	./$(DEPDIR)/colorspace_scanline_mmxext.Plo

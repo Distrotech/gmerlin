@@ -95,7 +95,7 @@ colorspace_mmxext.c \
 colorspace_scanline_mmxext.c
 
 subdir = gavl/mmxext
-mkinstalldirs = $(SHELL) $(top_srcdir)/../mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/include/gavl/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
@@ -111,7 +111,7 @@ DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)/include/gavl
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-depcomp = $(SHELL) $(top_srcdir)/../depcomp
+depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/colorspace_mmxext.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/colorspace_scanline_mmxext.Plo

@@ -38,10 +38,10 @@ pkglibdir = $(libdir)/gavl
 pkgincludedir = $(includedir)/gavl
 top_builddir = ../..
 
-ACLOCAL = ${SHELL} /home/pix/Src/Babygmerlin/missing --run aclocal-1.6
-AUTOCONF = ${SHELL} /home/pix/Src/Babygmerlin/missing --run autoconf
-AUTOMAKE = ${SHELL} /home/pix/Src/Babygmerlin/missing --run automake-1.6
-AUTOHEADER = ${SHELL} /home/pix/Src/Babygmerlin/missing --run autoheader
+ACLOCAL = ${SHELL} /home/pix/Src/gavl/missing --run aclocal-1.6
+AUTOCONF = ${SHELL} /home/pix/Src/gavl/missing --run autoconf
+AUTOMAKE = ${SHELL} /home/pix/Src/gavl/missing --run automake-1.6
+AUTOHEADER = ${SHELL} /home/pix/Src/gavl/missing --run autoheader
 
 am__cd = CDPATH="$${ZSH_VERSION+.}$(PATH_SEPARATOR)" && cd
 INSTALL = /usr/bin/install -c
@@ -65,7 +65,7 @@ host_triplet = i686-pc-linux-gnu
 EXEEXT = 
 OBJEXT = o
 PATH_SEPARATOR = :
-AMTAR = ${SHELL} /home/pix/Src/Babygmerlin/missing --run tar
+AMTAR = ${SHELL} /home/pix/Src/gavl/missing --run tar
 AS = @AS@
 AWK = gawk
 CC = gcc
@@ -85,10 +85,10 @@ STRIP = strip
 VERSION = 0.2.0
 am__include = include
 am__quote = 
-install_sh = /home/pix/Src/Babygmerlin/install-sh
+install_sh = /home/pix/Src/gavl/install-sh
 pkginclude_HEADERS = gavl.h gavltime.h
 subdir = include/gavl
-mkinstalldirs = $(SHELL) $(top_srcdir)/../mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =
 DIST_SOURCES =

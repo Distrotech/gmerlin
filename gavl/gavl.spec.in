@@ -81,6 +81,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/gavl
 %{_libdir}/gavl/include/gavlconfig.h
 %{_libdir}/pkgconfig/gavl.pc
+%defattr(755,root,root)
+%{_libdir}/lib*.so
 
 %define date	%(echo `LC_ALL="C" date +"%a %b %d %Y"`)
 %changelog
