@@ -52,7 +52,8 @@ void bg_socket_disconnect(int);
 /* Server socket (stream oriented) */
 
 int bg_listen_socket_create_inet(int port,
-                                 int queue_size);
+                                 int queue_size,
+                                 uint32_t addr);
 
 int bg_listen_socket_create_unix(const char * name,
                                  int queue_size);

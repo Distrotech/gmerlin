@@ -165,10 +165,17 @@ int main(int argc, char ** argv)
   int i;
   gavl_time_t delay_time = GAVL_TIME_SCALE / 50;
   bg_remote_client_t * remote;
-
+  char * env;
+  
   if(argc < 2)
     opt_help(NULL, &argc, &argv, 0);
 
+  port = TRANSCODER_REMOTE_PORT;
+  env = getenv(TRANSCODER_REMOTE_ENV);
+  if(env)
+    port = atoi(env);
+
+  
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 
   remote = bg_remote_client_create(TRANSCODER_REMOTE_ID, 0);

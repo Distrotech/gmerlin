@@ -22,15 +22,6 @@
 #include <remote.h>
 #include "player_remote.h"
 
-#if 0
-typedef struct
-  {
-  char * arg;
-  char * help_string;
-  void (*callback)(void * data, int * argc, char *** argv, int arg);
-  } bg_cmdline_arg_t;
-#endif
-
 static void cmd_play(void * data, int * argc, char *** _argv, int arg)
   {
   bg_msg_t * msg;
@@ -247,7 +238,7 @@ bg_cmdline_arg_t commands[] =
   };
 
 char * host = (char *)0;
-int port = PLAYER_REMOTE_PORT;
+int port;
 int launch = 0;
 
 static void opt_host(void * data, int * argc, char *** argv, int arg)
@@ -319,12 +310,19 @@ static void opt_help(void * data, int * argc, char *** argv, int arg)
 
 int main(int argc, char ** argv)
   {
+  char * env;
   int i;
   gavl_time_t delay_time = GAVL_TIME_SCALE / 50;
   bg_remote_client_t * remote;
-
+  
   if(argc < 2)
     opt_help(NULL, &argc, &argv, 0);
+
+  port = PLAYER_REMOTE_PORT;
+  env = getenv(PLAYER_REMOTE_ENV);
+  if(env)
+    port = atoi(env);
+  
   
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 

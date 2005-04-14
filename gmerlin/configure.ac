@@ -19,6 +19,25 @@ AC_CHECK_SIZEOF(long)
 AC_C_BIGENDIAN
 
 dnl
+dnl Check for Dependencies package
+dnl
+
+GMERLIN_DEP_DIR=/opt/gmerlin
+
+if test -d $GMERLIN_DEP_DIR; then
+  have_opt_gmerlin="true"
+  export PKG_CONFIG_PATH=$GMERLIN_DEP_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
+  GMERLIN_DEP_CFLAGS="-I$GMERLIN_DEP_DIR/include"
+  GMERLIN_DEP_LDPATH="$GMERLIN_DEP_DIR/lib"
+  GMERLIN_DEP_LIBS="-L$GMERLIN_DEP_DIR/lib"
+else
+  have_opt_gmerlin="false"
+  GMERLIN_DEP_CFLAGS=""
+  GMERLIN_DEP_LDPATH=""
+  GMERLIN_DEP_LIBS=""
+fi
+
+dnl
 dnl Check for Libraries
 dnl
 
@@ -176,8 +195,8 @@ have_cdparanoia="false"
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
-LIBS="-lcdda_paranoia -lcdda_interface -lm"
-CFLAGS=""
+LIBS="$GMERLIN_DEP_LIBS -lcdda_paranoia -lcdda_interface -lm"
+CFLAGS="$GMERLIN_DEP_CFLAGS"
 
   AC_TRY_RUN([
     #include <cdda/cdda_interface.h>

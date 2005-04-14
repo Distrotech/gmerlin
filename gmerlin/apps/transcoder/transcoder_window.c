@@ -520,6 +520,9 @@ static gboolean delete_callback(GtkWidget * w, GdkEvent * evt,
 
 transcoder_window_t * transcoder_window_create()
   {
+  int port;
+  char * env;
+  
   GtkWidget * main_table;
   GtkWidget * frame;
   GtkWidget * box;
@@ -665,8 +668,13 @@ transcoder_window_t * transcoder_window_create()
   cfg_section = bg_cfg_registry_find_section(ret->cfg_reg, "transcoder_window");
   bg_cfg_section_apply(cfg_section, transcoder_window_parameters,
                        set_transcoder_window_parameter, ret);
+
+  port = TRANSCODER_REMOTE_PORT;
+  env = getenv(TRANSCODER_REMOTE_ENV);
+  if(env)
+    port = atoi(env);
   
-  ret->remote = bg_remote_server_create(TRANSCODER_REMOTE_PORT, TRANSCODER_REMOTE_ID);
+  ret->remote = bg_remote_server_create(port, TRANSCODER_REMOTE_ID);
 
   if(!bg_remote_server_init(ret->remote))
     fprintf(stderr, "Cannot open remote server (Port %d busy?)\n", TRANSCODER_REMOTE_PORT);

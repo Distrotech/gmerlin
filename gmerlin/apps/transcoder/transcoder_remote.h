@@ -19,6 +19,7 @@
 
 #define TRANSCODER_REMOTE_PORT (BG_REMOTE_PORT_BASE+2)
 #define TRANSCODER_REMOTE_ID "gmerlin_transcoder"
+#define TRANSCODER_REMOTE_ENV "GMERLIN_TRANSCODER_REMOTE_PORT"
 
 /* Remote commands */
 

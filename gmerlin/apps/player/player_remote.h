@@ -19,6 +19,7 @@
 
 #define PLAYER_REMOTE_PORT (BG_REMOTE_PORT_BASE+1)
 #define PLAYER_REMOTE_ID "gmerlin_player"
+#define PLAYER_REMOTE_ENV "GMERLIN_PLAYER_REMOTE_PORT"
 
 
 /* Player commands */

@@ -354,7 +354,8 @@ void bg_socket_disconnect(int sock)
 /* Server socket (stream oriented) */
 
 int bg_listen_socket_create_inet(int port,
-                                 int queue_size)
+                                 int queue_size,
+                                 uint32_t addr)
   {
   int ret;
   struct sockaddr_in name;

@@ -26,6 +26,10 @@
 #include <bgsocket.h>
 #include <utils.h>
 
+/* For INADDR_ Macros */
+
+#include <netinet/in.h>
+
 /*
  *  Server
  */
@@ -44,9 +48,7 @@ struct bg_remote_server_s
   
   /* Configuration stuff */
 
-  bg_parameter_info_t * parameters;
-
-  int default_listen_port;
+  int allow_remote;
   int listen_port;
   int max_connections;
 
@@ -56,12 +58,12 @@ struct bg_remote_server_s
   bg_msg_t * msg;
   };
 
-bg_remote_server_t * bg_remote_server_create(int default_listen_port,
+bg_remote_server_t * bg_remote_server_create(int listen_port,
                                              char * protocol_id)
   {
   bg_remote_server_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->default_listen_port = default_listen_port;
+  ret->listen_port = listen_port;
   ret->protocol_id = bg_strdup(ret->protocol_id, protocol_id);
   //  fprintf(stderr, "Listen port: %d\n", default_listen_port);
   ret->fd = -1;
@@ -71,11 +73,10 @@ bg_remote_server_t * bg_remote_server_create(int default_listen_port,
 
 int bg_remote_server_init(bg_remote_server_t * s)
   {
-  if(!s->listen_port)
-    s->listen_port = s->default_listen_port;
-  
+ 
   s->fd = bg_listen_socket_create_inet(s->listen_port,
-                                       s->max_connections);
+                                       s->max_connections,
+                                       s->allow_remote ? INADDR_ANY : INADDR_LOOPBACK);
   if(s->fd < 0)
     {
     fprintf(stderr, "Setting up socket failed\n");
@@ -84,6 +85,12 @@ int bg_remote_server_init(bg_remote_server_t * s)
 
   fprintf(stderr, "Remote socket listening at port %d\n", s->listen_port);
   return 1;
+  }
+
+void bg_remote_server_cleanup(bg_remote_server_t * s)
+  {
+  close(s->fd);
+  s->fd = -1;
   }
 
 static server_connection_t * add_connection(bg_remote_server_t * s,
@@ -99,24 +106,13 @@ static server_connection_t * add_connection(bg_remote_server_t * s,
 
   server_connection_t * ret = (server_connection_t *)0;
   
-  /* Write the welcome message */
-
-  welcome_msg = bg_sprintf("%s %s\r\n", s->protocol_id, VERSION);
-
-  len = strlen(welcome_msg);
-
-  //  fprintf(stderr, "Sending welcome msg: %s\n", welcome_msg);
-    
-  if(bg_socket_write_data(fd, welcome_msg, len) < len)
-    goto fail;
-
   if(!bg_socket_read_line(fd, &(buffer),
                           &buffer_alloc, 1))
     {
-    fprintf(stderr, "Reading answer line failed\n");
+    fprintf(stderr, "Reading hello line failed\n");
     goto fail;
     }
-  //  fprintf(stderr, "Got answer line: %s\n", buffer);
+  //  fprintf(stderr, "Got hello line: %s\n", buffer);
 
   strings = bg_strbreak(buffer, ' ');
   if(!strings[0] || strcmp(strings[0], s->protocol_id) ||
@@ -126,6 +122,18 @@ static server_connection_t * add_connection(bg_remote_server_t * s,
     fprintf(stderr, "Protocol mismatch");
     goto fail;
     }
+  
+  /* Write the answer message */
+
+  welcome_msg = bg_sprintf("%s %s\r\n", s->protocol_id, VERSION);
+
+  len = strlen(welcome_msg);
+
+  //  fprintf(stderr, "Sending welcome msg: %s\n", welcome_msg);
+    
+  if(bg_socket_write_data(fd, welcome_msg, len) < len)
+    goto fail;
+  
 
   ret = calloc(1, sizeof(*ret));
   ret->fd = fd;
@@ -137,7 +145,8 @@ static server_connection_t * add_connection(bg_remote_server_t * s,
     free(welcome_msg);
   if(strings)
     bg_strbreak_free(strings);
-  
+  if(!ret)
+    close(fd);
   return ret;
   }
 
@@ -176,7 +185,7 @@ static void check_connections(bg_remote_server_t * s)
 
   if(new_fd >= 0)
     {
-    fprintf(stderr, "New client connection\n");
+    //    fprintf(stderr, "New client connection\n");
     
     conn = add_connection(s, new_fd);
 
@@ -243,8 +252,6 @@ void bg_remote_server_destroy(bg_remote_server_t * s)
 
   if(s->protocol_id)
     free(s->protocol_id);
-  if(s->parameters)
-    bg_parameter_info_destroy_array(s->parameters);
 
   if(s->fd >= 0)
     close(s->fd);
@@ -255,11 +262,10 @@ void bg_remote_server_destroy(bg_remote_server_t * s)
 static bg_parameter_info_t server_parameters[] =
   {
     {
-      name:      "listen_port",
-      long_name: "Listen port",
-      type:      BG_PARAMETER_INT,
-      val_min:     { val_i: 1024 },
-      val_max:     { val_i: 65535 },
+      name:        "allow_remote",
+      long_name:   "Allow connections from other machines",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 0 },
     },
     {
       name:      "max_connections",
@@ -274,24 +280,7 @@ static bg_parameter_info_t server_parameters[] =
 
 bg_parameter_info_t * bg_remote_server_get_parameters(bg_remote_server_t * s)
   {
-  int i;
-  if(!s->parameters)
-    {
-    s->parameters = bg_parameter_info_copy_array(server_parameters);
-
-    i = 0;
-    while(s->parameters[i].name)
-      {
-      if(!strcmp(s->parameters[i].name, "listen_port"))
-        {
-        s->parameters[i].val_default.val_i = s->default_listen_port;
-        break;
-        }
-      else
-        i++;
-      }
-    }
-  return s->parameters;
+  return server_parameters;
   }
 
 void
@@ -308,24 +297,24 @@ bg_remote_server_set_parameter(void * data,
       s->do_reopen = 1;
     
     if(!s->max_connections)
+      {
       s->do_reopen = 0;
-
-    if(s->do_reopen)
+      if(s->fd >= 0)
+        bg_remote_server_cleanup(s); /* Close everything */
+      }
+    else if(s->do_reopen)
       {
       if(s->fd >= 0)
-        ; /* TODO: Close everything */
-
+        bg_remote_server_cleanup(s); /* Close everything */
       bg_remote_server_init(s);
       }
     return;
     }
-  else if(!strcmp(name, "listen_port"))
+  else if(!strcmp(name, "allow_remote"))
     {
-    if(v->val_i != s->listen_port)
-      {
+    if(s->allow_remote != v->val_i)
       s->do_reopen = 1;
-      s->listen_port = v->val_i;
-      }
+    s->allow_remote = v->val_i;
     }
   else if(!strcmp(name, "max_connections"))
     s->max_connections = v->val_i;
@@ -377,7 +366,16 @@ int bg_remote_client_init(bg_remote_client_t * c,
     fprintf(stderr, "Connecting failed\n");
     goto fail;
     }
-  //  fprintf(stderr, "Reading welcome message\n");
+
+  /* Send hello line */
+  answer_message = bg_sprintf("%s %s %s\r\n", c->protocol_id,
+                              VERSION, (c->read_messages ? "1" : "0"));
+  len = strlen(answer_message);
+
+  if(bg_socket_write_data(c->fd, answer_message, len) < len)
+    goto fail;
+
+  //  fprintf(stderr, "Reading answer message\n");
   /* Read welcome message */
   
   if(!bg_socket_read_line(c->fd, &(buffer),
@@ -396,14 +394,6 @@ int bg_remote_client_init(bg_remote_client_t * c,
     fprintf(stderr, "Protocol mismatch");
     goto fail;
     }
-
-  /* Send answer line */
-  answer_message = bg_sprintf("%s %s %s\r\n", c->protocol_id,
-                              VERSION, (c->read_messages ? "1" : "0"));
-  len = strlen(answer_message);
-
-  if(bg_socket_write_data(c->fd, answer_message, len) < len)
-    goto fail;
 
   ret = 1;
   fail:

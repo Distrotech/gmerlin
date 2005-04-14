@@ -7,6 +7,8 @@
 #include <bgsocket.h>
 #include <utils.h>
 
+#include <netinet/in.h>
+
 #define MAX_CONNECTIONS 1024
 
 #define INET_PORT 1122
@@ -67,7 +69,7 @@ int main(int argc, char ** argv)
   
   /* Create unix listener */
 
-  tcp_socket = bg_listen_socket_create_inet(1122, 10);
+  tcp_socket = bg_listen_socket_create_inet(1122, 10, INADDR_LOOPBACK);
   if(tcp_socket == -1)
     fprintf(stderr, "Cannot create TCP Socket\n");
 

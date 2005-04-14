@@ -156,6 +156,9 @@ void treewindow_close_callback(bg_gtk_tree_window_t * win,
 
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   {
+  int remote_port;
+  char * remote_env;
+  
   bg_album_t * album;
   gavl_time_t duration_before, duration_current, duration_after;
   char * tmp_string;
@@ -233,7 +236,12 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   
   ret->lcdproc = bg_lcdproc_create(ret->player);
 
-  ret->remote = bg_remote_server_create(PLAYER_REMOTE_PORT, PLAYER_REMOTE_ID);
+  remote_port = PLAYER_REMOTE_PORT;
+  remote_env = getenv(PLAYER_REMOTE_ENV);
+  if(remote_env)
+    remote_port = atoi(remote_env);
+  
+  ret->remote = bg_remote_server_create(remote_port, PLAYER_REMOTE_ID);
   
   gmerlin_create_dialog(ret);
   
