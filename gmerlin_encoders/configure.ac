@@ -186,7 +186,7 @@ dnl
 dnl faac
 dnl
 
-have_faac="true"
+have_faac="false"
 FAAC_REQUIRED="1.24"
 
 OLD_CFLAGS=$CFLAGS
@@ -194,10 +194,37 @@ OLD_LIBS=$LIBS
 
 AH_TEMPLATE([HAVE_FAAC], [Enable faac])
 
-AC_CHECK_LIB(faac,faacEncOpen, , have_faac="false", -lm)
+LIBS="$GMERLIN_DEP_LIBS -lfaac -lm"
+CFLAGS="$GMERLIN_DEP_CFLAGS"
 
-FAAC_CFLAGS="$GMERLIN_DEP_CFLAGS"
-FAAC_LIBS="$GMERLIN_DEP_LIBS $LIBS -lm"
+AC_MSG_CHECKING(for faac)
+AC_TRY_RUN([
+    #include <inttypes.h>
+    #include <faac.h>
+    main()
+    {
+    int samplerate, num_channels;
+    unsigned long input_samples, output_bytes;
+    faacEncHandle enc;
+    enc = faacEncOpen(samplerate,
+                      num_channels,
+                      &input_samples,
+                      &output_bytes);
+
+    return 0;
+    }
+  ],
+  [
+    # program could be run
+    have_faac="true"
+    AC_MSG_RESULT(yes)
+    FAAC_CFLAGS=$CFLAGS
+    FAAC_LIBS=$LIBS
+
+  ],
+    # program could not be run
+    AC_MSG_RESULT(no)
+)
 
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
