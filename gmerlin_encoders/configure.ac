@@ -8,6 +8,25 @@ AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
 
 dnl
+dnl Check for Dependencies package
+dnl
+
+GMERLIN_DEP_DIR=/opt/gmerlin
+
+if test -d $GMERLIN_DEP_DIR; then
+  have_opt_gmerlin="true"
+  export PKG_CONFIG_PATH=$GMERLIN_DEP_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
+  GMERLIN_DEP_CFLAGS="-I$GMERLIN_DEP_DIR/include"
+  GMERLIN_DEP_LDPATH="$GMERLIN_DEP_DIR/lib"
+  GMERLIN_DEP_LIBS="-L$GMERLIN_DEP_DIR/lib"
+else
+  have_opt_gmerlin="false"
+  GMERLIN_DEP_CFLAGS=""
+  GMERLIN_DEP_LDPATH=""
+  GMERLIN_DEP_LIBS=""
+fi
+
+dnl
 dnl Required libraries
 dnl
 
@@ -48,8 +67,8 @@ dnl
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
-LIBS="-L/usr/local/lib -lFLAC -lm"
-CFLAGS="-I/usr/local/include"
+LIBS="$GMERLIN_DEP_LIBS -L/usr/local/lib -lFLAC -lm"
+CFLAGS="$GMERLIN_DEP_CFLAGS -I/usr/local/include"
 
 FLAC_REQUIRED="1.1.0"
 
@@ -107,12 +126,12 @@ OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
 if test x$have_vorbis = xtrue; then
-LIBS="-lmp3lame -lvorbis -lm"
+LIBS="$GMERLIN_DEP_LIBS -lmp3lame -lvorbis -lm"
 else
-LIBS="-lmp3lame -lm"
+LIBS="$GMERLIN_DEP_LIBS -lmp3lame -lm"
 fi
 
-CFLAGS=""
+CFLAGS="$GMERLIN_DEP_CFLAGS"
 
 LAME_REQUIRED="3.93"
 
@@ -177,8 +196,8 @@ AH_TEMPLATE([HAVE_FAAC], [Enable faac])
 
 AC_CHECK_LIB(faac,faacEncOpen, , have_faac="false", -lm)
 
-FAAC_CFLAGS=""
-FAAC_LIBS="$LIBS -lm"
+FAAC_CFLAGS="$GMERLIN_DEP_CFLAGS"
+FAAC_LIBS="$GMERLIN_DEP_LIBS $LIBS -lm"
 
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS

@@ -15,6 +15,25 @@ dnl
 AC_CHECK_HEADERS(byteswap.h)
 
 dnl
+dnl Check for Dependencies package
+dnl
+
+GMERLIN_DEP_DIR=/opt/gmerlin
+
+if test -d $GMERLIN_DEP_DIR; then
+  have_opt_gmerlin="true"
+  export PKG_CONFIG_PATH=$GMERLIN_DEP_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
+  GMERLIN_DEP_CFLAGS="-I$GMERLIN_DEP_DIR/include"
+  GMERLIN_DEP_LDPATH="$GMERLIN_DEP_DIR/lib"
+  GMERLIN_DEP_LIBS="-L$GMERLIN_DEP_DIR/lib"
+else
+  have_opt_gmerlin="false"
+  GMERLIN_DEP_CFLAGS=""
+  GMERLIN_DEP_LDPATH=""
+  GMERLIN_DEP_LIBS=""
+fi
+
+dnl
 dnl Check for Libraries
 dnl
 
@@ -164,8 +183,8 @@ OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
 if test "x$FAAD2_PREFIX" = "x"; then 
-CFLAGS=""
-LIBS="-lfaad -lm"
+CFLAGS="$GMERLIN_DEP_CFLAGS"
+LIBS="$GMERLIN_DEP_LIBS -lfaad -lm"
 else
 CFLAGS="-I$FAAD2_PREFIX/include"
 LIBS="-L$FAAD2_PREFIX/lib -lfaad -lm"
@@ -282,8 +301,8 @@ dnl
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
-LIBS="-lmusepack"
-CFLAGS=""
+LIBS="$GMERLIN_DEP_LIBS -lmusepack"
+CFLAGS="$GMERLIN_DEP_CFLAGS"
 
 MUSEPACK_REQUIRED="1.1"
 
@@ -336,8 +355,8 @@ OLD_LIBS=$LIBS
 
 MAD_REQUIRED="0.15.0"
    
-LIBS="-lmad"
-CFLAGS=""
+LIBS="$GMERLIN_DEP_LIBS -lmad"
+CFLAGS="$GMERLIN_DEP_CFLAGS"
 
 AH_TEMPLATE([HAVE_MAD], [Enable MAD])
 AC_MSG_CHECKING(for libmad 0.15.x)
@@ -389,8 +408,8 @@ dnl
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
  
-LIBS="-la52 -lm"
-CFLAGS=""
+LIBS="$GMERLIN_DEP_LIBS -la52 -lm"
+CFLAGS="$GMERLIN_DEP_CFLAGS"
 LIBA52_REQUIRED="0.7.4"
 AH_TEMPLATE([HAVE_LIBA52], [Enable liba52])
 AC_MSG_CHECKING(for liba52)
