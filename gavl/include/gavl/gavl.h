@@ -457,6 +457,15 @@ int gavl_colorspace_num_planes(gavl_colorspace_t csp);
 
 void gavl_colorspace_chroma_sub(gavl_colorspace_t csp, int * sub_h, int * sub_v);
 
+/* bytes_per_component is only valid for planar formats */
+  
+int gavl_colorspace_bytes_per_component(gavl_colorspace_t csp);
+
+/* bytes_per_pixel is only valid for packed formats */
+
+int gavl_colorspace_bytes_per_pixel(gavl_colorspace_t csp);
+
+  
 const char * gavl_colorspace_to_string(gavl_colorspace_t colorspace);
 gavl_colorspace_t gavl_string_to_colorspace(const char *);
 
@@ -531,12 +540,13 @@ void gavl_video_frame_null(gavl_video_frame_t*);
 
 void gavl_video_frame_clear(gavl_video_frame_t * frame,
                             gavl_video_format_t * format);
-
+  
 /* Copy video frame */
 
 void gavl_video_frame_copy(gavl_video_format_t * format,
                            gavl_video_frame_t * dst,
                            gavl_video_frame_t * src);
+
 /* Copy with flipping */
   
 void gavl_video_frame_copy_flip_x(gavl_video_format_t * format,
@@ -550,6 +560,14 @@ void gavl_video_frame_copy_flip_y(gavl_video_format_t * format,
 void gavl_video_frame_copy_flip_xy(gavl_video_format_t * format,
                                   gavl_video_frame_t * dst,
                                   gavl_video_frame_t * src);
+
+/* Get a subframe (without copying) */
+
+void gavl_video_frame_get_subframe(gavl_colorspace_t colorspace,
+                                   gavl_video_frame_t * src,
+                                   gavl_video_frame_t * dst,
+                                   int x, int y);
+  
   
 /*
   This is purely for debugging purposes:
@@ -571,6 +589,13 @@ typedef enum
     GAVL_ALPHA_BLEND_COLOR      /* Blend in background color */
     //    GAVL_ALPHA_BLEND_IMAGE /* Blend over an image       */
   } gavl_alpha_mode_t;
+
+typedef enum
+  {
+    GAVL_SCALE_AUTO = 0, /* Take from conversion quality */
+    GAVL_SCALE_NEAREST,
+    GAVL_SCALE_BILINEAR,
+  } gavl_scale_mode_t;
   
 typedef struct
   {
@@ -586,10 +611,9 @@ typedef struct
   int accel_flags;     /* CPU Acceleration flags */
 
   int conversion_flags;
-
-  float crop_factor; /* Not used yet (for scaling) */
-
+  
   gavl_alpha_mode_t alpha_mode;
+  gavl_scale_mode_t scale_mode;
   
   /* Background color (0x0000 - 0xFFFF) */
   uint16_t background_red;
@@ -629,8 +653,29 @@ int gavl_video_converter_init(gavl_video_converter_t* cnv,
 void gavl_video_convert(gavl_video_converter_t * cnv,
                         gavl_video_frame_t * input_frame,
                         gavl_video_frame_t * output_frame);
- 
 
+/***************************************************
+ * Video scaling support
+ ***************************************************/
+
+typedef struct gavl_video_scaler_s gavl_video_scaler_t;
+
+gavl_video_scaler_t * gavl_video_scaler_create();
+void gavl_video_scaler_destroy(gavl_video_scaler_t *);
+  
+void gavl_video_scaler_init(gavl_video_scaler_t * scaler,
+                            gavl_scale_mode_t scale_mode,
+                            gavl_colorspace_t colorspace,
+                            int input_x, int input_y,
+                            int input_width, int input_height,
+                            int output_x, int output_y,
+                            int output_width, int output_height);
+
+void gavl_video_scaler_scale(gavl_video_scaler_t * scaler,
+                             gavl_video_frame_t * src,
+                             gavl_video_frame_t * dst);
+
+  
 #ifdef __cplusplus
 }
 #endif

@@ -19,8 +19,8 @@
 
 
 #include <gavl/gavl.h>
-#include "video.h"
-#include "colorspace.h"
+#include <video.h>
+#include <colorspace.h>
 #include "_rgb_rgb_c.c"
 #include "_rgb_yuv_c.c"
 #include "_yuv_rgb_c.c"

@@ -7,6 +7,7 @@ colorspace_scanline_c.c \
 interleave_c.c \
 mix_c.c \
 sampleformat_c.c \
+scale_c.c \
 volume_c.c
 
 EXTRA_libgavl_c_la_SOURCES = \

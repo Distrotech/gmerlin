@@ -24,6 +24,7 @@ interleave.c \
 mix.c \
 sampleformat.c \
 samplerate.c \
+scale.c \
 time.c \
 timer.c \
 video.c \

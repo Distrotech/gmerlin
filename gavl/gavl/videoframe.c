@@ -581,3 +581,38 @@ void gavl_video_frame_dump(gavl_video_frame_t * frame,
     }
   free(filename);
   }
+
+void gavl_video_frame_get_subframe(gavl_colorspace_t colorspace,
+                                   gavl_video_frame_t * src,
+                                   gavl_video_frame_t * dst,
+                                   int x, int y)
+  {
+  int uv_sub_h, uv_sub_v;
+  int i;
+  int bytes;
+  int num_planes = gavl_colorspace_num_planes(colorspace);
+
+  dst->strides[0] = src->strides[0];
+  
+  if(num_planes > 1)
+    {
+    gavl_colorspace_chroma_sub(colorspace, &uv_sub_h,
+                               &uv_sub_v);
+    bytes = gavl_colorspace_bytes_per_component(colorspace);
+    dst->planes[0] = src->planes[0] + y * src->strides[0] + x * bytes;
+
+    for(i = 1; i < num_planes; i++)
+      {
+      dst->planes[i] = src->planes[i] + (y/uv_sub_v) * src->strides[i] + (x/uv_sub_h) * bytes;
+      dst->strides[i] = src->strides[i];
+      }
+    }
+  else
+    {
+    if(((colorspace == GAVL_YUY2) || (colorspace == GAVL_UYVY)) &&
+       (x & 1))
+      x--;
+    bytes = gavl_colorspace_bytes_per_pixel(colorspace);
+    dst->planes[0] = src->planes[0] + y * src->strides[0] + x * bytes;
+    }
+  }

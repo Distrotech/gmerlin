@@ -70,7 +70,6 @@ void gavl_video_default_options(gavl_video_options_t * opt)
   {
   memset(opt, 0, sizeof(*opt));
   opt->accel_flags = GAVL_ACCEL_C;
-  opt->crop_factor = 0.0;
   }
 
 /***************************************************

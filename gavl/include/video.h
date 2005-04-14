@@ -17,9 +17,14 @@
 
 *****************************************************************/
 
+#ifndef _GAVL_VIDEO_H_
+#define _GAVL_VIDEO_H_
+
 /* Private structures for the video converter */
 
 #include "config.h"
+
+typedef struct gavl_video_scale_context_s gavl_video_scale_context_t;
 
 typedef struct
   {
@@ -29,7 +34,8 @@ typedef struct
 
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;
-  
+
+  gavl_video_scale_context_t * scale_context;
   } gavl_video_convert_context_t;
 
 typedef void (*gavl_video_func_t)(gavl_video_convert_context_t * ctx);
@@ -38,6 +44,7 @@ struct gavl_video_converter_s
   {
   gavl_video_convert_context_t csp_context;
   gavl_video_options_t options;
+
   gavl_video_func_t csp_func;
 
   int convert_framerate;
@@ -53,3 +60,5 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
                                gavl_colorspace_t input_colorspace,
                                gavl_colorspace_t output_colorspace,
                                int width, int height);
+
+#endif // _GAVL_VIDEO_H_

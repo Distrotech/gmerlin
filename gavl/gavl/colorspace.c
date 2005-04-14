@@ -1548,3 +1548,75 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
   return ret;
   }
 
+/* bytes_per_component is only valid for planar formats */
+  
+int gavl_colorspace_bytes_per_component(gavl_colorspace_t csp)
+  {
+  switch(csp)
+    {
+    case GAVL_COLORSPACE_NONE:
+    case GAVL_RGB_15:
+    case GAVL_BGR_15:
+    case GAVL_RGB_16:
+    case GAVL_BGR_16:
+    case GAVL_RGB_24:
+    case GAVL_BGR_24:
+    case GAVL_RGB_32:
+    case GAVL_BGR_32:
+    case GAVL_RGBA_32:
+    case GAVL_YUY2:
+    case GAVL_UYVY:
+      return 0;
+      break;
+    case GAVL_YUV_420_P:
+    case GAVL_YUV_422_P:
+    case GAVL_YUV_444_P:
+    case GAVL_YUV_411_P:
+    case GAVL_YUV_410_P:
+    case GAVL_YUVJ_420_P:
+    case GAVL_YUVJ_422_P:
+    case GAVL_YUVJ_444_P:
+      return 1;
+    }
+  return 0;
+  }
+
+/* bytes_per_pixel is only valid for packed formats */
+
+int gavl_colorspace_bytes_per_pixel(gavl_colorspace_t csp)
+  {
+  switch(csp)
+    {
+    case GAVL_COLORSPACE_NONE:
+      return 0;
+      break;
+    case GAVL_RGB_15:
+    case GAVL_BGR_15:
+    case GAVL_RGB_16:
+    case GAVL_BGR_16:
+      return 2;
+      break;
+    case GAVL_RGB_24:
+    case GAVL_BGR_24:
+      return 3;
+      break;
+    case GAVL_RGB_32:
+    case GAVL_BGR_32:
+    case GAVL_RGBA_32:
+      return 4;
+      break;
+    case GAVL_YUY2:
+    case GAVL_UYVY:
+      return 2;
+    case GAVL_YUV_420_P:
+    case GAVL_YUV_422_P:
+    case GAVL_YUV_444_P:
+    case GAVL_YUV_411_P:
+    case GAVL_YUV_410_P:
+    case GAVL_YUVJ_420_P:
+    case GAVL_YUVJ_422_P:
+    case GAVL_YUVJ_444_P:
+      return 0;
+    }
+  return 0;
+  }
