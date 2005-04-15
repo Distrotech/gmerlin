@@ -48,6 +48,8 @@ typedef struct
   gavl_video_scale_coeff_t * coeffs_h;
   gavl_video_scale_coeff_t * coeffs_v;
   gavl_video_scale_scanline_func scanline_func;
+
+  int byte_advance;
   } gavl_video_scale_table_t;
 
 struct gavl_video_scaler_s
