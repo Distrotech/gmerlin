@@ -65,7 +65,7 @@ AH_TEMPLATE([LIBVISUAL_PLUGIN_BASE], [plugin directory for libvisual])
 
 LIBVISUAL_REQUIRED="0.3.0"
 have_libvisual="false"
-PKG_CHECK_MODULES(LIBVISUAL, libvisual >= $LIBVISUAL_REQUIRED, have_libvisual="true",)
+PKG_CHECK_MODULES(LIBVISUAL, libvisual >= $LIBVISUAL_REQUIRED, have_libvisual="true",have_libvisual="false")
 
 if test x$have_libvisual = xtrue; then
     LIBVISUAL_PLUGIN_BASE=`pkg-config --variable=pluginsbasedir libvisual`
