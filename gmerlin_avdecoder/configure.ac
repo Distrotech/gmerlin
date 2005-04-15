@@ -24,14 +24,17 @@ if test -d $GMERLIN_DEP_DIR; then
   have_opt_gmerlin="true"
   export PKG_CONFIG_PATH=$GMERLIN_DEP_DIR/lib/pkgconfig:$PKG_CONFIG_PATH
   GMERLIN_DEP_CFLAGS="-I$GMERLIN_DEP_DIR/include"
-  GMERLIN_DEP_LDPATH="$GMERLIN_DEP_DIR/lib"
-  GMERLIN_DEP_LIBS="-Wl,--rpath -Wl,$GMERLIN_DEP_DIR/lib -L$GMERLIN_DEP_DIR/lib"
+  GMERLIN_DEP_RPATH="-Wl,--rpath -Wl,$GMERLIN_DEP_DIR/lib"
+  GMERLIN_DEP_LIBS="-L$GMERLIN_DEP_DIR/lib"
 else
   have_opt_gmerlin="false"
   GMERLIN_DEP_CFLAGS=""
   GMERLIN_DEP_LDPATH=""
   GMERLIN_DEP_LIBS=""
 fi
+
+LDFLAGS="$GMERLIN_DEP_RPATH"
+
 
 dnl
 dnl Check for Libraries
@@ -138,7 +141,7 @@ PNG_REQUIRED="1.2.2"
  
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
- 
+
 LIBS="-lpng -lm -lz"
 CFLAGS=""
  
@@ -153,7 +156,7 @@ AC_TRY_LINK([#include <png.h>],
 case $have_libpng in
   true) AC_DEFINE(HAVE_LIBPNG)
         AC_MSG_RESULT(yes)
-        PNG_LIBS=$LIBS ;
+        PNG_LIBS=$LIBS;
         PNG_CFLAGS=$CFLAGS ;;
   false) AC_MSG_RESULT(no); PNG_LIBS=""; PNG_CFLAGS="";;
 esac
@@ -177,7 +180,6 @@ dnl
 
 FAAD2_PREFIX=""
 AC_ARG_WITH(faad2-prefix, [ --with-faad2-prefix=PFX   Prefix to search for faad2],FAAD2_PREFIX=${withval})
-
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
@@ -593,7 +595,7 @@ esac
 
 AC_SUBST(OPT_CFLAGS)
 
-LIBS="$GAVL_LIBS"
+LIBS="$LIBS $GAVL_LIBS"
 
 if test "x$prefix" = xNONE; then
    prefix="${ac_default_prefix}"
