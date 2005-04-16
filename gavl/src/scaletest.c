@@ -253,7 +253,7 @@ int main(int argc, char ** argv)
   gavl_video_frame_t * frame, * frame_1;
 
   gavl_colorspace_t csp = GAVL_RGB_32;
-  gavl_scale_mode_t scale_mode = GAVL_SCALE_NEAREST;
+  gavl_scale_mode_t scale_mode = GAVL_SCALE_BILINEAR;
 
   imax = gavl_num_colorspaces();
   scaler = gavl_video_scaler_create();
@@ -264,7 +264,6 @@ int main(int argc, char ** argv)
   for(i = 0; i < imax; i++)
     {
     csp = gavl_get_colorspace(i);
-    //    csp = GAVL_UYVY;
     frame = read_png(argv[1], &format, csp);
 
     

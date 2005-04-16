@@ -6,7 +6,7 @@
 #include <gavl/gavl.h>
 #include <scale.h>
 
-#define DUMP_TABLES
+// #define DUMP_TABLES
 
 static void alloc_coeffs(gavl_video_scale_coeff_t ** coeffs,
                          int * coeffs_alloc, int num)
@@ -206,6 +206,8 @@ static void init_scale_table(gavl_video_scale_table_t * tab,
                  dst_w, dst_h,
                  0, factor_max);
       tab[0].scanline_func = funcs->scale_16_16;
+      tab[0].src_line_1 = malloc(src_w * 4);
+      tab[0].src_line_2 = malloc(src_w * 4);
       break;
     case GAVL_RGB_24:
     case GAVL_BGR_24:
@@ -434,14 +436,17 @@ static void init_scale_table(gavl_video_scale_table_t * tab,
   
   }
 
+#define FREE(ptr) if(ptr) free(ptr);
+
 static void free_scale_table(gavl_video_scale_table_t * tab)
   {
-  if(tab->coeffs_h)
-    free(tab->coeffs_h);
-  
-  if(tab->coeffs_v)
-    free(tab->coeffs_v);
+  FREE(tab->coeffs_h);
+  FREE(tab->coeffs_v);
+  FREE(tab->src_line_1);
+  FREE(tab->src_line_2);
   }
+
+#undef FREE
 
 /* Public functions */
 
