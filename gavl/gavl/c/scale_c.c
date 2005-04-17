@@ -32,8 +32,8 @@
 #define PACK_RGB16(c,pixel) pixel=((((((c[0]<<5)&0xff00)|c[1])<<6)&0xfff00)|c[2])>>3;
 #define PACK_RGB15(c,pixel) pixel=((((((c[0]<<5)&0xff00)|c[1])<<5)&0xfff00)|c[2])>>3;
 
-#define UNPACK_RGB16(pixel,c) c[0]=RGB16_TO_R(pixel);c[1]=RGB16_TO_R(pixel);c[2]=RGB16_TO_R(pixel);
-#define UNPACK_RGB15(pixel,c) c[0]=RGB15_TO_R(pixel);c[1]=RGB15_TO_R(pixel);c[2]=RGB15_TO_R(pixel);
+#define UNPACK_RGB16(pixel,c) c[0]=RGB16_TO_R(pixel);c[1]=RGB16_TO_G(pixel);c[2]=RGB16_TO_B(pixel);
+#define UNPACK_RGB15(pixel,c) c[0]=RGB15_TO_R(pixel);c[1]=RGB15_TO_G(pixel);c[2]=RGB15_TO_B(pixel);
 
 #define SCALE_FUNC_HEAD(a) \
   for(i = 0; i < s->table[plane].num_coeffs_h; i++)       \
@@ -41,6 +41,16 @@
 
 #define SCALE_FUNC_TAIL \
     }
+
+/* Packed formats for 15/16 colors (idea from libvisual) */
+
+typedef struct {
+	uint16_t b:5, g:6, r:5;
+} color_16;
+
+typedef struct {
+	uint16_t b:5, g:5, r:5;
+} color_15;
 
 /* Nearest neighbor */
 
@@ -243,6 +253,14 @@ static void scale_uyvy_nearest_c(gavl_video_scaler_t * s,
   tmp = src_c_1[3] * factor_1 + src_c_2[3] * factor_2;             \
   dst_c[3] = tmp >> 8;
 
+#define BILINEAR_1D_PACKED(src_c_1, src_c_2, factor_1, factor_2, dst_c) \
+  tmp = src_c_1->r * factor_1 + src_c_2->r * factor_2;             \
+  dst_c->r = tmp >> 8;                                               \
+  tmp = src_c_1->g * factor_1 + src_c_2->g * factor_2;             \
+  dst_c->g = tmp >> 8;                                               \
+  tmp = src_c_1->b * factor_1 + src_c_2->b * factor_2;             \
+  dst_c->b = tmp >> 8;
+
 /*
  *  dst = ((src_c_11 * factor_h1 + src_c_12 * factor_h1) * factor_v1 +
  *         (src_c_21 * factor_h1 + src_c_22 * factor_h1) * factor_v2) >> 16
@@ -278,6 +296,18 @@ static void scale_uyvy_nearest_c(gavl_video_scaler_t * s,
          (src_c_21[3] * factor_h1 + src_c_22[3] * factor_h2) * factor_v2); \
   dst_c[3] = tmp >> 16;
 
+#define BILINEAR_2D_PACKED(src_c_11, src_c_12, src_c_21, src_c_22, factor_h1, factor_h2, dst_c) \
+  tmp = ((src_c_11->r * factor_h1 + src_c_12->r * factor_h2) * factor_v1 + \
+         (src_c_21->r * factor_h1 + src_c_22->r * factor_h2) * factor_v2); \
+  dst_c->r = tmp >> 16;                                                   \
+  tmp = ((src_c_11->g * factor_h1 + src_c_12->g * factor_h2) * factor_v1 + \
+         (src_c_21->g * factor_h1 + src_c_22->g * factor_h2) * factor_v2); \
+  dst_c->g = tmp >> 16;                                                   \
+  tmp = ((src_c_11->b * factor_h1 + src_c_12->b * factor_h2) * factor_v1 + \
+         (src_c_21->b * factor_h1 + src_c_22->b * factor_h2) * factor_v2); \
+  dst_c->b = tmp >> 16;
+
+
 static void scale_x_15_16_bilinear_c(gavl_video_scaler_t * s,
                                    uint8_t * _src,
                                    int src_stride,
@@ -286,22 +316,45 @@ static void scale_x_15_16_bilinear_c(gavl_video_scaler_t * s,
                                    int scanline)
   {
   int i;
+  int tmp;
+  color_15 * src;
+  color_15 * dst;
+  color_15 * src_1;
+  color_15 * src_2;
+  src = (color_15*)(_src + scanline * src_stride);
+  dst = (color_15*)_dst;
   
   SCALE_FUNC_HEAD(1)
-    
+    src_1 = src + s->table[plane].coeffs_h[i].index[0];
+    src_2 = src + s->table[plane].coeffs_h[i].index[1];
+    BILINEAR_1D_PACKED(src_1, src_2, s->table[plane].coeffs_h[i].factor[0],
+                       s->table[plane].coeffs_h[i].factor[1], dst);
+    dst++;
   SCALE_FUNC_TAIL
   }
 
 static void scale_x_16_16_bilinear_c(gavl_video_scaler_t * s,
-                                   uint8_t * src,
+                                   uint8_t * _src,
                                    int src_stride,
-                                   uint8_t * dst,
+                                   uint8_t * _dst,
                                    int plane,
                                    int scanline)
   {
   int i;
-  SCALE_FUNC_HEAD(1)
+  int tmp;
+  color_16 * src;
+  color_16 * dst;
+  color_16 * src_1;
+  color_16 * src_2;
+  src = (color_16*)(_src + scanline * src_stride);
+  dst = (color_16*)_dst;
   
+  SCALE_FUNC_HEAD(1)
+    src_1 = src + s->table[plane].coeffs_h[i].index[0];
+    src_2 = src + s->table[plane].coeffs_h[i].index[1];
+    BILINEAR_1D_PACKED(src_1, src_2, s->table[plane].coeffs_h[i].factor[0],
+                       s->table[plane].coeffs_h[i].factor[1], dst);
+    dst++;
   SCALE_FUNC_TAIL
   }
 
@@ -486,28 +539,56 @@ static void scale_x_uyvy_bilinear_c(gavl_video_scaler_t * s,
 /* Bilinear y */
 
 static void scale_y_15_16_bilinear_c(gavl_video_scaler_t * s,
-                                   uint8_t * src,
-                                   int src_stride,
-                                   uint8_t * dst,
-                                   int plane,
-                                   int scanline)
+                                     uint8_t * src,
+                                     int src_stride,
+                                     uint8_t * _dst,
+                                     int plane,
+                                     int scanline)
   {
   int i;
+  int tmp;
+  color_15 * dst;
+  color_15 * src_1;
+  color_15 * src_2;
+  color_15 * src_start_1;
+  color_15 * src_start_2;
+  src_start_1 = (color_15*)(src + s->table[plane].coeffs_v[scanline].index[0] * src_stride);
+  src_start_2 = (color_15*)(src + s->table[plane].coeffs_v[scanline].index[1] * src_stride);
+  dst = (color_15*)_dst;
+  
   SCALE_FUNC_HEAD(1)
-    
+    src_1 = src_start_1 + i;
+    src_2 = src_start_2 + i;
+    BILINEAR_1D_PACKED(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0],
+                       s->table[plane].coeffs_v[scanline].factor[1], dst);
+    dst++;
   SCALE_FUNC_TAIL
   }
 
 static void scale_y_16_16_bilinear_c(gavl_video_scaler_t * s,
                                    uint8_t * src,
                                    int src_stride,
-                                   uint8_t * dst,
+                                   uint8_t * _dst,
                                    int plane,
                                    int scanline)
   {
   int i;
-  SCALE_FUNC_HEAD(1)
+  int tmp;
+  color_16 * dst;
+  color_16 * src_1;
+  color_16 * src_2;
+  color_16 * src_start_1;
+  color_16 * src_start_2;
+  src_start_1 = (color_16*)(src + s->table[plane].coeffs_v[scanline].index[0] * src_stride);
+  src_start_2 = (color_16*)(src + s->table[plane].coeffs_v[scanline].index[1] * src_stride);
+  dst = (color_16*)_dst;
   
+  SCALE_FUNC_HEAD(1)
+    src_1 = src_start_1 + i;
+    src_2 = src_start_2 + i;
+    BILINEAR_1D_PACKED(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0],
+                       s->table[plane].coeffs_v[scanline].factor[1], dst);
+    dst++;
   SCALE_FUNC_TAIL
   }
 
@@ -706,26 +787,84 @@ static void scale_y_uyvy_bilinear_c(gavl_video_scaler_t * s,
 static void scale_xy_15_16_bilinear_c(gavl_video_scaler_t * s,
                                    uint8_t * src,
                                    int src_stride,
-                                   uint8_t * dst,
+                                   uint8_t * _dst,
                                    int plane,
                                    int scanline)
   {
   int i;
+  int tmp;
+  color_15 * src_start_1;
+  color_15 * src_start_2;
+  color_15 * src_11;
+  color_15 * src_12;
+  color_15 * src_21;
+  color_15 * src_22;
+  color_15 * dst;
+  int factor_v1;
+  int factor_v2;
+  
+  src_start_1 = (color_15*)(src + s->table[plane].coeffs_v[scanline].index[0] * src_stride);
+  src_start_2 = (color_15*)(src + s->table[plane].coeffs_v[scanline].index[1] * src_stride);
+  dst = (color_15*)(_dst);
+
+  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0];
+  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1];
+  
   SCALE_FUNC_HEAD(1)
+    src_11 = src_start_1 + s->table[plane].coeffs_h[i].index[0];
+    src_12 = src_start_1 + s->table[plane].coeffs_h[i].index[1];
+
+    src_21 = src_start_2 + s->table[plane].coeffs_h[i].index[0];
+    src_22 = src_start_2 + s->table[plane].coeffs_h[i].index[1];
+
+    // #define BILINEAR_2D_3(src_c_11, src_c_12, src_c_21, src_c_22, factor_h1, factor_h2, dst_c)
     
+    BILINEAR_2D_PACKED(src_11, src_12, src_21, src_22,
+                       s->table[plane].coeffs_h[i].factor[0],
+                       s->table[plane].coeffs_h[i].factor[1], dst);
+    dst++;
   SCALE_FUNC_TAIL
   }
 
 static void scale_xy_16_16_bilinear_c(gavl_video_scaler_t * s,
                                       uint8_t * src,
                                       int src_stride,
-                                      uint8_t * dst,
+                                      uint8_t * _dst,
                                       int plane,
                                       int scanline)
   {
   int i;
-  SCALE_FUNC_HEAD(1)
+  int tmp;
+  color_16 * src_start_1;
+  color_16 * src_start_2;
+  color_16 * src_11;
+  color_16 * src_12;
+  color_16 * src_21;
+  color_16 * src_22;
+  color_16 * dst;
+  int factor_v1;
+  int factor_v2;
   
+  src_start_1 = (color_16*)(src + s->table[plane].coeffs_v[scanline].index[0] * src_stride);
+  src_start_2 = (color_16*)(src + s->table[plane].coeffs_v[scanline].index[1] * src_stride);
+  dst = (color_16*)(_dst);
+
+  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0];
+  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1];
+  
+  SCALE_FUNC_HEAD(1)
+    src_11 = src_start_1 + s->table[plane].coeffs_h[i].index[0];
+    src_12 = src_start_1 + s->table[plane].coeffs_h[i].index[1];
+
+    src_21 = src_start_2 + s->table[plane].coeffs_h[i].index[0];
+    src_22 = src_start_2 + s->table[plane].coeffs_h[i].index[1];
+
+    // #define BILINEAR_2D_3(src_c_11, src_c_12, src_c_21, src_c_22, factor_h1, factor_h2, dst_c)
+    
+    BILINEAR_2D_PACKED(src_11, src_12, src_21, src_22,
+                       s->table[plane].coeffs_h[i].factor[0],
+                       s->table[plane].coeffs_h[i].factor[1], dst);
+    dst++;
   SCALE_FUNC_TAIL
   }
 

@@ -50,10 +50,6 @@ typedef struct
   gavl_video_scale_scanline_func scanline_func;
 
   int byte_advance;
-
-  uint8_t * src_line_1;
-  uint8_t * src_line_2;
-  
   } gavl_video_scale_table_t;
 
 struct gavl_video_scaler_s

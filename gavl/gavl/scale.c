@@ -206,8 +206,6 @@ static void init_scale_table(gavl_video_scale_table_t * tab,
                  dst_w, dst_h,
                  0, factor_max);
       tab[0].scanline_func = funcs->scale_16_16;
-      tab[0].src_line_1 = malloc(src_w * 4);
-      tab[0].src_line_2 = malloc(src_w * 4);
       break;
     case GAVL_RGB_24:
     case GAVL_BGR_24:
@@ -442,8 +440,6 @@ static void free_scale_table(gavl_video_scale_table_t * tab)
   {
   FREE(tab->coeffs_h);
   FREE(tab->coeffs_v);
-  FREE(tab->src_line_1);
-  FREE(tab->src_line_2);
   }
 
 #undef FREE
