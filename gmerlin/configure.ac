@@ -198,14 +198,23 @@ AC_MSG_CHECKING(for cdparanoia)
 have_cdparanoia="false"
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
+OLD_CPPFLAGS=$CPPFLAGS
 
 LIBS="$GMERLIN_DEP_LIBS -lcdda_paranoia -lcdda_interface -lm"
 CFLAGS="$GMERLIN_DEP_CFLAGS"
+CPPFLAGS="$GMERLIN_DEP_CFLAGS"
+
+AC_CHECK_HEADERS([cdda_interface.h cdda/cdda_interface.h])
 
   AC_TRY_RUN([
+    #include <stdlib.h>
+    #ifdef HAVE_CDDA_CDDA_INTERFACE
     #include <cdda/cdda_interface.h>
     #include <cdda/cdda_paranoia.h>
-    #include <stdlib.h>
+    #else
+    #include <cdda_interface.h>
+    #include <cdda_paranoia.h>
+    #endif
     main()
     {
     int i = 0;
@@ -236,6 +245,7 @@ CFLAGS="$GMERLIN_DEP_CFLAGS"
 
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
+CPPFLAGS=$OLD_CPPFLAGS
 
 fi
 

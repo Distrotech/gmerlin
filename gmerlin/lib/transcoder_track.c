@@ -1122,6 +1122,94 @@ static bg_parameter_info_t general_parameters_video[] =
       val_max:     { val_i: 100000 },
       val_default: { val_i: 1 }
     },
+    {
+      name:      "crop_left",
+      long_name: "Crop left",
+      type:      BG_PARAMETER_INT,
+      val_min:     { val_i: 0 },
+      val_max:     { val_i: 100000 },
+      val_default: { val_i: 0 },
+      help_string: "Cut this many pixels from the left border"
+    },
+    {
+      name:      "crop_right",
+      long_name: "Crop right",
+      type:      BG_PARAMETER_INT,
+      val_min:     { val_i: 0 },
+      val_max:     { val_i: 100000 },
+      val_default: { val_i: 0 },
+      help_string: "Cut this many pixels from the right border"
+    },
+    {
+      name:      "crop_top",
+      long_name: "Crop top",
+      type:      BG_PARAMETER_INT,
+      val_min:     { val_i: 0 },
+      val_max:     { val_i: 100000 },
+      val_default: { val_i: 0 },
+      help_string: "Cut this many pixels from the top border"
+    },
+    {
+      name:      "crop_bottom",
+      long_name: "Crop bottom",
+      type:      BG_PARAMETER_INT,
+      val_min:     { val_i: 0 },
+      val_max:     { val_i: 100000 },
+      val_default: { val_i: 0 },
+      help_string: "Cut this many pixels from the bottom border"
+    },
+    {
+      name:        "frame_size",
+      long_name:   "Frame Size",
+      type:        BG_PARAMETER_STRINGLIST,
+      multi_names: (char*[]){ "from_input",
+                              "user_defined",
+                              "dvd_pal_d1",
+                              "dvd_pal",
+                              "dvd_ntsc_d1",
+                              "dvd_ntsc",
+                              "vcd_pal",
+                              "vcd_ntsc",
+                              (char*)0 },
+      
+      multi_labels:  (char*[]){ "From Input",
+                                "User defined",
+                                "DVD PAL D1 (720 x 576)",
+                                "DVD PAL (704 x 576)",
+                                "DVD NTSC D1 (720 x 480)",
+                                "DVD NTSC (704 x 480)",
+                                "VCD PAL (352 x 288)",
+                                "VCD NTSC (352 x 240)",
+                                (char*)0 },
+      val_default: { val_str: "from_input" },
+      help_string: "Set the output frame size. For a user defined size, enter the width and height below",
+    },
+    {
+      name:      "user_width",
+      long_name: "User defined width",
+      type:      BG_PARAMETER_INT,
+      val_min:     { val_i: 1 },
+      val_max:     { val_i: 100000 },
+      val_default: { val_i: 640 },
+      help_string: "User defined width in pixels. Only meaningful if you selected \"User defined\" for the framesize",
+    },
+    {
+      name:      "user_height",
+      long_name: "User defined height",
+      type:      BG_PARAMETER_INT,
+      val_min:     { val_i: 1 },
+      val_max:     { val_i: 100000 },
+      val_default: { val_i: 480 },
+      help_string: "User defined height in pixels. Only meaningful if you selected \"User defined\" for the framesize",
+    },
+    {
+      name:      "maintain_aspect",
+      long_name: "Maintain aspect ratio",
+      type:      BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 },
+      help_string: "Let the aspect ratio appear the same as in the source, probably resulting in additional black borders"
+    },
+    
     { /* End of parameters */ }
   };
 

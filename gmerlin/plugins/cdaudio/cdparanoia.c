@@ -21,9 +21,17 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "cdaudio.h"
+
+
+#ifdef HAVE_CDDA_CDDA_INTERFACE
 #include <cdda/cdda_interface.h>
 #include <cdda/cdda_paranoia.h>
-#include "cdaudio.h"
+#else
+#include <cdda_interface.h>
+#include <cdda_paranoia.h>
+#endif
+
 
 /*
  *  Ripping support

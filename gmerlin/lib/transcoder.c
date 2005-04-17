@@ -214,12 +214,28 @@ typedef struct
   int frame_duration;
   int timescale;
 
+  int user_width;
+  int user_height;
+  int frame_width;
+  int frame_height;
+
+  int crop_left;
+  int crop_right;
+  int crop_top;
+  int crop_bottom;
+  int maintain_aspect;
+  
   /* Other stuff */
 
   int initialized;
   int64_t start_time_scaled;
 
   } video_stream_t;
+
+#define SP_INT(s) else if(!strcmp(name, # s)) \
+    { \
+    stream->s = val->val_i; \
+    }
 
 static void set_video_parameter_general(void * data,
                                         char * name,
@@ -239,19 +255,19 @@ static void set_video_parameter_general(void * data,
     {
     stream->opt.quality = val->val_i;
     }
-  else if(!strcmp(name, "fixed_framerate"))
-    {
-    stream->fixed_framerate = val->val_i;
-    }
-  else if(!strcmp(name, "frame_duration"))
-    {
-    stream->frame_duration = val->val_i;
-    }
-  else if(!strcmp(name, "timescale"))
-    {
-    stream->timescale = val->val_i;
-    }
+  SP_INT(fixed_framerate);
+  SP_INT(frame_duration);
+  SP_INT(timescale);
+  SP_INT(crop_left);
+  SP_INT(crop_right);
+  SP_INT(crop_top);
+  SP_INT(crop_bottom);
+  SP_INT(user_width);
+  SP_INT(user_height);
+  SP_INT(maintain_aspect);
   }
+
+#undef SP_INT
 
 struct bg_transcoder_s
   {
