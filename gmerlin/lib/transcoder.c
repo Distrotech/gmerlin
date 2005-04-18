@@ -232,9 +232,10 @@ typedef struct
 
   } video_stream_t;
 
-#define SP_INT(s) else if(!strcmp(name, # s)) \
+#define SP_INT(s) if(!strcmp(name, # s)) \
     { \
     stream->s = val->val_i; \
+    return; \
     }
 
 static void set_video_parameter_general(void * data,
@@ -254,6 +255,7 @@ static void set_video_parameter_general(void * data,
   if(!strcmp(name, "conversion_quality"))
     {
     stream->opt.quality = val->val_i;
+    return;
     }
   SP_INT(fixed_framerate);
   SP_INT(frame_duration);
