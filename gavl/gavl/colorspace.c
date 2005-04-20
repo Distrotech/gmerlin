@@ -107,8 +107,6 @@ void gavl_colorspace_chroma_sub(gavl_colorspace_t csp, int * sub_h,
     case GAVL_RGBA_32:
     case GAVL_YUV_444_P:
     case GAVL_YUVJ_444_P:
-    case GAVL_YUY2:
-    case GAVL_UYVY:
       *sub_h = 1;
       *sub_v = 1;
       break;
@@ -119,6 +117,8 @@ void gavl_colorspace_chroma_sub(gavl_colorspace_t csp, int * sub_h,
       break;
     case GAVL_YUV_422_P:
     case GAVL_YUVJ_422_P:
+    case GAVL_YUY2:
+    case GAVL_UYVY:
       *sub_h = 2;
       *sub_v = 1;
       break;

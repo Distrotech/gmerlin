@@ -400,6 +400,8 @@ void gavl_volume_control_apply(gavl_volume_control_t *,
  *  Section 3: Video stuff
  **********************************************/
 
+#define GAVL_MAX_PLANES 4
+  
 /**********************************************
  *  Section 3.1: Video format definitions
  **********************************************/
@@ -501,19 +503,82 @@ typedef struct
   int free_framerate;   /* If 1, framerate will be based on timestamps only */
   } gavl_video_format_t;
 
+
 void gavl_video_format_copy(gavl_video_format_t * dst,
                             const gavl_video_format_t * src);
 
 void gavl_video_format_dump(const gavl_video_format_t *);
 
+void gavl_video_format_fit_to_source(gavl_video_format_t * dst,
+                                     const gavl_video_format_t * src);
+  
+/* Rectangle */
+
+typedef struct
+  {
+  int x;
+  int y;
+  int w;
+  int h;
+  } gavl_rectangle_t;
+
+void gavl_rectangle_dump(gavl_rectangle_t * r);
+
+  
+void gavl_rectangle_crop_to_format(gavl_rectangle_t * r,
+                                   const gavl_video_format_t * format);
+
+void gavl_rectangle_crop_to_format_scale(gavl_rectangle_t * src_rect,
+                                         gavl_rectangle_t * dst_rect,
+                                         const gavl_video_format_t * src_format,
+                                         const gavl_video_format_t * dst_format);
+  
+/* Let a rectangle span the whole screen for format */
+
+void gavl_rectangle_set_all(gavl_rectangle_t * r, const gavl_video_format_t * format);
+
+void gavl_rectangle_crop_left(gavl_rectangle_t * r, int num_pixels);
+void gavl_rectangle_crop_right(gavl_rectangle_t * r, int num_pixels);
+void gavl_rectangle_crop_top(gavl_rectangle_t * r, int num_pixels);
+void gavl_rectangle_crop_bottom(gavl_rectangle_t * r, int num_pixels);
+
+void gavl_rectangle_align(gavl_rectangle_t * r, int h_align, int v_align);
+
+void gavl_rectangle_copy(gavl_rectangle_t * dst, const gavl_rectangle_t * src);
+
+int gavl_rectangle_is_empty(const gavl_rectangle_t * r);
+
+/*
+  For a Rectangle in the Luminance plane, calculate the corresponding rectangle
+  in chroma plane using the given subsampling factors.
+  It is wise to call gavl_rectangle_align before.
+*/
+  
+void gavl_rectangle_subsample(gavl_rectangle_t * dst, const gavl_rectangle_t * src,
+                              int sub_h, int sub_v);
+
+/*
+ * Assuming we take src_rect from a frame in format src_format,
+ * calculate the optimal dst_rect in dst_format. The source and destination
+ * display aspect ratio will be unchanged
+ * Zoom is a zoom factor (1.0 = 100 %), Squeeze is a value between -1.0 and 1.0,
+ * while squeeze changes the apsect ratio in both directions. 0.0 means unchanged
+ */
+  
+void gavl_rectangle_fit_aspect(gavl_rectangle_t * r,
+                               gavl_video_format_t * src_format,
+                               gavl_rectangle_t * src_rect,
+                               gavl_video_format_t * dst_format,
+                               float zoom, float squeeze);
+  
 /**********************************************
  *  Section 3.2: Video frame definitions
  **********************************************/
 
 typedef struct gavl_video_frame_s
   {
-  uint8_t * planes[4];
-  int strides[4];
+  uint8_t * planes[GAVL_MAX_PLANES];
+  int strides[GAVL_MAX_PLANES];
   
   void * user_data;    /* For storing private data             */
   
@@ -566,7 +631,7 @@ void gavl_video_frame_copy_flip_xy(gavl_video_format_t * format,
 void gavl_video_frame_get_subframe(gavl_colorspace_t colorspace,
                                    gavl_video_frame_t * src,
                                    gavl_video_frame_t * dst,
-                                   int x, int y);
+                                   gavl_rectangle_t * src_rect);
   
   
 /*
@@ -592,7 +657,8 @@ typedef enum
 
 typedef enum
   {
-    GAVL_SCALE_AUTO = 0, /* Take from conversion quality */
+    GAVL_SCALE_NONE = 0,
+    GAVL_SCALE_AUTO,    /* Take from conversion quality */
     GAVL_SCALE_NEAREST,
     GAVL_SCALE_BILINEAR,
   } gavl_scale_mode_t;
@@ -663,13 +729,16 @@ typedef struct gavl_video_scaler_s gavl_video_scaler_t;
 gavl_video_scaler_t * gavl_video_scaler_create();
 void gavl_video_scaler_destroy(gavl_video_scaler_t *);
   
+/* Initialize scaler. src_rect and dst_rect might be changed by this
+   call */
+
 void gavl_video_scaler_init(gavl_video_scaler_t * scaler,
                             gavl_scale_mode_t scale_mode,
                             gavl_colorspace_t colorspace,
-                            int input_x, int input_y,
-                            int input_width, int input_height,
-                            int output_x, int output_y,
-                            int output_width, int output_height);
+                            gavl_rectangle_t * src_rect,
+                            gavl_rectangle_t * dst_rect,
+                            gavl_video_format_t * src_format,
+                            gavl_video_format_t * dst_format);
 
 void gavl_video_scaler_scale(gavl_video_scaler_t * scaler,
                              gavl_video_frame_t * src,

@@ -1050,7 +1050,7 @@ static void scale_xy_8_bilinear_advance(gavl_video_scaler_t * s,
   uint8_t * src_22;
   int factor_v1;
   int factor_v2;
-  
+  //  fprintf(stderr, "Plane: %d\n", plane);
   src_start_1 = src + s->table[plane].coeffs_v[scanline].index[0] * src_stride;
   src_start_2 = src + s->table[plane].coeffs_v[scanline].index[1] * src_stride;
 
@@ -1190,6 +1190,8 @@ void gavl_init_scale_funcs_c(gavl_scale_funcs_t * tab,
         tab->scale_yuy2  = scale_y_yuy2_bilinear_c;
         tab->scale_uyvy  = scale_y_uyvy_bilinear_c;
         }
+      break;
+    case GAVL_SCALE_NONE:
       break;
     }
   }

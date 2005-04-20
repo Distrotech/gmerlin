@@ -54,19 +54,21 @@ typedef struct
 
 struct gavl_video_scaler_s
   {
-  int src_x;
-  int src_y;
-  int dst_x;
-  int dst_y;
+  gavl_video_scale_table_t table[GAVL_MAX_PLANES];
+  gavl_rectangle_t src_rect[GAVL_MAX_PLANES];
+  gavl_rectangle_t dst_rect[GAVL_MAX_PLANES];
   
-  gavl_video_scale_table_t table[4];
   int num_planes;
 
   gavl_video_frame_t * src;
   gavl_video_frame_t * dst;
 
   gavl_colorspace_t colorspace;
+
+  /* Needed for copying only */
+  gavl_video_format_t copy_format;
   
+  int action; /* What to do */
   };
 
 /* Scale functions */

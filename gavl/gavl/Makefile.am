@@ -22,6 +22,7 @@ colorspace.c \
 cputest.c \
 interleave.c \
 mix.c \
+rectangle.c \
 sampleformat.c \
 samplerate.c \
 scale.c \

@@ -38,11 +38,6 @@ static void copy_video_options(gavl_video_options_t * dst,
   memcpy(dst, src, sizeof(*dst));
   }
 
-void gavl_video_format_copy(gavl_video_format_t * dst,
-                            const gavl_video_format_t * src)
-  {
-  memcpy(dst, src, sizeof(*dst));
-  }
 
 /***************************************************
  * Create and destroy video converters

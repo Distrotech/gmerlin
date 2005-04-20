@@ -4,6 +4,11 @@
 #include <stdio.h>
 #include <png.h>
 
+#define IN_X 0
+#define IN_Y 0
+
+#define OUT_X 10
+#define OUT_Y 10
 
 
 static void write_png(char * filename, gavl_video_format_t * format, gavl_video_frame_t * frame)
@@ -117,7 +122,6 @@ static gavl_video_frame_t * read_png(const char * filename,
   png_structp png_ptr;
   png_infop info_ptr;
   png_infop end_info;
-
 
   FILE * file;
   
@@ -233,18 +237,18 @@ static gavl_video_frame_t * read_png(const char * filename,
 
   if(frame_1)
     {
-    free(frame);
+    gavl_video_frame_destroy(frame);
     return frame_1;
     }
   else
     return frame;
   }
 
-int dst_width;
-int dst_height;
-
 int main(int argc, char ** argv)
   {
+  gavl_rectangle_t src_rect;
+  gavl_rectangle_t dst_rect;
+  
   char filename_buffer[1024];
   int i, imax;
   gavl_video_scaler_t *scaler;
@@ -258,45 +262,49 @@ int main(int argc, char ** argv)
   imax = gavl_num_colorspaces();
   scaler = gavl_video_scaler_create();
   
-  dst_width = atoi(argv[2]);
-  dst_height = atoi(argv[3]);
-  
   for(i = 0; i < imax; i++)
     {
     csp = gavl_get_colorspace(i);
-    frame = read_png(argv[1], &format, csp);
 
+    dst_rect.w = atoi(argv[2]);
+    dst_rect.h = atoi(argv[3]);
+    dst_rect.x = OUT_X;
+    dst_rect.y = OUT_Y;
     
+    src_rect.w = 60;
+    src_rect.h = 60;
+    src_rect.x = IN_X;
+    src_rect.y = IN_Y;
+        
+    frame = read_png(argv[1], &format, csp);
+        
+    gavl_video_format_copy(&format_1, &format);
+    
+    format_1.image_width  = dst_rect.w + dst_rect.x;
+    format_1.image_height = dst_rect.h + dst_rect.y;
+
+    format_1.frame_width  = dst_rect.w + dst_rect.x;
+    format_1.frame_height = dst_rect.h + dst_rect.y;
+
     gavl_video_scaler_init(scaler,
                            scale_mode,
                            format.colorspace,
-                           0, // int input_x,
-                           0, // int input_y,
-                           format.image_width, // int input_width,
-                           format.image_height, // int input_height,
-                           0, // int output_x,
-                           0, // int output_y,
-                           dst_width, // int output_width,
-                           dst_height);  // int output_height
-    
-    gavl_video_format_copy(&format_1, &format);
-    
-    format_1.image_width = dst_width;
-    format_1.image_height = dst_height;
-    
-    format_1.frame_width = dst_width;
-    format_1.frame_height = dst_height;
+                           &src_rect, &dst_rect,
+                           &format, &format_1);  // int output_height
+
     
     frame_1 = gavl_video_frame_create(&format_1);
+
+    gavl_video_frame_clear(frame_1, &format_1);
     
     gavl_video_scaler_scale(scaler, frame, frame_1);
 
     sprintf(filename_buffer, "%s-scaled.png", gavl_colorspace_to_string(csp));
     write_png(filename_buffer, &format_1, frame_1);
     fprintf(stderr, "Wrote %s\n", filename_buffer);
-    
+    gavl_video_frame_destroy(frame);
+    gavl_video_frame_destroy(frame_1);
     }
-
-  
-    return 0;
+  gavl_video_scaler_destroy(scaler);
+  return 0;
   }
