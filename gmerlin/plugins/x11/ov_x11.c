@@ -52,6 +52,10 @@
 #define HAVE_XV
 #define HAVE_XSHM
 
+static void
+free_frame_x11(void * data, gavl_video_frame_t * frame);
+
+
 /* since it doesn't seem to be defined on some platforms */
 int XShmGetEventBase (Display *);
 
@@ -72,6 +76,10 @@ typedef struct
 #define XV_PARAM_BRIGHTNESS 1
 #define XV_PARAM_SATURATION 2
 #define XV_PARAM_CONTRAST   3
+
+#define XV_MODE_NEVER       0
+#define XV_MODE_YUV_ONLY    1
+#define XV_MODE_ALWAYS      2
 
 static struct
   {
@@ -95,7 +103,16 @@ typedef struct
   {
   x11_window_t win;
   
-  gavl_video_format_t format;
+  gavl_video_format_t video_format;
+
+  int do_sw_scale_cfg;
+  int do_sw_scale;
+
+  gavl_scale_mode_t scale_mode;
+  
+  int can_scale; /* Can scale (hard or software) */
+
+  gavl_video_scaler_t * scaler;
   
   /* Supported modes */
 
@@ -116,7 +133,7 @@ typedef struct
   int have_xv_i420;
   int have_xv_uyvy;
 
-  int force_xv;
+  int xv_mode;
   
   /* Actual mode */
 
@@ -135,12 +152,15 @@ typedef struct
   Atom hints_atom;
     
   /* Drawing coords */
+  
+  gavl_rectangle_t src_rect;
+  gavl_rectangle_t dst_rect;
+  
+  /* Format with updated window size */
 
-  int dst_x;
-  int dst_y;
-  int dst_w;
-  int dst_h;
-
+  gavl_video_format_t window_format;
+  gavl_video_frame_t * window_frame;
+  
   /* Configuration flags */
 
   int auto_resize;
@@ -415,8 +435,8 @@ alloc_frame_xv(x11_t * priv)
     {
     x11_frame->xv_image =
       XvShmCreateImage(priv->dpy, priv->xv_port, priv->xv_format, NULL,
-                       priv->format.image_width,
-                       priv->format.image_height, &(x11_frame->shminfo));
+                       priv->video_format.image_width,
+                       priv->video_format.image_height, &(x11_frame->shminfo));
     if(!x11_frame->xv_image)
       priv->have_shm = 0;
     else
@@ -437,18 +457,18 @@ alloc_frame_xv(x11_t * priv)
   
   if(!priv->have_shm)
     {
-    video_format.image_width  = priv->format.image_width;
-    video_format.image_height = priv->format.image_height;
+    video_format.image_width  = priv->video_format.image_width;
+    video_format.image_height = priv->video_format.image_height;
 
-    video_format.frame_width  = priv->format.frame_width;
-    video_format.frame_height = priv->format.frame_height;
+    video_format.frame_width  = priv->video_format.frame_width;
+    video_format.frame_height = priv->video_format.frame_height;
 
-    video_format.colorspace = priv->format.colorspace;
+    video_format.colorspace = priv->video_format.colorspace;
     
     ret = gavl_video_frame_create(&video_format);
     x11_frame->xv_image = XvCreateImage(priv->dpy, priv->xv_port,
                                        priv->xv_format, ret->planes[0],
-                                       priv->format.frame_width, priv->format.frame_height);
+                                       priv->video_format.frame_width, priv->video_format.frame_height);
     }
   else
     {
@@ -496,7 +516,7 @@ alloc_frame_xv(x11_t * priv)
 #endif // HAVE_LIBXV
 
 static gavl_video_frame_t *
-alloc_frame_ximage(x11_t * priv)
+alloc_frame_ximage(x11_t * priv, gavl_video_format_t * format)
   {
   Visual * visual;
   int depth;
@@ -514,8 +534,8 @@ alloc_frame_ximage(x11_t * priv)
     /* Create Shm Image */
     x11_frame->x11_image = XShmCreateImage(priv->dpy, visual, depth, ZPixmap,
                                            NULL, &(x11_frame->shminfo),
-                                           priv->format.frame_width,
-                                           priv->format.frame_height);
+                                           format->frame_width,
+                                           format->frame_height);
     if(!x11_frame->x11_image)
       priv->have_shm = 0;
     else
@@ -539,20 +559,20 @@ alloc_frame_ximage(x11_t * priv)
   if(!priv->have_shm)
     {
     /* Use gavl to allocate memory aligned scanlines */
-    video_format.image_width = priv->format.image_width;
-    video_format.image_height = priv->format.image_height;
+    video_format.image_width = format->image_width;
+    video_format.image_height = format->image_height;
 
-    video_format.frame_width = priv->format.frame_width;
-    video_format.frame_height = priv->format.frame_height;
+    video_format.frame_width = format->frame_width;
+    video_format.frame_height = format->frame_height;
 
-    video_format.colorspace = priv->format.colorspace;
+    video_format.colorspace = format->colorspace;
 
     ret = gavl_video_frame_create(&video_format);
     
     x11_frame->x11_image = XCreateImage(priv->dpy, visual, depth, ZPixmap,
                                         0, ret->planes[0],
-                                        priv->format.frame_width,
-                                        priv->format.frame_height,
+                                        format->frame_width,
+                                        format->frame_height,
                                         32,
                                         ret->strides[0]);
     }
@@ -568,7 +588,10 @@ static gavl_video_frame_t * alloc_frame_x11(void * data)
     return alloc_frame_xv(priv);
   else
 #endif
-    return alloc_frame_ximage(priv);
+    if(!priv->do_sw_scale)
+      return alloc_frame_ximage(priv, &(priv->video_format));
+    else
+      return gavl_video_frame_create(&(priv->video_format));
   }
 
 static void
@@ -578,14 +601,28 @@ free_frame_x11(void * data, gavl_video_frame_t * frame)
   x11_t * priv;
 
   x11_frame = (x11_frame_t*)(frame->user_data);
+
+  if(!x11_frame)
+    {
+    gavl_video_frame_destroy(frame);
+    return;
+    }
+
   priv = (x11_t*)(data);
 
 #ifdef HAVE_LIBXV
-  if(priv->do_xv)
+  if(x11_frame->xv_image)
+    {
     XFree(x11_frame->xv_image);
+    x11_frame->xv_image = (XvImage*)0;
+    }
   else
 #endif
-    XFree(x11_frame->x11_image);
+    if(x11_frame->x11_image)
+      {
+      XFree(x11_frame->x11_image);
+      x11_frame->x11_image = (XImage*)0;
+      }
   
   if(priv->have_shm)
     {
@@ -602,26 +639,41 @@ free_frame_x11(void * data, gavl_video_frame_t * frame)
 
 static void * create_x11()
   {
+  int dpi_x, dpi_y;
   x11_t * priv;
   int screen;
   
   priv = calloc(1, sizeof(x11_t));
 
+  priv->scaler = gavl_video_scaler_create();
+  
   pthread_mutex_init(&(priv->still_mutex), NULL);
     
   /* Open X Display */
 
   priv->dpy = XOpenDisplay(NULL);
 
-  /* Get delete atom */
-
-  //  priv->delete_atom = XInternAtom(priv->dpy, "WM_DELETE_WINDOW", 0);
-  //  priv->protocols_atom = XInternAtom(priv->dpy, "WM_PROTOCOLS", 0);
   
   /* Default screen */
   
   screen = DefaultScreen(priv->dpy);
-  
+
+  /* Screen resolution */
+
+  dpi_x = ((((double) DisplayWidth(priv->dpy,screen)) * 25.4) / 
+           ((double) DisplayWidthMM(priv->dpy,screen)));
+  dpi_y = ((((double) DisplayHeight(priv->dpy,screen)) * 25.4) / 
+	    ((double) DisplayHeightMM(priv->dpy,screen)));
+
+  /* We must swap horizontal and vertical here because LARGER resolution means
+     SMALLER pixels */
+#if 0    
+  priv->window_format.pixel_width = dpi_y;
+  priv->window_format.pixel_height = dpi_x;
+#else
+  priv->window_format.pixel_width = 1;
+  priv->window_format.pixel_height = 1;
+#endif
   /* Check for XShm */
 
   priv->have_shm = check_shm(priv->dpy, &(priv->shm_completion_type));
@@ -653,71 +705,104 @@ static void * create_x11()
   return priv;
   }
 
+#define PADD_IMAGE_SIZE(s) s = ((s + 15) / 16) * 16
+
 static void set_drawing_coords(x11_t * priv)
   {
-  //  fprintf(stderr, "set_drawing_coords\n");
-#ifdef HAVE_LIBXV
-  float aspect_window;
-  float aspect_video;
-
   float zoom_factor;
   float squeeze_factor;
+    
+  //  
 
   zoom_factor = (priv->squeeze_zoom_active) ? priv->zoom * 0.01 : 1.0;
-  squeeze_factor = (priv->squeeze_zoom_active) ? pow(2.0, priv->squeeze) : 1.0;
-    
-  if(priv->do_xv)
-    {
-    /* Check for apsect ratio */
-    aspect_window =
-      (float)(priv->win.window_width)/(float)(priv->win.window_height);
-    
-    aspect_video  =
-      squeeze_factor *
-      (float)(priv->format.image_width  * priv->format.pixel_width)/
-      (float)(priv->format.image_height * priv->format.pixel_height);
-    
+  squeeze_factor = (priv->squeeze_zoom_active) ? priv->squeeze : 0.0;
 
-#if 0
-    fprintf(stderr, "Aspect window: %f (%d x %d), aspect video: %f\n",
-            aspect_window, priv->win.window_width, priv->win.window_height,
-            aspect_video);
-#endif
-    if(aspect_window > aspect_video) /* Bars left and right */
-      {
-      priv->dst_w = (int)((float)priv->win.window_height * aspect_video * zoom_factor + 0.5);
-      priv->dst_h = (int)((float)priv->win.window_height * zoom_factor + 0.5); 
-      }
-    else                             /* Bars top and bottom */
-      {
-      priv->dst_w = (int)((float)(priv->win.window_width) * zoom_factor + 0.5);
-      priv->dst_h = (int)((float)priv->win.window_width   * zoom_factor / aspect_video + 0.5);
-      }
-    priv->dst_x = (priv->win.window_width - priv->dst_w)/2;
-    priv->dst_y = (priv->win.window_height - priv->dst_h)/2;
-    
-#if 1
+  fprintf(stderr, "Zoom: %f\n", zoom_factor);
+  
+  priv->window_format.image_width = priv->win.window_width;
+  priv->window_format.image_height = priv->win.window_height;
+  
+  if(priv->can_scale)
+    {
+    gavl_rectangle_fit_aspect(&priv->dst_rect,
+                              &priv->video_format,
+                              &priv->src_rect,
+                              &priv->window_format,
+                              zoom_factor, squeeze_factor);
+#ifdef HAVE_LIBXV
     if(priv->have_xv_colorkey)
       {
       XSetForeground(priv->dpy, priv->win.gc, priv->xv_colorkey);
       XFillRectangle(priv->dpy, priv->win.current_window, priv->win.gc,
-                     priv->dst_x, priv->dst_y, priv->dst_w, priv->dst_h);
+                     priv->dst_rect.x, priv->dst_rect.y, priv->dst_rect.w, priv->dst_rect.h);
       }
 #endif
     }
   else
     {
-#endif // HAVE_LIBXV
-    priv->dst_x = (priv->win.window_width - priv->format.image_width) / 2;
-    priv->dst_y = (priv->win.window_height - priv->format.image_height) / 2;
-    priv->dst_w = priv->format.image_width;
-    priv->dst_h = priv->format.image_height;
-#ifdef HAVE_LIBXV
+    priv->dst_rect.x = (priv->win.window_width - priv->video_format.image_width) / 2;
+    priv->dst_rect.y = (priv->win.window_height - priv->video_format.image_height) / 2;
+    priv->dst_rect.w = priv->video_format.image_width;
+    priv->dst_rect.h = priv->video_format.image_height;
     }
-#endif // HAVE_LIBXV
+
+  if(!priv->do_sw_scale)
+    return;
+
+  /* Allocate larger image if nesessary */
+  gavl_rectangle_set_all(&priv->src_rect,
+                         &priv->video_format);
+  
+  if((priv->window_format.image_width > priv->window_format.frame_width) ||
+     (priv->window_format.image_height > priv->window_format.frame_height))
+    {
+    priv->window_format.frame_width = priv->window_format.image_width;
+    priv->window_format.frame_height = priv->window_format.image_height;
+    
+    PADD_IMAGE_SIZE(priv->window_format.frame_width);
+    PADD_IMAGE_SIZE(priv->window_format.frame_height);
+
+    if(priv->window_frame)
+      {
+      free_frame_x11(priv, priv->window_frame);
+      }
+    priv->window_frame = alloc_frame_ximage(priv, &(priv->window_format));
+    }
+
+  /* Reinitialize scaler */
+  
 #if 0
-  fprintf(stderr, "x: %d, y: %d, w: %d, h: %d\n",
-          priv->dst_x, priv->dst_y, priv->dst_w, priv->dst_h);
+  fprintf(stderr, "src_rect 1: ");
+  gavl_rectangle_dump(&(priv->src_rect));
+  fprintf(stderr, "\n");
+
+  
+  fprintf(stderr, "dst_rect 1: ");
+  gavl_rectangle_dump(&(priv->dst_rect));
+  fprintf(stderr, "\n");
+  
+#endif
+
+  
+  gavl_video_scaler_init(priv->scaler,
+                         priv->scale_mode,
+                         priv->video_format.colorspace,
+                         &(priv->src_rect),
+                         &(priv->dst_rect),
+                         &(priv->video_format),
+                         &(priv->window_format)); 
+
+  
+#if 0
+  fprintf(stderr, "src_rect 2: ");
+  gavl_rectangle_dump(&(priv->src_rect));
+  fprintf(stderr, "\n");
+
+  
+  fprintf(stderr, "dst_rect 2: ");
+  gavl_rectangle_dump(&(priv->dst_rect));
+  fprintf(stderr, "\n");
+  
 #endif
   }
 
@@ -728,8 +813,6 @@ static int _open_x11(void * data,
   int still_running;
   x11_t * priv;
   gavl_colorspace_t x11_colorspace;
-  int window_width;
-  int window_height;
   priv = (x11_t*)data;
 
   /* Stop still thread if necessary */
@@ -758,7 +841,6 @@ static int _open_x11(void * data,
     priv->win.disable_xscreensaver_fullscreen = priv->disable_xscreensaver_fullscreen;
     priv->win.disable_xscreensaver_normal     = priv->disable_xscreensaver_normal;
     }
-
   
   x11_window_set_title(&(priv->win), window_title);
   
@@ -773,78 +855,50 @@ static int _open_x11(void * data,
   
 #ifdef HAVE_LIBXV
   priv->do_xv = 0;
-  
-  switch(format->colorspace)
+
+  if(priv->xv_mode != XV_MODE_NEVER)
     {
-    case GAVL_YUV_420_P:
-      if(priv->have_xv_yv12)
-        {
-        priv->do_xv = 1;
-        priv->xv_format = XV_ID_YV12;
-        }
-      else if(priv->have_xv_i420)
-        {
-        priv->do_xv = 1;
-        priv->xv_format = XV_ID_I420;
-        }
-      /* yuv420 -> yuy2 is cheaper than yuv->rgb */
-      else if(priv->have_xv_yuy2)
-        {
-        priv->do_xv = 1;
-        priv->xv_format = XV_ID_YUY2;
-        format->colorspace = GAVL_YUY2;
-        }
-      else if(priv->have_xv_uyvy)
-        {
-        priv->do_xv = 1;
-        priv->xv_format = XV_ID_UYVY;
-        format->colorspace = GAVL_UYVY;
-        }
-      else
-        format->colorspace = x11_colorspace;
-      break;
-    case GAVL_YUY2:
-      if(priv->have_xv_yuy2)
-        {
-        priv->do_xv = 1;
-        priv->xv_format = XV_ID_YUY2;
-        }
-      if(priv->have_xv_uyvy)
-        {
-        priv->do_xv = 1;
-        priv->xv_format = XV_ID_UYVY;
-        format->colorspace = GAVL_UYVY;
-        }
-      else if(priv->have_xv_yv12)
-        {
-        priv->do_xv = 1;
-        priv->xv_format = XV_ID_YV12;
-        format->colorspace = GAVL_YUV_420_P;
-        }
-      else if(priv->have_xv_i420)
-        {
-        priv->do_xv = 1;
-        priv->xv_format = XV_ID_I420;
-        format->colorspace = GAVL_YUV_420_P;
-        }
-      else
-        format->colorspace = x11_colorspace;
-      break;
-    default:
-      if(gavl_colorspace_is_yuv(format->colorspace) ||
-         priv->force_xv)
-        {
-        if(priv->have_xv_uyvy)
+    
+    switch(format->colorspace)
+      {
+      case GAVL_YUV_420_P:
+        if(priv->have_xv_yv12)
           {
           priv->do_xv = 1;
-          priv->xv_format = XV_ID_UYVY;
-          format->colorspace = GAVL_UYVY;
+          priv->xv_format = XV_ID_YV12;
           }
+        else if(priv->have_xv_i420)
+          {
+          priv->do_xv = 1;
+          priv->xv_format = XV_ID_I420;
+          }
+        /* yuv420 -> yuy2 is cheaper than yuv->rgb */
         else if(priv->have_xv_yuy2)
           {
           priv->do_xv = 1;
           priv->xv_format = XV_ID_YUY2;
           format->colorspace = GAVL_YUY2;
+          }
+        else if(priv->have_xv_uyvy)
+          {
+          priv->do_xv = 1;
+          priv->xv_format = XV_ID_UYVY;
+          format->colorspace = GAVL_UYVY;
+          }
+        else
+          format->colorspace = x11_colorspace;
+        break;
+      case GAVL_YUY2:
+        if(priv->have_xv_yuy2)
+          {
+          priv->do_xv = 1;
+          priv->xv_format = XV_ID_YUY2;
+          }
+        if(priv->have_xv_uyvy)
+          {
+          priv->do_xv = 1;
+          priv->xv_format = XV_ID_UYVY;
+          format->colorspace = GAVL_UYVY;
           }
         else if(priv->have_xv_yv12)
           {
@@ -860,78 +914,104 @@ static int _open_x11(void * data,
           }
         else
           format->colorspace = x11_colorspace;
-        }
-      else
+        break;
+      default:
+        if(gavl_colorspace_is_yuv(format->colorspace) ||
+           priv->xv_mode == XV_MODE_ALWAYS)
+          {
+          if(priv->have_xv_uyvy)
+            {
+            priv->do_xv = 1;
+            priv->xv_format = XV_ID_UYVY;
+            format->colorspace = GAVL_UYVY;
+            }
+          else if(priv->have_xv_yuy2)
+            {
+            priv->do_xv = 1;
+            priv->xv_format = XV_ID_YUY2;
+            format->colorspace = GAVL_YUY2;
+            }
+          else if(priv->have_xv_yv12)
+            {
+            priv->do_xv = 1;
+            priv->xv_format = XV_ID_YV12;
+            format->colorspace = GAVL_YUV_420_P;
+            }
+          else if(priv->have_xv_i420)
+            {
+            priv->do_xv = 1;
+            priv->xv_format = XV_ID_I420;
+            format->colorspace = GAVL_YUV_420_P;
+            }
+          else
+            format->colorspace = x11_colorspace;
+          }
+        else
+          format->colorspace = x11_colorspace;
+      }
+
+    /* Try to grab port, switch to XImage if unsuccessful */
+
+    if(priv->do_xv)
+      {
+      if(Success != XvGrabPort(priv->dpy, priv->xv_port, CurrentTime))
+        {
+        priv->do_xv = 0;
         format->colorspace = x11_colorspace;
+        }
+      else if(priv->have_xv_colorkey)
+        {
+        XvGetPortAttribute(priv->dpy, priv->xv_port, priv->xv_colorkey_atom, 
+                           &(priv->xv_colorkey_orig));
+        if(priv->xv_colorkey_settable)
+          {
+          priv->xv_colorkey = 0x00010100;
+          XvSetPortAttribute(priv->dpy, priv->xv_port, priv->xv_colorkey_atom, 
+                             priv->xv_colorkey);
+          }
+        else
+          priv->xv_colorkey = priv->xv_colorkey_orig;
+        }
+      }
+
     }
-
-  /* Try to grab port, switch to XImage if unsuccessful */
-
-#ifdef HAVE_LIBXV
   if(priv->do_xv)
     {
-    if(Success != XvGrabPort(priv->dpy, priv->xv_port, CurrentTime))
-      {
-      priv->do_xv = 0;
-      format->colorspace = x11_colorspace;
-      }
-    else if(priv->have_xv_colorkey)
-      {
-      XvGetPortAttribute(priv->dpy, priv->xv_port, priv->xv_colorkey_atom, 
-                         &(priv->xv_colorkey_orig));
-      if(priv->xv_colorkey_settable)
-        {
-        priv->xv_colorkey = 0x00010100;
-        XvSetPortAttribute(priv->dpy, priv->xv_port, priv->xv_colorkey_atom, 
-                           priv->xv_colorkey);
-        }
-      else
-        priv->xv_colorkey = priv->xv_colorkey_orig;
-      }
+    priv->do_sw_scale = 0;
+    priv->can_scale = 1;
     }
-#endif // HAVE_LIBXV
+  else
+    {
+    priv->do_sw_scale = priv->do_sw_scale_cfg;
+    priv->can_scale = priv->do_sw_scale;
+    format->colorspace = x11_colorspace;
+    }
   
 #else
   format->colorspace = x11_colorspace;
-#endif // HAVE_LIBXV
+  priv->do_sw_scale = priv->do_sw_scale_cfg;
+  priv->can_scale = priv->do_sw_scale;
   
-  gavl_video_format_copy(&(priv->format), format);
-  
+#endif // !HAVE_LIBXV
+  priv->window_format.colorspace = format->colorspace;
+  gavl_video_format_copy(&(priv->video_format), format);
+
+  gavl_rectangle_set_all(&priv->src_rect, &priv->video_format);
+    
   if(priv->auto_resize)
     {
-#ifdef HAVE_LIBXV
-    if(priv->do_xv)
+    if(priv->can_scale)
       {
-      if(priv->format.pixel_width > priv->format.pixel_height)
-        {
-        window_width =
-          (priv->format.image_width * priv->format.pixel_width) /
-          (priv->format.pixel_height);
-        window_height = priv->format.image_height;
-        }
-      else if(priv->format.pixel_height > priv->format.pixel_width)
-        {
-        window_height =
-          (priv->format.image_height * priv->format.pixel_height) /
-          priv->format.pixel_width;
-        window_width = priv->format.image_width;
-        }
-      else
-        {
-        window_width = priv->format.image_width;
-        window_height = priv->format.image_height;
-        }
+      gavl_video_format_fit_to_source(&(priv->window_format),
+                                      &(priv->video_format));
       }
     else
       {
-      window_width =  priv->format.image_width;
-      window_height = priv->format.image_height;
+      priv->window_format.image_width =  priv->video_format.image_width;
+      priv->window_format.image_height = priv->video_format.image_height;
       }
-#else
-    window_width =  priv->format.image_width;
-    window_height = priv->format.image_height;
-#endif // HAVE_LIBXV
-    x11_window_resize(&(priv->win), window_width, window_height);
+    x11_window_resize(&(priv->win), priv->window_format.image_width,
+                      priv->window_format.image_height);
     set_drawing_coords(priv);
     }
   else
@@ -1000,6 +1080,8 @@ static void destroy_x11(void * data)
     
   XCloseDisplay(priv->dpy);
 
+  gavl_video_scaler_destroy(priv->scaler);
+  
   free(priv);
   }
 
@@ -1065,12 +1147,12 @@ static int handle_event(x11_t * priv, XEvent * evt)
         /* Transform coordinates */
         
         x_image =
-          ((evt->xbutton.x-priv->dst_x)*priv->format.image_width)/(priv->dst_w);
+          ((evt->xbutton.x-priv->dst_rect.x)*priv->video_format.image_width)/(priv->dst_rect.w);
         y_image =
-          ((evt->xbutton.y-priv->dst_y)*priv->format.image_height)/(priv->dst_h);
+          ((evt->xbutton.y-priv->dst_rect.y)*priv->video_format.image_height)/(priv->dst_rect.h);
         
-        if((x_image >= 0) && (x_image < priv->format.image_width) &&
-           (y_image >= 0) && (y_image < priv->format.image_height))
+        if((x_image >= 0) && (x_image < priv->video_format.image_width) &&
+           (y_image >= 0) && (y_image < priv->video_format.image_height))
           priv->callbacks->button_callback(priv->callbacks->data,
                                            x_image, y_image, button_number);
         }
@@ -1115,8 +1197,12 @@ static int handle_event(x11_t * priv, XEvent * evt)
         }
       break;
     case ConfigureNotify:
-      x11_window_clear(&(priv->win));
-      set_drawing_coords(priv);
+      //      if((priv->window_format.image_width != priv->win.window_width) ||
+      //         (priv->window_format.image_height != priv->win.window_height))
+        {
+        x11_window_clear(&(priv->win));
+        set_drawing_coords(priv);
+        }
       break;
     }
   return 0;
@@ -1149,6 +1235,7 @@ static void handle_events(x11_t * priv)
 
 static void write_frame_x11(void * data, gavl_video_frame_t * frame)
   {
+  XImage * image;
   x11_t * priv = (x11_t*)data;
   x11_frame_t * x11_frame = (x11_frame_t*)(frame->user_data);
 
@@ -1158,20 +1245,19 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
     {
     if(priv->have_shm)
       {
-      //      fprintf(stderr, "Write frame x11 %d %d\n", priv->dst_w, priv->dst_h);
       XvShmPutImage(priv->dpy,
                     priv->xv_port,
                     priv->win.current_window,
                     priv->win.gc,
                     x11_frame->xv_image,
-                    0,                   /* src_x  */
-                    0,                   /* src_y  */
-                    priv->format.image_width,   /* src_w  */
-                    priv->format.image_height,  /* src_h  */
-                    priv->dst_x,         /* dest_x */
-                    priv->dst_y,         /* dest_y */
-                    priv->dst_w,         /* dest_w */
-                    priv->dst_h,         /* dest_h */
+                    priv->src_rect.x,  /* src_x  */
+                    priv->src_rect.y,  /* src_y  */
+                    priv->src_rect.w,  /* src_w  */
+                    priv->src_rect.h,  /* src_h  */
+                    priv->dst_rect.x,  /* dest_x */
+                    priv->dst_rect.y,  /* dest_y */
+                    priv->dst_rect.w,  /* dest_w */
+                    priv->dst_rect.h,  /* dest_h */
                     True);
       }
     else
@@ -1181,33 +1267,49 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
                  priv->win.current_window,
                  priv->win.gc,
                  x11_frame->xv_image,
-                 0,                    /* src_x   */
-                 0,                    /* src_y   */
-                 priv->format.image_width,    /* src_w   */
-                 priv->format.image_height,   /* src_h   */
-                 priv->dst_x,          /* dest_x  */
-                 priv->dst_y,          /* dest_y  */
-                 priv->dst_w,          /* dest_w  */
-                 priv->dst_h);         /* dest_h  */
+                 priv->src_rect.x,  /* src_x  */
+                 priv->src_rect.y,  /* src_y  */
+                 priv->src_rect.w,  /* src_w  */
+                 priv->src_rect.h,  /* src_h  */
+                 priv->dst_rect.x,          /* dest_x  */
+                 priv->dst_rect.y,          /* dest_y  */
+                 priv->dst_rect.w,          /* dest_w  */
+                 priv->dst_rect.h);         /* dest_h  */
       }
     }
   else
     {
 #endif // HAVE_LIBXV
 
+    if(priv->do_sw_scale)
+      {
+      gavl_video_scaler_scale(priv->scaler, frame, priv->window_frame);
+      x11_frame = (x11_frame_t*)(priv->window_frame->user_data);
+      image = x11_frame->x11_image;
+      }
+    else
+      {
+      x11_frame = (x11_frame_t*)(frame->user_data);
+      image = x11_frame->x11_image;
+      }
+#if 0
+    fprintf(stderr, "dst_rect: ");
+    gavl_rectangle_dump(&(priv->dst_rect));
+    fprintf(stderr, "\n");
+#endif
     if(priv->have_shm)
       {
       
       XShmPutImage(priv->dpy,            /* dpy        */
                    priv->win.current_window, /* d          */
                    priv->win.gc,             /* gc         */
-                   x11_frame->x11_image, /* image      */
-                   0,                    /* src_x      */
-                   0,                    /* src_y      */
-                   priv->dst_x,          /* dst_x      */
-                   priv->dst_y,          /* dst_y      */
-                   priv->format.image_width,    /* src_width  */
-                   priv->format.image_height,   /* src_height */
+                   image, /* image      */
+                   priv->dst_rect.x,    /* src_x      */
+                   priv->dst_rect.y,    /* src_y      */
+                   priv->dst_rect.x,          /* dst_x      */
+                   priv->dst_rect.y,          /* dst_y      */
+                   priv->dst_rect.w,    /* src_width  */
+                   priv->dst_rect.h,   /* src_height */
                    True                  /* send_event */);
       }
     else
@@ -1215,13 +1317,14 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
       XPutImage(priv->dpy,            /* display */
                 priv->win.current_window, /* d       */
                 priv->win.gc,             /* gc      */
-                x11_frame->x11_image, /* image   */
-                0,                    /* src_x   */
-                0,                    /* src_y   */
-                priv->dst_x,          /* dest_x  */
-                priv->dst_y,          /* dest_y  */
-                priv->format.image_width,          /* width   */
-                priv->format.image_height          /* height  */);
+                image, /* image   */
+                priv->dst_rect.x,                    /* src_x   */
+                priv->dst_rect.y,                    /* src_y   */
+                priv->dst_rect.x,          /* dest_x  */
+                priv->dst_rect.y,          /* dest_y  */
+                priv->dst_rect.w,    /* src_width  */
+                priv->dst_rect.h   /* src_height */
+                );
       }
 #ifdef HAVE_LIBXV
     }
@@ -1458,10 +1561,14 @@ bg_parameter_info_t common_parameters[] =
     },
 #ifdef HAVE_LIBXV
     {
-      name:        "force_xv",
-      long_name:   "Force XVideo",
-      type:        BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 }
+      name:        "xv_mode",
+      long_name:   "Try XVideo",
+      type:        BG_PARAMETER_STRINGLIST,
+
+      multi_names: (char*[]){ "never", "yuv_only", "always", (char*)0},
+      multi_labels: (char*[]){ "Never", "For YUV formats only", "Always", (char*)0},
+      val_default: { val_str: "yuv_only" },
+      help_string: "Choose when to try XVideo (with hardware scaling)",
     },
 #endif
     {
@@ -1502,6 +1609,24 @@ bg_parameter_info_t common_parameters[] =
       val_min:     { val_f: 20.0 },
       val_max:     { val_f: 180.0 },
     },
+    {
+      name:        "sw_scaler",
+      long_name:   "Software scaler",
+      type:        BG_PARAMETER_SECTION,
+    },
+    {
+      name:        "do_sw_scale",
+      long_name:   "Enable software scaler",
+      type:        BG_PARAMETER_CHECKBUTTON,
+    },
+    {
+      name:        "scale_mode",
+      long_name:   "Scale mode",
+      type:        BG_PARAMETER_STRINGLIST,
+      multi_names:  (char*[]){ "nearest", "bilinear", (char*)0 },
+      multi_labels: (char*[]){ "Nearest", "Bilinear", (char*)0 },
+      val_default: { val_str: "nearest" },
+    }
   };
 
 #define NUM_COMMON_PARAMETERS sizeof(common_parameters)/sizeof(common_parameters[0])
@@ -1594,61 +1719,86 @@ set_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
     }
 
 #ifdef HAVE_LIBXV
-  if(set_xv_parameter(p, name, val->val_i))
+  else if(set_xv_parameter(p, name, val->val_i))
     return;
 #endif
-  if(!strcmp(name, "auto_resize"))
+  else if(!strcmp(name, "auto_resize"))
     {
     p->auto_resize = val->val_i;
     }
-  if(!strcmp(name, "remember_size"))
+  else if(!strcmp(name, "remember_size"))
     {
     p->remember_size = val->val_i;
     }
 #ifdef HAVE_LIBXV
-  if(!strcmp(name, "force_xv"))
+  else if(!strcmp(name, "xv_mode"))
     {
-    p->force_xv = val->val_i;
+    if(!strcmp(val->val_str, "never"))
+      p->xv_mode = XV_MODE_NEVER;
+    else if(!strcmp(val->val_str, "yuv_only"))
+      p->xv_mode = XV_MODE_YUV_ONLY;
+    else if(!strcmp(val->val_str, "always"))
+      p->xv_mode = XV_MODE_ALWAYS;
     }
 #endif
-  if(!strcmp(name, "window_x"))
+  else if(!strcmp(name, "window_x"))
     {
     p->win.window_x = val->val_i;
     }
-  if(!strcmp(name, "window_y"))
+  else if(!strcmp(name, "window_y"))
     {
     p->win.window_y = val->val_i;
     }
-  if(!strcmp(name, "window_width"))
+  else if(!strcmp(name, "window_width"))
     {
     p->win.window_width = val->val_i;
     }
-  if(!strcmp(name, "window_height"))
+  else if(!strcmp(name, "window_height"))
     {
     p->win.window_height = val->val_i;
     }
-  if(!strcmp(name, "disable_xscreensaver_normal"))
+  else if(!strcmp(name, "disable_xscreensaver_normal"))
     {
     p->disable_xscreensaver_normal = val->val_i;
     }
-  if(!strcmp(name, "disable_xscreensaver_fullscreen"))
+  else if(!strcmp(name, "disable_xscreensaver_fullscreen"))
     {
     p->disable_xscreensaver_fullscreen = val->val_i;
     }
-  if(!strcmp(name, "squeeze_zoom_active"))
+  else if(!strcmp(name, "squeeze_zoom_active"))
     {
     p->squeeze_zoom_active = val->val_i;
+    x11_window_clear(&p->win);
     set_drawing_coords(p);
     }
-  if(!strcmp(name, "squeeze"))
+  else if(!strcmp(name, "squeeze"))
     {
     p->squeeze = val->val_f;
-    set_drawing_coords(p);
+    if(p->squeeze_zoom_active)
+      {
+      x11_window_clear(&p->win);
+      set_drawing_coords(p);
+      }
     }
-  if(!strcmp(name, "zoom"))
+  else if(!strcmp(name, "zoom"))
     {
     p->zoom = val->val_f;
-    set_drawing_coords(p);
+    if(p->squeeze_zoom_active)
+      {
+      x11_window_clear(&p->win);
+      set_drawing_coords(p);
+      }
+    }
+  else if(!strcmp(name, "do_sw_scale"))
+    {
+    p->do_sw_scale_cfg = val->val_i;
+    }
+  else if(!strcmp(name, "scale_mode"))
+    {
+    if(!strcmp(val->val_str, "nearest"))
+      p->scale_mode = GAVL_SCALE_NEAREST;
+    else if(!strcmp(val->val_str, "bilinear"))
+      p->scale_mode = GAVL_SCALE_BILINEAR;
     }
   }
 
