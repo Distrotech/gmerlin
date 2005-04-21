@@ -90,6 +90,11 @@ static int read_toc(vcd_priv * priv)
   struct cdrom_tochdr hdr;
   struct cdrom_tocentry entry;
 
+  if((i = ioctl(priv->fd, CDROM_DISC_STATUS, 0)) < 0)
+    return 0;
+
+  //  dump_disc_status(i_tmp);
+  
   if(ioctl(priv->fd, CDROMREADTOCHDR, &hdr) < 0 )
     return 0;
 
@@ -125,7 +130,7 @@ static int read_toc(vcd_priv * priv)
     entry.cdte_addr.lba - 1;
   
   /* Dump this */
-#if 0  
+#if 1
   for(i = priv->num_tracks-1; i>=0; i--)
     {
     fprintf(stderr, "Track %d, S: %d, E: %d\n",

@@ -26,6 +26,24 @@
 #include <codecs.h>
 #include <avdec_private.h>
 
+/* Debug function */
+
+void dump_sequence_header(const mpeg2_sequence_t * s)
+  {
+  fprintf(stderr, "Sequence header:\n");
+  fprintf(stderr, "size:         %d x %d\n", s->width, s->height);
+  fprintf(stderr, "chroma_size:  %d x %d\n", s->chroma_width,
+          s->chroma_height);
+
+  fprintf(stderr, "picture_size: %d x %d\n", s->picture_width,
+          s->picture_height);
+  fprintf(stderr, "display_size: %d x %d\n", s->display_width,
+          s->display_height);
+  fprintf(stderr, "pixel_size:   %d x %d\n", s->pixel_width,
+          s->pixel_height);
+  }
+
+
 typedef struct
   {
   const mpeg2_info_t * info;
@@ -146,10 +164,15 @@ static void get_format(gavl_video_format_t * ret,
                                                                                
   ret->frame_width  = sequence->width;
   ret->frame_height = sequence->height;
-                                                                               
+
+#if 1
   ret->pixel_width  = sequence->pixel_width;
   ret->pixel_height = sequence->pixel_height;
-
+#else
+  mpeg2_guess_aspect(sequence,
+                     &(ret->pixel_width),
+                     &(ret->pixel_height));
+#endif
   if(sequence->chroma_height == sequence->height/2)
     ret->colorspace = GAVL_YUV_420_P;
   else if(sequence->chroma_height == sequence->height)
@@ -157,6 +180,7 @@ static void get_format(gavl_video_format_t * ret,
   
   if(sequence->flags & SEQ_FLAG_MPEG2)
     ret->free_framerate = 1;
+  dump_sequence_header(sequence);
   }
 
 static int init_mpeg2(bgav_stream_t*s)
