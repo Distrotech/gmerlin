@@ -17,9 +17,9 @@
  
 *****************************************************************/
 
-#include <quicktime/lqt.h>
-#include <quicktime/lqt_codecinfo.h>
-#include <quicktime/colormodels.h>
+#include <lqt.h>
+#include <lqt_codecinfo.h>
+#include <colormodels.h>
 #include <parameter.h>
 
 void bg_lqt_create_codec_info(bg_parameter_info_t * parameter_info,
