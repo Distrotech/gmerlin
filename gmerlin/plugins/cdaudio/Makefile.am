@@ -9,18 +9,7 @@ musicbrainz_libs =
 musicbrainz_cflags = 
 endif
 
-if HAVE_CDPARANOIA
-cdparanoia_sources = cdparanoia.c
-cdparanoia_libs = @CDPARANOIA_LIBS@
-cdparanoia_cflags = @CDPARANOIA_CFLAGS@
-else
-cdparanoia_sources =
-cdparanoia_libs =
-cdparanoia_cflags = 
-endif
-
-
-AM_CFLAGS = $(musicbrainz_cflags) $(cdparanoia_cflags)
+AM_CFLAGS = $(musicbrainz_cflags) $(cdparanoia_cflags) @CDIO_CFLAGS@ @CDIO_CDDA_CFLAGS@ @CDIO_PARANOIA_CFLAGS@
 
 libdir = @GMERLIN_PLUGIN_DIR@
 
@@ -29,14 +18,14 @@ lib_LTLIBRARIES = i_cdaudio.la
 i_cdaudio_la_SOURCES = \
 i_cdaudio.c \
 cdaudio.c \
-cdaudio_linux.c \
 cdaudio_xml.c \
 sha1.c	\
+cdparanoia.c \
 $(musicbrainz_sources) \
 $(cdparanoia_sources)
 
 
-i_cdaudio_la_LIBADD = $(musicbrainz_libs) $(cdparanoia_libs)
+i_cdaudio_la_LIBADD = $(musicbrainz_libs) @CDIO_LIBS@ @CDIO_CDDA_LIBS@ @CDIO_PARANOIA_LIBS@
 i_cdaudio_la_LDFLAGS  = -avoid-version -module
 
 noinst_HEADERS = cdaudio.h sha1.h

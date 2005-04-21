@@ -52,10 +52,10 @@ else
 alsa_subdirs = 
 endif
 
-if HAVE_CDAUDIO
-cdaudio_subdirs = cdaudio
+if HAVE_CDIO
+cdio_subdirs = cdaudio
 else
-cdaudio_subdirs = 
+cdio_subdirs = 
 endif
 
 SUBDIRS = \
@@ -68,7 +68,7 @@ $(oss_subdirs) \
 $(png_subdirs) \
 $(tiff_subdirs) \
 $(x11_subdirs) \
-$(cdaudio_subdirs) \
+$(cdio_subdirs) \
 wavwrite \
 tga
 

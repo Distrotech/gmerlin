@@ -179,87 +179,22 @@ dnl
 dnl CDrom support
 dnl
 
-have_cdrom="false"
+have_cdio="false"
 
-AC_CHECK_HEADERS([linux/cdrom.h], have_cdrom="true", )
-AC_CHECK_HEADERS([linux/hdreg.h])
+CDIO_REQUIRED="0.73"
 
-dnl
-dnl cdparanoia
-dnl
+PKG_CHECK_MODULES(CDIO, libcdio >= $CDIO_REQUIRED, have_cdio="true", have_cdio="false")
 
-CDPARANOIA_REQUIRED="alpha9.8"
-
-AH_TEMPLATE([HAVE_CDPARANOIA], [Enable cdparanoia])
-
-if test x$have_cdrom = xtrue; then
-
-AC_MSG_CHECKING(for cdparanoia)
-have_cdparanoia="false"
-OLD_CFLAGS=$CFLAGS
-OLD_LIBS=$LIBS
-OLD_CPPFLAGS=$CPPFLAGS
-
-LIBS="$GMERLIN_DEP_LIBS -lcdda_paranoia -lcdda_interface -lm"
-CFLAGS="$GMERLIN_DEP_CFLAGS"
-CPPFLAGS="$GMERLIN_DEP_CFLAGS"
-
-AC_CHECK_HEADERS([cdda_interface.h cdda/cdda_interface.h])
-
-  AC_TRY_RUN([
-    #include <stdlib.h>
-    #ifdef HAVE_CDDA_CDDA_INTERFACE
-    #include <cdda/cdda_interface.h>
-    #include <cdda/cdda_paranoia.h>
-    #else
-    #include <cdda_interface.h>
-    #include <cdda_paranoia.h>
-    #endif
-    main()
-    {
-    int i = 0;
-    cdrom_drive d;
-    cdrom_paranoia * p;
-    /* We ensure that the function is there but never call it */
-    if(i)
-      {
-      p = paranoia_init(&d);
-      paranoia_read_limited(p,NULL,10);
-      }
-    return 0;
-    }
-  ],
-  [
-    # program could be run
-    have_cdparanoia="true"
-    AC_MSG_RESULT(yes)
-    CDPARANOIA_CFLAGS=$CFLAGS
-    CDPARANOIA_LIBS=$LIBS
-    have_cdaudio="true"
-
-  ],
-    # program could not be run
-    AC_MSG_RESULT(no)
-    have_cdaudio="false"
-)
-
-CFLAGS=$OLD_CFLAGS
-LIBS=$OLD_LIBS
-CPPFLAGS=$OLD_CPPFLAGS
-
+if test x$have_cdio = xtrue; then
+PKG_CHECK_MODULES(CDIO_CDDA, libcdio_cdda >= $CDIO_REQUIRED, have_cdio="true", have_cdio="false")
 fi
 
-AC_SUBST(CDPARANOIA_CFLAGS)
-AC_SUBST(CDPARANOIA_LIBS)
-AC_SUBST(CDPARANOIA_REQUIRED)
-
-AM_CONDITIONAL(HAVE_CDPARANOIA, test x$have_cdparanoia = xtrue)
-
-AM_CONDITIONAL(HAVE_CDAUDIO, test x$have_cdaudio = xtrue)
-
-if test x$have_cdparanoia = xtrue; then
-AC_DEFINE(HAVE_CDPARANOIA)
+if test x$have_cdio = xtrue; then
+PKG_CHECK_MODULES(CDIO_PARANOIA, libcdio_paranoia >= $CDIO_REQUIRED, have_cdio="true", have_cdio="false")
 fi
+
+AM_CONDITIONAL(HAVE_CDIO, test x$have_cdio = xtrue)
+AC_SUBST(CDIO_REQUIRED)
 
 dnl
 dnl Musicbrainz
@@ -279,7 +214,7 @@ AC_ARG_ENABLE(musicbrainz,
 	       test_musicbrainz=true)
 
 dnl We check for musicbrainz only of we already detected CDROM support
-if test x$have_cdrom = "xfalse"; then
+if test x$have_cdio = "xfalse"; then
 test_musicbrainz=false
 fi
 
@@ -799,11 +734,11 @@ else
 echo "Missing"
 fi
 
-echo -n "CDROM support:    "
-if test "x$have_cdrom" = "xtrue"; then
-echo "Yes"
+echo -n "libcdio:             "
+if test "x$have_cdio" = "xtrue"; then
+echo "Yes (CFLAGS=$CDIO_CFLAGS $CDIO_CDDA_CFLAGS $CDIO_PARANOIA_CFLAGS LIBS=$CDIO_LIBS $CDIO_CDDA_LIBS $CDIO_PARANOIA_LIBS)"
 else
-echo "Unsupported architecture"
+echo "Missing"
 fi
 
 echo -n "Musicbrainz:         "
@@ -811,20 +746,6 @@ if test "x$have_musicbrainz" = "xtrue"; then
 echo "Yes (CFLAGS=$MUSICBRAINZ_CFLAGS LIBS=$MUSICBRAINZ_LIBS)"
 else
 echo "Missing"
-fi
-
-echo -n "cdparanoia:          "
-if test "x$have_cdparanoia" = "xtrue"; then
-echo "Yes (CFLAGS=$CDPARANOIA_CFLAGS LIBS=$CDPARANOIA_LIBS)"
-else
-echo "Missing"
-fi
-
-echo -n "Audio CD:            "
-if test "x$have_cdaudio" = "xtrue"; then
-echo "Yes"
-else
-echo "Missing (Needs CDROM support and cdparanoia)"
 fi
 
 echo

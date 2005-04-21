@@ -21,6 +21,8 @@
 #include <config.h>
 #include <plugin.h>
 
+#include <cdio/cdio.h>
+
 #define DISCID_SIZE 33
 
 /* Index structure */
@@ -57,27 +59,27 @@ typedef struct
    For now, linux is the only supported
    platform */
 
-int bg_cdaudio_open(const char * device);
+CdIo_t * bg_cdaudio_open(const char * device);
 
-bg_cdaudio_index_t * bg_cdaudio_get_index(int fd);
+bg_cdaudio_index_t * bg_cdaudio_get_index(CdIo_t *);
 
-void bg_cdaudio_close(int);
+void bg_cdaudio_close(CdIo_t*);
 int bg_cdaudio_check_device(const char * device, char ** name);
 bg_device_info_t * bg_cdaudio_find_devices();
 
-void bg_cdaudio_play(int fd, int first_sector, int last_sector);
-void bg_cdaudio_stop(int fd);
+void bg_cdaudio_play(CdIo_t*, int first_sector, int last_sector);
+void bg_cdaudio_stop(CdIo_t*);
 
 /*
  * Get the status (time and track) of the currently played CD
  * The st structure MUST be saved between calls
  */
 
-int bg_cdaudio_get_status(int fd, bg_cdaudio_status_t *st);
+int bg_cdaudio_get_status(CdIo_t*, bg_cdaudio_status_t *st);
 
-void bg_cdaudio_set_volume(int fd, float volume);
+void bg_cdaudio_set_volume(CdIo_t*, float volume);
 
-void bg_cdaudio_set_pause(int fd, int pause);
+void bg_cdaudio_set_pause(CdIo_t*, int pause);
 
 void bg_cdaudio_get_disc_id(bg_cdaudio_index_t * idx, char disc_id[DISCID_SIZE]);
 
@@ -102,7 +104,7 @@ int bg_cdaudio_get_metadata_musicbrainz(bg_cdaudio_index_t*,
 
 void * bg_cdaudio_rip_create();
 
-int bg_cdaudio_rip_init(void *, char * device, int start_sector, int start_sector_lba,
+int bg_cdaudio_rip_init(void *, CdIo_t *cdio, int start_sector, int start_sector_lba,
                         int * frames_per_read);
 
 int bg_cdaudio_rip_rip(void * data, gavl_audio_frame_t * f);

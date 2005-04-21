@@ -20,8 +20,10 @@ typedef struct
 
   char disc_id[DISCID_SIZE];
 
-  int fd;
+  //  int fd;
 
+  CdIo_t *cdio;
+  
   bg_cdaudio_index_t * index;
 
   char * trackname_template;
@@ -101,11 +103,11 @@ static int open_cdaudio(void * data, const char * arg)
 
   cd->device_name = bg_strdup(cd->device_name, arg);
 
-  cd->fd = bg_cdaudio_open(cd->device_name);
-  if(cd->fd < 0)
+  cd->cdio = bg_cdaudio_open(cd->device_name);
+  if(!cd->cdio)
     return 0;
 
-  cd->index = bg_cdaudio_get_index(cd->fd);
+  cd->index = bg_cdaudio_get_index(cd->cdio);
   if(!cd->index)
     return 0;
 
@@ -211,7 +213,7 @@ static int open_cdaudio(void * data, const char * arg)
       }
     }
 
-  /* We close it again, so cdparanoia won't cry */
+  /* We close it again, so other apps won't cry */
 
   close_cdaudio(cd);
   
@@ -237,7 +239,7 @@ static int set_track_cdaudio(void * data, int track)
 
   for(i = 0; i < cd->index->num_tracks; i++)
     {
-    if(cd->index->tracks[i].index == track)
+    if(cd->index->tracks[i].is_audio && (cd->index->tracks[i].index == track))
       {
       cd->current_track = i;
       break;
@@ -266,12 +268,16 @@ static void start_cdaudio(void * priv)
   cdaudio_t * cd = (cdaudio_t*)priv;
 
   //  fprintf(stderr, "start_cdaudio %d\n", cd->do_bypass);
+
+  if(!cd->cdio)
+    {
+    cd->cdio = bg_cdaudio_open(cd->device_name);
+    if(!cd->cdio)
+      return;
+    }
   
   if(cd->do_bypass)
     {
-    cd->fd = bg_cdaudio_open(cd->device_name);
-    if(cd->fd < 0)
-      return;
 
     last_sector = cd->index->tracks[cd->current_track].last_sector;
 
@@ -280,7 +286,7 @@ static void start_cdaudio(void * priv)
       if((i == cd->index->num_tracks - 1) || !cd->index->tracks[i+1].is_audio)
         last_sector = cd->index->tracks[i].last_sector;
       }
-    bg_cdaudio_play(cd->fd, cd->first_sector, last_sector);
+    bg_cdaudio_play(cd->cdio, cd->first_sector, last_sector);
     cd->status.sector = cd->first_sector;
     cd->status.track  = cd->current_track;
 
@@ -292,7 +298,7 @@ static void start_cdaudio(void * priv)
   else
     {
     /* Rip */
-    bg_cdaudio_rip_init(cd->ripper, cd->device_name,
+    bg_cdaudio_rip_init(cd->ripper, cd->cdio,
                         cd->first_sector,
                         cd->first_sector - cd->index->tracks[0].first_sector,
                         &(cd->read_sectors));
@@ -317,7 +323,7 @@ static void stop_cdaudio(void * priv)
   if(cd->do_bypass)
     {
     //    fprintf(stderr, "stop_cdaudio\n");
-    bg_cdaudio_stop(cd->fd);
+    bg_cdaudio_stop(cd->cdio);
     close_cdaudio(cd);
     }
   else
@@ -325,6 +331,7 @@ static void stop_cdaudio(void * priv)
     bg_cdaudio_rip_close(cd->ripper);
     fprintf(stderr, "Processed %d samples\n", cd->samples_written);
     }
+  cd->cdio = (CdIo_t*)0;
   }
 
 static void read_frame(cdaudio_t * cd)
@@ -357,8 +364,8 @@ static int read_audio_cdaudio(void * priv,
   
   if(cd->current_sector > cd->index->tracks[cd->current_track].last_sector)
     {
-    fprintf(stderr, "EOF: %d %d\n", cd->current_sector,
-            cd->index->tracks[cd->current_track].last_sector);
+    //    fprintf(stderr, "EOF: %d %d\n", cd->current_sector,
+    //            cd->index->tracks[cd->current_track].last_sector);
     return 0;
     }
   while(samples_read < num_samples)
@@ -394,7 +401,7 @@ static int bypass_cdaudio(void * priv)
   
   cdaudio_t * cd = (cdaudio_t*)priv;
 
-  if(!bg_cdaudio_get_status(cd->fd, &(cd->status)))
+  if(!bg_cdaudio_get_status(cd->cdio, &(cd->status)))
     {
     fprintf(stderr, "bg_cdaudio_get_status returned 0\n");
     return 0;
@@ -477,11 +484,11 @@ static void seek_cdaudio(void * priv, gavl_time_t * time)
         last_sector = cd->index->tracks[i].last_sector;
       }
     *time = ((int64_t)sector * GAVL_TIME_SCALE) / 75;
-    bg_cdaudio_play(cd->fd, sector, last_sector);
+    bg_cdaudio_play(cd->cdio, sector, last_sector);
 
     if(cd->paused)
       {
-      bg_cdaudio_set_pause(cd->fd, 1);
+      bg_cdaudio_set_pause(cd->cdio, 1);
       }
     }
   else /* TODO */
@@ -509,26 +516,26 @@ static void seek_cdaudio(void * priv, gavl_time_t * time)
 void bypass_set_pause_cdaudio(void * priv, int pause)
   {
   cdaudio_t * cd = (cdaudio_t*)priv;
-  bg_cdaudio_set_pause(cd->fd, pause);
+  bg_cdaudio_set_pause(cd->cdio, pause);
   cd->paused = pause;
   }
 
 void bypass_set_volume_cdaudio(void * priv, float volume)
   {
   cdaudio_t * cd = (cdaudio_t*)priv;
-  bg_cdaudio_set_volume(cd->fd, volume);
+  bg_cdaudio_set_volume(cd->cdio, volume);
   }
 
 static void close_cdaudio(void * priv)
   {
   cdaudio_t * cd = (cdaudio_t*)priv;
-  if(cd->fd >= 0)
+  if(cd->cdio)
     {
     //    fprintf(stderr, "Closing CD device, read %d samples", cd->samples_written);
-    close(cd->fd);
+    bg_cdaudio_close(cd->cdio);
     //    fprintf(stderr, "done\n");
     }
-  cd->fd = -1;
+  cd->cdio = (CdIo_t*)0;
   }
 
 /* Configuration stuff */
