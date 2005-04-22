@@ -329,10 +329,14 @@ bg_device_info_t * bg_cdaudio_find_devices()
   bg_device_info_t * ret = (bg_device_info_t *)0;
 
   devices = cdio_get_devices(DRIVER_DEVICE);
-  
+
+  if(!devices)
+    return 0;
+    
   i = 0;
   while(devices[i])
     {
+    fprintf(stderr, "Checking %s\n", devices[i]);
     device_name = (char*)0;
     if(bg_cdaudio_check_device(devices[i], &device_name))
       {
