@@ -232,6 +232,10 @@ void bgav_codecs_init()
   bgav_init_video_decoders_png();
 #endif
 
+#ifdef HAVE_LIBTIFF
+  bgav_init_video_decoders_tiff();
+#endif
+
 #ifdef HAVE_FAAD2
   bgav_init_audio_decoders_faad2();
 #endif

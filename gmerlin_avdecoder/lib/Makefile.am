@@ -43,6 +43,16 @@ png_libs =
 png_sources =
 endif
 
+if HAVE_LIBTIFF
+tiff_cflags =  @TIFF_CFLAGS@
+tiff_libs =    @TIFF_LIBS@
+tiff_sources = video_tiff.c
+else
+tiff_cflags =
+tiff_libs =
+tiff_sources =
+endif
+
 if HAVE_LIBMPEG2
 libmpeg2_cflags =  @LIBMPEG2_CFLAGS@
 libmpeg2_libs =    @LIBMPEG2_LIBS@
@@ -143,6 +153,7 @@ $(vorbis_libs) \
 $(libmpeg2_libs) \
 $(win32_libs) \
 $(png_libs) \
+$(tiff_libs) \
 $(faad2_libs) \
 $(flac_libs) \
 $(mad_libs) \
@@ -159,6 +170,7 @@ AM_CFLAGS = \
 $(vorbis_cflags) \
 $(mad_cflags) \
 $(png_cflags) \
+$(tiff_cflags) \
 $(faad2_cflags) \
 $(flac_cflags) \
 $(libmpeg2_cflags) \
@@ -173,6 +185,7 @@ $(libmpeg2_sources) \
 $(vorbis_sources) \
 $(faad2_sources) \
 $(png_sources) \
+$(tiff_sources) \
 $(win32_sources) \
 $(mad_sources) \
 $(musepack_sources) \

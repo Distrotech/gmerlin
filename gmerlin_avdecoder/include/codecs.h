@@ -18,6 +18,11 @@ void bgav_init_audio_decoders_mad();
 void bgav_init_video_decoders_png();
 #endif
 
+#ifdef HAVE_LIBTIFF
+void bgav_init_video_decoders_tiff();
+#endif
+
+
 #ifdef HAVE_FAAD2
 void bgav_init_audio_decoders_faad2();
 #endif
