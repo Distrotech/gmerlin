@@ -16,51 +16,47 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
  
 *****************************************************************/
-#include <config.h>
 
-#ifdef HAVE_LINUX_CDROM_H
-#include <linux/cdrom.h>
-#endif
-
-#ifdef HAVE_LINUX_HDREG_H
-#include <linux/hdreg.h>
-#endif
-
-#include <unistd.h>
-#include <sys/ioctl.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <string.h>
-#include <errno.h>
 
-
+#include <config.h>
 #include <avdec_private.h>
+#include <cdio/cdio.h>
+#include <cdio/device.h>
+#include <cdio/cd_types.h>
 
 extern bgav_demuxer_t bgav_demuxer_mpegps;
 
 #define SECTOR_SIZE 2324
 
+#define TRACK_OTHER 0
+#define TRACK_VCD   1
+#define TRACK_SVCD  2
+
 typedef struct
   {
-  int fd;
+  CdIo_t * cdio;
 
   int current_track;
   int next_sector; /* Next sector to be read */
   int last_sector; /* Sector currently in buffer */
   int num_tracks; 
+  int num_vcd_tracks; 
   
   struct
     {
     uint32_t start_sector;
     uint32_t end_sector;
+    int mode; /* A TRACK_* define from above */
     } * tracks;
 
   uint8_t sector[2352];
 
   uint8_t * buffer;
   uint8_t * buffer_ptr;
+
+  int num_video_tracks;
     
   } vcd_priv;
 
@@ -87,73 +83,102 @@ static void select_track_vcd(bgav_input_context_t * ctx, int track)
 static int read_toc(vcd_priv * priv)
   {
   int i;
-  struct cdrom_tochdr hdr;
-  struct cdrom_tocentry entry;
-
-  if((i = ioctl(priv->fd, CDROM_DISC_STATUS, 0)) < 0)
-    return 0;
-
-  //  dump_disc_status(i_tmp);
+  cdio_iso_analysis_t iso;
+  cdio_fs_anal_t fs;
   
-  if(ioctl(priv->fd, CDROMREADTOCHDR, &hdr) < 0 )
+  priv->num_tracks = cdio_get_last_track_num(priv->cdio);
+  if(priv->num_tracks == CDIO_INVALID_TRACK)
     return 0;
-
-  priv->num_tracks = hdr.cdth_trk1 - hdr.cdth_trk0+1;
-
+    
   /* VCD needs at least 2 tracks */
   if(priv->num_tracks < 2)
     return 0;
   
   priv->tracks = calloc(priv->num_tracks, sizeof(*(priv->tracks)));
+
+  priv->num_video_tracks = 0;
   
-  for(i = 0; i < priv->num_tracks; i++)
+  for(i = cdio_get_first_track_num(priv->cdio) - 1; i < priv->num_tracks; i++)
     {
-    
-    entry.cdte_track = hdr.cdth_trk0 + i;
-    entry.cdte_format = CDROM_LBA;
-    
-    if(ioctl(priv->fd, CDROMREADTOCENTRY, &entry) < 0 )
-      return 0;
+    priv->tracks[i].start_sector = cdio_get_track_lsn(priv->cdio, i+1);
+    priv->tracks[i].end_sector = cdio_get_track_last_lsn(priv->cdio, i+1);
 
-    //    fprintf(stderr, "Track %d: Datamode: %d\n", i+1, entry.cdte_datamode);
-    if(i)
-      priv->tracks[i-1].end_sector = entry.cdte_addr.lba - 1;
-    priv->tracks[i].start_sector = entry.cdte_addr.lba;
+    fs = cdio_guess_cd_type(priv->cdio, 0, i+1, &iso);
+
+    if(fs & CDIO_FS_ANAL_VIDEOCD)
+      {
+      if(i)
+        {
+        fprintf(stderr, "Track %d is a VCD track\n", i+1);
+        priv->num_video_tracks++;
+        priv->tracks[i].mode = TRACK_VCD;
+        }
+      else
+        {
+        fprintf(stderr, "Track %d is th SVCD iso9660 track\n", i+1);
+        priv->tracks[i].mode = TRACK_OTHER;
+        }
+      }
+    else if(fs & CDIO_FS_ANAL_SVCD)
+      {
+      if(i)
+        {
+        fprintf(stderr, "Track %d is a SVCD track\n", i+1);
+        priv->num_video_tracks++;
+        priv->tracks[i].mode = TRACK_SVCD;
+        }
+      else
+        {
+        fprintf(stderr, "Track %d is the SVCD iso9660 track\n", i+1);
+        priv->tracks[i].mode = TRACK_OTHER;
+        }
+      }
+    else
+      {
+      fprintf(stderr, "Track %d is something else\n", i+1);
+      priv->tracks[i].mode = TRACK_OTHER;
+      }
     }
-
-  entry.cdte_track = CDROM_LEADOUT;
-  entry.cdte_format = CDROM_LBA;
-  if(ioctl(priv->fd, CDROMREADTOCENTRY, &entry) < 0 )
-    return 0;
-
-  priv->tracks[priv->num_tracks-1].end_sector =
-    entry.cdte_addr.lba - 1;
-  
   /* Dump this */
 #if 1
   for(i = priv->num_tracks-1; i>=0; i--)
     {
-    fprintf(stderr, "Track %d, S: %d, E: %d\n",
+    fprintf(stderr, "Track %d, Start: %d, end: %d ",
             i+1, priv->tracks[i].start_sector, priv->tracks[i].end_sector);
+    if(priv->tracks[i].mode == TRACK_OTHER)
+      fprintf(stderr, "No Video Track\n");
+    else
+      fprintf(stderr, "Video Track\n");
     }
 #endif
+  if(!priv->num_video_tracks)
+    {
+    free(priv->tracks);
+    priv->tracks = NULL;
+    return 0;
+    }
   return 1;
   }
 
 void toc_2_tt(bgav_input_context_t * ctx)
   {
+  int index;
   bgav_stream_t * stream;
   bgav_track_t * track;
   int i;
   
   vcd_priv * priv;
   priv = (vcd_priv*)(ctx->priv);
-
-  ctx->tt = bgav_track_table_create(priv->num_tracks-1);
-
+  
+  ctx->tt = bgav_track_table_create(priv->num_video_tracks);
+    
+  index = 0;
   for(i = 1; i < priv->num_tracks; i++)
     {
-    track = &(ctx->tt->tracks[i-1]);
+    if(priv->tracks[i].mode == TRACK_OTHER)
+      continue;
+    
+    track = &(ctx->tt->tracks[index]);
 
     stream =  bgav_track_add_audio_stream(track);
     stream->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '2');
@@ -164,9 +189,20 @@ void toc_2_tt(bgav_input_context_t * ctx)
     stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
     stream->stream_id = 0xe0;
     stream->timescale = 90000;
-    
-    track->name = bgav_sprintf("VCD Track %d", i);
-    track->duration = GAVL_TIME_UNDEFINED;
+    if(priv->tracks[i].mode == TRACK_SVCD)
+      {
+      track->name = bgav_sprintf("SVCD Track %d", i);
+      track->duration = GAVL_TIME_UNDEFINED;
+      }
+    else
+      {
+      track->name = bgav_sprintf("VCD Track %d", i);
+      track->duration = (GAVL_TIME_SCALE *
+        (gavl_time_t)(priv->tracks[i].end_sector -
+                      priv->tracks[i].start_sector + 1) * SECTOR_SIZE) /
+        (1374000/8);
+      }
+    index++;
     }
   }
 
@@ -182,11 +218,11 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   
   ctx->priv = priv;
 
-  priv->buffer = priv->sector + 24;
+  priv->buffer = priv->sector + 8;
   priv->buffer_ptr = priv->buffer + SECTOR_SIZE;
   
-  priv->fd = open(url, O_RDONLY|O_NONBLOCK);
-  if(priv->fd < 0)
+  priv->cdio = cdio_open (url, DRIVER_DEVICE);
+  if(!priv->cdio)
     {
     fprintf(stderr, "VCD: Open failed\n");
     return 0;
@@ -223,41 +259,31 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
 
 static int read_sector(vcd_priv * priv)
   {
-  struct cdrom_msf cdrom_msf;
-  int secnum;
-
-  //  fprintf(stderr, "Read sector %d ", priv->next_sector);
+  // fprintf(stderr, "Read sector %d ", priv->next_sector);
 
   //  do
   //    {
 #if 0
-  fprintf(stderr, "read_sector %d", priv->next_sector);
+  fprintf(stderr, "read_sector %d...", priv->next_sector);
 #endif    
-    if(priv->next_sector > priv->tracks[priv->current_track].end_sector)
-      return 0;
+  if(priv->next_sector > priv->tracks[priv->current_track].end_sector)
+    return 0;
 
-    secnum = priv->next_sector;
-    
-    cdrom_msf.cdmsf_frame0 = secnum % 75;
-    secnum /= 75;
-    cdrom_msf.cdmsf_sec0 = secnum % 60;
-    secnum /= 60;
-    cdrom_msf.cdmsf_min0 = secnum;
+  if(cdio_read_mode2_sector(priv->cdio, priv->sector, 
+                            priv->next_sector, true)!=0)
+    {
+    //    fprintf(stderr, "Failed\n");
+    return 0;
+    }
+#if 0
+  fprintf(stderr, "Ok\n");
+#endif
+  priv->next_sector++;
 
-    memcpy(&(priv->sector), &cdrom_msf, sizeof(cdrom_msf));
-        
-    if(ioctl(priv->fd, CDROMREADRAW, &(priv->sector)) == -1)
-      {
-      fprintf(stderr, "CDROMREADRAW ioctl failed\n");
-      return 0;
-      }
-    priv->next_sector++;
-    //    } while((priv->sector[18] & ~0x01) == 0x60);
   priv->last_sector = priv->next_sector - 1;
-  //  fprintf(stderr, " %d\n", priv->last_sector);
   priv->buffer_ptr = priv->buffer;
-  //  bgav_hexdump(priv->sector, 2352, 16);
 
+  //  bgav_hexdump(priv->buffer_ptr, 32, 16);
   return 1;
   }
 
@@ -270,7 +296,7 @@ static int read_vcd(bgav_input_context_t* ctx,
   vcd_priv * priv;
   priv = (vcd_priv*)(ctx->priv);
 
-//  fprintf(stderr, "Read VCD %d\n", len);
+  //  fprintf(stderr, "Read VCD %d\n", len);
   
   while(bytes_read < len)
     {
@@ -324,8 +350,8 @@ static void    close_vcd(bgav_input_context_t * ctx)
   vcd_priv * priv;
   //  fprintf(stderr, "CLOSE VCD\n");
   priv = (vcd_priv*)(ctx->priv);
-  if(priv->fd > -1)
-    close(priv->fd);
+  if(priv->cdio)
+    cdio_destroy(priv->cdio);
   if(priv->tracks)
     free(priv->tracks);
   free(priv);
@@ -342,68 +368,28 @@ bgav_input_t bgav_input_vcd =
     select_track:  select_track_vcd,
   };
 
-static char * device_names_scsi_old[] =
+static char * get_device_name(CdIo_t * cdio,
+                              cdio_drive_read_cap_t  read_cap,
+                              cdio_drive_write_cap_t write_cap,
+                              const char * device)
   {
-    "/dev/sr0",
-    "/dev/sr1",
-    "/dev/sr2",
-    "/dev/sr3",
-    "/dev/sr4",
-    "/dev/sr5",
-    "/dev/sr6",
-    "/dev/sr7",
-    (char*)0
-  };
+  cdio_hwinfo_t driveid;
 
-static char * device_names_scsi_new[] =
-  {
-    "/dev/scd0",
-    "/dev/scd1",
-    "/dev/scd2",
-    "/dev/scd3",
-    "/dev/scd4",
-    "/dev/scd5",
-    "/dev/scd6",
-    "/dev/scd7",
-    (char*)0
-  };
-
-
-static char * device_names_ide[] =
-  {
-    "/dev/hda",
-    "/dev/hdb",
-    "/dev/hdc",
-    "/dev/hdd",
-    "/dev/hde",
-    "/dev/hdf",
-    "/dev/hdg",
-    "/dev/hdh",
-    (char*)0
-  };
-
-static char * get_device_name(int fd, int cap, const char * device)
-  {
-#ifdef HAVE_LINUX_HDREG_H
-  struct hd_driveid driveid;
-
-  if((ioctl(fd, HDIO_GET_IDENTITY, &driveid) >= 0) &&
-     (driveid.model[0] != '\0'))
+  if(cdio_get_hwinfo(cdio, &driveid) &&
+     (driveid.psz_model[0] != '\0'))
     {
-    return bgav_strndup(driveid.model, NULL);
+    return bgav_sprintf("%s %s", driveid.psz_vendor, driveid.psz_model);
     }
   
-#endif
-  
-  if(cap & CDC_DVD_R)
+  if(write_cap & CDIO_DRIVE_CAP_WRITE_DVD_R)
     {
     return bgav_sprintf("DVD Writer (%s)", device);
     }
-  else if(cap & CDC_CD_R)
+  else if(write_cap & CDIO_DRIVE_CAP_WRITE_CD_R)
     {
     return bgav_sprintf("CD Writer (%s)", device);
     }
-  else if(cap & CDC_DVD)
+  else if(read_cap & CDIO_DRIVE_CAP_READ_DVD_ROM)
     {
     return bgav_sprintf("DVD Drive (%s)", device);
     }
@@ -412,99 +398,59 @@ static char * get_device_name(int fd, int cap, const char * device)
 
 int bgav_check_device_vcd(const char * device, char ** name)
   {
-  int fd, cap;
+  CdIo_t * cdio;
+  cdio_drive_read_cap_t  read_cap;
+  cdio_drive_write_cap_t write_cap;
+  cdio_drive_misc_cap_t  misc_cap;
 
-  /* First step: Try to open the device */
-
-  fd = open(device, O_RDONLY | O_NONBLOCK);
-
-  if(fd < 0)
-    {
-    //    fprintf(stderr, "Couldn't open device %s: %s\n",
-    //            device, strerror(errno));
+  cdio = cdio_open (device, DRIVER_DEVICE);
+  if(!cdio)
     return 0;
-    }
-  /* Try a cdrom ioctl and see what happens */
   
-  //  fprintf(stderr, "Opened %s\n", device);
-  
-  if((cap = ioctl(fd, CDROM_GET_CAPABILITY, 0)) < 0)
+  cdio_get_drive_cap(cdio, &read_cap, &write_cap, &misc_cap);
+
+  if(!(read_cap & CDIO_DRIVE_CAP_READ_MODE2_FORM2))
     {
-    fprintf(stderr, 
-            "CDROM_GET_CAPABILITY ioctl failed for device %s\n",
-            device);
-    close(fd);
+    cdio_destroy(cdio);
     return 0;
     }
   
-  /* Ok, seems the drive is ok */
+  /* Seems the drive is ok */
 
   if(name)
-    *name = get_device_name(fd, cap, device);
-  close(fd);
+    *name = get_device_name(cdio, read_cap, write_cap, device);
+  cdio_destroy(cdio);
   return 1;
   }
 
 bgav_device_info_t * bgav_find_devices_vcd()
   {
-  int have_scsi_new = 0;
-  
-  int i = -1;
+  int i;
   char * device_name;
-  
+  char ** devices;
   bgav_device_info_t * ret = (bgav_device_info_t *)0;
 
-  i = -1;
-  while(device_names_scsi_new[i+1])
-    {
-    i++;
+  devices = cdio_get_devices(DRIVER_DEVICE);
+
+  if(!devices)
+    return 0;
     
+  i = 0;
+  while(devices[i])
+    {
+    fprintf(stderr, "Checking %s\n", devices[i]);
     device_name = (char*)0;
-    if(bgav_check_device_vcd(device_names_scsi_new[i], &device_name))
+    if(bgav_check_device_vcd(devices[i], &device_name))
       {
-      have_scsi_new = 1;
       ret = bgav_device_info_append(ret,
-                                    device_names_scsi_new[i],
-                                    device_name);
+                                  devices[i],
+                                  device_name);
       if(device_name)
         free(device_name);
       }
-    }
-  if(!have_scsi_new)
-    {
-    i = -1;
-    while(device_names_scsi_old[i+1])
-      {
-      i++;
-      
-      device_name = (char*)0;
-      if(bgav_check_device_vcd(device_names_scsi_old[i], &device_name))
-        {
-        ret = bgav_device_info_append(ret,
-                                      device_names_scsi_old[i],
-                                      device_name);
-        if(device_name)
-          free(device_name);
-        }
-      }
-    }
-  
-  i = -1;
-  while(device_names_ide[i+1])
-    {
     i++;
-    
-    device_name = (char*)0;
-    if(bgav_check_device_vcd(device_names_ide[i], &device_name))
-      {
-      ret = bgav_device_info_append(ret,
-                                    device_names_ide[i],
-                                    device_name);
-      if(device_name)
-        free(device_name);
-      }
     }
-  
-  //  bgav_device_info_dump(ret);
+  cdio_free_device_list(devices);
   return ret;
+
   }

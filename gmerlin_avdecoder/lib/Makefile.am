@@ -94,6 +94,16 @@ avcodec_libs =
 avcodec_sources =
 endif
 
+if HAVE_CDIO
+cdio_cflags =  @CDIO_CFLAGS@
+cdio_libs =    @CDIO_LIBS@
+cdio_sources = in_vcd.c
+else
+cdio_cflags =
+cdio_libs =
+cdio_sources =
+endif
+
 
 if HAVE_W32DLL
 win32_subdirs = libw32dll
@@ -125,12 +135,6 @@ xadll_sources =
 xadll_libs = 
 endif
 
-if HAVE_VCD
-vcd_sources = in_vcd.c
-else
-vcd_sources =
-endif
-
 SUBDIRS = $(win32_subdirs)
 
 libgmerlin_avdec_la_LDFLAGS=-export-dynamic
@@ -147,6 +151,7 @@ $(a52_libs) \
 $(avcodec_libs) \
 $(real_libs) \
 $(xadll_libs) \
+$(cdio_libs) \
 -lm
 
 AM_CFLAGS = \
@@ -159,7 +164,9 @@ $(flac_cflags) \
 $(libmpeg2_cflags) \
 $(a52_cflags) \
 $(musepack_cflags) \
-$(avcodec_cflags)
+$(avcodec_cflags) \
+$(cdio_cflags)
+
 
 libgmerlin_avdec_la_SOURCES = \
 $(libmpeg2_sources) \
@@ -174,7 +181,7 @@ $(flac_sources) \
 $(avcodec_sources) \
 $(real_sources) \
 $(xadll_sources) \
-$(vcd_sources) \
+$(cdio_sources) \
 RTjpeg.c \
 apetag.c \
 audio.c \

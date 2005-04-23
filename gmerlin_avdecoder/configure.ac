@@ -535,13 +535,21 @@ AC_SUBST(XADLL_LIBS)
 AM_CONDITIONAL(HAVE_XADLL, test x"$enable_xadll" = "xtrue")
 
 dnl
-dnl VCD support
+dnl CDrom support
 dnl
 
-AC_CHECK_HEADERS([linux/cdrom.h], have_vcd="true", have_vcd="false")
-AM_CONDITIONAL(HAVE_VCD, test x"$have_vcd" = "xtrue")
+AH_TEMPLATE([HAVE_CDIO], [ libcdio found ])
 
-AC_CHECK_HEADERS([linux/hdreg.h])
+have_cdio="false"
+CDIO_REQUIRED="0.73"
+
+PKG_CHECK_MODULES(CDIO, libcdio >= $CDIO_REQUIRED, have_cdio="true", have_cdio="false")
+AM_CONDITIONAL(HAVE_CDIO, test x$have_cdio = xtrue)
+AC_SUBST(CDIO_REQUIRED)
+
+if test "x$have_cdio" = "xtrue"; then
+AC_DEFINE([HAVE_CDIO])
+fi
 
 dnl
 dnl Common CFLAGS
@@ -693,6 +701,13 @@ else
 echo "Missing"
 fi
 
+echo -n "libcdio:                "
+if test "x$have_cdio" = "xtrue"; then
+echo "Found (CFLAGS=$CDIO_CFLAGS LIBS=$CDIO_LIBS)"
+else
+echo "Missing"
+fi
+
 echo ""
 echo "=== Other features: ============================"
 
@@ -712,13 +727,6 @@ fi
 
 echo -n "Xanim DLL Support:      "
 if test "x$enable_xadll" = "xtrue"; then
-echo "Enabled"
-else
-echo "Disabled (Unsupported Architecture)"
-fi
-
-echo -n "VCD Support:            "
-if test "x$have_vcd" = "xtrue"; then
 echo "Enabled"
 else
 echo "Disabled (Unsupported Architecture)"
