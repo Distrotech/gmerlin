@@ -411,33 +411,46 @@ dnl
 dnl libtiff
 dnl 
 
-AH_TEMPLATE([HAVE_LIBTIFF], [Do we have libtiff installed?])
-
+AH_TEMPLATE([HAVE_LIBTIFF], [Enable tiff codec])
+ 
+have_libtiff=false
 TIFF_REQUIRED="3.5.0"
-have_libtiff="true"
-
+ 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
+LIBS="-ltiff"
 CFLAGS=""
-LIBS=""
-
-AC_CHECK_LIB(tiff, TIFFReadRGBAImage, , have_libtiff="false")
-
+ 
+AC_MSG_CHECKING(for libtiff)
+AC_TRY_LINK([#include <tiffio.h>],
+            [TIFF * tiff = (TIFF*)0;
+	     int i = 0;
+	     /* We ensure the function is here but never call it */
+             if(i)
+	       TIFFReadRGBAImage(tiff, 0, 0, (uint32*)0, 0);
+	     return 0;],
+            [have_libtiff=true])
+ 
 case $have_libtiff in
-  "true") AC_DEFINE(HAVE_LIBTIFF)
-          TIFF_LIBS=$LIBS ;
-          TIFF_CFLAGS=$CFLAGS ;;
-  "false") TIFF_LIBS=""; TIFF_CFLAGS="";;
+  true) AC_DEFINE(HAVE_LIBTIFF)
+        AC_MSG_RESULT(yes)
+        TIFF_LIBS=$LIBS;
+        TIFF_CFLAGS=$CFLAGS ;;
+  false) AC_MSG_RESULT(no); TIFF_LIBS=""; TIFF_CFLAGS="";;
 esac
-
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
 
 AC_SUBST(TIFF_CFLAGS)
 AC_SUBST(TIFF_LIBS)
 AC_SUBST(TIFF_REQUIRED)
+
 AM_CONDITIONAL(HAVE_LIBTIFF, test x$have_libtiff = xtrue)
+
+if test x$have_libtiff = xtrue; then
+AC_DEFINE(HAVE_LIBTIFF)
+fi
 
 dnl
 dnl Applications
