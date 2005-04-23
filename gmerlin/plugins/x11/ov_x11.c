@@ -717,7 +717,7 @@ static void set_drawing_coords(x11_t * priv)
   zoom_factor = (priv->squeeze_zoom_active) ? priv->zoom * 0.01 : 1.0;
   squeeze_factor = (priv->squeeze_zoom_active) ? priv->squeeze : 0.0;
 
-  fprintf(stderr, "Zoom: %f\n", zoom_factor);
+  //  fprintf(stderr, "Zoom: %f\n", zoom_factor);
   
   priv->window_format.image_width = priv->win.window_width;
   priv->window_format.image_height = priv->win.window_height;

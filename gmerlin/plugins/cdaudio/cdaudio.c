@@ -144,37 +144,16 @@ void bg_cdaudio_get_disc_id(bg_cdaudio_index_t * idx, char disc_id[DISCID_SIZE])
 
 
 /* cdio related stuff */
-#if 0
-#include "cdaudio.h"
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-#include <utils.h>
-
-#ifdef HAVE_LINUX_CDROM_H
-#include <linux/cdrom.h>
-#endif
-
-#ifdef HAVE_LINUX_HDREG_H
-#include <linux/hdreg.h>
-#endif
-
-#include <math.h>
-#endif
 
 CdIo_t * bg_cdaudio_open(const char * device)
   {
   CdIo_t * ret;
   fprintf(stderr, "Opening CD device %s...", device);
   ret = cdio_open (device, DRIVER_DEVICE);
-  
-  fprintf(stderr, "done, using %s driver\n", cdio_get_driver_name(ret));
+  if(ret)
+    fprintf(stderr, "done, using %s driver\n", cdio_get_driver_name(ret));
+  else
+    fprintf(stderr, "failed\n");
   return ret;
   }
 #if 0
@@ -191,15 +170,19 @@ static unsigned int get_sector(struct cdrom_msf0* msf)
 #endif
 bg_cdaudio_index_t * bg_cdaudio_get_index(CdIo_t * cdio)
   {
-  int i;
+  int i, num_tracks;
 
   bg_cdaudio_index_t * ret;
          
   /* Read the index of the CD */
 
+  num_tracks = cdio_get_last_track_num(cdio);
+  if(num_tracks == CDIO_INVALID_TRACK)
+    return (bg_cdaudio_index_t*)0;
+  
   ret = calloc(1, sizeof(*ret));
-
-  ret->num_tracks = cdio_get_last_track_num(cdio);
+  ret->num_tracks = num_tracks;
+  //  fprintf(stderr, "Num tracks: %d\n", ret->num_tracks);
 
   ret->tracks = calloc(ret->num_tracks, sizeof(*(ret->tracks)));
   
@@ -216,6 +199,14 @@ bg_cdaudio_index_t * bg_cdaudio_get_index(CdIo_t * cdio)
     ret->tracks[i].last_sector = cdio_get_track_last_lsn(cdio, i+1);
     }
   //  bg_cdaudio_index_dump(ret);
+
+  if(!ret->num_audio_tracks)
+    {
+    free(ret->tracks);
+    free(ret);
+    return (bg_cdaudio_index_t*)0;
+    }
+
   return ret;
   }
 
@@ -225,51 +216,10 @@ void bg_cdaudio_close(CdIo_t * cdio)
   cdio_destroy(cdio);
   }
 
-#if 0
-static char * device_names_scsi_old[] =
-  {
-    "/dev/sr0",
-    "/dev/sr1",
-    "/dev/sr2",
-    "/dev/sr3",
-    "/dev/sr4",
-    "/dev/sr5",
-    "/dev/sr6",
-    "/dev/sr7",
-    (char*)0
-  };
-
-static char * device_names_scsi_new[] =
-  {
-    "/dev/scd0",
-    "/dev/scd1",
-    "/dev/scd2",
-    "/dev/scd3",
-    "/dev/scd4",
-    "/dev/scd5",
-    "/dev/scd6",
-    "/dev/scd7",
-    (char*)0
-  };
-
-
-static char * device_names_ide[] =
-  {
-    "/dev/hda",
-    "/dev/hdb",
-    "/dev/hdc",
-    "/dev/hdd",
-    "/dev/hde",
-    "/dev/hdf",
-    "/dev/hdg",
-    "/dev/hdh",
-    (char*)0
-  };
-
-#endif
-
-static char * get_device_name(CdIo_t * cdio,   cdio_drive_read_cap_t  read_cap,
-                              cdio_drive_write_cap_t write_cap, const char * device)
+static char * get_device_name(CdIo_t * cdio,
+                              cdio_drive_read_cap_t  read_cap,
+                              cdio_drive_write_cap_t write_cap,
+                              const char * device)
   {
   cdio_hwinfo_t driveid;
 
