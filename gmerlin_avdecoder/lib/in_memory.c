@@ -37,8 +37,7 @@ static int read_mem(bgav_input_context_t* ctx,
   mem_priv_t * priv = (mem_priv_t*)(ctx->priv);
   bytes_left = ctx->total_bytes - (uint32_t)(priv->data_ptr - priv->data);
   bytes_to_read = (len < bytes_left) ? len : bytes_left;
-  //  fprintf(stderr, "*** COPY %p %p %d\n", buffer,
-  //          priv->data_ptr, bytes_to_read);
+  //  fprintf(stderr, "*** COPY %lld %d %d\n", ctx->total_bytes, bytes_left, bytes_to_read);
   memcpy(buffer, priv->data_ptr, bytes_to_read);
   priv->data_ptr += bytes_to_read;
   return bytes_to_read;
@@ -91,12 +90,12 @@ void bgav_input_reopen_memory(bgav_input_context_t * ctx,
                               uint32_t data_size)
   {
   mem_priv_t * priv;
-
+  //  fprintf(stderr, "** Reopen Memory: %d\n", data_size);
   priv = (mem_priv_t *)(ctx->priv);
 
   priv->data     = data;
   priv->data_ptr = data;
   ctx->total_bytes = data_size;
   ctx->position = 0;
-  
+  ctx->buffer_size = 0;
   }

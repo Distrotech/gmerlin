@@ -26,6 +26,10 @@
 #define PACK_HEADER   0x000001ba
 #define PROGRAM_END   0x000001b9
 
+#define CDXA_SECTOR_SIZE_RAW 2352
+#define CDXA_SECTOR_SIZE     2324
+#define CDXA_HEADER_SIZE       24
+
 /* Synchronization routines */
 
 #define IS_START_CODE(h)  ((h&0xffffff00)==0x00000100)
@@ -91,10 +95,32 @@ static uint32_t previous_start_code(bgav_input_context_t * ctx)
 
 static int probe_mpegps(bgav_input_context_t * input)
   {
-  uint32_t h;
-  if(!bgav_input_get_32_be(input, &h))
+  uint8_t probe_data[12];
+  if(bgav_input_get_data(input, probe_data, 12) < 12)
     return 0;
-  if(h == PACK_HEADER)
+#if 0
+  fprintf(stderr, "Probe mpegps: ");
+  bgav_hexdump(probe_data, 12, 12);
+#endif
+  
+  /* Check for pack header */
+
+  if((probe_data[0] == 0x00) &&
+     (probe_data[1] == 0x00) &&
+     (probe_data[2] == 0x01) &&
+     (probe_data[3] == 0xba))
+    return 1;
+
+  /* Check for CDXA header */
+    
+  if((probe_data[0] == 'R') &&
+     (probe_data[1] == 'I') &&
+     (probe_data[2] == 'F') &&
+     (probe_data[3] == 'F') &&
+     (probe_data[8] == 'C') &&
+     (probe_data[9] == 'D') &&
+     (probe_data[10] == 'X') &&
+     (probe_data[11] == 'A'))
     return 1;
   return 0;
   }
@@ -195,7 +221,7 @@ static int pack_header_read(bgav_input_context_t * input,
   //    }
   return 1;
   }
-#if 0
+#if 1
 static void pack_header_dump(pack_header_t * h)
   {
   fprintf(stderr,
@@ -230,6 +256,20 @@ static void system_header_dump(system_header_t * h)
 
 typedef struct
   {
+  /* For sector based access */
+  bgav_input_context_t * input_mem;
+
+  int sector_size;
+  int sector_size_raw;
+  int sector_header_size;
+  int64_t total_sectors;
+  int64_t sector_position;
+  int start_sector; /* First nonempty sector */
+
+  uint8_t * sector_buffer;
+    
+  int is_cdxa; /* Nanosoft VCD rip */
+    
   int64_t data_start;
   int64_t data_size;
   
@@ -246,14 +286,185 @@ typedef struct
   /* Timing stuff */
 
   int64_t start_pts;
+
+  /* Sector based access functions */
+
+  void (*goto_sector)(bgav_demuxer_context_t * ctx, int64_t sector);
+  int (*read_sector)(bgav_demuxer_context_t * ctx);
   
   } mpegps_priv_t;
 
 static const int lpcm_freq_tab[4] = { 48000, 96000, 44100, 32000 };
 
+/* Sector based utilities */
+
+static void goto_sector_cdxa(bgav_demuxer_context_t * ctx, int64_t sector)
+  {
+  mpegps_priv_t * priv;
+  priv = (mpegps_priv_t*)(ctx->priv);
+
+  //  fprintf(stderr, "Start: %lld, Pos: %lld\n", priv->data_start,
+  //          priv->data_start + priv->sector_size_raw * (sector + priv->start_sector));
+
+  bgav_input_seek(ctx->input, priv->data_start + priv->sector_size_raw * (sector + priv->start_sector),
+                  SEEK_SET);
+  bgav_input_reopen_memory(priv->input_mem,
+                           NULL, 0);
+  
+  }
+
+static int read_sector_cdxa(bgav_demuxer_context_t * ctx)
+  {
+  mpegps_priv_t * priv;
+  priv = (mpegps_priv_t*)(ctx->priv);
+  if(bgav_input_read_data(ctx->input, priv->sector_buffer, priv->sector_size_raw) <
+     priv->sector_size_raw)
+    return 0;
+  //  fprintf(stderr, "Sector ");
+  //  bgav_hexdump(priv->sector_buffer + priv->sector_header_size, 16, 16);
+  
+  bgav_input_reopen_memory(priv->input_mem,
+                           priv->sector_buffer + priv->sector_header_size,
+                           priv->sector_size);
+  return 1;
+  }
+
+static void goto_sector_input(bgav_demuxer_context_t * ctx, int64_t sector)
+  {
+  mpegps_priv_t * priv;
+  priv = (mpegps_priv_t*)(ctx->priv);
+  //  fprintf(stderr, "Seek sector %lld\n", sector + priv->start_sector);
+  bgav_input_seek_sector(ctx->input, sector + priv->start_sector);
+  bgav_input_reopen_memory(priv->input_mem,
+                           NULL, 0);
+
+  }
+
+static int read_sector_input(bgav_demuxer_context_t * ctx)
+  {
+  mpegps_priv_t * priv;
+  priv = (mpegps_priv_t*)(ctx->priv);
+  if(!bgav_input_read_sector(ctx->input, priv->sector_buffer))
+    return 0;
+  bgav_input_reopen_memory(priv->input_mem,
+                           priv->sector_buffer + priv->sector_header_size,
+                           priv->sector_size);
+  return 1;
+  }
+
+/* Generic initialization function for sector based access: Get the 
+   empty sectors at the beginning and the end, and the duration of the track */
+
+static void init_sector_mode(bgav_demuxer_context_t * ctx)
+  {
+  int64_t scr_start, scr_end;
+  uint32_t start_code = 0;
+  
+  mpegps_priv_t * priv;
+  priv = (mpegps_priv_t*)(ctx->priv);
+
+  priv->input_mem          = bgav_input_open_memory(NULL, 0);
+
+  fprintf(stderr, "init_sector_mode 1: %lld\n",
+          priv->total_sectors);
+    
+  priv->goto_sector(ctx, 0);
+  while(1)
+    {
+    if(!priv->read_sector(ctx))
+      return;
+    if(!bgav_input_get_32_be(priv->input_mem, &start_code))
+      return;
+    if(start_code == PACK_HEADER)
+      break;
+#if 0
+    else
+      {
+      fprintf(stderr, "Start code: ");
+      bgav_dump_fourcc( start_code);
+      fprintf(stderr, "\n");
+      }
+#endif
+    priv->start_sector++;
+    priv->total_sectors--;
+    }
+  
+  /* Read first scr */
+  
+  if(!pack_header_read(priv->input_mem, &(priv->pack_header)))
+    {
+#if 1
+    fprintf(stderr, "pack_header_read failed %lld %lld\n",
+            ctx->input->position, ctx->input->total_bytes);
+#endif
+    return;
+    }
+  //  pack_header_dump(&(priv->pack_header));
+  
+  scr_start = priv->pack_header.scr;
+
+  //  fprintf(stderr, "scr_start: %lld\n", scr_start);
+
+  /* If we already have the duration, stop here. */
+
+  if(ctx->tt->current_track->duration != GAVL_TIME_UNDEFINED)
+    {
+    priv->goto_sector(ctx, 0);
+    bgav_input_reopen_memory(priv->input_mem, (uint8_t*)0, 0);
+    return;
+    }
+    
+  while(1)
+    {
+    priv->goto_sector(ctx, priv->total_sectors - 1);
+    if(!priv->read_sector(ctx))
+      {
+      fprintf(stderr, "Read sector failed\n");
+      priv->total_sectors--;
+      continue;
+      }
+    if(!bgav_input_get_32_be(priv->input_mem, &start_code))
+      return;
+    if(start_code == PACK_HEADER)
+      break;
+#if 0
+    else
+      {
+      fprintf(stderr, "Start code: ");
+      bgav_dump_fourcc( start_code);
+      fprintf(stderr, "\n");
+      }
+#endif
+    priv->total_sectors--;
+    }
+
+  if(!pack_header_read(priv->input_mem, &(priv->pack_header)))
+    {
+#if 1
+    fprintf(stderr, "pack_header_read failed %lld %lld\n",
+            ctx->input->position, ctx->input->total_bytes);
+#endif
+    return;
+    }
+  //  pack_header_dump(&(priv->pack_header));
+  scr_end = priv->pack_header.scr;
+
+  fprintf(stderr, "scr_start: %lld, scr_end: %lld\n", scr_start, scr_end);
+
+  fprintf(stderr, "init_sector_mode 2: %lld\n",
+          priv->total_sectors);
+  
+  ctx->tt->current_track->duration =
+    ((int64_t)(scr_end - scr_start) * GAVL_TIME_SCALE) / 90000;
+
+  priv->goto_sector(ctx, 0);
+
+  bgav_input_reopen_memory(priv->input_mem, (uint8_t*)0, 0);
+  }
+
 /* Get one packet */
 
-static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
+static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * input)
   {
   uint8_t c;
   system_header_t system_header;
@@ -269,24 +480,24 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
   
   while(!got_packet)
     {
-    if(!(start_code = next_start_code(ctx->input)))
+    if(!(start_code = next_start_code(input)))
       return 0;
     if(start_code == SYSTEM_HEADER)
       {
-      if(!system_header_read(ctx->input, &system_header))
+      if(!system_header_read(input, &system_header))
         return 0;
       //      system_header_dump(&system_header);
       }
     else if(start_code == PACK_HEADER)
       {
-      if(!pack_header_read(ctx->input, &(priv->pack_header)))
+      if(!pack_header_read(input, &(priv->pack_header)))
         return 0;
       //      pack_header_dump(&(priv->pack_header));
       }
 
     else /* PES Packet */
       {
-      if(!bgav_pes_header_read(ctx->input, &(priv->pes_header)))
+      if(!bgav_pes_header_read(input, &(priv->pes_header)))
         return 0;
       
       //      bgav_pes_header_dump(&(priv->pes_header));
@@ -294,7 +505,7 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
       /* Private stream 1 (non MPEG audio, subpictures) */
       if(priv->pes_header.stream_id == 0xbd)
         {
-        if(!bgav_input_read_8(ctx->input, &c))
+        if(!bgav_input_read_8(input, &c))
           return 0;
         priv->pes_header.payload_size--;
 
@@ -307,7 +518,7 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
           }
         else if((c >= 0x80) && (c <= 0x87)) /* AC3 Audio */
           {
-          bgav_input_skip(ctx->input, 3);
+          bgav_input_skip(input, 3);
           priv->pes_header.payload_size -= 3;
           
           if(priv->find_streams)
@@ -328,7 +539,7 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
         else if((c >= 0xA0) && (c <= 0xA7)) /* LPCM Audio */
           {
           //          fprintf(stderr, "LPCM Audio!\n");
-          bgav_input_skip(ctx->input, 3);
+          bgav_input_skip(input, 3);
           priv->pes_header.payload_size -= 3;
 
           if(priv->find_streams)
@@ -351,9 +562,9 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
           if(stream && !stream->data.audio.format.samplerate)
             {
             /* emphasis (1), muse(1), reserved(1), frame number(5) */
-            bgav_input_skip(ctx->input, 1);
+            bgav_input_skip(input, 1);
             /* quant (2), freq(2), reserved(1), channels(3) */
-            if(!bgav_input_read_data(ctx->input, &c, 1))
+            if(!bgav_input_read_data(input, &c, 1))
               return 0;
                         
             stream->data.audio.format.samplerate = lpcm_freq_tab[(c >> 4) & 0x03];
@@ -368,13 +579,13 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
               }
 
             /* Dynamic range control */
-            bgav_input_skip(ctx->input, 1);
+            bgav_input_skip(input, 1);
             
             priv->pes_header.payload_size -= 3;
             }
           else /* lpcm header (3 bytes) */
             {
-            bgav_input_skip(ctx->input, 3);
+            bgav_input_skip(input, 3);
             priv->pes_header.payload_size -= 3;
             }
           }
@@ -422,13 +633,13 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
            (stream->time_scaled < 0) &&
            (priv->pes_header.pts < 0))
           {
-          bgav_input_skip(ctx->input, priv->pes_header.payload_size);
+          bgav_input_skip(input, priv->pes_header.payload_size);
           return 1;
           }
         p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
         
         bgav_packet_alloc(p, priv->pes_header.payload_size);
-        if(bgav_input_read_data(ctx->input, p->data, 
+        if(bgav_input_read_data(input, p->data, 
                                  priv->pes_header.payload_size) <
            priv->pes_header.payload_size)
           {
@@ -490,13 +701,37 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
         //        fprintf(stderr, "Skipping %d bytes of stream %02x\n",
         //                priv->pes_header.payload_size,
         //                priv->pes_header.stream_id);
-        bgav_input_skip(ctx->input, priv->pes_header.payload_size);
+        bgav_input_skip(input, priv->pes_header.payload_size);
         }
       
       }
     }
   
   return 1;
+  }
+
+static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
+  {
+  mpegps_priv_t * priv;
+  priv = (mpegps_priv_t*)(ctx->priv);
+  if(priv->sector_size)
+    {
+    while(1)
+      {
+      if(!next_packet(ctx, priv->input_mem))
+        {
+        if(!priv->read_sector(ctx))
+          return 0;
+        }
+      else
+        return 1;
+      }
+    }
+  else
+    {
+    return next_packet(ctx, ctx->input);
+    }
+  return 0;
   }
 
 #define NUM_PACKETS 200
@@ -532,7 +767,7 @@ static void get_duration(bgav_demuxer_context_t * ctx)
 
   //  fprintf(stderr, "get duration...\n");
   
-  if(!ctx->input->total_bytes)
+  if(!ctx->input->total_bytes && !ctx->input->total_sectors)
     return;
   
   if(ctx->input->input->seek_byte)
@@ -599,17 +834,87 @@ static int do_sync(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static int open_mpegps(bgav_demuxer_context_t * ctx,
-                       bgav_redirector_context_t ** redir)
+/* Check for cdxa file, return 0 if there isn't one */
+
+static int init_cdxa(bgav_demuxer_context_t * ctx)
   {
-  uint32_t start_code;
+  bgav_track_t * track;
+  bgav_stream_t * stream;
+
+  uint32_t fourcc;
+  uint32_t size;
   mpegps_priv_t * priv;
-  int need_streams = 0;
-    
-  priv = calloc(1, sizeof(*priv));
-  priv->start_pts = -1;
-  ctx->priv = priv;
+  priv = (mpegps_priv_t*)(ctx->priv);
+
+  if(ctx->input->input->read_sector)
+    return 0;
   
+  if(!bgav_input_get_fourcc(ctx->input, &fourcc) ||
+     (fourcc != BGAV_MK_FOURCC('R', 'I', 'F', 'F')))
+    return 0;
+
+  /* The CDXA is already tested by probe_mpegps, to we can
+     directly proceed to the interesting stuff */
+  bgav_input_skip(ctx->input, 12);
+
+  while(1)
+    {
+    /* Go throuth the RIFF chunks until we have a data chunk */
+
+    if(!bgav_input_read_fourcc(ctx->input, &fourcc) ||
+       !bgav_input_read_32_le(ctx->input, &size))
+      return 0;
+    if(fourcc == BGAV_MK_FOURCC('d', 'a', 't', 'a'))
+      break;
+#if 0
+    fprintf(stderr, "Got fourcc ");
+    bgav_dump_fourcc(fourcc);
+    fprintf(stderr, " skipping %d bytes\n", size);
+#endif
+    bgav_input_skip(ctx->input, size);
+    }
+  priv->data_start = ctx->input->position;
+  priv->data_size = size;
+
+  priv->total_sectors      = priv->data_size / CDXA_SECTOR_SIZE_RAW;
+  fprintf(stderr, "Got CDXA file, %lld sectors (rest: %d)\n",
+          priv->total_sectors, (int)(priv->data_size % CDXA_SECTOR_SIZE_RAW));
+
+  priv->sector_size        = CDXA_SECTOR_SIZE;
+  priv->sector_size_raw    = CDXA_SECTOR_SIZE_RAW;
+  priv->sector_header_size = CDXA_HEADER_SIZE;
+  priv->sector_buffer      = malloc(priv->sector_size_raw);
+
+  priv->goto_sector = goto_sector_cdxa;
+  priv->read_sector = read_sector_cdxa;
+  
+  priv->is_cdxa = 1;
+
+  /* Initialize track table */
+
+  ctx->tt = bgav_track_table_create(1);
+
+  track = ctx->tt->current_track;
+  
+  stream =  bgav_track_add_audio_stream(track);
+  stream->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '2');
+  stream->stream_id = 0xc0;
+  stream->timescale = 90000;
+  
+  stream =  bgav_track_add_video_stream(track);
+  stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
+  stream->stream_id = 0xe0;
+  stream->timescale = 90000;
+  
+  return 1;
+  }
+
+static int init_mpegps(bgav_demuxer_context_t * ctx)
+  {
+  mpegps_priv_t * priv;
+  uint32_t start_code;
+
+  priv = (mpegps_priv_t*)(ctx->priv);
   while(1)
     {
     if(!(start_code = next_start_code(ctx->input)))
@@ -623,9 +928,43 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
   priv->data_start = ctx->input->position;
   if(ctx->input->total_bytes)
     priv->data_size = ctx->input->total_bytes - priv->data_start;
+  return 1;
+  }
+
+static int open_mpegps(bgav_demuxer_context_t * ctx,
+                       bgav_redirector_context_t ** redir)
+  {
+  mpegps_priv_t * priv;
+  int need_streams = 0;
     
-  if(!pack_header_read(ctx->input, &(priv->pack_header)))
+  priv = calloc(1, sizeof(*priv));
+  priv->start_pts = -1;
+  ctx->priv = priv;
+  
+  /* Check for sector based access */
+
+  if(!init_cdxa(ctx))
+    {
+    if(ctx->input->sector_size)
+      {
+      priv->sector_size        = ctx->input->sector_size;
+      priv->sector_size_raw    = ctx->input->sector_size_raw;
+      priv->sector_header_size = ctx->input->sector_header_size;
+      priv->total_sectors      = ctx->input->total_sectors;
+      priv->sector_buffer      = malloc(ctx->input->sector_size_raw);
+      
+      priv->goto_sector = goto_sector_input;
+      priv->read_sector = read_sector_input;
+      }
+    }
+
+  if(priv->sector_size)
+    init_sector_mode(ctx);
+  else if(!init_mpegps(ctx))
     return 0;
+  
+  //  if(!pack_header_read(ctx->input, &(priv->pack_header)))
+  //    return 0;
   
   if(!ctx->tt)
     {
@@ -648,9 +987,10 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
   //          priv->pack_header.mux_rate,
   //          ctx->input->total_bytes);
   
-  if(ctx->input->input->seek_byte)
+  if((ctx->input->input->seek_byte) ||
+     (ctx->input->input->seek_sector))
     ctx->can_seek = 1;
-
+  
   if(!priv->pack_header.mux_rate)
     {
     ctx->stream_description =
@@ -669,7 +1009,7 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-static void seek_mpegps(bgav_demuxer_context_t * ctx, gavl_time_t time)
+static void seek_normal(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
   mpegps_priv_t * priv;
   int64_t file_position;
@@ -715,10 +1055,57 @@ static void seek_mpegps(bgav_demuxer_context_t * ctx, gavl_time_t time)
     }
   }
 
+static void seek_sector(bgav_demuxer_context_t * ctx, gavl_time_t time)
+  {
+  mpegps_priv_t * priv;
+  int64_t sector;
+  
+  priv = (mpegps_priv_t*)(ctx->priv);
+  
+  //  file_position = (priv->pack_header.mux_rate*50*time)/GAVL_TIME_SCALE;
+  sector = (priv->total_sectors * time)/
+    ctx->tt->current_track->duration;
+
+  if(sector < 0)
+    sector = 0;
+  if(sector >= priv->total_sectors)
+    sector = priv->total_sectors - 1;
+
+  while(1)
+    {
+    priv->goto_sector(ctx, sector);
+    
+    if(do_sync(ctx))
+      break;
+    else
+      {
+      sector--; /* Go a bit back */
+      if(sector < 0)
+        {
+        break; /* Escape from inifinite loop */
+        }
+      }
+    }
+  }
+
+static void seek_mpegps(bgav_demuxer_context_t * ctx, gavl_time_t time)
+  {
+  mpegps_priv_t * priv;
+  priv = (mpegps_priv_t*)(ctx->priv);
+  if(priv->sector_size)
+    seek_sector(ctx, time);
+  else
+    seek_normal(ctx, time);
+  }
+
 static void close_mpegps(bgav_demuxer_context_t * ctx)
   {
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
+  if(!priv)
+    return;
+  if(priv->sector_buffer)
+    free(priv->sector_buffer);
   free(priv);
   }
 

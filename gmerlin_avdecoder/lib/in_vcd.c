@@ -26,6 +26,8 @@
 #include <cdio/device.h>
 #include <cdio/cd_types.h>
 
+#define SECTOR_ACCESS
+
 extern bgav_demuxer_t bgav_demuxer_mpegps;
 
 #define SECTOR_SIZE 2324
@@ -50,12 +52,13 @@ typedef struct
     uint32_t end_sector;
     int mode; /* A TRACK_* define from above */
     } * tracks;
-
+#ifndef SECTOR_ACCESS
   uint8_t sector[2352];
 
   uint8_t * buffer;
   uint8_t * buffer_ptr;
-
+#endif
+  
   int num_video_tracks;
     
   } vcd_priv;
@@ -75,9 +78,13 @@ static void select_track_vcd(bgav_input_context_t * ctx, int track)
     (priv->tracks[priv->current_track].end_sector -
      priv->tracks[priv->current_track].start_sector + 1);
 
+  ctx->total_sectors = priv->tracks[priv->current_track].end_sector -
+    priv->tracks[priv->current_track].start_sector + 1;
+  ctx->sector_position = 0;
+#ifndef SECTOR_ACCESS  
   /* Data should be read after next call */
-
   priv->buffer_ptr = priv->buffer + SECTOR_SIZE;
+#endif
   }
 
 static int read_toc(vcd_priv * priv)
@@ -115,7 +122,7 @@ static int read_toc(vcd_priv * priv)
         }
       else
         {
-        fprintf(stderr, "Track %d is th SVCD iso9660 track\n", i+1);
+        fprintf(stderr, "Track %d is the VCD iso9660 track\n", i+1);
         priv->tracks[i].mode = TRACK_OTHER;
         }
       }
@@ -141,7 +148,7 @@ static int read_toc(vcd_priv * priv)
     }
   /* Dump this */
 #if 1
-  for(i = priv->num_tracks-1; i>=0; i--)
+  for(i = 0; i < priv->num_tracks; i++)
     {
     fprintf(stderr, "Track %d, Start: %d, end: %d ",
             i+1, priv->tracks[i].start_sector, priv->tracks[i].end_sector);
@@ -218,8 +225,10 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   
   ctx->priv = priv;
 
+#ifndef SECTOR_ACCESS
   priv->buffer = priv->sector + 8;
   priv->buffer_ptr = priv->buffer + SECTOR_SIZE;
+#endif
   
   priv->cdio = cdio_open (url, DRIVER_DEVICE);
   if(!priv->cdio)
@@ -240,6 +249,14 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
     }
   toc_2_tt(ctx);
 
+  /* Set up sector stuff */
+
+#ifdef SECTOR_ACCESS
+  ctx->sector_size        = 2324;
+  ctx->sector_size_raw    = 2352;
+  ctx->sector_header_size = 8;
+#endif
+  
   /* Create demuxer */
   
   ctx->demuxer = bgav_demuxer_create(&bgav_demuxer_mpegps, ctx);
@@ -257,22 +274,24 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   return 1;
   }
 
-static int read_sector(vcd_priv * priv)
+static int read_sector(bgav_input_context_t * ctx, uint8_t * data)
   {
+  vcd_priv * priv;
+  priv = (vcd_priv*)(ctx->priv);
+
   // fprintf(stderr, "Read sector %d ", priv->next_sector);
 
   //  do
   //    {
 #if 0
   fprintf(stderr, "read_sector %d...", priv->next_sector);
-#endif    
+#endif
   if(priv->next_sector > priv->tracks[priv->current_track].end_sector)
     return 0;
 
-  if(cdio_read_mode2_sector(priv->cdio, priv->sector, 
-                            priv->next_sector, true)!=0)
+  if(cdio_read_mode2_sector(priv->cdio, data, priv->next_sector, true)!=0)
     {
-    //    fprintf(stderr, "Failed\n");
+    fprintf(stderr, "Read sector from %d failed\n", priv->next_sector);
     return 0;
     }
 #if 0
@@ -281,12 +300,14 @@ static int read_sector(vcd_priv * priv)
   priv->next_sector++;
 
   priv->last_sector = priv->next_sector - 1;
+#ifndef SECTOR_ACCESS
   priv->buffer_ptr = priv->buffer;
-
+#endif
   //  bgav_hexdump(priv->buffer_ptr, 32, 16);
   return 1;
   }
 
+#ifndef SECTOR_ACCESS
 static int read_vcd(bgav_input_context_t* ctx,
                     uint8_t * buffer, int len)
   {
@@ -302,7 +323,7 @@ static int read_vcd(bgav_input_context_t* ctx,
     {
     if(priv->buffer_ptr - priv->buffer >= SECTOR_SIZE)
       {
-      if(!read_sector(priv))
+      if(!read_sector(ctx, priv->sector))
         return bytes_read;
       }
 
@@ -339,11 +360,31 @@ static int64_t seek_byte_vcd(bgav_input_context_t * ctx,
   else
     {
     priv->next_sector = sector;
-    read_sector(priv);
+    read_sector(ctx, priv->sector);
     priv->buffer_ptr = priv->buffer + sector_offset;
     }
   return ctx->position;
   }
+#endif // Sector access
+
+#ifdef SECTOR_ACCESS
+static int64_t seek_sector_vcd(bgav_input_context_t * ctx,
+                               int64_t sector)
+  {
+  vcd_priv * priv;
+  priv = (vcd_priv*)(ctx->priv);
+#if 0
+  fprintf(stderr, "Seek: sector: %lld + %d\n", 
+          sector, priv->tracks[priv->current_track].start_sector);
+#endif
+
+  priv->next_sector = sector + priv->tracks[priv->current_track].start_sector;
+  return priv->next_sector;
+  }
+
+#endif
+
+
 
 static void    close_vcd(bgav_input_context_t * ctx)
   {
@@ -362,8 +403,13 @@ bgav_input_t bgav_input_vcd =
   {
     name:          "vcd",
     open:          open_vcd,
+#ifdef SECTOR_ACCESS
+    read_sector:   read_sector,
+    seek_sector:   seek_sector_vcd,
+#else
     read:          read_vcd,
     seek_byte:     seek_byte_vcd,
+#endif
     close:         close_vcd,
     select_track:  select_track_vcd,
   };

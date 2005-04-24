@@ -412,6 +412,11 @@ struct bgav_input_s
 
   void    (*select_track)(bgav_input_context_t*, int);
 
+  /* Alternate API: Sector based read and seek access */
+
+  int (*read_sector)(bgav_input_context_t*,uint8_t* buffer);
+  int64_t (*seek_sector)(bgav_input_context_t*, int64_t sector);
+  
   /* Some inputs autoscan the available devices */
   bgav_device_info_t (*find_devices)();
   };
@@ -455,6 +460,14 @@ struct bgav_input_context_s
      need to prebuffer data */
     
   int do_buffer;
+
+  /* For sector based access */
+
+  int sector_size;
+  int sector_size_raw;
+  int sector_header_size;
+  int64_t total_sectors;
+  int64_t sector_position;
   
   /* Configuration stuff is set here */
 
@@ -526,6 +539,8 @@ int bgav_input_get_64_be(bgav_input_context_t*,uint64_t*);
 int bgav_input_read_line(bgav_input_context_t*,
                          char ** buffer, int * buffer_alloc, int buffer_offset);
 
+int bgav_input_read_sector(bgav_input_context_t*, uint8_t*);
+
 bgav_input_context_t * bgav_input_create();
 
 int bgav_input_open(bgav_input_context_t *, const char * url);
@@ -546,6 +561,10 @@ void bgav_input_skip_dump(bgav_input_context_t *, int);
 void bgav_input_seek(bgav_input_context_t * ctx,
                      int64_t position,
                      int whence);
+
+void bgav_input_seek_sector(bgav_input_context_t * ctx,
+                            int64_t sector);
+
 
 void bgav_input_buffer(bgav_input_context_t * ctx);
 

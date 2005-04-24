@@ -539,3 +539,18 @@ void bgav_input_buffer(bgav_input_context_t * ctx)
       }
     }
   }
+
+int bgav_input_read_sector(bgav_input_context_t * ctx, uint8_t * buf)
+  {
+  if(!ctx->input->read_sector)
+    return 0;
+  return ctx->input->read_sector(ctx, buf);
+  }
+
+void bgav_input_seek_sector(bgav_input_context_t * ctx,
+                            int64_t sector)
+  {
+  if(ctx->input->seek_sector)
+    ctx->input->seek_sector(ctx, sector);
+  }
+
