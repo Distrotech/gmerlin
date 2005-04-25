@@ -182,28 +182,29 @@ static void add_packet(bgav_demuxer_context_t * ctx,
                        int64_t timestamp,
                        int keyframe)
   {
-  bgav_superindex_add_packet(ctx->si, s,
-                             offset, 0, stream_id, timestamp, keyframe);
-
-  if(index)
+  if(stream_id >= 0)
+    bgav_superindex_add_packet(ctx->si, s,
+                               offset, 0, stream_id, timestamp, keyframe);
+  
+  if(index && !ctx->si->entries[index-1].size)
     {
     /* Check whether to advance the mdat */
 
-    if(ctx->si->entries[index].offset >= priv->mdats[priv->current_mdat].start +
+    if(offset >= priv->mdats[priv->current_mdat].start +
        priv->mdats[priv->current_mdat].size)
       {
       ctx->si->entries[index-1].size =
         priv->mdats[priv->current_mdat].start +
         priv->mdats[priv->current_mdat].size - ctx->si->entries[index-1].offset;
 
-      while(ctx->si->entries[index].offset >= priv->mdats[priv->current_mdat].start +
+      while(offset >= priv->mdats[priv->current_mdat].start +
             priv->mdats[priv->current_mdat].size)
         priv->current_mdat++;
       }
     else
       {
       ctx->si->entries[index-1].size =
-        ctx->si->entries[index].offset - ctx->si->entries[index-1].offset;
+        offset - ctx->si->entries[index-1].offset;
       }
     }
   }
@@ -313,14 +314,25 @@ static void build_index(bgav_demuxer_context_t * ctx)
 
       for(j = 0; j < s->stbl->stsc.entries[s->stsc_pos].samples_per_chunk; j++)
         {
-        add_packet(ctx,
-                   priv,
-                   bgav_s,
-                   i, chunk_offset,
-                   stream_id,
-                   s->tics,
-                   check_keyframe(s));
-        
+        if(s->skip_first_frame && !s->stco_pos)
+          add_packet(ctx,
+                     priv,
+                     bgav_s,
+                     i, chunk_offset,
+                     -1,
+                     s->tics,
+                     check_keyframe(s));
+        else
+          {
+          add_packet(ctx,
+                     priv,
+                     bgav_s,
+                     i, chunk_offset,
+                     stream_id,
+                     s->tics,
+                     check_keyframe(s));
+          i++;
+          }
         chunk_offset += (s->stsz_pos >= 0) ? s->stbl->stsz.entries[s->stsz_pos]:
           s->stbl->stsz.sample_size;
         
@@ -343,7 +355,6 @@ static void build_index(bgav_demuxer_context_t * ctx)
           {
           s->tics += s->stbl->stts.entries[0].duration;
           }
-        i++;
         }
       s->stco_pos++;
       /* Update sample to chunk */
@@ -543,7 +554,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       if(skip_first_frame)
         {
         stream_priv->skip_first_frame = 1;
-        
+#if 0
         /* Sample size */
         if(stream_priv->stsz_pos >= 0)
           stream_priv->stsz_pos++;
@@ -570,6 +581,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
           if(stream_priv->stbl->stsc.entries[stream_priv->stsc_pos+1].first_chunk - 1 == stream_priv->stco_pos)
             stream_priv->stsc_pos++;
           }
+#endif
         }
 
       bg_vs->priv = stream_priv;

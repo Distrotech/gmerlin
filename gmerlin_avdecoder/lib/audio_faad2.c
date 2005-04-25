@@ -169,7 +169,7 @@ static int decode_frame(bgav_stream_t * s)
 #endif
   while(1)
     {
-    //    fprintf(stderr, "faacDecDecode %d, buf: %d: ", frame_number, priv->data_size);
+    //    fprintf(stderr, "faacDecDecode, buf: %d: ", priv->data_size);
     //    bgav_hexdump(priv->data_ptr, 16, 16);
     priv->frame->samples.f = faacDecDecode(priv->dec,
                                            &frame_info,
