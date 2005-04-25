@@ -173,7 +173,6 @@ static void add_video_stream_lqt(void * data, gavl_video_format_t* format)
   if(e->format == FORMAT_AVI)
     e->video_streams[e->num_video_streams].format.free_framerate = 0;
   
-  
   e->num_video_streams++;
   
   }
@@ -457,6 +456,11 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
     e->video_streams[stream].format.colorspace =
       bg_lqt_get_gavl_colorspace(quicktime_colormodel);
     lqt_set_cmodel(e->file, stream, quicktime_colormodel);
+
+    /* Request constant framerate for AVI files */
+
+    if(e->format == FORMAT_AVI)
+      e->video_streams[stream].format.free_framerate = 0;
 
     if(!gavl_colorspace_is_planar(e->video_streams[stream].format.colorspace))
       e->video_streams[stream].rows =

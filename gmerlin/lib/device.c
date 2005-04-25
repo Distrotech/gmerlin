@@ -24,18 +24,60 @@
 
 #include <plugin.h>
 #include <utils.h>
+#include <limits.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+
+static void dereference_link(const char * _src, char dst[PATH_MAX])
+  {
+  int len;
+  struct stat st;
+
+  char src[PATH_MAX];
+
+  strcpy(src, _src);
+
+  while(1)
+    {
+    if(stat(src, &st) || !S_ISLNK(st.st_mode))
+      {
+      strcpy(dst, src);
+      return;
+      }
+
+    /* Read symbolic link and copy to source */
+
+    len = readlink(src, dst, PATH_MAX);
+    dst[len] = '\0';
+    strcpy(dst, src);
+    }
+  
+  }
 
 bg_device_info_t * bg_device_info_append(bg_device_info_t * arr,
                                          const char * device,
                                          const char * name)
   {
-  int size = 0;
-
+  int i, size = 0;
+  char real_device[PATH_MAX];
+  
   if(arr)
     {
     while(arr[size].device)
       size++;
     }
+
+  dereference_link(device, real_device);
+
+  for(i = 0; i < size; i++)
+    {
+    if(!strcmp(arr[i].device, real_device))
+      return arr;
+    }
+
   
   size++;
 
