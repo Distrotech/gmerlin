@@ -21,6 +21,7 @@ cdaudio.c \
 cdaudio_xml.c \
 sha1.c	\
 cdparanoia.c \
+cdtext.c \
 $(musicbrainz_sources) \
 $(cdparanoia_sources)
 

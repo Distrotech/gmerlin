@@ -151,7 +151,17 @@ static int open_cdaudio(void * data, const char * arg)
   
   /* Now, try to get the metadata */
 
-  /* 1st try: Local file */
+  /* 1st try: Check for cdtext */
+
+  if(bg_cdaudio_get_metadata_cdtext(cd->cdio,
+                                    cd->track_info,
+                                    cd->index))
+    {
+    have_metadata = 1;
+    have_local_metadata = 1; /* We never save cdtext infos */
+    }
+  
+  /* 2nd try: Local file */
 
   tmp_filename = bg_search_file_read("cdaudio_metadata", cd->disc_id);
   if(tmp_filename)

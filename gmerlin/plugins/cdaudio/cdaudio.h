@@ -98,6 +98,15 @@ int bg_cdaudio_get_metadata_musicbrainz(bg_cdaudio_index_t*,
 #endif
 
 /*
+ *  Try to get metadata via CDtext. Requires a valid and open
+ *  CDrom, returns False on failure
+ */
+
+int bg_cdaudio_get_metadata_cdtext(CdIo_t*,
+                                   bg_track_info_t * info,
+                                   bg_cdaudio_index_t*);
+
+/*
  *  Ripping support
  *  Several versions (cdparanoia, simple linux ripper) can go here
  */
