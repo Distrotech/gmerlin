@@ -422,6 +422,10 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
     session_id=bgav_strndup(var, NULL);
   
   sdp = bgav_rtsp_get_sdp(priv->r);
+
+  /* Set up input metadata from sdp */
+  ctx->metadata.title = bgav_strndup(sdp->session_name, (char*)0);
+  ctx->metadata.comment = bgav_strndup(sdp->session_description, (char*)0);
   
   switch(priv->type)
     {

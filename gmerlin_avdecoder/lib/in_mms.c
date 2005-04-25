@@ -92,7 +92,9 @@ static int open_mms(bgav_input_context_t * ctx, const char * url)
       track->video_streams[i].stream_id;
   
   bgav_mms_select_streams(priv->mms, stream_ids, num_streams, &(ctx->error_msg));
-  
+
+  if((!track->name) && (track->metadata.title))
+    track->name = bgav_strndup(track->metadata.title, (char*)0);
   
   free(stream_ids);
   /* Set the input context of the demuxer */
