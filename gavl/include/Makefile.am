@@ -10,6 +10,7 @@ float_cast.h \
 interleave.h \
 mix.h \
 sampleformat.h \
+scale.h \
 video.h \
 volume.h
 
