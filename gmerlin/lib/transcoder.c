@@ -644,6 +644,15 @@ static void finalize_video_stream(video_stream_t * ret,
   else if((int64_t)ret->in_format.frame_duration * (int64_t)ret->out_format.timescale !=
           (int64_t)ret->out_format.frame_duration * (int64_t)ret->in_format.timescale)
     ret->convert_framerate = 1;
+
+  if(ret->convert_framerate)
+    {
+    fprintf(stderr, "Doing framerate conversion %5.2f (%s) -> %5.2f (%s)\n",
+            (float)(ret->in_format.timescale) / (float)(ret->in_format.frame_duration),
+            (ret->in_format.free_framerate ? "nonconstant" : "constant"),
+            (float)(ret->out_format.timescale) / (float)(ret->out_format.frame_duration),
+            (ret->out_format.free_framerate ? "nonconstant" : "constant"));
+    }
   
   /* Create frames */
 
