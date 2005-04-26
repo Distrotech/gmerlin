@@ -805,7 +805,7 @@ static void get_duration(bgav_demuxer_context_t * ctx)
 
     bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
     }
-  else if(ctx->input->total_bytes)
+  else if(ctx->input->total_bytes && priv->pack_header.mux_rate)
     {
     ctx->tt->current_track->duration =
       (ctx->input->total_bytes * GAVL_TIME_SCALE)/
@@ -928,6 +928,11 @@ static int init_mpegps(bgav_demuxer_context_t * ctx)
   priv->data_start = ctx->input->position;
   if(ctx->input->total_bytes)
     priv->data_size = ctx->input->total_bytes - priv->data_start;
+
+
+  if(!pack_header_read(ctx->input, &(priv->pack_header)))
+    return 0;
+
   return 1;
   }
 
