@@ -377,6 +377,7 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
     
     if(size)
       {
+      //      fprintf(stderr, "frame size: %d\n", size);
       time = stream->data.video.format.frame_duration *
         avi_vs->total_frames;
       
@@ -387,6 +388,11 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
                                  stream->stream_id,
                                  time,
                                  keyframe);
+      }
+    else /* If we have zero size, the framerate will be nonconstant */
+      {
+      //      fprintf(stderr, "Zero size frame\n");
+      stream->data.video.format.free_framerate = 1;
       }
     avi_vs->total_frames++;
     }

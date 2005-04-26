@@ -493,7 +493,7 @@ AC_SUBST(LIBA52_CFLAGS)
 AC_SUBST(LIBA52_LIBS)
 AC_SUBST(LIBA52_REQUIRED)
 
-AM_CONDITIONAL(HAVE_LIBA52, test x$have_a52 = xtrue)
+AM_CONDITIONAL(HAVE_LIBA52, test x$have_liba52 = xtrue)
 
 if test x$have_liba52 = xtrue; then
 AC_DEFINE(HAVE_LIBA52)
