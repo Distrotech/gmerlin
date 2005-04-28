@@ -664,7 +664,6 @@ transcoder_window_t * transcoder_window_create()
 
   /* Apply config stuff */
 
-
   cfg_section = bg_cfg_registry_find_section(ret->cfg_reg, "transcoder_window");
   bg_cfg_section_apply(cfg_section, transcoder_window_parameters,
                        set_transcoder_window_parameter, ret);
@@ -676,8 +675,12 @@ transcoder_window_t * transcoder_window_create()
   
   ret->remote = bg_remote_server_create(port, TRANSCODER_REMOTE_ID);
 
-  if(!bg_remote_server_init(ret->remote))
-    fprintf(stderr, "Cannot open remote server (Port %d busy?)\n", TRANSCODER_REMOTE_PORT);
+  cfg_section = bg_cfg_registry_find_section(ret->cfg_reg, "remote");
+  bg_cfg_section_apply(cfg_section, bg_remote_server_get_parameters(ret->remote),
+                       bg_remote_server_set_parameter, ret->remote);
+  
+  //  if(!bg_remote_server_init(ret->remote))
+  //    fprintf(stderr, "Cannot open remote server (Port busy?)\n");
   
   return ret;
   }
@@ -700,9 +703,6 @@ void transcoder_window_destroy(transcoder_window_t* w)
   bg_cfg_registry_save(w->cfg_reg, tmp_path);
   if(tmp_path)
     free(tmp_path);
-
-
-
   
   bg_cfg_registry_destroy(w->cfg_reg);
 
@@ -797,6 +797,16 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 set_transcoder_window_parameter,
                 w,
                 transcoder_window_parameters);
+
+  cfg_section = bg_cfg_registry_find_section(w->cfg_reg,
+                                             "remote");
+
+  bg_dialog_add(dlg,
+                "Remote",
+                cfg_section,
+                bg_remote_server_set_parameter,
+                w,
+                bg_remote_server_get_parameters(w->remote));
 
   bg_dialog_show(dlg);
   bg_dialog_destroy(dlg);

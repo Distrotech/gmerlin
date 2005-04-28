@@ -5,6 +5,7 @@
 typedef struct
   {
   char * background;
+  char * background_highlight;
  
   bg_gtk_button_skin_t play_button;
   bg_gtk_button_skin_t pause_button;
@@ -70,9 +71,11 @@ typedef struct player_window_s
   int window_y;
     
   /* Background */
-
+  
   GdkPixbuf * background_pixbuf;
-    
+  GdkPixbuf * background_pixbuf_highlight;
+  int mouse_inside;
+  
   /* GUI Elements */
 
   bg_gtk_button_t * play_button;

@@ -36,16 +36,22 @@ static void set_background(player_window_t * win)
   GdkBitmap * mask;
   GdkPixmap * pixmap;
   int width, height;
-  
-  if(!win->background_pixbuf)
+  GdkPixbuf * pixbuf;
+
+  if(win->mouse_inside)
+    pixbuf = win->background_pixbuf_highlight;
+  else
+    pixbuf = win->background_pixbuf;
+
+  if(!pixbuf)
     return;
   
-  width = gdk_pixbuf_get_width(win->background_pixbuf);
-  height = gdk_pixbuf_get_height(win->background_pixbuf);
+  width = gdk_pixbuf_get_width(pixbuf);
+  height = gdk_pixbuf_get_height(pixbuf);
 
   gtk_widget_set_size_request(win->window, width, height);
   
-  gdk_pixbuf_render_pixmap_and_mask(win->background_pixbuf,
+  gdk_pixbuf_render_pixmap_and_mask(pixbuf,
                                     &pixmap, &mask, 0x80);
   
   if(pixmap && BACKGROUND_WINDOW)
@@ -69,15 +75,19 @@ void player_window_set_skin(player_window_t * win,
   char * tmp_path;
   
   if(win->background_pixbuf)
-    {
     g_object_unref(G_OBJECT(win->background_pixbuf));
+  
+  tmp_path = bg_sprintf("%s/%s", directory, s->background);
+  win->background_pixbuf = gdk_pixbuf_new_from_file(tmp_path, NULL);
+  free(tmp_path);
+
+  if(s->background_highlight)
+    {
+    tmp_path = bg_sprintf("%s/%s", directory, s->background_highlight);
+    win->background_pixbuf_highlight = gdk_pixbuf_new_from_file(tmp_path, NULL);
+    free(tmp_path);
     }
 
-  tmp_path = bg_sprintf("%s/%s", directory, s->background);
-  
-  win->background_pixbuf = gdk_pixbuf_new_from_file(tmp_path, NULL);
-  
-  free(tmp_path);
   set_background(win);
 
   /* Apply the button skins */
@@ -434,6 +444,21 @@ gboolean idle_callback(gpointer data)
   return TRUE;
   }
 
+static gboolean crossing_callback(GtkWidget *widget,
+                                  GdkEventCrossing *event,
+                                  gpointer data)
+  {
+  player_window_t * w = (player_window_t *)data;
+
+  if(event->detail == GDK_NOTIFY_INFERIOR)
+    return FALSE;
+  
+  w->mouse_inside = (event->type == GDK_ENTER_NOTIFY) ? 1 : 0;
+  set_background(w);
+  //  fprintf(stderr, "crossing_callback\n");
+  return FALSE;
+  }
+
 player_window_t * player_window_create(gmerlin_t * g)
   {
   player_window_t * ret;
@@ -463,6 +488,9 @@ player_window_t * player_window_create(gmerlin_t * g)
   
   /* Set attributes */
 
+  gtk_widget_set_events(ret->window,
+                        GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK);
+    
   gtk_widget_set_events(ret->layout,
                         GDK_BUTTON1_MOTION_MASK|
                         GDK_BUTTON2_MOTION_MASK|
@@ -472,12 +500,21 @@ player_window_t * player_window_create(gmerlin_t * g)
 
   g_signal_connect(G_OBJECT(ret->window), "realize",
                    G_CALLBACK(realize_callback), (gpointer*)ret);
+
+  g_signal_connect(G_OBJECT(ret->window), "enter-notify-event",
+                   G_CALLBACK(crossing_callback), (gpointer*)ret);
+  g_signal_connect(G_OBJECT(ret->window), "leave-notify-event",
+                   G_CALLBACK(crossing_callback), (gpointer*)ret);
+  
+
   g_signal_connect(G_OBJECT(ret->layout), "realize",
                    G_CALLBACK(realize_callback), (gpointer*)ret);
 
   g_signal_connect(G_OBJECT(ret->layout), "motion-notify-event",
                    G_CALLBACK(motion_callback), (gpointer*)ret);
 
+
+  
   g_signal_connect(G_OBJECT(ret->layout), "button-press-event",
                    G_CALLBACK(button_press_callback), (gpointer*)ret);
 
@@ -637,6 +674,13 @@ void player_window_skin_load(player_window_skin_t * s,
       s->background = bg_strdup(s->background, tmp_string);
       xmlFree(tmp_string);
       }
+    else if(!strcmp(child->name, "BACKGROUND_HIGHLIGHT"))
+      {
+      tmp_string = xmlNodeListGetString(doc, child->children, 1);
+      s->background_highlight = bg_strdup(s->background_highlight, tmp_string);
+      xmlFree(tmp_string);
+      }
+
     else if(!strcmp(child->name, "DISPLAY"))
       display_skin_load(&(s->display), doc, child);
     else if(!strcmp(child->name, "PLAYBUTTON"))
@@ -667,6 +711,8 @@ void player_window_skin_destroy(player_window_skin_t * s)
   {
   if(s->background)
     free(s->background);
+  if(s->background_highlight)
+    free(s->background_highlight);
   bg_gtk_button_skin_free(&(s->play_button));
   bg_gtk_button_skin_free(&(s->stop_button));
   bg_gtk_button_skin_free(&(s->pause_button));

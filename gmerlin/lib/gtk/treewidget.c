@@ -1099,7 +1099,7 @@ static void add_device(bg_gtk_tree_widget_t * w)
   
   info[0].name                = "device";
   info[0].long_name           = "Device";
-  info[0].type                = BG_PARAMETER_STRING;
+  info[0].type                = BG_PARAMETER_FILE;
 
   info[1].name                = "name";
   info[1].long_name           = "Name";
@@ -1108,7 +1108,7 @@ static void add_device(bg_gtk_tree_widget_t * w)
   dialog = bg_dialog_create((bg_cfg_section_t*)0,
                             set_parameter_add_device,
                             &s,
-                            info, "Rename album");
+                            info, "Add device");
   
   bg_dialog_show(dialog);
   
