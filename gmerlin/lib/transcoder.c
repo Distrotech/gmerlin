@@ -327,6 +327,8 @@ struct bg_transcoder_s
   const char * error_msg_ret;
   
   char * output_filename;
+
+  int is_url;
   };
 
 static bg_parameter_info_t parameters[] =
@@ -342,6 +344,8 @@ static bg_parameter_info_t parameters[] =
       long_name:   "Delete incomplete output files",
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
+      help_string: "Delete the encoded file(s) file if you hit the stop button. \
+This option will automatically be disabled, when the track is an URL",
     },
     {
       name:        "send_finished",
@@ -1074,6 +1078,9 @@ int bg_transcoder_init(bg_transcoder_t * ret,
     goto fail;
     }
 
+  if(bg_string_is_url(ret->location))
+    ret->is_url = 1;
+  
   //  fprintf(stderr, "done\n");
 
   
@@ -1709,7 +1716,7 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
   int i;
   int do_delete;
   do_delete =
-    ((t->state == TRANSCODER_STATE_RUNNING) && t->delete_incomplete) ? 1 : 0;
+    ((t->state == TRANSCODER_STATE_RUNNING) && t->delete_incomplete && !t->is_url) ? 1 : 0;
 
   //  fprintf(stderr, "Do delete: %d\n", do_delete);
 

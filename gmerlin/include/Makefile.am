@@ -28,5 +28,6 @@ utils.h
 noinst_HEADERS = \
 playerprivate.h \
 treeprivate.h \
-registry_priv.h
+registry_priv.h \
+bggavl.h
 

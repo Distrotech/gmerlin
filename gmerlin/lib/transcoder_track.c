@@ -237,7 +237,9 @@ static bg_parameter_info_t parameters_general[] =
       name:      "set_start_time",
       long_name: "Set start time",
       type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 }
+      val_default: { val_i: 0 },
+      help_string: "Specify a start time below. This time is slightly wrong if the input\
+format doesn't support sample accurate seeking"
     },
     {
       name:      "start_time",
@@ -249,7 +251,8 @@ static bg_parameter_info_t parameters_general[] =
       name:      "set_end_time",
       long_name: "Set end time",
       type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 }
+      val_default: { val_i: 0 },
+      help_string: "Specify an end time below"
     },
     {
       name:      "end_time",
@@ -1098,13 +1101,17 @@ static bg_parameter_info_t general_parameters_video[] =
       type:        BG_PARAMETER_SLIDER_INT,
       val_min:     { val_i: GAVL_QUALITY_FASTEST },
       val_max:     { val_i: GAVL_QUALITY_BEST    },
-      val_default: { val_i: GAVL_QUALITY_DEFAULT }
+      val_default: { val_i: GAVL_QUALITY_DEFAULT },
+      help_string: "Set the conversion quality for format conversions. \
+Lower quality means more speed. Values above 3 enable slow high quality calculations"
     },
     {
       name:      "fixed_framerate",
       long_name: "Fixed framerate",
       type:      BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
+      help_string: "If disabled, the output framerate is taken from the source.\
+If enabled, the framerate you specify below us used"
     },
     {
       name:      "timescale",
@@ -1112,7 +1119,8 @@ static bg_parameter_info_t general_parameters_video[] =
       type:      BG_PARAMETER_INT,
       val_min:     { val_i: 1 },
       val_max:     { val_i: 100000 },
-      val_default: { val_i: 25 }
+      val_default: { val_i: 25 },
+      help_string: "Timescale for fixed output framerate (Framerate = timescale / frame_duration)",
     },
     {
       name:      "frame_duration",
@@ -1120,7 +1128,8 @@ static bg_parameter_info_t general_parameters_video[] =
       type:      BG_PARAMETER_INT,
       val_min:     { val_i: 1 },
       val_max:     { val_i: 100000 },
-      val_default: { val_i: 1 }
+      val_default: { val_i: 1 },
+      help_string: "Frame duration for fixed output framerate (Framerate = timescale / frame_duration)",
     },
     {
       name:      "crop_left",
@@ -1172,7 +1181,7 @@ static bg_parameter_info_t general_parameters_video[] =
                               "vcd_ntsc",
                               (char*)0 },
       
-      multi_labels:  (char*[]){ "From Input",
+      multi_labels:  (char*[]){ "From Source",
                                 "User defined",
                                 "DVD PAL D1 (720 x 576)",
                                 "DVD PAL (704 x 576)",
@@ -1229,13 +1238,17 @@ static bg_parameter_info_t general_parameters_audio[] =
       type:        BG_PARAMETER_SLIDER_INT,
       val_min:     { val_i: GAVL_QUALITY_FASTEST },
       val_max:     { val_i: GAVL_QUALITY_BEST    },
-      val_default: { val_i: GAVL_QUALITY_DEFAULT }
+      val_default: { val_i: GAVL_QUALITY_DEFAULT },
+      help_string: "Set the conversion quality for format conversions. \
+Lower quality means more speed. Values above 3 enable slow high quality calculations"
     },
     {
       name:      "fixed_samplerate",
       long_name: "Fixed samplerate",
       type:      BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
+      help_string: "If disabled, the output samplerate is taken from the source.\
+If enabled, the framerate you specify below us used"
     },
     {
       name:        "samplerate",
@@ -1244,12 +1257,17 @@ static bg_parameter_info_t general_parameters_audio[] =
       val_min:     { val_i: 8000 },
       val_max:     { val_i: 192000 },
       val_default: { val_i: 44100 },
+      help_string: "Fixed output samplerate",
+      
     },
     {
       name:      "fixed_channel_setup",
       long_name: "Fixed channel setup",
       type:      BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
+      help_string: "If disabled, the output channel configuration is taken from the source.\
+If enabled, the setup you specify below us used"
+
     },
     {
       name:        "channel_setup",
@@ -1264,6 +1282,8 @@ static bg_parameter_info_t general_parameters_audio[] =
                               "2 Front 2 Rear",
                               "3 Front 2 Rear",
                               (char*)0 },
+      help_string: "Fixed output channel setup",
+
     },
     {
       name:        "front_to_rear",
@@ -1274,6 +1294,8 @@ static bg_parameter_info_t general_parameters_audio[] =
                               "Copy",
                               "Diff",
                               (char*)0 },
+      help_string: "Mix mode when the output format has rear channels, \
+but the source doesn't",
     },
     {
       name:        "stereo_to_mono",
@@ -1284,6 +1306,8 @@ static bg_parameter_info_t general_parameters_audio[] =
                               "Choose right",
                               "Mix",
                               (char*)0 },
+      help_string: "Mix mode when downmixing Stereo to Mono",
+
     },
     { /* End of parameters */ }
   };
