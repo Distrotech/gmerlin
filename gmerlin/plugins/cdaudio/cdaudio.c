@@ -27,6 +27,7 @@
 
 #include <cdio/cdio.h>
 #include <cdio/audio.h>
+#include <cdio/mmc.h>
 
 #include "cdaudio.h"
 #include "sha1.h"
@@ -327,11 +328,16 @@ int bg_cdaudio_get_status(CdIo_t * cdio, bg_cdaudio_status_t *st)
 
   if(cdio_audio_read_subchannel(cdio, &subchannel) !=  DRIVER_OP_SUCCESS)
     return 0;
-  
-  //  fprintf(stderr, "Track: %d\n", subchnl.cdsc_trk);  
+
+  if(subchannel.audio_status == CDIO_MMC_READ_SUB_ST_COMPLETED)
+    {
+    fprintf(stderr, "Completed\n");
+    return 0;
+    }
   st->track = subchannel.track - 1;
   
   st->sector = cdio_msf_to_lsn(&(subchannel.abs_addr));
+  //  fprintf(stderr, "Track: %d Sector %d\n", subchannel.track, st->sector);  
   
   return 1;
   }

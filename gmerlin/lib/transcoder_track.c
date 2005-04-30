@@ -26,6 +26,8 @@
 #include <transcoder_track.h>
 #include <utils.h>
 
+#include <bggavl.h>
+
 static void create_encoder_sections(bg_transcoder_track_t * t,
                                     bg_cfg_section_t * audio_encoder_section,
                                     bg_cfg_section_t * video_encoder_section,
@@ -1088,6 +1090,11 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
 static bg_parameter_info_t general_parameters_video[] =
   {
     {
+      name:       "general",
+      long_name:  "General",
+      type:       BG_PARAMETER_SECTION
+    },
+    {
       name:        "action",
       long_name:   "Action",
       type:        BG_PARAMETER_STRINGLIST,
@@ -1095,130 +1102,18 @@ static bg_parameter_info_t general_parameters_video[] =
       multi_labels:  (char*[]){ "Transcode", "Forget", (char*)0 },
       val_default: { val_str: "transcode" },
     },
+    BG_GAVL_PARAM_CONVERSION_QUALITY,
+    BG_GAVL_PARAM_FRAMERATE,
+    BG_GAVL_PARAM_ALPHA,
+#if 0
     {
-      name:        "conversion_quality",
-      long_name:   "Conversion Quality",
-      type:        BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: GAVL_QUALITY_FASTEST },
-      val_max:     { val_i: GAVL_QUALITY_BEST    },
-      val_default: { val_i: GAVL_QUALITY_DEFAULT },
-      help_string: "Set the conversion quality for format conversions. \
-Lower quality means more speed. Values above 3 enable slow high quality calculations"
+      name:       "crop_scale",
+      long_name:  "Crop & Scale",
+      type:       BG_PARAMETER_SECTION
     },
-    {
-      name:      "fixed_framerate",
-      long_name: "Fixed framerate",
-      type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 },
-      help_string: "If disabled, the output framerate is taken from the source.\
-If enabled, the framerate you specify below us used"
-    },
-    {
-      name:      "timescale",
-      long_name: "Timescale",
-      type:      BG_PARAMETER_INT,
-      val_min:     { val_i: 1 },
-      val_max:     { val_i: 100000 },
-      val_default: { val_i: 25 },
-      help_string: "Timescale for fixed output framerate (Framerate = timescale / frame_duration)",
-    },
-    {
-      name:      "frame_duration",
-      long_name: "Frame duration",
-      type:      BG_PARAMETER_INT,
-      val_min:     { val_i: 1 },
-      val_max:     { val_i: 100000 },
-      val_default: { val_i: 1 },
-      help_string: "Frame duration for fixed output framerate (Framerate = timescale / frame_duration)",
-    },
-    {
-      name:      "crop_left",
-      long_name: "Crop left",
-      type:      BG_PARAMETER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 100000 },
-      val_default: { val_i: 0 },
-      help_string: "Cut this many pixels from the left border"
-    },
-    {
-      name:      "crop_right",
-      long_name: "Crop right",
-      type:      BG_PARAMETER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 100000 },
-      val_default: { val_i: 0 },
-      help_string: "Cut this many pixels from the right border"
-    },
-    {
-      name:      "crop_top",
-      long_name: "Crop top",
-      type:      BG_PARAMETER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 100000 },
-      val_default: { val_i: 0 },
-      help_string: "Cut this many pixels from the top border"
-    },
-    {
-      name:      "crop_bottom",
-      long_name: "Crop bottom",
-      type:      BG_PARAMETER_INT,
-      val_min:     { val_i: 0 },
-      val_max:     { val_i: 100000 },
-      val_default: { val_i: 0 },
-      help_string: "Cut this many pixels from the bottom border"
-    },
-    {
-      name:        "frame_size",
-      long_name:   "Frame Size",
-      type:        BG_PARAMETER_STRINGLIST,
-      multi_names: (char*[]){ "from_input",
-                              "user_defined",
-                              "dvd_pal_d1",
-                              "dvd_pal",
-                              "dvd_ntsc_d1",
-                              "dvd_ntsc",
-                              "vcd_pal",
-                              "vcd_ntsc",
-                              (char*)0 },
-      
-      multi_labels:  (char*[]){ "From Source",
-                                "User defined",
-                                "DVD PAL D1 (720 x 576)",
-                                "DVD PAL (704 x 576)",
-                                "DVD NTSC D1 (720 x 480)",
-                                "DVD NTSC (704 x 480)",
-                                "VCD PAL (352 x 288)",
-                                "VCD NTSC (352 x 240)",
-                                (char*)0 },
-      val_default: { val_str: "from_input" },
-      help_string: "Set the output frame size. For a user defined size, enter the width and height below",
-    },
-    {
-      name:      "user_width",
-      long_name: "User defined width",
-      type:      BG_PARAMETER_INT,
-      val_min:     { val_i: 1 },
-      val_max:     { val_i: 100000 },
-      val_default: { val_i: 640 },
-      help_string: "User defined width in pixels. Only meaningful if you selected \"User defined\" for the framesize",
-    },
-    {
-      name:      "user_height",
-      long_name: "User defined height",
-      type:      BG_PARAMETER_INT,
-      val_min:     { val_i: 1 },
-      val_max:     { val_i: 100000 },
-      val_default: { val_i: 480 },
-      help_string: "User defined height in pixels. Only meaningful if you selected \"User defined\" for the framesize",
-    },
-    {
-      name:      "maintain_aspect",
-      long_name: "Maintain aspect ratio",
-      type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 1 },
-      help_string: "Let the aspect ratio appear the same as in the source, probably resulting in additional black borders"
-    },
-    
+    BG_GAVL_PARAM_CROP,
+    BG_GAVL_PARAM_FRAME_SIZE,
+#endif
     { /* End of parameters */ }
   };
 
@@ -1232,83 +1127,9 @@ static bg_parameter_info_t general_parameters_audio[] =
       multi_labels:  (char*[]){ "Transcode", "Forget", (char*)0 },
       val_default: { val_str: "transcode" },
     },
-    {
-      name:        "conversion_quality",
-      long_name:   "Conversion Quality",
-      type:        BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: GAVL_QUALITY_FASTEST },
-      val_max:     { val_i: GAVL_QUALITY_BEST    },
-      val_default: { val_i: GAVL_QUALITY_DEFAULT },
-      help_string: "Set the conversion quality for format conversions. \
-Lower quality means more speed. Values above 3 enable slow high quality calculations"
-    },
-    {
-      name:      "fixed_samplerate",
-      long_name: "Fixed samplerate",
-      type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 },
-      help_string: "If disabled, the output samplerate is taken from the source.\
-If enabled, the framerate you specify below us used"
-    },
-    {
-      name:        "samplerate",
-      long_name:   "Samplerate",
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i: 8000 },
-      val_max:     { val_i: 192000 },
-      val_default: { val_i: 44100 },
-      help_string: "Fixed output samplerate",
-      
-    },
-    {
-      name:      "fixed_channel_setup",
-      long_name: "Fixed channel setup",
-      type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 },
-      help_string: "If disabled, the output channel configuration is taken from the source.\
-If enabled, the setup you specify below us used"
-
-    },
-    {
-      name:        "channel_setup",
-      long_name:   "Channel setup",
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "Stereo" },
-      multi_names: (char*[]){ "Mono",
-                              "Stereo",
-                              "3 Front",
-                              "2 Front 1 Rear",
-                              "3 Front 1 Rear",
-                              "2 Front 2 Rear",
-                              "3 Front 2 Rear",
-                              (char*)0 },
-      help_string: "Fixed output channel setup",
-
-    },
-    {
-      name:        "front_to_rear",
-      long_name:   "Front to rear mode",
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "Copy" },
-      multi_names:  (char*[]){ "Mute",
-                              "Copy",
-                              "Diff",
-                              (char*)0 },
-      help_string: "Mix mode when the output format has rear channels, \
-but the source doesn't",
-    },
-    {
-      name:        "stereo_to_mono",
-      long_name:   "Stereo to mono mode",
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "Mix" },
-      multi_names:  (char*[]){ "Choose left",
-                              "Choose right",
-                              "Mix",
-                              (char*)0 },
-      help_string: "Mix mode when downmixing Stereo to Mono",
-
-    },
+    BG_GAVL_PARAM_CONVERSION_QUALITY,
+    BG_GAVL_PARAM_SAMPLERATE,
+    BG_GAVL_PARAM_CHANNEL_SETUP,
     { /* End of parameters */ }
   };
 

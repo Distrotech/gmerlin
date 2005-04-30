@@ -26,7 +26,7 @@
 void bg_player_audio_create(bg_player_t * p)
   {
   p->audio_stream.cnv = gavl_audio_converter_create();
-  gavl_audio_default_options(&(p->audio_stream.opt));
+  bg_gavl_audio_options_init(&(p->audio_stream.options));
 
   pthread_mutex_init(&(p->audio_stream.config_mutex),(pthread_mutexattr_t *)0);
   }
@@ -45,40 +45,14 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   
   if(!player->do_audio)
     return 1;
-
-  /* Set custom format */
-
-  gavl_audio_format_copy(&(player->audio_stream.output_format),
-                         &(player->audio_stream.input_format));
-  /* Sample per frame is the same in input and output */
   
   pthread_mutex_lock(&(player->audio_stream.config_mutex));
 
-  if(player->audio_stream.fixed_channel_setup)
-    {
-    //    fprintf(stderr, "Fixed channel setup: %s\n",
-    //            gavl_channel_setup_to_string(player->audio_stream.channel_setup));
-
-    player->audio_stream.output_format.channel_setup =
-      player->audio_stream.channel_setup;
-    player->audio_stream.output_format.num_channels =
-      gavl_num_channels(player->audio_stream.channel_setup);
-    player->audio_stream.output_format.lfe = 0;
-
-    /* Let gavl find the channel indices also */
-    player->audio_stream.output_format.channel_locations[0] = GAVL_CHID_NONE;
-    gavl_set_channel_setup(&(player->audio_stream.output_format));
-    
-    }
-  //  else
-  //    fprintf(stderr, "NO Fixed channel setup\n");
-
-  if(player->audio_stream.fixed_samplerate)
-    {
-    player->audio_stream.output_format.samplerate =
-      player->audio_stream.samplerate; 
-    }
-
+  /* Set custom format */
+  bg_gavl_audio_options_set_format(&(player->audio_stream.options),
+                                   &(player->audio_stream.input_format),
+                                   &(player->audio_stream.output_format));
+  
   pthread_mutex_unlock(&(player->audio_stream.config_mutex));
   
 #if 0
@@ -122,7 +96,7 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   fprintf(stderr, "=================================\n");
 #endif
   
-  if(!gavl_audio_converter_init(player->audio_stream.cnv, &(player->audio_stream.opt),
+  if(!gavl_audio_converter_init(player->audio_stream.cnv, &(player->audio_stream.options.opt),
                                 &(player->audio_stream.input_format),
                                 &(player->audio_stream.output_format)))
     {
@@ -165,68 +139,9 @@ static bg_parameter_info_t parameters[] =
       long_name: "Audio",
       type:      BG_PARAMETER_SECTION,
     },
-    {
-      name:        "conversion_quality",
-      long_name:   "Conversion Quality",
-      type:        BG_PARAMETER_SLIDER_INT,
-      val_min:     { val_i: GAVL_QUALITY_FASTEST },
-      val_max:     { val_i: GAVL_QUALITY_BEST    },
-      val_default: { val_i: GAVL_QUALITY_DEFAULT }
-    },
-    {
-      name:      "fixed_samplerate",
-      long_name: "Fixed samplerate",
-      type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 },
-    },
-    {
-      name:        "samplerate",
-      long_name:   "Samplerate",
-      type:        BG_PARAMETER_INT,
-      val_min:     { val_i: 8000 },
-      val_max:     { val_i: 192000 },
-      val_default: { val_i: 44100 },
-    },
-    {
-      name:      "fixed_channel_setup",
-      long_name: "Fixed channel setup",
-      type:      BG_PARAMETER_CHECKBUTTON,
-      val_default: { val_i: 0 },
-    },
-    {
-      name:        "channel_setup",
-      long_name:   "Channel setup",
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "Stereo" },
-      multi_names: (char*[]){ "Mono",
-                              "Stereo",
-                              "3 Front",
-                              "2 Front 1 Rear",
-                              "3 Front 1 Rear",
-                              "2 Front 2 Rear",
-                              "3 Front 2 Rear",
-                              (char*)0 },
-    },
-    {
-      name:        "front_to_rear",
-      long_name:   "Front to rear mode",
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "Copy" },
-      multi_names: (char*[]){ "Mute",
-                              "Copy",
-                              "Diff",
-                              (char*)0 },
-    },
-    {
-      name:        "stereo_to_mono",
-      long_name:   "Stereo to mono mode",
-      type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "Mix" },
-      multi_names: (char*[]){ "Choose left",
-                              "Choose right",
-                              "Mix",
-                              (char*)0 },
-    },
+    BG_GAVL_PARAM_CONVERSION_QUALITY,
+    BG_GAVL_PARAM_SAMPLERATE,
+    BG_GAVL_PARAM_CHANNEL_SETUP,
     { /* End of parameters */ }
   };
 
@@ -248,73 +163,8 @@ void bg_player_set_audio_parameter(void * data, char * name,
 
   pthread_mutex_lock(&(player->audio_stream.config_mutex));
 
-  if(!strcmp(name, "conversion_quality"))
-    {
-    player->audio_stream.opt.quality = val->val_i;
-    }
-  else if(!strcmp(name, "fixed_channel_setup"))
-    {
-    player->audio_stream.fixed_channel_setup = val->val_i;
-    }
-  else if(!strcmp(name, "channel_setup"))
-    {
-    if(!strcmp(val->val_str, "Mono"))
-      player->audio_stream.channel_setup = GAVL_CHANNEL_MONO;
-    else if(!strcmp(val->val_str, "Stereo"))
-      player->audio_stream.channel_setup = GAVL_CHANNEL_STEREO;
-    else if(!strcmp(val->val_str, "3 Front"))
-      player->audio_stream.channel_setup = GAVL_CHANNEL_3F;
-    else if(!strcmp(val->val_str, "2 Front 1 Rear"))
-      player->audio_stream.channel_setup = GAVL_CHANNEL_2F1R;
-    else if(!strcmp(val->val_str, "3 Front 1 Rear"))
-      player->audio_stream.channel_setup = GAVL_CHANNEL_3F1R;
-    else if(!strcmp(val->val_str, "2 Front 2 Rear"))
-      player->audio_stream.channel_setup = GAVL_CHANNEL_2F2R;
-    else if(!strcmp(val->val_str, "3 Front 2 Rear"))
-      player->audio_stream.channel_setup = GAVL_CHANNEL_3F2R;
-    }
-  else if(!strcmp(name, "fixed_samplerate"))
-    {
-    player->audio_stream.fixed_samplerate = val->val_i;
-    }
-  else if(!strcmp(name, "samplerate"))
-    {
-    player->audio_stream.samplerate = val->val_i;
-    }
-  else if(!strcmp(name, "front_to_rear"))
-    {
-    player->audio_stream.opt.conversion_flags &= ~GAVL_AUDIO_FRONT_TO_REAR_MASK;
-    
-    if(!strcmp(val->val_str, "Copy"))
-      {
-      player->audio_stream.opt.conversion_flags |= GAVL_AUDIO_FRONT_TO_REAR_COPY;
-      }
-    else if(!strcmp(val->val_str, "Mute"))
-      {
-      player->audio_stream.opt.conversion_flags |= GAVL_AUDIO_FRONT_TO_REAR_MUTE;
-      }
-    else if(!strcmp(val->val_str, "Diff"))
-      {
-      player->audio_stream.opt.conversion_flags |= GAVL_AUDIO_FRONT_TO_REAR_DIFF;
-      }
-    }
-  else if(!strcmp(name, "stereo_to_mono"))
-    {
-    player->audio_stream.opt.conversion_flags &= ~GAVL_AUDIO_STEREO_TO_MONO_MASK;
-
-    if(!strcmp(val->val_str, "Choose left"))
-      {
-      player->audio_stream.opt.conversion_flags |= GAVL_AUDIO_STEREO_TO_MONO_LEFT;
-      }
-    else if(!strcmp(val->val_str, "Choose right"))
-      {
-      player->audio_stream.opt.conversion_flags |= GAVL_AUDIO_STEREO_TO_MONO_RIGHT;
-      }
-    else if(!strcmp(val->val_str, "Mix"))
-      {
-      player->audio_stream.opt.conversion_flags |= GAVL_AUDIO_STEREO_TO_MONO_MIX;
-      }
-    }
-          
+  bg_gavl_audio_set_parameter(&(player->audio_stream.options),
+                              name, val);
+  
   pthread_mutex_unlock(&(player->audio_stream.config_mutex));
   }

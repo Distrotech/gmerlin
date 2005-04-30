@@ -21,6 +21,7 @@
 #include <pluginregistry.h>
 #include <fifo.h>
 #include <utils.h>
+#include <bggavl.h>
 
 /* Each thread get it's private context */
 
@@ -45,11 +46,14 @@ typedef struct
   gavl_audio_frame_t * frame;
 
   pthread_mutex_t config_mutex;
-  gavl_audio_options_t opt;
-  int fixed_channel_setup;
-  int fixed_samplerate;
-  gavl_channel_setup_t channel_setup;
-  int samplerate;
+
+  bg_gavl_audio_options_t options;
+
+  //  gavl_audio_options_t opt;
+  //  int fixed_channel_setup;
+  //  int fixed_samplerate;
+  //  gavl_channel_setup_t channel_setup;
+  //  int samplerate;
   
   gavl_audio_format_t input_format;
   gavl_audio_format_t output_format;
@@ -62,7 +66,10 @@ typedef struct
   bg_fifo_t * fifo;
 
   pthread_mutex_t config_mutex;
-  gavl_video_options_t opt;
+
+  bg_gavl_video_options_t options;
+
+  //  gavl_video_options_t opt;
   int do_convert;
   gavl_video_frame_t * frame;
 

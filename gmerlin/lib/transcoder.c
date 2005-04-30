@@ -23,6 +23,7 @@
 #include <pluginregistry.h>
 #include <transcoder.h>
 #include <utils.h>
+#include <bggavl.h>
 
 #define STREAM_STATE_OFF      0
 #define STREAM_STATE_ON       1
@@ -87,16 +88,10 @@ typedef struct
   gavl_audio_format_t in_format;
   gavl_audio_format_t out_format;
 
-  gavl_audio_options_t opt;
+  //  gavl_audio_options_t opt;
   
   /* Set by set_parameter */
-
-  int fixed_samplerate;
-  int samplerate;
-  
-  int fixed_channel_setup;
-  gavl_channel_setup_t channel_setup;
-
+  bg_gavl_audio_options_t options;
   int64_t samples_to_read;
   int64_t samples_read;
 
@@ -116,76 +111,8 @@ static void set_audio_parameter_general(void * data, char * name, bg_parameter_v
   if(set_stream_parameters_general(&(stream->com),
                                    name, val))
     return;
-
-  if(!strcmp(name, "conversion_quality"))
-    {
-    stream->opt.quality = val->val_i;
-    }
-  else if(!strcmp(name, "fixed_samplerate"))
-    {
-    stream->fixed_samplerate = val->val_i;
-    }
-  else if(!strcmp(name, "samplerate"))
-    {
-    stream->samplerate = val->val_i;
-    }
-  else if(!strcmp(name, "fixed_channel_setup"))
-    {
-    stream->fixed_channel_setup = val->val_i;
-    }
-  else if(!strcmp(name, "channel_setup"))
-    {
-    if(!strcmp(val->val_str, "Mono"))
-      stream->channel_setup = GAVL_CHANNEL_MONO;
-    else if(!strcmp(val->val_str, "Stereo"))
-      stream->channel_setup = GAVL_CHANNEL_STEREO;
-    else if(!strcmp(val->val_str, "3 Front"))
-      stream->channel_setup = GAVL_CHANNEL_3F;
-    else if(!strcmp(val->val_str, "2 Front 1 Rear"))
-      stream->channel_setup = GAVL_CHANNEL_2F1R;
-    else if(!strcmp(val->val_str, "3 Front 1 Rear"))
-      stream->channel_setup = GAVL_CHANNEL_3F1R;
-    else if(!strcmp(val->val_str, "2 Front 2 Rear"))
-      stream->channel_setup = GAVL_CHANNEL_2F2R;
-    else if(!strcmp(val->val_str, "3 Front 2 Rear"))
-      stream->channel_setup = GAVL_CHANNEL_3F2R;
-    }
-
-  else if(!strcmp(name, "front_to_rear"))
-    {
-    stream->opt.conversion_flags &= ~GAVL_AUDIO_FRONT_TO_REAR_MASK;
-    
-    if(!strcmp(val->val_str, "Copy"))
-      {
-      stream->opt.conversion_flags |= GAVL_AUDIO_FRONT_TO_REAR_COPY;
-      }
-    else if(!strcmp(val->val_str, "Mute"))
-      {
-      stream->opt.conversion_flags |= GAVL_AUDIO_FRONT_TO_REAR_MUTE;
-      }
-    else if(!strcmp(val->val_str, "Diff"))
-      {
-      stream->opt.conversion_flags |= GAVL_AUDIO_FRONT_TO_REAR_DIFF;
-      }
-    }
-
-  else if(!strcmp(name, "stereo_to_mono"))
-    {
-    stream->opt.conversion_flags &= ~GAVL_AUDIO_STEREO_TO_MONO_MASK;
-                                                                                                        
-    if(!strcmp(val->val_str, "Choose left"))
-      {
-      stream->opt.conversion_flags |= GAVL_AUDIO_STEREO_TO_MONO_LEFT;
-      }
-    else if(!strcmp(val->val_str, "Choose right"))
-      {
-      stream->opt.conversion_flags |= GAVL_AUDIO_STEREO_TO_MONO_RIGHT;
-      }
-    else if(!strcmp(val->val_str, "Mix"))
-      {
-      stream->opt.conversion_flags |= GAVL_AUDIO_STEREO_TO_MONO_MIX;
-      }
-    }
+  else if(bg_gavl_audio_set_parameter(&(stream->options), name, val))
+    return;
 
   }
 
@@ -199,7 +126,6 @@ typedef struct
   
   gavl_video_frame_t * out_frame;
   
-  gavl_video_options_t opt;
 
   gavl_video_format_t in_format;
   gavl_video_format_t out_format;
@@ -210,20 +136,8 @@ typedef struct
     
   /* Set by set_parameter */
 
-  int fixed_framerate;
-  int frame_duration;
-  int timescale;
+  bg_gavl_video_options_t options;
 
-  int user_width;
-  int user_height;
-  int frame_width;
-  int frame_height;
-
-  int crop_left;
-  int crop_right;
-  int crop_top;
-  int crop_bottom;
-  int maintain_aspect;
   
   /* Other stuff */
 
@@ -252,21 +166,9 @@ static void set_video_parameter_general(void * data,
                                    name, val))
     return;
 
-  if(!strcmp(name, "conversion_quality"))
-    {
-    stream->opt.quality = val->val_i;
+  else if(bg_gavl_video_set_parameter(&(stream->options),
+                                 name, val))
     return;
-    }
-  SP_INT(fixed_framerate);
-  SP_INT(frame_duration);
-  SP_INT(timescale);
-  SP_INT(crop_left);
-  SP_INT(crop_right);
-  SP_INT(crop_top);
-  SP_INT(crop_bottom);
-  SP_INT(user_width);
-  SP_INT(user_height);
-  SP_INT(maintain_aspect);
   }
 
 #undef SP_INT
@@ -392,7 +294,8 @@ static void prepare_audio_stream(audio_stream_t * ret,
   ret->com.in_plugin = (bg_input_plugin_t*)(in_handle->plugin);
   /* Default options */
 
-  gavl_audio_default_options(&(ret->opt));
+  
+  bg_gavl_audio_options_init(&(ret->options));
 
   /* Create converter */
 
@@ -433,8 +336,8 @@ static void prepare_video_stream(video_stream_t * ret,
 
   /* Default options */
 
-  gavl_video_default_options(&(ret->opt));
-
+  bg_gavl_video_options_init(&(ret->options));
+  
   /* Create converter */
 
   ret->cnv = gavl_video_converter_create();
@@ -511,20 +414,10 @@ static void finalize_audio_stream(audio_stream_t * ret,
   ret->in_format.samples_per_frame = gavl_time_to_samples(ret->in_format.samplerate,
                                                           GAVL_TIME_SCALE/2);
 #endif
-  gavl_audio_format_copy(&(ret->out_format), &(ret->in_format));
-    
-  /* Adjust format */
-  
-  if(ret->fixed_samplerate)
-    {
-    ret->out_format.samplerate = ret->samplerate;
-    }
-  if(ret->fixed_channel_setup)
-    {
-    ret->out_format.channel_setup = ret->channel_setup;
-    ret->out_format.channel_locations[0] = GAVL_CHID_NONE;
-    gavl_set_channel_setup(&(ret->out_format));
-    }
+
+  bg_gavl_audio_options_set_format(&(ret->options),
+                                   &(ret->in_format),
+                                   &(ret->out_format));
   
   /* Add the audio stream */
 
@@ -559,7 +452,7 @@ static void finalize_audio_stream(audio_stream_t * ret,
 #endif
   /* Initialize converter */
 
-  ret->com.do_convert = gavl_audio_converter_init(ret->cnv, &(ret->opt),
+  ret->com.do_convert = gavl_audio_converter_init(ret->cnv, &(ret->options.opt),
                                                   &(ret->in_format),
                                                   &(ret->out_format));
 
@@ -595,12 +488,10 @@ static void finalize_video_stream(video_stream_t * ret,
     
   gavl_video_format_copy(&(ret->out_format), &(ret->in_format));
 
-  if(ret->fixed_framerate)
-    {
-    ret->out_format.frame_duration = ret->frame_duration;
-    ret->out_format.timescale = ret->timescale;
-    ret->out_format.free_framerate = 0;
-    }
+  bg_gavl_video_options_set_framerate(&ret->options,
+                                      &(ret->in_format),
+                                      &(ret->out_format));
+  
   
   /* Add the video stream */
 
@@ -636,7 +527,7 @@ static void finalize_video_stream(video_stream_t * ret,
 #endif
   /* Initialize converter */
   
-  ret->com.do_convert = gavl_video_converter_init(ret->cnv, &(ret->opt),
+  ret->com.do_convert = gavl_video_converter_init(ret->cnv, &(ret->options.opt),
                                                   &(ret->in_format),
                                                   &(ret->out_format));
 

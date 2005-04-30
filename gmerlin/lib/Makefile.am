@@ -12,6 +12,7 @@ lib_LTLIBRARIES = libgmerlin.la
 libgmerlin_la_SOURCES = \
 album.c \
 album_xml.c \
+bggavl.c \
 cfg_item.c \
 cfg_registry.c \
 cfg_section.c \
