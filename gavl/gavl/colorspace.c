@@ -273,58 +273,29 @@ create_colorspace_function_table(const gavl_video_options_t * opt,
   csp_tab =
     calloc(1,sizeof(gavl_colorspace_function_table_t));
   
-  if(opt->conversion_flags & GAVL_SCANLINE)
+  if(!real_accel_flags || (real_accel_flags & GAVL_ACCEL_C))
     {
-    if(!real_accel_flags || (real_accel_flags & GAVL_ACCEL_C))
-      {
-      gavl_init_rgb_rgb_scanline_funcs_c(csp_tab);
-      gavl_init_rgb_yuv_scanline_funcs_c(csp_tab);
-      gavl_init_yuv_rgb_scanline_funcs_c(csp_tab);
-      gavl_init_yuv_yuv_scanline_funcs_c(csp_tab);
-      }
-#ifdef ARCH_X86
-    if(!real_accel_flags || (real_accel_flags & GAVL_ACCEL_MMX))
-      {
-      gavl_init_rgb_rgb_scanline_funcs_mmx(csp_tab, width, opt->quality);
-      gavl_init_rgb_yuv_scanline_funcs_mmx(csp_tab, width, opt->quality);
-      gavl_init_yuv_yuv_scanline_funcs_mmx(csp_tab, width, opt->quality);
-      gavl_init_yuv_rgb_scanline_funcs_mmx(csp_tab, width, opt->quality);
-      }
-    if(!real_accel_flags || (real_accel_flags & GAVL_ACCEL_MMXEXT))
-      {
-      gavl_init_rgb_rgb_scanline_funcs_mmxext(csp_tab, width, opt->quality);
-      gavl_init_rgb_yuv_scanline_funcs_mmxext(csp_tab, width, opt->quality);
-      gavl_init_yuv_yuv_scanline_funcs_mmxext(csp_tab, width, opt->quality);
-      gavl_init_yuv_rgb_scanline_funcs_mmxext(csp_tab, width, opt->quality);
-      }
-#endif
+    gavl_init_rgb_rgb_funcs_c(csp_tab);
+    gavl_init_rgb_yuv_funcs_c(csp_tab);
+    gavl_init_yuv_rgb_funcs_c(csp_tab);
+    gavl_init_yuv_yuv_funcs_c(csp_tab);
     }
-  else
+#ifdef ARCH_X86
+  if(!real_accel_flags || (real_accel_flags & GAVL_ACCEL_MMX))
     {
-    if(!real_accel_flags || (real_accel_flags & GAVL_ACCEL_C))
-      {
-      gavl_init_rgb_rgb_funcs_c(csp_tab);
-      gavl_init_rgb_yuv_funcs_c(csp_tab);
-      gavl_init_yuv_rgb_funcs_c(csp_tab);
-      gavl_init_yuv_yuv_funcs_c(csp_tab);
-      }
-#ifdef ARCH_X86
-    if(!real_accel_flags || (real_accel_flags & GAVL_ACCEL_MMX))
-      {
-      gavl_init_rgb_rgb_funcs_mmx(csp_tab, width, opt->quality);
-      gavl_init_rgb_yuv_funcs_mmx(csp_tab, width, opt->quality);
-      gavl_init_yuv_yuv_funcs_mmx(csp_tab, width, opt->quality);
-      gavl_init_yuv_rgb_funcs_mmx(csp_tab, width, opt->quality);
-      }
-    if(!real_accel_flags || (real_accel_flags & GAVL_ACCEL_MMXEXT))
-      {
-      gavl_init_rgb_rgb_funcs_mmxext(csp_tab, width, opt->quality);
-      gavl_init_rgb_yuv_funcs_mmxext(csp_tab, width, opt->quality);
-      gavl_init_yuv_yuv_funcs_mmxext(csp_tab, width, opt->quality);
-      gavl_init_yuv_rgb_funcs_mmxext(csp_tab, width, opt->quality);
-      }
-#endif
+    gavl_init_rgb_rgb_funcs_mmx(csp_tab, width, opt->quality);
+    gavl_init_rgb_yuv_funcs_mmx(csp_tab, width, opt->quality);
+    gavl_init_yuv_yuv_funcs_mmx(csp_tab, width, opt->quality);
+    gavl_init_yuv_rgb_funcs_mmx(csp_tab, width, opt->quality);
     }
+  if(!real_accel_flags || (real_accel_flags & GAVL_ACCEL_MMXEXT))
+    {
+    gavl_init_rgb_rgb_funcs_mmxext(csp_tab, width, opt->quality);
+    gavl_init_rgb_yuv_funcs_mmxext(csp_tab, width, opt->quality);
+    gavl_init_yuv_yuv_funcs_mmxext(csp_tab, width, opt->quality);
+    gavl_init_yuv_rgb_funcs_mmxext(csp_tab, width, opt->quality);
+    }
+#endif
   return csp_tab;
   }
 

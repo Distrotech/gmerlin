@@ -24,9 +24,45 @@
 
 #include "config.h"
 
-typedef struct gavl_video_scale_context_s gavl_video_scale_context_t;
+  
+struct gavl_video_options_s
+  {
+  /*
+   *  Quality setting from 1 to 5 (0 means undefined).
+   *  3 means Standard C routines or accellerated version with
+   *  equal quality. Lower numbers mean accellerated versions with lower
+   *  quality.
+   */
+  int quality;         
 
-typedef struct
+  /* Explicit accel_flags are mainly for colorspace_test.c */
+  int accel_flags;     /* CPU Acceleration flags */
+
+  int conversion_flags;
+  
+  gavl_alpha_mode_t alpha_mode;
+  gavl_scale_mode_t scale_mode;
+  
+  /* Background color (0x0000 - 0xFFFF) */
+  uint16_t background_red;
+  uint16_t background_green;
+  uint16_t background_blue;
+
+  /* Source and destination rectangles */
+
+  gavl_rectangle_t src_rect;
+  gavl_rectangle_t dst_rect;
+  int keep_aspect;
+  };
+
+void gavl_video_options_copy(gavl_video_options_t * dst,
+                             const gavl_video_options_t * src);
+
+typedef struct gavl_video_convert_context_s gavl_video_convert_context_t;
+
+typedef void (*gavl_video_func_t)(gavl_video_convert_context_t * ctx);
+
+struct gavl_video_convert_context_s
   {
   gavl_video_frame_t * input_frame;
   gavl_video_frame_t * output_frame;
@@ -35,21 +71,19 @@ typedef struct
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;
 
-  gavl_video_scale_context_t * scale_context;
-  } gavl_video_convert_context_t;
+  gavl_video_scaler_t * scaler;
 
-typedef void (*gavl_video_func_t)(gavl_video_convert_context_t * ctx);
+  struct gavl_video_convert_context_s * next;
+  gavl_video_func_t func;
+  };
 
 struct gavl_video_converter_s
   {
-  gavl_video_convert_context_t csp_context;
   gavl_video_options_t options;
 
-  gavl_video_func_t csp_func;
-
-  int convert_framerate;
-  
-  int64_t frame_count;
+  gavl_video_convert_context_t * first_context;
+  gavl_video_convert_context_t * last_context;
+  int num_contexts;
   };
 
 

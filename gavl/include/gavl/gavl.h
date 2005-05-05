@@ -522,7 +522,7 @@ typedef struct
   int h;
   } gavl_rectangle_t;
 
-void gavl_rectangle_dump(gavl_rectangle_t * r);
+void gavl_rectangle_dump(const gavl_rectangle_t * r);
 
   
 void gavl_rectangle_crop_to_format(gavl_rectangle_t * r,
@@ -566,8 +566,8 @@ void gavl_rectangle_subsample(gavl_rectangle_t * dst, const gavl_rectangle_t * s
  */
   
 void gavl_rectangle_fit_aspect(gavl_rectangle_t * r,
-                               gavl_video_format_t * src_format,
-                               gavl_rectangle_t * src_rect,
+                               const gavl_video_format_t * src_format,
+                               const gavl_rectangle_t * src_rect,
                                gavl_video_format_t * dst_format,
                                float zoom, float squeeze);
   
@@ -646,7 +646,8 @@ void gavl_video_frame_dump(gavl_video_frame_t *,
 
 /* Conversion options */
   
-#define GAVL_SCANLINE (1<<0)
+// #define GAVL_SCANLINE (1<<0)
+#define GAVL_KEEP_APSPECT (1<<0)
 
 typedef enum
   {
@@ -662,36 +663,37 @@ typedef enum
     GAVL_SCALE_NEAREST,
     GAVL_SCALE_BILINEAR,
   } gavl_scale_mode_t;
-  
-typedef struct
-  {
-  /*
-   *  Quality setting from 1 to 5 (0 means undefined).
-   *  3 means Standard C routines or accellerated version with
-   *  equal quality. Lower numbers mean accellerated versions with lower
-   *  quality.
-   */
-  int quality;         
 
-  /* Explicit accel_flags are mainly for colorspace_test.c */
-  int accel_flags;     /* CPU Acceleration flags */
-
-  int conversion_flags;
+typedef struct gavl_video_options_s gavl_video_options_t;
   
-  gavl_alpha_mode_t alpha_mode;
-  gavl_scale_mode_t scale_mode;
-  
-  /* Background color (0x0000 - 0xFFFF) */
-  uint16_t background_red;
-  uint16_t background_green;
-  uint16_t background_blue;
-  
-  } gavl_video_options_t;
 
 /* Default Options */
 
-void gavl_video_default_options(gavl_video_options_t * opt);
+// gavl_video_options_t * gavl_video_options_create();
+// void gavl_video_options_destroy(gavl_video_options_t *);
+void gavl_video_options_set_defaults(gavl_video_options_t * opt);
+  
+void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
+                                       const gavl_rectangle_t * src_rect,
+                                       const gavl_rectangle_t * dst_rect);
 
+void gavl_video_options_set_quality(gavl_video_options_t * opt, int quality);
+
+void gavl_video_options_set_accel_flags(gavl_video_options_t * opt,
+                                        int accel_flags);
+
+void gavl_video_options_set_conversion_flags(gavl_video_options_t * opt,
+                                             int conversion_flags);
+
+void gavl_video_options_set_alpha_mode(gavl_video_options_t * opt,
+                                       gavl_alpha_mode_t alpha_mode);
+
+void gavl_video_options_set_scale_mode(gavl_video_options_t * opt,
+                                       gavl_scale_mode_t scale_mode);
+
+void gavl_video_options_set_background_color(gavl_video_options_t * opt,
+                                             float * color);
+  
 /***************************************************
  * Create and destroy video converters
  ***************************************************/
@@ -703,12 +705,19 @@ gavl_video_converter_t * gavl_video_converter_create();
 void gavl_video_converter_destroy(gavl_video_converter_t*);
 
 
+/**************************************************
+ * Get options. Change the options with the gavl_video_options_set_*
+ * functions above
+ **************************************************/
+
+gavl_video_options_t *
+gavl_video_converter_get_options(gavl_video_converter_t*);
+
 /***************************************************
  * Set formats
  ***************************************************/
 
 int gavl_video_converter_init(gavl_video_converter_t* cnv,
-                              const gavl_video_options_t * options,
                               const gavl_video_format_t * input_format,
                               const gavl_video_format_t * output_format);
 
@@ -737,8 +746,8 @@ void gavl_video_scaler_init(gavl_video_scaler_t * scaler,
                             gavl_colorspace_t colorspace,
                             gavl_rectangle_t * src_rect,
                             gavl_rectangle_t * dst_rect,
-                            gavl_video_format_t * src_format,
-                            gavl_video_format_t * dst_format);
+                            const gavl_video_format_t * src_format,
+                            const gavl_video_format_t * dst_format);
 
 void gavl_video_scaler_scale(gavl_video_scaler_t * scaler,
                              gavl_video_frame_t * src,

@@ -22,17 +22,14 @@ static void write_png(char * filename, gavl_video_format_t * format, gavl_video_
   png_structp png_ptr;
   png_infop   info_ptr;
   
-  gavl_video_options_t opt;
   gavl_video_converter_t * cnv;
     
   gavl_video_format_t format_1;
   gavl_video_frame_t * frame_1 = (gavl_video_frame_t*)0;
 
-  gavl_video_default_options(&opt);
   
   if((format->colorspace != GAVL_RGB_24) && (format->colorspace != GAVL_RGBA_32))
     {
-    gavl_video_default_options(&opt);
     cnv = gavl_video_converter_create();
     
     gavl_video_format_copy(&format_1, format);
@@ -49,7 +46,7 @@ static void write_png(char * filename, gavl_video_format_t * format, gavl_video_
       }
     frame_1 = gavl_video_frame_create(&format_1);
     
-    gavl_video_converter_init(cnv, &opt, format, &format_1);
+    gavl_video_converter_init(cnv, format, &format_1);
     
     gavl_video_convert(cnv, frame, frame_1);
     gavl_video_converter_destroy(cnv);
@@ -111,7 +108,6 @@ static gavl_video_frame_t * read_png(const char * filename,
   unsigned char ** rows;
   
   gavl_video_converter_t * cnv;
-  gavl_video_options_t opt;
   gavl_video_format_t format_1;
   gavl_video_frame_t * frame, * frame_1;
     
@@ -219,14 +215,13 @@ static gavl_video_frame_t * read_png(const char * filename,
 
   if(format->colorspace != colorspace)
     {
-    gavl_video_default_options(&opt);
     cnv = gavl_video_converter_create();
 
     gavl_video_format_copy(&format_1, format);
     format_1.colorspace = colorspace;
     frame_1 = gavl_video_frame_create(&format_1);
     
-    gavl_video_converter_init(cnv, &opt, format, &format_1);
+    gavl_video_converter_init(cnv, format, &format_1);
     
     gavl_video_convert(cnv, frame, frame_1);
     gavl_video_converter_destroy(cnv);

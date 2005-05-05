@@ -4,7 +4,7 @@
 #include <string.h>
 #include <gavl/gavl.h>
 
-void gavl_rectangle_dump(gavl_rectangle_t * r)
+void gavl_rectangle_dump(const gavl_rectangle_t * r)
   {
   fprintf(stderr, "%dx%d+%d+%d", r->w, r->h, r->x, r->y);
   }
@@ -219,8 +219,8 @@ int gavl_rectangle_is_empty(const gavl_rectangle_t * r)
    calculate the optimal dst_rect in dst_format. */
 
 void gavl_rectangle_fit_aspect(gavl_rectangle_t * r,
-                               gavl_video_format_t * src_format,
-                               gavl_rectangle_t * src_rect,
+                               const gavl_video_format_t * src_format,
+                               const gavl_rectangle_t * src_rect,
                                gavl_video_format_t * dst_format,
                                float zoom, float squeeze)
   {

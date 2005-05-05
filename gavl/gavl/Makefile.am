@@ -31,6 +31,7 @@ timer.c \
 video.c \
 videoformat.c \
 videoframe.c \
+videooptions.c \
 volume.c
 
 noinst_HEADERS = \

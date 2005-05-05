@@ -1624,9 +1624,10 @@ int main(int argc, char ** argv)
   gavl_video_frame_t * input_frame;
   gavl_video_frame_t * output_frame;
   
-  gavl_video_options_t opt;
+  gavl_video_options_t * opt;
 
   gavl_video_converter_t * cnv = gavl_video_converter_create();
+  opt = gavl_video_converter_get_options(cnv);
   
   input_format.image_width = TEST_PICTURE_WIDTH;
   input_format.image_height = TEST_PICTURE_HEIGHT;
@@ -1656,9 +1657,9 @@ int main(int argc, char ** argv)
 
     for(j = 0; j < gavl_num_colorspaces(); j++)
       {
-      gavl_video_default_options(&opt);
-      opt.alpha_mode = GAVL_ALPHA_IGNORE;
-      
+      gavl_video_options_set_defaults(opt);
+
+      gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_IGNORE);
       output_format.colorspace = gavl_get_colorspace(j);
 
       if(input_format.colorspace == output_format.colorspace)
@@ -1671,9 +1672,9 @@ int main(int argc, char ** argv)
       
       fprintf(stderr, "%s *************\n", tmp2);
 
-      opt.accel_flags = GAVL_ACCEL_C;
-        
-      if(!gavl_video_converter_init(cnv, &opt, &input_format, &output_format))
+      gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
+      
+      if(!gavl_video_converter_init(cnv, &input_format, &output_format))
         {
         fprintf(stderr, "No Conversion defined yet\n");
         continue;
@@ -1697,11 +1698,11 @@ int main(int argc, char ** argv)
       /* Now, initialize with MMX */
 
 #if 1
-      opt.accel_flags = GAVL_ACCEL_MMX;
+      gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMX);
       
       gavl_video_frame_clear(output_frame, &output_format);
       sprintf(filename_buffer, "%s_to_%s_mmx.png", tmp1, tmp2);
-      if(gavl_video_converter_init(cnv, &opt, &input_format, &output_format) == -1)
+      if(gavl_video_converter_init(cnv, &input_format, &output_format) == -1)
         fprintf(stderr, "No MMX Conversion defined yet\n");
       else
         {
@@ -1713,11 +1714,11 @@ int main(int argc, char ** argv)
       fprintf(stderr, "Wrote %s\n", filename_buffer);
       
       
-      opt.accel_flags = GAVL_ACCEL_MMXEXT;
+      gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMXEXT);
 
       gavl_video_frame_clear(output_frame, &output_format);
       sprintf(filename_buffer, "%s_to_%s_mmxext.png", tmp1, tmp2);
-      if(gavl_video_converter_init(cnv, &opt, &input_format, &output_format) == -1)
+      if(gavl_video_converter_init(cnv, &input_format, &output_format) == -1)
         fprintf(stderr, "No MMXEXT Conversion defined yet\n");
       else
         {

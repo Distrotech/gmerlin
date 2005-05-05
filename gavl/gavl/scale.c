@@ -427,8 +427,8 @@ void gavl_video_scaler_init(gavl_video_scaler_t * scaler,
                             gavl_colorspace_t colorspace,
                             gavl_rectangle_t * src_rect,
                             gavl_rectangle_t * dst_rect,
-                            gavl_video_format_t * src_format,
-                            gavl_video_format_t * dst_format)
+                            const gavl_video_format_t * src_format,
+                            const gavl_video_format_t * dst_format)
   {
   int i;
   int chroma_sub_h,  chroma_sub_v; 

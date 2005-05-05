@@ -50,10 +50,10 @@ int main()
   gavl_video_frame_t * input_frame;
   gavl_video_frame_t * output_frame;
 
-  gavl_video_options_t opt;
+  gavl_video_options_t * opt;
   
   gavl_video_converter_t * cnv = gavl_video_converter_create();
-
+  opt = gavl_video_converter_get_options(cnv);
   input_format.colorspace = GAVL_RGB_15;
   output_format.colorspace = GAVL_RGB_15;
 
@@ -89,10 +89,11 @@ int main()
         tmp = gavl_colorspace_to_string(output_format.colorspace);
         fprintf(stderr, "%s *************\n", tmp);
 
-        gavl_video_default_options(&opt);
-        opt.accel_flags |= GAVL_ACCEL_C;
+        gavl_video_options_set_defaults(opt);
+
+        gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
         
-        if(!gavl_video_converter_init(cnv, &opt, &input_format, &output_format))
+        if(!gavl_video_converter_init(cnv, &input_format, &output_format))
           fprintf(stderr, "No Conversion defined yet\n");
         else
           {
@@ -108,9 +109,9 @@ int main()
 
         fprintf(stderr, "MMX Version:    ");
 
-        opt.accel_flags = GAVL_ACCEL_MMX;
+        gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMX);
 
-        if(!gavl_video_converter_init(cnv, &opt, &input_format, &output_format))
+        if(!gavl_video_converter_init(cnv, &input_format, &output_format))
           fprintf(stderr, "No Conversion defined yet\n");
         else
           {
@@ -122,10 +123,10 @@ int main()
         
         /* Now, initialize with MMXEXT */
 
-        opt.accel_flags = GAVL_ACCEL_MMX;
+        gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMXEXT);
         fprintf(stderr, "MMXEXT Version: ");
         
-        if(!gavl_video_converter_init(cnv, &opt, &input_format, &output_format))
+        if(!gavl_video_converter_init(cnv, &input_format, &output_format))
           fprintf(stderr, "No Conversion defined yet\n");
         else
           {
