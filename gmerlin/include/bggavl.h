@@ -38,14 +38,19 @@ void bg_gavl_audio_options_set_format(bg_gavl_audio_options_t *, const gavl_audi
 
 typedef struct
   {
-  gavl_video_options_t opt;
+  gavl_video_options_t * opt;
 
   int framerate_mode;
   int frame_duration;
   int timescale;
 
-  int user_width;
-  int user_height;
+  int frame_size;
+  
+  int user_image_width;
+  int user_image_height;
+
+  int user_pixel_width;
+  int user_pixel_height;
 
   int crop_left;
   int crop_right;
@@ -64,9 +69,7 @@ void bg_gavl_video_options_set_framerate(bg_gavl_video_options_t *,
 
 void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t *,
                                          const gavl_video_format_t * in_format,
-                                         gavl_video_format_t * out_format,
-                                         gavl_rectangle_t * in_rect,
-                                         gavl_rectangle_t * out_rect);
+                                         gavl_video_format_t * out_format);
 
 
 
@@ -179,31 +182,47 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       type:        BG_PARAMETER_STRINGLIST, \
       multi_names: (char*[]){ "from_input", \
                               "user_defined", \
-                              "dvd_pal_d1", \
-                              "dvd_pal", \
-                              "dvd_ntsc_d1", \
-                              "dvd_ntsc", \
-                              "vcd_pal", \
-                              "vcd_ntsc", \
-                              "svcd_pal", \
-                              "svcd_ntsc", \
+                              "pal_d1", \
+                              "pal_d1_wide", \
+                              "pal_dv", \
+                              "pal_dv_wide", \
+                              "pal_vcd", \
+                              "pal_svcd", \
+                              "pal_svcd_wide", \
+                              "ntsc_d1", \
+                              "ntsc_d1_wide", \
+                              "ntsc_dv", \
+                              "ntsc_dv_wide", \
+                              "ntsc_vcd", \
+                              "ntsc_svcd", \
+                              "ntsc_svcd_wide", \
+                              "vga", \
+                              "qvga", \
                                (char*)0 }, \
       multi_labels:  (char*[]){ "From Source", \
                                 "User defined", \
-                                "DVD PAL D1 (720 x 576)", \
-                                "DVD PAL (704 x 576)", \
-                                "DVD NTSC D1 (720 x 480)", \
-                                "DVD NTSC (704 x 480)", \
-                                "VCD PAL (352 x 288)", \
-                                "VCD NTSC (352 x 240)", \
-                                "SVCD PAL (480 x 576)", \
-                                "SVCD NTSC (480 x 480)", \
+                                "PAL DVD D1 4:3 (720 x 576)", \
+                                "PAL DVD D1 16:9 (720 x 576)", \
+                                "PAL DV 4:3 (720 x 576)", \
+                                "PAL DV 16:9 (720 x 576)", \
+                                "PAL VCD (352 x 288)", \
+                                "PAL SVCD 4:3 (480 x 576)", \
+                                "PAL SVCD 16:9 (480 x 576)", \
+                                "NTSC DVD D1 4:3 (720 x 480)", \
+                                "NTSC DVD D1 16:9 (720 x 480)", \
+                                "NTSC DV 4:3 (720 x 480)", \
+                                "NTSC DV 16:9 (720 x 480)", \
+                                "NTSC VCD (352 x 240)", \
+                                "NTSC SVCD 4:3 (480 x 480)", \
+                                "NTSC SVCD 16:9 (480 x 480)", \
+                                "VGA (640 x 480)", \
+                                "QVGA (320 x 240)", \
                                 (char*)0 }, \
       val_default: { val_str: "from_input" }, \
-      help_string: "Set the output frame size. For a user defined size, enter the width and height below", \
+      help_string: "Set the output frame size. For a user defined size, enter the width and height as well as the pixel width and pixel height (for nonsquare pixels) below", \
     }, \
     { \
-      name:      "user_width", \
+      name:      "user_image_width", \
       long_name: "User defined width", \
       type:      BG_PARAMETER_INT,    \
       val_min:     { val_i: 1 }, \
@@ -212,7 +231,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       help_string: "User defined width in pixels. Only meaningful if you selected \"User defined\" for the framesize", \
     }, \
     {                                        \
-      name:      "user_height", \
+      name:      "user_image_height", \
       long_name: "User defined height", \
       type:      BG_PARAMETER_INT, \
       val_min:     { val_i: 1 }, \
@@ -221,11 +240,37 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       help_string: "User defined height in pixels. Only meaningful if you selected \"User defined\" for the framesize", \
       }, \
     { \
+      name:      "user_pixel_width", \
+      long_name: "User defined pixel width", \
+      type:      BG_PARAMETER_INT,    \
+      val_min:     { val_i: 1 }, \
+      val_max:     { val_i: 100000 }, \
+      val_default: { val_i: 1 }, \
+      help_string: "User defined pixel width. Only meaningful if you selected \"User defined\" for the framesize", \
+    }, \
+    {                                        \
+      name:      "user_pixel_height", \
+      long_name: "User defined pixel height", \
+      type:      BG_PARAMETER_INT, \
+      val_min:     { val_i: 1 }, \
+      val_max:     { val_i: 100000 }, \
+      val_default: { val_i: 1 }, \
+      help_string: "User defined pixel height. Only meaningful if you selected \"User defined\" for the framesize", \
+      }, \
+    { \
       name:      "maintain_aspect", \
       long_name: "Maintain aspect ratio", \
       type:      BG_PARAMETER_CHECKBUTTON, \
       val_default: { val_i: 1 }, \
       help_string: "Let the aspect ratio appear the same as in the source, probably resulting in additional black borders" \
+    },                                                                \
+    {                                                               \
+    name:        "scale_mode",                                      \
+    long_name:   "Scale mode",                                        \
+    type:        BG_PARAMETER_STRINGLIST,                                   \
+    multi_names:  (char*[]){ "nearest", "bilinear", (char*)0 }, \
+    multi_labels: (char*[]){ "Nearest", "Bilinear", (char*)0 }, \
+    val_default: { val_str: "nearest" }, \
     }
 
 #define BG_GAVL_PARAM_ALPHA                \
@@ -252,8 +297,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       long_name: "Fixed samplerate",\
       type:      BG_PARAMETER_CHECKBUTTON,\
       val_default: { val_i: 0 },\
-      help_string: "If disabled, the output samplerate is taken from the source.\
-If enabled, the samplerate you specify below us used"\
+      help_string: "If disabled, the output samplerate is taken from the source. If enabled, the samplerate you specify below us used"\
     },\
     {\
       name:        "samplerate",\
@@ -272,8 +316,7 @@ If enabled, the samplerate you specify below us used"\
       long_name: "Fixed channel setup", \
       type:      BG_PARAMETER_CHECKBUTTON,\
       val_default: { val_i: 0 },\
-      help_string: "If disabled, the output channel configuration is taken from the source.\
-If enabled, the setup you specify below us used" \
+      help_string: "If disabled, the output channel configuration is taken from the source. If enabled, the setup you specify below us used" \
     },                                              \
     {\
       name:        "channel_setup", \

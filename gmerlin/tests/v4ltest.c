@@ -15,7 +15,6 @@ int main(int argc, char ** argv)
   bg_cfg_registry_t    * cfg_reg;
   bg_plugin_registry_t * plugin_reg;
   gavl_video_converter_t * cnv;
-  gavl_video_options_t opt;
   
   int do_convert;
 
@@ -115,9 +114,8 @@ int main(int argc, char ** argv)
   /* Fire up video converter */
 
   cnv = gavl_video_converter_create();
-  gavl_video_default_options(&opt);
 
-  do_convert = gavl_video_converter_init(cnv, &opt, &input_format, &output_format);
+  do_convert = gavl_video_converter_init(cnv, &input_format, &output_format);
 
   /* Allocate video image */
 

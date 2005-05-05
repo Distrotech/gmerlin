@@ -446,6 +446,21 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
 
     e->video_streams[stream].codec_info = lqt_find_video_codec_by_name(val->val_str);
     
+    if(e->format == FORMAT_AVI)
+      {
+      e->video_streams[stream].format.image_width *=
+        e->video_streams[stream].format.pixel_width;
+      
+      e->video_streams[stream].format.image_width /=
+        e->video_streams[stream].format.pixel_height;
+
+      e->video_streams[stream].format.pixel_width = 1;
+      e->video_streams[stream].format.pixel_height = 1;
+
+      e->video_streams[stream].format.frame_width =
+        e->video_streams[stream].format.image_width;
+      }
+    
     lqt_add_video_track(e->file, e->video_streams[stream].format.image_width,
                         e->video_streams[stream].format.image_height,
                         e->video_streams[stream].format.frame_duration,
@@ -456,12 +471,20 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
     e->video_streams[stream].format.colorspace =
       bg_lqt_get_gavl_colorspace(quicktime_colormodel);
     lqt_set_cmodel(e->file, stream, quicktime_colormodel);
-
+    
     /* Request constant framerate for AVI files */
 
     if(e->format == FORMAT_AVI)
+      {
       e->video_streams[stream].format.free_framerate = 0;
-
+      }
+    else
+      {
+      lqt_set_pixel_aspect(e->file, stream,
+                           e->video_streams[stream].format.pixel_width,
+                           e->video_streams[stream].format.pixel_height);
+      }
+    
     if(!gavl_colorspace_is_planar(e->video_streams[stream].format.colorspace))
       e->video_streams[stream].rows =
         malloc(e->video_streams[stream].format.image_height * 

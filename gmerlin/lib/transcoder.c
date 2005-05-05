@@ -333,14 +333,16 @@ static void prepare_video_stream(video_stream_t * ret,
   ret->com.type = STREAM_TYPE_VIDEO;
   ret->com.in_handle = in_handle;
   ret->com.in_plugin = (bg_input_plugin_t*)(in_handle->plugin);
+    
+  /* Create converter */
+
+  ret->cnv = gavl_video_converter_create();
+
+  ret->options.opt = gavl_video_converter_get_options(ret->cnv);
 
   /* Default options */
 
   bg_gavl_video_options_init(&(ret->options));
-  
-  /* Create converter */
-
-  ret->cnv = gavl_video_converter_create();
   
   /* Apply parameters */
 
@@ -488,11 +490,13 @@ static void finalize_video_stream(video_stream_t * ret,
     
   gavl_video_format_copy(&(ret->out_format), &(ret->in_format));
 
-  bg_gavl_video_options_set_framerate(&ret->options,
+  bg_gavl_video_options_set_framerate(&(ret->options),
                                       &(ret->in_format),
                                       &(ret->out_format));
   
-  
+  bg_gavl_video_options_set_framesize(&(ret->options),
+                                      &(ret->in_format),
+                                      &(ret->out_format));
   /* Add the video stream */
 
   ret->com.out_plugin->add_video_stream(out_handle->priv,
@@ -527,7 +531,7 @@ static void finalize_video_stream(video_stream_t * ret,
 #endif
   /* Initialize converter */
   
-  ret->com.do_convert = gavl_video_converter_init(ret->cnv, &(ret->options.opt),
+  ret->com.do_convert = gavl_video_converter_init(ret->cnv, 
                                                   &(ret->in_format),
                                                   &(ret->out_format));
 

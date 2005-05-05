@@ -62,6 +62,7 @@ struct accessories_menu_s
   {
   GtkWidget * transcoder;
   GtkWidget * visualizer;
+  GtkWidget * mixer;
 
   GtkWidget * menu;
   };
@@ -155,6 +156,10 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     system("gmerlin_visualizer_launcher");
     }
+  else if(w == the_menu->accessories_menu.mixer)
+    {
+    system("gmerlin_alsamixer &");
+    }
   else if(w == the_menu->accessories_menu.transcoder)
     {
     system("gmerlin_transcoder_remote -launch");
@@ -242,6 +247,13 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
       create_item("Visualizer", gmerlin, ret->accessories_menu.menu);
   else
     fprintf(stderr, "gmerlin_visualizer not found\n");
+
+  if(bg_search_file_exec("gmerlin_alsamixer"))
+    ret->accessories_menu.mixer =
+      create_item("Mixer", gmerlin, ret->accessories_menu.menu);
+  else
+    fprintf(stderr, "gmerlin_alsamixer not found\n");
+
   
   /* Main menu */
     

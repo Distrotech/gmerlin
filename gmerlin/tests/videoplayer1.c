@@ -24,7 +24,6 @@ int main(int argc, char ** argv)
   int do_convert;
   char * tmp_path;
 
-  gavl_video_options_t opt;
 
   gavl_timer_t * timer;
   int64_t frames_written;
@@ -131,10 +130,8 @@ int main(int argc, char ** argv)
 
   video_converter = gavl_video_converter_create();
 
-  gavl_video_default_options(&opt);
   
   do_convert = gavl_video_converter_init(video_converter,
-                                         &opt,
                                          &(info->video_streams[0].format),
                                          &video_format);
 

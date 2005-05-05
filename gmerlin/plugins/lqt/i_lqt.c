@@ -226,9 +226,9 @@ static int open_lqt(void * data, const char * arg)
         video_format->frame_width = video_format->image_width;
         video_format->frame_height = video_format->image_height;
 
-        video_format->pixel_width = 1;
-        video_format->pixel_height = 1;
-        
+        lqt_get_pixel_aspect(e->file, i,
+                             &video_format->pixel_width,
+                             &video_format->pixel_height);
         
         video_format->timescale = lqt_video_time_scale(e->file, i);
 

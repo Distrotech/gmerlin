@@ -1105,7 +1105,7 @@ static bg_parameter_info_t general_parameters_video[] =
     BG_GAVL_PARAM_CONVERSION_QUALITY,
     BG_GAVL_PARAM_FRAMERATE,
     BG_GAVL_PARAM_ALPHA,
-#if 0
+#if 1
     {
       name:       "crop_scale",
       long_name:  "Crop & Scale",

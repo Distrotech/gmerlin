@@ -26,6 +26,10 @@ void bg_player_video_create(bg_player_t * p)
   {
   p->video_stream.cnv = gavl_video_converter_create();
   pthread_mutex_init(&(p->video_stream.config_mutex),(pthread_mutexattr_t *)0);
+
+  p->video_stream.options.opt =
+    gavl_video_converter_get_options(p->video_stream.cnv);
+  
   bg_gavl_video_options_init(&(p->video_stream.options));
   }
 
@@ -66,7 +70,6 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
 
   pthread_mutex_lock(&(player->video_stream.config_mutex));
   if(!gavl_video_converter_init(s->cnv,
-                                &(s->options.opt),
                                 &(player->video_stream.input_format),
                                 &(player->video_stream.output_format)))
     {
