@@ -1054,7 +1054,7 @@ static mmx_t sign_mask =   { 0x0000008000000080LL };
   BGR_TO_Y \
   BGR_TO_UV_2 \
   OUTPUT_PLANAR_Y \
-  OUTPUT_PLANAR_UV2
+  OUTPUT_PLANAR_UV4
 
 #define CONVERT_Y      \
   LOAD_RGB_15 \
@@ -1081,7 +1081,7 @@ static mmx_t sign_mask =   { 0x0000008000000080LL };
   RGB_TO_Y \
   RGB_TO_UV_2 \
   OUTPUT_PLANAR_Y \
-  OUTPUT_PLANAR_UV2
+  OUTPUT_PLANAR_UV4
 
 #define CONVERT_Y      \
   LOAD_RGB_15 \
@@ -1106,7 +1106,7 @@ static mmx_t sign_mask =   { 0x0000008000000080LL };
   BGR_TO_Y \
   BGR_TO_UV_2 \
   OUTPUT_PLANAR_Y \
-  OUTPUT_PLANAR_UV2
+  OUTPUT_PLANAR_UV4
 
 #define CONVERT_Y      \
   LOAD_RGB_16 \
@@ -1131,7 +1131,7 @@ static mmx_t sign_mask =   { 0x0000008000000080LL };
   RGB_TO_Y \
   RGB_TO_UV_2 \
   OUTPUT_PLANAR_Y \
-  OUTPUT_PLANAR_UV2
+  OUTPUT_PLANAR_UV4
 
 #define CONVERT_Y      \
   LOAD_RGB_16 \
@@ -1156,7 +1156,7 @@ static mmx_t sign_mask =   { 0x0000008000000080LL };
   RGB_TO_Y \
   RGB_TO_UV_2 \
   OUTPUT_PLANAR_Y \
-  OUTPUT_PLANAR_UV2
+  OUTPUT_PLANAR_UV4
 
 #define CONVERT_Y      \
   RGB_YUV_LOAD_RGB_24 \
@@ -1181,7 +1181,7 @@ static mmx_t sign_mask =   { 0x0000008000000080LL };
   BGR_TO_Y \
   BGR_TO_UV_2 \
   OUTPUT_PLANAR_Y \
-  OUTPUT_PLANAR_UV2
+  OUTPUT_PLANAR_UV4
 
 #define CONVERT_Y      \
   RGB_YUV_LOAD_RGB_24 \
@@ -1207,7 +1207,7 @@ static mmx_t sign_mask =   { 0x0000008000000080LL };
   RGB_TO_Y \
   RGB_TO_UV_2 \
   OUTPUT_PLANAR_Y \
-  OUTPUT_PLANAR_UV2
+  OUTPUT_PLANAR_UV4
 
 #define CONVERT_Y      \
   LOAD_RGB_32 \
@@ -1233,7 +1233,7 @@ static mmx_t sign_mask =   { 0x0000008000000080LL };
   BGR_TO_Y \
   BGR_TO_UV_2 \
   OUTPUT_PLANAR_Y \
-  OUTPUT_PLANAR_UV2
+  OUTPUT_PLANAR_UV4
 
 #define CONVERT_Y      \
   LOAD_RGB_32 \
@@ -1492,7 +1492,7 @@ static mmx_t sign_mask =   { 0x0000008000000080LL };
   RGB_TO_Y \
   RGB_TO_UV_2 \
   OUTPUT_PLANAR_Y \
-  OUTPUT_PLANAR_UV2
+  OUTPUT_PLANAR_UV4
 
 #define CHROMA_SUB     1
 #define INIT           int i_tmp;

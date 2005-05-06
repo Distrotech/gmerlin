@@ -21,7 +21,7 @@
 
 #include <string.h>
 
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #include <stdio.h>  
@@ -95,7 +95,7 @@ add_context(gavl_video_converter_t * cnv,
   return ctx;
   }
 
-void add_context_csp(gavl_video_converter_t * cnv,
+int add_context_csp(gavl_video_converter_t * cnv,
                      const gavl_video_format_t * input_format,
                      const gavl_video_format_t * output_format)
   {
@@ -115,7 +115,7 @@ void add_context_csp(gavl_video_converter_t * cnv,
             gavl_colorspace_to_string(input_format->colorspace),
             gavl_colorspace_to_string(output_format->colorspace));
 #endif
-    return;
+    return 0;
     }
 #ifdef DEBUG
   fprintf(stderr, "Doing colorspace conversion from %s to %s\n",
@@ -123,6 +123,7 @@ void add_context_csp(gavl_video_converter_t * cnv,
           gavl_colorspace_to_string(output_format->colorspace));
   
 #endif
+  return 1;
   }
 
 static void scale_func(gavl_video_convert_context_t * ctx)
@@ -231,8 +232,9 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
       gavl_video_format_copy(&tmp_format1, &tmp_format);
 
       tmp_format1.colorspace = output_format->colorspace;
-      add_context_csp(cnv, &tmp_format, &tmp_format1);
-
+      if(!add_context_csp(cnv, &tmp_format, &tmp_format1))
+        return -1;
+      
       gavl_video_format_copy(&tmp_format, &tmp_format1);
 
       /* scale */
@@ -272,7 +274,8 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
       gavl_video_format_copy(&tmp_format1, &tmp_format);
 
       tmp_format1.colorspace = output_format->colorspace;
-      add_context_csp(cnv, &tmp_format, &tmp_format1);
+      if(!add_context_csp(cnv, &tmp_format, &tmp_format1))
+        return -1;
 
       gavl_video_format_copy(&tmp_format, &tmp_format1);
       }
@@ -281,8 +284,9 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
 
   else if(do_csp)
     {
-    add_context_csp(cnv, &tmp_format,
-                    output_format);
+    if(!add_context_csp(cnv, &tmp_format,
+                        output_format))
+      return -1;
     }
 
   else if(do_scale)

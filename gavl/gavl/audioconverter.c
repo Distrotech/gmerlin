@@ -133,7 +133,6 @@ static void dump_context(gavl_audio_convert_context_t * ctx)
 #endif
 
 int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
-                              const gavl_audio_options_t * opt,
                               const gavl_audio_format_t * input_format,
                               const gavl_audio_format_t * output_format)
   {
@@ -155,8 +154,6 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
   adjust_format(&(cnv->output_format));
 
   cnv->input_format.samples_per_frame = cnv->output_format.samples_per_frame;
-  
-  gavl_audio_options_copy(&(cnv->opt), opt);
 
   gavl_set_conversion_parameters(&(cnv->opt.accel_flags),
                                  &(cnv->opt.quality));
@@ -356,4 +353,10 @@ gavl_audio_converter_t * gavl_audio_converter_create()
   {
   gavl_audio_converter_t * ret = calloc(1, sizeof(*ret));
   return ret;
+  }
+
+gavl_audio_options_t *
+gavl_audio_converter_get_options(gavl_audio_converter_t * cnv)
+  {
+  return &(cnv->opt);
   }

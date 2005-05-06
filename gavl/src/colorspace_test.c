@@ -1176,6 +1176,10 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
 
   format.frame_width = TEST_PICTURE_WIDTH;
   format.frame_height = TEST_PICTURE_HEIGHT;
+
+  format.pixel_width = 1;
+  format.pixel_height = 1;
+  
   
   ret = gavl_video_frame_create(&format);
 
@@ -1631,15 +1635,21 @@ int main(int argc, char ** argv)
   
   input_format.image_width = TEST_PICTURE_WIDTH;
   input_format.image_height = TEST_PICTURE_HEIGHT;
-
+  
   input_format.frame_width = TEST_PICTURE_WIDTH;
   input_format.frame_height = TEST_PICTURE_HEIGHT;
 
+  input_format.pixel_width = 1;
+  input_format.pixel_height = 1;
+  
   output_format.frame_width = TEST_PICTURE_WIDTH;
   output_format.frame_height = TEST_PICTURE_HEIGHT;
 
   output_format.image_width = TEST_PICTURE_WIDTH;
   output_format.image_height = TEST_PICTURE_HEIGHT;
+
+  output_format.pixel_width = 1;
+  output_format.pixel_height = 1;
  
   init_yuv();
  

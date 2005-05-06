@@ -18,6 +18,7 @@ audio.c \
 audioconverter.c \
 audioformat.c \
 audioframe.c \
+audiooptions.c \
 colorspace.c \
 cputest.c \
 interleave.c \

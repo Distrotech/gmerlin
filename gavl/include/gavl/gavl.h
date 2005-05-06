@@ -321,24 +321,21 @@ GAVL_AUDIO_FRONT_TO_REAR_MUTE | \
 GAVL_AUDIO_STEREO_TO_MONO_RIGHT | \
 GAVL_AUDIO_STEREO_TO_MONO_MIX)
   
-typedef struct
-  {
-  /*
-   *  Quality setting from 1 to 5 (0 means undefined).
-   *  3 means Standard C routines or accellerated version with
-   *  equal quality. Lower numbers mean accellerated versions with lower
-   *  quality.
-   */
-  int quality;         
+typedef struct gavl_audio_options_s gavl_audio_options_t;
 
-  /* Explicit accel_flags are mainly for debugging purposes */
-  int accel_flags;     /* CPU Acceleration flags */
+void gavl_audio_options_set_quality(gavl_audio_options_t * opt, int quality);
 
-  /* #defines from above */
-    
-  uint32_t conversion_flags;
-  } gavl_audio_options_t;
+void gavl_audio_options_set_accel_flags(gavl_audio_options_t * opt,
+                                        int accel_flags);
+
+void gavl_audio_options_set_conversion_flags(gavl_audio_options_t * opt,
+                                             int conversion_flags);
   
+int gavl_audio_options_get_accel_flags(gavl_audio_options_t * opt);
+int gavl_audio_options_get_conversion_flags(gavl_audio_options_t * opt);
+
+void gavl_audio_options_set_defaults(gavl_audio_options_t * opt);
+
 /* Audio converter */
 
 typedef struct gavl_audio_converter_s gavl_audio_converter_t;
@@ -347,13 +344,12 @@ gavl_audio_converter_t * gavl_audio_converter_create();
 
 void gavl_audio_converter_destroy(gavl_audio_converter_t*);
 
-void gavl_audio_default_options(gavl_audio_options_t * opt);
+gavl_audio_options_t * gavl_audio_converter_get_options(gavl_audio_converter_t*);
 
 void gavl_audio_options_copy(gavl_audio_options_t * dst,
                              const gavl_audio_options_t * src);
 
 int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
-                              const gavl_audio_options_t * options,
                               const gavl_audio_format_t * input_format,
                               const gavl_audio_format_t * output_format);
   
@@ -681,7 +677,7 @@ void gavl_video_options_set_quality(gavl_video_options_t * opt, int quality);
 
 void gavl_video_options_set_accel_flags(gavl_video_options_t * opt,
                                         int accel_flags);
-
+  
 void gavl_video_options_set_conversion_flags(gavl_video_options_t * opt,
                                              int conversion_flags);
 
@@ -693,6 +689,9 @@ void gavl_video_options_set_scale_mode(gavl_video_options_t * opt,
 
 void gavl_video_options_set_background_color(gavl_video_options_t * opt,
                                              float * color);
+
+int gavl_video_options_get_accel_flags(gavl_video_options_t * opt);
+int gavl_video_options_get_conversion_flags(gavl_video_options_t * opt);
   
 /***************************************************
  * Create and destroy video converters

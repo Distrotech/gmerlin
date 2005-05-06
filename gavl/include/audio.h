@@ -22,6 +22,24 @@
 #include <gavl.h>
 #include "config.h"
 
+struct gavl_audio_options_s
+  {
+  /*
+   *  Quality setting from 1 to 5 (0 means undefined).
+   *  3 means Standard C routines or accellerated version with
+   *  equal quality. Lower numbers mean accellerated versions with lower
+   *  quality.
+   */
+  int quality;         
+
+  /* Explicit accel_flags are mainly for debugging purposes */
+  int accel_flags;     /* CPU Acceleration flags */
+
+  /* #defines from above */
+    
+  uint32_t conversion_flags;
+  };
+
 typedef struct gavl_audio_convert_context_s gavl_audio_convert_context_t;
 typedef struct gavl_mix_matrix_s gavl_mix_matrix_t;
 

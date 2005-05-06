@@ -28,19 +28,6 @@
 #include "config.h"
 #include "video.h"
 
-#if 0
-gavl_video_options_t * gavl_video_options_create()
-  {
-
-  }
-
-void gavl_video_options_destroy(gavl_video_options_t *)
-  {
-  gavl_video_options_t * ret;
-  ret = calloc(1, sizeof(*ret));
-  }
-#endif
-
 /***************************************************
  * Default Options
  ***************************************************/
@@ -100,6 +87,7 @@ void gavl_video_options_set_scale_mode(gavl_video_options_t * opt,
 
 #undef SET_INT
 
+
 void gavl_video_options_set_background_color(gavl_video_options_t * opt,
                                              float * color)
   {
@@ -119,4 +107,15 @@ void gavl_video_options_set_background_color(gavl_video_options_t * opt,
   if(i_tmp < 0)      i_tmp = 0;
   if(i_tmp > 0xffff) i_tmp = 0xffff;
   opt->background_blue = i_tmp;
+  }
+
+int gavl_video_options_get_accel_flags(gavl_video_options_t * opt)
+  {
+  return opt->accel_flags;
+  }
+
+
+int gavl_video_options_get_conversion_flags(gavl_video_options_t * opt)
+  {
+  return opt->conversion_flags;
   }

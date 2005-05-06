@@ -63,11 +63,17 @@ int main()
   input_format.frame_width = width;
   input_format.frame_height = height;
 
+  input_format.pixel_width = 1;
+  input_format.pixel_height = 1;
+
   output_format.image_width = width;
   output_format.image_height = height;
 
   output_format.frame_width = width;
   output_format.frame_height = height;
+
+  output_format.pixel_width = 1;
+  output_format.pixel_height = 1;
 
   //  char colorspace_buffer[20];
   
@@ -75,7 +81,7 @@ int main()
     {
     input_format.colorspace = gavl_get_colorspace(i);
     input_frame = gavl_video_frame_create(&input_format);
-    
+    gavl_video_frame_clear(input_frame, &input_format);
     for(j = 0; j < num_colorspaces; j++) /* Output format loop */
       {
       output_format.colorspace = gavl_get_colorspace(j);

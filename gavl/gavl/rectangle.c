@@ -176,12 +176,12 @@ void gavl_rectangle_crop_right(gavl_rectangle_t * r, int num_pixels)
 void gavl_rectangle_crop_top(gavl_rectangle_t * r, int num_pixels)
   {
   r->y += num_pixels;
-  r->w -= num_pixels;
+  r->h -= num_pixels;
   }
 
 void gavl_rectangle_crop_bottom(gavl_rectangle_t * r, int num_pixels)
   {
-  r->w -= num_pixels;
+  r->h -= num_pixels;
   }
 
 #define PADD(num, multiple) num -= num % multiple
