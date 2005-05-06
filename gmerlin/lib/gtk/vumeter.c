@@ -746,7 +746,6 @@ bg_gtk_vumeter_get_widget(bg_gtk_vumeter_t * m)
 void bg_gtk_vumeter_set_format(bg_gtk_vumeter_t * m,
                                gavl_audio_format_t * format)
   {
-  gavl_audio_options_t opt;
 
   memcpy(&(m->internal_format),
          format, sizeof(gavl_audio_format_t));
@@ -778,13 +777,11 @@ void bg_gtk_vumeter_set_format(bg_gtk_vumeter_t * m,
       m->get_level = get_level_float;
       break;
     }
-  gavl_audio_default_options(&opt);
   
   gavl_audio_converter_init(m->cnv,
-                  &opt,
-                  format,
-                  &(m->internal_format));
-
+                            format,
+                            &(m->internal_format));
+  
   if(m->frame)
     gavl_audio_frame_destroy(m->frame);
   m->frame = gavl_audio_frame_create(&(m->internal_format));

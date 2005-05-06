@@ -444,21 +444,22 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
     {
     /* Now we can add the stream */
 
-    e->video_streams[stream].codec_info = lqt_find_video_codec_by_name(val->val_str);
+    e->video_streams[stream].codec_info =
+      lqt_find_video_codec_by_name(val->val_str);
     
     if(e->format == FORMAT_AVI)
       {
-      e->video_streams[stream].format.image_width *=
-        e->video_streams[stream].format.pixel_width;
+      //      e->video_streams[stream].format.image_width *=
+      //        e->video_streams[stream].format.pixel_width;
       
-      e->video_streams[stream].format.image_width /=
-        e->video_streams[stream].format.pixel_height;
+      //      e->video_streams[stream].format.image_width /=
+      //        e->video_streams[stream].format.pixel_height;
 
       e->video_streams[stream].format.pixel_width = 1;
       e->video_streams[stream].format.pixel_height = 1;
 
-      e->video_streams[stream].format.frame_width =
-        e->video_streams[stream].format.image_width;
+      //      e->video_streams[stream].format.frame_width =
+      //        e->video_streams[stream].format.image_width;
       }
     
     lqt_add_video_track(e->file, e->video_streams[stream].format.image_width,
@@ -466,8 +467,9 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
                         e->video_streams[stream].format.frame_duration,
                         e->video_streams[stream].format.timescale,
                         *e->video_streams[stream].codec_info);
-    quicktime_colormodel = lqt_get_best_colormodel(e->file, stream,
-                                                   bg_lqt_supported_colormodels);
+    quicktime_colormodel =
+      lqt_get_best_colormodel(e->file, stream,
+                              bg_lqt_supported_colormodels);
     e->video_streams[stream].format.colorspace =
       bg_lqt_get_gavl_colorspace(quicktime_colormodel);
     lqt_set_cmodel(e->file, stream, quicktime_colormodel);

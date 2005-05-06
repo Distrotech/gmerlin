@@ -31,7 +31,6 @@ int main(int argc, char ** argv)
   const bg_plugin_info_t * plugin_info;
   bg_cfg_section_t * cfg_section;
   int do_convert;
-  gavl_audio_options_t opt;
   bg_plugin_registry_t * plugin_reg;
   bg_cfg_registry_t    * cfg_reg;
   
@@ -137,12 +136,10 @@ int main(int argc, char ** argv)
 
   audio_converter = gavl_audio_converter_create();
 
-  gavl_audio_default_options(&opt);
 
   fprintf(stderr, "gavl_audio_converter_init...");
   
   do_convert = gavl_audio_converter_init(audio_converter,
-                                         &opt,
                                          &(info->audio_streams[0].format),
                                          &audio_format);
   fprintf(stderr, "done\n");

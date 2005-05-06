@@ -26,6 +26,8 @@
 void bg_player_audio_create(bg_player_t * p)
   {
   p->audio_stream.cnv = gavl_audio_converter_create();
+  p->audio_stream.options.opt =
+    gavl_audio_converter_get_options(p->audio_stream.cnv);
   bg_gavl_audio_options_init(&(p->audio_stream.options));
 
   pthread_mutex_init(&(p->audio_stream.config_mutex),(pthread_mutexattr_t *)0);
@@ -96,7 +98,7 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   fprintf(stderr, "=================================\n");
 #endif
   
-  if(!gavl_audio_converter_init(player->audio_stream.cnv, &(player->audio_stream.options.opt),
+  if(!gavl_audio_converter_init(player->audio_stream.cnv,
                                 &(player->audio_stream.input_format),
                                 &(player->audio_stream.output_format)))
     {

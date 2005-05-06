@@ -21,7 +21,7 @@
 
 typedef struct
   {
-  gavl_audio_options_t opt;
+  gavl_audio_options_t * opt;
   int fixed_samplerate;
   int samplerate;
   int fixed_channel_setup;
@@ -145,7 +145,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
     val_min:     { val_i: 0 },                                     \
       val_max:     { val_i: 100000 },\
       val_default: { val_i: 0 },\
-      help_string: "Cut this many pixels from the left border"\
+      help_string: "Cut this many pixels from the left border of the source frames"\
     },\
     {\
       name:      "crop_right",\
@@ -154,7 +154,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       val_min:     { val_i: 0 },\
       val_max:     { val_i: 100000 },\
       val_default: { val_i: 0 },\
-      help_string: "Cut this many pixels from the right border"\
+      help_string: "Cut this many pixels from the right border of the source frames"\
     },\
     {\
       name:      "crop_top",\
@@ -163,7 +163,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       val_min:     { val_i: 0 },\
       val_max:     { val_i: 100000 },\
       val_default: { val_i: 0 },\
-      help_string: "Cut this many pixels from the top border"\
+      help_string: "Cut this many pixels from the top border of the source frames"\
     },\
     {\
       name:      "crop_bottom",\
@@ -172,7 +172,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       val_min:     { val_i: 0 },\
       val_max:     { val_i: 100000 },\
       val_default: { val_i: 0 },\
-      help_string: "Cut this many pixels from the bottom border"\
+      help_string: "Cut this many pixels from the bottom border of the source frames"\
     }
 
 #define BG_GAVL_PARAM_FRAME_SIZE  \

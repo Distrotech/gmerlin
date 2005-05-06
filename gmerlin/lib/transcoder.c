@@ -87,9 +87,7 @@ typedef struct
 
   gavl_audio_format_t in_format;
   gavl_audio_format_t out_format;
-
-  //  gavl_audio_options_t opt;
-  
+    
   /* Set by set_parameter */
   bg_gavl_audio_options_t options;
   int64_t samples_to_read;
@@ -293,13 +291,13 @@ static void prepare_audio_stream(audio_stream_t * ret,
   ret->com.in_handle = in_handle;
   ret->com.in_plugin = (bg_input_plugin_t*)(in_handle->plugin);
   /* Default options */
-
   
-  bg_gavl_audio_options_init(&(ret->options));
-
   /* Create converter */
 
   ret->cnv = gavl_audio_converter_create();
+  ret->options.opt = gavl_audio_converter_get_options(ret->cnv);
+  bg_gavl_audio_options_init(&(ret->options));
+
   
   /* Apply parameters */
 
@@ -454,7 +452,7 @@ static void finalize_audio_stream(audio_stream_t * ret,
 #endif
   /* Initialize converter */
 
-  ret->com.do_convert = gavl_audio_converter_init(ret->cnv, &(ret->options.opt),
+  ret->com.do_convert = gavl_audio_converter_init(ret->cnv,
                                                   &(ret->in_format),
                                                   &(ret->out_format));
 

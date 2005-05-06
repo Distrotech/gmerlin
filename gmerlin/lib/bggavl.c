@@ -29,11 +29,12 @@
 
 int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t * val)
   {
+  int flags;
   bg_gavl_audio_options_t * opt = (bg_gavl_audio_options_t *)data;
 
   if(!strcmp(name, "conversion_quality"))
     {
-    opt->opt.quality = val->val_i;
+    gavl_audio_options_set_quality(opt->opt, val->val_i);
     return 1;
     }
   else if(!strcmp(name, "fixed_samplerate"))
@@ -72,39 +73,46 @@ int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t *
 
   else if(!strcmp(name, "front_to_rear"))
     {
-    opt->opt.conversion_flags &= ~GAVL_AUDIO_FRONT_TO_REAR_MASK;
+    flags = gavl_audio_options_get_conversion_flags(opt->opt);
+
+    flags &= ~GAVL_AUDIO_FRONT_TO_REAR_MASK;
     
     if(!strcmp(val->val_str, "Copy"))
       {
-      opt->opt.conversion_flags |= GAVL_AUDIO_FRONT_TO_REAR_COPY;
+      flags |= GAVL_AUDIO_FRONT_TO_REAR_COPY;
       }
     else if(!strcmp(val->val_str, "Mute"))
       {
-      opt->opt.conversion_flags |= GAVL_AUDIO_FRONT_TO_REAR_MUTE;
+      flags |= GAVL_AUDIO_FRONT_TO_REAR_MUTE;
       }
     else if(!strcmp(val->val_str, "Diff"))
       {
-      opt->opt.conversion_flags |= GAVL_AUDIO_FRONT_TO_REAR_DIFF;
+      flags |= GAVL_AUDIO_FRONT_TO_REAR_DIFF;
       }
+    gavl_audio_options_set_conversion_flags(opt->opt, flags);
+    
     return 1;
     }
 
   else if(!strcmp(name, "stereo_to_mono"))
     {
-    opt->opt.conversion_flags &= ~GAVL_AUDIO_STEREO_TO_MONO_MASK;
+    flags = gavl_audio_options_get_conversion_flags(opt->opt);
+
+    flags &= ~GAVL_AUDIO_STEREO_TO_MONO_MASK;
                                                                                                         
     if(!strcmp(val->val_str, "Choose left"))
       {
-      opt->opt.conversion_flags |= GAVL_AUDIO_STEREO_TO_MONO_LEFT;
+      flags |= GAVL_AUDIO_STEREO_TO_MONO_LEFT;
       }
     else if(!strcmp(val->val_str, "Choose right"))
       {
-      opt->opt.conversion_flags |= GAVL_AUDIO_STEREO_TO_MONO_RIGHT;
+      flags |= GAVL_AUDIO_STEREO_TO_MONO_RIGHT;
       }
     else if(!strcmp(val->val_str, "Mix"))
       {
-      opt->opt.conversion_flags |= GAVL_AUDIO_STEREO_TO_MONO_MIX;
+      flags |= GAVL_AUDIO_STEREO_TO_MONO_MIX;
       }
+    gavl_audio_options_set_conversion_flags(opt->opt, flags);
     return 1;
     }
 
@@ -114,7 +122,7 @@ int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t *
 void bg_gavl_audio_options_init(bg_gavl_audio_options_t *opt)
   {
   memset(opt, 0, sizeof(*opt));
-  gavl_audio_default_options(&(opt->opt));
+  gavl_audio_options_set_defaults(opt->opt);
   }
 
 void bg_gavl_audio_options_set_format(bg_gavl_audio_options_t * opt,
@@ -414,6 +422,7 @@ void bg_gavl_video_options_set_framerate(bg_gavl_video_options_t * opt,
       {
       out_format->timescale      = framerate_rates[i].timescale;
       out_format->frame_duration = framerate_rates[i].frame_duration;
+      out_format->free_framerate = 0;
       return;
       }
     }
