@@ -130,6 +130,12 @@ vis_plugin_handle_t * vis_plugin_load_xmms1(const vis_plugin_info_t * info)
   ret->info = info;
   ret->priv = load_vis_plugin(info->module_filename);
 
+  if(!ret->priv)
+    {
+    free(ret);
+    return (vis_plugin_handle_t*)0;
+    }
+    
   ret->configure = configure_xmms1;
   ret->about     = about_xmms1;
   ret->start     = start_xmms1;

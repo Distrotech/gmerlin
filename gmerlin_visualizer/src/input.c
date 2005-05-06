@@ -40,7 +40,6 @@ int input_create()
   {
   gavl_audio_format_t input_format;
   gavl_audio_format_t format;
-  gavl_audio_options_t opt;
 
   bg_cfg_section_t * cfg_section;
   const bg_plugin_info_t * info;  
@@ -84,10 +83,9 @@ int input_create()
   format.interleave_mode = GAVL_INTERLEAVE_NONE;
   format.samples_per_frame = 1024;
   format.sample_format = GAVL_SAMPLE_S16;
-  gavl_audio_default_options(&opt);
   the_input->cnv = gavl_audio_converter_create();
   the_input->do_convert_gavl = 
-    gavl_audio_converter_init(the_input->cnv, &opt, &input_format, &format);
+    gavl_audio_converter_init(the_input->cnv, &input_format, &format);
 
   if(the_input->do_convert_gavl)
     {
@@ -112,8 +110,6 @@ int input_create()
 
 void input_add_plugin(input_t * c, vis_plugin_handle_t * plugin)
   {
-  /*  fprintf(stderr, "esd_connection_add_plugin..."); */
-
   plugin->next = c->active_plugins;
   c->active_plugins = plugin;
 

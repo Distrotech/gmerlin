@@ -75,9 +75,9 @@ static void button_callback(GtkWidget * w, gpointer * data)
 #endif
       if(!win->current_plugin_handle)
         win->current_plugin_handle = vis_plugin_load(win->current_plugin_info);
-      
-      input_add_plugin(the_input,
-                       win->current_plugin_handle);
+      if(win->current_plugin_handle)
+        input_add_plugin(the_input,
+                         win->current_plugin_handle);
       }
     else
       {
@@ -236,8 +236,15 @@ main_window_t * main_window_create()
       {
       fprintf(stderr, "Enabling %s\n", info->name);
       ret->current_plugin_handle = vis_plugin_load(info);
-      input_add_plugin(the_input, ret->current_plugin_handle);
-      ret->current_plugin_handle = (vis_plugin_handle_t*)0;
+      if(ret->current_plugin_handle)
+        {
+        input_add_plugin(the_input, ret->current_plugin_handle);
+        ret->current_plugin_handle = (vis_plugin_handle_t*)0;
+        }
+      else
+        {
+        info->enabled = 0;
+        }
       }
     info = info->next;
     }
