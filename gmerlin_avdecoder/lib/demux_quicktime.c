@@ -591,8 +591,17 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       bg_vs->data.video.format.image_height = desc->format.video.height;
       bg_vs->data.video.format.frame_width = desc->format.video.width;
       bg_vs->data.video.format.frame_height = desc->format.video.height;
-      bg_vs->data.video.format.pixel_width = 1;
-      bg_vs->data.video.format.pixel_height = 1;
+
+      if(desc->has_pasp)
+        {
+        bg_vs->data.video.format.pixel_width = desc->pasp.hSpacing;
+        bg_vs->data.video.format.pixel_height = desc->pasp.vSpacing;
+        }
+      else
+        {
+        bg_vs->data.video.format.pixel_width = 1;
+        bg_vs->data.video.format.pixel_height = 1;
+        }
       bg_vs->data.video.depth = desc->format.video.depth;
       
       bg_vs->data.video.format.timescale = moov->tracks[i].mdia.mdhd.time_scale;

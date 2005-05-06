@@ -249,6 +249,7 @@ qt_minf.c \
 qt_moov.c \
 qt_mvhd.c \
 qt_palette.c \
+qt_pasp.c \
 qt_rdrf.c \
 qt_rmda.c \
 qt_rmra.c \

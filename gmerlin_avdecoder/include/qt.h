@@ -136,7 +136,7 @@ int bgav_qt_stss_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 void bgav_qt_stss_free(qt_stss_t * c);
 void bgav_qt_stss_dump(qt_stss_t * c);
 
-/* Esds */
+/* ssds */
 
 typedef struct
   {
@@ -160,6 +160,21 @@ void bgav_qt_esds_free(qt_esds_t * ret);
 
 void bgav_qt_esds_dump(qt_esds_t * e);
 
+/* pasp */
+
+typedef struct
+  {
+  qt_atom_header_t h;
+  uint32_t hSpacing;
+  uint32_t vSpacing;
+  } qt_pasp_t;
+
+int bgav_qt_pasp_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_pasp_t * ret);
+
+void bgav_qt_pasp_dump(qt_pasp_t * e);
+  
+  
 /*
  *  Sample description
  */
@@ -222,6 +237,9 @@ typedef struct
   qt_esds_t esds;
   int has_esds;
 
+  qt_pasp_t pasp;
+  int has_pasp;
+  
   /* Data for avc1 (offset realtive to data) */
 
   int avcC_offset;

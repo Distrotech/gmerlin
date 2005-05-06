@@ -313,8 +313,17 @@ static int stsd_read_video(bgav_input_context_t * input,
         ret->avcC_size   = h.size - 8;
         bgav_qt_atom_skip(input, &h);
         break;
+      case BGAV_MK_FOURCC('p', 'a', 's', 'p'):
+        fprintf(stderr, "Found pasp atom\n");
+        if(!bgav_qt_pasp_read(&h, input, &(ret->pasp)))
+          return 0;
+        else
+          ret->has_pasp = 1;
+        break;
       default:
-#if 0
+
+        
+#if 1
         fprintf(stderr, "Unknown atom ");
         bgav_dump_fourcc(h.fourcc);
         fprintf(stderr, "\n");
