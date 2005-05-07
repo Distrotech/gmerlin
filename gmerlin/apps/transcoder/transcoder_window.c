@@ -755,7 +755,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
   {
   bg_dialog_t * dlg;
   bg_cfg_section_t * cfg_section;
-  
+  void * parent;
 
   dlg = bg_dialog_create_multi("Transcoder configuration");
 
@@ -780,13 +780,16 @@ static void transcoder_window_preferences(transcoder_window_t * w)
 
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
                                                "video");
+
+  parent = bg_dialog_add_parent(dlg, NULL,
+                                "Video defaults");
+
   
-  bg_dialog_add(dlg,
-                "Video defaults",
-                cfg_section,
-                NULL,
-                NULL,
-                bg_transcoder_track_video_get_general_parameters());
+  bg_dialog_add_child(dlg, parent, "Video",
+                      cfg_section,
+                      NULL,
+                      NULL,
+                      bg_transcoder_track_video_get_general_parameters());
 
   cfg_section = bg_cfg_registry_find_section(w->cfg_reg,
                                              "transcoder_window");

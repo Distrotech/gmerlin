@@ -62,9 +62,9 @@ int bg_cdaudio_rip_init(void * data,
   cdparanoia_priv_t * priv;
   priv = (cdparanoia_priv_t *)data;
   
-  fprintf(stderr, "cdparanoia: cdda_identify\n");
+  //  fprintf(stderr, "cdparanoia: cdda_identify\n");
   priv->drive = cdio_cddap_identify_cdio(cdio, 1, &msg);
-  fprintf(stderr, "cdparanoia: cdda_identify done, drive: %p %s\n", priv->drive, msg);
+  //  fprintf(stderr, "cdparanoia: cdda_identify done, drive: %p %s\n", priv->drive, msg);
 
   if(!priv->drive)
     return 0;
@@ -122,7 +122,7 @@ void bg_cdaudio_rip_seek(void * data, int sector, int sector_lba)
   {
   cdparanoia_priv_t * priv;
   priv = (cdparanoia_priv_t *)data;
-  fprintf(stderr, "Paranoia seek: %d\n", sector);
+  //  fprintf(stderr, "Paranoia seek: %d\n", sector);
   cdio_paranoia_seek(priv->paranoia, sector, SEEK_SET);
   }
 

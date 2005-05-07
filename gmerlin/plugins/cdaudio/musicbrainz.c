@@ -39,7 +39,7 @@ static void test_cdindex()
   idx->tracks[14].last_sector  = 325731+150;
   get_cdindex_id(idx, disc_id);
 
-  fprintf(stderr, "ID: %s\n", disc_id);
+  //  fprintf(stderr, "ID: %s\n", disc_id);
 
   free(idx->tracks);
   free(idx);
@@ -87,14 +87,14 @@ int bg_cdaudio_get_metadata_musicbrainz(bg_cdaudio_index_t * idx,
   // Select the first album
   if(!mb_Select1(m, MBS_SelectAlbum, 1))
     {
-    fprintf(stderr, "Query failed\n");
+    //    fprintf(stderr, "Query failed\n");
     goto fail;
     }
 
   // Pull back the album id to see if we got the album
   if (!mb_GetResultData(m, MBE_AlbumGetAlbumId, data, 256))
     {
-    fprintf(stderr, "Query failed\n");
+    //    fprintf(stderr, "Query failed\n");
     goto fail;
     }
 

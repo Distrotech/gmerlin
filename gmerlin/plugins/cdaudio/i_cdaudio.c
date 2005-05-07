@@ -339,7 +339,7 @@ static void stop_cdaudio(void * priv)
   else
     {
     bg_cdaudio_rip_close(cd->ripper);
-    fprintf(stderr, "Processed %d samples\n", cd->samples_written);
+    //    fprintf(stderr, "Processed %d samples\n", cd->samples_written);
     }
   cd->cdio = (CdIo_t*)0;
   }
@@ -413,20 +413,20 @@ static int bypass_cdaudio(void * priv)
 
   if(!bg_cdaudio_get_status(cd->cdio, &(cd->status)))
     {
-    fprintf(stderr, "bg_cdaudio_get_status returned 0\n");
+    //    fprintf(stderr, "bg_cdaudio_get_status returned 0\n");
     return 0;
     }
   if((cd->status.track < cd->current_track) ||
      (cd->status.track > cd->current_track+1))
     {
-    fprintf(stderr, "bg_cdaudio_get_status returned bullshit\n");
+    //    fprintf(stderr, "bg_cdaudio_get_status returned bullshit\n");
     cd->status.track = cd->current_track;
     return 1;
     }
   if(cd->status.track == cd->current_track + 1)
     {
-    fprintf(stderr, "Track changed, old_track: %d, new_track: %d\n",
-            cd->current_track, cd->status.track);
+    //    fprintf(stderr, "Track changed, old_track: %d, new_track: %d\n",
+    //            cd->current_track, cd->status.track);
     cd->current_track = cd->status.track;
 
     j = cd->index->tracks[cd->current_track].index;

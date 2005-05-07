@@ -149,12 +149,14 @@ void bg_cdaudio_get_disc_id(bg_cdaudio_index_t * idx, char disc_id[DISCID_SIZE])
 CdIo_t * bg_cdaudio_open(const char * device)
   {
   CdIo_t * ret;
-  fprintf(stderr, "Opening CD device %s...", device);
+  //  fprintf(stderr, "Opening CD device %s...", device);
   ret = cdio_open (device, DRIVER_DEVICE);
+#if 0
   if(ret)
     fprintf(stderr, "done, using %s driver\n", cdio_get_driver_name(ret));
   else
     fprintf(stderr, "failed\n");
+#endif
   return ret;
   }
 #if 0
@@ -213,7 +215,7 @@ bg_cdaudio_index_t * bg_cdaudio_get_index(CdIo_t * cdio)
 
 void bg_cdaudio_close(CdIo_t * cdio)
   {
-  fprintf(stderr, "Close CD device\n");
+  //  fprintf(stderr, "Close CD device\n");
   cdio_destroy(cdio);
   }
 
@@ -287,7 +289,7 @@ bg_device_info_t * bg_cdaudio_find_devices()
   i = 0;
   while(devices[i])
     {
-    fprintf(stderr, "Checking %s\n", devices[i]);
+    //    fprintf(stderr, "Checking %s\n", devices[i]);
     device_name = (char*)0;
     if(bg_cdaudio_check_device(devices[i], &device_name))
       {
@@ -331,7 +333,7 @@ int bg_cdaudio_get_status(CdIo_t * cdio, bg_cdaudio_status_t *st)
 
   if(subchannel.audio_status == CDIO_MMC_READ_SUB_ST_COMPLETED)
     {
-    fprintf(stderr, "Completed\n");
+    //    fprintf(stderr, "Completed\n");
     return 0;
     }
   st->track = subchannel.track - 1;
