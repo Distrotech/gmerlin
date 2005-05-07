@@ -20,12 +20,15 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <config.h>
 
 #include "gmerlin.h"
 
 #include <utils.h>
 
-void gmerlin_skin_load(gmerlin_skin_t * s, const char * directory)
+static const char * default_skin_directory = GMERLIN_DATA_DIR"skins/Default";
+
+char * gmerlin_skin_load(gmerlin_skin_t * s, char * directory)
   {
   xmlNodePtr node;
   xmlNodePtr child;
@@ -34,14 +37,23 @@ void gmerlin_skin_load(gmerlin_skin_t * s, const char * directory)
   xmlDocPtr doc = (xmlDocPtr)0;
   
   filename = bg_sprintf("%s/skin.xml", directory);
-  
-  if(!filename)
-    goto fail;
   doc = xmlParseFile(filename);
 
   if(!doc)
+    {
+    free(filename);
+
+    directory = bg_strdup(directory, default_skin_directory);
+        
+    filename = bg_sprintf("%s/skin.xml", directory);
+    doc = xmlParseFile(filename);
+    }
+
+  if(!doc)
+    {
     goto fail;
-  
+    }
+    
   s->directory = bg_strdup(s->directory, directory);
   
   node = doc->children;
@@ -75,6 +87,7 @@ void gmerlin_skin_load(gmerlin_skin_t * s, const char * directory)
     xmlFreeDoc(doc);
   if(filename)
     free(filename);
+  return directory;
   }
 
 void gmerlin_skin_set(gmerlin_t * g)

@@ -129,7 +129,12 @@ void gmerlin_run(gmerlin_t*);
 
 /* Skin stuff */
 
-void gmerlin_skin_load(gmerlin_skin_t *, const char * directory);
+/* Load a skin from directory. Return the default dierectory if the
+   skin could not be found */
+
+char * gmerlin_skin_load(gmerlin_skin_t *, char * directory);
+
+
 void gmerlin_skin_set(gmerlin_t*);
 void gmerlin_skin_free(gmerlin_skin_t*);
 
