@@ -26,7 +26,7 @@
 
 #include <utils.h>
 
-static const char * default_skin_directory = GMERLIN_DATA_DIR"skins/Default";
+static const char * default_skin_directory = GMERLIN_DATA_DIR"/skins/Default";
 
 char * gmerlin_skin_load(gmerlin_skin_t * s, char * directory)
   {
