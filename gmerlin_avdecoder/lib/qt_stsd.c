@@ -314,7 +314,7 @@ static int stsd_read_video(bgav_input_context_t * input,
         bgav_qt_atom_skip(input, &h);
         break;
       case BGAV_MK_FOURCC('p', 'a', 's', 'p'):
-        fprintf(stderr, "Found pasp atom\n");
+        //        fprintf(stderr, "Found pasp atom\n");
         if(!bgav_qt_pasp_read(&h, input, &(ret->pasp)))
           return 0;
         else

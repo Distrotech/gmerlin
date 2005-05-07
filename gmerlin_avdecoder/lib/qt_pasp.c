@@ -29,7 +29,7 @@ int bgav_qt_pasp_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
   if(!bgav_input_read_32_be(ctx, &(ret->hSpacing)) ||
      !bgav_input_read_32_be(ctx, &(ret->vSpacing)))
     return 0;
-  bgav_qt_pasp_dump(ret);
+  //  bgav_qt_pasp_dump(ret);
   return 1;
   }
 
