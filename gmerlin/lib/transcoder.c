@@ -296,6 +296,7 @@ static void prepare_audio_stream(audio_stream_t * ret,
 
   ret->cnv = gavl_audio_converter_create();
   ret->options.opt = gavl_audio_converter_get_options(ret->cnv);
+  fprintf(stderr, "Options: %p\n", ret->options.opt);
   bg_gavl_audio_options_init(&(ret->options));
 
   

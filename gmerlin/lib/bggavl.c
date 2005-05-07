@@ -121,7 +121,6 @@ int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t *
 
 void bg_gavl_audio_options_init(bg_gavl_audio_options_t *opt)
   {
-  memset(opt, 0, sizeof(*opt));
   gavl_audio_options_set_defaults(opt->opt);
   }
 
