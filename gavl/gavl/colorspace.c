@@ -23,6 +23,7 @@
 #include <colorspace.h>
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 typedef struct
@@ -272,17 +273,21 @@ create_colorspace_function_table(const gavl_video_options_t * opt,
     
   csp_tab =
     calloc(1,sizeof(gavl_colorspace_function_table_t));
-  
+#if 1
   if(!real_accel_flags || (real_accel_flags & GAVL_ACCEL_C))
     {
+    fprintf(stderr, "Init C functions %08x\n", real_accel_flags);
     gavl_init_rgb_rgb_funcs_c(csp_tab);
     gavl_init_rgb_yuv_funcs_c(csp_tab);
     gavl_init_yuv_rgb_funcs_c(csp_tab);
     gavl_init_yuv_yuv_funcs_c(csp_tab);
     }
+#endif
+  
 #ifdef ARCH_X86
   if(!real_accel_flags || (real_accel_flags & GAVL_ACCEL_MMX))
     {
+    fprintf(stderr, "Init MMX functions %08x\n", real_accel_flags);
     gavl_init_rgb_rgb_funcs_mmx(csp_tab, width, opt->quality);
     gavl_init_rgb_yuv_funcs_mmx(csp_tab, width, opt->quality);
     gavl_init_yuv_yuv_funcs_mmx(csp_tab, width, opt->quality);
@@ -290,6 +295,7 @@ create_colorspace_function_table(const gavl_video_options_t * opt,
     }
   if(!real_accel_flags || (real_accel_flags & GAVL_ACCEL_MMXEXT))
     {
+    fprintf(stderr, "Init MMXEXT functions %08x\n", real_accel_flags);
     gavl_init_rgb_rgb_funcs_mmxext(csp_tab, width, opt->quality);
     gavl_init_rgb_yuv_funcs_mmxext(csp_tab, width, opt->quality);
     gavl_init_yuv_yuv_funcs_mmxext(csp_tab, width, opt->quality);

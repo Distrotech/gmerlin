@@ -1115,7 +1115,7 @@ void get_pixel_colorbar(int x, int y, uint8_t * r_ret, uint8_t * g_ret,
   int color_index;
   int r_tmp, g_tmp, b_tmp, a_tmp;
   
-  uint8_t alpha = ((TEST_PICTURE_HEIGHT - y) * 0xff) / (TEST_PICTURE_HEIGHT);
+  int alpha = ((TEST_PICTURE_HEIGHT - y) * 0xff) / (TEST_PICTURE_HEIGHT);
   color_index = (x * 16) / (TEST_PICTURE_WIDTH - 1);
 
 
@@ -1137,7 +1137,9 @@ void get_pixel_colorbar(int x, int y, uint8_t * r_ret, uint8_t * g_ret,
 /*   g_tmp =  colorbar_colors[color_index][1][1]; */
 /*   b_tmp =  colorbar_colors[color_index][1][2]; */
   
-  a_tmp = 0xFF; /* Not used for now */
+//  a_tmp = 0xFF; /* Not used for now */
+
+  a_tmp = RECLIP(alpha);
   
   *r_ret = RECLIP(r_tmp);
   *g_ret = RECLIP(g_tmp);
@@ -1622,6 +1624,8 @@ int main(int argc, char ** argv)
   const char * tmp1, * tmp2;
   char filename_buffer[128];
 
+  float background[3] = { 1.0, 0.0, 0.0 };
+    
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;
 
@@ -1669,7 +1673,9 @@ int main(int argc, char ** argv)
       {
       gavl_video_options_set_defaults(opt);
 
-      gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_IGNORE);
+      gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_BLEND_COLOR);
+      gavl_video_options_set_background_color(opt, background);
+
       output_format.colorspace = gavl_get_colorspace(j);
 
       if(input_format.colorspace == output_format.colorspace)

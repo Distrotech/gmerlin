@@ -74,7 +74,7 @@ add_context(gavl_video_converter_t * cnv,
   {
   gavl_video_convert_context_t * ctx;
   ctx = calloc(1, sizeof(*ctx));
-
+  ctx->options = &(cnv->options);
   gavl_video_format_copy(&(ctx->input_format),
                          input_format);
   

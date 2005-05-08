@@ -29,6 +29,8 @@
 #define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
 #endif
 
+#include "interpolate.h"
+
 static mmx_t rgb_rgb_rgb32_upper_mask =       { 0x00ff000000ff0000LL };
 static mmx_t rgb_rgb_rgb32_middle_mask =      { 0x0000ff000000ff00LL };
 static mmx_t rgb_rgb_rgb32_lower_mask =       { 0x000000ff000000ffLL };
@@ -1917,6 +1919,173 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 /* Conversion from RGBA to RGB formats */
 
+#define INIT_RGBA32 INTERPOLATE_INIT_TEMP;\
+  tmp.ub[0] = ctx->options->background_red>>8;\
+  tmp.ub[2] = ctx->options->background_green>>8;\
+  tmp.ub[4] = ctx->options->background_blue>>8;\
+  tmp.ub[6] = 0xff;\
+  movq_m2r(tmp, mm1);
+
+/* rgba_32_to_rgb_15_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_rgb_15_mmx
+#define CONVERT \
+  INTERPOLATE_LOAD_SRC_RGBA32 \
+  INTERPOLATE_1D \
+  INTERPOLATE_WRITE_15_SWAP
+  
+
+
+#define INIT \
+  INIT_RGBA32
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+
+
+/* rgba_32_to_bgr_15_mmx */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_bgr_15_mmx
+#define CONVERT \
+  INTERPOLATE_LOAD_SRC_RGBA32 \
+  INTERPOLATE_1D \
+  INTERPOLATE_WRITE_15
+
+#define INIT \
+  INIT_RGBA32
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+
+
+/* rgba_32_to_rgb_16_mmx */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_rgb_16_mmx
+#define CONVERT \
+  INTERPOLATE_LOAD_SRC_RGBA32 \
+  INTERPOLATE_1D \
+  INTERPOLATE_WRITE_16_SWAP
+
+#define INIT \
+  INIT_RGBA32
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+
+/* rgba_32_to_bgr_16_mmx */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_bgr_16_mmx
+#define CONVERT \
+  INTERPOLATE_LOAD_SRC_RGBA32 \
+  INTERPOLATE_1D              \
+  INTERPOLATE_WRITE_16
+
+
+#define INIT \
+  INIT_RGBA32
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+
+
+/* rgba_32_to_rgb_24_mmx */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_rgb_24_mmx
+#define CONVERT \
+  INTERPOLATE_LOAD_SRC_RGBA32 \
+  INTERPOLATE_1D \
+  INTERPOLATE_WRITE_RGB24
+
+#define INIT \
+  INIT_RGBA32
+
+#define CLEANUP     emms();
+
+#include "../csp_packed_packed.h"
+
+/* rgba_32_to_bgr_24_mmx */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_bgr_24_mmx
+#define CONVERT \
+  INTERPOLATE_LOAD_SRC_RGBA32 \
+  INTERPOLATE_1D \
+  INTERPOLATE_WRITE_BGR24
+
+#define INIT \
+  INIT_RGBA32
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+
+/* rgba_32_to_rgb_32_mmx */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_rgb_32_mmx
+#define CONVERT \
+  INTERPOLATE_LOAD_SRC_RGBA32 \
+  INTERPOLATE_1D \
+  INTERPOLATE_WRITE_RGB32
+
+#define INIT \
+  INIT_RGBA32
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+
+/* rgba_32_to_bgr_32_mmx */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_32_to_bgr_32_mmx
+#define CONVERT \
+  INTERPOLATE_LOAD_SRC_RGBA32 \
+  INTERPOLATE_1D \
+  INTERPOLATE_WRITE_BGR24
+  
+
+#define INIT \
+  INIT_RGBA32
+
+#define CLEANUP     emms();
+#include "../csp_packed_packed.h"
+
 #ifdef MMXEXT
 
 #ifdef SCANLINE
@@ -2001,4 +2170,18 @@ gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
   tab->bgr_24_to_rgba_32 = bgr_24_to_rgba_32_mmx;
   tab->rgb_32_to_rgba_32 = rgb_32_to_rgba_32_mmx;
   tab->bgr_32_to_rgba_32 = bgr_32_to_rgba_32_mmx;
+
+  /* RGBA -> */
+
+  tab->rgba_32_to_rgb_15 = rgba_32_to_rgb_15_mmx;
+  tab->rgba_32_to_bgr_15 = rgba_32_to_bgr_15_mmx;
+
+  tab->rgba_32_to_rgb_16 = rgba_32_to_rgb_16_mmx;
+  tab->rgba_32_to_bgr_16 = rgba_32_to_bgr_16_mmx;
+  
+  tab->rgba_32_to_rgb_24 = rgba_32_to_rgb_24_mmx;
+  tab->rgba_32_to_bgr_24 = rgba_32_to_bgr_24_mmx;
+  tab->rgba_32_to_rgb_32 = rgba_32_to_rgb_32_mmx;
+  tab->rgba_32_to_bgr_32 = rgba_32_to_bgr_32_mmx;  
+
   }

@@ -3,7 +3,6 @@ noinst_LTLIBRARIES = libgavl_c.la
 
 libgavl_c_la_SOURCES = \
 colorspace_c.c \
-colorspace_scanline_c.c \
 interleave_c.c \
 mix_c.c \
 sampleformat_c.c \

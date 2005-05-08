@@ -11,6 +11,10 @@ static struct timeval time_after;
 
 #define NUM_CONVERSIONS 20
 
+#define FIXED_INPUT_COLORSPACE
+#define INPUT_COLORSPACE GAVL_RGBA_32
+
+
 void timer_init()
   {
   gettimeofday(&time_before, (struct timezone*)0);
@@ -77,9 +81,13 @@ int main()
 
   //  char colorspace_buffer[20];
   
+#ifndef FIXED_INPUT_COLORSPACE
   for(i = 0; i < num_colorspaces; i++) /* Input format loop */
     {
     input_format.colorspace = gavl_get_colorspace(i);
+#else
+    input_format.colorspace = INPUT_COLORSPACE;
+#endif    
     input_frame = gavl_video_frame_create(&input_format);
     gavl_video_frame_clear(input_frame, &input_format);
     for(j = 0; j < num_colorspaces; j++) /* Output format loop */
@@ -96,10 +104,11 @@ int main()
         fprintf(stderr, "%s *************\n", tmp);
 
         gavl_video_options_set_defaults(opt);
-
+        gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_BLEND_COLOR);
+        
         gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
         
-        if(!gavl_video_converter_init(cnv, &input_format, &output_format))
+        if(gavl_video_converter_init(cnv, &input_format, &output_format) < 1)
           fprintf(stderr, "No Conversion defined yet\n");
         else
           {
@@ -117,7 +126,7 @@ int main()
 
         gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMX);
 
-        if(!gavl_video_converter_init(cnv, &input_format, &output_format))
+        if(gavl_video_converter_init(cnv, &input_format, &output_format) < 1)
           fprintf(stderr, "No Conversion defined yet\n");
         else
           {
@@ -132,7 +141,7 @@ int main()
         gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMXEXT);
         fprintf(stderr, "MMXEXT Version: ");
         
-        if(!gavl_video_converter_init(cnv, &input_format, &output_format))
+        if(gavl_video_converter_init(cnv, &input_format, &output_format) < 1)
           fprintf(stderr, "No Conversion defined yet\n");
         else
           {
@@ -145,6 +154,8 @@ int main()
         }
       }
     gavl_video_frame_destroy(input_frame);
+#ifndef FIXED_INPUT_COLORSPACE
     }
+#endif
   return 0;
   }
