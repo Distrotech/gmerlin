@@ -1,16 +1,4 @@
 
-/* Interpolate C = A * F + B * (1 - F) = F * (A - B) + B
- *  
- * before:
- * mm0: 00 A3 00 A2 00 A1 00 A0 (src)
- * mm1: 00 B3 00 B2 00 B1 00 B0 (dst)
- * mm4: 00 F3 00 F2 00 F1 00 F0 0..7f
- * mm5: 00 00 00 00 00 00 00 00 (Must be cleared before)
- *
- * after:
- * mm7: 00 00 00 00 C3 C3 C1 C0
- * mm0: destroyed
- */
 
 static mmx_t interpolate_rgb16_upper_mask =   { 0x000000000000f800LL };
 static mmx_t interpolate_rgb16_middle_mask =  { 0x00000000000007e0LL };
@@ -22,7 +10,21 @@ static mmx_t interpolate_rgb15_lower_mask =   { 0x000000000000001fLL };
 
 #define INTERPOLATE_INIT_TEMP \
   mmx_t tmp;\
-  pxor_r2r(mm5,mm5);
+  pxor_r2r(mm5,mm5);\
+  tmp.q = 0;
+
+/* Interpolate C = src1 * F + src2 * (1 - F) = F * (A - B) + B
+ *  
+ * before:
+ * mm0: 00 A3 00 A2 00 A1 00 A0 (src 1)
+ * mm1: 00 B3 00 B2 00 B1 00 B0 (src 2)
+ * mm4: 00 F3 00 F2 00 F1 00 F0 0..7f
+ * mm5: 00 00 00 00 00 00 00 00 (Must be cleared before)
+ *
+ * after:
+ * mm7: 00 C3 00 C3 00 C1 00 C0
+ * mm0: destroyed
+ */
 
 #define INTERPOLATE_1D \
   movq_r2r(mm0, mm7);    /* mm7: A */                        \
@@ -42,7 +44,84 @@ static mmx_t interpolate_rgb15_lower_mask =   { 0x000000000000001fLL };
   movq_r2r(mm4, mm6);\
   psllq_i2r(32, mm6);\
   por_r2r(mm6, mm4);
-  
+
+#define INTERPOLATE_1D_LOAD_SRC_1_15 \
+  tmp.q = *src_1;                                                   \
+  movq_m2r(tmp, mm7);                                                   \
+  movq_r2r(mm7, mm0);/* Lower 5 bits */                                 \
+  pand_m2r(interpolate_rgb15_lower_mask, mm0);                          \
+  psllq_i2r(3, mm0);                                                    \
+  movq_r2r(mm7, mm6);/* Middle 5 bits */                                \
+  pand_m2r(interpolate_rgb15_middle_mask, mm6);                         \
+  psllq_i2r(14, mm6);                                                   \
+  por_r2r(mm6, mm0);                                                    \
+  pand_m2r(interpolate_rgb15_upper_mask, mm7);/* Upper 5 bits */        \
+  psllq_i2r(25, mm7);                                                   \
+  por_r2r(mm7, mm0);
+
+#define INTERPOLATE_1D_LOAD_SRC_2_15 \
+  tmp.q = *src_2;                                       \
+  movq_m2r(tmp, mm7);                                       \
+  movq_r2r(mm7, mm1);                                       \
+  pand_m2r(interpolate_rgb15_lower_mask, mm1);              \
+  psllq_i2r(3, mm1);                                        \
+  movq_r2r(mm7, mm6);                                       \
+  pand_m2r(interpolate_rgb15_middle_mask, mm6);             \
+  psllq_i2r(14, mm6);                                       \
+  por_r2r(mm6, mm1);                                        \
+  pand_m2r(interpolate_rgb15_upper_mask, mm7);              \
+  psllq_i2r(25, mm7);                                       \
+  por_r2r(mm7, mm1);
+
+
+#define INTERPOLATE_1D_LOAD_SRC_1_16 \
+  tmp.q = *src_1;                                                       \
+  movq_m2r(tmp, mm7);                                                   \
+  movq_r2r(mm7, mm0);/* Lower 5 bits */                                 \
+  pand_m2r(interpolate_rgb16_lower_mask, mm0);                          \
+  psllq_i2r(3, mm0);                                                    \
+  movq_r2r(mm7, mm6);/* Middle 6 bits */                                \
+  pand_m2r(interpolate_rgb16_middle_mask, mm6);                         \
+  psllq_i2r(13, mm6);                                                   \
+  por_r2r(mm6, mm0);                                                    \
+  pand_m2r(interpolate_rgb16_upper_mask, mm7);/* Upper 5 bits */        \
+  psllq_i2r(24, mm7);                                                   \
+  por_r2r(mm7, mm0);
+
+#define INTERPOLATE_1D_LOAD_SRC_2_16 \
+  tmp.q = *src_1;                                                       \
+  movq_m2r(tmp, mm7);                                                   \
+  movq_r2r(mm7, mm1);/* Lower 5 bits */                                 \
+  pand_m2r(interpolate_rgb16_lower_mask, mm1);                          \
+  psllq_i2r(3, mm1);                                                    \
+  movq_r2r(mm7, mm6);/* Middle 6 bits */                                \
+  pand_m2r(interpolate_rgb16_middle_mask, mm6);                         \
+  psllq_i2r(13, mm6);                                                   \
+  por_r2r(mm6, mm1);                                                    \
+  pand_m2r(interpolate_rgb16_upper_mask, mm7);/* Upper 5 bits */        \
+  psllq_i2r(24, mm7);                                                   \
+  por_r2r(mm7, mm1);
+
+
+#define INTERPOLATE_1D_LOAD_SRC_1_24            \
+  tmp.uw[0] = src_1[0];                           \
+  tmp.uw[1] = src_1[1];                           \
+  tmp.uw[2] = src_1[2];                           \
+  movq_m2r(tmp, mm0);
+
+#define INTERPOLATE_1D_LOAD_SRC_2_24            \
+  tmp.uw[0] = src_2[0];                           \
+  tmp.uw[1] = src_2[1];                           \
+  tmp.uw[2] = src_2[2];                           \
+  movq_m2r(tmp, mm1);
+
+#define INTERPOLATE_1D_LOAD_SRC_1_32 \
+  movd_m2r(*src_1, mm0);         \
+  punpcklbw_r2r(mm5, mm0);
+
+#define INTERPOLATE_1D_LOAD_SRC_2_32 \
+  movd_m2r(*src_2, mm1);         \
+  punpcklbw_r2r(mm5, mm1);
 
 #define INTERPOLATE_WRITE_RGBA32 \
   packuswb_r2r(mm5, mm7);/* Pack result */\

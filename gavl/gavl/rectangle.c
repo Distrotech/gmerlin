@@ -50,8 +50,8 @@ static void crop_to_format_scale(gavl_rectangle_t * src_rect,
                                  int crop_bottom,
                                  double scale_factor_x, double scale_factor_y)
   {
-  fprintf(stderr, "crop_to_format_scale %d %d %d %d\n",
-          crop_left, crop_right, crop_top, crop_bottom);
+  //fprintf(stderr, "crop_to_format_scale %d %d %d %d\n",
+  //        crop_left, crop_right, crop_top, crop_bottom);
   
   if(crop_left)
     {

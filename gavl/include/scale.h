@@ -24,9 +24,10 @@
 
 typedef struct
   {
-  int index[MAX_INTERPOL_POINTS];
+  int index;
   int factor[MAX_INTERPOL_POINTS];
-  } gavl_video_scale_coeff_t;
+  } gavl_video_scale_coeff_1D_t;
+
 
 typedef void (*gavl_video_scale_scanline_func)(gavl_video_scaler_t*,
                                                uint8_t * src_plane,
@@ -41,19 +42,24 @@ typedef struct
   {
   int coeffs_h_alloc;
   int coeffs_v_alloc;
-  
+
   int num_coeffs_h;
   int num_coeffs_v;
+
   
-  gavl_video_scale_coeff_t * coeffs_h;
-  gavl_video_scale_coeff_t * coeffs_v;
+  
+  gavl_video_scale_coeff_1D_t * coeffs_h;
+  gavl_video_scale_coeff_1D_t * coeffs_v;
   gavl_video_scale_scanline_func scanline_func;
 
+    
   int byte_advance;
   } gavl_video_scale_table_t;
 
 struct gavl_video_scaler_s
   {
+  gavl_video_options_t opt;
+  
   gavl_video_scale_table_t table[GAVL_MAX_PLANES];
   gavl_rectangle_t src_rect[GAVL_MAX_PLANES];
   gavl_rectangle_t dst_rect[GAVL_MAX_PLANES];
@@ -90,3 +96,12 @@ typedef struct
 void gavl_init_scale_funcs_c(gavl_scale_funcs_t * tab,
                              gavl_scale_mode_t scale_mode,
                              int scale_x, int scale_y);
+#ifdef ARCH_X86
+
+void gavl_init_scale_funcs_mmxext(gavl_scale_funcs_t * tab,
+                                  gavl_scale_mode_t scale_mode,
+                                  int scale_x, int scale_y, int min_scanline_width);
+void gavl_init_scale_funcs_mmx(gavl_scale_funcs_t * tab,
+                               gavl_scale_mode_t scale_mode,
+                               int scale_x, int scale_y, int min_scanline_width);
+#endif

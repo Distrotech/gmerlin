@@ -251,25 +251,28 @@ int main(int argc, char ** argv)
   gavl_video_format_t format, format_1;
   gavl_video_frame_t * frame, * frame_1;
 
-  gavl_colorspace_t csp = GAVL_RGB_32;
-  gavl_scale_mode_t scale_mode = GAVL_SCALE_BILINEAR;
+  gavl_video_options_t * opt;
+    
+  gavl_colorspace_t csp;
 
   imax = gavl_num_colorspaces();
   scaler = gavl_video_scaler_create();
-  
+
+  opt = gavl_video_scaler_get_options(scaler);
+    
   for(i = 0; i < imax; i++)
     {
     csp = gavl_get_colorspace(i);
 
     dst_rect.w = atoi(argv[2]);
     dst_rect.h = atoi(argv[3]);
-    dst_rect.x = OUT_X;
-    dst_rect.y = OUT_Y;
+    dst_rect.x = 0;
+    dst_rect.y = 0;
     
-    src_rect.w = 60;
-    src_rect.h = 60;
-    src_rect.x = IN_X;
-    src_rect.y = IN_Y;
+    src_rect.w = 128;
+    src_rect.h = 128;
+    src_rect.x = 0;
+    src_rect.y = 0;
         
     frame = read_png(argv[1], &format, csp);
         
@@ -281,12 +284,18 @@ int main(int argc, char ** argv)
     format_1.frame_width  = dst_rect.w + dst_rect.x;
     format_1.frame_height = dst_rect.h + dst_rect.y;
 
-    gavl_video_scaler_init(scaler,
-                           scale_mode,
-                           format.colorspace,
-                           &src_rect, &dst_rect,
-                           &format, &format_1);  // int output_height
-
+    gavl_video_options_set_defaults(opt);
+    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_BILINEAR);
+    gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMXEXT);
+        
+    if(gavl_video_scaler_init(scaler,
+                              format.colorspace,
+                              &src_rect, &dst_rect,
+                              &format, &format_1) < 0)  // int output_height
+      {
+      fprintf(stderr, "No scaling routine defined\n");
+      continue;
+      }
     
     frame_1 = gavl_video_frame_create(&format_1);
 

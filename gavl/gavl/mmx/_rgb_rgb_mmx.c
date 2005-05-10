@@ -21,6 +21,7 @@
  *  Support for mmxext
  *  this macro procudes another set of
  *  functions in ../mmxext
+ *  I really wonder if this is the only difference between mmx and mmxext
  */
 
 #ifdef MMXEXT

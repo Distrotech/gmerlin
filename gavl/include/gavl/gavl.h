@@ -736,12 +736,17 @@ typedef struct gavl_video_scaler_s gavl_video_scaler_t;
 
 gavl_video_scaler_t * gavl_video_scaler_create();
 void gavl_video_scaler_destroy(gavl_video_scaler_t *);
-  
-/* Initialize scaler. src_rect and dst_rect might be changed by this
-   call */
 
-void gavl_video_scaler_init(gavl_video_scaler_t * scaler,
-                            gavl_scale_mode_t scale_mode,
+gavl_video_options_t *
+gavl_video_scaler_get_options(gavl_video_scaler_t*);
+  
+/*
+ *  Initialize scaler. src_rect and dst_rect might be changed by this
+ *  call. Return -1 if no conversion function was found for the selected
+ *  accel flags
+ */
+
+int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
                             gavl_colorspace_t colorspace,
                             gavl_rectangle_t * src_rect,
                             gavl_rectangle_t * dst_rect,

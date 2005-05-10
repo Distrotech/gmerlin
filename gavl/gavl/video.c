@@ -137,13 +137,18 @@ void add_context_scale(gavl_video_converter_t * cnv,
                        const gavl_video_format_t * input_format,
                        const gavl_video_format_t * output_format)
   {
+  gavl_video_options_t * scaler_options;
+  
   gavl_video_convert_context_t * ctx;
   ctx = add_context(cnv, input_format, output_format);
 
   ctx->scaler = gavl_video_scaler_create();
+
+  scaler_options = gavl_video_scaler_get_options(ctx->scaler);
+
+  gavl_video_options_copy(scaler_options, &(cnv->options));
   
   gavl_video_scaler_init(ctx->scaler,
-                         cnv->options.scale_mode,
                          input_format->colorspace,
                          &(cnv->options.src_rect),
                          &(cnv->options.dst_rect),

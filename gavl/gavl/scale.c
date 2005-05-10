@@ -1,4 +1,5 @@
 
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -12,8 +13,8 @@
 #define SCALE_ACTION_COPY  1
 #define SCALE_ACTION_SCALE 2
 
-static void alloc_coeffs(gavl_video_scale_coeff_t ** coeffs,
-                         int * coeffs_alloc, int num)
+static void alloc_coeffs_1D(gavl_video_scale_coeff_1D_t ** coeffs,
+                            int * coeffs_alloc, int num)
   {
   if(*coeffs_alloc < num)
     {
@@ -21,8 +22,42 @@ static void alloc_coeffs(gavl_video_scale_coeff_t ** coeffs,
     *coeffs = realloc(*coeffs, *coeffs_alloc * sizeof(**coeffs));
     }
   }
+#if 0
+static gavl_video_scale_coeff_2D_t ** alloc_coeffs_2D(gavl_video_scale_coeff_2D_t ** coeffs,
+                                                      int * coeffs_alloc, int w, int h)
+  {
+  int i;
+  gavl_video_scale_coeff_2D_t * row;
+  
+  if((coeffs_alloc[0] >= w) || (coeffs_alloc[1] >= h))
+    return coeffs;
 
-static void init_coeffs_nearest(gavl_video_scale_coeff_t * coeffs,
+  if(coeffs_alloc[0] < w)
+    coeffs_alloc[0] = w + 128;
+
+  if(coeffs_alloc[1] < h)
+    coeffs_alloc[1] = h + 128;
+
+  if(coeffs)
+    row = coeffs[0];
+  else
+    row = (gavl_video_scale_coeff_2D_t*)0;
+
+  coeffs = realloc(coeffs, h * sizeof(*coeffs));
+
+  row = realloc(row, w = sizeof(*row));
+
+  coeffs[0] = row;
+    
+  for(i = 1; i < h; i++)
+    {
+    coeffs[i] = coeffs[0] + i * w;
+    }
+  return coeffs;
+  }
+#endif
+
+static void init_coeffs_nearest(gavl_video_scale_coeff_1D_t * coeffs,
                                 int src_size, int dst_size)
   {
   int i;
@@ -37,7 +72,7 @@ static void init_coeffs_nearest(gavl_video_scale_coeff_t * coeffs,
     dst_index_f = (double)i + 0.5;
     src_index_f = dst_index_f / scale_factor;
     //    fprintf(stderr, "i: %d\n", i);
-    coeffs[i].index[0] = (int)(src_index_f);
+    coeffs[i].index = (int)(src_index_f);
     }
 
 #ifdef DUMP_TABLES
@@ -49,7 +84,7 @@ static void init_coeffs_nearest(gavl_video_scale_coeff_t * coeffs,
 
   }
 
-static void init_coeffs_bilinear(gavl_video_scale_coeff_t * coeffs,
+static void init_coeffs_bilinear_1D(gavl_video_scale_coeff_1D_t * coeffs,
                                  int src_size, int dst_size,
                                  unsigned int factor_max)
   {
@@ -65,8 +100,7 @@ static void init_coeffs_bilinear(gavl_video_scale_coeff_t * coeffs,
     {
     for(i = 0; i < dst_size; i++)
       {
-      coeffs[i].index[0] = 0;
-      coeffs[i].index[1] = 0;
+      coeffs[i].index = 0;
       coeffs[i].factor[0] = factor_max;
       coeffs[i].factor[1] = 0;
       }
@@ -81,23 +115,22 @@ static void init_coeffs_bilinear(gavl_video_scale_coeff_t * coeffs,
     //    printf("dst_index_f: %f src_index_1_f: %f\n", dst_index_f, 
     //           src_index_1_f);
 
-    coeffs[i].index[0] = (int)(floor(src_index_1_f-0.5));
-    
-    
-    if(coeffs[i].index[0] < 0)
+    coeffs[i].index = (int)(floor(src_index_1_f-0.5));
+        
+    if(coeffs[i].index < 0)
       {
-      coeffs[i].index[0]++;
+      coeffs[i].index++;
       factor_2 = 0.0;
       }
-    else if(coeffs[i].index[0] >= src_size-1)
+    else if(coeffs[i].index >= src_size-1)
       {
-      coeffs[i].index[0]--;
+      coeffs[i].index--;
       factor_2 = 1.0;
       }
     else
-      factor_2 = (src_index_1_f - coeffs[i].index[0]) - 0.5;
+      factor_2 = (src_index_1_f - coeffs[i].index) - 0.5;
 
-    coeffs[i].index[1] = coeffs[i].index[0] + 1;
+    //    coeffs[i].index[1] = coeffs[i].index[0] + 1;
     
     coeffs[i].factor[1] = (int)((float)(factor_max) * factor_2 + 0.5);
     if(coeffs[i].factor[1] > factor_max)
@@ -109,7 +142,6 @@ static void init_coeffs_bilinear(gavl_video_scale_coeff_t * coeffs,
     // printf("dst[%d] = %f * src[%d] + %f * src[%d]\n",
     // i, 1.0 - factor_2, src_index_1_i, factor_2, src_index_1_i + 1);
     }
-
 #ifdef DUMP_TABLES
   for(i = 0; i < dst_size; i++)
     fprintf(stderr, "dst[%d] = src[%d] * %f + dst[%d] * %f\n",
@@ -117,6 +149,26 @@ static void init_coeffs_bilinear(gavl_video_scale_coeff_t * coeffs,
             coeffs[i].index[1], (float)(coeffs[i].factor[1])/(float)(factor_max));
 #endif
   }
+
+#if 0
+static void init_coeffs_bilinear_2D(gavl_video_scale_coeff_2D_t ** coeffs,
+                                    gavl_video_scale_coeff_1D_t * coeffs_h,
+                                    gavl_video_scale_coeff_1D_t * coeffs_v,
+                                    int w, int h)
+  {
+  int i, j;
+
+  for(i = 0; i < h; i++)
+    {
+
+    for(j = 0; j < w; j++)
+      {
+      //      coeffs[i][j].index[0] = 
+      }
+    
+    }
+  }
+#endif
 
 static void init_plane(gavl_video_scaler_t * s,
                        gavl_scale_mode_t scale_mode,
@@ -131,7 +183,7 @@ static void init_plane(gavl_video_scaler_t * s,
     {
     case GAVL_SCALE_AUTO:
     case GAVL_SCALE_NEAREST:
-      alloc_coeffs(&(s->table[plane].coeffs_h),
+      alloc_coeffs_1D(&(s->table[plane].coeffs_h),
                    &(s->table[plane].coeffs_h_alloc), s->dst_rect[plane].w);
       init_coeffs_nearest(s->table[plane].coeffs_h,
                           s->src_rect[plane].w, s->dst_rect[plane].w);
@@ -140,9 +192,9 @@ static void init_plane(gavl_video_scaler_t * s,
 
       if(s->src_rect[plane].w != s->dst_rect[plane].w)
         {
-        alloc_coeffs(&(s->table[plane].coeffs_h),
+        alloc_coeffs_1D(&(s->table[plane].coeffs_h),
                      &(s->table[plane].coeffs_h_alloc), s->dst_rect[plane].w);
-        init_coeffs_bilinear(s->table[plane].coeffs_h,
+        init_coeffs_bilinear_1D(s->table[plane].coeffs_h,
                              s->src_rect[plane].w, s->dst_rect[plane].w, factor_max);
         }
       break;
@@ -154,7 +206,7 @@ static void init_plane(gavl_video_scaler_t * s,
     {
     case GAVL_SCALE_AUTO:
     case GAVL_SCALE_NEAREST:
-        alloc_coeffs(&(s->table[plane].coeffs_v),
+        alloc_coeffs_1D(&(s->table[plane].coeffs_v),
                      &(s->table[plane].coeffs_v_alloc), s->dst_rect[plane].h);
         init_coeffs_nearest(s->table[plane].coeffs_v,
                             s->src_rect[plane].h, s->dst_rect[plane].h);
@@ -162,16 +214,18 @@ static void init_plane(gavl_video_scaler_t * s,
       case GAVL_SCALE_BILINEAR:
         if(s->src_rect[plane].h != s->dst_rect[plane].h)
           {
-          alloc_coeffs(&(s->table[plane].coeffs_v),
+          alloc_coeffs_1D(&(s->table[plane].coeffs_v),
                        &(s->table[plane].coeffs_v_alloc), s->dst_rect[plane].h);
           
-          init_coeffs_bilinear(s->table[plane].coeffs_v,
+          init_coeffs_bilinear_1D(s->table[plane].coeffs_v,
                                s->src_rect[plane].h, s->dst_rect[plane].h, factor_max);
           }
         break;
     case GAVL_SCALE_NONE:
       break;
     }
+
+  
   }
 
 /* Initialize scale table */
@@ -181,17 +235,16 @@ static void init_plane(gavl_video_scaler_t * s,
  */
 
 
-static void init_scale_table(gavl_video_scaler_t * s,
-                             gavl_scale_mode_t scale_mode,
-                             gavl_colorspace_t colorspace,
-                             gavl_scale_funcs_t * funcs)
+static int init_scale_table(gavl_video_scaler_t * s,
+                            gavl_scale_mode_t scale_mode,
+                            gavl_colorspace_t colorspace,
+                            gavl_scale_funcs_t * funcs)
   {
   int factor_max = 0;
-  
   switch(colorspace)
     {
     case GAVL_COLORSPACE_NONE:
-      return;
+      return -1;
       break;
     case GAVL_RGB_15:
     case GAVL_BGR_15:
@@ -381,6 +434,9 @@ static void init_scale_table(gavl_video_scaler_t * s,
       s->table[2].byte_advance = 1;
       break;
     }
+  if(!s->table[0].scanline_func)
+    return 0;
+  return 1;
   }
 
 #define FREE(ptr) if(ptr) free(ptr);
@@ -422,13 +478,12 @@ gavl_video_scaler_t * gavl_video_scaler_create()
   }
 
 
-void gavl_video_scaler_init(gavl_video_scaler_t * scaler,
-                            gavl_scale_mode_t scale_mode,
-                            gavl_colorspace_t colorspace,
-                            gavl_rectangle_t * src_rect,
-                            gavl_rectangle_t * dst_rect,
-                            const gavl_video_format_t * src_format,
-                            const gavl_video_format_t * dst_format)
+int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
+                           gavl_colorspace_t colorspace,
+                           gavl_rectangle_t * src_rect,
+                           gavl_rectangle_t * dst_rect,
+                           const gavl_video_format_t * src_format,
+                           const gavl_video_format_t * dst_format)
   {
   int i;
   int chroma_sub_h,  chroma_sub_v; 
@@ -436,11 +491,15 @@ void gavl_video_scaler_init(gavl_video_scaler_t * scaler,
 
   int scale_x, scale_y;
 
+#ifdef ARCH_X86
+  int min_scanline_width;
+#endif
+  
   scaler->colorspace = colorspace;
   scaler->num_planes = gavl_colorspace_num_planes(colorspace);
   gavl_colorspace_chroma_sub(colorspace, &chroma_sub_h, &chroma_sub_v);
 
-#if 1
+#if 0
   fprintf(stderr, "src_format: ");
   gavl_video_format_dump(src_format);
   fprintf(stderr, "\n");
@@ -465,7 +524,7 @@ void gavl_video_scaler_init(gavl_video_scaler_t * scaler,
                                       src_format,
                                       dst_format);
 
-#if 1
+#if 0
   fprintf(stderr, "src_rect 2: ");
   gavl_rectangle_dump(src_rect);
   fprintf(stderr, "\n");
@@ -491,7 +550,7 @@ void gavl_video_scaler_init(gavl_video_scaler_t * scaler,
      gavl_rectangle_is_empty(&(scaler->dst_rect[0])))
     {
     scaler->action = SCALE_ACTION_NOOP;
-    return;
+    return 1;
     }
 
   scale_x = (scaler->src_rect[0].w == scaler->dst_rect[0].w) ? 0 : 1;
@@ -510,7 +569,7 @@ void gavl_video_scaler_init(gavl_video_scaler_t * scaler,
 
     scaler->copy_format.pixel_width  = 1;
     scaler->copy_format.pixel_height = 1;
-    return;
+    return 1;
     }
 
   scaler->action = SCALE_ACTION_SCALE;
@@ -540,15 +599,47 @@ void gavl_video_scaler_init(gavl_video_scaler_t * scaler,
                              &(scaler->dst_rect[0]),
                              chroma_sub_h, chroma_sub_v);
     }
-  
-  gavl_init_scale_funcs_c(&funcs,
-                          scale_mode,
-                          scale_x, scale_y);
 
-  init_scale_table(scaler,
-                   scale_mode,
-                   colorspace,
-                   &funcs);
+  memset(&funcs, 0, sizeof(funcs));
+    
+  if(!scaler->opt.accel_flags || (scaler->opt.accel_flags & GAVL_ACCEL_C))
+    {
+    gavl_init_scale_funcs_c(&funcs,
+                            scaler->opt.scale_mode,
+                            scale_x, scale_y);
+    }
+  
+#ifdef ARCH_X86
+
+  min_scanline_width = scaler->dst_rect[1].w ? scaler->dst_rect[1].w : scaler->dst_rect[0].w;
+  
+  if((!scaler->opt.accel_flags && (scaler->opt.quality < 3)) ||
+     scaler->opt.accel_flags & GAVL_ACCEL_MMX)
+    {
+    gavl_init_scale_funcs_mmx(&funcs,
+                              scaler->opt.scale_mode,
+                              scale_x, scale_y, min_scanline_width);
+    }
+  if((!scaler->opt.accel_flags && (scaler->opt.quality < 3)) ||
+     scaler->opt.accel_flags & GAVL_ACCEL_MMXEXT)
+    {
+    gavl_init_scale_funcs_mmxext(&funcs,
+                                 scaler->opt.scale_mode,
+                                 scale_x, scale_y, min_scanline_width);
+    }
+#endif
+  
+  if(!init_scale_table(scaler,
+                       scaler->opt.scale_mode,
+                       colorspace,
+                       &funcs))
+    return -1;
+  return 1;
+  }
+
+gavl_video_options_t * gavl_video_scaler_get_options(gavl_video_scaler_t * s)
+  {
+  return &(s->opt);
   }
 
 void gavl_video_scaler_scale(gavl_video_scaler_t * s,
