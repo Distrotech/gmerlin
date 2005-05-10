@@ -660,8 +660,9 @@ void gavl_video_scaler_scale(gavl_video_scaler_t * s,
 
   if(s->action == SCALE_ACTION_COPY)
     {
+    //    fprintf(stderr, "Copying frame\n");
     gavl_video_frame_copy(&(s->copy_format),
-                          s->src, s->dst);
+                          s->dst, s->src);
     return;
     }
   

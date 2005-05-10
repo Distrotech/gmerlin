@@ -2,7 +2,7 @@
 
   gavl.h
 
-  Copyright (c) 2001-2002 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2001-2005 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
 
   http://gmerlin.sourceforge.net
 
@@ -528,6 +528,16 @@ void gavl_rectangle_crop_to_format_scale(gavl_rectangle_t * src_rect,
                                          gavl_rectangle_t * dst_rect,
                                          const gavl_video_format_t * src_format,
                                          const gavl_video_format_t * dst_format);
+
+/*
+ *  This produces 2 rectangles of the same width centered on src_format and dst_format
+ *  respectively
+ */
+  
+void gavl_rectangle_crop_to_format_noscale(gavl_rectangle_t * src_rect,
+                                           gavl_rectangle_t * dst_rect,
+                                           const gavl_video_format_t * src_format,
+                                           const gavl_video_format_t * dst_format);
   
 /* Let a rectangle span the whole screen for format */
 

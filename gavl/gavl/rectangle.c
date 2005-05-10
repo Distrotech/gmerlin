@@ -77,6 +77,29 @@ static void crop_to_format_scale(gavl_rectangle_t * src_rect,
     }
   }
 
+#define GAVL_MIN(x, y) (x < y ? x : y);
+
+void gavl_rectangle_crop_to_format_noscale(gavl_rectangle_t * src_rect,
+                                           gavl_rectangle_t * dst_rect,
+                                           const gavl_video_format_t * src_format,
+                                           const gavl_video_format_t * dst_format)
+  {
+  src_rect->w = GAVL_MIN(src_format->image_width,  dst_format->image_width);
+  src_rect->h = GAVL_MIN(src_format->image_height, dst_format->image_height);
+
+  dst_rect->w = src_rect->w;
+  dst_rect->h = src_rect->h;
+
+  src_rect->x = (src_format->image_width - src_rect->w) / 2;
+  src_rect->y = (src_format->image_height - src_rect->h) / 2;
+
+  dst_rect->x = (dst_format->image_width - dst_rect->w) / 2;
+  dst_rect->y = (dst_format->image_height - dst_rect->h) / 2;
+  
+  }
+
+#undef GAVL_MIN
+
 void gavl_rectangle_crop_to_format_scale(gavl_rectangle_t * src_rect,
                                          gavl_rectangle_t * dst_rect,
                                          const gavl_video_format_t * src_format,
