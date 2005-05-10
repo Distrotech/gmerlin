@@ -1,67 +1,407 @@
-#include <stdlib.h>
-#include <avdec_private.h>
+/*****************************************************************
 
-/*
- *  Wichtige Funktionen:
- *
- *  int bgav_url_split(const char * url,
- *                   char ** protocol,
- *                   char ** hostname,
- *                   int * port,
- *                   char ** path);
- *
- *  int bgav_tcp_connect(const char * host, int port, int milliseconds, char ** error_msg);
- *  int bgav_tcp_send(int fd, uint8_t * data, int len, char ** error_msg);
- *  int bgav_read_line_fd(int fd, char ** ret, int * ret_alloc, int milliseconds);
- *  int bgav_read_data_fd(int fd, uint8_t * ret, int size, int milliseconds);
- *  char * bgav_sprintf(const char * format,...);
- *
- *  Fuer error_msg muss &ctx->error_msg uebergeben werden
- */ 
+  in_ftp.c
+
+  Copyright (c) 2003-2004 by Michael Gruenert - one78@web.de
+
+  http://gmerlin.sourceforge.net
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+
+*****************************************************************/
+
+#include <unistd.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+#include <avdec_private.h>
 
 typedef struct
   {
-  int dummy;
+  int control_fd;
+  int data_fd;
+  int64_t bytes_read;
   } ftp_priv_t;
 
+static int get_server_answer(int fd, char ** server_msg,
+                             int * server_msg_alloc,int connect_timeout)
+  {
+  char status[5];
+  char status_neu[5];
+  
+  status[4] = '\0';
+  status_neu[4] = '\0';
+    
+  if(!bgav_read_line_fd(fd, server_msg, server_msg_alloc, connect_timeout))
+    {
+    // fprintf(stderr, "Got no line \n");
+    return 0;
+    }
+
+  strncpy(status, *server_msg, 4);
+  // fprintf(stderr,"server_msg: %s\n", *server_msg);
+
+  if(status[3]=='-')
+    {
+    status[3] = ' ';
+    // fprintf(stderr,"status_sav: %s\n", status);
+    }
+  else
+    {
+    // fprintf(stderr,"get_server_msg: %d\n", atoi(*server_msg));
+    return atoi(*server_msg);
+    }
+
+  status_neu[0]='\0';
+  
+  while(strncmp(status, status_neu, 4)!= 0)
+    {
+    if(!bgav_read_line_fd(fd, server_msg, server_msg_alloc, connect_timeout))
+      return 0;
+    strncpy(status_neu, *server_msg, 4);
+    // fprintf(stderr,"server_msg: %s\n", *server_msg);
+    // fprintf(stderr,"status_neu: %s\n", status_neu);
+    }
+  return atoi(*server_msg);
+  }
+
+static char * parse_address(const char * server_msg, int * port)
+  {
+  int ip[4];
+  int po[2];
+  const char * pos;
+  char * rest;
+  pos = strrchr(server_msg, ')');
+  while((*pos != '(') && (pos != server_msg))
+    pos--;
+
+  if(*pos != '(')
+    return (char*)0;
+
+  pos++;
+
+  ip[0] = strtol(pos, &rest, 10);
+  if((pos == rest) || (*rest != ','))
+    return (char*)0;
+  pos = rest+1;
+
+  ip[1] = strtol(pos, &rest, 10);
+  if((pos == rest) || (*rest != ','))
+    return (char*)0;
+  pos = rest+1;
+
+  ip[2] = strtol(pos, &rest, 10);
+  if((pos == rest) || (*rest != ','))
+    return (char*)0;
+  pos = rest+1;
+
+  ip[3] = strtol(pos, &rest, 10);
+  if((pos == rest) || (*rest != ','))
+    return (char*)0;
+  pos = rest+1;
+
+  po[0] = strtol(pos, &rest, 10);
+  if((pos == rest) || (*rest != ','))
+    return (char*)0;
+  pos = rest+1;
+
+  po[1] = strtol(pos, &rest, 10);
+  if((pos == rest) || (*rest != ')'))
+    return (char*)0;
+  pos = rest+1;
+
+  *port = (po[0] << 8) | po[1];
+  return bgav_sprintf("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+  }
+
 /* Open Funktion: Gibt 1 bei Erfolg zurueck */
+/*
+ *  150   About to open data connection
+ *  200   Binaer mode 
+ *  213   Size of file
+ *  220   Connection ready
+ *  221   Quit connection
+ *  226   File send ok
+ *  227   Pasv mode
+ *  230   Login successful
+ *  250   Directory successfully changed
+ *  331   Login password
+ */
+
+#define FREE(ptr) if(ptr) { free(ptr); ptr = (char*)0; }
 
 static int open_ftp(bgav_input_context_t * ctx, const char * url)
   {
+  int port = -1;
+  int server_msg_alloc = 0;
+  int data_port = -1;
+  char * data_ip;
+  char * server_msg = (char*)0;
+  char * server_cmd;
+  char * host = (char*)0;
+  char * path = (char*)0;
+  char *file_name;
+  char * pos;
   ftp_priv_t * p;
-
+  int ret = 0;
+  
+  if(!bgav_url_split(url,
+                     (char**)0,
+                     &host,
+                     &port,
+                     &path))
+    {
+    ctx->error_msg = bgav_sprintf("Unvalid URL");
+    goto fail;
+    }
+  if(port == -1)
+    {
+    port = 21;
+    }
+  
   p = calloc(1, sizeof(*p));
   ctx->priv = p;
 
-  return 0;
+
+  
+  /* Connect */
+  // fprintf(stderr, "Connecting 1 ...");
+  if((p->control_fd = bgav_tcp_connect(host, port, ctx->connect_timeout, &(ctx->error_msg)))== -1)
+    goto fail;
+  // fprintf(stderr, "done %d\n", p->control_fd);
+  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+                       ctx->connect_timeout) != 220)
+    {
+    ctx->error_msg = bgav_sprintf("Could not read answer");
+    goto fail;
+    }
+  /* done */
+
+
+
+  
+  /* Server login */
+  server_cmd = bgav_sprintf("USER ftp\r\n");
+  if(!bgav_tcp_send(p->control_fd, server_cmd, strlen(server_cmd), &(ctx->error_msg)))
+    goto fail;
+  FREE(server_cmd);
+  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+                       ctx->connect_timeout) != 331)
+    {
+    ctx->error_msg = bgav_sprintf("Could not read answer");
+    goto fail;
+    }
+  server_cmd = bgav_sprintf("PASS ich@du.de\r\n");
+  if(!bgav_tcp_send(p->control_fd, server_cmd, strlen(server_cmd), &(ctx->error_msg)))
+    goto fail;
+  FREE(server_cmd);
+  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+                       ctx->connect_timeout) != 230)
+    {
+    ctx->error_msg = bgav_sprintf("Could not read answer");
+    goto fail;
+    }
+  /* done */
+
+
+
+  /* parse file_name and directory */
+  // fprintf(stderr,"path      = %s \n", path);
+  file_name = strrchr(path, '/');
+  if(!file_name)
+    goto fail;
+
+  *file_name = '\0';
+  file_name ++;
+  // fprintf(stderr,"file_name = %s \n", file_name);
+  // fprintf(stderr,"path      = %s \n", path);
+  /* done */
+
+
+  
+  /* Change Directory */
+  server_cmd = bgav_sprintf("CWD %s\r\n",path);
+  //fprintf(stderr, "Sending command %s", server_cmd);
+
+  if(!bgav_tcp_send(p->control_fd, server_cmd, strlen(server_cmd), &(ctx->error_msg)))
+    goto fail;
+  FREE(server_cmd);
+  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+                       ctx->connect_timeout) != 250)
+    {
+    ctx->error_msg = bgav_sprintf("Could not read answer");
+    goto fail;
+    }
+  /* done */
+
+
+  
+  /* Find size of File */
+  server_cmd = bgav_sprintf("SIZE %s\r\n",file_name);
+  //fprintf(stderr, "Sending command %s", server_cmd);
+
+  if(!bgav_tcp_send(p->control_fd, server_cmd, strlen(server_cmd), &(ctx->error_msg)))
+    goto fail;
+  FREE(server_cmd);
+  
+  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+                       ctx->connect_timeout) != 213)
+    {
+    ctx->error_msg = bgav_sprintf("Could not read answer");
+    goto fail;
+    }
+
+  //  fprintf (stderr, "Server_msg: %s\n", server_msg);
+
+  pos = server_msg;
+  while(!isspace(*pos) && (pos != '\0'))
+    pos++;
+
+  if(*pos == '\0')
+    {
+    ctx->error_msg = bgav_sprintf("Invalid server answer");
+    goto fail;
+    }
+  ctx->total_bytes = strtoll(pos, NULL, 10);
+
+  // fprintf(stderr,"server_msg->size: %lld\n", ctx->total_bytes);
+  /* done */
+
+
+
+  
+  /* Set Binaer */
+  server_cmd = bgav_sprintf("TYPE I\r\n");
+
+  if(!bgav_tcp_send(p->control_fd, server_cmd, strlen(server_cmd), &(ctx->error_msg)))
+    goto fail;
+  FREE(server_cmd);
+  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+                       ctx->connect_timeout) != 200)
+    {
+    ctx->error_msg = bgav_sprintf("Could not read answer");
+    goto fail;
+    }
+  /* done */
+
+
+
+  
+  /* Set PASV */
+  server_cmd = bgav_sprintf("PASV\r\n");
+
+  if(!bgav_tcp_send(p->control_fd, server_cmd, strlen(server_cmd), &(ctx->error_msg)))
+    goto fail;
+  FREE(server_cmd);
+  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+                       ctx->connect_timeout) != 227)
+    {
+    ctx->error_msg = bgav_sprintf("Could not read answer");
+    goto fail;
+    }
+  data_ip = parse_address(server_msg, &data_port);
+  /* done */
+
+  /* Connect */
+  // fprintf(stderr, "Connecting 2 %s:%d ", data_ip, data_port);
+  if((p->data_fd = bgav_tcp_connect(data_ip, data_port, ctx->connect_timeout, &(ctx->error_msg)))== -1)
+    goto fail;
+  // fprintf(stderr, "done %d\n", p->data_fd);
+  /* done */
+
+
+
+  /* open data connection */ 
+  server_cmd = bgav_sprintf("RETR %s\r\n", file_name);
+
+  if(!bgav_tcp_send(p->control_fd, server_cmd, strlen(server_cmd), &(ctx->error_msg)))
+    goto fail;
+  FREE(server_cmd);
+  
+  if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
+                       ctx->connect_timeout) != 150)
+    {
+    ctx->error_msg = bgav_sprintf("Could not read answer");
+    goto fail;
+    }
+  /* done */
+
+  
+  ctx->do_buffer = 1;
+
+  ret = 1;
+
+  fail:
+
+  FREE(server_cmd);
+  FREE(host);
+  FREE(path);
+  FREE(data_ip);
+  FREE(server_msg);
+  return ret;
   }
+
 
 /* Lese funktionen: Geben die Zahl der gelesenen BYTES zurueck */
 
-static int read_ftp(bgav_input_context_t* ctx,
-                     uint8_t * buffer, int len)
+static int do_read(bgav_input_context_t * ctx,
+                   uint8_t * buffer, int len, int timeout)
   {
+  int len_read;
   ftp_priv_t * p;
   p = (ftp_priv_t*)(ctx->priv);
 
-  return 0;
+  if(len + p->bytes_read > ctx->total_bytes)
+    len = ctx->total_bytes - p->bytes_read;
+
+  if(!len)
+    {
+    // fprintf(stderr, "in_ftp: detected EOF\n");
+    return 0;
+    }
+  len_read = bgav_read_data_fd(p->data_fd, buffer, len, timeout);
+  p->bytes_read += len_read;
+  return len_read;
   }
 
-static int read_nonblock_ftp(bgav_input_context_t* ctx,
-                              uint8_t * buffer, int len)
+static int read_ftp(bgav_input_context_t * ctx,
+                    uint8_t * buffer, int len)
   {
-  ftp_priv_t * p;
-  p = (ftp_priv_t*)(ctx->priv);
-
-  return 0;
+  return do_read(ctx, buffer, len, ctx->read_timeout);
   }
+
+static int read_nonblock_ftp(bgav_input_context_t * ctx,
+                             uint8_t * buffer, int len)
+  {
+  return do_read(ctx, buffer, len, 0);
+  }
+
 
 /* Close: Zumachen */
 
 static void close_ftp(bgav_input_context_t * ctx)
   {
+  char * server_cmd;
   ftp_priv_t * p;
   p = (ftp_priv_t*)(ctx->priv);
+  
+  server_cmd = bgav_sprintf("QUIT\r\n");
+  bgav_tcp_send(p->control_fd, server_cmd,
+                strlen(server_cmd), &(ctx->error_msg));
+  free(server_cmd);
+  
+  if(p->control_fd >= 0)
+    close(p->control_fd);
+  if(p->data_fd >= 0)
+    close(p->data_fd);
+  
   free(p);
   }
 

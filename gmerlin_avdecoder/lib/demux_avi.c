@@ -703,7 +703,7 @@ static int read_indx(bgav_input_context_t * input, indx_t * ret,
          !bgav_input_read_32_le(input, &(ret->i.index.dwReserved[2])))
         return 0;
       ret->i.index.entries =
-        malloc(ret->nEntriesInUse * sizeof(*(ret->i.index.entries)));
+        calloc(ret->nEntriesInUse, sizeof(*(ret->i.index.entries)));
       for(i = 0; i < ret->nEntriesInUse; i++)
         {
         if(!bgav_input_read_64_le(input, &(ret->i.index.entries[i].qwOffset)) ||
@@ -863,6 +863,7 @@ static void free_indx(indx_t * indx)
           free(indx->i.index.entries[i].subindex);
           }
         }
+      free(indx->i.index.entries);
       break;
     case AVI_INDEX_OF_CHUNKS:
       if(indx->bIndexSubType == AVI_INDEX_2FIELD)
@@ -1538,14 +1539,17 @@ static int open_avi(bgav_demuxer_context_t * ctx,
 
   /* Check, which index to build */
 
-  indx_build_superindex(ctx);
-  
-  if(!ctx->si && p->has_idx1)
+  if(ctx->input->input->seek_byte)
     {
-    idx1_build_superindex(ctx);
-    //    fprintf(stderr, "Using idx1\n");
+    indx_build_superindex(ctx);
+  
+    if(!ctx->si && p->has_idx1)
+      {
+      idx1_build_superindex(ctx);
+      //    fprintf(stderr, "Using idx1\n");
+      }
     }
-
+  
   if(!ctx->tt->current_track->duration)
     ctx->tt->current_track->duration = GAVL_TIME_UNDEFINED;
 
