@@ -740,18 +740,32 @@ static void set_drawing_coords(x11_t * priv)
     }
   else
     {
-    priv->dst_rect.x = (priv->win.window_width - priv->video_format.image_width) / 2;
-    priv->dst_rect.y = (priv->win.window_height - priv->video_format.image_height) / 2;
-    priv->dst_rect.w = priv->video_format.image_width;
-    priv->dst_rect.h = priv->video_format.image_height;
+    gavl_rectangle_crop_to_format_noscale(&priv->src_rect,
+                                          &priv->dst_rect,
+                                          &priv->video_format,
+                                          &priv->window_format);
     }
-
+#if 0
+  fprintf(stderr, "src_rect: ");
+  gavl_rectangle_dump(&priv->src_rect);
+  fprintf(stderr, "\n");
+  fprintf(stderr, "src size: %dx%d\n", priv->video_format.image_width,
+         priv->video_format.image_height);
+  
+  fprintf(stderr, "dst_rect: ");
+  gavl_rectangle_dump(&priv->dst_rect);
+  fprintf(stderr, "\n");
+  fprintf(stderr, "dst size: %dx%d\n", priv->window_format.image_width,
+         priv->window_format.image_height);
+#endif
+  
+  
   if(!priv->do_sw_scale)
     return;
 
   /* Allocate larger image if nesessary */
-  gavl_rectangle_set_all(&priv->src_rect,
-                         &priv->video_format);
+  //  gavl_rectangle_set_all(&priv->src_rect,
+  //                         &priv->video_format);
   
   if((priv->window_format.image_width > priv->window_format.frame_width) ||
      (priv->window_format.image_height > priv->window_format.frame_height))
@@ -769,6 +783,11 @@ static void set_drawing_coords(x11_t * priv)
     priv->window_frame = alloc_frame_ximage(priv, &(priv->window_format));
     }
 
+  /* Clear window */
+
+  gavl_video_frame_clear(priv->window_frame, &(priv->window_format));
+  
+  
   /* Reinitialize scaler */
   
 #if 0
@@ -1240,7 +1259,8 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
   XImage * image;
   x11_t * priv = (x11_t*)data;
   x11_frame_t * x11_frame = (x11_frame_t*)(frame->user_data);
-
+  int x, y;
+  
 #ifdef HAVE_LIBXV
   
   if(priv->do_xv)
@@ -1288,11 +1308,17 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
       gavl_video_scaler_scale(priv->scaler, frame, priv->window_frame);
       x11_frame = (x11_frame_t*)(priv->window_frame->user_data);
       image = x11_frame->x11_image;
+
+      x = priv->dst_rect.x;
+      y = priv->dst_rect.y;
+      
       }
     else
       {
       x11_frame = (x11_frame_t*)(frame->user_data);
       image = x11_frame->x11_image;
+      x = priv->src_rect.x;
+      y = priv->src_rect.y;
       }
 #if 0
     fprintf(stderr, "dst_rect: ");
@@ -1306,8 +1332,8 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
                    priv->win.current_window, /* d          */
                    priv->win.gc,             /* gc         */
                    image, /* image      */
-                   priv->dst_rect.x,    /* src_x      */
-                   priv->dst_rect.y,    /* src_y      */
+                   x,    /* src_x      */
+                   y,    /* src_y      */
                    priv->dst_rect.x,          /* dst_x      */
                    priv->dst_rect.y,          /* dst_y      */
                    priv->dst_rect.w,    /* src_width  */
@@ -1320,8 +1346,8 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
                 priv->win.current_window, /* d       */
                 priv->win.gc,             /* gc      */
                 image, /* image   */
-                priv->dst_rect.x,                    /* src_x   */
-                priv->dst_rect.y,                    /* src_y   */
+                x,                    /* src_x   */
+                y,                    /* src_y   */
                 priv->dst_rect.x,          /* dest_x  */
                 priv->dst_rect.y,          /* dest_y  */
                 priv->dst_rect.w,    /* src_width  */
@@ -1832,7 +1858,6 @@ get_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
     }
   return 0;
   }
-
 
 bg_ov_plugin_t the_plugin =
   {
