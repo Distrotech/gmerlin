@@ -42,18 +42,6 @@ void bg_player_set_ov_plugin(bg_player_t * p, bg_plugin_handle_t * handle)
   bg_msg_queue_unlock_write(p->command_queue);
   }
 
-void bg_player_set_logo(bg_player_t * p, gavl_video_format_t * format, gavl_video_frame_t * frame)
-  {
-  bg_msg_t * msg;
-  msg = bg_msg_queue_lock_write(p->command_queue);
-
-  bg_msg_set_id(msg, BG_PLAYER_CMD_SETLOGO);
-
-  bg_msg_set_arg_video_format(msg, 0, format);
-  bg_msg_set_arg_ptr_nocopy(msg, 1, frame);
-  
-  bg_msg_queue_unlock_write(p->command_queue);
-  }
 
 void bg_player_play(bg_player_t * p, bg_plugin_handle_t * handle,
                     int track, int ignore_flags, const char * track_name)

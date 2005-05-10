@@ -225,6 +225,8 @@ struct bg_gtk_album_widget_s
 
   int num_selected;
 
+  int last_clicked_row;
+  
   int mouse_x, mouse_y;
 
   /* Buttons */
@@ -254,6 +256,8 @@ struct bg_gtk_album_widget_s
   /* Tooltips */
 
   GtkTooltips * tooltips;
+
+  int release_updates_selection;
   };
 
 /* Utilities */
@@ -590,8 +594,7 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
                       GDK_ACTION_COPY | GDK_ACTION_MOVE);
     }
   g_signal_handler_unblock(G_OBJECT(selection), w->select_handler_id);
-
-  
+  w->last_clicked_row = -1;
   }
 
 static void append_file_callback(char ** files, const char * plugin,
@@ -1173,11 +1176,149 @@ static void init_menu(bg_gtk_album_widget_t * w)
     create_toggle_item(w, w->menu.menu, "Show toolbar");
   }
 
+static void update_selected(bg_gtk_album_widget_t * aw, GtkTreePath * path, guint state, int force)
+  {
+  int i;
+  GtkTreeSelection * selection;
+  GtkTreeModel * model;
+
+  GtkTreeIter clicked_iter;
+  GtkTreeIter last_clicked_iter;
+  
+  gint * indices;
+  int clicked_row = -1;
+  
+  indices = gtk_tree_path_get_indices(path);
+  clicked_row = indices[0];
+  
+  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(aw->treeview));
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(aw->treeview));
+
+  /* Get the clicked iter */
+  
+  gtk_tree_model_get_iter(model, &clicked_iter, path);
+
+  if(!force) /* Called by button press callback */
+    {
+    if(gtk_tree_selection_iter_is_selected(selection, &clicked_iter) && (aw->num_selected > 1))
+      {
+      aw->release_updates_selection = 1;
+      return;
+      }
+    }
+  
+  if(state & GDK_CONTROL_MASK)
+    {
+    if(gtk_tree_selection_iter_is_selected(selection, &clicked_iter))
+      gtk_tree_selection_unselect_iter(selection, &clicked_iter);
+    else
+      gtk_tree_selection_select_iter(selection, &clicked_iter);
+    }
+  else if(state & GDK_SHIFT_MASK)
+    {
+    /* Select anything between the last clicked row and here */
+
+    if(aw->last_clicked_row >= 0)
+      {
+      if(!gtk_tree_model_get_iter_first(model, &last_clicked_iter))
+        {
+        gtk_tree_selection_unselect_all(selection);
+        gtk_tree_selection_select_iter(selection, &clicked_iter);
+        aw->last_clicked_row = clicked_row;
+        return;
+        }
+      for(i = 0; i < aw->last_clicked_row; i++)
+        {
+        if(!gtk_tree_model_iter_next(model, &last_clicked_iter))
+          {
+          gtk_tree_selection_unselect_all(selection);
+          gtk_tree_selection_select_iter(selection, &clicked_iter);
+          aw->last_clicked_row = clicked_row;
+          return;
+          }
+        }
+
+      if(clicked_row > aw->last_clicked_row)
+        {
+        for(i = aw->last_clicked_row; i <= clicked_row; i++)
+          {
+          gtk_tree_selection_select_iter(selection, &last_clicked_iter);
+          gtk_tree_model_iter_next(model, &last_clicked_iter);
+          }
+        }
+      else
+        {
+        for(i = clicked_row; i <= aw->last_clicked_row; i++)
+          {
+          gtk_tree_selection_select_iter(selection, &clicked_iter);
+          gtk_tree_model_iter_next(model, &clicked_iter);
+          }
+        }
+      }
+    else
+      {
+      gtk_tree_selection_unselect_all(selection);
+      gtk_tree_selection_select_iter(selection, &clicked_iter);
+      }
+    }
+  else
+    {
+    gtk_tree_selection_unselect_all(selection);
+    gtk_tree_selection_select_iter(selection, &clicked_iter);
+    }
+  aw->last_clicked_row = clicked_row;
+  
+  }
+
+static gboolean button_release_callback(GtkWidget * w, GdkEventButton * evt,
+                                        gpointer data)
+  {
+  GtkTreePath * path;
+  bg_gtk_album_widget_t * aw = (bg_gtk_album_widget_t *)data;
+
+  if(!aw->release_updates_selection)
+    return TRUE;
+  
+  if(!gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(aw->treeview),
+                                   evt->x, evt->y, &path,
+                                   (GtkTreeViewColumn **)0,
+                                   (gint *)0,
+                                   (gint*)0))
+    {
+    /* Didn't click any entry, return here */
+    return TRUE;
+    }
+  update_selected(aw, path, evt->state, 1);
+  aw->release_updates_selection = 0;
+  gtk_tree_path_free(path);
+  return TRUE;
+  }
+
 static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
                                       gpointer data)
   {
+  GtkTreePath * path;
+  
   bg_gtk_album_widget_t * aw = (bg_gtk_album_widget_t *)data;
+    
+  if(!gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(aw->treeview),
+                                   evt->x, evt->y, &path,
+                                   (GtkTreeViewColumn **)0,
+                                   (gint *)0,
+                                   (gint*)0))
+    {
+    /* Didn't click any entry, return here */
+    return TRUE;
+    }
 
+  /* No matter which button was clicked, we must update the selection if the
+     current track isn't already selected */
+  
+  if(evt->type == GDK_BUTTON_PRESS)
+    {
+    update_selected(aw, path, evt->state, 0);
+    }
+  
   if(evt->button == 3)
     {
     gtk_menu_popup(GTK_MENU(aw->menu.menu),
@@ -1186,14 +1327,9 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
                    (GtkMenuPositionFunc)0,
                    (gpointer)0,
                    3, evt->time);
-    return TRUE;
     }
-  else if(evt->button == 1)
+  else if((evt->button == 1) || (evt->button == 2))
     {
-    aw->mouse_x = (int)(evt->x);
-    aw->mouse_y = (int)(evt->y);
-    
-    
     if(evt->type == GDK_2BUTTON_PRESS)
       {
       if(aw->selected_entry)
@@ -1202,11 +1338,10 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
         bg_album_set_current(aw->album, aw->selected_entry);
         bg_album_play(aw->album);
         }
-      return TRUE;
       }
-    return FALSE;
     }
-  return FALSE;
+  gtk_tree_path_free(path);
+  return TRUE;
   }
 
 static int is_urilist(GtkSelectionData * data)
@@ -1455,6 +1590,7 @@ static void select_row_callback(GtkTreeSelection * sel,
       album_entry->flags |= BG_ALBUM_ENTRY_SELECTED;
       w->selected_entry = album_entry;
       w->num_selected++;
+      //      fprintf(stderr, "Entry %d is selected\n", i+1);
       }
     else
       album_entry->flags &= ~BG_ALBUM_ENTRY_SELECTED;
@@ -1543,7 +1679,7 @@ motion_callback(GtkWidget * w, GdkEventMotion * evt, gpointer user_data)
       gtk_drag_set_icon_pixbuf(ctx,
                                dnd_pixbuf,
                                0, 0);
-      
+      wid->release_updates_selection = 0;
       }
     else
       {
@@ -1554,6 +1690,7 @@ motion_callback(GtkWidget * w, GdkEventMotion * evt, gpointer user_data)
       gtk_drag_set_icon_pixbuf(ctx,
                                dnd_pixbuf,
                                0, 0);
+      wid->release_updates_selection = 0;
       }
     }
   return FALSE;
@@ -1722,9 +1859,9 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   ret = calloc(1, sizeof(*ret));
   ret->album = album;
   ret->parent = parent;
-
+  
   ret->tooltips = gtk_tooltips_new();
-
+  ret->last_clicked_row = -1;
   g_object_ref (G_OBJECT (ret->tooltips));
   gtk_object_sink (GTK_OBJECT (ret->tooltips));
   
@@ -1757,11 +1894,15 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   /* Set list callbacks */
   gtk_widget_set_events(ret->treeview,
                         GDK_BUTTON_PRESS_MASK |
+                        GDK_BUTTON_RELEASE_MASK |
                         GDK_KEY_PRESS_MASK |
                         GDK_BUTTON1_MOTION_MASK );
   
   g_signal_connect(G_OBJECT(ret->treeview), "button-press-event",
                    G_CALLBACK(button_press_callback), (gpointer)ret);
+
+  g_signal_connect(G_OBJECT(ret->treeview), "button-release-event",
+                   G_CALLBACK(button_release_callback), (gpointer)ret);
 
   g_signal_connect(G_OBJECT(ret->treeview), "key-press-event",
                    G_CALLBACK(key_press_callback), (gpointer)ret);

@@ -601,8 +601,6 @@ static int process_command(bg_player_t * player,
   gavl_time_t time;
   gavl_time_t current_time;
   
-  gavl_video_format_t logo_format;
-  gavl_video_frame_t * logo_frame;
   
   switch(bg_msg_get_id(command))
     {
@@ -793,14 +791,6 @@ static int process_command(bg_player_t * player,
       //      fprintf(stderr, "***** Set OV Plugin\n");
       arg_ptr1 = bg_msg_get_arg_ptr_nocopy(command, 0);
       set_ov_plugin_cmd(player, arg_ptr1);
-      break;
-    case BG_PLAYER_CMD_SETLOGO:
-      //      fprintf(stderr, "***** Set Logo\n");
-      bg_msg_get_arg_video_format(command, 0, &logo_format);
-      (gavl_video_frame_t*)logo_frame = bg_msg_get_arg_ptr_nocopy(command, 1);
-      bg_player_ov_set_logo(player->ov_context, &logo_format, logo_frame);
-      if(!player->do_video)
-        bg_player_ov_standby(player->ov_context);
       break;
     case BG_PLAYER_CMD_PAUSE:
       pause_cmd(player);

@@ -28,23 +28,6 @@
 
 #include <utils.h>
 
-static void set_logo(bg_plugin_registry_t * reg, bg_player_t * player)
-  {
-  gavl_video_format_t format;
-  gavl_video_frame_t * frame;
-  char * filename;
-  filename = bg_search_file_read("icons", "gmerlin.jpg");
-
-  if(!filename)
-    return;
-  if(!(frame = bg_plugin_registry_load_image(reg, filename, &format)))
-    {
-    free(filename);
-    return;
-    }
-  free(filename);
-  bg_player_set_logo(player, &format, frame);
-  }
 
 static void tree_play_callback(void * data)
   {
@@ -191,10 +174,6 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   /* Create player instance */
   
   ret->player = bg_player_create();
-
-  /* Set the Logo */
-
-  set_logo(ret->plugin_reg, ret->player);
   
   /* Create media tree */
 

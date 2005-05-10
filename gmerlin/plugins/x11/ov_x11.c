@@ -711,7 +711,7 @@ static void set_drawing_coords(x11_t * priv)
   {
   float zoom_factor;
   float squeeze_factor;
-    
+  gavl_video_options_t * opt;
   //  
 
   zoom_factor = (priv->squeeze_zoom_active) ? priv->zoom * 0.01 : 1.0;
@@ -783,9 +783,11 @@ static void set_drawing_coords(x11_t * priv)
   
 #endif
 
+  opt = gavl_video_scaler_get_options(priv->scaler);
+  gavl_video_options_set_scale_mode(opt, priv->scale_mode);
+  gavl_video_options_set_quality(opt, 2);
   
   gavl_video_scaler_init(priv->scaler,
-                         priv->scale_mode,
                          priv->video_format.colorspace,
                          &(priv->src_rect),
                          &(priv->dst_rect),
@@ -1616,6 +1618,7 @@ bg_parameter_info_t common_parameters[] =
       name:        "do_sw_scale",
       long_name:   "Enable software scaler",
       type:        BG_PARAMETER_CHECKBUTTON,
+      help_string: "This enables software scaling for the case that no hardware scaling is available"
     },
     {
       name:        "scale_mode",

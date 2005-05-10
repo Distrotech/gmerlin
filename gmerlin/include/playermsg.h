@@ -99,14 +99,6 @@
 #define BG_PLAYER_CMD_PAUSE         8
 
 /*
- *  Set the logo to be displayed when video is inactive
- *  arg1: Format
- *  arg2: Video frame (pointer)
- */
-   
-#define BG_PLAYER_CMD_SETLOGO       9
-
-/*
  *  Seek relative (gavl_time_t)
  */
 
