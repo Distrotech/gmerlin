@@ -17,6 +17,7 @@ server \
 client \
 v4ltest \
 gmerlin_player \
+imgconvert \
 $(gtk_programs)
 
 
@@ -24,6 +25,9 @@ $(gtk_programs)
 
 audioplayer1_SOURCES = audioplayer1.c
 audioplayer1_LDADD = ../lib/libgmerlin.la -ldl
+
+imgconvert_SOURCES = imgconvert.c
+imgconvert_LDADD = ../lib/libgmerlin.la -ldl
 
 msgtest_SOURCES = msgtest.c
 msgtest_LDADD = ../lib/libgmerlin.la -ldl
