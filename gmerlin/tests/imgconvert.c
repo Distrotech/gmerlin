@@ -51,14 +51,14 @@ int main(int argc, char ** argv)
 
   /* Initialize output plugin */
 
-  plugin_info = bg_plugin_find_by_name(plugin_reg, "iw_png");
+  plugin_info = bg_plugin_find_by_name(plugin_reg, "iw_jpeg");
 
   output_handle = bg_plugin_load(plugin_reg, plugin_info);
   output_plugin = (bg_image_writer_plugin_t*)(output_handle->plugin);
   
   gavl_video_format_copy(&out_format, &in_format);
   
-  output_plugin->write_header(output_handle->priv, "out.png", 
+  output_plugin->write_header(output_handle->priv, "out.jpg", 
                               &out_format);
 
   fprintf(stderr, "Input format:\n");

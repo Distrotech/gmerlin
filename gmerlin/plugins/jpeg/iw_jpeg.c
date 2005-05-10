@@ -198,9 +198,9 @@ int write_image_jpeg(void * priv, gavl_video_frame_t * frame)
           jpeg->rows_0[i] = frame->planes[0] + frame->strides[0] *
             (jpeg->cinfo.next_scanline + i);
           jpeg->rows_1[i] = frame->planes[1] + frame->strides[1] *
-            (jpeg->cinfo.next_scanline/2 + i);
+            (jpeg->cinfo.next_scanline + i);
           jpeg->rows_2[i] = frame->planes[2] + frame->strides[2] *
-            (jpeg->cinfo.next_scanline/2 + i);
+            (jpeg->cinfo.next_scanline + i);
           }
         num_lines = jpeg->cinfo.image_height - jpeg->cinfo.next_scanline;
         if(num_lines > 8)
