@@ -41,33 +41,35 @@ bgav_t * bgav_create();
  * Set parameters
  ***************************************************/
 
+typedef struct bgav_options_s bgav_options_t;
+bgav_options_t * bgav_get_options(bgav_t*);
+
 /*
  * Timeout will only be used for network connections.
  * It is in milliseconds, 0 is infinity
  */
 
-void bgav_set_connect_timeout(bgav_t *, int timeout);
-void bgav_set_read_timeout(bgav_t *, int timeout);
+void bgav_set_connect_timeout(bgav_options_t *, int timeout);
+void bgav_set_read_timeout(bgav_options_t *, int timeout);
 
 /*
  *  Set network bandwidth (in bits per second)
  */
 
-void bgav_set_network_bandwidth(bgav_t *, int bandwidth);
+void bgav_set_network_bandwidth(bgav_options_t *, int bandwidth);
 
-void bgav_set_network_buffer_size(bgav_t *, int size);
-
+void bgav_set_network_buffer_size(bgav_options_t *, int size);
 
 /* HTTP Options */
 
-void bgav_set_http_use_proxy(bgav_t*, int use_proxy);
-void bgav_set_http_proxy_host(bgav_t*, const char *);
-void bgav_set_http_proxy_port(bgav_t*, int);
-void bgav_set_http_shoutcast_metadata(bgav_t*, int);
+void bgav_set_http_use_proxy(bgav_options_t*, int use_proxy);
+void bgav_set_http_proxy_host(bgav_options_t*, const char *);
+void bgav_set_http_proxy_port(bgav_options_t*, int);
+void bgav_set_http_shoutcast_metadata(bgav_options_t*, int);
 
 /* Set FTP options */
 
-void bgav_set_ftp_anonymous_password(bgav_t*, const char*);
+void bgav_set_ftp_anonymous_password(bgav_options_t*, const char*);
 
 /* Set callbacks */
 

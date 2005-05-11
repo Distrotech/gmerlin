@@ -34,7 +34,6 @@ bgav_device_info_t * bgav_device_info_append(bgav_device_info_t * arr,
                                              const char * device,
                                              const char * name)
   {
-  int i;
   int size = 0;
     
   if(arr)

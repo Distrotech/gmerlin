@@ -52,7 +52,8 @@ static int open_mms(bgav_input_context_t * ctx, const char * url)
 
   /* Open mms connection */
   
-  priv->mms = bgav_mms_open(url, ctx->connect_timeout, ctx->read_timeout, &ctx->error_msg);
+  priv->mms = bgav_mms_open(url, ctx->opt->connect_timeout,
+                            ctx->opt->read_timeout, &ctx->error_msg);
   if(!priv->mms)
     goto fail;
 

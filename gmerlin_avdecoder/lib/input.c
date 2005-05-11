@@ -349,11 +349,11 @@ int bgav_input_open(bgav_input_context_t * ret,
 
   /* Check if we should buffer data */
 
-  if(!ret->network_buffer_size || !ret->input->read_nonblock)
+  if(!ret->opt->network_buffer_size || !ret->input->read_nonblock)
     ret->do_buffer = 0;
   if(ret->do_buffer)
     {
-    ret->buffer_alloc = ret->network_buffer_size;
+    ret->buffer_alloc = ret->opt->network_buffer_size;
     ret->buffer = malloc(ret->buffer_alloc);
     }
   

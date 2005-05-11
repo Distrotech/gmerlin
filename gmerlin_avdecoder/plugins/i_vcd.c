@@ -32,8 +32,6 @@ static int open_vcd(void * priv, const char * location)
   avdec_priv * avdec;
 
   avdec = (avdec_priv*)(priv);
-
-  avdec->dec = bgav_create();
   
   if(!bgav_open_vcd(avdec->dec, location))
     return 0;

@@ -101,13 +101,13 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
   
   p = calloc(1, sizeof(*p));
   
-  if(ctx->http_shoutcast_metadata)
+  if(ctx->opt->http_shoutcast_metadata)
     {
     extra_header = bgav_http_header_create();
     bgav_http_header_add_line(extra_header, "Icy-MetaData:1");
     }
   
-  p->h = bgav_http_open(url, ctx->connect_timeout,
+  p->h = bgav_http_open(url, ctx->opt->connect_timeout,
                         &redirect_url, extra_header, &ctx->error_msg);
 
   if(!p->h && redirect_url)
@@ -116,7 +116,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
       {
       //      fprintf(stderr, "Got redirection, new URL: %s\n",
       //              redirect_url);
-      p->h = bgav_http_open(redirect_url, ctx->connect_timeout,
+      p->h = bgav_http_open(redirect_url, ctx->opt->connect_timeout,
                             &redirect_url, extra_header, &ctx->error_msg);
       if(p->h)
         break;
@@ -208,12 +208,12 @@ static int read_chunk(bgav_input_context_t* ctx)
   /* We first check if there is data availble, after that, the whole
      chunk is read at once */
 
-  if(ctx->read_timeout)
+  if(ctx->opt->read_timeout)
     {
     FD_ZERO(&rset);
     FD_SET (fd, &rset);
-    timeout.tv_sec  = ctx->read_timeout / 1000;
-    timeout.tv_usec = (ctx->read_timeout % 1000) * 1000;
+    timeout.tv_sec  = ctx->opt->read_timeout / 1000;
+    timeout.tv_usec = (ctx->opt->read_timeout % 1000) * 1000;
     if(select (fd+1, &rset, NULL, NULL, &timeout) <= 0)
       return 0;
     }
@@ -221,7 +221,7 @@ static int read_chunk(bgav_input_context_t* ctx)
   /* Read Chunk size */
   
   if(!bgav_read_line_fd(fd, &(p->chunk_buffer), &(p->chunk_buffer_alloc),
-                        ctx->read_timeout))
+                        ctx->opt->read_timeout))
     return 0;
 
   chunk_size = strtoul(p->chunk_buffer, NULL, 16);
@@ -321,13 +321,13 @@ static int read_data(bgav_input_context_t* ctx,
     else
       return 0;
     }
-  else if(ctx->read_timeout)
+  else if(ctx->opt->read_timeout)
     {
     FD_ZERO(&rset);
     FD_SET (fd, &rset);
     
-    timeout.tv_sec  = ctx->read_timeout / 1000;
-    timeout.tv_usec = (ctx->read_timeout % 1000) * 1000;
+    timeout.tv_sec  = ctx->opt->read_timeout / 1000;
+    timeout.tv_usec = (ctx->opt->read_timeout % 1000) * 1000;
             
     if(select (fd+1, &rset, NULL, NULL, &timeout) > 0)
       bytes_read = read(fd, buffer, len);
@@ -351,8 +351,8 @@ static int read_data(bgav_input_context_t* ctx,
       FD_ZERO(&rset);
       FD_SET (fd, &rset);
       
-      timeout.tv_sec  = ctx->read_timeout / 1000;
-      timeout.tv_usec = (ctx->read_timeout % 1000) * 1000;
+      timeout.tv_sec  = ctx->opt->read_timeout / 1000;
+      timeout.tv_usec = (ctx->opt->read_timeout % 1000) * 1000;
       if(select (fd+1, &rset, NULL, NULL, &timeout) <= 0)
         return bytes_read;
       }

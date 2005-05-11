@@ -103,7 +103,7 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
     {
     if(block)
       {
-      if(bgav_read_data_fd(fd, header, 8, ctx->read_timeout) < 8)
+      if(bgav_read_data_fd(fd, header, 8, ctx->opt->read_timeout) < 8)
         return 0;
       }
     else
@@ -116,7 +116,7 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
         //        fprintf(stderr, "Warning, got incomplete header %d bytes\n",
         //                bytes_read);
         if(bgav_read_data_fd(fd, &(header[bytes_read]), 8 - bytes_read,
-                             ctx->read_timeout) < 8 - bytes_read)
+                             ctx->opt->read_timeout) < 8 - bytes_read)
           return 0;
         
         }
@@ -139,7 +139,7 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
         {
         if(!bgav_read_line_fd(fd, (char**)(&(priv->packet)),
                               &(priv->packet_alloc),
-                              ctx->read_timeout))
+                              ctx->opt->read_timeout))
           return 0;
         size = strlen(priv->packet);
         if(!size)
@@ -180,16 +180,16 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
         header[1]=header[6];
         header[2]=header[7];
 
-        if(bgav_read_data_fd(fd, &(header[3]), 5, ctx->read_timeout) < 5)
+        if(bgav_read_data_fd(fd, &(header[3]), 5, ctx->opt->read_timeout) < 5)
           return 0;
 
-        if(bgav_read_data_fd(fd, &(header[4]), 4, ctx->read_timeout) < 4)
+        if(bgav_read_data_fd(fd, &(header[4]), 4, ctx->opt->read_timeout) < 4)
           return 0;
         flags1 = header[4];
         size-=9;
         }
 
-      if(bgav_read_data_fd(fd, header, 6, ctx->read_timeout) < 6)
+      if(bgav_read_data_fd(fd, header, 6, ctx->opt->read_timeout) < 6)
         return 0;
       timestamp = BGAV_PTR_2_32BE(header);
       size+=2;
@@ -208,7 +208,7 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
       size -= 12;
       bgav_rmff_packet_header_to_pointer(&ph, priv->packet);
       if(bgav_read_data_fd(fd, priv->packet + 12, size,
-                           ctx->read_timeout) < size)
+                           ctx->opt->read_timeout) < size)
         return 0;
 
       if(priv->has_smil)
@@ -258,9 +258,6 @@ static int open_and_describe(bgav_input_context_t * ctx,
   const char * var;
   rtsp_priv_t * priv = (rtsp_priv_t *)(ctx->priv);
   
-  bgav_rtsp_set_connect_timeout(priv->r, ctx->connect_timeout);
-  bgav_rtsp_set_read_timeout(priv->r, ctx->read_timeout);
-  bgav_rtsp_set_network_bandwidth(priv->r, ctx->network_bandwidth);
   bgav_rtsp_set_user_agent(priv->r,
                            "RealMedia Player Version 6.0.9.1235 (linux-2.0-libc6-i386-gcc2.95)");
 
@@ -382,7 +379,7 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
   int got_redirected = 0;
   
   priv = calloc(1, sizeof(*priv));
-  priv->r = bgav_rtsp_create();
+  priv->r = bgav_rtsp_create(ctx->opt);
 
   ctx->priv = priv;
 
@@ -441,7 +438,7 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
         {
         priv->rmff_header =
           bgav_rmff_header_create_from_sdp(sdp,
-                                           ctx->network_bandwidth,
+                                           ctx->opt->network_bandwidth,
                                            &stream_rules);
         if(!priv->rmff_header)
           goto fail;

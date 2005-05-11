@@ -47,26 +47,10 @@ struct bgav_rtsp_s
   bgav_http_header_t * request_fields;
   
   bgav_sdp_t sdp;
-  
-  int connect_timeout;
-  int read_timeout;
+
+  const bgav_options_t * opt;
   
   };
-
-void bgav_rtsp_set_connect_timeout(bgav_rtsp_t * r, int timeout)
-  {
-  r->connect_timeout = timeout;
-  }
-
-void bgav_rtsp_set_read_timeout(bgav_rtsp_t * r, int timeout)
-  {
-  r->read_timeout = timeout;
-  }
-
-void bgav_rtsp_set_network_bandwidth(bgav_rtsp_t * r, int bandwidth)
-  {
-  //  r->network_bandwidth = bandwidth;
-  }
 
 void bgav_rtsp_set_user_agent(bgav_rtsp_t * r, const char * user_agent)
   {
@@ -128,7 +112,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   
   /* Read answers */
   bgav_http_header_reset(rtsp->answers);
-  bgav_http_header_revc(rtsp->answers, rtsp->fd, rtsp->read_timeout);
+  bgav_http_header_revc(rtsp->answers, rtsp->fd, rtsp->opt->read_timeout);
   
 #ifdef DUMP_REQUESTS
   bgav_http_header_dump(rtsp->answers);
@@ -209,7 +193,7 @@ int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected, char ** 
   
   buf = malloc(content_length+1);
     
-  if(bgav_read_data_fd(rtsp->fd, buf, content_length, rtsp->read_timeout) <
+  if(bgav_read_data_fd(rtsp->fd, buf, content_length, rtsp->opt->read_timeout) <
      content_length)
     {
     fprintf(stderr, "Reading session dscription failed\n");
@@ -278,7 +262,7 @@ static int do_connect(bgav_rtsp_t * rtsp,
     port = 554;
 
   //  rtsp->cseq = 1;
-  rtsp->fd = bgav_tcp_connect(host, port, rtsp->read_timeout, error_msg);
+  rtsp->fd = bgav_tcp_connect(host, port, rtsp->opt->read_timeout, error_msg);
   if(rtsp->fd < 0)
     goto done;
  
@@ -299,10 +283,11 @@ static int do_connect(bgav_rtsp_t * rtsp,
   return ret;
   }
 
-bgav_rtsp_t * bgav_rtsp_create()
+bgav_rtsp_t * bgav_rtsp_create(const bgav_options_t * opt)
   {
   bgav_rtsp_t * ret = (bgav_rtsp_t*)0;
   ret = calloc(1, sizeof(*ret));
+  ret->opt = opt;
   ret->answers = bgav_http_header_create();
   ret->request_fields = bgav_http_header_create();
   ret->fd = -1;

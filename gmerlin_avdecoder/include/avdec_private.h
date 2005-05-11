@@ -392,6 +392,24 @@ void bgav_track_table_merge_metadata(bgav_track_table_t*,
 
 void bgav_track_table_remove_unsupported(bgav_track_table_t * t);
 
+/* Options (shared between inputs, demuxers and decoders) */
+
+struct bgav_options_s
+  {
+  int http_use_proxy;
+  char * http_proxy_host;
+  int http_proxy_port;
+  int http_shoutcast_metadata;
+
+  int connect_timeout;
+  int read_timeout;
+
+  int network_bandwidth;
+  int network_buffer_size;
+
+  char * ftp_anonymous_password;
+  };
+
 /* Overloadable input module */
 
 struct bgav_input_s
@@ -468,20 +486,9 @@ struct bgav_input_context_s
   int sector_header_size;
   int64_t total_sectors;
   int64_t sector_position;
-  
-  /* Configuration stuff is set here */
 
-  int http_use_proxy;
-  const char * http_proxy_host;
-  int http_proxy_port;
-  int http_shoutcast_metadata;
-  int connect_timeout;
-  int read_timeout;
-  int network_bandwidth;
-  int network_buffer_size;
-
-  const char * ftp_anonymous_password;
-  
+  const bgav_options_t * opt;
+    
   /* Callbacks */
   
   void (*name_change_callback)(void * data, const char * name);
@@ -540,8 +547,6 @@ int bgav_input_read_line(bgav_input_context_t*,
                          char ** buffer, int * buffer_alloc, int buffer_offset);
 
 int bgav_input_read_sector(bgav_input_context_t*, uint8_t*);
-
-bgav_input_context_t * bgav_input_create();
 
 int bgav_input_open(bgav_input_context_t *, const char * url);
 
@@ -762,17 +767,7 @@ struct bgav_s
   
   /* Configuration parameters */
 
-  int http_use_proxy;
-  char * http_proxy_host;
-  int http_proxy_port;
-  int http_shoutcast_metadata;
-  int connect_timeout;
-  int read_timeout;
-  int network_bandwidth;
-  int network_buffer_size;
-
-  char * ftp_anonymous_password;
-
+  bgav_options_t opt;
   
   bgav_input_context_t * input;
   bgav_demuxer_context_t * demuxer;

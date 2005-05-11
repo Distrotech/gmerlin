@@ -31,17 +31,8 @@ bgav_input_context_t * create_input(bgav_t * b)
   
   ret = calloc(1, sizeof(*ret));
 
-  ret->http_use_proxy =            b->http_use_proxy;
-  ret->http_proxy_host =           b->http_proxy_host;
-  ret->http_proxy_port =           b->http_proxy_port;
-  ret->http_shoutcast_metadata =   b->http_shoutcast_metadata;
-
-  ret->ftp_anonymous_password  =   b->ftp_anonymous_password;
+  ret->opt = &(b->opt);
   
-  ret->connect_timeout =           b->connect_timeout;
-  ret->read_timeout =              b->read_timeout;
-  ret->network_bandwidth =         b->network_bandwidth;
-  ret->network_buffer_size =       b->network_buffer_size;
 
   ret->name_change_callback       = b->name_change_callback;
   ret->name_change_callback_data  = b->name_change_callback_data;
@@ -338,61 +329,6 @@ const char * bgav_get_description(bgav_t * b)
   return b->demuxer->stream_description;
   }
 
-/* Configuration stuff */
-
-void bgav_set_connect_timeout(bgav_t *b, int timeout)
-  {
-  b->connect_timeout = timeout;
-  }
-
-void bgav_set_read_timeout(bgav_t *b, int timeout)
-  {
-  b->read_timeout = timeout;
-  }
-
-/*
- *  Set network bandwidth (in bits per second)
- */
-
-void bgav_set_network_bandwidth(bgav_t *b, int bandwidth)
-  {
-  b->network_bandwidth = bandwidth;
-  }
-
-void bgav_set_network_buffer_size(bgav_t *b, int size)
-  {
-  b->network_buffer_size = size;
-  }
-
-
-void bgav_set_http_use_proxy(bgav_t*b, int use_proxy)
-  {
-  b->http_use_proxy = use_proxy;
-  }
-
-void bgav_set_http_proxy_host(bgav_t*b, const char * h)
-  {
-  if(b->http_proxy_host)
-    free(b->http_proxy_host);
-  b->http_proxy_host = bgav_strndup(h, NULL);
-  }
-
-void bgav_set_http_proxy_port(bgav_t*b, int p)
-  {
-  b->http_proxy_port = p;
-  }
-
-void bgav_set_http_shoutcast_metadata(bgav_t*b, int m)
-  {
-  b->http_shoutcast_metadata = m;
-  }
-
-void bgav_set_ftp_anonymous_password(bgav_t*b, const char * h)
-  {
-  if(b->ftp_anonymous_password)
-    free(b->ftp_anonymous_password);
-  b->ftp_anonymous_password = bgav_strndup(h, NULL);
-  }
 
 
 void
@@ -478,4 +414,9 @@ bgav_set_buffer_callback(bgav_t * b,
 const char * bgav_get_error(bgav_t * b)
   {
   return b->error_msg;
+  }
+
+bgav_options_t * bgav_get_options(bgav_t * b)
+  {
+  return &(b->opt);
   }

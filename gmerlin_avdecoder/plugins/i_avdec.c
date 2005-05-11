@@ -34,18 +34,7 @@ static int open_avdec(void * priv, const char * location)
   avdec_priv * avdec;
 
   avdec = (avdec_priv*)(priv);
-
-  avdec->dec = bgav_create();
-
-  /* Set parameters */
   
-  bgav_set_connect_timeout(avdec->dec, avdec->connect_timeout);
-  bgav_set_read_timeout(avdec->dec, avdec->read_timeout);
-  bgav_set_network_bandwidth(avdec->dec, avdec->network_bandwidth);
-  bgav_set_network_buffer_size(avdec->dec, avdec->network_buffer_size * 1024);
-  
-  bgav_set_http_shoutcast_metadata(avdec->dec, avdec->http_shoutcast_metadata);
-    
   if(!bgav_open(avdec->dec, location))
     {
     return 0;
@@ -169,6 +158,17 @@ static bg_parameter_info_t parameters[] =
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },
+    {
+      name:       "ftp_options",
+      long_name:  "FTP Options",
+      type:       BG_PARAMETER_SECTION
+    },
+    {
+      name:        "ftp_anonymous_password",
+      long_name:   "Anonymous ftp password",
+      type:        BG_PARAMETER_STRING,
+      val_default: { val_str: "gates@nanosoft.com" }
+    },
     { /* End of parameters */ }
   };
 
@@ -186,7 +186,7 @@ bg_input_plugin_t the_plugin =
       name:           "i_avdec",
       long_name:      "AVDecoder plugin",
       mimetypes:      "video/x-ms-asf audio/x-pn-realaudio-plugin video/x-pn-realvideo-plugin audio/x-pn-realaudio video/x-pn-realvideo audio/x-mpegurl audio/mpegurl audio/x-scpls audio/scpls audio/m3u",
-      extensions:     "avi asf asx wmv rm ra ram mov wav mp4 m4a 3gp qt au aiff aif mp3 mpg mpeg vob m3u pls ogg flac aac",
+      extensions:     "avi asf asx wmv rm ra ram mov wav mp4 m4a 3gp qt au aiff aif mp3 mpg mpeg vob m3u pls ogg flac aac mpc",
       type:           BG_PLUGIN_INPUT,
       flags:          BG_PLUGIN_FILE|BG_PLUGIN_URL,
       priority:       BG_PLUGIN_PRIORITY_MAX,

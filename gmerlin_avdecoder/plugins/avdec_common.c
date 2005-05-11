@@ -82,6 +82,8 @@ static void convert_metadata(bg_metadata_t * dst,
 void * bg_avdec_create()
   {
   avdec_priv * ret = calloc(1, sizeof(*ret));
+  ret->dec = bgav_create();
+  ret->opt = bgav_get_options(ret->dec);
   return ret;
   }
 
@@ -263,6 +265,7 @@ void
 bg_avdec_set_parameter(void * p, char * name,
                     bg_parameter_value_t * val)
   {
+  int i_tmp;
   avdec_priv * avdec;
   avdec = (avdec_priv*)(p);
   if(!name)
@@ -284,47 +287,57 @@ bg_avdec_set_parameter(void * p, char * name,
     }
   else if(!strcmp(name, "connect_timeout"))
     {
-    avdec->connect_timeout = val->val_i;
+    /* Set parameters */
+  
+    bgav_set_connect_timeout(avdec->opt, val->val_i);
     }
   else if(!strcmp(name, "read_timeout"))
     {
+    bgav_set_read_timeout(avdec->opt, avdec->read_timeout);
+    
     avdec->read_timeout = val->val_i;
     }
   else if(!strcmp(name, "network_buffer_size"))
     {
     avdec->network_buffer_size = val->val_i;
+    bgav_set_network_buffer_size(avdec->opt, avdec->network_buffer_size * 1024);
+    
     }
   else if(!strcmp(name, "network_bandwidth"))
     {
     if(!strcmp(val->val_str, "14.4 Kbps (Modem)"))
-      avdec->network_bandwidth = 14400;
+      i_tmp = 14400;
     else if(!strcmp(val->val_str, "19.2 Kbps (Modem)"))
-      avdec->network_bandwidth = 19200;
+      i_tmp = 19200;
     else if(!strcmp(val->val_str, "28.8 Kbps (Modem)"))
-      avdec->network_bandwidth = 28800;
+      i_tmp = 28800;
     else if(!strcmp(val->val_str, "33.6 Kbps (Modem)"))
-      avdec->network_bandwidth = 33600;
+      i_tmp = 33600;
     else if(!strcmp(val->val_str, "34.4 Kbps (Modem)"))
-      avdec->network_bandwidth = 34430;
+      i_tmp = 34430;
     else if(!strcmp(val->val_str, "57.6 Kbps (Modem)"))
-      avdec->network_bandwidth = 57600;
+      i_tmp = 57600;
     else if(!strcmp(val->val_str, "115.2 Kbps (ISDN)"))
-      avdec->network_bandwidth = 115200;
+      i_tmp = 115200;
     else if(!strcmp(val->val_str, "262.2 Kbps (Cable/DSL)"))
-      avdec->network_bandwidth = 262200;
+      i_tmp = 262200;
     else if(!strcmp(val->val_str, "393.2 Kbps (Cable/DSL)"))
-      avdec->network_bandwidth = 393216;
+      i_tmp = 393216;
     else if(!strcmp(val->val_str, "524.3 Kbps (Cable/DSL)"))
-      avdec->network_bandwidth = 524300;
+      i_tmp = 524300;
     else if(!strcmp(val->val_str, "1.5 Mbps (T1)"))
-      avdec->network_bandwidth = 1544000;
+      i_tmp = 1544000;
     else if(!strcmp(val->val_str, "10.5 Mbps (LAN)"))
-      avdec->network_bandwidth = 10485800;
+      i_tmp = 10485800;
+    bgav_set_network_bandwidth(avdec->opt, i_tmp);
     }
-
   else if(!strcmp(name, "http_shoutcast_metadata"))
     {
-    avdec->http_shoutcast_metadata = val->val_i;
+    bgav_set_http_shoutcast_metadata(avdec->opt, val->val_i);
+    }
+  else if(!strcmp(name, "ftp_anonymous_password"))
+    {
+    bgav_set_ftp_anonymous_password(avdec->opt, val->val_str);
     }
   }
 

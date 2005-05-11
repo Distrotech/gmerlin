@@ -221,7 +221,7 @@ static int pack_header_read(bgav_input_context_t * input,
   //    }
   return 1;
   }
-#if 1
+#if 0
 static void pack_header_dump(pack_header_t * h)
   {
   fprintf(stderr,

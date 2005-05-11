@@ -25,11 +25,8 @@ typedef struct bgav_rtsp_s bgav_rtsp_t;
 
 /* Housekeeping */
 
-bgav_rtsp_t * bgav_rtsp_create();
+bgav_rtsp_t * bgav_rtsp_create(const bgav_options_t * opt);
 
-void bgav_rtsp_set_connect_timeout(bgav_rtsp_t * r, int timeout);
-void bgav_rtsp_set_read_timeout(bgav_rtsp_t * r, int timeout);
-void bgav_rtsp_set_network_bandwidth(bgav_rtsp_t * r, int bandwidth);
 void bgav_rtsp_set_user_agent(bgav_rtsp_t * r, const char * user_agent);
 
 /* Open the URL and send the OPTIONS request */

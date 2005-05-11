@@ -235,6 +235,7 @@ input.c \
 metadata.c \
 mms.c \
 nanosoft.c \
+options.c \
 packetbuffer.c \
 packet.c \
 pes_header.c \

@@ -23,7 +23,10 @@ typedef struct
   bg_track_info_t * current_track;
   int num_tracks;
   bgav_t * dec;
+  bgav_options_t * opt;
+  
   bg_input_callbacks_t * bg_callbacks;
+  
   int connect_timeout;
   int read_timeout;
   int network_bandwidth;
