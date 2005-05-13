@@ -116,13 +116,13 @@ static int read_toc(vcd_priv * priv)
       {
       if(i)
         {
-        fprintf(stderr, "Track %d is a VCD track\n", i+1);
+        //        fprintf(stderr, "Track %d is a VCD track\n", i+1);
         priv->num_video_tracks++;
         priv->tracks[i].mode = TRACK_VCD;
         }
       else
         {
-        fprintf(stderr, "Track %d is the VCD iso9660 track\n", i+1);
+        //        fprintf(stderr, "Track %d is the VCD iso9660 track\n", i+1);
         priv->tracks[i].mode = TRACK_OTHER;
         }
       }
@@ -130,24 +130,24 @@ static int read_toc(vcd_priv * priv)
       {
       if(i)
         {
-        fprintf(stderr, "Track %d is a SVCD track\n", i+1);
+        //        fprintf(stderr, "Track %d is a SVCD track\n", i+1);
         priv->num_video_tracks++;
         priv->tracks[i].mode = TRACK_SVCD;
         }
       else
         {
-        fprintf(stderr, "Track %d is the SVCD iso9660 track\n", i+1);
+        //        fprintf(stderr, "Track %d is the SVCD iso9660 track\n", i+1);
         priv->tracks[i].mode = TRACK_OTHER;
         }
       }
     else
       {
-      fprintf(stderr, "Track %d is something else\n", i+1);
+      //      fprintf(stderr, "Track %d is something else\n", i+1);
       priv->tracks[i].mode = TRACK_OTHER;
       }
     }
   /* Dump this */
-#if 1
+#if 0
   for(i = 0; i < priv->num_tracks; i++)
     {
     fprintf(stderr, "Track %d, Start: %d, end: %d ",

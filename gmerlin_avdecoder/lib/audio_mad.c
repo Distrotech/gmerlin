@@ -137,8 +137,8 @@ static int decode_frame(bgav_stream_t * s)
           return 0;
         break;
       default:
-        fprintf(stderr, "mad_decode_frame returned: %s\n",
-                mad_stream_errorstr(&priv->stream));
+        //        fprintf(stderr, "mad_decode_frame returned: %s\n",
+        //                mad_stream_errorstr(&priv->stream));
         //        fprintf(stderr, "Oops, Muting frame %s\n");
         mad_frame_mute(&priv->frame);
         break;
@@ -183,8 +183,8 @@ static int decode_frame(bgav_stream_t * s)
                    version_string, priv->frame.header.layer, bitrate_string);
     free(bitrate_string);
 
-    fprintf(stderr, "Creating audio frame %d\n",
-            s->data.audio.format.samples_per_frame);
+    //    fprintf(stderr, "Creating audio frame %d\n",
+    //            s->data.audio.format.samples_per_frame);
     
     priv->audio_frame = gavl_audio_frame_create(&(s->data.audio.format));
     }
@@ -217,7 +217,7 @@ static int init_mad(bgav_stream_t * s)
   {
   mad_priv_t * priv;
 
-  fprintf(stderr, "Init MAD\n");
+  //  fprintf(stderr, "Init MAD\n");
 
   priv = calloc(1, sizeof(*priv));
   s->data.audio.decoder->priv = priv;
@@ -231,7 +231,7 @@ static int init_mad(bgav_stream_t * s)
   get_data(s);
   if(!decode_frame(s))
     {
-    fprintf(stderr, "Decode frame failed\n");
+    //    fprintf(stderr, "Decode frame failed\n");
     return 0;
     }
   return 1;

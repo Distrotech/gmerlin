@@ -40,6 +40,8 @@ int main(int argc, char ** argv)
   int track;
     
   bgav_t * file;
+  bgav_options_t * opt;
+
   
   gavl_audio_frame_t * af;
   gavl_video_frame_t * vf;
@@ -62,12 +64,13 @@ int main(int argc, char ** argv)
     }
   
   file = bgav_create();
-
+  opt = bgav_get_options(file);
+    
   /* Configure */
 
-  bgav_set_connect_timeout(file,   connect_timeout);
-  bgav_set_read_timeout(file,      read_timeout);
-  bgav_set_network_bandwidth(file, network_bandwidth);
+  bgav_set_connect_timeout(opt,   connect_timeout);
+  bgav_set_read_timeout(opt,      read_timeout);
+  bgav_set_network_bandwidth(opt, network_bandwidth);
 
   if(!strncmp(argv[1], "vcd://", 6))
     {

@@ -189,14 +189,14 @@ static void print_error_nofile(const char * name, const char * env_name)
 
 void bgav_codecs_init()
   {
-  fprintf(stderr, "bgav_codecs_init()\n");
+  //  fprintf(stderr, "bgav_codecs_init()\n");
   codecs_lock();
   if(codecs_initialized)
     {
     codecs_unlock();
     return;
     }
-  fprintf(stderr, "bgav_codecs_init() 1\n");
+  //  fprintf(stderr, "bgav_codecs_init() 1\n");
   codecs_initialized = 1;
   
 #ifdef HAVE_LIBAVCODEC
