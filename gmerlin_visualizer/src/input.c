@@ -73,8 +73,8 @@ int input_create()
     return 0;
 
   /* Set up format */
-  fprintf(stderr, "Input format:\n");
-  gavl_audio_format_dump(&input_format);
+  //  fprintf(stderr, "Input format:\n");
+  //  gavl_audio_format_dump(&input_format);
   gavl_audio_format_copy(&format, &input_format);
 
   format.num_channels = 2;
@@ -84,8 +84,8 @@ int input_create()
   format.samples_per_frame = 1024;
   format.sample_format = GAVL_SAMPLE_S16;
 
-  fprintf(stderr, "Internal format:\n");
-  gavl_audio_format_dump(&format);
+  //  fprintf(stderr, "Internal format:\n");
+  //  gavl_audio_format_dump(&format);
 
 
   the_input->cnv = gavl_audio_converter_create();
