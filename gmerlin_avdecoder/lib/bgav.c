@@ -180,13 +180,16 @@ int bgav_num_tracks(bgav_t * b)
 bgav_t * bgav_create()
   {
   bgav_t * ret;
-  bgav_codecs_init();
   ret = calloc(1, sizeof(*ret));
+
+  bgav_options_set_defaults(&ret->opt);
+  
   return ret;
   }
 
 int bgav_open(bgav_t * ret, const char * location)
   {
+  bgav_codecs_init();
   ret->input = create_input(ret);
   if(!bgav_input_open(ret->input, location))
     {

@@ -295,10 +295,6 @@ static int read_data(bgav_input_context_t* ctx,
                      uint8_t * buffer, int len, int block)
   {
   int fd;
-  int result;
-  int bytes_read = 0;
-  fd_set rset;
-  struct timeval timeout;
   http_priv * p = (http_priv *)(ctx->priv);
 
   if(p->chunked)
@@ -306,60 +302,12 @@ static int read_data(bgav_input_context_t* ctx,
 
   fd = bgav_http_get_fd(p->h);
   
-  //  fprintf(stderr, "Read data 1\n");
-  
-  if(!block)
-    {
-    FD_ZERO(&rset);
-    FD_SET (fd, &rset);
+  //  fprintf(stderr, "Read data %d %d %d\n", len, ctx->opt->read_timeout, ctx->opt->connect_timeout);
 
-    timeout.tv_sec  = 0;
-    timeout.tv_usec = 0;
-
-    if(select (fd+1, &rset, NULL, NULL, &timeout) > 0)
-      return read(fd, buffer, len);
-    else
-      return 0;
-    }
-  else if(ctx->opt->read_timeout)
-    {
-    FD_ZERO(&rset);
-    FD_SET (fd, &rset);
-    
-    timeout.tv_sec  = ctx->opt->read_timeout / 1000;
-    timeout.tv_usec = (ctx->opt->read_timeout % 1000) * 1000;
-            
-    if(select (fd+1, &rset, NULL, NULL, &timeout) > 0)
-      bytes_read = read(fd, buffer, len);
-    else
-      return 0;
-    }
-  if(!bytes_read)
-    return 0;
-
-  //  fprintf(stderr, "Read data 2: %d\n", bytes_read);
-    
-  while(bytes_read < len)
-    {
-    result = read(fd, buffer + bytes_read, len - bytes_read);
-    //    fprintf(stderr, "Read data 3: %d\n", result);
-    if(!result)
-      return bytes_read;
-    
-    if(result <= 0)
-      {
-      FD_ZERO(&rset);
-      FD_SET (fd, &rset);
-      
-      timeout.tv_sec  = ctx->opt->read_timeout / 1000;
-      timeout.tv_usec = (ctx->opt->read_timeout % 1000) * 1000;
-      if(select (fd+1, &rset, NULL, NULL, &timeout) <= 0)
-        return bytes_read;
-      }
-    else
-      bytes_read += result;
-    }
-  return bytes_read;
+  if(block)
+    return bgav_read_data_fd(fd, buffer, len, ctx->opt->read_timeout);
+  else
+    return bgav_read_data_fd(fd, buffer, len, 0);
   }
 
 static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
@@ -483,7 +431,11 @@ static int do_read(bgav_input_context_t* ctx,
 static int read_http(bgav_input_context_t* ctx,
                      uint8_t * buffer, int len)
   {
-  return do_read(ctx, buffer, len, 1);
+  int result;
+  //  fprintf(stderr, "Do read..");
+  result = do_read(ctx, buffer, len, 1);
+  //  fprintf(stderr, "result: %d", result);
+  return result;
   }
 
 static int read_nonblock_http(bgav_input_context_t * ctx,

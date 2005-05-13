@@ -245,22 +245,25 @@ int bgav_read_data_fd(int fd, uint8_t * ret, int len, int milliseconds)
   struct timeval timeout;
 
   int flags = 0;
-  //  if(milliseconds < 0)
+//  if(milliseconds < 0)
   //    flags = MSG_WAITALL;
   
   while(bytes_read < len)
     {
-    FD_ZERO (&rset);
-    FD_SET  (fd, &rset);
+    if(milliseconds >= 0)
+      { 
+      FD_ZERO (&rset);
+      FD_SET  (fd, &rset);
+     
+      timeout.tv_sec  = milliseconds / 1000;
+      timeout.tv_usec = (milliseconds % 1000) * 1000;
     
-    timeout.tv_sec  = milliseconds / 1000;
-    timeout.tv_usec = (milliseconds % 1000) * 1000;
-    
-    if(select (fd+1, &rset, NULL, NULL, &timeout) <= 0)
-      {
-      return bytes_read;
+      if(select (fd+1, &rset, NULL, NULL, &timeout) <= 0)
+        {
+        return bytes_read;
+        }
       }
-    
+
     result = recv(fd, ret + bytes_read, len - bytes_read, flags);
     if(result > 0)
       bytes_read += result;

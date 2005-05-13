@@ -95,7 +95,7 @@ void bg_avdec_close(void * priv)
   if(avdec->dec)
     {
     bgav_close(avdec->dec);
-      avdec->dec = (bgav_t*)0;
+    avdec->dec = (bgav_t*)0;
     }
   if(avdec->track_info)
     {
@@ -104,14 +104,21 @@ void bg_avdec_close(void * priv)
     free(avdec->track_info);
     avdec->track_info = (bg_track_info_t*)0;
     }
+  /* Recreate the decoder instance so we can ropen it */  
+  avdec->dec = bgav_create();
   }
 
 void bg_avdec_destroy(void * priv)
   {
   avdec_priv * avdec;
   bg_avdec_close(priv);
-
   avdec = (avdec_priv*)(priv);
+
+  if(avdec->dec)
+    {
+    bgav_close(avdec->dec);
+    avdec->dec = (bgav_t*)0;
+    }
   free(avdec);
   }
 
@@ -293,15 +300,11 @@ bg_avdec_set_parameter(void * p, char * name,
     }
   else if(!strcmp(name, "read_timeout"))
     {
-    bgav_set_read_timeout(avdec->opt, avdec->read_timeout);
-    
-    avdec->read_timeout = val->val_i;
+    bgav_set_read_timeout(avdec->opt, val->val_i);
     }
   else if(!strcmp(name, "network_buffer_size"))
     {
-    avdec->network_buffer_size = val->val_i;
-    bgav_set_network_buffer_size(avdec->opt, avdec->network_buffer_size * 1024);
-    
+    bgav_set_network_buffer_size(avdec->opt, val->val_i * 1024);
     }
   else if(!strcmp(name, "network_bandwidth"))
     {

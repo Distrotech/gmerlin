@@ -120,6 +120,8 @@ static void codecs_uninit()
 
 static void codecs_lock()
   {
+  //  fprintf(stderr, "codecs_lock\n");
+  
   if(!mutex_initialized)
     {
     pthread_mutex_init(&(codec_mutex),(pthread_mutexattr_t *)0);
@@ -130,26 +132,10 @@ static void codecs_lock()
 
 static void codecs_unlock()
   {
+  //  fprintf(stderr, "codecs_unlock\n");
   pthread_mutex_unlock(&(codec_mutex));
   }
 
-/***************************************************************
- * This will hopefully make the destruction for dynamic loading
- * (Trick comes from a 1995 version of the ELF Howto, so it
- * should work everywhere now)
- ***************************************************************/
-
-
-#if defined(__GNUC__) && defined(__ELF__)
-
-static void codecs_free() __attribute__ ((destructor));
-static void codecs_free()
-  {
-  if(mutex_initialized)
-    pthread_mutex_destroy(&codec_mutex);
-  }
-
-#endif
 
 void bgav_codecs_dump()
   {
@@ -203,13 +189,14 @@ static void print_error_nofile(const char * name, const char * env_name)
 
 void bgav_codecs_init()
   {
+  fprintf(stderr, "bgav_codecs_init()\n");
   codecs_lock();
   if(codecs_initialized)
     {
     codecs_unlock();
     return;
     }
-//  fprintf(stderr, "bgav_codecs_init()\n");
+  fprintf(stderr, "bgav_codecs_init() 1\n");
   codecs_initialized = 1;
   
 #ifdef HAVE_LIBAVCODEC
@@ -320,10 +307,10 @@ void bgav_codecs_init()
   bgav_init_video_decoders_yuv();
   bgav_init_video_decoders_tga();
   bgav_init_video_decoders_rtjpeg();
-  
-  //  fprintf(stderr, "BGAV Codecs initialized: A: %d V: %d\n",
-  //          num_audio_codecs, num_video_codecs);
-
+#if 0  
+  fprintf(stderr, "BGAV Codecs initialized: A: %d V: %d\n",
+          num_audio_codecs, num_video_codecs);
+#endif
   codecs_unlock();
   
   }
@@ -366,8 +353,8 @@ bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t * s)
   int i;
   codecs_lock();
   cur = audio_decoders;
-  if(!codecs_initialized)
-    bgav_codecs_init();
+  //  if(!codecs_initialized)
+  //    bgav_codecs_init();
 
 #ifdef ENABLE_DEBUG
   fprintf(stderr, "Seeking audio codec ");
@@ -404,8 +391,8 @@ bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
   int i;
   codecs_lock();
 
-  if(!codecs_initialized)
-    bgav_codecs_init();
+  //  if(!codecs_initialized)
+  //    bgav_codecs_init();
   
   cur = video_decoders;
 
@@ -451,6 +438,9 @@ static void __cleanup()
   {
   //  fprintf(stderr, "Freeing codec paths\n");
 
+  if(mutex_initialized)
+    pthread_mutex_destroy(&codec_mutex);
+    
 #ifdef HAVE_W32DLL
   if(win_path_needs_delete)
     {

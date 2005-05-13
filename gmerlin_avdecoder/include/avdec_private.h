@@ -410,6 +410,8 @@ struct bgav_options_s
   char * ftp_anonymous_password;
   };
 
+void bgav_options_set_defaults(bgav_options_t*opt);
+
 /* Overloadable input module */
 
 struct bgav_input_s

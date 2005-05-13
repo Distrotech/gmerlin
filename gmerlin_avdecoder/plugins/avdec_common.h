@@ -27,12 +27,6 @@ typedef struct
   
   bg_input_callbacks_t * bg_callbacks;
   
-  int connect_timeout;
-  int read_timeout;
-  int network_bandwidth;
-  int network_buffer_size;
-
-  int http_shoutcast_metadata;
   } avdec_priv;
 
 void * bg_avdec_create();
