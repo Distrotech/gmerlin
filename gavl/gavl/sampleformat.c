@@ -107,7 +107,7 @@ gavl_sampleformat_context_create(gavl_audio_options_t * opt,
     
   //  fprintf(stderr, "Gavl: initializing sampleformat converter\n");
 
-  ret = gavl_audio_convert_context_create(opt, in_format, out_format);
+  ret = gavl_audio_convert_context_create(in_format, out_format);
   ret->output_format.sample_format = out_format->sample_format;
 
   if((opt->quality < 3) ||

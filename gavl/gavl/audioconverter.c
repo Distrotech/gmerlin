@@ -80,8 +80,7 @@ void gavl_audio_converter_destroy(gavl_audio_converter_t* cnv)
   }
 
 gavl_audio_convert_context_t *
-gavl_audio_convert_context_create(gavl_audio_options_t * opt,
-                                  gavl_audio_format_t  * input_format,
+gavl_audio_convert_context_create(gavl_audio_format_t  * input_format,
                                   gavl_audio_format_t  * output_format)
   {
   gavl_audio_convert_context_t * ret;
@@ -352,6 +351,7 @@ void gavl_audio_convert(gavl_audio_converter_t * cnv,
 gavl_audio_converter_t * gavl_audio_converter_create()
   {
   gavl_audio_converter_t * ret = calloc(1, sizeof(*ret));
+  gavl_audio_options_set_defaults(&(ret->opt));
   return ret;
   }
 

@@ -73,8 +73,7 @@ struct gavl_audio_convert_context_s
   };
 
 gavl_audio_convert_context_t *
-gavl_audio_convert_context_create(gavl_audio_options_t * opt,
-                                  gavl_audio_format_t  * input_format,
+gavl_audio_convert_context_create(gavl_audio_format_t  * input_format,
                                   gavl_audio_format_t  * output_format);
 
 gavl_audio_convert_context_t *

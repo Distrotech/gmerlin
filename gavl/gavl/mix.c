@@ -509,8 +509,7 @@ gavl_mix_context_create(gavl_audio_options_t * opt,
                         gavl_audio_format_t * out_format)
   {
   gavl_audio_convert_context_t * ret;
-  ret = gavl_audio_convert_context_create(opt,
-                                          in_format,
+  ret = gavl_audio_convert_context_create(in_format,
                                           out_format);
 
   ret->output_format.channel_setup = out_format->channel_setup;

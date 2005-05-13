@@ -184,7 +184,7 @@ gavl_interleave_context_create(gavl_audio_options_t * opt,
   {
   gavl_interleave_table_t * table;
   gavl_audio_convert_context_t * ret;
-  ret = gavl_audio_convert_context_create(opt, input_format, output_format);
+  ret = gavl_audio_convert_context_create(input_format, output_format);
   ret->output_format.interleave_mode = output_format->interleave_mode;
 
   table = gavl_create_interleave_table(opt);

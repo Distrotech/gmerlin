@@ -231,7 +231,7 @@ gavl_samplerate_context_create(gavl_audio_options_t * opt,
   {
   gavl_audio_convert_context_t * ret;
 
-  ret = gavl_audio_convert_context_create(opt, input_format, output_format);
+  ret = gavl_audio_convert_context_create(input_format, output_format);
 
   ret->samplerate_converter = calloc(1, sizeof(*(ret->samplerate_converter)));
   
