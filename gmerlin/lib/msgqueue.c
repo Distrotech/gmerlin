@@ -785,11 +785,11 @@ void bg_msg_queue_list_remove(bg_msg_queue_list_t * list,
  *  Pointer messages cannot be transmited!
  */
 
-static int read_uint32(int fd, uint32_t * ret, int block)
+static int read_uint32(int fd, uint32_t * ret, int milliseconds)
   {
   uint8_t buf[4];
 
-  if(bg_socket_read_data(fd, buf, 4, block) < 4)
+  if(bg_socket_read_data(fd, buf, 4, milliseconds) < 4)
     return 0;
   
   //  bg_hexdump(buf, 4);
@@ -799,11 +799,11 @@ static int read_uint32(int fd, uint32_t * ret, int block)
   return 1;
   }
 
-static int read_time(int fd, gavl_time_t * ret, int block)
+static int read_time(int fd, gavl_time_t * ret, int milliseconds)
   {
   uint8_t buf[8];
 
-  if(bg_socket_read_data(fd, buf, 8, block) < 4)
+  if(bg_socket_read_data(fd, buf, 8, milliseconds) < 4)
     return 0;
 
   *ret =
@@ -853,7 +853,7 @@ static int write_time(int fd, gavl_time_t val)
   return 1;
   }
 
-int bg_message_read_socket(bg_msg_t * ret, int fd)
+int bg_message_read_socket(bg_msg_t * ret, int fd, int milliseconds)
   {
   int i;
   void * ptr;

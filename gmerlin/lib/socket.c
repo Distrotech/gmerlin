@@ -442,19 +442,19 @@ void bg_listen_socket_destroy(int sock)
   close(sock);
   }
 
-int bg_socket_read_data(int fd, uint8_t * data, int len, int block)
+int bg_socket_read_data(int fd, uint8_t * data, int len, int milliseconds)
   {
   int result;
   fd_set rset;
   struct timeval timeout;
 
-  if(!block)
+  if(milliseconds >= 0)
     {
     FD_ZERO (&rset);
     FD_SET  (fd, &rset);
     
-    timeout.tv_sec  = 0;
-    timeout.tv_usec = 0;
+    timeout.tv_sec  = milliseconds / 1000;
+    timeout.tv_usec = (milliseconds % 1000) * 1000;
     
     if(select (fd+1, &rset, NULL, NULL, &timeout) <= 0)
       {
@@ -492,7 +492,7 @@ int bg_socket_write_data(int fd, uint8_t * data, int len)
 #define BYTES_TO_ALLOC 1024
 
 int bg_socket_read_line(int fd, char ** ret,
-                        int * ret_alloc, int block)
+                        int * ret_alloc, int milliseconds)
   {
   char * pos;
   char c;
@@ -507,7 +507,7 @@ int bg_socket_read_line(int fd, char ** ret,
   pos = *ret;
   while(1)
     {
-    if(!bg_socket_read_data(fd, &c, 1, (bytes_read) ? 1 : block))
+    if(!bg_socket_read_data(fd, &c, 1, milliseconds))
       {
       if(!bytes_read)
         return 0;
@@ -539,3 +539,4 @@ int bg_socket_read_line(int fd, char ** ret,
   *pos = '\0';
   return 1;
   }
+

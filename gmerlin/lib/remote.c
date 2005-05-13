@@ -73,7 +73,6 @@ bg_remote_server_t * bg_remote_server_create(int listen_port,
 
 int bg_remote_server_init(bg_remote_server_t * s)
   {
- 
   s->fd = bg_listen_socket_create_inet(s->listen_port,
                                        s->max_connections,
                                        s->allow_remote ? INADDR_ANY : INADDR_LOOPBACK);
@@ -222,7 +221,7 @@ bg_msg_t * bg_remote_server_get_msg(bg_remote_server_t * s)
     if(select (conn->fd+1, &rset, NULL, NULL, &timeout) > 0)
       {
       bg_msg_free(s->msg);
-      if(bg_message_read_socket(s->msg, conn->fd))
+      if(bg_message_read_socket(s->msg, conn->fd, -1))
         return s->msg;
       else /* Select set reading wont block but reading failed
               -> Client probably disconnected */
@@ -330,6 +329,7 @@ struct bg_remote_client_s
   int read_messages;
 
   bg_msg_t * msg;
+  int milliseconds; /* Read and connect timeout */
   };
 
 bg_remote_client_t * bg_remote_client_create(const char * protocol_id,
@@ -356,11 +356,12 @@ int bg_remote_client_init(bg_remote_client_t * c,
   char * answer_message;
     
   bg_host_address_t * addr = bg_host_address_create();
-
+  c->milliseconds = milliseconds;
   if(!bg_host_address_set(addr, host, port))
     goto fail;
-  
-  c->fd = bg_socket_connect_inet(addr, milliseconds);
+  fprintf(stderr, "Connecting remote client...");
+  c->fd = bg_socket_connect_inet(addr, c->milliseconds);
+  fprintf(stderr, "done\n");
   if(c->fd < 0)
     {
     fprintf(stderr, "Connecting failed\n");
@@ -375,16 +376,16 @@ int bg_remote_client_init(bg_remote_client_t * c,
   if(bg_socket_write_data(c->fd, answer_message, len) < len)
     goto fail;
 
-  //  fprintf(stderr, "Reading answer message\n");
+  fprintf(stderr, "Reading answer message\n");
   /* Read welcome message */
   
   if(!bg_socket_read_line(c->fd, &(buffer),
-                          &buffer_alloc, 1))
+                          &buffer_alloc, c->milliseconds))
     {
-    //    fprintf(stderr, "Reading welcome line failed\n");
+    fprintf(stderr, "Reading welcome line failed\n");
     goto fail;
     }
-  //  fprintf(stderr, "Got welcome line: %s\n", buffer);
+  fprintf(stderr, "Got welcome line: %s\n", buffer);
 
   strings = bg_strbreak(buffer, ' ');
 

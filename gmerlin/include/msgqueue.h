@@ -100,7 +100,7 @@ void bg_msg_queue_destroy(bg_msg_queue_t *);
  *  return FALSE on error
  */
 
-int bg_message_read_socket(bg_msg_t * ret,  int fd);
+int bg_message_read_socket(bg_msg_t * ret,  int fd, int milliseconds);
 int bg_message_write_socket(bg_msg_t * msg, int fd);
 
 /*
