@@ -98,7 +98,7 @@ static void render_xmms1(struct vis_plugin_handle_s * handle,
   VisPlugin * plugin = (VisPlugin*)(handle->priv);
 
   plugin = (VisPlugin*)handle->priv;
-  
+  //  fprintf(stderr, "render_xmms %d\n", audio_frame->pcm_data[0][0]);
   if(plugin->render_pcm)
     {
     if(plugin->num_pcm_chs_wanted == 1)

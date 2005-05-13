@@ -73,7 +73,7 @@ int input_create()
     return 0;
 
   /* Set up format */
-
+  fprintf(stderr, "Input format:\n");
   gavl_audio_format_dump(&input_format);
   gavl_audio_format_copy(&format, &input_format);
 
@@ -83,6 +83,11 @@ int input_create()
   format.interleave_mode = GAVL_INTERLEAVE_NONE;
   format.samples_per_frame = 1024;
   format.sample_format = GAVL_SAMPLE_S16;
+
+  fprintf(stderr, "Internal format:\n");
+  gavl_audio_format_dump(&format);
+
+
   the_input->cnv = gavl_audio_converter_create();
   the_input->do_convert_gavl = 
     gavl_audio_converter_init(the_input->cnv, &input_format, &format);
@@ -171,16 +176,22 @@ int input_iteration(void * data)
   vis_plugin_handle_t * tmp_plugin;
   
   /* Read data from the input */
+
+  //  fprintf(stderr, "Input iteration\n");
   
   if(c->do_convert_gavl)
     {
     c->input->read_frame(c->input_handle->priv, c->input_frame, 512);
     gavl_audio_convert(c->cnv, c->input_frame, c->frame);
+    //    fprintf(stderr, "input_iteration %d\n", c->input_frame->channels.s_16[0][0]);
     }
   else
     {
     c->input->read_frame(c->input_handle->priv, c->frame, 512);
     }
+
+  //  fprintf(stderr, "input_iteration %d\n", c->frame->channels.s_16[0][0]);
+
 #ifdef HAVE_LIBVISUAL
   memcpy(c->audio_frame.vis_audio->plugpcm[0], c->audio_frame.pcm_data[0], 512 * 2);
   memcpy(c->audio_frame.vis_audio->plugpcm[1], c->audio_frame.pcm_data[1], 512 * 2);
