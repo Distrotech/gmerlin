@@ -100,18 +100,20 @@ void bgav_track_stop(bgav_track_t * t)
     }
   }
 
-void bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
+int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
   {
   int i;
   for(i = 0; i < t->num_audio_streams; i++)
     {
     t->audio_streams[i].demuxer = demuxer;
-    bgav_stream_start(&(t->audio_streams[i]));
+    if(!bgav_stream_start(&(t->audio_streams[i])))
+      return 0;
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
     t->video_streams[i].demuxer = demuxer;
-    bgav_stream_start(&(t->video_streams[i]));
+    if(!bgav_stream_start(&(t->video_streams[i])))
+      return 0;
     }
   
   }

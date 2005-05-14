@@ -27,7 +27,7 @@
 #include <avdec_private.h>
 
 /* Debug function */
-
+#if 0
 void dump_sequence_header(const mpeg2_sequence_t * s)
   {
   fprintf(stderr, "Sequence header:\n");
@@ -42,7 +42,7 @@ void dump_sequence_header(const mpeg2_sequence_t * s)
   fprintf(stderr, "pixel_size:   %d x %d\n", s->pixel_width,
           s->pixel_height);
   }
-
+#endif
 
 typedef struct
   {
@@ -180,7 +180,7 @@ static void get_format(gavl_video_format_t * ret,
   
   if(sequence->flags & SEQ_FLAG_MPEG2)
     ret->free_framerate = 1;
-  dump_sequence_header(sequence);
+  //  dump_sequence_header(sequence);
   }
 
 static int init_mpeg2(bgav_stream_t*s)

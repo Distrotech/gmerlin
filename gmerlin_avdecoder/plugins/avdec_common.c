@@ -190,14 +190,15 @@ int bg_avdec_set_video_stream(void * priv,
   return bgav_set_video_stream(avdec->dec, stream, act);
   }
 
-void bg_avdec_start(void * priv)
+int bg_avdec_start(void * priv)
   {
   int i;
   const char * str;
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
   
-  bgav_start(avdec->dec);
+  if(!bgav_start(avdec->dec))
+    return 0;
   for(i = 0; i < avdec->current_track->num_video_streams; i++)
     {
     gavl_video_format_copy(&(avdec->current_track->video_streams[i].format),
@@ -216,6 +217,7 @@ void bg_avdec_start(void * priv)
       avdec->current_track->audio_streams[i].description = bg_strdup(NULL, str);
     }
   //  bgav_dump(avdec->dec);
+  return 1;
   }
 
 void bg_avdec_seek(void * priv, gavl_time_t * t)

@@ -23,21 +23,25 @@
 #include <string.h>
 #include <limits.h>
 
-void bgav_stream_start(bgav_stream_t * stream)
+int bgav_stream_start(bgav_stream_t * stream)
   {
+  int result;
   if((stream->action == BGAV_STREAM_DECODE) ||
      (stream->action == BGAV_STREAM_SYNC))
     {
     switch(stream->type)
       {
       case BGAV_STREAM_VIDEO:
-        bgav_video_start(stream);
+        result = bgav_video_start(stream);
         break;
       case BGAV_STREAM_AUDIO:
-        bgav_audio_start(stream);
+        result = bgav_audio_start(stream);
         break;
+      default:
+        result = 1;
       }
     }
+  return result;
   }
 
 void bgav_stream_stop(bgav_stream_t * stream)

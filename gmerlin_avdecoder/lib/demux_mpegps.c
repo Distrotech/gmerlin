@@ -365,8 +365,8 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
 
   priv->input_mem          = bgav_input_open_memory(NULL, 0);
 
-  fprintf(stderr, "init_sector_mode 1: %lld\n",
-          priv->total_sectors);
+  //  fprintf(stderr, "init_sector_mode 1: %lld\n",
+  //          priv->total_sectors);
     
   priv->goto_sector(ctx, 0);
   while(1)
@@ -451,8 +451,8 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
 
   fprintf(stderr, "scr_start: %lld, scr_end: %lld\n", scr_start, scr_end);
 
-  fprintf(stderr, "init_sector_mode 2: %lld\n",
-          priv->total_sectors);
+//  fprintf(stderr, "init_sector_mode 2: %lld\n",
+//          priv->total_sectors);
   
   ctx->tt->current_track->duration =
     ((int64_t)(scr_end - scr_start) * GAVL_TIME_SCALE) / 90000;

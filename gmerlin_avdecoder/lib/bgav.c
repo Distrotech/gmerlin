@@ -215,6 +215,7 @@ int bgav_open(bgav_t * ret, const char * location)
 
 int bgav_open_vcd(bgav_t * b, const char * device)
   {
+  bgav_codecs_init();
   b->input = bgav_input_open_vcd(device);
   if(!b->input)
     return 0;
@@ -229,6 +230,7 @@ int bgav_open_vcd(bgav_t * b, const char * device)
 
 int bgav_open_fd(bgav_t * ret, int fd, int64_t total_size, const char * mimetype)
   {
+  bgav_codecs_init();
   ret->input = bgav_input_open_fd(fd, total_size, mimetype);
   if(!bgav_init(ret))
     return 0;
@@ -308,13 +310,15 @@ void bgav_select_track(bgav_t * b, int track)
     }
   }
 
-void bgav_start(bgav_t * b)
+int bgav_start(bgav_t * b)
   {
   b->is_running = 1;
   /* Create buffers */
   //  fprintf(stderr, "bgav_start\n");
   bgav_input_buffer(b->input);
-  bgav_track_start(b->tt->current_track, b->demuxer);
+  if(!bgav_track_start(b->tt->current_track, b->demuxer))
+    return 0;
+  return 1;
   }
 
 int bgav_can_seek(bgav_t * b)

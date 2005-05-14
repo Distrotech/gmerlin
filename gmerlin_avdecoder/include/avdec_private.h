@@ -279,7 +279,7 @@ struct bgav_stream_s
 
 /* stream.c */
 
-void bgav_stream_start(bgav_stream_t * stream);
+int bgav_stream_start(bgav_stream_t * stream);
 void bgav_stream_stop(bgav_stream_t * stream);
 void bgav_stream_alloc(bgav_stream_t * stream);
 void bgav_stream_free(bgav_stream_t * stream);
@@ -355,7 +355,7 @@ int bgav_track_skipto(bgav_track_t*, gavl_time_t * time);
 bgav_stream_t *
 bgav_track_find_stream_all(bgav_track_t * t, int stream_id);
 
-void bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer);
+int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer);
 void bgav_track_stop(bgav_track_t * t);
 
 /* Remove unsupported streams */

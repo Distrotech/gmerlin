@@ -111,6 +111,7 @@ static int mutex_initialized = 0;
 
 static void codecs_uninit()
   {
+  //  fprintf(stderr, "codecs_uninit\n");
   audio_decoders = (bgav_audio_decoder_t*)0;
   video_decoders = (bgav_video_decoder_t*)0;
   codecs_initialized = 0;

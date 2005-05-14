@@ -258,7 +258,7 @@ int bgav_set_video_stream(bgav_t*, int stream, int action);
  *  formats (see above)
  */
 
-void bgav_start(bgav_t *);
+int bgav_start(bgav_t *);
 
 /***************************************************
  * Decoding functions
