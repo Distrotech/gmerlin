@@ -1521,22 +1521,29 @@ static int open_avi(bgav_demuxer_context_t * ctx,
 
   /* Now, get the duration */
 
-  if(p->has_odml && p->odml.has_dmlh)
-    {
-    ctx->tt->current_track->duration =
-      gavl_frames_to_time(ctx->tt->current_track->video_streams[0].data.video.format.timescale,
-                          ctx->tt->current_track->video_streams[0].data.video.format.frame_duration,
-                          p->odml.dmlh.dwTotalFrames);
-    }
-  else
-    {
-    ctx->tt->current_track->duration =
-      gavl_frames_to_time(ctx->tt->current_track->video_streams[0].data.video.format.timescale,
-                          ctx->tt->current_track->video_streams[0].data.video.format.frame_duration,
-                          p->avih.dwTotalFrames);
-    
-    }
+  /*
+   *  Audio only AVIs won't have a duration, but aren't they illegal anyway?
+   */
 
+  if(ctx->tt->current_track->num_video_streams)
+    {
+    if(p->has_odml && p->odml.has_dmlh)
+      {
+      ctx->tt->current_track->duration =
+        gavl_frames_to_time(ctx->tt->current_track->video_streams[0].data.video.format.timescale,
+                            ctx->tt->current_track->video_streams[0].data.video.format.frame_duration,
+                            p->odml.dmlh.dwTotalFrames);
+      }
+    else
+      {
+      ctx->tt->current_track->duration =
+        gavl_frames_to_time(ctx->tt->current_track->video_streams[0].data.video.format.timescale,
+                            ctx->tt->current_track->video_streams[0].data.video.format.frame_duration,
+                          p->avih.dwTotalFrames);
+      
+      }
+    }
+  
   /* Check, which index to build */
 
   if(ctx->input->input->seek_byte)

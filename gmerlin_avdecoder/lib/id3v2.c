@@ -93,10 +93,10 @@ static bgav_id3v2_frame_t * bgav_id3v2_find_frame(bgav_id3v2_tag_t*t,
                                                   uint32_t * fourccs);
 
 
-#define ENCODING_LATIN1   0x00
-#define ENCODING_UTF16_LE 0x01
-#define ENCODING_UTF16_BE 0x02
-#define ENCODING_UTF8     0x03
+#define ENCODING_LATIN1    0x00
+#define ENCODING_UTF16_BOM 0x01
+#define ENCODING_UTF16_BE  0x02
+#define ENCODING_UTF8      0x03
 
 static void dump_frame(bgav_id3v2_frame_t * frame)
   {
@@ -260,24 +260,33 @@ static char ** read_string_list(uint8_t * data, int data_size)
     case ENCODING_LATIN1:
       bytes_per_char = 1;
       cnv = bgav_charset_converter_create("LATIN1", "UTF-8");
+      //      fprintf(stderr, "Charset: LATIN1\n");
+      pos = ((char*)data) + 1;
       break;
-    case ENCODING_UTF16_LE:
+    case ENCODING_UTF16_BOM:
       bytes_per_char = 2;
-      cnv = bgav_charset_converter_create("UTF16LE", "UTF-8");
+
+      if((data[1] == 0xFF) && (data[2] == 0xFE))
+        cnv = bgav_charset_converter_create("UTF16LE", "UTF-8");
+      else if((data[2] == 0xFF) && (data[1] == 0xFE))
+        cnv = bgav_charset_converter_create("UTF16BE", "UTF-8");
+      pos = ((char*)data) + 3;
       break;
     case ENCODING_UTF16_BE:
       bytes_per_char = 2;
       cnv = bgav_charset_converter_create("UTF16BE", "UTF-8");
+      //      fprintf(stderr, "Charset: UTF16BE\n");
+      pos = ((char*)data) + 1;
       break;
     case ENCODING_UTF8:
       bytes_per_char = 1;
+      pos = ((char*)data) + 1;
       break;
     default:
       fprintf(stderr, "Warning, unknown encoding %02x\n", encoding);
       return (char **)0;
     }
   
-  pos = ((char*)data) + 1;
   end_pos = pos;
 
   /* Count the strings */
@@ -302,9 +311,13 @@ static char ** read_string_list(uint8_t * data, int data_size)
         break;
       }
     if(cnv)
-      ret[i] = bgav_convert_string(cnv, 
+      {
+      ret[i] = bgav_convert_string(cnv,
                                    pos, end_pos - pos,
                                    NULL);
+      // fprintf(stderr, "Converted string: %s (%d, %d)\n", ret[i], (int)(end_pos - pos),
+      //        strlen(ret[i]));
+      }
     else
       ret[i] = bgav_strndup(pos, end_pos);
     pos = end_pos;
@@ -638,17 +651,25 @@ static char * get_comment(bgav_id3v2_frame_t* frame)
     case ENCODING_LATIN1:
       bytes_per_char = 1;
       cnv = bgav_charset_converter_create("LATIN1", "UTF-8");
+      pos = frame->data + 4;
       break;
-    case ENCODING_UTF16_LE:
+    case ENCODING_UTF16_BOM:
       bytes_per_char = 2;
-      cnv = bgav_charset_converter_create("UTF16LE", "UTF-8");
+
+      if((frame->data[4] == 0xFF) && (frame->data[5] == 0xFE))
+        cnv = bgav_charset_converter_create("UTF16LE", "UTF-8");
+      else if((frame->data[5] == 0xFF) && (frame->data[4] == 0xFE))
+        cnv = bgav_charset_converter_create("UTF16BE", "UTF-8");
+      pos = frame->data + 6;
       break;
     case ENCODING_UTF16_BE:
       bytes_per_char = 2;
       cnv = bgav_charset_converter_create("UTF16BE", "UTF-8");
+      pos = frame->data + 4;
       break;
     case ENCODING_UTF8:
       bytes_per_char = 1;
+      pos = frame->data + 4;
       break;
     default:
       fprintf(stderr, "Warning, unknown encoding %02x\n", encoding);
