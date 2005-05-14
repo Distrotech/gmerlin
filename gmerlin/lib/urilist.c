@@ -111,14 +111,9 @@ char * bg_uri_to_string(const char * pos1, int len)
     else /* Gnome Case */
       start = &(pos1[7]);
     }
-#if 0
-  else if(bg_string_is_url(pos1))
-    start = pos1;
   else
-    return (char*)0;
-#endif
-  start = pos1;
-
+    start = pos1;
+  
   /* Allocate return value and decode */
   
   ret = calloc(len - (start - pos1) + 1, sizeof(char));
@@ -145,6 +140,8 @@ char * bg_uri_to_string(const char * pos1, int len)
     }
   *ret_pos = '\0';
   //  bg_hexdump(ret, ret_pos - ret);
+
+  //  fprintf(stderr, "Decoded URI: %s -> %s\n", pos1, ret);  
   return ret;
   }
 

@@ -974,7 +974,7 @@ static void add_dir_callback(char * dir, int recursive,
 
 static void add_dir_close_notify(bg_gtk_filesel_t * s, void * data)
   {
-  fprintf(stderr, "add_dir_close_notify\n");
+  //  fprintf(stderr, "add_dir_close_notify\n");
   }
 
 static void add_directory(bg_gtk_tree_widget_t * w)
@@ -1256,12 +1256,12 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == widget->menu.tree_menu.tabbed_mode_item)
     {
-    fprintf(stderr, "Tabbed mode\n");
+    //    fprintf(stderr, "Tabbed mode\n");
     set_tabbed_mode(widget);
     }
   else if(w == widget->menu.tree_menu.windowed_mode_item)
     {
-    fprintf(stderr, "Windowed mode\n");
+    //    fprintf(stderr, "Windowed mode\n");
     set_windowed_mode(widget);
     }
   
@@ -1415,16 +1415,40 @@ GtkWidget * bg_gtk_tree_widget_get_widget(bg_gtk_tree_widget_t * w)
 static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
                                       gpointer data)
   {
-  bg_gtk_tree_widget_t * tw = (bg_gtk_tree_widget_t *)data;
+  GtkTreeSelection * selection;
+  GtkTreeModel * model;
+  GtkTreeIter clicked_iter;
 
-  if(evt->button == 3)
-    { 
+  GtkTreePath * path;
+  bg_gtk_tree_widget_t * tw = (bg_gtk_tree_widget_t *)data;
+  
+  if((evt->button == 3) && (evt->type == GDK_BUTTON_PRESS))
+    {
+    if(!gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(tw->treeview),
+                                      evt->x, evt->y, &path,
+                                      (GtkTreeViewColumn **)0,
+                                      (gint *)0,
+                                      (gint*)0))
+      {
+      path = (GtkTreePath *)0;
+      /* Didn't click any entry, return here */
+      //    return TRUE;
+      }
+    if(path)
+      {
+      selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(tw->treeview));
+      model = gtk_tree_view_get_model(GTK_TREE_VIEW(tw->treeview));
+      gtk_tree_model_get_iter(model, &clicked_iter, path);
+      gtk_tree_selection_select_iter(selection, &clicked_iter);
+      }
     gtk_menu_popup(GTK_MENU(tw->menu.menu),
                    (GtkWidget *)0,
                    (GtkWidget *)0,
                    (GtkMenuPositionFunc)0,
                    (gpointer)0,
                    3, evt->time);
+    if(path)
+      gtk_tree_path_free(path);
     return TRUE;
     }
   else if((evt->button == 1) && (evt->type == GDK_2BUTTON_PRESS))
@@ -1532,7 +1556,7 @@ static void drag_get_callback(GtkWidget *widget,
   bg_gtk_tree_widget_t * w;
   w = (bg_gtk_tree_widget_t *)user_data;
 
-  fprintf(stderr, "drag_get_callback\n");
+  //  fprintf(stderr, "drag_get_callback\n");
   
 #if 0
   fprintf(stderr, "selection: %s\n", gdk_atom_name(data->selection));

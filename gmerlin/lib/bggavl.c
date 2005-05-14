@@ -432,14 +432,13 @@ void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t * opt,
                                          gavl_video_format_t * out_format)
   {
   int i;
-  gavl_rectangle_t in_rect;
-  gavl_rectangle_t out_rect;
   
   /* Set image- and pixel size for output */
   
   if(opt->frame_size == FRAME_SIZE_FROM_INPUT)
     {
-    return;
+    out_format->image_width  = in_format->image_width;
+    out_format->image_height = in_format->image_height;
     }
   else if(opt->frame_size == FRAME_SIZE_USER)
     {
@@ -464,7 +463,17 @@ void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t * opt,
         }
       }
     }
+  out_format->frame_width = out_format->image_width;
+  out_format->frame_height = out_format->image_height;
+  }
 
+void bg_gavl_video_options_set_rectangles(bg_gavl_video_options_t * opt,
+                                          const gavl_video_format_t * in_format,
+                                          const gavl_video_format_t * out_format)
+  {
+  gavl_rectangle_t in_rect;
+  gavl_rectangle_t out_rect;
+  
   /* Crop input */
   gavl_rectangle_set_all(&in_rect, in_format);
 
@@ -475,6 +484,7 @@ void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t * opt,
 
   if(opt->maintain_aspect)
     {
+    // fprintf(stderr, "FIT ASPECT\n");
     gavl_rectangle_fit_aspect(&out_rect,   // gavl_rectangle_t * r,
                               in_format,  // gavl_video_format_t * src_format,
                               &in_rect,    // gavl_rectangle_t * src_rect,
@@ -491,9 +501,4 @@ void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t * opt,
   /* Set rectangles */
 
   gavl_video_options_set_rectangles(opt->opt, &in_rect, &out_rect);
-
-  out_format->frame_width = out_format->image_width;
-  out_format->frame_height = out_format->image_height;
-  
-  
   }

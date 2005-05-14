@@ -1407,7 +1407,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   const bg_plugin_info_t * info;
   //  const char * file_plugin_name;
   
-  fprintf(stderr, "bg_media_tree_load_url %s %s\n", url,
+  fprintf(stderr, "bg_album_load_url %s %s\n", url,
           (plugin_long_name ? plugin_long_name : "NULL"));
   
   /* Load the appropriate plugin */

@@ -79,7 +79,7 @@ void bg_gtk_album_enrty_show(const bg_album_entry_t * entry)
                     S(entry->name), S(utf8_location),
                     entry->index+1,
                     entry->total_tracks,
-                    S(entry->plugin),
+                    (entry->plugin ? entry->plugin : "Auto detect"),
                     duration,
                     entry->num_audio_streams,
                     entry->num_video_streams,

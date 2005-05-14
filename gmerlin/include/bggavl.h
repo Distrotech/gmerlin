@@ -71,6 +71,9 @@ void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t *,
                                          const gavl_video_format_t * in_format,
                                          gavl_video_format_t * out_format);
 
+void bg_gavl_video_options_set_rectangles(bg_gavl_video_options_t * opt,
+                                          const gavl_video_format_t * in_format,
+                                          const gavl_video_format_t * out_format);
 
 
 /* Useful code for gluing gavl and gmerlin */

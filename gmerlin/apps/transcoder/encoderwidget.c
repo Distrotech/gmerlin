@@ -200,7 +200,7 @@ static void window_button_callback(GtkWidget * w, gpointer data)
   {
   encoder_window_t * win = (encoder_window_t *)data;
 
-  if(w == win->close_button)
+  if((w == win->close_button) || (w == win->window))
     {
     //    fprintf(stderr, "close_button\n");
     gtk_widget_hide(win->window);
@@ -221,6 +221,13 @@ static void window_button_callback(GtkWidget * w, gpointer data)
   
   }
 
+static gboolean delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
+  {
+  //  fprintf(stderr, "Delete callback\n");
+  window_button_callback(w, data);
+  return TRUE;
+  }
+  
 encoder_window_t * encoder_window_create(bg_plugin_registry_t * plugin_reg)
   {
   GtkWidget * mainbox;
@@ -231,6 +238,10 @@ encoder_window_t * encoder_window_create(bg_plugin_registry_t * plugin_reg)
   ret = calloc(1, sizeof(*ret));
 
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+
+  g_signal_connect(G_OBJECT(ret->window), "delete_event",
+                   G_CALLBACK(delete_callback),
+                   ret);
   
   gtk_window_set_title(GTK_WINDOW(ret->window), "Select encoders");
   gtk_window_set_modal(GTK_WINDOW(ret->window), 1);

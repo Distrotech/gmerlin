@@ -172,7 +172,7 @@ static int open_cdaudio(void * data, const char * arg)
         ((int64_t)(cd->index->tracks[i].last_sector -
           cd->index->tracks[i].first_sector + 1) * GAVL_TIME_SCALE) / 75;
       cd->track_info[j].description = bg_strdup(NULL, "CD audio track");
-      cd->track_info[j].name = bg_sprintf("Audio CD track %02d", j+1);
+      //      cd->track_info[j].name = bg_sprintf("Audio CD track %02d", j+1);
       cd->track_info[j].metadata.track = j+1;
       cd->track_info[j].seekable = 1;
       }
@@ -244,7 +244,7 @@ static int open_cdaudio(void * data, const char * arg)
         {
         j = cd->index->tracks[i].index;
         if(cd->index->tracks[i].is_audio)
-          cd->track_info[j].name = bg_sprintf("Audio CD track %d", j+1);
+          cd->track_info[j].name = bg_sprintf("Audio CD track %02d", j+1);
         }
       }
     }

@@ -1441,7 +1441,15 @@ static void drag_received_callback(GtkWidget *widget,
       do_delete = 1;
     }
   else if(is_urilist(data))
+    {
+    //    fprintf(stderr, "text/urilist");
     source_type = DND_TEXT_URI_LIST;
+    }
+  else
+    {
+    //    fprintf(stderr, "text/plain");
+    source_type = DND_TEXT_PLAIN;
+    }
   
   if(path)
     {

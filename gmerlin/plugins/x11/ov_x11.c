@@ -724,6 +724,7 @@ static void set_drawing_coords(x11_t * priv)
   
   if(priv->can_scale)
     {
+    gavl_rectangle_set_all(&priv->src_rect, &priv->video_format);
     gavl_rectangle_fit_aspect(&priv->dst_rect,
                               &priv->video_format,
                               &priv->src_rect,

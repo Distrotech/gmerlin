@@ -513,6 +513,7 @@ static gboolean delete_callback(GtkWidget * w, GdkEvent * evt,
                                 gpointer data)
   {
   transcoder_window_t * win = (transcoder_window_t *)data;
+  fprintf(stderr, "Transcoder delete\n");
   gtk_widget_hide(win->win);
   gtk_main_quit();
   return TRUE;

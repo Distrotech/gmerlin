@@ -520,6 +520,11 @@ static void finalize_video_stream(video_stream_t * ret,
   ret->com.out_plugin->get_video_format(ret->com.out_handle->priv,
                                            ret->com.out_index, &(ret->out_format));
 
+  bg_gavl_video_options_set_rectangles(&(ret->options),
+                                       &(ret->in_format),
+                                       &(ret->out_format));
+
+  
   /* Dump formats */
 #if 1
   fprintf(stderr, "Input format:\n");
@@ -1613,13 +1618,6 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
     ((t->state == TRANSCODER_STATE_RUNNING) && t->delete_incomplete && !t->is_url) ? 1 : 0;
 
   //  fprintf(stderr, "Do delete: %d\n", do_delete);
-
-  /* Send created files to gmerlin */
-
-  if((t->state != TRANSCODER_STATE_RUNNING) && (t->send_finished))
-    {
-    send_finished(t);
-    }
   
   /* Cleanup streams */
 
@@ -1631,6 +1629,14 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
     {
     cleanup_video_stream(&(t->video_streams[i]), do_delete);
     }
+
+  /* Send created files to gmerlin */
+
+  if((t->state != TRANSCODER_STATE_RUNNING) && (t->send_finished) && !do_delete)
+    {
+    send_finished(t);
+    }
+  
   if(t->audio_streams)
     free(t->audio_streams);
   if(t->video_streams)
