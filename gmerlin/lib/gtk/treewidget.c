@@ -701,8 +701,12 @@ static void set_album(bg_gtk_tree_widget_t * widget,
       bg_gtk_album_window_attach(album_window, widget->notebook);
     else
       bg_gtk_album_window_detach(album_window);
-    
     }
+  else
+    album_window = album_is_open(widget, album);
+
+  if(album_window)
+    bg_gtk_album_window_set_current(album_window, (album == current_album) ? 1 : 0);
   
   /* Append all subalbums of one album */
 
@@ -919,7 +923,7 @@ static void set_parameter_rename_album(void * data, char * name,
     {
     if(w->current_album)
       {
-      bg_media_tree_rename_album(w->tree, w->current_album, val->val_str);
+      bg_album_rename(w->current_album, val->val_str);
       album_2_iter(w, w->current_album, &iter);
       set_album(w, w->current_album, &iter, 0, 0);
       }

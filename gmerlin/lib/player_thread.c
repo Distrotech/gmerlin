@@ -288,6 +288,9 @@ static void play_cmd(bg_player_t * p,
                      bg_plugin_handle_t * handle,
                      int track_index, char * track_name, int flags)
   {
+  char * error_msg;
+  const char * error_msg_input;
+
   int had_video;
   gavl_time_t time = 0;
     
@@ -309,8 +312,24 @@ static void play_cmd(bg_player_t * p,
 
 
   p->input_handle = handle;
-  bg_player_input_init(p->input_context,
-                       handle, track_index);
+  if(!bg_player_input_init(p->input_context,
+                           handle, track_index))
+    {
+    error_msg_input = bg_player_input_get_error(p->input_context);
+
+    if(error_msg_input)
+      {
+      error_msg = bg_sprintf("Cannot initialize input (%s)", error_msg_input);
+      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                          error_msg, NULL);
+      free(error_msg);
+      }
+    else
+      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                          "Cannot initialize input (unknown error)", NULL);
+    
+    return;
+    }
 
   /* Initialize audio and video streams if not in bypass mode */
 

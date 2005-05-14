@@ -1123,7 +1123,9 @@ static void init_menu(bg_gtk_album_widget_t * w)
     w->menu.selected_menu.transcode_item =
       create_item(w, w->menu.selected_menu.menu, "Tanscode");
   
-  if(type == BG_ALBUM_TYPE_REGULAR)
+  if((type == BG_ALBUM_TYPE_REGULAR) ||
+     (type == BG_ALBUM_TYPE_FAVOURITES) ||
+     (type == BG_ALBUM_TYPE_INCOMING))
     w->menu.selected_menu.refresh_item =
       create_item(w, w->menu.selected_menu.menu, "Refresh");
   
@@ -1307,14 +1309,15 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
                                    (gint *)0,
                                    (gint*)0))
     {
+    path = (GtkTreePath *)0;
     /* Didn't click any entry, return here */
-    return TRUE;
+    //    return TRUE;
     }
 
   /* No matter which button was clicked, we must update the selection if the
      current track isn't already selected */
   
-  if(evt->type == GDK_BUTTON_PRESS)
+  if((evt->type == GDK_BUTTON_PRESS) && path)
     {
     update_selected(aw, path, evt->state, 0);
     }
@@ -1330,7 +1333,7 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
     }
   else if((evt->button == 1) || (evt->button == 2))
     {
-    if(evt->type == GDK_2BUTTON_PRESS)
+    if((evt->type == GDK_2BUTTON_PRESS) && path)
       {
       if(aw->selected_entry)
         {
@@ -1340,7 +1343,8 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
         }
       }
     }
-  gtk_tree_path_free(path);
+  if(path)
+    gtk_tree_path_free(path);
   return TRUE;
   }
 

@@ -53,7 +53,36 @@ typedef struct
   uint32_t samples_written;
 
   int paused;
+  
+  char * error_msg;
   } cdaudio_t;
+
+static void destroy_cd_data(cdaudio_t* cd)
+  {
+  int i;
+  if(cd->track_info && cd->index)
+    {
+    for(i = 0; i < cd->index->num_audio_tracks; i++)
+      bg_track_info_free(&(cd->track_info[i]));
+    free(cd->track_info);
+    cd->track_info = (bg_track_info_t*)0;
+    }
+  if(cd->index)
+    {
+    bg_cdaudio_index_destroy(cd->index);
+    cd->index = (bg_cdaudio_index_t*)0;
+    }
+
+  if(cd->error_msg)
+    free(cd->error_msg);
+  }
+
+const char * get_error_cdaudio(void* priv)
+  {
+  cdaudio_t * cd;
+  cd = (cdaudio_t *)priv;
+  return cd->error_msg;
+  }
 
 static void close_cdaudio(void * priv);
 
@@ -77,6 +106,8 @@ static void destroy_cdaudio(void * data)
   {
   cdaudio_t * cd;
   cd = (cdaudio_t *)data;
+
+  destroy_cd_data(cd);
   
   if(cd->device_name)
     free(cd->device_name);
@@ -86,7 +117,6 @@ static void destroy_cdaudio(void * data)
 
   if(cd->parameters)
     bg_parameter_info_destroy_array(cd->parameters);
-  
   
   free(data);
   }
@@ -101,6 +131,9 @@ static int open_cdaudio(void * data, const char * arg)
     
   cdaudio_t * cd = (cdaudio_t*)data;
 
+  /* Destroy data from previous open */
+  destroy_cd_data(cd);
+  
   cd->device_name = bg_strdup(cd->device_name, arg);
 
   cd->cdio = bg_cdaudio_open(cd->device_name);
@@ -157,21 +190,27 @@ static int open_cdaudio(void * data, const char * arg)
                                     cd->track_info,
                                     cd->index))
     {
+    fprintf(stderr, "Found CDText\n");
     have_metadata = 1;
     have_local_metadata = 1; /* We never save cdtext infos */
     }
+  else
+    fprintf(stderr, "No CDText\n");
   
   /* 2nd try: Local file */
 
-  tmp_filename = bg_search_file_read("cdaudio_metadata", cd->disc_id);
-  if(tmp_filename)
+  if(!have_metadata)
     {
-    if(bg_cdaudio_load(cd->track_info, tmp_filename))
+    tmp_filename = bg_search_file_read("cdaudio_metadata", cd->disc_id);
+    if(tmp_filename)
       {
-      have_metadata = 1;
-      have_local_metadata = 1;
+      if(bg_cdaudio_load(cd->track_info, tmp_filename))
+        {
+        have_metadata = 1;
+        have_local_metadata = 1;
+        }
+      free(tmp_filename);
       }
-    free(tmp_filename);
     }
   
 #ifdef HAVE_MUSICBRAINZ
@@ -272,7 +311,7 @@ static int set_audio_stream_cdaudio(void * priv, int stream,
   return 1;
   }
 
-static void start_cdaudio(void * priv)
+static int start_cdaudio(void * priv)
   {
   int i, last_sector;
   cdaudio_t * cd = (cdaudio_t*)priv;
@@ -283,7 +322,7 @@ static void start_cdaudio(void * priv)
     {
     cd->cdio = bg_cdaudio_open(cd->device_name);
     if(!cd->cdio)
-      return;
+      return 0;
     }
   
   if(cd->do_bypass)
@@ -296,7 +335,11 @@ static void start_cdaudio(void * priv)
       if((i == cd->index->num_tracks - 1) || !cd->index->tracks[i+1].is_audio)
         last_sector = cd->index->tracks[i].last_sector;
       }
-    bg_cdaudio_play(cd->cdio, cd->first_sector, last_sector);
+    if(!bg_cdaudio_play(cd->cdio, cd->first_sector, last_sector))
+      {
+      cd->error_msg = bg_sprintf("Play command failed. Disk missing?");
+      return 0;
+      }
     cd->status.sector = cd->first_sector;
     cd->status.track  = cd->current_track;
 
@@ -325,6 +368,7 @@ static void start_cdaudio(void * priv)
     cd->current_sector = cd->first_sector;
     cd->samples_written = 0;
     }
+  return 1;
   }
 
 static void stop_cdaudio(void * priv)
@@ -494,8 +538,9 @@ static void seek_cdaudio(void * priv, gavl_time_t * time)
         last_sector = cd->index->tracks[i].last_sector;
       }
     *time = ((int64_t)sector * GAVL_TIME_SCALE) / 75;
-    bg_cdaudio_play(cd->cdio, sector, last_sector);
-
+    if(!bg_cdaudio_play(cd->cdio, sector, last_sector))
+      return;
+    
     if(cd->paused)
       {
       bg_cdaudio_set_pause(cd->cdio, 1);
@@ -675,8 +720,8 @@ bg_input_plugin_t the_plugin =
       get_parameters: get_parameters_cdaudio,
       set_parameter:  set_parameter_cdaudio,
       find_devices: bg_cdaudio_find_devices,
-      check_device: bg_cdaudio_check_device
-
+      check_device: bg_cdaudio_check_device,
+      get_error:    get_error_cdaudio,
     },
   /* Open file/device */
     open: open_cdaudio,

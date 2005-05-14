@@ -299,10 +299,10 @@ static bg_cmdline_arg_t global_options[] =
 
 static void opt_help(void * data, int * argc, char *** argv, int arg)
   {
-  fprintf(stderr, "Usage: %s [options] [command]\n\n", (*argv)[0]);
+  fprintf(stderr, "Usage: %s [options] command\n\n", (*argv)[0]);
   fprintf(stderr, "Options:\n\n");
   bg_cmdline_print_help(global_options);
-  fprintf(stderr, "\nCommand is of the following:\n\n");
+  fprintf(stderr, "\ncommand is of the following:\n\n");
   bg_cmdline_print_help(commands);
   exit(0);
   }

@@ -96,6 +96,10 @@ struct bg_album_s
   void (*change_callback)(bg_album_t * a, void * data);
   void * change_callback_data;
 
+  void (*name_change_callback)(bg_album_t * a, const char * name, void * data);
+  void * name_change_callback_data;
+
+  
   /* Coordinates in the screen */
 
   //  int x;

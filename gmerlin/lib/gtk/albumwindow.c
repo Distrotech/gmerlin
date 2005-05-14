@@ -48,7 +48,8 @@ struct bg_gtk_album_window_s
   GtkWidget * tab_widget;
 
   GtkWidget * notebook;
-  
+  int name_len;
+    
   };
 
 /* Configuration stuff */
@@ -151,6 +152,21 @@ static void close_callback(GtkWidget * w, gpointer data)
   bg_gtk_album_window_destroy(win, 1);
   }
 
+static void name_change_callback(bg_album_t * a,
+                                 const char * name,
+                                 void * data)
+  {
+  bg_gtk_album_window_t * win = (bg_gtk_album_window_t *)data;
+  win->name_len = strlen(name);
+  if(win->notebook)
+    {
+    gtk_label_set_text(GTK_LABEL(win->tab_label), name);
+    }
+  else if(win->window)
+    {
+    gtk_window_set_title(GTK_WINDOW(win->window), name);
+    }
+  }
 
 bg_gtk_album_window_t *
 bg_gtk_album_window_create(bg_album_t * album,
@@ -161,6 +177,8 @@ bg_gtk_album_window_create(bg_album_t * album,
   ret = calloc(1, sizeof(*ret));
   ret->tree_widget = tree_widget;
 
+  bg_album_set_name_change_callback(album, name_change_callback, ret);
+  
   ret->widget = bg_gtk_album_widget_create(album, ret->window);
   g_object_ref(G_OBJECT(bg_gtk_album_widget_get_widget(ret->widget)));
 
@@ -208,6 +226,9 @@ void bg_gtk_album_window_destroy(bg_gtk_album_window_t * w, int notify)
 
   if(w->widget)
     {
+    bg_album_set_name_change_callback(bg_gtk_album_widget_get_album(w->widget),
+                                                                NULL, NULL);
+    
     g_object_unref(G_OBJECT(bg_gtk_album_widget_get_widget(w->widget)));
     bg_gtk_album_widget_destroy(w->widget);
     }
@@ -272,6 +293,7 @@ static GtkWidget * create_close_button(bg_gtk_album_window_t * w)
 
 void bg_gtk_album_window_attach(bg_gtk_album_window_t * w, GtkWidget * notebook)
   {
+  const char * name;
   int page_num;
   
   bg_album_t * album;
@@ -288,9 +310,13 @@ void bg_gtk_album_window_attach(bg_gtk_album_window_t * w, GtkWidget * notebook)
 
   album = bg_gtk_album_widget_get_album(w->widget);
 
-  w->tab_label = gtk_label_new(bg_album_get_name(album));
+  name = bg_album_get_name(album);
+  
+  w->tab_label = gtk_label_new(name);
+  w->name_len = strlen(name);
+  
   gtk_widget_show(w->tab_label);
-    
+  
   w->tab_close_button = create_close_button(w);
   w->tab_widget = gtk_hbox_new(0, 2);
   gtk_box_pack_start_defaults(GTK_BOX(w->tab_widget), w->tab_label);
@@ -307,8 +333,11 @@ void bg_gtk_album_window_attach(bg_gtk_album_window_t * w, GtkWidget * notebook)
   gtk_notebook_set_menu_label_text(GTK_NOTEBOOK(notebook),
                                    bg_gtk_album_widget_get_widget(w->widget),
                                    bg_album_get_name(album));
+
   
   w->notebook = notebook;
+  if(bg_album_is_current(album))
+    bg_gtk_album_window_set_current(w, 1);
   }
 
 void bg_gtk_album_window_detach(bg_gtk_album_window_t * w)
@@ -339,4 +368,22 @@ void bg_gtk_album_window_detach(bg_gtk_album_window_t * w)
   gtk_decorated_window_move_resize_window(GTK_WINDOW(w->window),
                                           w->x, w->y, w->width, w->height);
   
+  }
+
+void bg_gtk_album_window_set_current(bg_gtk_album_window_t * w, int current)
+  {
+  PangoAttribute *attr;
+  PangoAttrList *attr_list;
+
+  //  fprintf(stderr, "bg_gtk_album_window_set_current %d\n", current);
+
+  if(!w->notebook)
+    return;
+  attr_list = pango_attr_list_new();
+  attr = pango_attr_weight_new(current ? PANGO_WEIGHT_BOLD: PANGO_WEIGHT_NORMAL);
+  attr->start_index = 0;
+  attr->end_index = w->name_len;
+
+  pango_attr_list_insert(attr_list,attr);
+  gtk_label_set_attributes(GTK_LABEL(w->tab_label), attr_list);
   }

@@ -49,7 +49,7 @@ void bg_cdaudio_index_dump(bg_cdaudio_index_t * idx)
     }
   }
 
-void bg_cdaudio_index_free(bg_cdaudio_index_t * idx)
+void bg_cdaudio_index_destroy(bg_cdaudio_index_t * idx)
   {
   if(idx->tracks)
     free(idx->tracks);
@@ -305,18 +305,21 @@ bg_device_info_t * bg_cdaudio_find_devices()
   return ret;
   }
 
-void bg_cdaudio_play(CdIo_t * cdio,
-                     int start_sector,
-                     int end_sector)
+int bg_cdaudio_play(CdIo_t * cdio,
+                    int start_sector,
+                    int end_sector)
   {
+  int result;
   msf_t start_msf, end_msf;
 
   cdio_lsn_to_msf (start_sector, &start_msf);
   cdio_lsn_to_msf (end_sector, &end_msf);
 
-  cdio_audio_play_msf(cdio,
-                      &start_msf,
-                      &end_msf);
+  if(cdio_audio_play_msf(cdio,
+                         &start_msf,
+                         &end_msf) != DRIVER_OP_SUCCESS)
+    return 0;
+  return 1;
   }
 
 void bg_cdaudio_stop(CdIo_t * cdio)

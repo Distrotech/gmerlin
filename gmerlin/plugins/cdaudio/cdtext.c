@@ -77,9 +77,13 @@ int bg_cdaudio_get_metadata_cdtext(CdIo_t * cdio,
       {
       cdtext = cdio_get_cdtext (cdio, i+1);
       if(!cdtext)
-        continue;
-
+        return 0;
+      
       GET_FIELD(info[idx->tracks[i].index].metadata.title, CDTEXT_TITLE);
+
+      if(!info[idx->tracks[i].index].metadata.title)
+        return 0;
+
       GET_FIELD_DEFAULT(artist, CDTEXT_PERFORMER);
       GET_FIELD_DEFAULT(author, CDTEXT_SONGWRITER);
       GET_FIELD_DEFAULT(author, CDTEXT_COMPOSER);

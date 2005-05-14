@@ -224,7 +224,13 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
   /* Start input plugin, so we get the formats */
   
   if(ctx->plugin->start)
-    ctx->plugin->start(ctx->priv);
+    {
+    if(!ctx->plugin->start(ctx->priv))
+      {
+      fprintf(stderr, "start() failed\n");
+      return 0;
+      }
+    }
   return 1;
   }
 

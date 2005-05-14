@@ -963,6 +963,23 @@ void bg_album_rename_track(bg_album_t * album,
   entry->flags |= BG_ALBUM_ENTRY_PRIVNAME;
   }
 
+void bg_album_rename(bg_album_t * a, const char * name)
+  {
+  //  fprintf(stderr, "Name change callback: %s\n", name);
+  a->name = bg_strdup(a->name, name);
+
+  if((a->type == BG_ALBUM_TYPE_REMOVABLE) &&
+      a->plugin_info)
+    {
+    bg_plugin_registry_set_device_name(a->com->plugin_reg, a->plugin_info->name, a->location,
+                                       name);
+    }
+  if(a->name_change_callback)
+    a->name_change_callback(a, name, a->name_change_callback_data);
+
+  }
+
+
 bg_album_entry_t * bg_album_get_current_entry(bg_album_t * a)
   {
   return a->com->current_entry;
@@ -1041,6 +1058,16 @@ void bg_album_set_change_callback(bg_album_t * a,
   {
   a->change_callback      = change_callback;
   a->change_callback_data = change_callback_data;
+  }
+
+void bg_album_set_name_change_callback(bg_album_t * a,
+                                       void (*name_change_callback)(bg_album_t * a,
+                                                                    const char * name,
+                                                                    void * data),
+                                       void * name_change_callback_data)
+  {
+  a->name_change_callback      = name_change_callback;
+  a->name_change_callback_data = name_change_callback_data;
   }
 
 void bg_album_changed(bg_album_t * a)

@@ -45,7 +45,7 @@ typedef struct
   } bg_cdaudio_index_t;
 
 void bg_cdaudio_index_dump(bg_cdaudio_index_t*);
-void bg_cdaudio_index_free(bg_cdaudio_index_t*);
+void bg_cdaudio_index_destroy(bg_cdaudio_index_t*);
 
 /* CD status (obtained periodically during playback) */
 
@@ -67,7 +67,7 @@ void bg_cdaudio_close(CdIo_t*);
 int bg_cdaudio_check_device(const char * device, char ** name);
 bg_device_info_t * bg_cdaudio_find_devices();
 
-void bg_cdaudio_play(CdIo_t*, int first_sector, int last_sector);
+int bg_cdaudio_play(CdIo_t*, int first_sector, int last_sector);
 void bg_cdaudio_stop(CdIo_t*);
 
 /*

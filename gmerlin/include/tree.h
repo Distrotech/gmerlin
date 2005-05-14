@@ -110,6 +110,13 @@ void bg_album_set_change_callback(bg_album_t * a,
                                                           void * data),
                                   void * change_callback_data);
 
+void bg_album_set_name_change_callback(bg_album_t * a,
+                                       void (*name_change_callback)(bg_album_t * a,
+                                                                    const char * name,
+                                                                    void * data),
+                                       void * name_change_callback_data);
+
+
 void bg_album_move_selected_to_favourites(bg_album_t * a);
 void bg_album_copy_selected_to_favourites(bg_album_t * a);
 
@@ -133,6 +140,8 @@ char * bg_album_get_location(bg_album_t * a);
 
 void bg_album_set_error(bg_album_t * a, int err);
 int  bg_album_get_error(bg_album_t * a);
+
+void bg_album_rename(bg_album_t * a, const char *);
 
 void bg_album_append_child(bg_album_t * parent, bg_album_t * child);
 
@@ -312,8 +321,6 @@ bg_album_t * bg_media_tree_append_album(bg_media_tree_t *,
 void bg_media_tree_remove_album(bg_media_tree_t *,
                                 bg_album_t * album);
 
-void bg_media_tree_rename_album(bg_media_tree_t *,
-                                bg_album_t * a, const char *);
 
 /* Check if we can move an album */
 

@@ -302,9 +302,12 @@ typedef struct bg_input_plugin_s
    *   
    *  After this call, all remaining members of the track info returned earlier
    *  (audio- and video formats!) must be valid.
+   *
+   *  From the plugins point of view, this is the last chance to return 0
+   *  if something fails
    */
   
-  void (*start)(void * priv);
+  int (*start)(void * priv);
 
   /* Read one audio frame (returns FALSE on EOF) */
   

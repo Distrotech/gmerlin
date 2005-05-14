@@ -78,7 +78,7 @@ int bg_remote_server_init(bg_remote_server_t * s)
                                        s->allow_remote ? INADDR_ANY : INADDR_LOOPBACK);
   if(s->fd < 0)
     {
-    fprintf(stderr, "Setting up socket failed\n");
+    fprintf(stderr, "Setting up socket failed, this instance won't be reachable via remote\n");
     return 0;
     }
 

@@ -285,14 +285,14 @@ static int set_video_stream_input(void * priv, int stream,
   return 1;
   }
 
-static void start_input(void * priv)
+static int start_input(void * priv)
   {
   const bg_plugin_info_t * info;
   
   input_t * inp = (input_t *)priv;
 
   if(inp->action != BG_STREAM_ACTION_DECODE)
-    return;
+    return 1;
   
   inp->track_info.video_streams[0].description =
     bg_strdup(NULL, "Single images\n");
@@ -312,12 +312,13 @@ static void start_input(void * priv)
   if(!inp->image_reader->read_header(inp->handle->priv,
                                      inp->filename_buffer,
                                      &(inp->track_info.video_streams[0].format)))
-    return;
+    return 0;
 
   inp->header_read = 1;
   inp->track_info.video_streams[0].format.timescale = inp->timescale;
   inp->track_info.video_streams[0].format.frame_duration = inp->frame_duration;
   inp->track_info.video_streams[0].format.free_framerate = 0;
+  return 1;
   }
 
 static int read_video_frame_input(void * priv, gavl_video_frame_t* f,

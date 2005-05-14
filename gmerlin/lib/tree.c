@@ -1172,18 +1172,6 @@ void bg_media_tree_mark_error(bg_media_tree_t * t, int err)
   }
 
 
-void bg_media_tree_rename_album(bg_media_tree_t * t,
-                                bg_album_t * a, const char * name)
-  {
-  a->name = bg_strdup(a->name, name);
-
-  if((a->type == BG_ALBUM_TYPE_REMOVABLE) &&
-      a->plugin_info)
-    {
-    bg_plugin_registry_set_device_name(t->com.plugin_reg, a->plugin_info->name, a->location,
-                                       name);
-    }
-  }
 
 static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
                           const char * directory,
@@ -1226,7 +1214,7 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
     pos1++;
     
     tmp_string = bg_system_to_utf8(pos1, -1);
-    bg_media_tree_rename_album(t, a, tmp_string);
+    bg_album_rename(a, tmp_string);
     free(tmp_string);
     }
   
