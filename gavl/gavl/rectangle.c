@@ -244,7 +244,7 @@ int gavl_rectangle_is_empty(const gavl_rectangle_t * r)
 void gavl_rectangle_fit_aspect(gavl_rectangle_t * r,
                                const gavl_video_format_t * src_format,
                                const gavl_rectangle_t * src_rect,
-                               gavl_video_format_t * dst_format,
+                               const gavl_video_format_t * dst_format,
                                float zoom, float squeeze)
   {
   float dst_display_aspect;
@@ -270,11 +270,16 @@ void gavl_rectangle_fit_aspect(gavl_rectangle_t * r,
 
   if(dst_display_aspect > src_display_aspect) /* Bars left and right */
     {
+    //    fprintf(stderr, "Bars left and right\n");
     r->w = (int)((float)dst_format->image_height * src_display_aspect * zoom / dst_pixel_aspect + 0.5);
     r->h = (int)((float)dst_format->image_height * zoom + 0.5); 
+    //    fprintf(stderr, "Bars left and right %dx%d -> %dx%d (%f, %f)\n", src_rect->w, src_rect->h, r->w, r->h,
+    //            (float)(src_rect->w * src_format->pixel_width) /
+    //            (float)(src_rect->h * src_format->pixel_height), dst_pixel_aspect);
     }
   else  /* Bars top and bottom */
     {
+    //    fprintf(stderr, "Bars top and bottom\n");
     r->w = (int)((float)(dst_format->image_width) * zoom + 0.5);
     r->h = (int)((float)dst_format->image_width   * zoom * dst_pixel_aspect / src_display_aspect + 0.5);
     }

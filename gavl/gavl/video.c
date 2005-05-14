@@ -21,7 +21,7 @@
 
 #include <string.h>
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 #include <stdio.h>  
@@ -147,6 +147,19 @@ void add_context_scale(gavl_video_converter_t * cnv,
   scaler_options = gavl_video_scaler_get_options(ctx->scaler);
 
   gavl_video_options_copy(scaler_options, &(cnv->options));
+#if 0
+  fprintf(stderr, "gavl_video_scaler_init:\n");
+  fprintf(stderr, "src_format:\n");
+  gavl_video_format_dump(input_format);
+  fprintf(stderr, "dst_format:\n");
+  gavl_video_format_dump(output_format);
+
+  fprintf(stderr, "src_rectangle:\n");
+  gavl_rectangle_dump(&(cnv->options.src_rect));
+
+  fprintf(stderr, "dst_rectangle:\n");
+  gavl_rectangle_dump(&(cnv->options.dst_rect));
+#endif
   
   gavl_video_scaler_init(ctx->scaler,
                          input_format->colorspace,
@@ -216,7 +229,8 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
     {
     do_scale = 1;
     }
-
+  
+  
   if(do_csp && do_scale)
     {
     /* For qualities below 3, we scale in the colorspace with the

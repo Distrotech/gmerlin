@@ -574,7 +574,7 @@ void gavl_rectangle_subsample(gavl_rectangle_t * dst, const gavl_rectangle_t * s
 void gavl_rectangle_fit_aspect(gavl_rectangle_t * r,
                                const gavl_video_format_t * src_format,
                                const gavl_rectangle_t * src_rect,
-                               gavl_video_format_t * dst_format,
+                               const gavl_video_format_t * dst_format,
                                float zoom, float squeeze);
   
 /**********************************************
