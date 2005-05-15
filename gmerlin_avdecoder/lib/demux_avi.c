@@ -944,7 +944,7 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
       {
       for(j = 0; j < avi_as->indx.nEntriesInUse; j++)
         num_entries += avi_as->indx.i.index.entries[j].subindex->nEntriesInUse;
-      streams[i].indx_cur = avi_as->indx.i.index.entries[0].subindex;
+      streams[i].indx_cur = streams[i].indx->i.index.entries[0].subindex;
       streams[i].index_index = 0;
       }
     else
@@ -968,7 +968,7 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
       {
       for(j = 0; j < avi_vs->indx.nEntriesInUse; j++)
         num_entries += avi_vs->indx.i.index.entries[j].subindex->nEntriesInUse;
-      streams[i].indx_cur = avi_vs->indx.i.index.entries[0].subindex;
+      streams[i].indx_cur = streams[i].indx->i.index.entries[0].subindex;
       streams[i].index_index = 0;
       }
     else
@@ -1025,9 +1025,9 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
         streams[stream_index].index_index++;
         streams[stream_index].index_position = 0;
         if(streams[stream_index].index_index >= streams[stream_index].indx->nEntriesInUse)
-          {
           streams[stream_index].index_position = -1;
-          }
+        else
+          streams[stream_index].indx_cur = streams[stream_index].indx->i.index.entries[streams[stream_index].index_index].subindex;
         }
       else
         streams[stream_index].index_position = -1;
