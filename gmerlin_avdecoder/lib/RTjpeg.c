@@ -98,7 +98,7 @@ int RTjpeg_b2s(int16_t *data, int8_t *strm, uint8_t bt8)
  register int ci, co=1, tmp;
  register int16_t ZZvalue;
  
- (uint8_t)strm[0]=(uint8_t)(data[RTjpeg_ZZ[0]]>254) ? 254:((data[RTjpeg_ZZ[0]]<0)?0:data[RTjpeg_ZZ[0]]);
+ *((uint8_t*)strm)=(uint8_t)(data[RTjpeg_ZZ[0]]>254) ? 254:((data[RTjpeg_ZZ[0]]<0)?0:data[RTjpeg_ZZ[0]]);
  
  for(ci=1; ci<=bt8; ci++) 
  {

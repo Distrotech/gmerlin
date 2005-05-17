@@ -96,7 +96,7 @@ typedef struct {
 	uint8_t quality;
 	uint8_t key;
 	uint8_t data;
-} RTjpeg_frameheader __attribute__ ((packed));
+} __attribute__ ((packed)) RTjpeg_frameheader;
 
 #define RTJ_YUV420 0
 #define RTJ_YUV422 1
