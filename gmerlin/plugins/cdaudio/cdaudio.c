@@ -309,7 +309,6 @@ int bg_cdaudio_play(CdIo_t * cdio,
                     int start_sector,
                     int end_sector)
   {
-  int result;
   msf_t start_msf, end_msf;
 
   cdio_lsn_to_msf (start_sector, &start_msf);

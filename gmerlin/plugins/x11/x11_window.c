@@ -680,35 +680,32 @@ XEvent * x11_window_next_event(x11_window_t * w,
 
 void x11_window_show(x11_window_t * win, int show)
   {
-  if(win->current_window == win->normal_window)
+  if(!show)
     {
-    
-    if(!show)
-      {
       //      fprintf(stderr, "Unmapping window\n");
-      XWithdrawWindow(win->dpy, win->normal_window,
-                      DefaultScreen(win->dpy));
-      win->mapped = 0;
-      XSync(win->dpy, False);
-      return;
-      }
-    /* If the window was already mapped, raise it */
-    
-    if(win->mapped)
-      {
-//      fprintf(stderr, "Already mapped\n");
-      XRaiseWindow(win->dpy, win->normal_window);
-      }
-    else
-      {
-//      fprintf(stderr, "Mapping window %d %d\n", win->window_x,
-//              win->window_y);
-      XMapWindow(win->dpy, win->normal_window);
-      
+    XWithdrawWindow(win->dpy, win->current_window,
+                    DefaultScreen(win->dpy));
+    win->mapped = 0;
+    XSync(win->dpy, False);
+    return;
+    }
+
+  /* If the window was already mapped, raise it */
+  
+  if(win->mapped)
+    {
+    //      fprintf(stderr, "Already mapped\n");
+    XRaiseWindow(win->dpy, win->current_window);
+    }
+  else
+    {
+    //      fprintf(stderr, "Mapping window %d %d\n", win->window_x,
+    //              win->window_y);
+    XMapWindow(win->dpy, win->current_window);
+    if(win->current_window == win->normal_window)
       XMoveResizeWindow(win->dpy, win->normal_window,
                         win->window_x, win->window_y,
                         win->window_width, win->window_height);
-      }
     }
   }
 
