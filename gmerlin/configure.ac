@@ -649,7 +649,7 @@ plugins/lqt/Makefile \
 plugins/oss/Makefile \
 plugins/jpeg/Makefile \
 plugins/png/Makefile \
-plugins/tga/Makefile \
+plugins/image/Makefile \
 plugins/tiff/Makefile \
 plugins/v4l/Makefile \
 plugins/wavwrite/Makefile \

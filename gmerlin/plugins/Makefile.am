@@ -70,5 +70,5 @@ $(tiff_subdirs) \
 $(x11_subdirs) \
 $(cdio_subdirs) \
 wavwrite \
-tga
+image
 

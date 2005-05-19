@@ -12,7 +12,7 @@
  * -------------------------------------------------------------------------*/
 
 /*@unused@*/ static const char rcsid[] =
-    "$Id: targa.c,v 1.2 2004-08-24 22:40:44 gmerlin Exp $";
+    "$Id: targa.c,v 1.1 2005-05-19 22:32:36 gmerlin Exp $";
 
 #define TGA_KEEP_MACROS /* BIT, htole16, letoh16 */
 #include "targa.h"
