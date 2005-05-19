@@ -129,7 +129,8 @@ static int init_faad2(bgav_stream_t * s)
   // cfg->outputFormat = FAAD_FMT_16BIT;
   faacDecSetConfiguration(priv->dec, cfg);
 
-  s->description = bgav_sprintf("%s", "AAC Audio stream");
+  if(!s->description)
+    s->description = bgav_sprintf("%s", "AAC Audio stream");
   
   return 1;
   }
