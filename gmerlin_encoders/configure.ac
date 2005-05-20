@@ -33,7 +33,7 @@ dnl
 dnl Required libraries
 dnl
 
-GMERLIN_REQUIRED="0.3.2pre2"
+GMERLIN_REQUIRED="0.3.2"
 PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, , AC_MSG_ERROR("gmerlin not found"))
 have_gmerlin="false"
 
