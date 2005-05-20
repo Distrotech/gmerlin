@@ -2,7 +2,7 @@
 
   ir_bmp.c
  
-  Copyright (c) 2003-2004 by Michael Gruenert - one78@web.de
+  Copyright (c) 2005 by Michael Gruenert - one78@web.de
  
   http://gmerlin.sourceforge.net
  
@@ -16,6 +16,8 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
 
 *****************************************************************/
+
+/* Modelled roughly after the code found in imlib2 */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -124,6 +126,13 @@ static struct
       },
       {
         16,
+        0xF800, 
+        0x07E0, 
+        0x001F, 
+        GAVL_BGR_16
+      },
+      {
+        16,
         0x001F, 
         0x03E0, 
         0x7C00, 
@@ -134,14 +143,21 @@ static struct
         0x7C00, 
         0x03E0, 
         0x001F, 
-        GAVL_RGB_15
+        GAVL_BGR_15
       },
       {
         24,
-        0x00FF,
-        0x00FF,
-        0x00FF,
+        0x000000FF,
+        0x0000FF00,
+        0x00FF0000,
         GAVL_BGR_24
+      },
+      {
+        24,
+        0x00FF0000,
+        0x0000FF00,
+        0x000000FF,
+        GAVL_RGB_24
       },
       {
         32,
@@ -262,7 +278,7 @@ static int read_header_bmp(void *priv,const char *filename, gavl_video_format_t 
 
   /* check bitcount */
   
-  if ((!p->bitcount == 1) || (!p->bitcount == 4) || (!p->bitcount == 8) || (!p->bitcount == 16) || (!p->bitcount == 24) || (!p->bitcount == 32))
+  if ((p->bitcount != 1) && (p->bitcount != 4) && (p->bitcount != 8) && (p->bitcount != 16) && (p->bitcount != 24) && (p->bitcount != 32))
     {
     fclose(p->bmp_file);
     fprintf(stderr,"Bitcount not suported (bitcount: %d)\n", p->bitcount);
@@ -286,7 +302,7 @@ static int read_header_bmp(void *priv,const char *filename, gavl_video_format_t 
       fread(p->rgbQuads, 4, ncols, p->bmp_file);
       }
     }
-  else if (p->bitcount == 16 || p->bitcount == 32)
+  else
     {
     if (p->comp == BI_BITFIELDS)
       {
@@ -300,7 +316,7 @@ static int read_header_bmp(void *priv,const char *filename, gavl_video_format_t 
       gmask = 0x03E0;
       bmask = 0x001F;
       }
-    else if (p->bitcount == 32)
+    else if ((p->bitcount == 32) || (p->bitcount == 24))
       {
       rmask = 0x000000FF;
       gmask = 0x0000FF00;
