@@ -724,7 +724,7 @@ bg_image_reader_plugin_t the_plugin =
     common:
     {
       name:          "ir_bmp",
-      long_name:     "bmp loader ",
+      long_name:     "BMP loader ",
       mimetypes:     (char*)0,
       extensions:    "bmp",
       type:          BG_PLUGIN_IMAGE_READER,
