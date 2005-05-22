@@ -15,7 +15,7 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- *  $Id: gdither.c,v 1.1 2005-02-26 12:18:28 gmerlin Exp $
+ *  $Id: gdither.c,v 1.2 2005-05-22 22:19:53 gmerlin Exp $
  */
 
 #include "gdither_types_internal.h"
@@ -381,7 +381,7 @@ void gdither_runf(GDither s, unsigned int channel, unsigned int length,
 
     /* some common case handling code - looks a bit wierd, but it allows
      * the compiler to optiomise out the branches in the inner loop */
-    if (s->bit_depth == s->dither_depth == 8) {
+    if ((s->bit_depth == 8) && (s->dither_depth == 8)) {
 	switch (s->type) {
 	case GDitherNone:
 	    gdither_innner_loop(GDitherNone, s->channels, 128.0f, SCALE_U8,
@@ -404,7 +404,7 @@ void gdither_runf(GDither s, unsigned int channel, unsigned int length,
 				ss, x, y, MAX_U8, MIN_U8);
 	    break;
 	}
-    } else if (s->bit_depth == s->dither_depth == 16) {
+    } else if ((s->bit_depth == 16) && (s->dither_depth == 16)) {
 	switch (s->type) {
 	case GDitherNone:
 	    gdither_innner_loop(GDitherNone, s->channels, 0.0f, SCALE_S16,

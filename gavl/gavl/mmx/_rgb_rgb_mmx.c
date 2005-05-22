@@ -30,6 +30,7 @@
 #define MOVQ_R2M(reg,mem) movq_r2m(reg, mem)
 #endif
 
+#define INTERPOLATE_USE_16
 #include "interpolate.h"
 
 static mmx_t rgb_rgb_rgb32_upper_mask =       { 0x00ff000000ff0000LL };

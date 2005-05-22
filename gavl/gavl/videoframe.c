@@ -192,7 +192,7 @@ void gavl_video_frame_destroy(gavl_video_frame_t * frame)
 
 void gavl_video_frame_null(gavl_video_frame_t* frame)
   {
-  frame->planes[0] = (char*)0;
+  frame->planes[0] = (uint8_t*)0;
   }
 
 void gavl_video_frame_clear(gavl_video_frame_t * frame,

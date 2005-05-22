@@ -1033,7 +1033,7 @@ int write_file(const char * name,
  
   for(i = 0; i < format->image_height; i++)
     row_pointers[i] =
-      out_frame->planes[0] + i * out_frame->strides[0];
+      (char*)(out_frame->planes[0] + i * out_frame->strides[0]);
   
   png_set_rows(png_ptr, info_ptr, (png_bytep*)row_pointers);
 

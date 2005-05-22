@@ -33,7 +33,7 @@ struct gavl_audio_options_s
   int quality;         
 
   /* Explicit accel_flags are mainly for debugging purposes */
-  int accel_flags;     /* CPU Acceleration flags */
+  uint32_t accel_flags;     /* CPU Acceleration flags */
 
   /* #defines from above */
     

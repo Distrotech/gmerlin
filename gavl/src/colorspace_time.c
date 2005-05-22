@@ -44,7 +44,7 @@ int main()
 
   const char * tmp;
   
-  int i, j, k;
+  int j, k;
 
   int num_colorspaces = gavl_num_colorspaces();
   
