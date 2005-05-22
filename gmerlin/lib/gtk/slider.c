@@ -501,21 +501,21 @@ void bg_gtk_slider_skin_load(bg_gtk_slider_skin_t * s,
       node = node->next;
       continue;
       }
-    tmp_string = xmlNodeListGetString(doc, node->children, 1);
+    tmp_string = (char*)xmlNodeListGetString(doc, node->children, 1);
     
-    if(!strcmp(node->name, "X"))
+    if(!BG_XML_STRCMP(node->name, "X"))
       s->x = atoi(tmp_string);
-    else if(!strcmp(node->name, "Y"))
+    else if(!BG_XML_STRCMP(node->name, "Y"))
       s->y = atoi(tmp_string);
-    else if(!strcmp(node->name, "NORMAL"))
+    else if(!BG_XML_STRCMP(node->name, "NORMAL"))
       s->pixmap_normal = bg_strdup(s->pixmap_normal, tmp_string);
-    else if(!strcmp(node->name, "HIGHLIGHT"))
+    else if(!BG_XML_STRCMP(node->name, "HIGHLIGHT"))
       s->pixmap_highlight = bg_strdup(s->pixmap_highlight, tmp_string);
-    else if(!strcmp(node->name, "PRESSED"))
+    else if(!BG_XML_STRCMP(node->name, "PRESSED"))
       s->pixmap_pressed = bg_strdup(s->pixmap_pressed, tmp_string);
-    else if(!strcmp(node->name, "INACTIVE"))
+    else if(!BG_XML_STRCMP(node->name, "INACTIVE"))
       s->pixmap_inactive = bg_strdup(s->pixmap_inactive, tmp_string);
-    else if(!strcmp(node->name, "BACKGROUND"))
+    else if(!BG_XML_STRCMP(node->name, "BACKGROUND"))
       s->pixmap_background = bg_strdup(s->pixmap_background, tmp_string);
     node = node->next;
     xmlFree(tmp_string);

@@ -201,8 +201,8 @@ static int read_header_bmp(void *priv,const char *filename, gavl_video_format_t 
   int i;
   bmp_t *p = (bmp_t*)priv;
   char type[2];
-  unsigned short ncols, tmpShort, planes;
-  unsigned long headSize, size;
+  unsigned short ncols, tmpShort = 0, planes;
+  unsigned long headSize = 0, size;
   unsigned long rmask, gmask, bmask;
     
   rmask = 0xff;
@@ -349,7 +349,7 @@ static int read_image_bmp(void *priv, gavl_video_frame_t *frame)
   unsigned char color_byte = 0;
   unsigned char zaehl_byte = 0;
   unsigned char *buffer_ptr, *buffer, *buffer_end;
-  unsigned char t1, t2;
+  unsigned char t1 = 0x00, t2 = 0x00;
   unsigned long k;
   unsigned short x, y, i, width, skip;
 

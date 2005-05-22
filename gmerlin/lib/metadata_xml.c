@@ -29,7 +29,7 @@
 #include <utils.h>
 
 #define XML_2_INT(key)                          \
-if(!strcmp(node->name, #key))                 \
+if(!BG_XML_STRCMP(node->name, #key))                 \
   {                                             \
   ret->key = atoi(tmp_string);                  \
   xmlFree(tmp_string);                          \
@@ -38,7 +38,7 @@ if(!strcmp(node->name, #key))                 \
   }
 
 #define XML_2_STRING(key)                     \
-if(!strcmp(node->name, #key))               \
+if(!BG_XML_STRCMP(node->name, #key))               \
   {                                           \
   ret->key = bg_strdup(ret->key, tmp_string); \
   xmlFree(tmp_string);                        \
@@ -75,7 +75,7 @@ void bg_xml_2_metadata(xmlDocPtr xml_doc, xmlNodePtr xml_metadata,
       node = node->next;
       continue;
       }
-    tmp_string = xmlNodeListGetString(xml_doc, node->children, 1);
+    tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
 
     XML_2_INT(track);
         
@@ -97,19 +97,19 @@ void bg_xml_2_metadata(xmlDocPtr xml_doc, xmlNodePtr xml_metadata,
 #define STRING_2_XML(key)                                             \
   if(m->key)                                                          \
     {                                                                 \
-    child = xmlNewTextChild(xml_metadata, (xmlNsPtr)0, #key, NULL); \
-    xmlAddChild(child, xmlNewText(m->key));                           \
-    xmlAddChild(xml_metadata, xmlNewText("\n"));                      \
+    child = xmlNewTextChild(xml_metadata, (xmlNsPtr)0, (xmlChar*)#key, NULL); \
+    xmlAddChild(child, BG_XML_NEW_TEXT(m->key));                           \
+    xmlAddChild(xml_metadata, BG_XML_NEW_TEXT("\n"));                      \
     }
 
 #define INT_2_XML(key)                         \
   if(m->key)                                   \
     { \
     tmp_string = bg_sprintf("%d", m->key); \
-    child = xmlNewTextChild(xml_metadata, (xmlNsPtr)0, #key, NULL); \
-    xmlAddChild(child, xmlNewText(tmp_string));                       \
+    child = xmlNewTextChild(xml_metadata, (xmlNsPtr)0, (xmlChar*)#key, NULL); \
+    xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));                       \
     free(tmp_string);                                                 \
-    xmlAddChild(xml_metadata, xmlNewText("\n"));                      \
+    xmlAddChild(xml_metadata, BG_XML_NEW_TEXT("\n"));                      \
     }
 
 void bg_metadata_2_xml(xmlNodePtr xml_metadata,

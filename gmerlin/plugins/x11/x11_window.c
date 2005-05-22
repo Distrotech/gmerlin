@@ -35,7 +35,7 @@
 
 #define IDLE_MAX 10
 
-static unsigned char bm_no_data[] = { 0,0,0,0, 0,0,0,0 };
+static char bm_no_data[] = { 0,0,0,0, 0,0,0,0 };
 
 static int
 wm_check_capability(Display *dpy, Window root, Atom list, Atom wanted)

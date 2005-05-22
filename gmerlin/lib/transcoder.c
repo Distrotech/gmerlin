@@ -919,10 +919,10 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   char * video_encoder_name = (char*)0;
     
   bg_plugin_handle_t  * audio_encoder_handle = (bg_plugin_handle_t  *)0;
-  bg_encoder_plugin_t * audio_encoder_plugin;
+  bg_encoder_plugin_t * audio_encoder_plugin = (bg_encoder_plugin_t *)0;
   
   bg_plugin_handle_t  * video_encoder_handle = (bg_plugin_handle_t  *)0;
-  bg_encoder_plugin_t * video_encoder_plugin;
+  bg_encoder_plugin_t * video_encoder_plugin = (bg_encoder_plugin_t *)0;
 
   bg_plugin_handle_t  * encoder_handle = (bg_plugin_handle_t  *)0;
   bg_encoder_plugin_t * encoder_plugin;

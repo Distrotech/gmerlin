@@ -25,7 +25,7 @@
 
 static void section_2_xml(bg_cfg_section_t * s, xmlNodePtr node)
   {
-  xmlSetProp(node, "name", bg_cfg_section_get_name(s));
+  BG_XML_SET_PROP(node, "name", bg_cfg_section_get_name(s));
   bg_cfg_section_2_xml(s, node);
   }
 
@@ -33,16 +33,16 @@ static void audio_stream_2_xml(xmlNodePtr parent,
                                bg_transcoder_track_audio_t * s)
   {
   xmlNodePtr node;
-  node = xmlNewTextChild(parent, (xmlNsPtr)0, "GENERAL", NULL);
+  node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"GENERAL", NULL);
   section_2_xml(s->general_section, node);
 
-  xmlAddChild(parent, xmlNewText("\n"));
+  xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
 
   if(s->encoder_section)
     {
-    node = xmlNewTextChild(parent, (xmlNsPtr)0, "ENCODER", NULL);
+    node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"ENCODER", NULL);
     section_2_xml(s->encoder_section, node);
-    xmlAddChild(parent, xmlNewText("\n"));
+    xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     }
   }
 
@@ -50,16 +50,16 @@ static void video_stream_2_xml(xmlNodePtr parent,
                                bg_transcoder_track_video_t * s)
   {
   xmlNodePtr node;
-  node = xmlNewTextChild(parent, (xmlNsPtr)0, "GENERAL", NULL);
+  node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"GENERAL", NULL);
   section_2_xml(s->general_section, node);
 
-  xmlAddChild(parent, xmlNewText("\n"));
+  xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
 
   if(s->encoder_section)
     {
-    node = xmlNewTextChild(parent, (xmlNsPtr)0, "ENCODER", NULL);
+    node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"ENCODER", NULL);
     section_2_xml(s->encoder_section, node);
-    xmlAddChild(parent, xmlNewText("\n"));
+    xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     }
   }
 
@@ -70,54 +70,54 @@ static void track_2_xml(bg_transcoder_track_t * track,
   
   xmlNodePtr node, stream_node;
 
-  node = xmlNewTextChild(xml_track, (xmlNsPtr)0, "GENERAL", NULL);
+  node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"GENERAL", NULL);
   section_2_xml(track->general_section, node);
-  xmlAddChild(xml_track, xmlNewText("\n"));
+  xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
 
 
-  node = xmlNewTextChild(xml_track, (xmlNsPtr)0, "METADATA", NULL);
+  node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"METADATA", NULL);
   section_2_xml(track->metadata_section, node);
-  xmlAddChild(xml_track, xmlNewText("\n"));
+  xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
 
   if(track->audio_encoder_section)
     {
-    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, "AUDIO_ENCODER", NULL);
+    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"AUDIO_ENCODER", NULL);
     section_2_xml(track->audio_encoder_section, node);
-    xmlAddChild(xml_track, xmlNewText("\n"));
+    xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     }
 
   if(track->video_encoder_section)
     {
-    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, "VIDEO_ENCODER", NULL);
+    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"VIDEO_ENCODER", NULL);
     section_2_xml(track->video_encoder_section, node);
-    xmlAddChild(xml_track, xmlNewText("\n"));
+    xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     }
   if(track->num_audio_streams)
     {
-    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, "AUDIO_STREAMS", NULL);
-    xmlAddChild(node, xmlNewText("\n"));
+    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"AUDIO_STREAMS", NULL);
+    xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
 
     for(i = 0; i < track->num_audio_streams; i++)
       {
-      stream_node = xmlNewTextChild(node, (xmlNsPtr)0, "STREAM", NULL);
-      xmlAddChild(stream_node, xmlNewText("\n"));
+      stream_node = xmlNewTextChild(node, (xmlNsPtr)0, (xmlChar*)"STREAM", NULL);
+      xmlAddChild(stream_node, BG_XML_NEW_TEXT("\n"));
 
       audio_stream_2_xml(stream_node, &(track->audio_streams[i]));
-      xmlAddChild(node, xmlNewText("\n"));
+      xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
       }
     }
 
   if(track->num_video_streams)
     {
-    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, "VIDEO_STREAMS", NULL);
-    xmlAddChild(node, xmlNewText("\n"));
+    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"VIDEO_STREAMS", NULL);
+    xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
     
     for(i = 0; i < track->num_video_streams; i++)
       {
-      stream_node = xmlNewTextChild(node, (xmlNsPtr)0, "STREAM", NULL);
-      xmlAddChild(stream_node, xmlNewText("\n"));
+      stream_node = xmlNewTextChild(node, (xmlNsPtr)0, (xmlChar*)"STREAM", NULL);
+      xmlAddChild(stream_node, BG_XML_NEW_TEXT("\n"));
       video_stream_2_xml(stream_node, &(track->video_streams[i]));
-      xmlAddChild(node, xmlNewText("\n"));
+      xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
       }
     }
   }
@@ -130,22 +130,22 @@ void bg_transcoder_tracks_save(bg_transcoder_track_t * t,
   xmlDocPtr  xml_doc;
   xmlNodePtr root_node, xml_track;
     
-  xml_doc = xmlNewDoc("1.0");
-  root_node = xmlNewDocRawNode(xml_doc, NULL, "TRANSCODER_TRACKS", NULL);
+  xml_doc = xmlNewDoc((xmlChar*)"1.0");
+  root_node = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)"TRANSCODER_TRACKS", NULL);
   xmlDocSetRootElement(xml_doc, root_node);
 
-  xmlAddChild(root_node, xmlNewText("\n"));
+  xmlAddChild(root_node, BG_XML_NEW_TEXT("\n"));
 
   tmp = t;
 
   while(tmp)
     {
-    xml_track = xmlNewTextChild(root_node, (xmlNsPtr)0, "TRACK", NULL);
-    xmlAddChild(xml_track, xmlNewText("\n"));
+    xml_track = xmlNewTextChild(root_node, (xmlNsPtr)0, (xmlChar*)"TRACK", NULL);
+    xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     track_2_xml(tmp, xml_track);
-    xmlAddChild(xml_track, xmlNewText("\n"));
+    xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     tmp = tmp->next;
-    xmlAddChild(root_node, xmlNewText("\n"));
+    xmlAddChild(root_node, BG_XML_NEW_TEXT("\n"));
     }
   xmlSaveFile(filename, xml_doc);
   xmlFreeDoc(xml_doc);
@@ -158,7 +158,7 @@ static bg_cfg_section_t * xml_2_section(xmlDocPtr xml_doc, xmlNodePtr xml_sectio
   char * name;
   bg_cfg_section_t * ret;
 
-  name = xmlGetProp(xml_section, "name");
+  name = BG_XML_GET_PROP(xml_section, "name");
   ret = bg_cfg_section_create(name);
 
   if(name)
@@ -182,11 +182,11 @@ static void xml_2_audio(bg_transcoder_track_audio_t * s,
       node = node->next;
       continue;
       }
-    if(!strcmp(node->name, "GENERAL"))
+    if(!BG_XML_STRCMP(node->name, "GENERAL"))
       {
       s->general_section = xml_2_section(xml_doc, node);
       }
-    else if(!strcmp(node->name, "ENCODER"))
+    else if(!BG_XML_STRCMP(node->name, "ENCODER"))
       {
       s->encoder_section = xml_2_section(xml_doc, node);
       }
@@ -208,11 +208,11 @@ static void xml_2_video(bg_transcoder_track_video_t * s,
       node = node->next;
       continue;
       }
-    if(!strcmp(node->name, "GENERAL"))
+    if(!BG_XML_STRCMP(node->name, "GENERAL"))
       {
       s->general_section = xml_2_section(xml_doc, node);
       }
-    else if(!strcmp(node->name, "ENCODER"))
+    else if(!BG_XML_STRCMP(node->name, "ENCODER"))
       {
       s->encoder_section = xml_2_section(xml_doc, node);
       }
@@ -244,23 +244,23 @@ static int xml_2_track(bg_transcoder_track_t * t,
       node = node->next;
       continue;
       }
-    if(!strcmp(node->name, "GENERAL"))
+    if(!BG_XML_STRCMP(node->name, "GENERAL"))
       {
       t->general_section = xml_2_section(xml_doc, node);
       }
-    else if(!strcmp(node->name, "METADATA"))
+    else if(!BG_XML_STRCMP(node->name, "METADATA"))
       {
       t->metadata_section = xml_2_section(xml_doc, node);
       }
-    else if(!strcmp(node->name, "AUDIO_ENCODER"))
+    else if(!BG_XML_STRCMP(node->name, "AUDIO_ENCODER"))
       {
       t->audio_encoder_section = xml_2_section(xml_doc, node);
       }
-    else if(!strcmp(node->name, "VIDEO_ENCODER"))
+    else if(!BG_XML_STRCMP(node->name, "VIDEO_ENCODER"))
       {
       t->video_encoder_section = xml_2_section(xml_doc, node);
       }
-    else if(!strcmp(node->name, "AUDIO_STREAMS"))
+    else if(!BG_XML_STRCMP(node->name, "AUDIO_STREAMS"))
       {
       /* Count streams */
 
@@ -269,7 +269,7 @@ static int xml_2_track(bg_transcoder_track_t * t,
       child_node = node->children;
       while(child_node)
         {
-        if(child_node->name && !strcmp(child_node->name, "STREAM"))
+        if(child_node->name && !BG_XML_STRCMP(child_node->name, "STREAM"))
           t->num_audio_streams++;
         child_node = child_node->next;
         }
@@ -286,7 +286,7 @@ static int xml_2_track(bg_transcoder_track_t * t,
 
       while(child_node)
         {
-        if(child_node->name && !strcmp(child_node->name, "STREAM"))
+        if(child_node->name && !BG_XML_STRCMP(child_node->name, "STREAM"))
           {
           xml_2_audio(&(t->audio_streams[i]), xml_doc, child_node);
           i++;
@@ -295,7 +295,7 @@ static int xml_2_track(bg_transcoder_track_t * t,
         }
       
       }
-    else if(!strcmp(node->name, "VIDEO_STREAMS"))
+    else if(!BG_XML_STRCMP(node->name, "VIDEO_STREAMS"))
       {
       /* Count streams */
 
@@ -304,7 +304,7 @@ static int xml_2_track(bg_transcoder_track_t * t,
       child_node = node->children;
       while(child_node)
         {
-        if(child_node->name && !strcmp(child_node->name, "STREAM"))
+        if(child_node->name && !BG_XML_STRCMP(child_node->name, "STREAM"))
           t->num_video_streams++;
         child_node = child_node->next;
         }
@@ -321,7 +321,7 @@ static int xml_2_track(bg_transcoder_track_t * t,
 
       while(child_node)
         {
-        if(child_node->name && !strcmp(child_node->name, "STREAM"))
+        if(child_node->name && !BG_XML_STRCMP(child_node->name, "STREAM"))
           {
           xml_2_video(&(t->video_streams[i]), xml_doc, child_node);
           i++;
@@ -415,7 +415,7 @@ bg_transcoder_tracks_load(const char * filename,
 
   node = xml_doc->children;
 
-  if(strcmp(node->name, "TRANSCODER_TRACKS"))
+  if(BG_XML_STRCMP(node->name, "TRANSCODER_TRACKS"))
     {
     fprintf(stderr, "File %s contains no transcoder tracks\n", filename);
     xmlFreeDoc(xml_doc);
@@ -426,7 +426,7 @@ bg_transcoder_tracks_load(const char * filename,
   
   while(node)
     {
-    if(node->name && !strcmp(node->name, "TRACK"))
+    if(node->name && !BG_XML_STRCMP(node->name, "TRACK"))
       {
       /* Load track */
 

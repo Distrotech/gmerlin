@@ -125,7 +125,7 @@ int send_command(bg_lcdproc_t * l, char * command)
   {
   char * error_msg = (char*)0;
 //  fprintf(stderr, "Send command: %s\n", command);
-  if(!bg_tcp_send(l->fd, command, strlen(command), &error_msg))
+  if(!bg_tcp_send(l->fd, (uint8_t*)command, strlen(command), &error_msg))
     return 0;
 
   while(1)
@@ -160,7 +160,7 @@ static int do_connect(bg_lcdproc_t* l)
     }
   //  fprintf(stderr, "Done\n");
   /* Send hello and get answer */
-  if(!bg_tcp_send(l->fd, "hello\n", 6, &error_msg))
+  if(!bg_tcp_send(l->fd, (uint8_t*)"hello\n", 6, &error_msg))
     goto fail;
 
   if(!bg_tcp_read_line(l->fd, &(l->answer), &(l->answer_alloc), 500))

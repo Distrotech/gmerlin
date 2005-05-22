@@ -1668,7 +1668,7 @@ static void drag_received_callback(GtkWidget *widget,
     if(!strcmp(atom_name, "text/uri-list") ||
        !strcmp(atom_name, "text/plain"))
       {
-      bg_album_insert_urilist_before(dest_album, data->data, data->length,
+      bg_album_insert_urilist_before(dest_album, (char*)(data->data), data->length,
                                      (bg_album_entry_t*)0);
       
       
@@ -1676,7 +1676,7 @@ static void drag_received_callback(GtkWidget *widget,
       }
     else if(!strcmp(atom_name, bg_gtk_atom_entries_name))
       {
-      bg_album_insert_xml_before(dest_album, data->data, data->length,
+      bg_album_insert_xml_before(dest_album, (char*)(data->data), data->length,
                                  (bg_album_entry_t*)0);
       //      fprintf(stderr, "Gmerlin entries dropped\n");
       if(drag_context->action == GDK_ACTION_MOVE)

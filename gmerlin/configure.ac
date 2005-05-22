@@ -156,7 +156,7 @@ dnl
 dnl Libquicktime
 dnl
 
-LQT_REQUIRED="0.9.4"
+LQT_REQUIRED="0.9.6"
 have_lqt=false
 AC_ARG_ENABLE(lqt,
               AC_HELP_STRING(--disable-lqt, [Disable Libquicktime support (default: autodetect)]),
@@ -181,7 +181,7 @@ dnl
 
 have_cdio="false"
 
-CDIO_REQUIRED="0.73"
+CDIO_REQUIRED="0.74"
 
 PKG_CHECK_MODULES(CDIO, libcdio >= $CDIO_REQUIRED, have_cdio="true", have_cdio="false")
 

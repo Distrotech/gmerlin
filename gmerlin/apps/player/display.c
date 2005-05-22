@@ -742,13 +742,13 @@ void display_skin_load(display_skin_t * s,
       node = node->next;
       continue;
       }
-    tmp_string = xmlNodeListGetString(doc, node->children, 1);
+    tmp_string = (char*)xmlNodeListGetString(doc, node->children, 1);
 
-    if(!strcmp(node->name, "X"))
+    if(!BG_XML_STRCMP(node->name, "X"))
       s->x = atoi(tmp_string);
-    else if(!strcmp(node->name, "Y"))
+    else if(!BG_XML_STRCMP(node->name, "Y"))
       s->y = atoi(tmp_string);
-    else if(!strcmp(node->name, "BACKGROUND"))
+    else if(!BG_XML_STRCMP(node->name, "BACKGROUND"))
       {
       pos = tmp_string;
       s->background[0] = strtod(pos, &rest);
@@ -758,7 +758,7 @@ void display_skin_load(display_skin_t * s,
       s->background[2] = strtod(pos, &rest);
       
       }
-    else if(!strcmp(node->name, "FOREGROUND_NORMAL"))
+    else if(!BG_XML_STRCMP(node->name, "FOREGROUND_NORMAL"))
       {
       //      fprintf(stderr, "FOREGROUND_NORMAL %s\n", tmp_string);
       pos = tmp_string;
@@ -770,7 +770,7 @@ void display_skin_load(display_skin_t * s,
       //      fprintf(stderr, "FOREGROUND_NORMAL %f %f %f",
       //              s->foreground_normal[0], s->foreground_normal[1], s->foreground_normal[2]);
       }
-    else if(!strcmp(node->name, "FOREGROUND_ERROR"))
+    else if(!BG_XML_STRCMP(node->name, "FOREGROUND_ERROR"))
       {
       pos = tmp_string;
       s->foreground_error[0] = strtod(pos, &rest);

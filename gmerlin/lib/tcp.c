@@ -301,7 +301,7 @@ int bg_tcp_read_line(int fd, char ** ret, int * ret_alloc, int milliseconds)
   pos = *ret;
   while(1)
     {
-    if(!bg_tcp_read_data(fd, &c, 1, milliseconds))
+    if(!bg_tcp_read_data(fd, (uint8_t*)(&c), 1, milliseconds))
       {
       if(!bytes_read)
         return 0;

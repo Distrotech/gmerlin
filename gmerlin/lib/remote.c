@@ -130,7 +130,7 @@ static server_connection_t * add_connection(bg_remote_server_t * s,
 
   //  fprintf(stderr, "Sending welcome msg: %s\n", welcome_msg);
     
-  if(bg_socket_write_data(fd, welcome_msg, len) < len)
+  if(bg_socket_write_data(fd, (uint8_t*)welcome_msg, len) < len)
     goto fail;
   
 
@@ -373,7 +373,7 @@ int bg_remote_client_init(bg_remote_client_t * c,
                               VERSION, (c->read_messages ? "1" : "0"));
   len = strlen(answer_message);
 
-  if(bg_socket_write_data(c->fd, answer_message, len) < len)
+  if(bg_socket_write_data(c->fd, (uint8_t*)answer_message, len) < len)
     goto fail;
 
   fprintf(stderr, "Reading answer message\n");

@@ -358,29 +358,45 @@ void bg_msg_get_arg_audio_format(bg_msg_t * msg, int arg,
   uint8_t * ptr;
   uint8_t * pos;
   int i;
-  int32_t tmp;
-    
+  uint32_t tmp;
+  
+  
   ptr = bg_msg_get_arg_ptr(msg, arg, NULL);
   
   pos = ptr;
   
-  pos = get_32(pos, &(format->samples_per_frame));
-  pos = get_32(pos, &(format->samplerate));
-  pos = get_32(pos, &(format->num_channels));
-  pos = get_8(pos,  &(format->sample_format));
-  pos = get_8(pos,  &(format->interleave_mode));
-  pos = get_8(pos,  &(format->channel_setup));
-  pos = get_8(pos,  &(format->lfe));
+  pos = get_32(pos, &(tmp));
+  format->samples_per_frame = tmp;
 
+  pos = get_32(pos, &(tmp));
+  format->samplerate = tmp;
+  
+  pos = get_32(pos, &(tmp));
+  format->num_channels = tmp;
+  
+  pos = get_8(pos,  &(tmp));
+  format->sample_format = tmp;
+  
+  pos = get_8(pos,  &(tmp));
+  format->interleave_mode = tmp;
+  
+  pos = get_8(pos,  &(tmp));
+  format->channel_setup = tmp;
+
+  pos = get_8(pos,  &(tmp));
+  format->lfe = tmp;
+  
   pos = get_32(pos, &tmp);
   format->center_level = (float)(tmp)*1.0e-6;
 
   pos = get_32(pos, &tmp);
   format->rear_level = (float)(tmp)*1.0e-6;
-  
-  
+    
   for(i = 0; i < format->num_channels; i++)
-    pos = get_8(pos, &(format->channel_locations[i]));
+    {
+    pos = get_8(pos, &(tmp));
+    format->channel_locations[i] = tmp;
+    }
   
   free(ptr);
   }
@@ -427,6 +443,7 @@ void bg_msg_set_arg_video_format(bg_msg_t * msg, int arg,
 void bg_msg_get_arg_video_format(bg_msg_t * msg, int arg,
                                  gavl_video_format_t * format)
   {
+  uint32_t tmp;
   uint8_t * ptr;
   uint8_t * pos;
 
@@ -434,16 +451,16 @@ void bg_msg_get_arg_video_format(bg_msg_t * msg, int arg,
   
   pos = ptr;
 
-  pos = get_32(pos, &(format->frame_width));
-  pos = get_32(pos, &(format->frame_height));
-  pos = get_32(pos, &(format->image_width));
-  pos = get_32(pos, &(format->image_height));
-  pos = get_32(pos, &(format->pixel_width));
-  pos = get_32(pos, &(format->pixel_height));
-  pos = get_32(pos, &(format->colorspace));
-  pos = get_32(pos, &(format->timescale));
-  pos = get_32(pos, &(format->frame_duration));
-  pos = get_8(pos,  &(format->free_framerate));
+  pos = get_32(pos, &(tmp)); format->frame_width    = tmp;
+  pos = get_32(pos, &(tmp)); format->frame_height   = tmp;
+  pos = get_32(pos, &(tmp)); format->image_width    = tmp;
+  pos = get_32(pos, &(tmp)); format->image_height   = tmp;
+  pos = get_32(pos, &(tmp)); format->pixel_width    = tmp;
+  pos = get_32(pos, &(tmp)); format->pixel_height   = tmp;
+  pos = get_32(pos, &(tmp)); format->colorspace     = tmp;
+  pos = get_32(pos, &(tmp)); format->timescale      = tmp;
+  pos = get_32(pos, &(tmp)); format->frame_duration = tmp;
+  pos = get_8(pos,  &(tmp)); format->free_framerate = tmp;
   
   free(ptr);
   
@@ -497,6 +514,7 @@ void bg_msg_set_arg_metadata(bg_msg_t * msg, int arg,
 void bg_msg_get_arg_metadata(bg_msg_t * msg, int arg,
                              bg_metadata_t * m)
   {
+  uint32_t tmp;
   uint8_t * ptr;
   uint8_t * pos;
 
@@ -512,7 +530,8 @@ void bg_msg_get_arg_metadata(bg_msg_t * msg, int arg,
   pos = get_str(pos, &(m->comment));
   pos = get_str(pos, &(m->author));
   pos = get_str(pos, &(m->copyright));
-  pos = get_32(pos,  &(m->track));
+  pos = get_32(pos,  &(tmp));
+  m->track = tmp;
   
   free(ptr);
   }
@@ -867,7 +886,7 @@ int bg_message_read_socket(bg_msg_t * ret, int fd, int milliseconds)
   
   /* Message ID */
 
-  if(!read_uint32(fd, &val_i, 0))
+  if(!read_uint32(fd, (uint32_t*)(&val_i), 0))
     return 0;
 
   fprintf(stderr, "Read ID: %d\n", val_i);
@@ -901,7 +920,7 @@ int bg_message_read_socket(bg_msg_t * ret, int fd, int milliseconds)
         ret->args[i].value.val_f = (float)val_i/FLOAT_FRAC_FACTOR;
         break;
       case TYPE_POINTER:
-        if(!read_uint32(fd, &val_i, 1)) /* Length */
+        if(!read_uint32(fd, (uint32_t*)(&val_i), 1)) /* Length */
           return 0;
         ptr = bg_msg_set_arg_ptr(ret, i, val_i);
         if(bg_socket_read_data(fd, ret->args[i].value.val_ptr,

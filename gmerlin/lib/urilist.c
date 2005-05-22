@@ -44,7 +44,7 @@ char * bg_string_to_uri(const char * _pos, int len)
   num_substitutions = 0;
 
   if(len < 0)
-    len = strlen(pos);
+    len = strlen((char*)pos);
 
   for(i = 0; i < len; i++)
     {

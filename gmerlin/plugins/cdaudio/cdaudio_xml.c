@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <string.h>
+#include <utils.h>
 
 #include "cdaudio.h"
 
@@ -33,7 +34,7 @@ int bg_cdaudio_load(bg_track_info_t * tracks, const char * filename)
 
   node = xml_doc->children;
 
-  if(strcmp(node->name, "CD"))
+  if(BG_XML_STRCMP(node->name, "CD"))
     {
     fprintf(stderr, "File %s contains no CD metadata\n", filename);
     xmlFreeDoc(xml_doc);
@@ -46,7 +47,7 @@ int bg_cdaudio_load(bg_track_info_t * tracks, const char * filename)
 
   while(node)
     {
-    if(node->name && !strcmp(node->name, "TRACK"))
+    if(node->name && !BG_XML_STRCMP(node->name, "TRACK"))
       {
       bg_xml_2_metadata(xml_doc, node,
                         &(tracks[index].metadata));
@@ -67,18 +68,18 @@ void bg_cdaudio_save(bg_track_info_t * tracks, int num_tracks,
 
   xmlNodePtr xml_cd, child;
     
-  xml_doc = xmlNewDoc("1.0");
-  xml_cd = xmlNewDocRawNode(xml_doc, NULL, "CD", NULL);
+  xml_doc = xmlNewDoc((xmlChar*)"1.0");
+  xml_cd = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)"CD", NULL);
   xmlDocSetRootElement(xml_doc, xml_cd);
-  xmlAddChild(xml_cd, xmlNewText("\n"));
+  xmlAddChild(xml_cd, BG_XML_NEW_TEXT("\n"));
 
   for(i = 0; i < num_tracks; i++)
     {
-    child = xmlNewTextChild(xml_cd, (xmlNsPtr)0, "TRACK", NULL);
-    xmlAddChild(child, xmlNewText("\n"));
+    child = xmlNewTextChild(xml_cd, (xmlNsPtr)0, (xmlChar*)"TRACK", NULL);
+    xmlAddChild(child, BG_XML_NEW_TEXT("\n"));
     bg_metadata_2_xml(child,
                       &(tracks[i].metadata));
-    xmlAddChild(xml_cd, xmlNewText("\n"));
+    xmlAddChild(xml_cd, BG_XML_NEW_TEXT("\n"));
     }
 
   xmlSaveFile(filename, xml_doc);

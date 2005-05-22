@@ -668,40 +668,40 @@ void player_window_skin_load(player_window_skin_t * s,
       child = child->next;
       continue;
       }
-    else if(!strcmp(child->name, "BACKGROUND"))
+    else if(!BG_XML_STRCMP(child->name, "BACKGROUND"))
       {
-      tmp_string = xmlNodeListGetString(doc, child->children, 1);
+      tmp_string = (char*)xmlNodeListGetString(doc, child->children, 1);
       s->background = bg_strdup(s->background, tmp_string);
       xmlFree(tmp_string);
       }
-    else if(!strcmp(child->name, "BACKGROUND_HIGHLIGHT"))
+    else if(!BG_XML_STRCMP(child->name, "BACKGROUND_HIGHLIGHT"))
       {
-      tmp_string = xmlNodeListGetString(doc, child->children, 1);
+      tmp_string = (char*)xmlNodeListGetString(doc, child->children, 1);
       s->background_highlight = bg_strdup(s->background_highlight, tmp_string);
       xmlFree(tmp_string);
       }
 
-    else if(!strcmp(child->name, "DISPLAY"))
+    else if(!BG_XML_STRCMP(child->name, "DISPLAY"))
       display_skin_load(&(s->display), doc, child);
-    else if(!strcmp(child->name, "PLAYBUTTON"))
+    else if(!BG_XML_STRCMP(child->name, "PLAYBUTTON"))
       bg_gtk_button_skin_load(&(s->play_button), doc, child);
-    else if(!strcmp(child->name, "PAUSEBUTTON"))
+    else if(!BG_XML_STRCMP(child->name, "PAUSEBUTTON"))
       bg_gtk_button_skin_load(&(s->pause_button), doc, child);
-    else if(!strcmp(child->name, "NEXTBUTTON"))
+    else if(!BG_XML_STRCMP(child->name, "NEXTBUTTON"))
       bg_gtk_button_skin_load(&(s->next_button), doc, child);
-    else if(!strcmp(child->name, "PREVBUTTON"))
+    else if(!BG_XML_STRCMP(child->name, "PREVBUTTON"))
       bg_gtk_button_skin_load(&(s->prev_button), doc, child);
-    else if(!strcmp(child->name, "STOPBUTTON"))
+    else if(!BG_XML_STRCMP(child->name, "STOPBUTTON"))
       bg_gtk_button_skin_load(&(s->stop_button), doc, child);
-    else if(!strcmp(child->name, "MENUBUTTON"))
+    else if(!BG_XML_STRCMP(child->name, "MENUBUTTON"))
       bg_gtk_button_skin_load(&(s->menu_button), doc, child);
-    else if(!strcmp(child->name, "CLOSEBUTTON"))
+    else if(!BG_XML_STRCMP(child->name, "CLOSEBUTTON"))
       bg_gtk_button_skin_load(&(s->close_button), doc, child);
-    else if(!strcmp(child->name, "SEEKSLIDER"))
+    else if(!BG_XML_STRCMP(child->name, "SEEKSLIDER"))
       bg_gtk_slider_skin_load(&(s->seek_slider), doc, child);
-    else if(!strcmp(child->name, "VOLUMESLIDER"))
+    else if(!BG_XML_STRCMP(child->name, "VOLUMESLIDER"))
       bg_gtk_slider_skin_load(&(s->volume_slider), doc, child);
-    else if(!strcmp(child->name, "DISPLAY"))
+    else if(!BG_XML_STRCMP(child->name, "DISPLAY"))
       display_skin_load(&(s->display), doc, child);
     child = child->next;
     }

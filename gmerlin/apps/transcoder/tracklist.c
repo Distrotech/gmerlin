@@ -971,7 +971,7 @@ static void drag_received_callback(GtkWidget *widget,
     {
     //    fprintf(stderr, "Urilist\n");
     new_tracks =
-      bg_transcoder_track_create_from_urilist(data->data,
+      bg_transcoder_track_create_from_urilist((char*)(data->data),
                                               data->length,
                                               l->plugin_reg,
                                               l->track_defaults_section);
@@ -981,7 +981,7 @@ static void drag_received_callback(GtkWidget *widget,
   else if(is_albumentries(data))
     {
     //    fprintf(stderr, "Album entries\n");
-    track_list_add_xml(l, data->data, data->length);
+    track_list_add_xml(l, (char*)(data->data), data->length);
     }
 
   gtk_drag_finish(drag_context,

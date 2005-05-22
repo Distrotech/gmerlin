@@ -1470,12 +1470,12 @@ static void drag_received_callback(GtkWidget *widget,
           {
           case DND_GMERLIN_TRACKS:
           case DND_GMERLIN_TRACKS_R:
-            bg_album_insert_xml_before(aw->album, data->data, data->length,
+            bg_album_insert_xml_before(aw->album, (char*)(data->data), data->length,
                                        entry);
             break;
           case DND_TEXT_URI_LIST:
             gtk_widget_set_sensitive(aw->treeview, 0);
-            bg_album_insert_urilist_before(aw->album, data->data, data->length,
+            bg_album_insert_urilist_before(aw->album, (char*)(data->data), data->length,
                                            entry);
             gtk_widget_set_sensitive(aw->treeview, 1);
             break;
@@ -1487,12 +1487,12 @@ static void drag_received_callback(GtkWidget *widget,
           {
           case DND_GMERLIN_TRACKS:
           case DND_GMERLIN_TRACKS_R:
-            bg_album_insert_xml_after(aw->album, data->data, data->length,
+            bg_album_insert_xml_after(aw->album, (char*)(data->data), data->length,
                                       entry);
             break;
           case DND_TEXT_URI_LIST:
             gtk_widget_set_sensitive(aw->treeview, 0);
-            bg_album_insert_urilist_after(aw->album, data->data, data->length,
+            bg_album_insert_urilist_after(aw->album, (char*)(data->data), data->length,
                                           entry);
             gtk_widget_set_sensitive(aw->treeview, 1);
             break;
@@ -1505,11 +1505,11 @@ static void drag_received_callback(GtkWidget *widget,
     switch(source_type)
       {
       case DND_GMERLIN_TRACKS:
-        bg_album_insert_xml_before(aw->album, data->data, data->length,
+        bg_album_insert_xml_before(aw->album, (char*)(data->data), data->length,
                                    (bg_album_entry_t*)0);
         break;
       case DND_TEXT_URI_LIST:
-        bg_album_insert_urilist_before(aw->album, data->data, data->length,
+        bg_album_insert_urilist_before(aw->album, (char*)(data->data), data->length,
                                        (bg_album_entry_t*)0);
         break;
       }
@@ -1572,7 +1572,7 @@ static void drag_get_callback(GtkWidget *widget,
   if(!type_atom)
     return;
     
-  gtk_selection_data_set(data, type_atom, 8, str, len);
+  gtk_selection_data_set(data, type_atom, 8, (uint8_t*)str, len);
   free(str);
   }
 

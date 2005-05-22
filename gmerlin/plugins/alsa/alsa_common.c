@@ -105,14 +105,15 @@ static snd_pcm_t * bg_alsa_open(const char * card,
                                 unsigned int period_time,
                                 char ** error_msg)
   {
+  unsigned int i_tmp;
   int bytes_per_sample;
   int dir;
   snd_pcm_format_t alsa_format;
   snd_pcm_hw_params_t *hw_params = (snd_pcm_hw_params_t *)0;
   snd_pcm_t *ret                 = (snd_pcm_t *)0;
   
-  snd_pcm_sframes_t buffer_size;
-  snd_pcm_sframes_t period_size;
+  snd_pcm_uframes_t buffer_size;
+  snd_pcm_uframes_t period_size;
 
   /* We open in non blocking mode so our process won't hang if the card is
      busy */
@@ -232,13 +233,13 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   /* Samplerate */
   
   if(snd_pcm_hw_params_set_rate_near(ret, hw_params,
-                                     &(format->samplerate),
+                                     &(i_tmp),
                                      0) < 0)
     {
     if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_rate_near failed");
     goto fail;
     }
-
+  format->samplerate = i_tmp;
   /* Channels */
   
   if(snd_pcm_hw_params_set_channels(ret, hw_params,
@@ -277,6 +278,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
     }
 
   /* Buffer size */
+
   if(snd_pcm_hw_params_get_buffer_size(hw_params, &buffer_size) < 0)
     {
     if(error_msg)

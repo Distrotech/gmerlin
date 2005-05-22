@@ -467,7 +467,7 @@ alloc_frame_xv(x11_t * priv)
     
     ret = gavl_video_frame_create(&video_format);
     x11_frame->xv_image = XvCreateImage(priv->dpy, priv->xv_port,
-                                       priv->xv_format, ret->planes[0],
+                                        priv->xv_format, (char*)(ret->planes[0]),
                                        priv->video_format.frame_width, priv->video_format.frame_height);
     }
   else
@@ -479,11 +479,11 @@ alloc_frame_xv(x11_t * priv)
     {
     case XV_ID_YV12:
       ret->planes[0] =
-        x11_frame->xv_image->data + x11_frame->xv_image->offsets[0];
+        (uint8_t*)(x11_frame->xv_image->data + x11_frame->xv_image->offsets[0]);
       ret->planes[1] =
-        x11_frame->xv_image->data + x11_frame->xv_image->offsets[2];
+        (uint8_t*)(x11_frame->xv_image->data + x11_frame->xv_image->offsets[2]);
       ret->planes[2] =
-        x11_frame->xv_image->data + x11_frame->xv_image->offsets[1];
+        (uint8_t*)(x11_frame->xv_image->data + x11_frame->xv_image->offsets[1]);
       
       ret->strides[0]      = x11_frame->xv_image->pitches[0];
       ret->strides[1]      = x11_frame->xv_image->pitches[2];
@@ -491,11 +491,11 @@ alloc_frame_xv(x11_t * priv)
       break;
     case XV_ID_I420:
       ret->planes[0] =
-        x11_frame->xv_image->data + x11_frame->xv_image->offsets[0];
+        (uint8_t*)(x11_frame->xv_image->data + x11_frame->xv_image->offsets[0]);
       ret->planes[1] =
-        x11_frame->xv_image->data + x11_frame->xv_image->offsets[1];
+        (uint8_t*)(x11_frame->xv_image->data + x11_frame->xv_image->offsets[1]);
       ret->planes[2] =
-        x11_frame->xv_image->data + x11_frame->xv_image->offsets[2];
+        (uint8_t*)(x11_frame->xv_image->data + x11_frame->xv_image->offsets[2]);
       
       ret->strides[0] = x11_frame->xv_image->pitches[0];
       ret->strides[1] = x11_frame->xv_image->pitches[1];
@@ -504,7 +504,7 @@ alloc_frame_xv(x11_t * priv)
     case XV_ID_YUY2:
     case XV_ID_UYVY:
       ret->planes[0] =
-        x11_frame->xv_image->data + x11_frame->xv_image->offsets[0];
+        (uint8_t*)(x11_frame->xv_image->data + x11_frame->xv_image->offsets[0]);
       ret->strides[0] = x11_frame->xv_image->pitches[0];
       break;
     }
@@ -552,7 +552,7 @@ alloc_frame_ximage(x11_t * priv, gavl_video_format_t * format)
 
       ret = calloc(1, sizeof(*ret));
 
-      ret->planes[0] = x11_frame->x11_image->data;
+      ret->planes[0] = (uint8_t*)(x11_frame->x11_image->data);
       ret->strides[0] = x11_frame->x11_image->bytes_per_line;
       }
     }
@@ -570,7 +570,7 @@ alloc_frame_ximage(x11_t * priv, gavl_video_format_t * format)
     ret = gavl_video_frame_create(&video_format);
     
     x11_frame->x11_image = XCreateImage(priv->dpy, visual, depth, ZPixmap,
-                                        0, ret->planes[0],
+                                        0, (char*)(ret->planes[0]),
                                         format->frame_width,
                                         format->frame_height,
                                         32,

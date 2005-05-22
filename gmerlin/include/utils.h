@@ -130,4 +130,14 @@ int bg_read_line_fd(int fd, char ** ret, int * ret_alloc);
 
 char * bg_create_unique_filename(char * format);
 
+/* 
+ *  Macro, which calls strcmp, but casts the first argument to char*
+ *  This is needed because libxml strings are uint8_t*
+ */
+
+#define BG_XML_STRCMP(a, b) strcmp((char*)a, b)
+#define BG_XML_GET_PROP(a, b) (char*)xmlGetProp(a, (xmlChar*)b)
+#define BG_XML_SET_PROP(a, b, c) xmlSetProp(a, (xmlChar*)b, (xmlChar*)c)
+#define BG_XML_NEW_TEXT(a) xmlNewText((xmlChar*)a)
+
 #endif // __BG_UTILS_H_

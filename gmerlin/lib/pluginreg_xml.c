@@ -95,14 +95,14 @@ load_device(bg_device_info_t * arr, xmlDocPtr doc, xmlNodePtr node)
       cur = cur->next;
       continue;
       }
-    tmp_string = xmlNodeListGetString(doc, cur->children, 1);
+    tmp_string = (char*)xmlNodeListGetString(doc, cur->children, 1);
 
-    if(!strcmp(cur->name, name_key))
+    if(!BG_XML_STRCMP(cur->name, name_key))
       {
       name = tmp_string;
       tmp_string = (char*)0;
       }
-    else if(!strcmp(cur->name, device_key))
+    else if(!BG_XML_STRCMP(cur->name, device_key))
       {
       device = tmp_string;
       tmp_string = (char*)0;
@@ -139,7 +139,7 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
 
   ret = calloc(1, sizeof(*ret));
 
-  tmp_string = xmlGetProp(node, name_key);
+  tmp_string = BG_XML_GET_PROP(node, name_key);
   
   if(tmp_string)
     {
@@ -157,37 +157,37 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
       continue;
       }
 
-    tmp_string = xmlNodeListGetString(doc, cur->children, 1);
+    tmp_string = (char*)xmlNodeListGetString(doc, cur->children, 1);
 
-    if(!strcmp(cur->name, name_key))
+    if(!BG_XML_STRCMP(cur->name, name_key))
       {
       ret->name = bg_strdup(ret->name, tmp_string);
       }
-    else if(!strcmp(cur->name, long_name_key))
+    else if(!BG_XML_STRCMP(cur->name, long_name_key))
       {
       ret->long_name = bg_strdup(ret->long_name, tmp_string);
       }
-    else if(!strcmp(cur->name, mimetypes_key))
+    else if(!BG_XML_STRCMP(cur->name, mimetypes_key))
       {
       ret->mimetypes = bg_strdup(ret->mimetypes, tmp_string);
       }
-    else if(!strcmp(cur->name, extensions_key))
+    else if(!BG_XML_STRCMP(cur->name, extensions_key))
       {
       ret->extensions = bg_strdup(ret->extensions, tmp_string);
       }
-    else if(!strcmp(cur->name, module_filename_key))
+    else if(!BG_XML_STRCMP(cur->name, module_filename_key))
       {
       ret->module_filename = bg_strdup(ret->module_filename, tmp_string);
       }
-    else if(!strcmp(cur->name, module_time_key))
+    else if(!BG_XML_STRCMP(cur->name, module_time_key))
       {
       sscanf(tmp_string, "%ld", &(ret->module_time));
       }
-    else if(!strcmp(cur->name, priority_key))
+    else if(!BG_XML_STRCMP(cur->name, priority_key))
       {
       sscanf(tmp_string, "%d", &(ret->priority));
       }
-    else if(!strcmp(cur->name, type_key))
+    else if(!BG_XML_STRCMP(cur->name, type_key))
       {
       index = 0;
       while(type_names[index].name)
@@ -200,7 +200,7 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
         index++;
         }
       }
-    else if(!strcmp(cur->name, flags_key))
+    else if(!BG_XML_STRCMP(cur->name, flags_key))
       {
       start_ptr = tmp_string;
 
@@ -224,7 +224,7 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
         start_ptr++;
         }
       }
-    else if(!strcmp(cur->name, device_info_key))
+    else if(!BG_XML_STRCMP(cur->name, device_info_key))
       {
       ret->devices = load_device(ret->devices, doc, cur);
       }
@@ -258,22 +258,22 @@ static void save_devices(xmlNodePtr parent, const bg_device_info_t * info)
   i = 0;
   while(info[i].device)
     {
-    xmlAddChild(parent, xmlNewText("\n"));
+    xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     
     xml_device = xmlNewTextChild(parent, (xmlNsPtr)0,
-                                 device_info_key, NULL);
+                                 (xmlChar*)device_info_key, NULL);
         
-    xmlAddChild(xml_device, xmlNewText("\n"));
+    xmlAddChild(xml_device, BG_XML_NEW_TEXT("\n"));
     
-    xml_item = xmlNewTextChild(xml_device, (xmlNsPtr)0, device_key, NULL);
-    xmlAddChild(xml_item, xmlNewText(info[i].device));
-    xmlAddChild(xml_device, xmlNewText("\n"));
+    xml_item = xmlNewTextChild(xml_device, (xmlNsPtr)0, (xmlChar*)device_key, NULL);
+    xmlAddChild(xml_item, BG_XML_NEW_TEXT(info[i].device));
+    xmlAddChild(xml_device, BG_XML_NEW_TEXT("\n"));
 
     if(info[i].name)
       {
-      xml_item = xmlNewTextChild(xml_device, (xmlNsPtr)0, name_key, NULL);
-      xmlAddChild(xml_item, xmlNewText(info[i].name));
-      xmlAddChild(xml_device, xmlNewText("\n"));
+      xml_item = xmlNewTextChild(xml_device, (xmlNsPtr)0, (xmlChar*)name_key, NULL);
+      xmlAddChild(xml_item, BG_XML_NEW_TEXT(info[i].name));
+      xmlAddChild(xml_device, BG_XML_NEW_TEXT("\n"));
       }
     i++;
     }
@@ -292,36 +292,36 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
   xmlNodePtr xml_plugin;
   xmlNodePtr xml_item;
 
-  xmlAddChild(parent, xmlNewText("\n"));
+  xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
     
   xml_plugin = xmlNewTextChild(parent, (xmlNsPtr)0,
-                               plugin_key, NULL);
-  xmlAddChild(xml_plugin, xmlNewText("\n"));
+                               (xmlChar*)plugin_key, NULL);
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, name_key, NULL);
-  xmlAddChild(xml_item, xmlNewText(info->name));
-  xmlAddChild(xml_plugin, xmlNewText("\n"));
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)name_key, NULL);
+  xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->name));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, long_name_key, NULL);
-  xmlAddChild(xml_item, xmlNewText(info->long_name));
-  xmlAddChild(xml_plugin, xmlNewText("\n"));
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)long_name_key, NULL);
+  xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->long_name));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, module_filename_key,
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)module_filename_key,
                              NULL);
-  xmlAddChild(xml_item, xmlNewText(info->module_filename));
-  xmlAddChild(xml_plugin, xmlNewText("\n"));
+  xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->module_filename));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
   
   if(info->extensions)
     {
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, extensions_key, NULL);
-    xmlAddChild(xml_item, xmlNewText(info->extensions));
-    xmlAddChild(xml_plugin, xmlNewText("\n"));
+    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)extensions_key, NULL);
+    xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->extensions));
+    xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
   if(info->mimetypes)
     {
-    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, mimetypes_key, NULL);
-    xmlAddChild(xml_item, xmlNewText(info->mimetypes));
-    xmlAddChild(xml_plugin, xmlNewText("\n"));
+    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)mimetypes_key, NULL);
+    xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->mimetypes));
+    xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
 
   index = 0;
@@ -329,9 +329,9 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
     {
     if(info->type == type_names[index].type)
       {
-      xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, type_key, NULL);
-      xmlAddChild(xml_item, xmlNewText(type_names[index].name));
-      xmlAddChild(xml_plugin, xmlNewText("\n"));
+      xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)type_key, NULL);
+      xmlAddChild(xml_item, BG_XML_NEW_TEXT(type_names[index].name));
+      xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
       break;
       }
     index++;
@@ -362,19 +362,19 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
       strcat(buffer, "|");
     index++;
     }
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, flags_key, NULL);
-  xmlAddChild(xml_item, xmlNewText(buffer));
-  xmlAddChild(xml_plugin, xmlNewText("\n"));
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)flags_key, NULL);
+  xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
   
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, module_time_key, NULL);
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)module_time_key, NULL);
   sprintf(buffer, "%ld", info->module_time);
-  xmlAddChild(xml_item, xmlNewText(buffer));
-  xmlAddChild(xml_plugin, xmlNewText("\n"));
+  xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, priority_key, NULL);
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)priority_key, NULL);
   sprintf(buffer, "%d", info->priority);
-  xmlAddChild(xml_item, xmlNewText(buffer));
-  xmlAddChild(xml_plugin, xmlNewText("\n"));
+  xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
   if(info->devices && info->devices->device)
     save_devices(xml_plugin, info->devices);
@@ -399,7 +399,7 @@ bg_plugin_info_t * bg_plugin_registry_load(const char * filename)
 
   node = xml_doc->children;
 
-  if(strcmp(node->name, plugin_registry_key))
+  if(BG_XML_STRCMP(node->name, plugin_registry_key))
     {
     fprintf(stderr, "File %s contains no plugin registry\n", filename);
     xmlFreeDoc(xml_doc);
@@ -410,7 +410,7 @@ bg_plugin_info_t * bg_plugin_registry_load(const char * filename)
     
   while(node)
     {
-    if(node->name && !strcmp(node->name, plugin_key))
+    if(node->name && !BG_XML_STRCMP(node->name, plugin_key))
       {
       if(!ret)
         {
@@ -446,8 +446,8 @@ void bg_plugin_registry_save(bg_plugin_info_t * info)
     }
   
   old_locale = setlocale(LC_NUMERIC, "C");
-  xml_doc = xmlNewDoc("1.0");
-  xml_registry = xmlNewDocRawNode(xml_doc, NULL, plugin_registry_key, NULL);
+  xml_doc = xmlNewDoc((xmlChar*)"1.0");
+  xml_registry = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)plugin_registry_key, NULL);
   xmlDocSetRootElement(xml_doc, xml_registry);
     
   while(info)
@@ -455,7 +455,7 @@ void bg_plugin_registry_save(bg_plugin_info_t * info)
     save_plugin(xml_registry, info);
     info = info->next;
     }
-  xmlAddChild(xml_registry, xmlNewText("\n"));
+  xmlAddChild(xml_registry, BG_XML_NEW_TEXT("\n"));
   xmlSaveFile(filename, xml_doc);
   xmlFreeDoc(xml_doc);
   setlocale(LC_NUMERIC, old_locale);

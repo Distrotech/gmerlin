@@ -50,7 +50,7 @@ typedef struct skin_info_s
 static skin_info_t * scan_directory(const char * directory)
   {
   skin_info_t * ret = (skin_info_t*)0;
-  skin_info_t * ret_end;
+  skin_info_t * ret_end = (skin_info_t*)0;
   skin_info_t * new_info;
   const char * start;
     
@@ -122,7 +122,7 @@ static skin_info_t * skin_info_create()
   char * directory;
   
   skin_info_t * system_skins;
-  skin_info_t * home_skins;
+  skin_info_t * home_skins = (skin_info_t*)0;
 
   skin_info_t * ret_end;
 

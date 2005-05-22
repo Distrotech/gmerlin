@@ -528,7 +528,7 @@ void card_widget_tearoff_control(card_widget_t * c, control_widget_t * w)
 
 void card_widget_tearon_control(card_widget_t * c, control_widget_t * w)
   {
-  own_window_t * win;
+  own_window_t * win = (own_window_t *)0;
   GList * item;
   int index;
   
@@ -542,7 +542,8 @@ void card_widget_tearon_control(card_widget_t * c, control_widget_t * w)
       break;
     item = item->next;
     }
-
+  if(!win)
+    return;
   gtk_widget_hide(win->window);
   gtk_container_remove(GTK_CONTAINER(win->window), control_widget_get_widget(win->control));
   

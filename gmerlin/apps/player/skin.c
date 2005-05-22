@@ -58,7 +58,7 @@ char * gmerlin_skin_load(gmerlin_skin_t * s, char * directory)
   
   node = doc->children;
   
-  if(strcmp(node->name, "SKIN"))
+  if(BG_XML_STRCMP(node->name, "SKIN"))
     {
     fprintf(stderr, "File %s contains no skin\n", filename);
     goto fail;
@@ -76,7 +76,7 @@ char * gmerlin_skin_load(gmerlin_skin_t * s, char * directory)
 
     /* Main window */
         
-    if(!strcmp(node->name, "PLAYERWIN"))
+    if(!BG_XML_STRCMP(node->name, "PLAYERWIN"))
       player_window_skin_load(&(s->playerwindow), doc, node);
     
     node = node->next;

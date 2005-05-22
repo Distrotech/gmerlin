@@ -38,8 +38,8 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
 
   memset(&info, 0, sizeof(info));
   
-  tmp_type = xmlGetProp(xml_item, "type");
-  info.name = xmlGetProp(xml_item, "name");
+  tmp_type = BG_XML_GET_PROP(xml_item, "type");
+  info.name = BG_XML_GET_PROP(xml_item, "name");
   
   if(!tmp_type || !info.name)
     {
@@ -83,7 +83,7 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
 
   item = bg_cfg_section_find_item(cfg_section, &info);
   
-  tmp_string = xmlNodeListGetString(xml_doc, xml_item->children, 1);
+  tmp_string = (char*)xmlNodeListGetString(xml_doc, xml_item->children, 1);
   
   switch(item->type)
     {
@@ -135,14 +135,14 @@ void bg_cfg_xml_2_section(xmlDocPtr xml_doc,
       continue;
       }
     /* Load items */
-    else if(!strcmp(cur->name, "ITEM"))
+    else if(!BG_XML_STRCMP(cur->name, "ITEM"))
       {
       load_item(xml_doc, cur, cfg_section);
       }
     /* Load child */
-    else if(!strcmp(cur->name, "SECTION"))
+    else if(!BG_XML_STRCMP(cur->name, "SECTION"))
       {
-      name = xmlGetProp(cur, "name");
+      name = BG_XML_GET_PROP(cur, "name");
       if(name)
         {
         cfg_child_section = bg_cfg_section_find_subsection(cfg_section, name);
@@ -171,7 +171,7 @@ void bg_cfg_registry_load(bg_cfg_registry_t * r, const char * filename)
 
   node = xml_doc->children;
 
-  if(strcmp(node->name, "REGISTRY"))
+  if(BG_XML_STRCMP(node->name, "REGISTRY"))
     {
     fprintf(stderr, "File %s contains no config registry\n", filename);
     xmlFreeDoc(xml_doc);
@@ -182,9 +182,9 @@ void bg_cfg_registry_load(bg_cfg_registry_t * r, const char * filename)
 
   while(node)
     {
-    if(node->name && !strcmp(node->name, "SECTION"))
+    if(node->name && !BG_XML_STRCMP(node->name, "SECTION"))
       {
-      section_name = xmlGetProp(node, "name");
+      section_name = BG_XML_GET_PROP(node, "name");
       if(section_name)
         {
         cfg_section = bg_cfg_registry_find_section(r, section_name);
@@ -211,47 +211,47 @@ void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
 
   item = section->items;
 
-  xmlAddChild(xml_section, xmlNewText("\n"));
+  xmlAddChild(xml_section, BG_XML_NEW_TEXT("\n"));
 
   while(item)
     {
-    xml_item = xmlNewTextChild(xml_section, (xmlNsPtr)0, "ITEM", NULL);
-    xmlSetProp(xml_item, "name", item->name);
+    xml_item = xmlNewTextChild(xml_section, (xmlNsPtr)0, (xmlChar*)"ITEM", NULL);
+    BG_XML_SET_PROP(xml_item, "name", item->name);
     
     switch(item->type)
       {
       case BG_CFG_INT:
-        xmlSetProp(xml_item, "type", "int");
+        BG_XML_SET_PROP(xml_item, "type", "int");
         sprintf(buffer, "%d", item->value.val_i);
-        xmlAddChild(xml_item, xmlNewText(buffer));
+        xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
         break;
       case BG_CFG_TIME:
-        xmlSetProp(xml_item, "type", "time");
+        BG_XML_SET_PROP(xml_item, "type", "time");
         sprintf(buffer, "%lld", item->value.val_time);
-        xmlAddChild(xml_item, xmlNewText(buffer));
+        xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
         break;
       case BG_CFG_FLOAT:
-        xmlSetProp(xml_item, "type", "float");
+        BG_XML_SET_PROP(xml_item, "type", "float");
         sprintf(buffer, "%f", item->value.val_f);
-        xmlAddChild(xml_item, xmlNewText(buffer));
+        xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
         break;
       case BG_CFG_STRING:
-        xmlSetProp(xml_item, "type", "string");
+        BG_XML_SET_PROP(xml_item, "type", "string");
         /* Yes, that's stupid */
         if(item->value.val_str)
-          xmlAddChild(xml_item, xmlNewText(item->value.val_str));
+          xmlAddChild(xml_item, BG_XML_NEW_TEXT(item->value.val_str));
         break;
       case BG_CFG_COLOR:
-        xmlSetProp(xml_item, "type", "color");
+        BG_XML_SET_PROP(xml_item, "type", "color");
         sprintf(buffer, "%f %f %f %f",
                 item->value.val_color[0],
                 item->value.val_color[1],
                 item->value.val_color[2],
                 item->value.val_color[3]);
-        xmlAddChild(xml_item, xmlNewText(buffer));
+        xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
         break;
       }
-    xmlAddChild(xml_section, xmlNewText("\n"));
+    xmlAddChild(xml_section, BG_XML_NEW_TEXT("\n"));
     
     item = item->next;
     }
@@ -261,11 +261,11 @@ void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
   tmp_section = section->children;
   while(tmp_section)
     {
-    xml_child = xmlNewTextChild(xml_section, (xmlNsPtr)0, "SECTION", NULL);
-    xmlSetProp(xml_child, "name", tmp_section->name);
+    xml_child = xmlNewTextChild(xml_section, (xmlNsPtr)0, (xmlChar*)"SECTION", NULL);
+    BG_XML_SET_PROP(xml_child, "name", tmp_section->name);
 
     bg_cfg_section_2_xml(tmp_section, xml_child);
-    xmlAddChild(xml_section, xmlNewText("\n"));
+    xmlAddChild(xml_section, BG_XML_NEW_TEXT("\n"));
     
     tmp_section = tmp_section->next;
     }
@@ -284,22 +284,22 @@ void bg_cfg_registry_save(bg_cfg_registry_t * r, const char * filename)
   
   //  old_locale = setlocale(LC_NUMERIC, "C");
   
-  xml_doc = xmlNewDoc("1.0");
-  xml_registry = xmlNewDocRawNode(xml_doc, NULL, "REGISTRY", NULL);
+  xml_doc = xmlNewDoc((xmlChar*)"1.0");
+  xml_registry = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)"REGISTRY", NULL);
   xmlDocSetRootElement(xml_doc, xml_registry);
 
-  xmlAddChild(xml_registry, xmlNewText("\n"));
+  xmlAddChild(xml_registry, BG_XML_NEW_TEXT("\n"));
   
   tmp_section = r->sections;
   while(tmp_section)
     {
-    xml_section = xmlNewTextChild(xml_registry, (xmlNsPtr)0, "SECTION", NULL);
-    xmlSetProp(xml_section, "name", tmp_section->name);
+    xml_section = xmlNewTextChild(xml_registry, (xmlNsPtr)0, (xmlChar*)"SECTION", NULL);
+    BG_XML_SET_PROP(xml_section, "name", tmp_section->name);
     
     bg_cfg_section_2_xml(tmp_section, xml_section);
     tmp_section = tmp_section->next;
 
-    xmlAddChild(xml_registry, xmlNewText("\n"));
+    xmlAddChild(xml_registry, BG_XML_NEW_TEXT("\n"));
     
     }
   xmlSaveFile(filename, xml_doc);
