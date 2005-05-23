@@ -12,7 +12,7 @@
  * -------------------------------------------------------------------------*/
 
 /*@unused@*/ static const char rcsid[] =
-    "$Id: targa.c,v 1.2 2004-11-13 16:48:09 gmerlin Exp $";
+    "$Id: targa.c,v 1.3 2005-05-23 22:22:03 gmerlin Exp $";
 
 #define TGA_KEEP_MACROS /* BIT, htole16, letoh16 */
 #include "targa.h"
@@ -349,7 +349,7 @@ tga_result tga_read_from_FILE(tga_image *dest, FILE *fp)
   buf = malloc(len);
   fread(buf, 1, len, fp);
     
-  result = tga_read_from_memory(dest, buf, len, NULL, 0);
+  result = tga_read_from_memory(dest, (uint8_t*)buf, len, NULL, 0);
   free(buf);
   return result;
   }

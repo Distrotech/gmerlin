@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
  *
- * $Id: pnm.c,v 1.2 2004-07-18 00:35:14 gmerlin Exp $
+ * $Id: pnm.c,v 1.3 2005-05-23 22:22:03 gmerlin Exp $
  *
  * pnm protocol implementation 
  * based upon code from joschka
@@ -144,11 +144,11 @@ const unsigned char pnm_data_header[]={
 #define PNA_CLIENT_STRING    0x63
 #define PNA_PATH_REQUEST     0x52
 
-const unsigned char pnm_challenge[] = "0990f6b4508b51e801bd6da011ad7b56";
-const unsigned char pnm_timestamp[] = "[15/06/1999:22:22:49 00:00]";
-const unsigned char pnm_guid[]      = "3eac2411-83d5-11d2-f3ea-d7c3a51aa8b0";
-const unsigned char pnm_response[]  = "97715a899cbe41cee00dd434851535bf";
-const unsigned char client_string[] = "WinNT_9.0_6.0.6.45_plus32_MP60_en-US_686l";
+const char pnm_challenge[] = "0990f6b4508b51e801bd6da011ad7b56";
+const char pnm_timestamp[] = "[15/06/1999:22:22:49 00:00]";
+const char pnm_guid[]      = "3eac2411-83d5-11d2-f3ea-d7c3a51aa8b0";
+const char pnm_response[]  = "97715a899cbe41cee00dd434851535bf";
+const char client_string[] = "WinNT_9.0_6.0.6.45_plus32_MP60_en-US_686l";
 
 #define PNM_HEADER_SIZE 11
 const unsigned char pnm_header[] = {
@@ -414,7 +414,7 @@ static void pnm_send_request(pnm_t *p, uint32_t bandwidth) {
   c+=pnm_write_chunk(PNA_CLIENT_CHALLANGE,strlen(pnm_challenge),
           pnm_challenge,&p->buffer[c]);
   c+=pnm_write_chunk(PNA_CLIENT_CAPS,PNM_CLIENT_CAPS_SIZE,
-          pnm_client_caps,&p->buffer[c]);
+                     (char*)pnm_client_caps,&p->buffer[c]);
   c+=pnm_write_chunk(0x0a,0,NULL,&p->buffer[c]);
   c+=pnm_write_chunk(0x0c,0,NULL,&p->buffer[c]);
   c+=pnm_write_chunk(0x0d,0,NULL,&p->buffer[c]);
@@ -433,7 +433,7 @@ static void pnm_send_request(pnm_t *p, uint32_t bandwidth) {
   c+=pnm_write_chunk(PNA_GUID,strlen(pnm_guid),
           pnm_guid,&p->buffer[c]);
   c+=pnm_write_chunk(PNA_TWENTYFOUR,PNM_TWENTYFOUR_SIZE,
-          pnm_twentyfour,&p->buffer[c]);
+                     (char*)pnm_twentyfour,&p->buffer[c]);
   
   /* data after chunks */
   memcpy(&p->buffer[c],after_chunks,after_chunks_length);
@@ -504,7 +504,7 @@ static int pnm_get_headers(pnm_t *p, int *need_response) {
       printf("input_pnm: header buffer overflow. exiting\n");
       return 0;
     }
-    chunk_size=pnm_get_chunk(p,HEADER_SIZE-size,&chunk_type,ptr,&nr);
+    chunk_size=pnm_get_chunk(p,HEADER_SIZE-size,&chunk_type,(char*)ptr,&nr);
     if (chunk_size < 0) return 0;
     if (chunk_type == 0) break;
     if (chunk_type == PNA_TAG)
@@ -782,7 +782,7 @@ int pnm_read (pnm_t *this, char *data, int len) {
   
   int to_copy=len;
   char *dest=data;
-  char *source=this->recv + this->recv_read;
+  char *source=(char*)(this->recv + this->recv_read);
   int fill=this->recv_size - this->recv_read;
   
   if (len < 0) return 0;
@@ -798,7 +798,7 @@ int pnm_read (pnm_t *this, char *data, int len) {
       fprintf (stderr, "input_pnm: %d of %d bytes provided\n", len-to_copy, len);
       return len-to_copy;
       }
-    source = this->recv;
+    source = (char*)(this->recv);
     fill = this->recv_size - this->recv_read;
   }
 
