@@ -35,7 +35,7 @@ static const char * name_from_type(vis_plugin_type_t type)
   return (const char*)0;
   }
 
-static const vis_plugin_type_t type_from_name(char * name)
+static vis_plugin_type_t type_from_name(char * name)
   {
   int i = 0;
   while(type_names[i].name)
@@ -63,7 +63,7 @@ static vis_plugin_info_t * load_plugin(xmlDocPtr xml_doc, xmlNodePtr node)
 
   ret = calloc(1, sizeof(*ret));
   
-  if((tmp_string = xmlGetProp(node, enabled_name)))
+  if((tmp_string = (char*)xmlGetProp(node, (xmlChar*)enabled_name)))
     {
     ret->enabled = 1;
     xmlFree(tmp_string);
@@ -77,25 +77,25 @@ static vis_plugin_info_t * load_plugin(xmlDocPtr xml_doc, xmlNodePtr node)
       node = node->next;
       continue;
       }
-    tmp_string = xmlNodeListGetString(xml_doc, node->children, 1);
+    tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
     
-    if(!strcmp(node->name, type_name))
+    if(!BG_XML_STRCMP(node->name, type_name))
       {
       ret->type = type_from_name(tmp_string);
       }
-    else if(!strcmp(node->name, name_name))
+    else if(!BG_XML_STRCMP(node->name, name_name))
       {
       ret->name = bg_strdup(ret->name, tmp_string);
       }
-    else if(!strcmp(node->name, long_name_name))
+    else if(!BG_XML_STRCMP(node->name, long_name_name))
       {
       ret->long_name = bg_strdup(ret->long_name, tmp_string);
       }
-    else if(!strcmp(node->name, module_filename_name))
+    else if(!BG_XML_STRCMP(node->name, module_filename_name))
       {
       ret->module_filename = bg_strdup(ret->module_filename, tmp_string);
       }
-    else if(!strcmp(node->name, module_time_name))
+    else if(!BG_XML_STRCMP(node->name, module_time_name))
       {
       sscanf(tmp_string, "%ld", &(ret->module_time));
       }
@@ -128,7 +128,7 @@ vis_plugin_info_t * vis_plugins_load()
 
   node = xml_doc->children;
 
-  if(strcmp(node->name, plugins_name))
+  if(BG_XML_STRCMP(node->name, plugins_name))
     {
     xmlFreeDoc(xml_doc);
     return (vis_plugin_info_t*)0;
@@ -143,7 +143,7 @@ vis_plugin_info_t * vis_plugins_load()
       node = node->next;
       continue;
       }
-    else if(!strcmp(node->name, plugin_name))
+    else if(!BG_XML_STRCMP(node->name, plugin_name))
       {
       new_info = load_plugin(xml_doc, node);
       if(!ret_end)
@@ -172,39 +172,39 @@ static void save_plugin(xmlNodePtr parent, const vis_plugin_info_t * info)
   xmlNodePtr xml_item;
   
   xml_plugin = xmlNewTextChild(parent, (xmlNsPtr)0,
-                               plugin_name, NULL);
+                               (xmlChar*)plugin_name, NULL);
 
   if(info->enabled)
     {
-    xmlSetProp(xml_plugin, enabled_name, "1");
+    BG_XML_SET_PROP(xml_plugin, enabled_name, "1");
     }
     
-  xmlAddChild(xml_plugin, xmlNewText("\n"));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, type_name, NULL);
-  xmlAddChild(xml_item, xmlNewText(name_from_type(info->type)));
-  xmlAddChild(xml_plugin, xmlNewText("\n"));
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)type_name, NULL);
+  xmlAddChild(xml_item, BG_XML_NEW_TEXT(name_from_type(info->type)));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
   
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, name_name, NULL);
-  xmlAddChild(xml_item, xmlNewText(info->name));
-  xmlAddChild(xml_plugin, xmlNewText("\n"));
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)name_name, NULL);
+  xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->name));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, long_name_name, NULL);
-  xmlAddChild(xml_item, xmlNewText(info->long_name));
-  xmlAddChild(xml_plugin, xmlNewText("\n"));
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)long_name_name, NULL);
+  xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->long_name));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
   
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, module_filename_name, NULL);
-  xmlAddChild(xml_item, xmlNewText(info->module_filename));
-  xmlAddChild(xml_plugin, xmlNewText("\n"));
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)module_filename_name, NULL);
+  xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->module_filename));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, module_time_name, NULL);
+  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)module_time_name, NULL);
 
   tmp_string = bg_sprintf("%ld", info->module_time);
-  xmlAddChild(xml_item, xmlNewText(tmp_string));
+  xmlAddChild(xml_item, BG_XML_NEW_TEXT(tmp_string));
   free(tmp_string);
   
-  xmlAddChild(xml_plugin, xmlNewText("\n"));
+  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
   
   }
 
@@ -220,8 +220,8 @@ void vis_plugins_save(vis_plugin_info_t * info)
     return;
 
   
-  xml_doc = xmlNewDoc("1.0");
-  xml_plugins = xmlNewDocRawNode(xml_doc, NULL, plugins_name, NULL);
+  xml_doc = xmlNewDoc((xmlChar*)"1.0");
+  xml_plugins = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)plugins_name, NULL);
   xmlDocSetRootElement(xml_doc, xml_plugins);
   
   while(info)
@@ -229,7 +229,7 @@ void vis_plugins_save(vis_plugin_info_t * info)
     save_plugin(xml_plugins, info);
     info = info->next;
     }
-  xmlAddChild(xml_plugins, xmlNewText("\n"));
+  xmlAddChild(xml_plugins, BG_XML_NEW_TEXT("\n"));
   xmlSaveFile(filename, xml_doc);
   xmlFreeDoc(xml_doc);
 
