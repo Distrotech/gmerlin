@@ -424,8 +424,8 @@ static void set_parameter_flac(void * data,
   if(m->str) \
     { \
     memset(&entry, 0, sizeof(entry)); \
-    entry.entry = bg_sprintf("%s=%s", key, m->str); \
-    entry.length = strlen(entry.entry); \
+    entry.entry = (uint8_t*)bg_sprintf("%s=%s", key, m->str);   \
+    entry.length = strlen((char*)(entry.entry));                        \
     FLAC__metadata_object_vorbiscomment_insert_comment(flac->vorbis_comment, \
                                                        num_comments++,  \
                                                        entry, \
@@ -437,8 +437,8 @@ static void set_parameter_flac(void * data,
   if(m->i) \
     { \
     memset(&entry, 0, sizeof(entry)); \
-    entry.entry = bg_sprintf("%s=%d", key, m->i); \
-    entry.length = strlen(entry.entry); \
+    entry.entry = (uint8_t*)bg_sprintf("%s=%d", key, m->i);     \
+    entry.length = strlen((char*)(entry.entry));                        \
     FLAC__metadata_object_vorbiscomment_insert_comment(flac->vorbis_comment, \
                                                        num_comments++,  \
                                                        entry, \
@@ -450,8 +450,8 @@ static void set_parameter_flac(void * data,
   if(m->str) \
     { \
     memset(&entry, 0, sizeof(entry)); \
-    entry.entry = bg_sprintf("%s", m->str); \
-    entry.length = strlen(entry.entry); \
+    entry.entry = (uint8_t*)bg_sprintf("%s", m->str);   \
+    entry.length = strlen((char*)(entry.entry));                        \
     FLAC__metadata_object_vorbiscomment_insert_comment(flac->vorbis_comment, \
                                                        num_comments++,  \
                                                        entry, \

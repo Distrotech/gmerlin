@@ -93,7 +93,7 @@ static const char *id3_genres[GENRE_MAX] =
 
 struct bgen_id3v1_s
   {
-  uint8_t data[128];
+  char data[128];
   };
 
 static void set_string(char * dst, char * src, int max_len,
