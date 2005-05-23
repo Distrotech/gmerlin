@@ -231,7 +231,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   format->sample_format = sample_format_alsa_2_gavl(alsa_format);
   
   /* Samplerate */
-  
+  i_tmp = format->samplerate;
   if(snd_pcm_hw_params_set_rate_near(ret, hw_params,
                                      &(i_tmp),
                                      0) < 0)
