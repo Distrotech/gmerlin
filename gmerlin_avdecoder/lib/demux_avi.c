@@ -198,8 +198,8 @@ typedef struct indx_s
       uint32_t dwReserved[3];
       struct
         {
-        int64_t qwOffset;
-        int32_t dwSize;
+        uint64_t qwOffset;
+        uint32_t dwSize;
         uint32_t dwDuration;
         struct indx_s * subindex;
         } * entries;

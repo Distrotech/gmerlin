@@ -147,9 +147,9 @@ typedef struct
   int	   decoderConfigLen;
   uint8_t  objectTypeId;
   uint8_t  streamType;
-  int      bufferSizeDB;
-  int32_t  maxBitrate;
-  int32_t  avgBitrate;
+  uint32_t bufferSizeDB;
+  uint32_t maxBitrate;
+  uint32_t avgBitrate;
   uint8_t* decoderConfig;
   } qt_esds_t;
 
@@ -184,7 +184,7 @@ typedef struct
   /* Common members (20 bytes) */
   
   uint32_t fourcc;
-  char reserved[6];
+  uint8_t reserved[6];
   uint16_t data_reference_index;
   uint16_t version;
   uint16_t revision_level;
@@ -196,15 +196,15 @@ typedef struct
       {
       uint32_t temporal_quality;
       uint32_t spatial_quality;
-      int16_t width;
-      int16_t height;
+      uint16_t width;
+      uint16_t height;
       float horizontal_resolution;
       float vertical_resolution;
       uint32_t data_size;
       uint16_t frame_count; /* Frames / sample */
       char compressor_name[32];
-      int16_t depth;
-      int16_t ctab_id;
+      uint16_t depth;
+      uint16_t ctab_id;
       int private_ctab;
       uint16_t ctab_size;
       bgav_palette_entry_t * ctab;
@@ -256,7 +256,7 @@ typedef struct
   struct
     {
     /* Raw data (must be passed to codec) */
-    int data_size;
+    uint32_t data_size;
     uint8_t * data;
     /* Parsed data */
     qt_sample_description_t desc;
@@ -326,7 +326,7 @@ typedef struct
   qt_atom_header_t h;
   int version;
   uint32_t flags;
-  int num_entries;
+  uint32_t num_entries;
   uint64_t * entries;
   } qt_stco_t;
 
@@ -519,7 +519,7 @@ typedef struct
   uint32_t duration;
   float preferred_rate;
   float preferred_volume;
-  char reserved[10];
+  uint8_t reserved[10];
   float matrix[9];
   uint32_t preview_time;
   uint32_t preview_duration;

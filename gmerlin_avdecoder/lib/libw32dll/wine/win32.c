@@ -2298,7 +2298,7 @@ static int WINAPI expLoadLibraryA(char* name)
     // we skip to the last backslash
     // this is effectively eliminating weird characters in
     // the text output windows
-//    fprintf(stderr, "expLoadLibraryA: %s\n", name);
+
     lastbc = strrchr(name, '\\');
     if (lastbc)
     {
@@ -2623,7 +2623,7 @@ static int WINAPI expGetWindowThreadProcessId(HWND win, int *pid_data)
     dbgprintf("GetWindowThreadProcessId(0x%x, 0x%x) => %d\n",
 	win, pid_data, tid);
     if (pid_data)
-	(int)*pid_data = tid;
+	*pid_data = tid;
     return tid;
 }
 

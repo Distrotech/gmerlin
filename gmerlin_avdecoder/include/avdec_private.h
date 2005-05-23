@@ -195,7 +195,7 @@ struct bgav_stream_s
   int type;
   bgav_packet_buffer_t * packet_buffer;
   
-  char * ext_data;
+  uint8_t * ext_data;
   int ext_size;
   
   uint32_t fourcc;
@@ -448,7 +448,7 @@ struct bgav_input_context_s
 
   bgav_id3v2_tag_t * id3v2;
   
-  char * buffer;
+  uint8_t * buffer;
   int    buffer_size;
   int    buffer_alloc;
   
@@ -987,7 +987,7 @@ void bgav_video_decoder_register(bgav_video_decoder_t * dec);
 
 /* base64.c */
 
-int bgav_base64decode(const unsigned char *input,
+int bgav_base64decode(const char *input,
                       int input_length,
                       unsigned char *output, int output_length);
 

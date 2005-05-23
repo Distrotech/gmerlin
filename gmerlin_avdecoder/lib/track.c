@@ -115,7 +115,7 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     if(!bgav_stream_start(&(t->video_streams[i])))
       return 0;
     }
-  
+  return 1;
   }
 
 

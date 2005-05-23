@@ -589,7 +589,7 @@ dnl
 AH_TEMPLATE([HAVE_CDIO], [ libcdio found ])
 
 have_cdio="false"
-CDIO_REQUIRED="0.73"
+CDIO_REQUIRED="0.74"
 
 PKG_CHECK_MODULES(CDIO, libcdio >= $CDIO_REQUIRED, have_cdio="true", have_cdio="false")
 AM_CONDITIONAL(HAVE_CDIO, test x$have_cdio = xtrue)

@@ -98,7 +98,7 @@ int bgav_qt_hdlr_read(qt_atom_header_t * h,
   if(name_len)
     {
     ret->component_name = malloc(name_len + 1);
-    if(bgav_input_read_data(input, ret->component_name, name_len) <
+    if(bgav_input_read_data(input, (uint8_t*)(ret->component_name), name_len) <
        name_len)
       return 0;
     ret->component_name[name_len] = '\0';

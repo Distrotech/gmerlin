@@ -56,7 +56,7 @@ int bgav_xing_header_read(bgav_xing_header_t * xing, unsigned char *buf)
       buf += 9;
     }
 
-  if (strncmp(buf, "Xing", 4))
+  if (strncmp((char*)buf, "Xing", 4))
     return 0;
   buf += 4;
   

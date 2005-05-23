@@ -25,24 +25,6 @@
 
 // #define ENABLE_DUMP
 
-#if 0
-typedef struct
-  {
-  qt_atom_header_t * h;
-  int      version;
-  uint32_t flags;
-
-  uint8_t  objectTypeId;
-  uint8_t  streamType;
-  int      bufferSizeDB;
-  int32_t  maxBitrate;
-  int32_t  avgBitrate;
-  int	   decoderConfigLen;
-  uint8_t* decoderConfig;
-  } qt_esds_t;
-#endif
-
-
 void bgav_qt_esds_dump(qt_esds_t * e)
   {
   fprintf(stderr, "esds:\n");

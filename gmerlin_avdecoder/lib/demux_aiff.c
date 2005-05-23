@@ -118,7 +118,7 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
   uint32_t num_sample_frames;
   uint16_t num_bits;
   uint16_t num_channels;
-  uint32_t samplerate;
+  int32_t samplerate;
   bgav_track_t * track;
   
   /* Create track */

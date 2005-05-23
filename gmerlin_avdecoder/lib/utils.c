@@ -204,7 +204,7 @@ int bgav_read_line_fd(int fd, char ** ret, int * ret_alloc, int milliseconds)
   pos = *ret;
   while(1)
     {
-    if(!bgav_read_data_fd(fd, &c, 1, milliseconds))
+    if(!bgav_read_data_fd(fd, (uint8_t*)(&c), 1, milliseconds))
       {
       if(!bytes_read)
         return 0;

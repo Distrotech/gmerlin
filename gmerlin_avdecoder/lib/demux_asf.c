@@ -286,7 +286,7 @@ typedef struct
   struct
     {
     int stream_id;
-    int bitrate;
+    uint32_t bitrate;
     } * stream_bitrates;
   int num_stream_bitrates;
   } asf_t;
@@ -307,7 +307,7 @@ static int probe_asf(bgav_input_context_t * input)
 
 static int read_bitrate_properties(bgav_demuxer_context_t * ctx)
   {
-  int16_t i_tmp;
+  uint16_t i_tmp;
   int i;
   asf_t * asf;
   asf = (asf_t*)(ctx->priv);
@@ -394,7 +394,7 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
   
   if(len1)
     {
-    if(bgav_input_read_data(ctx->input, str, len1) < len1)
+    if(bgav_input_read_data(ctx->input, (uint8_t*)str, len1) < len1)
       goto fail;
     ctx->tt->current_track->metadata.title = bgav_convert_string(cnv, str, len1,
                                               NULL);
@@ -405,7 +405,7 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
   
   if(len2)
     {
-    if(bgav_input_read_data(ctx->input, str, len2) < len2)
+    if(bgav_input_read_data(ctx->input, (uint8_t*)str, len2) < len2)
       goto fail;
     ctx->tt->current_track->metadata.author =
       bgav_convert_string(cnv, str, len2, NULL);
@@ -416,7 +416,7 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
   
   if(len3)
     {
-    if(bgav_input_read_data(ctx->input, str, len3) < len3)
+    if(bgav_input_read_data(ctx->input, (uint8_t*)str, len3) < len3)
       goto fail;
     ctx->tt->current_track->metadata.copyright =
       bgav_convert_string(cnv, str, len3, NULL);
@@ -427,7 +427,7 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
   
   if(len4)
     {
-    if(bgav_input_read_data(ctx->input, str, len4) < len4)
+    if(bgav_input_read_data(ctx->input, (uint8_t*)str, len4) < len4)
       goto fail;
     ctx->tt->current_track->metadata.comment =
       bgav_convert_string(cnv, str, len4, NULL);
@@ -464,7 +464,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
   uint16_t stream_number;
   int buf_size = 0;
   bgav_GUID_t guid, guid1;
-  int64_t size;
+  uint64_t size;
   uint32_t type_specific_size;
   uint32_t stream_specific_size;
   int error_concealment;

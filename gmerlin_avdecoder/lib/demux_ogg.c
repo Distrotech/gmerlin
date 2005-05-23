@@ -146,7 +146,7 @@ static int get_data(bgav_demuxer_context_t * ctx)
   ogg_priv * priv = (ogg_priv*)(ctx->priv);
   
   buf = ogg_sync_buffer(&(priv->oy), BYTES_TO_READ);
-  result = bgav_input_read_data(ctx->input, buf, BYTES_TO_READ);
+  result = bgav_input_read_data(ctx->input, (uint8_t*)buf, BYTES_TO_READ);
 
   //  fprintf(stderr, "Get data\n");
   //  bgav_hexdump(buf, 512, 16);

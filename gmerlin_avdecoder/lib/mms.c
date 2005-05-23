@@ -519,7 +519,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   if(server_version_len)
     {
     ret->server_version = bgav_convert_string(utf16_2_utf8,
-                                              pos, server_version_len*2,
+                                              (char*)pos, server_version_len*2,
                                               NULL);
     pos += server_version_len*2;
     }
@@ -527,14 +527,15 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   if(tool_version_len)
     {
     ret->tool_version = bgav_convert_string(utf16_2_utf8,
-                                            pos, tool_version_len*2,
+                                            (char*)pos, tool_version_len*2,
                                             NULL);
     pos += tool_version_len*2;
     }
   
   if(update_url_len)
     {
-    ret->update_url = bgav_convert_string(utf16_2_utf8, pos, update_url_len*2,
+    ret->update_url = bgav_convert_string(utf16_2_utf8,
+                                          (char*)pos, update_url_len*2,
                                           NULL);
     pos += update_url_len*2;
     }
@@ -542,7 +543,8 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   if(password_encryption_type_len)
     {
     ret->password_encryption_type =
-      bgav_convert_string(utf16_2_utf8, pos, password_encryption_type_len*2,
+      bgav_convert_string(utf16_2_utf8, (char*)pos,
+                          password_encryption_type_len*2,
                           NULL);
     pos += password_encryption_type_len*2;
     }
@@ -817,7 +819,7 @@ uint8_t * bgav_mms_read_data(bgav_mms_t * mms, int * len, int block, char ** err
   //  fprintf(stderr, "bgav_mms_read_data...");
   mms->got_data = 0;
   if(!next_packet(mms, block, error_msg))
-    return (char*)0;
+    return (uint8_t*)0;
 
   if(mms->packet_buffer && mms->got_data)
     {
@@ -826,5 +828,5 @@ uint8_t * bgav_mms_read_data(bgav_mms_t * mms, int * len, int block, char ** err
     //    bgav_hexdump(mms->packet_buffer, mms->packet_len, 16);
     return mms->packet_buffer;
     }
-  return (char*)0;
+  return (uint8_t*)0;
   }

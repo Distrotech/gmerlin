@@ -64,7 +64,7 @@ bgav_id3v1_tag_t * bgav_id3v1_read(bgav_input_context_t * input)
   bgav_id3v1_tag_t * ret;
   bgav_charset_converter_t * cnv;
   
-  if(bgav_input_read_data(input, buffer, 128) < 128)
+  if(bgav_input_read_data(input, (uint8_t*)buffer, 128) < 128)
     return (bgav_id3v1_tag_t *)0;
 
   cnv = bgav_charset_converter_create("ISO-8859-1", "UTF-8");

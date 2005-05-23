@@ -35,8 +35,8 @@
 
 
 static uint32_t seek_indx(bgav_rmff_indx_t * indx, uint32_t millisecs,
-                          int32_t * position, int32_t * start_packet,
-                          int32_t * end_packet)
+                          uint32_t * position, uint32_t * start_packet,
+                          uint32_t * end_packet)
   {
   uint32_t ret;
   ret = indx->num_indices - 1;

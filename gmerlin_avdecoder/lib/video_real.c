@@ -323,7 +323,7 @@ static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
   transform_in_t transform_in;
   uint32_t * extra;
   dp_hdr_t* dp_hdr;
-  uint8_t * dp_data;
+  char * dp_data;
 
   priv = (real_priv_t *)(s->data.video.decoder->priv);
   
@@ -336,7 +336,7 @@ static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
     
   dp_hdr = (dp_hdr_t*)(p->data);
   extra = (uint32_t*)(((char*)(p->data))+dp_hdr->chunktab);
-  dp_data=((uint8_t*)(p->data))+sizeof(dp_hdr_t);
+  dp_data=((char*)(p->data))+sizeof(dp_hdr_t);
   
   transform_in.len      = dp_hdr->len;
   transform_in.unknown1 = 0;
@@ -345,7 +345,7 @@ static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
   transform_in.unknown2 = 0;
   transform_in.timestamp = dp_hdr->timestamp;
 
-  if(priv->rvyuv_transform(dp_data, priv->image_buffer, &transform_in,
+  if(priv->rvyuv_transform(dp_data, (char*)(priv->image_buffer), &transform_in,
                            transform_out, priv->real_context))
     {
     fprintf(stderr, "Decoding failed\n");

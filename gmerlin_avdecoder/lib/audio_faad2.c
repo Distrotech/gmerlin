@@ -270,7 +270,7 @@ static void resync_faad2(bgav_stream_t * s)
 static bgav_audio_decoder_t decoder =
   {
     name:   "FAAD AAC audio decoder",
-    fourccs: (int[]){ BGAV_MK_FOURCC('m','p','4','a'),
+    fourccs: (uint32_t[]){ BGAV_MK_FOURCC('m','p','4','a'),
                       BGAV_MK_FOURCC('a','a','c',' '),
                       0x0 },
     

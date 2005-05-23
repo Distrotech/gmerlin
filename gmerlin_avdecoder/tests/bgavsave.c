@@ -6,7 +6,7 @@
 int main(int argc, char ** argv)
   {
   FILE * out;
-  char buffer[BUFFER_SIZE];
+  uint8_t buffer[BUFFER_SIZE];
   int bytes_read;
   bgav_input_context_t * input;
 

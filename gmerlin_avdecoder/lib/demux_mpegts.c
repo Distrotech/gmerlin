@@ -344,7 +344,7 @@ static void pmt_section_dump(pmt_section_t * pmts)
   fprintf(stderr, "  pcr_pid:                0x%04x\n", pmts->pcr_pid);
   fprintf(stderr, "  descriptor:             ");
   if(pmts->descriptor_len)
-    bgav_hexdump(pmts->descriptor, pmts->descriptor_len, pmts->descriptor_len);
+    bgav_hexdump((uint8_t*)pmts->descriptor, pmts->descriptor_len, pmts->descriptor_len);
   else
     fprintf(stderr, "[none]\n");
   fprintf(stderr, "  Number of streams:      %d\n",     pmts->num_streams);
@@ -361,7 +361,7 @@ static void pmt_section_dump(pmt_section_t * pmts)
     fprintf(stderr, "    descriptor: ");
     
     if(pmts->streams[i].descriptor_len)
-      bgav_hexdump(pmts->streams[i].descriptor, pmts->streams[i].descriptor_len,
+      bgav_hexdump((uint8_t*)pmts->streams[i].descriptor, pmts->streams[i].descriptor_len,
                    pmts->streams[i].descriptor_len);
     else
       fprintf(stderr, "[none]\n");

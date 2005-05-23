@@ -89,28 +89,28 @@ static codec_info_t codec_infos[] =
     {
       name:        "Win32 Indeo 3.2 decoder",
       format_name: "Indeo 3.2",
-      fourccs:     (int[]){ BGAV_MK_FOURCC('I', 'V', '3', '2'), 0x00 },
+      fourccs:     (uint32_t[]){ BGAV_MK_FOURCC('I', 'V', '3', '2'), 0x00 },
       dll_name:    "ir32_32.dll",
       type:        CODEC_STD,
     },
     {
       name:        "Vivo H.263 decoder",
       format_name: "Vivo H.263",
-      fourccs:     (int[]){ BGAV_MK_FOURCC('v', 'i', 'v', '2'), 0x00 },
+      fourccs:     (uint32_t[]){ BGAV_MK_FOURCC('v', 'i', 'v', '2'), 0x00 },
       dll_name:    "ivvideo.dll",
       type:        CODEC_STD,
     },
     {
       name:        "Win32 Indeo 4.1 decoder",
       format_name: "Indeo 4.1",
-      fourccs:     (int[]){ BGAV_MK_FOURCC('I', 'V', '4', '1'), 0x00 },
+      fourccs:     (uint32_t[]){ BGAV_MK_FOURCC('I', 'V', '4', '1'), 0x00 },
       dll_name:    "ir41_32.dll",
       type:        CODEC_STD,
     },
     {
       name:        "DirectShow Indeo 5.0 decoder",
       format_name: "Indeo 5.0",
-      fourccs:     (int[]){ BGAV_MK_FOURCC('I', 'V', '5', '0'), 0x00 },
+      fourccs:     (uint32_t[]){ BGAV_MK_FOURCC('I', 'V', '5', '0'), 0x00 },
       dll_name:    "ir50_32.dll",
       type:        CODEC_DS,
       guid:        { 0x30355649, 0, 16,{ 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71 } }
@@ -118,14 +118,14 @@ static codec_info_t codec_infos[] =
     {
       name:        "Win32 Indeo 5.0 decoder",
       format_name: "Indeo 5.0",
-      fourccs:     (int[]){ BGAV_MK_FOURCC('I', 'V', '5', '0'), 0x00 },
+      fourccs:     (uint32_t[]){ BGAV_MK_FOURCC('I', 'V', '5', '0'), 0x00 },
       dll_name:    "ir50_32.dll",
       type:        CODEC_STD,
     },
     {
       name:        "Win32 VP4 decoder",
       format_name: "VP4",
-      fourccs:     (int[]){ BGAV_MK_FOURCC('V', 'P', '4', '0'), 0x00 },
+      fourccs:     (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '4', '0'), 0x00 },
       dll_name:    "vp4vfw.dll",
       type:        CODEC_STD,
       ex_functions: 1,
@@ -134,7 +134,7 @@ static codec_info_t codec_infos[] =
     {
       name:        "DMO WMV9 decoder",
       format_name: "WMV9",
-      fourccs:  (int[]){ BGAV_MK_FOURCC('W', 'M', 'V', '3'), 0x00 },
+      fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('W', 'M', 'V', '3'), 0x00 },
       dll_name: "wmv9dmod.dll",
       type:     CODEC_DMO,
       guid:     { 0x724bb6a4, 0xe526, 0x450f,
@@ -144,7 +144,7 @@ static codec_info_t codec_infos[] =
     {
       name:        "DMO WMV9 decoder",
       format_name: "WMV9",
-      fourccs:  (int[]){ BGAV_MK_FOURCC('W', 'M', 'V', '3'), 0x00 },
+      fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('W', 'M', 'V', '3'), 0x00 },
       dll_name: "wmvdmod.dll",
       type:     CODEC_DMO,
       guid:     { 0x82d353df, 0x90bd, 0x4382,
@@ -546,7 +546,7 @@ static int decode_ds(bgav_stream_t * s, gavl_video_frame_t * frame)
   //  fprintf(stderr, "Decode ds %d....", p->data_size);
   result = DS_VideoDecoder_DecodeInternal(priv->ds_dec, p->data, p->data_size,
                                            p->keyframe,
-                                           priv->frame->planes[0]);
+                                          (char*)(priv->frame->planes[0]));
   //  fprintf(stderr, "done\n");
   
   if(result)
@@ -662,7 +662,7 @@ static int decode_dmo(bgav_stream_t * s, gavl_video_frame_t * frame)
   //  fprintf(stderr, "Decode dmo %d....", p->data_size);
   result = DMO_VideoDecoder_DecodeInternal(priv->dmo_dec, p->data, p->data_size,
                                            p->keyframe,
-                                           priv->frame->planes[0]);
+                                           (char*)(priv->frame->planes[0]));
   //  fprintf(stderr, "done\n");
 
 

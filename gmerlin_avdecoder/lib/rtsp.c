@@ -75,7 +75,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
 #ifdef DUMP_REQUESTS
   fprintf(stderr, "%s", line);
 #endif  
-  if(!bgav_tcp_send(rtsp->fd, line, strlen(line), error_msg))
+  if(!bgav_tcp_send(rtsp->fd, (uint8_t*)line, strlen(line), error_msg))
     goto fail;
 
   free(line);
@@ -101,7 +101,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
 #endif
   
   if(!bgav_http_header_send(rtsp->request_fields, rtsp->fd, error_msg) ||
-     !bgav_tcp_send(rtsp->fd, "\r\n\r\n", 4, error_msg))
+     !bgav_tcp_send(rtsp->fd, (uint8_t*)"\r\n\r\n", 4, error_msg))
     goto fail;
 
 #ifdef DUMP_REQUESTS
@@ -193,7 +193,7 @@ int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected, char ** 
   
   buf = malloc(content_length+1);
     
-  if(bgav_read_data_fd(rtsp->fd, buf, content_length, rtsp->opt->read_timeout) <
+  if(bgav_read_data_fd(rtsp->fd, (uint8_t*)buf, content_length, rtsp->opt->read_timeout) <
      content_length)
     {
     fprintf(stderr, "Reading session dscription failed\n");

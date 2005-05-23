@@ -33,7 +33,7 @@ typedef struct
 
   bgav_packet_t * p;
   uint8_t * data_ptr;
-  char * header_ptr;
+  uint8_t * header_ptr;
   
   int last_frame_samples;
 

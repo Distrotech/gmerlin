@@ -470,7 +470,7 @@ static int fill_buffer(bgav_stream_t * s)
 
 static int decode_frame(bgav_stream_t * s)
   {
-  int len;
+  unsigned int len;
 
   real_priv_t * priv;
   priv = (real_priv_t*)(s->data.audio.decoder->priv);
@@ -486,9 +486,9 @@ static int decode_frame(bgav_stream_t * s)
     }
   /* Call the decoder */
 
-  if(priv->raDecode(priv->real_handle, priv->read_buffer_ptr,
+  if(priv->raDecode(priv->real_handle, (char*)priv->read_buffer_ptr,
                     s->data.audio.block_align,
-                    (uint8_t*)priv->frame->samples.s_8, &len, -1))
+                    (char*)priv->frame->samples.s_8, &len, -1))
     {
     fprintf(stderr, "raDecode failed\n");
     }

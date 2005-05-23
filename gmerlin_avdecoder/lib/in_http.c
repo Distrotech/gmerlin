@@ -334,7 +334,7 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
         
     /* Metadata block is read in blocking mode!! */
     
-    if(read_data(ctx, meta_buffer, meta_bytes, 1) < meta_bytes)
+    if(read_data(ctx, (uint8_t*)meta_buffer, meta_bytes, 1) < meta_bytes)
       return 0;
     
     //    fprintf(stderr, "Meta buffer:\n");

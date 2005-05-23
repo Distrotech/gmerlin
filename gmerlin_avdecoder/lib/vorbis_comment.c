@@ -53,7 +53,7 @@ int bgav_vorbis_comment_read(bgav_vorbis_comment_t * ret,
 
   // [vendor_string] = read a UTF-8 vector as [vendor_length] octets
   ret->vendor = malloc(len+1);
-  if(bgav_input_read_data(input, ret->vendor, len) < len)
+  if(bgav_input_read_data(input, (uint8_t*)(ret->vendor), len) < len)
     return 0;
   ret->vendor[len] = '\0';
 
@@ -73,7 +73,7 @@ int bgav_vorbis_comment_read(bgav_vorbis_comment_t * ret,
 
     
     ret->user_comments[i] = malloc(len + 1);
-    if(bgav_input_read_data(input, ret->user_comments[i], len) < len)
+    if(bgav_input_read_data(input, (uint8_t*)(ret->user_comments[i]), len) < len)
       return 0;
     ret->user_comments[i][len] = '\0';
     }

@@ -84,8 +84,9 @@ int bgav_http_header_send(bgav_http_header_t * h, int fd, char ** error_msg)
   
   for(i = 0; i < h->num_lines; i++)
     {
-    if(!bgav_tcp_send(fd, h->lines[i].line, strlen(h->lines[i].line), error_msg) ||
-       !bgav_tcp_send(fd, "\r\n", 2, error_msg))
+    if(!bgav_tcp_send(fd, (uint8_t*)(h->lines[i].line),
+                      strlen(h->lines[i].line), error_msg) ||
+       !bgav_tcp_send(fd, (uint8_t*)"\r\n", 2, error_msg))
       return 0;
     
     //    write(fd, h->lines[i].line, strlen(h->lines[i].line));
@@ -242,7 +243,7 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
     if(!bgav_http_header_send(extra_header, ret->fd, error_msg))
       goto fail;
     }
-  if(!bgav_tcp_send(ret->fd, "\r\n", 2, error_msg))
+  if(!bgav_tcp_send(ret->fd, (uint8_t*)"\r\n", 2, error_msg))
     goto fail;
   
   bgav_http_header_destroy(request_header);

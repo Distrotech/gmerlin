@@ -27,7 +27,7 @@
 
 static int probe_m3u(bgav_input_context_t * input)
   {
-  uint8_t probe_buffer[PROBE_BYTES];
+  char probe_buffer[PROBE_BYTES];
   /* Most likely, we get this via http, so we can check the mimetype */
   if(input->mimetype)
     {
@@ -40,7 +40,7 @@ static int probe_m3u(bgav_input_context_t * input)
        !strcmp(input->mimetype, "audio/m3u"))
       return 1;
     }
-  if(bgav_input_get_data(input, probe_buffer, PROBE_BYTES) < PROBE_BYTES)
+  if(bgav_input_get_data(input, (uint8_t*)probe_buffer, PROBE_BYTES) < PROBE_BYTES)
     return 0;
 
   if(!strncmp(probe_buffer, "mms://", 6) ||

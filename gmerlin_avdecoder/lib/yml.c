@@ -478,7 +478,7 @@ bgav_yml_node_t * bgav_yml_parse(bgav_input_context_t * input)
 
   while(1)
     {
-    if(!bgav_input_get_data(input, &c, 1))
+    if(!bgav_input_get_data(input, (uint8_t*)(&c), 1))
       return (bgav_yml_node_t *)0;
     if(isspace(c))
       bgav_input_skip(input, 1);

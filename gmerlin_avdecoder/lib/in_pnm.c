@@ -86,7 +86,7 @@ static int     read_pnm(bgav_input_context_t* ctx,
   if(priv->eof)
     return 0;
 
-  result = pnm_read(priv->s, buffer, len);
+  result = pnm_read(priv->s, (char*)buffer, len);
 
   if(!result)
     priv->eof = 1;

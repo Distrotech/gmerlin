@@ -39,11 +39,11 @@ static codec_info_t codec_infos[] =
   {
 #if 1
     { "FFmpeg ra28.8 decoder", "Real audio 28.8", CODEC_ID_RA_288,
-      (int[]){ BGAV_MK_FOURCC('2', '8', '_', '8'), 0x00 } },
+      (uint32_t[]){ BGAV_MK_FOURCC('2', '8', '_', '8'), 0x00 } },
 #endif
 #if 1
     { "FFmpeg ra14.4 decoder", "Real audio 14.4", CODEC_ID_RA_144,
-      (int[]){ BGAV_MK_FOURCC('1', '4', '_', '4'),
+      (uint32_t[]){ BGAV_MK_FOURCC('1', '4', '_', '4'),
                BGAV_MK_FOURCC('l', 'p', 'c', 'J'),
                0x00 } },
 #endif
@@ -51,60 +51,60 @@ static codec_info_t codec_infos[] =
     /* MPEG audio is handled by mad */
 #if 0    
     { "FFmpeg mp2 decoder", "MPEG audio Layer 1/2/3", CODEC_ID_MP2,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x50), 0x00 } },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x50), 0x00 } },
 
     { "FFmpeg mp3 decoder", "MPEG audio Layer 1/2/3", CODEC_ID_MP3,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x55),
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x55),
                BGAV_MK_FOURCC('.', 'm', 'p', '3'),
                BGAV_MK_FOURCC('m', 's', 0x00, 0x55),
                0x00 } },
     { "FFmpeg ac3 decoder", "AC3", CODEC_ID_AC3,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x2000), BGAV_MK_FOURCC('.', 'a', 'c', '3'), 0x00 } },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x2000), BGAV_MK_FOURCC('.', 'a', 'c', '3'), 0x00 } },
     
 #endif
 #if 0
     { "FFmpeg PCM decoder", "16bit linear PCM (little endian)", CODEC_ID_PCM_S16LE,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('s', 'o', 'w', 't'), 0x00 } },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('s', 'o', 'w', 't'), 0x00 } },
 
     { "FFmpeg PCM decoder", "16bit linear PCM (big endian)", CODEC_ID_PCM_S16BE,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('t', 'w', 'o', 's'), 0x00 } },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('t', 'w', 'o', 's'), 0x00 } },
     
     /* must come after s16le in this list */
     { "FFmpeg PCM decoder", "8bit unsigned linear PCM", CODEC_ID_PCM_U8,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('r', 'a', 'w', ' '), 0x00 } },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('r', 'a', 'w', ' '), 0x00 } },
 
     { "FFmpeg PCM decoder", "8bit signed linear PCM", CODEC_ID_PCM_S8,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('t', 'w', 'o', 's'), 0x00 } },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('t', 'w', 'o', 's'), 0x00 } },
 #endif    
     { "FFmpeg alaw decoder", "alaw", CODEC_ID_PCM_ALAW,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x06), BGAV_MK_FOURCC('a', 'l', 'a', 'w'), 0x00 }  },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x06), BGAV_MK_FOURCC('a', 'l', 'a', 'w'), 0x00 }  },
 
     { "FFmpeg mulaw decoder", "ulaw", CODEC_ID_PCM_MULAW,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x07), BGAV_MK_FOURCC('u', 'l', 'a', 'w'), 0x00 }  },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x07), BGAV_MK_FOURCC('u', 'l', 'a', 'w'), 0x00 }  },
     
     { "FFmpeg MS ADPCM decoder", "MS ADPCM", CODEC_ID_ADPCM_MS,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x02), BGAV_MK_FOURCC('m', 's', 0x00, 0x02), 0x00 } },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x02), BGAV_MK_FOURCC('m', 's', 0x00, 0x02), 0x00 } },
 
     { "FFmpeg WAV ADPCM decoder", "WAV ADPCM", CODEC_ID_ADPCM_IMA_WAV,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x11), BGAV_MK_FOURCC('m', 's', 0x00, 0x11), 0x00 } },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x11), BGAV_MK_FOURCC('m', 's', 0x00, 0x11), 0x00 } },
 
     { "FFmpeg IMA DK4 decoder", "IMA DK4", CODEC_ID_ADPCM_IMA_DK4,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x61), 0x00 } },  /* rogue format number */
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x61), 0x00 } },  /* rogue format number */
     { "FFmpeg IMA DK3 decoder", "IMA DK3", CODEC_ID_ADPCM_IMA_DK3,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x62), 0x00 } },  /* rogue format number */
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x62), 0x00 } },  /* rogue format number */
 
     { "FFmpeg ima4 decoder", "ima4", CODEC_ID_ADPCM_IMA_QT,
-      (int[]){ BGAV_MK_FOURCC('i', 'm', 'a', '4'), 0x00 }  },
+      (uint32_t[]){ BGAV_MK_FOURCC('i', 'm', 'a', '4'), 0x00 }  },
 
     { "FFmpeg WMA1 decoder", "Window Media Audio 1", CODEC_ID_WMAV1,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x160), 0x00 } },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x160), 0x00 } },
     { "FFmpeg WMA2 decoder", "Window Media Audio 2", CODEC_ID_WMAV2,
-      (int[]){ BGAV_WAVID_2_FOURCC(0x161), 0x00 } },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x161), 0x00 } },
     { "FFmpeg MACE3 decoder", "Apple MACE 3", CODEC_ID_MACE3,
-      (int[]){ BGAV_MK_FOURCC('M', 'A', 'C', '3'), 0x00 } },
+      (uint32_t[]){ BGAV_MK_FOURCC('M', 'A', 'C', '3'), 0x00 } },
 #if 1
     { "FFmpeg MACE6 decoder", "Apple MACE 6", CODEC_ID_MACE6,
-      (int[]){ BGAV_MK_FOURCC('M', 'A', 'C', '6'), 0x00 } },
+      (uint32_t[]){ BGAV_MK_FOURCC('M', 'A', 'C', '6'), 0x00 } },
 #endif
   };
 

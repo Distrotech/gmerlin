@@ -128,7 +128,7 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
     
     /* Check for a ping request */
     
-    if(!strncmp(header, "SET_PARA", 8))
+    if(!strncmp((char*)header, "SET_PARA", 8))
       {
       //      fprintf(stderr, "Got Ping request\n");
     
@@ -141,21 +141,21 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
                               &(priv->packet_alloc),
                               ctx->opt->read_timeout))
           return 0;
-        size = strlen(priv->packet);
+        size = strlen((char*)(priv->packet));
         if(!size)
           break;
 
-        if (!strncmp(priv->packet,"Cseq:",5))
-          sscanf(priv->packet,"Cseq: %u",&seq);
+        if (!strncmp((char*)(priv->packet),"Cseq:",5))
+          sscanf((char*)(priv->packet),"Cseq: %u",&seq);
         }
       if(seq < 0)
         seq = 1;
       /* Make the server happy */
 
-      bgav_tcp_send(fd, "RTSP/1.0 451 Parameter Not Understood\r\n",
+      bgav_tcp_send(fd, (uint8_t*)"RTSP/1.0 451 Parameter Not Understood\r\n",
                     strlen("RTSP/1.0 451 Parameter Not Understood\r\n"), &ctx->error_msg);
       buf = bgav_sprintf("CSeq: %u\r\n\r\n", seq);
-      bgav_tcp_send(fd, buf, strlen(buf), &ctx->error_msg);
+      bgav_tcp_send(fd, (uint8_t*)buf, strlen(buf), &ctx->error_msg);
       free(buf);
       //      fprintf(stderr, "Answered ping request\n");
       }
@@ -213,14 +213,14 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
 
       if(priv->has_smil)
         {
-        pos = strstr(priv->packet + 12, "<smil>");
+        pos = (uint8_t*)strstr((char*)(priv->packet + 12), "<smil>");
         if(pos)
           {
           priv->packet_len -= (pos - priv->packet);
           memmove(priv->packet, pos, priv->packet_len);
           }
 
-        pos = strstr(priv->packet + 12, "</smil>");
+        pos = (uint8_t*)strstr((char*)(priv->packet + 12), "</smil>");
         if(pos)
           {
           pos += strlen("</smil>");
@@ -936,7 +936,7 @@ static void real_calc_response_and_checksum (char *response, char *chksum, char 
   
   if (xor_table != NULL)
     {
-    table_len = strlen(xor_table);
+    table_len = strlen((char*)xor_table);
     
     if (table_len > 56) table_len=56;
     

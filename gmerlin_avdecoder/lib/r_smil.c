@@ -145,7 +145,7 @@ const char * get_language(const char * code)
 static int probe_smil(bgav_input_context_t * input)
   {
   char * pos;
-  char buf[5];
+  uint8_t buf[5];
 
   /* We accept all files, which end with .smil or .smi */
 

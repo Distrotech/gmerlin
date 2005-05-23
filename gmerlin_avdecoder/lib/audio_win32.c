@@ -71,7 +71,7 @@ codec_info_t codec_infos[] =
     {
       name:        "Voxware Metasound DirectShow decoder",
       format_name: "Voxware Metasound",
-      fourccs:     (int[]){ BGAV_WAVID_2_FOURCC(0x75), 0x00 },
+      fourccs:     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x75), 0x00 },
       dll_name:    "voxmsdec.ax",
       type:        CODEC_DS,
       guid:        { 0x73f7a062, 0x8829, 0x11d1,
@@ -80,7 +80,7 @@ codec_info_t codec_infos[] =
     {
       name:        "ACELP.net DirectShow decoder",
       format_name: "ACELP.net",
-      fourccs:     (int[]){ BGAV_WAVID_2_FOURCC(0x0130), 0x00 },
+      fourccs:     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0130), 0x00 },
       dll_name:    "acelpdec.ax",
       type:        CODEC_DS,
       guid:        { 0x4009f700, 0xaeba, 0x11d1,
@@ -89,7 +89,7 @@ codec_info_t codec_infos[] =
     {
       name:        "msgsm ACM decoder",
       format_name: "msgsm",
-      fourccs:     (int[]){ BGAV_WAVID_2_FOURCC(0x0031), 0x00 },
+      fourccs:     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0031), 0x00 },
       dll_name:    "msgsm32.acm",
       type:        CODEC_STD,
     },
@@ -97,7 +97,7 @@ codec_info_t codec_infos[] =
     {
       name:        "Vivo G.723/Siren Audio Codec",
       format_name: "Vivo G.723/Siren",
-      fourccs:     (int[]){ BGAV_WAVID_2_FOURCC(0x0111),
+      fourccs:     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0111),
                             BGAV_WAVID_2_FOURCC(0x0112),
                             0x00 },
       dll_name:    "vivog723.acm",
@@ -272,7 +272,7 @@ static int decode_frame_std(bgav_stream_t * s)
   ash.dwUser=0; 
   ash.pbSrc=priv->buffer;
   ash.cbSrcLength=priv->src_size;
-  ash.pbDst=priv->frame->samples.s_8;
+  ash.pbDst=priv->frame->samples.u_8;
   ash.cbDstLength=priv->dst_size;
 
     

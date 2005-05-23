@@ -412,7 +412,7 @@ static bgav_albw_t * bgav_albw_read(bgav_input_context_t * input)
 
   bgav_albw_t * ret = (bgav_albw_t *)0;
   
-  if(bgav_input_read_data(input, buffer, 12) < 12)
+  if(bgav_input_read_data(input, (uint8_t*)buffer, 12) < 12)
     goto fail;
 
   ret = calloc(1, sizeof(*ret));
@@ -423,7 +423,7 @@ static bgav_albw_t * bgav_albw_read(bgav_input_context_t * input)
 
   for(i = 0; i < ret->num_tracks; i++)
     {
-    if(bgav_input_read_data(input, buffer, 501) < 501)
+    if(bgav_input_read_data(input, (uint8_t*)buffer, 501) < 501)
       goto fail;
     pos = buffer;
 

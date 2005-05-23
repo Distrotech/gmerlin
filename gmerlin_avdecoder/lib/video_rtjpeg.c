@@ -20,8 +20,9 @@
 /* Ported from libquicktime */
 #include <stdlib.h>
 
-#include <RTjpeg.h>
 #include <avdec_private.h>
+
+#include <RTjpeg.h>
 
 #define BLOCK_SIZE 16
 

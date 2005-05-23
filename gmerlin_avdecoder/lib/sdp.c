@@ -885,7 +885,7 @@ int bgav_sdp_get_attr_data(bgav_sdp_attr_t * attrs, int num_attrs,
       {
       if(attrs[i].type != BGAV_SDP_TYPE_DATA)
         return 0;
-      *ret = attrs[i].val.str;
+      *ret = (uint8_t*)(attrs[i].val.str);
       *size = attrs[i].data_len;
       return 1;
       }

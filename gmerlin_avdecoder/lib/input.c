@@ -48,7 +48,7 @@ int bgav_input_read_line(bgav_input_context_t* input,
   
   while(1)
     {
-    if(!bgav_input_read_data(input, &c, 1))
+    if(!bgav_input_read_data(input, (uint8_t*)(&c), 1))
       {
       //      return 0;
       add_char(buffer, buffer_alloc, pos, 0);
@@ -504,7 +504,7 @@ int bgav_input_read_string_pascal(bgav_input_context_t * ctx,
   {
   uint8_t len;
   if(!bgav_input_read_8(ctx, &len) ||
-     (bgav_input_read_data(ctx, ret, len) < len))
+     (bgav_input_read_data(ctx, (uint8_t*)ret, len) < len))
     return 0;
   ret[len] = '\0';
   return 1;

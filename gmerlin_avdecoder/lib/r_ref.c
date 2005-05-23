@@ -26,8 +26,8 @@
 
 static int probe_ref(bgav_input_context_t * input)
   {
-  uint8_t probe_data[11];
-  if(bgav_input_get_data(input, probe_data, 11) < 11)
+  char probe_data[11];
+  if(bgav_input_get_data(input, (uint8_t*)probe_data, 11) < 11)
     return 0;
 
   if(!strncasecmp(probe_data, "[Reference]", 11))

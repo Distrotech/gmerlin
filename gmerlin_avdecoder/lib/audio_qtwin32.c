@@ -112,7 +112,7 @@ typedef struct
 
   int                 InFrameSize;
   int                 OutFrameSize;
-  long                FramesToGet;
+  unsigned long       FramesToGet;
 
   ldt_fs_t *ldt_fs;
 
@@ -342,7 +342,7 @@ static int read_data(bgav_stream_t * s)
 static int decode(bgav_stream_t * s)
   {
   int num_frames;
-  long out_frames, out_bytes;
+  unsigned long out_frames, out_bytes;
   qta_priv_t * priv = (qta_priv_t*)s->data.audio.decoder->priv;
   //  fprintf(stderr, "decode qtwin32...");
   //  priv->ldt_fs = Setup_LDT_Keeper();
@@ -453,7 +453,7 @@ static void resync_qtaudio(bgav_stream_t * s)
 static bgav_audio_decoder_t decoder =
   {
     name:   "Win32 Quicktime audio decoder",
-    fourccs: (int[]){ BGAV_MK_FOURCC('Q','D','M','C'),
+    fourccs: (uint32_t[]){ BGAV_MK_FOURCC('Q','D','M','C'),
                       BGAV_MK_FOURCC('Q','D','M','2'),
                       BGAV_MK_FOURCC('Q','c','l','p'),
                       //                      BGAV_MK_FOURCC('M','A','C','6'),

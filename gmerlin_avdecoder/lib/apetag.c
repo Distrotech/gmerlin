@@ -45,7 +45,7 @@ int bgav_ape_tag_probe(bgav_input_context_t * input, int * tag_size)
   if(bgav_input_read_data(input, probe_data, 32) < 32)
     return 0;
 
-  if(strncmp(probe_data, "APETAGEX", 8))
+  if(strncmp((char*)probe_data, "APETAGEX", 8))
     return 0;
 
   /* Now, compute the size */ 
@@ -99,12 +99,12 @@ bgav_ape_tag_t * bgav_ape_tag_read(bgav_input_context_t * input, int tag_size)
     item_value_size = BGAV_PTR_2_32LE(ptr); ptr+=4;
     flags  = BGAV_PTR_2_32LE(ptr);          ptr+=4;
 
-    ret->items[i].key = bgav_strndup(ptr, (char*)0);
+    ret->items[i].key = bgav_strndup((char*)ptr, (char*)0);
     ptr += strlen(ret->items[i].key) + 1;
 
     if((flags & 0x00000006) == 0) /* UTF-8 Data */
       {
-      ret->items[i].str = bgav_strndup(ptr, ptr + item_value_size);
+      ret->items[i].str = bgav_strndup((char*)ptr, (char*)(ptr + item_value_size));
       ptr += item_value_size;
       }
     }

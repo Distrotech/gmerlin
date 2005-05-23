@@ -533,9 +533,9 @@ int bgav_RIFFINFO_probe(bgav_input_context_t * input)
 /* RS == read_string */
 
 #define RS(tag) \
-  if(!strncmp(ptr, #tag, 4)) \
+  if(!strncmp((char*)ptr, #tag, 4))             \
     { \
-    ret->tag = bgav_strndup(ptr + 8, NULL);     \
+    ret->tag = bgav_strndup((char*)(ptr + 8), NULL);    \
     ptr += string_len + 8; \
     if(string_len % 2) \
       ptr++; \

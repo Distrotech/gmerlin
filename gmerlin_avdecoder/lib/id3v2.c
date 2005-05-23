@@ -330,7 +330,7 @@ static char ** read_string_list(uint8_t * data, int data_size)
 
 static int read_frame(bgav_input_context_t * input,
                       bgav_id3v2_frame_t * ret,
-                      char * probe_data,
+                      uint8_t * probe_data,
                       int major_version)
   {
   uint8_t buf[4];
@@ -680,17 +680,17 @@ static char * get_comment(bgav_id3v2_frame_t* frame)
 
   /* Skip short description */
   
-  while(!is_null(pos, bytes_per_char))
+  while(!is_null((char*)pos, bytes_per_char))
     pos += bytes_per_char;
 
   pos += bytes_per_char;
   
   if(cnv)
     ret = bgav_convert_string(cnv, 
-                              pos, frame->header.size - (int)(pos - frame->data),
+                              (char*)pos, frame->header.size - (int)(pos - frame->data),
                               NULL);
   else
-    ret = bgav_strndup(pos, NULL);
+    ret = bgav_strndup((char*)pos, NULL);
 
   if(cnv)
     bgav_charset_converter_destroy(cnv);

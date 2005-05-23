@@ -220,7 +220,8 @@ static int stsd_read_video(bgav_input_context_t * input,
      !bgav_input_read_32_be(input, &(ret->format.video.data_size)) ||
      !bgav_input_read_16_be(input, &(ret->format.video.frame_count)) ||
      !bgav_input_read_8(input, &len) ||
-     (bgav_input_read_data(input, ret->format.video.compressor_name, 31) < 31) ||
+     (bgav_input_read_data(input,
+                           (uint8_t*)(ret->format.video.compressor_name), 31) < 31) ||
      !bgav_input_read_16_be(input, &(ret->format.video.depth)) ||
      !bgav_input_read_16_be(input, &(ret->format.video.ctab_id)))
     return 0;

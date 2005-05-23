@@ -35,7 +35,7 @@ static char * read_data(bgav_input_context_t * input, int len)
   {
   char * ret;
   ret = malloc(len+1);
-  if(bgav_input_read_data(input, ret, len) < len)
+  if(bgav_input_read_data(input, (uint8_t*)ret, len) < len)
     {
     free(ret);
     return (char*)0;
@@ -166,7 +166,7 @@ int bgav_rmff_mdpr_read(bgav_rmff_chunk_t * c,
   if(!ret->type_specific_len)
     return 1;
   
-  ret->type_specific_data = read_data(input, ret->type_specific_len);
+  ret->type_specific_data = (uint8_t*)read_data(input, ret->type_specific_len);
   if(!ret->type_specific_data)
     return 0;
   return 1;
@@ -195,7 +195,7 @@ void bgav_rmff_mdpr_destroy(bgav_rmff_mdpr_t * m)
   if(dst_len) \
     { \
     ret->dst = malloc(dst_len); \
-    if(bgav_input_read_data(input, ret->dst, dst_len) < dst_len) \
+    if(bgav_input_read_data(input, (uint8_t*)(ret->dst), dst_len) < dst_len) \
       { \
       free(ret->dst); \
       ret->dst = (char*)0; \

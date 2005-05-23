@@ -92,9 +92,9 @@ typedef struct
   uint32_t  preroll;
   uint32_t  duration;
   uint8_t   stream_name_size;
-  uint8_t * stream_name;
+  char    * stream_name;
   uint8_t   mime_type_size;
-  uint8_t * mime_type;
+  char    * mime_type;
   uint32_t  type_specific_len;
   uint8_t * type_specific_data;
   } bgav_rmff_mdpr_t;
@@ -112,13 +112,13 @@ typedef struct
   {
   /* Version 0 */
   uint16_t  title_len;
-  uint8_t * title;
+  char * title;
   uint16_t  author_len;
-  uint8_t * author;
+  char * author;
   uint16_t  copyright_len;
-  uint8_t * copyright;
+  char * copyright;
   uint16_t  comment_len;
-  uint8_t * comment;
+  char * comment;
   } bgav_rmff_cont_t;
 
 void bgav_rmff_cont_dump(bgav_rmff_cont_t * m);

@@ -95,7 +95,7 @@ static char * read_string(qt_atom_header_t * h,
     return NULL;
 
   ret = malloc(size + 1);
-  if(bgav_input_read_data(ctx, ret, size) < size)
+  if(bgav_input_read_data(ctx, (uint8_t*)ret, size) < size)
     {
     free(ret);
     return NULL;

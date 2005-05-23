@@ -55,6 +55,8 @@
 #define ASSERT(cond) \
 if(!(cond)) return 0
 
+#include <avdec_private.h>
+
 #if 0 /* gmerlin_avdecoder */
 #include "config_unix.h"
 #include "config_win32.h"
@@ -112,12 +114,13 @@ static unsigned char index_64[128] = {
 
 #define char64(c)  ((c > 127) ? 0xff : index_64[(c)])
 
-int bgav_base64decode(const unsigned char *input,
+int bgav_base64decode(const char *_input,
                       int input_length,
                       unsigned char *output, int output_length)
   {
   int		i = 0, j = 0, pad;
   unsigned char	c[4];
+  const unsigned char * input = (const unsigned char *)_input;
   
   ASSERT(output_length >= (input_length * 3 / 4));
   ASSERT((input_length % 4) == 0);

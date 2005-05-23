@@ -126,7 +126,7 @@ static int read_length(bgav_input_context_t * input)
   return len;
   }
 
-static int check_key(uint8_t * buffer, const uint8_t * key, uint8_t ** pos)
+static int check_key(char * buffer, const char * key, char ** pos)
   {
   char * pos1;
   
@@ -193,8 +193,8 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
   uint8_t c;
   int len;
   int64_t header_start;
-  char * buffer = (uint8_t*)0;
-  uint8_t * pos = (uint8_t*)0;
+  char * buffer = (char*)0;
+  char * pos = (char*)0;
   int result = 0;
   int record_type;
     
@@ -397,7 +397,7 @@ static int probe_vivo(bgav_input_context_t * input)
 
   for(i = 0; i < 32-13; i++)
     {
-    if(!strncmp(&(probe_data[i]), "Version:Vivo/", 13))
+    if(!strncmp((char*)(&(probe_data[i])), "Version:Vivo/", 13))
       return 1;
     }
   return 0;

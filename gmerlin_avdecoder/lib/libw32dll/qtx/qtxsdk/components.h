@@ -665,7 +665,7 @@ static inline void dump_ImageDescription(void* xxx){
 	id->depth);
     printf("dataSize=%ld frameCount=%d clutID=%d\n",id->dataSize, id->frameCount, id->clutID);
     printf("name='%.*s'\n",((char*)(&id->name))[0],((char*)(&id->name))+1);
-    x=((char*)(&id->clutID))+2;
+    x=((unsigned char*)(&id->clutID))+2;
     if(id->idSize>sizeof(ImageDescription)){
 	printf("%02X %02X %02X %02X | %02X %02X %02X %02X | %02X %02X %02X %02X | %02X %02X %02X %02X\n",
 	x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7],x[8],x[9],x[10],x[11],x[12],x[13],x[14],x[15]);

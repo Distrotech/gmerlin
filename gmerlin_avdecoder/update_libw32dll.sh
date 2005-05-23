@@ -24,7 +24,7 @@ for i in `cat files.txt`; do
   diff -u $LIBDIR/$i $XINEDIR/$i > diff.txt
      echo File $i changed
      cat diff.txt
-     cat diff.txt > diff_total.txt
+     cat diff.txt >> diff_total.txt
 done
 
 

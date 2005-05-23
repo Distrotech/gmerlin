@@ -40,7 +40,7 @@ static int probe_asx(bgav_input_context_t * input)
         return 1;
       }
     }
-  if(bgav_input_get_data(input, buf, 4) < 4)
+  if(bgav_input_get_data(input, (uint8_t*)buf, 4) < 4)
     return 0;
   if((buf[0] == '<') &&
      (tolower(buf[1]) == 'a') && 

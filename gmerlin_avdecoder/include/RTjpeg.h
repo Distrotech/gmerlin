@@ -1,39 +1,25 @@
 /* 
-   RTjpeg (C) Justin Schoeman 1998 (justin@suntiger.ee.up.ac.za)
-   
-   With modifications by:
-   (c) 1998, 1999 by Joerg Walter <trouble@moes.pmnet.uni-oldenburg.de>
-   and
-   (c) 1999 by Wim Taymans <wim.taymans@tvd.be>
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public  
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,  
-but WITHOUT ANY WARRANTY; without even the implied warranty of   
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public   
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-        Justin Schoeman:
-	  e-mail:
-        	justin@suntiger.ee.up.ac.za
-	  snail mail:
-		EE&C Engineering
-		University of Pretoria
-		Pretoria
-		0002
-		South Africa
-*/
-
-#ifndef _STDINT_H
-#include <stdint.h>
-#endif
+ * RTjpeg (C) Justin Schoeman 1998 (justin@suntiger.ee.up.ac.za)
+ *  
+ * With modifications by:
+ * (c) 1998, 1999 by Joerg Walter <trouble@moes.pmnet.uni-oldenburg.de>
+ * and
+ * (c) 1999 by Wim Taymans <wim.taymans@tvd.be>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ */
 
 #ifdef __RTJPEG_INTERNAL__
 
@@ -109,9 +95,11 @@ extern int RTjpeg_set_format(RTjpeg_t *rtj, int *format);
 extern int RTjpeg_set_size(RTjpeg_t *rtj, int *w, int *h);
 extern int RTjpeg_set_intra(RTjpeg_t *rtj, int *key, int *lm, int *cm);
 
-extern int RTjpeg_compress(RTjpeg_t *rtj, int8_t *sp, uint8_t **planes);
-extern int RTjpeg_nullcompress(RTjpeg_t *rtj, int8_t *sp);
-extern void RTjpeg_decompress(RTjpeg_t *rtj, int8_t *sp, uint8_t **planes);
+extern int RTjpeg_compress(RTjpeg_t *rtj, uint8_t *sp, uint8_t **planes);
+
+// Not used externally 
+// extern int RTjpeg_nullcompress(RTjpeg_t *rtj, int8_t *sp);
+extern void RTjpeg_decompress(RTjpeg_t *rtj, uint8_t *sp, uint8_t **planes);
 
 void RTjpeg_yuv420rgb32(RTjpeg_t *rtj, uint8_t **planes, uint8_t **rows);
 void RTjpeg_yuv420bgr32(RTjpeg_t *rtj, uint8_t **planes, uint8_t **rows);

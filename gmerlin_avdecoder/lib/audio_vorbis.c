@@ -158,7 +158,8 @@ static int next_packet(bgav_stream_t * s)
 
 static int init_vorbis(bgav_stream_t * s)
   {
-  uint8_t * ptr, * buffer;
+  uint8_t * ptr;
+  char * buffer;
   char * default_header;
   int default_header_len;
 
@@ -304,8 +305,8 @@ static int init_vorbis(bgav_stream_t * s)
     {
     default_header = get_default_vorbis_header(s, &default_header_len);
 
-    fprintf(stderr, "Default header:\n");
-    bgav_hexdump(default_header, default_header_len, 16); 
+    //    fprintf(stderr, "Default header:\n");
+    //    bgav_hexdump(default_header, default_header_len, 16); 
     
     buffer = ogg_sync_buffer(&priv->dec_oy, default_header_len);
     memcpy(buffer, default_header, default_header_len);
