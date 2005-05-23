@@ -1,0 +1,327 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html>
+<head>
+  <title>Gmerlin users guide</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="button.js" type="text/javascript"></script>
+
+</head>
+
+<body>
+<h1>Gmerlin Users Guide</h1>
+
+<a href="#basics">1 Basics</a><br>
+<a href="#introduction">1.1 Introduction</a><br>
+<a href="#installation">1.2 Installation</a><br>
+<a href="#requirements">1.2.1 Requirements</a><br>
+<a href="#compilation">1.2.2 Compilation</a><br>
+<a href="#binary_codecs>1.2.3 Binary codecs</a><br>
+<a href="#general_usage">2 General usage information</a><br>
+<a href="#configuration_data">2.1 Configuration data</a><br>
+<a href="#gui">2.2 GUI</a><br>
+<a href="#remote">2.3 Remote control</a><br>
+<a href="#applications">3 Applications</a><br>
+<a href="#player">3.1 Player</a><br>
+<a href="#media_tree">3.1.1 Media tree</a><br>
+<a href="#main_window">3.1.2 The main window</a><br>
+<a href="#video_window">3.1.3 The video window</a><br>
+<a href="#transcoder">3.2 Transcoder</a><br>
+<a href="#alsamixer">3.3 Alsamixer</a><br>
+<a href="#get_involved">4 Get involved</a><br>
+
+<a name="basics">
+<h1>1 Basics</h1>
+<a name="introduction">
+<h2>1.1 Introduction</h2>
+
+This manual should help you to get familiar with gmerlin software. The gmerlin
+software is quite modular, because it consists of multiple packages, most of which
+can be used independently. In this document, it is assumed, that you have
+all packages installed (See Installation below).
+
+<a name="installation">
+<h3>1.2 Installation</h3>
+
+<a name="requirements">
+<h4>1.2.1 Requirements</h4>
+
+<table border="1">
+
+Required libraries can be installed from source for from binary packages.
+In the latter case, you MUST install the development packages (e.g.
+libfoo-devel-1.2.3-4.i386.rpm) also. This is what you need:
+<p>
+
+<tr><td><a href="http://www.alsa-project.org" target="_top">Alsa </a></td><td>It's the recommended audio architecture</td></tr>
+
+<tr><td><a href="http://www.tux.org/~ricdude/EsounD.html" target="_top">esound</a></td><td>Only needed if
+neither Alsa nor OSS work for you.</td></tr>
+
+<tr><td><a href="http://flac.sourceforge.net/" target="_top">flac</a></td>
+<td>For decoding flac files (Optional).</td></tr>
+
+<tr><td><a href="http://www.gtk.org/" target="_top">gtk-2.4.x</a></td><td>This is needed for compiling
+the GUI applications. Without it you'll get just the core library, which won't be of much use.</td></tr>
+
+<tr><td><a href="http://www.ijg.org/" target="_top">libjpeg</a></td><td>For reading and writing single JPEG images
+(strongly recommended)</td></tr>
+
+<tr><td><a href="http://www.libpng.org/pub/png/libpng.html" target="_top">libpng</a></td><td>For reading and writing single PNG images (strongly recommended).
+Also for decoding png encoded Quicktime and AVI files</td></tr>
+
+<tr><td><a href="http://www.remotesensing.org/libtiff/" target="_top">libtiff</a></td><td> For reading and
+writing single TIFF images (Optional)</td></tr>
+
+<tr><td><a href="http://www.xmlsoft.org/" target="_top">libxml</a></td><td>Required. All kinds of configuration files
+as well as the media tree are xml based.</td></tr>
+
+<tr><td><a href="http://www.vorbis.com" target="_top">vorbis</a></td><td>Needed for Vorbis files
+</td></tr>
+</table>
+<p>
+
+From now on, there are 2 ways to proceed:
+<ul>
+<li>You can download and install the gmerlin-dependencies package, unpack it and install it using the
+instructions in the README file. A full dependencies install will provide you with the complete features,
+but some packages you already have might be installed a second time.
+Everything, however, gets into /opt/gmerlin, so there will be no conflicts.
+<li>To have more control over the process, download and install the libraries below
+</ul>
+
+<table border="1">
+<tr><td><a href="http://www.gnu.org/software/libcdio/">libcdio </a></td><td>Neccessary for the VCD and
+Audio CD plugins. You need the latest CVS version or the one in the gmerlin-dependencies package.</td></tr>
+
+<tr><td><a href="http://musicbrainz.org/products/client/index.html">libmusicbrainz </a></td>
+<td>Needed for getting Audio CD metadata using <a href="http://musicbrainz.org">musicbrainz</a></td>
+</tr>
+
+<tr><td><a href="http://www.audiocoding.com" target="_top">faad2</a></td><td>Needed for MPEG-4 audio
+support (mp4, aac files). The latest official faad-2.0 won't
+play some streams. The current CVS version or the rpms from
+<a href="http://freshrpms.net" target="_top">freshrpms</a> should be ok.</td></tr>
+
+<tr><td><a href="http://www.ffmpeg.org" target="_top">FFmpeg</a></td><td>Many other codecs,
+strongly recommended. You should get a sufficiently new version from
+<a href="http://ffmpeg.sourceforge.net/download.php" target="_top">ffmpeg CVS</a>
+and use --enable-shared when calling configure. If you are a beginner and are scared by things
+like CVS, go to <a href="http://www.acarlab.com/software/ffmpeg.html" target="_top">aCarLab (India)
+</a> for a simpler to install ffmpeg package.</td></tr>
+
+<tr><td><a href="http://www.mp3dev.org/" target="_top">lame</a></td><td>For encoding mp3s.</td></tr>
+
+<tr><td><a href="http://mad.sourceforge.net" target="_top">libmad</a></td><td>For playing MPEG-1/2 audio (e.g.
+for mp3)</td></tr>
+
+<tr><td><a href="http://libquicktime.sourceforge.net/" target="_top">libquicktime</a></td>
+    <td>Optional, for the libquicktime based encoding and decoding plugins. Mostly necessary if you
+    want to encode video. For decoding Quicktime, gmerlin_avdecoder is a lot better.</td></tr>
+
+<tr><td><a href="http://www.mega-nerd.com/SRC/" target="_top">libsamplerate</a></td><td>Required.</td></tr>
+
+<tr><td><a href="http://libmpeg2.sourceforge.net/" target="_top">libmpeg2</a></td><td>For decoding MPEG-1/2 Video (like .mpg files)</td></tr>
+
+<tr><td><a href="http://liba52.sourceforge.net/" target="_top">liba52</a></td><td>For playing AC3 (aka DVD audio) streams
+</td></tr>
+
+<tr><td><a href="http://www.musepack.net/" target="_top">libmusepack</a></td><td> For playing musepack files.</td></tr>
+</table>
+
+<a name="compilation">
+<h4>1.2.2 Compilation and installation</h4>
+
+If you downloaded a release, make sure, that you have the latest version of all packages.
+Alternatively, you can download the latest gmerlin-all-in-one package. It contains all
+source packages together with optional scripts to build and install them. Check the README file.<p>
+
+We always try to be compatible ther GNU build system. This means, thas all gmerlin
+packages are compiled using the usual <code>./configure; make; su; make install</code> prodecure.
+Type <code>./configure --help</code> to see the supported options.<p>
+The order is the following:
+
+<ul>
+<li><a href="http://sourceforge.net/project/showfiles.php?group_id=19684&package_id=50349" target="_top">
+<b>gavl</b></a>
+<li><a href="http://sourceforge.net/project/showfiles.php?group_id=19684&package_id=14511" target="_top"><b>gmerlin</b></a>
+
+<li><a href="http://sourceforge.net/project/showfiles.php?group_id=19684&package_id=124659" target="_top"><b>gmerlin_avdecoder</b></a>
+<li><b>gmerlin-encoders</b>
+</ul>
+
+<a name="binary_codecs">
+<h4>1.2.3 Binary codecs</h4>
+These must be downloaded from the
+<a href="http://www1.mplayerhq.hu/MPlayer/releases/codecs/" target="_top">MPlayer codec page</a>. 
+The savest way is to download the file all-YYYYMMDD.tar.bz2, where YYYYMMDD is some date.
+Unpack the .tar.bz2 and move the included files to a directory of your choice.<p>
+To tell gmerlin about the DLLs, set the environment variables GMERLIN_AVDEC_CODEC_PATH_XANIM,
+GMERLIN_AVDEC_CODEC_PATH_REAL and GMERLIN_AVDEC_CODEC_PATH_WIN32 to the directory. Alternativey,
+you can configure the paths in the config dialog of the avdecoder plugin. This must, however, be done
+for each application separately.<p>
+To check your setup, start gmerlin from a terminal and play e.g. an mp3 file. Whenever the gmerlin_avdecoder
+plugin is initialized, it prints messages for each missing binary codec.
+
+<a name="general_usage">
+<h1>2 General usage information</h1>
+<a name="configuration_data">
+<h2>2.1 Configuration data</h2>
+They are saved in the directory ~/.gmerlin, which has subdirectories for all applications. The directory
+"generic" stores common configuration data for applications, which have no config dialog. Plugins used by these
+programs can be configured with the <b>gmerlin_plugincfg</b> application.
+If a program misbehaves, especially after a version upgrade, delete the file
+<code>~/.gmerlin/application_dir/config.xml</code>, where <code>application_dir</code> corresponds to the
+application. Normally, this shouldn't be necessary<p>
+All applications except <b>gmerlin_visualizer</b> have their own configuration data. This means, that changes
+made to plugin configurations are not shared between these applications.
+
+Most applications have a configuration dialog, which lets you change some global settings.
+Then, there is a plugin dialog, which lets you select and configure plugins.
+
+It might be a bit tricky to find out if a special option can be set via the
+the plugin dialog or via the global config dialog. The general rule is:
+All features, which are supported independently from any plugins, are configured
+in the global dialog. You can expect them to be present on every gmerlin installation of the
+same version. The plugin dialog changes depending on what plugins are installed. That's the reason,
+why they are separated.
+
+
+<a name="gui">
+<h2>2.2 GUI</h2>
+
+We try to make this as consistent as possible across the applications. In many windows, you'll see context
+sensitive menus when you right click somewhere. Furthermore, tooltips are enabled in all programs by
+default. You can, however, switch them off if they bother you.
+Many dialogs behave exactly the same in all applications, because they share a lot of code.<p>
+The configuration dialogs for global and plugin related settings are strictly separated.
+There is one dialog, which lets you configure global settings. These are always there, no matter what
+plugins are installed. Then, there is a plugin dialog, which is built dynamically based on the available plugins.
+It lets you change plugins, which are not autodetected (e.g. the soundcard plugin). There is always a config button,
+which lets you configure the plugin.
+
+<a name="remote">
+<h2>2.3 Remote control</h2>
+The player and the transcoder are remotely controllable by the commandline programs <b>gmerlin_remote</b> and 
+<b>gmerlin_transcoder_remote</b> respectively. Call them with -help as argument to see the options. 
+These plugins listen at ports starting with 10101 by default. You can change these via environment variables:<p>
+
+    <table border="1">
+<tr><td><code>GMERLIN_PLAYER_REMOTE_PORT</code></td><td> Port for the player remote, default 10101.</td></tr>
+<tr><td><code>GMERLIN_TRANSCODER_REMOTE_PORT</code></td><td> Port for the transcoder remote, default 10102.</td></tr>
+</table><p>
+
+By default, remote enabled applications will listen on the localhost (127.0.0.1) only. If you want to
+control your gmerlin applications from other computers too, enable it in their config dialogs.<p>
+
+Finally there is a script <code>gmerlin_launcher</code>. It can be used as a Mime handler by filenamagers
+and webbrowsers. If <code>gmerlin_launcher</code> is called with a file or URL as argument, it will launch
+a gmerlin player if neccesary, add the location to the Incoming album and start playing it.
+
+<a name="applications">
+<h1>3 Applications</h1>
+
+<a name="player">
+<h2>3.1 Player</h2>
+Type <code>gmerlin</code> with any number of files or URLs to start this. If you omit any commandline
+arguments, the GUI will come.
+
+<a name="media_tree">
+<h3>3.1.1 Media tree</h3>
+The media tree can be used to store and organize your media collection. It consists of virtual folders
+called <b>albums</b>. You can create albums, subalbums and move stuff between them like you
+want. The media files always stay at the same place in the filesystem. The albums can be either in
+own windows (Windowed mode) or as tabs in the tree window (Tabbed mode).
+The tree- and album windows remember their screen positions.<p>
+You can create your own albums by right clicking onto the parent album in the tree and select Album->New.
+Whenever you doubleclick a track, it will be played immediately.
+In addition to the regular albums, there are a number of special albums:
+    <ul>
+      <li><b>Incoming: </b>It's the destination for tracks, which come from the comandline or from
+	the remote.
+	<li><b>Favourites: </b>Each regular album has a Favourites button, which lets you copy the selected
+	tracks to the Favourites.
+	<li><b>Plugin and device-albums: </b>Each plugin, which handles e.g. cdrom drives, will create a
+	plugin album. The available devices are then autoscanned and added as subalbums. Tracks from
+	decvice albums can never be mixed with files or URLs in one album.
+    </ul>
+Adding tracks to the media tree can happen in multiple ways:
+    <ul>
+      <li>Drag Files or URLs from filenanagers or webbrowsers into an album forlder in the tree or into
+	an album directly.
+      <li>Use the buttons in the album toolbar, or the right click menu
+      <li>Via the right-click menu (Album->New from directory...) of the tree window, you can import
+	entire directory trees. Subdirectories will be added as subalbums if you want.
+      <li>Configure <code>gmerlin_launcher</code> as a MIME Handler for the supported filetypes in your desktop
+          environment. <code>gmerlin_launcher</code> will then send all doubleclicked files into the
+          <b>Incoming</b>-album.
+    </ul>
+Drag and Drop is supported:
+    <ul>
+      <li>Inside the tree window to move albums (inclusive subalbums) around
+      <li>From one regular album to another
+      <li>Inside all albums to sort the tracks
+      <li>From an album window into the tree window to transfer tracks to another album
+    </ul>
+When dragging albums, they are always moved. When dragging tracks, the default action is move.
+If you hold the Ctrl-Key before you start dragging, the tracks will be copied.<p>
+
+If you close the currently played album during playback, the player will stop after the current track is
+finished. You can then select another album by doubleclicking a track inside it.
+
+<a name="main_window">
+<h3>3.1.2 The main window</h3>
+It's a usual player window, with self explanatory buttons. The menu button will show the main menu of the
+player. It lets you configure plugins and other global settings, show other windows, launch other
+applications and so on.
+
+<a name="video_window">
+<h3>3.1.3 The video window</h3>
+This comes only when gmerlin has to show some video. While the video plays, you can
+press the TAB key to toggle between windowd and fullscreen mode.
+
+<a name="transcoder">
+<h2>3.2 Transcoder</h2>
+Type <code>gmerlin_transcoder</code> to start this. It has only one window, which contains the tasklist.
+A tasklist stores ALL information necessary to transcode the track. This includes codec settings,
+bitrates etc. You can load and save tasklists, the current tasklist is remembered.
+Using the right-click-menu, you can change the encoding plugins for tracks, with the configure
+button at the lower toolbar, you can configure each track.
+
+New tracks can be added:
+    <ul>
+      <li>by dragging files or URLs from filenanagers or webbrowsers into the tasklist
+      <li>by using the buttons in lower toolbar or the right click menu
+      <li>From the player by right clicking into an album end select Selected->Transcode
+      <li>By dragging Tracks from a gmerlin album into the tasklist
+    </ul>
+
+The upper toolbar controls global things. Here you can select and configure plugins as defaults
+for newly added tracks. Moreover, you can load/save tasklists,
+start/stop transcoding, set some global options and track defauls and quit the program.
+
+<a name="alsamixer">
+<h2>3.3 Alsamixer</h2>
+This was written because available programs often don't support the full range of soundcard
+settings. By right clicking on a control, you can:
+<ul>
+<li>Move controls inside the window
+<li>Move controls to own windows. To move them back to main window, simply close the
+control-windows.
+<li>Pop up a dialog, where you can select which controls will be shown at all
+</ul>
+All window configurations and coordinates are remembered. The actual mixer settings are NOT
+remembered, since this is done globally by the startup scripts.
+
+<a name="get_involved">
+<h1>4 Get involved</h1>
+Contribution to gmerlin can happen at several skill levels:
+<ul>
+<li>Report bugs and installation problems, tell about features you'd like to see.
+<li>Tell us about files, which cannot be played. An URL and some infos (e.g. <i>MPlayer plays it fine</i>)
+    can help a lot.
+<li>Make skins. In /usr/local/gmerlin/skins/Default/skin.xml, you'll find an example skin description file.
+<li>Assembler gurus can write more speed optimized routines for gavl
+<li>Mathematics gurus can write more accurate routines for the higher quality levels of gavl.
+</ul>
+</body>
+</html>
