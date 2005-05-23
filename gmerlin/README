@@ -1,14 +1,12 @@
 This is gmerlin, a set of multimedia libraries bundled with an application suite.
 
+For documentation, check the file doc/usersguide.html. This file won't get installed
+as the final format of gmerlin documentation isn't decided yet.
+
 This package contains the core libraries, some plugins and most applications.
 For installation instructions and troubleshooting tips, read the file 
-INSTALL.
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-BIG NOTE: If you just install gmerlin, you won't be able to play a single file in
-the worst case. All media file support is in the package gmerlin_avdec, which
-must be downloaded and installed separately AFTER installing gmerlin.
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+INSTALL. For instructions how to install the whole suite of gmerlin packages
+including the depdencies, check the file doc/usersguide.html.
 
 The following applications are included in this package:
 

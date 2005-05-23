@@ -5,7 +5,7 @@ gtk_pc =
 endif
 
 
-SUBDIRS = include lib plugins tests apps icons skins
+SUBDIRS = lib plugins tests apps icons skins include doc
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = gmerlin.pc $(gtk_pc) 

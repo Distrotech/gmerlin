@@ -634,6 +634,7 @@ apps/camelot/Makefile \
 apps/camelot/gmerlin-camelot.desktop \
 apps/transcoder/Makefile \
 apps/transcoder/gmerlin-transcoder.desktop \
+doc/Makefile \
 icons/Makefile \
 tests/Makefile \
 include/Makefile \
