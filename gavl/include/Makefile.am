@@ -18,6 +18,4 @@ include_HEADERS = gavlconfig.h
 
 noinst_HEADERS =  $(private_headers)
 
-#noinst_HEADERS =  $(public_headers) $(private_headers)
 
-EXTRA_DIST=Makefile.am.in
