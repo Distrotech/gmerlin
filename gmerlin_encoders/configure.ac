@@ -243,56 +243,15 @@ AC_DEFINE(HAVE_FAAC)
 fi
 
 dnl
-dnl Common CFLAGS
+dnl CFLAGS
 dnl
 
-CFLAGS="-Wall -D_REENTRANT -D_FILE_OFFSET_BITS=64 $GMERLIN_CFLAGS"
+LQT_OPT_CFLAGS($host_cpu, ["-O3 -funroll-all-loops -fomit-frame-pointer -ffast-math"])
+CFLAGS="-Wall -D_REENTRANT -D_FILE_OFFSET_BITS=64 $OPT_CFLAGS $GMERLIN_CFLAGS"
 
 dnl
-dnl Build optimization flags
+dnl LIBS
 dnl
-
-OPT_CFLAGS=""
-TRY_CFLAGS=""
-
-CPU_PENTIUM=false
-
-if test x"$GCC" = x"yes"; then
-  CFLAGS="-Wall $CFLAGS"
-  TRY_CFLAGS="-O3"
-  AC_TRY_CFLAGS([$TRY_CFLAGS],[OPT_CFLAGS=$TRY_CFLAGS])
-  TRY_CFLAGS="-finline-functions"
-  AC_TRY_CFLAGS([$TRY_CFLAGS],[OPT_CFLAGS=$TRY_CFLAGS])
-  dnl arch-specific flags
-  case "$host_cpu" in
-    i386)           TRY_CFLAGS="$OPT_CFLAGS -mcpu=i386";;
-    i486)           TRY_CFLAGS="$OPT_CFLAGS -mcpu=i486";;
-    i586)           TRY_CFLAGS="$OPT_CFLAGS -mcpu=pentium"; CPU_PENTIUM=true ;;
-    i686)           TRY_CFLAGS="$OPT_CFLAGS -mcpu=pentiumpro"; CPU_PENTIUM=true
-;;
-    k6)             TRY_CFLAGS="$OPT_CFLAGS -mcpu=k6"; CPU_PENTIUM=true ;;
-    sparc)          TRY_CFLAGS="$OPT_CFLAGS -mcpu=ultrasparc -mvis";;
-  esac
-AC_TRY_CFLAGS([$TRY_CFLAGS],[OPT_CFLAGS=$TRY_CFLAGS])
-fi
-
-dnl
-dnl Now, build the final CFLAGS.
-dnl
-have_debug=false
-
-AC_ARG_ENABLE(debug,
-AC_HELP_STRING([--enable-debug],[Enable debugging (disable optimization)]),
-[case "${enableval}" in
-   yes) have_debug=true ;;
-   no)  have_debug=false ;;
-esac],have_debug=false)
-
-case $have_debug in
-  true) CFLAGS="-g $CFLAGS"; OPT_CFLAGS="";;
-esac
-
-AC_SUBST(OPT_CFLAGS)
 
 LIBS="$GMERLIN_LIBS"
 
@@ -307,6 +266,7 @@ AC_CONFIG_FILES([Makefile \
 gmerlin_encoders.spec \
 include/Makefile \
 lib/Makefile \
+m4/Makefile \
 plugins/Makefile \
 plugins/flac/Makefile \
 plugins/vorbis/Makefile \

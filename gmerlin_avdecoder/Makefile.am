@@ -1,3 +1,5 @@
+# aclocal Path
+ACLOCAL_AMFLAGS = -I m4
 
 if HAVE_GMERLIN
 gmerlin_subdirs = plugins
@@ -5,7 +7,7 @@ else
 gmerlin_subdirs =
 endif
 
-SUBDIRS = lib $(gmerlin_subdirs) tests include
+SUBDIRS = lib $(gmerlin_subdirs) tests include m4
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = gmerlin_avdec.pc

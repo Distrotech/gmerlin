@@ -86,33 +86,15 @@ LIBS_save=$LIBS
 CFLAGS="$CFLAGS $GTK_CFLAGS"
 LIBS="$LIBS $GTK_LIBS"
 
-MM_LIBS=
 AC_CHECK_LIB(Xxf86vm,XF86VidModeQueryExtension,[
 AC_DEFINE(XF86VIDMODE,1,[XF86VidMode extension is present])
 VM_LIBS="-lXxf86vm"],,-L$x_libraries -lXext)
-
+AC_SUBST(VM_LIBS)
 
 CFLAGS=$CFLAGS_save
 LIBS=$LIBS_save
 
-CFLAGS="-Wall -D_FILE_OFFSET_BITS=64"
+LQT_OPT_CFLAGS($host_cpu, ["-O3 -funroll-all-loops -fomit-frame-pointer -ffast-math"])
+CFLAGS="-Wall -D_REENTRANT -D_FILE_OFFSET_BITS=64 $OPT_CFLAGS"
 
-have_debug=false
-
-AC_ARG_ENABLE(debug,
-AC_HELP_STRING([--enable-debug],[Enable debugging (disable optimization)]),
-[case "${enableval}" in
-   yes) have_debug=true ;;
-   no)  have_debug=false ;;
-esac],have_debug=false)
-
-if test x$have_debug = "xtrue"; then
- CFLAGS="-g $CFLAGS"
-else
- CFLAGS="-O2 $CFLAGS"
-fi
-
-
-AC_SUBST(VM_LIBS)
-
-AC_OUTPUT(Makefile gmerlin-visualizer.spec gmerlin-visualizer.desktop src/Makefile)
+AC_OUTPUT(Makefile gmerlin-visualizer.spec gmerlin-visualizer.desktop src/Makefile m4/Makefile)
