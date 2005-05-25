@@ -65,71 +65,37 @@ PKG_CHECK_MODULES(SECRETRABBIT, samplerate >= $SAMPLERATE_REQUIRED, ,
 AC_SUBST(SAMPLERATE_REQUIRED)
 
 dnl
-dnl CFLAGS
+dnl CPU type (FIXME: Should be compiler features!)
 dnl
-
-CFLAGS="-Wall"
-
-dnl
-dnl Build optimization flags
-dnl
-
-
-OPT_CFLAGS=""
-TRY_CFLAGS=""
 
 CPU_PENTIUM=false
 
-if test x"$GCC" = x"yes"; then
-  CFLAGS="-Wall -finline-functions $CFLAGS"
-  TRY_CFLAGS="-O3"
-  AC_TRY_CFLAGS([$TRY_CFLAGS],[OPT_CFLAGS=$TRY_CFLAGS])
-
-  dnl -fomit-frame-pointer
-  TRY_CFLAGS="$OPT_CFLAGS -fomit-frame-pointer -funroll-all-loops -falign-functions=2 -falign-loops=2 -falign-jumps=2"
-  AC_TRY_CFLAGS([$TRY_CFLAGS],[OPT_CFLAGS=$TRY_CFLAGS])
-
-  dnl arch-specific flags
-  case "$host_cpu" in
-    i386)           TRY_CFLAGS="$OPT_CFLAGS -mcpu=i386";;
-    i486)           TRY_CFLAGS="$OPT_CFLAGS -mcpu=i486";;
-    i586)           TRY_CFLAGS="$OPT_CFLAGS -mcpu=pentium"; CPU_PENTIUM=true ;;
-    i686)           TRY_CFLAGS="$OPT_CFLAGS -mcpu=pentiumpro"; CPU_PENTIUM=true ;;
-    k6)             TRY_CFLAGS="$OPT_CFLAGS -mcpu=k6"; CPU_PENTIUM=true ;;
-    sparc)          TRY_CFLAGS="$OPT_CFLAGS -mcpu=ultrasparc -mvis";;
-  esac
-AC_TRY_CFLAGS([$TRY_CFLAGS],[OPT_CFLAGS=$TRY_CFLAGS])
-fi
-
-dnl
-dnl Now, build the final CFLAGS.
-dnl 
-
-have_debug=false
-
-AC_ARG_ENABLE(debug,
-AC_HELP_STRING([--enable-debug],[Enable debugging (disable optimization)]),
-[case "${enableval}" in
-   yes) have_debug=true ;;
-   no)  have_debug=false ;;
-esac],have_debug=false)
-
-case $have_debug in
-  true) CFLAGS="-g $CFLAGS";;
-  false) CFLAGS="$CFLAGS $OPT_CFLAGS";;
+case "$host_cpu" in
+  i586) CPU_PENTIUM=true ;;
+  i686) CPU_PENTIUM=true ;;
+  k6)   CPU_PENTIUM=true ;;
 esac
-
-dnl
-dnl Output variables
-dnl
-dnl CPU_PENTIUM="false"
 
 case $CPU_PENTIUM in
 true) AC_DEFINE_UNQUOTED(ARCH_X86, , [X86 Architecture])
 esac
 AM_CONDITIONAL(ARCH_X86, test x$CPU_PENTIUM = xtrue)
 
-AM_CONDITIONAL(HAVE_STANDALONE, test x$have_standalone = xtrue)
+dnl
+dnl Build optimization flags
+dnl
+
+LQT_OPT_CFLAGS($host_cpu, ["-O3 -funroll-all-loops -fomit-frame-pointer -ffast-math"])
+
+dnl
+dnl Now, build the final CFLAGS.
+dnl 
+
+CFLAGS="-Wall $SECRETRABBIT_CFLAGS $OPT_CFLAGS"
+
+dnl
+dnl Output variables
+dnl
 
 INCLUDES='-I$(top_builddir)/include'
 AC_SUBST(INCLUDES)
@@ -138,6 +104,7 @@ AC_OUTPUT(Makefile \
 gavl.spec \
 gavl.pc \
 src/Makefile \
+m4/Makefile \
 include/Makefile \
 include/gavlconfig.h \
 include/gavl/Makefile \
