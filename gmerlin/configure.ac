@@ -591,6 +591,7 @@ apps/transcoder/Makefile \
 apps/transcoder/gmerlin-transcoder.desktop \
 doc/Makefile \
 icons/Makefile \
+m4/Makefile \
 tests/Makefile \
 include/Makefile \
 include/gui_gtk/Makefile \
