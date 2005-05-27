@@ -16,4 +16,5 @@ gmerlin-visualizer.desktop.in \
 gmerlin-visualizer.spec.in \
 autogen.sh \
 cvs_clean.sh \
-gmerlin_visualizer_launcher
+gmerlin_visualizer_launcher \
+cpuinfo.sh
