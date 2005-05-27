@@ -21,7 +21,7 @@
 
 #include <string.h>
 
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 #include <stdio.h>  
@@ -221,16 +221,24 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
     do_csp = 1;
     }
   
-  if(cnv->options.src_rect.w || 
-     (tmp_format.image_width != output_format->image_width) ||
+  if(cnv->options.src_rect.x  || cnv->options.src_rect.y ||
+     cnv->options.dst_rect.x  || cnv->options.dst_rect.y ||
+     (cnv->options.src_rect.w &&
+      (cnv->options.src_rect.w != tmp_format.image_width)) ||
+     (cnv->options.src_rect.h &&
+      (cnv->options.src_rect.h != tmp_format.image_height)) ||
+     (cnv->options.dst_rect.w &&
+      (cnv->options.dst_rect.w != output_format->image_width)) ||
+     (cnv->options.dst_rect.h &&
+      (cnv->options.dst_rect.h != output_format->image_height)) ||
+     (tmp_format.image_width  != output_format->image_width) ||
      (tmp_format.image_height != output_format->image_height) ||
-     (tmp_format.pixel_width != output_format->pixel_width) ||
+     (tmp_format.pixel_width  != output_format->pixel_width) ||
      (tmp_format.pixel_height != output_format->pixel_height))
     {
     do_scale = 1;
     }
-  
-  
+    
   if(do_csp && do_scale)
     {
     /* For qualities below 3, we scale in the colorspace with the
@@ -266,7 +274,7 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
       tmp_format1.pixel_width  = output_format->pixel_width;
       tmp_format1.pixel_height = output_format->pixel_height;
       
-      add_context_csp(cnv, &tmp_format, &tmp_format1);
+      add_context_scale(cnv, &tmp_format, &tmp_format1);
 
       gavl_video_format_copy(&tmp_format, &tmp_format1);
       
@@ -284,7 +292,7 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
       tmp_format1.pixel_width  = output_format->pixel_width;
       tmp_format1.pixel_height = output_format->pixel_height;
       
-      add_context_csp(cnv, &tmp_format, &tmp_format1);
+      add_context_scale(cnv, &tmp_format, &tmp_format1);
 
       gavl_video_format_copy(&tmp_format, &tmp_format1);
 
