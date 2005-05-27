@@ -17,7 +17,9 @@
  
 *****************************************************************/
 
-#include <avdec.h>
+// #include <avdec.h>
+#include <avdec_private.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -152,7 +154,11 @@ int main(int argc, char ** argv)
 #if 1
       fprintf(stderr, "Reading frame from video stream %d...", i+1);
       if(bgav_read_video(file, vf, i))
+        {
         fprintf(stderr, "Done\n");
+        // fprintf(stderr, "First 16 bytes of first plane follow\n");
+        // bgav_hexdump(vf->planes[0] + vf->strides[0] * 20, 16, 16);
+        }
       else
         fprintf(stderr, "Failed\n");
 #endif

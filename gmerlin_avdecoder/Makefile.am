@@ -12,4 +12,4 @@ SUBDIRS = lib $(gmerlin_subdirs) tests include m4
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = gmerlin_avdec.pc
 
-EXTRA_DIST = autogen.sh cvs_clean.sh gmerlin_avdec.pc.in gmerlin_avdec.spec.in
+EXTRA_DIST = autogen.sh cvs_clean.sh gmerlin_avdec.pc.in gmerlin_avdec.spec.in cpuinfo.sh
