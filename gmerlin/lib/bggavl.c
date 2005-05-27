@@ -329,7 +329,7 @@ int bg_gavl_video_set_parameter(void * data, char * name,
 
   if(!strcmp(name, "conversion_quality"))
     {
-    gavl_video_options_set_alpha_mode(opt->opt, val->val_i);
+    gavl_video_options_set_quality(opt->opt, val->val_i);
     return 1;
     }
 

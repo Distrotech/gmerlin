@@ -22,6 +22,7 @@
 #include <gtk/gtk.h>
 
 #include <gui_gtk/slider.h>
+#include <gui_gtk/gtkutils.h>
 
 #include <utils.h>
 
@@ -217,8 +218,8 @@ static gboolean motion_callback(GtkWidget * w, GdkEventMotion * evt,
 static void set_background(bg_gtk_slider_t * s)
   {
   GdkPixmap * pixmap;
-  gdk_pixbuf_render_pixmap_and_mask(s->pixbuf_background,
-                                    &pixmap, NULL, 0x80);
+  bg_gdk_pixbuf_render_pixmap_and_mask(s->pixbuf_background,
+                                    &pixmap, NULL);
   
   s->width  = gdk_pixbuf_get_width(s->pixbuf_background);
   s->height = gdk_pixbuf_get_height(s->pixbuf_background);
@@ -245,13 +246,13 @@ static void set_shape(bg_gtk_slider_t * s)
   else
     s->slider_size = gdk_pixbuf_get_width(s->pixbuf_normal);
 #endif
-  gdk_pixbuf_render_pixmap_and_mask(s->pixbuf_normal,
-                                    NULL, &mask, 0x80);
+  bg_gdk_pixbuf_render_pixmap_and_mask(s->pixbuf_normal,
+                                       NULL, &mask);
 
   gdk_window_shape_combine_mask(s->slider_eventbox->window,
                                 mask, 0, 0);
-
-  g_object_unref(G_OBJECT(mask));
+  if(mask)
+    g_object_unref(G_OBJECT(mask));
   }
 
 static void realize_callback(GtkWidget * w,
@@ -411,8 +412,12 @@ static GdkPixbuf * make_pixbuf(GdkPixbuf * old,
   
   if(old)
     g_object_unref(G_OBJECT(old));
-
+  
   ret = gdk_pixbuf_new_from_file(filename, NULL);
+
+  if(!ret)
+    fprintf(stderr, "Cannot open %s\n", filename);
+  
   return ret;
   }
 

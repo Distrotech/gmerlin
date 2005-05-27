@@ -82,12 +82,15 @@ bg_plugin_find_by_dll(bg_plugin_registry_t * reg, const char * filename)
 static bg_plugin_info_t *
 find_by_name(bg_plugin_info_t * info, const char * name)
   {
+  //  fprintf(stderr, "Find by name %s\n", name);
   while(info)
     {
+    //    fprintf(stderr, "Trying %s\n", info->name);
     if(!strcmp(info->name, name))
       return info;
     info = info->next;
     }
+  //  fprintf(stderr, "%s not found\n", name);
   return (bg_plugin_info_t*)0;
   }
 
@@ -734,6 +737,7 @@ const bg_plugin_info_t * bg_plugin_registry_get_default(bg_plugin_registry_t * r
   {
   const char * key;
   const char * name = (const char*)0;
+  const bg_plugin_info_t * ret;
   
   key = get_default_key(type);
   if(key)  
@@ -746,7 +750,12 @@ const bg_plugin_info_t * bg_plugin_registry_get_default(bg_plugin_registry_t * r
     }
   else
     {
-    return bg_plugin_find_by_name(r, name);
+    ret = bg_plugin_find_by_name(r, name);
+    if(!ret)
+      ret = find_by_priority(r->entries,
+                            type, BG_PLUGIN_ALL);
+    //    fprintf(stderr, "bg_plugin_find_by_name %s\n", name);
+    return ret;
     }
   }
 

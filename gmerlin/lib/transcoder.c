@@ -466,7 +466,9 @@ static void finalize_audio_stream(audio_stream_t * ret,
     ret->in_format.samplerate + 10;
   
   if(ret->com.do_convert)
+    {
     ret->out_frame = gavl_audio_frame_create(&(ret->out_format));
+    }
   
   }
 
@@ -1491,24 +1493,40 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
 
 /* Cleanup streams */
 
+static void close_stream(stream_t * s, int do_delete)
+  {
+  const char * filename;
+  if(s->action == STREAM_ACTION_FORGET)
+    return;
+  
+  if((s->do_close) && (s->out_handle))
+    {
+    if(s->out_plugin->get_filename)
+      {
+      filename =
+        s->out_plugin->get_filename(s->out_handle->priv);
+      s->output_filename = bg_strdup(s->output_filename, filename);
+      }
+    fprintf(stderr, "Closed stream, filename: %s\n", s->output_filename);
+    s->out_plugin->close(s->out_handle->priv, do_delete);
+    }
+  }
+
 #define FREE_STR(str) if(str)free(str);
 
-static void cleanup_stream(stream_t * s, int do_delete)
+static void cleanup_stream(stream_t * s)
   {
   if(s->action == STREAM_ACTION_FORGET)
     return;
-      
-  if((s->do_close) && (s->out_handle))
-    s->out_plugin->close(s->out_handle->priv, do_delete);
-  
+    
   if(s->out_handle)
     bg_plugin_unref(s->out_handle);
   FREE_STR(s->output_filename);
   }
 
-static void cleanup_audio_stream(audio_stream_t * s, int do_delete)
+static void cleanup_audio_stream(audio_stream_t * s)
   {
-  cleanup_stream(&(s->com), do_delete);
+  cleanup_stream(&(s->com));
   
   /* Free all resources */
 
@@ -1520,9 +1538,9 @@ static void cleanup_audio_stream(audio_stream_t * s, int do_delete)
     gavl_audio_converter_destroy(s->cnv);
   }
 
-static void cleanup_video_stream(video_stream_t * s, int do_delete)
+static void cleanup_video_stream(video_stream_t * s)
   {
-  cleanup_stream(&(s->com), do_delete);
+  cleanup_stream(&(s->com));
 
   /* Free all resources */
 
@@ -1540,9 +1558,12 @@ static void send_file(const char * name)
   {
   char * command;
 
-  //  fprintf(stderr, "Sending file: %s\n", name);
+  fprintf(stderr, "Sending file: %s\n", name);
   
   command = bg_sprintf("gmerlin_remote -add \"%s\"\n", name);
+
+  fprintf(stderr, "Send file command: \"%s\"\n", command);
+
   system(command);
   free(command);
   }
@@ -1554,27 +1575,18 @@ static void send_finished(bg_transcoder_t * t)
 
   if(t->separate_streams)
     {
+    fprintf(stderr, "Separate streams\n");
     for(i = 0; i < t->num_audio_streams; i++)
       {
       if(t->audio_streams[i].com.action == STREAM_ACTION_FORGET)
         continue;
-      if(t->audio_streams[i].com.out_plugin->get_filename)
-        filename =
-          t->audio_streams[i].com.out_plugin->get_filename(t->audio_streams[i].com.out_handle->priv);
-      else
-        filename = t->audio_streams[i].com.output_filename;
-      send_file(filename);
+      send_file(t->audio_streams[i].com.output_filename);
       }
     for(i = 0; i < t->num_video_streams; i++)
       {
       if(t->video_streams[i].com.action == STREAM_ACTION_FORGET)
         continue;
-      if(t->video_streams[i].com.out_plugin->get_filename)
-        filename =
-          t->video_streams[i].com.out_plugin->get_filename(t->video_streams[i].com.out_handle->priv);
-      else
-        filename = t->video_streams[i].com.output_filename;
-      send_file(filename);
+      send_file(t->video_streams[i].com.output_filename);
       }
     }
   else
@@ -1585,9 +1597,9 @@ static void send_finished(bg_transcoder_t * t)
       {
       if(t->audio_streams[i].com.action == STREAM_ACTION_FORGET)
         continue;
-      if(t->audio_streams[i].com.out_plugin->get_filename)
-        filename =
-          t->audio_streams[i].com.out_plugin->get_filename(t->audio_streams[i].com.out_handle->priv);
+      filename = t->video_streams[i].com.output_filename;
+      if(filename)
+        break;
       }
 
     if(!filename)
@@ -1596,12 +1608,9 @@ static void send_finished(bg_transcoder_t * t)
         {
         if(t->video_streams[i].com.action == STREAM_ACTION_FORGET)
           continue;
-        if(t->video_streams[i].com.out_plugin->get_filename)
-          filename =
-            t->video_streams[i].com.out_plugin->get_filename(t->video_streams[i].com.out_handle->priv);
-        else
-          filename = t->video_streams[i].com.output_filename;
-        send_file(filename);
+        filename = t->video_streams[i].com.output_filename;
+        if(filename)
+          break;
         }
       }
     if(!filename)
@@ -1618,18 +1627,18 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
     ((t->state == TRANSCODER_STATE_RUNNING) && t->delete_incomplete && !t->is_url) ? 1 : 0;
 
   //  fprintf(stderr, "Do delete: %d\n", do_delete);
-  
-  /* Cleanup streams */
+
+  /* Close all plugins so the files are finished */
 
   for(i = 0; i < t->num_audio_streams; i++)
     {
-    cleanup_audio_stream(&(t->audio_streams[i]), do_delete);
+    close_stream(&(t->audio_streams[i].com), do_delete);
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
-    cleanup_video_stream(&(t->video_streams[i]), do_delete);
+    close_stream(&(t->video_streams[i].com), do_delete);
     }
-
+    
   /* Send created files to gmerlin */
 
   if((t->state != TRANSCODER_STATE_RUNNING) && (t->send_finished) && !do_delete)
@@ -1637,6 +1646,18 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
     send_finished(t);
     }
   
+  /* Cleanup streams */
+
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    cleanup_audio_stream(&(t->audio_streams[i]));
+    }
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    cleanup_video_stream(&(t->video_streams[i]));
+    }
+
+    
   if(t->audio_streams)
     free(t->audio_streams);
   if(t->video_streams)

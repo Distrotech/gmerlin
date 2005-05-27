@@ -171,6 +171,11 @@ static void update_sensitive(bg_gtk_plugin_widget_single_t * widget)
   {
   bg_encoder_plugin_t * encoder;
 
+  if(!widget->handle)
+    {
+    fprintf(stderr, "ERROR: have no plugin\n");
+    }
+  
   if(widget->handle->plugin->get_parameters)
     gtk_widget_set_sensitive(widget->config_button, 1);
   else
@@ -331,6 +336,8 @@ bg_gtk_plugin_widget_single_create(char * label,
 
   default_info = bg_plugin_registry_get_default(reg, type_mask);
 
+  //  fprintf(stderr, "Default info: %p\n", default_info);
+  
   /* Make combo */
 #ifdef GTK_2_4
   default_index = -1;

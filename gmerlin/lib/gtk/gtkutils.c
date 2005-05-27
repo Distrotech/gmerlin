@@ -19,6 +19,9 @@
 
 #include <locale.h>
 
+#include <stdlib.h>
+#include <string.h>
+
 #include <inttypes.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
@@ -84,4 +87,31 @@ void bg_gtk_init(int * argc, char *** argv)
   /* No, we don't like commas as decimal separators */
   
   setlocale(LC_NUMERIC, "C");
+  }
+
+void bg_gdk_pixbuf_render_pixmap_and_mask(GdkPixbuf *pixbuf,
+                                          GdkPixmap **pixmap_return,
+                                          GdkBitmap **mask_return)
+  {
+  int width, height;
+  char * mask_data;
+    
+  gdk_pixbuf_render_pixmap_and_mask(pixbuf,
+                                    pixmap_return,
+                                    mask_return,
+                                    0x80);
+
+  if(mask_return && !(*mask_return))
+    {
+    width = gdk_pixbuf_get_width(pixbuf);
+    height = gdk_pixbuf_get_height(pixbuf);
+    
+    mask_data = malloc(width * height);
+    memset(mask_data, 0xff, width * height);
+    
+    *mask_return = gdk_bitmap_create_from_data((GdkDrawable*)0,
+                                               mask_data, width, height);
+
+    free(mask_data);
+    }
   }

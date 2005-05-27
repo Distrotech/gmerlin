@@ -23,10 +23,12 @@
 #include "gmerlin.h"
 #include <utils.h>
 
+#include <gui_gtk/gtkutils.h>
+
 #define DELAY_TIME 10
 
 #define BACKGROUND_WINDOW GTK_LAYOUT(win->layout)->bin_window
-#define MASK_WIDNOW       win->window->window
+#define MASK_WINDOW       win->window->window
 
 #define BACKGROUND_WIDGET win->layout
 #define MASK_WIDGET       win->window
@@ -38,6 +40,8 @@ static void set_background(player_window_t * win)
   int width, height;
   GdkPixbuf * pixbuf;
 
+  //  fprintf(stderr, "Set background %p\n", MASK_WINDOW);
+  
   if(win->mouse_inside)
     pixbuf = win->background_pixbuf_highlight;
   else
@@ -50,21 +54,33 @@ static void set_background(player_window_t * win)
   height = gdk_pixbuf_get_height(pixbuf);
 
   gtk_widget_set_size_request(win->window, width, height);
+  //  gtk_window_resize(GTK_WINDOW(win->window), width, height);
   
-  gdk_pixbuf_render_pixmap_and_mask(pixbuf,
-                                    &pixmap, &mask, 0x80);
+  bg_gdk_pixbuf_render_pixmap_and_mask(pixbuf,
+                                       &pixmap, &mask);
   
   if(pixmap && BACKGROUND_WINDOW)
     {
     gdk_window_set_back_pixmap(BACKGROUND_WINDOW, pixmap, FALSE);
     }
-  if(mask && MASK_WIDNOW)
+  if(MASK_WINDOW)
     {
-    gdk_window_shape_combine_mask(MASK_WIDNOW, mask, 0, 0);
+    gdk_window_shape_combine_mask(MASK_WINDOW, mask, 0, 0);
+    }
+
+  if(mask)
+    {
+    g_object_unref(G_OBJECT(mask));
     }
   
   if(BACKGROUND_WINDOW)
     gdk_window_clear_area_e(BACKGROUND_WINDOW, 0, 0, width, height);
+
+  gdk_display_sync(gdk_display_get_default());
+  
+  while(gdk_events_pending() || gtk_events_pending())
+    gtk_main_iteration();
+  
   }
 
 void player_window_set_skin(player_window_t * win,

@@ -24,3 +24,7 @@ GdkPixbuf * bg_gtk_pixbuf_scale_alpha(GdkPixbuf * src,
                                       float * background);
 
 void bg_gtk_init(int * argc, char *** argv);
+
+void bg_gdk_pixbuf_render_pixmap_and_mask(GdkPixbuf *pixbuf,
+                                          GdkPixmap **pixmap_return,
+                                          GdkBitmap **mask_return);

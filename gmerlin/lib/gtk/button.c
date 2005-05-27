@@ -23,6 +23,7 @@
 
 #include <cfg_registry.h>
 #include <gui_gtk/button.h>
+#include <gui_gtk/gtkutils.h>
 #include <utils.h>
 
 struct bg_gtk_button_s
@@ -120,15 +121,18 @@ static gboolean leave_notify_callback(GtkWidget *widget,
 
 static void set_shape(bg_gtk_button_t * b)
   {
-  GdkBitmap * mask;
-  gdk_pixbuf_render_pixmap_and_mask(b->pixbuf_normal,
-                                    (GdkPixmap**)0,
-                                    &mask,
-                                    0x80);
+  GdkBitmap * mask = (GdkBitmap*)0;
+  bg_gdk_pixbuf_render_pixmap_and_mask(b->pixbuf_normal,
+                                       (GdkPixmap**)0,
+                                       &mask);
   gdk_window_shape_combine_mask(b->widget->window,
                                 mask,
                                 0, 0);
-  g_object_unref(G_OBJECT(mask));
+  
+  if(mask)
+    {
+    g_object_unref(G_OBJECT(mask));
+    }
   }
 
 static void realize_callback(GtkWidget * w,
@@ -218,6 +222,10 @@ static GdkPixbuf * make_pixbuf(GdkPixbuf * old,
     g_object_unref(G_OBJECT(old));
 
   ret = gdk_pixbuf_new_from_file(filename, NULL);
+
+  if(!ret)
+    fprintf(stderr, "Cannot open %s\n", filename);
+  
   return ret;
   }
 
