@@ -1597,7 +1597,7 @@ static void send_finished(bg_transcoder_t * t)
       {
       if(t->audio_streams[i].com.action == STREAM_ACTION_FORGET)
         continue;
-      filename = t->video_streams[i].com.output_filename;
+      filename = t->audio_streams[i].com.output_filename;
       if(filename)
         break;
       }
