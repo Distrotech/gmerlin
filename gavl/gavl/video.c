@@ -147,18 +147,20 @@ void add_context_scale(gavl_video_converter_t * cnv,
   scaler_options = gavl_video_scaler_get_options(ctx->scaler);
 
   gavl_video_options_copy(scaler_options, &(cnv->options));
-#if 0
+#if 1
   fprintf(stderr, "gavl_video_scaler_init:\n");
   fprintf(stderr, "src_format:\n");
   gavl_video_format_dump(input_format);
   fprintf(stderr, "dst_format:\n");
   gavl_video_format_dump(output_format);
 
-  fprintf(stderr, "src_rectangle:\n");
+  fprintf(stderr, "src_rectangle: ");
   gavl_rectangle_dump(&(cnv->options.src_rect));
+  fprintf(stderr, "\n");
 
-  fprintf(stderr, "dst_rectangle:\n");
+  fprintf(stderr, "dst_rectangle: ");
   gavl_rectangle_dump(&(cnv->options.dst_rect));
+  fprintf(stderr, "\n");
 #endif
   
   gavl_video_scaler_init(ctx->scaler,
@@ -192,6 +194,12 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
   gavl_video_format_t tmp_format;
   gavl_video_format_t tmp_format1;
 
+#ifdef DEBUG
+  fprintf(stderr, "Initializing video converter, quality: %d, Flags: 0x%08x\n",
+          cnv->options.quality, cnv->options.accel_flags);
+#endif
+
+  
   video_converter_cleanup(cnv);
   
   gavl_video_format_copy(&tmp_format, input_format);
@@ -329,6 +337,9 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
     {
     tmp_ctx->output_frame =
       gavl_video_frame_create(&(tmp_ctx->output_format));
+    gavl_video_frame_clear(tmp_ctx->output_frame, &(tmp_ctx->output_format));
+    
+    
     tmp_ctx->next->input_frame = tmp_ctx->output_frame;
     tmp_ctx = tmp_ctx->next;
     }

@@ -140,6 +140,11 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
   gavl_audio_convert_context_t * ctx;
 
   gavl_audio_format_t tmp_format;
+
+#if 1
+  fprintf(stderr, "Initializing audio converter, quality: %d, Flags: 0x%08x\n",
+          cnv->opt.quality, cnv->opt.accel_flags);
+#endif
   
   /* Delete previous conversions */
   audio_converter_cleanup(cnv);
