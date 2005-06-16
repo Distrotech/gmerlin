@@ -293,7 +293,9 @@ extern bgav_input_t bgav_input_mms;
 extern bgav_input_t bgav_input_http;
 extern bgav_input_t bgav_input_ftp;
 
+#ifdef HAVE_CDIO
 extern bgav_input_t bgav_input_vcd;
+#endif
 
 void bgav_inputs_dump()
   {
@@ -305,7 +307,9 @@ void bgav_inputs_dump()
   fprintf(stderr, "<li>%s\n", bgav_input_mms.name);
   fprintf(stderr, "<li>%s\n", bgav_input_http.name);
   fprintf(stderr, "<li>%s\n", bgav_input_ftp.name);
+#ifdef HAVE_CDIO
   fprintf(stderr, "<li>%s\n", bgav_input_vcd.name);
+#endif
   fprintf(stderr, "</ul>\n");
   }
 
@@ -370,6 +374,7 @@ int bgav_input_open(bgav_input_context_t * ret,
 
 bgav_input_context_t * bgav_input_open_vcd(const char * device)
   {
+#ifdef HAVE_CDIO
   bgav_input_context_t * ret = (bgav_input_context_t *)0;
   ret = calloc(1, sizeof(*ret));
   ret->input = &bgav_input_vcd;
@@ -383,6 +388,10 @@ bgav_input_context_t * bgav_input_open_vcd(const char * device)
   if(ret)
     free(ret);
   return (bgav_input_context_t *)0;
+#else
+  fprintf(stderr, "VCD not supported (libcdio was missing)\n");
+  return (bgav_input_context_t *)0;
+#endif
   }
 
 void bgav_input_close(bgav_input_context_t * ctx)

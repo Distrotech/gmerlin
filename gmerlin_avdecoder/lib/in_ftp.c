@@ -142,9 +142,9 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url)
   int port = -1;
   int server_msg_alloc = 0;
   int data_port = -1;
-  char * data_ip;
+  char * data_ip = (char*)0;
   char * server_msg = (char*)0;
-  char * server_cmd;
+  char * server_cmd = (char*)0;
   char * host = (char*)0;
   char * path = (char*)0;
   char *file_name;

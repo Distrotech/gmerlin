@@ -884,7 +884,7 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
   
   audio_priv_t * avi_as;
   video_priv_t * avi_vs;
-  uint32_t size, test_size;
+  uint32_t size = 0, test_size;
   
   struct
     {

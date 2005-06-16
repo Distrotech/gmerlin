@@ -112,7 +112,7 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
   {
   chunk_header_t ch;
   uint32_t fourcc;
-  bgav_stream_t * s;
+  bgav_stream_t * s = (bgav_stream_t *)0;
   aiff_priv_t * priv;
   int keep_going = 1;
   uint32_t num_sample_frames;

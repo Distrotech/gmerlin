@@ -225,7 +225,7 @@ static void check_missing_streams(bgav_demuxer_context_t * ctx)
 static void check_interleave(bgav_demuxer_context_t * ctx)
   {
   bgav_stream_t * s1;
-  bgav_stream_t * s2;
+  bgav_stream_t * s2 = (bgav_stream_t *)0;
   int i;
   
   if(ctx->tt->current_track->num_audio_streams +
