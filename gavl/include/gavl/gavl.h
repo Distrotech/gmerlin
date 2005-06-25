@@ -416,6 +416,8 @@ typedef enum
     GAVL_RGBA_32         =  9,
     GAVL_YUY2            = 10,
     GAVL_UYVY            = 11,
+    GAVL_YUVA_32         = 26,
+
     GAVL_YUV_420_P       = 12,
     GAVL_YUV_422_P       = 13,
     GAVL_YUV_444_P       = 14,
@@ -429,10 +431,14 @@ typedef enum
 
     /* TODO: High Quality formats (16 Bits/channel) */
 
-    // GAVL_YUV_48       = 20
-    // GAVL_YUVA_64      = 21
-    // GAVL_RGB_48       = 22
-    // GAVL_RGBA_64      = 23
+    GAVL_YUV_444_P_16 = 20,
+    GAVL_YUV_422_P_16 = 21,
+
+    GAVL_RGB_48       = 22,
+    GAVL_RGBA_64      = 23,
+
+    GAVL_RGB_FLOAT    = 24,
+    GAVL_RGBA_FLOAT   = 25
     
   } gavl_colorspace_t;
 
@@ -519,7 +525,6 @@ typedef struct
   } gavl_rectangle_t;
 
 void gavl_rectangle_dump(const gavl_rectangle_t * r);
-
   
 void gavl_rectangle_crop_to_format(gavl_rectangle_t * r,
                                    const gavl_video_format_t * format);
@@ -588,7 +593,7 @@ typedef struct gavl_video_frame_s
   
   void * user_data;    /* For storing private data             */
   
-  gavl_time_t time;    /* Timestamp */
+  //  gavl_time_t time;    /* Timestamp */
   int64_t time_scaled; /* Timestamp in stream specific units   */
   int duration_scaled; /* Duration in stream specific units */
   } gavl_video_frame_t;
@@ -618,6 +623,11 @@ void gavl_video_frame_copy(gavl_video_format_t * format,
                            gavl_video_frame_t * dst,
                            gavl_video_frame_t * src);
 
+void gavl_video_frame_copy_plane(gavl_video_format_t * format,
+                                 gavl_video_frame_t * dst,
+                                 gavl_video_frame_t * src, int plane);
+
+  
 /* Copy with flipping */
   
 void gavl_video_frame_copy_flip_x(gavl_video_format_t * format,
@@ -649,9 +659,10 @@ void gavl_video_frame_get_subframe(gavl_colorspace_t colorspace,
 void gavl_video_frame_dump(gavl_video_frame_t *,
                            gavl_video_format_t *,
                            const char * namebase);
-
-/* Conversion options */
   
+/*****************************
+ Conversion options
+******************************/
 // #define GAVL_SCANLINE (1<<0)
 #define GAVL_KEEP_APSPECT (1<<0)
 
@@ -766,6 +777,50 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
 void gavl_video_scaler_scale(gavl_video_scaler_t * scaler,
                              gavl_video_frame_t * src,
                              gavl_video_frame_t * dst);
+
+
+
+/**************************************************
+ * Transparent overlays 
+ **************************************************/
+
+/* Overlay format */
+  
+typedef struct
+  {
+  gavl_video_format_t overlay_format;
+  gavl_video_format_t frame_format;
+  } gavl_overlay_format_t;
+    
+/* Overlay struct */
+
+typedef struct
+  {
+  gavl_video_frame_t * frame;
+  gavl_rectangle_t dst_rectangle;
+  } gavl_overlay_t;
+
+/*
+ *  Blend context
+ */
+
+typedef struct gavl_overlay_blend_context_s gavl_overlay_blend_context_t;
+
+gavl_overlay_blend_context_t * gavl_overlay_blend_context_create();
+
+void gavl_overlay_blend_context_destroy(gavl_overlay_blend_context_t *);
+void gavl_overlay_blend_context_init(gavl_overlay_blend_context_t *,
+                                     gavl_overlay_format_t *);
+
+gavl_video_options_t *
+gavl_overlay_blend_context_get_options(gavl_overlay_blend_context_t *);
+
+void gavl_overlay_blend(gavl_overlay_blend_context_t *,
+                        gavl_video_frame_t * dst_frame);
+
+int gavl_overlay_blend_context_need_new(gavl_overlay_blend_context_t *);
+void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t *,
+                                            gavl_overlay_t *);
 
   
 #ifdef __cplusplus

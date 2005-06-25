@@ -1921,12 +1921,12 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 /* Conversion from RGBA to RGB formats */
 
-#define INIT_RGBA32 INTERPOLATE_INIT_TEMP;\
-  tmp.ub[0] = ctx->options->background_red>>8;\
-  tmp.ub[2] = ctx->options->background_green>>8;\
-  tmp.ub[4] = ctx->options->background_blue>>8;\
+#define INIT_RGBA_32 INTERPOLATE_INIT_TEMP;\
+  tmp.ub[0] = ctx->options->background_16[0]>>8; \
+  tmp.ub[2] = ctx->options->background_16[1]>>8; \
+  tmp.ub[4] = ctx->options->background_16[2]>>8; \
   tmp.ub[6] = 0xff;\
-  movq_m2r(tmp, mm1);
+  movq_m2r(tmp, mm1);\
 
 /* rgba_32_to_rgb_15_c */
 
@@ -1944,7 +1944,7 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 
 #define INIT \
-  INIT_RGBA32
+  INIT_RGBA_32
 
 #define CLEANUP     emms();
 #include "../csp_packed_packed.h"
@@ -1964,7 +1964,7 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
   INTERPOLATE_WRITE_15
 
 #define INIT \
-  INIT_RGBA32
+  INIT_RGBA_32
 
 #define CLEANUP     emms();
 #include "../csp_packed_packed.h"
@@ -1984,7 +1984,7 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
   INTERPOLATE_WRITE_16_SWAP
 
 #define INIT \
-  INIT_RGBA32
+  INIT_RGBA_32
 
 #define CLEANUP     emms();
 #include "../csp_packed_packed.h"
@@ -2004,7 +2004,7 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 
 #define INIT \
-  INIT_RGBA32
+  INIT_RGBA_32
 
 #define CLEANUP     emms();
 #include "../csp_packed_packed.h"
@@ -2024,7 +2024,7 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
   INTERPOLATE_WRITE_RGB24
 
 #define INIT \
-  INIT_RGBA32
+  INIT_RGBA_32
 
 #define CLEANUP     emms();
 
@@ -2044,7 +2044,7 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
   INTERPOLATE_WRITE_BGR24
 
 #define INIT \
-  INIT_RGBA32
+  INIT_RGBA_32
 
 #define CLEANUP     emms();
 #include "../csp_packed_packed.h"
@@ -2063,7 +2063,7 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
   INTERPOLATE_WRITE_RGB32
 
 #define INIT \
-  INIT_RGBA32
+  INIT_RGBA_32
 
 #define CLEANUP     emms();
 #include "../csp_packed_packed.h"
@@ -2083,7 +2083,7 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
   
 
 #define INIT \
-  INIT_RGBA32
+  INIT_RGBA_32
 
 #define CLEANUP     emms();
 #include "../csp_packed_packed.h"

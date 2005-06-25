@@ -87,26 +87,20 @@ void gavl_video_options_set_scale_mode(gavl_video_options_t * opt,
 
 #undef SET_INT
 
+#define CLIP_FLOAT(a) if(a < 0.0) a = 0.0; if(a>1.0) a = 1.0;
 
 void gavl_video_options_set_background_color(gavl_video_options_t * opt,
                                              float * color)
   {
-  int i_tmp;
+  memcpy(opt->background_float, color, 3*sizeof(float));
 
-  i_tmp = (int)(color[0] * 65535.0 + 0.5);
-  if(i_tmp < 0)      i_tmp = 0;
-  if(i_tmp > 0xffff) i_tmp = 0xffff;
-  opt->background_red = i_tmp;
-
-  i_tmp = (int)(color[1] * 65535.0 + 0.5);
-  if(i_tmp < 0)      i_tmp = 0;
-  if(i_tmp > 0xffff) i_tmp = 0xffff;
-  opt->background_green = i_tmp;
+  CLIP_FLOAT(opt->background_float[0]);
+  CLIP_FLOAT(opt->background_float[1]);
+  CLIP_FLOAT(opt->background_float[2]);
+  opt->background_16[0] = (uint16_t)(opt->background_float[0] * 65535.0 + 0.5);
+  opt->background_16[1] = (uint16_t)(opt->background_float[1] * 65535.0 + 0.5);
+  opt->background_16[2] = (uint16_t)(opt->background_float[2] * 65535.0 + 0.5);
   
-  i_tmp = (int)(color[2] * 65535.0 + 0.5);
-  if(i_tmp < 0)      i_tmp = 0;
-  if(i_tmp > 0xffff) i_tmp = 0xffff;
-  opt->background_blue = i_tmp;
   }
 
 int gavl_video_options_get_accel_flags(gavl_video_options_t * opt)

@@ -373,7 +373,6 @@ void gavl_video_convert(gavl_video_converter_t * cnv,
     tmp_ctx = tmp_ctx->next;
     }
 
-  output_frame->time = input_frame->time;
   output_frame->time_scaled = input_frame->time_scaled;
   output_frame->duration_scaled = input_frame->duration_scaled;
   }

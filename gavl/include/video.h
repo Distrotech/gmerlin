@@ -43,11 +43,11 @@ struct gavl_video_options_s
   gavl_alpha_mode_t alpha_mode;
   gavl_scale_mode_t scale_mode;
   
-  /* Background color (0x0000 - 0xFFFF) */
-  uint16_t background_red;
-  uint16_t background_green;
-  uint16_t background_blue;
+  /* Background color (Floating point and 16 bit int)background_float[3]; */
+  float background_float[3];
 
+  uint16_t background_16[3];
+  
   /* Source and destination rectangles */
 
   gavl_rectangle_t src_rect;

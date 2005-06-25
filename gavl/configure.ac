@@ -4,7 +4,7 @@ AC_INIT(include/gavl/gavl.h)
 
 AM_CONFIG_HEADER(include/gavl/config.h)
 
-AM_INIT_AUTOMAKE(gavl, 0.2.2)
+AM_INIT_AUTOMAKE(gavl, 0.2.3pre1)
 
 AC_CANONICAL_HOST
 

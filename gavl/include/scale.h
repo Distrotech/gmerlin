@@ -24,10 +24,9 @@
 
 typedef struct
   {
-  int index;
+  int index; /* Index of the first row/column */
   int factor[MAX_INTERPOL_POINTS];
   } gavl_video_scale_coeff_1D_t;
-
 
 typedef void (*gavl_video_scale_scanline_func)(gavl_video_scaler_t*,
                                                uint8_t * src_plane,
@@ -35,6 +34,9 @@ typedef void (*gavl_video_scale_scanline_func)(gavl_video_scaler_t*,
                                                uint8_t * dst_line,
                                                int plane,
                                                int scanline);
+
+typedef void (*gavl_video_scale_init_plane_func)(gavl_video_scaler_t*,
+                                                 int plane);
 
 /* Table for a whole plane */
 
@@ -45,8 +47,6 @@ typedef struct
 
   int num_coeffs_h;
   int num_coeffs_v;
-
-  
   
   gavl_video_scale_coeff_1D_t * coeffs_h;
   gavl_video_scale_coeff_1D_t * coeffs_v;
@@ -86,11 +86,28 @@ typedef struct
   gavl_video_scale_scanline_func scale_24_24;
   gavl_video_scale_scanline_func scale_24_32;
   gavl_video_scale_scanline_func scale_32_32;
-  
+  gavl_video_scale_scanline_func scale_uint16_x_1;
+  gavl_video_scale_scanline_func scale_uint16_x_3;
+  gavl_video_scale_scanline_func scale_uint16_x_4;
+  gavl_video_scale_scanline_func scale_float_x_3;
+  gavl_video_scale_scanline_func scale_float_x_4;
   gavl_video_scale_scanline_func scale_8;
   gavl_video_scale_scanline_func scale_yuy2;
   gavl_video_scale_scanline_func scale_uyvy;
   
+  gavl_video_scale_init_plane_func init_scale_15_16;
+  gavl_video_scale_init_plane_func init_scale_16_16;
+  gavl_video_scale_init_plane_func init_scale_24_24;
+  gavl_video_scale_init_plane_func init_scale_24_32;
+  gavl_video_scale_init_plane_func init_scale_32_32;
+  gavl_video_scale_init_plane_func init_scale_uint16_x_1;
+  gavl_video_scale_init_plane_func init_scale_uint16_x_3;
+  gavl_video_scale_init_plane_func init_scale_uint16_x_4;
+  gavl_video_scale_init_plane_func init_scale_float_x_3;
+  gavl_video_scale_init_plane_func init_scale_float_x_4;
+  gavl_video_scale_init_plane_func init_scale_8;
+  gavl_video_scale_init_plane_func init_scale_yuy2;
+  gavl_video_scale_init_plane_func init_scale_uyvy;
   } gavl_scale_funcs_t;
 
 void gavl_init_scale_funcs_c(gavl_scale_funcs_t * tab,

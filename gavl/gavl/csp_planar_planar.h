@@ -22,7 +22,6 @@
 
 static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
   {
-#ifndef SCANLINE
   int i, imax, in_row_counter = 0;
   uint8_t * dst_save_y;
   uint8_t * dst_save_u;
@@ -31,21 +30,20 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
   uint8_t * src_save_y;
   uint8_t * src_save_u;
   uint8_t * src_save_v;
-#endif
+
   int j, jmax;
-  IN_TYPE  * dst_y;
-  IN_TYPE  * dst_u;
-  IN_TYPE  * dst_v;
-  
-  OUT_TYPE * src_y;
-  OUT_TYPE * src_u;
-  OUT_TYPE * src_v;
+  OUT_TYPE  * dst_y;
+  OUT_TYPE  * dst_u;
+  OUT_TYPE  * dst_v;
+ 
+  IN_TYPE * src_y;
+  IN_TYPE * src_u;
+  IN_TYPE * src_v;
 
 #ifdef INIT
   INIT
 #endif
 
-#ifndef SCANLINE
   dst_save_y = ctx->output_frame->planes[0];
   dst_save_u = ctx->output_frame->planes[1];
   dst_save_v = ctx->output_frame->planes[2];
@@ -53,28 +51,26 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
   src_save_y = ctx->input_frame->planes[0];
   src_save_u = ctx->input_frame->planes[1];
   src_save_v = ctx->input_frame->planes[2];
-#else
-  dst_y = (IN_TYPE*)ctx->output_frame->planes[0];
-  dst_u = (IN_TYPE*)ctx->output_frame->planes[1];
-  dst_v = (IN_TYPE*)ctx->output_frame->planes[2];
-  
-  src_y = (OUT_TYPE*)ctx->input_frame->planes[0];
-  src_u = (OUT_TYPE*)ctx->input_frame->planes[1];
-  src_v = (OUT_TYPE*)ctx->input_frame->planes[2];
-#endif
+
+  dst_y = (OUT_TYPE*)ctx->output_frame->planes[0];
+  dst_u = (OUT_TYPE*)ctx->output_frame->planes[1];
+  dst_v = (OUT_TYPE*)ctx->output_frame->planes[2];
+ 
+  src_y = (IN_TYPE*)ctx->input_frame->planes[0];
+  src_u = (IN_TYPE*)ctx->input_frame->planes[1];
+  src_v = (IN_TYPE*)ctx->input_frame->planes[2];
   
   jmax = ctx->input_format.image_width  / NUM_PIXELS;
-#ifndef SCANLINE
+
   imax = ctx->input_format.image_height / CHROMA_SUB_OUT;
   for(i = 0; i < imax; i++)
     {
-    dst_y =    (IN_TYPE*)dst_save_y;
-    dst_u =    (IN_TYPE*)dst_save_u;
-    dst_v =    (IN_TYPE*)dst_save_v;
-    src_y = (OUT_TYPE*)src_save_y;
-    src_u = (OUT_TYPE*)src_save_u;
-    src_v = (OUT_TYPE*)src_save_v;
-#endif /* !SCANLINE */
+    dst_y = (OUT_TYPE*)dst_save_y;
+    dst_u = (OUT_TYPE*)dst_save_u;
+    dst_v = (OUT_TYPE*)dst_save_v;
+    src_y = (IN_TYPE*)src_save_y;
+    src_u = (IN_TYPE*)src_save_u;
+    src_v = (IN_TYPE*)src_save_v;
     
     for(j = 0; j < jmax; j++)
       {
@@ -88,7 +84,6 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
       src_v += IN_ADVANCE_UV;
       }
     
-#ifndef SCANLINE
     src_save_y += ctx->input_frame->strides[0];
     dst_save_y += ctx->output_frame->strides[0];
 
@@ -102,12 +97,12 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
     
 #if CHROMA_SUB_OUT > 1
 #ifdef CONVERT_Y
-    dst_y =    (IN_TYPE*)dst_save_y;
-    dst_u =    (IN_TYPE*)dst_save_u;
-    dst_v =    (IN_TYPE*)dst_save_v;
-    src_y = (OUT_TYPE*)src_save_y;
-    src_u = (OUT_TYPE*)src_save_u;
-    src_v = (OUT_TYPE*)src_save_v;
+    dst_y = (OUT_TYPE*)dst_save_y;
+    dst_u = (OUT_TYPE*)dst_save_u;
+    dst_v = (OUT_TYPE*)dst_save_v;
+    src_y = (IN_TYPE*)src_save_y;
+    src_u = (IN_TYPE*)src_save_u;
+    src_v = (IN_TYPE*)src_save_v;
     
     for(j = 0; j < jmax; j++)
       {
@@ -136,12 +131,12 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
 
 #if CHROMA_SUB_OUT > 2
 #ifdef CONVERT_Y
-    dst_y =    (IN_TYPE*)dst_save_y;
-    dst_u =    (IN_TYPE*)dst_save_u;
-    dst_v =    (IN_TYPE*)dst_save_v;
-    src_y = (OUT_TYPE*)src_save_y;
-    src_u = (OUT_TYPE*)src_save_u;
-    src_v = (OUT_TYPE*)src_save_v;
+    dst_y = (OUT_TYPE*)dst_save_y;
+    dst_u = (OUT_TYPE*)dst_save_u;
+    dst_v = (OUT_TYPE*)dst_save_v;
+    src_y = (IN_TYPE*)src_save_y;
+    src_u = (IN_TYPE*)src_save_u;
+    src_v = (IN_TYPE*)src_save_v;
     
     for(j = 0; j < jmax; j++)
       {
@@ -170,12 +165,12 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
 
 #if CHROMA_SUB_OUT > 3
 #ifdef CONVERT_Y
-    dst_y =    (IN_TYPE*)dst_save_y;
-    dst_u =    (IN_TYPE*)dst_save_u;
-    dst_v =    (IN_TYPE*)dst_save_v;
-    src_y = (OUT_TYPE*)src_save_y;
-    src_u = (OUT_TYPE*)src_save_u;
-    src_v = (OUT_TYPE*)src_save_v;
+    dst_y = (OUT_TYPE*)dst_save_y;
+    dst_u = (OUT_TYPE*)dst_save_u;
+    dst_v = (OUT_TYPE*)dst_save_v;
+    src_y = (IN_TYPE*)src_save_y;
+    src_u = (IN_TYPE*)src_save_u;
+    src_v = (IN_TYPE*)src_save_v;
     
     for(j = 0; j < jmax; j++)
       {
@@ -204,7 +199,6 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
     dst_save_u += ctx->output_frame->strides[1];
     dst_save_v += ctx->output_frame->strides[2];
     }
-#endif /* !SCANLINE */
 
 #ifdef CLEANUP
   CLEANUP

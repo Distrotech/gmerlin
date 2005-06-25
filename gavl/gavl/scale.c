@@ -200,7 +200,7 @@ static void init_plane(gavl_video_scaler_t * s,
       break;
     case GAVL_SCALE_NONE:
       break;
-      }
+    }
 
   switch(scale_mode)
     {
