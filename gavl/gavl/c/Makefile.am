@@ -17,4 +17,4 @@ _yuv_yuv_c.c \
 _interleave_c.c \
 _mix_c.c
 
-noinst_HEADERS=c_macros.h
+noinst_HEADERS=c_macros.h colorspace_tables.h colorspace_macros.h
