@@ -2,7 +2,7 @@ AC_INIT
 AC_CONFIG_SRCDIR([include/gmerlin_encoders.h])
 
 AM_CONFIG_HEADER(include/config.h)
-AM_INIT_AUTOMAKE(gmerlin-encoders, 0.2.0)
+AM_INIT_AUTOMAKE(gmerlin-encoders, 0.2.1pre1)
 
 AC_DISABLE_STATIC
 AC_PROG_LIBTOOL
@@ -33,7 +33,7 @@ dnl
 dnl Required libraries
 dnl
 
-GMERLIN_REQUIRED="0.3.2"
+GMERLIN_REQUIRED="0.3.3pre1"
 PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, , AC_MSG_ERROR("gmerlin not found"))
 have_gmerlin="false"
 
