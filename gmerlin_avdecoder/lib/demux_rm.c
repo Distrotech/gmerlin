@@ -262,7 +262,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
 
   bg_vs->data.video.format.timescale = 1000;
   bg_vs->data.video.format.frame_duration = 40;
-  bg_vs->data.video.format.free_framerate = 1;
+  bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_NONCONSTANT;
 #if 1
   data += 4;
 #else

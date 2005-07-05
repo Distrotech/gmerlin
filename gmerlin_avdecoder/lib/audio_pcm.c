@@ -224,6 +224,7 @@ static void decode_float_native(bgav_stream_t * s)
   
   }
 
+/* Integer 32 bit */
 
 static void decode_s_32_swap(bgav_stream_t * s)
   {
@@ -258,6 +259,256 @@ static void decode_s_32_swap(bgav_stream_t * s)
   priv->frame->valid_samples = num_samples;
   
   }
+
+/* Big/Little endian floating point routines taken from libsndfile */
+
+static float
+float32_be_read (unsigned char *cptr)
+{       int             exponent, mantissa, negative ;
+        float   fvalue ;
+
+        negative = cptr [0] & 0x80 ;
+        exponent = ((cptr [0] & 0x7F) << 1) | ((cptr [1] & 0x80) ? 1 : 0) ;
+        mantissa = ((cptr [1] & 0x7F) << 16) | (cptr [2] << 8) | (cptr [3]) ;
+
+        if (! (exponent || mantissa))
+                return 0.0 ;
+
+        mantissa |= 0x800000 ;
+        exponent = exponent ? exponent - 127 : 0 ;
+
+        fvalue = mantissa ? ((float) mantissa) / ((float) 0x800000) : 0.0 ;
+
+        if (negative)
+                fvalue *= -1 ;
+
+        if (exponent > 0)
+                fvalue *= (1 << exponent) ;
+        else if (exponent < 0)
+                fvalue /= (1 << abs (exponent)) ;
+
+        return fvalue ;
+} /* float32_be_read */
+
+static float
+float32_le_read (unsigned char *cptr)
+{       int             exponent, mantissa, negative ;
+        float   fvalue ;
+
+        negative = cptr [3] & 0x80 ;
+        exponent = ((cptr [3] & 0x7F) << 1) | ((cptr [2] & 0x80) ? 1 : 0) ;
+        mantissa = ((cptr [2] & 0x7F) << 16) | (cptr [1] << 8) | (cptr [0]) ;
+
+        if (! (exponent || mantissa))
+                return 0.0 ;
+
+        mantissa |= 0x800000 ;
+        exponent = exponent ? exponent - 127 : 0 ;
+
+        fvalue = mantissa ? ((float) mantissa) / ((float) 0x800000) : 0.0 ;
+
+        if (negative)
+                fvalue *= -1 ;
+
+        if (exponent > 0)
+                fvalue *= (1 << exponent) ;
+        else if (exponent < 0)
+                fvalue /= (1 << abs (exponent)) ;
+
+        return fvalue ;
+} /* float32_le_read */
+
+static double
+double64_be_read (unsigned char *cptr)
+{       int             exponent, negative ;
+        double  dvalue ;
+
+        negative = (cptr [0] & 0x80) ? 1 : 0 ;
+        exponent = ((cptr [0] & 0x7F) << 4) | ((cptr [1] >> 4) & 0xF) ;
+
+        /* Might not have a 64 bit long, so load the mantissa into a double. */
+        dvalue = (((cptr [1] & 0xF) << 24) | (cptr [2] << 16) | (cptr [3] << 8) | cptr [4]) ;
+        dvalue += ((cptr [5] << 16) | (cptr [6] << 8) | cptr [7]) / ((double) 0x1000000) ;
+
+        if (exponent == 0 && dvalue == 0.0)
+                return 0.0 ;
+
+        dvalue += 0x10000000 ;
+
+        exponent = exponent - 0x3FF ;
+
+        dvalue = dvalue / ((double) 0x10000000) ;
+
+        if (negative)
+                dvalue *= -1 ;
+
+        if (exponent > 0)
+                dvalue *= (1 << exponent) ;
+        else if (exponent < 0)
+                dvalue /= (1 << abs (exponent)) ;
+
+        return dvalue ;
+} /* double64_be_read */
+
+static double
+double64_le_read (unsigned char *cptr)
+{       int             exponent, negative ;
+        double  dvalue ;
+
+        negative = (cptr [7] & 0x80) ? 1 : 0 ;
+        exponent = ((cptr [7] & 0x7F) << 4) | ((cptr [6] >> 4) & 0xF) ;
+
+        /* Might not have a 64 bit long, so load the mantissa into a double. */
+        dvalue = (((cptr [6] & 0xF) << 24) | (cptr [5] << 16) | (cptr [4] << 8) | cptr [3]) ;
+        dvalue += ((cptr [2] << 16) | (cptr [1] << 8) | cptr [0]) / ((double) 0x1000000) ;
+
+        if (exponent == 0 && dvalue == 0.0)
+                return 0.0 ;
+
+        dvalue += 0x10000000 ;
+
+        exponent = exponent - 0x3FF ;
+
+        dvalue = dvalue / ((double) 0x10000000) ;
+
+        if (negative)
+                dvalue *= -1 ;
+
+        if (exponent > 0)
+                dvalue *= (1 << exponent) ;
+        else if (exponent < 0)
+                dvalue /= (1 << abs (exponent)) ;
+
+        return dvalue ;
+} /* double64_le_read */
+
+/* Corrsponding decoding functions */
+
+static void decode_float_32_be(bgav_stream_t * s)
+  {
+  pcm_t * priv;
+  int num_samples, num_bytes, i;
+  priv = (pcm_t*)(s->data.audio.decoder->priv);
+  uint8_t * src;
+  float * dst;
+
+  num_samples = priv->bytes_in_packet / (4 * s->data.audio.format.num_channels);
+
+  if(num_samples > FRAME_SAMPLES)
+    num_samples = FRAME_SAMPLES;
+
+  num_bytes   = num_samples * 4 * s->data.audio.format.num_channels;
+
+  src = priv->packet_ptr;
+  dst = (float*)(priv->frame->samples.f);
+
+  i = num_samples * s->data.audio.format.num_channels;
+  
+  while(i--)
+    {
+    *dst = float32_be_read(src);
+    src+=4;
+    dst++;
+    }
+  priv->packet_ptr += num_bytes;
+  priv->bytes_in_packet -= num_bytes;
+  priv->frame->valid_samples = num_samples;
+  }
+
+static void decode_float_32_le(bgav_stream_t * s)
+  {
+  pcm_t * priv;
+  int num_samples, num_bytes, i;
+  priv = (pcm_t*)(s->data.audio.decoder->priv);
+  uint8_t * src;
+  float * dst;
+
+  num_samples = priv->bytes_in_packet / (4 * s->data.audio.format.num_channels);
+
+  if(num_samples > FRAME_SAMPLES)
+    num_samples = FRAME_SAMPLES;
+
+  num_bytes   = num_samples * 4 * s->data.audio.format.num_channels;
+
+  src = priv->packet_ptr;
+  dst = (float*)(priv->frame->samples.f);
+
+  i = num_samples * s->data.audio.format.num_channels;
+  
+  while(i--)
+    {
+    *dst = float32_le_read(src);
+    src+=4;
+    dst++;
+    }
+  priv->packet_ptr += num_bytes;
+  priv->bytes_in_packet -= num_bytes;
+  priv->frame->valid_samples = num_samples;
+  }
+
+static void decode_float_64_be(bgav_stream_t * s)
+  {
+  pcm_t * priv;
+  int num_samples, num_bytes, i;
+  priv = (pcm_t*)(s->data.audio.decoder->priv);
+  uint8_t * src;
+  float * dst;
+
+  num_samples = priv->bytes_in_packet / (8 * s->data.audio.format.num_channels);
+
+  if(num_samples > FRAME_SAMPLES)
+    num_samples = FRAME_SAMPLES;
+
+  num_bytes   = num_samples * 8 * s->data.audio.format.num_channels;
+
+  src = priv->packet_ptr;
+  dst = (float*)(priv->frame->samples.f);
+
+  i = num_samples * s->data.audio.format.num_channels;
+  
+  while(i--)
+    {
+    *dst = double64_be_read(src);
+    src+=8;
+    dst++;
+    }
+  priv->packet_ptr += num_bytes;
+  priv->bytes_in_packet -= num_bytes;
+  priv->frame->valid_samples = num_samples;
+  }
+
+static void decode_float_64_le(bgav_stream_t * s)
+  {
+  pcm_t * priv;
+  int num_samples, num_bytes, i;
+  priv = (pcm_t*)(s->data.audio.decoder->priv);
+  uint8_t * src;
+  float * dst;
+
+  num_samples = priv->bytes_in_packet / (8 * s->data.audio.format.num_channels);
+
+  if(num_samples > FRAME_SAMPLES)
+    num_samples = FRAME_SAMPLES;
+
+  num_bytes   = num_samples * 8 * s->data.audio.format.num_channels;
+
+  src = priv->packet_ptr;
+  dst = (float*)(priv->frame->samples.f);
+
+  i = num_samples * s->data.audio.format.num_channels;
+  
+  while(i--)
+    {
+    *dst = double64_le_read(src);
+    src+=8;
+    dst++;
+    }
+  priv->packet_ptr += num_bytes;
+  priv->bytes_in_packet -= num_bytes;
+  priv->frame->valid_samples = num_samples;
+  }
+
+
 
 static int init_pcm(bgav_stream_t * s)
   {
@@ -309,6 +560,7 @@ static int init_pcm(bgav_stream_t * s)
         return 0;
         }
       break;
+    /* Little endian */
     case BGAV_WAVID_2_FOURCC(0x01):
       if(s->data.audio.bits_per_sample <= 8)
         {
@@ -406,8 +658,27 @@ static int init_pcm(bgav_stream_t * s)
       priv->decode_func = decode_float_native;
       s->description = bgav_sprintf("Musepack");
       break;
+      /* Floating point formats */
+    case BGAV_WAVID_2_FOURCC(0x0003):
+      switch(s->data.audio.bits_per_sample)
+        {
+        case 32:
+          priv->decode_func = decode_float_32_le;
+          s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+          s->description = bgav_sprintf("Float 32 bit little endian");
+          break;
+        case 64:
+          priv->decode_func = decode_float_64_le;
+          s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+          s->description = bgav_sprintf("Float 64 bit little endian");
+          break;
+        default:
+          return 0;
+        }
+      
+      break;
     default:
-      fprintf(stderr, "Unkknown fourcc\n");
+      fprintf(stderr, "Unknown fourcc\n");
       return 0;
     }
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
@@ -496,7 +767,8 @@ static void resync_pcm(bgav_stream_t * s)
 
 static bgav_audio_decoder_t decoder =
   {
-    fourccs: (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x01),
+    fourccs: (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0001),
+                           BGAV_WAVID_2_FOURCC(0x0003),
                            BGAV_MK_FOURCC('a', 'i', 'f', 'f'),
                            BGAV_MK_FOURCC('t', 'w', 'o', 's'),
                            BGAV_MK_FOURCC('s', 'o', 'w', 't'),

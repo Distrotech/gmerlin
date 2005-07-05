@@ -467,7 +467,7 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
     }
   video_stream->data.video.format.pixel_width = 1;
   video_stream->data.video.format.pixel_height = 1;
-  video_stream->data.video.format.free_framerate = 1;
+  video_stream->data.video.format.framerate_mode = GAVL_FRAMERATE_NONCONSTANT;
   
   video_stream->stream_id = VIDEO_STREAM_ID;
   

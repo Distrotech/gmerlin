@@ -2,7 +2,7 @@ AC_INIT
 AC_CONFIG_SRCDIR([include/avdec.h])
 
 AM_CONFIG_HEADER(include/config.h)
-AM_INIT_AUTOMAKE(gmerlin-avdecoder, 0.1.2)
+AM_INIT_AUTOMAKE(gmerlin-avdecoder, 0.1.3pre1)
 
 AC_DISABLE_STATIC
 AM_PROG_AS_MOD
@@ -40,9 +40,9 @@ dnl
 dnl Check for Libraries
 dnl
 
-GAVL_REQUIRED="0.2.2"
+GAVL_REQUIRED="0.2.3pre1"
 
-PKG_CHECK_MODULES(GAVL, gavl >= $GAVL_REQUIRED, , AC_MSG_ERROR("gavl not found"))
+PKG_CHECK_MODULES(GAVL, gavl = $GAVL_REQUIRED, , AC_MSG_ERROR("gavl not found"))
 AC_SUBST(GAVL_REQUIRED)
 
 dnl
@@ -55,7 +55,7 @@ dnl
 
 have_gmerlin="false"
 
-GMERLIN_REQUIRED="0.3.2"
+GMERLIN_REQUIRED="0.3.3pre1"
 
 PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, have_gmerlin="true",
 have_gmerlin="false")
