@@ -2294,8 +2294,8 @@ int main(int argc, char ** argv)
       {
       gavl_video_options_set_defaults(opt);
 
-      gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_BLEND_COLOR);
-      gavl_video_options_set_background_color(opt, background);
+      gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_IGNORE);
+      //      gavl_video_options_set_background_color(opt, background);
 
       output_format.colorspace = gavl_get_colorspace(j);
 
@@ -2312,9 +2312,9 @@ int main(int argc, char ** argv)
       gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
       gavl_video_frame_clear(output_frame, &output_format);
       
-      if(gavl_video_converter_init(cnv, &input_format, &output_format) == -1)
+      if(gavl_video_converter_init(cnv, &input_format, &output_format) <= 0)
         {
-        fprintf(stderr, "No Conversion defined yet\n");
+        fprintf(stderr, "No Conversion defined yet or not necessary\n");
         }
       else
         {

@@ -327,8 +327,8 @@ static void scale_x_15_16_bilinear_c(gavl_video_scaler_t * s,
   SCALE_FUNC_HEAD(1)
     src_1 = src + s->table[plane].coeffs_h[i].index;
     src_2 = src_1 + 1;
-    BILINEAR_1D_PACKED(src_1, src_2, s->table[plane].coeffs_h[i].factor[0],
-                       s->table[plane].coeffs_h[i].factor[1], dst);
+    BILINEAR_1D_PACKED(src_1, src_2, s->table[plane].coeffs_h[i].factor[0].fac_i,
+                       s->table[plane].coeffs_h[i].factor[1].fac_i, dst);
     dst++;
   SCALE_FUNC_TAIL
   }
@@ -352,8 +352,8 @@ static void scale_x_16_16_bilinear_c(gavl_video_scaler_t * s,
   SCALE_FUNC_HEAD(1)
     src_1 = src + s->table[plane].coeffs_h[i].index;
     src_2 = src_1 + 1;
-    BILINEAR_1D_PACKED(src_1, src_2, s->table[plane].coeffs_h[i].factor[0],
-                       s->table[plane].coeffs_h[i].factor[1], dst);
+    BILINEAR_1D_PACKED(src_1, src_2, s->table[plane].coeffs_h[i].factor[0].fac_i,
+                       s->table[plane].coeffs_h[i].factor[1].fac_i, dst);
     dst++;
   SCALE_FUNC_TAIL
   }
@@ -375,8 +375,8 @@ static void scale_x_24_24_bilinear_c(gavl_video_scaler_t * s,
   SCALE_FUNC_HEAD(1)
     src_1 = src + 3 * s->table[plane].coeffs_h[i].index;
     src_2 = src_1 + 3;
-    BILINEAR_1D_3(src_1, src_2, s->table[plane].coeffs_h[i].factor[0],
-                  s->table[plane].coeffs_h[i].factor[1], dst);
+    BILINEAR_1D_3(src_1, src_2, s->table[plane].coeffs_h[i].factor[0].fac_i,
+                  s->table[plane].coeffs_h[i].factor[1].fac_i, dst);
     dst += 3;
   SCALE_FUNC_TAIL
   }
@@ -398,8 +398,8 @@ static void scale_x_24_32_bilinear_c(gavl_video_scaler_t * s,
   SCALE_FUNC_HEAD(1)
     src_1 = src + 4 * s->table[plane].coeffs_h[i].index;
     src_2 = src_1 + 4;
-    BILINEAR_1D_3(src_1, src_2, s->table[plane].coeffs_h[i].factor[0],
-                  s->table[plane].coeffs_h[i].factor[1], dst);
+    BILINEAR_1D_3(src_1, src_2, s->table[plane].coeffs_h[i].factor[0].fac_i,
+                  s->table[plane].coeffs_h[i].factor[1].fac_i, dst);
     dst += 4;
   
   SCALE_FUNC_TAIL
@@ -422,8 +422,8 @@ static void scale_x_32_32_bilinear_c(gavl_video_scaler_t * s,
   SCALE_FUNC_HEAD(1)
     src_1 = src + 4 * s->table[plane].coeffs_h[i].index;
     src_2 = src_1 + 4;
-    BILINEAR_1D_4(src_1, src_2, s->table[plane].coeffs_h[i].factor[0],
-                  s->table[plane].coeffs_h[i].factor[1], dst);
+    BILINEAR_1D_4(src_1, src_2, s->table[plane].coeffs_h[i].factor[0].fac_i,
+                  s->table[plane].coeffs_h[i].factor[1].fac_i, dst);
     dst += 4;
   
   SCALE_FUNC_TAIL
@@ -446,8 +446,8 @@ static void scale_x_8_bilinear_c(gavl_video_scaler_t * s,
   SCALE_FUNC_HEAD(1)
     src_1 = src + s->table[plane].coeffs_h[i].index;
     src_2 = src_1 + 1;
-    BILINEAR_1D_1(src_1, src_2, s->table[plane].coeffs_h[i].factor[0],
-                  s->table[plane].coeffs_h[i].factor[1], dst);
+    BILINEAR_1D_1(src_1, src_2, s->table[plane].coeffs_h[i].factor[0].fac_i,
+                  s->table[plane].coeffs_h[i].factor[1].fac_i, dst);
     dst++;
   SCALE_FUNC_TAIL
   }
@@ -470,8 +470,8 @@ static void scale_x_8_bilinear_advance(gavl_video_scaler_t * s,
   SCALE_FUNC_HEAD(1)
     src_1 = src + advance * s->table[plane].coeffs_h[i].index;
     src_2 = src_1 + advance;
-    BILINEAR_1D_1(src_1, src_2, s->table[plane].coeffs_h[i].factor[0],
-                  s->table[plane].coeffs_h[i].factor[1], dst);
+    BILINEAR_1D_1(src_1, src_2, s->table[plane].coeffs_h[i].factor[0].fac_i,
+                  s->table[plane].coeffs_h[i].factor[1].fac_i, dst);
     dst+=advance;
   SCALE_FUNC_TAIL
   }
@@ -557,8 +557,8 @@ static void scale_y_15_16_bilinear_c(gavl_video_scaler_t * s,
   dst = (color_15*)_dst;
   
   SCALE_FUNC_HEAD(1)
-    BILINEAR_1D_PACKED(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0],
-                       s->table[plane].coeffs_v[scanline].factor[1], dst);
+    BILINEAR_1D_PACKED(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0].fac_i,
+                       s->table[plane].coeffs_v[scanline].factor[1].fac_i, dst);
     src_1++;
     src_2++;
     dst++;
@@ -584,8 +584,8 @@ static void scale_y_16_16_bilinear_c(gavl_video_scaler_t * s,
   dst = (color_16*)_dst;
   
   SCALE_FUNC_HEAD(1)
-    BILINEAR_1D_PACKED(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0],
-                       s->table[plane].coeffs_v[scanline].factor[1], dst);
+    BILINEAR_1D_PACKED(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0].fac_i,
+                       s->table[plane].coeffs_v[scanline].factor[1].fac_i, dst);
     src_1++;
     src_2++;
     dst++;
@@ -608,8 +608,8 @@ static void scale_y_24_24_bilinear_c(gavl_video_scaler_t * s,
   src_2 = src_1 + src_stride;
   
   SCALE_FUNC_HEAD(1)
-    BILINEAR_1D_3(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0],
-                  s->table[plane].coeffs_v[scanline].factor[1], dst);
+    BILINEAR_1D_3(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0].fac_i,
+                  s->table[plane].coeffs_v[scanline].factor[1].fac_i, dst);
     src_1 += 3;
     src_2 += 3;
     dst += 3;
@@ -632,8 +632,8 @@ static void scale_y_24_32_bilinear_c(gavl_video_scaler_t * s,
   src_2 = src_1 + src_stride;
   
   SCALE_FUNC_HEAD(1)
-    BILINEAR_1D_3(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0],
-                  s->table[plane].coeffs_v[scanline].factor[1], dst);
+    BILINEAR_1D_3(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0].fac_i,
+                  s->table[plane].coeffs_v[scanline].factor[1].fac_i, dst);
     src_1 += 4;
     src_2 += 4;
     dst += 4;
@@ -656,8 +656,8 @@ static void scale_y_32_32_bilinear_c(gavl_video_scaler_t * s,
   src_2 = src_1 + src_stride;
   
   SCALE_FUNC_HEAD(1)
-    BILINEAR_1D_4(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0],
-                  s->table[plane].coeffs_v[scanline].factor[1], dst);
+    BILINEAR_1D_4(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0].fac_i,
+                  s->table[plane].coeffs_v[scanline].factor[1].fac_i, dst);
     src_1 += 4;
     src_2 += 4;
     dst += 4;
@@ -680,8 +680,8 @@ static void scale_y_8_bilinear_c(gavl_video_scaler_t * s,
   src_2 = src_1 + src_stride;
   
   SCALE_FUNC_HEAD(1)
-    BILINEAR_1D_1(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0],
-                  s->table[plane].coeffs_v[scanline].factor[1], dst);
+    BILINEAR_1D_1(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0].fac_i,
+                  s->table[plane].coeffs_v[scanline].factor[1].fac_i, dst);
     src_1++;
     src_2++;
     dst++;
@@ -704,8 +704,8 @@ static void scale_y_8_bilinear_advance(gavl_video_scaler_t * s,
   src_2 = src_1 + src_stride;
   
   SCALE_FUNC_HEAD(1)
-    BILINEAR_1D_1(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0],
-                  s->table[plane].coeffs_v[scanline].factor[1], dst);
+    BILINEAR_1D_1(src_1, src_2, s->table[plane].coeffs_v[scanline].factor[0].fac_i,
+                  s->table[plane].coeffs_v[scanline].factor[1].fac_i, dst);
     src_1 += advance;
     src_2 += advance;
     dst+=advance;
@@ -797,8 +797,8 @@ static void scale_xy_15_16_bilinear_c(gavl_video_scaler_t * s,
   src_start_2 = (color_15*)((uint8_t*)src_start_1 + src_stride);
   dst = (color_15*)(_dst);
 
-  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0];
-  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1];
+  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0].fac_i;
+  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1].fac_i;
   
   SCALE_FUNC_HEAD(1)
     src_11 = src_start_1 + s->table[plane].coeffs_h[i].index;
@@ -810,8 +810,8 @@ static void scale_xy_15_16_bilinear_c(gavl_video_scaler_t * s,
     // #define BILINEAR_2D_3(src_c_11, src_c_12, src_c_21, src_c_22, factor_h1, factor_h2, dst_c)
     
     BILINEAR_2D_PACKED(src_11, src_12, src_21, src_22,
-                       s->table[plane].coeffs_h[i].factor[0],
-                       s->table[plane].coeffs_h[i].factor[1], dst);
+                       s->table[plane].coeffs_h[i].factor[0].fac_i,
+                       s->table[plane].coeffs_h[i].factor[1].fac_i, dst);
     dst++;
   SCALE_FUNC_TAIL
   }
@@ -840,8 +840,8 @@ static void scale_xy_16_16_bilinear_c(gavl_video_scaler_t * s,
 
   dst = (color_16*)(_dst);
 
-  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0];
-  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1];
+  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0].fac_i;
+  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1].fac_i;
   
   SCALE_FUNC_HEAD(1)
     src_11 = src_start_1 + s->table[plane].coeffs_h[i].index;
@@ -853,8 +853,8 @@ static void scale_xy_16_16_bilinear_c(gavl_video_scaler_t * s,
     // #define BILINEAR_2D_3(src_c_11, src_c_12, src_c_21, src_c_22, factor_h1, factor_h2, dst_c)
     
     BILINEAR_2D_PACKED(src_11, src_12, src_21, src_22,
-                       s->table[plane].coeffs_h[i].factor[0],
-                       s->table[plane].coeffs_h[i].factor[1], dst);
+                       s->table[plane].coeffs_h[i].factor[0].fac_i,
+                       s->table[plane].coeffs_h[i].factor[1].fac_i, dst);
     dst++;
   SCALE_FUNC_TAIL
   }
@@ -880,8 +880,8 @@ static void scale_xy_24_24_bilinear_c(gavl_video_scaler_t * s,
   src_start_1 = src + s->table[plane].coeffs_v[scanline].index * src_stride;
   src_start_2 = src_start_1 + src_stride;
 
-  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0];
-  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1];
+  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0].fac_i;
+  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1].fac_i;
   
   SCALE_FUNC_HEAD(1)
     src_11 = src_start_1 + 3 * s->table[plane].coeffs_h[i].index;
@@ -893,8 +893,8 @@ static void scale_xy_24_24_bilinear_c(gavl_video_scaler_t * s,
     // #define BILINEAR_2D_3(src_c_11, src_c_12, src_c_21, src_c_22, factor_h1, factor_h2, dst_c)
     
     BILINEAR_2D_3(src_11, src_12, src_21, src_22,
-                  s->table[plane].coeffs_h[i].factor[0],
-                  s->table[plane].coeffs_h[i].factor[1], dst);
+                  s->table[plane].coeffs_h[i].factor[0].fac_i,
+                  s->table[plane].coeffs_h[i].factor[1].fac_i, dst);
     dst += 3;
   SCALE_FUNC_TAIL
   }
@@ -920,8 +920,8 @@ static void scale_xy_24_32_bilinear_c(gavl_video_scaler_t * s,
   src_start_1 = src + s->table[plane].coeffs_v[scanline].index * src_stride;
   src_start_2 = src_start_1 + src_stride;
 
-  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0];
-  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1];
+  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0].fac_i;
+  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1].fac_i;
   
   SCALE_FUNC_HEAD(1)
     src_11 = src_start_1 + 4 * s->table[plane].coeffs_h[i].index;
@@ -933,8 +933,8 @@ static void scale_xy_24_32_bilinear_c(gavl_video_scaler_t * s,
     // #define BILINEAR_2D_3(src_c_11, src_c_12, src_c_21, src_c_22, factor_h1, factor_h2, dst_c)
     
     BILINEAR_2D_3(src_11, src_12, src_21, src_22,
-                  s->table[plane].coeffs_h[i].factor[0],
-                  s->table[plane].coeffs_h[i].factor[1], dst);
+                  s->table[plane].coeffs_h[i].factor[0].fac_i,
+                  s->table[plane].coeffs_h[i].factor[1].fac_i, dst);
     dst += 4;
   SCALE_FUNC_TAIL
   }
@@ -960,8 +960,8 @@ static void scale_xy_32_32_bilinear_c(gavl_video_scaler_t * s,
   src_start_1 = src + s->table[plane].coeffs_v[scanline].index * src_stride;
   src_start_2 = src_start_1 + src_stride;
 
-  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0];
-  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1];
+  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0].fac_i;
+  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1].fac_i;
   
   SCALE_FUNC_HEAD(1)
     src_11 = src_start_1 + 4 * s->table[plane].coeffs_h[i].index;
@@ -973,8 +973,8 @@ static void scale_xy_32_32_bilinear_c(gavl_video_scaler_t * s,
     // #define BILINEAR_2D_3(src_c_11, src_c_12, src_c_21, src_c_22, factor_h1, factor_h2, dst_c)
     
     BILINEAR_2D_4(src_11, src_12, src_21, src_22,
-                  s->table[plane].coeffs_h[i].factor[0],
-                  s->table[plane].coeffs_h[i].factor[1], dst);
+                  s->table[plane].coeffs_h[i].factor[0].fac_i,
+                  s->table[plane].coeffs_h[i].factor[1].fac_i, dst);
     dst += 4;
   SCALE_FUNC_TAIL
   
@@ -1002,8 +1002,8 @@ static void scale_xy_8_bilinear_c(gavl_video_scaler_t * s,
   src_start_1 = src + s->table[plane].coeffs_v[scanline].index * src_stride;
   src_start_2 = src_start_1 + src_stride;
 
-  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0];
-  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1];
+  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0].fac_i;
+  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1].fac_i;
   
   SCALE_FUNC_HEAD(1)
     src_11 = src_start_1 + s->table[plane].coeffs_h[i].index;
@@ -1015,8 +1015,8 @@ static void scale_xy_8_bilinear_c(gavl_video_scaler_t * s,
     // #define BILINEAR_2D_3(src_c_11, src_c_12, src_c_21, src_c_22, factor_h1, factor_h2, dst_c)
     
     BILINEAR_2D_1(src_11, src_12, src_21, src_22,
-                  s->table[plane].coeffs_h[i].factor[0],
-                  s->table[plane].coeffs_h[i].factor[1], dst);
+                  s->table[plane].coeffs_h[i].factor[0].fac_i,
+                  s->table[plane].coeffs_h[i].factor[1].fac_i, dst);
     dst++;
   SCALE_FUNC_TAIL
   
@@ -1045,8 +1045,8 @@ static void scale_xy_8_bilinear_advance(gavl_video_scaler_t * s,
   src_start_1 = src + s->table[plane].coeffs_v[scanline].index * src_stride;
   src_start_2 = src_start_1 + src_stride;
 
-  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0];
-  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1];
+  factor_v1 = s->table[plane].coeffs_v[scanline].factor[0].fac_i;
+  factor_v2 = s->table[plane].coeffs_v[scanline].factor[1].fac_i;
   
   SCALE_FUNC_HEAD(1)
     src_11 = src_start_1 + advance * s->table[plane].coeffs_h[i].index;
@@ -1058,8 +1058,8 @@ static void scale_xy_8_bilinear_advance(gavl_video_scaler_t * s,
     // #define BILINEAR_2D_3(src_c_11, src_c_12, src_c_21, src_c_22, factor_h1, factor_h2, dst_c)
     
     BILINEAR_2D_1(src_11, src_12, src_21, src_22,
-                  s->table[plane].coeffs_h[i].factor[0],
-                  s->table[plane].coeffs_h[i].factor[1], dst);
+                  s->table[plane].coeffs_h[i].factor[0].fac_i,
+                  s->table[plane].coeffs_h[i].factor[1].fac_i, dst);
     dst+=advance;
   SCALE_FUNC_TAIL
   
@@ -1134,14 +1134,28 @@ void gavl_init_scale_funcs_c(gavl_scale_funcs_t * tab,
     case GAVL_SCALE_NEAREST:
 
       tab->scale_15_16 = scale_16_16_nearest_c;
+      tab->bits_15_16 = 8;
+
       tab->scale_16_16 = scale_16_16_nearest_c;
+      tab->bits_16_16 = 8;
+
       tab->scale_24_24 = scale_24_24_nearest_c;
+      tab->bits_24_24 = 8;
+            
       tab->scale_24_32 = scale_24_32_nearest_c;
+      tab->bits_24_32 = 8;
+
       tab->scale_32_32 = scale_32_32_nearest_c;
+      tab->bits_32_32 = 8;
       
       tab->scale_8     = scale_8_nearest_c;
+      tab->bits_8     = 8;
+
       tab->scale_yuy2  = scale_yuy2_nearest_c;
+      tab->bits_yuy2   = 8;
+
       tab->scale_uyvy  = scale_uyvy_nearest_c;
+      tab->bits_uyvy  = 8;
       
       break;
     case GAVL_SCALE_BILINEAR:

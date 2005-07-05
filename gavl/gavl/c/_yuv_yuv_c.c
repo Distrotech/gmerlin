@@ -3159,30 +3159,273 @@ dst_v[0]=UVJ_8_TO_UV_16(src_v[0]);
 #include "../csp_packed_packed.h"
 
 
+/* YUVA 32 -> (No Alpha) */
 
-#ifdef SCANLINE
-void gavl_init_yuv_yuv_scanline_funcs_c(gavl_colorspace_function_table_t * tab)
-#else     
-void gavl_init_yuv_yuv_funcs_c(gavl_colorspace_function_table_t * tab)
-#endif
+/* yuva_32_to_yuv_410_p_ia_c */
+
+#define FUNC_NAME      yuva_32_to_yuv_410_p_ia_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     16
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB     4
+#define CONVERT_YUV \
+  dst_y[0] = src[0]; \
+  dst_u[0] = src[1]; \
+  dst_v[0] = src[2]; \
+  dst_y[1] = src[4]; \
+  dst_y[2] = src[8]; \
+  dst_y[3] = src[12];
+
+#define CONVERT_Y                               \
+  dst_y[0] = src[0]; \
+  dst_y[1] = src[4]; \
+  dst_y[2] = src[8]; \
+  dst_y[3] = src[12];
+
+#include "../csp_packed_planar.h"
+
+/* yuva_32_to_yuv_411_p_ia_c */
+
+#define FUNC_NAME      yuva_32_to_yuv_411_p_ia_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     16
+#define OUT_ADVANCE_Y  4
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     4
+#define CHROMA_SUB     1
+#define CONVERT_YUV \
+  dst_y[0] = src[0]; \
+  dst_u[0] = src[1]; \
+  dst_v[0] = src[2]; \
+  dst_y[1] = src[4]; \
+  dst_y[2] = src[8]; \
+  dst_y[3] = src[12];
+
+#include "../csp_packed_planar.h"
+
+/* yuva_32_to_yuv_420_p_ia_c */
+
+#define FUNC_NAME      yuva_32_to_yuv_420_p_ia_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     8
+#define OUT_ADVANCE_Y  2
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     2
+#define CHROMA_SUB     2
+#define CONVERT_YUV \
+  dst_y[0] = src[0]; \
+  dst_u[0] = src[1]; \
+  dst_v[0] = src[2]; \
+  dst_y[1] = src[4];
+
+#define CONVERT_Y \
+  dst_y[0] = src[0]; \
+  dst_y[1] = src[4];
+
+#include "../csp_packed_planar.h"
+
+/* yuva_32_to_yuvj_420_p_ia_c */
+
+#define FUNC_NAME      yuva_32_to_yuvj_420_p_ia_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     8
+#define OUT_ADVANCE_Y  2
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     2
+#define CHROMA_SUB     2
+#define CONVERT_YUV \
+  dst_y[0] = Y_8_TO_YJ_8(src[0]);               \
+  dst_u[0] = UV_8_TO_UVJ_8(src[1]);             \
+  dst_v[0] = UV_8_TO_UVJ_8(src[2]);             \
+  dst_y[1] = Y_8_TO_YJ_8(src[4]);
+
+#define CONVERT_Y                               \
+  dst_y[0] = Y_8_TO_YJ_8(src[0]);               \
+  dst_y[1] = Y_8_TO_YJ_8(src[4]);
+
+#include "../csp_packed_planar.h"
+
+/* yuva_32_to_yuv_422_p_ia_c */
+
+#define FUNC_NAME      yuva_32_to_yuv_422_p_ia_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     8
+#define OUT_ADVANCE_Y  2
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     2
+#define CHROMA_SUB     1
+#define CONVERT_YUV \
+  dst_y[0] = src[0]; \
+  dst_u[0] = src[1]; \
+  dst_v[0] = src[2]; \
+  dst_y[1] = src[4];
+
+
+#include "../csp_packed_planar.h"
+
+/* yuva_32_to_yuvj_422_p_ia_c */
+
+#define FUNC_NAME      yuva_32_to_yuvj_422_p_ia_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     8
+#define OUT_ADVANCE_Y  2
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     2
+#define CHROMA_SUB     1
+#define CONVERT_YUV \
+  dst_y[0] = Y_8_TO_YJ_8(src[0]);               \
+  dst_u[0] = UV_8_TO_UVJ_8(src[1]);             \
+  dst_v[0] = UV_8_TO_UVJ_8(src[2]);             \
+  dst_y[1] = Y_8_TO_YJ_8(src[4]);
+
+#include "../csp_packed_planar.h"
+
+/* yuva_32_to_yuv_422_p_16_ia_c */
+
+#define FUNC_NAME      yuva_32_to_yuv_422_p_16_ia_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint16_t
+#define IN_ADVANCE     8
+#define OUT_ADVANCE_Y  2
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     2
+#define CHROMA_SUB     1
+#define CONVERT_YUV \
+  dst_y[0] = Y_8_TO_16(src[0]);               \
+  dst_u[0] = UV_8_TO_16(src[1]);             \
+  dst_v[0] = UV_8_TO_16(src[2]);             \
+  dst_y[1] = Y_8_TO_16(src[4]);
+
+#include "../csp_packed_planar.h"
+
+/* yuva_32_to_yuv_444_p_ia_c */
+
+#define FUNC_NAME      yuva_32_to_yuv_444_p_ia_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     4
+#define OUT_ADVANCE_Y  1
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     1
+#define CHROMA_SUB     1
+#define CONVERT_YUV \
+  dst_y[0] = src[0];             \
+  dst_u[0] = src[1];             \
+  dst_v[0] = src[2];             \
+
+#include "../csp_packed_planar.h"
+
+/* yuva_32_to_yuvj_444_p_ia_c */
+
+#define FUNC_NAME      yuva_32_to_yuvj_444_p_ia_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint8_t
+#define IN_ADVANCE     4
+#define OUT_ADVANCE_Y  1
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     1
+#define CHROMA_SUB     1
+#define CONVERT_YUV \
+  dst_y[0] = Y_8_TO_YJ_8(src[0]);               \
+  dst_u[0] = UV_8_TO_UVJ_8(src[1]);             \
+  dst_v[0] = UV_8_TO_UVJ_8(src[2]);             \
+
+
+#include "../csp_packed_planar.h"
+
+/* yuva_32_to_yuv_444_p_16_ia_c */
+
+#define FUNC_NAME      yuva_32_to_yuv_444_p_16_ia_c
+#define IN_TYPE        uint8_t
+#define OUT_TYPE       uint16_t
+#define IN_ADVANCE     4
+#define OUT_ADVANCE_Y  1
+#define OUT_ADVANCE_UV 1
+#define NUM_PIXELS     1
+#define CHROMA_SUB     1
+#define CONVERT_YUV \
+  dst_y[0] = Y_8_TO_16(src[0]);               \
+  dst_u[0] = UV_8_TO_16(src[1]);             \
+  dst_v[0] = UV_8_TO_16(src[2]);             \
+
+#include "../csp_packed_planar.h"
+
+/* yuva_32_to_yuy2_ia_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  8
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  2
+#define FUNC_NAME   yuva_32_to_yuy2_ia_c
+#define CONVERT     \
+  dst[0] = src[0]; /* Y */\
+  dst[1] = src[1]; /* U */\
+  dst[2] = src[4]; /* Y */\
+  dst[3] = src[2]; /* V */
+
+
+#include "../csp_packed_packed.h"
+
+/* yuva_32_to_uyvy_ia_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  8
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  2
+#define FUNC_NAME   yuva_32_to_uyvy_ia_c
+#define CONVERT     \
+  dst[0] = src[1]; /* U */\
+  dst[1] = src[0]; /* Y */\
+  dst[2] = src[2]; /* V */\
+  dst[3] = src[4]; /* Y */
+
+
+#include "../csp_packed_packed.h"
+
+void gavl_init_yuv_yuv_funcs_c(gavl_colorspace_function_table_t * tab, const gavl_video_options_t * opt)
   {
-  tab->yuva_32_to_yuv_420_p = yuva_32_to_yuv_420_p_c;
-  tab->yuva_32_to_yuvj_420_p = yuva_32_to_yuvj_420_p_c;
-  tab->yuva_32_to_yuv_422_p = yuva_32_to_yuv_422_p_c;
-  tab->yuva_32_to_yuvj_422_p = yuva_32_to_yuvj_422_p_c;
-  tab->yuva_32_to_yuv_422_p_16 = yuva_32_to_yuv_422_p_16_c;
-  tab->yuva_32_to_yuv_410_p = yuva_32_to_yuv_410_p_c;
-  tab->yuva_32_to_yuv_411_p = yuva_32_to_yuv_411_p_c;
-
-  tab->yuva_32_to_yuv_444_p = yuva_32_to_yuv_444_p_c;
-  tab->yuva_32_to_yuvj_444_p = yuva_32_to_yuvj_444_p_c;
-  tab->yuva_32_to_yuv_444_p_16 = yuva_32_to_yuv_444_p_16_c;
-
-  tab->yuva_32_to_yuy2 = yuva_32_to_yuy2_c;
-  tab->yuva_32_to_uyvy = yuva_32_to_uyvy_c;
+  if(opt->alpha_mode == GAVL_ALPHA_BLEND_COLOR)
+    {
+    tab->yuva_32_to_yuv_420_p = yuva_32_to_yuv_420_p_c;
+    tab->yuva_32_to_yuvj_420_p = yuva_32_to_yuvj_420_p_c;
+    tab->yuva_32_to_yuv_422_p = yuva_32_to_yuv_422_p_c;
+    tab->yuva_32_to_yuvj_422_p = yuva_32_to_yuvj_422_p_c;
+    tab->yuva_32_to_yuv_422_p_16 = yuva_32_to_yuv_422_p_16_c;
+    tab->yuva_32_to_yuv_410_p = yuva_32_to_yuv_410_p_c;
+    tab->yuva_32_to_yuv_411_p = yuva_32_to_yuv_411_p_c;
+    tab->yuva_32_to_yuv_444_p = yuva_32_to_yuv_444_p_c;
+    tab->yuva_32_to_yuvj_444_p = yuva_32_to_yuvj_444_p_c;
+    tab->yuva_32_to_yuv_444_p_16 = yuva_32_to_yuv_444_p_16_c;
+    tab->yuva_32_to_yuy2 = yuva_32_to_yuy2_c;
+    tab->yuva_32_to_uyvy = yuva_32_to_uyvy_c;
+    }
+  else if(opt->alpha_mode == GAVL_ALPHA_IGNORE)
+    {
+    tab->yuva_32_to_yuv_420_p = yuva_32_to_yuv_420_p_ia_c;
+    tab->yuva_32_to_yuvj_420_p = yuva_32_to_yuvj_420_p_ia_c;
+    tab->yuva_32_to_yuv_422_p = yuva_32_to_yuv_422_p_ia_c;
+    tab->yuva_32_to_yuvj_422_p = yuva_32_to_yuvj_422_p_ia_c;
+    tab->yuva_32_to_yuv_422_p_16 = yuva_32_to_yuv_422_p_16_ia_c;
+    tab->yuva_32_to_yuv_410_p = yuva_32_to_yuv_410_p_ia_c;
+    tab->yuva_32_to_yuv_411_p = yuva_32_to_yuv_411_p_ia_c;
+    tab->yuva_32_to_yuv_444_p = yuva_32_to_yuv_444_p_ia_c;
+    tab->yuva_32_to_yuvj_444_p = yuva_32_to_yuvj_444_p_ia_c;
+    tab->yuva_32_to_yuv_444_p_16 = yuva_32_to_yuv_444_p_16_ia_c;
+    tab->yuva_32_to_yuy2 = yuva_32_to_yuy2_ia_c;
+    tab->yuva_32_to_uyvy = yuva_32_to_uyvy_ia_c;
+    }
 
   tab->uyvy_to_yuy2            = uyvy_to_yuy2_c;
-  
   tab->yuy2_to_yuv_420_p       = yuy2_to_yuv_420_p_c;
   tab->yuy2_to_yuv_410_p       = yuy2_to_yuv_410_p_c;
   tab->yuy2_to_yuv_422_p       = yuy2_to_yuv_422_p_c;

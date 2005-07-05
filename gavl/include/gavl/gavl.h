@@ -478,6 +478,14 @@ gavl_colorspace_t gavl_string_to_colorspace(const char *);
 int gavl_num_colorspaces();
 gavl_colorspace_t gavl_get_colorspace(int index);
 
+
+typedef enum
+  {
+    GAVL_FRAMERATE_CONSTANT    = 0, /* Default */
+    GAVL_FRAMERATE_NONCONSTANT = 1, /* Non constant */
+    GAVL_FRAMERATE_STILL       = 2, /* Still image */
+  } gavl_framerate_mode_t;
+  
 /* Video format structure */
   
 typedef struct 
@@ -501,8 +509,8 @@ typedef struct
 
   int frame_duration;
   int timescale;
-  
-  int free_framerate;   /* If 1, framerate will be based on timestamps only */
+
+  gavl_framerate_mode_t framerate_mode;
   } gavl_video_format_t;
 
 

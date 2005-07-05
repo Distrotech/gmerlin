@@ -701,43 +701,43 @@ typedef struct
   
   } gavl_colorspace_function_table_t;
 
-void gavl_init_rgb_rgb_funcs_c(gavl_colorspace_function_table_t *);
-void gavl_init_rgb_yuv_funcs_c(gavl_colorspace_function_table_t *);
-void gavl_init_yuv_yuv_funcs_c(gavl_colorspace_function_table_t *);
-void gavl_init_yuv_rgb_funcs_c(gavl_colorspace_function_table_t *);
+void gavl_init_rgb_rgb_funcs_c(gavl_colorspace_function_table_t *, const gavl_video_options_t * opt);
+void gavl_init_rgb_yuv_funcs_c(gavl_colorspace_function_table_t *, const gavl_video_options_t * opt);
+void gavl_init_yuv_yuv_funcs_c(gavl_colorspace_function_table_t *, const gavl_video_options_t * opt);
+void gavl_init_yuv_rgb_funcs_c(gavl_colorspace_function_table_t *, const gavl_video_options_t * opt);
 
 #ifdef ARCH_X86
 void gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t *,
-                                 int width, int quality);
+                                 int width, gavl_video_options_t * opt);
 
 void
 gavl_init_rgb_yuv_funcs_mmx(gavl_colorspace_function_table_t *,
-                            int width, int quality);
+                            int width, gavl_video_options_t * opt);
 
 
 void
 gavl_init_yuv_yuv_funcs_mmx(gavl_colorspace_function_table_t *,
-                            int width, int quality);
+                            int width, gavl_video_options_t * opt);
 
 
 void
 gavl_init_yuv_rgb_funcs_mmx(gavl_colorspace_function_table_t *,
-                            int width, int quality);
+                            int width, gavl_video_options_t * opt);
 
 void
 gavl_init_rgb_rgb_funcs_mmxext(gavl_colorspace_function_table_t *,
-                               int width, int quality);
+                               int width, gavl_video_options_t * opt);
 
 
 void gavl_init_rgb_yuv_funcs_mmxext(gavl_colorspace_function_table_t *,
-                                    int width, int quality);
+                                    int width, gavl_video_options_t * opt);
 
 
 void gavl_init_yuv_yuv_funcs_mmxext(gavl_colorspace_function_table_t *,
-                                    int width, int quality);
+                                    int width, gavl_video_options_t * opt);
 
 void
 gavl_init_yuv_rgb_funcs_mmxext(gavl_colorspace_function_table_t *,
-                               int width, int quality);
+                               int width, gavl_video_options_t * opt);
 
 #endif

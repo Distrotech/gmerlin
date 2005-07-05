@@ -2090,28 +2090,15 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 #ifdef MMXEXT
 
-#ifdef SCANLINE
-void
-gavl_init_rgb_rgb_scanline_funcs_mmxext(gavl_colorspace_function_table_t * tab,
-                                        int width, int quality)
-#else     
 void
 gavl_init_rgb_rgb_funcs_mmxext(gavl_colorspace_function_table_t * tab,
-                               int width, int quality)
-#endif
+                               int width, gavl_video_options_t * opt)
 
 #else /* !MMXEXT */
 
-#ifdef SCANLINE
-void
-gavl_init_rgb_rgb_scanline_funcs_mmx(gavl_colorspace_function_table_t * tab,
-                                     int width, int quality)
-#else     
 void
 gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
-                            int width, int quality)
-#endif
-
+                            int width, gavl_video_options_t * opt)
 #endif /* MMXEXT */
   {
   if(width % 8)
@@ -2124,7 +2111,7 @@ gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
 
   /* Conversions from fewer to more bits are not that good */
 
-  if(quality < 3)
+  if(opt->quality < 3)
     {
     tab->rgb_15_to_16 = rgb_15_to_16_mmx;
     tab->rgb_15_to_24 = rgb_15_to_24_mmx;
@@ -2177,10 +2164,8 @@ gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
 
   tab->rgba_32_to_rgb_15 = rgba_32_to_rgb_15_mmx;
   tab->rgba_32_to_bgr_15 = rgba_32_to_bgr_15_mmx;
-
   tab->rgba_32_to_rgb_16 = rgba_32_to_rgb_16_mmx;
   tab->rgba_32_to_bgr_16 = rgba_32_to_bgr_16_mmx;
-  
   tab->rgba_32_to_rgb_24 = rgba_32_to_rgb_24_mmx;
   tab->rgba_32_to_bgr_24 = rgba_32_to_bgr_24_mmx;
   tab->rgba_32_to_rgb_32 = rgba_32_to_rgb_32_mmx;

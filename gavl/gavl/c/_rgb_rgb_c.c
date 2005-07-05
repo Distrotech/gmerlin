@@ -1392,6 +1392,141 @@
 #include "../csp_packed_packed.h"
 
 
+/* Conversion from RGBA 64 to RGB (ignoring alpha) */
+
+/* rgba_64_to_rgb_15_ia_c */
+
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_64_to_rgb_15_ia_c
+#define CONVERT \
+  PACK_16_TO_RGB15(src[0], src[1], src[2], *dst)
+
+#include "../csp_packed_packed.h"
+
+/* rgba_64_to_bgr_15_ia_c */
+
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_64_to_bgr_15_ia_c
+#define CONVERT \
+  PACK_16_TO_BGR15(src[0], src[1], src[2], *dst)
+
+
+#include "../csp_packed_packed.h"
+
+/* rgba_64_to_rgb_16_ia_c */
+
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_64_to_rgb_16_ia_c
+#define CONVERT \
+  PACK_16_TO_RGB16(src[0], src[1], src[2], *dst)
+
+
+#include "../csp_packed_packed.h"
+
+/* rgba_64_to_bgr_16_ia_c */
+
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_64_to_bgr_16_ia_c
+#define CONVERT \
+  PACK_16_TO_BGR16(src[0], src[1], src[2], *dst)
+
+#include "../csp_packed_packed.h"
+
+/* rgba_64_to_rgb_24_ia_c */
+
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_64_to_rgb_24_ia_c
+#define CONVERT \
+  COPY_48_TO_24
+
+
+#include "../csp_packed_packed.h"
+
+/* rgba_64_to_bgr_24_ia_c */
+
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_64_to_bgr_24_ia_c
+#define CONVERT \
+  SWAP_48_TO_24
+
+#include "../csp_packed_packed.h"
+
+/* rgba_64_to_rgb_32_ia_c */
+
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_64_to_rgb_32_ia_c
+#define CONVERT \
+  COPY_48_TO_24
+
+#include "../csp_packed_packed.h"
+
+/* rgba_64_to_bgr_32_ia_c */
+
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_64_to_bgr_32_ia_c
+#define CONVERT \
+  SWAP_48_TO_24
+
+#include "../csp_packed_packed.h"
+
+/* rgba_64_to_rgb_48_ia_c */
+
+#define IN_TYPE  uint16_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_64_to_rgb_48_ia_c
+#define CONVERT \
+  COPY_48_TO_48
+
+#include "../csp_packed_packed.h"
+
+/* rgba_64_to_rgb_float_ia_c */
+
+#define IN_TYPE  uint16_t
+#define OUT_TYPE float
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_64_to_rgb_float_ia_c
+#define CONVERT                                                         \
+  COPY_48_TO_FLOAT
+
+#include "../csp_packed_packed.h"
+
 /* Conversion from RGBA float to RGB */
 
 /* rgba_float_to_rgb_15_c */
@@ -1599,6 +1734,159 @@
   dst[1] = RGB_FLOAT_TO_16(src[1]);                    \
   dst[2] = RGB_FLOAT_TO_16(src[2]);                    \
   dst[3] = RGB_FLOAT_TO_16(src[3]);
+
+#include "../csp_packed_packed.h"
+
+/* Conversion from RGBA float to RGB (ignoring alpha) */
+
+/* rgba_float_to_rgb_15_ia_c */
+
+#define IN_TYPE  float
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_float_to_rgb_15_ia_c
+
+#define INIT uint8_t r_tmp, g_tmp, b_tmp;
+
+#define CONVERT                                 \
+  r_tmp = RGB_FLOAT_TO_8(src[0]);               \
+  g_tmp = RGB_FLOAT_TO_8(src[1]);               \
+  b_tmp = RGB_FLOAT_TO_8(src[2]);               \
+  PACK_8_TO_RGB15(r_tmp, g_tmp, b_tmp, *dst)
+
+#include "../csp_packed_packed.h"
+
+/* rgba_float_to_bgr_15_ia_c */
+
+#define IN_TYPE  float
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_float_to_bgr_15_ia_c
+
+#define INIT uint8_t r_tmp, g_tmp, b_tmp;
+
+#define CONVERT                                 \
+  r_tmp = RGB_FLOAT_TO_8(src[0]);               \
+  g_tmp = RGB_FLOAT_TO_8(src[1]);               \
+  b_tmp = RGB_FLOAT_TO_8(src[2]);               \
+  PACK_8_TO_BGR15(r_tmp, g_tmp, b_tmp, *dst)
+
+#include "../csp_packed_packed.h"
+
+/* rgba_float_to_rgb_16_ia_c */
+
+#define IN_TYPE  float
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_float_to_rgb_16_ia_c
+#define INIT uint8_t r_tmp, g_tmp, b_tmp;
+#define CONVERT                                 \
+  r_tmp = RGB_FLOAT_TO_8(src[0]);               \
+  g_tmp = RGB_FLOAT_TO_8(src[1]);               \
+  b_tmp = RGB_FLOAT_TO_8(src[2]);               \
+  PACK_8_TO_RGB16(r_tmp, g_tmp, b_tmp, *dst)
+
+
+#include "../csp_packed_packed.h"
+
+/* rgba_float_to_bgr_16_ia_c */
+
+#define IN_TYPE  float
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_float_to_bgr_16_ia_c
+#define INIT uint8_t r_tmp, g_tmp, b_tmp;
+#define CONVERT                                 \
+  r_tmp = RGB_FLOAT_TO_8(src[0]);               \
+  g_tmp = RGB_FLOAT_TO_8(src[1]);               \
+  b_tmp = RGB_FLOAT_TO_8(src[2]);               \
+  PACK_8_TO_BGR16(r_tmp, g_tmp, b_tmp, *dst)
+
+#include "../csp_packed_packed.h"
+
+/* rgba_float_to_rgb_24_ia_c */
+
+#define IN_TYPE  float
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_float_to_rgb_24_ia_c
+#define CONVERT \
+  COPY_FLOAT_TO_24
+
+#include "../csp_packed_packed.h"
+
+/* rgba_float_to_bgr_24_ia_c */
+
+#define IN_TYPE  float
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_float_to_bgr_24_ia_c
+#define CONVERT \
+  SWAP_FLOAT_TO_24
+
+#include "../csp_packed_packed.h"
+
+/* rgba_float_to_rgb_32_ia_c */
+
+#define IN_TYPE  float
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_float_to_rgb_32_ia_c
+#define CONVERT \
+  COPY_FLOAT_TO_24
+
+#include "../csp_packed_packed.h"
+
+/* rgba_float_to_bgr_32_ia_c */
+
+#define IN_TYPE  float
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_float_to_bgr_32_ia_c
+#define CONVERT \
+  SWAP_FLOAT_TO_24
+
+#include "../csp_packed_packed.h"
+
+/* rgba_float_to_rgb_48_ia_c */
+
+#define IN_TYPE  float
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_float_to_rgb_48_ia_c
+#define CONVERT \
+  COPY_FLOAT_TO_48
+
+#include "../csp_packed_packed.h"
+
+/* rgba_float_to_rgb_float_ia_c */
+
+#define IN_TYPE  float
+#define OUT_TYPE float
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME rgba_float_to_rgb_float_ia_c
+#define CONVERT \
+  COPY_FLOAT_TO_FLOAT
 
 #include "../csp_packed_packed.h"
 
@@ -2054,11 +2342,7 @@
 #include "../csp_packed_packed.h"
 
 
-#ifdef SCANLINE
-void gavl_init_rgb_rgb_scanline_funcs_c(gavl_colorspace_function_table_t * tab)
-#else     
-void gavl_init_rgb_rgb_funcs_c(gavl_colorspace_function_table_t * tab)
-#endif
+void gavl_init_rgb_rgb_funcs_c(gavl_colorspace_function_table_t * tab, const gavl_video_options_t * opt)
   {
 
   tab->swap_rgb_24 = swap_rgb_24_c;
@@ -2136,51 +2420,86 @@ void gavl_init_rgb_rgb_funcs_c(gavl_colorspace_function_table_t * tab)
   tab->rgb_float_to_16_swap    = rgb_float_to_16_swap_c;
   tab->rgb_float_to_24_swap    = rgb_float_to_24_swap_c;
   tab->rgb_float_to_32_swap    = rgb_float_to_32_swap_c;
-
   
   /* Conversion from RGBA to RGB formats */
 
-  tab->rgba_32_to_rgb_15    = rgba_32_to_rgb_15_c;
-  tab->rgba_32_to_bgr_15    = rgba_32_to_bgr_15_c;
-  tab->rgba_32_to_rgb_16    = rgba_32_to_rgb_16_c;
-  tab->rgba_32_to_bgr_16    = rgba_32_to_bgr_16_c;
-  tab->rgba_32_to_rgb_24    = rgba_32_to_rgb_24_c;
-  tab->rgba_32_to_bgr_24    = rgba_32_to_bgr_24_c;
-  tab->rgba_32_to_rgb_32    = rgba_32_to_rgb_32_c;
-  tab->rgba_32_to_bgr_32    = rgba_32_to_bgr_32_c;
-  tab->rgba_32_to_rgb_48    = rgba_32_to_rgb_48_c;
-  tab->rgba_32_to_rgb_float = rgba_32_to_rgb_float_c;
+  if(opt->alpha_mode == GAVL_ALPHA_BLEND_COLOR)
+    {
+    tab->rgba_32_to_rgb_15    = rgba_32_to_rgb_15_c;
+    tab->rgba_32_to_bgr_15    = rgba_32_to_bgr_15_c;
+    tab->rgba_32_to_rgb_16    = rgba_32_to_rgb_16_c;
+    tab->rgba_32_to_bgr_16    = rgba_32_to_bgr_16_c;
+    tab->rgba_32_to_rgb_24    = rgba_32_to_rgb_24_c;
+    tab->rgba_32_to_bgr_24    = rgba_32_to_bgr_24_c;
+    tab->rgba_32_to_rgb_32    = rgba_32_to_rgb_32_c;
+    tab->rgba_32_to_bgr_32    = rgba_32_to_bgr_32_c;
+    tab->rgba_32_to_rgb_48    = rgba_32_to_rgb_48_c;
+    tab->rgba_32_to_rgb_float = rgba_32_to_rgb_float_c;
 
+    tab->rgba_64_to_rgb_15 = rgba_64_to_rgb_15_c;
+    tab->rgba_64_to_bgr_15 = rgba_64_to_bgr_15_c;
+    tab->rgba_64_to_rgb_16 = rgba_64_to_rgb_16_c;
+    tab->rgba_64_to_bgr_16 = rgba_64_to_bgr_16_c;
+    tab->rgba_64_to_rgb_24 = rgba_64_to_rgb_24_c;
+    tab->rgba_64_to_bgr_24 = rgba_64_to_bgr_24_c;
+    tab->rgba_64_to_rgb_32 = rgba_64_to_rgb_32_c;
+    tab->rgba_64_to_bgr_32 = rgba_64_to_bgr_32_c;
+    tab->rgba_64_to_rgb_48 = rgba_64_to_rgb_48_c;
+    tab->rgba_64_to_rgb_float = rgba_64_to_rgb_float_c;
+
+    tab->rgba_float_to_rgb_15    = rgba_float_to_rgb_15_c;
+    tab->rgba_float_to_bgr_15    = rgba_float_to_bgr_15_c;
+    tab->rgba_float_to_rgb_16    = rgba_float_to_rgb_16_c;
+    tab->rgba_float_to_bgr_16    = rgba_float_to_bgr_16_c;
+    tab->rgba_float_to_rgb_24    = rgba_float_to_rgb_24_c;
+    tab->rgba_float_to_bgr_24    = rgba_float_to_bgr_24_c;
+    tab->rgba_float_to_rgb_32    = rgba_float_to_rgb_32_c;
+    tab->rgba_float_to_bgr_32    = rgba_float_to_bgr_32_c;
+    tab->rgba_float_to_rgb_48    = rgba_float_to_rgb_48_c;
+    tab->rgba_float_to_rgb_float = rgba_float_to_rgb_float_c;
+    }
+  else if(opt->alpha_mode == GAVL_ALPHA_IGNORE)
+    {
+    tab->rgba_32_to_rgb_15    = rgb_32_to_15_c;
+    tab->rgba_32_to_bgr_15    = rgb_32_to_15_swap_c;
+    tab->rgba_32_to_rgb_16    = rgb_32_to_16_c;
+    tab->rgba_32_to_bgr_16    = rgb_32_to_16_swap_c;
+    tab->rgba_32_to_rgb_24    = rgb_32_to_24_c;
+    tab->rgba_32_to_bgr_24    = rgb_32_to_24_swap_c;
+
+    tab->rgba_32_to_bgr_32    = swap_rgb_32_c;
+    tab->rgba_32_to_rgb_48    = rgb_32_to_48_c;
+    tab->rgba_32_to_rgb_float = rgb_32_to_float_c;
+    tab->rgba_64_to_rgb_15 = rgba_64_to_rgb_15_ia_c;
+    tab->rgba_64_to_bgr_15 = rgba_64_to_bgr_15_ia_c;
+    tab->rgba_64_to_rgb_16 = rgba_64_to_rgb_16_ia_c;
+    tab->rgba_64_to_bgr_16 = rgba_64_to_bgr_16_ia_c;
+    tab->rgba_64_to_rgb_24 = rgba_64_to_rgb_24_ia_c;
+    tab->rgba_64_to_bgr_24 = rgba_64_to_bgr_24_ia_c;
+    tab->rgba_64_to_rgb_32 = rgba_64_to_rgb_32_ia_c;
+    tab->rgba_64_to_bgr_32 = rgba_64_to_bgr_32_ia_c;
+    tab->rgba_64_to_rgb_48 = rgba_64_to_rgb_48_ia_c;
+    tab->rgba_64_to_rgb_float = rgba_64_to_rgb_float_ia_c;
+#if 1
+    tab->rgba_float_to_rgb_15    = rgba_float_to_rgb_15_ia_c;
+    tab->rgba_float_to_bgr_15    = rgba_float_to_bgr_15_ia_c;
+    tab->rgba_float_to_rgb_16    = rgba_float_to_rgb_16_ia_c;
+    tab->rgba_float_to_bgr_16    = rgba_float_to_bgr_16_ia_c;
+    tab->rgba_float_to_rgb_24    = rgba_float_to_rgb_24_ia_c;
+    tab->rgba_float_to_bgr_24    = rgba_float_to_bgr_24_ia_c;
+    tab->rgba_float_to_rgb_32    = rgba_float_to_rgb_32_ia_c;
+    tab->rgba_float_to_bgr_32    = rgba_float_to_bgr_32_ia_c;
+    tab->rgba_float_to_rgb_48    = rgba_float_to_rgb_48_ia_c;
+    tab->rgba_float_to_rgb_float = rgba_float_to_rgb_float_ia_c;
+#endif
+    }
+  
   tab->rgba_32_to_rgba_64    = rgba_32_to_rgba_64_c;
   tab->rgba_32_to_rgba_float = rgba_32_to_rgba_float_c;
-
   
-  tab->rgba_64_to_rgb_15 = rgba_64_to_rgb_15_c;
-  tab->rgba_64_to_bgr_15 = rgba_64_to_bgr_15_c;
-  tab->rgba_64_to_rgb_16 = rgba_64_to_rgb_16_c;
-  tab->rgba_64_to_bgr_16 = rgba_64_to_bgr_16_c;
-  tab->rgba_64_to_rgb_24 = rgba_64_to_rgb_24_c;
-  tab->rgba_64_to_bgr_24 = rgba_64_to_bgr_24_c;
-  tab->rgba_64_to_rgb_32 = rgba_64_to_rgb_32_c;
-  tab->rgba_64_to_bgr_32 = rgba_64_to_bgr_32_c;
-  tab->rgba_64_to_rgb_48 = rgba_64_to_rgb_48_c;
-  tab->rgba_64_to_rgb_float = rgba_64_to_rgb_float_c;
-
   tab->rgba_64_to_rgba_32    = rgba_64_to_rgba_32_c;
   tab->rgba_64_to_rgba_float = rgba_64_to_rgba_float_c;
-
   
-  tab->rgba_float_to_rgb_15    = rgba_float_to_rgb_15_c;
-  tab->rgba_float_to_bgr_15    = rgba_float_to_bgr_15_c;
-  tab->rgba_float_to_rgb_16    = rgba_float_to_rgb_16_c;
-  tab->rgba_float_to_bgr_16    = rgba_float_to_bgr_16_c;
-  tab->rgba_float_to_rgb_24    = rgba_float_to_rgb_24_c;
-  tab->rgba_float_to_bgr_24    = rgba_float_to_bgr_24_c;
-  tab->rgba_float_to_rgb_32    = rgba_float_to_rgb_32_c;
-  tab->rgba_float_to_bgr_32    = rgba_float_to_bgr_32_c;
-  tab->rgba_float_to_rgb_48    = rgba_float_to_rgb_48_c;
-  tab->rgba_float_to_rgb_float = rgba_float_to_rgb_float_c;
-
   tab->rgba_float_to_rgba_32   = rgba_float_to_rgba_32_c;
   tab->rgba_float_to_rgba_64   = rgba_float_to_rgba_64_c;
   

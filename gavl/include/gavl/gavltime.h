@@ -39,6 +39,12 @@ typedef int64_t gavl_time_t;
 #define gavl_time_to_frames(rate_num, rate_den, t) \
   (int64_t)(((t)*((int64_t)rate_num))/(GAVL_TIME_SCALE*((int64_t)rate_den)))
 
+#define gavl_time_unscale(scale, time) \
+(((time)*GAVL_TIME_SCALE)/(scale))
+
+#define gavl_time_scale(scale, time)          \
+(((time)*(scale))/GAVL_TIME_SCALE)
+
 
 // #define GAVL_TIME_TO_SECONDS(t) (double)(t)/(double)(GAVL_TIME_SCALE)
 

@@ -44,14 +44,14 @@
 /* Bilinear in x direction */
 
 #define LOAD_FACTORS_BILINEAR_X \
-  tmp.uw[0] = (s->table[plane].coeffs_h[i].factor[0] >> 1);\
+  tmp.uw[0] = (s->table[plane].coeffs_h[i].factor[0].fac_i >> 1);\
   tmp.uw[1] = tmp.uw[0];                                   \
   tmp.uw[2] = tmp.uw[0];                                   \
   tmp.uw[3] = tmp.uw[0];                                   \
   movq_m2r(tmp, mm4);
 
 #define LOAD_FACTORS_BILINEAR_Y \
-  tmp.uw[0] = (s->table[plane].coeffs_v[scanline].factor[0] >> 1);\
+  tmp.uw[0] = (s->table[plane].coeffs_v[scanline].factor[0].fac_i >> 1);\
   tmp.uw[1] = tmp.uw[0];                                   \
   tmp.uw[2] = tmp.uw[0];                                   \
   tmp.uw[3] = tmp.uw[0];                                   \
@@ -564,7 +564,7 @@ static void scale_y_8_bilinear_mmx(gavl_video_scaler_t * s,
   src_1 = src + s->table[plane].coeffs_v[scanline].index * src_stride;
   src_2 = src_1 + src_stride;
 
-  tmp.uw[0] = (s->table[plane].coeffs_v[scanline].factor[0] >> 1);
+  tmp.uw[0] = (s->table[plane].coeffs_v[scanline].factor[0].fac_i >> 1);
   tmp.uw[1] = tmp.uw[0];
   tmp.uw[2] = tmp.uw[0];
   tmp.uw[3] = tmp.uw[0];
@@ -602,7 +602,7 @@ static void scale_y_yuv_packed_bilinear_mmx(gavl_video_scaler_t * s,
   src_1 = src + s->table[plane].coeffs_v[scanline].index * src_stride;
   src_2 = src_1 + src_stride;
 
-  tmp.uw[0] = (s->table[plane].coeffs_v[scanline].factor[0] >> 1);
+  tmp.uw[0] = (s->table[plane].coeffs_v[scanline].factor[0].fac_i >> 1);
   tmp.uw[1] = tmp.uw[0];
   tmp.uw[2] = tmp.uw[0];
   tmp.uw[3] = tmp.uw[0];

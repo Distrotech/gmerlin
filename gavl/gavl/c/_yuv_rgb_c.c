@@ -3563,22 +3563,215 @@ static void _init_yuv2rgb_c()
 #include "../csp_packed_packed.h"
 
 
-#ifdef SCANLINE
-void gavl_init_yuv_rgb_scanline_funcs_c(gavl_colorspace_function_table_t * tab)
-#else
-void gavl_init_yuv_rgb_funcs_c(gavl_colorspace_function_table_t * tab)
-#endif
+/*************************************************
+  YUVA -> RGB (No alpha)
+ *************************************************/
+
+/* yuva_32_to_rgb_15_ia_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME yuva_32_to_rgb_15_ia_c
+#define CONVERT  \
+  YUV_8_TO_RGB_24(src[0], src[1], src[2], r_tmp1, g_tmp1, b_tmp1)        \
+  PACK_8_TO_RGB15(r_tmp1, g_tmp1, b_tmp1, *dst);
+
+#define INIT \
+  int i_tmp; \
+  int r_tmp1; \
+  int g_tmp1; \
+  int b_tmp1; \
+
+#include "../csp_packed_packed.h"
+
+/* yuva_32_to_bgr_15_ia_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME yuva_32_to_bgr_15_ia_c
+#define CONVERT  \
+  YUV_8_TO_RGB_24(src[0], src[1], src[2], r_tmp1, g_tmp1, b_tmp1)        \
+  PACK_8_TO_BGR15(r_tmp1, g_tmp1, b_tmp1, *dst);
+
+#define INIT \
+  int i_tmp; \
+  int r_tmp1; \
+  int g_tmp1; \
+  int b_tmp1; \
+
+#include "../csp_packed_packed.h"
+
+/* yuva_32_to_rgb_16_ia_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME yuva_32_to_rgb_16_ia_c
+#define CONVERT  \
+  YUV_8_TO_RGB_24(src[0], src[1], src[2], r_tmp1, g_tmp1, b_tmp1)        \
+  PACK_8_TO_RGB16(r_tmp1, g_tmp1, b_tmp1, *dst);
+
+#define INIT \
+  int i_tmp; \
+  int r_tmp1; \
+  int g_tmp1; \
+  int b_tmp1; \
+
+#include "../csp_packed_packed.h"
+
+/* yuva_32_to_bgr_16_ia_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 1
+#define NUM_PIXELS  1
+#define FUNC_NAME yuva_32_to_bgr_16_ia_c
+#define CONVERT  \
+  YUV_8_TO_RGB_24(src[0], src[1], src[2], r_tmp1, g_tmp1, b_tmp1)        \
+  PACK_8_TO_BGR16(r_tmp1, g_tmp1, b_tmp1, *dst);
+
+#define INIT \
+  int i_tmp; \
+  int r_tmp1; \
+  int g_tmp1; \
+  int b_tmp1; \
+
+#include "../csp_packed_packed.h"
+
+/* yuva_32_to_rgb_24_ia_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME yuva_32_to_rgb_24_ia_c
+#define CONVERT  \
+  YUV_8_TO_RGB_24(src[0], src[1], src[2], dst[0], dst[1], dst[2])
+
+#define INIT \
+  int i_tmp;
+
+#include "../csp_packed_packed.h"
+
+/* yuva_32_to_bgr_24_ia_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME yuva_32_to_bgr_24_ia_c
+#define CONVERT  \
+  YUV_8_TO_RGB_24(src[0], src[1], src[2], dst[2], dst[1], dst[0])
+
+#define INIT \
+  int i_tmp;
+
+#include "../csp_packed_packed.h"
+
+/* yuva_32_to_rgb_32_ia_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME yuva_32_to_rgb_32_ia_c
+#define CONVERT  \
+  YUV_8_TO_RGB_24(src[0], src[1], src[2], dst[0], dst[1], dst[2])
+
+#define INIT \
+  int i_tmp;
+
+#include "../csp_packed_packed.h"
+
+/* yuva_32_to_bgr_32_ia_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint8_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 4
+#define NUM_PIXELS  1
+#define FUNC_NAME yuva_32_to_bgr_32_ia_c
+#define CONVERT  \
+  YUV_8_TO_RGB_24(src[0], src[1], src[2], dst[2], dst[1], dst[0])
+
+#define INIT \
+  int i_tmp;
+
+#include "../csp_packed_packed.h"
+
+/* yuva_32_to_rgb_48_ia_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE uint16_t
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME yuva_32_to_rgb_48_ia_c
+#define CONVERT  \
+  YUV_8_TO_RGB_48(src[0], src[1], src[2], dst[0], dst[1], dst[2])          \
+
+#define INIT   \
+  int i_tmp; \
+
+#include "../csp_packed_packed.h"
+
+/* yuva_32_to_rgb_float_ia_c */
+
+#define IN_TYPE  uint8_t
+#define OUT_TYPE float
+#define IN_ADVANCE  4
+#define OUT_ADVANCE 3
+#define NUM_PIXELS  1
+#define FUNC_NAME yuva_32_to_rgb_float_ia_c
+#define CONVERT  \
+  YUV_8_TO_RGB_FLOAT(src[0], src[1], src[2], dst[0], dst[1], dst[2])          \
+    
+#define INIT \
+  float i_tmp; \
+
+#include "../csp_packed_packed.h"
+
+void gavl_init_yuv_rgb_funcs_c(gavl_colorspace_function_table_t * tab, const gavl_video_options_t * opt)
   {
-  tab->yuva_32_to_rgb_15 = yuva_32_to_rgb_15_c;
-  tab->yuva_32_to_bgr_15 = yuva_32_to_bgr_15_c;
-  tab->yuva_32_to_rgb_16 = yuva_32_to_rgb_16_c;
-  tab->yuva_32_to_bgr_16 = yuva_32_to_bgr_16_c;
-  tab->yuva_32_to_rgb_24 = yuva_32_to_rgb_24_c;
-  tab->yuva_32_to_bgr_24 = yuva_32_to_bgr_24_c;
-  tab->yuva_32_to_rgb_32 = yuva_32_to_rgb_32_c;
-  tab->yuva_32_to_bgr_32 = yuva_32_to_bgr_32_c;
-  tab->yuva_32_to_rgb_48 = yuva_32_to_rgb_48_c;
-  tab->yuva_32_to_rgb_float = yuva_32_to_rgb_float_c;
+  if(opt->alpha_mode == GAVL_ALPHA_BLEND_COLOR)
+    {
+    tab->yuva_32_to_rgb_15 = yuva_32_to_rgb_15_c;
+    tab->yuva_32_to_bgr_15 = yuva_32_to_bgr_15_c;
+    tab->yuva_32_to_rgb_16 = yuva_32_to_rgb_16_c;
+    tab->yuva_32_to_bgr_16 = yuva_32_to_bgr_16_c;
+    tab->yuva_32_to_rgb_24 = yuva_32_to_rgb_24_c;
+    tab->yuva_32_to_bgr_24 = yuva_32_to_bgr_24_c;
+    tab->yuva_32_to_rgb_32 = yuva_32_to_rgb_32_c;
+    tab->yuva_32_to_bgr_32 = yuva_32_to_bgr_32_c;
+    tab->yuva_32_to_rgb_48 = yuva_32_to_rgb_48_c;
+    tab->yuva_32_to_rgb_float = yuva_32_to_rgb_float_c;
+    }
+  else if(opt->alpha_mode == GAVL_ALPHA_IGNORE)
+    {
+    tab->yuva_32_to_rgb_15 = yuva_32_to_rgb_15_ia_c;
+    tab->yuva_32_to_bgr_15 = yuva_32_to_bgr_15_ia_c;
+    tab->yuva_32_to_rgb_16 = yuva_32_to_rgb_16_ia_c;
+    tab->yuva_32_to_bgr_16 = yuva_32_to_bgr_16_ia_c;
+    tab->yuva_32_to_rgb_24 = yuva_32_to_rgb_24_ia_c;
+    tab->yuva_32_to_bgr_24 = yuva_32_to_bgr_24_ia_c;
+    tab->yuva_32_to_rgb_32 = yuva_32_to_rgb_32_ia_c;
+    tab->yuva_32_to_bgr_32 = yuva_32_to_bgr_32_ia_c;
+    tab->yuva_32_to_rgb_48 = yuva_32_to_rgb_48_ia_c;
+    tab->yuva_32_to_rgb_float = yuva_32_to_rgb_float_ia_c;
+    }
+  
   tab->yuva_32_to_rgba_32 = yuva_32_to_rgba_32_c;
   tab->yuva_32_to_rgba_64 = yuva_32_to_rgba_64_c;
   tab->yuva_32_to_rgba_float = yuva_32_to_rgba_float_c;

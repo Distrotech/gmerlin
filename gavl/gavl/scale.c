@@ -22,40 +22,6 @@ static void alloc_coeffs_1D(gavl_video_scale_coeff_1D_t ** coeffs,
     *coeffs = realloc(*coeffs, *coeffs_alloc * sizeof(**coeffs));
     }
   }
-#if 0
-static gavl_video_scale_coeff_2D_t ** alloc_coeffs_2D(gavl_video_scale_coeff_2D_t ** coeffs,
-                                                      int * coeffs_alloc, int w, int h)
-  {
-  int i;
-  gavl_video_scale_coeff_2D_t * row;
-  
-  if((coeffs_alloc[0] >= w) || (coeffs_alloc[1] >= h))
-    return coeffs;
-
-  if(coeffs_alloc[0] < w)
-    coeffs_alloc[0] = w + 128;
-
-  if(coeffs_alloc[1] < h)
-    coeffs_alloc[1] = h + 128;
-
-  if(coeffs)
-    row = coeffs[0];
-  else
-    row = (gavl_video_scale_coeff_2D_t*)0;
-
-  coeffs = realloc(coeffs, h * sizeof(*coeffs));
-
-  row = realloc(row, w = sizeof(*row));
-
-  coeffs[0] = row;
-    
-  for(i = 1; i < h; i++)
-    {
-    coeffs[i] = coeffs[0] + i * w;
-    }
-  return coeffs;
-  }
-#endif
 
 static void init_coeffs_nearest(gavl_video_scale_coeff_1D_t * coeffs,
                                 int src_size, int dst_size)
@@ -85,8 +51,7 @@ static void init_coeffs_nearest(gavl_video_scale_coeff_1D_t * coeffs,
   }
 
 static void init_coeffs_bilinear_1D(gavl_video_scale_coeff_1D_t * coeffs,
-                                 int src_size, int dst_size,
-                                 unsigned int factor_max)
+                                    int src_size, int dst_size)
   {
   double scale_factor;
   double src_index_1_f;
@@ -101,8 +66,8 @@ static void init_coeffs_bilinear_1D(gavl_video_scale_coeff_1D_t * coeffs,
     for(i = 0; i < dst_size; i++)
       {
       coeffs[i].index = 0;
-      coeffs[i].factor[0] = factor_max;
-      coeffs[i].factor[1] = 0;
+      coeffs[i].factor[0].fac_f = 1.0;
+      coeffs[i].factor[1].fac_f = 0.0;
       }
     return;
     }
@@ -132,11 +97,11 @@ static void init_coeffs_bilinear_1D(gavl_video_scale_coeff_1D_t * coeffs,
 
     //    coeffs[i].index[1] = coeffs[i].index[0] + 1;
     
-    coeffs[i].factor[1] = (int)((float)(factor_max) * factor_2 + 0.5);
-    if(coeffs[i].factor[1] > factor_max)
-      coeffs[i].factor[1] = factor_max;
+    coeffs[i].factor[1].fac_f = factor_2;
+    if(coeffs[i].factor[1].fac_f > 1.0)
+      coeffs[i].factor[1].fac_f = 1.0;
 
-    coeffs[i].factor[0] = factor_max - coeffs[i].factor[1];
+    coeffs[i].factor[0].fac_f = 1.0 - coeffs[i].factor[1].fac_f;
     
     // factor = 1.0 - (src_index_1_f - (double)src_index_1_i);
     // printf("dst[%d] = %f * src[%d] + %f * src[%d]\n",
@@ -145,8 +110,8 @@ static void init_coeffs_bilinear_1D(gavl_video_scale_coeff_1D_t * coeffs,
 #ifdef DUMP_TABLES
   for(i = 0; i < dst_size; i++)
     fprintf(stderr, "dst[%d] = src[%d] * %f + dst[%d] * %f\n",
-            i, coeffs[i].index[0], (float)(coeffs[i].factor[0])/(float)(factor_max),
-            coeffs[i].index[1], (float)(coeffs[i].factor[1])/(float)(factor_max));
+            i, coeffs[i].index[0], coeffs[i].factor[0].fac_f,
+            coeffs[i].index[1], coeffs[i].factor[1].fac_f);
 #endif
   }
 
@@ -172,12 +137,11 @@ static void init_coeffs_bilinear_2D(gavl_video_scale_coeff_2D_t ** coeffs,
 
 static void init_plane(gavl_video_scaler_t * s,
                        gavl_scale_mode_t scale_mode,
-                       int plane, int factor_max)
+                       int plane)
   {
   /* Allocate coefficient arrays */
   s->table[plane].num_coeffs_h = s->dst_rect[plane].w;
   s->table[plane].num_coeffs_v = s->dst_rect[plane].h;
-
 
   switch(scale_mode)
     {
@@ -195,13 +159,12 @@ static void init_plane(gavl_video_scaler_t * s,
         alloc_coeffs_1D(&(s->table[plane].coeffs_h),
                      &(s->table[plane].coeffs_h_alloc), s->dst_rect[plane].w);
         init_coeffs_bilinear_1D(s->table[plane].coeffs_h,
-                             s->src_rect[plane].w, s->dst_rect[plane].w, factor_max);
+                                s->src_rect[plane].w, s->dst_rect[plane].w);
         }
       break;
     case GAVL_SCALE_NONE:
       break;
     }
-
   switch(scale_mode)
     {
     case GAVL_SCALE_AUTO:
@@ -218,29 +181,21 @@ static void init_plane(gavl_video_scaler_t * s,
                        &(s->table[plane].coeffs_v_alloc), s->dst_rect[plane].h);
           
           init_coeffs_bilinear_1D(s->table[plane].coeffs_v,
-                               s->src_rect[plane].h, s->dst_rect[plane].h, factor_max);
+                               s->src_rect[plane].h, s->dst_rect[plane].h);
           }
         break;
     case GAVL_SCALE_NONE:
       break;
     }
-
-  
   }
 
 /* Initialize scale table */
-
-/* If the destination size is no required multiple of the colorspace, we'll
- * shrink the image
- */
-
 
 static int init_scale_table(gavl_video_scaler_t * s,
                             gavl_scale_mode_t scale_mode,
                             gavl_colorspace_t colorspace,
                             gavl_scale_funcs_t * funcs)
   {
-  int factor_max = 0;
   switch(colorspace)
     {
     case GAVL_COLORSPACE_NONE:
@@ -248,63 +203,47 @@ static int init_scale_table(gavl_video_scaler_t * s,
       break;
     case GAVL_RGB_15:
     case GAVL_BGR_15:
-      factor_max = 0xff;
-      init_plane(s,
-                 scale_mode,
-                 0, factor_max);
+      
+      init_plane(s, scale_mode, 0);
+
       s->table[0].scanline_func = funcs->scale_15_16;
       break;
     case GAVL_RGB_16:
     case GAVL_BGR_16:
-      factor_max = 0xff;
-      init_plane(s,
-                 scale_mode,
-                 0, factor_max);
+      
+      init_plane(s, scale_mode, 0);
+      
       s->table[0].scanline_func = funcs->scale_16_16;
       break;
     case GAVL_RGB_24:
     case GAVL_BGR_24:
-      factor_max = 0xff;
-      init_plane(s,
-                 scale_mode,
-                 0, factor_max);
+      
+      init_plane(s, scale_mode, 0);
       s->table[0].scanline_func = funcs->scale_24_24;
       break;
     case GAVL_RGB_32:
     case GAVL_BGR_32:
-      factor_max = 0xff;
-      init_plane(s,
-                 scale_mode,
-                 0, factor_max);
+      
+      init_plane(s, scale_mode, 0);
       s->table[0].scanline_func = funcs->scale_24_32;
       break;
     case GAVL_RGBA_32:
-      factor_max = 0xff;
-      init_plane(s,
-                 scale_mode,
-                 0, factor_max);
+    case GAVL_YUVA_32:
+      
+      init_plane(s, scale_mode, 0);
       s->table[0].scanline_func = funcs->scale_32_32;
       break;
     case GAVL_YUY2:
-      factor_max = 0xff;
-      init_plane(s,
-                 scale_mode,
-                 0, factor_max);
-      init_plane(s,
-                 scale_mode,
-                 1, factor_max);
+      
+      init_plane(s, scale_mode, 0);
+      init_plane(s, scale_mode, 1);
       
       s->table[0].scanline_func = funcs->scale_yuy2;
       break;
     case GAVL_UYVY:
-      factor_max = 0xff;
-      init_plane(s,
-                 scale_mode,
-                 0, factor_max);
-
-      init_plane(s,
-                 scale_mode,
-                 1, factor_max);
+      
+      init_plane(s, scale_mode, 0);
+      init_plane(s, scale_mode, 1);
       
       s->table[0].scanline_func = funcs->scale_uyvy;
 
@@ -314,20 +253,9 @@ static int init_scale_table(gavl_video_scaler_t * s,
       break;
     case GAVL_YUV_420_P:
     case GAVL_YUVJ_420_P:
-
-      factor_max = 0xff;
-
-      init_plane(s,
-                 scale_mode,
-                 0, factor_max);
-
-      init_plane(s,
-                 scale_mode,
-                 1, factor_max);
-
-      init_plane(s,
-                 scale_mode,
-                 2, factor_max);
+      init_plane(s, scale_mode, 0);
+      init_plane(s, scale_mode, 1);
+      init_plane(s, scale_mode, 2);
             
       s->table[0].scanline_func = funcs->scale_8;
       s->table[1].scanline_func = funcs->scale_8;
@@ -340,19 +268,9 @@ static int init_scale_table(gavl_video_scaler_t * s,
     case GAVL_YUV_422_P:
     case GAVL_YUVJ_422_P:
 
-      factor_max = 0xff;
-
-      init_plane(s,
-                 scale_mode,
-                 0, factor_max);
-
-      init_plane(s,
-                 scale_mode,
-                 1, factor_max);
-
-      init_plane(s,
-                 scale_mode,
-                 2, factor_max);
+      init_plane(s, scale_mode, 0);
+      init_plane(s, scale_mode, 1);
+      init_plane(s, scale_mode, 2);
             
       s->table[0].scanline_func = funcs->scale_8;
       s->table[1].scanline_func = funcs->scale_8;
@@ -365,19 +283,11 @@ static int init_scale_table(gavl_video_scaler_t * s,
       break;
     case GAVL_YUV_444_P:
     case GAVL_YUVJ_444_P:
-      factor_max = 0xff;
+      
 
-      init_plane(s,
-                 scale_mode,
-                 0, factor_max);
-
-      init_plane(s,
-                 scale_mode,
-                 1, factor_max);
-
-      init_plane(s,
-                 scale_mode,
-                 2, factor_max);
+      init_plane(s, scale_mode, 0);
+      init_plane(s, scale_mode, 1);
+      init_plane(s, scale_mode, 2);
 
       s->table[0].scanline_func = funcs->scale_8;
       s->table[1].scanline_func = funcs->scale_8;
@@ -388,19 +298,11 @@ static int init_scale_table(gavl_video_scaler_t * s,
       
       break;
     case GAVL_YUV_411_P:
-      factor_max = 0xff;
+      
 
-      init_plane(s,
-                 scale_mode,
-                 0, factor_max);
-
-      init_plane(s,
-                 scale_mode,
-                 1, factor_max);
-
-      init_plane(s,
-                 scale_mode,
-                 2, factor_max);
+      init_plane(s, scale_mode, 0);
+      init_plane(s, scale_mode, 1);
+      init_plane(s, scale_mode, 2);
 
       s->table[0].scanline_func = funcs->scale_8;
       s->table[1].scanline_func = funcs->scale_8;
@@ -412,19 +314,9 @@ static int init_scale_table(gavl_video_scaler_t * s,
 
       break;
     case GAVL_YUV_410_P:
-      factor_max = 0xff;
-
-      init_plane(s,
-                 scale_mode,
-                 0, factor_max);
-
-      init_plane(s,
-                 scale_mode,
-                 1, factor_max);
-
-      init_plane(s,
-                 scale_mode,
-                 2, factor_max);
+      init_plane(s, scale_mode, 0);
+      init_plane(s, scale_mode, 1);
+      init_plane(s, scale_mode, 2);
 
       s->table[0].scanline_func = funcs->scale_8;
       s->table[1].scanline_func = funcs->scale_8;

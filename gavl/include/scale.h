@@ -25,7 +25,13 @@
 typedef struct
   {
   int index; /* Index of the first row/column */
-  int factor[MAX_INTERPOL_POINTS];
+  struct
+    {
+    float fac_f; /* Scaling coefficient with high precision */
+    int fac_i;   /* Scaling with lower precision requested by
+                    the initialization function for a plane */
+    }
+  factor[MAX_INTERPOL_POINTS];
   } gavl_video_scale_coeff_1D_t;
 
 typedef void (*gavl_video_scale_scanline_func)(gavl_video_scaler_t*,
@@ -51,10 +57,13 @@ typedef struct
   gavl_video_scale_coeff_1D_t * coeffs_h;
   gavl_video_scale_coeff_1D_t * coeffs_v;
   gavl_video_scale_scanline_func scanline_func;
-
-    
+  
+  
   int byte_advance;
   } gavl_video_scale_table_t;
+
+void gavl_video_scale_table_init_int(gavl_video_scale_table_t table,
+                                     int bits);
 
 struct gavl_video_scaler_s
   {
@@ -94,20 +103,25 @@ typedef struct
   gavl_video_scale_scanline_func scale_8;
   gavl_video_scale_scanline_func scale_yuy2;
   gavl_video_scale_scanline_func scale_uyvy;
+
+  /* Bits needed for the integer scaling coefficient
+     (0 when float is used) */
   
-  gavl_video_scale_init_plane_func init_scale_15_16;
-  gavl_video_scale_init_plane_func init_scale_16_16;
-  gavl_video_scale_init_plane_func init_scale_24_24;
-  gavl_video_scale_init_plane_func init_scale_24_32;
-  gavl_video_scale_init_plane_func init_scale_32_32;
-  gavl_video_scale_init_plane_func init_scale_uint16_x_1;
-  gavl_video_scale_init_plane_func init_scale_uint16_x_3;
-  gavl_video_scale_init_plane_func init_scale_uint16_x_4;
-  gavl_video_scale_init_plane_func init_scale_float_x_3;
-  gavl_video_scale_init_plane_func init_scale_float_x_4;
-  gavl_video_scale_init_plane_func init_scale_8;
-  gavl_video_scale_init_plane_func init_scale_yuy2;
-  gavl_video_scale_init_plane_func init_scale_uyvy;
+  int bits_15_16;
+  int bits_16_16;
+  int bits_24_24;
+  int bits_24_32;
+  int bits_32_32;
+  int bits_uint16_x_1;
+  int bits_uint16_x_3;
+  int bits_uint16_x_4;
+  int bits_float_x_3;
+  int bits_float_x_4;
+  int bits_8;
+  int bits_yuy2;
+  int bits_uyvy;
+
+  
   } gavl_scale_funcs_t;
 
 void gavl_init_scale_funcs_c(gavl_scale_funcs_t * tab,

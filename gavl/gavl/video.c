@@ -21,7 +21,7 @@
 
 #include <string.h>
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 #include <stdio.h>  
@@ -147,7 +147,7 @@ void add_context_scale(gavl_video_converter_t * cnv,
   scaler_options = gavl_video_scaler_get_options(ctx->scaler);
 
   gavl_video_options_copy(scaler_options, &(cnv->options));
-#if 1
+#if 0
   fprintf(stderr, "gavl_video_scaler_init:\n");
   fprintf(stderr, "src_format:\n");
   gavl_video_format_dump(input_format);
@@ -206,22 +206,11 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
     
   /* Adjust colorspace */
     
-  if(gavl_colorspace_has_alpha(tmp_format.colorspace) &&
-     !gavl_colorspace_has_alpha(output_format->colorspace))
-    { 
-    if(cnv->options.alpha_mode == GAVL_ALPHA_IGNORE)
-      {
-      switch(tmp_format.colorspace)
-        {
-        case GAVL_RGBA_32:
-          tmp_format.colorspace = GAVL_RGB_32;
-          break;
-        default:
-          break;
-        }
-      }
-    }
-
+  if((cnv->options.alpha_mode == GAVL_ALPHA_IGNORE) &&
+     (tmp_format.colorspace == GAVL_RGBA_32) &&
+     (output_format->colorspace == GAVL_RGB_32))
+    tmp_format.colorspace = GAVL_RGB_32;
+  
   /* Check for colorspace conversion */
 
   if(tmp_format.colorspace != output_format->colorspace)

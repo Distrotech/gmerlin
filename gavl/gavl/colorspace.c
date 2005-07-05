@@ -317,10 +317,10 @@ create_colorspace_function_table(const gavl_video_options_t * opt,
   if(!real_accel_flags || (real_accel_flags & GAVL_ACCEL_C))
     {
     //    fprintf(stderr, "Init C functions %08x\n", real_accel_flags);
-    gavl_init_rgb_rgb_funcs_c(csp_tab);
-    gavl_init_rgb_yuv_funcs_c(csp_tab);
-    gavl_init_yuv_rgb_funcs_c(csp_tab);
-    gavl_init_yuv_yuv_funcs_c(csp_tab);
+    gavl_init_rgb_rgb_funcs_c(csp_tab, opt);
+    gavl_init_rgb_yuv_funcs_c(csp_tab, opt);
+    gavl_init_yuv_rgb_funcs_c(csp_tab, opt);
+    gavl_init_yuv_yuv_funcs_c(csp_tab, opt);
     }
 #endif
   

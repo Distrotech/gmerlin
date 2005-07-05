@@ -325,27 +325,15 @@
 
 #ifdef MMXEXT
 
-#ifdef SCANLINE
-void
-gavl_init_yuv_yuv_scanline_funcs_mmxext(gavl_colorspace_function_table_t * tab,
-                                        int width, int quality)
-#else     
 void
 gavl_init_yuv_yuv_funcs_mmxext(gavl_colorspace_function_table_t * tab,
-                               int width, int quality)
-#endif
+                               int width, gavl_video_options_t * opt)
 
 #else /* !MMXEXT */     
 
-#ifdef SCANLINE
-void
-gavl_init_yuv_yuv_scanline_funcs_mmx(gavl_colorspace_function_table_t * tab, int width,
-                                     int quality)
-#else     
 void
 gavl_init_yuv_yuv_funcs_mmx(gavl_colorspace_function_table_t * tab, int width,
-                            int quality)
-#endif
+                            gavl_video_options_t * opt)
 
 #endif /* MMXEXT */
   {
