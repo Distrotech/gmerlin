@@ -413,7 +413,7 @@ void bg_gavl_video_options_set_framerate(bg_gavl_video_options_t * opt,
     {
     out_format->frame_duration = opt->frame_duration;
     out_format->timescale =      opt->timescale;
-    out_format->free_framerate = 0;
+    out_format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
     }
   for(i = 0; i < NUM_FRAME_RATES; i++)
     {
@@ -421,7 +421,7 @@ void bg_gavl_video_options_set_framerate(bg_gavl_video_options_t * opt,
       {
       out_format->timescale      = framerate_rates[i].timescale;
       out_format->frame_duration = framerate_rates[i].frame_duration;
-      out_format->free_framerate = 0;
+      out_format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
       return;
       }
     }

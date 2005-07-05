@@ -171,7 +171,7 @@ static void add_video_stream_lqt(void * data, gavl_video_format_t* format)
 
   /* AVIs are made with constant framerates only */
   if(e->format == FORMAT_AVI)
-    e->video_streams[e->num_video_streams].format.free_framerate = 0;
+    e->video_streams[e->num_video_streams].format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
   
   e->num_video_streams++;
   
@@ -478,7 +478,7 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
 
     if(e->format == FORMAT_AVI)
       {
-      e->video_streams[stream].format.free_framerate = 0;
+      e->video_streams[stream].format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
       }
     else
       {

@@ -204,7 +204,7 @@ void * bg_player_ov_thread(void * data)
   {
   bg_player_ov_context_t * ctx;
   gavl_video_frame_t * frame;
-  gavl_time_t diff_time;
+  gavl_time_t diff_time, frame_time;
   gavl_time_t current_time;
   bg_fifo_state_t state;
   
@@ -226,9 +226,11 @@ void * bg_player_ov_thread(void * data)
             gavl_time_to_seconds(current_time));
 #endif
 
+    frame_time = gavl_time_unscale(ctx->player->video_stream.output_format.timescale, frame->time_scaled);
+    
     if(!ctx->do_sync)
       {
-      diff_time = frame->time - current_time;
+      diff_time =  frame_time - current_time;
       
       /* Wait until we can display the frame */
       if(diff_time > 0)
@@ -247,7 +249,7 @@ void * bg_player_ov_thread(void * data)
 
     if(ctx->do_sync)
       {
-      bg_player_time_set(ctx->player, frame->time);
+      bg_player_time_set(ctx->player, frame_time);
       //      fprintf(stderr, "OV Resync %lld\n", frame->time);
       ctx->do_sync = 0;
       }

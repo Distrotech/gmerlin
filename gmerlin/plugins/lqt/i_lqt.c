@@ -88,6 +88,7 @@ static void * create_lqt()
 
 static int open_lqt(void * data, const char * arg)
   {
+  int framerate_constant;
   char * tmp_string;
   int i;
   char * filename;
@@ -233,9 +234,11 @@ static int open_lqt(void * data, const char * arg)
         video_format->timescale = lqt_video_time_scale(e->file, i);
 
         video_format->frame_duration =
-          lqt_frame_duration(e->file, i, &(video_format->free_framerate));
-        video_format->free_framerate = !video_format->free_framerate;
-
+          lqt_frame_duration(e->file, i, &(framerate_constant));
+        if(framerate_constant)
+          video_format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
+        else
+          video_format->framerate_mode = GAVL_FRAMERATE_NONCONSTANT;
         colormodel = lqt_get_best_colormodel(e->file, i, bg_lqt_supported_colormodels);
 
         lqt_set_cmodel(e->file, i, colormodel);
@@ -345,9 +348,6 @@ int read_video_frame_lqt(void * data, gavl_video_frame_t * f, int stream)
   f->time_scaled =
     lqt_frame_time(e->file, e->video_streams[stream].quicktime_index);
 
-  f->time =
-    gavl_samples_to_time(e->track_info.video_streams[stream].format.timescale,
-                         f->time_scaled);
   //  fprintf(stderr, "Frame time: %f\n", gavl_time_to_seconds(f->time));
   if(e->video_streams[stream].rows)
     {

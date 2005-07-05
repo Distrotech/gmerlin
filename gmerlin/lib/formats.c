@@ -74,21 +74,40 @@ char * bg_audio_format_to_string(gavl_audio_format_t * f, int use_tabs)
 
 char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
   {
+  char * str, *ret;
   const char * s;
   if(!use_tabs)
-    s = "Frame size:   %d x %d\nImage size:   %d x %d\nPixel size:   %d x %d\nPixel format: %s\nFramerate:    %f fps [%d / %d]\n             %s";
+    s = "Frame size:   %d x %d\nImage size:   %d x %d\nPixel size:   %d x %d\nPixel format: %s\n";
   else
-    s = "Frame size:\t %d x %d\nImage size:\t %d x %d\nPixel size:\t %d x %d\nPixel format:\t %s\nFramerate:\t%f fps [%d / %d]\n\t%s";
-      
+    s = "Frame size:\t %d x %d\nImage size:\t %d x %d\nPixel size:\t %d x %d\nPixel format:\t %s\n";
 
-  return
+  ret =
     bg_sprintf(s,
-              format->frame_width, format->frame_height,
-              format->image_width, format->image_height,
-              format->pixel_width, format->pixel_height,
-              gavl_colorspace_to_string(format->colorspace),
-              (float)(format->timescale)/((float)format->frame_duration),
-              format->timescale, format->frame_duration,
-              (!(format->free_framerate) ? " (Constant)" : 
-               " (Not constant)"));
+               format->frame_width, format->frame_height,
+               format->image_width, format->image_height,
+               format->pixel_width, format->pixel_height,
+               gavl_colorspace_to_string(format->colorspace));
+  
+  if(format->framerate_mode == GAVL_FRAMERATE_STILL)
+    {
+    ret = bg_strcat(ret, "Still image");
+    }
+  else
+    {
+    if(!use_tabs)
+      s = "Framerate:    %f fps [%d / %d]\n             %s";
+    else
+      s = "Framerate:\t%f fps [%d / %d]\n\t%s";
+    
+    str =
+      bg_sprintf(s,
+                 (float)(format->timescale)/((float)format->frame_duration),
+                 format->timescale, format->frame_duration,
+                 ((format->framerate_mode == GAVL_FRAMERATE_CONSTANT) ? " (Constant)" : 
+                  " (Not constant)"));
+
+    ret = bg_strcat(ret, str);
+    free(str);
+    }
+  return ret;
   }

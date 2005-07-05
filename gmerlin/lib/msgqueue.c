@@ -436,7 +436,7 @@ void bg_msg_set_arg_video_format(bg_msg_t * msg, int arg,
   pos = set_32(pos, format->colorspace);
   pos = set_32(pos, format->timescale);
   pos = set_32(pos, format->frame_duration);
-  pos = set_8(pos, format->free_framerate);
+  pos = set_8(pos, format->framerate_mode);
   
   }
 
@@ -460,7 +460,7 @@ void bg_msg_get_arg_video_format(bg_msg_t * msg, int arg,
   pos = get_32(pos, &(tmp)); format->colorspace     = tmp;
   pos = get_32(pos, &(tmp)); format->timescale      = tmp;
   pos = get_32(pos, &(tmp)); format->frame_duration = tmp;
-  pos = get_8(pos,  &(tmp)); format->free_framerate = tmp;
+  pos = get_8(pos,  &(tmp)); format->framerate_mode = tmp;
   
   free(ptr);
   

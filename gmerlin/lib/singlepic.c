@@ -317,7 +317,7 @@ static int start_input(void * priv)
   inp->header_read = 1;
   inp->track_info.video_streams[0].format.timescale = inp->timescale;
   inp->track_info.video_streams[0].format.frame_duration = inp->frame_duration;
-  inp->track_info.video_streams[0].format.free_framerate = 0;
+  inp->track_info.video_streams[0].format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
   return 1;
   }
 
@@ -344,8 +344,6 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
   if(f)
     {
     f->time_scaled = (inp->current_frame - inp->frame_start) * inp->frame_duration;
-    f->time = gavl_frames_to_time(inp->timescale, inp->frame_duration,
-                                  inp->current_frame - inp->frame_start);
     }
   inp->header_read = 0;
   inp->current_frame++;

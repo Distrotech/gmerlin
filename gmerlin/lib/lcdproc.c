@@ -337,18 +337,18 @@ static int set_video_format(bg_lcdproc_t * l, gavl_video_format_t * f)
     }
   else
     {
-    if(f->free_framerate)
-      {
-      command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {Video format: %dx%d *** }\n",
-                           formats_name, video_format_name, f->image_width,
-                           f->image_height);
-      }
-    else
+    if(f->framerate_mode == GAVL_FRAMERATE_CONSTANT)
       {
       command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {Video format: %dx%d %.2f fps *** }\n",
                            formats_name, video_format_name, f->image_width,
                            f->image_height, (float)(f->timescale)/
                            (float)(f->frame_duration));
+      }
+    else
+      {
+      command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {Video format: %dx%d *** }\n",
+                           formats_name, video_format_name, f->image_width,
+                           f->image_height);
       }
     }
   if(!send_command(l, command))

@@ -397,7 +397,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     bg_plugin_unlock(ctx->plugin_handle);
     if(!result)
       ctx->video_finished = 1;
-    ctx->video_time = ctx->player->video_stream.frame->time;
+    ctx->video_time = gavl_time_unscale(ctx->player->video_stream.input_format.timescale, ctx->player->video_stream.frame->time_scaled);
     gavl_video_convert(s->cnv, ctx->player->video_stream.frame, video_frame);
 #if 0
     fprintf(stderr, "Video Frame time: %lld %lld\n",
@@ -421,7 +421,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     bg_plugin_unlock(ctx->plugin_handle);
     if(!result)
       ctx->video_finished = 1;
-    ctx->video_time = video_frame->time;
+    ctx->video_time = gavl_time_unscale(ctx->player->video_stream.input_format.timescale, video_frame->time_scaled);
     ctx->video_frames_written ++;
     }
   bg_fifo_unlock_write(s->fifo, ctx->video_finished);

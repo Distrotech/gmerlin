@@ -543,7 +543,7 @@ static void finalize_video_stream(video_stream_t * ret,
 
   /* Check if we wanna convert the framerate */
 
-  if(ret->in_format.free_framerate && !ret->out_format.free_framerate)
+  if((ret->in_format.framerate_mode != GAVL_FRAMERATE_CONSTANT) && (ret->out_format.framerate_mode == GAVL_FRAMERATE_CONSTANT))
     ret->convert_framerate = 1;
 
   else if((int64_t)ret->in_format.frame_duration * (int64_t)ret->out_format.timescale !=
@@ -554,9 +554,9 @@ static void finalize_video_stream(video_stream_t * ret,
     {
     fprintf(stderr, "Doing framerate conversion %5.2f (%s) -> %5.2f (%s)\n",
             (float)(ret->in_format.timescale) / (float)(ret->in_format.frame_duration),
-            (ret->in_format.free_framerate ? "nonconstant" : "constant"),
+            (ret->in_format.framerate_mode == GAVL_FRAMERATE_NONCONSTANT ? "nonconstant" : "constant"),
             (float)(ret->out_format.timescale) / (float)(ret->out_format.frame_duration),
-            (ret->out_format.free_framerate ? "nonconstant" : "constant"));
+            (ret->out_format.framerate_mode == GAVL_FRAMERATE_NONCONSTANT ? "nonconstant" : "constant"));
     }
   
   /* Create frames */
@@ -564,7 +564,7 @@ static void finalize_video_stream(video_stream_t * ret,
   ret->in_frame_1 = gavl_video_frame_create(&(ret->in_format));
   gavl_video_frame_clear(ret->in_frame_1, &(ret->in_format));
   
-  ret->in_frame_1->time = GAVL_TIME_UNDEFINED;
+  ret->in_frame_1->time_scaled = GAVL_TIME_UNDEFINED;
   
   if(ret->convert_framerate)
     {
@@ -673,7 +673,7 @@ static int decode_video_frame(video_stream_t * s, bg_transcoder_t * t,
   /* Check for end of stream */
   
   if((t->end_time != GAVL_TIME_UNDEFINED) &&
-     (f->time >= t->end_time))
+     (gavl_time_unscale(s->in_format.timescale, f->time_scaled) >= t->end_time))
     return 0;
   
   /* Correct timestamps */
@@ -683,7 +683,6 @@ static int decode_video_frame(video_stream_t * s, bg_transcoder_t * t,
     f->time_scaled -= s->start_time_scaled;
     if(f->time_scaled < 0)
       f->time_scaled = 0;
-    f->time = gavl_samples_to_time(s->in_format.timescale, f->time_scaled);
     }
   return 1;
   }
@@ -716,7 +715,7 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
                                     s->frames_written);
 
 
-    if(s->in_frame_1->time == GAVL_TIME_UNDEFINED)
+    if(s->in_frame_1->time_scaled == GAVL_TIME_UNDEFINED)
       {
       /* Decode initial 2 frame(s) */
       result = decode_video_frame(s, t, s->in_frame_1, s->com.in_index);
@@ -737,7 +736,7 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
     /* Decode frames until the time of in_frame_2 is
        larger than next_time */
 
-    while(s->in_frame_2->time < next_time)
+    while(gavl_time_unscale(s->in_format.timescale, s->in_frame_2->time_scaled) < next_time)
       {
       SWAP_FRAMES;
       result = decode_video_frame(s, t, s->in_frame_2, s->com.in_index);
@@ -753,7 +752,6 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
     else
       tmp_frame = s->in_frame_1;
 
-    tmp_frame->time = next_time;
     tmp_frame->time_scaled = s->frames_written * s->out_format.frame_duration;
     
     if(s->com.do_convert)
@@ -796,7 +794,7 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
                                            s->in_frame_1,
                                            s->com.out_index);
       }
-    s->com.time = s->in_frame_1->time;
+    s->com.time = gavl_time_unscale(s->in_format.timescale, s->in_frame_1->time_scaled);
     //    fprintf(stderr, "Video iteration %f\n", gavl_time_to_seconds(s->com.time));
     s->frames_written++;
     }
