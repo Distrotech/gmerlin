@@ -45,8 +45,7 @@ typedef struct
   int64_t tics; /* Time in tics (depends on time scale of this stream) */
   int64_t total_tics;
 
-  int skip_first_frame; /* Enabled only of the first frame has a different codec */
-  
+  int skip_first_frame; /* Enabled only if the first frame has a different codec */
   } stream_priv_t;
 
 typedef struct
@@ -180,11 +179,11 @@ static void add_packet(bgav_demuxer_context_t * ctx,
                        int64_t offset,
                        int stream_id,
                        int64_t timestamp,
-                       int keyframe)
+                       int keyframe, int samples)
   {
   if(stream_id >= 0)
     bgav_superindex_add_packet(ctx->si, s,
-                               offset, 0, stream_id, timestamp, keyframe);
+                               offset, 0, stream_id, timestamp, keyframe, samples);
   
   if(index && !ctx->si->entries[index-1].size)
     {
@@ -219,7 +218,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
   qt_priv_t * priv;
   int num_packets = 0;
   bgav_stream_t * bgav_s;
-    
+  int chunk_samples;
   priv = (qt_priv_t *)(ctx->priv);
 
   /* 1 step: Count the total number of chunks */
@@ -274,30 +273,36 @@ static void build_index(bgav_demuxer_context_t * ctx)
       {
       s = (stream_priv_t*)(bgav_s->priv);
       /* Fill in the stream_id and position */
+      
+      if(s->stts_pos >= 0)
+        {
+        chunk_samples =
+          s->stbl->stts.entries[s->stts_pos].duration *
+          s->stbl->stsc.entries[s->stsc_pos].samples_per_chunk;
+        }
+      else
+        {
+        chunk_samples = s->stbl->stts.entries[0].duration *
+          s->stbl->stsc.entries[s->stsc_pos].samples_per_chunk;
+        }
+      
       add_packet(ctx,
                  priv,
                  bgav_s,
                  i, chunk_offset,
                  stream_id,
                  s->tics,
-                 check_keyframe(s));
+                 check_keyframe(s), chunk_samples);
       /* Time to sample */
+      s->tics += chunk_samples;
       if(s->stts_pos >= 0)
         {
-        s->tics +=
-          s->stbl->stts.entries[s->stts_pos].duration *
-          s->stbl->stsc.entries[s->stsc_pos].samples_per_chunk;
         s->stts_count++;
         if(s->stts_count >= s->stbl->stts.entries[s->stts_pos].count)
           {
           s->stts_pos++;
           s->stts_count = 0;
           }
-        }
-      else
-        {
-        s->tics += s->stbl->stts.entries[0].duration *
-          s->stbl->stsc.entries[s->stsc_pos].samples_per_chunk;
         }
       s->stco_pos++;
       /* Update sample to chunk */
@@ -321,7 +326,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      i, chunk_offset,
                      -1,
                      s->tics,
-                     check_keyframe(s));
+                     check_keyframe(s), 1);
         else
           {
           add_packet(ctx,
@@ -330,7 +335,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      i, chunk_offset,
                      stream_id,
                      s->tics,
-                     check_keyframe(s));
+                     check_keyframe(s), 1);
           i++;
           }
         chunk_offset += (s->stsz_pos >= 0) ? s->stbl->stsz.entries[s->stsz_pos]:
@@ -367,7 +372,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
     else
       {
       /* Fill in dummy packet */
-      add_packet(ctx, priv, (bgav_stream_t*)0, i, chunk_offset, -1, -1, 0);
+      add_packet(ctx, priv, (bgav_stream_t*)0, i, chunk_offset, -1, -1, 0, 0);
       i++;
       priv->streams[stream_id].stco_pos++;
       }

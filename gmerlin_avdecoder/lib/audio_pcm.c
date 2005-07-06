@@ -35,6 +35,8 @@ typedef struct
   bgav_packet_t * p;
   int             bytes_in_packet;
   uint8_t *       packet_ptr;
+
+  int block_align;
   } pcm_t;
 
 /* Decode functions */
@@ -88,6 +90,8 @@ static void decode_s_16_swap(bgav_stream_t * s)
   priv = (pcm_t*)(s->data.audio.decoder->priv);
 
   num_samples = priv->bytes_in_packet / (2 * s->data.audio.format.num_channels);
+
+  //  fprintf(stderr, "SAMPLES: %d\n", num_samples);
   
   if(num_samples > FRAME_SAMPLES)
     num_samples = FRAME_SAMPLES;
@@ -655,6 +659,7 @@ static int init_pcm(bgav_stream_t * s)
       break;
     case BGAV_MK_FOURCC('m', 'p', 'c', ' '):
       s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+      s->data.audio.bits_per_sample = sizeof(float);
       priv->decode_func = decode_float_native;
       s->description = bgav_sprintf("Musepack");
       break;
@@ -686,6 +691,7 @@ static int init_pcm(bgav_stream_t * s)
   gavl_set_channel_setup(&(s->data.audio.format));
   
   priv->frame = gavl_audio_frame_create(&s->data.audio.format);
+  priv->block_align = s->data.audio.format.num_channels * ((s->data.audio.bits_per_sample+7)/8);
   
   return 1;
   }
@@ -716,13 +722,18 @@ static int decode_pcm(bgav_stream_t * s,
           break;
           }
         priv->bytes_in_packet = priv->p->data_size;
+
+        if(priv->p->samples && (priv->p->samples * priv->block_align < priv->bytes_in_packet))
+          priv->bytes_in_packet = priv->p->samples * priv->block_align;
         priv->packet_ptr = priv->p->data;
         }
-      
       
       /* Decode stuff */
 
       priv->decode_func(s);
+
+            
+      
       priv->last_frame_samples = priv->frame->valid_samples;
       
       if(!priv->bytes_in_packet)

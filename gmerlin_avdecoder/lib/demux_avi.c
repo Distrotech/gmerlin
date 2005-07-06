@@ -352,7 +352,7 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
                                size,
                                stream->stream_id,
                                time,
-                               1);
+                               1, 0);
       
     /* Increase block count */
             
@@ -387,7 +387,7 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
                                  size,
                                  stream->stream_id,
                                  time,
-                                 keyframe);
+                                 keyframe, 1);
       }
     else /* If we have zero size, the framerate will be nonconstant */
       {

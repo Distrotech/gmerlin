@@ -122,6 +122,7 @@ struct bgav_packet_s
   int64_t timestamp_scaled;
   int keyframe;
   bgav_stream_t * stream; /* The stream this packet belongs to */
+  int samples; /* Optional */
   struct bgav_packet_s * next;
   };
 
@@ -611,6 +612,7 @@ typedef struct
     int stream_id;
     int keyframe;
     int64_t time; /* Time is scaled with the timescale of the stream */
+    int samples;  /* Can be 0 if unknown */
     } * entries;
   } bgav_superindex_t;
 
@@ -625,7 +627,7 @@ void bgav_superindex_add_packet(bgav_superindex_t * idx,
                                 uint32_t size,
                                 int stream_id,
                                 int64_t timestamp,
-                                int keyframe);
+                                int keyframe, int samples);
 
 void bgav_superindex_seek(bgav_superindex_t * idx,
                           bgav_stream_t * s,

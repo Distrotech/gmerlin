@@ -359,7 +359,7 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
   //  fprintf(stderr, "size: %d\n", p->data_size);
   
   p->timestamp_scaled = ctx->si->entries[ctx->si->current_position].time;
-  
+  p->samples = ctx->si->entries[ctx->si->current_position].samples;
   if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
     return 0;
   bgav_packet_done_write(p);
@@ -436,8 +436,8 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   bgav_packet_alloc(p, p->data_size);
   
   p->timestamp_scaled = ctx->si->entries[stream->index_position].time;
-  
-  
+  p->samples          = ctx->si->entries[stream->index_position].samples;
+    
   if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
     return 0;
   bgav_packet_done_write(p);
@@ -445,7 +445,6 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   //  fprintf(stderr, "Current chunk: %d\n", stream_priv->index_position);
   stream->index_position++;
   return 1;
-
   
   }
 

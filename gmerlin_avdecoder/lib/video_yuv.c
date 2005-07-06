@@ -47,12 +47,12 @@ static void init_common(bgav_stream_t * s)
 
 /* Decoding functions */
 
-/* yuv2: It's yuyv with signedness swapped */
+/* yuv2: It's yuyv with signedness swapped and JPEG scaled */
 
 static void decode_yuv2(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t * f)
   {
   int i, j;
-  uint8_t * src, *dst;
+  uint8_t * src, *dst_y, *dst_u, *dst_v;
   yuv_priv_t * priv;
   priv = (yuv_priv_t *)(s->data.video.decoder->priv);
 
@@ -61,14 +61,20 @@ static void decode_yuv2(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t
   for(i = 0; i < s->data.video.format.image_height; i++)
     {
     src = priv->frame->planes[0] + i * priv->frame->strides[0];
-    dst = f->planes[0]           + i * f->strides[0];
+    dst_y = f->planes[0]         + i * f->strides[0];
+    dst_u = f->planes[1]         + i * f->strides[1];
+    dst_v = f->planes[2]         + i * f->strides[2];
     
-    for(j = 0; j < s->data.video.format.image_width; j++)
+    for(j = 0; j < s->data.video.format.image_width/2; j++)
       {
-      dst[0] = src[0];
-      dst[1] = src[1] ^ 0x80;
-      src+=2;
-      dst+=2;
+      dst_y[0] = src[0];        /* Y */
+      dst_u[0] = src[1] ^ 0x80; /* U */
+      dst_y[1] = src[2];        /* Y */
+      dst_v[0] = src[3] ^ 0x80; /* V */
+      src+=4;
+      dst_y+=2;
+      dst_u++;
+      dst_v++;
       }
     }
   }
@@ -78,13 +84,13 @@ static int init_yuv2(bgav_stream_t * s)
   yuv_priv_t * priv;
   
   init_common(s);
-  s->description = bgav_sprintf("YUV 4:2:2 packed (yuv2)");
+  s->description = bgav_sprintf("Full scale YUV 4:2:2 packed (yuv2)");
 
   priv = (yuv_priv_t *)(s->data.video.decoder->priv);
 
   priv->frame->strides[0] = PADD(s->data.video.format.image_width * 2, 4);
   priv->decode_func = decode_yuv2;
-  s->data.video.format.colorspace = GAVL_YUY2;
+  s->data.video.format.colorspace = GAVL_YUVJ_422_P;
   return 1;
   }
 
