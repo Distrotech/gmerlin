@@ -2092,13 +2092,13 @@ static mmx_t rgb_rgb_swap_24_mask_33 = { 0x0000000000FF00FFLL };
 
 void
 gavl_init_rgb_rgb_funcs_mmxext(gavl_colorspace_function_table_t * tab,
-                               int width, gavl_video_options_t * opt)
+                               int width, const gavl_video_options_t * opt)
 
 #else /* !MMXEXT */
 
 void
 gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
-                            int width, gavl_video_options_t * opt)
+                            int width, const gavl_video_options_t * opt)
 #endif /* MMXEXT */
   {
   if(width % 8)

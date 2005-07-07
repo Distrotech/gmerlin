@@ -6,6 +6,7 @@
 
 #include <gavl/gavl.h>
 #include <scale.h>
+#include <accel.h>
 
 // #define DUMP_TABLES
 

@@ -3,6 +3,7 @@
 
 #include <audio.h>
 #include <interleave.h>
+#include <accel.h>
 
 gavl_audio_func_t
 gavl_find_interleave_converter(gavl_interleave_table_t * t,

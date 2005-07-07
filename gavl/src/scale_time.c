@@ -3,6 +3,8 @@
 #include <gavl.h>
 //#include "colorspace.h" // Common routines
 #include <stdio.h>
+#include <accel.h>
+
 
 #define NUM_CONVERSIONS 20
 

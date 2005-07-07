@@ -708,36 +708,36 @@ void gavl_init_yuv_rgb_funcs_c(gavl_colorspace_function_table_t *, const gavl_vi
 
 #ifdef ARCH_X86
 void gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t *,
-                                 int width, gavl_video_options_t * opt);
+                                 int width, const gavl_video_options_t * opt);
 
 void
 gavl_init_rgb_yuv_funcs_mmx(gavl_colorspace_function_table_t *,
-                            int width, gavl_video_options_t * opt);
+                            int width, const gavl_video_options_t * opt);
 
 
 void
 gavl_init_yuv_yuv_funcs_mmx(gavl_colorspace_function_table_t *,
-                            int width, gavl_video_options_t * opt);
+                            int width, const gavl_video_options_t * opt);
 
 
 void
 gavl_init_yuv_rgb_funcs_mmx(gavl_colorspace_function_table_t *,
-                            int width, gavl_video_options_t * opt);
+                            int width, const gavl_video_options_t * opt);
 
 void
 gavl_init_rgb_rgb_funcs_mmxext(gavl_colorspace_function_table_t *,
-                               int width, gavl_video_options_t * opt);
+                               int width, const gavl_video_options_t * opt);
 
 
 void gavl_init_rgb_yuv_funcs_mmxext(gavl_colorspace_function_table_t *,
-                                    int width, gavl_video_options_t * opt);
+                                    int width, const gavl_video_options_t * opt);
 
 
 void gavl_init_yuv_yuv_funcs_mmxext(gavl_colorspace_function_table_t *,
-                                    int width, gavl_video_options_t * opt);
+                                    int width, const gavl_video_options_t * opt);
 
 void
 gavl_init_yuv_rgb_funcs_mmxext(gavl_colorspace_function_table_t *,
-                               int width, gavl_video_options_t * opt);
+                               int width, const gavl_video_options_t * opt);
 
 #endif

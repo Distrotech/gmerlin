@@ -24,9 +24,10 @@
 #include <stdio.h>  
 #endif
 
-#include "gavl.h"
-#include "config.h"
-#include "video.h"
+#include <gavl.h>
+#include <config.h>
+#include <video.h>
+#include <accel.h>
 
 /***************************************************
  * Default Options

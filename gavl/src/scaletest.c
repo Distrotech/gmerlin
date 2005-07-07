@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <png.h>
 
+#include <accel.h>
+
 #define IN_X 0
 #define IN_Y 0
 

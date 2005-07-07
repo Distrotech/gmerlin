@@ -19,6 +19,7 @@
 
 #include <gavl/gavl.h>
 #include <config.h>
+#include <accel.h>
 
 /*
  *   Test for available CPU extensions

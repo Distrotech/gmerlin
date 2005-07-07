@@ -23,6 +23,7 @@
 #include <audio.h>
 #include <sampleformat.h>
 #include <libgdither/gdither.h>
+#include <accel.h>
 
 
 /* Dither context */

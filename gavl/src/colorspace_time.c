@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <gavl.h>
+#include <accel.h>
 
 //#include "colorspace.h"
 

@@ -23,6 +23,7 @@
 
 #include <audio.h>
 #include <mix.h>
+#include <accel.h>
 
 #include <libgdither/gdither.h>
 

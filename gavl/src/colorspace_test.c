@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+#include <accel.h>
+
 
 // Masks for BGR16 and RGB16 formats
 

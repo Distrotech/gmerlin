@@ -45,44 +45,6 @@ extern "C" {
 
 #define GAVL_QUALITY_DEFAULT 2 /* Faster then standard C */
   
-/* Acceleration flags */
-
-#define GAVL_ACCEL_C       (1<<0)
-#define GAVL_ACCEL_C_HQ    (1<<1)
-#define GAVL_ACCEL_C_SHQ   (1<<2) /* Super high quality, damn slow */
-  
-#define GAVL_ACCEL_MMX     (1<<3)
-#define GAVL_ACCEL_MMXEXT  (1<<4)
-
-/* The following ones are unsupported right now */
-
-#define GAVL_ACCEL_SSE     (1<<5)
-#define GAVL_ACCEL_SSE2    (1<<6)
-#define GAVL_ACCEL_3DNOW   (1<<7)
-  
-/*
- *   Return supported CPU acceleration flags
- *   Note, that GAVL_ACCEL_C and GAVL_ACCEL_C_HQ are always supported and
- *   aren't returned here
- */
-  
-int gavl_accel_supported();
-
-/*
- *  This takes a flag of wanted accel flags and ANDs them with
- *  the actually supported flags. Used mostly internally.
- */
-
-uint32_t gavl_real_accel_flags(uint32_t wanted_flags);
-
-/*
- *  Set accel_flags from quality or vice versa
- *  (depending of what is zero)
- */
-
-void gavl_set_conversion_parameters(uint32_t * flags, int * quality);
-  
-  
 /*********************************************
  *  SECTION 2: Audio stuff
  *********************************************/
@@ -358,8 +320,8 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
 /*
  *  Be careful when resampling: gavl will
  *  assume, that your output frame is big enough.
- *  Make it e.q. 10 samples bigger than
- *  input_frame_size * output_samplerate / input_samplerate
+ *  Minimum size is
+ *  input_frame_size * output_samplerate / input_samplerate + 10
  */
   
 void gavl_audio_convert(gavl_audio_converter_t * cnv,
@@ -429,7 +391,7 @@ typedef enum
     GAVL_YUVJ_422_P      = 18,
     GAVL_YUVJ_444_P      = 19,
 
-    /* TODO: High Quality formats (16 Bits/channel) */
+    /* High Quality formats (16 Bits/channel) */
 
     GAVL_YUV_444_P_16 = 20,
     GAVL_YUV_422_P_16 = 21,
@@ -437,6 +399,8 @@ typedef enum
     GAVL_RGB_48       = 22,
     GAVL_RGBA_64      = 23,
 
+    /* Super High Quality formats (floating point) */
+        
     GAVL_RGB_FLOAT    = 24,
     GAVL_RGBA_FLOAT   = 25
     
@@ -478,6 +442,14 @@ gavl_colorspace_t gavl_string_to_colorspace(const char *);
 int gavl_num_colorspaces();
 gavl_colorspace_t gavl_get_colorspace(int index);
 
+/* Chroma placement */
+  
+typedef enum
+  {
+    GAVL_CHROMA_PLACEMENT_DEFAULT = 0, /* For 4:2:0 it's MPEG-1/JPEG sampling */
+    GAVL_CHROMA_PLACEMENT_MPEG2,
+    GAVL_CHROMA_PLACEMENT_DVPAL
+  } gavl_chroma_placement_t;
 
 typedef enum
   {
@@ -485,6 +457,16 @@ typedef enum
     GAVL_FRAMERATE_NONCONSTANT = 1, /* Non constant */
     GAVL_FRAMERATE_STILL       = 2, /* Still image */
   } gavl_framerate_mode_t;
+
+
+/* Interlace mode */
+
+typedef enum
+  {
+    GAVL_INTERLACE_NONE = 0,      /* Progressive */
+    GAVL_INTERLACE_TOP_FIRST,
+    GAVL_INTERLACE_BOTTOM_FIRST
+  } gavl_interlace_mode_t;
   
 /* Video format structure */
   
@@ -510,7 +492,9 @@ typedef struct
   int frame_duration;
   int timescale;
 
-  gavl_framerate_mode_t framerate_mode;
+  gavl_framerate_mode_t   framerate_mode;
+  gavl_chroma_placement_t chroma_placement;
+  gavl_interlace_mode_t   interlace_mode;
   } gavl_video_format_t;
 
 

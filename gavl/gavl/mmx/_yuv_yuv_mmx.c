@@ -327,13 +327,13 @@
 
 void
 gavl_init_yuv_yuv_funcs_mmxext(gavl_colorspace_function_table_t * tab,
-                               int width, gavl_video_options_t * opt)
+                               int width, const gavl_video_options_t * opt)
 
 #else /* !MMXEXT */     
 
 void
 gavl_init_yuv_yuv_funcs_mmx(gavl_colorspace_function_table_t * tab, int width,
-                            gavl_video_options_t * opt)
+                            const gavl_video_options_t * opt)
 
 #endif /* MMXEXT */
   {

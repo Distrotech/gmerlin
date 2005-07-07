@@ -27,6 +27,7 @@
 #include "gavl.h"
 #include "config.h"
 #include "audio.h"
+#include <accel.h>
 
 #define SET_INT(p) opt->p = p
 
