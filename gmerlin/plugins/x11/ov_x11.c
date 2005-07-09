@@ -808,7 +808,6 @@ static void set_drawing_coords(x11_t * priv)
   gavl_video_options_set_quality(opt, 2);
   
   gavl_video_scaler_init(priv->scaler,
-                         priv->video_format.colorspace,
                          &(priv->src_rect),
                          &(priv->dst_rect),
                          &(priv->video_format),

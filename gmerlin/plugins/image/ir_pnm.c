@@ -65,9 +65,7 @@ static void destroy_pnm(void* priv)
 
 static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t * format)
   {
-  int i;
   int line_lenght;
-  char dummy[9][2];
   char *ptr;
   char *end_ptr;
   pnm_t *p = (pnm_t*)priv;

@@ -59,7 +59,9 @@ static int read_header_png(void * priv, const char * filename,
 
   png_byte signature[8];
   png_t * png = (png_t*)priv;
-    
+
+  int bits = 8;
+  
   png->file = fopen(filename, "rb");
 
   if(!png->file)
@@ -105,6 +107,13 @@ static int read_header_png(void * priv, const char * filename,
   switch(color_type)
     {
     case PNG_COLOR_TYPE_GRAY:       /*  (bit depths 1, 2, 4, 8, 16) */
+      if(bit_depth == 16)
+        {
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+        png_set_swap(png->png_ptr);
+#endif
+        bits = 16;
+        }
       if(bit_depth < 8)
         png_set_gray_1_2_4_to_8(png->png_ptr);
       if (png_get_valid(png->png_ptr, png->info_ptr, PNG_INFO_tRNS))
@@ -116,7 +125,13 @@ static int read_header_png(void * priv, const char * filename,
       break;
     case PNG_COLOR_TYPE_GRAY_ALPHA: /*  (bit depths 8, 16) */
       if(bit_depth == 16)
-        png_set_strip_16(png->png_ptr);
+        {
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+        png_set_swap(png->png_ptr);
+#endif
+        bits = 16;
+        }
+      has_alpha = 1;
       png_set_gray_to_rgb(png->png_ptr);
       break;
     case PNG_COLOR_TYPE_PALETTE:    /*  (bit depths 1, 2, 4, 8) */
@@ -134,20 +149,41 @@ static int read_header_png(void * priv, const char * filename,
         has_alpha = 1;
         }
       if(bit_depth == 16)
-        png_set_strip_16(png->png_ptr);
+        {
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+        png_set_swap(png->png_ptr);
+#endif
+        bits = 16;
+        }
       break;
     case PNG_COLOR_TYPE_RGB_ALPHA:  /*  (bit_depths 8, 16) */
       if(bit_depth == 16)
-        png_set_strip_16(png->png_ptr);
+        {
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+        png_set_swap(png->png_ptr);
+#endif
+        bits = 16;
+        }
       has_alpha = 1;
       break;
     }
 
-  if(has_alpha)
-    format->colorspace = GAVL_RGBA_32;
-  else
-    format->colorspace = GAVL_RGB_24;
-    
+  if(bits == 8)
+    {
+    if(has_alpha)
+      format->colorspace = GAVL_RGBA_32;
+    else
+      format->colorspace = GAVL_RGB_24;
+    }
+  else if(bits == 16)
+    {
+    if(has_alpha)
+      format->colorspace = GAVL_RGBA_64;
+    else
+      format->colorspace = GAVL_RGB_48;
+    }
+
+  
   gavl_video_format_copy(&(png->format), format);
   return 1;
   fail:

@@ -203,9 +203,6 @@ void bg_lqt_set_video_parameter(quicktime_t * file,
 static int _colormodels[] =
   {
     // Colormodels
-    //    BC_TRANSPARENCY,
-    //    BC_COMPRESSED,
-    //    BC_RGB8,
     BC_RGB565,
     BC_BGR565,
     BC_BGR888,
@@ -213,24 +210,22 @@ static int _colormodels[] =
     // Working bitmaps are packed to simplify processing
     BC_RGB888,
     BC_RGBA8888,
-    //    BC_ARGB8888,
-    //    BC_ABGR8888,
-    //    BC_RGB161616,
-    //    BC_RGBA16161616,
-    //    BC_YUV888,
-    //    BC_YUVA8888,
-    //    BC_YUV161616,
-    //    BC_YUVA16161616,
+    BC_RGB161616,
+    BC_RGBA16161616,
+    BC_YUVA8888,
     BC_YUV422,
-    //    BC_A8,
-    //    BC_A16,
-    //    BC_YUV101010,
-    //    BC_VYU888,
-    //    BC_UYVA8888,
 // Planar
     BC_YUV420P,
     BC_YUV422P,
     BC_YUV444P,
+
+    BC_YUVJ420P,
+    BC_YUVJ422P,
+    BC_YUVJ444P,
+
+    BC_YUV422P16,
+    BC_YUV444P16,
+
     BC_YUV411P,
     LQT_COLORMODEL_NONE
   };
@@ -244,17 +239,25 @@ static struct
   }
 colorspace_table[] =
   {
-    { BC_RGB565,   GAVL_RGB_16 },
-    { BC_BGR565,   GAVL_BGR_16 },
-    { BC_BGR888,   GAVL_BGR_24 },
-    { BC_BGR8888,  GAVL_BGR_32 },
-    { BC_RGB888,   GAVL_RGB_24 },
-    { BC_RGBA8888, GAVL_RGBA_32 },
-    { BC_YUV422,   GAVL_YUY2 },
-    { BC_YUV420P,  GAVL_YUV_420_P },
-    { BC_YUV422P,  GAVL_YUV_422_P },
-    { BC_YUV411P,  GAVL_YUV_411_P },
-    { BC_YUV444P,  GAVL_YUV_444_P },
+    { BC_RGB565,       GAVL_RGB_16 },
+    { BC_BGR565,       GAVL_BGR_16 },
+    { BC_BGR888,       GAVL_BGR_24 },
+    { BC_BGR8888,      GAVL_BGR_32 },
+    { BC_RGB888,       GAVL_RGB_24 },
+    { BC_RGBA8888,     GAVL_RGBA_32 },
+    { BC_RGB161616,    GAVL_RGB_48 },
+    { BC_RGBA16161616, GAVL_RGBA_64 },
+    { BC_YUVA8888,     GAVL_YUVA_32 },
+    { BC_YUV422,       GAVL_YUY2 },
+    { BC_YUV420P,      GAVL_YUV_420_P },
+    { BC_YUV422P,      GAVL_YUV_422_P },
+    { BC_YUV444P,      GAVL_YUV_444_P },
+    { BC_YUVJ420P,     GAVL_YUVJ_420_P },
+    { BC_YUVJ422P,     GAVL_YUVJ_422_P },
+    { BC_YUVJ444P,     GAVL_YUVJ_444_P },
+    { BC_YUV411P,      GAVL_YUV_411_P },
+    { BC_YUV422P16,    GAVL_YUV_422_P_16 },
+    { BC_YUV444P16,    GAVL_YUV_444_P_16 },
   };
 
 static int colorspace_table_size =

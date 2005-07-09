@@ -28,6 +28,10 @@
 
 #define PADD(i, size) i = ((i + size - 1) / size) * size
 
+#define BITS_AUTO 0
+#define BITS_8    8
+#define BITS_16   16
+
 /* PNG writer */
 
 typedef struct
@@ -39,6 +43,9 @@ typedef struct
   png_infop   info_ptr;
   
   int compression_level;
+
+  int bit_mode;
+  int transform_flags;
   } png_t;
 
 
@@ -60,8 +67,10 @@ static int write_header_png(void * priv, const char * filename,
                      gavl_video_format_t * format)
   {
   int color_type;
-  
+  int bits = 8;
   png_t * png = (png_t*)priv;
+
+  png->transform_flags = PNG_TRANSFORM_IDENTITY;
   
   png->output = fopen(filename, "wb");
   if(!png->output)
@@ -74,22 +83,54 @@ static int write_header_png(void * priv, const char * filename,
   setjmp(png_jmpbuf(png->png_ptr));
   png_init_io(png->png_ptr, png->output);
 
+  switch(png->bit_mode)
+    {
+    case BITS_AUTO:
+      /* Decide according to the input format */
+      if(gavl_colorspace_is_planar(format->colorspace))
+        {
+        if(gavl_colorspace_bytes_per_component(format->colorspace) > 1)
+          bits = 16;
+        }
+      else if(gavl_colorspace_bytes_per_pixel(format->colorspace) > 4)
+        bits = 16;
+      break;
+    case BITS_8:
+      bits = 8;
+      break;
+    case BITS_16:
+      bits = 16;
+      break;
+      
+    }
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+  fprintf(stderr, "LITTLE ENDIAN\n");
+  if(bits > 8)
+    png->transform_flags |= PNG_TRANSFORM_SWAP_ENDIAN;
+#endif
+  
   if(gavl_colorspace_has_alpha(format->colorspace))
     {
     color_type = PNG_COLOR_TYPE_RGBA;
-    format->colorspace = GAVL_RGBA_32;
+    if(bits == 8)
+      format->colorspace = GAVL_RGBA_32;
+    else
+      format->colorspace = GAVL_RGBA_64;
     }
   else
     {
     color_type = PNG_COLOR_TYPE_RGB;
-    format->colorspace = GAVL_RGB_24;
+    if(bits == 8)
+      format->colorspace = GAVL_RGB_24;
+    else
+      format->colorspace = GAVL_RGB_48;
     }
-
+  
   png_set_compression_level(png->png_ptr, png->compression_level);
   png_set_IHDR(png->png_ptr, png->info_ptr,
                format->image_width,
                format->image_height,
-               8, color_type, PNG_INTERLACE_NONE,
+               bits, color_type, PNG_INTERLACE_NONE,
                PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
   
   gavl_video_format_copy(&(png->format), format);
@@ -109,7 +150,7 @@ static int write_image_png(void * priv, gavl_video_frame_t * frame)
     rows[i] = frame->planes[0] + i * frame->strides[0];
 
   png_set_rows(png->png_ptr, png->info_ptr, rows);
-  png_write_png(png->png_ptr, png->info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+  png_write_png(png->png_ptr, png->info_ptr, png->transform_flags, NULL);
  
   png_destroy_write_struct(&png->png_ptr, &png->info_ptr);
   fclose(png->output);
@@ -128,6 +169,14 @@ static bg_parameter_info_t parameters[] =
       val_min:     { val_i: 0 },
       val_max:     { val_i: 9 },
       val_default: { val_i: 9 },
+    },
+    {
+      name:        "bit_mode",
+      long_name:   "Bits per channel",
+      type:        BG_PARAMETER_STRINGLIST,
+      multi_names: (char*[]){ "Auto", "8", "16" },
+      val_default: { val_str: "8" },
+      help_string: "If you select auto, the depth will be chosen according to the input format"
     },
     { /* End of parameters */ }
   };
@@ -148,6 +197,15 @@ static void set_parameter_png(void * p, char * name,
 
   if(!strcmp(name, "compression"))
     png->compression_level = val->val_i;
+  if(!strcmp(name, "bit_mode"))
+    {
+    fprintf(stderr, "SET BIT MODE: %s\n", val->val_str);
+    if(!strcmp(val->val_str, "Auto"))
+      png->bit_mode = BITS_AUTO;
+    else
+      png->bit_mode = atoi(val->val_str);
+    }
+
   }
 
 static char * png_extension = ".png";

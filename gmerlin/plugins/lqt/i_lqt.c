@@ -238,7 +238,7 @@ static int open_lqt(void * data, const char * arg)
         if(framerate_constant)
           video_format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
         else
-          video_format->framerate_mode = GAVL_FRAMERATE_NONCONSTANT;
+          video_format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
         colormodel = lqt_get_best_colormodel(e->file, i, bg_lqt_supported_colormodels);
 
         lqt_set_cmodel(e->file, i, colormodel);
