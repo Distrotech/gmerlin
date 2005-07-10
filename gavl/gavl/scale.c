@@ -372,7 +372,6 @@ gavl_video_scaler_t * gavl_video_scaler_create()
 
 
 int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
-                           gavl_colorspace_t colorspace,
                            gavl_rectangle_t * src_rect,
                            gavl_rectangle_t * dst_rect,
                            const gavl_video_format_t * src_format,
@@ -388,9 +387,9 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
   int min_scanline_width;
 #endif
   
-  scaler->colorspace = colorspace;
-  scaler->num_planes = gavl_colorspace_num_planes(colorspace);
-  gavl_colorspace_chroma_sub(colorspace, &chroma_sub_h, &chroma_sub_v);
+  scaler->colorspace = src_format->colorspace;
+  scaler->num_planes = gavl_colorspace_num_planes(scaler->colorspace);
+  gavl_colorspace_chroma_sub(scaler->colorspace, &chroma_sub_h, &chroma_sub_v);
 
 #if 0
   fprintf(stderr, "src_format: ");
@@ -453,7 +452,7 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
     {
     scaler->action = SCALE_ACTION_COPY;
 
-    scaler->copy_format.colorspace = colorspace;
+    scaler->copy_format.colorspace = scaler->colorspace;
     scaler->copy_format.image_width = scaler->src_rect[0].w;
     scaler->copy_format.frame_width = scaler->src_rect[0].w;
 
@@ -524,7 +523,7 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
   
   if(!init_scale_table(scaler,
                        scaler->opt.scale_mode,
-                       colorspace,
+                       scaler->colorspace,
                        &funcs))
     return -1;
   return 1;

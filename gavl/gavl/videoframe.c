@@ -431,8 +431,9 @@ void gavl_video_frame_copy_plane(gavl_video_format_t * format,
   sub_h = 1;
   sub_v = 1;
 
-  if(plane > 1)
+  if(plane > 0)
     gavl_colorspace_chroma_sub(format->colorspace, &sub_h, &sub_v);
+
   if(dst->strides[plane] == src->strides[plane])
     {
     memcpy(dst->planes[plane], src->planes[plane],

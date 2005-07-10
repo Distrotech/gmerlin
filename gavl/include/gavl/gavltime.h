@@ -17,58 +17,108 @@
  
 *****************************************************************/
 
-/* Generic time type: Microseconds */
+/*! \defgroup time Time
+ */
 
-#define GAVL_TIME_SCALE     1000000
-#define GAVL_TIME_UNDEFINED 0x8000000000000000LL
-#define GAVL_TIME_MAX       0x7fffffffffffffffLL
+/*! \ingroup time
+ */
+
+#define GAVL_TIME_SCALE     1000000 /*!< Generic time scale: Microsecond tics */
+
+/*! \ingroup time
+ */
+
+#define GAVL_TIME_UNDEFINED 0x8000000000000000LL /*!< Unknown or undefined time */
+/*! \ingroup time
+ */
+#define GAVL_TIME_MAX       0x7fffffffffffffffLL /*!< Maximum possible value */
+
+/*! \ingroup time
+ * \brief Times in gavl are 64 bit signed integers
+ * 
+ */
 
 typedef int64_t gavl_time_t;
 
 /* Utility functions */
 
+/*! \ingroup time
+ * \brief Convert a number of samples to a time for a given samplerate
+ */
+
 #define gavl_samples_to_time(rate, samples) \
 (((samples)*GAVL_TIME_SCALE)/(rate))
+
+/*! \ingroup time
+ * \brief Convert a number of video frames to a time for a given framerate
+ */
 
 #define gavl_frames_to_time(rate_num, rate_den, frames) \
 ((gavl_time_t)((GAVL_TIME_SCALE*((int64_t)frames)*((int64_t)rate_den))/((int64_t)rate_num)))
 
+/*! \ingroup time
+ * \brief Convert a time to a number of audio samples for a given samplerate
+ * \param rate Samplerate
+ * \param t Time
+ * \returns Number of audio samples
+ */
+
 #define gavl_time_to_samples(rate, t) \
   (((t)*(rate))/GAVL_TIME_SCALE)
+
+/*! \ingroup time
+ * \brief Convert a time to a number of video frames for a given framerate
+ * \param rate_num Numerator of the framerate
+ * \param rate_den Denominator of the framerate
+ * \param t Time
+ * \returns Number of frames
+ */
 
 #define gavl_time_to_frames(rate_num, rate_den, t) \
   (int64_t)(((t)*((int64_t)rate_num))/(GAVL_TIME_SCALE*((int64_t)rate_den)))
 
+/*! \ingroup time
+ * \brief Convert a time scaled by another base to a gavl time
+ * \param scale Time scale
+ * \param time Time scaled by scale
+ * \returns Time scaled by \ref GAVL_TIME_SCALE
+ */
+
 #define gavl_time_unscale(scale, time) \
 (((time)*GAVL_TIME_SCALE)/(scale))
+
+/*! \ingroup time
+ * \brief Convert a gavl time to a time scaled by another base 
+ * \param scale Time scale
+ * \param time Time scaled by \ref GAVL_TIME_SCALE
+ * \returns Time scaled by scale
+ */
 
 #define gavl_time_scale(scale, time)          \
 (((time)*(scale))/GAVL_TIME_SCALE)
 
-
-// #define GAVL_TIME_TO_SECONDS(t) (double)(t)/(double)(GAVL_TIME_SCALE)
+/*! \ingroup time
+ * \brief Convert seconds (as double) to a gavl time
+ * \param s Seconds as double
+ * \returns Integer time scaled by \ref GAVL_TIME_SCALE
+ */
 
 #define gavl_seconds_to_time(s) \
 (gavl_time_t)((s)*(double)(GAVL_TIME_SCALE))
 
+/*! \ingroup time
+ * \brief Convert a gavl time to seconds (as double)
+ * \param t Integer time scaled by \ref GAVL_TIME_SCALE
+ * \returns Seconds as double
+ */
+
 #define gavl_time_to_seconds(t) \
 ((double)t/(double)(GAVL_TIME_SCALE))
 
-/* Simple software timer */
-
-typedef struct gavl_timer_s gavl_timer_t;
-
-gavl_timer_t * gavl_timer_create();
-void gavl_timer_destroy(gavl_timer_t *);
-
-void gavl_timer_start(gavl_timer_t *);
-void gavl_timer_stop(gavl_timer_t *);
-
-gavl_time_t gavl_timer_get(gavl_timer_t *);
-void gavl_timer_set(gavl_timer_t *, gavl_time_t);
-
-
-/* Sleep for a specified time */
+/*! \ingroup time
+ * \brief Sleep for a specified time
+ * \param time Time after which execution of the current thread is resumed
+ */
 
 void gavl_time_delay(gavl_time_t * time);
 
@@ -84,3 +134,16 @@ gavl_time_prettyprint(gavl_time_t time, char string[GAVL_TIME_STRING_LEN]);
 
 void
 gavl_time_prettyprint_seconds(int seconds, char string[GAVL_TIME_STRING_LEN]);
+
+/* Simple software timer */
+
+typedef struct gavl_timer_s gavl_timer_t;
+
+gavl_timer_t * gavl_timer_create();
+void gavl_timer_destroy(gavl_timer_t *);
+
+void gavl_timer_start(gavl_timer_t *);
+void gavl_timer_stop(gavl_timer_t *);
+
+gavl_time_t gavl_timer_get(gavl_timer_t *);
+void gavl_timer_set(gavl_timer_t *, gavl_time_t);

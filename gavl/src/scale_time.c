@@ -105,7 +105,6 @@ int main(int argc, char ** argv)
     gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
         
     if(gavl_video_scaler_init(scaler,
-                              format.colorspace,
                               &src_rect, &dst_rect,
                               &format, &format_1) < 0)  // int output_height
       {
@@ -127,7 +126,6 @@ int main(int argc, char ** argv)
     gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMX);
         
     if(gavl_video_scaler_init(scaler,
-                              format.colorspace,
                               &src_rect, &dst_rect,
                               &format, &format_1) < 0)  // int output_height
       {
@@ -149,7 +147,6 @@ int main(int argc, char ** argv)
     gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMXEXT);
         
     if(gavl_video_scaler_init(scaler,
-                              format.colorspace,
                               &src_rect, &dst_rect,
                               &format, &format_1) < 0)  // int output_height
       {

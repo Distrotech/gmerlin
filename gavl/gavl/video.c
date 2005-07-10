@@ -164,7 +164,6 @@ void add_context_scale(gavl_video_converter_t * cnv,
 #endif
   
   gavl_video_scaler_init(ctx->scaler,
-                         input_format->colorspace,
                          &(cnv->options.src_rect),
                          &(cnv->options.dst_rect),
                          input_format,
