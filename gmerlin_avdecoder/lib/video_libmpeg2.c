@@ -179,7 +179,7 @@ static void get_format(gavl_video_format_t * ret,
     ret->colorspace = GAVL_YUV_422_P;
   
   if(sequence->flags & SEQ_FLAG_MPEG2)
-    ret->framerate_mode = GAVL_FRAMERATE_NONCONSTANT;
+    ret->framerate_mode = GAVL_FRAMERATE_VARIABLE;
   //  dump_sequence_header(sequence);
   }
 

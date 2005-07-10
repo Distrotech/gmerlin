@@ -623,7 +623,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
           (moov->tracks[i].mdia.minf.stbl.stts.entries[1].count == 1)))
         bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
       else
-        bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_NONCONSTANT;
+        bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
             
       bg_vs->data.video.palette_size = desc->format.video.ctab_size;
       if(bg_vs->data.video.palette_size)

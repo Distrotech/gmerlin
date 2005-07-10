@@ -34,6 +34,7 @@ extern bgav_demuxer_t bgav_demuxer_au;
 extern bgav_demuxer_t bgav_demuxer_aiff;
 extern bgav_demuxer_t bgav_demuxer_ra;
 extern bgav_demuxer_t bgav_demuxer_mpegaudio;
+extern bgav_demuxer_t bgav_demuxer_mpegvideo;
 extern bgav_demuxer_t bgav_demuxer_mpegps;
 extern bgav_demuxer_t bgav_demuxer_mpegts;
 extern bgav_demuxer_t bgav_demuxer_flac;
@@ -70,6 +71,7 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_flac,      "FLAC" },
     { &bgav_demuxer_aac,       "AAC" },
     { &bgav_demuxer_vivo,      "Vivo" },
+    { &bgav_demuxer_mpegvideo, "Mpeg Video" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif

@@ -19,30 +19,140 @@
 
 /* Public entry points */
 
+/**
+ * @file avdec.h
+ * external api header.
+ */
+
 #include <gavl/gavl.h>
 
-/***************************************************
- *  This is the opaque structure of a bgav decoder
- *  You don't want to know, whats inside here
- ***************************************************/
+/** \defgroup decoder Decoder
+ */
+
+/*! \ingroup decoder
+ * \brief Opaque decoder structure
+ *
+ * You don't want to know, what's inside here
+ */
 
 typedef struct bgav_s bgav_t;
 
-/* Anonymous Metadata structure to ensure binary compatibility */
+/*! \ingroup decoder
+ * \brief Create a decoder instance
+ * \returns A newly allocated decoder instance
+ */
+
+bgav_t * bgav_create();
+
+/** \defgroup options Decoder configuration
+ */
+
+/** \defgroup metadata Metadata
+ */
+
+/** \ingroup metadata
+ * \brief Opaque metadata container
+ *
+ * This structure is returned by \ref bgav_get_metadata
+ */
+
 typedef struct bgav_metadata_s bgav_metadata_t;
+
+/** \ingroup metadata
+ * \brief Get the author (or composer) of the track
+ * \param metadata Metadata container
+ * \returns The author of the track in UTF-8 or NULL
+ */
+
+const char * bgav_metadata_get_author(const bgav_metadata_t*metadata);
+
+/** \ingroup metadata
+ * \brief Get the title of the track
+ * \param metadata Metadata container
+ * \returns The title of the track in UTF-8 or NULL
+ */
+
+const char * bgav_metadata_get_title(const bgav_metadata_t * metadata);
+
+/** \ingroup metadata
+ * \brief Get an additional comment of the track
+ * \param metadata Metadata container
+ * \returns The comment in UTF-8 or NULL
+ */
+
+const char * bgav_metadata_get_comment(const bgav_metadata_t * metadata);
+
+/** \ingroup metadata
+ * \brief Get the copyright notice of the track
+ * \param metadata Metadata container
+ * \returns The copyright notice in UTF-8 or NULL
+ */
+
+const char * bgav_metadata_get_copyright(const bgav_metadata_t * metadata);
+
+/** \ingroup metadata
+ * \brief Get the album this track comes from
+ * \param metadata Metadata container
+ * \returns The album in UTF-8 or NULL
+ */
+const char * bgav_metadata_get_album(const bgav_metadata_t * metadata);
+
+/** \ingroup metadata
+ * \brief Get the artist (or performer) of this track
+ * \param metadata Metadata container
+ * \returns The artist in UTF-8 or NULL
+ */
+const char * bgav_metadata_get_artist(const bgav_metadata_t * metadata);
+
+/** \ingroup metadata
+ * \brief Get the genre this track belongs to
+ * \param metadata Metadata container
+ * \returns The genre in UTF-8 or NULL
+ */
+
+const char * bgav_metadata_get_genre(const bgav_metadata_t * metadata);
+
+/** \ingroup metadata
+ * \brief Get the date of the recording
+ * \param metadata Metadata container
+ * \returns The date in UTF-8 or NULL
+ */
+
+const char * bgav_metadata_get_date(const bgav_metadata_t * metadata);
+
+/** \ingroup metadata
+ * \brief Get the track index
+ * \param metadata Metadata container
+ * \returns The track index or 0
+ */
+
+int bgav_metadata_get_track(const bgav_metadata_t * metadata);
 
 /***************************************************
  * Housekeeping Functions
  ***************************************************/
 
-bgav_t * bgav_create();
-
 /***************************************************
  * Set parameters
  ***************************************************/
 
+
+/** \ingroup options
+ * \brief Opaque options container
+ */
+
 typedef struct bgav_options_s bgav_options_t;
-bgav_options_t * bgav_get_options(bgav_t*);
+
+/** \ingroup options
+ * \brief Get the options of a decoder instance
+ * \returns Options
+ *
+ * Use this to get the options container. You can use the bgav_set_* functions
+ * to change the options. Options will become valid when you call one of the
+ * bgav_open*() functions.
+ */
+
+bgav_options_t * bgav_get_options(bgav_t* bgav);
 
 /*
  * Timeout will only be used for network connections.
@@ -57,7 +167,6 @@ void bgav_set_read_timeout(bgav_options_t *, int timeout);
  */
 
 void bgav_set_network_bandwidth(bgav_options_t *, int bandwidth);
-
 void bgav_set_network_buffer_size(bgav_options_t *, int size);
 
 /* HTTP Options */
@@ -123,7 +232,7 @@ int bgav_check_device_vcd(const char * device, char ** name);
  * Open
  ******************************************************/
 
-/* Open a file or URL, return handle on success */
+/* Open a file or URL, return 1 on success */
 
 int bgav_open(bgav_t *, const char * location);
 
@@ -143,7 +252,6 @@ int bgav_open_fd(bgav_t *, int fd,
 /* If either open call fails, get the reason with: */
 
 const char * bgav_get_error(bgav_t *);
-
 
 /* Close and destroy everything */
 
@@ -189,17 +297,6 @@ const char * bgav_get_track_name(bgav_t *, int track);
 
 int bgav_can_seek(bgav_t *);
 
-
-
-const char * bgav_metadata_get_author(const bgav_metadata_t*);
-const char * bgav_metadata_get_title(const bgav_metadata_t*);
-const char * bgav_metadata_get_comment(const bgav_metadata_t*);
-const char * bgav_metadata_get_copyright(const bgav_metadata_t*);
-const char * bgav_metadata_get_album(const bgav_metadata_t*);
-const char * bgav_metadata_get_artist(const bgav_metadata_t*);
-const char * bgav_metadata_get_genre(const bgav_metadata_t*);
-const char * bgav_metadata_get_date(const bgav_metadata_t*);
-int bgav_metadata_get_track(const bgav_metadata_t*);
 
 const bgav_metadata_t * bgav_get_metadata(bgav_t*,int track);
 

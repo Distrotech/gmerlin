@@ -392,7 +392,7 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
     else /* If we have zero size, the framerate will be nonconstant */
       {
       //      fprintf(stderr, "Zero size frame\n");
-      stream->data.video.format.framerate_mode = GAVL_FRAMERATE_NONCONSTANT;
+      stream->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
       }
     avi_vs->total_frames++;
     }
