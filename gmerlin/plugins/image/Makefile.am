@@ -1,6 +1,6 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
-lib_LTLIBRARIES = ir_tga.la iw_tga.la ir_bmp.la iw_bmp.la ir_pnm.la
+lib_LTLIBRARIES = ir_tga.la iw_tga.la ir_bmp.la iw_bmp.la ir_pnm.la iw_pnm.c
 
 ir_tga_la_SOURCES = ir_tga.c targa.c
 ir_tga_la_LDFLAGS  = -avoid-version -module
