@@ -3,6 +3,7 @@ SUBDIRS = gavl
 includedir = $(prefix)/lib/gavl/include
 
 private_headers = \
+accel.h \
 attributes.h \
 audio.h \
 colorspace.h \
