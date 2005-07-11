@@ -25,6 +25,10 @@
 #include <math.h>
 #include <ctype.h>
 
+#define DEBUG
+
+#define Bits_16  (1<<8)
+
 #define PBMascii      1
 #define PGMascii      2
 #define PPMascii      3
@@ -32,6 +36,11 @@
 #define PGMbin        5
 #define PPMbin        6
 #define PAM           7
+
+#define PGMascii_16   (PGMascii | Bits_16) 
+#define PPMascii_16   (PPMascii | Bits_16)
+#define PGMbin_16     (PGMbin   | Bits_16)
+#define PPMbin_16     (PPMbin   | Bits_16)
 
 typedef struct
   {
@@ -65,7 +74,6 @@ static void destroy_pnm(void* priv)
 
 static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t * format)
   {
-  int line_lenght;
   char *ptr;
   char *end_ptr;
   pnm_t *p = (pnm_t*)priv;
@@ -118,9 +126,6 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
     {
     while(*end_ptr != '\n')
       end_ptr++;
-    
-    line_lenght = end_ptr - ptr;
-    //fprintf(stderr,"line_lenght: \t%d\n", line_lenght);
     
     if(*ptr == 'P')
       {
@@ -228,8 +233,17 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
   p->buffer_ptr = ptr;
      
   /* set gavl_video_format */
-  format->colorspace = GAVL_RGB_24;
-  
+
+  if(p->maxval > 255)
+    {
+    format->colorspace = GAVL_RGB_48;
+    p->is_pnm |= Bits_16;
+    }
+  else
+    {
+    format->colorspace = GAVL_RGB_24;
+    }
+
   format->frame_width  = p->width;
   format->frame_height = p->height;
   
@@ -247,8 +261,9 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
 static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   {
   int x, y;
-  int byte;
+  uint32_t byte;
   uint8_t * frame_ptr;
+  uint16_t * frame_ptr_16;
   uint8_t * frame_ptr_start;
   pnm_t *p = (pnm_t*)priv;
   uint8_t pixels_8, mask;
@@ -257,6 +272,9 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   /* PBM ascii */
   if(p->is_pnm == PBMascii)
     {
+#ifdef DEBUG
+    fprintf(stderr, "PBMascii\n");
+#endif
     frame_ptr_start = frame->planes[0];
     
     for (y = 0; y < p->height; y++)
@@ -288,6 +306,9 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   /* PBM binaer */
   if(p->is_pnm == PBMbin)
     {
+#ifdef DEBUG
+    fprintf(stderr, "PBMbin\n");
+#endif
     frame_ptr_start = frame->planes[0];
         
     for (y = 0; y < p->height; y++)
@@ -323,6 +344,9 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   /* PGM ascii */
   if(p->is_pnm == PGMascii)
     {
+#ifdef DEBUG
+    fprintf(stderr, "PGMascii\n");
+#endif
     frame_ptr_start = frame->planes[0];
     
     for (y = 0; y < p->height; y++)
@@ -347,10 +371,43 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
       }
     }
 
+  if(p->is_pnm == PGMascii_16)
+    {
+#ifdef DEBUG
+    fprintf(stderr, "PGMascii_16\n");
+#endif
+    frame_ptr_start = frame->planes[0];
+    
+    for (y = 0; y < p->height; y++)
+      {
+      frame_ptr_16 = (uint16_t*)frame_ptr_start;
+
+      for (x = 0; x < p->width; x++)
+        {
+        while(!isdigit(*p->buffer_ptr))
+          INC_PTR;
+        byte = atoi(p->buffer_ptr);
+        byte = (byte * 65535)/p->maxval;
+        frame_ptr_16[0]= byte;
+        frame_ptr_16[1]= byte;
+        frame_ptr_16[2]= byte;
+        frame_ptr_16 += 3;
+        INC_PTR;
+        while(isdigit(*p->buffer_ptr))
+          INC_PTR;
+        }
+      frame_ptr_start += frame->strides[0];
+      }
+    }
+
 
   /* PGM binaer */
   if(p->is_pnm == PGMbin)
     {
+#ifdef DEBUG
+    fprintf(stderr, "PGMbin\n");
+#endif
+
     frame_ptr_start = frame->planes[0];
         
     for (y = 0; y < p->height; y++)
@@ -370,10 +427,38 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
       }
     }
 
+  if(p->is_pnm == PGMbin_16)
+    {
+#ifdef DEBUG
+    fprintf(stderr, "PGMbin_16\n");
+#endif
+    frame_ptr_start = frame->planes[0];
+        
+    for (y = 0; y < p->height; y++)
+      {
+      frame_ptr_16 = (uint16_t*)frame_ptr_start;
+      for (x = 0; x < p->width ; x++)
+        {
+        byte = (p->buffer_ptr[0] << 8) | p->buffer_ptr[1];
+        byte = (byte * 65535)/p->maxval;
+        frame_ptr_16[0]= byte;
+        frame_ptr_16[1]= byte;
+        frame_ptr_16[2]= byte;
+        frame_ptr_16 += 3;
+        INC_PTR;
+        INC_PTR;
+        }
+      frame_ptr_start += frame->strides[0];
+      }
+    }
+
 
   /* PPM ascii */
   if(p->is_pnm == PPMascii)
     {
+#ifdef DEBUG
+    fprintf(stderr, "PPMascii\n");
+#endif
     frame_ptr_start = frame->planes[0];
     
     for (y = 0; y < p->height; y++)
@@ -412,10 +497,57 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
       }
     }
 
+  if(p->is_pnm == PPMascii_16)
+    {
+#ifdef DEBUG
+    fprintf(stderr, "PPMascii_16\n");
+#endif
+    frame_ptr_start = frame->planes[0];
+    
+    for (y = 0; y < p->height; y++)
+      {
+      frame_ptr_16 = (uint16_t*)frame_ptr_start;
+
+      for (x = 0; x < p->width; x++)
+        {
+        while(!isdigit(*p->buffer_ptr))
+          INC_PTR;
+        byte = atoi(p->buffer_ptr);
+        byte = (byte * 65535)/p->maxval;
+        frame_ptr_16[0]= byte;
+        INC_PTR;
+        while(!isspace(*p->buffer_ptr))
+          INC_PTR;
+        while(!isdigit(*p->buffer_ptr))
+          INC_PTR;
+        byte = atoi(p->buffer_ptr);
+        byte = (byte * 65535)/p->maxval;
+        frame_ptr_16[1]= byte;
+        INC_PTR;
+        while(!isspace(*p->buffer_ptr))
+          INC_PTR;
+        while(!isdigit(*p->buffer_ptr))
+          INC_PTR;
+        byte = atoi(p->buffer_ptr);
+        byte = (byte * 65535)/p->maxval;
+        frame_ptr_16[2]= byte;
+        INC_PTR;
+        while(!isspace(*p->buffer_ptr))
+          INC_PTR;
+        frame_ptr_16 += 3;
+        }
+      frame_ptr_start += frame->strides[0];
+      }
+    }
+
+  
 
   /* PPM binaer */
   if(p->is_pnm == PPMbin)
     {
+#ifdef DEBUG
+    fprintf(stderr, "PPMbin\n");
+#endif
     frame_ptr_start = frame->planes[0];
     
     for (y = 0; y < p->height; y++)
@@ -441,23 +573,41 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
       frame_ptr_start += frame->strides[0];
       }
     }
-
-  /* when ignor the maxval */
-#if  0
-  /* PPM binaer */
-  if(p->is_pnm == PPMbin)
-      {
-      frame_ptr_start = frame->planes[0];
-      
-      for (y = 0; y < p->height; y++)
-        {
-        frame_ptr = frame_ptr_start ;
-        memcpy(frame_ptr, p->buffer_ptr, p->width * 3);
-        p->buffer_ptr += (p->width * 3);
-        frame_ptr_start += frame->strides[0];
-        }
-      }
+  
+  if(p->is_pnm == PPMbin_16)
+    {
+#ifdef DEBUG
+    fprintf(stderr, "PPMbin_16\n");
 #endif
+
+    frame_ptr_start = frame->planes[0];
+    
+    for (y = 0; y < p->height; y++)
+      {
+      frame_ptr_16 = (uint16_t*)frame_ptr_start;
+
+      for (x = 0; x < p->width; x++)
+        {
+        byte = (p->buffer_ptr[0] << 8) | p->buffer_ptr[1];
+        byte = (byte * 65535)/p->maxval;
+        frame_ptr_16[0]= byte;
+        INC_PTR;
+        INC_PTR;
+        byte = (p->buffer_ptr[0] << 8) | p->buffer_ptr[1];
+        byte = (byte * 65535)/p->maxval;
+        frame_ptr_16[1]= byte;
+        INC_PTR;
+        INC_PTR;
+        byte = (p->buffer_ptr[0] << 8) | p->buffer_ptr[1];
+        byte = (byte * 65535)/p->maxval;
+        frame_ptr_16[2]= byte;
+        INC_PTR;
+        INC_PTR;
+        frame_ptr_16 += 3;
+        }
+      frame_ptr_start += frame->strides[0];
+      }
+    }
 
   if(*p->buffer)
     free(p->buffer);
