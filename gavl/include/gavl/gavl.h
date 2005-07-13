@@ -1000,6 +1000,14 @@ typedef enum
   } gavl_chroma_placement_t;
 
 /*! \ingroup video_format
+ * \brief Translate a chroma placement into a human readable string
+ * \param mode A chroma placement
+ * \returns A string describing the chroma placement
+ */
+
+const char * gavl_chroma_placement_to_string(gavl_chroma_placement_t mode);
+  
+/*! \ingroup video_format
  * \brief Framerate mode
  */
   
@@ -1020,6 +1028,15 @@ typedef enum
     GAVL_INTERLACE_TOP_FIRST,     /*!< Top field first */
     GAVL_INTERLACE_BOTTOM_FIRST     /*!< Bottom field first */
   } gavl_interlace_mode_t;
+
+/*! \ingroup video_format
+ * \brief Translate an interlace mode into a human readable string
+ * \param mode An interlace mode
+ * \returns A string describing the interlace mode
+ */
+
+const char * gavl_interlace_mode_to_string(gavl_interlace_mode_t mode);
+  
   
 /* Video format structure */
   
