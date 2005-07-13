@@ -54,7 +54,9 @@ extern char * win32_def_path;
 
 /* The following are always supported */
 
+void bgav_init_audio_decoders_gavl();
 void bgav_init_audio_decoders_pcm();
+
 void bgav_init_video_decoders_aviraw();
 void bgav_init_video_decoders_qtraw();
 void bgav_init_video_decoders_yuv();

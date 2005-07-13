@@ -114,6 +114,16 @@ cdio_libs =
 cdio_sources =
 endif
 
+if HAVE_LIBDV
+libdv_cflags =  @LIBDV_CFLAGS@
+libdv_libs =    @LIBDV_LIBS@
+libdv_sources = dvframe.c demux_dv.c
+else
+libdv_cflags =
+libdv_libs =
+libdv_sources =
+endif
+
 
 if HAVE_W32DLL
 win32_subdirs = libw32dll
@@ -163,6 +173,7 @@ $(avcodec_libs) \
 $(real_libs) \
 $(xadll_libs) \
 $(cdio_libs) \
+$(libdv_libs) \
 -lm
 
 AM_CFLAGS = \
@@ -177,8 +188,8 @@ $(libmpeg2_cflags) \
 $(a52_cflags) \
 $(musepack_cflags) \
 $(avcodec_cflags) \
-$(cdio_cflags)
-
+$(cdio_cflags) \
+$(libdv_cflags)
 
 libgmerlin_avdec_la_SOURCES = \
 $(libmpeg2_sources) \
@@ -195,9 +206,11 @@ $(avcodec_sources) \
 $(real_sources) \
 $(xadll_sources) \
 $(cdio_sources) \
+$(libdv_sources) \
 RTjpeg.c \
 apetag.c \
 audio.c \
+audio_gavl.c \
 audio_pcm.c \
 asmrp.c \
 base64.c \
@@ -244,6 +257,7 @@ pnm.c \
 qt_atom.c \
 qt_cmov.c \
 qt_esds.c \
+qt_fiel.c \
 qt_hdlr.c \
 qt_mdhd.c \
 qt_mdia.c \

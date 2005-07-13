@@ -607,6 +607,16 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         bg_vs->data.video.format.pixel_width = 1;
         bg_vs->data.video.format.pixel_height = 1;
         }
+      if(desc->has_fiel)
+        {
+        if(desc->fiel.fields == 2)
+          {
+          if(desc->fiel.detail == 14)
+            bg_vs->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+          else if(desc->fiel.detail == 9)
+            bg_vs->data.video.format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+          }
+        }
       bg_vs->data.video.depth = desc->format.video.depth;
       
       bg_vs->data.video.format.timescale = moov->tracks[i].mdia.mdhd.time_scale;

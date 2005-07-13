@@ -216,6 +216,9 @@ static int init_mpeg2(bgav_stream_t*s)
                  (priv->info->sequence->flags & SEQ_FLAG_MPEG2) ? 2 : 1,
                  (float)priv->info->sequence->byte_rate * 8.0 / 1000.0);
   s->codec_bitrate = priv->info->sequence->byte_rate * 8;
+
+  if(!s->timescale)
+    s->timescale = s->data.video.format.timescale;
   
   while(1)
     {

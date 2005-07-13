@@ -616,13 +616,22 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       //      fprintf(stderr, "First frame\n");
       
       s->data.video.format.colorspace = get_colorspace(priv->ctx->pix_fmt);
+
+      if(priv->info->ffmpeg_id == CODEC_ID_DVVIDEO)
+        {
+        if(s->data.video.format.colorspace == GAVL_YUV_420_P)
+          s->data.video.format.chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
+
+        if(!s->data.video.format.interlace_mode)
+          s->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+        }
       priv->need_first_frame = 0;
       priv->have_first_frame = 1;
       
       if((priv->ctx->sample_aspect_ratio.num > 1) ||
          (priv->ctx->sample_aspect_ratio.den > 1))
         {
-          
+        
         s->data.video.format.pixel_width  = priv->ctx->sample_aspect_ratio.num;
         s->data.video.format.pixel_height = priv->ctx->sample_aspect_ratio.den;
         }

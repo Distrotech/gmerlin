@@ -103,6 +103,8 @@ typedef struct
   uint32_t data_start;
   int64_t data_size;
   int byte_rate;
+
+  int64_t next_packet_time;
   } mpegvideo_priv_t;
 
 static int probe_mpegvideo(bgav_input_context_t * input)
@@ -235,11 +237,16 @@ static int next_packet_mpegvideo(bgav_demuxer_context_t * ctx)
 
   p->data_size = bgav_input_read_data(ctx->input, p->data, BYTES_TO_READ);
   
-  fprintf(stderr, "Read packet %d\n", p->data_size);
+  //  fprintf(stderr, "Read packet %d\n", p->data_size);
   
   if(!p->data_size)
     return 0;
-  
+
+  if(priv->next_packet_time >= 0)
+    {
+    p->timestamp_scaled = priv->next_packet_time;
+    priv->next_packet_time = -1;
+    }
   bgav_packet_done_write(p);
   //  fprintf(stderr, "done\n");
   
@@ -250,7 +257,6 @@ static void seek_mpegvideo(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
   int64_t file_position;
   mpegvideo_priv_t * priv;
-  gavl_time_t t;
 
   priv = (mpegvideo_priv_t *)(ctx->priv);
   bgav_stream_t * s;
@@ -258,13 +264,9 @@ static void seek_mpegvideo(bgav_demuxer_context_t * ctx, gavl_time_t time)
   s = ctx->tt->current_track->video_streams;
     
   file_position = (time * (priv->byte_rate)) / GAVL_TIME_SCALE;
-
-  /* Calculate the time before we add the start offset */
-  t = ((int64_t)file_position * GAVL_TIME_SCALE) /
-    (priv->byte_rate);
-
-  s->time_scaled = gavl_time_scale(s->data.video.format.timescale, t);
   
+  s->time_scaled = gavl_time_scale(s->data.video.format.timescale, time);
+  priv->next_packet_time = s->time_scaled;
   bgav_input_seek(ctx->input, file_position, SEEK_SET);
   }
 

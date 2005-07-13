@@ -173,7 +173,22 @@ int bgav_qt_pasp_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_pasp_t * ret);
 
 void bgav_qt_pasp_dump(qt_pasp_t * e);
-  
+
+/* fiel */
+
+typedef struct
+  {
+  qt_atom_header_t h;
+  uint8_t fields;
+  uint8_t detail;
+  } qt_fiel_t;
+
+int bgav_qt_fiel_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_fiel_t * ret);
+
+void bgav_qt_fiel_dump(qt_fiel_t * f);
+
+
   
 /*
  *  Sample description
@@ -239,6 +254,10 @@ typedef struct
 
   qt_pasp_t pasp;
   int has_pasp;
+
+  qt_fiel_t fiel;
+  int has_fiel;
+
   
   /* Data for avc1 (offset realtive to data) */
 

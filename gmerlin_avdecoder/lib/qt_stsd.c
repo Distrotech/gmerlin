@@ -321,6 +321,14 @@ static int stsd_read_video(bgav_input_context_t * input,
         else
           ret->has_pasp = 1;
         break;
+      case BGAV_MK_FOURCC('f', 'i', 'e', 'l'):
+        //        fprintf(stderr, "Found fiel atom\n");
+        if(!bgav_qt_fiel_read(&h, input, &(ret->fiel)))
+          return 0;
+        else
+          ret->has_fiel = 1;
+        bgav_qt_fiel_dump(&(ret->fiel));
+        break;
       default:
 
         

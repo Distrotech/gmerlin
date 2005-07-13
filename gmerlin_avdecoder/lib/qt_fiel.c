@@ -1,8 +1,8 @@
 /*****************************************************************
  
-  packet.c
+  qt_fiel.c
  
-  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2005 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
   http://gmerlin.sourceforge.net
  
@@ -17,35 +17,25 @@
  
 *****************************************************************/
 
+#include <string.h>
 #include <stdlib.h>
-
 #include <avdec_private.h>
+#include <qt.h>
 
-bgav_packet_t * bgav_packet_create()
+int bgav_qt_fiel_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_fiel_t * ret)
   {
-  bgav_packet_t * ret = calloc(1, sizeof(*ret));
-  return ret;
+  memcpy(&(ret->h), h, sizeof(*h));
+  if(!bgav_input_read_data(ctx, &(ret->fields), 1) ||
+     !bgav_input_read_data(ctx, &(ret->detail), 1))
+    return 0;
+  //  bgav_qt_fiel_dump(ret);
+  return 1;
   }
 
-void bgav_packet_destroy(bgav_packet_t * p)
+void bgav_qt_fiel_dump(qt_fiel_t * p)
   {
-  if(p->data)
-    free(p->data);
-  if(p->audio_frame)
-    gavl_audio_frame_destroy(p->audio_frame);
-  free(p);
-  }
-
-void bgav_packet_alloc(bgav_packet_t * p, int size)
-  {
-  if(size > p->data_alloc)
-    {
-    p->data_alloc = size + 16;
-    p->data = realloc(p->data, p->data_alloc);
-    }
-  }
-
-void bgav_packet_done_write(bgav_packet_t * p)
-  {
-  p->valid = 1;
+  fprintf(stderr, "fiel:\n");
+  fprintf(stderr, "  fields: %d\n", p->fields);
+  fprintf(stderr, "  detail: %d\n", p->detail);
   }

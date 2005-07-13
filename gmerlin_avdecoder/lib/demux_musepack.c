@@ -207,12 +207,18 @@ static int open_mpc(bgav_demuxer_context_t * ctx,
   
   s = bgav_track_add_audio_stream(ctx->tt->current_track);
   
-  s->data.audio.format.samplerate   = priv->si.sample_freq;
-  s->data.audio.format.num_channels = priv->si.channels;
-
-  s->fourcc = BGAV_MK_FOURCC('m', 'p', 'c', ' '); /* Native float format */
+  s->data.audio.format.samplerate    = priv->si.sample_freq;
+  s->data.audio.format.num_channels  = priv->si.channels;
+  s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+  s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
+  s->data.audio.format.samples_per_frame = MPC_FRAME_LENGTH;
+  gavl_set_channel_setup(&(s->data.audio.format));
+  
+  s->fourcc = BGAV_MK_FOURCC('g', 'a', 'v', 'l');
 
   s->timescale = priv->si.sample_freq;
+
+  s->description = bgav_sprintf("Musepack");
   
   ctx->tt->current_track->duration =
     gavl_samples_to_time(s->data.audio.format.samplerate,
@@ -238,15 +244,19 @@ static int next_packet_mpc(bgav_demuxer_context_t * ctx)
 
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
 
-  bgav_packet_alloc(p, MPC_DECODER_BUFFER_LENGTH * sizeof(float));
-  
-  result = mpc_decoder_decode(&(priv->dec), (float*)(p->data), 0, 0);
+  //  bgav_packet_alloc(p, MPC_DECODER_BUFFER_LENGTH * sizeof(float));
 
+  if(!p->audio_frame)
+    p->audio_frame = gavl_audio_frame_create(&(s->data.audio.format));
+  
+  result = mpc_decoder_decode(&(priv->dec),
+                              p->audio_frame->samples.f, 0, 0);
+  
   if(!result || (result == (unsigned int)(-1)))
     return 0;
-
-  p->data_size = result * s->data.audio.format.num_channels * sizeof(float);
-
+  
+  p->audio_frame->valid_samples = result;
+  
   bgav_packet_done_write(p);
   
   return 1;

@@ -94,6 +94,28 @@ fi
 
 
 dnl
+dnl Check for libdv
+dnl
+
+AH_TEMPLATE([HAVE_LIBDV],
+            [Do we have libdv installed?])
+
+have_libdv="false"
+
+LIBDV_REQUIRED="0.102"
+
+PKG_CHECK_MODULES(LIBDV, libdv >= $LIBDV_REQUIRED, have_libdv="true", have_libdv="false")
+AC_SUBST(LIBDV_REQUIRED)
+AC_SUBST(LIBDV_LIBS)
+AC_SUBST(LIBDV_CFLAGS)
+
+AM_CONDITIONAL(HAVE_LIBDV, test x$have_libdv = xtrue)
+
+if test "x$have_libdv" = "xtrue"; then
+AC_DEFINE([HAVE_LIBDV])
+fi
+
+dnl
 dnl Vorbis
 dnl 
 

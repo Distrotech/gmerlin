@@ -44,6 +44,10 @@ extern bgav_demuxer_t bgav_demuxer_aac;
 extern bgav_demuxer_t bgav_demuxer_ogg;
 #endif
 
+#ifdef HAVE_LIBDV
+extern bgav_demuxer_t bgav_demuxer_dv;
+#endif
+
 #ifdef HAVE_LIBA52
 extern bgav_demuxer_t bgav_demuxer_a52;
 #endif
@@ -81,7 +85,9 @@ static demuxer_t demuxers[] =
 #ifdef HAVE_MUSEPACK
     { &bgav_demuxer_mpc, "Musepack" },
 #endif
-    
+#ifdef HAVE_LIBDV
+    { &bgav_demuxer_dv, "DV" },
+#endif
   };
 
 static demuxer_t sync_demuxers[] =
