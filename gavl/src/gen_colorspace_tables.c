@@ -74,7 +74,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       printf("  ");
-    tmp_float = ((float)(i - 16) / 219.0)*255.0 + 16.0;
+    tmp_float = ((float)(i - 16) / 219.0)*255.0;
     tmp_int   = (int)(tmp_float+0.5);
     RECLIP(tmp_int, 0, 255);
     printf("0x%02x, ", tmp_int);

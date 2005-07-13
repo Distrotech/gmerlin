@@ -2466,19 +2466,19 @@ void gavl_init_rgb_rgb_funcs_c(gavl_colorspace_function_table_t * tab, const gav
     tab->rgba_32_to_bgr_16    = rgb_32_to_16_swap_c;
     tab->rgba_32_to_rgb_24    = rgb_32_to_24_c;
     tab->rgba_32_to_bgr_24    = rgb_32_to_24_swap_c;
-
     tab->rgba_32_to_bgr_32    = swap_rgb_32_c;
     tab->rgba_32_to_rgb_48    = rgb_32_to_48_c;
     tab->rgba_32_to_rgb_float = rgb_32_to_float_c;
-    tab->rgba_64_to_rgb_15 = rgba_64_to_rgb_15_ia_c;
-    tab->rgba_64_to_bgr_15 = rgba_64_to_bgr_15_ia_c;
-    tab->rgba_64_to_rgb_16 = rgba_64_to_rgb_16_ia_c;
-    tab->rgba_64_to_bgr_16 = rgba_64_to_bgr_16_ia_c;
-    tab->rgba_64_to_rgb_24 = rgba_64_to_rgb_24_ia_c;
-    tab->rgba_64_to_bgr_24 = rgba_64_to_bgr_24_ia_c;
-    tab->rgba_64_to_rgb_32 = rgba_64_to_rgb_32_ia_c;
-    tab->rgba_64_to_bgr_32 = rgba_64_to_bgr_32_ia_c;
-    tab->rgba_64_to_rgb_48 = rgba_64_to_rgb_48_ia_c;
+    
+    tab->rgba_64_to_rgb_15    = rgba_64_to_rgb_15_ia_c;
+    tab->rgba_64_to_bgr_15    = rgba_64_to_bgr_15_ia_c;
+    tab->rgba_64_to_rgb_16    = rgba_64_to_rgb_16_ia_c;
+    tab->rgba_64_to_bgr_16    = rgba_64_to_bgr_16_ia_c;
+    tab->rgba_64_to_rgb_24    = rgba_64_to_rgb_24_ia_c;
+    tab->rgba_64_to_bgr_24    = rgba_64_to_bgr_24_ia_c;
+    tab->rgba_64_to_rgb_32    = rgba_64_to_rgb_32_ia_c;
+    tab->rgba_64_to_bgr_32    = rgba_64_to_bgr_32_ia_c;
+    tab->rgba_64_to_rgb_48    = rgba_64_to_rgb_48_ia_c;
     tab->rgba_64_to_rgb_float = rgba_64_to_rgb_float_ia_c;
 #if 1
     tab->rgba_float_to_rgb_15    = rgba_float_to_rgb_15_ia_c;

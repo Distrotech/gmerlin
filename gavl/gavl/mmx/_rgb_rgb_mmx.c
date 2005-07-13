@@ -2131,6 +2131,18 @@ gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
     tab->bgr_15_to_rgba_32 = bgr_15_to_rgba_32_mmx;
     tab->rgb_16_to_rgba_32 = rgb_16_to_rgba_32_mmx;
     tab->bgr_16_to_rgba_32 = bgr_16_to_rgba_32_mmx;
+    
+    if(opt->alpha_mode == GAVL_ALPHA_BLEND_COLOR)
+      {
+      tab->rgba_32_to_rgb_15 = rgba_32_to_rgb_15_mmx;
+      tab->rgba_32_to_bgr_15 = rgba_32_to_bgr_15_mmx;
+      tab->rgba_32_to_rgb_16 = rgba_32_to_rgb_16_mmx;
+      tab->rgba_32_to_bgr_16 = rgba_32_to_bgr_16_mmx;
+      tab->rgba_32_to_rgb_24 = rgba_32_to_rgb_24_mmx;
+      tab->rgba_32_to_bgr_24 = rgba_32_to_bgr_24_mmx;
+      tab->rgba_32_to_rgb_32 = rgba_32_to_rgb_32_mmx;
+      tab->rgba_32_to_bgr_32 = rgba_32_to_bgr_32_mmx;  
+      }
     }
 
   tab->rgb_16_to_15 = rgb_16_to_15_mmx;
@@ -2162,13 +2174,14 @@ gavl_init_rgb_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
 
   /* RGBA -> */
 
-  tab->rgba_32_to_rgb_15 = rgba_32_to_rgb_15_mmx;
-  tab->rgba_32_to_bgr_15 = rgba_32_to_bgr_15_mmx;
-  tab->rgba_32_to_rgb_16 = rgba_32_to_rgb_16_mmx;
-  tab->rgba_32_to_bgr_16 = rgba_32_to_bgr_16_mmx;
-  tab->rgba_32_to_rgb_24 = rgba_32_to_rgb_24_mmx;
-  tab->rgba_32_to_bgr_24 = rgba_32_to_bgr_24_mmx;
-  tab->rgba_32_to_rgb_32 = rgba_32_to_rgb_32_mmx;
-  tab->rgba_32_to_bgr_32 = rgba_32_to_bgr_32_mmx;  
-
+  if(opt->alpha_mode == GAVL_ALPHA_IGNORE)
+    {
+    tab->rgba_32_to_rgb_15    = rgb_32_to_15_mmx;
+    tab->rgba_32_to_bgr_15    = rgb_32_to_15_swap_mmx;
+    tab->rgba_32_to_rgb_16    = rgb_32_to_16_mmx;
+    tab->rgba_32_to_bgr_16    = rgb_32_to_16_swap_mmx;
+    tab->rgba_32_to_rgb_24    = rgb_32_to_24_mmx;
+    tab->rgba_32_to_bgr_24    = rgb_32_to_24_swap_mmx;
+    tab->rgba_32_to_bgr_32    = swap_rgb_32_mmx;
+    }
   }
