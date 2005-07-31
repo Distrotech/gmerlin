@@ -37,7 +37,6 @@ void * memalign (size_t align, size_t size);
 #endif
 
 #define ALIGNMENT_BYTES 8
-
 #define ALIGN(a) a=((a+ALIGNMENT_BYTES-1)/ALIGNMENT_BYTES)*ALIGNMENT_BYTES
 
 static void video_frame_alloc(gavl_video_frame_t * ret,
@@ -88,13 +87,13 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
                              ret->strides[0] * format->frame_height);
       break;
     case GAVL_RGB_FLOAT:
-      ret->strides[0] = format->frame_width*12;
+      ret->strides[0] = format->frame_width*3*sizeof(float);
       ALIGN(ret->strides[0]);
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0] * format->frame_height);
       break;
     case GAVL_RGBA_FLOAT:
-      ret->strides[0] = format->frame_width*16;
+      ret->strides[0] = format->frame_width*4*sizeof(float);
       ALIGN(ret->strides[0]);
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0] * format->frame_height);
@@ -417,44 +416,45 @@ void gavl_video_frame_clear(gavl_video_frame_t * frame,
     }
   }
 
+static void copy_plane(gavl_video_frame_t * dst,
+                       gavl_video_frame_t * src, int plane,
+                       int bytes_per_line, int height)
+  {
+  int j;
+  uint8_t * sp, *dp;
+  sp = src->planes[plane];
+  dp = dst->planes[plane];
+  for(j = 0; j < height; j++)
+    {
+    memcpy(dp, sp, bytes_per_line);
+    sp += src->strides[plane];
+    dp += dst->strides[plane];
+    }
+
+  }
+
 void gavl_video_frame_copy_plane(gavl_video_format_t * format,
                                  gavl_video_frame_t * dst,
                                  gavl_video_frame_t * src, int plane)
   {
-  int j;
-  uint8_t * sp, *dp;
-  int jmax;
   int bytes_per_line;
   int sub_h, sub_v;
-
+  int height = format->image_height;
   
   sub_h = 1;
   sub_v = 1;
+  
+  bytes_per_line = gavl_colorspace_is_planar(format->colorspace) ?
+    format->image_width * gavl_colorspace_bytes_per_component(format->colorspace) :
+    format->image_width * gavl_colorspace_bytes_per_pixel(format->colorspace);
 
   if(plane > 0)
+    {
     gavl_colorspace_chroma_sub(format->colorspace, &sub_h, &sub_v);
-
-  if(dst->strides[plane] == src->strides[plane])
-    {
-    memcpy(dst->planes[plane], src->planes[plane],
-           format->image_height / sub_v * dst->strides[plane]);
-    
+    bytes_per_line /= sub_h;
+    height /= sub_v;
     }
-  else
-    {
-    bytes_per_line =
-      dst->strides[plane] < src->strides[plane] ?
-      dst->strides[plane] : src->strides[plane];
-    sp = src->planes[plane];
-    dp = dst->planes[plane];
-    jmax = format->image_height / sub_v;
-    for(j = 0; j < jmax; j++)
-      {
-      memcpy(dp, sp, bytes_per_line);
-      sp += src->strides[plane];
-      dp += dst->strides[plane];
-      }
-    }
+  copy_plane(dst, src, plane, bytes_per_line, height);
 
   }
 
@@ -463,11 +463,26 @@ void gavl_video_frame_copy(gavl_video_format_t * format,
                            gavl_video_frame_t * src)
   {
   int i;
-  int planes = gavl_colorspace_num_planes(format->colorspace);
+  int height;
+  int bytes_per_line;
+  int sub_h, sub_v;
+  int planes;
 
+  planes = gavl_colorspace_num_planes(format->colorspace);
+  height = format->image_height;
+    
+  bytes_per_line = gavl_colorspace_is_planar(format->colorspace) ?
+    format->image_width * gavl_colorspace_bytes_per_component(format->colorspace) :
+    format->image_width * gavl_colorspace_bytes_per_pixel(format->colorspace);
   
   for(i = 0; i < planes; i++)
     {
+    if(i == 1)
+      {
+      gavl_colorspace_chroma_sub(format->colorspace, &sub_h, &sub_v);
+      bytes_per_line /= sub_h;
+      height /= sub_v;
+      }
     gavl_video_frame_copy_plane(format, dst, src, i);
     }
   
@@ -832,7 +847,7 @@ void gavl_video_frame_dump(gavl_video_frame_t * frame,
 void gavl_video_frame_get_subframe(gavl_colorspace_t colorspace,
                                    gavl_video_frame_t * src,
                                    gavl_video_frame_t * dst,
-                                   gavl_rectangle_t * src_rect)
+                                   gavl_rectangle_i_t * src_rect)
   {
   int uv_sub_h, uv_sub_v;
   int i;
@@ -861,5 +876,19 @@ void gavl_video_frame_get_subframe(gavl_colorspace_t colorspace,
       src_rect->x--;
     bytes = gavl_colorspace_bytes_per_pixel(colorspace);
     dst->planes[0] = src->planes[0] + src_rect->y * src->strides[0] + src_rect->x * bytes;
+    }
+  }
+
+void gavl_video_frame_get_field(gavl_colorspace_t colorspace,
+                                gavl_video_frame_t * src,
+                                gavl_video_frame_t * dst,
+                                int field)
+  {
+  int i, num_planes;
+  num_planes = gavl_colorspace_num_planes(colorspace);
+  for(i = 0; i < num_planes; i++)
+    {
+    dst->planes[i] = src->planes[i] + field * src->strides[i];
+    dst->strides[i] = src->strides[i] * 2;
     }
   }

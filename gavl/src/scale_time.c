@@ -3,8 +3,9 @@
 #include <gavl.h>
 //#include "colorspace.h" // Common routines
 #include <stdio.h>
-#include <accel.h>
+#include <string.h>
 
+#include <accel.h>
 
 #define NUM_CONVERSIONS 20
 
@@ -36,8 +37,8 @@ void timer_stop()
 
 int main(int argc, char ** argv)
   {
-  gavl_rectangle_t src_rect;
-  gavl_rectangle_t dst_rect;
+  gavl_rectangle_f_t src_rect;
+  gavl_rectangle_i_t dst_rect;
   
   int i, j, imax;
   gavl_video_scaler_t *scaler;
@@ -53,7 +54,10 @@ int main(int argc, char ** argv)
   scaler = gavl_video_scaler_create();
 
   opt = gavl_video_scaler_get_options(scaler);
-    
+
+  memset(&format, 0, sizeof(format));
+  memset(&format_1, 0, sizeof(format_1));
+  
   for(i = 0; i < imax; i++)
     {
     csp = gavl_get_colorspace(i);
@@ -103,9 +107,9 @@ int main(int argc, char ** argv)
     gavl_video_options_set_defaults(opt);
     gavl_video_options_set_scale_mode(opt, GAVL_SCALE_BILINEAR);
     gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
-        
+    gavl_video_options_set_rectangles(opt, &src_rect, &dst_rect);
+
     if(gavl_video_scaler_init(scaler,
-                              &src_rect, &dst_rect,
                               &format, &format_1) < 0)  // int output_height
       {
       fprintf(stderr, "No scaling routine defined\n");
@@ -119,14 +123,14 @@ int main(int argc, char ** argv)
         }
       timer_stop();
       }
-
+#if 0
     fprintf(stderr, "MMX-Version:\n");
     gavl_video_options_set_defaults(opt);
     gavl_video_options_set_scale_mode(opt, GAVL_SCALE_BILINEAR);
     gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMX);
+    gavl_video_options_set_rectangles(opt, &src_rect, &dst_rect);
         
     if(gavl_video_scaler_init(scaler,
-                              &src_rect, &dst_rect,
                               &format, &format_1) < 0)  // int output_height
       {
       fprintf(stderr, "No scaling routine defined\n");
@@ -145,9 +149,9 @@ int main(int argc, char ** argv)
     gavl_video_options_set_defaults(opt);
     gavl_video_options_set_scale_mode(opt, GAVL_SCALE_BILINEAR);
     gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMXEXT);
+    gavl_video_options_set_rectangles(opt, &src_rect, &dst_rect);
         
     if(gavl_video_scaler_init(scaler,
-                              &src_rect, &dst_rect,
                               &format, &format_1) < 0)  // int output_height
       {
       fprintf(stderr, "No scaling routine defined\n");
@@ -161,6 +165,7 @@ int main(int argc, char ** argv)
         }
       timer_stop();
       }
+#endif
     gavl_video_frame_destroy(frame);
     gavl_video_frame_destroy(frame_1);
     }

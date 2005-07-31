@@ -4,12 +4,17 @@
 #include <string.h>
 #include <gavl/gavl.h>
 
-void gavl_rectangle_dump(const gavl_rectangle_t * r)
+void gavl_rectangle_i_dump(const gavl_rectangle_i_t * r)
   {
   fprintf(stderr, "%dx%d+%d+%d", r->w, r->h, r->x, r->y);
   }
 
-void gavl_rectangle_crop_to_format(gavl_rectangle_t * r, const gavl_video_format_t * format)
+void gavl_rectangle_f_dump(const gavl_rectangle_f_t * r)
+  {
+  fprintf(stderr, "%fx%f+%f+%f", r->w, r->h, r->x, r->y);
+  }
+
+void gavl_rectangle_crop_to_format(gavl_rectangle_i_t * r, const gavl_video_format_t * format)
   {
   if(r->x < 0)
     {
@@ -42,8 +47,8 @@ void gavl_rectangle_crop_to_format(gavl_rectangle_t * r, const gavl_video_format
   
   }
 
-static void crop_to_format_scale(gavl_rectangle_t * src_rect,
-                                 gavl_rectangle_t * dst_rect,
+static void crop_to_format_scale(gavl_rectangle_f_t * src_rect,
+                                 gavl_rectangle_i_t * dst_rect,
                                  int crop_left,
                                  int crop_right,
                                  int crop_top,
@@ -79,8 +84,8 @@ static void crop_to_format_scale(gavl_rectangle_t * src_rect,
 
 #define GAVL_MIN(x, y) (x < y ? x : y);
 
-void gavl_rectangle_crop_to_format_noscale(gavl_rectangle_t * src_rect,
-                                           gavl_rectangle_t * dst_rect,
+void gavl_rectangle_crop_to_format_noscale(gavl_rectangle_i_t * src_rect,
+                                           gavl_rectangle_i_t * dst_rect,
                                            const gavl_video_format_t * src_format,
                                            const gavl_video_format_t * dst_format)
   {
@@ -100,8 +105,8 @@ void gavl_rectangle_crop_to_format_noscale(gavl_rectangle_t * src_rect,
 
 #undef GAVL_MIN
 
-void gavl_rectangle_crop_to_format_scale(gavl_rectangle_t * src_rect,
-                                         gavl_rectangle_t * dst_rect,
+void gavl_rectangle_crop_to_format_scale(gavl_rectangle_f_t * src_rect,
+                                         gavl_rectangle_i_t * dst_rect,
                                          const gavl_video_format_t * src_format,
                                          const gavl_video_format_t * dst_format)
   {
@@ -176,7 +181,7 @@ void gavl_rectangle_crop_to_format_scale(gavl_rectangle_t * src_rect,
 
 /* Let a rectangle span the whole screen for format */
 
-void gavl_rectangle_set_all(gavl_rectangle_t * r, const gavl_video_format_t * format)
+void gavl_rectangle_i_set_all(gavl_rectangle_i_t * r, const gavl_video_format_t * format)
   {
   r->x = 0;
   r->y = 0;
@@ -185,31 +190,41 @@ void gavl_rectangle_set_all(gavl_rectangle_t * r, const gavl_video_format_t * fo
   
   }
 
-void gavl_rectangle_crop_left(gavl_rectangle_t * r, int num_pixels)
+void gavl_rectangle_f_set_all(gavl_rectangle_f_t * r, const gavl_video_format_t * format)
+  {
+  r->x = 0;
+  r->y = 0;
+  r->w = format->image_width;
+  r->h = format->image_height;
+  
+  }
+
+
+void gavl_rectangle_crop_left(gavl_rectangle_i_t * r, int num_pixels)
   {
   r->x += num_pixels;
   r->w -= num_pixels;
   }
 
-void gavl_rectangle_crop_right(gavl_rectangle_t * r, int num_pixels)
+void gavl_rectangle_crop_right(gavl_rectangle_i_t * r, int num_pixels)
   {
   r->w -= num_pixels;
   }
 
-void gavl_rectangle_crop_top(gavl_rectangle_t * r, int num_pixels)
+void gavl_rectangle_crop_top(gavl_rectangle_i_t * r, int num_pixels)
   {
   r->y += num_pixels;
   r->h -= num_pixels;
   }
 
-void gavl_rectangle_crop_bottom(gavl_rectangle_t * r, int num_pixels)
+void gavl_rectangle_crop_bottom(gavl_rectangle_i_t * r, int num_pixels)
   {
   r->h -= num_pixels;
   }
 
 #define PADD(num, multiple) num -= num % multiple
 
-void gavl_rectangle_align(gavl_rectangle_t * r, int h_align, int v_align)
+void gavl_rectangle_i_align(gavl_rectangle_i_t * r, int h_align, int v_align)
   {
   PADD(r->x, h_align);
   PADD(r->w, h_align);
@@ -218,7 +233,7 @@ void gavl_rectangle_align(gavl_rectangle_t * r, int h_align, int v_align)
   PADD(r->h, v_align);
   }
 
-void gavl_rectangle_subsample(gavl_rectangle_t * dst, const gavl_rectangle_t * src,
+void gavl_rectangle_subsample(gavl_rectangle_i_t * dst, const gavl_rectangle_i_t * src,
                               int sub_h, int sub_v)
   {
   dst->x = src->x / sub_h;
@@ -228,12 +243,17 @@ void gavl_rectangle_subsample(gavl_rectangle_t * dst, const gavl_rectangle_t * s
   dst->h = src->h / sub_v;
   }
 
-void gavl_rectangle_copy(gavl_rectangle_t * dst, const gavl_rectangle_t * src)
+void gavl_rectangle_f_copy(gavl_rectangle_f_t * dst, const gavl_rectangle_f_t * src)
   {
   memcpy(dst, src, sizeof(*dst));
   }
 
-int gavl_rectangle_is_empty(const gavl_rectangle_t * r)
+void gavl_rectangle_i_copy(gavl_rectangle_i_t * dst, const gavl_rectangle_i_t * src)
+  {
+  memcpy(dst, src, sizeof(*dst));
+  }
+
+int gavl_rectangle_is_empty(const gavl_rectangle_i_t * r)
   {
   return ((r->w <= 0) || (r->h <= 0)) ? 1 : 0;
   }
@@ -241,9 +261,9 @@ int gavl_rectangle_is_empty(const gavl_rectangle_t * r)
 /* Assuming we take src_rect from a frame in format src_format,
    calculate the optimal dst_rect in dst_format. */
 
-void gavl_rectangle_fit_aspect(gavl_rectangle_t * r,
+void gavl_rectangle_fit_aspect(gavl_rectangle_i_t * r,
                                const gavl_video_format_t * src_format,
-                               const gavl_rectangle_t * src_rect,
+                               const gavl_rectangle_i_t * src_rect,
                                const gavl_video_format_t * dst_format,
                                float zoom, float squeeze)
   {

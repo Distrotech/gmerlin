@@ -17,14 +17,16 @@
 
 *****************************************************************/
 
-/*
- *  Gmerlin audio video library, a library for handling and conversion
- *  of uncompressed audio- and video data
- */
-
 /**
  * @file gavl.h
  * external api header.
+ */
+
+/*! \mainpage
+ *  This is the API documentation for the Gmerlin audio video library,
+ *  a library for handling and conversion of uncompressed audio- and video data.
+ *
+ *  Click Modules to get to the main index.
  */
 
 #ifndef GAVL_H_INCLUDED
@@ -692,7 +694,7 @@ void gavl_volume_control_apply(gavl_volume_control_t *ctrl,
  * Define rectangular areas in a video frame
  */
 
-/*! Rectangle
+/*! Integer rectangle
  * \ingroup rectangle
  */
   
@@ -702,8 +704,19 @@ typedef struct
   int y; /*!< Vertical offset from the left border of the frame */
   int w; /*!< Width */
   int h; /*!< Height */
-  } gavl_rectangle_t;
+  } gavl_rectangle_i_t;
+
+/*! Floating point rectangle
+ * \ingroup rectangle
+ */
   
+typedef struct
+  {
+  double x; /*!< Horizontal offset from the left border of the frame */
+  double y; /*!< Vertical offset from the left border of the frame */
+  double w; /*!< Width */
+  double h; /*!< Height */
+  } gavl_rectangle_f_t;
 
 /*! \brief Crop a rectangle so it fits into the image size of a video format
  * \ingroup rectangle
@@ -711,44 +724,81 @@ typedef struct
  * \param format The video format into which the rectangle must fit
  */
   
-void gavl_rectangle_crop_to_format(gavl_rectangle_t * r,
+void gavl_rectangle_crop_to_format(gavl_rectangle_i_t * r,
                                    const gavl_video_format_t * format);
 
+/*! \brief Crop a floating point rectangle so it fits into the image size of a video format
+ * \ingroup rectangle
+ * \param r A rectangle
+ * \param format The video format into which the rectangle must fit
+ */
+  
+void gavl_rectangle_f_crop_to_format(gavl_rectangle_f_t * r,
+                                     const gavl_video_format_t * format);
+
+  
 /*! \brief Crop a rectangle so it fits into the image size of a video format
  * \ingroup rectangle
  * \param r A rectangle
  * \param format The video format into which the rectangle must fit
  */
   
-void gavl_rectangle_crop_to_format_scale(gavl_rectangle_t * src_rect,
-                                         gavl_rectangle_t * dst_rect,
+void gavl_rectangle_crop_to_format_scale(gavl_rectangle_f_t * src_rect,
+                                         gavl_rectangle_i_t * dst_rect,
                                          const gavl_video_format_t * src_format,
                                          const gavl_video_format_t * dst_format);
 
 /*
- *  This produces 2 rectangles of the same width centered on src_format and dst_format
+ *  This produces 2 rectangles of the same size centered on src_format and dst_format
  *  respectively
  */
   
-void gavl_rectangle_crop_to_format_noscale(gavl_rectangle_t * src_rect,
-                                           gavl_rectangle_t * dst_rect,
+void gavl_rectangle_crop_to_format_noscale(gavl_rectangle_i_t * src_rect,
+                                           gavl_rectangle_i_t * dst_rect,
                                            const gavl_video_format_t * src_format,
                                            const gavl_video_format_t * dst_format);
   
-/* Let a rectangle span the whole screen for format */
 
-void gavl_rectangle_set_all(gavl_rectangle_t * r, const gavl_video_format_t * format);
+/*! \brief Let an integer rectangle span the whole image size of a video format
+ * \ingroup rectangle
+ * \param r An integer rectangle
+ * \param format The video format into which the rectangle must fit
+ */
+  
+void gavl_rectangle_i_set_all(gavl_rectangle_i_t * r, const gavl_video_format_t * format);
 
-void gavl_rectangle_crop_left(gavl_rectangle_t * r, int num_pixels);
-void gavl_rectangle_crop_right(gavl_rectangle_t * r, int num_pixels);
-void gavl_rectangle_crop_top(gavl_rectangle_t * r, int num_pixels);
-void gavl_rectangle_crop_bottom(gavl_rectangle_t * r, int num_pixels);
+/*! \brief Let a float rectangle span the whole image size of a video format
+ * \ingroup rectangle
+ * \param r A float rectangle
+ * \param format The video format into which the rectangle must fit
+ */
 
-void gavl_rectangle_align(gavl_rectangle_t * r, int h_align, int v_align);
+void gavl_rectangle_f_set_all(gavl_rectangle_f_t * r, const gavl_video_format_t * format);
+  
+void gavl_rectangle_crop_left(gavl_rectangle_i_t * r, int num_pixels);
+void gavl_rectangle_crop_right(gavl_rectangle_i_t * r, int num_pixels);
+void gavl_rectangle_crop_top(gavl_rectangle_i_t * r, int num_pixels);
+void gavl_rectangle_crop_bottom(gavl_rectangle_i_t * r, int num_pixels);
 
-void gavl_rectangle_copy(gavl_rectangle_t * dst, const gavl_rectangle_t * src);
+void gavl_rectangle_i_align(gavl_rectangle_i_t * r, int h_align, int v_align);
 
-int gavl_rectangle_is_empty(const gavl_rectangle_t * r);
+/*! \brief Copy an integer rectangle
+ * \ingroup rectangle
+ * \param dst Destination rectangle
+ * \param dst Source rectangle
+ */
+  
+void gavl_rectangle_i_copy(gavl_rectangle_i_t * dst, const gavl_rectangle_i_t * src);
+
+/*! \brief Copy a float rectangle
+ * \ingroup rectangle
+ * \param dst Destination rectangle
+ * \param dst Source rectangle
+ */
+
+void gavl_rectangle_f_copy(gavl_rectangle_f_t * dst, const gavl_rectangle_f_t * src);
+
+int gavl_rectangle_is_empty(const gavl_rectangle_i_t * r);
 
 /*
   For a Rectangle in the Luminance plane, calculate the corresponding rectangle
@@ -756,7 +806,7 @@ int gavl_rectangle_is_empty(const gavl_rectangle_t * r);
   It is wise to call gavl_rectangle_align before.
 */
   
-void gavl_rectangle_subsample(gavl_rectangle_t * dst, const gavl_rectangle_t * src,
+void gavl_rectangle_subsample(gavl_rectangle_i_t * dst, const gavl_rectangle_i_t * src,
                               int sub_h, int sub_v);
 
 /*
@@ -767,9 +817,9 @@ void gavl_rectangle_subsample(gavl_rectangle_t * dst, const gavl_rectangle_t * s
  * while squeeze changes the apsect ratio in both directions. 0.0 means unchanged
  */
   
-void gavl_rectangle_fit_aspect(gavl_rectangle_t * r,
+void gavl_rectangle_fit_aspect(gavl_rectangle_i_t * r,
                                const gavl_video_format_t * src_format,
-                               const gavl_rectangle_t * src_rect,
+                               const gavl_rectangle_i_t * src_rect,
                                const gavl_video_format_t * dst_format,
                                float zoom, float squeeze);
 
@@ -777,14 +827,45 @@ void gavl_rectangle_fit_aspect(gavl_rectangle_t * r,
  * \ingroup rectangle
  * \param r Rectangle
  */
-void gavl_rectangle_dump(const gavl_rectangle_t * r);
+void gavl_rectangle_i_dump(const gavl_rectangle_i_t * r);
 
+/*! \brief Dump a floating point rectangle to stderr
+ * \ingroup rectangle
+ * \param r Floating point rectangle
+ */
+void gavl_rectangle_f_dump(const gavl_rectangle_f_t * r);
 
   
 /** \defgroup video_format Video format definitions
  * \ingroup video
  */
- 
+
+/** \ingroup video_format
+ * Flag for planar colorspaces
+ */
+#define GAVL_CSP_PLANAR (1<<8)
+
+/** \ingroup video_format
+ * Flag for rgb colorspaces
+ */
+#define GAVL_CSP_RGB    (1<<9)
+
+/** \ingroup video_format
+ * Flag for yuv colorspaces
+ */
+#define GAVL_CSP_YUV    (1<<10)
+
+/** \ingroup video_format
+ * Flag for yuvj colorspaces
+ */
+#define GAVL_CSP_YUVJ   (1<<11)
+
+/** \ingroup video_format
+ * Alpha flag
+ */
+#define GAVL_CSP_ALPHA  (1<<12)
+  
+  
 /*! \ingroup video_format
  * \brief Colorspace definition
  */
@@ -795,88 +876,92 @@ typedef enum
   */
     GAVL_COLORSPACE_NONE =  0, 
 
- /*! 15 bit RGB. Each pixel is a uint16_t in native byte order. Color masks are
+ /*! 15 bit RGB. Each pixel is a uint16_t in native byte order. Color masks are:
+  * for red: 0x7C00, for green: 0x03e0, for blue: 0x001f
   */
-    GAVL_RGB_15          =  1,
- /*! 15 bit BGR. Each pixel is a uint16_t in native byte order. Color masks are
+    GAVL_RGB_15          =  1 | GAVL_CSP_RGB,
+ /*! 15 bit BGR. Each pixel is a uint16_t in native byte order. Color masks are:
+  * for red: 0x001f, for green: 0x03e0, for blue: 0x7C00
   */
-    GAVL_BGR_15          =  2,
- /*! 16 bit RGB. Each pixel is a uint16_t in native byte order. Color masks are
+    GAVL_BGR_15          =  2 | GAVL_CSP_RGB,
+ /*! 16 bit RGB. Each pixel is a uint16_t in native byte order. Color masks are:
+  * for red: 0xf800, for green: 0x07e0, for blue: 0x001f
   */
-    GAVL_RGB_16          =  3,
- /*! 16 bit BGR. Each pixel is a uint16_t in native byte order. Color masks are
+    GAVL_RGB_16          =  3 | GAVL_CSP_RGB,
+ /*! 16 bit BGR. Each pixel is a uint16_t in native byte order. Color masks are:
+  * for red: 0x001f, for green: 0x07e0, for blue: 0xf800
   */
-    GAVL_BGR_16          =  4,
+    GAVL_BGR_16          =  4 | GAVL_CSP_RGB,
  /*! 24 bit RGB. Each color is an uint8_t. Color order is RGBRGB
   */
-    GAVL_RGB_24          =  5,
+    GAVL_RGB_24          =  5 | GAVL_CSP_RGB,
  /*! 24 bit BGR. Each color is an uint8_t. Color order is BGRBGR
   */
-    GAVL_BGR_24          =  6,
+    GAVL_BGR_24          =  6 | GAVL_CSP_RGB,
  /*! 32 bit RGB. Each color is an uint8_t. Color order is RGBXRGBX, where X is unused
   */
-    GAVL_RGB_32          =  7,
+    GAVL_RGB_32          =  7 | GAVL_CSP_RGB,
  /*! 32 bit BGR. Each color is an uint8_t. Color order is BGRXBGRX, where X is unused
   */
-    GAVL_BGR_32          =  8,
+    GAVL_BGR_32          =  8 | GAVL_CSP_RGB,
  /*! 32 bit BGR. Each color is an uint8_t. Color order is RGBARGBA
   */
-    GAVL_RGBA_32         =  9,
+    GAVL_RGBA_32         =  9 | GAVL_CSP_RGB | GAVL_CSP_ALPHA,
  /*! Packed YCbCr 4:2:2. Each component is an uint8_t. Component order is Y1 U1 Y2 V1
   */
-    GAVL_YUY2            = 10,
+    GAVL_YUY2            = 10 | GAVL_CSP_YUV,
  /*! Packed YCbCr 4:2:2. Each component is an uint8_t. Component order is U1 Y1 V1 Y2
   */
-    GAVL_UYVY            = 11,
+    GAVL_UYVY            = 11 | GAVL_CSP_YUV,
  /*! Packed YCbCrA 4:4:4:4. Each component is an uint8_t. Component order is YUVAYUVA
   */
-    GAVL_YUVA_32         = 26,
+    GAVL_YUVA_32         = 26 | GAVL_CSP_YUV | GAVL_CSP_ALPHA,
  /*! Planar YCbCr 4:2:0. Each component is an uint8_t. Chroma placement is defined by \ref gavl_chroma_placement_t
   */
-    GAVL_YUV_420_P       = 12,
+    GAVL_YUV_420_P       = 12 | GAVL_CSP_PLANAR | GAVL_CSP_YUV,
  /*! Planar YCbCr 4:2:2. Each component is an uint8_t
   */
-    GAVL_YUV_422_P       = 13,
+    GAVL_YUV_422_P       = 13 | GAVL_CSP_PLANAR | GAVL_CSP_YUV,
  /*! Planar YCbCr 4:4:4. Each component is an uint8_t
   */
-    GAVL_YUV_444_P       = 14,
+    GAVL_YUV_444_P       = 14 | GAVL_CSP_PLANAR | GAVL_CSP_YUV,
  /*! Planar YCbCr 4:1:1. Each component is an uint8_t
   */
-    GAVL_YUV_411_P       = 15,
+    GAVL_YUV_411_P       = 15 | GAVL_CSP_PLANAR | GAVL_CSP_YUV,
  /*! Planar YCbCr 4:1:0. Each component is an uint8_t
   */
-    GAVL_YUV_410_P       = 16,
+    GAVL_YUV_410_P       = 16 | GAVL_CSP_PLANAR | GAVL_CSP_YUV,
     
  /*! Planar YCbCr 4:2:0. Each component is an uint8_t, luma and chroma values are full range (0x00 .. 0xff)
   */
-    GAVL_YUVJ_420_P      = 17,
+    GAVL_YUVJ_420_P      = 17 | GAVL_CSP_PLANAR | GAVL_CSP_YUV | GAVL_CSP_YUVJ,
  /*! Planar YCbCr 4:2:2. Each component is an uint8_t, luma and chroma values are full range (0x00 .. 0xff)
   */
-    GAVL_YUVJ_422_P      = 18,
+    GAVL_YUVJ_422_P      = 18 | GAVL_CSP_PLANAR | GAVL_CSP_YUV | GAVL_CSP_YUVJ,
  /*! Planar YCbCr 4:4:4. Each component is an uint8_t, luma and chroma values are full range (0x00 .. 0xff)
   */
-    GAVL_YUVJ_444_P      = 19,
+    GAVL_YUVJ_444_P      = 19 | GAVL_CSP_PLANAR | GAVL_CSP_YUV | GAVL_CSP_YUVJ,
 
  /*! 16 bit Planar YCbCr 4:4:4. Each component is an uint16_t in native byte order.
   */
-    GAVL_YUV_444_P_16 = 20,
+    GAVL_YUV_444_P_16 = 20 | GAVL_CSP_PLANAR | GAVL_CSP_YUV,
  /*! 16 bit Planar YCbCr 4:2:2. Each component is an uint16_t in native byte order.
   */
-    GAVL_YUV_422_P_16 = 21,
+    GAVL_YUV_422_P_16 = 21 | GAVL_CSP_PLANAR | GAVL_CSP_YUV,
 
  /*! 48 bit RGB. Each color is an uint16_t in native byte order. Color order is RGBRGB
   */
-    GAVL_RGB_48       = 22,
+    GAVL_RGB_48       = 22 | GAVL_CSP_RGB,
  /*! 64 bit RGBA. Each color is an uint16_t in native byte order. Color order is RGBARGBA
   */
-    GAVL_RGBA_64      = 23,
+    GAVL_RGBA_64      = 23 | GAVL_CSP_RGB | GAVL_CSP_ALPHA,
         
  /*! float RGB. Each color is a float (0.0 .. 1.0) in native byte order. Color order is RGBRGB
   */
-    GAVL_RGB_FLOAT    = 24,
+    GAVL_RGB_FLOAT    = 24 | GAVL_CSP_RGB,
  /*! float RGBA. Each color is a float (0.0 .. 1.0) in native byte order. Color order is RGBARGBA
   */
-    GAVL_RGBA_FLOAT   = 25 
+    GAVL_RGBA_FLOAT   = 25 | GAVL_CSP_RGB  | GAVL_CSP_ALPHA
     
   } gavl_colorspace_t;
 
@@ -890,7 +975,7 @@ typedef enum
  * \returns 1 if the colorspace is RGB based, 0 else
  */
   
-int gavl_colorspace_is_rgb(gavl_colorspace_t colorspace);
+#define gavl_colorspace_is_rgb(csp) ((csp) & GAVL_CSP_RGB)
 
 /*! \ingroup video_format
  * \brief Check if a colorspace is YUV based
@@ -898,15 +983,23 @@ int gavl_colorspace_is_rgb(gavl_colorspace_t colorspace);
  * \returns 1 if the colorspace is YUV based, 0 else
  */
   
-int gavl_colorspace_is_yuv(gavl_colorspace_t colorspace);
+#define gavl_colorspace_is_yuv(csp) ((csp) & GAVL_CSP_YUV)
+
+/*! \ingroup video_format
+ * \brief Check if a colorspace is jpeg (full range) scaled
+ * \param colorspace A colorspace
+ * \returns 1 if the colorspace is jpeg scaled, 0 else
+ */
+
+#define gavl_colorspace_is_jpeg_scaled(csp) ((csp) & GAVL_CSP_YUVJ)
 
 /*! \ingroup video_format
  * \brief Check if a colorspace has a transparency channel
  * \param colorspace A colorspace
  * \returns 1 if the colorspace has a transparency channel, 0 else
  */
-
-int gavl_colorspace_has_alpha(gavl_colorspace_t colorspace);
+  
+#define gavl_colorspace_has_alpha(csp) ((csp) & GAVL_CSP_ALPHA)
 
 /*! \ingroup video_format
  * \brief Check if a colorspace is planar
@@ -914,7 +1007,7 @@ int gavl_colorspace_has_alpha(gavl_colorspace_t colorspace);
  * \returns 1 if the colorspace is planar, 0 else
  */
 
-int gavl_colorspace_is_planar(gavl_colorspace_t colorspace);
+#define  gavl_colorspace_is_planar(csp) ((csp) & GAVL_CSP_PLANAR)
 
 /*! \ingroup video_format
  * \brief Get the number of planes
@@ -1078,6 +1171,21 @@ struct gavl_video_format_s
 void gavl_video_format_copy(gavl_video_format_t * dst,
                             const gavl_video_format_t * src);
 
+/*!
+  \ingroup video_format
+  \brief Get the chroma offsets relative to the luma samples
+  \param format A video format 
+  \param field Index of the field (0 = top, 1 = bottom). For progressive format, this is unused
+  \param plane Index of the plane (1 = Cb, 2 = Cr)
+  \param off_x Returns the offset in x-direction
+  \param off_y Returns the offset in y-direction
+*/
+  
+void gavl_video_format_get_chroma_offset(gavl_video_format_t * format, int field, int plane,
+                                         float * off_x, float * off_y);
+  
+
+  
 /*! 
   \ingroup video_format
   \brief Dump a gavl_video_format_t to stderr
@@ -1251,7 +1359,27 @@ void gavl_video_frame_copy_flip_xy(gavl_video_format_t * format,
 void gavl_video_frame_get_subframe(gavl_colorspace_t colorspace,
                                    gavl_video_frame_t * src,
                                    gavl_video_frame_t * dst,
-                                   gavl_rectangle_t * src_rect);
+                                   gavl_rectangle_i_t * src_rect);
+
+/*!
+  \ingroup video_frame
+  \brief Get a field from a frame
+  \param colorspace Colorspace of the frames
+  \param dst Destination
+  \param src Source
+  \param field Field index (0 = top field, 1 = bottom field)
+
+  This fills the pointers of dst from src such that the dst will represent the
+  speficied field. Note that no data are copied here. This means that
+  dst must be created with NULL as the format argument and \ref gavl_video_frame_null
+  must be called before destroying dst.
+*/
+
+void gavl_video_frame_get_field(gavl_colorspace_t colorspace,
+                                gavl_video_frame_t * src,
+                                gavl_video_frame_t * dst,
+                                int field);
+
   
 
 /*!
@@ -1307,15 +1435,44 @@ typedef enum
   } gavl_alpha_mode_t;
 
 /** \ingroup video_options
+ * Deinterlace mode
+ *
+ * Specifies a deinterlacing mode
+ */
+  
+typedef enum
+  {
+    GAVL_DEINTERLACE_NONE      = 0, /*!< Don't care about interlacing                */
+    GAVL_DEINTERLACE_COPY      = 1, /*!< Take one field and copy it to the other     */
+    GAVL_DEINTERLACE_SCALE     = 2  /*!< Take one field and scale it vertically by 2 */
+  } gavl_deinterlace_mode_t;
+
+/** \ingroup video_options
+ * \brief Specifies which field to drop when deinterlacing
+ *
+ * This is used for deinterlacing with GAVL_DEINTERLACE_COPY and GAVL_DEINTERLACE_SCALE.
+ */
+  
+typedef enum
+  {
+    GAVL_DEINTERLACE_DROP_TOP,    /*!< Drop top field, use bottom field */
+    GAVL_DEINTERLACE_DROP_BOTTOM, /*!< Drop bottom field, use top field */
+  } gavl_deinterlace_drop_mode_t;
+  
+/** \ingroup video_options
  * Scaling algorithm
  */
   
 typedef enum
   {
-    GAVL_SCALE_NONE = 0,
-    GAVL_SCALE_AUTO,    /*!< Take mode from conversion quality */
-    GAVL_SCALE_NEAREST, /*!< Nearest neighbor */
-    GAVL_SCALE_BILINEAR,/*!< Bilinear */
+    GAVL_SCALE_AUTO,          /*!< Take mode from conversion quality */
+    GAVL_SCALE_NEAREST,       /*!< Nearest neighbor                  */
+    GAVL_SCALE_BILINEAR,      /*!< Bilinear                          */
+    GAVL_SCALE_QUADRATIC,     /*!< Quadratic                         */
+    GAVL_SCALE_CUBIC_BSPLINE, /*!< Cubic B-Spline */
+    GAVL_SCALE_CUBIC_MITCHELL,/*!< Cubic Mitchell-Netravali */
+    GAVL_SCALE_CUBIC_CATMULL, /*!< Cubic Catmull-Rom */
+    GAVL_SCALE_SINC_LANCZOS,  /*!< Sinc with Lanczos window. Set order with \ref gavl_video_options_set_scale_order */
   } gavl_scale_mode_t;
 
 /** \ingroup video_options
@@ -1339,14 +1496,15 @@ void gavl_video_options_set_defaults(gavl_video_options_t * opt);
  *  \param src_rect Rectangular area in the source frame
  *  \param dst_rect Rectangular area in the destination frame
  *
- *  Set the source and destination rectangles the converter will operate on.
- *  This option might also switch on implicit scaling for the video converter.
- *  The meaning of src_rect and dst_rect is identical to \ref gavl_video_scaler_init .
+ *  Set the source and destination rectangles the converter or scaler will operate on.
+ *  When using the \ref video_scaler, it is mandatory to set the rectangles. For the
+ *  \ref video_converter it is optional and will be used together with the images sizes
+ *  of the source and destination formats to set up scaling.
  */
   
 void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
-                                       const gavl_rectangle_t * src_rect,
-                                       const gavl_rectangle_t * dst_rect);
+                                       const gavl_rectangle_f_t * src_rect,
+                                       const gavl_rectangle_i_t * dst_rect);
 
 /*! \ingroup video_options
  *  \brief Set the quality level for the converter
@@ -1377,12 +1535,22 @@ void gavl_video_options_set_alpha_mode(gavl_video_options_t * opt,
 /*! \ingroup Video options
  *  \brief Set the scale mode
  *  \param opt Video options
- *  \param alpha_mode Scale mode
+ *  \param scale_mode Scale mode
  */
   
 void gavl_video_options_set_scale_mode(gavl_video_options_t * opt,
                                        gavl_scale_mode_t scale_mode);
 
+/*! \ingroup Video options
+ *  \brief Set the scale order for GAVL_SCALE_SINC_LANCZOS
+ *  \param opt Video options
+ *  \param order Order (must be at least 4)
+ */
+  
+void gavl_video_options_set_scale_order(gavl_video_options_t * opt,
+                                        int order);
+
+  
 /*! \ingroup Video options
  *  \brief Set the background color for alpha blending
  *  \param opt Video options
@@ -1399,6 +1567,25 @@ void gavl_video_options_set_background_color(gavl_video_options_t * opt,
  */
 
 int gavl_video_options_get_conversion_flags(gavl_video_options_t * opt);
+
+/*! \ingroup Video options
+ *  \brief Set the deinterlace mode
+ *  \param opt Video options
+ *  \param deinterlace_mode Deinterlace mode
+ */
+  
+void gavl_video_options_set_deinterlace_mode(gavl_video_options_t * opt,
+                                             gavl_deinterlace_mode_t deinterlace_mode);
+
+/*! \ingroup Video options
+ *  \brief Set the deinterlace drop mode
+ *  \param opt Video options
+ *  \param deinterlace_drop_mode Deinterlace drop mode
+ */
+  
+void gavl_video_options_set_deinterlace_drop_mode(gavl_video_options_t * opt,
+                                                  gavl_deinterlace_drop_mode_t deinterlace_drop_mode);
+
   
 /***************************************************
  * Create and destroy video converters
@@ -1492,6 +1679,17 @@ void gavl_video_convert(gavl_video_converter_t * cnv,
 /*! \defgroup video_scaler Scaler
  *  \ingroup video
  *  \brief Video scaler
+ *
+ *  The video scaler can resize images, resample chroma planes
+ *  and perform simple deinterlacing. You can use it either through the
+ *  \ref gavl_video_converter_t or directly through the functions in this module.
+ *
+ *  The scaler does the elementary operation to take a rectangular area (with floating point
+ *  coordinates) of the source image and scale it into a specified rectangular area of the
+ *  destination image. Internally, the source and destination rectangles can be set
+ *  independently for all planes and fields, which means, that the scaler can also do colospace
+ *  conversions for colorspaces which differ only in the chroma subsampling modes.
+ *
  *  \todo Currently the scaler doesn't work at all.
  */
 
@@ -1529,8 +1727,6 @@ gavl_video_scaler_get_options(gavl_video_scaler_t * scaler);
 /*! \ingroup video_scaler
  *  \brief Initialize a video scaler
  *  \param scaler A video scaler
- *  \param src_rect Rectangle in the input frame, the scaler will operate on
- *  \param dst_rect Rectangle in the output frame, the scaler will operate on
  *  \param src_format Input format
  *  \param dst_format Output format
  *  \returns If something goes wrong (should never happen), -1 is returned.
@@ -1540,10 +1736,8 @@ gavl_video_scaler_get_options(gavl_video_scaler_t * scaler);
 
 
 int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
-                            gavl_rectangle_t * src_rect,
-                            gavl_rectangle_t * dst_rect,
-                            const gavl_video_format_t * src_format,
-                            const gavl_video_format_t * dst_format);
+                           const gavl_video_format_t * src_format,
+                           const gavl_video_format_t * dst_format);
 
 /*! \ingroup video_scaler
  *  \brief Scale video
@@ -1573,7 +1767,7 @@ typedef struct
 typedef struct
   {
   gavl_video_frame_t * frame;
-  gavl_rectangle_t dst_rectangle;
+  gavl_rectangle_i_t dst_rectangle;
   } gavl_overlay_t;
 
 /*

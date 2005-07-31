@@ -110,7 +110,7 @@ typedef struct
 
 chroma_placement_tab_t chroma_placement_tab[] =
   {
-    { GAVL_CHROMA_PLACEMENT_DEFAULT, "MPEG-1/Jpeg" },
+    { GAVL_CHROMA_PLACEMENT_DEFAULT, "MPEG-1/JPEG" },
     { GAVL_CHROMA_PLACEMENT_MPEG2, "MPEG-2" },
     { GAVL_CHROMA_PLACEMENT_DVPAL, "DV PAL" }
   };
@@ -129,3 +129,58 @@ const char * gavl_chroma_placement_to_string(gavl_chroma_placement_t mode)
   
   }
 
+void gavl_video_format_get_chroma_offset(gavl_video_format_t * format, int field, int plane, float * off_x, float * off_y)
+  {
+  int sub_h, sub_v;
+  if(!plane)
+    {
+    *off_x = 0.0;
+    *off_y = 0.0;
+    return;
+    }
+  gavl_colorspace_chroma_sub(format->colorspace, &sub_h, &sub_v);
+
+  if((sub_h != 2) || (sub_v != 2))
+    {
+    *off_x = 0.0;
+    *off_y = 0.0;
+    return;
+    }
+
+  switch(format->chroma_placement)
+    {
+    case GAVL_CHROMA_PLACEMENT_DEFAULT:
+      *off_x = 0.5;
+      *off_y = 0.5;
+      break;
+    case GAVL_CHROMA_PLACEMENT_MPEG2:
+      if(format->interlace_mode == GAVL_INTERLACE_NONE)
+        {
+        *off_x = 0.0;
+        *off_y = 0.5;
+        }
+      else if(field == 0) /* Top field */
+        {
+        *off_x = 0.0;
+        *off_y = 0.25;
+        }
+      else /* Bottom field */
+        {
+        *off_x = 0.0;
+        *off_y = 0.75;
+        }
+      break;
+    case GAVL_CHROMA_PLACEMENT_DVPAL:
+      if(plane == 1) /* Cb */
+        {
+        *off_x = 0.0;
+        *off_y = 1.0;
+        }
+      else           /* Cr */
+        {
+        *off_x = 0.0;
+        *off_y = 0.0;
+        }
+    }
+  
+  }

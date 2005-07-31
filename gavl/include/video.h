@@ -41,8 +41,13 @@ struct gavl_video_options_s
   int conversion_flags;
   
   gavl_alpha_mode_t alpha_mode;
+
   gavl_scale_mode_t scale_mode;
-  
+  int scale_order;
+
+  gavl_deinterlace_mode_t deinterlace_mode;
+  gavl_deinterlace_drop_mode_t deinterlace_drop_mode;
+    
   /* Background color (Floating point and 16 bit int)background_float[3]; */
   float background_float[3];
 
@@ -50,8 +55,10 @@ struct gavl_video_options_s
   
   /* Source and destination rectangles */
 
-  gavl_rectangle_t src_rect;
-  gavl_rectangle_t dst_rect;
+  gavl_rectangle_f_t src_rect;
+  gavl_rectangle_i_t dst_rect;
+  int have_rectangles;
+  
   int keep_aspect;
   };
 

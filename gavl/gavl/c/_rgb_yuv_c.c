@@ -349,7 +349,8 @@
 #define CONVERT     \
     RGB_24_TO_YUV_8(RGB15_TO_R_8(src[0]),\
                     RGB15_TO_G_8(src[0]),                       \
-                    RGB15_TO_B_8(src[0]),dst[0],dst[1],dst[2])
+                    RGB15_TO_B_8(src[0]),dst[0],dst[1],dst[2])  \
+    dst[3] = 0xff;
 
 #include "../csp_packed_packed.h"
 
@@ -364,7 +365,9 @@
 #define CONVERT     \
     RGB_24_TO_YUV_8(BGR15_TO_R_8(src[0]),\
                BGR15_TO_G_8(src[0]),\
-               BGR15_TO_B_8(src[0]),dst[0],dst[1],dst[2])
+               BGR15_TO_B_8(src[0]),dst[0],dst[1],dst[2])  \
+    dst[3] = 0xff;
+
 
 #include "../csp_packed_packed.h"
 
@@ -379,7 +382,9 @@
 #define CONVERT     \
     RGB_24_TO_YUV_8(RGB16_TO_R_8(src[0]),\
                RGB16_TO_G_8(src[0]),\
-               RGB16_TO_B_8(src[0]),dst[0],dst[1],dst[2])
+               RGB16_TO_B_8(src[0]),dst[0],dst[1],dst[2])  \
+    dst[3] = 0xff;
+
 
 #include "../csp_packed_packed.h"
 
@@ -394,7 +399,9 @@
 #define CONVERT     \
     RGB_24_TO_YUV_8(BGR16_TO_R_8(src[0]),\
                BGR16_TO_G_8(src[0]),\
-               BGR16_TO_B_8(src[0]),dst[0],dst[1],dst[2])
+               BGR16_TO_B_8(src[0]),dst[0],dst[1],dst[2])  \
+    dst[3] = 0xff;
+
 
 #include "../csp_packed_packed.h"
 
@@ -407,7 +414,9 @@
 #define OUT_ADVANCE 4
 #define NUM_PIXELS  1
 #define CONVERT     \
-    RGB_24_TO_YUV_8(src[0],src[1],src[2],dst[0],dst[1],dst[2])
+    RGB_24_TO_YUV_8(src[0],src[1],src[2],dst[0],dst[1],dst[2])  \
+    dst[3] = 0xff;
+
 
 #include "../csp_packed_packed.h"
 
@@ -420,7 +429,9 @@
 #define OUT_ADVANCE 4
 #define NUM_PIXELS  1
 #define CONVERT     \
-    RGB_48_TO_YUV_8(src[0],src[1],src[2],dst[0],dst[1],dst[2])
+    RGB_48_TO_YUV_8(src[0],src[1],src[2],dst[0],dst[1],dst[2])  \
+    dst[3] = 0xff;
+
 
 #include "../csp_packed_packed.h"
 
@@ -436,7 +447,8 @@
 #define INIT INIT_RGB_FLOAT_TO_YUV
 
 #define CONVERT                                                   \
-    RGB_FLOAT_TO_YUV_8(src[0],src[1],src[2],dst[0],dst[1],dst[2])
+    RGB_FLOAT_TO_YUV_8(src[0],src[1],src[2],dst[0],dst[1],dst[2])  \
+    dst[3] = 0xff;
 
 #include "../csp_packed_packed.h"
 
@@ -450,7 +462,8 @@
 #define OUT_ADVANCE 4
 #define NUM_PIXELS  1
 #define CONVERT     \
-    RGB_24_TO_YUV_8(src[2],src[1],src[0],dst[0],dst[1],dst[2])
+    RGB_24_TO_YUV_8(src[2],src[1],src[0],dst[0],dst[1],dst[2])  \
+    dst[3] = 0xff;
 
 #include "../csp_packed_packed.h"
 
@@ -463,7 +476,8 @@
 #define OUT_ADVANCE 4
 #define NUM_PIXELS  1
 #define CONVERT     \
-    RGB_24_TO_YUV_8(src[0],src[1],src[2],dst[0],dst[1],dst[2])
+    RGB_24_TO_YUV_8(src[0],src[1],src[2],dst[0],dst[1],dst[2])  \
+    dst[3] = 0xff;
 
 #include "../csp_packed_packed.h"
 
@@ -476,7 +490,8 @@
 #define OUT_ADVANCE 4
 #define NUM_PIXELS  1
 #define CONVERT     \
-    RGB_24_TO_YUV_8(src[2],src[1],src[0],dst[0],dst[1],dst[2])
+    RGB_24_TO_YUV_8(src[2],src[1],src[0],dst[0],dst[1],dst[2])  \
+    dst[3] = 0xff;
 
 #include "../csp_packed_packed.h"
 

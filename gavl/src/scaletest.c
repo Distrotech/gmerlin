@@ -243,8 +243,8 @@ static gavl_video_frame_t * read_png(const char * filename,
 
 int main(int argc, char ** argv)
   {
-  gavl_rectangle_t src_rect;
-  gavl_rectangle_t dst_rect;
+  gavl_rectangle_f_t src_rect;
+  gavl_rectangle_i_t dst_rect;
   
   char filename_buffer[1024];
   int i, imax;
@@ -257,15 +257,24 @@ int main(int argc, char ** argv)
     
   gavl_colorspace_t csp;
 
+  memset(&format, 0, sizeof(format));
+  memset(&format_1, 0, sizeof(format_1));
+  
   imax = gavl_num_colorspaces();
   scaler = gavl_video_scaler_create();
 
   opt = gavl_video_scaler_get_options(scaler);
-    
+
+  //  imax = 1;
+  
   for(i = 0; i < imax; i++)
     {
     csp = gavl_get_colorspace(i);
-
+    
+    //    csp = GAVL_RGB_24;
+    
+    fprintf(stderr, "Colorspace: %s\n", gavl_colorspace_to_string(csp));
+    
     dst_rect.w = atoi(argv[2]);
     dst_rect.h = atoi(argv[3]);
     dst_rect.x = 0;
@@ -277,7 +286,11 @@ int main(int argc, char ** argv)
     src_rect.y = 0;
         
     frame = read_png(argv[1], &format, csp);
-        
+#if 0
+    /* Write test frame */
+    sprintf(filename_buffer, "%s-test.png", gavl_colorspace_to_string(csp));
+    write_png(filename_buffer, &format, frame);
+#endif   
     gavl_video_format_copy(&format_1, &format);
     
     format_1.image_width  = dst_rect.w + dst_rect.x;
@@ -287,11 +300,12 @@ int main(int argc, char ** argv)
     format_1.frame_height = dst_rect.h + dst_rect.y;
 
     gavl_video_options_set_defaults(opt);
-    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_BILINEAR);
-    gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_MMXEXT);
-        
+    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_SINC_LANCZOS);
+    //    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_CUBIC_BSPLINE);
+    gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
+    gavl_video_options_set_rectangles(opt, &src_rect, &dst_rect);
+    
     if(gavl_video_scaler_init(scaler,
-                              &src_rect, &dst_rect,
                               &format, &format_1) < 0)  // int output_height
       {
       fprintf(stderr, "No scaling routine defined\n");

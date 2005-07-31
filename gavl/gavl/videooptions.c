@@ -37,6 +37,8 @@ void gavl_video_options_set_defaults(gavl_video_options_t * opt)
   {
   memset(opt, 0, sizeof(*opt));
   opt->accel_flags = GAVL_ACCEL_C;
+  opt->scale_order = 4;
+  opt->quality = GAVL_QUALITY_DEFAULT;
   }
 
 void gavl_video_options_copy(gavl_video_options_t * dst,
@@ -47,11 +49,12 @@ void gavl_video_options_copy(gavl_video_options_t * dst,
 
   
 void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
-                                       const gavl_rectangle_t * src_rect,
-                                       const gavl_rectangle_t * dst_rect)
+                                       const gavl_rectangle_f_t * src_rect,
+                                       const gavl_rectangle_i_t * dst_rect)
   {
-  gavl_rectangle_copy(&(opt->src_rect), src_rect);
-  gavl_rectangle_copy(&(opt->dst_rect), dst_rect);
+  gavl_rectangle_f_copy(&(opt->src_rect), src_rect);
+  gavl_rectangle_i_copy(&(opt->dst_rect), dst_rect);
+  opt->have_rectangles = 1;
   }
 
 #define SET_INT(p) opt->p = p
@@ -84,6 +87,24 @@ void gavl_video_options_set_scale_mode(gavl_video_options_t * opt,
                                        gavl_scale_mode_t scale_mode)
   {
   SET_INT(scale_mode);
+  }
+
+void gavl_video_options_set_scale_order(gavl_video_options_t * opt,
+                                        int scale_order)
+  {
+  SET_INT(scale_order);
+  }
+
+void gavl_video_options_set_deinterlace_mode(gavl_video_options_t * opt,
+                                             gavl_deinterlace_mode_t deinterlace_mode)
+  {
+  SET_INT(deinterlace_mode);
+  }
+
+void gavl_video_options_set_deinterlace_drop_mode(gavl_video_options_t * opt,
+                                             gavl_deinterlace_drop_mode_t deinterlace_drop_mode)
+  {
+  SET_INT(deinterlace_drop_mode);
   }
 
 #undef SET_INT

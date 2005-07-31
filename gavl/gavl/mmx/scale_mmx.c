@@ -41,6 +41,8 @@
 #define SCALE_FUNC_TAIL \
     }
 
+#if 0
+
 /* Bilinear in x direction */
 
 #define LOAD_FACTORS_BILINEAR_X \
@@ -625,6 +627,8 @@ static void scale_y_yuv_packed_bilinear_mmx(gavl_video_scaler_t * s,
   emms();
   }
 
+#endif
+
 #ifdef MMXEXT
 void gavl_init_scale_funcs_mmxext(gavl_scale_funcs_t * tab,
                                   gavl_scale_mode_t scale_mode,
@@ -636,6 +640,8 @@ void gavl_init_scale_funcs_mmx(gavl_scale_funcs_t * tab,
   
 #endif
   {
+#if 0
+  
   //  fprintf(stderr, "gavl_init_scale_funcs_mmx %d %d\n", scale_x, scale_y);
   switch(scale_mode)
     {
@@ -694,5 +700,6 @@ void gavl_init_scale_funcs_mmx(gavl_scale_funcs_t * tab,
     case GAVL_SCALE_NONE:
       break;
     }
+#endif
   }
 

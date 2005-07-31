@@ -27,6 +27,9 @@ rectangle.c \
 sampleformat.c \
 samplerate.c \
 scale.c \
+scale_context.c \
+scale_kernels.c \
+scale_table.c \
 time.c \
 timer.c \
 video.c \

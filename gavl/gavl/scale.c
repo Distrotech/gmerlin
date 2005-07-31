@@ -1,3 +1,21 @@
+/*****************************************************************
+
+  scale.c
+
+  Copyright (c) 2005 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+
+  http://gmerlin.sourceforge.net
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+
+*****************************************************************/
 
 #include <string.h>
 #include <stdlib.h>
@@ -14,339 +32,11 @@
 #define SCALE_ACTION_COPY  1
 #define SCALE_ACTION_SCALE 2
 
-static void alloc_coeffs_1D(gavl_video_scale_coeff_1D_t ** coeffs,
-                            int * coeffs_alloc, int num)
-  {
-  if(*coeffs_alloc < num)
-    {
-    *coeffs_alloc = num + 128;
-    *coeffs = realloc(*coeffs, *coeffs_alloc * sizeof(**coeffs));
-    }
-  }
-
-static void init_coeffs_nearest(gavl_video_scale_coeff_1D_t * coeffs,
-                                int src_size, int dst_size)
-  {
-  int i;
-  double scale_factor;
-  double src_index_f;
-  double dst_index_f;
-
-  scale_factor = (float)(dst_size) / (float)(src_size);
-    
-  for(i = 0; i < dst_size; i++)
-    {
-    dst_index_f = (double)i + 0.5;
-    src_index_f = dst_index_f / scale_factor;
-    //    fprintf(stderr, "i: %d\n", i);
-    coeffs[i].index = (int)(src_index_f);
-    }
-
-#ifdef DUMP_TABLES
-  for(i = 0; i < dst_size; i++)
-    {
-    fprintf(stderr, "dst[%d] = src[%d]\n", i, coeffs[i].index[0]);
-    }
-#endif
-
-  }
-
-static void init_coeffs_bilinear_1D(gavl_video_scale_coeff_1D_t * coeffs,
-                                    int src_size, int dst_size)
-  {
-  double scale_factor;
-  double src_index_1_f;
-  double dst_index_f;
-  int i;
-  double factor_2;
-  
-  scale_factor = (float)(dst_size) / (float)(src_size);
-
-  if(src_size == 1)
-    {
-    for(i = 0; i < dst_size; i++)
-      {
-      coeffs[i].index = 0;
-      coeffs[i].factor[0].fac_f = 1.0;
-      coeffs[i].factor[1].fac_f = 0.0;
-      }
-    return;
-    }
-  
-  for(i = 0; i < dst_size; i++)
-    {
-    dst_index_f = (double)i + 0.5;
-    src_index_1_f = dst_index_f / scale_factor;
-
-    //    printf("dst_index_f: %f src_index_1_f: %f\n", dst_index_f, 
-    //           src_index_1_f);
-
-    coeffs[i].index = (int)(floor(src_index_1_f-0.5));
-        
-    if(coeffs[i].index < 0)
-      {
-      coeffs[i].index++;
-      factor_2 = 0.0;
-      }
-    else if(coeffs[i].index >= src_size-1)
-      {
-      coeffs[i].index--;
-      factor_2 = 1.0;
-      }
-    else
-      factor_2 = (src_index_1_f - coeffs[i].index) - 0.5;
-
-    //    coeffs[i].index[1] = coeffs[i].index[0] + 1;
-    
-    coeffs[i].factor[1].fac_f = factor_2;
-    if(coeffs[i].factor[1].fac_f > 1.0)
-      coeffs[i].factor[1].fac_f = 1.0;
-
-    coeffs[i].factor[0].fac_f = 1.0 - coeffs[i].factor[1].fac_f;
-    
-    // factor = 1.0 - (src_index_1_f - (double)src_index_1_i);
-    // printf("dst[%d] = %f * src[%d] + %f * src[%d]\n",
-    // i, 1.0 - factor_2, src_index_1_i, factor_2, src_index_1_i + 1);
-    }
-#ifdef DUMP_TABLES
-  for(i = 0; i < dst_size; i++)
-    fprintf(stderr, "dst[%d] = src[%d] * %f + dst[%d] * %f\n",
-            i, coeffs[i].index[0], coeffs[i].factor[0].fac_f,
-            coeffs[i].index[1], coeffs[i].factor[1].fac_f);
-#endif
-  }
-
-#if 0
-static void init_coeffs_bilinear_2D(gavl_video_scale_coeff_2D_t ** coeffs,
-                                    gavl_video_scale_coeff_1D_t * coeffs_h,
-                                    gavl_video_scale_coeff_1D_t * coeffs_v,
-                                    int w, int h)
-  {
-  int i, j;
-
-  for(i = 0; i < h; i++)
-    {
-
-    for(j = 0; j < w; j++)
-      {
-      //      coeffs[i][j].index[0] = 
-      }
-    
-    }
-  }
-#endif
-
-static void init_plane(gavl_video_scaler_t * s,
-                       gavl_scale_mode_t scale_mode,
-                       int plane)
-  {
-  /* Allocate coefficient arrays */
-  s->table[plane].num_coeffs_h = s->dst_rect[plane].w;
-  s->table[plane].num_coeffs_v = s->dst_rect[plane].h;
-
-  switch(scale_mode)
-    {
-    case GAVL_SCALE_AUTO:
-    case GAVL_SCALE_NEAREST:
-      alloc_coeffs_1D(&(s->table[plane].coeffs_h),
-                   &(s->table[plane].coeffs_h_alloc), s->dst_rect[plane].w);
-      init_coeffs_nearest(s->table[plane].coeffs_h,
-                          s->src_rect[plane].w, s->dst_rect[plane].w);
-      break;
-    case GAVL_SCALE_BILINEAR:
-
-      if(s->src_rect[plane].w != s->dst_rect[plane].w)
-        {
-        alloc_coeffs_1D(&(s->table[plane].coeffs_h),
-                     &(s->table[plane].coeffs_h_alloc), s->dst_rect[plane].w);
-        init_coeffs_bilinear_1D(s->table[plane].coeffs_h,
-                                s->src_rect[plane].w, s->dst_rect[plane].w);
-        }
-      break;
-    case GAVL_SCALE_NONE:
-      break;
-    }
-  switch(scale_mode)
-    {
-    case GAVL_SCALE_AUTO:
-    case GAVL_SCALE_NEAREST:
-        alloc_coeffs_1D(&(s->table[plane].coeffs_v),
-                     &(s->table[plane].coeffs_v_alloc), s->dst_rect[plane].h);
-        init_coeffs_nearest(s->table[plane].coeffs_v,
-                            s->src_rect[plane].h, s->dst_rect[plane].h);
-        break;
-      case GAVL_SCALE_BILINEAR:
-        if(s->src_rect[plane].h != s->dst_rect[plane].h)
-          {
-          alloc_coeffs_1D(&(s->table[plane].coeffs_v),
-                       &(s->table[plane].coeffs_v_alloc), s->dst_rect[plane].h);
-          
-          init_coeffs_bilinear_1D(s->table[plane].coeffs_v,
-                               s->src_rect[plane].h, s->dst_rect[plane].h);
-          }
-        break;
-    case GAVL_SCALE_NONE:
-      break;
-    }
-  }
-
-/* Initialize scale table */
-
-static int init_scale_table(gavl_video_scaler_t * s,
-                            gavl_scale_mode_t scale_mode,
-                            gavl_colorspace_t colorspace,
-                            gavl_scale_funcs_t * funcs)
-  {
-  switch(colorspace)
-    {
-    case GAVL_COLORSPACE_NONE:
-      return -1;
-      break;
-    case GAVL_RGB_15:
-    case GAVL_BGR_15:
-      
-      init_plane(s, scale_mode, 0);
-
-      s->table[0].scanline_func = funcs->scale_15_16;
-      break;
-    case GAVL_RGB_16:
-    case GAVL_BGR_16:
-      
-      init_plane(s, scale_mode, 0);
-      
-      s->table[0].scanline_func = funcs->scale_16_16;
-      break;
-    case GAVL_RGB_24:
-    case GAVL_BGR_24:
-      
-      init_plane(s, scale_mode, 0);
-      s->table[0].scanline_func = funcs->scale_24_24;
-      break;
-    case GAVL_RGB_32:
-    case GAVL_BGR_32:
-      
-      init_plane(s, scale_mode, 0);
-      s->table[0].scanline_func = funcs->scale_24_32;
-      break;
-    case GAVL_RGBA_32:
-    case GAVL_YUVA_32:
-      
-      init_plane(s, scale_mode, 0);
-      s->table[0].scanline_func = funcs->scale_32_32;
-      break;
-    case GAVL_YUY2:
-      
-      init_plane(s, scale_mode, 0);
-      init_plane(s, scale_mode, 1);
-      
-      s->table[0].scanline_func = funcs->scale_yuy2;
-      break;
-    case GAVL_UYVY:
-      
-      init_plane(s, scale_mode, 0);
-      init_plane(s, scale_mode, 1);
-      
-      s->table[0].scanline_func = funcs->scale_uyvy;
-
-      s->table[0].byte_advance = 2;
-      s->table[1].byte_advance = 4;
-      
-      break;
-    case GAVL_YUV_420_P:
-    case GAVL_YUVJ_420_P:
-      init_plane(s, scale_mode, 0);
-      init_plane(s, scale_mode, 1);
-      init_plane(s, scale_mode, 2);
-            
-      s->table[0].scanline_func = funcs->scale_8;
-      s->table[1].scanline_func = funcs->scale_8;
-      s->table[2].scanline_func = funcs->scale_8;
-
-      s->table[0].byte_advance = 1;
-      s->table[1].byte_advance = 1;
-      s->table[2].byte_advance = 1;
-      break;
-    case GAVL_YUV_422_P:
-    case GAVL_YUVJ_422_P:
-
-      init_plane(s, scale_mode, 0);
-      init_plane(s, scale_mode, 1);
-      init_plane(s, scale_mode, 2);
-            
-      s->table[0].scanline_func = funcs->scale_8;
-      s->table[1].scanline_func = funcs->scale_8;
-      s->table[2].scanline_func = funcs->scale_8;
-
-      s->table[0].byte_advance = 1;
-      s->table[1].byte_advance = 1;
-      s->table[2].byte_advance = 1;
-
-      break;
-    case GAVL_YUV_444_P:
-    case GAVL_YUVJ_444_P:
-      
-
-      init_plane(s, scale_mode, 0);
-      init_plane(s, scale_mode, 1);
-      init_plane(s, scale_mode, 2);
-
-      s->table[0].scanline_func = funcs->scale_8;
-      s->table[1].scanline_func = funcs->scale_8;
-      s->table[2].scanline_func = funcs->scale_8;
-      s->table[0].byte_advance = 1;
-      s->table[1].byte_advance = 1;
-      s->table[2].byte_advance = 1;
-      
-      break;
-    case GAVL_YUV_411_P:
-      
-
-      init_plane(s, scale_mode, 0);
-      init_plane(s, scale_mode, 1);
-      init_plane(s, scale_mode, 2);
-
-      s->table[0].scanline_func = funcs->scale_8;
-      s->table[1].scanline_func = funcs->scale_8;
-      s->table[2].scanline_func = funcs->scale_8;
-      s->table[0].byte_advance = 1;
-      s->table[1].byte_advance = 1;
-      s->table[2].byte_advance = 1;
-
-
-      break;
-    case GAVL_YUV_410_P:
-      init_plane(s, scale_mode, 0);
-      init_plane(s, scale_mode, 1);
-      init_plane(s, scale_mode, 2);
-
-      s->table[0].scanline_func = funcs->scale_8;
-      s->table[1].scanline_func = funcs->scale_8;
-      s->table[2].scanline_func = funcs->scale_8;
-      s->table[0].byte_advance = 1;
-      s->table[1].byte_advance = 1;
-      s->table[2].byte_advance = 1;
-      break;
-    }
-  if(!s->table[0].scanline_func)
-    return 0;
-  return 1;
-  }
-
-#define FREE(ptr) if(ptr) free(ptr);
-
-static void free_scale_table(gavl_video_scale_table_t * tab)
-  {
-  FREE(tab->coeffs_h);
-  FREE(tab->coeffs_v);
-  }
-
-#undef FREE
-
 /* Public functions */
 
 void gavl_video_scaler_destroy(gavl_video_scaler_t * s)
   {
-  int i;
+  int i, j;
 
   gavl_video_frame_null(s->src);
   gavl_video_frame_null(s->dst);
@@ -354,8 +44,16 @@ void gavl_video_scaler_destroy(gavl_video_scaler_t * s)
   gavl_video_frame_destroy(s->src);
   gavl_video_frame_destroy(s->dst);
 
-  for(i = 0; i < 4; i++)
-    free_scale_table(&(s->table[i]));
+  for(i = 0; i < 2; i++)
+    {
+    for(j = 0; j < GAVL_MAX_PLANES; j++)
+      {
+      gavl_video_scale_context_cleanup(&(s->contexts[i][j]));
+      }
+    
+    }
+  
+  
   free(s);  
   }
 
@@ -366,166 +64,153 @@ gavl_video_scaler_t * gavl_video_scaler_create()
 
   ret->src = gavl_video_frame_create((gavl_video_format_t*)0);
   ret->dst = gavl_video_frame_create((gavl_video_format_t*)0);
+
+  gavl_video_options_set_defaults(&ret->opt);
   
   return ret;
   }
 
-
 int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
-                           gavl_rectangle_t * src_rect,
-                           gavl_rectangle_t * dst_rect,
                            const gavl_video_format_t * src_format,
                            const gavl_video_format_t * dst_format)
   {
-  int i;
-  int chroma_sub_h,  chroma_sub_v; 
+  gavl_video_options_t opt;
+
   gavl_scale_funcs_t funcs;
+  int field, plane;
+ 
+  int sub_h_out = 1, sub_v_out = 1;
 
-  int scale_x, scale_y;
+  /* Copy options because we want to change them */
 
-#ifdef ARCH_X86
-  int min_scanline_width;
-#endif
+  gavl_video_options_copy(&opt, &(scaler->opt));
   
-  scaler->colorspace = src_format->colorspace;
-  scaler->num_planes = gavl_colorspace_num_planes(scaler->colorspace);
-  gavl_colorspace_chroma_sub(scaler->colorspace, &chroma_sub_h, &chroma_sub_v);
+  /* Copy formats */
+  
+  gavl_video_format_copy(&(scaler->src_format), src_format);
+  gavl_video_format_copy(&(scaler->dst_format), dst_format);
+  
+  /* Check if we have rectangles */
 
+  if(!opt.have_rectangles)
+    {
+    gavl_rectangle_f_set_all(&(scaler->src_rect), src_format);
+    gavl_rectangle_i_set_all(&(scaler->dst_rect), dst_format);
+    }
+  else
+    {
+    gavl_rectangle_f_copy(&(scaler->src_rect), &(opt.src_rect));
+    gavl_rectangle_i_copy(&(scaler->dst_rect), &(opt.dst_rect));
+    }
+  
+  /* Crop source and destination rectangles to the formats */
+
+  
+  
+  /* Align the destination rectangle to the output formtat */
+
+  gavl_colorspace_chroma_sub(scaler->dst_format.colorspace, &sub_h_out, &sub_v_out);
+  gavl_rectangle_i_align(&(scaler->dst_rect), sub_h_out, sub_v_out);
+  
 #if 0
-  fprintf(stderr, "src_format: ");
+  fprintf(stderr, "Initializing scaler:\n");
+  fprintf(stderr, "Src format:\n");
   gavl_video_format_dump(src_format);
-  fprintf(stderr, "\n");
-
-  fprintf(stderr, "dst_format: ");
+  fprintf(stderr, "Dst format:\n");
   gavl_video_format_dump(dst_format);
-  fprintf(stderr, "\n");
 
-  fprintf(stderr, "src_rect 1: ");
-  gavl_rectangle_dump(src_rect);
-  fprintf(stderr, "\n");
-
-  fprintf(stderr, "dst_rect 1: ");
-  gavl_rectangle_dump(dst_rect);
+  fprintf(stderr, "Src rectangle:\n");
+  gavl_rectangle_f_dump(&scaler->src_rect);
+  fprintf(stderr, "\nDst rectangle:\n");
+  gavl_rectangle_i_dump(&scaler->dst_rect);
   fprintf(stderr, "\n");
 #endif
   
-  /* Crop rectangles to formats */
-  
-  gavl_rectangle_crop_to_format_scale(src_rect,
-                                      dst_rect,
-                                      src_format,
-                                      dst_format);
+  /* Check if we must deinterlace */
 
+  if((opt.deinterlace_mode == GAVL_DEINTERLACE_SCALE) &&
+     (dst_format->interlace_mode == GAVL_INTERLACE_NONE) &&
+     (src_format->interlace_mode != GAVL_INTERLACE_NONE))
+    scaler->deinterlace = 1;
+    
+  /* Check how many planes we have */
+
+  if((src_format->colorspace == GAVL_YUY2) ||
+     (src_format->colorspace == GAVL_UYVY))
+    scaler->num_planes = 3;
+  else
+    scaler->num_planes = gavl_colorspace_num_planes(src_format->colorspace);
+  
+  /* Check how many fields we must handle */
+  if((src_format->interlace_mode != GAVL_INTERLACE_NONE) && !scaler->deinterlace)
+    scaler->num_fields = 2;
+  else
+    scaler->num_fields = 1;
+
+  if(scaler->num_fields == 2)
+    {
+    if(!scaler->src_field)
+      scaler->src_field = gavl_video_frame_create(NULL);
+    if(!scaler->dst_field)
+      scaler->dst_field = gavl_video_frame_create(NULL);
+    }
+  
 #if 0
-  fprintf(stderr, "src_rect 2: ");
-  gavl_rectangle_dump(src_rect);
-  fprintf(stderr, "\n");
+  fprintf(stderr, "Fields: %d, planes: %d\n", scaler->num_fields, scaler->num_planes);
+#endif    
 
-  fprintf(stderr, "dst_rect_2: ");
-  gavl_rectangle_dump(dst_rect);
-  fprintf(stderr, "\n");
-#endif
-
-  /* Align src and dst windows */
+  /* Handle automatic mode selection */
   
-  gavl_rectangle_align(src_rect, chroma_sub_h, chroma_sub_v);
-  gavl_rectangle_align(dst_rect, chroma_sub_h, chroma_sub_v);
+  memset(&funcs, 0, sizeof(funcs));
 
-  
-  /* Copy arguments */
-  gavl_rectangle_copy(&(scaler->src_rect[0]), src_rect);
-  gavl_rectangle_copy(&(scaler->dst_rect[0]), dst_rect);
-  
-  /* Check if there is something to scale */
-
-  if(gavl_rectangle_is_empty(&(scaler->src_rect[0])) ||
-     gavl_rectangle_is_empty(&(scaler->dst_rect[0])))
+  if(opt.scale_mode == GAVL_SCALE_AUTO)
     {
-    scaler->action = SCALE_ACTION_NOOP;
-    return 1;
+    if(opt.quality < 2)
+      opt.scale_mode = GAVL_SCALE_NEAREST;
+    else if(opt.quality <= 3)
+      opt.scale_mode = GAVL_SCALE_BILINEAR;
+    else
+      opt.scale_mode = GAVL_SCALE_CUBIC_BSPLINE;
     }
-
-  scale_x = (scaler->src_rect[0].w == scaler->dst_rect[0].w) ? 0 : 1;
-  scale_y = (scaler->src_rect[0].h == scaler->dst_rect[0].h) ? 0 : 1;
-
-  if(!scale_x && !scale_y)
-    {
-    scaler->action = SCALE_ACTION_COPY;
-
-    scaler->copy_format.colorspace = scaler->colorspace;
-    scaler->copy_format.image_width = scaler->src_rect[0].w;
-    scaler->copy_format.frame_width = scaler->src_rect[0].w;
-
-    scaler->copy_format.image_height = scaler->src_rect[0].h;
-    scaler->copy_format.frame_height = scaler->src_rect[0].h;
-
-    scaler->copy_format.pixel_width  = 1;
-    scaler->copy_format.pixel_height = 1;
-    return 1;
-    }
-
-  scaler->action = SCALE_ACTION_SCALE;
+  else
+    opt.scale_mode = opt.scale_mode;
   
-  /* Set up rectangles for other planes */
-
-  if((scaler->num_planes == 1) && ((chroma_sub_h > 1) || ((chroma_sub_v > 1))))
+  /* Get scale functions */
+  
+  switch(opt.scale_mode)
     {
-    for(i = 1; i < GAVL_MAX_PLANES; i++)
+    case GAVL_SCALE_AUTO:
+      break;
+    case GAVL_SCALE_NEAREST:
+      gavl_init_scale_funcs_nearest_c(&funcs);
+      break;
+    case GAVL_SCALE_BILINEAR:
+      gavl_init_scale_funcs_bilinear_c(&funcs);
+      break;
+    case GAVL_SCALE_QUADRATIC:
+      gavl_init_scale_funcs_quadratic_c(&funcs);
+      break;
+    case GAVL_SCALE_CUBIC_BSPLINE:
+    case GAVL_SCALE_CUBIC_MITCHELL:
+    case GAVL_SCALE_CUBIC_CATMULL:
+      gavl_init_scale_funcs_bicubic_c(&funcs);
+      break;
+    case GAVL_SCALE_SINC_LANCZOS:
+      gavl_init_scale_funcs_generic_c(&funcs);
+      break;
+    }
+  
+  /* Now, initialize all fields and planes */
+
+  for(field = 0; field < scaler->num_fields; field++)
+    {
+    for(plane = 0; plane < scaler->num_planes; plane++)
       {
-      gavl_rectangle_subsample(&(scaler->src_rect[i]),
-                               &(scaler->src_rect[0]),
-                               chroma_sub_h, chroma_sub_v);
-      gavl_rectangle_subsample(&(scaler->dst_rect[i]),
-                               &(scaler->dst_rect[0]),
-                               chroma_sub_h, chroma_sub_v);
+      gavl_video_scale_context_init(&(scaler->contexts[field][plane]),
+                                    &opt,
+                                    field, plane, src_format, dst_format, &funcs);
       }
     }
-  
-  for(i = 1; i < scaler->num_planes; i++)
-    {
-    gavl_rectangle_subsample(&(scaler->src_rect[i]),
-                             &(scaler->src_rect[0]),
-                             chroma_sub_h, chroma_sub_v);
-    
-    gavl_rectangle_subsample(&(scaler->dst_rect[i]),
-                             &(scaler->dst_rect[0]),
-                             chroma_sub_h, chroma_sub_v);
-    }
-
-  memset(&funcs, 0, sizeof(funcs));
-    
-  if(!scaler->opt.accel_flags || (scaler->opt.accel_flags & GAVL_ACCEL_C))
-    {
-    gavl_init_scale_funcs_c(&funcs,
-                            scaler->opt.scale_mode,
-                            scale_x, scale_y);
-    }
-  
-#ifdef ARCH_X86
-
-  min_scanline_width = scaler->dst_rect[1].w ? scaler->dst_rect[1].w : scaler->dst_rect[0].w;
-  
-  if((!scaler->opt.accel_flags && (scaler->opt.quality < 3)) ||
-     scaler->opt.accel_flags & GAVL_ACCEL_MMX)
-    {
-    gavl_init_scale_funcs_mmx(&funcs,
-                              scaler->opt.scale_mode,
-                              scale_x, scale_y, min_scanline_width);
-    }
-  if((!scaler->opt.accel_flags && (scaler->opt.quality < 3)) ||
-     scaler->opt.accel_flags & GAVL_ACCEL_MMXEXT)
-    {
-    gavl_init_scale_funcs_mmxext(&funcs,
-                                 scaler->opt.scale_mode,
-                                 scale_x, scale_y, min_scanline_width);
-    }
-#endif
-  
-  if(!init_scale_table(scaler,
-                       scaler->opt.scale_mode,
-                       scaler->colorspace,
-                       &funcs))
-    return -1;
   return 1;
   }
 
@@ -538,36 +223,30 @@ void gavl_video_scaler_scale(gavl_video_scaler_t * s,
                              gavl_video_frame_t * src,
                              gavl_video_frame_t * dst)
   {
-  uint8_t * dst_ptr;
-  int i, j;
+  int i;
+  /* Set the destination subframe */
+  gavl_video_frame_get_subframe(s->dst_format.colorspace, dst, s->dst, &(s->dst_rect));
 
-  if(s->action == SCALE_ACTION_NOOP)
-    return;
-    
-  gavl_video_frame_get_subframe(s->colorspace, src, 
-                                s->src, &(s->src_rect[0]));
-
-  gavl_video_frame_get_subframe(s->colorspace, dst, 
-                                s->dst, &(s->dst_rect[0]));
-
-  if(s->action == SCALE_ACTION_COPY)
+  if(s->num_fields == 2)
     {
-    //    fprintf(stderr, "Copying frame\n");
-    gavl_video_frame_copy(&(s->copy_format),
-                          s->dst, s->src);
-    return;
+    /* First field */
+    gavl_video_frame_get_field(s->src_format.colorspace, src,    s->src_field, 0);
+    gavl_video_frame_get_field(s->dst_format.colorspace, s->dst, s->dst_field, 0);
+    for(i = 0; i < s->num_planes; i++)
+      gavl_video_scale_context_scale(&(s->contexts[0][i]), s->src_field, s->dst_field);
+
+    /* Second field */
+    gavl_video_frame_get_field(s->src_format.colorspace, src,    s->src_field, 1);
+    gavl_video_frame_get_field(s->dst_format.colorspace, s->dst, s->dst_field, 1);
+    for(i = 0; i < s->num_planes; i++)
+      gavl_video_scale_context_scale(&(s->contexts[1][i]), s->src_field, s->dst_field);
     }
-  
-  for(i = 0; i < s->num_planes; i++)
+  else
     {
-    dst_ptr = s->dst->planes[i];
-    for(j = 0; j < s->table[i].num_coeffs_v; j++)
+    for(i = 0; i < s->num_planes; i++)
       {
-      s->table[i].scanline_func(s, s->src->planes[i],
-                                s->src->strides[i],
-                                dst_ptr,
-                                i, j);
-      dst_ptr += s->dst->strides[i];
+      //      fprintf(stderr, "Scale %d, %p\n", i, &(s->contexts[0][i]));
+      gavl_video_scale_context_scale(&(s->contexts[0][i]), src, s->dst);
       }
     }
   }

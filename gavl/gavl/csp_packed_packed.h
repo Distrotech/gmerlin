@@ -16,9 +16,7 @@
 
 static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
   {
-#ifndef SCANLINE
   int i;
-#endif /* !SCANLINE */
   int j, jmax;
   IN_TYPE  * src;
   OUT_TYPE * dst;
@@ -30,10 +28,8 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
   src_save = ctx->input_frame->planes[0];
   dst_save = ctx->output_frame->planes[0];
   jmax = ctx->input_format.image_width / NUM_PIXELS;
-#ifndef SCANLINE
   for(i = 0; i < ctx->input_format.image_height; i++)
     {
-#endif /* !SCANLINE */
     src = (IN_TYPE*)src_save;
     dst = (OUT_TYPE*)dst_save;
 
@@ -45,9 +41,7 @@ static void (FUNC_NAME)(gavl_video_convert_context_t * ctx)
       }
     src_save += ctx->input_frame->strides[0];
     dst_save += ctx->output_frame->strides[0];
-#ifndef SCANLINE
     }
-#endif /* !SCANLINE */
 
 #ifdef CLEANUP
   CLEANUP
