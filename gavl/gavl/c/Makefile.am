@@ -28,5 +28,7 @@ colorspace_macros.h \
 scale_bilinear_x.h \
 scale_bilinear_y.h \
 scale_bilinear_xy.h \
-scale_quadratic_x.h \
-scale_quadratic_y.h
+scale_x.h \
+scale_y.h \
+scale_generic_x.h \
+scale_generic_y.h
