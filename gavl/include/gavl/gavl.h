@@ -22,13 +22,6 @@
  * external api header.
  */
 
-/*! \mainpage
- *  This is the API documentation for the Gmerlin audio video library,
- *  a library for handling and conversion of uncompressed audio- and video data.
- *
- *  Click Modules to get to the main index.
- */
-
 #ifndef GAVL_H_INCLUDED
 #define GAVL_H_INCLUDED
 
@@ -54,8 +47,10 @@ typedef struct gavl_video_format_s gavl_video_format_t;
 
     This is a portable way to select the conversion routines. Optimized routines often have a worse
     precision, and these defines are a way to choose among them. Quality level
-    3 enables the standard ANSI-C versions, which are always complete. Qualities
+    3 enables the standard ANSI-C versions, which are always available. Qualities
     1 and 2 choose optimized versions, qualities 4 and 5 enable high quality versions.
+    Not all routines aren't available for quality levely other than 3. In these cases, the
+    quality will be ignored.
  */
 
 
@@ -64,7 +59,7 @@ typedef struct gavl_video_format_s gavl_video_format_t;
     \ingroup quality
     \brief Fastest processing
    
-    Worst quality. Quality impact is mostly noticable in the audio resampler.
+    Worst quality.
 */
   
 #define GAVL_QUALITY_FASTEST 1
@@ -93,6 +88,8 @@ typedef struct gavl_video_format_s gavl_video_format_t;
 
 /** \defgroup audio_format Audio format definitions
  *  \ingroup audio
+ *
+ * \brief Definitions for several variations of audio data
 */
 
 
@@ -305,7 +302,11 @@ int gavl_bytes_per_sample(gavl_sample_format_t format);
 
 /** \defgroup audio_frame Audio frame
  * \ingroup audio
-*/
+ *
+ * \brief Container for audio data
+ *
+ * 
+ */
 
 
 /*!
@@ -494,7 +495,9 @@ GAVL_AUDIO_STEREO_TO_MONO_RIGHT | \
 GAVL_AUDIO_STEREO_TO_MONO_MIX) /*!< Mask for converting stereo to mono */
   
 /*! \ingroup audio_options
- *  \brief Opaque container for audio conversion options
+ *  \brief Opaque container for audio conversion options.
+ *
+ * You don't want to know what's inside.
  */
 
 typedef struct gavl_audio_options_s gavl_audio_options_t;
@@ -545,6 +548,8 @@ void gavl_audio_options_set_defaults(gavl_audio_options_t * opt);
   
 /*! \ingroup audio_converter
  *  \brief Opaque audio converter structure
+ *
+ * You don't want to know what's inside.
  */
   
 typedef struct gavl_audio_converter_s gavl_audio_converter_t;
@@ -627,7 +632,9 @@ void gavl_audio_convert(gavl_audio_converter_t * cnv,
 */
 
 /*! \ingroup volume_control
- *  \brief Opaque structure for a volume cobntrol
+ *  \brief Opaque structure for a volume control
+ *
+ * You don't want to know what's inside.
  */
 
 typedef struct gavl_volume_control_s gavl_volume_control_t;
@@ -924,6 +931,8 @@ void gavl_rectangle_f_dump(const gavl_rectangle_f_t * r);
   
 /** \defgroup video_format Video format definitions
  * \ingroup video
+ *
+ * \brief Definitions for several variations of video data
  */
 
 /** \ingroup video_format
@@ -990,7 +999,7 @@ typedef enum
  /*! 32 bit BGR. Each color is an uint8_t. Color order is BGRXBGRX, where X is unused
   */
     GAVL_BGR_32          =  8 | GAVL_CSP_RGB,
- /*! 32 bit BGR. Each color is an uint8_t. Color order is RGBARGBA
+ /*! 32 bit RGBA. Each color is an uint8_t. Color order is RGBARGBA
   */
     GAVL_RGBA_32         =  9 | GAVL_CSP_RGB | GAVL_CSP_ALPHA,
  /*! Packed YCbCr 4:2:2. Each component is an uint8_t. Component order is Y1 U1 Y2 V1
@@ -1296,9 +1305,18 @@ void gavl_video_format_fit_to_source(gavl_video_format_t * dst,
                                      const gavl_video_format_t * src);
 
   
-
 /** \defgroup video_frame Video frames
  * \ingroup video
+ * \brief Container for video images
+ *
+ * This is the standardized method of storing one frame with video data. For planar
+ * formats, the first scanline starts at planes[0], subsequent scanlines start in
+ * intervalls of strides[0] bytes. For planar formats, planes[0] will contain the
+ * luminance channel, planes[1] contains Cb (aka U), planes[2] contains Cr (aka V).
+ *
+ * Gavl video frames are always oriented top->bottom left->right. If you must flip frames,
+ * use the functions \ref gavl_video_frame_copy_flip_x, \ref gavl_video_frame_copy_flip_y or
+ * \ref gavl_video_frame_copy_flip_xy .
  */
 
 /** \ingroup video_frame
@@ -1579,6 +1597,8 @@ typedef enum
 
 /** \ingroup video_options
  * Opaque container for video conversion options
+ *
+ * You don't want to know what's inside.
  */
 
 typedef struct gavl_video_options_s gavl_video_options_t;
@@ -1595,13 +1615,13 @@ void gavl_video_options_set_defaults(gavl_video_options_t * opt);
 /*! \ingroup video_options
  *  \brief Set source and destination rectangles
  *  \param opt Video options
- *  \param src_rect Rectangular area in the source frame
- *  \param dst_rect Rectangular area in the destination frame
+ *  \param src_rect Rectangular area in the source frame or NULL
+ *  \param dst_rect Rectangular area in the destination frame or NULL
  *
  *  Set the source and destination rectangles the converter or scaler will operate on.
- *  When using the \ref video_scaler, it is mandatory to set the rectangles. For the
- *  \ref video_converter it is optional and will be used together with the images sizes
- *  of the source and destination formats to set up scaling.
+ *  If you don't call this function, the rectangles will be set to the full image dimensions
+ *  of the source and destination formats respectively. If one rectangle is NULL, BOTH rectangles
+ *  will be cleared as if you never called this function.
  */
   
 void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
@@ -1710,7 +1730,9 @@ void gavl_video_options_set_deinterlace_drop_mode(gavl_video_options_t * opt,
  */
 
 /*! \ingroup video_converter
- * Opaque video converter structure
+ * \brief Opaque video converter structure
+ *
+ * You don't want to know what's inside.
  */
   
 typedef struct gavl_video_converter_s gavl_video_converter_t;
@@ -1787,16 +1809,22 @@ void gavl_video_convert(gavl_video_converter_t * cnv,
  *  \ref gavl_video_converter_t or directly through the functions in this module.
  *
  *  The scaler does the elementary operation to take a rectangular area (with floating point
- *  coordinates) of the source image and scale it into a specified rectangular area of the
- *  destination image. Internally, the source and destination rectangles can be set
+ *  coordinates) of the source image and scale it into a specified rectangular area (with
+ *  integer coordinates aligned according to chroma subsampling) of the
+ *  destination image. The source rectangle has floating point coordinates, the destination
+ *  rectangle must have integer coordinates, which are aligned to chroma subsampling factors.
+ *  When scaling with arbitrary ratios, it makes sense to use a destination format without
+ *  chroma subsampling.
+ *
+ *  Internally, the source and destination rectangles can be set
  *  independently for all planes and fields, which means, that the scaler can also do colospace
  *  conversions for colorspaces which differ only in the chroma subsampling modes.
- *
- *  \todo Currently the scaler doesn't work at all.
  */
 
 /*! \ingroup video_scaler
- *  \brief Opaque scaler structure
+ *  \brief Opaque scaler structure.
+ *
+ *  You don't want to know what's inside.
  */
   
 typedef struct gavl_video_scaler_s gavl_video_scaler_t;
