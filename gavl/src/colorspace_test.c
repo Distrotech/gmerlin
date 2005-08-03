@@ -7,6 +7,9 @@
 
 #include <accel.h>
 
+#define ALL_COLORSPACES
+#define IN_COLORSPACE  GAVL_YUV_444_P
+#define OUT_COLORSPACE GAVL_YUV_444_P_16
 
 // Masks for BGR16 and RGB16 formats
 
@@ -2243,7 +2246,9 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
 
 int main(int argc, char ** argv)
   {
+#ifdef ALL_COLORSPACES
   int i, j;
+#endif
   const char * tmp1, * tmp2;
   char filename_buffer[128];
 
@@ -2259,13 +2264,16 @@ int main(int argc, char ** argv)
 
   gavl_video_converter_t * cnv = gavl_video_converter_create();
   opt = gavl_video_converter_get_options(cnv);
+
+  memset(&input_format, 0, sizeof(input_format));
+  memset(&output_format, 0, sizeof(output_format));
   
   input_format.image_width = TEST_PICTURE_WIDTH;
   input_format.image_height = TEST_PICTURE_HEIGHT;
   
   input_format.frame_width = TEST_PICTURE_WIDTH;
   input_format.frame_height = TEST_PICTURE_HEIGHT;
-
+  
   input_format.pixel_width = 1;
   input_format.pixel_height = 1;
   
@@ -2280,9 +2288,13 @@ int main(int argc, char ** argv)
  
   init_yuv();
  
+#ifdef ALL_COLORSPACES
   for(i = 0; i < gavl_num_colorspaces(); i++)
     {
     input_format.colorspace = gavl_get_colorspace(i);
+#else
+    input_format.colorspace = IN_COLORSPACE;
+#endif
     input_frame = create_picture(input_format.colorspace,
                                  get_pixel_colorbar);
 
@@ -2292,17 +2304,23 @@ int main(int argc, char ** argv)
     write_file(filename_buffer,
                  input_frame, &input_format);
 
+#ifdef ALL_COLORSPACES
     for(j = 0; j < gavl_num_colorspaces(); j++)
       {
+      output_format.colorspace = gavl_get_colorspace(j);
+#else
+      output_format.colorspace = OUT_COLORSPACE;
+#endif
+
       gavl_video_options_set_defaults(opt);
 
       gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_IGNORE);
       //      gavl_video_options_set_background_color(opt, background);
 
-      output_format.colorspace = gavl_get_colorspace(j);
-
+#ifdef ALL_COLORSPACES
       if(input_format.colorspace == output_format.colorspace)
         continue;
+#endif
       
       output_frame = gavl_video_frame_create(&output_format);
       fprintf(stderr, "************* Colorspace conversion ");
@@ -2311,7 +2329,8 @@ int main(int argc, char ** argv)
       
       fprintf(stderr, "%s *************\n", tmp2);
 
-      gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
+      //      gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
+      gavl_video_options_set_quality(opt, 5);
       gavl_video_frame_clear(output_frame, &output_format);
       
       if(gavl_video_converter_init(cnv, &input_format, &output_format) <= 0)
@@ -2368,11 +2387,11 @@ int main(int argc, char ** argv)
 #endif
       
       gavl_video_frame_destroy(output_frame);
-      
+
+#ifdef ALL_COLORSPACES
       }
-    
     }
-  
+#endif  
   
   return 0;
   }

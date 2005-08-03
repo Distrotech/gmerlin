@@ -89,6 +89,7 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
   
   gavl_video_format_copy(&(scaler->src_format), src_format);
   gavl_video_format_copy(&(scaler->dst_format), dst_format);
+
   
   /* Check if we have rectangles */
 
@@ -96,12 +97,20 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
     {
     gavl_rectangle_f_set_all(&(scaler->src_rect), src_format);
     gavl_rectangle_i_set_all(&(scaler->dst_rect), dst_format);
+    gavl_video_options_set_rectangles(&opt, &(scaler->src_rect), &(scaler->dst_rect));
     }
   else
     {
     gavl_rectangle_f_copy(&(scaler->src_rect), &(opt.src_rect));
     gavl_rectangle_i_copy(&(scaler->dst_rect), &(opt.dst_rect));
     }
+  
+  fprintf(stderr, "gavl_video_scaler_init:\n");
+  gavl_rectangle_f_dump(&(scaler->src_rect));
+  fprintf(stderr, "\n");
+  gavl_rectangle_i_dump(&(scaler->dst_rect));
+  fprintf(stderr, "\n");
+                      
   
   /* Crop source and destination rectangles to the formats */
 

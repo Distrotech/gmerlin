@@ -2559,3 +2559,476 @@ int gavl_colorspace_bytes_per_pixel(gavl_colorspace_t csp)
     }
   return 0;
   }
+
+/* Check if a colorspace can be converted by simple scaling */
+
+int gavl_colorspace_can_scale(gavl_colorspace_t in_csp, gavl_colorspace_t out_csp)
+  {
+    int sub_v_in,  sub_h_in;
+  int sub_v_out, sub_h_out;
+  if(gavl_colorspace_is_rgb(in_csp) ||
+     gavl_colorspace_is_rgb(out_csp))
+    {
+    return 0;
+    }
+
+  if(gavl_colorspace_is_jpeg_scaled(in_csp) !=
+     gavl_colorspace_is_jpeg_scaled(out_csp))
+    {
+    return 0;
+    }
+  if(gavl_colorspace_has_alpha(in_csp) !=
+     gavl_colorspace_has_alpha(out_csp))
+    {
+    return 0;
+    }
+
+
+  
+  gavl_colorspace_chroma_sub(in_csp, &sub_h_in, &sub_v_in);
+  gavl_colorspace_chroma_sub(out_csp, &sub_h_out, &sub_v_out);
+  
+  if((sub_h_in == sub_h_out) && (sub_v_in == sub_v_out))
+    {
+    return 0;
+    }
+
+  if(!gavl_colorspace_is_planar(in_csp))
+    {
+    fprintf(stderr, "BLUPPPP: %d %d\n", gavl_colorspace_is_planar(out_csp),
+            gavl_colorspace_bytes_per_component(out_csp));
+    
+    if(gavl_colorspace_is_planar(out_csp) &&
+       (gavl_colorspace_bytes_per_component(out_csp) == 1))
+      return 1;
+    else
+      return 0;
+    }
+  else
+    {
+    if(!gavl_colorspace_is_planar(out_csp) &&
+       (gavl_colorspace_bytes_per_component(in_csp) == 1))
+      return 1;
+    else if(gavl_colorspace_bytes_per_component(in_csp) ==
+            gavl_colorspace_bytes_per_component(out_csp))
+      return 1;
+    else
+      return 0;
+    }
+  return 0;
+  }
+
+/*
+ *  Return a colorspace (or GAVL_COLORSPACE_NONE) as an intermediate colorspace
+ *  for which the conversion quality can be improved. E.g. instead of
+ *  RGB -> YUV420P, we can do RGB -> YUV444P -> YUV420P with proper chroma scaling
+ */
+
+gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
+                                                   gavl_colorspace_t out_csp)
+  {
+  switch(in_csp)
+    {
+    case GAVL_COLORSPACE_NONE: return GAVL_COLORSPACE_NONE; break;
+    case GAVL_RGB_15:
+    case GAVL_BGR_15:
+    case GAVL_RGB_16:
+    case GAVL_BGR_16:
+    case GAVL_RGB_24:
+    case GAVL_BGR_24:
+    case GAVL_RGB_32:
+    case GAVL_BGR_32:
+    case GAVL_RGBA_32:
+    case GAVL_RGB_48:
+    case GAVL_RGBA_64:
+    case GAVL_RGB_FLOAT:
+    case GAVL_RGBA_FLOAT:
+    case GAVL_YUVA_32:
+      /*4:4:4 -> */
+      switch(out_csp)
+        {
+        case GAVL_COLORSPACE_NONE:
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+        case GAVL_RGB_48:
+        case GAVL_RGBA_64:
+        case GAVL_RGB_FLOAT:
+        case GAVL_RGBA_FLOAT:
+        case GAVL_RGBA_32:
+        case GAVL_YUVA_32:
+        case GAVL_YUV_444_P:
+        case GAVL_YUVJ_444_P:
+        case GAVL_YUV_444_P_16:
+          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_YUY2:
+        case GAVL_UYVY:
+        case GAVL_YUV_420_P:
+        case GAVL_YUV_422_P:
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_410_P:
+          return GAVL_YUV_444_P; break;
+        case GAVL_YUVJ_420_P:
+        case GAVL_YUVJ_422_P:
+          return GAVL_YUVJ_444_P; break;
+        case GAVL_YUV_422_P_16:
+          return GAVL_YUV_444_P_16; break;
+        }
+      break;
+    case GAVL_YUY2:
+    case GAVL_UYVY:
+    case GAVL_YUV_422_P:
+      switch(out_csp)
+        {
+        case GAVL_COLORSPACE_NONE:
+          return GAVL_COLORSPACE_NONE; break;
+          /* YUV422 -> RGB */
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+        case GAVL_RGB_48:
+        case GAVL_RGBA_64:
+        case GAVL_RGB_FLOAT:
+        case GAVL_RGBA_FLOAT:
+        case GAVL_RGBA_32:
+        case GAVL_YUVA_32:
+          return GAVL_YUV_444_P; break;
+        case GAVL_YUV_422_P:
+        case GAVL_YUV_422_P_16:
+        case GAVL_YUVJ_422_P:
+        case GAVL_YUY2:
+        case GAVL_UYVY:
+        case GAVL_YUV_420_P:
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_410_P:
+          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_YUV_444_P_16:
+          return GAVL_YUV_422_P_16; break;
+        case GAVL_YUV_444_P:
+          return GAVL_YUV_422_P; break;
+        case GAVL_YUVJ_444_P:
+          return GAVL_YUVJ_422_P; break;
+        case GAVL_YUVJ_420_P:
+          return GAVL_YUVJ_422_P; break;
+        }
+      break;
+    case GAVL_YUV_420_P:
+      switch(out_csp)
+        {
+        case GAVL_COLORSPACE_NONE:
+          return GAVL_COLORSPACE_NONE; break;
+          /* YUV420 -> RGB */
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+        case GAVL_RGB_48:
+        case GAVL_RGBA_64:
+        case GAVL_RGB_FLOAT:
+        case GAVL_RGBA_FLOAT:
+        case GAVL_RGBA_32:
+        case GAVL_YUVA_32:
+          return GAVL_YUV_444_P; break;
+        case GAVL_YUV_422_P:
+        case GAVL_YUY2:
+        case GAVL_UYVY:
+        case GAVL_YUV_420_P:
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_410_P:
+        case GAVL_YUV_444_P:
+        case GAVL_YUVJ_420_P:
+          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_YUV_422_P_16:
+          return GAVL_YUV_422_P; break;
+        case GAVL_YUVJ_422_P:
+          return GAVL_YUVJ_420_P; break;
+        case GAVL_YUV_444_P_16:
+          return GAVL_YUV_444_P; break;
+        case GAVL_YUVJ_444_P:
+          return GAVL_YUVJ_420_P; break;
+        }
+      break;
+    case GAVL_YUV_444_P:
+      switch(out_csp)
+        {
+        case GAVL_COLORSPACE_NONE:
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+        case GAVL_RGB_48:
+        case GAVL_RGBA_64:
+        case GAVL_RGB_FLOAT:
+        case GAVL_RGBA_FLOAT:
+        case GAVL_RGBA_32:
+        case GAVL_YUVA_32:
+          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_YUV_422_P:
+        case GAVL_YUY2:
+        case GAVL_UYVY:
+        case GAVL_YUV_420_P:
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_410_P:
+        case GAVL_YUV_444_P:
+        case GAVL_YUVJ_444_P:
+        case GAVL_YUV_444_P_16:
+          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_YUV_422_P_16:
+          return GAVL_YUV_422_P; break;
+        case GAVL_YUVJ_422_P:
+          return GAVL_YUVJ_420_P; break;
+        case GAVL_YUVJ_420_P:
+          return GAVL_YUVJ_444_P; break;
+        }
+      break;
+      
+    case GAVL_YUV_411_P:
+    case GAVL_YUV_410_P:
+      switch(out_csp)
+        {
+        case GAVL_COLORSPACE_NONE:
+          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+        case GAVL_RGB_48:
+        case GAVL_RGBA_64:
+        case GAVL_RGB_FLOAT:
+        case GAVL_RGBA_FLOAT:
+        case GAVL_RGBA_32:
+        case GAVL_YUVA_32:
+          return GAVL_YUV_444_P; break;
+        case GAVL_YUV_422_P:
+        case GAVL_YUY2:
+        case GAVL_UYVY:
+        case GAVL_YUV_420_P:
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_410_P:
+        case GAVL_YUV_444_P:
+          return GAVL_COLORSPACE_NONE; break;
+
+        case GAVL_YUVJ_444_P:
+          return GAVL_YUV_444_P; break;
+        case GAVL_YUV_422_P_16:
+          return GAVL_YUV_422_P; break;
+        case GAVL_YUVJ_422_P:
+          return GAVL_YUV_422_P; break;
+        case GAVL_YUV_444_P_16:
+          return GAVL_YUV_444_P; break;
+        case GAVL_YUVJ_420_P:
+          return GAVL_YUV_420_P; break;
+        }
+      break;
+    case GAVL_YUVJ_420_P:
+      switch(out_csp)
+        {
+        case GAVL_COLORSPACE_NONE:
+          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+        case GAVL_RGB_48:
+        case GAVL_RGBA_64:
+        case GAVL_RGB_FLOAT:
+        case GAVL_RGBA_FLOAT:
+        case GAVL_RGBA_32:
+        case GAVL_YUVA_32:
+          return GAVL_YUVJ_444_P; break;
+        case GAVL_YUV_422_P:
+        case GAVL_YUY2:
+        case GAVL_UYVY:
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_410_P:
+        case GAVL_YUV_444_P:
+          return GAVL_YUV_420_P; break;
+        case GAVL_YUV_420_P:
+        case GAVL_YUVJ_444_P:
+        case GAVL_YUVJ_422_P:
+        case GAVL_YUVJ_420_P:
+          return GAVL_COLORSPACE_NONE; break;
+
+        case GAVL_YUV_422_P_16:
+          return GAVL_YUVJ_422_P; break;
+        case GAVL_YUV_444_P_16:
+          return GAVL_YUVJ_444_P; break;
+        }
+      break;
+      
+    case GAVL_YUVJ_422_P:
+      switch(out_csp)
+        {
+        case GAVL_COLORSPACE_NONE:
+          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+        case GAVL_RGB_48:
+        case GAVL_RGBA_64:
+        case GAVL_RGB_FLOAT:
+        case GAVL_RGBA_FLOAT:
+        case GAVL_RGBA_32:
+        case GAVL_YUVA_32:
+          return GAVL_YUVJ_444_P; break;
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_410_P:
+        case GAVL_YUV_444_P:
+        case GAVL_YUV_420_P:
+          return GAVL_YUV_422_P; break;
+        case GAVL_YUV_422_P:
+        case GAVL_YUY2:
+        case GAVL_UYVY:
+        case GAVL_YUVJ_444_P:
+        case GAVL_YUVJ_422_P:
+        case GAVL_YUVJ_420_P:
+        case GAVL_YUV_422_P_16:
+          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_YUV_444_P_16:
+          return GAVL_YUV_422_P_16; break;
+        }
+      break;
+    case GAVL_YUVJ_444_P:
+      switch(out_csp)
+        {
+        case GAVL_COLORSPACE_NONE:
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+        case GAVL_RGB_48:
+        case GAVL_RGBA_64:
+        case GAVL_RGB_FLOAT:
+        case GAVL_RGBA_FLOAT:
+        case GAVL_RGBA_32:
+        case GAVL_YUVA_32:
+        case GAVL_YUV_444_P:
+        case GAVL_YUV_444_P_16:
+          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_410_P:
+        case GAVL_YUV_420_P:
+          return GAVL_YUV_444_P; break;
+        case GAVL_YUV_422_P:
+        case GAVL_YUY2:
+        case GAVL_UYVY:
+        case GAVL_YUVJ_444_P:
+        case GAVL_YUVJ_422_P:
+        case GAVL_YUVJ_420_P:
+          return GAVL_COLORSPACE_NONE; break;
+
+        case GAVL_YUV_422_P_16:
+          return GAVL_YUVJ_422_P; break;
+          return GAVL_YUV_422_P_16; break;
+        }
+      break;
+    case GAVL_YUV_444_P_16:
+      switch(out_csp)
+        {
+        case GAVL_COLORSPACE_NONE:
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+        case GAVL_RGB_48:
+        case GAVL_RGBA_64:
+        case GAVL_RGB_FLOAT:
+        case GAVL_RGBA_FLOAT:
+        case GAVL_RGBA_32:
+        case GAVL_YUVA_32:
+        case GAVL_YUV_444_P:
+        case GAVL_YUV_444_P_16:
+        case GAVL_YUVJ_444_P:
+        case GAVL_YUV_422_P_16:
+          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_YUV_422_P:
+        case GAVL_YUY2:
+        case GAVL_UYVY:
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_410_P:
+        case GAVL_YUV_420_P:
+          return GAVL_YUV_444_P; break;
+        case GAVL_YUVJ_422_P:
+        case GAVL_YUVJ_420_P:
+          return GAVL_YUVJ_444_P; break;
+        }
+      break;
+    case GAVL_YUV_422_P_16:
+      switch(out_csp)
+        {
+        case GAVL_COLORSPACE_NONE:
+        case GAVL_RGB_15:
+        case GAVL_BGR_15:
+        case GAVL_RGB_16:
+        case GAVL_BGR_16:
+        case GAVL_RGB_24:
+        case GAVL_BGR_24:
+        case GAVL_RGB_32:
+        case GAVL_BGR_32:
+        case GAVL_RGB_48:
+        case GAVL_RGBA_64:
+        case GAVL_RGB_FLOAT:
+        case GAVL_RGBA_FLOAT:
+        case GAVL_RGBA_32:
+        case GAVL_YUVA_32:
+        case GAVL_YUV_444_P:
+        case GAVL_YUVJ_444_P:
+          return GAVL_YUV_444_P_16; break;
+        case GAVL_YUV_444_P_16:
+        case GAVL_YUV_422_P_16:
+        case GAVL_YUV_422_P:
+        case GAVL_YUY2:
+        case GAVL_UYVY:
+        case GAVL_YUVJ_422_P:
+          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_YUV_411_P:
+        case GAVL_YUV_410_P:
+        case GAVL_YUV_420_P:
+          return GAVL_YUV_422_P; break;
+        case GAVL_YUVJ_420_P:
+          return GAVL_YUVJ_422_P; break;
+        }
+
+      break;
+    }
+  return GAVL_COLORSPACE_NONE;
+  }

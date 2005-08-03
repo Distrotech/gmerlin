@@ -102,4 +102,17 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
                                gavl_colorspace_t output_colorspace,
                                int width, int height);
 
+/* Check if a colorspace can be converted by simple scaling */
+
+int gavl_colorspace_can_scale(gavl_colorspace_t in_csp, gavl_colorspace_t out_csp);
+
+/*
+ *  Return a colorspace (or GAVL_COLORSPACE_NONE) as an intermediate colorspace
+ *  for which the conversion quality can be improved. E.g. instead of
+ *  RGB -> YUV420P, we can do RGB -> YUV444P -> YUV420P with proper chroma scaling
+ */
+
+gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
+                                                   gavl_colorspace_t out_csp);
+
 #endif // _GAVL_VIDEO_H_

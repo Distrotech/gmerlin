@@ -20,6 +20,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <gavl/gavl.h>
 #include <scale.h>
@@ -34,6 +35,40 @@
 #define ALIGN(a) a=((a+ALIGNMENT_BYTES-1)/ALIGNMENT_BYTES)*ALIGNMENT_BYTES
 
 #define EPS 1e-4 /* Needed to determine if a double and an int are equal. */
+
+static void copy_scanline_noadvance(gavl_video_scale_context_t * ctx)
+  {
+  //  fprintf(stderr, "copy_scanline_noadvance\n");
+  memcpy(ctx->dst, ctx->src, ctx->bytes_per_line);
+  ctx->src += ctx->src_stride;
+  }
+
+static void copy_scanline_advance(gavl_video_scale_context_t * ctx)
+  {
+  int i;
+  uint8_t * src = ctx->src;
+  //  fprintf(stderr, "copy_scanline_advance\n");
+  for(i = 0; i < ctx->dst_rect.w; i++)
+    {
+    *ctx->dst = *src;
+
+    ctx->dst += ctx->offset->dst_advance;
+    src += ctx->offset->src_advance;
+    }
+  ctx->src += ctx->src_stride;
+  }
+
+/* Debugging utility */
+#if 0
+static void dump_offset(gavl_video_scale_offsets_t*off)
+  {
+  fprintf(stderr, "Scale offset:\n");
+  fprintf(stderr, "  src_advance: %d\n", off->src_advance);
+  fprintf(stderr, "  src_offset:  %d\n", off->src_offset);
+  fprintf(stderr, "  dst_advance: %d\n", off->dst_advance);
+  fprintf(stderr, "  dst_offset:  %d\n", off->dst_offset);
+  }
+#endif
 
 gavl_video_scale_scanline_func get_func(gavl_scale_func_tab_t * tab,
                                         gavl_colorspace_t colorspace, int * bits)
@@ -352,6 +387,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     
   gavl_rectangle_f_copy(&(ctx->src_rect), &(opt->src_rect));
   gavl_rectangle_i_copy(&(ctx->dst_rect), &(opt->dst_rect));
+  
   ctx->plane = plane;
   if(plane)
     {
@@ -367,6 +403,13 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
         
     /* TODO: Add chroma offsets here!!! */
     }
+#if 0
+  fprintf(stderr, "gavl_video_scale_context_init\n");
+  gavl_rectangle_f_dump(&(ctx->src_rect));
+  fprintf(stderr, "\n");
+  gavl_rectangle_i_dump(&(ctx->dst_rect));
+  fprintf(stderr, "\n");
+#endif
   
   src_width = src_format->image_width / sub_h_in;
   src_height = src_format->image_height / sub_v_in;
@@ -389,8 +432,46 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
   if(scale_y)
     ctx->num_directions++;
 
+  /* Set source and destination frame planes */
+
+  if(gavl_colorspace_is_planar(src_format->colorspace))
+    ctx->src_frame_plane = plane;
+  else
+    ctx->src_frame_plane = 0;
+
+  if(gavl_colorspace_is_planar(dst_format->colorspace))
+    ctx->dst_frame_plane = plane;
+  else
+    ctx->dst_frame_plane = 0;
+  
   if(!ctx->num_directions)
+    {
+    ctx->bytes_per_line = gavl_colorspace_is_planar(src_format->colorspace) ?
+      ctx->dst_rect.w * gavl_colorspace_bytes_per_component(src_format->colorspace) :
+      ctx->dst_rect.w * gavl_colorspace_bytes_per_pixel(src_format->colorspace);
+
+    if((src_format->colorspace == GAVL_YUY2) ||
+       (src_format->colorspace == GAVL_UYVY) ||
+       (dst_format->colorspace == GAVL_YUY2) ||
+       (dst_format->colorspace == GAVL_UYVY))
+      ctx->func1 = copy_scanline_advance;
+    else
+      ctx->func1 = copy_scanline_noadvance;
+
+    /* Set source and destination offsets */
+    get_offsets(src_format->colorspace,
+                plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
+    get_offsets(dst_format->colorspace,
+                plane, &ctx->offset1.dst_advance, &ctx->offset1.dst_offset);
+
+    /* We set this once here */
+
+    ctx->offset = &(ctx->offset1);
+    ctx->dst_size = ctx->dst_rect.w;
+
+    ctx->num_directions = 1;
     return 0;
+    }
 
   else if(scale_x && scale_y)
     {
@@ -424,15 +505,15 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
       fprintf(stderr, "Src rect: ");
       gavl_rectangle_i_dump(&src_rect_i);
       fprintf(stderr, "\nDst rect: ");
-      gavl_rectangle_i_dump(&opt->dst_rect);
+      gavl_rectangle_i_dump(&ctx->dst_rect);
       fprintf(stderr, "\n");
 #endif
-      if(src_rect_i.h * opt->dst_rect.w < opt->dst_rect.h * src_rect_i.w)
+      if(src_rect_i.h * ctx->dst_rect.w < ctx->dst_rect.h * src_rect_i.w)
         {
         //        fprintf(stderr, "X then Y\n");
         /* X then Y */
 
-        ctx->buffer_width  = opt->dst_rect.w;
+        ctx->buffer_width  = ctx->dst_rect.w;
         ctx->buffer_height = src_rect_i.h;
         
         gavl_video_scale_table_shift_indices(&(ctx->table_v), -src_rect_i.y);
@@ -450,7 +531,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
         /* Y then X */
 
         ctx->buffer_width = src_rect_i.w;
-        ctx->buffer_height = opt->dst_rect.h;
+        ctx->buffer_height = ctx->dst_rect.h;
         
         gavl_video_scale_table_shift_indices(&(ctx->table_h), -src_rect_i.x);
 
@@ -490,7 +571,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     {
     get_offsets(src_format->colorspace,
                 plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
-    get_offsets(src_format->colorspace,
+    get_offsets(dst_format->colorspace,
                 plane, &ctx->offset1.dst_advance, &ctx->offset1.dst_offset);
 
     /* We set this once here */
@@ -515,22 +596,10 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     ctx->offset2.src_advance = ctx->offset1.dst_advance;
     ctx->offset2.src_offset  = ctx->offset1.dst_offset;
     
-    get_offsets(src_format->colorspace,
+    get_offsets(dst_format->colorspace,
                 plane, &ctx->offset2.dst_advance, &ctx->offset2.dst_offset);
     }
-
-  /* Set source and destination frame planes */
-
-  if(gavl_colorspace_is_planar(src_format->colorspace))
-    ctx->src_frame_plane = plane;
-  else
-    ctx->src_frame_plane = 0;
-
-  if(gavl_colorspace_is_planar(dst_format->colorspace))
-    ctx->dst_frame_plane = plane;
-  else
-    ctx->dst_frame_plane = 0;
-
+  
 #if 0  
   /* Dump final scale tables */
   fprintf(stderr, "Horizontal table:\n");
@@ -567,54 +636,66 @@ void gavl_video_scale_context_cleanup(gavl_video_scale_context_t * ctx)
   gavl_video_scale_table_cleanup(&(ctx->table_v));
   }
 
+
 void gavl_video_scale_context_scale(gavl_video_scale_context_t * ctx,
                                     gavl_video_frame_t * src, gavl_video_frame_t * dst)
   {
-  //  int i;
+  uint8_t * dst_save;
+  //  fprintf(stderr, "gavl_video_scale_context_scale %p %p %d %d\n", src, dst, ctx->num_directions, ctx->dst_rect.h);
   switch(ctx->num_directions)
     {
     case 0:
-      /* TODO: Copy field plane */
+      /* Copy field plane */
       break;
     case 1:
       /* Only step */
       ctx->src = src->planes[ctx->src_frame_plane] + ctx->offset->src_offset;
       ctx->src_stride = src->strides[ctx->src_frame_plane];
 
+      dst_save = dst->planes[ctx->dst_frame_plane] + ctx->offset->dst_offset;
+            
       for(ctx->scanline = 0; ctx->scanline < ctx->dst_rect.h; ctx->scanline++)
         {
-        ctx->dst = dst->planes[ctx->dst_frame_plane] + ctx->scanline * dst->strides[ctx->dst_frame_plane] +
-          ctx->offset->dst_offset;
+        ctx->dst = dst_save;
         ctx->func1(ctx);
+        dst_save += dst->strides[ctx->dst_frame_plane];
         }
       break;
     case 2:
       /* First step */
-      //      fprintf(stderr, "First direction...");
+      //      fprintf(stderr, "First direction...\n");
       ctx->offset = &(ctx->offset1);
+      //      dump_offset(ctx->offset);
       ctx->src = src->planes[ctx->src_frame_plane] + ctx->offset->src_offset;
       ctx->src_stride = src->strides[ctx->src_frame_plane];
       ctx->dst_size = ctx->buffer_width;
-      
+
+      dst_save = ctx->buffer;
+            
       for(ctx->scanline = 0; ctx->scanline < ctx->buffer_height; ctx->scanline++)
         {
-        ctx->dst = ctx->buffer + ctx->scanline * ctx->buffer_stride;
+        ctx->dst = dst_save;
         ctx->func1(ctx);
+        dst_save += ctx->buffer_stride;
         }
       //      fprintf(stderr, "done\n");
 
       /* Second step */
-      //      fprintf(stderr, "Second direction...");
+      //      fprintf(stderr, "Second direction...\n");
       ctx->offset = &(ctx->offset2);
+
+      //      dump_offset(ctx->offset);
+
       ctx->src = ctx->buffer;
       ctx->src_stride = ctx->buffer_stride;
       ctx->dst_size = ctx->dst_rect.w;
-      
+      dst_save = dst->planes[ctx->dst_frame_plane] + ctx->offset->dst_offset;
       for(ctx->scanline = 0; ctx->scanline < ctx->dst_rect.h; ctx->scanline++)
         {
-        ctx->dst = dst->planes[ctx->dst_frame_plane] + ctx->offset->dst_offset +
-          ctx->scanline * dst->strides[ctx->dst_frame_plane];
+        //        fprintf(stderr, "i: %d\n", ctx->scanline);
+        ctx->dst = dst_save;
         ctx->func2(ctx);
+        dst_save += dst->strides[ctx->dst_frame_plane];
         }
       //      fprintf(stderr, "done\n");
       break;

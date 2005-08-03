@@ -447,7 +447,7 @@ void gavl_video_frame_copy_plane(gavl_video_format_t * format,
   bytes_per_line = gavl_colorspace_is_planar(format->colorspace) ?
     format->image_width * gavl_colorspace_bytes_per_component(format->colorspace) :
     format->image_width * gavl_colorspace_bytes_per_pixel(format->colorspace);
-
+  
   if(plane > 0)
     {
     gavl_colorspace_chroma_sub(format->colorspace, &sub_h, &sub_v);

@@ -736,19 +736,13 @@ void gavl_rectangle_crop_to_format(gavl_rectangle_i_t * r,
 void gavl_rectangle_f_crop_to_format(gavl_rectangle_f_t * r,
                                      const gavl_video_format_t * format);
 
-  
-/*! \brief Crop a rectangle so it fits into the image size of a video format
+/*! \brief Set 2 rectangles as source and destination when no scaling is available
  * \ingroup rectangle
- * \param r A rectangle
- * \param format The video format into which the rectangle must fit
- */
-  
-void gavl_rectangle_crop_to_format_scale(gavl_rectangle_f_t * src_rect,
-                                         gavl_rectangle_i_t * dst_rect,
-                                         const gavl_video_format_t * src_format,
-                                         const gavl_video_format_t * dst_format);
-
-/*
+ * \param src_rect Source rectangle
+ * \param dst_rect Destination rectangle
+ * \param src_format Source format
+ * \param dst_format Destination format
+ *
  *  This produces 2 rectangles of the same size centered on src_format and dst_format
  *  respectively
  */
@@ -774,18 +768,90 @@ void gavl_rectangle_i_set_all(gavl_rectangle_i_t * r, const gavl_video_format_t 
  */
 
 void gavl_rectangle_f_set_all(gavl_rectangle_f_t * r, const gavl_video_format_t * format);
-  
-void gavl_rectangle_crop_left(gavl_rectangle_i_t * r, int num_pixels);
-void gavl_rectangle_crop_right(gavl_rectangle_i_t * r, int num_pixels);
-void gavl_rectangle_crop_top(gavl_rectangle_i_t * r, int num_pixels);
-void gavl_rectangle_crop_bottom(gavl_rectangle_i_t * r, int num_pixels);
 
+/*! \brief crop an integer rectangle by some pixels from the left border
+ * \ingroup rectangle
+ * \param r An integer rectangle
+ * \param num_pixels The number of pixels by which the rectangle gets smaller
+ */
+  
+void gavl_rectangle_i_crop_left(gavl_rectangle_i_t * r,   int num_pixels);
+
+/*! \brief crop an integer rectangle by some pixels from the right border
+ * \ingroup rectangle
+ * \param r An integer rectangle
+ * \param num_pixels The number of pixels by which the rectangle gets smaller
+ */
+
+void gavl_rectangle_i_crop_right(gavl_rectangle_i_t * r,  int num_pixels);
+
+/*! \brief crop an integer rectangle by some pixels from the top border
+ * \ingroup rectangle
+ * \param r An integer rectangle
+ * \param num_pixels The number of pixels by which the rectangle gets smaller
+ */
+
+void gavl_rectangle_i_crop_top(gavl_rectangle_i_t * r,    int num_pixels);
+
+/*! \brief crop an integer rectangle by some pixels from the bottom border
+ * \ingroup rectangle
+ * \param r An integer rectangle
+ * \param num_pixels The number of pixels by which the rectangle gets smaller
+ */
+
+void gavl_rectangle_i_crop_bottom(gavl_rectangle_i_t * r, int num_pixels);
+
+/*! \brief crop a float rectangle by some pixels from the left border
+ * \ingroup rectangle
+ * \param r A float rectangle
+ * \param num_pixels The number of pixels by which the rectangle gets smaller
+ */
+ 
+void gavl_rectangle_f_crop_left(gavl_rectangle_f_t * r,   double num_pixels);
+
+/*! \brief crop a float rectangle by some pixels from the right border
+ * \ingroup rectangle
+ * \param r A float rectangle
+ * \param num_pixels The number of pixels by which the rectangle gets smaller
+ */
+
+void gavl_rectangle_f_crop_right(gavl_rectangle_f_t * r,  double num_pixels);
+
+/*! \brief crop a float rectangle by some pixels from the top border
+ * \ingroup rectangle
+ * \param r A float rectangle
+ * \param num_pixels The number of pixels by which the rectangle gets smaller
+ */
+
+void gavl_rectangle_f_crop_top(gavl_rectangle_f_t * r,    double num_pixels);
+
+/*! \brief crop a float rectangle by some pixels from the bottom border
+ * \ingroup rectangle
+ * \param r A float rectangle
+ * \param num_pixels The number of pixels by which the rectangle gets smaller
+ */
+
+void gavl_rectangle_f_crop_bottom(gavl_rectangle_f_t * r, double num_pixels);
+
+/*! \brief Align a rectangle
+ * \ingroup rectangle
+ * \param r An integer rectangle
+ * \param h_align Horizontal alignment
+ * \param v_align Vertical alignment
+ *
+ * This aligns a rectangle such that the horizontal coordinates are multiples of
+ * h_align, while the vertical coordinates are multiples of v_align. When dealing
+ * with chroma subsampled formats, you must call this function with the
+ * return values of \ref gavl_colorspace_chroma_sub before taking subframes from
+ * video frames.
+ */
+  
 void gavl_rectangle_i_align(gavl_rectangle_i_t * r, int h_align, int v_align);
 
 /*! \brief Copy an integer rectangle
  * \ingroup rectangle
  * \param dst Destination rectangle
- * \param dst Source rectangle
+ * \param src Source rectangle
  */
   
 void gavl_rectangle_i_copy(gavl_rectangle_i_t * dst, const gavl_rectangle_i_t * src);
@@ -793,33 +859,53 @@ void gavl_rectangle_i_copy(gavl_rectangle_i_t * dst, const gavl_rectangle_i_t * 
 /*! \brief Copy a float rectangle
  * \ingroup rectangle
  * \param dst Destination rectangle
- * \param dst Source rectangle
+ * \param src Source rectangle
  */
 
 void gavl_rectangle_f_copy(gavl_rectangle_f_t * dst, const gavl_rectangle_f_t * src);
 
-int gavl_rectangle_is_empty(const gavl_rectangle_i_t * r);
+/*! \brief Check if an integer rectangle is empty
+ * \ingroup rectangle
+ * \param r Rectangle
+ * \returns 1 if the rectangle is empty, 0 else.
+ *
+ * A rectangle is considered to be empty if the width or height are <= 0.
+ */
 
-/*
-  For a Rectangle in the Luminance plane, calculate the corresponding rectangle
-  in chroma plane using the given subsampling factors.
-  It is wise to call gavl_rectangle_align before.
-*/
+int gavl_rectangle_i_is_empty(const gavl_rectangle_i_t * r);
+
+/*! \brief Check if a float rectangle is empty
+ * \ingroup rectangle
+ * \param r Rectangle
+ * \returns 1 if the rectangle is empty, 0 else.
+ *
+ * A rectangle is considered to be empty if the width or height are <= 0.
+ */
   
-void gavl_rectangle_subsample(gavl_rectangle_i_t * dst, const gavl_rectangle_i_t * src,
-                              int sub_h, int sub_v);
+int gavl_rectangle_f_is_empty(const gavl_rectangle_f_t * r);
 
-/*
+  
+
+/*!\brief Calculate a destination rectangle
+ * \ingroup rectangle
+ * \param dst_rect Destination rectangle
+ * \param src_format Source format
+ * \param src_rect Source rectangle
+ * \param dst_format Destination format
+ * \param zoom Zoom factor
+ * \param squeeze Squeeze factor
+ *
  * Assuming we take src_rect from a frame in format src_format,
  * calculate the optimal dst_rect in dst_format. The source and destination
- * display aspect ratio will be unchanged
+ * display aspect ratio will be unchanged unless it is changed with the squeeze
+ * parameter.
  * Zoom is a zoom factor (1.0 = 100 %), Squeeze is a value between -1.0 and 1.0,
  * while squeeze changes the apsect ratio in both directions. 0.0 means unchanged
  */
   
-void gavl_rectangle_fit_aspect(gavl_rectangle_i_t * r,
+void gavl_rectangle_fit_aspect(gavl_rectangle_i_t * dst_rect,
                                const gavl_video_format_t * src_format,
-                               const gavl_rectangle_i_t * src_rect,
+                               const gavl_rectangle_f_t * src_rect,
                                const gavl_video_format_t * dst_format,
                                float zoom, float squeeze);
 
@@ -971,7 +1057,7 @@ typedef enum
 
 /*! \ingroup video_format
  * \brief Check if a colorspace is RGB based
- * \param colorspace A colorspace
+ * \param csp A colorspace
  * \returns 1 if the colorspace is RGB based, 0 else
  */
   
@@ -979,7 +1065,7 @@ typedef enum
 
 /*! \ingroup video_format
  * \brief Check if a colorspace is YUV based
- * \param colorspace A colorspace
+ * \param csp A colorspace
  * \returns 1 if the colorspace is YUV based, 0 else
  */
   
@@ -987,7 +1073,7 @@ typedef enum
 
 /*! \ingroup video_format
  * \brief Check if a colorspace is jpeg (full range) scaled
- * \param colorspace A colorspace
+ * \param csp A colorspace
  * \returns 1 if the colorspace is jpeg scaled, 0 else
  */
 
@@ -995,7 +1081,7 @@ typedef enum
 
 /*! \ingroup video_format
  * \brief Check if a colorspace has a transparency channel
- * \param colorspace A colorspace
+ * \param csp A colorspace
  * \returns 1 if the colorspace has a transparency channel, 0 else
  */
   
@@ -1003,7 +1089,7 @@ typedef enum
 
 /*! \ingroup video_format
  * \brief Check if a colorspace is planar
- * \param colorspace A colorspace
+ * \param csp A colorspace
  * \returns 1 if the colorspace is planar, 0 else
  */
 
@@ -1194,8 +1280,21 @@ void gavl_video_format_get_chroma_offset(gavl_video_format_t * format, int field
   
 void gavl_video_format_dump(const gavl_video_format_t * format);
 
+/*! 
+  \ingroup video_format
+  \brief Set the image size of a destination format from a source format
+  \param dst Destination format
+  \param src Source format
+
+  Sets the image size of dst according src. Before you call this function,
+  you must set the pixel_width and pixel_height of dst. This function will
+  preserve the display aspect ratio, i.e. when the pixel aspect ratios are different
+  in source and destination, the images will be scaled.
+ */
+  
 void gavl_video_format_fit_to_source(gavl_video_format_t * dst,
                                      const gavl_video_format_t * src);
+
   
 
 /** \defgroup video_frame Video frames
@@ -1354,6 +1453,9 @@ void gavl_video_frame_copy_flip_xy(gavl_video_format_t * format,
   speficied rectangular area. Note that no data are copied here. This means that
   dst must be created with NULL as the format argument and \ref gavl_video_frame_null
   must be called before destroying dst.
+
+  When dealing with chroma subsampled colorspaces, you must call
+  \ref gavl_rectangle_i_align on src_rect before.
 */
 
 void gavl_video_frame_get_subframe(gavl_colorspace_t colorspace,
@@ -1517,7 +1619,7 @@ void gavl_video_options_set_quality(gavl_video_options_t * opt, int quality);
 /*! \ingroup Video options
  *  \brief Set the conversion flags
  *  \param opt Video options
- *  \param flags (see \ref video_conversion_flags)
+ *  \param conversion_flags Conversion flags (see \ref video_conversion_flags)
  */
   
 void gavl_video_options_set_conversion_flags(gavl_video_options_t * opt,
@@ -1753,7 +1855,7 @@ void gavl_video_scaler_scale(gavl_video_scaler_t * scaler,
 /**************************************************
  * Transparent overlays 
  **************************************************/
-
+#if 0
 /* Overlay format */
   
 typedef struct
@@ -1792,7 +1894,7 @@ int gavl_overlay_blend_context_need_new(gavl_overlay_blend_context_t *);
 void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t *,
                                             gavl_overlay_t *);
 
-  
+#endif  
 #ifdef __cplusplus
 }
 #endif
