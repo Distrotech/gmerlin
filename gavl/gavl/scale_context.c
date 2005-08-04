@@ -71,11 +71,11 @@ static void dump_offset(gavl_video_scale_offsets_t*off)
 #endif
 
 gavl_video_scale_scanline_func get_func(gavl_scale_func_tab_t * tab,
-                                        gavl_colorspace_t colorspace, int * bits)
+                                        gavl_pixelformat_t pixelformat, int * bits)
   {
-  switch(colorspace)
+  switch(pixelformat)
     {
-    case GAVL_COLORSPACE_NONE:
+    case GAVL_PIXELFORMAT_NONE:
       break;
     case GAVL_RGB_15:
     case GAVL_BGR_15:
@@ -149,13 +149,13 @@ gavl_video_scale_scanline_func get_func(gavl_scale_func_tab_t * tab,
   return (gavl_video_scale_scanline_func)0;
   }
 
-static void get_offsets(gavl_colorspace_t colorspace,
+static void get_offsets(gavl_pixelformat_t pixelformat,
                         int plane,
                         int * advance, int * offset)
   {
-  switch(colorspace)
+  switch(pixelformat)
     {
-    case GAVL_COLORSPACE_NONE:
+    case GAVL_PIXELFORMAT_NONE:
       break;
     case GAVL_RGB_15:
     case GAVL_BGR_15:
@@ -256,12 +256,12 @@ static void get_offsets(gavl_colorspace_t colorspace,
     }
   }
 
-static void get_minmax(gavl_colorspace_t colorspace,
+static void get_minmax(gavl_pixelformat_t pixelformat,
                        uint32_t * min, uint32_t * max)
   {
-  switch(colorspace)
+  switch(pixelformat)
     {
-    case GAVL_COLORSPACE_NONE:
+    case GAVL_PIXELFORMAT_NONE:
       break;
     case GAVL_RGB_15:
     case GAVL_BGR_15:
@@ -348,15 +348,15 @@ static void get_minmax(gavl_colorspace_t colorspace,
     }
   }
 
-static void alloc_temp(gavl_video_scale_context_t * ctx, gavl_colorspace_t colorspace)
+static void alloc_temp(gavl_video_scale_context_t * ctx, gavl_pixelformat_t pixelformat)
   {
   int size;
-  if((colorspace == GAVL_YUY2) || (colorspace == GAVL_UYVY))
+  if((pixelformat == GAVL_YUY2) || (pixelformat == GAVL_UYVY))
     ctx->buffer_stride = ctx->buffer_width;
-  else if(gavl_colorspace_is_planar(colorspace))
-    ctx->buffer_stride = ctx->buffer_width * gavl_colorspace_bytes_per_component(colorspace);
+  else if(gavl_pixelformat_is_planar(pixelformat))
+    ctx->buffer_stride = ctx->buffer_width * gavl_pixelformat_bytes_per_component(pixelformat);
   else
-    ctx->buffer_stride = ctx->buffer_width * gavl_colorspace_bytes_per_pixel(colorspace);
+    ctx->buffer_stride = ctx->buffer_width * gavl_pixelformat_bytes_per_pixel(pixelformat);
   
   ALIGN(ctx->buffer_stride);
 
@@ -392,8 +392,8 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
   if(plane)
     {
     /* Get chroma subsampling factors for source and destination */
-    gavl_colorspace_chroma_sub(src_format->colorspace, &sub_h_in, &sub_v_in);
-    gavl_colorspace_chroma_sub(dst_format->colorspace, &sub_h_out, &sub_v_out);
+    gavl_pixelformat_chroma_sub(src_format->pixelformat, &sub_h_in, &sub_v_in);
+    gavl_pixelformat_chroma_sub(dst_format->pixelformat, &sub_h_out, &sub_v_out);
 
     ctx->src_rect.w /= sub_h_in;
     ctx->src_rect.h /= sub_v_in;
@@ -434,34 +434,34 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
 
   /* Set source and destination frame planes */
 
-  if(gavl_colorspace_is_planar(src_format->colorspace))
+  if(gavl_pixelformat_is_planar(src_format->pixelformat))
     ctx->src_frame_plane = plane;
   else
     ctx->src_frame_plane = 0;
 
-  if(gavl_colorspace_is_planar(dst_format->colorspace))
+  if(gavl_pixelformat_is_planar(dst_format->pixelformat))
     ctx->dst_frame_plane = plane;
   else
     ctx->dst_frame_plane = 0;
   
   if(!ctx->num_directions)
     {
-    ctx->bytes_per_line = gavl_colorspace_is_planar(src_format->colorspace) ?
-      ctx->dst_rect.w * gavl_colorspace_bytes_per_component(src_format->colorspace) :
-      ctx->dst_rect.w * gavl_colorspace_bytes_per_pixel(src_format->colorspace);
+    ctx->bytes_per_line = gavl_pixelformat_is_planar(src_format->pixelformat) ?
+      ctx->dst_rect.w * gavl_pixelformat_bytes_per_component(src_format->pixelformat) :
+      ctx->dst_rect.w * gavl_pixelformat_bytes_per_pixel(src_format->pixelformat);
 
-    if((src_format->colorspace == GAVL_YUY2) ||
-       (src_format->colorspace == GAVL_UYVY) ||
-       (dst_format->colorspace == GAVL_YUY2) ||
-       (dst_format->colorspace == GAVL_UYVY))
+    if((src_format->pixelformat == GAVL_YUY2) ||
+       (src_format->pixelformat == GAVL_UYVY) ||
+       (dst_format->pixelformat == GAVL_YUY2) ||
+       (dst_format->pixelformat == GAVL_UYVY))
       ctx->func1 = copy_scanline_advance;
     else
       ctx->func1 = copy_scanline_noadvance;
 
     /* Set source and destination offsets */
-    get_offsets(src_format->colorspace,
+    get_offsets(src_format->pixelformat,
                 plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
-    get_offsets(dst_format->colorspace,
+    get_offsets(dst_format->pixelformat,
                 plane, &ctx->offset1.dst_advance, &ctx->offset1.dst_offset);
 
     /* We set this once here */
@@ -482,7 +482,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
                                 ctx->src_rect.h, ctx->dst_rect.h, src_height);
     
     /* Check if we can scale in x and y-directions at once */
-    ctx->func1 = get_func(&(funcs->funcs_xy), src_format->colorspace, &bits);
+    ctx->func1 = get_func(&(funcs->funcs_xy), src_format->pixelformat, &bits);
     
     if(ctx->func1) /* Scaling routines for x-y are there, good */
       {
@@ -518,10 +518,10 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
         
         gavl_video_scale_table_shift_indices(&(ctx->table_v), -src_rect_i.y);
 
-        ctx->func1 = get_func(&(funcs->funcs_x), src_format->colorspace, &bits);
+        ctx->func1 = get_func(&(funcs->funcs_x), src_format->pixelformat, &bits);
         gavl_video_scale_table_init_int(&(ctx->table_h), bits);
 
-        ctx->func2 = get_func(&(funcs->funcs_y), src_format->colorspace, &bits);
+        ctx->func2 = get_func(&(funcs->funcs_y), src_format->pixelformat, &bits);
         gavl_video_scale_table_init_int(&(ctx->table_v), bits);
         
         }
@@ -535,15 +535,15 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
         
         gavl_video_scale_table_shift_indices(&(ctx->table_h), -src_rect_i.x);
 
-        ctx->func1 = get_func(&(funcs->funcs_y), src_format->colorspace, &bits);
+        ctx->func1 = get_func(&(funcs->funcs_y), src_format->pixelformat, &bits);
         gavl_video_scale_table_init_int(&(ctx->table_v), bits);
 
-        ctx->func2 = get_func(&(funcs->funcs_x), src_format->colorspace, &bits);
+        ctx->func2 = get_func(&(funcs->funcs_x), src_format->pixelformat, &bits);
         gavl_video_scale_table_init_int(&(ctx->table_h), bits);
         }
       
       /* Allocate temporary buffer */
-      alloc_temp(ctx, src_format->colorspace);
+      alloc_temp(ctx, src_format->pixelformat);
       }
     }
   else if(scale_x)
@@ -551,7 +551,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     gavl_video_scale_table_init(&(ctx->table_h), opt, ctx->src_rect.x,
                                 ctx->src_rect.w, ctx->dst_rect.w, src_width);
 
-    ctx->func1 = get_func(&(funcs->funcs_x), src_format->colorspace, &bits);
+    ctx->func1 = get_func(&(funcs->funcs_x), src_format->pixelformat, &bits);
 
     
     gavl_video_scale_table_init_int(&(ctx->table_h), bits);
@@ -560,7 +560,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     {
     gavl_video_scale_table_init(&(ctx->table_v), opt, ctx->src_rect.y,
                                 ctx->src_rect.h, ctx->dst_rect.h, src_height);
-    ctx->func1 = get_func(&(funcs->funcs_y), src_format->colorspace, &bits);
+    ctx->func1 = get_func(&(funcs->funcs_y), src_format->pixelformat, &bits);
     
     gavl_video_scale_table_init_int(&(ctx->table_v), bits);
     }
@@ -569,9 +569,9 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
 
   if(ctx->num_directions == 1)
     {
-    get_offsets(src_format->colorspace,
+    get_offsets(src_format->pixelformat,
                 plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
-    get_offsets(dst_format->colorspace,
+    get_offsets(dst_format->pixelformat,
                 plane, &ctx->offset1.dst_advance, &ctx->offset1.dst_offset);
 
     /* We set this once here */
@@ -581,22 +581,22 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     }
   else if(ctx->num_directions == 2)
     {
-    get_offsets(src_format->colorspace,
+    get_offsets(src_format->pixelformat,
                 plane, &ctx->offset1.src_advance, &ctx->offset1.src_offset);
 
-    get_offsets(src_format->colorspace,
+    get_offsets(src_format->pixelformat,
                 plane, &ctx->offset1.dst_advance, &ctx->offset1.dst_offset);
     ctx->offset1.dst_offset = 0;
 
-    if((src_format->colorspace == GAVL_YUY2) || 
-       (src_format->colorspace == GAVL_UYVY))
+    if((src_format->pixelformat == GAVL_YUY2) || 
+       (src_format->pixelformat == GAVL_UYVY))
       {
       ctx->offset1.dst_advance = 1;
       }
     ctx->offset2.src_advance = ctx->offset1.dst_advance;
     ctx->offset2.src_offset  = ctx->offset1.dst_offset;
     
-    get_offsets(dst_format->colorspace,
+    get_offsets(dst_format->pixelformat,
                 plane, &ctx->offset2.dst_advance, &ctx->offset2.dst_offset);
     }
   
@@ -613,7 +613,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
   else
     ctx->num_taps = ctx->table_v.factors_per_pixel;
   
-  get_minmax(src_format->colorspace, ctx->min_values, ctx->max_values);
+  get_minmax(src_format->pixelformat, ctx->min_values, ctx->max_values);
   for(i = 0; i < 4; i++)
     {
     ctx->min_values[i] <<= bits;

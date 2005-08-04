@@ -29,11 +29,11 @@
 
 typedef struct
   {
-  gavl_colorspace_t colorspace;
+  gavl_pixelformat_t pixelformat;
   char * name;
-  } colorspace_tab_t;
+  } pixelformat_tab_t;
 
-colorspace_tab_t colorspace_tab[] =
+pixelformat_tab_t pixelformat_tab[] =
   {
     { GAVL_RGB_15, "15 bpp RGB" },
     { GAVL_BGR_15, "15 bpp BGR" },
@@ -61,12 +61,12 @@ colorspace_tab_t colorspace_tab[] =
     { GAVL_YUVJ_420_P, "YUVJ 420 Planar" },
     { GAVL_YUVJ_422_P, "YUVJ 422 Planar" },
     { GAVL_YUVJ_444_P, "YUVJ 444 Planar" },
-    { GAVL_COLORSPACE_NONE, "Undefined" }
+    { GAVL_PIXELFORMAT_NONE, "Undefined" }
   };
 
-static int num_colorspaces = sizeof(colorspace_tab)/sizeof(colorspace_tab_t);
+static int num_pixelformats = sizeof(pixelformat_tab)/sizeof(pixelformat_tab_t);
 
-int gavl_colorspace_num_planes(gavl_colorspace_t csp)
+int gavl_pixelformat_num_planes(gavl_pixelformat_t csp)
   {
   switch(csp)
     {
@@ -100,14 +100,14 @@ int gavl_colorspace_num_planes(gavl_colorspace_t csp)
     case GAVL_YUVJ_444_P:
       return 3;
       break;
-    case GAVL_COLORSPACE_NONE:
+    case GAVL_PIXELFORMAT_NONE:
       return 0;
       break;
     }
   return 0;
   }
 
-void gavl_colorspace_chroma_sub(gavl_colorspace_t csp, int * sub_h,
+void gavl_pixelformat_chroma_sub(gavl_pixelformat_t csp, int * sub_h,
                                 int * sub_v)
   {
   switch(csp)
@@ -153,56 +153,56 @@ void gavl_colorspace_chroma_sub(gavl_colorspace_t csp, int * sub_h,
       *sub_h = 4;
       *sub_v = 4;
       break;
-    case GAVL_COLORSPACE_NONE:
+    case GAVL_PIXELFORMAT_NONE:
       *sub_h = 0;
       *sub_v = 0;
       break;
     }
   }
 
-int gavl_num_colorspaces()
+int gavl_num_pixelformats()
   {
-  return num_colorspaces - 1;
+  return num_pixelformats - 1;
   }
 
-gavl_colorspace_t gavl_get_colorspace(int index)
+gavl_pixelformat_t gavl_get_pixelformat(int index)
   {
-  return colorspace_tab[index].colorspace;
+  return pixelformat_tab[index].pixelformat;
   }
 
-const char * gavl_colorspace_to_string(gavl_colorspace_t colorspace)
+const char * gavl_pixelformat_to_string(gavl_pixelformat_t pixelformat)
   {
   int i;
-  for(i = 0; i < num_colorspaces; i++)
+  for(i = 0; i < num_pixelformats; i++)
     {
-    if(colorspace_tab[i].colorspace == colorspace)
-      return colorspace_tab[i].name;
+    if(pixelformat_tab[i].pixelformat == pixelformat)
+      return pixelformat_tab[i].name;
     }
   return (const char*)0;
   }
 
-gavl_colorspace_t gavl_string_to_colorspace(const char * name)
+gavl_pixelformat_t gavl_string_to_pixelformat(const char * name)
   {
   int i;
-  for(i = 0; i < num_colorspaces; i++)
+  for(i = 0; i < num_pixelformats; i++)
     {
-    if(!strcmp(colorspace_tab[i].name, name))
-      return colorspace_tab[i].colorspace;
+    if(!strcmp(pixelformat_tab[i].name, name))
+      return pixelformat_tab[i].pixelformat;
     }
-  return GAVL_COLORSPACE_NONE;
+  return GAVL_PIXELFORMAT_NONE;
   }
 
 
-static gavl_colorspace_function_table_t *
-create_colorspace_function_table(const gavl_video_options_t * opt,
+static gavl_pixelformat_function_table_t *
+create_pixelformat_function_table(const gavl_video_options_t * opt,
                                  int width, int height)
   {
-  gavl_colorspace_function_table_t * csp_tab;
+  gavl_pixelformat_function_table_t * csp_tab;
   int real_accel_flags = opt->accel_flags ?
     gavl_real_accel_flags(opt->accel_flags) : 0;
     
   csp_tab =
-    calloc(1,sizeof(gavl_colorspace_function_table_t));
+    calloc(1,sizeof(gavl_pixelformat_function_table_t));
 #if 1
   if(!real_accel_flags || (real_accel_flags & GAVL_ACCEL_C))
     {
@@ -236,20 +236,20 @@ create_colorspace_function_table(const gavl_video_options_t * opt,
   }
 
 gavl_video_func_t
-gavl_find_colorspace_converter(const gavl_video_options_t * opt,
-                               gavl_colorspace_t input_colorspace,
-                               gavl_colorspace_t output_colorspace,
+gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
+                               gavl_pixelformat_t input_pixelformat,
+                               gavl_pixelformat_t output_pixelformat,
                                int width,
                                int height)
   {
   gavl_video_func_t ret = NULL;
-  gavl_colorspace_function_table_t * tab =
-    create_colorspace_function_table(opt, width, height);
+  gavl_pixelformat_function_table_t * tab =
+    create_pixelformat_function_table(opt, width, height);
 
-  switch(input_colorspace)
+  switch(input_pixelformat)
     {
     case GAVL_RGB_15:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_BGR_15:
           ret = tab->swap_rgb_15;
@@ -327,13 +327,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->rgb_15_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_RGB_15:
           break;
         }
       break;
     case GAVL_BGR_15:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->swap_rgb_15;
@@ -411,13 +411,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->bgr_15_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_BGR_15:
           break;
         }
       break;
     case GAVL_RGB_16:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->rgb_16_to_15;
@@ -496,13 +496,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->rgb_16_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_RGB_16:
           break;
         }
       break;
     case GAVL_BGR_16:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->rgb_16_to_15_swap;
@@ -581,13 +581,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->bgr_16_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_BGR_16:
           break;
         }
       break;
     case GAVL_RGB_24:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->rgb_24_to_15;
@@ -665,13 +665,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->rgb_24_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_RGB_24:
           break;
         }
       break;
     case GAVL_BGR_24:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->rgb_24_to_15_swap;
@@ -749,13 +749,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->bgr_24_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_BGR_24:
           break;
         }
       break;
     case GAVL_RGB_32:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->rgb_32_to_15;
@@ -833,13 +833,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->rgb_32_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_RGB_32:
           break;
         }
       break;
     case GAVL_BGR_32:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->rgb_32_to_15_swap;
@@ -917,13 +917,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->bgr_32_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_BGR_32:
           break;
         }
       break;
     case GAVL_RGBA_32:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->rgba_32_to_rgb_15;
@@ -1001,14 +1001,14 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->rgba_32_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_RGBA_32:
           break;
         }
       break;
 
     case GAVL_RGBA_64:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->rgba_64_to_rgb_15;
@@ -1086,14 +1086,14 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->rgba_64_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_RGBA_64:
           break;
         }
       break;
 
     case GAVL_RGBA_FLOAT:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->rgba_float_to_rgb_15;
@@ -1171,7 +1171,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->rgba_float_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_RGBA_FLOAT:
           break;
         }
@@ -1179,7 +1179,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
 
       
     case GAVL_RGB_48:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->rgb_48_to_15;
@@ -1257,13 +1257,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->rgb_48_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_RGB_48:
           break;
         }
       break;
     case GAVL_RGB_FLOAT:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->rgb_float_to_15;
@@ -1341,7 +1341,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->rgb_float_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_RGB_FLOAT:
           break;
         }
@@ -1350,7 +1350,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
       
 
     case GAVL_YUY2:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->yuy2_to_rgb_15;
@@ -1428,13 +1428,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->yuy2_to_yuva_32;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_YUY2:
           break;
         }
       break;
     case GAVL_UYVY:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->uyvy_to_rgb_15;
@@ -1512,14 +1512,14 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->uyvy_to_yuva_32;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_UYVY:
           break;
         }
       break;
 
     case GAVL_YUVA_32:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->yuva_32_to_rgb_15;
@@ -1597,7 +1597,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->yuva_32_to_uyvy;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_YUVA_32:
           break;
         }
@@ -1605,7 +1605,7 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
 
 
     case GAVL_YUV_420_P:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->yuv_420_p_to_rgb_15;
@@ -1684,13 +1684,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->yuv_420_p_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_YUV_420_P:
           break;
         }
       break;
     case GAVL_YUV_410_P:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->yuv_410_p_to_rgb_15;
@@ -1769,13 +1769,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->yuv_410_p_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_YUV_410_P:
           break;
         }
       break;
     case GAVL_YUV_422_P:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->yuv_422_p_to_rgb_15;
@@ -1853,14 +1853,14 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->yuv_422_p_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_YUV_422_P:
           break;
         }
       break;
 
     case GAVL_YUV_422_P_16:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->yuv_422_p_16_to_rgb_15;
@@ -1938,14 +1938,14 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->yuv_422_p_16_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_YUV_422_P_16:
           break;
         }
       break;
 
     case GAVL_YUV_411_P:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->yuv_411_p_to_rgb_15;
@@ -2024,13 +2024,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->yuv_411_p_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_YUV_411_P:
           break;
         }
       break;
     case GAVL_YUV_444_P:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->yuv_444_p_to_rgb_15;
@@ -2109,14 +2109,14 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->yuv_444_p_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_YUV_444_P:
           break;
         }
       break;
 
     case GAVL_YUV_444_P_16:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->yuv_444_p_16_to_rgb_15;
@@ -2195,14 +2195,14 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->yuv_444_p_16_to_yuvj_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_YUV_444_P_16:
           break;
         }
       break;
 
     case GAVL_YUVJ_420_P:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->yuvj_420_p_to_rgb_15;
@@ -2281,13 +2281,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->yuv_420_p_to_yuv_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_YUVJ_420_P:
           break;
         }
       break;
     case GAVL_YUVJ_422_P:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->yuvj_422_p_to_rgb_15;
@@ -2365,13 +2365,13 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->yuv_422_p_to_yuv_444_p;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_YUVJ_422_P:
           break;
         }
       break;
     case GAVL_YUVJ_444_P:
-      switch(output_colorspace)
+      switch(output_pixelformat)
         {
         case GAVL_RGB_15:
           ret = tab->yuvj_444_p_to_rgb_15;
@@ -2449,14 +2449,14 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
           ret = tab->yuvj_444_p_to_yuv_444_p_16;
           break;
         /* Keep GCC happy */
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_YUVJ_444_P:
           break;
         }
       break;
 
       
-    case GAVL_COLORSPACE_NONE:
+    case GAVL_PIXELFORMAT_NONE:
       break;
     }
   free(tab);  
@@ -2465,11 +2465,11 @@ gavl_find_colorspace_converter(const gavl_video_options_t * opt,
 
 /* bytes_per_component is only valid for planar formats */
   
-int gavl_colorspace_bytes_per_component(gavl_colorspace_t csp)
+int gavl_pixelformat_bytes_per_component(gavl_pixelformat_t csp)
   {
   switch(csp)
     {
-    case GAVL_COLORSPACE_NONE:
+    case GAVL_PIXELFORMAT_NONE:
     case GAVL_RGB_15:
     case GAVL_BGR_15:
     case GAVL_RGB_16:
@@ -2507,11 +2507,11 @@ int gavl_colorspace_bytes_per_component(gavl_colorspace_t csp)
 
 /* bytes_per_pixel is only valid for packed formats */
 
-int gavl_colorspace_bytes_per_pixel(gavl_colorspace_t csp)
+int gavl_pixelformat_bytes_per_pixel(gavl_pixelformat_t csp)
   {
   switch(csp)
     {
-    case GAVL_COLORSPACE_NONE:
+    case GAVL_PIXELFORMAT_NONE:
       return 0;
       break;
     case GAVL_RGB_15:
@@ -2560,57 +2560,57 @@ int gavl_colorspace_bytes_per_pixel(gavl_colorspace_t csp)
   return 0;
   }
 
-/* Check if a colorspace can be converted by simple scaling */
+/* Check if a pixelformat can be converted by simple scaling */
 
-int gavl_colorspace_can_scale(gavl_colorspace_t in_csp, gavl_colorspace_t out_csp)
+int gavl_pixelformat_can_scale(gavl_pixelformat_t in_csp, gavl_pixelformat_t out_csp)
   {
     int sub_v_in,  sub_h_in;
   int sub_v_out, sub_h_out;
-  if(gavl_colorspace_is_rgb(in_csp) ||
-     gavl_colorspace_is_rgb(out_csp))
+  if(gavl_pixelformat_is_rgb(in_csp) ||
+     gavl_pixelformat_is_rgb(out_csp))
     {
     return 0;
     }
 
-  if(gavl_colorspace_is_jpeg_scaled(in_csp) !=
-     gavl_colorspace_is_jpeg_scaled(out_csp))
+  if(gavl_pixelformat_is_jpeg_scaled(in_csp) !=
+     gavl_pixelformat_is_jpeg_scaled(out_csp))
     {
     return 0;
     }
-  if(gavl_colorspace_has_alpha(in_csp) !=
-     gavl_colorspace_has_alpha(out_csp))
+  if(gavl_pixelformat_has_alpha(in_csp) !=
+     gavl_pixelformat_has_alpha(out_csp))
     {
     return 0;
     }
 
 
   
-  gavl_colorspace_chroma_sub(in_csp, &sub_h_in, &sub_v_in);
-  gavl_colorspace_chroma_sub(out_csp, &sub_h_out, &sub_v_out);
+  gavl_pixelformat_chroma_sub(in_csp, &sub_h_in, &sub_v_in);
+  gavl_pixelformat_chroma_sub(out_csp, &sub_h_out, &sub_v_out);
   
   if((sub_h_in == sub_h_out) && (sub_v_in == sub_v_out))
     {
     return 0;
     }
 
-  if(!gavl_colorspace_is_planar(in_csp))
+  if(!gavl_pixelformat_is_planar(in_csp))
     {
-    fprintf(stderr, "BLUPPPP: %d %d\n", gavl_colorspace_is_planar(out_csp),
-            gavl_colorspace_bytes_per_component(out_csp));
+    fprintf(stderr, "BLUPPPP: %d %d\n", gavl_pixelformat_is_planar(out_csp),
+            gavl_pixelformat_bytes_per_component(out_csp));
     
-    if(gavl_colorspace_is_planar(out_csp) &&
-       (gavl_colorspace_bytes_per_component(out_csp) == 1))
+    if(gavl_pixelformat_is_planar(out_csp) &&
+       (gavl_pixelformat_bytes_per_component(out_csp) == 1))
       return 1;
     else
       return 0;
     }
   else
     {
-    if(!gavl_colorspace_is_planar(out_csp) &&
-       (gavl_colorspace_bytes_per_component(in_csp) == 1))
+    if(!gavl_pixelformat_is_planar(out_csp) &&
+       (gavl_pixelformat_bytes_per_component(in_csp) == 1))
       return 1;
-    else if(gavl_colorspace_bytes_per_component(in_csp) ==
-            gavl_colorspace_bytes_per_component(out_csp))
+    else if(gavl_pixelformat_bytes_per_component(in_csp) ==
+            gavl_pixelformat_bytes_per_component(out_csp))
       return 1;
     else
       return 0;
@@ -2619,17 +2619,17 @@ int gavl_colorspace_can_scale(gavl_colorspace_t in_csp, gavl_colorspace_t out_cs
   }
 
 /*
- *  Return a colorspace (or GAVL_COLORSPACE_NONE) as an intermediate colorspace
+ *  Return a pixelformat (or GAVL_PIXELFORMAT_NONE) as an intermediate pixelformat
  *  for which the conversion quality can be improved. E.g. instead of
  *  RGB -> YUV420P, we can do RGB -> YUV444P -> YUV420P with proper chroma scaling
  */
 
-gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
-                                                   gavl_colorspace_t out_csp)
+gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
+                                                   gavl_pixelformat_t out_csp)
   {
   switch(in_csp)
     {
-    case GAVL_COLORSPACE_NONE: return GAVL_COLORSPACE_NONE; break;
+    case GAVL_PIXELFORMAT_NONE: return GAVL_PIXELFORMAT_NONE; break;
     case GAVL_RGB_15:
     case GAVL_BGR_15:
     case GAVL_RGB_16:
@@ -2647,7 +2647,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
       /*4:4:4 -> */
       switch(out_csp)
         {
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_RGB_15:
         case GAVL_BGR_15:
         case GAVL_RGB_16:
@@ -2665,7 +2665,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
         case GAVL_YUV_444_P:
         case GAVL_YUVJ_444_P:
         case GAVL_YUV_444_P_16:
-          return GAVL_COLORSPACE_NONE; break;
+          return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUY2:
         case GAVL_UYVY:
         case GAVL_YUV_420_P:
@@ -2685,8 +2685,8 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
     case GAVL_YUV_422_P:
       switch(out_csp)
         {
-        case GAVL_COLORSPACE_NONE:
-          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_PIXELFORMAT_NONE:
+          return GAVL_PIXELFORMAT_NONE; break;
           /* YUV422 -> RGB */
         case GAVL_RGB_15:
         case GAVL_BGR_15:
@@ -2711,7 +2711,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
         case GAVL_YUV_420_P:
         case GAVL_YUV_411_P:
         case GAVL_YUV_410_P:
-          return GAVL_COLORSPACE_NONE; break;
+          return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_444_P_16:
           return GAVL_YUV_422_P_16; break;
         case GAVL_YUV_444_P:
@@ -2725,8 +2725,8 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
     case GAVL_YUV_420_P:
       switch(out_csp)
         {
-        case GAVL_COLORSPACE_NONE:
-          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_PIXELFORMAT_NONE:
+          return GAVL_PIXELFORMAT_NONE; break;
           /* YUV420 -> RGB */
         case GAVL_RGB_15:
         case GAVL_BGR_15:
@@ -2751,7 +2751,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
         case GAVL_YUV_410_P:
         case GAVL_YUV_444_P:
         case GAVL_YUVJ_420_P:
-          return GAVL_COLORSPACE_NONE; break;
+          return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_422_P_16:
           return GAVL_YUV_422_P; break;
         case GAVL_YUVJ_422_P:
@@ -2765,7 +2765,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
     case GAVL_YUV_444_P:
       switch(out_csp)
         {
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_RGB_15:
         case GAVL_BGR_15:
         case GAVL_RGB_16:
@@ -2780,7 +2780,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
         case GAVL_RGBA_FLOAT:
         case GAVL_RGBA_32:
         case GAVL_YUVA_32:
-          return GAVL_COLORSPACE_NONE; break;
+          return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_422_P:
         case GAVL_YUY2:
         case GAVL_UYVY:
@@ -2790,7 +2790,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
         case GAVL_YUV_444_P:
         case GAVL_YUVJ_444_P:
         case GAVL_YUV_444_P_16:
-          return GAVL_COLORSPACE_NONE; break;
+          return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_422_P_16:
           return GAVL_YUV_422_P; break;
         case GAVL_YUVJ_422_P:
@@ -2804,8 +2804,8 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
     case GAVL_YUV_410_P:
       switch(out_csp)
         {
-        case GAVL_COLORSPACE_NONE:
-          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_PIXELFORMAT_NONE:
+          return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_RGB_15:
         case GAVL_BGR_15:
         case GAVL_RGB_16:
@@ -2828,7 +2828,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
         case GAVL_YUV_411_P:
         case GAVL_YUV_410_P:
         case GAVL_YUV_444_P:
-          return GAVL_COLORSPACE_NONE; break;
+          return GAVL_PIXELFORMAT_NONE; break;
 
         case GAVL_YUVJ_444_P:
           return GAVL_YUV_444_P; break;
@@ -2845,8 +2845,8 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
     case GAVL_YUVJ_420_P:
       switch(out_csp)
         {
-        case GAVL_COLORSPACE_NONE:
-          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_PIXELFORMAT_NONE:
+          return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_RGB_15:
         case GAVL_BGR_15:
         case GAVL_RGB_16:
@@ -2873,7 +2873,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
         case GAVL_YUVJ_444_P:
         case GAVL_YUVJ_422_P:
         case GAVL_YUVJ_420_P:
-          return GAVL_COLORSPACE_NONE; break;
+          return GAVL_PIXELFORMAT_NONE; break;
 
         case GAVL_YUV_422_P_16:
           return GAVL_YUVJ_422_P; break;
@@ -2885,8 +2885,8 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
     case GAVL_YUVJ_422_P:
       switch(out_csp)
         {
-        case GAVL_COLORSPACE_NONE:
-          return GAVL_COLORSPACE_NONE; break;
+        case GAVL_PIXELFORMAT_NONE:
+          return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_RGB_15:
         case GAVL_BGR_15:
         case GAVL_RGB_16:
@@ -2914,7 +2914,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
         case GAVL_YUVJ_422_P:
         case GAVL_YUVJ_420_P:
         case GAVL_YUV_422_P_16:
-          return GAVL_COLORSPACE_NONE; break;
+          return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_444_P_16:
           return GAVL_YUV_422_P_16; break;
         }
@@ -2922,7 +2922,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
     case GAVL_YUVJ_444_P:
       switch(out_csp)
         {
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_RGB_15:
         case GAVL_BGR_15:
         case GAVL_RGB_16:
@@ -2939,7 +2939,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
         case GAVL_YUVA_32:
         case GAVL_YUV_444_P:
         case GAVL_YUV_444_P_16:
-          return GAVL_COLORSPACE_NONE; break;
+          return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_411_P:
         case GAVL_YUV_410_P:
         case GAVL_YUV_420_P:
@@ -2950,7 +2950,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
         case GAVL_YUVJ_444_P:
         case GAVL_YUVJ_422_P:
         case GAVL_YUVJ_420_P:
-          return GAVL_COLORSPACE_NONE; break;
+          return GAVL_PIXELFORMAT_NONE; break;
 
         case GAVL_YUV_422_P_16:
           return GAVL_YUVJ_422_P; break;
@@ -2960,7 +2960,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
     case GAVL_YUV_444_P_16:
       switch(out_csp)
         {
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_RGB_15:
         case GAVL_BGR_15:
         case GAVL_RGB_16:
@@ -2979,7 +2979,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
         case GAVL_YUV_444_P_16:
         case GAVL_YUVJ_444_P:
         case GAVL_YUV_422_P_16:
-          return GAVL_COLORSPACE_NONE; break;
+          return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_422_P:
         case GAVL_YUY2:
         case GAVL_UYVY:
@@ -2995,7 +2995,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
     case GAVL_YUV_422_P_16:
       switch(out_csp)
         {
-        case GAVL_COLORSPACE_NONE:
+        case GAVL_PIXELFORMAT_NONE:
         case GAVL_RGB_15:
         case GAVL_BGR_15:
         case GAVL_RGB_16:
@@ -3019,7 +3019,7 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
         case GAVL_YUY2:
         case GAVL_UYVY:
         case GAVL_YUVJ_422_P:
-          return GAVL_COLORSPACE_NONE; break;
+          return GAVL_PIXELFORMAT_NONE; break;
         case GAVL_YUV_411_P:
         case GAVL_YUV_410_P:
         case GAVL_YUV_420_P:
@@ -3030,5 +3030,5 @@ gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
 
       break;
     }
-  return GAVL_COLORSPACE_NONE;
+  return GAVL_PIXELFORMAT_NONE;
   }

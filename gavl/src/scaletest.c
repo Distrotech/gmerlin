@@ -30,20 +30,20 @@ static void write_png(char * filename, gavl_video_format_t * format, gavl_video_
   gavl_video_frame_t * frame_1 = (gavl_video_frame_t*)0;
 
   
-  if((format->colorspace != GAVL_RGB_24) && (format->colorspace != GAVL_RGBA_32))
+  if((format->pixelformat != GAVL_RGB_24) && (format->pixelformat != GAVL_RGBA_32))
     {
     cnv = gavl_video_converter_create();
     
     gavl_video_format_copy(&format_1, format);
 
-    if(gavl_colorspace_has_alpha(format->colorspace))
+    if(gavl_pixelformat_has_alpha(format->pixelformat))
       {
-      format_1.colorspace = GAVL_RGBA_32;
+      format_1.pixelformat = GAVL_RGBA_32;
       color_type = PNG_COLOR_TYPE_RGBA;
       }
     else
       {
-      format_1.colorspace = GAVL_RGB_24;
+      format_1.pixelformat = GAVL_RGB_24;
       color_type = PNG_COLOR_TYPE_RGB;
       }
     frame_1 = gavl_video_frame_create(&format_1);
@@ -53,7 +53,7 @@ static void write_png(char * filename, gavl_video_format_t * format, gavl_video_
     gavl_video_convert(cnv, frame, frame_1);
     gavl_video_converter_destroy(cnv);
     }
-  else if(format->colorspace == GAVL_RGB_24)
+  else if(format->pixelformat == GAVL_RGB_24)
     {
     color_type = PNG_COLOR_TYPE_RGB;
     }
@@ -104,7 +104,7 @@ static void write_png(char * filename, gavl_video_format_t * format, gavl_video_
 
 static gavl_video_frame_t * read_png(const char * filename,
                                      gavl_video_format_t * format,
-                                     gavl_colorspace_t colorspace)
+                                     gavl_pixelformat_t pixelformat)
   {
   int i;
   unsigned char ** rows;
@@ -196,9 +196,9 @@ static gavl_video_frame_t * read_png(const char * filename,
       break;
     }
   if(has_alpha)
-    format->colorspace = GAVL_RGBA_32;
+    format->pixelformat = GAVL_RGBA_32;
   else
-    format->colorspace = GAVL_RGB_24;
+    format->pixelformat = GAVL_RGB_24;
 
   frame = gavl_video_frame_create(format);
   rows = malloc(format->frame_height * sizeof(*rows));
@@ -215,19 +215,19 @@ static gavl_video_frame_t * read_png(const char * filename,
   
   /* Check wether to set up the converter */
 
-  if(format->colorspace != colorspace)
+  if(format->pixelformat != pixelformat)
     {
     cnv = gavl_video_converter_create();
 
     gavl_video_format_copy(&format_1, format);
-    format_1.colorspace = colorspace;
+    format_1.pixelformat = pixelformat;
     frame_1 = gavl_video_frame_create(&format_1);
     
     gavl_video_converter_init(cnv, format, &format_1);
     
     gavl_video_convert(cnv, frame, frame_1);
     gavl_video_converter_destroy(cnv);
-    format->colorspace = colorspace;
+    format->pixelformat = pixelformat;
     }
   else
     frame_1 = (gavl_video_frame_t*)0;
@@ -255,12 +255,12 @@ int main(int argc, char ** argv)
 
   gavl_video_options_t * opt;
     
-  gavl_colorspace_t csp;
+  gavl_pixelformat_t csp;
 
   memset(&format, 0, sizeof(format));
   memset(&format_1, 0, sizeof(format_1));
   
-  imax = gavl_num_colorspaces();
+  imax = gavl_num_pixelformats();
   scaler = gavl_video_scaler_create();
 
   opt = gavl_video_scaler_get_options(scaler);
@@ -269,11 +269,11 @@ int main(int argc, char ** argv)
   
   for(i = 0; i < imax; i++)
     {
-    csp = gavl_get_colorspace(i);
+    csp = gavl_get_pixelformat(i);
     
     //    csp = GAVL_RGB_24;
     
-    fprintf(stderr, "Colorspace: %s\n", gavl_colorspace_to_string(csp));
+    fprintf(stderr, "Pixelformat: %s\n", gavl_pixelformat_to_string(csp));
     
     dst_rect.w = atoi(argv[2]);
     dst_rect.h = atoi(argv[3]);
@@ -288,7 +288,7 @@ int main(int argc, char ** argv)
     frame = read_png(argv[1], &format, csp);
 #if 0
     /* Write test frame */
-    sprintf(filename_buffer, "%s-test.png", gavl_colorspace_to_string(csp));
+    sprintf(filename_buffer, "%s-test.png", gavl_pixelformat_to_string(csp));
     write_png(filename_buffer, &format, frame);
 #endif   
     gavl_video_format_copy(&format_1, &format);
@@ -318,7 +318,7 @@ int main(int argc, char ** argv)
     
     gavl_video_scaler_scale(scaler, frame, frame_1);
 
-    sprintf(filename_buffer, "%s-scaled.png", gavl_colorspace_to_string(csp));
+    sprintf(filename_buffer, "%s-scaled.png", gavl_pixelformat_to_string(csp));
     write_png(filename_buffer, &format_1, frame_1);
     fprintf(stderr, "Wrote %s\n", filename_buffer);
     gavl_video_frame_destroy(frame);

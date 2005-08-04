@@ -4452,7 +4452,7 @@ RGB_24_TO_YJ_8(BGR16_TO_R_8(src[1]), \
 
 #include "../csp_packed_planar.h"
 
-void gavl_init_rgb_yuv_funcs_c(gavl_colorspace_function_table_t * tab, const gavl_video_options_t * opt)
+void gavl_init_rgb_yuv_funcs_c(gavl_pixelformat_function_table_t * tab, const gavl_video_options_t * opt)
   {
   //  _init_rgb_to_yuv_c();
 

@@ -97,22 +97,22 @@ struct gavl_video_converter_s
 /* Find conversion functions */
 
 gavl_video_func_t
-gavl_find_colorspace_converter(const gavl_video_options_t * opt,
-                               gavl_colorspace_t input_colorspace,
-                               gavl_colorspace_t output_colorspace,
+gavl_find_pixelformat_converter(const gavl_video_options_t * opt,
+                               gavl_pixelformat_t input_pixelformat,
+                               gavl_pixelformat_t output_pixelformat,
                                int width, int height);
 
-/* Check if a colorspace can be converted by simple scaling */
+/* Check if a pixelformat can be converted by simple scaling */
 
-int gavl_colorspace_can_scale(gavl_colorspace_t in_csp, gavl_colorspace_t out_csp);
+int gavl_pixelformat_can_scale(gavl_pixelformat_t in_csp, gavl_pixelformat_t out_csp);
 
 /*
- *  Return a colorspace (or GAVL_COLORSPACE_NONE) as an intermediate colorspace
+ *  Return a pixelformat (or GAVL_PIXELFORMAT_NONE) as an intermediate pixelformat
  *  for which the conversion quality can be improved. E.g. instead of
  *  RGB -> YUV420P, we can do RGB -> YUV444P -> YUV420P with proper chroma scaling
  */
 
-gavl_colorspace_t gavl_colorspace_get_intermediate(gavl_colorspace_t in_csp,
-                                                   gavl_colorspace_t out_csp);
+gavl_pixelformat_t gavl_pixelformat_get_intermediate(gavl_pixelformat_t in_csp,
+                                                   gavl_pixelformat_t out_csp);
 
 #endif // _GAVL_VIDEO_H_

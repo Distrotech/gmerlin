@@ -1940,12 +1940,12 @@ static mmx_t rgb15_redmask = {0xf8f8f8f8f8f8f8f8LL};
 
 #ifdef MMXEXT
 
-void gavl_init_yuv_rgb_funcs_mmxext(gavl_colorspace_function_table_t * tab,
+void gavl_init_yuv_rgb_funcs_mmxext(gavl_pixelformat_function_table_t * tab,
                                     int width, const gavl_video_options_t * opt)
      
 #else /* !MMXEXT */
 
-void gavl_init_yuv_rgb_funcs_mmx(gavl_colorspace_function_table_t * tab,
+void gavl_init_yuv_rgb_funcs_mmx(gavl_pixelformat_function_table_t * tab,
                                  int width, const gavl_video_options_t * opt)
 
 #endif /* MMXEXT */

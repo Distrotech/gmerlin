@@ -2342,7 +2342,7 @@
 #include "../csp_packed_packed.h"
 
 
-void gavl_init_rgb_rgb_funcs_c(gavl_colorspace_function_table_t * tab, const gavl_video_options_t * opt)
+void gavl_init_rgb_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const gavl_video_options_t * opt)
   {
 
   tab->swap_rgb_24 = swap_rgb_24_c;

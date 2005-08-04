@@ -3743,7 +3743,7 @@ static void _init_yuv2rgb_c()
 
 #include "../csp_packed_packed.h"
 
-void gavl_init_yuv_rgb_funcs_c(gavl_colorspace_function_table_t * tab, const gavl_video_options_t * opt)
+void gavl_init_yuv_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const gavl_video_options_t * opt)
   {
   if(opt->alpha_mode == GAVL_ALPHA_BLEND_COLOR)
     {

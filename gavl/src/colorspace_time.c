@@ -12,8 +12,8 @@ static struct timeval time_after;
 
 #define NUM_CONVERSIONS 20
 
-#define FIXED_INPUT_COLORSPACE
-#define INPUT_COLORSPACE GAVL_RGBA_32
+#define FIXED_INPUT_PIXELFORMAT
+#define INPUT_PIXELFORMAT GAVL_RGBA_32
 
 
 void timer_init()
@@ -47,7 +47,7 @@ int main()
   
   int j, k;
 
-  int num_colorspaces = gavl_num_colorspaces();
+  int num_pixelformats = gavl_num_pixelformats();
   
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;
@@ -59,8 +59,8 @@ int main()
   
   gavl_video_converter_t * cnv = gavl_video_converter_create();
   opt = gavl_video_converter_get_options(cnv);
-  input_format.colorspace = GAVL_RGB_15;
-  output_format.colorspace = GAVL_RGB_15;
+  input_format.pixelformat = GAVL_RGB_15;
+  output_format.pixelformat = GAVL_RGB_15;
 
   input_format.image_width = width;
   input_format.image_height = height;
@@ -80,28 +80,28 @@ int main()
   output_format.pixel_width = 1;
   output_format.pixel_height = 1;
 
-  //  char colorspace_buffer[20];
+  //  char pixelformat_buffer[20];
   
-#ifndef FIXED_INPUT_COLORSPACE
-  for(i = 0; i < num_colorspaces; i++) /* Input format loop */
+#ifndef FIXED_INPUT_PIXELFORMAT
+  for(i = 0; i < num_pixelformats; i++) /* Input format loop */
     {
-    input_format.colorspace = gavl_get_colorspace(i);
+    input_format.pixelformat = gavl_get_pixelformat(i);
 #else
-    input_format.colorspace = INPUT_COLORSPACE;
+    input_format.pixelformat = INPUT_PIXELFORMAT;
 #endif    
     input_frame = gavl_video_frame_create(&input_format);
     gavl_video_frame_clear(input_frame, &input_format);
-    for(j = 0; j < num_colorspaces; j++) /* Output format loop */
+    for(j = 0; j < num_pixelformats; j++) /* Output format loop */
       {
-      output_format.colorspace = gavl_get_colorspace(j);
-      if(input_format.colorspace != output_format.colorspace)
+      output_format.pixelformat = gavl_get_pixelformat(j);
+      if(input_format.pixelformat != output_format.pixelformat)
         {
         output_frame = gavl_video_frame_create(&output_format);
-        fprintf(stderr, "************* Colorspace conversion ");
+        fprintf(stderr, "************* Pixelformat conversion ");
 
-        tmp = gavl_colorspace_to_string(input_format.colorspace);
+        tmp = gavl_pixelformat_to_string(input_format.pixelformat);
         fprintf(stderr, "%s -> ", tmp);
-        tmp = gavl_colorspace_to_string(output_format.colorspace);
+        tmp = gavl_pixelformat_to_string(output_format.pixelformat);
         fprintf(stderr, "%s *************\n", tmp);
 
         gavl_video_options_set_defaults(opt);
@@ -155,7 +155,7 @@ int main()
         }
       }
     gavl_video_frame_destroy(input_frame);
-#ifndef FIXED_INPUT_COLORSPACE
+#ifndef FIXED_INPUT_PIXELFORMAT
     }
 #endif
   return 0;

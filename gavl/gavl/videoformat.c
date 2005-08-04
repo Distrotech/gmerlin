@@ -17,7 +17,7 @@ void gavl_video_format_dump(const gavl_video_format_t * format)
   fprintf(stderr, "  Pixel size:       %d x %d\n",
           format->pixel_width, format->pixel_height);
   fprintf(stderr, "  Pixel format:     %s\n",
-          gavl_colorspace_to_string(format->colorspace));
+          gavl_pixelformat_to_string(format->pixelformat));
 
   if(format->framerate_mode != GAVL_FRAMERATE_STILL)
     {
@@ -40,7 +40,7 @@ void gavl_video_format_dump(const gavl_video_format_t * format)
     }
   fprintf(stderr, "  Interlace mode:   %s\n", gavl_interlace_mode_to_string(format->interlace_mode));  
 
-  if(format->colorspace == GAVL_YUV_420_P)
+  if(format->pixelformat == GAVL_YUV_420_P)
     {
     fprintf(stderr, "  Chroma placement: %s\n", gavl_chroma_placement_to_string(format->chroma_placement));
     }
@@ -138,7 +138,7 @@ void gavl_video_format_get_chroma_offset(gavl_video_format_t * format, int field
     *off_y = 0.0;
     return;
     }
-  gavl_colorspace_chroma_sub(format->colorspace, &sub_h, &sub_v);
+  gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
 
   if((sub_h != 2) || (sub_v != 2))
     {

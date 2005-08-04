@@ -103,9 +103,9 @@ int add_context_csp(gavl_video_converter_t * cnv,
   gavl_video_convert_context_t * ctx;
   ctx = add_context(cnv, input_format, output_format);
 
-  ctx->func = gavl_find_colorspace_converter(&(cnv->options),
-                                             input_format->colorspace,
-                                             output_format->colorspace,
+  ctx->func = gavl_find_pixelformat_converter(&(cnv->options),
+                                             input_format->pixelformat,
+                                             output_format->pixelformat,
                                              input_format->frame_width,
                                              input_format->frame_height);
 
@@ -113,15 +113,15 @@ int add_context_csp(gavl_video_converter_t * cnv,
     {
 #ifdef DEBUG
     fprintf(stderr, "Found no conversion from %s to %s\n",
-            gavl_colorspace_to_string(input_format->colorspace),
-            gavl_colorspace_to_string(output_format->colorspace));
+            gavl_pixelformat_to_string(input_format->pixelformat),
+            gavl_pixelformat_to_string(output_format->pixelformat));
 #endif
     return 0;
     }
 #ifdef DEBUG
-  fprintf(stderr, "Doing colorspace conversion from %s to %s\n",
-          gavl_colorspace_to_string(input_format->colorspace),
-          gavl_colorspace_to_string(output_format->colorspace));
+  fprintf(stderr, "Doing pixelformat conversion from %s to %s\n",
+          gavl_pixelformat_to_string(input_format->pixelformat),
+          gavl_pixelformat_to_string(output_format->pixelformat));
   
 #endif
   return 1;
@@ -180,7 +180,7 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
   {
   int csp_then_scale = 0;
   gavl_video_convert_context_t * tmp_ctx;
-  gavl_colorspace_t tmp_csp = GAVL_COLORSPACE_NONE;
+  gavl_pixelformat_t tmp_csp = GAVL_PIXELFORMAT_NONE;
   
   int do_csp = 0;
   int do_scale = 0;
@@ -203,16 +203,16 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
   
   gavl_video_format_copy(&tmp_format, input_format);
     
-  /* Adjust colorspace */
+  /* Adjust pixelformat */
   
   if((cnv->options.alpha_mode == GAVL_ALPHA_IGNORE) &&
-     (tmp_format.colorspace == GAVL_RGBA_32) &&
-     (output_format->colorspace == GAVL_RGB_32))
-    tmp_format.colorspace = GAVL_RGB_32;
+     (tmp_format.pixelformat == GAVL_RGBA_32) &&
+     (output_format->pixelformat == GAVL_RGB_32))
+    tmp_format.pixelformat = GAVL_RGB_32;
   
-  /* Check for colorspace conversion */
+  /* Check for pixelformat conversion */
 
-  if(tmp_format.colorspace != output_format->colorspace)
+  if(tmp_format.pixelformat != output_format->pixelformat)
     {
     do_csp = 1;
     }
@@ -243,18 +243,18 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
     {
     if(do_csp)
       {
-      /* Check, if colorspace conversion can be replaced by simple scaling
+      /* Check, if pixelformat conversion can be replaced by simple scaling
          (True if only the subsampling changes) */
-      if(gavl_colorspace_can_scale(tmp_format.colorspace, output_format->colorspace))
+      if(gavl_pixelformat_can_scale(tmp_format.pixelformat, output_format->pixelformat))
         {
         do_scale = 1;
         do_csp = 0;
         }
       else
         {
-        tmp_csp = gavl_colorspace_get_intermediate(tmp_format.colorspace,
-                                                   output_format->colorspace);
-        if(tmp_csp != GAVL_COLORSPACE_NONE)
+        tmp_csp = gavl_pixelformat_get_intermediate(tmp_format.pixelformat,
+                                                   output_format->pixelformat);
+        if(tmp_csp != GAVL_PIXELFORMAT_NONE)
           do_scale = 1;
         }
       }
@@ -267,15 +267,15 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
   
   if(do_csp && do_scale)
     {
-    /* For qualities below 3, we scale in the colorspace with the
+    /* For qualities below 3, we scale in the pixelformat with the
        smaller subsampling */
 
-    if(tmp_csp == GAVL_COLORSPACE_NONE)
+    if(tmp_csp == GAVL_PIXELFORMAT_NONE)
       {
-      gavl_colorspace_chroma_sub(tmp_format.colorspace, &sub_h, &sub_v);
+      gavl_pixelformat_chroma_sub(tmp_format.pixelformat, &sub_h, &sub_v);
       in_sub = sub_h * sub_v;
       
-      gavl_colorspace_chroma_sub(output_format->colorspace, &sub_h, &sub_v);
+      gavl_pixelformat_chroma_sub(output_format->pixelformat, &sub_h, &sub_v);
       out_sub = sub_h * sub_v;
 
       if(((in_sub < out_sub) && cnv->options.quality < 3) ||
@@ -284,14 +284,14 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
       }
     else
       {
-      if(!gavl_colorspace_can_scale(input_format->colorspace, tmp_csp))
+      if(!gavl_pixelformat_can_scale(input_format->pixelformat, tmp_csp))
         csp_then_scale = 1;
       fprintf(stderr, "converting %s -> %s -> %s (%d, %d)\n",
-              gavl_colorspace_to_string(input_format->colorspace),
-              gavl_colorspace_to_string(tmp_csp),
-              gavl_colorspace_to_string(output_format->colorspace),
-              gavl_colorspace_can_scale(input_format->colorspace, tmp_csp),
-              gavl_colorspace_can_scale(tmp_csp, output_format->colorspace));
+              gavl_pixelformat_to_string(input_format->pixelformat),
+              gavl_pixelformat_to_string(tmp_csp),
+              gavl_pixelformat_to_string(output_format->pixelformat),
+              gavl_pixelformat_can_scale(input_format->pixelformat, tmp_csp),
+              gavl_pixelformat_can_scale(tmp_csp, output_format->pixelformat));
               
       }
     
@@ -303,10 +303,10 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
       
       gavl_video_format_copy(&tmp_format1, &tmp_format);
 
-      if(tmp_csp != GAVL_COLORSPACE_NONE)
-        tmp_format1.colorspace = tmp_csp;
+      if(tmp_csp != GAVL_PIXELFORMAT_NONE)
+        tmp_format1.pixelformat = tmp_csp;
       else
-        tmp_format1.colorspace = output_format->colorspace;
+        tmp_format1.pixelformat = output_format->pixelformat;
 
       if(!add_context_csp(cnv, &tmp_format, &tmp_format1))
         return -1;
@@ -315,7 +315,7 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
 
       /* scale (tmp_format -> tmp_format1) */
       
-      tmp_format1.colorspace = output_format->colorspace;
+      tmp_format1.pixelformat = output_format->pixelformat;
 
       tmp_format1.image_width  = output_format->image_width;
       tmp_format1.image_height = output_format->image_height;
@@ -342,8 +342,8 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
       tmp_format1.pixel_width  = output_format->pixel_width;
       tmp_format1.pixel_height = output_format->pixel_height;
 
-      if(tmp_csp != GAVL_COLORSPACE_NONE)
-        tmp_format1.colorspace = tmp_csp;
+      if(tmp_csp != GAVL_PIXELFORMAT_NONE)
+        tmp_format1.pixelformat = tmp_csp;
       
       add_context_scale(cnv, &tmp_format, &tmp_format1);
 
@@ -351,7 +351,7 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
 
       /* csp (tmp_format -> tmp_format1) */
 
-      tmp_format1.colorspace = output_format->colorspace;
+      tmp_format1.pixelformat = output_format->pixelformat;
       if(!add_context_csp(cnv, &tmp_format, &tmp_format1))
         return -1;
 

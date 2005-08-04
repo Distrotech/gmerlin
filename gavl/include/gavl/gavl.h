@@ -849,7 +849,7 @@ void gavl_rectangle_f_crop_bottom(gavl_rectangle_f_t * r, double num_pixels);
  * This aligns a rectangle such that the horizontal coordinates are multiples of
  * h_align, while the vertical coordinates are multiples of v_align. When dealing
  * with chroma subsampled formats, you must call this function with the
- * return values of \ref gavl_colorspace_chroma_sub before taking subframes from
+ * return values of \ref gavl_pixelformat_chroma_sub before taking subframes from
  * video frames.
  */
   
@@ -936,239 +936,239 @@ void gavl_rectangle_f_dump(const gavl_rectangle_f_t * r);
  */
 
 /** \ingroup video_format
- * Flag for planar colorspaces
+ * Flag for planar pixelformats
  */
-#define GAVL_CSP_PLANAR (1<<8)
+#define GAVL_PIXFMT_PLANAR (1<<8)
 
 /** \ingroup video_format
- * Flag for rgb colorspaces
+ * Flag for rgb pixelformats
  */
-#define GAVL_CSP_RGB    (1<<9)
+#define GAVL_PIXFMT_RGB    (1<<9)
 
 /** \ingroup video_format
- * Flag for yuv colorspaces
+ * Flag for yuv pixelformats
  */
-#define GAVL_CSP_YUV    (1<<10)
+#define GAVL_PIXFMT_YUV    (1<<10)
 
 /** \ingroup video_format
- * Flag for yuvj colorspaces
+ * Flag for yuvj pixelformats
  */
-#define GAVL_CSP_YUVJ   (1<<11)
+#define GAVL_PIXFMT_YUVJ   (1<<11)
 
 /** \ingroup video_format
  * Alpha flag
  */
-#define GAVL_CSP_ALPHA  (1<<12)
+#define GAVL_PIXFMT_ALPHA  (1<<12)
   
   
 /*! \ingroup video_format
- * \brief Colorspace definition
+ * \brief Pixelformat definition
  */
   
 typedef enum 
   {
  /*! \brief Undefined 
   */
-    GAVL_COLORSPACE_NONE =  0, 
+    GAVL_PIXELFORMAT_NONE =  0, 
 
  /*! 15 bit RGB. Each pixel is a uint16_t in native byte order. Color masks are:
   * for red: 0x7C00, for green: 0x03e0, for blue: 0x001f
   */
-    GAVL_RGB_15          =  1 | GAVL_CSP_RGB,
+    GAVL_RGB_15          =  1 | GAVL_PIXFMT_RGB,
  /*! 15 bit BGR. Each pixel is a uint16_t in native byte order. Color masks are:
   * for red: 0x001f, for green: 0x03e0, for blue: 0x7C00
   */
-    GAVL_BGR_15          =  2 | GAVL_CSP_RGB,
+    GAVL_BGR_15          =  2 | GAVL_PIXFMT_RGB,
  /*! 16 bit RGB. Each pixel is a uint16_t in native byte order. Color masks are:
   * for red: 0xf800, for green: 0x07e0, for blue: 0x001f
   */
-    GAVL_RGB_16          =  3 | GAVL_CSP_RGB,
+    GAVL_RGB_16          =  3 | GAVL_PIXFMT_RGB,
  /*! 16 bit BGR. Each pixel is a uint16_t in native byte order. Color masks are:
   * for red: 0x001f, for green: 0x07e0, for blue: 0xf800
   */
-    GAVL_BGR_16          =  4 | GAVL_CSP_RGB,
+    GAVL_BGR_16          =  4 | GAVL_PIXFMT_RGB,
  /*! 24 bit RGB. Each color is an uint8_t. Color order is RGBRGB
   */
-    GAVL_RGB_24          =  5 | GAVL_CSP_RGB,
+    GAVL_RGB_24          =  5 | GAVL_PIXFMT_RGB,
  /*! 24 bit BGR. Each color is an uint8_t. Color order is BGRBGR
   */
-    GAVL_BGR_24          =  6 | GAVL_CSP_RGB,
+    GAVL_BGR_24          =  6 | GAVL_PIXFMT_RGB,
  /*! 32 bit RGB. Each color is an uint8_t. Color order is RGBXRGBX, where X is unused
   */
-    GAVL_RGB_32          =  7 | GAVL_CSP_RGB,
+    GAVL_RGB_32          =  7 | GAVL_PIXFMT_RGB,
  /*! 32 bit BGR. Each color is an uint8_t. Color order is BGRXBGRX, where X is unused
   */
-    GAVL_BGR_32          =  8 | GAVL_CSP_RGB,
+    GAVL_BGR_32          =  8 | GAVL_PIXFMT_RGB,
  /*! 32 bit RGBA. Each color is an uint8_t. Color order is RGBARGBA
   */
-    GAVL_RGBA_32         =  9 | GAVL_CSP_RGB | GAVL_CSP_ALPHA,
+    GAVL_RGBA_32         =  9 | GAVL_PIXFMT_RGB | GAVL_PIXFMT_ALPHA,
  /*! Packed YCbCr 4:2:2. Each component is an uint8_t. Component order is Y1 U1 Y2 V1
   */
-    GAVL_YUY2            = 10 | GAVL_CSP_YUV,
+    GAVL_YUY2            = 10 | GAVL_PIXFMT_YUV,
  /*! Packed YCbCr 4:2:2. Each component is an uint8_t. Component order is U1 Y1 V1 Y2
   */
-    GAVL_UYVY            = 11 | GAVL_CSP_YUV,
+    GAVL_UYVY            = 11 | GAVL_PIXFMT_YUV,
  /*! Packed YCbCrA 4:4:4:4. Each component is an uint8_t. Component order is YUVAYUVA
   */
-    GAVL_YUVA_32         = 26 | GAVL_CSP_YUV | GAVL_CSP_ALPHA,
+    GAVL_YUVA_32         = 26 | GAVL_PIXFMT_YUV | GAVL_PIXFMT_ALPHA,
  /*! Planar YCbCr 4:2:0. Each component is an uint8_t. Chroma placement is defined by \ref gavl_chroma_placement_t
   */
-    GAVL_YUV_420_P       = 12 | GAVL_CSP_PLANAR | GAVL_CSP_YUV,
+    GAVL_YUV_420_P       = 12 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
  /*! Planar YCbCr 4:2:2. Each component is an uint8_t
   */
-    GAVL_YUV_422_P       = 13 | GAVL_CSP_PLANAR | GAVL_CSP_YUV,
+    GAVL_YUV_422_P       = 13 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
  /*! Planar YCbCr 4:4:4. Each component is an uint8_t
   */
-    GAVL_YUV_444_P       = 14 | GAVL_CSP_PLANAR | GAVL_CSP_YUV,
+    GAVL_YUV_444_P       = 14 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
  /*! Planar YCbCr 4:1:1. Each component is an uint8_t
   */
-    GAVL_YUV_411_P       = 15 | GAVL_CSP_PLANAR | GAVL_CSP_YUV,
+    GAVL_YUV_411_P       = 15 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
  /*! Planar YCbCr 4:1:0. Each component is an uint8_t
   */
-    GAVL_YUV_410_P       = 16 | GAVL_CSP_PLANAR | GAVL_CSP_YUV,
+    GAVL_YUV_410_P       = 16 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
     
  /*! Planar YCbCr 4:2:0. Each component is an uint8_t, luma and chroma values are full range (0x00 .. 0xff)
   */
-    GAVL_YUVJ_420_P      = 17 | GAVL_CSP_PLANAR | GAVL_CSP_YUV | GAVL_CSP_YUVJ,
+    GAVL_YUVJ_420_P      = 17 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV | GAVL_PIXFMT_YUVJ,
  /*! Planar YCbCr 4:2:2. Each component is an uint8_t, luma and chroma values are full range (0x00 .. 0xff)
   */
-    GAVL_YUVJ_422_P      = 18 | GAVL_CSP_PLANAR | GAVL_CSP_YUV | GAVL_CSP_YUVJ,
+    GAVL_YUVJ_422_P      = 18 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV | GAVL_PIXFMT_YUVJ,
  /*! Planar YCbCr 4:4:4. Each component is an uint8_t, luma and chroma values are full range (0x00 .. 0xff)
   */
-    GAVL_YUVJ_444_P      = 19 | GAVL_CSP_PLANAR | GAVL_CSP_YUV | GAVL_CSP_YUVJ,
+    GAVL_YUVJ_444_P      = 19 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV | GAVL_PIXFMT_YUVJ,
 
  /*! 16 bit Planar YCbCr 4:4:4. Each component is an uint16_t in native byte order.
   */
-    GAVL_YUV_444_P_16 = 20 | GAVL_CSP_PLANAR | GAVL_CSP_YUV,
+    GAVL_YUV_444_P_16 = 20 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
  /*! 16 bit Planar YCbCr 4:2:2. Each component is an uint16_t in native byte order.
   */
-    GAVL_YUV_422_P_16 = 21 | GAVL_CSP_PLANAR | GAVL_CSP_YUV,
+    GAVL_YUV_422_P_16 = 21 | GAVL_PIXFMT_PLANAR | GAVL_PIXFMT_YUV,
 
  /*! 48 bit RGB. Each color is an uint16_t in native byte order. Color order is RGBRGB
   */
-    GAVL_RGB_48       = 22 | GAVL_CSP_RGB,
+    GAVL_RGB_48       = 22 | GAVL_PIXFMT_RGB,
  /*! 64 bit RGBA. Each color is an uint16_t in native byte order. Color order is RGBARGBA
   */
-    GAVL_RGBA_64      = 23 | GAVL_CSP_RGB | GAVL_CSP_ALPHA,
+    GAVL_RGBA_64      = 23 | GAVL_PIXFMT_RGB | GAVL_PIXFMT_ALPHA,
         
  /*! float RGB. Each color is a float (0.0 .. 1.0) in native byte order. Color order is RGBRGB
   */
-    GAVL_RGB_FLOAT    = 24 | GAVL_CSP_RGB,
+    GAVL_RGB_FLOAT    = 24 | GAVL_PIXFMT_RGB,
  /*! float RGBA. Each color is a float (0.0 .. 1.0) in native byte order. Color order is RGBARGBA
   */
-    GAVL_RGBA_FLOAT   = 25 | GAVL_CSP_RGB  | GAVL_CSP_ALPHA
+    GAVL_RGBA_FLOAT   = 25 | GAVL_PIXFMT_RGB  | GAVL_PIXFMT_ALPHA
     
-  } gavl_colorspace_t;
+  } gavl_pixelformat_t;
 
 /*
  *  Colormodel related functions
  */
 
 /*! \ingroup video_format
- * \brief Check if a colorspace is RGB based
- * \param csp A colorspace
- * \returns 1 if the colorspace is RGB based, 0 else
+ * \brief Check if a pixelformat is RGB based
+ * \param fmt A pixelformat
+ * \returns 1 if the pixelformat is RGB based, 0 else
  */
   
-#define gavl_colorspace_is_rgb(csp) ((csp) & GAVL_CSP_RGB)
+#define gavl_pixelformat_is_rgb(fmt) ((fmt) & GAVL_PIXFMT_RGB)
 
 /*! \ingroup video_format
- * \brief Check if a colorspace is YUV based
- * \param csp A colorspace
- * \returns 1 if the colorspace is YUV based, 0 else
+ * \brief Check if a pixelformat is YUV based
+ * \param fmt A pixelformat
+ * \returns 1 if the pixelformat is YUV based, 0 else
  */
   
-#define gavl_colorspace_is_yuv(csp) ((csp) & GAVL_CSP_YUV)
+#define gavl_pixelformat_is_yuv(fmt) ((fmt) & GAVL_PIXFMT_YUV)
 
 /*! \ingroup video_format
- * \brief Check if a colorspace is jpeg (full range) scaled
- * \param csp A colorspace
- * \returns 1 if the colorspace is jpeg scaled, 0 else
+ * \brief Check if a pixelformat is jpeg (full range) scaled
+ * \param fmt A pixelformat
+ * \returns 1 if the pixelformat is jpeg scaled, 0 else
  */
 
-#define gavl_colorspace_is_jpeg_scaled(csp) ((csp) & GAVL_CSP_YUVJ)
+#define gavl_pixelformat_is_jpeg_scaled(fmt) ((fmt) & GAVL_PIXFMT_YUVJ)
 
 /*! \ingroup video_format
- * \brief Check if a colorspace has a transparency channel
- * \param csp A colorspace
- * \returns 1 if the colorspace has a transparency channel, 0 else
+ * \brief Check if a pixelformat has a transparency channel
+ * \param fmt A pixelformat
+ * \returns 1 if the pixelformat has a transparency channel, 0 else
  */
   
-#define gavl_colorspace_has_alpha(csp) ((csp) & GAVL_CSP_ALPHA)
+#define gavl_pixelformat_has_alpha(fmt) ((fmt) & GAVL_PIXFMT_ALPHA)
 
 /*! \ingroup video_format
- * \brief Check if a colorspace is planar
- * \param csp A colorspace
- * \returns 1 if the colorspace is planar, 0 else
+ * \brief Check if a pixelformat is planar
+ * \param fmt A pixelformat
+ * \returns 1 if the pixelformat is planar, 0 else
  */
 
-#define  gavl_colorspace_is_planar(csp) ((csp) & GAVL_CSP_PLANAR)
+#define  gavl_pixelformat_is_planar(fmt) ((fmt) & GAVL_PIXFMT_PLANAR)
 
 /*! \ingroup video_format
  * \brief Get the number of planes
- * \param colorspace A colorspace
+ * \param pixelformat A pixelformat
  * \returns The number of planes (1 for packet formats)
  */
 
-int gavl_colorspace_num_planes(gavl_colorspace_t colorspace);
+int gavl_pixelformat_num_planes(gavl_pixelformat_t pixelformat);
 
 /*! \ingroup video_format
  * \brief Get the horizontal and vertical subsampling factors
- * \param colorspace A colorspace
+ * \param pixelformat A pixelformat
  * \param sub_h returns the horizontal subsampling factor
  * \param sub_v returns the vertical subsampling factor
  *
  * E.g. for 4:2:0 subsampling: sub_h = 2, sub_v = 2
  */
 
-void gavl_colorspace_chroma_sub(gavl_colorspace_t colorspace, int * sub_h, int * sub_v);
+void gavl_pixelformat_chroma_sub(gavl_pixelformat_t pixelformat, int * sub_h, int * sub_v);
 
 /*! \ingroup video_format
  * \brief Get bytes per component for planar formats
- * \param colorspace A colorspace
+ * \param pixelformat A pixelformat
  * \returns The number of bytes per component for planar formats, 0 for packed formats
  */
   
-int gavl_colorspace_bytes_per_component(gavl_colorspace_t colorspace);
+int gavl_pixelformat_bytes_per_component(gavl_pixelformat_t pixelformat);
 
 /*! \ingroup video_format
  * \brief Get bytes per pixel for packed formats
- * \param colorspace A colorspace
+ * \param pixelformat A pixelformat
  * \returns The number of bytes per pixel for packed formats, 0 for planar formats
  */
 
-int gavl_colorspace_bytes_per_pixel(gavl_colorspace_t colorspace);
+int gavl_pixelformat_bytes_per_pixel(gavl_pixelformat_t pixelformat);
   
 /*! \ingroup video_format
- * \brief Translate a colorspace into a human readable string
- * \param colorspace A colorspace
- * \returns A string describing the colorspace
+ * \brief Translate a pixelformat into a human readable string
+ * \param pixelformat A pixelformat
+ * \returns A string describing the pixelformat
  */
 
-const char * gavl_colorspace_to_string(gavl_colorspace_t colorspace);
+const char * gavl_pixelformat_to_string(gavl_pixelformat_t pixelformat);
 
 /*! \ingroup video_format
- * \brief Translate a colorspace name into a colorspace
- * \param name A string describing the colorspace (returnd by \ref gavl_colorspace_to_string)
- * \returns The colorspace or GAVL_COLORSPACE_NONE if no match.
+ * \brief Translate a pixelformat name into a pixelformat
+ * \param name A string describing the pixelformat (returnd by \ref gavl_pixelformat_to_string)
+ * \returns The pixelformat or GAVL_PIXELFORMAT_NONE if no match.
  */
 
-gavl_colorspace_t gavl_string_to_colorspace(const char * name);
+gavl_pixelformat_t gavl_string_to_pixelformat(const char * name);
 
 /*! \ingroup video_format
- * \brief Get total number of supported colorspaces
- * \returns total number of supported colorspaces
+ * \brief Get total number of supported pixelformats
+ * \returns total number of supported pixelformats
  */
 
-int gavl_num_colorspaces();
+int gavl_num_pixelformats();
 
 /*! \ingroup video_format
- * \brief Get the colorspace from index
- * \param index index (must be between 0 and the result of \ref gavl_num_colorspaces)
- * \returns The colorspace corresponding to index or GAVL_COLORSPACE_NONE.
+ * \brief Get the pixelformat from index
+ * \param index index (must be between 0 and the result of \ref gavl_num_pixelformats)
+ * \returns The pixelformat corresponding to index or GAVL_PIXELFORMAT_NONE.
  */
 
-gavl_colorspace_t gavl_get_colorspace(int index);
+gavl_pixelformat_t gavl_get_pixelformat(int index);
 
 /*  */
 
@@ -1176,7 +1176,7 @@ gavl_colorspace_t gavl_get_colorspace(int index);
  * \brief Chroma placement
  *
  * Specification of the 3 variants of 4:2:0 YCbCr as described at
- * http://www.mir.com/DMG/chroma.html . For other colorspaces, it's meaningless
+ * http://www.mir.com/DMG/chroma.html . For other pixelformats, it's meaningless
  * and should be set to GAVL_CHROMA_PLACEMENT_DEFAULT.
  */
   
@@ -1245,7 +1245,7 @@ struct gavl_video_format_s
   int pixel_width;/*!< Relative width of a pixel (pixel aspect ratio is pixel_width/pixel_height) */
   int pixel_height;/*!< Relative height of a pixel (pixel aspect ratio is pixel_width/pixel_height) */
     
-  gavl_colorspace_t colorspace;/*!< Colorspace */
+  gavl_pixelformat_t pixelformat;/*!< Pixelformat */
 
   int frame_duration;/*!< Duration of a frame in timescale tics. Meaningful only if framerate_mode is
                        GAVL_FRAMERATE_CONSTANT */
@@ -1462,7 +1462,7 @@ void gavl_video_frame_copy_flip_xy(gavl_video_format_t * format,
 /*!
   \ingroup video_frame
   \brief Get a subframe of another frame
-  \param colorspace Colorspace of the frames
+  \param pixelformat Pixelformat of the frames
   \param dst Destination
   \param src Source
   \param src_rect Rectangular area in the source, which will be in the destination frame
@@ -1472,11 +1472,11 @@ void gavl_video_frame_copy_flip_xy(gavl_video_format_t * format,
   dst must be created with NULL as the format argument and \ref gavl_video_frame_null
   must be called before destroying dst.
 
-  When dealing with chroma subsampled colorspaces, you must call
+  When dealing with chroma subsampled pixelformats, you must call
   \ref gavl_rectangle_i_align on src_rect before.
 */
 
-void gavl_video_frame_get_subframe(gavl_colorspace_t colorspace,
+void gavl_video_frame_get_subframe(gavl_pixelformat_t pixelformat,
                                    gavl_video_frame_t * src,
                                    gavl_video_frame_t * dst,
                                    gavl_rectangle_i_t * src_rect);
@@ -1484,7 +1484,7 @@ void gavl_video_frame_get_subframe(gavl_colorspace_t colorspace,
 /*!
   \ingroup video_frame
   \brief Get a field from a frame
-  \param colorspace Colorspace of the frames
+  \param pixelformat Pixelformat of the frames
   \param dst Destination
   \param src Source
   \param field Field index (0 = top field, 1 = bottom field)
@@ -1495,7 +1495,7 @@ void gavl_video_frame_get_subframe(gavl_colorspace_t colorspace,
   must be called before destroying dst.
 */
 
-void gavl_video_frame_get_field(gavl_colorspace_t colorspace,
+void gavl_video_frame_get_field(gavl_pixelformat_t pixelformat,
                                 gavl_video_frame_t * src,
                                 gavl_video_frame_t * dst,
                                 int field);
@@ -1636,7 +1636,7 @@ void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
 
 void gavl_video_options_set_quality(gavl_video_options_t * opt, int quality);
 
-/*! \ingroup Video options
+/*! \ingroup video_options
  *  \brief Set the conversion flags
  *  \param opt Video options
  *  \param conversion_flags Conversion flags (see \ref video_conversion_flags)
@@ -1718,8 +1718,8 @@ void gavl_video_options_set_deinterlace_drop_mode(gavl_video_options_t * opt,
  * \brief Video format converter
  *
  * This is a generic converter, which converts video frames from one arbitrary format to
- * another. It's main purpose is to convert colorspaces and to scale images. For quality levels
- * below 4, colorspaces are converted in one single step, without the need for intermediate
+ * another. It's main purpose is to convert pixelformats and to scale images. For quality levels
+ * below 4, pixelformats are converted in one single step, without the need for intermediate
  * frames. Furthermore, it can handle nonsquare pixels. This means, that if the pixel aspect ratio
  * is different for the input and output formats, the image will be scaled to preserve the
  * overall aspect ratio of the video.
@@ -1818,7 +1818,7 @@ void gavl_video_convert(gavl_video_converter_t * cnv,
  *
  *  Internally, the source and destination rectangles can be set
  *  independently for all planes and fields, which means, that the scaler can also do colospace
- *  conversions for colorspaces which differ only in the chroma subsampling modes.
+ *  conversions for pixelformats which differ only in the chroma subsampling modes.
  */
 
 /*! \ingroup video_scaler

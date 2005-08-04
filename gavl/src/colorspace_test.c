@@ -7,9 +7,9 @@
 
 #include <accel.h>
 
-#define ALL_COLORSPACES
-#define IN_COLORSPACE  GAVL_YUV_444_P
-#define OUT_COLORSPACE GAVL_YUV_444_P_16
+#define ALL_PIXELFORMATS
+#define IN_PIXELFORMAT GAVL_YUV_444_P
+#define OUT_PIXELFORMAT GAVL_YUV_444_P_16
 
 // Masks for BGR16 and RGB16 formats
 
@@ -1131,7 +1131,7 @@ int write_file(const char * name,
 
   png_init_io(png_ptr, fp);
 
-  if(gavl_colorspace_has_alpha(format->colorspace))
+  if(gavl_pixelformat_has_alpha(format->pixelformat))
     color_type = PNG_COLOR_TYPE_RGB_ALPHA;
   else
     color_type = PNG_COLOR_TYPE_RGB;
@@ -1151,31 +1151,31 @@ int write_file(const char * name,
   
   /* We convert everything to either RGB24, BGR24 or RGBA */
   
-  switch(format->colorspace)
+  switch(format->pixelformat)
     {
     case GAVL_BGR_15:
     case GAVL_BGR_16:
     case GAVL_BGR_24:
     case GAVL_BGR_32:
       png_transforms = PNG_TRANSFORM_BGR;
-      tmp_format.colorspace = GAVL_BGR_24;
+      tmp_format.pixelformat = GAVL_BGR_24;
       break;
     case GAVL_RGBA_64:
     case GAVL_RGBA_FLOAT:
     case GAVL_YUVA_32:
       png_transforms = PNG_TRANSFORM_IDENTITY;
-      tmp_format.colorspace = GAVL_RGBA_32;
+      tmp_format.pixelformat = GAVL_RGBA_32;
       break;
     default:
       png_transforms = PNG_TRANSFORM_IDENTITY;
-      tmp_format.colorspace = GAVL_RGB_24;
+      tmp_format.pixelformat = GAVL_RGB_24;
     }
 
   /* Allocate the video frame structure */
 
   tmp_frame = NULL;
 
-  switch(format->colorspace)
+  switch(format->pixelformat)
     {
     case GAVL_RGB_15:
     case GAVL_BGR_15:
@@ -1295,7 +1295,7 @@ int write_file(const char * name,
                                  format->image_height);
       out_frame = tmp_frame;
       break;
-    case GAVL_COLORSPACE_NONE:
+    case GAVL_PIXELFORMAT_NONE:
       break;
     }
 
@@ -1449,7 +1449,7 @@ _pixel=((((((_r<<5)&0xff00)|_g)<<5)&0xfff00)|_b)>>3
 #define VJ_TO_8(d) d=RECLIP((int)(yuv_f[2]*255.0+0.5)+128)
 
 
-gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
+gavl_video_frame_t * create_picture(gavl_pixelformat_t pixelformat,
                                     void (*get_pixel)(int x, int y,
                                                       float * ret))
   
@@ -1476,7 +1476,7 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
   int row, col;
   gavl_video_frame_t * ret;
   gavl_video_format_t format;
-  format.colorspace = colorspace;
+  format.pixelformat = pixelformat;
   format.image_width = TEST_PICTURE_WIDTH;
   format.image_height = TEST_PICTURE_HEIGHT;
 
@@ -1489,7 +1489,7 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
   
   ret = gavl_video_frame_create(&format);
 
-  switch(colorspace)
+  switch(pixelformat)
     {
     case GAVL_RGB_15:
       for(row = 0; row < TEST_PICTURE_HEIGHT; row++)
@@ -2237,7 +2237,7 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
           }
         }
       break;
-    case GAVL_COLORSPACE_NONE:
+    case GAVL_PIXELFORMAT_NONE:
       break;
     }
   
@@ -2246,7 +2246,7 @@ gavl_video_frame_t * create_picture(gavl_colorspace_t colorspace,
 
 int main(int argc, char ** argv)
   {
-#ifdef ALL_COLORSPACES
+#ifdef ALL_PIXELFORMATS
   int i, j;
 #endif
   const char * tmp1, * tmp2;
@@ -2288,28 +2288,28 @@ int main(int argc, char ** argv)
  
   init_yuv();
  
-#ifdef ALL_COLORSPACES
-  for(i = 0; i < gavl_num_colorspaces(); i++)
+#ifdef ALL_PIXELFORMATS
+  for(i = 0; i < gavl_num_pixelformats(); i++)
     {
-    input_format.colorspace = gavl_get_colorspace(i);
+    input_format.pixelformat = gavl_get_pixelformat(i);
 #else
-    input_format.colorspace = IN_COLORSPACE;
+    input_format.pixelformat = IN_PIXELFORMAT;
 #endif
-    input_frame = create_picture(input_format.colorspace,
+    input_frame = create_picture(input_format.pixelformat,
                                  get_pixel_colorbar);
 
-    tmp1 = gavl_colorspace_to_string(input_format.colorspace);
+    tmp1 = gavl_pixelformat_to_string(input_format.pixelformat);
     sprintf(filename_buffer, "0test_%s.png", tmp1);
     
     write_file(filename_buffer,
                  input_frame, &input_format);
 
-#ifdef ALL_COLORSPACES
-    for(j = 0; j < gavl_num_colorspaces(); j++)
+#ifdef ALL_PIXELFORMATS
+    for(j = 0; j < gavl_num_pixelformats(); j++)
       {
-      output_format.colorspace = gavl_get_colorspace(j);
+      output_format.pixelformat = gavl_get_pixelformat(j);
 #else
-      output_format.colorspace = OUT_COLORSPACE;
+      output_format.pixelformat = OUT_PIXELFORMAT;
 #endif
 
       gavl_video_options_set_defaults(opt);
@@ -2317,15 +2317,15 @@ int main(int argc, char ** argv)
       gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_IGNORE);
       //      gavl_video_options_set_background_color(opt, background);
 
-#ifdef ALL_COLORSPACES
-      if(input_format.colorspace == output_format.colorspace)
+#ifdef ALL_PIXELFORMATS
+      if(input_format.pixelformat == output_format.pixelformat)
         continue;
 #endif
       
       output_frame = gavl_video_frame_create(&output_format);
-      fprintf(stderr, "************* Colorspace conversion ");
+      fprintf(stderr, "************* Pixelformat conversion ");
       fprintf(stderr, "%s -> ", tmp1);
-      tmp2 = gavl_colorspace_to_string(output_format.colorspace);
+      tmp2 = gavl_pixelformat_to_string(output_format.pixelformat);
       
       fprintf(stderr, "%s *************\n", tmp2);
 
@@ -2388,7 +2388,7 @@ int main(int argc, char ** argv)
       
       gavl_video_frame_destroy(output_frame);
 
-#ifdef ALL_COLORSPACES
+#ifdef ALL_PIXELFORMATS
       }
     }
 #endif  

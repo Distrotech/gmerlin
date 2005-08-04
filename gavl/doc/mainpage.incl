@@ -28,9 +28,10 @@
 
   Now you can do some simple mathematics to find out, that for N formats, the number of
   conversions from every format to every other is N*(N-1). Assuming, you want to support
-  26 colorspaces (like gavl does at the time, this file was written), you end up with
+  26 pixelformats (like gavl does at the time, this file was written), you end up with
   a theoretical number of 650 conversion routines. After removing redundant conversions,
-  you still have to write more than 600 functions. Since these are for colorspaces only,
+  you still have to write more than 600 functions. Since these are for pixelformats only,
+  and you also want to do audio mixing for all sample formats and lots of other conversions,
   the total number of routines will soon exceed 1000.
 
   These numbers are probably the reason, why up to now, no universal solution for the

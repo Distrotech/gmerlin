@@ -48,9 +48,9 @@ int main(int argc, char ** argv)
 
   gavl_video_options_t * opt;
     
-  gavl_colorspace_t csp;
+  gavl_pixelformat_t csp;
 
-  imax = gavl_num_colorspaces();
+  imax = gavl_num_pixelformats();
   scaler = gavl_video_scaler_create();
 
   opt = gavl_video_scaler_get_options(scaler);
@@ -60,9 +60,9 @@ int main(int argc, char ** argv)
   
   for(i = 0; i < imax; i++)
     {
-    csp = gavl_get_colorspace(i);
+    csp = gavl_get_pixelformat(i);
 
-    fprintf(stderr, "Colorspace: %s imax: %d\n", gavl_colorspace_to_string(csp), imax);
+    fprintf(stderr, "Pixelformat: %s imax: %d\n", gavl_pixelformat_to_string(csp), imax);
     
     src_rect.w = atoi(argv[1]);
     src_rect.h = atoi(argv[2]);
@@ -92,8 +92,8 @@ int main(int argc, char ** argv)
     format_1.pixel_width  = 1;
     format_1.pixel_height = 1;
 
-    format.colorspace = csp;
-    format_1.colorspace = csp;
+    format.pixelformat = csp;
+    format_1.pixelformat = csp;
         
     frame   = gavl_video_frame_create(&format);
     frame_1 = gavl_video_frame_create(&format_1);

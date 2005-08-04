@@ -8,16 +8,16 @@ In addition, it provides conversion functions from all possible formats
 to all other formats.
 
 If you want to write a multimedia application, gavl will help you a lot:
-You don't have to mess around with the large varieties of colorspaces,
+You don't have to mess around with the large varieties of pixelformats,
 interleaving modes, audio sample formats and so on.
 
 Current features:
 
-- Support for the following colorspaces:
+- Support for the following pixelformats:
   15 bpp RGB, 15 bpp BGR, 16 bpp RGB, 16 bpp BGR, 24 bpp RGB, 24 bpp BGR
   32 bpp RGB, 32 bpp BGR, 32 bpp RGBA, YUV 422 (YUY2), YUV 420 Planar,
   YUV 422 Planar (mpeg and jpeg), YUV 444 Planar (mpeg and jpeg)
-  Conversions from all colorspace to all others (NO multistep conversions,
+  Conversions from all pixelformat to all others (NO multistep conversions,
   each conversion has it's own function)
 
 - Audio samples can be 8 bit and 16 PCM (signed and unsigned),
