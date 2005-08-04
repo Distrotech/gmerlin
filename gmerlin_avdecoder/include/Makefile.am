@@ -20,5 +20,5 @@ utils.h \
 vorbis_comment.h \
 xing.h \
 yml.h \
-avdec.h
+dvframe.h
 
