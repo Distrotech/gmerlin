@@ -755,6 +755,13 @@ else
 echo "Missing"
 fi
 
+echo -n "libdv:                  "
+if test "x$have_libdv" = "xtrue"; then
+echo "Found (CFLAGS=$LIBDV_CFLAGS LIBS=$LIBDV_LIBS)"
+else
+echo "Missing"
+fi
+
 echo ""
 echo "=== Other features: ============================"
 

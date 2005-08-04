@@ -295,7 +295,7 @@ static codec_info_t codec_infos[] =
 static struct
   {
   enum PixelFormat  ffmpeg_csp;
-  gavl_colorspace_t gavl_csp;
+  gavl_pixelformat_t gavl_csp;
   } pixelformats[] =
   {
     { PIX_FMT_YUV420P,       GAVL_YUV_420_P },  ///< Planar YUV 4:2:0 (1 Cr & Cb sample per 2x2 Y samples)
@@ -309,16 +309,16 @@ static struct
     { PIX_FMT_YUV411P,       GAVL_YUV_411_P }, ///< Planar YUV 4:1:1 (1 Cr & Cb sample per 4x1 Y samples)
     { PIX_FMT_RGB565,        GAVL_RGB_16 }, ///< always stored in cpu endianness
     { PIX_FMT_RGB555,        GAVL_RGB_15 }, ///< always stored in cpu endianness, most significant bit to 1
-    { PIX_FMT_GRAY8,         GAVL_COLORSPACE_NONE },
-    { PIX_FMT_MONOWHITE,     GAVL_COLORSPACE_NONE }, ///< 0 is white
-    { PIX_FMT_MONOBLACK,     GAVL_COLORSPACE_NONE }, ///< 0 is black
+    { PIX_FMT_GRAY8,         GAVL_PIXELFORMAT_NONE },
+    { PIX_FMT_MONOWHITE,     GAVL_PIXELFORMAT_NONE }, ///< 0 is white
+    { PIX_FMT_MONOBLACK,     GAVL_PIXELFORMAT_NONE }, ///< 0 is black
     { PIX_FMT_PAL8,          GAVL_RGB_24     }, ///< 8 bit with RGBA palette
     { PIX_FMT_YUVJ420P,      GAVL_YUVJ_420_P }, ///< Planar YUV 4:2:0 full scale (jpeg)
     { PIX_FMT_YUVJ422P,      GAVL_YUVJ_422_P }, ///< Planar YUV 4:2:2 full scale (jpeg)
     { PIX_FMT_YUVJ444P,      GAVL_YUVJ_444_P }, ///< Planar YUV 4:4:4 full scale (jpeg)
-    { PIX_FMT_XVMC_MPEG2_MC, GAVL_COLORSPACE_NONE }, ///< XVideo Motion Acceleration via common packet passing(xvmc_render.h)
-    { PIX_FMT_XVMC_MPEG2_IDCT, GAVL_COLORSPACE_NONE },
-    { PIX_FMT_NB, GAVL_COLORSPACE_NONE }
+    { PIX_FMT_XVMC_MPEG2_MC, GAVL_PIXELFORMAT_NONE }, ///< XVideo Motion Acceleration via common packet passing(xvmc_render.h)
+    { PIX_FMT_XVMC_MPEG2_IDCT, GAVL_PIXELFORMAT_NONE },
+    { PIX_FMT_NB, GAVL_PIXELFORMAT_NONE }
 };
 
 static void pal8_to_rgb24(gavl_video_frame_t * dst, AVFrame * src,
@@ -398,7 +398,7 @@ static void rgba32_to_rgba32(gavl_video_frame_t * dst, AVFrame * src,
     }
   }
 
-static gavl_colorspace_t get_colorspace(enum PixelFormat p)
+static gavl_pixelformat_t get_pixelformat(enum PixelFormat p)
   {
   int i;
   for(i = 0; i < sizeof(pixelformats)/sizeof(pixelformats[0]); i++)
@@ -406,7 +406,7 @@ static gavl_colorspace_t get_colorspace(enum PixelFormat p)
     if(pixelformats[i].ffmpeg_csp == p)
       return pixelformats[i].gavl_csp;
     }
-  return GAVL_COLORSPACE_NONE;
+  return GAVL_PIXELFORMAT_NONE;
   }
 
 
@@ -615,11 +615,11 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       {
       //      fprintf(stderr, "First frame\n");
       
-      s->data.video.format.colorspace = get_colorspace(priv->ctx->pix_fmt);
+      s->data.video.format.pixelformat = get_pixelformat(priv->ctx->pix_fmt);
 
       if(priv->info->ffmpeg_id == CODEC_ID_DVVIDEO)
         {
-        if(s->data.video.format.colorspace == GAVL_YUV_420_P)
+        if(s->data.video.format.pixelformat == GAVL_YUV_420_P)
           s->data.video.format.chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
 
         if(!s->data.video.format.interlace_mode)
@@ -829,7 +829,7 @@ static int init(bgav_stream_t * s)
   
   /* Set missing format values */
 
-  //  fprintf(stderr, "Colorspace: %s\n",
+  //  fprintf(stderr, "Pixelformat: %s\n",
   //          avcodec_get_pix_fmt_name(priv->ctx->pix_fmt));
 
   priv->need_first_frame = 1;
@@ -837,11 +837,11 @@ static int init(bgav_stream_t * s)
   decode(s, NULL);
   
   /* TODO Handle unsupported colormodels */
-  if(s->data.video.format.colorspace == GAVL_COLORSPACE_NONE)
+  if(s->data.video.format.pixelformat == GAVL_PIXELFORMAT_NONE)
     {
     //    fprintf(stderr, "Unsupported pixel format %s\n",
     //            avcodec_get_pix_fmt_name(priv->ctx->pix_fmt));
-    s->data.video.format.colorspace = GAVL_YUV_420_P;
+    s->data.video.format.pixelformat = GAVL_YUV_420_P;
     priv->do_convert = 1;
     priv->dst_format = PIX_FMT_YUV420P;
     }

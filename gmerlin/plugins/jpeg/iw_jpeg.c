@@ -45,7 +45,7 @@ typedef struct
   
   FILE * output;
 
-  gavl_colorspace_t colorspace;
+  gavl_pixelformat_t pixelformat;
   
   int quality;
   } jpeg_t;
@@ -94,14 +94,14 @@ int write_header_jpeg(void * priv, const char * filename,
 
   jpeg_set_defaults(&(jpeg->cinfo));
   
-  /* Adjust colorspaces */
+  /* Adjust pixelformats */
 
-  format->colorspace = jpeg->colorspace;
+  format->pixelformat = jpeg->pixelformat;
 
   jpeg_set_colorspace(&(jpeg->cinfo), JCS_YCbCr);
   jpeg->cinfo.raw_data_in = TRUE;
   
-  switch(format->colorspace)
+  switch(format->pixelformat)
     {
     case GAVL_YUVJ_420_P:
       jpeg->cinfo.comp_info[0].h_samp_factor = 2;
@@ -146,8 +146,8 @@ int write_header_jpeg(void * priv, const char * filename,
       
       break;
     default:
-      fprintf(stderr, "Illegal colorspace: %s\n",
-              gavl_colorspace_to_string(jpeg->colorspace));      
+      fprintf(stderr, "Illegal pixelformat: %s\n",
+              gavl_pixelformat_to_string(jpeg->pixelformat));      
       break;
     }
 
@@ -166,7 +166,7 @@ int write_image_jpeg(void * priv, gavl_video_frame_t * frame)
   int num_lines;
   jpeg_t * jpeg = (jpeg_t*)priv;
 
-  switch(jpeg->colorspace)
+  switch(jpeg->pixelformat)
     {
     case GAVL_YUVJ_420_P:
       while(jpeg->cinfo.next_scanline < jpeg->cinfo.image_height)
@@ -209,7 +209,7 @@ int write_image_jpeg(void * priv, gavl_video_frame_t * frame)
         }
       break;
     default:
-      fprintf(stderr, "Illegal colorspace\n");
+      fprintf(stderr, "Illegal pixelformat\n");
       return 0;
     }
   jpeg_finish_compress(&(jpeg->cinfo));
@@ -263,15 +263,15 @@ static void set_parameter_jpeg(void * p, char * name,
     {
     if(!strcmp(val->val_str, "4:2:0"))
       {
-      jpeg->colorspace = GAVL_YUVJ_420_P;
+      jpeg->pixelformat = GAVL_YUVJ_420_P;
       }
     else if(!strcmp(val->val_str, "4:2:2"))
       {
-      jpeg->colorspace = GAVL_YUVJ_422_P;
+      jpeg->pixelformat = GAVL_YUVJ_422_P;
       }
     else if(!strcmp(val->val_str, "4:4:4"))
       {
-      jpeg->colorspace = GAVL_YUVJ_444_P;
+      jpeg->pixelformat = GAVL_YUVJ_444_P;
       }
     }
   }

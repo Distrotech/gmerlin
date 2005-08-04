@@ -109,7 +109,7 @@ typedef struct
   int do_sw_scale;
 
   gavl_scale_mode_t scale_mode;
-  
+  int scale_order;
   int can_scale; /* Can scale (hard or software) */
 
   gavl_video_scaler_t * scaler;
@@ -153,8 +153,9 @@ typedef struct
     
   /* Drawing coords */
   
-  gavl_rectangle_t src_rect;
-  gavl_rectangle_t dst_rect;
+  gavl_rectangle_i_t src_rect_i;
+  gavl_rectangle_f_t src_rect_f;
+  gavl_rectangle_i_t dst_rect;
   
   /* Format with updated window size */
 
@@ -202,7 +203,7 @@ void set_callbacks_x11(void * data, bg_ov_callbacks_t * callbacks)
   ((x11_t*)(data))->callbacks = callbacks;
   }
 
-static gavl_colorspace_t get_x11_colorspace(Display * d)
+static gavl_pixelformat_t get_x11_pixelformat(Display * d)
   {
   int screen_number;
   Visual * visual;
@@ -211,7 +212,7 @@ static gavl_colorspace_t get_x11_colorspace(Display * d)
   XPixmapFormatValues * pf;
   int i;
   int num_pf;
-  gavl_colorspace_t ret = GAVL_COLORSPACE_NONE;
+  gavl_pixelformat_t ret = GAVL_PIXELFORMAT_NONE;
     
   screen_number = DefaultScreen(d);
   visual = DefaultVisual(d, screen_number);
@@ -232,7 +233,7 @@ static gavl_colorspace_t get_x11_colorspace(Display * d)
     }
   XFree(pf);
   
-  ret = GAVL_COLORSPACE_NONE;
+  ret = GAVL_PIXELFORMAT_NONE;
 
   switch(bpp)
     {
@@ -463,7 +464,7 @@ alloc_frame_xv(x11_t * priv)
     video_format.frame_width  = priv->video_format.frame_width;
     video_format.frame_height = priv->video_format.frame_height;
 
-    video_format.colorspace = priv->video_format.colorspace;
+    video_format.pixelformat = priv->video_format.pixelformat;
     
     ret = gavl_video_frame_create(&video_format);
     x11_frame->xv_image = XvCreateImage(priv->dpy, priv->xv_port,
@@ -565,7 +566,7 @@ alloc_frame_ximage(x11_t * priv, gavl_video_format_t * format)
     video_format.frame_width = format->frame_width;
     video_format.frame_height = format->frame_height;
 
-    video_format.colorspace = format->colorspace;
+    video_format.pixelformat = format->pixelformat;
 
     ret = gavl_video_frame_create(&video_format);
     
@@ -724,10 +725,10 @@ static void set_drawing_coords(x11_t * priv)
   
   if(priv->can_scale)
     {
-    gavl_rectangle_set_all(&priv->src_rect, &priv->video_format);
+    gavl_rectangle_f_set_all(&priv->src_rect_f, &priv->video_format);
     gavl_rectangle_fit_aspect(&priv->dst_rect,
                               &priv->video_format,
-                              &priv->src_rect,
+                              &priv->src_rect_f,
                               &priv->window_format,
                               zoom_factor, squeeze_factor);
 #ifdef HAVE_LIBXV
@@ -741,7 +742,7 @@ static void set_drawing_coords(x11_t * priv)
     }
   else
     {
-    gavl_rectangle_crop_to_format_noscale(&priv->src_rect,
+    gavl_rectangle_crop_to_format_noscale(&priv->src_rect_i,
                                           &priv->dst_rect,
                                           &priv->video_format,
                                           &priv->window_format);
@@ -805,11 +806,13 @@ static void set_drawing_coords(x11_t * priv)
 
   opt = gavl_video_scaler_get_options(priv->scaler);
   gavl_video_options_set_scale_mode(opt, priv->scale_mode);
+  gavl_video_options_set_scale_order(opt, priv->scale_order);
   gavl_video_options_set_quality(opt, 2);
+
+  gavl_video_options_set_rectangles(opt, &(priv->src_rect_f),
+                                    &(priv->dst_rect));
   
   gavl_video_scaler_init(priv->scaler,
-                         &(priv->src_rect),
-                         &(priv->dst_rect),
                          &(priv->video_format),
                          &(priv->window_format)); 
 
@@ -833,7 +836,7 @@ static int _open_x11(void * data,
   {
   int still_running;
   x11_t * priv;
-  gavl_colorspace_t x11_colorspace;
+  gavl_pixelformat_t x11_pixelformat;
   priv = (x11_t*)data;
 
   /* Stop still thread if necessary */
@@ -865,13 +868,13 @@ static int _open_x11(void * data,
   
   x11_window_set_title(&(priv->win), window_title);
   
-  /* Decide colorspace */
+  /* Decide pixelformat */
 
-  x11_colorspace = get_x11_colorspace(priv->dpy);
+  x11_pixelformat = get_x11_pixelformat(priv->dpy);
 
 #ifdef DEBUG
-  fprintf(stderr, "Display colorspace %s\n",
-          gavl_colorspace_to_string(x11_colorspace));
+  fprintf(stderr, "Display pixelformat %s\n",
+          gavl_pixelformat_to_string(x11_pixelformat));
 #endif
   
 #ifdef HAVE_LIBXV
@@ -880,7 +883,7 @@ static int _open_x11(void * data,
   if(priv->xv_mode != XV_MODE_NEVER)
     {
     
-    switch(format->colorspace)
+    switch(format->pixelformat)
       {
       case GAVL_YUV_420_P:
         if(priv->have_xv_yv12)
@@ -898,16 +901,16 @@ static int _open_x11(void * data,
           {
           priv->do_xv = 1;
           priv->xv_format = XV_ID_YUY2;
-          format->colorspace = GAVL_YUY2;
+          format->pixelformat = GAVL_YUY2;
           }
         else if(priv->have_xv_uyvy)
           {
           priv->do_xv = 1;
           priv->xv_format = XV_ID_UYVY;
-          format->colorspace = GAVL_UYVY;
+          format->pixelformat = GAVL_UYVY;
           }
         else
-          format->colorspace = x11_colorspace;
+          format->pixelformat = x11_pixelformat;
         break;
       case GAVL_YUY2:
         if(priv->have_xv_yuy2)
@@ -919,56 +922,56 @@ static int _open_x11(void * data,
           {
           priv->do_xv = 1;
           priv->xv_format = XV_ID_UYVY;
-          format->colorspace = GAVL_UYVY;
+          format->pixelformat = GAVL_UYVY;
           }
         else if(priv->have_xv_yv12)
           {
           priv->do_xv = 1;
           priv->xv_format = XV_ID_YV12;
-          format->colorspace = GAVL_YUV_420_P;
+          format->pixelformat = GAVL_YUV_420_P;
           }
         else if(priv->have_xv_i420)
           {
           priv->do_xv = 1;
           priv->xv_format = XV_ID_I420;
-          format->colorspace = GAVL_YUV_420_P;
+          format->pixelformat = GAVL_YUV_420_P;
           }
         else
-          format->colorspace = x11_colorspace;
+          format->pixelformat = x11_pixelformat;
         break;
       default:
-        if(gavl_colorspace_is_yuv(format->colorspace) ||
+        if(gavl_pixelformat_is_yuv(format->pixelformat) ||
            priv->xv_mode == XV_MODE_ALWAYS)
           {
           if(priv->have_xv_uyvy)
             {
             priv->do_xv = 1;
             priv->xv_format = XV_ID_UYVY;
-            format->colorspace = GAVL_UYVY;
+            format->pixelformat = GAVL_UYVY;
             }
           else if(priv->have_xv_yuy2)
             {
             priv->do_xv = 1;
             priv->xv_format = XV_ID_YUY2;
-            format->colorspace = GAVL_YUY2;
+            format->pixelformat = GAVL_YUY2;
             }
           else if(priv->have_xv_yv12)
             {
             priv->do_xv = 1;
             priv->xv_format = XV_ID_YV12;
-            format->colorspace = GAVL_YUV_420_P;
+            format->pixelformat = GAVL_YUV_420_P;
             }
           else if(priv->have_xv_i420)
             {
             priv->do_xv = 1;
             priv->xv_format = XV_ID_I420;
-            format->colorspace = GAVL_YUV_420_P;
+            format->pixelformat = GAVL_YUV_420_P;
             }
           else
-            format->colorspace = x11_colorspace;
+            format->pixelformat = x11_pixelformat;
           }
         else
-          format->colorspace = x11_colorspace;
+          format->pixelformat = x11_pixelformat;
       }
 
     /* Try to grab port, switch to XImage if unsuccessful */
@@ -978,7 +981,7 @@ static int _open_x11(void * data,
       if(Success != XvGrabPort(priv->dpy, priv->xv_port, CurrentTime))
         {
         priv->do_xv = 0;
-        format->colorspace = x11_colorspace;
+        format->pixelformat = x11_pixelformat;
         }
       else if(priv->have_xv_colorkey)
         {
@@ -1005,19 +1008,20 @@ static int _open_x11(void * data,
     {
     priv->do_sw_scale = priv->do_sw_scale_cfg;
     priv->can_scale = priv->do_sw_scale;
-    format->colorspace = x11_colorspace;
+    format->pixelformat = x11_pixelformat;
     }
   
 #else
-  format->colorspace = x11_colorspace;
+  format->pixelformat = x11_pixelformat;
   priv->do_sw_scale = priv->do_sw_scale_cfg;
   priv->can_scale = priv->do_sw_scale;
   
 #endif // !HAVE_LIBXV
-  priv->window_format.colorspace = format->colorspace;
+  priv->window_format.pixelformat = format->pixelformat;
   gavl_video_format_copy(&(priv->video_format), format);
 
-  gavl_rectangle_set_all(&priv->src_rect, &priv->video_format);
+  gavl_rectangle_i_set_all(&priv->src_rect_i, &priv->video_format);
+  gavl_rectangle_f_set_all(&priv->src_rect_f, &priv->video_format);
     
   if(priv->auto_resize)
     {
@@ -1272,10 +1276,10 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
                     priv->win.current_window,
                     priv->win.gc,
                     x11_frame->xv_image,
-                    priv->src_rect.x,  /* src_x  */
-                    priv->src_rect.y,  /* src_y  */
-                    priv->src_rect.w,  /* src_w  */
-                    priv->src_rect.h,  /* src_h  */
+                    priv->src_rect_i.x,  /* src_x  */
+                    priv->src_rect_i.y,  /* src_y  */
+                    priv->src_rect_i.w,  /* src_w  */
+                    priv->src_rect_i.h,  /* src_h  */
                     priv->dst_rect.x,  /* dest_x */
                     priv->dst_rect.y,  /* dest_y */
                     priv->dst_rect.w,  /* dest_w */
@@ -1289,10 +1293,10 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
                  priv->win.current_window,
                  priv->win.gc,
                  x11_frame->xv_image,
-                 priv->src_rect.x,  /* src_x  */
-                 priv->src_rect.y,  /* src_y  */
-                 priv->src_rect.w,  /* src_w  */
-                 priv->src_rect.h,  /* src_h  */
+                 priv->src_rect_i.x,  /* src_x  */
+                 priv->src_rect_i.y,  /* src_y  */
+                 priv->src_rect_i.w,  /* src_w  */
+                 priv->src_rect_i.h,  /* src_h  */
                  priv->dst_rect.x,          /* dest_x  */
                  priv->dst_rect.y,          /* dest_y  */
                  priv->dst_rect.w,          /* dest_w  */
@@ -1317,8 +1321,8 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
       {
       x11_frame = (x11_frame_t*)(frame->user_data);
       image = x11_frame->x11_image;
-      x = priv->src_rect.x;
-      y = priv->src_rect.y;
+      x = priv->src_rect_i.x;
+      y = priv->src_rect_i.y;
       }
 #if 0
     fprintf(stderr, "dst_rect: ");
@@ -1650,10 +1654,38 @@ bg_parameter_info_t common_parameters[] =
       name:        "scale_mode",
       long_name:   "Scale mode",
       type:        BG_PARAMETER_STRINGLIST,
-      multi_names:  (char*[]){ "nearest", "bilinear", (char*)0 },
-      multi_labels: (char*[]){ "Nearest", "Bilinear", (char*)0 },
-      val_default: { val_str: "nearest" },
+      multi_names:  (char*[]){ "auto",
+                               "nearest",
+                               "bilinear",
+                               "quadratic",
+                               "cubic_bspline",
+                               "cubic_mitchell",
+                               "cubic_catmull",
+                               "sinc_lanczos",
+                               (char*)0 },
+      multi_labels: (char*[]){ "Auto",
+                             "Nearest",
+                             "Bilinear",
+                             "Quadratic",
+                             "Cubic B-Spline",
+                             "Cubic Mitchell-Netravali",
+                             "Cubic Catmull-Rom",
+                             "Sinc with Lanczos window",
+                             (char*)0 },
+      val_default: { val_str: "auto" },
+      help_string: "Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest",
+    },
+    {
+      name:        "scale_order",
+      long_name:   "Scale order",
+      type:        BG_PARAMETER_INT,
+      val_min:     { val_i: 4 },
+      val_max:     { val_i: 1000 },
+      val_default: { val_i: 4 },
+      help_string: "Order for sinc scaling\n",
     }
+
+    
   };
 
 #define NUM_COMMON_PARAMETERS sizeof(common_parameters)/sizeof(common_parameters[0])
@@ -1819,6 +1851,30 @@ set_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
   else if(!strcmp(name, "do_sw_scale"))
     {
     p->do_sw_scale_cfg = val->val_i;
+    }
+
+  else if(!strcmp(name, "scale_mode"))
+    {
+    if(!strcmp(val->val_str, "auto"))
+      p->scale_mode = GAVL_SCALE_AUTO;
+    else if(!strcmp(val->val_str, "nearest"))
+      p->scale_mode = GAVL_SCALE_NEAREST;
+    else if(!strcmp(val->val_str, "bilinear"))
+      p->scale_mode = GAVL_SCALE_BILINEAR;
+    else if(!strcmp(val->val_str, "quadratic"))
+      p->scale_mode = GAVL_SCALE_QUADRATIC;
+    else if(!strcmp(val->val_str, "cubic_bspline"))
+      p->scale_mode = GAVL_SCALE_CUBIC_BSPLINE;
+    else if(!strcmp(val->val_str, "cubic_mitchell"))
+      p->scale_mode = GAVL_SCALE_CUBIC_MITCHELL;
+    else if(!strcmp(val->val_str, "cubic_catmull"))
+      p->scale_mode = GAVL_SCALE_CUBIC_CATMULL;
+    else if(!strcmp(val->val_str, "sinc_lanczos"))
+      p->scale_mode = GAVL_SCALE_SINC_LANCZOS;
+    }
+  else if(!strcmp(name, "scale_order"))
+    {
+    p->scale_order = val->val_i;
     }
   else if(!strcmp(name, "scale_mode"))
     {

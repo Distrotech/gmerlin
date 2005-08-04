@@ -174,9 +174,14 @@ static void get_format(gavl_video_format_t * ret,
                      &(ret->pixel_height));
 #endif
   if(sequence->chroma_height == sequence->height/2)
-    ret->colorspace = GAVL_YUV_420_P;
+    {
+    ret->pixelformat = GAVL_YUV_420_P;
+    if(sequence->flags & SEQ_FLAG_MPEG2)
+      ret->chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
+    }
+  
   else if(sequence->chroma_height == sequence->height)
-    ret->colorspace = GAVL_YUV_422_P;
+    ret->pixelformat = GAVL_YUV_422_P;
   
   if(sequence->flags & SEQ_FLAG_MPEG2)
     ret->framerate_mode = GAVL_FRAMERATE_VARIABLE;

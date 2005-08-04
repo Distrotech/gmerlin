@@ -52,10 +52,10 @@ typedef struct
   int user_pixel_width;
   int user_pixel_height;
 
-  int crop_left;
-  int crop_right;
-  int crop_top;
-  int crop_bottom;
+  double crop_left;
+  double crop_right;
+  double crop_top;
+  double crop_bottom;
   int maintain_aspect;
   } bg_gavl_video_options_t;
 
@@ -144,39 +144,80 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
  {                                                                \
   name:      "crop_left",                                          \
     long_name: "Crop left",                                        \
-    type:      BG_PARAMETER_INT,                                   \
-    val_min:     { val_i: 0 },                                     \
-      val_max:     { val_i: 100000 },\
-      val_default: { val_i: 0 },\
+    type:      BG_PARAMETER_FLOAT,                                   \
+    val_min:     { val_f: 0.0 },                                     \
+      val_max:     { val_f: 100000.0 },\
+      val_default: { val_f: 0.0 },\
+      num_digits: 3,\
       help_string: "Cut this many pixels from the left border of the source frames"\
     },\
     {\
       name:      "crop_right",\
       long_name: "Crop right",\
-      type:      BG_PARAMETER_INT,\
-      val_min:     { val_i: 0 },\
-      val_max:     { val_i: 100000 },\
-      val_default: { val_i: 0 },\
+      type:      BG_PARAMETER_FLOAT,\
+      val_min:     { val_f: 0.0 },\
+      val_max:     { val_f: 100000.0 },\
+      val_default: { val_f: 0.0 },\
+      num_digits: 3,\
       help_string: "Cut this many pixels from the right border of the source frames"\
     },\
     {\
       name:      "crop_top",\
       long_name: "Crop top",\
-      type:      BG_PARAMETER_INT,\
-      val_min:     { val_i: 0 },\
-      val_max:     { val_i: 100000 },\
-      val_default: { val_i: 0 },\
+      type:      BG_PARAMETER_FLOAT,\
+      val_min:     { val_f: 0.0 },\
+      val_max:     { val_f: 100000.0 },\
+      val_default: { val_f: 0.0 },\
+      num_digits: 3,\
       help_string: "Cut this many pixels from the top border of the source frames"\
     },\
     {\
       name:      "crop_bottom",\
       long_name: "Crop bottom",\
-      type:      BG_PARAMETER_INT,\
-      val_min:     { val_i: 0 },\
-      val_max:     { val_i: 100000 },\
-      val_default: { val_i: 0 },\
+      type:      BG_PARAMETER_FLOAT,\
+      val_min:     { val_f: 0.0 },\
+      val_max:     { val_f: 100000.0 },\
+      val_default: { val_f: 0.0 },\
+      num_digits: 3,\
       help_string: "Cut this many pixels from the bottom border of the source frames"\
     }
+
+#define BG_GAVL_PARAM_SCALE_MODE                                    \
+  {                                                                 \
+  name:        "scale_mode",                                          \
+  long_name:   "Scale mode",                                          \
+  type:        BG_PARAMETER_STRINGLIST,                               \
+    multi_names:  (char*[]){ "auto",\
+                             "nearest",         \
+                             "bilinear", \
+                             "quadratic", \
+                             "cubic_bspline", \
+                             "cubic_mitchell", \
+                             "cubic_catmull", \
+                             "sinc_lanczos", \
+                             (char*)0                                     \
+                         },                                    \
+    multi_labels: (char*[]){ "Auto", \
+                             "Nearest",                             \
+                             "Bilinear", \
+                             "Quadratic", \
+                             "Cubic B-Spline", \
+                             "Cubic Mitchell-Netravali", \
+                             "Cubic Catmull-Rom", \
+                             "Sinc with Lanczos window",                         \
+                             (char*)0 },                                         \
+    val_default: { val_str: "auto" },                                   \
+    help_string: "Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest", \
+    },                                                                  \
+    {                                                                   \
+    name:        "scale_order",                                         \
+  long_name:   "Scale order",                                        \
+  type:        BG_PARAMETER_INT,                               \
+  val_min:     { val_i: 4 },                                 \
+  val_max:     { val_i: 1000 },                              \
+  val_default: { val_i: 4 },                                \
+  help_string: "Order for sinc scaling\n",\
+  }
 
 #define BG_GAVL_PARAM_FRAME_SIZE  \
     { \
@@ -266,15 +307,9 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       type:      BG_PARAMETER_CHECKBUTTON, \
       val_default: { val_i: 1 }, \
       help_string: "Let the aspect ratio appear the same as in the source, probably resulting in additional black borders" \
-    },                                                                \
-    {                                                               \
-    name:        "scale_mode",                                      \
-    long_name:   "Scale mode",                                        \
-    type:        BG_PARAMETER_STRINGLIST,                                   \
-    multi_names:  (char*[]){ "nearest", "bilinear", (char*)0 }, \
-    multi_labels: (char*[]){ "Nearest", "Bilinear", (char*)0 }, \
-    val_default: { val_str: "nearest" }, \
-    }
+      },                                                                \
+      BG_GAVL_PARAM_SCALE_MODE
+
 
 #define BG_GAVL_PARAM_ALPHA                \
     { \

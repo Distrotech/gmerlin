@@ -151,11 +151,11 @@ static int read_header_tiff(bgav_stream_t * s,
     
     if(p->SampleSperPixel ==4)
       {
-      format->colorspace = GAVL_RGBA_32;
+      format->pixelformat = GAVL_RGBA_32;
       }
     else
       {
-      format->colorspace = GAVL_RGB_24;
+      format->pixelformat = GAVL_RGB_24;
       }
     }
   return 1;
@@ -248,12 +248,12 @@ static int init_tiff(bgav_stream_t * s)
     return 0;
     
   if(s->data.video.depth == 32)
-    s->data.video.format.colorspace = GAVL_RGBA_32;
+    s->data.video.format.pixelformat = GAVL_RGBA_32;
   else
-    s->data.video.format.colorspace = GAVL_RGB_24;
+    s->data.video.format.pixelformat = GAVL_RGB_24;
   
   s->description = bgav_sprintf("TIFF Video (%s)",
-                                ((s->data.video.format.colorspace ==
+                                ((s->data.video.format.pixelformat ==
                                   GAVL_RGBA_32) ? "RGBA" : "RGB")); 
   
 

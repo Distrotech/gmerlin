@@ -22,8 +22,9 @@
 #include <string.h>
 #include <inttypes.h>
 #include <plugin.h>
+#include <utils.h>
 
-#define BINAER    6
+#define BINARY    6
 #define ASCII     3
 
 typedef struct
@@ -33,9 +34,7 @@ typedef struct
   uint32_t Width;
   uint32_t Height;
   gavl_video_format_t format;
-  uint16_t compression;
-  int jpeg_quality;
-  int zip_quality;  /* Compression level, actually */
+  uint16_t pnm_format;
   } pnm_t;
 
 static void * create_pnm()
@@ -48,6 +47,8 @@ static void * create_pnm()
 static void destroy_pnm(void* priv)
   {
   pnm_t * pnm = (pnm_t*)priv;
+  if(pnm->comment)
+    free(pnm->comment);
   free(pnm);
   }
 
@@ -59,29 +60,28 @@ static int write_header_pnm(void * priv, const char * filename,
   p->Width =  format->image_width;
   p->Height =  format->image_height;
 
-  format->colorspace = GAVL_RGB_24;
+  format->pixelformat = GAVL_RGB_24;
 
   p->output = fopen(filename,"wb");
 
   if(!p->output)
     return 0;
 
-  sprintf(p->comment,"created with Gmerlin");
-  
-  if(p->compression == BINAER)
+  /* Write the header lines */  
+  if(p->pnm_format == BINARY)
     {
-    fprintf(stderr,"BINAER write header -->");
-    fprintf(p->output,"P%d\n# %s\n%d %d\n255\n", BINAER, p->comment, p->Width, p->Height);
+//    fprintf(stderr,"BINARY write header -->");
+    fprintf(p->output,"P%d\n# %s\n%d %d\n255\n", BINARY, p->comment, p->Width, p->Height);
     fprintf(stderr,"done \n");
     }
 
-  if(p->compression == ASCII)
+  if(p->pnm_format == ASCII)
     {
-    fprintf(stderr,"ASCII write header -->");
+//    fprintf(stderr,"ASCII write header -->");
     fprintf(p->output,"P%d\n# %s\n%d %d\n255\n", ASCII, p->comment, p->Width, p->Height);
     fprintf(stderr,"done \n");
     }
-
+  
   return 1;
   }
 
@@ -93,8 +93,8 @@ static int write_image_pnm(void *priv, gavl_video_frame_t *frame)
   uint8_t * frame_ptr_start;
 
   
-  /* write image data */
-  if(p->compression == BINAER)
+  /* write image data binary */
+  if(p->pnm_format == BINARY)
     {
     frame_ptr_start = frame->planes[0];
     
@@ -106,7 +106,8 @@ static int write_image_pnm(void *priv, gavl_video_frame_t *frame)
       }
     }
 
-  if(p->compression == ASCII)
+  /* write image data ascii */
+  if(p->pnm_format == ASCII)
     {
     frame_ptr_start = frame->planes[0];
     
@@ -134,13 +135,21 @@ static int write_image_pnm(void *priv, gavl_video_frame_t *frame)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:        "compression",
-      long_name:   "Compression",
+      name:        "format",
+      long_name:   "Format",
       type:        BG_PARAMETER_STRINGLIST,
-      multi_names: (char*[]){ "binaer", "ascii", (char*)0 },
-      multi_labels:  (char*[]){ "Binaer", "Acsii", (char*)0 },
+      multi_names: (char*[]){ "binary", "ascii", (char*)0 },
+      multi_labels:  (char*[]){ "Binary", "ASCII", (char*)0 },
 
-      val_default: { val_str: "binaer" },
+      val_default: { val_str: "binary" },
+    },
+    {
+      name:        "comment",
+      long_name:   "Comment",
+      type:        BG_PARAMETER_STRING,
+
+      val_default: { val_str: "Created with gmerlin" },
+      help_string: "Comment which will be written in front of every file"
     },
    { /* End of parameters */ }
   };
@@ -159,13 +168,18 @@ static void set_parameter_pnm(void * p, char * name,
   if(!name)
     return;
 
-  else if(!strcmp(name, "compression"))
+  else if(!strcmp(name, "format"))
     {
-    if(!strcmp(val->val_str, "binaer"))
-      pnm->compression = BINAER;
+    if(!strcmp(val->val_str, "binary"))
+      pnm->pnm_format = BINARY;
     else if(!strcmp(val->val_str, "ascii"))
-      pnm->compression = ASCII;
+      pnm->pnm_format = ASCII;
     }
+  else if(!strcmp(name, "comment"))
+    {
+    pnm->comment = bg_strdup(pnm->comment, val->val_str);
+    }
+   
   }
 
 static char * pnm_extension = ".ppm";
@@ -182,7 +196,7 @@ bg_image_writer_plugin_t the_plugin =
       name:           "iw_pnm",
       long_name:      "PNM writer",
       mimetypes:      (char*)0,
-      extensions:     "pnm",
+      extensions:     "ppm",
       type:           BG_PLUGIN_IMAGE_WRITER,
       flags:          BG_PLUGIN_FILE,
       priority:       5,

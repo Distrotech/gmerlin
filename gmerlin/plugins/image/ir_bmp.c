@@ -92,9 +92,9 @@ static struct
   uint32_t r_mask;
   uint32_t g_mask;
   uint32_t b_mask;
-  gavl_colorspace_t csp;
+  gavl_pixelformat_t csp;
   }
-  colorspaces[] = 
+  pixelformats[] = 
     {
       {
         1,
@@ -174,26 +174,26 @@ static struct
         GAVL_BGR_32
       },
       { 
-        0, 0, 0, 0, GAVL_COLORSPACE_NONE
+        0, 0, 0, 0, GAVL_PIXELFORMAT_NONE
       } 
     
     };
 
 
-gavl_colorspace_t get_csp(int bits, uint32_t r_mask,
+gavl_pixelformat_t get_csp(int bits, uint32_t r_mask,
                           uint32_t g_mask, uint32_t b_mask) 
   {
   int i = 0;
-  while(colorspaces[i].csp != GAVL_COLORSPACE_NONE)
+  while(pixelformats[i].csp != GAVL_PIXELFORMAT_NONE)
     { 
-    if((bits == colorspaces[i].bits) && 
-       (r_mask == colorspaces[i].r_mask) && 
-       (g_mask == colorspaces[i].g_mask) && 
-       (b_mask == colorspaces[i].b_mask)) 
-      return colorspaces[i].csp; 
+    if((bits == pixelformats[i].bits) && 
+       (r_mask == pixelformats[i].r_mask) && 
+       (g_mask == pixelformats[i].g_mask) && 
+       (b_mask == pixelformats[i].b_mask)) 
+      return pixelformats[i].csp; 
     i++;
     } 
-  return GAVL_COLORSPACE_NONE;
+  return GAVL_PIXELFORMAT_NONE;
   }
 
 static int read_header_bmp(void *priv,const char *filename, gavl_video_format_t * format)
@@ -326,7 +326,7 @@ static int read_header_bmp(void *priv,const char *filename, gavl_video_format_t 
 
   /* set gavl format */
   
-  format->colorspace =  get_csp(p->bitcount, rmask, gmask, bmask);
+  format->pixelformat =  get_csp(p->bitcount, rmask, gmask, bmask);
   
   format->frame_width  = p->width;
   format->frame_height = p->height;

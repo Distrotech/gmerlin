@@ -117,7 +117,7 @@ int read_header_jpeg(void * priv, const char * filename,
          (jpeg->cinfo.comp_info[2].h_samp_factor == 1) &&
          (jpeg->cinfo.comp_info[2].v_samp_factor == 1))
         {
-        format->colorspace = GAVL_YUVJ_420_P;
+        format->pixelformat = GAVL_YUVJ_420_P;
         PADD(format->frame_width, 16);
         PADD(format->frame_height, 16);
         }
@@ -128,7 +128,7 @@ int read_header_jpeg(void * priv, const char * filename,
               (jpeg->cinfo.comp_info[2].h_samp_factor == 1) &&
               (jpeg->cinfo.comp_info[2].v_samp_factor == 1))
         {
-        format->colorspace = GAVL_YUVJ_422_P;
+        format->pixelformat = GAVL_YUVJ_422_P;
         PADD(format->frame_width, 16);
         PADD(format->frame_height, 8);
         }
@@ -139,17 +139,17 @@ int read_header_jpeg(void * priv, const char * filename,
               (jpeg->cinfo.comp_info[2].h_samp_factor == 1) &&
               (jpeg->cinfo.comp_info[2].v_samp_factor == 1))
         {
-        format->colorspace = GAVL_YUVJ_444_P;
+        format->pixelformat = GAVL_YUVJ_444_P;
         PADD(format->frame_width,  8);
         PADD(format->frame_height, 8);
         }
       else
         {
-        format->colorspace = GAVL_RGB_24;
+        format->pixelformat = GAVL_RGB_24;
         }
       break;
     default:
-      format->colorspace = GAVL_RGB_24;
+      format->pixelformat = GAVL_RGB_24;
     }
   gavl_video_format_copy(&(jpeg->format), format);
   return 1;
@@ -168,12 +168,12 @@ int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
     jpeg_abort_decompress(&jpeg->cinfo);
     }
   
-  if(jpeg->format.colorspace != GAVL_RGB_24)
+  if(jpeg->format.pixelformat != GAVL_RGB_24)
     jpeg->cinfo.raw_data_out = TRUE;
   
   jpeg_start_decompress(&jpeg->cinfo);
   
-  switch(jpeg->format.colorspace)
+  switch(jpeg->format.pixelformat)
     {
     case GAVL_RGB_24:
       while(jpeg->cinfo.output_scanline < jpeg->cinfo.output_height)
@@ -231,7 +231,7 @@ int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
         }
       break;
     default:
-      fprintf(stderr, "Illegal colorspace\n");
+      fprintf(stderr, "Illegal pixelformat\n");
       return 0;
     }
   jpeg_finish_decompress(&(jpeg->cinfo));

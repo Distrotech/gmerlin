@@ -46,9 +46,9 @@ typedef struct
   } tga_priv_t;
 
 
-static gavl_colorspace_t get_colorspace(int depth, int * bytes_per_pixel, int * is_mono)
+static gavl_pixelformat_t get_pixelformat(int depth, int * bytes_per_pixel, int * is_mono)
   {
-  //  fprintf(stderr, "GET COLORSPACE %d\n", depth);
+  //  fprintf(stderr, "GET PIXELFORMAT %d\n", depth);
   switch(depth)
     {
     case 8: /* Grayscale */
@@ -69,7 +69,7 @@ static gavl_colorspace_t get_colorspace(int depth, int * bytes_per_pixel, int * 
       return GAVL_RGBA_32;
       break;
     default:
-      return GAVL_COLORSPACE_NONE;
+      return GAVL_PIXELFORMAT_NONE;
     }
   }
 
@@ -156,17 +156,17 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
       {
       case TGA_IMAGE_TYPE_COLORMAP:
       case TGA_IMAGE_TYPE_COLORMAP_RLE:
-        s->data.video.format.colorspace = get_colorspace(priv->tga.color_map_depth,
+        s->data.video.format.pixelformat = get_pixelformat(priv->tga.color_map_depth,
                                                          &(priv->bytes_per_pixel),
                                                          &(priv->is_mono));
         break;
       default:
-        s->data.video.format.colorspace = get_colorspace(priv->tga.pixel_depth,
+        s->data.video.format.pixelformat = get_pixelformat(priv->tga.pixel_depth,
                                                          &(priv->bytes_per_pixel),
                                                          &(priv->is_mono));
         break;
       }
-    if(s->data.video.format.colorspace == GAVL_COLORSPACE_NONE)
+    if(s->data.video.format.pixelformat == GAVL_PIXELFORMAT_NONE)
       {
       fprintf(stderr, "Cannot detect image type: %d\n", priv->tga.image_type);
       return 0;
@@ -195,7 +195,7 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
       default:
         break;
       }
-    if(s->data.video.format.colorspace == GAVL_RGBA_32)
+    if(s->data.video.format.pixelformat == GAVL_RGBA_32)
       tga_swap_red_blue(&(priv->tga));
 
     if(priv->is_mono)
@@ -277,7 +277,7 @@ static int init_tga(bgav_stream_t * s)
   priv->do_init = 0;
   
   s->description = bgav_sprintf("TGA Video (%s)",
-                                ((s->data.video.format.colorspace ==
+                                ((s->data.video.format.pixelformat ==
                                   GAVL_RGBA_32) ? "RGBA" : "RGB")); 
   return 1;
   }

@@ -400,7 +400,7 @@ static int init_xadll(bgav_stream_t * s)
   priv->decinfo.special = 0;
   priv->decinfo.extra = codec_hdr.extra;
   s->data.video.decoder->priv = priv;
-  s->data.video.format.colorspace = GAVL_YUV_420_P;
+  s->data.video.format.pixelformat = GAVL_YUV_420_P;
 
   free(codec_hdr.anim_hdr);
 

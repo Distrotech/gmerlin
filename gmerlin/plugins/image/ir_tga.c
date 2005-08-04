@@ -56,7 +56,7 @@ static void destroy_tga(void* priv)
   free(tga);
   }
 
-static gavl_colorspace_t get_colorspace(int depth, int * bytes_per_pixel)
+static gavl_pixelformat_t get_pixelformat(int depth, int * bytes_per_pixel)
   {
   switch(depth)
     {
@@ -73,7 +73,7 @@ static gavl_colorspace_t get_colorspace(int depth, int * bytes_per_pixel)
       return GAVL_RGBA_32;
       break;
     default:
-      return GAVL_COLORSPACE_NONE;
+      return GAVL_PIXELFORMAT_NONE;
     }
   }
 
@@ -101,16 +101,16 @@ static int read_header_tga(void * priv, const char * filename,
     {
     case TGA_IMAGE_TYPE_COLORMAP:
     case TGA_IMAGE_TYPE_COLORMAP_RLE:
-      format->colorspace = get_colorspace(tga->tga.color_map_depth,
+      format->pixelformat = get_pixelformat(tga->tga.color_map_depth,
                                           &(tga->bytes_per_pixel));
       break;
     default:
-      format->colorspace = get_colorspace(tga->tga.pixel_depth,
+      format->pixelformat = get_pixelformat(tga->tga.pixel_depth,
                                           &(tga->bytes_per_pixel));
       break;
     }
 
-  if(format->colorspace == GAVL_COLORSPACE_NONE)
+  if(format->pixelformat == GAVL_PIXELFORMAT_NONE)
     goto fail;
 
   gavl_video_format_copy(&(tga->format), format);
@@ -139,7 +139,7 @@ static int read_image_tga(void * priv, gavl_video_frame_t * frame)
       break;
     }
 
-  if(tga->format.colorspace == GAVL_RGBA_32)
+  if(tga->format.pixelformat == GAVL_RGBA_32)
     tga_swap_red_blue(&(tga->tga));
   
   tga->frame->strides[0] = tga->bytes_per_pixel * tga->format.image_width;

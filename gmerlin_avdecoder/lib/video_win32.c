@@ -340,12 +340,12 @@ static int init_std(bgav_stream_t * s)
     switch(bih_out.biBitCount)
       {
       case 24:
-        s->data.video.format.colorspace = GAVL_RGB_24;
+        s->data.video.format.pixelformat = GAVL_RGB_24;
         fprintf(stderr, "Using RGB24 output\n");
         priv->bytes_per_pixel = 3;
         break;
       case 16:
-        s->data.video.format.colorspace = GAVL_RGB_15;
+        s->data.video.format.pixelformat = GAVL_RGB_15;
         fprintf(stderr, "Using RGB16 output\n");
         priv->bytes_per_pixel = 2;
         break;
@@ -363,7 +363,7 @@ static int init_std(bgav_stream_t * s)
     fprintf(stderr, "Decoder supports YUY2 output\n");
     //    unpack_bih(&bih_out, &priv->bih_out);
     //    bgav_BITMAPINFOHEADER_dump(&bih_out);
-    s->data.video.format.colorspace = GAVL_YUY2;
+    s->data.video.format.pixelformat = GAVL_YUY2;
     }
 
   /* Initialize decompression */
@@ -433,9 +433,9 @@ static int decode_std(bgav_stream_t * s, gavl_video_frame_t * frame)
     }
   if(frame)
     {
-    if(gavl_colorspace_is_rgb(s->data.video.format.colorspace))
+    if(gavl_pixelformat_is_rgb(s->data.video.format.pixelformat))
       {
-      /* RGB colorspaces are upside down normally */
+      /* RGB pixelformats are upside down normally */
       gavl_video_frame_copy_flip_y(&s->data.video.format, frame, priv->frame);
       }
     else
@@ -514,12 +514,12 @@ static int init_ds(bgav_stream_t * s)
   if(!DS_VideoDecoder_SetDestFmt(priv->ds_dec, 16, BGAV_MK_FOURCC('2', 'Y', 'U', 'Y')))
     {
     //    fprintf(stderr, "YUY2 output\n");
-    s->data.video.format.colorspace = GAVL_YUY2;
+    s->data.video.format.pixelformat = GAVL_YUY2;
     }
   else /* RGB */
     {
     DS_VideoDecoder_SetDestFmt(priv->ds_dec, 24, 0);
-    s->data.video.format.colorspace = GAVL_RGB_24;
+    s->data.video.format.pixelformat = GAVL_RGB_24;
     }
   DS_VideoDecoder_StartInternal(priv->ds_dec);
   s->data.video.decoder->priv = priv;
@@ -631,12 +631,12 @@ static int init_dmo(bgav_stream_t * s)
   if(!DMO_VideoDecoder_SetDestFmt(priv->dmo_dec, 16, BGAV_MK_FOURCC('2', 'Y', 'U', 'Y')))
     {
     //    fprintf(stderr, "YUY2 output\n");
-    s->data.video.format.colorspace = GAVL_YUY2;
+    s->data.video.format.pixelformat = GAVL_YUY2;
     }
   else /* RGB */
     {
     DMO_VideoDecoder_SetDestFmt(priv->dmo_dec, 24, 0);
-    s->data.video.format.colorspace = GAVL_RGB_24;
+    s->data.video.format.pixelformat = GAVL_RGB_24;
     }
   DMO_VideoDecoder_StartInternal(priv->dmo_dec);
   s->data.video.decoder->priv = priv;

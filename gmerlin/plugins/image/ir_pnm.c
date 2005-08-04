@@ -86,7 +86,7 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
     
   if(!p->pnm_file)
     {
-    fprintf(stderr,"Can't open File %s\n", filename);
+    fprintf(stderr,"Can't open file %s\n", filename);
     return 0;
     }
   
@@ -95,7 +95,7 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
   if((size = ftell(p->pnm_file))<0) return 1;
   fseek(p->pnm_file, 0, SEEK_SET);
 
-  fprintf(stderr,"filesize = %ld \n", size);
+  //  fprintf(stderr,"filesize = %ld \n", size);
 
   p->buffer = calloc(size, sizeof(char));
   
@@ -216,7 +216,7 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
 
   if(p->is_pnm == 7)
     {
-    fprintf(stderr,"Sorry not suported format \n");
+    fprintf(stderr,"Sorry PAM format not suported\n");
     if(*p->buffer)
       free(p->buffer);
     return 0;
@@ -236,12 +236,12 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
 
   if(p->maxval > 255)
     {
-    format->colorspace = GAVL_RGB_48;
+    format->pixelformat = GAVL_RGB_48;
     p->is_pnm |= Bits_16;
     }
   else
     {
-    format->colorspace = GAVL_RGB_24;
+    format->pixelformat = GAVL_RGB_24;
     }
 
   format->frame_width  = p->width;
@@ -622,7 +622,7 @@ bg_image_reader_plugin_t the_plugin =
       name:          "ir_pnm",
       long_name:     "PNM loader ",
       mimetypes:     (char*)0,
-      extensions:    "pnm ppm pbm pgm pam",
+      extensions:    "pnm ppm pbm pgm",
       type:          BG_PLUGIN_IMAGE_READER,
       flags:         BG_PLUGIN_FILE,
       priority:      BG_PLUGIN_PRIORITY_MAX,

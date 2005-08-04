@@ -90,7 +90,7 @@ static int init_yuv2(bgav_stream_t * s)
 
   priv->frame->strides[0] = PADD(s->data.video.format.image_width * 2, 4);
   priv->decode_func = decode_yuv2;
-  s->data.video.format.colorspace = GAVL_YUVJ_422_P;
+  s->data.video.format.pixelformat = GAVL_YUVJ_422_P;
   return 1;
   }
 
@@ -170,7 +170,7 @@ static int init_v408(bgav_stream_t * s)
 
   priv->frame->strides[0] = s->data.video.format.image_width * 4;
   priv->decode_func = decode_v408;
-  s->data.video.format.colorspace = GAVL_YUVA_32;
+  s->data.video.format.pixelformat = GAVL_YUVA_32;
   return 1;
   }
 
@@ -202,12 +202,12 @@ static int init_2vuy(bgav_stream_t * s)
 
   priv->frame->strides[0] = PADD(s->data.video.format.image_width * 2, 4);
   priv->decode_func = decode_2vuy;
-  s->data.video.format.colorspace = GAVL_UYVY;
+  s->data.video.format.pixelformat = GAVL_UYVY;
   return 1;
   }
 
 /*
- *  VYUY is just YUY2 colorspace!!!
+ *  VYUY is just YUY2 pixelformat!!!
  *  Wow, that was hard to reverse engineer ;-)
  */
 
@@ -232,7 +232,7 @@ static int init_VYUY(bgav_stream_t * s)
 
   priv->frame->strides[0] = PADD(s->data.video.format.image_width * 2, 4);
   priv->decode_func = decode_VYUY;
-  s->data.video.format.colorspace = GAVL_YUY2;
+  s->data.video.format.pixelformat = GAVL_YUY2;
   return 1;
   }
 
@@ -263,7 +263,7 @@ static int init_yv12(bgav_stream_t * s)
   priv->frame->strides[2] = priv->frame->strides[1];
   
   priv->decode_func = decode_yv12;
-  s->data.video.format.colorspace = GAVL_YUV_420_P;
+  s->data.video.format.pixelformat = GAVL_YUV_420_P;
   return 1;
   }
 
@@ -294,7 +294,7 @@ static int init_YV12(bgav_stream_t * s)
   priv->frame->strides[2] = priv->frame->strides[1];
   
   priv->decode_func = decode_YV12;
-  s->data.video.format.colorspace = GAVL_YUV_420_P;
+  s->data.video.format.pixelformat = GAVL_YUV_420_P;
   return 1;
   }
 
@@ -330,7 +330,7 @@ static int init_YVU9(bgav_stream_t * s)
   priv->frame->strides[2] = priv->frame->strides[1];
   
   priv->decode_func = decode_YVU9;
-  s->data.video.format.colorspace = GAVL_YUV_410_P;
+  s->data.video.format.pixelformat = GAVL_YUV_410_P;
   return 1;
   }
 
@@ -380,7 +380,7 @@ static int init_v308(bgav_stream_t * s)
 
   priv->frame->strides[0] = s->data.video.format.image_width * 3;
   priv->decode_func = decode_v308;
-  s->data.video.format.colorspace = GAVL_YUV_444_P;
+  s->data.video.format.pixelformat = GAVL_YUV_444_P;
   return 1;
   }
 
@@ -432,7 +432,7 @@ static int init_v410(bgav_stream_t * s)
 
   priv->frame->strides[0] = s->data.video.format.image_width * 4;
   priv->decode_func = decode_v410;
-  s->data.video.format.colorspace = GAVL_YUV_444_P_16;
+  s->data.video.format.pixelformat = GAVL_YUV_444_P_16;
   return 1;
   }
 
@@ -490,7 +490,7 @@ static int init_yuv4(bgav_stream_t * s)
 
   priv->frame->strides[0] = PADD(s->data.video.format.image_width, 2) * 3;
   priv->decode_func = decode_yuv4;
-  s->data.video.format.colorspace = GAVL_YUV_420_P;
+  s->data.video.format.pixelformat = GAVL_YUV_420_P;
   return 1;
   }
 

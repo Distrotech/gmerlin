@@ -86,18 +86,18 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
                format->frame_width, format->frame_height,
                format->image_width, format->image_height,
                format->pixel_width, format->pixel_height,
-               gavl_colorspace_to_string(format->colorspace));
+               gavl_pixelformat_to_string(format->pixelformat));
   
   if(format->framerate_mode == GAVL_FRAMERATE_STILL)
     {
-    ret = bg_strcat(ret, "Still image");
+    ret = bg_strcat(ret, "Still image\n");
     }
   else
     {
     if(!use_tabs)
-      s = "Framerate:    %f fps [%d / %d]\n             %s";
+      s = "Framerate:    %f fps [%d / %d]\n             %s\n";
     else
-      s = "Framerate:\t%f fps [%d / %d]\n\t%s";
+      s = "Framerate:\t%f fps [%d / %d]\n\t%s\n";
     
     str =
       bg_sprintf(s,
@@ -106,6 +106,25 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
                  ((format->framerate_mode == GAVL_FRAMERATE_CONSTANT) ? " (Constant)" : 
                   " (Not constant)"));
 
+    ret = bg_strcat(ret, str);
+    free(str);
+    }
+  if(!use_tabs)
+    s = "Interlace mode:   %s";
+  else
+    s = "Interlace mode:\t%s";
+  
+  str = bg_sprintf(s, gavl_interlace_mode_to_string(format->interlace_mode));
+  ret = bg_strcat(ret, str);
+  free(str);
+
+  if(format->pixelformat == GAVL_YUV_420_P)
+    {
+    if(!use_tabs)
+      s = "\nChroma placement: %s";
+    else
+      s = "\nChroma placement:\t%s";
+    str = bg_sprintf(s, gavl_chroma_placement_to_string(format->chroma_placement));
     ret = bg_strcat(ret, str);
     free(str);
     }

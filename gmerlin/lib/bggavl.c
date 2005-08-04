@@ -321,6 +321,12 @@ static void set_frame_rate_mode(bg_gavl_video_options_t * opt,
     return 1; \
     }
 
+#define SP_FLOAT(s) if(!strcmp(name, # s))      \
+    { \
+    opt->s = val->val_f;                     \
+    return 1; \
+    }
+
 int bg_gavl_video_set_parameter(void * data, char * name,
                                 bg_parameter_value_t * val)
   {
@@ -341,10 +347,10 @@ int bg_gavl_video_set_parameter(void * data, char * name,
   //  SP_INT(fixed_framerate);
   SP_INT(frame_duration);
   SP_INT(timescale);
-  SP_INT(crop_left);
-  SP_INT(crop_right);
-  SP_INT(crop_top);
-  SP_INT(crop_bottom);
+  SP_FLOAT(crop_left);
+  SP_FLOAT(crop_right);
+  SP_FLOAT(crop_top);
+  SP_FLOAT(crop_bottom);
   SP_INT(user_image_width);
   SP_INT(user_image_height);
   SP_INT(user_pixel_width);
@@ -371,12 +377,28 @@ int bg_gavl_video_set_parameter(void * data, char * name,
     }
   else if(!strcmp(name, "scale_mode"))
     {
-    if(!strcmp(val->val_str, "nearest"))
+    if(!strcmp(val->val_str, "auto"))
+      gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_AUTO);
+    else if(!strcmp(val->val_str, "nearest"))
       gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_NEAREST);
-
     else if(!strcmp(val->val_str, "bilinear"))
       gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_BILINEAR);
+    else if(!strcmp(val->val_str, "quadratic"))
+      gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_QUADRATIC);
+    else if(!strcmp(val->val_str, "cubic_bspline"))
+      gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_CUBIC_BSPLINE);
+    else if(!strcmp(val->val_str, "cubic_mitchell"))
+      gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_CUBIC_MITCHELL);
+    else if(!strcmp(val->val_str, "cubic_catmull"))
+      gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_CUBIC_CATMULL);
+    else if(!strcmp(val->val_str, "sinc_lanczos"))
+      gavl_video_options_set_scale_mode(opt->opt, GAVL_SCALE_SINC_LANCZOS);
+    
     return 1;
+    }
+  else if(!strcmp(name, "scale_order"))
+    {
+    gavl_video_options_set_scale_order(opt->opt, val->val_i);
     }
   else if(!strcmp(name, "frame_size"))
     {
@@ -471,16 +493,16 @@ void bg_gavl_video_options_set_rectangles(bg_gavl_video_options_t * opt,
                                           const gavl_video_format_t * in_format,
                                           const gavl_video_format_t * out_format)
   {
-  gavl_rectangle_t in_rect;
-  gavl_rectangle_t out_rect;
+  gavl_rectangle_f_t in_rect;
+  gavl_rectangle_i_t out_rect;
   
   /* Crop input */
-  gavl_rectangle_set_all(&in_rect, in_format);
+  gavl_rectangle_f_set_all(&in_rect, in_format);
 
-  gavl_rectangle_crop_left(&in_rect,   opt->crop_left);
-  gavl_rectangle_crop_right(&in_rect,  opt->crop_right);
-  gavl_rectangle_crop_top(&in_rect,    opt->crop_top);
-  gavl_rectangle_crop_bottom(&in_rect, opt->crop_bottom);
+  gavl_rectangle_f_crop_left(&in_rect,   opt->crop_left);
+  gavl_rectangle_f_crop_right(&in_rect,  opt->crop_right);
+  gavl_rectangle_f_crop_top(&in_rect,    opt->crop_top);
+  gavl_rectangle_f_crop_bottom(&in_rect, opt->crop_bottom);
 
   if(opt->maintain_aspect)
     {
@@ -495,7 +517,7 @@ void bg_gavl_video_options_set_rectangles(bg_gavl_video_options_t * opt,
     }
   else
     {
-    gavl_rectangle_set_all(&out_rect, out_format);
+    gavl_rectangle_i_set_all(&out_rect, out_format);
     }
 
   /* Set rectangles */

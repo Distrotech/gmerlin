@@ -45,7 +45,7 @@ static int init_rtjpeg(bgav_stream_t * s)
 
   s->data.video.format.frame_width = PADD(s->data.video.format.image_width);
   s->data.video.format.frame_height = PADD(s->data.video.format.image_height);
-  s->data.video.format.colorspace = GAVL_YUV_420_P;
+  s->data.video.format.pixelformat = GAVL_YUV_420_P;
   
   priv->frame = gavl_video_frame_create(&(s->data.video.format));
 

@@ -242,9 +242,9 @@ static int open_lqt(void * data, const char * arg)
         colormodel = lqt_get_best_colormodel(e->file, i, bg_lqt_supported_colormodels);
 
         lqt_set_cmodel(e->file, i, colormodel);
-        video_format->colorspace = bg_lqt_get_gavl_colorspace(colormodel);
+        video_format->pixelformat = bg_lqt_get_gavl_pixelformat(colormodel);
 
-        if(!gavl_colorspace_is_planar(video_format->colorspace))
+        if(!gavl_pixelformat_is_planar(video_format->pixelformat))
           {
           e->video_streams[e->track_info.num_video_streams].rows =
             calloc(video_format->frame_height,

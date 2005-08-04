@@ -105,9 +105,9 @@ static void dump_video_picture(struct video_picture * p)
 static struct
   {
   int               v4l;
-  gavl_colorspace_t gavl;
+  gavl_pixelformat_t gavl;
   }
-colorspaces[] =
+pixelformats[] =
   {
     // VIDEO_PALETTE_GREY /* Linear greyscale */
     // VIDEO_PALETTE_HI240     2       /* High 240 cube (BT848) */
@@ -127,26 +127,26 @@ colorspaces[] =
     // VIDEO_PALETTE_YUV410P   16      /* YUV 4:1:0 Planar */
   };
 
-static int num_colorspaces = sizeof(colorspaces)/sizeof(colorspaces[0]);
+static int num_pixelformats = sizeof(pixelformats)/sizeof(pixelformats[0]);
 
-static gavl_colorspace_t get_gavl_colorspace(int csp)
+static gavl_pixelformat_t get_gavl_pixelformat(int csp)
   {
   int i;
-  for(i = 0; i < num_colorspaces; i++)
+  for(i = 0; i < num_pixelformats; i++)
     {
-    if(colorspaces[i].v4l == csp)
-      return colorspaces[i].gavl;
+    if(pixelformats[i].v4l == csp)
+      return pixelformats[i].gavl;
     }
-  return GAVL_COLORSPACE_NONE;
+  return GAVL_PIXELFORMAT_NONE;
   }
 
-static int get_v4l_colorspace(gavl_colorspace_t csp)
+static int get_v4l_pixelformat(gavl_pixelformat_t csp)
   {
   int i;
-  for(i = 0; i < num_colorspaces; i++)
+  for(i = 0; i < num_pixelformats; i++)
     {
-    if(colorspaces[i].gavl == csp)
-      return colorspaces[i].v4l;
+    if(pixelformats[i].gavl == csp)
+      return pixelformats[i].v4l;
     }
   return -1;
   }
@@ -222,11 +222,11 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
                                     strerror(errno));
     goto fail;
     }
-  format->colorspace = get_gavl_colorspace(v4l->pic.palette);
-  /* If we have a nonsupported colorspace we try YUV420 */
+  format->pixelformat = get_gavl_pixelformat(v4l->pic.palette);
+  /* If we have a nonsupported pixelformat we try YUV420 */
 
-  if(format->colorspace == GAVL_COLORSPACE_NONE)
-    v4l->pic.palette = get_v4l_colorspace(GAVL_YUV_420_P);
+  if(format->pixelformat == GAVL_PIXELFORMAT_NONE)
+    v4l->pic.palette = get_v4l_pixelformat(GAVL_YUV_420_P);
   
   /* Transfer values */
 
@@ -247,7 +247,7 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
 
     goto fail;
     }
-  format->colorspace = get_gavl_colorspace(v4l->pic.palette);
+  format->pixelformat = get_gavl_pixelformat(v4l->pic.palette);
   
   /* Set window */
 
@@ -287,7 +287,7 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
 
   /* Setup frame */
 
-  gavl_colorspace_chroma_sub(format->colorspace, &sub_h, &sub_v);
+  gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
   
   v4l->frame->strides[0] = format->image_width;
   v4l->frame->strides[1] = format->image_width / sub_h;

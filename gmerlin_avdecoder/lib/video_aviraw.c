@@ -151,7 +151,7 @@ static int init_aviraw(bgav_stream_t * s)
 
   s->data.video.decoder->priv = priv;
 
-  s->data.video.format.colorspace = GAVL_RGB_24;
+  s->data.video.format.pixelformat = GAVL_RGB_24;
   
   switch(s->data.video.depth)
     {
@@ -173,16 +173,16 @@ static int init_aviraw(bgav_stream_t * s)
       priv->scanline_func = scanline_8;
       break;
     case 16:
-      s->data.video.format.colorspace = GAVL_RGB_15;
+      s->data.video.format.pixelformat = GAVL_RGB_15;
       priv->scanline_func = scanline_16;
       break;
     case 24:
       priv->scanline_func = scanline_24;
-      s->data.video.format.colorspace = GAVL_BGR_24;
+      s->data.video.format.pixelformat = GAVL_BGR_24;
       break;
     case 32:
       priv->scanline_func = scanline_32;
-      s->data.video.format.colorspace = GAVL_BGR_32;
+      s->data.video.format.pixelformat = GAVL_BGR_32;
       break;
     default:
       fprintf(stderr, "Unsupported depth: %d\n", s->data.video.depth);

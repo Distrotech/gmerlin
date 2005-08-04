@@ -103,7 +103,7 @@ static int write_header_bmp(void * priv, const char * filename,
   bmp->height = format->image_height;
   bmp->planes = 1;                      /* set planes = 0 */
   bmp->bits = 24;                       /* set colorspace */
-  format->colorspace = GAVL_BGR_24;     /* set colorspace */
+  format->pixelformat = GAVL_BGR_24;     /* set pixelformat */
   bmp->compression = 0;                 /* 0 = BI_RGB / 1 = BI_RLE4 / 2 = BI_RLE8 / 3 = BI_BITFIELDS */
   bmp->imagesize = (bmp->width * bmp->height * bmp->bits)/8;
   bmp->xresolution = format->pixel_width;

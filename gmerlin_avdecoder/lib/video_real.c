@@ -265,7 +265,7 @@ static int init_real(bgav_stream_t * s)
 
   priv->image_buffer =
     malloc((s->data.video.format.frame_width * s->data.video.format.frame_width * 3)/2);
-  s->data.video.format.colorspace = GAVL_YUV_420_P;
+  s->data.video.format.pixelformat = GAVL_YUV_420_P;
 
   priv->gavl_frame = gavl_video_frame_create(NULL);
 

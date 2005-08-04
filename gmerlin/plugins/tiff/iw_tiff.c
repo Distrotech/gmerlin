@@ -60,14 +60,14 @@ static int write_header_tiff(void * priv, const char * filename,
   p->Width =  format->image_width;
   p->Height =  format->image_height;
 
-  if(gavl_colorspace_has_alpha(format->colorspace))
+  if(gavl_pixelformat_has_alpha(format->pixelformat))
     {
-    format->colorspace = GAVL_RGBA_32;
+    format->pixelformat = GAVL_RGBA_32;
     p->SamplesPerPixel = 4;
     }
   else
     {
-    format->colorspace = GAVL_RGB_24;
+    format->pixelformat = GAVL_RGB_24;
     p->SamplesPerPixel = 3;
     }
   p->output = TIFFOpen(filename,"w");

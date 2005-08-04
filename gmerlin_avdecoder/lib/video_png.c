@@ -59,12 +59,12 @@ static int init_png(bgav_stream_t * s)
   /* We support RGBA for streams with a depth of 32 */
 
   if(s->data.video.depth == 32)
-    s->data.video.format.colorspace = GAVL_RGBA_32;
+    s->data.video.format.pixelformat = GAVL_RGBA_32;
   else
-    s->data.video.format.colorspace = GAVL_RGB_24;
+    s->data.video.format.pixelformat = GAVL_RGB_24;
   
   s->description = bgav_sprintf("PNG Video (%s)",
-                                ((s->data.video.format.colorspace ==
+                                ((s->data.video.format.pixelformat ==
                                   GAVL_RGBA_32) ? "RGBA" : "RGB")); 
   
   s->data.video.decoder->priv = priv;
@@ -140,7 +140,7 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
       }
     
     if((png_color_type & PNG_COLOR_MASK_ALPHA) &&
-       (s->data.video.format.colorspace != GAVL_RGBA_32))
+       (s->data.video.format.pixelformat != GAVL_RGBA_32))
       png_set_strip_alpha(png_ptr);
 
     /* Read the image */

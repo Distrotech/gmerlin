@@ -171,16 +171,16 @@ static int read_header_png(void * priv, const char * filename,
   if(bits == 8)
     {
     if(has_alpha)
-      format->colorspace = GAVL_RGBA_32;
+      format->pixelformat = GAVL_RGBA_32;
     else
-      format->colorspace = GAVL_RGB_24;
+      format->pixelformat = GAVL_RGB_24;
     }
   else if(bits == 16)
     {
     if(has_alpha)
-      format->colorspace = GAVL_RGBA_64;
+      format->pixelformat = GAVL_RGBA_64;
     else
-      format->colorspace = GAVL_RGB_48;
+      format->pixelformat = GAVL_RGB_48;
     }
 
   

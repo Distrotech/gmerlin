@@ -30,9 +30,9 @@ int bg_lqt_set_parameter(const char * name, bg_parameter_value_t * val,
 
 extern int * bg_lqt_supported_colormodels;
 
-gavl_colorspace_t bg_lqt_get_gavl_colorspace(int quicktime_colorspace);
+gavl_pixelformat_t bg_lqt_get_gavl_pixelformat(int quicktime_pixelformat);
 
-int bg_lqt_get_lqt_colorspace(gavl_colorspace_t gavl_colorspace);
+int bg_lqt_get_lqt_pixelformat(gavl_pixelformat_t gavl_pixelformat);
                      
 void bg_lqt_set_audio_parameter(quicktime_t * file,
                                 int stream,

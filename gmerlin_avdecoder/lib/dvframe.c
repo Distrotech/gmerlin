@@ -159,8 +159,9 @@ int bgav_dv_dec_get_audio_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
     
   if(!dv_decode_full_audio(d->dv,
                            d->buffer, p->audio_frame->channels.s_16))
-    p->audio_frame->valid_samples;
-
+    //    p->audio_frame->valid_samples = 0;
+    ;
+    
   //  fprintf(stderr, "Valid samples: %d\n", p->audio_frame->valid_samples);
   return 1;
   }

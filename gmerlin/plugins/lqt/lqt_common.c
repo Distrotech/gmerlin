@@ -235,9 +235,9 @@ int * bg_lqt_supported_colormodels = _colormodels;
 static struct
   {
   int lqt;
-  gavl_colorspace_t gavl;
+  gavl_pixelformat_t gavl;
   }
-colorspace_table[] =
+pixelformat_table[] =
   {
     { BC_RGB565,       GAVL_RGB_16 },
     { BC_BGR565,       GAVL_BGR_16 },
@@ -260,29 +260,29 @@ colorspace_table[] =
     { BC_YUV444P16,    GAVL_YUV_444_P_16 },
   };
 
-static int colorspace_table_size =
-  sizeof(colorspace_table) / sizeof(colorspace_table[0]);
+static int pixelformat_table_size =
+  sizeof(pixelformat_table) / sizeof(pixelformat_table[0]);
 
-gavl_colorspace_t bg_lqt_get_gavl_colorspace(int quicktime_colorspace)
+gavl_pixelformat_t bg_lqt_get_gavl_pixelformat(int quicktime_pixelformat)
   {
   int i;
 
-  for(i = 0; i < colorspace_table_size; i++)
+  for(i = 0; i < pixelformat_table_size; i++)
     {
-    if(colorspace_table[i].lqt == quicktime_colorspace)
-      return colorspace_table[i].gavl;
+    if(pixelformat_table[i].lqt == quicktime_pixelformat)
+      return pixelformat_table[i].gavl;
     }
-  return GAVL_COLORSPACE_NONE;
+  return GAVL_PIXELFORMAT_NONE;
   }
 
-int bg_lqt_get_lqt_colorspace(gavl_colorspace_t gavl_colorspace)
+int bg_lqt_get_lqt_pixelformat(gavl_pixelformat_t gavl_pixelformat)
   {
   int i;
 
-  for(i = 0; i < colorspace_table_size; i++)
+  for(i = 0; i < pixelformat_table_size; i++)
     {
-    if(colorspace_table[i].gavl == gavl_colorspace)
-      return colorspace_table[i].lqt;
+    if(pixelformat_table[i].gavl == gavl_pixelformat)
+      return pixelformat_table[i].lqt;
     }
   return LQT_COLORMODEL_NONE;
   }

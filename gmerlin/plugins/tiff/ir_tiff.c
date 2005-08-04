@@ -172,11 +172,11 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
 
   if(p->SampleSperPixel ==4)
     {
-    format->colorspace = GAVL_RGBA_32;
+    format->pixelformat = GAVL_RGBA_32;
     }
   else
     {
-    format->colorspace = GAVL_RGB_24;
+    format->pixelformat = GAVL_RGB_24;
     }
   return 1;
   }

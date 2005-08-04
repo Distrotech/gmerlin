@@ -237,7 +237,7 @@ static int init_qtraw(bgav_stream_t * s)
                 s->data.video.palette_size);
         goto fail;
         }
-      s->data.video.format.colorspace = GAVL_RGB_24;
+      s->data.video.format.pixelformat = GAVL_RGB_24;
       s->description = bgav_sprintf("Quicktime Uncompressed 1 bpp palette");
       break;
     case 2:
@@ -249,7 +249,7 @@ static int init_qtraw(bgav_stream_t * s)
         fprintf(stderr, "Palette missing or too small\n");
         goto fail;
         }
-      s->data.video.format.colorspace = GAVL_RGB_24;
+      s->data.video.format.pixelformat = GAVL_RGB_24;
       s->description = bgav_sprintf("Quicktime Uncompressed 2 bpp palette");
       break;
     case 4:
@@ -261,7 +261,7 @@ static int init_qtraw(bgav_stream_t * s)
         fprintf(stderr, "Palette missing or too small\n");
         goto fail;
         }
-      s->data.video.format.colorspace = GAVL_RGB_24;
+      s->data.video.format.pixelformat = GAVL_RGB_24;
       s->description = bgav_sprintf("Quicktime Uncompressed 4 bpp palette");
       break;
     case 8:
@@ -273,49 +273,49 @@ static int init_qtraw(bgav_stream_t * s)
         fprintf(stderr, "Palette missing or too small\n");
         goto fail;
         }
-      s->data.video.format.colorspace = GAVL_RGB_24;
+      s->data.video.format.pixelformat = GAVL_RGB_24;
       s->description = bgav_sprintf("Quicktime Uncompressed 8 bpp palette");
       break;
     case 16:
       /* RGB565 */
       priv->bytes_per_line = width * 2;
       priv->scanline_func = scanline_raw_16;
-      s->data.video.format.colorspace = GAVL_RGB_15;
+      s->data.video.format.pixelformat = GAVL_RGB_15;
       s->description = bgav_sprintf("Quicktime Uncompressed 16 bpp RGB");
       break;
     case 24:
       /* 24 RGB */
       priv->bytes_per_line = width * 3;
       priv->scanline_func = scanline_raw_24;
-      s->data.video.format.colorspace = GAVL_RGB_24;
+      s->data.video.format.pixelformat = GAVL_RGB_24;
       s->description = bgav_sprintf("Quicktime Uncompressed 24 bpp RGB");
       break;
     case 32:
       /* 32 ARGB */
       priv->bytes_per_line = width * 4;
       priv->scanline_func = scanline_raw_32;
-      s->data.video.format.colorspace = GAVL_RGBA_32;
+      s->data.video.format.pixelformat = GAVL_RGBA_32;
       s->description = bgav_sprintf("Quicktime Uncompressed 24 bpp RGBA");
       break;
     case 34:
       /* 2 bit gray */
       priv->bytes_per_line = width / 4;
       priv->scanline_func = scanline_raw_2_gray;
-      s->data.video.format.colorspace = GAVL_RGB_24;
+      s->data.video.format.pixelformat = GAVL_RGB_24;
       s->description = bgav_sprintf("Quicktime Uncompressed 2 bpp gray");
       break;
     case 36:
       /* 4 bit gray */
       priv->bytes_per_line = width / 2;
       priv->scanline_func = scanline_raw_4_gray;
-      s->data.video.format.colorspace = GAVL_RGB_24;
+      s->data.video.format.pixelformat = GAVL_RGB_24;
       s->description = bgav_sprintf("Quicktime Uncompressed 4 bpp gray");
       break;
     case 40:
       /* 8 bit gray */
       priv->bytes_per_line = width;
       priv->scanline_func = scanline_raw_8_gray;
-      s->data.video.format.colorspace = GAVL_RGB_24;
+      s->data.video.format.pixelformat = GAVL_RGB_24;
       s->description = bgav_sprintf("Quicktime Uncompressed 8 bpp gray");
       break;
     }

@@ -87,12 +87,12 @@ static int write_header_png(void * priv, const char * filename,
     {
     case BITS_AUTO:
       /* Decide according to the input format */
-      if(gavl_colorspace_is_planar(format->colorspace))
+      if(gavl_pixelformat_is_planar(format->pixelformat))
         {
-        if(gavl_colorspace_bytes_per_component(format->colorspace) > 1)
+        if(gavl_pixelformat_bytes_per_component(format->pixelformat) > 1)
           bits = 16;
         }
-      else if(gavl_colorspace_bytes_per_pixel(format->colorspace) > 4)
+      else if(gavl_pixelformat_bytes_per_pixel(format->pixelformat) > 4)
         bits = 16;
       break;
     case BITS_8:
@@ -109,21 +109,21 @@ static int write_header_png(void * priv, const char * filename,
     png->transform_flags |= PNG_TRANSFORM_SWAP_ENDIAN;
 #endif
   
-  if(gavl_colorspace_has_alpha(format->colorspace))
+  if(gavl_pixelformat_has_alpha(format->pixelformat))
     {
     color_type = PNG_COLOR_TYPE_RGBA;
     if(bits == 8)
-      format->colorspace = GAVL_RGBA_32;
+      format->pixelformat = GAVL_RGBA_32;
     else
-      format->colorspace = GAVL_RGBA_64;
+      format->pixelformat = GAVL_RGBA_64;
     }
   else
     {
     color_type = PNG_COLOR_TYPE_RGB;
     if(bits == 8)
-      format->colorspace = GAVL_RGB_24;
+      format->pixelformat = GAVL_RGB_24;
     else
-      format->colorspace = GAVL_RGB_48;
+      format->pixelformat = GAVL_RGB_48;
     }
   
   png_set_compression_level(png->png_ptr, png->compression_level);

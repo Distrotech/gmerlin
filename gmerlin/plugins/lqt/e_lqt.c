@@ -470,8 +470,8 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
     quicktime_colormodel =
       lqt_get_best_colormodel(e->file, stream,
                               bg_lqt_supported_colormodels);
-    e->video_streams[stream].format.colorspace =
-      bg_lqt_get_gavl_colorspace(quicktime_colormodel);
+    e->video_streams[stream].format.pixelformat =
+      bg_lqt_get_gavl_pixelformat(quicktime_colormodel);
     lqt_set_cmodel(e->file, stream, quicktime_colormodel);
     
     /* Request constant framerate for AVI files */
@@ -487,7 +487,7 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
                            e->video_streams[stream].format.pixel_height);
       }
     
-    if(!gavl_colorspace_is_planar(e->video_streams[stream].format.colorspace))
+    if(!gavl_pixelformat_is_planar(e->video_streams[stream].format.pixelformat))
       e->video_streams[stream].rows =
         malloc(e->video_streams[stream].format.image_height * 
                sizeof(*(e->video_streams[e->num_audio_streams].rows)));

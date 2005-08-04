@@ -55,7 +55,7 @@ static int write_header_tga(void * priv, const char * filename,
   {
   tga_t * tga = (tga_t*)priv;
 
-  format->colorspace = GAVL_BGR_24;
+  format->pixelformat = GAVL_BGR_24;
 
   gavl_video_format_copy(&(tga->format), format);
   tga->filename = bg_strdup(tga->filename, filename);
