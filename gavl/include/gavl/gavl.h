@@ -165,7 +165,9 @@ typedef enum
 /*! Audio Format
   \ingroup audio_format
 
-  Structure describing an audio format
+  Structure describing an audio format. The samples_per_frame member is used
+  exclusively by \ref gavl_audio_frame_create to determine how many bytes to
+  allocate.
  */
   
 typedef struct gavl_audio_format_s
@@ -353,7 +355,11 @@ typedef union gavl_audio_channels_u
   \ingroup audio_frame
   \brief Container for audio samples.
 
-  This is the main container structure for audio data.  
+  This is the main container structure for audio data. The data are stored in unions,
+  so you can access the matching pointer type without the need for casts. If you have
+  noninterleaved channels, the i'th channel will be in channels[i].f (if you use floating
+  point samples). For noninterleaved formats, use the samples member. valid_samples must
+  be set by the source to the number of actually valid samples in this frame.
  */
   
 typedef struct gavl_audio_frame_s
@@ -1339,13 +1345,27 @@ typedef struct gavl_video_frame_s
   \brief Create video frame
   \param format Format of the data to be stored in this frame or NULL
 
-  Creates an video frame for a given format and allocates buffers for the scanlines. To create a
+  Creates a video frame for a given format and allocates buffers for the scanlines. To create a
   video frame from your custom memory, pass NULL for the format and you'll get an empty frame in
-  which you can set the pointers manually.
+  which you can set the pointers manually. If scanlines are allocated, they are padded to that
+  scanlines start at certain byte boundaries (currently 8).
 */
   
 gavl_video_frame_t * gavl_video_frame_create(const gavl_video_format_t*format);
 
+/*!
+  \ingroup video_frame
+  \brief Create video frame without padding
+  \param format Format of the data to be stored in this frame or NULL
+
+  Same as \ref gavl_video_frame_create but omits padding, so scanlines will always be
+  adjacent in memory.
+  
+*/
+  
+gavl_video_frame_t * gavl_video_frame_create_nopadd(const gavl_video_format_t*format);
+
+  
 
 /*!
   \ingroup video_frame
@@ -1808,9 +1828,8 @@ void gavl_video_convert(gavl_video_converter_t * cnv,
  *  and perform simple deinterlacing. You can use it either through the
  *  \ref gavl_video_converter_t or directly through the functions in this module.
  *
- *  The scaler does the elementary operation to take a rectangular area (with floating point
- *  coordinates) of the source image and scale it into a specified rectangular area (with
- *  integer coordinates aligned according to chroma subsampling) of the
+ *  The scaler does the elementary operation to take a rectangular area
+ *  of the source image and scale it into a specified rectangular area of the
  *  destination image. The source rectangle has floating point coordinates, the destination
  *  rectangle must have integer coordinates, which are aligned to chroma subsampling factors.
  *  When scaling with arbitrary ratios, it makes sense to use a destination format without
@@ -1861,6 +1880,7 @@ gavl_video_scaler_get_options(gavl_video_scaler_t * scaler);
  *  \param dst_format Output format
  *  \returns If something goes wrong (should never happen), -1 is returned.
  *
+ * You should have equal pixelformats in the source and destination.
  * This function can be called multiple times with one instance. 
  */
 

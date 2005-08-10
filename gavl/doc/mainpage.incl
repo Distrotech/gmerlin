@@ -5,7 +5,8 @@
    This is the API documentation for the Gmerlin audio video library,
    a library for handling and conversion of uncompressed audio- and video data.
  
-  Click Modules to get to the main index.
+  Click Modules (on top of the page) to get to the main API index.
+  Here, you find just some general blabla :)
 
   \section why Why gavl?
   \subsection problem The problem
@@ -20,8 +21,9 @@
   have different colorspaces, color orderings and chroma subsampling modes.
 
   So you can learn how to read images in 24 bit RGB and display them with GTK or SDL. Handling
-  16 bit audio samples is also no major problem. But if your program becomes popular, people
-  want to have 24 bit audio, RGB images with 16 bit per color channel (or even floating point),
+  interleaved 16 bit audio samples is also no major problem. But if your program becomes
+  popular, people want to have 24 bit audio, RGB images with 16 bit per color channel
+  (or even floating point),
   and they are not longer satisfied with your bilinear video scaler. If you want to support
   a large number of formats, you'll want to convert each format into each other without any
   intermediate conversion (to save time and preserve accuracy).
@@ -47,7 +49,7 @@
   - Definition of audio/video formats. This is done by having several enums and
     structures, which contain all information necessary for unambiguous definition of an
     Audio/Video format. A gavl enabled application will automatically have support for the
-    same formats as gavl.
+    same range of formats as gavl.
   - Containers for audio- and video-frames. These can carry A/V data in all supported
     formats. Basic routines are available to allocate/free/copy frames and some utilities.
   - Conversion among all formats. There are generic audio and video converters available,
@@ -56,9 +58,10 @@
     at telephone quality as well as for High Definition video production.
 
   A development goal of gavl is to have a complete set of conversions. You'll never get
-  black images or silent audio frames because of missing routines. After this goal is reached,
-  sometimes alternate algorithms are implemented, which focus either on more speed or
-  higher accuracy. These can be selected by choosing a quality other than 3.
+  black images or silent audio frames because of missing conversion routines or speed losses
+  because intermediate conversions are invoked. After this goal is reached, sometimes alternate
+  routines are implemented, which focus either on more speed or higher accuracy. These can
+  be selected by choosing a quality other than 3.
 
   \subsection advantages Advantages
 
@@ -68,7 +71,8 @@
     can concentrate on your application
   - If you nevertheless find ways to improve the quality and/or speed of gavl, then do so.
     Making and sending a patch will still be less work, than writing such a library from scratch.
-  - Without any work, you handle all formats, which are supported by gavl
+  - Without any additional labor, you handle all formats, which are supported by gavl.
+    Impress your audience with 32 bit audio or floating point RGB processing.
   - Gavl fits smoothly to all existing Audio/Video and image APIs. You'll find lots of examples
     in the sourcetrees of gmerlin and gmerlin_avdecoder.
   - APIs (for codecs, hardware access, effects etc.), which are based on gavl, can

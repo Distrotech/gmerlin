@@ -40,7 +40,7 @@ void * memalign (size_t align, size_t size);
 #define ALIGN(a) a=((a+ALIGNMENT_BYTES-1)/ALIGNMENT_BYTES)*ALIGNMENT_BYTES
 
 static void video_frame_alloc(gavl_video_frame_t * ret,
-                              const gavl_video_format_t * format)
+                              const gavl_video_format_t * format, int align)
   {
   switch(format->pixelformat)
     {
@@ -49,14 +49,16 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
     case GAVL_RGB_16:
     case GAVL_BGR_16:
       ret->strides[0] = format->frame_width*2;
-      ALIGN(ret->strides[0]);
+      if(align)
+        ALIGN(ret->strides[0]);
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0] * format->frame_height);
       break;
     case GAVL_RGB_24:
     case GAVL_BGR_24:
       ret->strides[0] = format->frame_width*3;
-      ALIGN(ret->strides[0]);
+      if(align)
+        ALIGN(ret->strides[0]);
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0] * format->frame_height);
       break;
@@ -64,44 +66,51 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
     case GAVL_BGR_32:
     case GAVL_YUVA_32:
       ret->strides[0] = format->frame_width*4;
-      ALIGN(ret->strides[0]);
+      if(align)
+        ALIGN(ret->strides[0]);
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0] * format->frame_height);
       break;
     case GAVL_RGBA_32:
       ret->strides[0] = format->frame_width*4;
-      ALIGN(ret->strides[0]);
+      if(align)
+        ALIGN(ret->strides[0]);
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0] * format->frame_height);
       break;
     case GAVL_RGB_48:
       ret->strides[0] = format->frame_width*6;
-      ALIGN(ret->strides[0]);
+      if(align)
+        ALIGN(ret->strides[0]);
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0] * format->frame_height);
       break;
     case GAVL_RGBA_64:
       ret->strides[0] = format->frame_width*8;
-      ALIGN(ret->strides[0]);
+      if(align)
+        ALIGN(ret->strides[0]);
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0] * format->frame_height);
       break;
     case GAVL_RGB_FLOAT:
       ret->strides[0] = format->frame_width*3*sizeof(float);
-      ALIGN(ret->strides[0]);
+      if(align)
+        ALIGN(ret->strides[0]);
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0] * format->frame_height);
       break;
     case GAVL_RGBA_FLOAT:
       ret->strides[0] = format->frame_width*4*sizeof(float);
-      ALIGN(ret->strides[0]);
+      if(align)
+        ALIGN(ret->strides[0]);
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0] * format->frame_height);
       break;
     case GAVL_YUY2:
     case GAVL_UYVY:
       ret->strides[0] = format->frame_width*2;
-      ALIGN(ret->strides[0]);
+      if(align)
+        ALIGN(ret->strides[0]);
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0] * format->frame_height);
       break;
@@ -110,10 +119,13 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
       ret->strides[0] = format->frame_width;
       ret->strides[1] = format->frame_width/2;
       ret->strides[2] = format->frame_width/2;
-      ALIGN(ret->strides[0]);
-      ALIGN(ret->strides[1]);
-      ALIGN(ret->strides[2]);
-      
+
+      if(align)
+        {
+        ALIGN(ret->strides[0]);
+        ALIGN(ret->strides[1]);
+        ALIGN(ret->strides[2]);
+        }
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0]*format->frame_height+
                              (ret->strides[1]*format->frame_height)/2+
@@ -125,9 +137,13 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
       ret->strides[0] = format->frame_width;
       ret->strides[1] = format->frame_width/4;
       ret->strides[2] = format->frame_width/4;
-      ALIGN(ret->strides[0]);
-      ALIGN(ret->strides[1]);
-      ALIGN(ret->strides[2]);
+
+      if(align)
+        {
+        ALIGN(ret->strides[0]);
+        ALIGN(ret->strides[1]);
+        ALIGN(ret->strides[2]);
+        }
       
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0]*format->frame_height+
@@ -141,10 +157,14 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
       ret->strides[0] = format->frame_width;
       ret->strides[1] = format->frame_width/2;
       ret->strides[2] = format->frame_width/2;
-      ALIGN(ret->strides[0]);
-      ALIGN(ret->strides[1]);
-      ALIGN(ret->strides[2]);
 
+      if(align)
+        {
+        ALIGN(ret->strides[0]);
+        ALIGN(ret->strides[1]);
+        ALIGN(ret->strides[2]);
+        }
+      
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0]*format->frame_height+
                              ret->strides[1]*format->frame_height+
@@ -157,10 +177,14 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
       ret->strides[0] = format->frame_width*2;
       ret->strides[1] = format->frame_width;
       ret->strides[2] = format->frame_width;
-      ALIGN(ret->strides[0]);
-      ALIGN(ret->strides[1]);
-      ALIGN(ret->strides[2]);
 
+      if(align)
+        {
+        ALIGN(ret->strides[0]);
+        ALIGN(ret->strides[1]);
+        ALIGN(ret->strides[2]);
+        }
+      
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0]*format->frame_height+
                              ret->strides[1]*format->frame_height+
@@ -173,10 +197,14 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
       ret->strides[0] = format->frame_width;
       ret->strides[1] = format->frame_width/4;
       ret->strides[2] = format->frame_width/4;
-      ALIGN(ret->strides[0]);
-      ALIGN(ret->strides[1]);
-      ALIGN(ret->strides[2]);
 
+      if(align)
+        {
+        ALIGN(ret->strides[0]);
+        ALIGN(ret->strides[1]);
+        ALIGN(ret->strides[2]);
+        }
+      
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                              ret->strides[0]*format->frame_height+
                              ret->strides[1]*format->frame_height+
@@ -190,10 +218,14 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
       ret->strides[0] = format->frame_width;
       ret->strides[1] = format->frame_width;
       ret->strides[2] = format->frame_width;
-      ALIGN(ret->strides[0]);
-      ALIGN(ret->strides[1]);
-      ALIGN(ret->strides[2]);
 
+      if(align)
+        {
+        ALIGN(ret->strides[0]);
+        ALIGN(ret->strides[1]);
+        ALIGN(ret->strides[2]);
+        }
+      
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                                 ret->strides[0]*format->frame_height+
                                 ret->strides[1]*format->frame_height+
@@ -206,10 +238,14 @@ static void video_frame_alloc(gavl_video_frame_t * ret,
       ret->strides[0] = format->frame_width*2;
       ret->strides[1] = format->frame_width*2;
       ret->strides[2] = format->frame_width*2;
-      ALIGN(ret->strides[0]);
-      ALIGN(ret->strides[1]);
-      ALIGN(ret->strides[2]);
 
+      if(align)
+        {
+        ALIGN(ret->strides[0]);
+        ALIGN(ret->strides[1]);
+        ALIGN(ret->strides[2]);
+        }
+      
       ret->planes[0] = memalign(ALIGNMENT_BYTES,
                                 ret->strides[0]*format->frame_height+
                                 ret->strides[1]*format->frame_height+
@@ -236,9 +272,18 @@ gavl_video_frame_t * gavl_video_frame_create(const gavl_video_format_t * format)
   {
   gavl_video_frame_t * ret = calloc(1, sizeof(gavl_video_frame_t));
   if(format)
-    video_frame_alloc(ret, format);
+    video_frame_alloc(ret, format, 1);
   return ret;
   }
+
+gavl_video_frame_t * gavl_video_frame_create_nopadd(const gavl_video_format_t * format)
+  {
+  gavl_video_frame_t * ret = calloc(1, sizeof(gavl_video_frame_t));
+  if(format)
+    video_frame_alloc(ret, format, 0);
+  return ret;
+  }
+
 
 void gavl_video_frame_destroy(gavl_video_frame_t * frame)
   {

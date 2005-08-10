@@ -1,3 +1,19 @@
+#ifdef GAVL
+#define HAVE_YUVJ_TO_YUV_8
+#define HAVE_YUVJ_TO_YUV_16
+#define HAVE_YUV_8_TO_YUVJ
+#define HAVE_RGB_16_TO_RGB_24
+#define HAVE_RGB_16_TO_RGB_48
+#define HAVE_RGB_16_TO_RGB_FLOAT
+#define HAVE_RGB_TO_YUV
+#define HAVE_RGB_TO_YUVJ
+#define HAVE_YUV_TO_RGB
+#define HAVE_YUVJ_TO_RGB
+#define HAVE_YUV_TO_RGB_FLOAT
+#define HAVE_YUVJ_TO_RGB_FLOAT
+#endif // GAVL
+#ifdef HAVE_YUVJ_TO_YUV_8
+
 static uint8_t yj_8_to_y_8[256] = 
 {
   0x10, 0x11, 0x12, 0x13, 0x13, 0x14, 0x15, 0x16, 
@@ -69,6 +85,10 @@ static uint8_t uvj_8_to_uv_8[256] =
   0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 
   0xe9, 0xea, 0xeb, 0xec, 0xed, 0xee, 0xef, 0xf0, 
 };
+
+#endif // HAVE_YUVJ_TO_YUV_8
+
+#ifdef HAVE_YUVJ_TO_YUV_16
 
 static uint16_t yj_8_to_y_16[256] = 
 {
@@ -142,6 +162,10 @@ static uint16_t uvj_8_to_uv_16[256] =
   0xe969, 0xea4a, 0xeb2b, 0xec0c, 0xeced, 0xedce, 0xeeaf, 0xef90, 
 };
 
+#endif // HAVE_YUVJ_TO_YUV_16
+
+#ifdef HAVE_YUV_8_TO_YUVJ
+
 static uint8_t y_8_to_yj_8[256] = 
 {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
@@ -214,6 +238,10 @@ static uint8_t uv_8_to_uvj_8[256] =
   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
 };
 
+#endif // HAVE_YUV_8_TO_YUVJ
+
+#ifdef HAVE_RGB_16_TO_RGB_24
+
 static uint8_t rgb_5_to_8[32] = 
 {
   0x00, 0x08, 0x10, 0x19, 0x21, 0x29, 0x31, 0x3a, 
@@ -233,6 +261,10 @@ static uint8_t rgb_6_to_8[64] =
   0xc2, 0xc6, 0xca, 0xce, 0xd2, 0xd7, 0xdb, 0xdf, 
   0xe3, 0xe7, 0xeb, 0xef, 0xf3, 0xf7, 0xfb, 0xff, 
 };
+
+#endif // HAVE_RGB_16_TO_RGB_24
+
+#ifdef HAVE_RGB_16_TO_RGB_48
 
 static uint16_t rgb_5_to_16[32] = 
 {
@@ -254,6 +286,10 @@ static uint16_t rgb_6_to_16[64] =
   0xe38d, 0xe79e, 0xebae, 0xefbe, 0xf3ce, 0xf7df, 0xfbef, 0xffff, 
 };
 
+#endif // HAVE_RGB_16_TO_RGB_48
+
+#ifdef HAVE_RGB_16_TO_RGB_FLOAT
+
 static float rgb_5_to_float[32] = 
 {
   0.000000, 0.032258, 0.064516, 0.096774, 0.129032, 0.161290, 0.193548, 0.225806, 
@@ -274,7 +310,11 @@ static float rgb_6_to_float[64] =
   0.888889, 0.904762, 0.920635, 0.936508, 0.952381, 0.968254, 0.984127, 1.000000, 
 };
 
-/* RGB -> YUV conversions */static int r_to_y[256] = 
+#endif // HAVE_RGB_16_TO_RGB_FLOAT
+
+/* RGB -> YUV conversions */#ifdef HAVE_RGB_TO_YUV
+
+static int r_to_y[256] = 
 {
   1048576, 1065404, 1082233, 1099062, 1115891, 1132720, 1149549, 1166378, 
   1183206, 1200035, 1216864, 1233693, 1250522, 1267351, 1284180, 1301009, 
@@ -597,6 +637,10 @@ static int b_to_v[256] =
   7265185, 7260504, 7255824, 7251143, 7246462, 7241781, 7237100, 7232419, 
   7227738, 7223057, 7218376, 7213695, 7209014, 7204333, 7199652, 7194971, 
 };
+
+#endif // HAVE_RGB_TO_YUV
+
+#ifdef HAVE_RGB_TO_YUVJ
 
 static int r_to_yj[256] = 
 {
@@ -922,7 +966,11 @@ static int b_to_vj[256] =
   7067082, 7061753, 7056424, 7051096, 7045767, 7040438, 7035110, 7029781, 
 };
 
-/* YUV -> RGB conversions */static int y_to_rgb[256] = 
+#endif // HAVE_RGB_TO_YUVJ
+
+/* YUV -> RGB conversions */#ifdef HAVE_YUV_TO_RGB
+
+static int y_to_rgb[256] = 
 {
   -1179648, -1114112, -1048576, -983040, -851968, -786432, -720896, -655360, 
   -589824, -524288, -393216, -327680, -262144, -196608, -131072, -65536, 
@@ -1101,6 +1149,10 @@ static int u_to_b[256] =
   14806548, 14938749, 15070951, 15203152, 15335353, 15467555, 15599756, 15731957, 
   15864159, 15996360, 16128561, 16260763, 16392964, 16525165, 16657367, 16789568, 
 };
+
+#endif // HAVE_YUV_TO_RGB
+
+#ifdef HAVE_YUVJ_TO_RGB
 
 static int yj_to_rgb[256] = 
 {
@@ -1282,6 +1334,10 @@ static int uj_to_b[256] =
   13935575, 14051704, 14167834, 14283964, 14400094, 14516224, 14632353, 14748483, 
 };
 
+#endif // HAVE_YUVJ_TO_RGB
+
+#ifdef HAVE_YUV_TO_RGB_FLOAT
+
 static float y_to_rgb_float[256] = 
 {
   -0.073059, -0.068493, -0.063927, -0.059361, -0.054795, -0.050228, -0.045662, -0.041096, 
@@ -1462,6 +1518,10 @@ static float u_to_b_float[256] =
   0.949286, 0.957196, 0.965107, 0.973018, 0.980929, 0.988839, 0.996750, 1.004661, 
 };
 
+#endif // HAVE_YUV_TO_RGB_FLOAT
+
+#ifdef HAVE_YUVJ_TO_RGB_FLOAT
+
 static float yj_to_rgb_float[256] = 
 {
   0.000000, 0.003922, 0.007843, 0.011765, 0.015686, 0.019608, 0.023529, 0.027451, 
@@ -1641,4 +1701,6 @@ static float uj_to_b_float[256] =
   0.778290, 0.785239, 0.792188, 0.799137, 0.806086, 0.813035, 0.819984, 0.826933, 
   0.833882, 0.840831, 0.847780, 0.854729, 0.861678, 0.868627, 0.875576, 0.882525, 
 };
+
+#endif // HAVE_YUVJ_TO_RGB_FLOAT
 

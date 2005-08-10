@@ -21,6 +21,8 @@
 #include <gavl/gavl.h>
 #include <video.h>
 #include <colorspace.h>
+
+#define GAVL
 #include "colorspace_tables.h"
 #include "colorspace_macros.h"
 

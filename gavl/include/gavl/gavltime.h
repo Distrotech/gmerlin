@@ -137,13 +137,65 @@ gavl_time_prettyprint_seconds(int seconds, char string[GAVL_TIME_STRING_LEN]);
 
 /* Simple software timer */
 
+/*! \defgroup timer
+ * \ingroup time
+ * \brief Software timer
+ *
+ *  This is a simple software timer, which can be used for synchronization
+ *  purposes for cases wherer there is no synchronization with hardware devices
+ *  available.
+ */
+
+/*! \ingroup timer
+ * \brief Opaque timer structure
+ *
+ * You don't want to know what's inside.
+ */
+
 typedef struct gavl_timer_s gavl_timer_t;
 
+/*! \ingroup timer
+ * \brief Create a timer
+ * \returns A newly allocated timer
+ */
+
 gavl_timer_t * gavl_timer_create();
-void gavl_timer_destroy(gavl_timer_t *);
 
-void gavl_timer_start(gavl_timer_t *);
-void gavl_timer_stop(gavl_timer_t *);
+/*! \ingroup timer
+ * \brief Destroy a timer
+ * \param timer A timer
+ *
+ * Destroys a timer and frees all associated memory
+ */
 
-gavl_time_t gavl_timer_get(gavl_timer_t *);
-void gavl_timer_set(gavl_timer_t *, gavl_time_t);
+void gavl_timer_destroy(gavl_timer_t * timer);
+
+/*! \ingroup timer
+ * \brief Start a timer
+ * \param timer A timer
+ */
+
+void gavl_timer_start(gavl_timer_t * timer);
+
+/*! \ingroup timer
+ * \brief Stop a timer
+ * \param timer A timer
+ */
+
+void gavl_timer_stop(gavl_timer_t * timer);
+
+/*! \ingroup timer
+ * \brief Get the current time of the timer
+ * \param timer A timer
+ * \returns Current time
+ */
+
+gavl_time_t gavl_timer_get(gavl_timer_t * timer);
+
+/*! \ingroup timer
+ * \brief Set the current time of the timer
+ * \param timer A timer
+ * \param t New time
+ */
+
+void gavl_timer_set(gavl_timer_t * timer, gavl_time_t t);

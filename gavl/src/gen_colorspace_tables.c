@@ -10,7 +10,32 @@ int main(int argc, char ** argv)
   int      tmp_int;
   float    tmp_float;
 
+  /* First, emit some #defines */
+
+  printf("#ifdef GAVL\n");
+
+  printf("#define HAVE_YUVJ_TO_YUV_8\n");
+  printf("#define HAVE_YUVJ_TO_YUV_16\n");
+  printf("#define HAVE_YUV_8_TO_YUVJ\n");
+  printf("#define HAVE_RGB_16_TO_RGB_24\n");
+  printf("#define HAVE_RGB_16_TO_RGB_48\n");
+  printf("#define HAVE_RGB_16_TO_RGB_FLOAT\n");
+
+  printf("#define HAVE_RGB_TO_YUV\n");
+  printf("#define HAVE_RGB_TO_YUVJ\n");
+
+  printf("#define HAVE_YUV_TO_RGB\n");
+  printf("#define HAVE_YUVJ_TO_RGB\n");
+
+  printf("#define HAVE_YUV_TO_RGB_FLOAT\n");
+  printf("#define HAVE_YUVJ_TO_RGB_FLOAT\n");
+  
+  printf("#endif // GAVL\n");
+  
+  
   /* JPEG Quantisation <-> MPEG Quantisation */
+
+  printf("#ifdef HAVE_YUVJ_TO_YUV_8\n\n");
     
   /* yj_8 -> y_8 */
   printf("static uint8_t yj_8_to_y_8[256] = \n{\n");
@@ -40,7 +65,12 @@ int main(int argc, char ** argv)
     }
   printf("};\n\n");
 
+  printf("#endif // HAVE_YUVJ_TO_YUV_8\n\n");
+  
   /* yj_8 -> y_16 */
+
+  printf("#ifdef HAVE_YUVJ_TO_YUV_16\n\n");
+
   printf("static uint16_t yj_8_to_y_16[256] = \n{\n");
   for(i = 0; i < 256; i++)
     {
@@ -67,8 +97,13 @@ int main(int argc, char ** argv)
       printf("\n");
     }
   printf("};\n\n");
+
+  printf("#endif // HAVE_YUVJ_TO_YUV_16\n\n");
   
   /* y_8 -> yj_8 */
+
+  printf("#ifdef HAVE_YUV_8_TO_YUVJ\n\n");
+
   printf("static uint8_t y_8_to_yj_8[256] = \n{\n");
   for(i = 0; i < 256; i++)
     {
@@ -98,8 +133,12 @@ int main(int argc, char ** argv)
     }
   printf("};\n\n");
 
+  printf("#endif // HAVE_YUV_8_TO_YUVJ\n\n");
+
   /* RGB 5/6 bit -> 8 bit */
 
+  printf("#ifdef HAVE_RGB_16_TO_RGB_24\n\n");
+    
   printf("static uint8_t rgb_5_to_8[32] = \n{\n");
   for(i = 0; i < 32; i++)
     {
@@ -126,7 +165,11 @@ int main(int argc, char ** argv)
     }
   printf("};\n\n");
 
+  printf("#endif // HAVE_RGB_16_TO_RGB_24\n\n");
+
   /* RGB 5/6 bit -> 16 bit */
+
+  printf("#ifdef HAVE_RGB_16_TO_RGB_48\n\n");
 
   printf("static uint16_t rgb_5_to_16[32] = \n{\n");
   for(i = 0; i < 32; i++)
@@ -154,7 +197,11 @@ int main(int argc, char ** argv)
     }
   printf("};\n\n");
 
+  printf("#endif // HAVE_RGB_16_TO_RGB_48\n\n");
+    
   /* RGB 5/6 bit -> float */
+
+  printf("#ifdef HAVE_RGB_16_TO_RGB_FLOAT\n\n");
 
   printf("static float rgb_5_to_float[32] = \n{\n");
   for(i = 0; i < 32; i++)
@@ -180,8 +227,12 @@ int main(int argc, char ** argv)
     }
   printf("};\n\n");
 
-  printf("/* RGB -> YUV conversions */");
-  
+  printf("#endif // HAVE_RGB_16_TO_RGB_FLOAT\n\n");
+    
+  printf("/* RGB -> YUV conversions */\n");
+
+  printf("#ifdef HAVE_RGB_TO_YUV\n\n");
+    
   printf("static int r_to_y[256] = \n{\n");
   for(i = 0; i < 0x100; i++)
     {
@@ -281,6 +332,10 @@ int main(int argc, char ** argv)
     }
   printf("};\n\n");
 
+  printf("#endif // HAVE_RGB_TO_YUV\n\n");
+
+  printf("#ifdef HAVE_RGB_TO_YUVJ\n\n");
+  
   printf("static int r_to_yj[256] = \n{\n");
   for(i = 0; i < 0x100; i++)
     {
@@ -380,10 +435,14 @@ int main(int argc, char ** argv)
     }
   printf("};\n\n");
 
-  printf("/* YUV -> RGB conversions */");
+  printf("#endif // HAVE_RGB_TO_YUVJ\n\n");
+    
+  printf("/* YUV -> RGB conversions */\n");
 
   // YCbCr (8bit) -> R'G'B' (integer) according to CCIR 601
-  
+
+  printf("#ifdef HAVE_YUV_TO_RGB\n\n");
+ 
   printf("static int y_to_rgb[256] = \n{\n");
   for(i = 0; i < 0x100; i++)
     {
@@ -440,8 +499,12 @@ int main(int argc, char ** argv)
     }
   printf("};\n\n");
 
+  printf("#endif // HAVE_YUV_TO_RGB\n\n");
+    
   /* JPEG Quantization */
 
+  printf("#ifdef HAVE_YUVJ_TO_RGB\n\n");
+  
   printf("static int yj_to_rgb[256] = \n{\n");
   for(i = 0; i < 0x100; i++)
     {
@@ -497,8 +560,12 @@ int main(int argc, char ** argv)
     }
   printf("};\n\n");
 
+  printf("#endif // HAVE_YUVJ_TO_RGB\n\n");
+  
   // YCbCr (8bit) -> R'G'B' (float) according to CCIR 601
 
+  printf("#ifdef HAVE_YUV_TO_RGB_FLOAT\n\n");
+    
   printf("static float y_to_rgb_float[256] = \n{\n");
   for(i = 0; i < 0x100; i++)
     {
@@ -555,8 +622,12 @@ int main(int argc, char ** argv)
     }
   printf("};\n\n");
 
+  printf("#endif // HAVE_YUV_TO_RGB_FLOAT\n\n");
+    
   /* JPEG Quantization */
 
+  printf("#ifdef HAVE_YUVJ_TO_RGB_FLOAT\n\n");
+  
   printf("static float yj_to_rgb_float[256] = \n{\n");
   for(i = 0; i < 0x100; i++)
     {
@@ -611,5 +682,7 @@ int main(int argc, char ** argv)
       printf("\n");
     }
   printf("};\n\n");
- 
+
+  printf("#endif // HAVE_YUVJ_TO_RGB_FLOAT\n\n");
+    
   }
