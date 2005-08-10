@@ -33,6 +33,9 @@ void bgav_packet_destroy(bgav_packet_t * p)
     free(p->data);
   if(p->audio_frame)
     gavl_audio_frame_destroy(p->audio_frame);
+  if(p->video_frame)
+    gavl_video_frame_destroy(p->video_frame);
+  
   free(p);
   }
 

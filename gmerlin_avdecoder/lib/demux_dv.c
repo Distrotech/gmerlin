@@ -184,6 +184,10 @@ static void close_dv(bgav_demuxer_context_t * ctx)
   {
   dv_priv_t * priv;
   priv = (dv_priv_t *)(ctx->priv);
+  if(priv->frame_buffer)
+    free(priv->frame_buffer);
+  if(priv->d)
+    bgav_dv_dec_destroy(priv->d);
   
   free(priv);
   }

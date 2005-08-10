@@ -56,6 +56,10 @@ extern bgav_demuxer_t bgav_demuxer_a52;
 extern bgav_demuxer_t bgav_demuxer_mpc;
 #endif
 
+#ifdef HAVE_MJPEGTOOLS
+extern bgav_demuxer_t bgav_demuxer_y4m;
+#endif
+
 typedef struct
   {
   bgav_demuxer_t * demuxer;
@@ -87,6 +91,9 @@ static demuxer_t demuxers[] =
 #endif
 #ifdef HAVE_LIBDV
     { &bgav_demuxer_dv, "DV" },
+#endif
+#ifdef HAVE_MJPEGTOOLS
+    { &bgav_demuxer_y4m, "yuv4mpeg" },
 #endif
   };
 

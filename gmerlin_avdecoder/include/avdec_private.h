@@ -126,6 +126,10 @@ struct bgav_packet_s
 
   gavl_audio_frame_t * audio_frame; /* For demuxers, which deliver audio
                                        frames directly */
+
+  gavl_video_frame_t * video_frame; /* For demuxers, which deliver video
+                                       frames directly */
+  
   struct bgav_packet_s * next;
   };
 

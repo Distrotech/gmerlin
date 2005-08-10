@@ -116,6 +116,28 @@ AC_DEFINE([HAVE_LIBDV])
 fi
 
 dnl
+dnl Check for mjpegtools
+dnl
+
+AH_TEMPLATE([HAVE_MJPEGTOOLS],
+            [Do we have mjpegtools installed?])
+
+have_mjpegtools="false"
+
+MJPEGTOOLS_REQUIRED="1.7.0"
+
+PKG_CHECK_MODULES(MJPEGTOOLS, mjpegtools >= $MJPEGTOOLS_REQUIRED, have_mjpegtools="true", have_mjpegtools="false")
+AC_SUBST(MJPEGTOOLS_REQUIRED)
+AC_SUBST(MJPEGTOOLS_LIBS)
+AC_SUBST(MJPEGTOOLS_CFLAGS)
+
+AM_CONDITIONAL(HAVE_MJPEGTOOLS, test x$have_mjpegtools = xtrue)
+
+if test "x$have_mjpegtools" = "xtrue"; then
+AC_DEFINE([HAVE_MJPEGTOOLS])
+fi
+
+dnl
 dnl Vorbis
 dnl 
 
@@ -761,6 +783,14 @@ echo "Found (CFLAGS=$LIBDV_CFLAGS LIBS=$LIBDV_LIBS)"
 else
 echo "Missing"
 fi
+
+echo -n "mjpegtools:             "
+if test "x$have_mjpegtools" = "xtrue"; then
+echo "Found (CFLAGS=$MJPEGTOOLS_CFLAGS LIBS=$MJPEGTOOLS_LIBS)"
+else
+echo "Missing"
+fi
+
 
 echo ""
 echo "=== Other features: ============================"

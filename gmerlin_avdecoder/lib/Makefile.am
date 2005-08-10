@@ -124,6 +124,17 @@ libdv_libs =
 libdv_sources =
 endif
 
+if HAVE_MJPEGTOOLS
+mjpegtools_cflags =  @MJPEGTOOLS_CFLAGS@
+mjpegtools_libs =    @MJPEGTOOLS_LIBS@
+mjpegtools_sources = demux_y4m.c
+else
+mjpegtools_cflags =
+mjpegtools_libs =
+mjpegtools_sources =
+endif
+
+
 
 if HAVE_W32DLL
 win32_subdirs = libw32dll
@@ -174,6 +185,7 @@ $(real_libs) \
 $(xadll_libs) \
 $(cdio_libs) \
 $(libdv_libs) \
+$(mjpegtools_libs) \
 -lm
 
 AM_CFLAGS = \
@@ -189,7 +201,8 @@ $(a52_cflags) \
 $(musepack_cflags) \
 $(avcodec_cflags) \
 $(cdio_cflags) \
-$(libdv_cflags)
+$(libdv_cflags) \
+$(mjpegtools_cflags)
 
 libgmerlin_avdec_la_SOURCES = \
 $(libmpeg2_sources) \
@@ -207,6 +220,7 @@ $(real_sources) \
 $(xadll_sources) \
 $(cdio_sources) \
 $(libdv_sources) \
+$(mjpegtools_sources) \
 RTjpeg.c \
 apetag.c \
 audio.c \
@@ -297,6 +311,7 @@ track.c \
 tracktable.c \
 utils.c \
 video.c \
+video_gavl.c \
 video_qtraw.c \
 video_aviraw.c \
 video_tga.c \

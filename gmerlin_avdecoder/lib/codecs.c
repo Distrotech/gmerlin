@@ -308,6 +308,7 @@ void bgav_codecs_init()
   bgav_init_video_decoders_yuv();
   bgav_init_video_decoders_tga();
   bgav_init_video_decoders_rtjpeg();
+  bgav_init_video_decoders_gavl();
 #if 0  
   fprintf(stderr, "BGAV Codecs initialized: A: %d V: %d\n",
           num_audio_codecs, num_video_codecs);
