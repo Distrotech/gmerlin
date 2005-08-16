@@ -166,7 +166,7 @@ xadll_sources =
 xadll_libs = 
 endif
 
-SUBDIRS = $(win32_subdirs)
+SUBDIRS = $(win32_subdirs) GSM610
 
 libgmerlin_avdec_la_LDFLAGS=-export-dynamic
 libgmerlin_avdec_la_LIBADD= \
@@ -186,6 +186,7 @@ $(xadll_libs) \
 $(cdio_libs) \
 $(libdv_libs) \
 $(mjpegtools_libs) \
+GSM610/libgsm.la \
 -lm
 
 AM_CFLAGS = \

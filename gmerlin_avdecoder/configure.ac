@@ -684,6 +684,7 @@ lib/libw32dll/qtx/Makefile \
 lib/libw32dll/qtx/qtxsdk/Makefile \
 lib/libw32dll/wine/Makefile \
 lib/libw32dll/DirectShow/Makefile \
+lib/GSM610/Makefile \
 m4/Makefile \
 plugins/Makefile \
 tests/Makefile ])

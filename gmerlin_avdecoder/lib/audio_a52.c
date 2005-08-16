@@ -482,6 +482,9 @@ static void close_a52(bgav_stream_t * s)
 
   if(priv->frame)
     gavl_audio_frame_destroy(priv->frame);
+  if(priv->buffer)
+    free(priv->buffer);
+
   a52_free(priv->state);
   free(priv);
   }

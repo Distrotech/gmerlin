@@ -29,6 +29,7 @@ typedef struct
 
   y4m_cb_reader_t reader;
   uint8_t * tmp_planes[4]; /* For YUVA4444 */
+  
   int64_t frame_counter;
   } y4m_t;
 
@@ -228,7 +229,12 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
 
   if(!p->video_frame)
+    {
     p->video_frame = gavl_video_frame_create_nopadd(&(s->data.video.format));
+    
+    /* For monochrome format also need to clear the chroma planes */
+    gavl_video_frame_clear(p->video_frame, &(s->data.video.format));
+    }
   
   if(s->data.video.format.pixelformat == GAVL_YUVA_32)
     {

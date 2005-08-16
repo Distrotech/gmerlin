@@ -5,7 +5,7 @@ else
 ACLOCAL_FLAGS=""
 fi
 echo -n "doing aclocal..."
-aclocal -I m4 $ACLOCAL_FLAGS
+aclocal $ACLOCAL_FLAGS -I m4
 echo "done"
 echo -n "doing libtoolize..."
 libtoolize --automake --copy --force
