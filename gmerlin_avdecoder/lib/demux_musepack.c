@@ -19,7 +19,7 @@
 
 #include <avdec_private.h>
 
-#include <musepack/musepack.h>
+#include <mpcdec/mpcdec.h>
 
 /*
  *  Musepack "demuxer": It's somewhat weird because libmusepack doesn't

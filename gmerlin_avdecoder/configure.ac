@@ -395,17 +395,17 @@ dnl
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
 
-LIBS="$GMERLIN_DEP_LIBS -lmusepack"
+LIBS="$GMERLIN_DEP_LIBS -lmpcdec"
 CFLAGS="$GMERLIN_DEP_CFLAGS"
 
 MUSEPACK_REQUIRED="1.1"
 
 AH_TEMPLATE([HAVE_MUSEPACK], [Enable Musepack])
-AC_MSG_CHECKING(for libmusepack)
+AC_MSG_CHECKING(for libmpcdec)
 have_musepack="false"
 
   AC_TRY_RUN([
-    #include <musepack/musepack.h>
+    #include <mpcdec/mpcdec.h>
     #include <stdio.h>
     main()
     {
@@ -764,7 +764,7 @@ else
 echo "Missing"
 fi
 
-echo -n "libmusepack:            "
+echo -n "libmpcdec:              "
 if test "x$have_musepack" = "xtrue"; then
 echo "Found (CFLAGS=$MUSEPACK_CFLAGS LIBS=$MUSEPACK_LIBS)"
 else

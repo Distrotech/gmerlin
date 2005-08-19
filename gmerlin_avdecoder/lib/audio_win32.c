@@ -86,6 +86,7 @@ codec_info_t codec_infos[] =
       guid:        { 0x4009f700, 0xaeba, 0x11d1,
                      { 0x83, 0x44, 0x00, 0xc0, 0x4f, 0xb9, 0x2e, 0xb7 } }
     },
+#if 1
     {
       name:        "msgsm ACM decoder",
       format_name: "msgsm",
@@ -93,6 +94,7 @@ codec_info_t codec_infos[] =
       dll_name:    "msgsm32.acm",
       type:        CODEC_STD,
     },
+#endif
 #if 1
     {
       name:        "Vivo G.723/Siren Audio Codec",

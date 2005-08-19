@@ -152,7 +152,7 @@ static int a52_header_read(a52_header * ret, uint8_t * buf)
   
   return 1;
   }
-
+#if 0
 static void a52_header_dump(a52_header * h)
   {
   fprintf(stderr, "A52 header:\n");
@@ -164,7 +164,7 @@ static void a52_header_dump(a52_header * h)
   if(h->cmixlev >= 0.0)
     fprintf(stderr, "  cmixlev: %f\n", h->cmixlev);
   }
-
+#endif
 /*
  *  Parse header and read data bytes for that frame
  *  (also does resync)
@@ -269,7 +269,7 @@ static int init_a52(bgav_stream_t * s)
   s->data.audio.decoder->priv = priv;
   do_resync(s);
   
-  a52_header_dump(&(priv->header));
+  //  a52_header_dump(&(priv->header));
 
   /* Get format */
 

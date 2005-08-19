@@ -59,34 +59,30 @@ static codec_info_t codec_infos[] =
                BGAV_MK_FOURCC('m', 's', 0x00, 0x55),
                0x00 } },
     { "FFmpeg ac3 decoder", "AC3", CODEC_ID_AC3,
-      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x2000), BGAV_MK_FOURCC('.', 'a', 'c', '3'), 0x00 } },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x2000),
+                    BGAV_MK_FOURCC('.', 'a', 'c', '3'),
+                    0x00 } },
     
 #endif
-#if 0
-    { "FFmpeg PCM decoder", "16bit linear PCM (little endian)", CODEC_ID_PCM_S16LE,
-      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('s', 'o', 'w', 't'), 0x00 } },
-
-    { "FFmpeg PCM decoder", "16bit linear PCM (big endian)", CODEC_ID_PCM_S16BE,
-      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('t', 'w', 'o', 's'), 0x00 } },
-    
-    /* must come after s16le in this list */
-    { "FFmpeg PCM decoder", "8bit unsigned linear PCM", CODEC_ID_PCM_U8,
-      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('r', 'a', 'w', ' '), 0x00 } },
-
-    { "FFmpeg PCM decoder", "8bit signed linear PCM", CODEC_ID_PCM_S8,
-      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x01), BGAV_MK_FOURCC('t', 'w', 'o', 's'), 0x00 } },
-#endif    
     { "FFmpeg alaw decoder", "alaw", CODEC_ID_PCM_ALAW,
-      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x06), BGAV_MK_FOURCC('a', 'l', 'a', 'w'), 0x00 }  },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x06),
+                    BGAV_MK_FOURCC('a', 'l', 'a', 'w'),
+                    BGAV_MK_FOURCC('A', 'L', 'A', 'W'),
+                    0x00 }  },
 
     { "FFmpeg mulaw decoder", "ulaw", CODEC_ID_PCM_MULAW,
-      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x07), BGAV_MK_FOURCC('u', 'l', 'a', 'w'), 0x00 }  },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x07),
+                    BGAV_MK_FOURCC('u', 'l', 'a', 'w'),
+                    BGAV_MK_FOURCC('U', 'L', 'A', 'W'),
+                    0x00 }  },
     
     { "FFmpeg MS ADPCM decoder", "MS ADPCM", CODEC_ID_ADPCM_MS,
-      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x02), BGAV_MK_FOURCC('m', 's', 0x00, 0x02), 0x00 } },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x02),
+                    BGAV_MK_FOURCC('m', 's', 0x00, 0x02), 0x00 } },
 
     { "FFmpeg WAV ADPCM decoder", "WAV ADPCM", CODEC_ID_ADPCM_IMA_WAV,
-      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x11), BGAV_MK_FOURCC('m', 's', 0x00, 0x11), 0x00 } },
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x11),
+                    BGAV_MK_FOURCC('m', 's', 0x00, 0x11), 0x00 } },
 
     { "FFmpeg IMA DK4 decoder", "IMA DK4", CODEC_ID_ADPCM_IMA_DK4,
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x61), 0x00 } },  /* rogue format number */

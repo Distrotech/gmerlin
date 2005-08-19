@@ -127,6 +127,8 @@ static int probe_quicktime(bgav_input_context_t * input)
     return 1;
   if(header == BGAV_MK_FOURCC('f','t','y','p'))
     return 1;
+  if(header == BGAV_MK_FOURCC('f','r','e','e'))
+    return 1;
   else if((header == BGAV_MK_FOURCC('m','d','a','t')) &&
           input->input->seek_byte)
     return 1;
@@ -452,7 +454,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
     
   ctx->tt->current_track->duration = 0;
 
-  fprintf(stderr, "Total %d tracks\n", moov->num_tracks);
+  //  fprintf(stderr, "Total %d tracks\n", moov->num_tracks);
 
   priv->streams = calloc(moov->num_tracks, sizeof(*(priv->streams)));
   

@@ -226,6 +226,7 @@ RTjpeg.c \
 apetag.c \
 audio.c \
 audio_gavl.c \
+audio_gsm.c \
 audio_pcm.c \
 asmrp.c \
 base64.c \

@@ -75,7 +75,7 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_quicktime, "Quicktime/mp4/m4a" },
     { &bgav_demuxer_wav,       "Microsoft WAV" },
     { &bgav_demuxer_au,        "Sun AU" },
-    { &bgav_demuxer_aiff,      "Aiff" },
+    { &bgav_demuxer_aiff,      "AIFF(C)" },
     { &bgav_demuxer_flac,      "FLAC" },
     { &bgav_demuxer_aac,       "AAC" },
     { &bgav_demuxer_vivo,      "Vivo" },

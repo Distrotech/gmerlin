@@ -56,6 +56,7 @@ extern char * win32_def_path;
 
 void bgav_init_audio_decoders_gavl();
 void bgav_init_audio_decoders_pcm();
+void bgav_init_audio_decoders_gsm();
 
 void bgav_init_video_decoders_aviraw();
 void bgav_init_video_decoders_qtraw();

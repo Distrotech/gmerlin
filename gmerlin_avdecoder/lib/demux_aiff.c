@@ -17,6 +17,7 @@
  
 *****************************************************************/
 
+#include <string.h>
 #include <stdlib.h>
 #include <avdec_private.h>
 
@@ -26,36 +27,6 @@ typedef struct
   uint32_t size;
   } chunk_header_t;
 
-typedef struct
-  {
-  uint32_t data_start;
-  uint32_t data_size;
-  } aiff_priv_t;
-
-#define PADD(n) ((n&1)?(n+1):n)
-
-static int64_t pos_2_time(bgav_demuxer_context_t * ctx, int64_t pos)
-  {
-  aiff_priv_t * priv;
-  bgav_stream_t * s;
-  s = &(ctx->tt->current_track->audio_streams[0]);
-  priv = (aiff_priv_t*)(ctx->priv);
-  
-  return ((pos - priv->data_start)/s->data.audio.block_align);
-  
-  }
-
-static int64_t time_2_pos(bgav_demuxer_context_t * ctx, int64_t time)
-  {
-  aiff_priv_t * priv;
-  priv = (aiff_priv_t*)(ctx->priv);
-
-  bgav_stream_t * s;
-  s = &(ctx->tt->current_track->audio_streams[0]);
-  
-  return priv->data_start + time * s->data.audio.block_align;
-  }
-
 static int read_chunk_header(bgav_input_context_t * input,
                              chunk_header_t * ch)
   {
@@ -63,22 +34,17 @@ static int read_chunk_header(bgav_input_context_t * input,
     bgav_input_read_32_be(input, &(ch->size));
   }
 
-static int probe_aiff(bgav_input_context_t * input)
+typedef struct
   {
-  uint8_t test_data[12];
-  if(bgav_input_get_data(input, test_data, 12) < 12)
-    return 0;
-  if((test_data[0] ==  'F') &&
-     (test_data[1] ==  'O') &&
-     (test_data[2] ==  'R') &&
-     (test_data[3] ==  'M') &&
-     (test_data[8] ==  'A') &&
-     (test_data[9] ==  'I') &&
-     (test_data[10] == 'F') &&
-     (test_data[11] == 'F'))
-    return 1;
-  return 0;
-  }
+  uint16_t num_channels;
+  uint32_t num_sample_frames;
+  uint16_t num_bits;
+  int32_t samplerate;
+
+  /* For AIFC only */
+  uint32_t compression_type;
+  char compression_name[256];
+  } comm_chunk_t;
 
 static int read_float_80(bgav_input_context_t * input, int32_t * ret)
   {
@@ -107,18 +73,109 @@ static int read_float_80(bgav_input_context_t * input, int32_t * ret)
   return 1;
   }
 
+static int comm_chunk_read(chunk_header_t * h,
+                           bgav_input_context_t * input,
+                           comm_chunk_t * ret, int is_aifc)
+  {
+  int64_t start_pos;
+
+  start_pos = input->position;
+
+  if(!bgav_input_read_16_be(input, &(ret->num_channels)) ||
+     !bgav_input_read_32_be(input, &(ret->num_sample_frames)) ||
+     !bgav_input_read_16_be(input, &(ret->num_bits)) ||
+     !read_float_80(input, &(ret->samplerate)))
+    return 0;
+
+  if(is_aifc)
+    {
+    if(!bgav_input_read_fourcc(input, &(ret->compression_type)) ||
+       !bgav_input_read_string_pascal(input, ret->compression_name))
+      return 0;
+    }
+  if(input->position - start_pos < h->size)
+    bgav_input_skip(input, h->size - (input->position - start_pos));
+  
+  return 1;
+  }
+
+typedef struct
+  {
+  int is_aifc;
+  
+  uint32_t data_start;
+  uint32_t data_size;
+  int samples_per_block;
+  } aiff_priv_t;
+
+#define PADD(n) ((n&1)?(n+1):n)
+
+static int64_t pos_2_time(bgav_demuxer_context_t * ctx, int64_t pos)
+  {
+  aiff_priv_t * priv;
+  bgav_stream_t * s;
+  s = &(ctx->tt->current_track->audio_streams[0]);
+  priv = (aiff_priv_t*)(ctx->priv);
+  
+  return ((pos - priv->data_start)/s->data.audio.block_align);
+  
+  }
+
+static int64_t time_2_pos(bgav_demuxer_context_t * ctx, int64_t time)
+  {
+  aiff_priv_t * priv;
+  priv = (aiff_priv_t*)(ctx->priv);
+
+  bgav_stream_t * s;
+  s = &(ctx->tt->current_track->audio_streams[0]);
+  
+  return priv->data_start + time * s->data.audio.block_align;
+  }
+
+
+static int probe_aiff(bgav_input_context_t * input)
+  {
+  uint8_t test_data[12];
+  if(bgav_input_get_data(input, test_data, 12) < 12)
+    return 0;
+  if((test_data[0] ==  'F') &&
+     (test_data[1] ==  'O') &&
+     (test_data[2] ==  'R') &&
+     (test_data[3] ==  'M') &&
+     (test_data[8] ==  'A') &&
+     (test_data[9] ==  'I') &&
+     (test_data[10] == 'F') &&
+     ((test_data[11] == 'F') || (test_data[11] == 'C')))
+    return 1;
+  return 0;
+  }
+
+static char * read_meta_string(char * old, bgav_input_context_t * input,
+                        chunk_header_t * h)
+  {
+  if(old)
+    free(old);
+  old = calloc(h->size+1, 1);
+  if(bgav_input_read_data(input, old, h->size) < h->size)
+    {
+    free(old);
+    return (char*)0;
+    }
+  if(h->size & 1)
+    bgav_input_skip(input, 1);
+  return old;
+  }
+
 static int open_aiff(bgav_demuxer_context_t * ctx,
                      bgav_redirector_context_t ** redir)
   {
   chunk_header_t ch;
+  comm_chunk_t comm;
+
   uint32_t fourcc;
   bgav_stream_t * s = (bgav_stream_t *)0;
   aiff_priv_t * priv;
   int keep_going = 1;
-  uint32_t num_sample_frames;
-  uint16_t num_bits;
-  uint16_t num_channels;
-  int32_t samplerate;
   bgav_track_t * track;
   
   /* Create track */
@@ -128,15 +185,26 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
   /* Check file magic */
   
   if(!read_chunk_header(ctx->input, &ch) ||
-     (ch.fourcc != BGAV_MK_FOURCC('F','O','R','M')) ||
-     !bgav_input_read_fourcc(ctx->input, &fourcc) ||
-     (fourcc != BGAV_MK_FOURCC('A','I','F','F')))
+     (ch.fourcc != BGAV_MK_FOURCC('F','O','R','M')))
+    return 0;
+
+  if(!bgav_input_read_fourcc(ctx->input, &fourcc))
     return 0;
 
   /* Allocate private struct */
 
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
+  
+  if(fourcc == BGAV_MK_FOURCC('A','I','F','C'))
+    {
+    priv->is_aifc = 1;
+    }
+  else if(fourcc == BGAV_MK_FOURCC('A','I','F','F'))
+    {
+    return 0;
+    }
+  
 
   /* Read chunks until we are done */
 
@@ -148,43 +216,103 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
       {
       case BGAV_MK_FOURCC('C','O','M','M'):
         s = bgav_track_add_audio_stream(track);
-        s->fourcc = BGAV_MK_FOURCC('a','i','f','f');
         
-        if(!bgav_input_read_16_be(ctx->input, &(num_channels)) ||
-           !bgav_input_read_32_be(ctx->input, &(num_sample_frames)) ||
-           !bgav_input_read_16_be(ctx->input, &(num_bits)) ||
-           !read_float_80(ctx->input, &(samplerate)))
+        memset(&comm, 0, sizeof(comm));
+        
+        if(!comm_chunk_read(&ch,
+                            ctx->input,
+                            &comm, priv->is_aifc))
           return 0;
         
-        if(ch.size > 18)
-          bgav_input_skip(ctx->input, ch.size - 18);
+        s->data.audio.format.samplerate =   comm.samplerate;
+        s->data.audio.format.num_channels = comm.num_channels;
+        s->data.audio.bits_per_sample =     comm.num_bits;
 
-        s->data.audio.format.samplerate = samplerate;
-        s->data.audio.format.num_channels = num_channels;
-        s->data.audio.bits_per_sample = num_bits;
-        if(s->data.audio.bits_per_sample <= 8)
-          {
-          s->data.audio.block_align = num_channels;
-          }
-        else if(s->data.audio.bits_per_sample <= 16)
-          {
-          s->data.audio.block_align = 2 * num_channels;
-          }
-        else if(s->data.audio.bits_per_sample <= 24)
-          {
-          s->data.audio.block_align = 3 * num_channels;
-          }
-        else if(s->data.audio.bits_per_sample <= 32)
-          {
-          s->data.audio.block_align = 4 * num_channels;
-          }
+        if(!priv->is_aifc)
+          s->fourcc = BGAV_MK_FOURCC('a','i','f','f');
+        else if(comm.compression_type == BGAV_MK_FOURCC('N','O','N','E'))
+          s->fourcc = BGAV_MK_FOURCC('a','i','f','f');
         else
+          s->fourcc = comm.compression_type;
+        
+        switch(s->fourcc)
           {
-          fprintf(stderr, "%d bit aiff not supported\n", 
-                  s->data.audio.bits_per_sample);
-          return 0;
+          case BGAV_MK_FOURCC('a','i','f','f'):
+            if(s->data.audio.bits_per_sample <= 8)
+              {
+              s->data.audio.block_align = comm.num_channels;
+              }
+            else if(s->data.audio.bits_per_sample <= 16)
+              {
+              s->data.audio.block_align = 2 * comm.num_channels;
+              }
+            else if(s->data.audio.bits_per_sample <= 24)
+              {
+              s->data.audio.block_align = 3 * comm.num_channels;
+              }
+            else if(s->data.audio.bits_per_sample <= 32)
+              {
+              s->data.audio.block_align = 4 * comm.num_channels;
+              }
+            else
+              {
+              fprintf(stderr, "%d bit aiff not supported\n", 
+                      s->data.audio.bits_per_sample);
+              return 0;
+              }
+            s->data.audio.format.samples_per_frame = 1024;
+            priv->samples_per_block = 1;
+            break;
+          case BGAV_MK_FOURCC('f','l','3','2'):
+            s->data.audio.block_align = 4 * comm.num_channels;
+            priv->samples_per_block = 1;
+            break;
+          case BGAV_MK_FOURCC('f','l','6','4'):
+            s->data.audio.block_align = 8 * comm.num_channels;
+            priv->samples_per_block = 1;
+            s->data.audio.format.samples_per_frame = 1024;
+            break;
+          case BGAV_MK_FOURCC('a','l','a','w'):
+          case BGAV_MK_FOURCC('A','L','A','W'):
+          case BGAV_MK_FOURCC('u','l','a','w'):
+          case BGAV_MK_FOURCC('U','L','A','W'):
+            s->data.audio.block_align = comm.num_channels;
+            priv->samples_per_block = 1;
+            s->data.audio.format.samples_per_frame = 1024;
+            break;
+#if 0
+          case BGAV_MK_FOURCC('G','S','M',' '):
+            s->data.audio.block_align = 33;
+            priv->samples_per_block = 160;
+            s->data.audio.format.samples_per_frame = 160;
+            break;
+#endif
+          default:
+            fprintf(stderr, "Compression ");
+            bgav_dump_fourcc(comm.compression_type);
+            fprintf(stderr, " not supported\n");
+            return 0;
           }
-        s->data.audio.format.samples_per_frame = 1024;
+        break;
+      case BGAV_MK_FOURCC('N','A','M','E'):
+        ctx->tt->current_track->metadata.title =
+        read_meta_string(ctx->tt->current_track->metadata.title, 
+                         ctx->input, &ch);
+        break;
+      case BGAV_MK_FOURCC('A','U','T','H'):
+        ctx->tt->current_track->metadata.author =
+        read_meta_string(ctx->tt->current_track->metadata.author, 
+                         ctx->input, &ch);
+        break;
+      case BGAV_MK_FOURCC('(','c',')',' '):
+        ctx->tt->current_track->metadata.copyright =
+        read_meta_string(ctx->tt->current_track->metadata.copyright, 
+                         ctx->input, &ch);
+        break;
+      case BGAV_MK_FOURCC('A','N','N','O'):
+        ctx->tt->current_track->metadata.comment =
+        read_meta_string(ctx->tt->current_track->metadata.comment, 
+                         ctx->input, &ch);
         break;
       case BGAV_MK_FOURCC('S','S','N','D'):
         bgav_input_skip(ctx->input, 4); /* Offset */
@@ -197,16 +325,21 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
         keep_going = 0;
         break;
       default:
-        //        fprintf(stderr, "Skipping chunk ");
-        //        bgav_dump_fourcc(ch.fourcc);
-        //        fprintf(stderr, "\n");
-        
+        fprintf(stderr, "Skipping chunk ");
+        bgav_dump_fourcc(ch.fourcc);
+        fprintf(stderr, "\n");
         bgav_input_skip(ctx->input, PADD(ch.size));
         break;
       }
     }
   if(ctx->input->input->seek_byte)
     ctx->can_seek = 1;
+
+  if(priv->is_aifc)
+    ctx->stream_description = bgav_sprintf("AIFF-C");
+  else
+    ctx->stream_description = bgav_sprintf("AIFF");
+  
   return 1;
   }
 
@@ -222,7 +355,9 @@ static int next_packet_aiff(bgav_demuxer_context_t * ctx)
   s = &(ctx->tt->current_track->audio_streams[0]);
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
   
-  bytes_to_read = s->data.audio.format.samples_per_frame * s->data.audio.block_align;
+  bytes_to_read =
+    (s->data.audio.format.samples_per_frame * s->data.audio.block_align) /
+    priv->samples_per_block;
   
   bgav_packet_alloc(p, bytes_to_read);
   

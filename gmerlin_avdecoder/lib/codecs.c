@@ -303,6 +303,7 @@ void bgav_codecs_init()
   
   bgav_init_audio_decoders_gavl();
   bgav_init_audio_decoders_pcm();
+  bgav_init_audio_decoders_gsm();
   bgav_init_video_decoders_aviraw();
   bgav_init_video_decoders_qtraw();
   bgav_init_video_decoders_yuv();
