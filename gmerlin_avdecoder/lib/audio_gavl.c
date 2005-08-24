@@ -34,7 +34,18 @@ static int init_gavl(bgav_stream_t * s)
   gavl_t * priv;
   priv = calloc(1, sizeof(*priv));
   s->data.audio.decoder->priv = priv;
-  
+
+  /* Need to get the first packet because the dv avi decoder
+     won't know the format before */
+#if 1
+  priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  if(!priv->p)
+    return 0;
+#endif
+
+  fprintf(stderr, "Initializing done, audio format:");
+  gavl_audio_format_dump(&s->data.audio.format);
+
   return 1;
   }
 

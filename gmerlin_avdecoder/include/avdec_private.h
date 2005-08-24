@@ -187,9 +187,14 @@ dst[0] = pal.b >> 8;
 
 /* Stream types */
 
-#define BGAV_STREAM_UNKNOWN 0
-#define BGAV_STREAM_AUDIO   1
-#define BGAV_STREAM_VIDEO   2
+typedef enum
+  {
+    BGAV_STREAM_UNKNOWN = 0,
+    BGAV_STREAM_AUDIO,
+    BGAV_STREAM_VIDEO,
+    //    BGAV_STREAM_AUDIO_VIDEO /* DV Packets for example */
+  } bgav_stream_type_t;
+
 
 /* Stream structure */ 
 
@@ -200,7 +205,7 @@ struct bgav_stream_s
   void * priv;
   int action;
   int stream_id; /* Format specific stream id */
-  int type;
+  bgav_stream_type_t type;
   bgav_packet_buffer_t * packet_buffer;
   
   uint8_t * ext_data;
@@ -247,7 +252,14 @@ struct bgav_stream_s
   
   int container_bitrate;
   int codec_bitrate;
-  
+
+  /*
+   *  Indicator for streams, which have no packets (e.g. type 1 DV AVIs,
+   *  where the audio is inside the videopackets
+   */
+
+  int no_packets;
+    
   union
     {
     struct
@@ -679,7 +691,7 @@ struct bgav_demuxer_context_s
   int can_seek;
 
   /*
-   *  If demuxer creates a suprtindex, generic get_packet() and
+   *  If demuxer creates a superindex, generic get_packet() and
    *  seek() functions will be used
    */
 
@@ -697,6 +709,14 @@ struct bgav_demuxer_context_s
 
   void (*track_change_callback)(void * data, int track);
   void * track_change_callback_data;
+
+  /* Some demuxers have a custom read packet function */
+  int (*read_packet)(bgav_demuxer_context_t * ctx, int size);
+
+  /* Some demuxers want a final function to be called after the actual
+     initialization of the demuxer is done (i.e. when packets can be read) */
+
+  
   };
 
 /* demuxer.c */

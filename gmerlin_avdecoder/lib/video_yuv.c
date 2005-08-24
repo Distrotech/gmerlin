@@ -437,6 +437,95 @@ static int init_v410(bgav_stream_t * s)
   }
 
 /*
+ *  v210: Packed YUV 4:2:2, (10 bit per component)
+ *  we make this planar
+ */
+
+static void decode_v210(bgav_stream_t * s, bgav_packet_t * p, gavl_video_frame_t * f)
+  {
+  int i, j;
+  uint8_t * src;
+  uint16_t *dst_y, *dst_u, *dst_v;
+  uint32_t i1, i2, i3, i4;
+  yuv_priv_t * priv;
+  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+
+  priv->frame->planes[0] = p->data;
+  
+  for(i = 0; i < s->data.video.format.image_height; i++)
+    {
+    src = priv->frame->planes[0] + i * priv->frame->strides[0];
+
+    dst_y = (uint16_t*)(f->planes[0] + i * f->strides[0]);
+    dst_u = (uint16_t*)(f->planes[1] + i * f->strides[1]);
+    dst_v = (uint16_t*)(f->planes[2] + i * f->strides[2]);
+    
+    for(j = 0; j < s->data.video.format.image_width/6; j++)
+      {
+      i1 = BGAV_PTR_2_32LE(src);src+=4;
+      i2 = BGAV_PTR_2_32LE(src);src+=4;
+      i3 = BGAV_PTR_2_32LE(src);src+=4;
+      i4 = BGAV_PTR_2_32LE(src);src+=4;
+
+      /* These are grouped to show the "pixel pairs" of  4:2:2 */
+      
+      *(dst_u++) = (i1 & 0x3ff) << 6;       /* Cb0 */
+      *(dst_y++) = (i1 & 0xffc00) >> 4;     /* Y0 */
+      *(dst_v++) = (i1 & 0x3ff00000) >> 14; /* Cr0 */
+      *(dst_y++) = (i2 & 0x3ff) << 6;       /* Y1 */
+      
+      *(dst_u++) = (i2 & 0xffc00) >> 4;     /* Cb1 */
+      *(dst_y++) = (i2 & 0x3ff00000) >> 14; /* Y2 */
+      *(dst_v++) = (i3 & 0x3ff) << 6;       /* Cr1 */
+      *(dst_y++) = (i3 & 0xffc00) >> 4;     /* Y3 */
+      
+      *(dst_u++) = (i3 & 0x3ff00000) >> 14; /* Cb2 */
+      *(dst_y++) = (i4 & 0x3ff) << 6;       /* Y4 */
+      *(dst_v++) = (i4 & 0xffc00) >> 4;     /* Cr2 */
+      *(dst_y++) = (i4 & 0x3ff00000) >> 14; /* Y5 */
+      }
+
+    /* Handle the 2 or 4 pixels possibly remaining */
+    j = (s->data.video.format.image_width - ((s->data.video.format.image_width / 6) * 6));
+    if (j != 0)
+      {
+      i1 = BGAV_PTR_2_32LE(src);src+=4;
+      i2 = BGAV_PTR_2_32LE(src);src+=4;
+      i3 = BGAV_PTR_2_32LE(src);src+=4;
+      i4 = BGAV_PTR_2_32LE(src);src+=4;
+
+      *(dst_u++) = (i1 & 0x3ff) << 6;       /* Cb0 */
+      *(dst_y++) = (i1 & 0xffc00) >> 4;     /* Y0 */
+      *(dst_v++) = (i1 & 0x3ff00000) >> 14; /* Cr0 */
+      *(dst_y++) = (i2 & 0x3ff) << 6;       /* Y1 */
+      if (j == 4)
+        {
+        *(dst_u++) = (i2 & 0xffc00) >> 4;     /* Cb1 */
+        *(dst_y++) = (i2 & 0x3ff00000) >> 14; /* Y2 */
+        *(dst_v++) = (i3 & 0x3ff) << 6;       /* Cr1 */
+        *(dst_y++) = (i3 & 0xffc00) >> 4;     /* Y3 */
+        }
+      }
+    }
+  }
+
+static int init_v210(bgav_stream_t * s)
+  {
+  yuv_priv_t * priv;
+  
+  init_common(s);
+  s->description = bgav_sprintf("YUV 4:2:2 packed (v210)");
+
+  priv = (yuv_priv_t *)(s->data.video.decoder->priv);
+
+  priv->frame->strides[0] = (PADD(s->data.video.format.image_width, 48) * 8) / 3;
+  priv->decode_func = decode_v210;
+  s->data.video.format.pixelformat = GAVL_YUV_422_P_16;
+  return 1;
+  }
+
+
+/*
  *  yuv4: packed YUV 4:2:0
  *  Pretty weird thing existent exclusively in the
  *  qt4l/lqt universe :-)
@@ -624,6 +713,16 @@ static bgav_video_decoder_t v410_decoder =
     close:  close,
   };
 
+static bgav_video_decoder_t v210_decoder =
+  {
+    name:   "v210 video decoder",
+    fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('v', '2', '1', '0'), 0x00  },
+    init:   init_v210,
+    decode: decode,
+    close:  close,
+  };
+
+
 static bgav_video_decoder_t yuv4_decoder =
   {
     name:   "yuv4 video decoder",
@@ -644,6 +743,7 @@ void bgav_init_video_decoders_yuv()
   bgav_video_decoder_register(&v308_decoder);
   bgav_video_decoder_register(&v408_decoder);
   bgav_video_decoder_register(&v410_decoder);
+  bgav_video_decoder_register(&v210_decoder);
   bgav_video_decoder_register(&yuv4_decoder);
   }
 

@@ -200,7 +200,7 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
     {
     priv->is_aifc = 1;
     }
-  else if(fourcc == BGAV_MK_FOURCC('A','I','F','F'))
+  else if(fourcc != BGAV_MK_FOURCC('A','I','F','F'))
     {
     return 0;
     }
@@ -222,7 +222,9 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
         if(!comm_chunk_read(&ch,
                             ctx->input,
                             &comm, priv->is_aifc))
+          {
           return 0;
+          }
         
         s->data.audio.format.samplerate =   comm.samplerate;
         s->data.audio.format.num_channels = comm.num_channels;

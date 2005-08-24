@@ -87,6 +87,7 @@ void bgav_dv_dec_set_frame(bgav_dv_dec_t * d, uint8_t * data)
   d->buffer = data;
 
   dv_parse_header(d->dv, d->buffer);
+  dv_parse_packs(d->dv, d->buffer);
   }
 
 /* Set up audio and video streams */
@@ -95,6 +96,7 @@ void bgav_dv_dec_init_audio(bgav_dv_dec_t * d, bgav_stream_t * s)
   {
   s->data.audio.format.samplerate =  dv_get_frequency(d->dv);
   s->data.audio.format.num_channels =  dv_get_num_channels(d->dv);
+  //  s->data.audio.format.num_channels = dv_is_4ch(d->dv) ? 4 : 2;
   s->data.audio.format.sample_format =  GAVL_SAMPLE_S16;
   s->data.audio.format.interleave_mode =  GAVL_INTERLEAVE_NONE;
   s->data.audio.format.samples_per_frame = DV_AUDIO_MAX_SAMPLES;
@@ -156,13 +158,12 @@ int bgav_dv_dec_get_audio_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
     p->audio_frame = gavl_audio_frame_create(&(d->audio_format));
   p->audio_frame->valid_samples = dv_get_num_samples(d->dv);
   p->keyframe = 1;
-    
+
+  //  fprintf(stderr, "Decode audio %p\n", p->audio_frame->channels.s_16[0]);
+  
   if(!dv_decode_full_audio(d->dv,
                            d->buffer, p->audio_frame->channels.s_16))
-    //    p->audio_frame->valid_samples = 0;
-    ;
-    
-  //  fprintf(stderr, "Valid samples: %d\n", p->audio_frame->valid_samples);
+    p->audio_frame->valid_samples = 0;
   return 1;
   }
 
