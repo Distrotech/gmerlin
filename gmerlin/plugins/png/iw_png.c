@@ -104,7 +104,7 @@ static int write_header_png(void * priv, const char * filename,
       
     }
 #ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
-  fprintf(stderr, "LITTLE ENDIAN\n");
+//  fprintf(stderr, "LITTLE ENDIAN\n");
   if(bits > 8)
     png->transform_flags |= PNG_TRANSFORM_SWAP_ENDIAN;
 #endif

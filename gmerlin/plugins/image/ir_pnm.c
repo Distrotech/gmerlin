@@ -44,15 +44,15 @@
 
 typedef struct
   {
-  FILE *pnm_file;
-  char *buffer;
-  char *buffer_ptr;
-  char *buffer_end;
+  uint8_t *buffer;
+  int buffer_alloc;
+  
+  uint8_t *buffer_ptr;
+  uint8_t *buffer_end;
   int is_pnm;
   int width;
   int height;
   int maxval;
-  int depht;
   } pnm_t;
 
 
@@ -68,57 +68,65 @@ static void * create_pnm()
 static void destroy_pnm(void* priv) 
   {
   pnm_t * pnm = (pnm_t*)priv;
+  if(pnm->buffer)
+    free(pnm->buffer);
   if(pnm)
     free(pnm);
   }
 
 static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t * format)
   {
+  FILE *pnm_file;
   char *ptr;
   char *end_ptr;
   pnm_t *p = (pnm_t*)priv;
   unsigned long size;
 
   p->is_pnm = 0;
- 
+  p->width = 0;
+  p->height = 0;
+  p->maxval = 0;
+  
   /* open file */
-  p->pnm_file = fopen(filename,"rb");
+  pnm_file = fopen(filename,"rb");
     
-  if(!p->pnm_file)
+  if(!pnm_file)
     {
     fprintf(stderr,"Can't open file %s\n", filename);
     return 0;
     }
   
   /* read filesize */
-  fseek(p->pnm_file, 0, SEEK_END);
-  if((size = ftell(p->pnm_file))<0) return 1;
-  fseek(p->pnm_file, 0, SEEK_SET);
+  fseek(pnm_file, 0, SEEK_END);
+  if((size = ftell(pnm_file))<0) return 1;
+  fseek(pnm_file, 0, SEEK_SET);
 
   //  fprintf(stderr,"filesize = %ld \n", size);
 
-  p->buffer = calloc(size, sizeof(char));
+  if(p->buffer_alloc < size)
+    {
+    p->buffer_alloc = size + 1024;
+    p->buffer = realloc(p->buffer, size);
+    }
   
-  if(fread(p->buffer, 1, size, p->pnm_file)!=size)
+  if(fread(p->buffer, 1, size, pnm_file)!=size)
     {
     fprintf(stderr,"Can't read File type\n");
-    fclose(p->pnm_file);
+    fclose(pnm_file);
     return 0;
     }
 
-  fclose(p->pnm_file);
+  fclose(pnm_file);
   
   p->buffer_ptr = p->buffer;
   p->buffer_end = p->buffer + size;
 
-  ptr = p->buffer;
-  end_ptr = p->buffer+1;
+  ptr = (char*)p->buffer;
+  end_ptr = (char*)(p->buffer+1);
 
   if(*ptr != 'P')
     {
     fprintf(stderr,"File isn't a pnm\n");
-    if(*p->buffer)
-      free(p->buffer);
     return 0;
     }
   
@@ -129,7 +137,7 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
     
     if(*ptr == 'P')
       {
-      ptr ++;
+      ptr++;
       if((*ptr == '1') || (*ptr == '2') || (*ptr == '3') ||
          (*ptr == '4') || (*ptr == '5') || (*ptr == '6') || (*ptr == '7'))
        
@@ -217,23 +225,20 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
   if(p->is_pnm == 7)
     {
     fprintf(stderr,"Sorry PAM format not suported\n");
-    if(*p->buffer)
-      free(p->buffer);
     return 0;
     }
   
   if(p->is_pnm == 0)
     {
     fprintf(stderr,"File isn't a pnm (%.1s%.1s%.1s)\n",ptr-1,ptr, ptr+1);
-    if(*p->buffer)
-      free(p->buffer);
     return 0;
     }
 
-  p->buffer_ptr = ptr;
+  p->buffer_ptr = (uint8_t*)ptr;
      
   /* set gavl_video_format */
-
+  fprintf(stderr, "maxval: %d\n", p->maxval);
+  
   if(p->maxval > 255)
     {
     format->pixelformat = GAVL_RGB_48;
@@ -285,7 +290,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
         {
         while(!isdigit(*p->buffer_ptr))
            INC_PTR;
-        byte = atoi(p->buffer_ptr);
+        byte = atoi((char*)p->buffer_ptr);
         if(byte == 0)
           byte = 0xff;
         if(byte == 1)
@@ -357,7 +362,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
         {
         while(!isdigit(*p->buffer_ptr))
           INC_PTR;
-        byte = atoi(p->buffer_ptr);
+        byte = atoi((char*)p->buffer_ptr);
         byte = (byte * 255)/p->maxval;
         frame_ptr[0]= byte;
         frame_ptr[1]= byte;
@@ -386,7 +391,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
         {
         while(!isdigit(*p->buffer_ptr))
           INC_PTR;
-        byte = atoi(p->buffer_ptr);
+        byte = atoi((char*)p->buffer_ptr);
         byte = (byte * 65535)/p->maxval;
         frame_ptr_16[0]= byte;
         frame_ptr_16[1]= byte;
@@ -469,7 +474,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
         {
         while(!isdigit(*p->buffer_ptr))
           INC_PTR;
-        byte = atoi(p->buffer_ptr);
+        byte = atoi((char*)p->buffer_ptr);
         byte = (byte * 255)/p->maxval;
         frame_ptr[0]= byte;
         INC_PTR;
@@ -477,7 +482,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
           INC_PTR;
         while(!isdigit(*p->buffer_ptr))
           INC_PTR;
-        byte = atoi(p->buffer_ptr);
+        byte = atoi((char*)p->buffer_ptr);
         byte = (byte * 255)/p->maxval;
         frame_ptr[1]= byte;
         INC_PTR;
@@ -485,7 +490,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
           INC_PTR;
         while(!isdigit(*p->buffer_ptr))
           INC_PTR;
-        byte = atoi(p->buffer_ptr);
+        byte = atoi((char*)p->buffer_ptr);
         byte = (byte * 255)/p->maxval;
         frame_ptr[2]= byte;
         INC_PTR;
@@ -512,7 +517,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
         {
         while(!isdigit(*p->buffer_ptr))
           INC_PTR;
-        byte = atoi(p->buffer_ptr);
+        byte = atoi((char*)p->buffer_ptr);
         byte = (byte * 65535)/p->maxval;
         frame_ptr_16[0]= byte;
         INC_PTR;
@@ -520,7 +525,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
           INC_PTR;
         while(!isdigit(*p->buffer_ptr))
           INC_PTR;
-        byte = atoi(p->buffer_ptr);
+        byte = atoi((char*)p->buffer_ptr);
         byte = (byte * 65535)/p->maxval;
         frame_ptr_16[1]= byte;
         INC_PTR;
@@ -528,7 +533,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
           INC_PTR;
         while(!isdigit(*p->buffer_ptr))
           INC_PTR;
-        byte = atoi(p->buffer_ptr);
+        byte = atoi((char*)p->buffer_ptr);
         byte = (byte * 65535)/p->maxval;
         frame_ptr_16[2]= byte;
         INC_PTR;
@@ -540,13 +545,11 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
       }
     }
 
-  
-
   /* PPM binaer */
   if(p->is_pnm == PPMbin)
     {
 #ifdef DEBUG
-    fprintf(stderr, "PPMbin\n");
+    fprintf(stderr, "PPMbin %d x %d, max: %d\n", p->width, p->height, p->maxval);
 #endif
     frame_ptr_start = frame->planes[0];
     
@@ -557,15 +560,24 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
       for (x = 0; x < p->width; x++)
         {
         byte = *(p->buffer_ptr);
+        //        fprintf(stderr, "%d ", byte);
         byte = (byte * 255)/p->maxval;
+
+
         frame_ptr[0]= byte;
         INC_PTR;
         byte = *(p->buffer_ptr);
+        //        fprintf(stderr, "%d ", byte);
         byte = (byte * 255)/p->maxval;
+
+
         frame_ptr[1]= byte;
         INC_PTR;
         byte = *(p->buffer_ptr);
+        //        fprintf(stderr, "%d ", byte);
         byte = (byte * 255)/p->maxval;
+
+                
         frame_ptr[2]= byte;
         INC_PTR;
         frame_ptr += 3;
@@ -608,9 +620,6 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
       frame_ptr_start += frame->strides[0];
       }
     }
-
-  if(*p->buffer)
-    free(p->buffer);
   
   return 1;
   }
