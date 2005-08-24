@@ -22,5 +22,12 @@ else
 faac_subdirs =
 endif
 
-SUBDIRS = $(vorbis_subdirs) $(flac_subdirs) $(lame_subdirs) $(faac_subdirs)
+if HAVE_MJPEGTOOLS
+mjpeg_subdirs = yuv4mpeg
+else
+mjpeg_subdirs =
+endif
+
+
+SUBDIRS = $(vorbis_subdirs) $(flac_subdirs) $(lame_subdirs) $(faac_subdirs) $(mjpeg_subdirs)
 

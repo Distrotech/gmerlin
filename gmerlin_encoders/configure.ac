@@ -243,6 +243,32 @@ AC_DEFINE(HAVE_FAAC)
 fi
 
 dnl
+dnl mjpegtools
+dnl
+
+dnl
+dnl Check for mjpegtools
+dnl
+
+AH_TEMPLATE([HAVE_MJPEGTOOLS],
+            [Do we have mjpegtools installed?])
+
+have_mjpegtools="false"
+
+MJPEGTOOLS_REQUIRED="1.7.0"
+
+PKG_CHECK_MODULES(MJPEGTOOLS, mjpegtools >= $MJPEGTOOLS_REQUIRED, have_mjpegtools="true", have_mjpegtools="false")
+AC_SUBST(MJPEGTOOLS_REQUIRED)
+AC_SUBST(MJPEGTOOLS_LIBS)
+AC_SUBST(MJPEGTOOLS_CFLAGS)
+
+AM_CONDITIONAL(HAVE_MJPEGTOOLS, test x$have_mjpegtools = xtrue)
+
+if test "x$have_mjpegtools" = "xtrue"; then
+AC_DEFINE([HAVE_MJPEGTOOLS])
+fi
+
+dnl
 dnl CFLAGS
 dnl
 
@@ -271,40 +297,50 @@ plugins/Makefile \
 plugins/flac/Makefile \
 plugins/vorbis/Makefile \
 plugins/lame/Makefile \
-plugins/faac/Makefile ])
+plugins/faac/Makefile \
+plugins/yuv4mpeg/Makefile \
+])
 
 AC_OUTPUT
 
 echo ""
 echo "=== Libraries: ================================="
 
-echo -n "flac:   "
+echo -n "flac:       "
 if test "x$have_flac" = "xtrue"; then
 echo "Found (CFLAGS=$FLAC_CFLAGS LIBS=$FLAC_LIBS)"
 else
 echo "Missing"
 fi
 
-echo -n "vorbis: "
+echo -n "vorbis:     "
 if test "x$have_vorbis" = "xtrue"; then
 echo "Found (CFLAGS=$VORBIS_CFLAGS LIBS=$VORBIS_LIBS)"
 else
 echo "Missing"
 fi
 
-echo -n "lame:   "
+echo -n "lame:       "
 if test "x$have_lame" = "xtrue"; then
 echo "Found (CFLAGS=$LAME_CFLAGS LIBS=$LAME_LIBS)"
 else
 echo "Missing"
 fi
 
-echo -n "faac:   "
+echo -n "faac:       "
 if test "x$have_faac" = "xtrue"; then
 echo "Found (CFLAGS=$FAAC_CFLAGS LIBS=$FAAC_LIBS)"
 else
 echo "Missing"
 fi
+
+echo -n "mjpegtools: "
+if test "x$have_mjpegtools" = "xtrue"; then
+echo "Found (CFLAGS=$MJPEGTOOLS_CFLAGS LIBS=$MJPEGTOOLS_LIBS)"
+else
+echo "Missing"
+fi
+
 
 echo
 echo "If you installed a library but it was not detected, check the file INSTALL"
