@@ -22,7 +22,7 @@
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin_encoders.h>
-#include <mjpegtools/yuv4mpeg.h>
+#include <yuv4mpeg.h>
 
 typedef struct
   {
