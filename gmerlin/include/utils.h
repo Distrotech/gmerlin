@@ -34,9 +34,13 @@ char * bg_search_file_read(const char * directory, const char * file);
 
 char * bg_search_file_write(const char * directory, const char * file);
 
-/* Returns TRUE if an executeable is found anywhere in $PATH */
+/* 
+ *  Returns TRUE if an executeable is found anywhere in $PATH 
+ *  If path is non NULL, it will contain the path to the executable,
+ *  which must be freed after
+ */
 
-int bg_search_file_exec(const char * file);
+int bg_search_file_exec(const char * file, char ** path);
 
 /* 
  *  String utilities

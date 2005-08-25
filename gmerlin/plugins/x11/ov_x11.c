@@ -436,8 +436,8 @@ alloc_frame_xv(x11_t * priv)
     {
     x11_frame->xv_image =
       XvShmCreateImage(priv->dpy, priv->xv_port, priv->xv_format, NULL,
-                       priv->video_format.image_width,
-                       priv->video_format.image_height, &(x11_frame->shminfo));
+                       priv->video_format.frame_width,
+                       priv->video_format.frame_height, &(x11_frame->shminfo));
     if(!x11_frame->xv_image)
       priv->have_shm = 0;
     else

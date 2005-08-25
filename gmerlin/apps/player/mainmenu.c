@@ -236,19 +236,19 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
 
   ret->accessories_menu.menu = create_menu();
 
-  if(bg_search_file_exec("gmerlin_transcoder"))
+  if(bg_search_file_exec("gmerlin_transcoder", (char**)0))
     ret->accessories_menu.transcoder =
       create_item("Transcoder", gmerlin, ret->accessories_menu.menu);
   else
     fprintf(stderr, "gmerlin_transcoder not found\n");
 
-  if(bg_search_file_exec("gmerlin_visualizer"))
+  if(bg_search_file_exec("gmerlin_visualizer", (char**)0))
     ret->accessories_menu.visualizer =
       create_item("Visualizer", gmerlin, ret->accessories_menu.menu);
   else
     fprintf(stderr, "gmerlin_visualizer not found\n");
 
-  if(bg_search_file_exec("gmerlin_alsamixer"))
+  if(bg_search_file_exec("gmerlin_alsamixer", (char**)0))
     ret->accessories_menu.mixer =
       create_item("Mixer", gmerlin, ret->accessories_menu.menu);
   else

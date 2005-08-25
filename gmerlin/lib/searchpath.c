@@ -146,15 +146,26 @@ char * bg_search_file_write(const char * directory, const char * file)
   return (char*)0;
   }
 
-int bg_search_file_exec(const char * file)
+int bg_search_file_exec(const char * file, char ** _path)
   {
-  int ret = 0, i;
+  int i;
   char * path;
   char ** searchpaths;
   char * test_filename;
   
   struct stat st;
 
+  /* Try the dependencies path first */
+  test_filename = bg_sprintf("/opt/gmerlin/bin/%s", file);
+  if(!stat(test_filename, &st) && (st.st_mode & S_IXOTH))
+    {
+    if(_path)
+      *_path = test_filename;
+    else
+      free(test_filename);
+    return 1;
+    }
+  
   path = getenv("PATH");
   if(!path)
     return 0;
@@ -164,17 +175,18 @@ int bg_search_file_exec(const char * file)
   while(searchpaths[i])
     {
     test_filename = bg_sprintf("%s/%s", searchpaths[i], file);
-
-    if(!stat(test_filename, &st) &&
-       (st.st_mode & S_IXOTH))
-      ret = 1;
-
+    if(!stat(test_filename, &st) && (st.st_mode & S_IXOTH))
+      {
+      if(_path)
+        *_path = test_filename;
+      else
+        free(test_filename);
+      bg_strbreak_free(searchpaths);
+      return 1;
+      }
     free(test_filename);
-    if(ret)
-      break;
     i++;
     }
-
   bg_strbreak_free(searchpaths);
-  return ret;
+  return 0;
   }

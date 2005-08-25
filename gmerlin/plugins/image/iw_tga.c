@@ -53,9 +53,13 @@ static void destroy_tga(void * priv)
 static int write_header_tga(void * priv, const char * filename,
                             gavl_video_format_t * format)
   {
+  gavl_video_frame_t * frame;
   tga_t * tga = (tga_t*)priv;
 
-  format->pixelformat = GAVL_BGR_24;
+  if(gavl_pixelformat_has_alpha(format->pixelformat))
+    format->pixelformat = GAVL_RGBA_32;
+  else
+    format->pixelformat = GAVL_BGR_24;
 
   gavl_video_format_copy(&(tga->format), format);
   tga->filename = bg_strdup(tga->filename, filename);
@@ -65,22 +69,48 @@ static int write_header_tga(void * priv, const char * filename,
 static int write_image_tga(void * priv, gavl_video_frame_t * frame)
   {
   tga_t * tga = (tga_t*)priv;
+  gavl_video_frame_t * tmp_frame;
   
-  if(tga->rle)
+  if(tga->format.pixelformat == GAVL_RGBA_32)
     {
-    if(tga_write_bgr(tga->filename, frame->planes[0],
-                     tga->format.image_width,
-                     tga->format.image_height, 24,
-                     frame->strides[0]) != TGA_NOERR)
-      return 0;
+    tmp_frame = gavl_video_frame_create(&tga->format);
+    gavl_video_frame_copy(&(tga->format), tmp_frame, frame);
+    if(tga->rle)
+      {
+      if(tga_write_rgb(tga->filename, tmp_frame->planes[0],
+                       tga->format.image_width,
+                       tga->format.image_height, 32,
+                       frame->strides[0]) != TGA_NOERR)
+        return 0;
+      }
+    else
+      {
+      if(tga_write_rgb_rle(tga->filename, tmp_frame->planes[0],
+                           tga->format.image_width,
+                           tga->format.image_height, 32,
+                           frame->strides[0]) != TGA_NOERR)
+        return 0;
+      }
+    gavl_video_frame_destroy(tmp_frame);
     }
   else
     {
-    if(tga_write_bgr_rle(tga->filename, frame->planes[0],
-                         tga->format.image_width,
-                         tga->format.image_height, 24,
-                         frame->strides[0]) != TGA_NOERR)
-      return 0;
+    if(tga->rle)
+      {
+      if(tga_write_bgr(tga->filename, frame->planes[0],
+                       tga->format.image_width,
+                       tga->format.image_height, 24,
+                       frame->strides[0]) != TGA_NOERR)
+        return 0;
+      }
+    else
+      {
+      if(tga_write_bgr_rle(tga->filename, frame->planes[0],
+                           tga->format.image_width,
+                           tga->format.image_height, 24,
+                           frame->strides[0]) != TGA_NOERR)
+        return 0;
+      }
     }
   free(tga->filename);
   tga->filename = (char*)0;

@@ -1119,7 +1119,7 @@ static void init_menu(bg_gtk_album_widget_t * w)
   w->menu.selected_menu.info_item =
     create_item(w, w->menu.selected_menu.menu, "Info...");
 
-  if(bg_search_file_exec("gmerlin_transcoder_remote"))  
+  if(bg_search_file_exec("gmerlin_transcoder_remote", (char**)0))  
     w->menu.selected_menu.transcode_item =
       create_item(w, w->menu.selected_menu.menu, "Tanscode");
   

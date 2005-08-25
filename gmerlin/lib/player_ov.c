@@ -60,7 +60,7 @@ static void button_callback(void * data, int x, int y, int button)
 
 void * bg_player_ov_create_frame(void * data)
   {
-  void * ret;
+  gavl_video_frame_t * ret;
   bg_player_ov_context_t * ctx;
   ctx = (bg_player_ov_context_t *)data;
 
@@ -72,8 +72,12 @@ void * bg_player_ov_create_frame(void * data)
     }
   else
     ret = gavl_video_frame_create(&(ctx->player->video_stream.output_format));
+
+  //  fprintf(stderr, "gavl_video_frame_clear %d %d %d\n", ret->strides[0], ret->strides[1], ret->strides[2]);
+  //  gavl_video_format_dump(&(ctx->player->video_stream.output_format));
   gavl_video_frame_clear(ret, &(ctx->player->video_stream.output_format));
-  return ret;
+  
+  return (void*)ret;
   }
 
 void bg_player_ov_destroy_frame(void * data, void * frame)
