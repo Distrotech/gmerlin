@@ -511,7 +511,6 @@ static void set_parameter_lame(void * data, char * name, bg_parameter_value_t * 
 static int open_lame(void * data, const char * filename,
                     bg_metadata_t * metadata)
   {
-  int result;
   lame_priv_t * lame;
   bgen_id3v2_t * id3v2;
 
@@ -536,7 +535,7 @@ static int open_lame(void * data, const char * filename,
     lame->id3v1 = bgen_id3v1_create(metadata);
     }
   
-  return result;
+  return 1;
   }
 
 static char * lame_extension = ".mp3";

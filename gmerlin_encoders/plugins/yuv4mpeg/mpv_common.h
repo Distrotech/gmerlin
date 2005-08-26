@@ -31,7 +31,11 @@ typedef struct
   int bitrate;      /* -b */
   int video_buffer; /* -V */
   int bframes;      /* -R */
+
+  int bitrate_mode; /* -cbr, -q ... */
+  int quantization; /* -q */
   
+  char * user_options;
   } bg_mpv_common_t;
 
 bg_parameter_info_t * bg_mpv_get_parameters();
