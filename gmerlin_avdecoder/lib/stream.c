@@ -25,7 +25,7 @@
 
 int bgav_stream_start(bgav_stream_t * stream)
   {
-  int result;
+  int result = 1;
   if((stream->action == BGAV_STREAM_DECODE) ||
      (stream->action == BGAV_STREAM_SYNC))
     {
@@ -38,7 +38,7 @@ int bgav_stream_start(bgav_stream_t * stream)
         result = bgav_audio_start(stream);
         break;
       default:
-        result = 1;
+        break;
       }
     }
   return result;
@@ -56,6 +56,8 @@ void bgav_stream_stop(bgav_stream_t * stream)
         break;
       case BGAV_STREAM_AUDIO:
         bgav_audio_stop(stream);
+        break;
+      default:
         break;
       }
     }
@@ -92,7 +94,8 @@ void bgav_stream_dump(bgav_stream_t * s)
     case BGAV_STREAM_VIDEO:
       fprintf(stderr, "============ Video stream ============\n");
       break;
-      
+    case BGAV_STREAM_UNKNOWN:
+      return;
     }
   fprintf(stderr, "  Type:              %s\n",
           (s->description ? s->description : "Not specified"));
@@ -142,6 +145,8 @@ void bgav_stream_resync_decoder(bgav_stream_t * s)
     case BGAV_STREAM_VIDEO:
       bgav_video_resync(s);
       break;
+    case BGAV_STREAM_UNKNOWN:
+      break;
     }
   }
 
@@ -159,6 +164,8 @@ int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time)
       break;
     case BGAV_STREAM_VIDEO:
       return bgav_video_skipto(s, time);
+      break;
+    case BGAV_STREAM_UNKNOWN:
       break;
     }
   return 0;

@@ -1276,7 +1276,8 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
     }
 
     
-  bg_vs->stream_id = (ctx->tt->current_track->num_audio_streams + ctx->tt->current_track->num_video_streams) - 1;
+  bg_vs->stream_id = (ctx->tt->current_track->num_audio_streams +
+                      ctx->tt->current_track->num_video_streams) - 1;
   return 1;
   }
 
@@ -1335,7 +1336,7 @@ static int read_packet_iavs(bgav_demuxer_context_t * ctx,
   
   if(do_init)
     {
-    fprintf(stderr, "Finalizing streams...");
+    //    fprintf(stderr, "Finalizing streams...");
     bgav_dv_dec_init_audio(avi_iavs->d, as);
     bgav_dv_dec_init_video(avi_iavs->d, vs);
 
@@ -1806,10 +1807,19 @@ static void close_avi(bgav_demuxer_context_t * ctx)
       free(ctx->tt->current_track->video_streams[i].ext_data);
 
     avi_vs = (video_priv_t*)(ctx->tt->current_track->video_streams[i].priv);
-    if(avi_vs->has_indx)
-      free_indx(&(avi_vs->indx));
 
-    free(avi_vs);
+    if(avi_vs)
+      {
+      if(avi_vs->has_indx)
+        free_indx(&(avi_vs->indx));
+#ifdef HAVE_LIBDV
+      if(avi_vs->d)
+        bgav_dv_dec_destroy(avi_vs->d);
+      if(avi_vs->buffer)
+        free(avi_vs->buffer);
+#endif
+      free(avi_vs);
+      }
     }
 
   if(priv->info)

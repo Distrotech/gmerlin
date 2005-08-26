@@ -192,7 +192,6 @@ typedef enum
     BGAV_STREAM_UNKNOWN = 0,
     BGAV_STREAM_AUDIO,
     BGAV_STREAM_VIDEO,
-    //    BGAV_STREAM_AUDIO_VIDEO /* DV Packets for example */
   } bgav_stream_type_t;
 
 

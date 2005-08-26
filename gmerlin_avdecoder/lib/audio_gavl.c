@@ -39,12 +39,14 @@ static int init_gavl(bgav_stream_t * s)
      won't know the format before */
 #if 1
   priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
-  if(!priv->p)
+  if(!priv->p || !priv->p->audio_frame)
     return 0;
+  priv->last_frame_samples = priv->p->audio_frame->valid_samples;
+
 #endif
 
-  fprintf(stderr, "Initializing done, audio format:");
-  gavl_audio_format_dump(&s->data.audio.format);
+  //  fprintf(stderr, "Initializing done, audio format:");
+  //  gavl_audio_format_dump(&s->data.audio.format);
 
   return 1;
   }
@@ -77,7 +79,9 @@ static int decode_gavl(bgav_stream_t * s,
       }
 
     /* Decode */
-
+    //    fprintf(stderr, "%d %d %d %d\n", samples_decoded,
+    //            priv->last_frame_samples - priv->p->audio_frame->valid_samples,
+    //           num_samples - samples_decoded, priv->p->audio_frame->valid_samples);
     samples_copied =
       gavl_audio_frame_copy(&(s->data.audio.format),
                             frame,       /* dst */
@@ -113,6 +117,7 @@ static void resync_gavl(bgav_stream_t * s)
   priv = (gavl_t*)(s->data.audio.decoder->priv);
   if(priv->p && priv->p->audio_frame)
     priv->p->audio_frame->valid_samples = 0;
+  priv->p = (bgav_packet_t*)0;
   }
 
 static bgav_audio_decoder_t decoder =

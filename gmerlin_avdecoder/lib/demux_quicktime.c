@@ -613,9 +613,9 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         {
         if(desc->fiel.fields == 2)
           {
-          if(desc->fiel.detail == 14)
+          if((desc->fiel.detail == 14) || (desc->fiel.detail == 6))
             bg_vs->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
-          else if(desc->fiel.detail == 9)
+          else if((desc->fiel.detail == 9) || (desc->fiel.detail == 1))
             bg_vs->data.video.format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
           }
         }
