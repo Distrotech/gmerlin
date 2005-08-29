@@ -19,6 +19,7 @@
 
 #include <stdlib.h>
 #include <avdec_private.h>
+#include <stdio.h>
 
 int bgav_num_video_streams(bgav_t *  bgav, int track)
   {

@@ -17,9 +17,10 @@
  
 *****************************************************************/
 
-#include <stdlib.h>
-
 #include <avdec_private.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 #include <pes_header.h>
 
 #define SYSTEM_HEADER 0x000001bb

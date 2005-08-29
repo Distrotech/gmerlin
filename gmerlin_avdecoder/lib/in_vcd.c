@@ -17,11 +17,11 @@
  
 *****************************************************************/
 
+#include <avdec_private.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
-#include <config.h>
-#include <avdec_private.h>
 #include <cdio/cdio.h>
 #include <cdio/device.h>
 #include <cdio/cd_types.h>

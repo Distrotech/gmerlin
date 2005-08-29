@@ -18,10 +18,11 @@
  
 *****************************************************************/
 
-#include <stdlib.h>
-#include <string.h>
 #include <avdec_private.h>
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #define MY_FREE(ptr) if(ptr)free(ptr);ptr=NULL;
 

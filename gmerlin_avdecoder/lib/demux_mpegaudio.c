@@ -17,10 +17,12 @@
  
 *****************************************************************/
 
+#include <avdec_private.h>
+
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <avdec_private.h>
 // #include <id3.h>
 #include <xing.h>
 #include <utils.h>

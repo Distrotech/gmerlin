@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include <avdec_private.h>
+#include <stdio.h>
 
 #include <qt.h>
 

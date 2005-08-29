@@ -18,13 +18,14 @@
 *****************************************************************/
 
 /* System includes */
+#include <avdec_private.h>
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 /* Package includes */
 
-#include <avdec_private.h>
 #include <pes_header.h>
 
 #define MAX_PAT_SECTION_LENGTH 1021

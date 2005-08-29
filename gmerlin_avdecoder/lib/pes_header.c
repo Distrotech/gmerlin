@@ -17,9 +17,11 @@
  
 *****************************************************************/
 
-#include <string.h>
-
 #include <avdec_private.h>
+
+#include <string.h>
+#include <stdio.h>
+
 #include <pes_header.h>
 
 #define PADDING_STREAM   0xbe

@@ -17,12 +17,14 @@
  
 *****************************************************************/
 
+#include <avdec_private.h>
+
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 
-#include <avdec_private.h>
 #include <http.h>
 
 /* Creation/destruction of http header */

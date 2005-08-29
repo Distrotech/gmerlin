@@ -2,6 +2,7 @@
 
 #include <avdec_private.h>
 #include <rtsp.h>
+#include <stdio.h>
 
 
 char * url = "rtsp://rd01.t-bn.de/live/viva/viva1tv_live_adsl.rm";

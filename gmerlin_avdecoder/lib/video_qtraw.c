@@ -23,6 +23,7 @@
 #include <config.h>
 #include <codecs.h>
 #include <avdec_private.h>
+#include <stdio.h>
 
 typedef struct
   {

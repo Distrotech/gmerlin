@@ -17,13 +17,13 @@
  
 *****************************************************************/
 
+#include <avdec_private.h>
+
 #include <iconv.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-
-
-#include <avdec_private.h>
+#include <stdio.h>
 
 struct bgav_charset_converter_s
   {

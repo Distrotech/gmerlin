@@ -20,6 +20,8 @@
 #include <avdec_private.h>
 
 #include <qt.h>
+
+#include <stdio.h>
 /*
   
   uint64_t size;

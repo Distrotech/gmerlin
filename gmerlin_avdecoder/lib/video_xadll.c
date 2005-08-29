@@ -22,19 +22,19 @@
  *  the other xanim codecs are already there via libavcodec or Win32 dlls
  */
 
+#include <avdec_private.h>
 #include <dlfcn.h> /* dlsym, dlopen, dlclose */
 #include <stdarg.h> /* va_alist, va_start, va_end */
 #include <errno.h> /* strerror, errno */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <limits.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include <config.h>
 #include <codecs.h>
-#include <avdec_private.h>
 
 char * bgav_dll_path_xanim = (char*)0;
 

@@ -20,6 +20,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <avdec_private.h>
+
+#include <stdio.h>
 #include <qt.h>
 
 int bgav_qt_fiel_read(qt_atom_header_t * h, bgav_input_context_t * ctx,

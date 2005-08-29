@@ -25,6 +25,7 @@
 #include <qt.h>
 
 #include <zlib.h>
+#include <stdio.h>
 
 int bgav_qt_cmov_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_moov_t * ret)

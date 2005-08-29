@@ -17,9 +17,10 @@
  
 *****************************************************************/
 
+#include <avdec_private.h>
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <avdec_private.h>
 
 typedef struct
   {

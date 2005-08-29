@@ -18,11 +18,12 @@
 *****************************************************************/
 
 /* Handling of input devices */
+#include <avdec_private.h>
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
-#include <avdec_private.h>
 #include <utils.h>
 #include <limits.h>
 

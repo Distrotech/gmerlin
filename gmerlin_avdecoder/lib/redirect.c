@@ -19,6 +19,7 @@
 *****************************************************************/
 
 #include <avdec_private.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 extern bgav_redirector_t bgav_redirector_asx;

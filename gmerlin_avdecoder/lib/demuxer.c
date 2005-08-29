@@ -18,10 +18,11 @@
 *****************************************************************/
 
 #define DUMP_SUPERINDEX    
+#include <avdec_private.h>
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <avdec_private.h>
 
 extern bgav_demuxer_t bgav_demuxer_asf;
 extern bgav_demuxer_t bgav_demuxer_avi;

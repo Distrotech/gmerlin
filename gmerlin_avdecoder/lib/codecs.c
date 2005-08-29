@@ -17,13 +17,15 @@
  
 *****************************************************************/
 
+#include <avdec_private.h>
+
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <config.h>
 #include <codecs.h>
 #include <pthread.h>
 
-#include <avdec_private.h>
 #include <utils.h>
 
 // #define ENABLE_DEBUG

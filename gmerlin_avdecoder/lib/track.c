@@ -20,6 +20,7 @@
 #include <avdec_private.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 bgav_stream_t *
 bgav_track_add_audio_stream(bgav_track_t * t)

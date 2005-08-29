@@ -20,6 +20,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <avdec_private.h>
+#include <stdio.h>
 #include <yml.h>
 #include <stdlib.h>
 

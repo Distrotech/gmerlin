@@ -17,9 +17,11 @@
  
 *****************************************************************/
 
-#include <stdlib.h>
-
 #include <avdec_private.h>
+
+#include <stdlib.h>
+#include <stdio.h>
+
 
 #define DUMP_SIZE 1024
 

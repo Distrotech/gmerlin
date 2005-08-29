@@ -17,13 +17,15 @@
  
 *****************************************************************/
 
+#include <avdec_private.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <ffmpeg/avcodec.h>
+#include <stdio.h>
 
 #include <config.h>
 #include <codecs.h>
-#include <avdec_private.h>
 
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 

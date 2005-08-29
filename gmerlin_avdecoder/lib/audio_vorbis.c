@@ -27,6 +27,8 @@
 #include <codecs.h>
 #include <avdec_private.h>
 
+#include <stdio.h>
+
 #define BGAV_VORBIS BGAV_MK_FOURCC('V','B','I','S')
 
 typedef struct

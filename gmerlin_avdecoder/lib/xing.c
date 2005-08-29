@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include <avdec_private.h>
+#include <stdio.h>
 #include <xing.h>
 
 #define GET_INT32BE(b) \

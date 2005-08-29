@@ -20,6 +20,7 @@
 
 #include <avdec_private.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 int bgav_num_audio_streams(bgav_t * bgav, int track)
   {

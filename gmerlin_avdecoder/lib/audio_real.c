@@ -17,6 +17,8 @@
  
 *****************************************************************/
 
+#include <avdec_private.h>
+
 #include <limits.h>
 #include <dlfcn.h>
 
@@ -29,8 +31,8 @@
 
 #include <config.h>
 #include <codecs.h>
-#include <avdec_private.h>
 #include <utils.h>
+#include <stdio.h>
 
 static int init_real(bgav_stream_t * s);
 static int decode_real(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples);

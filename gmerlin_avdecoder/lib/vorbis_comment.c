@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <avdec_private.h>
 #include <vorbis_comment.h>
+#include <stdio.h>
 
 
 /*

@@ -24,7 +24,10 @@
  *              http://www.geocities.com/majormms/
  */
 
+#include <avdec_private.h>
+
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -34,7 +37,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#include <avdec_private.h>
 #include <mms.h>
 
 #define   PRINT_STRING(label, str) \

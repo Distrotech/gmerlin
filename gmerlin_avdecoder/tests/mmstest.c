@@ -1,5 +1,6 @@
 #include <avdec_private.h>
 #include <mms.h>
+#include <stdio.h>
 
 int main(int argc, char ** argv)
   {

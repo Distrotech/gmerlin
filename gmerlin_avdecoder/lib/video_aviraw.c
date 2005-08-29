@@ -22,6 +22,7 @@
 
 #include <avdec_private.h>
 #include <codecs.h>
+#include <stdio.h>
 
 /* Palette */
 

@@ -27,9 +27,11 @@
  *  software
  */
 
+#include <avdec_private.h>
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <avdec_private.h>
 #include <vorbis_comment.h>
 
 typedef struct

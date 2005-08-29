@@ -17,10 +17,23 @@
  
 *****************************************************************/
 
+#include <avdec_private.h>
+
 #include <errno.h>
 #include <string.h>
 #include <stdio.h>
-#include <avdec_private.h>
+
+#ifdef HAVE_FSEEKO
+#define BGAV_FSEEK fseeko
+#else
+#define BGAV_FSEEK fseek
+#endif
+
+#ifdef HAVE_FTELLO
+#define BGAV_FTELL ftello
+#else
+#define BGAV_FSEEK ftell
+#endif
 
 static int open_file(bgav_input_context_t * ctx, const char * url)
   {
@@ -32,10 +45,12 @@ static int open_file(bgav_input_context_t * ctx, const char * url)
     }
   ctx->priv = f;
 
-  fseek((FILE*)(ctx->priv), 0, SEEK_END);
-  ctx->total_bytes = ftell((FILE*)(ctx->priv));
+  BGAV_FSEEK((FILE*)(ctx->priv), 0, SEEK_END);
+  ctx->total_bytes = BGAV_FTELL((FILE*)(ctx->priv));
     
-  fseek((FILE*)(ctx->priv), 0, SEEK_SET);
+  BGAV_FSEEK((FILE*)(ctx->priv), 0, SEEK_SET);
+
+  fprintf(stderr, "Total bytes: %lld\n", ctx->total_bytes);
   
   ctx->filename = bgav_strndup(url, NULL);
   return 1;
@@ -50,9 +65,9 @@ static int     read_file(bgav_input_context_t* ctx,
 static int64_t seek_byte_file(bgav_input_context_t * ctx,
                               int64_t pos, int whence)
   {
-  //  fseek((FILE*)(ctx->priv), pos, whence);
-  fseek((FILE*)(ctx->priv), ctx->position, SEEK_SET);
-  return ftell((FILE*)(ctx->priv));
+  //  BGAV_FSEEK((FILE*)(ctx->priv), pos, whence);
+  BGAV_FSEEK((FILE*)(ctx->priv), ctx->position, SEEK_SET);
+  return BGAV_FTELL((FILE*)(ctx->priv));
   }
 
 static void    close_file(bgav_input_context_t * ctx)

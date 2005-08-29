@@ -17,10 +17,10 @@
  
 *****************************************************************/
 
-#include <avdec.h>
-#include <stdio.h>
-
 #include "config.h"
+
+#include <avdec.h>
+// #include <stdio.h>
 
 #define BGAV_MK_FOURCC(a, b, c, d) ((a<<24)|(b<<16)|(c<<8)|d)
 

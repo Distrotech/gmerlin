@@ -17,6 +17,8 @@
  
 *****************************************************************/
 
+#include <avdec_private.h>
+#include <stdio.h>
 #include <limits.h>
 #include <dlfcn.h>
 
@@ -27,9 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <config.h>
 #include <codecs.h>
-#include <avdec_private.h>
 
 // static char codec_path[PATH_MAX];
 

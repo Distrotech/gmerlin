@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <avdec_private.h>
+#include <stdio.h>
 #include <qt.h>
 
 #if 0

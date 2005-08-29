@@ -22,6 +22,7 @@
 
 #include <avdec_private.h>
 #include <qt.h>
+#include <stdio.h>
 
 // #define ENABLE_DUMP
 

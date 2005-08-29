@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <avdec_private.h>
+#include <stdio.h>
 
 #define BUFFER_SIZE 4096
 

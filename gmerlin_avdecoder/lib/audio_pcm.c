@@ -17,9 +17,11 @@
  
 *****************************************************************/
 
-#include <stdlib.h>
-#include <string.h>
 #include <avdec_private.h>
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include <codecs.h>
 
 #include <bswap.h>

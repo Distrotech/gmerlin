@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include <avdec_private.h>
+#include <stdio.h>
 #include <rmff.h>
 #include <asmrp.h>
 

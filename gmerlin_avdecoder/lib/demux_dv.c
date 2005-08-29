@@ -17,10 +17,11 @@
 
 *****************************************************************/
 
+#include <avdec_private.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
-#include <avdec_private.h>
 #include <dvframe.h>
 
 

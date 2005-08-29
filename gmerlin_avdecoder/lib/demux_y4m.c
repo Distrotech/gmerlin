@@ -17,9 +17,11 @@
  
 *****************************************************************/
 
-#include <string.h>
-
 #include <avdec_private.h>
+
+#include <string.h>
+#include <stdio.h>
+
 #include <yuv4mpeg.h>
 
 typedef struct

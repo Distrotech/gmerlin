@@ -16,12 +16,13 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
  
 *****************************************************************/
+#include <avdec_private.h>
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 
-#include <avdec_private.h>
 
 struct bgav_ape_tag_s
   {
