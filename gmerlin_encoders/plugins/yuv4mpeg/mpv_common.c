@@ -130,6 +130,9 @@ void bg_mpv_set_parameter(void * data, char * name, bg_parameter_value_t * val)
 
   else if(!strcmp(name, "bframes"))
     com->bframes = val->val_i;
+
+  else if(!strcmp(name, "user_options"))
+    com->user_options = bg_strdup(com->user_options, val->val_str);
   }
 
 #undef SET_ENUM
@@ -167,9 +170,17 @@ char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filename)
     ret = bg_strcat(ret, tmp_string);
     free(tmp_string);
     }
-    
+  
   /* TODO: More parameters */
 
+  /* User options */
+
+  if(com->user_options)
+    {
+    tmp_string = bg_sprintf(" %s", com->user_options);
+    ret = bg_strcat(ret, tmp_string);
+    free(tmp_string);
+    }
   
   /* Output file */
 
@@ -178,4 +189,10 @@ char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filename)
   free(tmp_string);
   
   return ret;
+  }
+
+void bg_mpv_cleanup(bg_mpv_common_t * com)
+  {
+  if(com->user_options)
+    free(com->user_options);
   }

@@ -45,3 +45,4 @@ void bg_mpv_set_parameter(void * data, char * name, bg_parameter_value_t * val);
 
 char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filename);
 
+void bg_mpv_cleanup(bg_mpv_common_t * com);
