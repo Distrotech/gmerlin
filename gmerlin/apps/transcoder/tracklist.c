@@ -184,6 +184,9 @@ struct track_list_s
   menu_t menu;
 
   encoder_window_t * encoder_window;
+
+  char * open_path;
+  bg_gtk_filesel_t * filesel;
   };
 
 /* Buttons */
@@ -632,7 +635,6 @@ static void add_file_callback(char ** files, const char * plugin,
     plugin_info = (const bg_plugin_info_t*)0;
   while(files[i])
     {
-    //  fprintf(stderr, "Add file %s with %s\n", files[i], plugin);
     
     new_track =
       bg_transcoder_track_create(files[i], plugin_info,
@@ -642,6 +644,9 @@ static void add_file_callback(char ** files, const char * plugin,
     track_list_update(l);
     i++;
     }
+
+  /* Remember open path */
+  l->open_path = bg_strdup(l->open_path, bg_gtk_filesel_get_directory(l->filesel));
   }
 
 static void filesel_close_callback(bg_gtk_filesel_t * f , void * data)
@@ -650,6 +655,7 @@ static void filesel_close_callback(bg_gtk_filesel_t * f , void * data)
   t = (track_list_t*)data;
   //  fprintf(stderr, "Filesel close\n");
   gtk_widget_set_sensitive(t->add_file_button, 1);
+  t->filesel = (bg_gtk_filesel_t *)0;
   }
 
 static void urlsel_close_callback(bg_gtk_urlsel_t * f , void * data)
@@ -683,7 +689,6 @@ static void update_track(void * data)
 static void button_callback(GtkWidget * w, gpointer data)
   {
   track_list_t * t;
-  bg_gtk_filesel_t * filesel;
   bg_gtk_urlsel_t * urlsel;
   bg_gtk_drivesel_t * drivesel;
   
@@ -704,14 +709,16 @@ static void button_callback(GtkWidget * w, gpointer data)
 
       }
 
-    filesel = bg_gtk_filesel_create("Add files...",
-                                    add_file_callback,
-                                    filesel_close_callback,
-                                    file_plugins,
-                                    t, NULL /* parent */ );
-    gtk_widget_set_sensitive(t->add_file_button, 0);
-    bg_gtk_filesel_run(filesel, 0);     
+    t->filesel = bg_gtk_filesel_create("Add files...",
+                                       add_file_callback,
+                                       filesel_close_callback,
+                                       file_plugins,
+                                       t, NULL /* parent */ );
 
+    bg_gtk_filesel_set_directory(t->filesel, t->open_path);
+    gtk_widget_set_sensitive(t->add_file_button, 0);
+    bg_gtk_filesel_run(t->filesel, 0);     
+    
     //    bg_gtk_filesel_destroy(filesel);
     
     }
@@ -1277,6 +1284,8 @@ void track_list_destroy(track_list_t * t)
     t->tracks = tmp_track;
     }
   //  g_object_unref(t->tooltips);
+  if(t->open_path)
+    free(t->open_path);
   free(t);
   }
 
@@ -1340,4 +1349,49 @@ void track_list_set_tooltips(track_list_t * t, int show_tooltips)
   else
     gtk_tooltips_disable(t->tooltips);
   t->show_tooltips = show_tooltips;
+  }
+
+bg_parameter_info_t parameters[] =
+  {
+    {
+      name:        "open_path",
+      long_name:   "Open Path",
+      type:        BG_PARAMETER_DIRECTORY,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_str: "." },
+    },
+    { /* End of parameters */ }
+  };
+
+bg_parameter_info_t * track_list_get_parameters(track_list_t * t)
+  {
+  return parameters;
+  }
+
+void track_list_set_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  track_list_t * t;
+  if(!name)
+    return;
+
+  t = (track_list_t *)data;
+  
+  if(!strcmp(name, "open_path"))
+    t->open_path = bg_strdup(t->open_path, val->val_str);
+  }
+
+int track_list_get_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  track_list_t * t;
+  if(!name)
+    return 0;
+
+  t = (track_list_t *)data;
+  
+  if(!strcmp(name, "open_path"))
+    {
+    val->val_str = bg_strdup(val->val_str, t->open_path);
+    return 1;
+    }
+  return 0;
   }

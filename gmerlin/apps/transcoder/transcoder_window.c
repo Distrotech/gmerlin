@@ -557,12 +557,16 @@ transcoder_window_t * transcoder_window_create()
   
   cfg_section     = bg_cfg_registry_find_section(ret->cfg_reg, "plugins");
   ret->plugin_reg = bg_plugin_registry_create(cfg_section);
-
+  
   /* Create track list */
 
   ret->track_defaults_section = bg_cfg_registry_find_section(ret->cfg_reg, "track_defaults");
   ret->tracklist = track_list_create(ret->plugin_reg, ret->track_defaults_section);
 
+  cfg_section = bg_cfg_registry_find_section(ret->cfg_reg, "track_list");
+  bg_cfg_section_apply(cfg_section, track_list_get_parameters(ret->tracklist),
+                       track_list_set_parameter, ret->tracklist);
+  
   /* Create buttons */
 
   ret->run_button  = create_stock_button(ret, GTK_STOCK_EXECUTE, "Start transcoding", "Start transcoding");
@@ -696,6 +700,9 @@ void transcoder_window_destroy(transcoder_window_t* w)
                        get_transcoder_window_parameter, w);
   
 
+  cfg_section = bg_cfg_registry_find_section(w->cfg_reg, "track_list");
+  bg_cfg_section_get(cfg_section, track_list_get_parameters(w->tracklist),
+                     track_list_get_parameter, w->tracklist);
   
   track_list_destroy(w->tracklist);
 

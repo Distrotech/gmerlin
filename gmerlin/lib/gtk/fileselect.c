@@ -326,7 +326,6 @@ void bg_gtk_filesel_set_directory(bg_gtk_filesel_t * filesel,
   free(tmp_string);
   }
 
-
 const char * bg_gtk_filesel_get_directory(bg_gtk_filesel_t * filesel)
   {
   char * pos;
