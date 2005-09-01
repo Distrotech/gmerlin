@@ -7,6 +7,8 @@ bottom_16.png \
 camelot_icon.png \
 config_16.png \
 close_16.png \
+copy_16.png \
+cut_16.png \
 digit_0.png \
 digit_1.png \
 digit_2.png \
@@ -35,6 +37,7 @@ first_16.png \
 folder_closed_16.png \
 folder_open_16.png \
 hardware_16.png \
+image_16.png \
 incoming_closed_16.png \
 incoming_open_16.png \
 info_16.png \
@@ -43,6 +46,7 @@ left_16.png \
 lock_16.png \
 mixer_icon.png \
 mute_16.png \
+paste_16.png \
 player_icon.png \
 plugincfg_icon.png \
 record_16.png \

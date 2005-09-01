@@ -239,6 +239,9 @@ struct bg_gtk_album_widget_s
   GtkWidget * move_selected_up_button;
   GtkWidget * move_selected_down_button;
   GtkWidget * copy_to_favourites_button;
+  GtkWidget * copy_button;
+  GtkWidget * cut_button;
+  GtkWidget * paste_button;
     
   /* Display */
 
@@ -358,6 +361,13 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
     if(w->copy_to_favourites_button)
       gtk_widget_set_sensitive(w->copy_to_favourites_button, 0);
 
+    if(w->cut_button)
+      gtk_widget_set_sensitive(w->cut_button, 0);
+    if(w->copy_button)
+      gtk_widget_set_sensitive(w->copy_button, 0);
+    if(w->paste_button)
+      gtk_widget_set_sensitive(w->paste_button, 0);
+    
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 0);
     gtk_widget_set_sensitive(w->move_selected_up_button, 0);
@@ -386,6 +396,13 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
         
     if(w->copy_to_favourites_button)
       gtk_widget_set_sensitive(w->copy_to_favourites_button, 1);
+
+    if(w->cut_button)
+      gtk_widget_set_sensitive(w->cut_button, 1);
+    if(w->copy_button)
+      gtk_widget_set_sensitive(w->copy_button, 1);
+    if(w->paste_button)
+      gtk_widget_set_sensitive(w->paste_button, 1);
     
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 1);
@@ -411,9 +428,16 @@ static void set_sensitive(bg_gtk_album_widget_t * w)
     if(w->copy_to_favourites_button)
       gtk_widget_set_sensitive(w->copy_to_favourites_button, 1);
 
+    if(w->cut_button)
+      gtk_widget_set_sensitive(w->cut_button, 1);
+    if(w->copy_button)
+      gtk_widget_set_sensitive(w->copy_button, 1);
+    if(w->paste_button)
+      gtk_widget_set_sensitive(w->paste_button, 1);
+        
     if(w->menu.selected_menu.transcode_item)
       gtk_widget_set_sensitive(w->menu.selected_menu.transcode_item, 1);
-    
+
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 1);
     gtk_widget_set_sensitive(w->move_selected_up_button, 1);
@@ -1343,6 +1367,11 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
         }
       }
     }
+  if(evt->button == 1)
+    {
+    aw->mouse_x = (int)evt->x;
+    aw->mouse_y = (int)evt->y;
+    }
   if(path)
     gtk_tree_path_free(path);
   return TRUE;
@@ -1678,7 +1707,10 @@ motion_callback(GtkWidget * w, GdkEventMotion * evt, gpointer user_data)
     
   if(evt->state & GDK_BUTTON1_MASK)
     {
-    if((abs((int)(evt->x) - wid->mouse_x) + abs((int)(evt->y) - wid->mouse_y) < 5) ||
+    //    fprintf(stderr, "Motion callback, %d\n",
+    //            abs((int)(evt->x) - wid->mouse_x) + abs((int)(evt->y) - wid->mouse_y));
+    
+    if((abs((int)(evt->x) - wid->mouse_x) + abs((int)(evt->y) - wid->mouse_y) < 10) ||
        (!wid->num_selected))
       return FALSE;
     if(evt->state & GDK_CONTROL_MASK)
@@ -1806,6 +1838,18 @@ static void button_callback(GtkWidget * wid, gpointer data)
   else if(wid == w->copy_to_favourites_button)
     {
     bg_album_copy_selected_to_favourites(w->album);
+    }
+  else if(wid == w->copy_button)
+    {
+    fprintf(stderr, "Copy button clicked\n");
+    }
+  else if(wid == w->cut_button)
+    {
+    fprintf(stderr, "Cut button clicked\n");
+    }
+  else if(wid == w->paste_button)
+    {
+    fprintf(stderr, "Paste button clicked\n");
     }
   }
 
@@ -2095,11 +2139,22 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
     }
 
   if((type == BG_ALBUM_TYPE_REGULAR) ||
+     (type == BG_ALBUM_TYPE_INCOMING) ||
+     (type == BG_ALBUM_TYPE_FAVOURITES))
+    {
+    ret->cut_button              = create_pixmap_button(ret, "cut_16.png",
+                                                        "Cut", "Cut");
+    ret->copy_button             = create_pixmap_button(ret, "copy_16.png",
+                                                      "Copy", "Copy");
+    ret->paste_button             = create_pixmap_button(ret, "paste_16.png",
+                                                         "Paste", "Paste");
+    }
+
+  if((type == BG_ALBUM_TYPE_REGULAR) ||
      (type == BG_ALBUM_TYPE_INCOMING))
     ret->copy_to_favourites_button = create_pixmap_button(ret, "favourites_16.png",
                                                           "Copy to favourites",
                                                           "Copy selected tracks to favourites");
-         
   
   ret->remove_selected_button    = create_pixmap_button(ret, "trash_16.png",
                                                         "Delete", "Delete selected tracks");
@@ -2134,7 +2189,16 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->rename_selected_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->move_selected_up_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->move_selected_down_button, FALSE, FALSE, 0);
-
+  
+  if((type == BG_ALBUM_TYPE_REGULAR) ||
+     (type == BG_ALBUM_TYPE_INCOMING) ||
+     (type == BG_ALBUM_TYPE_FAVOURITES))
+    {
+    gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->cut_button, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->copy_button, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->paste_button, FALSE, FALSE, 0);
+    }
+  
   if((type == BG_ALBUM_TYPE_REGULAR) ||
      (type == BG_ALBUM_TYPE_INCOMING))
     {
