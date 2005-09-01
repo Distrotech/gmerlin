@@ -110,22 +110,8 @@ static void add_video_stream_mpv(void * data, gavl_video_format_t* format)
   {
   e_mpv_t * e = (e_mpv_t*)data;
   gavl_video_format_copy(&(e->com.format), format);
-
-  /* Set chroma mode for yuv4mpeg */
-  switch(e->mpv.format)
-    {
-    case FORMAT_MPEG1:
-    case FORMAT_VCD:
-      e->com.chroma_mode = Y4M_CHROMA_420JPEG;
-      break;
-    case FORMAT_MPEG2:
-    case FORMAT_SVCD:
-    case FORMAT_DVD:
-      e->com.chroma_mode = Y4M_CHROMA_420MPEG2;
-      break;
-    default:
-      fprintf(stderr, "ERROR: Unknown MPEG format\n");
-    }
+  e->com.chroma_mode = bg_mpv_get_chroma_mode(&e->mpv);
+  bg_mpv_adjust_framerate(&(e->com.format));
   bg_y4m_set_pixelformat(&e->com);
   }
 

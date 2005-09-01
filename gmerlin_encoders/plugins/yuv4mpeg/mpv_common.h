@@ -46,3 +46,11 @@ void bg_mpv_set_parameter(void * data, char * name, bg_parameter_value_t * val);
 char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filename);
 
 void bg_mpv_cleanup(bg_mpv_common_t * com);
+
+/* Adjust a video format into something, mpeg2enc will process without errors */
+
+void bg_mpv_adjust_framerate(gavl_video_format_t * format);
+
+int bg_mpv_get_chroma_mode(bg_mpv_common_t * com);
+
+

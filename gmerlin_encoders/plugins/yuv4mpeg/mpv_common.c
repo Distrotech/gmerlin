@@ -18,15 +18,20 @@
 *****************************************************************/
 
 #include <string.h>
+#include <math.h>
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+
+#include <yuv4mpeg.h>
 
 #include "mpv_common.h"
 
 #define BITRATE_AUTO 0
 #define BITRATE_VBR  1
 #define BITRATE_CBR  2
+
+
 
 static bg_parameter_info_t parameters[] =
   {
@@ -173,6 +178,12 @@ char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filename)
   
   /* TODO: More parameters */
 
+
+  /* Verbosity level: Too many messages on std[out|err] are not
+     useful for GUI applications */
+  
+  ret = bg_strcat(ret, " -v 0");
+  
   /* User options */
 
   if(com->user_options)
@@ -195,4 +206,78 @@ void bg_mpv_cleanup(bg_mpv_common_t * com)
   {
   if(com->user_options)
     free(com->user_options);
+  }
+
+static struct
+  {
+  int timescale;
+  int frame_duration;
+  }
+mpeg_framerates[] =
+  {
+    { 24000, 1001 },
+    {    24,    1 },
+    {    25,    1 },
+    { 30000, 1001 },
+    {    30,    1 },
+    {    50,    1 },
+    { 60000, 1001 },
+    {    60,    1 },
+    { /* End of framerates */ }
+  };
+
+
+void bg_mpv_adjust_framerate(gavl_video_format_t * format)
+  {
+  double rate_d;
+  double test_rate_d;
+  double min_diff, test_diff;
+  int min_index;
+  int i;
+  
+  /* Constant framerate */
+  format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
+  
+  /* Nearest framerate */
+  rate_d = (double)format->timescale / (double)format->frame_duration;
+
+  test_rate_d = (double)mpeg_framerates[0].timescale / (double)mpeg_framerates[0].frame_duration;
+  
+  min_diff = fabs(rate_d - test_rate_d);
+  min_index = 0;
+  
+  i = 1;
+  while(mpeg_framerates[i].timescale)
+    {
+    test_rate_d = (double)mpeg_framerates[0].timescale / (double)mpeg_framerates[0].frame_duration;
+
+    test_diff = fabs(rate_d - test_rate_d);
+    if(test_diff < min_diff)
+      {
+      min_index = i;
+      min_diff = test_diff;
+      }
+    i++;
+    }
+  format->timescale      = mpeg_framerates[min_index].timescale;
+  format->frame_duration = mpeg_framerates[min_index].frame_duration;
+  }
+
+int bg_mpv_get_chroma_mode(bg_mpv_common_t * com)
+  {
+  switch(com->format)
+    {
+    case FORMAT_MPEG1:
+    case FORMAT_VCD:
+      return Y4M_CHROMA_420JPEG;
+      break;
+    case FORMAT_MPEG2:
+    case FORMAT_SVCD:
+    case FORMAT_DVD:
+      return Y4M_CHROMA_420MPEG2;
+      break;
+    default:
+      fprintf(stderr, "ERROR: Unknown MPEG format\n");
+    }
+  return -1;
   }
