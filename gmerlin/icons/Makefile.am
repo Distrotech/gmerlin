@@ -50,11 +50,14 @@ paste_16.png \
 player_icon.png \
 plugincfg_icon.png \
 record_16.png \
+refresh_16.png \
 rename_16.png \
 repeat_mode_1.png \
 repeat_mode_all.png \
 repeat_mode_none.png \
 right_16.png \
+save_16.png \
+sort_16.png \
 state_buffering_1.png \
 state_buffering_2.png \
 state_buffering_3.png \

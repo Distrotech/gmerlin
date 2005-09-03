@@ -482,6 +482,18 @@ void bg_album_entries_destroy(bg_album_entry_t * entries)
 
   }
 
+int bg_album_entries_count(bg_album_entry_t * e)
+  {
+  int ret = 0;
+  while(e)
+    {
+    ret++;
+    e = e->next;
+    }
+  return ret;
+  }
+
+
 bg_album_entry_t * bg_album_entry_create(bg_album_t * album)
   {
   bg_album_entry_t * ret;
