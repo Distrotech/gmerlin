@@ -188,8 +188,56 @@ int bgav_qt_fiel_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 
 void bgav_qt_fiel_dump(qt_fiel_t * f);
 
+/* frma */
 
+typedef struct
+  {
+  uint32_t fourcc;
+  } qt_frma_t;
+
+int bgav_qt_frma_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_frma_t * ret);
+
+void bgav_qt_frma_dump(qt_frma_t * f);
+
+/* enda */
+
+typedef struct
+  {
+  uint16_t littleEndian;
+  } qt_enda_t;
+
+int bgav_qt_enda_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_enda_t * ret);
+
+void bgav_qt_enda_dump(qt_enda_t * f);
+
+/* wave */
+
+
+typedef struct
+  {
+  int has_frma;
+  qt_frma_t frma;
+
+  int has_enda;
+  qt_enda_t enda;
+
+  int has_esds;
+  qt_esds_t esds;
+
+  int num_user_atoms;
+  uint8_t ** user_atoms;
   
+  } qt_wave_t;
+
+int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_wave_t * ret);
+
+void bgav_qt_wave_dump(qt_wave_t * f);
+
+void bgav_qt_wave_free(qt_wave_t * r);
+
 /*
  *  Sample description
  */
@@ -241,12 +289,9 @@ typedef struct
 
       /* Extended fields */
 
-      int has_wave_atom;
-      struct
-        {
-        uint8_t * data;
-        int size;
-        } wave_atom;
+      int has_wave;
+      qt_wave_t wave;
+      
       } audio;
     } format;
   qt_esds_t esds;

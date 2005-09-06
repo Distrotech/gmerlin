@@ -31,11 +31,8 @@ bgav_input_context_t * create_input(bgav_t * b)
 
   //  fprintf(stderr, "CREATE INPUT %p\n", b->name_change_callback);
   
-  ret = calloc(1, sizeof(*ret));
-
-  ret->opt = &(b->opt);
+  ret = bgav_input_create(&(b->opt));
   
-
   ret->name_change_callback       = b->name_change_callback;
   ret->name_change_callback_data  = b->name_change_callback_data;
 

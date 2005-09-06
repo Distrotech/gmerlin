@@ -199,6 +199,10 @@ typedef enum
 
 #define BGAV_BITRATE_VBR -1
 
+#define BGAV_ENDIANESS_NONE   0 // Unspecified
+#define BGAV_ENDIANESS_BIG    1
+#define BGAV_ENDIANESS_LITTLE 2
+
 struct bgav_stream_s
   {
   void * priv;
@@ -272,6 +276,12 @@ struct bgav_stream_s
       
       /* The following ones are mainly for Microsoft formats and codecs */
       int block_align;
+
+      /* This is ONLY used for codecs, which can be both little-
+         and big-endian. In this case, the endianess is set by
+         the demuxer */
+      
+      int endianess;
       } audio;
     struct
       {
@@ -578,6 +588,8 @@ void bgav_input_close(bgav_input_context_t * ctx);
 void bgav_input_destroy(bgav_input_context_t * ctx);
 
 void bgav_input_skip(bgav_input_context_t *, int);
+
+bgav_input_context_t * bgav_input_create(bgav_options_t * opt);
 
 /* For debugging purposes only: if you encounter data,
    hexdump them to stderr and skip them */

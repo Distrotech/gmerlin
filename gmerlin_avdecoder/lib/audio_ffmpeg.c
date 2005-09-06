@@ -66,18 +66,24 @@ static codec_info_t codec_infos[] =
                     0x00 } },
     
 #endif
+
+#if 0  /* Native replacement */
     { "FFmpeg alaw decoder", "alaw", CODEC_ID_PCM_ALAW,
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x06),
                     BGAV_MK_FOURCC('a', 'l', 'a', 'w'),
                     BGAV_MK_FOURCC('A', 'L', 'A', 'W'),
                     0x00 }  },
-
     { "FFmpeg mulaw decoder", "ulaw", CODEC_ID_PCM_MULAW,
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x07),
                     BGAV_MK_FOURCC('u', 'l', 'a', 'w'),
                     BGAV_MK_FOURCC('U', 'L', 'A', 'W'),
                     0x00 }  },
-    
+#endif
+
+    { "FFmpeg alac decoder", "alac", CODEC_ID_ALAC,
+      (uint32_t[]){ BGAV_MK_FOURCC('a', 'l', 'a', 'c'),
+                    0x00 }  },
+
     { "FFmpeg MS ADPCM decoder", "MS ADPCM", CODEC_ID_ADPCM_MS,
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x02),
                     BGAV_MK_FOURCC('m', 's', 0x00, 0x02), 0x00 } },
@@ -100,10 +106,8 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x161), 0x00 } },
     { "FFmpeg MACE3 decoder", "Apple MACE 3", CODEC_ID_MACE3,
       (uint32_t[]){ BGAV_MK_FOURCC('M', 'A', 'C', '3'), 0x00 } },
-#if 1
     { "FFmpeg MACE6 decoder", "Apple MACE 6", CODEC_ID_MACE6,
       (uint32_t[]){ BGAV_MK_FOURCC('M', 'A', 'C', '6'), 0x00 } },
-#endif
   };
 
 
@@ -181,11 +185,11 @@ static int init(bgav_stream_t * s)
   //  bgav_hexdump(priv->ctx->extradata, priv->ctx->extradata_size,
   //               16);
   
-    
-  priv->ctx->channels =    s->data.audio.format.num_channels;
-  priv->ctx->sample_rate = s->data.audio.format.samplerate;
-  priv->ctx->block_align = s->data.audio.block_align;
-  priv->ctx->bit_rate    = s->codec_bitrate;
+  priv->ctx->channels        = s->data.audio.format.num_channels;
+  priv->ctx->sample_rate     = s->data.audio.format.samplerate;
+  priv->ctx->block_align     = s->data.audio.block_align;
+  priv->ctx->bit_rate        = s->codec_bitrate;
+  priv->ctx->bits_per_sample = s->data.audio.bits_per_sample;
 
   priv->ctx->codec_tag   =
     ((s->fourcc & 0x000000ff) << 24) ||
@@ -242,7 +246,7 @@ static int decode_frame(bgav_stream_t * s)
       priv->packet_buffer_alloc = p->data_size + FF_INPUT_BUFFER_PADDING_SIZE + 32;
       priv->packet_buffer = realloc(priv->packet_buffer, priv->packet_buffer_alloc);
       }
-    //      fprintf(stderr, "Got packet: %d bytes\n", p->data_size);      
+    //    fprintf(stderr, "Got packet: %d bytes\n", p->data_size);      
     priv->bytes_in_packet_buffer = p->data_size;
     memcpy(priv->packet_buffer, p->data, p->data_size);
     priv->packet_buffer_ptr = priv->packet_buffer;
@@ -250,14 +254,20 @@ static int decode_frame(bgav_stream_t * s)
     memset(&(priv->packet_buffer[p->data_size]), 0, FF_INPUT_BUFFER_PADDING_SIZE);
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
-  
+  frame_size = 0;
+  //  fprintf(stderr, "Decode: %d %d\n", *priv->packet_buffer_ptr, priv->bytes_in_packet_buffer);
   bytes_used = avcodec_decode_audio(priv->ctx,
                                     priv->frame->samples.s_16,
                                     &frame_size,
                                     priv->packet_buffer_ptr,
                                     priv->bytes_in_packet_buffer);
-  //  fprintf(stderr, "Used: %d bytes, frame_size: %d\n", bytes_used, frame_size);
-    
+#if 0
+  fprintf(stderr, "Used: %x bytes, frame_size: %d\n", bytes_used, frame_size);
+  if(bytes_used <= 1)
+    {
+    frame_size = -1;
+    }
+#endif
   /* Check for error */
     
   if(frame_size < 0)

@@ -563,3 +563,14 @@ void bgav_input_seek_sector(bgav_input_context_t * ctx,
     ctx->input->seek_sector(ctx, sector);
   }
 
+bgav_input_context_t * bgav_input_create(bgav_options_t * opt)
+  {
+  bgav_input_context_t * ret;
+
+  //  fprintf(stderr, "CREATE INPUT %p\n", b->name_change_callback);
+  
+  ret = calloc(1, sizeof(*ret));
+
+  ret->opt = opt;
+  return ret;
+  }

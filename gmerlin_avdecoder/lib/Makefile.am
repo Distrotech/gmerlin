@@ -272,8 +272,10 @@ pes_header.c \
 pnm.c \
 qt_atom.c \
 qt_cmov.c \
+qt_enda.c \
 qt_esds.c \
 qt_fiel.c \
+qt_frma.c \
 qt_hdlr.c \
 qt_mdhd.c \
 qt_mdia.c \
@@ -296,6 +298,7 @@ qt_tkhd.c \
 qt_trak.c \
 qt_udta.c \
 qt_utils.c \
+qt_wave.c \
 redirect.c \
 rmff.c \
 r_asx.c \

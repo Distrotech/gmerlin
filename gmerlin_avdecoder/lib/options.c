@@ -87,6 +87,7 @@ void bgav_options_free(bgav_options_t*opt)
 
 void bgav_options_set_defaults(bgav_options_t * b)
   {
+  memset(b, 0, sizeof(*b));
   b->connect_timeout = 10000;
   b->read_timeout = 10000;
   }

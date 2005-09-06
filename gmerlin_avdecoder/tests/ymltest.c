@@ -7,8 +7,10 @@ int main(int argc, char ** argv)
   {
   bgav_yml_node_t * n;
   bgav_input_context_t * input;
+  bgav_options_t opt;
+  bgav_options_set_defaults(&opt);
 
-  input = calloc(1, sizeof(*input));
+  input = bgav_input_create(&opt);
   
   if(!bgav_input_open(input, argv[1]))
     {
