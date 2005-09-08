@@ -262,6 +262,7 @@ struct bgav_stream_s
    */
 
   int no_packets;
+  bgav_stream_t * sync_stream;
     
   union
     {

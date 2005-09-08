@@ -241,7 +241,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
       }
     /* Some audio frames will be read as "samples" (-> VBR audio!) */
     else if(priv->moov.tracks[i].mdia.minf.has_smhd &&
-            priv->moov.tracks[i].mdia.minf.stbl.stsz.num_entries)
+            !priv->moov.tracks[i].mdia.minf.stbl.stsz.sample_size)
       {
       num_packets += bgav_qt_trak_samples(&priv->moov.tracks[i]);
       }
@@ -288,7 +288,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
       {
       s = (stream_priv_t*)(bgav_s->priv);
 
-      if(s->stbl->stsz.num_entries)
+      if(!s->stbl->stsz.sample_size)
         {
         /* Read single packets of a chunk. We do this, when the stsz atom has more than
            zero entries */

@@ -1356,6 +1356,8 @@ static int read_packet_iavs(bgav_demuxer_context_t * ctx,
     }
   if(vp)
     {
+    bgav_dv_dec_set_frame_counter(avi_iavs->d, vs->position);
+    
     vp->data_size = avi_iavs->dv_frame_size;
     bgav_dv_dec_get_video_packet(avi_iavs->d, vp);
         
@@ -1387,7 +1389,8 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
 
   bg_as = bgav_track_add_audio_stream(ctx->tt->current_track);
   bg_as->no_packets = 1;
-
+  bg_as->sync_stream = bg_vs;
+  
   /* Prevent the core from thinking these streams are unsupported */
   bg_vs->fourcc = BGAV_MK_FOURCC('d', 'v', 'c', ' ');
   bg_as->fourcc = BGAV_MK_FOURCC('g', 'a', 'v', 'l');
@@ -1450,7 +1453,10 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
     bg_vs->data.video.format.frame_duration = 1;
     }
   bg_vs->stream_id = (ctx->tt->current_track->num_video_streams) - 1;
-
+  
+  bg_vs->timescale = bg_vs->data.video.format.timescale;
+  bg_as->timescale = bg_vs->timescale;
+  
   ctx->read_packet = read_packet_iavs;
   
   return 1;

@@ -591,7 +591,8 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
   int32_t start_packet;
   int32_t end_packet;
   bgav_track_t * track;
-  
+  int no_packets = 0;
+    
   //  fprintf(stderr, "Seek si %f %lld\n", gavl_time_to_seconds(time), time);
   track = ctx->tt->current_track;
   
@@ -611,16 +612,41 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
   
   for(j = 0; j < track->num_audio_streams; j++)
     {
+    if(track->audio_streams[j].no_packets)
+      {
+      no_packets = 1;
+      continue;
+      }
     bgav_superindex_seek(ctx->si, &(track->audio_streams[j]), time);
     //    fprintf(stderr, "Audio position %d\n", track->audio_streams[j].index_position);
     }
   for(j = 0; j < track->num_video_streams; j++)
     {
+    if(track->video_streams[j].no_packets)
+      {
+      no_packets = 1;
+      continue;
+      }
     bgav_superindex_seek(ctx->si, &(track->video_streams[j]), time);
     //    fprintf(stderr, "Video position %d\n", track->video_streams[j].index_position);
     }
 
-  //  fprintf(stderr, "Blupp 2\n");
+  if(no_packets)
+    {
+    for(j = 0; j < track->num_audio_streams; j++)
+      {
+      if(track->audio_streams[j].no_packets)
+        track->audio_streams[j].time_scaled = track->audio_streams[j].sync_stream->time_scaled;
+      }
+    for(j = 0; j < track->num_video_streams; j++)
+      {
+      if(track->video_streams[j].no_packets)
+        track->video_streams[j].time_scaled = track->video_streams[j].sync_stream->time_scaled;
+      }
+    } 
+  fprintf(stderr, "********* Blupp 2, time 1: %f, time 2: %f\n",
+          (float)track->audio_streams[0].time_scaled / track->audio_streams[0].timescale,
+          (float)track->video_streams[0].time_scaled / track->video_streams[0].timescale);
 
   /* Find the start and end packet */
 
@@ -631,6 +657,8 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
     
     for(j = 0; j < track->num_audio_streams; j++)
       {
+      if(track->audio_streams[j].no_packets)
+        continue;
       if(start_packet > track->audio_streams[j].index_position)
         start_packet = track->audio_streams[j].index_position;
       if(end_packet < track->audio_streams[j].index_position)
@@ -638,6 +666,8 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
       }
     for(j = 0; j < track->num_video_streams; j++)
       {
+      if(track->video_streams[j].no_packets)
+        continue;
       if(start_packet > track->video_streams[j].index_position)
         start_packet = track->video_streams[j].index_position;
       if(end_packet < track->video_streams[j].index_position)

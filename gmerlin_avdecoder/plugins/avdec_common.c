@@ -340,6 +340,18 @@ bg_avdec_set_parameter(void * p, char * name,
     {
     bgav_set_http_shoutcast_metadata(avdec->opt, val->val_i);
     }
+  else if(!strcmp(name, "http_use_proxy"))
+    {
+    bgav_set_http_use_proxy(avdec->opt, val->val_i);
+    }
+  else if(!strcmp(name, "http_proxy_host"))
+    {
+    bgav_set_http_proxy_host(avdec->opt, val->val_str);
+    }
+  else if(!strcmp(name, "http_proxy_port"))
+    {
+    bgav_set_http_proxy_port(avdec->opt, val->val_i);
+    }
   else if(!strcmp(name, "ftp_anonymous_password"))
     {
     bgav_set_ftp_anonymous_password(avdec->opt, val->val_str);

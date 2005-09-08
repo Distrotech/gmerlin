@@ -159,6 +159,25 @@ static bg_parameter_info_t parameters[] =
       val_default: { val_i: 1 }
     },
     {
+      name:        "http_use_proxy",
+      long_name:   "Use proxy",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 0 },
+    },
+    {
+      name:        "http_proxy_host",
+      long_name:   "Proxy host",
+      type:        BG_PARAMETER_STRING,
+    },
+    {
+      name:        "http_proxy_port",
+      long_name:   "Proxy port",
+      type:        BG_PARAMETER_INT,
+      val_min:     { val_i:     1 },
+      val_max:     { val_i: 65535 },
+      val_default: { val_i:    80 },
+    },
+    {
       name:       "ftp_options",
       long_name:  "FTP Options",
       type:       BG_PARAMETER_SECTION
