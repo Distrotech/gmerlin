@@ -57,9 +57,9 @@ static const char * get_extension_mpv(void * data)
     {
     case FORMAT_MPEG1:
     case FORMAT_VCD:
-    case FORMAT_MPEG2:
       return extension_mpeg1;
       break;
+    case FORMAT_MPEG2:
     case FORMAT_SVCD:
     case FORMAT_DVD:
       return extension_mpeg2;

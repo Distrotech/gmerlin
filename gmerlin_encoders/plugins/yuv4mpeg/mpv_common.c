@@ -119,12 +119,14 @@ void bg_mpv_set_parameter(void * data, char * name, bg_parameter_value_t * val)
     SET_ENUM("vcd",   com->format, FORMAT_VCD);
     SET_ENUM("svcd",  com->format, FORMAT_SVCD);
     SET_ENUM("dvd",   com->format, FORMAT_DVD);
+    fprintf(stderr, "val->str: %s format: %d\n",
+            val->val_str, com->format);
     }
   else if(!strcmp(name, "bitrate_mode"))
     {
-    SET_ENUM("auto", com->format, BITRATE_AUTO);
-    SET_ENUM("cbr",  com->format, BITRATE_VBR);
-    SET_ENUM("vbr",  com->format, BITRATE_CBR);
+    SET_ENUM("auto", com->bitrate_mode, BITRATE_AUTO);
+    SET_ENUM("cbr",  com->bitrate_mode, BITRATE_VBR);
+    SET_ENUM("vbr",  com->bitrate_mode, BITRATE_CBR);
     }
 
   else if(!strcmp(name, "bitrate"))
@@ -155,6 +157,7 @@ char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filename)
     }
 
   /* path + format */
+  fprintf(stderr, "com->format: %d\n", com->format);
   ret = bg_sprintf("%s -f %d", mpeg2enc_path, com->format);
   free(mpeg2enc_path);
 
@@ -249,9 +252,14 @@ void bg_mpv_adjust_framerate(gavl_video_format_t * format)
   i = 1;
   while(mpeg_framerates[i].timescale)
     {
-    test_rate_d = (double)mpeg_framerates[0].timescale / (double)mpeg_framerates[0].frame_duration;
+    test_rate_d = (double)mpeg_framerates[i].timescale /
+      (double)mpeg_framerates[i].frame_duration;
 
     test_diff = fabs(rate_d - test_rate_d);
+#if 0
+    fprintf(stderr, "Rate: %f, test_rate: %f, diff: %f\n",
+            rate_d, test_rate_d, test_diff);
+#endif 
     if(test_diff < min_diff)
       {
       min_index = i;
