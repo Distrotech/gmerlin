@@ -7,6 +7,7 @@ accel.h \
 attributes.h \
 audio.h \
 colorspace.h \
+deinterlace.h \
 float_cast.h \
 interleave.h \
 mix.h \

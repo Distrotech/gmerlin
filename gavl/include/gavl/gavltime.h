@@ -122,18 +122,29 @@ typedef int64_t gavl_time_t;
 
 void gavl_time_delay(gavl_time_t * time);
 
-/*
- *  Pretty print a time in the format:
- *  -hhh:mm:ss
+/*! \ingroup time
+ * \brief Length of the string passed to \ref gavl_time_prettyprint
  */
 
 #define GAVL_TIME_STRING_LEN 11
 
+/*! \ingroup time
+ * \brief Convert a time to a string
+ * \param time
+ *
+ * This prints a gavl_time into ASCII string if a format suitable for player displays.
+ * The format is: -hhh:mm:ss
+ */
+
 void
 gavl_time_prettyprint(gavl_time_t time, char string[GAVL_TIME_STRING_LEN]);
 
-void
-gavl_time_prettyprint_seconds(int seconds, char string[GAVL_TIME_STRING_LEN]);
+
+/* Scan time: format is hhh:mm:ss with hh: hours, mm: minutes, ss: seconds. Seconds can be a fractional
+   value (i.e. with decimal point) */
+
+int gavl_time_parse(const char * str, gavl_time_t * ret);
+
 
 /* Simple software timer */
 

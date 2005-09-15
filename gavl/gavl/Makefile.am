@@ -21,6 +21,8 @@ audioframe.c \
 audiooptions.c \
 colorspace.c \
 cputest.c \
+deinterlace.c \
+deinterlace_copy.c \
 interleave.c \
 mix.c \
 rectangle.c \

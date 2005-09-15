@@ -200,10 +200,11 @@ struct gavl_video_scale_context_s
 
 int gavl_video_scale_context_init(gavl_video_scale_context_t*,
                                   gavl_video_options_t * opt,
-                                  int field, int plane,
+                                  int plane,
                                   const gavl_video_format_t * input_format,
                                   const gavl_video_format_t * output_format,
-                                  gavl_scale_funcs_t * funcs);
+                                  gavl_scale_funcs_t * funcs,
+                                  int deinterlace, int src_field);
 
 void gavl_video_scale_context_cleanup(gavl_video_scale_context_t * ctx);
 
@@ -232,7 +233,7 @@ struct gavl_video_scaler_s
   gavl_video_format_t dst_format;
 
   gavl_rectangle_i_t dst_rect;
-  gavl_rectangle_f_t src_rect;
+  //  gavl_rectangle_f_t src_rect;
 
   };
 

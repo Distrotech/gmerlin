@@ -47,7 +47,9 @@ struct gavl_video_options_s
 
   gavl_deinterlace_mode_t deinterlace_mode;
   gavl_deinterlace_drop_mode_t deinterlace_drop_mode;
-    
+
+  int deinterlace_force;
+  
   /* Background color (Floating point and 16 bit int)background_float[3]; */
   float background_float[3];
 
@@ -79,7 +81,8 @@ struct gavl_video_convert_context_s
   gavl_video_format_t output_format;
 
   gavl_video_scaler_t * scaler;
-
+  gavl_video_deinterlacer_t * deinterlacer;
+  
   struct gavl_video_convert_context_s * next;
   gavl_video_func_t func;
   };

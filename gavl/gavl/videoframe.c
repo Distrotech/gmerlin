@@ -500,7 +500,6 @@ void gavl_video_frame_copy_plane(gavl_video_format_t * format,
     height /= sub_v;
     }
   copy_plane(dst, src, plane, bytes_per_line, height);
-
   }
 
 void gavl_video_frame_copy(gavl_video_format_t * format,
@@ -512,7 +511,11 @@ void gavl_video_frame_copy(gavl_video_format_t * format,
   int bytes_per_line;
   int sub_h, sub_v;
   int planes;
-
+#if 0
+  fprintf(stderr, "gavl_video_frame_copy, %d %d format:\n",
+          src->strides[0], dst->strides[0]);
+  gavl_video_format_dump(format);
+#endif
   planes = gavl_pixelformat_num_planes(format->pixelformat);
   height = format->image_height;
     
@@ -528,7 +531,7 @@ void gavl_video_frame_copy(gavl_video_format_t * format,
       bytes_per_line /= sub_h;
       height /= sub_v;
       }
-    gavl_video_frame_copy_plane(format, dst, src, i);
+    copy_plane(dst, src, i, bytes_per_line, height);
     }
   
   }

@@ -1,6 +1,8 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <ctype.h>
+#include <stdlib.h>
 
 #include <inttypes.h>
 #include <gavltime.h>
@@ -32,8 +34,7 @@ static char digit_to_char(int digit)
   }
 
 void
-gavl_time_prettyprint_seconds(int total_seconds,
-                              char ret[GAVL_TIME_STRING_LEN])
+do_prettyprint(int total_seconds, char ret[GAVL_TIME_STRING_LEN])
   {
   char * pos;
   int seconds;
@@ -115,6 +116,62 @@ gavl_time_prettyprint(gavl_time_t time, char ret[GAVL_TIME_STRING_LEN])
   else
     {
     total_seconds = time / GAVL_TIME_SCALE;
-    gavl_time_prettyprint_seconds(total_seconds, ret);
+    do_prettyprint(total_seconds, ret);
     }
   }
+
+/* Scan seconds: format is hhh:mm:ss with hh: hours, mm: minutes, ss: seconds. Seconds can be a fractional
+   value (i.e. with decimal point) */
+
+int gavl_time_parse(const char * str, gavl_time_t * ret)
+  {
+  double seconds_f;
+  gavl_time_t seconds_t;
+  int i_tmp;
+  const char * start;
+  const char * end_c;
+  char * end;
+  *ret = 0;
+
+  start = str;
+  if(!isdigit(*start))
+    return 0;
+
+  while(1)
+    {
+    end_c = start;
+    while(isdigit(*end_c))
+      end_c++;
+    
+    if(*end_c == '.')
+      {
+      /* Floating point seconds */
+      seconds_f = strtod(start, &end);
+      seconds_t = gavl_seconds_to_time(seconds_f);
+      *ret *= GAVL_TIME_SCALE;
+      *ret += seconds_t;
+      end_c = end;
+      return end_c - str;
+      }
+    else if(*end_c != ':')
+      {
+      /* Integer seconds */
+      i_tmp = strtol(str, &end, 10);
+      *ret += i_tmp;
+      *ret *= GAVL_TIME_SCALE;
+      return end_c - str;
+      }
+    else
+      {
+      i_tmp = strtol(str, &end, 10);
+      *ret += i_tmp;
+      *ret *= 60;
+      }
+    if(*end_c == '\0')
+      break;
+    start = end_c+1;
+    
+    }
+  return 0;
+  }
+

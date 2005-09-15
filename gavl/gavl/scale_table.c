@@ -27,7 +27,7 @@
  * Creation of the scale tables, the most ugly part.
  * The tables are for one dimension only, for 2D scaling, we'll have 2 tables.
  * Nearest neighbour and bilinear scaling routines scale in 2 dimensions at once
- * using 2 tables. Higher order routines
+ * using 2 tables. Higher order scaling is done for each dimension separately.
  * 
  * We have 3 values: src_size (double), src_off (double)
  * and dst_size (int).
@@ -63,7 +63,7 @@
 
 /* Conversion between src and dst coordinates */
 
-#define DST_TO_SRC(c) ((double)c+0.5)/scale_factor + src_off -0.5
+#define DST_TO_SRC(c) ((double)c+0.5)/scale_factor + src_off - 0.5
 
 #define ROUND(val) (val >= 0.0) ? (int)(val+0.5):(int)(val-0.5)
 
@@ -110,10 +110,7 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
     }
   
   scale_factor = (double)(dst_size) / src_size;
-
-  /* dst_coord = (src_coord - src_off) * scale_factor */
-  /* src_coord = dst_coord/scale_factor + src_off     */
-    
+  
   for(i = 0; i < dst_size; i++)
     {
     /* Set the factor pointers */
@@ -258,8 +255,11 @@ static void shift_down(gavl_video_scale_factor_t * fac, int num, int shift)
 static void shift_borders(gavl_video_scale_table_t * tab, int src_width)
   {
   int i, shift;
+  
   for(i = 0; i < tab->num_pixels; i++)
     {
+    //    fprintf(stderr, "Shift borders1 %d %d %d\n", tab->pixels[i].index,
+    //            tab->factors_per_pixel, src_width);
     if(tab->pixels[i].index < 0)
       {
       shift = -tab->pixels[i].index;
@@ -269,11 +269,12 @@ static void shift_borders(gavl_video_scale_table_t * tab, int src_width)
 
     if(tab->pixels[i].index + tab->factors_per_pixel > src_width)
       {
-      //      fprintf(stderr, "Shift down %d\n", src_width);
       shift = tab->pixels[i].index + tab->factors_per_pixel - src_width;
       shift_down(tab->pixels[i].factor, tab->factors_per_pixel, shift);
       tab->pixels[i].index = src_width - tab->factors_per_pixel;
       }
+    //    fprintf(stderr, "Shift borders2 %d %d %d\n", tab->pixels[i].index,
+    //            tab->factors_per_pixel, src_width);
     
     }
   

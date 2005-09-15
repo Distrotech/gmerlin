@@ -371,11 +371,11 @@ static void alloc_temp(gavl_video_scale_context_t * ctx, gavl_pixelformat_t pixe
   }
 
 int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
-                                  gavl_video_options_t * opt,
-                                  int field, int plane,
+                                  gavl_video_options_t * opt, int plane,
                                   const gavl_video_format_t * src_format,
                                   const gavl_video_format_t * dst_format,
-                                  gavl_scale_funcs_t * funcs)
+                                  gavl_scale_funcs_t * funcs,
+                                  int deinterlace, int src_field)
   {
   int bits, i;
   int sub_h_in = 1, sub_v_in = 1, sub_h_out = 1, sub_v_out = 1;
@@ -401,7 +401,7 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
     ctx->dst_rect.w /= sub_h_out;
     ctx->dst_rect.h /= sub_v_out;
         
-    /* TODO: Add chroma offsets here!!! */
+    /* TODO: Add chroma- and field offsets here!!! */
     }
 #if 0
   fprintf(stderr, "gavl_video_scale_context_init\n");
@@ -412,8 +412,11 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
 #endif
   
   src_width = src_format->image_width / sub_h_in;
+
   src_height = src_format->image_height / sub_v_in;
-    
+  if(deinterlace)
+    src_height /= 2;
+  
   if((fabs(ctx->src_rect.w - ctx->dst_rect.w) > EPS) ||
      (fabs(ctx->src_rect.x) > EPS))
     scale_x = 1;

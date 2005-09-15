@@ -98,13 +98,15 @@ void gavl_video_options_set_scale_order(gavl_video_options_t * opt,
   SET_INT(scale_order);
   }
 
-void gavl_video_options_set_deinterlace_mode(gavl_video_options_t * opt,
-                                             gavl_deinterlace_mode_t deinterlace_mode)
+void
+gavl_video_options_set_deinterlace_mode(gavl_video_options_t * opt,
+                                        gavl_deinterlace_mode_t deinterlace_mode)
   {
   SET_INT(deinterlace_mode);
   }
 
-void gavl_video_options_set_deinterlace_drop_mode(gavl_video_options_t * opt,
+void
+gavl_video_options_set_deinterlace_drop_mode(gavl_video_options_t * opt,
                                              gavl_deinterlace_drop_mode_t deinterlace_drop_mode)
   {
   SET_INT(deinterlace_drop_mode);

@@ -148,7 +148,7 @@ void add_context_scale(gavl_video_converter_t * cnv,
   scaler_options = gavl_video_scaler_get_options(ctx->scaler);
 
   gavl_video_options_copy(scaler_options, &(cnv->options));
-#ifdef DEBUG
+#if 0
   fprintf(stderr, "gavl_video_scaler_init:\n");
   fprintf(stderr, "src_format:\n");
   gavl_video_format_dump(input_format);
@@ -173,6 +173,32 @@ void add_context_scale(gavl_video_converter_t * cnv,
   
   }
 
+static void deinterlace_func(gavl_video_convert_context_t * ctx)
+  {
+  gavl_video_deinterlacer_deinterlace(ctx->deinterlacer,
+                                      ctx->input_frame,
+                                      ctx->output_frame);
+  }
+
+static int add_context_deinterlace(gavl_video_converter_t * cnv,
+                                    const gavl_video_format_t * in_format,
+                                    const gavl_video_format_t * out_format)
+  {
+  gavl_video_options_t * deinterlacer_options;
+  gavl_video_convert_context_t * ctx;
+  ctx = add_context(cnv, in_format, out_format);
+
+  ctx->deinterlacer = gavl_video_deinterlacer_create();
+  deinterlacer_options = gavl_video_deinterlacer_get_options(ctx->deinterlacer);
+  gavl_video_options_copy(deinterlacer_options, &(cnv->options));
+  
+  gavl_video_deinterlacer_init(ctx->deinterlacer,
+                               in_format);
+  
+  ctx->func = deinterlace_func;
+  return 1;
+  }
+
 
 int gavl_video_converter_init(gavl_video_converter_t * cnv,
                               const gavl_video_format_t * input_format,
@@ -184,7 +210,8 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
   
   int do_csp = 0;
   int do_scale = 0;
-
+  int do_deinterlace = 0;
+  
   int in_sub;
   int out_sub;
 
@@ -264,6 +291,31 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
       do_scale = 1;
       }
     }
+
+  /* Check if we must deinterlace */
+
+  if(((input_format->interlace_mode != GAVL_INTERLACE_NONE) &&
+      (output_format->interlace_mode == GAVL_INTERLACE_NONE)) ||
+     (cnv->options.conversion_flags & GAVL_FORCE_DEINTERLACE))
+    {
+    fprintf(stderr, "Forcing deinterlacing\n");
+    if(cnv->options.deinterlace_mode == GAVL_DEINTERLACE_SCALE)
+      do_scale = 1;
+    else
+      do_deinterlace = 1;
+    }
+  
+  /* Deinterlacing must always be the first step */
+
+  if(do_deinterlace)
+    {
+    gavl_video_format_copy(&tmp_format1, &tmp_format);
+
+    tmp_format1.interlace_mode = GAVL_INTERLACE_NONE;
+    if(!add_context_deinterlace(cnv, &tmp_format, &tmp_format1))
+      return -1;
+    gavl_video_format_copy(&tmp_format, &tmp_format1);
+    }
   
   if(do_csp && do_scale)
     {
@@ -322,6 +374,9 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
 
       tmp_format1.pixel_width  = output_format->pixel_width;
       tmp_format1.pixel_height = output_format->pixel_height;
+
+      tmp_format1.frame_width  = output_format->image_width;
+      tmp_format1.frame_height = output_format->image_height;
       
       add_context_scale(cnv, &tmp_format, &tmp_format1);
 
@@ -342,6 +397,9 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
       tmp_format1.pixel_width  = output_format->pixel_width;
       tmp_format1.pixel_height = output_format->pixel_height;
 
+      tmp_format1.frame_width  = output_format->image_width;
+      tmp_format1.frame_height = output_format->image_height;
+      
       if(tmp_csp != GAVL_PIXELFORMAT_NONE)
         tmp_format1.pixelformat = tmp_csp;
       

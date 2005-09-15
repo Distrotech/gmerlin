@@ -1561,6 +1561,16 @@ void gavl_video_frame_dump(gavl_video_frame_t * frame,
   
 #define GAVL_KEEP_APSPECT (1<<0)
 
+/** \ingroup video_conversion_flags
+ * \brief Force deinterlacing
+ *
+ * When you want progressive output, this options triggers deinterlacing even
+ * for input formats, which pretend to be progressive already.
+ */
+
+#define GAVL_FORCE_DEINTERLACE (1<<1)
+
+  
 /** \ingroup video_options
  * Alpha handling mode
  *
@@ -1709,7 +1719,8 @@ void gavl_video_options_set_background_color(gavl_video_options_t * opt,
  */
 
 int gavl_video_options_get_conversion_flags(gavl_video_options_t * opt);
-
+ 
+  
 /*! \ingroup Video options
  *  \brief Set the deinterlace mode
  *  \param opt Video options
@@ -1900,6 +1911,75 @@ void gavl_video_scaler_scale(gavl_video_scaler_t * scaler,
                              gavl_video_frame_t * input_frame,
                              gavl_video_frame_t * output_frame);
 
+/*! \defgroup video_deinterlacer Deinterlacer
+ *  \ingroup video
+ *  \brief Deinterlacer
+ *
+ *  Deinterlacing is supported either through the \ref gavl_video_converter_t
+ *  or using a low level deinterlacer
+ */
+
+/*! \ingroup video_deinterlacer
+ *  \brief Opaque deinterlacer structure.
+ *
+ *  You don't want to know what's inside.
+ */
+
+
+typedef struct gavl_video_deinterlacer_s gavl_video_deinterlacer_t;
+
+/*! \ingroup video_deinterlacer
+ *  \brief Create a video deinterlacer
+ *  \returns A newly allocated video deinterlacer
+ */
+
+gavl_video_deinterlacer_t * gavl_video_deinterlacer_create();
+
+/*! \ingroup video_deinterlacer
+ *  \brief Destroy a video deinterlacer
+ *  \param deinterlacer A video deinterlacer
+ */
+
+void gavl_video_deinterlacer_destroy(gavl_video_deinterlacer_t * deinterlacer);
+
+/*! \ingroup video_deinterlacer
+ *  \brief gets options of a deinterlacer
+ *  \param deinterlacer A video deinterlacer
+ *
+ * After you called this, you can use the gavl_video_options_set_*() functions to change
+ * the options. Options will become valid with the next call to \ref gavl_video_deinterlacer_init
+ */
+  
+gavl_video_options_t *
+gavl_video_deinterlacer_get_options(gavl_video_deinterlacer_t * deinterlacer);
+
+/*! \ingroup video_deinterlacer
+ *  \brief Initialize a video deinterlacer
+ *  \param deinterlacer A video deinterlacer
+ *  \param src_format Input format
+ *  \returns If something goes wrong (should never happen), -1 is returned.
+ *
+ * You should have equal pixelformats in the source and destination.
+ * This function can be called multiple times with one instance. 
+ */
+  
+int gavl_video_deinterlacer_init(gavl_video_deinterlacer_t * deinterlacer,
+                                 const gavl_video_format_t * src_format);
+
+  
+/*! \ingroup video_deinterlacer
+ *  \brief Deinterlace video
+ *  \param deinterlacer A video deinterlacer
+ *  \param input_frame Input frame
+ *  \param output_frame Output frame
+ */
+  
+void gavl_video_deinterlacer_deinterlace(gavl_video_deinterlacer_t * deinterlacer,
+                                         gavl_video_frame_t * input_frame,
+                                         gavl_video_frame_t * output_frame);
+
+  
+  
 /**************************************************
  * Transparent overlays 
  **************************************************/
