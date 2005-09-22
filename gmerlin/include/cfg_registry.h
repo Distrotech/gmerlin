@@ -95,6 +95,11 @@ void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
                                   bg_parameter_info_t * info,
                                   bg_parameter_value_t * value);
 
+int bg_cfg_section_set_parameter_from_string(bg_cfg_section_t * section,
+                                             bg_parameter_info_t * info,
+                                             const char * str);
+
+
 void bg_cfg_section_get_parameter(bg_cfg_section_t * section,
                                   bg_parameter_info_t * info,
                                   bg_parameter_value_t * value);

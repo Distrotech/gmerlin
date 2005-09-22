@@ -883,9 +883,9 @@ bg_plugin_registry_load_image(bg_plugin_registry_t * r,
   return ret;
 
   fail:
+  if(ret)
     gavl_video_frame_destroy(ret);
-    return (gavl_video_frame_t*)0;
-  
+  return (gavl_video_frame_t*)0;
   }
 
 bg_plugin_handle_t * bg_plugin_load(bg_plugin_registry_t * reg,

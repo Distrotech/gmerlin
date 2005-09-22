@@ -437,8 +437,10 @@ static void finalize_audio_stream(audio_stream_t * ret,
                          set_stream_param,
                          &st);
     }
+  }
 
-  
+static void set_audio_format(audio_stream_t * ret)
+  {
   ret->com.out_plugin->get_audio_format(ret->com.out_handle->priv,
                                         ret->com.out_index,
                                         &(ret->out_format));
@@ -517,8 +519,11 @@ static void finalize_video_stream(video_stream_t * ret,
                          set_stream_param,
                          &st);
     }
+  }
 
-
+static void set_video_format(video_stream_t * ret)
+  {
+  
   ret->com.out_plugin->get_video_format(ret->com.out_handle->priv,
                                            ret->com.out_index, &(ret->out_format));
 
@@ -1262,6 +1267,8 @@ int bg_transcoder_init(bg_transcoder_t * ret,
         bg_plugin_unref(video_encoder_handle);
         goto fail;
         }
+
+      set_video_format(&(ret->video_streams[i]));
       
       bg_plugin_unref(video_encoder_handle);
       video_encoder_handle = (bg_plugin_handle_t*)0;
@@ -1313,9 +1320,6 @@ int bg_transcoder_init(bg_transcoder_t * ret,
       stream_index++;
       }
 
-    //    encoder_plugin = video_encoder_plugin;
-    //    encoder_handle = video_encoder_handle;
-
     stream_index = 0;
     for(i = 0; i < ret->num_video_streams; i++)
       {
@@ -1339,6 +1343,20 @@ int bg_transcoder_init(bg_transcoder_t * ret,
       bg_plugin_unref(video_encoder_handle);
       goto fail;
       }
+
+    for(i = 0; i < ret->num_audio_streams; i++)
+      {
+      if(ret->audio_streams[i].com.action != STREAM_ACTION_TRANSCODE)
+        continue;
+      set_audio_format(&(ret->audio_streams[i]));
+      }
+    for(i = 0; i < ret->num_video_streams; i++)
+      {
+      if(ret->video_streams[i].com.action != STREAM_ACTION_TRANSCODE)
+        continue;
+      set_video_format(&(ret->video_streams[i]));
+      }
+    
     
     bg_plugin_unref(encoder_handle);
     }

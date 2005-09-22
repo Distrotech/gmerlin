@@ -53,7 +53,6 @@ static void destroy_tga(void * priv)
 static int write_header_tga(void * priv, const char * filename,
                             gavl_video_format_t * format)
   {
-  gavl_video_frame_t * frame;
   tga_t * tga = (tga_t*)priv;
 
   if(gavl_pixelformat_has_alpha(format->pixelformat))

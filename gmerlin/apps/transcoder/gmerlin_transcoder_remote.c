@@ -17,6 +17,8 @@
 
 *****************************************************************/
 
+
+#include <cfg_registry.h>
 #include <cmdline.h>
 #include <utils.h>
 #include <remote.h>

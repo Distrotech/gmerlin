@@ -1104,6 +1104,7 @@ static bg_parameter_info_t general_parameters_video[] =
     },
     BG_GAVL_PARAM_CONVERSION_QUALITY,
     BG_GAVL_PARAM_FRAMERATE,
+    BG_GAVL_PARAM_DEINTERLACE,
     BG_GAVL_PARAM_ALPHA,
 #if 1
     {

@@ -108,7 +108,7 @@ static void play_file(bg_player_t * player)
 static int time_active = 0;
 static gavl_time_t total_time  = 0;
 
-static void print_time(int seconds)
+static void print_time(gavl_time_t time)
   {
   char str[GAVL_TIME_STRING_LEN];
   int i;
@@ -126,7 +126,7 @@ static void print_time(int seconds)
       }
     }
 
-  gavl_time_prettyprint_seconds(seconds, str);
+  gavl_time_prettyprint(time, str);
 
   fprintf(stderr, "[ ");
   len = strlen(str);
@@ -180,7 +180,7 @@ static int handle_message(bg_player_t * player,
     {
     case BG_PLAYER_MSG_TIME_CHANGED:
       t = bg_msg_get_arg_time(message, 0);
-      print_time(t/GAVL_TIME_SCALE);
+      print_time(t);
       break;
     case BG_PLAYER_MSG_TRACK_DURATION:
       total_time = bg_msg_get_arg_time(message, 0);

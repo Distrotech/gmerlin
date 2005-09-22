@@ -76,7 +76,8 @@ typedef struct bg_parameter_info_s
   {
   char * name;
   char * long_name;
-
+  char * opt; /* For commandline */
+  
   bg_parameter_type_t type;
 
   int flags;

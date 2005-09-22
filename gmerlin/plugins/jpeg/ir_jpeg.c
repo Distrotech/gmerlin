@@ -118,6 +118,7 @@ int read_header_jpeg(void * priv, const char * filename,
          (jpeg->cinfo.comp_info[2].v_samp_factor == 1))
         {
         format->pixelformat = GAVL_YUVJ_420_P;
+        
         PADD(format->frame_width, 16);
         PADD(format->frame_height, 16);
         }

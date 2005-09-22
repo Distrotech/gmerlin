@@ -100,6 +100,9 @@ int write_header_jpeg(void * priv, const char * filename,
 
   jpeg_set_colorspace(&(jpeg->cinfo), JCS_YCbCr);
   jpeg->cinfo.raw_data_in = TRUE;
+
+  format->chroma_placement = GAVL_CHROMA_PLACEMENT_DEFAULT;
+  format->interlace_mode = GAVL_INTERLACE_NONE;
   
   switch(format->pixelformat)
     {
@@ -115,7 +118,6 @@ int write_header_jpeg(void * priv, const char * filename,
 
       PADD(format->frame_width, 16);
       PADD(format->frame_height, 16);
-            
       break;
     case GAVL_YUVJ_422_P:
       jpeg->cinfo.comp_info[0].h_samp_factor = 2;

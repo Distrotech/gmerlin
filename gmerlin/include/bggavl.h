@@ -32,7 +32,8 @@ int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t *
 
 void bg_gavl_audio_options_init(bg_gavl_audio_options_t *);
 
-void bg_gavl_audio_options_set_format(bg_gavl_audio_options_t *, const gavl_audio_format_t * in_format,
+void bg_gavl_audio_options_set_format(bg_gavl_audio_options_t *,
+                                      const gavl_audio_format_t * in_format,
                                       gavl_audio_format_t * out_format);
 
 
@@ -81,12 +82,13 @@ void bg_gavl_video_options_set_rectangles(bg_gavl_video_options_t * opt,
 #define BG_GAVL_PARAM_CONVERSION_QUALITY \
   {                                      \
   name:        "conversion_quality",     \
-    long_name:   "Conversion Quality",          \
-    type:        BG_PARAMETER_SLIDER_INT,               \
-    val_min:     { val_i: GAVL_QUALITY_FASTEST },       \
-    val_max:     { val_i: GAVL_QUALITY_BEST    },       \
-    val_default: { val_i: GAVL_QUALITY_DEFAULT },                      \
-    help_string: "Set the conversion quality for format conversions. \
+  long_name:   "Conversion Quality",          \
+    opt:         "q", \
+  type:        BG_PARAMETER_SLIDER_INT,               \
+  val_min:     { val_i: GAVL_QUALITY_FASTEST },       \
+  val_max:     { val_i: GAVL_QUALITY_BEST    },       \
+  val_default: { val_i: GAVL_QUALITY_DEFAULT },                      \
+  help_string: "Set the conversion quality for format conversions. \
 Lower quality means more speed. Values above 3 enable slow high quality calculations" \
     }
 
@@ -139,12 +141,42 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
   help_string: "Frame duration for user defined output framerate (Framerate = timescale / frame_duration)", \
   }
 
+#define BG_GAVL_PARAM_DEINTERLACE           \
+ {                                            \
+  name:      "deinterlace_mode",              \
+  long_name: "Deinterlace mode",             \
+  opt:       "dm", \
+  type:      BG_PARAMETER_STRINGLIST,        \
+  val_default: { val_str: "none" },          \
+  multi_names:  (char*[]){ "none", "copy", "scale", (char*)0 },         \
+  multi_labels: (char*[]){ "None", "Copy", "Scale", (char*)0 },         \
+  help_string: "Specify interlace mode. Higher modes are better but slower." \
+  },                                                                   \
+  {                                                                  \
+  name:      "deinterlace_drop_mode",                                            \
+  opt:       "ddm", \
+  long_name: "Drop mode",                                          \
+  type:      BG_PARAMETER_STRINGLIST,                              \
+  val_default: { val_str: "top" },                                 \
+  multi_names:   (char*[]){ "top", "bottom", (char*)0 },               \
+  multi_labels:  (char*[]){ "Drop top field", "Drop bottom field", (char*)0 },               \
+  help_string: "Specifies which field the deinterlacer should drop" \
+  },                                                              \
+  {\
+  name:      "force_deinterlacing",           \
+  long_name: "Force deinterlacing",         \
+  opt:       "fd", \
+  type:      BG_PARAMETER_CHECKBUTTON,              \
+  val_default: { val_i: 0 },                \
+  help_string: "Force deinterlacing if you want progressive output and the input format pretends to be progressive also." \
+  }                                                                  \
 
 #define BG_GAVL_PARAM_CROP                                         \
  {                                                                \
   name:      "crop_left",                                          \
     long_name: "Crop left",                                        \
-    type:      BG_PARAMETER_FLOAT,                                   \
+    opt:       "crl",                                                    \
+    type:      BG_PARAMETER_FLOAT,                                       \
     val_min:     { val_f: 0.0 },                                     \
       val_max:     { val_f: 100000.0 },\
       val_default: { val_f: 0.0 },\
@@ -154,6 +186,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
     {\
       name:      "crop_right",\
       long_name: "Crop right",\
+      opt:       "crr",                         \
       type:      BG_PARAMETER_FLOAT,\
       val_min:     { val_f: 0.0 },\
       val_max:     { val_f: 100000.0 },\
@@ -164,6 +197,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
     {\
       name:      "crop_top",\
       long_name: "Crop top",\
+      opt:       "crt",                         \
       type:      BG_PARAMETER_FLOAT,\
       val_min:     { val_f: 0.0 },\
       val_max:     { val_f: 100000.0 },\
@@ -174,6 +208,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
     {\
       name:      "crop_bottom",\
       long_name: "Crop bottom",\
+      opt:       "crb",                         \
       type:      BG_PARAMETER_FLOAT,\
       val_min:     { val_f: 0.0 },\
       val_max:     { val_f: 100000.0 },\
@@ -186,6 +221,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
   {                                                                 \
   name:        "scale_mode",                                          \
   long_name:   "Scale mode",                                          \
+  opt:       "sm",                                                  \
   type:        BG_PARAMETER_STRINGLIST,                               \
     multi_names:  (char*[]){ "auto",\
                              "nearest",         \
@@ -212,6 +248,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
     {                                                                   \
     name:        "scale_order",                                         \
   long_name:   "Scale order",                                        \
+  opt:       "so",                                                  \
   type:        BG_PARAMETER_INT,                               \
   val_min:     { val_i: 4 },                                 \
   val_max:     { val_i: 1000 },                              \
@@ -223,6 +260,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
     { \
       name:        "frame_size", \
       long_name:   "Frame Size", \
+      opt:         "s", \
       type:        BG_PARAMETER_STRINGLIST, \
       multi_names: (char*[]){ "from_input", \
                               "user_defined", \
@@ -263,11 +301,12 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
                                 "QVGA (320 x 240)", \
                                 (char*)0 }, \
       val_default: { val_str: "from_input" }, \
-      help_string: "Set the output frame size. For a user defined size, enter the width and height as well as the pixel width and pixel height (for nonsquare pixels) below", \
+      help_string: "Set the output frame size. For a user defined size, you must specify the width and height as well as the pixel width and pixel height (for nonsquare pixels)", \
     }, \
     { \
       name:      "user_image_width", \
       long_name: "User defined width", \
+      opt:       "w", \
       type:      BG_PARAMETER_INT,    \
       val_min:     { val_i: 1 }, \
       val_max:     { val_i: 100000 }, \
@@ -277,6 +316,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
     {                                        \
       name:      "user_image_height", \
       long_name: "User defined height", \
+      opt:       "h", \
       type:      BG_PARAMETER_INT, \
       val_min:     { val_i: 1 }, \
       val_max:     { val_i: 100000 }, \
@@ -286,6 +326,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
     { \
       name:      "user_pixel_width", \
       long_name: "User defined pixel width", \
+      opt:       "sw", \
       type:      BG_PARAMETER_INT,    \
       val_min:     { val_i: 1 }, \
       val_max:     { val_i: 100000 }, \
@@ -295,6 +336,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
     {                                        \
       name:      "user_pixel_height", \
       long_name: "User defined pixel height", \
+      opt:       "sh", \
       type:      BG_PARAMETER_INT, \
       val_min:     { val_i: 1 }, \
       val_max:     { val_i: 100000 }, \
@@ -304,6 +346,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
     { \
       name:      "maintain_aspect", \
       long_name: "Maintain aspect ratio", \
+      opt:       "ka", \
       type:      BG_PARAMETER_CHECKBUTTON, \
       val_default: { val_i: 1 }, \
       help_string: "Let the aspect ratio appear the same as in the source, probably resulting in additional black borders" \

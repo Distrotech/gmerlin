@@ -16,7 +16,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
  
 *****************************************************************/
-
+#include <cfg_registry.h>
 #include <cmdline.h>
 #include <utils.h>
 #include <remote.h>
@@ -322,7 +322,6 @@ int main(int argc, char ** argv)
   env = getenv(PLAYER_REMOTE_ENV);
   if(env)
     port = atoi(env);
-  
   
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 

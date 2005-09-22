@@ -243,8 +243,8 @@ frame_size_sizes[NUM_FRAME_SIZES] =
     { FRAME_SIZE_NTSC_VCD,         352, 240,   10,   11 },
     { FRAME_SIZE_NTSC_SVCD,        480, 480,   15,   11 },
     { FRAME_SIZE_NTSC_SVCD_WIDE,   480, 480,   20,   11 },
-    { FRAME_SIZE_VGA,            640, 480,    1,    1 },
-    { FRAME_SIZE_QVGA,           320, 240,    1,    1 },
+    { FRAME_SIZE_VGA,              640, 480,    1,    1 },
+    { FRAME_SIZE_QVGA,             320, 240,    1,    1 },
   };
 #endif
 
@@ -327,12 +327,25 @@ static void set_frame_rate_mode(bg_gavl_video_options_t * opt,
     return 1; \
     }
 
+#define SP_FLAG(s, flag) if(!strcmp(name, s)) {               \
+  flags = gavl_video_options_get_conversion_flags(opt->opt);  \
+  if(val->val_i)                                              \
+    flags |= flag;                                            \
+  else                                                        \
+    flags &= ~flag;                                           \
+  gavl_video_options_set_conversion_flags(opt->opt, flags);   \
+  return 1;                                                   \
+  }
+
 int bg_gavl_video_set_parameter(void * data, char * name,
                                 bg_parameter_value_t * val)
   {
   int i;
+  int flags;  
   bg_gavl_video_options_t * opt = (bg_gavl_video_options_t *)data;
 
+  
+  //  fprintf(stderr, "bg_gavl_video_set_parameter: %s\n", name);
   if(!strcmp(name, "conversion_quality"))
     {
     gavl_video_options_set_quality(opt->opt, val->val_i);
@@ -357,6 +370,8 @@ int bg_gavl_video_set_parameter(void * data, char * name,
   SP_INT(user_pixel_height);
   SP_INT(maintain_aspect);
 
+  SP_FLAG("force_deinterlacing", GAVL_FORCE_DEINTERLACE);
+  
   if(!strcmp(name, "alpha_mode"))
     {
     //    fprintf(stderr, "Setting alpha mode\n");
@@ -399,6 +414,22 @@ int bg_gavl_video_set_parameter(void * data, char * name,
   else if(!strcmp(name, "scale_order"))
     {
     gavl_video_options_set_scale_order(opt->opt, val->val_i);
+    }
+  else if(!strcmp(name, "deinterlace_mode"))
+    {
+    if(!strcmp(val->val_str, "none"))
+      gavl_video_options_set_deinterlace_mode(opt->opt, GAVL_DEINTERLACE_NONE);
+    else if(!strcmp(val->val_str, "copy"))
+      gavl_video_options_set_deinterlace_mode(opt->opt, GAVL_DEINTERLACE_COPY);
+    else if(!strcmp(val->val_str, "scale"))
+      gavl_video_options_set_deinterlace_mode(opt->opt, GAVL_DEINTERLACE_SCALE);
+    }
+  else if(!strcmp(name, "deinterlace_drop_mode"))
+    {
+    if(!strcmp(val->val_str, "top"))
+      gavl_video_options_set_deinterlace_drop_mode(opt->opt, GAVL_DEINTERLACE_DROP_TOP);
+    else if(!strcmp(val->val_str, "bottom"))
+      gavl_video_options_set_deinterlace_drop_mode(opt->opt, GAVL_DEINTERLACE_DROP_BOTTOM);
     }
   else if(!strcmp(name, "frame_size"))
     {
@@ -454,6 +485,8 @@ void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t * opt,
                                          gavl_video_format_t * out_format)
   {
   int i;
+
+  fprintf(stderr, "bg_gavl_video_options_set_framesize %d\n", opt->frame_size);
   
   /* Set image- and pixel size for output */
   
@@ -464,6 +497,7 @@ void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t * opt,
     }
   else if(opt->frame_size == FRAME_SIZE_USER)
     {
+    fprintf(stderr, "USER DEFINED SIZE\n");
     out_format->image_width  = opt->user_image_width;
     out_format->image_height = opt->user_image_height;
 

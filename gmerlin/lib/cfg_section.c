@@ -211,6 +211,83 @@ void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
   
   }
 
+/* Returns characters read or 0 */
+int bg_cfg_section_set_parameter_from_string(bg_cfg_section_t * section,
+                                             bg_parameter_info_t * info,
+                                             const char * str)
+  {
+  char * end;
+  const char * end_c;
+  const char * pos;
+  bg_cfg_item_t * item;
+  item = bg_cfg_section_find_item(section, info);
+  
+  if(!str)
+    return 0;
+  
+  switch(item->type)
+    {
+    case BG_CFG_INT:
+      item->value.val_i = strtol(str, &end, 10);
+      return end - str;
+      break;
+    case BG_CFG_TIME:
+      return gavl_time_parse(str, &(item->value.val_time));
+      break;
+    case BG_CFG_FLOAT:
+      item->value.val_f = strtod(str, &end);
+      return end - str;
+      break;
+    case BG_CFG_STRING:
+      end_c = str;
+      while(!((*end_c == ',') && (*(end_c-1) != '\\')) &&
+            (*end_c != '\0'))
+        end_c++;
+      
+      item->value.val_str = bg_strndup(item->value.val_str,
+                                       str, end_c);
+      fprintf(stderr, "String: %s\n", item->value.val_str);
+      return end_c - str;
+      break;
+    case BG_CFG_COLOR:
+      pos = str;
+      if(*pos == '\0')
+        return 0;
+      item->value.val_color[0] = strtod(pos, &end);
+      pos = end;
+
+      if(*pos == '\0')
+        return 0;
+      pos++; // ,
+      item->value.val_color[1] = strtod(pos, &end);
+      pos = end;
+
+      if(*pos == '\0')
+        return 0;
+      pos++; // ,
+      item->value.val_color[2] = strtod(pos, &end);
+      if(pos == end)
+        return 0;
+      
+      pos = end;
+
+      if(info->type == BG_PARAMETER_COLOR_RGBA)
+        {
+        if(*pos == '\0')
+          return 0;
+        pos++; // ,
+        item->value.val_color[3] = strtod(pos, &end);
+        
+        if(pos == end)
+          return 0;
+        }
+      return end - pos;
+      break;
+    }
+  return 0;
+  }
+
+
 void bg_cfg_section_get_parameter(bg_cfg_section_t * section,
                                   bg_parameter_info_t * info,
                                   bg_parameter_value_t * value)
