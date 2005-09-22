@@ -82,10 +82,13 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
   int field, plane;
  
   int sub_h_out = 1, sub_v_out = 1;
-
+  
   /* Copy options because we want to change them */
 
   gavl_video_options_copy(&opt, &(scaler->opt));
+
+  /* TODO: If the image is smaller than the number of filter taps,
+     reduce scaling algorithm */
   
   /* Copy formats */
   
@@ -101,17 +104,30 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
     gavl_video_options_set_rectangles(&opt, &(src_rect), &(dst_rect));
     }
   
-  /* Check if we must deinterlace */
+  /* Check how many fields we must handle */
 
   if((opt.deinterlace_mode == GAVL_DEINTERLACE_SCALE) &&
      (((dst_format->interlace_mode == GAVL_INTERLACE_NONE) &&
        (src_format->interlace_mode != GAVL_INTERLACE_NONE)) ||
       (opt.conversion_flags & GAVL_FORCE_DEINTERLACE)))
     {
-    scaler->deinterlace = 1;
-    opt.src_rect.y /= 2.0;
-    opt.src_rect.h /= 2.0;
+    /* Deinterlacing mode */
+    scaler->src_fields = 2;
+    scaler->dst_fields = 1;
     }
+  else if(src_format->interlace_mode != GAVL_INTERLACE_NONE)
+    {
+    /* Interlaced scaling */
+    scaler->src_fields = 2;
+    scaler->dst_fields = 2;
+    }
+  else
+    {
+    /* Progressive scaling */
+    scaler->src_fields = 1;
+    scaler->dst_fields = 1;
+    }
+  
   /* Copy destination rectangle so we know, which subframe to take */
   gavl_rectangle_i_copy(&scaler->dst_rect, &opt.dst_rect);
   
@@ -145,37 +161,25 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
   gavl_rectangle_i_dump(&scaler->dst_rect);
   fprintf(stderr, "\n");
 #endif
-    
+  
   /* Check how many planes we have */
-
+  
   if((src_format->pixelformat == GAVL_YUY2) ||
      (src_format->pixelformat == GAVL_UYVY))
     scaler->num_planes = 3;
   else
     scaler->num_planes = gavl_pixelformat_num_planes(src_format->pixelformat);
   
-  /* Check how many fields we must handle */
-  if((src_format->interlace_mode != GAVL_INTERLACE_NONE) && !scaler->deinterlace)
-    scaler->num_fields = 2;
-  else
-    scaler->num_fields = 1;
-
-  if(scaler->num_fields == 2)
-    {
-    if(!scaler->src_field)
-      scaler->src_field = gavl_video_frame_create(NULL);
-    if(!scaler->dst_field)
-      scaler->dst_field = gavl_video_frame_create(NULL);
-    }
-  else if(scaler->deinterlace)
-    {
-    if(!scaler->src_field)
-      scaler->src_field = gavl_video_frame_create(NULL);
-    }
+  if((scaler->src_fields == 2) && (!scaler->src_field))
+    scaler->src_field = gavl_video_frame_create(NULL);
   
-#if 0
-  fprintf(stderr, "Fields: %d, planes: %d\n",
-          scaler->num_fields, scaler->num_planes);
+  if((scaler->dst_fields == 2) && (!scaler->dst_field))
+    scaler->dst_field = gavl_video_frame_create(NULL);
+  
+  
+#if 1
+  fprintf(stderr, "src_fields: %d, dst_fields: %d, planes: %d\n",
+          scaler->src_fields, scaler->dst_fields, scaler->num_planes);
 #endif    
 
   /* Handle automatic mode selection */
@@ -219,26 +223,27 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
   
   /* Now, initialize all fields and planes */
 
-  if(scaler->deinterlace)
+  if(scaler->src_fields > scaler->dst_fields)
     {
     field = (scaler->opt.deinterlace_drop_mode == GAVL_DEINTERLACE_DROP_BOTTOM) ? 0 : 1;
     for(plane = 0; plane < scaler->num_planes; plane++)
       {
       gavl_video_scale_context_init(&(scaler->contexts[field][plane]),
                                     &opt,
-                                    plane, src_format, dst_format, &funcs, 1, field);
+                                    plane, src_format, dst_format, &funcs, field, 0,
+                                    scaler->src_fields, scaler->dst_fields);
       }
-    
     }
   else
     {
-    for(field = 0; field < scaler->num_fields; field++)
+    for(field = 0; field < scaler->src_fields; field++)
       {
       for(plane = 0; plane < scaler->num_planes; plane++)
         {
         gavl_video_scale_context_init(&(scaler->contexts[field][plane]),
                                       &opt,
-                                      plane, src_format, dst_format, &funcs, 0, field);
+                                      plane, src_format, dst_format, &funcs, field, field,
+                                      scaler->src_fields, scaler->dst_fields);
         }
       }
     }
@@ -258,7 +263,7 @@ void gavl_video_scaler_scale(gavl_video_scaler_t * s,
   /* Set the destination subframe */
   gavl_video_frame_get_subframe(s->dst_format.pixelformat, dst, s->dst, &(s->dst_rect));
 
-  if(s->deinterlace)
+  if(s->src_fields > s->dst_fields)
     {
     field = (s->opt.deinterlace_drop_mode == GAVL_DEINTERLACE_DROP_BOTTOM) ? 0 : 1;
     gavl_video_frame_get_field(s->src_format.pixelformat, src, s->src_field, field);
@@ -266,25 +271,32 @@ void gavl_video_scaler_scale(gavl_video_scaler_t * s,
     for(i = 0; i < s->num_planes; i++)
       gavl_video_scale_context_scale(&(s->contexts[field][i]), s->src_field, dst);
     }
-  else if(s->num_fields == 2)
+  else if(s->src_fields == 2)
     {
     /* First field */
     gavl_video_frame_get_field(s->src_format.pixelformat, src,    s->src_field, 0);
     gavl_video_frame_get_field(s->dst_format.pixelformat, s->dst, s->dst_field, 0);
     for(i = 0; i < s->num_planes; i++)
+      {
+      fprintf(stderr, "Field: 0, plane: %d\n", i);
       gavl_video_scale_context_scale(&(s->contexts[0][i]), s->src_field, s->dst_field);
-
+      }
+    
     /* Second field */
     gavl_video_frame_get_field(s->src_format.pixelformat, src,    s->src_field, 1);
     gavl_video_frame_get_field(s->dst_format.pixelformat, s->dst, s->dst_field, 1);
     for(i = 0; i < s->num_planes; i++)
+      {
+      fprintf(stderr, "Field: 1, plane: %d\n", i);
       gavl_video_scale_context_scale(&(s->contexts[1][i]), s->src_field, s->dst_field);
+      }
     }
   else
     {
     for(i = 0; i < s->num_planes; i++)
       {
       //      fprintf(stderr, "Scale %d, %p\n", i, &(s->contexts[0][i]));
+      fprintf(stderr, "Field: 0 (progressive), plane: %d\n", i);
       gavl_video_scale_context_scale(&(s->contexts[0][i]), src, s->dst);
       }
     }

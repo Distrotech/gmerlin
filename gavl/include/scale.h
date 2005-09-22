@@ -103,7 +103,8 @@ typedef struct
 void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
                                  gavl_video_options_t * opt,
                                  double src_off, double src_size,
-                                 int dst_size, int src_width);
+                                 int dst_size,
+                                 int src_width);
 
 void gavl_video_scale_table_init_int(gavl_video_scale_table_t * tab,
                                      int bits);
@@ -204,7 +205,8 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*,
                                   const gavl_video_format_t * input_format,
                                   const gavl_video_format_t * output_format,
                                   gavl_scale_funcs_t * funcs,
-                                  int deinterlace, int src_field);
+                                  int src_field, int dst_field,
+                                  int src_fields, int dst_fields);
 
 void gavl_video_scale_context_cleanup(gavl_video_scale_context_t * ctx);
 
@@ -219,10 +221,11 @@ struct gavl_video_scaler_s
   gavl_video_scale_context_t contexts[2][GAVL_MAX_PLANES];
   
   int num_planes;
-  int num_fields;
 
-  int deinterlace;
-  
+  /* If src_fields > dst_fields, we deinterlace */
+  int src_fields;
+  int dst_fields;
+    
   gavl_video_frame_t * src;
   gavl_video_frame_t * dst;
 

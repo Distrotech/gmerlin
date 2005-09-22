@@ -63,7 +63,7 @@
 
 /* Conversion between src and dst coordinates */
 
-#define DST_TO_SRC(c) ((double)c+0.5)/scale_factor + src_off - 0.5
+#define DST_TO_SRC(c) ((double)c)/scale_factor+src_off
 
 #define ROUND(val) (val >= 0.0) ? (int)(val+0.5):(int)(val-0.5)
 
@@ -87,6 +87,8 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
   //  src_off = -0.25;
   
   /* Get the kernel generator */
+
+  fprintf(stderr, "src_off: %f\n", src_off);
   
   weight_func = gavl_video_scale_get_weight_func(opt, &(tab->factors_per_pixel));
 
@@ -121,6 +123,9 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
     
     src_index_f = DST_TO_SRC((double)i);
 
+    //    fprintf(stderr, "dst: %d -> src: %f (offset: s: %.2f)\n", i, src_index_f,
+    //            src_off);
+    
     //    if(src_index_f > src_size - 1.0)
     //      src_index_f = src_size - 1.0;
     
@@ -168,8 +173,9 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
   if(opt->scale_mode == GAVL_SCALE_SINC_LANCZOS)
     normalize_table(tab);
   
-  //  fprintf(stderr, "After shift\n");
-  //  gavl_video_scale_table_dump(tab);
+  //  fprintf(stderr, "After shift %d\n", src_width);
+  //if(deinterlace || (total_fields == 2))
+  //      gavl_video_scale_table_dump(tab);
   
   }
 
@@ -292,8 +298,11 @@ void gavl_video_scale_table_dump(gavl_video_scale_table_t * tab)
 
     for(j = 0; j < tab->factors_per_pixel; j++)
       {
-      fprintf(stderr, ", fac[%d]: %f [%d]", tab->pixels[i].index + j, tab->pixels[i].factor[j].fac_f,
-              tab->pixels[i].factor[j].fac_i);
+      //      fprintf(stderr, ", fac[%d]: %f [%d]", tab->pixels[i].index + j, tab->pixels[i].factor[j].fac_f,
+      //              tab->pixels[i].factor[j].fac_i);
+
+      fprintf(stderr, ", fac[%d]: %f ", tab->pixels[i].index + j, tab->pixels[i].factor[j].fac_f);
+      
       sum += tab->pixels[i].factor[j].fac_f;
       }
     

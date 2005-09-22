@@ -1,3 +1,22 @@
+/*****************************************************************
+
+  videoformat.c
+
+  Copyright (c) 2001-2005 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+
+  http://gmerlin.sourceforge.net
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+
+*****************************************************************/
+
 #include <string.h>
 #include <stdio.h>
 #include <gavl/gavl.h>
@@ -40,7 +59,7 @@ void gavl_video_format_dump(const gavl_video_format_t * format)
     }
   fprintf(stderr, "  Interlace mode:   %s\n", gavl_interlace_mode_to_string(format->interlace_mode));  
 
-  if(format->pixelformat == GAVL_YUV_420_P)
+  if((format->pixelformat == GAVL_YUV_420_P) || (format->pixelformat == GAVL_YUVJ_420_P))
     {
     fprintf(stderr, "  Chroma placement: %s\n", gavl_chroma_placement_to_string(format->chroma_placement));
     }
@@ -87,8 +106,7 @@ interlace_mode_tab_t interlace_mode_tab[] =
     { GAVL_INTERLACE_BOTTOM_FIRST, "Bottom field first" }
   };
 
-static int num_interlace_modes = sizeof(interlace_mode_tab)/sizeof(interlace_mode_tab_t);
-
+static int num_interlace_modes = sizeof(interlace_mode_tab)/sizeof(interlace_mode_tab[0]);
 
 const char * gavl_interlace_mode_to_string(gavl_interlace_mode_t mode)
   {
@@ -129,7 +147,9 @@ const char * gavl_chroma_placement_to_string(gavl_chroma_placement_t mode)
   
   }
 
-void gavl_video_format_get_chroma_offset(gavl_video_format_t * format, int field, int plane, float * off_x, float * off_y)
+void gavl_video_format_get_chroma_offset(const gavl_video_format_t * format,
+                                         int field, int plane,
+                                         float * off_x, float * off_y)
   {
   int sub_h, sub_v;
   if(!plane)
@@ -162,12 +182,14 @@ void gavl_video_format_get_chroma_offset(gavl_video_format_t * format, int field
       else if(field == 0) /* Top field */
         {
         *off_x = 0.0;
-        *off_y = 0.25;
+        *off_y = 0.25; /* In FIELD coordinates */
+        //        *off_y = 0.5; /* In FRAME coordinates */
         }
       else /* Bottom field */
         {
         *off_x = 0.0;
-        *off_y = 0.75;
+        *off_y = 0.75; /* In FIELD coordinates */
+        //        *off_y = 1.5; /* In FRAME coordinates */
         }
       break;
     case GAVL_CHROMA_PLACEMENT_DVPAL:
@@ -181,6 +203,7 @@ void gavl_video_format_get_chroma_offset(gavl_video_format_t * format, int field
         *off_x = 0.0;
         *off_y = 0.0;
         }
+      break;
     }
   
   }

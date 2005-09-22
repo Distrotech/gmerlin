@@ -257,11 +257,13 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
      (tmp_format.image_width  != output_format->image_width) ||
      (tmp_format.image_height != output_format->image_height) ||
      (tmp_format.pixel_width  != output_format->pixel_width) ||
-     (tmp_format.pixel_height != output_format->pixel_height))
+     (tmp_format.pixel_height != output_format->pixel_height) ||
+     ((cnv->options.quality > 3)
+      && (tmp_format.chroma_placement != output_format->chroma_placement)))
     {
     do_scale = 1;
     }
-  
+    
   /* For quality levels above 3, we switch on scaling, if it provides a more
      accurate conversion. This is especially true if the chroma subsampling
      ratios change or when the chroma placement becomes different */
@@ -280,7 +282,7 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
       else
         {
         tmp_csp = gavl_pixelformat_get_intermediate(tmp_format.pixelformat,
-                                                   output_format->pixelformat);
+                                                    output_format->pixelformat);
         if(tmp_csp != GAVL_PIXELFORMAT_NONE)
           do_scale = 1;
         }
@@ -298,10 +300,10 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
       (output_format->interlace_mode == GAVL_INTERLACE_NONE)) ||
      (cnv->options.conversion_flags & GAVL_FORCE_DEINTERLACE))
     {
-    fprintf(stderr, "Forcing deinterlacing\n");
+    // fprintf(stderr, "Forcing deinterlacing\n");
     if(cnv->options.deinterlace_mode == GAVL_DEINTERLACE_SCALE)
       do_scale = 1;
-    else
+    else if(cnv->options.deinterlace_mode != GAVL_DEINTERLACE_NONE)
       do_deinterlace = 1;
     }
   
@@ -377,6 +379,8 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
 
       tmp_format1.frame_width  = output_format->image_width;
       tmp_format1.frame_height = output_format->image_height;
+      tmp_format1.chroma_placement = output_format->chroma_placement;
+      tmp_format1.interlace_mode = output_format->interlace_mode;
       
       add_context_scale(cnv, &tmp_format, &tmp_format1);
 
@@ -399,9 +403,13 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
 
       tmp_format1.frame_width  = output_format->image_width;
       tmp_format1.frame_height = output_format->image_height;
+      tmp_format1.interlace_mode = output_format->interlace_mode;
       
       if(tmp_csp != GAVL_PIXELFORMAT_NONE)
+        {
         tmp_format1.pixelformat = tmp_csp;
+        }
+      tmp_format1.chroma_placement = output_format->chroma_placement;
       
       add_context_scale(cnv, &tmp_format, &tmp_format1);
 

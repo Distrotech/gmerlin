@@ -1282,7 +1282,7 @@ void gavl_video_format_copy(gavl_video_format_t * dst,
   \param off_y Returns the offset in y-direction
 */
   
-void gavl_video_format_get_chroma_offset(gavl_video_format_t * format, int field, int plane,
+void gavl_video_format_get_chroma_offset(const gavl_video_format_t * format, int field, int plane,
                                          float * off_x, float * off_y);
   
 
