@@ -17,13 +17,9 @@
 
 *****************************************************************/
 
-/* Common defintions and routines for driving mpeg2enc */
+#include "y4m_common.h"
 
-#define FORMAT_MPEG1 0
-#define FORMAT_VCD   1
-#define FORMAT_MPEG2 3
-#define FORMAT_SVCD  4
-#define FORMAT_DVD   8
+/* Common defintions and routines for driving mpeg2enc */
 
 typedef struct
   {
@@ -36,21 +32,40 @@ typedef struct
   int quantization; /* -q */
   
   char * user_options;
+
+  bg_y4m_common_t y4m;
   } bg_mpv_common_t;
 
 bg_parameter_info_t * bg_mpv_get_parameters();
 
-/* Must pass a bg_mpv_common_t for parameters */
+/* Must pass a bg_mpv_common_t for data */
 void bg_mpv_set_parameter(void * data, char * name, bg_parameter_value_t * val);
 
+int bg_mpv_open(bg_mpv_common_t * com, const char * filename);
+
+void bg_mpv_set_format(bg_mpv_common_t * com, const gavl_video_format_t * format);
+void bg_mpv_get_format(bg_mpv_common_t * com, gavl_video_format_t * format);
+
+int bg_mpv_start(bg_mpv_common_t * com);
+
+void bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame);
+
+void bg_mpv_close(bg_mpv_common_t * com);
+
+
+#if 0
 char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filename);
 
-void bg_mpv_cleanup(bg_mpv_common_t * com);
 
 /* Adjust a video format into something, mpeg2enc will process without errors */
 
 void bg_mpv_adjust_framerate(gavl_video_format_t * format);
+void bg_mpv_adjust_interlacing(gavl_video_format_t * format,
+                               int mpeg_format);
 
 int bg_mpv_get_chroma_mode(bg_mpv_common_t * com);
+#endif
+
+const char * bg_mpv_get_extension(bg_mpv_common_t * com);
 
 

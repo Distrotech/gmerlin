@@ -29,7 +29,7 @@ typedef struct
   {
   char * error_msg;
   bg_y4m_common_t com;
-  
+  char * filename;
   } e_y4m_t;
 
 static void * create_y4m()
@@ -73,7 +73,7 @@ static int open_y4m(void * data, const char * filename,
     return 0;
 
   /* Copy filename for later reusal */
-  e->com.filename = bg_strdup(e->com.filename, filename);
+  e->filename = bg_strdup(e->filename, filename);
   
   /* Set up writer */
   e->com.writer.data  = e->com.file;
@@ -115,13 +115,19 @@ static void close_y4m(void * data, int do_delete)
   e_y4m_t * e = (e_y4m_t*)data;
   fclose(e->com.file);
   if(do_delete)
-    remove(e->com.filename);
+    remove(e->filename);
   }
 
 static void destroy_y4m(void * data)
   {
   e_y4m_t * e = (e_y4m_t*)data;
   bg_y4m_cleanup(&e->com);
+
+  if(e->error_msg)
+    free(e->error_msg);
+  if(e->filename)
+    free(e->filename);
+  
   free(e);
   }
 

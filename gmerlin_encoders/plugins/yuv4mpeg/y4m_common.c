@@ -186,7 +186,4 @@ void bg_y4m_cleanup(bg_y4m_common_t * com)
     free(com->tmp_planes[0]);
   if(com->frame)
     gavl_video_frame_destroy(com->frame);
-  if(com->filename)
-    free(com->filename);
-
   }

@@ -23,14 +23,13 @@
 #include <gmerlin/utils.h>
 #include <gmerlin_encoders.h>
 #include <yuv4mpeg.h>
-#include "y4m_common.h"
 #include "mpv_common.h"
 
 typedef struct
   {
   char * error_msg;
-  bg_y4m_common_t com;
   bg_mpv_common_t mpv;
+  char * filename;
   } e_mpv_t;
 
 static void * create_mpv()
@@ -46,86 +45,40 @@ static const char * get_error_mpv(void * priv)
   return y4m->error_msg;
   }
 
-static const char * extension_mpeg1  = ".m1v";
-static const char * extension_mpeg2  = ".m2v";
-
 static const char * get_extension_mpv(void * data)
   {
   e_mpv_t * e = (e_mpv_t*)data;
-
-  switch(e->mpv.format)
-    {
-    case FORMAT_MPEG1:
-    case FORMAT_VCD:
-      return extension_mpeg1;
-      break;
-    case FORMAT_MPEG2:
-    case FORMAT_SVCD:
-    case FORMAT_DVD:
-      return extension_mpeg2;
-    }
-  return (char*)0;
-  }
-
-static ssize_t write_func(void * data, const void *buf, size_t len)
-  {
-  size_t result;
-  result = fwrite(buf, 1, len, (FILE*)(data));
-  
-  if(result != len)
-    return -len;
-  return 0;
+  return bg_mpv_get_extension(&(e->mpv));
   }
 
 static int open_mpv(void * data, const char * filename,
                     bg_metadata_t * metadata)
   {
   e_mpv_t * e = (e_mpv_t*)data;
-  char * commandline;
-
-  commandline = bg_mpv_make_commandline(&e->mpv, filename);
-
-  fprintf(stderr, "launching %s...", commandline);
-  
-  e->com.file = popen(commandline, "w");
-  if(!e->com.file)
-    {
-    fprintf(stderr, "failed\n");
-    return 0;
-    }
-  fprintf(stderr, "done\n");
-
-  free(commandline);
-  
-  /* Copy filename for later reusal */
-  e->com.filename = bg_strdup(e->com.filename, filename);
-  
-  /* Set up writer */
-  e->com.writer.data  = e->com.file;
-  e->com.writer.write = write_func;
-  return 1;
+  e->filename = bg_strdup(e->filename, filename);
+  return bg_mpv_open(&e->mpv, filename);
   }
 
 static void add_video_stream_mpv(void * data, gavl_video_format_t* format)
   {
   e_mpv_t * e = (e_mpv_t*)data;
-  gavl_video_format_copy(&(e->com.format), format);
-  e->com.chroma_mode = bg_mpv_get_chroma_mode(&e->mpv);
-  bg_mpv_adjust_framerate(&(e->com.format));
-  bg_y4m_set_pixelformat(&e->com);
+  bg_mpv_set_format(&e->mpv, format);
   }
 
 static void get_video_format_mpv(void * data, int stream,
                                  gavl_video_format_t * ret)
   {
   e_mpv_t * e = (e_mpv_t*)data;
-  gavl_video_format_copy(ret, &(e->com.format));
+
+  
+  
+  gavl_video_format_copy(ret, &(e->mpv.y4m.format));
   }
 
 static int start_mpv(void * data)
   {
   e_mpv_t * e = (e_mpv_t*)data;
-  return bg_y4m_write_header(&e->com);
+  return bg_mpv_start(&e->mpv);
   }
 
 static void write_video_frame_mpv(void * data,
@@ -133,22 +86,21 @@ static void write_video_frame_mpv(void * data,
                                   int stream)
   {
   e_mpv_t * e = (e_mpv_t*)data;
-  bg_y4m_write_frame(&(e->com), frame);
+  bg_y4m_write_frame(&(e->mpv.y4m), frame);
   }
 
 static void close_mpv(void * data, int do_delete)
   {
   e_mpv_t * e = (e_mpv_t*)data;
-  pclose(e->com.file);
+  bg_mpv_close(&e->mpv);
   if(do_delete)
-    remove(e->com.filename);
+    remove(e->filename);
   }
 
 static void destroy_mpv(void * data)
   {
   e_mpv_t * e = (e_mpv_t*)data;
-  bg_y4m_cleanup(&e->com);
-  bg_mpv_cleanup(&e->mpv);
+  bg_y4m_cleanup(&e->mpv.y4m);
   free(e);
   }
 

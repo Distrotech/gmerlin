@@ -22,7 +22,6 @@
 typedef struct
   {
   gavl_video_format_t format;
-  char * filename;
   FILE * file;
   /* For checking if an incoming frame can be read without memcpying */
   int strides[4]; 

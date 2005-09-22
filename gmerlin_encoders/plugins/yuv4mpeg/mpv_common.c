@@ -31,6 +31,11 @@
 #define BITRATE_VBR  1
 #define BITRATE_CBR  2
 
+#define FORMAT_MPEG1 0
+#define FORMAT_VCD   1
+#define FORMAT_MPEG2 3
+#define FORMAT_SVCD  4
+#define FORMAT_DVD   8
 
 
 static bg_parameter_info_t parameters[] =
@@ -157,7 +162,7 @@ char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filename)
     }
 
   /* path + format */
-  fprintf(stderr, "com->format: %d\n", com->format);
+  //  fprintf(stderr, "com->format: %d\n", com->format);
   ret = bg_sprintf("%s -f %d", mpeg2enc_path, com->format);
   free(mpeg2enc_path);
 
@@ -181,7 +186,6 @@ char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filename)
   
   /* TODO: More parameters */
 
-
   /* Verbosity level: Too many messages on std[out|err] are not
      useful for GUI applications */
   
@@ -203,12 +207,6 @@ char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filename)
   free(tmp_string);
   
   return ret;
-  }
-
-void bg_mpv_cleanup(bg_mpv_common_t * com)
-  {
-  if(com->user_options)
-    free(com->user_options);
   }
 
 static struct
@@ -288,4 +286,112 @@ int bg_mpv_get_chroma_mode(bg_mpv_common_t * com)
       fprintf(stderr, "ERROR: Unknown MPEG format\n");
     }
   return -1;
+  }
+
+void bg_mpv_adjust_interlacing(gavl_video_format_t * format,
+                               int mpeg_format)
+  {
+  switch(mpeg_format)
+    {
+    case FORMAT_MPEG1:
+    case FORMAT_VCD:
+      format->interlace_mode = GAVL_INTERLACE_NONE;
+      break;
+    case FORMAT_MPEG2:
+    case FORMAT_SVCD:
+    case FORMAT_DVD:
+      break;
+    default:
+      fprintf(stderr, "ERROR: Unknown MPEG format\n");
+    }
+  }
+
+static const char * extension_mpeg1  = ".m1v";
+static const char * extension_mpeg2  = ".m2v";
+
+const char * bg_mpv_get_extension(bg_mpv_common_t * mpv)
+  {
+  switch(mpv->format)
+    {
+    case FORMAT_MPEG1:
+    case FORMAT_VCD:
+      return extension_mpeg1;
+      break;
+    case FORMAT_MPEG2:
+    case FORMAT_SVCD:
+    case FORMAT_DVD:
+      return extension_mpeg2;
+    }
+  return (char*)0;
+  }
+
+static ssize_t write_func(void * data, const void *buf, size_t len)
+  {
+  size_t result;
+  result = fwrite(buf, 1, len, (FILE*)(data));
+  
+  if(result != len)
+    return -len;
+  return 0;
+  }
+
+int bg_mpv_open(bg_mpv_common_t * com, const char * filename)
+  {
+  char * commandline;
+
+  commandline = bg_mpv_make_commandline(com, filename);
+  if(!commandline)
+    {
+    return 0;
+    }
+
+  fprintf(stderr, "launching %s...", commandline);
+  
+  com->y4m.file = popen(commandline, "w");
+  if(!com->y4m.file)
+    {
+    fprintf(stderr, "failed\n");
+    return 0;
+    }
+  fprintf(stderr, "done\n");
+
+  free(commandline);
+  
+  /* Set up writer */
+  com->y4m.writer.data  = com->y4m.file;
+  com->y4m.writer.write = write_func;
+
+  return 1;
+  
+  }
+
+void bg_mpv_set_format(bg_mpv_common_t * com, const gavl_video_format_t * format)
+  {
+  gavl_video_format_copy(&(com->y4m.format), format);
+  com->y4m.chroma_mode = bg_mpv_get_chroma_mode(com);
+  bg_mpv_adjust_framerate(&(com->y4m.format));
+  bg_mpv_adjust_interlacing(&(com->y4m.format), com->format);
+  bg_y4m_set_pixelformat(&com->y4m);
+  }
+
+void bg_mpv_get_format(bg_mpv_common_t * com, gavl_video_format_t * format)
+  {
+  gavl_video_format_copy(format, &(com->y4m.format));
+  }
+
+void bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame)
+  {
+  bg_y4m_write_frame(&com->y4m, frame);
+  }
+
+void bg_mpv_close(bg_mpv_common_t * com)
+  {
+  pclose(com->y4m.file);
+  if(com->user_options)
+    free(com->user_options);
+  }
+
+int bg_mpv_start(bg_mpv_common_t * com)
+  {
+  return bg_y4m_write_header(&com->y4m);
   }
