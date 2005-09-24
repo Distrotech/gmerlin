@@ -100,7 +100,6 @@ static void close_mpv(void * data, int do_delete)
 static void destroy_mpv(void * data)
   {
   e_mpv_t * e = (e_mpv_t*)data;
-  bg_y4m_cleanup(&e->mpv.y4m);
   free(e);
   }
 

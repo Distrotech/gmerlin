@@ -272,39 +272,45 @@ static void close_mpeg(void * data, int do_delete)
 
     tmp_string = bg_sprintf(" -f %d ", e->format);
     
-    commandline = bg_strcat(commandline, " -v 0 -o ");
+    commandline = bg_strcat(commandline, " -v 0 -o \"");
     commandline = bg_strcat(commandline, e->filename);
+    commandline = bg_strcat(commandline, "\"");
     
     
     /* Audio and video streams */
 
     for(i = 0; i < e->num_video_streams; i++)
       {
-      commandline = bg_strcat(commandline, " ");
-      commandline = bg_strcat(commandline, e->video_streams[i].filename);
+      tmp_string = bg_sprintf(" \"%s\"", e->video_streams[i].filename);
+      commandline = bg_strcat(commandline, tmp_string);
+      free(tmp_string);
       }
     for(i = 0; i < e->num_audio_streams; i++)
       {
-      commandline = bg_strcat(commandline, " ");
-      commandline = bg_strcat(commandline, e->audio_streams[i].filename);
+      tmp_string = bg_sprintf(" \"%s\"", e->audio_streams[i].filename);
+      commandline = bg_strcat(commandline, tmp_string);
+      free(tmp_string);
       }
 
     if(e->aux_stream_1)
       {
-      commandline = bg_strcat(commandline, " ");
-      commandline = bg_strcat(commandline, e->aux_stream_1);
+      tmp_string = bg_sprintf(" \"%s\"", e->aux_stream_1);
+      commandline = bg_strcat(commandline, tmp_string);
+      free(tmp_string);
       }
     
     if(e->aux_stream_2)
       {
-      commandline = bg_strcat(commandline, " ");
-      commandline = bg_strcat(commandline, e->aux_stream_2);
+      tmp_string = bg_sprintf(" \"%s\"", e->aux_stream_2);
+      commandline = bg_strcat(commandline, tmp_string);
+      free(tmp_string);
       }
 
     if(e->aux_stream_3)
       {
-      commandline = bg_strcat(commandline, " ");
-      commandline = bg_strcat(commandline, e->aux_stream_3);
+      tmp_string = bg_sprintf(" \"%s\"", e->aux_stream_3);
+      commandline = bg_strcat(commandline, tmp_string);
+      free(tmp_string);
       }
     
     /* 3. Step: Execute mplex */

@@ -107,7 +107,7 @@ char * bg_mpa_make_commandline(bg_mpa_common_t * com,
 
   /* Output file */
   
-  tmp_string = bg_sprintf(" -o %s", filename);
+  tmp_string = bg_sprintf(" -o \"%s\"", filename);
   ret = bg_strcat(ret, tmp_string);
   free(tmp_string);
   

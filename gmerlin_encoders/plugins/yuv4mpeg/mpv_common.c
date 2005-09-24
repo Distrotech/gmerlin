@@ -202,7 +202,7 @@ char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filename)
   
   /* Output file */
 
-  tmp_string = bg_sprintf(" -o %s", filename);
+  tmp_string = bg_sprintf(" -o \"%s\"", filename);
   ret = bg_strcat(ret, tmp_string);
   free(tmp_string);
   
@@ -387,8 +387,10 @@ void bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame)
 void bg_mpv_close(bg_mpv_common_t * com)
   {
   pclose(com->y4m.file);
+  bg_y4m_cleanup(&com->y4m);
   if(com->user_options)
     free(com->user_options);
+  
   }
 
 int bg_mpv_start(bg_mpv_common_t * com)

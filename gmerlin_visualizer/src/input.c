@@ -78,7 +78,6 @@ int input_create()
   gavl_audio_format_copy(&format, &input_format);
 
   format.num_channels = 2;
-  format.lfe = 0;
   gavl_set_channel_setup(&format);
   format.interleave_mode = GAVL_INTERLEAVE_NONE;
   format.samples_per_frame = 1024;
