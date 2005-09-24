@@ -2315,7 +2315,7 @@ int main(int argc, char ** argv)
       gavl_video_options_set_defaults(opt);
 
       gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_IGNORE);
-      //      gavl_video_options_set_background_color(opt, background);
+      gavl_video_options_set_background_color(opt, background);
 
 #ifdef ALL_PIXELFORMATS
       if(input_format.pixelformat == output_format.pixelformat)

@@ -98,7 +98,7 @@ typedef struct gavl_video_format_s gavl_video_format_t;
     \brief Maximum number of audio channels
    
 */
-#define GAVL_MAX_CHANNELS 6
+#define GAVL_MAX_CHANNELS 128
   
 /*! Format of one audio sample
   \ingroup audio_format
@@ -129,37 +129,25 @@ typedef enum
 
 /*! Audio channel setup
   \ingroup audio_format
- */
-  
-typedef enum
-  {
-    GAVL_CHANNEL_NONE   = 0, /*!< Undefined */
-    GAVL_CHANNEL_MONO   = 1, /*!< Mono */
-    GAVL_CHANNEL_STEREO = 2, /*!< 2 Front channels (Stereo or Dual channels) */
-    GAVL_CHANNEL_3F     = 3, /*!< Front Left, Center, Front Right */
-    GAVL_CHANNEL_2F1R   = 4, /*!< Front Left, Front Right, Rear */
-    GAVL_CHANNEL_3F1R   = 5, /*!< Front Left, Center, Front Right, Rear */
-    GAVL_CHANNEL_2F2R   = 6, /*!< Front Left, Front Right, Rear Left, Rear Right */
-    GAVL_CHANNEL_3F2R   = 7  /*!< Front Left, Center, Front Right, Rear Left, Rear Right */
-  } gavl_channel_setup_t;
-
-/*! Audio channel setup
-  \ingroup audio_format
 
   These are the channel locations used to identify the channel order for an audio format
  */
   
 typedef enum
   {
-    GAVL_CHID_NONE         = 0, /*!< Undefined */
-    GAVL_CHID_FRONT,            /*!< For mono  */
-    GAVL_CHID_FRONT_LEFT,       /*!< Front left */
-    GAVL_CHID_FRONT_RIGHT,      /*!< Front right */
-    GAVL_CHID_FRONT_CENTER,     /*!< Center */
-    GAVL_CHID_REAR,             /*!< Rear */
-    GAVL_CHID_REAR_LEFT,        /*!< Rear left */
-    GAVL_CHID_REAR_RIGHT,       /*!< Rear right */
-    GAVL_CHID_LFE               /*!< Subwoofer */
+    GAVL_CHID_NONE         = 0,   /*!< Undefined                                 */
+    GAVL_CHID_FRONT_CENTER,       /*!< For mono                                  */
+    GAVL_CHID_FRONT_LEFT,         /*!< Front left                                */
+    GAVL_CHID_FRONT_RIGHT,        /*!< Front right                               */
+    GAVL_CHID_FRONT_CENTER_LEFT,  /*!< Left of Center                            */
+    GAVL_CHID_FRONT_CENTER_RIGHT, /*!< Right of Center                           */
+    GAVL_CHID_REAR_LEFT,          /*!< Rear left                                 */
+    GAVL_CHID_REAR_RIGHT,         /*!< Rear right                                */
+    GAVL_CHID_REAR_CENTER,        /*!< Rear Center                               */
+    GAVL_CHID_SIDE_LEFT,          /*!< Side left                                 */
+    GAVL_CHID_SIDE_RIGHT,         /*!< Side right                                */
+    GAVL_CHID_LFE,                /*!< Subwoofer                                 */
+    GAVL_CHID_AUX,                /*!< Additional channel (can be more than one) */
   } gavl_channel_id_t;
 
 /*! Audio Format
@@ -177,8 +165,6 @@ typedef struct gavl_audio_format_s
   int num_channels;         /*!< Number of channels */
   gavl_sample_format_t   sample_format; /*!< Sample format */
   gavl_interleave_mode_t interleave_mode; /*!< Interleave mode */
-  gavl_channel_setup_t   channel_setup; /*!< Channel setup */
-  int lfe;            /*!< Low frequency effect channel present */
   
   float center_level; /*!< linear factor for mixing center to front */
   float rear_level;   /*!< linear factor for mixing rear to front */
@@ -206,13 +192,6 @@ const char * gavl_sample_format_to_string(gavl_sample_format_t format);
 
 const char * gavl_channel_id_to_string(gavl_channel_id_t id);
 
-/*! 
-  \ingroup audio_format
-  \brief Convert a gavl_channel_setup_t to a human readable string
-  \param setup A channel setup
- */
-
-const char * gavl_channel_setup_to_string(gavl_channel_setup_t setup);
 
 /*! 
   \ingroup audio_format
@@ -235,6 +214,7 @@ void gavl_audio_format_dump(const gavl_audio_format_t * format);
   \brief Get the index of a particular channel for a given format. 
   \param format An audio format
   \param id A channel id
+  \returns The index of the channel in the format or -1 if such a channel is not present
  */
 
 int gavl_channel_index(const gavl_audio_format_t * format, gavl_channel_id_t id);
@@ -257,19 +237,29 @@ int gavl_rear_channels(const gavl_audio_format_t * format);
 
 /*!
   \ingroup audio_format
+  \brief Get number of side channels for a given format
+  \param format An audio format
+ */
+  
+int gavl_side_channels(const gavl_audio_format_t * format);
+
+/*!
+  \ingroup audio_format
+  \brief Get number of aux channels for a given format
+  \param format An audio format
+ */
+
+int gavl_aux_channels(const gavl_audio_format_t * format);
+
+  
+  
+/*!
+  \ingroup audio_format
   \brief Get number of LFE channels for a given format
   \param format An audio format
  */
 
 int gavl_lfe_channels(const gavl_audio_format_t * format);
-
-/*!
-  \ingroup audio_format
-  \brief Get number of channels for a given channel setup
-  \param setup A channel setup
- */
-
-int gavl_num_channels(gavl_channel_setup_t setup);
 
 /*!
   \ingroup audio_format
@@ -1675,7 +1665,7 @@ void gavl_video_options_set_quality(gavl_video_options_t * opt, int quality);
 void gavl_video_options_set_conversion_flags(gavl_video_options_t * opt,
                                              int conversion_flags);
 
-/*! \ingroup Video options
+/*! \ingroup video_options
  *  \brief Set the alpha mode
  *  \param opt Video options
  *  \param alpha_mode Alpha mode
@@ -1684,7 +1674,7 @@ void gavl_video_options_set_conversion_flags(gavl_video_options_t * opt,
 void gavl_video_options_set_alpha_mode(gavl_video_options_t * opt,
                                        gavl_alpha_mode_t alpha_mode);
 
-/*! \ingroup Video options
+/*! \ingroup video_options
  *  \brief Set the scale mode
  *  \param opt Video options
  *  \param scale_mode Scale mode
@@ -1693,7 +1683,7 @@ void gavl_video_options_set_alpha_mode(gavl_video_options_t * opt,
 void gavl_video_options_set_scale_mode(gavl_video_options_t * opt,
                                        gavl_scale_mode_t scale_mode);
 
-/*! \ingroup Video options
+/*! \ingroup video_options
  *  \brief Set the scale order for GAVL_SCALE_SINC_LANCZOS
  *  \param opt Video options
  *  \param order Order (must be at least 4)
@@ -1703,7 +1693,7 @@ void gavl_video_options_set_scale_order(gavl_video_options_t * opt,
                                         int order);
 
   
-/*! \ingroup Video options
+/*! \ingroup video_options
  *  \brief Set the background color for alpha blending
  *  \param opt Video options
  *  \param color Array of 3 float values (0.0 .. 1.0) in RGB order
@@ -1721,7 +1711,7 @@ void gavl_video_options_set_background_color(gavl_video_options_t * opt,
 int gavl_video_options_get_conversion_flags(gavl_video_options_t * opt);
  
   
-/*! \ingroup Video options
+/*! \ingroup video_ptions
  *  \brief Set the deinterlace mode
  *  \param opt Video options
  *  \param deinterlace_mode Deinterlace mode
@@ -1730,7 +1720,7 @@ int gavl_video_options_get_conversion_flags(gavl_video_options_t * opt);
 void gavl_video_options_set_deinterlace_mode(gavl_video_options_t * opt,
                                              gavl_deinterlace_mode_t deinterlace_mode);
 
-/*! \ingroup Video options
+/*! \ingroup video_options
  *  \brief Set the deinterlace drop mode
  *  \param opt Video options
  *  \param deinterlace_drop_mode Deinterlace drop mode

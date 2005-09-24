@@ -85,9 +85,6 @@ void gavl_mix_audio(gavl_audio_convert_context_t * ctx)
   //  fprintf(stderr, "done\n");
   }
 
-#define IN_INDEX(id) gavl_channel_index(in, id)
-#define OUT_INDEX(id) gavl_channel_index(out, id)
-
 #if 0
 
 static void dump_matrix(gavl_audio_format_t * in,
@@ -109,25 +106,70 @@ static void dump_matrix(gavl_audio_format_t * in,
 
 #endif
 
+static void normalize_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
+                             int in_channels, int out_channels)
+  {
+  float max_ampl;
+  float ampl;
+  int i, j;
+
+  /* Normalize matrix */
+
+  max_ampl = 0.0;
+
+  for(i = 0; i < out_channels; i++)
+    {
+    ampl = 0.0;
+
+    for(j = 0; j < in_channels; j++)
+      ampl += fabs(ret[i][j]);
+    
+    if(ampl > max_ampl)
+      max_ampl = ampl;
+    }
+
+  //  dump_matrix(in, out, ret);
+  
+  for(i = 0; i < out_channels; i++)
+    for(j = 0; j < in_channels; j++)
+      ret[i][j] /= max_ampl;
+
+  
+  
+  }
+
+#define IN_INDEX(id)  in_index  = gavl_channel_index(in, id);  if(in_index < 0)  goto fail;
+#define OUT_INDEX(id) out_index = gavl_channel_index(out, id); if(out_index < 0) goto fail;
+
 static void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
-                 gavl_audio_options_t * opt,
-                 gavl_audio_format_t * in,
-                 gavl_audio_format_t * out)
+                        gavl_audio_options_t * opt,
+                        gavl_audio_format_t * in,
+                        gavl_audio_format_t * out)
   {
   int input_front;
   int output_front;
   int input_rear;
   int output_rear;
-  float max_ampl;
-  float ampl;
-  int i, j;
-  /* Handle front channels */
+  int input_side;
+  int output_side;
+  int input_lfe;
+  int output_lfe;
+
+  int in_index, out_index;
+  
 
   input_front = gavl_front_channels(in);
   output_front = gavl_front_channels(out);
 
   input_rear  = gavl_rear_channels(in);
   output_rear = gavl_rear_channels(out);
+
+  input_side  = gavl_side_channels(in);
+  output_side = gavl_side_channels(out);
+
+  input_lfe  = gavl_lfe_channels(in);
+  output_lfe = gavl_lfe_channels(out);
+
 #if 0
   fprintf(stderr, "INIT MATRIX\n");
   fprintf(stderr, "In:\n");
@@ -135,6 +177,8 @@ static void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
   fprintf(stderr, "Out:\n");
   gavl_audio_format_dump(out);
 #endif
+
+  /* Handle front channels */
   
   switch(input_front)
     {
@@ -142,16 +186,72 @@ static void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
       switch(output_front)
         {
         case 1: /* 1 Front -> 1 Front */
-          ret[OUT_INDEX(GAVL_CHID_FRONT)][IN_INDEX(GAVL_CHID_FRONT)] = 1.0;
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 1.0;
           break;
         case 2: /* 1 Front -> 2 Front */
-          ret[OUT_INDEX(GAVL_CHID_FRONT_LEFT) ][IN_INDEX(GAVL_CHID_FRONT)] = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_FRONT_RIGHT)][IN_INDEX(GAVL_CHID_FRONT)] = 1.0;
+          OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          
+          ret[out_index][in_index] = 1.0;
           break;
         case 3: /* 1 Front -> 3 Front */
-          ret[OUT_INDEX(GAVL_CHID_FRONT_LEFT)  ][IN_INDEX(GAVL_CHID_FRONT)] = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_FRONT_RIGHT) ][IN_INDEX(GAVL_CHID_FRONT)] = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_FRONT_CENTER)][IN_INDEX(GAVL_CHID_FRONT)] = 1.0;
+          OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          
+          ret[out_index][in_index] = 1.0;
+          break;
+        case 4: /* 1 Front -> 4 Front */
+          OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 1.0;
+          break;
+        case 5: /* 1 Front -> 5 Front */
+          OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 1.0;
+          
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 1.0;
           break;
         }
       break;
@@ -162,26 +262,93 @@ static void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
           switch(opt->conversion_flags & GAVL_AUDIO_STEREO_TO_MONO_MASK)
             {
             case GAVL_AUDIO_STEREO_TO_MONO_LEFT:
-              ret[OUT_INDEX(GAVL_CHID_FRONT)][IN_INDEX(GAVL_CHID_FRONT_LEFT)]      = 1.0;
+              OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+              IN_INDEX(GAVL_CHID_FRONT_LEFT);
+              ret[out_index][in_index]      = 1.0;
               break;
             case GAVL_AUDIO_STEREO_TO_MONO_RIGHT:
-              ret[OUT_INDEX(GAVL_CHID_FRONT)][IN_INDEX(GAVL_CHID_FRONT_RIGHT)]     = 1.0;
+              OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+              IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+              ret[out_index][in_index]     = 1.0;
               break;
             case GAVL_AUDIO_STEREO_TO_MONO_MIX:
-              ret[OUT_INDEX(GAVL_CHID_FRONT)][IN_INDEX(GAVL_CHID_FRONT_LEFT)]      = 1.0;
-              ret[OUT_INDEX(GAVL_CHID_FRONT)][IN_INDEX(GAVL_CHID_FRONT_RIGHT)]     = 1.0;
+              OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+              IN_INDEX(GAVL_CHID_FRONT_LEFT);
+              ret[out_index][in_index]      = 1.0;
+
+              OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+              IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+              ret[out_index][in_index]     = 1.0;
               break;
             }
           break;
         case 2: /* 2 Front -> 2 Front */
-          ret[OUT_INDEX(GAVL_CHID_FRONT_LEFT)][IN_INDEX(GAVL_CHID_FRONT_LEFT)]    = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_FRONT_RIGHT)][IN_INDEX(GAVL_CHID_FRONT_RIGHT)]  = 1.0;
+          OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_LEFT);
+          ret[out_index][in_index]    = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+          ret[out_index][in_index]  = 1.0;
           break;
         case 3: /* 2 Front -> 3 Front */
-          ret[OUT_INDEX(GAVL_CHID_FRONT_LEFT)  ][IN_INDEX(GAVL_CHID_FRONT_LEFT)]  = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_FRONT_RIGHT) ][IN_INDEX(GAVL_CHID_FRONT_RIGHT)] = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_FRONT_CENTER)][IN_INDEX(GAVL_CHID_FRONT_LEFT) ] = 0.5;
-          ret[OUT_INDEX(GAVL_CHID_FRONT_CENTER)][IN_INDEX(GAVL_CHID_FRONT_RIGHT)] = 0.5;
+          OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_LEFT);
+          ret[out_index][in_index]  = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+          IN_INDEX(GAVL_CHID_FRONT_LEFT);
+          ret[out_index][in_index] = 0.5;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+          IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+          ret[out_index][in_index] = 0.5;
+          break;
+        case 4: /* 2 Front -> 4 Front */
+          OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_LEFT);
+          ret[out_index][in_index]  = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_LEFT);
+          ret[out_index][in_index] = 0.5;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+          ret[out_index][in_index] = 0.5;
+          break;
+        case 5: /* 2 Front -> 5 Front */
+          OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_LEFT);
+          ret[out_index][in_index]  = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_LEFT);
+          ret[out_index][in_index] = 0.5;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+          ret[out_index][in_index] = 0.5;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+          IN_INDEX(GAVL_CHID_FRONT_LEFT);
+          ret[out_index][in_index] = 0.5;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+          IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+          ret[out_index][in_index] = 0.5;
           break;
         }
       break;
@@ -189,23 +356,85 @@ static void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
       switch(output_front)
         {
         case 1: /* 3 Front -> 1 Front */
-          ret[OUT_INDEX(GAVL_CHID_FRONT)][IN_INDEX(GAVL_CHID_FRONT_LEFT)]   = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_FRONT)][IN_INDEX(GAVL_CHID_FRONT_RIGHT)]  = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_FRONT)][IN_INDEX(GAVL_CHID_FRONT_CENTER)] =
-            in->center_level;
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+          IN_INDEX(GAVL_CHID_FRONT_LEFT);
+          ret[out_index][in_index]   = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+          IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+          ret[out_index][in_index]  = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = in->center_level;
           break;
         case 2: /* 3 Front -> 2 Front */
-          ret[OUT_INDEX(GAVL_CHID_FRONT_LEFT)][IN_INDEX(GAVL_CHID_FRONT_LEFT)]   = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_FRONT_RIGHT)][IN_INDEX(GAVL_CHID_FRONT_RIGHT)]  = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_FRONT_LEFT)][IN_INDEX(GAVL_CHID_FRONT_CENTER)] =
-            in->center_level;
-          ret[OUT_INDEX(GAVL_CHID_FRONT_RIGHT)][IN_INDEX(GAVL_CHID_FRONT_CENTER)] =
-            in->center_level;
+          OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_LEFT);
+          ret[out_index][in_index]   = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+          ret[out_index][in_index]  = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = in->center_level;
+
+          OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = in->center_level;
           break;
         case 3: /* 3 Front -> 3 Front */
-          ret[OUT_INDEX(GAVL_CHID_FRONT_LEFT)][IN_INDEX(GAVL_CHID_FRONT_LEFT)]   = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_FRONT_RIGHT)][IN_INDEX(GAVL_CHID_FRONT_RIGHT)]  = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_FRONT_CENTER)][IN_INDEX(GAVL_CHID_FRONT_CENTER)] = 1.0;
+          OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_LEFT);
+          ret[out_index][in_index]   = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+          ret[out_index][in_index]  = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 1.0;
+          break;
+        case 4: /* 3 Front -> 4 Front */
+          OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_LEFT);
+          ret[out_index][in_index]   = 1.0;
+          
+          OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+          ret[out_index][in_index]  = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER_LEFT);
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER_LEFT);
+          ret[out_index][in_index] = 0.5;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 0.5;
+          break;
+        case 5: /* 3 Front -> 5 Front */
+          OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_LEFT);
+          ret[out_index][in_index]   = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+          ret[out_index][in_index]  = 1.0;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER_LEFT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 0.5;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER_RIGHT);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 0.5;
+
+          OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+          IN_INDEX(GAVL_CHID_FRONT_CENTER);
+          ret[out_index][in_index] = 0.5;
           break;
         }
       break;
@@ -226,23 +455,40 @@ static void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
             case GAVL_AUDIO_FRONT_TO_REAR_COPY:
               if(input_front > 1)
                 {
-                ret[OUT_INDEX(GAVL_CHID_REAR)][IN_INDEX(GAVL_CHID_FRONT_LEFT)] = 0.5;
-                ret[OUT_INDEX(GAVL_CHID_REAR)][IN_INDEX(GAVL_CHID_FRONT_RIGHT)] = 0.5;
+                OUT_INDEX(GAVL_CHID_REAR_CENTER);
+                IN_INDEX(GAVL_CHID_FRONT_LEFT);
+                ret[out_index][in_index] = 0.5;
+
+                OUT_INDEX(GAVL_CHID_REAR_CENTER);
+                IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+                ret[out_index][in_index] = 0.5;
                 }
               else
-                ret[OUT_INDEX(GAVL_CHID_REAR)][IN_INDEX(GAVL_CHID_FRONT)] = 1.0;
+                {
+                OUT_INDEX(GAVL_CHID_REAR_CENTER);
+                IN_INDEX(GAVL_CHID_FRONT_CENTER);
+                ret[out_index][in_index] = 1.0;
+                }
               break;
             case GAVL_AUDIO_FRONT_TO_REAR_MUTE:
               break;
             case GAVL_AUDIO_FRONT_TO_REAR_DIFF:
               if(input_front > 1)
                 {
-                ret[OUT_INDEX(GAVL_CHID_REAR)][IN_INDEX(GAVL_CHID_FRONT_LEFT)]  = -0.5;
-                ret[OUT_INDEX(GAVL_CHID_REAR)][IN_INDEX(GAVL_CHID_FRONT_RIGHT)] =  0.5;
+                OUT_INDEX(GAVL_CHID_REAR_CENTER);
+                IN_INDEX(GAVL_CHID_FRONT_LEFT);
+                ret[out_index][in_index]  = -0.5;
+                
+                OUT_INDEX(GAVL_CHID_REAR_CENTER);
+                IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+                ret[out_index][in_index] =  0.5;
                 }
               else
-                ret[OUT_INDEX(GAVL_CHID_REAR)][IN_INDEX(GAVL_CHID_FRONT)] = 1.0;
-              
+                {
+                OUT_INDEX(GAVL_CHID_REAR_CENTER);
+                IN_INDEX(GAVL_CHID_FRONT_CENTER);
+                ret[out_index][in_index] = 1.0;
+                }
             }
           break;
         case 2: /* 0 Rear -> 2 Rear */
@@ -252,13 +498,23 @@ static void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
             case GAVL_AUDIO_FRONT_TO_REAR_COPY:
               if(input_front > 1)
                 {
-                ret[OUT_INDEX(GAVL_CHID_REAR_LEFT)][IN_INDEX(GAVL_CHID_FRONT_LEFT)] = 1.0;
-                ret[OUT_INDEX(GAVL_CHID_REAR_RIGHT)][IN_INDEX(GAVL_CHID_FRONT_RIGHT)] = 1.0;
+                OUT_INDEX(GAVL_CHID_REAR_LEFT);
+                IN_INDEX(GAVL_CHID_FRONT_LEFT);
+                ret[out_index][in_index] = 1.0;
+
+                OUT_INDEX(GAVL_CHID_REAR_RIGHT);
+                IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+                ret[out_index][in_index] = 1.0;
                 }
               else
                 {
-                ret[OUT_INDEX(GAVL_CHID_REAR_LEFT)][IN_INDEX(GAVL_CHID_FRONT_LEFT)] = 1.0;
-                ret[OUT_INDEX(GAVL_CHID_REAR_RIGHT)][IN_INDEX(GAVL_CHID_FRONT_RIGHT)] = 1.0;
+                OUT_INDEX(GAVL_CHID_REAR_LEFT);
+                IN_INDEX(GAVL_CHID_FRONT_CENTER);
+                ret[out_index][in_index] = 1.0;
+
+                OUT_INDEX(GAVL_CHID_REAR_RIGHT);
+                IN_INDEX(GAVL_CHID_FRONT_CENTER);
+                ret[out_index][in_index] = 1.0;
                 }
               break;
             case GAVL_AUDIO_FRONT_TO_REAR_MUTE:
@@ -266,16 +522,31 @@ static void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
             case GAVL_AUDIO_FRONT_TO_REAR_DIFF:
               if(input_front > 1)
                 {
-                ret[OUT_INDEX(GAVL_CHID_REAR_LEFT)][IN_INDEX(GAVL_CHID_FRONT_LEFT)]  = -0.5;
-                ret[OUT_INDEX(GAVL_CHID_REAR_LEFT)][IN_INDEX(GAVL_CHID_FRONT_RIGHT)] =  0.5;
-                
-                ret[OUT_INDEX(GAVL_CHID_REAR_RIGHT)][IN_INDEX(GAVL_CHID_FRONT_LEFT)]  = -0.5;
-                ret[OUT_INDEX(GAVL_CHID_REAR_RIGHT)][IN_INDEX(GAVL_CHID_FRONT_RIGHT)] =  0.5;
+                OUT_INDEX(GAVL_CHID_REAR_LEFT);
+                IN_INDEX(GAVL_CHID_FRONT_LEFT);
+                ret[out_index][in_index]  = -0.5;
+
+                OUT_INDEX(GAVL_CHID_REAR_LEFT);
+                IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+                ret[out_index][in_index] =  0.5;
+
+                OUT_INDEX(GAVL_CHID_REAR_RIGHT);
+                IN_INDEX(GAVL_CHID_FRONT_LEFT);
+                ret[out_index][in_index]  = -0.5;
+
+                OUT_INDEX(GAVL_CHID_REAR_RIGHT);
+                IN_INDEX(GAVL_CHID_FRONT_RIGHT);
+                ret[out_index][in_index] =  0.5;
                 }
               else
                 {
-                ret[OUT_INDEX(GAVL_CHID_REAR_LEFT)][IN_INDEX(GAVL_CHID_FRONT)] = 1.0;
-                ret[OUT_INDEX(GAVL_CHID_REAR_RIGHT)][IN_INDEX(GAVL_CHID_FRONT)] = 1.0;
+                OUT_INDEX(GAVL_CHID_REAR_LEFT);
+                IN_INDEX(GAVL_CHID_FRONT_CENTER);
+                ret[out_index][in_index] = 1.0;
+
+                OUT_INDEX(GAVL_CHID_REAR_RIGHT);
+                IN_INDEX(GAVL_CHID_FRONT_CENTER);
+                ret[out_index][in_index] = 1.0;
                 }
             }
           break;
@@ -288,24 +559,35 @@ static void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
           switch(output_front)
             {
             case 1:  /* 1 Rear -> 1 Front */
-              ret[OUT_INDEX(GAVL_CHID_FRONT)][IN_INDEX(GAVL_CHID_REAR)] =
-                in->rear_level;
+              OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+              IN_INDEX(GAVL_CHID_REAR_CENTER);
+              ret[out_index][in_index] = in->rear_level;
               break;
             case 2:  /* 1 Rear -> 2 Front */
             case 3:
-              ret[OUT_INDEX(GAVL_CHID_FRONT_LEFT)][IN_INDEX(GAVL_CHID_REAR)] =
-                in->rear_level;
-              ret[OUT_INDEX(GAVL_CHID_FRONT_RIGHT)][IN_INDEX(GAVL_CHID_REAR)] =
-                in->rear_level;
+              OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+              IN_INDEX(GAVL_CHID_REAR_CENTER);
+              ret[out_index][in_index] = in->rear_level;
+
+              OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+              IN_INDEX(GAVL_CHID_REAR_CENTER);
+              ret[out_index][in_index] = in->rear_level;
               break;
             }
           break;
         case 1: /* 1 Rear -> 1 Rear */
-          ret[OUT_INDEX(GAVL_CHID_REAR)][IN_INDEX(GAVL_CHID_REAR)] = 1.0;
+          OUT_INDEX(GAVL_CHID_REAR_CENTER);
+          IN_INDEX(GAVL_CHID_REAR_CENTER);
+          ret[out_index][in_index] = 1.0;
           break;
         case 2: /* 1 Rear -> 2 Rear */
-          ret[OUT_INDEX(GAVL_CHID_REAR_LEFT)][IN_INDEX(GAVL_CHID_REAR)] = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_REAR_RIGHT)][IN_INDEX(GAVL_CHID_REAR)] = 1.0;
+          OUT_INDEX(GAVL_CHID_REAR_LEFT);
+          IN_INDEX(GAVL_CHID_REAR_CENTER);
+          ret[out_index][in_index] = 1.0;
+          
+          OUT_INDEX(GAVL_CHID_REAR_RIGHT);
+          IN_INDEX(GAVL_CHID_REAR_CENTER);
+          ret[out_index][in_index] = 1.0;
           break;
         }
       break;
@@ -313,59 +595,92 @@ static void init_matrix(float ret[GAVL_MAX_CHANNELS][GAVL_MAX_CHANNELS],
       switch(output_rear)
         {
         case 0: /* 2 Rear -> 0 Rear */
-          switch(output_front)
+          if(output_front == 1)
             {
-            case 1:  /* 2 Rear -> 1 Front */
-              ret[OUT_INDEX(GAVL_CHID_FRONT)][IN_INDEX(GAVL_CHID_REAR_LEFT)] =
-                in->rear_level;
-              ret[OUT_INDEX(GAVL_CHID_FRONT)][IN_INDEX(GAVL_CHID_REAR_RIGHT)] =
-                in->rear_level;
-              break;
-            case 2:  /* 2 Rear -> 2 Front */
-            case 3:
-              ret[OUT_INDEX(GAVL_CHID_FRONT_LEFT)][IN_INDEX(GAVL_CHID_REAR_LEFT)] =
-                in->rear_level;
-              ret[OUT_INDEX(GAVL_CHID_FRONT_RIGHT)][IN_INDEX(GAVL_CHID_REAR_RIGHT)] =
-                in->rear_level;
-              break;
+            /* 2 Rear -> 1 Front */
+            OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+            IN_INDEX(GAVL_CHID_REAR_LEFT);
+            ret[out_index][in_index] = in->rear_level;
+
+            OUT_INDEX(GAVL_CHID_FRONT_CENTER);
+            IN_INDEX(GAVL_CHID_REAR_RIGHT);
+            ret[out_index][in_index] = in->rear_level;
+            }
+          else
+            {
+            OUT_INDEX(GAVL_CHID_FRONT_LEFT);
+            IN_INDEX(GAVL_CHID_REAR_LEFT);
+            ret[out_index][in_index] = in->rear_level;
+
+            OUT_INDEX(GAVL_CHID_FRONT_RIGHT);
+            IN_INDEX(GAVL_CHID_REAR_RIGHT);
+            ret[out_index][in_index] = in->rear_level;
+            break;
             }
           break;
         case 1: /* 2 Rear -> 1 Rear */
-          ret[OUT_INDEX(GAVL_CHID_REAR_LEFT)][IN_INDEX(GAVL_CHID_REAR_LEFT)] = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_REAR_RIGHT)][IN_INDEX(GAVL_CHID_REAR_LEFT)] = 1.0;
+          OUT_INDEX(GAVL_CHID_REAR_CENTER);
+          IN_INDEX(GAVL_CHID_REAR_LEFT);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_REAR_CENTER);
+          IN_INDEX(GAVL_CHID_REAR_LEFT);
+          ret[out_index][in_index] = 1.0;
           break;
         case 2: /* 2 Rear -> 2 Rear */
-          ret[OUT_INDEX(GAVL_CHID_REAR_LEFT)][IN_INDEX(GAVL_CHID_REAR_LEFT)] = 1.0;
-          ret[OUT_INDEX(GAVL_CHID_REAR_RIGHT)][IN_INDEX(GAVL_CHID_REAR_RIGHT)] = 1.0;
+          OUT_INDEX(GAVL_CHID_REAR_LEFT);
+          IN_INDEX(GAVL_CHID_REAR_LEFT);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_REAR_RIGHT);
+          IN_INDEX(GAVL_CHID_REAR_RIGHT);
+          ret[out_index][in_index] = 1.0;
+          break;
+        case 3: /* 2 Rear -> 3 Rear */
+          OUT_INDEX(GAVL_CHID_REAR_LEFT);
+          IN_INDEX(GAVL_CHID_REAR_LEFT);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_REAR_RIGHT);
+          IN_INDEX(GAVL_CHID_REAR_RIGHT);
+          ret[out_index][in_index] = 1.0;
+
+          OUT_INDEX(GAVL_CHID_REAR_CENTER);
+          IN_INDEX(GAVL_CHID_REAR_LEFT);
+          ret[out_index][in_index] = 0.5;
+
+          OUT_INDEX(GAVL_CHID_REAR_CENTER);
+          IN_INDEX(GAVL_CHID_REAR_RIGHT);
+          ret[out_index][in_index] = 0.5;
           break;
         }
       break;
     }
   /* Handle LFE */
   
-  if(in->lfe && out->lfe)
-    ret[OUT_INDEX(GAVL_CHID_LFE)][IN_INDEX(GAVL_CHID_LFE)] = 1.0;
-
-  /* Normalize matrix */
-
-  max_ampl = 0.0;
-
-  for(i = 0; i < out->num_channels; i++)
+  if(input_lfe && output_lfe)
     {
-    ampl = 0.0;
-
-    for(j = 0; j < in->num_channels; j++)
-      ampl += fabs(ret[i][j]);
-    
-    if(ampl > max_ampl)
-      max_ampl = ampl;
+    OUT_INDEX(GAVL_CHID_LFE);
+    IN_INDEX(GAVL_CHID_LFE);
+    ret[out_index][in_index] = 1.0;
     }
 
-  //  dump_matrix(in, out, ret);
+  normalize_matrix(ret, in->num_channels, out->num_channels);
+  return;
   
-  for(i = 0; i < out->num_channels; i++)
-    for(j = 0; j < in->num_channels; j++)
-      ret[i][j] /= max_ampl;
+  fail:
+  fprintf(stderr, "Couldn't construct mix matrix, using (probably wrong) default\n");
+  in_index = 0;
+  out_index = 0;
+
+  while(out_index < out->num_channels)
+    {
+    memset(ret[out_index], 0, sizeof(ret[out_index][0]) * in->num_channels);
+    ret[out_index][in_index] = 1.0;
+    in_index++;
+    if(in_index == in->num_channels)
+      in_index++;
+    }
   
   //  dump_matrix(in, out, ret);
   }
@@ -512,8 +827,6 @@ gavl_mix_context_create(gavl_audio_options_t * opt,
   ret = gavl_audio_convert_context_create(in_format,
                                           out_format);
 
-  ret->output_format.channel_setup = out_format->channel_setup;
-  ret->output_format.lfe =           out_format->lfe;
   ret->output_format.num_channels =  out_format->num_channels;
   memcpy(ret->output_format.channel_locations,
          out_format->channel_locations,

@@ -98,7 +98,7 @@ static void adjust_format(gavl_audio_format_t * f)
     f->interleave_mode = GAVL_INTERLEAVE_NONE;
 
   
-  if((!f->lfe) && (f->num_channels == 2) &&
+  if((f->num_channels == 2) &&
      (f->interleave_mode == GAVL_INTERLEAVE_2))
     f->interleave_mode = GAVL_INTERLEAVE_ALL;
   }
@@ -170,8 +170,10 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
 
   do_mix = 0;
   
-  if((gavl_front_channels(input_format) != gavl_front_channels(output_format)) ||
-     (gavl_rear_channels(input_format) != gavl_rear_channels(output_format)))
+  if((input_format->num_channels != output_format->num_channels) ||
+     (gavl_front_channels(input_format) != gavl_front_channels(output_format)) ||
+     (gavl_rear_channels(input_format) != gavl_rear_channels(output_format)) ||
+     (gavl_side_channels(input_format) != gavl_side_channels(output_format)))
     {
     do_mix = 1;
     }
@@ -245,8 +247,6 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
       }
 
     tmp_format.num_channels = cnv->output_format.num_channels;
-    tmp_format.channel_setup = cnv->output_format.channel_setup;
-    tmp_format.lfe = cnv->output_format.lfe;
     memcpy(tmp_format.channel_locations, cnv->output_format.channel_locations,
            GAVL_MAX_CHANNELS * sizeof(tmp_format.channel_locations[0]));
 

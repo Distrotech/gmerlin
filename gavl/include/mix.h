@@ -14,6 +14,7 @@ typedef struct
   gavl_mix_func_t mix_4_to_1;
   gavl_mix_func_t mix_5_to_1;
   gavl_mix_func_t mix_6_to_1;
+  gavl_mix_func_t mix_all_to_1;
   } gavl_mixer_table_t;
 
 typedef struct gavl_mix_input_channel_s

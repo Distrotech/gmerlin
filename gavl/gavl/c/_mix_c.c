@@ -135,3 +135,27 @@ static void RENAME(mix_6_to_1)(gavl_mix_output_channel_t * channel,
     }
   }
 
+static void RENAME(mix_all_to_1)(gavl_mix_output_channel_t * channel,
+                                 gavl_audio_frame_t * input_frame,
+                                 gavl_audio_frame_t * output_frame)
+  {
+  int i, j;
+  TMP_TYPE tmp;
+    
+  i = input_frame->valid_samples;
+  
+  while(i--)
+    {
+    tmp = 0;
+    j = channel->num_inputs;
+    
+    while(j--)
+      tmp += SRC(j,i) * FACTOR(j);
+    
+    ADJUST_TMP(tmp);
+
+    SETDST(i, tmp);
+    
+    }
+  }
+

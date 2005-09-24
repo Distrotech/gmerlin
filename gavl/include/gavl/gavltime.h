@@ -44,6 +44,7 @@ typedef int64_t gavl_time_t;
 
 /*! \ingroup time
  * \brief Convert a number of samples to a time for a given samplerate
+ * \todo Write this as an overflow save function
  */
 
 #define gavl_samples_to_time(rate, samples) \
@@ -51,6 +52,7 @@ typedef int64_t gavl_time_t;
 
 /*! \ingroup time
  * \brief Convert a number of video frames to a time for a given framerate
+ * \todo Write this as an overflow save function
  */
 
 #define gavl_frames_to_time(rate_num, rate_den, frames) \
@@ -61,6 +63,7 @@ typedef int64_t gavl_time_t;
  * \param rate Samplerate
  * \param t Time
  * \returns Number of audio samples
+ * \todo Write this as an overflow save function
  */
 
 #define gavl_time_to_samples(rate, t) \
@@ -72,6 +75,7 @@ typedef int64_t gavl_time_t;
  * \param rate_den Denominator of the framerate
  * \param t Time
  * \returns Number of frames
+ * \todo Write this as an overflow save function
  */
 
 #define gavl_time_to_frames(rate_num, rate_den, t) \
@@ -82,6 +86,7 @@ typedef int64_t gavl_time_t;
  * \param scale Time scale
  * \param time Time scaled by scale
  * \returns Time scaled by \ref GAVL_TIME_SCALE
+ * \todo Write this as an overflow save function
  */
 
 #define gavl_time_unscale(scale, time) \
@@ -92,6 +97,7 @@ typedef int64_t gavl_time_t;
  * \param scale Time scale
  * \param time Time scaled by \ref GAVL_TIME_SCALE
  * \returns Time scaled by scale
+ * \todo Write this as an overflow save function
  */
 
 #define gavl_time_scale(scale, time)          \
@@ -130,7 +136,8 @@ void gavl_time_delay(gavl_time_t * time);
 
 /*! \ingroup time
  * \brief Convert a time to a string
- * \param time
+ * \param time Time to print
+ * \param str String
  *
  * This prints a gavl_time into ASCII string if a format suitable for player displays.
  * The format is: -hhh:mm:ss
