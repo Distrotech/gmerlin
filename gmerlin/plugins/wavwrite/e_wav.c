@@ -30,7 +30,6 @@
 #include <plugin.h>
 #include <utils.h>
 
-
 /* Speaker configurations for WAVEFORMATEXTENSIBLE */
 
 #define SPEAKER_FRONT_LEFT 	        0x1
@@ -66,6 +65,7 @@ typedef struct
   int write_info_chunk;
   bg_metadata_t metadata;
   char * filename;
+  uint32_t channel_mask;
   } wav_t;
 
 static void write_8(FILE * output, uint32_t val)
@@ -319,137 +319,43 @@ static void write_PCMWAVEFORMAT(wav_t * wav)
 
 struct
   {
-  uint32_t channel_mask;
-
-  int num_channels;
-  gavl_channel_setup_t channel_setup;
-  gavl_channel_id_t channel_locations[GAVL_MAX_CHANNELS];
-  int lfe;
+  int flag;
+  gavl_channel_id_t id;
   }
-channel_setups[] =
+channel_flags[] =
   {
-    /* Without lfe */
-    {
-      channel_mask:      SPEAKER_FRONT_CENTER,
-      num_channels:      1,
-      channel_setup:     GAVL_CHANNEL_MONO,
-      channel_locations: { GAVL_CHID_FRONT },
-      lfe:               0
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT,
-      num_channels:      2,
-      channel_setup:     GAVL_CHANNEL_STEREO,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT },
-      lfe:               0
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER,
-      num_channels:      3,
-      channel_setup:     GAVL_CHANNEL_3F,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_FRONT_CENTER },
-      lfe:               0
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_BACK_CENTER,
-      num_channels:      3,
-      channel_setup:     GAVL_CHANNEL_2F1R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_REAR },
-      lfe:               0
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_BACK_CENTER,
-      num_channels:      4,
-      channel_setup:     GAVL_CHANNEL_3F1R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_FRONT_CENTER,  GAVL_CHID_REAR },
-      lfe:               0
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT,
-      num_channels:      4,
-      channel_setup:     GAVL_CHANNEL_2F2R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_REAR_LEFT, GAVL_CHID_REAR_RIGHT },
-      lfe:               0
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER| SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT,
-      num_channels:      5,
-      channel_setup:     GAVL_CHANNEL_3F2R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, SPEAKER_FRONT_RIGHT, SPEAKER_FRONT_CENTER },
-      lfe:               0
-    },
-    /* With LFE */
-    {
-      channel_mask:      SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY,
-      num_channels:      2,
-      channel_setup:     GAVL_CHANNEL_MONO,
-      channel_locations: { GAVL_CHID_FRONT, GAVL_CHID_LFE },
-      lfe:               1
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_LOW_FREQUENCY,
-      num_channels:      3,
-      channel_setup:     GAVL_CHANNEL_STEREO,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_LFE  },
-      lfe:               1
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY,
-      num_channels:      4,
-      channel_setup:     GAVL_CHANNEL_3F,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_FRONT_CENTER, GAVL_CHID_LFE  },
-      lfe:               1
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_CENTER,
-      num_channels:      4,
-      channel_setup:     GAVL_CHANNEL_2F1R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_LFE , GAVL_CHID_REAR },
-      lfe:               1
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_CENTER,
-      num_channels:      5,
-      channel_setup:     GAVL_CHANNEL_3F1R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_FRONT_CENTER, GAVL_CHID_LFE , GAVL_CHID_REAR },
-      lfe:               1
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT,
-      num_channels:      5,
-      channel_setup:     GAVL_CHANNEL_2F2R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_LFE , GAVL_CHID_REAR_LEFT, GAVL_CHID_REAR_RIGHT },
-      lfe:               1
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT,
-      num_channels:      6,
-      channel_setup:     GAVL_CHANNEL_3F2R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_FRONT_CENTER, GAVL_CHID_LFE , GAVL_CHID_REAR_LEFT, GAVL_CHID_REAR_RIGHT},
-      lfe:               1
-    },
+    { SPEAKER_FRONT_LEFT,            GAVL_CHID_FRONT_LEFT },
+    { SPEAKER_FRONT_RIGHT,           GAVL_CHID_FRONT_RIGHT },
+    { SPEAKER_FRONT_CENTER,          GAVL_CHID_FRONT_CENTER },
+    { SPEAKER_LOW_FREQUENCY,         GAVL_CHID_LFE },
+    { SPEAKER_BACK_LEFT,             GAVL_CHID_REAR_LEFT },
+    { SPEAKER_BACK_RIGHT,            GAVL_CHID_REAR_RIGHT },
+    { SPEAKER_FRONT_LEFT_OF_CENTER,  GAVL_CHID_FRONT_CENTER_LEFT },
+    { SPEAKER_FRONT_RIGHT_OF_CENTER, GAVL_CHID_FRONT_CENTER_RIGHT },
+    { SPEAKER_BACK_CENTER,           GAVL_CHID_REAR_CENTER },
+    { SPEAKER_SIDE_LEFT,             GAVL_CHID_SIDE_LEFT },
+    { SPEAKER_SIDE_RIGHT,            GAVL_CHID_SIDE_RIGHT },
   };
 
 static uint32_t format_2_channel_mask(gavl_audio_format_t * format)
   {
-  int i;
-
-  for(i = 0; i < sizeof(channel_setups)/sizeof(channel_setups[0]); i++)
+  int i, j;
+  uint32_t ret = 0;
+  gavl_channel_id_t new_locations[GAVL_MAX_CHANNELS];
+  int channel_index = 0;
+  
+  for(j = 0; j < sizeof(channel_flags)/sizeof(channel_flags[0]); j++)
     {
-    if((format->channel_setup == channel_setups[i].channel_setup) &&
-       (format->lfe == channel_setups[i].lfe))
+    if(gavl_channel_index(format, channel_flags[i].id) >= 0)
       {
-      if(format->num_channels != channel_setups[i].num_channels)
-        {
-        fprintf(stderr, "Channel number mismatch\n");
-        break;
-        }
-      memcpy(format->channel_locations, channel_setups[i].channel_locations,
-             channel_setups[i].num_channels * sizeof(channel_setups[i].channel_locations[0]));
-      return channel_setups[i].channel_mask;
+      new_locations[channel_index++] = channel_flags[i].id;
+      ret |= channel_flags[i].flag;
       }
     }
-  return 0;
+  memcpy(format->channel_locations,
+         new_locations,
+         format->num_channels * sizeof(new_locations[0]));
+  return ret;
   }
 
 
@@ -469,9 +375,9 @@ static void write_WAVEFORMATEXTENSIBLE(wav_t * wav)
   write_16(wav->output, 22);                                               /* cbSize         */
   write_16(wav->output, wav->bytes_per_sample * 8);                        /* wValidBitsPerSample */
 
-  /* Build channel mask */
+  /* Write channel mask */
 
-  write_32(wav->output, format_2_channel_mask(&(wav->format)));            /* dwChannelMask */
+  write_32(wav->output, wav->channel_mask);            /* dwChannelMask */
   fwrite(guid, 1, 16, wav->output);
   
   }
@@ -501,13 +407,14 @@ static void set_audio_parameter_wav(void * data, int stream, char * name,
     write_fourcc(wav->output, 'W', 'A', 'V', 'E'); /* "WAVE" */
     write_fourcc(wav->output, 'f', 'm', 't', ' '); /* "fmt " */
 
-    if(((wav->format.channel_setup == GAVL_CHANNEL_MONO) || 
-        (wav->format.channel_setup == GAVL_CHANNEL_STEREO)) &&
-       !wav->format.lfe)
+    /* Build channel mask and adjust channel locations */
+    wav->channel_mask = format_2_channel_mask(&wav->format);
+    
+    if(wav->format.num_channels <= 2)
       write_PCMWAVEFORMAT(wav);
     else
       write_WAVEFORMATEXTENSIBLE(wav);
-
+    
     /* Start data section */
 
     write_fourcc(wav->output, 'd', 'a', 't', 'a'); /* "data" */

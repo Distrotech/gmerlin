@@ -260,7 +260,6 @@ static snd_pcm_t * bg_alsa_open(const char * card,
         format->num_channels = 2;
         format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
         format->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
-        format->channel_setup = GAVL_CHANNEL_STEREO;
         }
       }
     else

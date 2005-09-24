@@ -307,8 +307,7 @@ static int set_audio_format(bg_lcdproc_t * l, gavl_audio_format_t * f)
       command = 
         bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {Audio format: %d Hz Mono *** }\n", 
                   formats_name, audio_format_name, f->samplerate);
-    else if((f->num_channels == 2) && 
-            (f->channel_setup == GAVL_CHANNEL_STEREO))
+    else if(f->num_channels == 2)
       command =         bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {Audio format: %d Hz Stereo *** }\n",
                   formats_name, audio_format_name, f->samplerate);
     else

@@ -646,7 +646,8 @@ static void add_file_callback(char ** files, const char * plugin,
     }
 
   /* Remember open path */
-  l->open_path = bg_strdup(l->open_path, bg_gtk_filesel_get_directory(l->filesel));
+  if(l->filesel)
+    l->open_path = bg_strdup(l->open_path, bg_gtk_filesel_get_directory(l->filesel));
   }
 
 static void filesel_close_callback(bg_gtk_filesel_t * f , void * data)

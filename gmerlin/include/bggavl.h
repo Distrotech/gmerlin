@@ -25,7 +25,11 @@ typedef struct
   int fixed_samplerate;
   int samplerate;
   int fixed_channel_setup;
-  gavl_channel_setup_t channel_setup;
+
+  int num_front_channels;
+  int num_rear_channels;
+  int num_lfe_channels;
+  
   } bg_gavl_audio_options_t;
 
 int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t * val);
@@ -398,23 +402,30 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       type:      BG_PARAMETER_CHECKBUTTON,\
       val_default: { val_i: 0 },\
       help_string: "If disabled, the output channel configuration is taken from the source. If enabled, the setup you specify below us used" \
-    },                                              \
-    {\
-      name:        "channel_setup", \
-      long_name:   "Channel setup", \
-      type:        BG_PARAMETER_STRINGLIST, \
-      val_default: { val_str: "Stereo" }, \
-      multi_names: (char*[]){ "Mono", \
-                              "Stereo", \
-                              "3 Front", \
-                              "2 Front 1 Rear",  \
-                              "3 Front 1 Rear",  \
-                              "2 Front 2 Rear",  \
-                              "3 Front 2 Rear",  \
-                              (char*)0 },        \
-      help_string: "Fixed output channel setup", \
-    }, \
-    { \
+    },                                        \
+    {                                         \
+    name:        "num_front_channels",          \
+    long_name:   "Front channels",              \
+    type:        BG_PARAMETER_INT,              \
+    val_min:     { val_i: 1 },                  \
+    val_max:     { val_i: 5 },                  \
+    val_default: { val_i: 2 },                  \
+    },\
+    {                                         \
+    name:        "num_rear_channels",          \
+    long_name:   "Rear channels",              \
+    type:        BG_PARAMETER_INT,              \
+    val_min:     { val_i: 0 },                  \
+    val_max:     { val_i: 3 },                  \
+    val_default: { val_i: 0 },                  \
+    },                                        \
+    {                                         \
+    name:        "num_lfe_channels",          \
+    long_name:   "LFE",                        \
+    type:        BG_PARAMETER_CHECKBUTTON,     \
+    val_default: { val_i: 0 },                  \
+    },                                        \
+    {                                 \
       name:        "front_to_rear", \
       long_name:   "Front to rear mode", \
       type:        BG_PARAMETER_STRINGLIST, \

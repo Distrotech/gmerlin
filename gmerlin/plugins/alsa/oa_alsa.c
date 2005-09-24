@@ -136,6 +136,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   int playback_mode;
   int num_front_channels;
   int num_rear_channels;
+  int num_lfe_channels;
   
   char * card = (char*)0;
   alsa_t * priv = (alsa_t*)(data);
@@ -144,12 +145,13 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   
   num_front_channels = gavl_front_channels(format);
   num_rear_channels = gavl_rear_channels(format);
+  num_lfe_channels = gavl_lfe_channels(format);
 
   playback_mode = PLAYBACK_NONE;
   
   if(num_front_channels > 2)
     {
-    if(format->lfe)
+    if(num_lfe_channels)
       {
       if(priv->enable_surround51)
         playback_mode = PLAYBACK_SURROUND51;
@@ -162,7 +164,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   
   else if((playback_mode == PLAYBACK_NONE) && num_rear_channels)
     {
-    if(format->lfe)
+    if(num_lfe_channels)
       {
       if(priv->enable_surround41)
         playback_mode = PLAYBACK_SURROUND41;
@@ -181,10 +183,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
     case PLAYBACK_GENERIC:
       if(format->num_channels > 2)
         format->num_channels = 2;
-      format->lfe = 0;
       format->channel_locations[0] = GAVL_CHID_NONE;
-      format->channel_setup = (format->num_channels > 1) ?
-        GAVL_CHANNEL_STEREO : GAVL_CHANNEL_MONO;
       gavl_set_channel_setup(format);
       card = bg_sprintf("hw:%d,0", priv->card_index);
 
@@ -193,8 +192,6 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
       break;
     case PLAYBACK_SURROUND40:
       format->num_channels = 4;
-      format->channel_setup = GAVL_CHANNEL_2F2R;
-      format->lfe = 0;
 
       format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
       format->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
@@ -208,8 +205,6 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
       break;
     case PLAYBACK_SURROUND41:
       format->num_channels = 5;
-      format->channel_setup = GAVL_CHANNEL_2F2R;
-      format->lfe = 1;
 
       format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
       format->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
@@ -224,8 +219,6 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
       break;
     case PLAYBACK_SURROUND50:
       format->num_channels = 5;
-      format->channel_setup = GAVL_CHANNEL_3F2R;
-      format->lfe = 0;
 
       format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
       format->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
@@ -239,8 +232,6 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
       break;
     case PLAYBACK_SURROUND51:
       format->num_channels = 6;
-      format->channel_setup = GAVL_CHANNEL_3F2R;
-      format->lfe = 1;
 
       format->channel_locations[0] = GAVL_CHID_FRONT_LEFT;
       format->channel_locations[1] = GAVL_CHID_FRONT_RIGHT;

@@ -25,6 +25,18 @@
 #include <parameter.h>
 #include <bggavl.h>
 
+#define SP_INT(s) if(!strcmp(name, # s)) \
+    { \
+    opt->s = val->val_i;                     \
+    return 1; \
+    }
+
+#define SP_FLOAT(s) if(!strcmp(name, # s))      \
+    { \
+    opt->s = val->val_f;                     \
+    return 1; \
+    }
+
 /* Audio stuff */
 
 int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t * val)
@@ -37,41 +49,14 @@ int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t *
     gavl_audio_options_set_quality(opt->opt, val->val_i);
     return 1;
     }
-  else if(!strcmp(name, "fixed_samplerate"))
-    {
-    opt->fixed_samplerate = val->val_i;
-    return 1;
-    }
-  else if(!strcmp(name, "samplerate"))
-    {
-    opt->samplerate = val->val_i;
-    return 1;
-    }
-  else if(!strcmp(name, "fixed_channel_setup"))
-    {
-    opt->fixed_channel_setup = val->val_i;
-    return 1;
-    }
-  else if(!strcmp(name, "channel_setup"))
-    {
-    if(!strcmp(val->val_str, "Mono"))
-      opt->channel_setup = GAVL_CHANNEL_MONO;
-    else if(!strcmp(val->val_str, "Stereo"))
-      opt->channel_setup = GAVL_CHANNEL_STEREO;
-    else if(!strcmp(val->val_str, "3 Front"))
-      opt->channel_setup = GAVL_CHANNEL_3F;
-    else if(!strcmp(val->val_str, "2 Front 1 Rear"))
-      opt->channel_setup = GAVL_CHANNEL_2F1R;
-    else if(!strcmp(val->val_str, "3 Front 1 Rear"))
-      opt->channel_setup = GAVL_CHANNEL_3F1R;
-    else if(!strcmp(val->val_str, "2 Front 2 Rear"))
-      opt->channel_setup = GAVL_CHANNEL_2F2R;
-    else if(!strcmp(val->val_str, "3 Front 2 Rear"))
-      opt->channel_setup = GAVL_CHANNEL_3F2R;
-    return 1;
-    }
-
-  else if(!strcmp(name, "front_to_rear"))
+  SP_INT(fixed_samplerate);
+  SP_INT(samplerate);
+  SP_INT(fixed_channel_setup);
+  SP_INT(num_front_channels);
+  SP_INT(num_rear_channels);
+  SP_INT(num_lfe_channels);
+  
+  if(!strcmp(name, "front_to_rear"))
     {
     flags = gavl_audio_options_get_conversion_flags(opt->opt);
 
@@ -128,6 +113,7 @@ void bg_gavl_audio_options_set_format(bg_gavl_audio_options_t * opt,
                                       const gavl_audio_format_t * in_format,
                                       gavl_audio_format_t * out_format)
   {
+  int channel_index;
   gavl_audio_format_copy(out_format, in_format);
 
   if(opt->fixed_samplerate)
@@ -136,9 +122,63 @@ void bg_gavl_audio_options_set_format(bg_gavl_audio_options_t * opt,
     }
   if(opt->fixed_channel_setup)
     {
-    out_format->channel_setup = opt->channel_setup;
-    out_format->channel_locations[0] = GAVL_CHID_NONE;
-    gavl_set_channel_setup(out_format);
+    out_format->num_channels = opt->num_front_channels + opt->num_rear_channels + opt->num_lfe_channels;
+
+    channel_index = 0;
+    switch(opt->num_front_channels)
+      {
+      case 1:
+        out_format->channel_locations[channel_index] = GAVL_CHID_FRONT_CENTER;
+        break;
+      case 2:
+        out_format->channel_locations[channel_index] = GAVL_CHID_FRONT_LEFT;
+        out_format->channel_locations[channel_index+1] = GAVL_CHID_FRONT_RIGHT;
+        break;
+      case 3:
+        out_format->channel_locations[channel_index] = GAVL_CHID_FRONT_LEFT;
+        out_format->channel_locations[channel_index+1] = GAVL_CHID_FRONT_RIGHT;
+        out_format->channel_locations[channel_index+2] = GAVL_CHID_FRONT_CENTER;
+        break;
+      case 4:
+        out_format->channel_locations[channel_index]   = GAVL_CHID_FRONT_LEFT;
+        out_format->channel_locations[channel_index+1] = GAVL_CHID_FRONT_RIGHT;
+        out_format->channel_locations[channel_index+2] = GAVL_CHID_FRONT_CENTER_LEFT;
+        out_format->channel_locations[channel_index+3] = GAVL_CHID_FRONT_CENTER_LEFT;
+        break;
+      case 5:
+        out_format->channel_locations[channel_index]   = GAVL_CHID_FRONT_LEFT;
+        out_format->channel_locations[channel_index+1] = GAVL_CHID_FRONT_RIGHT;
+        out_format->channel_locations[channel_index+2] = GAVL_CHID_FRONT_CENTER_LEFT;
+        out_format->channel_locations[channel_index+3] = GAVL_CHID_FRONT_CENTER_LEFT;
+        out_format->channel_locations[channel_index+4] = GAVL_CHID_FRONT_CENTER;
+        break;
+      }
+    channel_index += opt->num_front_channels;
+    
+    switch(opt->num_rear_channels)
+      {
+      case 1:
+        out_format->channel_locations[channel_index] = GAVL_CHID_REAR_CENTER;
+        break;
+      case 2:
+        out_format->channel_locations[channel_index] = GAVL_CHID_REAR_LEFT;
+        out_format->channel_locations[channel_index+1] = GAVL_CHID_REAR_RIGHT;
+        break;
+      case 3:
+        out_format->channel_locations[channel_index] = GAVL_CHID_REAR_LEFT;
+        out_format->channel_locations[channel_index+1] = GAVL_CHID_REAR_RIGHT;
+        out_format->channel_locations[channel_index+2] = GAVL_CHID_REAR_CENTER;
+        break;
+      }
+    channel_index += opt->num_rear_channels;
+    switch(opt->num_lfe_channels)
+      {
+      case 1:
+        out_format->channel_locations[channel_index] = GAVL_CHID_LFE;
+        break;
+      }
+    channel_index += opt->num_lfe_channels;
+    
     }
   }
 
@@ -315,17 +355,6 @@ static void set_frame_rate_mode(bg_gavl_video_options_t * opt,
     }
   }
 
-#define SP_INT(s) if(!strcmp(name, # s)) \
-    { \
-    opt->s = val->val_i;                     \
-    return 1; \
-    }
-
-#define SP_FLOAT(s) if(!strcmp(name, # s))      \
-    { \
-    opt->s = val->val_f;                     \
-    return 1; \
-    }
 
 #define SP_FLAG(s, flag) if(!strcmp(name, s)) {               \
   flags = gavl_video_options_get_conversion_flags(opt->opt);  \

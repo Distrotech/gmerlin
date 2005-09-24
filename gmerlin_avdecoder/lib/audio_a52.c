@@ -281,7 +281,6 @@ static int init_a52(bgav_stream_t * s)
   
   if(priv->header.lfe)
     {
-    s->data.audio.format.lfe = 1;
     s->data.audio.format.num_channels = 1;
     s->data.audio.format.channel_locations[0] = GAVL_CHID_LFE;
     }
@@ -292,7 +291,6 @@ static int init_a52(bgav_stream_t * s)
     {
     case A52_CHANNEL:
     case A52_STEREO:
-      s->data.audio.format.channel_setup = GAVL_CHANNEL_STEREO;
       
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels] = 
         GAVL_CHID_FRONT_LEFT;
@@ -301,13 +299,11 @@ static int init_a52(bgav_stream_t * s)
       s->data.audio.format.num_channels += 2;
       break;
     case A52_MONO:
-      s->data.audio.format.channel_setup = GAVL_CHANNEL_MONO;
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels] = 
-        GAVL_CHID_FRONT;
+        GAVL_CHID_FRONT_CENTER;
       s->data.audio.format.num_channels += 1;
       break;
     case A52_3F:
-      s->data.audio.format.channel_setup = GAVL_CHANNEL_3F;
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels] = 
         GAVL_CHID_FRONT_LEFT;
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels+1] = 
@@ -317,17 +313,15 @@ static int init_a52(bgav_stream_t * s)
       s->data.audio.format.num_channels += 3;
       break;
     case A52_2F1R:
-      s->data.audio.format.channel_setup = GAVL_CHANNEL_2F1R;
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels] = 
         GAVL_CHID_FRONT_LEFT;
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels+1] = 
         GAVL_CHID_FRONT_RIGHT;
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels+2] = 
-        GAVL_CHID_REAR;
+        GAVL_CHID_REAR_CENTER;
       s->data.audio.format.num_channels += 3;
       break;
     case A52_3F1R:
-      s->data.audio.format.channel_setup = GAVL_CHANNEL_3F1R;
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels] = 
         GAVL_CHID_FRONT_LEFT;
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels+1] = 
@@ -335,12 +329,11 @@ static int init_a52(bgav_stream_t * s)
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels+2] = 
         GAVL_CHID_FRONT_RIGHT;
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels+3] = 
-        GAVL_CHID_REAR;
+        GAVL_CHID_REAR_CENTER;
       s->data.audio.format.num_channels += 4;
 
       break;
     case A52_2F2R:
-      s->data.audio.format.channel_setup = GAVL_CHANNEL_2F2R;
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels] = 
         GAVL_CHID_FRONT_LEFT;
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels+1] = 
@@ -352,7 +345,6 @@ static int init_a52(bgav_stream_t * s)
       s->data.audio.format.num_channels += 4;
       break;
     case A52_3F2R:
-      s->data.audio.format.channel_setup = GAVL_CHANNEL_3F2R;
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels] = 
         GAVL_CHID_FRONT_LEFT;
       s->data.audio.format.channel_locations[s->data.audio.format.num_channels+1] = 

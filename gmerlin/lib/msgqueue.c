@@ -339,8 +339,6 @@ void bg_msg_set_arg_audio_format(bg_msg_t * msg, int arg,
   pos = set_32(pos, format->num_channels);
   pos = set_8(pos, format->sample_format);
   pos = set_8(pos, format->interleave_mode);
-  pos = set_8(pos, format->channel_setup);
-  pos = set_8(pos, format->lfe);
 
   pos = set_32(pos, (int32_t)(format->center_level*1.0e6));
   pos = set_32(pos, (int32_t)(format->rear_level*1.0e6));
@@ -379,12 +377,6 @@ void bg_msg_get_arg_audio_format(bg_msg_t * msg, int arg,
   
   pos = get_8(pos,  &(tmp));
   format->interleave_mode = tmp;
-  
-  pos = get_8(pos,  &(tmp));
-  format->channel_setup = tmp;
-
-  pos = get_8(pos,  &(tmp));
-  format->lfe = tmp;
   
   pos = get_32(pos, &tmp);
   format->center_level = (float)(tmp)*1.0e-6;

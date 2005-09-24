@@ -121,7 +121,6 @@ static int open_esd(void * data,
   format->samples_per_frame = ESD_BUF_SIZE / 4;
 
   format->num_channels = 2;
-  format->lfe = 0;
   gavl_set_channel_setup(format);
   
   gavl_audio_format_copy(&e->format, format);

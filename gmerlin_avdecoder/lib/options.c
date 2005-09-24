@@ -18,6 +18,8 @@
 *****************************************************************/
 
 #include <stdlib.h>
+#include <string.h>
+
 #include <avdec_private.h>
 
 /* Configuration stuff */

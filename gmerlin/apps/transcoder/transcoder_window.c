@@ -717,6 +717,8 @@ void transcoder_window_destroy(transcoder_window_t* w)
   if(w->task_path)
     free(w->task_path);
 
+  bg_remote_server_destroy(w->remote);
+  
   //  g_object_unref(w->tooltips);
   
   free(w);

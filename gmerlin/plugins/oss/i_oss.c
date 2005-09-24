@@ -164,12 +164,10 @@ static int open_oss(void * data,
     case 1:
       format->num_channels = 1;
       format->interleave_mode = GAVL_INTERLEAVE_NONE;
-      format->channel_setup  = GAVL_CHANNEL_MONO;
       break;
     case 2:
       format->num_channels = 2;
       format->interleave_mode = GAVL_INTERLEAVE_ALL;
-      format->channel_setup  = GAVL_CHANNEL_STEREO;
       break;
     default:
       fprintf(stderr, "Invalid number of channels\n");
@@ -178,7 +176,7 @@ static int open_oss(void * data,
   
   format->samplerate = priv->samplerate;
   format->samples_per_frame = SAMPLES_PER_FRAME;
-  format->lfe = 0;
+  format->channel_locations[0] = GAVL_CHID_NONE;
   gavl_set_channel_setup(format);
   
   fprintf(stderr, "Opening device %s\n", priv->device);

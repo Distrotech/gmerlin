@@ -52,144 +52,62 @@ static uint32_t swap_endian(uint32_t val)
 #define SPEAKER_TOP_BACK_CENTER 	0x10000
 #define SPEAKER_TOP_BACK_RIGHT 	        0x20000
 
+#if 0
+    GAVL_CHID_FRONT_CENTER,       /*!< For mono                                  */
+    GAVL_CHID_FRONT_LEFT,         /*!< Front left                                */
+    GAVL_CHID_FRONT_RIGHT,        /*!< Front right                               */
+    GAVL_CHID_FRONT_CENTER_LEFT,  /*!< Left of Center                            */
+    GAVL_CHID_FRONT_CENTER_RIGHT, /*!< Right of Center                           */
+    GAVL_CHID_REAR_LEFT,          /*!< Rear left                                 */
+    GAVL_CHID_REAR_RIGHT,         /*!< Rear right                                */
+    GAVL_CHID_REAR_CENTER,        /*!< Rear Center                               */
+    GAVL_CHID_SIDE_LEFT,          /*!< Side left                                 */
+    GAVL_CHID_SIDE_RIGHT,         /*!< Side right                                */
+    GAVL_CHID_LFE,                /*!< Subwoofer                                 */
+    GAVL_CHID_AUX,                /*!< Additional channel (can be more than one) */
+#endif
+
+
 struct
   {
-  uint32_t channel_mask;
-
-  int num_channels;
-  gavl_channel_setup_t channel_setup;
-  gavl_channel_id_t channel_locations[GAVL_MAX_CHANNELS];
-  int lfe;
+  int flag;
+  gavl_channel_id_t id;
   }
-channel_setups[] =
+channel_flags[] =
   {
-    /* Without lfe */
-    {
-      channel_mask:      SPEAKER_FRONT_CENTER,
-      num_channels:      1,
-      channel_setup:     GAVL_CHANNEL_MONO,
-      channel_locations: { GAVL_CHID_FRONT },
-      lfe:               0
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT,
-      num_channels:      2,
-      channel_setup:     GAVL_CHANNEL_STEREO,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT },
-      lfe:               0
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER,
-      num_channels:      3,
-      channel_setup:     GAVL_CHANNEL_3F,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_FRONT_CENTER },
-      lfe:               0
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_BACK_CENTER,
-      num_channels:      3,
-      channel_setup:     GAVL_CHANNEL_2F1R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_REAR },
-      lfe:               0
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_BACK_CENTER,
-      num_channels:      4,
-      channel_setup:     GAVL_CHANNEL_3F1R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_FRONT_CENTER,  GAVL_CHID_REAR },
-      lfe:               0
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT,
-      num_channels:      4,
-      channel_setup:     GAVL_CHANNEL_2F2R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_REAR_LEFT, GAVL_CHID_REAR_RIGHT },
-      lfe:               0
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER| SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT,
-      num_channels:      5,
-      channel_setup:     GAVL_CHANNEL_3F2R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, SPEAKER_FRONT_RIGHT, SPEAKER_FRONT_CENTER },
-      lfe:               0
-    },
-    /* With LFE */
-    {
-      channel_mask:      SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY,
-      num_channels:      2,
-      channel_setup:     GAVL_CHANNEL_MONO,
-      channel_locations: { GAVL_CHID_FRONT, GAVL_CHID_LFE },
-      lfe:               1
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_LOW_FREQUENCY,
-      num_channels:      3,
-      channel_setup:     GAVL_CHANNEL_STEREO,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_LFE  },
-      lfe:               1
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY,
-      num_channels:      4,
-      channel_setup:     GAVL_CHANNEL_3F,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_FRONT_CENTER, GAVL_CHID_LFE  },
-      lfe:               1
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_CENTER,
-      num_channels:      4,
-      channel_setup:     GAVL_CHANNEL_2F1R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_LFE , GAVL_CHID_REAR },
-      lfe:               1
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_CENTER,
-      num_channels:      5,
-      channel_setup:     GAVL_CHANNEL_3F1R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_FRONT_CENTER, GAVL_CHID_LFE , GAVL_CHID_REAR },
-      lfe:               1
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT,
-      num_channels:      5,
-      channel_setup:     GAVL_CHANNEL_2F2R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_LFE , GAVL_CHID_REAR_LEFT, GAVL_CHID_REAR_RIGHT },
-      lfe:               1
-    },
-    {
-      channel_mask:      SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT | SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY | SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT,
-      num_channels:      6,
-      channel_setup:     GAVL_CHANNEL_3F2R,
-      channel_locations: { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_FRONT_CENTER, GAVL_CHID_LFE , GAVL_CHID_REAR_LEFT, GAVL_CHID_REAR_RIGHT},
-      lfe:               1
-    },
+    { SPEAKER_FRONT_LEFT,            GAVL_CHID_FRONT_LEFT },
+    { SPEAKER_FRONT_RIGHT,           GAVL_CHID_FRONT_RIGHT },
+    { SPEAKER_FRONT_CENTER,          GAVL_CHID_FRONT_CENTER },
+    { SPEAKER_LOW_FREQUENCY,         GAVL_CHID_LFE },
+    { SPEAKER_BACK_LEFT,             GAVL_CHID_REAR_LEFT },
+    { SPEAKER_BACK_RIGHT,            GAVL_CHID_REAR_RIGHT },
+    { SPEAKER_FRONT_LEFT_OF_CENTER,  GAVL_CHID_FRONT_CENTER_LEFT },
+    { SPEAKER_FRONT_RIGHT_OF_CENTER, GAVL_CHID_FRONT_CENTER_RIGHT },
+    { SPEAKER_BACK_CENTER,           GAVL_CHID_REAR_CENTER },
+    { SPEAKER_SIDE_LEFT,             GAVL_CHID_SIDE_LEFT },
+    { SPEAKER_SIDE_RIGHT,            GAVL_CHID_SIDE_RIGHT },
+    { SPEAKER_TOP_CENTER,            GAVL_CHID_AUX },
+    { SPEAKER_TOP_FRONT_LEFT,        GAVL_CHID_AUX }, 
+    { SPEAKER_TOP_FRONT_CENTER,      GAVL_CHID_AUX },
+    { SPEAKER_TOP_FRONT_RIGHT,       GAVL_CHID_AUX },
+    { SPEAKER_TOP_BACK_LEFT,         GAVL_CHID_AUX },
+    { SPEAKER_TOP_BACK_CENTER,       GAVL_CHID_AUX },
+    { SPEAKER_TOP_BACK_RIGHT,        GAVL_CHID_AUX },
   };
+
 
 static void channel_mask_2_format(uint32_t channel_mask, gavl_audio_format_t * format)
   {
   int i;
-
-  for(i = 0; i < sizeof(channel_setups)/sizeof(channel_setups[0]); i++)
+  int index = 0;
+  for(i = 0; i < sizeof(channel_flags)/sizeof(channel_flags[0]); i++)
     {
-    if(channel_mask == channel_setups[i].channel_mask)
+    if(channel_mask & channel_flags[i].flag)
       {
-      format->channel_setup = channel_setups[i].channel_setup;
-      format->lfe           = channel_setups[i].lfe;
-
-      //      fprintf(stderr, "channel_mask_2_format: %d\n", format->lfe);
-      
-      if(format->num_channels != channel_setups[i].num_channels)
-        {
-        fprintf(stderr, "Channel number mismatch\n");
-        break;
-        }
-      
-      memcpy(format->channel_locations, channel_setups[i].channel_locations,
-             channel_setups[i].num_channels * sizeof(channel_setups[i].channel_locations[0]));
-      return;
+      format->channel_locations[index] = channel_flags[i].id;
+      index++;
       }
     }
-  gavl_set_channel_setup(format);
   }
 
 void bgav_WAVEFORMAT_read(bgav_WAVEFORMAT_t * ret, uint8_t * data, int len)
