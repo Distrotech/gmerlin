@@ -140,7 +140,7 @@ static int stsd_read_audio(bgav_input_context_t * input,
     switch(h.fourcc)
       {
       case BGAV_MK_FOURCC('w', 'a', 'v', 'e'):
-        fprintf(stderr, "Found wave atom, %lld bytes\n", h.size);
+        //        fprintf(stderr, "Found wave atom, %lld bytes\n", h.size);
         if(!bgav_qt_wave_read(&h, input, &(ret->format.audio.wave)))
           {
           fprintf(stderr, "Read wave failed\n");
@@ -164,7 +164,7 @@ static int stsd_read_audio(bgav_input_context_t * input,
       }
     }
 
-  stsd_dump_audio(ret);
+  //  stsd_dump_audio(ret);
   return result;
   }
 
