@@ -51,6 +51,7 @@ typedef struct bg_album_entry_s
   gavl_time_t duration;
 
   int num_audio_streams;
+  int num_still_streams;
   int num_video_streams;
   int num_subpicture_streams;
   int num_programs;

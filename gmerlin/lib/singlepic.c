@@ -31,8 +31,11 @@
 #include <config.h>
 #include <utils.h>
 
+#if 0
 char * bg_singlepic_ouput_name = "e_singlepic";
 char * bg_singlepic_input_name = "i_singlepic";
+char * bg_singlepic_stills_input_name = "i_singlepic_stills";
+#endif
 
 static char * get_extensions(bg_plugin_registry_t * reg,
                              uint32_t type_mask, uint32_t flag_mask)
@@ -138,6 +141,8 @@ typedef struct
   int header_read;
 
   bg_stream_action_t action;
+
+  int do_still;
   } input_t;
 
 static bg_parameter_info_t * get_parameters_input(void * priv)
@@ -271,6 +276,44 @@ static int open_input(void * priv, const char * arg)
   return 1;
   }
 
+static int open_stills_input(void * priv, const char * arg)
+  {
+  struct stat stat_buf;
+  const char * filename;
+  
+  input_t * inp = (input_t *)priv;
+
+  filename = arg;
+
+  /* Check if the first file exists */
+  
+  if(stat(filename, &stat_buf))
+    return 0;
+  
+  /* First of all, check if there is a plugin for this format */
+  
+  if(!bg_plugin_find_by_filename(inp->plugin_reg, filename,
+                                 BG_PLUGIN_IMAGE_READER))
+    return 0;
+  
+  /* Create stream */
+    
+  inp->track_info.num_still_streams = 1;
+  inp->track_info.still_streams =
+    calloc(1, sizeof(*inp->track_info.still_streams));
+  
+  inp->track_info.duration = GAVL_TIME_UNDEFINED;
+
+  /* Get track name */
+
+  bg_set_track_name_default(&(inp->track_info), arg);
+
+  inp->filename_buffer = bg_strdup(inp->filename_buffer, filename);
+  inp->track_info.seekable = 1;
+  return 1;
+
+  }
+
 static bg_track_info_t * get_track_info_input(void * priv, int track)
   {
   input_t * inp = (input_t *)priv;
@@ -293,31 +336,49 @@ static int start_input(void * priv)
 
   if(inp->action != BG_STREAM_ACTION_DECODE)
     return 1;
-  
-  inp->track_info.video_streams[0].description =
-    bg_strdup(NULL, "Single images\n");
 
+  inp->current_frame = inp->frame_start;
+  
+  if(inp->do_still)
+    {
+    inp->track_info.still_streams[0].description = bg_strdup(NULL, "Image\n");
+    }
+  else
+    {
+    inp->track_info.video_streams[0].description = bg_strdup(NULL, "Single images\n");
+    sprintf(inp->filename_buffer, inp->template, inp->current_frame);
+    }
   /* Load plugin */
 
-  info = bg_plugin_find_by_filename(inp->plugin_reg, inp->template,
+  info = bg_plugin_find_by_filename(inp->plugin_reg, inp->filename_buffer,
                                     BG_PLUGIN_IMAGE_READER);
+  fprintf(stderr, "Loading: %p\n", info);
 
   inp->handle = bg_plugin_load(inp->plugin_reg, info);
   inp->image_reader = (bg_image_reader_plugin_t*)inp->handle->plugin;
 
-  inp->current_frame = inp->frame_start;
-
-  sprintf(inp->filename_buffer, inp->template, inp->current_frame);
   
-  if(!inp->image_reader->read_header(inp->handle->priv,
-                                     inp->filename_buffer,
-                                     &(inp->track_info.video_streams[0].format)))
-    return 0;
-
+  if(inp->do_still)
+    {
+    if(!inp->image_reader->read_header(inp->handle->priv,
+                                       inp->filename_buffer,
+                                       &(inp->track_info.still_streams[0].format)))
+      return 0;
+    inp->track_info.still_streams[0].format.timescale = 0;
+    inp->track_info.still_streams[0].format.frame_duration = 0;
+    inp->track_info.still_streams[0].format.framerate_mode = GAVL_FRAMERATE_STILL;
+    }
+  else
+    {
+    if(!inp->image_reader->read_header(inp->handle->priv,
+                                       inp->filename_buffer,
+                                       &(inp->track_info.video_streams[0].format)))
+      return 0;
+    inp->track_info.video_streams[0].format.timescale = inp->timescale;
+    inp->track_info.video_streams[0].format.frame_duration = inp->frame_duration;
+    inp->track_info.video_streams[0].format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
+    }
   inp->header_read = 1;
-  inp->track_info.video_streams[0].format.timescale = inp->timescale;
-  inp->track_info.video_streams[0].format.frame_duration = inp->frame_duration;
-  inp->track_info.video_streams[0].format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
   return 1;
   }
 
@@ -327,9 +388,16 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
   gavl_video_format_t format;
   input_t * inp = (input_t *)priv;
 
-  if(inp->current_frame == inp->frame_end)
+  if(inp->do_still)
+    {
+    if(inp->current_frame)
+      return 0;
+    }
+  else if(inp->current_frame == inp->frame_end)
     return 0;
 
+  fprintf(stderr, "Read image %d %s...", inp->header_read, inp->filename_buffer);
+  
   if(!inp->header_read)
     {
     sprintf(inp->filename_buffer, inp->template, inp->current_frame);
@@ -340,13 +408,19 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
       return 0;
     }
   if(!inp->image_reader->read_image(inp->handle->priv, f))
+    {
+    fprintf(stderr, "failed\n");
     return 0;
+    }
+  fprintf(stderr, "done\n");
   if(f)
     {
     f->time_scaled = (inp->current_frame - inp->frame_start) * inp->frame_duration;
     }
   inp->header_read = 0;
   inp->current_frame++;
+
+
   return 1;
   }
 
@@ -406,7 +480,7 @@ static bg_input_plugin_t input_plugin =
     common:
     {
       name:           "i_singlepic",
-      long_name:      "Singlepicture input plugin",
+      long_name:      "Image video input plugin",
       extensions:     NULL, /* Filled in later */
       type:           BG_PLUGIN_INPUT,
       flags:          BG_PLUGIN_FILE,
@@ -444,12 +518,62 @@ static bg_input_plugin_t input_plugin =
     close: close_input,
   };
 
+static bg_input_plugin_t input_plugin_stills =
+  {
+    common:
+    {
+      name:           "i_singlepic_stills",
+      long_name:      "Image stills input plugin",
+      extensions:     NULL, /* Filled in later */
+      type:           BG_PLUGIN_INPUT,
+      flags:          BG_PLUGIN_FILE,
+      priority:       BG_PLUGIN_PRIORITY_MAX,
+      create:         NULL,
+      destroy:        destroy_input,
+      //      get_parameters: get_parameters_input,
+      //      set_parameter:  set_parameter_input
+    },
+    open:          open_stills_input,
+
+    //    get_num_tracks: bg_avdec_get_num_tracks,
+
+    get_track_info: get_track_info_input,
+    /* Set streams */
+    set_still_stream:      set_video_stream_input,
+    /*
+     *  Start decoding.
+     *  Track info is the track, which should be played.
+     *  The plugin must take care of the "active" fields
+     *  in the stream infos to check out, which streams are to be decoded
+     */
+    start:                 start_input,
+    /* Read one video frame (returns FALSE on EOF) */
+    read_video_frame:      read_video_frame_input,
+    /*
+     *  Do percentage seeking (can be NULL)
+     *  Media streams are supposed to be seekable, if this
+     *  function is non-NULL AND the duration field of the track info
+     *  is > 0
+     */
+    //    seek: seek_input,
+    /* Stop playback, close all decoders */
+    stop: stop_input,
+    close: close_input,
+  };
+
+
 bg_plugin_common_t * bg_singlepic_input_get()
   {
   return (bg_plugin_common_t*)(&input_plugin);
   }
 
-bg_plugin_info_t * bg_singlepic_input_info(bg_plugin_registry_t * reg)
+bg_plugin_common_t * bg_singlepic_stills_input_get()
+  {
+  return (bg_plugin_common_t*)(&input_plugin_stills);
+  }
+
+static bg_plugin_info_t * get_input_info(bg_plugin_registry_t * reg,
+                                         bg_input_plugin_t * plugin)
   {
   bg_plugin_info_t * ret;
   
@@ -459,17 +583,28 @@ bg_plugin_info_t * bg_singlepic_input_info(bg_plugin_registry_t * reg)
   
   ret = calloc(1, sizeof(*ret));
   
-  ret->name      = bg_strdup(ret->name, input_plugin.common.name);
-  ret->long_name = bg_strdup(ret->long_name, input_plugin.common.long_name);
+  ret->name      = bg_strdup(ret->name, plugin->common.name);
+  ret->long_name = bg_strdup(ret->long_name, plugin->common.long_name);
   ret->extensions = get_extensions(reg, BG_PLUGIN_IMAGE_READER,
                                    BG_PLUGIN_FILE);
-  ret->priority  =  input_plugin.common.priority;
-  ret->type  =  input_plugin.common.type;
-  ret->flags =  input_plugin.common.flags;
+  ret->priority  =  plugin->common.priority;
+  ret->type  =  plugin->common.type;
+  ret->flags =  plugin->common.flags;
   
   
   return ret;
   }
+
+bg_plugin_info_t * bg_singlepic_input_info(bg_plugin_registry_t * reg)
+  {
+  return get_input_info(reg, &input_plugin);
+  }
+
+bg_plugin_info_t * bg_singlepic_stills_input_info(bg_plugin_registry_t * reg)
+  {
+  return get_input_info(reg, &input_plugin_stills);
+  }
+
 
 void * bg_singlepic_input_create(bg_plugin_registry_t * reg)
   {
@@ -478,6 +613,16 @@ void * bg_singlepic_input_create(bg_plugin_registry_t * reg)
 
   ret->plugin_reg = reg;
 
+  return ret;
+  }
+
+void * bg_singlepic_stills_input_create(bg_plugin_registry_t * reg)
+  {
+  input_t * ret;
+  ret = calloc(1, sizeof(*ret));
+
+  ret->plugin_reg = reg;
+  ret->do_still = 1;
   return ret;
   }
 

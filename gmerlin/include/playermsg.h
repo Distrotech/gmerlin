@@ -31,6 +31,7 @@
 #define BG_PLAYER_STATE_FINISHING 6
 #define BG_PLAYER_STATE_STARTING  7
 #define BG_PLAYER_STATE_ERROR     8
+#define BG_PLAYER_STATE_STILL     9 /* Still image */
 
 /* Error codes */
 
@@ -185,20 +186,29 @@
 
 #define BG_PLAYER_MSG_VIDEO_STREAM            7
 
+/* Arg1: Stream index (int) */
+/* Arg2: Input Format       */
+/* Arg3: Output Format      */
+
+#define BG_PLAYER_MSG_STILL_STREAM            8
+
+
 /* Metadata (is only sent, if information is available) */
 
 /* Arg1 : string */
 
-#define BG_PLAYER_MSG_METADATA                8
+#define BG_PLAYER_MSG_METADATA                9
 
-#define BG_PLAYER_MSG_AUDIO_DESCRIPTION       9
+#define BG_PLAYER_MSG_AUDIO_DESCRIPTION      10
 
-#define BG_PLAYER_MSG_VIDEO_DESCRIPTION      10
+#define BG_PLAYER_MSG_VIDEO_DESCRIPTION      11
 
-#define BG_PLAYER_MSG_SUBPICTURE_DESCRIPTION 11
+#define BG_PLAYER_MSG_STILL_DESCRIPTION      12
 
-#define BG_PLAYER_MSG_STREAM_DESCRIPTION     12
+#define BG_PLAYER_MSG_SUBPICTURE_DESCRIPTION 13
 
-#define BG_PLAYER_MSG_VOLUME_CHANGED         13
+#define BG_PLAYER_MSG_STREAM_DESCRIPTION     14
+
+#define BG_PLAYER_MSG_VOLUME_CHANGED         15
 
 #endif // __BG_PLAYERMSG_H_

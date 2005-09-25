@@ -52,6 +52,13 @@ void bg_video_info_copy(bg_video_info_t * dst,
   CS(description);
   }
 
+void bg_still_info_copy(bg_still_info_t * dst,
+                        const bg_still_info_t * src)
+  {
+  gavl_video_format_copy(&(dst->format), &(src->format));
+  CS(description);
+  }
+
 void bg_audio_info_free(bg_audio_info_t * info)
   {
   MY_FREE(info->description);
@@ -59,6 +66,11 @@ void bg_audio_info_free(bg_audio_info_t * info)
   }
 
 void bg_video_info_free(bg_video_info_t * info)
+  {
+  MY_FREE(info->description);
+  }
+
+void bg_still_info_free(bg_still_info_t * info)
   {
   MY_FREE(info->description);
   }
@@ -79,6 +91,12 @@ void bg_track_info_free(bg_track_info_t * info)
     for(i = 0; i < info->num_video_streams; i++)
       bg_video_info_free(&(info->video_streams[i]));
     MY_FREE(info->video_streams);
+    }
+  if(info->still_streams)
+    {
+    for(i = 0; i < info->num_still_streams; i++)
+      bg_still_info_free(&(info->still_streams[i]));
+    MY_FREE(info->still_streams);
     }
   if(info->subpicture_streams)
     {

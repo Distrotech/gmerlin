@@ -107,10 +107,14 @@ struct bg_player_s
    */
     
   int do_audio;
+
+  /* Only one of do_still and do_video can be nonzero at the same time */
   int do_video;
+  int do_still;
     
   int current_audio_stream;
   int current_video_stream;
+  int current_still_stream;
 
   /* Can we seek? */
 
@@ -160,7 +164,7 @@ void bg_player_set_state(bg_player_t * player, int state, const void * arg1,
       until playback can continue again
  */
 
-int bg_player_keep_going(bg_player_t * player);
+int bg_player_keep_going(bg_player_t * player, void (*ping_func)(void*), void * data);
 
 /* Get the current time (thread save) */
 
@@ -193,7 +197,11 @@ bg_player_input_set_audio_stream(bg_player_input_context_t * ctx,
                                  int audio_stream);
 int
 bg_player_input_set_video_stream(bg_player_input_context_t * ctx,
-                                 int audio_stream);
+                                 int video_stream);
+
+int
+bg_player_input_set_still_stream(bg_player_input_context_t * ctx,
+                                 int still_stream);
 
 void bg_player_input_seek(bg_player_input_context_t * ctx,
                           gavl_time_t * time);
@@ -213,13 +221,10 @@ void bg_player_ov_destroy(bg_player_t * player);
 int  bg_player_ov_init(bg_player_ov_context_t * ctx);
 void bg_player_ov_cleanup(bg_player_ov_context_t * ctx);
 void * bg_player_ov_thread(void *);
+void * bg_player_ov_still_thread(void *);
 
-void bg_player_ov_set_logo(bg_player_ov_context_t * ctx,
-                           gavl_video_format_t * format,
-                           gavl_video_frame_t * frame);
-
-
-/* Display logo (if present) and continue processing events */
+/* Update still image: To be called during pause */
+void bg_player_ov_update_still(bg_player_ov_context_t * ctx);
 
 void bg_player_ov_standby(bg_player_ov_context_t * ctx);
 

@@ -68,6 +68,7 @@ state_error.png \
 state_paused.png \
 state_playing.png \
 state_seeking.png \
+state_still.png \
 state_stopped.png \
 tab_close.png \
 top_16.png \

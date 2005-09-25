@@ -29,11 +29,16 @@ struct bg_player_ov_context_s
   bg_plugin_handle_t * plugin_handle;
   bg_ov_plugin_t     * plugin;
   void               * priv;
-  bg_player_t           * player;
+  bg_player_t        * player;
   int do_sync;
   bg_ov_callbacks_t callbacks;
-
+  gavl_video_frame_t * frame;
+  gavl_video_frame_t * still_frame;
+  pthread_mutex_t     still_mutex;
+  
   const char * error_msg;
+  int still_shown;
+  
   };
 
 /* Callback functions */
@@ -100,6 +105,8 @@ void bg_player_ov_create(bg_player_t * player)
   bg_player_ov_context_t * ctx;
   ctx = calloc(1, sizeof(*ctx));
   ctx->player = player;
+
+  pthread_mutex_init(&(ctx->still_mutex),(pthread_mutexattr_t *)0);
   
   /* Load output plugin */
   
@@ -185,8 +192,54 @@ int bg_player_ov_init(bg_player_ov_context_t * ctx)
   return result;
   }
 
+void bg_player_ov_update_still(bg_player_ov_context_t * ctx)
+  {
+  bg_fifo_state_t state;
+
+  fprintf(stderr, "bg_player_ov_update_still\n");
+  pthread_mutex_lock(&ctx->still_mutex);
+
+  if(ctx->frame)
+    bg_fifo_unlock_read(ctx->player->video_stream.fifo);
+
+  ctx->frame = bg_fifo_lock_read(ctx->player->video_stream.fifo, &state);
+  fprintf(stderr, "bg_player_ov_update_still 1\n");
+
+  if(ctx->frame)
+    {
+    if(!ctx->still_frame)
+      {
+      fprintf(stderr, "create_frame....");
+      ctx->still_frame = bg_player_ov_create_frame(ctx);
+      fprintf(stderr, "done\n");
+      }
+    gavl_video_frame_copy(&(ctx->player->video_stream.output_format),
+                          ctx->still_frame, ctx->frame);
+    //      fprintf(stderr, "Unlock read....%p", ctx->frame);
+    bg_fifo_unlock_read(ctx->player->video_stream.fifo);
+    ctx->frame = (gavl_video_frame_t*)0;
+    //      fprintf(stderr, "Done\n");
+    
+    bg_plugin_lock(ctx->plugin_handle);
+    ctx->plugin->put_still(ctx->priv, ctx->still_frame);
+    bg_plugin_unlock(ctx->plugin_handle);
+    }
+  
+  pthread_mutex_unlock(&ctx->still_mutex);
+  }
+
 void bg_player_ov_cleanup(bg_player_ov_context_t * ctx)
   {
+  pthread_mutex_lock(&ctx->still_mutex);
+  if(ctx->still_frame)
+    {
+    //      fprintf(stderr, "Destroy still frame...");
+    bg_player_ov_destroy_frame(ctx, ctx->still_frame);
+      //      fprintf(stderr, "done\n");
+    ctx->still_frame = (gavl_video_frame_t*)0;
+    }
+  pthread_mutex_unlock(&ctx->still_mutex);
+
   bg_plugin_lock(ctx->plugin_handle);
   ctx->plugin->close(ctx->priv);
   bg_plugin_unlock(ctx->plugin_handle);
@@ -203,11 +256,51 @@ const char * bg_player_ov_get_error(bg_player_ov_context_t * ctx)
   return ctx->error_msg;
   }
 
+static void ping_func(void * data)
+  {
+  bg_player_ov_context_t * ctx;
+  ctx = (bg_player_ov_context_t*)data;
+
+  //  fprintf(stderr, "Ping func\n");  
+  
+  pthread_mutex_lock(&ctx->still_mutex);
+  
+  if(!ctx->still_shown)
+    {
+    if(ctx->frame)
+      {
+      fprintf(stderr, "create_frame....");
+      ctx->still_frame = bg_player_ov_create_frame(data);
+      fprintf(stderr, "done\n");
+      
+      gavl_video_frame_copy(&(ctx->player->video_stream.output_format),
+                            ctx->still_frame, ctx->frame);
+      fprintf(stderr, "Unlock read....%p", ctx->frame);
+      bg_fifo_unlock_read(ctx->player->video_stream.fifo);
+      ctx->frame = (gavl_video_frame_t*)0;
+      fprintf(stderr, "Done\n");
+      
+      fprintf(stderr, "Put still...");
+      bg_plugin_lock(ctx->plugin_handle);
+      ctx->plugin->put_still(ctx->priv, ctx->still_frame);
+      bg_plugin_unlock(ctx->plugin_handle);
+      fprintf(stderr, "Done\n");
+      }
+    
+    ctx->still_shown = 1;
+    }
+  //  fprintf(stderr, "handle_events...");
+  bg_plugin_lock(ctx->plugin_handle);
+  ctx->plugin->handle_events(ctx->priv);
+  bg_plugin_unlock(ctx->plugin_handle);
+  //  fprintf(stderr, "Done\n");
+  
+  pthread_mutex_unlock(&ctx->still_mutex);
+  }
 
 void * bg_player_ov_thread(void * data)
   {
   bg_player_ov_context_t * ctx;
-  gavl_video_frame_t * frame;
   gavl_time_t diff_time, frame_time;
   gavl_time_t current_time;
   bg_fifo_state_t state;
@@ -217,12 +310,40 @@ void * bg_player_ov_thread(void * data)
 
   while(1)
     {
-    if(!bg_player_keep_going(ctx->player))
+    if(!bg_player_keep_going(ctx->player, ping_func, ctx))
+      {
+      fprintf(stderr, "bg_player_keep_going returned 0\n");
       break;
-    frame = bg_fifo_lock_read(ctx->player->video_stream.fifo, &state);
-    if(!frame)
-      break;
+      }
+    if(ctx->frame)
+      {
+      //      fprintf(stderr, "Unlock_read %p...", ctx->frame);
+      bg_fifo_unlock_read(ctx->player->video_stream.fifo);
+      //      fprintf(stderr, "done\n");
+      
+      ctx->frame = (gavl_video_frame_t*)0;
+      }
 
+    pthread_mutex_lock(&ctx->still_mutex);
+    if(ctx->still_frame)
+      {
+      //      fprintf(stderr, "Destroy still frame...");
+      bg_player_ov_destroy_frame(data, ctx->still_frame);
+      //      fprintf(stderr, "done\n");
+      ctx->still_frame = (gavl_video_frame_t*)0;
+      }
+    pthread_mutex_unlock(&ctx->still_mutex);
+    
+    ctx->still_shown = 0;
+
+    //    fprintf(stderr, "Lock read...");
+    ctx->frame = bg_fifo_lock_read(ctx->player->video_stream.fifo, &state);
+    //    fprintf(stderr, "done %p\n", ctx->frame);
+    if(!ctx->frame)
+      {
+      fprintf(stderr, "Got no frame\n");
+      break;
+      }
     bg_player_time_get(ctx->player, 1, &current_time);
 #if 0
     fprintf(stderr, "F: %f, C: %f\n",
@@ -230,7 +351,8 @@ void * bg_player_ov_thread(void * data)
             gavl_time_to_seconds(current_time));
 #endif
 
-    frame_time = gavl_time_unscale(ctx->player->video_stream.output_format.timescale, frame->time_scaled);
+    frame_time = gavl_time_unscale(ctx->player->video_stream.output_format.timescale,
+                                   ctx->frame->time_scaled);
     
     if(!ctx->do_sync)
       {
@@ -249,8 +371,9 @@ void * bg_player_ov_thread(void * data)
     //    fprintf(stderr, "Frame time: %lld\n", frame->time);
     bg_plugin_lock(ctx->plugin_handle);
     //    fprintf(stderr, "Put video\n");
-    ctx->plugin->put_video(ctx->priv, frame);
-
+    ctx->plugin->put_video(ctx->priv, ctx->frame);
+    ctx->plugin->handle_events(ctx->priv);
+    
     if(ctx->do_sync)
       {
       bg_player_time_set(ctx->player, frame_time);
@@ -259,10 +382,40 @@ void * bg_player_ov_thread(void * data)
       }
     
     bg_plugin_unlock(ctx->plugin_handle);
-    bg_fifo_unlock_read(ctx->player->video_stream.fifo);
     }
   
-    //  fprintf(stderr, "ov thread finisheded\n");
+  fprintf(stderr, "ov thread finisheded\n");
   return NULL;
   }
 
+void * bg_player_ov_still_thread(void *data)
+  {
+  bg_player_ov_context_t * ctx;
+  gavl_time_t delay_time = gavl_seconds_to_time(0.02);
+  
+  ctx = (bg_player_ov_context_t*)data;
+  
+  /* Put the image into the window once and handle only events thereafter */
+  fprintf(stderr, "Starting still loop\n");
+
+  ctx->still_shown = 0;
+  while(1)
+    {
+    if(!bg_player_keep_going(ctx->player, NULL, NULL))
+      {
+      fprintf(stderr, "bg_player_keep_going returned 0\n");
+      break;
+      }
+    if(!ctx->still_shown)
+      {
+      bg_player_ov_update_still(ctx);
+      ctx->still_shown = 1;
+      }
+    bg_plugin_lock(ctx->plugin_handle);
+    ctx->plugin->handle_events(ctx->priv);
+    bg_plugin_unlock(ctx->plugin_handle);
+    gavl_time_delay(&delay_time);
+    }
+  fprintf(stderr, "still loop done\n");
+  return NULL;
+  }

@@ -39,6 +39,7 @@ struct bg_plugin_registry_s
   bg_cfg_section_t * config_section;
 
   bg_plugin_info_t * singlepic_input;
+  bg_plugin_info_t * singlepic_stills_input;
   bg_plugin_info_t * singlepic_encoder;
 
   int encode_audio_to_video;
@@ -533,6 +534,15 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
     tmp_info->next = ret->singlepic_input;
     tmp_info = tmp_info->next;
     }
+
+  ret->singlepic_stills_input = bg_singlepic_stills_input_info(ret);
+
+  if(ret->singlepic_stills_input)
+    {
+    //    fprintf(stderr, "Found Singlepicture stills input\n");
+    tmp_info->next = ret->singlepic_stills_input;
+    tmp_info = tmp_info->next;
+    }
   
   ret->singlepic_encoder = bg_singlepic_encoder_info(ret);
 
@@ -934,6 +944,12 @@ bg_plugin_handle_t * bg_plugin_load(bg_plugin_registry_t * reg,
     {
     ret->plugin = bg_singlepic_input_get();
     ret->priv = bg_singlepic_input_create(reg);
+    }
+  else if(reg->singlepic_stills_input &&
+          !strcmp(reg->singlepic_stills_input->name, info->name))
+    {
+    ret->plugin = bg_singlepic_stills_input_get();
+    ret->priv = bg_singlepic_stills_input_create(reg);
     }
   else if(reg->singlepic_encoder &&
           !strcmp(reg->singlepic_encoder->name, info->name))

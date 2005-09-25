@@ -260,7 +260,7 @@ void * bg_player_oa_thread(void * data)
     
   while(1)
     {
-    if(!bg_player_keep_going(ctx->player))
+    if(!bg_player_keep_going(ctx->player, NULL, NULL))
       break;
 
     wait_time = GAVL_TIME_UNDEFINED;

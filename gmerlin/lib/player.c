@@ -19,6 +19,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/time.h>
 
 #include "player.h"
 #include "playerprivate.h"
@@ -45,8 +46,10 @@ static void wait_unnotify(bg_player_t * p)
   pthread_mutex_unlock(&(p->waiting_plugin_threads_mutex));
   }
 
-int bg_player_keep_going(bg_player_t * p)
+int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data)
   {
+  struct timespec timeout;
+  struct timeval now;
   int state, old_state;
   old_state = bg_player_get_state(p);
   switch(old_state)
@@ -69,10 +72,35 @@ int bg_player_keep_going(bg_player_t * p)
       /* If we are the last thread to stop, tell the player
          to continue */
 
-      wait_notify(p);
 
-      pthread_cond_wait(&(p->start_cond), &(p->start_mutex));
-
+      if(!ping_func || (old_state == BG_PLAYER_STATE_STARTING) || (old_state == BG_PLAYER_STATE_BUFFERING))
+        {
+        wait_notify(p);
+        pthread_cond_wait(&(p->start_cond), &(p->start_mutex));
+        }
+      else
+        {
+        ping_func(data);
+        fprintf(stderr, "wait notify...");
+        wait_notify(p);
+        fprintf(stderr, "done\n");
+        while(1)
+          {
+          gettimeofday(&now, NULL);
+          timeout.tv_sec = now.tv_sec;
+          /* 10 milliseconds */
+          timeout.tv_nsec = (now.tv_usec + 10000) * 1000;
+          while(timeout.tv_nsec >= 1000000000)
+            {
+            timeout.tv_nsec -= 1000000000;
+            timeout.tv_sec++;
+            }
+          if(!pthread_cond_timedwait(&(p->start_cond), &(p->start_mutex), &timeout))
+            break;
+          ping_func(data);
+          }
+        }
+      
       wait_unnotify(p);
       
       pthread_mutex_unlock(&(p->start_mutex));
@@ -221,7 +249,7 @@ void bg_player_set_state(bg_player_t * player, int state,
 
   /* Broadcast this message */
 
-  //  fprintf(stderr, "bg_player_set_state %d\n", state);
+  fprintf(stderr, "bg_player_set_state %d\n", state);
   
   //  memset(&state, 0, sizeof(state));
     

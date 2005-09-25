@@ -39,7 +39,6 @@ typedef struct
 void bg_audio_info_copy(bg_audio_info_t * dst, const bg_audio_info_t * src);
 void bg_audio_info_free(bg_audio_info_t * info);
 
-
 typedef struct
   {
   gavl_video_format_t format;
@@ -48,6 +47,15 @@ typedef struct
 
 void bg_video_info_copy(bg_video_info_t * dst, const bg_video_info_t * src);
 void bg_video_info_free(bg_video_info_t * info);
+
+typedef struct
+  {
+  gavl_video_format_t format;
+  char * description;
+  } bg_still_info_t;
+
+void bg_still_info_copy(bg_still_info_t * dst, const bg_still_info_t * src);
+void bg_still_info_free(bg_still_info_t * info);
 
 typedef struct
   {
@@ -108,6 +116,7 @@ typedef struct
     
   int num_audio_streams;
   int num_video_streams;
+  int num_still_streams;
   int num_subpicture_streams;
   int num_programs;
   char * name;
@@ -117,6 +126,7 @@ typedef struct
 
   bg_audio_info_t *    audio_streams;
   bg_video_info_t *    video_streams;
+  bg_still_info_t *    still_streams;
   bg_subpicture_info_t * subpicture_streams;
 
   /* Metadata (optional) */

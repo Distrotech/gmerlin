@@ -35,10 +35,7 @@ struct bg_player_input_context_s
   int audio_finished;
   int video_finished;
   int send_silence;
-  int do_audio;
-  int do_video;
-  
-  
+    
   int64_t audio_samples_written;
   int64_t video_frames_written;
 
@@ -167,7 +164,8 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
     ctx->player->can_seek = 0;
   
   if(!ctx->player->track_info->num_audio_streams &&
-     !ctx->player->track_info->num_video_streams)
+     !ctx->player->track_info->num_video_streams &&
+     !ctx->player->track_info->num_still_streams)
     {
     fprintf(stderr,
             "Stream has neither audio nor video, skipping\n");
@@ -220,6 +218,20 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
                                       BG_STREAM_ACTION_OFF);
       }
     }
+  if(ctx->plugin->set_still_stream)
+    {
+    for(i = 0; i < ctx->player->track_info->num_still_streams; i++)
+      {
+      if(i == ctx->player->current_still_stream) 
+        ctx->plugin->set_still_stream(ctx->priv, i,
+                                      ctx->player->do_bypass ?
+                                      BG_STREAM_ACTION_BYPASS :
+                                      BG_STREAM_ACTION_DECODE);
+      else
+        ctx->plugin->set_still_stream(ctx->priv, i,
+                                      BG_STREAM_ACTION_OFF);
+      }
+    }
   
   /* Start input plugin, so we get the formats */
   
@@ -254,7 +266,6 @@ int bg_player_input_set_audio_stream(bg_player_input_context_t * ctx,
   if((audio_stream < 0) ||
      (audio_stream > ctx->player->track_info->num_audio_streams-1))
     {
-    ctx->do_audio = 0;
     return 0;
     }
   gavl_audio_format_copy(&(ctx->player->audio_stream.input_format),
@@ -268,7 +279,6 @@ int bg_player_input_set_video_stream(bg_player_input_context_t * ctx,
   if((video_stream < 0) ||
      (video_stream > ctx->player->track_info->num_video_streams-1))
     {
-    ctx->do_video = 0;
     return 0;
     }
 
@@ -276,6 +286,21 @@ int bg_player_input_set_video_stream(bg_player_input_context_t * ctx,
                          &(ctx->player->track_info->video_streams[video_stream].format));
   return 1;
   }
+
+int bg_player_input_set_still_stream(bg_player_input_context_t * ctx,
+                                     int still_stream)
+  {
+  if((still_stream < 0) ||
+     (still_stream > ctx->player->track_info->num_still_streams-1))
+    {
+    return 0;
+    }
+
+  gavl_video_format_copy(&(ctx->player->video_stream.input_format),
+                         &(ctx->player->track_info->still_streams[still_stream].format));
+  return 1;
+  }
+
 
 /*
  *  Read audio frames from the input plugin until one frame for
@@ -375,7 +400,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
   bg_fifo_state_t state;
   gavl_video_frame_t * video_frame;
   bg_player_video_stream_t * s;
-  //  fprintf(stderr, "Process video...");
+  fprintf(stderr, "Process video...");
   s = &(ctx->player->video_stream);
   
   if(s->do_convert)
@@ -397,7 +422,9 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     bg_plugin_unlock(ctx->plugin_handle);
     if(!result)
       ctx->video_finished = 1;
-    ctx->video_time = gavl_time_unscale(ctx->player->video_stream.input_format.timescale, ctx->player->video_stream.frame->time_scaled);
+    if(ctx->player->video_stream.input_format.framerate_mode != GAVL_FRAMERATE_STILL)
+      ctx->video_time = gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
+                                          ctx->player->video_stream.frame->time_scaled);
     gavl_video_convert(s->cnv, ctx->player->video_stream.frame, video_frame);
 #if 0
     fprintf(stderr, "Video Frame time: %lld %lld\n",
@@ -425,7 +452,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     ctx->video_frames_written ++;
     }
   bg_fifo_unlock_write(s->fifo, ctx->video_finished);
-  //  fprintf(stderr, "done\n");
+  fprintf(stderr, "done\n");
   return 1;
   }
 
@@ -442,8 +469,8 @@ void * bg_player_input_thread(void * data)
   ctx = (bg_player_input_context_t*)data;
 
   do_audio = ctx->player->do_audio;
-  do_video = ctx->player->do_video;
-
+  do_video = ((ctx->player->do_video) || (ctx->player->do_still));
+  
   ctx->audio_finished = !do_audio;
   ctx->video_finished = !do_video;
   ctx->send_silence = 0;
@@ -461,7 +488,7 @@ void * bg_player_input_thread(void * data)
   
   while(1)
     {
-    if(!bg_player_keep_going(ctx->player))
+    if(!bg_player_keep_going(ctx->player, NULL, NULL))
       {
       return NULL;
       }
@@ -514,10 +541,15 @@ void * bg_player_input_thread(void * data)
     }
   msg = bg_msg_queue_lock_write(ctx->player->command_queue);
   bg_msg_set_id(msg, BG_PLAYER_CMD_SETSTATE);
-  bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_FINISHING);
+
+  if(ctx->player->do_still && !ctx->player->do_audio)
+    bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_STILL);
+  else
+    bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_FINISHING);
+  
   bg_msg_queue_unlock_write(ctx->player->command_queue);
   
-  //  fprintf(stderr, "input thread finished\n");
+  fprintf(stderr, "input thread finished\n");
   return NULL;
   }
 
@@ -531,7 +563,7 @@ void * bg_player_input_thread_bypass(void * data)
     
   while(1)
     {
-    if(!bg_player_keep_going(ctx->player))
+    if(!bg_player_keep_going(ctx->player, NULL, NULL))
       {
       return NULL;
       }

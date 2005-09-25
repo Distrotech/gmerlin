@@ -17,7 +17,7 @@
  
 *****************************************************************/
 
-#include <pthread.h>
+// #include <pthread.h>
 
 #include <string.h>
 #include <math.h>
@@ -54,6 +54,8 @@
 
 static void
 free_frame_x11(void * data, gavl_video_frame_t * frame);
+
+static void write_frame_x11(void * data, gavl_video_frame_t * frame);
 
 
 /* since it doesn't seem to be defined on some platforms */
@@ -146,7 +148,8 @@ typedef struct
 #endif
 
   int shm_completion_type;
-
+  int wait_for_completion;
+    
   /* Fullscreen stuff */
 
   Atom hints_atom;
@@ -174,8 +177,6 @@ typedef struct
 
   /* Still image stuff */
 
-  pthread_t       still_thread;
-  pthread_mutex_t still_mutex;
   int do_still;
   gavl_video_frame_t * still_frame;
   
@@ -184,7 +185,6 @@ typedef struct
   int disable_xscreensaver_fullscreen;
   int disable_xscreensaver_normal;
   
-  int window_visible;
 
   int squeeze_zoom_active;
   float squeeze;
@@ -648,7 +648,6 @@ static void * create_x11()
 
   priv->scaler = gavl_video_scaler_create();
   
-  pthread_mutex_init(&(priv->still_mutex), NULL);
     
   /* Open X Display */
 
@@ -688,9 +687,7 @@ static void * create_x11()
   
   x11_window_select_input(&(priv->win), ButtonPressMask |
                           KeyPressMask | ExposureMask);
-
   
-
   
   /* Check for XV Support */
 #ifdef HAVE_LIBXV
@@ -832,39 +829,16 @@ static void set_drawing_coords(x11_t * priv)
 
 static int _open_x11(void * data,
                      gavl_video_format_t * format,
-                     const char * window_title, int still)
+                     const char * window_title)
   {
-  int still_running;
   x11_t * priv;
   gavl_pixelformat_t x11_pixelformat;
   priv = (x11_t*)data;
-
-  /* Stop still thread if necessary */
   
-  pthread_mutex_lock(&(priv->still_mutex));
-  still_running = priv->do_still;
-  if(priv->do_still)
-    priv->do_still = 0;
-  pthread_mutex_unlock(&(priv->still_mutex));
+  /* Set screensaver options */
 
-  if(still_running)
-    {
-    pthread_join(priv->still_thread, NULL);
-    close_x11(priv);
-    }
-
-  /* Set screensaver options, but not in still image mode */
-
-  if(still)
-    {
-    priv->win.disable_xscreensaver_fullscreen = 0;
-    priv->win.disable_xscreensaver_normal     = 0;
-    }
-  else
-    {
-    priv->win.disable_xscreensaver_fullscreen = priv->disable_xscreensaver_fullscreen;
-    priv->win.disable_xscreensaver_normal     = priv->disable_xscreensaver_normal;
-    }
+  priv->win.disable_xscreensaver_fullscreen = priv->disable_xscreensaver_fullscreen;
+  priv->win.disable_xscreensaver_normal     = priv->disable_xscreensaver_normal;
   
   x11_window_set_title(&(priv->win), window_title);
   
@@ -1057,7 +1031,7 @@ static int open_x11(void * data,
                     gavl_video_format_t * format,
                     const char * window_title)
   {
-  return _open_x11(data, format, window_title, 0);
+  return _open_x11(data, format, window_title);
   }
 
 static void close_x11(void * data)
@@ -1075,30 +1049,14 @@ static void close_x11(void * data)
     }
 #endif
   x11_window_clear(&priv->win);
+  priv->do_still = 0;
   }
 
 static void destroy_x11(void * data)
   {
-  int still_running;
   x11_t * priv = (x11_t*)data;
 
-  /* Stop still thread if necessary */
-  
-  pthread_mutex_lock(&(priv->still_mutex));
-  still_running = priv->do_still;
-  if(priv->do_still)
-    priv->do_still = 0;
-  pthread_mutex_unlock(&(priv->still_mutex));
-
-  if(still_running)
-    {
-    //    fprintf(stderr, "Stopping still thread...");
-    pthread_join(priv->still_thread, NULL);
-    close_x11(priv);
-    //    fprintf(stderr, "done\n");
-    }
-
-  
+    
   if(priv->parameters)
     {
     bg_parameter_info_destroy_array(priv->parameters);
@@ -1124,6 +1082,8 @@ static int handle_event(x11_t * priv, XEvent * evt)
   int  x_image;
   int  y_image;
   int  button_number = 0;
+
+  //  fprintf(stderr, "handle event %p\n", evt);
   
   x11_window_handle_event(&(priv->win), evt);
 
@@ -1131,20 +1091,17 @@ static int handle_event(x11_t * priv, XEvent * evt)
   //          priv->win.pointer_hidden, evt);
   if(priv->win.do_delete)
     {
-    pthread_mutex_lock(&(priv->still_mutex));
     if(priv->do_still)
-      {
       x11_window_show(&(priv->win), 0);
-      priv->do_still = 0; /* Exit still thread *when window is closed */
-      }
-    pthread_mutex_unlock(&(priv->still_mutex));
     }
-
+  
   if(!evt)
     return 0;
   
   if(evt->type == priv->shm_completion_type)
     {
+    //    fprintf(stderr, "ShmCompletion\n");
+    priv->wait_for_completion = 0;
     return 1;
     }
   switch(evt->type)
@@ -1233,17 +1190,22 @@ static int handle_event(x11_t * priv, XEvent * evt)
         set_drawing_coords(priv);
         }
       break;
+    case Expose:
+      //      fprintf(stderr, "ExposeEvent %d\n", priv->do_still);
+      if(priv->do_still)
+        write_frame_x11(priv, priv->still_frame);
+      break;
     }
   return 0;
   }
 
-static void handle_events(x11_t * priv)
+static void handle_events_x11(void * data)
   {
   XEvent * event;
-  
-  if(priv->have_shm)
+  x11_t * priv = (x11_t *)data;
+  if(priv->wait_for_completion)
     {
-    while(1)
+    while(priv->wait_for_completion)
       {
       event = x11_window_next_event(&(priv->win), -1);
       if(handle_event(priv, event))
@@ -1254,10 +1216,10 @@ static void handle_events(x11_t * priv)
     {
     while(1)
       {
-      event = x11_window_next_event(&(priv->win), -1);
-      handle_event(priv, event);
+      event = x11_window_next_event(&(priv->win), 0);
       if(!event)
         break;
+      handle_event(priv, event);
       }
     }
   }
@@ -1289,6 +1251,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
                     priv->dst_rect.w,  /* dest_w */
                     priv->dst_rect.h,  /* dest_h */
                     True);
+      priv->wait_for_completion = 1;
       }
     else
       {
@@ -1347,6 +1310,7 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
                    priv->dst_rect.w,    /* src_width  */
                    priv->dst_rect.h,   /* src_height */
                    True                  /* send_event */);
+      priv->wait_for_completion = 1;
       }
     else
       {
@@ -1367,78 +1331,26 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
 #endif // HAVE_LIBXV
 
   XSync(priv->dpy, False);
-  handle_events(priv);
   }
 
-static void * thread_func(void * data)
+static void put_video_x11(void * data, gavl_video_frame_t * frame)
   {
-  Window win;
-  XEvent * event;
-
   x11_t * priv = (x11_t*)data;
-
-  while(1)
-    {
-    pthread_mutex_lock(&(priv->still_mutex));
-    if(!priv->do_still)
-      {
-      pthread_mutex_unlock(&(priv->still_mutex));
-      break;
-      }
-    pthread_mutex_unlock(&(priv->still_mutex));
-
-    win = priv->win.current_window;
-    event = x11_window_next_event(&(priv->win), 50);
-    handle_event(priv, event);
-    if(win != priv->win.current_window)
-      write_frame_x11(data, priv->still_frame);
-
-    if(event && (event->type == Expose))
-      write_frame_x11(data, priv->still_frame);
-    }
-  
-  free_frame_x11(data, priv->still_frame);
-  return NULL;
+  priv->still_frame = NULL;
+  priv->do_still = 0;
+  write_frame_x11(data, frame);
+  //  fprintf(stderr, "put_video_x11\n");
   }
 
-static void put_still_x11(void * data, gavl_video_format_t * format,
-                          gavl_video_frame_t * frame)
+static void put_still_x11(void * data, gavl_video_frame_t * frame)
   {
-  gavl_video_converter_t * cnv;
-  gavl_video_format_t tmp_format;
   
   x11_t * priv = (x11_t*)data;
-
-  /* If window isn't visible, return */
-
-  if(!priv->window_visible)
-    return;
   
-  /* Initialize as if we displayed video */
-  
-  gavl_video_format_copy(&tmp_format, format);
-  _open_x11(data, &tmp_format, "Video output", 1);
-  
-  /* Create the output frame for the format */
-
-  priv->still_frame = alloc_frame_x11(data);
-    
-  /* Now, we have the proper format, let's invoke the converter */
-
-  cnv = gavl_video_converter_create();
-  
-  gavl_video_converter_init(cnv, format, &tmp_format);
-  gavl_video_convert(cnv, frame, priv->still_frame);
-
-  gavl_video_converter_destroy(cnv);
-  
+  priv->still_frame = frame;
   write_frame_x11(data, priv->still_frame);
-  
   priv->do_still = 1;
-  pthread_create(&(priv->still_thread),
-                 (pthread_attr_t*)0,
-                 thread_func, priv);
-  
+  //  fprintf(stderr, "put_still_x11\n");
   }
 
 static void show_window_x11(void * data, int show)
@@ -1448,7 +1360,6 @@ static void show_window_x11(void * data, int show)
   
   x11_window_show(&(priv->win), show);
 
-  priv->window_visible = show;
   
   /* Clear the area and wait for the first ExposeEvent to come */
   x11_window_clear(&(priv->win));
@@ -1938,14 +1849,15 @@ bg_ov_plugin_t the_plugin =
       get_parameter:  get_parameter_x11
     },
 
-    open:          open_x11,
-    put_video:     write_frame_x11,
-    alloc_frame:   alloc_frame_x11,
-    free_frame:    free_frame_x11,
-    close:         close_x11,
-    put_still:     put_still_x11,
-    set_callbacks: set_callbacks_x11,
-    show_window:   show_window_x11
+    open:           open_x11,
+    put_video:      put_video_x11,
+    alloc_frame:    alloc_frame_x11,
+    free_frame:     free_frame_x11,
+    handle_events:  handle_events_x11,
+    close:          close_x11,
+    put_still:      put_still_x11,
+    set_callbacks:  set_callbacks_x11,
+    show_window:    show_window_x11
   };
 
 /* Include this into all plugin modules exactly once

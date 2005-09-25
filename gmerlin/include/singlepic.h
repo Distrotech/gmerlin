@@ -33,6 +33,7 @@
  */
 
 bg_plugin_info_t * bg_singlepic_input_info(bg_plugin_registry_t * reg);
+bg_plugin_info_t * bg_singlepic_stills_input_info(bg_plugin_registry_t * reg);
 bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg);
 
 /*
@@ -40,6 +41,7 @@ bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg);
  */
 
 bg_plugin_common_t * bg_singlepic_input_get();
+bg_plugin_common_t * bg_singlepic_stills_input_get();
 bg_plugin_common_t * bg_singlepic_encoder_get();
 
 /*
@@ -47,4 +49,5 @@ bg_plugin_common_t * bg_singlepic_encoder_get();
  */
 
 void * bg_singlepic_input_create(bg_plugin_registry_t * reg);
+void * bg_singlepic_stills_input_create(bg_plugin_registry_t * reg);
 void * bg_singlepic_encoder_create(bg_plugin_registry_t * reg);

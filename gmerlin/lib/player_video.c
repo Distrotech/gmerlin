@@ -47,10 +47,20 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
 
   
   if(player->track_info->num_video_streams)
+    {
     player->do_video = bg_player_input_set_video_stream(player->input_context,
                                                         video_stream);
-  
-  if(!player->do_video)
+    if(!player->do_video)
+      return 1;
+    }
+  else if(player->track_info->num_still_streams)
+    {
+    player->do_still = bg_player_input_set_still_stream(player->input_context,
+                                                        player->current_still_stream);
+    if(!player->do_still)
+      return 1;
+    }
+  else
     return 1;
   
   if(!bg_player_ov_init(player->ov_context))

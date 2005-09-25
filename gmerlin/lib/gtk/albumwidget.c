@@ -39,6 +39,7 @@
 
 static GdkPixbuf * has_audio_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * has_video_pixbuf = (GdkPixbuf *)0;
+static GdkPixbuf * has_still_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * dnd_pixbuf       = (GdkPixbuf *)0;
 
 int num_album_widgets = 0;
@@ -116,6 +117,12 @@ static void load_pixmaps()
     has_video_pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
     free(filename);
     }
+  filename = bg_search_file_read("icons", "image_16.png");
+  if(filename)
+    {
+    has_still_pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
+    free(filename);
+    }
   filename = bg_search_file_read("icons", "tracks_dnd_32.png");
   if(filename)
     {
@@ -133,10 +140,12 @@ static void unload_pixmaps()
     
     g_object_unref(has_audio_pixbuf);
     g_object_unref(has_video_pixbuf);
+    g_object_unref(has_still_pixbuf);
     g_object_unref(dnd_pixbuf);
     
     has_audio_pixbuf = (GdkPixbuf *)0;
     has_video_pixbuf = (GdkPixbuf *)0;
+    has_still_pixbuf = (GdkPixbuf *)0;
     dnd_pixbuf       = (GdkPixbuf *)0;
     }
   }
@@ -630,6 +639,11 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
                          &iter,
                          COLUMN_VIDEO,
                          has_video_pixbuf, -1);
+    else if(entry->num_still_streams)
+      gtk_list_store_set(GTK_LIST_STORE(model),
+                         &iter,
+                         COLUMN_VIDEO,
+                         has_still_pixbuf, -1);
     else
       gtk_list_store_set(GTK_LIST_STORE(model),
                          &iter,

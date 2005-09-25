@@ -87,6 +87,7 @@ void bg_album_update_entry(bg_album_t * album,
   //  fprintf(stderr, "Update entry!\n");
   entry->num_audio_streams = track_info->num_audio_streams;
   entry->num_video_streams = track_info->num_video_streams;
+  entry->num_still_streams = track_info->num_still_streams;
 
   entry->num_subpicture_streams = track_info->num_subpicture_streams;
   entry->num_programs           = track_info->num_programs;
@@ -390,6 +391,7 @@ static int open_removable(bg_album_t * a)
                                       a->location);
     new_entry->num_video_streams = track_info->num_video_streams;
     new_entry->num_audio_streams = track_info->num_audio_streams;
+    new_entry->num_still_streams = track_info->num_still_streams;
     new_entry->num_subpicture_streams =
       track_info->num_subpicture_streams;
     new_entry->num_programs = track_info->num_programs;

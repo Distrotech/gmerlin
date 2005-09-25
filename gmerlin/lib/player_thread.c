@@ -76,6 +76,21 @@ static void msg_video_stream(bg_msg_t * msg,
   
   }
 
+static void msg_still_stream(bg_msg_t * msg,
+                             const void * data)
+  {
+  bg_player_t * player;
+  player = (bg_player_t*)data;
+
+  bg_msg_set_id(msg, BG_PLAYER_MSG_STILL_STREAM);
+  bg_msg_set_arg_int(msg, 0, player->current_still_stream);
+  bg_msg_set_arg_video_format(msg, 1,
+                              &(player->video_stream.input_format));
+  bg_msg_set_arg_video_format(msg, 2,
+                              &(player->video_stream.output_format));
+  
+  }
+
 static void msg_num_streams(bg_msg_t * msg,
                             const void * data)
   {
@@ -91,6 +106,12 @@ static void msg_num_streams(bg_msg_t * msg,
 static void msg_video_description(bg_msg_t * msg, const void * data)
   {
   bg_msg_set_id(msg, BG_PLAYER_MSG_VIDEO_DESCRIPTION);
+  bg_msg_set_arg_string(msg, 0, (char*)data);
+  }
+
+static void msg_still_description(bg_msg_t * msg, const void * data)
+  {
+  bg_msg_set_id(msg, BG_PLAYER_MSG_STILL_DESCRIPTION);
   bg_msg_set_arg_string(msg, 0, (char*)data);
   }
 
@@ -174,8 +195,7 @@ static void preload(bg_player_t * p)
 static void start_playback(bg_player_t * p, int new_state)
   {
   int want_new;
-  pthread_mutex_lock(&(p->start_mutex));
-
+  fprintf(stderr, "start_playback...");
   if(new_state == BG_PLAYER_STATE_CHANGING)
     {
     want_new = 0;
@@ -193,8 +213,10 @@ static void start_playback(bg_player_t * p, int new_state)
   if(p->do_audio)
     bg_player_oa_start(p->oa_context);
   
+  pthread_mutex_lock(&(p->start_mutex));
   pthread_cond_broadcast(&(p->start_cond));
   pthread_mutex_unlock(&(p->start_mutex));
+  fprintf(stderr, "start_playback done\n");
   }
 
 /* Pause command */
@@ -302,7 +324,7 @@ static void play_cmd(bg_player_t * p,
     player_cleanup(p);
 
   
-  had_video = p->do_video;
+  had_video = p->do_video || p->do_still;
   
   bg_player_set_state(p, BG_PLAYER_STATE_STARTING, NULL, NULL);
 
@@ -335,6 +357,7 @@ static void play_cmd(bg_player_t * p,
 
   p->do_audio = 0;
   p->do_video = 0;
+  p->do_still = 0;
 
   if(!p->do_bypass)
     {
@@ -386,6 +409,16 @@ static void play_cmd(bg_player_t * p,
                            msg_video_stream,
                            p);
     }
+  else if(p->do_still)
+    {
+    if(p->track_info->still_streams[p->current_still_stream].description)
+      bg_msg_queue_list_send(p->message_queues,
+                             msg_still_description,
+                             p->track_info->still_streams[p->current_still_stream].description);
+    bg_msg_queue_list_send(p->message_queues,
+                           msg_still_stream,
+                           p);
+    }
   else if(had_video)
     bg_player_ov_standby(p->ov_context);
   
@@ -394,7 +427,7 @@ static void play_cmd(bg_player_t * p,
   p->total_plugin_threads = 1;
   if(p->do_audio)
     p->total_plugin_threads++;
-  if(p->do_video)
+  if(p->do_video || p->do_still)
     p->total_plugin_threads++;
 
   /* Reset variables */
@@ -424,7 +457,13 @@ static void play_cmd(bg_player_t * p,
     pthread_create(&(p->ov_thread),
                    (pthread_attr_t*)0,
                    bg_player_ov_thread, p->ov_context);
+  else if(p->do_still)
+    pthread_create(&(p->ov_thread),
+                   (pthread_attr_t*)0,
+                   bg_player_ov_still_thread, p->ov_context);
 
+  fprintf(stderr, "BlaBla\n");
+  
   //  if(p->waiting_plugin_threads < p->total_plugin_threads)
   pthread_cond_wait(&(p->stop_cond), &(p->stop_mutex));
   pthread_mutex_unlock(&p->stop_mutex);
@@ -437,6 +476,9 @@ static void play_cmd(bg_player_t * p,
     bg_player_set_state(p, BG_PLAYER_STATE_PAUSED, NULL, NULL);
     if(p->do_bypass)
       bg_player_input_bypass_set_pause(p->input_context, 1);
+    if(p->do_video)
+      bg_player_ov_update_still(p->ov_context);
+
     }
   else
     start_playback(p, BG_PLAYER_STATE_PLAYING);
@@ -490,25 +532,30 @@ static void stop_cmd(bg_player_t * player, int new_state)
     }
   
   if((old_state == BG_PLAYER_STATE_PLAYING) ||
-     (old_state == BG_PLAYER_STATE_PAUSED))
+     (old_state == BG_PLAYER_STATE_PAUSED) ||
+     (old_state == BG_PLAYER_STATE_STILL))
     {
     /* Set the stop flag */
     if(player->do_audio)
       bg_fifo_set_state(player->audio_stream.fifo, BG_FIFO_STOPPED);
-    if(player->do_video)
+    if(player->do_video || player->do_still)
       bg_fifo_set_state(player->video_stream.fifo, BG_FIFO_STOPPED);
-    
-    fprintf(stderr, "Joining input thread...");
-    pthread_join(player->input_thread, (void**)0);
-    fprintf(stderr, "done\n");
-    
+
+    /* Input thread is joined before entering still mode */
+    if(old_state != BG_PLAYER_STATE_STILL)
+      {
+      fprintf(stderr, "Joining input thread...");
+      pthread_join(player->input_thread, (void**)0);
+      fprintf(stderr, "done\n");
+      }
+
     if(player->do_audio)
       {
       fprintf(stderr, "Joining audio thread...");
       pthread_join(player->oa_thread, (void**)0);
       fprintf(stderr, "done\n");
       }
-    if(player->do_video)
+    if(player->do_video || player->do_still)
       {
       fprintf(stderr, "Joining video thread...");
       pthread_join(player->ov_thread, (void**)0);
@@ -523,7 +570,7 @@ static void stop_cmd(bg_player_t * player, int new_state)
     
     if(new_state == BG_PLAYER_STATE_STOPPED)
       {
-      if(player->do_video)
+      if(player->do_video || player->do_still)
         {
         bg_player_ov_standby(player->ov_context);
         player->do_video = 0;
@@ -595,6 +642,9 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
   if(old_state == BG_PLAYER_STATE_PAUSED)
     {
     bg_player_set_state(player, BG_PLAYER_STATE_PAUSED, NULL, NULL);
+
+    if(player->do_video)
+      bg_player_ov_update_still(player->ov_context);
     
     // if(p->do_bypass)
     // bg_player_input_bypass_set_pause(p->input_context, 1);
@@ -631,6 +681,7 @@ static int process_command(bg_player_t * player,
         case BG_PLAYER_STATE_PLAYING:
         case BG_PLAYER_STATE_CHANGING:
         case BG_PLAYER_STATE_PAUSED:
+        case BG_PLAYER_STATE_STILL:
           stop_cmd(player, BG_PLAYER_STATE_STOPPED);
           break;
         }
@@ -694,6 +745,7 @@ static int process_command(bg_player_t * player,
         {
         case BG_PLAYER_STATE_PLAYING:
         case BG_PLAYER_STATE_PAUSED:
+        case BG_PLAYER_STATE_STILL:
         case BG_PLAYER_STATE_CHANGING:
           stop_cmd(player, BG_PLAYER_STATE_STOPPED);
           break;
@@ -769,6 +821,13 @@ static int process_command(bg_player_t * player,
       arg_i1 = bg_msg_get_arg_int(command, 0);
       switch(arg_i1)
         {
+        case BG_PLAYER_STATE_STILL:
+          /* Close down input plugin */
+          fprintf(stderr, "Joining input thread...");
+          pthread_join(player->input_thread, (void**)0);
+          fprintf(stderr, "done\n");
+          bg_player_set_state(player, BG_PLAYER_STATE_STILL, NULL, NULL);
+          break;
         case BG_PLAYER_STATE_FINISHING:
           /* Close down everything */
           //          fprintf(stderr, "Finishing...\n");
@@ -856,6 +915,7 @@ static void * player_thread(void * data)
       {
       case BG_PLAYER_STATE_PLAYING:
       case BG_PLAYER_STATE_FINISHING:
+      case BG_PLAYER_STATE_STILL:
         //        fprintf(stderr, "bg_player_time_get...");
         bg_player_time_get(player, 1, &time);
         //        fprintf(stderr, "done\n");

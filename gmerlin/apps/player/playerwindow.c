@@ -354,6 +354,9 @@ static void handle_message(player_window_t * win,
         case BG_PLAYER_STATE_PAUSED:
           display_set_state(win->display, win->gmerlin->player_state, NULL);
           break;
+        case BG_PLAYER_STATE_STILL:
+          display_set_state(win->display, win->gmerlin->player_state, NULL);
+          break;
         case BG_PLAYER_STATE_SEEKING:
           display_set_state(win->display, win->gmerlin->player_state, NULL);
           win->seek_active = 0;

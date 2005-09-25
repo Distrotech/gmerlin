@@ -24,7 +24,7 @@
 #include "parameter.h"
 #include "streaminfo.h"
 
-#define BG_PLUGIN_API_VERSION 2
+#define BG_PLUGIN_API_VERSION 3
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -294,6 +294,7 @@ typedef struct bg_input_plugin_s
   
   int (*set_audio_stream)(void * priv, int stream, bg_stream_action_t);
   int (*set_video_stream)(void * priv, int stream, bg_stream_action_t);
+  int (*set_still_stream)(void * priv, int stream, bg_stream_action_t);
   int (*set_subpicture_stream)(void * priv, int stream, bg_stream_action_t);
   int (*set_program)(void * priv, int program);
   
@@ -452,17 +453,20 @@ typedef struct bg_ov_plugin_s
          
   int  (*open)(void *, gavl_video_format_t*, const char * window_title);
   void (*put_video)(void * priv, gavl_video_frame_t*);
-  void (*close)(void * priv);
 
   /* 
    *  Second Operation mode:
-   *  Put a still image and start a thread for handling expose events
-   *  The thread will be stopped by a call to open() or a subsequent
-   *  put_still()
+   *  Put a still image. This will tell the plugin to remember the frame
+   *  and redisplay it when it got an expose event.
    */
 
-  void (*put_still)(void*, gavl_video_format_t * format,
-                    gavl_video_frame_t * frame);
+  void (*put_still)(void*, gavl_video_frame_t * frame);
+
+  /* Get all events from the queue and handle them */
+  
+  void (*handle_events)(void*);
+  
+  void (*close)(void * priv);
   
   /* The following ones are optional */
 

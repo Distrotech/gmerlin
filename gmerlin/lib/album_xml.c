@@ -92,6 +92,10 @@ static bg_album_entry_t * load_entry(bg_album_t * album,
       {
       sscanf(tmp_string, "%d", &(ret->num_audio_streams));
       }
+    else if(!BG_XML_STRCMP(node->name, "STSTREAMS"))
+      {
+      sscanf(tmp_string, "%d", &(ret->num_still_streams));
+      }
     else if(!BG_XML_STRCMP(node->name, "VSTREAMS"))
       {
       sscanf(tmp_string, "%d", &(ret->num_video_streams));
@@ -400,7 +404,18 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
     xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
     free(c_tmp);
     }
+  
+  /* Still streams */
 
+  if(entry->num_still_streams)
+    {
+    c_tmp = bg_sprintf("%d", entry->num_still_streams);
+    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"STSTREAMS", NULL);
+    xmlAddChild(node, BG_XML_NEW_TEXT(c_tmp));
+    xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
+    free(c_tmp);
+    }
+  
   /* Video streams */
 
   if(entry->num_video_streams)
