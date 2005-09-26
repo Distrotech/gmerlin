@@ -196,14 +196,15 @@ void bg_player_ov_update_still(bg_player_ov_context_t * ctx)
   {
   bg_fifo_state_t state;
 
-  fprintf(stderr, "bg_player_ov_update_still\n");
+  //  fprintf(stderr, "bg_player_ov_update_still\n");
   pthread_mutex_lock(&ctx->still_mutex);
 
   if(ctx->frame)
     bg_fifo_unlock_read(ctx->player->video_stream.fifo);
+  //  fprintf(stderr, "bg_player_ov_update_still 1\n");
 
   ctx->frame = bg_fifo_lock_read(ctx->player->video_stream.fifo, &state);
-  fprintf(stderr, "bg_player_ov_update_still 1\n");
+  //  fprintf(stderr, "bg_player_ov_update_still 2\n");
 
   if(ctx->frame)
     {

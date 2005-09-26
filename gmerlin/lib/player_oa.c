@@ -345,7 +345,7 @@ const char * bg_player_oa_get_error(bg_player_oa_context_t * ctx)
 
 void bg_player_oa_cleanup(bg_player_oa_context_t * ctx)
   {
-  fprintf(stderr, "audio_samples_written: %lld\n", ctx->audio_samples_written);
+  // fprintf(stderr, "audio_samples_written: %lld\n", ctx->audio_samples_written);
   bg_plugin_lock(ctx->plugin_handle);
   ctx->plugin->close(ctx->priv);
   ctx->output_open = 0;

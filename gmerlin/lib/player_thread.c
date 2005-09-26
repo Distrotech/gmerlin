@@ -462,7 +462,7 @@ static void play_cmd(bg_player_t * p,
                    (pthread_attr_t*)0,
                    bg_player_ov_still_thread, p->ov_context);
 
-  fprintf(stderr, "BlaBla\n");
+  //  fprintf(stderr, "BlaBla\n");
   
   //  if(p->waiting_plugin_threads < p->total_plugin_threads)
   pthread_cond_wait(&(p->stop_cond), &(p->stop_mutex));
@@ -503,7 +503,10 @@ static void stop_cmd(bg_player_t * player, int new_state)
   
   if(new_state == BG_PLAYER_STATE_CHANGING)
     {
-    want_new = 0;
+    if(old_state == BG_PLAYER_STATE_STILL)
+      want_new = 1;
+    else
+      want_new = 0;
     bg_player_set_state(player, new_state, &want_new, NULL);
     //    fprintf(stderr, "*** Changing 1\n");
     }
@@ -719,7 +722,8 @@ static int process_command(bg_player_t * player,
       arg_str1 = bg_msg_get_arg_string(command, 3);
       
       if((state == BG_PLAYER_STATE_PLAYING) ||
-         (state == BG_PLAYER_STATE_PAUSED))
+         (state == BG_PLAYER_STATE_PAUSED) ||
+         (state == BG_PLAYER_STATE_STILL))
         {
         stop_cmd(player, BG_PLAYER_STATE_CHANGING);
         }
@@ -930,6 +934,14 @@ static void * player_thread(void * data)
           }
         break;
       }
+    /* Exit when time is exceeded */
+    if((state == BG_PLAYER_STATE_STILL) &&
+       (player->track_info->duration != GAVL_TIME_UNDEFINED) &&
+       (player->track_info->duration <= time))
+      {
+      stop_cmd(player, BG_PLAYER_STATE_CHANGING);
+      }
+    
     gavl_time_delay(&wait_time);
     }
   return (void*)0;

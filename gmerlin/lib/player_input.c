@@ -400,7 +400,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
   bg_fifo_state_t state;
   gavl_video_frame_t * video_frame;
   bg_player_video_stream_t * s;
-  fprintf(stderr, "Process video...");
+  //  fprintf(stderr, "Process video...");
   s = &(ctx->player->video_stream);
   
   if(s->do_convert)
@@ -452,7 +452,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     ctx->video_frames_written ++;
     }
   bg_fifo_unlock_write(s->fifo, ctx->video_finished);
-  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done\n");
   return 1;
   }
 

@@ -710,7 +710,6 @@ void display_set_state(display_t * d, int state,
       d->state_index = STATE_PAUSED;
       break;
     case BG_PLAYER_STATE_STILL:
-      fprintf(stderr, "*** STILL ***\n");
       d->state_index = STATE_STILL;
       break;
     default: /* BG_PLAYER_STATE_PLAYING, BG_PLAYER_STATE_FINISHING */

@@ -120,6 +120,20 @@ static bg_parameter_info_t parameters_input[] =
     },
   };
 
+static bg_parameter_info_t parameters_input_still[] =
+  {
+    {
+      name:         "display_time",
+      long_name:    "Display time",
+      type:         BG_PARAMETER_TIME,
+      val_min:      { val_time: 0 },
+      val_max:      { val_time: 3600 * (gavl_time_t)GAVL_TIME_SCALE },
+      val_default: { val_time: 0 },
+      help_string:  "Time to pass until the next track will be selected. 0 means infinite."
+    },
+  };
+
+
 typedef struct
   {
   bg_track_info_t track_info;
@@ -129,6 +143,8 @@ typedef struct
   int timescale;
   int frame_duration;
 
+  gavl_time_t display_time;
+  
   char * template;
   int64_t frame_start;
   int64_t frame_end;
@@ -158,6 +174,17 @@ static bg_parameter_info_t * get_parameters_input(void * priv)
   return inp->parameters;
   }
 
+static bg_parameter_info_t * get_parameters_input_still(void * priv)
+  {
+  input_t * inp = (input_t *)priv;
+  inp->parameters =
+    calloc(sizeof(parameters_input_still)/sizeof(parameters_input_still[0])+1,
+           sizeof(*inp->parameters));
+  
+  bg_parameter_info_copy(&inp->parameters[0], &parameters_input_still[0]);
+  return inp->parameters;
+  }
+
 static void set_parameter_input(void * priv, char * name,
                                 bg_parameter_value_t * val)
   {
@@ -176,6 +203,23 @@ static void set_parameter_input(void * priv, char * name,
     }
   
   }
+
+static void set_parameter_input_still(void * priv, char * name,
+                                      bg_parameter_value_t * val)
+  {
+  input_t * inp = (input_t *)priv;
+
+  if(!name)
+    return;
+
+  else if(!strcmp(name, "display_time"))
+    {
+    inp->display_time = val->val_time;
+    if(!inp->display_time)
+      inp->display_time = GAVL_TIME_UNDEFINED;
+    }
+  }
+
 
 static int open_input(void * priv, const char * arg)
   {
@@ -302,8 +346,9 @@ static int open_stills_input(void * priv, const char * arg)
   inp->track_info.still_streams =
     calloc(1, sizeof(*inp->track_info.still_streams));
   
-  inp->track_info.duration = GAVL_TIME_UNDEFINED;
-
+  //  inp->track_info.duration = GAVL_TIME_UNDEFINED;
+  inp->track_info.duration = inp->display_time;
+  
   /* Get track name */
 
   bg_set_track_name_default(&(inp->track_info), arg);
@@ -396,7 +441,7 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
   else if(inp->current_frame == inp->frame_end)
     return 0;
 
-  fprintf(stderr, "Read image %d %s...", inp->header_read, inp->filename_buffer);
+  //  fprintf(stderr, "Read image %d %s...", inp->header_read, inp->filename_buffer);
   
   if(!inp->header_read)
     {
@@ -409,10 +454,10 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
     }
   if(!inp->image_reader->read_image(inp->handle->priv, f))
     {
-    fprintf(stderr, "failed\n");
+    //    fprintf(stderr, "failed\n");
     return 0;
     }
-  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done\n");
   if(f)
     {
     f->time_scaled = (inp->current_frame - inp->frame_start) * inp->frame_duration;
@@ -530,8 +575,8 @@ static bg_input_plugin_t input_plugin_stills =
       priority:       BG_PLUGIN_PRIORITY_MAX,
       create:         NULL,
       destroy:        destroy_input,
-      //      get_parameters: get_parameters_input,
-      //      set_parameter:  set_parameter_input
+      get_parameters: get_parameters_input_still,
+      set_parameter:  set_parameter_input_still
     },
     open:          open_stills_input,
 
