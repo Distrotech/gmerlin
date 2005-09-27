@@ -1,6 +1,11 @@
 #!/bin/sh
+if test -d /usr/local/share/aclocal; then
+ACLOCAL_FLAGS="-I /usr/local/share/aclocal"
+else
+ACLOCAL_FLAGS=""
+fi
 echo -n "doing aclocal..."
-aclocal -I /usr/local/share/aclocal -I m4
+aclocal $ACLOCAL_FLAGS -I m4
 echo "done"
 echo -n "doing libtoolize..."
 libtoolize --automake --copy --force
