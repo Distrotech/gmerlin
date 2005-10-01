@@ -1701,8 +1701,7 @@ static void drag_received_callback(GtkWidget *widget,
             break;
           case DND_TEXT_URI_LIST:
             gtk_widget_set_sensitive(aw->treeview, 0);
-            bg_album_insert_urilist_before(aw->album, (char*)(data->data), data->length,
-                                           entry);
+            bg_album_insert_urilist_before(aw->album, (char*)(data->data), data->length, entry);
             gtk_widget_set_sensitive(aw->treeview, 1);
             break;
           }

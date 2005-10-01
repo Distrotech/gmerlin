@@ -1315,7 +1315,7 @@ void bg_album_find_devices(bg_album_t * a)
   }
 
 static bg_album_entry_t * remove_redirectors(bg_album_t * album,
-                                      bg_album_entry_t * entries)
+                                             bg_album_entry_t * entries)
   {
   bg_album_entry_t * before;
   bg_album_entry_t * e;
@@ -1434,9 +1434,11 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   else
     info = (bg_plugin_info_t*)0;
 
+  bg_album_common_prepare_callbacks(album->com, (const char*)0, (const char*)0);
+    
   if(!bg_input_plugin_load(album->com->plugin_reg,
                            url, info,
-                           &(album->com->load_handle), &error_msg))
+                           &(album->com->load_handle), &error_msg, &(album->com->input_callbacks)))
     {
     fprintf(stderr, "Cannot open %s: %s\n", url, error_msg);
     free(error_msg);
@@ -1460,9 +1462,11 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
     new_entry->location = bg_strdup(new_entry->location, url);
     new_entry->index = i;
     new_entry->total_tracks = num_entries;
+#if 0
     fprintf(stderr, "Loading %s [%d/%d]\n", (char*)(new_entry->location), new_entry->total_tracks,
             new_entry->index);
-    
+#endif
+    bg_album_common_set_auth_info(album->com, new_entry);
     bg_album_update_entry(album, new_entry, track_info);
     
     if(plugin_long_name)
@@ -1514,11 +1518,11 @@ int bg_album_refresh_entry(bg_album_t * album,
 
   // system_location = bg_utf8_to_system(entry->location,
   //                                     strlen(entry->location));
-  
+  bg_album_common_prepare_callbacks(album->com, entry->username, entry->password);
   if(!bg_input_plugin_load(album->com->plugin_reg,
                            entry->location,
                            info,
-                           &(album->com->load_handle), &error_msg))
+                           &(album->com->load_handle), &error_msg, &(album->com->input_callbacks)))
     {
     entry->flags |= BG_ALBUM_ENTRY_ERROR;
 
@@ -1530,6 +1534,8 @@ int bg_album_refresh_entry(bg_album_t * album,
 
   track_info = plugin->get_track_info(album->com->load_handle->priv,
                                       entry->index);
+
+  bg_album_common_set_auth_info(album->com, entry);
   
   bg_album_update_entry(album, entry, track_info);
   plugin->close(album->com->load_handle->priv);

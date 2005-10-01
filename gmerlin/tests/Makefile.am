@@ -5,7 +5,8 @@ gtk_programs = cfgtest \
 playtree \
 question \
 message \
-scrolltext
+scrolltext \
+auth
 else
 gtk_programs =
 endif
@@ -49,6 +50,9 @@ scrolltext_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
 
 question_SOURCES = question.c
 question_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
+
+auth_SOURCES = auth.c
+auth_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
 
 message_SOURCES = message.c
 message_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la

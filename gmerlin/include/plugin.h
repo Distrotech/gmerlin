@@ -231,8 +231,9 @@ typedef struct bg_input_callbacks_s
 
   void (*buffer_notify)(void * data, float percentage);
   
-  /* Get authentication */
-  void (*get_user_pass)(void * data, char ** username, char ** password);
+  /* Get authentication (return values 1: Success, 2: cancel) */
+  int (*user_pass)(void * data, const char * resource,
+                   char ** username, char ** password);
   
   void * data;
   } bg_input_callbacks_t;

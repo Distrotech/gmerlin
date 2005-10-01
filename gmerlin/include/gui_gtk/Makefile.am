@@ -3,6 +3,7 @@ pkgincludedir=$(includedir)/gmerlin/gui_gtk
 pkginclude_HEADERS =  \
 albumentry.h \
 audio.h \
+auth.h \
 button.h \
 multiinfo.h \
 display.h \
@@ -19,4 +20,5 @@ slider.h \
 textview.h \
 tree.h \
 urlselect.h
+
 

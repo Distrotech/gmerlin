@@ -145,7 +145,7 @@ int bg_gtk_question(const char * question)
 
   /* Destroy everything */
   //  gtk_widget_hide(q->window);
-  g_object_unref(q->window);
+  gtk_widget_destroy(q->window);
   free(q);
   return ret;
   }

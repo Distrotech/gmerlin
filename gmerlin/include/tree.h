@@ -29,7 +29,8 @@
 #define BG_ALBUM_ENTRY_SELECTED   (1<<1)
 #define BG_ALBUM_ENTRY_PRIVNAME   (1<<2)
 #define BG_ALBUM_ENTRY_REDIRECTOR (1<<3)
- 
+#define BG_ALBUM_ENTRY_SAVE_AUTH  (1<<4)
+
 /*
  *  Shuffle mode passed to bg_media_tree_next() and
  *  bg_media_tree_previous()
@@ -63,6 +64,11 @@ typedef struct bg_album_entry_s
   int index; 
   int total_tracks;
 
+  /* Authentication data */
+
+  char * username;
+  char * password;
+    
   /* Runtime ID unique in the whole tree */
 
   int id;
@@ -116,7 +122,6 @@ void bg_album_set_name_change_callback(bg_album_t * a,
                                                                     const char * name,
                                                                     void * data),
                                        void * name_change_callback_data);
-
 
 void bg_album_move_selected_to_favourites(bg_album_t * a);
 void bg_album_copy_selected_to_favourites(bg_album_t * a);
@@ -270,6 +275,13 @@ bg_media_tree_set_change_callback(bg_media_tree_t *,
                                   void (*change_callback)(bg_media_tree_t*,
                                                           void*),
                                   void*);
+
+void bg_media_tree_set_userpass_callback(bg_media_tree_t *,
+                                         int (*userpass_callback)(const char * resource,
+                                                                  char ** user, char ** pass,
+                                                                  int * save_password,
+                                                                  void * data),
+                                         void * userpass_callback_data);
 
 void bg_media_tree_set_play_callback(bg_media_tree_t *,
                                      void (*play_callback)(void*),

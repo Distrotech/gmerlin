@@ -7,6 +7,7 @@ libgmerlin_gtk_la_SOURCES = \
 albumentry.c \
 albumwidget.c \
 albumwindow.c \
+auth.c \
 button.c \
 cfg_checkbutton.c \
 cfg_color.c \

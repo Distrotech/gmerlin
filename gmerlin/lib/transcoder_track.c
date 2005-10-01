@@ -683,7 +683,7 @@ bg_transcoder_track_create(const char * url,
   /* Load the plugin */
   
   if(!bg_input_plugin_load(plugin_reg, url,
-                           input_info, &plugin_handle, &error_msg))
+                           input_info, &plugin_handle, &error_msg, (bg_input_callbacks_t*)0))
     {
     fprintf(stderr, __FILE__": Loading %s failed: %s\n", url, error_msg);
     free(error_msg);

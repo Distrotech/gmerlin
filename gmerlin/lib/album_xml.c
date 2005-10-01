@@ -26,6 +26,69 @@
 #include <treeprivate.h>
 #include <utils.h>
 
+/* Utility functions */
+
+/* Scramble and descramble password (taken from gftp) */
+
+static char * scramble_password (const char *password)
+  {
+  char *newstr, *newpos;
+  
+  newstr = malloc (strlen (password) * 2 + 2);
+  newpos = newstr;
+  
+  *newpos++ = '$';
+
+  while (*password != 0)
+    {
+    *newpos++ = ((*password >> 2) & 0x3c) | 0x41;
+    *newpos++ = ((*password << 2) & 0x3c) | 0x41;
+    password++;
+    }
+  *newpos = 0;
+
+  return (newstr);
+  }
+
+static char * descramble_password (const char *password)
+  {
+  const char *passwordpos;
+  char *newstr, *newpos;
+  int error;
+  
+  if (*password != '$')
+    return (bg_strdup ((char*)0, password));
+  
+  passwordpos = password + 1;
+  newstr = malloc (strlen (passwordpos) / 2 + 1);
+  newpos = newstr;
+  
+  error = 0;
+  while (*passwordpos != '\0' && (*passwordpos + 1) != '\0')
+    {
+    if ((*passwordpos & 0xc3) != 0x41 ||
+        (*(passwordpos + 1) & 0xc3) != 0x41)
+      {
+      error = 1;
+      break;
+      }
+    
+    *newpos++ = ((*passwordpos & 0x3c) << 2) |
+      ((*(passwordpos + 1) & 0x3c) >> 2);
+    
+    passwordpos += 2;
+    }
+  
+  if(error)
+    {
+    free (newstr);
+    return (bg_strdup((char*)0, password));
+    }
+  
+  *newpos = '\0';
+  return (newstr);
+  }
+
 /* Load an entry from a node */
 
 static bg_album_entry_t * load_entry(bg_album_t * album,
@@ -54,6 +117,12 @@ static bg_album_entry_t * load_entry(bg_album_t * album,
       ret->flags |= BG_ALBUM_ENTRY_ERROR;
     xmlFree(tmp_string);
     }
+  if((tmp_string = BG_XML_GET_PROP(node, "save_auth")))
+    {
+    if(atoi(tmp_string))
+      ret->flags |= BG_ALBUM_ENTRY_SAVE_AUTH;
+    xmlFree(tmp_string);
+    }
   if((tmp_string = BG_XML_GET_PROP(node, "privname")))
     {
     if(atoi(tmp_string))
@@ -79,6 +148,14 @@ static bg_album_entry_t * load_entry(bg_album_t * album,
     else if(!BG_XML_STRCMP(node->name, "LOCATION"))
       {
       ret->location = (void*)bg_uri_to_string(tmp_string, -1);
+      }
+    else if(!BG_XML_STRCMP(node->name, "USER"))
+      {
+      ret->username = bg_strdup(ret->username, tmp_string);
+      }
+    else if(!BG_XML_STRCMP(node->name, "PASS"))
+      {
+      ret->password = descramble_password(tmp_string);
       }
     else if(!BG_XML_STRCMP(node->name, "PLUGIN"))
       {
@@ -364,6 +441,10 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
     {
     BG_XML_SET_PROP(xml_entry, "privname", "1");
     }
+  if(entry->flags & BG_ALBUM_ENTRY_SAVE_AUTH)
+    {
+    BG_XML_SET_PROP(xml_entry, "save_auth", "1");
+    }
   
   xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
@@ -385,6 +466,23 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
     xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
     }
 
+  /* Authentication */
+
+  if((entry->flags & BG_ALBUM_ENTRY_SAVE_AUTH) && entry->username && entry->password)
+    {
+    /* Username */
+    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"USER", NULL);
+    xmlAddChild(node, BG_XML_NEW_TEXT(entry->username));
+    xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
+
+    /* Password */
+    c_tmp = scramble_password(entry->password);
+    node = xmlNewTextChild(xml_entry, (xmlNsPtr)0, (xmlChar*)"PASS", NULL);
+    xmlAddChild(node, BG_XML_NEW_TEXT(c_tmp));
+    xmlAddChild(xml_entry, BG_XML_NEW_TEXT("\n"));
+    free(c_tmp);
+    }
+  
   /* Plugin */
 
   if(entry->plugin)

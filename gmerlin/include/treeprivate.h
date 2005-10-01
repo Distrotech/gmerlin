@@ -54,6 +54,11 @@ typedef struct
   void (*play_callback)(void * data);
   void * play_callback_data;
 
+  int (*userpass_callback)(const char * resource, char ** user, char ** pass, int * save_password,
+                           void * data);
+  void * userpass_callback_data;
+  
+  
   bg_plugin_handle_t * load_handle;
 
   /* Configuration stuff */
@@ -68,13 +73,22 @@ typedef struct
   /* Favourites album */
 
   bg_album_t       * favourites;
+  bg_input_callbacks_t input_callbacks;
+
+  /* Stored authentication data */
+  char * username;
+  char * password;
+  int save_auth;
   
   } bg_album_common_t;
+
+void bg_album_common_prepare_callbacks(bg_album_common_t*,const char * user, const char * pass);
+
+void bg_album_common_set_auth_info(bg_album_common_t*, bg_album_entry_t*);
 
 struct bg_album_s
   {
   bg_album_type_t type;
-
   bg_album_common_t * com;
 
   int open_count;
@@ -98,7 +112,6 @@ struct bg_album_s
 
   void (*name_change_callback)(bg_album_t * a, const char * name, void * data);
   void * name_change_callback_data;
-
   
   /* Coordinates in the screen */
 

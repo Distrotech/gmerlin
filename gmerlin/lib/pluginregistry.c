@@ -1153,7 +1153,8 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
                          const char * location,
                          const bg_plugin_info_t * info,
                          bg_plugin_handle_t ** ret,
-                         char ** error_msg)
+                         char ** error_msg,
+                         bg_input_callbacks_t * callbacks)
   {
   const char * msg;
   int num_plugins, i;
@@ -1185,6 +1186,9 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
     
     plugin = (bg_input_plugin_t*)((*ret)->plugin);
 
+    if(plugin->set_callbacks)
+      plugin->set_callbacks((*ret)->priv, callbacks);
+    
     if(!plugin->open((*ret)->priv, location))
       {
       fprintf(stderr, "Opening %s with %s failed\n", location,

@@ -27,7 +27,7 @@
 #include "player_remote.h"
 
 #include <utils.h>
-
+#include <gui_gtk/auth.h>
 
 static void tree_play_callback(void * data)
   {
@@ -186,9 +186,10 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
     }
   
   ret->tree = bg_media_tree_create(tmp_string, ret->plugin_reg);
-
+  
   bg_media_tree_set_play_callback(ret->tree, tree_play_callback, ret);
   bg_media_tree_set_error_callback(ret->tree, tree_error_callback, ret);
+  bg_media_tree_set_userpass_callback(ret->tree, bg_gtk_get_userpass, NULL);
   
   free(tmp_string);
   
@@ -731,7 +732,7 @@ void gmerlin_add_locations(gmerlin_t * g, char ** locations)
   i = 0;
   while(locations[i])
     {
-    fprintf(stderr, "Add location: %s\n", locations[i]);
+    //    fprintf(stderr, "Add location: %s\n", locations[i]);
     i++;
     }
   

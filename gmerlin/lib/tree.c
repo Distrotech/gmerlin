@@ -247,6 +247,31 @@ static void check_special(bg_media_tree_t * tree, bg_album_t * children)
     }
   }
 
+static int get_user_pass(void * data, const char * resource,
+                         char ** user, char ** pass)
+  {
+  bg_album_common_t * com = (bg_album_common_t *)data;
+
+  if(!com->username && !com->password)
+    {
+    if(!com->userpass_callback)
+      return 0;
+    if(!com->userpass_callback(resource, user, pass, &com->save_auth,
+                               com->userpass_callback_data))
+      return 0;
+    /* Store user and password in the common area so we can use it later on */
+    com->username = bg_strdup(com->username, *user);
+    com->password = bg_strdup(com->password, *pass);
+    }
+  else
+    {
+    *user = bg_strdup(*user, com->username);
+    *pass = bg_strdup(*pass, com->password);
+    }
+  return 1;
+  }
+
+
 bg_media_tree_t * bg_media_tree_create(const char * filename,
                                        bg_plugin_registry_t * plugin_reg)
   {
@@ -266,6 +291,9 @@ bg_media_tree_t * bg_media_tree_create(const char * filename,
   ret->com.set_current_callback = bg_media_tree_set_current;
   ret->com.set_current_callback_data = ret;
 
+  ret->com.input_callbacks.user_pass = get_user_pass;
+  ret->com.input_callbacks.data      = &(ret->com);
+  
   //  fprintf(stderr, "ret->plugin_reg: %p\n", ret->plugin_reg);
   //  fprintf(stderr, "ret: %p\n", ret);
   
@@ -989,6 +1017,18 @@ void bg_media_tree_set_play_callback(bg_media_tree_t * tree,
   tree->com.play_callback_data = play_callback_data;
   }
 
+void bg_media_tree_set_userpass_callback(bg_media_tree_t * tree,
+                                         int (*userpass_callback)(const char * resource,
+                                                                  char ** user, char ** pass,
+                                                                  int * save_password,
+                                                                  void * data),
+                                         void * userpass_callback_data)
+  {
+  tree->com.userpass_callback      = userpass_callback;
+  tree->com.userpass_callback_data = userpass_callback_data;
+  }
+
+
 bg_plugin_handle_t *
 bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   {
@@ -1034,9 +1074,10 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
       goto fail;
       }
 #endif
+    bg_album_common_prepare_callbacks(&t->com, t->com.current_entry->username, t->com.current_entry->password);
     if(!bg_input_plugin_load(t->com.plugin_reg,
                              t->com.current_entry->location, info,
-                             &(ret), &error_msg))
+                             &(ret), &error_msg, &t->com.input_callbacks))
       {
       if(error_msg)
         error_message = bg_sprintf("Cannot open %s: %s",
@@ -1048,23 +1089,14 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
       }
     //    ret = bg_plugin_load(t->com.plugin_reg, info);
     input_plugin = (bg_input_plugin_t*)(ret->plugin);
-#if 0
-    if(!input_plugin->open(ret->priv,
-                           t->com.current_entry->location))
-      {
-      if(input_plugin->common.get_error)
-        error_message = bg_sprintf("Cannot open %s: %s",
-                                   t->com.current_entry->location,
-                                   input_plugin->common.get_error(ret->priv));
-      else
-        error_message = bg_sprintf("Cannot open %s", t->com.current_entry->location);
-      goto fail;
-      }
-#endif
     }
   track_info = input_plugin->get_track_info(ret->priv,
                                             t->com.current_entry->index);
+  
   bg_album_update_entry(t->com.current_album, t->com.current_entry, track_info);
+
+  bg_album_common_set_auth_info(&(t->com), t->com.current_entry);
+  
   bg_album_changed(t->com.current_album);
     
   if(index)
@@ -1346,4 +1378,25 @@ bg_cfg_section_t *
 bg_media_tree_get_cfg_section(bg_media_tree_t * t)
   {
   return t->cfg_section;
+  }
+
+void bg_album_common_prepare_callbacks(bg_album_common_t * com, const char * user, const char * pass)
+  {
+  com->username = bg_strdup(com->username, user);
+  com->password = bg_strdup(com->password, pass);
+  com->save_auth = 0;
+  }
+
+void bg_album_common_set_auth_info(bg_album_common_t * com, bg_album_entry_t * entry)
+  {
+  if(!com->username || !com->password)
+    return;
+
+  entry->username = bg_strdup(entry->username, com->username);
+  entry->password = bg_strdup(entry->password, com->password);
+
+  if(com->save_auth)
+    entry->flags |= BG_ALBUM_ENTRY_SAVE_AUTH;
+  else
+    entry->flags &= ~BG_ALBUM_ENTRY_SAVE_AUTH;
   }
