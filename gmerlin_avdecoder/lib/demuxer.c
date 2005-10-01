@@ -187,13 +187,13 @@ bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
   }
 
 bgav_demuxer_context_t *
-bgav_demuxer_create(bgav_demuxer_t * demuxer,
+bgav_demuxer_create(const bgav_options_t * opt, bgav_demuxer_t * demuxer,
                     bgav_input_context_t * input)
   {
   bgav_demuxer_context_t * ret;
   
   ret = calloc(1, sizeof(*ret));
-  
+  ret->opt = opt;
   ret->demuxer = demuxer;
   ret->input = input;
     

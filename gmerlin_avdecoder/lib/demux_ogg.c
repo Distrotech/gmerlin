@@ -427,29 +427,29 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
     //    fprintf(stderr, "Metadata:\n");
     //    bgav_metadata_dump(&metadata);
     
-    if(ctx->name_change_callback && !ctx->input->input->seek_byte)
+    if(ctx->opt->name_change_callback && !ctx->input->input->seek_byte)
       {
       if(metadata.artist && metadata.title)
         {
         name = bgav_sprintf("%s - %s",
                             metadata.artist, metadata.title);
-        ctx->name_change_callback(ctx->name_change_callback_data,
-                                  name);
+        ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
+                                      name);
         free(name);
         }
       else if(metadata.title)
         {
-        ctx->name_change_callback(ctx->name_change_callback_data,
-                                  metadata.title);
+        ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
+                                      metadata.title);
         }
       }
     //    else
     //      fprintf(stderr, "NO NAME CHANGE CALLBACK\n");
-    if(ctx->metadata_change_callback)
+    if(ctx->opt->metadata_change_callback)
       {
       bgav_metadata_merge2(&metadata, &(ctx->input->metadata));
-      ctx->metadata_change_callback(ctx->metadata_change_callback_data,
-                                    &metadata);
+      ctx->opt->metadata_change_callback(ctx->opt->metadata_change_callback_data,
+                                         &metadata);
       }
     //    else
     //      fprintf(stderr, "NO METADATA CHANGE CALLBACK\n");
@@ -981,7 +981,7 @@ static void select_track_ogg(bgav_demuxer_context_t * ctx,
 
   /* Sent the track name via callback */
   
-  else if(ctx->name_change_callback)
+  else if(ctx->opt->name_change_callback)
     {
     if(ctx->tt->current_track->metadata.artist &&
        ctx->tt->current_track->metadata.title) 
@@ -989,14 +989,14 @@ static void select_track_ogg(bgav_demuxer_context_t * ctx,
       name = bgav_sprintf("%s - %s",
                           ctx->tt->current_track->metadata.artist,
                           ctx->tt->current_track->metadata.title);
-      ctx->name_change_callback(ctx->name_change_callback_data,
-                                name);
+      ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
+                                     name);
       free(name);
       }
     else if(ctx->tt->current_track->metadata.title)
       {
-      ctx->name_change_callback(ctx->name_change_callback_data,
-                                ctx->tt->current_track->metadata.title);
+      ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
+                                     ctx->tt->current_track->metadata.title);
       }
     }
   //  else

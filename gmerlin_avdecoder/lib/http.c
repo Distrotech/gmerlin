@@ -169,68 +169,27 @@ void bgav_http_header_dump(bgav_http_header_t*h)
 
 struct bgav_http_s
   {
+  const bgav_options_t * opt;
   bgav_http_header_t * header;
   int fd;
   };
 
-bgav_http_t * bgav_http_open(const char * url, int milliseconds,
-                             char ** redirect_url,
-                             bgav_http_header_t * extra_header,
-                             char ** error_msg)
+static bgav_http_t * do_connect(const char * host, int port, const bgav_options_t * opt,
+                         bgav_http_header_t * request_header,
+                         bgav_http_header_t * extra_header,
+                         char ** error_msg)
   {
-  int port;
-  int status;
-  const char * location;
-  
-  char * host = (char*)0;
-  char * path = (char*)0;
-  char * protocol = (char*)0;
-  char * line = (char*)0;
-  bgav_http_header_t * request_header;
-  
-  bgav_http_t * ret;
+  bgav_http_t * ret = (bgav_http_t *)0;
   
   ret = calloc(1, sizeof(*ret));
-  port = -1;
-  if(!bgav_url_split(url,
-                     &protocol,
-                     &host,
-                     &port,
-                     &path))
-    {
-    *error_msg = bgav_sprintf("Unvalid URL");
-    goto fail;
-    }
-  
-  if(port == -1)
-    port = 80;
-
-  if(strcasecmp(protocol, "http"))
-    goto fail;
+  ret->opt = opt;
 
   //  fprintf(stderr, "Connecting...");
-  ret->fd = bgav_tcp_connect(host, port, milliseconds, error_msg);
+  ret->fd = bgav_tcp_connect(host, port, ret->opt->connect_timeout, error_msg);
 
   if(ret->fd == -1)
     goto fail;
-  //  fprintf(stderr, "connected\n");
 
-  /* Build request */
-
-  request_header = bgav_http_header_create();
-
-  line = bgav_sprintf("GET %s HTTP/1.1", ((path) ? path : "/"));
-  bgav_http_header_add_line(request_header, line);
-  free(line);
-
-  line = bgav_sprintf("Host: %s", host);
-  bgav_http_header_add_line(request_header, line);
-  free(line);
-
-  bgav_http_header_add_line(request_header, "User-Agent: gmerlin/0.3.0");
-  bgav_http_header_add_line(request_header, "Accept: */*");
-
-  //  fprintf(stderr, "Sending request:\n");
   if(!bgav_http_header_send(request_header, ret->fd, error_msg))
     goto fail;
   
@@ -248,18 +207,139 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
   if(!bgav_tcp_send(ret->fd, (uint8_t*)"\r\n", 2, error_msg))
     goto fail;
   
-  bgav_http_header_destroy(request_header);
-  
   ret->header = bgav_http_header_create();
   
-  bgav_http_header_revc(ret->header, ret->fd, milliseconds);
+  bgav_http_header_revc(ret->header, ret->fd, ret->opt->connect_timeout);
 
+  fprintf(stderr, "Got http header:\n");
+  bgav_http_header_dump(ret->header);
+  return ret;
+  
+  fail:
+  if(ret)
+    bgav_http_close(ret);
+  return (bgav_http_t*)0;
+  }
+
+bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
+                             char ** redirect_url,
+                             bgav_http_header_t * extra_header,
+                             char ** error_msg)
+  {
+  int port;
+  int status;
+  const char * location;
+
+  char * userpass;
+  char * userpass_enc;
+
+  int userpass_len;
+  int userpass_enc_len;
+    
+  char * host     = (char*)0;
+  char * path     = (char*)0;
+  char * protocol = (char*)0;
+  char * line     = (char*)0;
+  char * user     = (char*)0;
+  char * pass     = (char*)0;
+
+  bgav_http_header_t * request_header = (bgav_http_header_t*)0;
+  bgav_http_t * ret = (bgav_http_t *)0;
+  
+  port = -1;
+  if(!bgav_url_split(url,
+                     &protocol,
+                     &user, /* User */
+                     &pass, /* Pass */
+                     &host,
+                     &port,
+                     &path))
+    {
+    *error_msg = bgav_sprintf("Unvalid URL");
+    goto fail;
+    }
+  if(port == -1)
+    port = 80;
+  if(strcasecmp(protocol, "http"))
+    goto fail;
+
+  if(user && pass)
+    fprintf(stderr, "User: %s, pass: %s\n", user, pass);
+  
+
+  /* Build request */
+
+  request_header = bgav_http_header_create();
+
+  line = bgav_sprintf("GET %s HTTP/1.1", ((path) ? path : "/"));
+  bgav_http_header_add_line(request_header, line);
+  free(line);
+
+  line = bgav_sprintf("Host: %s", host);
+  bgav_http_header_add_line(request_header, line);
+  free(line);
+
+  bgav_http_header_add_line(request_header, "User-Agent: gmerlin/0.3.3");
+  bgav_http_header_add_line(request_header, "Accept: */*");
+
+  ret = do_connect(host, port, opt, request_header, extra_header, error_msg);
+  if(!ret)
+    goto fail;
   /* Check status code */
 
   status = bgav_http_header_status_code(ret->header);
 
+  if(status == 401)
+    {
+    /* Ok, they won't let us in, try to get a username and/or password */
+    bgav_http_close(ret);
+    ret = (bgav_http_t*)0;
+
+    if((!user || !pass) && opt->user_pass_callback)
+      {
+      if(user) { free(user); user = (char*)0; }
+      if(pass) { free(pass); pass = (char*)0; }
+      
+      if(!opt->user_pass_callback(opt->user_pass_callback_data, host, &user, &pass))
+        goto fail;
+      }
+
+    if(!user || !pass)
+      goto fail;
+
+    /* Now, user and pass should be the authentication data */
+
+    fprintf(stderr, "User: %s, pass: %s\n", user, pass);
+
+    userpass = bgav_sprintf("%s:%s", user, pass);
+
+    userpass_len = strlen(userpass);
+    userpass_enc_len = (userpass_len * 4)/3+4;
+    
+    userpass_enc = malloc(userpass_enc_len);
+    userpass_enc_len = bgav_base64encode(userpass,
+                                         userpass_len,
+                                         userpass_enc,
+                                         userpass_enc_len);
+    userpass_enc[userpass_enc_len] = '\0';
+
+    line = bgav_sprintf("Authorization: Basic %s", userpass_enc);
+    bgav_http_header_add_line(request_header, line);
+    free(line);
+    free(userpass);
+    free(userpass_enc);
+    
+    ret = do_connect(host, port, opt, request_header, extra_header, error_msg);
+    if(!ret)
+      goto fail;
+    /* Check status code */
+    status = bgav_http_header_status_code(ret->header);
+    
+    }
+    
   if(status >= 400) /* Error */
     {
+    
     goto fail;
     }
   else if(status >= 300) /* Redirection */
@@ -287,7 +367,9 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
     }
   
   //  bgav_http_header_dump(ret->header);
-
+  if(request_header)
+    bgav_http_header_destroy(request_header);
+  
   if(host)
     free(host);
   if(path)
@@ -298,6 +380,9 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
   return ret;
   
   fail:
+
+  if(request_header)
+    bgav_http_header_destroy(request_header);
 
   if(*redirect_url)
     {
@@ -311,10 +396,13 @@ bgav_http_t * bgav_http_open(const char * url, int milliseconds,
     free(path);
   if(protocol)
     free(protocol);
-  if(ret->header)
-    bgav_http_header_destroy(ret->header);
-  
-  free(ret);
+
+  if(ret)
+    {
+    if(ret->header)
+      bgav_http_header_destroy(ret->header);
+    free(ret);
+    }
   return (bgav_http_t*)0;
   }
 

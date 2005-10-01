@@ -251,7 +251,11 @@ static int do_connect(bgav_rtsp_t * rtsp,
   char * host = (char*)0;
   char * protocol = (char*)0;
   int ret = 0;
-  if(!bgav_url_split(rtsp->url, &protocol, &host,
+  if(!bgav_url_split(rtsp->url,
+                     &protocol,
+                     (char**)0, /* User */
+                     (char**)0, /* Pass */
+                     &host,
                      &port, (char**)0))
     goto done;
   

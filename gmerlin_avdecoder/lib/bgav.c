@@ -33,18 +33,6 @@ bgav_input_context_t * create_input(bgav_t * b)
   
   ret = bgav_input_create(&(b->opt));
   
-  ret->name_change_callback       = b->name_change_callback;
-  ret->name_change_callback_data  = b->name_change_callback_data;
-
-  ret->metadata_change_callback       = b->metadata_change_callback;
-  ret->metadata_change_callback_data  = b->metadata_change_callback_data;
-
-  ret->track_change_callback      = b->track_change_callback;
-  ret->track_change_callback_data = b->track_change_callback_data;
-
-  ret->buffer_callback            = b->buffer_callback;
-  ret->buffer_callback_data       = b->buffer_callback_data;
-  
   return ret;
   }
 
@@ -55,17 +43,7 @@ create_demuxer(bgav_t * b, bgav_demuxer_t * demuxer)
 
   //  fprintf(stderr, "CREATE DEMUXER %p\n", b->name_change_callback);
 
-  ret = bgav_demuxer_create(demuxer, b->input);
-  
-  ret->name_change_callback       = b->name_change_callback;
-  ret->name_change_callback_data  = b->name_change_callback_data;
-  
-  ret->metadata_change_callback       = b->metadata_change_callback;
-  ret->metadata_change_callback_data  = b->metadata_change_callback_data;
-
-  ret->track_change_callback      = b->track_change_callback;
-  ret->track_change_callback_data = b->track_change_callback_data;
-  
+  ret = bgav_demuxer_create(&(b->opt), demuxer, b->input);
   return ret;
   }
 
@@ -335,86 +313,52 @@ const char * bgav_get_description(bgav_t * b)
   return b->demuxer->stream_description;
   }
 
-
-
 void
-bgav_set_name_change_callback(bgav_t * b,
+bgav_set_name_change_callback(bgav_options_t * opt,
                               void (callback)(void*data, const char * name),
                               void * data)
   {
-  b->name_change_callback      = callback;
-  b->name_change_callback_data = data;
+  opt->name_change_callback      = callback;
+  opt->name_change_callback_data = data;
   //  fprintf(stderr, "bgav_set_name_change_callback\n");
-  
-  if(b->input)
-    {
-    b->input->name_change_callback      = callback;
-    b->input->name_change_callback_data = data;
-    }
-  if(b->demuxer)
-    {
-    b->demuxer->name_change_callback      = callback;
-    b->demuxer->name_change_callback_data = data;
-    }
-
   }
 
 void
-bgav_set_metadata_change_callback(bgav_t * b,
+bgav_set_metadata_change_callback(bgav_options_t * opt,
                                   void (callback)(void*data, const bgav_metadata_t*),
                                   void * data)
   {
-  b->metadata_change_callback      = callback;
-  b->metadata_change_callback_data = data;
+  opt->metadata_change_callback      = callback;
+  opt->metadata_change_callback_data = data;
+  }
 
-  if(b->input)
-    {
-    b->input->metadata_change_callback      = callback;
-    b->input->metadata_change_callback_data = data;
-    }
-  if(b->demuxer)
-    {
-    b->demuxer->metadata_change_callback      = callback;
-    b->demuxer->metadata_change_callback_data = data;
-    }
+void
+bgav_set_user_pass_callback(bgav_options_t * opt,
+                            int (callback)(void*data, const char * resource, char ** username, char ** password),
+                            void * data)
+  {
+  opt->user_pass_callback      = callback;
+  opt->user_pass_callback_data = data;
   }
 
 
 void
-bgav_set_track_change_callback(bgav_t * b,
+bgav_set_track_change_callback(bgav_options_t * opt,
                                void (callback)(void*data, int track),
                                void * data)
   {
-  b->track_change_callback      = callback;
-  b->track_change_callback_data = data;
-
-  if(b->input)
-    {
-    b->input->track_change_callback      = callback;
-    b->input->track_change_callback_data = data;
-    }
-  if(b->demuxer)
-    {
-    b->demuxer->track_change_callback      = callback;
-    b->demuxer->track_change_callback_data = data;
-    }
+  opt->track_change_callback      = callback;
+  opt->track_change_callback_data = data;
   }
 
 
 void
-bgav_set_buffer_callback(bgav_t * b,
+bgav_set_buffer_callback(bgav_options_t * opt,
                          void (callback)(void*data, float percentage),
                          void * data)
   {
-  b->buffer_callback      = callback;
-  b->buffer_callback_data = data;
-
-  if(b->input)
-    {
-    b->input->buffer_callback      = callback;
-    b->input->buffer_callback_data = data;
-    }
-  
+  opt->buffer_callback      = callback;
+  opt->buffer_callback_data = data;
   }
 
 const char * bgav_get_error(bgav_t * b)

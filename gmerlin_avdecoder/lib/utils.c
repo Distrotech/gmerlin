@@ -29,6 +29,7 @@
 
 
 #include <avdec_private.h>
+#include <utils.h>
 
 void bgav_dump_fourcc(uint32_t fourcc)
   {
@@ -115,12 +116,21 @@ char * bgav_strncat(char * old, const char * start, const char * end)
 
 int bgav_url_split(const char * url,
                    char ** protocol,
+                   char ** user,
+                   char ** password,
                    char ** hostname,
                    int * port,
                    char ** path)
   {
   const char * pos1;
   const char * pos2;
+
+  /* For detecting user:pass@blabla.com/file */
+
+  const char * colon_pos;
+  const char * at_pos;
+  const char * slash_pos;
+  
   pos1 = url;
 
   /* Sanity check */
@@ -137,6 +147,25 @@ int bgav_url_split(const char * url,
   pos2 += 3;
   pos1 = pos2;
 
+  /* Check for user and password */
+
+  colon_pos = strchr(pos1, ':');
+  at_pos = strchr(pos1, '@');
+  slash_pos = strchr(pos1, '/');
+
+  if(colon_pos && at_pos && at_pos &&
+     (colon_pos < at_pos) && 
+     (at_pos < slash_pos))
+    {
+    if(user)
+      *user = bgav_strndup(pos1, colon_pos);
+    pos1 = colon_pos + 1;
+    if(password)
+      *password = bgav_strndup(pos1, at_pos);
+    pos1 = at_pos + 1;
+    pos2 = pos1;
+    }
+  
   /* Hostname */
 
   while((*pos2 != '\0') && (*pos2 != ':') && (*pos2 != '/'))

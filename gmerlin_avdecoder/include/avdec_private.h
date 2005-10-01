@@ -438,6 +438,23 @@ struct bgav_options_s
   int network_buffer_size;
 
   char * ftp_anonymous_password;
+
+  /* Callbacks */
+  
+  void (*name_change_callback)(void * data, const char * name);
+  void * name_change_callback_data;
+
+  void (*metadata_change_callback)(void * data, const bgav_metadata_t * m);
+  void * metadata_change_callback_data;
+
+  void (*track_change_callback)(void * data, int track);
+  void * track_change_callback_data;
+
+  void (*buffer_callback)(void * data, float percentage);
+  void * buffer_callback_data;
+
+  int (*user_pass_callback)(void * data, const char * resource, char ** user, char ** password);
+  void * user_pass_callback_data;
   };
 
 void bgav_options_set_defaults(bgav_options_t*opt);
@@ -520,21 +537,7 @@ struct bgav_input_context_s
   int64_t sector_position;
 
   const bgav_options_t * opt;
-    
-  /* Callbacks */
   
-  void (*name_change_callback)(void * data, const char * name);
-  void * name_change_callback_data;
-
-  void (*metadata_change_callback)(void * data, const bgav_metadata_t * m);
-  void * metadata_change_callback_data;
-
-  void (*track_change_callback)(void * data, int track);
-  void * track_change_callback_data;
-
-  void (*buffer_callback)(void * data, float percentage);
-  void * buffer_callback_data;
-
   char * error_msg;
   };
 
@@ -693,6 +696,7 @@ struct bgav_demuxer_s
 
 struct bgav_demuxer_context_s
   {
+  const bgav_options_t * opt;
   void * priv;
   bgav_demuxer_t * demuxer;
   bgav_input_context_t * input;
@@ -710,18 +714,7 @@ struct bgav_demuxer_context_s
   bgav_superindex_t * si;
   int seeking;
   int non_interleaved;
-    
-  /* Callbacks */
   
-  void (*name_change_callback)(void * data, const char * name);
-  void * name_change_callback_data;
-
-  void (*metadata_change_callback)(void * data, const bgav_metadata_t * m);
-  void * metadata_change_callback_data;
-
-  void (*track_change_callback)(void * data, int track);
-  void * track_change_callback_data;
-
   /* Some demuxers have a custom read packet function */
   int (*read_packet)(bgav_demuxer_context_t * ctx, int size);
 
@@ -734,14 +727,12 @@ struct bgav_demuxer_context_s
 /* demuxer.c */
 
 /*
- *  Create a demuxer. Some demuxers (most notably quicktime)
- *  can contain nothing but urls for the real streams.
- *  In this case, redir (if not NULL) will contain the
- *  redirector context
+ *  Create a demuxer.
  */
 
 bgav_demuxer_context_t *
-bgav_demuxer_create(bgav_demuxer_t * demuxer,
+bgav_demuxer_create(const bgav_options_t * opt,
+                    bgav_demuxer_t * demuxer,
                     bgav_input_context_t * input);
 
 bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input);
@@ -762,6 +753,13 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
 void
 bgav_demuxer_seek(bgav_demuxer_context_t * demuxer,
                   gavl_time_t time);
+
+/*
+ *  Start a demuxer. Some demuxers (most notably quicktime)
+ *  can contain nothing but urls for the real streams.
+ *  In this case, redir (if not NULL) will contain the
+ *  redirector context
+ */
 
 int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
                        bgav_redirector_context_t ** redir);
@@ -819,20 +817,6 @@ struct bgav_s
   bgav_track_table_t * tt;
   
   int is_running;
-
-  /* Callbacks */
-
-  void (*name_change_callback)(void * data, const char * name);
-  void * name_change_callback_data;
-
-  void (*metadata_change_callback)(void * data, const bgav_metadata_t * m);
-  void * metadata_change_callback_data;
-  
-  void (*track_change_callback)(void * data, int track);
-  void * track_change_callback_data;
-  
-  void (*buffer_callback)(void * data, float percentage);
-  void * buffer_callback_data;
   
   bgav_metadata_t metadata;
 
@@ -956,6 +940,8 @@ char * bgav_strncat(char * old, const char * start, const char * end);
 
 int bgav_url_split(const char * url,
                    char ** protocol,
+                   char ** user,
+                   char ** password,
                    char ** hostname,
                    int * port,
                    char ** path);
@@ -1027,6 +1013,9 @@ void bgav_audio_decoder_register(bgav_audio_decoder_t * dec);
 void bgav_video_decoder_register(bgav_video_decoder_t * dec);
 
 /* base64.c */
+
+int bgav_base64encode(const unsigned char *input, int input_length,
+                      unsigned char *output, int output_length);
 
 int bgav_base64decode(const char *input,
                       int input_length,

@@ -19,10 +19,66 @@
 
 // #include <avdec.h>
 #include <avdec_private.h>
+#include <utils.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <termios.h> /* Ask passwords */
+
+/* Taken from the Unix programmer FAQ: http://www.faqs.org/faqs/unix-faq/programmer/faq/ */
+
+static struct termios stored_settings;
+void echo_off(void)
+  {
+  struct termios new_settings;
+  tcgetattr(0,&stored_settings);
+  new_settings = stored_settings;
+  new_settings.c_lflag &= (~ECHO);
+  tcsetattr(0,TCSANOW,&new_settings);
+  return;
+  }
+
+void echo_on(void)
+  {
+  tcsetattr(0,TCSANOW,&stored_settings);
+  return;
+  }
+
+/* Ok this is not so clean. But the library allows arbitrary string lengths */
+
+char buf[1024];
+
+static int user_pass_func(void * data, const char * resource, char ** user, char ** pass)
+  {
+  char * pos;
+  fprintf(stderr, "Enter authentication for \"%s\"\n", resource);
+  fprintf(stderr, "Username: ");
+
+  fgets(buf, 1024, stdin);
+
+  pos = strchr(buf, '\n');
+  if(pos)
+    *pos = '\0';
+  if(buf[0] == '\0')
+    return 0;
+  *user = bgav_strndup(buf, (char*)0);
+    
+  fprintf(stderr, "Password: ");
+  echo_off();
+  fgets(buf, 1024, stdin);
+  echo_on();
+  fprintf(stderr, "\n");
+
+  pos = strchr(buf, '\n');
+  if(pos)
+    *pos = '\0';
+  if(buf[0] == '\0')
+    return 0;
+  *pass = bgav_strndup(buf, (char*)0);
+  return 1;
+  }
 
 /* Configuration data */
 
@@ -31,6 +87,8 @@ static int read_timeout      = 5000;
 static int network_bandwidth = 524300; /* 524.3 Kbps (Cable/DSL) */
 
 static int samples_to_read = 10240;
+
+
 
 int main(int argc, char ** argv)
   {
@@ -74,6 +132,8 @@ int main(int argc, char ** argv)
   bgav_set_read_timeout(opt,      read_timeout);
   bgav_set_network_bandwidth(opt, network_bandwidth);
 
+  bgav_set_user_pass_callback(opt, user_pass_func, (void*)0);
+  
   if(!strncmp(argv[1], "vcd://", 6))
     {
     if(!bgav_open_vcd(file, argv[1] + 5))

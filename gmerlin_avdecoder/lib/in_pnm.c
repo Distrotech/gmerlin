@@ -40,7 +40,10 @@ static int open_pnm(bgav_input_context_t * ctx, const char * url)
   ctx->priv = priv;
   priv->url = bgav_sprintf(url);
   
-  if(!bgav_url_split(url, NULL, &host, &port, &path))
+  if(!bgav_url_split(url, NULL,
+                     (char**)0, /* User */
+                     (char**)0, /* Pass */
+                     &host, &port, &path))
     goto fail;
   
   /* Try to connect to host */

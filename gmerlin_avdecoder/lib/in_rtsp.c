@@ -443,7 +443,7 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
                                            &stream_rules);
         if(!priv->rmff_header)
           goto fail;
-        ctx->demuxer = bgav_demuxer_create(&bgav_demuxer_rmff, ctx);
+        ctx->demuxer = bgav_demuxer_create(ctx->opt, &bgav_demuxer_rmff, ctx);
         if(!bgav_demux_rm_open_with_header(ctx->demuxer,
                                            priv->rmff_header))
           return 0;

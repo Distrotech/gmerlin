@@ -183,24 +183,34 @@ void bgav_set_ftp_anonymous_password(bgav_options_t*, const char*);
 /* Set callbacks */
 
 void
-bgav_set_name_change_callback(bgav_t*,
+bgav_set_name_change_callback(bgav_options_t*,
                               void (callback)(void*data, const char * name),
                               void * data);
 
 void
-bgav_set_metadata_change_callback(bgav_t*,
+bgav_set_metadata_change_callback(bgav_options_t*,
                                   void (callback)(void*data, const bgav_metadata_t * name),
                                   void * data);
 
 void
-bgav_set_track_change_callback(bgav_t*,
+bgav_set_track_change_callback(bgav_options_t*,
                                void (callback)(void*data, int track),
                                void * data);
 
 void
-bgav_set_buffer_callback(bgav_t*,
+bgav_set_buffer_callback(bgav_options_t*,
                          void (callback)(void*data, float percentage),
                          void * data);
+
+void
+bgav_set_buffer_callback(bgav_options_t*,
+                         void (callback)(void*data, float percentage),
+                         void * data);
+
+void
+bgav_set_user_pass_callback(bgav_options_t*,
+                            int (callback)(void*data, const char * resource, char ** username, char ** password),
+                            void * data);
 
 /* These will become active, when the next file is opened */
 

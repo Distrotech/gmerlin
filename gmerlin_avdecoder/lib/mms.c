@@ -438,6 +438,8 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   
   if(!bgav_url_split(url,
                      &protocol,
+                     (char**)0, /* User */
+                     (char**)0, /* Pass */
                      &host,
                      &port,
                      &path))

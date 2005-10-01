@@ -67,7 +67,7 @@ static int open_mms(bgav_input_context_t * ctx, const char * url)
 
   input = bgav_input_open_memory(header, header_len);
 
-  ctx->demuxer = bgav_demuxer_create(&bgav_demuxer_asf,
+  ctx->demuxer = bgav_demuxer_create(ctx->opt, &bgav_demuxer_asf,
                                      input);
 
   bgav_demuxer_start(ctx->demuxer, NULL);

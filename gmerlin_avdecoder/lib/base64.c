@@ -64,10 +64,10 @@ if(!(cond)) return 0
 #include "base64.h"
 #endif
 
-#if 0 /* gmerlin_avdecoder */
+#if 1 /* gmerlin_avdecoder */
 static unsigned char basis_64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-int base64encode(const unsigned char *input, int input_length, unsigned char *output, int output_length)
+int bgav_base64encode(const unsigned char *input, int input_length, unsigned char *output, int output_length)
   {
   int	i = 0, j = 0;
   int	pad;

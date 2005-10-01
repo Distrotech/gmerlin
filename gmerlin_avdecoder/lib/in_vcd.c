@@ -259,7 +259,7 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   
   /* Create demuxer */
   
-  ctx->demuxer = bgav_demuxer_create(&bgav_demuxer_mpegps, ctx);
+  ctx->demuxer = bgav_demuxer_create(ctx->opt, &bgav_demuxer_mpegps, ctx);
   ctx->demuxer->tt = ctx->tt;
 
   /* Now, loop through all tracks and let the demuxer find the durations */

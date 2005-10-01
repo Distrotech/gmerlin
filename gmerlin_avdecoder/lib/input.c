@@ -320,9 +320,11 @@ int bgav_input_open(bgav_input_context_t * ret,
 
   if(bgav_url_split(url,
                     &protocol,
-                    NULL,
-                    NULL,
-                    NULL))
+                    (char**)0, /* User */
+                    (char**)0, /* Pass */
+                    (char**)0,
+                    (int*)0,
+                    (char**)0))
     {
     if(!strcmp(protocol, "rtsp"))
       ret->input = &bgav_input_rtsp;
@@ -541,10 +543,10 @@ void bgav_input_buffer(bgav_input_context_t * ctx)
 
     ctx->buffer_size += result;
     
-    if(ctx->buffer_callback)
+    if(ctx->opt->buffer_callback)
       {
-      ctx->buffer_callback(ctx->buffer_callback_data,
-                           (float)ctx->buffer_size / (float)ctx->buffer_alloc);
+      ctx->opt->buffer_callback(ctx->opt->buffer_callback_data,
+                                (float)ctx->buffer_size / (float)ctx->buffer_alloc);
       }
     }
   }

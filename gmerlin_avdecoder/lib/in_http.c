@@ -107,7 +107,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
     bgav_http_header_add_line(extra_header, "Icy-MetaData:1");
     }
   
-  p->h = bgav_http_open(url, ctx->opt->connect_timeout,
+  p->h = bgav_http_open(url, ctx->opt,
                         &redirect_url, extra_header, &ctx->error_msg);
 
   if(!p->h && redirect_url)
@@ -116,7 +116,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
       {
       //      fprintf(stderr, "Got redirection, new URL: %s\n",
       //              redirect_url);
-      p->h = bgav_http_open(redirect_url, ctx->opt->connect_timeout,
+      p->h = bgav_http_open(redirect_url, ctx->opt,
                             &redirect_url, extra_header, &ctx->error_msg);
       if(p->h)
         break;
@@ -340,7 +340,7 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
     //    fprintf(stderr, "Meta buffer:\n");
     //    bgav_hexdump(meta_buffer, meta_bytes, 16);
     
-    if(ctx->name_change_callback)
+    if(ctx->opt->name_change_callback)
       {
       pos = meta_buffer;
       
@@ -366,8 +366,8 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
                                         pos, end_pos - pos,
                                         (int*)0);
         
-        ctx->name_change_callback(ctx->name_change_callback_data,
-                                  meta_name);
+        ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
+                                       meta_name);
         
         //        fprintf(stderr, "NAME CHANGED: %s\n", meta_name);
         free(meta_name);
