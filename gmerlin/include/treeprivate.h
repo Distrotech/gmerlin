@@ -82,7 +82,7 @@ typedef struct
   
   } bg_album_common_t;
 
-void bg_album_common_prepare_callbacks(bg_album_common_t*,const char * user, const char * pass);
+void bg_album_common_prepare_callbacks(bg_album_common_t*,bg_album_entry_t * entry);
 
 void bg_album_common_set_auth_info(bg_album_common_t*, bg_album_entry_t*);
 

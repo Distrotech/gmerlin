@@ -1074,7 +1074,7 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
       goto fail;
       }
 #endif
-    bg_album_common_prepare_callbacks(&t->com, t->com.current_entry->username, t->com.current_entry->password);
+    bg_album_common_prepare_callbacks(&t->com, t->com.current_entry);
     if(!bg_input_plugin_load(t->com.plugin_reg,
                              t->com.current_entry->location, info,
                              &(ret), &error_msg, &t->com.input_callbacks))
@@ -1380,15 +1380,28 @@ bg_media_tree_get_cfg_section(bg_media_tree_t * t)
   return t->cfg_section;
   }
 
-void bg_album_common_prepare_callbacks(bg_album_common_t * com, const char * user, const char * pass)
+void bg_album_common_prepare_callbacks(bg_album_common_t * com, bg_album_entry_t * entry)
   {
-  com->username = bg_strdup(com->username, user);
-  com->password = bg_strdup(com->password, pass);
-  com->save_auth = 0;
+  if(!entry)
+    {
+    if(com->username) { free(com->username); com->username = (char*)0; }
+    if(com->password) { free(com->password); com->password = (char*)0; }
+    com->save_auth = 0;
+    }
+  else
+    {
+    com->username = bg_strdup(com->username, entry->username);
+    com->password = bg_strdup(com->password, entry->password);
+    com->save_auth = !!(entry->flags & BG_ALBUM_ENTRY_SAVE_AUTH);
+    }
+  
   }
 
 void bg_album_common_set_auth_info(bg_album_common_t * com, bg_album_entry_t * entry)
   {
+  fprintf(stderr, "bg_album_common_set_auth_info, user: %s, pass: %s, save: %d\n",
+          com->username, com->password, com->save_auth);
+  
   if(!com->username || !com->password)
     return;
 
@@ -1399,4 +1412,5 @@ void bg_album_common_set_auth_info(bg_album_common_t * com, bg_album_entry_t * e
     entry->flags |= BG_ALBUM_ENTRY_SAVE_AUTH;
   else
     entry->flags &= ~BG_ALBUM_ENTRY_SAVE_AUTH;
+
   }

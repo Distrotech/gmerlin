@@ -26,38 +26,6 @@
 #include <gui_gtk/albumentry.h>
 #include <gui_gtk/textview.h>
 
-
-
-#if 0
-typedef struct bg_album_entry_s
-  {
-  char * name;
-  void * location;
-  char * plugin;
-  gavl_time_t duration;
-
-  int num_audio_streams;
-  int num_video_streams;
-  int num_subpicture_streams;
-  int num_programs;
-
-  /*
-   *  Track index for multi track files/plugins
-   */
-  
-  int index; 
-  int total_tracks;
-
-  /* Runtime ID unique in the whole tree */
-
-  int id;
-    
-  int flags;
-  struct bg_album_entry_s * next;
-  } bg_album_entry_t;
-#endif
-
-
 /* This pops up a which shows all informations about a selected track */
 
 #define S(s) (s?s:"(NULL)")

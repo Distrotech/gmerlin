@@ -1420,10 +1420,10 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   bg_track_info_t * track_info;
   const bg_plugin_info_t * info;
   //  const char * file_plugin_name;
-  
+#if 0  
   fprintf(stderr, "bg_album_load_url %s %s\n", url,
           (plugin_long_name ? plugin_long_name : "NULL"));
-  
+#endif
   /* Load the appropriate plugin */
 
   if(plugin_long_name)
@@ -1434,7 +1434,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   else
     info = (bg_plugin_info_t*)0;
 
-  bg_album_common_prepare_callbacks(album->com, (const char*)0, (const char*)0);
+  bg_album_common_prepare_callbacks(album->com, (bg_album_entry_t*)0);
     
   if(!bg_input_plugin_load(album->com->plugin_reg,
                            url, info,
@@ -1518,7 +1518,7 @@ int bg_album_refresh_entry(bg_album_t * album,
 
   // system_location = bg_utf8_to_system(entry->location,
   //                                     strlen(entry->location));
-  bg_album_common_prepare_callbacks(album->com, entry->username, entry->password);
+  bg_album_common_prepare_callbacks(album->com, entry);
   if(!bg_input_plugin_load(album->com->plugin_reg,
                            entry->location,
                            info,
