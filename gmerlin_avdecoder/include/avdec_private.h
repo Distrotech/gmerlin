@@ -426,19 +426,24 @@ void bgav_track_table_remove_unsupported(bgav_track_table_t * t);
 
 struct bgav_options_s
   {
-  int http_use_proxy;
-  char * http_proxy_host;
-  int http_proxy_port;
-  int http_shoutcast_metadata;
-
+  /* Generic network options */
   int connect_timeout;
   int read_timeout;
 
   int network_bandwidth;
   int network_buffer_size;
 
-  char * ftp_anonymous_password;
+  /* http options */
 
+  int http_use_proxy;
+  char * http_proxy_host;
+  int http_proxy_port;
+  int http_shoutcast_metadata;
+
+  /* ftp options */
+    
+  char * ftp_anonymous_password;
+  int ftp_anonymous;
   /* Callbacks */
   
   void (*name_change_callback)(void * data, const char * name);

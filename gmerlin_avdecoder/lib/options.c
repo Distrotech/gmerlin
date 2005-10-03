@@ -78,6 +78,11 @@ void bgav_set_ftp_anonymous_password(bgav_options_t*b, const char * h)
   b->ftp_anonymous_password = bgav_strndup(h, NULL);
   }
 
+void bgav_set_ftp_anonymous(bgav_options_t*b, int anonymous)
+  {
+  b->ftp_anonymous = anonymous;
+  }
+
 #define FREE(ptr) if(ptr) free(ptr);
 
 void bgav_options_free(bgav_options_t*opt)
@@ -92,4 +97,65 @@ void bgav_options_set_defaults(bgav_options_t * b)
   memset(b, 0, sizeof(*b));
   b->connect_timeout = 10000;
   b->read_timeout = 10000;
+  b->ftp_anonymous = 1;
   }
+
+bgav_options_t * bgav_options_create()
+  {
+  bgav_options_t * ret;
+  ret = calloc(1, sizeof(*ret));
+  bgav_options_set_defaults(ret);
+  return ret;
+  }
+
+void bgav_options_destroy(bgav_options_t * opt)
+  {
+  bgav_options_free(opt);
+  free(opt);
+  }
+
+#define CP_INT(i) dst->i = src->i
+#define CP_STR(s) if(dst->s) free(dst->s); dst->s = bgav_strndup(src->s, (char*)0)
+
+void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
+  {
+  /* Generic network options */
+  CP_INT(connect_timeout);
+  CP_INT(read_timeout);
+
+  CP_INT(network_bandwidth);
+  CP_INT(network_buffer_size);
+
+  /* http options */
+
+  CP_INT(http_use_proxy);
+  CP_STR(http_proxy_host);
+  CP_INT(http_proxy_port);
+  CP_INT(http_shoutcast_metadata);
+
+  /* ftp options */
+    
+  CP_STR(ftp_anonymous_password);
+  CP_INT(ftp_anonymous);
+
+  /* Callbacks */
+  
+  CP_INT(name_change_callback);
+  CP_INT(name_change_callback_data);
+
+  CP_INT(metadata_change_callback);
+  CP_INT(metadata_change_callback_data);
+
+  CP_INT(track_change_callback);
+  CP_INT(track_change_callback_data);
+
+  CP_INT(buffer_callback);
+  CP_INT(buffer_callback_data);
+
+  CP_INT(user_pass_callback);
+  CP_INT(user_pass_callback_data);
+  
+  }
+
+#undef CP_INT
+#undef CP_STR

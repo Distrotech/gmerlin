@@ -30,8 +30,13 @@
 static int open_vcd(void * priv, const char * location)
   {
   avdec_priv * avdec;
-
+  bgav_options_t * opt;
   avdec = (avdec_priv*)(priv);
+
+  avdec->dec = bgav_create();
+  opt = bgav_get_options(avdec->dec);
+  
+  bgav_options_copy(opt, avdec->opt);
   
   if(!bgav_open_vcd(avdec->dec, location))
     return 0;

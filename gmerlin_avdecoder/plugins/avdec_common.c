@@ -82,8 +82,7 @@ static void convert_metadata(bg_metadata_t * dst,
 void * bg_avdec_create()
   {
   avdec_priv * ret = calloc(1, sizeof(*ret));
-  ret->dec = bgav_create();
-  ret->opt = bgav_get_options(ret->dec);
+  ret->opt = bgav_options_create();
   return ret;
   }
 
@@ -104,8 +103,6 @@ void bg_avdec_close(void * priv)
     free(avdec->track_info);
     avdec->track_info = (bg_track_info_t*)0;
     }
-  /* Recreate the decoder instance so we can ropen it */  
-  avdec->dec = bgav_create();
   }
 
 void bg_avdec_destroy(void * priv)
@@ -117,8 +114,12 @@ void bg_avdec_destroy(void * priv)
   if(avdec->dec)
     {
     bgav_close(avdec->dec);
-    avdec->dec = (bgav_t*)0;
     }
+  if(avdec->opt)
+    {
+    bgav_options_destroy(avdec->opt);
+    }
+  
   free(avdec);
   }
 
@@ -356,6 +357,10 @@ bg_avdec_set_parameter(void * p, char * name,
     {
     bgav_set_ftp_anonymous_password(avdec->opt, val->val_str);
     }
+  else if(!strcmp(name, "ftp_anonymous"))
+    {
+    bgav_set_ftp_anonymous(avdec->opt, val->val_i);
+    }
   }
 
 int bg_avdec_get_num_tracks(void * p)
@@ -372,20 +377,14 @@ int bg_avdec_set_track(void * priv, int track)
   const char * str;
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
-
-  if(avdec->bg_callbacks)
-    {
-    //    fprintf(stderr, "**** SET CALLBACKS *****\n");
-    
-    }
-
-
+  
   bgav_select_track(avdec->dec, track);
   avdec->current_track = &(avdec->track_info[track]);
   
   str = bgav_get_description(avdec->dec);
   if(str)
-    avdec->track_info[track].description = bg_strdup(avdec->track_info[track].description, str);
+    avdec->track_info[track].description =
+      bg_strdup(avdec->track_info[track].description, str);
 
 
   return 1;
@@ -414,6 +413,7 @@ static void metadata_change_callback(void * priv,
 void bg_avdec_set_callbacks(void * priv,
                             bg_input_callbacks_t * callbacks)
   {
+  bgav_options_t * opt;
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
   avdec->bg_callbacks = callbacks;
@@ -443,6 +443,11 @@ void bg_avdec_set_callbacks(void * priv,
     bgav_set_metadata_change_callback(avdec->opt,
                                       metadata_change_callback,
                                       priv);
+    }
+  if(avdec->dec)
+    {
+    opt = bgav_get_options(avdec->dec);
+    bgav_options_copy(opt, avdec->opt);
     }
   }
 

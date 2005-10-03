@@ -216,6 +216,10 @@ static bgav_http_t * do_connect(const char * host, int port, const bgav_options_
   return ret;
   
   fail:
+
+  if(error_msg && *error_msg)
+    fprintf(stderr, "Connection failed: %s\n", *error_msg);
+
   if(ret)
     bgav_http_close(ret);
   return (bgav_http_t*)0;
@@ -410,7 +414,8 @@ void bgav_http_close(bgav_http_t * h)
   {
   if(h->fd >= 0)
     close(h->fd);
-  bgav_http_header_destroy(h->header);
+  if(h->header)
+    bgav_http_header_destroy(h->header);
   free(h);
   }
 

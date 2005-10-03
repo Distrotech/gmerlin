@@ -644,10 +644,11 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
         track->video_streams[j].time_scaled = track->video_streams[j].sync_stream->time_scaled;
       }
     } 
+#if 0
   fprintf(stderr, "********* Blupp 2, time 1: %f, time 2: %f\n",
           (float)track->audio_streams[0].time_scaled / track->audio_streams[0].timescale,
           (float)track->video_streams[0].time_scaled / track->video_streams[0].timescale);
-
+#endif
   /* Find the start and end packet */
 
   if(!ctx->non_interleaved)

@@ -32,8 +32,14 @@ static int open_avdec(void * priv, const char * location)
   int i, result;
   const char * str;
   avdec_priv * avdec;
-
+  bgav_options_t * opt;
+  
   avdec = (avdec_priv*)(priv);
+
+  avdec->dec = bgav_create();
+  opt = bgav_get_options(avdec->dec);
+
+  bgav_options_copy(opt, avdec->opt);
   
   if(!bgav_open(avdec->dec, location))
     {
@@ -181,6 +187,12 @@ static bg_parameter_info_t parameters[] =
       name:       "ftp_options",
       long_name:  "FTP Options",
       type:       BG_PARAMETER_SECTION
+    },
+    {
+      name:        "ftp_anonymous",
+      long_name:   "Login as anonymous",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 }
     },
     {
       name:        "ftp_anonymous_password",

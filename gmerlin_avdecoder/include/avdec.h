@@ -154,6 +154,12 @@ typedef struct bgav_options_s bgav_options_t;
 
 bgav_options_t * bgav_get_options(bgav_t* bgav);
 
+bgav_options_t * bgav_options_create();
+
+void bgav_options_destroy(bgav_options_t * opt);
+
+void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src);
+
 /*
  * Timeout will only be used for network connections.
  * It is in milliseconds, 0 is infinity
@@ -179,6 +185,7 @@ void bgav_set_http_shoutcast_metadata(bgav_options_t*, int);
 /* Set FTP options */
 
 void bgav_set_ftp_anonymous_password(bgav_options_t*, const char*);
+void bgav_set_ftp_anonymous(bgav_options_t*, int);
 
 /* Set callbacks */
 
@@ -196,11 +203,6 @@ void
 bgav_set_track_change_callback(bgav_options_t*,
                                void (callback)(void*data, int track),
                                void * data);
-
-void
-bgav_set_buffer_callback(bgav_options_t*,
-                         void (callback)(void*data, float percentage),
-                         void * data);
 
 void
 bgav_set_buffer_callback(bgav_options_t*,

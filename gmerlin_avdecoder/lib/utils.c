@@ -83,7 +83,7 @@ char * bgav_sprintf(const char * format,...)
   return ret;
   }
 
-/* Split an URL, returned pointers should be free()d after */
+
 
 char * bgav_strndup(const char * start, const char * end)
   {
@@ -113,6 +113,8 @@ char * bgav_strncat(char * old, const char * start, const char * end)
   //  fprintf(stderr, "%s\n", old);
   return old;
   }
+
+/* Split an URL, returned pointers should be free()d after */
 
 int bgav_url_split(const char * url,
                    char ** protocol,

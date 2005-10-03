@@ -149,13 +149,16 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url)
   char * path = (char*)0;
   char *file_name;
   char * pos;
+  char * user = (char*)0;
+  char * pass = (char*)0;
+  
   ftp_priv_t * p;
   int ret = 0;
   
   if(!bgav_url_split(url,
                      (char**)0, /* Protocol */
-                     (char**)0, /* User */
-                     (char**)0, /* Pass */
+                     &user, /* User */
+                     &pass, /* Pass */
                      &host,
                      &port,
                      &path))
@@ -170,8 +173,6 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url)
   
   p = calloc(1, sizeof(*p));
   ctx->priv = p;
-
-
   
   /* Connect */
   // fprintf(stderr, "Connecting 1 ...");
@@ -186,11 +187,30 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url)
     }
   /* done */
 
+  /* Check out how to log in */
 
+  if(!user || !pass)
+    {
+    if(ctx->opt->ftp_anonymous)
+      {
+      user = bgav_strndup("ftp", (char*)0);
 
+      if(ctx->opt->ftp_anonymous_password)
+        pass = bgav_strndup(ctx->opt->ftp_anonymous_password, (char*)0);
+      else
+        pass = bgav_strndup("gates@nanosoft.com", (char*)0);
+      }
+    else /* Get user/pass with callback */
+      {
+      if(!ctx->opt->user_pass_callback ||
+         !ctx->opt->user_pass_callback(ctx->opt->user_pass_callback_data,
+                                       host, &user, &pass))
+        goto fail;
+      }
+    }
   
   /* Server login */
-  server_cmd = bgav_sprintf("USER ftp\r\n");
+  server_cmd = bgav_sprintf("USER %s\r\n", user);
   if(!bgav_tcp_send(p->control_fd, (uint8_t*)server_cmd, strlen(server_cmd), &(ctx->error_msg)))
     goto fail;
   FREE(server_cmd);
@@ -200,11 +220,8 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url)
     ctx->error_msg = bgav_sprintf("Could not read answer");
     goto fail;
     }
-  if(ctx->opt->ftp_anonymous_password)
-    server_cmd = bgav_sprintf("PASS %s\r\n", ctx->opt->ftp_anonymous_password);
-  else
-    server_cmd = bgav_sprintf("PASS gates@nanosoft.com\r\n");
-    
+  server_cmd = bgav_sprintf("PASS %s\r\n", pass);
+  
   if(!bgav_tcp_send(p->control_fd, (uint8_t*)server_cmd, strlen(server_cmd), &(ctx->error_msg)))
     goto fail;
   FREE(server_cmd);
@@ -347,6 +364,9 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url)
   FREE(server_cmd);
   FREE(host);
   FREE(path);
+  FREE(user);
+  FREE(pass);
+  
   FREE(data_ip);
   FREE(server_msg);
   return ret;

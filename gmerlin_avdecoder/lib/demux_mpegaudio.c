@@ -28,6 +28,9 @@
 #include <utils.h>
 
 #define MAX_FRAME_BYTES 2881
+#define PROBE_FRAMES    5
+#define PROBE_BYTES     ((PROBE_FRAMES-1)*MAX_FRAME_BYTES+4)
+
 
 /*
  *  This demuxer handles mpegaudio (mp3) along with id3tags,
@@ -503,8 +506,9 @@ static void select_track_mpegaudio(bgav_demuxer_context_t * ctx,
 
 static int probe_mpegaudio(bgav_input_context_t * input)
   {
+  int i;
   mpeg_header h1, h2;
-  uint8_t probe_data[MAX_BYTES];
+  uint8_t probe_data[PROBE_BYTES];
   
   /* Check for audio header */
 
@@ -515,14 +519,12 @@ static int probe_mpegaudio(bgav_input_context_t * input)
     return 0;
 
   if(!decode_header(&h1, probe_data))
-    {
     return 0;
-    }
-
+  
   /* Now, we look where the next header might come
      and decode from that point */
 
-  if(h1.frame_bytes > 2881) /* Prevent possible security hole */
+  if(h1.frame_bytes > MAX_FRAME_BYTES) /* Prevent possible security hole */
     return 0;
 
   if(bgav_input_get_data(input, probe_data, h1.frame_bytes + 4) < h1.frame_bytes + 4)
