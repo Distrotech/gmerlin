@@ -389,9 +389,6 @@ static void handle_message(player_window_t * win,
           break;
         case BG_PLAYER_STATE_CHANGING:
           arg_i_2 = bg_msg_get_arg_int(msg, 1);
-
-          //          fprintf(stderr, "Changing 2 %d\n", arg_i_2);
-          
           display_set_state(win->display, win->gmerlin->player_state, NULL);
           if(arg_i_2)
             gmerlin_next_track(win->gmerlin);

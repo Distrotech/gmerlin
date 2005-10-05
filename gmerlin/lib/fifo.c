@@ -135,6 +135,8 @@ bg_fifo_t * bg_fifo_create(int num_frames,
   int i;
   ret = calloc(1, sizeof(*ret));
 
+  //  fprintf(stderr, "bg_fifo_create\n");
+  
   tmp_frame = create_frame(create_func, data);
   ret->frames = tmp_frame;
   
@@ -162,7 +164,8 @@ void bg_fifo_destroy(bg_fifo_t * f,
   {
   int i;
   frame_t * tmp_frame;
-
+  //  fprintf(stderr, "bg_fifo_destroy\n");
+  
   pthread_mutex_destroy(&(f->state_mutex));
   pthread_mutex_destroy(&(f->input_frame_mutex));
   pthread_mutex_destroy(&(f->output_frame_mutex));
@@ -183,10 +186,12 @@ void bg_fifo_destroy(bg_fifo_t * f,
 void * bg_fifo_lock_read(bg_fifo_t*f, bg_fifo_state_t * state)
   {
   *state = get_state(f);
-
+  //  fprintf(stderr, "bg_fifo_lock_read\n");
   if(*state != BG_FIFO_PLAYING)
+    {
+    //    fprintf(stderr, "FIFO isn't playing\n");
     return (void*)0;
-  
+    }
   set_output_waiting(f, 1);
   sem_wait(&(f->output_frame->produced));
   set_output_waiting(f, 0);
@@ -266,7 +271,7 @@ void bg_fifo_unlock_write(bg_fifo_t*f, int eof)
   f->input_frame->eof = eof;
   sem_post(&(f->input_frame->produced));
   f->input_frame = f->input_frame->next;
-  //  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done %d\n", eof);
   pthread_mutex_unlock(&(f->input_frame_mutex));
   }
 

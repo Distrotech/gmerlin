@@ -195,7 +195,7 @@ static void preload(bg_player_t * p)
 static void start_playback(bg_player_t * p, int new_state)
   {
   int want_new;
-  fprintf(stderr, "start_playback...");
+  //  fprintf(stderr, "start_playback...");
   if(new_state == BG_PLAYER_STATE_CHANGING)
     {
     want_new = 0;
@@ -216,7 +216,7 @@ static void start_playback(bg_player_t * p, int new_state)
   pthread_mutex_lock(&(p->start_mutex));
   pthread_cond_broadcast(&(p->start_cond));
   pthread_mutex_unlock(&(p->start_mutex));
-  fprintf(stderr, "start_playback done\n");
+  //  fprintf(stderr, "start_playback done\n");
   }
 
 /* Pause command */
@@ -503,12 +503,12 @@ static void stop_cmd(bg_player_t * player, int new_state)
   
   if(new_state == BG_PLAYER_STATE_CHANGING)
     {
-    if(old_state == BG_PLAYER_STATE_STILL)
-      want_new = 1;
-    else
-      want_new = 0;
+    //    if(old_state == BG_PLAYER_STATE_STILL)
+    //      want_new = 1;
+    //    else
+    want_new = 0;
     bg_player_set_state(player, new_state, &want_new, NULL);
-    //    fprintf(stderr, "*** Changing 1\n");
+    //    fprintf(stderr, "Changing, want_new: %d\n", want_new);
     }
   else
     bg_player_set_state(player, new_state, NULL, NULL);
@@ -518,10 +518,11 @@ static void stop_cmd(bg_player_t * player, int new_state)
     case BG_PLAYER_STATE_CHANGING:
       if(new_state == BG_PLAYER_STATE_STOPPED)
         {
-        if(player->do_video)
+        if(player->do_video || player->do_still)
           {
           bg_player_ov_standby(player->ov_context);
           player->do_video = 0;
+          player->do_still = 0;
           }
         }
       return;
@@ -577,6 +578,7 @@ static void stop_cmd(bg_player_t * player, int new_state)
         {
         bg_player_ov_standby(player->ov_context);
         player->do_video = 0;
+        player->do_still = 0;
         }
       }
     }
@@ -589,7 +591,7 @@ static void set_ov_plugin_cmd(bg_player_t * player,
   //  fprintf(stderr, "Setting video output plugin: %s\n", handle->info->name);
 
   state = bg_player_get_state(player);
-  if(state == BG_PLAYER_STATE_PLAYING)
+  if((state == BG_PLAYER_STATE_PLAYING) || (state == BG_PLAYER_STATE_STILL))
     stop_cmd(player, BG_PLAYER_STATE_STOPPED);
   
   bg_player_ov_set_plugin(player, handle);
@@ -602,7 +604,7 @@ static void set_oa_plugin_cmd(bg_player_t * player,
   int state;
   //  fprintf(stderr, "Setting audio output plugin: %s\n", handle->info->name);
   state = bg_player_get_state(player);
-  if(state == BG_PLAYER_STATE_PLAYING)
+  if((state == BG_PLAYER_STATE_PLAYING) || (state == BG_PLAYER_STATE_STILL))
     stop_cmd(player, BG_PLAYER_STATE_STOPPED);
   bg_player_oa_set_plugin(player, handle);
   }
@@ -697,14 +699,13 @@ static int process_command(bg_player_t * player,
 
       if(play_flags)
         {
-        if((state == BG_PLAYER_STATE_PLAYING) &&
+        if(((state == BG_PLAYER_STATE_PLAYING) || (state == BG_PLAYER_STATE_STILL)) &&
            (play_flags & BG_PLAY_FLAG_IGNORE_IF_PLAYING))
           return 1;
         else if((state == BG_PLAYER_STATE_STOPPED) &&
            (play_flags & BG_PLAY_FLAG_IGNORE_IF_STOPPED))
           return 1;
         }
-      /* TODO: Shut down pause */
       if(state == BG_PLAYER_STATE_PAUSED)
         {
         if(play_flags & BG_PLAY_FLAG_RESUME)
@@ -934,7 +935,7 @@ static void * player_thread(void * data)
           }
         break;
       }
-    /* Exit when time is exceeded */
+    /* Exit when still time is exceeded */
     if((state == BG_PLAYER_STATE_STILL) &&
        (player->track_info->duration != GAVL_TIME_UNDEFINED) &&
        (player->track_info->duration <= time))

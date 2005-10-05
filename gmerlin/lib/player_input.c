@@ -58,7 +58,7 @@ static void track_changed(void * data, int track)
   bg_player_input_context_t * ctx;
   ctx = (bg_player_input_context_t *)data;
 
-  fprintf(stderr, "Track changed callback, new track: %d\n", track);
+  //  fprintf(stderr, "Track changed callback, new track: %d\n", track);
 
   bg_player_set_track(ctx->player, track);
   
@@ -78,8 +78,8 @@ static void duration_changed(void * data, gavl_time_t duration)
   bg_player_input_context_t * ctx;
   ctx = (bg_player_input_context_t *)data;
 
-  fprintf(stderr, "Duration changed callback, new duration: %f\n",
-          gavl_time_to_seconds(duration));
+  //  fprintf(stderr, "Duration changed callback, new duration: %f\n",
+  //          gavl_time_to_seconds(duration));
 
   bg_player_set_duration(ctx->player, duration, ctx->player->can_seek);
 
@@ -391,7 +391,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
 
   //  fprintf(stderr, "Process audio done\n");
 
-  return 1;
+  return !ctx->audio_finished;
   }
 
 static int process_video(bg_player_input_context_t * ctx, int preload)
@@ -400,7 +400,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
   bg_fifo_state_t state;
   gavl_video_frame_t * video_frame;
   bg_player_video_stream_t * s;
-  //  fprintf(stderr, "Process video...");
+  //  fprintf(stderr, "Process video %d...", preload);
   s = &(ctx->player->video_stream);
   
   if(s->do_convert)
@@ -452,8 +452,8 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     ctx->video_frames_written ++;
     }
   bg_fifo_unlock_write(s->fifo, ctx->video_finished);
-  //  fprintf(stderr, "done\n");
-  return 1;
+  //  fprintf(stderr, "done %d\n", ctx->video_finished);
+  return !ctx->video_finished;
   }
 
 void * bg_player_input_thread(void * data)
@@ -593,7 +593,7 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
   int do_video;
 
   do_audio = ctx->player->do_audio;
-  do_video = ctx->player->do_video;
+  do_video = ctx->player->do_video || ctx->player->do_still;
   
   while(do_audio || do_video)
     {

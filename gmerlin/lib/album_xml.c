@@ -19,6 +19,14 @@
 
 #include <string.h>
 #include <stdlib.h>
+
+/* Needed for chmod and mode_t */
+#include <sys/types.h>
+#include <sys/stat.h>
+
+
+
+
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 
@@ -273,9 +281,6 @@ static bg_album_entry_t * load_album_file(bg_album_t * album,
     fprintf(stderr, "Couldn't open album file %s\n", filename);
     return (bg_album_entry_t*)0;
     }
-  
-  xml_doc = xmlParseFile(filename);
-  
   ret = xml_2_album(album, xml_doc, last, current, load_globals);
   
   xmlFreeDoc(xml_doc);
@@ -701,6 +706,10 @@ char * bg_album_save_selected_to_memory(bg_album_t * a, int * len, int preserve_
   return ret;
   }
 
+static void set_permissions(const char * filename)
+  {
+  chmod(filename, S_IRUSR | S_IWUSR);
+  }
 
 void bg_album_save(bg_album_t * a, const char * filename)
   {
@@ -720,6 +729,7 @@ void bg_album_save(bg_album_t * a, const char * filename)
   if(filename)
     {
     xmlSaveFile(filename, xml_doc);
+    set_permissions(filename);
     }
   else
     {
@@ -729,6 +739,7 @@ void bg_album_save(bg_album_t * a, const char * filename)
       }
     tmp_filename = bg_sprintf("%s/%s", a->com->directory, a->location);
     xmlSaveFile(tmp_filename, xml_doc);
+    set_permissions(tmp_filename);
     free(tmp_filename);
     }
   xmlFreeDoc(xml_doc);

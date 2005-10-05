@@ -225,6 +225,10 @@ void bg_player_ov_update_still(bg_player_ov_context_t * ctx)
     ctx->plugin->put_still(ctx->priv, ctx->still_frame);
     bg_plugin_unlock(ctx->plugin_handle);
     }
+  else
+    {
+    fprintf(stderr, "update_still: Got no frame\n");
+    }
   
   pthread_mutex_unlock(&ctx->still_mutex);
   }
@@ -307,13 +311,14 @@ void * bg_player_ov_thread(void * data)
   bg_fifo_state_t state;
   
   ctx = (bg_player_ov_context_t*)data;
-  
+
+  fprintf(stderr, "Starting ov thread\n");
 
   while(1)
     {
     if(!bg_player_keep_going(ctx->player, ping_func, ctx))
       {
-      fprintf(stderr, "bg_player_keep_going returned 0\n");
+      //      fprintf(stderr, "bg_player_keep_going returned 0\n");
       break;
       }
     if(ctx->frame)
@@ -404,7 +409,7 @@ void * bg_player_ov_still_thread(void *data)
     {
     if(!bg_player_keep_going(ctx->player, NULL, NULL))
       {
-      fprintf(stderr, "bg_player_keep_going returned 0\n");
+      //      fprintf(stderr, "bg_player_keep_going returned 0\n");
       break;
       }
     if(!ctx->still_shown)
@@ -412,11 +417,13 @@ void * bg_player_ov_still_thread(void *data)
       bg_player_ov_update_still(ctx);
       ctx->still_shown = 1;
       }
+    //    fprintf(stderr, "Handle events...");
     bg_plugin_lock(ctx->plugin_handle);
     ctx->plugin->handle_events(ctx->priv);
     bg_plugin_unlock(ctx->plugin_handle);
+    //    fprintf(stderr, "Handle events done\n");
     gavl_time_delay(&delay_time);
     }
-  fprintf(stderr, "still loop done\n");
+  fprintf(stderr, "still thread finished\n");
   return NULL;
   }

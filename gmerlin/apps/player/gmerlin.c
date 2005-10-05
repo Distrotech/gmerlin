@@ -395,7 +395,8 @@ void gmerlin_next_track(gmerlin_t * g)
   {
   int result, keep_going, removable;
   bg_album_t * album;
-//  fprintf(stderr, "***************** Next track\n");
+
+  fprintf(stderr, "gmerlin_next_track\n");
   if(g->playback_flags & PLAYBACK_NOADVANCE)
     {
     bg_player_stop(g->player);

@@ -1399,8 +1399,8 @@ void bg_album_common_prepare_callbacks(bg_album_common_t * com, bg_album_entry_t
 
 void bg_album_common_set_auth_info(bg_album_common_t * com, bg_album_entry_t * entry)
   {
-  fprintf(stderr, "bg_album_common_set_auth_info, user: %s, pass: %s, save: %d\n",
-          com->username, com->password, com->save_auth);
+  //  fprintf(stderr, "bg_album_common_set_auth_info, user: %s, pass: %s, save: %d\n",
+  //          com->username, com->password, com->save_auth);
   
   if(!com->username || !com->password)
     return;

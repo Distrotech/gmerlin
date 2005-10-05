@@ -397,7 +397,7 @@ static int start_input(void * priv)
 
   info = bg_plugin_find_by_filename(inp->plugin_reg, inp->filename_buffer,
                                     BG_PLUGIN_IMAGE_READER);
-  fprintf(stderr, "Loading: %p\n", info);
+  //  fprintf(stderr, "Loading: %p\n", info);
 
   inp->handle = bg_plugin_load(inp->plugin_reg, info);
   inp->image_reader = (bg_image_reader_plugin_t*)inp->handle->plugin;
