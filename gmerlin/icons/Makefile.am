@@ -36,6 +36,7 @@ favourites_open_16.png \
 first_16.png \
 folder_closed_16.png \
 folder_open_16.png \
+goto_current_16.png \
 hardware_16.png \
 image_16.png \
 incoming_closed_16.png \

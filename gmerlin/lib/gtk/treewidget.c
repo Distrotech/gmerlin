@@ -237,6 +237,7 @@ typedef struct
   GtkWidget * collapse_item;
   GtkWidget * tabbed_mode_item;
   GtkWidget * windowed_mode_item;
+  GtkWidget * goto_current_item;
   } tree_menu_t;
 
 typedef struct
@@ -275,7 +276,7 @@ struct bg_gtk_tree_widget_s
   GtkWidget * widget;
   GtkWidget * treeview;
   bg_media_tree_t * tree;
-  bg_album_t * current_album;
+  bg_album_t * selected_album;
   root_menu_t menu;
   GList * album_windows;
 
@@ -286,6 +287,7 @@ struct bg_gtk_tree_widget_s
 
   GtkWidget * remove_button;
   GtkWidget * rename_button;
+  GtkWidget * goto_current_button;
 
   /* Tooltips */
 
@@ -387,7 +389,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
   bg_album_type_t type;
   /* En- or disable menu items */
 
-// fprintf(stderr, "Update menu %p\n", w->current_album);
+// fprintf(stderr, "Update menu %p\n", w->selected_album);
 
   if(w->tabbed_mode)
     {
@@ -400,7 +402,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
     gtk_widget_hide(w->menu.tree_menu.windowed_mode_item);
     }
   
-  if(!w->current_album)
+  if(!w->selected_album)
     {
     rename_item(w->menu.album_item, "Album...");
     gtk_widget_show(w->menu.album_item);
@@ -420,7 +422,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
     }
   else
     {
-    type = bg_album_get_type(w->current_album);
+    type = bg_album_get_type(w->selected_album);
     switch(type)
       {
       case BG_ALBUM_TYPE_PLUGIN:
@@ -444,7 +446,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         gtk_widget_hide(w->menu.album_menu.new_item);
         gtk_widget_hide(w->menu.album_menu.new_from_directory_item);
         
-        if(album_is_open(w, w->current_album))
+        if(album_is_open(w, w->selected_album))
           {
           gtk_widget_hide(w->menu.album_menu.open_item);
           gtk_widget_show(w->menu.album_menu.close_item);
@@ -469,7 +471,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         gtk_widget_show(w->menu.album_menu.new_from_directory_item);
         gtk_widget_show(w->menu.album_menu.rename_item);
         
-        if(album_is_open(w, w->current_album))
+        if(album_is_open(w, w->selected_album))
           {
           gtk_widget_hide(w->menu.album_menu.open_item);
           gtk_widget_show(w->menu.album_menu.close_item);
@@ -495,7 +497,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         gtk_widget_hide(w->menu.album_menu.new_from_directory_item);
         gtk_widget_show(w->menu.album_menu.rename_item);
         
-        if(album_is_open(w, w->current_album))
+        if(album_is_open(w, w->selected_album))
           {
           gtk_widget_hide(w->menu.album_menu.open_item);
           gtk_widget_show(w->menu.album_menu.close_item);
@@ -739,7 +741,7 @@ static void expand_album(bg_gtk_tree_widget_t * w, bg_album_t * album)
   int selected;
   
   expanded = bg_album_get_expanded(album);
-  selected = (w->current_album == album) ? 1 : 0;
+  selected = (w->selected_album == album) ? 1 : 0;
 
 
   if(!selected && !expanded)
@@ -921,17 +923,17 @@ static void set_parameter_rename_album(void * data, char * name,
   
   if(!strcmp(name, "album_name"))
     {
-    if(w->current_album)
+    if(w->selected_album)
       {
-      bg_album_rename(w->current_album, val->val_str);
-      album_2_iter(w, w->current_album, &iter);
-      set_album(w, w->current_album, &iter, 0, 0);
+      bg_album_rename(w->selected_album, val->val_str);
+      album_2_iter(w, w->selected_album, &iter);
+      set_album(w, w->selected_album, &iter, 0, 0);
       }
         
     }
   }
 
-static void rename_current_album(bg_gtk_tree_widget_t * w)
+static void rename_selected_album(bg_gtk_tree_widget_t * w)
   {
   bg_dialog_t * dialog;
   GtkTreeIter iter;
@@ -943,7 +945,7 @@ static void rename_current_album(bg_gtk_tree_widget_t * w)
   info[0].name                = "album_name";
   info[0].long_name           = "Album name";
   info[0].type                = BG_PARAMETER_STRING;
-  info[0].val_default.val_str = bg_album_get_name(w->current_album);
+  info[0].val_default.val_str = bg_album_get_name(w->selected_album);
 
   dialog = bg_dialog_create((bg_cfg_section_t*)0,
                             set_parameter_rename_album,
@@ -954,8 +956,8 @@ static void rename_current_album(bg_gtk_tree_widget_t * w)
   
   bg_dialog_destroy(dialog);
 
-  album_2_iter(w, w->current_album, &iter);
-  set_album(w, w->current_album, &iter, 0, 0);
+  album_2_iter(w, w->selected_album, &iter);
+  set_album(w, w->selected_album, &iter, 0, 0);
   }
 
 static void add_dir_callback(char * dir, int recursive,
@@ -966,7 +968,7 @@ static void add_dir_callback(char * dir, int recursive,
   bg_gtk_tree_widget_t * w = (bg_gtk_tree_widget_t*)data;
   
   gtk_widget_set_sensitive(w->treeview, 0);
-  bg_media_tree_add_directory(w->tree, w->current_album,
+  bg_media_tree_add_directory(w->tree, w->selected_album,
                               dir,
                               recursive, subdirs_as_subalbums, plugin);
   gtk_widget_set_sensitive(w->treeview, 1);
@@ -1003,22 +1005,22 @@ static void create_new_album(bg_gtk_tree_widget_t * w)
   {
   bg_album_t * new_album =
     bg_media_tree_append_album(w->tree,
-                               w->current_album);
-  if(w->current_album)
-    bg_album_set_expanded(w->current_album, 1);
+                               w->selected_album);
+  if(w->selected_album)
+    bg_album_set_expanded(w->selected_album, 1);
   
   //  fprintf(stderr, "New album: %p\n", new_album);
     
-  w->current_album = new_album;
+  w->selected_album = new_album;
   
   bg_gtk_tree_widget_update(w, 0);
     
-  rename_current_album(w);
+  rename_selected_album(w);
 
-  if(!bg_album_get_name(w->current_album))
+  if(!bg_album_get_name(w->selected_album))
     {
-    bg_media_tree_remove_album(w->tree, w->current_album);
-    w->current_album = (bg_album_t*)0;
+    bg_media_tree_remove_album(w->tree, w->selected_album);
+    w->selected_album = (bg_album_t*)0;
     bg_gtk_tree_widget_update(w, 0);
     }
   else
@@ -1052,8 +1054,8 @@ static void remove_album(bg_gtk_tree_widget_t * w, bg_album_t * a)
     {
     bg_gtk_album_window_destroy(album_window, 1);
     }
-  if(a == w->current_album)
-    w->current_album = (bg_album_t*)0;
+  if(a == w->selected_album)
+    w->selected_album = (bg_album_t*)0;
   bg_media_tree_remove_album(w->tree, a);
   update_menu(w);
   }
@@ -1099,7 +1101,7 @@ static void add_device(bg_gtk_tree_widget_t * w)
   memset(info, 0, sizeof(info));
   memset(&s, 0, sizeof(s));
 
-  s.album = w->current_album;
+  s.album = w->selected_album;
   
   info[0].name                = "device";
   info[0].long_name           = "Device";
@@ -1118,8 +1120,8 @@ static void add_device(bg_gtk_tree_widget_t * w)
   
   bg_dialog_destroy(dialog);
 
-  album_2_iter(w, w->current_album, &iter);
-  set_album(w, w->current_album, &iter, 0, 0);
+  album_2_iter(w, w->selected_album, &iter);
+  set_album(w, w->selected_album, &iter, 0, 0);
   
   bg_gtk_tree_widget_update(w, 0);
 
@@ -1137,10 +1139,10 @@ static void find_devices(bg_gtk_tree_widget_t * w)
   
   /* 1st step: Close all album windows */
 
-  num_children = bg_album_get_num_children(w->current_album);
+  num_children = bg_album_get_num_children(w->selected_album);
   for(i = 0; i < num_children; i++)
     {
-    child = bg_album_get_child(w->current_album, i);
+    child = bg_album_get_child(w->selected_album, i);
 
     album_window = album_is_open(w, child);
     if(album_window)
@@ -1148,7 +1150,7 @@ static void find_devices(bg_gtk_tree_widget_t * w)
     }
   /* 2nd step: Tell the album to scan for devices */
 
-  bg_album_find_devices(w->current_album);
+  bg_album_find_devices(w->selected_album);
   
   /* 3rd step: Make changes visible */
   
@@ -1195,31 +1197,50 @@ static void set_windowed_mode(bg_gtk_tree_widget_t * w)
   update_menu(w);
   }
 
+static void goto_current(bg_gtk_tree_widget_t * w)
+  {
+  bg_album_t * current_album;
+  bg_gtk_album_window_t * current_win;
+  
+  current_album = bg_media_tree_get_current_album(w->tree);
+
+  if(!current_album)
+    return;
+  
+  current_win = album_is_open(w, current_album);
+  if(!current_win)
+    return;
+  
+  bg_gtk_album_window_goto_current(current_win);
+  }
+
 static void menu_callback(GtkWidget * w, gpointer data)
   {
   bg_gtk_tree_widget_t * widget = (bg_gtk_tree_widget_t*)data;
   bg_gtk_album_window_t * album_window;
     
   /* Album menu */
-  if(widget->current_album)
+  if(widget->selected_album)
     {
     if(w == widget->menu.album_menu.open_item)
       {
-      open_album(widget, widget->current_album);
+      open_album(widget, widget->selected_album);
       }
-    else if((w == widget->menu.album_menu.rename_item) || (w == widget->rename_button))
+    else if((w == widget->menu.album_menu.rename_item) ||
+            (w == widget->rename_button))
       {
-      rename_current_album(widget);
+      rename_selected_album(widget);
       }
-    else if((w == widget->menu.album_menu.remove_item) || (w == widget->remove_button))
+    else if((w == widget->menu.album_menu.remove_item) ||
+            (w == widget->remove_button))
       {
-      remove_album(widget, widget->current_album);
+      remove_album(widget, widget->selected_album);
       bg_gtk_tree_widget_update(widget, 0);
       }
     else if(w == widget->menu.album_menu.close_item)
       {
       /* Check, if album has already a window */
-      album_window = album_is_open(widget, widget->current_album);
+      album_window = album_is_open(widget, widget->selected_album);
       if(album_window)
         {
         /* Open Album and create window */
@@ -1242,11 +1263,11 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     add_directory(widget);
     }
-  if(w == widget->menu.album_menu.new_item)
+  else if(w == widget->menu.album_menu.new_item)
     {
     create_new_album(widget);
     }
-  if(w == widget->menu.tree_menu.expand_item)
+  else if(w == widget->menu.tree_menu.expand_item)
     {
     gtk_tree_view_expand_all(GTK_TREE_VIEW(widget->treeview));
     }
@@ -1263,6 +1284,11 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     //    fprintf(stderr, "Windowed mode\n");
     set_windowed_mode(widget);
+    }
+  else if((w == widget->menu.tree_menu.goto_current_item) ||
+          (w == widget->goto_current_button))
+    {
+    goto_current(widget);
     }
   
   }
@@ -1285,6 +1311,12 @@ static void init_menu(bg_gtk_tree_widget_t * w)
   /* Tree Menu */
 
   w->menu.tree_menu.menu = gtk_menu_new();
+
+  w->menu.tree_menu.goto_current_item = create_item(w, "Goto current track");
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.tree_menu.menu),
+                        w->menu.tree_menu.goto_current_item);
+
+
   w->menu.tree_menu.expand_item = create_item(w, "Expand all");
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.tree_menu.menu),
                         w->menu.tree_menu.expand_item);
@@ -1453,7 +1485,7 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
     }
   else if((evt->button == 1) && (evt->type == GDK_2BUTTON_PRESS))
     {
-    open_album(tw, tw->current_album);
+    open_album(tw, tw->selected_album);
     return TRUE;
     }
   
@@ -1474,20 +1506,20 @@ static void select_row_callback(GtkTreeSelection * sel,
                                       &model,
                                       &iter))
     {
-    w->current_album = (bg_album_t*)0;
+    w->selected_album = (bg_album_t*)0;
     }
   else
     {
-    w->current_album = iter_2_album(w, &iter);
+    w->selected_album = iter_2_album(w, &iter);
     }
   update_menu(w);
-  if(w->current_album)
+  if(w->selected_album)
     {
-    album_window = album_is_open(w, w->current_album);
+    album_window = album_is_open(w, w->selected_album);
     if(album_window)
       bg_gtk_album_window_raise(album_window);
 
-    type = bg_album_get_type(w->current_album);
+    type = bg_album_get_type(w->selected_album);
     
     switch(type)
       {
@@ -1569,8 +1601,8 @@ static void drag_get_callback(GtkWidget *widget,
   if(!type_atom)
     return;
   
-  gtk_selection_data_set(data, type_atom, 8, (void*)(w->current_album),
-                         sizeof(w->current_album));
+  gtk_selection_data_set(data, type_atom, 8, (void*)(w->selected_album),
+                         sizeof(w->selected_album));
   }
 
 
@@ -1624,19 +1656,19 @@ static void drag_received_callback(GtkWidget *widget,
       case GTK_TREE_VIEW_DROP_INTO_OR_AFTER:
         //        fprintf(stderr, "Gmerlin album dropped %p\n", dest_album);
         bg_media_tree_move_album(w->tree,
-                                 w->current_album,
+                                 w->selected_album,
                                  dest_album);
         break;
       case GTK_TREE_VIEW_DROP_AFTER:
         //        fprintf(stderr, "Gmerlin album dropped after %p\n", dest_album);
         bg_media_tree_move_album_after(w->tree,
-                                       w->current_album,
+                                       w->selected_album,
                                        dest_album);
         break;
       case GTK_TREE_VIEW_DROP_BEFORE:
         //        fprintf(stderr, "Gmerlin album dropped before %p\n", dest_album);
         bg_media_tree_move_album_before(w->tree,
-                                        w->current_album,
+                                        w->selected_album,
                                         dest_album);
         break;
       }
@@ -1770,19 +1802,19 @@ static gboolean drag_motion_callback(GtkWidget *widget,
               case GTK_TREE_VIEW_DROP_INTO_OR_AFTER:
                 result =
                   bg_media_tree_check_move_album(w->tree,
-                                                 w->current_album,
+                                                 w->selected_album,
                                                  drop_album);
                 break;
               case GTK_TREE_VIEW_DROP_AFTER:
                 result =
                   bg_media_tree_check_move_album_after(w->tree,
-                                                       w->current_album,
+                                                       w->selected_album,
                                                        drop_album);
                 break;
               case GTK_TREE_VIEW_DROP_BEFORE:
                 result =
                   bg_media_tree_check_move_album_before(w->tree,
-                                                        w->current_album,
+                                                        w->selected_album,
                                                         drop_album);
                 break;
             
@@ -1969,11 +2001,17 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree)
                                             "Delete album", "Delete album");
   ret->rename_button = create_pixmap_button(ret, "rename_16.png",
                                             "Rename album", "Rename album");
-
+  ret->goto_current_button =
+    create_pixmap_button(ret, "goto_current_16.png",
+                         "Goto current track",
+                         "Goto current track");
+  
   buttonbox = gtk_hbox_new(0, 0);
   gtk_box_pack_start(GTK_BOX(buttonbox), ret->remove_button,
                      FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(buttonbox), ret->rename_button,
+                     FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(buttonbox), ret->goto_current_button,
                      FALSE, FALSE, 0);
 
   gtk_widget_show(buttonbox);

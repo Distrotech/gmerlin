@@ -2603,3 +2603,38 @@ void bg_gtk_album_widget_set_tooltips(bg_gtk_album_widget_t * w, int enable)
   else
     gtk_tooltips_disable(w->tooltips);
   }
+
+void bg_gtk_album_widget_goto_current(bg_gtk_album_widget_t * aw)
+  {
+  int i;
+  const bg_album_entry_t * entry, *current_entry;
+  
+  GtkTreeSelection * selection;
+  GtkTreePath * path;
+
+  current_entry = bg_album_get_current_entry(aw->album);
+
+  if(!current_entry)
+    return;
+    
+  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(aw->treeview));
+  gtk_tree_selection_unselect_all(selection);
+  
+  for(i = 0; i < aw->num_entries; i++)
+    {
+    entry = bg_album_get_entry(aw->album, i);
+    if(entry == current_entry)
+      {
+      path = gtk_tree_path_new_from_indices(i, -1);
+      
+      gtk_tree_selection_select_path(selection, path);
+      gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(aw->treeview),
+                                   path, (GtkTreeViewColumn*)0,
+                                   1, 0.0, 0.5);
+      gtk_tree_path_free(path);
+      break;
+      }
+    }
+  
+  //  fprintf(stderr, "bg_gtk_album_widget_goto_current\n");
+  }

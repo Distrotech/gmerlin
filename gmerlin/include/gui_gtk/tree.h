@@ -90,6 +90,8 @@ void bg_gtk_album_widget_delete_drag();
 
 void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w);
 
+void bg_gtk_album_widget_goto_current(bg_gtk_album_widget_t * w);
+
 void bg_gtk_album_widget_put_config(bg_gtk_album_widget_t * w);
 
 void bg_gtk_album_widget_set_tooltips(bg_gtk_album_widget_t * w, int enable);
@@ -104,6 +106,8 @@ void bg_gtk_album_window_destroy(bg_gtk_album_window_t*, int notify);
 
 void bg_gtk_album_window_raise(bg_gtk_album_window_t*);
 void bg_gtk_album_window_update(bg_gtk_album_window_t * w);
+
+void bg_gtk_album_window_goto_current(bg_gtk_album_window_t * w);
 
 bg_album_t * bg_gtk_album_window_get_album(bg_gtk_album_window_t*);
 
