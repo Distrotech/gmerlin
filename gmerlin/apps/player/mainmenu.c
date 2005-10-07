@@ -47,6 +47,8 @@ struct windows_menu_s
   guint       mediatree_id;
   GtkWidget * infowindow;
   guint       infowindow_id;
+  GtkWidget * logwindow;
+  guint       logwindow_id;
   GtkWidget * menu;
   };
 
@@ -137,6 +139,19 @@ static void menu_callback(GtkWidget * w, gpointer data)
       g->show_info_window = 0;
       }
     }
+  else if(w == the_menu->windows_menu.logwindow)
+    {
+    if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(the_menu->windows_menu.logwindow)))
+      {
+      bg_gtk_log_window_show(g->log_window);
+      g->show_log_window = 1;
+      }
+    else
+      {
+      bg_gtk_log_window_hide(g->log_window);
+      g->show_log_window = 0;
+      }
+    }
   
 
   else if(w == the_menu->windows_menu.mediatree)
@@ -219,6 +234,8 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
     create_toggle_item("Media Tree", gmerlin, ret->windows_menu.menu, &ret->windows_menu.mediatree_id);
   ret->windows_menu.infowindow =
     create_toggle_item("Info window", gmerlin, ret->windows_menu.menu, &ret->windows_menu.infowindow_id);
+  ret->windows_menu.logwindow =
+    create_toggle_item("Log window", gmerlin, ret->windows_menu.menu, &ret->windows_menu.logwindow_id);
   gtk_widget_show(ret->windows_menu.menu);
 
   /* Options */
@@ -299,6 +316,13 @@ void main_menu_set_info_window_item(main_menu_t * m, int state)
   g_signal_handler_block(G_OBJECT(m->windows_menu.infowindow), m->windows_menu.infowindow_id);
   gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(m->windows_menu.infowindow), state);
   g_signal_handler_unblock(G_OBJECT(m->windows_menu.infowindow), m->windows_menu.infowindow_id);
+  }
+
+void main_menu_set_log_window_item(main_menu_t * m, int state)
+  {
+  g_signal_handler_block(G_OBJECT(m->windows_menu.logwindow), m->windows_menu.logwindow_id);
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(m->windows_menu.logwindow), state);
+  g_signal_handler_unblock(G_OBJECT(m->windows_menu.logwindow), m->windows_menu.logwindow_id);
   }
 
 void main_menu_set_plugin_window_item(main_menu_t * m, int state)

@@ -25,6 +25,7 @@
 #include <tree.h>
 #include <gui_gtk/tree.h>
 #include <gui_gtk/infowindow.h>
+#include <gui_gtk/logwindow.h>
 #include <lcdproc.h>
 
 #include <cfg_dialog.h>
@@ -85,6 +86,8 @@ struct gmerlin_s
 
   player_window_t * player_window;
   bg_gtk_info_window_t * info_window;
+  bg_gtk_log_window_t * log_window;
+  
   gmerlin_skin_t skin;
   char * skin_dir;
   
@@ -103,8 +106,10 @@ struct gmerlin_s
   bg_cfg_section_t * video_section;
   bg_cfg_section_t * lcdproc_section;
   bg_cfg_section_t * remote_section;
-
+  bg_cfg_section_t * logwindow_section;
+  
   int show_info_window;
+  int show_log_window;
   int show_tree_window;
 
   bg_lcdproc_t * lcdproc;

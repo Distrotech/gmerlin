@@ -79,6 +79,10 @@ static void gmerlin_apply_config(gmerlin_t * g)
   parameters = bg_lcdproc_get_parameters(g->lcdproc);
   bg_cfg_section_apply(g->lcdproc_section, parameters,
                        bg_lcdproc_set_parameter, (void*)(g->lcdproc));
+
+  parameters = bg_gtk_log_window_get_parameters(g->log_window);
+  bg_cfg_section_apply(g->logwindow_section, parameters,
+                       bg_gtk_log_window_set_parameter, (void*)(g->log_window));
   
   
   }
@@ -119,6 +123,14 @@ static void infowindow_close_callback(bg_gtk_info_window_t * w, void * data)
   g = (gmerlin_t*)data;
   main_menu_set_info_window_item(g->player_window->main_menu, 0);
   g->show_info_window = 0;
+  }
+
+static void logwindow_close_callback(bg_gtk_log_window_t * w, void * data)
+  {
+  gmerlin_t * g;
+  g = (gmerlin_t*)data;
+  main_menu_set_log_window_item(g->player_window->main_menu, 0);
+  g->show_log_window = 0;
   }
 
 static void pluginwindow_close_callback(plugin_window_t * w, void * data)
@@ -170,6 +182,8 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
     bg_cfg_registry_find_section(cfg_reg, "LCDproc");
   ret->remote_section =
     bg_cfg_registry_find_section(cfg_reg, "Remote");
+  ret->logwindow_section =
+    bg_cfg_registry_find_section(cfg_reg, "Logwindow");
     
   /* Create player instance */
   
@@ -209,6 +223,9 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   ret->info_window = bg_gtk_info_window_create(ret->player,
                                                infowindow_close_callback, 
                                                ret);
+
+  ret->log_window = bg_gtk_log_window_create(logwindow_close_callback, 
+                                             ret);
 
   ret->plugin_window = plugin_window_create(ret,
                                             pluginwindow_close_callback, 
@@ -267,6 +284,7 @@ void gmerlin_destroy(gmerlin_t * g)
   //  fprintf(stderr, "Blupp 2\n");
 
   bg_gtk_info_window_destroy(g->info_window);
+  bg_gtk_log_window_destroy(g->log_window);
 
   //  fprintf(stderr, "Blupp 3\n");
   
@@ -313,6 +331,17 @@ void gmerlin_run(gmerlin_t * g)
     {
     main_menu_set_info_window_item(g->player_window->main_menu, 0);
     }
+  if(g->show_log_window)
+    {
+    bg_gtk_log_window_show(g->log_window);
+    main_menu_set_log_window_item(g->player_window->main_menu, 1);
+    }
+  else
+    {
+    main_menu_set_log_window_item(g->player_window->main_menu, 0);
+    }
+
+
   bg_player_run(g->player);
   
   player_window_show(g->player_window);
@@ -583,6 +612,13 @@ static bg_parameter_info_t parameters[] =
       val_default: { val_i: 0 }
     },
     {
+      name:        "show_log_window",
+      long_name:   "show_log_window",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 0 }
+    },
+    {
       name:        "volume",
       long_name:   "Volume",
       type:        BG_PARAMETER_FLOAT,
@@ -633,6 +669,10 @@ void gmerlin_set_parameter(void * data, char * name, bg_parameter_value_t * val)
   else if(!strcmp(name, "show_info_window"))
     {
     g->show_info_window = val->val_i;
+    }
+  else if(!strcmp(name, "show_log_window"))
+    {
+    g->show_log_window = val->val_i;
     }
   else if(!strcmp(name, "mainwin_x"))
     {
@@ -693,6 +733,11 @@ int gmerlin_get_parameter(void * data, char * name, bg_parameter_value_t * val)
   else if(!strcmp(name, "show_info_window"))
     {
     val->val_i = g->show_info_window;
+    return 1;
+    }
+  else if(!strcmp(name, "show_log_window"))
+    {
+    val->val_i = g->show_log_window;
     return 1;
     }
   else if(!strcmp(name, "mainwin_x"))

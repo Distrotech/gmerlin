@@ -9,6 +9,7 @@ config.h \
 fifo.h \
 http.h \
 lcdproc.h \
+log.h \
 msgqueue.h \
 parameter.h \
 player.h \

@@ -12,6 +12,7 @@ driveselect.h \
 fileselect.h \
 gtkutils.h \
 infowindow.h \
+logwindow.h \
 message.h \
 plugin.h \
 question.h \

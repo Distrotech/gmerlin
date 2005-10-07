@@ -26,7 +26,10 @@
 #include <treeprivate.h>
 
 #include <utils.h>
-#include <http.h>
+// #include <http.h>
+
+#include <log.h>
+#define LOG_DOMAIN "album"
 
 /*
  *  This must be called, whenever the tracks in an album
@@ -1420,6 +1423,9 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   bg_track_info_t * track_info;
   const bg_plugin_info_t * info;
   //  const char * file_plugin_name;
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Loading \"%s\"", url);
+
 #if 0  
   fprintf(stderr, "bg_album_load_url %s %s\n", url,
           (plugin_long_name ? plugin_long_name : "NULL"));
@@ -1442,6 +1448,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
     {
     fprintf(stderr, "Cannot open %s: %s\n", url, error_msg);
     free(error_msg);
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Loading \"%s\" failed, no plugin found", url);
     return (bg_album_entry_t*)0;
     }
   plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);

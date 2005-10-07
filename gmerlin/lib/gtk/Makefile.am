@@ -28,6 +28,7 @@ fileselect.c \
 fileentry.c \
 gtkutils.c \
 infowindow.c \
+logwindow.c \
 message.c \
 multiinfo.c \
 plugininfo.c \

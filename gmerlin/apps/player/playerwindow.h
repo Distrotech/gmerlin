@@ -48,6 +48,7 @@ main_menu_update_streams(main_menu_t *,
 
 void main_menu_set_tree_window_item(main_menu_t * m, int state);
 void main_menu_set_info_window_item(main_menu_t * m, int state);
+void main_menu_set_log_window_item(main_menu_t * m, int state);
 void main_menu_set_plugin_window_item(main_menu_t * m, int state);
 
 typedef struct player_window_s

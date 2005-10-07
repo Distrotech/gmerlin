@@ -24,6 +24,7 @@ formats.c \
 hexdump.c \
 http.c \
 lcdproc.c \
+log.c \
 metadata.c \
 metadata_xml.c \
 msgqueue.c \
