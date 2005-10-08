@@ -240,6 +240,7 @@ demux_asf.c \
 demux_avi.c \
 demux_au.c \
 demux_flac.c \
+demux_fli.c \
 demux_mpegaudio.c \
 demux_mpegps.c \
 demux_mpegts.c \

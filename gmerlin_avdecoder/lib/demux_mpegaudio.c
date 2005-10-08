@@ -506,15 +506,14 @@ static void select_track_mpegaudio(bgav_demuxer_context_t * ctx,
 
 static int probe_mpegaudio(bgav_input_context_t * input)
   {
-  int i;
   mpeg_header h1, h2;
-  uint8_t probe_data[PROBE_BYTES];
+  uint8_t probe_data[MAX_FRAME_BYTES+4];
   
-  /* Check for audio header */
-
+  /* Check for ALBW file */
   if(input->id3v2 && bgav_albw_probe(input))
     return 1;
-  
+
+  /* Check for audio header */
   if(bgav_input_get_data(input, probe_data, 4) < 4)
     return 0;
 
@@ -526,7 +525,7 @@ static int probe_mpegaudio(bgav_input_context_t * input)
 
   if(h1.frame_bytes > MAX_FRAME_BYTES) /* Prevent possible security hole */
     return 0;
-
+  
   if(bgav_input_get_data(input, probe_data, h1.frame_bytes + 4) < h1.frame_bytes + 4)
     return 0;
 
@@ -539,12 +538,13 @@ static int probe_mpegaudio(bgav_input_context_t * input)
   return 1;
   }
 
-static int resync(bgav_demuxer_context_t * ctx)
+static int resync(bgav_demuxer_context_t * ctx, int check_next)
   {
-  uint8_t buffer[4];
+  uint8_t buffer[MAX_FRAME_BYTES+4];
   mpegaudio_priv_t * priv;
   int skipped_bytes = 0;
-  
+  mpeg_header next_header;
+    
   priv = (mpegaudio_priv_t*)(ctx->priv);
 
   while(1)
@@ -552,12 +552,24 @@ static int resync(bgav_demuxer_context_t * ctx)
     if(bgav_input_get_data(ctx->input, buffer, 4) < 4)
       return 0;
     if(decode_header(&(priv->header), buffer))
-      break;
-    else
       {
-      bgav_input_skip(ctx->input, 1);
-      skipped_bytes++;
+      if(priv->header.frame_bytes > MAX_FRAME_BYTES) /* Prevent possible security hole */
+        return 0;
+
+      if(!check_next)
+        break;
+      
+      /* No next header, stop here */
+      if(bgav_input_get_data(ctx->input, buffer, priv->header.frame_bytes + 4) < priv->header.frame_bytes + 4)
+        break;
+
+      /* Read the next header and check if it's equal to this one */
+      if(decode_header(&next_header, &(buffer[priv->header.frame_bytes])) && 
+         header_equal(&priv->header, &next_header))
+        break;
       }
+    bgav_input_skip(ctx->input, 1);
+    skipped_bytes++;
     }
   if(skipped_bytes)
     fprintf(stderr, "Skipped %d bytes in mpeg audio stream\n", skipped_bytes);
@@ -580,7 +592,7 @@ static gavl_time_t get_duration(bgav_demuxer_context_t * ctx,
   priv = (mpegaudio_priv_t*)(ctx->priv);
   
   bgav_input_seek(ctx->input, start_offset, SEEK_SET);
-  if(!resync(ctx))
+  if(!resync(ctx, 0))
     return 0;
   
   if(bgav_input_get_data(ctx->input, frame,
@@ -612,7 +624,7 @@ static int set_stream(bgav_demuxer_context_t * ctx)
   mpegaudio_priv_t * priv;
   
   priv = (mpegaudio_priv_t*)(ctx->priv);
-  if(!resync(ctx))
+  if(!resync(ctx, 1))
     return 0;
   
   /* Check for a VBR header */
@@ -897,7 +909,7 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
 //            priv->data_end, ctx->input->position);
     return 0;
     }
-  if(!resync(ctx))
+  if(!resync(ctx, 0))
     {
 //    fprintf(stderr, "Lost sync\n");
     return 0;

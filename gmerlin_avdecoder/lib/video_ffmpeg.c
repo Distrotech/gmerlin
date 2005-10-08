@@ -25,6 +25,9 @@
 #include <codecs.h>
 #include <avdec_private.h>
 
+#include <stdio.h>
+
+
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
 typedef struct
@@ -88,6 +91,10 @@ static codec_info_t codec_infos[] =
 
     { "FFmpeg QT rle Decoder", "Quicktime RLE", CODEC_ID_QTRLE,
       (uint32_t[]){ BGAV_MK_FOURCC('r', 'l', 'e', ' '),
+               0x00 } },
+
+    { "FFmpeg FLI/FLC Decoder", "FLI/FLC Animation", CODEC_ID_FLIC,
+      (uint32_t[]){ BGAV_MK_FOURCC('F', 'L', 'I', 'C'),
                0x00 } },
 #if 0
     /************************************************************
@@ -580,12 +587,9 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
 
     //    fprintf(stderr, "Image size: %d %d\n", priv->ctx->width, priv->ctx->height);
     
-    //    fprintf(stderr, "Used %d bytes, %d %d\n",
-    //            bytes_used,
-    //            priv->frame->coded_picture_number,
-    //            priv->frame->display_picture_number);
-
-
+    //    fprintf(stderr, "Used %d bytes, got picture: %d\n",
+    //            bytes_used, got_picture);
+    
     if(priv->packet_buffer_ptr)
       {
       /* Check for error */
