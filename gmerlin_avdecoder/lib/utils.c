@@ -114,6 +114,43 @@ char * bgav_strncat(char * old, const char * start, const char * end)
   return old;
   }
 
+static char * remove_spaces(char * old)
+  {
+  char * pos1, *pos2, *ret;
+  int num_spaces = 0;
+
+  pos1 = old;
+  while(*pos1 != '\0')
+    {
+    if(*pos1 == ' ')
+      num_spaces++;
+    pos1++;
+    }
+  if(!num_spaces)
+    return old;
+  
+  ret = malloc(strlen(old) + 1 + 2 * num_spaces);
+
+  pos1 = old;
+  pos2 = ret;
+
+  while(*pos1 != '\0')
+    {
+    if(*pos1 == ' ')
+      {
+      *(pos2++) = '%';
+      *(pos2++) = '2';
+      *(pos2++) = '0';
+      }
+    else
+      *(pos2++) = *pos1;
+    pos1++;
+    }
+  *pos2 = '\0';
+  free(old);
+  return ret;
+  }
+
 /* Split an URL, returned pointers should be free()d after */
 
 int bgav_url_split(const char * url,
@@ -206,6 +243,10 @@ int bgav_url_split(const char * url,
     else
       *path = (char*)0;
     }
+
+  /* Fix whitespaces in path */
+  if(path)
+    *path = remove_spaces(*path);
   return 1;
   }
 

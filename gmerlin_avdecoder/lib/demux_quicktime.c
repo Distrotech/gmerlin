@@ -814,11 +814,13 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
 
   while(!done)
     {
+    fprintf(stderr, "Get atom\n");
     if(!bgav_qt_atom_read_header(ctx->input, &h))
       return 0;
     switch(h.fourcc)
       {
       case BGAV_MK_FOURCC('m','d','a','t'):
+        fprintf(stderr, "Got mdat atom\n");
         /* Reached the movie data atom, stop here */
         have_mdat = 1;
 
@@ -827,7 +829,7 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
 
         priv->mdats[priv->num_mdats].start = ctx->input->position;
         priv->mdats[priv->num_mdats].size  = h.size - (ctx->input->position - h.start_position);
-#if 0
+#if 1
         fprintf(stderr, "Found mdat atom, start: %lld, size: %lld\n", priv->mdats[priv->num_mdats].start,
                 priv->mdats[priv->num_mdats].size);
 #endif
@@ -848,12 +850,14 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
         
         break;
       case BGAV_MK_FOURCC('m','o','o','v'):
+        fprintf(stderr, "Got moov atom\n");
         if(!bgav_qt_moov_read(&h, ctx->input, &(priv->moov)))
           return 0;
         have_moov = 1;
         break;
       default:
         bgav_qt_atom_skip(ctx->input, &h);
+        fprintf(stderr, "Skipping unknown atom\n");
       }
 
     if(ctx->input->input->seek_byte)

@@ -67,7 +67,8 @@ void bgav_qt_atom_skip(bgav_input_context_t * input,
   int64_t bytes_to_skip = h->size - (input->position - h->start_position);
   //  fprintf(stderr, "bgav_qt_atom_skip: %lld\n", bytes_to_skip);
   if(bytes_to_skip > 0)
-    bgav_input_skip(input, h->size - (input->position - h->start_position));
+    bgav_input_skip(input, bytes_to_skip);
+  
   }
 
 

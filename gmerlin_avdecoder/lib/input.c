@@ -430,10 +430,10 @@ void bgav_input_destroy(bgav_input_context_t * ctx)
   free(ctx);
   }
 
-void bgav_input_skip(bgav_input_context_t * ctx, int bytes)
+void bgav_input_skip(bgav_input_context_t * ctx, int64_t bytes)
   {
   int i;
-  int bytes_to_skip = bytes;
+  int64_t bytes_to_skip = bytes;
   uint8_t buf;
   ctx->position += bytes;
   if(ctx->buffer_size)

@@ -44,6 +44,7 @@ void bgav_http_header_add_line(bgav_http_header_t*, const char * line);
 int bgav_http_header_send(bgav_http_header_t*, int fd, char ** error_msg);
 
 int bgav_http_header_status_code(bgav_http_header_t * h);
+const char * bgav_http_header_status_line(bgav_http_header_t * h);
 
 /* Reading of http header */
 

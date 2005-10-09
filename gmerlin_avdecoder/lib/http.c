@@ -134,6 +134,11 @@ int bgav_http_header_status_code(bgav_http_header_t * h)
   return -1;
   }
 
+const char * bgav_http_header_status_line(bgav_http_header_t * h)
+  {
+  return h->lines[0].line;
+  }
+
 const char * bgav_http_header_get_var(bgav_http_header_t * h,
                                       const char * name)
   {
@@ -315,7 +320,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
 
     /* Now, user and pass should be the authentication data */
 
-    fprintf(stderr, "User: %s, pass: %s\n", user, pass);
+    //    fprintf(stderr, "User: %s, pass: %s\n", user, pass);
 
     userpass = bgav_sprintf("%s:%s", user, pass);
 
@@ -345,7 +350,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     
   if(status >= 400) /* Error */
     {
-    
+    if(error_msg) *error_msg = bgav_sprintf(bgav_http_header_status_line(ret->header));
     goto fail;
     }
   else if(status >= 300) /* Redirection */
@@ -369,6 +374,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     }
   else if(status < 200)  /* Error */
     {
+    if(error_msg) *error_msg = bgav_sprintf(bgav_http_header_status_line(ret->header));
     goto fail;
     }
   
