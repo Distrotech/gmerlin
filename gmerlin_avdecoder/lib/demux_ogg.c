@@ -51,7 +51,7 @@ typedef struct
   int64_t start_position;
   int64_t end_position;
   long serialno;
-  int64_t last_pos;
+  int64_t last_pos; /* Last granulepos of the stream */
   int ext_size; /* Extradata size for audio stream */
   }  bitstream_info;
 

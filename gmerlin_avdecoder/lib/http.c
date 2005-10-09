@@ -89,8 +89,10 @@ int bgav_http_header_send(bgav_http_header_t * h, int fd, char ** error_msg)
     if(!bgav_tcp_send(fd, (uint8_t*)(h->lines[i].line),
                       strlen(h->lines[i].line), error_msg) ||
        !bgav_tcp_send(fd, (uint8_t*)"\r\n", 2, error_msg))
+      {
+      if(error_msg) *error_msg = bgav_sprintf("Remote end closed connection");
       return 0;
-    
+      }
     //    write(fd, h->lines[i].line, strlen(h->lines[i].line));
     //    write(fd, "\r\n", 2);
     }
@@ -266,10 +268,10 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     port = 80;
   if(strcasecmp(protocol, "http"))
     goto fail;
-
+#if 0
   if(user && pass)
     fprintf(stderr, "User: %s, pass: %s\n", user, pass);
-  
+#endif
 
   /* Build request */
 

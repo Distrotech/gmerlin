@@ -104,7 +104,7 @@ static gboolean idle_callback(gpointer data)
     domain = bg_msg_get_arg_string(msg, 0);
     message = bg_msg_get_arg_string(msg, 1);
     
-    fprintf(stderr, "LOG [%s] %s: %s\n", domain, level_name, message);
+    //    fprintf(stderr, "LOG [%s] %s: %s\n", domain, level_name, message);
 
     switch(level)
       {

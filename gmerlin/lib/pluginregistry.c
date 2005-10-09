@@ -1182,8 +1182,11 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
     load_plugin(reg, info, ret);
 
     if(!(*ret))
+      {
+      if(error_msg)
+        *error_msg = bg_sprintf("Loading plugin failed");
       return 0;
-    
+      }
     plugin = (bg_input_plugin_t*)((*ret)->plugin);
 
     if(plugin->set_callbacks)
@@ -1194,14 +1197,20 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
       fprintf(stderr, "Opening %s with %s failed\n", location,
               info->long_name);
 
-      msg = (const char *)0;
-      if((*ret)->plugin->get_error)
-        msg = (*ret)->plugin->get_error((*ret)->priv);
-      if(msg)
-        *error_msg = bg_sprintf(msg);
-      else
-        *error_msg = bg_sprintf("Unknown error");
-      return 0;
+      if(error_msg)
+        {
+        msg = (const char *)0;
+        if((*ret)->plugin->get_error)
+          msg = (*ret)->plugin->get_error((*ret)->priv);
+        if(msg)
+          *error_msg = bg_sprintf(msg);
+        else
+          *error_msg = bg_sprintf("Unknown error");
+
+        fprintf(stderr, "Error message: %s\n", *error_msg);
+        
+        return 0;
+        }
       }
     else
       return 1;

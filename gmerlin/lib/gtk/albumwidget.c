@@ -489,6 +489,7 @@ static void update_cursor_pos(bg_gtk_album_widget_t * w)
     }
   else
     {
+    w->cursor_pos = w->num_entries;
     path = gtk_tree_path_new_from_indices(w->cursor_pos-1, -1);
     gtk_tree_view_set_drag_dest_row(GTK_TREE_VIEW(w->treeview),
                                     path, GTK_TREE_VIEW_DROP_AFTER);

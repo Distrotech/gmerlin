@@ -34,6 +34,9 @@
 #include <tree.h>
 #include <treeprivate.h>
 #include <utils.h>
+#include <log.h>
+
+#define LOG_DOMAIN "mediatree"
 
 static int nth_in_list(bg_album_t * children, bg_album_t * child)
   {
@@ -1074,6 +1077,8 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
       goto fail;
       }
 #endif
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Loading %s (plugin: %s)", t->com.current_entry->location,
+           (info ? info->name : "auto"));
     bg_album_common_prepare_callbacks(&t->com, t->com.current_entry);
     if(!bg_input_plugin_load(t->com.plugin_reg,
                              t->com.current_entry->location, info,
@@ -1085,9 +1090,11 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
       else
         error_message = bg_sprintf("Cannot open %s", ret,
                                    t->com.current_entry->location);
+
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed: %s", t->com.current_entry->location,
+             (error_msg ? error_msg : "unknown error"));
       goto fail;
       }
-    //    ret = bg_plugin_load(t->com.plugin_reg, info);
     input_plugin = (bg_input_plugin_t*)(ret->plugin);
     }
   track_info = input_plugin->get_track_info(ret->priv,

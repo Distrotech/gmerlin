@@ -1424,7 +1424,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
   const bg_plugin_info_t * info;
   //  const char * file_plugin_name;
 
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Loading \"%s\"", url);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Loading %s", url);
 
 #if 0  
   fprintf(stderr, "bg_album_load_url %s %s\n", url,
@@ -1446,9 +1446,8 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
                            url, info,
                            &(album->com->load_handle), &error_msg, &(album->com->input_callbacks)))
     {
-    fprintf(stderr, "Cannot open %s: %s\n", url, error_msg);
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Loading %s failed: %s", url, (error_msg ? error_msg : "unknown error"));
     free(error_msg);
-    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Loading \"%s\" failed, no plugin found", url);
     return (bg_album_entry_t*)0;
     }
   plugin = (bg_input_plugin_t*)(album->com->load_handle->plugin);
@@ -1469,10 +1468,9 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
     new_entry->location = bg_strdup(new_entry->location, url);
     new_entry->index = i;
     new_entry->total_tracks = num_entries;
-#if 0
-    fprintf(stderr, "Loading %s [%d/%d]\n", (char*)(new_entry->location), new_entry->total_tracks,
-            new_entry->index);
-#endif
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Loaded %s (track %d of %d)", url,
+           new_entry->index+1, new_entry->total_tracks);
+    
     bg_album_common_set_auth_info(album->com, new_entry);
     bg_album_update_entry(album, new_entry, track_info);
     
