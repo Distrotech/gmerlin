@@ -237,6 +237,8 @@ void bgav_close(bgav_t * b)
   if(b->error_msg)
     free(b->error_msg);
 
+  bgav_options_free(&b->opt);
+  
   free(b);
   }
 
