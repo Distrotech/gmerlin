@@ -386,6 +386,7 @@ void bg_gtk_album_window_set_current(bg_gtk_album_window_t * w, int current)
 
   pango_attr_list_insert(attr_list,attr);
   gtk_label_set_attributes(GTK_LABEL(w->tab_label), attr_list);
+  pango_attr_list_unref(attr_list);
   }
 
 void bg_gtk_album_window_goto_current(bg_gtk_album_window_t * w)

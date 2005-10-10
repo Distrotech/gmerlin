@@ -63,6 +63,7 @@ bg_gtk_textview_t * bg_gtk_textview_create()
 
 void bg_gtk_textview_destroy(bg_gtk_textview_t * t)
   {
+  g_object_unref(t->buffer);
   free(t);
   }
 

@@ -306,6 +306,8 @@ static const char * get_error_alsa(void* p)
 static void destroy_alsa(void * p)
   {
   alsa_t * priv = (alsa_t*)(p);
+  if(priv->parameters)
+    bg_parameter_info_destroy_array(priv->parameters);
   free(priv);
   }
 

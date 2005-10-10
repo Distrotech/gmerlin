@@ -165,6 +165,7 @@ int bg_search_file_exec(const char * file, char ** _path)
       free(test_filename);
     return 1;
     }
+  free(test_filename);
   
   path = getenv("PATH");
   if(!path)

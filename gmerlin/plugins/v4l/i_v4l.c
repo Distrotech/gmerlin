@@ -404,6 +404,9 @@ static void  destroy_v4l(void * priv)
   gavl_video_frame_destroy(v4l->frame);
   close_v4l(priv);
 
+  if(v4l->parameters)
+    bg_parameter_info_destroy_array(v4l->parameters);
+  
   if(v4l->pwc_priv)
     {
     bg_pwc_destroy(v4l->pwc_priv);

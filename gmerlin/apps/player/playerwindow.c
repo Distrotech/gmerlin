@@ -658,6 +658,11 @@ void player_window_destroy(player_window_t * win)
 
   main_menu_destroy(win->main_menu);
   g_object_unref(win->tooltips);
+
+  if(win->background_pixbuf)
+    g_object_unref(win->background_pixbuf);
+  if(win->background_pixbuf_highlight)
+    g_object_unref(win->background_pixbuf_highlight);
   
   free(win);
   }
@@ -729,6 +734,7 @@ void player_window_skin_destroy(player_window_skin_t * s)
     free(s->background);
   if(s->background_highlight)
     free(s->background_highlight);
+  
   bg_gtk_button_skin_free(&(s->play_button));
   bg_gtk_button_skin_free(&(s->stop_button));
   bg_gtk_button_skin_free(&(s->pause_button));

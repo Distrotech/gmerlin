@@ -223,10 +223,10 @@ bg_msg_t * bg_remote_server_get_msg(bg_remote_server_t * s)
       bg_msg_free(s->msg);
       if(bg_message_read_socket(s->msg, conn->fd, -1))
         return s->msg;
-      else /* Select set reading wont block but reading failed
+      else /* Select said reading won't block but reading failed
               -> Client probably disconnected */
         {
-        fprintf(stderr, "Removing connection\n");
+        //        fprintf(stderr, "Removing connection\n");
         tmp_conn = conn->next;
         s->connections = remove_connection(s->connections, conn);
         conn = tmp_conn;
@@ -254,7 +254,8 @@ void bg_remote_server_destroy(bg_remote_server_t * s)
 
   if(s->fd >= 0)
     close(s->fd);
-  
+  if(s->msg)
+    bg_msg_destroy(s->msg);
   free(s);
   }
 
