@@ -210,9 +210,9 @@ void bg_player_ov_update_still(bg_player_ov_context_t * ctx)
     {
     if(!ctx->still_frame)
       {
-      fprintf(stderr, "create_frame....");
+      //      fprintf(stderr, "create_frame....");
       ctx->still_frame = bg_player_ov_create_frame(ctx);
-      fprintf(stderr, "done\n");
+      //      fprintf(stderr, "done\n");
       }
     gavl_video_frame_copy(&(ctx->player->video_stream.output_format),
                           ctx->still_frame, ctx->frame);
@@ -274,22 +274,22 @@ static void ping_func(void * data)
     {
     if(ctx->frame)
       {
-      fprintf(stderr, "create_frame....");
+      //      fprintf(stderr, "create_frame....");
       ctx->still_frame = bg_player_ov_create_frame(data);
-      fprintf(stderr, "done\n");
+      //      fprintf(stderr, "done\n");
       
       gavl_video_frame_copy(&(ctx->player->video_stream.output_format),
                             ctx->still_frame, ctx->frame);
-      fprintf(stderr, "Unlock read....%p", ctx->frame);
+      //      fprintf(stderr, "Unlock read....%p", ctx->frame);
       bg_fifo_unlock_read(ctx->player->video_stream.fifo);
       ctx->frame = (gavl_video_frame_t*)0;
-      fprintf(stderr, "Done\n");
+      //      fprintf(stderr, "Done\n");
       
-      fprintf(stderr, "Put still...");
+      //      fprintf(stderr, "Put still...");
       bg_plugin_lock(ctx->plugin_handle);
       ctx->plugin->put_still(ctx->priv, ctx->still_frame);
       bg_plugin_unlock(ctx->plugin_handle);
-      fprintf(stderr, "Done\n");
+      //      fprintf(stderr, "Done\n");
       }
     
     ctx->still_shown = 1;
@@ -312,7 +312,7 @@ void * bg_player_ov_thread(void * data)
   
   ctx = (bg_player_ov_context_t*)data;
 
-  fprintf(stderr, "Starting ov thread\n");
+  //  fprintf(stderr, "Starting ov thread\n");
 
   while(1)
     {
@@ -390,7 +390,7 @@ void * bg_player_ov_thread(void * data)
     bg_plugin_unlock(ctx->plugin_handle);
     }
   
-  fprintf(stderr, "ov thread finisheded\n");
+  //  fprintf(stderr, "ov thread finisheded\n");
   return NULL;
   }
 
@@ -402,7 +402,7 @@ void * bg_player_ov_still_thread(void *data)
   ctx = (bg_player_ov_context_t*)data;
   
   /* Put the image into the window once and handle only events thereafter */
-  fprintf(stderr, "Starting still loop\n");
+  //  fprintf(stderr, "Starting still loop\n");
 
   ctx->still_shown = 0;
   while(1)
@@ -424,6 +424,6 @@ void * bg_player_ov_still_thread(void *data)
     //    fprintf(stderr, "Handle events done\n");
     gavl_time_delay(&delay_time);
     }
-  fprintf(stderr, "still thread finished\n");
+  //  fprintf(stderr, "still thread finished\n");
   return NULL;
   }

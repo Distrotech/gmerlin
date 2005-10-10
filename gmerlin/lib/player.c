@@ -76,16 +76,15 @@ int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data)
          to continue */
 
 
-      if(!ping_func ||
-         (old_state == BG_PLAYER_STATE_STARTING) ||
-         (old_state == BG_PLAYER_STATE_BUFFERING))
+      if(!ping_func)
         {
         wait_notify(p);
         pthread_cond_wait(&(p->start_cond), &(p->start_mutex));
         }
       else
         {
-        ping_func(data);
+        if(old_state == BG_PLAYER_STATE_PAUSED)
+          ping_func(data);
         fprintf(stderr, "wait notify...");
         wait_notify(p);
         fprintf(stderr, "done\n");
@@ -102,7 +101,10 @@ int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data)
             }
           if(!pthread_cond_timedwait(&(p->start_cond), &(p->start_mutex), &timeout))
             break;
-          ping_func(data);
+          
+          state = bg_player_get_state(p);
+          if(state == BG_PLAYER_STATE_PAUSED)
+            ping_func(data);
           }
         }
       
