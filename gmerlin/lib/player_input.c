@@ -449,7 +449,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     if(!result)
       ctx->video_finished = 1;
     ctx->video_time = gavl_time_unscale(ctx->player->video_stream.input_format.timescale, video_frame->time_scaled);
-    ctx->video_frames_written ++;
+    ctx->video_frames_written++;
     }
   bg_fifo_unlock_write(s->fifo, ctx->video_finished);
   //  fprintf(stderr, "done %d\n", ctx->video_finished);
@@ -591,9 +591,17 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
   {
   int do_audio;
   int do_video;
+  int do_still;
 
   do_audio = ctx->player->do_audio;
-  do_video = ctx->player->do_video || ctx->player->do_still;
+  do_video = ctx->player->do_video;
+  do_still = ctx->player->do_still;
+
+  if(do_still)
+    {
+    process_video(ctx, 1);
+    ctx->video_finished = 1;
+    }
   
   while(do_audio || do_video)
     {
@@ -601,7 +609,6 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
       do_audio = process_audio(ctx, 1);
     if(do_video)
       do_video = process_video(ctx, 1);
-    
     }
   }
 

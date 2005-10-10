@@ -69,10 +69,15 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
     return 0;
     }
   /* Initialize video fifo */
-  
-  player->video_stream.fifo = bg_fifo_create(NUM_VIDEO_FRAMES,
-                                             bg_player_ov_create_frame,
-                                             (void*)(player->ov_context));
+
+  if(player->do_video)
+    player->video_stream.fifo = bg_fifo_create(NUM_VIDEO_FRAMES,
+                                               bg_player_ov_create_frame,
+                                               (void*)(player->ov_context));
+  else if(player->do_still)
+    player->video_stream.fifo = bg_fifo_create(1,
+                                               bg_player_ov_create_frame,
+                                               (void*)(player->ov_context));
   
   /* Initialize audio converter */
 

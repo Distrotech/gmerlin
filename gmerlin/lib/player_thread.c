@@ -834,21 +834,25 @@ static int process_command(bg_player_t * player,
           bg_player_set_state(player, BG_PLAYER_STATE_STILL, NULL, NULL);
           break;
         case BG_PLAYER_STATE_FINISHING:
+          state = bg_player_get_state(player);
+          
           /* Close down everything */
           //          fprintf(stderr, "Finishing...\n");
           bg_player_set_state(player, BG_PLAYER_STATE_FINISHING, NULL, NULL);
-
-          fprintf(stderr, "Joining input thread...");
-          pthread_join(player->input_thread, (void**)0);
-          fprintf(stderr, "done\n");
           
+          if(state != BG_PLAYER_STATE_STILL)
+            {
+            fprintf(stderr, "Joining input thread...");
+            pthread_join(player->input_thread, (void**)0);
+            fprintf(stderr, "done\n");
+            }
           if(player->do_audio)
             {
             fprintf(stderr, "Joining audio thread...");
             pthread_join(player->oa_thread, (void**)0);
             fprintf(stderr, "done\n");
             }
-          if(player->do_video)
+          if(player->do_video || player->do_still)
             {
             fprintf(stderr, "Joining video thread...");
             pthread_join(player->ov_thread, (void**)0);
@@ -890,11 +894,10 @@ static void * player_thread(void * data)
   int seconds;
   int do_exit;
   int state;
-    
+  bg_msg_t * command;
   gavl_time_t time;
   
   player = (bg_player_t*)data;
-  bg_msg_t * command;
 
   bg_player_set_state(player, BG_PLAYER_STATE_STOPPED, NULL, NULL);
 
@@ -940,7 +943,11 @@ static void * player_thread(void * data)
        (player->track_info->duration != GAVL_TIME_UNDEFINED) &&
        (player->track_info->duration <= time))
       {
-      stop_cmd(player, BG_PLAYER_STATE_CHANGING);
+      //      stop_cmd(player, BG_PLAYER_STATE_CHANGING);
+      command = bg_msg_queue_lock_write(player->command_queue);
+      bg_msg_set_id(command, BG_PLAYER_CMD_SETSTATE);
+      bg_msg_set_arg_int(command, 0, BG_PLAYER_STATE_FINISHING);
+      bg_msg_queue_unlock_write(player->command_queue);
       }
     
     gavl_time_delay(&wait_time);

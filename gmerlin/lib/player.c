@@ -58,7 +58,10 @@ int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data)
     case BG_PLAYER_STATE_CHANGING:
       return 0;
     case BG_PLAYER_STATE_PLAYING:
+      break;
     case BG_PLAYER_STATE_FINISHING:
+      if(p->do_still && !p->do_audio)
+        return 0;
       break;
     case BG_PLAYER_STATE_STARTING:
     case BG_PLAYER_STATE_PAUSED:
@@ -73,7 +76,9 @@ int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data)
          to continue */
 
 
-      if(!ping_func || (old_state == BG_PLAYER_STATE_STARTING) || (old_state == BG_PLAYER_STATE_BUFFERING))
+      if(!ping_func ||
+         (old_state == BG_PLAYER_STATE_STARTING) ||
+         (old_state == BG_PLAYER_STATE_BUFFERING))
         {
         wait_notify(p);
         pthread_cond_wait(&(p->start_cond), &(p->start_mutex));
