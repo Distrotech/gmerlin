@@ -134,7 +134,15 @@ mjpegtools_libs =
 mjpegtools_sources =
 endif
 
-
+if HAVE_SAMBA
+samba_cflags =  @SAMBA_CFLAGS@
+samba_libs =    @SAMBA_LIBS@
+samba_sources = in_smb.c
+else
+samba_cflags =
+samba_libs =
+samba_sources =
+endif
 
 if HAVE_W32DLL
 win32_subdirs = libw32dll
@@ -186,6 +194,7 @@ $(xadll_libs) \
 $(cdio_libs) \
 $(libdv_libs) \
 $(mjpegtools_libs) \
+$(samba_libs) \
 GSM610/libgsm.la \
 -lm
 
@@ -203,7 +212,9 @@ $(musepack_cflags) \
 $(avcodec_cflags) \
 $(cdio_cflags) \
 $(libdv_cflags) \
-$(mjpegtools_cflags)
+$(mjpegtools_cflags) \
+$(samba_cflags)
+
 
 libgmerlin_avdec_la_SOURCES = \
 $(libmpeg2_sources) \
@@ -222,6 +233,7 @@ $(xadll_sources) \
 $(cdio_sources) \
 $(libdv_sources) \
 $(mjpegtools_sources) \
+$(samba_sources) \
 RTjpeg.c \
 apetag.c \
 audio.c \

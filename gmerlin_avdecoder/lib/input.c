@@ -297,6 +297,10 @@ extern bgav_input_t bgav_input_ftp;
 extern bgav_input_t bgav_input_vcd;
 #endif
 
+#ifdef HAVE_SAMBA
+extern bgav_input_t bgav_input_smb;
+#endif
+
 void bgav_inputs_dump()
   {
   fprintf(stderr, "<h2>Input modules</h2>\n");
@@ -336,6 +340,10 @@ int bgav_input_open(bgav_input_context_t * ret,
       ret->input = &bgav_input_http;
     else if(!strcmp(protocol, "ftp"))
       ret->input = &bgav_input_ftp;
+#ifdef HAVE_SAMBA
+    else if(!strcmp(protocol, "smb"))
+      ret->input = &bgav_input_smb;
+#endif
     else
       {
       fprintf(stderr, "Unknown protocol: %s\n", protocol);

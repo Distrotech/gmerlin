@@ -224,7 +224,50 @@ if test x$have_libtiff = xtrue; then
 AC_DEFINE(HAVE_LIBTIFF)
 fi
 
+dnl
+dnl libsmbclient
+dnl
 
+AH_TEMPLATE([HAVE_SAMBA], [Samba support])
+ 
+have_libsmbclient=false
+SAMBA_REQUIRED="3.0.0"
+ 
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+LIBS="-lsmbclient"
+CFLAGS=""
+ 
+AC_MSG_CHECKING(for libsmbclient)
+AC_TRY_LINK([#include <libsmbclient.h>
+             #include <stdio.h>],
+            [int i = 0;
+	     /* We ensure the function is here but never call it */
+             if(i)
+		smbc_lseek(0,0,SEEK_SET);
+	     return 0;],
+            [have_libsmbclient=true])
+ 
+case $have_libsmbclient in
+  true) AC_DEFINE(HAVE_SAMBA)
+        AC_MSG_RESULT(yes)
+        SAMBA_LIBS=$LIBS;
+        SAMBA_CFLAGS=$CFLAGS ;;
+  false) AC_MSG_RESULT(no); SAMBA_LIBS=""; SAMBA_CFLAGS="";;
+esac
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+AC_SUBST(SAMBA_CFLAGS)
+AC_SUBST(SAMBA_LIBS)
+AC_SUBST(SAMBA_REQUIRED)
+
+AM_CONDITIONAL(HAVE_SAMBA, test x$have_libsmbclient = xtrue)
+
+if test x$have_libsmbclient = xtrue; then
+AC_DEFINE(HAVE_SAMBA)
+fi
 
 dnl
 dnl PNG
@@ -797,6 +840,12 @@ else
 echo "Missing"
 fi
 
+echo -n "samba:                  "
+if test "x$have_libsmbclient" = "xtrue"; then
+echo "Found (CFLAGS=$SAMBA_CFLAGS LIBS=$SAMBA_LIBS)"
+else
+echo "Missing"
+fi
 
 echo ""
 echo "=== Other features: ============================"
