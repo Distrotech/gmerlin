@@ -463,6 +463,7 @@ struct bgav_options_s
   };
 
 void bgav_options_set_defaults(bgav_options_t*opt);
+void bgav_options_free(bgav_options_t*opt);
 
 /* Overloadable input module */
 
@@ -555,6 +556,7 @@ int bgav_input_read_string_pascal(bgav_input_context_t*, char*);
 
 int bgav_input_read_8(bgav_input_context_t*,uint8_t*);
 int bgav_input_read_16_le(bgav_input_context_t*,uint16_t*);
+int bgav_input_read_24_le(bgav_input_context_t*,uint32_t*);
 int bgav_input_read_32_le(bgav_input_context_t*,uint32_t*);
 int bgav_input_read_64_le(bgav_input_context_t*,uint64_t*);
 
@@ -567,6 +569,7 @@ int bgav_input_get_data(bgav_input_context_t*, uint8_t*,int);
 
 int bgav_input_get_8(bgav_input_context_t*,uint8_t*);
 int bgav_input_get_16_le(bgav_input_context_t*,uint16_t*);
+int bgav_input_get_24_le(bgav_input_context_t*,uint32_t*);
 int bgav_input_get_32_le(bgav_input_context_t*,uint32_t*);
 int bgav_input_get_64_le(bgav_input_context_t*,uint64_t*);
 
@@ -842,6 +845,11 @@ void bgav_stop(bgav_t * b);
 
 #define BGAV_PTR_2_16LE(p) \
 ((*(p+1) << 8) | \
+*(p))
+
+#define BGAV_PTR_2_24LE(p) \
+((*(p+2) << 16) | \
+(*(p+1) << 8) | \
 *(p))
 
 #define BGAV_PTR_2_32LE(p) \

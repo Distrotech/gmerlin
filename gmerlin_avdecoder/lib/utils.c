@@ -245,7 +245,7 @@ int bgav_url_split(const char * url,
     }
 
   /* Fix whitespaces in path */
-  if(path)
+  if(path && *path)
     *path = remove_spaces(*path);
   return 1;
   }

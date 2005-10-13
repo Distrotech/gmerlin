@@ -272,7 +272,8 @@ static bgav_audio_decoder_t decoder =
   {
     name:   "FAAD AAC audio decoder",
     fourccs: (uint32_t[]){ BGAV_MK_FOURCC('m','p','4','a'),
-                      BGAV_MK_FOURCC('a','a','c',' '),
+                           BGAV_MK_FOURCC('a','a','c',' '),
+                           BGAV_MK_FOURCC('A','A','C',' '),
                       0x0 },
     
     init:   init_faad2,

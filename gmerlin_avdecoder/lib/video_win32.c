@@ -96,7 +96,7 @@ static codec_info_t codec_infos[] =
     {
       name:        "Vivo H.263 decoder",
       format_name: "Vivo H.263",
-      fourccs:     (uint32_t[]){ BGAV_MK_FOURCC('v', 'i', 'v', '2'), 0x00 },
+      fourccs:     (uint32_t[]){ BGAV_MK_FOURCC('v', 'i', 'v', 'o'), 0x00 },
       dll_name:    "ivvideo.dll",
       type:        CODEC_STD,
     },
@@ -127,6 +127,24 @@ static codec_info_t codec_infos[] =
       format_name: "VP4",
       fourccs:     (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '4', '0'), 0x00 },
       dll_name:    "vp4vfw.dll",
+      type:        CODEC_STD,
+      ex_functions: 1,
+    },
+    {
+      name:        "Win32 VP5 decoder",
+      format_name: "VP5",
+      fourccs:     (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '5', '0'), 0x00 },
+      dll_name:    "vp5vfw.dll",
+      type:        CODEC_STD,
+      ex_functions: 1,
+    },
+    {
+      name:        "Win32 VP6 decoder",
+      format_name: "VP6",
+      fourccs:     (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '0'),
+                                 BGAV_MK_FOURCC('V', 'P', '6', '2'), 
+                                 0x00 },
+      dll_name:    "vp6vfw.dll",
       type:        CODEC_STD,
       ex_functions: 1,
     },
@@ -277,8 +295,9 @@ static int init_std(bgav_stream_t * s)
   priv->ex_functions = info->ex_functions;
     
   bgav_BITMAPINFOHEADER_set_format(&bih_in, s);
-  bih_in.biCompression = 0x6f766976;
-  
+  //  bih_in.biCompression = 0x6f766976;
+  //  bih_in.biCompression = s->fourcc;
+  //  bih_in.biCompression = BGAV_MK_FOURCC('V','P','6','2');
   priv->hic = ICOpen ((int)(info->dll_name), bih_in.biCompression,
                       ICMODE_FASTDECOMPRESS);
   
@@ -364,6 +383,7 @@ static int init_std(bgav_stream_t * s)
     //    unpack_bih(&bih_out, &priv->bih_out);
     //    bgav_BITMAPINFOHEADER_dump(&bih_out);
     s->data.video.format.pixelformat = GAVL_YUY2;
+    priv->bytes_per_pixel = 2;
     }
 
   /* Initialize decompression */

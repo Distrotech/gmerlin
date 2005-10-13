@@ -1900,7 +1900,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
     
     if(bgav_input_read_data(ctx->input, p->data, ch.ckSize) < ch.ckSize)
       {
-      fprintf(stderr, "next_packet_avi: EOF 3\n");
+      //      fprintf(stderr, "next_packet_avi: EOF 3\n");
       return 0;
       }
     p->data_size = ch.ckSize;

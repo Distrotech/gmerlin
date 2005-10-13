@@ -174,6 +174,15 @@ int bgav_input_read_32_le(bgav_input_context_t * ctx,uint32_t * ret)
   return 1;
   }
 
+int bgav_input_read_24_le(bgav_input_context_t * ctx,uint32_t * ret)
+  {
+  uint8_t data[3];
+  if(bgav_input_read_data(ctx, data, 3) < 3)
+    return 0;
+  *ret = BGAV_PTR_2_24LE(data);
+  return 1;
+  }
+
 int bgav_input_read_64_le(bgav_input_context_t * ctx,uint64_t * ret)
   {
   uint8_t data[8];
@@ -245,6 +254,15 @@ int bgav_input_get_32_le(bgav_input_context_t * ctx,uint32_t * ret)
   if(bgav_input_get_data(ctx, data, 4) < 4)
     return 0;
   *ret = BGAV_PTR_2_32LE(data);
+  return 1;
+  }
+
+int bgav_input_get_24_le(bgav_input_context_t * ctx,uint32_t * ret)
+  {
+  uint8_t data[3];
+  if(bgav_input_get_data(ctx, data, 3) < 3)
+    return 0;
+  *ret = BGAV_PTR_2_24LE(data);
   return 1;
   }
 

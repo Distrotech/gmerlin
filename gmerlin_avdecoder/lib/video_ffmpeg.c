@@ -250,7 +250,7 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('H', 'F', 'Y', 'U'),
                0x00 } },
     
-    { "FFmpeg VP32 decoder", "On2 VP3", CODEC_ID_VP3,
+    { "FFmpeg VP3 decoder", "On2 VP3", CODEC_ID_VP3,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '3', '1'),
                0x00 } },
 

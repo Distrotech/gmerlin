@@ -316,6 +316,7 @@ static bgav_audio_decoder_t decoder =
                            BGAV_MK_FOURCC('m', 's', 0x00, 0x50),
                            BGAV_WAVID_2_FOURCC(0x50),
                            BGAV_WAVID_2_FOURCC(0x55),
+                           BGAV_MK_FOURCC('M','P', '3', ' '), /* NSV */
                            0x00 },
     name:   "Mpeg audio decoder (mad)",
     init:   init_mad,

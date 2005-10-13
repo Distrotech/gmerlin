@@ -458,7 +458,7 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
     }
   else if(priv->header.version == 2)
     {
-    video_stream->fourcc = BGAV_MK_FOURCC('v', 'i', 'v', '2');
+    video_stream->fourcc = BGAV_MK_FOURCC('v', 'i', 'v', 'o');
     video_stream->data.video.format.image_width = priv->header.width;
     video_stream->data.video.format.frame_width = priv->header.width;
 
