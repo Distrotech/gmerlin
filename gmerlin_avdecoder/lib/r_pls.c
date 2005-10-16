@@ -21,6 +21,7 @@
 
 #include <avdec_private.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 static int probe_pls(bgav_input_context_t * input)
@@ -52,11 +53,20 @@ static int parse_pls(bgav_redirector_context_t * r)
   int buffer_alloc = 0;
   int index;
   char * pos;
-    
-  if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0))
-    return 0;
 
-  //  fprintf(stderr, "Got line: %s\n", buffer);
+  /* Get the first nonempty line */
+  while(1)
+    {
+    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0))
+      return 0;
+    pos = buffer;
+    while(isspace(*pos))
+      pos++;
+    if(*pos != '\0')
+      break;
+    }
+  
+  fprintf(stderr, "Got line: %s\n", buffer);
 
   if(strncasecmp(buffer, "[playlist]", 10))
     return 0;
@@ -68,6 +78,8 @@ static int parse_pls(bgav_redirector_context_t * r)
     if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0))
       break;
 
+    fprintf(stderr, "Got line %s\n", buffer);
+    
     //    fprintf(stderr, "Got line: %s\n", buffer);
     
     if(!strncasecmp(buffer, "Title", 5))

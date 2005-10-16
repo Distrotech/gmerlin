@@ -151,9 +151,7 @@ static int init_aviraw(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
 
   s->data.video.decoder->priv = priv;
-
-  s->data.video.format.pixelformat = GAVL_RGB_24;
-  
+    
   switch(s->data.video.depth)
     {
 #if 0
@@ -205,6 +203,8 @@ static bgav_video_decoder_t decoder =
   {
     name:   "Raw video decoder for AVI",
     fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('R', 'G', 'B', ' '),
+                            /* RGB3 is used by NSV, but seems to be the same as 24 bpp AVI */
+                            BGAV_MK_FOURCC('R', 'G', 'B', '3'),
                             0x00  },
     init:   init_aviraw,
     decode: decode_aviraw,

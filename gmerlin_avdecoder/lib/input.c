@@ -348,15 +348,17 @@ int bgav_input_open(bgav_input_context_t * ret,
                     (int*)0,
                     (char**)0))
     {
-    if(!strcmp(protocol, "rtsp"))
+    if(!strcasecmp(protocol, "rtsp"))
       ret->input = &bgav_input_rtsp;
-    else if(!strcmp(protocol, "pnm"))
+    else if(!strcasecmp(protocol, "pnm"))
       ret->input = &bgav_input_pnm;
-    else if(!strcmp(protocol, "mms"))
+    else if(!strcasecmp(protocol, "mms") ||
+            !strcasecmp(protocol, "mmst") ||
+            !strcasecmp(protocol, "mmsu"))
       ret->input = &bgav_input_mms;
-    else if(!strcmp(protocol, "http"))
+    else if(!strcasecmp(protocol, "http"))
       ret->input = &bgav_input_http;
-    else if(!strcmp(protocol, "ftp"))
+    else if(!strcasecmp(protocol, "ftp"))
       ret->input = &bgav_input_ftp;
 #ifdef HAVE_SAMBA
     else if(!strcmp(protocol, "smb"))

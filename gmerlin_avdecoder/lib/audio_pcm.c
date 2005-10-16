@@ -685,6 +685,7 @@ static int init_pcm(bgav_stream_t * s)
       break;
     /* Little endian */
     case BGAV_WAVID_2_FOURCC(0x01):
+    case BGAV_MK_FOURCC('P','C','M',' '):
       if(s->data.audio.bits_per_sample <= 8)
         {
         s->description = bgav_sprintf("%d bit PCM", s->data.audio.bits_per_sample);
@@ -694,7 +695,11 @@ static int init_pcm(bgav_stream_t * s)
       else if(s->data.audio.bits_per_sample <= 16)
         {
         s->description = bgav_sprintf("%d bit PCM (little endian)", s->data.audio.bits_per_sample);
-        s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
+
+        if(s->fourcc == BGAV_MK_FOURCC('P','C','M',' '))
+          s->data.audio.format.sample_format = GAVL_SAMPLE_U16;
+        else
+          s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
 #ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
         priv->decode_func = decode_s_16;
 #else
@@ -904,16 +909,18 @@ static int decode_pcm(bgav_stream_t * s,
         
         if(!priv->p)
           {
-          //          fprintf(stderr, "Reached EOF\n");
+          fprintf(stderr, "Reached EOF\n");
           break;
           }
         priv->bytes_in_packet = priv->p->data_size;
 
-        //        fprintf(stderr, "Got packet %d samples, %d bytes\n", 
         
         if(priv->p->samples && (priv->p->samples * priv->block_align < priv->bytes_in_packet))
           priv->bytes_in_packet = priv->p->samples * priv->block_align;
         priv->packet_ptr = priv->p->data;
+
+        fprintf(stderr, "Got packet, %d bytes (%d samples)\n", priv->bytes_in_packet, priv->bytes_in_packet/priv->block_align);
+
         }
       
       /* Decode stuff */
@@ -983,6 +990,7 @@ static bgav_audio_decoder_t decoder =
                            BGAV_MK_FOURCC('a', 'l', 'a', 'w'),
                            BGAV_MK_FOURCC('A', 'L', 'A', 'W'),
                            BGAV_WAVID_2_FOURCC(0x06),
+                           BGAV_MK_FOURCC('P','C','M',' '), /* Used by NSV */
                            0x00 },
     name: "PCM audio decoder",
     init: init_pcm,

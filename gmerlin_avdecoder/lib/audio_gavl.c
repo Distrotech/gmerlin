@@ -24,7 +24,6 @@
 
 typedef struct
   {
-  void (*decode_func)(bgav_stream_t * s);
   int last_frame_samples;
   bgav_packet_t * p;
   } gavl_t;

@@ -142,6 +142,7 @@ static codec_info_t codec_infos[] =
       name:        "Win32 VP6 decoder",
       format_name: "VP6",
       fourccs:     (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '0'),
+                                 BGAV_MK_FOURCC('V', 'P', '6', '1'),
                                  BGAV_MK_FOURCC('V', 'P', '6', '2'), 
                                  0x00 },
       dll_name:    "vp6vfw.dll",
