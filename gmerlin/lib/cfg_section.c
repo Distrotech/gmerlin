@@ -197,6 +197,7 @@ void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
       item->value.val_f = value->val_f;
       break;
     case BG_CFG_STRING:
+    case BG_CFG_STRING_HIDDEN:
       item->value.val_str = bg_strdup(item->value.val_str,
                                       value->val_str);
       break;
@@ -239,6 +240,7 @@ int bg_cfg_section_set_parameter_from_string(bg_cfg_section_t * section,
       return end - str;
       break;
     case BG_CFG_STRING:
+    case BG_CFG_STRING_HIDDEN:
       end_c = str;
       while(!((*end_c == ',') && (*(end_c-1) != '\\')) &&
             (*end_c != '\0'))
@@ -246,7 +248,7 @@ int bg_cfg_section_set_parameter_from_string(bg_cfg_section_t * section,
       
       item->value.val_str = bg_strndup(item->value.val_str,
                                        str, end_c);
-      fprintf(stderr, "String: %s\n", item->value.val_str);
+      //      fprintf(stderr, "String: %s\n", item->value.val_str);
       return end_c - str;
       break;
     case BG_CFG_COLOR:
@@ -310,6 +312,7 @@ void bg_cfg_section_get_parameter(bg_cfg_section_t * section,
       value->val_f = item->value.val_f;
       break;
     case BG_CFG_STRING:
+    case BG_CFG_STRING_HIDDEN:
       value->val_str = bg_strdup(value->val_str, item->value.val_str);
       break;
     case BG_CFG_COLOR:

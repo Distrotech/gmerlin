@@ -64,6 +64,9 @@ bg_cfg_item_t * bg_cfg_item_create(bg_parameter_info_t * info,
     case BG_PARAMETER_MULTI_LIST:
       ret->type = BG_CFG_STRING;
       break;
+    case BG_PARAMETER_STRING_HIDDEN:
+      ret->type = BG_CFG_STRING_HIDDEN;
+      break;
     case BG_PARAMETER_TIME:
       ret->type = BG_CFG_TIME;
       break;
@@ -109,6 +112,7 @@ bg_cfg_item_t * bg_cfg_item_create(bg_parameter_info_t * info,
         }
       break;
     case BG_CFG_STRING:
+    case BG_CFG_STRING_HIDDEN:
       if(value && value->val_str)
         {
         ret->value.val_str = bg_strdup(ret->value.val_str, value->val_str);
@@ -162,6 +166,9 @@ bg_cfg_item_t * bg_cfg_item_copy(bg_cfg_item_t * src)
       break;
     case BG_CFG_STRING:
       info.type = BG_PARAMETER_STRING;
+      break;
+    case BG_CFG_STRING_HIDDEN:
+      info.type = BG_PARAMETER_STRING_HIDDEN;
       break;
     case BG_CFG_COLOR:
       info.type = BG_PARAMETER_COLOR_RGBA;

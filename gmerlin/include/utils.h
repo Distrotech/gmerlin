@@ -71,6 +71,14 @@ char * bg_sprintf(const char * format,...);
 char ** bg_strbreak(const char * str, char delim);
 void bg_strbreak_free(char ** retval);
 
+/*
+ * Scramble/descramble string. These are taken from gftp
+ * and just prevent reading passowrds using cat.
+ */
+
+char * bg_scramble_string(const char * str);
+char * bg_descramble_string(const char * str);
+
 /* Convert uri to binary string and vice versa */
 
 char * bg_string_to_uri(const char * pos1, int len);

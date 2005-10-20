@@ -267,7 +267,8 @@ struct bg_gtk_album_widget_s
 
   GtkWidget * toolbar;
   GtkWidget * drag_dest;
-
+  GtkWidget * drag_dest_current;
+  
   /* Open path */
 
   char * open_path;
@@ -578,6 +579,57 @@ static void scroll_to_cursor(bg_gtk_album_widget_t * w)
     }
   }
 
+static gboolean setup_drag_dest(gpointer data)
+  {
+  bg_gtk_album_widget_t * w;
+  GtkTargetEntry * dst_targets;
+  int num_dst_targets;
+
+  w = (bg_gtk_album_widget_t*)data;
+
+  if(bg_album_get_type(w->album) == BG_ALBUM_TYPE_REMOVABLE)
+    {
+    dst_targets = dnd_dst_entries_r;
+    num_dst_targets = sizeof(dnd_dst_entries_r)/sizeof(dnd_dst_entries_r[0]);
+    }
+  else
+    {
+    dst_targets = dnd_dst_entries;
+    num_dst_targets = sizeof(dnd_dst_entries)/sizeof(dnd_dst_entries[0]);
+    }
+  
+  if(!w->num_entries)
+    {
+    if(w->drag_dest_current == w->drag_dest)
+      return FALSE;
+    
+    gtk_drag_dest_unset(w->treeview);
+    gtk_drag_dest_set(w->drag_dest,
+                      GTK_DEST_DEFAULT_HIGHLIGHT | GTK_DEST_DEFAULT_DROP |
+                      GTK_DEST_DEFAULT_MOTION,
+                      dst_targets,
+                      num_dst_targets,
+                      GDK_ACTION_COPY | GDK_ACTION_MOVE);
+    w->drag_dest_current = w->drag_dest;
+    }
+  else
+    {
+    if(w->drag_dest_current == w->treeview)
+      return FALSE;
+    
+    gtk_drag_dest_unset(w->drag_dest);
+    gtk_drag_dest_set(w->treeview,
+                      GTK_DEST_DEFAULT_HIGHLIGHT | GTK_DEST_DEFAULT_DROP |
+                      GTK_DEST_DEFAULT_MOTION,
+                      dst_targets,
+                      num_dst_targets,
+                      GDK_ACTION_COPY | GDK_ACTION_MOVE);
+    w->drag_dest_current = w->treeview;
+    }
+  
+  return FALSE;
+  }
+
 void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   {
   GtkTreeModel * model;
@@ -589,8 +641,6 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   GtkTreeSelection * selection;
   gavl_time_t total_time = 0;
 
-  GtkTargetEntry * dst_targets;
-  int num_dst_targets;
     
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(w->treeview));
   g_signal_handler_block(G_OBJECT(selection), w->select_handler_id);
@@ -710,38 +760,12 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
     
   
   /* Set up drag destination */
+  /* Ok, since this function is called from within drag-data-received,
+     we cannot touch the drag behaviour here. Therefore we'll set up an
+     idle callback, to let things done when back in gtk_main() */
 
-  if(bg_album_get_type(w->album) == BG_ALBUM_TYPE_REMOVABLE)
-    {
-    dst_targets = dnd_dst_entries_r;
-    num_dst_targets = sizeof(dnd_dst_entries_r)/sizeof(dnd_dst_entries_r[0]);
-    }
-  else
-    {
-    dst_targets = dnd_dst_entries;
-    num_dst_targets = sizeof(dnd_dst_entries)/sizeof(dnd_dst_entries[0]);
-    }
+  g_idle_add(setup_drag_dest, (gpointer)w);
   
-  if(!w->num_entries)
-    {
-    gtk_drag_dest_unset(w->treeview);
-    gtk_drag_dest_set(w->drag_dest,
-                      GTK_DEST_DEFAULT_HIGHLIGHT | GTK_DEST_DEFAULT_DROP |
-                      GTK_DEST_DEFAULT_MOTION,
-                      dst_targets,
-                      num_dst_targets,
-                      GDK_ACTION_COPY | GDK_ACTION_MOVE);
-    }
-  else
-    {
-    gtk_drag_dest_unset(w->drag_dest);
-    gtk_drag_dest_set(w->treeview,
-                      GTK_DEST_DEFAULT_HIGHLIGHT | GTK_DEST_DEFAULT_DROP |
-                      GTK_DEST_DEFAULT_MOTION,
-                      dst_targets,
-                      num_dst_targets,
-                      GDK_ACTION_COPY | GDK_ACTION_MOVE);
-    }
   g_signal_handler_unblock(G_OBJECT(selection), w->select_handler_id);
   w->last_clicked_row = -1;
   update_cursor_pos(w);

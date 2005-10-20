@@ -41,6 +41,7 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
       dst->val_f = src->val_f;
       break;
     case BG_PARAMETER_STRING:
+    case BG_PARAMETER_STRING_HIDDEN:
     case BG_PARAMETER_FONT:
     case BG_PARAMETER_DEVICE:
     case BG_PARAMETER_FILE:
@@ -139,6 +140,7 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
       dst->num_digits        = src->num_digits;
       break;
     case BG_PARAMETER_STRING:
+    case BG_PARAMETER_STRING_HIDDEN:
     case BG_PARAMETER_FONT:
     case BG_PARAMETER_DEVICE:
     case BG_PARAMETER_FILE:
@@ -263,6 +265,7 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
           free(info[index].val_default.val_str);
         break;
       case BG_PARAMETER_STRING:
+      case BG_PARAMETER_STRING_HIDDEN:
       case BG_PARAMETER_FONT:
       case BG_PARAMETER_DEVICE:
       case BG_PARAMETER_FILE:

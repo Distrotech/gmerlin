@@ -290,6 +290,7 @@ static GtkWidget * create_section(dialog_section_t * section,
         bg_gtk_create_slider_float(&(section->widgets[count]), &(info[i]));
         break;
       case BG_PARAMETER_STRING:
+      case BG_PARAMETER_STRING_HIDDEN:
         bg_gtk_create_string(&(section->widgets[count]), &(info[i]));
         break;
       case BG_PARAMETER_STRINGLIST:

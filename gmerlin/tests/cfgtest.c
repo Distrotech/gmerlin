@@ -146,6 +146,13 @@ static bg_parameter_info_t info[] =
       help_string:   "String help",
     },
     {
+      name:      "string_hidden",
+      long_name: "String (hidden)",
+      type:      BG_PARAMETER_STRING_HIDDEN,
+      val_default: { val_str: "Some string (hidden)" },
+      help_string:   "String hidden help",
+    },
+    {
       name:        "stringlist",
       long_name:   "Stringlist",
       type:        BG_PARAMETER_STRINGLIST,
@@ -287,6 +294,7 @@ static void set_param(void * data, char * name,
     case BG_PARAMETER_FILE:
     case BG_PARAMETER_DIRECTORY:
     case BG_PARAMETER_STRING:
+    case BG_PARAMETER_STRING_HIDDEN:
     case BG_PARAMETER_STRINGLIST:
     case BG_PARAMETER_FONT:
     case BG_PARAMETER_DEVICE:

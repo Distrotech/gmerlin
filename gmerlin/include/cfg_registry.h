@@ -31,6 +31,7 @@ typedef enum
     BG_CFG_INT,
     BG_CFG_FLOAT,
     BG_CFG_STRING,
+    BG_CFG_STRING_HIDDEN,
     BG_CFG_COLOR,
     BG_CFG_TIME /* int64 */
   } bg_cfg_type_t;

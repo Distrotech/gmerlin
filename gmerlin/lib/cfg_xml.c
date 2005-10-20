@@ -65,6 +65,10 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
     {
     info.type = BG_PARAMETER_STRING;
     }
+  else if(!strcmp(tmp_type, "string_hidden"))
+    {
+    info.type = BG_PARAMETER_STRING_HIDDEN;
+    }
   else if(!strcmp(tmp_type, "color"))
     {
     info.type = BG_PARAMETER_COLOR_RGBA;
@@ -99,6 +103,16 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
     case BG_CFG_STRING:
       item->value.val_str = bg_strdup(item->value.val_str,
                                       tmp_string);
+      break;
+    case BG_CFG_STRING_HIDDEN:
+      if(item->value.val_str)
+        {
+        free(item->value.val_str);
+        item->value.val_str = (char*)0;
+        }
+      if(tmp_string && (*tmp_string != '\0'))
+        item->value.val_str = bg_descramble_string(tmp_string);
+      
       break;
     case BG_CFG_COLOR:
       start = tmp_string;
@@ -200,6 +214,7 @@ void bg_cfg_registry_load(bg_cfg_registry_t * r, const char * filename)
 
 void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
   {
+  char * tmp_string;
   bg_cfg_item_t    * item;
   bg_cfg_section_t * tmp_section;
 
@@ -240,6 +255,16 @@ void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
         /* Yes, that's stupid */
         if(item->value.val_str)
           xmlAddChild(xml_item, BG_XML_NEW_TEXT(item->value.val_str));
+        break;
+      case BG_CFG_STRING_HIDDEN:
+        BG_XML_SET_PROP(xml_item, "type", "string_hidden");
+        /* Yes, that's stupid */
+        if(item->value.val_str)
+          {
+          tmp_string = bg_scramble_string(item->value.val_str);
+          xmlAddChild(xml_item, BG_XML_NEW_TEXT(tmp_string));
+          free(tmp_string);
+          }
         break;
       case BG_CFG_COLOR:
         BG_XML_SET_PROP(xml_item, "type", "color");

@@ -239,6 +239,7 @@ void bg_cmdline_print_help_parameters(bg_parameter_info_t * parameters)
         fprintf(stderr, "default: %.2f)\n", parameters[i].val_default.val_f);
         break;
       case BG_PARAMETER_STRING:
+      case BG_PARAMETER_STRING_HIDDEN:
         break;
       case BG_PARAMETER_STRINGLIST:
         j = 0;

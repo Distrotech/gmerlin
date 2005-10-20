@@ -110,6 +110,9 @@ void bg_gtk_create_string(bg_gtk_widget_t * w, bg_parameter_info_t * info)
     {
     gtk_tooltips_set_tip(w->tooltips, priv->entry, info->help_string, info->help_string);
     }
+
+  if(info->type == BG_PARAMETER_STRING_HIDDEN)
+    gtk_entry_set_visibility(GTK_ENTRY(priv->entry), FALSE);
   
   gtk_widget_show(priv->entry);
   

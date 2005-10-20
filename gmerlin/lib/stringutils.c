@@ -318,3 +318,64 @@ int bg_string_is_url(const char * str)
     }
   return 1;
   }
+
+/* Scramble and descramble password (taken from gftp) */
+
+char * bg_scramble_string(const char * str)
+  {
+  char *newstr, *newpos;
+  
+  newstr = malloc (strlen (str) * 2 + 2);
+  newpos = newstr;
+  
+  *newpos++ = '$';
+
+  while (*str != 0)
+    {
+    *newpos++ = ((*str >> 2) & 0x3c) | 0x41;
+    *newpos++ = ((*str << 2) & 0x3c) | 0x41;
+    str++;
+    }
+  *newpos = 0;
+
+  return (newstr);
+  }
+
+char * bg_descramble_string(const char *str)
+  {
+  const char *strpos;
+  char *newstr, *newpos;
+  int error;
+  
+  if (*str != '$')
+    return (bg_strdup ((char*)0, str));
+  
+  strpos = str + 1;
+  newstr = malloc (strlen (strpos) / 2 + 1);
+  newpos = newstr;
+  
+  error = 0;
+  while (*strpos != '\0' && (*strpos + 1) != '\0')
+    {
+    if ((*strpos & 0xc3) != 0x41 ||
+        (*(strpos + 1) & 0xc3) != 0x41)
+      {
+      error = 1;
+      break;
+      }
+    
+    *newpos++ = ((*strpos & 0x3c) << 2) |
+      ((*(strpos + 1) & 0x3c) >> 2);
+    
+    strpos += 2;
+    }
+  
+  if(error)
+    {
+    free (newstr);
+    return (bg_strdup((char*)0, str));
+    }
+  
+  *newpos = '\0';
+  return (newstr);
+  }
