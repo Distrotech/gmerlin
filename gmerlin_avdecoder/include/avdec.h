@@ -178,8 +178,14 @@ void bgav_set_network_buffer_size(bgav_options_t *, int size);
 /* HTTP Options */
 
 void bgav_set_http_use_proxy(bgav_options_t*, int use_proxy);
+
 void bgav_set_http_proxy_host(bgav_options_t*, const char *);
 void bgav_set_http_proxy_port(bgav_options_t*, int);
+
+void bgav_set_http_proxy_auth(bgav_options_t*, int);
+void bgav_set_http_proxy_user(bgav_options_t*, const char *);
+void bgav_set_http_proxy_pass(bgav_options_t*, const char *);
+
 void bgav_set_http_shoutcast_metadata(bgav_options_t*, int);
 
 /* Set FTP options */

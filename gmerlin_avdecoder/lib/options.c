@@ -66,6 +66,26 @@ void bgav_set_http_proxy_port(bgav_options_t*b, int p)
   b->http_proxy_port = p;
   }
 
+void bgav_set_http_proxy_auth(bgav_options_t*b, int i)
+  {
+  b->http_proxy_auth = i;
+  }
+
+void bgav_set_http_proxy_user(bgav_options_t*b, const char * h)
+  {
+  if(b->http_proxy_user)
+    free(b->http_proxy_user);
+  b->http_proxy_user = bgav_strndup(h, NULL);
+  }
+
+void bgav_set_http_proxy_pass(bgav_options_t*b, const char * h)
+  {
+  if(b->http_proxy_pass)
+    free(b->http_proxy_pass);
+  b->http_proxy_pass = bgav_strndup(h, NULL);
+  }
+
+
 void bgav_set_http_shoutcast_metadata(bgav_options_t*b, int m)
   {
   b->http_shoutcast_metadata = m;
@@ -83,12 +103,14 @@ void bgav_set_ftp_anonymous(bgav_options_t*b, int anonymous)
   b->ftp_anonymous = anonymous;
   }
 
-#define FREE(ptr) if(ptr) free(ptr);
+#define FREE(ptr) if(ptr) free(ptr)
 
 void bgav_options_free(bgav_options_t*opt)
   {
   FREE(opt->ftp_anonymous_password);
-  FREE(opt->http_proxy_host)
+  FREE(opt->http_proxy_host);
+  FREE(opt->http_proxy_user);
+  FREE(opt->http_proxy_pass);
     
   }
 
@@ -131,6 +153,12 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   CP_INT(http_use_proxy);
   CP_STR(http_proxy_host);
   CP_INT(http_proxy_port);
+
+  CP_INT(http_proxy_auth);
+  
+  CP_STR(http_proxy_user);
+  CP_STR(http_proxy_pass);
+  
   CP_INT(http_shoutcast_metadata);
 
   /* ftp options */

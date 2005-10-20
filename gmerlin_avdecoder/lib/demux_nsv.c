@@ -27,7 +27,7 @@
 #define AUDIO_ID 0
 #define VIDEO_ID 1
 
-#define DUMP_HEADERS
+// #define DUMP_HEADERS
 
 /*
  *  Straight forward implementation of the NSV spec from
@@ -566,6 +566,7 @@ static int get_pcm_format(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
           s->data.audio.format.num_channels, s->data.audio.format.samplerate);
 #endif
   s->data.audio.block_align = (s->data.audio.bits_per_sample * s->data.audio.format.num_channels) / 8;
+
 #if 1 /* What's that???? */
   s->data.audio.bits_per_sample = 8;
   s->data.audio.format.num_channels = 1;
@@ -644,7 +645,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
   
   aux_plus_video_len = (aux_plus_video_len << 4) | (num_aux >> 4);
   num_aux &= 0x0f;
-#if 1 
+#if 0 
   fprintf(stderr, "num_aux: %d, aux_plus_video_len: %d, audio_len: %d\n",
           num_aux, aux_plus_video_len, audio_len);
 #endif

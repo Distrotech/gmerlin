@@ -136,6 +136,8 @@ int bgav_http_header_status_code(bgav_http_header_t * h)
 
 const char * bgav_http_header_status_line(bgav_http_header_t * h)
   {
+  if(!h->num_lines)
+    return (const char*)0;
   return h->lines[0].line;
   }
 
@@ -201,13 +203,13 @@ static bgav_http_t * do_connect(const char * host, int port, const bgav_options_
     goto fail;
   
   //  bgav_http_header_send(request_header, ret->fd);
-  //  fprintf(stderr, "Request sent\n");
+  fprintf(stderr, "Request sent\n");
 
-  //  bgav_http_header_dump(request_header);
+  bgav_http_header_dump(request_header);
   
   if(extra_header)
     {
-    //    bgav_http_header_dump(extra_header);
+    bgav_http_header_dump(extra_header);
     if(!bgav_http_header_send(extra_header, ret->fd, error_msg))
       goto fail;
     }
@@ -232,6 +234,27 @@ static bgav_http_t * do_connect(const char * host, int port, const bgav_options_
   return (bgav_http_t*)0;
   }
 
+static char * encode_user_pass(const char * user, const char * pass)
+  {
+  int userpass_len;
+  int userpass_enc_len;
+  char * userpass;
+  char * ret;
+
+  userpass = bgav_sprintf("%s:%s", user, pass);
+  
+  userpass_len = strlen(userpass);
+  userpass_enc_len = (userpass_len * 4)/3+4;
+  
+  ret = malloc(userpass_enc_len);
+  userpass_enc_len = bgav_base64encode(userpass,
+                                       userpass_len,
+                                       ret,
+                                       userpass_enc_len);
+  ret[userpass_enc_len] = '\0';
+  return ret;
+  }
+
 bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
                              char ** redirect_url,
                              bgav_http_header_t * extra_header,
@@ -241,11 +264,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   int status;
   const char * location;
 
-  char * userpass;
   char * userpass_enc;
-
-  int userpass_len;
-  int userpass_enc_len;
     
   char * host     = (char*)0;
   char * path     = (char*)0;
@@ -253,7 +272,10 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   char * line     = (char*)0;
   char * user     = (char*)0;
   char * pass     = (char*)0;
-
+  
+  const char * real_host;
+  int real_port;
+  
   bgav_http_header_t * request_header = (bgav_http_header_t*)0;
   bgav_http_t * ret = (bgav_http_t *)0;
   
@@ -278,14 +300,42 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     fprintf(stderr, "User: %s, pass: %s\n", user, pass);
 #endif
 
+  /* Check for proxy */
+
+  if(opt->http_use_proxy)
+    {
+    real_host = opt->http_proxy_host;
+    real_port = opt->http_proxy_port;
+    }
+  else
+    {
+    real_host = host;
+    real_port = port;
+    }
+  
   /* Build request */
 
   request_header = bgav_http_header_create();
 
-  line = bgav_sprintf("GET %s HTTP/1.1", ((path) ? path : "/"));
+  if(opt->http_use_proxy)
+    line = bgav_sprintf("GET %s HTTP/1.1", url);
+  else
+    line = bgav_sprintf("GET %s HTTP/1.1", ((path) ? path : "/"));
+  
   bgav_http_header_add_line(request_header, line);
   free(line);
 
+  /* Proxy authentication */
+
+  if(opt->http_proxy_auth)
+    {
+    userpass_enc = encode_user_pass(opt->http_proxy_user, opt->http_proxy_pass);
+    line = bgav_sprintf("Proxy-Authorization: Basic %s", userpass_enc);
+    bgav_http_header_add_line(request_header, line);
+    free(line);
+    free(userpass_enc);
+    }
+  
   line = bgav_sprintf("Host: %s", host);
   bgav_http_header_add_line(request_header, line);
   free(line);
@@ -293,7 +343,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   bgav_http_header_add_line(request_header, "User-Agent: gmerlin/0.3.3");
   bgav_http_header_add_line(request_header, "Accept: */*");
 
-  ret = do_connect(host, port, opt, request_header, extra_header, error_msg);
+  ret = do_connect(real_host, real_port, opt, request_header, extra_header, error_msg);
   if(!ret)
     goto fail;
   /* Check status code */
@@ -322,25 +372,13 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
 
     //    fprintf(stderr, "User: %s, pass: %s\n", user, pass);
 
-    userpass = bgav_sprintf("%s:%s", user, pass);
-
-    userpass_len = strlen(userpass);
-    userpass_enc_len = (userpass_len * 4)/3+4;
-    
-    userpass_enc = malloc(userpass_enc_len);
-    userpass_enc_len = bgav_base64encode(userpass,
-                                         userpass_len,
-                                         userpass_enc,
-                                         userpass_enc_len);
-    userpass_enc[userpass_enc_len] = '\0';
-
+    userpass_enc = encode_user_pass(user, pass);
     line = bgav_sprintf("Authorization: Basic %s", userpass_enc);
     bgav_http_header_add_line(request_header, line);
     free(line);
-    free(userpass);
     free(userpass_enc);
     
-    ret = do_connect(host, port, opt, request_header, extra_header, error_msg);
+    ret = do_connect(real_host, real_port, opt, request_header, extra_header, error_msg);
     if(!ret)
       goto fail;
     /* Check status code */
@@ -350,7 +388,8 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     
   if(status >= 400) /* Error */
     {
-    if(error_msg) *error_msg = bgav_sprintf(bgav_http_header_status_line(ret->header));
+    if(error_msg && bgav_http_header_status_line(ret->header))
+      *error_msg = bgav_sprintf(bgav_http_header_status_line(ret->header));
     goto fail;
     }
   else if(status >= 300) /* Redirection */
@@ -374,7 +413,8 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     }
   else if(status < 200)  /* Error */
     {
-    if(error_msg) *error_msg = bgav_sprintf(bgav_http_header_status_line(ret->header));
+    if(error_msg && bgav_http_header_status_line(ret->header))
+      *error_msg = bgav_sprintf(bgav_http_header_status_line(ret->header));
     goto fail;
     }
   

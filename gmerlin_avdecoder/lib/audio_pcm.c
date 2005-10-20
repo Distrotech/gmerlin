@@ -918,9 +918,10 @@ static int decode_pcm(bgav_stream_t * s,
         if(priv->p->samples && (priv->p->samples * priv->block_align < priv->bytes_in_packet))
           priv->bytes_in_packet = priv->p->samples * priv->block_align;
         priv->packet_ptr = priv->p->data;
-
-        fprintf(stderr, "Got packet, %d bytes (%d samples)\n", priv->bytes_in_packet, priv->bytes_in_packet/priv->block_align);
-
+#if 0
+        fprintf(stderr, "Got packet, %d bytes (%d samples)\n",
+                priv->bytes_in_packet, priv->bytes_in_packet/priv->block_align);
+#endif
         }
       
       /* Decode stuff */

@@ -438,6 +438,11 @@ struct bgav_options_s
   int http_use_proxy;
   char * http_proxy_host;
   int http_proxy_port;
+
+  int    http_proxy_auth;
+  char * http_proxy_user;
+  char * http_proxy_pass;
+  
   int http_shoutcast_metadata;
 
   /* ftp options */

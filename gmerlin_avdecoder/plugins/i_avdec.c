@@ -184,6 +184,24 @@ static bg_parameter_info_t parameters[] =
       val_default: { val_i:    80 },
     },
     {
+      name:        "http_proxy_auth",
+      long_name:   "Proxy needs authentication",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 0 },
+    },
+    {
+      name:        "http_proxy_user",
+      long_name:   "Proxy username",
+      type:        BG_PARAMETER_STRING,
+      val_default: { val_str: (char*)0 },
+    },
+    {
+      name:        "http_proxy_pass",
+      long_name:   "Proxy password",
+      type:        BG_PARAMETER_STRING_HIDDEN,
+      val_default: { val_str: (char*)0 },
+    },
+    {
       name:       "ftp_options",
       long_name:  "FTP Options",
       type:       BG_PARAMETER_SECTION
