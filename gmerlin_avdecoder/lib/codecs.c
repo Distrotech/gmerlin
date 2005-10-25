@@ -226,6 +226,10 @@ void bgav_codecs_init()
   bgav_init_video_decoders_tiff();
 #endif
 
+#ifdef HAVE_THEORA
+  bgav_init_video_decoders_theora();
+#endif
+
 #ifdef HAVE_FAAD2
   bgav_init_audio_decoders_faad2();
 #endif

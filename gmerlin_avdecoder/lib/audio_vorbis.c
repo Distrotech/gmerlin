@@ -397,6 +397,14 @@ static int init_vorbis(bgav_stream_t * s)
     
   else if(s->fourcc == BGAV_VORBIS)
     {
+    if(!s->ext_data)
+      {
+      fprintf(stderr, "No extradata found\n");
+      return 0;
+      }
+    //    else
+    //      fprintf(stderr, "Found extradata %d bytes\n", s->ext_size);
+    
     ptr = s->ext_data;
     ptr = parse_packet(&priv->dec_op, ptr);
 
@@ -423,6 +431,11 @@ static int init_vorbis(bgav_stream_t * s)
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE;
   s->data.audio.format.samples_per_frame = 1024;
 
+  /* Set up audio format from the vorbis header overriding previous values */
+  s->data.audio.format.samplerate = priv->dec_vi.rate;
+  s->data.audio.format.num_channels = priv->dec_vi.channels;
+  
+  
   priv->frame = gavl_audio_frame_create(NULL);
     
   gavl_set_channel_setup(&(s->data.audio.format));

@@ -121,6 +121,28 @@ AC_DEFINE([HAVE_LIBDV])
 fi
 
 dnl
+dnl Check for theora
+dnl
+
+AH_TEMPLATE([HAVE_THEORA],
+            [Do we have theora installed?])
+
+have_theora="false"
+
+THEORA_REQUIRED="1.0alpha5"
+
+PKG_CHECK_MODULES(THEORA, theora >= $THEORA_REQUIRED, have_theora="true", have_theora="false")
+AC_SUBST(THEORA_REQUIRED)
+AC_SUBST(THEORA_LIBS)
+AC_SUBST(THEORA_CFLAGS)
+
+AM_CONDITIONAL(HAVE_THEORA, test x$have_theora = xtrue)
+
+if test "x$have_theora" = "xtrue"; then
+AC_DEFINE([HAVE_THEORA])
+fi
+
+dnl
 dnl Check for mjpegtools
 dnl
 
@@ -773,6 +795,13 @@ fi
 echo -n "vorbis:                 "
 if test "x$have_vorbis" = "xtrue"; then
 echo "Found (CFLAGS=$VORBIS_CFLAGS LIBS=$VORBIS_LIBS)"
+else
+echo "Missing"
+fi
+
+echo -n "theora:                 "
+if test "x$have_theora" = "xtrue"; then
+echo "Found (CFLAGS=$THEORA_CFLAGS LIBS=$THEORA_LIBS)"
 else
 echo "Missing"
 fi

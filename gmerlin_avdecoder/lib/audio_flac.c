@@ -76,7 +76,7 @@ read_callback(const FLAC__StreamDecoder *decoder,
       bytes_read += bytes_to_copy;
       priv->header_ptr += bytes_to_copy;
 
-      //      fprintf(stderr, "Added header %d\n", bytes_to_copy);
+      //      fprintf(stderr, "Added header %d, wanted %d\n", bytes_to_copy, *bytes);
       }
     
     if(!priv->p)
@@ -85,6 +85,11 @@ read_callback(const FLAC__StreamDecoder *decoder,
       if(!priv->p)
         break;
       priv->data_ptr = priv->p->data;
+#if 0
+      fprintf(stderr, "Got packet %d (bytes_read: %d)\n", priv->p->data_size,
+              bytes_read);
+      bgav_hexdump(priv->p->data, 16, 16);
+#endif
       }
 
     /* Bytes, which are left from the packet */
@@ -186,7 +191,14 @@ metadata_callback(const FLAC__StreamDecoder *decoder,
                   const FLAC__StreamMetadata *metadata,
                   void *client_data)
   {
-  //  fprintf(stderr, "Metadata_callback\n"); 
+  bgav_stream_t * s;
+  s = (bgav_stream_t *)client_data;
+  fprintf(stderr, "Metadata_callback\n"); 
+  if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO)
+    {
+    s->data.audio.format.num_channels = metadata->data.stream_info.channels;
+    s->data.audio.bits_per_sample     = metadata->data.stream_info.bits_per_sample;
+    }
   }
 
 void
@@ -225,10 +237,24 @@ static int init_flac(bgav_stream_t * s)
 
   FLAC__stream_decoder_set_client_data(priv->dec, s);
   FLAC__stream_decoder_init(priv->dec);
+
+  if(!FLAC__stream_decoder_process_until_end_of_metadata(priv->dec))
+    {
+    fprintf(stderr, "Reading metadata failed\n");
+    return 0;
+    }
+  else
+    {
+    fprintf(stderr, "Got metadata %d channels\n",
+            s->data.audio.format.num_channels);
+    }
+  
+  s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE;
   
   gavl_set_channel_setup(&(s->data.audio.format));
   s->data.audio.format.samples_per_frame = 1024;
 
+  
   /* Set sample format stuff */
 
   if(s->data.audio.bits_per_sample <= 8)

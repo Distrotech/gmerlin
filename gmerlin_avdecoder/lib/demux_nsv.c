@@ -733,7 +733,7 @@ static void seek_nsv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   uint32_t index_position;
   int64_t file_position;
   nsv_priv_t * priv;
-  gavl_time_t sync_time;
+  gavl_time_t sync_time = GAVL_TIME_UNDEFINED;
 
   bgav_stream_t * vs, *as;
   nsv_sync_header_t sh;

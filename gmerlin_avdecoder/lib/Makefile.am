@@ -144,6 +144,16 @@ samba_libs =
 samba_sources =
 endif
 
+if HAVE_THEORA
+theora_cflags  = @THEORA_CFLAGS@
+theora_libs    = @THEORA_LIBS@
+theora_sources = video_theora.c
+else
+theora_cflags  =
+theora_libs    =
+theora_sources =
+endif
+
 if HAVE_W32DLL
 win32_subdirs = libw32dll
 win32_libs = \
@@ -195,6 +205,7 @@ $(cdio_libs) \
 $(libdv_libs) \
 $(mjpegtools_libs) \
 $(samba_libs) \
+$(theora_libs) \
 GSM610/libgsm.la \
 -lm
 
@@ -213,7 +224,8 @@ $(avcodec_cflags) \
 $(cdio_cflags) \
 $(libdv_cflags) \
 $(mjpegtools_cflags) \
-$(samba_cflags)
+$(samba_cflags) \
+$(theora_cflags)
 
 
 libgmerlin_avdec_la_SOURCES = \
@@ -234,6 +246,7 @@ $(cdio_sources) \
 $(libdv_sources) \
 $(mjpegtools_sources) \
 $(samba_sources) \
+$(theora_sources) \
 RTjpeg.c \
 apetag.c \
 audio.c \

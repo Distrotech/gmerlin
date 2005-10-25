@@ -347,6 +347,7 @@ typedef struct
   bgav_stream_t * audio_streams;
   bgav_stream_t * video_streams;
 
+  void * priv; /* For storing private data */  
   } bgav_track_t;
 
 /* track.c */
@@ -410,6 +411,7 @@ typedef struct
 /* Tracktable */
 
 bgav_track_table_t * bgav_track_table_create(int num_tracks);
+bgav_track_t * bgav_track_table_append_track(bgav_track_table_t * t);
 
 void bgav_track_table_unref(bgav_track_table_t*);
 void bgav_track_table_ref(bgav_track_table_t*);
