@@ -130,7 +130,7 @@ const char * gavl_channel_id_to_string(gavl_channel_id_t id)
 void gavl_audio_format_dump(const gavl_audio_format_t * f)
   {
   int i;
-  fprintf(stderr, "  Channels:          %d", f->num_channels);
+  fprintf(stderr, "  Channels:          %d\n", f->num_channels);
 
   fprintf(stderr, "  Channel order:     ");
   for(i = 0; i < f->num_channels; i++)

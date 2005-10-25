@@ -67,7 +67,7 @@ typedef int64_t gavl_time_t;
  */
 
 #define gavl_time_to_samples(rate, t) \
-  (((t)*(rate))/GAVL_TIME_SCALE)
+  ((((int64_t)t)*((int64_t)rate))/GAVL_TIME_SCALE)
 
 /*! \ingroup time
  * \brief Convert a time to a number of video frames for a given framerate
@@ -90,7 +90,20 @@ typedef int64_t gavl_time_t;
  */
 
 #define gavl_time_unscale(scale, time) \
-(((time)*GAVL_TIME_SCALE)/(scale))
+((((int64_t)time)*GAVL_TIME_SCALE)/(scale))
+
+/*! \ingroup time
+ * \brief Convert a time scaled by one base to a time scaled by another base
+ * \param scale1 Initial time base
+ * \param scale2 New time base
+ * \param time Time scaled by scale1
+ * \returns Time scaled by scale2
+ * \todo Write this as an overflow save function
+ */
+
+#define gavl_time_rescale(scale1, scale2, time)  \
+((((int64_t)time)*scale2)/(scale1))
+
 
 /*! \ingroup time
  * \brief Convert a gavl time to a time scaled by another base 
@@ -101,7 +114,7 @@ typedef int64_t gavl_time_t;
  */
 
 #define gavl_time_scale(scale, time)          \
-(((time)*(scale))/GAVL_TIME_SCALE)
+((((int64_t)time)*((int64_t)scale))/GAVL_TIME_SCALE)
 
 /*! \ingroup time
  * \brief Convert seconds (as double) to a gavl time
