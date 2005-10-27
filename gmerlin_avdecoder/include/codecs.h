@@ -26,6 +26,10 @@ void bgav_init_video_decoders_tiff();
 void bgav_init_video_decoders_theora();
 #endif
 
+#ifdef HAVE_SPEEX
+void bgav_init_audio_decoders_speex();
+#endif
+
 #ifdef HAVE_FAAD2
 void bgav_init_audio_decoders_faad2();
 #endif

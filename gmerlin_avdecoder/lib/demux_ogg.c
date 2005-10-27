@@ -28,11 +28,12 @@
 
 /* Fourcc definitions.
    Each private stream data also has a fourcc, which lets us
-   detect OGM formats independently of the actual fourcc used here */
+   detect OGM streams independently of the actual fourcc used here */
 
 #define FOURCC_VORBIS    BGAV_MK_FOURCC('V','B','I','S')
 #define FOURCC_THEORA    BGAV_MK_FOURCC('T','H','R','A')
 #define FOURCC_FLAC      BGAV_MK_FOURCC('F','L','A','C')
+#define FOURCC_SPEEX     BGAV_MK_FOURCC('S','P','E','X')
 #define FOURCC_OGM_AUDIO BGAV_MK_FOURCC('O','G','M','A')
 #define FOURCC_OGM_VIDEO BGAV_MK_FOURCC('O','G','M','V')
 
@@ -60,6 +61,9 @@ typedef struct
   {
   int64_t start_pos;
   int64_t end_pos;
+  
+  int * unsupported_streams;
+  int num_unsupported_streams;
   } track_priv_t;
 
 typedef struct
@@ -179,6 +183,46 @@ static void ogm_header_dump(ogm_header_t * h)
     }
   }
 
+/* Dump entire structure of the file */
+
+static void dump_ogg(bgav_demuxer_context_t * ctx)
+  {
+  int i, j;
+  bgav_track_t * track;
+  track_priv_t * track_priv;
+  stream_priv_t * stream_priv;
+  bgav_stream_t * s;
+  
+  fprintf(stderr, "Ogg Structure\n");
+
+  for(i = 0; i < ctx->tt->num_tracks; i++)
+    {
+    track = &(ctx->tt->tracks[i]);
+    track_priv = (track_priv_t*)(track->priv);
+    fprintf(stderr, "Track %d, start_pos: %lld, end_pos: %lld\n",
+            i+1, track_priv->start_pos, track_priv->end_pos);
+    
+    for(j = 0; j < track->num_audio_streams; j++)
+      {
+      s = &track->audio_streams[j];
+      stream_priv = (stream_priv_t*)(s->priv);
+      fprintf(stderr, "Audio stream %d\n", j+1);
+      fprintf(stderr, "  Last granulepos: %lld\n",
+              stream_priv->last_granulepos);
+      }
+    for(j = 0; j < track->num_video_streams; j++)
+      {
+      s = &track->video_streams[j];
+      stream_priv = (stream_priv_t*)(s->priv);
+      fprintf(stderr, "Video stream %d\n", j+1);
+      fprintf(stderr, "  Last granulepos: %lld\n",
+              stream_priv->last_granulepos);
+      }
+    
+    }
+  
+  }
+
 static void seek_byte(bgav_demuxer_context_t * ctx, int64_t pos)
   {
   ogg_priv * priv = (ogg_priv*)(ctx->priv);
@@ -212,9 +256,9 @@ static void append_extradata(bgav_stream_t * s, ogg_packet * op)
   memcpy(s->ext_data + s->ext_size, op, sizeof(*op));
   memcpy(s->ext_data + s->ext_size + sizeof(*op), op->packet, op->bytes);
   s->ext_size += (sizeof(*op) + op->bytes);
-  fprintf(stderr, "Appended extradata %ld bytes, fourcc: ", (sizeof(*op) + op->bytes));
-  bgav_dump_fourcc(s->fourcc);
-  fprintf(stderr, "\n");
+  //  fprintf(stderr, "Appended extradata %ld bytes, fourcc: ", (sizeof(*op) + op->bytes));
+  //  bgav_dump_fourcc(s->fourcc);
+  //  fprintf(stderr, "\n");
   //  bgav_hexdump(op->packet, op->bytes, 16);
   }
 
@@ -265,6 +309,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
     fprintf(stderr, "Serialno: %d\n", serialno);
     
     ogg_stream = calloc(1, sizeof(*ogg_stream));
+    ogg_stream->last_granulepos = -1;
     ogg_stream_init(&ogg_stream->os, serialno);
     ogg_stream_pagein(&ogg_stream->os, &(priv->current_page));
 
@@ -274,8 +319,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       return 0;
       }
 
-    fprintf(stderr, "First packet (%ld bytes):\n", priv->op.bytes);
-    bgav_hexdump(priv->op.packet, priv->op.bytes, 16);
+    //    fprintf(stderr, "First packet (%ld bytes):\n", priv->op.bytes);
+    //    bgav_hexdump(priv->op.packet, priv->op.bytes, 16);
 
     /* Vorbis */
     if((priv->op.bytes > 7) &&
@@ -371,6 +416,40 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         }
       }
 
+    /* Speex */
+    else if((priv->op.bytes >= 80) &&
+            !strncmp((char*)(priv->op.packet), "Speex", 5))
+      {
+      fprintf(stderr, "Detected Speex data (header size: %d)\n", priv->op.bytes);
+      s = bgav_track_add_audio_stream(track);
+      s->fourcc = FOURCC_SPEEX;
+      ogg_stream->fourcc_priv = FOURCC_SPEEX;
+      s->priv   = ogg_stream;
+      s->stream_id = serialno;
+
+      ogg_stream->header_packets_needed = 2;
+      ogg_stream->header_packets_read = 1;
+
+      /* First packet is also the extradata */
+      s->ext_data = malloc(priv->op.bytes);
+      memcpy(s->ext_data, priv->op.packet, priv->op.bytes);
+      s->ext_size = priv->op.bytes;
+
+      /* Samplerate */
+      s->data.audio.format.samplerate = BGAV_PTR_2_32LE(priv->op.packet + 36);
+
+      /* Extra packets */
+      ogg_stream->header_packets_needed += BGAV_PTR_2_32LE(priv->op.packet + 68);
+      
+      
+      while(ogg_stream_packetout(&ogg_stream->os, &priv->op) == 1)
+        {
+        fprintf(stderr, "Speex extradata %ld bytes\n", priv->op.bytes);
+        bgav_hexdump(priv->op.packet, priv->op.bytes, 16);
+        }
+      }
+
+    
     /* OGM Video stream */
     else if((priv->op.bytes >= 9) &&
             (priv->op.packet[0] == 0x01) &&
@@ -416,84 +495,111 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       ogg_stream->header_packets_needed = 2;
       ogg_stream->header_packets_read = 1;
       }
+    else /* Unsupported track, but we need the serialno also  */
+      {
+      fprintf(stderr,
+              "Warning, unsupported stream (serialno: %d), first bytes:\n",
+              serialno);
+      bgav_hexdump(priv->op.packet,
+                   priv->op.bytes < 16 ? priv->op.bytes : 16, 16);
+      
+      ogg_track->unsupported_streams =
+        realloc(ogg_track->unsupported_streams,
+                sizeof(*ogg_track->unsupported_streams) *
+                (ogg_track->num_unsupported_streams + 1));
+      
+      ogg_track->unsupported_streams[ogg_track->num_unsupported_streams] =
+        serialno;
+      ogg_track->num_unsupported_streams++;
+      }
+    
     }
 
-  /* Now, read header pages until we are done */
+  /*
+   *  Now, read header pages until we are done, current_page still contains the
+   *  first page which has no bos marker set
+   */
 
   done = 0;
   while(!done)
     {
+#if 1
     fprintf(stderr, "Got header page (no: %ld, packets: %d, serialno: %d)\n",
             ogg_page_pageno(&(priv->current_page)),
             ogg_page_packets(&(priv->current_page)),
             ogg_page_serialno(&(priv->current_page)));
-
+#endif
     s = bgav_track_find_stream_all(track, ogg_page_serialno(&(priv->current_page)));
-    if(!s)
-      continue;
 
-    ogg_stream = (stream_priv_t*)(s->priv);
-    ogg_stream_pagein(&(ogg_stream->os), &(priv->current_page));
-
-    switch(ogg_stream->fourcc_priv)
+    if(s)
       {
-      case FOURCC_THEORA:
-      case FOURCC_VORBIS:
-        /* Read remaining header packets from this page */
-        while(ogg_stream_packetout(&ogg_stream->os, &priv->op) == 1)
-          {
-          append_extradata(s, &priv->op);
-          ogg_stream->header_packets_read++;
-          if(ogg_stream->header_packets_read == ogg_stream->header_packets_needed)
+      ogg_stream = (stream_priv_t*)(s->priv);
+      ogg_stream_pagein(&(ogg_stream->os), &(priv->current_page));
+      
+      switch(ogg_stream->fourcc_priv)
+        {
+        case FOURCC_THEORA:
+        case FOURCC_VORBIS:
+          /* Read remaining header packets from this page */
+          while(ogg_stream_packetout(&ogg_stream->os, &priv->op) == 1)
             {
-            break;
+            append_extradata(s, &priv->op);
+            ogg_stream->header_packets_read++;
+            if(ogg_stream->header_packets_read == ogg_stream->header_packets_needed)
+              {
+              break;
+              }
             }
-          }
-        break;
-      case FOURCC_OGM_VIDEO:
-        /* Comment packet (can be ignored) */
-        ogg_stream->header_packets_read++;
-      case FOURCC_FLAC:
-        while(ogg_stream_packetout(&ogg_stream->os, &priv->op) == 1)
-          {
-
-          switch(priv->op.packet[0] & 0x7f)
+          break;
+        case FOURCC_OGM_VIDEO:
+          /* Comment packet (can be ignored) */
+          ogg_stream->header_packets_read++;
+        case FOURCC_SPEEX:
+          /* Comment packet (ignored for now) */
+          ogg_stream_packetout(&ogg_stream->os, &priv->op);
+          ogg_stream->header_packets_read++;
+        case FOURCC_FLAC:
+          while(ogg_stream_packetout(&ogg_stream->os, &priv->op) == 1)
             {
-            case 0: /* STREAMINFO, this is the only info we'll tell to the flac demuxer */
-              fprintf(stderr, "FLAC extradata %ld bytes\n", priv->op.bytes);
-              bgav_hexdump(priv->op.packet, priv->op.bytes, 16);
-              if(s->ext_data)
-                {
-                fprintf(stderr, "Error, flac extradata already set\n");
-                return 0;
-                }
-              s->ext_data = malloc(priv->op.bytes + 4);
-              s->ext_data[0] = 'f';
-              s->ext_data[1] = 'L';
-              s->ext_data[2] = 'a';
-              s->ext_data[3] = 'C';
-              memcpy(s->ext_data + 4, priv->op.packet, priv->op.bytes);
-              s->ext_size = priv->op.bytes + 4;
 
-              /* We tell the decoder, that this is the last metadata packet */
-              s->ext_data[4] |= 0x80;
+            switch(priv->op.packet[0] & 0x7f)
+              {
+              case 0: /* STREAMINFO, this is the only info we'll tell to the flac demuxer */
+                fprintf(stderr, "FLAC extradata %ld bytes\n", priv->op.bytes);
+                bgav_hexdump(priv->op.packet, priv->op.bytes, 16);
+                if(s->ext_data)
+                  {
+                  fprintf(stderr, "Error, flac extradata already set\n");
+                  return 0;
+                  }
+                s->ext_data = malloc(priv->op.bytes + 4);
+                s->ext_data[0] = 'f';
+                s->ext_data[1] = 'L';
+                s->ext_data[2] = 'a';
+                s->ext_data[3] = 'C';
+                memcpy(s->ext_data + 4, priv->op.packet, priv->op.bytes);
+                s->ext_size = priv->op.bytes + 4;
+
+                /* We tell the decoder, that this is the last metadata packet */
+                s->ext_data[4] |= 0x80;
               
-              s->data.audio.format.samplerate = 
-                (priv->op.packet[14] << 12) |
-                (priv->op.packet[15] << 4) |
-                ((priv->op.packet[16] >> 4)&0xf);
-              fprintf(stderr, "Flac samplerate: %d\n", 
-                      s->data.audio.format.samplerate);
+                s->data.audio.format.samplerate = 
+                  (priv->op.packet[14] << 12) |
+                  (priv->op.packet[15] << 4) |
+                  ((priv->op.packet[16] >> 4)&0xf);
+                fprintf(stderr, "Flac samplerate: %d\n", 
+                        s->data.audio.format.samplerate);
                       
-              break;
-            case 1:
-              fprintf(stderr, "Found vorbis comment in flac header\n");
-              break;
+                break;
+              case 1:
+                fprintf(stderr, "Found vorbis comment in flac header\n");
+                break;
+              }
+            ogg_stream->header_packets_read++;
+            if(!(priv->op.packet[0] & 0x80))
+              ogg_stream->header_packets_needed++;
             }
-          ogg_stream->header_packets_read++;
-          if(!(priv->op.packet[0] & 0x80))
-            ogg_stream->header_packets_needed++;
-          }
+        }
       }
     
     /* Check if we are done for all streams */
@@ -537,7 +643,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
 
 static int64_t
 find_first_page(bgav_demuxer_context_t * ctx, int64_t pos1, int64_t pos2,
-                int * serialno)
+                int * serialno, int64_t * granulepos)
   {
   int64_t ret;
   int result;
@@ -562,6 +668,8 @@ find_first_page(bgav_demuxer_context_t * ctx, int64_t pos1, int64_t pos2,
       
       if(serialno)
         *serialno = ogg_page_serialno(&(priv->current_page));
+      if(granulepos)
+        *granulepos = ogg_page_granulepos(&(priv->current_page));
       return ret;
       }
     else if(result < 0) /* Skipped -result bytes */
@@ -575,17 +683,20 @@ find_first_page(bgav_demuxer_context_t * ctx, int64_t pos1, int64_t pos2,
 /* Find the last page between pos1 and pos2,
    return file position, -1 is returned on failure */
 
-static int64_t find_last_page(bgav_demuxer_context_t * ctx, int64_t pos1, int64_t pos2,
-                              int * serialno)
+static int64_t find_last_page(bgav_demuxer_context_t * ctx, int64_t pos1,
+                              int64_t pos2,
+                              int * serialno, int64_t * granulepos)
   {
   int64_t page_pos, last_page_pos = -1, start_pos;
   int this_serialno, last_serialno = 0;
+  int64_t this_granulepos, last_granulepos = 0;
   start_pos = pos2 - BYTES_TO_READ;
   
   while(1)
     {
     //    fprintf(stderr, "find_last_page %lld %lld...", start_pos, pos2);    
-    page_pos = find_first_page(ctx, start_pos, pos2, &this_serialno);
+    page_pos = find_first_page(ctx, start_pos, pos2, &this_serialno,
+                               &this_granulepos);
     
     //    fprintf(stderr, "Pos: %lld\n", page_pos);
     if(page_pos == -1)
@@ -594,6 +705,8 @@ static int64_t find_last_page(bgav_demuxer_context_t * ctx, int64_t pos1, int64_
         {
         if(serialno)
           *serialno = last_serialno;
+        if(granulepos)
+          *granulepos = last_granulepos;
         return last_page_pos;
         }
       else if(start_pos <= pos1) /* Beginning of seek range -> fail */
@@ -607,7 +720,8 @@ static int64_t find_last_page(bgav_demuxer_context_t * ctx, int64_t pos1, int64_
       }
     else
       {
-      last_serialno = this_serialno;
+      last_serialno   = this_serialno;
+      last_granulepos = this_granulepos;
       last_page_pos = page_pos;
       start_pos = page_pos+1;
       }
@@ -615,42 +729,58 @@ static int64_t find_last_page(bgav_demuxer_context_t * ctx, int64_t pos1, int64_
   return -1;
   }
 
-
-static int track_has_serialno(bgav_track_t * track, int serialno)
+static int track_has_serialno(bgav_track_t * track,
+                              int serialno, bgav_stream_t ** s)
   {
+  track_priv_t * track_priv;
   int i;
-
+  
   for(i = 0; i < track->num_audio_streams; i++)
     {
     if(track->audio_streams[i].stream_id == serialno)
+      {
+      if(s)
+        *s = &track->audio_streams[i];
       return 1;
+      }
     }
 
   for(i = 0; i < track->num_video_streams; i++)
     {
     if(track->video_streams[i].stream_id == serialno)
+      {
+      if(s)
+        *s = &track->video_streams[i];
+      return 1;
+      }
+    }
+
+  if(s)
+    *s = (bgav_stream_t*)0;
+  
+  track_priv = (track_priv_t*)(track->priv);
+
+  for(i = 0; i < track_priv->num_unsupported_streams; i++)
+    {
+    if(track_priv->unsupported_streams[i] == serialno)
       return 1;
     }
   return 0;
   }
 
 /* Find the next track starting with the current position */
-static int64_t find_next_track(bgav_demuxer_context_t * ctx, int64_t start_pos)
+static int64_t find_next_track(bgav_demuxer_context_t * ctx,
+                               int64_t start_pos, bgav_track_t * last_track)
   {
-  int64_t pos1, pos2, test_pos, page_pos_1, page_pos_2;
-  bgav_track_t * last_track, *new_track;
+  int64_t pos1, pos2, test_pos, page_pos_1, page_pos_2, granulepos_1;
+  bgav_track_t * new_track;
   ogg_priv * priv;
   int serialno_1, serialno_2;
-
-  priv = (ogg_priv *)(ctx->priv);
-
+  bgav_stream_t * s;
+  stream_priv_t * stream_priv;
   
-  /* Check, if there are tracks left to find */
-  last_track = &(ctx->tt->tracks[ctx->tt->num_tracks-1]);
-
-  if(track_has_serialno(last_track, priv->last_page_serialno))
-    return -1;
-
+  priv = (ogg_priv *)(ctx->priv);
+  
   /* Do bisection search */
   pos1 = start_pos;
   pos2 = ctx->input->total_bytes;
@@ -662,28 +792,30 @@ static int64_t find_next_track(bgav_demuxer_context_t * ctx, int64_t start_pos)
     //    fprintf(stderr, "Find next track %lld %lld %lld\n",
     //            pos1, pos2, test_pos);
     
-    page_pos_1 = find_last_page(ctx, start_pos, test_pos, &serialno_1);
+    page_pos_1 = find_last_page(ctx, start_pos, test_pos, &serialno_1,
+                                &granulepos_1);
     //    fprintf(stderr, "page_pos_1: %lld\n", page_pos_1);
     //    fprintf(stderr, "page_1: pos: %lld, serialno: %d\n", page_pos_1, serialno_1);
     
     if(page_pos_1 < 0)
       return -1;
-
     
-    if(!track_has_serialno(last_track, serialno_1))
+    if(!track_has_serialno(last_track, serialno_1, &s))
       {
       pos2 = page_pos_1;
       continue;
       }
 
-    page_pos_2 = find_first_page(ctx, test_pos, ctx->input->total_bytes, &serialno_2);
+    page_pos_2 = find_first_page(ctx, test_pos,
+                                 ctx->input->total_bytes, &serialno_2,
+                                 (int64_t*)0);
     //    fprintf(stderr, "page_pos_2: %lld\n", page_pos_2);
     //    fprintf(stderr, "page_2: pos: %lld, serialno: %d\n", page_pos_2, serialno_2);
 
     if(page_pos_2 < 0)
       return -1;
     
-    if(track_has_serialno(last_track, serialno_2))
+    if(track_has_serialno(last_track, serialno_2, (bgav_stream_t**)0))
       {
       //      pos1 = test_pos;
       pos1 = page_pos_2;
@@ -704,17 +836,132 @@ static int64_t find_next_track(bgav_demuxer_context_t * ctx, int64_t start_pos)
       fprintf(stderr, "Error: Setting up track failed\n");
       return 0;
       }
-    
+
+    /* Now, we also now the last granulepos of last_track */
+
+    if(s)
+      {
+      stream_priv = (stream_priv_t*)(s->priv);
+      stream_priv->last_granulepos = granulepos_1;
+      }
     return page_pos_2;
     }
   return -1;
   }
 
+static gavl_time_t granulepos_2_time(bgav_stream_t * s,
+                                     int64_t pos)
+  {
+  int64_t frames;
+
+  stream_priv_t * stream_priv;
+  stream_priv = (stream_priv_t *)(s->priv);
+  switch(stream_priv->fourcc_priv)
+    {
+    case FOURCC_VORBIS:
+    case FOURCC_FLAC:
+    case FOURCC_SPEEX:
+    case FOURCC_OGM_AUDIO:
+      return gavl_samples_to_time(s->data.audio.format.samplerate,
+                                  pos);
+      break;
+    case FOURCC_THEORA:
+      stream_priv = (stream_priv_t*)(s->priv);
+
+      frames =
+        pos >> stream_priv->keyframe_granule_shift;
+      frames +=
+        pos-(frames<<stream_priv->keyframe_granule_shift);
+      return gavl_frames_to_time(s->data.video.format.timescale,
+                                 s->data.video.format.frame_duration,
+                                 frames);
+      break;
+    case FOURCC_OGM_VIDEO:
+      return gavl_frames_to_time(s->data.video.format.timescale,
+                          s->data.video.format.frame_duration,
+                          pos);
+      break;
+    
+    }
+  return GAVL_TIME_UNDEFINED;
+  }
+
+static void get_last_granulepos(bgav_demuxer_context_t * ctx,
+                                bgav_track_t * track)
+  {
+  stream_priv_t * stream_priv;
+  track_priv_t * track_priv;
+  int64_t pos, granulepos;
+  int done = 0, i, serialno;
+  bgav_stream_t * s;
+  
+  track_priv = (track_priv_t*)(track->priv);
+
+  pos = track_priv->end_pos;
+  
+  while(!done)
+    {
+    fprintf(stderr, "get_last_granulepos %lld\n",
+            pos);
+    
+    /* Check if we are already done */
+    done = 1;
+    for(i = 0; i < track->num_audio_streams; i++)
+      {
+      stream_priv = (stream_priv_t*)(track->audio_streams[i].priv);
+      if(stream_priv->last_granulepos < 0)
+        {
+        done = 0;
+        break;
+        }
+      }
+    if(done)
+      {
+      for(i = 0; i < track->num_video_streams; i++)
+        {
+        stream_priv = (stream_priv_t*)(track->video_streams[i].priv);
+        if(stream_priv->last_granulepos < 0)
+          {
+          done = 0;
+          break;
+          }
+        }
+      }
+    if(done)
+      break;
+    /* Get the next last page */
+    
+    pos = find_last_page(ctx, track_priv->start_pos,
+                         pos, &serialno, &granulepos);
+
+    if(pos < 0) /* Should never happen */
+      break;
+
+    s = (bgav_stream_t*)0;
+    if(track_has_serialno(track, serialno, &s) && s)
+      {
+      stream_priv = (stream_priv_t*)(s->priv);
+      if(stream_priv->last_granulepos < 0)
+        stream_priv->last_granulepos = granulepos;
+      fprintf(stderr, "Got granulepos: %lld %lld\n",
+              stream_priv->last_granulepos, granulepos);
+      }
+    }
+  
+  }
+
 static int open_ogg(bgav_demuxer_context_t * ctx,
                     bgav_redirector_context_t ** redir)
   {
-  int64_t result;
+  gavl_time_t stream_duration;
+  int i, j;
+  track_priv_t * track_priv_1, * track_priv_2;
+  bgav_track_t * last_track;
+  bgav_stream_t * s;
+  stream_priv_t * stream_priv;
+  int64_t result, last_granulepos;
   ogg_priv * priv;
+  
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
   
@@ -731,26 +978,103 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
     {
     /* Get the last page of the stream and check for the serialno */
 
-    fprintf(stderr, "Getting last page...");    
-    if(find_last_page(ctx, 0, ctx->input->total_bytes, &priv->last_page_serialno) < 0)
+    fprintf(stderr, "Getting last page...");
+    if(find_last_page(ctx, 0, ctx->input->total_bytes,
+                      &priv->last_page_serialno,
+                      &last_granulepos) < 0)
       {
       fprintf(stderr, "failed\n");
       return 0;
       }
     fprintf(stderr, "done\n");
-    fprintf(stderr, "Last page serialno: %d\n", priv->last_page_serialno);
+    fprintf(stderr, "Last page: serialno: %d, granulepos: %lld\n",
+            priv->last_page_serialno, last_granulepos);
     result = priv->data_start;
     while(1)
       {
-      result = find_next_track(ctx, result);
+      last_track = &(ctx->tt->tracks[ctx->tt->num_tracks-1]);
+
+      if(track_has_serialno(last_track, priv->last_page_serialno, &s))
+        {
+        if(s && last_granulepos >= 0)
+          {
+          stream_priv = (stream_priv_t*)(s->priv);
+          stream_priv->last_granulepos = last_granulepos;
+          }
+        break;
+        }
+      
+      /* Check, if there are tracks left to find */
+      result = find_next_track(ctx, result, last_track);
       if(result == -1)
         break;
       }
+
+    /* Get the end positions of all tracks */
+
+    track_priv_1 = (track_priv_t*)(ctx->tt->tracks[0].priv);
+    for(i = 0; i < ctx->tt->num_tracks; i++)
+      {
+      if(i == ctx->tt->num_tracks-1)
+        track_priv_1->end_pos = ctx->input->total_bytes;
+      else
+        {
+        track_priv_2 = (track_priv_t*)(ctx->tt->tracks[i+1].priv);
+        track_priv_1->end_pos = track_priv_2->start_pos;
+        track_priv_1 = track_priv_2;
+        }
+      }
+
+    /* Get the last granulepositions for streams, which, don't have one
+       yet */
+
+    for(i = 0; i < ctx->tt->num_tracks; i++)
+      get_last_granulepos(ctx, &(ctx->tt->tracks[i]));
+
+    /* Get the duration and reset all streams */
+
+    for(i = 0; i < ctx->tt->num_tracks; i++)
+      {
+      for(j = 0; j < ctx->tt->tracks[i].num_audio_streams; j++)
+        {
+        stream_priv =
+          (stream_priv_t*)(ctx->tt->tracks[i].audio_streams[j].priv);
+
+        ogg_stream_reset(&stream_priv->os);
+        
+        stream_duration =
+          granulepos_2_time(&ctx->tt->tracks[i].audio_streams[j],
+                            stream_priv->last_granulepos);
+        if((ctx->tt->tracks[i].duration == GAVL_TIME_UNDEFINED) ||
+           (ctx->tt->tracks[i].duration < stream_duration))
+          ctx->tt->tracks[i].duration = stream_duration;
+        }
+
+      for(j = 0; j < ctx->tt->tracks[i].num_video_streams; j++)
+        {
+        stream_priv =
+          (stream_priv_t*)(ctx->tt->tracks[i].video_streams[j].priv);
+
+        ogg_stream_reset(&stream_priv->os);
+        
+        stream_duration =
+          granulepos_2_time(&ctx->tt->tracks[i].video_streams[j],
+                            stream_priv->last_granulepos);
+        if((ctx->tt->tracks[i].duration == GAVL_TIME_UNDEFINED) ||
+           (ctx->tt->tracks[i].duration < stream_duration))
+          ctx->tt->tracks[i].duration = stream_duration;
+        }
+      
+      }
+
+    
     
     }
+
+  dump_ogg(ctx);
   
-  if(ctx->input->input->seek_byte)
-    ctx->can_seek = 1;
+  //  if(ctx->input->input->seek_byte)
+  //    ctx->can_seek = 1;
   ctx->stream_description = bgav_strndup("Ogg bitstream", NULL);
   return 1;
   }
@@ -790,6 +1114,8 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
     
   while(ogg_stream_packetout(&ogg_stream->os, &priv->op) == 1)
     {
+    // fprintf(stderr, "packetno: %lld\n", priv->op.packetno);
+    
     switch(ogg_stream->fourcc_priv)
       {
       case FOURCC_THEORA:
@@ -802,14 +1128,17 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         memcpy(p->data + sizeof(priv->op), priv->op.packet, priv->op.bytes);
         p->data_size = sizeof(priv->op) + priv->op.bytes;
 
-        fprintf(stderr, "Theora granulepos: %lld\n", priv->op.granulepos);
+        // fprintf(stderr, "Theora granulepos: %lld\n", priv->op.granulepos);
 
         if(priv->op.granulepos >= 0)
           {
-          iframes = priv->op.granulepos >> ogg_stream->keyframe_granule_shift;
-          pframes = priv->op.granulepos-(iframes<<ogg_stream->keyframe_granule_shift);
-          fprintf(stderr, "Iframes: %lld, pframes: %lld, keyframe: %d\n", iframes, pframes,
-                  !(priv->op.packet[0] & 0x40));
+          iframes =
+            priv->op.granulepos >> ogg_stream->keyframe_granule_shift;
+          pframes =
+            priv->op.granulepos-(iframes<<ogg_stream->keyframe_granule_shift);
+
+          // fprintf(stderr, "Iframes: %lld, pframes: %lld, keyframe: %d\n", iframes, pframes,
+          //                  !(priv->op.packet[0] & 0x40));
           }
         
         bgav_packet_done_write(p);
@@ -838,7 +1167,8 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
         
         bgav_packet_alloc(p, priv->op.bytes - 1 - len_bytes);
-        memcpy(p->data, priv->op.packet + 1 + len_bytes, priv->op.bytes - 1 - len_bytes);
+        memcpy(p->data, priv->op.packet + 1 + len_bytes,
+               priv->op.bytes - 1 - len_bytes);
         p->data_size = priv->op.bytes - 1 - len_bytes;
         if(priv->op.packet[0] & 0x80)
           p->keyframe = 1;
@@ -856,6 +1186,16 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         p->data_size = priv->op.bytes;
         bgav_packet_done_write(p);
         //        fprintf(stderr, "Read flac packet %ld bytes\n", priv->op.bytes);
+        break;
+      case FOURCC_SPEEX:
+        if(priv->op.packetno < ogg_stream->header_packets_needed)
+          break;
+        /* Set raw data */
+        p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        bgav_packet_alloc(p, priv->op.bytes);
+        memcpy(p->data, priv->op.packet, priv->op.bytes);
+        p->data_size = priv->op.bytes;
+        bgav_packet_done_write(p);
         
       }
     }
@@ -865,19 +1205,48 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
 
 static void close_ogg(bgav_demuxer_context_t * ctx)
   {
-  int i;
+  int i, j;
   ogg_priv * priv;
-
+  track_priv_t * track_priv;
+  stream_priv_t * stream_priv;
+  
   for(i = 0; i < ctx->tt->num_tracks; i++)
     {
-    if(ctx->tt->tracks[i].audio_streams)
-      if(ctx->tt->tracks[i].audio_streams[0].ext_data)
-        free(ctx->tt->tracks[i].audio_streams[0].ext_data);
+    track_priv = (track_priv_t*)(ctx->tt->tracks[i].priv);
+    if(track_priv->unsupported_streams)
+      free(track_priv->unsupported_streams);
+    free(track_priv);
+    
+    for(j = 0; j < ctx->tt->tracks[i].num_audio_streams; j++)
+      {
+      stream_priv = (stream_priv_t*)(ctx->tt->tracks[i].audio_streams[j].priv);
+      if(stream_priv)
+        {
+        ogg_stream_clear(&stream_priv->os);
+        free(stream_priv);
+        }
+      if(ctx->tt->tracks[i].audio_streams[j].ext_data)
+        free(ctx->tt->tracks[i].audio_streams[j].ext_data);
+      }
+
+    for(j = 0; j < ctx->tt->tracks[i].num_video_streams; j++)
+      {
+      stream_priv = (stream_priv_t*)(ctx->tt->tracks[i].video_streams[j].priv);
+      if(stream_priv)
+        {
+        ogg_stream_clear(&stream_priv->os);
+        free(stream_priv);
+        }
+      if(ctx->tt->tracks[i].video_streams[j].ext_data)
+        free(ctx->tt->tracks[i].video_streams[j].ext_data);
+      }
     }
   
   priv = (ogg_priv *)ctx->priv;
   ogg_sync_clear(&priv->oy);
-  //  bitstreams_free(&priv->streams);
+
+  /* IMPORTANT: The paket will be freed by the last ogg_stream */
+  //  ogg_packet_clear(&priv->op);
   free(priv);
   }
 

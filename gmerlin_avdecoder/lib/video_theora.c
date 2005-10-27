@@ -155,14 +155,16 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
       return 0;
     memcpy(&op, p->data, sizeof(op));
     op.packet = p->data + sizeof(op);
-    bgav_demuxer_done_packet_read(s->demuxer, p);
     
     if(!theora_packet_isheader(&op))
       break;
+    bgav_demuxer_done_packet_read(s->demuxer, p);
     }
   
   theora_decode_packetin(&priv->ts, &op);
-  
+
+  bgav_demuxer_done_packet_read(s->demuxer, p);
+    
   theora_decode_YUVout(&priv->ts, &yuv);
 
   s->data.video.last_frame_time =
@@ -199,6 +201,10 @@ static void close_theora(bgav_stream_t * s)
   theora_clear(&priv->ts);
   theora_comment_clear(&priv->tc);
   theora_info_clear(&priv->ti);
+
+  gavl_video_frame_null(priv->frame);
+  gavl_video_frame_destroy(priv->frame);
+
   free(priv);
   }
 

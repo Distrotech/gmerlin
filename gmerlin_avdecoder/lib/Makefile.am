@@ -154,6 +154,16 @@ theora_libs    =
 theora_sources =
 endif
 
+if HAVE_SPEEX
+speex_cflags  = @SPEEX_CFLAGS@
+speex_libs    = @SPEEX_LIBS@
+speex_sources = audio_speex.c
+else
+speex_cflags  =
+speex_libs    =
+speex_sources =
+endif
+
 if HAVE_W32DLL
 win32_subdirs = libw32dll
 win32_libs = \
@@ -206,6 +216,7 @@ $(libdv_libs) \
 $(mjpegtools_libs) \
 $(samba_libs) \
 $(theora_libs) \
+$(speex_libs) \
 GSM610/libgsm.la \
 -lm
 
@@ -225,7 +236,8 @@ $(cdio_cflags) \
 $(libdv_cflags) \
 $(mjpegtools_cflags) \
 $(samba_cflags) \
-$(theora_cflags)
+$(theora_cflags) \
+$(speex_cflags)
 
 
 libgmerlin_avdec_la_SOURCES = \
@@ -247,6 +259,7 @@ $(libdv_sources) \
 $(mjpegtools_sources) \
 $(samba_sources) \
 $(theora_sources) \
+$(speex_sources) \
 RTjpeg.c \
 apetag.c \
 audio.c \

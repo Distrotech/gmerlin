@@ -193,7 +193,7 @@ metadata_callback(const FLAC__StreamDecoder *decoder,
   {
   bgav_stream_t * s;
   s = (bgav_stream_t *)client_data;
-  fprintf(stderr, "Metadata_callback\n"); 
+  //  fprintf(stderr, "Metadata_callback\n"); 
   if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO)
     {
     s->data.audio.format.num_channels = metadata->data.stream_info.channels;

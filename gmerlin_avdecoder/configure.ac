@@ -143,6 +143,28 @@ AC_DEFINE([HAVE_THEORA])
 fi
 
 dnl
+dnl Check for speex
+dnl
+
+AH_TEMPLATE([HAVE_SPEEX],
+            [Do we have speex installed?])
+
+have_speex="false"
+
+SPEEX_REQUIRED="1.0.4"
+
+PKG_CHECK_MODULES(SPEEX, speex >= $SPEEX_REQUIRED, have_speex="true", have_speex="false")
+AC_SUBST(SPEEX_REQUIRED)
+AC_SUBST(SPEEX_LIBS)
+AC_SUBST(SPEEX_CFLAGS)
+
+AM_CONDITIONAL(HAVE_SPEEX, test x$have_speex = xtrue)
+
+if test "x$have_speex" = "xtrue"; then
+AC_DEFINE([HAVE_SPEEX])
+fi
+
+dnl
 dnl Check for mjpegtools
 dnl
 
@@ -802,6 +824,13 @@ fi
 echo -n "theora:                 "
 if test "x$have_theora" = "xtrue"; then
 echo "Found (CFLAGS=$THEORA_CFLAGS LIBS=$THEORA_LIBS)"
+else
+echo "Missing"
+fi
+
+echo -n "speex:                  "
+if test "x$have_speex" = "xtrue"; then
+echo "Found (CFLAGS=$SPEEX_CFLAGS LIBS=$SPEEX_LIBS)"
 else
 echo "Missing"
 fi

@@ -430,6 +430,9 @@ void bg_avdec_set_callbacks(void * priv,
   avdec = (avdec_priv*)(priv);
   avdec->bg_callbacks = callbacks;
 
+  if(!callbacks)
+    return;
+  
   bgav_set_name_change_callback(avdec->opt,
                                 avdec->bg_callbacks->name_changed,
                                 avdec->bg_callbacks->data);
