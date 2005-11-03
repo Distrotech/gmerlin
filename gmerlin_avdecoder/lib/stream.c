@@ -81,6 +81,10 @@ void bgav_stream_free(bgav_stream_t * s)
   {
   if(s->description)
     free(s->description);
+
+  if(s->language)
+    free(s->language);
+  
   if(s->packet_buffer)
     bgav_packet_buffer_destroy(s->packet_buffer);
   }
@@ -98,6 +102,10 @@ void bgav_stream_dump(bgav_stream_t * s)
     case BGAV_STREAM_UNKNOWN:
       return;
     }
+
+  if(s->language)
+    fprintf(stderr, "  Language:          %s\n", s->language);
+  
   fprintf(stderr, "  Type:              %s\n",
           (s->description ? s->description : "Not specified"));
   fprintf(stderr, "  Fourcc:            ");

@@ -247,6 +247,10 @@ struct bgav_stream_s
   
   char * description;
 
+  /* Language */
+
+  char * language;
+    
   /*
    *  Sometimes, the bitrates important for codecs 
    *  and the bitrates set in the container format

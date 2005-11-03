@@ -82,88 +82,72 @@ int bgav_vorbis_comment_read(bgav_vorbis_comment_t * ret,
   }
 
  
-static char * _artist_key = "ARTIST=";
-static char * _album_key = "ALBUM=";
-static char * _title_key = "TITLE=";
+static char * _artist_key = "ARTIST";
+static char * _author_key = "AUTHOR";
+static char * _album_key = "ALBUM";
+static char * _title_key = "TITLE";
 // static char * _version_key = "VERSION=";
-static char * _track_number_key = "TRACKNUMBER=";
+static char * _track_number_key = "TRACKNUMBER";
 // static char * _organization_key = "ORGANIZATION=";
-static char * _genre_key = "GENRE=";
+static char * _genre_key = "GENRE";
 // static char * _description_key = "DESCRIPTION=";
-static char * _date_key = "DATE=";
+static char * _date_key = "DATE";
 // static char * _location_key = "LOCATION=";
-// static char * _copyright_key = "COPYRIGHT=";
+static char * _copyright_key = "COPYRIGHT";
+
+const char *
+bgav_vorbis_comment_get_field(bgav_vorbis_comment_t * vc, const char * key)
+  {
+  int i;
+  int key_len = strlen(key);
+  
+  for(i = 0; i < vc->num_user_comments; i++)
+    {
+    if(!strncasecmp(vc->user_comments[i], key, key_len) &&
+        vc->user_comments[i][key_len] == '=')
+      return vc->user_comments[i] + key_len + 1;
+    }
+  return (const char*)0;
+  }
 
 void bgav_vorbis_comment_2_metadata(bgav_vorbis_comment_t * comment,
                                     bgav_metadata_t * m)
   {
-  int key_len;
+  const char * field;
   int j;
-  int comment_added = 0;
 
-  if(comment->num_user_comments)
+  if((field = bgav_vorbis_comment_get_field(comment, _artist_key)))
+    m->artist = bgav_strndup(field, NULL);
+
+  if((field = bgav_vorbis_comment_get_field(comment, _author_key)))
+    m->author = bgav_strndup(field, NULL);
+
+  if((field = bgav_vorbis_comment_get_field(comment, _album_key)))
+    m->album = bgav_strndup(field, NULL);
+
+  if((field = bgav_vorbis_comment_get_field(comment, _title_key)))
+    m->title = bgav_strndup(field, NULL);
+
+  if((field = bgav_vorbis_comment_get_field(comment, _genre_key)))
+    m->genre = bgav_strndup(field, NULL);
+
+  if((field = bgav_vorbis_comment_get_field(comment, _date_key)))
+    m->date = bgav_strndup(field, NULL);
+
+  if((field = bgav_vorbis_comment_get_field(comment, _copyright_key)))
+    m->copyright = bgav_strndup(field, NULL);
+
+  if((field = bgav_vorbis_comment_get_field(comment, _track_number_key)))
+    m->track = atoi(field);
+  
+  for(j = 0; j < comment->num_user_comments; j++)
     {
-    for(j = 0; j < comment->num_user_comments; j++)
+    if(!strchr(comment->user_comments[j], '='))
       {
-      key_len = strlen(_artist_key);
-      if(!strncasecmp(comment->user_comments[j], _artist_key,
-                      key_len))
-        {
-        m->artist =
-          bgav_strndup(&(comment->user_comments[j][key_len]), NULL);
-        continue;
-        }
-      key_len = strlen(_album_key);
-      if(!strncasecmp(comment->user_comments[j], _album_key,
-                      key_len))
-        {
-        m->album =
-          bgav_strndup(&(comment->user_comments[j][key_len]), NULL);
-        continue;
-        }
-      key_len = strlen(_title_key);
-      if(!strncasecmp(comment->user_comments[j], _title_key,
-                      key_len))
-        {
-        m->title =
-          bgav_strndup(&(comment->user_comments[j][key_len]), NULL);
-        continue;
-        }
-      
-      key_len = strlen(_genre_key);
-      if(!strncasecmp(comment->user_comments[j], _genre_key,
-                      key_len))
-        {
-        m->genre =
-          bgav_strndup(&(comment->user_comments[j][key_len]), NULL);
-        continue;
-        }
-      key_len = strlen(_date_key);
-      if(!strncasecmp(comment->user_comments[j], _date_key,
-                      key_len))
-        {
-        m->date =
-          bgav_strndup(&(comment->user_comments[j][key_len]), NULL);
-        continue;
-        }
-      key_len = strlen(_track_number_key);
-      if(!strncasecmp(comment->user_comments[j], _track_number_key,
-                      key_len))
-        {
-        m->track =
-          atoi(&(comment->user_comments[j][key_len]));
-        continue;
-        }
-      if(!(comment_added) && !strchr(comment->user_comments[j], '='))
-        {
-        m->comment =
-          bgav_strndup(comment->user_comments[j], NULL);
-        comment_added = 1;
-        continue;
-        }
+      m->comment = bgav_strndup(comment->user_comments[j], NULL);
+      break;
       }
     }
-
   }
 
 #define MY_FREE(ptr) if(ptr) free(ptr);

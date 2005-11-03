@@ -19,6 +19,7 @@
 
 #include <avdec_private.h>
 #include <stdlib.h>
+#include <string.h>
 
 bgav_track_table_t * bgav_track_table_create(int num_tracks)
   {

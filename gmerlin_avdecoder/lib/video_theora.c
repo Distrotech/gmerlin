@@ -167,10 +167,11 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
     
   theora_decode_YUVout(&priv->ts, &yuv);
 
+#if 0
   s->data.video.last_frame_time =
     theora_granule_frame(&priv->ts, priv->ts.granulepos) * s->data.video.format.frame_duration;
-  fprintf(stderr, "Time: %lld\n", s->data.video.last_frame_time);
-  
+  //  fprintf(stderr, "Time: %lld\n", s->data.video.last_frame_time);
+#endif
   /* Copy the frame */
 
   if(frame)

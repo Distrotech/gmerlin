@@ -100,18 +100,17 @@ void bgav_metadata_merge2(bgav_metadata_t * dst,
 
 void bgav_metadata_dump(bgav_metadata_t*m)
   {
-  fprintf(stderr, "==== Metadata =====\n");
+  fprintf(stderr, "Metadata:\n");
   
-  PS("Author:    ", m->author);
-  PS("Title:     ", m->title);
-  PS("Comment:   ", m->comment);
-  PS("Copyright: ", m->copyright);
-  PS("Album:     ", m->album);
-  PS("Artist:    ", m->artist);
-  PS("Genre:     ", m->genre);
-  PI("Track:     ", m->track);
-  PS("Date:      ", m->date);
-  fprintf(stderr, "==== End Metadata ==\n");
+  PS("  Author:    ", m->author);
+  PS("  Title:     ", m->title);
+  PS("  Comment:   ", m->comment);
+  PS("  Copyright: ", m->copyright);
+  PS("  Album:     ", m->album);
+  PS("  Artist:    ", m->artist);
+  PS("  Genre:     ", m->genre);
+  PI("  Track:     ", m->track);
+  PS("  Date:      ", m->date);
   }
 
 const char * bgav_metadata_get_author(const bgav_metadata_t*m)

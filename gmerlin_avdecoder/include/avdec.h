@@ -343,6 +343,8 @@ const char * bgav_get_audio_description(bgav_t * b, int stream);
 const char * bgav_get_video_description(bgav_t * b, int stream);
 const char * bgav_get_description(bgav_t * b);
 
+const char * bgav_get_audio_language(bgav_t * b, int stream);
+
 /***************************************************
  * Stream handling functions
  ***************************************************/
