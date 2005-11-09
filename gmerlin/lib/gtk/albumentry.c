@@ -43,7 +43,7 @@ void bg_gtk_album_enrty_show(const bg_album_entry_t * entry)
   else
     utf8_location = (char*)0;
   
-  text = bg_sprintf("Name:\t %s\nLocation:\t %s\nTrack:\t %d/%d\nPlugin:\t %s\nDuration:\t %s\nAudio Streams:\t %d\nVideo Streams:\t %d\nSubpicture Streams:\t %d\nPrograms:\t %d",
+  text = bg_sprintf("Name:\t %s\nLocation:\t %s\nTrack:\t %d/%d\nPlugin:\t %s\nDuration:\t %s\nAudio Streams:\t %d\nVideo Streams:\t %d\nSubtitle Streams:\t %d",
                     S(entry->name), S(utf8_location),
                     entry->index+1,
                     entry->total_tracks,
@@ -51,8 +51,7 @@ void bg_gtk_album_enrty_show(const bg_album_entry_t * entry)
                     duration,
                     entry->num_audio_streams,
                     entry->num_video_streams,
-                    entry->num_subpicture_streams,
-                    entry->num_programs
+                    entry->num_subtitle_streams
                     );
 
   win = bg_gtk_textwindow_create(text, entry->name);

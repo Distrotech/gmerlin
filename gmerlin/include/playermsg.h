@@ -118,6 +118,10 @@
 
 #define BG_PLAYER_CMD_PLAY_PAUSE     13
 
+#define BG_PLAYER_CMD_SET_AUDIO_STREAM    14
+#define BG_PLAYER_CMD_SET_VIDEO_STREAM    15
+#define BG_PLAYER_CMD_SET_SUBTITLE_STREAM 16
+
 /********************************
  * Messages from the player
 ********************************/
@@ -165,7 +169,7 @@
 /*
  *  Arg1: Number of audio streams
  *  Arg2: Number of video streams
- *  Arg3: Number of subpicture streams
+ *  Arg3: Number of subtitle streams
  */
 
 #define BG_PLAYER_MSG_TRACK_NUM_STREAMS       4
@@ -192,23 +196,36 @@
 
 #define BG_PLAYER_MSG_STILL_STREAM            8
 
+#define BG_PLAYER_MSG_SUBTITLE_STREAM         9
+
+
 
 /* Metadata (is only sent, if information is available) */
 
 /* Arg1 : string */
 
-#define BG_PLAYER_MSG_METADATA                9
+#define BG_PLAYER_MSG_METADATA               10
 
-#define BG_PLAYER_MSG_AUDIO_DESCRIPTION      10
+#define BG_PLAYER_MSG_AUDIO_DESCRIPTION      11
 
-#define BG_PLAYER_MSG_VIDEO_DESCRIPTION      11
+#define BG_PLAYER_MSG_VIDEO_DESCRIPTION      12
 
-#define BG_PLAYER_MSG_STILL_DESCRIPTION      12
+#define BG_PLAYER_MSG_STILL_DESCRIPTION      13
 
-#define BG_PLAYER_MSG_SUBPICTURE_DESCRIPTION 13
+#define BG_PLAYER_MSG_SUBTITLE_DESCRIPTION   14
 
-#define BG_PLAYER_MSG_STREAM_DESCRIPTION     14
+#define BG_PLAYER_MSG_STREAM_DESCRIPTION     15
 
-#define BG_PLAYER_MSG_VOLUME_CHANGED         15
+#define BG_PLAYER_MSG_VOLUME_CHANGED         16
 
+/*
+ * Arg 1: stream index (int)
+ * Arg 2: stream name (string)
+ * Arg 3: stream language (string)
+ */
+
+#define BG_PLAYER_MSG_AUDIO_STREAM_INFO      17
+#define BG_PLAYER_MSG_VIDEO_STREAM_INFO      18
+#define BG_PLAYER_MSG_SUBTITLE_STREAM_INFO   19
+ 
 #endif // __BG_PLAYERMSG_H_

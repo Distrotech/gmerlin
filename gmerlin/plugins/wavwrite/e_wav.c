@@ -339,12 +339,12 @@ channel_flags[] =
 
 static uint32_t format_2_channel_mask(gavl_audio_format_t * format)
   {
-  int i, j;
+  int i;
   uint32_t ret = 0;
   gavl_channel_id_t new_locations[GAVL_MAX_CHANNELS];
   int channel_index = 0;
   
-  for(j = 0; j < sizeof(channel_flags)/sizeof(channel_flags[0]); j++)
+  for(i = 0; i < sizeof(channel_flags)/sizeof(channel_flags[0]); i++)
     {
     if(gavl_channel_index(format, channel_flags[i].id) >= 0)
       {

@@ -37,7 +37,22 @@ void main_menu_destroy(main_menu_t *);
 
 GtkWidget * main_menu_get_widget(main_menu_t *);
 
-void main_menu_destroy(main_menu_t *);
+void main_menu_set_num_streams(main_menu_t *,
+                               int audio_streams,
+                               int video_streams,
+                               int subtitle_streams);
+
+void main_menu_set_audio_info(main_menu_t *, int stream,
+                              const char * info,
+                              const char * language);
+
+void main_menu_set_video_info(main_menu_t *, int stream,
+                              const char * info,
+                              const char * language);
+
+void main_menu_set_subtitle_info(main_menu_t *, int stream,
+                                 const char * info,
+                                 const char * language);
 
 void
 main_menu_update_streams(main_menu_t *,
@@ -45,6 +60,16 @@ main_menu_update_streams(main_menu_t *,
                          int num_video_streams,
                          int num_subpicture_streams,
                          int num_programs);
+
+void
+main_menu_set_audio_index(main_menu_t *, int);
+
+void
+main_menu_set_video_index(main_menu_t *, int);
+
+void
+main_menu_set_subtitle_index(main_menu_t *, int);
+
 
 void main_menu_set_tree_window_item(main_menu_t * m, int state);
 void main_menu_set_info_window_item(main_menu_t * m, int state);

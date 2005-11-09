@@ -39,7 +39,6 @@ typedef enum
   {
     BG_STREAM_ACTION_OFF = 0,
     BG_STREAM_ACTION_DECODE,
-    BG_STREAM_ACTION_STANDBY,
     
     /*
      *  A/V data will bypass the player. It will only be chosen if the

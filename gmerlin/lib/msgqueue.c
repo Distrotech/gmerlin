@@ -147,7 +147,8 @@ void bg_msg_set_arg_string(bg_msg_t * msg, int arg, const char * value)
   {
   int length;
   void * dst;
-  
+  if(!value)
+    return;
   length = strlen(value)+1;
   dst = bg_msg_set_arg_ptr(msg, arg, length);
   memcpy(dst, value, length);

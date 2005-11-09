@@ -100,8 +100,48 @@ static void msg_num_streams(bg_msg_t * msg,
 
   bg_msg_set_arg_int(msg, 0, info->num_audio_streams);
   bg_msg_set_arg_int(msg, 1, info->num_video_streams);
-  bg_msg_set_arg_int(msg, 2, info->num_subpicture_streams);
+  bg_msg_set_arg_int(msg, 2, info->num_subtitle_streams);
   }
+
+struct stream_info_s
+  {
+  bg_track_info_t * track;
+  int index;
+  };
+
+static void msg_audio_stream_info(bg_msg_t * msg, const void * data)
+  {
+  const struct stream_info_s * si;
+  si = (const struct stream_info_s*)data;
+  bg_msg_set_id(msg, BG_PLAYER_MSG_AUDIO_STREAM_INFO);
+
+  bg_msg_set_arg_int(msg,    0, si->index);
+  bg_msg_set_arg_string(msg, 1, si->track->audio_streams[si->index].info);
+  bg_msg_set_arg_string(msg, 2, si->track->audio_streams[si->index].language);
+  }
+
+static void msg_video_stream_info(bg_msg_t * msg, const void * data)
+  {
+  const struct stream_info_s * si;
+  si = (const struct stream_info_s*)data;
+  bg_msg_set_id(msg, BG_PLAYER_MSG_VIDEO_STREAM_INFO);
+
+  bg_msg_set_arg_int(msg,    0, si->index);
+  bg_msg_set_arg_string(msg, 1, si->track->video_streams[si->index].info);
+  bg_msg_set_arg_string(msg, 2, si->track->video_streams[si->index].language);
+  }
+
+static void msg_subtitle_stream_info(bg_msg_t * msg, const void * data)
+  {
+  const struct stream_info_s * si;
+  si = (const struct stream_info_s*)data;
+  bg_msg_set_id(msg, BG_PLAYER_MSG_SUBTITLE_STREAM_INFO);
+
+  bg_msg_set_arg_int(msg,    0, si->index);
+  bg_msg_set_arg_string(msg, 1, si->track->subtitle_streams[si->index].info);
+  bg_msg_set_arg_string(msg, 2, si->track->subtitle_streams[si->index].language);
+  }
+
 
 static void msg_video_description(bg_msg_t * msg, const void * data)
   {
@@ -247,7 +287,7 @@ static void pause_cmd(bg_player_t * p)
 
 static int init_streams(bg_player_t * p)
   {
-  if(!bg_player_audio_init(p, 0))
+  if(!bg_player_audio_init(p, p->current_audio_stream))
     {
     //    bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
     //                    "Cannot setup audio playback", NULL);
@@ -259,7 +299,7 @@ static int init_streams(bg_player_t * p)
                           "Cannot setup audio playback (unknown error)", NULL);
     return 0;
     }
-  if(!bg_player_video_init(p, 0))
+  if(!bg_player_video_init(p, p->current_video_stream))
     {
     if(p->video_stream.error_msg)
       bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
@@ -310,9 +350,11 @@ static void play_cmd(bg_player_t * p,
                      bg_plugin_handle_t * handle,
                      int track_index, char * track_name, int flags)
   {
+  int i;
   char * error_msg;
   const char * error_msg_input;
-
+  struct stream_info_s si;
+  
   int had_video;
   gavl_time_t time = 0;
     
@@ -375,6 +417,30 @@ static void play_cmd(bg_player_t * p,
                          msg_num_streams,
                          p->track_info);
 
+  /* Send infos about the streams we have */
+  si.track = p->track_info;
+  for(i = 0; i < p->track_info->num_audio_streams; i++)
+    {
+    si.index = i;
+    bg_msg_queue_list_send(p->message_queues,
+                           msg_audio_stream_info,
+                           &si);
+    }
+  for(i = 0; i < p->track_info->num_video_streams; i++)
+    {
+    si.index = i;
+    bg_msg_queue_list_send(p->message_queues,
+                           msg_video_stream_info,
+                           &si);
+    }
+  for(i = 0; i < p->track_info->num_subtitle_streams; i++)
+    {
+    si.index = i;
+    bg_msg_queue_list_send(p->message_queues,
+                           msg_subtitle_stream_info,
+                           &si);
+    }
+  
   bg_player_set_duration(p, p->track_info->duration, p->can_seek);
   
   /* Send metadata */
@@ -658,6 +724,51 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
     start_playback(player, BG_PLAYER_STATE_PLAYING);
   }
 
+static void set_audio_stream_cmd(bg_player_t * player, int stream)
+  {
+  int state;
+  fprintf(stderr, "SET_AUDIO_STREAM %d\n", stream);
+  
+  if(stream == player->current_audio_stream)
+    return;
+
+  state = bg_player_get_state(player);
+  if(state != BG_PLAYER_STATE_STOPPED)
+    stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+  player->current_audio_stream = stream;
+  }
+
+static void set_video_stream_cmd(bg_player_t * player, int stream)
+  {
+  int state;
+  fprintf(stderr, "SET_VIDEO_STREAM %d\n", stream);
+
+  if(stream == player->current_video_stream)
+    return;
+
+  state = bg_player_get_state(player);
+  if(state != BG_PLAYER_STATE_STOPPED)
+    stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+  player->current_video_stream = stream;
+
+  }
+
+
+static void set_subtitle_stream_cmd(bg_player_t * player, int stream)
+  {
+  int state;
+  fprintf(stderr, "SET_SUBTITLE_STREAM %d\n", stream);
+
+  if(stream == player->current_subtitle_stream)
+    return;
+
+  state = bg_player_get_state(player);
+  if(state != BG_PLAYER_STATE_STOPPED)
+    stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+  player->current_subtitle_stream = stream;
+    
+  }
+
 
 /* Process command, return FALSE if thread should be ended */
 
@@ -878,6 +989,19 @@ static int process_command(bg_player_t * player,
       //      fprintf(stderr, "***** Set OV Plugin\n");
       arg_ptr1 = bg_msg_get_arg_ptr_nocopy(command, 0);
       set_ov_plugin_cmd(player, arg_ptr1);
+      break;
+
+    case BG_PLAYER_CMD_SET_AUDIO_STREAM:
+      arg_i1 = bg_msg_get_arg_int(command, 0);
+      set_audio_stream_cmd(player, arg_i1);
+      break;
+    case BG_PLAYER_CMD_SET_VIDEO_STREAM:
+      arg_i1 = bg_msg_get_arg_int(command, 0);
+      set_video_stream_cmd(player, arg_i1);
+      break;
+    case BG_PLAYER_CMD_SET_SUBTITLE_STREAM:
+      arg_i1 = bg_msg_get_arg_int(command, 0);
+      set_subtitle_stream_cmd(player, arg_i1);
       break;
     case BG_PLAYER_CMD_PAUSE:
       pause_cmd(player);

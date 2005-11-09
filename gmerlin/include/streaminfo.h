@@ -34,6 +34,7 @@ typedef struct
   gavl_audio_format_t format;
   char * description; /* Something line MPEG-1 audio layer 3, 128 kbps */
   char * language;
+  char * info;        /* Directors comments etc... */
   } bg_audio_info_t;
 
 void bg_audio_info_copy(bg_audio_info_t * dst, const bg_audio_info_t * src);
@@ -43,6 +44,8 @@ typedef struct
   {
   gavl_video_format_t format;
   char * description;
+  char * language;
+  char * info;
   } bg_video_info_t;
 
 void bg_video_info_copy(bg_video_info_t * dst, const bg_video_info_t * src);
@@ -59,9 +62,10 @@ void bg_still_info_free(bg_still_info_t * info);
 
 typedef struct
   {
-  char * language;
   char * description;
-  } bg_subpicture_info_t;
+  char * language;
+  char * info;
+  } bg_subtitle_info_t;
 
 typedef struct
   {
@@ -117,8 +121,7 @@ typedef struct
   int num_audio_streams;
   int num_video_streams;
   int num_still_streams;
-  int num_subpicture_streams;
-  int num_programs;
+  int num_subtitle_streams;
   char * name;
   char * description;
     
@@ -127,7 +130,7 @@ typedef struct
   bg_audio_info_t *    audio_streams;
   bg_video_info_t *    video_streams;
   bg_still_info_t *    still_streams;
-  bg_subpicture_info_t * subpicture_streams;
+  bg_subtitle_info_t * subtitle_streams;
 
   /* Metadata (optional) */
   

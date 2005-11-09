@@ -115,7 +115,8 @@ struct bg_player_s
   int current_audio_stream;
   int current_video_stream;
   int current_still_stream;
-
+  int current_subtitle_stream;
+  
   /* Can we seek? */
 
   int can_seek;

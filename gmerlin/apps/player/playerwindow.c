@@ -315,8 +315,10 @@ static void handle_message(player_window_t * win,
   int id;
   int arg_i_1;
   int arg_i_2;
+  int arg_i_3;
   float arg_f_1;
   char * arg_str_1;
+  char * arg_str_2;
   id = bg_msg_get_id(msg);
 
   gavl_time_t time;
@@ -402,6 +404,13 @@ static void handle_message(player_window_t * win,
       free(arg_str_1);
       break;
     case BG_PLAYER_MSG_TRACK_NUM_STREAMS:
+      arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      arg_i_2 = bg_msg_get_arg_int(msg, 1);
+      arg_i_3 = bg_msg_get_arg_int(msg, 2);
+      //      fprintf(stderr,
+      //              "Audio streams: %d, video streams: %d, subtitle_streams: %d\n",
+      //              arg_i_1, arg_i_2, arg_i_3);
+      main_menu_set_num_streams(win->main_menu, arg_i_1, arg_i_2, arg_i_3);
       break;
     case BG_PLAYER_MSG_TRACK_DURATION:
       win->duration = bg_msg_get_arg_time(msg, 0);
@@ -422,16 +431,50 @@ static void handle_message(player_window_t * win,
                                 BG_GTK_SLIDER_HIDDEN);
       break;
     case BG_PLAYER_MSG_AUDIO_STREAM:
+      arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      main_menu_set_audio_index(win->main_menu, arg_i_1);
       break;
     case BG_PLAYER_MSG_VIDEO_STREAM:
+      arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      main_menu_set_video_index(win->main_menu, arg_i_1);
+      break;
+    case BG_PLAYER_MSG_SUBTITLE_STREAM:
+      arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      main_menu_set_subtitle_index(win->main_menu, arg_i_1);
       break;
     case BG_PLAYER_MSG_AUDIO_DESCRIPTION:
       break;
     case BG_PLAYER_MSG_VIDEO_DESCRIPTION:
       break;
-    case BG_PLAYER_MSG_SUBPICTURE_DESCRIPTION:
+    case BG_PLAYER_MSG_SUBTITLE_DESCRIPTION:
       break;
     case BG_PLAYER_MSG_STREAM_DESCRIPTION:
+      break;
+    case BG_PLAYER_MSG_AUDIO_STREAM_INFO:
+      arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      arg_str_1 = bg_msg_get_arg_string(msg, 1);
+      arg_str_2 = bg_msg_get_arg_string(msg, 2);
+      main_menu_set_audio_info(win->main_menu, arg_i_1, arg_str_1, arg_str_2);
+      if(arg_str_1) free(arg_str_1);
+      if(arg_str_2) free(arg_str_2);
+      break;
+    case BG_PLAYER_MSG_VIDEO_STREAM_INFO:
+      arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      arg_str_1 = bg_msg_get_arg_string(msg, 1);
+      arg_str_2 = bg_msg_get_arg_string(msg, 2);
+      main_menu_set_video_info(win->main_menu, arg_i_1, arg_str_1, arg_str_2);
+      if(arg_str_1) free(arg_str_1);
+      if(arg_str_2) free(arg_str_2);
+      
+      break;
+    case BG_PLAYER_MSG_SUBTITLE_STREAM_INFO:
+      arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      arg_str_1 = bg_msg_get_arg_string(msg, 1);
+      arg_str_2 = bg_msg_get_arg_string(msg, 2);
+      main_menu_set_subtitle_info(win->main_menu, arg_i_1, arg_str_1,
+                                  arg_str_2);
+      if(arg_str_1) free(arg_str_1);
+      if(arg_str_2) free(arg_str_2);
       break;
     }
   

@@ -79,6 +79,10 @@ void bg_player_error(bg_player_t *, const char * message);
 void bg_player_set_oa_plugin(bg_player_t *, bg_plugin_handle_t * handle);
 void bg_player_set_ov_plugin(bg_player_t *, bg_plugin_handle_t * handle);
 
+void bg_player_set_audio_stream(bg_player_t *, int);
+void bg_player_set_video_stream(bg_player_t *, int);
+void bg_player_set_subtitle_stream(bg_player_t *, int);
+
 void bg_player_set_track_name(bg_player_t *, const char *);
 void bg_player_set_metadata(bg_player_t *, const bg_metadata_t *);
 

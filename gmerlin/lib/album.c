@@ -92,8 +92,7 @@ void bg_album_update_entry(bg_album_t * album,
   entry->num_video_streams = track_info->num_video_streams;
   entry->num_still_streams = track_info->num_still_streams;
 
-  entry->num_subpicture_streams = track_info->num_subpicture_streams;
-  entry->num_programs           = track_info->num_programs;
+  entry->num_subtitle_streams = track_info->num_subtitle_streams;
 
   if(!(entry->flags & BG_ALBUM_ENTRY_PRIVNAME))
     {
@@ -395,9 +394,8 @@ static int open_removable(bg_album_t * a)
     new_entry->num_video_streams = track_info->num_video_streams;
     new_entry->num_audio_streams = track_info->num_audio_streams;
     new_entry->num_still_streams = track_info->num_still_streams;
-    new_entry->num_subpicture_streams =
-      track_info->num_subpicture_streams;
-    new_entry->num_programs = track_info->num_programs;
+    new_entry->num_subtitle_streams =
+      track_info->num_subtitle_streams;
     //    fprintf(stderr, "Album Duration: %lld\n", track_info->duration);
     new_entry->duration = track_info->duration;
 

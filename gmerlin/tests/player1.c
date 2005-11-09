@@ -235,7 +235,7 @@ static int handle_message(bg_player_t * player,
     case BG_PLAYER_MSG_STREAM_DESCRIPTION:
     case BG_PLAYER_MSG_AUDIO_DESCRIPTION:
     case BG_PLAYER_MSG_VIDEO_DESCRIPTION:
-    case BG_PLAYER_MSG_SUBPICTURE_DESCRIPTION:
+    case BG_PLAYER_MSG_SUBTITLE_DESCRIPTION:
       arg_str1 = bg_msg_get_arg_string(message, 0);
       fprintf(stderr, "%s\n", arg_str1);
       free(arg_str1);

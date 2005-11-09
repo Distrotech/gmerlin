@@ -189,7 +189,15 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
     ctx->player->do_bypass = 0;
   //  fprintf(stderr, "Bypass mode: %d\n", ctx->player->do_bypass);
   /* Select streams */
-      
+
+  /* Adjust stream indices */
+  if(ctx->player->current_audio_stream >= ctx->player->track_info->num_audio_streams)
+    ctx->player->current_audio_stream = 0;
+  if(ctx->player->current_video_stream >= ctx->player->track_info->num_video_streams)
+    ctx->player->current_video_stream = 0;
+  if(ctx->player->current_subtitle_stream >= ctx->player->track_info->num_subtitle_streams)
+    ctx->player->current_subtitle_stream = 0;
+  
   if(ctx->plugin->set_audio_stream)
     {
     for(i = 0; i < ctx->player->track_info->num_audio_streams; i++)

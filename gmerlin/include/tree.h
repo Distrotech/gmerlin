@@ -54,8 +54,7 @@ typedef struct bg_album_entry_s
   int num_audio_streams;
   int num_still_streams;
   int num_video_streams;
-  int num_subpicture_streams;
-  int num_programs;
+  int num_subtitle_streams;
 
   /*
    *  Track index for multi track files/plugins

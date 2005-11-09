@@ -98,11 +98,11 @@ void bg_track_info_free(bg_track_info_t * info)
       bg_still_info_free(&(info->still_streams[i]));
     MY_FREE(info->still_streams);
     }
-  if(info->subpicture_streams)
+  if(info->subtitle_streams)
     {
-    for(i = 0; i < info->num_subpicture_streams; i++)
-      MY_FREE(info->subpicture_streams[i].language);
-    MY_FREE(info->subpicture_streams);
+    for(i = 0; i < info->num_subtitle_streams; i++)
+      MY_FREE(info->subtitle_streams[i].language);
+    MY_FREE(info->subtitle_streams);
     }
 
   bg_metadata_free(&(info->metadata));
