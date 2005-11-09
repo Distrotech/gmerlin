@@ -358,13 +358,11 @@ const char * bgav_get_audio_language(bgav_t * b, int stream);
 /*
  *  Set action for a particular stream:
  *  BGAV_STREAM_MUTE: Stream is switched off
- *  BGAV_STREAM_SYNC: Stream is not decoded but kept sync
  *  BGAV_STREAM_DECODE: Stream is decoded
  */  
 
 #define BGAV_STREAM_MUTE         0
-#define BGAV_STREAM_SYNC         1
-#define BGAV_STREAM_DECODE       2
+#define BGAV_STREAM_DECODE       1
 
 int bgav_set_audio_stream(bgav_t*, int stream, int action);
 int bgav_set_video_stream(bgav_t*, int stream, int action);

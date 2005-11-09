@@ -254,6 +254,10 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
   for(i = 0; i < track->num_audio_streams; i++)
     {
     s = &(track->audio_streams[i]);
+
+    if(s->action != BGAV_STREAM_DECODE)
+      continue;
+    
     bgav_stream_resync_decoder(s);
 
     if(s->time_scaled < 0)
@@ -271,8 +275,12 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
   for(i = 0; i < track->num_video_streams; i++)
     {
     s = &(track->video_streams[i]);
-    bgav_stream_resync_decoder(s);
 
+    if(s->action != BGAV_STREAM_DECODE)
+      continue;
+    
+    bgav_stream_resync_decoder(s);
+    
     if(s->time_scaled < 0)
       {
       fprintf(stderr, "Couldn't resync video stream after seeking, maybe EOF\n");
@@ -327,15 +335,13 @@ int bgav_track_has_sync(bgav_track_t * t)
 
   for(i = 0; i < t->num_audio_streams; i++)
     {
-    if(((t->audio_streams[i].action == BGAV_STREAM_DECODE) ||
-        (t->audio_streams[i].action == BGAV_STREAM_SYNC)) &&
+    if((t->audio_streams[i].action == BGAV_STREAM_DECODE) &&
        (t->audio_streams[i].time_scaled < 0))
       return 0;
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
-    if(((t->video_streams[i].action == BGAV_STREAM_DECODE) ||
-        (t->video_streams[i].action == BGAV_STREAM_SYNC)) &&
+    if((t->video_streams[i].action == BGAV_STREAM_DECODE) &&
        (t->video_streams[i].time_scaled < 0))
       return 0;
     }

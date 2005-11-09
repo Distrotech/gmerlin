@@ -321,8 +321,8 @@ static int get_data(bgav_demuxer_context_t * ctx)
   bytes_to_read = BYTES_TO_READ;
   if(priv->end_pos > 0)
     {
-    fprintf(stderr, "Get data %lld %d %lld\n",
-            ctx->input->position, bytes_to_read, priv->end_pos);
+    //    fprintf(stderr, "Get data %lld %d %lld\n",
+    //            ctx->input->position, bytes_to_read, priv->end_pos);
     
     if(ctx->input->position + bytes_to_read > priv->end_pos)
       bytes_to_read = priv->end_pos - ctx->input->position;
@@ -724,6 +724,12 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
             }
         }
       }
+    else /* no stream found */
+      {
+      fprintf(stderr, "Unsupported header packet\n");
+      bgav_hexdump(priv->current_page.body, priv->current_page.body_len, 16);
+      priv->page_valid = 0;
+      }
     
     /* Check if we are done for all streams */
     done = 1;
@@ -959,7 +965,7 @@ static int64_t find_next_track(bgav_demuxer_context_t * ctx,
       return 0;
       }
 
-    /* Now, we also now the last granulepos of last_track */
+    /* Now, we also know the last granulepos of last_track */
 
     if(s)
       {
@@ -1392,14 +1398,25 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
                              serialno);
 
   if(!s)
+    {
+    //    fprintf(stderr, "No stream found for serialno %d\n", serialno);
+#if 0
+    if(serialno == 3)
+      {
+      fprintf(stderr, "Subtitle page:\n");
+      bgav_hexdump(priv->current_page.body, priv->current_page.body_len, 16);
+      
+      }
+#endif    
+    priv->page_valid = 0;
     return 1;
-
+    }
   stream_priv = (stream_priv_t*)(s->priv);
-
+#if 0
   fprintf(stderr, "Page granulepos: %lld, cont: %d\n",
           ogg_page_granulepos(&(priv->current_page)),
           ogg_page_continued(&(priv->current_page)));
-
+#endif
   ogg_stream_pagein(&stream_priv->os, &(priv->current_page));
   priv->page_valid = 0;
   
@@ -1465,6 +1482,9 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
             {
             stream_priv->do_sync = 0;
             s->time_scaled = stream_priv->prev_granulepos;
+            fprintf(stderr, "Vorbis resync %f\n",
+                    (float)(s->time_scaled) /
+                    (float)(s->data.audio.format.samplerate));
             }
           }
         
@@ -1493,9 +1513,61 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         bgav_packet_done_write(p);
         break;
       case FOURCC_OGM_VIDEO:
+        if(stream_priv->do_sync)
+          {
+          /* Didn't get page yet */
+          if(stream_priv->prev_granulepos == -1)
+            break;
+          else
+            {
+            if(stream_priv->frame_counter == -1)
+              {
+              /* Page starts a fresh packet -> set frame counter */
+              if(!ogg_page_continued(&priv->current_page))
+                stream_priv->frame_counter = stream_priv->prev_granulepos;
+              else
+                {
+                /* Flush this page */
+                ogg_stream_reset(&stream_priv->os);
+                break;
+                }
+              }
+#if 1
+            /* Skip non keyframes after seeking */
+            if(!(priv->op.packet[0] & 0x08))
+              {
+              //              fprintf(stderr, "Skipping non keyframe\n");
+              stream_priv->frame_counter++;
+              break;
+              }
+#endif
+            else
+              {
+              stream_priv->do_sync = 0;
+              s->time_scaled =
+                (int64_t)s->data.video.format.frame_duration *
+                stream_priv->frame_counter;
+              fprintf(stderr, "OGM Resync: %f (duration: %d, stream_priv->frame_counter: %lld\n",
+                      (float)(s->data.video.format.frame_duration *
+                              stream_priv->frame_counter) /
+                      (float)(s->data.video.format.timescale),
+                      s->data.video.format.frame_duration,
+                      stream_priv->frame_counter);
+              
+              //              bgav_hexdump(priv->op.packet, 16, 16);
+              }
+            }
+          }
+#if 0
+        if(priv->op.packet[0] & 0x08)
+          fprintf(stderr, "keyframe\n");
+        else
+          fprintf(stderr, "NO keyframe\n");
+#endif
         if(priv->op.packet[0] & 0x01) /* Header is already read -> skip it */
           {
-          fprintf(stderr, "Skipping OGM video header\n");
+          fprintf(stderr, "Skipping OGM video header, granulepos: %lld\n",
+                  granulepos);
           break;
           }
         //        fprintf(stderr, "OGM video data (%d)\n", serialno);
@@ -1503,9 +1575,10 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         //        return 0;
         /* Parse subheader (let's hope there aren't any packets with
            more than one video frame) */
-
-        // fprintf(stderr, "Page granulepos: %lld\n", ogg_page_granulepos(&priv->current_page));
-
+#if 0
+        fprintf(stderr, "OGM Page granulepos: %lld\n",
+                granulepos);
+#endif
         len_bytes =
           (priv->op.packet[0] >> 6) ||
           ((priv->op.packet[0] & 0x02) << 1);
@@ -1516,9 +1589,10 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         memcpy(p->data, priv->op.packet + 1 + len_bytes,
                priv->op.bytes - 1 - len_bytes);
         p->data_size = priv->op.bytes - 1 - len_bytes;
-        if(priv->op.packet[0] & 0x80)
+        if(priv->op.packet[0] & 0x08)
           p->keyframe = 1;
-        p->timestamp_scaled = s->data.video.format.frame_duration * stream_priv->frame_counter;
+        p->timestamp_scaled =
+          s->data.video.format.frame_duration * stream_priv->frame_counter;
         stream_priv->frame_counter++;
         bgav_packet_done_write(p);
         break;
@@ -1599,6 +1673,7 @@ static void reset_track(bgav_track_t * track)
     stream_priv =
       (stream_priv_t*)(track->audio_streams[i].priv);
     stream_priv->prev_granulepos = -1;
+    stream_priv->frame_counter = -1;
     stream_priv->do_sync = 1;
     ogg_stream_reset(&stream_priv->os);
     
@@ -1611,6 +1686,7 @@ static void reset_track(bgav_track_t * track)
       (stream_priv_t*)(track->video_streams[i].priv);
 
     stream_priv->prev_granulepos = -1;
+    stream_priv->frame_counter = -1;
     stream_priv->do_sync = 1;
     
     ogg_stream_reset(&stream_priv->os);
@@ -1656,7 +1732,8 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, gavl_time_t time)
 
   while(1)
     {
-    if(!next_packet_ogg(ctx)) /* Oops, reached EOF, go one page back */
+    /* Oops, reached EOF, go one page back */
+    if(!next_packet_ogg(ctx)) 
       {
       filepos = find_last_page(ctx, track_priv->start_pos, filepos,
                                (int*)0, (int64_t*)0);
@@ -1670,7 +1747,8 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, gavl_time_t time)
       stream_priv =
         (stream_priv_t*)(ctx->tt->current_track->audio_streams[i].priv);
       
-      if(stream_priv->do_sync)
+      if(stream_priv->do_sync &&
+         (ctx->tt->current_track->audio_streams[i].action != BGAV_STREAM_MUTE))
         done = 0;
       }
     if(done)
@@ -1679,7 +1757,8 @@ static void seek_ogg(bgav_demuxer_context_t * ctx, gavl_time_t time)
         {
         stream_priv =
           (stream_priv_t*)(ctx->tt->current_track->video_streams[i].priv);
-        if(stream_priv->do_sync)
+        if(stream_priv->do_sync &&
+           (ctx->tt->current_track->video_streams[i].action != BGAV_STREAM_MUTE))
           done = 0;
         }
       

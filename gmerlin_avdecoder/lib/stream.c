@@ -27,8 +27,7 @@
 int bgav_stream_start(bgav_stream_t * stream)
   {
   int result = 1;
-  if((stream->action == BGAV_STREAM_DECODE) ||
-     (stream->action == BGAV_STREAM_SYNC))
+  if(stream->action == BGAV_STREAM_DECODE)
     {
     switch(stream->type)
       {
@@ -47,8 +46,7 @@ int bgav_stream_start(bgav_stream_t * stream)
 
 void bgav_stream_stop(bgav_stream_t * stream)
   {
-  if((stream->action == BGAV_STREAM_DECODE) ||
-     (stream->action == BGAV_STREAM_SYNC))
+  if(stream->action == BGAV_STREAM_DECODE)
     {
     switch(stream->type)
       {
@@ -142,8 +140,7 @@ void bgav_stream_clear(bgav_stream_t * s)
 
 void bgav_stream_resync_decoder(bgav_stream_t * s)
   {
-  if((s->action != BGAV_STREAM_DECODE) &&
-     (s->action != BGAV_STREAM_SYNC))
+  if(s->action != BGAV_STREAM_DECODE)
     return;
   
   switch(s->type)
@@ -162,8 +159,7 @@ void bgav_stream_resync_decoder(bgav_stream_t * s)
 int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time)
   {
   
-  if((s->action != BGAV_STREAM_DECODE) &&
-     (s->action != BGAV_STREAM_SYNC))
+  if(s->action != BGAV_STREAM_DECODE)
     return 1;
   
   switch(s->type)

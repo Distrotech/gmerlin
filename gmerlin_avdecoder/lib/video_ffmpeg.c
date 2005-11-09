@@ -570,9 +570,10 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       priv->ctx->hurry_up = 1;
     else
       priv->ctx->hurry_up = 0;
-
-    //    fprintf(stderr, "Decode: %lld %d\n", s->position, len);
-
+#if 0
+    fprintf(stderr, "Decode: %lld %d\n", s->position, len);
+    bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
+#endif
     //    fprintf(stderr, "Decode %d...", priv->ctx->pix_fmt);
     
     bytes_used = avcodec_decode_video(priv->ctx,
@@ -587,13 +588,23 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     //            priv->ctx->sample_aspect_ratio.den);
 
     //    fprintf(stderr, "Image size: %d %d\n", priv->ctx->width, priv->ctx->height);
-    
-    //    fprintf(stderr, "Used %d bytes, got picture: %d\n",
-    //            bytes_used, got_picture);
-    
+
+#if 0
+    fprintf(stderr, "Used %d bytes, got picture: %d\n",
+            bytes_used, got_picture);
+#endif
+#if 0
+    if(!got_picture)
+      {
+      fprintf(stderr, "Didn't get picture: bytes: %d, bytes_used: %d\n",
+              len, bytes_used);
+      bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
+      }
+#endif
     if(priv->packet_buffer_ptr)
       {
       /* Check for error */
+      //      if((bytes_used <= 0) || !(got_picture))
       if(bytes_used <= 0)
         {
         //      fprintf(stderr, "Skipping corrupted frame\n");
