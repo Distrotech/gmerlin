@@ -198,6 +198,9 @@ static int open_au(bgav_demuxer_context_t * ctx,
   if(hdr.hdr_size > 24)
     bgav_input_skip(ctx->input, hdr.hdr_size - 24);
   priv->data_start = ctx->input->position;
+
+  ctx->stream_description = bgav_sprintf("AU/SND format");
+
   return 1;
   }
 

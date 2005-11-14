@@ -56,6 +56,7 @@ static int init_gsm(bgav_stream_t * s)
   s->data.audio.format.interleave_mode   = GAVL_INTERLEAVE_NONE;
   s->data.audio.format.sample_format     = GAVL_SAMPLE_S16;
   s->data.audio.format.samples_per_frame = GSM_FRAME_SIZE;
+  gavl_set_channel_setup(&s->data.audio.format);
 
   priv->frame = gavl_audio_frame_create(&s->data.audio.format);
 
