@@ -33,6 +33,7 @@ extern bgav_demuxer_t bgav_demuxer_fli;
 
 extern bgav_demuxer_t bgav_demuxer_wav;
 extern bgav_demuxer_t bgav_demuxer_au;
+extern bgav_demuxer_t bgav_demuxer_gsm;
 extern bgav_demuxer_t bgav_demuxer_aiff;
 extern bgav_demuxer_t bgav_demuxer_ra;
 extern bgav_demuxer_t bgav_demuxer_mpegaudio;
@@ -94,12 +95,13 @@ static demuxer_t demuxers[] =
 #ifdef HAVE_MUSEPACK
     { &bgav_demuxer_mpc, "Musepack" },
 #endif
-#ifdef HAVE_LIBDV
-    { &bgav_demuxer_dv, "DV" },
-#endif
 #ifdef HAVE_MJPEGTOOLS
     { &bgav_demuxer_y4m, "yuv4mpeg" },
 #endif
+#ifdef HAVE_LIBDV
+    { &bgav_demuxer_dv, "DV" },
+#endif
+    { &bgav_demuxer_gsm, "raw gsm" },
   };
 
 static demuxer_t sync_demuxers[] =
