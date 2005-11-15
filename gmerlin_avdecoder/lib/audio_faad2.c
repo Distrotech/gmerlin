@@ -252,7 +252,10 @@ static void close_faad2(bgav_stream_t * s)
   {
   faad_priv_t * priv;
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
-
+  if(priv->dec)
+    faacDecClose(priv->dec);
+  if(priv->data)
+    free(priv->data);
   gavl_audio_frame_null(priv->frame);
   gavl_audio_frame_destroy(priv->frame);
   free(priv);
