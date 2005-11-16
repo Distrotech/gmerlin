@@ -106,6 +106,33 @@ codec_info_t codec_infos[] =
       type:        CODEC_STD,
     },
 #endif
+#if 0 /* Wrong WAV ID? */ 
+    {
+      name:        "Lernout & Hauspie (CELP and SBC)",
+      format_name: "Lernout & Hauspie",
+      fourccs:     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0072), 0x00 },
+      dll_name:    "lhacm.acm",
+      type:        CODEC_STD,
+    },
+#endif
+#if 0 /* Crashes */
+    {
+      name:        "DSP Group TrueSpeech(TM)",
+      format_name: "DSP Group TrueSpeech(TM)",
+      fourccs:     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0022), 0x00 },
+      dll_name:    "tssoft32.acm",
+      type:        CODEC_STD,
+    },
+#endif
+#if 0 /* Crashes */ 
+    {
+      name:        "Sony ATRAC3",
+      format_name: "Sony ATRAC3",
+      fourccs:     (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0270), 0x00 },
+      dll_name:    "atrac3.acm",
+      type:        CODEC_STD,
+    },
+#endif
   };
 
 #define MAX_CODECS (sizeof(codec_infos)/sizeof(codec_infos[0]))

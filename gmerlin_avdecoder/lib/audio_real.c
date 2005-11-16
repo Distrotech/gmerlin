@@ -128,7 +128,8 @@ static codec_info_t real_codecs[] =
       decoder:
       {
         name:   "Real audio atrc DLL decoder",
-        fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('a', 't', 'r', 'c'), 0x00  },
+        fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('a', 't', 'r', 'c'),
+                                0x00  },
         init:   init_real,
         decode: decode_real,
         close:  close_real,
