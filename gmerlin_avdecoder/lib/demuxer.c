@@ -34,6 +34,7 @@ extern bgav_demuxer_t bgav_demuxer_fli;
 extern bgav_demuxer_t bgav_demuxer_wav;
 extern bgav_demuxer_t bgav_demuxer_au;
 extern bgav_demuxer_t bgav_demuxer_gsm;
+extern bgav_demuxer_t bgav_demuxer_8svx;
 extern bgav_demuxer_t bgav_demuxer_aiff;
 extern bgav_demuxer_t bgav_demuxer_ra;
 extern bgav_demuxer_t bgav_demuxer_mpegaudio;
@@ -101,6 +102,7 @@ static demuxer_t demuxers[] =
 #ifdef HAVE_LIBDV
     { &bgav_demuxer_dv, "DV" },
 #endif
+    { &bgav_demuxer_8svx, "Amiga IFF"},
     { &bgav_demuxer_gsm, "raw gsm" },
   };
 
