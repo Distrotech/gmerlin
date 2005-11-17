@@ -416,6 +416,12 @@ static void close_faac(void * data, int do_delete)
   while(flush_audio(faac))
     ;
 
+  if(faac->enc)
+    {
+    faacEncClose(faac->enc)
+    faac->enc = (faacEncHandle)0;
+    }
+
   /* Write id3v1 tag */
   if(faac->id3v1)
     {
