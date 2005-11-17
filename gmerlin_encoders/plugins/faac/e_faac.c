@@ -418,7 +418,7 @@ static void close_faac(void * data, int do_delete)
 
   if(faac->enc)
     {
-    faacEncClose(faac->enc)
+    faacEncClose(faac->enc);
     faac->enc = (faacEncHandle)0;
     }
 
