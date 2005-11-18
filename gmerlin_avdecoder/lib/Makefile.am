@@ -281,6 +281,7 @@ demux_flac.c \
 demux_fli.c \
 demux_gsm.c \
 demux_8svx.c \
+demux_ircam.c \
 demux_mpegaudio.c \
 demux_mpegps.c \
 demux_mpegts.c \

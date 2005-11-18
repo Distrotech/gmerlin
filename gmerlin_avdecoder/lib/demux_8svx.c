@@ -1,10 +1,10 @@
 /*****************************************************************
  
-  demux_au.c
+  demux_8svx.c
  
-  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2005 by 
  
-  http://gmerlin.sourceforge.net
+  http://gmerlin.sourceforge.net by Michael Gruenert - one78@web.de
  
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -241,7 +241,7 @@ static int next_packet_8svx(bgav_demuxer_context_t * ctx)
   priv = (svx_priv_t *)(ctx->priv);
   
   bytes_to_read = samples_to_bytes(s, SAMPLES2READ);
-
+  
   if(ctx->input->position + bytes_to_read > priv->data_start + priv->data_size)
     bytes_to_read = priv->data_start + priv->data_size - ctx->input->position;
 
@@ -249,6 +249,7 @@ static int next_packet_8svx(bgav_demuxer_context_t * ctx)
     return 0;
   
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+
   bgav_packet_alloc(p, bytes_to_read);
 
   p->timestamp_scaled = (ctx->input->position - priv->data_start) / s->data.audio.block_align;
