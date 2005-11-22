@@ -1,5 +1,5 @@
-/*****************************************************************
  
+/*****************************************************************
   demux_ircam.c
  
   Copyright (c) 2005 by Michael Gruenert - one78@web.de
@@ -62,7 +62,6 @@ typedef struct
   float SampleFrequenz;
   uint32_t NumChannels;
   uint32_t DataType;
-
   int LittleEndian;
   } ircam_header_t;
 
@@ -277,26 +276,38 @@ static int open_ircam(bgav_demuxer_context_t * ctx,
       as->data.audio.block_align = 2 * h.NumChannels;
       break;
     case SF_24INT:
+      if(h.LittleEndian == 1)
+        as->data.audio.endianess = BGAV_ENDIANESS_LITTLE;
+      else
+        as->data.audio.endianess = BGAV_ENDIANESS_BIG;
       as->fourcc = BGAV_MK_FOURCC('i', 'n', '2', '4');
-      as->data.audio.endianess = h.LittleEndian + 1;
       as->data.audio.bits_per_sample = 24;
       as->data.audio.block_align = 3 * h.NumChannels;
       break;
     case SF_LONG:
+      if(h.LittleEndian == 1)
+        as->data.audio.endianess = BGAV_ENDIANESS_LITTLE;
+      else
+        as->data.audio.endianess = BGAV_ENDIANESS_BIG;
       as->fourcc = BGAV_MK_FOURCC('i', 'n', '3', '2');
-      as->data.audio.endianess = h.LittleEndian + 1;
       as->data.audio.bits_per_sample = 32;
       as->data.audio.block_align = 4 * h.NumChannels;
       break;
     case SF_FLOAT:
+      if(h.LittleEndian == 1)
+        as->data.audio.endianess = BGAV_ENDIANESS_LITTLE;
+      else
+        as->data.audio.endianess = BGAV_ENDIANESS_BIG;
       as->fourcc = BGAV_MK_FOURCC('f', 'l', '3', '2');
-      as->data.audio.endianess = h.LittleEndian + 1;
       as->data.audio.bits_per_sample = 32;
       as->data.audio.block_align = 4 * h.NumChannels;
       break;
     case SF_DOUBLE:
+      if(h.LittleEndian == 1)
+        as->data.audio.endianess = BGAV_ENDIANESS_LITTLE;
+      else
+        as->data.audio.endianess = BGAV_ENDIANESS_BIG;
       as->fourcc = BGAV_MK_FOURCC('f', 'l', '6', '4');
-      as->data.audio.endianess = h.LittleEndian + 1;
       as->data.audio.bits_per_sample = 64;
       as->data.audio.block_align = 8 * h.NumChannels;
       break;
@@ -306,7 +317,6 @@ static int open_ircam(bgav_demuxer_context_t * ctx,
   
   as->data.audio.format.samplerate = h.SampleFrequenz;
   as->data.audio.format.num_channels = h.NumChannels;
-  
 
   if(ctx->input->total_bytes)
     {
@@ -317,8 +327,34 @@ static int open_ircam(bgav_demuxer_context_t * ctx,
     }
 
   bgav_input_skip(ctx->input, HEADER_SIZE - ctx->input->position);
-  
-  ctx->stream_description = bgav_sprintf("IRCAM");
+
+  switch(h.fourcc)
+    {
+    case VAXN:
+      ctx->stream_description = bgav_sprintf("IRCAM: VAX (native)");
+      break;
+    case VAX:
+      ctx->stream_description = bgav_sprintf("IRCAM: VAX");
+      break;
+    case SUNN:
+      ctx->stream_description = bgav_sprintf("IRCAM: Sun (native) ");
+      break;
+    case SUN:
+      ctx->stream_description = bgav_sprintf("IRCAM: Sun");
+      break;
+    case MIPSD:
+      ctx->stream_description = bgav_sprintf("IRCAM: MIPS (DECstation)");
+      break;
+    case MIPSS:
+      ctx->stream_description = bgav_sprintf("IRCAM: MIPS (SGI)");
+      break;
+    case NEXT:
+      ctx->stream_description = bgav_sprintf("IRCAM: NeXT");
+      break;
+    default:
+      ctx->stream_description = bgav_sprintf("IRCAM: ...");
+      break;
+    }
   return 1;
   }
 

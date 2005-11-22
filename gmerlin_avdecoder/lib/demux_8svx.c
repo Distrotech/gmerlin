@@ -1,10 +1,10 @@
 /*****************************************************************
- 
+
   demux_8svx.c
  
-  Copyright (c) 2005 by 
+  Copyright (c) 2005 by Michael Gruenert - one78@web.de 
  
-  http://gmerlin.sourceforge.net by Michael Gruenert - one78@web.de
+  http://gmerlin.sourceforge.net 
  
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
