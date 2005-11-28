@@ -78,8 +78,17 @@ X_LIBS=""
 AC_PATH_X
 
 if test x$no_x != xyes; then
-X_FLAGS="-I$x_includes"
-X_LIBS="-L$x_libraries -lX11 -lXext"
+  if test "x$x_includes" != "x"; then
+    X_FLAGS="-I$x_includes"
+  else
+    X_FLAGS=""
+  fi
+
+  if test "x$x_libraries" != "x"; then
+    X_LIBS="-L$x_libraries -lX11 -lXext"
+  else
+    X_LIBS="-lX11 -lXext"
+  fi
 have_x="true"
 fi
 
