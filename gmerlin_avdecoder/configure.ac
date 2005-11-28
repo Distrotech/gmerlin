@@ -1,8 +1,7 @@
-AC_INIT
+AC_INIT(gmerlin-avdecoder, 0.1.3pre1)
 AC_CONFIG_SRCDIR([include/avdec.h])
-
 AM_CONFIG_HEADER(include/config.h)
-AM_INIT_AUTOMAKE(gmerlin-avdecoder, 0.1.3pre1)
+AM_INIT_AUTOMAKE(1.8.5)
 
 AC_DISABLE_STATIC
 AM_PROG_AS_MOD
