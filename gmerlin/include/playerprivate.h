@@ -172,6 +172,7 @@ int bg_player_keep_going(bg_player_t * player, void (*ping_func)(void*), void * 
 void bg_player_time_get(bg_player_t * player, int exact, gavl_time_t * ret);
 void bg_player_time_stop(bg_player_t * player);
 void bg_player_time_start(bg_player_t * player);
+void bg_player_time_init(bg_player_t * player);
 void bg_player_time_reset(bg_player_t * player);
 void bg_player_time_set(bg_player_t * player, gavl_time_t time);
 

@@ -398,7 +398,11 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   //    fprintf(stderr, "ctx->audio_finished\n");
 
   //  fprintf(stderr, "Process audio done\n");
-
+#if 0
+  if(ctx->audio_finished)
+    fprintf(stderr, "Process audio: EOF\n");
+#endif
+  
   return !ctx->audio_finished;
   }
 
@@ -460,6 +464,10 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     ctx->video_frames_written++;
     }
   bg_fifo_unlock_write(s->fifo, ctx->video_finished);
+#if 0
+  if(ctx->video_finished)
+    fprintf(stderr, "Process video: EOF\n");
+#endif
   //  fprintf(stderr, "done %d\n", ctx->video_finished);
   return !ctx->video_finished;
   }
@@ -623,6 +631,7 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
 void bg_player_input_seek(bg_player_input_context_t * ctx,
                           gavl_time_t * time)
   {
+  int do_audio, do_video;
   bg_plugin_lock(ctx->plugin_handle);
   //  fprintf(stderr, "bg_player_input_seek\n");
   ctx->plugin->seek(ctx->priv, time);
@@ -634,6 +643,14 @@ void bg_player_input_seek(bg_player_input_context_t * ctx,
   ctx->audio_samples_written =
     gavl_time_to_samples(ctx->player->audio_stream.input_format.samplerate,
                          ctx->audio_time);
+
+  /* Clear EOF states */
+  do_audio = ctx->player->do_audio;
+  do_video = ((ctx->player->do_video) || (ctx->player->do_still));
+  
+  ctx->audio_finished = !do_audio;
+  ctx->video_finished = !do_video;
+  ctx->send_silence = 0;
   
   }
 

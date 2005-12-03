@@ -186,20 +186,24 @@ void bg_fifo_destroy(bg_fifo_t * f,
 void * bg_fifo_lock_read(bg_fifo_t*f, bg_fifo_state_t * state)
   {
   *state = get_state(f);
-  //  fprintf(stderr, "bg_fifo_lock_read\n");
+  //  fprintf(stderr, "bg_fifo_lock_read %d\n", *state);
   if(*state != BG_FIFO_PLAYING)
     {
     //    fprintf(stderr, "FIFO isn't playing\n");
     return (void*)0;
     }
   set_output_waiting(f, 1);
+  //  fprintf(stderr, "sem wait %p %d\n", f->output_frame, *state);
   sem_wait(&(f->output_frame->produced));
+  //  fprintf(stderr, "sem wait done\n");
+  
   set_output_waiting(f, 0);
   
   if(f->output_frame->eof)
     {
     //    fprintf(stderr, "FIFO EOF\n");
     *state = BG_FIFO_STOPPED;
+    bg_fifo_set_state(f, *state);
     return (void*)0;
     }
 
@@ -220,7 +224,15 @@ void bg_fifo_unlock_read(bg_fifo_t*f)
   //  fprintf(stderr, "unlock read..");
   
   sem_post(&(f->output_frame->consumed));
-  f->output_frame = f->output_frame->next;
+
+  if(f->output_frame->eof)
+    {
+    /* Post the procuced semaphore also so we can
+       report EOF more than once */
+    sem_post(&(f->output_frame->produced));
+    }
+  else
+    f->output_frame = f->output_frame->next;
   pthread_mutex_unlock(&(f->output_frame_mutex));
   //  fprintf(stderr, "done\n");
   }
@@ -266,7 +278,7 @@ void * bg_fifo_try_lock_write(bg_fifo_t*f, bg_fifo_state_t * state)
 
 void bg_fifo_unlock_write(bg_fifo_t*f, int eof)
   {
-  //  fprintf(stderr, "unlock write...");
+  //  fprintf(stderr, "unlock write %p\n", f->input_frame);
   pthread_mutex_lock(&(f->input_frame_mutex));
   f->input_frame->eof = eof;
   sem_post(&(f->input_frame->produced));
@@ -311,6 +323,7 @@ void bg_fifo_clear(bg_fifo_t * f)
     sem_init(&(tmp_frame->produced), 0, 0);
     sem_init(&(tmp_frame->consumed), 0, 1);
     tmp_frame = tmp_frame->next;
+    tmp_frame->eof = 0;
     }
   f->output_frame = f->input_frame;
   }

@@ -23,6 +23,7 @@
 #include <utils.h>
 
 #include "lqt_common.h"
+#include "lqtgavl.h"
 
 #define PARAM_AUDIO 1
 #define PARAM_VIDEO 3
@@ -63,19 +64,12 @@ typedef struct
   struct
     {
     int quicktime_index;
-    int64_t sample_position;
-    int eof;
     } * audio_streams;
   
   struct
     {
     int quicktime_index;
-    
     unsigned char ** rows;
-
-    int64_t total_frames;
-    int64_t frame_position;
-    
     } * video_streams;
   
   } i_lqt_t;
@@ -88,14 +82,9 @@ static void * create_lqt()
 
 static int open_lqt(void * data, const char * arg)
   {
-  int framerate_constant;
   char * tmp_string;
   int i;
   char * filename;
-  gavl_time_t duration;
-  gavl_audio_format_t * audio_format;
-  gavl_video_format_t * video_format;
-  int colormodel;
   int num_audio_streams = 0;
   int num_video_streams = 0;
   i_lqt_t * e = (i_lqt_t*)data;
@@ -165,35 +154,9 @@ static int open_lqt(void * data, const char * arg)
           bg_strdup(e->track_info.audio_streams[e->track_info.num_audio_streams].description,
                     codec_info[0]->long_name);
         lqt_destroy_codec_info(codec_info);
-        
-        audio_format =
-          &e->track_info.audio_streams[e->track_info.num_audio_streams].format;
 
-        audio_format->num_channels = quicktime_track_channels(e->file, i);
-        audio_format->samplerate   = quicktime_sample_rate(e->file, i);
-        audio_format->sample_format = GAVL_SAMPLE_FLOAT;
-        audio_format->interleave_mode = GAVL_INTERLEAVE_NONE;
-        audio_format->samples_per_frame = 1024;
-        
-        gavl_set_channel_setup(audio_format);
-
-        //        gavl_audio_format_dump(audio_format);
-#if 0
-        e->audio_streams[e->track_info.num_audio_streams].total_samples
-          = quicktime_audio_length(e->file, i);
-#endif
-        //        fprintf(stderr, "Audio samples: %lld\n",
-        //                e->audio_streams[e->track_info.num_audio_streams].total_samples);
-        
-        duration =
-          gavl_samples_to_time(audio_format->samplerate,
-                               quicktime_audio_length(e->file, i));
-
-        //        fprintf(stderr, "Audio Duration: %lld %d %lld\n", duration,
-        //                audio_format->samplerate,
-        //                audio_length);
-        if(e->track_info.duration < duration)
-          e->track_info.duration = duration;
+        lqt_gavl_get_audio_format(e->file, i,
+                                  &e->track_info.audio_streams[e->track_info.num_audio_streams].format);
         e->track_info.num_audio_streams++;
         }
       }
@@ -217,59 +180,17 @@ static int open_lqt(void * data, const char * arg)
           bg_strdup(e->track_info.video_streams[e->track_info.num_video_streams].description,
                     codec_info[0]->long_name);
         lqt_destroy_codec_info(codec_info);
-        
-        video_format =
-          &e->track_info.video_streams[e->track_info.num_video_streams].format;
 
-        video_format->image_width = quicktime_video_width(e->file, i);
-        video_format->image_height = quicktime_video_height(e->file, i);
-
-        video_format->frame_width = video_format->image_width;
-        video_format->frame_height = video_format->image_height;
-
-        lqt_get_pixel_aspect(e->file, i,
-                             &video_format->pixel_width,
-                             &video_format->pixel_height);
-        
-        video_format->timescale = lqt_video_time_scale(e->file, i);
-
-        video_format->frame_duration =
-          lqt_frame_duration(e->file, i, &(framerate_constant));
-        if(framerate_constant)
-          video_format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
-        else
-          video_format->framerate_mode = GAVL_FRAMERATE_VARIABLE;
-        colormodel = lqt_get_best_colormodel(e->file, i, bg_lqt_supported_colormodels);
-
-        lqt_set_cmodel(e->file, i, colormodel);
-        video_format->pixelformat = bg_lqt_get_gavl_pixelformat(colormodel);
-
-        if(!gavl_pixelformat_is_planar(video_format->pixelformat))
-          {
-          e->video_streams[e->track_info.num_video_streams].rows =
-            calloc(video_format->frame_height,
-                   sizeof(*(e->video_streams[e->track_info.num_video_streams].rows)));
-          }
-
-        e->video_streams[e->track_info.num_video_streams].total_frames =
-          quicktime_video_length(e->file, i);
-          
-        duration = gavl_samples_to_time(lqt_video_time_scale(e->file, i),
-                                        lqt_video_duration(e->file, i));
-#if 0
-        fprintf(stderr, "Video Duration: %d %lld %lld, Total frames: %lld\n",
-                lqt_video_time_scale(e->file, i),
-                lqt_video_duration(e->file, i),
-                duration,
-                e->video_streams[e->track_info.num_video_streams].total_frames);
-#endif
-        if(e->track_info.duration < duration)
-          e->track_info.duration = duration;
+        lqt_gavl_get_video_format(e->file, i,
+                                  &e->track_info.video_streams[e->track_info.num_video_streams].format);
+                
+        e->video_streams[e->track_info.num_video_streams].rows = lqt_gavl_rows_create(e->file, i);
         
         e->track_info.num_video_streams++;
         }
       }
     }
+  e->track_info.duration = lqt_gavl_duration(e->file);
 
   if(lqt_is_avi(e->file))
      e->track_info.description = bg_strdup(e->track_info.description,
@@ -299,35 +220,12 @@ static
 int read_audio_samples_lqt(void * data, gavl_audio_frame_t * f, int stream,
                           int num_samples)
   {
-  int64_t new_position;
   int samples_read;
   i_lqt_t * e = (i_lqt_t*)data;
 
-  //  fprintf(stderr, "read audio\n");
-
-  if(e->audio_streams[stream].eof)
-    return 0;
-  
-  if(e->track_info.audio_streams[stream].format.sample_format == GAVL_SAMPLE_FLOAT)
-    lqt_decode_audio_track(e->file,
-                           NULL,
-                           f->channels.f,
-                           num_samples,
-                           e->audio_streams[stream].quicktime_index);
-
-  new_position = lqt_last_audio_position(e->file, 
-                                         e->audio_streams[stream].quicktime_index);
-
-  samples_read = new_position - e->audio_streams[stream].sample_position;
-
-  if(samples_read < num_samples)
-    e->audio_streams[stream].eof = 1;
-  
-  e->audio_streams[stream].sample_position += samples_read;
-  
-  if(f)
-    f->valid_samples = samples_read;
-  return samples_read;
+  samples_read = lqt_gavl_decode_audio(e->file, e->audio_streams[stream].quicktime_index,
+                                       f, num_samples);
+  return f->valid_samples;
   }
 
 
@@ -335,40 +233,9 @@ int read_audio_samples_lqt(void * data, gavl_audio_frame_t * f, int stream,
 static
 int read_video_frame_lqt(void * data, gavl_video_frame_t * f, int stream)
   {
-  int i;
   i_lqt_t * e = (i_lqt_t*)data;
-
-  //  fprintf(stderr, "read video\n");
-
-  if(e->video_streams[stream].frame_position >=
-     e->video_streams[stream].total_frames)
-    return 0;
-  e->video_streams[stream].frame_position++;
-    
-  f->time_scaled =
-    lqt_frame_time(e->file, e->video_streams[stream].quicktime_index);
-
-  //  fprintf(stderr, "Frame time: %f\n", gavl_time_to_seconds(f->time));
-  if(e->video_streams[stream].rows)
-    {
-    for(i = 0; i < e->track_info.video_streams[stream].format.frame_height; i++)
-      e->video_streams[stream].rows[i] = f->planes[0] + i * f->strides[0];
-    lqt_set_row_span(e->file, e->video_streams[stream].quicktime_index,
-                     f->strides[0]);
-    
-    lqt_decode_video(e->file, e->video_streams[stream].rows,
-                     e->video_streams[stream].quicktime_index);
-    }
-  else
-    {
-    lqt_set_row_span(e->file, e->video_streams[stream].quicktime_index,
-                     f->strides[0]);
-    lqt_set_row_span_uv(e->file, e->video_streams[stream].quicktime_index,
-                        f->strides[1]);
-    lqt_decode_video(e->file, f->planes,
-                     e->video_streams[stream].quicktime_index);
-    }
-  return 1;
+  return lqt_gavl_decode_video(e->file, e->video_streams[stream].quicktime_index, f,
+                               e->video_streams[stream].rows);
   }
 
 
@@ -402,40 +269,8 @@ static void close_lqt(void * data)
 
 static void seek_lqt(void * data, gavl_time_t * time)
   {
-  int i;
-  int64_t position;
-  
   i_lqt_t * e = (i_lqt_t*)data;
-    
-  for(i = 0; i < e->track_info.num_video_streams; i++)
-    {
-    position = gavl_time_to_samples(e->track_info.video_streams[i].format.timescale,
-                                    *time);
-    lqt_seek_video(e->file, e->video_streams[i].quicktime_index,
-                   position);
-
-    e->video_streams[i].frame_position =
-      quicktime_video_position(e->file,
-                               e->video_streams[i].quicktime_index);
-
-    /* We sync to the first video stream */
-
-    if(!i)
-      {
-      position = lqt_frame_time(e->file, e->video_streams[i].quicktime_index);
-      *time = gavl_samples_to_time(e->track_info.video_streams[i].format.timescale,
-                                   position);
-      }
-    }
-
-  for(i = 0; i < e->track_info.num_audio_streams; i++)
-    {
-    position = gavl_time_to_samples(e->track_info.audio_streams[i].format.samplerate,
-                                    *time);
-    quicktime_set_audio_position(e->file, position,
-                                 e->audio_streams[i].quicktime_index);
-    e->audio_streams[i].sample_position = position;
-    }
+  lqt_gavl_seek(e->file, time);
   }
 
 static void destroy_lqt(void * data)

@@ -204,31 +204,34 @@ void bg_player_ov_update_still(bg_player_ov_context_t * ctx)
   //  fprintf(stderr, "bg_player_ov_update_still 1\n");
 
   ctx->frame = bg_fifo_lock_read(ctx->player->video_stream.fifo, &state);
-  //  fprintf(stderr, "bg_player_ov_update_still 2\n");
+  //  fprintf(stderr, "bg_player_ov_update_still 2 state: %d\n", state);
 
+  if(!ctx->still_frame)
+    {
+    //      fprintf(stderr, "create_frame....");
+    ctx->still_frame = bg_player_ov_create_frame(ctx);
+    //      fprintf(stderr, "done\n");
+    }
+  
   if(ctx->frame)
     {
-    if(!ctx->still_frame)
-      {
-      //      fprintf(stderr, "create_frame....");
-      ctx->still_frame = bg_player_ov_create_frame(ctx);
-      //      fprintf(stderr, "done\n");
-      }
     gavl_video_frame_copy(&(ctx->player->video_stream.output_format),
                           ctx->still_frame, ctx->frame);
     //      fprintf(stderr, "Unlock read....%p", ctx->frame);
     bg_fifo_unlock_read(ctx->player->video_stream.fifo);
     ctx->frame = (gavl_video_frame_t*)0;
     //      fprintf(stderr, "Done\n");
-    
-    bg_plugin_lock(ctx->plugin_handle);
-    ctx->plugin->put_still(ctx->priv, ctx->still_frame);
-    bg_plugin_unlock(ctx->plugin_handle);
     }
   else
     {
-    fprintf(stderr, "update_still: Got no frame\n");
+    //    fprintf(stderr, "update_still: Got no frame\n");
+    gavl_video_frame_clear(ctx->still_frame, &(ctx->player->video_stream.output_format));
     }
+  
+  bg_plugin_lock(ctx->plugin_handle);
+  ctx->plugin->put_still(ctx->priv, ctx->still_frame);
+  bg_plugin_unlock(ctx->plugin_handle);
+
   
   pthread_mutex_unlock(&ctx->still_mutex);
   }
@@ -342,12 +345,12 @@ void * bg_player_ov_thread(void * data)
     
     ctx->still_shown = 0;
 
-    //    fprintf(stderr, "Lock read...");
+    //    fprintf(stderr, "Lock read\n");
     ctx->frame = bg_fifo_lock_read(ctx->player->video_stream.fifo, &state);
-    //    fprintf(stderr, "done %p\n", ctx->frame);
+    //    fprintf(stderr, "Lock read done %p\n", ctx->frame);
     if(!ctx->frame)
       {
-      fprintf(stderr, "Got no frame\n");
+      //      fprintf(stderr, "Got no frame\n");
       break;
       }
     bg_player_time_get(ctx->player, 1, &current_time);

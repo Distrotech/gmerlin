@@ -177,7 +177,6 @@ typedef struct
   GtkWidget * move_up_item;
   GtkWidget * move_down_item;
   GtkWidget * remove_item;
-  GtkWidget * remove_delete_item;
   GtkWidget * rename_item;
   GtkWidget * refresh_item;
   GtkWidget * info_item;
@@ -480,13 +479,16 @@ static void update_cursor_pos(bg_gtk_album_widget_t * w)
   GtkTreePath *path;
 
   if(!w->num_entries)
+    {
+    w->cursor_pos = 0;
     return;
-
-  if(w->cursor_pos < w->num_entries)
+    }
+  else if(w->cursor_pos < w->num_entries)
     {
     path = gtk_tree_path_new_from_indices(w->cursor_pos, -1);
     gtk_tree_view_set_drag_dest_row(GTK_TREE_VIEW(w->treeview),
                                     path, GTK_TREE_VIEW_DROP_BEFORE);
+    gtk_tree_path_free(path);
     }
   else
     {
@@ -494,11 +496,13 @@ static void update_cursor_pos(bg_gtk_album_widget_t * w)
     path = gtk_tree_path_new_from_indices(w->cursor_pos-1, -1);
     gtk_tree_view_set_drag_dest_row(GTK_TREE_VIEW(w->treeview),
                                     path, GTK_TREE_VIEW_DROP_AFTER);
+    gtk_tree_path_free(path);
     }
-    
-  gtk_tree_path_free(path);
+  
   gtk_widget_queue_draw(w->treeview);
 
+  //  fprintf(stderr, "Cursor pos: %d\n", w->cursor_pos);
+  
   while(gdk_events_pending() || gtk_events_pending())
     gtk_main_iteration();
   }
@@ -641,7 +645,8 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   GtkTreeSelection * selection;
   gavl_time_t total_time = 0;
 
-    
+  //  fprintf(stderr, "bg_gtk_album_widget_update\n");
+  
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(w->treeview));
   g_signal_handler_block(G_OBJECT(selection), w->select_handler_id);
   
@@ -1354,8 +1359,6 @@ static void init_menu(bg_gtk_album_widget_t * w)
   
   gtk_widget_set_sensitive(w->menu.selected_menu.rename_item, 0);
   
-  //  w->menu.selected_menu.remove_delete_item =
-  //    create_item(w, w->menu.selected_menu.menu, "Remove and delete files");
  
   /* Album */
 

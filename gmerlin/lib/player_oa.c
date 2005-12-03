@@ -116,9 +116,7 @@ void bg_player_oa_destroy(bg_player_t * player)
   free(ctx);
   }
 
-/* Get the current time */
-
-void bg_player_time_start(bg_player_t * player)
+void bg_player_time_init(bg_player_t * player)
   {
   bg_player_oa_context_t * ctx;
   ctx = player->oa_context;
@@ -129,6 +127,12 @@ void bg_player_time_start(bg_player_t * player)
     ctx->sync_mode = SYNC_SOUNDCARD;
   else
     ctx->sync_mode = SYNC_SOFTWARE;
+  }
+
+void bg_player_time_start(bg_player_t * player)
+  {
+  bg_player_oa_context_t * ctx;
+  ctx = player->oa_context;
   
   /* Set timer */
 
@@ -172,6 +176,8 @@ void bg_player_time_reset(bg_player_t * player)
     pthread_mutex_unlock(&(ctx->time_mutex));
     }
   }
+
+/* Get the current time */
 
 void bg_player_time_get(bg_player_t * player, int exact, gavl_time_t * ret)
   {
@@ -220,6 +226,8 @@ void bg_player_time_get(bg_player_t * player, int exact, gavl_time_t * ret)
       pthread_mutex_unlock(&(ctx->time_mutex));
       }
     }
+  //  fprintf(stderr, "bg_player_time_get %d %f\n", exact, gavl_time_to_seconds(*ret));
+
   }
 
 void bg_player_time_set(bg_player_t * player, gavl_time_t time)
@@ -227,6 +235,8 @@ void bg_player_time_set(bg_player_t * player, gavl_time_t time)
   bg_player_oa_context_t * ctx;
   ctx = player->oa_context;
 
+  //  fprintf(stderr, "bg_player_time_set %f\n", gavl_time_to_seconds(time));
+  
   pthread_mutex_lock(&(ctx->time_mutex));
 
   if(ctx->sync_mode == SYNC_SOFTWARE)

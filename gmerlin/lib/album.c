@@ -181,7 +181,11 @@ bg_album_entry_t * bg_album_get_entry(bg_album_t * a, int i)
   ret = a->entries;
 
   while(i--)
+    {
+    if(!ret)
+      return (bg_album_t*)0;
     ret = ret->next;
+    }
   return ret;
   }
 

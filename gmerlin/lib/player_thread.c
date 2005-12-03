@@ -221,10 +221,6 @@ static void interrupt_cmd(bg_player_t * p, int new_state)
 
 static void preload(bg_player_t * p)
   {
-  if(p->do_audio)
-    bg_fifo_set_state(p->audio_stream.fifo, BG_FIFO_PLAYING);
-  if(p->do_video)
-    bg_fifo_set_state(p->video_stream.fifo, BG_FIFO_PLAYING);
   
   bg_player_input_preload(p->input_context);
 
@@ -246,7 +242,7 @@ static void start_playback(bg_player_t * p, int new_state)
     
     //  fprintf(stderr, "start_playback\n");
 
-  /* Initialize timing */
+  /* Start timer */
   
   bg_player_time_start(p);
 
@@ -272,6 +268,13 @@ static void pause_cmd(bg_player_t * p)
 
     if(p->do_bypass)
       bg_player_input_bypass_set_pause(p->input_context, 1);
+
+    /* Now that all threads are stopped, we can go back to play mode */
+    if(p->do_audio)
+      bg_fifo_set_state(p->audio_stream.fifo, BG_FIFO_PLAYING);
+    if(p->do_video)
+      bg_fifo_set_state(p->video_stream.fifo, BG_FIFO_PLAYING);
+    
     }
   else if(state == BG_PLAYER_STATE_PAUSED)
     {
@@ -534,7 +537,15 @@ static void play_cmd(bg_player_t * p,
   pthread_cond_wait(&(p->stop_cond), &(p->stop_mutex));
   pthread_mutex_unlock(&p->stop_mutex);
   
+  bg_player_time_init(p);
   bg_player_time_set(p, 0);
+
+  /* Fire up the fifos */
+  if(p->do_audio)
+    bg_fifo_set_state(p->audio_stream.fifo, BG_FIFO_PLAYING);
+  if(p->do_video)
+    bg_fifo_set_state(p->video_stream.fifo, BG_FIFO_PLAYING);
+  
   preload(p);
 
   if(flags & BG_PLAY_FLAG_INIT_THEN_PAUSE)
@@ -705,11 +716,19 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
     
   /* Resync */
   //  fprintf(stderr, "Preload\n");
+
+  /* Fire up the fifos */
+  if(player->do_audio)
+    bg_fifo_set_state(player->audio_stream.fifo, BG_FIFO_PLAYING);
+  if(player->do_video)
+    bg_fifo_set_state(player->video_stream.fifo, BG_FIFO_PLAYING);
+  
   preload(player);
   //  fprintf(stderr, "Preload done\n");
   
-  bg_player_time_set(player, t);
-
+  bg_player_time_set(player, sync_time);
+  
+  
   if(old_state == BG_PLAYER_STATE_PAUSED)
     {
     bg_player_set_state(player, BG_PLAYER_STATE_PAUSED, NULL, NULL);

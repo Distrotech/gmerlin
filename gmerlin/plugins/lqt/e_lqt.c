@@ -22,6 +22,7 @@
 #include <utils.h>
 
 #include "lqt_common.h"
+#include "lqtgavl.h"
 
 /* Format definitions */
 
@@ -209,34 +210,16 @@ static void write_audio_frame_lqt(void * data, gavl_audio_frame_t* frame,
   {
   e_lqt_t * e = (e_lqt_t*)data;
 
-  lqt_encode_audio_track(e->file, (int16_t**)0, frame->channels.f, frame->valid_samples,
-                         stream);
+  lqt_encode_audio_raw(e->file, frame->samples.s_8, frame->valid_samples, stream);
   
   }
 
 static void write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
                                   int stream)
   {
-  int i;
-  uint8_t ** rows;
-  
   e_lqt_t * e = (e_lqt_t*)data;
 
-  lqt_set_row_span(e->file, stream, frame->strides[0]);
-  lqt_set_row_span_uv(e->file, stream, frame->strides[1]);
-  
-  if(e->video_streams[stream].rows)
-    {
-    for(i = 0; i < e->video_streams[stream].format.image_height; i++)
-      e->video_streams[stream].rows[i] = frame->planes[0] + i * frame->strides[0];
-    rows = e->video_streams[stream].rows;
-    }
-  else
-    rows = frame->planes;
-
-  /* TODO: lqt_encode_video */
-  
-  lqt_encode_video(e->file, rows, stream, frame->time_scaled);
+  lqt_gavl_encode_video(e->file, stream, frame, e->video_streams[stream].rows);
   }
 
 static void close_lqt(void * data, int do_delete)
@@ -290,13 +273,9 @@ static void close_lqt(void * data, int do_delete)
       {
       if(e->video_streams[i].codec_info)
         lqt_destroy_codec_info(e->video_streams[i].codec_info);
-      if(e->video_streams[i].rows)
-        {
-        free(e->video_streams[i].rows);
-        }
+      lqt_gavl_rows_destroy(e->video_streams[i].rows);
       }
-
-
+    
     free(e->video_streams);
     e->video_streams = NULL;
     }
@@ -407,13 +386,8 @@ static void set_audio_parameter_lqt(void * data, int stream, char * name,
 
     e->audio_streams[stream].codec_info = lqt_find_audio_codec_by_name(val->val_str);
     
-    lqt_add_audio_track(e->file, e->audio_streams[stream].format.num_channels,
-                        e->audio_streams[stream].format.samplerate, 16,
-                        *e->audio_streams[stream].codec_info);
-
-    e->audio_streams[stream].format.interleave_mode = GAVL_INTERLEAVE_NONE;
-    e->audio_streams[stream].format.sample_format = GAVL_SAMPLE_FLOAT;
-    
+    lqt_gavl_add_audio_track(e->file, &e->audio_streams[stream].format,
+                             *e->audio_streams[stream].codec_info);
     }
   else
     {
@@ -435,7 +409,6 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
                                     bg_parameter_value_t * val)
   {
   e_lqt_t * e = (e_lqt_t*)data;
-  int quicktime_colormodel;
   
   if(!name)
     return;
@@ -462,35 +435,15 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
       //        e->video_streams[stream].format.image_width;
       }
     
-    lqt_add_video_track(e->file, e->video_streams[stream].format.image_width,
-                        e->video_streams[stream].format.image_height,
-                        e->video_streams[stream].format.frame_duration,
-                        e->video_streams[stream].format.timescale,
-                        *e->video_streams[stream].codec_info);
-    quicktime_colormodel =
-      lqt_get_best_colormodel(e->file, stream,
-                              bg_lqt_supported_colormodels);
-    e->video_streams[stream].format.pixelformat =
-      bg_lqt_get_gavl_pixelformat(quicktime_colormodel);
-    lqt_set_cmodel(e->file, stream, quicktime_colormodel);
+    lqt_gavl_add_video_track(e->file, &e->video_streams[stream].format,
+                             *e->video_streams[stream].codec_info);
     
     /* Request constant framerate for AVI files */
 
     if(e->format == FORMAT_AVI)
-      {
       e->video_streams[stream].format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
-      }
-    else
-      {
-      lqt_set_pixel_aspect(e->file, stream,
-                           e->video_streams[stream].format.pixel_width,
-                           e->video_streams[stream].format.pixel_height);
-      }
     
-    if(!gavl_pixelformat_is_planar(e->video_streams[stream].format.pixelformat))
-      e->video_streams[stream].rows =
-        malloc(e->video_streams[stream].format.image_height * 
-               sizeof(*(e->video_streams[e->num_audio_streams].rows)));
+    e->video_streams[stream].rows = lqt_gavl_rows_create(e->file, stream);
     }
   else
     {
