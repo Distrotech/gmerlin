@@ -14,4 +14,4 @@ e_lqt_la_LIBADD = @LQT_LIBS@
 i_lqt_la_LIBADD = @LQT_LIBS@
 
 
-noinst_HEADERS = lqt_common.h
+noinst_HEADERS = lqt_common.h lqtgavl.h
