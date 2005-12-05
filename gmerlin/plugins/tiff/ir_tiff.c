@@ -17,6 +17,8 @@
  
 *****************************************************************/
 
+#include <math.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,6 +38,8 @@ typedef struct
   uint16 SamplesPerPixel;
   uint16 SampleFormat;
   uint16 Orientation;
+  uint16 Photometric;
+  uint16 Compression;
   gavl_video_format_t format;
   TIFF * tiff;
 
@@ -175,10 +179,119 @@ static void convert_scanline_RGB_16_planar(uint8_t * _dst, uint8_t * _src, int w
     }
   }
 
+static void convert_scanline_gray_16(uint8_t * _dst, uint8_t * _src, int width, int plane)
+  {
+  int i;
+  uint16_t * dst = (uint16_t *)_dst;
+  uint16_t * src = (uint16_t *)_src;
+
+  for(i = 0; i < width; i++)
+    {
+    dst[0] = *src;
+    dst[1] = *src;
+    dst[2] = *src;
+    dst += 3;
+    src++;
+    }
+  }
 
 static void convert_scanline_RGBA_16(uint8_t * dst, uint8_t * src, int width, int plane)
   {
   memcpy(dst, src, width * 4 * 2);
+  }
+
+static void convert_scanline_RGBA_16_planar(uint8_t * _dst, uint8_t * _src, int width, int plane)
+  {
+  int i;
+  uint16_t * dst = (uint16_t *)_dst;
+  uint16_t * src = (uint16_t *)_src;
+
+  dst += plane;
+  for(i = 0; i < width; i++)
+    {
+    *dst = *src;
+    dst += 4;
+    src++;
+    }
+  }
+
+/* 32 bit uint */
+
+static void convert_scanline_RGB_32(uint8_t * _dst, uint8_t * _src, int width, int plane)
+  {
+  int i;
+  float * dst = (float *)_dst;
+  uint32_t * src = (uint32_t *)_src;
+
+  for(i = 0; i < width*3; i++)
+    {
+    *dst = (float)(*src)/4294967295.0;
+    dst++;
+    src++;
+    }
+  }
+
+static void convert_scanline_RGB_32_planar(uint8_t * _dst, uint8_t * _src, int width, int plane)
+  {
+  int i;
+  float * dst = (float *)_dst;
+  uint32_t * src = (uint32_t *)_src;
+
+  dst += plane;
+  
+  for(i = 0; i < width; i++)
+    {
+    *dst = (float)(*src)/4294967295.0;
+    dst+=3;
+    src++;
+    }
+  }
+
+static void convert_scanline_RGBA_32(uint8_t * _dst, uint8_t * _src, int width, int plane)
+  {
+  int i;
+  float * dst = (float *)_dst;
+  uint32_t * src = (uint32_t *)_src;
+
+  for(i = 0; i < width*4; i++)
+    {
+    *dst = (float)(*src)/4294967295.0;
+    dst++;
+    src++;
+    }
+  }
+
+static void convert_scanline_RGBA_32_planar(uint8_t * _dst, uint8_t * _src, int width, int plane)
+  {
+  int i;
+  float * dst = (float *)_dst;
+  uint32_t * src = (uint32_t *)_src;
+
+  dst += plane;
+  
+  for(i = 0; i < width*3; i++)
+    {
+    *dst = (float)(*src)/4294967295.0;
+    dst+=3;
+    src++;
+    }
+  }
+
+
+static void convert_scanline_gray_32(uint8_t * _dst, uint8_t * _src, int width, int plane)
+  {
+  int i;
+  float * dst = (float*)_dst;
+  uint32_t * src = (uint32_t *)_src;
+  
+  for(i = 0; i < width; i++)
+    {
+    dst[0] = (float)(*src)/4294967295.0;
+    dst[1] = (float)(*src)/4294967295.0;
+    dst[2] = (float)(*src)/4294967295.0;
+    dst += 3;
+    src++;
+    }
   }
 
 /* Big/Little endian floating point routines taken from libsndfile */
@@ -308,6 +421,7 @@ double64_read (unsigned char *cptr)
 
 static void convert_scanline_RGB_float_32(uint8_t * dst, uint8_t * src, int width, int plane)
   {
+
   }
 
 static void convert_scanline_RGB_float_64(uint8_t * _dst, uint8_t * src, int width, int plane)
@@ -318,6 +432,8 @@ static void convert_scanline_RGB_float_64(uint8_t * _dst, uint8_t * src, int wid
   for(i = 0; i < width*3; i++)
     {
     *dst = double64_read(src);
+    //    if(*dst > 1.0)
+    //      fprintf(stderr, "Float overflow");
     dst++;
     src += 8;
     }
@@ -328,11 +444,17 @@ static void convert_scanline_RGB_float_64_planar(uint8_t * _dst, uint8_t * src, 
   int i;
   float * dst = (float*)_dst;
 
+  //  fprintf(stderr, "convert_scanline_RGB_float_64_planar\n");
+  
   dst += plane;
   
   for(i = 0; i < width; i++)
     {
     *dst = double64_read(src);
+
+    //    if(*dst > 1.0)
+    //      fprintf(stderr, "Float overflow %f\n", *dst);
+
     dst+=3;
     src += 8;
     }
@@ -347,9 +469,62 @@ static void convert_scanline_RGBA_float_64(uint8_t * dst, uint8_t * src, int wid
   {
   }
 
+static void convert_scanline_logl(uint8_t * _dst, uint8_t * _src, int width, int plane)
+  {
+  int i;
+  float * dst = (float*)_dst;
+  float * src = (float*)_src;
+  
+  //  fprintf(stderr, "convert_scanline_RGB_float_64_planar\n");
+  
+  for(i = 0; i < width; i++)
+    {
+    dst[0] = *src < 0.0 ? 0.0 : *src > 1.0 ? 1.0 : sqrt(*src);
+    dst[1] = dst[0];
+    dst[2] = dst[0];
+    dst+=3;
+    src++;
+    }
+  
+  }
+
+static void XYZtoRGB(float * xyz, float * rgb)
+{
+        double  r, g, b;
+                                        /* assume CCIR-709 primaries */
+        r =  2.690*xyz[0] + -1.276*xyz[1] + -0.414*xyz[2];
+        g = -1.022*xyz[0] +  1.978*xyz[1] +  0.044*xyz[2];
+        b =  0.061*xyz[0] + -0.224*xyz[1] +  1.163*xyz[2];
+                                        /* assume 2.0 gamma for speed */
+        /* could use integer sqrt approx., but this is probably faster */
+        rgb[0] = (r<=0.) ? 0 : (r >= 1.) ? 1.0 : sqrt(r);
+        rgb[1] = (g<=0.) ? 0 : (g >= 1.) ? 1.0 : sqrt(g);
+        rgb[2] = (b<=0.) ? 0 : (b >= 1.) ? 1.0 : sqrt(b);
+}
+
+
+static void convert_scanline_logluv(uint8_t * _dst, uint8_t * _src, int width, int plane)
+  {
+  int i;
+  float * dst = (float*)_dst;
+  float * src = (float*)_src;
+  
+  //  fprintf(stderr, "convert_scanline_RGB_float_64_planar\n");
+  
+  for(i = 0; i < width; i++)
+    {
+    XYZtoRGB(src, dst);
+    dst+=3;
+    src+=3;
+    }
+  }
+
+
+
 
 static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t * format)
   {
+  double minmax_d[4];
   uint16_t tmp_16;
   tiff_t *p = (tiff_t*)priv;
   
@@ -358,6 +533,10 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
   if(!(p->tiff = open_tiff_mem("rm", p))) return 0;
   if(!(TIFFGetField(p->tiff, TIFFTAG_IMAGEWIDTH, &p->Width))) return 0;
   if(!(TIFFGetField(p->tiff, TIFFTAG_IMAGELENGTH, &p->Height))) return 0;
+  if(!(TIFFGetField(p->tiff, TIFFTAG_PHOTOMETRIC, &p->Photometric))) return 0;
+
+  if(!TIFFGetField(p->tiff, TIFFTAG_COMPRESSION, &p->Compression)) p->Compression = COMPRESSION_NONE;
+    
   if(!(TIFFGetField(p->tiff, TIFFTAG_SAMPLESPERPIXEL, &p->SamplesPerPixel)))p->SamplesPerPixel = 1;
   if(!(TIFFGetField(p->tiff, TIFFTAG_BITSPERSAMPLE, &p->BitsPerSample)))p->BitsPerSample = 1;
   if(!(TIFFGetField(p->tiff, TIFFTAG_ORIENTATION, &p->Orientation)))
@@ -365,7 +544,7 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
 
   if(!(TIFFGetField(p->tiff, TIFFTAG_SAMPLEFORMAT, &p->SampleFormat)))
     p->SampleFormat = SAMPLEFORMAT_UINT;
-
+  
   if(!(TIFFGetField(p->tiff, TIFFTAG_PLANARCONFIG, &tmp_16)) || (tmp_16 == 1))
     p->is_planar = 0;
   else
@@ -378,12 +557,15 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
   format->image_height = format->frame_height;
   format->pixel_width = 1;
   format->pixel_height = 1;
-
+#if 0
   fprintf(stderr,"Filename:\t %s\n", filename);
   fprintf(stderr,"BitsPerSample:\t %d\n", p->BitsPerSample);
   fprintf(stderr,"SamplePerPixel:\t %d\n", p->SamplesPerPixel);  
   fprintf(stderr,"SampleFormat:\t %d\n", p->SampleFormat);  
-
+  fprintf(stderr,"Planar:\t %d\n", p->is_planar);
+  fprintf(stderr,"Photometric:\t %d\n", p->Photometric);
+  fprintf(stderr,"Compression:\t %d\n", p->Compression);
+#endif
   /* Check for format */
 
   if(p->BitsPerSample <= 8)
@@ -393,16 +575,35 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
     else
       format->pixelformat = GAVL_RGB_24;
     }
+  else if((p->Photometric == PHOTOMETRIC_LOGL) || (p->Photometric == PHOTOMETRIC_LOGLUV))
+    {
+    if((p->Compression != COMPRESSION_SGILOG) && (p->Compression != COMPRESSION_SGILOG24))
+      {
+      fprintf(stderr, "Unsupported compression for LOGL/LOGLUV\n");
+      return 0;
+      }
+    TIFFSetField(p->tiff, TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT);
+    format->pixelformat = GAVL_RGB_FLOAT;
+    if(p->Photometric == PHOTOMETRIC_LOGL)
+      p->convert_scanline = convert_scanline_logl;
+    else
+      p->convert_scanline = convert_scanline_logluv;
+    }
   else /* High Precision (> 8 bits) */
     {
-    switch(p->BitsPerSample)
+    switch(p->SampleFormat)
       {
-      case 16:
-        switch(p->SampleFormat)
+      case SAMPLEFORMAT_UINT:
+        switch(p->BitsPerSample)
           {
-          case SAMPLEFORMAT_UINT:
+          case 16:
+            if(p->SamplesPerPixel == 1)
+              {
+              p->convert_scanline = convert_scanline_gray_16;
+              format->pixelformat = GAVL_RGB_48;
+              }
             /* GAVL_RGB_48 */
-            if(p->SamplesPerPixel == 3)
+            else if(p->SamplesPerPixel == 3)
               {
               if(p->is_planar)
                 p->convert_scanline = convert_scanline_RGB_16_planar;
@@ -414,7 +615,10 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
             /* GAVL_RGB_64 */
             else if(p->SamplesPerPixel == 4)
               {
-              p->convert_scanline = convert_scanline_RGBA_16;              
+              if(p->is_planar)
+                p->convert_scanline = convert_scanline_RGBA_16_planar;
+              else
+                p->convert_scanline = convert_scanline_RGBA_16;
               format->pixelformat = GAVL_RGBA_64;
               }
             else
@@ -422,50 +626,84 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
               fprintf(stderr, "Unsupported samples per pixel\n");
               return 0;
               }
-            
             break;
-          case SAMPLEFORMAT_INT:
-          case SAMPLEFORMAT_IEEEFP:
-          case SAMPLEFORMAT_VOID:
-          case SAMPLEFORMAT_COMPLEXINT:
-          case SAMPLEFORMAT_COMPLEXIEEEFP:
-            fprintf(stderr, "Unsupported sampleformat\n");
+          case 32:
+            if(p->SamplesPerPixel == 1)
+              {
+              p->convert_scanline = convert_scanline_gray_32;
+              format->pixelformat = GAVL_RGB_FLOAT;
+              }
+            else if(p->SamplesPerPixel == 3)
+              {
+              if(p->is_planar)
+                p->convert_scanline = convert_scanline_RGB_32_planar;
+              else
+                p->convert_scanline = convert_scanline_RGB_32;
+              
+              format->pixelformat = GAVL_RGB_FLOAT;
+              }
+            else if(p->SamplesPerPixel == 4)
+              {
+              if(p->is_planar)
+                p->convert_scanline = convert_scanline_RGBA_32_planar;
+              else
+                p->convert_scanline = convert_scanline_RGBA_32;
+              format->pixelformat = GAVL_RGBA_FLOAT;
+              }
+            else
+              {
+              fprintf(stderr, "Unsupported samples per pixel\n");
+              return 0;
+              }
+            break;
+          default:
+            fprintf(stderr, "Unsupported bits per sample (%d) for UINT\n", p->BitsPerSample);
             return 0;
-            break;
           }
         break;
-      case 64:
-        switch(p->SampleFormat)
-          {
-          case SAMPLEFORMAT_UINT:
-          case SAMPLEFORMAT_INT:
-            fprintf(stderr, "Unsupported sampleformat\n");
-            return 0;
-            break;
-          case SAMPLEFORMAT_IEEEFP:
-            if(p->is_planar)
-              p->convert_scanline = convert_scanline_RGB_float_64_planar;
-            else
-              p->convert_scanline = convert_scanline_RGB_float_64;
+      case SAMPLEFORMAT_IEEEFP:
+        if(!(TIFFGetField(p->tiff, TIFFTAG_SMAXSAMPLEVALUE, minmax_d)))
+          fprintf(stderr, "Didn't get max sample value\n");
 
-            format->pixelformat = GAVL_RGB_FLOAT;
+        if(!(TIFFGetField(p->tiff, TIFFTAG_SMINSAMPLEVALUE, minmax_d)))
+          fprintf(stderr, "Didn't get min sample value\n");
+        
+        switch(p->BitsPerSample)
+          {
+          case 64:
+            if(p->SamplesPerPixel == 3)
+              {
+              if(p->is_planar)
+                p->convert_scanline = convert_scanline_RGB_float_64_planar;
+              else
+                p->convert_scanline = convert_scanline_RGB_float_64;
+              format->pixelformat = GAVL_RGB_FLOAT;
+              }
+            else
+              {
+              fprintf(stderr, "Unsupported samples per pixel\n");
+              return 0;
+              }
             break;
-            
-          case SAMPLEFORMAT_VOID:
-          case SAMPLEFORMAT_COMPLEXINT:
-          case SAMPLEFORMAT_COMPLEXIEEEFP:
-            fprintf(stderr, "Unsupported sampleformat\n");
+          default:
+            fprintf(stderr, "Unsupported depth %d for IEEE float\n", p->BitsPerSample);
             return 0;
-            break;
           }
+        
+        break;
+      case SAMPLEFORMAT_INT:
+      case SAMPLEFORMAT_VOID:
+      case SAMPLEFORMAT_COMPLEXINT:
+      case SAMPLEFORMAT_COMPLEXIEEEFP:
+        fprintf(stderr, "Unsupported sampleformat\n");
+        return 0;
         break;
       default:
-        fprintf(stderr, "Unsupported bits per sample: %d\n", p->BitsPerSample);
+        fprintf(stderr, "Unknown sampleformat %d\n", p->SampleFormat);
         return 0;
+        
       }
     }
-
-  
   
   return 1;
   }

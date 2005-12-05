@@ -85,9 +85,9 @@ int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data)
         {
         if(old_state == BG_PLAYER_STATE_PAUSED)
           ping_func(data);
-        fprintf(stderr, "wait notify...");
+        //        fprintf(stderr, "wait notify...");
         wait_notify(p);
-        fprintf(stderr, "done\n");
+        //        fprintf(stderr, "done\n");
         while(1)
           {
           gettimeofday(&now, NULL);
