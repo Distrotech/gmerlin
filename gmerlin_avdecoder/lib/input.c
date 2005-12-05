@@ -332,6 +332,9 @@ void bgav_inputs_dump()
 #ifdef HAVE_CDIO
   fprintf(stderr, "<li>%s\n", bgav_input_vcd.name);
 #endif
+#ifdef HAVE_SAMBA
+  fprintf(stderr, "<li>%s\n", bgav_input_smb.name);
+#endif
   fprintf(stderr, "</ul>\n");
   }
 
@@ -402,27 +405,6 @@ int bgav_input_open(bgav_input_context_t * ret,
   return 0;
   }
 
-bgav_input_context_t * bgav_input_open_vcd(const char * device)
-  {
-#ifdef HAVE_CDIO
-  bgav_input_context_t * ret = (bgav_input_context_t *)0;
-  ret = calloc(1, sizeof(*ret));
-  ret->input = &bgav_input_vcd;
-  if(!ret->input->open(ret, device))
-    {
-    fprintf(stderr, "Cannot open VCD Device %s\n", device);
-    goto fail;
-    }
-  return ret;
-  fail:
-  if(ret)
-    free(ret);
-  return (bgav_input_context_t *)0;
-#else
-  fprintf(stderr, "VCD not supported (libcdio was missing)\n");
-  return (bgav_input_context_t *)0;
-#endif
-  }
 
 void bgav_input_close(bgav_input_context_t * ctx)
   {

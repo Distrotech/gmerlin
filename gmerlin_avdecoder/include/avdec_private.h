@@ -206,7 +206,7 @@ typedef enum
 struct bgav_stream_s
   {
   void * priv;
-  int action;
+  bgav_stream_action_t action;
   int stream_id; /* Format specific stream id */
   bgav_stream_type_t type;
   bgav_packet_buffer_t * packet_buffer;
@@ -604,9 +604,6 @@ int bgav_input_read_sector(bgav_input_context_t*, uint8_t*);
 
 int bgav_input_open(bgav_input_context_t *, const char * url);
 
-bgav_input_context_t * bgav_input_open_vcd(const char * device);
-
-
 void bgav_input_close(bgav_input_context_t * ctx);
 void bgav_input_destroy(bgav_input_context_t * ctx);
 
@@ -849,6 +846,8 @@ struct bgav_s
 /* bgav.c */
 
 void bgav_stop(bgav_t * b);
+int bgav_init(bgav_t * b);
+
 
 /* Bytestream utilities */
 

@@ -597,7 +597,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
 
         //        bg_as->ext_data = desc->format.audio.wave.data;
         //        bg_as->ext_size = desc->format.audio.wave.size;
-#if 1
+#if 0
         fprintf(stderr, "Setting wave extradata:\n");
         bgav_hexdump(bg_as->ext_data, bg_as->ext_size, 16);
 #endif   

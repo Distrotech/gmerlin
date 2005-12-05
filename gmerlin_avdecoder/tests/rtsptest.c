@@ -18,10 +18,10 @@ int main(int argc, char ** argv)
 
   memset(&opt, 0, sizeof(opt));
 
-  bgav_set_network_bandwidth(&opt, 768000);
+  bgav_options_set_network_bandwidth(&opt, 768000);
   
-  bgav_set_connect_timeout(&opt, 5000);
-  bgav_set_read_timeout(&opt, 5000);
+  bgav_options_set_connect_timeout(&opt, 5000);
+  bgav_options_set_read_timeout(&opt, 5000);
   
   rtsp = bgav_rtsp_create(&opt);
 

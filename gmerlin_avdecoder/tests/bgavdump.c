@@ -128,11 +128,11 @@ int main(int argc, char ** argv)
     
   /* Configure */
 
-  bgav_set_connect_timeout(opt,   connect_timeout);
-  bgav_set_read_timeout(opt,      read_timeout);
-  bgav_set_network_bandwidth(opt, network_bandwidth);
+  bgav_options_set_connect_timeout(opt,   connect_timeout);
+  bgav_options_set_read_timeout(opt,      read_timeout);
+  bgav_options_set_network_bandwidth(opt, network_bandwidth);
 
-  bgav_set_user_pass_callback(opt, user_pass_func, (void*)0);
+  bgav_options_set_user_pass_callback(opt, user_pass_func, (void*)0);
   
   if(!strncmp(argv[1], "vcd://", 6))
     {

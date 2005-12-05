@@ -190,19 +190,6 @@ int bgav_open(bgav_t * ret, const char * location)
   return 0;
   }
 
-int bgav_open_vcd(bgav_t * b, const char * device)
-  {
-  bgav_codecs_init();
-  b->input = bgav_input_open_vcd(device);
-  if(!b->input)
-    return 0;
-  if(!bgav_init(b))
-    goto fail;
-  return 1;
-  fail:
-  return 0;
-  
-  }
 
 
 int bgav_open_fd(bgav_t * ret, int fd, int64_t total_size, const char * mimetype)
@@ -316,7 +303,7 @@ const char * bgav_get_description(bgav_t * b)
   }
 
 void
-bgav_set_name_change_callback(bgav_options_t * opt,
+bgav_options_set_name_change_callback(bgav_options_t * opt,
                               void (callback)(void*data, const char * name),
                               void * data)
   {
@@ -326,7 +313,7 @@ bgav_set_name_change_callback(bgav_options_t * opt,
   }
 
 void
-bgav_set_metadata_change_callback(bgav_options_t * opt,
+bgav_options_set_metadata_change_callback(bgav_options_t * opt,
                                   void (callback)(void*data, const bgav_metadata_t*),
                                   void * data)
   {
@@ -335,7 +322,7 @@ bgav_set_metadata_change_callback(bgav_options_t * opt,
   }
 
 void
-bgav_set_user_pass_callback(bgav_options_t * opt,
+bgav_options_set_user_pass_callback(bgav_options_t * opt,
                             int (callback)(void*data, const char * resource, char ** username, char ** password),
                             void * data)
   {
@@ -345,7 +332,7 @@ bgav_set_user_pass_callback(bgav_options_t * opt,
 
 
 void
-bgav_set_track_change_callback(bgav_options_t * opt,
+bgav_options_set_track_change_callback(bgav_options_t * opt,
                                void (callback)(void*data, int track),
                                void * data)
   {
@@ -355,7 +342,7 @@ bgav_set_track_change_callback(bgav_options_t * opt,
 
 
 void
-bgav_set_buffer_callback(bgav_options_t * opt,
+bgav_options_set_buffer_callback(bgav_options_t * opt,
                          void (callback)(void*data, float percentage),
                          void * data)
   {

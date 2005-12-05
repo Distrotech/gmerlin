@@ -32,7 +32,7 @@ const gavl_audio_format_t * bgav_get_audio_format(bgav_t *  bgav, int stream)
   return &(bgav->tt->current_track->audio_streams[stream].data.audio.format);
   }
 
-int bgav_set_audio_stream(bgav_t * b, int stream, int action)
+int bgav_set_audio_stream(bgav_t * b, int stream, bgav_stream_action_t action)
   {
   if((stream >= b->tt->current_track->num_audio_streams) || (stream < 0))
     return 0;

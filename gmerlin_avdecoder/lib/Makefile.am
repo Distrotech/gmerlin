@@ -107,11 +107,9 @@ endif
 if HAVE_CDIO
 cdio_cflags =  @CDIO_CFLAGS@
 cdio_libs =    @CDIO_LIBS@
-cdio_sources = in_vcd.c
 else
 cdio_cflags =
 cdio_libs =
-cdio_sources =
 endif
 
 if HAVE_LIBDV
@@ -254,7 +252,6 @@ $(flac_sources) \
 $(avcodec_sources) \
 $(real_sources) \
 $(xadll_sources) \
-$(cdio_sources) \
 $(libdv_sources) \
 $(mjpegtools_sources) \
 $(samba_sources) \
@@ -305,6 +302,7 @@ in_memory.c \
 in_mms.c \
 in_pnm.c \
 in_rtsp.c \
+in_vcd.c \
 input.c \
 metadata.c \
 mms.c \

@@ -149,7 +149,7 @@ int bg_avdec_read_audio(void * priv,
   return bgav_read_audio(avdec->dec, frame, stream, num_samples);
   }
 
-static int get_stream_action(bg_stream_action_t action)
+static bgav_stream_action_t get_stream_action(bg_stream_action_t action)
   {
   switch(action)
     {
@@ -170,7 +170,7 @@ int bg_avdec_set_audio_stream(void * priv,
                                   int stream,
                                   bg_stream_action_t action)
   {
-  int act;
+  bgav_stream_action_t act;
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
   act = get_stream_action(action);
@@ -182,7 +182,7 @@ int bg_avdec_set_video_stream(void * priv,
                               bg_stream_action_t action)
   {
   avdec_priv * avdec;
-  int act;
+  bgav_stream_action_t  act;
   avdec = (avdec_priv*)(priv);
   act = get_stream_action(action);
   return bgav_set_video_stream(avdec->dec, stream, act);
@@ -301,15 +301,15 @@ bg_avdec_set_parameter(void * p, char * name,
     {
     /* Set parameters */
   
-    bgav_set_connect_timeout(avdec->opt, val->val_i);
+    bgav_options_set_connect_timeout(avdec->opt, val->val_i);
     }
   else if(!strcmp(name, "read_timeout"))
     {
-    bgav_set_read_timeout(avdec->opt, val->val_i);
+    bgav_options_set_read_timeout(avdec->opt, val->val_i);
     }
   else if(!strcmp(name, "network_buffer_size"))
     {
-    bgav_set_network_buffer_size(avdec->opt, val->val_i * 1024);
+    bgav_options_set_network_buffer_size(avdec->opt, val->val_i * 1024);
     }
   else if(!strcmp(name, "network_bandwidth"))
     {
@@ -337,43 +337,43 @@ bg_avdec_set_parameter(void * p, char * name,
       i_tmp = 1544000;
     else if(!strcmp(val->val_str, "10.5 Mbps (LAN)"))
       i_tmp = 10485800;
-    bgav_set_network_bandwidth(avdec->opt, i_tmp);
+    bgav_options_set_network_bandwidth(avdec->opt, i_tmp);
     }
   else if(!strcmp(name, "http_shoutcast_metadata"))
     {
-    bgav_set_http_shoutcast_metadata(avdec->opt, val->val_i);
+    bgav_options_set_http_shoutcast_metadata(avdec->opt, val->val_i);
     }
   else if(!strcmp(name, "http_use_proxy"))
     {
-    bgav_set_http_use_proxy(avdec->opt, val->val_i);
+    bgav_options_set_http_use_proxy(avdec->opt, val->val_i);
     }
   else if(!strcmp(name, "http_proxy_host"))
     {
-    bgav_set_http_proxy_host(avdec->opt, val->val_str);
+    bgav_options_set_http_proxy_host(avdec->opt, val->val_str);
     }
   else if(!strcmp(name, "http_proxy_port"))
     {
-    bgav_set_http_proxy_port(avdec->opt, val->val_i);
+    bgav_options_set_http_proxy_port(avdec->opt, val->val_i);
     }
   else if(!strcmp(name, "http_proxy_auth"))
     {
-    bgav_set_http_proxy_auth(avdec->opt, val->val_i);
+    bgav_options_set_http_proxy_auth(avdec->opt, val->val_i);
     }
   else if(!strcmp(name, "http_proxy_user"))
     {
-    bgav_set_http_proxy_user(avdec->opt, val->val_str);
+    bgav_options_set_http_proxy_user(avdec->opt, val->val_str);
     }
   else if(!strcmp(name, "http_proxy_pass"))
     {
-    bgav_set_http_proxy_pass(avdec->opt, val->val_str);
+    bgav_options_set_http_proxy_pass(avdec->opt, val->val_str);
     }
   else if(!strcmp(name, "ftp_anonymous_password"))
     {
-    bgav_set_ftp_anonymous_password(avdec->opt, val->val_str);
+    bgav_options_set_ftp_anonymous_password(avdec->opt, val->val_str);
     }
   else if(!strcmp(name, "ftp_anonymous"))
     {
-    bgav_set_ftp_anonymous(avdec->opt, val->val_i);
+    bgav_options_set_ftp_anonymous(avdec->opt, val->val_i);
     }
   }
 
@@ -435,29 +435,29 @@ void bg_avdec_set_callbacks(void * priv,
   if(!callbacks)
     return;
   
-  bgav_set_name_change_callback(avdec->opt,
+  bgav_options_set_name_change_callback(avdec->opt,
                                 avdec->bg_callbacks->name_changed,
                                 avdec->bg_callbacks->data);
   
-  bgav_set_name_change_callback(avdec->opt,
+  bgav_options_set_name_change_callback(avdec->opt,
                                 avdec->bg_callbacks->name_changed,
                                 avdec->bg_callbacks->data);
   
-  bgav_set_track_change_callback(avdec->opt,
+  bgav_options_set_track_change_callback(avdec->opt,
                                  avdec->bg_callbacks->track_changed,
                                  avdec->bg_callbacks->data);
 
-  bgav_set_buffer_callback(avdec->opt,
+  bgav_options_set_buffer_callback(avdec->opt,
                            avdec->bg_callbacks->buffer_notify,
                            avdec->bg_callbacks->data);
 
-  bgav_set_user_pass_callback(avdec->opt,
+  bgav_options_set_user_pass_callback(avdec->opt,
                              avdec->bg_callbacks->user_pass,
                              avdec->bg_callbacks->data);
   
   if(avdec->bg_callbacks->metadata_changed)
     {
-    bgav_set_metadata_change_callback(avdec->opt,
+    bgav_options_set_metadata_change_callback(avdec->opt,
                                       metadata_change_callback,
                                       priv);
     }

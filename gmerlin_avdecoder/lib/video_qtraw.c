@@ -296,7 +296,7 @@ static int init_qtraw(bgav_stream_t * s)
       priv->bytes_per_line = width * 4;
       priv->scanline_func = scanline_raw_32;
       s->data.video.format.pixelformat = GAVL_RGBA_32;
-      s->description = bgav_sprintf("Quicktime Uncompressed 24 bpp RGBA");
+      s->description = bgav_sprintf("Quicktime Uncompressed 32 bpp RGBA");
       break;
     case 34:
       /* 2 bit gray */

@@ -31,7 +31,7 @@ const gavl_video_format_t * bgav_get_video_format(bgav_t * bgav, int stream)
   return &(bgav->tt->current_track->video_streams[stream].data.video.format);
   }
 
-int bgav_set_video_stream(bgav_t * b, int stream, int action)
+int bgav_set_video_stream(bgav_t * b, int stream, bgav_stream_action_t action)
   {
   if((stream >= b->tt->current_track->num_video_streams) ||
      (stream < 0))

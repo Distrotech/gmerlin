@@ -107,9 +107,14 @@ static int init_faad2(bgav_stream_t * s)
     priv->data_ptr += result;
     }
   else
+    {
     result = faacDecInit2(priv->dec, s->ext_data,
                           s->ext_size,
                           &samplerate, &channels);
+    //    fprintf(stderr, "faacDecInit2, samplerate: %d, channels: %d\n",
+    //            samplerate, channels);
+    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
+    }
   //  fprintf(stderr, "Result: %d %d %d\n", result, samplerate, channels);
 
   /* Some mp4 files have a wrong samplerate in the sample description,
@@ -162,7 +167,7 @@ static int decode_frame(bgav_stream_t * s)
    * Doing this cleanly would require heavy changes in the mp4 demuxer
    * code.
    */
-#if 1
+#if 0
   if(*priv->data_ptr == 0x00)
     {
     priv->data_ptr++;

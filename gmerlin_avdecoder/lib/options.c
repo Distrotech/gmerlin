@@ -24,12 +24,12 @@
 
 /* Configuration stuff */
 
-void bgav_set_connect_timeout(bgav_options_t *b, int timeout)
+void bgav_options_set_connect_timeout(bgav_options_t *b, int timeout)
   {
   b->connect_timeout = timeout;
   }
 
-void bgav_set_read_timeout(bgav_options_t *b, int timeout)
+void bgav_options_set_read_timeout(bgav_options_t *b, int timeout)
   {
   b->read_timeout = timeout;
   }
@@ -38,47 +38,47 @@ void bgav_set_read_timeout(bgav_options_t *b, int timeout)
  *  Set network bandwidth (in bits per second)
  */
 
-void bgav_set_network_bandwidth(bgav_options_t *b, int bandwidth)
+void bgav_options_set_network_bandwidth(bgav_options_t *b, int bandwidth)
   {
   b->network_bandwidth = bandwidth;
   }
 
-void bgav_set_network_buffer_size(bgav_options_t *b, int size)
+void bgav_options_set_network_buffer_size(bgav_options_t *b, int size)
   {
   b->network_buffer_size = size;
   }
 
 
-void bgav_set_http_use_proxy(bgav_options_t*b, int use_proxy)
+void bgav_options_set_http_use_proxy(bgav_options_t*b, int use_proxy)
   {
   b->http_use_proxy = use_proxy;
   }
 
-void bgav_set_http_proxy_host(bgav_options_t*b, const char * h)
+void bgav_options_set_http_proxy_host(bgav_options_t*b, const char * h)
   {
   if(b->http_proxy_host)
     free(b->http_proxy_host);
   b->http_proxy_host = bgav_strndup(h, NULL);
   }
 
-void bgav_set_http_proxy_port(bgav_options_t*b, int p)
+void bgav_options_set_http_proxy_port(bgav_options_t*b, int p)
   {
   b->http_proxy_port = p;
   }
 
-void bgav_set_http_proxy_auth(bgav_options_t*b, int i)
+void bgav_options_set_http_proxy_auth(bgav_options_t*b, int i)
   {
   b->http_proxy_auth = i;
   }
 
-void bgav_set_http_proxy_user(bgav_options_t*b, const char * h)
+void bgav_options_set_http_proxy_user(bgav_options_t*b, const char * h)
   {
   if(b->http_proxy_user)
     free(b->http_proxy_user);
   b->http_proxy_user = bgav_strndup(h, NULL);
   }
 
-void bgav_set_http_proxy_pass(bgav_options_t*b, const char * h)
+void bgav_options_set_http_proxy_pass(bgav_options_t*b, const char * h)
   {
   if(b->http_proxy_pass)
     free(b->http_proxy_pass);
@@ -86,19 +86,19 @@ void bgav_set_http_proxy_pass(bgav_options_t*b, const char * h)
   }
 
 
-void bgav_set_http_shoutcast_metadata(bgav_options_t*b, int m)
+void bgav_options_set_http_shoutcast_metadata(bgav_options_t*b, int m)
   {
   b->http_shoutcast_metadata = m;
   }
 
-void bgav_set_ftp_anonymous_password(bgav_options_t*b, const char * h)
+void bgav_options_set_ftp_anonymous_password(bgav_options_t*b, const char * h)
   {
   if(b->ftp_anonymous_password)
     free(b->ftp_anonymous_password);
   b->ftp_anonymous_password = bgav_strndup(h, NULL);
   }
 
-void bgav_set_ftp_anonymous(bgav_options_t*b, int anonymous)
+void bgav_options_set_ftp_anonymous(bgav_options_t*b, int anonymous)
   {
   b->ftp_anonymous = anonymous;
   }

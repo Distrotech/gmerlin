@@ -18,6 +18,10 @@
 *****************************************************************/
 
 #include <avdec_private.h>
+
+#ifdef HAVE_CDIO
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -484,7 +488,7 @@ bgav_device_info_t * bgav_find_devices_vcd()
   i = 0;
   while(devices[i])
     {
-    fprintf(stderr, "Checking %s\n", devices[i]);
+    //    fprintf(stderr, "Checking %s\n", devices[i]);
     device_name = (char*)0;
     if(bgav_check_device_vcd(devices[i], &device_name))
       {
@@ -500,3 +504,60 @@ bgav_device_info_t * bgav_find_devices_vcd()
   return ret;
 
   }
+
+bgav_input_context_t * bgav_input_open_vcd(const char * device)
+  {
+  bgav_input_context_t * ret = (bgav_input_context_t *)0;
+  ret = calloc(1, sizeof(*ret));
+  ret->input = &bgav_input_vcd;
+  if(!ret->input->open(ret, device))
+    {
+    fprintf(stderr, "Cannot open VCD Device %s\n", device);
+    goto fail;
+    }
+  return ret;
+  fail:
+  if(ret)
+    free(ret);
+  return (bgav_input_context_t *)0;
+  }
+
+int bgav_open_vcd(bgav_t * b, const char * device)
+  {
+  bgav_codecs_init();
+  b->input = bgav_input_open_vcd(device);
+  if(!b->input)
+    return 0;
+  if(!bgav_init(b))
+    goto fail;
+  return 1;
+  fail:
+  return 0;
+  
+  }
+
+#else /* !HAVE_CDIO */
+
+
+
+int bgav_check_device_vcd(const char * device, char ** name)
+  {
+  fprintf(stderr, "VCD not supported (libcdio was missing)\n");
+  return 0;
+  }
+
+bgav_device_info_t * bgav_find_devices_vcd()
+  {
+  fprintf(stderr, "VCD not supported (libcdio was missing)\n");
+  return (bgav_device_info_t*)0;
+  
+  }
+
+int bgav_open_vcd(bgav_t * b, const char * device)
+  {
+  fprintf(stderr, "VCD not supported (libcdio was missing)\n");
+  return 0;
+  }
+
+
+#endif
