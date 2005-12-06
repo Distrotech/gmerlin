@@ -717,6 +717,7 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
 
 static void skip_to(bgav_t * b, bgav_track_t * track, gavl_time_t * time)
   {
+  //  fprintf(stderr, "bgav_track_skipto: %f\n", gavl_time_to_seconds(*time));
   if(!bgav_track_skipto(track, time))
     b->eof = 1;
   }
@@ -754,13 +755,22 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
       b->demuxer->demuxer->seek(b->demuxer, seek_time);
     sync_time = bgav_track_resync_decoders(track);
     if(sync_time == GAVL_TIME_UNDEFINED)
+      {
+      fprintf(stderr, "Warning: Undefined sync time after seeking\n");
       return;
-
+      }
     /* If demuxer already seeked perfectly, break here */
 
     if(!b->demuxer->demuxer->seek_iterative)
       {
-      skip_to(b, track, time);
+
+      if(*time > sync_time)
+        skip_to(b, track, time);
+      else
+        {
+        skip_to(b, track, &sync_time);
+        *time = sync_time;
+        }
       break;
       }
     /* Check if we should end this */
@@ -792,9 +802,14 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
             sync_time = bgav_track_resync_decoders(track);
             }
           }
+
+        
         if(*time > sync_time)
-          {
           skip_to(b, track, time);
+        else
+          {
+          skip_to(b, track, &sync_time);
+          *time = sync_time;
           }
         break;
         // fprintf(stderr, "Exiting otherwise infinite loop\n");
@@ -810,11 +825,12 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
     
     
     diff_time = *time - sync_time;
+#if 0
     fprintf(stderr, "Seeked, time: %f seek_time: %f, last_seek_time: %f\n",
             gavl_time_to_seconds(*time),
             gavl_time_to_seconds(seek_time),
             gavl_time_to_seconds(last_seek_time));
-
+#endif
     if(diff_time > MAX_SKIP_TIME)
       {
       seek_time += (diff_time * 2)/3;

@@ -572,7 +572,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       priv->ctx->hurry_up = 0;
 #if 0
     fprintf(stderr, "Decode: %lld %d\n", s->position, len);
-    bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
+    //    bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
 #endif
     //    fprintf(stderr, "Decode %d...", priv->ctx->pix_fmt);
     
@@ -596,27 +596,29 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
 #if 0
     if(!got_picture)
       {
-      fprintf(stderr, "Didn't get picture: bytes: %d, bytes_used: %d\n",
-              len, bytes_used);
+      fprintf(stderr, "Didn't get picture: bytes: %d, bytes_used: %d, last_frame_time: %lld\n",
+              len, bytes_used, s->data.video.last_frame_time);
       bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
+      
       }
 #endif
     if(priv->packet_buffer_ptr)
       {
       /* Check for error */
       //      if((bytes_used <= 0) || !(got_picture))
-      if(bytes_used <= 0)
+      if((bytes_used <= 0) || !got_picture)
         {
         //      fprintf(stderr, "Skipping corrupted frame\n");
-        priv->packet_buffer_ptr += len;
-        priv->bytes_in_packet_buffer -= len;
+        //        priv->packet_buffer_ptr += len;
+        priv->bytes_in_packet_buffer = 0;
         }
       /* Advance packet buffer */
       else
         {
         priv->packet_buffer_ptr += bytes_used;
         priv->bytes_in_packet_buffer -= bytes_used;
-        
+        if(priv->bytes_in_packet_buffer < 0)
+          priv->bytes_in_packet_buffer = 0;
         }
       }
     
@@ -834,7 +836,9 @@ static int init(bgav_stream_t * s)
 
   if(codec->capabilities & CODEC_CAP_TRUNCATED)
     priv->ctx->flags &= ~CODEC_FLAG_TRUNCATED;
-
+  priv->ctx->workaround_bugs = FF_BUG_AUTODETECT;
+  priv->ctx->error_concealment = 3;
+  
   //  priv->ctx->error_resilience = 3;
   
   /* Open this thing */
@@ -872,6 +876,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
   ffmpeg_video_priv * priv;
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
   avcodec_flush_buffers(priv->ctx);
+  priv->bytes_in_packet_buffer = 0;
   }
 
 static void close_ffmpeg(bgav_stream_t * s)

@@ -243,11 +243,13 @@ static int init_flac(bgav_stream_t * s)
     fprintf(stderr, "Reading metadata failed\n");
     return 0;
     }
+#if 0
   else
     {
     fprintf(stderr, "Got metadata %d channels\n",
             s->data.audio.format.num_channels);
     }
+#endif
   
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE;
   

@@ -136,8 +136,8 @@ int bgav_audio_skipto(bgav_stream_t * s, gavl_time_t * t)
   int samples_skipped = 0;  
   gavl_time_t stream_time;
 
-  stream_time = gavl_samples_to_time(s->timescale,
-                                     s->time_scaled);
+  stream_time = gavl_time_unscale(s->timescale,
+                                  s->time_scaled);
 
   num_samples = ((int64_t)(s->data.audio.format.samplerate)* (*t - stream_time)) /
     GAVL_TIME_SCALE;

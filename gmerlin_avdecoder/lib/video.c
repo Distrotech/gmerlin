@@ -143,7 +143,7 @@ int bgav_video_skipto(bgav_stream_t * s, gavl_time_t * time)
   
   if(stream_time >= *time)
     {
-    fprintf(stderr, "video.c: cannot skip backwards\n");
+    //    fprintf(stderr, "video.c: cannot skip backwards\n");
     return 1;
     }
 

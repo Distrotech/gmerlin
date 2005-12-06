@@ -11,8 +11,8 @@ CFLAGS="$CFLAGS $AVCODEC_CFLAGS"
 LIBS="$LIBS $AVCODEC_LIBS"
 avcodec_ok="false"
 AC_TRY_RUN([
-    #include <ffmpeg/avcodec.h>
     #include <stdio.h>
+    #include <ffmpeg/avcodec.h>
     int main()
     {
     FILE * output;
@@ -71,7 +71,7 @@ dnl Second Peference: ffmpeg_acl
 dnl
 
 if test "x$avcodec_done" = "xfalse"; then
-  PKG_CHECK_MODULES(AVCODEC_ACL, avcodec_acl >= "0.4.8acl", have_avcodec_acl="true", have_avcodec_acl="false")
+  PKG_CHECK_MODULES(AVCODEC_ACL, avcodec_acl, have_avcodec_acl="true", have_avcodec_acl="false")
   if test x"$have_avcodec_acl" = "xtrue"; then
         AVCODEC_CFLAGS=$AVCODEC_ACL_CFLAGS
         AVCODEC_LIBS=$AVCODEC_ACL_LIBS

@@ -286,7 +286,7 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
       fprintf(stderr, "Couldn't resync video stream after seeking, maybe EOF\n");
       return GAVL_TIME_UNDEFINED;
       }
-    test_time = gavl_samples_to_time(s->timescale, s->time_scaled);
+    test_time = gavl_time_unscale(s->timescale, s->time_scaled);
 
     s->position =
       gavl_time_to_frames(s->data.video.format.timescale,
@@ -303,7 +303,6 @@ int bgav_track_skipto(bgav_track_t * track, gavl_time_t * time)
   int i;
   bgav_stream_t * s;
   gavl_time_t t;
-
   
   for(i = 0; i < track->num_video_streams; i++)
     {
