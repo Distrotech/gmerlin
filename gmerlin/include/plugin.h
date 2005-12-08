@@ -429,9 +429,9 @@ typedef struct bg_ra_plugin_s
 typedef struct bg_ov_plugin_callbacks_s
   {
   /* Keyboard callback */
-  void (*key_callback)(void * data, int key);
+  void (*key_callback)(void * data, int key, int mask);
   /* Button can be 1, 2 or 3, coordinates are in IMAGE space */
-  void (*button_callback)(void * data, int x, int y, int button);
+  void (*button_callback)(void * data, int x, int y, int button, int mask);
 
   /* Call this, is the window got (un)-mapped */  
   void (*show_window)(void * data, int show);

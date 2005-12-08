@@ -377,7 +377,6 @@ static void play_cmd(bg_player_t * p,
   
   bg_player_set_track_name(p, track_name);
 
-
   p->input_handle = handle;
   if(!bg_player_input_init(p->input_context,
                            handle, track_index))

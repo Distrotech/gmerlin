@@ -49,7 +49,7 @@ struct bg_gtk_album_window_s
 
   GtkWidget * notebook;
   int name_len;
-    
+  GtkAccelGroup * accel_group;
   };
 
 /* Configuration stuff */
@@ -170,13 +170,15 @@ static void name_change_callback(bg_album_t * a,
 
 bg_gtk_album_window_t *
 bg_gtk_album_window_create(bg_album_t * album,
-                           bg_gtk_tree_widget_t * tree_widget)
+                           bg_gtk_tree_widget_t * tree_widget, GtkAccelGroup * accel_group)
   {
   
   bg_gtk_album_window_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->tree_widget = tree_widget;
 
+  ret->accel_group = accel_group;
+  
   bg_album_set_name_change_callback(album, name_change_callback, ret);
   
   ret->widget = bg_gtk_album_widget_create(album, ret->window);
@@ -245,7 +247,7 @@ void bg_gtk_album_window_raise(bg_gtk_album_window_t* w)
   int page_num;
   
   if(w->window && w->window->window)
-    gdk_window_raise(w->window->window);
+    gtk_window_present(w->window);
 
   else if(w->notebook)
     {
@@ -355,6 +357,9 @@ void bg_gtk_album_window_detach(bg_gtk_album_window_t * w)
     }
   
   w->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_add_accel_group(GTK_WINDOW (w->window), w->accel_group);
+  gtk_window_add_accel_group(GTK_WINDOW (w->window), bg_gtk_album_widget_get_accel_group(w->widget));
+    
   g_signal_connect(G_OBJECT(w->window), "delete-event",
                    G_CALLBACK(delete_callback),
                    w);
@@ -393,4 +398,9 @@ void bg_gtk_album_window_goto_current(bg_gtk_album_window_t * w)
   {
   bg_gtk_album_window_raise(w);
   bg_gtk_album_widget_goto_current(w->widget);
+  }
+
+GtkAccelGroup * bg_gtk_album_window_get_accel_group(bg_gtk_album_window_t * w)
+  {
+  return bg_gtk_album_widget_get_accel_group(w->widget);
   }

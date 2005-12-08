@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include "gmerlin.h"
 #include <utils.h>
+#include <keycodes.h>
 
 #include <gui_gtk/gtkutils.h>
 
@@ -412,6 +413,43 @@ static void handle_message(player_window_t * win,
       //              arg_i_1, arg_i_2, arg_i_3);
       main_menu_set_num_streams(win->main_menu, arg_i_1, arg_i_2, arg_i_3);
       break;
+    case BG_PLAYER_MSG_KEY:
+      arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      arg_i_2 = bg_msg_get_arg_int(msg, 1);
+
+      fprintf(stderr, "BG_PLAYER_MSG_KEY %d, 0x%02x\n", arg_i_1, arg_i_2);
+      
+      switch(arg_i_1)
+        {
+        case BG_KEY_PAGE_UP:
+          bg_media_tree_next(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
+          gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
+          break;
+        case BG_KEY_PAGE_DOWN:
+          bg_media_tree_previous(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
+          gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
+          break;
+        case BG_KEY_Q:
+          gtk_main_quit();
+          return;
+          break;
+        case BG_KEY_O:
+          if(arg_i_2 & BG_KEY_CONTROL_MASK)
+            gmerlin_configure(win->gmerlin);
+          break;
+        case BG_KEY_G:
+          if(arg_i_2 & BG_KEY_CONTROL_MASK)
+            bg_gtk_tree_window_goto_current(win->gmerlin->tree_window);
+          break;
+        case BG_KEY_P:
+          if(arg_i_2 & BG_KEY_CONTROL_MASK)
+            {
+            plugin_window_show(win->gmerlin->plugin_window);
+            main_menu_set_plugin_window_item(win->main_menu, 1);
+            }
+          break;
+        }
+      break;
     case BG_PLAYER_MSG_TRACK_DURATION:
       win->duration = bg_msg_get_arg_time(msg, 0);
 
@@ -525,6 +563,8 @@ player_window_t * player_window_create(gmerlin_t * g)
   ret = calloc(1, sizeof(*ret));
   ret->gmerlin = g;
 
+  
+  
   ret->tooltips = gtk_tooltips_new();
   
   g_object_ref (G_OBJECT (ret->tooltips));
@@ -541,6 +581,10 @@ player_window_t * player_window_create(gmerlin_t * g)
   
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_decorated(GTK_WINDOW(ret->window), FALSE);
+
+  gtk_window_add_accel_group (GTK_WINDOW(ret->window), ret->gmerlin->accel_group);
+  //  fprintf(stderr, "Player window Add accel group %p\n", ret->gmerlin->accel_group);
+
   
   ret->layout = gtk_layout_new((GtkAdjustment*)0,
                                (GtkAdjustment*)0);
@@ -565,7 +609,6 @@ player_window_t * player_window_create(gmerlin_t * g)
   g_signal_connect(G_OBJECT(ret->window), "leave-notify-event",
                    G_CALLBACK(crossing_callback), (gpointer*)ret);
   
-
   g_signal_connect(G_OBJECT(ret->layout), "realize",
                    G_CALLBACK(realize_callback), (gpointer*)ret);
 

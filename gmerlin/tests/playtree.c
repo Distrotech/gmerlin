@@ -33,7 +33,7 @@ int main(int argc, char ** argv)
   
   tree = bg_media_tree_create("./tree.xml", plugin_reg);
   
-  win = bg_gtk_tree_window_create(tree, close_callback, NULL);
+  win = bg_gtk_tree_window_create(tree, close_callback, NULL, (GtkAccelGroup*)0);
   bg_gtk_tree_window_show(win);
   gtk_main();
   bg_gtk_tree_window_hide(win);

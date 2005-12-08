@@ -21,8 +21,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "player.h"
-#include "playerprivate.h"
+#include <keycodes.h>
+
+#include <player.h>
+#include <playerprivate.h>
 
 struct bg_player_ov_context_s
   {
@@ -43,12 +45,40 @@ struct bg_player_ov_context_s
 
 /* Callback functions */
 
-static void key_callback(void * data, int key)
+static void key_callback(void * data, int key, int mask)
   {
-  fprintf(stderr, "Key callback %c\n", key);
+  bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
+  fprintf(stderr, "Key callback %d, 0x%02x\n", key, mask);
+
+  switch(key)
+    {
+    /* Take the keys, we can handle from here */
+    case BG_KEY_LEFT:
+      bg_player_set_volume_rel(ctx->player, -1.0);
+      break;
+    case BG_KEY_RIGHT:
+      bg_player_set_volume_rel(ctx->player,  1.0);
+      break;
+    case BG_KEY_UP:
+      bg_player_seek_rel(ctx->player,   -2 * GAVL_TIME_SCALE );
+      break;
+    case BG_KEY_DOWN:
+      bg_player_seek_rel(ctx->player,   2 * GAVL_TIME_SCALE );
+      break;
+    case BG_KEY_0:
+      bg_player_seek(ctx->player, 0 );
+      break;
+    case BG_KEY_SPACE:
+      bg_player_pause(ctx->player);
+      break;
+    default: /* Broadcast this */
+      bg_player_key_pressed(ctx->player, key, mask);
+      break;
+    }
+
   }
 
-static void button_callback(void * data, int x, int y, int button)
+static void button_callback(void * data, int x, int y, int button, int mask)
   {
   bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
 
@@ -354,14 +384,16 @@ void * bg_player_ov_thread(void * data)
       break;
       }
     bg_player_time_get(ctx->player, 1, &current_time);
-#if 0
-    fprintf(stderr, "F: %f, C: %f\n",
-            gavl_time_to_seconds(ctx->frame->time_scaled),
-            gavl_time_to_seconds(current_time));
-#endif
 
     frame_time = gavl_time_unscale(ctx->player->video_stream.output_format.timescale,
                                    ctx->frame->time_scaled);
+#if 0
+    fprintf(stderr, "F: %f, C: %f\n",
+            gavl_time_to_seconds(frame_time),
+            gavl_time_to_seconds(current_time));
+#endif
+
+    
     
     if(!ctx->do_sync)
       {

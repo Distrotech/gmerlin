@@ -142,20 +142,24 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
 bg_gtk_tree_window_t *
 bg_gtk_tree_window_create(bg_media_tree_t * tree,
                           void (*close_callback)(bg_gtk_tree_window_t*,void*),
-                          void * close_callback_data)
+                          void * close_callback_data, GtkAccelGroup * accel_group)
   {
   bg_gtk_tree_window_t * ret = calloc(1, sizeof(*ret));
-
+    
   ret->cfg_section =
     bg_cfg_section_find_subsection(bg_media_tree_get_cfg_section(tree), "gtk_treewindow");
   
-  ret->widget = bg_gtk_tree_widget_create(tree);
+
+  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  gtk_window_add_accel_group(GTK_WINDOW(ret->window), accel_group);
+
+  ret->widget = bg_gtk_tree_widget_create(tree, accel_group, ret->window);
   
   ret->close_callback = close_callback;
   ret->close_callback_data = close_callback_data;
     
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-
+  //  fprintf(stderr, "Tree window Add accel group %p\n", accel_group);
+  
   g_signal_connect(G_OBJECT(ret->window), "delete-event",
                    G_CALLBACK(delete_callback),
                    ret);
@@ -218,4 +222,9 @@ void bg_gtk_tree_window_set_tooltips(bg_gtk_tree_window_t* win, int enable)
 void bg_gtk_tree_window_open_incoming(bg_gtk_tree_window_t * win)
   {
   bg_gtk_tree_widget_open_incoming(win->widget);
+  }
+
+void bg_gtk_tree_window_goto_current(bg_gtk_tree_window_t * win)
+  {
+  bg_gtk_tree_widget_goto_current(win->widget);
   }

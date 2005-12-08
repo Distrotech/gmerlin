@@ -19,6 +19,7 @@
 
 #include "gmerlin.h"
 #include <utils.h>
+#include <gdk/gdkkeysyms.h>
 
 typedef struct stream_menu_s
   {
@@ -484,8 +485,16 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   ret->options_menu.menu = create_menu();
   ret->options_menu.preferences =
     create_item("Preferences...", gmerlin, ret->options_menu.menu);
+
+  gtk_widget_add_accelerator(ret->options_menu.preferences, "activate", ret->g->accel_group,
+                             GDK_o, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+
+  
+
   ret->options_menu.plugins =
     create_item("Plugins...", gmerlin, ret->options_menu.menu);
+  gtk_widget_add_accelerator(ret->options_menu.plugins, "activate", ret->g->accel_group,
+                             GDK_p, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
   ret->options_menu.skins =
     create_item("Skins...", gmerlin, ret->options_menu.menu);

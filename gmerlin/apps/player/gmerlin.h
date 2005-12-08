@@ -118,6 +118,9 @@ struct gmerlin_s
   bg_remote_server_t * remote;
   
   int player_state;
+
+  /* For all windows */
+  GtkAccelGroup *accel_group;
   };
 
 gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg);

@@ -35,6 +35,7 @@
 #include <X11/keysym.h>
 
 #include <plugin.h>
+#include <keycodes.h>
 #include <utils.h>
 #include <config.h>
 
@@ -44,6 +45,14 @@
 #include <X11/extensions/Xvlib.h>
 // #undef HAVE_LIBXV
 
+#define SQUEEZE_MIN -1.0
+#define SQUEEZE_MAX 1.0
+#define SQUEEZE_DELTA 0.04
+
+#define ZOOM_MIN 20.0
+#define ZOOM_MAX 180.0
+#define ZOOM_DELTA 2.0
+
 #define XV_ID_YV12  0x32315659 
 #define XV_ID_I420  0x30323449
 #define XV_ID_YUY2  0x32595559
@@ -51,6 +60,125 @@
 
 #define HAVE_XV
 #define HAVE_XSHM
+
+static struct
+  {
+  KeySym x11;
+  int bg;
+  }
+keycodes[] = 
+  {
+    { XK_0, BG_KEY_0 },
+    { XK_1, BG_KEY_1 },
+    { XK_2, BG_KEY_2 },
+    { XK_3, BG_KEY_3 },
+    { XK_4, BG_KEY_4 },
+    { XK_5, BG_KEY_5 },
+    { XK_6, BG_KEY_6 },
+    { XK_7, BG_KEY_7 },
+    { XK_8, BG_KEY_8 },
+    { XK_9, BG_KEY_9 },
+    { XK_space,  BG_KEY_SPACE },
+    { XK_Return, BG_KEY_RETURN },
+    { XK_Left,   BG_KEY_LEFT },
+    { XK_Right,  BG_KEY_RIGHT },
+    { XK_Up,     BG_KEY_UP },
+    { XK_Down,   BG_KEY_DOWN },
+    { XK_Page_Up,  BG_KEY_PAGE_UP },
+    { XK_Page_Down, BG_KEY_PAGE_DOWN },
+
+    { XK_a,        BG_KEY_A },
+    { XK_b,        BG_KEY_B },
+    { XK_c,        BG_KEY_C },
+    { XK_d,        BG_KEY_D },
+    { XK_e,        BG_KEY_E },
+    { XK_f,        BG_KEY_F },
+    { XK_g,        BG_KEY_G },
+    { XK_h,        BG_KEY_H },
+    { XK_i,        BG_KEY_I },
+    { XK_j,        BG_KEY_J },
+    { XK_k,        BG_KEY_K },
+    { XK_l,        BG_KEY_L },
+    { XK_m,        BG_KEY_M },
+    { XK_n,        BG_KEY_N },
+    { XK_o,        BG_KEY_O },
+    { XK_p,        BG_KEY_P },
+    { XK_q,        BG_KEY_Q },
+    { XK_r,        BG_KEY_R },
+    { XK_s,        BG_KEY_S },
+    { XK_t,        BG_KEY_T },
+    { XK_u,        BG_KEY_U },
+    { XK_v,        BG_KEY_V },
+    { XK_W,        BG_KEY_W },
+    { XK_x,        BG_KEY_X },
+    { XK_y,        BG_KEY_Y },
+    { XK_z,        BG_KEY_Z },
+    
+    { XK_A,        BG_KEY_A },
+    { XK_B,        BG_KEY_B },
+    { XK_C,        BG_KEY_C },
+    { XK_D,        BG_KEY_D },
+    { XK_E,        BG_KEY_E },
+    { XK_F,        BG_KEY_F },
+    { XK_G,        BG_KEY_G },
+    { XK_H,        BG_KEY_H },
+    { XK_I,        BG_KEY_I },
+    { XK_J,        BG_KEY_J },
+    { XK_K,        BG_KEY_K },
+    { XK_L,        BG_KEY_L },
+    { XK_M,        BG_KEY_M },
+    { XK_N,        BG_KEY_N },
+    { XK_O,        BG_KEY_O },
+    { XK_P,        BG_KEY_P },
+    { XK_Q,        BG_KEY_Q },
+    { XK_R,        BG_KEY_R },
+    { XK_S,        BG_KEY_S },
+    { XK_T,        BG_KEY_T },
+    { XK_U,        BG_KEY_U },
+    { XK_V,        BG_KEY_V },
+    { XK_W,        BG_KEY_W },
+    { XK_X,        BG_KEY_X },
+    { XK_Y,        BG_KEY_Y },
+    { XK_Z,        BG_KEY_Z },
+
+    { XK_F1,       BG_KEY_F1 },
+    { XK_F2,       BG_KEY_F2 },
+    { XK_F3,       BG_KEY_F3 },
+    { XK_F4,       BG_KEY_F4 },
+    { XK_F5,       BG_KEY_F5 },
+    { XK_F6,       BG_KEY_F6 },
+    { XK_F7,       BG_KEY_F7 },
+    { XK_F8,       BG_KEY_F8 },
+    { XK_F9,       BG_KEY_F9 },
+    { XK_F10,      BG_KEY_F10 },
+    { XK_F11,      BG_KEY_F11 },
+    { XK_F12,      BG_KEY_F12 },
+  };
+
+static int get_key_code(KeySym x11)
+  {
+  int i;
+
+  for(i = 0; i < sizeof(keycodes)/sizeof(keycodes[0]); i++)
+    {
+    if(x11 == keycodes[i].x11)
+      return keycodes[i].bg;
+    }
+  return BG_KEY_NONE;
+  }
+
+static int get_key_mask(int x11_mask)
+  {
+  int ret = 0;
+
+  if(x11_mask & ShiftMask)
+    ret |= BG_KEY_SHIFT_MASK;
+  if(x11_mask & ControlMask)
+    ret |= BG_KEY_CONTROL_MASK;
+  if(x11_mask & Mod1Mask)
+    ret |= BG_KEY_ALT_MASK;
+  return ret;
+  }
 
 static void
 free_frame_x11(void * data, gavl_video_frame_t * frame);
@@ -1077,12 +1205,12 @@ static int handle_event(x11_t * priv, XEvent * evt)
   {
   KeySym keysym;
   char key_char;
-  int  have_key_char;
+  int  key_code;
   int  done;
   int  x_image;
   int  y_image;
   int  button_number = 0;
-
+  
   //  fprintf(stderr, "handle event %p\n", evt);
   
   x11_window_handle_event(&(priv->win), evt);
@@ -1107,6 +1235,55 @@ static int handle_event(x11_t * priv, XEvent * evt)
   switch(evt->type)
     {
     case ButtonPress:
+      if(((evt->xbutton.button == Button4) || 
+          (evt->xbutton.button == Button5)) &&
+         (evt->xbutton.state & (ShiftMask|ControlMask)))
+        {
+        if(!priv->squeeze_zoom_active)
+          return 0;
+        
+        if(evt->xbutton.button == Button4)
+          {
+          if(evt->xbutton.state & ShiftMask)
+            {
+            /* Increase Zoom */
+            priv->zoom += ZOOM_DELTA;
+            if(priv->zoom > ZOOM_MAX)
+              priv->zoom = ZOOM_MAX;
+            }
+          else if(evt->xbutton.state & ControlMask)
+            {
+            /* Increase Squeeze */
+            priv->squeeze += SQUEEZE_DELTA;
+            if(priv->squeeze > SQUEEZE_MAX)
+              priv->squeeze = SQUEEZE_MAX;
+            }
+          
+          }
+        else if(evt->xbutton.button == Button5)
+          {
+          if(evt->xbutton.state & ShiftMask)
+            {
+            /* Decrease Zoom */
+            priv->zoom -= ZOOM_DELTA;
+            if(priv->zoom < ZOOM_MIN)
+              priv->zoom = ZOOM_MIN;
+            
+            }
+          else if(evt->xbutton.state & ControlMask)
+            {
+            /* Decrease Squeeze */
+            priv->squeeze -= SQUEEZE_DELTA;
+            if(priv->squeeze < SQUEEZE_MIN)
+              priv->squeeze = SQUEEZE_MIN;
+            
+            }
+          
+          }
+        x11_window_clear(&priv->win);
+        set_drawing_coords(priv);
+        return 0;
+        }
       
       if(priv->callbacks &&
          priv->callbacks->button_callback)
@@ -1140,14 +1317,13 @@ static int handle_event(x11_t * priv, XEvent * evt)
         if((x_image >= 0) && (x_image < priv->video_format.image_width) &&
            (y_image >= 0) && (y_image < priv->video_format.image_height))
           priv->callbacks->button_callback(priv->callbacks->data,
-                                           x_image, y_image, button_number);
+                                           x_image, y_image, button_number, get_key_mask(evt->xbutton.state));
         }
 
 
       break;
     case KeyPress:
-      have_key_char =
-        XLookupString(&(evt->xkey), &key_char, 1, &keysym, NULL);
+      XLookupString(&(evt->xkey), &key_char, 1, &keysym, NULL);
       
       done = 1;
       
@@ -1165,6 +1341,15 @@ static int handle_event(x11_t * priv, XEvent * evt)
             x11_window_set_fullscreen(&(priv->win), 0);
           set_drawing_coords(priv);
           break;
+        case XK_Home:
+          if(priv->squeeze_zoom_active)
+            {
+            priv->zoom = 100.0;
+            priv->squeeze = 0.0;
+            x11_window_clear(&priv->win);
+            set_drawing_coords(priv);
+            }
+          break;
         default:
           done = 0;
         }
@@ -1174,12 +1359,14 @@ static int handle_event(x11_t * priv, XEvent * evt)
             
       /* Pass the rest to the player */
 
-      if(have_key_char &&
+      key_code = get_key_code(keysym);
+      
+      if((key_code != BG_KEY_NONE) &&
          priv->callbacks &&
          priv->callbacks->key_callback)
         {
         priv->callbacks->key_callback(priv->callbacks->data,
-                                      (int)(key_char));
+                                      get_key_code(keysym), get_key_mask(evt->xkey.state));
         }
       break;
     case ConfigureNotify:
@@ -1541,8 +1728,8 @@ bg_parameter_info_t common_parameters[] =
       type:        BG_PARAMETER_SLIDER_FLOAT,
       flags:       BG_PARAMETER_SYNC,
       val_default: { val_f: 0.0 },
-      val_min:     { val_f: -1.0 },
-      val_max:     { val_f:  1.0 },
+      val_min:     { val_f: SQUEEZE_MIN },
+      val_max:     { val_f: SQUEEZE_MAX },
       num_digits:  3
     },
     {
@@ -1551,8 +1738,8 @@ bg_parameter_info_t common_parameters[] =
       type:        BG_PARAMETER_SLIDER_FLOAT,
       flags:       BG_PARAMETER_SYNC,
       val_default: { val_f: 100.0 },
-      val_min:     { val_f: 20.0 },
-      val_max:     { val_f: 180.0 },
+      val_min:     { val_f: ZOOM_MIN },
+      val_max:     { val_f: ZOOM_MAX },
     },
     {
       name:        "sw_scaler",
@@ -1825,6 +2012,16 @@ get_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
   if(!strcmp(name, "window_height"))
     {
     val->val_i = p->win.window_height;
+    return 1;
+    }
+  if(!strcmp(name, "zoom"))
+    {
+    val->val_f = p->zoom;
+    return 1;
+    }
+  if(!strcmp(name, "squeeze"))
+    {
+    val->val_f = p->squeeze;
     return 1;
     }
   return 0;

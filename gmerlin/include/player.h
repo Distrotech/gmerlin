@@ -47,6 +47,8 @@ void bg_player_run(bg_player_t *);
 
 void bg_player_quit(bg_player_t *);
 
+void bg_player_key_pressed(bg_player_t * p, int keycode, int mask);
+
 /*
  *  Thread save functions for controlling the player (see playercmd.c)
  *  These just create messages and send them into the command queue

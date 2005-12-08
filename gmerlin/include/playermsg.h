@@ -122,6 +122,12 @@
 #define BG_PLAYER_CMD_SET_VIDEO_STREAM    15
 #define BG_PLAYER_CMD_SET_SUBTITLE_STREAM 16
 
+/* Argument 1: keycode (see keycodes.h)
+   Argument 2: mask (see keycodes.h)
+*/
+
+#define BG_PLAYER_CMD_KEY                 17 /* A key was pressed */
+
 /********************************
  * Messages from the player
 ********************************/
@@ -227,5 +233,11 @@
 #define BG_PLAYER_MSG_AUDIO_STREAM_INFO      17
 #define BG_PLAYER_MSG_VIDEO_STREAM_INFO      18
 #define BG_PLAYER_MSG_SUBTITLE_STREAM_INFO   19
- 
+
+/* Argument 1: keycode (see keycodes.h)
+   Argument 2: mask (see keycodes.h)
+*/
+
+#define BG_PLAYER_MSG_KEY                    20 /* A key was pressed */
+
 #endif // __BG_PLAYERMSG_H_

@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -297,7 +298,11 @@ struct bg_gtk_tree_widget_s
 
   GtkWidget * notebook;
   int tabbed_mode;
+
+  GtkAccelGroup * accel_group;
+  GtkAccelGroup * album_accel_group;
   
+  GtkWidget * toplevel_window;
   };
 
 /* Configuration */
@@ -694,7 +699,7 @@ static void set_album(bg_gtk_tree_widget_t * widget,
   if(open_window && bg_album_is_open(album))
     {
     album_window = bg_gtk_album_window_create(album,
-                                              widget);
+                                              widget, widget->accel_group);
     
     widget->album_windows = g_list_append(widget->album_windows,
                                           album_window);
@@ -1195,15 +1200,26 @@ static void set_windowed_mode(bg_gtk_tree_widget_t * w)
   gtk_widget_hide(w->notebook);
   w->tabbed_mode = 0;
   update_menu(w);
+
+  if(w->album_accel_group)
+    {
+    gtk_window_remove_accel_group(GTK_WINDOW(w->toplevel_window), w->album_accel_group);
+    w->album_accel_group = (GtkAccelGroup*)0;
+    }
   }
 
-static void goto_current(bg_gtk_tree_widget_t * w)
+void bg_gtk_tree_widget_goto_current(bg_gtk_tree_widget_t * w)
   {
   bg_album_t * current_album;
   bg_gtk_album_window_t * current_win;
   
   current_album = bg_media_tree_get_current_album(w->tree);
 
+  if(w->toplevel_window)
+    {
+    gtk_window_present(w->toplevel_window);
+    //    gtk_widget_grab_focus(
+    }
   if(!current_album)
     return;
   
@@ -1288,7 +1304,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
   else if((w == widget->menu.tree_menu.goto_current_item) ||
           (w == widget->goto_current_button))
     {
-    goto_current(widget);
+    bg_gtk_tree_widget_goto_current(widget);
     }
   
   }
@@ -1315,6 +1331,9 @@ static void init_menu(bg_gtk_tree_widget_t * w)
   w->menu.tree_menu.goto_current_item = create_item(w, "Goto current track");
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.tree_menu.menu),
                         w->menu.tree_menu.goto_current_item);
+
+  gtk_widget_add_accelerator(w->menu.tree_menu.goto_current_item, "activate", w->accel_group,
+                             GDK_g, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
 
   w->menu.tree_menu.expand_item = create_item(w, "Expand all");
@@ -1851,10 +1870,29 @@ static void tree_changed_callback(bg_media_tree_t * t, void * data)
 
   }
 
+static void notebook_change_page(GtkWidget * widget, GtkNotebookPage *page, int num, gpointer data)
+  {
+  bg_gtk_tree_widget_t * wid;
+  bg_gtk_album_window_t * win;
+  
+  wid = (bg_gtk_tree_widget_t*)data;
+  win = g_list_nth_data(wid->album_windows, num);
+  
+  //  bg_gtk_tree_widget_t * wid;
+  //  wid = (bg_gtk_tree_widget_t *)data;
+  
+  fprintf(stderr, "notebook_change_page %d\n", num);
+
+  if(wid->album_accel_group)
+    gtk_window_remove_accel_group(GTK_WINDOW (wid->toplevel_window), wid->album_accel_group);
+  wid->album_accel_group = bg_gtk_album_window_get_accel_group(win);
+  gtk_window_add_accel_group(GTK_WINDOW (wid->toplevel_window), wid->album_accel_group);
+  }
+
 /* Constructor */
 
 bg_gtk_tree_widget_t *
-bg_gtk_tree_widget_create(bg_media_tree_t * tree)
+bg_gtk_tree_widget_create(bg_media_tree_t * tree, GtkAccelGroup * accel_group, GtkWidget * toplevel_window)
   {
   GtkWidget * scrolledwindow;
   GtkWidget * buttonbox;
@@ -1873,7 +1911,9 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree)
   
   ret = calloc(1, sizeof(*ret));
   ret->tree = tree;
-
+  ret->toplevel_window = toplevel_window;
+  
+  ret->accel_group = accel_group;
   ret->tooltips = gtk_tooltips_new();
 
   g_object_ref (G_OBJECT (ret->tooltips));
@@ -2025,6 +2065,12 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree)
   /* Create notebook */
     
   ret->notebook = gtk_notebook_new();
+
+  if(ret->toplevel_window)
+    {
+    g_signal_connect(G_OBJECT(ret->notebook), "switch-page", G_CALLBACK(notebook_change_page), (gpointer*)ret);
+    }
+
   gtk_notebook_set_scrollable(GTK_NOTEBOOK(ret->notebook), TRUE);
   gtk_notebook_popup_enable(GTK_NOTEBOOK(ret->notebook));
 

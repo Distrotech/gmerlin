@@ -206,10 +206,14 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   bg_media_tree_set_userpass_callback(ret->tree, bg_gtk_get_userpass, NULL);
   
   free(tmp_string);
+
+  /* Start creating the GUI */
+
+  ret->accel_group = gtk_accel_group_new();
   
   ret->tree_window = bg_gtk_tree_window_create(ret->tree,
                                                treewindow_close_callback,
-                                               ret);
+                                               ret, ret->accel_group);
   
   /* Create player window */
     
