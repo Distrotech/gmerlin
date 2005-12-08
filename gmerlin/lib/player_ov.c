@@ -48,7 +48,7 @@ struct bg_player_ov_context_s
 static void key_callback(void * data, int key, int mask)
   {
   bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
-  fprintf(stderr, "Key callback %d, 0x%02x\n", key, mask);
+  //  fprintf(stderr, "Key callback %d, 0x%02x\n", key, mask);
 
   switch(key)
     {

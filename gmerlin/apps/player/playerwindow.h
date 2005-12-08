@@ -125,6 +125,8 @@ typedef struct player_window_s
   float volume;
 
   GtkTooltips * tooltips;
+
+  int msg_queue_locked;
   
   } player_window_t;
 

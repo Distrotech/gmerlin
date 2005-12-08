@@ -51,6 +51,7 @@ struct bg_dialog_s
   GtkWidget * mainbox;
   dialog_section_t root_section;
   GtkTooltips * tooltips;
+  int visible;
   };
 
 static void apply_section(dialog_section_t * s)
@@ -116,6 +117,7 @@ static void button_callback(GtkWidget * w, gpointer * data)
   if((w == d->close_button) ||
      (w == d->window))
     {
+    d->visible = 0;
     gtk_widget_hide(d->window);
     gtk_main_quit();
     }
@@ -125,6 +127,7 @@ static void button_callback(GtkWidget * w, gpointer * data)
     }
   else if(w == d->ok_button)
     {
+    d->visible = 0;
     gtk_widget_hide(d->window);
     gtk_main_quit();
     apply_values(d);
@@ -537,6 +540,17 @@ void bg_dialog_add(bg_dialog_t *d,
 
 void bg_dialog_show(bg_dialog_t * d)
   {
+  //  fprintf(stderr, "bg_dialog_show %d\n", d->visible);
+  
+  if(d->visible)
+    {
+    gtk_window_present(GTK_WINDOW(d->window));
+    return;
+    }
+  
+  d->visible = 1;
+  
+
   gtk_widget_show(d->window);
   gtk_widget_grab_default(d->ok_button);
   gtk_widget_grab_focus(d->ok_button);

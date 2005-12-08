@@ -155,8 +155,8 @@ void gmerlin_skin_browser_show(gmerlin_skin_browser_t *);
 /* Run the main config dialog */
 
 void gmerlin_create_dialog(gmerlin_t * g);
-void gmerlin_configure(gmerlin_t *);
 
+void gmerlin_configure(gmerlin_t * g);
 
 int gmerlin_play(gmerlin_t * g, int ignore_flags);
 void gmerlin_pause(gmerlin_t * g);

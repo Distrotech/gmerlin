@@ -185,6 +185,8 @@ void plugin_window_destroy(plugin_window_t * w)
 void plugin_window_show(plugin_window_t * w)
   {
   gtk_widget_show(w->window);
+  gtk_window_present(GTK_WINDOW(w->window));
+  
   }
 
 void plugin_window_hide(plugin_window_t * w)

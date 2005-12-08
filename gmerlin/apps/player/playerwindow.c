@@ -310,6 +310,14 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
     }
   }
 
+static gboolean do_configure(gpointer * data)
+  {
+  gmerlin_t * gmerlin;
+  gmerlin = (gmerlin_t*)data;
+  gmerlin_configure(gmerlin);
+  return FALSE;
+  }
+
 static void handle_message(player_window_t * win,
                            bg_msg_t * msg)
   {
@@ -417,7 +425,7 @@ static void handle_message(player_window_t * win,
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
       arg_i_2 = bg_msg_get_arg_int(msg, 1);
 
-      fprintf(stderr, "BG_PLAYER_MSG_KEY %d, 0x%02x\n", arg_i_1, arg_i_2);
+      //      fprintf(stderr, "BG_PLAYER_MSG_KEY %d, 0x%02x\n", arg_i_1, arg_i_2);
       
       switch(arg_i_1)
         {
@@ -435,7 +443,8 @@ static void handle_message(player_window_t * win,
           break;
         case BG_KEY_O:
           if(arg_i_2 & BG_KEY_CONTROL_MASK)
-            gmerlin_configure(win->gmerlin);
+            g_idle_add(do_configure, win->gmerlin);
+          
           break;
         case BG_KEY_G:
           if(arg_i_2 & BG_KEY_CONTROL_MASK)
@@ -524,11 +533,23 @@ gboolean idle_callback(gpointer data)
   
   player_window_t * w = (player_window_t *)data;
 
-  while((msg = bg_msg_queue_try_lock_read(w->msg_queue)))
+  //  fprintf(stderr, "idle_callback\n");
+
+  if(!w->msg_queue_locked)
     {
-    handle_message(w, msg);
-    bg_msg_queue_unlock_read(w->msg_queue);
+    while((msg = bg_msg_queue_try_lock_read(w->msg_queue)))
+      {
+      w->msg_queue_locked = 1;
+      handle_message(w, msg);
+      if(w->msg_queue_locked)
+        {
+        bg_msg_queue_unlock_read(w->msg_queue);
+        w->msg_queue_locked = 0;
+        }
+      }
     }
+  else
+    fprintf(stderr, "queue already locked\n");
   
   /* Handle remote control */
 
