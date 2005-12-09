@@ -202,7 +202,7 @@ static int start_mpeg(void * data)
   int i;
   e_mpeg_t * e = (e_mpeg_t*)data;
   e->is_open = 1;
-  fprintf(stderr, "start_mpeg\n");
+//  fprintf(stderr, "start_mpeg\n");
   
   for(i = 0; i < e->num_audio_streams; i++)
     {
@@ -377,7 +377,6 @@ static bg_parameter_info_t common_parameters[] =
       val_default: { val_str: "mpeg1" },
       multi_names:    (char*[]) { "mpeg1",            "vcd",          "mpeg2",            "svcd",         "dvd_nav",   "dvd", (char*)0 },
       multi_labels:   (char*[]) { "MPEG-1 (generic)", "MPEG-1 (VCD)", "MPEG-2 (generic)", "MPEG-2 (SVCD)","DVD (NAV)", "DVD", (char*)0 },
-      val_default: { val_str: "quicktime" },
       help_string: "Output format. Note that for some output formats (e.g. VCD), you MUST use proper settings for the audio and video streams also, since this isn't done automatically"
     },
     {
