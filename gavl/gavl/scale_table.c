@@ -88,7 +88,7 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
   
   /* Get the kernel generator */
 
-  fprintf(stderr, "src_off: %f\n", src_off);
+  //  fprintf(stderr, "src_off: %f\n", src_off);
   
   weight_func = gavl_video_scale_get_weight_func(opt, &(tab->factors_per_pixel));
 

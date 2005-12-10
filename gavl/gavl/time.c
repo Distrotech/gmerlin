@@ -3,10 +3,11 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <inttypes.h>
 #include <gavltime.h>
-#include <string.h>
+#include <arith128.h>
 
 /* Sleep for a specified time */
 
@@ -175,3 +176,75 @@ int gavl_time_parse(const char * str, gavl_time_t * ret)
   return 0;
   }
 
+/* Time scaling functions */
+
+/* From the Linux kernel (drivers/scsi/sg.c): */
+
+/*
+ * Suppose you want to calculate the formula muldiv(x,m,d)=int(x * m / d)
+ * Then when using 32 bit integers x * m may overflow during the calculation.
+ * Replacing muldiv(x) by muldiv(x)=((x % d) * m) / d + int(x / d) * m
+ * calculates the same, but prevents the overflow when both m and d
+ * are "small" numbers (like HZ and USER_HZ).
+ * Of course an overflow is inavoidable if the result of muldiv doesn't fit
+ * in 32 bits.
+ */
+
+/* In our case, X is 64 bit while MUL and DIV are 32 bit, so we can use this here */
+
+#define MULDIV(X,MUL,DIV) ((((X % DIV) * (int64_t)MUL) / DIV) + ((X / DIV) * (int64_t)MUL))
+
+// #define gavl_samples_to_time(rate, samples) (((samples)*GAVL_TIME_SCALE)/(rate))
+
+gavl_time_t gavl_samples_to_time(int samplerate, int64_t samples)
+  {
+  return MULDIV(samples, GAVL_TIME_SCALE, samplerate);
+  }
+
+int64_t gavl_time_to_samples(int samplerate, gavl_time_t time)
+  {
+  return MULDIV(time, samplerate, GAVL_TIME_SCALE);
+  }
+
+gavl_time_t gavl_time_unscale(int scale, int64_t time)
+  {
+  return MULDIV(time, GAVL_TIME_SCALE, scale);
+  }
+
+int64_t gavl_time_scale(int scale, gavl_time_t time)
+  {
+  return MULDIV(time, scale, GAVL_TIME_SCALE);
+  }
+
+int64_t gavl_time_rescale(int scale1, int scale2, int64_t time)
+  {
+  return MULDIV(time, scale2, scale1);
+  }
+
+int64_t gavl_time_to_frames(int rate_num, int rate_den, gavl_time_t time)
+  {
+  gavl_int128_t n, result;
+
+  /* t * rate_num / (GAVL_TIME_SCALE * rate_den) */
+  /* We know, that GAVL_TIME_SCALE * rate_den fits into 64 bit :) */
+    
+  gavl_int128_mult(time, rate_num, &n);
+  gavl_int128_div(&n, (int64_t)rate_den * GAVL_TIME_SCALE,
+                  &result);
+
+  /* Assuming the result is smaller than 2^64 bit!! */
+  return result.isneg ? -result.lo : result.lo;
+  }
+
+gavl_time_t gavl_frames_to_time(int rate_num, int rate_den, int64_t frames)
+  {
+  gavl_int128_t n, result;
+  
+  gavl_int128_mult(frames, (int64_t)rate_den * GAVL_TIME_SCALE, &n);
+  gavl_int128_div(&n, rate_num, &result);
+  
+  /* Assuming the result is smaller than 2^64 bit!! */
+  return result.isneg ? -result.lo : result.lo;
+  }
+
+// ((gavl_time_t)((GAVL_TIME_SCALE*((int64_t)frames)*((int64_t)rate_den))/((int64_t)rate_num)))

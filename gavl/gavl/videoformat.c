@@ -196,12 +196,12 @@ void gavl_video_format_get_chroma_offset(const gavl_video_format_t * format,
       if(plane == 1) /* Cb */
         {
         *off_x = 0.0;
-        *off_y = 1.0;
+        *off_y = 1.0; /* In FIELD coordinates */
         }
       else           /* Cr */
         {
         *off_x = 0.0;
-        *off_y = 0.0;
+        *off_y = 0.0; /* In FIELD coordinates */
         }
       break;
     }

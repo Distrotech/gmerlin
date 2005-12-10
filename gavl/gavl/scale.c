@@ -263,6 +263,9 @@ void gavl_video_scaler_scale(gavl_video_scaler_t * s,
   /* Set the destination subframe */
   gavl_video_frame_get_subframe(s->dst_format.pixelformat, dst, s->dst, &(s->dst_rect));
 
+  fprintf(stderr, "Get subframe\n");
+  gavl_rectangle_i_dump(&(s->dst_rect));
+  
   if(s->src_fields > s->dst_fields)
     {
     field = (s->opt.deinterlace_drop_mode == GAVL_DEINTERLACE_DROP_BOTTOM) ? 0 : 1;

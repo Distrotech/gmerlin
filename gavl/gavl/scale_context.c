@@ -377,20 +377,73 @@ float get_scale_offset(int src_field, int dst_field,
                        float scale_fac, int sub_in, int sub_out,
                        float chroma_offset_src, float chroma_offset_dst)
   {
-  float result;
-  float chroma_scale_fac = (float)sub_in / (float)sub_out;
   float field_offset;
+  float result;
+  //  float chroma_scale_fac = (float)sub_in / (float)sub_out;
   
   if((src_fields > dst_fields) && src_field)
     field_offset = 1.0;
   else
     field_offset = 0.0;
+
+  /* Different calculation for diffrent interlacing options */
+
+  if(src_fields == 1) /* Progressive input -> Progressive */
+    {
+    fprintf(stderr, "Progressive -> Progressive\n");
+    result = -0.5 + chroma_offset_dst/(float)sub_out;
+    result += (0.5 - (chroma_offset_src)/(float)sub_in) / (scale_fac);
+    }
+  else if(dst_fields == 1) /* Interlaced -> Progressive */
+    {
+    if(src_field == 0) /* Top field -> Progressive */
+      {
+      fprintf(stderr, "Top field -> Progressive\n");
+
+      /* Like Progressive -> Progressive */
+      
+      result = -0.5 + chroma_offset_dst/(float)sub_out;
+      result += (0.5 - (chroma_offset_src)/(float)sub_in) / (scale_fac);
+      }
+    else /* Bottom field -> Progressive */
+      {
+      fprintf(stderr, "Bottom field -> Progressive\n");
+
+      /* Like Top -> Progressive but we must substract half a field */
+      
+      result = -0.5 + chroma_offset_dst/(float)sub_out;
+      result += (0.5 - (chroma_offset_src+0.5)/(float)sub_in) / (scale_fac);
+      }
+    }
+  else /* Interlaced -> Interlaced */
+    {
+    if(dst_field == src_field)
+      {
+      if(!dst_field) /* Top field -> Top field */
+        {
+        fprintf(stderr, "Top field -> Top field\n");
+
+        result = -0.5 + chroma_offset_dst/(float)sub_out;
+        result += (0.5 - (chroma_offset_src)/(float)sub_in) / (scale_fac);
+        
+        }
+      else /* Bottom field -> Bottom field */
+        {
+        fprintf(stderr, "Bottom field -> Bottom field\n");
+
+        result = -0.5 + chroma_offset_dst/(float)sub_out;
+        result += (0.5 - (chroma_offset_src)/(float)sub_in) / (scale_fac);
+        }
+      }
+    else
+      {
+      fprintf(stderr, "BUG: scaler cannot swap fields\n");
+      return 0;
+      }
+    }
   
-  result = (-0.5 + chroma_offset_dst/dst_fields);
-    
-  result += (0.5 - (chroma_offset_src+field_offset/src_fields)/(chroma_scale_fac)) / (scale_fac);
   
-#if 1
+#if 0
   fprintf(stderr, "get_scale_offset:\n\
   src_field: %d\n  dst_field: %d\n\
   src_fields: %d\n  dst_fields: %d\n\
@@ -420,20 +473,26 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
   double scale_factor_x, scale_factor_y;
   float src_chroma_offset_x, src_chroma_offset_y, dst_chroma_offset_x, dst_chroma_offset_y;
   gavl_rectangle_i_t src_rect_i;
+
   
   int src_width, src_height; /* Needed for generating the scale table */
   float offset_x, offset_y;
-
+  gavl_video_format_t tmp_format;
+  
+  
   fprintf(stderr, "scale_context_init: src_field: %d, dst_field: %d plane: %d\n",
           src_field, dst_field, plane);
   
   gavl_rectangle_f_copy(&(ctx->src_rect), &(opt->src_rect));
   gavl_rectangle_i_copy(&(ctx->dst_rect), &(opt->dst_rect));
   
-  scale_factor_x = ctx->dst_rect.w / ctx->src_rect.w;
-  scale_factor_y = ctx->dst_rect.h / ctx->src_rect.h;
+  scale_factor_x = (float)ctx->dst_rect.w / ctx->src_rect.w;
+  scale_factor_y = (float)ctx->dst_rect.h / ctx->src_rect.h;
     
   ctx->plane = plane;
+
+  
+  
   if(plane)
     {
     /* Get chroma subsampling factors for source and destination */
@@ -451,7 +510,17 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
 
     ctx->dst_rect.h /= sub_v_out;
     ctx->dst_rect.y /= sub_v_out;
+
+    src_width = src_format->image_width / sub_h_in;
+    src_height = src_format->image_height / sub_v_in;
+
     }
+  else
+    {
+    src_width = src_format->image_width;
+    src_height = src_format->image_height;
+    }
+  
   if(src_fields == 2)
     {
     ctx->src_rect.h /= 2.0;
@@ -472,13 +541,25 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
   fprintf(stderr, "\n");
 #endif
   
-  src_width = src_format->image_width / sub_h_in;
-  src_height = src_format->image_height / sub_v_in;
 
   /* Calculate chroma offsets  */
 
-  gavl_video_format_get_chroma_offset(src_format, src_field, plane,
-                                      &src_chroma_offset_x, &src_chroma_offset_y);
+  /* If we force deinterlacing, we must fake an interlaced source format
+     to get the proper chroma offsets */
+  if((src_fields == 2) && (dst_fields == 1) &&
+     (src_format->interlace_mode == GAVL_INTERLACE_NONE))
+    {
+    gavl_video_format_copy(&tmp_format, src_format);
+    tmp_format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+    gavl_video_format_get_chroma_offset(&tmp_format, src_field, plane,
+                                        &src_chroma_offset_x,
+                                        &src_chroma_offset_y);
+    }
+  else
+    gavl_video_format_get_chroma_offset(src_format, src_field, plane,
+                                        &src_chroma_offset_x,
+                                        &src_chroma_offset_y);
+  
   gavl_video_format_get_chroma_offset(dst_format, dst_field, plane,
                                       &dst_chroma_offset_x, &dst_chroma_offset_y);
   
@@ -557,15 +638,15 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*ctx,
 
   else if(scale_x && scale_y)
     {
-    fprintf(stderr, "Initializing x table\n");
+    //    fprintf(stderr, "Initializing x table\n");
     gavl_video_scale_table_init(&(ctx->table_h), opt, ctx->src_rect.x + offset_x,
                                 ctx->src_rect.w, ctx->dst_rect.w, src_width);
-    fprintf(stderr, "Initializing x table done\n");
+    //    fprintf(stderr, "Initializing x table done\n");
 
-    fprintf(stderr, "Initializing y table\n");
+    //    fprintf(stderr, "Initializing y table\n");
     gavl_video_scale_table_init(&(ctx->table_v), opt, ctx->src_rect.y + offset_y,
                                 ctx->src_rect.h, ctx->dst_rect.h, src_height);
-    fprintf(stderr, "Initializing y table done\n");
+    //    fprintf(stderr, "Initializing y table done\n");
     
     /* Check if we can scale in x and y-directions at once */
     ctx->func1 = get_func(&(funcs->funcs_xy), src_format->pixelformat, &bits);

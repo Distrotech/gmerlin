@@ -4,6 +4,7 @@ includedir = $(prefix)/lib/gavl/include
 
 private_headers = \
 accel.h \
+arith128.h \
 attributes.h \
 audio.h \
 colorspace.h \
