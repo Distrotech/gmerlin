@@ -247,7 +247,7 @@ void bg_gtk_album_window_raise(bg_gtk_album_window_t* w)
   int page_num;
   
   if(w->window && w->window->window)
-    gtk_window_present(w->window);
+    gtk_window_present(GTK_WINDOW(w->window));
 
   else if(w->notebook)
     {

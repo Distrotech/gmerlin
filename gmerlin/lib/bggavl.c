@@ -509,13 +509,23 @@ void bg_gavl_video_options_set_framerate(bg_gavl_video_options_t * opt,
     }
   }
 
+void bg_gavl_video_options_set_interlace(bg_gavl_video_options_t * opt,
+                                         const gavl_video_format_t * in_format,
+                                         gavl_video_format_t * out_format)
+  {
+  int flags = gavl_video_options_get_conversion_flags(opt->opt);
+  fprintf(stderr, "bg_gavl_video_options_set_interlace: %d\n", !!(flags & GAVL_FORCE_DEINTERLACE));
+  if(flags & GAVL_FORCE_DEINTERLACE)
+    out_format->interlace_mode = GAVL_INTERLACE_NONE;
+  }
+
 void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t * opt,
                                          const gavl_video_format_t * in_format,
                                          gavl_video_format_t * out_format)
   {
   int i;
 
-  fprintf(stderr, "bg_gavl_video_options_set_framesize %d\n", opt->frame_size);
+  //  fprintf(stderr, "bg_gavl_video_options_set_framesize %d\n", opt->frame_size);
   
   /* Set image- and pixel size for output */
   
@@ -526,7 +536,7 @@ void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t * opt,
     }
   else if(opt->frame_size == FRAME_SIZE_USER)
     {
-    fprintf(stderr, "USER DEFINED SIZE\n");
+    //    fprintf(stderr, "USER DEFINED SIZE\n");
     out_format->image_width  = opt->user_image_width;
     out_format->image_height = opt->user_image_height;
 

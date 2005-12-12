@@ -1217,7 +1217,7 @@ void bg_gtk_tree_widget_goto_current(bg_gtk_tree_widget_t * w)
 
   if(w->toplevel_window)
     {
-    gtk_window_present(w->toplevel_window);
+    gtk_window_present(GTK_WINDOW(w->toplevel_window));
     //    gtk_widget_grab_focus(
     }
   if(!current_album)
@@ -1881,7 +1881,7 @@ static void notebook_change_page(GtkWidget * widget, GtkNotebookPage *page, int 
   //  bg_gtk_tree_widget_t * wid;
   //  wid = (bg_gtk_tree_widget_t *)data;
   
-  fprintf(stderr, "notebook_change_page %d\n", num);
+  //  fprintf(stderr, "notebook_change_page %d\n", num);
 
   if(wid->album_accel_group)
     gtk_window_remove_accel_group(GTK_WINDOW (wid->toplevel_window), wid->album_accel_group);
@@ -2102,13 +2102,19 @@ void bg_gtk_tree_widget_destroy(bg_gtk_tree_widget_t * w)
   
   
   g_object_unref(w->tooltips);
-    
+
+  //  fprintf(stderr, "bg_gtk_tree_widget_destroy\n");
+
+  g_signal_handlers_block_by_func(G_OBJECT(w->notebook), notebook_change_page, w);
+  
   while(w->album_windows)
     {
     win = (bg_gtk_album_window_t*)w->album_windows->data;
     w->album_windows = g_list_remove(w->album_windows, (gpointer)win);
     bg_gtk_album_window_destroy(win, 0);
     }
+
+  //  fprintf(stderr, "bg_gtk_tree_widget_destroy 1\n");
   
   free(w);
   }

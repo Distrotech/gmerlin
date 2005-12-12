@@ -310,7 +310,7 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
     }
   }
 
-static gboolean do_configure(gpointer * data)
+static gboolean do_configure(gpointer data)
   {
   gmerlin_t * gmerlin;
   gmerlin = (gmerlin_t*)data;

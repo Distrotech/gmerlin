@@ -90,8 +90,8 @@ typedef struct
     
   /* Set by set_parameter */
   bg_gavl_audio_options_t options;
-  int64_t samples_to_read;
-  int64_t samples_read;
+  int64_t samples_to_read; /* Samples to read     (in INPUT samplerate) */
+  int64_t samples_read;    /* Samples read so far (in INPUT samplerate) */
 
   int64_t samples_written;
   
@@ -501,6 +501,11 @@ static void finalize_video_stream(video_stream_t * ret,
   bg_gavl_video_options_set_framesize(&(ret->options),
                                       &(ret->in_format),
                                       &(ret->out_format));
+
+  bg_gavl_video_options_set_interlace(&(ret->options),
+                                      &(ret->in_format),
+                                      &(ret->out_format));
+  
   /* Add the video stream */
 
   ret->com.out_plugin->add_video_stream(out_handle->priv,
@@ -600,13 +605,13 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
        (t->end_time != GAVL_TIME_UNDEFINED) &&
        (t->end_time > t->start_time))
       {
-      s->samples_to_read = gavl_time_to_samples(s->out_format.samplerate,
+      s->samples_to_read = gavl_time_to_samples(s->in_format.samplerate,
                                                 t->end_time - t->start_time);
       
       }
     else if(t->end_time != GAVL_TIME_UNDEFINED)
       {
-      s->samples_to_read = gavl_time_to_samples(s->out_format.samplerate,
+      s->samples_to_read = gavl_time_to_samples(s->in_format.samplerate,
                                                 t->end_time);
       }
     else
@@ -648,8 +653,10 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   
   if(s->com.do_convert)
     {
-    // fprintf(stderr, "Converting %d samples\n", s->in_frame->valid_samples);
+    //    fprintf(stderr, "Converting %d samples\n", s->in_frame->valid_samples);
     gavl_audio_convert(s->cnv, s->in_frame, s->out_frame);
+    //    fprintf(stderr, "Got %d samples\n", s->out_frame->valid_samples);
+    
     s->com.out_plugin->write_audio_frame(s->com.out_handle->priv,
                                          s->out_frame,
                                          s->com.out_index);
@@ -802,7 +809,12 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
                                            s->com.out_index);
       }
     s->com.time = gavl_time_unscale(s->in_format.timescale, s->in_frame_1->time_scaled);
-    //    fprintf(stderr, "Video iteration %f\n", gavl_time_to_seconds(s->com.time));
+#if 0
+    fprintf(stderr, "Video iteration, scale: %d, time_scaled: %lld -> %f\n",
+            s->in_format.timescale,
+            s->in_frame_1->time_scaled,
+            gavl_time_to_seconds(s->com.time));
+#endif
     s->frames_written++;
     }
   
