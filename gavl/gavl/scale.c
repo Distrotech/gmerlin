@@ -71,8 +71,8 @@ gavl_video_scaler_t * gavl_video_scaler_create()
   }
 
 int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
-                           const gavl_video_format_t * src_format,
-                           const gavl_video_format_t * dst_format)
+                           const gavl_video_format_t * _src_format,
+                           const gavl_video_format_t * _dst_format)
   {
   gavl_rectangle_f_t src_rect;
   gavl_rectangle_i_t  dst_rect;
@@ -92,30 +92,41 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
   
   /* Copy formats */
   
-  gavl_video_format_copy(&(scaler->src_format), src_format);
-  gavl_video_format_copy(&(scaler->dst_format), dst_format);
+  gavl_video_format_copy(&(scaler->src_format), _src_format);
+  gavl_video_format_copy(&(scaler->dst_format), _dst_format);
   
   /* Check if we have rectangles */
 
   if(!opt.have_rectangles)
     {
-    gavl_rectangle_f_set_all(&(src_rect), src_format);
-    gavl_rectangle_i_set_all(&(dst_rect), dst_format);
+    gavl_rectangle_f_set_all(&(src_rect), &(scaler->src_format));
+    gavl_rectangle_i_set_all(&(dst_rect), &(scaler->dst_format));
     gavl_video_options_set_rectangles(&opt, &(src_rect), &(dst_rect));
     }
   
   /* Check how many fields we must handle */
 
   if((opt.deinterlace_mode == GAVL_DEINTERLACE_SCALE) &&
-     (((dst_format->interlace_mode == GAVL_INTERLACE_NONE) &&
-       (src_format->interlace_mode != GAVL_INTERLACE_NONE)) ||
-      (opt.conversion_flags & GAVL_FORCE_DEINTERLACE)))
+     (opt.conversion_flags & GAVL_FORCE_DEINTERLACE))
+    {
+    /* Deinterlacing mode */
+    scaler->src_fields = 2;
+    scaler->dst_fields = 1;
+
+    /* Fake formats for scale context */
+    if(scaler->src_format.interlace_mode == GAVL_INTERLACE_NONE)
+      scaler->src_format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+    scaler->dst_format.interlace_mode = GAVL_INTERLACE_NONE;
+    }
+  else if((opt.deinterlace_mode == GAVL_DEINTERLACE_SCALE) &&
+          (scaler->dst_format.interlace_mode == GAVL_INTERLACE_NONE) &&
+          (scaler->src_format.interlace_mode != GAVL_INTERLACE_NONE))
     {
     /* Deinterlacing mode */
     scaler->src_fields = 2;
     scaler->dst_fields = 1;
     }
-  else if(src_format->interlace_mode != GAVL_INTERLACE_NONE)
+  else if(scaler->src_format.interlace_mode != GAVL_INTERLACE_NONE)
     {
     /* Interlaced scaling */
     scaler->src_fields = 2;
@@ -148,12 +159,12 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
   gavl_pixelformat_chroma_sub(scaler->dst_format.pixelformat, &sub_h_out, &sub_v_out);
   gavl_rectangle_i_align(&(opt.dst_rect), sub_h_out, sub_v_out);
   
-#if 1
+#if 0
   fprintf(stderr, "Initializing scaler:\n");
   fprintf(stderr, "Src format:\n");
-  gavl_video_format_dump(src_format);
+  gavl_video_format_dump(&(scaler->src_format));
   fprintf(stderr, "Dst format:\n");
-  gavl_video_format_dump(dst_format);
+  gavl_video_format_dump(&(scaler->dst_format));
 
   fprintf(stderr, "Src rectangle:\n");
   gavl_rectangle_f_dump(&opt.src_rect);
@@ -164,11 +175,11 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
   
   /* Check how many planes we have */
   
-  if((src_format->pixelformat == GAVL_YUY2) ||
-     (src_format->pixelformat == GAVL_UYVY))
+  if((scaler->src_format.pixelformat == GAVL_YUY2) ||
+     (scaler->src_format.pixelformat == GAVL_UYVY))
     scaler->num_planes = 3;
   else
-    scaler->num_planes = gavl_pixelformat_num_planes(src_format->pixelformat);
+    scaler->num_planes = gavl_pixelformat_num_planes(scaler->src_format.pixelformat);
   
   if((scaler->src_fields == 2) && (!scaler->src_field))
     scaler->src_field = gavl_video_frame_create(NULL);
@@ -177,7 +188,7 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
     scaler->dst_field = gavl_video_frame_create(NULL);
   
   
-#if 1
+#if 0
   fprintf(stderr, "src_fields: %d, dst_fields: %d, planes: %d\n",
           scaler->src_fields, scaler->dst_fields, scaler->num_planes);
 #endif    
@@ -230,7 +241,7 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
       {
       gavl_video_scale_context_init(&(scaler->contexts[field][plane]),
                                     &opt,
-                                    plane, src_format, dst_format, &funcs, field, 0,
+                                    plane, &(scaler->src_format), &(scaler->dst_format), &funcs, field, 0,
                                     scaler->src_fields, scaler->dst_fields);
       }
     }
@@ -242,7 +253,7 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
         {
         gavl_video_scale_context_init(&(scaler->contexts[field][plane]),
                                       &opt,
-                                      plane, src_format, dst_format, &funcs, field, field,
+                                      plane, &(scaler->src_format), &(scaler->dst_format), &funcs, field, field,
                                       scaler->src_fields, scaler->dst_fields);
         }
       }
@@ -262,17 +273,18 @@ void gavl_video_scaler_scale(gavl_video_scaler_t * s,
   int i, field;
   /* Set the destination subframe */
   gavl_video_frame_get_subframe(s->dst_format.pixelformat, dst, s->dst, &(s->dst_rect));
-
+#if 0
   fprintf(stderr, "Get subframe\n");
   gavl_rectangle_i_dump(&(s->dst_rect));
-  
+  fprintf(stderr, "\n");
+#endif
   if(s->src_fields > s->dst_fields)
     {
     field = (s->opt.deinterlace_drop_mode == GAVL_DEINTERLACE_DROP_BOTTOM) ? 0 : 1;
     gavl_video_frame_get_field(s->src_format.pixelformat, src, s->src_field, field);
     
     for(i = 0; i < s->num_planes; i++)
-      gavl_video_scale_context_scale(&(s->contexts[field][i]), s->src_field, dst);
+      gavl_video_scale_context_scale(&(s->contexts[field][i]), s->src_field, s->dst);
     }
   else if(s->src_fields == 2)
     {
@@ -281,7 +293,7 @@ void gavl_video_scaler_scale(gavl_video_scaler_t * s,
     gavl_video_frame_get_field(s->dst_format.pixelformat, s->dst, s->dst_field, 0);
     for(i = 0; i < s->num_planes; i++)
       {
-      fprintf(stderr, "Field: 0, plane: %d\n", i);
+      //      fprintf(stderr, "Field: 0, plane: %d\n", i);
       gavl_video_scale_context_scale(&(s->contexts[0][i]), s->src_field, s->dst_field);
       }
     
@@ -290,7 +302,7 @@ void gavl_video_scaler_scale(gavl_video_scaler_t * s,
     gavl_video_frame_get_field(s->dst_format.pixelformat, s->dst, s->dst_field, 1);
     for(i = 0; i < s->num_planes; i++)
       {
-      fprintf(stderr, "Field: 1, plane: %d\n", i);
+      //      fprintf(stderr, "Field: 1, plane: %d\n", i);
       gavl_video_scale_context_scale(&(s->contexts[1][i]), s->src_field, s->dst_field);
       }
     }

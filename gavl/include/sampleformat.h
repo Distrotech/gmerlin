@@ -59,9 +59,10 @@ typedef struct
   } gavl_sampleformat_table_t;
 
 gavl_sampleformat_table_t *
-gavl_create_sampleformat_table(gavl_audio_options_t * opt);
+gavl_create_sampleformat_table(gavl_audio_options_t * opt,
+                               gavl_interleave_mode_t interleave_mode);
 
-void gavl_init_sampleformat_funcs_c(gavl_sampleformat_table_t * t);
+void gavl_init_sampleformat_funcs_c(gavl_sampleformat_table_t * t, gavl_interleave_mode_t interleave_mode);
 
 gavl_audio_func_t
 gavl_find_sampleformat_converter(gavl_sampleformat_table_t * t,

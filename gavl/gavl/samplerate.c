@@ -257,9 +257,11 @@ gavl_samplerate_context_create(gavl_audio_options_t * opt,
   ret->samplerate_converter->ratio =
     (double)(output_format->samplerate)/(double)(input_format->samplerate);
 
+#if 0
   fprintf(stderr, "Doing samplerate conversion, %d -> %d (Ratio: %f)\n",
           input_format->samplerate, output_format->samplerate,
           ret->samplerate_converter->ratio);
+#endif
 #if 0
   
   for(i = 0; i < ret->samplerate_converter->num_resamplers; i++)

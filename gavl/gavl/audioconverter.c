@@ -25,8 +25,6 @@
 #include <mix.h>
 #include <accel.h>
 
-#include <libgdither/gdither.h>
-
 struct gavl_audio_converter_s
   {
   gavl_audio_format_t input_format;
@@ -196,10 +194,20 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
 
   do_resample = (input_format->samplerate != output_format->samplerate) ? 1 : 0;
 
-  /* Check for resampling */
+  /* Check for resampling. We take care, that we do resampling for the least possible channels */
 
   if(do_resample && (!do_mix || (do_mix && (input_format->num_channels <= output_format->num_channels))))
     {
+    /* Sampleformat conversion with GAVL_INTERLEAVE_2 is not supported */
+    if(cnv->current_format->interleave_mode == GAVL_INTERLEAVE_2)
+      {
+      tmp_format.interleave_mode = GAVL_INTERLEAVE_NONE;
+      ctx = gavl_interleave_context_create(&(cnv->opt),
+                                           cnv->current_format,
+                                           &tmp_format);
+      add_context(cnv, ctx);
+      }
+   
     if(cnv->current_format->sample_format != GAVL_SAMPLE_FLOAT)
       {
       tmp_format.sample_format = GAVL_SAMPLE_FLOAT;
@@ -216,6 +224,8 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
     add_context(cnv, ctx);
     }
 
+  /* Check for mixing */
+    
   if(do_mix)
     {
     if(cnv->current_format->interleave_mode != GAVL_INTERLEAVE_NONE)
@@ -257,6 +267,16 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
 
   if(do_resample && do_mix && (input_format->num_channels > output_format->num_channels))
     {
+    /* Sampleformat conversion with GAVL_INTERLEAVE_2 is not supported */
+    if(cnv->current_format->interleave_mode == GAVL_INTERLEAVE_2)
+      {
+      tmp_format.interleave_mode = GAVL_INTERLEAVE_NONE;
+      ctx = gavl_interleave_context_create(&(cnv->opt),
+                                           cnv->current_format,
+                                           &tmp_format);
+      add_context(cnv, ctx);
+      }
+    
     if(cnv->current_format->sample_format != GAVL_SAMPLE_FLOAT)
       {
       tmp_format.sample_format = GAVL_SAMPLE_FLOAT;
@@ -276,7 +296,7 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
 
   if(cnv->current_format->sample_format != cnv->output_format.sample_format)
     {
-    if(cnv->current_format->interleave_mode != GAVL_INTERLEAVE_NONE)
+    if(cnv->current_format->interleave_mode == GAVL_INTERLEAVE_2)
       {
       tmp_format.interleave_mode = GAVL_INTERLEAVE_NONE;
       ctx = gavl_interleave_context_create(&(cnv->opt),

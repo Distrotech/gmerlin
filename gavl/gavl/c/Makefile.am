@@ -19,7 +19,8 @@ _rgb_yuv_c.c \
 _yuv_rgb_c.c \
 _yuv_yuv_c.c \
 _interleave_c.c \
-_mix_c.c
+_mix_c.c \
+_sampleformat_c.c
 
 noinst_HEADERS= \
 c_macros.h \

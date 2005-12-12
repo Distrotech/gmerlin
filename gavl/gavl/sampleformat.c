@@ -39,7 +39,7 @@ void gavl_audio_dither_context_destroy(gavl_audio_dither_context_t* ctx)
   free(ctx);
   }
 
-static void convert_gdither(gavl_audio_convert_context_t * ctx)
+static void convert_gdither_ni(gavl_audio_convert_context_t * ctx)
   {
   int i;
   //  fprintf(stderr, "Convert gdither\n");
@@ -51,7 +51,7 @@ static void convert_gdither(gavl_audio_convert_context_t * ctx)
     }
   }
 
-static void convert_gdither_s8(gavl_audio_convert_context_t * ctx)
+static void convert_gdither_s8_ni(gavl_audio_convert_context_t * ctx)
   {
   int i, j;
   for(i = 0; i < ctx->input_format.num_channels; i++)
@@ -65,7 +65,7 @@ static void convert_gdither_s8(gavl_audio_convert_context_t * ctx)
     }
   }
 
-static void convert_gdither_u16(gavl_audio_convert_context_t * ctx)
+static void convert_gdither_u16_ni(gavl_audio_convert_context_t * ctx)
   {
   int i, j;
   for(i = 0; i < ctx->input_format.num_channels; i++)
@@ -79,17 +79,52 @@ static void convert_gdither_u16(gavl_audio_convert_context_t * ctx)
     }
   }
 
+static void convert_gdither_i(gavl_audio_convert_context_t * ctx)
+  {
+  gdither_runf(ctx->dither_context->dither, 0,
+               ctx->input_format.num_channels * ctx->input_frame->valid_samples,
+               ctx->input_frame->samples.f,
+               ctx->output_frame->samples.u_8);
+  }
 
-gavl_sampleformat_table_t * gavl_create_sampleformat_table(gavl_audio_options_t * opt)
+static void convert_gdither_s8_i(gavl_audio_convert_context_t * ctx)
+  {
+  int j, jmax;
+  jmax = ctx->input_format.num_channels * ctx->input_frame->valid_samples;
+  gdither_runf(ctx->dither_context->dither, 0,
+               jmax,
+               ctx->input_frame->samples.f,
+               ctx->output_frame->samples.s_8);
+  for(j = 0; j < jmax; j++)
+    ctx->output_frame->samples.s_8[j] ^= 0x80;
+  }
+
+static void convert_gdither_u16_i(gavl_audio_convert_context_t * ctx)
+  {
+  int j, jmax;
+  jmax = ctx->input_format.num_channels * ctx->input_frame->valid_samples;
+  
+  gdither_runf(ctx->dither_context->dither, 0,
+               jmax,
+               ctx->input_frame->samples.f,
+               ctx->output_frame->samples.u_16);
+  
+  for(j = 0; j < jmax; j++)
+    ctx->output_frame->samples.u_16[j] ^= 0x8000;
+  }
+
+
+gavl_sampleformat_table_t * gavl_create_sampleformat_table(gavl_audio_options_t * opt,
+                                                           gavl_interleave_mode_t interleave_mode)
   {
   gavl_sampleformat_table_t * ret = calloc(1, sizeof(*ret));
 
   if(opt->accel_flags & GAVL_ACCEL_C)
-    gavl_init_sampleformat_funcs_c(ret);
+    gavl_init_sampleformat_funcs_c(ret, interleave_mode);
   return ret;
   }
 
-/* Create sampleformat converter. Samples are ALWAYS non interleaved */
+/* Create sampleformat converter. Samples are interleaved or non interleaved */
 
 gavl_audio_convert_context_t *
 gavl_sampleformat_context_create(gavl_audio_options_t * opt,
@@ -105,9 +140,11 @@ gavl_sampleformat_context_create(gavl_audio_options_t * opt,
   GDitherType dither_type;
   GDitherSize dither_bit_depth;
   int dither_depth;
-    
-  //  fprintf(stderr, "Gavl: initializing sampleformat converter\n");
-
+#if 0    
+  fprintf(stderr, "Gavl: initializing sampleformat converter %s -> %s\n",
+          gavl_sample_format_to_string(in_format->sample_format),
+          gavl_sample_format_to_string(out_format->sample_format));
+#endif  
   ret = gavl_audio_convert_context_create(in_format, out_format);
   ret->output_format.sample_format = out_format->sample_format;
 
@@ -115,7 +152,7 @@ gavl_sampleformat_context_create(gavl_audio_options_t * opt,
      (gavl_bytes_per_sample(out_format->sample_format) > 2) ||
      (in_format->sample_format != GAVL_SAMPLE_FLOAT))
     {
-    table = gavl_create_sampleformat_table(opt);
+    table = gavl_create_sampleformat_table(opt, in_format->interleave_mode);
     
     
     ret->func =
@@ -144,22 +181,39 @@ gavl_sampleformat_context_create(gavl_audio_options_t * opt,
       case GAVL_SAMPLE_U8:
         dither_bit_depth = GDither8bit;
         dither_depth = 8;
-        ret->func = convert_gdither;
+
+        if(in_format->interleave_mode == GAVL_INTERLEAVE_NONE)
+          ret->func = convert_gdither_ni;
+        else if(in_format->interleave_mode == GAVL_INTERLEAVE_ALL)
+          ret->func = convert_gdither_i;
+        
         break;
       case GAVL_SAMPLE_S8:
         dither_bit_depth = GDither8bit;
         dither_depth = 8;
-        ret->func = convert_gdither_s8;
+
+        if(in_format->interleave_mode == GAVL_INTERLEAVE_NONE)
+          ret->func = convert_gdither_s8_ni;
+        else if(in_format->interleave_mode == GAVL_INTERLEAVE_ALL)
+          ret->func = convert_gdither_s8_i;
         break;
       case GAVL_SAMPLE_U16:
         dither_bit_depth = GDither16bit;
         dither_depth = 16;
-        ret->func = convert_gdither_u16;
+
+        if(in_format->interleave_mode == GAVL_INTERLEAVE_NONE)
+          ret->func = convert_gdither_u16_ni;
+        else if(in_format->interleave_mode == GAVL_INTERLEAVE_ALL)
+          ret->func = convert_gdither_u16_i;
         break;
       case GAVL_SAMPLE_S16:
         dither_bit_depth = GDither16bit;
         dither_depth = 16;
-        ret->func = convert_gdither;
+
+        if(in_format->interleave_mode == GAVL_INTERLEAVE_NONE)
+          ret->func = convert_gdither_ni;
+        else if(in_format->interleave_mode == GAVL_INTERLEAVE_ALL)
+          ret->func = convert_gdither_i;
         break;
       default:
         fprintf(stderr, "BUG: Invalid dither initialization\n");
@@ -174,8 +228,8 @@ gavl_sampleformat_context_create(gavl_audio_options_t * opt,
     
     ret->dither_context = calloc(1, sizeof(*(ret->dither_context)));
 
-    fprintf(stderr, "Gdither, %d %d %d\n", dither_type,
-            dither_bit_depth, dither_depth);
+    //    fprintf(stderr, "Gdither, %d %d %d\n", dither_type,
+    //            dither_bit_depth, dither_depth);
     
     ret->dither_context->dither =  gdither_new(dither_type, 1,
                                                dither_bit_depth, dither_depth);
