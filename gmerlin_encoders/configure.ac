@@ -255,7 +255,7 @@ AH_TEMPLATE([HAVE_MJPEGTOOLS],
 
 have_mjpegtools="false"
 
-MJPEGTOOLS_REQUIRED="1.7.0"
+MJPEGTOOLS_REQUIRED="1.9.0"
 
 PKG_CHECK_MODULES(MJPEGTOOLS, mjpegtools >= $MJPEGTOOLS_REQUIRED, have_mjpegtools="true", have_mjpegtools="false")
 AC_SUBST(MJPEGTOOLS_REQUIRED)

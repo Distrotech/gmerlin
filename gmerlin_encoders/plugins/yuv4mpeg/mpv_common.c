@@ -124,8 +124,8 @@ void bg_mpv_set_parameter(void * data, char * name, bg_parameter_value_t * val)
     SET_ENUM("vcd",   com->format, FORMAT_VCD);
     SET_ENUM("svcd",  com->format, FORMAT_SVCD);
     SET_ENUM("dvd",   com->format, FORMAT_DVD);
-    fprintf(stderr, "val->str: %s format: %d\n",
-            val->val_str, com->format);
+    //    fprintf(stderr, "val->str: %s format: %d\n",
+    //            val->val_str, com->format);
     }
   else if(!strcmp(name, "bitrate_mode"))
     {
