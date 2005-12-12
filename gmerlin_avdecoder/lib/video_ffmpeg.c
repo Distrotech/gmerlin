@@ -27,6 +27,9 @@
 
 #include <stdio.h>
 
+#ifdef HAVE_LIBDV
+#include <dvframe.h>
+#endif
 
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
@@ -487,9 +490,12 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   dp_hdr_t *hdr;
   ffmpeg_video_priv * priv;
   bgav_packet_t * p;
-  
+#ifdef HAVE_LIBDV /* We get the DV format info from libdv, since the values
+                     ffmpeg returns are not reliable */
+  bgav_dv_dec_t * dvdec;
+#endif  
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
-
+  
   if(priv->eof)
     return 0;
   
@@ -575,6 +581,20 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     //    bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
 #endif
     //    fprintf(stderr, "Decode %d...", priv->ctx->pix_fmt);
+
+#ifdef HAVE_LIBDV
+    if(priv->need_first_frame && (priv->info->ffmpeg_id == CODEC_ID_DVVIDEO))
+      {
+      dvdec = bgav_dv_dec_create();
+      bgav_dv_dec_set_header(dvdec, priv->packet_buffer_ptr);
+      bgav_dv_dec_set_frame(dvdec, priv->packet_buffer_ptr);
+
+      bgav_dv_dec_get_pixel_aspect(dvdec, &s->data.video.format.pixel_width,
+                                   &s->data.video.format.pixel_height);
+      
+      bgav_dv_dec_destroy(dvdec);
+      }
+#endif
     
     bytes_used = avcodec_decode_video(priv->ctx,
                                       priv->frame,
@@ -634,7 +654,9 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       //      fprintf(stderr, "First frame\n");
       
       s->data.video.format.pixelformat = get_pixelformat(priv->ctx->pix_fmt);
-
+      priv->need_first_frame = 0;
+      priv->have_first_frame = 1;
+      
       if(priv->info->ffmpeg_id == CODEC_ID_DVVIDEO)
         {
         if(s->data.video.format.pixelformat == GAVL_YUV_420_P)
@@ -643,35 +665,36 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         if(!s->data.video.format.interlace_mode)
           s->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
         }
-      priv->need_first_frame = 0;
-      priv->have_first_frame = 1;
-      
-      if((priv->ctx->sample_aspect_ratio.num > 1) ||
-         (priv->ctx->sample_aspect_ratio.den > 1))
+      else
         {
-        
-        s->data.video.format.pixel_width  = priv->ctx->sample_aspect_ratio.num;
-        s->data.video.format.pixel_height = priv->ctx->sample_aspect_ratio.den;
-        }
-      /* Sometimes, the size encoded in some mp4 (vol?) headers is different from
-         what is found in the container. In this case, the image must be scaled. */
-      
-      if(!s->data.video.format.image_width)
-        {
-        s->data.video.format.image_width = priv->ctx->width;
-        s->data.video.format.frame_width = priv->ctx->width;
+        if((priv->ctx->sample_aspect_ratio.num > 1) ||
+           (priv->ctx->sample_aspect_ratio.den > 1))
+          {
+          s->data.video.format.pixel_width  = priv->ctx->sample_aspect_ratio.num;
+          s->data.video.format.pixel_height = priv->ctx->sample_aspect_ratio.den;
+          }
+        /* Some demuxers don't know the frame dimensions */
+        if(!s->data.video.format.image_width)
+          {
+          s->data.video.format.image_width = priv->ctx->width;
+          s->data.video.format.frame_width = priv->ctx->width;
 
-        s->data.video.format.image_height = priv->ctx->height;
-        s->data.video.format.frame_height = priv->ctx->height;
-        //        fprintf(stderr, "Got size: %d x %d\n", priv->ctx->width, priv->ctx->height);
+          s->data.video.format.image_height = priv->ctx->height;
+          s->data.video.format.frame_height = priv->ctx->height;
+          //        fprintf(stderr, "Got size: %d x %d\n", priv->ctx->width, priv->ctx->height);
+          }
+        /* Sometimes, the size encoded in some mp4 (vol?) headers is different from
+           what is found in the container. In this case, the image must be scaled. */
+        else if(s->data.video.format.image_width &&
+                (priv->ctx->width < s->data.video.format.image_width))
+          {
+          s->data.video.format.pixel_width  = s->data.video.format.image_width;
+          s->data.video.format.pixel_height = priv->ctx->width;
+          s->data.video.format.image_width = priv->ctx->width;
+          }
+        
         }
-      else if(s->data.video.format.image_width &&
-              (priv->ctx->width < s->data.video.format.image_width))
-        {
-        s->data.video.format.pixel_width  = s->data.video.format.image_width;
-        s->data.video.format.pixel_height = priv->ctx->width;
-        s->data.video.format.image_width = priv->ctx->width;
-        }
+      
       return 1;
       }
 

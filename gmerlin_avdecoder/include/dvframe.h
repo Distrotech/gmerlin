@@ -44,6 +44,10 @@ void bgav_dv_dec_set_frame_counter(bgav_dv_dec_t*, int64_t count);
 
 void bgav_dv_dec_set_frame(bgav_dv_dec_t*, uint8_t * data);
 
+/* ffmpeg is not able to tell the right pixel aspect ratio for DV streams */
+
+void bgav_dv_dec_get_pixel_aspect(bgav_dv_dec_t*, int * pixel_width, int * pixel_height);
+
 /* Set up audio and video streams */
 
 void bgav_dv_dec_init_audio(bgav_dv_dec_t*, bgav_stream_t * s);

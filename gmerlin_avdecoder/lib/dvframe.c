@@ -107,39 +107,52 @@ void bgav_dv_dec_init_audio(bgav_dv_dec_t * d, bgav_stream_t * s)
   gavl_audio_format_copy(&(d->audio_format), &(s->data.audio.format));
   }
 
+void bgav_dv_dec_get_pixel_aspect(bgav_dv_dec_t * d, int * pixel_width, int * pixel_height)
+  {
+  if(d->is_pal)
+    {
+    if(dv_format_wide(d->dv))
+      {
+      *pixel_width = 118;
+      *pixel_height = 81;
+      }
+    else
+      {
+      *pixel_width = 59;
+      *pixel_height = 54;
+      }
+    }
+  else
+    {
+    if(dv_format_wide(d->dv))
+      {
+      *pixel_width = 40;
+      *pixel_height = 33;
+      }
+    else
+      {
+      *pixel_width = 10;
+      *pixel_height = 11;
+      }
+    }
+  }
+
 void bgav_dv_dec_init_video(bgav_dv_dec_t * d, bgav_stream_t * s)
   {
   s->fourcc = BGAV_MK_FOURCC('d', 'v', 'c', ' ');
 
+  bgav_dv_dec_get_pixel_aspect(d, &s->data.video.format.pixel_width,
+                               &s->data.video.format.pixel_height);
+  
   if(d->is_pal)
     {
     s->data.video.format.frame_duration = 1;
     s->data.video.format.timescale = 25;
-    if(dv_format_wide(d->dv))
-      {
-      s->data.video.format.pixel_width = 118;
-      s->data.video.format.pixel_height = 81;
-      }
-    else
-      {
-      s->data.video.format.pixel_width = 59;
-      s->data.video.format.pixel_height = 54;
-      }
     }
   else
     {
     s->data.video.format.frame_duration = 1001;
     s->data.video.format.timescale = 30000;
-    if(dv_format_wide(d->dv))
-      {
-      s->data.video.format.pixel_width = 40;
-      s->data.video.format.pixel_height = 33;
-      }
-    else
-      {
-      s->data.video.format.pixel_width = 10;
-      s->data.video.format.pixel_height = 11;
-      }
     }
   
   gavl_video_format_copy(&(d->video_format), &(s->data.video.format));
