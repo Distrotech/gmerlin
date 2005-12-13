@@ -537,6 +537,8 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   ret->subtitle_stream_item = create_submenu_item("Subtitles...",
                                                   ret->subtitle_stream_menu.menu,
                                                   ret->menu);
+  /* Hide subtitle menu until it does something */
+  gtk_widget_hide(ret->subtitle_stream_item);
     
   ret->windows_item = create_submenu_item("Windows...",
                                           ret->windows_menu.menu,

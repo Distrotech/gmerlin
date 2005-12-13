@@ -59,12 +59,9 @@ static void set_background(player_window_t * win)
   
   bg_gdk_pixbuf_render_pixmap_and_mask(pixbuf,
                                        &pixmap, &mask);
-  
-  if(pixmap && BACKGROUND_WINDOW)
-    {
-    gdk_window_set_back_pixmap(BACKGROUND_WINDOW, pixmap, FALSE);
-    }
 
+  if(pixmap)
+    bg_gtk_set_widget_bg_pixmap(win->layout, pixmap);
   gtk_widget_shape_combine_mask(win->window, mask, 0, 0);
 
   if(mask)

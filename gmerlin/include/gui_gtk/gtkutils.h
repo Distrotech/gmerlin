@@ -28,3 +28,5 @@ void bg_gtk_init(int * argc, char *** argv);
 void bg_gdk_pixbuf_render_pixmap_and_mask(GdkPixbuf *pixbuf,
                                           GdkPixmap **pixmap_return,
                                           GdkBitmap **mask_return);
+
+void bg_gtk_set_widget_bg_pixmap(GtkWidget * w, GdkPixmap *pixmap);

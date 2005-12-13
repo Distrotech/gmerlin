@@ -86,6 +86,8 @@ keycodes[] =
     { XK_Down,   BG_KEY_DOWN },
     { XK_Page_Up,  BG_KEY_PAGE_UP },
     { XK_Page_Down, BG_KEY_PAGE_DOWN },
+    { XK_plus,  BG_KEY_PLUS },
+    { XK_minus, BG_KEY_MINUS },
 
     { XK_a,        BG_KEY_A },
     { XK_b,        BG_KEY_B },
@@ -1237,14 +1239,14 @@ static int handle_event(x11_t * priv, XEvent * evt)
     case ButtonPress:
       if(((evt->xbutton.button == Button4) || 
           (evt->xbutton.button == Button5)) &&
-         (evt->xbutton.state & (ShiftMask|ControlMask)))
+         (evt->xbutton.state & (Mod1Mask|ControlMask)))
         {
         if(!priv->squeeze_zoom_active)
           return 0;
         
         if(evt->xbutton.button == Button4)
           {
-          if(evt->xbutton.state & ShiftMask)
+          if(evt->xbutton.state & Mod1Mask)
             {
             /* Increase Zoom */
             priv->zoom += ZOOM_DELTA;
@@ -1262,7 +1264,7 @@ static int handle_event(x11_t * priv, XEvent * evt)
           }
         else if(evt->xbutton.button == Button5)
           {
-          if(evt->xbutton.state & ShiftMask)
+          if(evt->xbutton.state & Mod1Mask)
             {
             /* Decrease Zoom */
             priv->zoom -= ZOOM_DELTA;
@@ -1349,6 +1351,58 @@ static int handle_event(x11_t * priv, XEvent * evt)
             x11_window_clear(&priv->win);
             set_drawing_coords(priv);
             }
+          break;
+        case XK_plus:
+          if(evt->xkey.state & Mod1Mask)
+            {
+            if(!priv->squeeze_zoom_active)
+              return 0;
+            /* Increase Zoom */
+            priv->zoom += ZOOM_DELTA;
+            if(priv->zoom > ZOOM_MAX)
+              priv->zoom = ZOOM_MAX;
+            x11_window_clear(&priv->win);
+            set_drawing_coords(priv);
+            }
+          else if(evt->xkey.state & ControlMask)
+            {
+            if(!priv->squeeze_zoom_active)
+              return 0;
+            /* Increase Squeeze */
+            priv->squeeze += SQUEEZE_DELTA;
+            if(priv->squeeze > SQUEEZE_MAX)
+              priv->squeeze = SQUEEZE_MAX;
+            x11_window_clear(&priv->win);
+            set_drawing_coords(priv);
+            }
+          else
+            done = 0;
+          break;
+        case XK_minus:
+          if(evt->xkey.state & Mod1Mask)
+            {
+            if(!priv->squeeze_zoom_active)
+              return 0;
+            /* Decrease Zoom */
+            priv->zoom -= ZOOM_DELTA;
+            if(priv->zoom < ZOOM_MIN)
+              priv->zoom = ZOOM_MIN;
+            x11_window_clear(&priv->win);
+            set_drawing_coords(priv);
+            }
+          else if(evt->xkey.state & ControlMask)
+            {
+            if(!priv->squeeze_zoom_active)
+              return 0;
+            /* Decrease Squeeze */
+            priv->squeeze -= SQUEEZE_DELTA;
+            if(priv->squeeze < SQUEEZE_MIN)
+              priv->squeeze = SQUEEZE_MIN;
+            x11_window_clear(&priv->win);
+            set_drawing_coords(priv);
+            }
+          else
+            done = 0;
           break;
         default:
           done = 0;

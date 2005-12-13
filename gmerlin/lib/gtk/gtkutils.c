@@ -115,3 +115,15 @@ void bg_gdk_pixbuf_render_pixmap_and_mask(GdkPixbuf *pixbuf,
     free(mask_data);
     }
   }
+
+void bg_gtk_set_widget_bg_pixmap(GtkWidget * widget, GdkPixmap *pixmap)
+  {
+  GtkStyle   *style;
+
+  style = gtk_style_copy (widget->style);
+  if (style->bg_pixmap[0])
+    g_object_unref (style->bg_pixmap[0]);
+  style->bg_pixmap[0] = g_object_ref (pixmap);
+  gtk_widget_set_style (widget, style);
+  g_object_unref (style);
+  }

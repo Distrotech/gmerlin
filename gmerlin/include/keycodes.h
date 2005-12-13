@@ -46,6 +46,8 @@
 #define BG_KEY_DOWN       15
 #define BG_KEY_PAGE_UP    16
 #define BG_KEY_PAGE_DOWN  17
+#define BG_KEY_PLUS       18
+#define BG_KEY_MINUS      19
 
 #define BG_KEY_A 101
 #define BG_KEY_B 102

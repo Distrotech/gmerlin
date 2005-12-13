@@ -166,18 +166,18 @@ int main(int argc, char ** argv)
   output_plugin->write_header(output_handle->priv, files[1], &out_format);
 
   /* For testing gavl chroma sampling */
-#if 1
+#if 0
   if(in_format.pixelformat == GAVL_YUVJ_420_P)
     {
     in_format.pixelformat = GAVL_YUVJ_420_P;
-    in_format.chroma_placement = GAVL_CHROMA_PLACEMENT_DVPAL;
-    in_format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+    in_format.chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
+    //    in_format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
     }
   if(out_format.pixelformat == GAVL_YUVJ_420_P)
     {
     out_format.pixelformat = GAVL_YUVJ_420_P;
     out_format.chroma_placement = GAVL_CHROMA_PLACEMENT_MPEG2;
-    out_format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+    //    out_format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
     }
 #endif
   fprintf(stderr, "Input format:\n");

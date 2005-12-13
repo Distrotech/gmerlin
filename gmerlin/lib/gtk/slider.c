@@ -231,9 +231,8 @@ static void set_background(bg_gtk_slider_t * s)
 #endif
   gtk_widget_set_size_request(s->background_layout, s->width, s->height);
 
-  gdk_window_set_back_pixmap(GTK_LAYOUT(s->background_layout)->bin_window,
-                             pixmap, FALSE);
-
+  bg_gtk_set_widget_bg_pixmap(s->background_layout, pixmap);
+  
   g_object_unref(G_OBJECT(pixmap));
   }
 
