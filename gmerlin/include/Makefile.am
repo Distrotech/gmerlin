@@ -8,6 +8,7 @@ cmdline.h \
 config.h \
 fifo.h \
 http.h \
+keycodes.h \
 lcdproc.h \
 log.h \
 msgqueue.h \
