@@ -38,6 +38,7 @@ struct gavl_video_deinterlacer_s
   gavl_video_frame_t * src_field;
   gavl_video_frame_t * dst_field;
 
+  gavl_video_scaler_t * scaler;
   };
 
 /* Find conversion function */
@@ -45,6 +46,10 @@ struct gavl_video_deinterlacer_s
 gavl_video_deinterlace_func
 gavl_find_deinterlacer_copy_c(const gavl_video_options_t * opt,
                               const gavl_video_format_t * format);
+
+gavl_video_deinterlace_func
+gavl_find_deinterlacer_scale(const gavl_video_options_t * opt,
+                             const gavl_video_format_t * format);
 
 
 #endif // _GAVL_DEINTERLACE_H_

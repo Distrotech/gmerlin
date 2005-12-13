@@ -370,8 +370,14 @@ static void alloc_temp(gavl_video_scale_context_t * ctx, gavl_pixelformat_t pixe
   
   }
 
-/* Scale offset is the position of the zeroth dst pixel in source coordinates */
+/*
+ * Scale offset is the position of the first dst pixel in source
+ * coordinates. First, we calculate the distances from the image border
+ * of the first source and dst pixels respectively. dst_dist is scaled to
+ * source coordinates and the offset becomes dst_dist - src_dist.
+ */
 
+static
 float get_scale_offset(int src_field, int dst_field,
                        int src_fields, int dst_fields,
                        float scale_fac, int sub_in, int sub_out,
@@ -385,19 +391,23 @@ float get_scale_offset(int src_field, int dst_field,
   float dst_dist; /* Distance of the first destination sample from the picture border in
                      destination coordinates */
   
-  
+  float chroma_scale_fac = (float)sub_in / (float)sub_out;
 #if 0
   fprintf(stderr, "get_scale_offset:\n\
   src_field: %d\n  dst_field: %d\n\
   src_fields: %d\n  dst_fields: %d\n\
   scale_fac: %f\n  sub_in: %d\n\
   sub_out: %d\n  chroma_offset_src: %f\n\
-  chroma_offset_dst: %f\n",
+  chroma_offset_dst: %f\n\
+  chroma_scale_fac: %f\n",
           src_field, dst_field,
           src_fields, dst_fields,
           scale_fac, sub_in, sub_out,
-          chroma_offset_src, chroma_offset_dst);
+          chroma_offset_src, chroma_offset_dst,
+          chroma_scale_fac);
 #endif
+
+  scale_fac *= chroma_scale_fac;
   
   /* Different calculation for diffrent interlacing options */
   
@@ -453,7 +463,7 @@ float get_scale_offset(int src_field, int dst_field,
     }
 
   result = dst_dist - src_dist;
-#if 0  
+#if 0
   fprintf(stderr, "Src dist: %f, dst_dist: %f\n", src_dist, dst_dist);
   fprintf(stderr, "result: %f\n", result);
 #endif

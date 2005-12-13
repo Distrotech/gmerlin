@@ -21,7 +21,7 @@
 
 #include <string.h>
 
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
 #include <stdio.h>  
@@ -340,19 +340,21 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
       {
       if(!gavl_pixelformat_can_scale(input_format->pixelformat, tmp_csp))
         csp_then_scale = 1;
+#ifdef DEBUG
       fprintf(stderr, "converting %s -> %s -> %s (%d, %d)\n",
               gavl_pixelformat_to_string(input_format->pixelformat),
               gavl_pixelformat_to_string(tmp_csp),
               gavl_pixelformat_to_string(output_format->pixelformat),
               gavl_pixelformat_can_scale(input_format->pixelformat, tmp_csp),
               gavl_pixelformat_can_scale(tmp_csp, output_format->pixelformat));
-              
+#endif
       }
     
     if(csp_then_scale) /* csp then scale */
       {
+#ifdef DEBUG
       fprintf(stderr, "csp then scale\n");
-
+#endif
       /* csp (tmp_format -> tmp_format1) */
       
       gavl_video_format_copy(&tmp_format1, &tmp_format);
@@ -390,7 +392,9 @@ int gavl_video_converter_init(gavl_video_converter_t * cnv,
     /* scale then csp */
     else
       {
+#ifdef DEBUG
       fprintf(stderr, "scale then csp\n");
+#endif
       /* scale (tmp_format -> tmp_format1) */
 
       gavl_video_format_copy(&tmp_format1, &tmp_format);
