@@ -110,8 +110,10 @@ if test x$no_x != xyes; then
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
+OLD_LDFLAGS=$LDFLAGS
                                                                                
 CFLAGS=$X_FLAGS
+LDFLAGS="$X_LIBS $LDFLAGS"
 LIBS=$X_LIBS
 
 AC_CHECK_LIB(Xinerama, XineramaQueryExtension,
@@ -124,6 +126,7 @@ fi
 AC_SUBST(XINERAMA_LIBS)
 
 CFLAGS=$OLD_CFLAGS
+LDFLAGS=$OLD_LDFLAGS
 LIBS=$OLD_LIBS
 
 fi
@@ -142,9 +145,10 @@ if test x$no_x != xyes; then
 
 OLD_CFLAGS=$CFLAGS
 OLD_LIBS=$LIBS
-                                                                               
+OLD_LDFLAGS=$LDFLAGS                                                                               
 CFLAGS=$X_FLAGS
 LIBS=$X_LIBS
+LDFLAGS="$X_LIBS $LDFLAGS"
 
 AC_CHECK_LIB(Xv, XvQueryExtension,
              XV_LIBS="-lXv";have_xv="true")
@@ -157,6 +161,7 @@ AC_SUBST(XV_LIBS)
 
 CFLAGS=$OLD_CFLAGS
 LIBS=$OLD_LIBS
+LDFLAGS=$OLD_LDFLAGS
 
 fi
 
