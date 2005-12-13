@@ -29,7 +29,7 @@
 #define DELAY_TIME 10
 
 #define BACKGROUND_WINDOW GTK_LAYOUT(win->layout)->bin_window
-#define MASK_WINDOW       win->window->window
+// #define MASK_WINDOW       win->window->window
 
 #define BACKGROUND_WIDGET win->layout
 #define MASK_WIDGET       win->window
@@ -64,10 +64,8 @@ static void set_background(player_window_t * win)
     {
     gdk_window_set_back_pixmap(BACKGROUND_WINDOW, pixmap, FALSE);
     }
-  if(MASK_WINDOW)
-    {
-    gdk_window_shape_combine_mask(MASK_WINDOW, mask, 0, 0);
-    }
+
+  gtk_widget_shape_combine_mask(win->window, mask, 0, 0);
 
   if(mask)
     {

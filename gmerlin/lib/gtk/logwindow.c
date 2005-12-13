@@ -88,7 +88,7 @@ static gboolean idle_callback(gpointer data)
   const char * level_name;
   char * domain;
   char * message;
-  GtkTextTag * tag;
+  GtkTextTag * tag = (GtkTextTag *)0;
   char * str;
   GtkTextIter iter;
   

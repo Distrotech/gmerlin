@@ -249,8 +249,7 @@ static void set_shape(bg_gtk_slider_t * s)
   bg_gdk_pixbuf_render_pixmap_and_mask(s->pixbuf_normal,
                                        NULL, &mask);
 
-  gdk_window_shape_combine_mask(s->slider_eventbox->window,
-                                mask, 0, 0);
+  gtk_widget_shape_combine_mask(s->slider_eventbox, mask, 0, 0);
   if(mask)
     g_object_unref(G_OBJECT(mask));
   }

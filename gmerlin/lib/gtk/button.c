@@ -125,9 +125,7 @@ static void set_shape(bg_gtk_button_t * b)
   bg_gdk_pixbuf_render_pixmap_and_mask(b->pixbuf_normal,
                                        (GdkPixmap**)0,
                                        &mask);
-  gdk_window_shape_combine_mask(b->widget->window,
-                                mask,
-                                0, 0);
+  gtk_widget_shape_combine_mask(b->widget, mask, 0, 0);
   
   if(mask)
     {
