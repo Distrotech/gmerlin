@@ -206,7 +206,7 @@ AC_TRY_RUN([
     #include <faac.h>
     main()
     {
-    int samplerate, num_channels;
+    int samplerate = 44100, num_channels = 2;
     unsigned long input_samples, output_bytes;
     faacEncHandle enc;
     enc = faacEncOpen(samplerate,
