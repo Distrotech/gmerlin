@@ -45,11 +45,14 @@ typedef struct gavl_video_format_s gavl_video_format_t;
 /** \defgroup quality Quality settings
     \brief Generic quality settings
 
-    This is a portable way to select the conversion routines. Optimized routines often have a worse
-    precision, and these defines are a way to choose among them. Quality level
-    3 enables the standard ANSI-C versions, which are always available. Qualities
-    1 and 2 choose optimized versions, qualities 4 and 5 enable high quality versions.
-    Not all routines aren't available for quality levely other than 3. In these cases, the
+    Gavl allows multiple versions of each conversion routine. Optimized routines often
+    have a worse precision, while highly accurate routines are too slow for live playback.
+    Quality level 3 enables the standard ANSI-C versions, which are always available, or
+    an optimized version of the same accuracy. 
+    Qualities 1 and 2 choose optimized versions which are less accurate. Qualities 4 and 5
+    enable high quality versions.
+
+    Not all routines are available for quality levels other than 3. In these cases, the
     quality will be ignored.
  */
 
@@ -203,7 +206,7 @@ const char * gavl_interleave_mode_to_string(gavl_interleave_mode_t mode);
 
 /*! 
   \ingroup audio_format
-  \brief Dump a gavl_audio_format_t to stderr
+  \brief Dump an audio format to stderr
   \param format An audio format
  */
 
@@ -278,8 +281,9 @@ void gavl_audio_format_copy(gavl_audio_format_t * dst,
   \param format An audio format
 
   Set a default channel setup and channel indices if only the number of channels
-  is known. The result might be wrong, but it provides a fallback if you have
-  something else than Mono or Stereo and the file format/codec supports no speaker configurations.
+  is known. The result might be wrong if you have
+  something else than mono or stereo from a stream, which has no informtions about the
+  speaker configurations.
 */
   
 void gavl_set_channel_setup(gavl_audio_format_t * format);
@@ -323,7 +327,7 @@ typedef union gavl_audio_samples_u
 
 /*!
   \ingroup audio_frame
-  \brief Container for noninterleaved audio channels
+  \brief Container for noninterleaved audio samples
  */
   
 typedef union gavl_audio_channels_u
@@ -343,13 +347,18 @@ typedef union gavl_audio_channels_u
 
 /*!
   \ingroup audio_frame
-  \brief Container for audio samples.
+  \brief Generic container for audio samples.
 
   This is the main container structure for audio data. The data are stored in unions,
   so you can access the matching pointer type without the need for casts. If you have
   noninterleaved channels, the i'th channel will be in channels[i].f (if you use floating
   point samples). For noninterleaved formats, use the samples member. valid_samples must
   be set by the source to the number of actually valid samples in this frame.
+
+  Audio frames are created with \ref gavl_audio_frame_create and destroyed with
+  \ref gavl_audio_frame_destroy. The memory can either be allocated by gavl (memory
+  aligned) or by the caller.
+  
  */
   
 typedef struct gavl_audio_frame_s
@@ -1279,7 +1288,7 @@ void gavl_video_format_get_chroma_offset(const gavl_video_format_t * format, int
   
 /*! 
   \ingroup video_format
-  \brief Dump a gavl_video_format_t to stderr
+  \brief Dump a video format to stderr
   \param format A video format
  */
   
@@ -1310,6 +1319,10 @@ void gavl_video_format_fit_to_source(gavl_video_format_t * dst,
  * intervalls of strides[0] bytes. For planar formats, planes[0] will contain the
  * luminance channel, planes[1] contains Cb (aka U), planes[2] contains Cr (aka V).
  *
+ * Video frames are created with \ref gavl_video_frame_create and destroyed with
+ * \ref gavl_video_frame_destroy. The memory can either be allocated by gavl (with
+ * memory aligned scanlines) or by the caller.
+ * 
  * Gavl video frames are always oriented top->bottom left->right. If you must flip frames,
  * use the functions \ref gavl_video_frame_copy_flip_x, \ref gavl_video_frame_copy_flip_y or
  * \ref gavl_video_frame_copy_flip_xy .
@@ -1541,24 +1554,13 @@ void gavl_video_frame_dump(gavl_video_frame_t * frame,
  */
 
 /** \ingroup video_conversion_flags
- * \brief Keep the display aspect ratio
- *
- * This will cause the video converter to scale the
- * image to keep the display aspect ratio. Set this to zero if you want to prevent
- * scaling even if the pixel aspect ratios are different in the source and destination
- * formats.
- */
-  
-#define GAVL_KEEP_APSPECT (1<<0)
-
-/** \ingroup video_conversion_flags
  * \brief Force deinterlacing
  *
- * When you want progressive output, this options triggers deinterlacing even
- * for input formats, which pretend to be progressive already.
+ * This option turns on deinterlacing by the converter in any case (i.e. also if the input format
+ * pretends to be progressive or if the ouput format is interlaced).
  */
 
-#define GAVL_FORCE_DEINTERLACE (1<<1)
+#define GAVL_FORCE_DEINTERLACE (0<<1)
 
   
 /** \ingroup video_options

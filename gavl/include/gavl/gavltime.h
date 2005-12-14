@@ -51,8 +51,8 @@ gavl_time_t gavl_samples_to_time(int samplerate, int64_t samples);
 
 /*! \ingroup time
  * \brief Convert a time to a number of audio samples for a given samplerate
- * \param rate Samplerate
- * \param t Time
+ * \param samplerate Samplerate
+ * \param time Time
  * \returns Number of audio samples
  * \todo Write this as an overflow save function
  */
@@ -71,7 +71,7 @@ gavl_time_t gavl_frames_to_time(int rate_num, int rate_den, int64_t frames);
  * \brief Convert a time to a number of video frames for a given framerate
  * \param rate_num Numerator of the framerate
  * \param rate_den Denominator of the framerate
- * \param t Time
+ * \param time Time
  * \returns Number of frames
  * \todo Write this as an overflow save function
  */
@@ -148,7 +148,7 @@ void gavl_time_delay(gavl_time_t * time);
  */
 
 void
-gavl_time_prettyprint(gavl_time_t time, char string[GAVL_TIME_STRING_LEN]);
+gavl_time_prettyprint(gavl_time_t time, char str[GAVL_TIME_STRING_LEN]);
 
 
 /* Scan time: format is hhh:mm:ss with hh: hours, mm: minutes, ss: seconds. Seconds can be a fractional
