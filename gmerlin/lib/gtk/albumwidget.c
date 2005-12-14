@@ -33,7 +33,6 @@
 #include <gui_gtk/albumentry.h>
 #include <gui_gtk/display.h>
 
-
 /* Since the gtk part is single threaded,
    we can load the pixbufs globally */
 
@@ -493,6 +492,7 @@ static void update_cursor_pos(bg_gtk_album_widget_t * w)
   if(!w->num_entries)
     {
     w->cursor_pos = 0;
+    gtk_widget_queue_draw(w->treeview);
     return;
     }
   else if(w->cursor_pos < w->num_entries)
@@ -656,7 +656,7 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   char string_buffer[GAVL_TIME_STRING_LEN + 32];
   GtkTreeSelection * selection;
   gavl_time_t total_time = 0;
-
+  
   //  fprintf(stderr, "bg_gtk_album_widget_update\n");
   
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(w->treeview));
@@ -665,7 +665,7 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
   
   gtk_list_store_clear(GTK_LIST_STORE(model));
-
+  
   w->num_entries = bg_album_get_num_entries(w->album);
   w->num_selected = 0;
 
@@ -2145,10 +2145,21 @@ static gboolean key_press_callback(GtkWidget * w, GdkEventKey * evt,
   return TRUE;
   }
 
+static gboolean
+album_changed_foreach(GtkTreeModel *model,
+                          GtkTreePath  *path,
+                          GtkTreeIter  *iter,
+                          gpointer      data)
+  {
+  gtk_tree_model_row_changed(model, path, iter);
+  return FALSE;
+  }
+
 static void column_resize_callback(GtkTreeViewColumn * col,
                                    gint * width_val,
                                    gpointer data)
   {
+  GtkTreeModel * model;
   int width_needed;
   int name_width;
   int width;
@@ -2179,6 +2190,9 @@ static void column_resize_callback(GtkTreeViewColumn * col,
       }
     
     }
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
+  gtk_tree_model_foreach (GTK_TREE_MODEL(model),
+                          album_changed_foreach, NULL);   
   }
 
 static void album_changed_callback(bg_album_t * a, void * data)
@@ -2280,6 +2294,7 @@ static GtkWidget * create_pixmap_button(bg_gtk_album_widget_t * w,
   return button;
   }
 
+
 bg_gtk_album_widget_t *
 bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   {
@@ -2351,6 +2366,7 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
                         GDK_BUTTON_RELEASE_MASK |
                         GDK_KEY_PRESS_MASK |
                         GDK_BUTTON1_MOTION_MASK );
+
   
   g_signal_connect(G_OBJECT(ret->treeview), "button-press-event",
                    G_CALLBACK(button_press_callback), (gpointer)ret);

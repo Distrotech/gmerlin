@@ -182,8 +182,13 @@ void bg_gtk_tree_window_destroy(bg_gtk_tree_window_t * w)
 
 void bg_gtk_tree_window_show(bg_gtk_tree_window_t* w)
   {
+  //  fprintf(stderr, "Showing tree window...\n");
   gtk_widget_show(w->window);
+  //  fprintf(stderr, "Showing tree window done\n");
 
+  //  gtk_window_present(GTK_WINDOW(w->window));
+
+  
   bg_cfg_section_apply(w->cfg_section,
                        parameters,
                        set_parameter,
