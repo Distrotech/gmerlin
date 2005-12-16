@@ -345,15 +345,15 @@ int bg_mpv_open(bg_mpv_common_t * com, const char * filename)
     return 0;
     }
 
-  fprintf(stderr, "launching %s...", commandline);
+  //  fprintf(stderr, "launching %s...", commandline);
   
   com->y4m.file = popen(commandline, "w");
   if(!com->y4m.file)
     {
-    fprintf(stderr, "failed\n");
+    //    fprintf(stderr, "failed\n");
     return 0;
     }
-  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done\n");
 
   free(commandline);
   
@@ -381,11 +381,13 @@ void bg_mpv_get_format(bg_mpv_common_t * com, gavl_video_format_t * format)
 
 void bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame)
   {
+  //  fprintf(stderr, "bg_mpv_write_video_frame\n");
   bg_y4m_write_frame(&com->y4m, frame);
   }
 
 void bg_mpv_close(bg_mpv_common_t * com)
   {
+  //  fprintf(stderr, "bg_mpv_close\n");
   pclose(com->y4m.file);
   bg_y4m_cleanup(&com->y4m);
   if(com->user_options)
@@ -395,5 +397,8 @@ void bg_mpv_close(bg_mpv_common_t * com)
 
 int bg_mpv_start(bg_mpv_common_t * com)
   {
-  return bg_y4m_write_header(&com->y4m);
+  int result;
+  result = bg_y4m_write_header(&com->y4m);
+  fflush(com->y4m.file);
+  return result;
   }

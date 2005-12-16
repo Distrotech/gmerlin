@@ -97,8 +97,11 @@ static void get_video_format_y4m(void * data, int stream,
 
 static int start_y4m(void * data)
   {
+  int result;
   e_y4m_t * e = (e_y4m_t*)data;
-  return bg_y4m_write_header(&e->com);
+  result = bg_y4m_write_header(&e->com);
+  fflush(y4m->file);
+  return result;
   }
 
 
