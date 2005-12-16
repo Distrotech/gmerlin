@@ -450,7 +450,7 @@ static void set_audio_format(audio_stream_t * ret)
     ret->in_format.samplerate + 10;
   
   /* Dump formats */
-#if 1
+#if 0
   fprintf(stderr, "Input format:\n");
   gavl_audio_format_dump(&(ret->in_format));
   fprintf(stderr, "Output format:\n");
@@ -1244,6 +1244,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
         video_encoder_handle = (bg_plugin_handle_t*)0;
       else
         audio_encoder_handle = (bg_plugin_handle_t*)0;
+      set_audio_format(&(ret->audio_streams[i]));
       }
     for(i = 0; i < ret->num_video_streams; i++)
       {

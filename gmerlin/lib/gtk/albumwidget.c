@@ -2366,7 +2366,6 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
                         GDK_BUTTON_RELEASE_MASK |
                         GDK_KEY_PRESS_MASK |
                         GDK_BUTTON1_MOTION_MASK );
-
   
   g_signal_connect(G_OBJECT(ret->treeview), "button-press-event",
                    G_CALLBACK(button_press_callback), (gpointer)ret);
