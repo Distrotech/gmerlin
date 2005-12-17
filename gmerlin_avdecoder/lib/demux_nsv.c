@@ -626,7 +626,9 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
     else
       bgav_input_skip(ctx->input, 2); /* Skip beef */
     }
-
+  else
+    have_sync_header = 1;
+  
 
   //  bgav_input_get_data(ctx->input, test_data, 32);
   //  bgav_hexdump(test_data, 32, 16);
@@ -683,6 +685,25 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
       p->data_size = video_len;
       p->timestamp_scaled =
         priv->frame_counter * s->data.video.format.frame_duration;
+
+      p->keyframe = 0;
+      
+      if(s->fourcc == BGAV_MK_FOURCC('V','P','6','1'))
+        {
+        if(p->data[1] == 0x36)
+          p->keyframe = 1;
+        }
+      else if(s->fourcc == BGAV_MK_FOURCC('V','P','6','2'))
+        {
+        if(p->data[1] == 0x46)
+          p->keyframe = 1;
+        }
+      else
+        {
+        if(have_sync_header)
+          p->keyframe = 1;
+        }
+      
       bgav_packet_done_write(p);
       priv->frame_counter++;
       }

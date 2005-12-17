@@ -595,8 +595,12 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
             }
           }
 
-        //        bg_as->ext_data = desc->format.audio.wave.data;
-        //        bg_as->ext_size = desc->format.audio.wave.size;
+        if(!bg_as->ext_size)
+          {
+          /* Raw wave atom needed by win32 decoders (QDM2) */
+          bg_as->ext_data = desc->format.audio.wave.raw;
+          bg_as->ext_size = desc->format.audio.wave.raw_size;
+          }
 #if 0
         fprintf(stderr, "Setting wave extradata:\n");
         bgav_hexdump(bg_as->ext_data, bg_as->ext_size, 16);
@@ -614,7 +618,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
          desc->format.audio.wave.enda.littleEndian)
         {
         bg_as->data.audio.endianess = BGAV_ENDIANESS_LITTLE;
-        fprintf(stderr, "Endianess: %d\n", bg_as->data.audio.endianess);
+        //        fprintf(stderr, "Endianess: %d\n", bg_as->data.audio.endianess);
         }
       else
         bg_as->data.audio.endianess = BGAV_ENDIANESS_BIG;
@@ -629,7 +633,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
 
       if(!moov->tracks[i].mdia.minf.stbl.stsd.entries)
         {
-        fprintf(stderr, "No sample desciption present\n");
+        //        fprintf(stderr, "No sample desciption present\n");
         continue;
         }
       if(moov->tracks[i].mdia.minf.stbl.stsd.num_entries > 1)

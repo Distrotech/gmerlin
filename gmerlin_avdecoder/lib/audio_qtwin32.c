@@ -263,15 +263,15 @@ static int init_qtaudio(bgav_stream_t * s)
 
   if(s->ext_size > 0)
     {
-    if(priv->SoundConverterSetInfo (priv->myConverter,
-                                    BGAV_MK_FOURCC('w','a','v','e'),
-                                    s->ext_data))
+    if(priv->SoundConverterSetInfo(priv->myConverter,
+                                   BGAV_MK_FOURCC('w','a','v','e'),
+                                   s->ext_data))
       {
       fprintf(stderr, "SoundConverterSetInfo failed\n");
       goto fail;
       }
     }
-
+  
   WantedBufferSize =
     priv->OutputFormatInfo.numChannels*priv->OutputFormatInfo.sampleRate*2;
   
@@ -281,7 +281,7 @@ static int init_qtaudio(bgav_stream_t * s)
                                        &InputBufferSize, &OutputBufferSize);
   priv->InFrameSize   = (InputBufferSize+priv->FramesToGet-1)/priv->FramesToGet;
   priv->OutFrameSize  = OutputBufferSize/priv->FramesToGet;
-
+  
   //  fprintf(stderr, "audio: SoundConverterGetBufferSizes:%i\n", result);
   //  fprintf(stderr, "audio: WantedBufferSize = %li\n", WantedBufferSize);
   //  fprintf(stderr, "audio: InputBufferSize  = %li\n", InputBufferSize);

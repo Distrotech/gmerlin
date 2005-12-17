@@ -199,7 +199,7 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
       ph.length=size;
       ph.stream_number=(flags1>>1)&1;
       ph.timestamp=timestamp;
-      ph.reserved=0;
+      ph.packet_group=0;
       ph.flags=0;      /* TODO: determine keyframe flag and insert here? */
 
       //    bgav_rmff_packet_header_dump(&ph);

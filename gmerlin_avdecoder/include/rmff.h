@@ -28,6 +28,7 @@
 
 typedef struct
   {
+  int64_t start_position;
   uint32_t id;
   uint32_t size;
   uint16_t version;
@@ -76,7 +77,33 @@ int bgav_rmff_prop_read(bgav_rmff_chunk_t * c,
 
 void bgav_rmff_prop_dump(bgav_rmff_prop_t * p);
 
+typedef struct
+  {
+  /* Version 0 */
 
+  uint16_t num_physical_streams;
+  uint16_t * physical_stream_numbers;
+  uint32_t * data_offsets;
+  uint16_t num_rules;
+  uint16_t * rule_to_physical_stream_number_map;
+  uint16_t num_properties;
+
+  struct
+    {
+    uint8_t   name_length;
+    uint8_t * name;
+    int32_t   type;
+    uint16_t  value_length;
+    uint8_t * value_data;
+    } * properties;
+  } bgav_rmff_logical_stream_t;
+
+int bgav_rmff_logical_stream_read(bgav_input_context_t * input,
+                                  bgav_rmff_logical_stream_t * ret);
+
+void bgav_rmff_logical_stream_dump(bgav_rmff_logical_stream_t * l);
+
+void bgav_rmff_logical_stream_free(bgav_rmff_logical_stream_t * l);
 
 /* Media properties */
 
@@ -97,6 +124,9 @@ typedef struct
   char    * mime_type;
   uint32_t  type_specific_len;
   uint8_t * type_specific_data;
+
+  int is_logical_stream;
+  bgav_rmff_logical_stream_t logical_stream;
   } bgav_rmff_mdpr_t;
 
 void bgav_rmff_mdpr_dump(bgav_rmff_mdpr_t * m);
@@ -105,6 +135,7 @@ int bgav_rmff_mdpr_read(bgav_rmff_chunk_t * c,
                         bgav_input_context_t * input,
                         bgav_rmff_mdpr_t * ret);
 
+void bgav_rmff_mdpr_free(bgav_rmff_mdpr_t * m);
 
 /* Content description */
 
@@ -180,13 +211,22 @@ typedef struct
   {
   uint16_t    object_version;
 
-  /* if (object_version == 0) */
+  /* if ((object_version == 0) || (object_version == 1)) */
 
   uint16_t   length;
   uint16_t   stream_number;
   uint32_t   timestamp;
-  uint8_t   reserved; 
+
+  /* if (object_version == 0) */
+
+  uint8_t   packet_group; 
   uint8_t   flags; 
+
+  /* if (object_version == 1) */
+
+  uint16_t  asm_rule; 
+  uint8_t   asm_flags;
+  
   } bgav_rmff_packet_header_t;
 
 int bgav_rmff_packet_header_read(bgav_input_context_t * input,

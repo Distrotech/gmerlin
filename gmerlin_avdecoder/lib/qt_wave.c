@@ -27,23 +27,23 @@ int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_wave_t * ret)
   {
   qt_atom_header_t ch; /* Child header */
-  int size;
-  uint8_t * data;
   uint8_t * data_ptr;
   bgav_input_context_t * input_mem;
     
-  size = h->size - (ctx->position - h->start_position);
-  data = malloc(size);
-  if(bgav_input_read_data(ctx, data, size) < size)
-    return 0;
-  
-  input_mem = bgav_input_open_memory(data,
-                                     size);
+  ret->raw_size = h->size - (ctx->position - h->start_position);
+  ret->raw = malloc(ret->raw_size);
 
   
-  while(input_mem->position < size)
+  
+  if(bgav_input_read_data(ctx, ret->raw, ret->raw_size) < ret->raw_size)
+    return 0;
+  
+  input_mem = bgav_input_open_memory(ret->raw,
+                                     ret->raw_size);
+  
+  while(input_mem->position < ret->raw_size)
     {
-    data_ptr = data + input_mem->position;
+    data_ptr = ret->raw + input_mem->position;
     
     if(!bgav_qt_atom_read_header(input_mem, &ch))
       return 0;
@@ -80,7 +80,6 @@ int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
       }
     }
   bgav_input_destroy(input_mem);
-  free(data);  
   return 1;
   }
 
@@ -112,6 +111,9 @@ void bgav_qt_wave_dump(qt_wave_t * f)
 void bgav_qt_wave_free(qt_wave_t * w)
   {
   int i;
+  if(w->raw)
+    free(w->raw);
+  
   if(w->has_esds)
     bgav_qt_esds_free(&w->esds);
   if(w->user_atoms)

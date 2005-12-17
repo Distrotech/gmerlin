@@ -217,6 +217,10 @@ void bgav_qt_enda_dump(qt_enda_t * f);
 
 typedef struct
   {
+  /* Some codecs need the wave atom in raw form */
+  uint8_t * raw;
+  int raw_size;
+    
   int has_frma;
   qt_frma_t frma;
 

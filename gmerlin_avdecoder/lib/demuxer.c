@@ -17,7 +17,7 @@
  
 *****************************************************************/
 
-//#define DUMP_SUPERINDEX    
+// #define DUMP_SUPERINDEX    
 #include <avdec_private.h>
 
 #include <stdio.h>
@@ -413,6 +413,7 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
     p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
     bgav_packet_alloc(p, ctx->si->entries[ctx->si->current_position].size);
     p->data_size = ctx->si->entries[ctx->si->current_position].size;
+    p->keyframe = ctx->si->entries[ctx->si->current_position].keyframe;
     
     //  fprintf(stderr, "size: %d\n", p->data_size);
     
@@ -501,6 +502,7 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   
   p->timestamp_scaled = ctx->si->entries[stream->index_position].time;
   p->samples          = ctx->si->entries[stream->index_position].samples;
+  p->keyframe         = ctx->si->entries[stream->index_position].keyframe;
     
   if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
     return 0;

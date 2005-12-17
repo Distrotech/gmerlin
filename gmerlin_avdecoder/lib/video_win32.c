@@ -20,6 +20,7 @@
 /* Ported from xine */
 
 #include <pthread.h>
+#include <semaphore.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -43,7 +44,6 @@
 #include "libw32dll/wine/wineacm.h"
 #include "libw32dll/wine/loader.h"
 
-
 #define NOAVIFILE_HEADERS
 #include "libw32dll/DirectShow/guids.h"
 #include "libw32dll/DirectShow/DS_AudioDecoder.h"
@@ -52,6 +52,8 @@
 #include "libw32dll/dmo/DMO_VideoDecoder.h"
 
 #include "libw32dll/libwin32.h"
+
+#include <win32codec.h>
 
 #define CODEC_STD 0
 #define CODEC_DS  1
@@ -115,6 +117,16 @@ static codec_info_t codec_infos[] =
       type:        CODEC_DS,
       guid:        { 0x30355649, 0, 16,{ 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71 } }
     },
+#if 0
+    {
+      name:        "DirectShow VP6 decoder",
+      format_name: "VP6",
+      fourccs:     (uint32_t[]){ BGAV_MK_FOURCC('I', 'V', '5', '0'), 0x00 },
+      dll_name:    "vp6dec.ax",
+      type:        CODEC_DS,
+      guid:        { 0x30355649, 0, 16,{ 0x80, 0, 0, 0xaa, 0, 0x38, 0x9b, 0x71 } }
+    },
+#endif
     {
       name:        "Win32 Indeo 5.0 decoder",
       format_name: "Indeo 5.0",
@@ -172,7 +184,7 @@ static codec_info_t codec_infos[] =
 #endif
   };
 
-#if 0
+#if 1
 static uint32_t swap_endian(uint32_t val)
   {
   return ((val & 0x000000FF) << 24) |
@@ -225,7 +237,6 @@ typedef struct
   gavl_video_frame_t * frame;
   BITMAPINFOHEADER bih_in;
   BITMAPINFOHEADER bih_out;
-  ldt_fs_t * ldt_fs;
   
   /* Standard win32 */
 
@@ -278,7 +289,7 @@ static void unpack_bih(bgav_BITMAPINFOHEADER_t * dst, BITMAPINFOHEADER * src)
   dst->biClrImportant  = src->biClrImportant;
   }
 
-static int init_std(bgav_stream_t * s)
+static int init_std(bgav_win32_thread_t * thread)
   {
   int old_bit_count;
   HRESULT result;
@@ -286,10 +297,12 @@ static int init_std(bgav_stream_t * s)
   win32_priv_t * priv;
   bgav_BITMAPINFOHEADER_t bih_in;
   bgav_BITMAPINFOHEADER_t bih_out;
-
+  bgav_stream_t * s = thread->s;
+  
   fprintf(stderr, "OPEN VIDEO\n");
   priv = calloc(1, sizeof(*priv));
-  priv->ldt_fs = Setup_LDT_Keeper();
+  thread->priv = priv;
+  
 
   info = find_decoder(s->data.video.decoder->decoder);
 
@@ -308,8 +321,12 @@ static int init_std(bgav_stream_t * s)
     return 0;
     }
 
+  bih_in.biSizeImage = 0;
   pack_bih(&priv->bih_in, &bih_in);
-  
+
+  fprintf(stderr, "ICDecompressGetFormatSize: %d\n",
+          ICDecompressGetFormatSize(priv->hic, &bih_in));
+          
   result = ICDecompressGetFormat(priv->hic, &priv->bih_in, &priv->bih_out);
 
   unpack_bih(&bih_out, &priv->bih_out);
@@ -325,7 +342,6 @@ static int init_std(bgav_stream_t * s)
   fprintf(stderr, "Output Format:");
   bgav_BITMAPINFOHEADER_dump(&bih_out);
     
-  s->data.video.decoder->priv = priv;
 
   switch(bih_out.biCompression)
     {
@@ -342,15 +358,18 @@ static int init_std(bgav_stream_t * s)
 
   old_bit_count = bih_out.biBitCount;
   
+#if 1
   bih_out.biCompression = BGAV_MK_FOURCC('2', 'Y', 'U', 'Y');
   bih_out.biSizeImage = bih_out.biWidth * bih_out.biHeight * 2;
   bih_out.biBitCount  = 16;
   pack_bih(&priv->bih_out, &bih_out);
-  
+
   result = (!priv->ex_functions) 
     ?ICDecompressQuery(priv->hic,   &priv->bih_in, &priv->bih_out)
     :ICDecompressQueryEx(priv->hic, &priv->bih_in, &priv->bih_out);
-
+#else
+  result = 1;
+#endif
   if(result)
     {
     fprintf(stderr, "No YUV output possible, switching to RGB\n");
@@ -388,53 +407,54 @@ static int init_std(bgav_stream_t * s)
     }
 
   /* Initialize decompression */
-
+  
   result = (!priv->ex_functions) 
     ?ICDecompressBegin(priv->hic, &priv->bih_in, &priv->bih_out)
     :ICDecompressBeginEx(priv->hic, &priv->bih_in, &priv->bih_out);
 
+  fprintf(stderr, "ICDecompressBegin\n");
+  dump_bi(&priv->bih_in);
+  dump_bi(&priv->bih_out);
+    
   if(result)
     {
     fprintf(stderr, "ICDecompressBegin failed\n");
     return 0;
     }
   priv->frame = gavl_video_frame_create(&(s->data.video.format));
-  Restore_LDT_Keeper(priv->ldt_fs);
 
   s->description = bgav_strndup(info->format_name, (char*)0);
 
-  fprintf(stderr, "OPEN VIDEO DONE\n");
+  //  fprintf(stderr, "OPEN VIDEO DONE\n");
 
   return 1;
   }
 
-static int decode_std(bgav_stream_t * s, gavl_video_frame_t * frame)
+static int decode_std(bgav_win32_thread_t * thread)
   {
   uint32_t flags;
   HRESULT result;
   win32_priv_t * priv;
-  bgav_packet_t * p;
-    
-  priv = (win32_priv_t*)(s->data.video.decoder->priv);
-  priv->ldt_fs = Setup_LDT_Keeper();
-
-  p = bgav_demuxer_get_packet_read(s->demuxer, s);
-  if(!p)
-    return 0;
+  bgav_stream_t * s = thread->s;
+  gavl_video_frame_t * frame = thread->video_frame;
+  
+  priv = (win32_priv_t*)(thread->priv);
   
   flags = 0;
 
-  if(!p->keyframe)
+  if(!thread->keyframe)
     flags |= ICDECOMPRESS_NOTKEYFRAME;
 
   if(!frame)
     flags |= ICDECOMPRESS_HURRYUP|ICDECOMPRESS_PREROL;
 
   //  fprintf(stderr, "ICDecompress %d\n", p->data_size);
-  priv->bih_in.biSizeImage = p->data_size;
+  priv->bih_in.biSizeImage = thread->data_len;
 
-  priv->bih_out.biSizeImage = s->data.video.format.image_height * priv->frame->strides[0];
-  priv->bih_out.biWidth     = priv->frame->strides[0] / priv->bytes_per_pixel;
+  priv->bih_out.biSizeImage =
+    s->data.video.format.image_height * priv->frame->strides[0];
+  priv->bih_out.biWidth     =
+    priv->frame->strides[0] / priv->bytes_per_pixel;
 #if 0
   fprintf(stderr, "ICDecompress\n");
   dump_bi(&priv->bih_in);
@@ -442,10 +462,10 @@ static int decode_std(bgav_stream_t * s, gavl_video_frame_t * frame)
 #endif
   result = (!priv->ex_functions)
     ?ICDecompress(priv->hic, flags,
-                  &priv->bih_in, p->data, &priv->bih_out, 
+                  &priv->bih_in, thread->data, &priv->bih_out, 
                   priv->frame->planes[0])
     :ICDecompressEx(priv->hic, flags,
-                  &priv->bih_in, p->data, &priv->bih_out, 
+                  &priv->bih_in, thread->data, &priv->bih_out, 
                     priv->frame->planes[0]);
     
   if(result)
@@ -462,47 +482,41 @@ static int decode_std(bgav_stream_t * s, gavl_video_frame_t * frame)
     else
       gavl_video_frame_copy(&s->data.video.format, frame, priv->frame);
     }
-  bgav_demuxer_done_packet_read(s->demuxer, p);
   
-  Restore_LDT_Keeper(priv->ldt_fs);
   return 1;
   }
 
-static void resync_std(bgav_stream_t * s)
-  {
 
-  }
-
-static void close_std(bgav_stream_t * s)
+static void cleanup_std(bgav_win32_thread_t * thread)
   {
   win32_priv_t * priv;
-  priv = (win32_priv_t*)(s->data.video.decoder->priv);
-  priv->ldt_fs = Setup_LDT_Keeper();
-
+  priv = (win32_priv_t*)(thread->priv);
   if(priv->hic)
     {
     ICDecompressEnd(priv->hic);
     ICClose(priv->hic);
     }
   
-  Restore_LDT_Keeper(priv->ldt_fs);
   gavl_video_frame_destroy(priv->frame);
   free(priv);
   }
 
 /* Direct show */
 
-static int init_ds(bgav_stream_t * s)
+static int init_ds(bgav_win32_thread_t*t)
   {
   //  HRESULT result;
   uint8_t * init_data;
   codec_info_t * info;
   win32_priv_t * priv;
   bgav_BITMAPINFOHEADER_t bih_in;
-  //  bgav_BITMAPINFOHEADER_t bih_out;
 
+  bgav_stream_t * s = t->s;
+  
+  //  bgav_BITMAPINFOHEADER_t bih_out;
+  
   priv = calloc(1, sizeof(*priv));
-  priv->ldt_fs = Setup_LDT_Keeper();
+  t->priv = priv;
 
   info = find_decoder(s->data.video.decoder->decoder);
     
@@ -543,30 +557,24 @@ static int init_ds(bgav_stream_t * s)
     s->data.video.format.pixelformat = GAVL_RGB_24;
     }
   DS_VideoDecoder_StartInternal(priv->ds_dec);
-  s->data.video.decoder->priv = priv;
   priv->frame = gavl_video_frame_create(&(s->data.video.format));
-  Restore_LDT_Keeper(priv->ldt_fs);
   s->description = bgav_strndup(info->format_name, (char*)0);
 
   return 1;
   }
 
-static int decode_ds(bgav_stream_t * s, gavl_video_frame_t * frame)
+static int decode_ds(bgav_win32_thread_t*t)
   {
   HRESULT result;
   win32_priv_t * priv;
-  bgav_packet_t * p;
-
-  priv = (win32_priv_t*)(s->data.video.decoder->priv);
-  priv->ldt_fs = Setup_LDT_Keeper();
-
-  p = bgav_demuxer_get_packet_read(s->demuxer, s);
-  if(!p)
-    return 0;
+  bgav_stream_t * s = t->s;
+  gavl_video_frame_t * frame = t->video_frame;
+  
+  priv = (win32_priv_t*)(t->priv);
   
   //  fprintf(stderr, "Decode ds %d....", p->data_size);
-  result = DS_VideoDecoder_DecodeInternal(priv->ds_dec, p->data, p->data_size,
-                                           p->keyframe,
+  result = DS_VideoDecoder_DecodeInternal(priv->ds_dec, t->data, t->data_len,
+                                           t->keyframe,
                                           (char*)(priv->frame->planes[0]));
   //  fprintf(stderr, "done\n");
   
@@ -579,37 +587,27 @@ static int decode_ds(bgav_stream_t * s, gavl_video_frame_t * frame)
     gavl_video_frame_copy(&s->data.video.format, frame, priv->frame);
     }
   
-  bgav_demuxer_done_packet_read(s->demuxer, p);
   
 
-  Restore_LDT_Keeper(priv->ldt_fs);
   
   return 1;
   }
 
-static void resync_ds(bgav_stream_t * s)
-  {
 
-  }
-
-static void close_ds(bgav_stream_t * s)
+static void cleanup_ds(bgav_win32_thread_t*t)
   {
   win32_priv_t * priv;
-  priv = (win32_priv_t*)(s->data.video.decoder->priv);
-  priv->ldt_fs = Setup_LDT_Keeper();
+  priv = (win32_priv_t*)(t->priv);
 
   if(priv->ds_dec )
     DS_VideoDecoder_Destroy(priv->ds_dec);
-  
-  Restore_LDT_Keeper(priv->ldt_fs);
   gavl_video_frame_destroy(priv->frame);
   free(priv);
-
   }
 
 /* DMO */
 
-static int init_dmo(bgav_stream_t * s)
+static int init_dmo(bgav_win32_thread_t*t)
   {
   //  HRESULT result;
   uint8_t * init_data;
@@ -618,9 +616,11 @@ static int init_dmo(bgav_stream_t * s)
   bgav_BITMAPINFOHEADER_t bih_in;
   //  bgav_BITMAPINFOHEADER_t bih_out;
 
+  bgav_stream_t * s = t->s;
+  
   priv = calloc(1, sizeof(*priv));
-  priv->ldt_fs = Setup_LDT_Keeper();
-
+  t->priv = priv;
+  
   info = find_decoder(s->data.video.decoder->decoder);
     
   bgav_BITMAPINFOHEADER_set_format(&bih_in, s);
@@ -660,29 +660,25 @@ static int init_dmo(bgav_stream_t * s)
     s->data.video.format.pixelformat = GAVL_RGB_24;
     }
   DMO_VideoDecoder_StartInternal(priv->dmo_dec);
-  s->data.video.decoder->priv = priv;
   priv->frame = gavl_video_frame_create(&(s->data.video.format));
-  Restore_LDT_Keeper(priv->ldt_fs);
   s->description = bgav_strndup(info->format_name, (char*)0);
   return 1;
   }
 
-static int decode_dmo(bgav_stream_t * s, gavl_video_frame_t * frame)
+static int decode_dmo(bgav_win32_thread_t*t)
   {
   HRESULT result;
   win32_priv_t * priv;
-  bgav_packet_t * p;
-
-  priv = (win32_priv_t*)(s->data.video.decoder->priv);
-  priv->ldt_fs = Setup_LDT_Keeper();
   
-  p = bgav_demuxer_get_packet_read(s->demuxer, s);
-  if(!p)
-    return 0;
+  bgav_stream_t * s = t->s;
+  gavl_video_frame_t * frame = t->video_frame;
   
+  priv = (win32_priv_t*)(t->priv);
+    
   //  fprintf(stderr, "Decode dmo %d....", p->data_size);
-  result = DMO_VideoDecoder_DecodeInternal(priv->dmo_dec, p->data, p->data_size,
-                                           p->keyframe,
+  result = DMO_VideoDecoder_DecodeInternal(priv->dmo_dec, t->data,
+                                           t->data_len,
+                                           t->keyframe,
                                            (char*)(priv->frame->planes[0]));
   //  fprintf(stderr, "done\n");
 
@@ -695,29 +691,75 @@ static int decode_dmo(bgav_stream_t * s, gavl_video_frame_t * frame)
     {
     gavl_video_frame_copy(&s->data.video.format, frame, priv->frame);
     }
-  bgav_demuxer_done_packet_read(s->demuxer, p);
-  Restore_LDT_Keeper(priv->ldt_fs);
-  
   return 1;
   }
 
-static void resync_dmo(bgav_stream_t * s)
-  {
-
-  }
-
-static void close_dmo(bgav_stream_t * s)
+static void cleanup_dmo(bgav_win32_thread_t*t)
   {
   win32_priv_t * priv;
-  priv = (win32_priv_t*)(s->data.video.decoder->priv);
-  priv->ldt_fs = Setup_LDT_Keeper();
+  priv = (win32_priv_t*)(t->priv);
 
   if(priv->dmo_dec )
     DMO_VideoDecoder_Destroy(priv->dmo_dec);
     
-  Restore_LDT_Keeper(priv->ldt_fs);
   gavl_video_frame_destroy(priv->frame);
   free(priv);
+  }
+
+static int init_win32(bgav_stream_t * s)
+  {
+  bgav_win32_thread_t * t;
+  codec_info_t * info;
+  info = find_decoder(s->data.video.decoder->decoder);
+
+  t = calloc(1, sizeof(*t));
+  s->data.video.decoder->priv = t;
+  
+  switch(info->type)
+    {
+    case CODEC_STD:
+      t->init = init_std;
+      t->decode = decode_std;
+      t->cleanup = cleanup_std;
+      break;
+    case CODEC_DMO:
+      t->init = init_dmo;
+      t->decode = decode_dmo;
+      t->cleanup = cleanup_dmo;
+      break;
+    case CODEC_DS:
+      t->init = init_ds;
+      t->decode = decode_ds;
+      t->cleanup = cleanup_ds;
+      break;
+    }
+  return bgav_win32_codec_thread_init(t, s);
+  }
+
+static int decode_win32(bgav_stream_t * s, gavl_video_frame_t * f)
+  {
+  bgav_win32_thread_t * t;
+  
+  int result;
+  bgav_packet_t * p;
+
+  t = (bgav_win32_thread_t*)(s->data.video.decoder->priv);
+  
+  p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  if(!p)
+    return 0;
+  
+  result = bgav_win32_codec_thread_decode_video(t, f, p->data, p->data_size,
+                                                p->keyframe);
+  
+  bgav_demuxer_done_packet_read(s->demuxer, p);
+  
+  return result;
+  }
+
+static void close_win32(bgav_stream_t * s)
+  {
+  
   }
 
 int bgav_init_video_decoders_win32()
@@ -734,28 +776,10 @@ int bgav_init_video_decoders_win32()
       {
       codecs[i].name = codec_infos[i].name;
       codecs[i].fourccs = codec_infos[i].fourccs;
-      
-      switch(codec_infos[i].type)
-        {
-        case CODEC_STD:
-          codecs[i].init   = init_std;
-          codecs[i].decode = decode_std;
-          codecs[i].close  = close_std;
-          codecs[i].resync = resync_std;
-          break;
-        case CODEC_DS:
-          codecs[i].init   = init_ds;
-          codecs[i].decode = decode_ds;
-          codecs[i].close  = close_ds;
-          codecs[i].resync = resync_ds;
-          break;
-        case CODEC_DMO:
-          codecs[i].init   = init_dmo;
-          codecs[i].decode = decode_dmo;
-          codecs[i].close  = close_dmo;
-          codecs[i].resync = resync_dmo;
-          break;
-        }
+
+      codecs[i].init   = init_win32;
+      codecs[i].decode = decode_win32;
+      codecs[i].close  = close_win32;
       bgav_video_decoder_register(&codecs[i]);
       }
     else

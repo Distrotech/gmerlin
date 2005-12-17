@@ -169,7 +169,7 @@ libw32dll/DirectShow/libds_filter.la \
 libw32dll/dmo/libdmo_filter.la \
 libw32dll/wine/libwine.la \
 -lpthread
-win32_sources = video_win32.c audio_qtwin32.c audio_win32.c 
+win32_sources = video_win32.c audio_qtwin32.c audio_win32.c win32codec.c
 else
 win32_subdirs =
 win32_libs =
