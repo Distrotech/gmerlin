@@ -20,5 +20,6 @@ utils.h \
 vorbis_comment.h \
 xing.h \
 yml.h \
-dvframe.h
+dvframe.h \
+win32codec.h
 
