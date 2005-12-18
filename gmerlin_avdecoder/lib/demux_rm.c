@@ -101,7 +101,7 @@ typedef struct
 
   uint32_t data_start, data_end, data_pos;
   } rm_audio_stream_t;
-#if 0
+#if 1
 static void dump_audio(rm_audio_stream_t*s)
   {
   fprintf(stderr, "Audio stream:\n");
@@ -196,9 +196,7 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
   if(rm_as->version == 5)
     data++;
 
-  data += 2; /* Better for version 5 and cook codec */
-    
-  codecdata_length = BGAV_PTR_2_16BE(data);data+=2;
+  codecdata_length = BGAV_PTR_2_32BE(data);data+=4;
   
   //  fprintf(stderr, "Codecdata length: %d\n", codecdata_length);
   
@@ -225,7 +223,7 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
     {
     rm_as->bytes_to_read = bg_as->data.audio.block_align * rm_as->sub_packet_h;
     }
-  //  dump_audio(rm_as);
+  dump_audio(rm_as);
 
   bg_as->stream_id = stream->mdpr.stream_number;
   bg_as->timescale = 1000;
@@ -270,7 +268,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   uint32_t tmp;
   bgav_stream_t * bg_vs;
   rm_video_stream_t * rm_vs;
-  uint32_t format_le;
+  uint32_t version;
   rm_private_t * priv;
   
   bgav_track_t * track = ctx->tt->current_track;
@@ -367,13 +365,12 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
       fprintf(stderr,"unknown id: %x\n", tmp);
     }
 
-  format_le =
-    ((bg_vs->fourcc & 0x000000FF) << 24) ||
-    ((bg_vs->fourcc & 0x0000FF00) << 8) ||
-    ((bg_vs->fourcc & 0x00FF0000) >> 8) ||
-    ((bg_vs->fourcc & 0xFF000000) >> 24);
+  version = ((bg_vs->fourcc & 0x000000FF) - '0') +
+    (((bg_vs->fourcc & 0x0000FF00) >> 8)- '0') * 10;
+
+  //  fprintf(stderr, "Real video version: %d\n", version);
   
-  if((format_le<=0x30335652) && (tmp>=0x20200002)){
+  if((version < 30) && (tmp>=0x20200002)){
   // read secondary WxH for the cmsg24[] (see vd_realvid.c)
   ((unsigned short*)(bg_vs->ext_data))[4]=4*(unsigned short)(*data); //widht
   data++;
@@ -724,6 +721,8 @@ fix_timestamp(bgav_stream_t * stream, uint8_t * s, uint32_t timestamp)
   return (int64_t)kf;
   }
 
+#define PAYLOAD_LENGTH(HEADER) ((HEADER)->length - (((HEADER)->object_version == 0) ? 12 : 13))
+
 static int process_video_chunk(bgav_demuxer_context_t * ctx,
                                bgav_rmff_packet_header_t * h,
                                bgav_stream_t * stream)
@@ -738,7 +737,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
   dp_hdr_t* dp_hdr;
   unsigned char* dp_data;
   uint32_t* extra;
-  int len = h->length - 12;
+  int len = PAYLOAD_LENGTH(h);
 
   while(len > 2)
     {
@@ -976,8 +975,8 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
   rm_audio_stream_t * as;
 
   as = (rm_audio_stream_t*)stream->priv;
-
-  packet_size = h->length - 12;
+  
+  packet_size = PAYLOAD_LENGTH(h);
   
   if(!stream->packet) /* Get a new packet */
     {
@@ -993,6 +992,12 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
                           bytes_to_read) < bytes_to_read)
     return 0;
 
+  if(bytes_to_read < packet_size)
+    {
+    fprintf(stderr, "Skipping %d audio bytes\n", packet_size - bytes_to_read);
+    bgav_input_skip(ctx->input, packet_size - bytes_to_read);
+    }
+  
   if(bytes_to_read < packet_size)
     {
     fprintf(stderr, "Packet doesn't fit into buffer, exiting\n");
@@ -1062,11 +1067,11 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
 
     if(!stream) /* Skip unknown stuff */
       {
-      bgav_input_skip(ctx->input, h.length - 12);
+      bgav_input_skip(ctx->input, PAYLOAD_LENGTH(&h));
       return 1;
       }
     }
-  else
+  else /* multirate */
     {
     /* Find the first stream with empty packetbuffer */
     for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
@@ -1111,6 +1116,8 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
       return 0;
 
     /* Seek to the place we've been before */
+    fprintf(stderr, "%c Stream: %d, Seek to %d\n", stream->type == BGAV_STREAM_VIDEO ? 'V' : 'A',
+            stream->stream_id, stream_pos);
     bgav_input_seek(ctx->input, stream_pos, SEEK_SET);
     
     if(!bgav_rmff_packet_header_read(ctx->input, &h))
@@ -1126,11 +1133,10 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
     vs = (rm_video_stream_t*)(stream->priv);
     if(rm->do_seek)
       {
-      //      dump_indx(
       if(vs->stream->indx.records[vs->index_record].packet_count_for_this_packet > rm->next_packet)
         {
         //        fprintf(stderr, "Skipping video packet\n");
-        bgav_input_skip(ctx->input, h.length - 12);
+        bgav_input_skip(ctx->input, PAYLOAD_LENGTH(&h));
         result = 1;
         }
       else
@@ -1147,8 +1153,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
       {
       if(as->stream->indx.records[as->index_record].packet_count_for_this_packet > rm->next_packet)
         {
-        //        fprintf(stderr, "Skipping audio packet\n");
-        bgav_input_skip(ctx->input, h.length - 12);
+        bgav_input_skip(ctx->input, PAYLOAD_LENGTH(&h));
         result = 1;
         }
       else

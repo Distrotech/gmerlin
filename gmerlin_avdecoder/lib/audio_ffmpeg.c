@@ -67,19 +67,6 @@ static codec_info_t codec_infos[] =
     
 #endif
 
-#if 0  /* Native replacement */
-    { "FFmpeg alaw decoder", "alaw", CODEC_ID_PCM_ALAW,
-      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x06),
-                    BGAV_MK_FOURCC('a', 'l', 'a', 'w'),
-                    BGAV_MK_FOURCC('A', 'L', 'A', 'W'),
-                    0x00 }  },
-    { "FFmpeg mulaw decoder", "ulaw", CODEC_ID_PCM_MULAW,
-      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x07),
-                    BGAV_MK_FOURCC('u', 'l', 'a', 'w'),
-                    BGAV_MK_FOURCC('U', 'L', 'A', 'W'),
-                    0x00 }  },
-#endif
-
     { "FFmpeg alac decoder", "alac", CODEC_ID_ALAC,
       (uint32_t[]){ BGAV_MK_FOURCC('a', 'l', 'a', 'c'),
                     0x00 }  },
@@ -141,23 +128,8 @@ static codec_info_t * lookup_codec(bgav_stream_t * s)
   
   for(i = 0; i < real_num_codecs; i++)
     {
-    if(s->fourcc == BGAV_WAVID_2_FOURCC(0x01))
-      {
-      if((s->data.audio.bits_per_sample == 16) && (codecs[i].info->ffmpeg_id == CODEC_ID_PCM_S16LE))
-        return codecs[i].info;
-      else if((s->data.audio.bits_per_sample == 8) && (codecs[i].info->ffmpeg_id == CODEC_ID_PCM_U8))
-        return codecs[i].info;
-      }
-    else if(s->fourcc == BGAV_MK_FOURCC('t', 'w', 'o', 's'))
-      {
-      if((s->data.audio.bits_per_sample == 16) && (codecs[i].info->ffmpeg_id == CODEC_ID_PCM_S16BE))
-        return codecs[i].info;
-      else if((s->data.audio.bits_per_sample == 8) && (codecs[i].info->ffmpeg_id == CODEC_ID_PCM_S8))
-        return codecs[i].info;
-      }
-    else
-      if(s->data.audio.decoder->decoder == &(codecs[i].decoder))
-        return codecs[i].info;
+    if(s->data.audio.decoder->decoder == &(codecs[i].decoder))
+      return codecs[i].info;
     }
   return (codec_info_t*)0;
   }

@@ -457,7 +457,7 @@ static int fill_buffer(bgav_stream_t * s)
     {
     // 'cook' way
     int x,y,idx=0;
-    //    fprintf(stderr, "COPY cook %d %d %d\n", w, h, sps);
+    fprintf(stderr, "COPY cook %d %d %d %p\n", w, h, sps, priv->read_buffer);
     w/=sps;
     for(y=0;y<h;y++)
       for(x=0;x<w;x++)

@@ -711,6 +711,9 @@ static int select_mlti_data(const uint8_t *mlti_chunk, int mlti_size, int select
 
   *out = malloc(size);
   memcpy(*out, mlti_chunk+4, size);
+
+  fprintf(stderr, "Got MLTI data %d bytes\n", size);
+
   return size;
 }
 
@@ -920,6 +923,10 @@ void bgav_rmff_packet_header_dump(bgav_rmff_packet_header_t * h)
     {
     fprintf(stderr, "asm_rule: %d, asm_flags: 0x%02x\n", h->asm_rule, h->asm_flags);
     
+    }
+  else
+    {
+    fprintf(stderr, "Error: packet header version: %d\n", h->object_version);
     }
   }
 

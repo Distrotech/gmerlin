@@ -186,16 +186,6 @@ void __builtin_delete(void *mem) {
 
 
 /* Initialize */
-
-static uint32_t fourcc_be(uint32_t in)
-  {
-  return
-    ((in & 0xff) << 24) |
-    ((in & 0xff00) << 8) |
-    ((in & 0xff0000) >> 8) |
-    ((in & 0xff000000) >> 24);
-  
-  }
      
 static int init_real(bgav_stream_t * s)
   {
@@ -209,6 +199,8 @@ static int init_real(bgav_stream_t * s)
   codec_info_t * info = (codec_info_t*)0;
   real_priv_t * priv;
 
+  uint32_t version;
+  
   priv = calloc(1, sizeof(*priv));
   s->data.video.decoder->priv = priv;
   
@@ -278,11 +270,11 @@ static int init_real(bgav_stream_t * s)
   priv->gavl_frame->strides[0] = s->data.video.format.frame_width;
   priv->gavl_frame->strides[1] = s->data.video.format.frame_width/2;
   priv->gavl_frame->strides[2] = s->data.video.format.frame_width/2;
-  
-  //fprintf(stderr, "Extradata: %08x fourcc: %08x\n",
-  //          extradata[1], fourcc_be(s->fourcc));
 
-  if((fourcc_be(s->fourcc) <= 0x30335652) && (extradata[1]>=0x20200002))
+  version = ((s->fourcc & 0x000000FF) - '0') +
+    (((s->fourcc & 0x0000FF00) >> 8)- '0') * 10;
+
+  if((version <= 30) && (extradata[1]>=0x20200002))
     {
     cmsg24[0] = s->data.video.format.frame_width;
     cmsg24[1] = s->data.video.format.frame_height;
