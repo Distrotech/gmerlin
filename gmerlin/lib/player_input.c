@@ -193,8 +193,10 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
   /* Adjust stream indices */
   if(ctx->player->current_audio_stream >= ctx->player->track_info->num_audio_streams)
     ctx->player->current_audio_stream = 0;
+
   if(ctx->player->current_video_stream >= ctx->player->track_info->num_video_streams)
     ctx->player->current_video_stream = 0;
+
   if(ctx->player->current_subtitle_stream >= ctx->player->track_info->num_subtitle_streams)
     ctx->player->current_subtitle_stream = 0;
   
@@ -212,6 +214,9 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
                                       BG_STREAM_ACTION_OFF);
       }
     }
+
+  //  fprintf(stderr, "*** Set video stream: %d\n", ctx->player->current_video_stream);
+
   if(ctx->plugin->set_video_stream)
     {
     for(i = 0; i < ctx->player->track_info->num_video_streams; i++)
@@ -430,7 +435,7 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     bg_plugin_lock(ctx->plugin_handle);
     result = ctx->plugin->read_video_frame(ctx->priv,
                                            ctx->player->video_stream.frame,
-                                           0);
+                                           ctx->player->current_video_stream);
     bg_plugin_unlock(ctx->plugin_handle);
     if(!result)
       ctx->video_finished = 1;
@@ -456,7 +461,9 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
       return 0;
     //    fprintf(stderr, "Got frame\n");
     bg_plugin_lock(ctx->plugin_handle);
-    result = ctx->plugin->read_video_frame(ctx->priv, video_frame, 0);
+    result = ctx->plugin->read_video_frame(ctx->priv,
+                                           video_frame,
+                                           ctx->player->current_video_stream);
     bg_plugin_unlock(ctx->plugin_handle);
     if(!result)
       ctx->video_finished = 1;
