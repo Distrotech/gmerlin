@@ -159,9 +159,10 @@ typedef struct
   unsigned long (*rvyuv_transform)(char*, char*,transform_in_t*,unsigned int*,void*);
   void * module;
   void * real_context;
-  uint8_t * image_buffer;
 
   gavl_video_frame_t * gavl_frame;
+  
+  int keyframe_seen;
   } real_priv_t;
 
 /* DLLs need this */
@@ -191,7 +192,7 @@ static int init_real(bgav_stream_t * s)
   {
   int i;
   unsigned int * extradata;
-  uint32_t cmsg24[4];
+  uint32_t cmsg24[8];
   cmsg_data_t cmsg_data;
   
   char codec_filename[PATH_MAX];
@@ -255,22 +256,10 @@ static int init_real(bgav_stream_t * s)
     return 0;
     }
 
-  priv->image_buffer =
-    malloc((s->data.video.format.frame_width * s->data.video.format.frame_width * 3)/2);
   s->data.video.format.pixelformat = GAVL_YUV_420_P;
 
-  priv->gavl_frame = gavl_video_frame_create(NULL);
-
-  priv->gavl_frame->planes[0] = priv->image_buffer;
-  priv->gavl_frame->planes[1] =
-    priv->image_buffer + s->data.video.format.frame_width * s->data.video.format.frame_height;
-  priv->gavl_frame->planes[2] =
-    priv->image_buffer + (s->data.video.format.frame_width * s->data.video.format.frame_height * 5)/4; 
-
-  priv->gavl_frame->strides[0] = s->data.video.format.frame_width;
-  priv->gavl_frame->strides[1] = s->data.video.format.frame_width/2;
-  priv->gavl_frame->strides[2] = s->data.video.format.frame_width/2;
-
+  priv->gavl_frame = gavl_video_frame_create_nopadd(&s->data.video.format);
+  
   version = ((s->fourcc & 0x000000FF) - '0') +
     (((s->fourcc & 0x0000FF00) >> 8)- '0') * 10;
 
@@ -278,8 +267,12 @@ static int init_real(bgav_stream_t * s)
     {
     cmsg24[0] = s->data.video.format.frame_width;
     cmsg24[1] = s->data.video.format.frame_height;
-    cmsg24[2] = ((unsigned short *)extradata)[4];
-    cmsg24[3] = ((unsigned short *)extradata)[5];
+    cmsg24[2] = s->ext_data[8]*4;
+    cmsg24[3] = s->ext_data[9]*4;
+    cmsg24[4] = s->ext_data[10]*4;
+    cmsg24[5] = s->ext_data[11]*4;
+    cmsg24[6] = s->ext_data[12]*4;
+    cmsg24[7] = s->ext_data[13]*4;
     
     cmsg_data.data1 = 0x24;
     cmsg_data.data2 = 1+((extradata[0]>>16)&7);
@@ -321,11 +314,28 @@ static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
   
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
 
-  //  fprintf(stderr, "Packet timestamp: %lld\n", p->timestamp);
+  //  fprintf(stderr, "Packet timestamp: %lld, keyframe: %d\n", p->timestamp_scaled, p->keyframe);
   
   if(!p)
     return 0;
-    
+
+  if(!priv->keyframe_seen)
+    {
+    if(p->keyframe)
+      {
+      priv->keyframe_seen = 1;
+      }
+    else
+      {
+      fprintf(stderr, "Skipping non keyframe\n");
+      if(f)
+        gavl_video_frame_clear(f, &(s->data.video.format));
+      bgav_demuxer_done_packet_read(s->demuxer, p);
+      return 1;
+      }
+    }
+     
+  
   dp_hdr = (dp_hdr_t*)(p->data);
   extra = (uint32_t*)(((char*)(p->data))+dp_hdr->chunktab);
   dp_data=((char*)(p->data))+sizeof(dp_hdr_t);
@@ -337,7 +347,7 @@ static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
   transform_in.unknown2 = 0;
   transform_in.timestamp = dp_hdr->timestamp;
 
-  if(priv->rvyuv_transform(dp_data, (char*)(priv->image_buffer), &transform_in,
+  if(priv->rvyuv_transform(dp_data, (char*)(priv->gavl_frame->planes[0]), &transform_in,
                            transform_out, priv->real_context))
     {
     fprintf(stderr, "Decoding failed\n");
@@ -353,14 +363,9 @@ static void close_real(bgav_stream_t * s)
   {
   real_priv_t * priv;
   priv = (real_priv_t *)(s->data.video.decoder->priv);
-  if(priv->image_buffer)
-    free(priv->image_buffer);
   
   if(priv->gavl_frame)
-    {
-    gavl_video_frame_null(priv->gavl_frame);
     gavl_video_frame_destroy(priv->gavl_frame);
-    }
   priv->rvyuv_free(priv->real_context);
   dlclose(priv->module);
   free(priv);

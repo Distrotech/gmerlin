@@ -336,17 +336,7 @@ int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
         }
       }
     }
-#if 0
-  /* This is important since some demuxers set up incredibly important format informations
-     during this call */
-  if(!demuxer_next_packet(ctx))
-    {
-    fprintf(stderr, "demuxer_next_packet failed\n");
-    return 0;
-    }
-#endif
-
-  
+ 
   return 1;
   }
 
@@ -563,12 +553,14 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
   bgav_packet_t * ret = (bgav_packet_t*)0;
   if(!s->packet_buffer)
     return (bgav_packet_t*)0;
+  demuxer->request_stream = s; 
   while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer)))
     {
     if(!demuxer_next_packet(demuxer))
       return (bgav_packet_t*)0;
     }
   s->time_scaled = ret->timestamp_scaled;
+  demuxer->request_stream = (bgav_stream_t*)0;
   return ret;
   }
 
@@ -584,6 +576,8 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
     {
     p->stream->data.video.last_frame_time = p->timestamp_scaled;
 
+    demuxer->request_stream = p->stream;
+    
     while(!(next = bgav_packet_buffer_peek_packet_read(p->stream->packet_buffer)))
       {
       if(!demuxer_next_packet(demuxer))
@@ -592,6 +586,8 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
         return;
         }
       }
+    demuxer->request_stream = (bgav_stream_t*)0;
+
     p->stream->data.video.last_frame_duration =
       next->timestamp_scaled - p->stream->data.video.last_frame_time;
     }

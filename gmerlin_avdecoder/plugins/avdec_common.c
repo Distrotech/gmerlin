@@ -185,6 +185,8 @@ int bg_avdec_set_video_stream(void * priv,
   bgav_stream_action_t  act;
   avdec = (avdec_priv*)(priv);
   act = get_stream_action(action);
+
+  //  fprintf(stderr, "bg_avdec_set_video_stream %d %d\n", stream, action);
   return bgav_set_video_stream(avdec->dec, stream, act);
   }
 

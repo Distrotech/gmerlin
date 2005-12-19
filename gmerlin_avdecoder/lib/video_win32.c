@@ -325,7 +325,7 @@ static int init_std(bgav_win32_thread_t * thread)
   pack_bih(&priv->bih_in, &bih_in);
 
   fprintf(stderr, "ICDecompressGetFormatSize: %d\n",
-          ICDecompressGetFormatSize(priv->hic, &bih_in));
+          (int)ICDecompressGetFormatSize(priv->hic, &bih_in));
           
   result = ICDecompressGetFormat(priv->hic, &priv->bih_in, &priv->bih_out);
 

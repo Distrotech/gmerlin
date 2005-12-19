@@ -216,6 +216,8 @@ struct bgav_stream_s
   
   uint32_t fourcc;
 
+  uint32_t subformat; /* Real flavors, sub_ids.... */
+  
   int64_t position; /* In samples/frames */
 
   /*
@@ -722,6 +724,11 @@ struct bgav_demuxer_context_s
   
   int can_seek;
 
+  /*
+   *  The stream, which requested the next_packet function.
+   *  Can come handy sometimes
+   */
+  bgav_stream_t * request_stream;
   /*
    *  If demuxer creates a superindex, generic get_packet() and
    *  seek() functions will be used

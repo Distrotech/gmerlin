@@ -581,7 +581,7 @@ bgav_rmff_header_t * bgav_rmff_header_read(bgav_input_context_t * ctx)
               }
             next_index_header = indx.next_index_header;
             
-            //            bgav_rmff_indx_dump(&indx);
+            bgav_rmff_indx_dump(&indx);
             
             for(i = 0; i < ret->num_streams; i++)
               {
@@ -908,13 +908,20 @@ int bgav_rmff_packet_header_read(bgav_input_context_t * input,
     else
       return 0;
     }
+  else
+    {
+    fprintf(stderr, "Error, unsupported packet header version: %d\n", ret->object_version);
+    return 0;
+    }
   return 1;
   }
 
 void bgav_rmff_packet_header_dump(bgav_rmff_packet_header_t * h)
   {
-  fprintf(stderr, "Packet V: %d, L: %d, S: %d, T: %d, ",
-          h->object_version, h->length, h->stream_number, h->timestamp);
+  fprintf(stderr, "Packet V: %d, ", h->object_version);
+  fprintf(stderr, "L: %d, ",        h->length);
+  fprintf(stderr, "S: %d, ",        h->stream_number);
+  fprintf(stderr, "T: %d, ",        h->timestamp);
   if(h->object_version == 0)
     {
     fprintf(stderr, "F: 0x%02x\n", h->flags);

@@ -322,12 +322,12 @@ static int init_real(bgav_stream_t * s)
   init_data.channels   = s->data.audio.format.num_channels;
   init_data.quality    = 100;
     /* 2bytes padding here, by gcc */
-  init_data.bits_per_frame = ((short*)(s->ext_data))[0];
-  init_data.packetsize  =    ((short*)(s->ext_data))[3];
+  init_data.bits_per_frame = s->data.audio.block_align;
+  init_data.packetsize  =    s->data.audio.block_align;
 
-  init_data.extradata_len =  ((short*)(s->ext_data))[4];
-  init_data.extradata =       s->ext_data+10;
-
+  init_data.extradata_len =  s->ext_size;
+  init_data.extradata =      s->ext_data;
+  
   //  dump_init_data(&init_data);
 
   if(priv->raInitDecoder(priv->real_handle,&init_data))
@@ -339,14 +339,14 @@ static int init_real(bgav_stream_t * s)
     {
     priv->raSetPwd(priv->real_handle,"Ardubancel Quazanga");
     }
-  
-  if(priv->raSetFlavor(priv->real_handle,((short*)(s->ext_data))[2]))
+
+  if(priv->raSetFlavor(priv->real_handle,s->subformat))
     {
     fprintf(stderr, "raSetFlavor failed\n");
     return 0;
     }
-
-  prop = priv->raGetFlavorProperty(priv->real_handle, ((short*)(s->ext_data))[2], 0, &len);
+  
+  prop = priv->raGetFlavorProperty(priv->real_handle, s->subformat, 0, &len);
   
   if(prop)
     s->description = bgav_sprintf("%s (Flavor: %s)", info->format_name, prop);
@@ -354,7 +354,7 @@ static int init_real(bgav_stream_t * s)
     s->description = bgav_sprintf("%s (Flavor: %s)", info->format_name);
   //  fprintf(stderr, "FlavorProperty: %s\n", prop);
   
-  prop = priv->raGetFlavorProperty(priv->real_handle, ((short*)(s->ext_data))[2], 1, &len);
+  //  prop = priv->raGetFlavorProperty(priv->real_handle, s->subformat, 1, &len);
   
   /* Allocate sample buffer and set audio format */
     
@@ -370,17 +370,47 @@ static int init_real(bgav_stream_t * s)
   return 1;
   }
 
+#if 0
 static unsigned char sipr_swaps[38][2]={
     {0,63},{1,22},{2,44},{3,90},{5,81},{7,31},{8,86},{9,58},{10,36},{12,68},
     {13,39},{14,73},{15,53},{16,69},{17,57},{19,88},{20,34},{21,71},{24,46},
     {25,94},{26,54},{28,75},{29,50},{32,70},{33,92},{35,74},{38,85},{40,56},
     {42,87},{43,65},{45,59},{48,79},{49,93},{51,89},{55,95},{61,76},{67,83},
     {77,80} };
+#endif
 
 static int fill_buffer(bgav_stream_t * s)
   {
   real_priv_t * priv;
   bgav_packet_t * p;
+
+#if 1 /* Reordering made by the demuxer */
+  priv = (real_priv_t*)(s->data.audio.decoder->priv);
+  p = bgav_demuxer_get_packet_read(s->demuxer, s);
+
+  if(!p)
+    {
+    //    fprintf(stderr, "Got no packet\n");
+    return 0;
+    }
+
+  //  fprintf(stderr, "Got packet %d/%d bytes \n", p->data_size, priv->read_buffer_alloc);
+
+  if(p->data_size > priv->read_buffer_alloc)
+    {
+
+    priv->read_buffer_alloc = p->data_size;
+    priv->read_buffer = realloc(priv->read_buffer, priv->read_buffer_alloc);
+    }
+
+
+  memcpy(priv->read_buffer, p->data, p->data_size);
+  bgav_demuxer_done_packet_read(s->demuxer, p);
+
+  priv->read_buffer_size = p->data_size;
+  priv->read_buffer_ptr  = priv->read_buffer;
+  
+#else
   int sps=((short*)(s->ext_data))[0];
   int w=s->data.audio.block_align; // 5
   int h=((short*)(s->ext_data))[1];
@@ -468,6 +498,8 @@ static int fill_buffer(bgav_stream_t * s)
         }
     }
   bgav_demuxer_done_packet_read(s->demuxer, p);
+
+#endif
   return 1;
   }
 
@@ -489,6 +521,8 @@ static int decode_frame(bgav_stream_t * s)
     }
   /* Call the decoder */
 
+  //  fprintf(stderr, "raDecode: %p\n", priv->read_buffer_ptr);
+  
   if(priv->raDecode(priv->real_handle, (char*)priv->read_buffer_ptr,
                     s->data.audio.block_align,
                     (char*)priv->frame->samples.s_8, &len, -1))
