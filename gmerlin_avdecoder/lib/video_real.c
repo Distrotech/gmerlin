@@ -76,7 +76,7 @@ static codec_info_t real_codecs[] =
       },
     },
     {
-      dll_name: "drv4.so.6.0",
+      dll_name: "drvc.so",
       format_name: "Real Video 4.0",
       decoder:
       {
@@ -230,15 +230,35 @@ static int init_real(bgav_stream_t * s)
 
   /* Get the symbols */
 
-  if(!(priv->rvyuv_custom_message = dlsym(priv->module, "RV20toYUV420CustomMessage")) ||
-     !(priv->rvyuv_free           = dlsym(priv->module, "RV20toYUV420Free")) ||
-     !(priv->rvyuv_hive_message   = dlsym(priv->module, "RV20toYUV420HiveMessage")) ||
-     !(priv->rvyuv_init           = dlsym(priv->module, "RV20toYUV420Init")) ||
-     !(priv->rvyuv_transform      = dlsym(priv->module, "RV20toYUV420Transform")))
+  priv->rvyuv_custom_message = dlsym(priv->module, "RV20toYUV420CustomMessage");
+  priv->rvyuv_free = dlsym(priv->module, "RV20toYUV420Free");
+  priv->rvyuv_hive_message = dlsym(priv->module, "RV20toYUV420HiveMessage");
+  priv->rvyuv_init = dlsym(priv->module, "RV20toYUV420Init");
+  priv->rvyuv_transform = dlsym(priv->module, "RV20toYUV420Transform");
+
+  if(!priv->rvyuv_custom_message ||
+     !priv->rvyuv_free ||
+     !priv->rvyuv_hive_message ||
+     !priv->rvyuv_init ||
+     !priv->rvyuv_transform)
+    {
+    priv->rvyuv_custom_message = dlsym(priv->module, "RV40toYUV420CustomMessage");
+    priv->rvyuv_free = dlsym(priv->module, "RV40toYUV420Free");
+    priv->rvyuv_hive_message = dlsym(priv->module, "RV40toYUV420HiveMessage");
+    priv->rvyuv_init = dlsym(priv->module, "RV40toYUV420Init");
+    priv->rvyuv_transform = dlsym(priv->module, "RV40toYUV420Transform");
+    }
+  
+  if(!priv->rvyuv_custom_message ||
+     !priv->rvyuv_free ||
+     !priv->rvyuv_hive_message ||
+     !priv->rvyuv_init ||
+     !priv->rvyuv_transform)
     {
     fprintf(stderr, "DLL %s is not ok: %s\n", codec_filename, dlerror());
     return 0; 
     }
+  
   extradata = (unsigned int*)(s->ext_data);
 
   init_data.unk1 = 11;
