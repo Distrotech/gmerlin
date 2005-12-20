@@ -128,7 +128,7 @@ static void set_bg_color(bg_gtk_time_display_t * d)
   gdk_color_alloc(gdk_window_get_colormap(d->widget->window),
                   &(bg));
 
-  gdk_window_set_background(d->widget->window, &bg);
+  gtk_widget_modify_bg(d->widget, GTK_STATE_NORMAL, &bg);
   
   gdk_gc_set_foreground(d->gc, &bg);
   }
