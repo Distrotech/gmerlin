@@ -161,7 +161,7 @@ static codec_info_t codec_infos[] =
       type:        CODEC_STD,
       ex_functions: 1,
     },
-#if 0
+#if 1
     {
       name:        "DMO WMV9 decoder",
       format_name: "WMV9",

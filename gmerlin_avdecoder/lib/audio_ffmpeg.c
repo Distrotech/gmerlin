@@ -233,8 +233,9 @@ static int decode_frame(bgav_stream_t * s)
                                     &frame_size,
                                     priv->packet_buffer_ptr,
                                     priv->bytes_in_packet_buffer);
-#if 0
-  fprintf(stderr, "Used: %x bytes, frame_size: %d\n", bytes_used, frame_size);
+  //  fprintf(stderr, "Used: %d bytes, frame_size: %d\n", bytes_used, frame_size);
+
+#if 1
   if(bytes_used <= 1)
     {
     frame_size = -1;
@@ -244,16 +245,25 @@ static int decode_frame(bgav_stream_t * s)
     
   if(frame_size < 0)
     {
-    fprintf(stderr, "Decoding failed %d\n", bytes_used);
+    //    fprintf(stderr, "Decoding failed %d\n", bytes_used);
     //      if(f)
     //        f->valid_samples = samples_decoded;
     //      return samples_decoded;
     }
   /* Advance packet buffer */
-    
-  priv->packet_buffer_ptr += bytes_used;
-  priv->bytes_in_packet_buffer -= bytes_used;
 
+  //  fprintf(stderr, "bytes_used: %d, bytes_in_packet_buffer: %d\n",
+  //          bytes_used, priv->bytes_in_packet_buffer);
+
+  if(bytes_used > 0)
+    {
+    priv->packet_buffer_ptr += bytes_used;
+    priv->bytes_in_packet_buffer -= bytes_used;
+    }
+  else
+    {
+    priv->bytes_in_packet_buffer = 0;
+    }
   //  fprintf(stderr, "Frame size: %d\n", frame_size);
   
   /* No Samples decoded, get next packet */
