@@ -736,7 +736,7 @@ typedef struct
  * \param format The video format into which the rectangle must fit
  */
   
-void gavl_rectangle_crop_to_format(gavl_rectangle_i_t * r,
+void gavl_rectangle_i_crop_to_format(gavl_rectangle_i_t * r,
                                    const gavl_video_format_t * format);
 
 /*! \brief Crop a floating point rectangle so it fits into the image size of a video format
@@ -763,6 +763,23 @@ void gavl_rectangle_crop_to_format_noscale(gavl_rectangle_i_t * src_rect,
                                            gavl_rectangle_i_t * dst_rect,
                                            const gavl_video_format_t * src_format,
                                            const gavl_video_format_t * dst_format);
+
+/*! \brief Crop 2 rectangles to their formats when scaling is available
+ * \ingroup rectangle
+ * \param src_rect Source rectangle
+ * \param dst_rect Destination rectangle
+ * \param src_format Source format
+ * \param dst_format Destination format
+ *
+ * This shrinks src_rect and dest_rect that neither is outside the image
+ * boundaries of the format.
+ */
+  
+void gavl_rectangle_crop_to_format_scale(gavl_rectangle_f_t * src_rect,
+                                         gavl_rectangle_i_t * dst_rect,
+                                         const gavl_video_format_t * src_format,
+                                         const gavl_video_format_t * dst_format);
+
   
 
 /*! \brief Let an integer rectangle span the whole image size of a video format
@@ -860,6 +877,19 @@ void gavl_rectangle_f_crop_bottom(gavl_rectangle_f_t * r, double num_pixels);
   
 void gavl_rectangle_i_align(gavl_rectangle_i_t * r, int h_align, int v_align);
 
+/*! \brief Align a rectangle to a format
+ * \ingroup rectangle
+ * \param r An integer rectangle
+ * \param format A video format
+ *
+ * The convenience function does the same as \ref gavl_rectangle_i_align
+ * but takes a format as argument.
+ */
+  
+void gavl_rectangle_i_align_to_format(gavl_rectangle_i_t * r,
+                                      const gavl_video_format_t * format);
+
+  
 /*! \brief Copy an integer rectangle
  * \ingroup rectangle
  * \param dst Destination rectangle
@@ -876,6 +906,24 @@ void gavl_rectangle_i_copy(gavl_rectangle_i_t * dst, const gavl_rectangle_i_t * 
 
 void gavl_rectangle_f_copy(gavl_rectangle_f_t * dst, const gavl_rectangle_f_t * src);
 
+
+
+/*! \brief Convert an integer rectangle to a floating point rectangle
+ * \ingroup rectangle
+ * \param dst Destination rectangle
+ * \param src Source rectangle
+ */
+  
+void gavl_rectangle_i_to_f(gavl_rectangle_f_t * dst, const gavl_rectangle_i_t * src);
+
+/*! \brief Convert a floating point rectangle to an integer rectangle
+ * \ingroup rectangle
+ * \param dst Destination rectangle
+ * \param src Source rectangle
+ */
+  
+void gavl_rectangle_f_to_i(gavl_rectangle_i_t * dst, const gavl_rectangle_f_t * src);
+  
 /*! \brief Check if an integer rectangle is empty
  * \ingroup rectangle
  * \param r Rectangle

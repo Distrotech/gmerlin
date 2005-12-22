@@ -26,6 +26,7 @@
  */
 
 #include <inttypes.h>
+#include <string.h>
 #include <arith128.h>
 
 #define HIBIT (0x8000000000000000ULL)
