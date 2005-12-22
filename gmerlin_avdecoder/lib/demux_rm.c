@@ -877,7 +877,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
       {
       p=stream->packet;
       dp_hdr=(dp_hdr_t*)p->data;
-      dp_data=p->data+sizeof(dp_hdr_t);
+      dp_data=p->data+sizeof(*dp_hdr);
       extra=(uint32_t*)(p->data+dp_hdr->chunktab);
       //      fprintf(stderr,
       //              "we have an incomplete packet (oldseq=%d new=%d)\n",vs->seqnum,vpkg_seqnum);
@@ -910,7 +910,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
           //          dp->buffer=realloc(dp->buffer,dp->len);
           // re-calc pointers:
           dp_hdr=(dp_hdr_t*)p->data;
-          dp_data=p->data+sizeof(dp_hdr_t);
+          dp_data=p->data+sizeof(*dp_hdr);
           extra=(uint32_t*)(p->data+dp_hdr->chunktab);
           }
         extra[2*dp_hdr->chunks+0]=1;
@@ -926,7 +926,8 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
             return 0;
           len-=vpkg_offset;
           //          stream_read(demuxer->stream, dp_data+dp_hdr->len, vpkg_offset);
-          if(dp_data[dp_hdr->len]&0x20)
+          if((dp_data[dp_hdr->len]&0x20) &&
+             (stream->fourcc == BGAV_MK_FOURCC('R','V','3','0')))
             --dp_hdr->chunks;
           else
             dp_hdr->len+=vpkg_offset;
@@ -934,7 +935,6 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
           //                 "fragment (%d bytes) appended, %d bytes left\n",
           //                 vpkg_offset,len);
           // we know that this is the last fragment -> we can close the packet!
-          /* TODO: Timestamp */
 #if 1
           p->timestamp_scaled=(dp_hdr->len<3)?0:
             fix_timestamp(stream,dp_data,dp_hdr->timestamp, &p->keyframe);
@@ -954,7 +954,8 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
         if(bgav_input_read_data(ctx->input, dp_data+dp_hdr->len, len) < len)
           return 0;
         //        stream_read(demuxer->stream, dp_data+dp_hdr->len, len);
-        if(dp_data[dp_hdr->len]&0x20)
+        if((dp_data[dp_hdr->len]&0x20) &&
+           (stream->fourcc == BGAV_MK_FOURCC('R','V','3','0')))
           --dp_hdr->chunks;
         else
           dp_hdr->len+=len;

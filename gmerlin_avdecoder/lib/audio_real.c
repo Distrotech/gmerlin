@@ -76,7 +76,7 @@ static codec_info_t real_codecs[] =
       },
     },
     {
-      dll_name: "cook.so.6.0",
+      dll_name: "cook.so",
       format_name: "Real Audio cook",
       decoder:
       {

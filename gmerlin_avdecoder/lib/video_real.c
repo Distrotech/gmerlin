@@ -49,6 +49,7 @@ typedef struct
 
 static codec_info_t real_codecs[] =
   {
+#if 0
     {
       dll_name: "drv2.so.6.0",
       format_name: "Real Video 2.0",
@@ -62,8 +63,9 @@ static codec_info_t real_codecs[] =
         resync: resync_real,
       },
     },
+#endif
     {
-      dll_name: "drv3.so.6.0",
+      dll_name: "drvc.so",
       format_name: "Real Video 3.0",
       decoder:
       {

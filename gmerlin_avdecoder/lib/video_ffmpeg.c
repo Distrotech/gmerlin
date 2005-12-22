@@ -221,7 +221,7 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('R', 'V', '1', '0'),
                BGAV_MK_FOURCC('R', 'V', '1', '3'),
                0x00 } },
-#if 0
+#if 1
     { "FFmpeg Real Video 2.0 decoder", "Real Video 2.0", CODEC_ID_RV20,
       (uint32_t[]){ BGAV_MK_FOURCC('R', 'V', '2', '0'),
                0x00 } },

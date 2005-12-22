@@ -48,7 +48,8 @@
    Each private stream data also has a fourcc, which lets us
    detect OGM streams independently of the actual fourcc used here */
 
-#define FOURCC_VORBIS    BGAV_MK_FOURCC('V','B','I','S')
+#define FOURCC_VORBIS    BGAV_MK_FOURCC('V','B','I','S') /* MUST match BGAV_VORBIS
+                                                            from audio_vorbis.c */
 #define FOURCC_THEORA    BGAV_MK_FOURCC('T','H','R','A')
 #define FOURCC_FLAC      BGAV_MK_FOURCC('F','L','A','C')
 #define FOURCC_FLAC_NEW  BGAV_MK_FOURCC('F','L','C','N')

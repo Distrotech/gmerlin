@@ -46,7 +46,6 @@ typedef struct
   vorbis_block     dec_vb; /* local working space for packet->PCM decode */
   int last_block_size;     /* Last block size in SAMPLES */
   gavl_audio_frame_t * frame;
-  bgav_packet_t * p;
   int stream_initialized;
 
 
@@ -126,18 +125,19 @@ static int next_packet(bgav_stream_t * s)
   {
   int result = 0;
   vorbis_audio_priv * priv;
+  bgav_packet_t * p;
+
   priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
 
   //  fprintf(stderr, "Next packet\n");
 
   if(s->fourcc == BGAV_VORBIS)
     {
-    if(priv->p)
-      bgav_demuxer_done_packet_read(s->demuxer, priv->p);
-    priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
-    if(!priv->p)
+    p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    if(!p)
       return 0;
-    parse_packet(&priv->dec_op, priv->p->data); 
+    parse_packet(&priv->dec_op, p->data); 
+    bgav_demuxer_done_packet_read(s->demuxer, p);
     }
   else
     {

@@ -51,6 +51,8 @@ static int probe_ra(bgav_input_context_t * input)
 static int open_ra(bgav_demuxer_context_t * ctx,
                    bgav_redirector_context_t ** redir)
   {
+  bgav_charset_converter_t * charset_cnv;
+  
   uint8_t fh[RA_FILE_HEADER_PREV_SIZE], len;
   uint8_t * file_header;
   uint8_t  *audio_header;
@@ -166,13 +168,15 @@ static int open_ra(bgav_demuxer_context_t * ctx,
     return 0;
     }
 
+  charset_cnv = bgav_charset_converter_create("ISO-8859-1", "UTF-8");
+  
   /* Read title */
   len = audio_header[offset];
   if(len && ((offset+len+2) < hdr_size))
     {
-    track->metadata.title = bgav_strndup((char*)(audio_header +offset + 1),
-                                         (char*)(audio_header +offset + 1 +
-                                                 len)); 
+    track->metadata.title = bgav_convert_string(charset_cnv,
+                                                (char*)(audio_header +offset+1), len,
+                                                (int*)0);
     offset += len+1;
     }
   else
@@ -182,9 +186,9 @@ static int open_ra(bgav_demuxer_context_t * ctx,
   len = audio_header[offset];
   if(len && ((offset+len+1) < hdr_size))
     {
-    track->metadata.author =
-      bgav_strndup((char*)(audio_header + offset + 1),
-                   (char*)(audio_header + offset + 1 + len));
+    track->metadata.author = bgav_convert_string(charset_cnv,
+                                                (char*)(audio_header +offset+1), len,
+                                                (int*)0);
     offset += len+1;
     }
   else
@@ -192,15 +196,17 @@ static int open_ra(bgav_demuxer_context_t * ctx,
   
   /* Copyright/Date */
   len = audio_header[offset];
-  if(len && ((offset+len) <= hdr_size))
+  if(len && ((offset+len+1) <= hdr_size))
     {
-    track->metadata.copyright =
-      bgav_strndup((char*)(audio_header + offset + 1),
-                   (char*)(audio_header + offset + 1 + len));
+    track->metadata.copyright = bgav_convert_string(charset_cnv,
+                                                    (char*)(audio_header +offset+1), len,
+                                                    (int*)0);
     offset += len+1;
     }
   else
     offset++;
+
+  bgav_charset_converter_destroy(charset_cnv);
   
   /* Fourcc for version 3 comes after meta info */
   if((version == 3) && ((offset+7) <= hdr_size))
