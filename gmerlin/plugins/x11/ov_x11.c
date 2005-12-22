@@ -858,12 +858,22 @@ static void set_drawing_coords(x11_t * priv)
                               &priv->src_rect_f,
                               &priv->window_format,
                               zoom_factor, squeeze_factor);
+
+    gavl_rectangle_crop_to_format_scale(&priv->src_rect_f,
+                                        &priv->dst_rect,
+                                        &priv->video_format,
+                                        &priv->window_format);
+
+    gavl_rectangle_f_to_i(&priv->src_rect_i, &priv->src_rect_f);
+    gavl_rectangle_i_align_to_format(&priv->src_rect_i, &priv->video_format);
+    
 #ifdef HAVE_LIBXV
     if(priv->have_xv_colorkey)
       {
       XSetForeground(priv->dpy, priv->win.gc, priv->xv_colorkey);
       XFillRectangle(priv->dpy, priv->win.current_window, priv->win.gc,
-                     priv->dst_rect.x, priv->dst_rect.y, priv->dst_rect.w, priv->dst_rect.h);
+                     priv->dst_rect.x, priv->dst_rect.y, priv->dst_rect.w,
+                     priv->dst_rect.h);
       }
 #endif
     }
@@ -1476,6 +1486,15 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
   
   if(priv->do_xv)
     {
+#if 0
+    fprintf(stderr, "src_rect: ");
+    gavl_rectangle_i_dump(&priv->src_rect_i);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "dst_rect: ");
+    gavl_rectangle_i_dump(&priv->dst_rect);
+    fprintf(stderr, "\n");
+#endif
+    
     if(priv->have_shm)
       {
       XvShmPutImage(priv->dpy,
