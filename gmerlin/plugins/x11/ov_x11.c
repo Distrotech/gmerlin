@@ -859,10 +859,33 @@ static void set_drawing_coords(x11_t * priv)
                               &priv->window_format,
                               zoom_factor, squeeze_factor);
 
+#if 0
+  fprintf(stderr, "src_rect 1: ");
+  gavl_rectangle_i_dump(&(priv->src_rect_i));
+  fprintf(stderr, "\n");
+
+  
+  fprintf(stderr, "dst_rect 1: ");
+  gavl_rectangle_i_dump(&(priv->dst_rect));
+  fprintf(stderr, "\n");
+  
+#endif
+   
     gavl_rectangle_crop_to_format_scale(&priv->src_rect_f,
                                         &priv->dst_rect,
                                         &priv->video_format,
                                         &priv->window_format);
+
+#if 0
+  fprintf(stderr, "src_rect 2: ");
+  gavl_rectangle_i_dump(&(priv->src_rect_i));
+  fprintf(stderr, "\n");
+
+  
+  fprintf(stderr, "dst_rect 2: ");
+  gavl_rectangle_i_dump(&(priv->dst_rect));
+  fprintf(stderr, "\n");
+#endif
 
     gavl_rectangle_f_to_i(&priv->src_rect_i, &priv->src_rect_f);
     gavl_rectangle_i_align_to_format(&priv->src_rect_i, &priv->video_format);
@@ -931,12 +954,12 @@ static void set_drawing_coords(x11_t * priv)
   
 #if 0
   fprintf(stderr, "src_rect 1: ");
-  gavl_rectangle_dump(&(priv->src_rect));
+  gavl_rectangle_i_dump(&(priv->src_rect_i));
   fprintf(stderr, "\n");
 
   
   fprintf(stderr, "dst_rect 1: ");
-  gavl_rectangle_dump(&(priv->dst_rect));
+  gavl_rectangle_i_dump(&(priv->dst_rect));
   fprintf(stderr, "\n");
   
 #endif
@@ -1558,7 +1581,18 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
 #endif
     if(priv->have_shm)
       {
-      
+#if 0
+      fprintf(stderr, "XShmPutImage [%d,%d]->[%d,%d], %dx%d\n",
+              x, y, priv->dst_rect.x,          /* dst_x      */
+              priv->dst_rect.y,          /* dst_y      */
+              priv->dst_rect.w,    /* src_width  */
+              priv->dst_rect.h);   /* src_height */
+      fprintf(stderr, "Window size: %dx%d, video size: %dx%d\n",
+              priv->window_format.image_width, 
+              priv->window_format.image_height, 
+              priv->window_format.image_width, 
+              priv->window_format.image_height);
+#endif
       XShmPutImage(priv->dpy,            /* dpy        */
                    priv->win.current_window, /* d          */
                    priv->win.gc,             /* gc         */

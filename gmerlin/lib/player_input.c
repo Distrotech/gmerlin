@@ -341,10 +341,6 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
     audio_frame->valid_samples =
       ctx->player->audio_stream.output_format.samples_per_frame;
     ctx->audio_samples_written += audio_frame->valid_samples;
-#if 0
-    fprintf(stderr, "Rate: %d\n",
-            ctx->player->audio_stream.input_format.samplerate);
-#endif
     ctx->audio_time =
       gavl_samples_to_time(ctx->player->audio_stream.input_format.samplerate,
                            ctx->audio_samples_written);
@@ -391,11 +387,12 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
       ctx->audio_finished = 1;
     ctx->audio_samples_written += audio_frame->valid_samples;
     }
-  bg_fifo_unlock_write(s->fifo, (ctx->audio_finished && ctx->video_finished));
-#if 0
-  fprintf(stderr, "Rate: %d\n",
-          ctx->player->audio_stream.input_format.samplerate);
-#endif
+  
+  if(ctx->audio_finished && !ctx->video_finished)
+    ctx->send_silence = 1;
+  
+  bg_fifo_unlock_write(s->fifo, ctx->audio_finished && ctx->video_finished);
+
   ctx->audio_time =
     gavl_samples_to_time(ctx->player->audio_stream.input_format.samplerate,
                          ctx->audio_samples_written);
@@ -403,7 +400,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   //    fprintf(stderr, "ctx->audio_finished\n");
 
   //  fprintf(stderr, "Process audio done\n");
-#if 0
+#if 1
   if(ctx->audio_finished)
     fprintf(stderr, "Process audio: EOF\n");
 #endif
@@ -518,8 +515,14 @@ void * bg_player_input_thread(void * data)
     
     /* Check for EOF here */
     if(ctx->audio_finished && ctx->video_finished)
+      {
+      if(ctx->send_silence)
+        {
+        bg_fifo_lock_write(ctx->player->audio_stream.fifo, &state);
+        bg_fifo_unlock_write(ctx->player->audio_stream.fifo, 1);
+        }
       break;
-    
+      }
     if(do_audio && do_video)
       {
 #if 0
@@ -551,8 +554,6 @@ void * bg_player_input_thread(void * data)
       {
       process_video(ctx, 0);
       }
-    if(do_audio && do_video && ctx->audio_finished && !ctx->video_finished)
-      ctx->send_silence = 1;
 
     /* If we sent silence before, we must tell the audio fifo EOF */
         
@@ -633,6 +634,7 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
     if(do_video)
       do_video = process_video(ctx, 1);
     }
+  fprintf(stderr, "Preload done\n");
   }
 
 void bg_player_input_seek(bg_player_input_context_t * ctx,

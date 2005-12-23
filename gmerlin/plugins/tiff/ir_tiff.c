@@ -296,6 +296,8 @@ static void convert_scanline_gray_32(uint8_t * _dst, uint8_t * _src, int width, 
 
 /* Big/Little endian floating point routines taken from libsndfile */
 
+#if 0
+
 #ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
 static float
 float32_read (unsigned char *cptr)
@@ -324,6 +326,7 @@ float32_read (unsigned char *cptr)
 
         return fvalue ;
 } /* float32_le_read */
+#endif
 static double
 double64_read (unsigned char *cptr)
 {       int             exponent, negative ;
@@ -418,11 +421,12 @@ double64_read (unsigned char *cptr)
 } /* double64_be_read */
 #endif
 
-
+#if 0
 static void convert_scanline_RGB_float_32(uint8_t * dst, uint8_t * src, int width, int plane)
   {
 
   }
+#endif
 
 static void convert_scanline_RGB_float_64(uint8_t * _dst, uint8_t * src, int width, int plane)
   {
@@ -460,7 +464,7 @@ static void convert_scanline_RGB_float_64_planar(uint8_t * _dst, uint8_t * src, 
     }
   }
 
-
+#if 0
 static void convert_scanline_RGBA_float_32(uint8_t * dst, uint8_t * src, int width, int plane)
   {
   }
@@ -468,6 +472,7 @@ static void convert_scanline_RGBA_float_32(uint8_t * dst, uint8_t * src, int wid
 static void convert_scanline_RGBA_float_64(uint8_t * dst, uint8_t * src, int width, int plane)
   {
   }
+#endif
 
 static void convert_scanline_logl(uint8_t * _dst, uint8_t * _src, int width, int plane)
   {
