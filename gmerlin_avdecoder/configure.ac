@@ -81,8 +81,6 @@ have_avcodec=false
 
 AVCODEC_BUILD="4734"
 
-dnl PKG_CHECK_MODULES(AVCODEC, avcodec_acl = $AVCODEC_REQUIRED, have_avcodec="true", have_avcodec="false")
-
 ACL_PATH_AVCODEC($AVCODEC_BUILD , have_avcodec="true", have_avcodec="false")
 AVCODEC_REQUIRED=$AVCODEC_VERSION
 

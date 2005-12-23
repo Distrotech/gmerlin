@@ -667,6 +667,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         if(!s->data.video.format.interlace_mode)
           s->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
 
+        /* We completely ignore the frame size of the container */
         s->data.video.format.image_width = priv->ctx->width;
         s->data.video.format.frame_width = priv->ctx->width;
         
