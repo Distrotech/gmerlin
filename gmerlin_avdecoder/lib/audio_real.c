@@ -50,19 +50,6 @@ typedef struct
 static codec_info_t real_codecs[] =
   {
     {
-      dll_name: "dnet.so.6.0",
-      format_name: "Real Audio dnet",
-      decoder:
-      {
-        name:   "Real audio dnet DLL decoder",
-        fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('d', 'n', 'e', 't'), 0x00  },
-        init:   init_real,
-        decode: decode_real,
-        close:  close_real,
-        resync: resync_real,
-      },
-    },
-    {
       dll_name: "sipr.so.6.0",
       format_name: "Real Audio sipr",
       decoder:
@@ -88,40 +75,6 @@ static codec_info_t real_codecs[] =
         resync: resync_real,
       },
     },
-#if 0
-    {
-      dll_name: "14_4.so.6.0",
-      format_name: "Real Audio 14.4",
-      decoder:
-      {
-        name:   "Real audio 14.4 DLL decoder",
-        fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('1', '4', '_', '4'),
-                                BGAV_MK_FOURCC('l', 'p', 'c', 'J'),
-                                0x00  },
-        init:   init_real,
-        decode: decode_real,
-        close:  close_real,
-        resync: resync_real,
-      },
-      
-    },
-#endif
-#if 0
-    {
-      dll_name: "28_8.so.6.0",
-      format_name: "Real Audio 28.8 DLL decoder",
-      decoder:
-      {
-        name:   "Real audio 28.8 decoder",
-        fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('2', '8', '_', '8'), 0x00  },
-        init:   init_real,
-        decode: decode_real,
-        close:  close_real,
-        resync: resync_real,
-      },
-      
-    },
-#endif
     {
       dll_name: "atrc.so.6.0",
       format_name: "Real Audio atrc",

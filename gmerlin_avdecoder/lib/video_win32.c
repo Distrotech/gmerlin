@@ -88,6 +88,7 @@ typedef struct
 
 static codec_info_t codec_infos[] =
   {
+#if 0
     {
       name:        "Win32 Indeo 3.2 decoder",
       format_name: "Indeo 3.2",
@@ -95,6 +96,7 @@ static codec_info_t codec_infos[] =
       dll_name:    "ir32_32.dll",
       type:        CODEC_STD,
     },
+#endif
     {
       name:        "Vivo H.263 decoder",
       format_name: "Vivo H.263",

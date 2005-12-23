@@ -714,6 +714,7 @@ struct bgav_demuxer_s
 
 struct bgav_demuxer_context_s
   {
+  int eof; /* Report EOF just once and not for each stream */
   const bgav_options_t * opt;
   void * priv;
   bgav_demuxer_t * demuxer;

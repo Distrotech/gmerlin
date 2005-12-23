@@ -87,11 +87,15 @@ static int a52_header_read(a52_header * ret, uint8_t * buf)
   
   
   if ((buf[0] != 0x0b) || (buf[1] != 0x77))   /* syncword */
+    {
+    //    fprintf(stderr, "Syncword: %02x, %02x\n", buf[0], buf[1]);
     return 0;
-
+    }
   if (buf[5] >= 0x60)         /* bsid >= 12 */
+    {
+    //    fprintf(stderr, "bsid: %d\n", buf[5]);
     return 0;
-
+    }
   half = halfrate[buf[5] >> 3];
 
   /* acmod, dsurmod and lfeon */
@@ -268,7 +272,8 @@ static int init_a52(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
   priv->buffer = calloc(MAX_FRAME_SIZE, 1);
   s->data.audio.decoder->priv = priv;
-  do_resync(s);
+  if(!do_resync(s))
+    fprintf(stderr, "Resync failed\n");
   
   //  a52_header_dump(&(priv->header));
 
@@ -485,7 +490,10 @@ static void close_a52(bgav_stream_t * s)
 static bgav_audio_decoder_t decoder =
   {
     fourccs: (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x2000),
-                      BGAV_MK_FOURCC('.', 'a', 'c', '3'), 0x00 },
+                           BGAV_MK_FOURCC('.', 'a', 'c', '3'),
+                           /* Will be swapped to AC3 by the demuxer */
+                           BGAV_MK_FOURCC('d', 'n', 'e', 't'), 
+                           0x00 },
     name: "liba52 based decoder",
 
     init:   init_a52,

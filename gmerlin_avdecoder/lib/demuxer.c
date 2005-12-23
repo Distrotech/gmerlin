@@ -507,12 +507,16 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
 static int demuxer_next_packet(bgav_demuxer_context_t * demuxer)
   {
   int ret, i;
+
+  if(demuxer->eof)
+    return 0;
+  
   if(demuxer->si) /* Superindex present */
     {
     if(demuxer->non_interleaved)
-      return next_packet_noninterleaved(demuxer);
+      ret = next_packet_noninterleaved(demuxer);
     else
-      return next_packet_interleaved(demuxer);
+      ret = next_packet_interleaved(demuxer);
     }
   else
     {
@@ -542,8 +546,10 @@ static int demuxer_next_packet(bgav_demuxer_context_t * demuxer)
           }
         }
       }
-    return ret;
     }
+  if(!ret)
+    demuxer->eof = 1;
+  return ret;
   }
 
 bgav_packet_t *
@@ -736,7 +742,9 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
   bgav_track_t * track = b->tt->current_track;
   int num_iterations = 0;
   seek_time = *time;
-      
+
+  b->demuxer->eof = 0;
+  
   while(1)
     {
     num_iterations++;

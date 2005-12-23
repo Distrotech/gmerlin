@@ -164,7 +164,6 @@ typedef struct
 
   gavl_video_frame_t * gavl_frame;
   
-  int keyframe_seen;
   } real_priv_t;
 
 /* DLLs need this */
@@ -340,24 +339,7 @@ static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
   
   if(!p)
     return 0;
-
-  if(!priv->keyframe_seen)
-    {
-    if(p->keyframe)
-      {
-      priv->keyframe_seen = 1;
-      }
-    else
-      {
-      fprintf(stderr, "Skipping non keyframe\n");
-      if(f)
-        gavl_video_frame_clear(f, &(s->data.video.format));
-      bgav_demuxer_done_packet_read(s->demuxer, p);
-      return 1;
-      }
-    }
-     
-  
+    
   dp_hdr = (dp_hdr_t*)(p->data);
   extra = (uint32_t*)(((char*)(p->data))+dp_hdr->chunktab);
   dp_data=((char*)(p->data))+sizeof(dp_hdr_t);

@@ -798,7 +798,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
 
   while(len > 2)
     {
-    vpkg_length = 0;
+    //    vpkg_length = 0;
 
     // read packet header
     // bit 7: 1=last block in block chain
@@ -924,13 +924,16 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
           //                   dp->len,vpkg_offset,vpkg_length-vpkg_offset);
           if(bgav_input_read_data(ctx->input, dp_data+dp_hdr->len, vpkg_offset) < vpkg_offset)
             return 0;
-          len-=vpkg_offset;
-          //          stream_read(demuxer->stream, dp_data+dp_hdr->len, vpkg_offset);
+          
           if((dp_data[dp_hdr->len]&0x20) &&
              (stream->fourcc == BGAV_MK_FOURCC('R','V','3','0')))
             --dp_hdr->chunks;
           else
             dp_hdr->len+=vpkg_offset;
+          
+          len-=vpkg_offset;
+
+          //          stream_read(demuxer->stream, dp_data+dp_hdr->len, vpkg_offset);
           //          mp_dbg(MSGT_DEMUX,MSGL_DBG2,
           //                 "fragment (%d bytes) appended, %d bytes left\n",
           //                 vpkg_offset,len);
@@ -996,6 +999,13 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
       break;
       }
     // whole packet (not fragmented):
+
+    if(vpkg_length > len)
+      {
+      fprintf(stderr, "Warning: vpkg_length > len (%d > %d)\n", vpkg_length, len);
+      break;
+      }
+
     dp_hdr->len=vpkg_length; len-=vpkg_length;
 
     if(bgav_input_read_data(ctx->input, dp_data, vpkg_length) < vpkg_length)
@@ -1039,7 +1049,7 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
   int packet_size;
   rm_audio_stream_t * as;
   int x, sps, cfs, sph, spc, w;
-  
+  uint8_t swp;
   as = (rm_audio_stream_t*)stream->priv;
   
   packet_size = PAYLOAD_LENGTH(h);
@@ -1100,9 +1110,8 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
           }
         break;
       }
-
     /* Release all packets */
-
+    
     if(++(as->sub_packet_cnt) >= sph)
       {
       int apk_usize = stream->data.audio.block_align;
@@ -1122,13 +1131,33 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
         }
       }
     }
+  else if(BGAV_MK_FOURCC('d', 'n', 'e', 't')) /* Byte swapped AC3 */
+    {
+    p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
+    bgav_packet_alloc(p, packet_size);
+    if(bgav_input_read_data(ctx->input, p->data, packet_size) < packet_size)
+      return 0;
+
+    for(x = 0; x < packet_size; x += 2)
+      {
+      swp = p->data[x];
+      p->data[x] = p->data[x+1];
+      p->data[x+1] = swp;
+      }
+
+    //    fprintf(stderr, "Reordered dnet\n");
+    //    bgav_hexdump(p->data, 16, 16);
+    p->data_size = packet_size;
+    bgav_packet_done_write(p);
+    }
   else /* No reordering needed */
     {
     p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
     bgav_packet_alloc(p, packet_size);
     
     bgav_input_read_data(ctx->input, p->data, packet_size);
-    bgav_packet_done_write(stream->packet);
+    p->data_size = packet_size;
+    bgav_packet_done_write(p);
     }
   
   return 1;

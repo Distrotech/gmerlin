@@ -62,6 +62,10 @@ typedef struct rtsp_priv_s
   /* Function for getting the next packet */
   
   int (*next_packet)(bgav_input_context_t * ctx, int block);
+
+  /* RDT Specific */
+  uint32_t prev_ts;
+  uint32_t prev_stream_number;
   
   } rtsp_priv_t;
 
@@ -81,7 +85,9 @@ static void packet_alloc(rtsp_priv_t * priv, int size)
 static int next_packet_rdt(bgav_input_context_t * ctx, int block)
   {
   int size;
-  int flags1;
+  int flags1, flags2;
+  int unknown1;
+  
   uint32_t timestamp;
   bgav_rmff_packet_header_t ph;
   //  int unknown1;
@@ -190,8 +196,11 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
         size-=9;
         }
 
+      flags2=header[7];
+      unknown1 = (header[5]<<16)+(header[6]<<8)+(header[7]);
       if(bgav_read_data_fd(fd, header, 6, ctx->opt->read_timeout) < 6)
         return 0;
+
       timestamp = BGAV_PTR_2_32BE(header);
       size+=2;
 
@@ -200,7 +209,15 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
       ph.stream_number=(flags1>>1)&1;
       ph.timestamp=timestamp;
       ph.packet_group=0;
-      ph.flags=0;      /* TODO: determine keyframe flag and insert here? */
+      if((flags2&1) == 0 && (priv->prev_ts != timestamp ||
+                             priv->prev_stream_number != ph.stream_number))
+        {
+        priv->prev_ts = timestamp;
+        priv->prev_stream_number = ph.stream_number;
+        ph.flags=2;
+        }
+      else
+        ph.flags=0;
 
       //    bgav_rmff_packet_header_dump(&ph);
 

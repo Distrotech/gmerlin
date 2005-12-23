@@ -1,6 +1,6 @@
 /*****************************************************************
  
-  in_rtsp.c
+  rtsp.c
  
   Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
