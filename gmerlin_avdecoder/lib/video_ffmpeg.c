@@ -666,6 +666,12 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
 
         if(!s->data.video.format.interlace_mode)
           s->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+
+        s->data.video.format.image_width = priv->ctx->width;
+        s->data.video.format.frame_width = priv->ctx->width;
+        
+        s->data.video.format.image_height = priv->ctx->height;
+        s->data.video.format.frame_height = priv->ctx->height;
         }
       else
         {
