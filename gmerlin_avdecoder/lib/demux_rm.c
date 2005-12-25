@@ -405,7 +405,8 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
       break;
     default:
       /* codec id: none */
-      fprintf(stderr,"unknown id: %x\n", tmp);
+      //      fprintf(stderr,"unknown id: %x\n", tmp);
+      break;
     }
 
   version = ((bg_vs->fourcc & 0x000000FF) - '0') +
@@ -780,6 +781,9 @@ fix_timestamp(bgav_stream_t * stream, uint8_t * s, uint32_t timestamp, int * key
 
 #define PAYLOAD_LENGTH(HEADER) ((HEADER)->length - (((HEADER)->object_version == 0) ? 12 : 13))
 
+#define IS_KEYFRAME(HEADER) \
+  (((HEADER)->object_version == 0) ? ((HEADER)->flags & 0x02) : ((HEADER)->asm_flags & 0x02))
+
 static int process_video_chunk(bgav_demuxer_context_t * ctx,
                                bgav_rmff_packet_header_t * h,
                                bgav_stream_t * stream)
@@ -796,6 +800,8 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
   uint32_t* extra;
   int len = PAYLOAD_LENGTH(h);
 
+  //  fprintf(stderr, "process_video_chunk %d\n", len);
+  
   while(len > 2)
     {
     //    vpkg_length = 0;
@@ -806,7 +812,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
 
     READ_8(tmp_8);
     vpkg_header=tmp_8;
-    
+    //    fprintf(stderr, "vpkg_header: 0x%02x, len: %d\n", vpkg_header, len);
     if (0x40==(vpkg_header&0xc0))
       {
       // seems to be a very short header
@@ -834,7 +840,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
       READ_16(tmp_16);
       vpkg_length=tmp_16;
 
-      //      fprintf(stderr, "l: %0.2X %0.2X ",vpkg_length>>8,vpkg_length&0xff);
+      //      fprintf(stderr, "vpkg_length1: %04x (%d)\n", vpkg_length, vpkg_length);
       if (!(vpkg_length&0xC000))
         {
         vpkg_length<<=16;
@@ -844,6 +850,8 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
         }
       else
         vpkg_length&=0x3fff;
+
+      //      fprintf(stderr, "vpkg_length2: %04x (%d)\n", vpkg_length, vpkg_length);
 
       // offset of the following data inside the complete packet
       // Note: if (hdr&0xC0)==0x80 then offset is relative to the
@@ -885,9 +893,11 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
       if(stream->packet_seq!=vpkg_seqnum)
         {
         // this fragment is for new packet, close the old one
-        //        fprintf(stderr,
-        //                "closing probably incomplete packet\n");
-
+#if 0
+        fprintf(stderr,
+                "closing probably incomplete packet %d != %d\n",
+                stream->packet_seq, vpkg_seqnum);
+#endif
         p->timestamp_scaled=(dp_hdr->len<3)?0:
           fix_timestamp(stream,dp_data,dp_hdr->timestamp, &p->keyframe);
         bgav_packet_done_write(p);
@@ -903,7 +913,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
         if(dp_hdr->chunktab+8*(1+dp_hdr->chunks)>p->data_alloc)
           {
           // increase buffer size, this should not happen!
-          //          mp_msg(MSGT_DEMUX,MSGL_WARN, "chunktab buffer too small!!!!!\n");
+          //          fprintf(stderr, "chunktab buffer too small!\n");
           bgav_packet_alloc(p, dp_hdr->chunktab+8*(4+dp_hdr->chunks));
           p->data_size = dp_hdr->chunktab+8*(4+dp_hdr->chunks);
           //          dp->len=dp_hdr->chunktab+8*(4+dp_hdr->chunks);
@@ -918,11 +928,14 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
         if(0x80==(vpkg_header&0xc0))
           {
           // last fragment!
-          //          if(dp_hdr->len!=vpkg_length-vpkg_offset)
-          //            mp_msg(MSGT_DEMUX,MSGL_V,
-          //                   "warning! assembled.len=%d  frag.len=%d  total.len=%d  \n",
-          //                   dp->len,vpkg_offset,vpkg_length-vpkg_offset);
-          if(bgav_input_read_data(ctx->input, dp_data+dp_hdr->len, vpkg_offset) < vpkg_offset)
+#if 0
+          if(dp_hdr->len!=vpkg_length-vpkg_offset)
+            fprintf(stderr,
+                   "warning! assembled.len=%d  frag.len=%d  total.len=%d  \n",
+                   dp_hdr->len,vpkg_offset,vpkg_length-vpkg_offset);
+#endif     
+          if(bgav_input_read_data(ctx->input, dp_data+dp_hdr->len,
+                                  vpkg_offset) < vpkg_offset)
             return 0;
           
           if((dp_data[dp_hdr->len]&0x20) &&
@@ -950,10 +963,12 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
           continue;
           }
         // non-last fragment:
-        // if(dp_hdr->len!=vpkg_offset)
-        //  mp_msg(MSGT_DEMUX,MSGL_V,
-        //         "warning! assembled.len=%d  offset=%d  frag.len=%d  total.len=%d  \n",
-        //         dp->len,vpkg_offset,len,vpkg_length);
+#if 0
+        if(dp_hdr->len!=vpkg_offset)
+          fprintf(stderr,
+                  "warning! assembled.len=%d  offset=%d  frag.len=%d  total.len=%d  \n",
+                  dp_hdr->len,vpkg_offset,len,vpkg_length);
+#endif
         if(bgav_input_read_data(ctx->input, dp_data+dp_hdr->len, len) < len)
           return 0;
         //        stream_read(demuxer->stream, dp_data+dp_hdr->len, len);
@@ -1003,6 +1018,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
     if(vpkg_length > len)
       {
       fprintf(stderr, "Warning: vpkg_length > len (%d > %d)\n", vpkg_length, len);
+      bgav_packet_done_write(p);
       break;
       }
 
@@ -1016,6 +1032,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
       fix_timestamp(stream,dp_data,dp_hdr->timestamp, &p->keyframe);
 
     bgav_packet_done_write(p);
+    //    stream->packet = (bgav_packet_t*)0;
     
     // ds_add_packet(ds,dp);
     
@@ -1064,6 +1081,9 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
     cfs = as->coded_framesize;
     w   = as->audiopk_size;
     spc = as->sub_packet_cnt;
+
+    if(IS_KEYFRAME(h))
+      as->sub_packet_cnt = 0;
     
     switch(stream->fourcc)
       {

@@ -712,7 +712,7 @@ static int select_mlti_data(const uint8_t *mlti_chunk, int mlti_size, int select
   *out = malloc(size);
   memcpy(*out, mlti_chunk+4, size);
 
-  fprintf(stderr, "Got MLTI data %d bytes\n", size);
+  //  fprintf(stderr, "Got MLTI data %d bytes\n", size);
 
   return size;
 }
@@ -722,9 +722,7 @@ static int select_mlti_data(const uint8_t *mlti_chunk, int mlti_size, int select
 
 #define GET_ATTR_INT(attrs, num_attrs, name, dst) \
   if(bgav_sdp_get_attr_int(attrs, num_attrs, name, &i_tmp)) \
-    dst = i_tmp; \
-  else \
-    fprintf(stderr, "Attribute "name" not there\n")
+    dst = i_tmp;
 
 #define GET_ATTR_DATA(attrs, num_attrs, name, dst, dst_len)  \
   if(bgav_sdp_get_attr_data(attrs, num_attrs, name, &buffer, &(i_tmp)) \
@@ -733,18 +731,13 @@ static int select_mlti_data(const uint8_t *mlti_chunk, int mlti_size, int select
     dst_len = i_tmp; \
     dst = malloc(dst_len); \
     memcpy(dst, buffer, dst_len); \
-    } \
-  else \
-    fprintf(stderr, "Attribute "name" not there\n")
-
+    }
 #define GET_ATTR_STRING(attrs, num_attrs, name, dst, dst_len)   \
   if(bgav_sdp_get_attr_string(attrs, num_attrs, name, &str))    \
     {                                                           \
     dst = bgav_strndup(str, NULL);                              \
     dst_len = strlen(dst);                                      \
-    }                                                           \
-  else                                                          \
-    fprintf(stderr, "Attribute "name" not there\n")
+    }
 
 /* Create a real media header from an sdp object */
 

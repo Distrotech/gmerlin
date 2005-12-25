@@ -207,7 +207,7 @@ int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected, char ** 
   if(!bgav_sdp_parse(buf, &(rtsp->sdp)))
     goto fail;
 
-  bgav_sdp_dump(&(rtsp->sdp));
+  //  bgav_sdp_dump(&(rtsp->sdp));
   
   
   free(buf);

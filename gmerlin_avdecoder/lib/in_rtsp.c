@@ -204,6 +204,8 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
       timestamp = BGAV_PTR_2_32BE(header);
       size+=2;
 
+      //      fprintf(stderr, "RDT size: %d\n", size);
+      
       ph.object_version=0;
       ph.length=size;
       ph.stream_number=(flags1>>1)&1;
