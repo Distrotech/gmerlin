@@ -546,9 +546,26 @@ void gavl_audio_options_set_defaults(gavl_audio_options_t * opt);
     \brief Audio format converter.
     
     This is a generic converter, which converts audio frames from one arbitrary format to
-    another. Create an audio converter with \ref gavl_audio_converter_create. Call
-    \ref gavl_audio_converter_init to initialize the converter for the input and output formats.
-    Audio frames are then converted with \ref gavl_audio_convert.
+    another. It does:
+
+    - Up-/Downmixing of channel configurations
+    - Resampling
+    - Conversion of interleave modes
+    - Conversion of sample formats
+
+    Quality levels below 3 mainly result if poor but fast resampling methods.
+    Quality levels above 3 will enable high quality resampling methods,
+    dithering and floating point mixing.
+
+    Create an audio converter with \ref gavl_audio_converter_create. If you want to configure it,
+    get the options pointer with \ref gavl_audio_converter_get_options and change the options
+    (See \ref audio_options).
+    Call \ref gavl_audio_converter_init to initialize the converter for the input and output
+    formats. Audio frames are then converted with \ref gavl_audio_convert.
+
+    When you are done, you can either reinitialize the converter or destroy it with
+    \ref gavl_audio_converter_destroy.
+    
 */
   
 /*! \ingroup audio_converter
@@ -730,9 +747,9 @@ typedef struct
   double h; /*!< Height */
   } gavl_rectangle_f_t;
 
-/*! \brief Crop a rectangle so it fits into the image size of a video format
+/*! \brief Crop an integer rectangle so it fits into the image size of a video format
  * \ingroup rectangle
- * \param r A rectangle
+ * \param r An integer rectangle
  * \param format The video format into which the rectangle must fit
  */
   
@@ -741,7 +758,7 @@ void gavl_rectangle_i_crop_to_format(gavl_rectangle_i_t * r,
 
 /*! \brief Crop a floating point rectangle so it fits into the image size of a video format
  * \ingroup rectangle
- * \param r A rectangle
+ * \param r A floating point rectangle
  * \param format The video format into which the rectangle must fit
  */
   
@@ -755,8 +772,11 @@ void gavl_rectangle_f_crop_to_format(gavl_rectangle_f_t * r,
  * \param src_format Source format
  * \param dst_format Destination format
  *
- *  This produces 2 rectangles of the same size centered on src_format and dst_format
- *  respectively
+ * This shrinks src_rect and dest_rect that neither is outside the image
+ * boundaries of the format. Both rectangles will have the same dimensions.
+ *
+ * This function can be used for fitting a video image into a window
+ * for the case, that no scaling is available.
  */
   
 void gavl_rectangle_crop_to_format_noscale(gavl_rectangle_i_t * src_rect,
@@ -798,7 +818,7 @@ void gavl_rectangle_i_set_all(gavl_rectangle_i_t * r, const gavl_video_format_t 
 
 void gavl_rectangle_f_set_all(gavl_rectangle_f_t * r, const gavl_video_format_t * format);
 
-/*! \brief crop an integer rectangle by some pixels from the left border
+/*! \brief Crop an integer rectangle by some pixels from the left border
  * \ingroup rectangle
  * \param r An integer rectangle
  * \param num_pixels The number of pixels by which the rectangle gets smaller
@@ -806,7 +826,7 @@ void gavl_rectangle_f_set_all(gavl_rectangle_f_t * r, const gavl_video_format_t 
   
 void gavl_rectangle_i_crop_left(gavl_rectangle_i_t * r,   int num_pixels);
 
-/*! \brief crop an integer rectangle by some pixels from the right border
+/*! \brief Crop an integer rectangle by some pixels from the right border
  * \ingroup rectangle
  * \param r An integer rectangle
  * \param num_pixels The number of pixels by which the rectangle gets smaller
@@ -814,7 +834,7 @@ void gavl_rectangle_i_crop_left(gavl_rectangle_i_t * r,   int num_pixels);
 
 void gavl_rectangle_i_crop_right(gavl_rectangle_i_t * r,  int num_pixels);
 
-/*! \brief crop an integer rectangle by some pixels from the top border
+/*! \brief Crop an integer rectangle by some pixels from the top border
  * \ingroup rectangle
  * \param r An integer rectangle
  * \param num_pixels The number of pixels by which the rectangle gets smaller
@@ -822,7 +842,7 @@ void gavl_rectangle_i_crop_right(gavl_rectangle_i_t * r,  int num_pixels);
 
 void gavl_rectangle_i_crop_top(gavl_rectangle_i_t * r,    int num_pixels);
 
-/*! \brief crop an integer rectangle by some pixels from the bottom border
+/*! \brief Crop an integer rectangle by some pixels from the bottom border
  * \ingroup rectangle
  * \param r An integer rectangle
  * \param num_pixels The number of pixels by which the rectangle gets smaller
@@ -830,7 +850,7 @@ void gavl_rectangle_i_crop_top(gavl_rectangle_i_t * r,    int num_pixels);
 
 void gavl_rectangle_i_crop_bottom(gavl_rectangle_i_t * r, int num_pixels);
 
-/*! \brief crop a float rectangle by some pixels from the left border
+/*! \brief Crop a float rectangle by some pixels from the left border
  * \ingroup rectangle
  * \param r A float rectangle
  * \param num_pixels The number of pixels by which the rectangle gets smaller
@@ -838,7 +858,7 @@ void gavl_rectangle_i_crop_bottom(gavl_rectangle_i_t * r, int num_pixels);
  
 void gavl_rectangle_f_crop_left(gavl_rectangle_f_t * r,   double num_pixels);
 
-/*! \brief crop a float rectangle by some pixels from the right border
+/*! \brief Crop a float rectangle by some pixels from the right border
  * \ingroup rectangle
  * \param r A float rectangle
  * \param num_pixels The number of pixels by which the rectangle gets smaller
@@ -846,7 +866,7 @@ void gavl_rectangle_f_crop_left(gavl_rectangle_f_t * r,   double num_pixels);
 
 void gavl_rectangle_f_crop_right(gavl_rectangle_f_t * r,  double num_pixels);
 
-/*! \brief crop a float rectangle by some pixels from the top border
+/*! \brief Crop a float rectangle by some pixels from the top border
  * \ingroup rectangle
  * \param r A float rectangle
  * \param num_pixels The number of pixels by which the rectangle gets smaller
@@ -854,7 +874,7 @@ void gavl_rectangle_f_crop_right(gavl_rectangle_f_t * r,  double num_pixels);
 
 void gavl_rectangle_f_crop_top(gavl_rectangle_f_t * r,    double num_pixels);
 
-/*! \brief crop a float rectangle by some pixels from the bottom border
+/*! \brief Crop a float rectangle by some pixels from the bottom border
  * \ingroup rectangle
  * \param r A float rectangle
  * \param num_pixels The number of pixels by which the rectangle gets smaller
@@ -868,8 +888,8 @@ void gavl_rectangle_f_crop_bottom(gavl_rectangle_f_t * r, double num_pixels);
  * \param h_align Horizontal alignment
  * \param v_align Vertical alignment
  *
- * This aligns a rectangle such that the horizontal coordinates are multiples of
- * h_align, while the vertical coordinates are multiples of v_align. When dealing
+ * This aligns a rectangle such that the horizontal and vertical coordinates
+ * are multiples of h_align and v_align respectively. When dealing
  * with chroma subsampled formats, you must call this function with the
  * return values of \ref gavl_pixelformat_chroma_sub before taking subframes from
  * video frames.
@@ -944,9 +964,7 @@ int gavl_rectangle_i_is_empty(const gavl_rectangle_i_t * r);
   
 int gavl_rectangle_f_is_empty(const gavl_rectangle_f_t * r);
 
-  
-
-/*!\brief Calculate a destination rectangle
+/*!\brief Calculate a destination rectangle for scaling
  * \ingroup rectangle
  * \param dst_rect Destination rectangle
  * \param src_format Source format
@@ -955,12 +973,22 @@ int gavl_rectangle_f_is_empty(const gavl_rectangle_f_t * r);
  * \param zoom Zoom factor
  * \param squeeze Squeeze factor
  *
- * Assuming we take src_rect from a frame in format src_format,
+ * Assuming we take src_rect from a frame in src_format,
  * calculate the optimal dst_rect in dst_format. The source and destination
- * display aspect ratio will be unchanged unless it is changed with the squeeze
+ * display aspect ratio will be preserved unless it is changed with the squeeze
  * parameter.
- * Zoom is a zoom factor (1.0 = 100 %), Squeeze is a value between -1.0 and 1.0,
- * while squeeze changes the apsect ratio in both directions. 0.0 means unchanged
+ *
+ * Zoom is a zoom factor (1.0 = 100 %). Squeeze is a value between -1.0 and 1.0,
+ * which changes the apsect ratio in both directions. 0.0 means unchanged.
+ *
+ * Note that dst_rect might be outside the image dimensions of dst_format. If you
+ * don't like this, call \ref gavl_rectangle_crop_to_format_scale afterwards.
+ *
+ * Furthermore, the chroma subsampling is ignored by this function. If you you use
+ * the rectangles to fire up a \ref gavl_video_scaler_t, this is no problem (the
+ * scaler will align the rectangles internally). You can align the destination
+ * rectangle manually using \ref gavl_rectangle_i_align or
+ * \ref gavl_rectangle_i_align_to_format.
  */
   
 void gavl_rectangle_fit_aspect(gavl_rectangle_i_t * dst_rect,
@@ -1560,8 +1588,9 @@ void gavl_video_frame_get_subframe(gavl_pixelformat_t pixelformat,
   \param src Source
   \param field Field index (0 = top field, 1 = bottom field)
 
-  This fills the pointers of dst from src such that the dst will represent the
-  speficied field. Note that no data are copied here. This means that
+  This fills the pointers and strides of the destination frame such that it
+  will represent the speficied field of the source frame.
+  Note that no data are copied here. This means that
   dst must be created with NULL as the format argument and \ref gavl_video_frame_null
   must be called before destroying dst.
 */
@@ -1691,7 +1720,9 @@ void gavl_video_options_set_defaults(gavl_video_options_t * opt);
  *  Set the source and destination rectangles the converter or scaler will operate on.
  *  If you don't call this function, the rectangles will be set to the full image dimensions
  *  of the source and destination formats respectively. If one rectangle is NULL, BOTH rectangles
- *  will be cleared as if you never called this function.
+ *  will be cleared as if you never called this function. See \ref rectangle for convenience
+ *  functions, which calculate the proper rectangles in some typical playback or transcoding
+ *  situations.
  */
   
 void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
@@ -1789,15 +1820,25 @@ void gavl_video_options_set_deinterlace_drop_mode(gavl_video_options_t * opt,
  * \brief Video format converter
  *
  * This is a generic converter, which converts video frames from one arbitrary format to
- * another. It's main purpose is to convert pixelformats and to scale images. For quality levels
- * below 4, pixelformats are converted in one single step, without the need for intermediate
- * frames. Furthermore, it can handle nonsquare pixels. This means, that if the pixel aspect ratio
- * is different for the input and output formats, the image will be scaled to preserve the
- * overall aspect ratio of the video.
+ * another. It can convert pixelformats, scale images and deinterlace.
  *
- * Create a video converter with \ref gavl_video_converter_create. Call
- * \ref gavl_video_converter_init to initialize the converter for the input and output formats.
- * Video frames are then converted with \ref gavl_video_convert.
+ * For quality levels of 3 and below, pixelformats are converted in one single step,
+ * without the need for intermediate frames.
+ * Quality levels of 4 and 5 will take care of chroma placement. For this, a
+ * \ref gavl_video_scaler_t will be used.
+ *
+ * Deinterlacing is enabled if the input format is interlaced and the output format is
+ * progressive and the deinterlace mode is something else than \ref GAVL_DEINTERLACE_NONE.
+ * You can also force deinterlacing (\ref GAVL_FORCE_DEINTERLACE).
+ *
+ * Create a video converter with \ref gavl_video_converter_create. If you want to configure it,
+ * get the options pointer with \ref gavl_video_converter_get_options and change the options
+ * (See \ref video_options).
+ * Call \ref gavl_video_converter_init to initialize the converter for the input and output
+ * formats. Video frames are then converted with \ref gavl_video_convert.
+ *
+ * When you are done, you can either reinitialize the converter or destroy it with
+ * \ref gavl_video_converter_destroy.
  */
 
 /*! \ingroup video_converter
@@ -1875,20 +1916,25 @@ void gavl_video_convert(gavl_video_converter_t * cnv,
  *  \ingroup video
  *  \brief Video scaler
  *
- *  The video scaler can resize images, resample chroma planes
- *  and perform simple deinterlacing. You can use it either through the
- *  \ref gavl_video_converter_t or directly through the functions in this module.
- *
  *  The scaler does the elementary operation to take a rectangular area
  *  of the source image and scale it into a specified rectangular area of the
  *  destination image. The source rectangle has floating point coordinates, the destination
  *  rectangle must have integer coordinates, which are aligned to chroma subsampling factors.
- *  When scaling with arbitrary ratios, it makes sense to use a destination format without
- *  chroma subsampling.
  *
- *  Internally, the source and destination rectangles can be set
- *  independently for all planes and fields, which means, that the scaler can also do colospace
- *  conversions for pixelformats which differ only in the chroma subsampling modes.
+ *  The internal scale tables are created for each plane and field separately. This
+ *  means that:
+ *
+ *  - We handle all flavors of chroma placement correctly
+ *  - We can convert chroma subsampling by scaling the chroma planes and copying
+ *    the luminance plane.
+ *  - Since the scaler knows about fields, it will scale interlaced frames field-wise
+ *    (not a good idea to scale interlaced frames vertically though).
+ *  - Simple deinterlacing (See \ref GAVL_DEINTERLACE_SCALE)
+ *    can be done by taking one source field and scale it vertically to the entire
+ *    destination frame.
+ *
+ *  You can use the scaler directly (through \ref gavl_video_scaler_t). The generic video 
+ *  converter (\ref gavl_video_converter_t) will create an internal scaler if necessary.
  */
 
 /*! \ingroup video_scaler

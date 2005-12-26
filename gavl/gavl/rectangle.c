@@ -113,9 +113,9 @@ static void crop_dimension_scale(double * src_off, double * src_len, int src_siz
   /* Upper limit (destination) */
   if(dst_off_f + dst_len_f > (double)(dst_size))
     {
-    crop = *src_off + *src_len - (double)(src_size); 
-    dst_len_f -= (crop*scale_factor);
-    *src_len  -= crop;
+    crop = dst_off_f + dst_len_f - (double)(dst_size); 
+    dst_len_f -= (crop);
+    *src_len  -= crop/scale_factor;
     }
   *dst_len = (int)(dst_len_f+0.5);
   *dst_off = (int)(dst_off_f+0.5);
