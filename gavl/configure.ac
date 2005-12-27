@@ -60,7 +60,7 @@ AC_C99_FUNC_LRINTF
 SAMPLERATE_REQUIRED="0.1.0"
 
 PKG_CHECK_MODULES(SECRETRABBIT, samplerate >= $SAMPLERATE_REQUIRED, ,
-                  AC_MSG_ERROR("libsamplerate not found! Get it from http://www.mega-nerd.com/SRC/"))
+                  AC_MSG_ERROR("libsamplerate not found! Go to http://www.mega-nerd.com/SRC/"))
 
 AC_SUBST(SAMPLERATE_REQUIRED)
 

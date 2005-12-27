@@ -635,7 +635,7 @@ echo -n "Gtk-2.0:             "
 if test "x$have_gtk" = "xtrue"; then
 echo "Yes"
 else
-echo "Missing (GUI applications won't be compiled!)"
+echo "Missing (GUI applications won't be compiled! Go to http://www.gtk.org/)"
 fi
 
 echo
@@ -645,56 +645,56 @@ echo -n "EsounD:              "
 if test "x$have_esd" = "xtrue"; then
 echo "Yes (CFLAGS=$ESD_CFLAGS LIBS=$ESD_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.tux.org/~ricdude/EsounD.html)"
 fi
 
 echo -n "Alsa:                "
 if test "x$have_alsa" = "xtrue"; then
 echo "Yes (CFLAGS=$ALSA_CFLAGS LIBS=$ALSA_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.alsa-project.org/)"
 fi
 
 echo -n "Libquicktime:        "
 if test "x$have_lqt" = "xtrue"; then
 echo "Yes (CFLAGS=$LQT_CFLAGS LIBS=$LQT_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://libquicktime.sourceforge.net/)"
 fi
 
 echo -n "Libjpeg:             "
 if test "x$have_libjpeg" = "xtrue"; then
 echo "Yes (CFLAGS=$JPEG_CFLAGS LIBS=$JPEG_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.ijg.org/)"
 fi
 
 echo -n "Libpng:              "
 if test "x$have_libpng" = "xtrue"; then
 echo "Yes (CFLAGS=$PNG_CFLAGS LIBS=$PNG_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.libpng.org/pub/png/libpng.html)"
 fi
 
 echo -n "Libtiff:             "
 if test "x$have_libtiff" = "xtrue"; then
 echo "Yes (CFLAGS=$TIFF_CFLAGS LIBS=$TIFF_LIBS)"
 else
-echo "Missing"
+echo "Missing (http://www.remotesensing.org/libtiff/)"
 fi
 
 echo -n "OSS:                 "
 if test "x$have_oss" = "xtrue"; then
 echo "Yes"
 else
-echo "Missing"
+echo "Missing (Probably unsupported architecture)"
 fi
 
 echo -n "Video4Linux:         "
 if test "x$have_v4l" = "xtrue"; then
 echo "Yes"
 else
-echo "Missing"
+echo "Missing (Probably unsupported architecture)"
 fi
 
 echo -n "X11:                 "
@@ -722,14 +722,14 @@ echo -n "libcdio:             "
 if test "x$have_cdio" = "xtrue"; then
 echo "Yes (CFLAGS=$CDIO_CFLAGS $CDIO_CDDA_CFLAGS $CDIO_PARANOIA_CFLAGS LIBS=$CDIO_LIBS $CDIO_CDDA_LIBS $CDIO_PARANOIA_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.gnu.org/software/libcdio/)"
 fi
 
 echo -n "Musicbrainz:         "
 if test "x$have_musicbrainz" = "xtrue"; then
 echo "Yes (CFLAGS=$MUSICBRAINZ_CFLAGS LIBS=$MUSICBRAINZ_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://musicbrainz.org/products/client/index.html)"
 fi
 
 echo
@@ -772,4 +772,6 @@ fi
 
 echo
 echo "If you installed a library but it was not detected, check the file INSTALL"
-echo "for troubleshooting tips"
+echo "for troubleshooting tips. Also note that if the configure script reaches"
+echo "this point, all missing packages are optional so compilation should suceed"
+echo "anyway."

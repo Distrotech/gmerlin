@@ -310,39 +310,39 @@ echo -n "flac:       "
 if test "x$have_flac" = "xtrue"; then
 echo "Found (CFLAGS=$FLAC_CFLAGS LIBS=$FLAC_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to: http://flac.sourceforge.net/)"
 fi
 
 echo -n "vorbis:     "
 if test "x$have_vorbis" = "xtrue"; then
 echo "Found (CFLAGS=$VORBIS_CFLAGS LIBS=$VORBIS_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to: http://www.vorbis.com/)"
 fi
 
 echo -n "lame:       "
 if test "x$have_lame" = "xtrue"; then
 echo "Found (CFLAGS=$LAME_CFLAGS LIBS=$LAME_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to: http://www.mp3dev.org/)"
 fi
 
 echo -n "faac:       "
 if test "x$have_faac" = "xtrue"; then
 echo "Found (CFLAGS=$FAAC_CFLAGS LIBS=$FAAC_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to: http://www.audiocoding.com/)"
 fi
 
 echo -n "mjpegtools: "
 if test "x$have_mjpegtools" = "xtrue"; then
 echo "Found (CFLAGS=$MJPEGTOOLS_CFLAGS LIBS=$MJPEGTOOLS_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to: http://mjpeg.sourceforge.net/)"
 fi
-
 
 echo
 echo "If you installed a library but it was not detected, check the file INSTALL"
-echo "for troubleshooting tips"
-
+echo "for troubleshooting tips. Also note that if the configure script reaches"
+echo "this point, all missing packages are optional so compilation should suceed"
+echo "anyway."

@@ -787,119 +787,119 @@ echo -n "gmerlin:                "
 if test "x$have_gmerlin" = "xtrue"; then
 echo "Found (CFLAGS=$GMERLIN_CFLAGS LIBS=$GMERLIN_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://gmerlin.sourceforge.net)"
 fi
 
 echo -n "libavcodec (ffmpeg):    "
 if test "x$have_avcodec" = "xtrue"; then
 echo "Found (CFLAGS=$AVCODEC_CFLAGS LIBS=$AVCODEC_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.ffmpeg.org/)"
 fi
 
 echo -n "faad2:                  "
 if test "x$have_faad2" = "xtrue"; then
 echo "Found (CFLAGS=$FAAD2_CFLAGS LIBS=$FAAD2_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.audiocoding.com/)"
 fi
 
 echo -n "flac:                   "
 if test "x$have_flac" = "xtrue"; then
 echo "Found (CFLAGS=$FLAC_CFLAGS LIBS=$FLAC_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://flac.sourceforge.net/)"
 fi
 
 echo -n "vorbis:                 "
 if test "x$have_vorbis" = "xtrue"; then
 echo "Found (CFLAGS=$VORBIS_CFLAGS LIBS=$VORBIS_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.vorbis.com/)"
 fi
 
 echo -n "theora:                 "
 if test "x$have_theora" = "xtrue"; then
 echo "Found (CFLAGS=$THEORA_CFLAGS LIBS=$THEORA_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.theora.org/)"
 fi
 
 echo -n "speex:                  "
 if test "x$have_speex" = "xtrue"; then
 echo "Found (CFLAGS=$SPEEX_CFLAGS LIBS=$SPEEX_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.speex.org/)"
 fi
 
 echo -n "libpng:                 "
 if test "x$have_libpng" = "xtrue"; then
 echo "Found (CFLAGS=$PNG_CFLAGS LIBS=$PNG_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.libpng.org/pub/png/libpng.html)"
 fi
 
 echo -n "libtiff:                "
 if test "x$have_libtiff" = "xtrue"; then
 echo "Found (CFLAGS=$TIFF_CFLAGS LIBS=$TIFF_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.remotesensing.org/libtiff/)"
 fi
 
 echo -n "libmpeg2 (mpeg2dec)     "
 if test "x$have_libmpeg2" = "xtrue"; then
 echo "Found (CFLAGS=$LIBMPEG2_CFLAGS LIBS=$LIBMPEG2_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://libmpeg2.sourceforge.net/)"
 fi
 
 echo -n "libmad 0.15.x:          "
 if test "x$have_mad" = "xtrue"; then
 echo "Found (CFLAGS=$MAD_CFLAGS LIBS=$MAD_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://mad.sourceforge.net/)"
 fi
 
 echo -n "liba52 (a52dec):        "
 if test "x$have_liba52" = "xtrue"; then
 echo "Found (CFLAGS=$LIBA52_CFLAGS LIBS=$LIBA52_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://liba52.sourceforge.net/)"
 fi
 
 echo -n "libmpcdec:              "
 if test "x$have_musepack" = "xtrue"; then
 echo "Found (CFLAGS=$MUSEPACK_CFLAGS LIBS=$MUSEPACK_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.musepack.net/)"
 fi
 
 echo -n "libcdio:                "
 if test "x$have_cdio" = "xtrue"; then
 echo "Found (CFLAGS=$CDIO_CFLAGS LIBS=$CDIO_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.gnu.org/software/libcdio/)"
 fi
 
 echo -n "libdv:                  "
 if test "x$have_libdv" = "xtrue"; then
 echo "Found (CFLAGS=$LIBDV_CFLAGS LIBS=$LIBDV_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://libdv.sourceforge.net/)"
 fi
 
 echo -n "mjpegtools:             "
 if test "x$have_mjpegtools" = "xtrue"; then
 echo "Found (CFLAGS=$MJPEGTOOLS_CFLAGS LIBS=$MJPEGTOOLS_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://mjpeg.sourceforge.net/)"
 fi
 
 echo -n "samba:                  "
 if test "x$have_libsmbclient" = "xtrue"; then
 echo "Found (CFLAGS=$SAMBA_CFLAGS LIBS=$SAMBA_LIBS)"
 else
-echo "Missing"
+echo "Missing (Go to http://www.samba.org)"
 fi
 
 echo ""
@@ -928,4 +928,6 @@ fi
 
 echo
 echo "If you installed a library but it was not detected, check the file INSTALL"
-echo "for troubleshooting tips"
+echo "for troubleshooting tips. Also note that if the configure script reaches"
+echo "this point, all missing packages are optional so compilation should suceed"
+echo "anyway."
