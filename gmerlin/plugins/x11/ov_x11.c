@@ -316,7 +316,6 @@ typedef struct
   int disable_xscreensaver_normal;
   
 
-  int squeeze_zoom_active;
   float squeeze;
   float zoom;
 
@@ -842,9 +841,9 @@ static void set_drawing_coords(x11_t * priv)
   gavl_video_options_t * opt;
   //  
 
-  zoom_factor = (priv->squeeze_zoom_active) ? priv->zoom * 0.01 : 1.0;
-  squeeze_factor = (priv->squeeze_zoom_active) ? priv->squeeze : 0.0;
-
+  zoom_factor = priv->zoom * 0.01;
+  squeeze_factor = priv->squeeze;
+  
   //  fprintf(stderr, "Zoom: %f\n", zoom_factor);
   
   priv->window_format.image_width = priv->win.window_width;
@@ -1274,8 +1273,6 @@ static int handle_event(x11_t * priv, XEvent * evt)
           (evt->xbutton.button == Button5)) &&
          (evt->xbutton.state & (Mod1Mask|ControlMask)))
         {
-        if(!priv->squeeze_zoom_active)
-          return 0;
         
         if(evt->xbutton.button == Button4)
           {
@@ -1377,19 +1374,14 @@ static int handle_event(x11_t * priv, XEvent * evt)
           set_drawing_coords(priv);
           break;
         case XK_Home:
-          if(priv->squeeze_zoom_active)
-            {
-            priv->zoom = 100.0;
-            priv->squeeze = 0.0;
-            x11_window_clear(&priv->win);
-            set_drawing_coords(priv);
-            }
+          priv->zoom = 100.0;
+          priv->squeeze = 0.0;
+          x11_window_clear(&priv->win);
+          set_drawing_coords(priv);
           break;
         case XK_plus:
           if(evt->xkey.state & Mod1Mask)
             {
-            if(!priv->squeeze_zoom_active)
-              return 0;
             /* Increase Zoom */
             priv->zoom += ZOOM_DELTA;
             if(priv->zoom > ZOOM_MAX)
@@ -1399,8 +1391,6 @@ static int handle_event(x11_t * priv, XEvent * evt)
             }
           else if(evt->xkey.state & ControlMask)
             {
-            if(!priv->squeeze_zoom_active)
-              return 0;
             /* Increase Squeeze */
             priv->squeeze += SQUEEZE_DELTA;
             if(priv->squeeze > SQUEEZE_MAX)
@@ -1414,8 +1404,6 @@ static int handle_event(x11_t * priv, XEvent * evt)
         case XK_minus:
           if(evt->xkey.state & Mod1Mask)
             {
-            if(!priv->squeeze_zoom_active)
-              return 0;
             /* Decrease Zoom */
             priv->zoom -= ZOOM_DELTA;
             if(priv->zoom < ZOOM_MIN)
@@ -1425,8 +1413,6 @@ static int handle_event(x11_t * priv, XEvent * evt)
             }
           else if(evt->xkey.state & ControlMask)
             {
-            if(!priv->squeeze_zoom_active)
-              return 0;
             /* Decrease Squeeze */
             priv->squeeze -= SQUEEZE_DELTA;
             if(priv->squeeze < SQUEEZE_MIN)
@@ -1823,17 +1809,10 @@ bg_parameter_info_t common_parameters[] =
       val_default: { val_i: 1 }
     },
     {
-      name:        "squeeze_zoom_active",
-      long_name:   "Enable Squeeze/Zoom",
-      type:        BG_PARAMETER_CHECKBUTTON,
-      flags:       BG_PARAMETER_SYNC,
-      val_default: { val_i: 0 }
-    },
-    {
       name:        "squeeze",
       long_name:   "Squeeze",
       type:        BG_PARAMETER_SLIDER_FLOAT,
-      flags:       BG_PARAMETER_SYNC,
+      flags:       BG_PARAMETER_SYNC | BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_f: 0.0 },
       val_min:     { val_f: SQUEEZE_MIN },
       val_max:     { val_f: SQUEEZE_MAX },
@@ -1843,7 +1822,7 @@ bg_parameter_info_t common_parameters[] =
       name:        "zoom",
       long_name:   "Zoom",
       type:        BG_PARAMETER_SLIDER_FLOAT,
-      flags:       BG_PARAMETER_SYNC,
+      flags:       BG_PARAMETER_SYNC | BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_f: 100.0 },
       val_min:     { val_f: ZOOM_MIN },
       val_max:     { val_f: ZOOM_MAX },
@@ -2033,29 +2012,17 @@ set_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
     {
     p->disable_xscreensaver_fullscreen = val->val_i;
     }
-  else if(!strcmp(name, "squeeze_zoom_active"))
-    {
-    p->squeeze_zoom_active = val->val_i;
-    x11_window_clear(&p->win);
-    set_drawing_coords(p);
-    }
   else if(!strcmp(name, "squeeze"))
     {
     p->squeeze = val->val_f;
-    if(p->squeeze_zoom_active)
-      {
-      x11_window_clear(&p->win);
-      set_drawing_coords(p);
-      }
+    x11_window_clear(&p->win);
+    set_drawing_coords(p);
     }
   else if(!strcmp(name, "zoom"))
     {
     p->zoom = val->val_f;
-    if(p->squeeze_zoom_active)
-      {
-      x11_window_clear(&p->win);
-      set_drawing_coords(p);
-      }
+    x11_window_clear(&p->win);
+    set_drawing_coords(p);
     }
   else if(!strcmp(name, "do_sw_scale"))
     {
