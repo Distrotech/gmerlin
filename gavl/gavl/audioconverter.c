@@ -2,7 +2,7 @@
 
   audioconverter.c
  
-  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
   http://gmerlin.sourceforge.net
  
@@ -139,7 +139,7 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
   gavl_audio_convert_context_t * ctx;
 
   gavl_audio_format_t tmp_format;
-
+  
 #if 1
   fprintf(stderr, "Initializing audio converter, quality: %d, Flags: 0x%08x\n",
           cnv->opt.quality, cnv->opt.accel_flags);
@@ -156,8 +156,11 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
   adjust_format(&(cnv->input_format));
   adjust_format(&(cnv->output_format));
 
-  cnv->input_format.samples_per_frame = cnv->output_format.samples_per_frame;
-
+  if(cnv->input_format.samples_per_frame < cnv->output_format.samples_per_frame)
+    cnv->input_format.samples_per_frame = cnv->output_format.samples_per_frame;
+  else
+    cnv->output_format.samples_per_frame = cnv->input_format.samples_per_frame;
+  
   gavl_set_conversion_parameters(&(cnv->opt.accel_flags),
                                  &(cnv->opt.quality));
   
@@ -325,14 +328,15 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
     }
 
   //  fprintf(stderr, "Audio converter initialized, %d conversions\n", cnv->num_conversions);
-
+  
   //  gavl_audio_format_dump(&(cnv->input_format));
 
   //  gavl_audio_format_dump(&(cnv->output_format));
   //  gavl_audio_format_dump(cnv->current_format);
 
+  /* Create temporary buffers */
   ctx = cnv->contexts;
-
+  
   while(ctx)
     {
     //    dump_context(ctx);
