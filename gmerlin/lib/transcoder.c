@@ -450,7 +450,7 @@ static void set_audio_format(audio_stream_t * ret)
     ret->in_format.samplerate + 10;
   
   /* Dump formats */
-#if 0
+#if 1
   fprintf(stderr, "Input format:\n");
   gavl_audio_format_dump(&(ret->in_format));
   fprintf(stderr, "Output format:\n");
@@ -653,9 +653,9 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   
   if(s->com.do_convert)
     {
-    //    fprintf(stderr, "Converting %d samples\n", s->in_frame->valid_samples);
+    //    fprintf(stderr, "Converting %d samples, ", s->in_frame->valid_samples);
     gavl_audio_convert(s->cnv, s->in_frame, s->out_frame);
-    //    fprintf(stderr, "Got %d samples\n", s->out_frame->valid_samples);
+    //    fprintf(stderr, "got %d samples\n", s->out_frame->valid_samples);
     
     s->com.out_plugin->write_audio_frame(s->com.out_handle->priv,
                                          s->out_frame,
