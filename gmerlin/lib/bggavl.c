@@ -493,9 +493,11 @@ void bg_gavl_video_options_set_framerate(bg_gavl_video_options_t * opt,
     
   if(opt->framerate_mode == FRAME_RATE_USER)
     {
+    //    fprintf(stderr, "Framerate: %d:%d\n", opt->timescale, opt->frame_duration);
     out_format->frame_duration = opt->frame_duration;
     out_format->timescale =      opt->timescale;
     out_format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
+    return;
     }
   for(i = 0; i < NUM_FRAME_RATES; i++)
     {
@@ -514,7 +516,7 @@ void bg_gavl_video_options_set_interlace(bg_gavl_video_options_t * opt,
                                          gavl_video_format_t * out_format)
   {
   int flags = gavl_video_options_get_conversion_flags(opt->opt);
-  fprintf(stderr, "bg_gavl_video_options_set_interlace: %d\n", !!(flags & GAVL_FORCE_DEINTERLACE));
+  //  fprintf(stderr, "bg_gavl_video_options_set_interlace: %d\n", !!(flags & GAVL_FORCE_DEINTERLACE));
   if(flags & GAVL_FORCE_DEINTERLACE)
     out_format->interlace_mode = GAVL_INTERLACE_NONE;
   }
