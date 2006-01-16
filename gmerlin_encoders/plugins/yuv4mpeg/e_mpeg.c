@@ -140,7 +140,7 @@ static void get_audio_format_mpeg(void * data, int stream,
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
   bg_mpa_get_format(&(e->audio_streams[stream].mpa), ret);
-  fprintf(stderr, "get_audio_format_mpeg\n");
+  //  fprintf(stderr, "get_audio_format_mpeg\n");
   }
 
 static void get_video_format_mpeg(void * data, int stream,
@@ -148,7 +148,7 @@ static void get_video_format_mpeg(void * data, int stream,
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
   bg_mpv_get_format(&(e->video_streams[stream].mpv), ret);
-  fprintf(stderr, "get_video_format_mpeg\n");
+  //  fprintf(stderr, "get_video_format_mpeg\n");
   }
 
 static char * get_filename(e_mpeg_t * e, const char * extension, int is_audio)
@@ -226,9 +226,7 @@ static void write_audio_frame_mpeg(void * data, gavl_audio_frame_t* frame,
                                   int stream)
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
-  
   bg_mpa_write_audio_frame(&e->audio_streams[stream].mpa, frame);
-  
   }
 
 static void write_video_frame_mpeg(void * data, gavl_video_frame_t* frame,
@@ -266,19 +264,23 @@ static void close_mpeg(void * data, int do_delete)
     /* 2. Step: Build mplex commandline */
     
     if(!bg_search_file_exec("mplex", &commandline))
+      {
       fprintf(stderr, "Cannot find mplex");
-
+      return;
+      }
     /* Options */
 
-    tmp_string = bg_sprintf(" -f %d ", e->format);
+    tmp_string = bg_sprintf(" -f %d", e->format);
+    commandline = bg_strcat(commandline, tmp_string);
+    free(tmp_string);
     
     commandline = bg_strcat(commandline, " -v 0 -o \"");
+
+
     commandline = bg_strcat(commandline, e->filename);
     commandline = bg_strcat(commandline, "\"");
     
-    
     /* Audio and video streams */
-
     for(i = 0; i < e->num_video_streams; i++)
       {
       tmp_string = bg_sprintf(" \"%s\"", e->video_streams[i].filename);
@@ -291,21 +293,19 @@ static void close_mpeg(void * data, int do_delete)
       commandline = bg_strcat(commandline, tmp_string);
       free(tmp_string);
       }
-
+    /* Other streams */
     if(e->aux_stream_1)
       {
       tmp_string = bg_sprintf(" \"%s\"", e->aux_stream_1);
       commandline = bg_strcat(commandline, tmp_string);
       free(tmp_string);
       }
-    
     if(e->aux_stream_2)
       {
       tmp_string = bg_sprintf(" \"%s\"", e->aux_stream_2);
       commandline = bg_strcat(commandline, tmp_string);
       free(tmp_string);
       }
-
     if(e->aux_stream_3)
       {
       tmp_string = bg_sprintf(" \"%s\"", e->aux_stream_3);

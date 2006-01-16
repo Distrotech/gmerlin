@@ -235,6 +235,9 @@ void bg_mpv_adjust_framerate(gavl_video_format_t * format)
   double min_diff, test_diff;
   int min_index;
   int i;
+
+  //  fprintf(stderr, "adjust_framerate\n");
+  //  gavl_video_format_dump(format);
   
   /* Constant framerate */
   format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
@@ -255,8 +258,8 @@ void bg_mpv_adjust_framerate(gavl_video_format_t * format)
 
     test_diff = fabs(rate_d - test_rate_d);
 #if 0
-    fprintf(stderr, "Rate: %f, test_rate: %f, diff: %f\n",
-            rate_d, test_rate_d, test_diff);
+    fprintf(stderr, "Rate: %f [%d:%d] test_rate: %f, diff: %f\n",
+            rate_d, format->timescale, format->frame_duration, test_rate_d, test_diff);
 #endif 
     if(test_diff < min_diff)
       {
