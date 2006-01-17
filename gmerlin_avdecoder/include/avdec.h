@@ -497,41 +497,6 @@ bgav_options_set_user_pass_callback(bgav_options_t* opt,
                                     bgav_user_pass_callback callback,
                                     void * data);
 
-/* These will become active, when the next file is opened */
-
-/** \defgroup codec_paths Codec paths
- *  \brief Global configuration of codec paths
- *
- * For each kind of binary codecs we support, we have a function
- * to configure the path, where the codecs are.
- */
-
-/** \ingroup codec_paths
- *  \brief Set the codec path for Real DLLs
- *  \param path The new path.
- *
- * This can also be set via the environment variable GMERLIN_AVDEC_CODEC_PATH_REAL
- */
-
-void bgav_set_dll_path_real(const char * path);
-
-/** \ingroup codec_paths
- *  \brief Set the codec path for xanim DLLs
- *  \param path The new path.
- *
- * This can also be set via the environment variable GMERLIN_AVDEC_CODEC_PATH_XANIM
- */
-
-void bgav_set_dll_path_xanim(const char * path);
-
-/** \ingroup codec_paths
- *  \brief Set the codec path for win32 DLLs
- *  \param path The new path.
- *
- * This can also be set via the environment variable GMERLIN_AVDEC_CODEC_PATH_WIN32
- */
-
-void bgav_set_dll_path_win32(const char * path);
 
 /* Device description */
 

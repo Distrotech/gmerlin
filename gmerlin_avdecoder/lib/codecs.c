@@ -26,6 +26,9 @@
 #include <codecs.h>
 #include <pthread.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include <utils.h>
 
 // #define ENABLE_DEBUG
@@ -33,65 +36,94 @@
 static void codecs_lock();
 static void codecs_unlock();
 
-static void codecs_uninit();
+
+#if (HAVE_REALDLL || HAVE_XADLL || HAVE_W32DLL)
+static const char * find_directory(char ** dirs, const char * env_name)
+  {
+  struct stat st;
+  const char * env_dir;
+  int i;
+  i = 0;
+  while(dirs[i])
+    {
+    if(!stat(dirs[i], &st) && S_ISDIR(st.st_mode))
+      return dirs[i];
+    else
+      i++;
+    }
+  
+  if((env_dir = getenv(env_name)) && !stat(env_dir, &st) && S_ISDIR(st.st_mode))
+    return env_dir;
+    
+  return (char*)0;
+  }
+#endif
 
 #ifdef HAVE_REALDLL
 static const char * env_name_real = "GMERLIN_AVDEC_CODEC_PATH_REAL";
 
-void bgav_set_dll_path_real(const char * path)
+static char * real_dirs[] =
   {
-  codecs_lock();
+    "/usr/lib/codecs",
+    "/usr/lib/codecdlls",
+    "/usr/lib/win32",
+    (char*)0
+  };
+
+static void bgav_set_dll_path_real()
+  {
   if(bgav_dll_path_real)
     {
     free(bgav_dll_path_real);
     }
-  bgav_dll_path_real = bgav_strndup(path, NULL);
-  codecs_uninit();
-  codecs_unlock();
+  bgav_dll_path_real = bgav_strndup(find_directory(real_dirs, env_name_real), NULL);
   }
-#else
-void bgav_set_dll_path_real(const char * path) { }
 #endif
 
 #ifdef HAVE_XADLL
-
 static const char * env_name_xanim =  "GMERLIN_AVDEC_CODEC_PATH_XANIM";
 
-void bgav_set_dll_path_xanim(const char * path)
+static char * xanim_dirs[] =
   {
-  codecs_lock();
+    "/usr/lib/codecs",
+    "/usr/lib/codecdlls",
+    "/usr/lib/win32",
+    (char*)0
+  };
+
+static void bgav_set_dll_path_xanim()
+  {
   if(bgav_dll_path_xanim)
     {
     free(bgav_dll_path_xanim);
     }
-  bgav_dll_path_xanim = bgav_strndup(path, NULL);
-
-  codecs_uninit();
-  codecs_unlock();
+  bgav_dll_path_xanim = bgav_strndup(find_directory(xanim_dirs, env_name_xanim), NULL);
   }
-#else
-void bgav_set_dll_path_xanim(const char * path) {}
 #endif
 
 #ifdef HAVE_W32DLL
 static const char * env_name_win32 = "GMERLIN_AVDEC_CODEC_PATH_WIN32";
 
+static char * win32_dirs[] =
+  {
+    "/usr/lib/codecs",
+    "/usr/lib/codecdlls",
+    "/usr/lib/win32",
+    (char*)0
+  };
+  
 static int win_path_needs_delete = 0;
 
-void bgav_set_dll_path_win32(const char * path)
+static void bgav_set_dll_path_win32()
   {
-  codecs_lock();
   if(win_path_needs_delete)
     {
     free(win32_def_path);
     }
-  win32_def_path = bgav_strndup(path, (char*)0);
-  win_path_needs_delete = 1;
-  codecs_uninit();
-  codecs_unlock();
+  win32_def_path = bgav_strndup(find_directory(win32_dirs, env_name_win32), NULL);
+  if(win32_def_path)
+    win_path_needs_delete = 1;
   }
-#else
-void bgav_set_dll_path_win32(const char * path) {}
 #endif
 
 /* Simple codec registry */
@@ -111,15 +143,6 @@ static int num_video_codecs = 0;
 static pthread_mutex_t codec_mutex;
 static int mutex_initialized = 0;
 
-static void codecs_uninit()
-  {
-  //  fprintf(stderr, "codecs_uninit\n");
-  audio_decoders = (bgav_audio_decoder_t*)0;
-  video_decoders = (bgav_video_decoder_t*)0;
-  codecs_initialized = 0;
-  num_audio_codecs = 0;
-  num_video_codecs = 0;
-  }
 
 static void codecs_lock()
   {
@@ -176,17 +199,35 @@ void bgav_codecs_dump()
  *  how to set up their systems
  */
 
-static void print_error_nopath(const char * name, const char * env_name)
+static void print_dirs(char ** dirs)
   {
-  fprintf(stderr, "Didn't find path for %s\n", name);
-  fprintf(stderr, "Configure it in the application or via the environment variable\n%s\n\n",
-          env_name);
+  int i = 0;
+  
+  fprintf(stderr, "\n");
+  while(dirs[i])
+    {
+    fprintf(stderr, "%s\n", dirs[i]);
+    i++;
+    }
+  fprintf(stderr, "\n");
   }
 
-static void print_error_nofile(const char * name, const char * env_name)
+static void print_error_nopath(const char * name, const char * env_name, char ** dirs)
+  {
+  
+  fprintf(stderr, "Didn't find path for %s\n", name);
+  fprintf(stderr, "Install it in one of the following directories:\n");
+  print_dirs(dirs);
+  
+  fprintf(stderr, "or set the environment variable %s\n\n", env_name);
+  }
+
+static void print_error_nofile(const char * name, const char * env_name, char ** dirs)
   {
   fprintf(stderr, "Didn't find some %s\n", name);
-  fprintf(stderr, "Configure codec paths in the application or via the environment variable\n%s\n\n",
+  fprintf(stderr, "Install them in one of the following directories:\n");
+  print_dirs(dirs);
+  fprintf(stderr, "Or set the the environment variable %s\n\n",
           env_name);
   }
 
@@ -249,63 +290,59 @@ void bgav_codecs_init()
   
 #ifdef HAVE_XADLL
 
+  bgav_set_dll_path_xanim();
+
   if(!bgav_dll_path_xanim)
-    bgav_dll_path_xanim = bgav_strndup(getenv(env_name_xanim), NULL);
-  
-  if(!bgav_dll_path_xanim)
-    print_error_nopath("Xanim dlls", env_name_xanim);
+    print_error_nopath("Xanim dlls", env_name_xanim, xanim_dirs);
   else
     {
     if(!bgav_init_video_decoders_xadll())
       {
-      print_error_nofile("Xanim dlls", env_name_xanim);
+      print_error_nofile("Xanim dlls", env_name_xanim, xanim_dirs);
       }
     }
 #endif
 
 #ifdef HAVE_REALDLL
-  if(!bgav_dll_path_real)
-    bgav_dll_path_real = bgav_strndup(getenv(env_name_real), NULL);
+  
+  bgav_set_dll_path_real();
 
   if(!bgav_dll_path_real)
-    print_error_nopath("Real DLLs", env_name_real);
+    print_error_nopath("Real DLLs", env_name_real, real_dirs);
   else
     {
     if(!bgav_init_video_decoders_real())
       {
-      print_error_nofile("Real video DLLs", env_name_real);
+      print_error_nofile("Real video DLLs", env_name_real, real_dirs);
       }
     if(!bgav_init_audio_decoders_real())
       {
-      print_error_nofile("Real audio DLLs", env_name_real);
+      print_error_nofile("Real audio DLLs", env_name_real, real_dirs);
       }
     }
 #endif
 
 #ifdef HAVE_W32DLL
   
-  if(!win_path_needs_delete || !win32_def_path)
-    {
-    win32_def_path = bgav_strndup(getenv(env_name_win32), NULL);
-    //    fprintf(stderr, "Init codecs: %s\n", win32_def_path);
-    win_path_needs_delete = 1;
-    }
+  bgav_set_dll_path_win32();
 
-  if(!win32_def_path)
-    print_error_nopath("Win32 DLLs", env_name_win32);
+  if(!win_path_needs_delete)
+    {
+    print_error_nopath("Win32 DLLs", env_name_win32, win32_dirs);
+    }
   else
     {
     if(!bgav_init_video_decoders_win32())
       {
-      print_error_nofile("Win32 video DLLs", env_name_win32);
+      print_error_nofile("Win32 video DLLs", env_name_win32, win32_dirs);
       }
     if(!bgav_init_audio_decoders_win32())
       {
-      print_error_nofile("Win32 audio DLLs", env_name_win32);
+      print_error_nofile("Win32 audio DLLs", env_name_win32, win32_dirs);
       }
     if(!bgav_init_audio_decoders_qtwin32())
       {
-      print_error_nofile("Win32 Quicktime audio DLLs", env_name_win32);
+      print_error_nofile("Win32 Quicktime audio DLLs", env_name_win32, win32_dirs);
       }
     }
   

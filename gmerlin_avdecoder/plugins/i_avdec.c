@@ -83,29 +83,6 @@ static int open_avdec(void * priv, const char * location)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:       "codec_paths",
-      long_name:  "Codec Paths",
-      type:       BG_PARAMETER_SECTION,
-    },
-    {
-      name:        "codec_path_real",
-      long_name:   "Real DLLs",
-      type:        BG_PARAMETER_DIRECTORY,
-      val_default: { val_str: (char*)0 }
-    },
-    {
-      name:        "codec_path_win32",
-      long_name:   "Win32 DLLs",
-      type:        BG_PARAMETER_DIRECTORY,
-      val_default: { val_str: (char*)0 }
-    },
-    {
-      name:        "codec_path_xanim",
-      long_name:   "Xanim DLLs",
-      type:        BG_PARAMETER_DIRECTORY,
-      val_default: { val_str: (char*)0 }
-    },
-    {
       name:       "network_options",
       long_name:  "Network options",
       type:       BG_PARAMETER_SECTION
