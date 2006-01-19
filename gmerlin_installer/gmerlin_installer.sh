@@ -50,11 +50,14 @@ GMERLIN_DEPENDENCIES_PACKETS_NAME="gmerlin-dependencies-$DATE"
 BASE="yum apt-get"
 BASE_HELP="rpm dpkg"
 TOOLS="tar grep wget findutils"
-APT_LIBS_1="gcc g++ autoconf automake1.9 zlib1g-dev libtiff4-dev libpng12-dev libjpeg62-dev libgtk2.0-dev libvorbis-dev"
-APT_LIBS_2="libxml2-dev libesd0-dev libxinerama-dev libxv-dev libflac-dev libsmbclient-dev libxxf86vm-dev"
-YUM_LIBS_1="alsa-lib-devel autoconf automake esound-devel flac-devel gcc gcc-c++ gtk+-devel gtk2-devel libjpeg-devel"
-YUM_LIBS_2="libpng-devel libtiff-devel libvorbis-devel libxml2-devel samba-common xmms-devel xorg-x11-devel zlib-devel"
 
+APT_LIBS_OPTI="libtiff4-dev libpng12-dev libjpeg62-dev libgtk2.0-dev libvorbis-dev libesd0-dev"
+APT_LIBS_NEED="libasound2-dev zlib1g-dev libxml2-dev libxinerama-dev libxv-dev libflac-dev libsmbclient-dev libxxf86vm-dev"
+APT_LIBS_IMPO="gcc g++ autoconf automake1.9"
+
+YUM_LIBS_OPTI="libpng-devel libtiff-devel libvorbis-devel esound-devel flac-devel libjpeg-devel"
+YUM_LIBS_NEED="alsa-lib-devel libxml2-devel samba-common xmms-devel xorg-x11-devel zlib-devel gtk+-devel gtk2-devel"
+YUM_LIBS_IMPO="gcc gcc-c++ autoconf automake "
 
                                         ###### Define COLORS and POSITIONS ######
 
@@ -189,10 +192,10 @@ function PRINT_COMMENT_2_LINE_FUNC()
     echo -e "$POSITION_HEADLINE_COMMENT_2$COL_YEL$1$COL_DEF";
 }
 
-# $1 = INFO_LINE TEXT
+# $1 = INFO_LINE TEXT ; $2 = EXTRA TEXT
 function PRINT_INFO_LINE_FUNC()
 {
-    echo -ne "$COL_DEF$POSITION_INFO$1:$COL_DEF";
+    echo -ne "$COL_DEF$POSITION_INFO$1:$2$COL_DEF";
 }
 
 # $1 = ERROR_LINE TEXT ; $2 = ECHO OPTION
@@ -265,6 +268,42 @@ function TAKE_PACKETS_FUNC()
     READY_FUNC
     if test $? != 0 ; then return 1 ; fi  
     return 0
+}
+
+# $1 = COLUM STRING 1  ;   $2 = POSITION FROM LEFT STRING 1   ;  $3 = ILLUSTRATION FOR STRING 1 
+# $4 = COLUM STRING 2  ;   $5 = POSITION FROM LEFT STRING 2   ;  $6 = ILLUSTRATION FOR STRING 2
+function PRINT_DOUBLE_LINE_FUNC()
+{
+LENGHT_COL_1=1
+LENGHT_COL_2=1
+
+for i in $1
+  do
+  echo -e "$2$i$3"
+  let LENGHT_COL_1=$LENGHT_COL_1+1
+done
+
+BACK_TO_START=$LENGHT_COL_1"A"
+
+echo -e "\033[$BACK_TO_START"
+
+for i in $4
+  do
+  echo -e "$5$i$6"
+  let LENGHT_COL_2=$LENGHT_COL_2+1
+done
+
+if [ "$LENGHT_COL_2" -lt "$LENGHT_COL_1" ]
+  then
+  let REST=$LENGHT_COL_1-$LENGHT_COL_2
+  for i in `seq 1 $REST`; do
+     echo
+  done
+else
+  let REST=$LENGHT_COL_2-$LENGHT_COL_1
+  BACK_TO_START=$REST"A"
+  echo -e "\033[$BACK_TO_START"
+fi
 }
 
 
@@ -541,12 +580,12 @@ fi
 ############################################### CHECK AND INSTALL SYSTEM TOOLS ##############################################################
 
 					     # PAGE TITLE_LINE AFTER WELCOME #
-PRINT_PAGE_HEAD_LINE_FUNC "Check and install the System librarys" "-e"
+PRINT_PAGE_HEAD_LINE_FUNC "Check and/or install the System librarys" "-e"
 
 
 					    # Define MACKER for this funktion #
 ERROR=""                ;            ERROR_SAVE=""       ;        DUMP=false   
- 
+
                                              # Begin with the CHECKING tools #
 PRINT_HEAD_LINE_FUNC "Check the System SYSTEM librarys:"
 if [ "$ANSWER" = true ]
@@ -556,23 +595,123 @@ if [ "$ANSWER" = true ]
     if [ "$MANAGER" = "" -a "$PACKET_TOOL" = "" ]
 	then
 	PRINT_COMMENT_2_LINE_FUNC "No Packet Manager like YUM/APT-GET and no Packet Tool like RPM/DPKG found."
-	PRINT_COMMENT_2_LINE_FUNC "The Script does not check/install the library, pleace look at the following list"
-	PRINT_COMMENT_2_LINE_FUNC "and find out and install the right librarys for your System."
+	PRINT_COMMENT_2_LINE_FUNC "The Script does not check/install the library, pleace look at the"
+	PRINT_COMMENT_2_LINE_FUNC "following list and find out and install the right librarys for your System."
 	PRINT_NEW_LINE_FUNC 1
-	
-	
+	PRINT_COMMENT_2_LINE_FUNC "\033[1C$COL_BLU UBUNTU: \033[31C$COL_BLU FEDORA:"
+	PRINT_DOUBLE_LINE_FUNC "$APT_LIBS_IMPO" "\033[5C"  "$COL_RED\r\033[25C( important )$COL_DEF" "$YUM_LIBS_IMPO" "\033[45C" "$COL_RED\r\033[65C( important )$COL_DEF"
+	PRINT_DOUBLE_LINE_FUNC "$APT_LIBS_NEED" "\033[5C"  "$COL_YEL\r\033[25C( needed )$COL_DEF" "$YUM_LIBS_NEED" "\033[45C" "$COL_YEL\r\033[65C( needed )$COL_DEF"
+	PRINT_DOUBLE_LINE_FUNC "$APT_LIBS_OPTI" "\033[5C"  "$COL_GRE\r\033[25C( optional )$COL_DEF" "$YUM_LIBS_OPTI" "\033[45C" "$COL_GRE\r\033[65C( optional )$COL_DEF"
+	PRINT_ERROR_MESSAGE_LINE_FUNC "Install it jet and go on? $YES_NO" "-ne"
+	AUTO_INSTALL_FUNC ; YES_NO_FUNC ; HAND=true
+	if [ "$ANSWER" = false ] ; then PRINT_NEW_LINE_FUNC 2 ; exit ; fi
 # YES MANAGER && YES PACKET_TOOL
-    elif [ "$MANAGER" != " " -a "$PACKET_TOOL" != " " ]
+    elif [ "$MANAGER" != "" -a "$PACKET_TOOL" != "" ]
 	then
 	echo "YES MANAGER && YES PACKET_TOOL"
 # YES MANAGER && NO PACKET_TOOL
-    elif [ "$MANAGER" != " " -a "$PACKET_TOOL" = " " ]
+    elif [ "$MANAGER" != "" -a "$PACKET_TOOL" = "" ]
 	then
-	echo "YES MANAGER && NO PACKET_TOOL"
+	PRINT_COMMENT_2_LINE_FUNC "No Packet Tool like RPM/DPKG found, about this we can only install"
+	PRINT_COMMENT_2_LINE_FUNC "the following Packets. ( This can take a little bit longer )"
+	if [ "$MANAGER" = "apt-get" ]
+	    then
+	    for i in $APT_LIBS_IMPO
+		do
+		PRINT_INFO_LINE_FUNC "$i" "$COL_RED\r\033[25C( import )$COL_DEF "
+		TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
+		if test $? = 0 
+		    then
+		    DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
+		    echo -e "$OK"
+		else
+		    ERROR_SAVE=true
+		    cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+		    echo -e "$FAIL"
+		fi
+	    done
+	    for i in $APT_LIBS_NEED
+		do
+		PRINT_INFO_LINE_FUNC "$i" "$COL_YEL\r\033[25C( needed )$COL_DEF"
+		TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
+		if test $? = 0 
+		    then
+		    DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
+		    echo -e "$OK"
+		else
+		    ERROR_SAVE=true
+		    cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+		    echo -e "$FAIL"
+		fi
+	    done
+	    for i in $APT_LIBS_OPTI
+		do
+		PRINT_INFO_LINE_FUNC "$i" "$COL_GRE\r\033[25C( option )$COL_DEF"
+		TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
+		if test $? = 0 
+		    then
+		    DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
+		    echo -e "$OK"
+		else
+		    ERROR_SAVE=true
+		    cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+		    echo -e "$FAIL"
+		fi
+	    done
+	elif [ "$MANAGER" = "yum" ]
+	    then
+	    for i in $YUM_LIBS_IMPO
+		do
+		PRINT_INFO_LINE_FUNC "$i" "$COL_RED\r\033[25C( import )$COL_DEF "
+		TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
+		if test $? = 0 
+		    then
+		    DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
+		    echo -e "$OK"
+		else
+		    ERROR_SAVE=true
+		    cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+		    echo -e "$FAIL"
+		fi
+	    done
+	    for i in $YUM_LIBS_NEED
+		do
+		PRINT_INFO_LINE_FUNC "$i" "$COL_YEL\r\033[25C( needed )$COL_DEF"
+		TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
+		if test $? = 0 
+		    then
+		    DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
+		    echo -e "$OK"
+		else
+		    ERROR_SAVE=true
+		    cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+		    echo -e "$FAIL"
+		fi
+	    done
+	    for i in $YUM_LIBS_OPTI
+		do
+		PRINT_INFO_LINE_FUNC "$i" "$COL_GRE\r\033[25C( option )$COL_DEF"
+		TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
+		if test $? = 0 
+		    then
+		    DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
+		    echo -e "$OK"
+		else
+		    ERROR_SAVE=true
+		    cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+		    echo -e "$FAIL"
+		fi
+	    done
+	else
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH FATAL ERROR: unknown manager or packet tool $COL_DEF" "-e"
+	fi
 # NO MANAGER && YES PACKET_TOOL
-    elif [ "$MANAGER" = " " -a "$PACKET_TOOL" != " " ]
+    elif [ "$MANAGER" = "" -a "$PACKET_TOOL" != "" ]
 	then
-	echo "NO MANAGER && YES PACKET_TOOL"
+	PRINT_COMMENT_2_LINE_FUNC "No Packet Manager like YUM/APT-GET found, about this we can only check"
+	PRINT_COMMENT_2_LINE_FUNC "the following Packets. Pleace install the failed Packets from Hand."
+	PRINT_NEW_LINE_FUNC 1
+	
     else
 	PRINT_NEW_LINE_FUNC 1
  	PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH FATAL ERROR: unknown manager or packet tool $COL_DEF" "-e"
