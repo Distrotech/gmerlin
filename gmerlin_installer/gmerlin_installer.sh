@@ -30,7 +30,7 @@ GMERLIN_DEPENDENCIES_PACKETS_NAME="gmerlin-dependencies-$DATE"
                                               # Define the PACKS how need #
 BASE="yum apt-get"
 BASE_HELP="rpm dpkg"
-TOOLS="tar grep automake15-1.5-13 wget findutils"
+TOOLS="tar grep wget findutils"
 APT_LIBS_1="gcc g++ autoconf automake1.9 zlib1g-dev libtiff4-dev libpng12-dev libjpeg62-dev libgtk2.0-dev libvorbis-dev"
 APT_LIBS_2="libxml2-dev libesd0-dev libxinerama-dev libxv-dev libflac-dev libsmbclient-dev libxxf86vm-dev"
 YUM_LIBS_1="alsa-lib-devel autoconf automake esound-devel flac-devel gcc gcc-c++ gtk+-devel gtk2-devel libjpeg-devel"
@@ -335,8 +335,7 @@ ERROR=""                ;            ERROR_SAVE=""
 MANAGER=""              ;            PACKET_TOOL=""
  
                                              # Begin with the CHECKING tools #
-PRINT_HEAD_LINE_FUNC "Chech the System BASE tools:"
-
+PRINT_HEAD_LINE_FUNC "Check the System BASE tools:"
 if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(We hope to found yum && rpm or apt-get && dpkg)"
@@ -404,8 +403,7 @@ fi
 ERROR=""                ;            ERROR_SAVE=""       ;        DUMP=false   
  
                                              # Begin with the CHECKING tools #
-PRINT_HEAD_LINE_FUNC "Chech the System SYSTEM tools:"
-
+PRINT_HEAD_LINE_FUNC "Check the System SYSTEM tools:"
 if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(This Tools are needed for running this Script)"
@@ -431,7 +429,7 @@ if [ "$ANSWER" = true ]
       fi
     done
     
-                                                  # If error SEND user Message #
+                                               # If error SEND user Message #
     if [ "$ERROR" != "" ]
 	then
 	PRINT_NEW_LINE_FUNC 1
@@ -456,56 +454,96 @@ if [ "$ANSWER" = true ]
 		if [ "$ANSWER" = false ] ; then PRINT_NEW_LINE_FUNC 2 ; exit ; fi
 	    fi
 	fi
-    fi
-
+	
                                                  # Check BASE tools too #
-    ERROR_SAVE=""
-    if [ "$HAND" = true ]
-	then
+	ERROR_SAVE=""
 	PRINT_NEW_LINE_FUNC 1
-        for i in $ERROR
-	    do
-	    PRINT_INFO_LINE_FUNC "$i"
-	    if [ "$i" = "findutils" ]
-		then
-		DUMP=`which find 2> $LOGS/BUG_$i`
-	    else
-		DUMP=`which $i 2> $LOGS/BUG_$i`
-	    fi
-	    if test $? = 0 
-		then
-		DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
-		echo -e "$OK"
-	    else
-		ERROR_SAVE=true
-		cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
-		echo -e "$FAIL"
-	    fi
-	done
-    else
-	PRINT_NEW_LINE_FUNC 1
-        for i in $ERROR
-	    do
-	    PRINT_INFO_LINE_FUNC "$i"
-	    TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
-	    if test $? = 0 
-		then
-		DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
-		echo -e "$OK"
-	    else
-		ERROR_SAVE=true
-		cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
-		echo -e "$FAIL"
-	    fi
-	done
+	if [ "$HAND" = true ]
+	    then
+	    for i in $ERROR
+	      do
+	      PRINT_INFO_LINE_FUNC "check too $i"
+	      if [ "$i" = "findutils" ]
+		  then
+		  DUMP=`which find 2> $LOGS/BUG_$i`
+	      else
+		  DUMP=`which $i 2> $LOGS/BUG_$i`
+	      fi
+	      if test $? = 0 
+		  then
+		  DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
+		  echo -e "$OK"
+	      else
+		  ERROR_SAVE=true
+		  cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+		  echo -e "$FAIL"
+	      fi
+	    done
+	else
+	    for i in $ERROR
+	      do
+	      PRINT_INFO_LINE_FUNC "$MANAGER $i"
+	      TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
+	      if test $? = 0 
+		  then
+		  DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
+		  echo -e "$OK"
+	      else
+		  ERROR_SAVE=true
+		  cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+		  echo -e "$FAIL"
+	      fi
+	    done
+	fi
     fi
-
+    
                                                  # If ERROR too #
     if [ "$ERROR_SAVE" != "" ]
 	then
 	PRINT_NEW_LINE_FUNC 1
  	PRINT_ERROR_MESSAGE_LINE_FUNC "On the System we doesn't found all needed Packets:" "-e"
  	PRINT_ERROR_MESSAGE_LINE_FUNC "Please look at$COL_RED_HIGH BUG_* files$COL_DEF$COL_RED to find the error and restart the script" "-e"
+	PRINT_NEW_LINE_FUNC 2
+	exit
+    fi
+fi
+
+
+
+
+############################################### CHECK AND INSTALL SYSTEM TOOLS ##############################################################
+
+					     # PAGE TITLE_LINE AFTER WELCOME #
+PRINT_PAGE_HEAD_LINE_FUNC "Check and install the System librarys" "-e"
+
+
+					    # Define MACKER for this funktion #
+ERROR=""                ;            ERROR_SAVE=""       ;        DUMP=false   
+ 
+                                             # Begin with the CHECKING tools #
+PRINT_HEAD_LINE_FUNC "Check the System SYSTEM librarys:"
+if [ "$ANSWER" = true ]
+    then
+    PRINT_COMMENT_LINE_FUNC "(This librarys are need for the gmerlin installation)"
+# NO MANAGER && NO PACKET_TOOL
+    if [ "$MANAGER_HELP" = " " -a "$PACKET_TOOL" = " " ]
+	then
+	echo "NO MANAGER && NO PACKET_TOOL"
+# YES MANAGER && YES PACKET_TOOL
+    elif [ "$MANAGER_HELP" != " " -a "$PACKET_TOOL" != " " ]
+	then
+	echo "YES MANAGER && YES PACKET_TOOL"
+# YES MANAGER && NO PACKET_TOOL
+    elif [ "$MANAGER_HELP" != " " -a "$PACKET_TOOL" = " " ]
+	then
+	echo "YES MANAGER && NO PACKET_TOOL"
+# NO MANAGER && YES PACKET_TOOL
+    elif [ "$MANAGER_HELP" = " " -a "$PACKET_TOOL" != " " ]
+	then
+	echo "NO MANAGER && YES PACKET_TOOL"
+    else
+	PRINT_NEW_LINE_FUNC 1
+ 	PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH FATAL ERROR: unknown manager or packet tool $COL_DEF" "-e"
 	PRINT_NEW_LINE_FUNC 2
 	exit
     fi
