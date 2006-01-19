@@ -1,5 +1,24 @@
 #!/bin/sh
 clear
+##################################################################
+# 
+#  gmerlin_installer.sh
+# 
+#  Copyright (c) 2006 by Michael Gruenert - one78@web.de
+# 
+#  http://gmerlin.sourceforge.net
+# 
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+# 
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+#
+################################################################## 
+
 
 
 
@@ -47,11 +66,12 @@ COL_YEL="\033[33m"    ;    COL_YEL_HIGH="\033[33;1m"    ;    COL_YEL_LINE="\033[
 COL_BLU="\033[34m"    ;    COL_BLU_HIGH="\033[34;1m"    ;    COL_BLU_LINE="\033[34;4m"    ;    COL_BLU_LINE_HIGH="\033[34;4;1m"
 
                                              # Define the POSITION strings #
-POSITION_INFO="\033[3C"                     ;          POSITION_HEADLINE="\n\033[1C"
-POSITION_HEADLINE_COMMENT="\033[2C"         ;          POSITION_STATUS="\r\033[56C"
-POSITION_DISKRIPTION="\r\033[55C"           ;          YES_NO_EXIT_CLEAR="\033[1A$POSITION_DISKRIPTION\033[K"
+POSITION_HEADLINE="\n\033[1C"               ;          POSITION_HEADLINE_COMMENT="\033[2C"
+POSITION_HEADLINE_COMMENT_2="\033[3C"       ;          POSITION_INFO="\033[4C"       
+POSITION_STATUS="\r\033[56C"                ;          POSITION_DISKRIPTION="\r\033[55C"
 POSITION_PAGE_HEAD_LINE="\033[15C"          ;          POSITION_PAGE_COMMENT_LINE="\033[5C"
-
+YES_NO_EXIT_CLEAR="\033[1A$POSITION_DISKRIPTION\033[K"
+ 
 					     # Generate the INFORMATION strings #
 OK="$POSITION_STATUS[ $COL_GRE_HIGH OK $COL_DEF ]"
 YES_NO_EXIT="$COL_DEF$POSITION_DISKRIPTION[ \033[32;1mY\033[0mES,\033[31;1mN\033[0mO,E\033[33;1mX\033[0mIT ]\033[5C Y\033[1D"
@@ -161,6 +181,12 @@ function PRINT_HEAD_LINE_FUNC()
 function PRINT_COMMENT_LINE_FUNC()
 {
     echo -e "$POSITION_HEADLINE_COMMENT$COL_YEL$1$COL_DEF";
+}
+
+# $1 = COMMENT_LINE TEXT
+function PRINT_COMMENT_2_LINE_FUNC()
+{
+    echo -e "$POSITION_HEADLINE_COMMENT_2$COL_YEL$1$COL_DEF";
 }
 
 # $1 = INFO_LINE TEXT
@@ -319,7 +345,7 @@ if [ "$AUTO_CHECK" = false ]
     then
     PRINT_NEW_LINE_FUNC 1
     PRINT_PAGE_COMMENT_LINE_FUNC "Ready to install Gmerlin: $POSITION_DISKRIPTION$YES_NO" "-ne" 
-    AUTO_CHECK_FUNC      ;      YES_NO_FUNC
+    AUTO_CHECK_FUNC ; YES_NO_FUNC ; if [ "$ANSWER" = false ] ; then	PRINT_NEW_LINE_FUNC 2 ; exit ; fi
 fi
 
 					    # PAGE TITLE_LINE AFTER WELCOME #
@@ -356,6 +382,7 @@ if [ "$ANSWER" = true ]
 	  echo -e "$FAIL"
       fi
     done
+    
                                                  # Check BASE_HELP tools #
     for i in $BASE_HELP
       do
@@ -384,13 +411,13 @@ if [ "$ANSWER" = true ]
 	    then
 	    PRINT_ERROR_MESSAGE_LINE_FUNC "Go on the installation? $YES_NO" "-ne"
 	    AUTO_INSTALL_FUNC ; YES_NO_FUNC
+	    if [ "$ANSWER" = false ] ; then	PRINT_NEW_LINE_FUNC 2 ; exit ; fi
 	else
 	    PRINT_NEW_LINE_FUNC 1
 	    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH Without an Packet Manager, auto install does not go" "-ne"
 	    PRINT_NEW_LINE_FUNC 2
 	    exit
 	fi
-	if [ "$ANSWER" = false ] ; then	PRINT_NEW_LINE_FUNC 2 ; exit ; fi
     fi
 fi
 
@@ -526,19 +553,24 @@ if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(This librarys are need for the gmerlin installation)"
 # NO MANAGER && NO PACKET_TOOL
-    if [ "$MANAGER_HELP" = " " -a "$PACKET_TOOL" = " " ]
+    if [ "$MANAGER" = "" -a "$PACKET_TOOL" = "" ]
 	then
-	echo "NO MANAGER && NO PACKET_TOOL"
+	PRINT_COMMENT_2_LINE_FUNC "No Packet Manager like YUM/APT-GET and no Packet Tool like RPM/DPKG found."
+	PRINT_COMMENT_2_LINE_FUNC "The Script does not check/install the library, pleace look at the following list"
+	PRINT_COMMENT_2_LINE_FUNC "and find out and install the right librarys for your System."
+	PRINT_NEW_LINE_FUNC 1
+	
+	
 # YES MANAGER && YES PACKET_TOOL
-    elif [ "$MANAGER_HELP" != " " -a "$PACKET_TOOL" != " " ]
+    elif [ "$MANAGER" != " " -a "$PACKET_TOOL" != " " ]
 	then
 	echo "YES MANAGER && YES PACKET_TOOL"
 # YES MANAGER && NO PACKET_TOOL
-    elif [ "$MANAGER_HELP" != " " -a "$PACKET_TOOL" = " " ]
+    elif [ "$MANAGER" != " " -a "$PACKET_TOOL" = " " ]
 	then
 	echo "YES MANAGER && NO PACKET_TOOL"
 # NO MANAGER && YES PACKET_TOOL
-    elif [ "$MANAGER_HELP" = " " -a "$PACKET_TOOL" != " " ]
+    elif [ "$MANAGER" = " " -a "$PACKET_TOOL" != " " ]
 	then
 	echo "NO MANAGER && YES PACKET_TOOL"
     else
@@ -548,3 +580,4 @@ if [ "$ANSWER" = true ]
 	exit
     fi
 fi
+
