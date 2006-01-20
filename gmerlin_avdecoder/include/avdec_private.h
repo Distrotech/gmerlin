@@ -618,6 +618,8 @@ bgav_input_context_t * bgav_input_create(bgav_options_t * opt);
 
 void bgav_input_skip_dump(bgav_input_context_t *, int);
 
+void bgav_input_get_dump(bgav_input_context_t *, int);
+
 void bgav_input_seek(bgav_input_context_t * ctx,
                      int64_t position,
                      int whence);

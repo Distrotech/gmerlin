@@ -203,13 +203,13 @@ static bgav_http_t * do_connect(const char * host, int port, const bgav_options_
     goto fail;
   
   //  bgav_http_header_send(request_header, ret->fd);
-  fprintf(stderr, "Request sent\n");
+  //  fprintf(stderr, "Request sent\n");
 
-  bgav_http_header_dump(request_header);
+  //  bgav_http_header_dump(request_header);
   
   if(extra_header)
     {
-    bgav_http_header_dump(extra_header);
+    //    bgav_http_header_dump(extra_header);
     if(!bgav_http_header_send(extra_header, ret->fd, error_msg))
       goto fail;
     }
@@ -220,8 +220,8 @@ static bgav_http_t * do_connect(const char * host, int port, const bgav_options_
   
   bgav_http_header_revc(ret->header, ret->fd, ret->opt->connect_timeout);
 
-  fprintf(stderr, "Got http header:\n");
-  bgav_http_header_dump(ret->header);
+  //  fprintf(stderr, "Got http header:\n");
+  //  bgav_http_header_dump(ret->header);
   return ret;
   
   fail:

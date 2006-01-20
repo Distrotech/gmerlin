@@ -37,34 +37,27 @@ typedef struct
 
 static bgav_yml_node_t * parse_node(parser_t * p, int * is_comment);
 
-
-#define BYTES_TO_READ 32
-
 static int more_data(parser_t * p)
   {
   int bytes_read = 0;
-  //  fprintf(stderr, "more_data...");
+  //  fprintf(stderr, "more_data %lld %lld %d...", p->input->position,
+  //          p->input->total_bytes, p->input->buffer_size);
   while(1)
     {
     if(!bgav_input_read_line(p->input, &(p->buffer), &(p->buffer_alloc), p->buffer_size))
       {
-      //      fprintf(stderr, "more_data done\n");
+      //      fprintf(stderr, "more_data done %d\n", bytes_read);
       return bytes_read;
       }
     bytes_read = strlen(p->buffer + p->buffer_size);
     p->buffer_size += bytes_read;
     if(bytes_read)
       {
-      //      fprintf(stderr, "more_data done\n");
+      //      fprintf(stderr, "more_data done %d\n", bytes_read);
       return bytes_read;
       }
     }
-
-  //  if(!bytes_read)
-  //    return 0;
-  
-
-  return 1;
+  return 0; /* Never get here */
   }
 
 static void advance(parser_t * p, int bytes)

@@ -145,6 +145,7 @@ struct bgav_mms_s
   uint8_t * cmd_data_write;
   };
 
+#if 0
 static void mms_dump(bgav_mms_t * mms)
   {
   PRINT_STRING("Server Version:           ", mms->server_version);
@@ -152,7 +153,7 @@ static void mms_dump(bgav_mms_t * mms)
   PRINT_STRING("Update URL:               ", mms->update_url);
   PRINT_STRING("Password Encryption Type: ", mms->password_encryption_type);
   }
-
+#endif
 static void set_command_header(bgav_mms_t * mms, int command,
                                uint32_t switches,
                                uint32_t extra, int length)
@@ -715,7 +716,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
     *error_msg = bgav_sprintf("mms: Read header failed");
     goto fail;
     }
-  mms_dump(ret);
+  //  mms_dump(ret);
 
   bgav_charset_converter_destroy(ascii_2_utf16);
   bgav_charset_converter_destroy(utf16_2_utf8);

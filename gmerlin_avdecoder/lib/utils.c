@@ -317,7 +317,10 @@ int bgav_read_data_fd(int fd, uint8_t * ret, int len, int milliseconds)
   struct timeval timeout;
 
   int flags = 0;
-//  if(milliseconds < 0)
+
+  //  fprintf(stderr, "bgav_read_data_fd: %d %d\n", milliseconds, len);
+
+  //  if(milliseconds < 0)
   //    flags = MSG_WAITALL;
   
   while(bytes_read < len)
@@ -330,23 +333,25 @@ int bgav_read_data_fd(int fd, uint8_t * ret, int len, int milliseconds)
       timeout.tv_sec  = milliseconds / 1000;
       timeout.tv_usec = (milliseconds % 1000) * 1000;
     
-      if(select (fd+1, &rset, NULL, NULL, &timeout) <= 0)
+      if((result = select (fd+1, &rset, NULL, NULL, &timeout)) <= 0)
         {
+        //        fprintf(stderr, "select returned %d\n", result);
         return bytes_read;
         }
+      //      fprintf(stderr, "select returned %d\n", result);
       }
 
     result = recv(fd, ret + bytes_read, len - bytes_read, flags);
+    //    fprintf(stderr, "recv returned %d\n", result);
+    
     if(result > 0)
       bytes_read += result;
     else if(result <= 0)
       {
-      //      fprintf(stderr, "recv returned %d\n", result);
-      return 0;
+      return bytes_read;
       }
     }
-  return 
-    bytes_read;
+  return bytes_read;
   }
 
 /* Break string into substrings separated by spaces */

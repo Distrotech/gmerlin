@@ -19,6 +19,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <avdec_private.h>
 #include <http.h>
@@ -398,7 +399,7 @@ static int do_read(bgav_input_context_t* ctx,
     while(bytes_read < len)
       {
       /* Read data chunk */
-            
+      
       bytes_to_read = len - bytes_read;
 
       if(p->icy_bytes + bytes_to_read > p->icy_metaint)
@@ -434,7 +435,7 @@ static int read_http(bgav_input_context_t* ctx,
   int result;
   //  fprintf(stderr, "Do read..");
   result = do_read(ctx, buffer, len, 1);
-  //  fprintf(stderr, "result: %d", result);
+  //  fprintf(stderr, "result: %d\n", result);
   return result;
   }
 

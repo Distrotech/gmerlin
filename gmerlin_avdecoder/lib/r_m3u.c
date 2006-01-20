@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <string.h>
+#include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
 
@@ -40,7 +41,8 @@ static int probe_m3u(bgav_input_context_t * input)
        !strcmp(input->mimetype, "audio/m3u"))
       return 1;
     }
-  if(bgav_input_get_data(input, (uint8_t*)probe_buffer, PROBE_BYTES) < PROBE_BYTES)
+  if(bgav_input_get_data(input, (uint8_t*)probe_buffer,
+                         PROBE_BYTES) < PROBE_BYTES)
     return 0;
 
   if(!strncmp(probe_buffer, "mms://", 6) ||
@@ -78,13 +80,16 @@ static int parse_m3u(bgav_redirector_context_t * r)
   char * buffer = (char*)0;
   int buffer_alloc = 0;
   char * pos;
-  
+
+  //  fprintf(stderr, "parse_m3u\n");
+  //  bgav_input_get_dump(r->input, 16);
+    
   while(1)
     {
     if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0))
       break;
     pos = strip_spaces(buffer);
-    //    fprintf(stderr, "Got line: %s\n", pos);
+    fprintf(stderr, "Got line: %s\n", pos);
     if((*pos == '#') || (*pos == '\0'))
       continue;
     if(!strcmp(pos, "--stop--"))

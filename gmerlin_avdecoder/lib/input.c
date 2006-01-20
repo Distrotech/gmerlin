@@ -113,10 +113,11 @@ int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
 
   if(ctx->do_buffer)
     {
-    //      fprintf(stderr, "Do buffer %d %d\n",  ctx->buffer_alloc, ctx->buffer_size);
+    //    fprintf(stderr, "Do buffer 1 %d\n", ctx->buffer_size);
     ctx->buffer_size +=
       ctx->input->read_nonblock(ctx, ctx->buffer + ctx->buffer_size,
                                 ctx->buffer_alloc - ctx->buffer_size);
+    //    fprintf(stderr, "Do buffer 2 %d\n", ctx->buffer_size);
     }
   return ret;
   }
@@ -491,6 +492,19 @@ void bgav_input_skip_dump(bgav_input_context_t * ctx, int bytes)
     }
   fprintf(stderr, "Skipping %d bytes:\n", bytes);
   bgav_hexdump(buf, bytes, 16);
+  free(buf);
+  }
+
+void bgav_input_get_dump(bgav_input_context_t * ctx, int bytes)
+  {
+  uint8_t * buf;
+  int bytes_read;
+  
+  buf = malloc(bytes);
+  bytes_read = bgav_input_get_data(ctx, buf, bytes);
+
+//    fprintf(stderr, "Skipping %d bytes:\n", bytes);
+  bgav_hexdump(buf, bytes_read, 16);
   free(buf);
   }
 

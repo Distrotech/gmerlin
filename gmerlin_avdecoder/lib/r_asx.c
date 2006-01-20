@@ -2,7 +2,7 @@
  
   r_asx.c
  
-  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
   http://gmerlin.sourceforge.net
  
@@ -175,16 +175,20 @@ static int xml_2_asx(bgav_redirector_context_t * r, bgav_yml_node_t * n)
 static int parse_asx(bgav_redirector_context_t * r)
   {
   int result;
-
   bgav_yml_node_t * node;
-
+  
+  //  fprintf(stderr, "parse_asx\n");
+  //  bgav_input_get_dump(r->input, 32);
+  
   node = bgav_yml_parse(r->input);
 
   //  fprintf(stderr,"Node: %p\n", node);
 
   if(!node)
+    {
+    fprintf(stderr, "Parse asx failed (yml error)\n");
     return 0;
-  
+    }
   result = xml_2_asx(r, node);
 
   bgav_yml_free(node);
