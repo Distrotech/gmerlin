@@ -267,7 +267,7 @@ function TAKE_PACKETS_FUNC()
     $1 -y install $2 >& $3  
     READY_FUNC
     if test $? != 0 ; then return 1 ; fi  
-    return 0
+    return 0;
 }
 
 # $1 = COLUM STRING 1  ;   $2 = POSITION FROM LEFT STRING 1   ;  $3 = ILLUSTRATION FOR STRING 1 
@@ -303,7 +303,104 @@ else
   let REST=$LENGHT_COL_2-$LENGHT_COL_1
   BACK_TO_START=$REST"A"
   echo -e "\033[$BACK_TO_START"
-fi
+fi;
+}
+
+# $1 = MANAGER FOR INSTALL ; $2 = PACKET ; $3 = PACKET COMMENT 
+function INSTALL_PACKETS_FUNC()
+{
+    for i in $2
+      do
+      PRINT_INFO_LINE_FUNC "$i" "$3"
+      TAKE_PACKETS_FUNC $1 $i "$LOGS/BUG_$i"
+      if test $? = 0 
+	  then
+	  DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
+	  echo -e "$OK"
+      else
+	  ERROR_SAVE=true
+	  cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+	  echo -e "$FAIL"
+      fi
+    done;
+}
+
+# $1 = PACKET TOOL FOR CHECKING ; $2 = PACKET ; $3 = PACKET COMMENT 
+function CHECK_PACKETS_FUNC()
+{
+    for i in $2
+      do
+      PRINT_INFO_LINE_FUNC "$i" "$3"
+      if [ "$PACKET_TOOL" = "" ]
+	  then 
+	  which $i >& $LOGS/BUG_$i 
+	  if test $? = 0 
+	      then
+	      DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
+	      echo -e "$OK"
+	  else
+	      ERROR_SAVE=$ERROR
+	      ERROR="$ERROR_SAVE $i"
+	      echo -e "$FAIL"
+	  fi
+      elif [ "$1" = "dpkg" ]
+	  then
+	  dpkg --get-selections | grep $i | awk '{print $1}' >& $LOGS/BUG_$i  
+	  if test $? = 0 
+	      then
+	      DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
+	      echo -e "$OK"
+	  else 
+	      ERROR_SAVE=$ERROR
+	      ERROR="$ERROR_SAVE $i"
+	      echo -e "$FAIL"
+	  fi
+      elif [ "$1" = "rpm" ]
+	  then 
+	  rpm -q $i >& $LOGS/BUG_$i
+	  if test $? = 0 
+	      then
+	      DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
+	      echo -e "$OK"
+	  else 
+	      ERROR_SAVE=$ERROR
+	      ERROR="$ERROR_SAVE $i"
+	      echo -e "$FAIL"
+	  fi
+      else
+	  PRINT_NEW_LINE_FUNC 1
+	  PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH FATAL ERROR: unknown manager or packet tool $COL_DEF" "-e"
+	  PRINT_NEW_LINE_FUNC 2
+	  exit
+      fi
+    done;
+}
+
+# GIVES THE NEW PKG_CONFIG_PATH BACK ; $1 = ERROR_DATA(LOCATION)
+function FIND_PKG_FUNC()
+{
+    PKG_CONFIG_OLD=`echo $PKG_CONFIG_PATH`
+    
+    find /usr/ -type d >& $1.usr
+    READY_FUNC ; if test $? != 0 ; then cp $1.usr $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+    PKG_USR=`grep pkgconfig $1.usr | awk '{printf $1"/:" }' 2> DUMP`
+    READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.usr" "Can not delete $1.usr" ; else cp $1.usr $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+    DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
+    
+    find /opt/ -type d >& $1.opt
+    READY_FUNC ; if test $? != 0 ; then cp $1.opt $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+    PKG_OPT=`grep pkgconfig $1.opt | awk '{printf $1"/:" }' 2> DUMP`
+    READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.opt" "Can not delete $1.opt" ; else cp $1.opt $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+    DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
+    
+    find ~/ -type d >& $1.hom
+    READY_FUNC ; if test $? != 0 ; then cp $1.hom $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+    PKG_HOM=`grep pkgconfig $1.hom | awk '{printf $1"/:" }' 2> DUMP`
+    READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.hom" "Can not delete $1.hom" ; else cp $1.hom $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+    DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
+ 
+    PKG_CONF_NEW="$PKG_USR$PKG_OPT$PKG_HOME/opt/gmerlin/lib/pkgconfig/:$PATH"
+    return 0;
 }
 
 
@@ -469,7 +566,7 @@ fi
 ERROR=""                ;            ERROR_SAVE=""       ;        DUMP=false   
  
                                              # Begin with the CHECKING tools #
-PRINT_HEAD_LINE_FUNC "Check the System SYSTEM tools:"
+PRINT_HEAD_LINE_FUNC "Check/install the SYSTEM tools:"
 if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(This Tools are needed for running this Script)"
@@ -546,20 +643,7 @@ if [ "$ANSWER" = true ]
 	      fi
 	    done
 	else
-	    for i in $ERROR
-	      do
-	      PRINT_INFO_LINE_FUNC "$MANAGER $i"
-	      TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
-	      if test $? = 0 
-		  then
-		  DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
-		  echo -e "$OK"
-	      else
-		  ERROR_SAVE=true
-		  cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
-		  echo -e "$FAIL"
-	      fi
-	    done
+	    INSTALL_PACKETS_FUNC "$MANAGER" "$ERROR" "$COL_RED\r\033[25C( import )$COL_DEF"
 	fi
     fi
     
@@ -579,15 +663,15 @@ fi
 
 ############################################### CHECK AND INSTALL SYSTEM TOOLS ##############################################################
 
-					     # PAGE TITLE_LINE AFTER WELCOME #
+					            # PAGE TITLE_LINE #
 PRINT_PAGE_HEAD_LINE_FUNC "Check and/or install the System librarys" "-e"
 
 
-					    # Define MACKER for this funktion #
-ERROR=""                ;            ERROR_SAVE=""       ;        DUMP=false   
+					       # Define MACKER for this funktion #
+ERROR=""                ;            ERROR_SAVE=""       
 
-                                             # Begin with the CHECKING tools #
-PRINT_HEAD_LINE_FUNC "Check the System SYSTEM librarys:"
+                                               # Begin with the CHECKING tools #
+PRINT_HEAD_LINE_FUNC "Check/install the SYSTEM librarys:"
 if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(This librarys are need for the gmerlin installation)"
@@ -608,7 +692,55 @@ if [ "$ANSWER" = true ]
 # YES MANAGER && YES PACKET_TOOL
     elif [ "$MANAGER" != "" -a "$PACKET_TOOL" != "" ]
 	then
-	echo "YES MANAGER && YES PACKET_TOOL"
+	if [ "$PACKET_TOOL" = "dpkg" ]
+	    then
+	    CHECK_PACKETS_FUNC "$PACKET_TOOL" "$APT_LIBS_IMPO" "$COL_RED\r\033[25C( import )$COL_DEF"
+	    CHECK_PACKETS_FUNC "$PACKET_TOOL" "$APT_LIBS_NEED" "$COL_YEL\r\033[25C( needed )$COL_DEF"
+	    CHECK_PACKETS_FUNC "$PACKET_TOOL" "$APT_LIBS_OPTI" "$COL_GRE\r\033[25C( option )$COL_DEF"
+	elif [ "$PACKET_TOOL" = "rpm" ]
+	    then
+	    CHECK_PACKETS_FUNC "$PACKET_TOOL" "$YUM_LIBS_IMPO" "$COL_RED\r\033[25C( import )$COL_DEF"
+	    CHECK_PACKETS_FUNC "$PACKET_TOOL" "$YUM_LIBS_NEED" "$COL_YEL\r\033[25C( needed )$COL_DEF"
+	    CHECK_PACKETS_FUNC "$PACKET_TOOL" "$YUM_LIBS_OPTI" "$COL_GRE\r\033[25C( option )$COL_DEF"
+	else
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH FATAL ERROR: unknown manager or packet tool $COL_DEF" "-e"
+	fi
+	if [ "$ERROR" != "" ]
+	    then
+	    PRINT_NEW_LINE_FUNC 1
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "We can not found the FAILED Packets" "-e"
+	    if [ "$AUTO_INSTALL" = false ]
+		then
+		PRINT_ERROR_MESSAGE_LINE_FUNC "Would you install it? $YES_NO" "-ne"
+		AUTO_INSTALL_FUNC ; YES_NO_FUNC
+	    fi
+	    if [ "$ANSWER" = false ]
+		then
+		PRINT_ERROR_MESSAGE_LINE_FUNC "Go on the installation? $YES_NO" "-ne"
+		AUTO_INSTALL_FUNC ; YES_NO_FUNC
+		if [ "$ANSWER" = false ] ; then	PRINT_NEW_LINE_FUNC 2 ; exit ; fi
+	    else
+		PRINT_NEW_LINE_FUNC 1
+		if [ "$MANAGER" = "apt-get" ]
+		    then
+		    INSTALL_PACKETS_FUNC "$MANAGER" "$ERROR" ""
+		elif [ "$MANAGER" = "yum" ]
+		    then
+		    INSTALL_PACKETS_FUNC "$MANAGER" "$ERROR" ""
+		else
+		    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH FATAL ERROR: unknown manager or packet tool $COL_DEF" "-e"
+		fi
+		if [ "$ERROR_SAVE" != "" ]
+		    then
+		    PRINT_NEW_LINE_FUNC 1
+		    PRINT_ERROR_MESSAGE_LINE_FUNC "We can not install the FAIL Packets, please look" "-e"
+		    PRINT_ERROR_MESSAGE_LINE_FUNC "at the$COL_RED_HIGH BUG_*$COL_DEF$COL_RED files to find the error." "-e"
+		    PRINT_ERROR_MESSAGE_LINE_FUNC "Go on the installation? $YES_NO" "-ne"
+		    AUTO_INSTALL_FUNC ; YES_NO_FUNC
+		    if [ "$ANSWER" = false ] ; then	PRINT_NEW_LINE_FUNC 2 ; exit ; fi
+		fi
+	    fi
+	fi
 # YES MANAGER && NO PACKET_TOOL
     elif [ "$MANAGER" != "" -a "$PACKET_TOOL" = "" ]
 	then
@@ -616,102 +748,53 @@ if [ "$ANSWER" = true ]
 	PRINT_COMMENT_2_LINE_FUNC "the following Packets. ( This can take a little bit longer )"
 	if [ "$MANAGER" = "apt-get" ]
 	    then
-	    for i in $APT_LIBS_IMPO
-		do
-		PRINT_INFO_LINE_FUNC "$i" "$COL_RED\r\033[25C( import )$COL_DEF "
-		TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
-		if test $? = 0 
-		    then
-		    DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
-		    echo -e "$OK"
-		else
-		    ERROR_SAVE=true
-		    cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
-		    echo -e "$FAIL"
-		fi
-	    done
-	    for i in $APT_LIBS_NEED
-		do
-		PRINT_INFO_LINE_FUNC "$i" "$COL_YEL\r\033[25C( needed )$COL_DEF"
-		TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
-		if test $? = 0 
-		    then
-		    DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
-		    echo -e "$OK"
-		else
-		    ERROR_SAVE=true
-		    cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
-		    echo -e "$FAIL"
-		fi
-	    done
-	    for i in $APT_LIBS_OPTI
-		do
-		PRINT_INFO_LINE_FUNC "$i" "$COL_GRE\r\033[25C( option )$COL_DEF"
-		TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
-		if test $? = 0 
-		    then
-		    DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
-		    echo -e "$OK"
-		else
-		    ERROR_SAVE=true
-		    cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
-		    echo -e "$FAIL"
-		fi
-	    done
+	    INSTALL_PACKETS_FUNC "$MANAGER" "$APT_LIBS_IMPO" "$COL_RED\r\033[25C( import )$COL_DEF"
+	    INSTALL_PACKETS_FUNC "$MANAGER" "$APT_LIBS_NEED" "$COL_YEL\r\033[25C( needed )$COL_DEF"
+	    INSTALL_PACKETS_FUNC "$MANAGER" "$APT_LIBS_OPTI" "$COL_GRE\r\033[25C( option )$COL_DEF"
 	elif [ "$MANAGER" = "yum" ]
 	    then
-	    for i in $YUM_LIBS_IMPO
-		do
-		PRINT_INFO_LINE_FUNC "$i" "$COL_RED\r\033[25C( import )$COL_DEF "
-		TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
-		if test $? = 0 
-		    then
-		    DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
-		    echo -e "$OK"
-		else
-		    ERROR_SAVE=true
-		    cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
-		    echo -e "$FAIL"
-		fi
-	    done
-	    for i in $YUM_LIBS_NEED
-		do
-		PRINT_INFO_LINE_FUNC "$i" "$COL_YEL\r\033[25C( needed )$COL_DEF"
-		TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
-		if test $? = 0 
-		    then
-		    DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
-		    echo -e "$OK"
-		else
-		    ERROR_SAVE=true
-		    cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
-		    echo -e "$FAIL"
-		fi
-	    done
-	    for i in $YUM_LIBS_OPTI
-		do
-		PRINT_INFO_LINE_FUNC "$i" "$COL_GRE\r\033[25C( option )$COL_DEF"
-		TAKE_PACKETS_FUNC $MANAGER $i "$LOGS/BUG_$i"
-		if test $? = 0 
-		    then
-		    DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
-		    echo -e "$OK"
-		else
-		    ERROR_SAVE=true
-		    cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
-		    echo -e "$FAIL"
-		fi
-	    done
+	    INSTALL_PACKETS_FUNC "$MANAGER" "$YUM_LIBS_IMPO" "$COL_RED\r\033[25C( import )$COL_DEF"
+	    INSTALL_PACKETS_FUNC "$MANAGER" "$YUM_LIBS_NEED" "$COL_YEL\r\033[25C( needed )$COL_DEF"
+	    INSTALL_PACKETS_FUNC "$MANAGER" "$YUM_LIBS_OPTI" "$COL_GRE\r\033[25C( option )$COL_DEF"
 	else
 	    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH FATAL ERROR: unknown manager or packet tool $COL_DEF" "-e"
+	fi
+	if [ "$ERROR_SAVE" != "" ]
+	    then
+	    PRINT_NEW_LINE_FUNC 1
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "We can not install the FAIL Packets, please look" "-e"
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "at the$COL_RED_HIGH BUG_*$COL_DEF$COL_RED files to find the error." "-e"
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "Go on the installation? $YES_NO" "-ne"
+	    AUTO_INSTALL_FUNC ; YES_NO_FUNC
+	    if [ "$ANSWER" = false ] ; then	PRINT_NEW_LINE_FUNC 2 ; exit ; fi
 	fi
 # NO MANAGER && YES PACKET_TOOL
     elif [ "$MANAGER" = "" -a "$PACKET_TOOL" != "" ]
 	then
 	PRINT_COMMENT_2_LINE_FUNC "No Packet Manager like YUM/APT-GET found, about this we can only check"
 	PRINT_COMMENT_2_LINE_FUNC "the following Packets. Pleace install the failed Packets from Hand."
-	PRINT_NEW_LINE_FUNC 1
-	
+	if [ "$PACKET_TOOL" = "dpkg" ]
+	    then
+	    CHECK_PACKETS_FUNC "$PACKET_TOOL" "$APT_LIBS_IMPO" "$COL_RED\r\033[25C( import )$COL_DEF"
+	    CHECK_PACKETS_FUNC "$PACKET_TOOL" "$APT_LIBS_NEED" "$COL_YEL\r\033[25C( needed )$COL_DEF"
+	    CHECK_PACKETS_FUNC "$PACKET_TOOL" "$APT_LIBS_OPTI" "$COL_GRE\r\033[25C( option )$COL_DEF"
+	elif [ "$PACKET_TOOL" = "rpm" ]
+	    then
+	    CHECK_PACKETS_FUNC "$PACKET_TOOL" "$YUM_LIBS_IMPO" "$COL_RED\r\033[25C( import )$COL_DEF"
+	    CHECK_PACKETS_FUNC "$PACKET_TOOL" "$YUM_LIBS_NEED" "$COL_YEL\r\033[25C( needed )$COL_DEF"
+	    CHECK_PACKETS_FUNC "$PACKET_TOOL" "$YUM_LIBS_OPTI" "$COL_GRE\r\033[25C( option )$COL_DEF"
+	else
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH FATAL ERROR: unknown manager or packet tool $COL_DEF" "-e"
+	fi
+	if [ "$ERROR" != "" ]
+	    then
+	    PRINT_NEW_LINE_FUNC 1
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "We can not find the Packets:" "-e"
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH$ERROR$COL_DEF$COL_RED." "-e"
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "install it and go on the installation? $YES_NO" "-ne"
+	    AUTO_INSTALL_FUNC ; YES_NO_FUNC
+	    if [ "$ANSWER" = false ] ; then	PRINT_NEW_LINE_FUNC 2 ; exit ; fi
+	fi
     else
 	PRINT_NEW_LINE_FUNC 1
  	PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH FATAL ERROR: unknown manager or packet tool $COL_DEF" "-e"
@@ -720,3 +803,27 @@ if [ "$ANSWER" = true ]
     fi
 fi
 
+
+
+
+############################################### PREPAIRING SYSTEM FOR INSTALLATION ##############################################################
+
+					              # PAGE TITLE_LINE #
+PRINT_PAGE_HEAD_LINE_FUNC "Prepairing the System installation" "-e"
+
+					       # Define MACKER for this funktion #
+ERROR=""           
+
+                                          # Begin with find PKG and gmerlin COMPONENTS #
+PRINT_HEAD_LINE_FUNC "Prepaire the SYSTEM conditions:"
+if [ "$ANSWER" = true ]
+    then
+    PRINT_COMMENT_LINE_FUNC "(Build PGK_CONFIG and find/download gmerlin Packets)"
+                                                   # Build PKG_CONFIG_PATH #     
+    PRINT_INFO_LINE_FUNC "pkg_config_path"
+    FIND_PKG_FUNC "$LOGS/BUG_pkg"
+    if test $? = 0 ; then echo -e "$OK" ; else ERROR=true ; echo -e "$FAIL" ; fi    
+                                                # Find GMERLIN components #
+#    PRINT_INFO_LINE_FUNC "find depenedencies\n"
+#    PRINT_INFO_LINE_FUNC "find all-in-one\n"
+fi
