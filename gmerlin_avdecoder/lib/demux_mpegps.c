@@ -1085,11 +1085,11 @@ static void seek_sector(bgav_demuxer_context_t * ctx, gavl_time_t time)
       break;
     else
       {
-      sector--; /* Go a bit back */
+      if(!sector)
+        break;
+      sector-=10; /* Go a bit back */
       if(sector < 0)
-        {
-        break; /* Escape from inifinite loop */
-        }
+        sector = 0;
       }
     }
   }

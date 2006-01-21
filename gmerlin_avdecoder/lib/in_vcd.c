@@ -287,7 +287,7 @@ static int read_sector(bgav_input_context_t * ctx, uint8_t * data)
 
   //  do
   //    {
-#if 0
+#if 1
   fprintf(stderr, "read_sector %d...", priv->next_sector);
 #endif
   if(priv->next_sector > priv->tracks[priv->current_track].end_sector)
@@ -298,7 +298,7 @@ static int read_sector(bgav_input_context_t * ctx, uint8_t * data)
     fprintf(stderr, "Read sector from %d failed\n", priv->next_sector);
     return 0;
     }
-#if 0
+#if 1
   fprintf(stderr, "Ok\n");
 #endif
   priv->next_sector++;
