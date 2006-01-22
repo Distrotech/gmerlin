@@ -54,16 +54,16 @@ static void key_callback(void * data, int key, int mask)
     {
     /* Take the keys, we can handle from here */
     case BG_KEY_LEFT:
-      bg_player_set_volume_rel(ctx->player, -1.0);
-      break;
-    case BG_KEY_RIGHT:
-      bg_player_set_volume_rel(ctx->player,  1.0);
-      break;
-    case BG_KEY_UP:
       bg_player_seek_rel(ctx->player,   -2 * GAVL_TIME_SCALE );
       break;
-    case BG_KEY_DOWN:
+    case BG_KEY_RIGHT:
       bg_player_seek_rel(ctx->player,   2 * GAVL_TIME_SCALE );
+      break;
+    case BG_KEY_UP:
+      bg_player_set_volume_rel(ctx->player, 1.0);
+      break;
+    case BG_KEY_DOWN:
+      bg_player_set_volume_rel(ctx->player,  -1.0);
       break;
     case BG_KEY_0:
       bg_player_seek(ctx->player, 0 );

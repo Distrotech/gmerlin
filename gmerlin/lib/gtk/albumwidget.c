@@ -1338,7 +1338,8 @@ static void init_menu(bg_gtk_album_widget_t * w)
     {
     w->menu.edit_menu.copy_to_favourites_item =
       create_item(w, w->menu.edit_menu.menu, "Copy to favourites", "favourites_16.png");
-    gtk_widget_add_accelerator(w->menu.edit_menu.copy_to_favourites_item, "activate", w->accel_group,
+    gtk_widget_add_accelerator(w->menu.edit_menu.copy_to_favourites_item, "activate",
+                               w->accel_group,
                                GDK_F10, 0, GTK_ACCEL_VISIBLE);
     
     }
