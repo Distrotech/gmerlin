@@ -51,7 +51,7 @@ extern bgav_demuxer_t bgav_demuxer_nsv;
 extern bgav_demuxer_t bgav_demuxer_ogg;
 #endif
 
-#ifdef HAVE_LIBDV
+#if (HAVE_LIBDV && HAVE_LIBAVCODEC)
 extern bgav_demuxer_t bgav_demuxer_dv;
 #endif
 
@@ -101,7 +101,7 @@ static demuxer_t demuxers[] =
 #ifdef HAVE_MJPEGTOOLS
     { &bgav_demuxer_y4m, "yuv4mpeg" },
 #endif
-#ifdef HAVE_LIBDV
+#if (HAVE_LIBDV && HAVE_LIBAVCODEC)
     { &bgav_demuxer_dv, "DV" },
 #endif
     { &bgav_demuxer_sphere, "nist Sphere"},
