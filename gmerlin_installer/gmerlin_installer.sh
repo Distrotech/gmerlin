@@ -400,26 +400,8 @@ function FIND_PKG_FUNC()
     return 0;
 }
 
-# $1 = FILE TO FIND 
-function FIND_FILE_FUNC()
-{
-    FOUND=`find . | grep $1 2> DUMP`
-    READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "DUMP" "Can not delete DUMP" ; return 0 ; else DEL_FILE_FUNC "DUMP" "Can not delete DUMP" ; return 1 ; fi;
-}
 
-# $1 = FILE TO COPY ; $2 = DIRECTORY
-function COPY_FILE_FUNC()
-{
-    if test ! -f "$1"
-	then
-	return 0
-    else
-	cp $1 $2
-	READY_EXIT_FUNC "Can not copy file"
-	return 0
-    fi;
-    return 1;
-}
+
 
 ############################################### MAKE THE DIRECTORYS FOR INSTALLATION ##############################################################
 
@@ -841,17 +823,17 @@ if [ "$ANSWER" = true ]
     PRINT_INFO_LINE_FUNC "pkg_config_path"
     echo -ne "$POSITION_STATUS Please wait ..."
     FIND_PKG_FUNC "$LOGS/BUG_pkg"
-    if test $? = 0 ; then echo -e "$OK\033[K" ; else ERROR=true ; echo -e "$FAIL\033[K" ; fi
+    if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
     
                                                 # Find GMERLIN components #
     PRINT_INFO_LINE_FUNC "find depenedencies"
     echo -ne "$POSITION_STATUS Please wait ..."
     cd $INSTALL_HOME
     READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$INSTALL_HOME$COL_DEF directory"
-    FIND_FILE_FUNC "$GMERLIN_DEPENDENCIES_PACKETS_NAME.tar.bz2"    
+    test -f "$GMERLIN_DEPENDENCIES_PACKETS_NAME.tar.bz2"    
     if test $? = 0
 	then
-	COPY_FILE_FUNC "$FOUND" "$HOME" 
+	cp $GMERLIN_DEPENDENCIES_PACKETS_NAME.tar.bz2 $HOME ; READY_EXIT_FUNC "Can not copy file"
 	echo -e "$OK\033[K"
     else
 	ERROR_SAVE=$ERROR
@@ -860,10 +842,10 @@ if [ "$ANSWER" = true ]
     fi
     PRINT_INFO_LINE_FUNC "find all-in-one"
     echo -ne "$POSITION_STATUS Please wait ..."
-    FIND_FILE_FUNC "$GMERLIN_ALL_IN_ONE_PACKETS_NAME.tar.bz2"    
+    test -f "$GMERLIN_ALL_IN_ONE_PACKETS_NAME.tar.bz2"    
     if test $? = 0
 	then
-	COPY_FILE_FUNC "$FOUND" "$HOME" 
+	cp $GMERLIN_ALL_IN_ONE_PACKETS_NAME.tar.bz2 $HOME ; READY_EXIT_FUNC "Can not copy file"
 	echo -e "$OK\033[K"
     else
 	ERROR_SAVE=$ERROR
@@ -872,5 +854,13 @@ if [ "$ANSWER" = true ]
     fi
     cd $HOME
     READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
-    echo $ERROR
+
+#    echo $ERROR
+#    if [ "$ERROR" != "" ]
+#	then
+#	for i in $ERROR
+#	    do
+#	    wget http://prdownloads.sourceforge.net/gmerlin/$i?download -O $HELPS/$i.MIRRORS
+#	done
+#    fi
 fi
