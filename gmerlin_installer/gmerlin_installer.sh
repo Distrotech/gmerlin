@@ -34,9 +34,6 @@ DATE="20051226"
                                             # Define the old PKG_CONFIG_PATH #
 OLD_PKG_CONFIG=$PKG_CONFIG_PATH
 
-                                             # Define the BUG MAIL address #
-MAIL="one78@web.de"
-
                                            # Define the INSTALLATION directorys #
 LOGS=".gmerlin_logs"     ;     HELPS=".gmerlin_helps"     ;      HOME="GMerlin_INstallation"
 
@@ -376,7 +373,7 @@ function CHECK_PACKETS_FUNC()
     done;
 }
 
-# GIVES THE NEW PKG_CONFIG_PATH BACK ; $1 = ERROR_DATA(LOCATION)
+# BUILD THE NEW PKG_CONFIG_PATH ; $1 = ERROR_DATA(LOCATION)
 function FIND_PKG_FUNC()
 {
     PKG_CONFIG_OLD=`echo $PKG_CONFIG_PATH`
@@ -403,6 +400,26 @@ function FIND_PKG_FUNC()
     return 0;
 }
 
+# $1 = FILE TO FIND 
+function FIND_FILE_FUNC()
+{
+    FOUND=`find . | grep $1 2> DUMP`
+    READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "DUMP" "Can not delete DUMP" ; return 0 ; else DEL_FILE_FUNC "DUMP" "Can not delete DUMP" ; return 1 ; fi;
+}
+
+# $1 = FILE TO COPY ; $2 = DIRECTORY
+function COPY_FILE_FUNC()
+{
+    if test ! -f "$1"
+	then
+	return 0
+    else
+	cp $1 $2
+	READY_EXIT_FUNC "Can not copy file"
+	return 0
+    fi;
+    return 1;
+}
 
 ############################################### MAKE THE DIRECTORYS FOR INSTALLATION ##############################################################
 
@@ -812,18 +829,48 @@ fi
 PRINT_PAGE_HEAD_LINE_FUNC "Prepairing the System installation" "-e"
 
 					       # Define MACKER for this funktion #
-ERROR=""           
+ERROR=""                        ;            ERROR_SAVE=""       
 
                                           # Begin with find PKG and gmerlin COMPONENTS #
 PRINT_HEAD_LINE_FUNC "Prepaire the SYSTEM conditions:"
 if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(Build PGK_CONFIG and find/download gmerlin Packets)"
+    
                                                    # Build PKG_CONFIG_PATH #     
     PRINT_INFO_LINE_FUNC "pkg_config_path"
+    echo -ne "$POSITION_STATUS Please wait ..."
     FIND_PKG_FUNC "$LOGS/BUG_pkg"
-    if test $? = 0 ; then echo -e "$OK" ; else ERROR=true ; echo -e "$FAIL" ; fi    
+    if test $? = 0 ; then echo -e "$OK\033[K" ; else ERROR=true ; echo -e "$FAIL\033[K" ; fi
+    
                                                 # Find GMERLIN components #
-#    PRINT_INFO_LINE_FUNC "find depenedencies\n"
-#    PRINT_INFO_LINE_FUNC "find all-in-one\n"
+    PRINT_INFO_LINE_FUNC "find depenedencies"
+    echo -ne "$POSITION_STATUS Please wait ..."
+    cd $INSTALL_HOME
+    READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$INSTALL_HOME$COL_DEF directory"
+    FIND_FILE_FUNC "$GMERLIN_DEPENDENCIES_PACKETS_NAME.tar.bz2"    
+    if test $? = 0
+	then
+	COPY_FILE_FUNC "$FOUND" "$HOME" 
+	echo -e "$OK\033[K"
+    else
+	ERROR_SAVE=$ERROR
+	ERROR="$ERROR_SAVE $GMERLIN_DEPENDENCIES_PACKETS_NAME.tar.bz2"
+	echo -e "$FAIL\033[K"
+    fi
+    PRINT_INFO_LINE_FUNC "find all-in-one"
+    echo -ne "$POSITION_STATUS Please wait ..."
+    FIND_FILE_FUNC "$GMERLIN_ALL_IN_ONE_PACKETS_NAME.tar.bz2"    
+    if test $? = 0
+	then
+	COPY_FILE_FUNC "$FOUND" "$HOME" 
+	echo -e "$OK\033[K"
+    else
+	ERROR_SAVE=$ERROR
+	ERROR="$ERROR_SAVE $GMERLIN_ALL_IN_ONE_PACKETS_NAME.tar.bz2"
+	echo -e "$FAIL\033[K"
+    fi
+    cd $HOME
+    READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
+    echo $ERROR
 fi
