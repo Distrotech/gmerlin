@@ -424,9 +424,16 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
       }
     else
       {
+      int ii;
       if(cnt > 6)
+        {
+        fprintf(stderr, "demux_rm: Video extradata too long: %d\n", cnt);
         cnt = 6;
-      memcpy(bg_vs->ext_data + 8, data, cnt);
+        }
+      //      memcpy(bg_vs->ext_data + 8, data, cnt);
+      for (ii = 0; ii < cnt; ii++)
+        ((unsigned char*)bg_vs->ext_data)[8+ii]=
+          (unsigned short)data[ii];
       }
     }
   
@@ -612,7 +619,7 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
       init_video_stream(ctx, &(h->streams[i]), pos,
                         mdpr->type_specific_len - (int)(pos - mdpr->type_specific_data));
       }
-#if 1
+#if 0
     else
       {
       fprintf(stderr, "Unknown stream\n");
@@ -1311,7 +1318,7 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
       //      fprintf(stderr, "Read packet %d\n", stream->stream_id);
       if(!bgav_rmff_packet_header_read(ctx->input, &h))
         {
-        fprintf(stderr, "Demux RM: EOF\n");
+        //        fprintf(stderr, "Demux RM: EOF\n");
         return 0;
         }
       //      bgav_rmff_packet_header_dump(&h);

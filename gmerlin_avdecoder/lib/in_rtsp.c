@@ -313,7 +313,7 @@ static int open_and_describe(bgav_input_context_t * ctx,
     {
     priv->challenge1 = bgav_strndup(var, NULL);
     priv->type = SERVER_TYPE_REAL;
-    fprintf(stderr, "Real Server, challenge %s\n", var);
+    //    fprintf(stderr, "Real Server, challenge %s\n", var);
     }
   else
     {

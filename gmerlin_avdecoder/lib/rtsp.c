@@ -59,7 +59,7 @@ void bgav_rtsp_set_user_agent(bgav_rtsp_t * r, const char * user_agent)
   r->user_agent = bgav_strndup(user_agent, NULL);
   }
 
-// #define DUMP_REQUESTS
+#define DUMP_REQUESTS
 
 static int rtsp_send_request(bgav_rtsp_t * rtsp,
                              const char * command,
@@ -73,7 +73,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   rtsp->cseq++;
   line = bgav_sprintf("%s %s RTSP/1.0\r\n", command, what);
 #ifdef DUMP_REQUESTS
-  fprintf(stderr, "%s", line);
+  fprintf(stderr, "Sending: %s", line);
 #endif  
   if(!bgav_tcp_send(rtsp->fd, (uint8_t*)line, strlen(line), error_msg))
     goto fail;
@@ -82,7 +82,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   
   line = bgav_sprintf("CSeq: %u\r\n", rtsp->cseq);
 #ifdef DUMP_REQUESTS
-  fprintf(stderr, "%s", line);
+  fprintf(stderr, "Sending: %s", line);
 #endif  
   write(rtsp->fd, line, strlen(line));
   free(line);
@@ -91,22 +91,19 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
     {
     line = bgav_sprintf("Session: %s\r\n", rtsp->session);
 #ifdef DUMP_REQUESTS
-    fprintf(stderr, "%s", line);
+    fprintf(stderr, "Sending: %s", line);
 #endif  
     write(rtsp->fd, line, strlen(line));
     free(line);
     }
 #ifdef DUMP_REQUESTS
+  fprintf(stderr, "Sending request\n");
   bgav_http_header_dump(rtsp->request_fields);
 #endif
   
   if(!bgav_http_header_send(rtsp->request_fields, rtsp->fd, error_msg) ||
      !bgav_tcp_send(rtsp->fd, (uint8_t*)"\r\n\r\n", 4, error_msg))
     goto fail;
-
-#ifdef DUMP_REQUESTS
-  bgav_http_header_dump(rtsp->request_fields);
-#endif  
   
   bgav_http_header_reset(rtsp->request_fields);
   
@@ -130,6 +127,14 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
     //    fprintf(stderr, "Got redirected to: %s\n", rtsp->url);
     if(got_redirected)
       *got_redirected = 1;
+#if 1
+    /* Redirection means new session */
+    if(rtsp->session)
+      {
+      free(rtsp->session);
+      rtsp->session = (char*)0;
+      }
+#endif
     return 1;
     }
 
@@ -139,6 +144,15 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   if(status != 200)
     {
     fprintf(stderr, "Got status %d\n", status);
+    
+    //    fprintf(stderr, "Request was: ");
+    //    bgav_http_header_dump(rtsp->request_fields);
+    
+    //    fprintf(stderr, "Answer was: ");
+    //    bgav_http_header_dump(rtsp->answers);
+    if(error_msg)
+      *error_msg = bgav_sprintf("Server said: %s",
+                                bgav_http_header_status_line(rtsp->answers));
     goto fail;
     }
   

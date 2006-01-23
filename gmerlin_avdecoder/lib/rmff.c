@@ -581,7 +581,7 @@ bgav_rmff_header_t * bgav_rmff_header_read(bgav_input_context_t * ctx)
               }
             next_index_header = indx.next_index_header;
             
-            bgav_rmff_indx_dump(&indx);
+            //            bgav_rmff_indx_dump(&indx);
             
             for(i = 0; i < ret->num_streams; i++)
               {

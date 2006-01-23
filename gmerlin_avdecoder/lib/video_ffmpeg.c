@@ -22,6 +22,7 @@
 #include <ffmpeg/avcodec.h>
 
 #include <config.h>
+#include <bswap.h>
 #include <codecs.h>
 #include <avdec_private.h>
 
@@ -447,7 +448,7 @@ typedef struct
   int do_convert;
   enum PixelFormat dst_format;
 
-  uint32_t rv_extradata[2];
+  uint32_t rv_extradata[2+FF_INPUT_BUFFER_PADDING_SIZE/4];
   int has_b_frames;
   int last_frame_sent;
   AVPaletteControl palette;
@@ -553,7 +554,9 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     
     if((s->fourcc == BGAV_MK_FOURCC('R', 'V', '1', '0')) ||
        (s->fourcc == BGAV_MK_FOURCC('R', 'V', '1', '3')) ||
-       (s->fourcc == BGAV_MK_FOURCC('R', 'V', '2', '0')))
+       (s->fourcc == BGAV_MK_FOURCC('R', 'V', '2', '0')) ||
+       (s->fourcc == BGAV_MK_FOURCC('R', 'V', '3', '0')) ||
+       (s->fourcc == BGAV_MK_FOURCC('R', 'V', '4', '0')))
       {
       if(priv->ctx->extradata_size == 8)
         {
@@ -854,16 +857,31 @@ static int init(bgav_stream_t * s)
      (s->fourcc == BGAV_MK_FOURCC('R','V','1','3')) ||
      (s->fourcc == BGAV_MK_FOURCC('R','V','2','0')))
     {
+    priv->ctx->extradata_size= 8;
+    priv->ctx->extradata = priv->rv_extradata;
+    
     if(priv->ctx->extradata_size != 8)
       {
-      priv->ctx->extradata = priv->rv_extradata;
+      /* only 1 packet per frame & sub_id from fourcc */
       priv->rv_extradata[0] = 0;
       priv->rv_extradata[1] =
         (s->fourcc == BGAV_MK_FOURCC('R','V','1','3')) ? 0x10003001 :
         0x10000000;
-      priv->ctx->extradata_size = 8;
+      priv->ctx->sub_id = priv->rv_extradata[1];
       }
-    priv->ctx->sub_id = priv->rv_extradata[1];
+    else
+      {
+      /* has extra slice header (demux_rm or rm->avi streamcopy) */
+      unsigned int* extrahdr=(unsigned int*)(s->ext_data);
+      priv->rv_extradata[0] = be2me_32(extrahdr[0]);
+
+      priv->ctx->sub_id = extrahdr[1];
+
+      
+      priv->rv_extradata[1] = be2me_32(extrahdr[1]);
+      }
+
+    //    fprintf(stderr, "subid: %08x\n", priv->ctx->sub_id);
     }
 
   if(codec->capabilities & CODEC_CAP_TRUNCATED)
