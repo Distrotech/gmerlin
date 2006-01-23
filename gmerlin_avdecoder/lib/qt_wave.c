@@ -68,8 +68,8 @@ int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
         break;
       default:
         /* Append user atom */
-        fprintf(stderr, "Got user atom:\n");
-        bgav_qt_atom_dump_header(&ch);
+        //        fprintf(stderr, "Got user atom:\n");
+        //        bgav_qt_atom_dump_header(&ch);
         ret->user_atoms = realloc(ret->user_atoms,
                                   sizeof(*(ret->user_atoms))*(ret->num_user_atoms+1));
         ret->user_atoms[ret->num_user_atoms] = malloc(ch.size);

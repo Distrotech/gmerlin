@@ -97,6 +97,7 @@ extern char            *win32_def_path;
 typedef struct 
   {
   HINSTANCE           qtml_dll;
+  HINSTANCE           qts_dll;
   LPFUNC1             InitializeQTML;
   LPFUNC2             SoundConverterOpen;
   LPFUNC3             SoundConverterClose;
@@ -135,6 +136,13 @@ static int init_qtaudio(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
   bgav_windll_lock();
   priv->ldt_fs = Setup_LDT_Keeper();
+
+  //preload quicktime.qts to avoid the problems caused by the hardcoded path inside the dll
+  priv->qts_dll = LoadLibraryA("QuickTime.qts");
+  if(!priv->qts_dll)
+    {
+    goto fail;
+    }
   
   priv->qtml_dll = LoadLibraryA("qtmlClient.dll");
   if(!priv->qtml_dll)
@@ -356,7 +364,8 @@ static int decode(bgav_stream_t * s)
   bgav_windll_lock();
   
   num_frames = priv->in_buffer_size / priv->InFrameSize;
-  
+
+  //  fprintf(stderr, "SoundConverterConvertBuffer...");
   if(priv->SoundConverterConvertBuffer(priv->myConverter,
                                        priv->in_buffer,
                                        num_frames, 
@@ -367,6 +376,7 @@ static int decode(bgav_stream_t * s)
     bgav_windll_unlock();
     return 0;
     }
+  //  fprintf(stderr, "\n");
   priv->frame->valid_samples = out_bytes / (2 * s->data.audio.format.num_channels);
   priv->last_block_size = priv->frame->valid_samples;
 

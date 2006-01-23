@@ -17,7 +17,7 @@
  
 *****************************************************************/
 
-// #define DUMP_SUPERINDEX    
+//#define DUMP_SUPERINDEX    
 #include <avdec_private.h>
 
 #include <stdio.h>
@@ -417,6 +417,9 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
   
   //  fprintf(stderr, "Current chunk: %d\n", priv->current_packet);
   ctx->si->current_position++;
+
+  //  fprintf(stderr, "next_packet_interleaved done %d\n", p->data_size);
+
   return 1;
   }
 

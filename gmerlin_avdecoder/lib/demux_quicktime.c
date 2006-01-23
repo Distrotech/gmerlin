@@ -434,6 +434,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
       add_packet(ctx, priv, (bgav_stream_t*)0, i, chunk_offset, -1, -1, 0, 0, 0);
       i++;
       priv->streams[stream_id].stco_pos++;
+      fprintf(stderr, "Fill dummy packet\n");
       }
     }
   ctx->si->entries[ctx->si->num_entries-1].size =
@@ -818,13 +819,13 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
 
   while(!done)
     {
-    fprintf(stderr, "Get atom\n");
+    //    fprintf(stderr, "Get atom\n");
     if(!bgav_qt_atom_read_header(ctx->input, &h))
       return 0;
     switch(h.fourcc)
       {
       case BGAV_MK_FOURCC('m','d','a','t'):
-        fprintf(stderr, "Got mdat atom\n");
+        //        fprintf(stderr, "Got mdat atom\n");
         /* Reached the movie data atom, stop here */
         have_mdat = 1;
 
@@ -833,7 +834,7 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
 
         priv->mdats[priv->num_mdats].start = ctx->input->position;
         priv->mdats[priv->num_mdats].size  = h.size - (ctx->input->position - h.start_position);
-#if 1
+#if 0
         fprintf(stderr, "Found mdat atom, start: %lld, size: %lld\n", priv->mdats[priv->num_mdats].start,
                 priv->mdats[priv->num_mdats].size);
 #endif
@@ -854,14 +855,19 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
         
         break;
       case BGAV_MK_FOURCC('m','o','o','v'):
-        fprintf(stderr, "Got moov atom\n");
+        //        fprintf(stderr, "Got moov atom\n");
         if(!bgav_qt_moov_read(&h, ctx->input, &(priv->moov)))
           return 0;
         have_moov = 1;
         break;
+      case BGAV_MK_FOURCC('f','r','e','e'):
+      case BGAV_MK_FOURCC('w','i','d','e'):
+        bgav_qt_atom_skip(ctx->input, &h);
+        break;
       default:
         bgav_qt_atom_skip(ctx->input, &h);
         fprintf(stderr, "Skipping unknown atom\n");
+        bgav_qt_atom_dump_header(&h);
       }
 
     if(ctx->input->input->seek_byte)
