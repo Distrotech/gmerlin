@@ -127,10 +127,15 @@ typedef struct player_window_s
   GtkTooltips * tooltips;
 
   int msg_queue_locked;
+
+  /* For the player window only (NOT for album windows) */
+  GtkAccelGroup *accel_group;
+
+
   
   } player_window_t;
 
-player_window_t * player_window_create(gmerlin_t*);
+void player_window_create(gmerlin_t*);
 
 void player_window_show(player_window_t * win);
 

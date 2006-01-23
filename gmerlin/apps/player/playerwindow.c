@@ -425,11 +425,11 @@ static void handle_message(player_window_t * win,
       switch(arg_i_1)
         {
         case BG_KEY_PAGE_UP:
-          bg_media_tree_next(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
+          bg_media_tree_previous(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
           gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
           break;
         case BG_KEY_PAGE_DOWN:
-          bg_media_tree_previous(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
+          bg_media_tree_next(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
           gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
           break;
         case BG_KEY_Q:
@@ -572,14 +572,14 @@ static gboolean crossing_callback(GtkWidget *widget,
   return FALSE;
   }
 
-player_window_t * player_window_create(gmerlin_t * g)
+void player_window_create(gmerlin_t * g)
   {
   player_window_t * ret;
 
   ret = calloc(1, sizeof(*ret));
   ret->gmerlin = g;
 
-  
+  g->player_window = ret;
   
   ret->tooltips = gtk_tooltips_new();
   
@@ -598,7 +598,11 @@ player_window_t * player_window_create(gmerlin_t * g)
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_decorated(GTK_WINDOW(ret->window), FALSE);
 
+  ret->accel_group = gtk_accel_group_new();
+
+  
   gtk_window_add_accel_group (GTK_WINDOW(ret->window), ret->gmerlin->accel_group);
+  gtk_window_add_accel_group (GTK_WINDOW(ret->window), ret->accel_group);
   //  fprintf(stderr, "Player window Add accel group %p\n", ret->gmerlin->accel_group);
 
   

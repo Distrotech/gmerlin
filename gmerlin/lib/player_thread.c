@@ -727,11 +727,16 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
   
   bg_player_time_set(player, sync_time);
   
-  
   if(old_state == BG_PLAYER_STATE_PAUSED)
     {
     bg_player_set_state(player, BG_PLAYER_STATE_PAUSED, NULL, NULL);
 
+    /* Need to update slider and time for seeking case */
+
+    bg_msg_queue_list_send(player->message_queues,
+                           msg_time,
+                           &sync_time);
+    
     if(player->do_video)
       bg_player_ov_update_still(player->ov_context);
     

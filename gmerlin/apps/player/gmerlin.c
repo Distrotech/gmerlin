@@ -217,7 +217,7 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   
   /* Create player window */
     
-  ret->player_window = player_window_create(ret);
+  player_window_create(ret);
   
   //  gmerlin_skin_load(&(ret->skin), "Default");
   //  gmerlin_skin_set(ret);

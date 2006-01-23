@@ -55,6 +55,21 @@ struct options_menu_s
   GtkWidget * menu;
   };
 
+struct command_menu_s
+  {
+  GtkWidget * inc_volume;
+  GtkWidget * dec_volume;
+  GtkWidget * seek_forward;
+  GtkWidget * seek_backward;
+  GtkWidget * next;
+  GtkWidget * previous;
+
+  GtkWidget * seek_start;
+  GtkWidget * pause;
+  
+  GtkWidget * menu;
+  };
+
 struct accessories_menu_s
   {
   GtkWidget * transcoder;
@@ -68,6 +83,7 @@ struct main_menu_s
   {
   struct windows_menu_s     windows_menu;
   struct options_menu_s     options_menu;
+  struct command_menu_s     command_menu;
   struct accessories_menu_s accessories_menu;
   struct stream_menu_s      audio_stream_menu;
   struct stream_menu_s      video_stream_menu;
@@ -200,6 +216,51 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     system("gmerlin_transcoder_remote -launch");
     }
+  else if(w == the_menu->command_menu.inc_volume)
+    {
+    //    fprintf(stderr, "inc volume\n");
+    bg_player_set_volume_rel(g->player, 1.0);
+    }
+  else if(w == the_menu->command_menu.dec_volume)
+    {
+    //    fprintf(stderr, "dec volume\n");
+    bg_player_set_volume_rel(g->player, -1.0);
+    }
+  else if(w == the_menu->command_menu.seek_backward)
+    {
+    bg_player_seek_rel(g->player,   -2 * GAVL_TIME_SCALE );
+    //    fprintf(stderr, "seek_backward\n");
+    }
+  else if(w == the_menu->command_menu.seek_forward)
+    {
+    bg_player_seek_rel(g->player,    2 * GAVL_TIME_SCALE );
+    //    fprintf(stderr, "seek_forward\n");
+    }
+  else if(w == the_menu->command_menu.next)
+    {
+    bg_media_tree_next(g->tree, 1, g->shuffle_mode);
+    gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
+
+    //    fprintf(stderr, "next\n");
+    }
+  else if(w == the_menu->command_menu.previous)
+    {
+    bg_media_tree_previous(g->tree, 1, g->shuffle_mode);
+    gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
+
+    //    fprintf(stderr, "previous\n");
+    }
+  else if(w == the_menu->command_menu.seek_start)
+    {
+    //    fprintf(stderr, "seek_start\n");
+    bg_player_seek(g->player, 0 );
+    }
+  else if(w == the_menu->command_menu.pause)
+    {
+    //    fprintf(stderr, "pause\n");
+    bg_player_pause(g->player);
+    }
+  
   else if(stream_menu_has_widget(&the_menu->audio_stream_menu, w, &stream_index))
     {
     //    fprintf(stderr, "Select audio stream: %d\n", stream_index);
@@ -499,6 +560,48 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   ret->options_menu.skins =
     create_item("Skins...", gmerlin, ret->options_menu.menu);
 
+  /* Commands */
+  ret->command_menu.menu = create_menu();
+  ret->command_menu.inc_volume =
+    create_item("Increase volume", gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.inc_volume, "activate", ret->g->player_window->accel_group,
+                             GDK_Up, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+
+  ret->command_menu.dec_volume =
+    create_item("Decrease volume", gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.dec_volume, "activate", ret->g->player_window->accel_group,
+                             GDK_Down, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+
+  ret->command_menu.seek_forward =
+    create_item("Seek forward", gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.seek_forward, "activate", ret->g->player_window->accel_group,
+                             GDK_Right, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+
+  ret->command_menu.seek_backward =
+    create_item("Seek backward", gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.seek_backward, "activate", ret->g->player_window->accel_group,
+                             GDK_Left, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+
+  ret->command_menu.next =
+    create_item("Next track", gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.next, "activate", ret->g->player_window->accel_group,
+                             GDK_Page_Down, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+
+  ret->command_menu.previous =
+    create_item("Previous track", gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.previous, "activate", ret->g->player_window->accel_group,
+                             GDK_Page_Up, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+
+  ret->command_menu.seek_start =
+    create_item("Seek to start", gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.seek_start, "activate", ret->g->player_window->accel_group,
+                             GDK_0, 0, GTK_ACCEL_VISIBLE);
+
+  ret->command_menu.pause =
+    create_item("pause", gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.pause, "activate", ret->g->player_window->accel_group,
+                             GDK_space, 0, GTK_ACCEL_VISIBLE);
+
   /* Accessories */
 
   ret->accessories_menu.menu = create_menu();
@@ -546,6 +649,10 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
 
   ret->options_item = create_submenu_item("Options...",
                                           ret->options_menu.menu,
+                                          ret->menu);
+
+  ret->options_item = create_submenu_item("Commands...",
+                                          ret->command_menu.menu,
                                           ret->menu);
 
   ret->accessories_item = create_submenu_item("Accessories...",

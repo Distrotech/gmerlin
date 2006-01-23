@@ -634,7 +634,7 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
     if(do_video)
       do_video = process_video(ctx, 1);
     }
-  fprintf(stderr, "Preload done\n");
+  //  fprintf(stderr, "Preload done\n");
   }
 
 void bg_player_input_seek(bg_player_input_context_t * ctx,
