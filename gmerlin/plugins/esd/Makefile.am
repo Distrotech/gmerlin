@@ -10,6 +10,6 @@ i_esd_la_SOURCES  = i_esd.c
 oa_esd_la_LDFLAGS = -avoid-version -module
 i_esd_la_LDFLAGS  = -avoid-version -module
 
-oa_esd_la_LIBADD = @ESD_LIBS@
-i_esd_la_LIBADD = @ESD_LIBS@
+oa_esd_la_LIBADD = @GMERLIN_DEP_LIBS@ @ESD_LIBS@
+i_esd_la_LIBADD = @GMERLIN_DEP_LIBS@ @ESD_LIBS@
 

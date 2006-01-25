@@ -40,6 +40,7 @@ else
 fi
 
 LDFLAGS="$GMERLIN_DEP_RPATH"
+AC_SUBST(GMERLIN_DEP_LIBS)
 
 dnl
 dnl Check for Libraries

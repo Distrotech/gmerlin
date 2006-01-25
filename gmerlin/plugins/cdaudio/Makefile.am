@@ -26,7 +26,7 @@ $(musicbrainz_sources) \
 $(cdparanoia_sources)
 
 
-i_cdaudio_la_LIBADD = $(musicbrainz_libs) @CDIO_LIBS@ @CDIO_CDDA_LIBS@ @CDIO_PARANOIA_LIBS@
+i_cdaudio_la_LIBADD = @GMERLIN_DEP_LIBS@ $(musicbrainz_libs) @CDIO_LIBS@ @CDIO_CDDA_LIBS@ @CDIO_PARANOIA_LIBS@
 i_cdaudio_la_LDFLAGS  = -avoid-version -module
 
 noinst_HEADERS = cdaudio.h sha1.h
