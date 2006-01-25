@@ -345,5 +345,5 @@ fi
 echo
 echo "If you installed a library but it was not detected, check the file INSTALL"
 echo "for troubleshooting tips. Also note that if the configure script reaches"
-echo "this point, all missing packages are optional so compilation should suceed"
+echo "this point, all missing packages are optional so compilation should succeed"
 echo "anyway."
