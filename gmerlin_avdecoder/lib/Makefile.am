@@ -196,6 +196,7 @@ SUBDIRS = $(win32_subdirs) GSM610
 
 libgmerlin_avdec_la_LDFLAGS=-export-dynamic
 libgmerlin_avdec_la_LIBADD= \
+@GMERLIN_DEP_LIBS@ \
 $(vorbis_libs) \
 $(libmpeg2_libs) \
 $(win32_libs) \
