@@ -6,4 +6,4 @@ lib_LTLIBRARIES = i_vorbis.la
 
 i_vorbis_la_SOURCES = i_vorbis.c
 i_vorbis_la_LDFLAGS  = -avoid-version -module
-i_vorbis_la_LIBADD = @VORBIS_LIBS@ @VORBISFILE_LIBS@
+i_vorbis_la_LIBADD = @GMERLIN_DEP_LIBS@ @VORBIS_LIBS@ @VORBISFILE_LIBS@

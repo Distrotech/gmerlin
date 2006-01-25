@@ -10,8 +10,8 @@ i_lqt_la_SOURCES  = i_lqt.c lqt_common.c lqtgavl.c
 e_lqt_la_LDFLAGS = -avoid-version -module
 i_lqt_la_LDFLAGS  = -avoid-version -module
 
-e_lqt_la_LIBADD = @LQT_LIBS@
-i_lqt_la_LIBADD = @LQT_LIBS@
+e_lqt_la_LIBADD = @GMERLIN_DEP_LIBS@ @LQT_LIBS@
+i_lqt_la_LIBADD = @GMERLIN_DEP_LIBS@ @LQT_LIBS@
 
 
 noinst_HEADERS = lqt_common.h lqtgavl.h

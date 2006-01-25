@@ -47,6 +47,7 @@ csp_planar_packed.h  \
 csp_planar_planar.h
 
 libgavl_la_LIBADD = \
+@GMERLIN_DEP_LIBS@
 $(mmx_libs) \
 c/libgavl_c.la \
 libgdither/libgdither.la \
