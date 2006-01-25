@@ -7,4 +7,4 @@ e_vorbis.la
 
 e_vorbis_la_SOURCES = e_vorbis.c
 e_vorbis_la_LDFLAGS = -avoid-version -module
-e_vorbis_la_LIBADD = @top_srcdir@/lib/libgmerlin_encoders.la @VORBISENC_LIBS@ @VORBIS_LIBS@ 
+e_vorbis_la_LIBADD = @GMERLIN_DEP_LIBS@ @top_srcdir@/lib/libgmerlin_encoders.la @VORBISENC_LIBS@ @VORBIS_LIBS@ 

@@ -28,6 +28,7 @@ else
 fi
 
 LDFLAGS="-Wl,--rpath -Wl,$GMERLIN_DEP_DIR/lib"
+AC_SUBST(GMERLIN_DEP_LIBS)
 
 dnl
 dnl Required libraries
