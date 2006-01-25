@@ -28,20 +28,11 @@ clear
 
                                         ###### Define VARIABLES for installation ######
 
-                                              # Define the PLAUM variables #
-DATE="20051226"
-
                                             # Define the old PKG_CONFIG_PATH #
 OLD_PKG_CONFIG=$PKG_CONFIG_PATH
 
                                            # Define the INSTALLATION directorys #
 LOGS=".gmerlin_logs"     ;     HELPS=".gmerlin_helps"     ;      HOME="GMerlin_INstallation"
-
-                                              # Define the ALL-IN-ONE packs #
-GMERLIN_ALL_IN_ONE_PACKETS_NAME="gmerlin-all-in-one-$DATE"
-
-                                             # Define the DEPENDENCIE packs #
-GMERLIN_DEPENDENCIES_PACKETS_NAME="gmerlin-dependencies-$DATE"
 
                                               # Define the PACKS how need #
 BASE="yum apt-get"
@@ -81,6 +72,29 @@ YES_NO="$COL_DEF$POSITION_DISKRIPTION[ \033[32;1mY\033[0mES,\033[31;1mN\033[0mO 
 					###### Define FUNCTIONS how need ######
 
 					        # Page DESIGN for text #
+# $1 = GMERLIN_PACK TO FIND // $NEWEST = RETURN WERT
+function FIND_NEWEST_PACKET_FUNC()
+{
+wget http://prdownloads.sourceforge.net/gmerlin/ -O packs.txt >& DUMP
+READY_EXIT_FUNC "Can not check the Gmerlin Packets" 
+NEWEST=`grep /gmerlin/$1 packs.txt | awk '{ print $6}' | awk  -F '"' '{ print $2 }' | sort -n -r | awk -F '/' '{ printf $3 ; printf " "}' | awk '{ print $1 }'`
+rm DUMP packs.txt
+READY_EXIT_FUNC "Can not delete DUMP && packs.txt"
+}
+
+# $1 = GMERLIN_PACK TO FIND // $MIRRORS = RETURN WERT
+function FIND_MIRRORS_PACKET_FUNC()
+{
+wget http://prdownloads.sourceforge.net/gmerlin/ -O packs.txt >& DUMP
+READY_EXIT_FUNC "Can not check the Gmerlin Packets" 
+VAR=`grep /gmerlin/$1 packs.txt | awk '{ print $6}' | awk  -F '"' '{ print $2 }' | sort -n -r | awk -F '/' '{ printf $3 ; printf " "}' | awk '{ print $1 }'`
+wget http://prdownloads.sourceforge.net/gmerlin/$VAR -O mirrors.txt >& DUMP
+READY_EXIT_FUNC "Can not check the Gmerlin Packets" 
+MIRRORS=`grep -B 1 use_mirror mirrors.txt | awk '{ print  $1 , $2 }' | awk -F "<td>" '{ print $1 $2 }' | awk -F "</td>" '{ print $1 $2 }' | awk -F "<a " '{ print $1 $2 }' | awk -F "\"" '{ print $1 $2 }' | awk -F "--" '{ print $1 $2 }' | sed -e '/^[ ]*$/d' | awk -F "href=/gmerlin/" '{ print $1 , $2 }' | awk '{ printf $1 ; printf " " }'`
+rm DUMP packs.txt mirrors.txt
+READY_EXIT_FUNC "Can not delete DUMP && packs.txt && mirrors.txt"
+}
+
 # $1 = HOW MANY NEW LINES
 function PRINT_NEW_LINE_FUNC()
 {
@@ -476,6 +490,16 @@ PRINT_PAGE_COMMENT_LINE_FUNC "Please make sure, that the internet connection is 
 PRINT_PAGE_COMMENT_LINE_FUNC "Gmerlin will be downloaded 10 to 50 MByte" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "You can download an install all components form hand, the script" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "will be find it!" "-e"
+
+
+                                              # Define the newest ALL-IN-ONE packs #
+FIND_NEWEST_PACKET_FUNC "gmerlin-all-in-one"
+GMERLIN_ALL_IN_ONE_PACKETS_NAME=$NEWEST
+                                             # Define the newest DEPENDENCIE packs #
+FIND_NEWEST_PACKET_FUNC "gmerlin-dependencies"
+GMERLIN_DEPENDENCIES_PACKETS_NAME=$NEWEST
+
+
 if [ "$AUTO_CHECK" = false ]
     then
     PRINT_NEW_LINE_FUNC 1
@@ -826,41 +850,44 @@ if [ "$ANSWER" = true ]
     if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
     
                                                 # Find GMERLIN components #
-    PRINT_INFO_LINE_FUNC "find depenedencies"
+    PRINT_INFO_LINE_FUNC "find $GMERLIN_DEPENDENCIES_PACKETS_NAME"
     echo -ne "$POSITION_STATUS Please wait ..."
     cd $INSTALL_HOME
     READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$INSTALL_HOME$COL_DEF directory"
-    test -f "$GMERLIN_DEPENDENCIES_PACKETS_NAME.tar.bz2"    
+    test -f "$GMERLIN_DEPENDENCIES_PACKETS_NAME"    
     if test $? = 0
 	then
-	cp $GMERLIN_DEPENDENCIES_PACKETS_NAME.tar.bz2 $HOME ; READY_EXIT_FUNC "Can not copy file"
+	cp $GMERLIN_DEPENDENCIES_PACKETS_NAME $HOME ; READY_EXIT_FUNC "Can not copy file"
 	echo -e "$OK\033[K"
     else
 	ERROR_SAVE=$ERROR
-	ERROR="$ERROR_SAVE $GMERLIN_DEPENDENCIES_PACKETS_NAME.tar.bz2"
+	ERROR="$ERROR_SAVE $GMERLIN_DEPENDENCIES_PACKETS_NAME"
 	echo -e "$FAIL\033[K"
     fi
-    PRINT_INFO_LINE_FUNC "find all-in-one"
+    PRINT_INFO_LINE_FUNC "find $GMERLIN_ALL_IN_ONE_PACKETS_NAME"
     echo -ne "$POSITION_STATUS Please wait ..."
-    test -f "$GMERLIN_ALL_IN_ONE_PACKETS_NAME.tar.bz2"    
+    test -f "$GMERLIN_ALL_IN_ONE_PACKETS_NAME"    
     if test $? = 0
 	then
-	cp $GMERLIN_ALL_IN_ONE_PACKETS_NAME.tar.bz2 $HOME ; READY_EXIT_FUNC "Can not copy file"
+	cp $GMERLIN_ALL_IN_ONE_PACKETS_NAME $HOME ; READY_EXIT_FUNC "Can not copy file"
 	echo -e "$OK\033[K"
     else
 	ERROR_SAVE=$ERROR
-	ERROR="$ERROR_SAVE $GMERLIN_ALL_IN_ONE_PACKETS_NAME.tar.bz2"
+	ERROR="$ERROR_SAVE $GMERLIN_ALL_IN_ONE_PACKETS_NAME"
 	echo -e "$FAIL\033[K"
     fi
     cd $HOME
     READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
 
+
+
 #    echo $ERROR
-#    if [ "$ERROR" != "" ]
-#	then
-#	for i in $ERROR
-#	    do
-#	    wget http://prdownloads.sourceforge.net/gmerlin/$i?download -O $HELPS/$i.MIRRORS
-#	done
-#    fi
+    if [ "$ERROR" != "" ]
+	then
+	for i in $ERROR
+	    do
+	    FIND_MIRRORS_PACKET_FUNC $i
+	    echo $MIRRORS
+	done
+    fi
 fi
