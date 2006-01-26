@@ -98,7 +98,6 @@ READY_EXIT_FUNC "Can not delete DUMP && packs.txt && mirrors.txt"
 # $1 = HOW MANY NEW LINES
 function PRINT_NEW_LINE_FUNC()
 {
-
     for i in `seq 1 $1`; do echo ; done;
 }
 
@@ -860,34 +859,68 @@ if [ "$ANSWER" = true ]
 	cp $GMERLIN_DEPENDENCIES_PACKETS_NAME $HOME ; READY_EXIT_FUNC "Can not copy file"
 	echo -e "$OK\033[K"
     else
-	ERROR_SAVE=$ERROR
-	ERROR="$ERROR_SAVE $GMERLIN_DEPENDENCIES_PACKETS_NAME"
-	echo -e "$FAIL\033[K"
+	cd $HOME
+	READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
+	test -f "$GMERLIN_DEPENDENCIES_PACKETS_NAME"    
+	if test $? = 0
+	    then
+	    echo -e "$OK\033[K"
+	else
+	    ERROR_SAVE=$ERROR
+	    ERROR="$ERROR_SAVE $GMERLIN_DEPENDENCIES_PACKETS_NAME"
+	    echo -e "$FAIL\033[K"
+	fi
     fi
     PRINT_INFO_LINE_FUNC "find $GMERLIN_ALL_IN_ONE_PACKETS_NAME"
     echo -ne "$POSITION_STATUS Please wait ..."
+    cd $INSTALL_HOME
+    READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$INSTALL_HOME$COL_DEF directory"
     test -f "$GMERLIN_ALL_IN_ONE_PACKETS_NAME"    
     if test $? = 0
 	then
 	cp $GMERLIN_ALL_IN_ONE_PACKETS_NAME $HOME ; READY_EXIT_FUNC "Can not copy file"
 	echo -e "$OK\033[K"
     else
-	ERROR_SAVE=$ERROR
-	ERROR="$ERROR_SAVE $GMERLIN_ALL_IN_ONE_PACKETS_NAME"
-	echo -e "$FAIL\033[K"
+	cd $HOME
+	READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
+	test -f "$GMERLIN_ALL_IN_ONE_PACKETS_NAME"    
+	if test $? = 0
+	    then
+	    echo -e "$OK\033[K"
+	else
+	    ERROR_SAVE=$ERROR
+	    ERROR="$ERROR_SAVE $GMERLIN_ALL_IN_ONE_PACKETS_NAME"
+	    echo -e "$FAIL\033[K"
+	fi
     fi
-    cd $HOME
-    READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
-
-
-
-#    echo $ERROR
+    
+                                               # If error SEND user Message #
     if [ "$ERROR" != "" ]
 	then
-	for i in $ERROR
-	    do
-	    FIND_MIRRORS_PACKET_FUNC $i
-	    echo $MIRRORS
-	done
-    fi
+	PRINT_NEW_LINE_FUNC 1
+ 	PRINT_ERROR_MESSAGE_LINE_FUNC "On the System we doesn't found all Packets:" "-e"
+ 	PRINT_ERROR_MESSAGE_LINE_FUNC "The Packet are important for installing Gmerlin" "-e"
+	if [ "$AUTO_INSTALL" = false ]
+	    then
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "The script can download it? $YES_NO" "-ne"
+	    AUTO_INSTALL_FUNC ; YES_NO_FUNC
+	    if [ "$ANSWER" = false ]
+		then
+		PRINT_ERROR_MESSAGE_LINE_FUNC "Download to $INSTALL_HOME" "-e"
+		PRINT_ERROR_MESSAGE_LINE_FUNC "Download it jet and go on? $YES_NO" "-ne"
+		AUTO_INSTALL_FUNC ; YES_NO_FUNC ; HAND=true
+		if [ "$ANSWER" = false ] ; then	PRINT_NEW_LINE_FUNC 2 ; exit ; fi
+	    fi
+	fi
+    fi	
+
+#echo `pwd`
+#   if [ "$ERROR" != "" ]
+#	then
+#	for i in $ERROR
+#	    do
+#	    FIND_MIRRORS_PACKET_FUNC $i
+#	    echo $MIRRORS
+#	done
+#    fi
 fi
