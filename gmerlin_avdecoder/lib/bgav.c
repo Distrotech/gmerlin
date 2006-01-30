@@ -105,7 +105,11 @@ int bgav_init(bgav_t * ret)
       {
       ret->demuxer = create_demuxer(ret, demuxer);
       if(!bgav_demuxer_start(ret->demuxer, &(ret->redirector)))
+        {
+        if(ret->demuxer->error_msg)
+          ret->error_msg = bgav_strndup(ret->demuxer->error_msg, (char*)0);
         goto fail;
+        }
       }
     if(!ret->demuxer)
       goto fail;

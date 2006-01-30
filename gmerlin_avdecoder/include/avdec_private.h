@@ -732,11 +732,11 @@ struct bgav_demuxer_context_s
    *  Can come handy sometimes
    */
   bgav_stream_t * request_stream;
+
   /*
    *  If demuxer creates a superindex, generic get_packet() and
    *  seek() functions will be used
    */
-
   bgav_superindex_t * si;
   int seeking;
   int non_interleaved;
@@ -744,9 +744,7 @@ struct bgav_demuxer_context_s
   /* Some demuxers have a custom read packet function */
   int (*read_packet)(bgav_demuxer_context_t * ctx, int size);
 
-  /* Some demuxers want a final function to be called after the actual
-     initialization of the demuxer is done (i.e. when packets can be read) */
-
+  char * error_msg;
   
   };
 

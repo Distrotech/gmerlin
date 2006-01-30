@@ -224,6 +224,7 @@ void bgav_demuxer_destroy(bgav_demuxer_context_t * ctx)
     bgav_superindex_destroy(ctx->si);
 
   FREE(ctx->stream_description);
+  FREE(ctx->error_msg);
   free(ctx);
   }
 
