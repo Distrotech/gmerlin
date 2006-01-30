@@ -608,6 +608,7 @@ GMERLIN_ALL_IN_ONE_PACKETS_NAME=$NEWEST
 FIND_NEWEST_PACKET_FUNC "gmerlin-dependencies"
 GMERLIN_DEPENDENCIES_PACKETS_NAME=$NEWEST
 
+ALL_PACKS="$GMERLIN_DEPENDENCIES_PACKETS_NAME $GMERLIN_ALL_IN_ONE_PACKETS_NAME"
 
 if [ "$AUTO_CHECK" = false ]
     then
@@ -1082,4 +1083,37 @@ if [ "$ANSWER" = true ]
        PRINT_NEW_LINE_FUNC 2
        exit
    fi
+fi
+						# Extra check DIRECKTORY #
+cd $HOME
+READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
+
+
+
+
+############################################### UNPACKING AND CHECK THE PACKETS ##############################################################
+
+					       # Define MACKER for this funktion #
+ERROR=""                        ;            ERROR_SAVE=""       
+
+                                          # Begin with find PKG and gmerlin COMPONENTS #
+PRINT_HEAD_LINE_FUNC "Unpack/check the Gmerlin Packets:"
+if [ "$ANSWER" = true ]
+    then
+    PRINT_COMMENT_LINE_FUNC "(After unpack, check if the Packets complite)"
+    for i in $ALL_PACKS
+	do
+	PRINT_INFO_LINE_FUNC "unpack $i"
+	DEL_DIRECTORY_FUNC `echo $i| awk -F "." '{print $1}'` "$COL_DEF Can not delete $COL_RED_LINE_HIGH`echo $i| awk -F "." '{print $1}'`$COL_DEF directory"
+	tar -xvjf $i >& $HELPS/$i.tar.log 
+	if test $? = 0
+	    then
+	    DEL_FILE_FUNC "$HELPS/$i.tar.log" "Can not delete file"
+	    echo -e "$OK\033[K"
+	else
+	    cp $HELPS/$i.tar.log $INSTALL_HOME/$1.tar.log ; READY_EXIT_FUNC "Can not copy file"
+	    ERROR_SAVE=true
+	    echo -e "$FAIL\033[K"
+	fi
+    done
 fi
