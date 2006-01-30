@@ -75,25 +75,121 @@ YES_NO="$COL_DEF$POSITION_DISKRIPTION[ \033[32;1mY\033[0mES,\033[31;1mN\033[0mO 
 # $1 = GMERLIN_PACK TO FIND // $NEWEST = RETURN WERT
 function FIND_NEWEST_PACKET_FUNC()
 {
-wget http://prdownloads.sourceforge.net/gmerlin/ -O packs.txt >& DUMP
+wget http://prdownloads.sourceforge.net/gmerlin/ -O $HELPS/packs.txt >& $HELPS/DUMP
 READY_EXIT_FUNC "Can not check the Gmerlin Packets" 
-NEWEST=`grep /gmerlin/$1 packs.txt | awk '{ print $6}' | awk  -F '"' '{ print $2 }' | sort -n -r | awk -F '/' '{ printf $3 ; printf " "}' | awk '{ print $1 }'`
-rm DUMP packs.txt
+NEWEST=`grep /gmerlin/$1 $HELPS/packs.txt | awk '{ print $6}' | awk  -F '"' '{ print $2 }' | sort -n -r | awk -F '/' '{ printf $3 ; printf " "}' | awk '{ print $1 }'`
+DEL_FILE_FUNC "$HELPS/packs.txt" "Can not delete file"
+DEL_FILE_FUNC "$HELPS/DUMP" "Can not delete file"
 READY_EXIT_FUNC "Can not delete DUMP && packs.txt"
 }
 
-# $1 = GMERLIN_PACK TO FIND // $MIRRORS = RETURN WERT
-function FIND_MIRRORS_PACKET_FUNC()
+# $1 = GMERLIN_PACK TO FIND 
+function DOWNLOAD_NEWEST_PACKET_FUNC()
 {
-wget http://prdownloads.sourceforge.net/gmerlin/ -O packs.txt >& DUMP
-READY_EXIT_FUNC "Can not check the Gmerlin Packets" 
-VAR=`grep /gmerlin/$1 packs.txt | awk '{ print $6}' | awk  -F '"' '{ print $2 }' | sort -n -r | awk -F '/' '{ printf $3 ; printf " "}' | awk '{ print $1 }'`
-wget http://prdownloads.sourceforge.net/gmerlin/$VAR -O mirrors.txt >& DUMP
-READY_EXIT_FUNC "Can not check the Gmerlin Packets" 
-MIRRORS=`grep -B 1 use_mirror mirrors.txt | awk '{ print  $1 , $2 }' | awk -F "<td>" '{ print $1 $2 }' | awk -F "</td>" '{ print $1 $2 }' | awk -F "<a " '{ print $1 $2 }' | awk -F "\"" '{ print $1 $2 }' | awk -F "--" '{ print $1 $2 }' | sed -e '/^[ ]*$/d' | awk -F "href=/gmerlin/" '{ print $1 , $2 }' | awk '{ printf $1 ; printf " " }'`
-rm DUMP packs.txt mirrors.txt
-READY_EXIT_FUNC "Can not delete DUMP && packs.txt && mirrors.txt"
+wget http://prdownloads.sourceforge.net/gmerlin/ -O $HELPS/packs.txt >& $HELPS/DUMP
+VAR=`grep /gmerlin/$1 $HELPS/packs.txt | awk '{ print $6}' | awk  -F '"' '{ print $2 }' | sort -n -r | awk -F '/' '{ printf $3 ; printf " "}' | awk '{ print $1 }'`
+wget http://prdownloads.sourceforge.net/gmerlin/$VAR -O $HELPS/mirrors.txt >& $HELPS/DUMP
+VAR2=`grep -B 1 use_mirror $HELPS/mirrors.txt | awk '{ print  $1 , $2 }' | awk -F "<td>" '{ print $1 $2 }' | awk -F "</td>" '{ print $1 $2 }' | awk -F "<a " '{ print $1 $2 }' | awk -F "\"" '{ print $1 $2 }' | awk -F "--" '{ print $1 $2 }' | sed -e '/^[ ]*$/d' | awk -F "href=/gmerlin/" '{ print $1 , $2 }' | awk '{ printf $1 ; printf " " }'`
+ZAHL=0 ; ZEILE=0
+
+PRINT_NEW_LINE_FUNC 1
+PRINT_COMMENT_LINE_FUNC "  NR \r\033[8C LAND \r\033[15C = \r\033[29C MIRROR" 
+PRINT_COMMENT_LINE_FUNC "------------------------------------------------"
+PRINT_NEW_LINE_FUNC 1
+
+for i in $VAR2
+  do
+  if [ "$ZAHL" = "1" ]
+      then
+      echo -e `echo $i| awk -F "=" '{print $2}'`
+      let ZAHL=$ZAHL+1
+  fi
+  if [ "$ZAHL" = "0" ]
+   then
+   echo -ne "$POSITION_INFO$ZEILE \r\033[8C $i \r\033[15C = \r\033[30C"  
+   let ZAHL=$ZAHL+1
+   let ZEILE=ZEILE+1
+  fi
+  if [ "$ZAHL" = "2" ]
+   then
+   ZAHL=0
+  fi
+done
+PRINT_NEW_LINE_FUNC 1
+
+let ZEILE=$ZEILE-1
+
+if [ "$AUTO_INSTALL" = true ]
+    then
+    PACK=0
+    ANSWER_OK=true
+else
+    echo -e $POSITION_INFO$COL_RED"X for EXIT$COL_DEF"
+    PRINT_NEW_LINE_FUNC 1
+    ANSWER_OK=false
+fi
+
+while ! $ANSWER_OK
+  do
+  echo -ne $POSITION_INFO"What mirror do you want, pleace give the number?\033[5C 0\033[1D"
+  read ANSWER
+  for i in `seq 0 $ZEILE`
+    do
+    if [ "$ANSWER" = "$i" ]
+        then
+        PACK=$i
+        ANSWER_OK=true
+    fi
+    if [ "$ANSWER" = "" -o "$ANSWER" = " " ]
+        then
+        PACK=0
+        ANSWER_OK=true
+    fi
+    if [ "$ANSWER" = "x" -o "$ANSWER" = "X" ]
+	then
+	DEL_FILE_FUNC "$HELPS/packs.txt" "Can not delete file"
+	DEL_FILE_FUNC "$HELPS/mirrors.txt" "Can not delete file"
+	DEL_FILE_FUNC "$HELPS/DUMP" "Can not delete file"
+	PRINT_NEW_LINE_FUNC 2
+	exit
+    fi
+  done
+done
+
+ZAHL=0 ; let ZEILE=($PACK*2)+1
+for i in $VAR2
+  do
+  if [ "$ZAHL" = "$ZEILE" ]
+   then
+   wget http://prdownloads.sourceforge.net/gmerlin/$i -O $HELPS/download_html.txt >& $HELPS/DUMP
+  fi
+  let ZAHL=$ZAHL+1
+done
+
+DOWN=`grep URL= $HELPS/download_html.txt | awk -F ";" '{print $2}' | awk -F "=" '{print $2}' | awk -F "\"" '{print $1}'`
+PRINT_NEW_LINE_FUNC 1
+PRINT_INFO_LINE_FUNC "download $1"
+echo -ne "$POSITION_STATUS   "
+wget -N $DOWN 2>&1 | tee $HELPS/DUMP | awk '$7~/%$/ { printf "%4s" ,$7; system("echo -ne \"\033[4D\"")}' 
+grep -q '100%' $HELPS/DUMP
+if [ "$?" = "0" ]
+    then
+    DEL_FILE_FUNC "$HELPS/packs.txt" "Can not delete file"
+    DEL_FILE_FUNC "$HELPS/mirrors.txt" "Can not delete file"
+    DEL_FILE_FUNC "$HELPS/download_html.txt" "Can not delete file"
+    DEL_FILE_FUNC "$HELPS/DUMP" "Can not delete file"
+    return 0
+else
+    cp $HELPS/DUMP $INSTALL_HOME/$1.wget.log ; READY_EXIT_FUNC "Can not copy file"
+    cp $HELPS/DUMP $LOGS/$1.wget.log ; READY_EXIT_FUNC "Can not copy file"
+    DEL_FILE_FUNC "$HELPS/packs.txt" "Can not delete file"
+    DEL_FILE_FUNC "$HELPS/mirrors.txt" "Can not delete file"
+    DEL_FILE_FUNC "$HELPS/download_html.txt" "Can not delete file"
+    DEL_FILE_FUNC "$HELPS/DUMP" "Can not delete file"
+    return 1
+fi;
 }
+
 
 # $1 = HOW MANY NEW LINES
 function PRINT_NEW_LINE_FUNC()
@@ -390,25 +486,39 @@ function CHECK_PACKETS_FUNC()
 function FIND_PKG_FUNC()
 {
     PKG_CONFIG_OLD=`echo $PKG_CONFIG_PATH`
+    for i in `ls /usr/`
+      do
+      echo -ne "$POSITION_STATUS Please wait ..."
+      find /usr/$i -type d >& $1.usr
+      READY_FUNC ; if test $? != 0 ; then cp $1.usr $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+      PKG_USR=`grep pkgconfig $1.usr | awk '{printf $1"/:" }' 2> DUMP`
+      READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.usr" "Can not delete $1.usr" ; else cp $1.usr $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+      DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
+      echo -ne "$POSITION_STATUS\033[K"
+    done
+
+    for i in `ls /opt/`
+      do
+      echo -ne "$POSITION_STATUS Please wait ..."
+      find /opt/$i -type d >& $1.opt
+      READY_FUNC ; if test $? != 0 ; then cp $1.opt $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+      PKG_OPT=`grep pkgconfig $1.opt | awk '{printf $1"/:" }' 2> DUMP`
+      READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.opt" "Can not delete $1.opt" ; else cp $1.opt $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+      DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
+      echo -ne "$POSITION_STATUS\033[K"
+    done
+
+    for i in `ls ~/`
+      do
+      echo -ne "$POSITION_STATUS Please wait ..."
+      find ~/$i -type d >& $1.hom
+      READY_FUNC ; if test $? != 0 ; then cp $1.hom $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+      PKG_HOM=`grep pkgconfig $1.hom | awk '{printf $1"/:" }' 2> DUMP`
+      READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.hom" "Can not delete $1.hom" ; else cp $1.hom $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+      DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
+      echo -ne "$POSITION_STATUS\033[K"
+    done
     
-    find /usr/ -type d >& $1.usr
-    READY_FUNC ; if test $? != 0 ; then cp $1.usr $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
-    PKG_USR=`grep pkgconfig $1.usr | awk '{printf $1"/:" }' 2> DUMP`
-    READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.usr" "Can not delete $1.usr" ; else cp $1.usr $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
-    DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
-    
-    find /opt/ -type d >& $1.opt
-    READY_FUNC ; if test $? != 0 ; then cp $1.opt $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
-    PKG_OPT=`grep pkgconfig $1.opt | awk '{printf $1"/:" }' 2> DUMP`
-    READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.opt" "Can not delete $1.opt" ; else cp $1.opt $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
-    DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
-    
-    find ~/ -type d >& $1.hom
-    READY_FUNC ; if test $? != 0 ; then cp $1.hom $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
-    PKG_HOM=`grep pkgconfig $1.hom | awk '{printf $1"/:" }' 2> DUMP`
-    READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.hom" "Can not delete $1.hom" ; else cp $1.hom $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
-    DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
- 
     PKG_CONF_NEW="$PKG_USR$PKG_OPT$PKG_HOME/opt/gmerlin/lib/pkgconfig/:$PATH"
     return 0;
 }
@@ -562,7 +672,7 @@ if [ "$ANSWER" = true ]
     if [ "$MANAGER" = "" -o "$PACKET_TOOL" = "" ]
 	then
 	PRINT_NEW_LINE_FUNC 1
- 	PRINT_ERROR_MESSAGE_LINE_FUNC "On the System we doesn't found following Packets:" "-e"
+ 	PRINT_ERROR_MESSAGE_LINE_FUNC "On the System we does not found following Packets:" "-e"
 	PRINT_ERROR_MESSAGE_LINE_FUNC "      $COL_RED_HIGH$ERROR$COL_DEF" "-e"
  	PRINT_ERROR_MESSAGE_LINE_FUNC "The Packet are important for downloading Packets" "-e"
 	if [ "$AUTO_INSTALL" = false ]
@@ -618,7 +728,7 @@ if [ "$ANSWER" = true ]
     if [ "$ERROR" != "" ]
 	then
 	PRINT_NEW_LINE_FUNC 1
- 	PRINT_ERROR_MESSAGE_LINE_FUNC "On the System we doesn't found following Packets:" "-e"
+ 	PRINT_ERROR_MESSAGE_LINE_FUNC "On the System we does not found following Packets:" "-e"
 	PRINT_ERROR_MESSAGE_LINE_FUNC "      $COL_RED_HIGH$ERROR$COL_DEF" "-e"
  	PRINT_ERROR_MESSAGE_LINE_FUNC "The Packet are important for running this Script" "-e"
 	if [ "$MANAGER" != "" -a "$AUTO_INSTALL" = false ]
@@ -673,7 +783,7 @@ if [ "$ANSWER" = true ]
     if [ "$ERROR_SAVE" != "" ]
 	then
 	PRINT_NEW_LINE_FUNC 1
- 	PRINT_ERROR_MESSAGE_LINE_FUNC "On the System we doesn't found all needed Packets:" "-e"
+ 	PRINT_ERROR_MESSAGE_LINE_FUNC "On the System we does not found all needed Packets:" "-e"
  	PRINT_ERROR_MESSAGE_LINE_FUNC "Please look at$COL_RED_HIGH BUG_* files$COL_DEF$COL_RED to find the error and restart the script" "-e"
 	PRINT_NEW_LINE_FUNC 2
 	exit
@@ -844,7 +954,6 @@ if [ "$ANSWER" = true ]
     
                                                    # Build PKG_CONFIG_PATH #     
     PRINT_INFO_LINE_FUNC "pkg_config_path"
-    echo -ne "$POSITION_STATUS Please wait ..."
     FIND_PKG_FUNC "$LOGS/BUG_pkg"
     if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
     
@@ -864,6 +973,7 @@ if [ "$ANSWER" = true ]
 	test -f "$GMERLIN_DEPENDENCIES_PACKETS_NAME"    
 	if test $? = 0
 	    then
+	    cp $GMERLIN_DEPENDENCIES_PACKETS_NAME $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
 	    echo -e "$OK\033[K"
 	else
 	    ERROR_SAVE=$ERROR
@@ -886,6 +996,7 @@ if [ "$ANSWER" = true ]
 	test -f "$GMERLIN_ALL_IN_ONE_PACKETS_NAME"    
 	if test $? = 0
 	    then
+	    cp $GMERLIN_ALL_IN_ONE_PACKETS_NAME $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
 	    echo -e "$OK\033[K"
 	else
 	    ERROR_SAVE=$ERROR
@@ -898,7 +1009,7 @@ if [ "$ANSWER" = true ]
     if [ "$ERROR" != "" ]
 	then
 	PRINT_NEW_LINE_FUNC 1
- 	PRINT_ERROR_MESSAGE_LINE_FUNC "On the System we doesn't found all Packets:" "-e"
+ 	PRINT_ERROR_MESSAGE_LINE_FUNC "On the System we does not found all Packets:" "-e"
  	PRINT_ERROR_MESSAGE_LINE_FUNC "The Packet are important for installing Gmerlin" "-e"
 	if [ "$AUTO_INSTALL" = false ]
 	    then
@@ -914,13 +1025,61 @@ if [ "$ANSWER" = true ]
 	fi
     fi	
 
-#echo `pwd`
-#   if [ "$ERROR" != "" ]
-#	then
-#	for i in $ERROR
-#	    do
-#	    FIND_MIRRORS_PACKET_FUNC $i
-#	    echo $MIRRORS
-#	done
-#    fi
+					       # Check and DOWNLOAD too #
+   ERROR_SAVE=false ; SAVE=""
+   if [ "$ERROR" != "" ]
+       then
+       if [ "$HAND" = true ]
+	   then
+	   for i in $ERROR
+	     do
+	     PRINT_INFO_LINE_FUNC "find $i"
+	     echo -ne "$POSITION_STATUS Please wait ..."
+	     cd $INSTALL_HOME
+	     READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$INSTALL_HOME$COL_DEF directory"
+	     test -f "$i"    
+	     if test $? = 0
+		 then
+		 cp $i $HOME ; READY_EXIT_FUNC "Can not copy file"
+		 echo -e "$OK\033[K"
+	     else
+		 cd $HOME
+		 READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
+		 test -f "$i"    
+		 if test $? = 0
+		     then
+		     cp $i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+		     echo -e "$OK\033[K"
+		 else
+		     ERROR_SAVE=true
+		     echo -e "$FAIL\033[K"
+		 fi
+	     fi
+	   done
+       else
+	   for i in $ERROR
+	     do
+	     SAVE=$i
+    	     DOWNLOAD_NEWEST_PACKET_FUNC $i
+	     if test $? = 0
+		 then
+		 cp $SAVE $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+		 echo -e "$OK\033[K"
+	     else
+		 ERROR_SAVE=true
+		 DEL_FILE_FUNC $SAVE "Can not delete file"
+		 echo -e "$FAIL\033[K"
+	     fi
+	   done
+       fi
+    fi
+						 # If ERROR too #
+   if [ "$ERROR_SAVE" = true ]
+       then
+       PRINT_NEW_LINE_FUNC 1
+       PRINT_ERROR_MESSAGE_LINE_FUNC "Downloading the needed Packets brocken:" "-e"
+       PRINT_ERROR_MESSAGE_LINE_FUNC "Please look at$COL_RED_HIGH *.wget.log files$COL_DEF$COL_RED to find the error and restart the script" "-e"
+       PRINT_NEW_LINE_FUNC 2
+       exit
+   fi
 fi
