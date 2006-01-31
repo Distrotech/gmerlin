@@ -65,8 +65,10 @@ YES_NO_EXIT_CLEAR="\033[1A$POSITION_DISKRIPTION\033[K"
  
 					     # Generate the INFORMATION strings #
 OK="$POSITION_STATUS[ $COL_GRE_HIGH OK $COL_DEF ]"
+OK2="$POSITION_STATUS[ $COL_BLU_HIGH OK $COL_DEF ]"
 YES_NO_EXIT="$COL_DEF$POSITION_DISKRIPTION[ \033[32;1mY\033[0mES,\033[31;1mN\033[0mO,E\033[33;1mX\033[0mIT ]\033[5C Y\033[1D"
 FAIL="$POSITION_STATUS[$COL_RED_HIGH FAIL $COL_DEF]"
+FAIL2="$POSITION_STATUS[$COL_YEL_HIGH FAIL $COL_DEF]"
 YES_NO="$COL_DEF$POSITION_DISKRIPTION[ \033[32;1mY\033[0mES,\033[31;1mN\033[0mO ]\033[5C Y\033[1D"
 
 					###### Define FUNCTIONS how need ######
@@ -485,38 +487,39 @@ function CHECK_PACKETS_FUNC()
 # BUILD THE NEW PKG_CONFIG_PATH ; $1 = ERROR_DATA(LOCATION)
 function FIND_PKG_FUNC()
 {
+    j=true
     PKG_CONFIG_OLD=`echo $PKG_CONFIG_PATH`
     for i in `ls /usr/`
       do
-      echo -ne "$POSITION_STATUS Please wait ..."
+      if [ "$j" = true ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true ; fi
       find /usr/$i -type d >& $1.usr
       READY_FUNC ; if test $? != 0 ; then cp $1.usr $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       PKG_USR=`grep pkgconfig $1.usr | awk '{printf $1"/:" }' 2> DUMP`
       READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.usr" "Can not delete $1.usr" ; else cp $1.usr $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
-      echo -ne "$POSITION_STATUS\033[K"
+      if [ "$j" = false ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true  ; fi
     done
 
     for i in `ls /opt/`
       do
-      echo -ne "$POSITION_STATUS Please wait ..."
+      if [ "$j" = true ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true ; fi
       find /opt/$i -type d >& $1.opt
       READY_FUNC ; if test $? != 0 ; then cp $1.opt $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       PKG_OPT=`grep pkgconfig $1.opt | awk '{printf $1"/:" }' 2> DUMP`
       READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.opt" "Can not delete $1.opt" ; else cp $1.opt $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
-      echo -ne "$POSITION_STATUS\033[K"
+      if [ "$j" = false ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true  ; fi
     done
 
     for i in `ls ~/`
       do
-      echo -ne "$POSITION_STATUS Please wait ..."
+      if [ "$j" = true ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true ; fi
       find ~/$i -type d >& $1.hom
       READY_FUNC ; if test $? != 0 ; then cp $1.hom $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       PKG_HOM=`grep pkgconfig $1.hom | awk '{printf $1"/:" }' 2> DUMP`
       READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.hom" "Can not delete $1.hom" ; else cp $1.hom $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
-      echo -ne "$POSITION_STATUS\033[K"
+      if [ "$j" = false ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true  ; fi
     done
     
     PKG_CONF_NEW="$PKG_USR$PKG_OPT$PKG_HOME/opt/gmerlin/lib/pkgconfig/:$PATH"
@@ -542,7 +545,7 @@ fi
 
                                                 # Make use our OWN directory #
 MAKE_DIRECTORY_FUNC $HOME "$COL_DEF Can not create $COL_RED_LINE_HIGH$HOME$COL_DEF directory" 
-cd $HOME
+cd $HOME 
 READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
 HOME=`pwd`
 READY_EXIT_FUNC "$COL_DEF Can not find the Path of$COL_RED_LINE_HIGH$HOME$COL_DEF directory"
@@ -1094,7 +1097,7 @@ READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF dire
 ############################################### UNPACKING AND CHECK THE PACKETS ##############################################################
 
 					       # Define MACKER for this funktion #
-ERROR=""                        ;            ERROR_SAVE=""       
+ERROR=false                        ;            ERROR_SAVE=false       
 
                                           # Begin with find PKG and gmerlin COMPONENTS #
 PRINT_HEAD_LINE_FUNC "Unpack/check the Gmerlin Packets:"
@@ -1116,4 +1119,35 @@ if [ "$ANSWER" = true ]
 	    echo -e "$FAIL\033[K"
 	fi
     done
+    for i in $ALL_PACKS
+	do
+	PRINT_COMMENT_2_LINE_FUNC "$COL_GRE Check components `echo $i| awk -F "." '{print $1}'`:"
+	DIR=`echo $i| awk -F "." '{print $1}'`
+	cd $DIR ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$DIR$COL_DEF directory"
+	if test -f dirs 
+	    then
+	    for i in `cat dirs`
+	      do
+	      PRINT_INFO_LINE_FUNC "check $i"
+	      if test -d $i ; then echo -e "$OK2"
+	      else ERROR=true ; echo -e "$FAIL2"
+	      fi
+	    done
+	    PRINT_INFO_LINE_FUNC "$COL_YEL$DIR"
+	    if [ "$ERROR" = false ] ; then echo -e "$OK"
+	    else ERROR_SAVE=true ; echo -e "$FAIL"
+	    fi
+	else PRINT_INFO_LINE_FUNC "$COL_YEL$DIR" ; ERROR_SAVE=true ; echo -e "$FAIL"
+	fi
+	cd $HOME ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
+    done
+						 # If ERROR #
+    if [ "$ERROR_SAVE" = true ]
+	then
+	PRINT_NEW_LINE_FUNC 1
+	PRINT_ERROR_MESSAGE_LINE_FUNC "The Packets or the tar Archive are not complete:" "-e"
+	PRINT_ERROR_MESSAGE_LINE_FUNC "Please look at$COL_RED_HIGH *.log files$COL_DEF$COL_RED to find the error and restart the script" "-e"
+	PRINT_NEW_LINE_FUNC 2
+	exit
+    fi
 fi
