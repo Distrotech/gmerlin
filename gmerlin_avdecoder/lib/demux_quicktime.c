@@ -868,7 +868,7 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
         bgav_qt_atom_skip(ctx->input, &h);
         fprintf(stderr, "Skipping unknown atom\n");
         bgav_qt_atom_dump_header(&h);
-        fprintf(stderr, "New position: %lld\n", ctx->input->position);
+        //        fprintf(stderr, "New position: %lld\n", ctx->input->position);
       }
 
     if(ctx->input->input->seek_byte)

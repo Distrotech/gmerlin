@@ -2,7 +2,7 @@
  
   avdec.h
  
-  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
   http://gmerlin.sourceforge.net
  
@@ -28,7 +28,7 @@
 
 /** \defgroup decoding Decoding of multimedia streams
  *
- *  Setting up a decoder is a muli step process. It might be a bit complicated,
+ *  Setting up a decoder is a multi-step process. It might be a bit complicated,
  *  but it provides support for many different multimedia sources through a single
  *  API.
  *
@@ -84,7 +84,7 @@ bgav_t * bgav_create();
  *  call to one of the bgav_open* functions.
  */
 
-/** \defgroup opening
+/** \defgroup opening Opening a media stream
  *  \ingroup decoding
  *  \brief Various methods of opening a media stream
  */
@@ -500,7 +500,7 @@ bgav_options_set_user_pass_callback(bgav_options_t* opt,
 
 /* Device description */
 
-/** \defgroup devices
+/** \defgroup devices Device description
  *  \brief Device description
  *
  *  The input modules, which access special hardware devices (e.g. CD drives),
@@ -836,6 +836,10 @@ int bgav_start(bgav_t * bgav);
  *  \param bgav A decoder instance
  *  \param stream Stream index (starting with 0)
  *  \returns The format
+ *
+ *  Note, that you can trust the return value of this function only, if you enabled
+ *  the stream (see \ref bgav_set_audio_stream) and started the decoders
+ *  (see \ref bgav_start).
  */
 
 const gavl_audio_format_t * bgav_get_audio_format(bgav_t * bgav, int stream);
@@ -845,6 +849,10 @@ const gavl_audio_format_t * bgav_get_audio_format(bgav_t * bgav, int stream);
  *  \param bgav A decoder instance
  *  \param stream Stream index (starting with 0)
  *  \returns The format
+ *
+ *  Note, that you can trust the return value of this function only, if you enabled
+ *  the stream (see \ref bgav_set_video_stream) and started the decoders
+ *  (see \ref bgav_start).
  */
 
 const gavl_video_format_t * bgav_get_video_format(bgav_t * bgav, int stream);
@@ -854,6 +862,10 @@ const gavl_video_format_t * bgav_get_video_format(bgav_t * bgav, int stream);
  *  \param bgav A decoder instance
  *  \param stream Stream index (starting with 0)
  *  \returns A technical decription of the stream 
+ *
+ *  Note, that you can trust the return value of this function only, if you enabled
+ *  the stream (see \ref bgav_set_audio_stream) and started the decoders
+ *  (see \ref bgav_start).
  */
 
 const char * bgav_get_audio_description(bgav_t * bgav, int stream);
@@ -863,6 +875,10 @@ const char * bgav_get_audio_description(bgav_t * bgav, int stream);
  *  \param bgav A decoder instance
  *  \param stream Stream index (starting with 0)
  *  \returns A technical decription of the stream 
+ *
+ *  Note, that you can trust the return value of this function only, if you enabled
+ *  the stream (see \ref bgav_set_video_stream) and started the decoders
+ *  (see \ref bgav_start).
  */
 
 const char * bgav_get_video_description(bgav_t * bgav, int stream);
