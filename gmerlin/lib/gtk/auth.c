@@ -113,11 +113,13 @@ userpass_win * userpass_win_create(const char * resource)
   w = gtk_label_new(resource);
   gtk_widget_show(w);
   gtk_table_attach(GTK_TABLE(table), w, 0, 3, 1, 2, GTK_FILL, GTK_FILL, 0, 0);
-  
+ 
+#ifdef GTK_STOCK_DIALOG_AUTHENTICATION 
   w = gtk_image_new_from_stock(GTK_STOCK_DIALOG_AUTHENTICATION,
                                GTK_ICON_SIZE_DIALOG);
   gtk_widget_show(w);
   gtk_table_attach(GTK_TABLE(table), w, 0, 1, 2, 5, GTK_FILL, GTK_FILL, 0, 0);
+#endif
 
   w = gtk_label_new("Username");
   gtk_widget_show(w);
