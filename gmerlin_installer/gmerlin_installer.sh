@@ -965,8 +965,7 @@ if [ "$ANSWER" = true ]
     PRINT_INFO_LINE_FUNC "pkg_config_path"
     FIND_PKG_FUNC "$LOGS/BUG_pkg"
     if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
-    export PKG_CONFIG_PATH=$PKG_CONF_NEW
-    READY_EXIT_FUNC "$COL_DEF Can not export$COL_RED_LINE_HIGH PKG_CONFIG_PATH $COL_DEF"
+    export PKG_CONFIG_PATH=$PKG_CONF_NEW ; READY_EXIT_FUNC "$COL_DEF Can not export$COL_RED_LINE_HIGH PKG_CONFIG_PATH $COL_DEF"
     
                                                 # Find GMERLIN components #
     PRINT_INFO_LINE_FUNC "find $GMERLIN_DEPENDENCIES_PACKETS_NAME"
@@ -1178,8 +1177,8 @@ if [ "$ANSWER" = true ]
     for i in $ALL_PACKS
 	do
 	PRINT_COMMENT_2_LINE_FUNC "Install `echo $i| awk -F "." '{print $1}'`:"
-	echo -ne "\033[1A$POSITION_DISKRIPTION$YES_NO_EXIT"
-	AUTO_CHECK_FUNC ; YES_NO_EXIT_FUNC
+	echo -ne "\033[1A$POSITION_DISKRIPTION$YES_NO"
+	AUTO_CHECK_FUNC ; YES_NO_FUNC ; echo -e "$YES_NO_EXIT_CLEAR"
 	if [ "$ANSWER" = true ]
 	    then
 	    DIR=`echo $i| awk -F "." '{print $1}'`
@@ -1190,7 +1189,8 @@ if [ "$ANSWER" = true ]
 		  do
 		  PACK=$i
 		  PRINT_INFO_LINE_FUNC "Install $i"
-		  ./build.sh $i 2>&1 | tee $LOGS/$PACK.build.log | grep -n "" | awk -F ':' '{printf "   %5s" , $1 ; system("echo -ne \"\033[8D\"") }'
+		  ./build.sh $i 2>&1 | tee $LOGS/$PACK.build.log | tr [:print:] '=' | awk '{system("echo -ne \"\r\033[30C\"") ; printf "%.35s " , $1 ; system("echo -ne \"\r\033[30C\033[K\r\033[30C\"")}'
+		  #./build.sh $i 2>&1 | tee $LOGS/$PACK.build.log | grep -n "" | awk -F ':' '{printf "   %5s" , $1 ; system("echo -ne \"\033[8D\"") }'
 		  grep -q 'build.sh completed successfully' $LOGS/$PACK.build.log
 		  if [ "$?" = "0" ]
 		      then
@@ -1228,7 +1228,6 @@ fi
 ############################################### CLEAN UP AND EXIT INSTALLATION ##############################################################
 
 cd $INSTALL_HOME ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
-export PKG_CONFIG_PATH=$PKG_CONF_OLD
-READY_EXIT_FUNC "$COL_DEF Can not export$COL_RED_LINE_HIGH PKG_CONFIG_PATH $COL_DEF"
+export PKG_CONFIG_PATH=$PKG_CONF_OLD ; READY_EXIT_FUNC "$COL_DEF Can not export$COL_RED_LINE_HIGH PKG_CONFIG_PATH $COL_DEF"
 #tar cvjf gmerlin_logs.tar.bz2 $LOGS/ >& $LOGS/tar.logs.log
 #rm *.log
