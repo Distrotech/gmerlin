@@ -81,8 +81,9 @@ wget http://prdownloads.sourceforge.net/gmerlin/ -O $HELPS/packs.txt >& $HELPS/D
 READY_EXIT_FUNC "Can not check the Gmerlin Packets" 
 NEWEST=`grep /gmerlin/$1 $HELPS/packs.txt | awk '{ print $6}' | awk  -F '"' '{ print $2 }' | sort -n -r | awk -F '/' '{ printf $3 ; printf " "}' | awk '{ print $1 }'`
 DEL_FILE_FUNC "$HELPS/packs.txt" "Can not delete file"
-DEL_FILE_FUNC "$HELPS/DUMP" "Can not delete file"
 READY_EXIT_FUNC "Can not delete DUMP && packs.txt"
+DEL_FILE_FUNC "$HELPS/DUMP" "Can not delete file"
+READY_EXIT_FUNC "Can not delete DUMP && packs.txt";
 }
 
 # $1 = GMERLIN_PACK TO FIND 
@@ -488,13 +489,14 @@ function CHECK_PACKETS_FUNC()
 function FIND_PKG_FUNC()
 {
     j=true
-    PKG_CONFIG_OLD=`echo $PKG_CONFIG_PATH`
+    PKG_CONFIG_OLD=$PKG_CONFIG_PATH
     for i in `ls /usr/`
       do
       if [ "$j" = true ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true ; fi
       find /usr/$i -type d >& $1.usr
       READY_FUNC ; if test $? != 0 ; then cp $1.usr $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
-      PKG_USR=`grep pkgconfig $1.usr | awk '{printf $1"/:" }' 2> DUMP`
+      PKG_USR_S=$PKG_USR
+      PKG_USR="$PKG_USR_S`grep pkgconfig $1.usr | awk '{printf $1"/:" }' 2> DUMP`"
       READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.usr" "Can not delete $1.usr" ; else cp $1.usr $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
       if [ "$j" = false ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true  ; fi
@@ -505,24 +507,26 @@ function FIND_PKG_FUNC()
       if [ "$j" = true ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true ; fi
       find /opt/$i -type d >& $1.opt
       READY_FUNC ; if test $? != 0 ; then cp $1.opt $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
-      PKG_OPT=`grep pkgconfig $1.opt | awk '{printf $1"/:" }' 2> DUMP`
+      PKG_OPT_S=$PKG_OPT
+      PKG_OPT="$PKG_OPT_S`grep pkgconfig $1.opt | awk '{printf $1"/:" }' 2> DUMP`"
       READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.opt" "Can not delete $1.opt" ; else cp $1.opt $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
       if [ "$j" = false ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true  ; fi
     done
 
-    for i in `ls ~/`
+    for i in `ls .`
       do
       if [ "$j" = true ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true ; fi
       find ~/$i -type d >& $1.hom
       READY_FUNC ; if test $? != 0 ; then cp $1.hom $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
-      PKG_HOM=`grep pkgconfig $1.hom | awk '{printf $1"/:" }' 2> DUMP`
+      PKG_HOM_S=$PKG_HOM
+      PKG_HOM="$PKG_HOM_S`grep pkgconfig $1.hom | awk '{printf $1"/:" }' 2> DUMP`"
       READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.hom" "Can not delete $1.hom" ; else cp $1.hom $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
       if [ "$j" = false ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true  ; fi
     done
     
-    PKG_CONF_NEW="$PKG_USR$PKG_OPT$PKG_HOME/opt/gmerlin/lib/pkgconfig/:$PATH"
+    PKG_CONF_NEW="$PKG_USR$PKG_OPT$PKG_HOME/opt/gmerlin/lib/pkgconfig"
     return 0;
 }
 
@@ -841,6 +845,7 @@ if [ "$ANSWER" = true ]
 	else
 	    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH FATAL ERROR: unknown manager or packet tool $COL_DEF" "-e"
 	fi
+	ERROR_SAVE=""       
 	if [ "$ERROR" != "" ]
 	    then
 	    PRINT_NEW_LINE_FUNC 1
@@ -866,7 +871,7 @@ if [ "$ANSWER" = true ]
 		else
 		    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH FATAL ERROR: unknown manager or packet tool $COL_DEF" "-e"
 		fi
-		if [ "$ERROR_SAVE" != "" ]
+		if [ "$ERROR_SAVE" = true ]
 		    then
 		    PRINT_NEW_LINE_FUNC 1
 		    PRINT_ERROR_MESSAGE_LINE_FUNC "We can not install the FAIL Packets, please look" "-e"
@@ -955,11 +960,13 @@ PRINT_HEAD_LINE_FUNC "Prepaire the SYSTEM conditions:"
 if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(Build PGK_CONFIG and find/download gmerlin Packets)"
-    
+   
                                                    # Build PKG_CONFIG_PATH #     
     PRINT_INFO_LINE_FUNC "pkg_config_path"
     FIND_PKG_FUNC "$LOGS/BUG_pkg"
     if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
+    export PKG_CONFIG_PATH=$PKG_CONF_NEW
+    READY_EXIT_FUNC "$COL_DEF Can not export$COL_RED_LINE_HIGH PKG_CONFIG_PATH $COL_DEF"
     
                                                 # Find GMERLIN components #
     PRINT_INFO_LINE_FUNC "find $GMERLIN_DEPENDENCIES_PACKETS_NAME"
@@ -1099,7 +1106,7 @@ READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF dire
 					       # Define MACKER for this funktion #
 ERROR=false                        ;            ERROR_SAVE=false       
 
-                                          # Begin with find PKG and gmerlin COMPONENTS #
+                                                # UNPACK AND CHECK THE PACKETS #
 PRINT_HEAD_LINE_FUNC "Unpack/check the Gmerlin Packets:"
 if [ "$ANSWER" = true ]
     then
@@ -1108,20 +1115,20 @@ if [ "$ANSWER" = true ]
 	do
 	PRINT_INFO_LINE_FUNC "unpack $i"
 	DEL_DIRECTORY_FUNC `echo $i| awk -F "." '{print $1}'` "$COL_DEF Can not delete $COL_RED_LINE_HIGH`echo $i| awk -F "." '{print $1}'`$COL_DEF directory"
-	tar -xvjf $i >& $HELPS/$i.tar.log 
+	tar -xvjf $i >& $LOGS/$i.tar.log 
 	if test $? = 0
 	    then
-	    DEL_FILE_FUNC "$HELPS/$i.tar.log" "Can not delete file"
+	    DEL_FILE_FUNC "$LOGS/$i.tar.log" "Can not delete file"
 	    echo -e "$OK\033[K"
 	else
-	    cp $HELPS/$i.tar.log $INSTALL_HOME/$1.tar.log ; READY_EXIT_FUNC "Can not copy file"
+	    cp $LOGS/$i.tar.log $INSTALL_HOME/$1.tar.log ; READY_EXIT_FUNC "Can not copy file"
 	    ERROR_SAVE=true
 	    echo -e "$FAIL\033[K"
 	fi
     done
     for i in $ALL_PACKS
 	do
-	PRINT_COMMENT_2_LINE_FUNC "$COL_GRE Check components `echo $i| awk -F "." '{print $1}'`:"
+	PRINT_COMMENT_2_LINE_FUNC "Check `echo $i| awk -F "." '{print $1}'` are complete:"
 	DIR=`echo $i| awk -F "." '{print $1}'`
 	cd $DIR ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$DIR$COL_DEF directory"
 	if test -f dirs 
@@ -1133,11 +1140,11 @@ if [ "$ANSWER" = true ]
 	      else ERROR=true ; echo -e "$FAIL2"
 	      fi
 	    done
-	    PRINT_INFO_LINE_FUNC "$COL_YEL$DIR"
+	    PRINT_INFO_LINE_FUNC "$COL_GRE$DIR"
 	    if [ "$ERROR" = false ] ; then echo -e "$OK"
 	    else ERROR_SAVE=true ; echo -e "$FAIL"
 	    fi
-	else PRINT_INFO_LINE_FUNC "$COL_YEL$DIR" ; ERROR_SAVE=true ; echo -e "$FAIL"
+	else PRINT_INFO_LINE_FUNC "$COL_RED$DIR" ; ERROR_SAVE=true ; echo -e "$FAIL"
 	fi
 	cd $HOME ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
     done
@@ -1151,3 +1158,77 @@ if [ "$ANSWER" = true ]
 	exit
     fi
 fi
+
+
+
+
+############################################### INSTALL THE GMERLIN PACKETS ##############################################################
+
+					              # PAGE TITLE_LINE #
+PRINT_PAGE_HEAD_LINE_FUNC "Installation of Gmerlin Packets" "-e"
+
+					       # Define MACKER for this funktion #
+ERROR=false                        ;            ERROR_SAVE=""       
+
+                                          # Begin with find PKG and gmerlin COMPONENTS #
+PRINT_HEAD_LINE_FUNC "Install the Gmerlin Packets:"
+if [ "$ANSWER" = true ]
+    then
+    PRINT_COMMENT_LINE_FUNC "(Install to /opt/gmerlin/...)"
+    for i in $ALL_PACKS
+	do
+	PRINT_COMMENT_2_LINE_FUNC "Install `echo $i| awk -F "." '{print $1}'`:"
+	echo -ne "\033[1A$POSITION_DISKRIPTION$YES_NO_EXIT"
+	AUTO_CHECK_FUNC ; YES_NO_EXIT_FUNC
+	if [ "$ANSWER" = true ]
+	    then
+	    DIR=`echo $i| awk -F "." '{print $1}'`
+	    cd $DIR ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$DIR$COL_DEF directory"
+	    if test -f dirs 
+		then
+		for i in `cat dirs`
+		  do
+		  PACK=$i
+		  PRINT_INFO_LINE_FUNC "Install $i"
+		  ./build.sh $i 2>&1 | tee $LOGS/$PACK.build.log | grep -n "" | awk -F ':' '{printf "   %5s" , $1 ; system("echo -ne \"\033[8D\"") }'
+		  grep -q 'build.sh completed successfully' $LOGS/$PACK.build.log
+		  if [ "$?" = "0" ]
+		      then
+		      DEL_FILE_FUNC "$LOGS/$PACK.build.log" "Can not delete file"
+		      echo -e "$OK2"
+		  else
+		      
+		      #Save config.log !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		      
+		      ERROR=true
+		      echo -e "$FAIL2"
+		  fi
+		done
+		PRINT_INFO_LINE_FUNC "$COL_GRE$DIR"
+		if [ "$ERROR" = false ]
+		    then
+		    echo -e "$OK"
+		else
+		    ERROR_SAVE=true
+		    echo -e "$FAIL"
+		fi
+	    else
+		PRINT_INFO_LINE_FUNC "$COL_RED$DIR"
+		ERROR_SAVE=true
+		echo -e "$FAIL"
+	    fi
+	    cd $HOME ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
+	fi
+    done
+fi
+
+
+
+
+############################################### CLEAN UP AND EXIT INSTALLATION ##############################################################
+
+cd $INSTALL_HOME ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
+export PKG_CONFIG_PATH=$PKG_CONF_OLD
+READY_EXIT_FUNC "$COL_DEF Can not export$COL_RED_LINE_HIGH PKG_CONFIG_PATH $COL_DEF"
+#tar cvjf gmerlin_logs.tar.bz2 $LOGS/ >& $LOGS/tar.logs.log
+#rm *.log
