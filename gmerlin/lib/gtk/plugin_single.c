@@ -510,7 +510,7 @@ void bg_gtk_plugin_widget_single_set_plugin(bg_gtk_plugin_widget_single_t * w, c
   if(info)
     {
     gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(w->combo)->entry),
-                       default_info->long_name);
+                       info->long_name);
     }
 #endif
 
