@@ -2,7 +2,7 @@
  
   e_lame.c
  
-  Copyright (c) 2005 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2005-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
   http://gmerlin.sourceforge.net
  
@@ -681,7 +681,7 @@ bg_encoder_plugin_t the_plugin =
     common:
     {
       name:            "e_lame",       /* Unique short name */
-      long_name:       "Lame encoder",
+      long_name:       "Lame mp3 encoder",
       mimetypes:       NULL,
       extensions:      "mp3",
       type:            BG_PLUGIN_ENCODER_AUDIO,
