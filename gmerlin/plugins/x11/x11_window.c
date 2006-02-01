@@ -81,7 +81,7 @@ netwm_set_state(x11_window_t * w, Window win, int operation, Atom state)
   XSendEvent(w->dpy, w->root, False,
              SubstructureNotifyMask|SubstructureRedirectMask, &e);
 
-  fprintf(stderr, "netwm_set_state\n");
+//  fprintf(stderr, "netwm_set_state\n");
 
   }
 #endif
@@ -212,6 +212,7 @@ int x11_window_create(x11_window_t * w,
                       Display * dpy, Visual * visual, int depth,
                       int width, int height, const char * default_title)
   {
+//  int i;
   /* Stuff for making the cursor */
   XColor black, dummy;
   Atom wm_protocols[1];
@@ -442,7 +443,7 @@ void x11_window_handle_event(x11_window_t * w, XEvent*evt)
       if((evt->xclient.message_type == w->WM_PROTOCOLS) &&
          (evt->xclient.data.l[0] == w->WM_DELETE_WINDOW))
         {
-        fprintf(stderr, "Delete window\n");
+//        fprintf(stderr, "Delete window\n");
         w->do_delete = 1;
         }
       break;
@@ -499,7 +500,7 @@ static void get_fullscreen_coords(x11_window_t * w,
       if((x_return >= w->xinerama[i].x_org) &&
          (y_return >= w->xinerama[i].y_org) &&
          (x_return < w->xinerama[i].x_org + w->xinerama[i].width) &&
-         (x_return < w->xinerama[i].x_org + w->xinerama[i].height))
+         (y_return < w->xinerama[i].y_org + w->xinerama[i].height))
         {
         *x = w->xinerama[i].x_org;
         *y = w->xinerama[i].y_org;
@@ -516,9 +517,10 @@ static void get_fullscreen_coords(x11_window_t * w,
   *height = DisplayHeight(w->dpy, w->screen);
 #endif
 
-  //  fprintf(stderr, "Fullscreen coords: %d %d %d %d\n",
-  //          *x, *y, *width, *height);
-
+#if 0
+  fprintf(stderr, "Fullscreen coords: %d %d %d %d\n",
+          *x, *y, *width, *height);
+#endif
   }
 
 
@@ -548,8 +550,11 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
 
 //    XSetTransientForHint(w->dpy, w->fullscreen_window, None);
 
-    XRaiseWindow(w->dpy, w->fullscreen_window);
-    XMapWindow(w->dpy, w->fullscreen_window);
+//    XRaiseWindow(w->dpy, w->fullscreen_window);
+//    XMapWindow(w->dpy, w->fullscreen_window);
+    XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
+    XMapRaised(w->dpy, w->fullscreen_window);
+
     XWithdrawWindow(w->dpy, w->normal_window, DefaultScreen(w->dpy));
 		
     /* Wait until the window is mapped */ 
@@ -563,7 +568,8 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
 
     XSetInputFocus(w->dpy, w->fullscreen_window, RevertToNone, CurrentTime);
 
-    XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
+//    fprintf(stderr, "Move -> %d,%d\n", x, y);
+//    XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
 //    XSync(w->dpy, False);
     x11_window_clear(w);
 //    XRaiseWindow(w->dpy, w->fullscreen_window);
