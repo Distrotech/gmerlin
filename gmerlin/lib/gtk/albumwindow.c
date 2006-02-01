@@ -325,8 +325,9 @@ void bg_gtk_album_window_attach(bg_gtk_album_window_t * w, GtkWidget * notebook)
   gtk_box_pack_start(GTK_BOX(w->tab_widget), w->tab_close_button, FALSE, FALSE, 0);
   gtk_widget_show(w->tab_widget);
 
-  page_num = gtk_notebook_append_page(GTK_NOTEBOOK(notebook), bg_gtk_album_widget_get_widget(w->widget),
-                                      w->tab_widget);
+  page_num = gtk_notebook_get_n_pages(GTK_NOTEBOOK(notebook));
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), bg_gtk_album_widget_get_widget(w->widget),
+                           w->tab_widget);
   gtk_notebook_set_current_page(GTK_NOTEBOOK(notebook), page_num);
   
   gtk_notebook_set_tab_label_packing(GTK_NOTEBOOK(notebook), bg_gtk_album_widget_get_widget(w->widget),
