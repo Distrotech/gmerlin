@@ -65,8 +65,10 @@ static const char * env_name_real = "GMERLIN_AVDEC_CODEC_PATH_REAL";
 static char * real_dirs[] =
   {
     "/usr/lib/codecs",
+    "/usr/local/lob/codecs",
     "/usr/lib/codecdlls",
     "/usr/lib/win32",
+    "/usr/local/lib/win32",
     (char*)0
   };
 
@@ -86,8 +88,10 @@ static const char * env_name_xanim =  "GMERLIN_AVDEC_CODEC_PATH_XANIM";
 static char * xanim_dirs[] =
   {
     "/usr/lib/codecs",
+    "/usr/local/lob/codecs",
     "/usr/lib/codecdlls",
     "/usr/lib/win32",
+    "/usr/local/lib/win32",
     (char*)0
   };
 
@@ -107,8 +111,10 @@ static const char * env_name_win32 = "GMERLIN_AVDEC_CODEC_PATH_WIN32";
 static char * win32_dirs[] =
   {
     "/usr/lib/codecs",
+    "/usr/local/lob/codecs",
     "/usr/lib/codecdlls",
     "/usr/lib/win32",
+    "/usr/local/lib/win32",
     (char*)0
   };
   
