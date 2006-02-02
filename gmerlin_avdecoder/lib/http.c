@@ -291,6 +291,11 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     *error_msg = bgav_sprintf("Unvalid URL");
     goto fail;
     }
+  if(path && !strcmp(path, ";stream.nsv"))
+    {
+    free(path);
+    path = (char*)0;
+    }
   if(port == -1)
     port = 80;
   if(strcasecmp(protocol, "http"))

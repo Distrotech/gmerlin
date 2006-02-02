@@ -186,7 +186,7 @@ static codec_info_t codec_infos[] =
 #endif
   };
 
-#if 1
+#if 0
 static uint32_t swap_endian(uint32_t val)
   {
   return ((val & 0x000000FF) << 24) |
@@ -301,7 +301,7 @@ static int init_std(bgav_win32_thread_t * thread)
   bgav_BITMAPINFOHEADER_t bih_out;
   bgav_stream_t * s = thread->s;
   
-  fprintf(stderr, "OPEN VIDEO\n");
+//  fprintf(stderr, "OPEN VIDEO\n");
   priv = calloc(1, sizeof(*priv));
   thread->priv = priv;
   
@@ -326,8 +326,8 @@ static int init_std(bgav_win32_thread_t * thread)
   bih_in.biSizeImage = 0;
   pack_bih(&priv->bih_in, &bih_in);
 
-  fprintf(stderr, "ICDecompressGetFormatSize: %d\n",
-          (int)ICDecompressGetFormatSize(priv->hic, &bih_in));
+//  fprintf(stderr, "ICDecompressGetFormatSize: %d\n",
+//          (int)ICDecompressGetFormatSize(priv->hic, &bih_in));
           
   result = ICDecompressGetFormat(priv->hic, &priv->bih_in, &priv->bih_out);
 
@@ -338,12 +338,12 @@ static int init_std(bgav_win32_thread_t * thread)
     fprintf(stderr, "Cannot get format\n");
     //    bgav_BITMAPINFOHEADER_dump(&bih_in);
     }
-
+#if 0
   fprintf(stderr, "Input Format:");
   bgav_BITMAPINFOHEADER_dump(&bih_in);
   fprintf(stderr, "Output Format:");
   bgav_BITMAPINFOHEADER_dump(&bih_out);
-    
+#endif    
 
   switch(bih_out.biCompression)
     {
@@ -401,7 +401,7 @@ static int init_std(bgav_win32_thread_t * thread)
     }
   else
     {
-    fprintf(stderr, "Decoder supports YUY2 output\n");
+//    fprintf(stderr, "Decoder supports YUY2 output\n");
     //    unpack_bih(&bih_out, &priv->bih_out);
     //    bgav_BITMAPINFOHEADER_dump(&bih_out);
     s->data.video.format.pixelformat = GAVL_YUY2;
@@ -414,9 +414,9 @@ static int init_std(bgav_win32_thread_t * thread)
     ?ICDecompressBegin(priv->hic, &priv->bih_in, &priv->bih_out)
     :ICDecompressBeginEx(priv->hic, &priv->bih_in, &priv->bih_out);
 
-  fprintf(stderr, "ICDecompressBegin\n");
-  dump_bi(&priv->bih_in);
-  dump_bi(&priv->bih_out);
+//  fprintf(stderr, "ICDecompressBegin\n");
+//  dump_bi(&priv->bih_in);
+//  dump_bi(&priv->bih_out);
     
   if(result)
     {
