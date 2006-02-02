@@ -183,8 +183,8 @@ if [ "$?" = "0" ]
     DEL_FILE_FUNC "$HELPS/DUMP" "Can not delete file"
     return 0
 else
-    cp $HELPS/DUMP $INSTALL_HOME/$1.wget.log ; READY_EXIT_FUNC "Can not copy file"
-    cp $HELPS/DUMP $LOGS/$1.wget.log ; READY_EXIT_FUNC "Can not copy file"
+    cp $HELPS/DUMP $INSTALL_HOME/$1.wget.log >& .DUMP ; READY_EXIT_FUNC "Can not copy file"
+    cp $HELPS/DUMP $LOGS/$1.wget.log >& .DUMP ; READY_EXIT_FUNC "Can not copy file"
     DEL_FILE_FUNC "$HELPS/packs.txt" "Can not delete file"
     DEL_FILE_FUNC "$HELPS/mirrors.txt" "Can not delete file"
     DEL_FILE_FUNC "$HELPS/download_html.txt" "Can not delete file"
@@ -428,7 +428,7 @@ function INSTALL_PACKETS_FUNC()
 	  echo -e "$OK"
       else
 	  ERROR_SAVE=true
-	  cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+	  cp $LOGS/BUG_$i $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file"
 	  echo -e "$FAIL"
       fi
     done;
@@ -489,15 +489,14 @@ function CHECK_PACKETS_FUNC()
 function FIND_PKG_FUNC()
 {
     j=true
-    PKG_CONFIG_OLD=$PKG_CONFIG_PATH
     for i in `ls /usr/`
       do
       if [ "$j" = true ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true ; fi
       find /usr/$i -type d >& $1.usr
-      READY_FUNC ; if test $? != 0 ; then cp $1.usr $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+      READY_FUNC ; if test $? != 0 ; then cp $1.usr $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       PKG_USR_S=$PKG_USR
       PKG_USR="$PKG_USR_S`grep pkgconfig $1.usr | awk '{printf $1"/:" }' 2> DUMP`"
-      READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.usr" "Can not delete $1.usr" ; else cp $1.usr $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+      READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.usr" "Can not delete $1.usr" ; else cp $1.usr $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
       if [ "$j" = false ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true  ; fi
     done
@@ -506,10 +505,10 @@ function FIND_PKG_FUNC()
       do
       if [ "$j" = true ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true ; fi
       find /opt/$i -type d >& $1.opt
-      READY_FUNC ; if test $? != 0 ; then cp $1.opt $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+      READY_FUNC ; if test $? != 0 ; then cp $1.opt $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       PKG_OPT_S=$PKG_OPT
       PKG_OPT="$PKG_OPT_S`grep pkgconfig $1.opt | awk '{printf $1"/:" }' 2> DUMP`"
-      READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.opt" "Can not delete $1.opt" ; else cp $1.opt $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+      READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.opt" "Can not delete $1.opt" ; else cp $1.opt $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
       if [ "$j" = false ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true  ; fi
     done
@@ -518,10 +517,10 @@ function FIND_PKG_FUNC()
       do
       if [ "$j" = true ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true ; fi
       find ~/$i -type d >& $1.hom
-      READY_FUNC ; if test $? != 0 ; then cp $1.hom $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+      READY_FUNC ; if test $? != 0 ; then cp $1.hom $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       PKG_HOM_S=$PKG_HOM
       PKG_HOM="$PKG_HOM_S`grep pkgconfig $1.hom | awk '{printf $1"/:" }' 2> DUMP`"
-      READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.hom" "Can not delete $1.hom" ; else cp $1.hom $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
+      READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.hom" "Can not delete $1.hom" ; else cp $1.hom $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
       if [ "$j" = false ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true  ; fi
     done
@@ -549,7 +548,7 @@ fi
 
                                                 # Make use our OWN directory #
 MAKE_DIRECTORY_FUNC $HOME "$COL_DEF Can not create $COL_RED_LINE_HIGH$HOME$COL_DEF directory" 
-cd $HOME 
+cd $HOME >& .DUMP 
 READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
 HOME=`pwd`
 READY_EXIT_FUNC "$COL_DEF Can not find the Path of$COL_RED_LINE_HIGH$HOME$COL_DEF directory"
@@ -558,21 +557,21 @@ READY_EXIT_FUNC "$COL_DEF Can not find the Path of$COL_RED_LINE_HIGH$HOME$COL_DE
 # LOGS
 DEL_DIRECTORY_FUNC $LOGS "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS$COL_DEF directory"
 MAKE_DIRECTORY_FUNC $LOGS "$COL_DEF Can not create $COL_RED_LINE_HIGH$LOGS$COL_DEF directory" 
-cd $LOGS
+cd $LOGS >& .DUMP
 READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$LOGS$COL_DEF directory"
 LOGS=`pwd`
 READY_EXIT_FUNC "$COL_DEF Can not find the Path of$COL_RED_LINE_HIGH$LOGS$COL_DEF directory"
-cd $HOME
+cd $HOME >& .DUMP
 READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
 
 # HELPS
 DEL_DIRECTORY_FUNC $HELPS "$COL_DEF Can not delete $COL_RED_LINE_HIGH$HELPS$COL_DEF directory"
 MAKE_DIRECTORY_FUNC $HELPS "$COL_DEF Can not create $COL_RED_LINE_HIGH$HELPS$COL_DEF directory" 
-cd $HELPS
+cd $HELPS >& .DUMP
 READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HELPS$COL_DEF directory"
 HELPS=`pwd`
 READY_EXIT_FUNC "$COL_DEF Can not find the Path of$COL_RED_LINE_HIGH$HELPS$COL_DEF directory"
-cd $HOME
+cd $HOME >& .DUMP
 READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
 
 
@@ -778,7 +777,7 @@ if [ "$ANSWER" = true ]
 		  echo -e "$OK"
 	      else
 		  ERROR_SAVE=true
-		  cp $LOGS/BUG_$i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+		  cp $LOGS/BUG_$i $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file"
 		  echo -e "$FAIL"
 	      fi
 	    done
@@ -970,20 +969,20 @@ if [ "$ANSWER" = true ]
                                                 # Find GMERLIN components #
     PRINT_INFO_LINE_FUNC "find $GMERLIN_DEPENDENCIES_PACKETS_NAME"
     echo -ne "$POSITION_STATUS Please wait ..."
-    cd $INSTALL_HOME
+    cd $INSTALL_HOME >& .DUMP
     READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$INSTALL_HOME$COL_DEF directory"
     test -f "$GMERLIN_DEPENDENCIES_PACKETS_NAME"    
     if test $? = 0
 	then
-	cp $GMERLIN_DEPENDENCIES_PACKETS_NAME $HOME ; READY_EXIT_FUNC "Can not copy file"
+	cp $GMERLIN_DEPENDENCIES_PACKETS_NAME $HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file"
 	echo -e "$OK\033[K"
     else
-	cd $HOME
+	cd $HOME >& .DUMP
 	READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
 	test -f "$GMERLIN_DEPENDENCIES_PACKETS_NAME"    
 	if test $? = 0
 	    then
-	    cp $GMERLIN_DEPENDENCIES_PACKETS_NAME $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+	    cp $GMERLIN_DEPENDENCIES_PACKETS_NAME $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file"
 	    echo -e "$OK\033[K"
 	else
 	    ERROR_SAVE=$ERROR
@@ -993,20 +992,20 @@ if [ "$ANSWER" = true ]
     fi
     PRINT_INFO_LINE_FUNC "find $GMERLIN_ALL_IN_ONE_PACKETS_NAME"
     echo -ne "$POSITION_STATUS Please wait ..."
-    cd $INSTALL_HOME
+    cd $INSTALL_HOME >& .DUMP
     READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$INSTALL_HOME$COL_DEF directory"
     test -f "$GMERLIN_ALL_IN_ONE_PACKETS_NAME"    
     if test $? = 0
 	then
-	cp $GMERLIN_ALL_IN_ONE_PACKETS_NAME $HOME ; READY_EXIT_FUNC "Can not copy file"
+	cp $GMERLIN_ALL_IN_ONE_PACKETS_NAME $HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file"
 	echo -e "$OK\033[K"
     else
-	cd $HOME
+	cd $HOME >& .DUMP
 	READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
 	test -f "$GMERLIN_ALL_IN_ONE_PACKETS_NAME"    
 	if test $? = 0
 	    then
-	    cp $GMERLIN_ALL_IN_ONE_PACKETS_NAME $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+	    cp $GMERLIN_ALL_IN_ONE_PACKETS_NAME $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file"
 	    echo -e "$OK\033[K"
 	else
 	    ERROR_SAVE=$ERROR
@@ -1045,20 +1044,20 @@ if [ "$ANSWER" = true ]
 	     do
 	     PRINT_INFO_LINE_FUNC "find $i"
 	     echo -ne "$POSITION_STATUS Please wait ..."
-	     cd $INSTALL_HOME
+	     cd $INSTALL_HOME >& .DUMP
 	     READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$INSTALL_HOME$COL_DEF directory"
 	     test -f "$i"    
 	     if test $? = 0
 		 then
-		 cp $i $HOME ; READY_EXIT_FUNC "Can not copy file"
+		 cp $i $HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file"
 		 echo -e "$OK\033[K"
 	     else
-		 cd $HOME
+		 cd $HOME >& .DUMP
 		 READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
 		 test -f "$i"    
 		 if test $? = 0
 		     then
-		     cp $i $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+		     cp $i $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file"
 		     echo -e "$OK\033[K"
 		 else
 		     ERROR_SAVE=true
@@ -1073,7 +1072,7 @@ if [ "$ANSWER" = true ]
     	     DOWNLOAD_NEWEST_PACKET_FUNC $i
 	     if test $? = 0
 		 then
-		 cp $SAVE $INSTALL_HOME ; READY_EXIT_FUNC "Can not copy file"
+		 cp $SAVE $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file"
 		 echo -e "$OK\033[K"
 	     else
 		 ERROR_SAVE=true
@@ -1094,7 +1093,7 @@ if [ "$ANSWER" = true ]
    fi
 fi
 						# Extra check DIRECKTORY #
-cd $HOME
+cd $HOME >& .DUMP
 READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
 
 
@@ -1106,7 +1105,7 @@ READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF dire
 ERROR=false                        ;            ERROR_SAVE=false       
 
                                                 # UNPACK AND CHECK THE PACKETS #
-PRINT_HEAD_LINE_FUNC "Unpack/check the Gmerlin Packets:"
+PRINT_HEAD_LINE_FUNC "Unpack/check the GMERLIN Packets:"
 if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(After unpack, check if the Packets complite)"
@@ -1120,7 +1119,7 @@ if [ "$ANSWER" = true ]
 	    DEL_FILE_FUNC "$LOGS/$i.tar.log" "Can not delete file"
 	    echo -e "$OK\033[K"
 	else
-	    cp $LOGS/$i.tar.log $INSTALL_HOME/$1.tar.log ; READY_EXIT_FUNC "Can not copy file"
+	    cp $LOGS/$i.tar.log $INSTALL_HOME/$1.tar.log >& .DUMP ; READY_EXIT_FUNC "Can not copy file"
 	    ERROR_SAVE=true
 	    echo -e "$FAIL\033[K"
 	fi
@@ -1129,7 +1128,7 @@ if [ "$ANSWER" = true ]
 	do
 	PRINT_COMMENT_2_LINE_FUNC "Check `echo $i| awk -F "." '{print $1}'` are complete:"
 	DIR=`echo $i| awk -F "." '{print $1}'`
-	cd $DIR ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$DIR$COL_DEF directory"
+	cd $DIR >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$DIR$COL_DEF directory"
 	if test -f dirs 
 	    then
 	    for i in `cat dirs`
@@ -1145,7 +1144,7 @@ if [ "$ANSWER" = true ]
 	    fi
 	else PRINT_INFO_LINE_FUNC "$COL_RED$DIR" ; ERROR_SAVE=true ; echo -e "$FAIL"
 	fi
-	cd $HOME ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
+	cd $HOME >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
     done
 						 # If ERROR #
     if [ "$ERROR_SAVE" = true ]
@@ -1167,10 +1166,10 @@ fi
 PRINT_PAGE_HEAD_LINE_FUNC "Installation of Gmerlin Packets" "-e"
 
 					       # Define MACKER for this funktion #
-ERROR=false                        ;            ERROR_SAVE=""       
+ERROR=false                        ;            ERROR_SAVE=""       ;    FILE=""
 
                                           # Begin with find PKG and gmerlin COMPONENTS #
-PRINT_HEAD_LINE_FUNC "Install the Gmerlin Packets:"
+PRINT_HEAD_LINE_FUNC "Install the GMERLIN Packets:"
 if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(Install to /opt/gmerlin/...)"
@@ -1182,24 +1181,34 @@ if [ "$ANSWER" = true ]
 	if [ "$ANSWER" = true ]
 	    then
 	    DIR=`echo $i| awk -F "." '{print $1}'`
-	    cd $DIR ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$DIR$COL_DEF directory"
+	    cd $DIR >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$DIR$COL_DEF directory"
 	    if test -f dirs 
 		then
 		for i in `cat dirs`
 		  do
 		  PACK=$i
-		  PRINT_INFO_LINE_FUNC "Install $i"
-		  ./build.sh $i 2>&1 | tee $LOGS/$PACK.build.log | tr [:print:] '=' | awk '{system("echo -ne \"\r\033[30C\"") ; printf "%.35s " , $1 ; system("echo -ne \"\r\033[30C\033[K\r\033[30C\"")}'
-		  #./build.sh $i 2>&1 | tee $LOGS/$PACK.build.log | grep -n "" | awk -F ':' '{printf "   %5s" , $1 ; system("echo -ne \"\033[8D\"") }'
+		  PRINT_INFO_LINE_FUNC "Install $PACK"
+		  ./build.sh $PACK 2>&1 | tee $LOGS/$PACK.build.log | awk '{ printf "'$POSITION_STATUS'[ %s", substr("/-\\|", NR % 4, 1) ; printf "%s", substr("/-\\|", NR % 4, 1) ; printf "%s", substr("/-\\|", NR % 4, 1) ; printf "%s ]", substr("/-\\|", NR % 4, 1)}'
 		  grep -q 'build.sh completed successfully' $LOGS/$PACK.build.log
 		  if [ "$?" = "0" ]
 		      then
 		      DEL_FILE_FUNC "$LOGS/$PACK.build.log" "Can not delete file"
 		      echo -e "$OK2"
 		  else
-		      
-		      #Save config.log !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-		      
+		      FILE=`find -name config.log | find -name $i`
+		      cd $FILE >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$FILE$COL_DEF directory" ; FILE=""
+		      FILE=`find -type f -name config.log`  
+		      if [ "$FILE" != "" ]
+			  then
+			  cp "$FILE" "$INSTALL_HOME/$PACK.config.log" >& .DUMP ; READY_EXIT_FUNC "Can not copy config.log file" 
+			  cp "$FILE" "$LOGS/$PACK.config.log" >& .DUMP ; READY_EXIT_FUNC "Can not copy config.log file" 
+		      fi
+		      cd $HOME/$DIR >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$DIR$COL_DEF directory"
+		      FILE=""
+		      if test -f $LOGS/$PACK.build.log
+			  then
+			  cp "$LOGS/$PACK.build.log" "$INSTALL_HOME/$PACK.build.log" >& .DUMP ; READY_EXIT_FUNC "Can not copy build.log file" 
+		      fi
 		      ERROR=true
 		      echo -e "$FAIL2"
 		  fi
@@ -1217,17 +1226,65 @@ if [ "$ANSWER" = true ]
 		ERROR_SAVE=true
 		echo -e "$FAIL"
 	    fi
-	    cd $HOME ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
+	    cd $HOME >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
 	fi
+    done
+fi
+
+
+# ERRORS ?????????????????????????????
+
+
+
+############################################### CLEAN UP AND EXIT INSTALLATION ##############################################################
+
+					              # PAGE TITLE_LINE #
+PRINT_PAGE_HEAD_LINE_FUNC "Installation complete" "-e"
+
+                                                   # Clean up the SYSTEM #
+PRINT_HEAD_LINE_FUNC "cleaning the INSTALLATION directory:"
+if [ "$ANSWER" = true ]
+    then
+    PRINT_COMMENT_LINE_FUNC "(clean all files which does not need)"
+    cd $HOME >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
+    PRINT_INFO_LINE_FUNC "restet pkg_config_path"
+    export PKG_CONFIG_PATH=$PKG_CONF_OLD ;  if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
+                                                    # tar LOG files #
+    PRINT_INFO_LINE_FUNC "compress log files"
+    if test -d `basename $LOGS`
+	then 
+	cp -r `basename $LOGS` INstall_LOgs >& .DUMP ; READY_EXIT_FUNC "Can not copy directory" 
+    fi
+    tar cvjf gmerlin_logs.tar.bz2 INstall_LOgs/ >& .DUMP ; READY_EXIT_FUNC "Can not compress the log files"
+    DEL_DIRECTORY_FUNC "INstall_LOgs/" "Can not delete directory" ; if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
+    if test -f gmerlin_logs.tar.bz2
+	then 
+	mv gmerlin_logs.tar.bz2 $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not move log file" 
+    fi
+                                                     # delete LOG files #
+    cd $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
+    for i in *.log
+      do
+      if test -f $i
+	  then
+	  PRINT_INFO_LINE_FUNC "delete $i"
+	  DEL_FILE_FUNC "$i" "Can not delete file" ; if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
+      fi
     done
 fi
 
 
 
 
-############################################### CLEAN UP AND EXIT INSTALLATION ##############################################################
+############################################### BEFOR EXIT INSTALLATION INFO TEXT ##############################################################
 
-cd $INSTALL_HOME ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
-export PKG_CONFIG_PATH=$PKG_CONF_OLD ; READY_EXIT_FUNC "$COL_DEF Can not export$COL_RED_LINE_HIGH PKG_CONFIG_PATH $COL_DEF"
-#tar cvjf gmerlin_logs.tar.bz2 $LOGS/ >& $LOGS/tar.logs.log
-#rm *.log
+					              # PAGE TITLE_LINE #
+PRINT_PAGE_HEAD_LINE_FUNC "Last infos for Gmerlin" "-e"
+PRINT_NEW_LINE_FUNC 1
+PRINT_PAGE_COMMENT_LINE_FUNC "...................." "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "............................" "-e"
+PRINT_NEW_LINE_FUNC 1
+PRINT_PAGE_COMMENT_LINE_FUNC ".............................." "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "............................." "-e"
+PRINT_NEW_LINE_FUNC 2
+exit 0
