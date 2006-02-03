@@ -491,40 +491,36 @@ function FIND_PKG_FUNC()
     j=true
     for i in `ls /usr/`
       do
-      if [ "$j" = true ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true ; fi
-      find /usr/$i -type d >& $1.usr
+      find /usr/$i -type d 2>&1 | tee $1.usr | awk '{ printf "'$POSITION_STATUS'[ %s", substr("/-\\|", NR % 4, 1) ; printf "%s", substr("/-\\|", NR % 4, 1) ; printf "%s", substr("/-\\|", NR % 4, 1) ; printf "%s ]", substr("/-\\|", NR % 4, 1)}'
+
       READY_FUNC ; if test $? != 0 ; then cp $1.usr $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       PKG_USR_S=$PKG_USR
       PKG_USR="$PKG_USR_S`grep pkgconfig $1.usr | awk '{printf $1"/:" }' 2> DUMP`"
       READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.usr" "Can not delete $1.usr" ; else cp $1.usr $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
-      if [ "$j" = false ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true  ; fi
     done
 
     for i in `ls /opt/`
       do
-      if [ "$j" = true ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true ; fi
-      find /opt/$i -type d >& $1.opt
+      find /opt/$i -type d 2>&1 | tee $1.opt | awk '{ printf "'$POSITION_STATUS'[ %s", substr("/-\\|", NR % 4, 1) ; printf "%s", substr("/-\\|", NR % 4, 1) ; printf "%s", substr("/-\\|", NR % 4, 1) ; printf "%s ]", substr("/-\\|", NR % 4, 1)}'
+
       READY_FUNC ; if test $? != 0 ; then cp $1.opt $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       PKG_OPT_S=$PKG_OPT
       PKG_OPT="$PKG_OPT_S`grep pkgconfig $1.opt | awk '{printf $1"/:" }' 2> DUMP`"
       READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.opt" "Can not delete $1.opt" ; else cp $1.opt $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
-      if [ "$j" = false ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true  ; fi
     done
 
     for i in `ls .`
       do
-      if [ "$j" = true ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true ; fi
-      find ~/$i -type d >& $1.hom
+      find ~/$i -type d 2>&1 | tee $1.hom | awk '{ printf "'$POSITION_STATUS'[ %s", substr("/-\\|", NR % 4, 1) ; printf "%s", substr("/-\\|", NR % 4, 1) ; printf "%s", substr("/-\\|", NR % 4, 1) ; printf "%s ]", substr("/-\\|", NR % 4, 1)}'
+
       READY_FUNC ; if test $? != 0 ; then cp $1.hom $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       PKG_HOM_S=$PKG_HOM
       PKG_HOM="$PKG_HOM_S`grep pkgconfig $1.hom | awk '{printf $1"/:" }' 2> DUMP`"
       READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.hom" "Can not delete $1.hom" ; else cp $1.hom $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
-      if [ "$j" = false ] ; then echo -ne "$POSITION_STATUS Please wait ..."  ; j=false ; else echo -ne "$POSITION_STATUS\033[K" ; j=true  ; fi
     done
-    
     PKG_CONF_NEW="$PKG_USR$PKG_OPT$PKG_HOME/opt/gmerlin/lib/pkgconfig"
     return 0;
 }
@@ -1231,9 +1227,9 @@ if [ "$ANSWER" = true ]
     done
 fi
 
-
+######################################
 # ERRORS ?????????????????????????????
-
+######################################
 
 
 ############################################### CLEAN UP AND EXIT INSTALLATION ##############################################################
