@@ -83,6 +83,7 @@ static void set_metadata_string(bgav_http_header_t * header,
     if(val)
       {
       *str = bgav_strndup(val, NULL);
+//      fprintf(stderr, "Metadata title: %s\n", val);
       return;
       }
     else
@@ -138,7 +139,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
   
   header = bgav_http_get_header(p->h);
   
-  //  bgav_http_header_dump(header);
+//  bgav_http_header_dump(header);
   
   var = bgav_http_header_get_var(header, "Content-Length");
   if(var)
@@ -155,7 +156,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
     {
     p->icy_metaint = atoi(var);
     //    p->icy_bytes = p->icy_metaint;
-    //    fprintf(stderr, "icy-metaint: %d\n", p->icy_metaint);
+//    fprintf(stderr, "icy-metaint: %d\n", p->icy_metaint);
 
     /* Then, we'll also need a charset converter */
 
@@ -338,8 +339,8 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
     if(read_data(ctx, (uint8_t*)meta_buffer, meta_bytes, 1) < meta_bytes)
       return 0;
     
-    //    fprintf(stderr, "Meta buffer:\n");
-    //    bgav_hexdump(meta_buffer, meta_bytes, 16);
+//    fprintf(stderr, "Meta buffer:\n");
+//    bgav_hexdump(meta_buffer, meta_bytes, 16);
     
     if(ctx->opt->name_change_callback)
       {
@@ -361,17 +362,19 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
         end_pos = strchr(pos, ';');
         while((end_pos > pos) && (*end_pos != '\''))
           end_pos--;
-
-        //        meta_name = bgav_strndup(pos, end_pos);
-        meta_name = bgav_convert_string(priv->charset_cnv ,
-                                        pos, end_pos - pos,
-                                        (int*)0);
         
-        ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
-                                       meta_name);
+        if(end_pos > pos)
+          {
+          meta_name = bgav_convert_string(priv->charset_cnv ,
+                                          pos, end_pos - pos,
+                                          (int*)0);
         
-        //        fprintf(stderr, "NAME CHANGED: %s\n", meta_name);
-        free(meta_name);
+          ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
+                                         meta_name);
+        
+          //        fprintf(stderr, "NAME CHANGED: %s\n", meta_name);
+          free(meta_name);
+          }
         }
       }
     //        else
