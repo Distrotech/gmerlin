@@ -598,6 +598,8 @@ PRINT_PAGE_COMMENT_LINE_FUNC "This script will be install Gmerlin on your System
 PRINT_PAGE_COMMENT_LINE_FUNC "The needed components and librarys will downloaded by internet" "-e"
 PRINT_NEW_LINE_FUNC 1
 PRINT_PAGE_COMMENT_LINE_FUNC "Please make sure, that the internet connection is ready" "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "The Skript will be run in an normal root terminal like" "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "        $COL_RED(su , sudo -s, sudo bash ...)" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "Gmerlin will be downloaded 10 to 50 MByte" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "You can download an install all components form hand, the script" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "will be find it!" "-e"
@@ -1171,6 +1173,7 @@ if [ "$ANSWER" = true ]
     PRINT_COMMENT_LINE_FUNC "(Install to /opt/gmerlin/...)"
     for i in $ALL_PACKS
 	do
+	ERROR=false
 	PRINT_COMMENT_2_LINE_FUNC "Install `echo $i| awk -F "." '{print $1}'`:"
 	echo -ne "\033[1A$POSITION_DISKRIPTION$YES_NO"
 	AUTO_CHECK_FUNC ; YES_NO_FUNC ; echo -e "$YES_NO_EXIT_CLEAR"
@@ -1224,12 +1227,18 @@ if [ "$ANSWER" = true ]
 	    fi
 	    cd $HOME >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
 	fi
+ 					 # If ERROR #
+	if [ "$ERROR" = true ]
+	    then
+	    PRINT_NEW_LINE_FUNC 1
+	    PRINT_ERROR_MESSAGE_LINE_FUNC ".............................................." "-e"
+	    PRINT_ERROR_MESSAGE_LINE_FUNC ".............................................." "-e"
+	    PRINT_NEW_LINE_FUNC 1
+	fi
     done
 fi
 
-######################################
-# ERRORS ?????????????????????????????
-######################################
+
 
 
 ############################################### CLEAN UP AND EXIT INSTALLATION ##############################################################
@@ -1243,7 +1252,7 @@ if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(clean all files which does not need)"
     cd $HOME >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
-    PRINT_INFO_LINE_FUNC "restet pkg_config_path"
+    PRINT_INFO_LINE_FUNC "reset pkg_config_path"
     export PKG_CONFIG_PATH=$PKG_CONF_OLD ;  if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
                                                     # tar LOG files #
     PRINT_INFO_LINE_FUNC "compress log files"
