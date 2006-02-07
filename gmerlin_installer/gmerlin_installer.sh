@@ -45,7 +45,7 @@ APT_LIBS_IMPO="gcc g++ autoconf automake1.9"
 
 YUM_LIBS_OPTI="libpng-devel libtiff-devel libvorbis-devel esound-devel flac-devel libjpeg-devel"
 YUM_LIBS_NEED="alsa-lib-devel libxml2-devel samba-common xmms-devel xorg-x11-devel zlib-devel gtk+-devel gtk2-devel"
-YUM_LIBS_IMPO="gcc gcc-c++ autoconf automake "
+YUM_LIBS_IMPO="gcc gcc-c++ autoconf automake"
 
                                         ###### Define COLORS and POSITIONS ######
 
@@ -83,7 +83,8 @@ NEWEST=`grep /gmerlin/$1 $HELPS/packs.txt | awk '{ print $6}' | awk  -F '"' '{ p
 DEL_FILE_FUNC "$HELPS/packs.txt" "Can not delete file"
 READY_EXIT_FUNC "Can not delete DUMP && packs.txt"
 DEL_FILE_FUNC "$HELPS/DUMP" "Can not delete file"
-READY_EXIT_FUNC "Can not delete DUMP && packs.txt";
+READY_EXIT_FUNC "Can not delete DUMP && packs.txt"
+return 0;
 }
 
 # $1 = GMERLIN_PACK TO FIND 
@@ -364,21 +365,6 @@ function DEL_DIRECTORY_FUNC()
     fi;
 }
 
-# $1 = THE PACKET_MANAGER ; $2 = THE PACKET ; $3 = BUG DATEI
-function TAKE_PACKETS_FUNC()
-{
-    if [ "$1" = "apt-get" ]
-	then
-	$MANAGER -y update >& $3
-	READY_FUNC
-	if test $? != 0 ; then return 1 ; fi  
-    fi
-    $1 -y install $2 >& $3  
-    READY_FUNC
-    if test $? != 0 ; then return 1 ; fi  
-    return 0;
-}
-
 # $1 = COLUM STRING 1  ;   $2 = POSITION FROM LEFT STRING 1   ;  $3 = ILLUSTRATION FOR STRING 1 
 # $4 = COLUM STRING 2  ;   $5 = POSITION FROM LEFT STRING 2   ;  $6 = ILLUSTRATION FOR STRING 2
 function PRINT_DOUBLE_LINE_FUNC()
@@ -434,6 +420,33 @@ function INSTALL_PACKETS_FUNC()
     done;
 }
 
+# $1 = THE PACKET_MANAGER ; $2 = THE PACKET ; $3 = BUG DATEI
+function TAKE_PACKETS_FUNC()
+{
+    if [ "$1" = "apt-get" ]
+	then
+	`$MANAGER -y update >& $3`
+	READY_FUNC
+	if test $? != 0 ; then return 1 ; fi
+	`apt-cache search $2 >& .DUMP`
+	READY_FUNC
+	if test $? != 0 ; then return 1 ; fi
+    fi
+    if [ "$1" = "yum" ]
+	then
+	`$MANAGER -y list >& $3`
+	READY_FUNC
+	if test $? != 0 ; then return 1 ; fi
+	`grep $2 $3 >& .DUMP`
+	READY_FUNC
+	if test $? != 0 ; then return 1 ; fi
+    fi
+    `$1 -y install $2 >& $3`  
+    READY_FUNC
+    if test $? != 0 ; then return 1 ; fi  
+    return 0;
+}
+
 # $1 = PACKET TOOL FOR CHECKING ; $2 = PACKET ; $3 = PACKET COMMENT 
 function CHECK_PACKETS_FUNC()
 {
@@ -442,7 +455,7 @@ function CHECK_PACKETS_FUNC()
       PRINT_INFO_LINE_FUNC "$i" "$3"
       if [ "$PACKET_TOOL" = "" ]
 	  then 
-	  which $i >& $LOGS/BUG_$i 
+	  `which $i >& $LOGS/BUG_$i`
 	  if test $? = 0 
 	      then
 	      DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
@@ -454,7 +467,18 @@ function CHECK_PACKETS_FUNC()
 	  fi
       elif [ "$1" = "dpkg" ]
 	  then
-	  dpkg --get-selections | grep $i | awk '{print $1}' >& $LOGS/BUG_$i  
+
+####
+#fehler !!!
+####
+
+	  dpkg -l | grep $i | awk '{print $1}' >& $LOGS/BUG_$i
+	  #dpkg  --get-selections | grep $i | awk '{print $1}' >& $LOGS/BUG_$i  
+
+####
+#fehler !!!
+####
+
 	  if test $? = 0 
 	      then
 	      DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
@@ -604,16 +628,6 @@ PRINT_PAGE_COMMENT_LINE_FUNC "Gmerlin will be downloaded 10 to 50 MByte" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "You can download an install all components form hand, the script" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "will be find it!" "-e"
 
-
-                                              # Define the newest ALL-IN-ONE packs #
-FIND_NEWEST_PACKET_FUNC "gmerlin-all-in-one"
-GMERLIN_ALL_IN_ONE_PACKETS_NAME=$NEWEST
-                                             # Define the newest DEPENDENCIE packs #
-FIND_NEWEST_PACKET_FUNC "gmerlin-dependencies"
-GMERLIN_DEPENDENCIES_PACKETS_NAME=$NEWEST
-
-ALL_PACKS="$GMERLIN_DEPENDENCIES_PACKETS_NAME $GMERLIN_ALL_IN_ONE_PACKETS_NAME"
-
 if [ "$AUTO_CHECK" = false ]
     then
     PRINT_NEW_LINE_FUNC 1
@@ -643,7 +657,7 @@ if [ "$ANSWER" = true ]
     for i in $BASE
       do
       PRINT_INFO_LINE_FUNC "$i"
-      DUMP=`which $i 2> $LOGS/BUG_$i` 
+      DUMP=`which $i 2> $LOGS/BUG_$i`
       if test $? = 0 
 	  then
 	  MANAGER=`basename $DUMP`
@@ -957,7 +971,20 @@ PRINT_HEAD_LINE_FUNC "Prepaire the SYSTEM conditions:"
 if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(Build PGK_CONFIG and find/download gmerlin Packets)"
-   
+                                              # Define the newest ALL-IN-ONE packs #
+    PRINT_INFO_LINE_FUNC "find newest gmerlin-all-in-one"
+    FIND_NEWEST_PACKET_FUNC "gmerlin-all-in-one"
+    if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
+    GMERLIN_ALL_IN_ONE_PACKETS_NAME=$NEWEST
+                                             # Define the newest DEPENDENCIE packs #
+    PRINT_INFO_LINE_FUNC "find newest gmerlin-dependencies"
+    FIND_NEWEST_PACKET_FUNC "gmerlin-dependencies"
+    if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
+    GMERLIN_DEPENDENCIES_PACKETS_NAME=$NEWEST
+    
+    ALL_PACKS="$GMERLIN_DEPENDENCIES_PACKETS_NAME $GMERLIN_ALL_IN_ONE_PACKETS_NAME"
+
+      
                                                    # Build PKG_CONFIG_PATH #     
     PRINT_INFO_LINE_FUNC "pkg_config_path"
     FIND_PKG_FUNC "$LOGS/BUG_pkg"
