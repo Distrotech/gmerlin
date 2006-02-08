@@ -39,9 +39,9 @@ BASE="yum apt-get"
 BASE_HELP="rpm dpkg"
 TOOLS="tar grep wget findutils"
 
-APT_LIBS_OPTI="libtiff4-dev libpng12-dev libjpeg62-dev libgtk2.0-dev libvorbis-dev libesd0-dev"
-APT_LIBS_NEED="libasound2-dev zlib1g-dev libxml2-dev libxinerama-dev libxv-dev libflac-dev libsmbclient-dev libxxf86vm-dev"
-APT_LIBS_IMPO="gcc g++ autoconf automake1.9"
+APT_LIBS_OPTI="libtiff4-dev libpng12-dev libjpeg62-dev libgtk2.0-dev libvorbis-dev libesd0-dev libxt-dev libogg-dev libgtk1.2-dev xmms-dev"
+APT_LIBS_NEED="libtool libasound2-dev zlib1g-dev libxml2-dev libxinerama-dev libxv-dev x11proto-video.de libflac-dev libsmbclient-dev libxxf86vm-dev"
+APT_LIBS_IMPO="gcc g++ make autoconf automake1.9"
 
 YUM_LIBS_OPTI="libpng-devel libtiff-devel libvorbis-devel esound-devel flac-devel libjpeg-devel"
 YUM_LIBS_NEED="alsa-lib-devel libxml2-devel samba-common xmms-devel xorg-x11-devel zlib-devel gtk+-devel gtk2-devel"
@@ -407,7 +407,7 @@ function INSTALL_PACKETS_FUNC()
     for i in $2
       do
       PRINT_INFO_LINE_FUNC "$i" "$3"
-      TAKE_PACKETS_FUNC $1 $i "$LOGS/BUG_$i"
+      TAKE_PACKETS_FUNC "$1" "$i" "$LOGS/BUG_$i"
       if test $? = 0 
 	  then
 	  DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
@@ -426,25 +426,31 @@ function TAKE_PACKETS_FUNC()
     if [ "$1" = "apt-get" ]
 	then
 	`$MANAGER -y update >& $3`
-	READY_FUNC
 	if test $? != 0 ; then return 1 ; fi
-	`apt-cache search $2 >& .DUMP`
-	READY_FUNC
-	if test $? != 0 ; then return 1 ; fi
+	DUMP=""
+	DUMP=`apt-cache search $2 2> .DUMP`
+	if [ "$DUMP" = "" ]
+	    then return 1
+	else
+	    `$1 -y install $2 >& $3`  
+	    if test $? != 0 ; then return 1 ; fi  
+	    return 0;
+	fi
     fi
     if [ "$1" = "yum" ]
 	then
 	`$MANAGER -y list >& $3`
-	READY_FUNC
 	if test $? != 0 ; then return 1 ; fi
 	`grep $2 $3 >& .DUMP`
-	READY_FUNC
-	if test $? != 0 ; then return 1 ; fi
+	if test $? != 0
+	    then return 1 
+	else
+	    `$1 -y install $2 >& $3`  
+	    if test $? != 0 ; then return 1 ; fi
+	    return 0;
+	fi
     fi
-    `$1 -y install $2 >& $3`  
-    READY_FUNC
-    if test $? != 0 ; then return 1 ; fi  
-    return 0;
+    return 1;	      
 }
 
 # $1 = PACKET TOOL FOR CHECKING ; $2 = PACKET ; $3 = PACKET COMMENT 
@@ -467,20 +473,7 @@ function CHECK_PACKETS_FUNC()
 	  fi
       elif [ "$1" = "dpkg" ]
 	  then
-
-####
-#fehler !!!
-####
- 	
-          #dpkg -l $i >& $LOGS/BUG_$i
 	  dpkg -l | grep $i >& $LOGS/BUG_$i
-	  #dpkg  --get-selections | grep $i | awk '{print $1}' >& $LOGS/BUG_$i  
-
-####
-#fehler !!!
-####
-
-
 	  if test $? = 0 
 	      then
 	      DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
