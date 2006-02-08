@@ -471,13 +471,15 @@ function CHECK_PACKETS_FUNC()
 ####
 #fehler !!!
 ####
-
-	  dpkg -l | grep $i | awk '{print $1}' >& $LOGS/BUG_$i
+ 	
+          #dpkg -l $i >& $LOGS/BUG_$i
+	  dpkg -l | grep $i >& $LOGS/BUG_$i
 	  #dpkg  --get-selections | grep $i | awk '{print $1}' >& $LOGS/BUG_$i  
 
 ####
 #fehler !!!
 ####
+
 
 	  if test $? = 0 
 	      then
