@@ -17,7 +17,7 @@
  
 *****************************************************************/
 
-
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <mad.h>
@@ -115,7 +115,7 @@ static int decode_frame(bgav_stream_t * s)
   if(priv->stream.bufend - priv->stream.next_frame <= MAD_BUFFER_GUARD)
     if(!get_data(s))
       {
-      //      fprintf(stderr, "No data left\n");
+      fprintf(stderr, "No data left\n");
       return 0;
       }
   //  fprintf(stderr, "Decode frame\n");
@@ -231,7 +231,7 @@ static int init_mad(bgav_stream_t * s)
   get_data(s);
   if(!decode_frame(s))
     {
-    //    fprintf(stderr, "Decode frame failed\n");
+    fprintf(stderr, "Decode frame failed\n");
     return 0;
     }
   return 1;

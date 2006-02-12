@@ -72,7 +72,7 @@ static void select_track_vcd(bgav_input_context_t * ctx, int track)
   vcd_priv * priv;
   priv = (vcd_priv*)(ctx->priv);
 
-//  fprintf(stderr, "Select track VCD\n");
+  fprintf(stderr, "Select track VCD\n");
 
   priv->current_track = track+1;
   priv->next_sector = priv->tracks[priv->current_track].start_sector;

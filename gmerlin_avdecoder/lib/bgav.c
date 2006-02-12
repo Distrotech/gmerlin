@@ -287,7 +287,11 @@ int bgav_start(bgav_t * b)
   //  fprintf(stderr, "bgav_start\n");
   bgav_input_buffer(b->input);
   if(!bgav_track_start(b->tt->current_track, b->demuxer))
+    {
+    if(b->demuxer->error_msg)
+       b->error_msg = bgav_strndup(b->demuxer->error_msg, (char*)0);
     return 0;
+    }
   return 1;
   }
 

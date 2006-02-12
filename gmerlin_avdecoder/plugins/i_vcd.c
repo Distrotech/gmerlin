@@ -72,8 +72,8 @@ bg_input_plugin_t the_plugin =
       //      get_parameters: get_parameters_vcd,
       //      set_parameter:  bg_avdec_set_parameter
       find_devices: find_devices_vcd,
-      check_device: check_device_vcd
-      
+      check_device: check_device_vcd,
+      get_error:    bg_avdec_get_error      
     },
   /* Open file/device */
     open: open_vcd,

@@ -198,7 +198,9 @@ int bg_avdec_start(void * priv)
   avdec = (avdec_priv*)(priv);
   
   if(!bgav_start(avdec->dec))
+    {
     return 0;
+    }
   for(i = 0; i < avdec->current_track->num_video_streams; i++)
     {
     gavl_video_format_copy(&(avdec->current_track->video_streams[i].format),
