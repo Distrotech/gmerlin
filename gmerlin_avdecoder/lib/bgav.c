@@ -207,6 +207,8 @@ int bgav_open_fd(bgav_t * ret, int fd, int64_t total_size, const char * mimetype
 
 void bgav_close(bgav_t * b)
   {
+  fprintf(stderr, "bgav_close\n");
+  
   if(b->location)
     free(b->location);
   

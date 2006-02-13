@@ -346,7 +346,10 @@ static int read_sector_input(bgav_demuxer_context_t * ctx)
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
   if(!bgav_input_read_sector(ctx->input, priv->sector_buffer))
+    {
+    //    fprintf(stderr, "read_sector_input: EOF\n");
     return 0;
+    }
   bgav_input_reopen_memory(priv->input_mem,
                            priv->sector_buffer + priv->sector_header_size,
                            priv->sector_size);
@@ -366,8 +369,8 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
 
   priv->input_mem          = bgav_input_open_memory(NULL, 0);
 
-  fprintf(stderr, "init_sector_mode 1: %lld\n",
-          priv->total_sectors);
+  //  fprintf(stderr, "init_sector_mode 1: start_sector: %d, total_sectors: %lld\n",
+  //          priv->start_sector, priv->total_sectors);
     
   priv->goto_sector(ctx, 0);
   while(1)
@@ -422,7 +425,7 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
     priv->goto_sector(ctx, priv->total_sectors - 1);
     if(!priv->read_sector(ctx))
       {
-      fprintf(stderr, "Read sector failed\n");
+      //      fprintf(stderr, "Read sector failed\n");
       priv->total_sectors--;
       continue;
       }
@@ -725,7 +728,10 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
       if(!next_packet(ctx, priv->input_mem))
         {
         if(!priv->read_sector(ctx))
+          {
+          //          fprintf(stderr, "Read sector failed\n");
           return 0;
+          }
         }
       else
         return 1;

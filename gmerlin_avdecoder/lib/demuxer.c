@@ -316,6 +316,9 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
 int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
                        bgav_redirector_context_t ** redir)
   {
+  /* eof flag might be present from last track */
+  ctx->eof = 0;
+  
   if(!ctx->demuxer->open(ctx, redir))
     return 0;
   

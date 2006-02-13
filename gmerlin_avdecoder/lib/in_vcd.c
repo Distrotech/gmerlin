@@ -72,7 +72,9 @@ static void select_track_vcd(bgav_input_context_t * ctx, int track)
   vcd_priv * priv;
   priv = (vcd_priv*)(ctx->priv);
 
-  fprintf(stderr, "Select track VCD\n");
+#if 0
+  fprintf(stderr, "Select track VCD...");
+#endif
 
   priv->current_track = track+1;
   priv->next_sector = priv->tracks[priv->current_track].start_sector;
@@ -89,6 +91,12 @@ static void select_track_vcd(bgav_input_context_t * ctx, int track)
   /* Data should be read after next call */
   priv->buffer_ptr = priv->buffer + SECTOR_SIZE;
 #endif
+
+#if 0
+  fprintf(stderr, "start: %d, end: %d\n",
+          priv->tracks[priv->current_track].start_sector,
+          priv->tracks[priv->current_track].end_sector);
+#endif          
   }
 
 static int read_toc(vcd_priv * priv)
@@ -287,7 +295,7 @@ static int read_sector(bgav_input_context_t * ctx, uint8_t * data)
 
   //  do
   //    {
-#if 1
+#if 0
   fprintf(stderr, "read_sector %d...", priv->next_sector);
 #endif
   if(priv->next_sector > priv->tracks[priv->current_track].end_sector)
@@ -298,7 +306,7 @@ static int read_sector(bgav_input_context_t * ctx, uint8_t * data)
     fprintf(stderr, "Read sector from %d failed\n", priv->next_sector);
     return 0;
     }
-#if 1
+#if 0
   fprintf(stderr, "Ok\n");
 #endif
   priv->next_sector++;
