@@ -261,7 +261,7 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
 
 void bg_player_input_cleanup(bg_player_input_context_t * ctx)
   {
-
+  
   if(ctx->plugin->stop)
     ctx->plugin->stop(ctx->priv);
   if(ctx->plugin_handle)
@@ -400,7 +400,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   //    fprintf(stderr, "ctx->audio_finished\n");
 
   //  fprintf(stderr, "Process audio done\n");
-#if 1
+#if 0
   if(ctx->audio_finished)
     fprintf(stderr, "Process audio: EOF\n");
 #endif
@@ -573,7 +573,7 @@ void * bg_player_input_thread(void * data)
   
   bg_msg_queue_unlock_write(ctx->player->command_queue);
   
-  fprintf(stderr, "input thread finished\n");
+  //  fprintf(stderr, "input thread finished\n");
   return NULL;
   }
 
