@@ -29,6 +29,7 @@
 static int probe_m3u(bgav_input_context_t * input)
   {
   char probe_buffer[PROBE_BYTES];
+  char * pos;
   /* Most likely, we get this via http, so we can check the mimetype */
   if(input->mimetype)
     {
@@ -41,6 +42,17 @@ static int probe_m3u(bgav_input_context_t * input)
        !strcmp(input->mimetype, "audio/m3u"))
       return 1;
     }
+  /* Take all files which end with .m3u */
+  if(input->filename)
+    {
+    pos = strrchr(input->filename, '.');
+    if(!pos)
+      return 0;
+    if(!strcmp(pos, ".m3u"))
+      return 1;
+    }
+
+  
   if(bgav_input_get_data(input, (uint8_t*)probe_buffer,
                          PROBE_BYTES) < PROBE_BYTES)
     return 0;
