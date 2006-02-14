@@ -40,9 +40,23 @@ static int probe_m3u(bgav_input_context_t * input)
        !strcmp(input->mimetype, "audio/x-mpegurl") ||
        !strcmp(input->mimetype, "audio/mpegurl") ||
        !strcmp(input->mimetype, "audio/m3u"))
-      return 1;
+      {
+      if(bgav_input_get_data(input, (uint8_t*)probe_buffer,
+                             PROBE_BYTES) < PROBE_BYTES)
+        return 0;
+
+      /* Some streams with the above mimetype are in realtiy
+         different streams, so we check this here */
+            
+      if(!strncmp(probe_buffer, "mms://", 6) ||
+         !strncmp(probe_buffer, "http://", 7) ||
+         !strncmp(probe_buffer, "rtsp://", 7) ||
+         (probe_buffer[0] == '#'))
+        return 1;
+      }
     }
   /* Take all files which end with .m3u */
+  
   if(input->filename)
     {
     pos = strrchr(input->filename, '.');
