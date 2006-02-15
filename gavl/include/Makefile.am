@@ -7,6 +7,7 @@ accel.h \
 arith128.h \
 attributes.h \
 audio.h \
+blend.h \
 colorspace.h \
 deinterlace.h \
 float_cast.h \

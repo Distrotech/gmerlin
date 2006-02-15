@@ -19,6 +19,7 @@ audioconverter.c \
 audioformat.c \
 audioframe.c \
 audiooptions.c \
+blend.c \
 colorspace.c \
 cputest.c \
 deinterlace.c \

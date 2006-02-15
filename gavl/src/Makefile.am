@@ -1,7 +1,10 @@
-noinst_PROGRAMS = colorspace_test colorspace_time scaletest scale_time timescale_test
+noinst_PROGRAMS = colorspace_test colorspace_time scaletest scale_time timescale_test blend_test
 
 colorspace_test_SOURCES = colorspace_test.c
 colorspace_test_LDADD = ../gavl/libgavl.la -lpng -lz
+
+blend_test_SOURCES = blend_test.c
+blend_test_LDADD = ../gavl/libgavl.la -lpng -lz
 
 scaletest_SOURCES = scaletest.c
 scaletest_LDADD = ../gavl/libgavl.la -lpng -lz

@@ -2069,46 +2069,122 @@ void gavl_video_deinterlacer_deinterlace(gavl_video_deinterlacer_t * deinterlace
 /**************************************************
  * Transparent overlays 
  **************************************************/
-#if 0
-/* Overlay format */
-  
-typedef struct
-  {
-  gavl_video_format_t overlay_format;
-  gavl_video_format_t frame_format;
-  } gavl_overlay_format_t;
-    
+
 /* Overlay struct */
 
+/*! \defgroup video_blend Overlay blending
+ * \ingroup video
+ *
+ *  Overlay blending does one elemental operation:
+ *  Take a partly transparent overlay (in an alpha
+ *  capable pixelformat) and blend it onto a video frame.
+ *  Blending can be used for subtitles or OSD in playback applications,
+ *  and also for lots of weird effects.
+ *  In the current implementation, there is only one overlay
+ *  pixelformat, which can be blended onto a cetrtain destination format.
+ *  Therefore, the incoming overlay will be converted to the pixelformat
+ *  necessary for the conversion. For OSD and Subtitle applications,
+ *  this happens only once for each overlay, since the converted overlay is
+ *  remembered by the blend context.
+ *
+ *  Note that gavl doesn't (and never will) support text subtitles. To
+ *  blend text strings onto a video frame, you must render it into a
+ *  gavl_overlay_t with some typesetting library (e.g. freetype) first.
+ */
+  
+/*! \ingroup video_blend
+ *  \brief Overlay structure.
+ *
+ *  Structure, which holds an overlay. 
+ */
+ 
 typedef struct
   {
-  gavl_video_frame_t * frame;
-  gavl_rectangle_i_t dst_rectangle;
+  gavl_video_frame_t * frame;       //!< Video frame in an alpha capable format */
+  gavl_rectangle_i_t ovl_rect;      //!< Rectangle in the source frame     */
+  gavl_rectangle_i_t dst_rect;      //!< Rectangle in the destination frame     */
   } gavl_overlay_t;
 
-/*
- *  Blend context
+/*! \ingroup video_blend
+ *  \brief Opaque blend context.
+ *
+ *  You don't want to know what's inside.
  */
-
+  
 typedef struct gavl_overlay_blend_context_s gavl_overlay_blend_context_t;
 
+/*! \ingroup video_blend
+ *  \brief Create a blend context
+ *  \returns A newly allocated blend context.
+ */
+  
 gavl_overlay_blend_context_t * gavl_overlay_blend_context_create();
 
-void gavl_overlay_blend_context_destroy(gavl_overlay_blend_context_t *);
-void gavl_overlay_blend_context_init(gavl_overlay_blend_context_t *,
-                                     gavl_overlay_format_t *);
+/*! \ingroup video_blend
+ *  \brief Destroy a blend context and free all associated memory
+ *  \param ctx A blend context
+ */
 
+void gavl_overlay_blend_context_destroy(gavl_overlay_blend_context_t * ctx);
+
+/*! \ingroup video_blend
+ *  \brief Get options from a blend context
+ *  \param ctx A blend context
+ *  \returns Options (See \ref video_options)
+ */
+  
 gavl_video_options_t *
-gavl_overlay_blend_context_get_options(gavl_overlay_blend_context_t *);
+gavl_overlay_blend_context_get_options(gavl_overlay_blend_context_t * ctx);
 
-void gavl_overlay_blend(gavl_overlay_blend_context_t *,
+/*! \ingroup video_blend
+ *  \brief Initialize the blend context
+ *  \param ctx A blend context
+ *  \param frame_format The format of the destination frames
+ *  \param overlay_format The format of the overlays
+ * 
+ *  Initialize a blend context for a given frame- and overlayformat.
+ *  The image_width and image_height members for the overlay format represent
+ *  the maximum overlay size. The actual displayed size will be determined
+ *  by the dst_rectangle of the overlay.
+ *  
+ */
+
+int gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
+                                    const gavl_video_format_t * frame_format,
+                                    const gavl_video_format_t * overlay_format);
+
+/*! \ingroup video_blend
+ *  \brief Determine if a blend context needs a new overlay
+ *  \param ctx A blend context
+ *  \returns 1 if there is no saved overlay or the last overlay has expired, 0 else.
+ * 
+ *  Use this function to determine, if a new overlay should be decoded.
+ */
+  
+int gavl_overlay_blend_context_need_new(gavl_overlay_blend_context_t * ctx);
+
+/*! \ingroup video_blend
+ *  \brief Set a new overlay
+ *  \param ctx A blend context
+ *  \param ovl An overlay
+ * 
+ *  This function sets a new overlay, regardless of whether the last one has expired
+ *  or not.
+ */
+  
+void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
+                                            gavl_overlay_t * ovl);
+
+/*! \ingroup video_blend
+ *  \brief Blend overlay onto video frame
+ *  \param ctx A blend context
+ *  \param dst_frame Destination frame
+ */
+  
+void gavl_overlay_blend(gavl_overlay_blend_context_t * ctx,
                         gavl_video_frame_t * dst_frame);
 
-int gavl_overlay_blend_context_need_new(gavl_overlay_blend_context_t *);
-void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t *,
-                                            gavl_overlay_t *);
-
-#endif  
+  
 #ifdef __cplusplus
 }
 #endif

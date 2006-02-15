@@ -12,6 +12,7 @@
 #define HAVE_YUV_TO_RGB_FLOAT
 #define HAVE_YUVJ_TO_RGB_FLOAT
 #endif // GAVL
+
 #ifdef HAVE_YUVJ_TO_YUV_8
 
 static uint8_t yj_8_to_y_8[256] = 

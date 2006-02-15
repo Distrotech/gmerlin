@@ -2,6 +2,7 @@
 noinst_LTLIBRARIES = libgavl_c.la
 
 libgavl_c_la_SOURCES = \
+blend_c.c \
 colorspace_c.c \
 interleave_c.c \
 mix_c.c \

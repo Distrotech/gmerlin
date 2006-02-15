@@ -10,7 +10,7 @@
 #define RGB16_MIDDLE_MASK 0x07e0
 #define RGB16_UPPER_MASK  0xf800
 
-/* Extract 8 bit RGB values from 15 bit pixels */
+/* Extract 8 bit RGB values from 16 bit pixels */
 
 #define RGB16_TO_R_8(pixel) rgb_5_to_8[(pixel & RGB16_UPPER_MASK)>>11]
 #define RGB16_TO_G_8(pixel) rgb_6_to_8[(pixel & RGB16_MIDDLE_MASK)>>5]
@@ -20,7 +20,7 @@
 #define BGR16_TO_G_8(pixel) RGB16_TO_G_8(pixel)
 #define BGR16_TO_R_8(pixel) RGB16_TO_B_8(pixel)
 
-/* Extract 16 bit RGB values from 15 bit pixels */
+/* Extract 16 bit RGB values from 16 bit pixels */
 
 #define RGB16_TO_R_16(pixel) rgb_5_to_16[(pixel & RGB16_UPPER_MASK)>>11]
 #define RGB16_TO_G_16(pixel) rgb_6_to_16[(pixel & RGB16_MIDDLE_MASK)>>5]
@@ -30,7 +30,7 @@
 #define BGR16_TO_G_16(pixel) RGB16_TO_G_16(pixel)
 #define BGR16_TO_R_16(pixel) RGB16_TO_B_16(pixel)
 
-/* Extract float RGB values from 15 bit pixels */
+/* Extract float RGB values from 16 bit pixels */
 
 #define RGB16_TO_R_FLOAT(pixel) rgb_5_to_float[(pixel & RGB16_UPPER_MASK)>>11]
 #define RGB16_TO_G_FLOAT(pixel) rgb_6_to_float[(pixel & RGB16_MIDDLE_MASK)>>5]
@@ -150,6 +150,8 @@
 
 /* 48 -> 8 */
 
+#ifdef HAVE_RGB_TO_YUV
+
 static int64_t r_16_to_y = (int64_t)((0.29900*219.0/255.0)*0x10000);
 static int64_t g_16_to_y = (int64_t)((0.58700*219.0/255.0)*0x10000);
 static int64_t b_16_to_y = (int64_t)((0.11400*219.0/255.0)*0x10000);
@@ -254,8 +256,11 @@ static float b_float_to_v = -0.08131;
   u = UV_FLOAT_TO_16(u_tmp);                                        \
   v = UV_FLOAT_TO_16(v_tmp);
 
+#endif // HAVE_RGB_TO_YUV
+
 /* YUV (8bit) -> */
 
+#ifdef HAVE_YUV_TO_RGB
 
 #define YUV_8_TO_RGB_24(y,u,v,r,g,b) i_tmp=(y_to_rgb[y]+v_to_r[v])>>16;\
                                r=RECLIP_8(i_tmp);\
@@ -344,6 +349,7 @@ static float u_16_to_b_float =  1.77200*255.0/224.0/65535.0;
   i_tmp=(y_16_to_rgb_float * (y-0x1000) + u_16_to_b_float * (u-0x8000)); \
   b = RECLIP_FLOAT(i_tmp);
 
+#endif // HAVE_YUV_TO_RGB
 
 /* Combine r, g and b values to a 16 bit rgb pixel (taken from avifile) */
 

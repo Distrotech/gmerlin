@@ -159,9 +159,8 @@ int gavl_time_parse(const char * str, gavl_time_t * ret);
 
 /* Simple software timer */
 
-/*! \defgroup timer
+/*! \defgroup timer Software timer
  * \ingroup time
- * \brief Software timer
  *
  *  This is a simple software timer, which can be used for synchronization
  *  purposes for cases wherer there is no synchronization with hardware devices
