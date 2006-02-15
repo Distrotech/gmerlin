@@ -554,9 +554,9 @@ void * bg_player_input_thread(void * data)
       {
       process_video(ctx, 0);
       }
-
+    
     /* If we sent silence before, we must tell the audio fifo EOF */
-        
+    
     if(ctx->send_silence && ctx->audio_finished && ctx->video_finished)
       {
       bg_fifo_lock_write(ctx->player->audio_stream.fifo, &state);
@@ -565,7 +565,7 @@ void * bg_player_input_thread(void * data)
     }
   msg = bg_msg_queue_lock_write(ctx->player->command_queue);
   bg_msg_set_id(msg, BG_PLAYER_CMD_SETSTATE);
-
+  
   if(ctx->player->do_still && !ctx->player->do_audio)
     bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_STILL);
   else

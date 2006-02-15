@@ -1273,9 +1273,8 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
     
     //    fprintf(stderr, "d_name: %s\n", dent.d.d_name);
 
-    if(!strcmp(dent.d.d_name, ".") || !strcmp(dent.d.d_name, ".."))
+    if(dent.d.d_name[0] == '.') /* Don't import hidden directories */
       continue;
-
     
     sprintf(filename, "%s/%s", directory, dent.d.d_name);
     
