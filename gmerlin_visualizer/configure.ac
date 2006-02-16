@@ -20,7 +20,7 @@ AC_SUBST(GTK_LIBS, $GTK_LIBS)
 
 dnl gmerlin
 
-GMERLIN_REQUIRED="0.3.3"
+GMERLIN_REQUIRED="0.3.4pre1"
 
 PKG_CHECK_MODULES(GMERLIN, gmerlin = $GMERLIN_REQUIRED, ,
                   AC_MSG_ERROR(gmerlin_visualizer needs gmerlin with headers))
