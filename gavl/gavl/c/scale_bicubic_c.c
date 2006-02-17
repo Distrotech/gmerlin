@@ -32,11 +32,19 @@ typedef struct {
 	uint16_t b:5, g:5, r:5;
 } color_15;
 
+#ifdef NOCLIP
+#define RECLIP(a,idx)
+#define RECLIP_FLOAT(a)
+
+#else
+
 #define RECLIP(a,idx) \
   if(a < ctx->min_values[idx]) a = ctx->min_values[idx];    \
   if(a > ctx->max_values[idx]) a = ctx->max_values[idx]
 
 #define RECLIP_FLOAT(a) if(a < 0.0) a = 0.0; if(a > 1.0) a = 1.0
+
+#endif
 
 /* x-Direction */
 
@@ -609,7 +617,11 @@ typedef struct {
 #define NUM_TAPS 4
 #include "scale_y.h"
 
+#ifdef NOCLIP
+void gavl_init_scale_funcs_bicubic_noclip_c(gavl_scale_funcs_t * tab)
+#else
 void gavl_init_scale_funcs_bicubic_c(gavl_scale_funcs_t * tab)
+#endif
   {
   //  fprintf(stderr, "gavl_init_scale_funcs_bicubic_c\n");
   tab->funcs_x.scale_rgb_15 =     scale_rgb_15_x_bicubic_c;

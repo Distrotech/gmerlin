@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <gavl/gavl.h>
@@ -109,7 +110,7 @@ gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
                            &ctx->ovl_format);
 
     /*
-     *  HACK: We chose a prime number for the frame size such that
+     *  HACK: We choose a prime number for the frame size such that
      *  we always get pixelformat convertors, which don't require a
      *  specific alignment. This must be done, because the actual
      *  sizes of overlays can change
@@ -144,10 +145,25 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
 
   memcpy(&ctx->ovl, ovl, sizeof(ctx->ovl));
 
-  /* TODO: adjust rectangle */
-    
-  /* Check if we must convert */
+  /* Align destination rectangle */
 
+  
+  
+  /* Adjust rectangles */
+
+  if(ctx->ovl.ovl_rect.w < ctx->ovl.dst_rect.w)
+    ctx->ovl.dst_rect.w = ctx->ovl.ovl_rect.w;
+  else if(ctx->ovl.ovl_rect.w > ctx->ovl.dst_rect.w)
+    ctx->ovl.ovl_rect.w = ctx->ovl.dst_rect.w;
+
+  if(ctx->ovl.ovl_rect.h < ctx->ovl.dst_rect.h)
+    ctx->ovl.dst_rect.h = ctx->ovl.ovl_rect.h;
+  else if(ctx->ovl.ovl_rect.h > ctx->ovl.dst_rect.h)
+    ctx->ovl.ovl_rect.h = ctx->ovl.dst_rect.h;
+
+  
+  
+  /* Check if we must convert */
   if(ctx->do_convert)
     {
     /* Set source and destination windows */
@@ -174,7 +190,7 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
     }
   else
     {
-    gavl_video_frame_get_subframe(ctx->cnv->input_format.pixelformat,
+    gavl_video_frame_get_subframe(ctx->ovl_format.pixelformat,
                                   ovl->frame,
                                   ctx->ovl_win,
                                   &(ovl->ovl_rect));

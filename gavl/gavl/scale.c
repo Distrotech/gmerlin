@@ -223,6 +223,8 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
       gavl_init_scale_funcs_quadratic_c(&funcs);
       break;
     case GAVL_SCALE_CUBIC_BSPLINE:
+      gavl_init_scale_funcs_bicubic_noclip_c(&funcs);
+      break;
     case GAVL_SCALE_CUBIC_MITCHELL:
     case GAVL_SCALE_CUBIC_CATMULL:
       gavl_init_scale_funcs_bicubic_c(&funcs);

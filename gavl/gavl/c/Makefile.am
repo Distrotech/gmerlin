@@ -4,10 +4,12 @@ noinst_LTLIBRARIES = libgavl_c.la
 libgavl_c_la_SOURCES = \
 blend_c.c \
 colorspace_c.c \
+colorspace_tables.c \
 interleave_c.c \
 mix_c.c \
 sampleformat_c.c \
 scale_bicubic_c.c \
+scale_bicubic_noclip_c.c \
 scale_bilinear_c.c \
 scale_generic_c.c \
 scale_nearest_c.c \

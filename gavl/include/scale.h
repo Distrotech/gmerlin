@@ -67,6 +67,9 @@ void gavl_init_scale_funcs_quadratic_c(gavl_scale_funcs_t * tab);
 
 void gavl_init_scale_funcs_bicubic_c(gavl_scale_funcs_t * tab);
 
+void gavl_init_scale_funcs_bicubic_noclip_c(gavl_scale_funcs_t * tab);
+
+
 void gavl_init_scale_funcs_generic_c(gavl_scale_funcs_t * tab);
 #ifdef ARCH_X86
 

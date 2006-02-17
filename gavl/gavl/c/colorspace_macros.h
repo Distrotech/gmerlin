@@ -12,9 +12,9 @@
 
 /* Extract 8 bit RGB values from 16 bit pixels */
 
-#define RGB16_TO_R_8(pixel) rgb_5_to_8[(pixel & RGB16_UPPER_MASK)>>11]
-#define RGB16_TO_G_8(pixel) rgb_6_to_8[(pixel & RGB16_MIDDLE_MASK)>>5]
-#define RGB16_TO_B_8(pixel) rgb_5_to_8[(pixel & RGB16_LOWER_MASK)]
+#define RGB16_TO_R_8(pixel) gavl_rgb_5_to_8[(pixel & RGB16_UPPER_MASK)>>11]
+#define RGB16_TO_G_8(pixel) gavl_rgb_6_to_8[(pixel & RGB16_MIDDLE_MASK)>>5]
+#define RGB16_TO_B_8(pixel) gavl_rgb_5_to_8[(pixel & RGB16_LOWER_MASK)]
 
 #define BGR16_TO_B_8(pixel) RGB16_TO_R_8(pixel)
 #define BGR16_TO_G_8(pixel) RGB16_TO_G_8(pixel)
@@ -22,9 +22,9 @@
 
 /* Extract 16 bit RGB values from 16 bit pixels */
 
-#define RGB16_TO_R_16(pixel) rgb_5_to_16[(pixel & RGB16_UPPER_MASK)>>11]
-#define RGB16_TO_G_16(pixel) rgb_6_to_16[(pixel & RGB16_MIDDLE_MASK)>>5]
-#define RGB16_TO_B_16(pixel) rgb_5_to_16[(pixel & RGB16_LOWER_MASK)]
+#define RGB16_TO_R_16(pixel) gavl_rgb_5_to_16[(pixel & RGB16_UPPER_MASK)>>11]
+#define RGB16_TO_G_16(pixel) gavl_rgb_6_to_16[(pixel & RGB16_MIDDLE_MASK)>>5]
+#define RGB16_TO_B_16(pixel) gavl_rgb_5_to_16[(pixel & RGB16_LOWER_MASK)]
 
 #define BGR16_TO_B_16(pixel) RGB16_TO_R_16(pixel)
 #define BGR16_TO_G_16(pixel) RGB16_TO_G_16(pixel)
@@ -32,9 +32,9 @@
 
 /* Extract float RGB values from 16 bit pixels */
 
-#define RGB16_TO_R_FLOAT(pixel) rgb_5_to_float[(pixel & RGB16_UPPER_MASK)>>11]
-#define RGB16_TO_G_FLOAT(pixel) rgb_6_to_float[(pixel & RGB16_MIDDLE_MASK)>>5]
-#define RGB16_TO_B_FLOAT(pixel) rgb_5_to_float[(pixel & RGB16_LOWER_MASK)]
+#define RGB16_TO_R_FLOAT(pixel) gavl_rgb_5_to_float[(pixel & RGB16_UPPER_MASK)>>11]
+#define RGB16_TO_G_FLOAT(pixel) gavl_rgb_6_to_float[(pixel & RGB16_MIDDLE_MASK)>>5]
+#define RGB16_TO_B_FLOAT(pixel) gavl_rgb_5_to_float[(pixel & RGB16_LOWER_MASK)]
 
 #define BGR16_TO_B_FLOAT(pixel) RGB16_TO_R_FLOAT(pixel)
 #define BGR16_TO_G_FLOAT(pixel) RGB16_TO_G_FLOAT(pixel)
@@ -48,25 +48,25 @@
 
 /* Extract 8 bit RGB values from 16 bit pixels */
 
-#define RGB15_TO_R_8(pixel) rgb_5_to_8[(pixel & RGB15_UPPER_MASK)>>10]
-#define RGB15_TO_G_8(pixel) rgb_5_to_8[(pixel & RGB15_MIDDLE_MASK)>>5] 
-#define RGB15_TO_B_8(pixel) rgb_5_to_8[(pixel & RGB15_LOWER_MASK)]
+#define RGB15_TO_R_8(pixel) gavl_rgb_5_to_8[(pixel & RGB15_UPPER_MASK)>>10]
+#define RGB15_TO_G_8(pixel) gavl_rgb_5_to_8[(pixel & RGB15_MIDDLE_MASK)>>5] 
+#define RGB15_TO_B_8(pixel) gavl_rgb_5_to_8[(pixel & RGB15_LOWER_MASK)]
 
 #define BGR15_TO_B_8(pixel) RGB15_TO_R_8(pixel)
 #define BGR15_TO_G_8(pixel) RGB15_TO_G_8(pixel) 
 #define BGR15_TO_R_8(pixel) RGB15_TO_B_8(pixel)
 
-#define RGB15_TO_R_16(pixel) rgb_5_to_16[(pixel & RGB15_UPPER_MASK)>>10]
-#define RGB15_TO_G_16(pixel) rgb_5_to_16[(pixel & RGB15_MIDDLE_MASK)>>5] 
-#define RGB15_TO_B_16(pixel) rgb_5_to_16[(pixel & RGB15_LOWER_MASK)]
+#define RGB15_TO_R_16(pixel) gavl_rgb_5_to_16[(pixel & RGB15_UPPER_MASK)>>10]
+#define RGB15_TO_G_16(pixel) gavl_rgb_5_to_16[(pixel & RGB15_MIDDLE_MASK)>>5] 
+#define RGB15_TO_B_16(pixel) gavl_rgb_5_to_16[(pixel & RGB15_LOWER_MASK)]
 
 #define BGR15_TO_B_16(pixel) RGB15_TO_R_16(pixel)
 #define BGR15_TO_G_16(pixel) RGB15_TO_G_16(pixel) 
 #define BGR15_TO_R_16(pixel) RGB15_TO_B_16(pixel)
 
-#define RGB15_TO_R_FLOAT(pixel) rgb_5_to_float[(pixel & RGB15_UPPER_MASK)>>10]
-#define RGB15_TO_G_FLOAT(pixel) rgb_5_to_float[(pixel & RGB15_MIDDLE_MASK)>>5] 
-#define RGB15_TO_B_FLOAT(pixel) rgb_5_to_float[(pixel & RGB15_LOWER_MASK)]
+#define RGB15_TO_R_FLOAT(pixel) gavl_rgb_5_to_float[(pixel & RGB15_UPPER_MASK)>>10]
+#define RGB15_TO_G_FLOAT(pixel) gavl_rgb_5_to_float[(pixel & RGB15_MIDDLE_MASK)>>5] 
+#define RGB15_TO_B_FLOAT(pixel) gavl_rgb_5_to_float[(pixel & RGB15_LOWER_MASK)]
 
 #define BGR15_TO_B_FLOAT(pixel) RGB15_TO_R_FLOAT(pixel)
 #define BGR15_TO_G_FLOAT(pixel) RGB15_TO_G_FLOAT(pixel) 
@@ -111,70 +111,69 @@
 #define Y_8_TO_16(val) ((val)<<8)
 #define UV_8_TO_16(val) ((val)<<8)
 
-#define Y_8_TO_YJ_8(val)   y_8_to_yj_8[val]
-#define UV_8_TO_UVJ_8(val) uv_8_to_uvj_8[val]
+#define Y_8_TO_YJ_8(val)   gavl_y_8_to_yj_8[val]
+#define UV_8_TO_UVJ_8(val) gavl_uv_8_to_uvj_8[val]
 
-#define YJ_8_TO_Y_8(val)   yj_8_to_y_8[val]
-#define UVJ_8_TO_UV_8(val) uvj_8_to_uv_8[val]
+#define YJ_8_TO_Y_8(val)   gavl_yj_8_to_y_8[val]
+#define UVJ_8_TO_UV_8(val) gavl_uvj_8_to_uv_8[val]
 
-#define YJ_8_TO_Y_16(val)   yj_8_to_y_16[val]
-#define UVJ_8_TO_UV_16(val) uvj_8_to_uv_16[val]
+#define YJ_8_TO_Y_16(val)   gavl_yj_8_to_y_16[val]
+#define UVJ_8_TO_UV_16(val) gavl_uvj_8_to_uv_16[val]
 
 
 /* RGB -> YUV conversion */
 
 /* 24 -> 8 */
 
-#define RGB_24_TO_Y_8(r,g,b,y) y=(r_to_y[r]+g_to_y[g]+b_to_y[b])>>16;
+#define RGB_24_TO_Y_8(r,g,b,y) y=(gavl_r_to_y[r]+gavl_g_to_y[g]+gavl_b_to_y[b])>>16;
 
 #define RGB_24_TO_YUV_8(r,g,b,y,u,v)                                    \
   RGB_24_TO_Y_8(r,g,b,y);                                               \
-  u=(r_to_u[r]+g_to_u[g]+b_to_u[b])>>16;                                \
-  v=(r_to_v[r]+g_to_v[g]+b_to_v[b])>>16;
+  u=(gavl_r_to_u[r]+gavl_g_to_u[g]+gavl_b_to_u[b])>>16;                                \
+  v=(gavl_r_to_v[r]+gavl_g_to_v[g]+gavl_b_to_v[b])>>16;
 
-#define RGB_24_TO_YJ_8(r,g,b,y) y=(r_to_yj[r]+g_to_yj[g]+b_to_yj[b])>>16;
+#define RGB_24_TO_YJ_8(r,g,b,y) y=(gavl_r_to_yj[r]+gavl_g_to_yj[g]+gavl_b_to_yj[b])>>16;
 
 #define RGB_24_TO_YUVJ_8(r,g,b,y,u,v) \
   RGB_24_TO_YJ_8(r,g,b,y);                                              \
-  u=(r_to_uj[r]+g_to_uj[g]+b_to_uj[b])>>16;                             \
-  v=(r_to_vj[r]+g_to_vj[g]+b_to_vj[b])>>16;
+  u=(gavl_r_to_uj[r]+gavl_g_to_uj[g]+gavl_b_to_uj[b])>>16;                             \
+  v=(gavl_r_to_vj[r]+gavl_g_to_vj[g]+gavl_b_to_vj[b])>>16;
 
 /* 24 -> 16 */
 
-#define RGB_24_TO_Y_16(r,g,b,y) y=(r_to_y[r]+g_to_y[g]+b_to_y[b])>>8;
+#define RGB_24_TO_Y_16(r,g,b,y) y=(gavl_r_to_y[r]+gavl_g_to_y[g]+gavl_b_to_y[b])>>8;
 
 #define RGB_24_TO_YUV_16(r,g,b,y,u,v)                                    \
   RGB_24_TO_Y_16(r,g,b,y);                                               \
-  u=(r_to_u[r]+g_to_u[g]+b_to_u[b])>>8;                                \
-  v=(r_to_v[r]+g_to_v[g]+b_to_v[b])>>8;
+  u=(gavl_r_to_u[r]+gavl_g_to_u[g]+gavl_b_to_u[b])>>8;                                \
+  v=(gavl_r_to_v[r]+gavl_g_to_v[g]+gavl_b_to_v[b])>>8;
 
 /* 48 -> 8 */
 
-#ifdef HAVE_RGB_TO_YUV
 
-static int64_t r_16_to_y = (int64_t)((0.29900*219.0/255.0)*0x10000);
-static int64_t g_16_to_y = (int64_t)((0.58700*219.0/255.0)*0x10000);
-static int64_t b_16_to_y = (int64_t)((0.11400*219.0/255.0)*0x10000);
+#define r_16_to_y ((int64_t)((0.29900*219.0/255.0)*0x10000))
+#define g_16_to_y ((int64_t)((0.58700*219.0/255.0)*0x10000))
+#define b_16_to_y ((int64_t)((0.11400*219.0/255.0)*0x10000))
 
-static int64_t r_16_to_u = (int64_t)(-(0.16874*224.0/255.0)*0x10000);
-static int64_t g_16_to_u = (int64_t)(-(0.33126*224.0/255.0)*0x10000);
-static int64_t b_16_to_u = (int64_t)( (0.50000*224.0/255.0)*0x10000);
+#define r_16_to_u ((int64_t)(-(0.16874*224.0/255.0)*0x10000))
+#define g_16_to_u ((int64_t)(-(0.33126*224.0/255.0)*0x10000))
+#define b_16_to_u ((int64_t)( (0.50000*224.0/255.0)*0x10000))
 
-static int64_t r_16_to_v = (int64_t)( (0.50000*224.0/255.0)*0x10000);
-static int64_t g_16_to_v = (int64_t)(-(0.41869*224.0/255.0)*0x10000);
-static int64_t b_16_to_v = (int64_t)(-(0.08131*224.0/255.0)*0x10000);
+#define r_16_to_v ((int64_t)( (0.50000*224.0/255.0)*0x10000))
+#define g_16_to_v ((int64_t)(-(0.41869*224.0/255.0)*0x10000))
+#define b_16_to_v ((int64_t)(-(0.08131*224.0/255.0)*0x10000))
 
-static int64_t r_16_to_yj = (int64_t)((0.29900)*0x10000);
-static int64_t g_16_to_yj = (int64_t)((0.58700)*0x10000);
-static int64_t b_16_to_yj = (int64_t)((0.11400)*0x10000);
+#define r_16_to_yj ((int64_t)((0.29900)*0x10000))
+#define g_16_to_yj ((int64_t)((0.58700)*0x10000))
+#define b_16_to_yj ((int64_t)((0.11400)*0x10000))
 
-static int64_t r_16_to_uj = (int64_t)(-(0.16874)*0x10000);
-static int64_t g_16_to_uj = (int64_t)(-(0.33126)*0x10000);
-static int64_t b_16_to_uj = (int64_t)( (0.50000)*0x10000);
+#define r_16_to_uj ((int64_t)(-(0.16874)*0x10000))
+#define g_16_to_uj ((int64_t)(-(0.33126)*0x10000))
+#define b_16_to_uj ((int64_t)( (0.50000)*0x10000))
 
-static int64_t r_16_to_vj = (int64_t)( (0.50000)*0x10000);
-static int64_t g_16_to_vj = (int64_t)(-(0.41869)*0x10000);
-static int64_t b_16_to_vj = (int64_t)(-(0.08131)*0x10000);
+#define r_16_to_vj ((int64_t)( (0.50000)*0x10000))
+#define g_16_to_vj ((int64_t)(-(0.41869)*0x10000))
+#define b_16_to_vj ((int64_t)(-(0.08131)*0x10000))
 
 #define RGB_48_TO_Y_8(r,g,b,y) \
   y=(r_16_to_y * r + g_16_to_y * g + b_16_to_y * b + 16 * 0x1000000LL)>>24;
@@ -204,17 +203,17 @@ static int64_t b_16_to_vj = (int64_t)(-(0.08131)*0x10000);
 
 /* RGB Float -> YUV */
 
-static float r_float_to_y = 0.29900;
-static float g_float_to_y = 0.58700;
-static float b_float_to_y = 0.11400;
+#define r_float_to_y  0.29900
+#define g_float_to_y  0.58700
+#define b_float_to_y  0.11400
 
-static float r_float_to_u = -0.16874;
-static float g_float_to_u = -0.33126;
-static float b_float_to_u =  0.50000;
+#define r_float_to_u  (-0.16874)
+#define g_float_to_u  (-0.33126)
+#define b_float_to_u   0.50000
 
-static float r_float_to_v =  0.50000;
-static float g_float_to_v = -0.41869;
-static float b_float_to_v = -0.08131;
+#define r_float_to_v   0.50000
+#define g_float_to_v  (-0.41869)
+#define b_float_to_v  (-0.08131)
 
 #define INIT_RGB_FLOAT_TO_YUV \
   float y_tmp, u_tmp, v_tmp;
@@ -256,63 +255,61 @@ static float b_float_to_v = -0.08131;
   u = UV_FLOAT_TO_16(u_tmp);                                        \
   v = UV_FLOAT_TO_16(v_tmp);
 
-#endif // HAVE_RGB_TO_YUV
 
 /* YUV (8bit) -> */
 
-#ifdef HAVE_YUV_TO_RGB
 
-#define YUV_8_TO_RGB_24(y,u,v,r,g,b) i_tmp=(y_to_rgb[y]+v_to_r[v])>>16;\
+#define YUV_8_TO_RGB_24(y,u,v,r,g,b) i_tmp=(gavl_y_to_rgb[y]+gavl_v_to_r[v])>>16;\
                                r=RECLIP_8(i_tmp);\
-                               i_tmp=(y_to_rgb[y]+u_to_g[u]+v_to_g[v])>>16;\
+                               i_tmp=(gavl_y_to_rgb[y]+gavl_u_to_g[u]+gavl_v_to_g[v])>>16;\
                                g=RECLIP_8(i_tmp);\
-                               i_tmp=(y_to_rgb[y]+u_to_b[u])>>16;\
+                               i_tmp=(gavl_y_to_rgb[y]+gavl_u_to_b[u])>>16;\
                                b=RECLIP_8(i_tmp);
 
-#define YUVJ_8_TO_RGB_24(y,u,v,r,g,b) i_tmp=(yj_to_rgb[y]+vj_to_r[v])>>16;\
+#define YUVJ_8_TO_RGB_24(y,u,v,r,g,b) i_tmp=(gavl_yj_to_rgb[y]+gavl_vj_to_r[v])>>16;\
                                 r=RECLIP_8(i_tmp);\
-                                i_tmp=(yj_to_rgb[y]+uj_to_g[u]+vj_to_g[v])>>16;\
+                                i_tmp=(gavl_yj_to_rgb[y]+gavl_uj_to_g[u]+gavl_vj_to_g[v])>>16;\
                                 g=RECLIP_8(i_tmp);\
-                                i_tmp=(yj_to_rgb[y]+uj_to_b[u])>>16;\
+                                i_tmp=(gavl_yj_to_rgb[y]+gavl_uj_to_b[u])>>16;\
                                 b=RECLIP_8(i_tmp);
 
-#define YUV_8_TO_RGB_48(y,u,v,r,g,b) i_tmp=(y_to_rgb[y]+v_to_r[v])>>8;\
+#define YUV_8_TO_RGB_48(y,u,v,r,g,b) i_tmp=(gavl_y_to_rgb[y]+gavl_v_to_r[v])>>8;\
                                r=RECLIP_16(i_tmp);\
-                               i_tmp=(y_to_rgb[y]+u_to_g[u]+v_to_g[v])>>8;\
+                               i_tmp=(gavl_y_to_rgb[y]+gavl_u_to_g[u]+gavl_v_to_g[v])>>8;\
                                g=RECLIP_16(i_tmp);\
-                               i_tmp=(y_to_rgb[y]+u_to_b[u])>>8;\
+                               i_tmp=(gavl_y_to_rgb[y]+gavl_u_to_b[u])>>8;\
                                b=RECLIP_16(i_tmp);
 
-#define YUVJ_8_TO_RGB_48(y,u,v,r,g,b) i_tmp=(yj_to_rgb[y]+vj_to_r[v])>>8;\
+#define YUVJ_8_TO_RGB_48(y,u,v,r,g,b) i_tmp=(gavl_yj_to_rgb[y]+gavl_vj_to_r[v])>>8;\
                                 r=RECLIP_16(i_tmp);\
-                                i_tmp=(yj_to_rgb[y]+uj_to_g[u]+vj_to_g[v])>>8;\
+                                i_tmp=(gavl_yj_to_rgb[y]+gavl_uj_to_g[u]+gavl_vj_to_g[v])>>8;\
                                 g=RECLIP_16(i_tmp);\
-                                i_tmp=(yj_to_rgb[y]+uj_to_b[u])>>8;\
+                                i_tmp=(gavl_yj_to_rgb[y]+gavl_uj_to_b[u])>>8;\
                                 b=RECLIP_16(i_tmp);
 
 #define YUV_8_TO_RGB_FLOAT(y,u,v,r,g,b)                                 \
-  i_tmp=(y_to_rgb_float[y]+v_to_r_float[v]);                         \
+  i_tmp=(gavl_y_to_rgb_float[y]+gavl_v_to_r_float[v]);                         \
   r=RECLIP_FLOAT(i_tmp);                                                   \
-  i_tmp=(y_to_rgb_float[y]+u_to_g_float[u]+v_to_g_float[v]);         \
+  i_tmp=(gavl_y_to_rgb_float[y]+gavl_u_to_g_float[u]+gavl_v_to_g_float[v]);         \
   g=RECLIP_FLOAT(i_tmp);                                                   \
-  i_tmp=(y_to_rgb_float[y]+u_to_b_float[u]);                         \
+  i_tmp=(gavl_y_to_rgb_float[y]+gavl_u_to_b_float[u]);                         \
   b=RECLIP_FLOAT(i_tmp);
 
 #define YUVJ_8_TO_RGB_FLOAT(y,u,v,r,g,b)                                \
-  i_tmp=(yj_to_rgb_float[y]+vj_to_r_float[v]);                       \
+  i_tmp=(gavl_yj_to_rgb_float[y]+gavl_vj_to_r_float[v]);                       \
   r=RECLIP_FLOAT(i_tmp);                                                   \
-  i_tmp=(yj_to_rgb_float[y]+uj_to_g_float[u]+vj_to_g_float[v]);      \
+  i_tmp=(gavl_yj_to_rgb_float[y]+gavl_uj_to_g_float[u]+gavl_vj_to_g_float[v]);      \
   g=RECLIP_FLOAT(i_tmp);                                                   \
-  i_tmp=(yj_to_rgb_float[y]+uj_to_b_float[u]);                       \
+  i_tmp=(gavl_yj_to_rgb_float[y]+gavl_uj_to_b_float[u]);                       \
   b=RECLIP_FLOAT(i_tmp);
 
 /* YUV (16 bit) -> 8 */
 
-static int64_t y_16_to_rgb  = (int)(255.0/219.0 * 0x10000);
-static int64_t v_16_to_r = (int)( 1.40200*255.0/224.0 * 0x10000);
-static int64_t u_16_to_g = (int)(-0.34414*255.0/224.0 * 0x10000);
-static int64_t v_16_to_g = (int)(-0.71414*255.0/224.0 * 0x10000);
-static int64_t u_16_to_b = (int)( 1.77200*255.0/224.0 * 0x10000);
+#define y_16_to_rgb  ((int64_t)(255.0/219.0 * 0x10000))
+#define v_16_to_r    ((int64_t)( 1.40200*255.0/224.0 * 0x10000))
+#define u_16_to_g    ((int64_t)(-0.34414*255.0/224.0 * 0x10000))
+#define v_16_to_g    ((int64_t)(-0.71414*255.0/224.0 * 0x10000))
+#define u_16_to_b    ((int64_t)( 1.77200*255.0/224.0 * 0x10000))
 
 #define YUV_16_TO_RGB_24(y,u,v,r,g,b) \
   i_tmp=(y_16_to_rgb * (y-0x1000) + v_16_to_r * (v-0x8000))>>24;        \
@@ -335,11 +332,11 @@ static int64_t u_16_to_b = (int)( 1.77200*255.0/224.0 * 0x10000);
 
 /* YUV (16 bit) -> float */
 
-static float y_16_to_rgb_float = 255.0/219.0/65535.0;
-static float v_16_to_r_float =  1.40200*255.0/224.0/65535.0;
-static float u_16_to_g_float = -0.34414*255.0/224.0/65535.0;
-static float v_16_to_g_float = -0.71414*255.0/224.0/65535.0;
-static float u_16_to_b_float =  1.77200*255.0/224.0/65535.0;
+#define y_16_to_rgb_float (255.0/219.0/65535.0)
+#define v_16_to_r_float   (1.40200*255.0/224.0/65535.0)
+#define u_16_to_g_float   (-0.34414*255.0/224.0/65535.0)
+#define v_16_to_g_float   (-0.71414*255.0/224.0/65535.0)
+#define u_16_to_b_float   (1.77200*255.0/224.0/65535.0)
 
 #define YUV_16_TO_RGB_FLOAT(y,u,v,r,g,b) \
   i_tmp=(y_16_to_rgb_float * (y-0x1000) + v_16_to_r_float * (v-0x8000));        \
@@ -349,7 +346,6 @@ static float u_16_to_b_float =  1.77200*255.0/224.0/65535.0;
   i_tmp=(y_16_to_rgb_float * (y-0x1000) + u_16_to_b_float * (u-0x8000)); \
   b = RECLIP_FLOAT(i_tmp);
 
-#endif // HAVE_YUV_TO_RGB
 
 /* Combine r, g and b values to a 16 bit rgb pixel (taken from avifile) */
 
