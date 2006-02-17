@@ -296,15 +296,13 @@ int main(int argc, char ** argv)
       frame   = read_png(argv[1], &frame_format, frame_csp);
       overlay = read_png(argv[2], &overlay_format, overlay_csp);
       
-      ovl.dst_rect.w = overlay_format.image_width/2;
-      ovl.dst_rect.h = overlay_format.image_height/2;
-      ovl.dst_rect.x = 64;
-      ovl.dst_rect.y = 64;
+      ovl.dst_x = 3;
+      ovl.dst_y = 3;
       
-      ovl.ovl_rect.w = overlay_format.image_width/2;
-      ovl.ovl_rect.h = overlay_format.image_height/2;
-      ovl.ovl_rect.x = 64;
-      ovl.ovl_rect.y = 64;
+      ovl.ovl_rect.w = overlay_format.image_width;
+      ovl.ovl_rect.h = overlay_format.image_height;
+      ovl.ovl_rect.x = 0;
+      ovl.ovl_rect.y = 0;
       
       ovl.frame = overlay;
       

@@ -2103,7 +2103,8 @@ typedef struct
   {
   gavl_video_frame_t * frame;    //!< Video frame in an alpha capable format */
   gavl_rectangle_i_t ovl_rect;   //!< Rectangle in the source frame     */
-  gavl_rectangle_i_t dst_rect;   //!< Rectangle in the destination frame. */
+  int dst_x;                     //!< x offset in the destination frame. */
+  int dst_y;                     //!< y offset in the destination frame. */
   } gavl_overlay_t;
 
 /*! \ingroup video_blend

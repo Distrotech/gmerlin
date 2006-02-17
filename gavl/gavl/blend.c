@@ -34,6 +34,7 @@ gavl_overlay_blend_context_t * gavl_overlay_blend_context_create()
   ret->dst_win = gavl_video_frame_create((gavl_video_format_t*)0);
   
   ret->cnv = calloc(1, sizeof(*ret->cnv));
+  gavl_video_options_set_defaults(&ret->opt);
   
   return ret;
   }
@@ -90,6 +91,12 @@ gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
   gavl_video_format_copy(&(ctx->dst_format), dst_format);
   gavl_video_format_copy(&(ctx->ovl_format), ovl_format);
 
+  /* Get chroma subsampling of the destination */
+  gavl_pixelformat_chroma_sub(dst_format->pixelformat,
+                              &(ctx->dst_sub_h), &(ctx->dst_sub_v));
+
+  
+  
   /* Get blend function */
 
   ctx->func = 
@@ -141,28 +148,74 @@ gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
 void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
                                             gavl_overlay_t * ovl)
   {
+  int diff;
   /* Save overlay */
 
   memcpy(&ctx->ovl, ovl, sizeof(ctx->ovl));
 
-  /* Align destination rectangle */
+  /* Crop rectangle to destination format */
 
-  
-  
-  /* Adjust rectangles */
+  if(ctx->ovl.dst_x < 0)
+    {
+    ctx->ovl.ovl_rect.w += ctx->ovl.dst_x;
+    ctx->ovl.ovl_rect.x -= ctx->ovl.dst_x;
+    ctx->ovl.dst_x = 0;
+    }
 
-  if(ctx->ovl.ovl_rect.w < ctx->ovl.dst_rect.w)
-    ctx->ovl.dst_rect.w = ctx->ovl.ovl_rect.w;
-  else if(ctx->ovl.ovl_rect.w > ctx->ovl.dst_rect.w)
-    ctx->ovl.ovl_rect.w = ctx->ovl.dst_rect.w;
-
-  if(ctx->ovl.ovl_rect.h < ctx->ovl.dst_rect.h)
-    ctx->ovl.dst_rect.h = ctx->ovl.ovl_rect.h;
-  else if(ctx->ovl.ovl_rect.h > ctx->ovl.dst_rect.h)
-    ctx->ovl.ovl_rect.h = ctx->ovl.dst_rect.h;
-
+  if(ctx->ovl.dst_y < 0)
+    {
+    ctx->ovl.ovl_rect.h += ctx->ovl.dst_y;
+    ctx->ovl.ovl_rect.y -= ctx->ovl.dst_y;
+    ctx->ovl.dst_y = 0;
+    }
   
-  
+  diff = ctx->ovl.dst_x + ctx->ovl.ovl_rect.w - ctx->dst_format.image_width;
+  if(diff > 0)
+    ctx->ovl.ovl_rect.w -= diff;
+
+  diff = ctx->ovl.dst_y + ctx->ovl.ovl_rect.h - ctx->dst_format.image_height;
+  if(diff > 0)
+    ctx->ovl.ovl_rect.h -= diff;
+
+  /* Crop rectangle to source format */
+
+  if(ctx->ovl.ovl_rect.x < 0)
+    {
+    ctx->ovl.ovl_rect.w += ctx->ovl.ovl_rect.x;
+    ctx->ovl.dst_x -= ctx->ovl.ovl_rect.x;
+    ctx->ovl.ovl_rect.x = 0;
+    }
+
+  if(ctx->ovl.ovl_rect.y < 0)
+    {
+    ctx->ovl.ovl_rect.h += ctx->ovl.ovl_rect.y;
+    ctx->ovl.dst_y -= ctx->ovl.ovl_rect.y;
+    ctx->ovl.ovl_rect.y = 0;
+    }
+
+  diff = ctx->ovl.ovl_rect.x + ctx->ovl.ovl_rect.w - ctx->ovl_format.image_width;
+  if(diff > 0)
+    ctx->ovl.ovl_rect.w -= diff;
+
+  diff = ctx->ovl.ovl_rect.y + ctx->ovl.ovl_rect.h - ctx->ovl_format.image_height;
+  if(diff > 0)
+    ctx->ovl.ovl_rect.h -= diff;
+
+  /* Align rectangle */
+
+  ctx->ovl.ovl_rect.w -= ctx->ovl.ovl_rect.w % ctx->dst_sub_h;
+  ctx->ovl.ovl_rect.h -= ctx->ovl.ovl_rect.h % ctx->dst_sub_v;
+  ctx->ovl.dst_x      -= ctx->ovl.dst_x % ctx->dst_sub_h;
+  ctx->ovl.dst_y      -= ctx->ovl.dst_y % ctx->dst_sub_v;
+
+  /* Set destination rectangle for getting the subframe later on */
+
+  ctx->dst_rect.x = ctx->ovl.dst_x;
+  ctx->dst_rect.y = ctx->ovl.dst_y;
+
+  ctx->dst_rect.w = ctx->ovl.ovl_rect.w;
+  ctx->dst_rect.h = ctx->ovl.ovl_rect.h;
+    
   /* Check if we must convert */
   if(ctx->do_convert)
     {
@@ -171,7 +224,7 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
     gavl_video_frame_get_subframe(ctx->cnv->input_format.pixelformat,
                                   ovl->frame,
                                   ctx->cnv->input_frame,
-                                  &(ovl->ovl_rect));
+                                  &(ctx->ovl.ovl_rect));
     
     /* Adjust overlay rectangle (We are at [0,0] now) */
     ctx->ovl.ovl_rect.x = 0;
@@ -193,7 +246,7 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
     gavl_video_frame_get_subframe(ctx->ovl_format.pixelformat,
                                   ovl->frame,
                                   ctx->ovl_win,
-                                  &(ovl->ovl_rect));
+                                  &(ctx->ovl.ovl_rect));
     }
   }
 
@@ -205,7 +258,7 @@ void gavl_overlay_blend(gavl_overlay_blend_context_t * ctx,
   gavl_video_frame_get_subframe(ctx->dst_format.pixelformat,
                                 dst_frame,
                                 ctx->dst_win,
-                                &(ctx->ovl.dst_rect));
+                                &(ctx->dst_rect));
   /* Fire up blender */
 
   ctx->func(ctx, ctx->dst_win, ctx->ovl_win);

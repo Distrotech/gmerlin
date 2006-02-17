@@ -33,9 +33,15 @@ struct gavl_overlay_blend_context_s
   
   gavl_video_frame_t * ovl_win;
   gavl_video_frame_t * dst_win;
+
+  gavl_rectangle_i_t dst_rect;
     
   gavl_video_options_t opt;
   gavl_video_convert_context_t * cnv;
+
+  /* Chroma subsampling of the destination format */  
+  int dst_sub_h, dst_sub_v;
+  
   };
 
 gavl_blend_func_t

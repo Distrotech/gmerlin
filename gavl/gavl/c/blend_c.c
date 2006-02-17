@@ -68,12 +68,12 @@ static void blend_rgb_15(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr = (uint16_t*)dst_ptr_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       r_tmp = RGB15_TO_R_8(*dst_ptr);
       g_tmp = RGB15_TO_G_8(*dst_ptr);
@@ -114,12 +114,12 @@ static void blend_bgr_15(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr = (uint16_t*)dst_ptr_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       r_tmp = BGR15_TO_R_8(*dst_ptr);
       g_tmp = BGR15_TO_G_8(*dst_ptr);
@@ -159,12 +159,12 @@ static void blend_rgb_16(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr = (uint16_t*)dst_ptr_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       r_tmp = RGB16_TO_R_8(*dst_ptr);
       g_tmp = RGB16_TO_G_8(*dst_ptr);
@@ -204,12 +204,12 @@ static void blend_bgr_16(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr = (uint16_t*)dst_ptr_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       r_tmp = BGR16_TO_R_8(*dst_ptr);
       g_tmp = BGR16_TO_G_8(*dst_ptr);
@@ -249,12 +249,12 @@ static void blend_rgb_24(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr = dst_ptr_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       r_tmp = dst_ptr[0];
       g_tmp = dst_ptr[1];
@@ -296,12 +296,12 @@ static void blend_bgr_24(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr = dst_ptr_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       r_tmp = dst_ptr[2];
       g_tmp = dst_ptr[1];
@@ -343,12 +343,12 @@ static void blend_rgb_32(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr = dst_ptr_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       r_tmp = dst_ptr[0];
       g_tmp = dst_ptr[1];
@@ -390,12 +390,12 @@ static void blend_bgr_32(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr = dst_ptr_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       r_tmp = dst_ptr[2];
       g_tmp = dst_ptr[1];
@@ -437,12 +437,12 @@ static void blend_rgba_32(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr = dst_ptr_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       r_tmp = dst_ptr[0];
       g_tmp = dst_ptr[1];
@@ -490,12 +490,12 @@ static void blend_rgb_48(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = (uint16_t*)ovl_ptr_start;
     dst_ptr = (uint16_t*)dst_ptr_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       r_tmp = dst_ptr[0];
       g_tmp = dst_ptr[1];
@@ -537,12 +537,12 @@ static void blend_rgba_64(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = (uint16_t*)ovl_ptr_start;
     dst_ptr = (uint16_t*)dst_ptr_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       r_tmp = dst_ptr[0];
       g_tmp = dst_ptr[1];
@@ -589,12 +589,12 @@ static void blend_rgb_float(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = (float*)ovl_ptr_start;
     dst_ptr = (float*)dst_ptr_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       BLEND_FLOAT(ovl_ptr[0], dst_ptr[0], ovl_ptr[3]);
       BLEND_FLOAT(ovl_ptr[1], dst_ptr[1], ovl_ptr[3]);
@@ -626,12 +626,12 @@ static void blend_rgba_float(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = (float*)ovl_ptr_start;
     dst_ptr = (float*)dst_ptr_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       BLEND_FLOAT(ovl_ptr[0], dst_ptr[0], ovl_ptr[3]);
       BLEND_FLOAT(ovl_ptr[1], dst_ptr[1], ovl_ptr[3]);
@@ -664,9 +664,9 @@ static void blend_yuy2(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
 
-  jmax = ctx->ovl.dst_rect.w / 2;
+  jmax = ctx->ovl.ovl_rect.w / 2;
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr = dst_ptr_start;
@@ -723,9 +723,9 @@ static void blend_uyvy(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
 
-  jmax = ctx->ovl.dst_rect.w / 2;
+  jmax = ctx->ovl.ovl_rect.w / 2;
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr = dst_ptr_start;
@@ -780,12 +780,12 @@ static void blend_yuva_32(gavl_overlay_blend_context_t * ctx,
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr = dst_ptr_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       y_tmp = dst_ptr[0];
       u_tmp = dst_ptr[1];
@@ -839,8 +839,8 @@ static void blend_yuv_420_p(gavl_overlay_blend_context_t * ctx,
   dst_ptr_u_start = frame->planes[1];
   dst_ptr_v_start = frame->planes[2];
 
-  imax = ctx->ovl.dst_rect.h / 2;
-  jmax = ctx->ovl.dst_rect.w / 2;
+  imax = ctx->ovl.ovl_rect.h / 2;
+  jmax = ctx->ovl.ovl_rect.w / 2;
   
   for(i = 0; i < imax; i++)
     {
@@ -928,9 +928,9 @@ static void blend_yuv_422_p(gavl_overlay_blend_context_t * ctx,
   dst_ptr_u_start = frame->planes[1];
   dst_ptr_v_start = frame->planes[2];
 
-  jmax = ctx->ovl.dst_rect.w / 2;
+  jmax = ctx->ovl.ovl_rect.w / 2;
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr_y = dst_ptr_y_start;
@@ -994,14 +994,14 @@ static void blend_yuv_444_p(gavl_overlay_blend_context_t * ctx,
   dst_ptr_u_start = frame->planes[1];
   dst_ptr_v_start = frame->planes[2];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr_y = dst_ptr_y_start;
     dst_ptr_u = dst_ptr_u_start;
     dst_ptr_v = dst_ptr_v_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       /* Y0 */
       tmp = *dst_ptr_y;
@@ -1053,9 +1053,9 @@ static void blend_yuv_411_p(gavl_overlay_blend_context_t * ctx,
   dst_ptr_u_start = frame->planes[1];
   dst_ptr_v_start = frame->planes[2];
 
-  jmax = ctx->ovl.dst_rect.w / 4;
+  jmax = ctx->ovl.ovl_rect.w / 4;
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr_y = dst_ptr_y_start;
@@ -1129,8 +1129,8 @@ static void blend_yuv_410_p(gavl_overlay_blend_context_t * ctx,
   dst_ptr_u_start = frame->planes[1];
   dst_ptr_v_start = frame->planes[2];
 
-  imax = ctx->ovl.dst_rect.h / 4;
-  jmax = ctx->ovl.dst_rect.w / 4;
+  imax = ctx->ovl.ovl_rect.h / 4;
+  jmax = ctx->ovl.ovl_rect.w / 4;
   
   for(i = 0; i < imax; i++)
     {
@@ -1300,8 +1300,8 @@ static void blend_yuvj_420_p(gavl_overlay_blend_context_t * ctx,
   
   int tmp;
 
-  imax = ctx->ovl.dst_rect.h/2;
-  jmax = ctx->ovl.dst_rect.w/2;
+  imax = ctx->ovl.ovl_rect.h/2;
+  jmax = ctx->ovl.ovl_rect.w/2;
   
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_y_start = frame->planes[0];
@@ -1391,14 +1391,14 @@ static void blend_yuvj_422_p(gavl_overlay_blend_context_t * ctx,
   
   int tmp;
 
-  jmax = ctx->ovl.dst_rect.w/2;
+  jmax = ctx->ovl.ovl_rect.w/2;
   
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_y_start = frame->planes[0];
   dst_ptr_u_start = frame->planes[1];
   dst_ptr_v_start = frame->planes[2];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr_y = dst_ptr_y_start;
@@ -1463,14 +1463,14 @@ static void blend_yuvj_444_p(gavl_overlay_blend_context_t * ctx,
   dst_ptr_u_start = frame->planes[1];
   dst_ptr_v_start = frame->planes[2];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr_y = dst_ptr_y_start;
     dst_ptr_u = dst_ptr_u_start;
     dst_ptr_v = dst_ptr_v_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       /* Y0 */
       tmp = *dst_ptr_y;
@@ -1522,9 +1522,9 @@ static void blend_yuv_422_p_16(gavl_overlay_blend_context_t * ctx,
   dst_ptr_u_start = frame->planes[1];
   dst_ptr_v_start = frame->planes[2];
 
-  jmax = ctx->ovl.dst_rect.w / 2;
+  jmax = ctx->ovl.ovl_rect.w / 2;
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr_y = (uint16_t*)dst_ptr_y_start;
@@ -1590,14 +1590,14 @@ static void blend_yuv_444_p_16(gavl_overlay_blend_context_t * ctx,
   dst_ptr_u_start = frame->planes[1];
   dst_ptr_v_start = frame->planes[2];
   
-  for(i = 0; i < ctx->ovl.dst_rect.h; i++)
+  for(i = 0; i < ctx->ovl.ovl_rect.h; i++)
     {
     ovl_ptr = ovl_ptr_start;
     dst_ptr_y = (uint16_t*)dst_ptr_y_start;
     dst_ptr_u = (uint16_t*)dst_ptr_u_start;
     dst_ptr_v = (uint16_t*)dst_ptr_v_start;
     
-    for(j = 0; j < ctx->ovl.dst_rect.w; j++)
+    for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
       alpha = RGB_8_TO_16(ovl_ptr[3]);
       /* Y0 */
