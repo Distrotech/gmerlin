@@ -21,6 +21,13 @@
 #include <string.h>
 #include "gtk_dialog.h"
 
+enum
+{
+  COLUMN_NAME,
+  NUM_COLUMNS
+};
+
+
 typedef struct dialog_section_s
   {
   bg_set_parameter_func set_param;
@@ -34,12 +41,13 @@ typedef struct dialog_section_s
   bg_cfg_section_t * cfg_section;
 
   /* Dialog sections can be nested */
-
   struct dialog_section_s * children;
   int num_children;
-
-  GtkWidget * notebook;
+    
+  struct dialog_section_s * parent;
   
+  /* Index in global notebook */
+  int notebook_index;
   } dialog_section_t;
 
 struct bg_dialog_s
@@ -52,7 +60,114 @@ struct bg_dialog_s
   dialog_section_t root_section;
   GtkTooltips * tooltips;
   int visible;
+
+  GtkWidget * notebook;
+  GtkWidget * treeview;
+  GtkWidget * scrolledwindow;
+  guint select_handler_id;
   };
+
+static int parent_index(dialog_section_t * s)
+  {
+  int i;
+
+  if(!s->parent)
+    return -1;
+
+  for(i = 0; i < s->parent->num_children; i++)
+    {
+    if(&(s->parent->children[i]) == s)
+      return i;
+    }
+  return -1;
+  }
+
+static int * section_to_path(bg_dialog_t * d, dialog_section_t * s)
+  {
+  int * ret;
+  int index;
+  dialog_section_t * tmp;
+  int depth;
+
+  /* Get depth */
+
+  tmp = s;
+  depth = 0;
+  while(tmp->parent)
+    {
+    tmp = tmp->parent;
+    depth++;
+    }
+
+  /* Allocate return value */
+  ret = malloc((depth+1)*sizeof(*ret));
+  index = depth;
+  ret[index--] = -1;
+
+  tmp = s;
+
+  while(index >= 0)
+    {
+    ret[index--] = parent_index(tmp);
+    tmp = tmp->parent;
+    }
+  return ret;
+  }
+
+static void
+section_to_iter(bg_dialog_t * d, dialog_section_t * s, GtkTreeIter * iter)
+  {
+  int * indices;
+  int i;
+  GtkTreeModel *model;
+  GtkTreePath  *path;
+    
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(d->treeview));
+  indices = section_to_path(d, s);
+  
+  path = gtk_tree_path_new();
+    
+  i = 0;
+
+  while(indices[i] != -1)
+    {
+    gtk_tree_path_append_index(path, indices[i]);
+    i++;
+    }
+  free(indices);
+
+  gtk_tree_model_get_iter(model, iter, path);
+  gtk_tree_path_free(path);
+  }
+
+static dialog_section_t * iter_2_section(bg_dialog_t * d,
+                                         GtkTreeIter * iter)
+  {
+  dialog_section_t * ret;
+  int i, depth;
+  GtkTreeModel *model;
+  GtkTreePath  *path;
+  gint * indices;
+    
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(d->treeview));
+  path = gtk_tree_model_get_path(model, iter);
+
+  indices = gtk_tree_path_get_indices(path);
+
+  ret = &d->root_section.children[indices[0]];
+
+  depth = gtk_tree_path_get_depth(path);
+  
+  for(i = 1; i < depth; i++)
+    {
+    ret = &(ret->children[indices[i]]);
+    }
+  
+  gtk_tree_path_free(path);
+  return ret;
+  }
+
+
 
 static void apply_section(dialog_section_t * s)
   {
@@ -141,11 +256,42 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
   return TRUE;
   }
 
+static void select_row_callback(GtkTreeSelection * sel,
+                                gpointer data)
+  {
+  int index = 0;
+  dialog_section_t * selected_section;
+  GtkTreeModel * model;
+  GtkTreeIter iter;
+  bg_dialog_t * d = (bg_dialog_t *)data;
+  
+  //  fprintf(stderr, "Select row\n");
+
+  if(!gtk_tree_selection_get_selected(sel,
+                                      &model,
+                                      &iter))
+    index = 0;
+  else
+    {
+    selected_section = iter_2_section(d, &iter);
+    index = selected_section->notebook_index;
+    }
+  gtk_notebook_set_current_page(GTK_NOTEBOOK(d->notebook), index);
+  
+  }
+
 static bg_dialog_t * create_dialog(const char * title)
   {
   bg_dialog_t * ret;
   GtkWidget * buttonbox;
-    
+  GtkWidget * label, *tab_label;
+  GtkWidget * hbox;
+  GtkTreeStore *store;
+  GtkCellRenderer   *text_renderer;
+  GtkTreeViewColumn *column;
+  GtkTreeSelection  *selection;
+  
+  
   ret = calloc(1, sizeof(*ret));
 
   ret->tooltips = gtk_tooltips_new();
@@ -181,13 +327,68 @@ static bg_dialog_t * create_dialog(const char * title)
   gtk_widget_show(ret->apply_button);
   gtk_widget_show(ret->close_button);
   gtk_widget_show(ret->ok_button);
+
+  /* Create notebook */
+
+  ret->notebook = gtk_notebook_new();
+  
+  label = gtk_label_new("No options here, choose subcategory");
+  tab_label = gtk_label_new("Bummer");
+  gtk_widget_show(label);
+  gtk_widget_show(tab_label);
+
+  gtk_notebook_set_show_tabs(GTK_NOTEBOOK(ret->notebook), 0);
+  
+  
+  gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook), label, tab_label);
+  
+  gtk_widget_show(ret->notebook);
+  
+  /* Create treeview */
+
+  store = gtk_tree_store_new (NUM_COLUMNS,
+                              G_TYPE_STRING);
+
+  ret->treeview = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
+  gtk_tree_view_set_headers_visible(GTK_TREE_VIEW(ret->treeview), 0);
+  //  gtk_widget_set_size_request(ret->treeview, 200, 300);
+  text_renderer = gtk_cell_renderer_text_new();
+  column = gtk_tree_view_column_new ();
+  gtk_tree_view_column_pack_start(column, text_renderer, TRUE);
+  gtk_tree_view_column_add_attribute(column,
+                                     text_renderer,
+                                     "text", COLUMN_NAME);
+  gtk_tree_view_append_column (GTK_TREE_VIEW(ret->treeview), column);
+  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(ret->treeview));
+  gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
+  ret->select_handler_id =
+    g_signal_connect(G_OBJECT(selection), "changed",
+                     G_CALLBACK(select_row_callback), (gpointer)ret);
+  gtk_widget_show(ret->treeview);
+  ret->scrolledwindow =
+    gtk_scrolled_window_new(gtk_tree_view_get_hadjustment(GTK_TREE_VIEW(ret->treeview)),
+                            gtk_tree_view_get_vadjustment(GTK_TREE_VIEW(ret->treeview)));
+
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ret->scrolledwindow),
+                                 GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+  gtk_container_add(GTK_CONTAINER(ret->scrolledwindow), ret->treeview);
+  gtk_widget_show(ret->scrolledwindow);
+
   
   /* Create the rest */
+
+  hbox = gtk_hbox_new(0, 5);
+
+  gtk_box_pack_start_defaults(GTK_BOX(hbox), ret->scrolledwindow);
+  gtk_box_pack_start(GTK_BOX(hbox), ret->notebook, FALSE, FALSE, 0);
+
+  gtk_widget_show(hbox);
   
   ret->mainbox = gtk_vbox_new(0, 5);
+  gtk_box_pack_start(GTK_BOX(ret->mainbox), hbox, FALSE, FALSE, 0);
+  
   buttonbox = gtk_hbutton_box_new();
   gtk_box_set_spacing(GTK_BOX(buttonbox), 10);
-  
   gtk_container_set_border_width(GTK_CONTAINER(buttonbox), 10);
   
   gtk_container_add(GTK_CONTAINER(buttonbox), ret->ok_button);
@@ -385,20 +586,20 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
   int num_sections;
   GtkWidget * label;
   GtkWidget * table;
-  
+  GtkTreeIter root_iter;
+  GtkTreeModel * model;
+    
   bg_dialog_t * ret = create_dialog(title);
 
   num_sections = count_sections(info);
 
-
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(ret->treeview));
   
   if(num_sections)
     {
-    ret->root_section.notebook = gtk_notebook_new();
-    gtk_notebook_set_scrollable(GTK_NOTEBOOK(ret->root_section.notebook), TRUE);
-    gtk_notebook_popup_enable(GTK_NOTEBOOK(ret->root_section.notebook));
     ret->root_section.num_children = num_sections;
-    ret->root_section.children = calloc(ret->root_section.num_children, sizeof(dialog_section_t));
+    ret->root_section.children =
+      calloc(ret->root_section.num_children, sizeof(dialog_section_t));
     
     index = 0;
 
@@ -407,29 +608,39 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
       label = gtk_label_new(info[index].long_name);
       gtk_widget_show(label);
       
+      gtk_tree_store_append(GTK_TREE_STORE(model), &root_iter, NULL);
+      gtk_tree_store_set(GTK_TREE_STORE(model), &root_iter, COLUMN_NAME,
+                         info[index].long_name, -1);
+            
       while(info[index].type == BG_PARAMETER_SECTION)
         index++;
+      
       table = create_section(&(ret->root_section.children[i]), &(info[index]),
                              section, set_param, callback_data, ret->tooltips);
-      gtk_notebook_append_page(GTK_NOTEBOOK(ret->root_section.notebook),
-                               table, label);
-      gtk_notebook_set_menu_label_text(GTK_NOTEBOOK(ret->root_section.notebook),
-                                       table, info[index].long_name);
-      
+
+      ret->root_section.children[i].notebook_index =
+        gtk_notebook_get_n_pages(GTK_NOTEBOOK(ret->notebook));
+      gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook), table, label);
+
+      ret->root_section.children[i].parent = &(ret->root_section);
+            
       while(info[index].name &&
             (info[index].type != BG_PARAMETER_SECTION))
         index++;
       }
-    gtk_widget_show(ret->root_section.notebook);
-    gtk_box_pack_start(GTK_BOX(ret->mainbox), ret->root_section.notebook, TRUE, TRUE, 0);
     }
   else
     {
+    label = gtk_label_new(title);
+    gtk_widget_show(label);
+
     ret->root_section.num_children = 1;
     ret->root_section.children = calloc(1,
                            ret->root_section.num_children * sizeof(dialog_section_t));
     table = create_section(ret->root_section.children, info, section, set_param, callback_data, ret->tooltips);
-    gtk_box_pack_start(GTK_BOX(ret->mainbox), table, TRUE, TRUE, 0);
+    gtk_notebook_append_page(GTK_NOTEBOOK(ret->notebook), table, label);
+    gtk_notebook_set_current_page(GTK_NOTEBOOK(ret->notebook), 1);
+    gtk_widget_hide(ret->scrolledwindow);
     }
   return ret;
   }
@@ -437,12 +648,6 @@ bg_dialog_t * bg_dialog_create(bg_cfg_section_t * section,
 bg_dialog_t * bg_dialog_create_multi(const char * title)
   {
   bg_dialog_t * ret = create_dialog(title);
-  ret->root_section.notebook = gtk_notebook_new();
-  gtk_notebook_set_scrollable(GTK_NOTEBOOK(ret->root_section.notebook), TRUE);
-  gtk_notebook_popup_enable(GTK_NOTEBOOK(ret->root_section.notebook));
-
-  gtk_widget_show(ret->root_section.notebook);
-  gtk_box_pack_start(GTK_BOX(ret->mainbox), ret->root_section.notebook, TRUE, TRUE, 0);
   return ret;
   }
 
@@ -453,15 +658,20 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
                          void * callback_data,
                          bg_parameter_info_t * info)
   {
+  GtkTreeIter iter, parent_iter;
   int num_items;
   int num_sections;
   GtkWidget * table;
-  num_items = 0;
-  num_sections = 0;
   GtkWidget * tab_label;
   int i, item_index, section_index;
+  GtkTreeModel *model;
   dialog_section_t * parent = (dialog_section_t*)_parent;
 
+  num_items = 0;
+  num_sections = 0;
+  
+  
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(d->treeview));
   if(info)
     {
     while(info[num_items+num_sections].name)
@@ -484,13 +694,28 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
                            info, section, set_param, callback_data, d->tooltips);
     tab_label = gtk_label_new(name);
     gtk_widget_show(tab_label);
-    gtk_notebook_append_page(GTK_NOTEBOOK(parent->notebook),
+
+    parent->children[parent->num_children].notebook_index =
+      gtk_notebook_get_n_pages(GTK_NOTEBOOK(d->notebook));
+
+    gtk_notebook_append_page(GTK_NOTEBOOK(d->notebook),
                              table, tab_label);
 
-    gtk_notebook_set_menu_label_text(GTK_NOTEBOOK(parent->notebook),
-                                     table, name);
-
-
+    if(parent == &(d->root_section))
+      {
+      gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
+      }
+    else
+      {
+      section_to_iter(d, parent, &parent_iter);
+      gtk_tree_store_append(GTK_TREE_STORE(model), &iter, &parent_iter);
+      }
+    
+    gtk_tree_store_set(GTK_TREE_STORE(model), &iter, COLUMN_NAME,
+                       name, -1);
+    
+    parent->children[parent->num_children].parent = parent;
+    
     parent->num_children++;
     }
   else
@@ -508,15 +733,35 @@ void bg_dialog_add_child(bg_dialog_t *d, void * _parent,
       {
       tab_label = gtk_label_new(info[item_index].long_name);
       gtk_widget_show(tab_label);
+      
+      if(parent == &(d->root_section))
+        {
+        parent = (dialog_section_t*)_parent;
+        gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
+        }
+      else
+        {
+        section_to_iter(d, parent, &parent_iter);
+        gtk_tree_store_append(GTK_TREE_STORE(model), &iter, &parent_iter);
+        }
+      
+      gtk_tree_store_set(GTK_TREE_STORE(model), &iter, COLUMN_NAME,
+                         info[item_index].long_name, -1);
 
       item_index++;
       
       table = create_section(&(parent->children[section_index]),
                              &(info[item_index]),
                              section, set_param, callback_data, d->tooltips);
-      gtk_notebook_append_page(GTK_NOTEBOOK(parent->notebook),
-                               table, tab_label);
 
+      parent->children[section_index].parent = parent;
+
+      parent->children[section_index].notebook_index =
+        gtk_notebook_get_n_pages(GTK_NOTEBOOK(d->notebook));
+      
+      gtk_notebook_append_page(GTK_NOTEBOOK(d->notebook),
+                               table, tab_label);
+      
       while((info[item_index].name) &&
             (info[item_index].type != BG_PARAMETER_SECTION))
         item_index++;
@@ -605,7 +850,6 @@ void bg_gtk_change_callback_block(bg_gtk_widget_t * w, int block)
   {
   if(!w->callback_widget)
     {
-    fprintf(stderr, "bg_gtk_change_callback_block: No callback installed\n");
     return;
     }
   if(block)
@@ -614,18 +858,29 @@ void bg_gtk_change_callback_block(bg_gtk_widget_t * w, int block)
     g_signal_handler_unblock(w->callback_widget, w->callback_id);
   }
 
-
 void * bg_dialog_add_parent(bg_dialog_t *d, void * _parent, const char * label)
   {
-  GtkWidget * tab_label;
-  GtkWidget * table;
-
+  GtkTreeIter iter, parent_iter;
   dialog_section_t * parent;
-
+  GtkTreeModel *model;
+  //  fprintf(stderr, "Add parent: %s\n", label);
+  model = gtk_tree_view_get_model(GTK_TREE_VIEW(d->treeview));
   if(_parent)
+    {
     parent = (dialog_section_t*)_parent;
+
+    section_to_iter(d, parent, &parent_iter);
+    gtk_tree_store_append(GTK_TREE_STORE(model), &iter, &parent_iter);
+    }
   else
+    {
     parent = &(d->root_section);
+    gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
+    }
+
+  gtk_tree_store_set(GTK_TREE_STORE(model), &iter, COLUMN_NAME,
+                     label, -1);
+
   
   parent->children = realloc(parent->children,
                              sizeof(*(parent->children))*(parent->num_children+1));
@@ -633,29 +888,9 @@ void * bg_dialog_add_parent(bg_dialog_t *d, void * _parent, const char * label)
   memset(&(parent->children[parent->num_children]),0,
          sizeof(parent->children[parent->num_children]));
 
-  tab_label = gtk_label_new(label);
-  gtk_widget_show(tab_label);
-    
-  parent->children[parent->num_children].notebook = gtk_notebook_new();
-  gtk_notebook_popup_enable(GTK_NOTEBOOK(parent->children[parent->num_children].notebook));
-  gtk_notebook_set_scrollable(GTK_NOTEBOOK(parent->children[parent->num_children].notebook),
-                             TRUE);
+  parent->children[parent->num_children].parent = parent;
   
-  gtk_widget_show(parent->children[parent->num_children].notebook);
-
-  table = gtk_table_new(1, 1, 0);
-  gtk_container_set_border_width(GTK_CONTAINER(table), 5);
-
-  gtk_table_attach_defaults(GTK_TABLE(table),
-                            parent->children[parent->num_children].notebook,
-                            0, 1, 0, 1);
-  gtk_widget_show(table);
-  
-  gtk_notebook_append_page(GTK_NOTEBOOK(parent->notebook),
-                           table,
-                           tab_label);
   parent->num_children++;
-  
   return &(parent->children[parent->num_children-1]);
   }
 
