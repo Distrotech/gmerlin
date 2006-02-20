@@ -4,6 +4,7 @@ pkginclude_HEADERS = \
 bgsocket.h \
 cfg_dialog.h \
 cfg_registry.h \
+charset.h \
 cmdline.h \
 config.h \
 fifo.h \
@@ -21,6 +22,7 @@ remote.h \
 singlepic.h \
 streaminfo.h \
 tcp.h \
+textrenderer.h \
 transcoder.h \
 transcoder_track.h \
 tree.h \

@@ -738,7 +738,6 @@ void player_window_create(gmerlin_t * g)
   gtk_widget_show(ret->layout);
   gtk_container_add(GTK_CONTAINER(ret->window), ret->layout);
     
-  return ret;
   }
 
 void player_window_show(player_window_t * win)

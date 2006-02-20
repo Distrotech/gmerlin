@@ -6,7 +6,7 @@ endif
 
 SUBDIRS = $(gtk_subdirs)
 
-AM_CFLAGS = -I@top_srcdir@/gavl/include
+AM_CFLAGS = @FONTCONFIG_CFLAGS@ @FREETYPE_CFLAGS@
 
 lib_LTLIBRARIES = libgmerlin.la
 libgmerlin_la_SOURCES = \
@@ -17,6 +17,7 @@ cfg_item.c \
 cfg_registry.c \
 cfg_section.c \
 cfg_xml.c \
+charset.c \
 cmdline.c \
 device.c \
 fifo.c \
@@ -46,6 +47,7 @@ socket.c \
 streaminfo.c \
 stringutils.c \
 tcp.c \
+textrenderer.c \
 transcoder.c \
 transcoder_track.c \
 transcoder_track_xml.c \
@@ -54,5 +56,5 @@ tree_xml.c \
 urilist.c \
 utf8.c
 
-libgmerlin_la_LIBADD = @XML2_LIBS@ -ldl -lpthread
+libgmerlin_la_LIBADD = @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ -ldl -lpthread
 

@@ -194,6 +194,15 @@ gavl_video_frame_t * bg_plugin_registry_load_image(bg_plugin_registry_t * r,
                                                    const char * filename,
                                                    gavl_video_format_t * format);
 
+/* Same as above for writing. Does implicit pixelformat conversion */
+
+void
+bg_plugin_registry_save_image(bg_plugin_registry_t * r,
+                              const char * filename,
+                              gavl_video_frame_t * frame,
+                              const gavl_video_format_t * format);
+
+
 /*
  *  pluginreg_xml.c
  *

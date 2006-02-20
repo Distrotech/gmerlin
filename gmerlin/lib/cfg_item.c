@@ -136,6 +136,7 @@ void bg_cfg_destroy_item(bg_cfg_item_t * item)
       free(item->value.val_color);
       break;
     case BG_CFG_STRING:
+    case BG_CFG_STRING_HIDDEN:
       if(item->value.val_str)
         free(item->value.val_str);
     default:

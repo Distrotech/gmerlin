@@ -898,6 +898,58 @@ bg_plugin_registry_load_image(bg_plugin_registry_t * r,
   return (gavl_video_frame_t*)0;
   }
 
+void
+bg_plugin_registry_save_image(bg_plugin_registry_t * r,
+                              const char * filename,
+                              gavl_video_frame_t * frame,
+                              const gavl_video_format_t * format)
+  {
+  const bg_plugin_info_t * info;
+  gavl_video_format_t tmp_format;
+  gavl_video_converter_t * cnv;
+  bg_image_writer_plugin_t * iw;
+  bg_plugin_handle_t * handle = (bg_plugin_handle_t *)0;
+  gavl_video_frame_t * tmp_frame = (gavl_video_frame_t*)0;
+  
+  info = bg_plugin_find_by_filename(r, filename, BG_PLUGIN_IMAGE_WRITER);
+
+  cnv = gavl_video_converter_create();
+  
+  if(!info)
+    {
+    fprintf(stderr, "No plugin found for image %s\n", filename);
+    goto fail;
+    }
+  
+  handle = bg_plugin_load(r, info);
+  if(!handle)
+    goto fail;
+  
+  iw = (bg_image_writer_plugin_t*)(handle->plugin);
+
+  gavl_video_format_copy(&tmp_format, format);
+  
+  if(!iw->write_header(handle->priv, filename, &tmp_format))
+    goto fail;
+
+  if(gavl_video_converter_init(cnv, format, &tmp_format))
+    {
+    tmp_frame = gavl_video_frame_create(&tmp_format);
+    if(!iw->write_image(handle->priv, tmp_frame))
+      goto fail;
+    }
+  else
+    {
+    if(!iw->write_image(handle->priv, frame))
+      goto fail;
+    }
+  bg_plugin_unref(handle);
+  fail:
+  if(tmp_frame)
+    gavl_video_frame_destroy(tmp_frame);
+  }
+
+
 bg_plugin_handle_t * bg_plugin_load(bg_plugin_registry_t * reg,
                                     const bg_plugin_info_t * info)
   {

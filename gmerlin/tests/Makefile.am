@@ -19,6 +19,7 @@ client \
 v4ltest \
 gmerlin_player \
 imgconvert \
+textrenderer \
 $(gtk_programs)
 
 
@@ -32,6 +33,9 @@ imgconvert_LDADD = ../lib/libgmerlin.la -ldl
 
 msgtest_SOURCES = msgtest.c
 msgtest_LDADD = ../lib/libgmerlin.la -ldl
+
+textrenderer_SOURCES = textrenderer.c
+textrenderer_LDADD = ../lib/libgmerlin.la -ldl
 
 gmerlin_player_SOURCES = player1.c
 gmerlin_player_LDADD = ../lib/libgmerlin.la -ldl
