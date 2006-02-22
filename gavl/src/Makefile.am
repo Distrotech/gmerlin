@@ -1,6 +1,7 @@
 noinst_PROGRAMS = \
 colorspace_test \
 colorspace_time \
+fill_test \
 plot_scale_kernels \
 scaletest scale_time \
 timescale_test \
@@ -8,6 +9,9 @@ blend_test
 
 colorspace_test_SOURCES = colorspace_test.c
 colorspace_test_LDADD = ../gavl/libgavl.la -lpng -lz
+
+fill_test_SOURCES = fill_test.c
+fill_test_LDADD = ../gavl/libgavl.la -lpng -lz
 
 blend_test_SOURCES = blend_test.c
 blend_test_LDADD = ../gavl/libgavl.la -lpng -lz

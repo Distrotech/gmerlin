@@ -17,10 +17,13 @@
 
 *****************************************************************/
 
-#include "gavl.h"
+#include <gavl.h>
 
-#include "video.h"
-#include "config.h"
+#include <video.h>
+#include <config.h>
+
+#include "c/colorspace_tables.h"
+#include "c/colorspace_macros.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -938,5 +941,357 @@ void gavl_video_frame_get_field(gavl_pixelformat_t pixelformat,
     {
     dst->planes[i] = src->planes[i] + field * src->strides[i];
     dst->strides[i] = src->strides[i] * 2;
+    }
+  }
+
+#define FILL_FUNC_HEAD_PACKED(TYPE) \
+  uint8_t * dst_start; \
+  TYPE * dst; \
+  int i, j; \
+  dst_start = frame->planes[0]; \
+  for(i = 0; i < format->image_height; i++) \
+    { \
+    dst = (TYPE*)dst_start; \
+    for(j = 0; j < format->image_width; j++) \
+      {
+
+#define FILL_FUNC_HEAD_PACKED_422(TYPE) \
+  uint8_t * dst_start;          \
+  TYPE * dst;                   \
+  int i, j, jmax;               \
+  jmax = format->image_width / 2; \
+  dst_start = frame->planes[0]; \
+  for(i = 0; i < format->image_height; i++) \
+    { \
+    dst = (TYPE*)dst_start; \
+    for(j = 0; j < jmax; j++) \
+      {
+
+
+#define FILL_FUNC_TAIL_PACKED(ADVANCE)             \
+      dst+=ADVANCE;                                \
+      }                                            \
+    dst_start += frame->strides[0];                 \
+    }
+
+static void fill_16_packed(gavl_video_frame_t * frame,
+                           gavl_video_format_t * format,
+                           uint16_t color)
+  {
+  FILL_FUNC_HEAD_PACKED(uint16_t);
+  *dst = color;
+  FILL_FUNC_TAIL_PACKED(1);
+  }
+
+static void fill_24_packed(gavl_video_frame_t * frame,
+                           gavl_video_format_t * format,
+                           uint8_t * color)
+  {
+  FILL_FUNC_HEAD_PACKED(uint8_t);
+  dst[0] = color[0];
+  dst[1] = color[1];
+  dst[2] = color[2];
+  FILL_FUNC_TAIL_PACKED(3);
+  }
+
+static void fill_32_packed(gavl_video_frame_t * frame,
+                           gavl_video_format_t * format,
+                           uint8_t * _color)
+  {
+  uint32_t * color = (uint32_t*)_color;
+  FILL_FUNC_HEAD_PACKED(uint32_t);
+  *dst = *color;
+  FILL_FUNC_TAIL_PACKED(1);
+  }
+
+static void fill_32_packed_422(gavl_video_frame_t * frame,
+                               gavl_video_format_t * format,
+                               uint8_t * _color)
+  {
+  uint32_t * color = (uint32_t*)_color;
+  FILL_FUNC_HEAD_PACKED_422(uint32_t);
+  *dst = *color;
+  FILL_FUNC_TAIL_PACKED(1);
+  }
+
+
+static void fill_48_packed(gavl_video_frame_t * frame,
+                           gavl_video_format_t * format,
+                           uint16_t * color)
+  {
+  FILL_FUNC_HEAD_PACKED(uint16_t);
+  memcpy(dst, color, 3*sizeof(*dst));
+  FILL_FUNC_TAIL_PACKED(3);
+  }
+
+static void fill_64_packed(gavl_video_frame_t * frame,
+                           gavl_video_format_t * format,
+                           uint16_t * color)
+  {
+  FILL_FUNC_HEAD_PACKED(uint16_t);
+  memcpy(dst, color, 4*sizeof(*dst));
+  FILL_FUNC_TAIL_PACKED(4);
+  }
+
+static void fill_float_rgb(gavl_video_frame_t * frame,
+                           gavl_video_format_t * format,
+                           float * color)
+  {
+  FILL_FUNC_HEAD_PACKED(float);
+  memcpy(dst, color, 3*sizeof(*dst));
+  FILL_FUNC_TAIL_PACKED(3);
+  }
+
+static void fill_float_rgba(gavl_video_frame_t * frame,
+                            gavl_video_format_t * format,
+                            float * color)
+  {
+  FILL_FUNC_HEAD_PACKED(float);
+  memcpy(dst, color, 4*sizeof(*dst));
+  FILL_FUNC_TAIL_PACKED(4);
+  }
+
+#define FILL_FUNC_HEAD_PLANAR(TYPE) \
+  uint8_t * dst_start; \
+  TYPE * dst; \
+  int i, j; \
+  dst_start = frame->planes[0]; \
+  for(i = 0; i < format->image_height; i++) \
+    { \
+    dst = (TYPE*)dst_start; \
+    for(j = 0; j < format->image_width; j++) \
+      {
+
+#define FILL_FUNC_TAIL_PLANAR(ADVANCE)             \
+      dst+=ADVANCE;                                \
+      }                                            \
+    dst_start += frame->strides[0];                 \
+    }
+
+
+static void fill_planar_8(gavl_video_frame_t * frame,
+                          gavl_video_format_t * format,
+                          uint8_t * color)
+  {
+  int i, imax;
+  int sub_h, sub_v;
+
+  uint8_t * dst, *dst_1;
+
+  gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+  
+  /* Luminance */
+  dst = frame->planes[0];
+  for(i = 0; i < format->image_height; i++)
+    {
+    memset(dst, color[0], format->image_width);
+    dst += frame->strides[0];
+    }
+  /* Chrominance */
+
+  dst   = frame->planes[1];
+  dst_1 = frame->planes[2];
+
+  imax = format->image_height / sub_v;
+
+  for(i = 0; i < imax; i++)
+    {
+    memset(dst,   color[1], format->image_width/sub_h);
+    memset(dst_1, color[2], format->image_width/sub_h);
+    dst   += frame->strides[1];
+    dst_1 += frame->strides[2];
+    }
+  }
+
+static void fill_planar_16(gavl_video_frame_t * frame,
+                           gavl_video_format_t * format,
+                           uint16_t * color)
+  {
+  int i, j, imax, jmax;
+  int sub_h, sub_v;
+  
+  uint16_t * dst, *dst_1;
+  uint8_t * dst_start, *dst_start_1;
+  
+  gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+  
+  /* Luminance */
+  dst_start = frame->planes[0];
+  for(i = 0; i < format->image_height; i++)
+    {
+    dst = (uint16_t*)dst_start;
+
+    for(j = 0; j < format->image_width; j++)
+      {
+      *dst = color[0];
+      dst++;
+      }
+    dst_start += frame->strides[0];
+    }
+  /* Chrominance */
+
+  imax = format->image_height / sub_v;
+  jmax = format->image_width  / sub_h;
+
+  dst_start   = frame->planes[1];
+  dst_start_1 = frame->planes[2];
+
+  for(i = 0; i < imax; i++)
+    {
+    dst = (uint16_t*)dst_start;
+    dst_1 = (uint16_t*)dst_start_1;
+
+    for(j = 0; j < jmax; j++)
+      {
+      *dst = color[1];
+      *dst_1 = color[2];
+      dst++;
+      dst_1++;
+      }
+    dst_start   += frame->strides[1];
+    dst_start_1 += frame->strides[2];
+    }
+
+  
+  
+  }
+
+
+void gavl_video_frame_fill(gavl_video_frame_t * frame,
+                            gavl_video_format_t * format,
+                            float * color)
+  {
+  INIT_RGB_FLOAT_TO_YUV
+  uint16_t packed_16;
+  uint8_t  packed_32[4];
+  uint16_t packed_64[4];
+  
+  switch(format->pixelformat)
+    {
+    case GAVL_RGB_15:
+      packed_32[0] = RGB_FLOAT_TO_8(color[0]);
+      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
+      packed_32[2] = RGB_FLOAT_TO_8(color[2]);
+      PACK_8_TO_RGB15(packed_32[0],packed_32[1],packed_32[2],packed_16);
+      fill_16_packed(frame, format, packed_16);
+      break;
+    case GAVL_BGR_15:
+      packed_32[0] = RGB_FLOAT_TO_8(color[0]);
+      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
+      packed_32[2] = RGB_FLOAT_TO_8(color[2]);
+      PACK_8_TO_BGR15(packed_32[0],packed_32[1],packed_32[2],packed_16);
+      fill_16_packed(frame, format, packed_16);
+      break;
+    case GAVL_RGB_16:
+      packed_32[0] = RGB_FLOAT_TO_8(color[0]);
+      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
+      packed_32[2] = RGB_FLOAT_TO_8(color[2]);
+      PACK_8_TO_RGB16(packed_32[0],packed_32[1],packed_32[2],packed_16);
+      fill_16_packed(frame, format, packed_16);
+      break;
+    case GAVL_BGR_16:
+      packed_32[0] = RGB_FLOAT_TO_8(color[0]);
+      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
+      packed_32[2] = RGB_FLOAT_TO_8(color[2]);
+      PACK_8_TO_BGR16(packed_32[0],packed_32[1],packed_32[2],packed_16);
+      fill_16_packed(frame, format, packed_16);
+      break;
+    case GAVL_RGB_24:
+      packed_32[0] = RGB_FLOAT_TO_8(color[0]);
+      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
+      packed_32[2] = RGB_FLOAT_TO_8(color[2]);
+      fill_24_packed(frame, format, packed_32);
+      break;
+    case GAVL_BGR_24:
+      packed_32[2] = RGB_FLOAT_TO_8(color[0]);
+      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
+      packed_32[0] = RGB_FLOAT_TO_8(color[2]);
+      fill_24_packed(frame, format, packed_32);
+      break;
+    case GAVL_RGB_32:
+      packed_32[0] = RGB_FLOAT_TO_8(color[0]);
+      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
+      packed_32[2] = RGB_FLOAT_TO_8(color[2]);
+      fill_32_packed(frame, format, packed_32);
+      break;
+    case GAVL_BGR_32:
+      packed_32[2] = RGB_FLOAT_TO_8(color[0]);
+      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
+      packed_32[0] = RGB_FLOAT_TO_8(color[2]);
+      fill_32_packed(frame, format, packed_32);
+      break;
+    case GAVL_YUVA_32:
+      RGB_FLOAT_TO_YUV_8(color[0], color[1], color[2],
+                         packed_32[0], packed_32[1], packed_32[2]);
+      packed_32[3] = RGB_FLOAT_TO_8(color[3]);
+      fill_32_packed(frame, format, packed_32);
+      break;
+    case GAVL_RGBA_32:
+      packed_32[0] = RGB_FLOAT_TO_8(color[0]);
+      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
+      packed_32[2] = RGB_FLOAT_TO_8(color[2]);
+      packed_32[3] = RGB_FLOAT_TO_8(color[3]);
+      fill_32_packed(frame, format, packed_32);
+      break;
+    case GAVL_RGB_48:
+      packed_64[0] = RGB_FLOAT_TO_16(color[0]);
+      packed_64[1] = RGB_FLOAT_TO_16(color[1]);
+      packed_64[2] = RGB_FLOAT_TO_16(color[2]);
+      fill_48_packed(frame, format, packed_64);
+      break;
+    case GAVL_RGBA_64:
+      packed_64[0] = RGB_FLOAT_TO_16(color[0]);
+      packed_64[1] = RGB_FLOAT_TO_16(color[1]);
+      packed_64[2] = RGB_FLOAT_TO_16(color[2]);
+      packed_64[3] = RGB_FLOAT_TO_16(color[3]);
+      fill_64_packed(frame, format, packed_64);
+      break;
+    case GAVL_RGB_FLOAT:
+      fill_float_rgb(frame, format, color);
+      break;
+    case GAVL_RGBA_FLOAT:
+      fill_float_rgba(frame, format, color);
+      break;
+    case GAVL_YUY2:
+      RGB_FLOAT_TO_YUV_8(color[0], color[1], color[2],
+                         packed_32[0], /* Y */
+                         packed_32[1], /* U */
+                         packed_32[3]);/* V */
+      packed_32[2] = packed_32[0];     /* Y */
+      fill_32_packed_422(frame, format, packed_32);
+      break;
+    case GAVL_UYVY:
+      RGB_FLOAT_TO_YUV_8(color[0], color[1], color[2],
+                         packed_32[1], /* Y */
+                         packed_32[0], /* U */
+                         packed_32[2]);/* V */
+      packed_32[3] = packed_32[1];     /* Y */
+      fill_32_packed_422(frame, format, packed_32);
+      break;
+    case GAVL_YUVJ_420_P:
+    case GAVL_YUVJ_444_P:
+    case GAVL_YUVJ_422_P:
+      RGB_FLOAT_TO_YUVJ_8(color[0], color[1], color[2], packed_32[0],
+                          packed_32[1], packed_32[2]);
+      fill_planar_8(frame, format, packed_32);
+      break;
+    case GAVL_YUV_444_P:
+    case GAVL_YUV_422_P:
+    case GAVL_YUV_420_P:
+    case GAVL_YUV_410_P:
+    case GAVL_YUV_411_P:
+      RGB_FLOAT_TO_YUV_8(color[0], color[1], color[2], packed_32[0],
+                         packed_32[1], packed_32[2]);
+      fill_planar_8(frame, format, packed_32);
+      break;
+    case GAVL_YUV_422_P_16:
+    case GAVL_YUV_444_P_16:
+      RGB_FLOAT_TO_YUV_16(color[0], color[1], color[2], packed_64[0],
+                          packed_64[1], packed_64[2]);
+      fill_planar_16(frame, format, packed_64);
+      break;
+    case GAVL_PIXELFORMAT_NONE:
+      fprintf(stderr, "Pixelformat not specified for video frame\n");
+      return;
     }
   }

@@ -1480,6 +1480,20 @@ void gavl_video_frame_null(gavl_video_frame_t*frame);
 
 void gavl_video_frame_clear(gavl_video_frame_t * frame,
                             gavl_video_format_t * format);
+
+/*!
+  \ingroup video_frame
+  \brief Fill the frame with a user spefified color
+  \param frame A video frame
+  \param format Format of the data in the frame
+  \param color Color components in RGBA format scaled 0.0 .. 1.0
+ 
+*/
+
+void gavl_video_frame_fill(gavl_video_frame_t * frame,
+                           gavl_video_format_t * format,
+                           float * color);
+
   
 /*!
   \ingroup video_frame
@@ -2147,7 +2161,7 @@ gavl_overlay_blend_context_get_options(gavl_overlay_blend_context_t * ctx);
  *  Initialize a blend context for a given frame- and overlayformat.
  *  The image_width and image_height members for the overlay format represent
  *  the maximum overlay size. The actual displayed size will be determined
- *  by the dst_rectangle of the overlay.
+ *  by the ovl_rect of the overlay.
  *  
  */
 
