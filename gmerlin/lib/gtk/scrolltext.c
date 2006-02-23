@@ -361,9 +361,12 @@ void bg_gtk_scrolltext_set_colors(bg_gtk_scrolltext_t * d,
 
 void bg_gtk_scrolltext_set_font(bg_gtk_scrolltext_t * d, const char * font)
   {
+  char * tmp;
   if(d->font_desc)
     pango_font_description_free(d->font_desc);
-  d->font_desc = pango_font_description_from_string(font);
+  tmp = bg_gtk_convert_font_name_to_pango(font);
+  d->font_desc = pango_font_description_from_string(tmp);
+  free(tmp);
   }
 
 void bg_gtk_scrolltext_destroy(bg_gtk_scrolltext_t * d)

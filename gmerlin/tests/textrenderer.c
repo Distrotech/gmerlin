@@ -18,6 +18,13 @@ int main(int argc, char ** argv)
   
   bg_parameter_value_t val;
   bg_text_renderer_t * r;
+
+  if(argc != 2)
+    {
+    fprintf(stderr, "usage: %s <font-name>\n");
+    return 1;
+    }
+
   /* Create */
   r = bg_text_renderer_create();
 
@@ -29,7 +36,8 @@ int main(int argc, char ** argv)
   val.val_color[3] = 1.0;
   bg_text_renderer_set_parameter(r, "color", &val);
   free(val.val_color);
-  val.val_str = "Sans 10";
+  //  val.val_str = "Sans 15";
+  val.val_str = argv[1];
   bg_text_renderer_set_parameter(r, "font", &val);
   
   /* Initialize */

@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include "gtk_dialog.h"
+#include <gui_gtk/gtkutils.h>
 
 typedef struct
   {
@@ -33,6 +34,7 @@ typedef struct
 static void get_value(bg_gtk_widget_t * w)
   {
   font_t * priv;
+  char * tmp;
   priv = (font_t*)(w->priv);
 
   if(!w->value.val_str || (*w->value.val_str == '\0'))
@@ -40,17 +42,19 @@ static void get_value(bg_gtk_widget_t * w)
     gtk_entry_set_text(GTK_ENTRY(priv->entry), "");
     return;
     }
-  gtk_entry_set_text(GTK_ENTRY(priv->entry), w->value.val_str);
+  tmp = bg_gtk_convert_font_name_to_pango(w->value.val_str);
+  gtk_entry_set_text(GTK_ENTRY(priv->entry), tmp);
+  free(tmp);
   }
 
 static void set_value(bg_gtk_widget_t * w)
   {
   font_t * priv;
-  const char * filename;
+  const char * font;
   
   priv = (font_t*)(w->priv);
 
-  filename = gtk_entry_get_text(GTK_ENTRY(priv->entry));
+  font = gtk_entry_get_text(GTK_ENTRY(priv->entry));
 
   if(w->value.val_str)
     {
@@ -58,10 +62,9 @@ static void set_value(bg_gtk_widget_t * w)
     w->value.val_str = (char*)0;
     }
   
-  if(*filename != '\0')
+  if(*font != '\0')
     {
-    w->value.val_str = malloc(strlen(filename)+1);
-    strcpy(w->value.val_str, filename);
+    w->value.val_str = bg_gtk_convert_font_name_from_pango(font);
     }
   }
 

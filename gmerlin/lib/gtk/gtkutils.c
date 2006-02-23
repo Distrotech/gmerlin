@@ -28,6 +28,12 @@
 
 #include <gui_gtk/gtkutils.h>
 
+#include <fontconfig/fontconfig.h>
+
+#include <pango/pangofc-fontmap.h>
+
+#include <utils.h>
+
 GdkPixbuf * bg_gtk_pixbuf_scale_alpha(GdkPixbuf * src,
                                       int dest_width,
                                       int dest_height,
@@ -126,4 +132,176 @@ void bg_gtk_set_widget_bg_pixmap(GtkWidget * widget, GdkPixmap *pixmap)
   style->bg_pixmap[0] = g_object_ref (pixmap);
   gtk_widget_set_style (widget, style);
   g_object_unref (style);
+  }
+
+/* Font name conversion */
+
+/* Really stupid, that pango font names are incompatible to
+ * fontconfig names, so we must convert them ourselves
+ */
+
+/* Ripped from pango sourcecode */
+static int
+pango_fc_convert_weight_to_fc (PangoWeight pango_weight)
+{
+  if (pango_weight < (PANGO_WEIGHT_NORMAL + PANGO_WEIGHT_LIGHT) / 2)
+    return FC_WEIGHT_LIGHT;
+  else if (pango_weight < (PANGO_WEIGHT_NORMAL + 600) / 2)
+    return FC_WEIGHT_MEDIUM;
+  else if (pango_weight < (600 + PANGO_WEIGHT_BOLD) / 2)
+    return FC_WEIGHT_DEMIBOLD;
+  else if (pango_weight < (PANGO_WEIGHT_BOLD + PANGO_WEIGHT_ULTRABOLD) / 2)
+    return FC_WEIGHT_BOLD;
+  else
+    return FC_WEIGHT_BLACK;
+}
+
+static int
+pango_fc_convert_slant_to_fc (PangoStyle pango_style)
+{
+  switch (pango_style)
+    {
+    case PANGO_STYLE_NORMAL:
+      return FC_SLANT_ROMAN;
+    case PANGO_STYLE_ITALIC:
+      return FC_SLANT_ITALIC;
+    case PANGO_STYLE_OBLIQUE:
+      return FC_SLANT_OBLIQUE;
+    default:
+      return FC_SLANT_ROMAN;
+    }
+}
+
+#ifdef FC_WIDTH
+static int
+pango_fc_convert_width_to_fc (PangoStretch pango_stretch)
+{
+  switch (pango_stretch)
+    {
+    case PANGO_STRETCH_NORMAL:
+      return FC_WIDTH_NORMAL;
+    case PANGO_STRETCH_ULTRA_CONDENSED:
+      return FC_WIDTH_ULTRACONDENSED;
+    case PANGO_STRETCH_EXTRA_CONDENSED:
+      return FC_WIDTH_EXTRACONDENSED;
+    case PANGO_STRETCH_CONDENSED:
+      return FC_WIDTH_CONDENSED;
+    case PANGO_STRETCH_SEMI_CONDENSED:
+      return FC_WIDTH_SEMICONDENSED;
+    case PANGO_STRETCH_SEMI_EXPANDED:
+      return FC_WIDTH_SEMIEXPANDED;
+    case PANGO_STRETCH_EXPANDED:
+      return FC_WIDTH_EXPANDED;
+    case PANGO_STRETCH_EXTRA_EXPANDED:
+      return FC_WIDTH_EXTRAEXPANDED;
+    case PANGO_STRETCH_ULTRA_EXPANDED:
+      return FC_WIDTH_ULTRAEXPANDED;
+    default:
+      return FC_WIDTH_NORMAL;
+    }
+}
+#endif
+
+
+static FcPattern *
+pango_fc_make_pattern (const  PangoFontDescription *description,
+                       double size)
+  {
+  FcPattern *pattern;
+  int slant;
+  int weight;
+  char **families;
+  int i;
+#ifdef FC_WIDTH
+  int width;
+#endif
+
+  slant = pango_fc_convert_slant_to_fc (pango_font_description_get_style (description));
+  weight = pango_fc_convert_weight_to_fc (pango_font_description_get_weight (description));
+#ifdef FC_WIDTH
+  width = pango_fc_convert_width_to_fc (pango_font_description_get_stretch (description));
+#endif
+
+  /* The reason for passing in FC_SIZE as well as FC_PIXEL_SIZE is
+   * to work around a bug in libgnomeprint where it doesn't look
+   * for FC_PIXEL_SIZE. See http://bugzilla.gnome.org/show_bug.cgi?id=169020
+   *
+   * Putting FC_SIZE in here slightly reduces the efficiency
+   * of caching of patterns and fonts when working with multiple different
+   * dpi values.
+   */
+  pattern = FcPatternBuild (NULL,
+                            FC_WEIGHT, FcTypeInteger, weight,
+                            FC_SLANT,  FcTypeInteger, slant,
+#ifdef FC_WIDTH
+                            FC_WIDTH,  FcTypeInteger, width,
+#endif
+                            FC_SIZE,  FcTypeDouble,  size,
+                            NULL);
+  
+  families =
+    g_strsplit (pango_font_description_get_family (description), ",", -1);
+  
+  for (i = 0; families[i]; i++)
+    FcPatternAddString (pattern, FC_FAMILY, families[i]);
+  
+  g_strfreev (families);
+  
+  return pattern;
+  }
+
+char * bg_gtk_convert_font_name_from_pango(const char * name)
+  {
+  char * ret;
+  PangoFontDescription *description;
+  FcPattern *pattern;
+  double size = 12.0;
+
+  const char * pos;
+
+  pos = &name[strlen(name) - 1];
+  while(!isspace(*pos))
+    {
+    if(pos == name)
+      return (char*)0;
+    pos--;
+    }
+  pos++;
+  if(isdigit(*pos) || (*pos == '.'))
+    size = strtod(pos, (char**)0);
+  else
+    size = 12.0;
+  
+  description = pango_font_description_from_string(name);
+  
+  pattern = pango_fc_make_pattern(description, size);
+
+  ret = FcNameUnparse(pattern);
+
+  FcPatternDestroy(pattern);
+  pango_font_description_free(description);
+  fprintf(stderr, "bg_gtk_convert_font_name_from_pango: %s -> %s\n",
+          name, ret);
+  return ret;
+  }
+
+char * bg_gtk_convert_font_name_to_pango(const char * name)
+  {
+  char * ret, *tmp;
+  PangoFontDescription *description;
+  FcPattern *pattern;
+
+  pattern = FcNameParse(name);
+  description = pango_fc_font_description_from_pattern(pattern, TRUE);
+
+  tmp = pango_font_description_to_string(description);
+  ret = bg_strdup((char*)0, tmp);
+  g_free(tmp);
+  FcPatternDestroy(pattern);
+  pango_font_description_free(description);
+
+  
+  fprintf(stderr, "bg_gtk_convert_font_name_to_pango: %s -> %s\n", name, ret);
+  return ret;
+  
   }

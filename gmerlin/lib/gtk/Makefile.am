@@ -1,4 +1,4 @@
-AM_CFLAGS = @GTK_CFLAGS@
+AM_CFLAGS = @GTK_CFLAGS@ @FONTCONFIG_CFLAGS@
 
 lib_LTLIBRARIES = libgmerlin_gtk.la
 noinst_HEADERS = gtk_dialog.h
