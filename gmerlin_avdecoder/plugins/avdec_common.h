@@ -43,12 +43,27 @@ int bg_avdec_read_audio(void * priv,
                         gavl_audio_frame_t * frame,
                         int stream,
                         int num_samples);
+
+int bg_avdec_read_subtitle_overlay(void * priv,
+                                   gavl_overlay_t * ovl, int stream);
+  
+int bg_avdec_read_subtitle_text(void * priv,
+                                char ** text, int * text_alloc,
+                                int64_t * start_time,
+                                int64_t * duration,
+                                int stream);
+
+
 int bg_avdec_set_audio_stream(void * priv,
                                   int stream,
                               bg_stream_action_t action);
 int bg_avdec_set_video_stream(void * priv,
                               int stream,
                               bg_stream_action_t action);
+
+int bg_avdec_set_subtitle_stream(void * priv,
+                                 int stream,
+                                 bg_stream_action_t action);
 int bg_avdec_start(void * priv);
 void bg_avdec_seek(void * priv, gavl_time_t * t);
 

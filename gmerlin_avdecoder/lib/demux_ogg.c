@@ -57,6 +57,8 @@
 #define FOURCC_OGM_AUDIO BGAV_MK_FOURCC('O','G','M','A')
 #define FOURCC_OGM_VIDEO BGAV_MK_FOURCC('O','G','M','V')
 
+#define FOURCC_OGM_TEXT  BGAV_MK_FOURCC('T','E','X','T')
+
 #define BYTES_TO_READ 8500 /* Same as in vorbisfile */
 
 static int probe_ogg(bgav_input_context_t * input)
@@ -184,13 +186,20 @@ static int ogm_header_read(bgav_input_context_t * input, ogm_header_t * ret)
       return 0;
     return 1;
     }
+  else if(!strncmp(ret->type, "text", 5))
+    {
+    fprintf(stderr, "Found subtitles %lld %lld\n",
+            input->position, input->total_bytes);
+    bgav_input_skip_dump(input, input->total_bytes - input->position);
+    return 1;
+    }
   else
     {
     fprintf(stderr, "Unknown type %.8s\n", ret->type);
     return 0;
     }
   }
-#if 0
+#if 1
 static void ogm_header_dump(ogm_header_t * h)
   {
   fprintf(stderr, "OGM Header\n");
@@ -268,6 +277,7 @@ static void dump_ogg(bgav_demuxer_context_t * ctx)
 static void parse_vorbis_comment(bgav_stream_t * s, uint8_t * data,
                                  int len)
   {
+  const char * language;
   const char * field;
   stream_priv_t * stream_priv;
   bgav_vorbis_comment_t vc;
@@ -282,17 +292,18 @@ static void parse_vorbis_comment(bgav_stream_t * s, uint8_t * data,
     return;
 
   bgav_metadata_free(&stream_priv->metadata);
-  if(s->language)
-    {
-    free(s->language);
-    s->language = (char*)0;
-    }
+  if(s->language[0] != '\0')
+    s->language[0] = '\0';
   
   bgav_vorbis_comment_2_metadata(&vc, &stream_priv->metadata);
 
   field = bgav_vorbis_comment_get_field(&vc, "LANGUAGE");
   if(field)
-    s->language = bgav_strndup(field, (const char*)0);
+    {
+    language = bgav_lang_from_name(field);
+    if(language)
+      strcpy(s->language, language);
+    }
   //  fprintf(stderr, "Got vorbis comment\n");
   //  bgav_vorbis_comment_dump(&vc);
   
@@ -405,6 +416,11 @@ static uint32_t detect_stream(ogg_packet * op)
           (op->packet[0] == 0x01) &&
           !strncmp((char*)(op->packet+1), "video", 5))
     return FOURCC_OGM_VIDEO;
+
+  else if((op->bytes >= 9) &&
+          (op->packet[0] == 0x01) &&
+          !strncmp((char*)(op->packet+1), "text", 4))
+    return FOURCC_OGM_TEXT;
   
   return 0;
   }
@@ -625,7 +641,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         bgav_input_close(input_mem);
         bgav_input_destroy(input_mem);
       
-        //        ogm_header_dump(&ogm_header);
+        ogm_header_dump(&ogm_header);
 
         /* Set up the stream from the OGM header */
         ogg_stream->fourcc_priv = FOURCC_OGM_VIDEO;
@@ -644,6 +660,36 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         //        gavl_video_format_dump(&s->data.video.format);
       
         s->fourcc = ogm_header.subtype;
+        ogg_stream->header_packets_needed = 2;
+        ogg_stream->header_packets_read = 1;
+        break;
+      case FOURCC_OGM_TEXT:
+        //        fprintf(stderr, "Detected OGM text data\n");
+        
+        s = bgav_track_add_subtitle_stream(track, 1);
+      
+        s->priv   = ogg_stream;
+        s->stream_id = serialno;
+
+        input_mem = bgav_input_open_memory(priv->op.packet + 1, priv->op.bytes - 1);
+
+        if(!ogm_header_read(input_mem, &ogm_header))
+          {
+          fprintf(stderr, "Reading OGM header failed\n");
+          bgav_input_close(input_mem);
+          bgav_input_destroy(input_mem);
+          return 0;
+          }
+        bgav_input_close(input_mem);
+        bgav_input_destroy(input_mem);
+      
+        ogm_header_dump(&ogm_header);
+
+        /* Set up the stream from the OGM header */
+        ogg_stream->fourcc_priv = FOURCC_OGM_TEXT;
+        
+        s->fourcc = FOURCC_OGM_TEXT;
+        s->timescale = 10000000 / ogm_header.time_unit;
         ogg_stream->header_packets_needed = 2;
         ogg_stream->header_packets_read = 1;
         break;
@@ -702,6 +748,18 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
             if(ogg_stream->header_packets_read == 2)
               parse_vorbis_comment(s, priv->op.packet + 7, priv->op.bytes - 7);
 
+            if(ogg_stream->header_packets_read == ogg_stream->header_packets_needed)
+              break;
+            }
+          break;
+        case FOURCC_OGM_TEXT:
+          while(ogg_stream_packetout(&ogg_stream->os, &priv->op) == 1)
+            {
+            append_extradata(s, &priv->op);
+            ogg_stream->header_packets_read++;
+            /* Second packet is vorbis comment starting after 7 bytes */
+            if(ogg_stream->header_packets_read == 2)
+              parse_vorbis_comment(s, priv->op.packet + 7, priv->op.bytes - 7);
             if(ogg_stream->header_packets_read == ogg_stream->header_packets_needed)
               break;
             }
@@ -1414,7 +1472,7 @@ static void metadata_changed(bgav_demuxer_context_t * ctx)
 
 static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   {
-  int len_bytes;
+  int len_bytes, i;
   int64_t iframes;
   int64_t pframes;
   int serialno;
@@ -1423,7 +1481,8 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   int64_t granulepos;
   stream_priv_t * stream_priv = (stream_priv_t*)0;
   ogg_priv * priv = (ogg_priv*)(ctx->priv);
-
+  int subtitle_duration;
+  
   if(!get_page(ctx))
     return 0;
   
@@ -1644,7 +1703,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
                 granulepos);
 #endif
         len_bytes =
-          (priv->op.packet[0] >> 6) ||
+          (priv->op.packet[0] >> 6) |
           ((priv->op.packet[0] & 0x02) << 1);
         
         p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
@@ -1711,7 +1770,48 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         memcpy(p->data, priv->op.packet, priv->op.bytes);
         p->data_size = priv->op.bytes;
         bgav_packet_done_write(p);
+        break;
+      case FOURCC_OGM_TEXT:
+        //        fprintf(stderr, "Subtitle page:\n");
+        //        bgav_hexdump(priv->current_page.body, priv->current_page.body_len, 16);
+
+        if(priv->op.packet[0] & 0x01) /* Header is already read -> skip it */
+          {
+          fprintf(stderr, "Skipping OGM subtitle header, granulepos: %lld\n",
+                  granulepos);
+          break;
+          }
+        if(!(priv->op.packet[0] & 0x08))
+          {
+          fprintf(stderr, "Got non keyframe in subtitle stream\n");
+          break;
+          }
         
+        len_bytes =
+          (priv->op.packet[0] >> 6) |
+          ((priv->op.packet[0] & 0x02) << 1);
+        //        fprintf(stderr, "Len: %d\n", len_bytes);
+        subtitle_duration = 0;
+        for(i = len_bytes; i > 0; i--)
+          {
+          subtitle_duration <<= 8;
+          subtitle_duration |= priv->op.packet[i];
+          }
+#if 0
+        fprintf(stderr, "Granulepos: %lld, duration: %d\n",
+                granulepos, subtitle_duration);
+        fprintf(stderr, "Subtitle: %s\n", priv->op.packet + 1 + len_bytes);
+#endif
+        if((priv->op.packet[1 + len_bytes] == ' ') &&
+           (priv->op.packet[2 + len_bytes] == '\0'))
+          break;
+        
+        p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+
+        bgav_packet_set_text_subtitle(p, (char*)(priv->op.packet + 1 + len_bytes),
+                                      granulepos, subtitle_duration);
+        bgav_packet_done_write(p);
+        break;
       }
     }
 

@@ -46,6 +46,19 @@ bgav_track_add_video_stream(bgav_track_t * t)
   }
 
 bgav_stream_t *
+bgav_track_add_subtitle_stream(bgav_track_t * t, int text)
+  {
+  t->num_subtitle_streams++;
+  t->subtitle_streams = realloc(t->subtitle_streams, t->num_subtitle_streams * 
+                             sizeof(*(t->subtitle_streams)));
+  bgav_stream_alloc(&(t->subtitle_streams[t->num_subtitle_streams-1]));
+  t->subtitle_streams[t->num_subtitle_streams-1].type =
+    text ? BGAV_STREAM_SUBTITLE_TEXT : BGAV_STREAM_SUBTITLE_OVERLAY;
+  return &(t->subtitle_streams[t->num_subtitle_streams-1]);
+  }
+
+
+bgav_stream_t *
 bgav_track_find_stream_all(bgav_track_t * t, int stream_id)
   {
   int i;
@@ -58,6 +71,11 @@ bgav_track_find_stream_all(bgav_track_t * t, int stream_id)
     {
     if(t->video_streams[i].stream_id == stream_id)
       return &(t->video_streams[i]);
+    }
+  for(i = 0; i < t->num_subtitle_streams; i++)
+    {
+    if(t->subtitle_streams[i].stream_id == stream_id)
+      return &(t->subtitle_streams[i]);
     }
   return (bgav_stream_t *)0;
   }
@@ -83,6 +101,15 @@ bgav_stream_t * bgav_track_find_stream(bgav_track_t * t, int stream_id)
       return (bgav_stream_t *)0;
       }
     }
+  for(i = 0; i < t->num_subtitle_streams; i++)
+    {
+    if(t->subtitle_streams[i].stream_id == stream_id)
+      {
+      if(t->subtitle_streams[i].action != BGAV_STREAM_MUTE)
+        return &(t->subtitle_streams[i]);
+      return (bgav_stream_t *)0;
+      }
+    }
   return (bgav_stream_t *)0;
   }
 
@@ -98,6 +125,10 @@ void bgav_track_stop(bgav_track_t * t)
   for(i = 0; i < t->num_video_streams; i++)
     {
     bgav_stream_stop(&(t->video_streams[i]));
+    }
+  for(i = 0; i < t->num_subtitle_streams; i++)
+    {
+    bgav_stream_stop(&(t->subtitle_streams[i]));
     }
   }
 
@@ -121,6 +152,16 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
       {
       demuxer->error_msg = 
         bgav_sprintf("Starting video decoder for stream %d failed", i+1);
+      return 0;
+      }
+    }
+  for(i = 0; i < t->num_subtitle_streams; i++)
+    {
+    t->subtitle_streams[i].demuxer = demuxer;
+    if(!bgav_stream_start(&(t->subtitle_streams[i])))
+      {
+      demuxer->error_msg = 
+        bgav_sprintf("Starting subtitle decoder for stream %d failed", i+1);
       return 0;
       }
     }
@@ -166,6 +207,11 @@ void bgav_track_dump(bgav_t * b, bgav_track_t * t)
     {
     bgav_stream_dump(&(t->video_streams[i]));
     bgav_video_dump(&(t->video_streams[i]));
+    }
+  for(i = 0; i < t->num_subtitle_streams; i++)
+    {
+    bgav_stream_dump(&(t->subtitle_streams[i]));
+    bgav_subtitle_dump(&(t->subtitle_streams[i]));
     }
   
   }
@@ -249,6 +295,8 @@ void bgav_track_clear(bgav_track_t * track)
     bgav_stream_clear(&(track->audio_streams[i]));
   for(i = 0; i < track->num_video_streams; i++)
     bgav_stream_clear(&(track->video_streams[i]));
+  for(i = 0; i < track->num_subtitle_streams; i++)
+    bgav_stream_clear(&(track->subtitle_streams[i]));
   }
 
 gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)

@@ -120,6 +120,7 @@ struct bgav_packet_s
   int data_alloc;
   uint8_t * data;
   int64_t timestamp_scaled;
+  int64_t duration_scaled;  /* For text subtitles only! */
   int keyframe;
   bgav_stream_t * stream; /* The stream this packet belongs to */
   int samples; /* Optional */
@@ -140,6 +141,11 @@ void bgav_packet_destroy(bgav_packet_t*);
 void bgav_packet_alloc(bgav_packet_t*, int size);
 
 void bgav_packet_done_write(bgav_packet_t *);
+
+void bgav_packet_set_text_subtitle(bgav_packet_t * p,
+                                   const char * text,
+                                   int64_t start,
+                                   int64_t duration);
 
 /* packetbuffer.c */
 
@@ -192,6 +198,8 @@ typedef enum
     BGAV_STREAM_UNKNOWN = 0,
     BGAV_STREAM_AUDIO,
     BGAV_STREAM_VIDEO,
+    BGAV_STREAM_SUBTITLE_TEXT,
+    BGAV_STREAM_SUBTITLE_OVERLAY,
   } bgav_stream_type_t;
 
 
@@ -249,9 +257,9 @@ struct bgav_stream_s
   
   char * description;
 
-  /* Language */
+  /* Language (ISO 639-3 B code) */
 
-  char * language;
+  char language[4];
     
   /*
    *  Sometimes, the bitrates important for codecs 
@@ -310,6 +318,10 @@ struct bgav_stream_s
       int64_t last_frame_time;
       int     last_frame_duration;
       } video;
+    struct
+      {
+      gavl_video_format_t format;
+      } subtitle;
     } data;
   };
 
@@ -349,10 +361,12 @@ typedef struct
 
   int num_audio_streams;
   int num_video_streams;
+  int num_subtitle_streams;
 
   bgav_stream_t * audio_streams;
   bgav_stream_t * video_streams;
-
+  bgav_stream_t * subtitle_streams;
+  
   void * priv; /* For storing private data */  
   } bgav_track_t;
 
@@ -369,6 +383,9 @@ bgav_track_remove_audio_stream(bgav_track_t * track, int stream);
 
 void
 bgav_track_remove_video_stream(bgav_track_t * track, int stream);
+
+bgav_stream_t *
+bgav_track_add_subtitle_stream(bgav_track_t * t, int text);
 
 
 
@@ -1033,6 +1050,17 @@ void bgav_video_resync(bgav_stream_t * stream);
 
 int bgav_video_skipto(bgav_stream_t * stream, gavl_time_t * time);
 
+/* subtitle.c */
+
+void bgav_subtitle_dump(bgav_stream_t * s);
+
+int bgav_subtitle_start(bgav_stream_t * s);
+void bgav_subtitle_stop(bgav_stream_t * s);
+
+void bgav_subtitle_resync(bgav_stream_t * stream);
+
+int bgav_subtitle_skipto(bgav_stream_t * stream, gavl_time_t * time);
+
 
 /* codecs.c */
 
@@ -1063,6 +1091,14 @@ bgav_device_info_t * bgav_device_info_append(bgav_device_info_t * arr,
                                              const char * device,
                                              const char * name);
 
-/* For debuggins only */
+/* For debugging only */
 
 void bgav_device_info_dump(bgav_device_info_t * arr);
+
+/* languages.c */
+
+const char * bgav_lang_from_name(const char * name);
+
+const char * bgav_lang_from_twocc(const char * twocc);
+
+const char * bgav_lang_name(const char * lang);

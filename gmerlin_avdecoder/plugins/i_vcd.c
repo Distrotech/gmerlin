@@ -88,7 +88,7 @@ bg_input_plugin_t the_plugin =
     /* Set streams */
     set_audio_stream:      bg_avdec_set_audio_stream,
     set_video_stream:      bg_avdec_set_video_stream,
-    set_subpicture_stream: NULL,
+    set_subtitle_stream: NULL,
 
     /*
      *  Start decoding.

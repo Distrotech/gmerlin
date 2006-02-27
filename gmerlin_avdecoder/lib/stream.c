@@ -79,9 +79,6 @@ void bgav_stream_free(bgav_stream_t * s)
   {
   if(s->description)
     free(s->description);
-
-  if(s->language)
-    free(s->language);
   
   if(s->packet_buffer)
     bgav_packet_buffer_destroy(s->packet_buffer);
@@ -97,12 +94,20 @@ void bgav_stream_dump(bgav_stream_t * s)
     case BGAV_STREAM_VIDEO:
       fprintf(stderr, "============ Video stream ============\n");
       break;
+
+    case BGAV_STREAM_SUBTITLE_TEXT:
+      fprintf(stderr, "=========== Text subtitles ===========\n");
+      break;
+    case BGAV_STREAM_SUBTITLE_OVERLAY:
+      fprintf(stderr, "========= Overlay subtitles ===========\n");
+      break;
+      
     case BGAV_STREAM_UNKNOWN:
       return;
     }
 
   if(s->language)
-    fprintf(stderr, "  Language:          %s\n", s->language);
+    fprintf(stderr, "  Language:          %s\n", bgav_lang_name(s->language));
   
   fprintf(stderr, "  Type:              %s\n",
           (s->description ? s->description : "Not specified"));
@@ -151,6 +156,10 @@ void bgav_stream_resync_decoder(bgav_stream_t * s)
     case BGAV_STREAM_VIDEO:
       bgav_video_resync(s);
       break;
+    case BGAV_STREAM_SUBTITLE_TEXT:
+    case BGAV_STREAM_SUBTITLE_OVERLAY:
+      bgav_subtitle_resync(s);
+      break;
     case BGAV_STREAM_UNKNOWN:
       break;
     }
@@ -169,6 +178,10 @@ int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time)
       break;
     case BGAV_STREAM_VIDEO:
       return bgav_video_skipto(s, time);
+      break;
+    case BGAV_STREAM_SUBTITLE_TEXT:
+    case BGAV_STREAM_SUBTITLE_OVERLAY:
+      return bgav_subtitle_skipto(s, time);
       break;
     case BGAV_STREAM_UNKNOWN:
       break;

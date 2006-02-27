@@ -149,6 +149,28 @@ int bg_avdec_read_audio(void * priv,
   return bgav_read_audio(avdec->dec, frame, stream, num_samples);
   }
 
+int bg_avdec_read_subtitle_overlay(void * priv,
+                                   gavl_overlay_t * ovl, int stream)
+  {
+  avdec_priv * avdec;
+  avdec = (avdec_priv*)(priv);
+  return bgav_read_subtitle_overlay(avdec->dec, ovl, stream);
+  }
+  
+int bg_avdec_read_subtitle_text(void * priv,
+                                char ** text, int * text_alloc,
+                                int64_t * start_time,
+                                int64_t * duration,
+                                int stream)
+  {
+  avdec_priv * avdec;
+  avdec = (avdec_priv*)(priv);
+
+  return bgav_read_subtitle_text(avdec->dec, text, text_alloc,
+                            start_time, duration, stream);
+  
+  }
+
 static bgav_stream_action_t get_stream_action(bg_stream_action_t action)
   {
   switch(action)
@@ -190,11 +212,25 @@ int bg_avdec_set_video_stream(void * priv,
   return bgav_set_video_stream(avdec->dec, stream, act);
   }
 
+int bg_avdec_set_subtitle_stream(void * priv,
+                              int stream,
+                              bg_stream_action_t action)
+  {
+  avdec_priv * avdec;
+  bgav_stream_action_t  act;
+  avdec = (avdec_priv*)(priv);
+  act = get_stream_action(action);
+
+  //  fprintf(stderr, "bg_avdec_set_video_stream %d %d\n", stream, action);
+  return bgav_set_subtitle_stream(avdec->dec, stream, act);
+  }
+
 int bg_avdec_start(void * priv)
   {
   int i;
   const char * str;
   avdec_priv * avdec;
+  const gavl_video_format_t * format;
   avdec = (avdec_priv*)(priv);
   
   if(!bgav_start(avdec->dec))
@@ -223,6 +259,19 @@ int bg_avdec_start(void * priv)
       avdec->current_track->audio_streams[i].language = bg_strdup(NULL, str);
 
     }
+  for(i = 0; i < avdec->current_track->num_subtitle_streams; i++)
+    {
+    str = bgav_get_subtitle_language(avdec->dec, i);
+    if(str)
+      avdec->current_track->subtitle_streams[i].language = bg_strdup(NULL, str);
+    format = bgav_get_subtitle_format(avdec->dec, i);
+    if(!format)
+      avdec->current_track->subtitle_streams[i].is_text = 1;
+    else
+      gavl_video_format_copy(&avdec->current_track->subtitle_streams[i].format,
+                             format);
+    }
+    
   //  bgav_dump(avdec->dec);
   return 1;
   }
@@ -249,8 +298,13 @@ int bg_avdec_init(avdec_priv * avdec)
     {
     avdec->track_info[i].num_audio_streams = bgav_num_audio_streams(avdec->dec, i);
     avdec->track_info[i].num_video_streams = bgav_num_video_streams(avdec->dec, i);
+    avdec->track_info[i].num_subtitle_streams =
+      bgav_num_subtitle_streams(avdec->dec, i);
     avdec->track_info[i].seekable = bgav_can_seek(avdec->dec);
-    
+
+    //    fprintf(stderr, "bg_avdec_init: subtitles: %d\n", 
+    //            avdec->track_info[i].num_subtitle_streams);
+                
     if(avdec->track_info[i].num_audio_streams)
       {
       avdec->track_info[i].audio_streams =
@@ -263,6 +317,12 @@ int bg_avdec_init(avdec_priv * avdec)
       avdec->track_info[i].video_streams =
         calloc(avdec->track_info[i].num_video_streams,
                sizeof(*avdec->track_info[i].video_streams));
+      }
+    if(avdec->track_info[i].num_subtitle_streams)
+      {
+      avdec->track_info[i].subtitle_streams =
+        calloc(avdec->track_info[i].num_subtitle_streams,
+               sizeof(*avdec->track_info[i].subtitle_streams));
       }
     avdec->track_info[i].duration = bgav_get_duration(avdec->dec, i);
     avdec->track_info[i].name =

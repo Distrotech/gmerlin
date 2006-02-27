@@ -722,6 +722,16 @@ int bgav_num_audio_streams(bgav_t * bgav, int track);
 int bgav_num_video_streams(bgav_t * bgav, int track);
 
 /** \ingroup track
+ *  \brief Get the number of subtitle streams of a track
+ *  \param bgav A decoder instance
+ *  \param track Track index (starting with 0)
+ *  \returns The number of subtitle streams
+ */
+
+int bgav_num_subtitle_streams(bgav_t * bgav, int track);
+
+
+/** \ingroup track
  *  \brief Get the name a track
  *  \param bgav A decoder instance
  *  \param track Track index (starting with 0)
@@ -768,6 +778,15 @@ void bgav_select_track(bgav_t * bgav, int track);
 const char * bgav_get_audio_language(bgav_t * bgav, int stream);
 
 /** \ingroup streams
+ *  \brief Get the language of an audio stream
+ *  \param bgav A decoder instance
+ *  \param stream Subtitle stream index (starting with 0)
+ *  \returns A language string.
+ */
+
+const char * bgav_get_subtitle_language(bgav_t * bgav, int stream);
+
+/** \ingroup streams
  */
 
 typedef enum
@@ -800,6 +819,18 @@ int bgav_set_audio_stream(bgav_t * bgav, int stream, bgav_stream_action_t action
  */
 
 int bgav_set_video_stream(bgav_t * bgav, int stream, bgav_stream_action_t action);
+
+/** \ingroup streams
+ * \brief Select mode for a subtitle stream
+ * \param bgav A decoder instance
+ * \param stream Stream index (starting with 0)
+ * \param action The stream action.
+ *
+ * Note that the default stream action is BGAV_STREAM_MUTE, which means that
+ * all streams are switched off by default.
+ */
+
+int bgav_set_subtitle_stream(bgav_t * bgav, int stream, bgav_stream_action_t action);
 
 /***************************************************
  * Stream handling functions
@@ -858,6 +889,20 @@ const gavl_audio_format_t * bgav_get_audio_format(bgav_t * bgav, int stream);
 const gavl_video_format_t * bgav_get_video_format(bgav_t * bgav, int stream);
 
 /** \ingroup stream_info
+ *  \brief Get the format of a subtitle stream
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \returns The format or NULL if we have text subtitles
+ *
+ *  Note, that you can trust the return value of this function only, if you enabled
+ *  the stream (see \ref bgav_set_subtitle_stream) and started the decoders
+ *  (see \ref bgav_start).
+ */
+
+const gavl_video_format_t * bgav_get_subtitle_format(bgav_t * bgav, int stream);
+
+
+/** \ingroup stream_info
  *  \brief Get the description of an audio stream
  *  \param bgav A decoder instance
  *  \param stream Stream index (starting with 0)
@@ -882,6 +927,19 @@ const char * bgav_get_audio_description(bgav_t * bgav, int stream);
  */
 
 const char * bgav_get_video_description(bgav_t * bgav, int stream);
+
+/** \ingroup stream_info
+ *  \brief Get the description of a subtitle stream
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \returns A technical decription of the stream 
+ *
+ *  Note, that you can trust the return value of this function only, if you enabled
+ *  the stream (see \ref bgav_set_subtitle_stream) and started the decoders
+ *  (see \ref bgav_start).
+ */
+
+const char * bgav_get_subtitle_description(bgav_t * bgav, int stream);
 
 
 /***************************************************
@@ -913,6 +971,37 @@ int bgav_read_video(bgav_t * bgav, gavl_video_frame_t * frame, int stream);
 
 int bgav_read_audio(bgav_t * bgav, gavl_audio_frame_t * frame, int stream,
                     int num_samples);
+
+/** \ingroup decode
+    \brief Decode an overlay subtitle
+    \param bgav A decoder instance
+    \param frame The overlay to which the subtitle will be decoded.
+    \param stream Stream index (starting with 0)
+    \returns 1 if a subtitle could be decoded.
+
+    A return value of 0 doesn't necessarily mean EOF. Sometimes, there is
+    simply no subtitle available yet.
+
+*/
+
+int bgav_read_subtitle_overlay(bgav_t * bgav, gavl_overlay_t * ovl, int stream);
+
+/** \ingroup decode
+    \brief Decode a text subtitle
+    \param bgav       A decoder instance
+    \param ret        The string, where the text will be stored.
+    \param ret_alloc  The number of allocated bytes for ret
+    \param start_time Returns the start time
+    \param duration   Returns the duration
+    \param stream     Stream index (starting with 0)
+    \returns 1 if a subtitle could be decoded.
+
+    A return value of 0 doesn't necessarily mean EOF. Sometimes, there is
+    simply no subtitle available yet.
+*/
+
+int bgav_read_subtitle_text(bgav_t * bgav, char ** ret, int *ret_alloc,
+                            gavl_time_t * start_time, gavl_time_t * duration, int stream);
 
 /***************************************************
  * Seek to a timestamp. This also resyncs all streams

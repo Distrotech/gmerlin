@@ -95,6 +95,7 @@ int main(int argc, char ** argv)
   int i;
   int num_audio_streams;
   int num_video_streams;
+  int num_subtitle_streams;
   int num_urls;
   int num_tracks;
   int track;
@@ -174,14 +175,14 @@ int main(int argc, char ** argv)
     
     num_audio_streams = bgav_num_audio_streams(file, track);
     num_video_streams = bgav_num_video_streams(file, track);
+    num_subtitle_streams = bgav_num_subtitle_streams(file, track);
     for(i = 0; i < num_audio_streams; i++)
-      {
       bgav_set_audio_stream(file, i, BGAV_STREAM_DECODE);
-      }
     for(i = 0; i < num_video_streams; i++)
-      {
       bgav_set_video_stream(file, i, BGAV_STREAM_DECODE);
-      }
+    for(i = 0; i < num_subtitle_streams; i++)
+      bgav_set_subtitle_stream(file, i, BGAV_STREAM_DECODE);
+    
     fprintf(stderr, "Starting decoders...");
     bgav_start(file);
     fprintf(stderr, "done\n");

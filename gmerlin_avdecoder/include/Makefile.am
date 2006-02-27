@@ -9,6 +9,7 @@ bswap.h \
 codecs.h \
 http.h \
 id3.h \
+language_table.h \
 mms.h \
 nanosoft.h \
 pes_header.h \

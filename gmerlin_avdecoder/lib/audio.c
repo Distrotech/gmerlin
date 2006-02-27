@@ -86,7 +86,8 @@ const char * bgav_get_audio_description(bgav_t * b, int s)
 
 const char * bgav_get_audio_language(bgav_t * b, int s)
   {
-  return b->tt->current_track->audio_streams[s].language;
+  return (b->tt->current_track->audio_streams[s].language[0] != '\0') ?
+    b->tt->current_track->audio_streams[s].language : (char*)0;
   }
 
 int bgav_audio_decode(bgav_stream_t * s, gavl_audio_frame_t * frame,

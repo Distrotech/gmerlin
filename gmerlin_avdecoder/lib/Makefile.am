@@ -305,6 +305,7 @@ in_pnm.c \
 in_rtsp.c \
 in_vcd.c \
 input.c \
+languages.c \
 metadata.c \
 mms.c \
 nanosoft.c \
@@ -352,6 +353,7 @@ r_smil.c \
 rtsp.c \
 sdp.c \
 stream.c \
+subtitle.c \
 superindex.c \
 targa.c \
 tcp.c \
