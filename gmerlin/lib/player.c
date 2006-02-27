@@ -138,6 +138,7 @@ bg_player_t * bg_player_create()
 
   bg_player_audio_create(ret);
   bg_player_video_create(ret);
+  bg_player_subtitle_create(ret);
   
   bg_player_input_create(ret);
   bg_player_oa_create(ret);
@@ -160,6 +161,9 @@ bg_player_t * bg_player_create()
 
   pthread_cond_init (&(ret->start_cond),  (pthread_condattr_t *)0);
   pthread_cond_init (&(ret->stop_cond),   (pthread_condattr_t *)0);
+
+  /* Subtitles are off by default */
+  ret->current_subtitle_stream = -1;
   return ret;
   }
 
@@ -172,6 +176,7 @@ void bg_player_destroy(bg_player_t * player)
   bg_player_ov_destroy(player);
   bg_player_audio_destroy(player);
   bg_player_video_destroy(player);
+  bg_player_subtitle_destroy(player);
   
   bg_msg_queue_destroy(player->command_queue);
   bg_msg_queue_destroy(player->to_oa_queue);

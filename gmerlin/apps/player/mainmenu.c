@@ -459,11 +459,11 @@ void main_menu_set_audio_info(main_menu_t * m, int stream,
   char * label;
   GtkWidget * w;
   if(info && language)
-    label = bg_sprintf("%s [%s]", info, language);
+    label = bg_sprintf("%s [%s]", info, bg_get_language_name(language));
   else if(info)
     label = bg_sprintf("%s", info);
   else if(language)
-    label = bg_sprintf("Stream %d [%s]", stream+1, language);
+    label = bg_sprintf("Stream %d [%s]", stream+1, bg_get_language_name(language));
   else
     label = bg_sprintf("Stream %d", stream+1);
 
@@ -479,11 +479,11 @@ void main_menu_set_video_info(main_menu_t * m, int stream,
   char * label;
   GtkWidget * w;
   if(info && language)
-    label = bg_sprintf("%s [%s]", info, language);
+    label = bg_sprintf("%s [%s]", info, bg_get_language_name(language));
   else if(info)
     label = bg_sprintf("%s", info);
   else if(language)
-    label = bg_sprintf("Stream %d [%s]", stream+1, language);
+    label = bg_sprintf("Stream %d [%s]", stream+1, bg_get_language_name(language));
   else
     label = bg_sprintf("Stream %d", stream+1);
   
@@ -501,11 +501,11 @@ void main_menu_set_subtitle_info(main_menu_t * m, int stream,
   char * label;
   GtkWidget * w;
   if(info && language)
-    label = bg_sprintf("%s [%s]", info, language);
+    label = bg_sprintf("%s [%s]", info, bg_get_language_name(language));
   else if(info)
     label = bg_sprintf("%s", info);
   else if(language)
-    label = bg_sprintf("Stream %d [%s]", stream+1, language);
+    label = bg_sprintf("Stream %d [%s]", stream+1, bg_get_language_name(language));
   else
     label = bg_sprintf("Stream %d", stream+1);
   
@@ -641,7 +641,7 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
                                                   ret->subtitle_stream_menu.menu,
                                                   ret->menu);
   /* Hide subtitle menu until it does something */
-  gtk_widget_hide(ret->subtitle_stream_item);
+  //  gtk_widget_hide(ret->subtitle_stream_item);
     
   ret->windows_item = create_submenu_item("Windows...",
                                           ret->windows_menu.menu,

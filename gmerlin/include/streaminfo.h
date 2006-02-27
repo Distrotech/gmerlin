@@ -65,6 +65,9 @@ typedef struct
   char * description;
   char * language;
   char * info;
+
+  int is_text; /* Subtitles have text format */
+  gavl_video_format_t format;
   } bg_subtitle_info_t;
 
 typedef struct

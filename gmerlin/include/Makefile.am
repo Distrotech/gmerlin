@@ -21,6 +21,7 @@ pluginregistry.h \
 remote.h \
 singlepic.h \
 streaminfo.h \
+subtitle.h \
 tcp.h \
 textrenderer.h \
 transcoder.h \
@@ -30,6 +31,7 @@ utils.h
 
 
 noinst_HEADERS = \
+language_table.h \
 playerprivate.h \
 treeprivate.h \
 registry_priv.h \

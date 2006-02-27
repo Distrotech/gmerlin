@@ -23,6 +23,7 @@
 
 #include <gtk/gtk.h>
 #include <gui_gtk/scrolltext.h>
+#include <gui_gtk/gtkutils.h>
 
 #include <utils.h>
 

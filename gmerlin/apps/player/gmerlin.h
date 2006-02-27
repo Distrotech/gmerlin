@@ -104,6 +104,7 @@ struct gmerlin_s
   bg_cfg_section_t * general_section;
   bg_cfg_section_t * audio_section;
   bg_cfg_section_t * video_section;
+  bg_cfg_section_t * subtitle_section;
   bg_cfg_section_t * lcdproc_section;
   bg_cfg_section_t * remote_section;
   bg_cfg_section_t * logwindow_section;

@@ -152,4 +152,9 @@ char * bg_create_unique_filename(char * format);
 #define BG_XML_SET_PROP(a, b, c) xmlSetProp(a, (xmlChar*)b, (xmlChar*)c)
 #define BG_XML_NEW_TEXT(a) xmlNewText((xmlChar*)a)
 
+/* iso-639 3cc -> Language name */
+
+const char * bg_get_language_name(const char * iso);
+
+
 #endif // __BG_UTILS_H_

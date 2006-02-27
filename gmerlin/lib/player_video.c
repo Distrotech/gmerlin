@@ -79,7 +79,7 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
                                                bg_player_ov_create_frame,
                                                (void*)(player->ov_context));
   
-  /* Initialize audio converter */
+  /* Initialize video converter */
 
   //  fprintf(stderr, "Initializing video converter...");
 

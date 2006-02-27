@@ -22,6 +22,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <language_table.h>
 
 /* stat stuff */
 #include <sys/types.h>
@@ -378,4 +379,17 @@ char * bg_descramble_string(const char *str)
   
   *newpos = '\0';
   return (newstr);
+  }
+
+const char * bg_get_language_name(const char * iso)
+  {
+  int i;
+  for(i = 0; i < sizeof(language_codes)/sizeof(language_codes[0]); i++)
+    {
+    if((language_codes[i].iso_639_b[0] == iso[0]) &&
+       (language_codes[i].iso_639_b[1] == iso[1]) &&
+       (language_codes[i].iso_639_b[2] == iso[2]))
+      return language_codes[i].name;
+    }
+  return (char*)0;
   }

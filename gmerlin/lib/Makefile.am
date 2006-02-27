@@ -35,6 +35,7 @@ player_input.c \
 player_oa.c \
 player_ov.c \
 player_audio.c \
+player_subtitle.c \
 player_thread.c \
 player_video.c \
 playercmd.c \
@@ -46,6 +47,7 @@ singlepic.c \
 socket.c \
 streaminfo.c \
 stringutils.c \
+subtitle.c \
 tcp.c \
 textrenderer.c \
 transcoder.c \

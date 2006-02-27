@@ -199,7 +199,7 @@ static void set_parameter_png(void * p, char * name,
     png->compression_level = val->val_i;
   if(!strcmp(name, "bit_mode"))
     {
-    fprintf(stderr, "SET BIT MODE: %s\n", val->val_str);
+    //    fprintf(stderr, "SET BIT MODE: %s\n", val->val_str);
     if(!strcmp(val->val_str, "Auto"))
       png->bit_mode = BITS_AUTO;
     else

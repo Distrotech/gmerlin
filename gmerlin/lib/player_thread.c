@@ -312,6 +312,16 @@ static int init_streams(bg_player_t * p)
                           "Cannot setup video playback (unknown error)", NULL);
     return 0;
     }
+  if(!bg_player_subtitle_init(p, p->current_subtitle_stream))
+    {
+    if(p->subtitle_stream.error_msg)
+      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                          p->subtitle_stream.error_msg, NULL);
+    else
+      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                          "Cannot setup subtitle playback (unknown error)", NULL);
+    return 0;
+    }
   return 1;
   }
 
@@ -337,6 +347,7 @@ static void player_cleanup(bg_player_t * player)
   
   bg_player_video_cleanup(player);
   bg_player_audio_cleanup(player);
+  bg_player_subtitle_cleanup(player);
   bg_player_time_reset(player);
 
   bg_msg_queue_list_send(player->message_queues,

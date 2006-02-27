@@ -935,6 +935,7 @@ bg_plugin_registry_save_image(bg_plugin_registry_t * r,
   if(gavl_video_converter_init(cnv, format, &tmp_format))
     {
     tmp_frame = gavl_video_frame_create(&tmp_format);
+    gavl_video_convert(cnv, frame, tmp_frame);
     if(!iw->write_image(handle->priv, tmp_frame))
       goto fail;
     }
@@ -947,6 +948,7 @@ bg_plugin_registry_save_image(bg_plugin_registry_t * r,
   fail:
   if(tmp_frame)
     gavl_video_frame_destroy(tmp_frame);
+  gavl_video_converter_destroy(cnv);
   }
 
 
@@ -1239,6 +1241,7 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
         *error_msg = bg_sprintf("Loading plugin failed");
       return 0;
       }
+    
     plugin = (bg_input_plugin_t*)((*ret)->plugin);
 
     if(plugin->set_callbacks)
@@ -1283,6 +1286,9 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
       continue;
         
     load_plugin(reg, info, ret);
+
+    if(!*ret)
+      continue;
     
     plugin = (bg_input_plugin_t*)((*ret)->plugin);
     //    fprintf(stderr, "Trying to load %s with %s...", location,

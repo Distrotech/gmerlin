@@ -24,7 +24,7 @@
 #include "parameter.h"
 #include "streaminfo.h"
 
-#define BG_PLUGIN_API_VERSION 3
+#define BG_PLUGIN_API_VERSION 4
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -298,7 +298,7 @@ typedef struct bg_input_plugin_s
   int (*set_audio_stream)(void * priv, int stream, bg_stream_action_t);
   int (*set_video_stream)(void * priv, int stream, bg_stream_action_t);
   int (*set_still_stream)(void * priv, int stream, bg_stream_action_t);
-  int (*set_subpicture_stream)(void * priv, int stream, bg_stream_action_t);
+  int (*set_subtitle_stream)(void * priv, int stream, bg_stream_action_t);
   int (*set_program)(void * priv, int program);
   
   /*
@@ -321,7 +321,18 @@ typedef struct bg_input_plugin_s
   /* Read one video frame (returns FALSE on EOF) */
 
   int (*read_video_frame)(void * priv, gavl_video_frame_t*, int stream);
-
+  
+  /* Read one pixmap subtitle (returns FALSE if no subtitle was
+     decoded yet or EOF) */
+  
+  int (*read_subtitle_overlay)(void * priv,
+                               gavl_overlay_t*, int stream);
+  
+  int (*read_subtitle_text)(void * priv,
+                            char ** text, int * text_alloc,
+                            int64_t * start_time,
+                            int64_t * duration, int stream);
+  
   /* The following 3 functions are only meaningful for plugins, which
      have the BG_PLUGIN_BYPASS flag set. */
 

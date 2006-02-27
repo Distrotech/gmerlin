@@ -53,6 +53,15 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 bg_player_set_video_parameter,
                 (void*)(g->player),
                 parameters);
+
+  parameters = bg_player_get_subtitle_parameters(g->player);
+  
+  bg_dialog_add(g->cfg_dialog,
+                "Subtitles",
+                g->subtitle_section,
+                bg_player_set_subtitle_parameter,
+                (void*)(g->player),
+                parameters);
   
   parameters = display_get_parameters(g->player_window->display);
 

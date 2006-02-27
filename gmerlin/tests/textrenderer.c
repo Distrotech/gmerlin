@@ -21,7 +21,7 @@ int main(int argc, char ** argv)
 
   if(argc != 2)
     {
-    fprintf(stderr, "usage: %s <font-name>\n");
+    fprintf(stderr, "usage: %s <font-name>\n", argv[0]);
     return 1;
     }
 
@@ -31,14 +31,20 @@ int main(int argc, char ** argv)
   val.val_color = malloc(4 * sizeof(float));
   /* Set parameters */
   val.val_color[0] = 1.0;
-  val.val_color[1] = 1.0;
-  val.val_color[2] = 1.0;
-  val.val_color[3] = 1.0;
+  val.val_color[1] = 0.0;
+  val.val_color[2] = 0.0;
+  val.val_color[3] = 0.5;
   bg_text_renderer_set_parameter(r, "color", &val);
   free(val.val_color);
-  //  val.val_str = "Sans 15";
+
+  /* Font */
   val.val_str = argv[1];
   bg_text_renderer_set_parameter(r, "font", &val);
+
+  /* Cache size */
+  
+  val.val_i = 255;
+  bg_text_renderer_set_parameter(r, "cache_size", &val);
   
   /* Initialize */
 
@@ -48,8 +54,10 @@ int main(int argc, char ** argv)
   frame_format.frame_height = 480;
   frame_format.pixel_width  = 1;
   frame_format.pixel_height = 1;
-  frame_format.pixelformat =  GAVL_YUV_420_P;
+  frame_format.pixelformat =  GAVL_RGB_FLOAT;
+  //  frame_format.pixelformat =  GAVL_YUV_444_P;
 
+  
   bg_text_renderer_init(r, &frame_format, &ovl_format);
 
   ovl.frame = gavl_video_frame_create(&ovl_format);
