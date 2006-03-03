@@ -973,6 +973,19 @@ int bgav_read_audio(bgav_t * bgav, gavl_audio_frame_t * frame, int stream,
                     int num_samples);
 
 /** \ingroup decode
+    \brief Check, if a new subtitle is available
+    \param bgav A decoder instance
+    \param stream Stream index (starting with 0)
+    \returns 1 if a subtitle is available.
+
+    Use this function to check in advance, if \ref bgav_read_subtitle_overlay or
+    \ref bgav_read_subtitle_text would return 1.
+
+*/
+
+int bgav_has_subtitle(bgav_t * bgav, int stream);
+
+/** \ingroup decode
     \brief Decode an overlay subtitle
     \param bgav A decoder instance
     \param frame The overlay to which the subtitle will be decoded.

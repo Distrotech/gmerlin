@@ -89,7 +89,8 @@ bgav_stream_t * bgav_track_find_stream(bgav_track_t * t, int stream_id)
       {
       if(t->audio_streams[i].action != BGAV_STREAM_MUTE)
         return &(t->audio_streams[i]);
-      return (bgav_stream_t *)0;
+      else
+        return (bgav_stream_t *)0;
       }
     }
   for(i = 0; i < t->num_video_streams; i++)
@@ -98,7 +99,8 @@ bgav_stream_t * bgav_track_find_stream(bgav_track_t * t, int stream_id)
       {
       if(t->video_streams[i].action != BGAV_STREAM_MUTE)
         return &(t->video_streams[i]);
-      return (bgav_stream_t *)0;
+      else
+        return (bgav_stream_t *)0;
       }
     }
   for(i = 0; i < t->num_subtitle_streams; i++)
@@ -107,7 +109,8 @@ bgav_stream_t * bgav_track_find_stream(bgav_track_t * t, int stream_id)
       {
       if(t->subtitle_streams[i].action != BGAV_STREAM_MUTE)
         return &(t->subtitle_streams[i]);
-      return (bgav_stream_t *)0;
+      else
+        return (bgav_stream_t *)0;
       }
     }
   return (bgav_stream_t *)0;

@@ -149,6 +149,13 @@ int bg_avdec_read_audio(void * priv,
   return bgav_read_audio(avdec->dec, frame, stream, num_samples);
   }
 
+int bg_avdec_has_subtitle(void * priv, int stream)
+  {
+  avdec_priv * avdec;
+  avdec = (avdec_priv*)(priv);
+  return bgav_has_subtitle(avdec->dec, stream);
+  }
+
 int bg_avdec_read_subtitle_overlay(void * priv,
                                    gavl_overlay_t * ovl, int stream)
   {
@@ -285,6 +292,7 @@ void bg_avdec_seek(void * priv, gavl_time_t * t)
   //          gavl_time_to_seconds(pos));
   bgav_seek(avdec->dec, t);
   }
+
 
 int bg_avdec_init(avdec_priv * avdec)
   {

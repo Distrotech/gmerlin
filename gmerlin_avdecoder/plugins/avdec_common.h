@@ -53,6 +53,7 @@ int bg_avdec_read_subtitle_text(void * priv,
                                 int64_t * duration,
                                 int stream);
 
+int bg_avdec_has_subtitle(void * priv, int stream);
 
 int bg_avdec_set_audio_stream(void * priv,
                                   int stream,

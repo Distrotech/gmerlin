@@ -249,6 +249,8 @@ bg_input_plugin_t the_plugin =
     /* Read one video frame (returns FALSE on EOF) */
     read_video_frame:      bg_avdec_read_video,
 
+    has_subtitle:          bg_avdec_has_subtitle,
+
     read_subtitle_text:    bg_avdec_read_subtitle_text,
     read_subtitle_overlay: bg_avdec_read_subtitle_overlay,
 

@@ -147,6 +147,13 @@ void bgav_packet_set_text_subtitle(bgav_packet_t * p,
                                    int64_t start,
                                    int64_t duration);
 
+void bgav_packet_get_text_subtitle(bgav_packet_t * p,
+                                   char ** text,
+                                   int * text_alloc,
+                                   gavl_time_t * start,
+                                   gavl_time_t * duration);
+
+
 /* packetbuffer.c */
 
 bgav_packet_buffer_t * bgav_packet_buffer_create();

@@ -199,7 +199,7 @@ static int ogm_header_read(bgav_input_context_t * input, ogm_header_t * ret)
     return 0;
     }
   }
-#if 1
+#if 0
 static void ogm_header_dump(ogm_header_t * h)
   {
   fprintf(stderr, "OGM Header\n");
@@ -228,7 +228,7 @@ static void ogm_header_dump(ogm_header_t * h)
   }
 #endif
 /* Dump entire structure of the file */
-#if 0
+#if 1
 static void dump_ogg(bgav_demuxer_context_t * ctx)
   {
   int i, j;
@@ -251,6 +251,8 @@ static void dump_ogg(bgav_demuxer_context_t * ctx)
       s = &track->audio_streams[j];
       stream_priv = (stream_priv_t*)(s->priv);
       fprintf(stderr, "Audio stream %d\n", j+1);
+      fprintf(stderr, "  Serialno: %d\n", s->stream_id);
+      fprintf(stderr, "  Language: %s\n", s->language);
       fprintf(stderr, "  Last granulepos: %lld\n",
               stream_priv->last_granulepos);
       fprintf(stderr, "  Metadata:\n");
@@ -261,8 +263,19 @@ static void dump_ogg(bgav_demuxer_context_t * ctx)
       s = &track->video_streams[j];
       stream_priv = (stream_priv_t*)(s->priv);
       fprintf(stderr, "Video stream %d\n", j+1);
+      fprintf(stderr, "  Serialno: %d\n", s->stream_id);
       fprintf(stderr, "  Last granulepos: %lld\n",
               stream_priv->last_granulepos);
+      fprintf(stderr, "  Metadata:\n");
+      bgav_metadata_dump(&stream_priv->metadata);
+      }
+    for(j = 0; j < track->num_subtitle_streams; j++)
+      {
+      s = &track->subtitle_streams[j];
+      stream_priv = (stream_priv_t*)(s->priv);
+      fprintf(stderr, "Subtitle stream %d\n", j+1);
+      fprintf(stderr, "  Serialno: %d\n", s->stream_id);
+      fprintf(stderr, "  Language: %s\n", s->language);
       fprintf(stderr, "  Metadata:\n");
       bgav_metadata_dump(&stream_priv->metadata);
       }
@@ -641,7 +654,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         bgav_input_close(input_mem);
         bgav_input_destroy(input_mem);
       
-        ogm_header_dump(&ogm_header);
+        //        ogm_header_dump(&ogm_header);
 
         /* Set up the stream from the OGM header */
         ogg_stream->fourcc_priv = FOURCC_OGM_VIDEO;
@@ -683,7 +696,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         bgav_input_close(input_mem);
         bgav_input_destroy(input_mem);
       
-        ogm_header_dump(&ogm_header);
+        //        ogm_header_dump(&ogm_header);
 
         /* Set up the stream from the OGM header */
         ogg_stream->fourcc_priv = FOURCC_OGM_TEXT;
@@ -755,7 +768,6 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         case FOURCC_OGM_TEXT:
           while(ogg_stream_packetout(&ogg_stream->os, &priv->op) == 1)
             {
-            append_extradata(s, &priv->op);
             ogg_stream->header_packets_read++;
             /* Second packet is vorbis comment starting after 7 bytes */
             if(ogg_stream->header_packets_read == 2)
@@ -769,7 +781,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
           ogg_stream->header_packets_read++;
           break;
         case FOURCC_SPEEX:
-          /* Comment packet (ignored for now) */
+          /* Comment packet */
           ogg_stream_packetout(&ogg_stream->os, &priv->op);
           if(ogg_stream->header_packets_read == 1)
             parse_vorbis_comment(s, priv->op.packet, priv->op.bytes);
@@ -852,6 +864,16 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       for(i = 0; i < track->num_video_streams; i++)
         {
         ogg_stream = (stream_priv_t*)(track->video_streams[i].priv);
+        if(ogg_stream->header_packets_read < ogg_stream->header_packets_needed)
+          done = 0;
+        }
+      }
+
+    if(done)
+      {
+      for(i = 0; i < track->num_subtitle_streams; i++)
+        {
+        ogg_stream = (stream_priv_t*)(track->subtitle_streams[i].priv);
         if(ogg_stream->header_packets_read < ogg_stream->header_packets_needed)
           done = 0;
         }
@@ -1355,7 +1377,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
     track_priv_1->end_pos = -1;
     }
   
-  //  dump_ogg(ctx);
+  dump_ogg(ctx);
   
   if(ctx->input->input->seek_byte)
     ctx->can_seek = 1;
@@ -1488,7 +1510,9 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   
   serialno   = ogg_page_serialno(&(priv->current_page));
   granulepos = ogg_page_granulepos(&(priv->current_page));
-    
+
+  fprintf(stderr, "Serialno: %d\n", serialno);
+  
   if(ogg_page_bos(&(priv->current_page)) && !ctx->input->input->seek_byte)
     {
     if(!new_streaming_track(ctx))
@@ -1508,14 +1532,6 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   if(!s)
     {
     //    fprintf(stderr, "No stream found for serialno %d\n", serialno);
-#if 0
-    if(serialno == 3)
-      {
-      fprintf(stderr, "Subtitle page:\n");
-      bgav_hexdump(priv->current_page.body, priv->current_page.body_len, 16);
-      
-      }
-#endif    
     priv->page_valid = 0;
     return 1;
     }
@@ -1677,7 +1693,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
                       s->data.video.format.frame_duration,
                       stream_priv->frame_counter);
 #endif         
-              bgav_hexdump(priv->op.packet, 16, 16);
+              // bgav_hexdump(priv->op.packet, 16, 16);
               }
             }
           }
@@ -1772,8 +1788,8 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         bgav_packet_done_write(p);
         break;
       case FOURCC_OGM_TEXT:
-        //        fprintf(stderr, "Subtitle page:\n");
-        //        bgav_hexdump(priv->current_page.body, priv->current_page.body_len, 16);
+        fprintf(stderr, "Subtitle packet:\n");
+        bgav_hexdump(priv->op.packet, priv->op.bytes, 16);
 
         if(priv->op.packet[0] & 0x01) /* Header is already read -> skip it */
           {
@@ -1858,7 +1874,11 @@ static void reset_track(bgav_track_t * track)
     
     track->video_streams[i].time_scaled = -1;
     }
-
+  
+  for(i = 0; i < track->num_subtitle_streams; i++)
+    {
+    ogg_stream_reset(&stream_priv->os);
+    }
   }
 
 /* Seeking in ogg: Gets quite complicated so we use iterative seeking */

@@ -64,6 +64,15 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
   return 1;
   }
 
+int bgav_has_subtitle(bgav_t * b, int stream)
+  {
+  bgav_stream_t * s = &(b->tt->current_track->subtitle_streams[stream]);
+  if(!bgav_packet_buffer_peek_packet_read(s->packet_buffer))
+    return 0;
+  return 1;
+  }
+
+
 void bgav_subtitle_dump(bgav_stream_t * s)
   {
   }
