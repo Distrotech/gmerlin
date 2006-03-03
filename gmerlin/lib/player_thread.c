@@ -91,6 +91,16 @@ static void msg_still_stream(bg_msg_t * msg,
   
   }
 
+static void msg_subtitle_stream(bg_msg_t * msg,
+                                const void * data)
+  {
+  bg_player_t * player;
+  player = (bg_player_t*)data;
+
+  bg_msg_set_id(msg, BG_PLAYER_MSG_SUBTITLE_STREAM);
+  bg_msg_set_arg_int(msg, 0, player->current_subtitle_stream);
+  }
+
 static void msg_num_streams(bg_msg_t * msg,
                             const void * data)
   {
@@ -498,6 +508,10 @@ static void play_cmd(bg_player_t * p,
                            msg_still_stream,
                            p);
     }
+  if(p->do_subtitle_overlay || p->do_subtitle_text)
+    {
+    bg_msg_queue_list_send(p->message_queues, msg_subtitle_stream, p);
+    }
   else if(had_video)
     bg_player_ov_standby(p->ov_context);
   
@@ -723,7 +737,11 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
     {
     bg_fifo_clear(player->video_stream.fifo);
     }
-    
+  if(player->do_subtitle_text || player->do_subtitle_overlay)
+    {
+    bg_fifo_clear(player->video_stream.fifo);
+    }
+  
   /* Resync */
   //  fprintf(stderr, "Preload\n");
 

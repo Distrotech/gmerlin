@@ -51,6 +51,8 @@ bg_fifo_t * bg_fifo_create(int num_frames,
 void bg_fifo_destroy(bg_fifo_t * , void (*destroy_func)(void*, void*), void * data);
 
 void * bg_fifo_lock_read(bg_fifo_t*, bg_fifo_state_t * state);
+void * bg_fifo_try_lock_read(bg_fifo_t*f, bg_fifo_state_t * state);
+
 void * bg_fifo_get_read(bg_fifo_t * f);
 
 void   bg_fifo_unlock_read(bg_fifo_t*);

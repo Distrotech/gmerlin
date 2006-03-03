@@ -81,7 +81,6 @@ typedef struct
 
 typedef struct
   {
-  int must_render; /* 1 for text subtitles */
   bg_text_renderer_t * renderer;
   gavl_video_converter_t * cnv;
   
@@ -89,9 +88,12 @@ typedef struct
 
   pthread_mutex_t config_mutex;
 
-  gavl_video_format_t input_format;
-  gavl_video_format_t output_format;
+  gavl_video_format_t format;
   const char * error_msg;
+
+  char * buffer;
+  int buffer_alloc;
+  
   } bg_player_subtitle_stream_t;
 
 /* The player */
@@ -256,8 +258,12 @@ void bg_player_ov_update_still(bg_player_ov_context_t * ctx);
 
 void bg_player_ov_standby(bg_player_ov_context_t * ctx);
 
+/* Create/destroy frames */
 void * bg_player_ov_create_frame(void * data);
 void bg_player_ov_destroy_frame(void * data, void * frame);
+
+/* Set this extra because we must initialize subtitles after the video output */
+void bg_player_ov_set_subtitle_format(void * data, const gavl_video_format_t * format);
 
 void bg_player_ov_set_plugin(bg_player_t * player,
                              bg_plugin_handle_t * handle);

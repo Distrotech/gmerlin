@@ -535,7 +535,7 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
                        &ret->windows_menu.logwindow_id);
   gtk_widget_show(ret->windows_menu.menu);
 
-  /* Audio streams */
+  /* Streams */
 
   stream_menu_init(&ret->audio_stream_menu, gmerlin);
   stream_menu_init(&ret->video_stream_menu, gmerlin);
@@ -640,8 +640,6 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   ret->subtitle_stream_item = create_submenu_item("Subtitles...",
                                                   ret->subtitle_stream_menu.menu,
                                                   ret->menu);
-  /* Hide subtitle menu until it does something */
-  //  gtk_widget_hide(ret->subtitle_stream_item);
     
   ret->windows_item = create_submenu_item("Windows...",
                                           ret->windows_menu.menu,

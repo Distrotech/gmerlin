@@ -40,7 +40,11 @@ struct bg_player_ov_context_s
   
   const char * error_msg;
   int still_shown;
-  
+
+  gavl_overlay_t       current_subtitle;
+  gavl_overlay_t     * next_subtitle;
+  int subtitle_id; /* Stream id for subtitles in the output plugin */
+  int has_subtitle;
   };
 
 /* Callback functions */
@@ -276,6 +280,12 @@ void bg_player_ov_cleanup(bg_player_ov_context_t * ctx)
       //      fprintf(stderr, "done\n");
     ctx->still_frame = (gavl_video_frame_t*)0;
     }
+  if(ctx->current_subtitle.frame)
+    {
+    gavl_video_frame_destroy(ctx->current_subtitle.frame);
+    ctx->current_subtitle.frame = (gavl_video_frame_t*)0;
+    }
+  
   pthread_mutex_unlock(&ctx->still_mutex);
 
   bg_plugin_lock(ctx->plugin_handle);
@@ -286,6 +296,22 @@ void bg_player_ov_cleanup(bg_player_ov_context_t * ctx)
 void bg_player_ov_sync(bg_player_t * p)
   {
   p->ov_context->do_sync  = 1;
+  }
+
+/* Set this extra because we must initialize subtitles after the video output */
+void bg_player_ov_set_subtitle_format(void * data, const gavl_video_format_t * format)
+  {
+  bg_player_ov_context_t * ctx;
+  ctx = (bg_player_ov_context_t*)data;
+
+  /* Add subtitle stream for plugin */
+  
+  ctx->subtitle_id = ctx->plugin->add_overlay_stream(ctx->priv, format);
+
+  /* Allocate private overlay frame */
+  ctx->current_subtitle.frame = gavl_video_frame_create(format);
+
+  //  fprintf(stderr, "bg_player_ov_set_subtitle_format\n");
   }
 
 
@@ -338,6 +364,8 @@ static void ping_func(void * data)
 
 void * bg_player_ov_thread(void * data)
   {
+  gavl_overlay_t tmp_overlay;
+  
   bg_player_ov_context_t * ctx;
   gavl_time_t diff_time, frame_time;
   gavl_time_t current_time;
@@ -383,16 +411,67 @@ void * bg_player_ov_thread(void * data)
       //      fprintf(stderr, "Got no frame\n");
       break;
       }
-    bg_player_time_get(ctx->player, 1, &current_time);
 
+    /* Get frame time */
     frame_time = gavl_time_unscale(ctx->player->video_stream.output_format.timescale,
                                    ctx->frame->time_scaled);
+
+    /* Subtitle handling */
+    if(ctx->player->do_subtitle_text || ctx->player->do_subtitle_overlay)
+      {
+      /* Try to get next subtitle */
+      if(!ctx->next_subtitle)
+        {
+        ctx->next_subtitle = bg_fifo_try_lock_read(ctx->player->subtitle_stream.fifo,
+                                                  &state);
+        }
+      /* Check if the overlay is expired */
+      if(ctx->has_subtitle)
+        {
+        if((ctx->current_subtitle.frame->duration_scaled >= 0) &&
+           (frame_time >= ctx->current_subtitle.frame->time_scaled +
+            ctx->current_subtitle.frame->duration_scaled))
+          {
+          ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
+          fprintf(stderr, "Overlay expired (%f > %f + %f)\n",
+                  gavl_time_to_seconds(frame_time),
+                  gavl_time_to_seconds(ctx->current_subtitle.frame->time_scaled),
+                  gavl_time_to_seconds(ctx->current_subtitle.frame->duration_scaled));
+          ctx->has_subtitle = 0;
+          }
+        }
+      
+      /* Check if new overlay should be used */
+      
+      if(ctx->next_subtitle)
+        {
+        if(frame_time >= ctx->next_subtitle->frame->time_scaled)
+          {
+          memcpy(&tmp_overlay, ctx->next_subtitle, sizeof(tmp_overlay));
+          memcpy(ctx->next_subtitle, &(ctx->current_subtitle),
+                 sizeof(tmp_overlay));
+          memcpy(&(ctx->current_subtitle), &tmp_overlay, sizeof(tmp_overlay));
+          ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id,
+                                   &(ctx->current_subtitle));
+          
+          fprintf(stderr, "New Overlay\n");
+          ctx->has_subtitle = 1;
+          ctx->next_subtitle = (gavl_overlay_t*)0;
+          bg_fifo_unlock_read(ctx->player->subtitle_stream.fifo);
+          }
+        }
+      }
+
+    /* Check Timing */
+    bg_player_time_get(ctx->player, 1, &current_time);
+    
 #if 0
     fprintf(stderr, "F: %f, C: %f\n",
             gavl_time_to_seconds(frame_time),
             gavl_time_to_seconds(current_time));
 #endif
 
+    /* Check for subtitle */
     
     
     if(!ctx->do_sync)

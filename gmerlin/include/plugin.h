@@ -299,7 +299,7 @@ typedef struct bg_input_plugin_s
   int (*set_video_stream)(void * priv, int stream, bg_stream_action_t);
   int (*set_still_stream)(void * priv, int stream, bg_stream_action_t);
   int (*set_subtitle_stream)(void * priv, int stream, bg_stream_action_t);
-  int (*set_program)(void * priv, int program);
+  //  int (*set_program)(void * priv, int program);
   
   /*
    *  Start decoding.
@@ -321,7 +321,9 @@ typedef struct bg_input_plugin_s
   /* Read one video frame (returns FALSE on EOF) */
 
   int (*read_video_frame)(void * priv, gavl_video_frame_t*, int stream);
-  
+
+  int (*has_subtitle)(void * priv, int stream);
+    
   /* Read one pixmap subtitle (returns FALSE if no subtitle was
      decoded yet or EOF) */
   
@@ -467,7 +469,17 @@ typedef struct bg_ov_plugin_s
          
   int  (*open)(void *, gavl_video_format_t*, const char * window_title);
   void (*put_video)(void * priv, gavl_video_frame_t*);
-
+  
+  /*
+   *  Add a stream for transparent overlays.
+   *  It's up to the plugin, if they are realized in hardware or
+   *  with a gavl_overlay_blend_context_t, but they must be there.
+   *  add_overlay_stream() must be called AFTER open()
+   */
+  
+  int (*add_overlay_stream)(void*, const gavl_video_format_t * format);
+  void (*set_overlay)(void*, int stream, gavl_overlay_t * ovl);
+  
   /* 
    *  Second Operation mode:
    *  Put a still image. This will tell the plugin to remember the frame

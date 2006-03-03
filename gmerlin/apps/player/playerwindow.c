@@ -482,6 +482,7 @@ static void handle_message(player_window_t * win,
       break;
     case BG_PLAYER_MSG_SUBTITLE_STREAM:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      fprintf(stderr, "Subtitle stream: %d\n", arg_i_1);
       main_menu_set_subtitle_index(win->main_menu, arg_i_1);
       break;
     case BG_PLAYER_MSG_AUDIO_DESCRIPTION:

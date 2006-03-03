@@ -139,12 +139,13 @@ bg_fifo_t * bg_fifo_create(int num_frames,
   
   tmp_frame = create_frame(create_func, data);
   ret->frames = tmp_frame;
-  
+
   for(i = 1; i < num_frames; i++)
     {
     tmp_frame->next = create_frame(create_func, data);
     tmp_frame = tmp_frame->next;
     }
+  
   ret->num_frames = num_frames;
   tmp_frame->next = ret->frames;
 
@@ -211,6 +212,28 @@ void * bg_fifo_lock_read(bg_fifo_t*f, bg_fifo_state_t * state)
 
   return (*state == BG_FIFO_PLAYING) ? f->output_frame->frame : (void*)0;
   }
+
+void * bg_fifo_try_lock_read(bg_fifo_t*f, bg_fifo_state_t * state)
+  {
+  *state = get_state(f);
+  
+  if(*state != BG_FIFO_PLAYING)
+    return (void *)0;
+
+  if(sem_trywait(&(f->output_frame->produced)))
+    return (void *)0;
+
+  if(f->output_frame->eof)
+    {
+    //    fprintf(stderr, "FIFO EOF\n");
+    *state = BG_FIFO_STOPPED;
+    bg_fifo_set_state(f, *state);
+    return (void*)0;
+    }
+  //  fprintf(stderr, "done\n");
+  return f->output_frame->frame;
+  }
+
 
 void * bg_fifo_get_read(bg_fifo_t * f)
   {

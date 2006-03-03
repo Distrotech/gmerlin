@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include <parameter.h>
 #include <textrenderer.h>
@@ -45,9 +46,9 @@ int main(int argc, char ** argv)
   
   val.val_i = 255;
   bg_text_renderer_set_parameter(r, "cache_size", &val);
-  
   /* Initialize */
 
+  memset(&frame_format, 0, sizeof(frame_format));
   frame_format.image_width  = 640;
   frame_format.image_height = 480;
   frame_format.frame_width  = 640;
@@ -83,6 +84,8 @@ int main(int argc, char ** argv)
   
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);
+
+  gavl_video_frame_destroy(ovl.frame);
   
   /* Cleanup */
     

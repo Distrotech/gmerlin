@@ -47,7 +47,6 @@ singlepic.c \
 socket.c \
 streaminfo.c \
 stringutils.c \
-subtitle.c \
 tcp.c \
 textrenderer.c \
 transcoder.c \

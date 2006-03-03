@@ -319,7 +319,47 @@ typedef struct
   float squeeze;
   float zoom;
 
+  /* Overlay support */
+
+  int num_overlay_streams;
+
+  struct
+    {
+    gavl_overlay_blend_context_t * ctx;
+    gavl_overlay_t * ovl;
+    } * overlay_streams;
   } x11_t;
+
+/* Overlay support */
+
+static int add_overlay_stream_x11(void * data, const gavl_video_format_t * format)
+  {
+  x11_t * x11 = (x11_t *)data;
+
+  /* Realloc */
+  x11->overlay_streams =
+    realloc(x11->overlay_streams,
+            (x11->num_overlay_streams+1) * sizeof(*(x11->overlay_streams)));
+  memset(&x11->overlay_streams[x11->num_overlay_streams], 0,
+         sizeof(x11->overlay_streams[x11->num_overlay_streams]));
+
+  /* Initialize */
+
+  x11->overlay_streams[x11->num_overlay_streams].ctx = gavl_overlay_blend_context_create();
+
+  gavl_overlay_blend_context_init(x11->overlay_streams[x11->num_overlay_streams].ctx,
+                                  &(x11->video_format), format);
+  x11->num_overlay_streams++;
+  return x11->num_overlay_streams - 1;
+  }
+
+static void set_overlay_x11(void * data, int stream, gavl_overlay_t * ovl)
+  {
+  x11_t * x11 = (x11_t *)data;
+  x11->overlay_streams[stream].ovl = ovl;
+  gavl_overlay_blend_context_set_overlay(x11->overlay_streams[stream].ctx, ovl);
+  }
+
 
 static void create_parameters(x11_t * x11);	
 
@@ -1613,11 +1653,20 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
   XSync(priv->dpy, False);
   }
 
+static void blend_overlays(x11_t * priv, gavl_video_frame_t * frame)
+  {
+  int i;
+  for(i = 0; i < priv->num_overlay_streams; i++)
+    gavl_overlay_blend(priv->overlay_streams[i].ctx, frame);
+  }
+
 static void put_video_x11(void * data, gavl_video_frame_t * frame)
   {
   x11_t * priv = (x11_t*)data;
   priv->still_frame = NULL;
   priv->do_still = 0;
+
+  blend_overlays(priv, frame);
   write_frame_x11(data, frame);
   //  fprintf(stderr, "put_video_x11\n");
   }
@@ -1628,6 +1677,8 @@ static void put_still_x11(void * data, gavl_video_frame_t * frame)
   x11_t * priv = (x11_t*)data;
   
   priv->still_frame = frame;
+
+  blend_overlays(priv, frame);
   write_frame_x11(data, priv->still_frame);
   priv->do_still = 1;
   //  fprintf(stderr, "put_still_x11\n");
@@ -2122,6 +2173,11 @@ bg_ov_plugin_t the_plugin =
 
     open:           open_x11,
     put_video:      put_video_x11,
+
+    add_overlay_stream: add_overlay_stream_x11,
+    set_overlay:        set_overlay_x11,
+
+    
     alloc_frame:    alloc_frame_x11,
     free_frame:     free_frame_x11,
     handle_events:  handle_events_x11,

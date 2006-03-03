@@ -163,7 +163,8 @@ bg_player_t * bg_player_create()
   pthread_cond_init (&(ret->stop_cond),   (pthread_condattr_t *)0);
 
   /* Subtitles are off by default */
-  ret->current_subtitle_stream = -1;
+  //  ret->current_subtitle_stream = -1;
+  
   return ret;
   }
 
