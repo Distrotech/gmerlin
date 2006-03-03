@@ -39,11 +39,11 @@ BASE="yum apt-get"
 BASE_HELP="rpm dpkg"
 TOOLS="tar grep wget findutils"
 
-APT_LIBS_OPTI="libtiff4-dev libpng12-dev libjpeg62-dev libgtk2.0-dev libvorbis-dev libesd0-dev libxt-dev libgtk1.2-dev xmms-dev"
+APT_LIBS_OPTI="libttf-dev libfontconfig1-dev libtiff4-dev libpng12-dev libjpeg62-dev libgtk2.0-dev libvorbis-dev libesd0-dev libxt-dev libgtk1.2-dev xmms-dev"
 APT_LIBS_NEED="libasound2-dev zlib1g-dev libxml2-dev libxinerama-dev libxv-dev libflac-dev libsmbclient-dev libxxf86vm-dev x11proto-video-dev"
 APT_LIBS_IMPO="autoconf automake1.9 build-essential libtool"
 
-YUM_LIBS_OPTI="libpng-devel libtiff-devel libvorbis-devel esound-devel flac-devel libjpeg-devel"
+YUM_LIBS_OPTI="libpng-devel libtiff-devel libvorbis-devel esound-devel flac-devel libjpeg-devel fontconfig-devel freetype-devel"
 YUM_LIBS_NEED="alsa-lib-devel libxml2-devel samba-common xmms-devel xorg-x11-devel zlib-devel gtk+-devel gtk2-devel"
 YUM_LIBS_IMPO="gcc gcc-c++ autoconf automake"
 
@@ -56,7 +56,7 @@ COL_GRE="\033[32m"    ;    COL_GRE_HIGH="\033[32;1m"    ;    COL_GRE_LINE="\033[
 COL_YEL="\033[33m"    ;    COL_YEL_HIGH="\033[33;1m"    ;    COL_YEL_LINE="\033[33;4m"    ;    COL_YEL_LINE_HIGH="\033[33;4;1m"
 COL_BLU="\033[34m"    ;    COL_BLU_HIGH="\033[34;1m"    ;    COL_BLU_LINE="\033[34;4m"    ;    COL_BLU_LINE_HIGH="\033[34;4;1m"
 
-                                             # Define the POSITION strings #
+					      # Define the POSITION strings #
 POSITION_HEADLINE="\n\033[1C"               ;          POSITION_HEADLINE_COMMENT="\033[2C"
 POSITION_HEADLINE_COMMENT_2="\033[3C"       ;          POSITION_INFO="\033[4C"       
 POSITION_STATUS="\r\033[56C"                ;          POSITION_DISKRIPTION="\r\033[55C"
@@ -473,8 +473,8 @@ function CHECK_PACKETS_FUNC()
 	  fi
       elif [ "$1" = "dpkg" ]
 	  then
-	  dpkg --get-selections $i | grep $i >& $LOGS/BUG_$i
-	  #dpkg -l | grep $i >& $LOGS/BUG_$i
+	  #dpkg --get-selections $i | grep $i >& $LOGS/BUG_$i
+	  dpkg -L $i >& $LOGS/BUG_$i
 	  if test $? = 0 
 	      then
 	      DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
@@ -960,13 +960,20 @@ fi
 PRINT_PAGE_HEAD_LINE_FUNC "Prepairing the System installation" "-e"
 
 					       # Define MACKER for this funktion #
-ERROR=""                        ;            ERROR_SAVE=""       
+ERROR=""                        ;            ERROR_SAVE=""                      ;               ALL_PACKS=""
 
                                           # Begin with find PKG and gmerlin COMPONENTS #
 PRINT_HEAD_LINE_FUNC "Prepaire the SYSTEM conditions:"
 if [ "$ANSWER" = true ]
     then
-    PRINT_COMMENT_LINE_FUNC "(Build PGK_CONFIG and find/download gmerlin Packets)"
+    PRINT_COMMENT_LINE_FUNC "(Build PGK_CONFIG, find/download gmerlin and unpack/check it)"
+    
+                                                   # Build PKG_CONFIG_PATH #     
+    PRINT_INFO_LINE_FUNC "pkg_config_path"
+    FIND_PKG_FUNC "$LOGS/BUG_pkg"
+    if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
+    export PKG_CONFIG_PATH=$PKG_CONF_NEW ; READY_EXIT_FUNC "$COL_DEF Can not export$COL_RED_LINE_HIGH PKG_CONFIG_PATH $COL_DEF"
+    
                                               # Define the newest ALL-IN-ONE packs #
     PRINT_INFO_LINE_FUNC "find newest gmerlin-all-in-one"
     FIND_NEWEST_PACKET_FUNC "gmerlin-all-in-one"
@@ -979,14 +986,7 @@ if [ "$ANSWER" = true ]
     GMERLIN_DEPENDENCIES_PACKETS_NAME=$NEWEST
     
     ALL_PACKS="$GMERLIN_DEPENDENCIES_PACKETS_NAME $GMERLIN_ALL_IN_ONE_PACKETS_NAME"
-
-      
-                                                   # Build PKG_CONFIG_PATH #     
-    PRINT_INFO_LINE_FUNC "pkg_config_path"
-    FIND_PKG_FUNC "$LOGS/BUG_pkg"
-    if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
-    export PKG_CONFIG_PATH=$PKG_CONF_NEW ; READY_EXIT_FUNC "$COL_DEF Can not export$COL_RED_LINE_HIGH PKG_CONFIG_PATH $COL_DEF"
-    
+  
                                                 # Find GMERLIN components #
     PRINT_INFO_LINE_FUNC "find $GMERLIN_DEPENDENCIES_PACKETS_NAME"
     echo -ne "$POSITION_STATUS Please wait ..."
@@ -1126,10 +1126,10 @@ READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF dire
 ERROR=false                        ;            ERROR_SAVE=false       
 
                                                 # UNPACK AND CHECK THE PACKETS #
-PRINT_HEAD_LINE_FUNC "Unpack/check the GMERLIN Packets:"
-if [ "$ANSWER" = true ]
-    then
-    PRINT_COMMENT_LINE_FUNC "(After unpack, check if the Packets complite)"
+#PRINT_HEAD_LINE_FUNC "Unpack/check the GMERLIN Packets:"
+#if [ "$ANSWER" = true ]
+#    then
+#    PRINT_COMMENT_LINE_FUNC "(After unpack, check if the Packets complite)"
     for i in $ALL_PACKS
 	do
 	PRINT_INFO_LINE_FUNC "unpack $i"
@@ -1176,7 +1176,7 @@ if [ "$ANSWER" = true ]
 	PRINT_NEW_LINE_FUNC 2
 	exit
     fi
-fi
+#fi
 
 
 
@@ -1190,78 +1190,83 @@ PRINT_PAGE_HEAD_LINE_FUNC "Installation of Gmerlin Packets" "-e"
 ERROR=false                        ;            ERROR_SAVE=""       ;    FILE=""
 
                                           # Begin with find PKG and gmerlin COMPONENTS #
-PRINT_HEAD_LINE_FUNC "Install the GMERLIN Packets:"
-if [ "$ANSWER" = true ]
+if [ "$ALL_PACKS" != "" ]
     then
-    PRINT_COMMENT_LINE_FUNC "(Install to /opt/gmerlin/...)"
-    for i in $ALL_PACKS
-	do
-	ERROR=false
-	PRINT_COMMENT_2_LINE_FUNC "Install `echo $i| awk -F "." '{print $1}'`:"
-	echo -ne "\033[1A$POSITION_DISKRIPTION$YES_NO"
-	AUTO_CHECK_FUNC ; YES_NO_FUNC ; echo -e "$YES_NO_EXIT_CLEAR"
-	if [ "$ANSWER" = true ]
-	    then
-	    DIR=`echo $i| awk -F "." '{print $1}'`
-	    cd $DIR >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$DIR$COL_DEF directory"
-	    if test -f dirs 
-		then
-		for i in `cat dirs`
-		  do
-		  PACK=$i
-		  PRINT_INFO_LINE_FUNC "Install $PACK"
-		  ./build.sh $PACK 2>&1 | tee $LOGS/$PACK.build.log | awk '{ printf "'$POSITION_STATUS'[ %s", substr("/-\\|", NR % 4, 1) ; printf "%s", substr("/-\\|", NR % 4, 1) ; printf "%s", substr("/-\\|", NR % 4, 1) ; printf "%s ]", substr("/-\\|", NR % 4, 1)}'
-		  grep -q 'build.sh completed successfully' $LOGS/$PACK.build.log
-		  if [ "$?" = "0" ]
+    PRINT_HEAD_LINE_FUNC "Install the GMERLIN Packets:"
+    if [ "$ANSWER" = true ]
+	then
+	PRINT_COMMENT_LINE_FUNC "(Install to /opt/gmerlin/...)"
+	for i in $ALL_PACKS
+	  do
+	  ERROR=false
+	  PRINT_COMMENT_2_LINE_FUNC "Install `echo $i| awk -F "." '{print $1}'`:"
+	  echo -ne "\033[1A$POSITION_DISKRIPTION$YES_NO"
+	  AUTO_CHECK_FUNC ; YES_NO_FUNC ; echo -e "$YES_NO_EXIT_CLEAR"
+	  if [ "$ANSWER" = true ]
+	      then
+	      DIR=`echo $i| awk -F "." '{print $1}'`
+	      cd $DIR >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$DIR$COL_DEF directory"
+	      if test -f dirs 
+		  then
+		  for i in `cat dirs`
+		    do
+		    PACK=$i
+		    PRINT_INFO_LINE_FUNC "Install $PACK"
+		    ./build.sh $PACK 2>&1 | tee $LOGS/$PACK.build.log | awk '{ printf "'$POSITION_STATUS'[ %s", substr("/-\\|", NR % 4, 1) ; printf "%s", substr("/-\\|", NR % 4, 1) ; printf "%s", substr("/-\\|", NR % 4, 1) ; printf "%s ]", substr("/-\\|", NR % 4, 1)}'
+		    grep -q 'build.sh completed successfully' $LOGS/$PACK.build.log
+		    if [ "$?" = "0" ]
+			then
+			DEL_FILE_FUNC "$LOGS/$PACK.build.log" "Can not delete file"
+			echo -e "$OK2"
+		    else
+			FILE=`find -name config.log | find -name $i`
+			cd $FILE >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$FILE$COL_DEF directory" ; FILE=""
+			FILE=`find -type f -name config.log`  
+			if [ "$FILE" != "" ]
+			    then
+			    cp "$FILE" "$INSTALL_HOME/$PACK.config.log" >& .DUMP ; READY_EXIT_FUNC "Can not copy config.log file" 
+			    cp "$FILE" "$LOGS/$PACK.config.log" >& .DUMP ; READY_EXIT_FUNC "Can not copy config.log file" 
+			fi
+			cd $HOME/$DIR >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$DIR$COL_DEF directory"
+			FILE=""
+			if test -f $LOGS/$PACK.build.log
+			    then
+			    cp "$LOGS/$PACK.build.log" "$INSTALL_HOME/$PACK.build.log" >& .DUMP ; READY_EXIT_FUNC "Can not copy build.log file" 
+			fi
+			ERROR=true
+			echo -e "$FAIL2"
+		    fi
+		  done
+		  PRINT_INFO_LINE_FUNC "$COL_GRE$DIR"
+		  if [ "$ERROR" = false ]
 		      then
-		      DEL_FILE_FUNC "$LOGS/$PACK.build.log" "Can not delete file"
-		      echo -e "$OK2"
+		      echo -e "$OK"
 		  else
-		      FILE=`find -name config.log | find -name $i`
-		      cd $FILE >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$FILE$COL_DEF directory" ; FILE=""
-		      FILE=`find -type f -name config.log`  
-		      if [ "$FILE" != "" ]
-			  then
-			  cp "$FILE" "$INSTALL_HOME/$PACK.config.log" >& .DUMP ; READY_EXIT_FUNC "Can not copy config.log file" 
-			  cp "$FILE" "$LOGS/$PACK.config.log" >& .DUMP ; READY_EXIT_FUNC "Can not copy config.log file" 
-		      fi
-		      cd $HOME/$DIR >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$DIR$COL_DEF directory"
-		      FILE=""
-		      if test -f $LOGS/$PACK.build.log
-			  then
-			  cp "$LOGS/$PACK.build.log" "$INSTALL_HOME/$PACK.build.log" >& .DUMP ; READY_EXIT_FUNC "Can not copy build.log file" 
-		      fi
-		      ERROR=true
-		      echo -e "$FAIL2"
+		      ERROR_SAVE=true
+		      echo -e "$FAIL"
 		  fi
-		done
-		PRINT_INFO_LINE_FUNC "$COL_GRE$DIR"
-		if [ "$ERROR" = false ]
-		    then
-		    echo -e "$OK"
-		else
-		    ERROR_SAVE=true
-		    echo -e "$FAIL"
-		fi
-	    else
-		PRINT_INFO_LINE_FUNC "$COL_RED$DIR"
-		ERROR_SAVE=true
-		echo -e "$FAIL"
-	    fi
-	    cd $HOME >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
-	fi
+	      else
+		  PRINT_INFO_LINE_FUNC "$COL_RED$DIR"
+		  ERROR_SAVE=true
+		  echo -e "$FAIL"
+	      fi
+	      cd $HOME >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
+	  fi
  					 # If ERROR #
-	if [ "$ERROR" = true ]
-	    then
-	    PRINT_NEW_LINE_FUNC 1
-	    PRINT_ERROR_MESSAGE_LINE_FUNC ".............................................." "-e"
-	    PRINT_ERROR_MESSAGE_LINE_FUNC ".............................................." "-e"
-	    PRINT_NEW_LINE_FUNC 1
-	fi
-    done
+	  if [ "$ERROR" = true ]
+	      then
+	      PRINT_NEW_LINE_FUNC 1
+	      PRINT_ERROR_MESSAGE_LINE_FUNC ".............................................." "-e"
+	      PRINT_ERROR_MESSAGE_LINE_FUNC ".............................................." "-e"
+	      PRINT_NEW_LINE_FUNC 1
+	  fi
+	done
+    fi
+else
+    PRINT_NEW_LINE_FUNC 1
+    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_DEF You must first "$COL_RED_LINE_HIGH"Prepairing"$COL_DEF" the System installation" "-e"
+    PRINT_NEW_LINE_FUNC 1
 fi
-
-
 
 
 ############################################### CLEAN UP AND EXIT INSTALLATION ##############################################################
