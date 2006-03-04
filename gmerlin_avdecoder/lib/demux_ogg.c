@@ -375,7 +375,7 @@ static int get_page(bgav_demuxer_context_t * ctx)
   if(priv->page_valid)
     return 1;
 
-  while(!ogg_sync_pageout(&(priv->oy), &(priv->current_page)))
+  while(ogg_sync_pageout(&(priv->oy), &(priv->current_page)) != 1)
     {
     if(!get_data(ctx))
       return 0;
@@ -1345,7 +1345,14 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
            (ctx->tt->tracks[i].duration < stream_duration))
           ctx->tt->tracks[i].duration = stream_duration;
         }
+      for(j = 0; j < ctx->tt->tracks[i].num_subtitle_streams; j++)
+        {
+        stream_priv =
+          (stream_priv_t*)(ctx->tt->tracks[i].subtitle_streams[j].priv);
 
+        ogg_stream_reset(&stream_priv->os);
+        }
+      
       get_metadata(&ctx->tt->tracks[i]);
 
       /* If we have more than one track,. we'll want the track name from the
@@ -1511,7 +1518,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
   serialno   = ogg_page_serialno(&(priv->current_page));
   granulepos = ogg_page_granulepos(&(priv->current_page));
 
-  fprintf(stderr, "Serialno: %d\n", serialno);
+  //  fprintf(stderr, "Serialno: %d\n", serialno);
   
   if(ogg_page_bos(&(priv->current_page)) && !ctx->input->input->seek_byte)
     {
@@ -1541,7 +1548,8 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           ogg_page_granulepos(&(priv->current_page)),
           ogg_page_continued(&(priv->current_page)));
 #endif
-  ogg_stream_pagein(&stream_priv->os, &(priv->current_page));
+  if(ogg_stream_pagein(&stream_priv->os, &(priv->current_page)))
+    fprintf(stderr, "ogg_stream_pagein failed\n");
   priv->page_valid = 0;
   
   
@@ -1788,8 +1796,8 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         bgav_packet_done_write(p);
         break;
       case FOURCC_OGM_TEXT:
-        fprintf(stderr, "Subtitle packet:\n");
-        bgav_hexdump(priv->op.packet, priv->op.bytes, 16);
+        //        fprintf(stderr, "Subtitle packet:\n");
+        //        bgav_hexdump(priv->op.packet, priv->op.bytes, 16);
 
         if(priv->op.packet[0] & 0x01) /* Header is already read -> skip it */
           {
@@ -1877,6 +1885,8 @@ static void reset_track(bgav_track_t * track)
   
   for(i = 0; i < track->num_subtitle_streams; i++)
     {
+    stream_priv =
+      (stream_priv_t*)(track->subtitle_streams[i].priv);
     ogg_stream_reset(&stream_priv->os);
     }
   }
@@ -2008,7 +2018,7 @@ static void select_track_ogg(bgav_demuxer_context_t * ctx,
   char * name;
   ogg_priv * priv;
   track_priv_t * track_priv;
-
+  
   priv = (ogg_priv *)(ctx->priv);
   
   track_priv = (track_priv_t*)(ctx->tt->current_track->priv);
