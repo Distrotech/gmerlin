@@ -508,12 +508,13 @@ static void play_cmd(bg_player_t * p,
                            msg_still_stream,
                            p);
     }
+  else if(had_video)
+    bg_player_ov_standby(p->ov_context);
+
   if(p->do_subtitle_overlay || p->do_subtitle_text)
     {
     bg_msg_queue_list_send(p->message_queues, msg_subtitle_stream, p);
     }
-  else if(had_video)
-    bg_player_ov_standby(p->ov_context);
   
   /* Count the threads */
 

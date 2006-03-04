@@ -27,6 +27,11 @@
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
+/* Stroker interface */
+#ifdef FT_STROKER_H
+#include FT_STROKER_H
+#endif
+
 /* Fontconfig */
 
 #include <fontconfig/fontconfig.h>
@@ -55,6 +60,14 @@ bg_parameter_info_t parameters[] =
       type:       BG_PARAMETER_COLOR_RGBA,
       val_default: { val_color: (float[]){ 1.0, 1.0, 1.0, 1.0 } },
     },
+#ifdef FT_STROKER_H
+    {
+      name:       "border_color",
+      long_name:  "Border color",
+      type:       BG_PARAMETER_COLOR_RGBA,
+      val_default: { val_color: (float[]){ 0.0, 0.0, 0.0, 1.0 } },
+    },
+#endif    
     {
       name:       "font",
       long_name:  "Font",
@@ -74,7 +87,7 @@ bg_parameter_info_t parameters[] =
       name:       "justify_v",
       long_name:  "Vertical justify",
       type:       BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "center" },
+      val_default: { val_str: "bottom" },
       multi_names:  (char*[]){ "center", "top", "bottom", (char*)0  },
       multi_labels: (char*[]){ "Center", "Top", "Bottom", (char*)0 },
     },
@@ -154,9 +167,14 @@ struct bg_text_renderer_s
   double font_size;
   
   float color[4];
-
   float alpha_f;
   int   alpha_i;
+
+#ifdef FT_STROKER_H
+  float color_stroke[4];
+  float alpha_stroke_f;
+  int   alpha_stroke_i;
+#endif  
   
   /* Charset converter */
 
@@ -168,6 +186,9 @@ struct bg_text_renderer_s
     {
     uint32_t unicode;
     FT_Glyph glyph;
+#ifdef FT_STROKER_H
+    FT_Glyph stroke_glyph;
+#endif
     } * cache;
 
   FT_Matrix matrix; /* For scaling to pixel aspect ratio */
@@ -181,8 +202,10 @@ struct bg_text_renderer_s
   int justify_v;
   int border_left, border_right, border_top, border_bottom;
   
-  bbox_t bbox;
+  bbox_t bbox; /* Actual bounding box of the text */
   int ignore_linebreaks;
+
+  int sub_h, sub_v; /* Chroma subsampling of the final destination frame */
   
   void (*render_func)(bg_text_renderer_t * r, FT_BitmapGlyph glyph,
                       gavl_video_frame_t * frame,
@@ -460,7 +483,7 @@ static int load_font(bg_text_renderer_t * r, const char * font_name)
   FcPatternGetString(fc_pattern_1, FC_FILE, 0, &filename);
   FcPatternGetDouble(fc_pattern_1, FC_SIZE, 0, &(r->font_size));
   
-  fprintf(stderr, "File: %s, Size: %f\n", filename, r->font_size);
+  //  fprintf(stderr, "File: %s, Size: %f\n", filename, r->font_size);
   
   /* Load face */
   
@@ -596,6 +619,9 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
   
   /* Decide about overlay format */
 
+  gavl_pixelformat_chroma_sub(frame_format->pixelformat,
+                              &r->sub_h, &r->sub_v);
+  
   if(gavl_pixelformat_is_rgb(frame_format->pixelformat))
     {
     bits = 8*gavl_pixelformat_bytes_per_pixel(frame_format->pixelformat);
@@ -693,7 +719,6 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
   int line_start, line_end;
   int line_width, line_end_y;
   int line_offset;
-  int newline;
   
   fprintf(stderr, "bg_text_renderer_render: string:\n\n%s\n\n", string);
     
@@ -792,14 +817,23 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
   ovl->ovl_rect.w = r->bbox.xmax - r->bbox.xmin;
   ovl->ovl_rect.h = r->bbox.ymax - r->bbox.ymin;
 
+  /* Align to subsampling */
+  ovl->ovl_rect.w += r->sub_h - (ovl->ovl_rect.w % r->sub_h);
+  ovl->ovl_rect.h += r->sub_v - (ovl->ovl_rect.h % r->sub_v);
+  
   switch(r->justify_h)
     {
     case JUSTIFY_LEFT:
     case JUSTIFY_CENTER:
       ovl->dst_x = ovl->ovl_rect.x + r->border_left;
+      
+      if(ovl->dst_x % r->sub_h)
+        ovl->dst_x += r->sub_h - (ovl->dst_x % r->sub_h);
+      
       break;
     case JUSTIFY_RIGHT:
       ovl->dst_x = r->overlay_format.image_width - r->border_right - ovl->ovl_rect.w;
+      ovl->dst_x -= (ovl->dst_x % r->sub_h);
       break;
     }
 
@@ -807,13 +841,20 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
     {
     case JUSTIFY_TOP:
       ovl->dst_y = r->border_top;
+      ovl->dst_y += r->sub_v - (ovl->dst_y % r->sub_v);
+
       break;
     case JUSTIFY_CENTER:
       ovl->dst_y = r->border_top +
         ((r->overlay_format.image_height - ovl->ovl_rect.h)>>1);
+
+      if(ovl->dst_y % r->sub_v)
+        ovl->dst_y += r->sub_v - (ovl->dst_y % r->sub_v);
+
       break;
     case JUSTIFY_BOTTOM:
       ovl->dst_y = r->overlay_format.image_height - r->border_bottom - ovl->ovl_rect.h;
+      ovl->dst_y -= (ovl->dst_y % r->sub_v);
       break;
     }
   if(glyphs)
