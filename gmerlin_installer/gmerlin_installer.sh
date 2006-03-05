@@ -44,8 +44,8 @@ APT_LIBS_NEED="libasound2-dev zlib1g-dev libxml2-dev libxinerama-dev libxv-dev l
 APT_LIBS_IMPO="autoconf automake1.9 build-essential libtool"
 
 YUM_LIBS_OPTI="libpng-devel libtiff-devel libvorbis-devel esound-devel flac-devel libjpeg-devel fontconfig-devel freetype-devel"
-YUM_LIBS_NEED="alsa-lib-devel libxml2-devel samba-common xmms-devel xorg-x11-devel zlib-devel gtk+-devel gtk2-devel"
-YUM_LIBS_IMPO="gcc gcc-c++ autoconf automake"
+YUM_LIBS_NEED="alsa-lib-devel libxml2-devel samba-common xmms-devel xorg-x11-devel zlib-devel gtk+-devel gtk2-devel ncurses-devel"
+YUM_LIBS_IMPO="gcc gcc-c++ autoconf automake libtool"
 
                                         ###### Define COLORS and POSITIONS ######
 
@@ -444,7 +444,7 @@ function TAKE_PACKETS_FUNC()
 	`grep $2 $3 >& .DUMP`
 	if test $? != 0
 	    then return 1 
-	else
+	else	
 	    `$1 -y install $2 >& $3`  
 	    if test $? != 0 ; then return 1 ; fi
 	    return 0;
@@ -939,6 +939,12 @@ if [ "$ANSWER" = true ]
 	    PRINT_NEW_LINE_FUNC 1
 	    PRINT_ERROR_MESSAGE_LINE_FUNC "We can not find the Packets:" "-e"
 	    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH$ERROR$COL_DEF$COL_RED." "-e"
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "On fedora installation if error at autoconf, automake or libtool" "-e"
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "please edit the file /etc/yum.repos.d/fedora.repo and correct the line" "-e"
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora" "-e"
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "with:" "-e"
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY" "-e"
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "and restart the script." "-e"
 	    PRINT_ERROR_MESSAGE_LINE_FUNC "install it and go on the installation? $YES_NO" "-ne"
 	    AUTO_INSTALL_FUNC ; YES_NO_FUNC
 	    if [ "$ANSWER" = false ] ; then	PRINT_NEW_LINE_FUNC 2 ; exit ; fi
