@@ -1096,7 +1096,9 @@ if [ "$ANSWER" = true ]
 	   for i in $ERROR
 	     do
 	     SAVE=$i
-    	     DOWNLOAD_NEWEST_PACKET_FUNC $i
+	     cd $HOME >& .DUMP
+	     READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
+	     DOWNLOAD_NEWEST_PACKET_FUNC $i
 	     if test $? = 0
 		 then
 		 cp $SAVE $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file"
