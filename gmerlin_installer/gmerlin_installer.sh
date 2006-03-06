@@ -40,7 +40,7 @@ BASE_HELP="rpm dpkg"
 TOOLS="tar grep wget findutils"
 
 APT_LIBS_OPTI="libttf-dev libfontconfig1-dev libtiff4-dev libpng12-dev libjpeg62-dev libgtk2.0-dev libvorbis-dev libesd0-dev libxt-dev libgtk1.2-dev xmms-dev"
-APT_LIBS_NEED="libasound2-dev zlib1g-dev libxml2-dev libxinerama-dev libxv-dev libflac-dev libsmbclient-dev libxxf86vm-dev x11proto-video-dev"
+APT_LIBS_NEED="libasound2-dev zlib1g-dev libxml2-dev libxinerama-dev libxv-dev libflac-dev libsmbclient-dev x11proto-video-dev"
 APT_LIBS_IMPO="autoconf automake1.9 build-essential libtool"
 
 YUM_LIBS_OPTI="libpng-devel libtiff-devel libvorbis-devel esound-devel flac-devel libjpeg-devel fontconfig-devel freetype-devel"
