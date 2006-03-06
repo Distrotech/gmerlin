@@ -77,23 +77,6 @@ fi
 
 AM_CONDITIONAL(HAVE_LIBVISUAL, test x$have_libvisual = xtrue)
 
-dnl Check for libXx86vm (needed by goom-1.8.0)
-
-AC_PATH_X
-
-CFLAGS_save=$CFLAGS
-LIBS_save=$LIBS
-CFLAGS="$CFLAGS $GTK_CFLAGS"
-LIBS="$LIBS $GTK_LIBS"
-
-AC_CHECK_LIB(Xxf86vm,XF86VidModeQueryExtension,[
-AC_DEFINE(XF86VIDMODE,1,[XF86VidMode extension is present])
-VM_LIBS="-lXxf86vm"],,-L$x_libraries -lXext)
-AC_SUBST(VM_LIBS)
-
-CFLAGS=$CFLAGS_save
-LIBS=$LIBS_save
-
 LQT_OPT_CFLAGS($host_cpu, ["-O3 -funroll-all-loops -fomit-frame-pointer -ffast-math"])
 CFLAGS="-Wall -D_REENTRANT -D_FILE_OFFSET_BITS=64 $OPT_CFLAGS"
 

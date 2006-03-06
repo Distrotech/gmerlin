@@ -35,7 +35,7 @@ vis_plugin_xml.c \
 $(xmms1_sources) \
 $(libvisual_sources)
 
-gmerlin_visualizer_LDADD = $(xmms1_libs) $(libvisual_libs) @GMERLIN_LIBS@ -lXxf86vm
+gmerlin_visualizer_LDADD = $(xmms1_libs) $(libvisual_libs) @GMERLIN_LIBS@ 
 
 noinst_HEADERS = \
 mainwindow.h \
