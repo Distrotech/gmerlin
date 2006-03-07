@@ -379,7 +379,8 @@ void bgav_options_set_ftp_anonymous_password(bgav_options_t* opt, const char* pa
  *
  *  This sets the default encoding for text subtitles, when the right
  *  encoding is unknown. It must be a character set name recognized by
- *  iconv (type "iconv -l" for a list os supported encodings).
+ *  iconv. Type "iconv -l" at the commandline for a list of supported
+ *  encodings).
  */
 
 void bgav_options_set_default_subtitle_encoding(bgav_options_t* opt,
