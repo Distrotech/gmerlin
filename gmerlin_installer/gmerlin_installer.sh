@@ -31,6 +31,10 @@ clear
                                             # Define the old PKG_CONFIG_PATH #
 OLD_PKG_CONFIG=$PKG_CONFIG_PATH
 
+                                            # Define a test PACKET variable #
+GRUENI=""
+#GRUENI="20060203"
+
                                            # Define the INSTALLATION directorys #
 LOGS=".gmerlin_logs"     ;     HELPS=".gmerlin_helps"     ;      HOME="GMerlin_INstallation"
 
@@ -77,14 +81,21 @@ YES_NO="$COL_DEF$POSITION_DISKRIPTION[ \033[32;1mY\033[0mES,\033[31;1mN\033[0mO 
 # $1 = GMERLIN_PACK TO FIND // $NEWEST = RETURN WERT
 function FIND_NEWEST_PACKET_FUNC()
 {
-wget http://prdownloads.sourceforge.net/gmerlin/ -O $HELPS/packs.txt >& $HELPS/DUMP
-READY_EXIT_FUNC "Can not check the Gmerlin Packets" 
-NEWEST=`grep /gmerlin/$1 $HELPS/packs.txt | awk '{ print $6}' | awk  -F '"' '{ print $2 }' | sort -n -r | awk -F '/' '{ printf $3 ; printf " "}' | awk '{ print $1 }'`
-DEL_FILE_FUNC "$HELPS/packs.txt" "Can not delete file"
-READY_EXIT_FUNC "Can not delete DUMP && packs.txt"
-DEL_FILE_FUNC "$HELPS/DUMP" "Can not delete file"
-READY_EXIT_FUNC "Can not delete DUMP && packs.txt"
-return 0;
+if [ "$GRUENI" != "" ]
+    then
+    NEWEST="$1-$GRUENI.tar.bz2"
+    echo $NEWEST
+    return 0
+else
+    wget http://prdownloads.sourceforge.net/gmerlin/ -O $HELPS/packs.txt >& $HELPS/DUMP
+    READY_EXIT_FUNC "Can not check the Gmerlin Packets" 
+    NEWEST=`grep /gmerlin/$1 $HELPS/packs.txt | awk '{ print $6}' | awk  -F '"' '{ print $2 }' | sort -n -r | awk -F '/' '{ printf $3 ; printf " "}' | awk '{ print $1 }'`
+    DEL_FILE_FUNC "$HELPS/packs.txt" "Can not delete file"
+    READY_EXIT_FUNC "Can not delete DUMP && packs.txt"
+    DEL_FILE_FUNC "$HELPS/DUMP" "Can not delete file"
+    READY_EXIT_FUNC "Can not delete DUMP && packs.txt"
+    return 0
+fi;
 }
 
 # $1 = GMERLIN_PACK TO FIND 
@@ -137,6 +148,17 @@ while ! $ANSWER_OK
   do
   echo -ne $POSITION_INFO"What mirror do you want, pleace give the number?\033[5C 0\033[1D"
   read ANSWER
+  if [ "$ZEILE" = "-1" ]
+      then
+      PRINT_NEW_LINE_FUNC 2
+      PRINT_ERROR_MESSAGE_LINE_FUNC "Can not find Packets on the Gmerlin-servers:" "-e"
+      PRINT_ERROR_MESSAGE_LINE_FUNC "Please find the error and restart the script" "-e"
+      DEL_FILE_FUNC "$HELPS/packs.txt" "Can not delete file"
+      DEL_FILE_FUNC "$HELPS/mirrors.txt" "Can not delete file"
+      DEL_FILE_FUNC "$HELPS/DUMP" "Can not delete file"
+      PRINT_NEW_LINE_FUNC 2
+      exit
+  fi
   for i in `seq 0 $ZEILE`
     do
     if [ "$ANSWER" = "$i" ]
@@ -1115,8 +1137,8 @@ if [ "$ANSWER" = true ]
    if [ "$ERROR_SAVE" = true ]
        then
        PRINT_NEW_LINE_FUNC 1
-       PRINT_ERROR_MESSAGE_LINE_FUNC "Downloading the needed Packets brocken:" "-e"
-       PRINT_ERROR_MESSAGE_LINE_FUNC "Please look at$COL_RED_HIGH *.wget.log files$COL_DEF$COL_RED to find the error and restart the script" "-e"
+       PRINT_ERROR_MESSAGE_LINE_FUNC "Downloading or finding the needed Packets brocken:" "-e"
+       PRINT_ERROR_MESSAGE_LINE_FUNC "Please look at$COL_RED_HIGH *.log files$COL_DEF$COL_RED to find the error and restart the script" "-e"
        PRINT_NEW_LINE_FUNC 2
        exit
    fi
