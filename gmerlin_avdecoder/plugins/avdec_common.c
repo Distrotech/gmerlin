@@ -432,6 +432,10 @@ bg_avdec_set_parameter(void * p, char * name,
     {
     bgav_options_set_ftp_anonymous(avdec->opt, val->val_i);
     }
+  else if(!strcmp(name, "default_subtitle_encoding"))
+    {
+    bgav_options_set_default_subtitle_encoding(avdec->opt, val->val_str);
+    }
   }
 
 int bg_avdec_get_num_tracks(void * p)

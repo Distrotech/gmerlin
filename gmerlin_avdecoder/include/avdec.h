@@ -372,6 +372,20 @@ void bgav_options_set_ftp_anonymous(bgav_options_t* opt, int enable);
 
 void bgav_options_set_ftp_anonymous_password(bgav_options_t* opt, const char* pass);
 
+/** \ingroup options
+ *  \brief Set default subtitle encoding
+ *  \param opt Option container
+ *  \param encoding Encoding
+ *
+ *  This sets the default encoding for text subtitles, when the right
+ *  encoding is unknown. It must be a character set name recognized by
+ *  iconv (type "iconv -l" for a list os supported encodings).
+ */
+
+void bgav_options_set_default_subtitle_encoding(bgav_options_t* opt,
+                                                const char* encoding);
+
+
 /* Set callbacks */
 
 /** \ingroup options

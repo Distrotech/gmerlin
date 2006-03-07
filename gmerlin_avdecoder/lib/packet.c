@@ -60,14 +60,17 @@ void bgav_packet_set_text_subtitle(bgav_packet_t * p,
                                    int64_t duration)
   {
   const char * src;
-  char * dst;
+  char * dst, *tmp;
   int i;
-  int len = strlen(text);
+  int len;
   /* TODO: Convert character set !!! */
-
+  
+  tmp = bgav_convert_string(p->stream->data.subtitle.cnv,
+                            text, -1, &len);
+  
   bgav_packet_alloc(p, len+1);
 
-  src = text;
+  src = tmp;
   dst = (char*)(p->data);
   for(i = 0; i < len; i++)
     {
@@ -90,6 +93,8 @@ void bgav_packet_set_text_subtitle(bgav_packet_t * p,
   p->timestamp_scaled = start;
   p->duration_scaled = duration;
   p->data_size = len + 1;
+
+  free(tmp);
   }
 
 void bgav_packet_get_text_subtitle(bgav_packet_t * p,

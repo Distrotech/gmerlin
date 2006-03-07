@@ -46,14 +46,25 @@ bgav_track_add_video_stream(bgav_track_t * t)
   }
 
 bgav_stream_t *
-bgav_track_add_subtitle_stream(bgav_track_t * t, int text)
+bgav_track_add_subtitle_stream(bgav_track_t * t, int text,
+                               const char * encoding)
   {
   t->num_subtitle_streams++;
   t->subtitle_streams = realloc(t->subtitle_streams, t->num_subtitle_streams * 
                              sizeof(*(t->subtitle_streams)));
   bgav_stream_alloc(&(t->subtitle_streams[t->num_subtitle_streams-1]));
-  t->subtitle_streams[t->num_subtitle_streams-1].type =
-    text ? BGAV_STREAM_SUBTITLE_TEXT : BGAV_STREAM_SUBTITLE_OVERLAY;
+  
+  if(text)
+    {
+    t->subtitle_streams[t->num_subtitle_streams-1].type =
+      BGAV_STREAM_SUBTITLE_TEXT;
+    t->subtitle_streams[t->num_subtitle_streams-1].data.subtitle.cnv =
+      bgav_charset_converter_create(encoding, "UTF-8");
+    }
+  else
+    t->subtitle_streams[t->num_subtitle_streams-1].type =
+      BGAV_STREAM_SUBTITLE_OVERLAY;
+  
   return &(t->subtitle_streams[t->num_subtitle_streams-1]);
   }
 

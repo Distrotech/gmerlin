@@ -44,6 +44,9 @@ typedef struct bgav_stream_s   bgav_stream_t;
 
 typedef struct bgav_packet_buffer_s   bgav_packet_buffer_t;
 
+typedef struct bgav_charset_converter_s bgav_charset_converter_t;
+
+
 #include "id3.h"
 
 struct bgav_metadata_s
@@ -328,6 +331,8 @@ struct bgav_stream_s
     struct
       {
       gavl_video_format_t format;
+      /* Characterset converter for text subtitles */
+      bgav_charset_converter_t * cnv;
       } subtitle;
     } data;
   };
@@ -392,7 +397,8 @@ void
 bgav_track_remove_video_stream(bgav_track_t * track, int stream);
 
 bgav_stream_t *
-bgav_track_add_subtitle_stream(bgav_track_t * t, int text);
+bgav_track_add_subtitle_stream(bgav_track_t * t,
+                               int text, const char * encoding);
 
 
 
@@ -481,6 +487,10 @@ struct bgav_options_s
     
   char * ftp_anonymous_password;
   int ftp_anonymous;
+
+  /* Default character set for text subtitles */
+  char * default_subtitle_encoding;
+  
   /* Callbacks */
   
   void (*name_change_callback)(void * data, const char * name);
@@ -495,7 +505,8 @@ struct bgav_options_s
   void (*buffer_callback)(void * data, float percentage);
   void * buffer_callback_data;
 
-  int (*user_pass_callback)(void * data, const char * resource, char ** user, char ** password);
+  int (*user_pass_callback)(void * data, const char * resource,
+                            char ** user, char ** password);
   void * user_pass_callback_data;
   };
 
@@ -1018,7 +1029,6 @@ int bgav_tcp_send(int fd, uint8_t * data, int len, char ** error_msg);
 
 /* Charset utilities (charset.c) */
 
-typedef struct bgav_charset_converter_s bgav_charset_converter_t;
 
 bgav_charset_converter_t *
 bgav_charset_converter_create(const char * in_charset,

@@ -56,6 +56,9 @@ void bgav_stream_stop(bgav_stream_t * stream)
       case BGAV_STREAM_AUDIO:
         bgav_audio_stop(stream);
         break;
+      case BGAV_STREAM_SUBTITLE_TEXT:
+      case BGAV_STREAM_SUBTITLE_OVERLAY:
+        bgav_subtitle_stop(stream);
       default:
         break;
       }

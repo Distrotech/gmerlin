@@ -679,7 +679,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       case FOURCC_OGM_TEXT:
         //        fprintf(stderr, "Detected OGM text data\n");
         
-        s = bgav_track_add_subtitle_stream(track, 1);
+        s = bgav_track_add_subtitle_stream(track, 1,
+                                           ctx->opt->default_subtitle_encoding);
       
         s->priv   = ogg_stream;
         s->stream_id = serialno;

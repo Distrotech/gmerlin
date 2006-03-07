@@ -195,6 +195,21 @@ static bg_parameter_info_t parameters[] =
       type:        BG_PARAMETER_STRING,
       val_default: { val_str: "gates@nanosoft.com" }
     },
+    {
+      name:       "subtitle_options",
+      long_name:  "Subtitle Options",
+      type:       BG_PARAMETER_SECTION
+    },
+    {
+      name:        "default_subtitle_encoding",
+      long_name:   "Default subtitle encoding",
+      type:        BG_PARAMETER_STRING,
+      val_default: { val_str: "LATIN1" },
+      help_string: "This sets the default encoding for text subtitles,\
+when the original encoding is unknown. It must be a character set name\
+recognized by iconv. Type 'iconv -l' at the commandline for a list of \
+supported encodings.",
+    },
     { /* End of parameters */ }
   };
 

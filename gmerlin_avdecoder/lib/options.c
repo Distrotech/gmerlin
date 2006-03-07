@@ -103,6 +103,15 @@ void bgav_options_set_ftp_anonymous(bgav_options_t*b, int anonymous)
   b->ftp_anonymous = anonymous;
   }
 
+void bgav_options_set_default_subtitle_encoding(bgav_options_t* b,
+                                                const char* encoding)
+  {
+  if(b->default_subtitle_encoding)
+    free(b->default_subtitle_encoding);
+  b->default_subtitle_encoding = bgav_strndup(encoding, NULL);
+  }
+
+
 #define FREE(ptr) if(ptr) free(ptr)
 
 void bgav_options_free(bgav_options_t*opt)
@@ -111,7 +120,7 @@ void bgav_options_free(bgav_options_t*opt)
   FREE(opt->http_proxy_host);
   FREE(opt->http_proxy_user);
   FREE(opt->http_proxy_pass);
-    
+  FREE(opt->default_subtitle_encoding);
   }
 
 void bgav_options_set_defaults(bgav_options_t * b)
@@ -120,6 +129,7 @@ void bgav_options_set_defaults(bgav_options_t * b)
   b->connect_timeout = 10000;
   b->read_timeout = 10000;
   b->ftp_anonymous = 1;
+  b->default_subtitle_encoding = bgav_strndup("LATIN1", (char*)0);
   }
 
 bgav_options_t * bgav_options_create()
@@ -166,6 +176,10 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   CP_STR(ftp_anonymous_password);
   CP_INT(ftp_anonymous);
 
+  /* Subtitle */
+  
+  CP_STR(default_subtitle_encoding);
+
   /* Callbacks */
   
   CP_INT(name_change_callback);
@@ -187,3 +201,4 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
 
 #undef CP_INT
 #undef CP_STR
+
