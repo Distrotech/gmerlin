@@ -84,7 +84,7 @@ function FIND_NEWEST_PACKET_FUNC()
 if [ "$GRUENI" != "" ]
     then
     NEWEST="$1-$GRUENI.tar.bz2"
-    echo $NEWEST
+    #echo $NEWEST
     return 0
 else
     wget http://prdownloads.sourceforge.net/gmerlin/ -O $HELPS/packs.txt >& $HELPS/DUMP
