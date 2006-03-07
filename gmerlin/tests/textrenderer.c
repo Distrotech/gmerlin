@@ -36,8 +36,20 @@ int main(int argc, char ** argv)
   val.val_color[2] = 0.0;
   val.val_color[3] = 0.5;
   bg_text_renderer_set_parameter(r, "color", &val);
+
+  val.val_color[0] = 0.0;
+  val.val_color[1] = 0.0;
+  val.val_color[2] = 1.0;
+  val.val_color[3] = 1.0;
+  bg_text_renderer_set_parameter(r, "border_color", &val);
+
   free(val.val_color);
 
+  /* Border width */
+  val.val_f = 5.0;
+  bg_text_renderer_set_parameter(r, "border_width", &val);
+  
+  
   /* Font */
   val.val_str = argv[1];
   bg_text_renderer_set_parameter(r, "font", &val);

@@ -27,6 +27,8 @@
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
+// #undef FT_STROKER_H
+
 /* Stroker interface */
 #ifdef FT_STROKER_H
 #include FT_STROKER_H
@@ -64,8 +66,17 @@ bg_parameter_info_t parameters[] =
     {
       name:       "border_color",
       long_name:  "Border color",
-      type:       BG_PARAMETER_COLOR_RGBA,
+      type:       BG_PARAMETER_COLOR_RGB,
       val_default: { val_color: (float[]){ 0.0, 0.0, 0.0, 1.0 } },
+    },
+    {
+      name:       "border_width",
+      long_name:  "Border width",
+      type:       BG_PARAMETER_FLOAT,
+      val_min:     { val_f: 0.0 },
+      val_max:     { val_f: 10.0 },
+      val_default: { val_f: 1.0 },
+      num_digits:  2,
     },
 #endif    
     {
@@ -151,6 +162,17 @@ typedef struct
   int xmin, xmax, ymin, ymax;
   } bbox_t;
 
+typedef struct
+  {
+  uint32_t unicode;
+  FT_Glyph glyph;
+#ifdef FT_STROKER_H
+  FT_Glyph glyph_stroke;
+#endif
+  int advance_x, advance_y; /* Advance in integer pixels */
+  bbox_t bbox;
+  } cache_entry_t;
+
 struct bg_text_renderer_s
   {
   gavl_rectangle_i_t max_bbox; /* Maximum bounding box the text may have */
@@ -172,8 +194,9 @@ struct bg_text_renderer_s
 
 #ifdef FT_STROKER_H
   float color_stroke[4];
-  float alpha_stroke_f;
-  int   alpha_stroke_i;
+  int color_i[4];
+  FT_Stroker stroker;
+  float border_width;
 #endif  
   
   /* Charset converter */
@@ -182,14 +205,7 @@ struct bg_text_renderer_s
 
   /* Glyph cache */
 
-  struct
-    {
-    uint32_t unicode;
-    FT_Glyph glyph;
-#ifdef FT_STROKER_H
-    FT_Glyph stroke_glyph;
-#endif
-    } * cache;
+  cache_entry_t * cache;
 
   FT_Matrix matrix; /* For scaling to pixel aspect ratio */
   FT_Vector delta;
@@ -207,154 +223,291 @@ struct bg_text_renderer_s
 
   int sub_h, sub_v; /* Chroma subsampling of the final destination frame */
   
-  void (*render_func)(bg_text_renderer_t * r, FT_BitmapGlyph glyph,
+  void (*render_func)(bg_text_renderer_t * r, cache_entry_t * glyph,
                       gavl_video_frame_t * frame,
                       int * dst_x, int * dst_y);
   };
 
-static void adjust_bbox(FT_BitmapGlyph glyph, int dst_x, int dst_y, bbox_t * ret)
+static void adjust_bbox(cache_entry_t * glyph, int dst_x, int dst_y, bbox_t * ret)
   {
-  int x, y;
-  
-  x = dst_x + glyph->left;
-  y = dst_y - glyph->top;
-  
-  if(ret->xmin > x)
-    ret->xmin = x;
+  if(ret->xmin > dst_x + glyph->bbox.xmin)
+    ret->xmin = dst_x + glyph->bbox.xmin;
 
-  if(ret->ymin > y)
-    ret->ymin = y;
+  if(ret->ymin > dst_y + glyph->bbox.ymin)
+    ret->ymin = dst_y + glyph->bbox.ymin;
 
-  if(ret->xmax < x + glyph->bitmap.width)
-    ret->xmax = x + glyph->bitmap.width;
+  if(ret->xmax < dst_x + glyph->bbox.xmax)
+    ret->xmax = dst_x + glyph->bbox.xmax;
 
-  if(ret->ymax < y + glyph->bitmap.rows)
-    ret->ymax = y + glyph->bitmap.rows;
+  if(ret->ymax < dst_y + glyph->bbox.ymax)
+    ret->ymax = dst_y + glyph->bbox.ymax;
   }
 
-static void render_rgba_32(bg_text_renderer_t * r, FT_BitmapGlyph glyph,
+static void render_rgba_32(bg_text_renderer_t * r, cache_entry_t * glyph,
                            gavl_video_frame_t * frame,
                            int * dst_x, int * dst_y)
   {
+  FT_BitmapGlyph bitmap_glyph;
   uint8_t * src_ptr, * dst_ptr, * src_ptr_start, * dst_ptr_start;
-  int i, j;
-#if 0
-  fprintf(stderr, "render_rgba32, alpha: %d\n", r->alpha_i);
-  //  fprintf(stderr, "Left: %d Top: %d\n", glyph->left, glyph->top);
-
-  //  fprintf(stderr, "Bitmap: Rows: %d, width: %d, pitch: %d, num_grays: %d\n",
-  //          glyph->bitmap.rows, glyph->bitmap.width, glyph->bitmap.pitch,
-  //          glyph->bitmap.num_grays);
+  int i, j, i_tmp;
+#ifdef FT_STROKER_H
+  int alpha_i;
 #endif
+ 
 
-  if(!glyph->bitmap.buffer)
+#ifdef FT_STROKER_H
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph_stroke);
+#else
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph);
+#endif
+  
+  if(!bitmap_glyph->bitmap.buffer)
     {
     // fprintf(stderr, "Bitmap missing\n");
-    *dst_x += glyph->root.advance.x>>16;
-    *dst_y += glyph->root.advance.y>>16;
+    *dst_x += glyph->advance_x;
+    *dst_y += glyph->advance_y;
     return;
     }
+
+  src_ptr_start = bitmap_glyph->bitmap.buffer;
+  dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
+    frame->strides[0] + (*dst_x + bitmap_glyph->left) * 4;
   
-  src_ptr_start = glyph->bitmap.buffer;
-  dst_ptr_start = frame->planes[0] + (*dst_y - glyph->top) *
-    frame->strides[0] + (*dst_x + glyph->left) * 4;
-  
-  for(i = 0; i < glyph->bitmap.rows; i++)
+  for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
     {
     src_ptr = src_ptr_start;
     dst_ptr = dst_ptr_start;
     
-    for(j = 0; j < glyph->bitmap.width; j++)
+    for(j = 0; j < bitmap_glyph->bitmap.width; j++)
       {
-      dst_ptr[3] = ((int)*src_ptr * (int)r->alpha_i) >> 8;
-      //      fprintf(stderr, "color: %02x %02x %02x %02x\n",
-      //              dst_ptr[0], dst_ptr[1], dst_ptr[2], dst_ptr[3]);
+      i_tmp = ((int)*src_ptr * (int)r->alpha_i) >> 8;
+      if(i_tmp > dst_ptr[3])
+        dst_ptr[3] = i_tmp;
       src_ptr++;
       dst_ptr += 4;
       }
-    src_ptr_start += glyph->bitmap.pitch;
+    src_ptr_start += bitmap_glyph->bitmap.pitch;
     dst_ptr_start += frame->strides[0];
     }
-  *dst_x += glyph->root.advance.x>>16;
-  *dst_y += glyph->root.advance.y>>16;
+  // #if 0
+#ifdef FT_STROKER_H
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph);
+
+  src_ptr_start = bitmap_glyph->bitmap.buffer;
+  dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
+    frame->strides[0] + (*dst_x + bitmap_glyph->left) * 4;
+  
+  for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
+    {
+    src_ptr = src_ptr_start;
+    dst_ptr = dst_ptr_start;
+    
+    for(j = 0; j < bitmap_glyph->bitmap.width; j++)
+      {
+      if(*src_ptr)
+        {
+        alpha_i = *src_ptr;
+        
+        dst_ptr[0] = (int)dst_ptr[0] +
+          ((alpha_i * ((int)(r->color_i[0]) - (int)dst_ptr[0])) >> 8);
+
+        dst_ptr[1] = (int)dst_ptr[1] +
+          ((alpha_i * ((int)(r->color_i[1]) - (int)dst_ptr[1])) >> 8);
+
+        dst_ptr[2] = (int)dst_ptr[2] +
+          ((alpha_i * ((int)(r->color_i[2]) - (int)dst_ptr[2])) >> 8);
+
+        }
+
+      src_ptr++;
+      dst_ptr += 4;
+      }
+    src_ptr_start += bitmap_glyph->bitmap.pitch;
+    dst_ptr_start += frame->strides[0];
+    }
+  
+#endif
+  
+  *dst_x += glyph->advance_x;
+  *dst_y += glyph->advance_y;
   }
 
-static void render_rgba_64(bg_text_renderer_t * r, FT_BitmapGlyph glyph,
+static void render_rgba_64(bg_text_renderer_t * r, cache_entry_t * glyph,
                            gavl_video_frame_t * frame,
                            int * dst_x, int * dst_y)
   {
-  uint8_t * src_ptr;
+  FT_BitmapGlyph bitmap_glyph;
+  uint8_t * src_ptr, * src_ptr_start, * dst_ptr_start;
   uint16_t * dst_ptr;
-  uint8_t * src_ptr_start, * dst_ptr_start;
-  int i, j;
+  int i, j, i_tmp;
+#ifdef FT_STROKER_H
+  int alpha_i;
+#endif
 
-  if(!glyph->bitmap.buffer)
+#ifdef FT_STROKER_H
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph_stroke);
+#else
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph);
+#endif
+  
+  if(!bitmap_glyph->bitmap.buffer)
     {
     // fprintf(stderr, "Bitmap missing\n");
-    *dst_x += glyph->root.advance.x>>16;
-    *dst_y += glyph->root.advance.y>>16;
+    *dst_x += glyph->advance_x;
+    *dst_y += glyph->advance_y;
     return;
     }
 
-  src_ptr_start = glyph->bitmap.buffer;
-  dst_ptr_start = frame->planes[0] + (*dst_y - glyph->top) *
-    frame->strides[0] + (*dst_x + glyph->left) * 8;
+  src_ptr_start = bitmap_glyph->bitmap.buffer;
+  dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
+    frame->strides[0] + (*dst_x + bitmap_glyph->left) * 8;
   
-  for(i = 0; i < glyph->bitmap.rows; i++)
+  for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
     {
     src_ptr = src_ptr_start;
     dst_ptr = (uint16_t*)dst_ptr_start;
     
-    for(j = 0; j < glyph->bitmap.width; j++)
+    for(j = 0; j < bitmap_glyph->bitmap.width; j++)
       {
-      dst_ptr[3] = ((int)*src_ptr * (int)r->alpha_i) >> 8;
+      i_tmp = ((int)*src_ptr * (int)r->alpha_i) >> 8;
+      if(i_tmp > dst_ptr[3])
+        dst_ptr[3] = i_tmp;
+      
       src_ptr++;
       dst_ptr += 4;
       }
-    src_ptr_start += glyph->bitmap.pitch;
+    src_ptr_start += bitmap_glyph->bitmap.pitch;
     dst_ptr_start += frame->strides[0];
     }
-  *dst_x += glyph->root.advance.x>>16;
-  *dst_y += glyph->root.advance.y>>16;
+  // #if 0
+#ifdef FT_STROKER_H
+  /* Render border */
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph);
+
+  src_ptr_start = bitmap_glyph->bitmap.buffer;
+  dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
+    frame->strides[0] + (*dst_x + bitmap_glyph->left) * 8;
+  
+  for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
+    {
+    src_ptr = src_ptr_start;
+    dst_ptr = (uint16_t*)dst_ptr_start;
+    
+    for(j = 0; j < bitmap_glyph->bitmap.width; j++)
+      {
+      if(*src_ptr)
+        {
+        //        alpha_i = ((int)*src_ptr * (int)r->color_i[3]) >> 8;
+        alpha_i = *src_ptr;
+        
+        dst_ptr[0] = (int)dst_ptr[0] +
+          ((alpha_i * ((int64_t)(r->color_i[0]) - (int64_t)dst_ptr[0])) >> 8);
+
+        dst_ptr[1] = (int)dst_ptr[1] +
+          ((alpha_i * ((int64_t)(r->color_i[1]) - (int64_t)dst_ptr[1])) >> 8);
+
+        dst_ptr[2] = (int)dst_ptr[2] +
+          ((alpha_i * ((int64_t)(r->color_i[2]) - (int64_t)dst_ptr[2])) >> 8);
+
+        }
+      src_ptr++;
+      dst_ptr += 4;
+      }
+    src_ptr_start += bitmap_glyph->bitmap.pitch;
+    dst_ptr_start += frame->strides[0];
+    }
+  
+#endif
+  
+  *dst_x += glyph->advance_x;
+  *dst_y += glyph->advance_y;
+
   }
 
-static void render_rgba_float(bg_text_renderer_t * r, FT_BitmapGlyph glyph,
+static void render_rgba_float(bg_text_renderer_t * r, cache_entry_t * glyph,
                               gavl_video_frame_t * frame,
                               int * dst_x, int * dst_y)
   {
-  uint8_t * src_ptr;
+  FT_BitmapGlyph bitmap_glyph;
+  uint8_t * src_ptr, * src_ptr_start, * dst_ptr_start;
   float * dst_ptr;
-  uint8_t * src_ptr_start, * dst_ptr_start;
   int i, j;
+  float f_tmp;
+#ifdef FT_STROKER_H
+  float alpha_f;
+#endif
 
-  if(!glyph->bitmap.buffer)
+#ifdef FT_STROKER_H
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph_stroke);
+#else
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph);
+#endif
+  
+  if(!bitmap_glyph->bitmap.buffer)
     {
     // fprintf(stderr, "Bitmap missing\n");
-    *dst_x += glyph->root.advance.x>>16;
-    *dst_y += glyph->root.advance.y>>16;
+    *dst_x += glyph->advance_x;
+    *dst_y += glyph->advance_y;
     return;
     }
 
-  src_ptr_start = glyph->bitmap.buffer;
-  dst_ptr_start = frame->planes[0] + (*dst_y - glyph->top) *
-    frame->strides[0] + (*dst_x + glyph->left) * 4 * sizeof(float);
+  src_ptr_start = bitmap_glyph->bitmap.buffer;
+  dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
+    frame->strides[0] + (*dst_x + bitmap_glyph->left) * 4 * sizeof(float);
   
-  for(i = 0; i < glyph->bitmap.rows; i++)
+  for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
     {
     src_ptr = src_ptr_start;
     dst_ptr = (float*)dst_ptr_start;
     
-    for(j = 0; j < glyph->bitmap.width; j++)
+    for(j = 0; j < bitmap_glyph->bitmap.width; j++)
       {
-      dst_ptr[3] = (float)(*src_ptr)/255.0 * r->alpha_f;
+      f_tmp = ((float)*src_ptr * r->alpha_f) / 255.0;
+      if(f_tmp > dst_ptr[3])
+        dst_ptr[3] = f_tmp;
+      
       src_ptr++;
       dst_ptr += 4;
       }
-    src_ptr_start += glyph->bitmap.pitch;
+    src_ptr_start += bitmap_glyph->bitmap.pitch;
     dst_ptr_start += frame->strides[0];
     }
-  *dst_x += glyph->root.advance.x>>16;
-  *dst_y += glyph->root.advance.y>>16;
+  // #if 0
+#ifdef FT_STROKER_H
+  /* Render border */
+  bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph);
+
+  src_ptr_start = bitmap_glyph->bitmap.buffer;
+  dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
+    frame->strides[0] + (*dst_x + bitmap_glyph->left) * 4 * sizeof(float);
+  
+  for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
+    {
+    src_ptr = src_ptr_start;
+    dst_ptr = (float*)dst_ptr_start;
+    
+    for(j = 0; j < bitmap_glyph->bitmap.width; j++)
+      {
+      if(*src_ptr)
+        {
+        alpha_f = (float)(*src_ptr) / 255.0;
+        
+        dst_ptr[0] = dst_ptr[0] + alpha_f * (r->color[0] - dst_ptr[0]);
+        dst_ptr[1] = dst_ptr[1] + alpha_f * (r->color[1] - dst_ptr[1]);
+        dst_ptr[2] = dst_ptr[2] + alpha_f * (r->color[2] - dst_ptr[2]);
+        }
+      src_ptr++;
+      dst_ptr += 4;
+      }
+    src_ptr_start += bitmap_glyph->bitmap.pitch;
+    dst_ptr_start += frame->strides[0];
+    }
+  
+#endif
+  
+  *dst_x += glyph->advance_x;
+  *dst_y += glyph->advance_y;
+
   }
 
 static void alloc_glyph_cache(bg_text_renderer_t * r, int size)
@@ -386,17 +539,25 @@ static void clear_glyph_cache(bg_text_renderer_t * r)
   {
   int i;
   for(i = 0; i < r->cache_size; i++)
+    {
     FT_Done_Glyph(r->cache[i].glyph);
+#ifdef FT_STROKER_H
+    FT_Done_Glyph(r->cache[i].glyph_stroke);
+#endif
+    }
   r->cache_size = 0;
   }
 
-static FT_Glyph get_glyph(bg_text_renderer_t * r, uint32_t unicode)
+static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
   {
   int i, index;
+  cache_entry_t * entry;
+  FT_BitmapGlyph bitmap_glyph;
+      
   for(i = 0; i < r->cache_size; i++)
     {
     if(r->cache[i].unicode == unicode)
-      return r->cache[i].glyph;
+      return &r->cache[i];
     }
 
   /* No glyph found, try to load a new one into the cache */
@@ -410,27 +571,71 @@ static FT_Glyph get_glyph(bg_text_renderer_t * r, uint32_t unicode)
     index = r->cache_size;
     r->cache_size++;
     }
+  entry = &(r->cache[index]);
   
   /* Load the glyph */
   if(FT_Load_Char(r->face, unicode, FT_LOAD_DEFAULT))
     {
     fprintf(stderr, "Cannot load character for code %d\n", unicode);
-    return (FT_Glyph)0;
+    return (cache_entry_t*)0;
     }
   /* extract glyph image */
-  if(FT_Get_Glyph(r->face->glyph, &(r->cache[index].glyph)))
+  if(FT_Get_Glyph(r->face->glyph, &(entry->glyph)))
     {
     fprintf(stderr, "Copying glyph failed\n");
-    return (FT_Glyph)0;
+    return (cache_entry_t*)0;
     }
-  /* Render glyph (we'll need it anyway) */
-    
-  if(FT_Glyph_To_Bitmap( &(r->cache[index].glyph),
+#ifdef FT_STROKER_H
+  /* Stroke glyph */
+  entry->glyph_stroke = entry->glyph;
+  FT_Glyph_StrokeBorder(&(entry->glyph_stroke), r->stroker, 0, 0);
+  //  FT_Glyph_StrokeBorder(&(entry->glyph_stroke), r->stroker, 1, 0);
+#endif
+  
+  /* Render glyph */
+  if(FT_Glyph_To_Bitmap( &(entry->glyph),
                          FT_RENDER_MODE_NORMAL,
                          (FT_Vector*)0, 1 ))
-    return (FT_Glyph)0;
-  r->cache[index].unicode = unicode;
-  return r->cache[index].glyph;
+    return (cache_entry_t*)0;
+
+#ifdef FT_STROKER_H
+  if(FT_Glyph_To_Bitmap( &(entry->glyph_stroke),
+                         FT_RENDER_MODE_NORMAL,
+                         (FT_Vector*)0, 1 ))
+    return (cache_entry_t*)0;
+#endif
+
+  /* Get bounding box and advances */
+
+#ifdef FT_STROKER_H
+  bitmap_glyph = (FT_BitmapGlyph)(entry->glyph_stroke);
+#else
+  bitmap_glyph = (FT_BitmapGlyph)(entry->glyph);
+#endif
+
+  entry->bbox.xmin = bitmap_glyph->left;
+  entry->bbox.ymin = -bitmap_glyph->top;
+  entry->bbox.xmax = entry->bbox.xmin + bitmap_glyph->bitmap.width;
+  entry->bbox.ymax = entry->bbox.ymin + bitmap_glyph->bitmap.rows;
+
+  entry->advance_x = entry->glyph->advance.x>>16;
+  entry->advance_y = entry->glyph->advance.y>>16;
+  
+  entry->unicode = unicode;
+  return entry;
+  }
+
+static void unload_font(bg_text_renderer_t * r)
+  {
+  if(!r->font_loaded)
+    return;
+
+#ifdef FT_STROKER_H
+  FT_Stroker_Done(r->stroker);
+#endif
+
+  clear_glyph_cache(r);
+  FT_Done_Face(r->face);
   }
 
 /* fontconfig stuff inspired from MPlayer code */
@@ -445,8 +650,8 @@ static int load_font(bg_text_renderer_t * r, const char * font_name)
   if(r->font_loaded && !strcmp(r->font, font_name))
     return 1;
 
-  clear_glyph_cache(r);
-  
+  unload_font(r);
+    
   /* Get font file */
   FcInit();
   fc_pattern = FcNameParse(font_name);
@@ -500,7 +705,16 @@ static int load_font(bg_text_renderer_t * r, const char * font_name)
   /* Select Unicode */
 
   FT_Select_Charmap(r->face, FT_ENCODING_UNICODE );
-  
+
+#ifdef FT_STROKER_H
+  /* Create stroker */
+  FT_Stroker_New(r->face->memory, &(r->stroker));
+  FT_Stroker_Set(r->stroker, (int)(r->border_width * 32.0 + 0.5), 
+                 FT_STROKER_LINECAP_ROUND, 
+                 FT_STROKER_LINEJOIN_ROUND, 0); 
+
+#endif
+  r->font_loaded = 1;
   return 1;
   }
 
@@ -523,11 +737,11 @@ void bg_text_renderer_destroy(bg_text_renderer_t * r)
   {
   bg_charset_converter_destroy(r->cnv);
 
+  unload_font(r);
+    
   if(r->cache)
-    {
-    clear_glyph_cache(r);
     free(r->cache);
-    }
+
   FT_Done_FreeType(r->library);
 
   free(r);
@@ -561,6 +775,19 @@ void bg_text_renderer_set_parameter(void * data, char * name,
     r->color[3] = 0.0;
     r->alpha_f  = val->val_color[3];
     }
+#ifdef FT_STROKER_H
+  else if(!strcmp(name, "border_color"))
+    {
+    r->color_stroke[0] = val->val_color[0];
+    r->color_stroke[1] = val->val_color[1];
+    r->color_stroke[2] = val->val_color[2];
+    r->color_stroke[3] = 0.0;
+    }
+  else if(!strcmp(name, "border_width"))
+    {
+    r->border_width = val->val_f;
+    }
+#endif
   else if(!strcmp(name, "cache_size"))
     {
     alloc_glyph_cache(r, val->val_i);
@@ -605,13 +832,45 @@ void bg_text_renderer_set_parameter(void * data, char * name,
     }
   }
 
+/* Copied from gavl */
+
+#define r_float_to_y  0.29900
+#define g_float_to_y  0.58700
+#define b_float_to_y  0.11400
+
+#define r_float_to_u  (-0.16874)
+#define g_float_to_u  (-0.33126)
+#define b_float_to_u   0.50000
+
+#define r_float_to_v   0.50000
+#define g_float_to_v  (-0.41869)
+#define b_float_to_v  (-0.08131)
+
+#define Y_FLOAT_TO_8(val) (int)(val * 219.0) + 16;
+#define UV_FLOAT_TO_8(val) (int)(val * 224.0) + 128;
+
+#define RGB_FLOAT_TO_Y_8(r, g, b, y)                              \
+  y_tmp = r_float_to_y * r + g_float_to_y * g + b_float_to_y * b; \
+  y = Y_FLOAT_TO_8(y_tmp);
+
+#define RGB_FLOAT_TO_YUV_8(r, g, b, y, u, v)                      \
+  RGB_FLOAT_TO_Y_8(r, g, b, y)                                    \
+  u_tmp = r_float_to_u * r + g_float_to_u * g + b_float_to_u * b; \
+  v_tmp = r_float_to_v * r + g_float_to_v * g + b_float_to_v * b; \
+  u = UV_FLOAT_TO_8(u_tmp);                                        \
+  v = UV_FLOAT_TO_8(v_tmp);
+
+
+
 void bg_text_renderer_init(bg_text_renderer_t * r,
                            const gavl_video_format_t * frame_format,
                            gavl_video_format_t * overlay_format)
   {
   float sar;
   int bits, err;
-  
+#ifdef FT_STROKER_H 
+  float y_tmp, u_tmp, v_tmp;
+#endif  
   sar = (float)(frame_format->pixel_width) / (float)(frame_format->pixel_height);
   /* Copy formats */
   
@@ -629,12 +888,24 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
       {
       overlay_format->pixelformat = GAVL_RGBA_32;
       r->alpha_i = (int)(r->alpha_f*255.0+0.5);
+#ifdef FT_STROKER_H 
+      r->color_i[0] = (int)(r->color[0]*255.0+0.5);
+      r->color_i[1] = (int)(r->color[1]*255.0+0.5);
+      r->color_i[2] = (int)(r->color[2]*255.0+0.5);
+      r->color_i[3] = (int)(r->color[3]*255.0+0.5);
+#endif
       r->render_func = render_rgba_32;
       }
     else if(bits <= 64)
       {
       overlay_format->pixelformat = GAVL_RGBA_64;
       r->alpha_i = (int)(r->alpha_f*65535.0+0.5);
+#ifdef FT_STROKER_H 
+      r->color_i[0] = (int)(r->color[0]*65535.0+0.5);
+      r->color_i[1] = (int)(r->color[1]*65535.0+0.5);
+      r->color_i[2] = (int)(r->color[2]*65535.0+0.5);
+      r->color_i[3] = (int)(r->color[3]*65535.0+0.5);
+#endif
       r->render_func = render_rgba_64;
       }
     else
@@ -647,6 +918,16 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
     {
     overlay_format->pixelformat = GAVL_YUVA_32;
     r->alpha_i = (int)(r->alpha_f*255.0+0.5);
+#ifdef FT_STROKER_H 
+
+    RGB_FLOAT_TO_YUV_8(r->color[0],
+                       r->color[1],
+                       r->color[2],
+                       r->color_i[0],
+                       r->color_i[1],
+                       r->color_i[2]);
+    r->color_i[3] = (int)(r->color[3]*255.0+0.5);
+#endif
     r->render_func = render_rgba_32;
     }
 
@@ -673,19 +954,19 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
   }
 
 static void flush_line(bg_text_renderer_t * r, gavl_video_frame_t * f,
-                       FT_BitmapGlyph * glyphs, int len, int line_y)
+                       cache_entry_t ** glyphs, int len, int line_y)
   {
   int line_x, j;
   int line_width;
   line_width = 0;
-  line_width = -glyphs[0]->left;
+  line_width = -glyphs[0]->bbox.xmin;
   //  fprintf(stderr, "Line width: %d\n", line_width);
   /* Compute the length of the line */
   for(j = 0; j < len-1; j++)
     {
-    line_width += glyphs[j]->root.advance.x>>16;
+    line_width += glyphs[j]->advance_x;
     }
-  line_width += glyphs[len - 1]->left + glyphs[len - 1]->bitmap.width;
+  line_width += glyphs[len - 1]->bbox.xmax;
   switch(r->justify_h)
     {
     case JUSTIFY_CENTER:
@@ -699,7 +980,7 @@ static void flush_line(bg_text_renderer_t * r, gavl_video_frame_t * f,
       break;
     }
 
-  line_x -= glyphs[0]->left;
+  line_x -= glyphs[0]->bbox.xmin;
   //  fprintf(stderr, "Flush line %d %d\n", line_x, line_y);
   
   for(j = 0; j < len; j++)
@@ -712,7 +993,7 @@ static void flush_line(bg_text_renderer_t * r, gavl_video_frame_t * f,
 void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
                              gavl_overlay_t * ovl)
   {
-  FT_BitmapGlyph * glyphs = (FT_BitmapGlyph*)0;
+  cache_entry_t ** glyphs = (cache_entry_t **)0;
   uint32_t * string_unicode = (uint32_t *)0;
   int len, i;
   int pos_x, pos_y;
@@ -720,17 +1001,19 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
   int line_width, line_end_y;
   int line_offset;
   
-  fprintf(stderr, "bg_text_renderer_render: string:\n\n%s\n\n", string);
+  //  fprintf(stderr, "bg_text_renderer_render: string:\n\n%s\n\n", string);
     
   r->bbox.xmin = r->overlay_format.image_width;
   r->bbox.ymin = r->overlay_format.image_height;
 
   r->bbox.xmax = 0;
   r->bbox.ymax = 0;
-  
-  
-  gavl_video_frame_fill(ovl->frame, &(r->overlay_format), r->color);
 
+#ifdef FT_STROKER_H
+  gavl_video_frame_fill(ovl->frame, &(r->overlay_format), r->color_stroke);
+#else
+  gavl_video_frame_fill(ovl->frame, &(r->overlay_format), r->color);
+#endif
   
   /* Convert string */
 
@@ -744,9 +1027,6 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
 
   line_offset = r->face->size->metrics.height >> 6;
   
-  pos_x = 0;
-  pos_y = r->face->size->metrics.ascender >> 6;
-
   glyphs = malloc(len * sizeof(*glyphs));
 
   if(r->ignore_linebreaks)
@@ -759,10 +1039,13 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
     }
   for(i = 0; i < len; i++)
     {
-    glyphs[i] = (FT_BitmapGlyph)get_glyph(r, string_unicode[i]);
+    glyphs[i] = get_glyph(r, string_unicode[i]);
     }
   //  fprintf(stderr, "pos_y: %d\n", pos_y);
 
+  pos_x = 0;
+  pos_y = r->face->size->metrics.ascender >> 6;
+    
   for(i = 0; i < len; i++)
     {
     if((string_unicode[i] == ' ') ||
@@ -777,7 +1060,7 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
     // fprintf(stderr, "Checking '%c', x: %d\n", string_unicode[i], pos_x);
     
     /* Linebreak */
-    if((pos_x + (glyphs[i]->root.advance.x>>16) > r->max_bbox.w) ||
+    if((pos_x + (glyphs[i]->advance_x) > r->max_bbox.w) ||
        (string_unicode[i] == '\n'))
       {
       //      fprintf(stderr, "Linebreak\n");
@@ -798,7 +1081,7 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
       
       }
     
-    pos_x += glyphs[i]->root.advance.x>>16;
+    pos_x += glyphs[i]->advance_x;
 
     }
   if(len - line_start)
