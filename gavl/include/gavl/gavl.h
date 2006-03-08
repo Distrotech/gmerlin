@@ -1415,7 +1415,7 @@ typedef struct gavl_video_frame_s
   
   void * user_data;    /*!< For storing user data (e.g. the corresponding XImage) */
   int64_t time_scaled; /*!< Timestamp in stream specific units (see \ref video_format) */
-  int duration_scaled; /*!< Duration in stream specific units (see \ref video_format) */
+  int64_t duration_scaled; /*!< Duration in stream specific units (see \ref video_format) */
   } gavl_video_frame_t;
 
 
@@ -2168,16 +2168,6 @@ gavl_overlay_blend_context_get_options(gavl_overlay_blend_context_t * ctx);
 int gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
                                     const gavl_video_format_t * frame_format,
                                     const gavl_video_format_t * overlay_format);
-
-/*! \ingroup video_blend
- *  \brief Determine if a blend context needs a new overlay
- *  \param ctx A blend context
- *  \returns 1 if there is no saved overlay or the last overlay has expired, 0 else.
- * 
- *  Use this function to determine, if a new overlay should be decoded.
- */
-  
-int gavl_overlay_blend_context_need_new(gavl_overlay_blend_context_t * ctx);
 
 /*! \ingroup video_blend
  *  \brief Set a new overlay

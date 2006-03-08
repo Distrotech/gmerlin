@@ -80,6 +80,7 @@ gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
       gavl_video_frame_null(ctx->ovl_win);
     gavl_video_frame_destroy(ctx->ovl_win);
     ctx->ovl_win = (gavl_video_frame_t*)0;
+    ctx->has_overlay = 0;
     }
   
   /* Check for non alpha capable overlay format */
@@ -151,6 +152,12 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
   int diff;
   /* Save overlay */
 
+  if(!ovl)
+    {
+    ctx->has_overlay = 0;
+    return;
+    }
+  ctx->has_overlay = 1;
   memcpy(&ctx->ovl, ovl, sizeof(ctx->ovl));
 
   /* Crop rectangle to destination format */
@@ -253,6 +260,8 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
 void gavl_overlay_blend(gavl_overlay_blend_context_t * ctx,
                         gavl_video_frame_t * dst_frame)
   {
+  if(!ctx->has_overlay)
+    return;
   /* Get subframe from destination */
   
   gavl_video_frame_get_subframe(ctx->dst_format.pixelformat,
@@ -262,10 +271,5 @@ void gavl_overlay_blend(gavl_overlay_blend_context_t * ctx,
   /* Fire up blender */
 
   ctx->func(ctx, ctx->dst_win, ctx->ovl_win);
-  }
-
-int gavl_overlay_blend_context_need_new(gavl_overlay_blend_context_t * ctx)
-  {
-  return 0;
   }
 

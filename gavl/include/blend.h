@@ -29,6 +29,7 @@ struct gavl_overlay_blend_context_s
 
   gavl_overlay_t ovl;
 
+  int has_overlay;
   int do_convert;
   
   gavl_video_frame_t * ovl_win;
