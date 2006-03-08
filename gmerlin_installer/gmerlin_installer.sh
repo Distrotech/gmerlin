@@ -564,7 +564,7 @@ function FIND_PKG_FUNC()
       READY_FUNC ; if test $? = 0 ; then DEL_FILE_FUNC "$1.hom" "Can not delete $1.hom" ; else cp $1.hom $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file" ; return 1 ; fi  
       DEL_FILE_FUNC "DUMP" "Can not delete DUMP"
     done
-    PKG_CONF_NEW="$PKG_USR$PKG_OPT$PKG_HOME/opt/gmerlin/lib/pkgconfig"
+    PKG_CONF_NEW="$PKG_USR$PKG_OPT$PKG_HOME/opt/gmerlin/lib/pkgconfig:/usr/local/lib/pkgconfig/"
     return 0;
 }
 
@@ -1002,7 +1002,8 @@ if [ "$ANSWER" = true ]
     FIND_PKG_FUNC "$LOGS/BUG_pkg"
     if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
     export PKG_CONFIG_PATH=$PKG_CONF_NEW ; READY_EXIT_FUNC "$COL_DEF Can not export$COL_RED_LINE_HIGH PKG_CONFIG_PATH $COL_DEF"
-    
+    #echo $PKG_CONFIG_PATH   
+ 
                                                    # Make LDCONFIG #     
     PRINT_INFO_LINE_FUNC "ldconfig"
     `/sbin/ldconfig >& .DUMP`
