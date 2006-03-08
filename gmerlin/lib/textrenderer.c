@@ -20,6 +20,7 @@
 /* System includes */
 
 #include <stdlib.h>
+#include <pthread.h>
 
 /* Freetype */
 
@@ -181,11 +182,11 @@ struct bg_text_renderer_s
   FT_Face    face;
   
   int font_loaded;
+  int font_changed;
   
   /* Configuration stuff */
 
   char * font;
-  char * last_font;
   double font_size;
   
   float color[4];
@@ -206,13 +207,11 @@ struct bg_text_renderer_s
   /* Glyph cache */
 
   cache_entry_t * cache;
-
-  FT_Matrix matrix; /* For scaling to pixel aspect ratio */
-  FT_Vector delta;
   
   int cache_size;
   int cache_alloc;
   gavl_video_format_t overlay_format;
+  gavl_video_format_t frame_format;
 
   int justify_h;
   int justify_v;
@@ -226,6 +225,9 @@ struct bg_text_renderer_s
   void (*render_func)(bg_text_renderer_t * r, cache_entry_t * glyph,
                       gavl_video_frame_t * frame,
                       int * dst_x, int * dst_y);
+  pthread_mutex_t config_mutex;
+
+  int config_changed;
   };
 
 static void adjust_bbox(cache_entry_t * glyph, int dst_x, int dst_y, bbox_t * ret)
@@ -636,6 +638,8 @@ static void unload_font(bg_text_renderer_t * r)
 
   clear_glyph_cache(r);
   FT_Done_Face(r->face);
+  r->face = (FT_Face)0;
+  r->font_loaded = 0;
   }
 
 /* fontconfig stuff inspired from MPlayer code */
@@ -646,10 +650,7 @@ static int load_font(bg_text_renderer_t * r, const char * font_name)
   FcPattern *fc_pattern, *fc_pattern_1;
   FcChar8 *filename;
   FcBool scalable;
-    
-  if(r->font_loaded && !strcmp(r->font, font_name))
-    return 1;
-
+  
   unload_font(r);
     
   /* Get font file */
@@ -726,7 +727,7 @@ bg_text_renderer_t * bg_text_renderer_create()
 #else
   ret->cnv = bg_charset_converter_create("UTF-8", "UCS-4BE");
 #endif
-  
+  pthread_mutex_init(&(ret->config_mutex),(pthread_mutexattr_t *)0);
   /* Initialize freetype */
   FT_Init_FreeType(&ret->library);
 
@@ -743,7 +744,7 @@ void bg_text_renderer_destroy(bg_text_renderer_t * r)
     free(r->cache);
 
   FT_Done_FreeType(r->library);
-
+  pthread_mutex_destroy(&(r->config_mutex));
   free(r);
   }
 
@@ -761,11 +762,16 @@ void bg_text_renderer_set_parameter(void * data, char * name,
   if(!name)
     return;
 
+  pthread_mutex_lock(&(r->config_mutex));
+  
   if(!strcmp(name, "font"))
     {
-    if(!load_font(r, val->val_str))
-      fprintf(stderr, "load_font failed\n");
-    //    fprintf(stderr, "Loaded font %s\n", val->val_str);
+    if(!r->font || strcmp(val->val_str, r->font))
+      {
+      fprintf(stderr, "Set font %s -> %s\n", r->font, val->val_str);
+      r->font = bg_strdup(r->font, val->val_str);
+      r->font_changed = 1;
+      }
     }
   else if(!strcmp(name, "color"))
     {
@@ -830,6 +836,8 @@ void bg_text_renderer_set_parameter(void * data, char * name,
     {
     r->ignore_linebreaks = val->val_i;
     }
+  r->config_changed = 1;
+  pthread_mutex_unlock(&(r->config_mutex));
   }
 
 /* Copied from gavl */
@@ -861,32 +869,36 @@ void bg_text_renderer_set_parameter(void * data, char * name,
   v = UV_FLOAT_TO_8(v_tmp);
 
 
-
-void bg_text_renderer_init(bg_text_renderer_t * r,
-                           const gavl_video_format_t * frame_format,
-                           gavl_video_format_t * overlay_format)
+static
+void init_nolock(bg_text_renderer_t * r)
   {
   float sar;
   int bits, err;
 #ifdef FT_STROKER_H 
   float y_tmp, u_tmp, v_tmp;
 #endif  
-  sar = (float)(frame_format->pixel_width) / (float)(frame_format->pixel_height);
-  /* Copy formats */
+
+  /* Load font if necessary */
+  if(r->font_changed || !r->face)
+    load_font(r, r->font);
   
-  gavl_video_format_copy(overlay_format, frame_format);
+  sar = (float)(r->frame_format.pixel_width) /
+    (float)(r->frame_format.pixel_height);
+  /* Copy formats */
+
+  gavl_video_format_copy(&r->overlay_format, &r->frame_format);
   
   /* Decide about overlay format */
 
-  gavl_pixelformat_chroma_sub(frame_format->pixelformat,
+  gavl_pixelformat_chroma_sub(r->frame_format.pixelformat,
                               &r->sub_h, &r->sub_v);
   
-  if(gavl_pixelformat_is_rgb(frame_format->pixelformat))
+  if(gavl_pixelformat_is_rgb(r->frame_format.pixelformat))
     {
-    bits = 8*gavl_pixelformat_bytes_per_pixel(frame_format->pixelformat);
+    bits = 8*gavl_pixelformat_bytes_per_pixel(r->frame_format.pixelformat);
     if(bits <= 32)
       {
-      overlay_format->pixelformat = GAVL_RGBA_32;
+      r->overlay_format.pixelformat = GAVL_RGBA_32;
       r->alpha_i = (int)(r->alpha_f*255.0+0.5);
 #ifdef FT_STROKER_H 
       r->color_i[0] = (int)(r->color[0]*255.0+0.5);
@@ -898,7 +910,7 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
       }
     else if(bits <= 64)
       {
-      overlay_format->pixelformat = GAVL_RGBA_64;
+      r->overlay_format.pixelformat = GAVL_RGBA_64;
       r->alpha_i = (int)(r->alpha_f*65535.0+0.5);
 #ifdef FT_STROKER_H 
       r->color_i[0] = (int)(r->color[0]*65535.0+0.5);
@@ -910,13 +922,13 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
       }
     else
       {
-      overlay_format->pixelformat = GAVL_RGBA_FLOAT;
+      r->overlay_format.pixelformat = GAVL_RGBA_FLOAT;
       r->render_func = render_rgba_float;
       }
     }
   else
     {
-    overlay_format->pixelformat = GAVL_YUVA_32;
+    r->overlay_format.pixelformat = GAVL_YUVA_32;
     r->alpha_i = (int)(r->alpha_f*255.0+0.5);
 #ifdef FT_STROKER_H 
 
@@ -933,7 +945,6 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
 
   /* */
   
-  gavl_video_format_copy(&(r->overlay_format), overlay_format);
   gavl_rectangle_i_set_all(&(r->max_bbox), &(r->overlay_format));
 
   gavl_rectangle_i_crop_left(&(r->max_bbox), r->border_left);
@@ -953,6 +964,23 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
     return;
   }
 
+void bg_text_renderer_init(bg_text_renderer_t * r,
+                           const gavl_video_format_t * frame_format,
+                           gavl_video_format_t * overlay_format)
+  {
+  pthread_mutex_lock(&r->config_mutex);
+
+  gavl_video_format_copy(&(r->frame_format), frame_format);
+
+  init_nolock(r);
+
+  gavl_video_format_copy(overlay_format, &(r->overlay_format));
+
+  r->config_changed = 0;
+  
+  pthread_mutex_unlock(&r->config_mutex);
+  }
+  
 static void flush_line(bg_text_renderer_t * r, gavl_video_frame_t * f,
                        cache_entry_t ** glyphs, int len, int line_y)
   {
@@ -1000,6 +1028,11 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
   int line_start, line_end;
   int line_width, line_end_y;
   int line_offset;
+
+  pthread_mutex_lock(&r->config_mutex);
+  
+  if(r->config_changed)
+    init_nolock(r);
   
   //  fprintf(stderr, "bg_text_renderer_render: string:\n\n%s\n\n", string);
     
@@ -1144,5 +1177,7 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
     free(glyphs);
   if(string_unicode)
     free(string_unicode);
+
+  pthread_mutex_unlock(&r->config_mutex);
   }
 
