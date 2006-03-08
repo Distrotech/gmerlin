@@ -429,15 +429,16 @@ function INSTALL_PACKETS_FUNC()
     for i in $2
       do
       PRINT_INFO_LINE_FUNC "$i" "$3"
+      echo -ne "$POSITION_STATUS Please wait ..."
       TAKE_PACKETS_FUNC "$1" "$i" "$LOGS/BUG_$i"
       if test $? = 0 
 	  then
 	  DEL_FILE_FUNC "$LOGS/BUG_$i" "$COL_DEF Can not delete $COL_RED_LINE_HIGH$LOGS/BUG_$i$COL_DEF"
-	  echo -e "$OK"
+	  echo -e "$POSITION_STATUS$OK\033[K"
       else
 	  ERROR_SAVE=true
 	  cp $LOGS/BUG_$i $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Can not copy file"
-	  echo -e "$FAIL"
+	  echo -e "$POSITION_STATUS$FAIL\033[K"
       fi
     done;
 }
@@ -1001,6 +1002,11 @@ if [ "$ANSWER" = true ]
     FIND_PKG_FUNC "$LOGS/BUG_pkg"
     if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
     export PKG_CONFIG_PATH=$PKG_CONF_NEW ; READY_EXIT_FUNC "$COL_DEF Can not export$COL_RED_LINE_HIGH PKG_CONFIG_PATH $COL_DEF"
+    
+                                                   # Make LDCONFIG #     
+    PRINT_INFO_LINE_FUNC "ldconfig"
+    `/sbin/ldconfig >& .DUMP`
+    if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
     
                                               # Define the newest ALL-IN-ONE packs #
     PRINT_INFO_LINE_FUNC "find newest gmerlin-all-in-one"
