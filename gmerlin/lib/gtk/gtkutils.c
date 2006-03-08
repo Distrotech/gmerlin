@@ -25,6 +25,7 @@
 #include <inttypes.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #include <gui_gtk/gtkutils.h>
 
