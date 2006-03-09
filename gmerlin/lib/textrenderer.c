@@ -985,7 +985,7 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
   }
   
 static void flush_line(bg_text_renderer_t * r, gavl_video_frame_t * f,
-                       cache_entry_t ** glyphs, int len, int line_y)
+                       cache_entry_t ** glyphs, int len, int * line_y)
   {
   int line_x, j;
   int line_width;
@@ -996,8 +996,19 @@ static void flush_line(bg_text_renderer_t * r, gavl_video_frame_t * f,
   for(j = 0; j < len-1; j++)
     {
     line_width += glyphs[j]->advance_x;
+
+    /* Adjust the y-position, if the glyph extends beyond the top
+       border of the frame. This should happen only for the first
+       line */
+
+    if(*line_y < -glyphs[j]->bbox.ymin)
+      *line_y = -glyphs[j]->bbox.ymin;
     }
   line_width += glyphs[len - 1]->bbox.xmax;
+
+  if(*line_y < -glyphs[len - 1]->bbox.ymin)
+    *line_y = -glyphs[len - 1]->bbox.ymin;
+  
   switch(r->justify_h)
     {
     case JUSTIFY_CENTER:
@@ -1016,8 +1027,8 @@ static void flush_line(bg_text_renderer_t * r, gavl_video_frame_t * f,
   
   for(j = 0; j < len; j++)
     {
-    adjust_bbox(glyphs[j], line_x, line_y, &r->bbox);
-    r->render_func(r, glyphs[j], f, &line_x, &line_y);
+    adjust_bbox(glyphs[j], line_x, *line_y, &r->bbox);
+    r->render_func(r, glyphs[j], f, &line_x, line_y);
     }
   }
 
@@ -1107,7 +1118,7 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
       
       flush_line(r, ovl->frame,
                  &glyphs[line_start], line_end - line_start,
-                 pos_y);
+                 &pos_y);
       
       pos_x -= line_width;
       
@@ -1126,7 +1137,7 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
     {
     flush_line(r, ovl->frame,
                &glyphs[line_start], len - line_start,
-               pos_y);
+               &pos_y);
     }
 
   fprintf(stderr, "bounding_box: %d,%d -> %d,%d\n",
