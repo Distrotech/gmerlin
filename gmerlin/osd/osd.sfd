@@ -1,0 +1,293 @@
+SplineFontDB: 1.0
+FontName: GmerlinOSD
+FullName: GmerlinOSD
+FamilyName: GmerlinOSD
+Weight: Medium
+Copyright: Created by Burkhard Plaum with FontForge 1.0 (http://fontforge.sf.net)
+Comments: 2006-2-20: Created.
+Version: 001.000
+ItalicAngle: 0
+UnderlinePosition: -100
+UnderlineWidth: 50
+Ascent: 800
+Descent: 200
+XUID: [1021 359 2142557246 10853752]
+FSType: 0
+PfmFamily: 17
+TTFWeight: 500
+TTFWidth: 5
+LineGap: 90
+VLineGap: 0
+OS2TypoAscent: 0
+OS2TypoAOffset: 1
+OS2TypoDescent: 0
+OS2TypoDOffset: 1
+OS2TypoLinegap: 90
+OS2WinAscent: 0
+OS2WinAOffset: 1
+OS2WinDescent: 0
+OS2WinDOffset: 1
+HheadAscent: 0
+HheadAOffset: 1
+HheadDescent: 0
+HheadDOffset: 1
+OS2Vendor: 'Gmer'
+ScriptLang: 1
+ 1 latn 1 dflt 
+TtfTable: cvt  4
+!$MDh
+EndTtf
+LangName: 1033 
+Encoding: ISO8859-1
+UnicodeInterp: none
+NameList: Adobe Glyph List
+DisplaySize: -24
+AntiAlias: 1
+FitToEm: 1
+WinInfo: 32 16 7
+Grid
+400 400 m 29
+ 746.41 200 l 29
+400 400 m 25
+ 53.5898 200 l 25
+400 400 m 25
+ 400 800 l 25
+0 0 m 1
+ 0 800 l 1
+ 800 800 l 1
+ 800 0 l 1
+ 0 0 l 1
+EndSplineSet
+BeginChars: 256 12
+StartChar: exclam
+Encoding: 33 33 0
+Width: 800
+Flags: W
+TeX: 101 0 0 0
+HStem: 0 21G<0 200 600 800>
+Fore
+600 0 m 25
+ 600 800 l 17
+ 800 800 l 9
+ 800 0 l 25
+ 600 0 l 25
+0 0 m 25
+ 200 0 l 25
+ 200 800 l 17
+ 0 800 l 9
+ 0 0 l 25
+EndSplineSet
+EndChar
+StartChar: quotedbl
+Encoding: 34 34 1
+Width: 800
+Flags: W
+TeX: 113 0 0 0
+HStem: 0 21G<0 800>
+Fore
+0 0 m 25
+ 0 800 l 21
+ 800 800 l 13
+ 800 0 l 25
+ 0 0 l 25
+EndSplineSet
+EndChar
+StartChar: numbersign
+Encoding: 35 35 2
+Width: 800
+Flags: W
+TeX: 110 0 0 0
+Fore
+0 800 m 17
+ 800 400 l 13
+ 0 0 l 25
+ 0 800 l 17
+EndSplineSet
+EndChar
+StartChar: V
+Encoding: 86 86 3
+Width: 564
+Flags: W
+TeX: 86 0 0 0
+HStem: 258.8 278.4<70.7998 253.2>
+Fore
+70.7998 537.2 m 25
+ 253.2 537.2 l 25
+ 493.2 777.2 l 25
+ 493.2 18.7998 l 25
+ 253.2 258.8 l 25
+ 70.7998 258.8 l 25
+ 70.7998 537.2 l 25
+EndSplineSet
+EndChar
+StartChar: B
+Encoding: 66 66 4
+Width: 800
+Flags: W
+TeX: 66 0 0 0
+HStem: 1 21G<367 433> 196 5<343.696 456.304> 367.5 66<0.5 200.5 599.5 799.5> 600 4<343.696 456.304>
+VStem: 196 4.5<343.696 456.304> 367 66<1 201 600 800> 599.5 4.5<343.696 456.304>
+CounterMasks: 1 0e
+Fore
+196 400 m 4
+ 196 512.608 287.392 604 400 604 c 4
+ 512.608 604 604 512.608 604 400 c 4
+ 604 287.392 512.608 196 400 196 c 4
+ 287.392 196 196 287.392 196 400 c 4
+517.733 236.098 m 1
+ 564.402 282.767 l 1
+ 705.823 141.346 l 1
+ 659.154 94.6768 l 1
+ 517.733 236.098 l 1
+94.1768 659.654 m 1
+ 140.846 706.324 l 1
+ 282.267 564.902 l 1
+ 235.598 518.233 l 1
+ 94.1768 659.654 l 1
+564.402 518.233 m 1
+ 517.733 564.902 l 1
+ 659.154 706.324 l 1
+ 705.823 659.654 l 1
+ 564.402 518.233 l 1
+140.846 94.6768 m 1
+ 94.1768 141.346 l 1
+ 235.598 282.767 l 1
+ 282.267 236.098 l 1
+ 140.846 94.6768 l 1
+599.5 367.5 m 1
+ 599.5 433.5 l 1
+ 799.5 433.5 l 1
+ 799.5 367.5 l 1
+ 599.5 367.5 l 1
+0.5 367.5 m 1
+ 0.5 433.5 l 1
+ 200.5 433.5 l 1
+ 200.5 367.5 l 1
+ 0.5 367.5 l 1
+367 201 m 1
+ 433 201 l 1
+ 433 1 l 1
+ 367 1 l 1
+ 367 201 l 1
+367 800 m 1
+ 433 800 l 1
+ 433 600 l 1
+ 367 600 l 1
+ 367 800 l 1
+EndSplineSet
+EndChar
+StartChar: C
+Encoding: 67 67 5
+Width: 800
+Flags: W
+TeX: 67 0 0 0
+HStem: 0 80<289.6 510.4> 720 80<289.6 510.4>
+VStem: 0 80<289.6 510.4> 400 400<80 720>
+Fore
+0 400 m 0
+ 0 620.8 179.2 800 400 800 c 0
+ 620.8 800 800 620.8 800 400 c 0
+ 800 179.2 620.8 0 400 0 c 0
+ 179.2 0 0 179.2 0 400 c 0
+400 80 m 1
+ 400 720 l 1
+ 223.36 720 80 576.64 80 400 c 0
+ 80 223.36 223.36 80 400 80 c 1
+EndSplineSet
+EndChar
+StartChar: S
+Encoding: 83 83 6
+Width: 800
+Flags: W
+TeX: 83 0 0 0
+HStem: 0 21G<289.6 510.4> 714 86<289.6 510.4>
+Fore
+632.42 390.999 m 0
+ 580.73 420.703 514.673 402.86 484.969 351.171 c 0
+ 455.265 299.481 473.107 233.424 524.797 203.72 c 0
+ 576.485 174.016 642.543 191.858 672.247 243.548 c 0
+ 701.951 295.236 684.109 361.295 632.42 390.999 c 0
+273.964 204.514 m 0
+ 325.84 233.89 344.101 299.834 314.724 351.709 c 0
+ 285.348 403.585 219.404 421.846 167.528 392.469 c 0
+ 115.652 363.093 97.3916 297.149 126.769 245.273 c 0
+ 156.145 193.397 222.088 175.137 273.964 204.514 c 0
+292 606 m 0
+ 292 546.384 340.384 498 400 498 c 0
+ 459.616 498 508 546.384 508 606 c 0
+ 508 665.616 459.616 714 400 714 c 0
+ 340.384 714 292 665.616 292 606 c 0
+0 400 m 0
+ 0 620.8 179.2 800 400 800 c 0
+ 620.8 800 800 620.8 800 400 c 0
+ 800 179.2 620.8 0 400 0 c 0
+ 179.2 0 0 179.2 0 400 c 0
+EndSplineSet
+EndChar
+StartChar: D
+Encoding: 68 68 7
+Width: 800
+Flags: W
+TeX: 68 0 0 0
+HStem: 0 21G<289.6 510.4>
+Fore
+0 400 m 0
+ 0 620.8 179.2 800 400 800 c 0
+ 620.8 800 800 620.8 800 400 c 0
+ 800 179.2 620.8 0 400 0 c 0
+ 179.2 0 0 179.2 0 400 c 0
+EndSplineSet
+EndChar
+StartChar: bar
+Encoding: 124 124 8
+Width: 300
+Flags: WO
+TeX: 98 0 0 0
+HStem: 0 21G<50 250>
+Fore
+50 0 m 1
+ 50 800 l 1
+ 250 800 l 1
+ 250 0 l 1
+ 50 0 l 1
+EndSplineSet
+EndChar
+StartChar: period
+Encoding: 46 46 9
+Width: 300
+Flags: W
+TeX: 112 0 0 0
+Fore
+50 300 m 1
+ 50 500 l 1
+ 250 500 l 1
+ 250 300 l 1
+ 50 300 l 1
+EndSplineSet
+EndChar
+StartChar: bracketleft
+Encoding: 91 91 10
+Width: 450
+Flags: W
+TeX: 98 0 0 0
+Fore
+400 0 m 1
+ 179.2 0 0 179.2 0 400 c 0
+ 0 620.8 179.2 800 400 800 c 1
+ 400 0 l 1
+EndSplineSet
+EndChar
+StartChar: bracketright
+Encoding: 93 93 11
+Width: 450
+Flags: MW
+TeX: 98 0 0 0
+Fore
+50 0 m 1
+ 270.8 0 450 179.2 450 400 c 4
+ 450 620.8 270.8 800 50 800 c 1
+ 50 0 l 1
+EndSplineSet
+EndChar
+EndChars
+EndSplineFont

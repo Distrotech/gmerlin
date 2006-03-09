@@ -618,6 +618,7 @@ include/Makefile \
 include/gui_gtk/Makefile \
 lib/Makefile \
 lib/gtk/Makefile \
+osd/Makefile \
 plugins/Makefile \
 plugins/alsa/Makefile \
 plugins/x11/Makefile \

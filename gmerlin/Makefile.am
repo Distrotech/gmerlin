@@ -7,7 +7,7 @@ else
 gtk_pc = 
 endif
 
-SUBDIRS = lib plugins tests apps icons skins include doc m4
+SUBDIRS = lib plugins tests apps icons skins include doc m4 osd
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = gmerlin.pc $(gtk_pc) 
