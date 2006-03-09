@@ -1076,12 +1076,14 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
   for(i = 0; i < len; i++)
     {
     glyphs[i] = get_glyph(r, string_unicode[i]);
+    if(!glyphs[i])
+      glyphs[i] = get_glyph(r, '?');
     }
   //  fprintf(stderr, "pos_y: %d\n", pos_y);
 
   pos_x = 0;
   pos_y = r->face->size->metrics.ascender >> 6;
-    
+  line_width = 0;
   for(i = 0; i < len; i++)
     {
     if((string_unicode[i] == ' ') ||
