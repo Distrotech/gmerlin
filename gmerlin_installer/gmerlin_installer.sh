@@ -426,6 +426,7 @@ fi;
 # $1 = MANAGER FOR INSTALL ; $2 = PACKET ; $3 = PACKET COMMENT 
 function INSTALL_PACKETS_FUNC()
 {
+    FIRST=""
     for i in $2
       do
       PRINT_INFO_LINE_FUNC "$i" "$3"
@@ -448,8 +449,12 @@ function TAKE_PACKETS_FUNC()
 {
     if [ "$1" = "apt-get" ]
 	then
-	`$MANAGER -y update >& $3`
-	if test $? != 0 ; then return 1 ; fi
+	if [ "$FIRST" = "" ]
+	    then
+	    `$MANAGER -y update >& $3`
+	    if test $? != 0 ; then return 1 ; fi
+	    FIRST="false"
+	fi
 	DUMP=""
 	DUMP=`apt-cache search $2 2> .DUMP`
 	if [ "$DUMP" = "" ]
@@ -462,9 +467,13 @@ function TAKE_PACKETS_FUNC()
     fi
     if [ "$1" = "yum" ]
 	then
-	`$MANAGER -y list >& $3`
-	if test $? != 0 ; then return 1 ; fi
-	`grep $2 $3 >& .DUMP`
+	if [ "$FIRST" = "" ]
+	    then
+	    `$MANAGER -y list >& "$LOGS/yum.list"`
+	    if test $? != 0 ; then return 1 ; fi
+	    FIRST="false"
+	fi
+	`grep $2 "$LOGS/yum.list" >& .DUMP`
 	if test $? != 0
 	    then return 1 
 	else	
@@ -637,19 +646,26 @@ fi
 ############################################### SEND WELCOME MESSAGE AND INFOS ##############################################################
 
 PRINT_PAGE_HEAD_LINE_FUNC "Welcome to the Gmerlin installation" "-e"
-PRINT_PAGE_COMMENT_LINE_FUNC "This script will be install Gmerlin on your System, with all features" "-e"
-PRINT_PAGE_COMMENT_LINE_FUNC "The needed components and librarys will downloaded by internet" "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "This script will be install Gmerlin on your System, with all features." "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "The needed components and librarys will downloaded by internet." "-e"
 PRINT_NEW_LINE_FUNC 1
-PRINT_PAGE_COMMENT_LINE_FUNC "Please make sure, that the internet connection is ready" "-e"
-PRINT_PAGE_COMMENT_LINE_FUNC "The Skript will be run in an normal root terminal like" "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "Please make sure, that the internet connection is ready." "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "The Skript will be run in an normal root terminal like." "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "        $COL_RED(su , sudo -s, sudo bash ...)" "-e"
-PRINT_PAGE_COMMENT_LINE_FUNC "Gmerlin will be downloaded 10 to 50 MByte" "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "Gmerlin will be downloaded 10 to 50 MByte." "-e"
+
+PRINT_NEW_LINE_FUNC 1
+PRINT_PAGE_COMMENT_LINE_FUNC "The installation Time is depending on Internet speed and CPU speed." "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "On a Pentium III 1.4 GHz with DSL1000 it can take up to 60 Minutes." "-e"
+PRINT_NEW_LINE_FUNC 1
+
 PRINT_PAGE_COMMENT_LINE_FUNC "You can download an install all components form hand, the script" "-e"
-PRINT_PAGE_COMMENT_LINE_FUNC "will be find it!" "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "will be find it on the installation Direktory!" "-e"
 
 if [ "$AUTO_CHECK" = false ]
     then
     PRINT_NEW_LINE_FUNC 1
+    sleep 1
     PRINT_PAGE_COMMENT_LINE_FUNC "Ready to install Gmerlin: $POSITION_DISKRIPTION$YES_NO" "-ne" 
     AUTO_CHECK_FUNC ; YES_NO_FUNC ; if [ "$ANSWER" = false ] ; then	PRINT_NEW_LINE_FUNC 2 ; exit ; fi
 fi
@@ -1293,8 +1309,10 @@ if [ "$ALL_PACKS" != "" ]
 	  if [ "$ERROR" = true ]
 	      then
 	      PRINT_NEW_LINE_FUNC 1
-	      PRINT_ERROR_MESSAGE_LINE_FUNC ".............................................." "-e"
-	      PRINT_ERROR_MESSAGE_LINE_FUNC ".............................................." "-e"
+	      PRINT_ERROR_MESSAGE_LINE_FUNC "For playing Musik and watching Videos it's enough to" "-e"
+	      PRINT_ERROR_MESSAGE_LINE_FUNC "installing GAVL, GMERLIN and the GMERLIN_AVDECODER." "-e"
+	      PRINT_ERROR_MESSAGE_LINE_FUNC "If you will transcode or visualice Musik then you must" "-e"
+	      PRINT_ERROR_MESSAGE_LINE_FUNC "have all Packets of Gmerlin." "-e"
 	      PRINT_NEW_LINE_FUNC 1
 	  fi
 	done
@@ -1351,10 +1369,11 @@ fi
 					              # PAGE TITLE_LINE #
 PRINT_PAGE_HEAD_LINE_FUNC "Last infos for Gmerlin" "-e"
 PRINT_NEW_LINE_FUNC 1
-PRINT_PAGE_COMMENT_LINE_FUNC "...................." "-e"
-PRINT_PAGE_COMMENT_LINE_FUNC "............................" "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "For completition the Gmerlin installation download the Windows DLL's" "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "at www.mplayerhq.hu and install it on /usr/lib/win32/ on the System." "-e"
 PRINT_NEW_LINE_FUNC 1
-PRINT_PAGE_COMMENT_LINE_FUNC ".............................." "-e"
-PRINT_PAGE_COMMENT_LINE_FUNC "............................." "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "       Thank's for Downloading and Installation Gmerlin" "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "              Have Fun a lot of Fun with it" "-e"
 PRINT_NEW_LINE_FUNC 2
 exit 0
+
