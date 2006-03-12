@@ -506,7 +506,7 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
       {
       if(!bgav_pes_header_read(input, &(priv->pes_header)))
         return 0;
-      
+
       //      bgav_pes_header_dump(&(priv->pes_header));
       
       /* Private stream 1 (non MPEG audio, subpictures) */
@@ -705,9 +705,11 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
         }
       else
         {
-        //        fprintf(stderr, "Skipping %d bytes of stream %02x\n",
-        //                priv->pes_header.payload_size,
-        //                priv->pes_header.stream_id);
+#if 0
+        fprintf(stderr, "Skipping %d bytes of stream %02x\n",
+                priv->pes_header.payload_size,
+                priv->pes_header.stream_id);
+#endif
         bgav_input_skip(input, priv->pes_header.payload_size);
         }
       

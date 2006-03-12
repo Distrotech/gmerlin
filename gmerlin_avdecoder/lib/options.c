@@ -103,6 +103,13 @@ void bgav_options_set_ftp_anonymous(bgav_options_t*b, int anonymous)
   b->ftp_anonymous = anonymous;
   }
 
+void bgav_options_set_dvd_chapters_as_tracks(bgav_options_t* opt,
+                                             int chapters_as_tracks)
+  {
+  opt->dvd_chapters_as_tracks = chapters_as_tracks;
+  }
+
+
 void bgav_options_set_default_subtitle_encoding(bgav_options_t* b,
                                                 const char* encoding)
   {
@@ -130,6 +137,7 @@ void bgav_options_set_defaults(bgav_options_t * b)
   b->read_timeout = 10000;
   b->ftp_anonymous = 1;
   b->default_subtitle_encoding = bgav_strndup("LATIN1", (char*)0);
+  b->dvd_chapters_as_tracks = 1;
   }
 
 bgav_options_t * bgav_options_create()
@@ -180,6 +188,11 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   
   CP_STR(default_subtitle_encoding);
 
+  /* DVD */
+
+  CP_INT(dvd_chapters_as_tracks);
+
+  
   /* Callbacks */
   
   CP_INT(name_change_callback);

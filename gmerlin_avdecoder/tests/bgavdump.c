@@ -144,6 +144,15 @@ int main(int argc, char ** argv)
       return -1;
       }
     }
+  else if(!strncmp(argv[1], "dvd://", 6))
+    {
+    if(!bgav_open_dvd(file, argv[1] + 5))
+      {
+      fprintf(stderr, "Could not open DVD Device %s\n",
+              argv[1] + 5);
+      return -1;
+      }
+    }
   else if(!bgav_open(file, argv[1]))
     {
     fprintf(stderr, "Could not open file %s\n",

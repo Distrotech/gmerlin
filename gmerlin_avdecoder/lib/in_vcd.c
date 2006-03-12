@@ -546,8 +546,6 @@ int bgav_open_vcd(bgav_t * b, const char * device)
 
 #else /* !HAVE_CDIO */
 
-
-
 int bgav_check_device_vcd(const char * device, char ** name)
   {
   fprintf(stderr, "VCD not supported (libcdio was missing)\n");

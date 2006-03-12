@@ -490,7 +490,10 @@ struct bgav_options_s
 
   /* Default character set for text subtitles */
   char * default_subtitle_encoding;
-  
+
+  /* Handle dvd chapters as individual tracks */
+  int dvd_chapters_as_tracks;
+    
   /* Callbacks */
   
   void (*name_change_callback)(void * data, const char * name);

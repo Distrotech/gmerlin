@@ -386,6 +386,15 @@ void bgav_options_set_ftp_anonymous_password(bgav_options_t* opt, const char* pa
 void bgav_options_set_default_subtitle_encoding(bgav_options_t* opt,
                                                 const char* encoding);
 
+/** \ingroup options
+ *  \brief Handle DVD chapters as tracks
+ *  \param opt Option container
+ *  \param 1 to handle DVD chapters like individual tracks, 0 else
+ */
+
+void bgav_options_set_dvd_chapters_as_tracks(bgav_options_t* opt,
+                                             int chapters_as_tracks);
+
 
 /* Set callbacks */
 
@@ -559,6 +568,25 @@ bgav_device_info_t * bgav_find_devices_vcd();
 int bgav_check_device_vcd(const char * device, char ** name);
 
 /** \ingroup devices
+ *  \brief Scan for DVD capable devices
+ *  \returns A \ref bgav_device_info_t array or NULL
+ *
+ *  Free the returned array with \ref bgav_device_info_destroy
+ */
+
+bgav_device_info_t * bgav_find_devices_dvd();
+
+/** \ingroup devices
+ *  \brief Test if a device is DVD capable
+ *  \param device The device node name
+ *  \param name Returns a human readable decription in a newly allocated string or NULL
+ *  \returns 1 if the device can play DVDs, 0 else.
+*/
+
+int bgav_check_device_dvd(const char * device, char ** name);
+
+
+/** \ingroup devices
  *  \brief Destroy a device info array
  *  
  */
@@ -589,6 +617,16 @@ int bgav_open(bgav_t * bgav, const char * location);
  */
 
 int bgav_open_vcd(bgav_t * bgav, const char * location);
+
+/** \ingroup opening
+ *  \brief Open a DVD device
+ *  \param bgav A decoder instance
+ *  \param location The device node
+ *  \returns 1 if the DVD device was successfully openend, 0 else.
+ */
+
+int bgav_open_dvd(bgav_t * bgav, const char * location);
+
 
 /** \ingroup opening
  *  \brief Open a decoder from a filedescriptor

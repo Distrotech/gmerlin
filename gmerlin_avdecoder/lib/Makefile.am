@@ -107,9 +107,20 @@ endif
 if HAVE_CDIO
 cdio_cflags =  @CDIO_CFLAGS@
 cdio_libs =    @CDIO_LIBS@
+
+if HAVE_DVDREAD
+dvdread_cflags  = @DVDREAD_CFLAGS@
+dvdread_libs    = @DVDREAD_LIBS@
+else
+dvdread_cflags  =
+dvdread_libs    =
+endif
+
 else
 cdio_cflags =
 cdio_libs =
+dvdread_cflags  =
+dvdread_libs    =
 endif
 
 if HAVE_LIBDV
@@ -202,6 +213,7 @@ $(libmpeg2_libs) \
 $(win32_libs) \
 $(png_libs) \
 $(tiff_libs) \
+$(dvdread_libs) \
 $(faad2_libs) \
 $(flac_libs) \
 $(mad_libs) \
@@ -295,6 +307,7 @@ device.c \
 http.c \
 id3v1.c \
 id3v2.c \
+in_dvd.c \
 in_fd.c \
 in_file.c \
 in_ftp.c \

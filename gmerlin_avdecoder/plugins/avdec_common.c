@@ -436,6 +436,11 @@ bg_avdec_set_parameter(void * p, char * name,
     {
     bgav_options_set_default_subtitle_encoding(avdec->opt, val->val_str);
     }
+  else if(!strcmp(name, "dvd_chapters_as_tracks"))
+    {
+    bgav_options_set_dvd_chapters_as_tracks(avdec->opt, val->val_i);
+    }
+          
   }
 
 int bg_avdec_get_num_tracks(void * p)

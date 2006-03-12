@@ -421,6 +421,58 @@ AC_DEFINE(HAVE_FAAD2)
 fi
 
 dnl
+dnl DVDREAD
+dnl
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+CFLAGS="$GMERLIN_DEP_CFLAGS"
+LIBS="$GMERLIN_DEP_LIBS -ldvdread"
+
+DVDREAD_REQUIRED="0.9.5"
+AH_TEMPLATE([HAVE_DVDREAD], [Enable libdvdread])
+AC_MSG_CHECKING(for libdvdread >= 0.9.5)
+have_dvdread="false"
+
+  AC_TRY_RUN([
+    #include <dvdread/dvd_reader.h>
+    #include <stdio.h>
+    main()
+    {
+#if DVDREAD_VERSION < 905
+    return -1;
+#else
+    return 0;
+#endif
+    }
+  ],
+  [
+    # program could be run
+    have_dvdread="true"
+    AC_MSG_RESULT(yes)
+    DVDREAD_CFLAGS=""
+    DVDREAD_LIBS="-ldvdread"
+
+  ],
+    # program could not be run
+    AC_MSG_RESULT(no)
+)
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+AC_SUBST(DVDREAD_CFLAGS)
+AC_SUBST(DVDREAD_LIBS)
+AC_SUBST(DVDREAD_REQUIRED)
+AM_CONDITIONAL(HAVE_DVDREAD, test x$have_dvdread = xtrue)
+
+if test x$have_dvdread = xtrue; then
+AC_DEFINE(HAVE_DVDREAD)
+fi
+
+
+dnl
 dnl FLAC
 dnl
 
@@ -901,6 +953,13 @@ if test "x$have_libsmbclient" = "xtrue"; then
 echo "Found (CFLAGS=$SAMBA_CFLAGS LIBS=$SAMBA_LIBS)"
 else
 echo "Missing (Go to http://www.samba.org)"
+fi
+
+echo -n "libdvdread:             "
+if test "x$have_dvdread" = "xtrue"; then
+echo "Found (CFLAGS=$DVDREAD_CFLAGS LIBS=$DVDREAD_LIBS)"
+else
+echo "Missing (Go to http://www.dtek.chalmers.se/groups/dvd/downloads.shtml)"
 fi
 
 echo ""
