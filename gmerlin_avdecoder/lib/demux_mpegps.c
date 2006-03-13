@@ -371,28 +371,35 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
 
   //  fprintf(stderr, "init_sector_mode 1: start_sector: %d, total_sectors: %lld\n",
   //          priv->start_sector, priv->total_sectors);
-    
-  priv->goto_sector(ctx, 0);
-  while(1)
+
+  if(priv->goto_sector)
     {
-    if(!priv->read_sector(ctx))
+    priv->goto_sector(ctx, 0);
+    while(1)
       {
-      return;
-      }
-    if(!bgav_input_get_32_be(priv->input_mem, &start_code))
-      return;
-    if(start_code == PACK_HEADER)
-      break;
+      if(!priv->read_sector(ctx))
+        {
+        return;
+        }
+      if(!bgav_input_get_32_be(priv->input_mem, &start_code))
+        return;
+      if(start_code == PACK_HEADER)
+        break;
 #if 0
-    else
-      {
-      fprintf(stderr, "Start code: ");
-      bgav_dump_fourcc( start_code);
-      fprintf(stderr, "\n");
-      }
+      else
+        {
+        fprintf(stderr, "Start code: ");
+        bgav_dump_fourcc( start_code);
+        fprintf(stderr, "\n");
+        }
 #endif
-    priv->start_sector++;
-    priv->total_sectors--;
+      priv->start_sector++;
+      priv->total_sectors--;
+      }
+    }
+  else if(!priv->read_sector(ctx))
+    {
+    return;
     }
   
   /* Read first scr */
@@ -406,67 +413,72 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
     return;
     }
   //  pack_header_dump(&(priv->pack_header));
-  
-  scr_start = priv->pack_header.scr;
 
-  //  fprintf(stderr, "scr_start: %lld\n", scr_start);
-
-  /* If we already have the duration, stop here. */
-
-  if(ctx->tt->current_track->duration != GAVL_TIME_UNDEFINED)
+  if(priv->goto_sector)
     {
-    priv->goto_sector(ctx, 0);
-    bgav_input_reopen_memory(priv->input_mem, (uint8_t*)0, 0);
-    return;
-    }
+    scr_start = priv->pack_header.scr;
     
-  while(1)
-    {
-    priv->goto_sector(ctx, priv->total_sectors - 1);
-    if(!priv->read_sector(ctx))
+    //  fprintf(stderr, "scr_start: %lld\n", scr_start);
+    
+    /* If we already have the duration, stop here. */
+    
+    if(ctx->tt->current_track->duration != GAVL_TIME_UNDEFINED)
       {
-      //      fprintf(stderr, "Read sector failed\n");
-      priv->total_sectors--;
-      continue;
-      }
-    if(!bgav_input_get_32_be(priv->input_mem, &start_code))
+      priv->goto_sector(ctx, 0);
+      bgav_input_reopen_memory(priv->input_mem, (uint8_t*)0, 0);
       return;
-    if(start_code == PACK_HEADER)
-      break;
-#if 0
-    else
-      {
-      fprintf(stderr, "Start code: ");
-      bgav_dump_fourcc( start_code);
-      fprintf(stderr, "\n");
       }
+    
+    while(1)
+      {
+      priv->goto_sector(ctx, priv->total_sectors - 1);
+      if(!priv->read_sector(ctx))
+        {
+        //      fprintf(stderr, "Read sector failed\n");
+        priv->total_sectors--;
+        continue;
+        }
+      if(!bgav_input_get_32_be(priv->input_mem, &start_code))
+        return;
+      if(start_code == PACK_HEADER)
+        break;
+#if 0
+      else
+        {
+        fprintf(stderr, "Start code: ");
+        bgav_dump_fourcc( start_code);
+        fprintf(stderr, "\n");
+        }
 #endif
-    priv->total_sectors--;
-    }
-
-  if(!pack_header_read(priv->input_mem, &(priv->pack_header)))
-    {
+      priv->total_sectors--;
+      }
+    
+    if(!pack_header_read(priv->input_mem, &(priv->pack_header)))
+      {
 #if 1
-    fprintf(stderr, "pack_header_read failed %lld %lld\n",
-            ctx->input->position, ctx->input->total_bytes);
+      fprintf(stderr, "pack_header_read failed %lld %lld\n",
+              ctx->input->position, ctx->input->total_bytes);
 #endif
+      return;
+      }
+    //  pack_header_dump(&(priv->pack_header));
+    scr_end = priv->pack_header.scr;
+    
+    fprintf(stderr, "scr_start: %lld, scr_end: %lld\n", scr_start, scr_end);
+#if 1
+    fprintf(stderr, "init_sector_mode 2: %lld\n",
+            priv->total_sectors);
+#endif
+    
+    ctx->tt->current_track->duration =
+      ((int64_t)(scr_end - scr_start) * GAVL_TIME_SCALE) / 90000;
+    
+    priv->goto_sector(ctx, 0);
+    
+    bgav_input_reopen_memory(priv->input_mem, (uint8_t*)0, 0);
+    }
+  else
     return;
-    }
-  //  pack_header_dump(&(priv->pack_header));
-  scr_end = priv->pack_header.scr;
-
-  fprintf(stderr, "scr_start: %lld, scr_end: %lld\n", scr_start, scr_end);
-#if 1
-  fprintf(stderr, "init_sector_mode 2: %lld\n",
-          priv->total_sectors);
-#endif
- 
-  ctx->tt->current_track->duration =
-    ((int64_t)(scr_end - scr_start) * GAVL_TIME_SCALE) / 90000;
-
-  priv->goto_sector(ctx, 0);
-
-  bgav_input_reopen_memory(priv->input_mem, (uint8_t*)0, 0);
   }
 
 /* Get one packet */
@@ -505,8 +517,11 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
     else /* PES Packet */
       {
       if(!bgav_pes_header_read(input, &(priv->pes_header)))
+        {
+        fprintf(stderr, "Reading PES header failed\n");
         return 0;
-
+        }
+      //      fprintf(stderr, "Got PES packet\n");
       //      bgav_pes_header_dump(&(priv->pes_header));
       
       /* Private stream 1 (non MPEG audio, subpictures) */
@@ -969,8 +984,9 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
       priv->sector_header_size = ctx->input->sector_header_size;
       priv->total_sectors      = ctx->input->total_sectors;
       priv->sector_buffer      = malloc(ctx->input->sector_size_raw);
-      
-      priv->goto_sector = goto_sector_input;
+
+      if(ctx->input->input->seek_sector)
+        priv->goto_sector = goto_sector_input;
       priv->read_sector = read_sector_input;
       }
     }

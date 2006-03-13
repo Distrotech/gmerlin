@@ -17,6 +17,8 @@
  
 *****************************************************************/
 
+/* DVD input module (inspired by tcvp) */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <avdec_private.h>
@@ -27,8 +29,23 @@
 #include <cdio/device.h>
 #include <dvdread/dvd_reader.h>
 #include <dvdread/ifo_read.h>
+#include <dvdread/nav_read.h>
+
+#define CELL_START 1
+#define CELL_LOOP  2
+#define BLOCK_LOOP 3
 
 extern bgav_demuxer_t bgav_demuxer_mpegps;
+
+typedef struct
+  {
+  int title;
+  int chapter;
+  int angle;
+
+  int start_cell;
+  int end_cell;
+  } track_priv_t;
 
 typedef struct
   {
@@ -42,16 +59,17 @@ typedef struct
 
   pgc_t * pgc;
 
-  int current_sector, current_cell;
+  track_priv_t * current_track_priv;
+  
+  int state;
+
+  int start_cell;
+  int start_sector;
+  int cell, next_cell, pack, npack;
+  int blocks;
   
   } dvd_t;
 
-typedef struct
-  {
-  int title;
-  int chapter;
-  int angle;
-  } track_priv_t;
 
 static void open_vts(dvd_t * dvd, int vts_index, int open_file)
   {
@@ -101,7 +119,6 @@ static gavl_time_t convert_time(dvd_time_t * time)
 static void setup_track(bgav_input_context_t * ctx,
                         int title, int chapter, int angle)
   {
-  int start_cell, end_cell;
   int ac3_id = 0, dts_id = 0, lpcm_id = 0, mpa_id = 0;
 
   audio_attr_t * audio_attr;
@@ -135,7 +152,7 @@ static void setup_track(bgav_input_context_t * ctx,
   pgc = dvd->vts_ifo->vts_pgcit->pgci_srp[pgc_id - 1].pgc;
   pgn = vts_ptt_srpt->title[ttn - 1].ptt[track_priv->chapter].pgn;
   
-  start_cell = pgc->program_map[pgn - 1] - 1;
+  track_priv->start_cell = pgc->program_map[pgn - 1] - 1;
   
   /* Get name */
   if(ctx->opt->dvd_chapters_as_tracks)
@@ -153,14 +170,14 @@ static void setup_track(bgav_input_context_t * ctx,
       if(vts_ptt_srpt->title[ttn - 1].ptt[chapter].pgcn ==
          vts_ptt_srpt->title[ttn - 1].ptt[chapter+1].pgcn)
         {
-        end_cell =
+        track_priv->end_cell =
           pgc->program_map[vts_ptt_srpt->title[ttn - 1].ptt[chapter+1].pgn-1]-1;
         }
       else
-        end_cell = pgc->nr_of_cells;
+        track_priv->end_cell = pgc->nr_of_cells;
       }
     else
-      end_cell = pgc->nr_of_cells;
+      track_priv->end_cell = pgc->nr_of_cells;
     }
   else
     {
@@ -169,12 +186,12 @@ static void setup_track(bgav_input_context_t * ctx,
                                      title+1, angle+1);
     else
       new_track->name = bgav_sprintf("Title %02d", title+1);
-    end_cell = pgc->nr_of_cells;
+    track_priv->end_cell = pgc->nr_of_cells;
     }
 
   /* Get duration */
   new_track->duration = 0;
-  for(i = start_cell; i < end_cell; i++)
+  for(i = track_priv->start_cell; i < track_priv->end_cell; i++)
     new_track->duration += convert_time(&(pgc->cell_playback[i].playback_time));
   
   //  fprintf(stderr, "Name: %s, start_cell: %d, end_cell: %d\n", new_track->name,
@@ -240,7 +257,7 @@ static void setup_track(bgav_input_context_t * ctx,
     {
     if(!(pgc->subp_control[i] & 0x80000000))
       continue;
-    fprintf(stderr, "Got subtitle stream\n");
+    //    fprintf(stderr, "Got subtitle stream\n");
     }
 
   /* Duration */
@@ -323,41 +340,143 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
   return 1;
   }
 
-static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
+static int
+next_cell(pgc_t *pgc, int cell, int angle)
   {
-  int ret;
-  dvd_t * priv;
-  priv = (dvd_t*)(ctx->priv);
-
-  /* Check if we are at the end of a cell */
-
-  if(priv->current_sector > priv->pgc->cell_playback[priv->current_cell].last_sector)
+  int i;
+  if(pgc->cell_playback[cell].block_type == BLOCK_TYPE_ANGLE_BLOCK)
     {
-    /* Cell finished */
-    fprintf(stderr, "Cell finished, and now?\n");
-    return 0;
+    cell += angle;
+    for(i = 0;; i++)
+      {
+      if(pgc->cell_playback[cell + i].block_mode ==
+         BLOCK_MODE_LAST_CELL)
+        {
+        return cell + i + 1;
+        }
+      }
+    }
+  return cell + 1;
+  }
+
+static int
+is_nav_pack(uint8_t *buffer)
+  {
+  return buffer[41] == 0xbf && buffer[1027] == 0xbf;
+  }
+
+static int
+read_nav(dvd_file_t *df, int sector, int *next)
+  {
+  uint8_t buf[DVD_VIDEO_LB_LEN];
+  dsi_t dsi_pack;
+  int blocks;
+
+  if(DVDReadBlocks(df, sector, 1, buf) != 1)
+    {
+    fprintf(stderr, "DVD: error reading NAV packet @%i\n", sector);
+    return -1;
     }
   
-  //  return 0;
+  if(!is_nav_pack(buf))
+    return -1;
+
+  fprintf(stderr, "*** Got nav pack ***\n");
   
-  //  fprintf(stderr, "DVDReadBlocks %d %p...", priv->current_sector, data);
-  ret = DVDReadBlocks(priv->dvd_file, priv->current_sector, 1, data);
-  //  fprintf(stderr, "return: %d\n", ret);
-  if(ret <= 0)
-    return 0;
+  navRead_DSI(&dsi_pack, buf + DSI_START_BYTE);
+  blocks = dsi_pack.dsi_gi.vobu_ea;
+  
+  if(dsi_pack.vobu_sri.next_vobu != SRI_END_OF_CELL)
+    {
+    *next = sector + (dsi_pack.vobu_sri.next_vobu & 0x7fffffff);
+    }
+  else
+    {
+    *next = sector + blocks + 1;
+    }
+  return blocks;
+  }
 
-  priv->current_sector++;
-
-  //  bgav_hexdump(data, 16, 16);
+static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
+  {
+  dvd_t * d;
+  int l;
+  d = (dvd_t*)(ctx->priv);
+  
+  switch(d->state)
+    {
+    case CELL_START:
+      /* TODO: EOF at chapter boundaries */
+      if(d->next_cell >= d->pgc->nr_of_cells)
+        return -1;
+      d->cell = d->next_cell;
+      fprintf(stderr, "DVD: entering cell %i\n", d->cell);
+      d->next_cell = next_cell(d->pgc, d->cell, d->current_track_priv->angle);
+      d->npack = d->pgc->cell_playback[d->cell].first_sector;
+      d->state = CELL_LOOP;
+      
+    case CELL_LOOP:
+      d->pack = d->npack;
+      l = read_nav(d->dvd_file, d->pack, &d->npack);
+      if(l < 0)
+        return -1;
+      fprintf(stderr, "DVD: cell %i, %i blocks @%i\n", d->cell, l, d->pack);
+      d->blocks = l;
+      d->pack++;
+      d->state = BLOCK_LOOP;
+      
+    case BLOCK_LOOP:
+      /* 	    fprintf(stderr, "DVD: reading %i blocks @%i -> %p\n", */
+      /* 		    r, d->pack, d->buf); */
+      l = DVDReadBlocks(d->dvd_file, d->pack, 1, data);
+      if(l < 1)
+        {
+        fprintf(stderr, "DVD: error reading blocks @%i\n", d->pack);
+        return -1;
+        }
+      d->blocks -= l;
+      
+      if(!d->blocks)
+        {
+        if(d->pack < d->pgc->cell_playback[d->cell].last_sector)
+          {
+          d->state = CELL_LOOP;
+          }
+        else
+          {
+          d->state = CELL_START;
+          }
+	}
+      else
+        {
+        d->pack += l;
+	}
+    }
+  
   return 1;
   }
 
 static void    close_dvd(bgav_input_context_t * ctx)
   {
-  dvd_t * priv;
+  dvd_t * dvd;
   //  fprintf(stderr, "CLOSE DVD\n");
-  priv = (dvd_t*)(ctx->priv);
-  free(priv);
+  dvd = (dvd_t*)(ctx->priv);
+
+  //  if(dvd->dvd_file)
+
+  if(dvd->dvd_reader)
+    DVDClose(dvd->dvd_reader);
+  
+  if(dvd->dvd_file)
+    DVDCloseFile(dvd->dvd_file);
+  
+  if(dvd->vmg_ifo)
+    ifoClose(dvd->vmg_ifo);
+  
+  if(dvd->vts_ifo)
+    ifoClose(dvd->vts_ifo);
+  
+  free(dvd);
   return;
   }
 
@@ -374,6 +493,8 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
 
   ttsrpt = dvd->vmg_ifo->tt_srpt;
   track_priv = (track_priv_t*)(ctx->tt->current_track->priv);
+
+  dvd->current_track_priv = track_priv;
   
   ttn = ttsrpt->title[track_priv->title].vts_ttn;
 
@@ -384,14 +505,15 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   pgc_id = vts_ptt_srpt->title[ttn - 1].ptt[track_priv->chapter].pgcn;
   pgn    = vts_ptt_srpt->title[ttn - 1].ptt[track_priv->chapter].pgn;
 
-  fprintf(stderr, "Select track: t: %d, c: %d, pgc_id: %d, pgn: %d\n",
-          track_priv->title, track_priv->chapter, pgc_id, pgn);
   
   dvd->pgc = dvd->vts_ifo->vts_pgcit->pgci_srp[pgc_id - 1].pgc;
 
-  dvd->current_cell   = dvd->pgc->program_map[pgn - 1] - 1;
-  dvd->current_sector = dvd->pgc->cell_playback[dvd->current_cell].first_sector;
-
+  dvd->start_cell = dvd->next_cell = dvd->pgc->program_map[pgn - 1] - 1;
+  dvd->state = CELL_START;
+  dvd->start_sector = dvd->pgc->cell_playback[dvd->start_cell].first_sector;
+  
+  fprintf(stderr, "Select track: t: %d, c: %d, pgc_id: %d, pgn: %d, start_sector: %d\n",
+          track_priv->title, track_priv->chapter, pgc_id, pgn, dvd->start_sector);
   
   }
 
