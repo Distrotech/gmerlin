@@ -17,6 +17,19 @@
  
 *****************************************************************/
 
+/* Freetype includes */
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_GLYPH_H
+
+// #undef FT_STROKER_H
+
+/* Stroker interface */
+#ifdef FT_STROKER_H
+#include FT_STROKER_H
+#endif
+
 typedef struct bg_text_renderer_s bg_text_renderer_t;
 
 bg_text_renderer_t * bg_text_renderer_create();

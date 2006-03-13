@@ -29,6 +29,7 @@ log.c \
 metadata.c \
 metadata_xml.c \
 msgqueue.c \
+osd.c \
 parameter.c \
 player.c \
 player_input.c \

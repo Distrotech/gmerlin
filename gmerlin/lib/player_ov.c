@@ -35,6 +35,8 @@ struct bg_player_ov_context_s
   int do_sync;
   bg_ov_callbacks_t callbacks;
   gavl_video_frame_t * frame;
+  gavl_time_t frame_time;
+
   gavl_video_frame_t * still_frame;
   pthread_mutex_t     still_mutex;
   
@@ -45,6 +47,12 @@ struct bg_player_ov_context_s
   gavl_overlay_t     * next_subtitle;
   int subtitle_id; /* Stream id for subtitles in the output plugin */
   int has_subtitle;
+
+  bg_osd_t * osd;
+  int osd_id;
+  gavl_overlay_t * osd_ovl;
+  
+  bg_msg_queue_t * msg_queue;
   };
 
 /* Callback functions */
@@ -95,6 +103,52 @@ static void button_callback(void * data, int x, int y, int button, int mask)
   fprintf(stderr, "Button callback %d %d (Button %d)\n", x, y, button);
   }
 
+static void brightness_callback(void * data, float val)
+  {
+  bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
+  //  fprintf(stderr, "Brightness callback %f\n", val);
+  bg_osd_set_brightness_changed(ctx->osd, val, ctx->frame_time);
+  }
+
+static void saturation_callback(void * data, float val)
+  {
+  bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
+  //  fprintf(stderr, "Saturation callback %f\n", val);
+  bg_osd_set_saturation_changed(ctx->osd, val, ctx->frame_time);
+  }
+
+static void contrast_callback(void * data, float val)
+  {
+  bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
+  //  fprintf(stderr, "Contrast callback %f\n", val);
+  bg_osd_set_contrast_changed(ctx->osd, val, ctx->frame_time);
+  }
+
+static void handle_messages(bg_player_ov_context_t * ctx, gavl_time_t time)
+  {
+  bg_msg_t * msg;
+  int id;
+  float arg_f;
+  
+  while((msg = bg_msg_queue_try_lock_read(ctx->msg_queue)))
+    {
+    id = bg_msg_get_id(msg);
+    switch(id)
+      {
+      case BG_PLAYER_MSG_VOLUME_CHANGED:
+        arg_f = bg_msg_get_arg_float(msg, 0);
+        bg_osd_set_volume_changed(ctx->osd, (arg_f - BG_PLAYER_VOLUME_MIN)/(-BG_PLAYER_VOLUME_MIN),
+                                  time);
+        break;
+      default:
+        break;
+      }
+
+    bg_msg_queue_unlock_read(ctx->msg_queue);
+    
+    }
+  }
+
 /* Create frame */
 
 void * bg_player_ov_create_frame(void * data)
@@ -140,14 +194,23 @@ void bg_player_ov_create(bg_player_t * player)
   ctx = calloc(1, sizeof(*ctx));
   ctx->player = player;
 
+  ctx->msg_queue = bg_msg_queue_create();
+  
   pthread_mutex_init(&(ctx->still_mutex),(pthread_mutexattr_t *)0);
   
   /* Load output plugin */
   
   ctx->callbacks.key_callback    = key_callback;
   ctx->callbacks.button_callback = button_callback;
+
+  ctx->callbacks.brightness_callback = brightness_callback;
+  ctx->callbacks.saturation_callback = saturation_callback;
+  ctx->callbacks.contrast_callback   = contrast_callback;
+  
   ctx->callbacks.data = ctx;
   player->ov_context = ctx;
+
+  ctx->osd = bg_osd_create();
   }
 
 void bg_player_ov_standby(bg_player_ov_context_t * ctx)
@@ -197,13 +260,16 @@ void bg_player_ov_destroy(bg_player_t * player)
   
   if(ctx->plugin_handle)
     bg_plugin_unref(ctx->plugin_handle);
+  bg_osd_destroy(ctx->osd);
 
+  bg_msg_queue_destroy(ctx->msg_queue);
   
   free(ctx);
   }
 
 int bg_player_ov_init(bg_player_ov_context_t * ctx)
   {
+  gavl_video_format_t osd_format;
   int result;
   
   gavl_video_format_copy(&(ctx->player->video_stream.output_format),
@@ -215,12 +281,22 @@ int bg_player_ov_init(bg_player_ov_context_t * ctx)
                              "Video output");
   if(result && ctx->plugin->show_window)
     ctx->plugin->show_window(ctx->priv, 1);
-
   else if(!result)
     {
     if(ctx->plugin->common.get_error)
       ctx->error_msg = ctx->plugin->common.get_error(ctx->priv);
+    bg_plugin_unlock(ctx->plugin_handle);
+    return result;
     }
+
+  memset(&(osd_format), 0, sizeof(osd_format));
+  
+  bg_osd_init(ctx->osd, &(ctx->player->video_stream.output_format),
+              &osd_format);
+
+  ctx->osd_id = ctx->plugin->add_overlay_stream(ctx->priv,
+                                                      &osd_format);
+  ctx->osd_ovl = bg_osd_get_overlay(ctx->osd);
   
   bg_plugin_unlock(ctx->plugin_handle);
   return result;
@@ -367,12 +443,16 @@ void * bg_player_ov_thread(void * data)
   gavl_overlay_t tmp_overlay;
   
   bg_player_ov_context_t * ctx;
-  gavl_time_t diff_time, frame_time;
+  gavl_time_t diff_time;
   gavl_time_t current_time;
   bg_fifo_state_t state;
   
   ctx = (bg_player_ov_context_t*)data;
 
+  bg_player_add_message_queue(ctx->player,
+                              ctx->msg_queue);
+
+  
   //  fprintf(stderr, "Starting ov thread\n");
 
   while(1)
@@ -413,7 +493,7 @@ void * bg_player_ov_thread(void * data)
       }
 
     /* Get frame time */
-    frame_time = gavl_time_unscale(ctx->player->video_stream.output_format.timescale,
+    ctx->frame_time = gavl_time_unscale(ctx->player->video_stream.output_format.timescale,
                                    ctx->frame->time_scaled);
 
     /* Subtitle handling */
@@ -429,12 +509,12 @@ void * bg_player_ov_thread(void * data)
       if(ctx->has_subtitle)
         {
         if((ctx->current_subtitle.frame->duration_scaled >= 0) &&
-           (frame_time >= ctx->current_subtitle.frame->time_scaled +
+           (ctx->frame_time >= ctx->current_subtitle.frame->time_scaled +
             ctx->current_subtitle.frame->duration_scaled))
           {
           ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
           fprintf(stderr, "Overlay expired (%f > %f + %f)\n",
-                  gavl_time_to_seconds(frame_time),
+                  gavl_time_to_seconds(ctx->frame_time),
                   gavl_time_to_seconds(ctx->current_subtitle.frame->time_scaled),
                   gavl_time_to_seconds(ctx->current_subtitle.frame->duration_scaled));
           ctx->has_subtitle = 0;
@@ -445,7 +525,7 @@ void * bg_player_ov_thread(void * data)
       
       if(ctx->next_subtitle)
         {
-        if(frame_time >= ctx->next_subtitle->frame->time_scaled)
+        if(ctx->frame_time >= ctx->next_subtitle->frame->time_scaled)
           {
           memcpy(&tmp_overlay, ctx->next_subtitle, sizeof(tmp_overlay));
           memcpy(ctx->next_subtitle, &(ctx->current_subtitle),
@@ -461,13 +541,22 @@ void * bg_player_ov_thread(void * data)
           }
         }
       }
+    /* Handle message */
+    handle_messages(ctx, ctx->frame_time);
+    
+    /* Display OSD */
 
+    if(bg_osd_overlay_valid(ctx->osd, ctx->frame_time))
+      ctx->plugin->set_overlay(ctx->priv, ctx->osd_id, ctx->osd_ovl);
+    else
+      ctx->plugin->set_overlay(ctx->priv, ctx->osd_id, (gavl_overlay_t*)0);
+    
     /* Check Timing */
     bg_player_time_get(ctx->player, 1, &current_time);
     
 #if 0
     fprintf(stderr, "F: %f, C: %f\n",
-            gavl_time_to_seconds(frame_time),
+            gavl_time_to_seconds(ctx->frame_time),
             gavl_time_to_seconds(current_time));
 #endif
 
@@ -476,7 +565,7 @@ void * bg_player_ov_thread(void * data)
     
     if(!ctx->do_sync)
       {
-      diff_time =  frame_time - current_time;
+      diff_time =  ctx->frame_time - current_time;
       
       /* Wait until we can display the frame */
       if(diff_time > 0)
@@ -496,13 +585,17 @@ void * bg_player_ov_thread(void * data)
     
     if(ctx->do_sync)
       {
-      bg_player_time_set(ctx->player, frame_time);
+      bg_player_time_set(ctx->player, ctx->frame_time);
       //      fprintf(stderr, "OV Resync %lld\n", frame->time);
       ctx->do_sync = 0;
       }
     
     bg_plugin_unlock(ctx->plugin_handle);
     }
+
+  bg_player_delete_message_queue(ctx->player,
+                              ctx->msg_queue);
+
   
   //  fprintf(stderr, "ov thread finisheded\n");
   return NULL;
@@ -540,4 +633,15 @@ void * bg_player_ov_still_thread(void *data)
     }
   //  fprintf(stderr, "still thread finished\n");
   return NULL;
+  }
+
+bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t * p)
+  {
+  return bg_osd_get_parameters(p->ov_context->osd);
+  }
+
+void bg_player_set_osd_parameter(void * data, char * name, bg_parameter_value_t*val)
+  {
+  bg_player_t * p = (bg_player_t *)data;
+  bg_osd_set_parameter(p->ov_context->osd, name, val);
   }

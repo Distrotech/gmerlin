@@ -241,7 +241,7 @@ EndChar
 StartChar: bar
 Encoding: 124 124 8
 Width: 300
-Flags: WO
+Flags: W
 TeX: 98 0 0 0
 HStem: 0 21G<50 250>
 Fore

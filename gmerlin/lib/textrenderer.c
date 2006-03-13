@@ -22,18 +22,6 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-/* Freetype */
-
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_GLYPH_H
-
-// #undef FT_STROKER_H
-
-/* Stroker interface */
-#ifdef FT_STROKER_H
-#include FT_STROKER_H
-#endif
 
 /* Fontconfig */
 
@@ -55,7 +43,7 @@
 #define JUSTIFY_TOP    1
 #define JUSTIFY_BOTTOM 2
 
-bg_parameter_info_t parameters[] =
+static bg_parameter_info_t parameters[] =
   {
     {
       name:       "color",
@@ -187,6 +175,8 @@ struct bg_text_renderer_s
   /* Configuration stuff */
 
   char * font;
+  char * font_file;
+  
   double font_size;
   
   float color[4];
@@ -644,7 +634,7 @@ static void unload_font(bg_text_renderer_t * r)
 
 /* fontconfig stuff inspired from MPlayer code */
 
-static int load_font(bg_text_renderer_t * r, const char * font_name)
+static int load_font(bg_text_renderer_t * r)
   {
   int err;
   FcPattern *fc_pattern, *fc_pattern_1;
@@ -652,57 +642,72 @@ static int load_font(bg_text_renderer_t * r, const char * font_name)
   FcBool scalable;
   
   unload_font(r);
-    
-  /* Get font file */
-  FcInit();
-  fc_pattern = FcNameParse(font_name);
 
-  //  FcPatternPrint(fc_pattern);
-  
-  FcConfigSubstitute(0, fc_pattern, FcMatchPattern);
-
-  //  FcPatternPrint(fc_pattern);
-
-  FcDefaultSubstitute(fc_pattern);
-
-  //  FcPatternPrint(fc_pattern);
-
-  
-  fc_pattern_1 = FcFontMatch((FcConfig*)0, fc_pattern, 0);
-
-  //  FcPatternPrint(fc_pattern);
-
-  FcPatternGetBool(fc_pattern_1, FC_SCALABLE, 0, &scalable);
-  if(scalable != FcTrue)
+  if(r->font)
     {
-    fprintf(stderr, "Font %s not scalable, using built in default\n",
-            font_name);
-    FcPatternDestroy(fc_pattern);
-    FcPatternDestroy(fc_pattern_1);
+    /* Get font file */
+    FcInit();
+    fc_pattern = FcNameParse(r->font);
     
-    fc_pattern = FcNameParse("Sans-20");
+    //  FcPatternPrint(fc_pattern);
+    
     FcConfigSubstitute(0, fc_pattern, FcMatchPattern);
+    
+    //  FcPatternPrint(fc_pattern);
+    
     FcDefaultSubstitute(fc_pattern);
-    fc_pattern_1 = FcFontMatch(0, fc_pattern, 0);
+    
+    //  FcPatternPrint(fc_pattern);
+    
+    fc_pattern_1 = FcFontMatch((FcConfig*)0, fc_pattern, 0);
+    
+    //  FcPatternPrint(fc_pattern);
+    
+    FcPatternGetBool(fc_pattern_1, FC_SCALABLE, 0, &scalable);
+    if(scalable != FcTrue)
+      {
+      fprintf(stderr, "Font %s not scalable, using built in default\n",
+              r->font);
+      FcPatternDestroy(fc_pattern);
+      FcPatternDestroy(fc_pattern_1);
+      
+      fc_pattern = FcNameParse("Sans-20");
+      FcConfigSubstitute(0, fc_pattern, FcMatchPattern);
+      FcDefaultSubstitute(fc_pattern);
+      fc_pattern_1 = FcFontMatch(0, fc_pattern, 0);
+      }
+    // s doesn't need to be freed according to fontconfig docs
+    
+    FcPatternGetString(fc_pattern_1, FC_FILE, 0, &filename);
+    FcPatternGetDouble(fc_pattern_1, FC_SIZE, 0, &(r->font_size));
     }
-  // s doesn't need to be freed according to fontconfig docs
-  FcPatternGetString(fc_pattern_1, FC_FILE, 0, &filename);
-  FcPatternGetDouble(fc_pattern_1, FC_SIZE, 0, &(r->font_size));
+  else
+    {
+    filename = r->font_file;
+    }
   
   //  fprintf(stderr, "File: %s, Size: %f\n", filename, r->font_size);
   
   /* Load face */
   
   err = FT_New_Face(r->library, filename, 0, &r->face);
+  
   if(err)
+    {
+    if(r->font)
+      {
+      FcPatternDestroy(fc_pattern);
+      FcPatternDestroy(fc_pattern_1);
+      }
+    return 0;
+    }
+
+  if(r->font)
     {
     FcPatternDestroy(fc_pattern);
     FcPatternDestroy(fc_pattern_1);
-    return 0;
     }
-  FcPatternDestroy(fc_pattern);
-  FcPatternDestroy(fc_pattern_1);
-
+  
   /* Select Unicode */
 
   FT_Select_Charmap(r->face, FT_ENCODING_UNICODE );
@@ -766,7 +771,8 @@ void bg_text_renderer_set_parameter(void * data, char * name,
     return;
 
   pthread_mutex_lock(&(r->config_mutex));
-  
+
+  /* General text renderer */
   if(!strcmp(name, "font"))
     {
     if(!r->font || strcmp(val->val_str, r->font))
@@ -776,6 +782,27 @@ void bg_text_renderer_set_parameter(void * data, char * name,
       r->font_changed = 1;
       }
     }
+  /* OSD */
+  else if(!strcmp(name, "font_file"))
+    {
+    if(!r->font_file || strcmp(val->val_str, r->font_file))
+      {
+      //      fprintf(stderr, "Set font %s -> %s\n", r->font_file, val->val_str);
+      r->font_file = bg_strdup(r->font_file, val->val_str);
+      r->font_changed = 1;
+      }
+    }
+  else if(!strcmp(name, "font_size"))
+    {
+    if(r->font_size != val->val_f)
+      {
+      //      fprintf(stderr, "Set font %s -> %s\n", r->font_file, val->val_str);
+      r->font_size = val->val_f;
+      r->font_changed = 1;
+      }
+    }
+  
+  /* */
   else if(!strcmp(name, "color"))
     {
     r->color[0] = val->val_color[0];
@@ -883,7 +910,7 @@ void init_nolock(bg_text_renderer_t * r)
 
   /* Load font if necessary */
   if(r->font_changed || !r->face)
-    load_font(r, r->font);
+    load_font(r);
   
   sar = (float)(r->frame_format.pixel_width) /
     (float)(r->frame_format.pixel_height);

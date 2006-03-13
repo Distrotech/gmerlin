@@ -133,7 +133,13 @@ bg_player_t * bg_player_create()
   bg_player_t * ret;
     
   ret = calloc(1, sizeof(*ret));
-    
+
+  /* Create message queues */
+
+  ret->command_queue  = bg_msg_queue_create();
+  
+  ret->message_queues = bg_msg_queue_list_create();
+  
   /* Create contexts */
 
   bg_player_audio_create(ret);
@@ -144,14 +150,6 @@ bg_player_t * bg_player_create()
   bg_player_oa_create(ret);
   bg_player_ov_create(ret);
 
-  /* Create message queues */
-
-  ret->command_queue  = bg_msg_queue_create();
-  ret->to_oa_queue    = bg_msg_queue_create();
-  ret->to_ov_queue    = bg_msg_queue_create();
-  ret->to_input_queue = bg_msg_queue_create();
-  
-  ret->message_queues = bg_msg_queue_list_create();
 
   pthread_mutex_init(&(ret->state_mutex), (pthread_mutexattr_t *)0);
   pthread_mutex_init(&(ret->start_mutex), (pthread_mutexattr_t *)0);
@@ -180,9 +178,6 @@ void bg_player_destroy(bg_player_t * player)
   bg_player_subtitle_destroy(player);
   
   bg_msg_queue_destroy(player->command_queue);
-  bg_msg_queue_destroy(player->to_oa_queue);
-  bg_msg_queue_destroy(player->to_ov_queue);
-  bg_msg_queue_destroy(player->to_input_queue);
  
   bg_msg_queue_list_destroy(player->message_queues);
 

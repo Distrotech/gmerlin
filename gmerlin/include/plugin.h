@@ -448,6 +448,11 @@ typedef struct bg_ov_plugin_callbacks_s
 
   /* Call this, is the window got (un)-mapped */  
   void (*show_window)(void * data, int show);
+
+  /* These can update OSD, when brightness, saturation or contrast changed */
+  void (*brightness_callback)(void * data, float val);
+  void (*saturation_callback)(void * data, float val);
+  void (*contrast_callback)(void * data, float val);
   
   void * data;
   } bg_ov_callbacks_t;

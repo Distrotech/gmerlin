@@ -75,6 +75,11 @@ static void gmerlin_apply_config(gmerlin_t * g)
   bg_cfg_section_apply(g->subtitle_section, parameters,
                        bg_player_set_subtitle_parameter, (void*)(g->player));
 
+  parameters = bg_player_get_osd_parameters(g->player);
+  
+  bg_cfg_section_apply(g->osd_section, parameters,
+                       bg_player_set_osd_parameter, (void*)(g->player));
+
   
   parameters = gmerlin_get_parameters(g);
 
@@ -190,6 +195,8 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
     bg_cfg_registry_find_section(cfg_reg, "Video");
   ret->subtitle_section =
     bg_cfg_registry_find_section(cfg_reg, "Subtitles");
+  ret->osd_section =
+    bg_cfg_registry_find_section(cfg_reg, "OSD");
   ret->lcdproc_section =
     bg_cfg_registry_find_section(cfg_reg, "LCDproc");
   ret->remote_section =

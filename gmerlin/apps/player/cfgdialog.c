@@ -62,6 +62,16 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 bg_player_set_subtitle_parameter,
                 (void*)(g->player),
                 parameters);
+
+  parameters = bg_player_get_osd_parameters(g->player);
+  
+  bg_dialog_add(g->cfg_dialog,
+                "OSD",
+                g->osd_section,
+                bg_player_set_osd_parameter,
+                (void*)(g->player),
+                parameters);
+
   
   parameters = display_get_parameters(g->player_window->display);
 

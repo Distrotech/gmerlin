@@ -13,6 +13,7 @@ keycodes.h \
 lcdproc.h \
 log.h \
 msgqueue.h \
+osd.h \
 parameter.h \
 player.h \
 playermsg.h \

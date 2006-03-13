@@ -53,6 +53,8 @@
 #define ZOOM_MAX 180.0
 #define ZOOM_DELTA 2.0
 
+#define BCS_DELTA 0.025
+
 #define XV_ID_YV12  0x32315659 
 #define XV_ID_I420  0x30323449
 #define XV_ID_YUY2  0x32595559
@@ -277,6 +279,13 @@ typedef struct
 
 #endif
 
+  int brightness_i, saturation_i, contrast_i;
+  float brightness_f, saturation_f, contrast_f;
+  
+  bg_parameter_info_t * brightness_parameter;
+  bg_parameter_info_t * saturation_parameter;
+  bg_parameter_info_t * contrast_parameter;
+  
   int shm_completion_type;
   int wait_for_completion;
     
@@ -330,6 +339,30 @@ typedef struct
     } * overlay_streams;
   } x11_t;
 
+#ifdef HAVE_LIBXV
+static int set_xv_parameter(x11_t * p, const char * name, 
+                            int value);
+#endif
+
+
+/* BCS (Brightness, Contrast, Saturation...) Adjustments */
+
+static int bcs_f2i(bg_parameter_info_t * info, float f)
+  {
+  int ret;
+  ret = info->val_min.val_i + (int)((float)(info->val_max.val_i - info->val_min.val_i)*f + 0.5);
+  if(ret > info->val_max.val_i)
+    ret = info->val_max.val_i;
+  if(ret < info->val_min.val_i)
+    ret = info->val_min.val_i;
+  return ret;
+  }
+
+static float bcs_i2f(bg_parameter_info_t * info, int i)
+  {
+  return (float)(i - info->val_min.val_i) / (float)(info->val_max.val_i - info->val_min.val_i);
+  }
+
 /* Overlay support */
 
 static int add_overlay_stream_x11(void * data, const gavl_video_format_t * format)
@@ -352,6 +385,22 @@ static int add_overlay_stream_x11(void * data, const gavl_video_format_t * forma
   x11->num_overlay_streams++;
   return x11->num_overlay_streams - 1;
   }
+
+static void destroy_overlay_streams(x11_t * x11)
+  {
+  int i;
+  if(x11->num_overlay_streams)
+    {
+    for(i = 0; i < x11->num_overlay_streams; i++)
+      {
+      gavl_overlay_blend_context_destroy(x11->overlay_streams[i].ctx);
+      }
+    free(x11->overlay_streams);
+    x11->overlay_streams = NULL;
+    x11->num_overlay_streams = 0;
+    }
+  }
+ 
 
 static void set_overlay_x11(void * data, int stream, gavl_overlay_t * ovl)
   {
@@ -1251,6 +1300,7 @@ static void close_x11(void * data)
     }
 #endif
   x11_window_clear(&priv->win);
+  destroy_overlay_streams(priv);
   priv->do_still = 0;
   }
 
@@ -1463,10 +1513,118 @@ static int handle_event(x11_t * priv, XEvent * evt)
           else
             done = 0;
           break;
+        case XK_B:
+          /* Increase brightness */
+          priv->brightness_f += BCS_DELTA;
+          if(priv->brightness_f > 1.0)
+            priv->brightness_f = 1.0;
+
+          priv->brightness_i =
+            bcs_f2i(priv->brightness_parameter, priv->brightness_f);
+          set_xv_parameter(priv, priv->brightness_parameter->name,
+                           priv->brightness_i);
+          
+          fprintf(stderr, "Increase brightness %f %d\n",
+                  priv->brightness_f, priv->brightness_i);
+
+          if(priv->callbacks && priv->callbacks->brightness_callback)
+            priv->callbacks->brightness_callback(priv->callbacks->data,
+                                                 priv->brightness_f);
+          break;
+        case XK_b:
+          /* Decrease brightness */
+          priv->brightness_f -= BCS_DELTA;
+          if(priv->brightness_f < 0.0)
+            priv->brightness_f = 0.0;
+          
+          priv->brightness_i =
+            bcs_f2i(priv->brightness_parameter, priv->brightness_f);
+          set_xv_parameter(priv, priv->brightness_parameter->name,
+                           priv->brightness_i);
+          fprintf(stderr, "Decrease brightness %f %d\n",
+                  priv->brightness_f, priv->brightness_i);
+
+          if(priv->callbacks && priv->callbacks->brightness_callback)
+            priv->callbacks->brightness_callback(priv->callbacks->data,
+                                                 priv->brightness_f);
+          
+          break;
+        case XK_S:
+          /* Increase saturation */
+          priv->saturation_f += BCS_DELTA;
+          if(priv->saturation_f > 1.0)
+            priv->saturation_f = 1.0;
+
+          priv->saturation_i =
+            bcs_f2i(priv->saturation_parameter, priv->saturation_f);
+          set_xv_parameter(priv, priv->saturation_parameter->name,
+                           priv->saturation_i);
+          
+          fprintf(stderr, "Increase saturation %f %d\n",
+                  priv->saturation_f, priv->saturation_i);
+
+          if(priv->callbacks && priv->callbacks->saturation_callback)
+            priv->callbacks->saturation_callback(priv->callbacks->data,
+                                                 priv->saturation_f);
+          break;
+        case XK_s:
+          /* Decrease saturation */
+          priv->saturation_f -= BCS_DELTA;
+          if(priv->saturation_f < 0.0)
+            priv->saturation_f = 0.0;
+          
+          priv->saturation_i =
+            bcs_f2i(priv->saturation_parameter, priv->saturation_f);
+          set_xv_parameter(priv, priv->saturation_parameter->name,
+                           priv->saturation_i);
+          fprintf(stderr, "Decrease saturation %f %d\n",
+                  priv->saturation_f, priv->saturation_i);
+
+          if(priv->callbacks && priv->callbacks->saturation_callback)
+            priv->callbacks->saturation_callback(priv->callbacks->data,
+                                                 priv->saturation_f);
+          
+          break;
+        case XK_C:
+          /* Increase contrast */
+          priv->contrast_f += BCS_DELTA;
+          if(priv->contrast_f > 1.0)
+            priv->contrast_f = 1.0;
+
+          priv->contrast_i =
+            bcs_f2i(priv->contrast_parameter, priv->contrast_f);
+          set_xv_parameter(priv, priv->contrast_parameter->name,
+                           priv->contrast_i);
+          
+          fprintf(stderr, "Increase contrast %f %d\n",
+                  priv->contrast_f, priv->contrast_i);
+
+          if(priv->callbacks && priv->callbacks->contrast_callback)
+            priv->callbacks->contrast_callback(priv->callbacks->data,
+                                                 priv->contrast_f);
+          break;
+        case XK_c:
+          /* Decrease contrast */
+          priv->contrast_f -= BCS_DELTA;
+          if(priv->contrast_f < 0.0)
+            priv->contrast_f = 0.0;
+          
+          priv->contrast_i =
+            bcs_f2i(priv->contrast_parameter, priv->contrast_f);
+          set_xv_parameter(priv, priv->contrast_parameter->name,
+                           priv->contrast_i);
+          fprintf(stderr, "Decrease contrast %f %d\n",
+                  priv->contrast_f, priv->contrast_i);
+
+          if(priv->callbacks && priv->callbacks->contrast_callback)
+            priv->callbacks->contrast_callback(priv->callbacks->data,
+                                                 priv->contrast_f);
+          
+          break;
         default:
           done = 0;
         }
-
+      
       if(done)
         return 0;
             
@@ -1786,6 +1944,29 @@ static void get_xv_parameters(x11_t * x11,
           XvGetPortAttribute(x11->dpy, x11->xv_port,
                              x11->xv_attr_atoms[j],
                              &(info[index].val_default.val_i));
+
+          /* Save parameters for hue, brightness and contrast */
+          if(!strcmp(info[index].name, "XV_BRIGHTNESS"))
+            {
+            x11->brightness_i = info[index].val_default.val_i;
+            x11->brightness_parameter = &info[index];
+            info[index].flags |= BG_PARAMETER_HIDE_DIALOG;
+            x11->brightness_f = bcs_i2f(&info[index], x11->brightness_i);
+            }
+          if(!strcmp(info[index].name, "XV_SATURATION"))
+            {
+            x11->saturation_i = info[index].val_default.val_i;
+            x11->saturation_parameter = &info[index];
+            info[index].flags |= BG_PARAMETER_HIDE_DIALOG;
+            x11->saturation_f = bcs_i2f(&info[index], x11->saturation_i);
+            }
+          if(!strcmp(info[index].name, "XV_CONTRAST"))
+            {
+            x11->contrast_i = info[index].val_default.val_i;
+            x11->contrast_parameter = &info[index];
+            info[index].flags |= BG_PARAMETER_HIDE_DIALOG;
+            x11->contrast_f = bcs_i2f(&info[index], x11->contrast_i);
+            }
           index++;
           }
         }
@@ -2002,6 +2183,24 @@ static int set_xv_parameter(x11_t * p, const char * name,
     }
   return 0;
   }
+
+static int get_xv_parameter(x11_t * p, const char * name, 
+                            int * value)
+  {
+  int j;
+ 
+  for(j = 0; j < NUM_XV_PARAMETERS; j++)
+    {
+    if(!strcmp(name, xv_parameters[j].xv_name))
+      {
+//      fprintf(stderr, "Set xv parameter %s\n", name);
+      XvGetPortAttribute (p->dpy, p->xv_port,
+                          p->xv_attr_atoms[j], value);
+      return 1;
+      }
+    }
+  return 0;
+  }
 #endif
 
 /* Set parameter */
@@ -2119,37 +2318,44 @@ get_parameter_x11(void * priv, char * name, bg_parameter_value_t * val)
   
   if(!name)
     return 0;
-  if(!strcmp(name, "window_x"))
+
+#ifdef HAVE_LIBXV
+  else if(get_xv_parameter(p, name, &val->val_i))
+    return 1;
+#endif
+
+  else if(!strcmp(name, "window_x"))
     {
     val->val_i = p->win.window_x;
     return 1;
     }
-  if(!strcmp(name, "window_y"))
+  else if(!strcmp(name, "window_y"))
     {
     val->val_i = p->win.window_y;
     return 1;
     }
-  if(!strcmp(name, "window_width"))
+  else if(!strcmp(name, "window_width"))
     {
     val->val_i = p->win.window_width;
     return 1;
     }
-  if(!strcmp(name, "window_height"))
+  else if(!strcmp(name, "window_height"))
     {
     val->val_i = p->win.window_height;
     return 1;
     }
-  if(!strcmp(name, "zoom"))
+  else if(!strcmp(name, "zoom"))
     {
     val->val_f = p->zoom;
     return 1;
     }
-  if(!strcmp(name, "squeeze"))
+  else if(!strcmp(name, "squeeze"))
     {
     val->val_f = p->squeeze;
     return 1;
     }
-  return 0;
+  else
+    return 0;
   }
 
 bg_ov_plugin_t the_plugin =

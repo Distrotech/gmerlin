@@ -97,4 +97,7 @@ void bg_player_set_video_parameter(void*, char *, bg_parameter_value_t*);
 bg_parameter_info_t * bg_player_get_subtitle_parameters(bg_player_t *);
 void bg_player_set_subtitle_parameter(void*, char *, bg_parameter_value_t*);
 
+bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t *);
+void bg_player_set_osd_parameter(void*, char *, bg_parameter_value_t*);
+
 #endif // __BG_PLAYER_H_

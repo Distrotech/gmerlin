@@ -23,6 +23,7 @@
 #include <utils.h>
 #include <bggavl.h>
 #include <textrenderer.h>
+#include <osd.h>
 
 /* Each thread get it's private context */
 
@@ -148,10 +149,6 @@ struct bg_player_s
 
   bg_msg_queue_t      * command_queue;
   bg_msg_queue_list_t * message_queues;
-
-  bg_msg_queue_t * to_oa_queue;
-  bg_msg_queue_t * to_ov_queue;
-  bg_msg_queue_t * to_input_queue;
 
   /* Inernal state variables */
 
