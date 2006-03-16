@@ -261,6 +261,10 @@ int bg_avdec_start(void * priv)
     if(str)
       avdec->current_track->audio_streams[i].description = bg_strdup(NULL, str);
 
+    str = bgav_get_audio_info(avdec->dec, i);
+    if(str)
+      avdec->current_track->audio_streams[i].info = bg_strdup(NULL, str);
+
     str = bgav_get_audio_language(avdec->dec, i);
     if(str)
       avdec->current_track->audio_streams[i].language = bg_strdup(NULL, str);

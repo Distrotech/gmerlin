@@ -20,6 +20,7 @@
 /* DVD input module (inspired by tcvp) */
 
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <avdec_private.h>
 
@@ -30,10 +31,15 @@
 #include <dvdread/dvd_reader.h>
 #include <dvdread/ifo_read.h>
 #include <dvdread/nav_read.h>
+#include <dvdread/nav_print.h>
 
 #define CELL_START 1
 #define CELL_LOOP  2
 #define BLOCK_LOOP 3
+
+#ifndef PCI_START_BYTE
+#define PCI_START_BYTE 45
+#endif
 
 extern bgav_demuxer_t bgav_demuxer_mpegps;
 
@@ -117,12 +123,11 @@ static gavl_time_t convert_time(dvd_time_t * time)
   }
 
 static void setup_track(bgav_input_context_t * ctx,
-                        int title, int chapter, int angle)
+                        int title, int chapter, int angle, int total_angles)
   {
-  int ac3_id = 0, dts_id = 0, lpcm_id = 0, mpa_id = 0;
-
   audio_attr_t * audio_attr;
   int i;
+  int audio_position;
   bgav_stream_t * s;
   bgav_track_t * new_track;
   tt_srpt_t *ttsrpt;
@@ -131,6 +136,8 @@ static void setup_track(bgav_input_context_t * ctx,
   int ttn, pgn;
   int pgc_id;
   track_priv_t * track_priv;
+  const char * language_3cc;
+  char language_2cc[3];
   dvd_t * dvd = (dvd_t*)(ctx->priv);
   ttsrpt = dvd->vmg_ifo->tt_srpt;
 
@@ -191,9 +198,19 @@ static void setup_track(bgav_input_context_t * ctx,
 
   /* Get duration */
   new_track->duration = 0;
-  for(i = track_priv->start_cell; i < track_priv->end_cell; i++)
-    new_track->duration += convert_time(&(pgc->cell_playback[i].playback_time));
-  
+  for(i = track_priv->start_cell; i < track_priv->end_cell;)
+    {
+    if(pgc->cell_playback[i].block_type == BLOCK_TYPE_ANGLE_BLOCK)
+      {
+      new_track->duration += convert_time(&(pgc->cell_playback[i+angle].playback_time));
+      i += total_angles;
+      }
+    else
+      {
+      new_track->duration += convert_time(&(pgc->cell_playback[i].playback_time));
+      i++;
+      }
+    }
   //  fprintf(stderr, "Name: %s, start_cell: %d, end_cell: %d\n", new_track->name,
   //          start_cell, end_cell);
   
@@ -209,6 +226,8 @@ static void setup_track(bgav_input_context_t * ctx,
     if(!(pgc->audio_control[i] & 0x8000))
       continue;
 
+    audio_position = (pgc->audio_control[i] & 0x7F00 ) >> 8;
+    
     s = bgav_track_add_audio_stream(new_track);
     s->timescale = 90000;
     
@@ -219,14 +238,12 @@ static void setup_track(bgav_input_context_t * ctx,
       case 0:
         //        printf("ac3 ");
         s->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
-        s->stream_id = 0xbd80 + ac3_id;
-        ac3_id++;
+        s->stream_id = 0xbd80 + audio_position;
         break;
       case 2:
         //        printf("mpeg1 ");
         s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
-        s->stream_id = 0xc0 + mpa_id;
-        mpa_id++;
+        s->stream_id = 0xc0 + audio_position;
         break;
       case 3:
         //        printf("mpeg2ext ");
@@ -236,20 +253,47 @@ static void setup_track(bgav_input_context_t * ctx,
       case 4:
         //        printf("lpcm ");
         s->fourcc = BGAV_MK_FOURCC('l', 'p', 'c', 'm');
-        s->stream_id = 0xbda0 + lpcm_id;
-        lpcm_id++;
+        s->stream_id = 0xbda0 + audio_position;
         break;
       case 6:
         //        printf("dts ");
         s->fourcc = BGAV_MK_FOURCC('d', 't', 's', ' ');
-        s->stream_id = 0xbd8a + dts_id;
-        dts_id++;
+        s->stream_id = 0xbd88 + audio_position;
         break;
       default:
         //        printf("(please send a bug report) ");
         break;
       }
-    
+    /* Set language */
+    if(audio_attr->lang_type == 1)
+      {
+      language_2cc[0] = audio_attr->lang_code >> 8;
+      language_2cc[1] = audio_attr->lang_code & 0xff;
+      language_2cc[2] = '\0';
+      language_3cc = bgav_lang_from_twocc(language_2cc);
+      strcpy(s->language, language_3cc);
+      }
+
+    /* Set description */
+
+    switch(audio_attr->code_extension)
+      {
+      case 0:
+        s->info = bgav_strndup("Unspecified", (char*)0);
+        break;
+      case 1:
+        s->info = bgav_strndup("Audio stream", (char*)0);
+        break;
+      case 2:
+        s->info = bgav_strndup("Audio for visually impaired", (char*)0);
+        break;
+      case 3:
+        s->info = bgav_strndup("Director's comments 1", (char*)0);
+        break;
+      case 4:
+        s->info = bgav_strndup("Director's comments 2", (char*)0);
+        break;
+      }
     }
 
   /* Subtitle streams */
@@ -257,6 +301,7 @@ static void setup_track(bgav_input_context_t * ctx,
     {
     if(!(pgc->subp_control[i] & 0x80000000))
       continue;
+
     //    fprintf(stderr, "Got subtitle stream\n");
     }
 
@@ -317,13 +362,13 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
         /* Add individual chapters as tracks */
         for(k = 0; k < ttsrpt->title[i].nr_of_ptts; k++)
           {
-          setup_track(ctx, i, k, j);
+          setup_track(ctx, i, k, j, ttsrpt->title[i].nr_of_angles);
           }
         }
       else
         {
         /* Add entire titles as tracks */
-        setup_track(ctx, i, 0, j);
+        setup_track(ctx, i, 0, j, ttsrpt->title[i].nr_of_angles);
         }
       }
     }
@@ -370,6 +415,7 @@ read_nav(dvd_file_t *df, int sector, int *next)
   {
   uint8_t buf[DVD_VIDEO_LB_LEN];
   dsi_t dsi_pack;
+  pci_t pci_pack;
   int blocks;
 
   if(DVDReadBlocks(df, sector, 1, buf) != 1)
@@ -381,9 +427,16 @@ read_nav(dvd_file_t *df, int sector, int *next)
   if(!is_nav_pack(buf))
     return -1;
 
-  fprintf(stderr, "*** Got nav pack ***\n");
+  printf("*** Got nav pack ***\n");
   
   navRead_DSI(&dsi_pack, buf + DSI_START_BYTE);
+  navRead_PCI(&pci_pack, buf + PCI_START_BYTE);
+
+  printf("DSI\n");
+  navPrint_DSI(&dsi_pack);
+  //  printf("PCI\n");
+  //  navPrint_PCI(&pci_pack);
+
   blocks = dsi_pack.dsi_gi.vobu_ea;
   
   if(dsi_pack.vobu_sri.next_vobu != SRI_END_OF_CELL)
@@ -407,10 +460,10 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
     {
     case CELL_START:
       /* TODO: EOF at chapter boundaries */
-      if(d->next_cell >= d->pgc->nr_of_cells)
-        return -1;
+      if(d->next_cell >= d->current_track_priv->end_cell)
+        return 0;
       d->cell = d->next_cell;
-      fprintf(stderr, "DVD: entering cell %i\n", d->cell);
+      fprintf(stderr, "DVD: entering cell %i\n", d->cell+1);
       d->next_cell = next_cell(d->pgc, d->cell, d->current_track_priv->angle);
       d->npack = d->pgc->cell_playback[d->cell].first_sector;
       d->state = CELL_LOOP;
@@ -420,7 +473,7 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
       l = read_nav(d->dvd_file, d->pack, &d->npack);
       if(l < 0)
         return -1;
-      fprintf(stderr, "DVD: cell %i, %i blocks @%i\n", d->cell, l, d->pack);
+      fprintf(stderr, "DVD: cell %i, %i blocks @%i\n", d->cell+1, l, d->pack);
       d->blocks = l;
       d->pack++;
       d->state = BLOCK_LOOP;
@@ -508,7 +561,14 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   
   dvd->pgc = dvd->vts_ifo->vts_pgcit->pgci_srp[pgc_id - 1].pgc;
 
-  dvd->start_cell = dvd->next_cell = dvd->pgc->program_map[pgn - 1] - 1;
+  dvd->start_cell = dvd->pgc->program_map[pgn - 1] - 1;
+
+  /* Enter the right angle */
+  if(dvd->pgc->cell_playback[dvd->start_cell].block_type == BLOCK_TYPE_ANGLE_BLOCK ) 
+    dvd->start_cell += dvd->current_track_priv->angle;
+  
+  dvd->next_cell = dvd->start_cell;
+  
   dvd->state = CELL_START;
   dvd->start_sector = dvd->pgc->cell_playback[dvd->start_cell].first_sector;
   

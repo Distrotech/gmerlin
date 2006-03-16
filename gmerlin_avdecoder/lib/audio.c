@@ -84,6 +84,12 @@ const char * bgav_get_audio_description(bgav_t * b, int s)
   return b->tt->current_track->audio_streams[s].description;
   }
 
+const char * bgav_get_audio_info(bgav_t * b, int s)
+  {
+  return b->tt->current_track->audio_streams[s].info;
+  }
+
+
 const char * bgav_get_audio_language(bgav_t * b, int s)
   {
   return (b->tt->current_track->audio_streams[s].language[0] != '\0') ?

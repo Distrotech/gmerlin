@@ -262,11 +262,10 @@ struct bgav_stream_s
 
   bgav_packet_t * packet;
   int             packet_seq;
-
-  /* Description of the stream */
+ 
+  char * description;   /* Technical description of the stream */
+  char * info;          /* Info about the stream (e.g. Directors comments) */
   
-  char * description;
-
   /* Language (ISO 639-3 B code) */
 
   char language[4];

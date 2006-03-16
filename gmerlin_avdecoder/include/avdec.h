@@ -969,6 +969,23 @@ const gavl_video_format_t * bgav_get_subtitle_format(bgav_t * bgav, int stream);
 const char * bgav_get_audio_description(bgav_t * bgav, int stream);
 
 /** \ingroup stream_info
+ *  \brief Get additional info about an audio stream
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \returns An info string about the stream or NULL
+ *
+ *  This returns additional information about the audio stream e.g. if it contains
+ *  directors comments, audio for the visually impaired or whatever.
+ *
+ *  Note, that you can trust the return value of this function only, if you enabled
+ *  the stream (see \ref bgav_set_audio_stream) and started the decoders
+ *  (see \ref bgav_start).
+ */
+
+const char * bgav_get_audio_info(bgav_t * bgav, int stream);
+
+
+/** \ingroup stream_info
  *  \brief Get the description of a video stream
  *  \param bgav A decoder instance
  *  \param stream Stream index (starting with 0)
