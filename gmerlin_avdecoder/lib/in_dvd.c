@@ -17,7 +17,7 @@
  
 *****************************************************************/
 
-/* DVD input module (inspired by tcvp) */
+/* DVD input module (inspired by tcvp, vlc and MPlayer) */
 
 #include <stdio.h>
 #include <string.h>
@@ -73,6 +73,8 @@ typedef struct
   int start_sector;
   int cell, next_cell, pack, npack;
   int blocks;
+
+  int64_t last_vobu_end_pts;
   
   } dvd_t;
 
@@ -328,7 +330,7 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
   priv = calloc(1, sizeof(*priv));
   
   ctx->priv = priv;
-
+  
   /* Try to open dvd */
   priv->dvd_reader = DVDOpen(url);
   if(!priv->dvd_reader)
@@ -411,14 +413,17 @@ is_nav_pack(uint8_t *buffer)
   }
 
 static int
-read_nav(dvd_file_t *df, int sector, int *next)
+read_nav(bgav_input_context_t * ctx, int sector, int *next)
   {
   uint8_t buf[DVD_VIDEO_LB_LEN];
   dsi_t dsi_pack;
   pci_t pci_pack;
   int blocks;
+  dvd_t * d;
 
-  if(DVDReadBlocks(df, sector, 1, buf) != 1)
+  d = (dvd_t*)ctx->priv;
+  
+  if(DVDReadBlocks(d->dvd_file, sector, 1, buf) != 1)
     {
     fprintf(stderr, "DVD: error reading NAV packet @%i\n", sector);
     return -1;
@@ -432,11 +437,30 @@ read_nav(dvd_file_t *df, int sector, int *next)
   navRead_DSI(&dsi_pack, buf + DSI_START_BYTE);
   navRead_PCI(&pci_pack, buf + PCI_START_BYTE);
 
-  printf("DSI\n");
-  navPrint_DSI(&dsi_pack);
+  //  printf("DSI\n");
+  //  navPrint_DSI(&dsi_pack);
   //  printf("PCI\n");
   //  navPrint_PCI(&pci_pack);
+  
+  fprintf(stderr, "PCI timestamps: %d -> %d\n",
+          pci_pack.pci_gi.vobu_s_ptm, pci_pack.pci_gi.vobu_e_ptm);
 
+  if(d->last_vobu_end_pts >= 0)
+    {
+    if(d->last_vobu_end_pts != pci_pack.pci_gi.vobu_s_ptm)
+      {
+      fprintf(stderr, "** Detected PTS discontinuity: %d -> %d (Diff: %d)\n",
+              (int)d->last_vobu_end_pts, (int)pci_pack.pci_gi.vobu_s_ptm,
+              (int)(d->last_vobu_end_pts - pci_pack.pci_gi.vobu_s_ptm));
+      if(d->last_vobu_end_pts >= 0)
+        ctx->timestamp_offset += d->last_vobu_end_pts - pci_pack.pci_gi.vobu_s_ptm;
+      else
+        ctx->timestamp_offset = d->last_vobu_end_pts - pci_pack.pci_gi.vobu_s_ptm;
+      }
+    }
+
+  d->last_vobu_end_pts = pci_pack.pci_gi.vobu_e_ptm;
+    
   blocks = dsi_pack.dsi_gi.vobu_ea;
   
   if(dsi_pack.vobu_sri.next_vobu != SRI_END_OF_CELL)
@@ -470,7 +494,7 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
       
     case CELL_LOOP:
       d->pack = d->npack;
-      l = read_nav(d->dvd_file, d->pack, &d->npack);
+      l = read_nav(ctx, d->pack, &d->npack);
       if(l < 0)
         return -1;
       fprintf(stderr, "DVD: cell %i, %i blocks @%i\n", d->cell+1, l, d->pack);
@@ -543,7 +567,9 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   vts_ptt_srpt_t *vts_ptt_srpt;
   
   dvd = (dvd_t*)(ctx->priv);
+  dvd->last_vobu_end_pts = -1;
 
+  
   ttsrpt = dvd->vmg_ifo->tt_srpt;
   track_priv = (track_priv_t*)(ctx->tt->current_track->priv);
 
@@ -674,13 +700,13 @@ bgav_device_info_t * bgav_find_devices_dvd()
 
   }
 
+static
 bgav_input_context_t * bgav_input_open_dvd(const char * device,
                                            bgav_options_t * opt)
   {
   bgav_input_context_t * ret = (bgav_input_context_t *)0;
-  ret = calloc(1, sizeof(*ret));
+  ret = bgav_input_create(opt);
   ret->input = &bgav_input_dvd;
-  ret->opt = opt;
   if(!ret->input->open(ret, device))
     {
     fprintf(stderr, "Cannot open DVD Device %s\n", device);

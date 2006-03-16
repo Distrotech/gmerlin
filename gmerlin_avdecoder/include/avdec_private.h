@@ -595,6 +595,13 @@ struct bgav_input_context_s
   const bgav_options_t * opt;
   
   char * error_msg;
+
+  /*
+   *  For handling timestamp discontinuities detected by
+   *  the input (DVD for example).
+   */
+
+  int64_t timestamp_offset;
   };
 
 /* input.c */

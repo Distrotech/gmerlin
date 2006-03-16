@@ -698,9 +698,11 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
               }
             }
           
-          if((priv->pes_header.pts > priv->start_pts) && (priv->start_pts >= 0))
+          if((priv->pes_header.pts + ctx->input->timestamp_offset > priv->start_pts) &&
+             (priv->start_pts >= 0))
             {
             p->timestamp_scaled = (priv->pes_header.pts - priv->start_pts);
+            p->timestamp_scaled += ctx->input->timestamp_offset;
             }
           else
             {

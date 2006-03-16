@@ -513,10 +513,11 @@ bgav_device_info_t * bgav_find_devices_vcd()
 
   }
 
-bgav_input_context_t * bgav_input_open_vcd(const char * device)
+static
+bgav_input_context_t * bgav_input_open_vcd(const char * device, bgav_options_t * opt)
   {
   bgav_input_context_t * ret = (bgav_input_context_t *)0;
-  ret = calloc(1, sizeof(*ret));
+  ret = bgav_input_create(opt);
   ret->input = &bgav_input_vcd;
   if(!ret->input->open(ret, device))
     {
@@ -533,7 +534,7 @@ bgav_input_context_t * bgav_input_open_vcd(const char * device)
 int bgav_open_vcd(bgav_t * b, const char * device)
   {
   bgav_codecs_init();
-  b->input = bgav_input_open_vcd(device);
+  b->input = bgav_input_open_vcd(device, &(b->opt));
   if(!b->input)
     return 0;
   if(!bgav_init(b))
