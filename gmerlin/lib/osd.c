@@ -214,14 +214,17 @@ void bg_osd_init(bg_osd_t * osd, const gavl_video_format_t * format,
 
 int bg_osd_overlay_valid(bg_osd_t * osd, gavl_time_t time)
   {
-  if(!osd->enable)
+  if(!osd->enable || (osd->ovl.frame->time_scaled < 0))
     return 0;
 
   if(time < osd->ovl.frame->time_scaled)
     return 0;
-
+  
   else if(time > osd->ovl.frame->time_scaled + osd->ovl.frame->duration_scaled)
+    {
+    osd->ovl.frame->time_scaled = -1;
     return 0;
+    }
   return 1;
   }
 

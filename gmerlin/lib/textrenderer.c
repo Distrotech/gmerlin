@@ -1166,9 +1166,10 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
                &glyphs[line_start], len - line_start,
                &pos_y);
     }
-
+#if 0
   fprintf(stderr, "bounding_box: %d,%d -> %d,%d\n",
           r->bbox.xmin, r->bbox.ymin, r->bbox.xmax, r->bbox.ymax);
+#endif
   
   ovl->ovl_rect.x = r->bbox.xmin;
   ovl->ovl_rect.y = r->bbox.ymin;
