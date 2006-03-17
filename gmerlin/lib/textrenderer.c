@@ -29,6 +29,8 @@
 
 /* Gmerlin */
 
+#include <bgfreetype.h>
+
 #include <parameter.h>
 #include <textrenderer.h>
 #include <utils.h>
@@ -202,6 +204,7 @@ struct bg_text_renderer_s
   int cache_alloc;
   gavl_video_format_t overlay_format;
   gavl_video_format_t frame_format;
+  gavl_video_format_t last_frame_format;
 
   int justify_h;
   int justify_v;
@@ -640,6 +643,7 @@ static int load_font(bg_text_renderer_t * r)
   FcPattern *fc_pattern, *fc_pattern_1;
   FcChar8 *filename;
   FcBool scalable;
+  float sar, font_size_scaled;
   
   unload_font(r);
 
@@ -720,6 +724,19 @@ static int load_font(bg_text_renderer_t * r)
                  FT_STROKER_LINEJOIN_ROUND, 0); 
 
 #endif
+
+  font_size_scaled = r->font_size * (float)(r->frame_format.image_width) / 640.0;
+  
+  sar = (float)(r->frame_format.pixel_width) /
+    (float)(r->frame_format.pixel_height);
+  
+  err = FT_Set_Char_Size(r->face,                     /* handle to face object           */
+                         0,                           /* char_width in 1/64th of points  */
+                         (int)(font_size_scaled*64.0+0.5),/* char_height in 1/64th of points */
+                         (int)(72.0/sar+0.5),         /* horizontal device resolution    */
+                         72 );                        /* vertical device resolution      */
+  
+  clear_glyph_cache(r);
   r->font_loaded = 1;
   return 1;
   }
@@ -902,18 +919,25 @@ void bg_text_renderer_set_parameter(void * data, char * name,
 static
 void init_nolock(bg_text_renderer_t * r)
   {
-  float sar;
-  int bits, err;
+  int bits;
 #ifdef FT_STROKER_H 
   float y_tmp, u_tmp, v_tmp;
 #endif  
 
+  if((r->frame_format.image_width  != r->last_frame_format.image_width) ||
+     (r->frame_format.image_height != r->last_frame_format.image_height) ||
+     !r->last_frame_format.pixel_width || !r->frame_format.pixel_height ||
+     (r->frame_format.pixel_width  * r->last_frame_format.pixel_height !=
+      r->frame_format.pixel_height * r->last_frame_format.pixel_width))
+    r->font_changed = 1;
+
+  gavl_video_format_copy(&r->last_frame_format, &r->frame_format);
+  
+  
   /* Load font if necessary */
   if(r->font_changed || !r->face)
     load_font(r);
   
-  sar = (float)(r->frame_format.pixel_width) /
-    (float)(r->frame_format.pixel_height);
   /* Copy formats */
 
   gavl_video_format_copy(&r->overlay_format, &r->frame_format);
@@ -982,16 +1006,6 @@ void init_nolock(bg_text_renderer_t * r)
   gavl_rectangle_i_crop_top(&(r->max_bbox), r->border_top);
   gavl_rectangle_i_crop_bottom(&(r->max_bbox), r->border_bottom);
   
-  
-  /* We assume, that the font is already loaded!! */
-  clear_glyph_cache(r);
-  err = FT_Set_Char_Size(r->face,                     /* handle to face object           */
-                         0,                           /* char_width in 1/64th of points  */
-                         (int)(r->font_size*64.0+0.5),/* char_height in 1/64th of points */
-                         (int)(72.0/sar+0.5),         /* horizontal device resolution    */
-                         72 );                        /* vertical device resolution      */
-  if(err)
-    return;
   }
 
 void bg_text_renderer_init(bg_text_renderer_t * r,

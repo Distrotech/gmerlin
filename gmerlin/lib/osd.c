@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <bgfreetype.h>
+
 #include <parameter.h>
 #include <textrenderer.h>
 #include <osd.h>

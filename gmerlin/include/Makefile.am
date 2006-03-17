@@ -31,9 +31,10 @@ utils.h
 
 
 noinst_HEADERS = \
+bgfreetype.h \
+bggavl.h \
 language_table.h \
 playerprivate.h \
-treeprivate.h \
 registry_priv.h \
-bggavl.h
+treeprivate.h
 
