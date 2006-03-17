@@ -366,6 +366,7 @@ r_smil.c \
 rtsp.c \
 sdp.c \
 stream.c \
+subovl_dvd.c \
 subtitle.c \
 superindex.c \
 targa.c \

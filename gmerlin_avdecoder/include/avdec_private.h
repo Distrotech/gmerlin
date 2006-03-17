@@ -2,7 +2,7 @@
  
   avdec_private.h
  
-  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
   http://gmerlin.sourceforge.net
  
@@ -32,10 +32,11 @@ typedef struct bgav_redirector_context_s bgav_redirector_context_t;
 
 typedef struct bgav_packet_s          bgav_packet_t;
 
-typedef struct bgav_input_s           bgav_input_t;
-typedef struct bgav_input_context_s   bgav_input_context_t;
-typedef struct bgav_audio_decoder_s   bgav_audio_decoder_t;
-typedef struct bgav_video_decoder_s   bgav_video_decoder_t;
+typedef struct bgav_input_s                    bgav_input_t;
+typedef struct bgav_input_context_s            bgav_input_context_t;
+typedef struct bgav_audio_decoder_s            bgav_audio_decoder_t;
+typedef struct bgav_video_decoder_s            bgav_video_decoder_t;
+typedef struct bgav_subtitle_overlay_decoder_s bgav_subtitle_overlay_decoder_t;
 
 typedef struct bgav_audio_decoder_context_s bgav_audio_decoder_context_t;
 typedef struct bgav_video_decoder_context_s bgav_video_decoder_context_t;
@@ -101,6 +102,25 @@ struct bgav_video_decoder_s
   void (*resync)(bgav_stream_t*);
   bgav_video_decoder_t * next;
   };
+
+struct bgav_subtitle_overlay_decoder_s
+  {
+  uint32_t * fourccs;
+  const char * name;
+  int (*init)(bgav_stream_t*);
+
+  /* Query if a subtitle is available */
+  int (*has_subtitle)(bgav_stream_t*);
+  /*
+   *  Decodes one frame. If frame is NULL;
+   *  the frame is skipped
+   */
+  int (*decode)(bgav_stream_t*, gavl_overlay_t*);
+  void (*close)(bgav_stream_t*);
+  void (*resync)(bgav_stream_t*);
+  bgav_subtitle_overlay_decoder_t * next;
+  };
+
 
 struct bgav_audio_decoder_context_s
   {
@@ -329,6 +349,7 @@ struct bgav_stream_s
       } video;
     struct
       {
+      /* Video format for overlays */
       gavl_video_format_t format;
       /* Characterset converter for text subtitles */
       bgav_charset_converter_t * cnv;
@@ -1094,8 +1115,11 @@ void bgav_codecs_init();
 
 bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t*);
 bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t*);
+bgav_subtitle_overlay_decoder_t * bgav_find_subtitle_overlay_decoder(bgav_stream_t*);
+
 void bgav_audio_decoder_register(bgav_audio_decoder_t * dec);
 void bgav_video_decoder_register(bgav_video_decoder_t * dec);
+void bgav_subtitle_overlay_decoder_register(bgav_subtitle_overlay_decoder_t * dec);
 
 /* base64.c */
 

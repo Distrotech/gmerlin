@@ -2,7 +2,7 @@
  
   codecs.c
  
-  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
   http://gmerlin.sourceforge.net
  
@@ -141,10 +141,14 @@ static void bgav_set_dll_path_win32()
 
 static bgav_audio_decoder_t * audio_decoders = (bgav_audio_decoder_t*)0;
 static bgav_video_decoder_t * video_decoders = (bgav_video_decoder_t*)0;
+static bgav_subtitle_overlay_decoder_t * subtitle_overlay_decoders =
+  (bgav_subtitle_overlay_decoder_t*)0;
+
 static int codecs_initialized = 0;
 
 static int num_audio_codecs = 0;
 static int num_video_codecs = 0;
+static int num_subtitle_overlay_codecs = 0;
 
 static pthread_mutex_t codec_mutex;
 static int mutex_initialized = 0;
@@ -173,6 +177,7 @@ void bgav_codecs_dump()
   {
   bgav_audio_decoder_t * ad;
   bgav_video_decoder_t * vd;
+  bgav_subtitle_overlay_decoder_t * sod;
   int i;
   bgav_codecs_init();
   
@@ -198,6 +203,17 @@ void bgav_codecs_dump()
     vd = vd->next;
     }
   fprintf(stderr, "</ul>\n");
+
+  fprintf(stderr, "<h2>Graphical subtitle codecs</h2>\n");
+  fprintf(stderr, "<ul>\n");
+  sod = subtitle_overlay_decoders;
+  for(i = 0; i < num_subtitle_overlay_codecs; i++)
+    {
+    fprintf(stderr, "<li>%s\n", sod->name);
+    sod = sod->next;
+    }
+  fprintf(stderr, "</ul>\n");
+
   }
 
 /*
@@ -363,6 +379,9 @@ void bgav_codecs_init()
   bgav_init_video_decoders_tga();
   bgav_init_video_decoders_rtjpeg();
   bgav_init_video_decoders_gavl();
+
+  bgav_init_subtitle_overlay_decoders_dvd();
+
 #if 0  
   fprintf(stderr, "BGAV Codecs initialized: A: %d V: %d\n",
           num_audio_codecs, num_video_codecs);
@@ -401,6 +420,23 @@ void bgav_video_decoder_register(bgav_video_decoder_t * dec)
     }
   dec->next = (bgav_video_decoder_t*)0;
   num_video_codecs++;
+  }
+
+void bgav_subtitle_overlay_decoder_register(bgav_subtitle_overlay_decoder_t * dec)
+  {
+  bgav_subtitle_overlay_decoder_t * before;
+  if(!subtitle_overlay_decoders)
+    subtitle_overlay_decoders = dec;
+  else
+    {
+    before = subtitle_overlay_decoders;
+    while(before->next)
+      before = before->next;
+    before->next = dec;
+    }
+  dec->next = (bgav_subtitle_overlay_decoder_t*)0;
+  num_subtitle_overlay_codecs++;
+  
   }
 
 bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t * s)
@@ -478,6 +514,45 @@ bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
   codecs_unlock();
   return (bgav_video_decoder_t*)0;
   }
+
+bgav_subtitle_overlay_decoder_t * bgav_find_subtitle_overlay_decoder(bgav_stream_t * s)
+  {
+  bgav_subtitle_overlay_decoder_t * cur;
+  int i;
+  codecs_lock();
+
+  //  if(!codecs_initialized)
+  //    bgav_codecs_init();
+  
+  cur = subtitle_overlay_decoders;
+
+#ifdef ENABLE_DEBUG
+  fprintf(stderr, "Seeking subtitle overlay codec ");
+  bgav_dump_fourcc(s->fourcc);
+  fprintf(stderr, "\n");
+#endif
+  while(cur)
+    {
+    i = 0;
+    while(cur->fourccs[i])
+      {
+      if(cur->fourccs[i] == s->fourcc)
+        {
+        codecs_unlock();
+#ifdef ENABLE_DEBUG
+        fprintf(stderr, "Found %s\n", cur->name);
+#endif
+        return cur;
+        }
+      else
+        i++;
+      }
+    cur = cur->next;
+    }
+  codecs_unlock();
+  return (bgav_subtitle_overlay_decoder_t*)0;
+  }
+
 
 /* Free codec strings */
 
