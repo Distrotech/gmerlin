@@ -91,8 +91,9 @@ static int bgav_video_decode(bgav_stream_t * stream, gavl_video_frame_t* frame)
     if(frame->time_scaled < 0)
       frame->time_scaled = 0;
 #if 0
-    fprintf(stderr, "Video timestamp: %lld %d\n",
-            frame->time_scaled, stream->data.video.format.timescale);
+    fprintf(stderr, "Video timestamp: %f\n",
+            gavl_time_to_seconds(gavl_time_unscale(stream->data.video.format.timescale,
+                                                   frame->time_scaled)));
 #endif
     }
   stream->position++;

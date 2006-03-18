@@ -617,12 +617,6 @@ struct bgav_input_context_s
   
   char * error_msg;
 
-  /*
-   *  For handling timestamp discontinuities detected by
-   *  the input (DVD for example).
-   */
-
-  int64_t timestamp_offset;
   };
 
 /* input.c */
@@ -809,6 +803,14 @@ struct bgav_demuxer_context_s
   /* Some demuxers have a custom read packet function */
   int (*read_packet)(bgav_demuxer_context_t * ctx, int size);
 
+  /* Timestamp offset: By definition, timestamps for a track
+     start at 0. The offset can be set either by the demuxer or
+     by some inputs (DVD). */
+
+  int64_t timestamp_offset;
+  int have_timestamp_offset;
+
+  /* Human readable error string */
   char * error_msg;
   
   };

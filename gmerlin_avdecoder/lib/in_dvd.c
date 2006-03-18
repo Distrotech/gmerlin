@@ -390,20 +390,26 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
 static int
 next_cell(pgc_t *pgc, int cell, int angle)
   {
-  int i;
-  if(pgc->cell_playback[cell].block_type == BLOCK_TYPE_ANGLE_BLOCK)
+  int ret;
+  ret = cell;
+
+  /* If we are in an angle block right now, seek the last cell */
+  if(pgc->cell_playback[ret].block_type == BLOCK_TYPE_ANGLE_BLOCK)
     {
-    cell += angle;
-    for(i = 0;; i++)
-      {
-      if(pgc->cell_playback[cell + i].block_mode ==
-         BLOCK_MODE_LAST_CELL)
-        {
-        return cell + i + 1;
-        }
-      }
+    while(pgc->cell_playback[ret].block_mode != BLOCK_MODE_LAST_CELL)
+      ret++;
     }
-  return cell + 1;
+
+  /* Advance by one cell */
+  ret++;
+
+  /* If we entered an angle block, go to the right angle */
+  if(pgc->cell_playback[ret].block_type == BLOCK_TYPE_ANGLE_BLOCK)
+    {
+    ret += angle;
+    }
+  
+  return ret;
   }
 
 static int
@@ -453,12 +459,17 @@ read_nav(bgav_input_context_t * ctx, int sector, int *next)
               (int)d->last_vobu_end_pts, (int)pci_pack.pci_gi.vobu_s_ptm,
               (int)(d->last_vobu_end_pts - pci_pack.pci_gi.vobu_s_ptm));
       if(d->last_vobu_end_pts >= 0)
-        ctx->timestamp_offset += d->last_vobu_end_pts - pci_pack.pci_gi.vobu_s_ptm;
+        ctx->demuxer->timestamp_offset += d->last_vobu_end_pts - pci_pack.pci_gi.vobu_s_ptm;
       else
-        ctx->timestamp_offset = d->last_vobu_end_pts - pci_pack.pci_gi.vobu_s_ptm;
+        ctx->demuxer->timestamp_offset = d->last_vobu_end_pts - pci_pack.pci_gi.vobu_s_ptm;
       }
     }
-
+  else
+    {
+    ctx->demuxer->timestamp_offset = -((int64_t)pci_pack.pci_gi.vobu_s_ptm);
+    }
+  ctx->demuxer->have_timestamp_offset = 1;
+  
   d->last_vobu_end_pts = pci_pack.pci_gi.vobu_e_ptm;
     
   blocks = dsi_pack.dsi_gi.vobu_ea;
@@ -568,7 +579,7 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   
   dvd = (dvd_t*)(ctx->priv);
   dvd->last_vobu_end_pts = -1;
-
+  ctx->demuxer->have_timestamp_offset = 0;
   
   ttsrpt = dvd->vmg_ifo->tt_srpt;
   track_priv = (track_priv_t*)(ctx->tt->current_track->priv);

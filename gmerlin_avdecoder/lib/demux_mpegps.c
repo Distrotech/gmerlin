@@ -283,11 +283,7 @@ typedef struct
 
   pack_header_t     pack_header;
   bgav_pes_header_t pes_header;
-
-  /* Timing stuff */
-
-  int64_t start_pts;
-
+  
   /* Sector based access functions */
 
   void (*goto_sector)(bgav_demuxer_context_t * ctx, int64_t sector);
@@ -672,44 +668,53 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
         
         if(priv->pes_header.pts >= 0)
           {
-          if(priv->start_pts < 0)
+          if(!ctx->have_timestamp_offset)
             {
             if(ctx->tt->current_track->num_audio_streams &&
                ctx->tt->current_track->num_video_streams)
               {
               if(stream->type == BGAV_STREAM_AUDIO)
                 {
-                priv->start_pts = priv->pes_header.pts;
+                ctx->timestamp_offset = -priv->pes_header.pts;
+                ctx->have_timestamp_offset = 1;
 #if 0
                 fprintf(stderr, "Start PTS: %f\n",
-                        priv->start_pts / 90000.0);
+                        -ctx->timestamp_offset / 90000.0);
 #endif
                 }
               }
             else
               {
-              priv->start_pts = priv->pes_header.pts;
+              ctx->timestamp_offset = -priv->pes_header.pts;
+              ctx->have_timestamp_offset = 1;
 #if 0
-              fprintf(stderr, "Start PTS 1: %f %d %d\n",
-                      priv->start_pts / 90000.0,
-                      ctx->tt->current_track->num_audio_streams,
-                      ctx->tt->current_track->num_video_streams);
+              fprintf(stderr, "Start PTS: %f\n",
+                      -ctx->timestamp_offset / 90000.0);
 #endif
               }
             }
-          
-          if((priv->pes_header.pts + ctx->input->timestamp_offset > priv->start_pts) &&
-             (priv->start_pts >= 0))
+
+          if(ctx->have_timestamp_offset)
             {
-            p->timestamp_scaled = (priv->pes_header.pts - priv->start_pts);
-            p->timestamp_scaled += ctx->input->timestamp_offset;
+            p->timestamp_scaled = priv->pes_header.pts + ctx->timestamp_offset;
+            if(p->timestamp_scaled < 0)
+              p->timestamp_scaled = 0;
+#if 0
+            if(stream->type == BGAV_STREAM_VIDEO)
+              {
+              fprintf(stderr, "PTS: %f, Offset: %f, timestamp: %f\n",
+                      priv->pes_header.pts / 90000.0,
+                      ctx->timestamp_offset / 90000.0,
+                      p->timestamp_scaled / 90000.0);
+              }
+#endif
+
             }
           else
             {
             p->timestamp_scaled = 0;
             }
           
-
           if(priv->do_sync && (stream->time_scaled < 0))
             stream->time_scaled = p->timestamp_scaled;
           
@@ -970,9 +975,10 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
   {
   mpegps_priv_t * priv;
   int need_streams = 0;
-    
+
+  fprintf(stderr, "Open mpegps\n");
+  
   priv = calloc(1, sizeof(*priv));
-  priv->start_pts = -1;
   ctx->priv = priv;
   
   /* Check for sector based access */
