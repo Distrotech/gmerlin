@@ -725,10 +725,11 @@ static int load_font(bg_text_renderer_t * r)
 
 #endif
 
-  font_size_scaled = r->font_size * (float)(r->frame_format.image_width) / 640.0;
-  
   sar = (float)(r->frame_format.pixel_width) /
     (float)(r->frame_format.pixel_height);
+
+  font_size_scaled = r->font_size * sar * (float)(r->frame_format.image_width) / 640.0;
+  
   
   err = FT_Set_Char_Size(r->face,                     /* handle to face object           */
                          0,                           /* char_width in 1/64th of points  */
