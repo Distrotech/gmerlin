@@ -314,8 +314,8 @@ int bg_avdec_init(avdec_priv * avdec)
       bgav_num_subtitle_streams(avdec->dec, i);
     avdec->track_info[i].seekable = bgav_can_seek(avdec->dec);
 
-    //    fprintf(stderr, "bg_avdec_init: subtitles: %d\n", 
-    //            avdec->track_info[i].num_subtitle_streams);
+    fprintf(stderr, "bg_avdec_init: seekable: %d\n", 
+            avdec->track_info[i].seekable);
                 
     if(avdec->track_info[i].num_audio_streams)
       {

@@ -84,7 +84,7 @@ static int get_data(bgav_stream_t*s)
   
   if(priv->p->timestamp_scaled >= 0)
     {
-    fprintf(stderr, "Got pts %f\n", priv->p->timestamp_scaled/90000.0);
+    //    fprintf(stderr, "Got pts %f\n", priv->p->timestamp_scaled/90000.0);
     mpeg2_tag_picture(priv->dec,
                       (priv->p->timestamp_scaled) >> 32,
                       priv->p->timestamp_scaled & 0xffffffff);

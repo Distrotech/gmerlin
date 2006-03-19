@@ -1390,6 +1390,8 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
   if(ctx->input->input->seek_byte)
     ctx->can_seek = 1;
   ctx->stream_description = bgav_strndup("Ogg bitstream", NULL);
+  ctx->seek_iterative = 1;
+  
   return 1;
   }
 
@@ -2046,7 +2048,6 @@ static void select_track_ogg(bgav_demuxer_context_t * ctx,
 
 bgav_demuxer_t bgav_demuxer_ogg =
   {
-    seek_iterative: 1,
     probe:        probe_ogg,
     open:         open_ogg,
     next_packet:  next_packet_ogg,

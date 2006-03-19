@@ -774,7 +774,7 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
       }
     /* If demuxer already seeked perfectly, break here */
 
-    if(!b->demuxer->demuxer->seek_iterative)
+    if(!b->demuxer->seek_iterative)
       {
 
       if(*time > sync_time)

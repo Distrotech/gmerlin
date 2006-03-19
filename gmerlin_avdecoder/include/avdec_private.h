@@ -560,6 +560,10 @@ struct bgav_input_s
 
   int (*read_sector)(bgav_input_context_t*,uint8_t* buffer);
   int64_t (*seek_sector)(bgav_input_context_t*, int64_t sector);
+
+  /* Time based seek function for media, which are not stored
+     stricktly linear. Time is changed to the actual seeked time */
+  void (*seek_time)(bgav_input_context_t*, gavl_time_t);
   
   /* Some inputs autoscan the available devices */
   bgav_device_info_t (*find_devices)();
@@ -752,8 +756,6 @@ void bgav_superindex_dump(bgav_superindex_t * idx);
 
 struct bgav_demuxer_s
   {
-  /* If 1, perform iterative seeking */
-  int seek_iterative;
   int  (*probe)(bgav_input_context_t*);
 
   int  (*open)(bgav_demuxer_context_t * ctx,
@@ -812,6 +814,9 @@ struct bgav_demuxer_context_s
 
   /* Human readable error string */
   char * error_msg;
+  
+  /* If 1, perform iterative seeking */
+  int seek_iterative;
   
   };
 

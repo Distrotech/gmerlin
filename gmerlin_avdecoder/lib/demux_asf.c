@@ -751,6 +751,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
     ctx->can_seek = 1;
     }
   ctx->stream_description = bgav_sprintf("Windows media format (ASF)");
+  ctx->seek_iterative = 1;
   
   return 1;
   fail:
@@ -1243,7 +1244,6 @@ static void close_asf(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_asf =
   {
-    seek_iterative: 1,
     probe:          probe_asf,
     open:           open_asf,
     next_packet:    next_packet_asf,

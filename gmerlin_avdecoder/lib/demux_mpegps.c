@@ -1028,9 +1028,6 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
   //          priv->pack_header.mux_rate,
   //          ctx->input->total_bytes);
   
-  if((ctx->input->input->seek_byte) ||
-     (ctx->input->input->seek_sector))
-    ctx->can_seek = 1;
   
   if(!priv->pack_header.mux_rate)
     {
@@ -1047,6 +1044,17 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
                    (priv->pack_header.version == 1 ?
                     "system" : "program"),
                    (float)priv->pack_header.mux_rate * 0.4);
+
+  if((ctx->input->input->seek_byte) ||
+     (ctx->input->input->seek_sector) ||
+     (ctx->input->input->seek_time))
+    ctx->can_seek = 1;
+  
+  if(!ctx->input->input->seek_time)
+    ctx->seek_iterative = 1;
+
+  fprintf(stderr, "Seeking abilities: %d %d\n", ctx->can_seek, ctx->seek_iterative);
+  
   return 1;
   }
 
@@ -1133,7 +1141,10 @@ static void seek_mpegps(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
-  if(priv->sector_size)
+
+  if(ctx->input->input->seek_time)
+    ctx->input->input->seek_time(ctx->input, time);
+  else if(priv->sector_size)
     seek_sector(ctx, time);
   else
     seek_normal(ctx, time);
@@ -1153,7 +1164,6 @@ static void close_mpegps(bgav_demuxer_context_t * ctx)
 
 bgav_demuxer_t bgav_demuxer_mpegps =
   {
-    seek_iterative: 1,
     probe:          probe_mpegps,
     open:           open_mpegps,
     next_packet:    next_packet_mpegps,

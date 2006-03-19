@@ -48,7 +48,9 @@ typedef struct
   int title;
   int chapter;
   int angle;
-
+  
+  /* Start and and cells are according to the
+     pgc. The angle offsets still have to be added */
   int start_cell;
   int end_cell;
   } track_priv_t;
@@ -69,7 +71,6 @@ typedef struct
   
   int state;
 
-  int start_cell;
   int start_sector;
   int cell, next_cell, pack, npack;
   int blocks;
@@ -125,7 +126,7 @@ static gavl_time_t convert_time(dvd_time_t * time)
   }
 
 static void setup_track(bgav_input_context_t * ctx,
-                        int title, int chapter, int angle, int total_angles)
+                        int title, int chapter, int angle)
   {
   audio_attr_t * audio_attr;
   int i;
@@ -200,12 +201,18 @@ static void setup_track(bgav_input_context_t * ctx,
 
   /* Get duration */
   new_track->duration = 0;
-  for(i = track_priv->start_cell; i < track_priv->end_cell;)
+  i = track_priv->start_cell;
+
+  while(i < track_priv->end_cell)
     {
     if(pgc->cell_playback[i].block_type == BLOCK_TYPE_ANGLE_BLOCK)
       {
       new_track->duration += convert_time(&(pgc->cell_playback[i+angle].playback_time));
-      i += total_angles;
+
+      while(pgc->cell_playback[i].block_mode != BLOCK_MODE_LAST_CELL)
+        i++;
+
+      i++;
       }
     else
       {
@@ -364,13 +371,13 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
         /* Add individual chapters as tracks */
         for(k = 0; k < ttsrpt->title[i].nr_of_ptts; k++)
           {
-          setup_track(ctx, i, k, j, ttsrpt->title[i].nr_of_angles);
+          setup_track(ctx, i, k, j);
           }
         }
       else
         {
         /* Add entire titles as tracks */
-        setup_track(ctx, i, 0, j, ttsrpt->title[i].nr_of_angles);
+        setup_track(ctx, i, 0, j);
         }
       }
     }
@@ -380,6 +387,9 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
   ctx->demuxer = bgav_demuxer_create(ctx->opt, &bgav_demuxer_mpegps, ctx);
   ctx->demuxer->tt = ctx->tt;
 
+  /* We must set this here, because we don't initialize the demuxer here */
+  ctx->demuxer->can_seek = 1;
+  
   ctx->sector_size        = 2048;
   ctx->sector_size_raw    = 2048;
   ctx->sector_header_size = 0;
@@ -438,7 +448,7 @@ read_nav(bgav_input_context_t * ctx, int sector, int *next)
   if(!is_nav_pack(buf))
     return -1;
 
-  printf("*** Got nav pack ***\n");
+  //  printf("*** Got nav pack ***\n");
   
   navRead_DSI(&dsi_pack, buf + DSI_START_BYTE);
   navRead_PCI(&pci_pack, buf + PCI_START_BYTE);
@@ -448,8 +458,8 @@ read_nav(bgav_input_context_t * ctx, int sector, int *next)
   //  printf("PCI\n");
   //  navPrint_PCI(&pci_pack);
   
-  fprintf(stderr, "PCI timestamps: %d -> %d\n",
-          pci_pack.pci_gi.vobu_s_ptm, pci_pack.pci_gi.vobu_e_ptm);
+  //  fprintf(stderr, "PCI timestamps: %d -> %d\n",
+  //          pci_pack.pci_gi.vobu_s_ptm, pci_pack.pci_gi.vobu_e_ptm);
 
   if(d->last_vobu_end_pts >= 0)
     {
@@ -508,7 +518,7 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
       l = read_nav(ctx, d->pack, &d->npack);
       if(l < 0)
         return -1;
-      fprintf(stderr, "DVD: cell %i, %i blocks @%i\n", d->cell+1, l, d->pack);
+      //      fprintf(stderr, "DVD: cell %i, %i blocks @%i\n", d->cell+1, l, d->pack);
       d->blocks = l;
       d->pack++;
       d->state = BLOCK_LOOP;
@@ -527,14 +537,10 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
       if(!d->blocks)
         {
         if(d->pack < d->pgc->cell_playback[d->cell].last_sector)
-          {
           d->state = CELL_LOOP;
-          }
         else
-          {
           d->state = CELL_START;
-          }
-	}
+        }
       else
         {
         d->pack += l;
@@ -598,20 +604,167 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   
   dvd->pgc = dvd->vts_ifo->vts_pgcit->pgci_srp[pgc_id - 1].pgc;
 
-  dvd->start_cell = dvd->pgc->program_map[pgn - 1] - 1;
+  dvd->next_cell = dvd->pgc->program_map[pgn - 1] - 1;
 
   /* Enter the right angle */
-  if(dvd->pgc->cell_playback[dvd->start_cell].block_type == BLOCK_TYPE_ANGLE_BLOCK ) 
-    dvd->start_cell += dvd->current_track_priv->angle;
+  if(dvd->pgc->cell_playback[dvd->next_cell].block_type == BLOCK_TYPE_ANGLE_BLOCK ) 
+    dvd->next_cell += dvd->current_track_priv->angle;
   
-  dvd->next_cell = dvd->start_cell;
   
   dvd->state = CELL_START;
-  dvd->start_sector = dvd->pgc->cell_playback[dvd->start_cell].first_sector;
+  dvd->start_sector = dvd->pgc->cell_playback[dvd->next_cell].first_sector;
   
   fprintf(stderr, "Select track: t: %d, c: %d, pgc_id: %d, pgn: %d, start_sector: %d\n",
           track_priv->title, track_priv->chapter, pgc_id, pgn, dvd->start_sector);
   
+  }
+
+static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
+  {
+  int i;
+  uint8_t buf[DVD_VIDEO_LB_LEN];
+  dsi_t dsi_pack;
+  pci_t pci_pack;
+  uint32_t next_vobu_offset;
+  gavl_time_t time, diff_time, cell_start_time;
+  dvd_t * dvd;
+  int64_t time_scaled;
+  dvd = (dvd_t*)(ctx->priv);
+
+  time = 0;
+  cell_start_time = 0;
+  
+  /* Get entry cell */
+  dvd->cell = dvd->current_track_priv->start_cell;
+
+  fprintf(stderr, "DVD Seek time\n");
+  
+  while(1)
+    {
+    /* If we are in an angle block, go to the right angle */
+    if(dvd->pgc->cell_playback[dvd->cell].block_type == BLOCK_TYPE_ANGLE_BLOCK ) 
+      dvd->cell += dvd->current_track_priv->angle;
+    
+    diff_time = convert_time(&(dvd->pgc->cell_playback[dvd->cell].playback_time));
+
+    if(cell_start_time + diff_time > t)
+      break;
+
+    cell_start_time += diff_time;
+    
+    /* If we are in an angle block right now, seek the last cell */
+    if(dvd->pgc->cell_playback[dvd->cell].block_type == BLOCK_TYPE_ANGLE_BLOCK)
+      {
+      while(dvd->pgc->cell_playback[dvd->cell].block_mode != BLOCK_MODE_LAST_CELL)
+        dvd->cell++;
+      }
+#if 0
+    fprintf(stderr, "Skipping cell (time: %f, cell_start: %f, diff: %f)\n",
+            gavl_time_to_seconds(t),
+            gavl_time_to_seconds(cell_start_time),
+            gavl_time_to_seconds(diff_time));
+#endif       
+    /* Advance by one */
+    dvd->cell++;
+    
+    }
+
+  /* Get the next cell, so we won't get screwed up later on */
+  
+  dvd->next_cell = next_cell(dvd->pgc, dvd->cell, dvd->current_track_priv->angle);
+
+  if(dvd->cell >= dvd->current_track_priv->end_cell)
+    {
+    fprintf(stderr, "Hit EOF during seek (%d >= %d)\n", dvd->cell, dvd->current_track_priv->end_cell);
+    ctx->demuxer->eof = 1;
+    return;
+    }
+  /* Now, seek forward using the seek information in the dsi packets */
+  dvd->npack = dvd->pgc->cell_playback[dvd->cell].first_sector;
+
+  time = cell_start_time;
+  
+  while(1)
+    {
+    if(DVDReadBlocks(dvd->dvd_file, dvd->npack, 1, buf) != 1)
+      {
+      fprintf(stderr, "DVD: error reading NAV packet @%i\n", dvd->npack);
+      return;
+      }
+    if(!is_nav_pack(buf))
+      {
+      printf("*** Got NO nav pack ***\n");
+      return;
+      }
+    //    printf("*** Got nav pack ***\n");
+    
+    navRead_DSI(&dsi_pack, buf + DSI_START_BYTE);
+    navRead_PCI(&pci_pack, buf + PCI_START_BYTE);
+#if 0
+    printf("DSI:\n");
+    navPrint_DSI(&dsi_pack);
+    printf("PCI:\n");
+    navPrint_PCI(&pci_pack);
+#endif
+    time = cell_start_time + convert_time(&(pci_pack.pci_gi.e_eltm));
+
+    /* Now, decide on the next VOBU to go to. We don't use the .5 second steps */
+    
+    if(t - time > 120 * GAVL_TIME_SCALE)
+      next_vobu_offset = dsi_pack.vobu_sri.fwda[0];
+    else if(t - time > 60 * GAVL_TIME_SCALE)
+      next_vobu_offset = dsi_pack.vobu_sri.fwda[1];
+    else if(t - time > 30 * GAVL_TIME_SCALE)
+      next_vobu_offset = dsi_pack.vobu_sri.fwda[2];
+    else if(t - time > 10 * GAVL_TIME_SCALE)
+      next_vobu_offset = dsi_pack.vobu_sri.fwda[3];
+    else if(t - time > 7 * GAVL_TIME_SCALE)
+      next_vobu_offset = dsi_pack.vobu_sri.fwda[5];
+    else if(t - time > 6 * GAVL_TIME_SCALE)
+      next_vobu_offset = dsi_pack.vobu_sri.fwda[7];
+    else if(t - time > 5 * GAVL_TIME_SCALE)
+      next_vobu_offset = dsi_pack.vobu_sri.fwda[9];
+    else if(t - time > 4 * GAVL_TIME_SCALE)
+      next_vobu_offset = dsi_pack.vobu_sri.fwda[11];
+    else if(t - time > 3 * GAVL_TIME_SCALE)
+      next_vobu_offset = dsi_pack.vobu_sri.fwda[13];
+    else if(t - time > 2 * GAVL_TIME_SCALE)
+      next_vobu_offset = dsi_pack.vobu_sri.fwda[15];
+    else if(t - time > 1 * GAVL_TIME_SCALE)
+      next_vobu_offset = dsi_pack.vobu_sri.fwda[17];
+    else
+      break;
+
+    if(!(next_vobu_offset & 0x80000000))
+      break;
+    
+    next_vobu_offset &= 0x3fffffff;
+    dvd->npack += next_vobu_offset;
+    }
+  dvd->state = CELL_LOOP;
+
+  time_scaled = gavl_time_scale(90000, time);
+  
+  //  fprintf(stderr, "Seeked %f -> %f (%lld), start_pts: %f\n",
+  //          gavl_time_to_seconds(t),
+  //          gavl_time_to_seconds(time), time_scaled,
+  //          pci_pack.pci_gi.vobu_s_ptm / 90000.0);
+  
+  
+  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
+    ctx->tt->current_track->audio_streams[i].time_scaled = time_scaled;
+  for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
+    ctx->tt->current_track->video_streams[i].time_scaled = time_scaled;
+  for(i = 0; i < ctx->tt->current_track->num_subtitle_streams; i++)
+    ctx->tt->current_track->subtitle_streams[i].time_scaled = time_scaled;
+  
+
+  ctx->demuxer->timestamp_offset = time_scaled - (int64_t)pci_pack.pci_gi.vobu_s_ptm;
+  dvd->last_vobu_end_pts = pci_pack.pci_gi.vobu_s_ptm;
+  
+  fprintf(stderr, "ctx->demuxer->timestamp_offset: %f - %f = %f\n",
+          time_scaled / 90000.0, pci_pack.pci_gi.vobu_s_ptm / 90000.0,
+          ctx->demuxer->timestamp_offset / 90000.0);
   }
 
 bgav_input_t bgav_input_dvd =
@@ -619,7 +772,7 @@ bgav_input_t bgav_input_dvd =
     name:          "dvd",
     open:          open_dvd,
     read_sector:   read_sector_dvd,
-    //    seek_sector:   seek_sector_dvd,
+    seek_time:     seek_time_dvd,
     close:         close_dvd,
     select_track:  select_track_dvd,
   };
