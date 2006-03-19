@@ -632,6 +632,31 @@ static void decode_alaw(bgav_stream_t * s)
   priv->frame->valid_samples = num_samples;
   }
 
+static int get_packet(bgav_stream_t * s)
+  {
+  pcm_t * priv;
+  priv = (pcm_t*)(s->data.audio.decoder->priv);
+
+  priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+  
+  /* EOF */
+  
+  if(!priv->p)
+    {
+    fprintf(stderr, "Reached EOF\n");
+    return 0;
+    }
+  priv->bytes_in_packet = priv->p->data_size;
+  
+  if(priv->p->samples && (priv->p->samples * priv->block_align < priv->bytes_in_packet))
+    priv->bytes_in_packet = priv->p->samples * priv->block_align;
+  priv->packet_ptr = priv->p->data;
+#if 0
+  fprintf(stderr, "Got packet, %d bytes (%d samples)\n",
+          priv->bytes_in_packet, priv->bytes_in_packet/priv->block_align);
+#endif
+  return 1;
+  }
 
 static int init_pcm(bgav_stream_t * s)
   {
@@ -765,6 +790,13 @@ static int init_pcm(bgav_stream_t * s)
         }
       break;
     case BGAV_MK_FOURCC('l', 'p', 'c', 'm'):
+      /* We must get a first packet, otherwise the demuxer might not know
+         the stream parameters */
+      if(!get_packet(s))
+        {
+        fprintf(stderr, "Could not get initial packet\n");
+        return 0;
+        }
       switch(s->data.audio.bits_per_sample)
         {
         case 16:
@@ -779,6 +811,8 @@ static int init_pcm(bgav_stream_t * s)
           fprintf(stderr, "Error: %d bit lpcm not supported\n", s->data.audio.bits_per_sample);
           return 0;
         }
+
+      s->description = bgav_sprintf("%d bit LPCM", s->data.audio.bits_per_sample);
      
       break;
       /* Quicktime 24/32 bit, can be either big or little endian */
@@ -901,27 +935,9 @@ static int decode_pcm(bgav_stream_t * s,
     {
     if(!priv->frame->valid_samples)
       {
-      if(!priv->p)      
+      if(!priv->p && !get_packet(s))     
         {
-        priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
-
-        /* EOF */
-        
-        if(!priv->p)
-          {
-          fprintf(stderr, "Reached EOF\n");
-          break;
-          }
-        priv->bytes_in_packet = priv->p->data_size;
-
-        
-        if(priv->p->samples && (priv->p->samples * priv->block_align < priv->bytes_in_packet))
-          priv->bytes_in_packet = priv->p->samples * priv->block_align;
-        priv->packet_ptr = priv->p->data;
-#if 0
-        fprintf(stderr, "Got packet, %d bytes (%d samples)\n",
-                priv->bytes_in_packet, priv->bytes_in_packet/priv->block_align);
-#endif
+        break;
         }
       
       /* Decode stuff */

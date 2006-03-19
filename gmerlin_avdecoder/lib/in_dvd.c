@@ -263,6 +263,12 @@ static void setup_track(bgav_input_context_t * ctx,
         //        printf("lpcm ");
         s->fourcc = BGAV_MK_FOURCC('l', 'p', 'c', 'm');
         s->stream_id = 0xbda0 + audio_position;
+
+        /*
+         *  For LPCM, we also need to set the audio format, since the demuxer won't do this
+         *  for us
+         */
+        
         break;
       case 6:
         //        printf("dts ");
