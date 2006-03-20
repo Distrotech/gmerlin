@@ -40,6 +40,8 @@ typedef struct bgav_subtitle_overlay_decoder_s bgav_subtitle_overlay_decoder_t;
 
 typedef struct bgav_audio_decoder_context_s bgav_audio_decoder_context_t;
 typedef struct bgav_video_decoder_context_s bgav_video_decoder_context_t;
+typedef struct bgav_subtitle_overlay_decoder_context_s
+bgav_subtitle_overlay_decoder_context_t;
 
 typedef struct bgav_stream_s   bgav_stream_t;
 
@@ -132,6 +134,12 @@ struct bgav_video_decoder_context_s
   {
   void * priv;
   bgav_video_decoder_t * decoder;
+  };
+
+struct bgav_subtitle_overlay_decoder_context_s
+  {
+  void * priv;
+  bgav_subtitle_overlay_decoder_t * decoder;
   };
 
 /* Packet */
@@ -353,6 +361,12 @@ struct bgav_stream_s
       gavl_video_format_t format;
       /* Characterset converter for text subtitles */
       bgav_charset_converter_t * cnv;
+
+      bgav_subtitle_overlay_decoder_context_t * decoder;
+
+      /* The video stream, onto which the subtitles will be
+         displayed */
+      bgav_stream_t * video_stream;
       } subtitle;
     } data;
   };

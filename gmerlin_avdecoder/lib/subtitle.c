@@ -17,6 +17,9 @@
  
 *****************************************************************/
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #include <avdec_private.h>
 
 int bgav_num_subtitle_streams(bgav_t * bgav, int track)
@@ -69,9 +72,16 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
 int bgav_has_subtitle(bgav_t * b, int stream)
   {
   bgav_stream_t * s = &(b->tt->current_track->subtitle_streams[stream]);
-  if(!bgav_packet_buffer_peek_packet_read(s->packet_buffer))
-    return 0;
-  return 1;
+
+  if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
+    {
+    if(!bgav_packet_buffer_peek_packet_read(s->packet_buffer))
+      return 0;
+    else
+      return 1;
+    }
+  else
+    return s->data.subtitle.decoder->decoder->has_subtitle(s);
   }
 
 
@@ -81,7 +91,32 @@ void bgav_subtitle_dump(bgav_stream_t * s)
 
 int bgav_subtitle_start(bgav_stream_t * s)
   {
-  return 0;
+  bgav_subtitle_overlay_decoder_t * dec;
+  bgav_subtitle_overlay_decoder_context_t * ctx;
+
+  /* Nothing to do here */
+  if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
+    return 1;
+  
+  dec = bgav_find_subtitle_overlay_decoder(s);
+  if(!dec)
+    {
+    fprintf(stderr, "No subtitle overlay decoder found for fourcc ");
+    bgav_dump_fourcc(s->fourcc);
+    fprintf(stderr, "\n");
+    return 0;
+    }
+  ctx = calloc(1, sizeof(*ctx));
+  s->data.subtitle.decoder = ctx;
+  s->data.subtitle.decoder->decoder = dec;
+  //  fprintf(stderr, "Opening codec %s\n", dec->name);
+
+  if(!dec->init(s))
+    return 0;
+
+  return 1;
+
+
   }
 
 void bgav_subtitle_stop(bgav_stream_t * s)
@@ -90,11 +125,20 @@ void bgav_subtitle_stop(bgav_stream_t * s)
     bgav_charset_converter_destroy(s->data.subtitle.cnv);
   }
 
-void bgav_subtitle_resync(bgav_stream_t * stream)
+void bgav_subtitle_resync(bgav_stream_t * s)
   {
+  /* Nothing to do here */
+  if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
+    return;
+  
   }
 
-int bgav_subtitle_skipto(bgav_stream_t * stream, gavl_time_t * time)
+int bgav_subtitle_skipto(bgav_stream_t * s, gavl_time_t * time)
   {
   return 0;
+  }
+
+const char * bgav_get_subtitle_info(bgav_t * b, int s)
+  {
+  return b->tt->current_track->subtitle_streams[s].info;
   }

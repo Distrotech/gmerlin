@@ -104,7 +104,7 @@ bg_input_plugin_t the_plugin =
     /* Set streams */
     set_audio_stream:      bg_avdec_set_audio_stream,
     set_video_stream:      bg_avdec_set_video_stream,
-    set_subtitle_stream: NULL,
+    set_subtitle_stream:   bg_avdec_set_subtitle_stream,
 
     /*
      *  Start decoding.
@@ -117,6 +117,11 @@ bg_input_plugin_t the_plugin =
     read_audio_samples:    bg_avdec_read_audio,
     /* Read one video frame (returns FALSE on EOF) */
     read_video_frame:      bg_avdec_read_video,
+
+    has_subtitle:          bg_avdec_has_subtitle,
+
+    read_subtitle_overlay: bg_avdec_read_subtitle_overlay,
+    
     /*
      *  Do percentage seeking (can be NULL)
      *  Media streams are supposed to be seekable, if this

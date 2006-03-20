@@ -129,8 +129,9 @@ static void setup_track(bgav_input_context_t * ctx,
                         int title, int chapter, int angle)
   {
   audio_attr_t * audio_attr;
+  subp_attr_t *  subp_attr;
   int i;
-  int audio_position;
+  int stream_position;
   bgav_stream_t * s;
   bgav_track_t * new_track;
   tt_srpt_t *ttsrpt;
@@ -235,7 +236,7 @@ static void setup_track(bgav_input_context_t * ctx,
     if(!(pgc->audio_control[i] & 0x8000))
       continue;
 
-    audio_position = (pgc->audio_control[i] & 0x7F00 ) >> 8;
+    stream_position = (pgc->audio_control[i] & 0x7F00 ) >> 8;
     
     s = bgav_track_add_audio_stream(new_track);
     s->timescale = 90000;
@@ -247,12 +248,12 @@ static void setup_track(bgav_input_context_t * ctx,
       case 0:
         //        printf("ac3 ");
         s->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
-        s->stream_id = 0xbd80 + audio_position;
+        s->stream_id = 0xbd80 + stream_position;
         break;
       case 2:
         //        printf("mpeg1 ");
         s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
-        s->stream_id = 0xc0 + audio_position;
+        s->stream_id = 0xc0 + stream_position;
         break;
       case 3:
         //        printf("mpeg2ext ");
@@ -262,13 +263,13 @@ static void setup_track(bgav_input_context_t * ctx,
       case 4:
         //        printf("lpcm ");
         s->fourcc = BGAV_MK_FOURCC('l', 'p', 'c', 'm');
-        s->stream_id = 0xbda0 + audio_position;
+        s->stream_id = 0xbda0 + stream_position;
         
         break;
       case 6:
         //        printf("dts ");
         s->fourcc = BGAV_MK_FOURCC('d', 't', 's', ' ');
-        s->stream_id = 0xbd88 + audio_position;
+        s->stream_id = 0xbd88 + stream_position;
         break;
       default:
         //        printf("(please send a bug report) ");
@@ -312,10 +313,114 @@ static void setup_track(bgav_input_context_t * ctx,
     if(!(pgc->subp_control[i] & 0x80000000))
       continue;
 
-    //    fprintf(stderr, "Got subtitle stream\n");
+    s = bgav_track_add_subtitle_stream(new_track, 0, (char*)0);
+    s->fourcc = BGAV_MK_FOURCC('D', 'V', 'D', 'S');
+
+    /*  there are several streams for one spu */
+    if(dvd->vts_ifo->vtsi_mat->vts_video_attr.display_aspect_ratio)
+      {
+      /* 16:9 */
+      switch(dvd->vts_ifo->vtsi_mat->vts_video_attr.permitted_df)
+        {
+        case 1: /* letterbox */
+          stream_position = pgc->subp_control[i] & 0xff;
+          break;
+        case 2: /* pan&scan */
+          stream_position = ( pgc->subp_control[i] >> 8 ) & 0xff;
+          break;
+        default: /* widescreen */
+          stream_position = ( pgc->subp_control[i] >> 16 ) & 0xff;
+          break;
+        }
+      }
+    else
+      {
+      /* 4:3 */
+      stream_position = ( pgc->subp_control[i] >> 24 ) & 0x7F;
+      }
+    s->stream_id = 0xbd20 + stream_position;
+    s->timescale = 90000;
+
+    subp_attr = &dvd->vts_ifo->vtsi_mat->vts_subp_attr[i];
+    
+    if(subp_attr->type == 1)
+      {
+      language_2cc[0] = subp_attr->lang_code >> 8;
+      language_2cc[1] = subp_attr->lang_code & 0xff;
+      language_2cc[2] = '\0';
+      language_3cc = bgav_lang_from_twocc(language_2cc);
+      strcpy(s->language, language_3cc);
+      }
+
+    switch(subp_attr->code_extension)
+      {
+      case 0:
+        //        printf("Not specified ");
+        break;
+      case 1:
+        s->info = bgav_sprintf("Caption");
+        //        printf("Caption with normal size character ");
+        break;
+      case 2:
+        s->info = bgav_sprintf("Caption, big");
+        // printf("Caption with bigger size character ");
+        break;
+      case 3:
+        s->info = bgav_sprintf("Caption for children");
+        //        printf("Caption for children ");
+        break;
+      case 4:
+        //        printf("reserved ");
+        break;
+      case 5:
+        s->info = bgav_sprintf("Closed caption");
+        //        printf("Closed Caption with normal size character ");
+        break;
+      case 6:
+        s->info = bgav_sprintf("Closed caption, big");
+        //        printf("Closed Caption with bigger size character ");
+        break;
+      case 7:
+        s->info = bgav_sprintf("Closed caption for children");
+        //        printf("Closed Caption for children ");
+        break;
+      case 8:
+        //        printf("reserved ");
+        break;
+      case 9:
+        s->info = bgav_sprintf("Forced caption");
+        //        printf("Forced Caption");
+        break;
+      case 10:
+        //        printf("reserved ");
+        break;
+      case 11:
+        //        printf("reserved ");
+        break;
+      case 12:
+        //        printf("reserved ");
+        break;
+      case 13:
+        //        printf("Director's comments with normal size character ");
+        s->info = bgav_sprintf("Directors comments");
+        break;
+      case 14:
+        //        printf("Director's comments with bigger size character ");
+        s->info = bgav_sprintf("Directors comments, big");
+        break;
+      case 15:
+        s->info = bgav_sprintf("Directors comments for children");
+        //        printf("Director's comments for children ");
+        break;
+      default:
+        //        printf("(please send a bug report) ");
+        break;
+      }
+    //    fprintf(stderr, "Got subtitle stream %s, %s\n", s->language, s->info);
+
+    s->data.subtitle.video_stream = new_track->video_streams;
     }
 
-  /* Duration */
   
   }
 

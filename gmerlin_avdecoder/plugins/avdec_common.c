@@ -275,6 +275,12 @@ int bg_avdec_start(void * priv)
     str = bgav_get_subtitle_language(avdec->dec, i);
     if(str)
       avdec->current_track->subtitle_streams[i].language = bg_strdup(NULL, str);
+
+    str = bgav_get_subtitle_info(avdec->dec, i);
+    if(str)
+      avdec->current_track->subtitle_streams[i].info = bg_strdup(NULL, str);
+
+
     format = bgav_get_subtitle_format(avdec->dec, i);
     if(!format)
       avdec->current_track->subtitle_streams[i].is_text = 1;
@@ -314,8 +320,8 @@ int bg_avdec_init(avdec_priv * avdec)
       bgav_num_subtitle_streams(avdec->dec, i);
     avdec->track_info[i].seekable = bgav_can_seek(avdec->dec);
 
-    fprintf(stderr, "bg_avdec_init: seekable: %d\n", 
-            avdec->track_info[i].seekable);
+    //    fprintf(stderr, "bg_avdec_init: seekable: %d\n", 
+    //            avdec->track_info[i].seekable);
                 
     if(avdec->track_info[i].num_audio_streams)
       {

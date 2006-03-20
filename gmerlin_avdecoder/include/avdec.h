@@ -1012,6 +1012,23 @@ const char * bgav_get_video_description(bgav_t * bgav, int stream);
 const char * bgav_get_subtitle_description(bgav_t * bgav, int stream);
 
 
+/** \ingroup stream_info
+ *  \brief Get additional info about a subtitle stream
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \returns An info string about the stream or NULL
+ *
+ *  This returns additional information about the subtitle stream e.g. if it contains
+ *  directors comments or whatever.
+ *
+ *  Note, that you can trust the return value of this function only, if you enabled
+ *  the stream (see \ref bgav_set_subtitle_stream) and started the decoders
+ *  (see \ref bgav_start).
+ */
+
+const char * bgav_get_subtitle_info(bgav_t * bgav, int stream);
+
+
 /***************************************************
  * Decoding functions
  ***************************************************/
