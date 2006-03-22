@@ -513,10 +513,12 @@ void * bg_player_ov_thread(void * data)
             ctx->current_subtitle.frame->duration_scaled))
           {
           ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
+#if 0
           fprintf(stderr, "Overlay expired (%f > %f + %f)\n",
                   gavl_time_to_seconds(ctx->frame_time),
                   gavl_time_to_seconds(ctx->current_subtitle.frame->time_scaled),
                   gavl_time_to_seconds(ctx->current_subtitle.frame->duration_scaled));
+#endif
           ctx->has_subtitle = 0;
           }
         }
@@ -534,7 +536,7 @@ void * bg_player_ov_thread(void * data)
           ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id,
                                    &(ctx->current_subtitle));
           
-          fprintf(stderr, "New Overlay\n");
+          //          fprintf(stderr, "New Overlay\n");
           ctx->has_subtitle = 1;
           ctx->next_subtitle = (gavl_overlay_t*)0;
           bg_fifo_unlock_read(ctx->player->subtitle_stream.fifo);

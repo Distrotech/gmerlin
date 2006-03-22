@@ -327,6 +327,12 @@ bg_player_input_set_subtitle_stream(bg_player_input_context_t * ctx,
     return 0;
     }
 
+  if(!ctx->player->track_info->subtitle_streams[subtitle_stream].is_text)
+    {
+    gavl_video_format_copy(&(ctx->player->subtitle_stream.format),
+                           &(ctx->player->track_info->subtitle_streams[subtitle_stream].format));
+    
+    }
   return 1;
   }
 
@@ -441,7 +447,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
 
 static int process_subtitle(bg_player_input_context_t * ctx)
   {
-  char time_string[GAVL_TIME_STRING_LEN];
+  //  char time_string[GAVL_TIME_STRING_LEN];
   gavl_overlay_t * ovl;
   gavl_time_t start, duration;
   bg_player_subtitle_stream_t * s;
@@ -478,7 +484,7 @@ static int process_subtitle(bg_player_input_context_t * ctx)
       bg_text_renderer_render(s->renderer, s->buffer, ovl);
       ovl->frame->time_scaled = start;
       ovl->frame->duration_scaled = duration;
-#if 1
+#if 0
       gavl_time_prettyprint(start, time_string);
       fprintf(stderr, "*** Player_input: Got subtitle: %s", time_string);
       gavl_time_prettyprint(start+duration, time_string);

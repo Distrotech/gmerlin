@@ -45,8 +45,12 @@ static void * create_frame(void * data)
   gavl_overlay_t * ret;
   bg_player_subtitle_stream_t * s;
   s = (bg_player_subtitle_stream_t *)data;
-
+  
   ret = calloc(1, sizeof(*ret));
+#if 0
+  fprintf(stderr, "Creating overlay frame\n");
+  gavl_video_format_dump(&s->format);
+#endif
   ret->frame = gavl_video_frame_create(&s->format);
   
   return ret;
