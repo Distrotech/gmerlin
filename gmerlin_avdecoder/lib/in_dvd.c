@@ -684,7 +684,7 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   {
   dvd_t * dvd;
   int ttn, pgn;
-  int pgc_id;
+  int pgc_id, i;
   tt_srpt_t *ttsrpt;
   track_priv_t * track_priv;
   vts_ptt_srpt_t *vts_ptt_srpt;
@@ -722,6 +722,15 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   
   fprintf(stderr, "Select track: t: %d, c: %d, pgc_id: %d, pgn: %d, start_sector: %d\n",
           track_priv->title, track_priv->chapter, pgc_id, pgn, dvd->start_sector);
+
+  /* Set the subtitle palettes */
+  for(i = 0; i < ctx->tt->current_track->num_subtitle_streams; i++)
+    {
+    ctx->tt->current_track->subtitle_streams[i].ext_data =
+      (uint8_t*)(dvd->pgc->palette);
+    ctx->tt->current_track->subtitle_streams[i].ext_size =
+      sizeof(dvd->pgc->palette);
+    }
   
   }
 

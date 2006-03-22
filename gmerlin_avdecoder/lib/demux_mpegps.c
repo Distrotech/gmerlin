@@ -532,7 +532,10 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
 
         if((c >= 0x20) && (c <= 0x3f))  /* Subpicture */
           {
-          
+          stream = bgav_track_find_stream(ctx->tt->current_track,
+                                          priv->pes_header.stream_id);
+          //          fprintf(stderr, "Got subtitle packet, ID: %04x, S: %p\n",
+          //                  priv->pes_header.stream_id, stream);
           }
         else if((c >= 0x80) && (c <= 0x87)) /* AC3 Audio */
           {

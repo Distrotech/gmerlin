@@ -49,9 +49,10 @@ const char * bgav_get_subtitle_language(bgav_t * b, int s)
     b->tt->current_track->subtitle_streams[s].language : (char*)0;
   }
 
-int bgav_read_subtitle_overlay(bgav_t * bgav, gavl_overlay_t * ovl, int stream)
+int bgav_read_subtitle_overlay(bgav_t * b, gavl_overlay_t * ovl, int stream)
   {
-  return 0;
+  bgav_stream_t * s = &(b->tt->current_track->subtitle_streams[stream]);
+  return s->data.subtitle.decoder->decoder->decode(s, ovl);
   }
 
 int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
@@ -130,6 +131,11 @@ void bgav_subtitle_resync(bgav_stream_t * s)
   /* Nothing to do here */
   if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
     return;
+
+  if(s->data.subtitle.decoder &&
+     s->data.subtitle.decoder->decoder->resync)
+    s->data.subtitle.decoder->decoder->resync(s);
+
   
   }
 

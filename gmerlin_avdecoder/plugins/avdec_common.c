@@ -285,10 +285,13 @@ int bg_avdec_start(void * priv)
     if(!format)
       avdec->current_track->subtitle_streams[i].is_text = 1;
     else
+      {
       gavl_video_format_copy(&avdec->current_track->subtitle_streams[i].format,
                              format);
+      //      fprintf(stderr, "Subtitle format:\n");
+      //      gavl_video_format_dump(&avdec->current_track->subtitle_streams[i].format);
+      }
     }
-    
   //  bgav_dump(avdec->dec);
   return 1;
   }
