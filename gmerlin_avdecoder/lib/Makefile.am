@@ -328,6 +328,7 @@ packet.c \
 pes_header.c \
 pnm.c \
 qt_atom.c \
+qt_chan.c \
 qt_cmov.c \
 qt_enda.c \
 qt_esds.c \

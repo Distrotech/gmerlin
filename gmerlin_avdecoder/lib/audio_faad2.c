@@ -76,73 +76,43 @@ static int get_data(bgav_stream_t * s)
   return 1;
   }
 
-static int init_faad2(bgav_stream_t * s)
+static struct
   {
-  faad_priv_t * priv;
-  unsigned long samplerate;
-  unsigned char channels;
-  char result;
-  faacDecConfigurationPtr cfg;
-  
-  priv = calloc(1, sizeof(*priv));
-  priv->dec = faacDecOpen();
-  priv->frame = gavl_audio_frame_create(NULL);
-  s->data.audio.decoder->priv = priv;
-  
-  /* Init the library using a DecoderSpecificInfo */
+  int faad_channel;
+  gavl_channel_id_t gavl_channel;
+  }
+channels[] =
+  {
+    { FRONT_CHANNEL_CENTER,  GAVL_CHID_FRONT_CENTER },
+    { FRONT_CHANNEL_LEFT,    GAVL_CHID_FRONT_LEFT },
+    { FRONT_CHANNEL_RIGHT,   GAVL_CHID_FRONT_RIGHT },
+    { SIDE_CHANNEL_LEFT,     GAVL_CHID_SIDE_LEFT },
+    { SIDE_CHANNEL_RIGHT,    GAVL_CHID_SIDE_RIGHT },
+    { BACK_CHANNEL_LEFT,     GAVL_CHID_REAR_LEFT },
+    { BACK_CHANNEL_RIGHT,    GAVL_CHID_REAR_RIGHT },
+    { BACK_CHANNEL_CENTER,   GAVL_CHID_REAR_CENTER },
+    { LFE_CHANNEL,           GAVL_CHID_LFE },
+    { UNKNOWN_CHANNEL,       GAVL_CHID_NONE }
+  };
 
-  //  fprintf(stderr, "Extradata size: %d\n", s->ext_size);
-
-  if(!s->ext_size)
+static gavl_channel_id_t get_channel(int ch)
+  {
+  int i;
+  for(i = 0; i < sizeof(channels)/sizeof(channels[0]); i++)
     {
-    if(!get_data(s))
-      return 0;
-
-    result = faacDecInit(priv->dec, priv->data_ptr,
-                         priv->data_size,
-                         &samplerate, &channels);
-    //    fprintf(stderr, "faacDecInit %d bytes used\n", result);
-
-    priv->data_size -= result;
-    priv->data_ptr += result;
+    if(channels[i].faad_channel == ch)
+      return channels[i].gavl_channel;
     }
-  else
-    {
-    result = faacDecInit2(priv->dec, s->ext_data,
-                          s->ext_size,
-                          &samplerate, &channels);
-    //    fprintf(stderr, "faacDecInit2, samplerate: %d, channels: %d\n",
-    //            samplerate, channels);
-    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
-    }
-  //  fprintf(stderr, "Result: %d %d %d\n", result, samplerate, channels);
-
-  /* Some mp4 files have a wrong samplerate in the sample description,
-     so we correct it here */
-
-  s->data.audio.format.samplerate = samplerate;
-    
-  s->data.audio.format.num_channels = channels;
-  s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
-  //  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
-  s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
-  s->data.audio.format.samples_per_frame = 1024;
-
-  gavl_set_channel_setup(&(s->data.audio.format));
-  
-  cfg = faacDecGetCurrentConfiguration(priv->dec);
-  cfg->outputFormat = FAAD_FMT_FLOAT;
-  // cfg->outputFormat = FAAD_FMT_16BIT;
-  faacDecSetConfiguration(priv->dec, cfg);
-
-  if(!s->description)
-    s->description = bgav_sprintf("%s", "AAC Audio stream");
-  
-  return 1;
+  return GAVL_CHID_AUX;
   }
 
-
-// static int frame_number = 0;
+static void set_channel_setup(faacDecFrameInfo * frame_info,
+                              gavl_audio_format_t * format)
+  {
+  int i;
+  for(i = 0; i < format->num_channels; i++)
+    format->channel_locations[i] = get_channel(frame_info->channel_position[i]);
+  }
 
 static int decode_frame(bgav_stream_t * s)
   {
@@ -207,6 +177,38 @@ static int decode_frame(bgav_stream_t * s)
     else
       break;
     }
+  if(s->data.audio.format.channel_locations[0] == GAVL_CHID_NONE)
+    {
+    set_channel_setup(&frame_info,
+                      &(s->data.audio.format));
+    }
+  if(!s->description)
+    {
+    switch(frame_info.object_type)
+      {
+      case MAIN:
+        s->description = bgav_sprintf("%s", "AAC Main profile");
+        break;
+      case LC:
+        s->description = bgav_sprintf("%s", "AAC Low Complexity profile (LC)");
+        break;
+      case SSR:
+        s->description = bgav_sprintf("%s", "AAC Scalable Sample Rate profile (SSR)");
+        break;
+      case LTP:
+        s->description = bgav_sprintf("%s", "AAC Long Term Prediction (LTP)");
+        break;
+      case HE_AAC:
+        s->description = bgav_sprintf("%s", "HE-AAC");
+        break;
+      case ER_LC:
+      case ER_LTP:
+      case LD:
+      case DRM_ER_LC: /* special object type for DRM */
+        s->description = bgav_sprintf("%s", "MPEG_2/4 AAC");
+        break;
+      }
+    }
   priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
   priv->last_block_size = priv->frame->valid_samples;
   
@@ -215,6 +217,75 @@ static int decode_frame(bgav_stream_t * s)
   
   return 1;
   }
+
+static int init_faad2(bgav_stream_t * s)
+  {
+  faad_priv_t * priv;
+  unsigned long samplerate;
+  unsigned char channels;
+  char result;
+  faacDecConfigurationPtr cfg;
+  
+  priv = calloc(1, sizeof(*priv));
+  priv->dec = faacDecOpen();
+  priv->frame = gavl_audio_frame_create(NULL);
+  s->data.audio.decoder->priv = priv;
+  
+  /* Init the library using a DecoderSpecificInfo */
+
+  //  fprintf(stderr, "Extradata size: %d\n", s->ext_size);
+
+  if(!s->ext_size)
+    {
+    if(!get_data(s))
+      return 0;
+
+    result = faacDecInit(priv->dec, priv->data_ptr,
+                         priv->data_size,
+                         &samplerate, &channels);
+    //    fprintf(stderr, "faacDecInit %d bytes used\n", result);
+
+    priv->data_size -= result;
+    priv->data_ptr += result;
+    }
+  else
+    {
+    result = faacDecInit2(priv->dec, s->ext_data,
+                          s->ext_size,
+                          &samplerate, &channels);
+    //    fprintf(stderr, "faacDecInit2, samplerate: %d, channels: %d\n",
+    //            samplerate, channels);
+    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
+    }
+  //  fprintf(stderr, "Result: %d %d %d\n", result, samplerate, channels);
+
+  /* Some mp4 files have a wrong samplerate in the sample description,
+     so we correct it here */
+
+  s->data.audio.format.samplerate = samplerate;
+    
+  s->data.audio.format.num_channels = channels;
+  s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+  //  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
+  s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
+  s->data.audio.format.samples_per_frame = 1024;
+    
+  cfg = faacDecGetCurrentConfiguration(priv->dec);
+  cfg->outputFormat = FAAD_FMT_FLOAT;
+  // cfg->outputFormat = FAAD_FMT_16BIT;
+  faacDecSetConfiguration(priv->dec, cfg);
+
+  /* Decode a first frame to get the channel setup and the description */
+  if(!decode_frame(s))
+    return 0;
+  
+  
+  return 1;
+  }
+
+
+// static int frame_number = 0;
+
 
 static int decode_faad2(bgav_stream_t * s, gavl_audio_frame_t * f,
                         int num_samples)

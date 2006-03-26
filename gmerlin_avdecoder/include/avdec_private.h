@@ -655,6 +655,9 @@ int bgav_input_read_24_be(bgav_input_context_t*,uint32_t*);
 int bgav_input_read_32_be(bgav_input_context_t*,uint32_t*);
 int bgav_input_read_64_be(bgav_input_context_t*,uint64_t*);
 
+int bgav_input_read_float_32_be(bgav_input_context_t * ctx, float * ret);
+int bgav_input_read_float_32_le(bgav_input_context_t * ctx, float * ret);
+
 int bgav_input_get_data(bgav_input_context_t*, uint8_t*,int);
 
 int bgav_input_get_8(bgav_input_context_t*,uint8_t*);
@@ -666,6 +669,9 @@ int bgav_input_get_64_le(bgav_input_context_t*,uint64_t*);
 int bgav_input_get_16_be(bgav_input_context_t*,uint16_t*);
 int bgav_input_get_32_be(bgav_input_context_t*,uint32_t*);
 int bgav_input_get_64_be(bgav_input_context_t*,uint64_t*);
+
+int bgav_input_get_float_32_be(bgav_input_context_t * ctx, float * ret);
+int bgav_input_get_float_32_le(bgav_input_context_t * ctx, float * ret);
 
 #define bgav_input_read_fourcc(a,b) bgav_input_read_32_be(a,b)
 #define bgav_input_get_fourcc(a,b)  bgav_input_get_32_be(a,b)

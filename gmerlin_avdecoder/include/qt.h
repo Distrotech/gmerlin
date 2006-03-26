@@ -212,6 +212,32 @@ int bgav_qt_enda_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 
 void bgav_qt_enda_dump(qt_enda_t * f);
 
+/* chan */
+
+typedef struct
+  {
+  qt_atom_header_t h;
+  int version;
+  uint32_t flags;
+  
+  uint32_t mChannelLayoutTag;
+  uint32_t mChannelBitmap;
+  uint32_t mNumberChannelDescriptions;
+
+  struct
+    {
+    uint32_t mChannelLabel;
+    uint32_t mChannelFlags;
+    float    mCoordinates[3];
+    } * ChannelDescriptions;
+  } qt_chan_t;
+
+int bgav_qt_chan_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_chan_t * chan);
+void bgav_qt_chan_dump(qt_chan_t * chan);
+
+void bgav_qt_chan_get(qt_chan_t * chan, gavl_audio_format_t * format);
+
 /* wave */
 
 
@@ -275,6 +301,11 @@ typedef struct
       int private_ctab;
       uint16_t ctab_size;
       bgav_palette_entry_t * ctab;
+
+      qt_pasp_t pasp;
+      int has_pasp;
+      qt_fiel_t fiel;
+      int has_fiel;
       } video;
     struct
       {
@@ -295,17 +326,15 @@ typedef struct
 
       int has_wave;
       qt_wave_t wave;
+
+      int has_chan;
+      qt_chan_t chan;
       
       } audio;
     } format;
   qt_esds_t esds;
   int has_esds;
 
-  qt_pasp_t pasp;
-  int has_pasp;
-
-  qt_fiel_t fiel;
-  int has_fiel;
 
   
   /* Data for avc1 (offset realtive to data) */

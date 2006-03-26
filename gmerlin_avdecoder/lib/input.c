@@ -303,6 +303,99 @@ int bgav_input_get_64_be(bgav_input_context_t * ctx, uint64_t * ret)
   return 1;
   }
 
+static float
+float32_be_read (unsigned char *cptr)
+{       int             exponent, mantissa, negative ;
+        float   fvalue ;
+
+        negative = cptr [0] & 0x80 ;
+        exponent = ((cptr [0] & 0x7F) << 1) | ((cptr [1] & 0x80) ? 1 : 0) ;
+        mantissa = ((cptr [1] & 0x7F) << 16) | (cptr [2] << 8) | (cptr [3]) ;
+
+        if (! (exponent || mantissa))
+                return 0.0 ;
+
+        mantissa |= 0x800000 ;
+        exponent = exponent ? exponent - 127 : 0 ;
+
+        fvalue = mantissa ? ((float) mantissa) / ((float) 0x800000) : 0.0 ;
+
+        if (negative)
+                fvalue *= -1 ;
+
+        if (exponent > 0)
+                fvalue *= (1 << exponent) ;
+        else if (exponent < 0)
+                fvalue /= (1 << abs (exponent)) ;
+
+        return fvalue ;
+} /* float32_be_read */
+
+static float
+float32_le_read (unsigned char *cptr)
+{       int             exponent, mantissa, negative ;
+        float   fvalue ;
+
+        negative = cptr [3] & 0x80 ;
+        exponent = ((cptr [3] & 0x7F) << 1) | ((cptr [2] & 0x80) ? 1 : 0) ;
+        mantissa = ((cptr [2] & 0x7F) << 16) | (cptr [1] << 8) | (cptr [0]) ;
+
+        if (! (exponent || mantissa))
+                return 0.0 ;
+
+        mantissa |= 0x800000 ;
+        exponent = exponent ? exponent - 127 : 0 ;
+
+        fvalue = mantissa ? ((float) mantissa) / ((float) 0x800000) : 0.0 ;
+
+        if (negative)
+                fvalue *= -1 ;
+
+        if (exponent > 0)
+                fvalue *= (1 << exponent) ;
+        else if (exponent < 0)
+                fvalue /= (1 << abs (exponent)) ;
+
+        return fvalue ;
+} /* float32_le_read */
+
+int bgav_input_read_float_32_be(bgav_input_context_t * ctx, float * ret)
+  {
+  uint8_t data[4];
+  if(bgav_input_read_data(ctx, data, 4) < 4)
+    return 0;
+  *ret = float32_be_read(data);
+  return 1;
+  }
+
+int bgav_input_read_float_32_le(bgav_input_context_t * ctx, float * ret)
+  {
+  uint8_t data[4];
+  if(bgav_input_read_data(ctx, data, 4) < 4)
+    return 0;
+  *ret = float32_le_read(data);
+  return 1;
+  }
+
+int bgav_input_get_float_32_be(bgav_input_context_t * ctx, float * ret)
+  {
+  uint8_t data[4];
+  if(bgav_input_get_data(ctx, data, 4) < 4)
+    return 0;
+  *ret = float32_be_read(data);
+  return 1;
+  }
+
+int bgav_input_get_float_32_le(bgav_input_context_t * ctx, float * ret)
+  {
+  uint8_t data[4];
+  if(bgav_input_get_data(ctx, data, 4) < 4)
+    return 0;
+  *ret = float32_le_read(data);
+  return 1;
+  }
+
+
 /* Open input */
 
 extern bgav_input_t bgav_input_file;

@@ -550,6 +550,14 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
             desc->format.audio.bytes_per_frame;
         }
 
+      /* Set channel configuration (if present) */
+
+      if(desc->format.audio.has_chan)
+        {
+        bgav_qt_chan_get(&(desc->format.audio.chan),
+                         &(bg_as->data.audio.format));
+        }
+      
       /* Set mp4 extradata */
       
       if((desc->has_esds) &&
@@ -703,23 +711,23 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       bg_vs->data.video.format.frame_width = desc->format.video.width;
       bg_vs->data.video.format.frame_height = desc->format.video.height;
 
-      if(desc->has_pasp)
+      if(desc->format.video.has_pasp)
         {
-        bg_vs->data.video.format.pixel_width = desc->pasp.hSpacing;
-        bg_vs->data.video.format.pixel_height = desc->pasp.vSpacing;
+        bg_vs->data.video.format.pixel_width = desc->format.video.pasp.hSpacing;
+        bg_vs->data.video.format.pixel_height = desc->format.video.pasp.vSpacing;
         }
       else
         {
         bg_vs->data.video.format.pixel_width = 1;
         bg_vs->data.video.format.pixel_height = 1;
         }
-      if(desc->has_fiel)
+      if(desc->format.video.has_fiel)
         {
-        if(desc->fiel.fields == 2)
+        if(desc->format.video.fiel.fields == 2)
           {
-          if((desc->fiel.detail == 14) || (desc->fiel.detail == 6))
+          if((desc->format.video.fiel.detail == 14) || (desc->format.video.fiel.detail == 6))
             bg_vs->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
-          else if((desc->fiel.detail == 9) || (desc->fiel.detail == 1))
+          else if((desc->format.video.fiel.detail == 9) || (desc->format.video.fiel.detail == 1))
             bg_vs->data.video.format.interlace_mode = GAVL_INTERLACE_TOP_FIRST;
           }
         }

@@ -65,6 +65,8 @@ static void stsd_dump_audio(qt_sample_description_t * d)
     }
   if(d->format.audio.has_wave)
     bgav_qt_wave_dump(&d->format.audio.wave);
+  if(d->format.audio.has_chan)
+    bgav_qt_chan_dump(&d->format.audio.chan);
   }
 
 static void stsd_dump_video(qt_sample_description_t * d)
@@ -122,12 +124,15 @@ static int stsd_read_audio(bgav_input_context_t * input,
   if(!result)
     return 0;
   ret->format.audio.samplerate = (tmp_32 >> 16);
-  if(ret->version == 1)
+  if(ret->version > 0)
     {
     result = bgav_input_read_32_be(input, &(ret->format.audio.samples_per_packet)) &&
       bgav_input_read_32_be(input, &(ret->format.audio.bytes_per_packet)) &&
       bgav_input_read_32_be(input, &(ret->format.audio.bytes_per_frame)) &&
       bgav_input_read_32_be(input, &(ret->format.audio.bytes_per_sample));
+
+    if(ret->version == 2)
+      bgav_input_skip(input, 20);
     }
 
   /* Read remaining atoms */
@@ -155,8 +160,16 @@ static int stsd_read_audio(bgav_input_context_t * input,
         ret->has_esds = 1;
         
         break;
+      case BGAV_MK_FOURCC('c', 'h', 'a', 'n'):
+        //        fprintf(stderr, "Found  atom, %lld bytes\n", h.size);
+        if(!bgav_qt_chan_read(&h, input, &(ret->format.audio.chan)))
+          return 0;
+        ret->format.audio.has_chan = 1;
+        //        fprintf(stderr, "Found chan atom, %lld bytes\n", h.size);
+        //        bgav_qt_chan_dump(&(ret->format.audio.chan));
+        break;
       default:
-        fprintf(stderr, "Unknown atom ");
+        fprintf(stderr, "Unknown atom in audio sample description\n");
         bgav_dump_fourcc(h.fourcc);
         fprintf(stderr, " (%lld bytes)\n", h.size);
         bgav_qt_atom_skip(input, &h);
@@ -289,24 +302,24 @@ static int stsd_read_video(bgav_input_context_t * input,
         break;
       case BGAV_MK_FOURCC('p', 'a', 's', 'p'):
         //        fprintf(stderr, "Found pasp atom\n");
-        if(!bgav_qt_pasp_read(&h, input, &(ret->pasp)))
+        if(!bgav_qt_pasp_read(&h, input, &(ret->format.video.pasp)))
           return 0;
         else
-          ret->has_pasp = 1;
+          ret->format.video.has_pasp = 1;
         break;
       case BGAV_MK_FOURCC('f', 'i', 'e', 'l'):
         //        fprintf(stderr, "Found fiel atom\n");
-        if(!bgav_qt_fiel_read(&h, input, &(ret->fiel)))
+        if(!bgav_qt_fiel_read(&h, input, &(ret->format.video.fiel)))
           return 0;
         else
-          ret->has_fiel = 1;
-        bgav_qt_fiel_dump(&(ret->fiel));
+          ret->format.video.has_fiel = 1;
+        //        bgav_qt_fiel_dump(&(ret->format.video.fiel));
         break;
       default:
 
         
 #if 1
-        fprintf(stderr, "Unknown atom ");
+        fprintf(stderr, "Unknown atom in video sample description\n");
         bgav_dump_fourcc(h.fourcc);
         fprintf(stderr, "\n");
 #endif
