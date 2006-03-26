@@ -238,6 +238,9 @@ void bgav_qt_chan_dump(qt_chan_t * chan);
 
 void bgav_qt_chan_get(qt_chan_t * chan, gavl_audio_format_t * format);
 
+void bgav_qt_chan_free(qt_chan_t * chan);
+
+
 /* wave */
 
 

@@ -811,6 +811,13 @@ void bgav_qt_chan_dump(qt_chan_t * chan)
 
   }
 
+void bgav_qt_chan_free(qt_chan_t * chan)
+  {
+  if(chan->ChannelDescriptions)
+    free(chan->ChannelDescriptions);
+  }
+
+
 void bgav_qt_chan_get(qt_chan_t * chan, gavl_audio_format_t * format)
   {
   int i, num_channels;

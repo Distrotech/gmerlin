@@ -424,6 +424,8 @@ void bgav_qt_stsd_free(qt_stsd_t * c)
       {
       if(c->entries[i].desc.format.audio.has_wave)
         bgav_qt_wave_free(&(c->entries[i].desc.format.audio.wave));
+      if(c->entries[i].desc.format.audio.has_chan)
+        bgav_qt_chan_free(&(c->entries[i].desc.format.audio.chan));
       
       }
     if(c->entries[i].desc.type == BGAV_STREAM_VIDEO)
