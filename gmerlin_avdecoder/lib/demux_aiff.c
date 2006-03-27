@@ -231,6 +231,42 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
         s->data.audio.format.num_channels = comm.num_channels;
         s->data.audio.bits_per_sample =     comm.num_bits;
 
+        /*
+         *  Multichannel support according to
+         *  http://music.calarts.edu/~tre/AIFFC/
+         */
+
+        switch(s->data.audio.format.num_channels)
+          {
+          case 1:
+            s->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_CENTER;
+            break;
+          case 2:
+            s->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+            s->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+            break;
+          case 3:
+            s->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+            s->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_CENTER;
+            s->data.audio.format.channel_locations[2] = GAVL_CHID_FRONT_RIGHT;
+            break;
+          case 4: /* Note: 4 channels can also be "left center right surround" but we
+                     believe, that quad is more common */
+            s->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+            s->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+            s->data.audio.format.channel_locations[2] = GAVL_CHID_REAR_LEFT;
+            s->data.audio.format.channel_locations[3] = GAVL_CHID_REAR_RIGHT;
+            break;
+          case 6:
+            s->data.audio.format.channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+            s->data.audio.format.channel_locations[1] = GAVL_CHID_FRONT_CENTER_LEFT;
+            s->data.audio.format.channel_locations[2] = GAVL_CHID_FRONT_CENTER;
+            s->data.audio.format.channel_locations[3] = GAVL_CHID_FRONT_RIGHT;
+            s->data.audio.format.channel_locations[4] = GAVL_CHID_FRONT_CENTER_RIGHT;
+            s->data.audio.format.channel_locations[5] = GAVL_CHID_REAR_CENTER;
+            break;
+          }
+        
         if(!priv->is_aifc)
           s->fourcc = BGAV_MK_FOURCC('a','i','f','f');
         else if(comm.compression_type == BGAV_MK_FOURCC('N','O','N','E'))

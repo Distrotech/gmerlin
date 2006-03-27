@@ -434,7 +434,21 @@ static int init_vorbis(bgav_stream_t * s)
   /* Set up audio format from the vorbis header overriding previous values */
   s->data.audio.format.samplerate = priv->dec_vi.rate;
   s->data.audio.format.num_channels = priv->dec_vi.channels;
-  
+
+  /* Vorbis 5.1 mapping */
+
+  switch(s->data.audio.format.num_channels)
+    {
+    /* Ogg Vorbis internally has 6 channel as L + C + R + LFE + BL + BR */
+    case 6:
+      s->data.audio.format.channel_locations[0] =  GAVL_CHID_FRONT_LEFT;
+      s->data.audio.format.channel_locations[1] =  GAVL_CHID_FRONT_CENTER;
+      s->data.audio.format.channel_locations[2] =  GAVL_CHID_FRONT_RIGHT;
+      s->data.audio.format.channel_locations[3] =  GAVL_CHID_LFE;
+      s->data.audio.format.channel_locations[4] =  GAVL_CHID_REAR_LEFT;
+      s->data.audio.format.channel_locations[5] =  GAVL_CHID_REAR_RIGHT;
+      break;
+    }
   
   priv->frame = gavl_audio_frame_create(NULL);
     
