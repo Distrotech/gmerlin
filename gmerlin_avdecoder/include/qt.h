@@ -313,18 +313,21 @@ typedef struct
     struct
       {
       /* 12 bytes */
-      uint16_t num_channels;
-      uint16_t bits_per_sample;
+      uint32_t num_channels;
+      uint32_t bits_per_sample;
       uint16_t compression_id;
       uint16_t packet_size;
       int samplerate; /* Actually fixed32 */
+
       /* For Version 1 (CBR and VBR) 16 bytes */
-                  
       uint32_t samples_per_packet;
       uint32_t bytes_per_packet;
       uint32_t bytes_per_frame;
       uint32_t bytes_per_sample;
 
+      /* For Version 2 (will be converted to version 1) */
+      uint32_t formatSpecificFlags;
+      
       /* Extended fields */
 
       int has_wave;
@@ -340,7 +343,7 @@ typedef struct
 
 
   
-  /* Data for avc1 (offset realtive to data) */
+  /* Data for avc1 (offset relative to data) */
 
   int avcC_offset;
   int avcC_size;

@@ -107,34 +107,151 @@ static int stsd_read_common(bgav_input_context_t * input,
           bgav_input_read_32_be(input, &(ret->vendor)));
   }
 
+
+/* Convert Version 2 of the SampleDescription to Version 0 */
+
+/* SampleDescription V2 definitions */
+#define kAudioFormatFlagIsFloat          (1L<<0) 
+#define kAudioFormatFlagIsBigEndian      (1L<<1) 
+#define kAudioFormatFlagIsSignedInteger  (1L<<2) 
+#define kAudioFormatFlagIsPacked         (1L<<3) 
+#define kAudioFormatFlagIsAlignedHigh    (1L<<4) 
+#define kAudioFormatFlagIsNonInterleaved (1L<<5) 
+#define kAudioFormatFlagIsNonMixable     (1L<<6) 
+#define kAudioFormatFlagsAreAllClear     (1L<<31)  
+
+static void import_sampledescription_v2(qt_sample_description_t *table)
+  {
+  if(table->fourcc == BGAV_MK_FOURCC('l','p','c','m'))
+    {
+    if(table->format.audio.formatSpecificFlags & kAudioFormatFlagIsFloat)
+      {
+      switch(table->format.audio.bits_per_sample)
+        {
+        case 32:
+          table->fourcc = BGAV_MK_FOURCC('f','l','3','2');
+          break;
+        case 64:
+          table->fourcc = BGAV_MK_FOURCC('f','l','6','4');
+          break;
+        }
+      if(!(table->format.audio.formatSpecificFlags & kAudioFormatFlagIsBigEndian))
+        {
+        table->format.audio.wave.has_enda = 1;
+        table->format.audio.wave.enda.littleEndian = 1;
+        }
+      }
+    else
+      {
+      switch(table->format.audio.bits_per_sample)
+        {
+        case 16:
+          if(table->format.audio.formatSpecificFlags & kAudioFormatFlagIsBigEndian)
+            table->fourcc = BGAV_MK_FOURCC('t','w','o','s');
+          else
+            table->fourcc = BGAV_MK_FOURCC('s','o','w','t');
+          break;
+        case 24:
+          table->fourcc = BGAV_MK_FOURCC('i','n','2','4');
+          if(!(table->format.audio.formatSpecificFlags & kAudioFormatFlagIsBigEndian))
+            {
+            table->format.audio.wave.has_enda = 1;
+            table->format.audio.wave.enda.littleEndian = 1;
+            }
+        case 32:
+          table->fourcc = BGAV_MK_FOURCC('i','n','3','2');
+          if(!(table->format.audio.formatSpecificFlags & kAudioFormatFlagIsBigEndian))
+            {
+            table->format.audio.wave.has_enda = 1;
+            table->format.audio.wave.enda.littleEndian = 1;
+            }
+        }
+      }
+    }
+  }
+
+
 static int stsd_read_audio(bgav_input_context_t * input,
                            qt_sample_description_t * ret)
   {
   int result;
   qt_atom_header_t h;
   uint32_t tmp_32;
+  double tmp_d;
+  uint16_t tmp_16;
+  
   if(!stsd_read_common(input, ret))
     return 0;
   ret->type = BGAV_STREAM_AUDIO;
-  result = bgav_input_read_16_be(input, &(ret->format.audio.num_channels)) &&
-    bgav_input_read_16_be(input, &(ret->format.audio.bits_per_sample)) &&
-    bgav_input_read_16_be(input, &(ret->format.audio.compression_id)) &&
-    bgav_input_read_16_be(input, &(ret->format.audio.packet_size)) &&
-    bgav_input_read_32_be(input, &tmp_32);
-  if(!result)
-    return 0;
-  ret->format.audio.samplerate = (tmp_32 >> 16);
-  if(ret->version > 0)
+
+  if(ret->version == 2)
     {
-    result = bgav_input_read_32_be(input, &(ret->format.audio.samples_per_packet)) &&
-      bgav_input_read_32_be(input, &(ret->format.audio.bytes_per_packet)) &&
-      bgav_input_read_32_be(input, &(ret->format.audio.bytes_per_frame)) &&
-      bgav_input_read_32_be(input, &(ret->format.audio.bytes_per_sample));
+    /*
+     * SInt16     always3;
+     * SInt16     always16;
+     * SInt16     alwaysMinus2;
+     * SInt16     always0;
+     * UInt32     always65536;
+     * UInt32     sizeOfStructOnly;
+     * Float64    audioSampleRate;
+     */
+    bgav_input_skip(input, 16);
 
-    if(ret->version == 2)
-      bgav_input_skip(input, 20);
+    if(!bgav_input_read_double_64_be(input, &tmp_d))
+      return 0;
+    ret->format.audio.samplerate = (int)(tmp_d + 0.5);
+
+    if(!bgav_input_read_32_be(input, &(ret->format.audio.num_channels)))
+      return 0;
+
+    /*
+     *  SInt32     always7F000000;
+     */
+    bgav_input_skip(input, 4);
+
+    /* 
+     *  UInt32     constBitsPerChannel;
+     */
+    if(!bgav_input_read_32_be(input, &(ret->format.audio.bits_per_sample)))
+      return 0;
+
+    if(!bgav_input_read_32_be(input, &(ret->format.audio.formatSpecificFlags)))
+      return 0;
+
+    /*
+     * UInt32     constBytesPerAudioPacket;
+     * UInt32     constLPCMFramesPerAudioPacket;
+     */
+    bgav_input_skip(input, 8);
     }
+  else
+    {
+    if(!bgav_input_read_16_be(input, &(tmp_16)))
+      return 0;
+    ret->format.audio.num_channels = tmp_16;
 
+    if(!bgav_input_read_16_be(input, &tmp_16))
+      return 0;
+
+    ret->format.audio.bits_per_sample = tmp_16;
+    
+    if(!bgav_input_read_16_be(input, &(ret->format.audio.compression_id)) ||
+       !bgav_input_read_16_be(input, &(ret->format.audio.packet_size)) ||
+       !bgav_input_read_32_be(input, &tmp_32))
+      return 0;
+    
+    ret->format.audio.samplerate = (tmp_32 >> 16);
+    
+    if(ret->version > 0)
+      {
+      if(!bgav_input_read_32_be(input, &(ret->format.audio.samples_per_packet)) ||
+         !bgav_input_read_32_be(input, &(ret->format.audio.bytes_per_packet)) ||
+         !bgav_input_read_32_be(input, &(ret->format.audio.bytes_per_frame)) ||
+         !bgav_input_read_32_be(input, &(ret->format.audio.bytes_per_sample)))
+        return 0;
+      }
+    }
+  
   /* Read remaining atoms */
 
   while(1)
@@ -168,6 +285,8 @@ static int stsd_read_audio(bgav_input_context_t * input,
         //        fprintf(stderr, "Found chan atom, %lld bytes\n", h.size);
         //        bgav_qt_chan_dump(&(ret->format.audio.chan));
         break;
+      case 0:
+        break;
       default:
         fprintf(stderr, "Unknown atom in audio sample description\n");
         bgav_dump_fourcc(h.fourcc);
@@ -177,6 +296,9 @@ static int stsd_read_audio(bgav_input_context_t * input,
       }
     }
 
+  if(ret->version == 2)
+    import_sampledescription_v2(ret);
+  
   //  stsd_dump_audio(ret);
   return result;
   }
