@@ -573,7 +573,7 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
             {
             stream = bgav_track_add_audio_stream(ctx->tt->current_track);
             stream->timescale = 90000;
-            stream->fourcc = BGAV_MK_FOURCC('l', 'p', 'c', 'm');
+            stream->fourcc = BGAV_MK_FOURCC('L', 'P', 'C', 'M');
             stream->stream_id = priv->pes_header.stream_id;
             //            fprintf(stderr, "Found LPCM stream\n");
             }

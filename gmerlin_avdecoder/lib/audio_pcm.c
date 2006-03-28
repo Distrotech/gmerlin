@@ -789,7 +789,7 @@ static int init_pcm(bgav_stream_t * s)
           return 0;
         }
       break;
-    case BGAV_MK_FOURCC('l', 'p', 'c', 'm'):
+    case BGAV_MK_FOURCC('L', 'P', 'C', 'M'):
       /* We must get a first packet, otherwise the demuxer might not know
          the stream parameters */
       if(!get_packet(s))

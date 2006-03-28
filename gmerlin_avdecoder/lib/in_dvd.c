@@ -262,7 +262,7 @@ static void setup_track(bgav_input_context_t * ctx,
         break;
       case 4:
         //        printf("lpcm ");
-        s->fourcc = BGAV_MK_FOURCC('l', 'p', 'c', 'm');
+        s->fourcc = BGAV_MK_FOURCC('L', 'P', 'C', 'M');
         s->stream_id = 0xbda0 + stream_position;
         
         break;
