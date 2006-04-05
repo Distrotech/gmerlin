@@ -56,12 +56,20 @@ static void stsd_dump_audio(qt_sample_description_t * d)
   fprintf(stderr, "  packet_size:          %d\n", d->format.audio.packet_size);
   fprintf(stderr, "  samplerate:           %d\n", d->format.audio.samplerate);
 
-  if(d->version > 0)
+  if(d->version == 1)
     {
-    fprintf(stderr, "  samples_per_packet:   %d\n", d->format.audio.samples_per_packet);
-    fprintf(stderr, "  bytes_per_packet:     %d\n", d->format.audio.bytes_per_packet);
-    fprintf(stderr, "  bytes_per_frame:      %d\n", d->format.audio.bytes_per_frame);
-    fprintf(stderr, "  bytes_per_sample:     %d\n", d->format.audio.bytes_per_sample);
+    fprintf(stderr, "  samples_per_packet:   %d\n",
+            d->format.audio.samples_per_packet);
+    fprintf(stderr, "  bytes_per_packet:     %d\n",
+            d->format.audio.bytes_per_packet);
+    fprintf(stderr, "  bytes_per_frame:      %d\n",
+            d->format.audio.bytes_per_frame);
+    fprintf(stderr, "  bytes_per_sample:     %d\n",
+            d->format.audio.bytes_per_sample);
+    }
+  if(d->version == 2)
+    {
+    
     }
   if(d->format.audio.has_wave)
     bgav_qt_wave_dump(&d->format.audio.wave);
@@ -158,6 +166,7 @@ static void import_sampledescription_v2(qt_sample_description_t *table)
             table->format.audio.wave.has_enda = 1;
             table->format.audio.wave.enda.littleEndian = 1;
             }
+          break;
         case 32:
           table->fourcc = BGAV_MK_FOURCC('i','n','3','2');
           if(!(table->format.audio.formatSpecificFlags & kAudioFormatFlagIsBigEndian))
@@ -165,6 +174,7 @@ static void import_sampledescription_v2(qt_sample_description_t *table)
             table->format.audio.wave.has_enda = 1;
             table->format.audio.wave.enda.littleEndian = 1;
             }
+          break;
         }
       }
     }
@@ -174,7 +184,6 @@ static void import_sampledescription_v2(qt_sample_description_t *table)
 static int stsd_read_audio(bgav_input_context_t * input,
                            qt_sample_description_t * ret)
   {
-  int result;
   qt_atom_header_t h;
   uint32_t tmp_32;
   double tmp_d;
@@ -300,7 +309,7 @@ static int stsd_read_audio(bgav_input_context_t * input,
     import_sampledescription_v2(ret);
   
   //  stsd_dump_audio(ret);
-  return result;
+  return 1;
   }
 
 static int stsd_read_video(bgav_input_context_t * input,

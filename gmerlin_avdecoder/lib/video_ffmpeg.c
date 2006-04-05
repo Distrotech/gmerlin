@@ -458,6 +458,10 @@ typedef struct
 
   int have_last_frame;
   int eof;
+
+  uint8_t * extradata;
+  int extradata_size;
+  
   } ffmpeg_video_priv;
 
 static codec_info_t * lookup_codec(bgav_stream_t * s)
@@ -485,7 +489,7 @@ typedef struct dp_hdr_s {
 
 static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   {
-  int i;
+  int i, num_tries = 0;
   int got_picture = 0;
   int bytes_used;
   int len;
@@ -615,8 +619,8 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     //    fprintf(stderr, "Image size: %d %d\n", priv->ctx->width, priv->ctx->height);
 
 #if 0
-    fprintf(stderr, "Used %d bytes, got picture: %d\n",
-            bytes_used, got_picture);
+    fprintf(stderr, "Used %d/%d bytes, got picture: %d\n",
+            bytes_used, len, got_picture);
 #endif
 #if 0
     if(!got_picture)
@@ -646,7 +650,10 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
           priv->bytes_in_packet_buffer = 0;
         }
       }
-    
+
+    num_tries++;
+    if(num_tries > 2)
+      break;
     }
 
   if(got_picture)
@@ -770,8 +777,6 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       return 0; /* EOF */
     }
 
-
-
   return 1;
   }
 
@@ -788,8 +793,16 @@ static int init(bgav_stream_t * s)
   priv->ctx->width = s->data.video.format.frame_width;
   priv->ctx->height = s->data.video.format.frame_height;
   priv->ctx->bits_per_sample = s->data.video.depth;
-  priv->ctx->extradata      = s->ext_data;
-  priv->ctx->extradata_size = s->ext_size;
+
+  if(s->ext_data)
+    {
+    priv->extradata = calloc(s->ext_size + FF_INPUT_BUFFER_PADDING_SIZE, 1);
+    memcpy(priv->extradata, s->ext_data, s->ext_size);
+    priv->extradata_size = s->ext_size;
+    }
+  
+  priv->ctx->extradata      = priv->extradata;
+  priv->ctx->extradata_size = priv->extradata_size;
   priv->ctx->codec_type = CODEC_TYPE_VIDEO;
   
   priv->ctx->bit_rate = 0;
@@ -947,6 +960,9 @@ static void close_ffmpeg(bgav_stream_t * s)
     gavl_video_frame_null(priv->gavl_frame);
     gavl_video_frame_destroy(priv->gavl_frame);
     }
+  if(priv->extradata)
+    free(priv->extradata);
+  
   free(priv->frame);
   free(priv);
   }

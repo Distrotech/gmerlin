@@ -726,15 +726,14 @@ channel_locations[] =
 static channel_label_t * get_channel_locations(uint32_t layout, int * num_channels)
   {
   int i;
+  *num_channels = layout & 0xffff;
   for(i = 0; i < sizeof(channel_locations)/sizeof(channel_locations[0]); i++)
     {
     if(channel_locations[i].layout == layout)
       {
-      *num_channels = layout & 0xffff;
       return channel_locations[i].channels;
       }
     }
-  *num_channels = 0;
   return (channel_label_t*)0;
   }
 
@@ -760,15 +759,21 @@ void bgav_qt_chan_dump(qt_chan_t * chan)
   else
     {
     channel_labels = get_channel_locations(chan->mChannelLayoutTag, &num_channels);
-
+    
     fprintf(stderr, " [");
 
-    for(i = 0; i < num_channels; i++)
+    if(channel_labels)
       {
-      fprintf(stderr, "%s", get_channel_name(channel_labels[i]));
-      if(i < num_channels-1)
+      for(i = 0; i < num_channels; i++)
+        {
+        fprintf(stderr, "%s", get_channel_name(channel_labels[i]));
+        if(i < num_channels-1)
         fprintf(stderr, ", ");
+        }
       }
+    else
+      fprintf(stderr, "Not available");
+    
     fprintf(stderr, "]\n");
     }
   
@@ -863,9 +868,13 @@ void bgav_qt_chan_get(qt_chan_t * chan, gavl_audio_format_t * format)
     channel_labels = get_channel_locations(chan->mChannelLayoutTag, &num_channels);
 
     format->num_channels = num_channels;
+
+    if(channel_labels)
+      {
+      for(i = 0; i < num_channels; i++)
+        format->channel_locations[i] = channel_label_2_channel(channel_labels[i]);
+      }
     
-    for(i = 0; i < num_channels; i++)
-      format->channel_locations[i] = channel_label_2_channel(channel_labels[i]);
     }
   
   }
