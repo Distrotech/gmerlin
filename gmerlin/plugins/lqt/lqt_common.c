@@ -81,13 +81,21 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
       info->multi_parameters[i][j].long_name = 
         bg_strdup((char*)0, lqt_parameter_info[j].real_name);
 
+      if(lqt_parameter_info[j].help_string)
+        {
+        info->multi_parameters[i][j].help_string = 
+          bg_strdup((char*)0, lqt_parameter_info[j].help_string);
+        
+        }
+      
       switch(lqt_parameter_info[j].type)
         {
         case LQT_PARAMETER_INT:
-          if(lqt_parameter_info[j].val_min < lqt_parameter_info[j].val_max)
+          if(lqt_parameter_info[j].val_min.val_int <
+             lqt_parameter_info[j].val_max.val_int)
             {
-            if((lqt_parameter_info[j].val_min == 0) &&
-               (lqt_parameter_info[j].val_max == 1))
+            if((lqt_parameter_info[j].val_min.val_int == 0) &&
+               (lqt_parameter_info[j].val_max.val_int == 1))
               {
               info->multi_parameters[i][j].type = BG_PARAMETER_CHECKBUTTON;
               }
@@ -95,9 +103,9 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
               {
               info->multi_parameters[i][j].type = BG_PARAMETER_SLIDER_INT;
               info->multi_parameters[i][j].val_min.val_i =
-                lqt_parameter_info[j].val_min;
+                lqt_parameter_info[j].val_min.val_int;
               info->multi_parameters[i][j].val_max.val_i =
-                lqt_parameter_info[j].val_max;
+                lqt_parameter_info[j].val_max.val_int;
               }
             }
           else
@@ -106,6 +114,26 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
             }
           info->multi_parameters[i][j].val_default.val_i =
             lqt_parameter_info[j].val_default.val_int;
+          break;
+        case LQT_PARAMETER_FLOAT:
+          if(lqt_parameter_info[j].val_min.val_float <
+             lqt_parameter_info[j].val_max.val_float)
+            {
+            info->multi_parameters[i][j].type = BG_PARAMETER_SLIDER_FLOAT;
+            info->multi_parameters[i][j].val_min.val_f =
+              lqt_parameter_info[j].val_min.val_float;
+            info->multi_parameters[i][j].val_max.val_f =
+              lqt_parameter_info[j].val_max.val_float;
+            }
+          else
+            {
+            info->multi_parameters[i][j].type = BG_PARAMETER_FLOAT;
+            }
+          info->multi_parameters[i][j].num_digits =
+            lqt_parameter_info[j].num_digits;
+
+          info->multi_parameters[i][j].val_default.val_f =
+            lqt_parameter_info[j].val_default.val_float;
           break;
         case LQT_PARAMETER_STRING:
           info->multi_parameters[i][j].type = BG_PARAMETER_STRING;
@@ -155,6 +183,9 @@ static void * get_value(lqt_parameter_info_t * lqt_parameter_info,
         {
         case LQT_PARAMETER_INT:
           return &(val->val_i);
+          break;
+        case LQT_PARAMETER_FLOAT:
+          return &(val->val_f);
           break;
         case LQT_PARAMETER_STRING:
         case LQT_PARAMETER_STRINGLIST:

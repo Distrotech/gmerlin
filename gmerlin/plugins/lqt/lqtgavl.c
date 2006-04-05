@@ -2,7 +2,7 @@
 
   lqtgavl.c
 
-  Copyright (c) 2005 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2005-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
 
   http://gmerlin.sourceforge.net
 
@@ -142,11 +142,60 @@ pixelformat_lqt_2_gavl(int pixelformat)
   return GAVL_PIXELFORMAT_NONE;
   }
 
-  
+static struct
+  {
+  gavl_channel_id_t gavl;
+  lqt_channel_t lqt;
+  }
+channels[] =
+  {
+    { GAVL_CHID_NONE,               LQT_CHANNEL_UNKNOWN            },
+    { GAVL_CHID_FRONT_CENTER,       LQT_CHANNEL_FRONT_CENTER       },
+    { GAVL_CHID_FRONT_LEFT,         LQT_CHANNEL_FRONT_LEFT         },
+    { GAVL_CHID_FRONT_RIGHT,        LQT_CHANNEL_FRONT_RIGHT        },
+    { GAVL_CHID_FRONT_CENTER_LEFT,  LQT_CHANNEL_FRONT_CENTER_LEFT  },
+    { GAVL_CHID_FRONT_CENTER_RIGHT, LQT_CHANNEL_FRONT_CENTER_RIGHT },
+    { GAVL_CHID_REAR_LEFT,          LQT_CHANNEL_BACK_LEFT          },
+    { GAVL_CHID_REAR_RIGHT,         LQT_CHANNEL_BACK_RIGHT         },
+    { GAVL_CHID_REAR_CENTER,        LQT_CHANNEL_BACK_CENTER        },
+    { GAVL_CHID_SIDE_LEFT,          LQT_CHANNEL_SIDE_LEFT          },
+    { GAVL_CHID_SIDE_RIGHT,         LQT_CHANNEL_SIDE_RIGHT         },
+    { GAVL_CHID_LFE,                LQT_CHANNEL_LFE                },
+    { GAVL_CHID_AUX,                LQT_CHANNEL_UNKNOWN            },
+  };
+
+static gavl_channel_id_t
+channel_lqt_2_gavl(lqt_channel_t ch)
+  {
+  int i;
+  for(i = 0; i < sizeof(channels) / sizeof(channels[0]); i++)
+    {
+    if(channels[i].lqt == ch)
+      return channels[i].gavl;
+    }
+  return GAVL_CHID_NONE;
+  }
+
+static lqt_channel_t
+channel_gavl_2_lqt(gavl_channel_id_t ch)
+  {
+  int i;
+  for(i = 0; i < sizeof(channels) / sizeof(channels[0]); i++)
+    {
+    if(channels[i].gavl == ch)
+      return channels[i].lqt;
+    }
+  return LQT_CHANNEL_UNKNOWN;
+  }
+
 void lqt_gavl_add_audio_track(quicktime_t * file,
                                gavl_audio_format_t * format,
                                lqt_codec_info_t * codec)
   {
+  int i;
+  const lqt_channel_t * chans_1;
+  lqt_channel_t * chans_2;
+  
   int track = quicktime_audio_tracks(file);
   
   lqt_add_audio_track(file, format->num_channels, format->samplerate,
@@ -155,6 +204,30 @@ void lqt_gavl_add_audio_track(quicktime_t * file,
   format->sample_format =
     sampleformat_lqt_2_gavl(lqt_get_sample_format(file, track));
   format->interleave_mode = GAVL_INTERLEAVE_ALL;
+
+  /* Negotiate the channel setup */
+
+  /* 1st try: The codec already knows (we cannot change that) */
+  chans_1 = lqt_get_channel_setup(file, track);
+  if(chans_1)
+    {
+    for(i = 0; i < format->num_channels; i++)
+      format->channel_locations[i] = channel_lqt_2_gavl(chans_1[i]);
+    }
+  else
+    {
+    /* Set our channel setup */
+    chans_2 = calloc(format->num_channels, sizeof(*chans_2));
+    for(i = 0; i < format->num_channels; i++)
+      chans_2[i] = channel_gavl_2_lqt(format->channel_locations[i]);
+    lqt_set_channel_setup(file, track, chans_2);
+    free(chans_2);
+
+    /* Copy reordered setup back */
+    chans_1 = lqt_get_channel_setup(file, track);
+    for(i = 0; i < format->num_channels; i++)
+      format->channel_locations[i] = channel_lqt_2_gavl(chans_1[i]);
+    }
   }
 
 void lqt_gavl_add_video_track(quicktime_t * file,
@@ -213,6 +286,9 @@ int lqt_gavl_get_audio_format(quicktime_t * file,
                               int track,
                               gavl_audio_format_t * format)
   {
+  int i;
+  const lqt_channel_t * channel_setup;
+
   if(track >= quicktime_audio_tracks(file) ||
      track < 0)
     return 0;
@@ -222,7 +298,21 @@ int lqt_gavl_get_audio_format(quicktime_t * file,
   format->sample_format =
     sampleformat_lqt_2_gavl(lqt_get_sample_format(file, track));
   format->interleave_mode = GAVL_INTERLEAVE_ALL;
-  gavl_set_channel_setup(format);
+
+  channel_setup = lqt_get_channel_setup(file, track);
+
+  if(channel_setup)
+    {
+    for(i = 0; i < format->num_channels; i++)
+      {
+      format->channel_locations[i] = channel_lqt_2_gavl(channel_setup[i]);
+      fprintf(stderr, "Got channel %s -> %s\n",
+              lqt_channel_to_string(channel_setup[i]),
+              gavl_channel_id_to_string(format->channel_locations[i]));
+      }
+    }
+  else
+    gavl_set_channel_setup(format);
   return 1;
   }
 
