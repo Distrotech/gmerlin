@@ -324,6 +324,45 @@ static void add_audio_stream_faac(void * data, gavl_audio_format_t * format)
   faac->format.sample_format   = GAVL_SAMPLE_FLOAT;
   faac->format.samples_per_frame = input_samples / format->num_channels;
 
+  switch(faac->format.num_channels)
+    {
+    case 1:
+      faac->format.channel_locations[0] = GAVL_CHID_FRONT_CENTER;
+      break;
+    case 2:
+      faac->format.channel_locations[0] = GAVL_CHID_FRONT_LEFT;
+      faac->format.channel_locations[1] = GAVL_CHID_FRONT_RIGHT;
+      break;
+    case 3:
+      faac->format.channel_locations[0] = GAVL_CHID_FRONT_CENTER;
+      faac->format.channel_locations[1] = GAVL_CHID_FRONT_LEFT;
+      faac->format.channel_locations[2] = GAVL_CHID_FRONT_RIGHT;
+      break;
+    case 4:
+      faac->format.channel_locations[0] = GAVL_CHID_FRONT_CENTER;
+      faac->format.channel_locations[1] = GAVL_CHID_FRONT_LEFT;
+      faac->format.channel_locations[2] = GAVL_CHID_FRONT_RIGHT;
+      faac->format.channel_locations[3] = GAVL_CHID_REAR_CENTER;
+      break;
+    case 5:
+      faac->format.channel_locations[0] = GAVL_CHID_FRONT_CENTER;
+      faac->format.channel_locations[1] = GAVL_CHID_FRONT_LEFT;
+      faac->format.channel_locations[2] = GAVL_CHID_FRONT_RIGHT;
+      faac->format.channel_locations[3] = GAVL_CHID_REAR_LEFT;
+      faac->format.channel_locations[4] = GAVL_CHID_REAR_RIGHT;
+      break;
+    case 6:
+      faac->format.channel_locations[0] = GAVL_CHID_FRONT_CENTER;
+      faac->format.channel_locations[1] = GAVL_CHID_FRONT_LEFT;
+      faac->format.channel_locations[2] = GAVL_CHID_FRONT_RIGHT;
+      faac->format.channel_locations[3] = GAVL_CHID_REAR_LEFT;
+      faac->format.channel_locations[4] = GAVL_CHID_REAR_RIGHT;
+      faac->format.channel_locations[5] = GAVL_CHID_LFE;
+      break;
+
+    }
+
+  
   faac->frame = gavl_audio_frame_create(&(faac->format));
   
   faac->output_buffer = malloc(output_bytes);
