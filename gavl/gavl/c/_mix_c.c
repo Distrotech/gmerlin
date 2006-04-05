@@ -101,8 +101,12 @@ static void RENAME(mix_5_to_1)(gavl_mix_output_channel_t * channel,
   
   while(i--)
     {
-    tmp = SRC(0,i) * factor1 + SRC(1,i) * factor2 + SRC(1,i) * factor3 +
-      SRC(3,i) * factor4 + SRC(4,i) * factor5;
+    tmp =
+      SRC(0,i) * factor1 +
+      SRC(1,i) * factor2 +
+      SRC(1,i) * factor3 +
+      SRC(3,i) * factor4 +
+      SRC(4,i) * factor5;
     ADJUST_TMP(tmp);
     SETDST(i, tmp);
     }
@@ -126,8 +130,13 @@ static void RENAME(mix_6_to_1)(gavl_mix_output_channel_t * channel,
   
   while(i--)
     {
-    tmp = SRC(0,i) * factor1 + SRC(1,i) * factor2 + SRC(2,i) * factor3 +
-      SRC(3,i) * factor4 + SRC(4,i) * factor5 + SRC(5,i) * factor6;
+    tmp =
+      SRC(0,i) * factor1 +
+      SRC(1,i) * factor2 +
+      SRC(2,i) * factor3 +
+      SRC(3,i) * factor4 +
+      SRC(4,i) * factor5 +
+      SRC(5,i) * factor6;
     ADJUST_TMP(tmp);
 
     SETDST(i, tmp);

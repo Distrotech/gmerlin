@@ -15,6 +15,7 @@ Source0:	%{name}-%{version}.tar.gz
 URL:		http://gmerlin.sourceforge.net/
 BuildRequires:	autoconf
 BuildRequires:	automake
+BuildRequires:	libtool
 BuildRequires:	libpng-devel >= 1.0.8
 BuildRequires:	libsamplerate-devel >= @SAMPLERATE_REQUIRED@
 BuildRoot:	/tmp/gavl
@@ -70,7 +71,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(644,root,root,755)
 %doc README.gz
-%attr(755,root,root) %{_libdir}/lib*.so.*.*
+%attr(755,root,root) %{_libdir}/lib*.so.*
 
 %files devel
 %defattr(644,root,root)
@@ -86,6 +87,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %define date	%(echo `LC_ALL="C" date +"%a %b %d %Y"`)
 %changelog
+* Sat Apr 01 2006 Burkhard Plaum <gmerlin@users.sourceforge.net>
+- Fixes reported by various people
 * Sat May 29 2004 Burkhard Plaum <gmerlin@users.sourceforge.net>
 - Update
 * Sat Mar 05 2003 Burkhard Plaum <gmerlin@users.sourceforge.net>
