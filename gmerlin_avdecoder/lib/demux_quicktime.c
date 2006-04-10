@@ -50,6 +50,7 @@ typedef struct
 
 typedef struct
   {
+  uint32_t ftyp_fourcc;
   qt_moov_t moov;
 
   stream_priv_t * streams;
@@ -489,6 +490,9 @@ static void set_metadata(bgav_demuxer_context_t * ctx)
   SET_UDTA_STRING(comment,   cmt);
   SET_UDTA_STRING(comment,   inf);
   SET_UDTA_STRING(author,    aut);
+
+  if(!ctx->tt->current_track->metadata.track && moov->udta.trkn)
+    ctx->tt->current_track->metadata.track = moov->udta.trkn;
   
   bgav_charset_converter_destroy(cnv);
   }
@@ -867,16 +871,23 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
         if(!bgav_qt_moov_read(&h, ctx->input, &(priv->moov)))
           return 0;
         have_moov = 1;
+        bgav_qt_atom_skip(ctx->input, &h);
         break;
       case BGAV_MK_FOURCC('f','r','e','e'):
       case BGAV_MK_FOURCC('w','i','d','e'):
+        bgav_qt_atom_skip(ctx->input, &h);
+        break;
+      case BGAV_MK_FOURCC('f','t','y','p'):
+        //        fprintf(stderr, "Got ftyp atom\n");
+        if(!bgav_input_read_fourcc(ctx->input, &priv->ftyp_fourcc))
+          return 0;
         bgav_qt_atom_skip(ctx->input, &h);
         break;
       default:
         bgav_qt_atom_skip(ctx->input, &h);
         fprintf(stderr, "Skipping unknown atom\n");
         bgav_qt_atom_dump_header(&h);
-        //        fprintf(stderr, "New position: %lld\n", ctx->input->position);
+        fprintf(stderr, "New position: %lld\n", ctx->input->position);
       }
 
     if(ctx->input->input->seek_byte)
@@ -908,9 +919,28 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
                     ctx->si->entries[0].offset -
                     priv->mdats[priv->current_mdat].start);
   //  fprintf(stderr, "Start offset: %lld\n", ctx->input->position);
+
+  switch(priv->ftyp_fourcc)
+    {
+    case BGAV_MK_FOURCC('M','4','A',' '):
+      ctx->stream_description = bgav_sprintf("MPEG-4 audio (m4a)");
+      break;
+    case BGAV_MK_FOURCC('m','p','4','1'):
+    case BGAV_MK_FOURCC('m','p','4','2'):
+    case BGAV_MK_FOURCC('i','s','o','m'):
+      ctx->stream_description = bgav_sprintf("MPEG-4 video (mp4)");
+      break;
+    case 0:
+    case BGAV_MK_FOURCC('q','t',' ',' '):
+      ctx->stream_description = bgav_sprintf("Quicktime");
+      break;
+    default:
+      ctx->stream_description = bgav_sprintf("Quicktime/mp4/m4a format");
+      break;
+    
+    }
   
   
-  ctx->stream_description = bgav_sprintf("Quicktime/mp4/m4a format");
 
   if(ctx->input->input->seek_byte)
     ctx->can_seek = 1;

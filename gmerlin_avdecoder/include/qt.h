@@ -689,6 +689,9 @@ typedef struct
   char * swr; /* Software        */
   char * wrn; /* Warning         */
   char * url; /* URL link        */
+
+  uint16_t trkn;
+
   } qt_udta_t;
 
 int bgav_qt_udta_read(qt_atom_header_t * h, bgav_input_context_t * ctx,

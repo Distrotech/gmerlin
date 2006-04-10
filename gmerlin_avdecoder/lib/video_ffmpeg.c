@@ -449,18 +449,17 @@ typedef struct
   enum PixelFormat dst_format;
 
   uint32_t rv_extradata[2+FF_INPUT_BUFFER_PADDING_SIZE/4];
-  int has_b_frames;
-  int last_frame_sent;
   AVPaletteControl palette;
 
   int need_first_frame;
   int have_first_frame;
 
-  int have_last_frame;
-  int eof;
-
   uint8_t * extradata;
   int extradata_size;
+
+  int64_t old_pts[FF_MAX_B_FRAMES+1];
+  int num_old_pts;
+  int delay;
   
   } ffmpeg_video_priv;
 
@@ -475,7 +474,6 @@ static codec_info_t * lookup_codec(bgav_stream_t * s)
   return (codec_info_t *)0;
   }
 
-
 /* This MUST match demux_rm.c!! */
 
 typedef struct dp_hdr_s {
@@ -489,7 +487,7 @@ typedef struct dp_hdr_s {
 
 static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   {
-  int i, num_tries = 0;
+  int i;
   int got_picture = 0;
   int bytes_used;
   int len;
@@ -503,8 +501,6 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
 #endif  
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
   
-  if(priv->eof)
-    return 0;
   
   //  fprintf(stderr, "Decode Video 1: %d\n", priv->bytes_in_packet_buffer);
   
@@ -525,13 +521,14 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         {
         priv->packet_buffer_ptr = (uint8_t*)0;
         //        fprintf(stderr, "EOF %d\n", priv->has_b_frames);
-        if(priv->has_b_frames)
-          priv->have_last_frame = 1;
         break;
         }
       if(!p->data_size)
         s->position++;
-    
+
+      priv->old_pts[priv->num_old_pts] = p->timestamp_scaled;
+      priv->num_old_pts++;
+      
       if(p->data_size + FF_INPUT_BUFFER_PADDING_SIZE > priv->packet_buffer_alloc)
         {
         priv->packet_buffer_alloc = p->data_size + FF_INPUT_BUFFER_PADDING_SIZE + 32;
@@ -547,11 +544,10 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       }
     len = priv->bytes_in_packet_buffer;
 
-    /* If we are out of data and the codec has no B-Frames, we are done */
-
     //    fprintf(stderr, "%d %p\n", priv->have_last_frame, priv->packet_buffer_ptr);
     
-    if(!priv->have_last_frame && !priv->packet_buffer_ptr)
+    /* If we are out of data and the codec has no B-Frames, we are done */
+    if(!priv->delay && !priv->packet_buffer_ptr)
       return 0;
 
     /* Other Real Video oddities */
@@ -619,9 +615,22 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     //    fprintf(stderr, "Image size: %d %d\n", priv->ctx->width, priv->ctx->height);
 
 #if 0
-    fprintf(stderr, "Used %d/%d bytes, got picture: %d\n",
-            bytes_used, len, got_picture);
+    fprintf(stderr, "Used %d/%d bytes, got picture: %d, delay: %d, old_pts: %d\n",
+            bytes_used, len, got_picture, priv->delay, priv->num_old_pts);
 #endif
+
+    if(!got_picture)
+      {
+      /* Decoding delay */
+      if(priv->delay == FF_MAX_B_FRAMES)
+        {
+        fprintf(stderr, "Decoding delay too large\n");
+        return 0;
+        }
+      priv->old_pts[priv->delay] = p->timestamp_scaled;
+      priv->delay++;
+      }
+    
 #if 0
     if(!got_picture)
       {
@@ -651,15 +660,10 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         }
       }
 
-    num_tries++;
-    if(num_tries > 2)
-      break;
     }
 
   if(got_picture)
     {
-    if(priv->frame->pict_type == FF_B_TYPE)
-      priv->has_b_frames = 1;
 
     if(priv->need_first_frame)
       {
@@ -764,10 +768,24 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         //          fprintf(stderr, "img_convert\n");
         }
       }
-    //      fprintf(stderr, "Decode %p %d\n", priv->packet_buffer_ptr, priv->have_last_frame);
-    if(!priv->packet_buffer_ptr )
+
+    /* Set correct stream timestams */
+    if(priv->delay)
       {
-      priv->eof = 1; /* Return 0 the next time */
+      s->time_scaled = priv->old_pts[0];
+      s->data.video.last_frame_time = priv->old_pts[0];
+      if(priv->num_old_pts > 1)
+        s->data.video.last_frame_duration = priv->old_pts[1] - priv->old_pts[0];
+      }
+
+    priv->num_old_pts--;
+    if(priv->num_old_pts)
+      memmove(&(priv->old_pts[0]), &(priv->old_pts[1]), sizeof(int64_t) * priv->num_old_pts);
+    
+    //      fprintf(stderr, "Decode %p %d\n", priv->packet_buffer_ptr, priv->have_last_frame);
+    if(!priv->packet_buffer_ptr)
+      {
+      priv->delay--;
       }
     }
   else /* !got_picture */
