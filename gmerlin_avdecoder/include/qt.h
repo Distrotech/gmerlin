@@ -616,10 +616,10 @@ typedef struct
   qt_atom_header_t h;
   int version;
   uint32_t flags;
-  uint32_t creation_time;
-  uint32_t modification_time;
+  uint64_t creation_time;
+  uint64_t modification_time;
   uint32_t time_scale;
-  uint32_t duration;
+  uint64_t duration;
   float preferred_rate;
   float preferred_volume;
   uint8_t reserved[10];
