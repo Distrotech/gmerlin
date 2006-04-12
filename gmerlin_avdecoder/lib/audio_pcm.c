@@ -883,11 +883,16 @@ static int init_pcm(bgav_stream_t * s)
       break;
     case BGAV_MK_FOURCC('f', 'l', '6', '4'):
       if(s->data.audio.endianess == BGAV_ENDIANESS_LITTLE)
+        {
         priv->decode_func = decode_float_64_le;
+        s->description = bgav_sprintf("Float 64 bit little endian");
+        }
       else
+        {
         priv->decode_func = decode_float_64_be;
+        s->description = bgav_sprintf("Float 64 bit big endian");
+        }
       s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
-      s->description = bgav_sprintf("Float 64 bit big endian");
       priv->block_align = s->data.audio.format.num_channels * 8;
       break;
     case BGAV_MK_FOURCC('u', 'l', 'a', 'w'):
