@@ -62,9 +62,17 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
                                      codec_info[i]->name);
     info->multi_labels[i] = bg_strdup((char*)0,
                                          codec_info[i]->long_name);
-    info->multi_descriptions[i] = bg_strdup((char*)0,
-                                           codec_info[i]->description);
-
+    info->multi_descriptions[i] = bg_sprintf("%s Use for", codec_info[i]->description);
+    
+    if(codec_info[i]->compatibility_flags & (LQT_FILE_QT | LQT_FILE_QT_OLD))
+      info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " QT");
+    if(codec_info[i]->compatibility_flags & ( LQT_FILE_MP4))
+      info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " MP4");
+    if(codec_info[i]->compatibility_flags & ( LQT_FILE_M4A))
+      info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " M4A");
+    if(codec_info[i]->compatibility_flags & ( LQT_FILE_AVI))
+      info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " AVI");
+    
     num_parameters = (encode) ? codec_info[i]->num_encoding_parameters :
       codec_info[i]->num_decoding_parameters;
 

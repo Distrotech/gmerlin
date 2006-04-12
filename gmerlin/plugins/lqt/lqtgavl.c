@@ -189,8 +189,8 @@ channel_gavl_2_lqt(gavl_channel_id_t ch)
   }
 
 void lqt_gavl_add_audio_track(quicktime_t * file,
-                               gavl_audio_format_t * format,
-                               lqt_codec_info_t * codec)
+                              const gavl_audio_format_t * format,
+                              lqt_codec_info_t * codec)
   {
   int i;
   const lqt_channel_t * chans_1;
@@ -200,39 +200,25 @@ void lqt_gavl_add_audio_track(quicktime_t * file,
   
   lqt_add_audio_track(file, format->num_channels, format->samplerate,
                       16, codec);
-
-  format->sample_format =
-    sampleformat_lqt_2_gavl(lqt_get_sample_format(file, track));
-  format->interleave_mode = GAVL_INTERLEAVE_ALL;
-
+  
   /* Negotiate the channel setup */
 
   /* 1st try: The codec already knows (we cannot change that) */
   chans_1 = lqt_get_channel_setup(file, track);
-  if(chans_1)
+  if(!chans_1)
     {
-    for(i = 0; i < format->num_channels; i++)
-      format->channel_locations[i] = channel_lqt_2_gavl(chans_1[i]);
-    }
-  else
-    {
-    /* Set our channel setup */
+    /* 2nd try: Set our channel setup */
     chans_2 = calloc(format->num_channels, sizeof(*chans_2));
     for(i = 0; i < format->num_channels; i++)
       chans_2[i] = channel_gavl_2_lqt(format->channel_locations[i]);
     lqt_set_channel_setup(file, track, chans_2);
     free(chans_2);
-
-    /* Copy reordered setup back */
-    chans_1 = lqt_get_channel_setup(file, track);
-    for(i = 0; i < format->num_channels; i++)
-      format->channel_locations[i] = channel_lqt_2_gavl(chans_1[i]);
     }
   }
 
 void lqt_gavl_add_video_track(quicktime_t * file,
-                               gavl_video_format_t * format,
-                               lqt_codec_info_t * codec)
+                              const gavl_video_format_t * format,
+                              lqt_codec_info_t * codec)
   {
   int track = quicktime_video_tracks(file);
   //  fprintf(stderr, "lqt_gavl_add_video_track: track: %d\n", track);
@@ -245,7 +231,6 @@ void lqt_gavl_add_video_track(quicktime_t * file,
   //  fprintf(stderr, "lqt_gavl_add_video_track: %d %d %s\n", track, lqt_get_cmodel(file, track),
   // lqt_colormodel_to_string(lqt_get_cmodel(file, track)));
   
-  format->pixelformat = pixelformat_lqt_2_gavl(lqt_get_cmodel(file, track));
   }
 
 
@@ -306,9 +291,10 @@ int lqt_gavl_get_audio_format(quicktime_t * file,
     for(i = 0; i < format->num_channels; i++)
       {
       format->channel_locations[i] = channel_lqt_2_gavl(channel_setup[i]);
-      fprintf(stderr, "Got channel %s -> %s\n",
-              lqt_channel_to_string(channel_setup[i]),
-              gavl_channel_id_to_string(format->channel_locations[i]));
+      
+      //      fprintf(stderr, "Got channel %s -> %s\n",
+      //              lqt_channel_to_string(channel_setup[i]),
+      //              gavl_channel_id_to_string(format->channel_locations[i]));
       }
     }
   else

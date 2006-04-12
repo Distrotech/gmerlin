@@ -24,11 +24,6 @@
 #include "lqt_common.h"
 #include "lqtgavl.h"
 
-/* Format definitions */
-
-#define FORMAT_QUICKTIME            0
-#define FORMAT_QUICKTIME_STREAMABLE 1
-#define FORMAT_AVI                  2
 
 static bg_parameter_info_t stream_parameters[] = 
   {
@@ -51,8 +46,9 @@ typedef struct
   bg_parameter_info_t * audio_parameters;
   bg_parameter_info_t * video_parameters;
   
-  int format; /* See defines above */
-
+  lqt_file_type_t file_type;
+  int make_streamable;
+  
   int num_video_streams;
   int num_audio_streams;
     
@@ -84,17 +80,30 @@ static const char * get_error_lqt(void * priv)
   return lqt->error_msg;
   }
 
-static const char * extension_qt  = ".mov";
-static const char * extension_avi = ".avi";
+static struct
+  {
+  int type_mask;
+  char * extension;
+  }
+extensions[] =
+  {
+    { LQT_FILE_QT | LQT_FILE_QT_OLD, ".mov" },
+    { LQT_FILE_AVI, ".avi" },
+    { LQT_FILE_MP4, ".mp4" },
+    { LQT_FILE_M4A, ".m4a" },
+  };
 
 static const char * get_extension_lqt(void * data)
   {
+  int i;
   e_lqt_t * e = (e_lqt_t*)data;
 
-  if(e->format == FORMAT_AVI)
-    return extension_avi;
-  else
-    return extension_qt;
+  for(i = 0; i < sizeof(extensions)/sizeof(extensions[0]); i++)
+    {
+    if(extensions[i].type_mask & e->file_type)
+      return extensions[i].extension;
+    }
+  return extensions[0].extension; /* ".mov" */
   }
 
 static int open_lqt(void * data, const char * filename,
@@ -103,12 +112,12 @@ static int open_lqt(void * data, const char * filename,
   char * track_string;
   e_lqt_t * e = (e_lqt_t*)data;
   
-  if(e->format == FORMAT_QUICKTIME_STREAMABLE)
+  if(e->make_streamable && (e->file_type != LQT_FILE_AVI))
     e->filename = bg_sprintf("%s.tmp", filename);
   else
     e->filename = bg_strdup(e->filename, filename);
 
-  e->file = quicktime_open(e->filename, 0, 1);
+  e->file = lqt_open_write(e->filename, e->file_type);
 
   if(!e->file)
     {
@@ -171,7 +180,7 @@ static void add_video_stream_lqt(void * data, gavl_video_format_t* format)
                          format);
 
   /* AVIs are made with constant framerates only */
-  if(e->format == FORMAT_AVI)
+  if(e->file_type == LQT_FILE_AVI)
     e->video_streams[e->num_video_streams].format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
   
   e->num_video_streams++;
@@ -195,9 +204,23 @@ static void get_video_format_lqt(void * data, int stream, gavl_video_format_t * 
 
 static int start_lqt(void * data)
   {
+  int i;
   e_lqt_t * e = (e_lqt_t*)data;
+
+  for(i = 0; i < e->num_audio_streams; i++)
+    {
+    lqt_gavl_get_audio_format(e->file,
+                              i,
+                              &(e->audio_streams[i].format));
+    }
+  for(i = 0; i < e->num_video_streams; i++)
+    {
+    lqt_gavl_get_video_format(e->file,
+                              i,
+                              &(e->video_streams[i].format));
+    }
   
-  if(e->format == FORMAT_AVI)
+  if(e->file_type == LQT_FILE_AVI)
     {
     quicktime_set_avi(e->file, 1);
     }
@@ -239,7 +262,7 @@ static void close_lqt(void * data, int do_delete)
   if(do_delete)
     remove(e->filename);
 
-  else if(e->format == FORMAT_QUICKTIME_STREAMABLE)
+  else if(e->make_streamable && (e->file_type != LQT_FILE_AVI))
     {
     filename_final = bg_strdup((char*)0, e->filename);
     pos = strrchr(filename_final, '.');
@@ -321,9 +344,15 @@ static bg_parameter_info_t common_parameters[] =
       name:      "format",
       long_name: "Format",
       type:      BG_PARAMETER_STRINGLIST,
-      multi_names:    (char*[]) { "quicktime", "quicktime_s", "avi", (char*)0 },
-      multi_labels:   (char*[]) { "Quicktime", "Quicktime (streamable)", "AVI", (char*)0 },
+      multi_names:    (char*[]) { "quicktime", "avi", "mp4", "m4a", (char*)0 },
+      multi_labels:   (char*[]) { "Quicktime", "AVI", "MP4", "M4A", (char*)0 },
       val_default: { val_str: "quicktime" },
+    },
+    {
+      name:      "make_streamable",
+      long_name: "Make streamable",
+      type:      BG_PARAMETER_CHECKBUTTON,
+      help_string: "Make the file streamable afterwards (uses twice the diskspace)",
     },
     { /* End of parameters */ }
   };
@@ -343,12 +372,16 @@ static void set_parameter_lqt(void * data, char * name,
   else if(!strcmp(name, "format"))
     {
     if(!strcmp(val->val_str, "quicktime"))
-      e->format = FORMAT_QUICKTIME;
-    else if(!strcmp(val->val_str, "quicktime_s"))
-      e->format = FORMAT_QUICKTIME_STREAMABLE;
+      e->file_type = LQT_FILE_QT;
     else if(!strcmp(val->val_str, "avi"))
-      e->format = FORMAT_AVI;
+      e->file_type = LQT_FILE_AVI;
+    else if(!strcmp(val->val_str, "mp4"))
+      e->file_type = LQT_FILE_MP4;
+    else if(!strcmp(val->val_str, "m4a"))
+      e->file_type = LQT_FILE_M4A;
     }
+  else if(!strcmp(name, "make_streamable"))
+    e->make_streamable = val->val_i;
   
   }
 
@@ -420,7 +453,7 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
     e->video_streams[stream].codec_info =
       lqt_find_video_codec_by_name(val->val_str);
     
-    if(e->format == FORMAT_AVI)
+    if(e->file_type == LQT_FILE_AVI)
       {
       //      e->video_streams[stream].format.image_width *=
       //        e->video_streams[stream].format.pixel_width;
@@ -440,7 +473,7 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
     
     /* Request constant framerate for AVI files */
 
-    if(e->format == FORMAT_AVI)
+    if(e->file_type == LQT_FILE_AVI)
       e->video_streams[stream].format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
     
     e->video_streams[stream].rows = lqt_gavl_rows_create(e->file, stream);

@@ -155,8 +155,6 @@ static int open_lqt(void * data, const char * arg)
                     codec_info[0]->long_name);
         lqt_destroy_codec_info(codec_info);
 
-        lqt_gavl_get_audio_format(e->file, i,
-                                  &e->track_info.audio_streams[e->track_info.num_audio_streams].format);
         e->track_info.num_audio_streams++;
         }
       }
@@ -181,8 +179,6 @@ static int open_lqt(void * data, const char * arg)
                     codec_info[0]->long_name);
         lqt_destroy_codec_info(codec_info);
 
-        lqt_gavl_get_video_format(e->file, i,
-                                  &e->track_info.video_streams[e->track_info.num_video_streams].format);
                 
         e->video_streams[e->track_info.num_video_streams].rows = lqt_gavl_rows_create(e->file, i);
         
@@ -220,11 +216,11 @@ static
 int read_audio_samples_lqt(void * data, gavl_audio_frame_t * f, int stream,
                           int num_samples)
   {
-  int samples_read;
   i_lqt_t * e = (i_lqt_t*)data;
 
-  samples_read = lqt_gavl_decode_audio(e->file, e->audio_streams[stream].quicktime_index,
-                                       f, num_samples);
+  lqt_gavl_decode_audio(e->file, e->audio_streams[stream].quicktime_index,
+                        f, num_samples);
+  //  fprintf(stderr, "read %d samples\n", f->valid_samples);
   return f->valid_samples;
   }
 
@@ -340,6 +336,27 @@ static void set_parameter_lqt(void * data, char * name,
   
   }
 
+static int start_lqt(void * data)
+  {
+  int i;
+  i_lqt_t * e = (i_lqt_t*)data;
+
+  for(i = 0; i < e->track_info.num_audio_streams; i++)
+    {
+    lqt_gavl_get_audio_format(e->file,
+                              e->audio_streams[i].quicktime_index,
+                              &(e->track_info.audio_streams[i].format));
+    }
+  for(i = 0; i < e->track_info.num_video_streams; i++)
+    {
+    lqt_gavl_get_video_format(e->file,
+                              e->video_streams[i].quicktime_index,
+                              &(e->track_info.video_streams[i].format));
+    }
+  return 1;
+  }
+
+
 bg_input_plugin_t the_plugin =
   {
     common:
@@ -362,7 +379,7 @@ bg_input_plugin_t the_plugin =
     get_track_info:    get_track_info_lqt,
     //    set_audio_stream:  set_audio_stream_lqt,
     //    set_video_stream:  set_audio_stream_lqt,
-    //    start:             start_lqt,
+    start:             start_lqt,
 
     read_audio_samples: read_audio_samples_lqt,
     read_video_frame:   read_video_frame_lqt,
