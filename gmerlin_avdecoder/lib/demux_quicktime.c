@@ -574,6 +574,12 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         bgav_hexdump(bg_as->ext_data, bg_as->ext_size, 16);
 #endif   
         }
+      else if(bg_as->fourcc == BGAV_MK_FOURCC('l', 'p', 'c', 'm'))
+        {
+        /* Quicktime 7 lpcm: extradata contains formatSpecificFlags in native byte order */
+        bg_as->ext_data = (uint8_t*)(&(desc->format.audio.formatSpecificFlags));
+        bg_as->ext_size = sizeof(desc->format.audio.formatSpecificFlags);
+        }
       else if(desc->format.audio.has_wave)
         {
         if((desc->format.audio.wave.has_esds) &&
@@ -607,7 +613,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
               break;
             }
           }
-
+        
         if(!bg_as->ext_size)
           {
           /* Raw wave atom needed by win32 decoders (QDM2) */
@@ -636,6 +642,11 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       else
         bg_as->data.audio.endianess = BGAV_ENDIANESS_BIG;
       
+
+      fprintf(stderr, "%d bytes extradata, fourcc: ", bg_as->ext_size);
+      bgav_dump_fourcc(bg_as->fourcc);
+      bgav_hexdump(bg_as->ext_data, bg_as->ext_size, 16);
+      fprintf(stderr, "\n");
       }
     /* Video stream */
     else if(moov->tracks[i].mdia.minf.has_vmhd)

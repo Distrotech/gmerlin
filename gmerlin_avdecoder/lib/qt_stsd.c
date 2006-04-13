@@ -118,6 +118,8 @@ static int stsd_read_common(bgav_input_context_t * input,
 
 /* Convert Version 2 of the SampleDescription to Version 0 */
 
+#if 0
+
 /* SampleDescription V2 definitions */
 #define kAudioFormatFlagIsFloat          (1L<<0) 
 #define kAudioFormatFlagIsBigEndian      (1L<<1) 
@@ -179,6 +181,7 @@ static void import_sampledescription_v2(qt_sample_description_t *table)
       }
     }
   }
+#endif
 
 
 static int stsd_read_audio(bgav_input_context_t * input,
@@ -304,10 +307,10 @@ static int stsd_read_audio(bgav_input_context_t * input,
         break;
       }
     }
-
+#if 0
   if(ret->version == 2)
     import_sampledescription_v2(ret);
-  
+#endif
   //  stsd_dump_audio(ret);
   return 1;
   }

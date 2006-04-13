@@ -115,8 +115,6 @@ static void decode_s_16_swap(bgav_stream_t * s)
   priv->packet_ptr += num_bytes;
   priv->bytes_in_packet -= num_bytes;
   priv->frame->valid_samples = num_samples;
-  
-  
   }
 
 static void decode_s_24_le(bgav_stream_t * s)
@@ -244,6 +242,18 @@ static void decode_s_32_swap(bgav_stream_t * s)
   priv->frame->valid_samples = num_samples;
   
   }
+
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+#define decode_s_16_le decode_s_16
+#define decode_s_16_be decode_s_16_swap
+#define decode_s_32_le decode_s_32
+#define decode_s_32_be decode_s_32_swap
+#else
+#define decode_s_16_le decode_s_16_swap
+#define decode_s_16_be decode_s_16
+#define decode_s_32_le decode_s_32_swap
+#define decode_s_32_be decode_s_32
+#endif
 
 /* Big/Little endian floating point routines taken from libsndfile */
 
@@ -661,6 +671,10 @@ static int get_packet(bgav_stream_t * s)
 static int init_pcm(bgav_stream_t * s)
   {
   pcm_t * priv;
+
+  /* Quicktime 7 lpcm: extradata contains formatSpecificFlags in native byte order */
+  uint32_t formatSpecificFlags;
+  
   priv = calloc(1, sizeof(*priv));
   s->data.audio.decoder->priv = priv;
 
@@ -911,6 +925,108 @@ static int init_pcm(bgav_stream_t * s)
       s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
       priv->block_align = s->data.audio.format.num_channels;
       break;
+    case BGAV_MK_FOURCC('l', 'p', 'c', 'm'):
+      /* Quicktime 7 lpcm: extradata contains formatSpecificFlags in native byte order */
+      if(s->ext_size < sizeof(formatSpecificFlags))
+        {
+        fprintf(stderr, "extradata too small (%d < %d)\n", s->ext_size,
+                sizeof(formatSpecificFlags));
+        bgav_stream_dump(s);
+        return 0;
+        }
+      formatSpecificFlags = *((uint32_t*)(s->ext_data));
+      /* SampleDescription V2 definitions */
+#define kAudioFormatFlagIsFloat          (1L<<0) 
+#define kAudioFormatFlagIsBigEndian      (1L<<1) 
+#define kAudioFormatFlagIsSignedInteger  (1L<<2) 
+#define kAudioFormatFlagIsPacked         (1L<<3) 
+#define kAudioFormatFlagIsAlignedHigh    (1L<<4) 
+#define kAudioFormatFlagIsNonInterleaved (1L<<5) 
+#define kAudioFormatFlagIsNonMixable     (1L<<6) 
+#define kAudioFormatFlagsAreAllClear     (1L<<31)  
+
+      if(formatSpecificFlags & kAudioFormatFlagIsFloat)
+        {
+        switch(s->data.audio.bits_per_sample)
+          {
+          case 32:
+            if(!(formatSpecificFlags & kAudioFormatFlagIsBigEndian))
+              priv->decode_func = decode_float_32_le;
+            else
+              priv->decode_func = decode_float_32_be;
+            s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+            s->description =
+              bgav_sprintf("Float 32 bit %s endian",
+                           (!(formatSpecificFlags & kAudioFormatFlagIsBigEndian) ? "little" : "big" ));
+            priv->block_align = s->data.audio.format.num_channels * 4;
+
+            break;
+          case 64:
+            if(!(formatSpecificFlags & kAudioFormatFlagIsBigEndian))
+              priv->decode_func = decode_float_64_le;
+            else
+              priv->decode_func = decode_float_64_be;
+            s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
+            s->description =
+              bgav_sprintf("Float 64 bit %s endian",
+                           (!(formatSpecificFlags & kAudioFormatFlagIsBigEndian) ? "little" : "big" ));
+            priv->block_align = s->data.audio.format.num_channels * 8;
+            
+            break;
+          }
+        }
+      else
+        {
+        switch(s->data.audio.bits_per_sample)
+          {
+          case 16:
+            if(formatSpecificFlags & kAudioFormatFlagIsBigEndian)
+              {
+              priv->decode_func = decode_s_16_be;
+              }
+            else
+              {
+              priv->decode_func = decode_s_16_le;
+              }
+            priv->block_align = s->data.audio.format.num_channels * 2;
+            s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
+            s->description =
+              bgav_sprintf("16 bit PCM %s endian",
+                           (!(formatSpecificFlags & kAudioFormatFlagIsBigEndian) ? "little" : "big" ));
+            break;
+          case 24:
+            if(formatSpecificFlags & kAudioFormatFlagIsBigEndian)
+              {
+              priv->decode_func = decode_s_24_be;
+              }
+            else
+              {
+              priv->decode_func = decode_s_24_le;
+              }
+            priv->block_align = s->data.audio.format.num_channels * 3;
+            s->data.audio.format.sample_format = GAVL_SAMPLE_S32;
+            s->description =
+              bgav_sprintf("24 bit PCM %s endian",
+                           (!(formatSpecificFlags & kAudioFormatFlagIsBigEndian) ? "little" : "big" ));
+            break;
+          case 32:
+            if(formatSpecificFlags & kAudioFormatFlagIsBigEndian)
+              {
+              priv->decode_func = decode_s_32_be;
+              }
+            else
+              {
+              priv->decode_func = decode_s_32_le;
+              }
+            priv->block_align = s->data.audio.format.num_channels * 4;
+            s->data.audio.format.sample_format = GAVL_SAMPLE_S32;
+            s->description =
+              bgav_sprintf("32 bit PCM %s endian",
+                           (!(formatSpecificFlags & kAudioFormatFlagIsBigEndian) ? "little" : "big" ));
+            break;
+          }
+        }
+      break;
     default:
       fprintf(stderr, "Unknown fourcc\n");
       return 0;
@@ -982,7 +1098,8 @@ static void close_pcm(bgav_stream_t * s)
   pcm_t * priv;
   priv = (pcm_t*)(s->data.audio.decoder->priv);
 
-  gavl_audio_frame_destroy(priv->frame);
+  if(priv->frame)
+    gavl_audio_frame_destroy(priv->frame);
   free(priv);
   }
 
