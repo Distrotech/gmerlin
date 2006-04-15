@@ -86,14 +86,43 @@ struct transcoder_window_s
   /* Load/Save stuff */
   
   char * task_path;
-  char * task_file;
-    
-  GtkWidget * task_filesel;
-
+  char * profile_path;
+  
+  GtkWidget * filesel;
+  char * filesel_file;
+  char * filesel_path;
+  
+  
   GtkTooltips * tooltips;
 
   bg_remote_server_t * remote;
   
+  GtkWidget * menubar;
+
+  struct
+    {
+    GtkWidget * load_item;
+    GtkWidget * save_item;
+    GtkWidget * quit_item;
+    GtkWidget * menu;
+    } file_menu;
+
+  struct
+    {
+    GtkWidget * config_item;
+    GtkWidget * plugin_item;
+    GtkWidget * load_item;
+    GtkWidget * save_item;
+    GtkWidget * menu;
+    } options_menu;
+
+  struct
+    {
+    GtkWidget * run_item;
+    GtkWidget * stop_item;
+    GtkWidget * menu;
+    } actions_menu;
+    
   };
 
 
@@ -138,6 +167,13 @@ static bg_parameter_info_t transcoder_window_parameters[] =
       val_default: { val_str: "." },
     },
     {
+      name:        "profile_path",
+      long_name:   "Profile path",
+      type:        BG_PARAMETER_DIRECTORY,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_str: "." },
+    },
+    {
       name:        "gui",
       long_name:   "GUI",
       type:        BG_PARAMETER_SECTION,
@@ -167,6 +203,10 @@ set_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t *
   if(!strcmp(name, "task_path"))
     {
     win->task_path = bg_strdup(win->task_path, val->val_str);
+    }
+  else if(!strcmp(name, "profile_path"))
+    {
+    win->profile_path = bg_strdup(win->profile_path, val->val_str);
     }
   else if(!strcmp(name, "display_foreground"))
     {
@@ -207,6 +247,11 @@ get_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t *
   if(!strcmp(name, "task_path"))
     {
     val->val_str = bg_strdup(val->val_str, win->task_path);
+    return 1;
+    }
+  else if(!strcmp(name, "profile_path"))
+    {
+    val->val_str = bg_strdup(val->val_str, win->profile_path);
     return 1;
     }
   return 0;
@@ -263,8 +308,13 @@ static gboolean idle_callback(gpointer data)
     if(!start_transcode(win))
       {
       gtk_widget_set_sensitive(win->run_button, 1);
+      gtk_widget_set_sensitive(win->actions_menu.run_item, 1);
+      
       gtk_widget_set_sensitive(win->stop_button, 0);
+      gtk_widget_set_sensitive(win->actions_menu.stop_item, 0);
 
+      
+      
       return FALSE;
       }
     else
@@ -338,51 +388,52 @@ static int start_transcode(transcoder_window_t * win)
   free(name);
     
   gtk_widget_set_sensitive(win->run_button, 0);
+  gtk_widget_set_sensitive(win->actions_menu.run_item, 0);
+
   gtk_widget_set_sensitive(win->stop_button, 1);
+  gtk_widget_set_sensitive(win->actions_menu.stop_item, 1);
   
   return 1;
   }
 
-static void task_filesel_button_callback(GtkWidget * w, gpointer * data)
+static void filesel_button_callback(GtkWidget * w, gpointer * data)
   {
   const char * end_pos;
 
   GtkFileSelection * filesel;
   transcoder_window_t * win = (transcoder_window_t *)data;
   
-  filesel = GTK_FILE_SELECTION(win->task_filesel);
+  filesel = GTK_FILE_SELECTION(win->filesel);
 
   if(w == filesel->ok_button)
     {
-    win->task_file = bg_strdup((char*)0,
+    win->filesel_file = bg_strdup((char*)0,
                                    gtk_file_selection_get_filename(filesel));
-    gtk_widget_hide(win->task_filesel);
+    gtk_widget_hide(win->filesel);
 
-    end_pos = strrchr(win->task_file, '/');
+    end_pos = strrchr(win->filesel_file, '/');
     if(end_pos)
       {
       end_pos++;
-      win->task_path = bg_strndup(win->task_path, win->task_file, end_pos);
+      win->filesel_path = bg_strndup(win->filesel_path, win->filesel_file, end_pos);
       }
     gtk_main_quit();
     }
-  else if((w == win->task_filesel) || (w == filesel->cancel_button))
+  else if((w == win->filesel) || (w == filesel->cancel_button))
     {
-    gtk_widget_hide(win->task_filesel);
+    gtk_widget_hide(win->filesel);
     gtk_main_quit();
     }
   }
 
-static gboolean task_filesel_delete_callback(GtkWidget * w, GdkEventAny * event,
+static gboolean filesel_delete_callback(GtkWidget * w, GdkEventAny * event,
                                          gpointer * data)
   {
-  task_filesel_button_callback(w, data);
+  filesel_button_callback(w, data);
   return TRUE;
   }
 
-
-
-static GtkWidget * create_task_filesel(transcoder_window_t * win)
+static GtkWidget * create_filesel(transcoder_window_t * win)
   {
   GtkWidget * ret;
 
@@ -391,29 +442,33 @@ static GtkWidget * create_task_filesel(transcoder_window_t * win)
   gtk_window_set_modal(GTK_WINDOW(ret), 1);
   
   g_signal_connect(G_OBJECT(ret), "delete-event",
-                   G_CALLBACK(task_filesel_delete_callback), win);
+                   G_CALLBACK(filesel_delete_callback), win);
   g_signal_connect(G_OBJECT(GTK_FILE_SELECTION(ret)->ok_button),
-                   "clicked", G_CALLBACK(task_filesel_button_callback), win);
+                   "clicked", G_CALLBACK(filesel_button_callback), win);
   g_signal_connect(G_OBJECT(GTK_FILE_SELECTION(ret)->cancel_button),
-                   "clicked", G_CALLBACK(task_filesel_button_callback), win);
-
-  if(win->task_path)
-    gtk_file_selection_set_filename(GTK_FILE_SELECTION(ret), win->task_path);
+                   "clicked", G_CALLBACK(filesel_button_callback), win);
   
   return ret;
   }  
 
+static void filesel_set_path(GtkWidget * filesel, char * path)
+  {
+  if(path)
+    gtk_file_selection_set_filename(GTK_FILE_SELECTION(filesel), path);
+  }
+
+                             
 static void button_callback(GtkWidget * w, gpointer data)
   {
   transcoder_window_t * win = (transcoder_window_t *)data;
 
-  if(w == win->run_button)
+  if((w == win->run_button) || (w == win->actions_menu.run_item))
     {
     //    fprintf(stderr, "Run Button\n");
     if(start_transcode(win))
       win->idle_tag = g_idle_add(idle_callback, win);
     }
-  else if(w == win->stop_button)
+  else if((w == win->stop_button) || (w == win->actions_menu.stop_item))
     {
     //    fprintf(stderr, "Stop Button\n");
     
@@ -422,7 +477,10 @@ static void button_callback(GtkWidget * w, gpointer data)
     
     finish_transcoding(win);
     gtk_widget_set_sensitive(win->run_button, 1);
+    gtk_widget_set_sensitive(win->actions_menu.run_item, 1);
+
     gtk_widget_set_sensitive(win->stop_button, 0);
+    gtk_widget_set_sensitive(win->actions_menu.stop_item, 0);
 
     bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED);
     gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
@@ -432,70 +490,142 @@ static void button_callback(GtkWidget * w, gpointer data)
                                win->fg_color, win->bg_color);
     
     }
-  else if(w == win->load_button)
+  else if((w == win->load_button) || (w == win->file_menu.load_item))
     {
     //    fprintf(stderr, "Load Button\n");
     
-    if(!win->task_filesel)
-      win->task_filesel = create_task_filesel(win);
+    if(!win->filesel)
+      win->filesel = create_filesel(win);
     
-    gtk_window_set_title(GTK_WINDOW(win->task_filesel), "Load task list");
+    gtk_window_set_title(GTK_WINDOW(win->filesel), "Load task list");
+    filesel_set_path(win->filesel, win->task_path);
     
-    gtk_widget_show(win->task_filesel);
+    gtk_widget_show(win->filesel);
     gtk_main();
 
-    if(win->task_file)
+    if(win->filesel_file)
       {
-      track_list_load(win->tracklist, win->task_file);
-      free(win->task_file);
-      win->task_file = (char*)0;
+      track_list_load(win->tracklist, win->filesel_file);
+      free(win->filesel_file);
+      win->filesel_file = (char*)0;
+      }
+    if(win->filesel_path)
+      {
+      if(win->task_path) free(win->task_path);
+      win->task_path = win->filesel_path;
+      win->filesel_path = (char*)0;
       }
     }
-  else if(w == win->save_button)
+  else if((w == win->save_button) || (w == win->file_menu.save_item))
     {
-    //    fprintf(stderr, "Save Button\n");
-
-    if(!win->task_filesel)
-      win->task_filesel = create_task_filesel(win);
+    if(!win->filesel)
+      win->filesel = create_filesel(win);
     
-    gtk_window_set_title(GTK_WINDOW(win->task_filesel), "Save task list");
-
-    gtk_widget_show(win->task_filesel);
+    gtk_window_set_title(GTK_WINDOW(win->filesel), "Save task list");
+    filesel_set_path(win->filesel, win->task_path);
+    
+    gtk_widget_show(win->filesel);
     gtk_main();
 
-    if(win->task_file)
+    if(win->filesel_file)
       {
-      track_list_save(win->tracklist, win->task_file);
-      free(win->task_file);
-      win->task_file = (char*)0;
+      track_list_save(win->tracklist, win->filesel_file);
+      free(win->filesel_file);
+      win->filesel_file = (char*)0;
+      }
+    if(win->filesel_path)
+      {
+      if(win->task_path) free(win->task_path);
+      win->task_path = win->filesel_path;
+      win->filesel_path = (char*)0;
       }
     }
-  else if(w == win->preferences_button)
+  else if(w == win->options_menu.load_item)
+    {
+    fprintf(stderr, "Load profile\n");
+    if(!win->filesel)
+      win->filesel = create_filesel(win);
+    
+    gtk_window_set_title(GTK_WINDOW(win->filesel), "Load profile");
+    filesel_set_path(win->filesel, win->profile_path);
+    
+    gtk_widget_show(win->filesel);
+    gtk_main();
+
+    if(win->filesel_file)
+      {
+      bg_cfg_registry_load(win->cfg_reg, win->filesel_file);
+      free(win->filesel_file);
+      win->filesel_file = (char*)0;
+      }
+    if(win->filesel_path)
+      {
+      if(win->profile_path) free(win->profile_path);
+      win->profile_path = win->filesel_path;
+      win->filesel_path = (char*)0;
+      }
+    
+    }
+  else if(w == win->options_menu.save_item)
+    {
+    if(!win->filesel)
+      win->filesel = create_filesel(win);
+    
+    gtk_window_set_title(GTK_WINDOW(win->filesel), "Save profile");
+    filesel_set_path(win->filesel, win->profile_path);
+    
+    gtk_widget_show(win->filesel);
+    gtk_main();
+
+    if(win->filesel_file)
+      {
+      bg_cfg_registry_save(win->cfg_reg, win->filesel_file);
+      free(win->filesel_file);
+      win->filesel_file = (char*)0;
+      }
+    if(win->filesel_path)
+      {
+      if(win->profile_path) free(win->profile_path);
+      win->profile_path = win->filesel_path;
+      win->filesel_path = (char*)0;
+      }
+    }
+  else if((w == win->preferences_button) || (w == win->options_menu.plugin_item))
     {
     //    fprintf(stderr, "Preferences Button\n");
     gtk_widget_set_sensitive(win->preferences_button, 0);
     plugin_window_show(win->plugin_window);
     }
-  else if(w == win->quit_button)
+  else if((w == win->quit_button) || (w == win->file_menu.quit_item))
     {
     //    fprintf(stderr, "Quit Button\n");
     gtk_widget_hide(win->win);
     gtk_main_quit();
     }
-  else if(w == win->properties_button)
+  else if((w == win->properties_button) || (w == win->options_menu.config_item))
     {
     //    fprintf(stderr, "Properties Button\n");
     transcoder_window_preferences(win);
     }
   }
 
-static GtkWidget * create_stock_button(transcoder_window_t * win,
-                                       const char * stock_id,
-                                       const char * tooltip, const char * tooltip_private)
+static GtkWidget * create_pixmap_button(transcoder_window_t * win,
+                                        const char * pixmap,
+                                        const char * tooltip, const char * tooltip_private)
   {
   GtkWidget * ret;
   GtkWidget * image;
-  image = gtk_image_new_from_stock(stock_id, GTK_ICON_SIZE_LARGE_TOOLBAR);
+  char * path;
+  
+  path = bg_search_file_read("icons", pixmap);
+  if(path)
+    {
+    image = gtk_image_new_from_file(path);
+    free(path);
+    }
+  else
+    image = gtk_image_new();
+  
   ret = gtk_button_new();
   gtk_widget_show(image);
   gtk_container_add(GTK_CONTAINER(ret), image);
@@ -519,10 +649,88 @@ static gboolean delete_callback(GtkWidget * w, GdkEvent * evt,
   return TRUE;
   }
 
+static GtkWidget *
+create_item(transcoder_window_t * w, GtkWidget * parent,
+            const char * label, const char * pixmap)
+  {
+  GtkWidget * ret, *image;
+  char * path;
+  
+  
+  if(pixmap)
+    {
+    path = bg_search_file_read("icons", pixmap);
+    if(path)
+      {
+      image = gtk_image_new_from_file(path);
+      free(path);
+      }
+    else
+      image = gtk_image_new();
+    gtk_widget_show(image);
+    ret = gtk_image_menu_item_new_with_label(label);
+    gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(ret), image);
+    }
+  else
+    {
+    ret = gtk_menu_item_new_with_label(label);
+    }
+  
+  g_signal_connect(G_OBJECT(ret), "activate", G_CALLBACK(button_callback),
+                   (gpointer)w);
+  gtk_widget_show(ret);
+  gtk_menu_shell_append(GTK_MENU_SHELL(parent), ret);
+  return ret;
+  }
+
+#if 0
+  struct
+    {
+    GtkWidget * load_item;
+    GtkWidget * save_item;
+    GtkWidget * quit_item;
+    GtkWidget * menu;
+    } file_menu;
+
+  struct
+    {
+    GtkWidget * config_item;
+    GtkWidget * plugin_item;
+    GtkWidget * load_item;
+    GtkWidget * save_item;
+    } options_menu;
+#endif
+
+static void init_menus(transcoder_window_t * w)
+  {
+  w->file_menu.menu = gtk_menu_new();
+  w->file_menu.load_item = create_item(w, w->file_menu.menu, "Load tasklist...", "folder_open_16.png");
+  w->file_menu.save_item = create_item(w, w->file_menu.menu, "Save tasklist...", "save_16.png");
+  w->file_menu.quit_item = create_item(w, w->file_menu.menu, "Quit", "quit_16.png");
+  gtk_widget_show(w->file_menu.menu);
+
+  w->options_menu.menu = gtk_menu_new();
+  w->options_menu.config_item = create_item(w, w->options_menu.menu, "Preferences...", "config_16.png");
+  w->options_menu.plugin_item = create_item(w, w->options_menu.menu, "Plugins...", "plugin_16.png");
+  w->options_menu.load_item = create_item(w, w->options_menu.menu, "Load profile...", "folder_open_16.png");
+  w->options_menu.save_item = create_item(w, w->options_menu.menu, "Save profile...", "save_16.png");
+  gtk_widget_show(w->options_menu.menu);
+
+  w->actions_menu.menu = gtk_menu_new();
+  w->actions_menu.run_item = create_item(w, w->actions_menu.menu, "Start transcoding", "run_16.png");
+  w->actions_menu.stop_item = create_item(w, w->actions_menu.menu, "Stop transcoding", "stop_16.png");
+  gtk_widget_set_sensitive(w->actions_menu.stop_item, 0);
+
+  gtk_widget_show(w->actions_menu.menu);
+
+  
+  }
+
 transcoder_window_t * transcoder_window_create()
   {
   int port;
   char * env;
+  GtkWidget * menuitem;
   
   GtkWidget * main_table;
   GtkWidget * frame;
@@ -569,22 +777,22 @@ transcoder_window_t * transcoder_window_create()
   
   /* Create buttons */
 
-  ret->run_button  = create_stock_button(ret, GTK_STOCK_EXECUTE, "Start transcoding", "Start transcoding");
-  ret->stop_button = create_stock_button(ret,
-                                         GTK_STOCK_STOP, "Stop transcoding", "Stop transcoding");
+  ret->run_button  = create_pixmap_button(ret, "run_16.png", "Start transcoding", "Start transcoding");
+  ret->stop_button = create_pixmap_button(ret,
+                                          "stop_16.png", "Stop transcoding", "Stop transcoding");
 
-  ret->preferences_button = create_stock_button(ret,
-                                                GTK_STOCK_PREFERENCES, "Change and configure plugins\nfor newly added tracks",
+  ret->preferences_button = create_pixmap_button(ret,
+                                                "plugin_16.png", "Change and configure plugins\nfor newly added tracks",
                                                 "Change and configure plugins\nfor newly added tracks");
-  ret->properties_button = create_stock_button(ret,
-                                               GTK_STOCK_PROPERTIES, "Set global options and track defaults",
+  ret->properties_button = create_pixmap_button(ret,
+                                               "config_16.png", "Set global options and track defaults",
                                                "Set global options and track defaults");
-  ret->quit_button = create_stock_button(ret,
-                                         GTK_STOCK_QUIT, "Quit program", "Quit program");
-  ret->load_button  = create_stock_button(ret,
-                                          GTK_STOCK_OPEN, "Load track list", "Load track list");
-  ret->save_button  = create_stock_button(ret,
-                                          GTK_STOCK_SAVE, "Save track list", "Save track list");
+  ret->quit_button = create_pixmap_button(ret,
+                                         "quit_16.png", "Quit program", "Quit program");
+  ret->load_button  = create_pixmap_button(ret,
+                                          "folder_open_16.png", "Load track list", "Load track list");
+  ret->save_button  = create_pixmap_button(ret,
+                                          "save_16.png", "Save track list", "Save track list");
 
   gtk_widget_set_sensitive(ret->stop_button, 0);
   
@@ -606,14 +814,47 @@ transcoder_window_t * transcoder_window_create()
   /* Scrolltext */
 
   ret->scrolltext = bg_gtk_scrolltext_create(100, 24);
+
+  /* Menubar */
+
+  init_menus(ret);
   
+  ret->menubar = gtk_menu_bar_new();
+
+  menuitem = gtk_menu_item_new_with_label("File");
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), ret->file_menu.menu);
+  gtk_widget_show(menuitem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(ret->menubar), menuitem);
+
+  menuitem = gtk_menu_item_new_with_label("Options");
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), ret->options_menu.menu);
+  gtk_widget_show(menuitem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(ret->menubar), menuitem);
+
+  menuitem = gtk_menu_item_new_with_label("Actions");
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), ret->actions_menu.menu);
+  gtk_widget_show(menuitem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(ret->menubar), menuitem);
+
+  menuitem = gtk_menu_item_new_with_label("Tasklist");
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), track_list_get_menu(ret->tracklist));
+  gtk_widget_show(menuitem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(ret->menubar), menuitem);
+
+
+  gtk_widget_show(ret->menubar);
+    
   /* Pack everything */
   
-  main_table = gtk_table_new(4, 1, 0);
+  main_table = gtk_table_new(5, 1, 0);
   gtk_container_set_border_width(GTK_CONTAINER(main_table), 5);
   gtk_table_set_row_spacings(GTK_TABLE(main_table), 5);
   gtk_table_set_col_spacings(GTK_TABLE(main_table), 5);
 
+  gtk_table_attach(GTK_TABLE(main_table),
+                   ret->menubar,
+                   0, 1, 0, 1, GTK_FILL, GTK_FILL, 0, 0);
+  
   box = gtk_hbox_new(0, 0);
   
   gtk_box_pack_start(GTK_BOX(box), ret->load_button, FALSE, FALSE, 0);
@@ -626,7 +867,7 @@ transcoder_window_t * transcoder_window_create()
   gtk_widget_show(box);
   gtk_table_attach(GTK_TABLE(main_table),
                    box,
-                   0, 1, 0, 1, GTK_FILL, GTK_FILL, 0, 0);
+                   0, 1, 1, 2, GTK_FILL, GTK_FILL, 0, 0);
 
   box = gtk_hbox_new(0, 0);
 
@@ -640,20 +881,20 @@ transcoder_window_t * transcoder_window_create()
   
   gtk_table_attach(GTK_TABLE(main_table),
                    box,
-                   0, 1, 1, 2, GTK_FILL, GTK_FILL, 0, 0);
+                   0, 1, 2, 3, GTK_FILL, GTK_FILL, 0, 0);
   
   gtk_table_attach(GTK_TABLE(main_table),
                    ret->progress_bar,
-                   0, 1, 2, 3, GTK_FILL, GTK_FILL, 0, 0);
+                   0, 1, 3, 4, GTK_FILL, GTK_FILL, 0, 0);
   
-  frame = gtk_frame_new("Track queue");
+  frame = gtk_frame_new("Tasklist");
   gtk_container_add(GTK_CONTAINER(frame),
                     track_list_get_widget(ret->tracklist));
 
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(main_table),
                             frame,
-                            0, 1, 3, 4);
+                            0, 1, 4, 5);
   
   gtk_widget_show(main_table);
   gtk_container_add(GTK_CONTAINER(ret->win), main_table);

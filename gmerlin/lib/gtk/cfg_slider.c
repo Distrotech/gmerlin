@@ -117,14 +117,19 @@ static void create_common(bg_gtk_widget_t * w,
                           float min_value,
                           float max_value)
   {
+  float step;
   slider_t * s = calloc(1, sizeof(*s));
+  int i;
   s->label = gtk_label_new(info->long_name);
-
+  step = 1.0;
+  for(i = 0; i < info->num_digits; i++)
+    step /= 10.0;
+  
   gtk_misc_set_alignment(GTK_MISC(s->label), 0.0, 0.5);
   gtk_widget_show(s->label);
 
   s->slider =
-    gtk_hscale_new_with_range(min_value, max_value, 1.0);
+    gtk_hscale_new_with_range(min_value, max_value,  step);
 
   if(info->help_string)
     {

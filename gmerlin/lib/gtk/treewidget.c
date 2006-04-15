@@ -286,6 +286,7 @@ struct bg_gtk_tree_widget_s
 
   /* Buttons */
 
+  GtkWidget * new_button;
   GtkWidget * remove_button;
   GtkWidget * rename_button;
   GtkWidget * goto_current_button;
@@ -415,6 +416,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
     gtk_widget_hide(w->menu.album_menu.remove_item);
     gtk_widget_set_sensitive(w->remove_button, 0);
     gtk_widget_set_sensitive(w->rename_button, 0);
+    gtk_widget_set_sensitive(w->new_button, 1);
 
     gtk_widget_hide(w->menu.album_menu.rename_item);
     gtk_widget_hide(w->menu.album_menu.open_item);
@@ -435,6 +437,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         gtk_widget_show(w->menu.plugin_item);
         gtk_widget_set_sensitive(w->remove_button, 0);
         gtk_widget_set_sensitive(w->rename_button, 0);
+        gtk_widget_set_sensitive(w->new_button, 0);
 
         break;
       case BG_ALBUM_TYPE_REMOVABLE:
@@ -446,6 +449,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         gtk_widget_show(w->menu.album_menu.remove_item);
         gtk_widget_set_sensitive(w->remove_button, 1);
         gtk_widget_set_sensitive(w->rename_button, 1);
+        gtk_widget_set_sensitive(w->new_button, 0);
 
         gtk_widget_show(w->menu.album_menu.rename_item);
         gtk_widget_hide(w->menu.album_menu.new_item);
@@ -471,6 +475,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         gtk_widget_show(w->menu.album_menu.remove_item);
         gtk_widget_set_sensitive(w->remove_button, 1);
         gtk_widget_set_sensitive(w->rename_button, 1);
+        gtk_widget_set_sensitive(w->new_button, 1);
 
         gtk_widget_show(w->menu.album_menu.new_item);
         gtk_widget_show(w->menu.album_menu.new_from_directory_item);
@@ -497,7 +502,8 @@ static void update_menu(bg_gtk_tree_widget_t * w)
         gtk_widget_hide(w->menu.album_menu.remove_item);
         gtk_widget_set_sensitive(w->remove_button, 0);
         gtk_widget_set_sensitive(w->rename_button, 1);
-
+        gtk_widget_set_sensitive(w->new_button, 0);
+        
         gtk_widget_hide(w->menu.album_menu.new_item);
         gtk_widget_hide(w->menu.album_menu.new_from_directory_item);
         gtk_widget_show(w->menu.album_menu.rename_item);
@@ -1279,7 +1285,8 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     add_directory(widget);
     }
-  else if(w == widget->menu.album_menu.new_item)
+  else if((w == widget->menu.album_menu.new_item) ||
+          (w == widget->new_button))
     {
     create_new_album(widget);
     }
@@ -2045,8 +2052,15 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree, GtkAccelGroup * accel_group, G
     create_pixmap_button(ret, "goto_current_16.png",
                          "Goto current track",
                          "Goto current track");
+
+  ret->new_button =
+    create_pixmap_button(ret, "folder_new_16.png",
+                         "New album",
+                         "New album");
   
   buttonbox = gtk_hbox_new(0, 0);
+  gtk_box_pack_start(GTK_BOX(buttonbox), ret->new_button,
+                     FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(buttonbox), ret->remove_button,
                      FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(buttonbox), ret->rename_button,

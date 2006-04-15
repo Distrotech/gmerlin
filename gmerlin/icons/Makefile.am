@@ -35,6 +35,7 @@ favourites_closed_16.png \
 favourites_open_16.png \
 first_16.png \
 folder_closed_16.png \
+folder_new_16.png \
 folder_open_16.png \
 goto_current_16.png \
 hardware_16.png \
@@ -49,7 +50,9 @@ mixer_icon.png \
 mute_16.png \
 paste_16.png \
 player_icon.png \
+plugin_16.png \
 plugincfg_icon.png \
+quit_16.png \
 record_16.png \
 refresh_16.png \
 rename_16.png \
@@ -57,6 +60,7 @@ repeat_mode_1.png \
 repeat_mode_all.png \
 repeat_mode_none.png \
 right_16.png \
+run_16.png \
 save_16.png \
 sort_16.png \
 state_buffering_1.png \
@@ -71,6 +75,7 @@ state_playing.png \
 state_seeking.png \
 state_still.png \
 state_stopped.png \
+stop_16.png \
 tab_close.png \
 top_16.png \
 tearoff_16.png \

@@ -29,6 +29,18 @@ bg_gtk_info_window_create(bg_player_t * player,
 
 void bg_gtk_info_window_destroy(bg_gtk_info_window_t *);
 
+/* Configuration (doesn't need a dialog) */
+
+bg_parameter_info_t *
+bg_gtk_info_window_get_parameters(bg_gtk_info_window_t * win);
+  
+void bg_gtk_info_window_set_parameter(void * data, char * name,
+                                      bg_parameter_value_t * val);
+
+int bg_gtk_info_window_get_parameter(void * data, char * name,
+                                     bg_parameter_value_t * val);
+
+
 /* Show/hide the window */
 
 void bg_gtk_info_window_show(bg_gtk_info_window_t *);

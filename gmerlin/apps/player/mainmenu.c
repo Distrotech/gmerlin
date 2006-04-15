@@ -282,6 +282,41 @@ static void menu_callback(GtkWidget * w, gpointer data)
 #endif    
   }
 
+static GtkWidget *
+create_pixmap_item(const char * label, const char * pixmap,
+                   gmerlin_t * gmerlin,
+                   GtkWidget * menu)
+  {
+  GtkWidget * ret, *image;
+  char * path;
+  
+  
+  if(pixmap)
+    {
+    path = bg_search_file_read("icons", pixmap);
+    if(path)
+      {
+      image = gtk_image_new_from_file(path);
+      free(path);
+      }
+    else
+      image = gtk_image_new();
+    gtk_widget_show(image);
+    ret = gtk_image_menu_item_new_with_label(label);
+    gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(ret), image);
+    }
+  else
+    {
+    ret = gtk_menu_item_new_with_label(label);
+    }
+  
+  g_signal_connect(G_OBJECT(ret), "activate", G_CALLBACK(menu_callback),
+                   (gpointer)gmerlin);
+  gtk_widget_show(ret);
+  gtk_menu_shell_append(GTK_MENU_SHELL(menu), ret);
+  return ret;
+  }
+
 static GtkWidget * create_item(const char * label,
                                gmerlin_t * gmerlin,
                                GtkWidget * menu)
@@ -545,7 +580,7 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   
   ret->options_menu.menu = create_menu();
   ret->options_menu.preferences =
-    create_item("Preferences...", gmerlin, ret->options_menu.menu);
+    create_pixmap_item("Preferences...", "config_16.png", gmerlin, ret->options_menu.menu);
 
   gtk_widget_add_accelerator(ret->options_menu.preferences, "activate", ret->g->accel_group,
                              GDK_o, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
@@ -553,7 +588,7 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   
 
   ret->options_menu.plugins =
-    create_item("Plugins...", gmerlin, ret->options_menu.menu);
+    create_pixmap_item("Plugins...", "plugin_16.png", gmerlin, ret->options_menu.menu);
   gtk_widget_add_accelerator(ret->options_menu.plugins, "activate", ret->g->accel_group,
                              GDK_p, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
@@ -598,7 +633,7 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
                              GDK_0, 0, GTK_ACCEL_VISIBLE);
 
   ret->command_menu.pause =
-    create_item("pause", gmerlin, ret->command_menu.menu);
+    create_item("Pause", gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.pause, "activate", ret->g->player_window->accel_group,
                              GDK_space, 0, GTK_ACCEL_VISIBLE);
 

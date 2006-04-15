@@ -93,6 +93,9 @@ static void gmerlin_apply_config(gmerlin_t * g)
   parameters = bg_gtk_log_window_get_parameters(g->log_window);
   bg_cfg_section_apply(g->logwindow_section, parameters,
                        bg_gtk_log_window_set_parameter, (void*)(g->log_window));
+  parameters = bg_gtk_info_window_get_parameters(g->info_window);
+  bg_cfg_section_apply(g->infowindow_section, parameters,
+                       bg_gtk_info_window_set_parameter, (void*)(g->info_window));
   
   
   }
@@ -203,6 +206,8 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
     bg_cfg_registry_find_section(cfg_reg, "Remote");
   ret->logwindow_section =
     bg_cfg_registry_find_section(cfg_reg, "Logwindow");
+  ret->infowindow_section =
+    bg_cfg_registry_find_section(cfg_reg, "Infowindow");
     
   /* Create player instance */
   
@@ -306,7 +311,21 @@ void gmerlin_destroy(gmerlin_t * g)
 
   //  fprintf(stderr, "Blupp 2\n");
 
+  /* Fetch parameters */
+  
+  bg_cfg_section_get(g->infowindow_section,
+                     bg_gtk_info_window_get_parameters(g->info_window),
+                     bg_gtk_info_window_get_parameter,
+                     (void*)(g->info_window));
+    
   bg_gtk_info_window_destroy(g->info_window);
+  
+  bg_cfg_section_get(g->logwindow_section,
+                     bg_gtk_log_window_get_parameters(g->log_window),
+                     bg_gtk_log_window_get_parameter,
+                     (void*)(g->log_window));
+  
+
   bg_gtk_log_window_destroy(g->log_window);
 
   //  fprintf(stderr, "Blupp 3\n");

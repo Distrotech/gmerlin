@@ -26,6 +26,11 @@
 
 #include <gui_gtk/logwindow.h>
 
+/* This is missing in the gtk headers */
+
+extern void
+gtk_decorated_window_move_resize_window(GtkWindow*, int, int, int, int);
+
 /* Delay between update calls in Milliseconds */
 #define DELAY_TIME 50
 
@@ -55,6 +60,8 @@ struct bg_gtk_log_window_s
   int show_warning;
   int show_error;
   int show_debug;
+
+  int x, y, width, height;
   
   };
 
@@ -142,6 +149,21 @@ static gboolean idle_callback(gpointer data)
   return TRUE;
   }
 
+static gboolean configure_callback(GtkWidget * w, GdkEventConfigure *event,
+                                   gpointer data)
+  {
+  bg_gtk_log_window_t * win;
+
+  win = (bg_gtk_log_window_t*)data;
+  win->x = event->x;
+  win->y = event->y;
+  win->width = event->width;
+  win->height = event->height;
+  gdk_window_get_root_origin(win->window->window, &(win->x), &(win->y));
+  return FALSE;
+  }
+
+
 bg_gtk_log_window_t * bg_gtk_log_window_create(void (*close_callback)(bg_gtk_log_window_t*, void*),
                                                void * close_callback_data)
   {
@@ -155,7 +177,9 @@ bg_gtk_log_window_t * bg_gtk_log_window_create(void (*close_callback)(bg_gtk_log
 
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback), (gpointer)ret);
-
+  g_signal_connect(G_OBJECT(ret->window), "configure-event",
+                   G_CALLBACK(configure_callback), (gpointer)ret);
+  
   /* Create and connect message queue */
   ret->queue = bg_msg_queue_create();
   bg_set_log_dest(ret->queue);
@@ -211,10 +235,16 @@ void bg_gtk_log_window_destroy(bg_gtk_log_window_t * win)
   }
 
 void
-bg_gtk_log_window_show(bg_gtk_log_window_t * win)
+bg_gtk_log_window_show(bg_gtk_log_window_t * w)
   {
-  gtk_widget_show(win->window);
-  win->visible = 1;
+  if(!w->width || !w->height)
+    gtk_window_set_position(GTK_WINDOW(w->window), GTK_WIN_POS_CENTER);
+  gtk_widget_show(w->window);
+
+  if(w->width && w->height)
+    gtk_decorated_window_move_resize_window(GTK_WINDOW(w->window),
+                                            w->x, w->y, w->width, w->height);
+  w->visible = 1;
   }
 
 void bg_gtk_log_window_hide(bg_gtk_log_window_t * win)
@@ -286,6 +316,34 @@ static bg_parameter_info_t parameters[] =
       val_default: { val_color: (float[]){ 0.0, 0.0, 1.0 } },
       help_string: "Color for debug messages",
     },
+    {
+      name: "x",
+      long_name: "X",
+      flags: BG_PARAMETER_HIDE_DIALOG,
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 100 }
+    },
+    {
+      name: "y",
+      long_name: "Y",
+      flags: BG_PARAMETER_HIDE_DIALOG,
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 100 }
+    },
+    {
+      name: "width",
+      long_name: "Width",
+      flags: BG_PARAMETER_HIDE_DIALOG,
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 0 }
+    },
+    {
+      name: "height",
+      long_name: "Height",
+      flags: BG_PARAMETER_HIDE_DIALOG,
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 0 }
+    },
     { /* */ }
   };
 
@@ -347,6 +405,53 @@ void bg_gtk_log_window_set_parameter(void * data, char * name,
     color.blue  = (guint16)(v->val_color[2] * 65535.0);
     g_object_set(win->debug_tag, "foreground-gdk", &color, NULL);
     }
-
+  if(!strcmp(name, "x"))
+    {
+    win->x = v->val_i;
+    }
+  else if(!strcmp(name, "y"))
+    {
+    win->y = v->val_i;
+    }
+  else if(!strcmp(name, "width"))
+    {
+    win->width = v->val_i;
+    }
+  else if(!strcmp(name, "height"))
+    {
+    win->height = v->val_i;
+    }
   
+  }
+
+int bg_gtk_log_window_get_parameter(void * data, char * name,
+                                     bg_parameter_value_t * val)
+  {
+  bg_gtk_log_window_t * win;
+  win = (bg_gtk_log_window_t*)data;
+  if(!name)
+    return 1;
+
+  if(!strcmp(name, "x"))
+    {
+    val->val_i = win->x;
+    return 1;
+    }
+  else if(!strcmp(name, "y"))
+    {
+    val->val_i = win->y;
+    return 1;
+    }
+  else if(!strcmp(name, "width"))
+    {
+    val->val_i = win->width;
+    return 1;
+    }
+  else if(!strcmp(name, "height"))
+    {
+    val->val_i = win->height;
+    return 1;
+    }
+  
+  return 0;
   }

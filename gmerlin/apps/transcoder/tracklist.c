@@ -801,13 +801,34 @@ static void button_callback(GtkWidget * w, gpointer data)
 /* Menu stuff */
 
 static GtkWidget *
-create_item(track_list_t * t, GtkWidget * parent,
-            const char * label)
+create_item(track_list_t * w, GtkWidget * parent,
+            const char * label, const char * pixmap)
   {
-  GtkWidget * ret;
-  ret = gtk_menu_item_new_with_label(label);
+  GtkWidget * ret, *image;
+  char * path;
+  
+  
+  if(pixmap)
+    {
+    path = bg_search_file_read("icons", pixmap);
+    if(path)
+      {
+      image = gtk_image_new_from_file(path);
+      free(path);
+      }
+    else
+      image = gtk_image_new();
+    gtk_widget_show(image);
+    ret = gtk_image_menu_item_new_with_label(label);
+    gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(ret), image);
+    }
+  else
+    {
+    ret = gtk_menu_item_new_with_label(label);
+    }
+  
   g_signal_connect(G_OBJECT(ret), "activate", G_CALLBACK(button_callback),
-                   (gpointer)t);
+                   (gpointer)w);
   gtk_widget_show(ret);
   gtk_menu_shell_append(GTK_MENU_SHELL(parent), ret);
   return ret;
@@ -820,11 +841,11 @@ static void init_menu(track_list_t * t)
   t->menu.add_menu.menu = gtk_menu_new();
 
   t->menu.add_menu.add_files_item =
-    create_item(t, t->menu.add_menu.menu, "Add Files...");
+    create_item(t, t->menu.add_menu.menu, "Add Files...", "folder_open_16.png");
   t->menu.add_menu.add_urls_item =
-    create_item(t, t->menu.add_menu.menu, "Add Urls...");
+    create_item(t, t->menu.add_menu.menu, "Add Urls...", "earth_16.png");
   t->menu.add_menu.add_drives_item =
-    create_item(t, t->menu.add_menu.menu, "Add Drives...");
+    create_item(t, t->menu.add_menu.menu, "Add Drives...", "drive_running_16.png");
   gtk_widget_show(t->menu.add_menu.menu);
   
   /* Selected */
@@ -832,33 +853,38 @@ static void init_menu(track_list_t * t)
   t->menu.selected_menu.menu = gtk_menu_new();
 
   t->menu.selected_menu.move_up_item =
-    create_item(t, t->menu.selected_menu.menu, "Move Up");
+    create_item(t, t->menu.selected_menu.menu, "Move Up", "top_16.png");
   t->menu.selected_menu.move_down_item =
-    create_item(t, t->menu.selected_menu.menu, "Move Down");
+    create_item(t, t->menu.selected_menu.menu, "Move Down", "bottom_16.png");
   t->menu.selected_menu.remove_item =
-    create_item(t, t->menu.selected_menu.menu, "Remove");
+    create_item(t, t->menu.selected_menu.menu, "Remove", "trash_16.png");
   t->menu.selected_menu.configure_item =
-    create_item(t, t->menu.selected_menu.menu, "Configure...");
+    create_item(t, t->menu.selected_menu.menu, "Configure...", "config_16.png");
   t->menu.selected_menu.encoder_item =
-    create_item(t, t->menu.selected_menu.menu, "Change encoders...");
+    create_item(t, t->menu.selected_menu.menu, "Change encoders...", "plugin_16.png");
 
   /* Root menu */
 
   t->menu.menu = gtk_menu_new();
   
   t->menu.add_item =
-    create_item(t, t->menu.menu, "Add...");
+    create_item(t, t->menu.menu, "Add...", (char*)0);
   
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(t->menu.add_item),
                             t->menu.add_menu.menu);
 
   t->menu.selected_item =
-    create_item(t, t->menu.menu, "Selected...");
+    create_item(t, t->menu.menu, "Selected...", (char*)0);
 
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(t->menu.selected_item),
                             t->menu.selected_menu.menu);
   
   
+  }
+
+GtkWidget * track_list_get_menu(track_list_t * t)
+  {
+  return t->menu.menu;
   }
 
 static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,

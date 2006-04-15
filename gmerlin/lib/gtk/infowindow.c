@@ -31,12 +31,19 @@
 #include <gui_gtk/textview.h>
 #include <utils.h>
 
+/* This is missing in the gtk headers */
+
+extern void
+gtk_decorated_window_move_resize_window(GtkWindow*, int, int, int, int);
+
 /* Delay between update calls in Milliseconds */
 
 #define DELAY_TIME 50
 
 struct bg_gtk_info_window_s
   {
+  int x, y, width, height;
+
   /* We store everything interesting locally */
   gavl_audio_format_t audio_format_i;
   gavl_audio_format_t audio_format_o;
@@ -95,6 +102,110 @@ struct bg_gtk_info_window_s
   void * close_callback_data;
   
   };
+
+static bg_parameter_info_t parameters[] =
+  {
+    {
+      name: "x",
+      long_name: "X",
+      flags: BG_PARAMETER_HIDE_DIALOG,
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 100 }
+    },
+    {
+      name: "y",
+      long_name: "Y",
+      flags: BG_PARAMETER_HIDE_DIALOG,
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 100 }
+    },
+    {
+      name: "width",
+      long_name: "Width",
+      flags: BG_PARAMETER_HIDE_DIALOG,
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 0 }
+    },
+    {
+      name: "height",
+      long_name: "Height",
+      flags: BG_PARAMETER_HIDE_DIALOG,
+      type: BG_PARAMETER_INT,
+      val_default: { val_i: 0 }
+    },
+    { /* End of parameters */ }
+  };
+
+bg_parameter_info_t *
+bg_gtk_info_window_get_parameters(bg_gtk_info_window_t * win)
+  {
+  return parameters;
+  }
+  
+void bg_gtk_info_window_set_parameter(void * data, char * name,
+                                      bg_parameter_value_t * val)
+  {
+  bg_gtk_info_window_t * win;
+  win = (bg_gtk_info_window_t*)data;
+  if(!name)
+    return;
+
+  //  fprintf(stderr, "bg_gtk_info_window_set_parameter %s %d\n",
+  //          name, val->val_i);
+
+  
+  if(!strcmp(name, "x"))
+    {
+    win->x = val->val_i;
+    }
+  else if(!strcmp(name, "y"))
+    {
+    win->y = val->val_i;
+    }
+  else if(!strcmp(name, "width"))
+    {
+    win->width = val->val_i;
+    }
+  else if(!strcmp(name, "height"))
+    {
+    win->height = val->val_i;
+    }
+  }
+
+int bg_gtk_info_window_get_parameter(void * data, char * name,
+                                     bg_parameter_value_t * val)
+  {
+  bg_gtk_info_window_t * win;
+  win = (bg_gtk_info_window_t*)data;
+  if(!name)
+    return 1;
+
+  if(!strcmp(name, "x"))
+    {
+    val->val_i = win->x;
+    return 1;
+    }
+  else if(!strcmp(name, "y"))
+    {
+    val->val_i = win->y;
+    return 1;
+    }
+  else if(!strcmp(name, "width"))
+    {
+    val->val_i = win->width;
+    return 1;
+    }
+  else if(!strcmp(name, "height"))
+    {
+    val->val_i = win->height;
+    return 1;
+    }
+  //  fprintf(stderr, "bg_gtk_info_window_get_parameter %s %d\n",
+  //          name, val->val_i);
+  
+  return 0;
+  }
+
 
 #define STRINGSET(index, str) \
 arg_str = mg_msg_get_arg_string(msg, index); \
@@ -375,6 +486,20 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
   return TRUE;
   }
 
+static gboolean configure_callback(GtkWidget * w, GdkEventConfigure *event,
+                                   gpointer data)
+  {
+  bg_gtk_info_window_t * win;
+
+  win = (bg_gtk_info_window_t*)data;
+  win->x = event->x;
+  win->y = event->y;
+  win->width = event->width;
+  win->height = event->height;
+  gdk_window_get_root_origin(win->window->window, &(win->x), &(win->y));
+  return FALSE;
+  }
+
 bg_gtk_info_window_t *
 bg_gtk_info_window_create(bg_player_t * player,
                           void (*close_callback)(bg_gtk_info_window_t*, void*),
@@ -397,6 +522,10 @@ bg_gtk_info_window_create(bg_player_t * player,
   
   ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
+
+  g_signal_connect(G_OBJECT(ret->window), "configure-event",
+                   G_CALLBACK(configure_callback), (gpointer)ret);
+  
   gtk_window_set_title(GTK_WINDOW(ret->window), "Gmerlin Track Info");
   
   ret->queue = bg_msg_queue_create();
@@ -559,7 +688,13 @@ bg_gtk_info_window_get_queue(bg_gtk_info_window_t * w)
 
 void bg_gtk_info_window_show(bg_gtk_info_window_t * w)
   {
+  if(!w->width || !w->height)
+    gtk_window_set_position(GTK_WINDOW(w->window), GTK_WIN_POS_CENTER);
+  
   gtk_widget_show(w->window);
+  if(w->width && w->height)
+    gtk_decorated_window_move_resize_window(GTK_WINDOW(w->window),
+                                            w->x, w->y, w->width, w->height);
   }
 
 void bg_gtk_info_window_hide(bg_gtk_info_window_t * w)
