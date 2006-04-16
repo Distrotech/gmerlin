@@ -6,6 +6,7 @@
 #include <transcoder_track.h>
 
 #include <gui_gtk/plugin.h>
+#include <gui_gtk/gtkutils.h>
 
 #include "encoderwidget.h"
 
@@ -237,7 +238,7 @@ encoder_window_t * encoder_window_create(bg_plugin_registry_t * plugin_reg)
 
   ret = calloc(1, sizeof(*ret));
 
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback),

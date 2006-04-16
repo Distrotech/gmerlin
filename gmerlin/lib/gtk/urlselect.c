@@ -27,6 +27,7 @@
 #include <gui_gtk/plugin.h>
 
 #include <gui_gtk/urlselect.h>
+#include <gui_gtk/gtkutils.h>
 
 #include <utils.h>
 
@@ -116,7 +117,7 @@ bg_gtk_urlsel_create(const char * title,
 
   /* Create window */
 
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(ret->window), title);
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
   gtk_container_set_border_width(GTK_CONTAINER(ret->window), 5);
@@ -170,7 +171,7 @@ bg_gtk_urlsel_create(const char * title,
   label = gtk_label_new("URL:");
   gtk_widget_show(label);
   
-  gtk_box_pack_start_defaults(GTK_BOX(box), label);
+  gtk_box_pack_start(GTK_BOX(box), label, FALSE, FALSE, 0);
   gtk_box_pack_start_defaults(GTK_BOX(box), ret->entry);
   gtk_widget_show(box);
   gtk_box_pack_start_defaults(GTK_BOX(mainbox), box);

@@ -318,7 +318,7 @@ int main(int argc, char ** argv)
   bg_cfg_registry_t * registry;
   bg_cfg_section_t  * section;
     
-  bg_gtk_init(&argc, &argv);
+  bg_gtk_init(&argc, &argv, (char*)0);
 
   registry = bg_cfg_registry_create();
   bg_cfg_registry_load(registry, "config.xml");

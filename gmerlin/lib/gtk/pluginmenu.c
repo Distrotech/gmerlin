@@ -101,7 +101,7 @@ bg_gtk_plugin_menu_create(char ** plugins,
   gtk_widget_show(ret->combo);
 
   
-  gtk_box_pack_start(GTK_BOX(ret->box), label, TRUE, TRUE, 0);
+  gtk_box_pack_start(GTK_BOX(ret->box), label, FALSE, FALSE, 0);
   gtk_box_pack_start_defaults(GTK_BOX(ret->box), ret->combo);
 
   gtk_widget_show(ret->box);

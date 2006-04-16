@@ -25,6 +25,7 @@
 #include <utils.h>
 
 #include <gui_gtk/tree.h>
+#include <gui_gtk/gtkutils.h>
 
 /* This is missing in the gtk headers */
 
@@ -357,7 +358,7 @@ void bg_gtk_album_window_detach(bg_gtk_album_window_t * w)
     w->notebook = (GtkWidget*)0;
     }
   
-  w->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  w->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_add_accel_group(GTK_WINDOW (w->window), w->accel_group);
   gtk_window_add_accel_group(GTK_WINDOW (w->window), bg_gtk_album_widget_get_accel_group(w->widget));
     

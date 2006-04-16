@@ -408,7 +408,7 @@ gmerlin_skin_browser_t * gmerlin_skin_browser_create(gmerlin_t * g)
     
   /* Create window */
   
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback),
                    (gpointer)ret);

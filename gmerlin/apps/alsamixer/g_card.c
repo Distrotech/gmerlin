@@ -1,6 +1,8 @@
 #include <utils.h>
 #include "gui.h"
 
+#include <gui_gtk/gtkutils.h>
+
 #define LOWER_ROWS 3
 
 #define TIMEOUT_INTERVAL 50
@@ -511,7 +513,7 @@ void card_widget_tearoff_control(card_widget_t * c, control_widget_t * w)
   
   gtk_container_remove(GTK_CONTAINER(c->upper_table), control_widget_get_widget(w));
   
-  win->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  win->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(win->window), "Gmerlin Alsamixer");
   gtk_window_set_position(GTK_WINDOW(win->window), GTK_WIN_POS_CENTER);
 
@@ -619,7 +621,7 @@ void card_widget_configure(card_widget_t * c)
   win = calloc(1, sizeof(*win));
   win->cw = c;
   
-  win->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  win->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(win->window), "Card controls");
   gtk_window_set_modal(GTK_WINDOW(win->window), 1);
   g_signal_connect(G_OBJECT(win->window), "delete_event",G_CALLBACK(config_delete_callback),

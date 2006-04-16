@@ -50,7 +50,7 @@ int main(int argc, char ** argv)
   section = bg_cfg_registry_find_section(cfg_reg, "plugins");
   plugin_reg = bg_plugin_registry_create(section);
   
-  bg_gtk_init(&argc, &argv);
+  bg_gtk_init(&argc, &argv, "camelot_icon.png");
   
   w = gmerlin_webcam_create();
 

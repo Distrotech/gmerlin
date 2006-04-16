@@ -35,6 +35,22 @@ struct bg_gtk_textview_s
   GtkTextBuffer * buffer;
   };
 
+static void set_bg(GtkWidget * widget, gpointer data)
+  {
+  GtkRcStyle *rc_style;
+
+  rc_style = gtk_rc_style_new ();
+  rc_style->color_flags[GTK_STATE_NORMAL] = GTK_RC_BASE;
+#if 1
+  rc_style->base[GTK_STATE_NORMAL].red =   widget->style->bg[GTK_STATE_NORMAL].red;
+  rc_style->base[GTK_STATE_NORMAL].green = widget->style->bg[GTK_STATE_NORMAL].green;
+  rc_style->base[GTK_STATE_NORMAL].blue =  widget->style->bg[GTK_STATE_NORMAL].blue;
+  rc_style->base[GTK_STATE_NORMAL].pixel = widget->style->bg[GTK_STATE_NORMAL].pixel;
+#endif
+  gtk_widget_modify_style(widget, rc_style);
+  gtk_rc_style_unref (rc_style);
+  }
+
 bg_gtk_textview_t * bg_gtk_textview_create()
   {
   bg_gtk_textview_t * t;
@@ -54,6 +70,12 @@ bg_gtk_textview_t * bg_gtk_textview_create()
   
   t->buffer = gtk_text_buffer_new(tag_table);
   t->textview = gtk_text_view_new_with_buffer(t->buffer);
+
+  g_signal_connect(G_OBJECT(t->textview), "realize",
+                   G_CALLBACK(set_bg), NULL);
+  
+  gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(t->textview), FALSE);
+  
   gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(t->textview), GTK_WRAP_NONE);
   gtk_text_view_set_editable(GTK_TEXT_VIEW(t->textview), 0);
   

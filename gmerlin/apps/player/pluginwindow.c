@@ -1,5 +1,6 @@
 #include "gmerlin.h"
 #include <gui_gtk/plugin.h>
+#include <gui_gtk/gtkutils.h>
 
 struct plugin_window_s
   {
@@ -61,7 +62,7 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
   gtk_object_sink (GTK_OBJECT (ret->tooltips));
 
   
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(ret->window), "Plugins");
 
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);

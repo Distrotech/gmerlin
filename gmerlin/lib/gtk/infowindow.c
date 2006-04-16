@@ -29,6 +29,8 @@
 #include <playermsg.h>
 #include <gui_gtk/infowindow.h>
 #include <gui_gtk/textview.h>
+#include <gui_gtk/gtkutils.h>
+
 #include <utils.h>
 
 /* This is missing in the gtk headers */
@@ -224,12 +226,7 @@ static void clear_info(bg_gtk_info_window_t * w)
   FREE(w->video_description);
   FREE(w->description);
 
-  FREE(w->metadata.artist);
-  FREE(w->metadata.title);
-  FREE(w->metadata.album);
-  FREE(w->metadata.genre);
-  FREE(w->metadata.comment);
-  
+  bg_metadata_free(&(w->metadata));
   memset(&(w->metadata), 0, sizeof(w->metadata));
 
   bg_gtk_textview_update(w->w_audio_format_i, "");
@@ -367,11 +364,6 @@ static void update_metadata(bg_gtk_info_window_t * w)
     tmp_string_1 = bg_sprintf("Genre:\t %s\n", w->metadata.genre);
     META_STRCAT();
     }
-  if(w->metadata.comment)
-    {
-    tmp_string_1 = bg_sprintf("Comment:\t %s\n", w->metadata.comment);
-    META_STRCAT();
-    }
   if(w->metadata.date)
     {
     tmp_string_1 = bg_sprintf("Date:\t %s\n", w->metadata.date);
@@ -380,6 +372,11 @@ static void update_metadata(bg_gtk_info_window_t * w)
   if(w->metadata.track)
     {
     tmp_string_1 = bg_sprintf("Track:\t %d\n", w->metadata.track);
+    META_STRCAT();
+    }
+  if(w->metadata.comment)
+    {
+    tmp_string_1 = bg_sprintf("Comment:\t %s\n", w->metadata.comment);
     META_STRCAT();
     }
   if(window_string)
@@ -500,6 +497,13 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure *event,
   return FALSE;
   }
 
+static GtkWidget * create_frame(const char * label)
+  {
+  GtkWidget * ret = gtk_frame_new(label);
+  gtk_container_set_border_width(GTK_CONTAINER(ret), 3);
+  return ret;
+  }
+
 bg_gtk_info_window_t *
 bg_gtk_info_window_create(bg_player_t * player,
                           void (*close_callback)(bg_gtk_info_window_t*, void*),
@@ -509,6 +513,7 @@ bg_gtk_info_window_create(bg_player_t * player,
   GtkWidget * frame;
   GtkWidget * table;
   GtkWidget * tab_label;
+  GtkWidget * scrolledwin;
   
   bg_gtk_info_window_t * ret;
 
@@ -520,7 +525,7 @@ bg_gtk_info_window_create(bg_player_t * player,
   
   /* Create objects */
   
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
 
   g_signal_connect(G_OBJECT(ret->window), "configure-event",
@@ -564,19 +569,31 @@ bg_gtk_info_window_create(bg_player_t * player,
     
   table = gtk_table_new(3, 1, 0);
   
-  frame = gtk_frame_new("Name");
+  frame = create_frame("Name");
+
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_name));
   gtk_widget_show(frame);
-  gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 0, 1);
+  gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 0, 1,
+                   GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
 
-  frame = gtk_frame_new("Stream type");
+  frame = create_frame("Stream type");
   gtk_container_add(GTK_CONTAINER(frame),
                     bg_gtk_textview_get_widget(ret->w_description));
   gtk_widget_show(frame);
-  gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 1, 2);
+  gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 1, 2,
+                   GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
+  
+  frame = create_frame("Meta info");
 
-  frame = gtk_frame_new("Meta info");
-  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_metadata));
+  scrolledwin = gtk_scrolled_window_new((GtkAdjustment*)0, (GtkAdjustment*)0);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwin),
+                                 GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+  
+  gtk_container_add(GTK_CONTAINER(scrolledwin),
+                    bg_gtk_textview_get_widget(ret->w_metadata));
+  gtk_widget_show(scrolledwin);
+  
+  gtk_container_add(GTK_CONTAINER(frame), scrolledwin);
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 2, 3);
 
@@ -592,17 +609,18 @@ bg_gtk_info_window_create(bg_player_t * player,
 
   table = gtk_table_new(2, 2, 0);
 
-  frame = gtk_frame_new("Stream type");
+  frame = create_frame("Stream type");
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_audio_description));
   gtk_widget_show(frame);
-  gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 0, 1);
+  gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 0, 1,
+                   GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
 
-  frame = gtk_frame_new("Input format");
+  frame = create_frame("Input format");
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_audio_format_i));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 1, 1, 2);
 
-  frame = gtk_frame_new("Output format");
+  frame = create_frame("Output format");
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_audio_format_o));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 1, 2, 1, 2);
@@ -619,17 +637,18 @@ bg_gtk_info_window_create(bg_player_t * player,
 
   table = gtk_table_new(2, 2, 0);
 
-  frame = gtk_frame_new("Stream type");
+  frame = create_frame("Stream type");
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_video_description));
   gtk_widget_show(frame);
-  gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 0, 1);
+  gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 0, 1,
+                   GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
 
-  frame = gtk_frame_new("Input format");
+  frame = create_frame("Input format");
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_video_format_i));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 1, 1, 2);
 
-  frame = gtk_frame_new("Output format");
+  frame = create_frame("Output format");
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_video_format_o));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 1, 2, 1, 2);

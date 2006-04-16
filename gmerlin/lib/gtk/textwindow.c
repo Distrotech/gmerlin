@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include <gui_gtk/textview.h>
+#include <gui_gtk/gtkutils.h>
 
 /* Box for displaying static text */
 
@@ -55,7 +56,7 @@ bg_gtk_textwindow_create(const char * text, const char * title)
   bg_gtk_textwindow_t * ret;
   ret = calloc(1, sizeof(*ret));
 
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
   
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);

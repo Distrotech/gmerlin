@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include <inttypes.h>
+#include <limits.h>
 #include <gtk/gtk.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -86,7 +87,31 @@ GdkPixbuf * bg_gtk_pixbuf_scale_alpha(GdkPixbuf * src,
   return ret;
   }
 
-void bg_gtk_init(int * argc, char *** argv)
+static GdkPixbuf * window_pixbuf = (GdkPixbuf*)0;
+
+void set_default_window_icon(const char * icon)
+  {
+  char * tmp;
+  tmp = bg_search_file_read("icons", icon);
+  if(tmp)
+    {
+    if(window_pixbuf)
+      g_object_unref(window_pixbuf);
+    window_pixbuf = gdk_pixbuf_new_from_file(tmp, NULL);
+    free(tmp);
+    }
+  }
+
+GtkWidget * bg_gtk_window_new(GtkWindowType type)
+  {
+  GtkWidget * ret = gtk_window_new(type);
+  if(window_pixbuf)
+    gtk_window_set_icon(GTK_WINDOW(ret), window_pixbuf);
+  return ret;
+  }
+
+
+void bg_gtk_init(int * argc, char *** argv, char * default_window_icon)
   {
   //  gtk_disable_setlocale();
   gtk_init(argc, argv);
@@ -94,6 +119,10 @@ void bg_gtk_init(int * argc, char *** argv)
   /* No, we don't like commas as decimal separators */
   
   setlocale(LC_NUMERIC, "C");
+
+  /* Set the default window icon */
+  set_default_window_icon(default_window_icon);
+
   }
 
 void bg_gdk_pixbuf_render_pixmap_and_mask(GdkPixbuf *pixbuf,
@@ -306,3 +335,4 @@ char * bg_gtk_convert_font_name_to_pango(const char * name)
   return ret;
   
   }
+

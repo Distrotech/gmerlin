@@ -596,7 +596,7 @@ void player_window_create(gmerlin_t * g)
   
   /* Create objects */
   
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_decorated(GTK_WINDOW(ret->window), FALSE);
 
   ret->accel_group = gtk_accel_group_new();

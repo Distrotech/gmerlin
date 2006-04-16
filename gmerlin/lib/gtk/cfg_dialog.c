@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "gtk_dialog.h"
+#include <gui_gtk/gtkutils.h>
+
 
 enum
 {
@@ -298,7 +300,7 @@ static bg_dialog_t * create_dialog(const char * title)
   g_object_ref (G_OBJECT (ret->tooltips));
   gtk_object_sink (GTK_OBJECT (ret->tooltips));
   
-  ret->window       = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->window       = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
   gtk_window_set_title(GTK_WINDOW(ret->window), title);
     
@@ -377,11 +379,9 @@ static bg_dialog_t * create_dialog(const char * title)
   
   /* Create the rest */
 
-  hbox = gtk_hbox_new(0, 5);
-
-  gtk_box_pack_start_defaults(GTK_BOX(hbox), ret->scrolledwindow);
-  gtk_box_pack_start(GTK_BOX(hbox), ret->notebook, FALSE, FALSE, 0);
-
+  hbox = gtk_hpaned_new();
+  gtk_paned_add1(GTK_PANED(hbox), ret->scrolledwindow);
+  gtk_paned_add2(GTK_PANED(hbox), ret->notebook);
   gtk_widget_show(hbox);
   
   ret->mainbox = gtk_vbox_new(0, 5);

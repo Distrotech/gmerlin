@@ -23,7 +23,7 @@ GdkPixbuf * bg_gtk_pixbuf_scale_alpha(GdkPixbuf * src,
                                       float * foreground,
                                       float * background);
 
-void bg_gtk_init(int * argc, char *** argv);
+void bg_gtk_init(int * argc, char *** argv, char * default_window_icon);
 
 void bg_gdk_pixbuf_render_pixmap_and_mask(GdkPixbuf *pixbuf,
                                           GdkPixmap **pixmap_return,
@@ -33,3 +33,5 @@ void bg_gtk_set_widget_bg_pixmap(GtkWidget * w, GdkPixmap *pixmap);
 
 char * bg_gtk_convert_font_name_from_pango(const char * name);
 char * bg_gtk_convert_font_name_to_pango(const char * name);
+
+GtkWidget * bg_gtk_window_new(GtkWindowType type);

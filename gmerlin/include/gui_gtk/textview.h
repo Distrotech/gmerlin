@@ -19,7 +19,7 @@
 
 typedef struct bg_gtk_textview_s bg_gtk_textview_t;
 
-bg_gtk_textview_t * bg_gtk_textview_create();
+bg_gtk_textview_t * bg_gtk_textview_create(void);
 void bg_gtk_textview_destroy(bg_gtk_textview_t *);
 
 void bg_gtk_textview_update(bg_gtk_textview_t *, const char * text);

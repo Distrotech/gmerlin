@@ -1,4 +1,6 @@
+
 #include "gui.h"
+#include <gui_gtk/gtkutils.h>
 
 struct mixer_window_s
   {
@@ -149,7 +151,7 @@ mixer_window_t * mixer_window_create(alsa_mixer_t * mixer,
   mixer_window_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->cfg_reg = cfg_reg;
-  ret->main_win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->main_win = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(ret->main_win), "Gmerlin Alsamixer");
   
   

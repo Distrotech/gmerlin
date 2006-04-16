@@ -25,6 +25,7 @@
 #include <utils.h>
 
 #include <gui_gtk/logwindow.h>
+#include <gui_gtk/gtkutils.h>
 
 /* This is missing in the gtk headers */
 
@@ -172,7 +173,7 @@ bg_gtk_log_window_t * bg_gtk_log_window_create(void (*close_callback)(bg_gtk_log
   ret = calloc(1, sizeof(*ret));
 
   /* Create window */
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(ret->window), "Log viewer");
 
   g_signal_connect(G_OBJECT(ret->window), "delete_event",

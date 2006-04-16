@@ -53,7 +53,7 @@ int main(int argc, char ** argv)
   
   /* Fire up the actual player */
 
-  bg_gtk_init(&argc, &argv);
+  bg_gtk_init(&argc, &argv, "player_icon.png");
   
   gmerlin = gmerlin_create(cfg_reg);
 

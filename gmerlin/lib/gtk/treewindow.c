@@ -23,6 +23,7 @@
 
 #include <tree.h>
 #include <gui_gtk/tree.h>
+#include <gui_gtk/gtkutils.h>
 
 extern void
 gtk_decorated_window_move_resize_window(GtkWindow*,int, int, int, int);
@@ -150,7 +151,7 @@ bg_gtk_tree_window_create(bg_media_tree_t * tree,
     bg_cfg_section_find_subsection(bg_media_tree_get_cfg_section(tree), "gtk_treewindow");
   
 
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_add_accel_group(GTK_WINDOW(ret->window), accel_group);
 
   ret->widget = bg_gtk_tree_widget_create(tree, accel_group, ret->window);

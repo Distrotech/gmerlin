@@ -14,6 +14,8 @@
 #include <gui_gtk/plugin.h>
 #include <gui_gtk/fileentry.h>
 #include <gui_gtk/message.h>
+#include <gui_gtk/gtkutils.h>
+
 #define DELAY_TIME 100
 
 struct gmerlin_webcam_window_s 
@@ -271,7 +273,7 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   
   ret->plugin_reg = reg;
     
-  ret->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->win = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
   gtk_window_set_title(GTK_WINDOW(ret->win), "Camelot-"VERSION);
   

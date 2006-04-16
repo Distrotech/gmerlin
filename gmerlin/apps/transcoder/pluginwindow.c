@@ -5,6 +5,7 @@
 #include <transcoder_track.h>
 
 #include <gui_gtk/plugin.h>
+#include <gui_gtk/gtkutils.h>
 
 #include "transcoder_window.h"
 #include "pluginwindow.h"
@@ -70,7 +71,7 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
   ret->tw = win;
   ret->plugin_reg = plugin_reg;
     
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(ret->window), "Plugins");
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
   ret->close_notify      = close_notify;

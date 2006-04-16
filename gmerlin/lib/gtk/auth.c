@@ -21,6 +21,7 @@
 #include <gtk/gtk.h>
 
 #include <gui_gtk/auth.h>
+#include <gui_gtk/gtkutils.h>
 
 #include <utils.h>
 
@@ -64,7 +65,7 @@ userpass_win * userpass_win_create(const char * resource)
   ret = calloc(1, sizeof(*ret));
 
   /* Create window */
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(ret->window), "Authentication");
   gtk_window_set_modal(GTK_WINDOW(ret->window), 1);
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);

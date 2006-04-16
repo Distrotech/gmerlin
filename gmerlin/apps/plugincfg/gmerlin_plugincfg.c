@@ -91,7 +91,7 @@ static app_window * create_window(bg_plugin_registry_t * reg)
     
   ret->plugin_reg = reg;
   
-  ret->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
   
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
@@ -308,7 +308,7 @@ int main(int argc, char ** argv)
   bg_cfg_registry_t * cfg_reg;
   bg_cfg_section_t * cfg_section;
 
-  bg_gtk_init(&argc, &argv);
+  bg_gtk_init(&argc, &argv, "plugincfg_icon.png");
   cfg_reg = bg_cfg_registry_create();
     
   config_path = bg_search_file_read("generic", "config.xml");

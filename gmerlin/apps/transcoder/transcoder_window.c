@@ -33,6 +33,7 @@
 
 #include <gui_gtk/display.h>
 #include <gui_gtk/scrolltext.h>
+#include <gui_gtk/gtkutils.h>
 
 #include "transcoder_window.h"
 #include "transcoder_remote.h"
@@ -745,7 +746,7 @@ transcoder_window_t * transcoder_window_create()
   
   /* Create window */
   
-  ret->win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  ret->win = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_position(GTK_WINDOW(ret->win), GTK_WIN_POS_CENTER);
   gtk_window_set_title(GTK_WINDOW(ret->win),
                        "Gmerlin transcoder "VERSION);

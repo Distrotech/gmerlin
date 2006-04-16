@@ -22,6 +22,7 @@
 #include <gtk/gtk.h>
 
 #include <gui_gtk/question.h>
+#include <gui_gtk/gtkutils.h>
 
 typedef struct
   {
@@ -65,7 +66,7 @@ int bg_gtk_question(const char * question)
     
   /* Create objects */
   
-  q->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+  q->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
   gtk_window_set_position(GTK_WINDOW(q->window), GTK_WIN_POS_CENTER);
 

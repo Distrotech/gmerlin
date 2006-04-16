@@ -6,7 +6,7 @@
 int main(int argc, char ** argv)
   {
   int ans;
-  bg_gtk_init(&argc, &argv);
+  bg_gtk_init(&argc, &argv, (char*)0);
   
   ans = bg_gtk_question("Switch coffemachine to backwards\rOr not?");
 
