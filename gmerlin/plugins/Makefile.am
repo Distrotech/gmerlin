@@ -70,5 +70,6 @@ $(tiff_subdirs) \
 $(x11_subdirs) \
 $(cdio_subdirs) \
 wavwrite \
-image
+image \
+postprocessors
 

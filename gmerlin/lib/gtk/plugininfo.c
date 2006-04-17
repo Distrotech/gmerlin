@@ -44,6 +44,7 @@ type_names[] =
     { "Audio/Video encoder",  BG_PLUGIN_ENCODER },
     { "Image Reader",   BG_PLUGIN_IMAGE_READER  },
     { "Image Writer",   BG_PLUGIN_IMAGE_WRITER  },
+    { "Encoding postprocessor",   BG_PLUGIN_ENCODER_PP  },
     { (char*)0,         BG_PLUGIN_NONE }
   };
 

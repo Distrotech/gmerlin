@@ -122,13 +122,30 @@ static void track_2_xml(bg_transcoder_track_t * track,
     }
   }
 
+static void global_2_xml(bg_transcoder_track_global_t * g,
+                         xmlNodePtr xml_global)
+  {
+  xmlNodePtr node;
+  if(g->pp_plugin)
+    {
+    node = xmlNewTextChild(xml_global, (xmlNsPtr)0, (xmlChar*)"PP_PLUGIN", NULL);
+    xmlAddChild(node, BG_XML_NEW_TEXT(g->pp_plugin));
+    xmlAddChild(xml_global, BG_XML_NEW_TEXT("\n"));
+    
+    node = xmlNewTextChild(xml_global, (xmlNsPtr)0, (xmlChar*)"PP_SECTION", NULL);
+    section_2_xml(g->pp_section, node);
+    xmlAddChild(xml_global, BG_XML_NEW_TEXT("\n"));
+    }
+  }
+
 void bg_transcoder_tracks_save(bg_transcoder_track_t * t,
+                               bg_transcoder_track_global_t * g,
                                const char * filename)
   {
   bg_transcoder_track_t * tmp;
 
   xmlDocPtr  xml_doc;
-  xmlNodePtr root_node, xml_track;
+  xmlNodePtr root_node, node;
     
   xml_doc = xmlNewDoc((xmlChar*)"1.0");
   root_node = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)"TRANSCODER_TRACKS", NULL);
@@ -136,14 +153,18 @@ void bg_transcoder_tracks_save(bg_transcoder_track_t * t,
 
   xmlAddChild(root_node, BG_XML_NEW_TEXT("\n"));
 
+  node = xmlNewTextChild(root_node, (xmlNsPtr)0, (xmlChar*)"GLOBAL", NULL);
+  global_2_xml(g, node);
+  xmlAddChild(root_node, BG_XML_NEW_TEXT("\n"));
+  
   tmp = t;
 
   while(tmp)
     {
-    xml_track = xmlNewTextChild(root_node, (xmlNsPtr)0, (xmlChar*)"TRACK", NULL);
-    xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
-    track_2_xml(tmp, xml_track);
-    xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
+    node = xmlNewTextChild(root_node, (xmlNsPtr)0, (xmlChar*)"TRACK", NULL);
+    xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
+    track_2_xml(tmp, node);
+    xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
     tmp = tmp->next;
     xmlAddChild(root_node, BG_XML_NEW_TEXT("\n"));
     }
@@ -392,8 +413,50 @@ static int xml_2_track(bg_transcoder_track_t * t,
   return ret;
   }
 
+static int xml_2_global(bg_transcoder_track_global_t * g,
+                        xmlDocPtr xml_doc, xmlNodePtr node,
+                        bg_plugin_registry_t * plugin_reg)
+  {
+  int ret = 0;
+  char * tmp_string;
+
+  bg_transcoder_track_global_free(g);
+  node = node->children;
+  while(node)
+    {
+    if(!node->name)
+      {
+      node = node->next;
+      continue;
+      }
+    if(!BG_XML_STRCMP(node->name, "PP_PLUGIN"))
+      {
+      tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
+
+      if(tmp_string)
+        {
+        g->pp_plugin = bg_strdup(g->pp_plugin, tmp_string);
+        xmlFree(tmp_string);
+        }
+      }
+    else if(!BG_XML_STRCMP(node->name, "PP_SECTION"))
+      {
+      g->pp_section = xml_2_section(xml_doc, node);
+      }
+    node = node->next;
+    }
+  
+  /* Load audio encoder */
+
+  ret = 1;
+  
+  return ret;
+  }
+
+
 bg_transcoder_track_t *
 bg_transcoder_tracks_load(const char * filename,
+                          bg_transcoder_track_global_t * g,
                           bg_plugin_registry_t * plugin_reg)
   {
   xmlDocPtr xml_doc;
@@ -443,6 +506,11 @@ bg_transcoder_tracks_load(const char * filename,
       xml_2_track(end, xml_doc, node, plugin_reg, &audio_encoder,
                   &video_encoder);
       }
+    else if(node->name && !BG_XML_STRCMP(node->name, "GLOBAL"))
+      {
+      xml_2_global(g, xml_doc, node, plugin_reg);
+      }
+    
     node = node->next;
     }
 

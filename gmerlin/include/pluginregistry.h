@@ -144,6 +144,12 @@ void bg_plugin_registry_set_encode_audio_to_video(bg_plugin_registry_t *,
 
 int bg_plugin_registry_get_encode_audio_to_video(bg_plugin_registry_t *);
 
+void bg_plugin_registry_set_encode_pp(bg_plugin_registry_t *,
+                                      int encode_pp);
+
+int bg_plugin_registry_get_encode_pp(bg_plugin_registry_t *);
+
+
 /*
  *  Add a device to a plugin
  */

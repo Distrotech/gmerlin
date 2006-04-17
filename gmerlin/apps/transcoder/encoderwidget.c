@@ -239,7 +239,8 @@ encoder_window_t * encoder_window_create(bg_plugin_registry_t * plugin_reg)
   ret = calloc(1, sizeof(*ret));
 
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);
-
+  gtk_window_set_position(GTK_WINDOW(ret->window), GTK_WIN_POS_CENTER);
+  
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback),
                    ret);

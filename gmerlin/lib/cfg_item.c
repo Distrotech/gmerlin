@@ -145,39 +145,50 @@ void bg_cfg_destroy_item(bg_cfg_item_t * item)
   free(item);
   }
 
-bg_cfg_item_t * bg_cfg_item_copy(bg_cfg_item_t * src)
+void bg_cfg_item_to_parameter(bg_cfg_item_t * src, bg_parameter_info_t * info)
+  {
+  memset(info, 0, sizeof(*info));
+  info->name = src->name;
+
+  switch(src->type)
+    {
+    case BG_CFG_INT:
+      info->type = BG_PARAMETER_INT;
+      break;
+    case BG_CFG_FLOAT:
+      info->type = BG_PARAMETER_FLOAT;
+      break;
+    case BG_CFG_STRING:
+      info->type = BG_PARAMETER_STRING;
+      break;
+    case BG_CFG_STRING_HIDDEN:
+      info->type = BG_PARAMETER_STRING_HIDDEN;
+      break;
+    case BG_CFG_COLOR:
+      info->type = BG_PARAMETER_COLOR_RGBA;
+      break;
+    case BG_CFG_TIME: /* int64 */
+      info->type = BG_PARAMETER_TIME;
+      break;
+    }
+  }
+
+void bg_cfg_item_transfer(bg_cfg_item_t * src, bg_cfg_item_t * dst)
   {
   bg_parameter_info_t info;
+  bg_cfg_item_to_parameter(src, &info);
+  bg_parameter_value_copy(&(dst->value), &(src->value), &info);
+  }
+
+bg_cfg_item_t * bg_cfg_item_copy(bg_cfg_item_t * src)
+  {
   
   bg_cfg_item_t * ret;
   ret = calloc(1, sizeof(*ret));
 
-  memset(&info, 0, sizeof(info));
-    
   ret->name = bg_strdup(ret->name, src->name);
   ret->type = src->type;
-
-  switch(ret->type)
-    {
-    case BG_CFG_INT:
-      info.type = BG_PARAMETER_INT;
-      break;
-    case BG_CFG_FLOAT:
-      info.type = BG_PARAMETER_FLOAT;
-      break;
-    case BG_CFG_STRING:
-      info.type = BG_PARAMETER_STRING;
-      break;
-    case BG_CFG_STRING_HIDDEN:
-      info.type = BG_PARAMETER_STRING_HIDDEN;
-      break;
-    case BG_CFG_COLOR:
-      info.type = BG_PARAMETER_COLOR_RGBA;
-      break;
-    case BG_CFG_TIME: /* int64 */
-      info.type = BG_PARAMETER_TIME;
-      break;
-    }
-  bg_parameter_value_copy(&(ret->value), &(src->value), &info);
+  bg_cfg_item_transfer(src, ret);
   return ret;
   }
+

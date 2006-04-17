@@ -1286,3 +1286,62 @@ bg_transcoder_track_set_encoders(bg_transcoder_track_t * track,
                           audio_encoder, video_encoder);
   
   }
+
+void
+bg_transcoder_track_global_to_reg(bg_transcoder_track_global_t * g,
+                                  bg_plugin_registry_t * plugin_reg)
+  {
+  bg_cfg_section_t * plugin_section;
+  
+  if(g->pp_plugin)
+    {
+    fprintf(stderr, "bg_transcoder_track_global_to_reg %s\n", g->pp_plugin);
+    bg_plugin_registry_set_default(plugin_reg, BG_PLUGIN_ENCODER_PP,
+                                   g->pp_plugin);
+    bg_plugin_registry_set_encode_pp(plugin_reg, 1);
+
+    plugin_section =
+      bg_plugin_registry_get_section(plugin_reg, g->pp_plugin);
+
+    fprintf(stderr, "Plugin section: %p %p\n", g->pp_section, plugin_section);
+    
+    bg_cfg_section_transfer(g->pp_section, plugin_section);
+    }
+  else
+    {
+    bg_plugin_registry_set_encode_pp(plugin_reg, 0);
+    }
+  }
+
+void
+bg_transcoder_track_global_from_reg(bg_transcoder_track_global_t * g,
+                                    bg_plugin_registry_t * plugin_reg)
+  {
+  bg_cfg_section_t * plugin_section;
+  const bg_plugin_info_t * plugin_info;
+  
+  bg_transcoder_track_global_free(g);
+  if(bg_plugin_registry_get_encode_pp(plugin_reg))
+    {
+    plugin_info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_ENCODER_PP);
+    g->pp_plugin = bg_strdup((char*)0, plugin_info->name);
+    plugin_section = bg_plugin_registry_get_section(plugin_reg, plugin_info->name);
+    g->pp_section = bg_cfg_section_copy(plugin_section);
+    }
+  }
+
+void
+bg_transcoder_track_global_free(bg_transcoder_track_global_t * g)
+  {
+  if(g->pp_plugin)
+    {
+    free(g->pp_plugin);
+    g->pp_plugin = (char*)0;
+    }
+  if(g->pp_section)
+    {
+    bg_cfg_section_destroy(g->pp_section);
+    g->pp_section = (bg_cfg_section_t*)0;
+    }
+
+  }

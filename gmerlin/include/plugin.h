@@ -24,7 +24,7 @@
 #include "parameter.h"
 #include "streaminfo.h"
 
-#define BG_PLUGIN_API_VERSION 4
+#define BG_PLUGIN_API_VERSION 5
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -80,8 +80,9 @@ typedef enum
     BG_PLUGIN_ENCODER_AUDIO      = (1<<5),
     BG_PLUGIN_ENCODER_VIDEO      = (1<<6),
     BG_PLUGIN_ENCODER            = (1<<7), // Encoder for both audio and video
-    BG_PLUGIN_IMAGE_READER       = (1<<8),
-    BG_PLUGIN_IMAGE_WRITER       = (1<<9)
+    BG_PLUGIN_ENCODER_PP         = (1<<8), // Encoder postprocessor
+    BG_PLUGIN_IMAGE_READER       = (1<<9),
+    BG_PLUGIN_IMAGE_WRITER       = (1<<10)
   } bg_plugin_type_t;
 
 /* At least one of these must be set */
@@ -602,6 +603,41 @@ typedef struct bg_encoder_plugin_s
 
   void (*close)(void*, int do_delete);
   } bg_encoder_plugin_t;
+
+
+/*******************************************
+ * ENCODER Postprocessor
+ *******************************************/
+typedef struct bg_e_pp_plugin_callbacks_s
+  {
+  void (*progress_callback)(void * data, float perc);
+  void * data;
+  } bg_e_pp_callbacks_t;
+
+typedef struct bg_encoder_pp_plugin_s
+  {
+  bg_plugin_common_t common;
+
+  /* Maximum number of audio/video streams. -1 means infinite */
+
+  int max_audio_streams;
+  int max_video_streams;
+
+  /* Set callbacks */
+
+  void (*set_callbacks)(void*,bg_e_pp_callbacks_t*);
+  
+  /* Initialize */
+  
+  int (*init)(void *);
+
+  /* Add a transcoded track */
+  void (*add_track)(void*, const char * filename,
+                    bg_metadata_t * metadata);
+  
+  void (*execute)(void*, const char * directory, int cleanup);
+  } bg_encoder_pp_plugin_t;
+
 
 /*******************************************
  * Image reader

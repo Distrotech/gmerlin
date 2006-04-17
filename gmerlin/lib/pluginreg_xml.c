@@ -41,6 +41,7 @@ type_names[] =
     { "EncoderAudio",  BG_PLUGIN_ENCODER_AUDIO },
     { "EncoderVideo",  BG_PLUGIN_ENCODER_VIDEO },
     { "Encoder",       BG_PLUGIN_ENCODER },
+    { "EncoderPP",     BG_PLUGIN_ENCODER_PP },
     { "ImageReader",   BG_PLUGIN_IMAGE_READER },
     { "ImageWriter",   BG_PLUGIN_IMAGE_WRITER },
     { (char*)0,        BG_PLUGIN_NONE }
@@ -203,9 +204,11 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
     else if(!BG_XML_STRCMP(cur->name, flags_key))
       {
       start_ptr = tmp_string;
-
+      
       while(1)
         {
+        if(!start_ptr) break;
+        
         end_ptr = strchr(start_ptr, '|');
         if(!end_ptr)
           end_ptr = &(start_ptr[strlen(start_ptr)]);
@@ -338,34 +341,36 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
     }
 
   /* Write flags */
-  
-  num_flags = 0;
 
-  for(i = 0; i < 32; i++)
+  if(info->flags)
     {
-    flag = (1<<i);
-    if(info->flags & flag)
-      num_flags++;
-    }
-  buffer[0] = '\0';
-  index = 0;
-  
-  for(i = 0; i < 32; i++)
-    {
-    flag = (1<<i);
-    if(!(info->flags & flag))
-      continue;
+    num_flags = 0;
     
-    flag_name = get_flag_name(flag);
-    strcat(buffer, flag_name);
-    if(index < num_flags-1)
-      strcat(buffer, "|");
-    index++;
-    }
-  xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)flags_key, NULL);
-  xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
-  xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+    for(i = 0; i < 32; i++)
+      {
+      flag = (1<<i);
+      if(info->flags & flag)
+        num_flags++;
+      }
+    buffer[0] = '\0';
+    index = 0;
   
+    for(i = 0; i < 32; i++)
+      {
+      flag = (1<<i);
+      if(!(info->flags & flag))
+        continue;
+    
+      flag_name = get_flag_name(flag);
+      strcat(buffer, flag_name);
+      if(index < num_flags-1)
+        strcat(buffer, "|");
+      index++;
+      }
+    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)flags_key, NULL);
+    xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
+    xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+    }
   xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)module_time_key, NULL);
   sprintf(buffer, "%ld", info->module_time);
   xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));

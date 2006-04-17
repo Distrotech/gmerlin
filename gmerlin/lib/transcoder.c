@@ -20,10 +20,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 #include <pluginregistry.h>
+#include <msgqueue.h>
 #include <transcoder.h>
+#include <transcodermsg.h>
 #include <utils.h>
 #include <bggavl.h>
+
 
 #define STREAM_STATE_OFF      0
 #define STREAM_STATE_ON       1
@@ -179,9 +183,11 @@ struct bg_transcoder_s
   
   audio_stream_t * audio_streams;
   video_stream_t * video_streams;
-  
-  bg_transcoder_info_t transcoder_info;
 
+  float percentage_done;
+  gavl_time_t remaining_time; /* Remaining time (Transcoding time, NOT track time!!!) */
+  double last_seconds;
+    
   int state;
     
   bg_plugin_handle_t * in_handle;
@@ -229,6 +235,16 @@ struct bg_transcoder_s
   char * output_filename;
 
   int is_url;
+
+  /* Message queues */
+  bg_msg_queue_list_t * message_queues;
+
+  
+  /* Multi threading stuff */
+  pthread_t thread;
+
+  int do_stop;
+  pthread_mutex_t stop_mutex;
   };
 
 static bg_parameter_info_t parameters[] =
@@ -281,6 +297,203 @@ bg_parameter_info_t * bg_transcoder_get_parameters()
   {
   return parameters;
   }
+
+/* Message stuff */
+
+typedef struct
+  {
+  int id;
+  int num;
+  } message_num_t;
+
+void set_message_num(bg_msg_t * msg, const void * data)
+  {
+  message_num_t * num = (message_num_t *)data;
+  bg_msg_set_id(msg, num->id);
+  bg_msg_set_arg_int(msg, 0, num->num);
+  }
+
+static void send_msg_num_audio_streams(bg_transcoder_t * transcoder,
+                                       int num)
+  {
+  message_num_t n;
+  n.id = BG_TRANSCODER_MSG_NUM_AUDIO_STREAMS;
+  n.num = num;
+  bg_msg_queue_list_send(transcoder->message_queues,
+                         set_message_num, &n);
+  }
+
+static void send_msg_num_video_streams(bg_transcoder_t * transcoder,
+                                       int num)
+  {
+  message_num_t n;
+  n.id = BG_TRANSCODER_MSG_NUM_VIDEO_STREAMS;
+  n.num = num;
+  bg_msg_queue_list_send(transcoder->message_queues,
+                         set_message_num, &n);
+  }
+
+
+typedef struct
+  {
+  int id;
+  int index;
+  gavl_audio_format_t * ifmt;
+  gavl_audio_format_t * ofmt;
+  } message_af_t;
+
+void set_message_audio_format(bg_msg_t * msg, const void * data)
+  {
+  message_af_t * m = (message_af_t *)data;
+
+  bg_msg_set_id(msg, m->id);
+  bg_msg_set_arg_int(msg, 0, m->index);
+  bg_msg_set_arg_audio_format(msg, 1, m->ifmt);
+  bg_msg_set_arg_audio_format(msg, 2, m->ofmt);
+  }
+
+static void send_msg_audio_format(bg_transcoder_t * transcoder,
+                                  int index,
+                                  gavl_audio_format_t * input_format,
+                                  gavl_audio_format_t * output_format)
+  {
+  message_af_t m;
+  m.id = BG_TRANSCODER_MSG_AUDIO_FORMAT;
+  m.index = index;
+  m.ifmt = input_format;
+  m.ofmt = output_format;
+  bg_msg_queue_list_send(transcoder->message_queues,
+                         set_message_audio_format, &m);
+  }
+
+typedef struct
+  {
+  int id;
+  int index;
+  gavl_video_format_t * ifmt;
+  gavl_video_format_t * ofmt;
+  } message_vf_t;
+
+void set_message_video_format(bg_msg_t * msg, const void * data)
+  {
+  message_vf_t * m = (message_vf_t *)data;
+
+  bg_msg_set_id(msg, m->id);
+  bg_msg_set_arg_int(msg, 0, m->index);
+  bg_msg_set_arg_video_format(msg, 1, m->ifmt);
+  bg_msg_set_arg_video_format(msg, 2, m->ofmt);
+  }
+
+
+static void send_msg_video_format(bg_transcoder_t * transcoder,
+                                  int index,
+                                  gavl_video_format_t * input_format,
+                                  gavl_video_format_t * output_format)
+  {
+  message_vf_t m;
+  m.id = BG_TRANSCODER_MSG_VIDEO_FORMAT;
+  m.index = index;
+  m.ifmt = input_format;
+  m.ofmt = output_format;
+  bg_msg_queue_list_send(transcoder->message_queues,
+                         set_message_video_format, &m);
+  }
+
+typedef struct
+  {
+  int id;
+  int index;
+  const char * name;
+  } message_file_t;
+
+void set_message_file(bg_msg_t * msg, const void * data)
+  {
+  message_file_t * m = (message_file_t *)data;
+
+  bg_msg_set_id(msg, m->id);
+  if(m->index >= 0)
+    {
+    bg_msg_set_arg_int(msg, 0, m->index);
+    bg_msg_set_arg_string(msg, 1, m->name);
+    }
+  else
+    bg_msg_set_arg_string(msg, 0, m->name);
+  }
+ 
+
+static void send_msg_audio_file(bg_transcoder_t * transcoder,
+                                int index,
+                                const char * filename)
+  {
+  message_file_t m;
+  m.id = BG_TRANSCODER_MSG_AUDIO_FILE;
+  m.name = filename;
+  m.index = index;
+  bg_msg_queue_list_send(transcoder->message_queues,
+                         set_message_file, &m);
+  }
+
+static void send_msg_video_file(bg_transcoder_t * transcoder,
+                                int index,
+                                const char * filename)
+  {
+  message_file_t m;
+  m.id = BG_TRANSCODER_MSG_VIDEO_FILE;
+  m.name = filename;
+  m.index = index;
+  bg_msg_queue_list_send(transcoder->message_queues,
+                         set_message_file, &m);
+  
+  }
+
+static void send_msg_file(bg_transcoder_t * transcoder,
+                          const char * filename)
+  {
+  message_file_t m;
+  m.id = BG_TRANSCODER_MSG_FILE;
+  m.name = filename;
+  m.index = -1;
+  bg_msg_queue_list_send(transcoder->message_queues,
+                         set_message_file, &m);
+  
+  }
+
+typedef struct
+  {
+  float perc;
+  gavl_time_t rem;
+  } message_progress_t;
+
+void set_message_progress(bg_msg_t * msg, const void * data)
+  {
+  message_progress_t * m = (message_progress_t *)data;
+  bg_msg_set_id(msg, BG_TRANSCODER_MSG_PROGRESS);
+  bg_msg_set_arg_float(msg, 0, m->perc);
+  bg_msg_set_arg_time(msg, 1, m->rem);
+  }
+
+static void send_msg_progress(bg_transcoder_t * transcoder)
+  {
+  message_progress_t n;
+  n.perc = transcoder->percentage_done;
+  n.rem = transcoder->remaining_time;
+  bg_msg_queue_list_send(transcoder->message_queues,
+                         set_message_progress, &n);
+  }
+
+void set_message_finished(bg_msg_t * msg, const void * data)
+  {
+  bg_msg_set_id(msg, BG_TRANSCODER_MSG_FINISHED);
+  }
+
+static void send_msg_finished(bg_transcoder_t * transcoder)
+  {
+  bg_msg_queue_list_send(transcoder->message_queues,
+                         set_message_finished, NULL);
+  }
+
+/* */
+
 
 static void prepare_audio_stream(audio_stream_t * ret,
                                  bg_transcoder_track_audio_t * s,
@@ -916,12 +1129,53 @@ static bg_plugin_handle_t * load_encoder_by_name(bg_plugin_registry_t * plugin_r
   return ret;
   }
 
+void bg_transcoder_add_message_queue(bg_transcoder_t * t,
+                                     bg_msg_queue_t * message_queue)
+  {
+  bg_msg_queue_list_add(t->message_queues, message_queue);
+  }
+
+
 bg_transcoder_t * bg_transcoder_create()
   {
   bg_transcoder_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->timer = gavl_timer_create();
+  ret->message_queues = bg_msg_queue_list_create();
+  pthread_mutex_init(&(ret->stop_mutex),  (pthread_mutexattr_t *)0);
   return ret;
+  }
+
+static void send_init_messages(bg_transcoder_t * t)
+  {
+  int i;
+  send_msg_num_audio_streams(t, t->num_audio_streams);
+
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    if(t->audio_streams[i].com.action == STREAM_ACTION_TRANSCODE)
+      {
+      send_msg_audio_format(t, i, &(t->audio_streams[i].in_format),
+                            &(t->audio_streams[i].out_format));
+      if(t->audio_streams[i].com.output_filename)
+        send_msg_audio_file(t, i, t->audio_streams[i].com.output_filename);
+      }
+    }
+
+  send_msg_num_video_streams(t, t->num_audio_streams);
+  for(i = 0; i < t->num_video_streams; i++)
+    {
+    if(t->video_streams[i].com.action == STREAM_ACTION_TRANSCODE)
+      {
+      send_msg_video_format(t, i, &(t->video_streams[i].in_format),
+                            &(t->video_streams[i].out_format));
+      if(t->video_streams[i].com.output_filename)
+        send_msg_video_file(t, i, t->video_streams[i].com.output_filename);
+      }
+    }
+  if(t->output_filename)
+    send_msg_file(t, t->output_filename);
+  
   }
 
 int bg_transcoder_init(bg_transcoder_t * ret,
@@ -1376,6 +1630,10 @@ int bg_transcoder_init(bg_transcoder_t * ret,
     bg_plugin_unref(encoder_handle);
     }
 
+  /* Send messages */
+
+  send_init_messages(ret);  
+  
   /* Set duration */
 
   if(ret->set_start_time && ret->set_end_time)
@@ -1420,10 +1678,6 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   
   }
 
-const bg_transcoder_info_t * bg_transcoder_get_info(bg_transcoder_t * t)
-  {
-  return &(t->transcoder_info);
-  }
 
 /*
  *  Do one iteration (Will be called as an idle function in the GUI main loop)
@@ -1477,6 +1731,7 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
     {
     t->state = TRANSCODER_STATE_FINISHED;
     //    fprintf(stderr, "finished\n");
+    send_msg_finished(t);
     return 0;
     }
   
@@ -1495,25 +1750,31 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   real_time = gavl_timer_get(t->timer);
   real_seconds = gavl_time_to_seconds(real_time);
 
-  t->transcoder_info.percentage_done =
+  t->percentage_done =
     gavl_time_to_seconds(t->time) /
     gavl_time_to_seconds(t->duration);
   
-  if(t->transcoder_info.percentage_done < 0.0)
-    t->transcoder_info.percentage_done = 0.0;
-  if(t->transcoder_info.percentage_done > 1.0)
-    t->transcoder_info.percentage_done = 1.0;
-  if(t->transcoder_info.percentage_done == 0.0)
+  if(t->percentage_done < 0.0)
+    t->percentage_done = 0.0;
+  if(t->percentage_done > 1.0)
+    t->percentage_done = 1.0;
+  if(t->percentage_done == 0.0)
     remaining_seconds = 0.0;
   else
     {
     remaining_seconds = real_seconds *
-      (1.0 / t->transcoder_info.percentage_done - 1.0);
+      (1.0 / t->percentage_done - 1.0);
     }
   
-  t->transcoder_info.remaining_time =
+  t->remaining_time =
     gavl_seconds_to_time(remaining_seconds);
 
+  if(real_seconds - t->last_seconds > 1.0)
+    {
+    send_msg_progress(t);
+    t->last_seconds = real_seconds;
+    }
+  
   //  fprintf(stderr, "t->transcoder_info.remaining_time: %lld\n",
   //          t->transcoder_info.remaining_time);
 
@@ -1719,6 +1980,10 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
   gavl_timer_destroy(t->timer);
   if(t->error_msg)
     free(t->error_msg);
+
+  bg_msg_queue_list_destroy(t->message_queues);
+  pthread_mutex_destroy(&(t->stop_mutex));
+
   
   free(t);
   }
@@ -1726,5 +1991,38 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
 const char * bg_transcoder_get_error(bg_transcoder_t * t)
   {
   return t->error_msg_ret;
+  }
+
+static void * thread_func(void * data)
+  {
+  int do_stop;
+  bg_transcoder_t * t = (bg_transcoder_t*)data;
+  while(bg_transcoder_iteration(t))
+    {
+    pthread_mutex_lock(&t->stop_mutex);
+    do_stop = t->do_stop;
+    pthread_mutex_unlock(&t->stop_mutex);
+    if(do_stop)
+      break;
+    }
+  
+  return NULL;
+  }
+
+void bg_transcoder_run(bg_transcoder_t * t)
+  {
+  pthread_create(&(t->thread), (pthread_attr_t*)0, thread_func, t);
+  }
+
+void bg_transcoder_stop(bg_transcoder_t * t)
+  {
+  pthread_mutex_lock(&t->stop_mutex);
+  t->do_stop = 1;
+  pthread_mutex_unlock(&t->stop_mutex);
+  }
+
+void bg_transcoder_finish(bg_transcoder_t * t)
+  {
+  pthread_join(t->thread, NULL);
   }
 

@@ -21,10 +21,13 @@ typedef struct
   bg_gtk_plugin_widget_single_t * audio_encoder_plugins;
   bg_gtk_plugin_widget_single_t * video_encoder_plugins;
 
+  bg_gtk_plugin_widget_single_t * encoder_pp_plugins;
+  
   bg_gtk_plugin_widget_multi_t  * image_readers;
   bg_gtk_plugin_widget_single_t  * image_writers;
 
   GtkWidget * audio_to_video;
+  GtkWidget * use_pp;
     
   GtkWidget * window;
   bg_plugin_registry_t * plugin_reg;
@@ -47,6 +50,22 @@ static void encode_audio_to_video_callback(GtkWidget * w, gpointer data)
   bg_plugin_registry_set_encode_audio_to_video(win->plugin_reg, audio_to_video);
   
   }
+
+static void use_pp_callback(GtkWidget * w, gpointer data)
+  {
+  app_window * win;
+  int use_pp;
+  
+  win = (app_window*)data;
+
+  use_pp = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w));
+
+  bg_gtk_plugin_widget_single_set_sensitive(win->encoder_pp_plugins,
+                                            use_pp);
+  
+  bg_plugin_registry_set_encode_pp(win->plugin_reg, use_pp);
+  }
+
 
 static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
                                 gpointer data)
@@ -140,11 +159,12 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                        BG_PLUGIN_ENCODER_AUDIO,
                                        BG_PLUGIN_FILE, NULL, NULL, ret->tooltips);
 
+  /* Audio to video */
   ret->audio_to_video = gtk_check_button_new_with_label("Encode audio into video file");
   
   g_signal_connect(G_OBJECT(ret->audio_to_video), "toggled",
                    G_CALLBACK(encode_audio_to_video_callback), ret);
-
+  
   gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ret->audio_to_video),
                               bg_plugin_registry_get_encode_audio_to_video(reg));
                               
@@ -157,6 +177,26 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                        BG_PLUGIN_ENCODER,
                                        BG_PLUGIN_FILE, set_video_encoder, ret, ret->tooltips);
 
+  ret->encoder_pp_plugins =
+    bg_gtk_plugin_widget_single_create("Postprocessor", reg,
+                                       BG_PLUGIN_ENCODER_PP,
+                                       0, NULL, NULL, ret->tooltips);
+
+  bg_gtk_plugin_widget_single_set_sensitive(ret->encoder_pp_plugins, 0);
+
+  
+  /* Postprocess */
+  ret->use_pp = gtk_check_button_new_with_label("Enable postprocessing");
+  
+  g_signal_connect(G_OBJECT(ret->use_pp), "toggled",
+                   G_CALLBACK(use_pp_callback), ret);
+  
+  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ret->use_pp),
+                               bg_plugin_registry_get_encode_pp(reg));
+  
+  gtk_widget_show(ret->use_pp);
+
+  /* Pack */
   
   table = gtk_table_new(1, 1, 0);
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
@@ -185,21 +225,38 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
   row = 0;
-  num_columns = 0;
+  num_columns = 6;
 
-  bg_gtk_plugin_widget_single_attach(ret->audio_encoder_plugins,
-                                     table,
-                                     &row, &num_columns);
-  bg_gtk_plugin_widget_single_attach(ret->video_encoder_plugins,
-                                     table,
-                                     &row, &num_columns);
-  
   gtk_table_resize(GTK_TABLE(table), row+1, num_columns);
   
   gtk_table_attach(GTK_TABLE(table),
                    ret->audio_to_video,
                    0, num_columns, row, row+1,
                    GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+  row += 1;
+
+  
+  bg_gtk_plugin_widget_single_attach(ret->audio_encoder_plugins,
+                                     table,
+                                     &row, &num_columns);
+  bg_gtk_plugin_widget_single_attach(ret->video_encoder_plugins,
+                                     table,
+                                     &row, &num_columns);
+
+  gtk_table_resize(GTK_TABLE(table), row+1, num_columns);
+  
+  gtk_table_attach(GTK_TABLE(table),
+                   ret->use_pp,
+                   0, num_columns, row, row+1,
+                   GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+  row += 1;
+
+  
+  
+  bg_gtk_plugin_widget_single_attach(ret->encoder_pp_plugins,
+                                     table,
+                                     &row, &num_columns);
+
   
   gtk_widget_show(table);
   

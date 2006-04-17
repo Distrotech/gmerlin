@@ -78,6 +78,7 @@ typedef struct bg_transcoder_track_s
   char * url;
   } bg_transcoder_track_t;
 
+
 bg_transcoder_track_t *
 bg_transcoder_track_create(const char * url,
                            const bg_plugin_info_t * plugin,
@@ -125,14 +126,38 @@ bg_transcoder_track_set_encoders(bg_transcoder_track_t * track,
                                  bg_plugin_registry_t * plugin_reg,
                                  bg_plugin_handle_t * audio_encoder,
                                  bg_plugin_handle_t * video_encoder);
-  
+
+/*
+ *  Global options
+ */
+
+typedef struct
+  {
+  char * pp_plugin; /* Postprocess */
+  bg_cfg_section_t    * pp_section;
+  } bg_transcoder_track_global_t;
+
+void
+bg_transcoder_track_global_to_reg(bg_transcoder_track_global_t * g,
+                                  bg_plugin_registry_t * plugin_reg);
+
+void
+bg_transcoder_track_global_from_reg(bg_transcoder_track_global_t * g,
+                                    bg_plugin_registry_t * plugin_reg);
+
+
+void
+bg_transcoder_track_global_free(bg_transcoder_track_global_t * g);
 
 /* transcoder_track_xml.c */
 
-void bg_transcoder_tracks_save(bg_transcoder_track_t * t, const char * filename);
+void bg_transcoder_tracks_save(bg_transcoder_track_t * t,
+                               bg_transcoder_track_global_t * g,
+                               const char * filename);
 
 bg_transcoder_track_t *
 bg_transcoder_tracks_load(const char * filename,
+                          bg_transcoder_track_global_t * g,
                           bg_plugin_registry_t * plugin_reg);
 
 #endif

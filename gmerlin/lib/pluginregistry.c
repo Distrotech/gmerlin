@@ -43,6 +43,7 @@ struct bg_plugin_registry_s
   bg_plugin_info_t * singlepic_encoder;
 
   int encode_audio_to_video;
+  int encode_pp;
   };
 
 static void free_info(bg_plugin_info_t * info)
@@ -567,6 +568,8 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
 
   bg_cfg_section_get_parameter_int(ret->config_section, "encode_audio_to_video",
                                    &(ret->encode_audio_to_video));
+  bg_cfg_section_get_parameter_int(ret->config_section, "encode_pp",
+                                   &(ret->encode_pp));
     
   return ret;
   }
@@ -601,7 +604,8 @@ static bg_plugin_info_t * find_by_index(bg_plugin_info_t * info,
   while(test_info)
     {
     if((test_info->type & type_mask) &&
-       (test_info->flags & flag_mask))
+       ((flag_mask == BG_PLUGIN_ALL) ||
+        (!test_info->flags && !flag_mask) || (test_info->flags & flag_mask)))
       {
       if(i == index)
         return test_info;
@@ -624,7 +628,9 @@ static bg_plugin_info_t * find_by_priority(bg_plugin_info_t * info,
   while(test_info)
     {
     if((test_info->type & type_mask) &&
-       (test_info->flags & flag_mask))
+       ((flag_mask == BG_PLUGIN_ALL) ||
+        (test_info->flags & flag_mask) ||
+        (!test_info->flags && !flag_mask)))
       {
       if(priority_max < test_info->priority)
         {
@@ -656,7 +662,7 @@ int bg_plugin_registry_get_num_plugins(bg_plugin_registry_t * reg,
   while(info)
     {
     if((info->type & type_mask) &&
-       (info->flags & flag_mask))
+       ((!info->flags && !flag_mask) || (info->flags & flag_mask)))
       ret++;
 
     //    fprintf(stderr, "Tried %s %d\n", info->name, ret);
@@ -716,6 +722,7 @@ static struct
     { BG_PLUGIN_ENCODER_AUDIO,                   "default_audio_encoder"  },
     { BG_PLUGIN_ENCODER_VIDEO|BG_PLUGIN_ENCODER, "default_video_encoder" },
     { BG_PLUGIN_IMAGE_WRITER,                    "default_image_writer"   },
+    { BG_PLUGIN_ENCODER_PP,                      "default_encoder_pp"  },
     { BG_PLUGIN_NONE,                            (char*)NULL              },
   };
 
@@ -1331,6 +1338,19 @@ int bg_plugin_registry_get_encode_audio_to_video(bg_plugin_registry_t * reg)
   {
   return reg->encode_audio_to_video;
   }
+
+void bg_plugin_registry_set_encode_pp(bg_plugin_registry_t * reg,
+                                      int use_pp)
+  {
+  reg->encode_pp = use_pp;
+  bg_cfg_section_set_parameter_int(reg->config_section, "encode_pp", use_pp);
+  }
+
+int bg_plugin_registry_get_encode_pp(bg_plugin_registry_t * reg)
+  {
+  return reg->encode_pp;
+  }
+
 
 int bg_plugin_equal(bg_plugin_handle_t * h1,
                      bg_plugin_handle_t * h2)

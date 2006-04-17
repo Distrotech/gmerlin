@@ -38,6 +38,7 @@
 #include "tracklist.h"
 #include "trackdialog.h"
 #include "encoderwidget.h"
+#include "ppwidget.h"
 
 static void track_list_update(track_list_t * w);
 
@@ -134,6 +135,8 @@ typedef struct
   GtkWidget *      selected_item;
   selected_menu_t  selected_menu;
 
+  GtkWidget      * pp_item;
+  
   GtkWidget      * menu;
   } menu_t;
 
@@ -164,6 +167,7 @@ struct track_list_s
   GtkWidget * down_button;
   
   bg_transcoder_track_t * tracks;
+  bg_transcoder_track_global_t track_global;
 
   bg_plugin_registry_t * plugin_reg;
 
@@ -184,6 +188,7 @@ struct track_list_s
   menu_t menu;
 
   encoder_window_t * encoder_window;
+  encoder_pp_window_t * encoder_pp_window;
 
   char * open_path;
   bg_gtk_filesel_t * filesel;
@@ -796,6 +801,12 @@ static void button_callback(GtkWidget * w, gpointer data)
       t->encoder_window = encoder_window_create(t->plugin_reg);
     encoder_window_run(t->encoder_window, t->tracks);
     }
+  else if(w == t->menu.pp_item)
+    {
+    if(!t->encoder_pp_window)
+      t->encoder_pp_window = encoder_pp_window_create(t->plugin_reg);
+    encoder_pp_window_run(t->encoder_pp_window, &t->track_global);
+    }
   }
 
 /* Menu stuff */
@@ -879,6 +890,8 @@ static void init_menu(track_list_t * t)
   gtk_menu_item_set_submenu(GTK_MENU_ITEM(t->menu.selected_item),
                             t->menu.selected_menu.menu);
   
+  t->menu.pp_item =
+    create_item(t, t->menu.menu, "Postprocess...", (char*)0);
   
   }
 
@@ -1277,7 +1290,7 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   
   if(tmp_path)
     {
-    ret->tracks = bg_transcoder_tracks_load(tmp_path, ret->plugin_reg);
+    ret->tracks = bg_transcoder_tracks_load(tmp_path, &ret->track_global, ret->plugin_reg);
 
     //    fprintf(stderr, "Loading tracks from %s\n", tmp_path);
     free(tmp_path);
@@ -1298,7 +1311,7 @@ void track_list_destroy(track_list_t * t)
 
   if(tmp_path)
     {
-    bg_transcoder_tracks_save(t->tracks, tmp_path);
+    bg_transcoder_tracks_save(t->tracks, &t->track_global, tmp_path);
     free(tmp_path);
     }
 
@@ -1344,7 +1357,7 @@ void track_list_load(track_list_t * t, const char * filename)
   bg_transcoder_track_t * end_track;
   bg_transcoder_track_t * new_tracks;
 
-  new_tracks = bg_transcoder_tracks_load(filename, t->plugin_reg);
+  new_tracks = bg_transcoder_tracks_load(filename, &t->track_global, t->plugin_reg);
   if(!t->tracks)
     {
     t->tracks = new_tracks;
@@ -1361,7 +1374,7 @@ void track_list_load(track_list_t * t, const char * filename)
 
 void track_list_save(track_list_t * t, const char * filename)
   {
-  bg_transcoder_tracks_save(t->tracks, filename);
+  bg_transcoder_tracks_save(t->tracks, &t->track_global, filename);
   }
 
 void track_list_set_display_colors(track_list_t * t, float * fg, float * bg)

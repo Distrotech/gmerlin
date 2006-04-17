@@ -411,7 +411,6 @@ void bg_cfg_section_get(bg_cfg_section_t * section,
     }
   }
 
-
 static bg_cfg_item_t * find_item_by_name(bg_cfg_section_t * section,
                                          const char * name,
                                          int create_item)
@@ -580,6 +579,37 @@ bg_cfg_section_t * bg_cfg_section_copy(bg_cfg_section_t * src)
     }
   return ret;
   }
+
+void bg_cfg_section_transfer(bg_cfg_section_t * src, bg_cfg_section_t * dst)
+  {
+  bg_cfg_item_t * src_item;
+  
+  bg_cfg_section_t * src_child;
+  bg_cfg_section_t * dst_child;
+  bg_parameter_info_t  info;
+  /* Copy items */
+  
+  src_item = src->items;
+  
+  while(src_item)
+    {
+    bg_cfg_item_to_parameter(src_item, &info);
+    bg_cfg_section_set_parameter(dst, &info, &(src_item->value));
+    src_item = src_item->next;
+    }
+  
+  /* Copy children */
+  
+  src_child = src->children;
+  
+  while(src_child)
+    {
+    dst_child = bg_cfg_section_find_subsection(dst, src_child->name);
+    bg_cfg_section_transfer(src_child, dst_child);
+    src_child = src_child->next;
+    }
+  }
+
 
 const char * bg_cfg_section_get_name(bg_cfg_section_t * s)
   {

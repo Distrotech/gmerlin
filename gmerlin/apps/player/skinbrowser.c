@@ -32,6 +32,7 @@
 
 #include <gui_gtk/fileselect.h>
 #include <gui_gtk/message.h>
+#include <gui_gtk/gtkutils.h>
 
 
 enum

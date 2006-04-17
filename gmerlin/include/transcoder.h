@@ -20,16 +20,17 @@
 #include <transcoder_track.h>
 
 typedef struct bg_transcoder_s bg_transcoder_t;
+#if 0
 
 typedef struct
   {
-  float percentage_done;
-  gavl_time_t remaining_time; /* Remaining time (Transcoding time, NOT track time!!!) */
   } bg_transcoder_info_t;
 
-bg_transcoder_t * bg_transcoder_create();
 
 const bg_transcoder_info_t * bg_transcoder_get_info(bg_transcoder_t * t);
+#endif
+
+bg_transcoder_t * bg_transcoder_create();
 
 bg_parameter_info_t * bg_transcoder_get_parameters();
 
@@ -49,3 +50,17 @@ const char * bg_transcoder_get_error(bg_transcoder_t * t);
 int bg_transcoder_iteration(bg_transcoder_t * t);
 
 void bg_transcoder_destroy(bg_transcoder_t * t);
+
+/* Messages (see transcodermsg.h) */
+
+void bg_transcoder_add_message_queue(bg_transcoder_t * t,
+                                     bg_msg_queue_t * message_queue);
+
+/*
+ *  Multithread interface
+ */
+
+void bg_transcoder_run(bg_transcoder_t * t);
+void bg_transcoder_stop(bg_transcoder_t * t);
+void bg_transcoder_finish(bg_transcoder_t * t);
+

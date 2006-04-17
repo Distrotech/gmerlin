@@ -25,6 +25,7 @@ streaminfo.h \
 tcp.h \
 textrenderer.h \
 transcoder.h \
+transcodermsg.h \
 transcoder_track.h \
 tree.h \
 utils.h

@@ -28,7 +28,10 @@
 
 #include <cfg_dialog.h>
 #include <transcoder_track.h>
+#include <msgqueue.h>
 #include <transcoder.h>
+#include <transcodermsg.h>
+
 #include <remote.h>
 
 #include <gui_gtk/display.h>
@@ -76,7 +79,6 @@ struct transcoder_window_s
 
   bg_transcoder_t * transcoder;
   bg_transcoder_track_t * transcoder_track;
-  const bg_transcoder_info_t * transcoder_info;
   
   guint idle_tag;
 
@@ -124,6 +126,7 @@ struct transcoder_window_s
     GtkWidget * menu;
     } actions_menu;
     
+  bg_msg_queue_t * msg_queue;
   };
 
 
@@ -272,6 +275,7 @@ static void plugin_window_close_notify(plugin_window_t * w,
 
 static void finish_transcoding(transcoder_window_t * win)
   {
+  bg_transcoder_finish(win->transcoder);
   bg_transcoder_destroy(win->transcoder);
   win->transcoder = (bg_transcoder_t*)0;
 
@@ -288,6 +292,10 @@ static void finish_transcoding(transcoder_window_t * win)
 
 static gboolean idle_callback(gpointer data)
   {
+  bg_msg_t * msg;
+  float percentage_done;
+  gavl_time_t remaining_time;
+  
   transcoder_window_t * win;
   win = (transcoder_window_t*)data;
 
@@ -295,46 +303,77 @@ static gboolean idle_callback(gpointer data)
 
   if(!win->transcoder)
     return FALSE;
-  
-  if(!bg_transcoder_iteration(win->transcoder))
+
+  msg = bg_msg_queue_try_lock_read(win->msg_queue);
+  if(msg)
     {
-    /* Finish transcoding */
-    finish_transcoding(win);
-
-    bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED);
-    gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
-
-    //    fprintf(stderr, "Transcoding done\n");
-
-    if(!start_transcode(win))
+    switch(bg_msg_get_id(msg))
       {
-      gtk_widget_set_sensitive(win->run_button, 1);
-      gtk_widget_set_sensitive(win->actions_menu.run_item, 1);
-      
-      gtk_widget_set_sensitive(win->stop_button, 0);
-      gtk_widget_set_sensitive(win->actions_menu.stop_item, 0);
+      case BG_TRANSCODER_MSG_NUM_AUDIO_STREAMS:
+        fprintf(stderr, "BG_TRANSCODER_MSG_NUM_AUDIO_STREAMS\n");
+        break;
+      case BG_TRANSCODER_MSG_AUDIO_FORMAT:
+        fprintf(stderr, "BG_TRANSCODER_MSG_AUDIO_FORMAT\n");
+        break;
+      case BG_TRANSCODER_MSG_AUDIO_FILE:
+        fprintf(stderr, "BG_TRANSCODER_MSG_AUDIO_FILE\n");
+        break;
+      case BG_TRANSCODER_MSG_NUM_VIDEO_STREAMS:
+        fprintf(stderr, "BG_TRANSCODER_MSG_NUM_VIDEO_STREAMS\n");
+        break;
+      case BG_TRANSCODER_MSG_VIDEO_FORMAT:
+        fprintf(stderr, "BG_TRANSCODER_MSG_VIDEO_FORMAT\n");
+        break;
+      case BG_TRANSCODER_MSG_VIDEO_FILE:
+        fprintf(stderr, "BG_TRANSCODER_MSG_VIDEO_FILE\n");
+        break;
+      case BG_TRANSCODER_MSG_FILE:
+        fprintf(stderr, "BG_TRANSCODER_MSG_FILE\n");
+        break;
+      case BG_TRANSCODER_MSG_PROGRESS:
+        //        fprintf(stderr, "BG_TRANSCODER_MSG_PROGRESS\n");
+        percentage_done = bg_msg_get_arg_float(msg, 0);
+        remaining_time = bg_msg_get_arg_time(msg, 1);
 
-      
-      
-      return FALSE;
+        bg_gtk_time_display_update(win->time_remaining,
+                                   remaining_time);
+        
+        //  fprintf(stderr, "done\n");
+        
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar),
+                                      percentage_done);
+        break;
+      case BG_TRANSCODER_MSG_FINISHED:
+        fprintf(stderr, "BG_TRANSCODER_MSG_FINISHED\n");
+
+        finish_transcoding(win);
+        
+        bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED);
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
+        
+        //    fprintf(stderr, "Transcoding done\n");
+        
+        if(!start_transcode(win))
+          {
+          gtk_widget_set_sensitive(win->run_button, 1);
+          gtk_widget_set_sensitive(win->actions_menu.run_item, 1);
+          
+          gtk_widget_set_sensitive(win->stop_button, 0);
+          gtk_widget_set_sensitive(win->actions_menu.stop_item, 0);
+          bg_msg_queue_unlock_read(win->msg_queue);
+          return FALSE;
+          }
+        else
+          {
+          win->idle_tag = g_timeout_add(200, idle_callback, win);
+          bg_msg_queue_unlock_read(win->msg_queue);
+          return FALSE;
+          }
+        break;
       }
-    else
-      {
-      win->idle_tag = g_idle_add(idle_callback, win);
-      return FALSE;
-      }
+    bg_msg_queue_unlock_read(win->msg_queue);
     }
-
-  /* Update status */
-
-  //  fprintf(stderr, "bg_gtk_time_display_update...");
-  bg_gtk_time_display_update(win->time_remaining,
-                             win->transcoder_info->remaining_time);
   
-  //  fprintf(stderr, "done\n");
-  
-  gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar),
-                                win->transcoder_info->percentage_done);
   return TRUE;
   }
 
@@ -355,8 +394,9 @@ static int start_transcode(transcoder_window_t * win)
     return 0;
     }
   win->transcoder            = bg_transcoder_create();
-
-  win->transcoder_info = bg_transcoder_get_info(win->transcoder);
+  bg_transcoder_add_message_queue(win->transcoder,
+                                  win->msg_queue);
+  
   
   bg_cfg_section_apply(cfg_section, bg_transcoder_get_parameters(),
                        bg_transcoder_set_parameter, win->transcoder);
@@ -393,6 +433,8 @@ static int start_transcode(transcoder_window_t * win)
 
   gtk_widget_set_sensitive(win->stop_button, 1);
   gtk_widget_set_sensitive(win->actions_menu.stop_item, 1);
+
+  bg_transcoder_run(win->transcoder);
   
   return 1;
   }
@@ -475,6 +517,8 @@ static void button_callback(GtkWidget * w, gpointer data)
     
     track_list_prepend_track(win->tracklist, win->transcoder_track);
     win->transcoder_track = (bg_transcoder_track_t*)0;
+
+    bg_transcoder_stop(win->transcoder);
     
     finish_transcoding(win);
     gtk_widget_set_sensitive(win->run_button, 1);
@@ -742,6 +786,8 @@ transcoder_window_t * transcoder_window_create()
     
   ret = calloc(1, sizeof(*ret));
 
+  ret->msg_queue = bg_msg_queue_create();
+  
   ret->tooltips = gtk_tooltips_new();
   
   /* Create window */

@@ -79,6 +79,7 @@ bg_cfg_section_create_from_parameters(const char * name,
 void bg_cfg_section_destroy(bg_cfg_section_t * s);
 
 bg_cfg_section_t * bg_cfg_section_copy(bg_cfg_section_t * src);
+void bg_cfg_section_transfer(bg_cfg_section_t * src, bg_cfg_section_t * dst);
 
 /*
  *  Get/Set section names

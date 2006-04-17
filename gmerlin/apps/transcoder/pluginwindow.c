@@ -10,6 +10,7 @@
 #include "transcoder_window.h"
 #include "pluginwindow.h"
 #include "encoderwidget.h"
+#include "ppwidget.h"
 
 struct plugin_window_s
   {
@@ -105,17 +106,19 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
   
   /* Pack */
   notebook = gtk_notebook_new();
-  label = gtk_label_new("Inputs");
-  gtk_widget_show(label);
-  gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
-                           bg_gtk_plugin_widget_multi_get_widget(ret->inputs),
-                           label);
 
   label = gtk_label_new("Encoders");
   gtk_widget_show(label);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
                            ret->encoders.widget, label);
 
+  
+
+  label = gtk_label_new("Inputs");
+  gtk_widget_show(label);
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook),
+                           bg_gtk_plugin_widget_multi_get_widget(ret->inputs),
+                           label);
 
   label = gtk_label_new("Image readers");
   gtk_widget_show(label);

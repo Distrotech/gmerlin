@@ -336,7 +336,7 @@ bg_gtk_plugin_widget_single_create(char * label,
 
   default_info = bg_plugin_registry_get_default(reg, type_mask);
 
-  //  fprintf(stderr, "Default info: %p\n", default_info);
+  fprintf(stderr, "Num plugins: %d, Default info: %p\n", num_plugins, default_info);
   
   /* Make combo */
 #ifdef GTK_2_4

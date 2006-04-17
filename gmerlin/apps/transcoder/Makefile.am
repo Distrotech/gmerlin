@@ -7,6 +7,7 @@ bin_PROGRAMS = gmerlin_transcoder gmerlin_transcoder_remote
 
 gmerlin_transcoder_SOURCES = \
 encoderwidget.c \
+ppwidget.c \
 main.c \
 pluginwindow.c \
 transcoder_window.c \
@@ -24,6 +25,7 @@ gmerlin_transcoder_remote_LDADD = \
 
 noinst_HEADERS = \
 encoderwidget.h \
+ppwidget.h \
 transcoder_remote.h \
 transcoder_window.h \
 tracklist.h \
