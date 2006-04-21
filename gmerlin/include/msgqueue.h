@@ -87,7 +87,7 @@ void bg_msg_get_arg_metadata(bg_msg_t * msg, int arg,
 
 /*
  *  You can get the string value only once from each arg
- *  and must free() it, when yor are done with it
+ *  and must free() it, when you are done with it
  */
 
 char * bg_msg_get_arg_string(bg_msg_t * msg, int arg);

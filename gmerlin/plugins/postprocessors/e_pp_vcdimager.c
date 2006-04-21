@@ -115,7 +115,7 @@ void add_track_vcdimager(void * data, const char * filename,
   
   }
 
-static void execute_vcdimager(void * data, const char * directory, int cleanup)
+static void run_vcdimager(void * data, const char * directory, int cleanup)
   {
 
   }
@@ -128,6 +128,7 @@ bg_encoder_pp_plugin_t the_plugin =
       name:              "e_pp_vcdimager", /* Unique short name */
       long_name:         "VCD image generator/burner",
       mimetypes:         NULL,
+      extensions:        "mpg",
       type:              BG_PLUGIN_ENCODER_PP,
       flags:             0,
       create:            create_vcdimager,
@@ -143,7 +144,7 @@ bg_encoder_pp_plugin_t the_plugin =
     set_callbacks:       set_callbacks_vcdimager,
     init:                init_vcdimager,
     add_track:           add_track_vcdimager,
-    execute:             execute_vcdimager,
+    run:                 run_vcdimager,
     
   };
 

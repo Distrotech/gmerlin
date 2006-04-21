@@ -10,6 +10,17 @@
 
 #include "ppwidget.h"
 
+typedef struct
+  {
+  bg_gtk_plugin_widget_single_t * plugins;
+  GtkWidget * pp;
+
+  GtkWidget * widget;
+
+  GtkTooltips * tooltips;
+  bg_plugin_registry_t * plugin_reg;
+  } encoder_pp_widget_t;
+
 static void button_callback(GtkWidget * w, gpointer data)
   {
   encoder_pp_widget_t * wid = (encoder_pp_widget_t *)data;
@@ -29,7 +40,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   }
 
-void encoder_pp_widget_init(encoder_pp_widget_t * ret, bg_plugin_registry_t * plugin_reg)
+static void encoder_pp_widget_init(encoder_pp_widget_t * ret, bg_plugin_registry_t * plugin_reg)
   {
   int row, num_columns;
   
@@ -83,7 +94,7 @@ void encoder_pp_widget_init(encoder_pp_widget_t * ret, bg_plugin_registry_t * pl
   gtk_widget_show(ret->widget);
   }
 
-void encoder_pp_widget_destroy(encoder_pp_widget_t * wid)
+static void encoder_pp_widget_destroy(encoder_pp_widget_t * wid)
   {
   bg_gtk_plugin_widget_single_destroy(wid->plugins);
   }
@@ -100,6 +111,14 @@ struct encoder_pp_window_s
 
   bg_transcoder_track_global_t * global;
   };
+
+bg_plugin_handle_t * encoder_pp_window_get_plugin(encoder_pp_window_t * win)
+  {
+  if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->encoder_pp_widget.pp)))
+    return bg_gtk_plugin_widget_single_get_plugin(win->encoder_pp_widget.plugins);
+  else
+    return (bg_plugin_handle_t *)0;
+  }
 
 static void encoder_pp_window_get(encoder_pp_window_t * win)
   {
@@ -227,5 +246,6 @@ void encoder_pp_window_run(encoder_pp_window_t * win,
 
 void encoder_pp_window_destroy(encoder_pp_window_t * win)
   {
+  encoder_pp_widget_destroy(&win->encoder_pp_widget);
   free(win);
   }

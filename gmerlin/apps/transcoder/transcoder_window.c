@@ -37,6 +37,7 @@
 #include <gui_gtk/display.h>
 #include <gui_gtk/scrolltext.h>
 #include <gui_gtk/gtkutils.h>
+#include <gui_gtk/logwindow.h>
 
 #include "transcoder_window.h"
 #include "transcoder_remote.h"
@@ -62,6 +63,9 @@ struct transcoder_window_s
   GtkWidget * load_button;
   GtkWidget * save_button;
 
+  bg_gtk_log_window_t * logwindow;
+  int show_logwindow;
+  
   GtkWidget * progress_bar;
   bg_gtk_time_display_t * time_remaining;
   bg_gtk_scrolltext_t   * scrolltext;
@@ -79,8 +83,11 @@ struct transcoder_window_s
 
   bg_transcoder_t * transcoder;
   bg_transcoder_track_t * transcoder_track;
+
+  /* Postprocessor */
+  bg_transcoder_pp_t * pp;
+  bg_plugin_handle_t * pp_plugin;
   
-  guint idle_tag;
 
   float fg_color[3];
   float fg_color_e[3]; /* Foreground color for error messages */
@@ -125,8 +132,15 @@ struct transcoder_window_s
     GtkWidget * stop_item;
     GtkWidget * menu;
     } actions_menu;
+
+  struct
+    {
+    GtkWidget * log_item;
+    GtkWidget * menu;
+    } windows_menu;
     
   bg_msg_queue_t * msg_queue;
+  
   };
 
 
@@ -176,6 +190,13 @@ static bg_parameter_info_t transcoder_window_parameters[] =
       type:        BG_PARAMETER_DIRECTORY,
       flags:       BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_str: "." },
+    },
+    {
+      name:        "show_logwindow",
+      long_name:   "Show log window",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      flags:       BG_PARAMETER_HIDE_DIALOG,
+      val_default: { val_i: 0 },
     },
     {
       name:        "gui",
@@ -228,6 +249,10 @@ set_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t *
     {
     bg_gtk_scrolltext_set_font(win->scrolltext, val->val_str);
     }
+  else if(!strcmp(name, "show_logwindow"))
+    {
+    win->show_logwindow = val->val_i;
+    }
   else if(!strcmp(name, "show_tooltips"))
     {
     if(val->val_i)
@@ -258,6 +283,11 @@ get_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t *
     val->val_str = bg_strdup(val->val_str, win->profile_path);
     return 1;
     }
+  else if(!strcmp(name, "show_logwindow"))
+    {
+    val->val_i = win->show_logwindow;
+    return 1;
+    }
   return 0;
   }
 
@@ -275,19 +305,28 @@ static void plugin_window_close_notify(plugin_window_t * w,
 
 static void finish_transcoding(transcoder_window_t * win)
   {
-  bg_transcoder_finish(win->transcoder);
-  bg_transcoder_destroy(win->transcoder);
-  win->transcoder = (bg_transcoder_t*)0;
-
-  if(win->transcoder_track)
-    {
-    bg_transcoder_track_destroy(win->transcoder_track);
-    win->transcoder_track = (bg_transcoder_track_t*)0;
-    }
+  fprintf(stderr, "Finish transcoding\n");
   
-  g_source_remove(win->idle_tag);
-  win->idle_tag = 0;
-
+  if(win->transcoder)
+    {
+    bg_transcoder_finish(win->transcoder);
+    bg_transcoder_destroy(win->transcoder);
+    win->transcoder = (bg_transcoder_t*)0;
+    
+    if(win->transcoder_track)
+      {
+      bg_transcoder_track_destroy(win->transcoder_track);
+      win->transcoder_track = (bg_transcoder_track_t*)0;
+      }
+    if(win->pp)
+      bg_transcoder_pp_update(win->pp);
+    }
+  else if(win->pp)
+    {
+    bg_transcoder_pp_finish(win->pp);
+    bg_transcoder_pp_destroy(win->pp);
+    win->pp = (bg_transcoder_pp_t*)0;
+    }
   }
 
 static gboolean idle_callback(gpointer data)
@@ -295,20 +334,24 @@ static gboolean idle_callback(gpointer data)
   bg_msg_t * msg;
   float percentage_done;
   gavl_time_t remaining_time;
-  
+  char * arg_str;
   transcoder_window_t * win;
   win = (transcoder_window_t*)data;
 
   /* If the transcoder isn't there, it means that we were interrupted */
 
-  if(!win->transcoder)
-    return FALSE;
+  fprintf(stderr, "idle_callback\n");
 
-  msg = bg_msg_queue_try_lock_read(win->msg_queue);
-  if(msg)
+  while((msg = bg_msg_queue_try_lock_read(win->msg_queue)))
     {
     switch(bg_msg_get_id(msg))
       {
+      case BG_TRANSCODER_MSG_START:
+        //        fprintf(stderr, "BG_TRANSCODER_MSG_START\n");
+        arg_str = bg_msg_get_arg_string(msg, 0);
+        bg_gtk_scrolltext_set_text(win->scrolltext, arg_str, win->fg_color, win->bg_color);
+        free(arg_str);
+        break;
       case BG_TRANSCODER_MSG_NUM_AUDIO_STREAMS:
         fprintf(stderr, "BG_TRANSCODER_MSG_NUM_AUDIO_STREAMS\n");
         break;
@@ -361,13 +404,13 @@ static gboolean idle_callback(gpointer data)
           gtk_widget_set_sensitive(win->stop_button, 0);
           gtk_widget_set_sensitive(win->actions_menu.stop_item, 0);
           bg_msg_queue_unlock_read(win->msg_queue);
-          return FALSE;
+          fprintf(stderr, "start_transcode failed\n");
+          return TRUE;
           }
         else
           {
-          win->idle_tag = g_timeout_add(200, idle_callback, win);
           bg_msg_queue_unlock_read(win->msg_queue);
-          return FALSE;
+          return TRUE;
           }
         break;
       }
@@ -379,7 +422,6 @@ static gboolean idle_callback(gpointer data)
 
 static int start_transcode(transcoder_window_t * win)
   {
-  char * name, * message;
   bg_cfg_section_t * cfg_section;
 
   const char * error_msg;
@@ -389,17 +431,32 @@ static int start_transcode(transcoder_window_t * win)
   win->transcoder_track      = track_list_get_track(win->tracklist);
   if(!win->transcoder_track)
     {
-    bg_gtk_scrolltext_set_text(win->scrolltext, "Gmerlin transcoder version "VERSION,
-                               win->fg_color, win->bg_color);
-    return 0;
+    /* Check whether to postprocess */
+    if(win->pp)
+      {
+      bg_transcoder_pp_add_message_queue(win->pp, win->msg_queue);
+      bg_transcoder_pp_run(win->pp);
+      return 1;
+      }
+    else
+      {
+      bg_gtk_scrolltext_set_text(win->scrolltext, "Gmerlin transcoder version "VERSION,
+                                 win->fg_color, win->bg_color);
+      return 0;
+      }
+
     }
   win->transcoder            = bg_transcoder_create();
-  bg_transcoder_add_message_queue(win->transcoder,
-                                  win->msg_queue);
-  
-  
   bg_cfg_section_apply(cfg_section, bg_transcoder_get_parameters(),
                        bg_transcoder_set_parameter, win->transcoder);
+  
+  bg_transcoder_add_message_queue(win->transcoder,
+                                  win->msg_queue);
+  if(win->pp)
+    {
+    bg_transcoder_pp_connect(win->pp, win->transcoder);
+    }
+  
 
   if(!bg_transcoder_init(win->transcoder,
                          win->plugin_reg, win->transcoder_track))
@@ -412,7 +469,8 @@ static int start_transcode(transcoder_window_t * win)
       bg_gtk_scrolltext_set_text(win->scrolltext, "Failed to initialize transcoder",
                                  win->fg_color_e, win->bg_color);
     
-    track_list_prepend_track(win->tracklist, win->transcoder_track);
+    if(win->transcoder_track)
+      track_list_prepend_track(win->tracklist, win->transcoder_track);
     win->transcoder_track = (bg_transcoder_track_t*)0;
 
     bg_transcoder_destroy(win->transcoder);
@@ -420,14 +478,7 @@ static int start_transcode(transcoder_window_t * win)
     return 0;
     }
   //  fprintf(stderr, "Initialized transcoder\n");
-
-  name = bg_transcoder_track_get_name(win->transcoder_track);
-  message = bg_sprintf("Transcoding %s", name);
-
-  bg_gtk_scrolltext_set_text(win->scrolltext, message, win->fg_color, win->bg_color);
-  free(message);
-  free(name);
-    
+  
   gtk_widget_set_sensitive(win->run_button, 0);
   gtk_widget_set_sensitive(win->actions_menu.run_item, 0);
 
@@ -503,24 +554,45 @@ static void filesel_set_path(GtkWidget * filesel, char * path)
                              
 static void button_callback(GtkWidget * w, gpointer data)
   {
+  bg_cfg_section_t * cfg_section;
   transcoder_window_t * win = (transcoder_window_t *)data;
 
   if((w == win->run_button) || (w == win->actions_menu.run_item))
     {
+    win->pp_plugin = track_list_get_pp_plugin(win->tracklist);
+    if(win->pp_plugin)
+      {
+      win->pp = bg_transcoder_pp_create();
+
+      cfg_section = bg_cfg_registry_find_section(win->cfg_reg, "output");
+      
+      bg_cfg_section_apply(cfg_section, bg_transcoder_get_parameters(),
+                           bg_transcoder_pp_set_parameter, win->pp);
+
+      if(!bg_transcoder_pp_init(win->pp, win->pp_plugin))
+        {
+        bg_transcoder_pp_destroy(win->pp);
+        win->pp = (bg_transcoder_pp_t*)0;
+        }
+      }
+    
     //    fprintf(stderr, "Run Button\n");
-    if(start_transcode(win))
-      win->idle_tag = g_idle_add(idle_callback, win);
+    start_transcode(win);
     }
   else if((w == win->stop_button) || (w == win->actions_menu.stop_item))
     {
     //    fprintf(stderr, "Stop Button\n");
-    
-    track_list_prepend_track(win->tracklist, win->transcoder_track);
+    if(win->transcoder_track)
+      track_list_prepend_track(win->tracklist, win->transcoder_track);
     win->transcoder_track = (bg_transcoder_track_t*)0;
-
-    bg_transcoder_stop(win->transcoder);
-    
+    if(win->transcoder)
+      bg_transcoder_stop(win->transcoder);
+    else if(win->pp)
+      bg_transcoder_pp_stop(win->pp);
+      
+    //    fprintf(stderr, "joining thread...");
     finish_transcoding(win);
+    //    fprintf(stderr, "done\n");
     gtk_widget_set_sensitive(win->run_button, 1);
     gtk_widget_set_sensitive(win->actions_menu.run_item, 1);
 
@@ -652,6 +724,20 @@ static void button_callback(GtkWidget * w, gpointer data)
     //    fprintf(stderr, "Properties Button\n");
     transcoder_window_preferences(win);
     }
+  else if(w == win->windows_menu.log_item)
+    {
+    if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(w)))
+      {
+      bg_gtk_log_window_show(win->logwindow);
+      win->show_logwindow = 1;
+      }
+    else
+      {
+      bg_gtk_log_window_hide(win->logwindow);
+      win->show_logwindow = 0;
+      }
+    }
+
   }
 
 static GtkWidget * create_pixmap_button(transcoder_window_t * win,
@@ -728,6 +814,20 @@ create_item(transcoder_window_t * w, GtkWidget * parent,
   return ret;
   }
 
+static GtkWidget *
+create_toggle_item(transcoder_window_t * w, GtkWidget * parent,
+                   const char * label)
+  {
+  GtkWidget * ret;
+  ret = gtk_check_menu_item_new_with_label(label);
+  
+  g_signal_connect(G_OBJECT(ret), "toggled", G_CALLBACK(button_callback),
+                   (gpointer)w);
+  gtk_widget_show(ret);
+  gtk_menu_shell_append(GTK_MENU_SHELL(parent), ret);
+  return ret;
+  }
+
 #if 0
   struct
     {
@@ -766,9 +866,19 @@ static void init_menus(transcoder_window_t * w)
   w->actions_menu.stop_item = create_item(w, w->actions_menu.menu, "Stop transcoding", "stop_16.png");
   gtk_widget_set_sensitive(w->actions_menu.stop_item, 0);
 
-  gtk_widget_show(w->actions_menu.menu);
+  w->windows_menu.menu = gtk_menu_new();
+  w->windows_menu.log_item = create_toggle_item(w, w->windows_menu.menu, "Log messages");
+  gtk_widget_show(w->windows_menu.menu);
 
   
+  }
+
+static void logwindow_close_callback(bg_gtk_log_window_t*w, void*data)
+  {
+  transcoder_window_t * win = (transcoder_window_t*)data;
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(win->windows_menu.log_item), 0);
+  win->show_logwindow = 0;
+
   }
 
 transcoder_window_t * transcoder_window_create()
@@ -787,7 +897,9 @@ transcoder_window_t * transcoder_window_create()
   ret = calloc(1, sizeof(*ret));
 
   ret->msg_queue = bg_msg_queue_create();
-  
+
+  g_timeout_add(200, idle_callback, ret);
+
   ret->tooltips = gtk_tooltips_new();
   
   /* Create window */
@@ -799,7 +911,7 @@ transcoder_window_t * transcoder_window_create()
   g_signal_connect(G_OBJECT(ret->win), "delete_event",
                    G_CALLBACK(delete_callback),
                    ret);
-    
+  
   /* Create config registry */
 
   ret->cfg_reg = bg_cfg_registry_create();
@@ -821,6 +933,14 @@ transcoder_window_t * transcoder_window_create()
   cfg_section = bg_cfg_registry_find_section(ret->cfg_reg, "track_list");
   bg_cfg_section_apply(cfg_section, track_list_get_parameters(ret->tracklist),
                        track_list_set_parameter, ret->tracklist);
+
+
+  /* Create log window */
+
+  ret->logwindow = bg_gtk_log_window_create(logwindow_close_callback, ret);
+  cfg_section = bg_cfg_registry_find_section(ret->cfg_reg, "logwindow");
+  bg_cfg_section_apply(cfg_section, bg_gtk_log_window_get_parameters(ret->logwindow),
+                       bg_gtk_log_window_set_parameter, ret->logwindow);
   
   /* Create buttons */
 
@@ -888,7 +1008,11 @@ transcoder_window_t * transcoder_window_create()
   gtk_widget_show(menuitem);
   gtk_menu_shell_append(GTK_MENU_SHELL(ret->menubar), menuitem);
 
-
+  menuitem = gtk_menu_item_new_with_label("Windows");
+  gtk_menu_item_set_submenu(GTK_MENU_ITEM(menuitem), ret->windows_menu.menu);
+  gtk_widget_show(menuitem);
+  gtk_menu_shell_append(GTK_MENU_SHELL(ret->menubar), menuitem);
+  
   gtk_widget_show(ret->menubar);
     
   /* Pack everything */
@@ -991,8 +1115,14 @@ void transcoder_window_destroy(transcoder_window_t* w)
   cfg_section = bg_cfg_registry_find_section(w->cfg_reg, "track_list");
   bg_cfg_section_get(cfg_section, track_list_get_parameters(w->tracklist),
                      track_list_get_parameter, w->tracklist);
-  
+
   track_list_destroy(w->tracklist);
+
+  cfg_section = bg_cfg_registry_find_section(w->cfg_reg, "logwindow");
+  bg_cfg_section_get(cfg_section, bg_gtk_log_window_get_parameters(w->logwindow),
+                     bg_gtk_log_window_get_parameter, w->logwindow);
+  
+  bg_gtk_log_window_destroy(w->logwindow);
 
   tmp_path =  bg_search_file_write("transcoder", "config.xml");
  
@@ -1040,6 +1170,13 @@ static gboolean remote_callback(gpointer data)
 void transcoder_window_run(transcoder_window_t * w)
   {
   gtk_widget_show(w->win);
+
+  if(w->show_logwindow)
+    {
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(w->windows_menu.log_item), 1);
+    }
+  //    bg_gtk_log_window_show(w->logwindow);
+
   remote_callback(w);
 
   g_timeout_add(50, remote_callback, w);
@@ -1109,6 +1246,17 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 w->remote,
                 bg_remote_server_get_parameters(w->remote));
 
+  cfg_section = bg_cfg_registry_find_section(w->cfg_reg,
+                                             "logwindow");
+
+  bg_dialog_add(dlg,
+                "Log window",
+                cfg_section,
+                bg_gtk_log_window_set_parameter,
+                w->logwindow,
+                bg_gtk_log_window_get_parameters(w->logwindow));
+
+  
   bg_dialog_show(dlg);
   bg_dialog_destroy(dlg);
   

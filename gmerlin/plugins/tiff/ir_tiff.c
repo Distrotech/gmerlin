@@ -360,6 +360,8 @@ double64_read (unsigned char *cptr)
         return dvalue ;
 } /* double64_le_read */
 #else
+
+#if 0
 static float
 float32_read (unsigned char *cptr)
 {       int             exponent, mantissa, negative ;
@@ -387,6 +389,8 @@ float32_read (unsigned char *cptr)
 
         return fvalue ;
 } /* float32_be_read */
+#endif
+
 static double
 double64_read (unsigned char *cptr)
 {       int             exponent, negative ;

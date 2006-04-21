@@ -156,5 +156,6 @@ char * bg_create_unique_filename(char * format);
 
 const char * bg_get_language_name(const char * iso);
 
+int bg_string_match(const char * key, const char * key_list);
 
 #endif // __BG_UTILS_H_

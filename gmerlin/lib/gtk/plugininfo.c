@@ -140,5 +140,5 @@ void bg_gtk_plugin_info_show(const bg_plugin_info_t * info)
   free(text);
   free(flag_string);
   
-  bg_gtk_textwindow_show(win, 0);
+  bg_gtk_textwindow_show(win, 1);
   }

@@ -120,55 +120,12 @@ const bg_plugin_info_t * bg_plugin_find_by_long_name(bg_plugin_registry_t *
   return find_by_long_name(reg->entries, name);
   }
 
-static int string_match(const char * key,
-                        const char * key_end,
-                        const char * key_list)
-  {
-  const char * pos;
-  const char * end;
-
-  pos = key_list;
-      
-  //  fprintf(stderr, "string_match: %s %d %s\n", key, (int)(key_end - key), key_list);
-
-  if(!key_list)
-    return 0;
-  
-  while(1)
-    {
-    end = pos;
-    while(!isspace(*end) && (*end != '\0'))
-      end++;
-    if(end == pos)
-      break;
-
-    //    fprintf(stderr,
-    //            "String match Key: %s, keylist: %s, ley_len: %d, key_list_len: %d\n",
-    //            key, pos, (int)(key_end - key), (int)(end-pos));
-    if(((int)(key_end - key) == (int)(end-pos)) &&
-       !strncasecmp(pos, key, (int)(end-pos)))
-      {
-      //      fprintf(stderr, "BINGOOOOOO\n");
-      return 1;
-      }
-    pos = end;
-    if(pos == '\0')
-      break;
-    else
-      {
-      while(isspace(*pos) && (pos != '\0'))
-        pos++;
-      }
-    }
-  return 0;
-  }
 
 const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
                                                     const char * filename,
                                                     int typemask)
   {
   char * extension;
-  char * extension_end;
   bg_plugin_info_t * info, *ret = (bg_plugin_info_t*)0;
   int max_priority = BG_PLUGIN_PRIORITY_MIN - 1;
 
@@ -185,7 +142,6 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
     return (const bg_plugin_info_t *)0;
     }
   extension++;
-  extension_end = &(extension[strlen(extension)]);
   
   //  fprintf(stderr, "info %p\n", info);
   
@@ -201,7 +157,7 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
       info = info->next;
       continue;
       }
-    if(string_match(extension, extension_end, info->extensions))
+    if(bg_string_match(extension, info->extensions))
       {
       //      fprintf(stderr, "%s looks good %d %d\n", info->name, max_priority, info->priority);
       if(max_priority < info->priority)
@@ -222,9 +178,6 @@ bg_plugin_find_by_mimetype(bg_plugin_registry_t * reg,
                            const char * url)
   {
   bg_plugin_info_t * info;
-  const char * mimetype_end;
-  
-  mimetype_end = &mimetype[strlen(mimetype)];
   
   //  fprintf(stderr, "bg_plugin_find_by_mimetype %p\n", reg);
     
@@ -244,7 +197,7 @@ bg_plugin_find_by_mimetype(bg_plugin_registry_t * reg,
       continue;
       }
 
-    if(string_match(mimetype, mimetype_end, info->mimetypes))
+    if(bg_string_match(mimetype, info->mimetypes))
       {
       return info;
       }

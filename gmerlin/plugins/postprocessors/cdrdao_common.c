@@ -20,12 +20,14 @@
 #include <string.h>
 #include <plugin.h>
 #include <utils.h>
+#include <log.h>
 #include "cdrdao_common.h"
 
 struct bg_cdrdao_s
   {
   int run;
   char * device;
+  char * driver;
   int eject;
   int simulate;
   };
@@ -44,7 +46,8 @@ void bg_cdrdao_destroy(bg_cdrdao_t * cdrdao)
   free(cdrdao);
   }
 
-void bg_cdrdao_set_parameter(void * data, char * name, bg_parameter_value_t * val)
+void bg_cdrdao_set_parameter(void * data, char * name,
+                             bg_parameter_value_t * val)
   {
   if(!name)
     return;
@@ -54,6 +57,8 @@ void bg_cdrdao_set_parameter(void * data, char * name, bg_parameter_value_t * va
     c->run = val->val_i;
   else if(!strcmp(name, "cdrdao_device"))
     c->device = bg_strdup(c->device, val->val_str);
+  else if(!strcmp(name, "cdrdao_driver"))
+    c->driver = bg_strdup(c->driver, val->val_str);
   else if(!strcmp(name, "cdrdao_eject"))
     c->eject = val->val_i;
   else if(!strcmp(name, "cdrdao_simulate"))
@@ -62,6 +67,37 @@ void bg_cdrdao_set_parameter(void * data, char * name, bg_parameter_value_t * va
 
 void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   {
-  //  char * commandline;
+  FILE * cdrdao;
+  char * str;
+  char * commandline = (char*)0;
+
+  if(!c->run)
+    return;
+  
+  if(!bg_search_file_exec("cdrdao", &commandline))
+    return;
+  /* Device */
+  if(c->device)
+    {
+    str = bg_sprintf(" --device %s", c->device);
+    commandline = bg_strcat(commandline, str);
+    free(str);
+    }
+  /* Driver */
+  if(c->driver)
+    {
+    str = bg_sprintf(" --driver %s", c->driver);
+    commandline = bg_strcat(commandline, str);
+    free(str);
+    }
+  /* Eject */
+  if(c->eject)
+    commandline = bg_strcat(commandline, " --eject");
+  /* Simulate */
+  if(c->simulate)
+    commandline = bg_strcat(commandline, " --simulate");
+
+  /* TOC-File */
+  commandline = bg_strcat(commandline, " --simulate");
   
   }

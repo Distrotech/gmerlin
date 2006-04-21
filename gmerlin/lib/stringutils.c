@@ -393,3 +393,45 @@ const char * bg_get_language_name(const char * iso)
     }
   return (char*)0;
   }
+
+int bg_string_match(const char * key,
+                    const char * key_list)
+  {
+  const char * pos;
+  const char * end;
+
+  pos = key_list;
+      
+  //  fprintf(stderr, "string_match: %s %d %s\n", key, (int)(key_end - key), key_list);
+
+  if(!key_list)
+    return 0;
+  
+  while(1)
+    {
+    end = pos;
+    while(!isspace(*end) && (*end != '\0'))
+      end++;
+    if(end == pos)
+      break;
+
+    //    fprintf(stderr,
+    //            "String match Key: %s, keylist: %s, ley_len: %d, key_list_len: %d\n",
+    //            key, pos, (int)(key_end - key), (int)(end-pos));
+    if((strlen(key) == (int)(end-pos)) &&
+       !strncasecmp(pos, key, (int)(end-pos)))
+      {
+      //      fprintf(stderr, "BINGOOOOOO\n");
+      return 1;
+      }
+    pos = end;
+    if(pos == '\0')
+      break;
+    else
+      {
+      while(isspace(*pos) && (pos != '\0'))
+        pos++;
+      }
+    }
+  return 0;
+  }

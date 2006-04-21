@@ -28,10 +28,9 @@
 
 typedef struct
   {
-  int pre_gap;
+  int pregap;
   int use_cdtext;
   char * toc_file;
-  int try_album;
 
   bg_cdrdao_t * cdr;
   char * error_msg;
@@ -67,6 +66,7 @@ static void * create_cdrdao()
   cdrdao_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->cdr = bg_cdrdao_create();
+  fprintf(stderr, "create_cdrdao %p\n", ret);
   return ret;
   }
 
@@ -76,6 +76,7 @@ static void destroy_cdrdao(void * priv)
   cdrdao = (cdrdao_t*)priv;
   bg_cdrdao_destroy(cdrdao->cdr);
   if(cdrdao->toc_file) free(cdrdao->toc_file);
+  fprintf(stderr, "destroy_cdrdao %p\n", cdrdao);
   free(cdrdao);
   }
 
@@ -111,15 +112,6 @@ static bg_parameter_info_t parameters[] =
       long_name: "Write CD-Text",
       type: BG_PARAMETER_CHECKBUTTON,
     },
-    {
-      name: "try_album",
-      long_name: "Try album",
-      type: BG_PARAMETER_CHECKBUTTON,
-      help_string: "When encoding CDText, we assume a compilation by default (e.g. different\
- artists for each track). By enabling this option, we'll write CDText for a regular album if:\n\
-1. The album string for each track is present and equal\n\
-2. The artist string for each track is present or equal",\
-    },
     CDRDAO_PARAMS,
     { /* End of parameters */ },
   };
@@ -138,9 +130,7 @@ static void set_parameter_cdrdao(void * data, char * name, bg_parameter_value_t 
   if(!strcmp(name, "use_cdtext"))
     cdrdao->use_cdtext = v->val_i;
   else if(!strcmp(name, "pre_gap"))
-    cdrdao->pre_gap = v->val_i;
-  else if(!strcmp(name, "try_album"))
-    cdrdao->try_album = v->val_i;
+    cdrdao->pregap = v->val_i;
   else if(!strcmp(name, "toc_file"))
     cdrdao->toc_file = bg_strdup(cdrdao->toc_file, v->val_str);
   }
@@ -156,6 +146,7 @@ static int init_cdrdao(void * data)
   {
   cdrdao_t * cdrdao;
   cdrdao = (cdrdao_t*)data;
+  fprintf(stderr, "init_cdrdao");
   free_tracks(cdrdao);
   return 1;
   }
@@ -175,10 +166,146 @@ void add_track_cdrdao(void * data, const char * filename,
                    metadata);
   cdrdao->tracks[cdrdao->num_tracks].filename = bg_strdup((char*)0, filename);
   cdrdao->num_tracks++;
+  fprintf(stderr, "add_track_cdrdao %d %s\n", cdrdao->num_tracks, filename);
   }
 
-static void execute_cdrdao(void * data, const char * directory, int cleanup)
+static void run_cdrdao(void * data, const char * directory, int cleanup)
   {
+  FILE * outfile;
+  int i;
+  int do_album = 0;
+  cdrdao_t * cdrdao;
+  char * filename;
+  int do_author;
+  int do_comment = 1;
+  int do_cdtext;
+  int same_artist;
+  
+  int pregap_mm;
+  int pregap_ss;
+  int pregap_ff;
+  int pregap;
+  
+  cdrdao = (cdrdao_t*)data;
+
+  /* Check, if we can write cdtext */
+
+  do_cdtext = cdrdao->use_cdtext;
+
+  if(do_cdtext)
+    {
+    for(i = 0; i < cdrdao->num_tracks; i++)
+      {
+      if(!cdrdao->tracks[i].metadata.artist ||
+         !cdrdao->tracks[i].metadata.title)
+        {
+        do_cdtext = 0;
+        break;
+        }
+      if(!cdrdao->tracks[i].metadata.author)
+        do_author = 0;
+      if(!cdrdao->tracks[i].metadata.comment)
+        do_comment = 0;
+      }
+    }
+
+  /* Check, whether to write CDText for an album */
+
+  same_artist = 1;
+  if(do_cdtext)
+    {
+    if(cdrdao->use_cdtext)
+      {
+      do_album = 1;
+      
+      if(!cdrdao->tracks[0].metadata.album)
+        do_album = 0;
+      else
+        {
+        for(i = 1; i < cdrdao->num_tracks; i++)
+          {
+          if(strcmp(cdrdao->tracks[i].metadata.artist, cdrdao->tracks[0].metadata.artist))
+            {
+            do_album = 0;
+            same_artist = 0;
+            }
+          if(!cdrdao->tracks[i].metadata.album ||
+             strcmp(cdrdao->tracks[i].metadata.album,  cdrdao->tracks[0].metadata.album))
+            {
+            do_album = 0;
+            }
+          }
+        }
+      }
+    }
+  
+  /* Calculate pregap */
+  pregap = cdrdao->pregap;
+  pregap_ff = pregap % 75;
+  pregap /= 75;
+  pregap_ss = pregap % 60;
+  pregap /= 60;
+  pregap_mm = pregap;
+    
+  /* Open output file */
+  filename = bg_sprintf("%s/%s", directory, cdrdao->toc_file);
+  outfile = fopen(filename, "w");
+  if(!outfile)
+    return;
+  /* Write header */
+  fprintf(outfile, "CD_DA\n");
+  if(do_cdtext)
+    {
+    // global CD-TEXT data
+    fprintf(outfile, "CD_TEXT {\n");
+    // Mapping from language number (0..7) used in 'LANGUAGE' statements 
+    // to language code.
+    fprintf(outfile, "  LANGUAGE_MAP {\n");
+    fprintf(outfile, "    0 : EN\n");  // 9 is the code for ENGLISH,
+    fprintf(outfile, "  }\n");         // I don't know any other language code, yet
+
+    // Language number should always start with 0
+    fprintf(outfile, "  LANGUAGE 0 {\n");
+        // Required fields - at least all CD-TEXT CDs I've seen so far have them.
+    fprintf(outfile, "    TITLE \"%s\"\n", (do_album ? cdrdao->tracks[0].metadata.album : ""));
+    fprintf(outfile, "    PERFORMER \"%s\"\n", (do_album ? cdrdao->tracks[0].metadata.artist :
+                                                "Various"));
+    fprintf(outfile, "    DISC_ID \"XY12345\"\n");
+    fprintf(outfile, "    UPC_EAN \"\"\n"); // usually empty
+    
+    // Further possible items, all of them are optional
+    fprintf(outfile, "    ARRANGER \"\"\n");
+    fprintf(outfile, "    SONGWRITER \"\"\n");
+    fprintf(outfile, "    MESSAGE \"\"\n");
+    fprintf(outfile, "    GENRE \"\"\n"); // I'm not sure if this should be really ascii data
+    fprintf(outfile, "  }\n");
+    fprintf(outfile, "}\n");
+    }
+  /* Loop over tracks */
+
+  for(i = 0; i < cdrdao->num_tracks; i++)
+    {
+    fprintf(outfile, "TRACK AUDIO\n");
+    if(do_cdtext)
+      {
+      fprintf(outfile, "CD_TEXT {\n");
+      fprintf(outfile, "  LANGUAGE 0 {\n");
+      fprintf(outfile, "    TITLE \"%s\"\n", cdrdao->tracks[i].metadata.title);
+      fprintf(outfile, "    PERFORMER \"%s\"\n", cdrdao->tracks[i].metadata.artist);
+      fprintf(outfile, "    ISRC \"US-XX1-98-01234\"\n");
+      fprintf(outfile, "    ARRANGER \"\"\n");
+      fprintf(outfile, "    SONGWRITER \"%s\"\n", (do_author ? cdrdao->tracks[i].metadata.author : ""));
+      fprintf(outfile, "    MESSAGE \"%s\"\n", (do_comment ? cdrdao->tracks[i].metadata.comment : ""));
+      fprintf(outfile, "  }\n");
+      fprintf(outfile, "}\n");
+      
+      if(i && cdrdao->pregap)
+        fprintf(outfile, "PREGAP %02d:%02d:%02d\n", pregap_mm, 
+                pregap_ss, pregap_ff);
+      fprintf(outfile, "FILE \"%s\" 0\n\n", cdrdao->tracks[i].filename);
+      }
+    }
+  fclose(outfile);
   
   }
 
@@ -188,7 +315,7 @@ bg_encoder_pp_plugin_t the_plugin =
     {
       name:              "e_pp_cdrdao", /* Unique short name */
       long_name:         "Audio CD generator/burner",
-      mimetypes:         NULL,
+      extensions:        "wav",
       type:              BG_PLUGIN_ENCODER_PP,
       create:            create_cdrdao,
       destroy:           destroy_cdrdao,
@@ -203,7 +330,7 @@ bg_encoder_pp_plugin_t the_plugin =
     set_callbacks:       set_callbacks_cdrdao,
     init:                init_cdrdao,
     add_track:           add_track_cdrdao,
-    execute:             execute_cdrdao,
+    run:                 run_cdrdao,
     
   };
 

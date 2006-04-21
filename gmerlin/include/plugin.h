@@ -440,7 +440,7 @@ typedef struct bg_ra_plugin_s
 
 /* Callbacks */
 
-typedef struct bg_ov_plugin_callbacks_s
+typedef struct
   {
   /* Keyboard callback */
   void (*key_callback)(void * data, int key, int mask);
@@ -608,8 +608,9 @@ typedef struct bg_encoder_plugin_s
 /*******************************************
  * ENCODER Postprocessor
  *******************************************/
-typedef struct bg_e_pp_plugin_callbacks_s
+typedef struct
   {
+  void (*action_callback)(void * data, char * action);
   void (*progress_callback)(void * data, float perc);
   void * data;
   } bg_e_pp_callbacks_t;
@@ -635,7 +636,7 @@ typedef struct bg_encoder_pp_plugin_s
   void (*add_track)(void*, const char * filename,
                     bg_metadata_t * metadata);
   
-  void (*execute)(void*, const char * directory, int cleanup);
+  void (*run)(void*, const char * directory, int cleanup);
   } bg_encoder_pp_plugin_t;
 
 

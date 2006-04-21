@@ -99,6 +99,8 @@ static gboolean idle_callback(gpointer data)
   GtkTextTag * tag = (GtkTextTag *)0;
   char * str;
   GtkTextIter iter;
+  int i;
+  char ** lines;
   
   w = (bg_gtk_log_window_t *)data;
   
@@ -129,15 +131,22 @@ static gboolean idle_callback(gpointer data)
         tag = w->info_tag;
         break;
       }
-
-    gtk_text_buffer_get_end_iter(w->buffer, &iter);
-    str = bg_sprintf("[%s]: %s\n", domain, message);
-
-    gtk_text_buffer_insert_with_tags(w->buffer,
-                                     &iter,
-                                     str, -1, tag, NULL);
     
-    free(str);
+    gtk_text_buffer_get_end_iter(w->buffer, &iter);
+
+
+    lines = bg_strbreak(message, '\n');
+    i = 0;
+    while(lines[i])
+      {
+      str = bg_sprintf("[%s]: %s\n", domain, lines[i]);
+      gtk_text_buffer_insert_with_tags(w->buffer,
+                                       &iter,
+                                       str, -1, tag, NULL);
+      free(str);
+      i++;
+      }
+    bg_strbreak_free(lines);
     free(message);
     free(domain);
     

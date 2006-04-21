@@ -803,8 +803,6 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == t->menu.pp_item)
     {
-    if(!t->encoder_pp_window)
-      t->encoder_pp_window = encoder_pp_window_create(t->plugin_reg);
     encoder_pp_window_run(t->encoder_pp_window, &t->track_global);
     }
   }
@@ -1058,7 +1056,8 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   ret->tooltips = gtk_tooltips_new();
   ret->track_defaults_section = track_defaults_section;
   ret->time_total = bg_gtk_time_display_create(BG_GTK_DISPLAY_SIZE_SMALL, 4);
-
+  ret->encoder_pp_window = encoder_pp_window_create(plugin_reg);
+  
   gtk_tooltips_set_tip(ret->tooltips,
                        bg_gtk_time_display_get_widget(ret->time_total),
                        "Total playback time",
@@ -1333,6 +1332,12 @@ GtkWidget * track_list_get_widget(track_list_t * t)
   {
   return t->widget;
   }
+
+bg_plugin_handle_t * track_list_get_pp_plugin(track_list_t * t)
+  {
+  return encoder_pp_window_get_plugin(t->encoder_pp_window);
+  }
+
 
 bg_transcoder_track_t * track_list_get_track(track_list_t * t)
   {

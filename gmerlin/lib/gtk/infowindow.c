@@ -310,80 +310,18 @@ static void update_stream(bg_gtk_info_window_t * w)
     bg_gtk_textview_update(w->w_description, w->description);
   }
 
-#define META_STRCAT() \
-    if(first)\
-      { \
-      /* Set window string to first line */\
-      window_string = tmp_string_1;\
-      first = 0; \
-      } \
-    else\
-      {\
-      /* Append line to window string */\
-      tmp_string_2 = bg_sprintf("%s%s", window_string, tmp_string_1);\
-      free(window_string);\
-      free(tmp_string_1);\
-      window_string = tmp_string_2;\
-      }
-
 static void update_metadata(bg_gtk_info_window_t * w)
   {
-  char * tmp_string_1;
-  char * tmp_string_2;
   char * window_string = (char*)0;
 
-  int first = 1;
   bg_gtk_textview_update(w->w_metadata, "");
-  if(w->metadata.author)
-    {
-    tmp_string_1 = bg_sprintf("Author:\t %s\n", w->metadata.author);
-    META_STRCAT();
-    }
-  if(w->metadata.artist)
-    {
-    tmp_string_1 = bg_sprintf("Artist:\t %s\n", w->metadata.artist);
-    META_STRCAT();
-    }
-  if(w->metadata.title)
-    {
-    tmp_string_1 = bg_sprintf("Title:\t %s\n", w->metadata.title);
-    META_STRCAT();
-    }
-  if(w->metadata.album)
-    {
-    tmp_string_1 = bg_sprintf("Album:\t %s\n", w->metadata.album);
-    META_STRCAT();
-    }
-  if(w->metadata.copyright)
-    {
-    tmp_string_1 = bg_sprintf("Copyright:\t %s\n", w->metadata.copyright);
-    META_STRCAT();
-    }
-  if(w->metadata.genre)
-    {
-    tmp_string_1 = bg_sprintf("Genre:\t %s\n", w->metadata.genre);
-    META_STRCAT();
-    }
-  if(w->metadata.date)
-    {
-    tmp_string_1 = bg_sprintf("Date:\t %s\n", w->metadata.date);
-    META_STRCAT();
-    }
-  if(w->metadata.track)
-    {
-    tmp_string_1 = bg_sprintf("Track:\t %d\n", w->metadata.track);
-    META_STRCAT();
-    }
-  if(w->metadata.comment)
-    {
-    tmp_string_1 = bg_sprintf("Comment:\t %s\n", w->metadata.comment);
-    META_STRCAT();
-    }
+
+  window_string = bg_metadata_to_string(&w->metadata, 1);
+  
   if(window_string)
     {
     /* Delete trailing newline */
-
-    window_string[strlen(window_string) - 1] = '\0';
+    
     bg_gtk_textview_update(w->w_metadata, window_string);
     free(window_string);
     }

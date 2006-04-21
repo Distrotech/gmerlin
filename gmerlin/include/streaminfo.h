@@ -104,6 +104,9 @@ void bg_metadata_2_xml(xmlNodePtr xml_metadata,
 
 char * bg_create_track_name(const bg_metadata_t *, const char * format);
 
+char * bg_metadata_to_string(const bg_metadata_t *, int use_tabs);
+
+
 /*
  *  Get parameters for configuring metadata
  *  call bg_parameter_info_destroy_array(bg_parameter_info_t * info);

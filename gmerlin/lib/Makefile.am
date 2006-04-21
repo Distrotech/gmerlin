@@ -51,6 +51,7 @@ stringutils.c \
 tcp.c \
 textrenderer.c \
 transcoder.c \
+transcoder_pp.c \
 transcoder_track.c \
 transcoder_track_xml.c \
 tree.c \

@@ -388,3 +388,61 @@ char * bg_create_track_name(const bg_metadata_t * metadata,
     free(ret);
   return (char*)0;
   }
+
+#define META_STRCAT() ret = bg_strcat(ret, tmp); free(tmp)
+
+char * bg_metadata_to_string(const bg_metadata_t * m, int use_tabs)
+  {
+  char * ret = (char*)0;
+  char * tmp;
+
+  if(m->author)
+    {
+    tmp = bg_sprintf("Author:\t %s\n", m->author);
+    META_STRCAT();
+    }
+  if(m->artist)
+    {
+    tmp = bg_sprintf("Artist:\t %s\n", m->artist);
+    META_STRCAT();
+    }
+  if(m->title)
+    {
+    tmp = bg_sprintf("Title:\t %s\n", m->title);
+    META_STRCAT();
+    }
+  if(m->album)
+    {
+    tmp = bg_sprintf("Album:\t %s\n", m->album);
+    META_STRCAT();
+    }
+  if(m->copyright)
+    {
+    tmp = bg_sprintf("Copyright:\t %s\n", m->copyright);
+    META_STRCAT();
+    }
+  if(m->genre)
+    {
+    tmp = bg_sprintf("Genre:\t %s\n", m->genre);
+    META_STRCAT();
+    }
+  if(m->date)
+    {
+    tmp = bg_sprintf("Date:\t %s\n", m->date);
+    META_STRCAT();
+    }
+  if(m->track)
+    {
+    tmp = bg_sprintf("Track:\t %d\n", m->track);
+    META_STRCAT();
+    }
+  if(m->comment)
+    {
+    tmp = bg_sprintf("Comment:\t %s\n", m->comment);
+    META_STRCAT();
+    }
+  if(ret)
+    ret[strlen(ret) - 1] = '\0';
+  return ret;
+  }
+

@@ -66,3 +66,15 @@
 #define BG_TRANSCODER_MSG_PROGRESS          8
 
 #define BG_TRANSCODER_MSG_FINISHED          9
+
+/*
+ *  arg 1: What started? (transcoding etc.)
+ */
+
+#define BG_TRANSCODER_MSG_START            10
+
+/*
+ *  arg 1: Metadata
+ */
+
+#define BG_TRANSCODER_MSG_METADATA         11

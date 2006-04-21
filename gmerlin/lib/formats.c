@@ -52,7 +52,7 @@ char * bg_audio_format_to_string(gavl_audio_format_t * f, int use_tabs)
     }
   
   if(!use_tabs)
-    format = "Channels:          %d (%s%s)\nChannel order:      %s\nSamplerate:        %d\nSamples per frame: %d\nInterleave Mode:   %s\nSample format:     %s";
+    format = "Channels:          %d\nChannel order:      %s\nSamplerate:        %d\nSamples per frame: %d\nInterleave Mode:   %s\nSample format:     %s";
   else
     format = "Channels:\t %d\nChannel order\t %s\nSamplerate:\t %d\nSamples per frame:\t %d\nInterleave Mode:\t %s\nSample format:\t %s";
   ret =

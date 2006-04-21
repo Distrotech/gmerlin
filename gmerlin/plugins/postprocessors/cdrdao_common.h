@@ -34,7 +34,14 @@
     long_name:  "Device",                 \
     type: BG_PARAMETER_STRING,            \
     val_default: { val_str: (char*)0 },   \
-    help_string: "Device to use as burner. Type \"cdrdao scanbus\" at the commandline for supported devices. Leave this empty to attempt autodetection.", \
+    help_string: "Device to use as burner. Type \"cdrdao scanbus\" at the commandline for supported devices. Leave this empty to use the default /dev/cdrecorder.", \
+  }, \
+  {                                     \
+    name:       "cdrdao_driver",          \
+    long_name:  "Driver",                 \
+    type: BG_PARAMETER_STRING,            \
+    val_default: { val_str: (char*)0 },   \
+    help_string: "Driver to use. Check the cdrdao manual page and the cdrdao README for available drivers/options. Leave this empty to attempt autodetection.", \
   }, \
   {                                     \
   name:       "cdrdao_eject",                           \
