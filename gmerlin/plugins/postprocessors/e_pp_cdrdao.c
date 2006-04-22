@@ -306,6 +306,10 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
       }
     }
   fclose(outfile);
+
+  /* Run cdrdao */
+  
+  bg_cdrdao_run(cdrdao->cdr, filename);
   
   }
 
