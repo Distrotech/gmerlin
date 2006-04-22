@@ -156,6 +156,7 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   while(read_line(cdrdao, &line, &line_alloc))
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
+    fprintf(stderr, "Got line: %s\n", line);
     }
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "cdrdao process finished");
   pclose(cdrdao);
