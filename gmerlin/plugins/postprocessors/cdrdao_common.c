@@ -97,7 +97,7 @@ static int read_line(FILE * in, char ** ret, int * ret_alloc)
     *ret = realloc(*ret, *ret_alloc);
     fprintf(stderr, "Ret: %p, ret_alloc: %d\n", *ret, *ret_alloc);
     }
-  ret[bytes_read] = '\0';
+  (*ret)[bytes_read] = '\0';
   return 1;
   }
 
