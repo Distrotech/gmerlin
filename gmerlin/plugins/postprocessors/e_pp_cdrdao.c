@@ -191,7 +191,7 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
   /* Check, if we can write cdtext */
 
   do_cdtext = cdrdao->use_cdtext;
-
+  do_author = 1;
   if(do_cdtext)
     {
     for(i = 0; i < cdrdao->num_tracks; i++)
