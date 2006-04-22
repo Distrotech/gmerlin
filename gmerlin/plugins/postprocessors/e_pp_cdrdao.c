@@ -133,6 +133,8 @@ static void set_parameter_cdrdao(void * data, char * name, bg_parameter_value_t 
     cdrdao->pregap = v->val_i;
   else if(!strcmp(name, "toc_file"))
     cdrdao->toc_file = bg_strdup(cdrdao->toc_file, v->val_str);
+  else
+    bg_cdrdao_set_parameter(cdrdao->cdr, name, v);
   }
 
 static void set_callbacks_cdrdao(void * data, bg_e_pp_callbacks_t * callbacks)
