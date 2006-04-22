@@ -267,8 +267,8 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
     // Language number should always start with 0
     fprintf(outfile, "  LANGUAGE 0 {\n");
         // Required fields - at least all CD-TEXT CDs I've seen so far have them.
-    fprintf(outfile, "    TITLE \"%s\"\n", (do_album ? cdrdao->tracks[0].metadata.album : ""));
-    fprintf(outfile, "    PERFORMER \"%s\"\n", (do_album ? cdrdao->tracks[0].metadata.artist :
+    fprintf(outfile, "    TITLE \"%s\"\n", (do_album ? cdrdao->tracks[0].metadata.album : "Audio CD"));
+    fprintf(outfile, "    PERFORMER \"%s\"\n", (same_artist ? cdrdao->tracks[0].metadata.artist :
                                                 "Various"));
     fprintf(outfile, "    DISC_ID \"XY12345\"\n");
     fprintf(outfile, "    UPC_EAN \"\"\n"); // usually empty

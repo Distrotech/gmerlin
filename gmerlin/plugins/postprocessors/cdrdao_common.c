@@ -23,6 +23,8 @@
 #include <log.h>
 #include "cdrdao_common.h"
 
+#define LOG_DOMAIN "cdrdao"
+
 struct bg_cdrdao_s
   {
   int run;
@@ -65,17 +67,55 @@ void bg_cdrdao_set_parameter(void * data, char * name,
     c->simulate = val->val_i;
   }
 
+/* Read line without trailing '\r' or '\n' */
+static int read_line(FILE * in, char ** ret, int * ret_alloc)
+  {
+  int bytes_read = 0;
+  char c = 0;
+  while((c != '\n') && (c != '\r'))
+    {
+    c = fgetc(in);
+    if(feof(in))
+      return 0;
+
+    if((c != '\n') && (c != '\r'))
+      {
+      if(bytes_read + 1 > *ret_alloc)
+        {
+        *ret_alloc += 256;
+        *ret = realloc(*ret, *ret_alloc);
+        }
+      (*ret)[bytes_read] = c;
+      bytes_read++;
+      }
+    }
+
+  if(bytes_read + 1 > *ret_alloc)
+    {
+    *ret_alloc += 256;
+    *ret = realloc(*ret, *ret_alloc);
+    }
+  ret[bytes_read] = '\0';
+  return 1;
+  }
+
 void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   {
   FILE * cdrdao;
   char * str;
   char * commandline = (char*)0;
 
+  char * line;
+  int line_alloc;
+  
   if(!c->run)
     return;
   
   if(!bg_search_file_exec("cdrdao", &commandline))
     return;
+
+  commandline = bg_strcat(commandline, " write");
+  
   /* Device */
   if(c->device)
     {
@@ -97,7 +137,21 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   if(c->simulate)
     commandline = bg_strcat(commandline, " --simulate");
 
-  /* TOC-File */
-  commandline = bg_strcat(commandline, " --simulate");
-  
+  /* TOC-File and stderr redirection */
+  str = bg_sprintf(" %s 2>&1", toc_file);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Launching %s", commandline);
+  commandline = bg_strcat(commandline, str);
+  free(str);
+
+  /* Launching command */
+  cdrdao = popen(commandline, "r");
+
+  /* Read lines */
+
+  while(read_line(cdrdao, &line, &line_alloc))
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
+    }
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "cdrdao process finished");
+  pclose(cdrdao);
   }
