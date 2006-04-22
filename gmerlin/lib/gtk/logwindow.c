@@ -101,6 +101,7 @@ static gboolean idle_callback(gpointer data)
   GtkTextIter iter;
   int i;
   char ** lines;
+  int got_message = 0;
   
   w = (bg_gtk_log_window_t *)data;
   
@@ -153,9 +154,14 @@ static gboolean idle_callback(gpointer data)
     
     bg_msg_queue_unlock_read(w->queue);
     w->num_messages++;
-    
+    got_message = 1;
     }
-  
+  if(got_message)
+    {
+    gtk_text_buffer_get_end_iter(w->buffer, &iter);
+    gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(w->textview),
+                                 &iter, 0.0, FALSE, 0.0, 1.0);
+    }
   return TRUE;
   }
 

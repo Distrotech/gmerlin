@@ -109,11 +109,15 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   int line_alloc;
   
   if(!c->run)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Not running cdrdao (disabled by user)");
     return;
-  
+    }
   if(!bg_search_file_exec("cdrdao", &commandline))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "cdrdao executable not found");
     return;
-
+    }
   commandline = bg_strcat(commandline, " write");
   
   /* Device */
