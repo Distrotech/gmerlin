@@ -210,7 +210,7 @@ void bg_transcoder_pp_update(bg_transcoder_pp_t * p)
         p->pp_plugin->add_track(p->plugin->priv, str, &p->metadata);
         p->num_tracks++;
         bg_log(BG_LOG_INFO, LOG_DOMAIN, "Scheduling %s for postprocessing", str);
-        fprintf(stderr, "Scheduling %s for postprocessing", str);
+        //        fprintf(stderr, "Scheduling %s for postprocessing", str);
         free(str);
         str = (char*)0;
         }
