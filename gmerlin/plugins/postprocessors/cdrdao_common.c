@@ -106,7 +106,7 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   char * commandline = (char*)0;
 
   char * line;
-  int line_alloc;
+  int line_alloc = 0;
   
   if(!c->run)
     {
@@ -143,10 +143,11 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
 
   /* TOC-File and stderr redirection */
   str = bg_sprintf(" %s 2>&1", toc_file);
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Launching %s", commandline);
   commandline = bg_strcat(commandline, str);
   free(str);
-
+  
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Launching %s", commandline);
+  
   /* Launching command */
   cdrdao = popen(commandline, "r");
 

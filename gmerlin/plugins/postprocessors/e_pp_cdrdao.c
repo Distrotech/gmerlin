@@ -312,7 +312,7 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
   /* Run cdrdao */
   
   bg_cdrdao_run(cdrdao->cdr, filename);
-  
+  free(filename);
   }
 
 bg_encoder_pp_plugin_t the_plugin =
