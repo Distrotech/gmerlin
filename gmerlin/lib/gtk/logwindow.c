@@ -40,6 +40,7 @@ struct bg_gtk_log_window_s
   GtkWidget * window;
   GtkWidget * textview;
   GtkTextBuffer * buffer;
+  GtkWidget * scrolledwindow;
 
   void (*close_callback)(bg_gtk_log_window_t*, void*);
   void * close_callback_data;
@@ -96,13 +97,14 @@ static gboolean idle_callback(gpointer data)
   const char * level_name;
   char * domain;
   char * message;
+  GtkAdjustment * adj;
   GtkTextTag * tag = (GtkTextTag *)0;
   char * str;
   GtkTextIter iter;
   int i;
   char ** lines;
   int got_message = 0;
-  
+    
   w = (bg_gtk_log_window_t *)data;
   
   while((msg = bg_msg_queue_try_lock_read(w->queue)))
@@ -167,9 +169,18 @@ static gboolean idle_callback(gpointer data)
     }
   if(got_message)
     {
+    adj = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(w->scrolledwindow));
+    gtk_adjustment_set_value(adj, adj->lower);
+
+    adj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(w->scrolledwindow));
+    gtk_adjustment_set_value(adj, adj->upper);
+                                              
+    
+#if 0
     gtk_text_buffer_get_end_iter(w->buffer, &iter);
     gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(w->textview),
                                  &iter, 0.0, FALSE, 0.0, 1.0);
+#endif
     }
   return TRUE;
   }
@@ -192,7 +203,6 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure *event,
 bg_gtk_log_window_t * bg_gtk_log_window_create(void (*close_callback)(bg_gtk_log_window_t*, void*),
                                                void * close_callback_data)
   {
-  GtkWidget * scrolledwin;
   bg_gtk_log_window_t * ret;
   ret = calloc(1, sizeof(*ret));
 
@@ -238,13 +248,13 @@ bg_gtk_log_window_t * bg_gtk_log_window_create(void (*close_callback)(bg_gtk_log
   gtk_widget_show(ret->textview);
 
   /* Create scrolledwindow */
-  scrolledwin = gtk_scrolled_window_new((GtkAdjustment*)0, (GtkAdjustment*)0);
-  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolledwin),
+  ret->scrolledwindow = gtk_scrolled_window_new((GtkAdjustment*)0, (GtkAdjustment*)0);
+  gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(ret->scrolledwindow),
                                  GTK_POLICY_ALWAYS, GTK_POLICY_ALWAYS);
   
-  gtk_container_add(GTK_CONTAINER(scrolledwin), ret->textview);
-  gtk_widget_show(scrolledwin);
-  gtk_container_add(GTK_CONTAINER(ret->window), scrolledwin);
+  gtk_container_add(GTK_CONTAINER(ret->scrolledwindow), ret->textview);
+  gtk_widget_show(ret->scrolledwindow);
+  gtk_container_add(GTK_CONTAINER(ret->window), ret->scrolledwindow);
   
   
   /* Add idle callback */

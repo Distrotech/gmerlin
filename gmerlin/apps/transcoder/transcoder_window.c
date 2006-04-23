@@ -340,7 +340,7 @@ static gboolean idle_callback(gpointer data)
 
   /* If the transcoder isn't there, it means that we were interrupted */
 
-  fprintf(stderr, "idle_callback\n");
+  //  fprintf(stderr, "idle_callback\n");
 
   while((msg = bg_msg_queue_try_lock_read(win->msg_queue)))
     {
