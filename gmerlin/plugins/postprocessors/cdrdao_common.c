@@ -164,12 +164,12 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
     if(!strncmp(line, "ERROR", 5))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, line);	   
-      break;
+      //      break;
       }
     else if(!strncmp(line, "WARNING", 7))
       {
       bg_log(BG_LOG_WARNING, LOG_DOMAIN, line);	   
-      break;
+      //      break;
       }
     else if(c->callbacks && c->callbacks->action_callback &&
             !strncmp(line, "Writing", 7))
