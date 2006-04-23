@@ -151,6 +151,9 @@ int bg_transcoder_pp_init(bg_transcoder_pp_t* p, bg_plugin_handle_t * plugin)
   p->plugin = plugin;
   bg_plugin_ref(p->plugin);
   p->pp_plugin = (bg_encoder_pp_plugin_t*)(p->plugin->plugin);
+
+  if(p->pp_plugin->set_callbacks)
+    p->pp_plugin->set_callbacks(p->plugin->priv, &(p->callbacks));
   
   if(!p->pp_plugin->init(p->plugin->priv))
     return 0;
