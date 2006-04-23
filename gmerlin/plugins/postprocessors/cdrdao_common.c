@@ -91,7 +91,7 @@ static int read_line(FILE * in, char ** ret, int * ret_alloc)
         {
         *ret_alloc += 256;
         *ret = realloc(*ret, *ret_alloc);
-        fprintf(stderr, "Ret: %p, ret_alloc: %d\n", *ret, *ret_alloc);
+        //        fprintf(stderr, "Ret: %p, ret_alloc: %d\n", *ret, *ret_alloc);
         }
       (*ret)[bytes_read] = c;
       bytes_read++;
@@ -102,7 +102,7 @@ static int read_line(FILE * in, char ** ret, int * ret_alloc)
     {
     *ret_alloc += 256;
     *ret = realloc(*ret, *ret_alloc);
-    fprintf(stderr, "Ret: %p, ret_alloc: %d\n", *ret, *ret_alloc);
+    //    fprintf(stderr, "Ret: %p, ret_alloc: %d\n", *ret, *ret_alloc);
     }
   (*ret)[bytes_read] = '\0';
   return 1;

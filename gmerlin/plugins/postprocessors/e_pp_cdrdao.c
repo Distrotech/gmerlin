@@ -40,6 +40,7 @@ typedef struct
     {
     bg_metadata_t metadata;
     char * filename;
+    uint32_t duration; /* In samples */
     } * tracks;
   int num_tracks;
   } cdrdao_t;
@@ -154,12 +155,92 @@ static int init_cdrdao(void * data)
   return 1;
   }
 
+/*
+ *  Micro wav parser: Gets the duration of the wave file.
+ *  We need this to write it into the toc file for the case that
+ *  pregaps are used
+ */
+
+typedef struct
+  {
+  char fourcc[4];
+  uint32_t length;
+  } chunk_t;
+
+static int read_chunk(FILE * input, chunk_t * ret)
+  {
+  uint8_t buf[4];
+  if(fread(ret->fourcc, 1, 4, input) < 4)
+    return 0;
+  if(fread(buf, 1, 4, input) < 4)
+    return 0;
+  ret->length =
+    buf[0] |
+    ((uint32_t)(buf[1]) << 8) |
+    ((uint32_t)(buf[2]) << 16) |
+    ((uint32_t)(buf[3]) << 24);
+  return 1;
+  }
+
+int32_t get_wav_length(const char * filename)
+  {
+  int32_t ret;
+  chunk_t ch;
+  FILE * wav;
+  uint8_t buf[12];
+  wav = fopen(filename, "r");
+  if(!wav)
+    return -1;
+  ret = -1;
+
+  if(fread(buf, 1, 12, wav) < 12)
+    goto fail;
+  if((buf[0] != 'R') ||
+     (buf[1] != 'I') ||
+     (buf[2] != 'F') ||
+     (buf[3] != 'F') ||
+     (buf[8] != 'W') ||
+     (buf[9] != 'A') ||
+     (buf[10] != 'V') ||
+     (buf[11] != 'E'))
+    goto fail;
+    
+  ret = -1;
+  while(read_chunk(wav, &ch))
+    {
+    if((ch.fourcc[0] == 'd') &&
+       (ch.fourcc[1] == 'a') &&
+       (ch.fourcc[2] == 't') &&
+       (ch.fourcc[3] == 'a'))
+      {
+      ret = ch.length / 4;
+      break;
+      }
+    fseek(wav, ch.length, SEEK_CUR);
+    }
+  
+  fail:
+  fclose(wav);
+  return ret;
+  }
+
 void add_track_cdrdao(void * data, const char * filename,
                       bg_metadata_t * metadata)
   {
+  int32_t duration;
   cdrdao_t * cdrdao;
   cdrdao = (cdrdao_t*)data;
 
+  if(cdrdao->pregap > 0)
+    {
+    duration = get_wav_length(filename);
+    if(duration <= 0)
+      {
+      fprintf(stderr, "Cannot get duration of file %s\n", filename);
+      return;
+      }
+    }
+  
   cdrdao->tracks = realloc(cdrdao->tracks,
                            (cdrdao->num_tracks+1)*sizeof(*cdrdao->tracks));
 
@@ -168,6 +249,10 @@ void add_track_cdrdao(void * data, const char * filename,
   bg_metadata_copy(&(cdrdao->tracks[cdrdao->num_tracks].metadata),
                    metadata);
   cdrdao->tracks[cdrdao->num_tracks].filename = bg_strdup((char*)0, filename);
+
+  if(cdrdao->pregap > 0)
+    cdrdao->tracks[cdrdao->num_tracks].duration = duration;
+  
   cdrdao->num_tracks++;
   fprintf(stderr, "add_track_cdrdao %d %s\n", cdrdao->num_tracks, filename);
   }
@@ -302,10 +387,17 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
       fprintf(outfile, "  }\n");
       fprintf(outfile, "}\n");
       
-      if(i && cdrdao->pregap)
+      if(i && (cdrdao->pregap > 0))
+        {
         fprintf(outfile, "PREGAP %d:%d:%d\n", pregap_mm, 
                 pregap_ss, pregap_ff);
-      fprintf(outfile, "FILE \"%s\" 0\n\n", cdrdao->tracks[i].filename);
+        fprintf(outfile, "FILE \"%s\" 0 %d\n\n", cdrdao->tracks[i].filename,
+                cdrdao->tracks[i].duration);
+        }
+      else
+        {
+        fprintf(outfile, "FILE \"%s\" 0\n\n", cdrdao->tracks[i].filename);
+        }
       }
     }
   fclose(outfile);
