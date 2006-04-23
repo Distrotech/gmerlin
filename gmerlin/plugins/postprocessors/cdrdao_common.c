@@ -32,6 +32,8 @@ struct bg_cdrdao_s
   char * driver;
   int eject;
   int simulate;
+
+  bg_e_pp_callbacks_t * callbacks;
   };
 
 bg_cdrdao_t * bg_cdrdao_create()
@@ -110,6 +112,8 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   char * line = (char*)0;
   int line_alloc = 0;
   
+  int mb_written, mb_total;
+  
   if(!c->run)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Not running cdrdao (disabled by user)");
@@ -162,9 +166,31 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, line);	   
       break;
       }
+    else if(!strncmp(line, "WARNING", 7))
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, line);	   
+      break;
+      }
+    else if(c->callbacks && c->callbacks->action_callback &&
+            !strncmp(line, "Writing", 7))
+      {
+      c->callbacks->action_callback(c->callbacks->data,
+                                    line);
+      }
+    else if(c->callbacks && c->callbacks->progress_callback &&
+            (sscanf(line, "Wrote %d of %d", &mb_written, &mb_total) == 2))
+      {
+      c->callbacks->progress_callback(c->callbacks->data,
+                                      (float)mb_written/(float)mb_total);
+      }
     bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
-    fprintf(stderr, "Got line: %s\n", line);
+    //    fprintf(stderr, "Got line: %s\n", line);
     }
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "cdrdao process finished");
   pclose(cdrdao);
+  }
+
+void bg_cdrdao_set_callbacks(bg_cdrdao_t * c, bg_e_pp_callbacks_t * callbacks)
+  {
+  c->callbacks = callbacks;
   }

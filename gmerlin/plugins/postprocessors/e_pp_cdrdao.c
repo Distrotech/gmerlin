@@ -142,6 +142,7 @@ static void set_callbacks_cdrdao(void * data, bg_e_pp_callbacks_t * callbacks)
   cdrdao_t * cdrdao;
   cdrdao = (cdrdao_t*)data;
   cdrdao->callbacks = callbacks;
+  bg_cdrdao_set_callbacks(cdrdao->cdr, callbacks);
   }
 
 static int init_cdrdao(void * data)
