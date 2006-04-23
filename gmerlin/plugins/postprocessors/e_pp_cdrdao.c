@@ -302,7 +302,7 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
       fprintf(outfile, "}\n");
       
       if(i && cdrdao->pregap)
-        fprintf(outfile, "PREGAP %02d:%02d:%02d\n", pregap_mm, 
+        fprintf(outfile, "PREGAP %d:%d:%d\n", pregap_mm, 
                 pregap_ss, pregap_ff);
       fprintf(outfile, "FILE \"%s\" 0\n\n", cdrdao->tracks[i].filename);
       }

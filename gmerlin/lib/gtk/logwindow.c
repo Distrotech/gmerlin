@@ -135,19 +135,28 @@ static gboolean idle_callback(gpointer data)
     
     gtk_text_buffer_get_end_iter(w->buffer, &iter);
 
-
-    lines = bg_strbreak(message, '\n');
-    i = 0;
-    while(lines[i])
+    if(*message == '\0') /* Empty string */
       {
-      str = bg_sprintf("[%s]: %s\n", domain, lines[i]);
+      str = bg_sprintf("[%s]\n", domain);
       gtk_text_buffer_insert_with_tags(w->buffer,
                                        &iter,
                                        str, -1, tag, NULL);
-      free(str);
-      i++;
       }
-    bg_strbreak_free(lines);
+    else
+      {
+      lines = bg_strbreak(message, '\n');
+      i = 0;
+      while(lines[i])
+        {
+        str = bg_sprintf("[%s]: %s\n", domain, lines[i]);
+        gtk_text_buffer_insert_with_tags(w->buffer,
+                                         &iter,
+                                         str, -1, tag, NULL);
+        free(str);
+        i++;
+        }
+      bg_strbreak_free(lines);
+      }
     free(message);
     free(domain);
     

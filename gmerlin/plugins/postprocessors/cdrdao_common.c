@@ -107,7 +107,7 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   char * str;
   char * commandline = (char*)0;
 
-  char * line;
+  char * line = (char*)0;
   int line_alloc = 0;
   
   if(!c->run)
@@ -157,6 +157,11 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
 
   while(read_line(cdrdao, &line, &line_alloc))
     {
+    if(!strncmp(line, "ERROR", 5))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, line);	   
+      break;
+      }
     bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
     fprintf(stderr, "Got line: %s\n", line);
     }
