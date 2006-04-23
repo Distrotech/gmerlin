@@ -62,7 +62,14 @@
     val_default: { val_i: 0 },                 \
     val_min: { val_i: 0 },                 \
     val_max: { val_i: 1000 },                 \
-    help_string: "Set the writing speed. 0 means autodetect", \
+    help_string: "Set the writing speed. 0 means autodetect.", \
+    }, \
+    {                                                   \
+    name:       "cdrdao_nopause",                       \
+    long_name:  "No pause",                  \
+    type: BG_PARAMETER_CHECKBUTTON,               \
+    val_default: { val_i: 0 },                 \
+    help_string: "Skip the 10 second pause before writing or simulating starts.", \
     }
 
 

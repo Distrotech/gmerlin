@@ -32,7 +32,8 @@ struct bg_cdrdao_s
   char * driver;
   int eject;
   int simulate;
-
+  int speed;
+  int nopause;
   bg_e_pp_callbacks_t * callbacks;
   };
 
@@ -67,6 +68,10 @@ void bg_cdrdao_set_parameter(void * data, char * name,
     c->eject = val->val_i;
   else if(!strcmp(name, "cdrdao_simulate"))
     c->simulate = val->val_i;
+  else if(!strcmp(name, "cdrdao_speed"))
+    c->speed = val->val_i;
+  else if(!strcmp(name, "cdrdao_nopause"))
+    c->nopause = val->val_i;
   }
 
 /* Read line without trailing '\r' or '\n' */
@@ -143,10 +148,22 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   /* Eject */
   if(c->eject)
     commandline = bg_strcat(commandline, " --eject");
+  /* Skip pause */
+  if(c->nopause)
+    commandline = bg_strcat(commandline, " -n");
+
   /* Simulate */
   if(c->simulate)
     commandline = bg_strcat(commandline, " --simulate");
 
+  /* Speed */
+  if(c->speed > 0)
+    {
+    str = bg_sprintf(" --speed %d", c->speed);
+    commandline = bg_strcat(commandline, str);
+    free(str);
+    }
+  
   /* TOC-File and stderr redirection */
   str = bg_sprintf(" %s 2>&1", toc_file);
   commandline = bg_strcat(commandline, str);
@@ -176,14 +193,17 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
       {
       c->callbacks->action_callback(c->callbacks->data,
                                     line);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
       }
     else if(c->callbacks && c->callbacks->progress_callback &&
             (sscanf(line, "Wrote %d of %d", &mb_written, &mb_total) == 2))
       {
       c->callbacks->progress_callback(c->callbacks->data,
                                       (float)mb_written/(float)mb_total);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
       }
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
+    else
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
     //    fprintf(stderr, "Got line: %s\n", line);
     }
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "cdrdao process finished");

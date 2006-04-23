@@ -698,7 +698,7 @@ static void set_audio_format(audio_stream_t * ret)
     ret->in_format.samplerate + 10;
   
   /* Dump formats */
-#if 1
+#if 0
   fprintf(stderr, "Input format:\n");
   gavl_audio_format_dump(&(ret->in_format));
   fprintf(stderr, "Output format:\n");
