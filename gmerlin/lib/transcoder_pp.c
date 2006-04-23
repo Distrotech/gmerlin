@@ -61,9 +61,6 @@ static void action_callback(void * data, char * action)
   bg_transcoder_pp_t * p;
   p = (bg_transcoder_pp_t*)data;
   bg_transcoder_send_msg_start(p->msg_out, action);
-  gavl_timer_stop(p->timer);
-  gavl_timer_set(p->timer, 0);
-  gavl_timer_start(p->timer);
   p->last_time = 0;
   //  fprintf(stderr, "transcoder_pp: action %s\n", action);
   }
@@ -76,7 +73,12 @@ static void progress_callback(void * data, float perc)
   p = (bg_transcoder_pp_t*)data;
 
   //  fprintf(stderr, "transcoder_pp: progress %.1f\n", perc * 100.0);
-
+  if(perc == 0.0)
+    {
+    gavl_timer_stop(p->timer);
+    gavl_timer_set(p->timer, 0);
+    gavl_timer_start(p->timer);
+    }
   current_time = gavl_timer_get(p->timer);
   
   if(current_time - p->last_time < GAVL_TIME_SCALE)

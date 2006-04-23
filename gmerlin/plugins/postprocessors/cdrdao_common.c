@@ -194,6 +194,13 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
       c->callbacks->action_callback(c->callbacks->data,
                                     line);
       bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
+
+      if(c->callbacks->progress_callback)
+        {
+        if(!strncmp(line, "Writing track 01", 16) ||
+           strncmp(line, "Writing track", 13))
+          c->callbacks->progress_callback(c->callbacks->data, 0.0);
+        }
       }
     else if(c->callbacks && c->callbacks->progress_callback &&
             (sscanf(line, "Wrote %d of %d", &mb_written, &mb_total) == 2))
