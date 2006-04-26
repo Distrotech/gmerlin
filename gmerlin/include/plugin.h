@@ -2,7 +2,7 @@
  
   plugin.h
  
-  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
   http://gmerlin.sourceforge.net
  
@@ -635,8 +635,15 @@ typedef struct bg_encoder_pp_plugin_s
   /* Add a transcoded track */
   void (*add_track)(void*, const char * filename,
                     bg_metadata_t * metadata);
-  
+
+  /* Run can be a long operation, it should be called from a separate
+     thread launched by the application and the callbacks should be
+     used for progress reporting */
   void (*run)(void*, const char * directory, int cleanup);
+
+  /* Stop a previously called run() function. This MUST (of course)
+     be thread save */
+  void (*stop)(void*);
   } bg_encoder_pp_plugin_t;
 
 

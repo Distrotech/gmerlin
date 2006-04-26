@@ -408,6 +408,13 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
   free(filename);
   }
 
+static void stop_cdrdao(void * data)
+  {
+  cdrdao_t * cdrdao;
+  cdrdao = (cdrdao_t*)data;
+  bg_cdrdao_stop(cdrdao->cdr);
+  }
+
 bg_encoder_pp_plugin_t the_plugin =
   {
     common:
@@ -430,6 +437,7 @@ bg_encoder_pp_plugin_t the_plugin =
     init:                init_cdrdao,
     add_track:           add_track_cdrdao,
     run:                 run_cdrdao,
+    stop:                stop_cdrdao,
     
   };
 

@@ -22,6 +22,7 @@ pluginregistry.h \
 remote.h \
 singlepic.h \
 streaminfo.h \
+subprocess.h \
 tcp.h \
 textrenderer.h \
 transcoder.h \

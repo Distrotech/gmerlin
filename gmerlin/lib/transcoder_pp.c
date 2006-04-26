@@ -244,7 +244,8 @@ static void * thread_func(void * data)
 
 void bg_transcoder_pp_stop(bg_transcoder_pp_t * p)
   {
-  
+  if(p->pp_plugin && p->pp_plugin->stop)
+    p->pp_plugin->stop(p->plugin->priv);
   }
 
 void bg_transcoder_pp_run(bg_transcoder_pp_t * p)

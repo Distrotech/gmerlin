@@ -1883,7 +1883,7 @@ static void close_stream(stream_t * s, int do_delete)
         s->out_plugin->get_filename(s->out_handle->priv);
       s->output_filename = bg_strdup(s->output_filename, filename);
       }
-    fprintf(stderr, "Closed stream, filename: %s\n", s->output_filename);
+    fprintf(stderr, "Closing stream, filename: %s\n", s->output_filename);
     s->out_plugin->close(s->out_handle->priv, do_delete);
     }
   }
@@ -2006,13 +2006,15 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
 
   /* Close all plugins so the files are finished */
 
-  for(i = 0; i < t->num_audio_streams; i++)
-    {
-    close_stream(&(t->audio_streams[i].com), do_delete);
-    }
   for(i = 0; i < t->num_video_streams; i++)
     {
+    fprintf(stderr, "Close video stream\n");
     close_stream(&(t->video_streams[i].com), do_delete);
+    }
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    fprintf(stderr, "Close audio stream\n");
+    close_stream(&(t->audio_streams[i].com), do_delete);
     }
     
   /* Send created files to gmerlin */
@@ -2024,13 +2026,21 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
   
   /* Cleanup streams */
 
-  for(i = 0; i < t->num_audio_streams; i++)
-    {
-    cleanup_audio_stream(&(t->audio_streams[i]));
-    }
   for(i = 0; i < t->num_video_streams; i++)
     {
+    if(t->video_streams[i].com.action != STREAM_ACTION_FORGET)
+      bg_log(BG_LOG_INFO, LOG_DOMAIN,
+             "Video stream %d: Transcoded %lld frames", i+1,
+             t->video_streams[i].frames_written);
     cleanup_video_stream(&(t->video_streams[i]));
+    }
+  for(i = 0; i < t->num_audio_streams; i++)
+    {
+    if(t->audio_streams[i].com.action != STREAM_ACTION_FORGET)
+      bg_log(BG_LOG_INFO, LOG_DOMAIN,
+             "Audio stream %d: Transcoded %lld samples", i+1,
+             t->audio_streams[i].samples_written);
+    cleanup_audio_stream(&(t->audio_streams[i]));
     }
 
     

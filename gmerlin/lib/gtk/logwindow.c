@@ -89,6 +89,18 @@ static void delete_first_line(bg_gtk_log_window_t * win)
   win->num_messages--;
   }
 
+static void changed_callback(GtkWidget * wid, gpointer data)
+  {
+  bg_gtk_log_window_t * w;
+  GtkTextIter iter;
+  w = (bg_gtk_log_window_t *)data;
+
+  gtk_text_buffer_get_end_iter(w->buffer, &iter);
+  gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(w->textview),
+                               &iter, 0.0, FALSE, 0.0, 1.0);
+  
+  }
+
 static gboolean idle_callback(gpointer data)
   {
   bg_msg_t * msg;
@@ -97,13 +109,11 @@ static gboolean idle_callback(gpointer data)
   const char * level_name;
   char * domain;
   char * message;
-  GtkAdjustment * adj;
   GtkTextTag * tag = (GtkTextTag *)0;
   char * str;
   GtkTextIter iter;
   int i;
   char ** lines;
-  int got_message = 0;
     
   w = (bg_gtk_log_window_t *)data;
   
@@ -165,22 +175,6 @@ static gboolean idle_callback(gpointer data)
     
     bg_msg_queue_unlock_read(w->queue);
     w->num_messages++;
-    got_message = 1;
-    }
-  if(got_message)
-    {
-    adj = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(w->scrolledwindow));
-    gtk_adjustment_set_value(adj, adj->lower);
-
-    adj = gtk_scrolled_window_get_vadjustment(GTK_SCROLLED_WINDOW(w->scrolledwindow));
-    gtk_adjustment_set_value(adj, adj->upper);
-                                              
-    
-#if 0
-    gtk_text_buffer_get_end_iter(w->buffer, &iter);
-    gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(w->textview),
-                                 &iter, 0.0, FALSE, 0.0, 1.0);
-#endif
     }
   return TRUE;
   }
@@ -237,6 +231,8 @@ bg_gtk_log_window_t * bg_gtk_log_window_create(void (*close_callback)(bg_gtk_log
   /* Create textbuffer */
 
   ret->buffer = gtk_text_buffer_new(ret->tag_table);
+  g_signal_connect(G_OBJECT(ret->buffer), "changed",
+                   G_CALLBACK(changed_callback), (gpointer)ret);
   
   /* Create textview */  
   

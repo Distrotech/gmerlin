@@ -18,9 +18,14 @@
 *****************************************************************/
 
 #include <string.h>
+#include <pthread.h>
+#include <signal.h>
+
+
 #include <plugin.h>
 #include <utils.h>
 #include <log.h>
+#include <subprocess.h>
 #include "cdrdao_common.h"
 
 #define LOG_DOMAIN "cdrdao"
@@ -35,12 +40,15 @@ struct bg_cdrdao_s
   int speed;
   int nopause;
   bg_e_pp_callbacks_t * callbacks;
+  pthread_mutex_t stop_mutex;
+  int do_stop;
   };
 
 bg_cdrdao_t * bg_cdrdao_create()
   {
   bg_cdrdao_t * ret;
   ret = calloc(1, sizeof(*ret));
+  pthread_mutex_init(&ret->stop_mutex, (pthread_mutexattr_t *)0);
   return ret;
   }
 
@@ -74,43 +82,18 @@ void bg_cdrdao_set_parameter(void * data, char * name,
     c->nopause = val->val_i;
   }
 
-/* Read line without trailing '\r' or '\n' */
-static int read_line(FILE * in, char ** ret, int * ret_alloc)
+static int check_stop(bg_cdrdao_t * c)
   {
-  int bytes_read = 0;
-  char c = 0;
-  while((c != '\n') && (c != '\r'))
-    {
-    c = fgetc(in);
-    if(feof(in))
-      return 0;
-
-    if((c != '\n') && (c != '\r'))
-      {
-      if(bytes_read + 1 > *ret_alloc)
-        {
-        *ret_alloc += 256;
-        *ret = realloc(*ret, *ret_alloc);
-        //        fprintf(stderr, "Ret: %p, ret_alloc: %d\n", *ret, *ret_alloc);
-        }
-      (*ret)[bytes_read] = c;
-      bytes_read++;
-      }
-    }
-
-  if(bytes_read + 1 > *ret_alloc)
-    {
-    *ret_alloc += 256;
-    *ret = realloc(*ret, *ret_alloc);
-    //    fprintf(stderr, "Ret: %p, ret_alloc: %d\n", *ret, *ret_alloc);
-    }
-  (*ret)[bytes_read] = '\0';
-  return 1;
+  int ret;
+  pthread_mutex_lock(&c->stop_mutex);
+  ret = c->do_stop;
+  pthread_mutex_unlock(&c->stop_mutex);
+  return ret;
   }
 
 void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   {
-  FILE * cdrdao;
+  bg_subprocess_t * cdrdao;
   char * str;
   char * commandline = (char*)0;
 
@@ -165,19 +148,30 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
     }
   
   /* TOC-File and stderr redirection */
-  str = bg_sprintf(" %s 2>&1", toc_file);
+  str = bg_sprintf(" %s", toc_file);
   commandline = bg_strcat(commandline, str);
   free(str);
   
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Launching %s", commandline);
-  
-  /* Launching command */
-  cdrdao = popen(commandline, "r");
+  if(check_stop(c))
+    {
+    free(commandline);
+    return;
+    }
 
+  /* Launching command (cdrdao sends everything to stderr) */
+  cdrdao = bg_subprocess_create(commandline, 0, 0, 1);
+  free(commandline);
   /* Read lines */
 
-  while(read_line(cdrdao, &line, &line_alloc))
+  while(bg_subprocess_read_line(cdrdao->stderr, &line, &line_alloc, 0))
     {
+    if(check_stop(c))
+      {
+      bg_subprocess_kill(cdrdao, SIGABRT);
+      bg_subprocess_close(cdrdao);
+      return;
+      }
+
     if(!strncmp(line, "ERROR", 5))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, line);	   
@@ -213,11 +207,18 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
       bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
     //    fprintf(stderr, "Got line: %s\n", line);
     }
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "cdrdao process finished");
-  pclose(cdrdao);
+  bg_subprocess_close(cdrdao);
   }
 
 void bg_cdrdao_set_callbacks(bg_cdrdao_t * c, bg_e_pp_callbacks_t * callbacks)
   {
   c->callbacks = callbacks;
+  }
+
+void bg_cdrdao_stop(bg_cdrdao_t * c)
+  {
+  pthread_mutex_lock(&c->stop_mutex);
+  c->do_stop = 1;
+  pthread_mutex_unlock(&c->stop_mutex);
+  
   }
