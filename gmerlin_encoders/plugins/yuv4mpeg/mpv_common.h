@@ -32,7 +32,7 @@ typedef struct
   int quantization; /* -q */
   
   char * user_options;
-
+  bg_subprocess_t * mpeg2enc;
   bg_y4m_common_t y4m;
   } bg_mpv_common_t;
 

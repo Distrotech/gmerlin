@@ -112,7 +112,7 @@ int bg_y4m_write_header(bg_y4m_common_t * com)
   /* Now, it's time to write the stream header */
 
   fprintf(stderr, "Writing stream header....");
-  if(y4m_write_stream_header_cb(&(com->writer), &(com->si)) != Y4M_OK)
+  if(y4m_write_stream_header(com->fd, &(com->si)) != Y4M_OK)
     {
     fprintf(stderr, "Writing stream header failed\n");
     return 0;
@@ -202,13 +202,13 @@ void bg_y4m_write_frame(bg_y4m_common_t * com, gavl_video_frame_t * frame)
        (frame->strides[1] == com->strides[1]) &&
        (frame->strides[2] == com->strides[2]) &&
        (frame->strides[3] == com->strides[3]))
-      y4m_write_frame_cb(&(com->writer), &(com->si), &(com->fi), frame->planes);
+      y4m_write_frame(com->fd, &(com->si), &(com->fi), frame->planes);
     else
       {
       if(!com->frame)
         com->frame = gavl_video_frame_create_nopadd(&(com->format));
       gavl_video_frame_copy(&(com->format), com->frame, frame);
-      y4m_write_frame_cb(&(com->writer), &(com->si), &(com->fi), com->frame->planes);
+      y4m_write_frame(com->fd, &(com->si), &(com->fi), com->frame->planes);
       }
     }
 

@@ -23,6 +23,7 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/subprocess.h>
 #include <gmerlin_encoders.h>
 #include "mpa_common.h"
 #include "mpv_common.h"

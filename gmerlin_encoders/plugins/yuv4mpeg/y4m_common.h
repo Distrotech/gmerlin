@@ -22,7 +22,6 @@
 typedef struct
   {
   gavl_video_format_t format;
-  FILE * file;
   /* For checking if an incoming frame can be read without memcpying */
   int strides[4]; 
   
@@ -31,7 +30,7 @@ typedef struct
   y4m_stream_info_t si;
   y4m_frame_info_t fi;
   
-  y4m_cb_writer_t writer;
+  int fd;
 
   gavl_video_frame_t * frame;
   uint8_t * tmp_planes[4];

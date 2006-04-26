@@ -22,6 +22,7 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/subprocess.h>
 
 #include <yuv4mpeg.h>
 
@@ -328,15 +329,6 @@ const char * bg_mpv_get_extension(bg_mpv_common_t * mpv)
   return (char*)0;
   }
 
-static ssize_t write_func(void * data, const void *buf, size_t len)
-  {
-  size_t result;
-  result = fwrite(buf, 1, len, (FILE*)(data));
-  
-  if(result != len)
-    return -len;
-  return 0;
-  }
 
 int bg_mpv_open(bg_mpv_common_t * com, const char * filename)
   {
@@ -349,20 +341,19 @@ int bg_mpv_open(bg_mpv_common_t * com, const char * filename)
     }
 
   //  fprintf(stderr, "launching %s...", commandline);
-  
-  com->y4m.file = popen(commandline, "w");
-  if(!com->y4m.file)
+  com->mpeg2enc = bg_subprocess_create(commandline, 1, 0, 0);
+  if(!com->mpeg2enc)
     {
     //    fprintf(stderr, "failed\n");
     return 0;
     }
+
+
+  com->y4m.fd = com->mpeg2enc->stdin;
   //  fprintf(stderr, "done\n");
 
   free(commandline);
   
-  /* Set up writer */
-  com->y4m.writer.data  = com->y4m.file;
-  com->y4m.writer.write = write_func;
 
   return 1;
   
@@ -391,7 +382,7 @@ void bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame)
 void bg_mpv_close(bg_mpv_common_t * com)
   {
   //  fprintf(stderr, "bg_mpv_close\n");
-  pclose(com->y4m.file);
+  bg_subprocess_close(com->mpeg2enc);
   bg_y4m_cleanup(&com->y4m);
   if(com->user_options)
     free(com->user_options);
@@ -402,6 +393,5 @@ int bg_mpv_start(bg_mpv_common_t * com)
   {
   int result;
   result = bg_y4m_write_header(&com->y4m);
-  fflush(com->y4m.file);
   return result;
   }

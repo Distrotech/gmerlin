@@ -19,6 +19,10 @@
 
 #include <string.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin_encoders.h>
@@ -53,31 +57,19 @@ static const char * get_extension_y4m(void * data)
   return extension_y4m;
   }
 
-static ssize_t write_func(void * data, const void *buf, size_t len)
-  {
-  size_t result;
-  result = fwrite(buf, 1, len, (FILE*)(data));
-  
-  if(result != len)
-    return -len;
-  return 0;
-  }
 
 
 static int open_y4m(void * data, const char * filename,
                     bg_metadata_t * metadata)
   {
   e_y4m_t * e = (e_y4m_t*)data;
-  e->com.file = fopen(filename, "w");
-  if(!e->com.file)
+  e->com.fd = open(filename, O_WRONLY | O_CREAT);
+  if(e->com.fd == -1)
     return 0;
 
   /* Copy filename for later reusal */
   e->filename = bg_strdup(e->filename, filename);
   
-  /* Set up writer */
-  e->com.writer.data  = e->com.file;
-  e->com.writer.write = write_func;
   return 1;
   }
 
@@ -100,7 +92,6 @@ static int start_y4m(void * data)
   int result;
   e_y4m_t * e = (e_y4m_t*)data;
   result = bg_y4m_write_header(&e->com);
-  fflush(e->com.file);
   return result;
   }
 
@@ -116,7 +107,7 @@ static void write_video_frame_y4m(void * data,
 static void close_y4m(void * data, int do_delete)
   {
   e_y4m_t * e = (e_y4m_t*)data;
-  fclose(e->com.file);
+  close(e->com.fd);
   if(do_delete)
     remove(e->filename);
   }

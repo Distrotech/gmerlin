@@ -19,10 +19,12 @@
 
 #include <string.h>
 #include <config.h>
-
+#include <unistd.h> 
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/subprocess.h>
+
 #include "mpa_common.h"
 
 
@@ -202,29 +204,29 @@ void bg_mpa_get_format(bg_mpa_common_t * com, gavl_audio_format_t * format)
 int bg_mpa_start(bg_mpa_common_t * com, const char * filename)
   {
   char * commandline;
-
   commandline = 
     bg_mpa_make_commandline(com, filename);
-
   if(!commandline)
     {
     return 0;
     }
   //  fprintf(stderr, "Launching %s\n", commandline);
 
-  com->mp2enc = popen(commandline, "w");
+  com->mp2enc = bg_subprocess_create(commandline, 1, 0, 0);
   if(!com->mp2enc)
     return 0;
   free(commandline);
   return 1;
   }
 
-void bg_mpa_write_audio_frame(bg_mpa_common_t * com, gavl_audio_frame_t * frame)
+void bg_mpa_write_audio_frame(bg_mpa_common_t * com,
+                              gavl_audio_frame_t * frame)
   {
-  fwrite(frame->samples.s_16, 2 * com->format.num_channels, frame->valid_samples, com->mp2enc);
+  write(com->mp2enc->stdin, frame->samples.s_16,
+        2 * com->format.num_channels * frame->valid_samples);
   }
 
 void bg_mpa_close(bg_mpa_common_t * com)
   {
-  pclose(com->mp2enc);
+  bg_subprocess_close(com->mp2enc);
   }

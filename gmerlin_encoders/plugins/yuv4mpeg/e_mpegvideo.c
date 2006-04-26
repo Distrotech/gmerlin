@@ -21,6 +21,7 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/subprocess.h>
 #include <gmerlin_encoders.h>
 #include <yuv4mpeg.h>
 #include "mpv_common.h"

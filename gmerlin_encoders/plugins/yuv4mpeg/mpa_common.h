@@ -26,7 +26,7 @@ typedef struct
   int vcd; /* -V */
 
   gavl_audio_format_t format;
-  FILE * mp2enc;
+  bg_subprocess_t * mp2enc;
 
   } bg_mpa_common_t;
 
