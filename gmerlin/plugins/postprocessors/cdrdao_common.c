@@ -87,6 +87,7 @@ static int check_stop(bg_cdrdao_t * c)
   int ret;
   pthread_mutex_lock(&c->stop_mutex);
   ret = c->do_stop;
+  c->do_stop = 0;
   pthread_mutex_unlock(&c->stop_mutex);
   return ret;
   }
@@ -168,8 +169,7 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
     if(check_stop(c))
       {
       bg_subprocess_kill(cdrdao, SIGABRT);
-      bg_subprocess_close(cdrdao);
-      return;
+      
       }
 
     if(!strncmp(line, "ERROR", 5))

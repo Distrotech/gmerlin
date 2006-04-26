@@ -89,15 +89,24 @@ static void delete_first_line(bg_gtk_log_window_t * win)
   win->num_messages--;
   }
 
-static void changed_callback(GtkWidget * wid, gpointer data)
+static void changed_callback(gpointer       data)
   {
   bg_gtk_log_window_t * w;
   GtkTextIter iter;
+  GtkTextMark * mark = (GtkTextMark *)0;
   w = (bg_gtk_log_window_t *)data;
 
+  fprintf(stderr, "changed callback\n");
+  
   gtk_text_buffer_get_end_iter(w->buffer, &iter);
-  gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(w->textview),
-                               &iter, 0.0, FALSE, 0.0, 1.0);
+
+  mark = gtk_text_buffer_create_mark(w->buffer, NULL, &iter, FALSE);
+  gtk_text_view_scroll_mark_onscreen(GTK_TEXT_VIEW(w->textview), mark);
+  gtk_text_buffer_delete_mark(w->buffer, mark);
+  
+
+  //  gtk_text_view_scroll_to_iter(GTK_TEXT_VIEW(w->textview),
+  //                               &iter, 0.0, FALSE, 0.0, 0.0);
   
   }
 
@@ -114,7 +123,8 @@ static gboolean idle_callback(gpointer data)
   GtkTextIter iter;
   int i;
   char ** lines;
-    
+  int got_message = 0;
+  
   w = (bg_gtk_log_window_t *)data;
   
   while((msg = bg_msg_queue_try_lock_read(w->queue)))
@@ -171,11 +181,15 @@ static gboolean idle_callback(gpointer data)
       }
     free(message);
     free(domain);
-    
-    
+
     bg_msg_queue_unlock_read(w->queue);
     w->num_messages++;
+    got_message = 1;
     }
+  if(got_message)
+    changed_callback(w);
+
+
   return TRUE;
   }
 
@@ -231,8 +245,6 @@ bg_gtk_log_window_t * bg_gtk_log_window_create(void (*close_callback)(bg_gtk_log
   /* Create textbuffer */
 
   ret->buffer = gtk_text_buffer_new(ret->tag_table);
-  g_signal_connect(G_OBJECT(ret->buffer), "changed",
-                   G_CALLBACK(changed_callback), (gpointer)ret);
   
   /* Create textview */  
   

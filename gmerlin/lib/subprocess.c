@@ -167,7 +167,7 @@ bg_subprocess_t * bg_subprocess_create(const char * command, int do_stdin,
     ret->stderr = connect_pipe_parent(&ret_priv->stderr);
     ret_priv->pid = pid;
     }
-  bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Created process: %s [%d]",
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Created process: %s [%d]",
          command, pid);
   
   return ret;
@@ -207,7 +207,7 @@ int bg_subprocess_close(bg_subprocess_t*p)
   waitpid(priv->pid, &status, 0);
   fprintf(stderr, "done\n");
 
-  bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Finished process [%d]",
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Finished process [%d]",
          priv->pid);
 
   
