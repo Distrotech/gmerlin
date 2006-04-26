@@ -164,7 +164,7 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   free(commandline);
   /* Read lines */
 
-  while(bg_subprocess_read_line(cdrdao->stderr, &line, &line_alloc, 0))
+  while(bg_subprocess_read_line(cdrdao->stderr, &line, &line_alloc, -1))
     {
     if(check_stop(c))
       {

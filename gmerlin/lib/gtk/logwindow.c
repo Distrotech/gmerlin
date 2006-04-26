@@ -96,7 +96,6 @@ static void changed_callback(gpointer       data)
   GtkTextMark * mark = (GtkTextMark *)0;
   w = (bg_gtk_log_window_t *)data;
 
-  fprintf(stderr, "changed callback\n");
   
   gtk_text_buffer_get_end_iter(w->buffer, &iter);
 

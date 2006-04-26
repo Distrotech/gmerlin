@@ -37,13 +37,6 @@
 
 #define LOG_DOMAIN "subprocess"
 
-#if 0
-#define CLOSE(f) \
-  if(close(f)) \
-    perror(# f); \
-  else           \
-    fprintf(stderr, "close %s (%d)\n", # f, f)
-#endif
 
 static int my_close(int * fd)
   {
@@ -230,7 +223,7 @@ int bg_subprocess_read_line(int fd, char ** ret, int * ret_alloc,
   fd_set rset;
   struct timeval timeout;
   int result;
-  if(milliseconds >= 0)
+  if(milliseconds > 0)
     { 
     FD_ZERO (&rset);
     FD_SET  (fd, &rset);
@@ -249,11 +242,13 @@ int bg_subprocess_read_line(int fd, char ** ret, int * ret_alloc,
   while((c != '\n') && (c != '\r'))
     {
     if(!read(fd, &c, 1))
+      {
+      fprintf(stderr, "read returned 0\n");
       return 0;
-    
+      }
     if((c != '\n') && (c != '\r'))
       {
-      if(bytes_read + 1 > *ret_alloc)
+      if(bytes_read + 2 > *ret_alloc)
         {
         *ret_alloc += 256;
         *ret = realloc(*ret, *ret_alloc);
@@ -264,12 +259,6 @@ int bg_subprocess_read_line(int fd, char ** ret, int * ret_alloc,
       }
     }
 
-  if(bytes_read + 1 > *ret_alloc)
-    {
-    *ret_alloc += 256;
-    *ret = realloc(*ret, *ret_alloc);
-    //    fprintf(stderr, "Ret: %p, ret_alloc: %d\n", *ret, *ret_alloc);
-    }
   (*ret)[bytes_read] = '\0';
   return 1;
   }
