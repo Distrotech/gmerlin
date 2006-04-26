@@ -27,7 +27,8 @@ typedef struct
 
   gavl_audio_format_t format;
   bg_subprocess_t * mp2enc;
-
+  
+  char * error_msg;
   } bg_mpa_common_t;
 
 bg_parameter_info_t * bg_mpa_get_parameters();
@@ -52,7 +53,6 @@ char * bg_mpa_make_commandline(bg_mpa_common_t * com,
 
 void bg_mpa_cleanup(bg_mpa_common_t * com);
 
-void bg_mpa_adjust_format(bg_mpa_common_t * com, gavl_audio_format_t * format);
 #endif
 
 const char * bg_mpa_get_extension(bg_mpa_common_t * mpa);
