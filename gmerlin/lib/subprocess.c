@@ -243,7 +243,7 @@ int bg_subprocess_read_line(int fd, char ** ret, int * ret_alloc,
     {
     if(!read(fd, &c, 1))
       {
-      fprintf(stderr, "read returned 0\n");
+      //      fprintf(stderr, "read returned 0\n");
       return 0;
       }
     if((c != '\n') && (c != '\r'))

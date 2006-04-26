@@ -305,7 +305,7 @@ static void plugin_window_close_notify(plugin_window_t * w,
 
 static void finish_transcoding(transcoder_window_t * win)
   {
-  fprintf(stderr, "Finish transcoding\n");
+  //  fprintf(stderr, "Finish transcoding\n");
   
   if(win->transcoder)
     {

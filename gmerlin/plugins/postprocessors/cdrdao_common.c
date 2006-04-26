@@ -168,7 +168,7 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
     {
     if(check_stop(c))
       {
-      bg_subprocess_kill(cdrdao, SIGABRT);
+      bg_subprocess_kill(cdrdao, SIGQUIT);
       
       }
 
