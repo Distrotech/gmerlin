@@ -38,6 +38,17 @@ typedef struct
   int    musicbrainz_proxy_port;
 #endif
 
+#ifdef HAVE_CDDB
+  int    use_cddb;
+  char * cddb_host;
+  int    cddb_port;
+  char * cddb_proxy_host;
+  int    cddb_proxy_port;
+  char * cddb_proxy_user;
+  char * cddb_proxy_pass;
+#endif
+
+  
   int current_track;
   int current_sector; /* For ripping only */
       
@@ -226,6 +237,21 @@ static int open_cdaudio(void * data, const char * arg)
     }
 #endif
 
+#ifdef HAVE_CDDB
+  if(cd->use_cddb && !have_metadata)
+    {
+    if(bg_cdaudio_get_metadata_cddb(cd->index, cd->track_info,
+                                    cd->cddb_host,
+                                    cd->cddb_port,
+                                    cd->cddb_proxy_host,
+                                    cd->cddb_proxy_port,
+                                    cd->cddb_proxy_user,
+                                    cd->cddb_proxy_user))
+      have_metadata = 1;
+    }
+#endif
+
+  
   if(have_metadata && !have_local_metadata)
     {
     tmp_filename = bg_search_file_write("cdaudio_metadata", cd->disc_id);
@@ -598,8 +624,8 @@ static void close_cdaudio(void * priv)
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:      "General",
-      long_name: "general",
+      name:      "general",
+      long_name: "General",
       type:      BG_PARAMETER_SECTION
     },
     {
@@ -629,7 +655,7 @@ static bg_parameter_info_t parameters[] =
       val_default: { val_i: 1 }
     },
     {
-      name:        "musicbrainz_server",
+      name:        "musicbrainz_host",
       long_name:   "Server",
       type:        BG_PARAMETER_STRING,
       val_default: { val_str: "mm.musicbrainz.org" }
@@ -643,7 +669,7 @@ static bg_parameter_info_t parameters[] =
       val_default:  { val_i: 80 }
     },
     {
-      name:        "musicbrainz_proxy_server",
+      name:        "musicbrainz_proxy_host",
       long_name:   "Proxy",
       type:        BG_PARAMETER_STRING,
       help_string: "Proxy server (leave empty for direct connection)"
@@ -656,6 +682,60 @@ static bg_parameter_info_t parameters[] =
       val_max:      { val_i: 65535 },
       val_default:  { val_i: 80 },
       help_string: "Proxy port"
+    },
+#endif
+#ifdef HAVE_MUSICBRAINZ
+    {
+      name:      "cddb",
+      long_name: "Cddb",
+      type:      BG_PARAMETER_SECTION
+    },
+    {
+      name:        "use_cddb",
+      long_name:   "Use Cddb",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 }
+    },
+    {
+      name:        "cddb_host",
+      long_name:   "Server",
+      type:        BG_PARAMETER_STRING,
+      val_default: { val_str: "www.cddb.org" }
+    },
+    {
+      name:        "cddb_port",
+      long_name:   "Port",
+      type:         BG_PARAMETER_INT,
+      val_min:      { val_i: 1 },
+      val_max:      { val_i: 65535 },
+      val_default:  { val_i: 80 }
+    },
+    {
+      name:        "cddb_proxy_host",
+      long_name:   "Proxy",
+      type:        BG_PARAMETER_STRING,
+      help_string: "Proxy server (leave empty for direct connection)"
+    },
+    {
+      name:        "cddb_proxy_port",
+      long_name:   "Proxy Port",
+      type:         BG_PARAMETER_INT,
+      val_min:      { val_i: 1 },
+      val_max:      { val_i: 65535 },
+      val_default:  { val_i: 80 },
+      help_string: "Proxy port"
+    },
+    {
+      name:        "cddb_proxy_user",
+      long_name:   "Proxy username",
+      type:        BG_PARAMETER_STRING,
+      help_string: "User name for proxy (leave empty for poxies, which don't require authentication)"
+    },
+    {
+      name:        "cddb_proxy_pass",
+      long_name:   "Proxy password",
+      type:        BG_PARAMETER_STRING_HIDDEN,
+      help_string: "Password for proxy"
     },
 #endif
     { /* End of parmeters */ }
@@ -693,10 +773,31 @@ static void set_parameter_cdaudio(void * data, char * name, bg_parameter_value_t
 #ifdef HAVE_MUSICBRAINZ
   if(!strcmp(name, "use_musicbrainz"))
     cd->use_musicbrainz = val->val_i;
-  if(!strcmp(name, "musicbrainz_server"))
+  if(!strcmp(name, "musicbrainz_host"))
     cd->musicbrainz_host = bg_strdup(cd->musicbrainz_host, val->val_str);
   if(!strcmp(name, "musicbrainz_port"))
     cd->musicbrainz_port = val->val_i;
+  if(!strcmp(name, "musicbrainz_proxy_host"))
+    cd->musicbrainz_proxy_host = bg_strdup(cd->cddb_proxy_host, val->val_str);
+  if(!strcmp(name, "musicbrainz_proxy_port"))
+    cd->musicbrainz_proxy_port = val->val_i;
+#endif
+
+#ifdef HAVE_CDDB
+  if(!strcmp(name, "use_cddb"))
+    cd->use_cddb = val->val_i;
+  if(!strcmp(name, "cddb_server"))
+    cd->cddb_host = bg_strdup(cd->cddb_host, val->val_str);
+  if(!strcmp(name, "cddb_port"))
+    cd->cddb_port = val->val_i;
+  if(!strcmp(name, "cddb_proxy_host"))
+    cd->cddb_proxy_host = bg_strdup(cd->cddb_proxy_host, val->val_str);
+  if(!strcmp(name, "cddb_proxy_port"))
+    cd->cddb_proxy_port = val->val_i;
+  if(!strcmp(name, "cddb_proxy_user"))
+    cd->cddb_proxy_user = bg_strdup(cd->cddb_proxy_user, val->val_str);
+  if(!strcmp(name, "cddb_proxy_pass"))
+    cd->cddb_proxy_pass = bg_strdup(cd->cddb_proxy_pass, val->val_str);
 #endif
   
   }

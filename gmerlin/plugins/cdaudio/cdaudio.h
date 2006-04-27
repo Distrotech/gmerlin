@@ -97,6 +97,17 @@ int bg_cdaudio_get_metadata_musicbrainz(bg_cdaudio_index_t*,
                                         int musicbrainz_proxy_port);
 #endif
 
+#ifdef HAVE_CDDB
+int bg_cdaudio_get_metadata_cddb(bg_cdaudio_index_t * idx,
+                                 bg_track_info_t * info,
+                                 char * cddb_host,
+                                 int cddb_port,
+                                 char * cddb_proxy_host,
+                                 int cddb_proxy_port,
+                                 char * cddb_proxy_user,
+                                 char * cddb_proxy_pass);
+#endif
+
 /*
  *  Try to get metadata via CDtext. Requires a valid and open
  *  CDrom, returns False on failure

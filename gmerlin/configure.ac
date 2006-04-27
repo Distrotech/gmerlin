@@ -222,7 +222,7 @@ dnl Musicbrainz
 dnl
 
 AH_TEMPLATE([HAVE_MUSICBRAINZ],
-            [Do we have xinerama installed?])
+            [Do we have libmusicbrainz installed?])
 
 MUSICBRAINZ_REQUIRED="2.0.2"
 have_musicbrainz=false
@@ -249,6 +249,40 @@ fi
 
 AM_CONDITIONAL(HAVE_MUSICBRAINZ, test x$have_musicbrainz = xtrue)
 AC_SUBST(MUSICBRAINZ_REQUIRED)
+
+dnl
+dnl Libcddb
+dnl
+
+AH_TEMPLATE([HAVE_CDDB],
+            [Do we have libcddb installed?])
+
+CDDB_REQUIRED="1.2.1"
+have_cddb=false
+AC_ARG_ENABLE(cddb,
+              AC_HELP_STRING(--disable-cddb, [Disable cddb support (default: autodetect)]),
+              [case "${enableval}" in
+                 yes) test_cddb=true ;;
+                 no) test_cddb=false ;;
+               esac],
+	       test_cddb=true)
+
+dnl We check for cddb only of we already detected CDROM support
+if test x$have_cdio = "xfalse"; then
+test_cddb=false
+fi
+
+if test x$test_cddb="xtrue"; then
+PKG_CHECK_MODULES(CDDB, libcddb >= $CDDB_REQUIRED, have_cddb=true, have_cddb=false)
+fi
+
+if test x$have_cddb="xtrue"; then
+AC_DEFINE(HAVE_CDDB)
+fi
+
+AM_CONDITIONAL(HAVE_CDDB, test x$have_cddb = xtrue)
+AC_SUBST(CDDB_REQUIRED)
+
 
 dnl
 dnl ESounD
@@ -740,6 +774,14 @@ echo "Yes (CFLAGS=$MUSICBRAINZ_CFLAGS LIBS=$MUSICBRAINZ_LIBS)"
 else
 echo "Missing (Go to http://musicbrainz.org/products/client/index.html)"
 fi
+
+echo -n "libcddb:             "
+if test "x$have_cddb" = "xtrue"; then
+echo "Yes (CFLAGS=$CDDB_CFLAGS LIBS=$CDDB_LIBS)"
+else
+echo "Missing (Go to http://libcddb.sourceforge.net)"
+fi
+
 
 echo
 echo "=== Applications: ================================="

@@ -156,7 +156,7 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:       "cdparanoia",
-      long_name:  "cdparanoia Options",
+      long_name:  "Cdparanoia",
       type:       BG_PARAMETER_SECTION,
     },
     {
