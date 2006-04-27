@@ -2,10 +2,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <utils.h>
 #include <unistd.h>
 
 #include "cdaudio.h"
+#include <utils.h>
+#include <log.h>
+
+#define LOG_DOMAIN "i_cdaudio"
 
 typedef struct
   {
@@ -27,7 +30,9 @@ typedef struct
   bg_cdaudio_index_t * index;
 
   char * trackname_template;
-    
+  int use_cdtext;
+  int use_local;
+  
   /* Configuration stuff */
 
 #ifdef HAVE_MUSICBRAINZ
@@ -48,7 +53,7 @@ typedef struct
   char * cddb_proxy_user;
   char * cddb_proxy_pass;
 #endif
-
+  
   
   int current_track;
   int current_sector; /* For ripping only */
@@ -198,20 +203,21 @@ static int open_cdaudio(void * data, const char * arg)
 
   /* 1st try: Check for cdtext */
 
-  if(bg_cdaudio_get_metadata_cdtext(cd->cdio,
-                                    cd->track_info,
-                                    cd->index))
+  if(cd->use_cdtext)
     {
-    fprintf(stderr, "Found CDText\n");
-    have_metadata = 1;
-    have_local_metadata = 1; /* We never save cdtext infos */
+    if(bg_cdaudio_get_metadata_cdtext(cd->cdio,
+                                      cd->track_info,
+                                      cd->index))
+      {
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got metadata from CD-Text");
+      have_metadata = 1;
+      have_local_metadata = 1; /* We never save cdtext infos */
+      }
     }
-  else
-    fprintf(stderr, "No CDText\n");
-  
+
   /* 2nd try: Local file */
 
-  if(!have_metadata)
+  if(!have_metadata && cd->use_local)
     {
     tmp_filename = bg_search_file_read("cdaudio_metadata", cd->disc_id);
     if(tmp_filename)
@@ -220,6 +226,7 @@ static int open_cdaudio(void * data, const char * arg)
         {
         have_metadata = 1;
         have_local_metadata = 1;
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got metadata from %s", tmp_filename);
         }
       free(tmp_filename);
       }
@@ -234,7 +241,10 @@ static int open_cdaudio(void * data, const char * arg)
                                            cd->musicbrainz_port,
                                            cd->musicbrainz_proxy_host,
                                            cd->musicbrainz_proxy_port))
+      {
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got metadata from %s", cd->musicbrainz_host);
       have_metadata = 1;
+      }
     }
 #endif
 
@@ -249,10 +259,12 @@ static int open_cdaudio(void * data, const char * arg)
                                     cd->cddb_proxy_port,
                                     cd->cddb_proxy_user,
                                     cd->cddb_proxy_user))
+      {
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got metadata from %s", cd->cddb_host);
       have_metadata = 1;
+      }
     }
 #endif
-
   
   if(have_metadata && !have_local_metadata)
     {
@@ -644,6 +656,22 @@ static bg_parameter_info_t parameters[] =
 %y:    Year\n\
 %c:    Comment\n"
     },
+    {
+      name:        "use_cdtext",
+      long_name:   "Use CD-Text",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 },
+      help_string: "Try to get CD metadata from CD-Text",
+    },
+    {
+      name:        "use_local",
+      long_name:   "Use locally saved metadata",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 },
+      help_string: "Whenever we obtain CD metadata from the internet, we save them into \
+$HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,\
+ disabling this option will retrieve the metadata again and overwrite the saved data.",
+    },
 #ifdef HAVE_MUSICBRAINZ
     {
       name:      "musicbrainz",
@@ -777,6 +805,11 @@ static void set_parameter_cdaudio(void * data, char * name, bg_parameter_value_t
 
   if(!strcmp(name, "trackname_template"))
     cd->trackname_template = bg_strdup(cd->trackname_template, val->val_str);
+
+  if(!strcmp(name, "use_cdtext"))
+    cd->use_cdtext = val->val_i;
+  if(!strcmp(name, "use_local"))
+    cd->use_local = val->val_i;
   
 #ifdef HAVE_MUSICBRAINZ
   if(!strcmp(name, "use_musicbrainz"))
