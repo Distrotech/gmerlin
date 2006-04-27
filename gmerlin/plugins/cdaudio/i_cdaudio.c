@@ -42,6 +42,7 @@ typedef struct
   int    use_cddb;
   char * cddb_host;
   int    cddb_port;
+  char * cddb_path;
   char * cddb_proxy_host;
   int    cddb_proxy_port;
   char * cddb_proxy_user;
@@ -243,6 +244,7 @@ static int open_cdaudio(void * data, const char * arg)
     if(bg_cdaudio_get_metadata_cddb(cd->index, cd->track_info,
                                     cd->cddb_host,
                                     cd->cddb_port,
+                                    cd->cddb_path,
                                     cd->cddb_proxy_host,
                                     cd->cddb_proxy_port,
                                     cd->cddb_proxy_user,
@@ -700,7 +702,7 @@ static bg_parameter_info_t parameters[] =
       name:        "cddb_host",
       long_name:   "Server",
       type:        BG_PARAMETER_STRING,
-      val_default: { val_str: "www.cddb.org" }
+      val_default: { val_str: "freedb.org" }
     },
     {
       name:        "cddb_port",
@@ -709,6 +711,12 @@ static bg_parameter_info_t parameters[] =
       val_min:      { val_i: 1 },
       val_max:      { val_i: 65535 },
       val_default:  { val_i: 80 }
+    },
+    {
+      name:        "cddb_path",
+      long_name:   "Path",
+      type:        BG_PARAMETER_STRING,
+      val_default: { val_str: "/~cddb/cddb.cgi" }
     },
     {
       name:        "cddb_proxy_host",
@@ -790,6 +798,8 @@ static void set_parameter_cdaudio(void * data, char * name, bg_parameter_value_t
     cd->cddb_host = bg_strdup(cd->cddb_host, val->val_str);
   if(!strcmp(name, "cddb_port"))
     cd->cddb_port = val->val_i;
+  if(!strcmp(name, "cddb_path"))
+    cd->cddb_path = bg_strdup(cd->cddb_path, val->val_str);
   if(!strcmp(name, "cddb_proxy_host"))
     cd->cddb_proxy_host = bg_strdup(cd->cddb_proxy_host, val->val_str);
   if(!strcmp(name, "cddb_proxy_port"))
