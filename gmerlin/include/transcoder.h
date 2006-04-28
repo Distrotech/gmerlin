@@ -17,18 +17,9 @@
  
 *****************************************************************/
 
-#include <transcoder_track.h>
+#include "transcoder_track.h"
 
 typedef struct bg_transcoder_s bg_transcoder_t;
-#if 0
-
-typedef struct
-  {
-  } bg_transcoder_info_t;
-
-
-const bg_transcoder_info_t * bg_transcoder_get_info(bg_transcoder_t * t);
-#endif
 
 bg_transcoder_t * bg_transcoder_create();
 

@@ -18,12 +18,13 @@
 *****************************************************************/
 
 #include <pthread.h>
-#include <pluginregistry.h>
-#include <fifo.h>
-#include <utils.h>
-#include <bggavl.h>
-#include <textrenderer.h>
-#include <osd.h>
+
+#include "pluginregistry.h"
+#include "fifo.h"
+#include "utils.h"
+#include "bggavl.h"
+#include "textrenderer.h"
+#include "osd.h"
 
 /* Each thread get it's private context */
 

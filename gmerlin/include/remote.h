@@ -20,8 +20,8 @@
 #ifndef __BG_REMOTE_H_
 #define __BG_REMOTE_H_
 
-#include <parameter.h>
-#include <msgqueue.h>
+#include "parameter.h"
+#include "msgqueue.h"
 
 #define BG_REMOTE_PORT_BASE 10100
 

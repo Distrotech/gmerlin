@@ -20,9 +20,9 @@
 #ifndef __BG_PLAYER_H_
 #define __BG_PLAYER_H_
 
-#include <playermsg.h>
-#include <pluginregistry.h>
-#include <msgqueue.h>
+#include "playermsg.h"
+#include "pluginregistry.h"
+#include "msgqueue.h"
 
 #define BG_PLAYER_VOLUME_MIN (-40.0)
 

@@ -20,7 +20,7 @@
 #ifndef __BG_TREE_H_
 #define __BG_TREE_H_
 
-#include <pluginregistry.h>
+#include "pluginregistry.h"
 
 /* Entry flags                 */
 /* Flags should not be changed */
