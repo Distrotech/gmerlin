@@ -297,7 +297,7 @@ static const char * get_extension_faac(void * data)
   return faac_extension;
   }
 
-static void add_audio_stream_faac(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_faac(void * data, gavl_audio_format_t * format)
   {
   unsigned long input_samples;
   unsigned long output_bytes;
@@ -368,7 +368,7 @@ static void add_audio_stream_faac(void * data, gavl_audio_format_t * format)
   faac->output_buffer = malloc(output_bytes);
   faac->output_buffer_size = output_bytes;
   
-  return;
+  return 0;
   }
 
 static int flush_audio(faac_t * faac)

@@ -546,7 +546,7 @@ static const char * get_extension_lame(void * data)
   }
 
 
-static void add_audio_stream_lame(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_lame(void * data, gavl_audio_format_t * format)
   {
   lame_priv_t * lame;
   
@@ -580,7 +580,7 @@ static void add_audio_stream_lame(void * data, gavl_audio_format_t * format)
   
   //  lame_set_out_samplerate(lame->lame, lame->format.samplerate);
   
-  return;
+  return 0;
   }
 
 static void write_audio_frame_lame(void * data, gavl_audio_frame_t * frame,

@@ -80,12 +80,13 @@ static int open_mpa(void * data, const char * filename,
   return 1;
   }
 
-static void add_audio_stream_mpa(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_mpa(void * data, gavl_audio_format_t * format)
   {
   e_mpa_t * mpa;
 
   mpa = (e_mpa_t*)data;
   bg_mpa_set_format(&mpa->com, format);
+  return 0;
   }
 
 static int start_mpa(void * data)

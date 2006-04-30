@@ -98,11 +98,26 @@ static int open_mpeg(void * data, const char * filename,
   e->filename = bg_strdup(e->filename, filename);
 
   /* To make sure this will work, we check for the execuables of mpeg2enc, mplex and mp2enc */
-    
-  return 0;
+  if(!bg_search_file_exec("mpeg2enc", (char**)0))
+    {
+    e->error_msg = bg_sprintf("mpeg2enc exectuable not found");
+    return 0;
+    }
+  if(!bg_search_file_exec("mp2enc", (char**)0))
+    {
+    e->error_msg = bg_sprintf("mp2enc exectuable not found");
+    return 0;
+    }
+  if(!bg_search_file_exec("mplex", (char**)0))
+    {
+    e->error_msg = bg_sprintf("mplex exectuable not found");
+    return 0;
+    }
+  
+  return 1;
   }
 
-static void add_audio_stream_mpeg(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_mpeg(void * data, gavl_audio_format_t * format)
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
 
@@ -116,10 +131,10 @@ static void add_audio_stream_mpeg(void * data, gavl_audio_format_t * format)
                          format);
   
   e->num_audio_streams++;
-  
+  return (e->num_audio_streams - 1);
   }
 
-static void add_video_stream_mpeg(void * data, gavl_video_format_t* format)
+static int add_video_stream_mpeg(void * data, gavl_video_format_t* format)
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
 
@@ -132,7 +147,7 @@ static void add_video_stream_mpeg(void * data, gavl_video_format_t* format)
   gavl_video_format_copy(&(e->video_streams[e->num_video_streams].format),
                          format);
   e->num_video_streams++;
-
+  return (e->num_video_streams - 1);
   }
 
 

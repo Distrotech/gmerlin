@@ -60,10 +60,11 @@ static int open_mpv(void * data, const char * filename,
   return bg_mpv_open(&e->mpv, filename);
   }
 
-static void add_video_stream_mpv(void * data, gavl_video_format_t* format)
+static int add_video_stream_mpv(void * data, gavl_video_format_t* format)
   {
   e_mpv_t * e = (e_mpv_t*)data;
   bg_mpv_set_format(&e->mpv, format);
+  return 0;
   }
 
 static void get_video_format_mpv(void * data, int stream,

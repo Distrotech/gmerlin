@@ -531,7 +531,7 @@ static const char * get_extension_flac(void * data)
   return flac_extension;
   }
 
-static void add_audio_stream_flac(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_flac(void * data, gavl_audio_format_t * format)
   {
   flac_t * flac;
   flac = (flac_t*)data;
@@ -551,7 +551,7 @@ static void add_audio_stream_flac(void * data, gavl_audio_format_t * format)
   FLAC__file_encoder_set_channels(flac->enc, flac->format.num_channels);
   
   
-  return;
+  return 0;
   }
 
 static void write_audio_frame_flac(void * data, gavl_audio_frame_t * frame,
@@ -771,15 +771,17 @@ static void close_flac(void * data, int do_delete)
   flac_t * flac;
   flac = (flac_t*)data;
 
-  if(flac->seektable)
+  if(flac->seektable && !do_delete)
     FLAC__metadata_object_seektable_template_sort(flac->seektable, 1);
 
   FLAC__file_encoder_finish(flac->enc);
   //  FLAC__file_encoder_delete(flac->enc);
 
-  if(flac->seektable)
+  if(do_delete)
+    remove(flac->filename);
+  else if(flac->seektable)
     finalize_seektable(flac);
-
+  
   free(flac->filename);
 
   if(flac->seektable)

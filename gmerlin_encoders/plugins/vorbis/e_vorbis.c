@@ -363,7 +363,7 @@ static const char * get_extension_vorbis(void * data)
   return vorbis_extension;
   }
 
-static void add_audio_stream_vorbis(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_vorbis(void * data, gavl_audio_format_t * format)
   {
   vorbis_t * vorbis;
   vorbis = (vorbis_t*)data;
@@ -374,7 +374,7 @@ static void add_audio_stream_vorbis(void * data, gavl_audio_format_t * format)
   vorbis->format.interleave_mode = GAVL_INTERLEAVE_NONE;
   vorbis->format.sample_format = GAVL_SAMPLE_FLOAT;
     
-  return;
+  return 0;
   }
 
 static void flush_data(vorbis_t * vorbis)
