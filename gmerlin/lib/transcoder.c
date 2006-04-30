@@ -1847,8 +1847,8 @@ static void init_audio_converter(audio_stream_t * ret)
                                                      &(ret->in_format),
                                                      &(ret->pipe_format));
 
-  if(ret->do_convert_in)
-    fprintf(stderr, "**** Doing Input conversion\n");
+  //  if(ret->do_convert_in)
+  //    fprintf(stderr, "**** Doing Input conversion\n");
   
   opt = gavl_audio_converter_get_options(ret->cnv_out);
   gavl_audio_options_copy(opt, ret->options.opt);
@@ -1856,8 +1856,8 @@ static void init_audio_converter(audio_stream_t * ret)
   ret->do_convert_out = gavl_audio_converter_init(ret->cnv_out,
                                                   &(ret->pipe_format),
                                                   &(ret->out_format));
-  if(ret->do_convert_out)
-    fprintf(stderr, "**** Doing Output conversion\n");
+  //  if(ret->do_convert_out)
+  //    fprintf(stderr, "**** Doing Output conversion\n");
   
   /* Create frames (could be left from the previous pass) */
 

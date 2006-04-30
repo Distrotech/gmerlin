@@ -819,7 +819,7 @@ static void set_parameter_cdaudio(void * data, char * name, bg_parameter_value_t
   if(!strcmp(name, "musicbrainz_port"))
     cd->musicbrainz_port = val->val_i;
   if(!strcmp(name, "musicbrainz_proxy_host"))
-    cd->musicbrainz_proxy_host = bg_strdup(cd->cddb_proxy_host, val->val_str);
+    cd->musicbrainz_proxy_host = bg_strdup(cd->musicbrainz_proxy_host, val->val_str);
   if(!strcmp(name, "musicbrainz_proxy_port"))
     cd->musicbrainz_proxy_port = val->val_i;
 #endif
