@@ -2,7 +2,7 @@
 
   gavl.h
 
-  Copyright (c) 2001-2005 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2001-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
 
   http://gmerlin.sourceforge.net
 
@@ -539,6 +539,35 @@ int gavl_audio_options_get_conversion_flags(gavl_audio_options_t * opt);
   
 void gavl_audio_options_set_defaults(gavl_audio_options_t * opt);
 
+/*! \ingroup audio_options
+ *  \brief Create an options container
+ *  \returns Newly allocated udio options with default values
+ *
+ *  Use this to store options, which will apply for more than
+ *  one converter instance. Applying the options will be done by
+ *  gavl_*_get_options() followed by gavl_audio_options_copy().
+ */
+  
+gavl_audio_options_t * gavl_audio_options_create();
+
+/*! \ingroup audio_options
+ *  \brief Copy audio options
+ *  \param dst Destination
+ *  \param src Source
+ */
+
+void gavl_audio_options_copy(gavl_audio_options_t * dst,
+                             const gavl_audio_options_t * src);
+
+/*! \ingroup audio_options
+ *  \brief Destroy audio options
+ *  \param opt Audio options
+ */
+
+void gavl_audio_options_destroy(gavl_audio_options_t * opt);
+  
+  
+  
 /* Audio converter */
 
 /** \defgroup audio_converter Audio converter
@@ -600,14 +629,6 @@ void gavl_audio_converter_destroy(gavl_audio_converter_t* cnv);
 
 gavl_audio_options_t * gavl_audio_converter_get_options(gavl_audio_converter_t*cnv);
 
-/*! \ingroup audio_converter
- *  \brief Copies audio options
- *  \param src Source
- *  \param dst Destination
- *
- */
-void gavl_audio_options_copy(gavl_audio_options_t * dst,
-                             const gavl_audio_options_t * src);
 
 /*! \ingroup audio_converter
  *  \brief Initialize an audio converter
@@ -704,8 +725,82 @@ void gavl_volume_control_set_volume(gavl_volume_control_t * ctrl,
   
 void gavl_volume_control_apply(gavl_volume_control_t *ctrl,
                                gavl_audio_frame_t * frame);
-  
 
+/** \defgroup peak_detection Peak detector
+    \ingroup audio
+    \brief Detect peaks in the volume for steering normalizers and
+      dynamic range compressors
+
+    While normalizers and dynamic range controls are out of the scope
+    of gavl, some low-level functionality can be provided
+*/
+ 
+/*! \ingroup peak_detector
+ *  \brief Opaque structure for a volume control
+ *
+ * You don't want to know what's inside.
+ */
+
+typedef struct gavl_peak_detector_s gavl_peak_detector_t;
+  
+/* Create / destroy */
+
+/*! \ingroup peak_detector
+ *  \brief Create peak detector
+ *  \returns A newly allocated peak detector
+ */
+  
+gavl_peak_detector_t * gavl_peak_detector_create();
+
+/*! \ingroup peak_detector
+ *  \brief Destroys a peak detector and frees all associated memory
+ *  \param pd A peak detector
+ */
+
+void gavl_peak_detector_destroy(gavl_peak_detector_t *pd);
+
+/*! \ingroup peak_detector
+ *  \brief Set format for a peak detector
+ *  \param pd A peak detector
+ *  \param format The format subsequent frames will be passed with
+ *
+ * This function can be called multiple times with one instance. It also
+ * calls \ref gavl_peak_detector_reset.
+ */
+
+void gavl_peak_detector_set_format(gavl_peak_detector_t *pd,
+                                    gavl_audio_format_t * format);
+
+/*! \ingroup peak_detector
+ *  \brief Feed the peak detector with a new frame
+ *  \param pd A peak detector
+ *  \param frame An audio frame
+ */
+  
+void gavl_peak_detector_update(gavl_peak_detector_t *pd,
+                              gavl_audio_frame_t * frame);
+  
+/*! \ingroup peak_detector
+ *  \brief Get the peak volume seen so far
+ *  \param pd A peak detector
+ *  \param min Returns minimum amplitude
+ *  \param max Returns maximum amplitude
+ *
+ *  The returned amplitudes are normalized such that the
+ *  minimum amplitude corresponds to -1.0, the maximum amplitude
+ *  corresponds to 1.0.
+ */
+  
+void gavl_peak_detector_get_peak(gavl_peak_detector_t * pd,
+                                 double * min, double * max);
+
+/*! \ingroup peak_detector
+ *  \brief Reset a peak detector
+ *  \param pd A peak detector
+ */
+  
+void gavl_peak_detector_reset(gavl_peak_detector_t * pd);
+  
 /** \defgroup video Video
  *
  * Video support
@@ -1725,6 +1820,34 @@ typedef struct gavl_video_options_s gavl_video_options_t;
   
 void gavl_video_options_set_defaults(gavl_video_options_t * opt);
 
+/*! \ingroup video_options
+ *  \brief Create an options container
+ *  \returns Newly allocated udio options with default values
+ *
+ *  Use this to store options, which will apply for more than
+ *  one converter instance. Applying the options will be done by
+ *  gavl_*_get_options() followed by gavl_video_options_copy().
+ */
+  
+gavl_video_options_t * gavl_video_options_create();
+
+/*! \ingroup video_options
+ *  \brief Copy video options
+ *  \param dst Destination
+ *  \param src Source
+ */
+
+void gavl_video_options_copy(gavl_video_options_t * dst,
+                             const gavl_video_options_t * src);
+
+/*! \ingroup video_options
+ *  \brief Destroy video options
+ *  \param opt Video options
+ */
+
+void gavl_video_options_destroy(gavl_video_options_t * opt);
+  
+  
 /*! \ingroup video_options
  *  \brief Set source and destination rectangles
  *  \param opt Video options

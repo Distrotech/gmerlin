@@ -60,11 +60,6 @@ int gavl_audio_options_get_conversion_flags(gavl_audio_options_t * opt)
   return opt->conversion_flags;
   }
 
-void gavl_audio_options_copy(gavl_audio_options_t * dst,
-                             const gavl_audio_options_t * src)
-  {
-  memcpy(dst, src, sizeof(*dst));
-  }
 
 void gavl_audio_options_set_defaults(gavl_audio_options_t * opt)
   {
@@ -76,3 +71,20 @@ void gavl_audio_options_set_defaults(gavl_audio_options_t * opt)
   opt->accel_flags = GAVL_ACCEL_C;
   }
 
+gavl_audio_options_t * gavl_audio_options_create()
+  {
+  gavl_audio_options_t * ret = calloc(1, sizeof(*ret));
+  gavl_audio_options_set_defaults(ret);
+  return ret;
+  }
+
+void gavl_audio_options_copy(gavl_audio_options_t * dst,
+                             const gavl_audio_options_t * src)
+  {
+  memcpy(dst, src, sizeof(*dst));
+  }
+
+void gavl_audio_options_destroy(gavl_audio_options_t * opt)
+  {
+  free(opt);
+  }

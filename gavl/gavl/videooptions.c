@@ -40,13 +40,6 @@ void gavl_video_options_set_defaults(gavl_video_options_t * opt)
   opt->scale_order = 4;
   opt->quality = GAVL_QUALITY_DEFAULT;
   }
-
-void gavl_video_options_copy(gavl_video_options_t * dst,
-                                    const gavl_video_options_t * src)
-  {
-  memcpy(dst, src, sizeof(*dst));
-  }
-
   
 void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
                                        const gavl_rectangle_f_t * src_rect,
@@ -139,4 +132,22 @@ int gavl_video_options_get_accel_flags(gavl_video_options_t * opt)
 int gavl_video_options_get_conversion_flags(gavl_video_options_t * opt)
   {
   return opt->conversion_flags;
+  }
+
+gavl_video_options_t * gavl_video_options_create()
+  {
+  gavl_video_options_t * ret = calloc(1, sizeof(*ret));
+  gavl_video_options_set_defaults(ret);
+  return ret;
+  }
+
+void gavl_video_options_copy(gavl_video_options_t * dst,
+                             const gavl_video_options_t * src)
+  {
+  memcpy(dst, src, sizeof(*dst));
+  }
+
+void gavl_video_options_destroy(gavl_video_options_t * opt)
+  {
+  free(opt);
   }

@@ -64,9 +64,6 @@ struct gavl_video_options_s
   int keep_aspect;
   };
 
-void gavl_video_options_copy(gavl_video_options_t * dst,
-                             const gavl_video_options_t * src);
-
 typedef struct gavl_video_convert_context_s gavl_video_convert_context_t;
 
 typedef void (*gavl_video_func_t)(gavl_video_convert_context_t * ctx);

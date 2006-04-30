@@ -26,6 +26,7 @@ deinterlace.c \
 deinterlace_copy.c \
 interleave.c \
 mix.c \
+peakdetector.c \
 rectangle.c \
 sampleformat.c \
 samplerate.c \
