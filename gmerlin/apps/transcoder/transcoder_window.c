@@ -327,6 +327,9 @@ static void finish_transcoding(transcoder_window_t * win)
     bg_transcoder_pp_destroy(win->pp);
     win->pp = (bg_transcoder_pp_t*)0;
     }
+  /* Flush message queue */
+  while(bg_msg_queue_try_lock_read(win->msg_queue))
+    bg_msg_queue_unlock_read(win->msg_queue);
   }
 
 static gboolean idle_callback(gpointer data)
@@ -589,10 +592,10 @@ static void button_callback(GtkWidget * w, gpointer data)
       bg_transcoder_stop(win->transcoder);
     else if(win->pp)
       bg_transcoder_pp_stop(win->pp);
-      
-    //    fprintf(stderr, "joining thread...");
+    
+    fprintf(stderr, "joining thread...");
     finish_transcoding(win);
-    //    fprintf(stderr, "done\n");
+    fprintf(stderr, "done\n");
     gtk_widget_set_sensitive(win->run_button, 1);
     gtk_widget_set_sensitive(win->actions_menu.run_item, 1);
 

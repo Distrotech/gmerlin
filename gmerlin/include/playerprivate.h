@@ -43,11 +43,15 @@ typedef enum
 
 typedef struct
   {
-  gavl_audio_converter_t * cnv;
+  gavl_audio_converter_t * cnv_in;
+  gavl_audio_converter_t * cnv_out;
   bg_fifo_t * fifo;
-  int do_convert;
-  gavl_audio_frame_t * frame;
+  int do_convert_in;
+  int do_convert_out;
 
+  gavl_audio_frame_t * frame_in;
+  gavl_audio_frame_t * frame_out;
+  
   pthread_mutex_t config_mutex;
 
   bg_gavl_audio_options_t options;
@@ -60,7 +64,12 @@ typedef struct
   
   gavl_audio_format_t input_format;
   gavl_audio_format_t output_format;
+  gavl_audio_format_t pipe_format;
   const char * error_msg;
+
+  /* Volume control */
+  gavl_volume_control_t * volume;
+  pthread_mutex_t volume_mutex;
   } bg_player_audio_stream_t;
 
 typedef struct

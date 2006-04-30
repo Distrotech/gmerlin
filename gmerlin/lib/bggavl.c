@@ -50,6 +50,7 @@ int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t *
     return 1;
     }
   SP_INT(fixed_samplerate);
+  SP_INT(force_float);
   SP_INT(samplerate);
   SP_INT(fixed_channel_setup);
   SP_INT(num_front_channels);
@@ -106,8 +107,15 @@ int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t *
 
 void bg_gavl_audio_options_init(bg_gavl_audio_options_t *opt)
   {
-  gavl_audio_options_set_defaults(opt->opt);
+  opt->opt = gavl_audio_options_create();
   }
+
+void bg_gavl_audio_options_free(bg_gavl_audio_options_t * opt)
+  {
+  if(opt->opt)
+    gavl_audio_options_destroy(opt->opt);
+  }
+
 
 void bg_gavl_audio_options_set_format(bg_gavl_audio_options_t * opt,
                                       const gavl_audio_format_t * in_format,
@@ -180,6 +188,8 @@ void bg_gavl_audio_options_set_format(bg_gavl_audio_options_t * opt,
     channel_index += opt->num_lfe_channels;
     
     }
+  if(opt->force_float)
+    out_format->sample_format = GAVL_SAMPLE_FLOAT;
   }
 
 /* Video */
@@ -480,8 +490,15 @@ int bg_gavl_video_set_parameter(void * data, char * name,
 
 void bg_gavl_video_options_init(bg_gavl_video_options_t * opt)
   {
-  gavl_video_options_set_defaults(opt->opt);
+  opt->opt = gavl_video_options_create();
   }
+
+void bg_gavl_video_options_free(bg_gavl_video_options_t * opt)
+  {
+  if(opt->opt)
+    gavl_video_options_destroy(opt->opt);
+  }
+
 
 void bg_gavl_video_options_set_framerate(bg_gavl_video_options_t * opt,
                                          const gavl_video_format_t * in_format,

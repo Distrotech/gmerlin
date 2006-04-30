@@ -26,6 +26,8 @@ typedef struct
   int samplerate;
   int fixed_channel_setup;
 
+  int force_float;
+  
   int num_front_channels;
   int num_rear_channels;
   int num_lfe_channels;
@@ -35,6 +37,8 @@ typedef struct
 int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t * val);
 
 void bg_gavl_audio_options_init(bg_gavl_audio_options_t *);
+
+void bg_gavl_audio_options_free(bg_gavl_audio_options_t *);
 
 void bg_gavl_audio_options_set_format(bg_gavl_audio_options_t *,
                                       const gavl_audio_format_t * in_format,
@@ -68,6 +72,8 @@ int bg_gavl_video_set_parameter(void * data, char * name, bg_parameter_value_t *
 
 void bg_gavl_video_options_init(bg_gavl_video_options_t *);
 
+void bg_gavl_video_options_free(bg_gavl_video_options_t *);
+
 void bg_gavl_video_options_set_framerate(bg_gavl_video_options_t *,
                                          const gavl_video_format_t * in_format,
                                          gavl_video_format_t * out_format);
@@ -98,7 +104,7 @@ void bg_gavl_video_options_set_interlace(bg_gavl_video_options_t * opt,
   val_max:     { val_i: GAVL_QUALITY_BEST    },       \
   val_default: { val_i: GAVL_QUALITY_DEFAULT },                      \
   help_string: "Set the conversion quality for format conversions. \
-Lower quality means more speed. Values above 3 enable slow high quality calculations" \
+Lower quality means more speed. Values above 3 enable slow high quality calculations." \
     }
 
 #define BG_GAVL_PARAM_FRAMERATE                                 \
@@ -129,7 +135,7 @@ Lower quality means more speed. Values above 3 enable slow high quality calculat
                    "60 (Double frame rate drop-frame NTSC)",           \
                     (char*)0 },                                         \
   help_string: "Output framerate. For user defined framerate, enter the \
-timescale and frame duration below (framerate = timescale / frame_duration)"\
+timescale and frame duration below (framerate = timescale / frame_duration)."\
   },                                              \
   {                                           \
   name:      "timescale",                     \
@@ -138,7 +144,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
   val_min:     { val_i: 1 },                \
   val_max:     { val_i: 100000 },           \
   val_default: { val_i: 25 },                                         \
-  help_string: "Timescale for user defined output framerate (Framerate = timescale / frame_duration)", \
+  help_string: "Timescale for user defined output framerate (Framerate = timescale / frame_duration).", \
   },                                                                  \
   {                                                                 \
   name:      "frame_duration",                                      \
@@ -147,7 +153,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
   val_min:     { val_i: 1 },                                      \
   val_max:     { val_i: 100000 },                                 \
   val_default: { val_i: 1 },                                      \
-  help_string: "Frame duration for user defined output framerate (Framerate = timescale / frame_duration)", \
+  help_string: "Frame duration for user defined output framerate (Framerate = timescale / frame_duration).", \
   }
 
 #define BG_GAVL_PARAM_DEINTERLACE           \
@@ -169,7 +175,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
   val_default: { val_str: "top" },                                 \
   multi_names:   (char*[]){ "top", "bottom", (char*)0 },               \
   multi_labels:  (char*[]){ "Drop top field", "Drop bottom field", (char*)0 },               \
-  help_string: "Specifies which field the deinterlacer should drop" \
+  help_string: "Specifies which field the deinterlacer should drop." \
   },                                                              \
   {\
   name:      "force_deinterlacing",           \
@@ -190,7 +196,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       val_max:     { val_f: 100000.0 },\
       val_default: { val_f: 0.0 },\
       num_digits: 3,\
-      help_string: "Cut this many pixels from the left border of the source frames"\
+      help_string: "Cut this many pixels from the left border of the source frames."\
     },\
     {\
       name:      "crop_right",\
@@ -201,7 +207,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       val_max:     { val_f: 100000.0 },\
       val_default: { val_f: 0.0 },\
       num_digits: 3,\
-      help_string: "Cut this many pixels from the right border of the source frames"\
+      help_string: "Cut this many pixels from the right border of the source frames."\
     },\
     {\
       name:      "crop_top",\
@@ -212,7 +218,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       val_max:     { val_f: 100000.0 },\
       val_default: { val_f: 0.0 },\
       num_digits: 3,\
-      help_string: "Cut this many pixels from the top border of the source frames"\
+      help_string: "Cut this many pixels from the top border of the source frames."\
     },\
     {\
       name:      "crop_bottom",\
@@ -223,7 +229,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       val_max:     { val_f: 100000.0 },\
       val_default: { val_f: 0.0 },\
       num_digits: 3,\
-      help_string: "Cut this many pixels from the bottom border of the source frames"\
+      help_string: "Cut this many pixels from the bottom border of the source frames."\
     }
 
 #define BG_GAVL_PARAM_SCALE_MODE                                    \
@@ -252,7 +258,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
                              "Sinc with Lanczos window",                         \
                              (char*)0 },                                         \
     val_default: { val_str: "auto" },                                   \
-    help_string: "Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest", \
+    help_string: "Choose scaling method. Auto means to choose based on the conversion quality. Nearest is fastest, Sinc with Lanczos window is slowest.", \
     },                                                                  \
     {                                                                   \
     name:        "scale_order",                                         \
@@ -262,7 +268,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
   val_min:     { val_i: 4 },                                 \
   val_max:     { val_i: 1000 },                              \
   val_default: { val_i: 4 },                                \
-  help_string: "Order for sinc scaling\n",\
+  help_string: "Order for sinc scaling.\n",\
   }
 
 #define BG_GAVL_PARAM_FRAME_SIZE  \
@@ -310,7 +316,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
                                 "QVGA (320 x 240)", \
                                 (char*)0 }, \
       val_default: { val_str: "from_input" }, \
-      help_string: "Set the output frame size. For a user defined size, you must specify the width and height as well as the pixel width and pixel height (for nonsquare pixels)", \
+      help_string: "Set the output frame size. For a user defined size, you must specify the width and height as well as the pixel width and pixel height (for nonsquare pixels).", \
     }, \
     { \
       name:      "user_image_width", \
@@ -320,7 +326,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       val_min:     { val_i: 1 }, \
       val_max:     { val_i: 100000 }, \
       val_default: { val_i: 640 }, \
-      help_string: "User defined width in pixels. Only meaningful if you selected \"User defined\" for the framesize", \
+      help_string: "User defined width in pixels. Only meaningful if you selected \"User defined\" for the framesize.", \
     }, \
     {                                        \
       name:      "user_image_height", \
@@ -330,7 +336,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       val_min:     { val_i: 1 }, \
       val_max:     { val_i: 100000 }, \
       val_default: { val_i: 480 }, \
-      help_string: "User defined height in pixels. Only meaningful if you selected \"User defined\" for the framesize", \
+      help_string: "User defined height in pixels. Only meaningful if you selected \"User defined\" for the framesize.", \
       }, \
     { \
       name:      "user_pixel_width", \
@@ -340,7 +346,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       val_min:     { val_i: 1 }, \
       val_max:     { val_i: 100000 }, \
       val_default: { val_i: 1 }, \
-      help_string: "User defined pixel width. Only meaningful if you selected \"User defined\" for the framesize", \
+      help_string: "User defined pixel width. Only meaningful if you selected \"User defined\" for the framesize.", \
     }, \
     {                                        \
       name:      "user_pixel_height", \
@@ -350,7 +356,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       val_min:     { val_i: 1 }, \
       val_max:     { val_i: 100000 }, \
       val_default: { val_i: 1 }, \
-      help_string: "User defined pixel height. Only meaningful if you selected \"User defined\" for the framesize", \
+      help_string: "User defined pixel height. Only meaningful if you selected \"User defined\" for the framesize.", \
       }, \
     { \
       name:      "maintain_aspect", \
@@ -358,7 +364,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       opt:       "ka", \
       type:      BG_PARAMETER_CHECKBUTTON, \
       val_default: { val_i: 1 }, \
-      help_string: "Let the aspect ratio appear the same as in the source, probably resulting in additional black borders" \
+      help_string: "Let the aspect ratio appear the same as in the source, probably resulting in additional black borders." \
       },                                                                \
       BG_GAVL_PARAM_SCALE_MODE
 
@@ -370,14 +376,14 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       type:        BG_PARAMETER_STRINGLIST, \
       val_default: { val_str: "Ignore" }, \
       multi_names: (char*[]){"Ignore", "Blend background color", (char*)0}, \
-    help_string: "This option is used if the source has an alpha (=transparency) channel, but the output supports no transparency. Either, the transparency is ignored, or the background color you specify below is blended in",\
+    help_string: "This option is used if the source has an alpha (=transparency) channel, but the output supports no transparency. Either, the transparency is ignored, or the background color you specify below is blended in.",\
     }, \
     { \
       name:        "background_color", \
       long_name:   "Background color", \
       type:      BG_PARAMETER_COLOR_RGB, \
       val_default: { val_color: (float[]){ 0.0, 0.0, 0.0 } }, \
-      help_string: "Background color to use, when alpha mode above is \"Blend background color\"", \
+      help_string: "Background color to use, when alpha mode above is \"Blend background color\".", \
     }
 
 
@@ -387,7 +393,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       long_name: "Fixed samplerate",\
       type:      BG_PARAMETER_CHECKBUTTON,\
       val_default: { val_i: 0 },\
-      help_string: "If disabled, the output samplerate is taken from the source. If enabled, the samplerate you specify below us used"\
+      help_string: "If disabled, the output samplerate is taken from the source. If enabled, the samplerate you specify below us used."\
     },\
     {\
       name:        "samplerate",\
@@ -406,7 +412,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
       long_name: "Fixed channel setup", \
       type:      BG_PARAMETER_CHECKBUTTON,\
       val_default: { val_i: 0 },\
-      help_string: "If disabled, the output channel configuration is taken from the source. If enabled, the setup you specify below us used" \
+      help_string: "If disabled, the output channel configuration is taken from the source. If enabled, the setup you specify below us used." \
     },                                        \
     {                                         \
     name:        "num_front_channels",          \
@@ -440,7 +446,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)"\
                               "Diff", \
                               (char*)0 }, \
       help_string: "Mix mode when the output format has rear channels, \
-but the source doesn't", \
+but the source doesn't.", \
     }, \
     { \
       name:        "stereo_to_mono", \
@@ -451,6 +457,15 @@ but the source doesn't", \
                               "Choose right", \
                               "Mix", \
                               (char*)0 }, \
-      help_string: "Mix mode when downmixing Stereo to Mono", \
+      help_string: "Mix mode when downmixing Stereo to Mono.", \
     }
 
+
+#define BG_GAVL_PARAM_FORCE_FLOAT \
+    { \
+      name:      "force_float", \
+      long_name: "Force floating point", \
+      type:      BG_PARAMETER_CHECKBUTTON,\
+      val_default: { val_i: 0 },\
+      help_string: "Force floating point processing. This will inprove the quality but might slow things down." \
+    }

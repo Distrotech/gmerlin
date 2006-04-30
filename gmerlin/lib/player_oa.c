@@ -47,12 +47,7 @@ struct bg_player_oa_context_s
   gavl_timer_t *  timer;
 
   int64_t audio_samples_written;
-
-  /* Volume control */
-
-  gavl_volume_control_t * volume;
-  pthread_mutex_t volume_mutex;
-
+  
   /* Error message */
   const char * error_msg;
   };
@@ -60,7 +55,7 @@ struct bg_player_oa_context_s
 void * bg_player_oa_create_frame(void * data)
   {
   bg_player_oa_context_t * ctx = (bg_player_oa_context_t *)data;
-  return gavl_audio_frame_create(&(ctx->player->audio_stream.output_format));
+  return gavl_audio_frame_create(&(ctx->player->audio_stream.pipe_format));
   }
 
 void bg_player_oa_destroy_frame(void * data, void * frame)
@@ -75,13 +70,10 @@ void bg_player_oa_create(bg_player_t * player)
   ctx = calloc(1, sizeof(*ctx));
   ctx->player = player;
 
-  ctx->volume = gavl_volume_control_create();
   ctx->timer = gavl_timer_create();
 
   pthread_mutex_init(&(ctx->time_mutex),(pthread_mutexattr_t *)0);
-  pthread_mutex_init(&(ctx->volume_mutex),(pthread_mutexattr_t *)0);
-
-    
+  
   player->oa_context = ctx;
   }
 
@@ -109,8 +101,7 @@ void bg_player_oa_destroy(bg_player_t * player)
   pthread_mutex_destroy(&(ctx->time_mutex));
 
   gavl_timer_destroy(ctx->timer);
-  gavl_volume_control_destroy(ctx->volume);
-  
+    
   if(ctx->plugin_handle)
     bg_plugin_unref(ctx->plugin_handle);
   free(ctx);
@@ -291,14 +282,26 @@ void * bg_player_oa_thread(void * data)
     if(frame->valid_samples)
       {
       //      fprintf(stderr, "Got samples: %d\n", frame->valid_samples);
-      pthread_mutex_lock(&(ctx->volume_mutex));
-      gavl_volume_control_apply(ctx->volume, frame);
-      pthread_mutex_unlock(&(ctx->volume_mutex));
-      
-      bg_plugin_lock(ctx->plugin_handle);
-      ctx->plugin->write_frame(ctx->priv, frame);
-      bg_plugin_unlock(ctx->plugin_handle);
+      pthread_mutex_lock(&(ctx->player->audio_stream.volume_mutex));
+      gavl_volume_control_apply(ctx->player->audio_stream.volume, frame);
+      pthread_mutex_unlock(&(ctx->player->audio_stream.volume_mutex));
 
+      if(ctx->player->audio_stream.do_convert_out)
+        {
+        gavl_audio_convert(ctx->player->audio_stream.cnv_out, frame,
+                           ctx->player->audio_stream.frame_out);
+
+        bg_plugin_lock(ctx->plugin_handle);
+        ctx->plugin->write_frame(ctx->priv, ctx->player->audio_stream.frame_out);
+        bg_plugin_unlock(ctx->plugin_handle);
+        }
+      else
+        {
+        bg_plugin_lock(ctx->plugin_handle);
+        ctx->plugin->write_frame(ctx->priv, frame);
+        bg_plugin_unlock(ctx->plugin_handle);
+        }
+      
       pthread_mutex_lock(&(ctx->time_mutex));
       ctx->audio_samples_written += frame->valid_samples;
       pthread_mutex_unlock(&(ctx->time_mutex));
@@ -339,8 +342,6 @@ int bg_player_oa_init(bg_player_oa_context_t * ctx)
 
   bg_plugin_unlock(ctx->plugin_handle);
 
-  gavl_volume_control_set_format(ctx->volume,
-                                 &(ctx->player->audio_stream.output_format));
   
   ctx->audio_samples_written = 0;
   return result;
@@ -384,9 +385,9 @@ void bg_player_oa_stop(bg_player_oa_context_t * ctx)
 void bg_player_oa_set_volume(bg_player_oa_context_t * ctx,
                              float volume)
   {
-  pthread_mutex_lock(&(ctx->volume_mutex));
-  gavl_volume_control_set_volume(ctx->volume, volume);
-  pthread_mutex_unlock(&(ctx->volume_mutex));
+  pthread_mutex_lock(&(ctx->player->audio_stream.volume_mutex));
+  gavl_volume_control_set_volume(ctx->player->audio_stream.volume, volume);
+  pthread_mutex_unlock(&(ctx->player->audio_stream.volume_mutex));
   }
 
 int bg_player_oa_get_latency(bg_player_oa_context_t * ctx)

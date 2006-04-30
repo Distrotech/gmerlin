@@ -65,20 +65,22 @@ flag_names[] =
     { (char*)0,    0                           },
   };
 
-static const char * plugin_key          = "PLUGIN";
-static const char * plugin_registry_key = "PLUGIN_REGISTRY";
+static const char * plugin_key            = "PLUGIN";
+static const char * plugin_registry_key   = "PLUGIN_REGISTRY";
 
-static const char * name_key            = "NAME";
-static const char * long_name_key       = "LONG_NAME";
-static const char * mimetypes_key       = "MIMETYPES";
-static const char * extensions_key      = "EXTENSIONS";
-static const char * module_filename_key = "MODULE_FILENAME";
-static const char * module_time_key     = "MODULE_TIME";
-static const char * type_key            = "TYPE";
-static const char * flags_key           = "FLAGS";
-static const char * priority_key        = "PRIORITY";
-static const char * device_info_key     = "DEVICE_INFO";
-static const char * device_key          = "DEVICE";
+static const char * name_key              = "NAME";
+static const char * long_name_key         = "LONG_NAME";
+static const char * mimetypes_key         = "MIMETYPES";
+static const char * extensions_key        = "EXTENSIONS";
+static const char * module_filename_key   = "MODULE_FILENAME";
+static const char * module_time_key       = "MODULE_TIME";
+static const char * type_key              = "TYPE";
+static const char * flags_key             = "FLAGS";
+static const char * priority_key          = "PRIORITY";
+static const char * device_info_key       = "DEVICE_INFO";
+static const char * device_key            = "DEVICE";
+static const char * max_audio_streams_key = "MAX_AUDIO_STREAMS";
+static const char * max_video_streams_key = "MAX_VIDEO_STREAMS";
 
 static bg_device_info_t *
 load_device(bg_device_info_t * arr, xmlDocPtr doc, xmlNodePtr node)
@@ -231,6 +233,14 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
       {
       ret->devices = load_device(ret->devices, doc, cur);
       }
+    else if(!BG_XML_STRCMP(cur->name, max_audio_streams_key))
+      {
+      ret->max_audio_streams = atoi(tmp_string);
+      }
+    else if(!BG_XML_STRCMP(cur->name, max_video_streams_key))
+      {
+      ret->max_video_streams = atoi(tmp_string);
+      }
     xmlFree(tmp_string);
     cur = cur->next;
     }
@@ -326,7 +336,21 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->mimetypes));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
+  if(info->type & (BG_PLUGIN_ENCODER_AUDIO|
+                   BG_PLUGIN_ENCODER_VIDEO|
+                   BG_PLUGIN_ENCODER))
+    {
+    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)max_audio_streams_key, NULL);
+    sprintf(buffer, "%d", info->max_audio_streams);
+    xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
+    xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
+    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)max_video_streams_key, NULL);
+    sprintf(buffer, "%d", info->max_video_streams);
+    xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
+    xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+    }
+  
   index = 0;
   while(type_names[index].name)
     {

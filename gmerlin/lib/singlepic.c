@@ -868,7 +868,7 @@ static int write_frame_header(encoder_t * e)
   }
 
 
-static void add_video_stream_encoder(void * data, gavl_video_format_t * format)
+static int add_video_stream_encoder(void * data, gavl_video_format_t * format)
   {
   encoder_t * e;
   e = (encoder_t *)data;
@@ -878,6 +878,7 @@ static void add_video_stream_encoder(void * data, gavl_video_format_t * format)
   /* Write image header so we know the format */
   
   write_frame_header(e);
+  return 0;
   }
 
 static void get_video_format_encoder(void * data, int stream,

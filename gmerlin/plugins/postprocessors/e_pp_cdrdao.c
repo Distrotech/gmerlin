@@ -24,7 +24,10 @@
 #include <config.h>
 #include <plugin.h>
 #include <utils.h>
+#include <log.h>
 #include "cdrdao_common.h"
+
+#define LOG_DOMAIN "e_pp_cdrdao"
 
 typedef struct
   {
@@ -67,7 +70,7 @@ static void * create_cdrdao()
   cdrdao_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->cdr = bg_cdrdao_create();
-  fprintf(stderr, "create_cdrdao %p\n", ret);
+  //  fprintf(stderr, "create_cdrdao %p\n", ret);
   return ret;
   }
 
@@ -77,7 +80,7 @@ static void destroy_cdrdao(void * priv)
   cdrdao = (cdrdao_t*)priv;
   bg_cdrdao_destroy(cdrdao->cdr);
   if(cdrdao->toc_file) free(cdrdao->toc_file);
-  fprintf(stderr, "destroy_cdrdao %p\n", cdrdao);
+  //  fprintf(stderr, "destroy_cdrdao %p\n", cdrdao);
   free(cdrdao);
   }
 
@@ -152,6 +155,9 @@ static int init_cdrdao(void * data)
   cdrdao = (cdrdao_t*)data;
   fprintf(stderr, "init_cdrdao");
   free_tracks(cdrdao);
+  /* Check for cdrdao */
+  if(!bg_search_file_exec("cdrdao", (char**)0))
+    return 0;
   return 1;
   }
 
@@ -276,6 +282,12 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
   
   cdrdao = (cdrdao_t*)data;
 
+  if(!cdrdao->num_tracks)
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Skipping cdrdao run (no tracks)");
+    return;
+    }
+  
   /* Check, if we can write cdtext */
 
   do_cdtext = cdrdao->use_cdtext;

@@ -356,7 +356,7 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
     new_info->type        = plugin->type;
     new_info->flags       = plugin->flags;
     new_info->priority    = plugin->priority;
-        
+    
     /* Create parameter entries in the registry */
 
     plugin_section =
@@ -377,8 +377,11 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
                        BG_PLUGIN_ENCODER_VIDEO|
                        BG_PLUGIN_ENCODER))
       {
+      
       encoder = (bg_encoder_plugin_t*)plugin;
-
+      new_info->max_audio_streams = encoder->max_audio_streams;
+      new_info->max_video_streams = encoder->max_video_streams;
+      
       if(encoder->get_audio_parameters)
         {
         parameter_info = encoder->get_audio_parameters(plugin_priv);

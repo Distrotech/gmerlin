@@ -44,7 +44,10 @@ typedef struct bg_plugin_info_s
   
   struct bg_plugin_info_s * next;
 
-
+  /* For encoding plugins */
+  int max_audio_streams;
+  int max_video_streams;
+  
   } bg_plugin_info_t;
 
 typedef struct bg_plugin_registry_s bg_plugin_registry_t;

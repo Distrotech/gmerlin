@@ -16,7 +16,7 @@ bg_parameter_info_t conversion_parameters[] =
   };
 
 bg_cfg_section_t * conversion_section = (bg_cfg_section_t *)0;
-bg_gavl_video_options_t opt;
+bg_gavl_video_options_t vopt;
 
 static void set_video_parameter(void * data, char * name,
                                 bg_parameter_value_t * v)
@@ -40,7 +40,7 @@ static void opt_video_options(void * data, int * argc, char *** argv, int arg)
   /* Parse the option string */
   if(!bg_cmdline_apply_options(conversion_section,
                                set_video_parameter,
-                               &opt,
+                               &vopt,
                                conversion_parameters,
                                (*argv)[arg]))
     {
@@ -82,6 +82,7 @@ static void opt_help(void * data, int * argc, char *** argv, int arg)
 
 int main(int argc, char ** argv)
   {
+  gavl_video_options_t * opt;
   bg_cfg_registry_t * cfg_reg;
   bg_cfg_section_t * cfg_section;
   bg_plugin_registry_t * plugin_reg;
@@ -111,8 +112,7 @@ int main(int argc, char ** argv)
 
   cnv = gavl_video_converter_create();
   /* Handle options */
-  opt.opt = gavl_video_converter_get_options(cnv);
-  bg_gavl_video_options_init(&opt);
+  bg_gavl_video_options_init(&vopt);
 
   /* Parse options */
 
@@ -160,8 +160,8 @@ int main(int argc, char ** argv)
   
   gavl_video_format_copy(&out_format, &in_format);
 
-  bg_gavl_video_options_set_framesize(&opt, &in_format, &out_format);
-  bg_gavl_video_options_set_rectangles(&opt, &in_format, &out_format);
+  bg_gavl_video_options_set_framesize(&vopt, &in_format, &out_format);
+  bg_gavl_video_options_set_rectangles(&vopt, &in_format, &out_format);
   
   output_plugin->write_header(output_handle->priv, files[1], &out_format);
 
@@ -185,7 +185,10 @@ int main(int argc, char ** argv)
 
   fprintf(stderr, "Output format:\n");
   gavl_video_format_dump(&out_format);
-    
+
+  opt = gavl_video_converter_get_options(cnv);
+  gavl_video_options_copy(opt, vopt.opt);
+  
   num_conversions = gavl_video_converter_init(cnv, &in_format, &out_format);
   fprintf(stderr, "num_conversions: %d\n",num_conversions);
   
@@ -205,5 +208,8 @@ int main(int argc, char ** argv)
   gavl_video_frame_destroy(in_frame);
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);
+
+  bg_gavl_video_options_free(&vopt);
+
   return 0;
   }

@@ -241,7 +241,7 @@ static bg_parameter_info_t parameters_general[] =
       type:      BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
       help_string: "Specify a start time below. This time is slightly wrong if the input\
-format doesn't support sample accurate seeking"
+format doesn't support sample accurate seeking."
     },
     {
       name:      "start_time",
@@ -254,7 +254,7 @@ format doesn't support sample accurate seeking"
       long_name: "Set end time",
       type:      BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 },
-      help_string: "Specify an end time below"
+      help_string: "Specify an end time below."
     },
     {
       name:      "end_time",
@@ -1102,6 +1102,13 @@ static bg_parameter_info_t general_parameters_video[] =
       multi_labels:  (char*[]){ "Transcode", "Forget", (char*)0 },
       val_default: { val_str: "transcode" },
     },
+    {
+      name:       "twopass",
+      long_name:  "Enable 2-pass encoding",
+      type:       BG_PARAMETER_CHECKBUTTON,
+      help_string: "Encode this stream in 2 passes, i.e. analyze it first and do the final\
+ transcoding in the second pass. This enables higher quality within the given bitrate constraints but roughly doubles the video encoding time.",
+    },
     BG_GAVL_PARAM_CONVERSION_QUALITY,
     BG_GAVL_PARAM_FRAMERATE,
     BG_GAVL_PARAM_DEINTERLACE,
@@ -1128,6 +1135,14 @@ static bg_parameter_info_t general_parameters_audio[] =
       multi_labels:  (char*[]){ "Transcode", "Forget", (char*)0 },
       val_default: { val_str: "transcode" },
     },
+    {
+      name:        "normalize",
+      long_name:   "Normalize audio",
+      type:        BG_PARAMETER_CHECKBUTTON,
+      help_string: "This will enable 2 pass transcoding. In the first pass, the peak volume\
+ is detected. In the second pass, the stream is transcoded with normalized volume."
+    },
+    BG_GAVL_PARAM_FORCE_FLOAT,
     BG_GAVL_PARAM_CONVERSION_QUALITY,
     BG_GAVL_PARAM_SAMPLERATE,
     BG_GAVL_PARAM_CHANNEL_SETUP,

@@ -482,7 +482,7 @@ static const char * get_extension_wav(void * data)
   return wav_extension;
   }
 
-static void add_audio_stream_wav(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_wav(void * data, gavl_audio_format_t * format)
   {
   wav_t * wav;
   
@@ -494,7 +494,7 @@ static void add_audio_stream_wav(void * data, gavl_audio_format_t * format)
   // gavl_audio_format_dump(&(wav->format));
   
   wav->format.interleave_mode = GAVL_INTERLEAVE_ALL;
-  return;
+  return 0;
   }
 
 static void write_audio_frame_wav(void * data, gavl_audio_frame_t * frame,

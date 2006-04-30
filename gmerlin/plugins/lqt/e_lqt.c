@@ -151,7 +151,7 @@ static int open_lqt(void * data, const char * filename,
   return 1;
   }
 
-static void add_audio_stream_lqt(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_lqt(void * data, gavl_audio_format_t * format)
   {
   e_lqt_t * e = (e_lqt_t*)data;
 
@@ -164,9 +164,10 @@ static void add_audio_stream_lqt(void * data, gavl_audio_format_t * format)
                          format);
   
   e->num_audio_streams++;
+  return e->num_audio_streams-1;
   }
 
-static void add_video_stream_lqt(void * data, gavl_video_format_t* format)
+static int add_video_stream_lqt(void * data, gavl_video_format_t* format)
   {
   e_lqt_t * e = (e_lqt_t*)data;
 
@@ -184,7 +185,7 @@ static void add_video_stream_lqt(void * data, gavl_video_format_t* format)
     e->video_streams[e->num_video_streams].format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
   
   e->num_video_streams++;
-  
+  return e->num_video_streams-1;
   }
 
 static void get_audio_format_lqt(void * data, int stream, gavl_audio_format_t * ret)
@@ -438,6 +439,13 @@ static void set_audio_parameter_lqt(void * data, int stream, char * name,
 
   }
 
+static int set_video_pass_lqt(void * data, int stream, int pass,
+                              int total_passes, const char * stats_file)
+  {
+  e_lqt_t * e = (e_lqt_t*)data;
+  return lqt_set_video_pass(e->file, pass, total_passes, stats_file, stream);
+  }
+
 static void set_video_parameter_lqt(void * data, int stream, char * name,
                                     bg_parameter_value_t * val)
   {
@@ -522,7 +530,8 @@ bg_encoder_plugin_t the_plugin =
 
     add_audio_stream:     add_audio_stream_lqt,
     add_video_stream:     add_video_stream_lqt,
-        
+    set_video_pass:       set_video_pass_lqt,
+    
     set_audio_parameter:  set_audio_parameter_lqt,
     set_video_parameter:  set_video_parameter_lqt,
     

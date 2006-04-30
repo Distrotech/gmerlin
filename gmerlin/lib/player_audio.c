@@ -25,22 +25,32 @@
 
 void bg_player_audio_create(bg_player_t * p)
   {
-  p->audio_stream.cnv = gavl_audio_converter_create();
-  p->audio_stream.options.opt =
-    gavl_audio_converter_get_options(p->audio_stream.cnv);
+  p->audio_stream.cnv_in  = gavl_audio_converter_create();
+  p->audio_stream.cnv_out = gavl_audio_converter_create();
   bg_gavl_audio_options_init(&(p->audio_stream.options));
 
+  p->audio_stream.volume = gavl_volume_control_create();
+  pthread_mutex_init(&(p->audio_stream.volume_mutex),(pthread_mutexattr_t *)0);
+
+  
   pthread_mutex_init(&(p->audio_stream.config_mutex),(pthread_mutexattr_t *)0);
   }
 
 void bg_player_audio_destroy(bg_player_t * p)
   {
-  gavl_audio_converter_destroy(p->audio_stream.cnv);
+  gavl_audio_converter_destroy(p->audio_stream.cnv_in);
+  gavl_audio_converter_destroy(p->audio_stream.cnv_out);
+  bg_gavl_audio_options_free(&(p->audio_stream.options));
+
+  gavl_volume_control_destroy(p->audio_stream.volume);
+  pthread_mutex_destroy(&(p->audio_stream.volume_mutex));
+
   }
 
 int bg_player_audio_init(bg_player_t * player, int audio_stream)
   {
-  
+  int force_float;
+  gavl_audio_options_t * opt;
   if(player->track_info->num_audio_streams)
     player->do_audio =
       bg_player_input_set_audio_stream(player->input_context, audio_stream);
@@ -54,9 +64,10 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   bg_gavl_audio_options_set_format(&(player->audio_stream.options),
                                    &(player->audio_stream.input_format),
                                    &(player->audio_stream.output_format));
+  force_float = player->audio_stream.options.force_float;
   
   pthread_mutex_unlock(&(player->audio_stream.config_mutex));
-  
+    
 #if 0
   fprintf(stderr, "======= Input format: ===========\n");
   gavl_audio_format_dump(&(player->audio_stream.input_format));
@@ -70,6 +81,11 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
     return 0;
     }
 
+  gavl_audio_format_copy(&(player->audio_stream.pipe_format),
+                         &(player->audio_stream.output_format));
+  if(force_float)
+    player->audio_stream.pipe_format.sample_format = GAVL_SAMPLE_FLOAT;
+  
   if(player->audio_stream.input_format.samplerate !=
      player->audio_stream.output_format.samplerate)
     {
@@ -89,6 +105,9 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   player->audio_stream.fifo =
     bg_fifo_create(NUM_AUDIO_FRAMES, bg_player_oa_create_frame,
                    (void*)player->oa_context);
+  /* Volume control */
+  gavl_volume_control_set_format(player->audio_stream.volume,
+                                 &(player->audio_stream.pipe_format));
   
   /* Initialize audio converter */
 
@@ -97,23 +116,46 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   gavl_audio_format_dump(&(player->audio_stream.output_format));
   fprintf(stderr, "=================================\n");
 #endif
+
+  /* Input conversion */
+  opt = gavl_audio_converter_get_options(player->audio_stream.cnv_in);
+  gavl_audio_options_copy(opt, player->audio_stream.options.opt);
   
-  if(!gavl_audio_converter_init(player->audio_stream.cnv,
+  if(!gavl_audio_converter_init(player->audio_stream.cnv_in,
                                 &(player->audio_stream.input_format),
-                                &(player->audio_stream.output_format)))
+                                &(player->audio_stream.pipe_format)))
     {
-    player->audio_stream.do_convert = 0;
+    player->audio_stream.do_convert_in = 0;
     //    fprintf(stderr, "**** No Conversion ****\n");
     }
   else
     {
-    player->audio_stream.do_convert = 1;
-    player->audio_stream.frame =
+    player->audio_stream.do_convert_in = 1;
+    player->audio_stream.frame_in =
       gavl_audio_frame_create(&(player->audio_stream.input_format));
+    //    fprintf(stderr, "**** Doing Input conversion\n");
+    }
+
+  /* Output conversion */
+  opt = gavl_audio_converter_get_options(player->audio_stream.cnv_out);
+  gavl_audio_options_copy(opt, player->audio_stream.options.opt);
+  
+  if(!gavl_audio_converter_init(player->audio_stream.cnv_out,
+                                &(player->audio_stream.pipe_format),
+                                &(player->audio_stream.output_format)))
+    {
+    player->audio_stream.do_convert_out = 0;
+    //    fprintf(stderr, "**** No Conversion ****\n");
+    }
+  else
+    {
+    player->audio_stream.do_convert_out = 1;
+    player->audio_stream.frame_out =
+      gavl_audio_frame_create(&(player->audio_stream.output_format));
+    //    fprintf(stderr, "**** Doing Output conversion\n");
     //    fprintf(stderr, "**** Doing Conversion %d ****\n",
     //            player->audio_stream.input_format.samples_per_frame);
     }
-  
   return 1;
   }
 
@@ -125,10 +167,15 @@ void bg_player_audio_cleanup(bg_player_t * player)
                     bg_player_oa_destroy_frame, NULL);
     player->audio_stream.fifo = (bg_fifo_t *)0;
     }
-  if(player->audio_stream.frame)
+  if(player->audio_stream.frame_in)
     {
-    gavl_audio_frame_destroy(player->audio_stream.frame);
-    player->audio_stream.frame = (gavl_audio_frame_t*)0;
+    gavl_audio_frame_destroy(player->audio_stream.frame_in);
+    player->audio_stream.frame_in = (gavl_audio_frame_t*)0;
+    }
+  if(player->audio_stream.frame_out)
+    {
+    gavl_audio_frame_destroy(player->audio_stream.frame_out);
+    player->audio_stream.frame_out = (gavl_audio_frame_t*)0;
     }
   }
 
@@ -141,6 +188,7 @@ static bg_parameter_info_t parameters[] =
       long_name: "Audio",
       type:      BG_PARAMETER_SECTION,
     },
+    BG_GAVL_PARAM_FORCE_FLOAT,
     BG_GAVL_PARAM_CONVERSION_QUALITY,
     BG_GAVL_PARAM_SAMPLERATE,
     BG_GAVL_PARAM_CHANNEL_SETUP,

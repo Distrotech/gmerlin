@@ -27,8 +27,6 @@ void bg_player_video_create(bg_player_t * p)
   p->video_stream.cnv = gavl_video_converter_create();
   pthread_mutex_init(&(p->video_stream.config_mutex),(pthread_mutexattr_t *)0);
 
-  p->video_stream.options.opt =
-    gavl_video_converter_get_options(p->video_stream.cnv);
   
   bg_gavl_video_options_init(&(p->video_stream.options));
   }
@@ -37,12 +35,13 @@ void bg_player_video_destroy(bg_player_t * p)
   {
   gavl_video_converter_destroy(p->video_stream.cnv);
   pthread_mutex_destroy(&(p->video_stream.config_mutex));
+  bg_gavl_video_options_free(&(p->video_stream.options));
   }
 
 int bg_player_video_init(bg_player_t * player, int video_stream)
   {
   bg_player_video_stream_t * s;
-  
+  gavl_video_options_t * opt;
   s = &(player->video_stream);
 
   
@@ -84,6 +83,10 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   //  fprintf(stderr, "Initializing video converter...");
 
   pthread_mutex_lock(&(player->video_stream.config_mutex));
+
+  opt = gavl_video_converter_get_options(s->cnv);
+  gavl_video_options_copy(opt, player->video_stream.options.opt);
+
   if(!gavl_video_converter_init(s->cnv,
                                 &(player->video_stream.input_format),
                                 &(player->video_stream.output_format)))

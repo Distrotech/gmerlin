@@ -386,7 +386,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
     
     return 1;
     }
-  if(s->do_convert)
+  if(s->do_convert_in)
     {
     if(preload)
       audio_frame = (gavl_audio_frame_t*)bg_fifo_try_lock_write(s->fifo,
@@ -398,15 +398,15 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
       return 0;
 
     bg_plugin_lock(ctx->plugin_handle);
-    if(!ctx->plugin->read_audio_samples(ctx->priv, s->frame,
+    if(!ctx->plugin->read_audio_samples(ctx->priv, s->frame_in,
                                         ctx->player->current_audio_stream,
                                         ctx->player->audio_stream.input_format.samples_per_frame))
       ctx->audio_finished = 1;
-    ctx->audio_samples_written += s->frame->valid_samples;
+    ctx->audio_samples_written += s->frame_in->valid_samples;
     bg_plugin_unlock(ctx->plugin_handle);
     //    fprintf(stderr, "Convert audio %d\n", s->frame->valid_samples);
     
-    gavl_audio_convert(s->cnv, s->frame, audio_frame);
+    gavl_audio_convert(s->cnv_in, s->frame_in, audio_frame);
     }
   else
     {

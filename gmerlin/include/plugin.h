@@ -561,10 +561,12 @@ typedef struct bg_encoder_plugin_s
   bg_parameter_info_t * (*get_video_parameters)(void * data);
 
   /* Add streams. The formats can be changed, be sure to get the
-     final formats with get_[audio|video]_format later on */
+   * final formats with get_[audio|video]_format after starting the plugin
+   * Return value is the index of the added stream.
+   */
   
-  void (*add_audio_stream)(void *, gavl_audio_format_t * format);
-  void (*add_video_stream)(void *, gavl_video_format_t * format);
+  int (*add_audio_stream)(void *, gavl_audio_format_t * format);
+  int (*add_video_stream)(void *, gavl_video_format_t * format);
 
   /* Set parameters for the streams */
   
@@ -573,7 +575,13 @@ typedef struct bg_encoder_plugin_s
   
   void (*set_video_parameter)(void * data, int stream, char * name,
                               bg_parameter_value_t * v);
-
+  
+  /* Multipass video encoding. Return FALSE if multipass transcoding is
+     not supported and can be ommitted */
+  int (*set_video_pass)(void * data, int stream, int pass, int total_passes,
+                        char * stats_file);
+  
+  
   /*
    *  Optional function for preparing the actual encoding.
    *  It might return FALSE is something went wrong
