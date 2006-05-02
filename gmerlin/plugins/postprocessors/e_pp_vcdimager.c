@@ -23,7 +23,14 @@
 
 #include <config.h>
 #include <plugin.h>
+#include <utils.h>
+#include <log.h>
+#include <subprocess.h>
 #include "cdrdao_common.h"
+
+#define LOG_DOMAIN "vcdimager"
+
+/* Driver for vcdxgen and vcdxbuild */
 
 typedef struct
   {
@@ -31,21 +38,52 @@ typedef struct
   char * error_msg;
 
   char * bin_file;
+  char * xml_file;
   char * cue_file;
+  char * volume_label;
+
+  bg_e_pp_callbacks_t * callbacks;
+
+  bg_cdrdao_t * cdr;
+
+  char ** files;
+  int num_files;
   } vcdimager_t;
+
+static void free_tracks(vcdimager_t * v)
+  {
+  int i;
+  for(i = 0; i < v->num_files; i++)
+    free(v->files[i]);
+  if(v->files)
+    free(v->files);
+  v->files = (char**)0;
+  v->num_files = 0;
+  }
 
 static void * create_vcdimager()
   {
   vcdimager_t * ret;
   ret = calloc(1, sizeof(*ret));
+  ret->cdr = bg_cdrdao_create();
   return ret;
   }
+
+#define FREE(ptr) if(ptr) free(ptr);
 
 static void destroy_vcdimager(void * priv)
   {
   vcdimager_t * vcdimager;
   vcdimager = (vcdimager_t*)priv;
 
+  FREE(vcdimager->xml_file);
+  FREE(vcdimager->bin_file);
+  FREE(vcdimager->cue_file);
+  FREE(vcdimager->volume_label);
+  FREE(vcdimager->error_msg);
+  FREE(vcdimager->vcd_version);
+
+  bg_cdrdao_destroy(vcdimager->cdr);
 
   free(vcdimager);
   }
@@ -74,6 +112,18 @@ static bg_parameter_info_t parameters[] =
       multi_labels: (char*[]){ "VCD 1.1", "VCD 2.0", "SVCD", "HQSVCD", (char*)0 },
     },
     {
+      name: "volume_label",
+      long_name: "ISO 9660 volume label",
+      type: BG_PARAMETER_STRING,
+      val_default: { val_str: "VIDEOCD" },
+    },
+    {
+      name: "xml_file",
+      long_name: "Xml file",
+      type: BG_PARAMETER_STRING,
+      val_default: { val_str: "videocd.xml" },
+    },
+    {
       name: "bin_file",
       long_name: "Bin file",
       type: BG_PARAMETER_STRING,
@@ -94,30 +144,198 @@ static bg_parameter_info_t * get_parameters_vcdimager(void * data)
   return parameters;
   }
 
+#define SET_STR(key) if(!strcmp(name, # key)) { vcd->key = bg_strdup(vcd->key, v->val_str); }
+
 static void set_parameter_vcdimager(void * data, char * name, bg_parameter_value_t * v)
   {
-
+  vcdimager_t * vcd = (vcdimager_t*)data;
+  if(!name)
+    return;
+  SET_STR(bin_file);
+  SET_STR(cue_file);
+  SET_STR(xml_file);
+  SET_STR(volume_label);
   }
 
 static void set_callbacks_vcdimager(void * data, bg_e_pp_callbacks_t * callbacks)
   {
-
+  vcdimager_t * vcdimager;
+  vcdimager = (vcdimager_t*)data;
+  vcdimager->callbacks = callbacks;
+  bg_cdrdao_set_callbacks(vcdimager->cdr, callbacks);
+  
   }
 
 static int init_vcdimager(void * data)
   {
-  return 0;
+  vcdimager_t * vcdimager;
+  vcdimager = (vcdimager_t*)data;
+  
+  if(!bg_search_file_exec("cdrdao", (char**)0) ||
+     !bg_search_file_exec("vcdxgen", (char**)0) ||
+     !bg_search_file_exec("vcdxbuild", (char**)0))
+    return 0;
+
+  free_tracks(vcdimager);
+  
+  return 1;
   }
 
-void add_track_vcdimager(void * data, const char * filename,
+static void add_track_vcdimager(void * data, const char * filename,
                          bg_metadata_t * metadata)
   {
-  
+  vcdimager_t * vcdimager;
+  vcdimager = (vcdimager_t*)data;
+  vcdimager->files = realloc(vcdimager->files,
+                             sizeof(*(vcdimager->files)) * (vcdimager->num_files+1));
+  vcdimager->files[vcdimager->num_files] = bg_strdup((char*)0, filename);
+  vcdimager->num_files++;
+  }
+
+static void parse_output_line(vcdimager_t * vcdimager, char * line)
+  {
+  int position, size;
+  bg_log_level_t log_level;
+  char * start, *end, *id, * str;
+
+  if(!strncmp(line, "<log ", 5))
+    {
+    if(!(start = strstr(line, "level=\"")))
+      return;
+    start += 7;
+    if(!strncmp(start, "warning", 7))
+      log_level = BG_LOG_WARNING;
+    else if(!strncmp(start, "information", 11))
+      log_level = BG_LOG_INFO;
+    else if(!strncmp(start, "error", 5))
+      log_level = BG_LOG_ERROR;
+    
+    if(!(start = strchr(start, '>')))
+      return;
+    start++;
+    if(!(end = strstr(start, "</log>")))
+      return;
+    *end = '\0';
+    bg_log(log_level, LOG_DOMAIN, start);
+    }
+  else if(!strncmp(line, "<progress ", 10))
+    {
+    if(!vcdimager->callbacks)
+      return;
+    
+    if(!(start = strstr(line, "position=\"")))
+      return;
+    start += 10;
+    position = atoi(start);
+    if(!(start = strstr(line, "size=\"")))
+      return;
+    start += 6;
+    size = atoi(start);
+    if(!position && vcdimager->callbacks->action_callback)
+      {
+      if(!(start = strstr(line, "operation=\"")))
+        return;
+      start += 11;
+      
+      if(!strncmp(start, "scan\"", 5))
+        {
+        if(!(id = strstr(line, "id=\"")))
+          return;
+        id += 4;
+        if(!(end = strchr(id, '"')))
+          return;
+        *end = '\0';
+        str = bg_sprintf("Scanning %s", id);
+        vcdimager->callbacks->action_callback(vcdimager->callbacks->data,
+                                              str);
+        free(str);
+        }
+      if(!strncmp(start, "write\"", 6))
+        {
+        str = bg_sprintf("Writing image");
+        vcdimager->callbacks->action_callback(vcdimager->callbacks->data,
+                                              str);
+        free(str);
+        }
+      }
+    if(!vcdimager->callbacks->progress_callback)
+      vcdimager->callbacks->progress_callback(vcdimager->callbacks->data,
+                                              (float)position / (float)size);
+    }
   }
 
 static void run_vcdimager(void * data, const char * directory, int cleanup)
   {
+  int err = 0;
+  vcdimager_t * vcdimager;
+  bg_subprocess_t * proc;
+  char * str;
+  char * commandline = (char*)0;
+  int i;
+  char * line = (char*)0;
+  int line_alloc = 0;
+  
+  vcdimager = (vcdimager_t*)data;
+  
+  /* Build vcdxgen commandline */
 
+  bg_search_file_exec("vcdxgen", &commandline);
+
+  str = bg_sprintf(" -o %s/%s -t %s --iso-application-id=%s-%s",
+                   directory, vcdimager->xml_file, vcdimager->vcd_version, PACKAGE, VERSION);
+  commandline = bg_strcat(commandline, str);
+  free(str);
+
+  if(vcdimager->volume_label)
+    {
+    str = bg_sprintf(" -l \"%s\"", vcdimager->volume_label);
+    commandline = bg_strcat(commandline, str);
+    free(str);
+    }
+
+  for(i = 0; i < vcdimager->num_files; i++)
+    {
+    str = bg_sprintf(" \"%s\"", vcdimager->files[i]);
+    commandline = bg_strcat(commandline, str);
+    free(str);
+    }
+
+  proc = bg_subprocess_create(commandline, 0, 0, 1);
+  free(commandline);
+  commandline = (char*)0;
+  
+  while(bg_subprocess_read_line(proc->stderr, &line, &line_alloc, -1))
+    {
+    /* If we read something from stderr, we know it's an error */
+    if(line && (*line != '\0'))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "vcdxgen failed: %s\n", line);
+      err = 1;
+      }
+    }
+  bg_subprocess_close(proc);
+
+  if(err)
+    return;
+
+  /* Build vcdxbuild commandline */
+  
+  bg_search_file_exec("vcdxgen", &commandline);
+
+  str = bg_sprintf(" --gui -p -c %s/%s -b %s/%s %s/%s",
+                   directory, vcdimager->cue_file,
+                   directory, vcdimager->bin_file,
+                   directory, vcdimager->xml_file);
+  commandline = bg_strcat(commandline, str);
+  free(str);
+
+  proc = bg_subprocess_create(commandline, 0, 1, 0);
+  free(commandline);
+  while(bg_subprocess_read_line(proc->stderr, &line, &line_alloc, -1))
+    {
+    parse_output_line(vcdimager, line);
+    }
+  
   }
 
 
