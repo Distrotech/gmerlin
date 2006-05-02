@@ -1203,8 +1203,19 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 "Output options",
                 cfg_section,
                 NULL,
-                w,
+                NULL,
                 bg_transcoder_get_parameters());
+
+  cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
+                                               "general");
+  
+  bg_dialog_add(dlg,
+                "Track defaults",
+                cfg_section,
+                NULL,
+                NULL,
+                bg_transcoder_track_get_general_parameters());
+
   
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
                                                "audio");

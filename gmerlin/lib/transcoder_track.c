@@ -145,10 +145,26 @@ static void create_sections(bg_transcoder_track_t * t,
 
   bg_cfg_section_t * general_section;
 
-  
+#if 0
   t->general_section =
     bg_cfg_section_create_from_parameters("General", t->general_parameters);
+#else
+  general_section = bg_cfg_section_find_subsection(track_defaults_section, "general");
+  t->general_section = bg_cfg_section_copy(general_section);
+  
+  /* The parameters which were initially hidden are not present in the general section.
+     Therefore, we will create the missing items now */
 
+  i = 0;
+  while(t->general_parameters[i].name)
+    {
+    bg_cfg_section_get_parameter(t->general_section, &(t->general_parameters[i]),
+                                 (bg_parameter_value_t*)0);
+    i++;
+    }
+  
+#endif
+  
   /* Stop here for redirectors */
 
   if(t->url)
@@ -192,6 +208,7 @@ static bg_parameter_info_t parameters_general[] =
       name:      "name",
       long_name: "Name",
       type:      BG_PARAMETER_STRING,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
     },
     {
       name:      "location",
@@ -236,23 +253,32 @@ static bg_parameter_info_t parameters_general[] =
       flags:     BG_PARAMETER_HIDE_DIALOG,
     },
     {
+      name:      "pp_only",
+      long_name: "Postprocess only",
+      type:      BG_PARAMETER_CHECKBUTTON,
+      help_string: "Skip transcoding of this track and send the file directly to the postprocessor.",
+    },
+    {
       name:      "set_start_time",
       long_name: "Set start time",
       type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_i: 0 },
-      help_string: "Specify a start time below. This time is slightly wrong if the input\
+      help_string: "Specify a start time below. This time will be slightly wrong if the input \
 format doesn't support sample accurate seeking."
     },
     {
       name:      "start_time",
       long_name: "Start time",
       type:      BG_PARAMETER_TIME,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_time: 0 }
     },
     {
       name:      "set_end_time",
       long_name: "Set end time",
       type:      BG_PARAMETER_CHECKBUTTON,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_i: 0 },
       help_string: "Specify an end time below."
     },
@@ -260,6 +286,7 @@ format doesn't support sample accurate seeking."
       name:      "end_time",
       long_name: "End time",
       type:      BG_PARAMETER_TIME,
+      flags:     BG_PARAMETER_HIDE_DIALOG,
       val_default: { val_time: 0 }
     },
     { /* End of parameters */ }
@@ -340,6 +367,8 @@ create_encoder_parameters(bg_transcoder_track_t * track,
   
   }
 
+/* Create parameters if the config sections are already there */
+
 void
 bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
                                       bg_plugin_handle_t * audio_encoder,
@@ -356,7 +385,7 @@ bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
   bg_cfg_section_get_parameter_int(track->general_section,
                                    "seekable", &seekable);
 
-  if((duration != GAVL_TIME_UNDEFINED) && seekable)
+  if(duration != GAVL_TIME_UNDEFINED)
     {
     i = 0;
 
@@ -367,18 +396,30 @@ bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
         track->general_parameters[i].val_max.val_time = duration;
       i++;
       }
-    }
-  else
-    {
-    i = 0;
 
-    while(track->general_parameters[i].name)
+
+    if(seekable)
       {
-      if(!strcmp(track->general_parameters[i].name, "start_time") ||
-         !strcmp(track->general_parameters[i].name, "set_start_time"))
-        track->general_parameters[i].flags |= BG_PARAMETER_HIDE_DIALOG;
-      i++;
+      i = 0;
+      while(track->general_parameters[i].name)
+        {
+        if(!strcmp(track->general_parameters[i].name, "start_time") ||
+           !strcmp(track->general_parameters[i].name, "set_start_time"))
+          track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
+        i++;
+        }
       }
+    }
+  
+  i = 0;
+  
+  while(track->general_parameters[i].name)
+    {
+    if(!strcmp(track->general_parameters[i].name, "name") ||
+       !strcmp(track->general_parameters[i].name, "set_end_time") ||
+       !strcmp(track->general_parameters[i].name, "end_time"))
+      track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
+    i++;
     }
   
   track->metadata_parameters = bg_metadata_get_parameters((bg_metadata_t*)0);
@@ -454,19 +495,16 @@ static void set_track(bg_transcoder_track_t * track,
 
     else if(!strcmp(track->general_parameters[i].name, "set_start_time"))
       {
-      if(!track_info->seekable)
+      if(track_info->seekable)
         {
-        track->general_parameters[i].flags |= BG_PARAMETER_HIDE_DIALOG;
+        track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
         }
       }
     else if(!strcmp(track->general_parameters[i].name, "start_time"))
       {
-      if(!track_info->seekable)
+      if(track_info->seekable)
         {
-        track->general_parameters[i].flags |= BG_PARAMETER_HIDE_DIALOG;
-        }
-      else
-        {
+        track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
         track->general_parameters[i].val_max.val_time = track_info->duration;
         }
       }
@@ -1164,6 +1202,13 @@ bg_transcoder_track_video_get_general_parameters()
   {
   return general_parameters_video;
   }
+
+bg_parameter_info_t *
+bg_transcoder_track_get_general_parameters()
+  {
+  return parameters_general;
+  }
+
 
 char * bg_transcoder_track_get_name(bg_transcoder_track_t * t)
   {

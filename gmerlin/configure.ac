@@ -272,11 +272,11 @@ if test x$have_cdio = "xfalse"; then
 test_cddb=false
 fi
 
-if test x$test_cddb="xtrue"; then
+if test x$test_cddb = "xtrue"; then
 PKG_CHECK_MODULES(CDDB, libcddb >= $CDDB_REQUIRED, have_cddb=true, have_cddb=false)
 fi
 
-if test x$have_cddb="xtrue"; then
+if test x$have_cddb = "xtrue"; then
 AC_DEFINE(HAVE_CDDB)
 fi
 

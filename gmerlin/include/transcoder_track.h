@@ -78,6 +78,8 @@ typedef struct bg_transcoder_track_s
   char * url;
   } bg_transcoder_track_t;
 
+bg_parameter_info_t *
+bg_transcoder_track_get_general_parameters();
 
 bg_transcoder_track_t *
 bg_transcoder_track_create(const char * url,

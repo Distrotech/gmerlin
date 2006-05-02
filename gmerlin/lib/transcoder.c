@@ -170,9 +170,9 @@ typedef struct
   int initialized;
   int64_t start_time_scaled;
 
-  /* Whether 2-pass transocing is requested */
+  /* Whether 2-pass transcoding is requested */
   int twopass;
-  
+  char * stats_file;
   } video_stream_t;
 
 #define SP_INT(s) if(!strcmp(name, # s)) \
@@ -291,6 +291,10 @@ struct bg_transcoder_s
 
   /* Track we are created from */
   bg_transcoder_track_t * transcoder_track;
+
+  /* Postprocess only */
+  int pp_only;
+  
   };
 
 static bg_parameter_info_t parameters[] =
@@ -744,8 +748,8 @@ static void add_audio_stream(audio_stream_t * ret,
 
 
 static void add_video_stream(video_stream_t * ret,
-                                  bg_transcoder_track_video_t * s,
-                                  bg_track_info_t * track_info)
+                             bg_transcoder_track_video_t * s,
+                             bg_track_info_t * track_info)
   {
   set_stream_param_struct_t st;
   ret->com.status = STREAM_STATE_ON;
@@ -791,6 +795,37 @@ static void add_video_stream(video_stream_t * ret,
                          set_stream_param,
                          &st);
     }
+  }
+
+static int set_video_pass(bg_transcoder_t * t, int i)
+  {
+  video_stream_t * s;
+
+  s = &(t->video_streams[i]);
+  if(!s->twopass)
+    return 1;
+    
+  if(!s->com.out_plugin->set_video_pass)
+    {
+    t->error_msg = bg_sprintf("Multipass encoding not supported by encoder plugin");
+    t->error_msg_ret = t->error_msg;
+    return 0;
+    }
+
+  if(!s->stats_file)
+    {
+    s->stats_file = bg_sprintf("%s/%s_video_%02d.stats", t->output_directory, t->name, i+1);
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using statistics file: %s", s->stats_file);
+    }
+  
+  if(!s->com.out_plugin->set_video_pass(s->com.out_handle->priv, s->com.out_index, t->pass, t->total_passes,
+                                          s->stats_file))
+    {
+    t->error_msg = bg_sprintf("Multipass encoding not supported by codec");
+    t->error_msg_ret = t->error_msg;
+    return 0;
+    }
+  return 1;
   }
 
 static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
@@ -1116,6 +1151,7 @@ set_parameter_general(void * data, char * name, bg_parameter_value_t * val)
   SP_INT(set_end_time);
   SP_TIME(start_time);
   SP_TIME(end_time);
+  SP_INT(pp_only);
   }
 
 #undef SP_INT
@@ -1172,61 +1208,70 @@ static void send_init_messages(bg_transcoder_t * t)
   int i;
   char * tmp_string;
 
-  if(t->total_passes > 1)
-    tmp_string = bg_sprintf("Transcoding %s [Track %d, Pass %d/%d]", t->location, t->track+1, t->pass, t->total_passes);
+  if(t->pp_only)
+    {
+    tmp_string = bg_sprintf("Postprocessing %s", t->location);
+    }
+  else if(t->total_passes > 1)
+    {
+    tmp_string = bg_sprintf("Transcoding %s [Track %d, Pass %d/%d]",
+                            t->location, t->track+1, t->pass, t->total_passes);
+    }
   else
+    {
     tmp_string = bg_sprintf("Transcoding %s [Track %d]", t->location, t->track+1);
+    }
   bg_transcoder_send_msg_start(t->message_queues, tmp_string);
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "%s", tmp_string);
   free(tmp_string);
-
-  tmp_string = bg_metadata_to_string(&t->metadata, 1);
-  
+    
   bg_transcoder_send_msg_metadata(t->message_queues, &t->metadata);
   
+  tmp_string = bg_metadata_to_string(&t->metadata, 1);
   if(tmp_string)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Metadata:\n%s", tmp_string);
     free(tmp_string);
     }
 
-  
-  bg_transcoder_send_msg_num_audio_streams(t->message_queues, t->num_audio_streams);
-  for(i = 0; i < t->num_audio_streams; i++)
+  if(!t->pp_only)
     {
-    if(t->audio_streams[i].com.do_decode)
+    bg_transcoder_send_msg_num_audio_streams(t->message_queues, t->num_audio_streams);
+    for(i = 0; i < t->num_audio_streams; i++)
       {
-      bg_transcoder_send_msg_audio_format(t->message_queues, i, &(t->audio_streams[i].in_format),
-                                          &(t->audio_streams[i].out_format));
+      if(t->audio_streams[i].com.do_decode)
+        {
+        bg_transcoder_send_msg_audio_format(t->message_queues, i, &(t->audio_streams[i].in_format),
+                                            &(t->audio_streams[i].out_format));
       
-      tmp_string = bg_audio_format_to_string(&(t->audio_streams[i].in_format), 1);
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Audio stream %d input format:\n%s",
-             i+1, tmp_string);
-      free(tmp_string);
+        tmp_string = bg_audio_format_to_string(&(t->audio_streams[i].in_format), 1);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Audio stream %d input format:\n%s",
+               i+1, tmp_string);
+        free(tmp_string);
 
-      tmp_string = bg_audio_format_to_string(&(t->audio_streams[i].out_format), 1);
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Audio stream %d output format:\n%s",
-             i+1, tmp_string);
-      free(tmp_string);
+        tmp_string = bg_audio_format_to_string(&(t->audio_streams[i].out_format), 1);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Audio stream %d output format:\n%s",
+               i+1, tmp_string);
+        free(tmp_string);
+        }
       }
-    }
-
-  bg_transcoder_send_msg_num_video_streams(t->message_queues, t->num_audio_streams);
-  for(i = 0; i < t->num_video_streams; i++)
-    {
-    if(t->video_streams[i].com.do_decode)
+    bg_transcoder_send_msg_num_video_streams(t->message_queues, t->num_audio_streams);
+    for(i = 0; i < t->num_video_streams; i++)
       {
-      bg_transcoder_send_msg_video_format(t->message_queues, i, &(t->video_streams[i].in_format),
-                            &(t->video_streams[i].out_format));
-      tmp_string = bg_video_format_to_string(&(t->video_streams[i].in_format), 0);
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video stream %d input format:\n%s",
-             i+1, tmp_string);
-      free(tmp_string);
+      if(t->video_streams[i].com.do_decode)
+        {
+        bg_transcoder_send_msg_video_format(t->message_queues, i, &(t->video_streams[i].in_format),
+                                            &(t->video_streams[i].out_format));
+        tmp_string = bg_video_format_to_string(&(t->video_streams[i].in_format), 0);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video stream %d input format:\n%s",
+               i+1, tmp_string);
+        free(tmp_string);
 
-      tmp_string = bg_video_format_to_string(&(t->video_streams[i].out_format), 0);
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video stream %d output format:\n%s",
-             i+1, tmp_string);
-      free(tmp_string);
+        tmp_string = bg_video_format_to_string(&(t->video_streams[i].out_format), 0);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video stream %d output format:\n%s",
+               i+1, tmp_string);
+        free(tmp_string);
+        }
       }
     }
   }
@@ -1274,7 +1319,7 @@ static void send_file_messages(bg_transcoder_t * t)
           {
           bg_transcoder_send_msg_video_file(t->message_queues,
                                             i, t->video_streams[i].com.output_filename);
-          bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video stream %d -> %s",
+          bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video stream %d -> %s", i+1,
                  t->video_streams[i].com.output_filename);
           if(t->send_finished)
             send_file(t->video_streams[i].com.output_filename);
@@ -1606,8 +1651,6 @@ void setup_pass(bg_transcoder_t * ret)
     }
   }
 
-
-
 static int open_encoder(bg_transcoder_t * ret, bg_plugin_handle_t  * encoder_handle,
                         bg_encoder_plugin_t * encoder_plugin, char ** filename)
   {
@@ -1679,11 +1722,11 @@ static int init_encoders(bg_transcoder_t * ret)
                                             ret->transcoder_track->video_encoder_parameters,
                                             ret->transcoder_track->video_encoder_section,
                                             &encoder_plugin);
+      if(!ret->audio_streams[i].com.output_filename)
+        ret->audio_streams[i].com.output_filename =
+          bg_sprintf("%s/%s_audio_%02d%s", ret->output_directory, ret->name, i+1,
+                     encoder_plugin->get_extension(encoder_handle->priv));
       
-      ret->audio_streams[i].com.output_filename =
-        bg_sprintf("%s/%s_audio_%02d%s", ret->output_directory, ret->name, i+1,
-                   encoder_plugin->get_extension(encoder_handle->priv));
-
       if(!open_encoder(ret, encoder_handle,
                        encoder_plugin, &ret->audio_streams[i].com.output_filename))
         goto fail;
@@ -1705,9 +1748,10 @@ static int init_encoders(bg_transcoder_t * ret)
                                             ret->transcoder_track->video_encoder_parameters,
                                             ret->transcoder_track->video_encoder_section,
                                             &encoder_plugin);
-      ret->video_streams[i].com.output_filename =
-        bg_sprintf("%s/%s_video_%02d%s", ret->output_directory, ret->name, i+1,
-                   encoder_plugin->get_extension(encoder_handle->priv));
+      if(!ret->video_streams[i].com.output_filename)
+        ret->video_streams[i].com.output_filename =
+          bg_sprintf("%s/%s_video_%02d%s", ret->output_directory, ret->name, i+1,
+                     encoder_plugin->get_extension(encoder_handle->priv));
       
       if(!open_encoder(ret, encoder_handle,
                        encoder_plugin, &ret->video_streams[i].com.output_filename))
@@ -1716,6 +1760,9 @@ static int init_encoders(bg_transcoder_t * ret)
       set_stream_encoder(&(ret->video_streams[i].com), encoder_handle);
       add_video_stream(&(ret->video_streams[i]), &(ret->transcoder_track->video_streams[i]), ret->track_info);
 
+      if(!set_video_pass(ret, i))
+        goto fail;
+      
       if(!start_encoder(ret, encoder_handle, encoder_plugin))
         goto fail;
       }
@@ -1738,11 +1785,11 @@ static int init_encoders(bg_transcoder_t * ret)
                                              ret->transcoder_track->video_encoder_section,
                                              &encoder_plugin);
       }
+
+    if(!ret->output_filename)
+      ret->output_filename = bg_sprintf("%s/%s%s", ret->output_directory, ret->name,
+                                        encoder_plugin->get_extension(ret->out_handle->priv));
     
-    ret->output_filename = bg_sprintf("%s/%s%s", ret->output_directory, ret->name,
-                                      encoder_plugin->get_extension(ret->out_handle->priv));
-
-
     if(!open_encoder(ret, ret->out_handle,
                      encoder_plugin, &ret->output_filename))
       goto fail;
@@ -1763,6 +1810,9 @@ static int init_encoders(bg_transcoder_t * ret)
         continue;
       set_stream_encoder(&(ret->video_streams[i].com), ret->out_handle);
       add_video_stream(&(ret->video_streams[i]), &(ret->transcoder_track->video_streams[i]), ret->track_info);
+
+      if(!set_video_pass(ret, i))
+        goto fail;
       }
     if(!start_encoder(ret, ret->out_handle, encoder_plugin))
       goto fail;
@@ -1777,6 +1827,10 @@ static void close_encoders(bg_transcoder_t * ret, int do_delete)
   int i;
   stream_t * s;
   bg_encoder_plugin_t * encoder_plugin;
+
+  if(ret->pp_only)
+    return;
+
   if(ret->separate_streams)
     {
     for(i = 0; i < ret->num_audio_streams; i++)
@@ -2011,6 +2065,16 @@ int bg_transcoder_init(bg_transcoder_t * ret,
                        bg_metadata_set_parameter,
                        &(ret->metadata));
 
+  /* Postprocess only: Send messages and return */
+  if(ret->pp_only)
+    {
+    ret->output_filename = bg_strdup(ret->output_filename, ret->location);
+
+    send_init_messages(ret);
+    ret->state = STREAM_STATE_FINISHED;
+    return 1;
+    }
+  
   //  fprintf(stderr, "done\n");
     
   //  fprintf(stderr, "Opening input with %s...", ret->location);
@@ -2130,6 +2194,13 @@ static void cleanup_video_stream(video_stream_t * s)
     gavl_video_frame_destroy(s->out_frame);
   if(s->cnv)
     gavl_video_converter_destroy(s->cnv);
+
+  /* Delete stats file */
+  if(s->stats_file)
+    {
+    //    remove(s->stats_file);
+    free(s->stats_file);
+    }
   bg_gavl_video_options_free(&s->options);
   }
 
@@ -2152,6 +2223,9 @@ static void reset_streams(bg_transcoder_t * t)
 
 static void close_input(bg_transcoder_t * t)
   {
+  if(t->pp_only)
+    return;
+  
   if(t->in_plugin->stop)
     t->in_plugin->stop(t->in_handle->priv);
 
@@ -2226,6 +2300,14 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   
   int done = 1;
 
+  if(t->pp_only)
+    {
+    t->state = TRANSCODER_STATE_FINISHED;
+    //    fprintf(stderr, "finished\n");
+    bg_transcoder_send_msg_finished(t->message_queues);
+    return 0;
+    }
+  
   //  fprintf(stderr, "bg_transcoder_iteration...");
   
   time = GAVL_TIME_MAX;
@@ -2330,6 +2412,9 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
     ((t->state == TRANSCODER_STATE_RUNNING) && t->delete_incomplete &&
      !t->is_url) ? 1 : 0;
 
+  if(t->state == TRANSCODER_STATE_INIT)
+    do_delete = 1;
+
   //  fprintf(stderr, "Do delete: %d\n", do_delete);
   
   /* Close all encoders so the files are finished */
@@ -2347,7 +2432,7 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
 
   for(i = 0; i < t->num_video_streams; i++)
     {
-    if(t->video_streams[i].com.action != STREAM_ACTION_FORGET)
+    if((t->video_streams[i].com.action != STREAM_ACTION_FORGET) && !do_delete)
       bg_log(BG_LOG_INFO, LOG_DOMAIN,
              "Video stream %d: Transcoded %lld frames", i+1,
              t->video_streams[i].frames_written);
@@ -2355,7 +2440,7 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
     }
   for(i = 0; i < t->num_audio_streams; i++)
     {
-    if(t->audio_streams[i].com.action != STREAM_ACTION_FORGET)
+    if((t->audio_streams[i].com.action != STREAM_ACTION_FORGET) && !do_delete)
       bg_log(BG_LOG_INFO, LOG_DOMAIN,
              "Audio stream %d: Transcoded %lld samples", i+1,
              t->audio_streams[i].samples_written);

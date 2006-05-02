@@ -287,6 +287,7 @@ void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
   while(tmp_section)
     {
     xml_child = xmlNewTextChild(xml_section, (xmlNsPtr)0, (xmlChar*)"SECTION", NULL);
+    //    fprintf(stderr, "Set child section: %s\n", tmp_section->name);
     BG_XML_SET_PROP(xml_child, "name", tmp_section->name);
 
     bg_cfg_section_2_xml(tmp_section, xml_child);
