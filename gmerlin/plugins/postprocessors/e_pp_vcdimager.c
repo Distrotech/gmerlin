@@ -104,7 +104,7 @@ static bg_parameter_info_t parameters[] =
       type: BG_PARAMETER_SECTION,
     },
     {
-      name: "version",
+      name: "vcd_version",
       long_name: "Format",
       type: BG_PARAMETER_STRINGLIST,
       val_default: { val_str: "vcd2" },
