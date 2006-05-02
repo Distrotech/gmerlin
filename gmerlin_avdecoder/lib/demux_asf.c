@@ -565,7 +565,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
         {
         //        fprintf(stderr, "Found audio stream\n");
         
-        bgav_as = bgav_track_add_audio_stream(ctx->tt->current_track);
+        bgav_as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
         bgav_as->stream_id = stream_number;
 
         asf_as  = calloc(1, sizeof(*asf_as));
@@ -627,7 +627,7 @@ static int open_asf(bgav_demuxer_context_t * ctx,
       else if(bgav_GUID_equal(&guid, &guid_video_media))
         {
         //        fprintf(stderr, "Found video stream\n");
-        bgav_vs = bgav_track_add_video_stream(ctx->tt->current_track);
+        bgav_vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
         bgav_vs->stream_id = stream_number;
         //        asf_vs  = calloc(1, sizeof(*asf_vs));
         

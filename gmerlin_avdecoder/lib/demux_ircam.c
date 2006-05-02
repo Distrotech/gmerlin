@@ -247,7 +247,7 @@ static int open_ircam(bgav_demuxer_context_t * ctx,
   ircam_header_dump(&h);
 #endif
   
-  as = bgav_track_add_audio_stream(ctx->tt->current_track);
+  as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
 
   switch(h.DataType)
     {

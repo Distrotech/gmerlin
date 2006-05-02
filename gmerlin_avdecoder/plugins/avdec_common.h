@@ -84,3 +84,14 @@ void bg_avdec_set_callbacks(void * priv,
 const char * bg_avdec_get_error(void * priv);
 
 bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t *);
+
+/* Commonly used parameters */
+
+#define PARAM_DYNRANGE \
+  {                    \
+  name: "audio_dynrange",    \
+  long_name: "Dynamic range control",         \
+  type: BG_PARAMETER_CHECKBUTTON,           \
+  val_default: { val_i: 1 },              \
+  help_string: "Enable dynamic range control for codecs, which support this (currently only A52)." \
+  }

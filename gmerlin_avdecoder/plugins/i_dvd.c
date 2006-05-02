@@ -66,6 +66,7 @@ static bg_parameter_info_t parameters[] =
       type:       BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
     },
+    PARAM_DYNRANGE,
     { /* End of parameters */ }
   };
 

@@ -83,11 +83,16 @@ static int open_avdec(void * priv, const char * location)
 static bg_parameter_info_t parameters[] =
   {
     {
+      name:       "audio_options",
+      long_name:  "Audio options",
+      type:       BG_PARAMETER_SECTION
+    },
+    PARAM_DYNRANGE,
+    {
       name:       "network_options",
       long_name:  "Network options",
       type:       BG_PARAMETER_SECTION
     },
-
     {
       name:        "connect_timeout",
       long_name:   "Connect timeout (milliseconds)",

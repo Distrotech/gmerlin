@@ -178,7 +178,7 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx,
 
   ctx->tt = bgav_track_table_create(1);
   
-  s = bgav_track_add_video_stream(ctx->tt->current_track);
+  s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
 
   s->container_bitrate = priv->byte_rate * 8;
   

@@ -83,10 +83,10 @@ static int open_dv(bgav_demuxer_context_t * ctx,
   ctx->tt = bgav_track_table_create(1);
   
   /* Set up streams */
-  as = bgav_track_add_audio_stream(ctx->tt->current_track);
+  as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
   bgav_dv_dec_init_audio(priv->d, as);
 
-  vs = bgav_track_add_video_stream(ctx->tt->current_track);
+  vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
   bgav_dv_dec_init_video(priv->d, vs);
 
   /* Set duration */

@@ -449,7 +449,7 @@ static int open_aac(bgav_demuxer_context_t * ctx,
     priv->data_size -= 128;
     }
 
-  s = bgav_track_add_audio_stream(ctx->tt->current_track);
+  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
 
   /* This fourcc reminds the decoder to call a different init function */
 

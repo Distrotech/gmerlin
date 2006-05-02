@@ -205,7 +205,7 @@ static int open_8svx(bgav_demuxer_context_t * ctx,
   priv->data_start = ctx->input->position;
   priv->data_size  = chunk_header.size;
 
-  as = bgav_track_add_audio_stream(ctx->tt->current_track);
+  as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
   as->fourcc = BGAV_MK_FOURCC('t', 'w', 'o', 's');
   as->data.audio.format.samplerate = hdr.samplesPerSec;
   as->data.audio.format.num_channels = 1;

@@ -252,6 +252,9 @@ typedef enum
 struct bgav_stream_s
   {
   void * priv;
+
+  const bgav_options_t * opt;
+
   bgav_stream_action_t action;
   int stream_id; /* Format specific stream id */
   bgav_stream_type_t type;
@@ -265,7 +268,7 @@ struct bgav_stream_s
   uint32_t subformat; /* Real flavors, sub_ids.... */
   
   int64_t position; /* In samples/frames */
-
+  
   /*
    *  Support for custom timescales
    *  Default timescales are the samplerate for audio
@@ -375,7 +378,7 @@ struct bgav_stream_s
 
 int bgav_stream_start(bgav_stream_t * stream);
 void bgav_stream_stop(bgav_stream_t * stream);
-void bgav_stream_alloc(bgav_stream_t * stream);
+void bgav_stream_alloc(bgav_stream_t * stream, const bgav_options_t * opt);
 void bgav_stream_free(bgav_stream_t * stream);
 void bgav_stream_dump(bgav_stream_t * s);
 
@@ -419,10 +422,10 @@ typedef struct
 /* track.c */
 
 bgav_stream_t *
-bgav_track_add_audio_stream(bgav_track_t * t);
+bgav_track_add_audio_stream(bgav_track_t * t, const bgav_options_t * opt);
 
 bgav_stream_t *
-bgav_track_add_video_stream(bgav_track_t * t);
+bgav_track_add_video_stream(bgav_track_t * t, const bgav_options_t * opt);
 
 void
 bgav_track_remove_audio_stream(bgav_track_t * track, int stream);
@@ -431,7 +434,7 @@ void
 bgav_track_remove_video_stream(bgav_track_t * track, int stream);
 
 bgav_stream_t *
-bgav_track_add_subtitle_stream(bgav_track_t * t,
+bgav_track_add_subtitle_stream(bgav_track_t * t, const bgav_options_t * opt,
                                int text, const char * encoding);
 
 
@@ -527,7 +530,9 @@ struct bgav_options_s
 
   /* Handle dvd chapters as individual tracks */
   int dvd_chapters_as_tracks;
-    
+
+  int audio_dynrange;
+  
   /* Callbacks */
   
   void (*name_change_callback)(void * data, const char * name);

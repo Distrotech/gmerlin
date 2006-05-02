@@ -806,7 +806,7 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
         REALLOCZ(priv->programs[program].audio_streams,
                  priv->programs[program].num_audio_streams);
 
-        bgav_stream = bgav_track_add_audio_stream(&(ctx->tt->tracks[program]));
+        bgav_stream = bgav_track_add_audio_stream(&(ctx->tt->tracks[program]), ctx->opt);
         bgav_stream->timescale = 90000;
         bgav_stream->fourcc = stream_type->fourcc;
 
@@ -834,7 +834,7 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
         REALLOCZ(priv->programs[program].video_streams,
                  priv->programs[program].num_video_streams);
 
-        bgav_stream = bgav_track_add_video_stream(&(ctx->tt->tracks[program]));
+        bgav_stream = bgav_track_add_video_stream(&(ctx->tt->tracks[program]), ctx->opt);
 
         bgav_stream->timescale = 90000;
         bgav_stream->fourcc = stream_type->fourcc;

@@ -70,7 +70,7 @@ void bgav_stream_stop(bgav_stream_t * stream)
   bgav_packet_buffer_clear(stream->packet_buffer);
   }
 
-void bgav_stream_alloc(bgav_stream_t * stream)
+void bgav_stream_alloc(bgav_stream_t * stream, const bgav_options_t * opt)
   {
   memset(stream, 0, sizeof(*stream));
   stream->packet_buffer = bgav_packet_buffer_create();
@@ -80,6 +80,7 @@ void bgav_stream_alloc(bgav_stream_t * stream)
   /* need to set this to -1 so we know, if this stream has packets at all */
   stream->last_index_position = -1; 
   stream->index_position = -1;
+  stream->opt = opt;
   }
 
 void bgav_stream_free(bgav_stream_t * s)

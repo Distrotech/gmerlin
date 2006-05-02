@@ -425,7 +425,7 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
   
   /* Set up audio stream */
   
-  audio_stream = bgav_track_add_audio_stream(ctx->tt->current_track);
+  audio_stream = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
   audio_stream->stream_id = AUDIO_STREAM_ID;
 
   if(priv->header.version == 1)
@@ -450,7 +450,7 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
   audio_stream->codec_bitrate = audio_stream->container_bitrate;
   /* Set up video stream */
   
-  video_stream = bgav_track_add_video_stream(ctx->tt->current_track);
+  video_stream = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
 
   if(priv->header.version == 1)
     {

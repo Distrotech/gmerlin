@@ -120,7 +120,7 @@ static int open_wav(bgav_demuxer_context_t * ctx,
   if(format_size <= 0)
     goto fail;
   
-  s = bgav_track_add_audio_stream(ctx->tt->current_track);
+  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
 
   buf = malloc(format_size);
   if(bgav_input_read_data(ctx->input, buf, format_size) < format_size)

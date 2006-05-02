@@ -277,6 +277,9 @@ static int init_a52(bgav_stream_t * s)
   
   //  a52_header_dump(&(priv->header));
 
+  //  fprintf(stderr, "Dynamic range control is %s\n",
+  //          (s->opt->audio_dynrange ? "on" : "off"));
+  
   /* Get format */
 
   s->data.audio.format.samplerate = priv->header.samplerate;
@@ -408,8 +411,13 @@ static int decode_frame(bgav_stream_t * s)
 
   a52_frame(priv->state, priv->buffer, &flags,
             &level, 0.0);
-  a52_dynrng(priv->state, NULL, NULL);
 
+  if(!s->opt->audio_dynrange)
+    {
+    //    fprintf(stderr, "Disabling dynamic range control\n");
+    a52_dynrng(priv->state, NULL, NULL);
+    }
+  
   for(i = 0; i < 6; i++)
     {
     a52_block (priv->state);

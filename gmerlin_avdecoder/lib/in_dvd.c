@@ -225,7 +225,7 @@ static void setup_track(bgav_input_context_t * ctx,
   //          start_cell, end_cell);
   
   /* Setup streams */
-  s = bgav_track_add_video_stream(new_track);
+  s = bgav_track_add_video_stream(new_track, ctx->opt);
   s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
   s->stream_id = 0xE0;
   s->timescale = 90000;
@@ -238,7 +238,7 @@ static void setup_track(bgav_input_context_t * ctx,
 
     stream_position = (pgc->audio_control[i] & 0x7F00 ) >> 8;
     
-    s = bgav_track_add_audio_stream(new_track);
+    s = bgav_track_add_audio_stream(new_track, ctx->opt);
     s->timescale = 90000;
     
     audio_attr = &dvd->vts_ifo->vtsi_mat->vts_audio_attr[i];
@@ -313,7 +313,7 @@ static void setup_track(bgav_input_context_t * ctx,
     if(!(pgc->subp_control[i] & 0x80000000))
       continue;
 
-    s = bgav_track_add_subtitle_stream(new_track, 0, (char*)0);
+    s = bgav_track_add_subtitle_stream(new_track, ctx->opt, 0, (char*)0);
     s->fourcc = BGAV_MK_FOURCC('D', 'V', 'D', 'S');
 
     /*  there are several streams for one spu */

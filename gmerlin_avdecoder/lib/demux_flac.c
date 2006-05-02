@@ -208,7 +208,7 @@ static int open_flac(bgav_demuxer_context_t * ctx,
       case 0: // STREAMINFO
         //        fprintf(stderr, "STREAMINFO\n");
         /* Add audio stream */
-        s = bgav_track_add_audio_stream(ctx->tt->current_track);
+        s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
 
         s->ext_size = STREAMINFO_SIZE + 4;
         s->ext_data = malloc(s->ext_size);

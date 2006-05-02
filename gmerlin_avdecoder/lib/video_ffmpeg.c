@@ -627,8 +627,15 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         fprintf(stderr, "Decoding delay too large\n");
         return 0;
         }
-      priv->old_pts[priv->delay] = p->timestamp_scaled;
-      priv->delay++;
+
+      if(p)
+        {
+        priv->delay++;
+        }
+      else /* !p and !got_picture means EOF */
+        {
+        return 0;
+        }
       }
     
 #if 0
@@ -958,6 +965,8 @@ static void resync_ffmpeg(bgav_stream_t * s)
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
   avcodec_flush_buffers(priv->ctx);
   priv->bytes_in_packet_buffer = 0;
+  priv->delay = 0;
+  priv->num_old_pts = 0;
   }
 
 static void close_ffmpeg(bgav_stream_t * s)

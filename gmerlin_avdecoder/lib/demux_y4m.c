@@ -111,7 +111,7 @@ static int open_y4m(bgav_demuxer_context_t * ctx,
   ctx->tt = bgav_track_table_create(1);
   
   /* Set up the stream */
-  s = bgav_track_add_video_stream(ctx->tt->current_track);
+  s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
   s->data.video.format.image_width  = y4m_si_get_width(&priv->si);
   s->data.video.format.image_height = y4m_si_get_height(&priv->si);
   

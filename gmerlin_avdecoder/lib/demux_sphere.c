@@ -195,7 +195,7 @@ static int open_sphere(bgav_demuxer_context_t * ctx,
   if(h.HeaderSize != HEADERSIZE)
     return 0;
   
-  as = bgav_track_add_audio_stream(ctx->tt->current_track);
+  as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
 
   as->data.audio.format.num_channels = h.Channels;
   

@@ -205,7 +205,7 @@ static int open_mpc(bgav_demuxer_context_t * ctx,
   if(!mpc_decoder_initialize(&(priv->dec), &(priv->si)))
     return 0;
   
-  s = bgav_track_add_audio_stream(ctx->tt->current_track);
+  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
   
   s->data.audio.format.samplerate    = priv->si.sample_freq;
   s->data.audio.format.num_channels  = priv->si.channels;

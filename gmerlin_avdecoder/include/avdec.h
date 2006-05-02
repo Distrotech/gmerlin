@@ -395,6 +395,19 @@ void bgav_options_set_default_subtitle_encoding(bgav_options_t* opt,
 void bgav_options_set_dvd_chapters_as_tracks(bgav_options_t* opt,
                                              int chapters_as_tracks);
 
+/** \ingroup options
+ *  \brief Enable dynamic range control
+ *  \param opt Option container
+ *  \param 1 for enabling dynamic range control.
+ *
+ *  This enables dynamic range control for codecs, which supports it.
+ *  By default dynamic range control is enabled. Use this function to switch it
+ *  off for the case, that you have a better dynamic range control in your processing pipe.
+ */
+
+void bgav_options_set_audio_dynrange(bgav_options_t* opt,
+                                     int audio_dynrange);
+
 
 /* Set callbacks */
 

@@ -55,7 +55,7 @@ static int open_gsm(bgav_demuxer_context_t * ctx,
   /* Create track */
   ctx->tt = bgav_track_table_create(1);
 
-  as = bgav_track_add_audio_stream(ctx->tt->current_track);
+  as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
   as->fourcc = BGAV_MK_FOURCC('G', 'S', 'M', ' ');
   as->data.audio.format.samplerate = 8000;
   as->data.audio.format.num_channels = 1;

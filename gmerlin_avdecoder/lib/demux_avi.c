@@ -1084,7 +1084,7 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
 
   //  fprintf(stderr, "Init audio stream\n");
   
-  bg_as = bgav_track_add_audio_stream(ctx->tt->current_track);
+  bg_as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
   avi_as = calloc(1, sizeof(*avi_as));
   bg_as->priv = avi_as;
 
@@ -1168,7 +1168,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
   avih = &(((avi_priv*)(ctx->priv))->avih);
     
   
-  bg_vs = bgav_track_add_video_stream(ctx->tt->current_track);
+  bg_vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
   avi_vs = calloc(1, sizeof(*avi_vs));
 
   memcpy(&(avi_vs->strh), strh, sizeof(*strh));
@@ -1380,14 +1380,14 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
   
   avih = &(((avi_priv*)(ctx->priv))->avih);
   
-  bg_vs = bgav_track_add_video_stream(ctx->tt->current_track);
+  bg_vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
   avi_iavs = calloc(1, sizeof(*avi_iavs));
  
   memcpy(&(avi_iavs->strh), strh, sizeof(*strh));
   
   bg_vs->priv = avi_iavs;
 
-  bg_as = bgav_track_add_audio_stream(ctx->tt->current_track);
+  bg_as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
   bg_as->no_packets = 1;
   bg_as->sync_stream = bg_vs;
   

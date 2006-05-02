@@ -435,7 +435,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
       add_packet(ctx, priv, (bgav_stream_t*)0, i, chunk_offset, -1, -1, 0, 0, 0);
       i++;
       priv->streams[stream_id].stco_pos++;
-      fprintf(stderr, "Fill dummy packet\n");
+      //      fprintf(stderr, "Fill dummy packet\n");
       }
     }
   ctx->si->entries[ctx->si->num_entries-1].size =
@@ -534,7 +534,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         fprintf(stderr, "No sample desciption present\n");
         continue;
         }
-      bg_as = bgav_track_add_audio_stream(track);
+      bg_as = bgav_track_add_audio_stream(track, ctx->opt);
       desc = &(moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc);
 
       stream_priv = &(priv->streams[i]);
@@ -678,7 +678,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         
         }
       
-      bg_vs = bgav_track_add_video_stream(track);
+      bg_vs = bgav_track_add_video_stream(track, ctx->opt);
       
       desc = &(moov->tracks[i].mdia.minf.stbl.stsd.entries[skip_first_frame].desc);
       stream_priv = &(priv->streams[i]);

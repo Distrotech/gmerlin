@@ -115,7 +115,7 @@ static int open_ra(bgav_demuxer_context_t * ctx,
     }
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
-  s = bgav_track_add_audio_stream(track);
+  s = bgav_track_add_audio_stream(track, ctx->opt);
   priv->sub_packet_h = 1;
   /* read header data according to version */
   if((version == 3) && (hdr_size >= 32))

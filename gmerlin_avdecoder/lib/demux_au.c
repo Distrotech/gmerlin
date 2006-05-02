@@ -118,20 +118,20 @@ static int open_au(bgav_demuxer_context_t * ctx,
   switch(hdr.encoding)
     {
     case AUDIO_FILE_ENCODING_MULAW_8:      /* 8-bit ISDN u-law */
-      as = bgav_track_add_audio_stream(ctx->tt->current_track);
+      as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
       samples_per_block = 1;
       as->fourcc = BGAV_MK_FOURCC('u', 'l', 'a', 'w');
       as->data.audio.block_align = hdr.channels;
       break;
     case AUDIO_FILE_ENCODING_ALAW_8:       /* 8-bit ISDN A-law */
-      as = bgav_track_add_audio_stream(ctx->tt->current_track);
+      as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
       samples_per_block = 1;
       as->fourcc = BGAV_MK_FOURCC('a', 'l', 'a', 'w');
       as->data.audio.block_align = hdr.channels;
       
       break;
     case AUDIO_FILE_ENCODING_LINEAR_8:     /* 8-bit linear PCM */
-      as = bgav_track_add_audio_stream(ctx->tt->current_track);
+      as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
       samples_per_block = 1;
       as->fourcc = BGAV_MK_FOURCC('t', 'w', 'o', 's');
       as->data.audio.block_align = hdr.channels;
@@ -139,7 +139,7 @@ static int open_au(bgav_demuxer_context_t * ctx,
 
       break;
     case AUDIO_FILE_ENCODING_LINEAR_16:    /* 16-bit linear PCM */
-      as = bgav_track_add_audio_stream(ctx->tt->current_track);
+      as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
       samples_per_block = 1;
       as->fourcc = BGAV_MK_FOURCC('t', 'w', 'o', 's');
       as->data.audio.block_align = hdr.channels * 2;

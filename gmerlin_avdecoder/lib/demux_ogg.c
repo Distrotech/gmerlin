@@ -505,7 +505,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       {
       case FOURCC_VORBIS:
         //        fprintf(stderr, "Detected Vorbis data\n");
-        s = bgav_track_add_audio_stream(track);
+        s = bgav_track_add_audio_stream(track, ctx->opt);
         s->fourcc = FOURCC_VORBIS;
         
         s->priv   = ogg_stream;
@@ -530,7 +530,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         break;
       case FOURCC_THEORA:
         //        fprintf(stderr, "Detected Theora data\n");
-        s = bgav_track_add_video_stream(track);
+        s = bgav_track_add_video_stream(track, ctx->opt);
         s->fourcc = FOURCC_THEORA;
         s->priv   = ogg_stream;
         s->stream_id = serialno;
@@ -565,7 +565,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         break;
       case FOURCC_FLAC_NEW:
         //        fprintf(stderr, "Detected FLAC data (new format)\n");
-        s = bgav_track_add_audio_stream(track);
+        s = bgav_track_add_audio_stream(track, ctx->opt);
         s->fourcc = FOURCC_FLAC;
         s->priv   = ogg_stream;
 
@@ -591,7 +591,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         break;
       case FOURCC_FLAC:
         //        fprintf(stderr, "Detected FLAC data (old format)\n");
-        s = bgav_track_add_audio_stream(track);
+        s = bgav_track_add_audio_stream(track, ctx->opt);
         s->fourcc = FOURCC_FLAC;
         ogg_stream->fourcc_priv = FOURCC_FLAC;
         s->priv   = ogg_stream;
@@ -608,7 +608,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         break;
       case FOURCC_SPEEX:
         //        fprintf(stderr, "Detected Speex data (header size: %ld)\n", priv->op.bytes);
-        s = bgav_track_add_audio_stream(track);
+        s = bgav_track_add_audio_stream(track, ctx->opt);
         s->fourcc = FOURCC_SPEEX;
         s->priv   = ogg_stream;
         s->stream_id = serialno;
@@ -637,7 +637,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       case FOURCC_OGM_VIDEO:
         //        fprintf(stderr, "Detected OGM video data\n");
         
-        s = bgav_track_add_video_stream(track);
+        s = bgav_track_add_video_stream(track, ctx->opt);
       
         s->priv   = ogg_stream;
         s->stream_id = serialno;
@@ -679,7 +679,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       case FOURCC_OGM_TEXT:
         //        fprintf(stderr, "Detected OGM text data\n");
         
-        s = bgav_track_add_subtitle_stream(track, 1,
+        s = bgav_track_add_subtitle_stream(track, ctx->opt, 1,
                                            ctx->opt->default_subtitle_encoding);
       
         s->priv   = ogg_stream;

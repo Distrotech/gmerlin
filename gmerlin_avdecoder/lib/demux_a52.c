@@ -75,7 +75,7 @@ static int open_a52(bgav_demuxer_context_t * ctx,
 
   ctx->tt = bgav_track_table_create(1);
   
-  s = bgav_track_add_audio_stream(ctx->tt->current_track);
+  s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
   s->container_bitrate = bitrate;
     
   /* We just set the fourcc, everything else will be set by the decoder */

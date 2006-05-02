@@ -147,7 +147,7 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
   priv = (rm_private_t*)(ctx->priv);
 
     
-  bg_as = bgav_track_add_audio_stream(track);
+  bg_as = bgav_track_add_audio_stream(track, ctx->opt);
 
   /* Set container bitrate */
   bg_as->container_bitrate = stream->mdpr.avg_bit_rate;
@@ -315,7 +315,7 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
   
   priv = (rm_private_t*)(ctx->priv);
   
-  bg_vs = bgav_track_add_video_stream(track);
+  bg_vs = bgav_track_add_video_stream(track, ctx->opt);
   rm_vs = calloc(1, sizeof(*rm_vs));
 
   /* Set container bitrate */

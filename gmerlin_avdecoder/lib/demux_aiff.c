@@ -216,7 +216,7 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
     switch(ch.fourcc)
       {
       case BGAV_MK_FOURCC('C','O','M','M'):
-        s = bgav_track_add_audio_stream(track);
+        s = bgav_track_add_audio_stream(track, ctx->opt);
         
         memset(&comm, 0, sizeof(comm));
         

@@ -23,36 +23,37 @@
 #include <stdio.h>
 
 bgav_stream_t *
-bgav_track_add_audio_stream(bgav_track_t * t)
+bgav_track_add_audio_stream(bgav_track_t * t, const bgav_options_t * opt)
   {
   t->num_audio_streams++;
   t->audio_streams = realloc(t->audio_streams, t->num_audio_streams * 
                              sizeof(*(t->audio_streams)));
-  bgav_stream_alloc(&(t->audio_streams[t->num_audio_streams-1]));
+  bgav_stream_alloc(&(t->audio_streams[t->num_audio_streams-1]), opt);
   t->audio_streams[t->num_audio_streams-1].data.audio.bits_per_sample = 16;
   t->audio_streams[t->num_audio_streams-1].type = BGAV_STREAM_AUDIO;
   return &(t->audio_streams[t->num_audio_streams-1]);
   }
 
 bgav_stream_t *
-bgav_track_add_video_stream(bgav_track_t * t)
+bgav_track_add_video_stream(bgav_track_t * t, const bgav_options_t * opt)
   {
   t->num_video_streams++;
   t->video_streams = realloc(t->video_streams, t->num_video_streams * 
                              sizeof(*(t->video_streams)));
-  bgav_stream_alloc(&(t->video_streams[t->num_video_streams-1]));
+  bgav_stream_alloc(&(t->video_streams[t->num_video_streams-1]), opt);
   t->video_streams[t->num_video_streams-1].type = BGAV_STREAM_VIDEO;
+  t->video_streams[t->num_video_streams-1].opt = opt;
   return &(t->video_streams[t->num_video_streams-1]);
   }
 
 bgav_stream_t *
-bgav_track_add_subtitle_stream(bgav_track_t * t, int text,
+bgav_track_add_subtitle_stream(bgav_track_t * t, const bgav_options_t * opt, int text,
                                const char * encoding)
   {
   t->num_subtitle_streams++;
   t->subtitle_streams = realloc(t->subtitle_streams, t->num_subtitle_streams * 
                              sizeof(*(t->subtitle_streams)));
-  bgav_stream_alloc(&(t->subtitle_streams[t->num_subtitle_streams-1]));
+  bgav_stream_alloc(&(t->subtitle_streams[t->num_subtitle_streams-1]), opt);
   
   if(text)
     {

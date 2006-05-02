@@ -781,7 +781,7 @@ static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
   
   for(i = 0; i < albw->num_tracks; i++)
     {
-    s = bgav_track_add_audio_stream(&(ret->tracks[i]));
+    s = bgav_track_add_audio_stream(&(ret->tracks[i]), ctx->opt);
     s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
     end_pos = strrchr(albw->tracks[i].filename, '.');
     ret->tracks[i].name = bgav_strndup(albw->tracks[i].filename, end_pos);
@@ -861,7 +861,7 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx,
     {
     ctx->tt = bgav_track_table_create(1);
 
-    s = bgav_track_add_audio_stream(ctx->tt->tracks);
+    s = bgav_track_add_audio_stream(ctx->tt->tracks, ctx->opt);
     s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
     
     if(ctx->input->input->seek_byte)

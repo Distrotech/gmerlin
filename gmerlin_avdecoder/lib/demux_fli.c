@@ -82,7 +82,7 @@ static int open_fli(bgav_demuxer_context_t * ctx,
   ctx->tt = bgav_track_table_create(1);
   
   /* Create and set up stream */
-  s = bgav_track_add_video_stream(ctx->tt->current_track);
+  s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
   s->fourcc = BGAV_MK_FOURCC('F','L','I','C');
 
   s->data.video.format.image_width  = BGAV_PTR_2_16LE(&priv->header[0x08]);
