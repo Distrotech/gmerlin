@@ -144,7 +144,7 @@ static bg_parameter_info_t * get_parameters_vcdimager(void * data)
   return parameters;
   }
 
-#define SET_STR(key) if(!strcmp(name, # key)) { vcd->key = bg_strdup(vcd->key, v->val_str); }
+#define SET_STR(key) if(!strcmp(name, # key)) { vcd->key = bg_strdup(vcd->key, v->val_str); return; }
 
 static void set_parameter_vcdimager(void * data, char * name, bg_parameter_value_t * v)
   {
@@ -156,6 +156,8 @@ static void set_parameter_vcdimager(void * data, char * name, bg_parameter_value
   SET_STR(xml_file);
   SET_STR(volume_label);
   SET_STR(vcd_version);
+  
+  bg_cdrdao_set_parameter(vcd->cdr, name, v);
   }
 
 static void set_callbacks_vcdimager(void * data, bg_e_pp_callbacks_t * callbacks)
@@ -275,7 +277,8 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
   int i;
   char * line = (char*)0;
   int line_alloc = 0;
-  
+  char * bin_file;
+  char * cue_file;
   vcdimager = (vcdimager_t*)data;
   
   /* Build vcdxgen commandline */
@@ -300,7 +303,7 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
     commandline = bg_strcat(commandline, str);
     free(str);
     }
-
+  
   proc = bg_subprocess_create(commandline, 0, 0, 1);
   free(commandline);
   commandline = (char*)0;
@@ -322,10 +325,13 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
   /* Build vcdxbuild commandline */
   
   bg_search_file_exec("vcdxbuild", &commandline);
-
-  str = bg_sprintf(" --gui -p -c %s/%s -b %s/%s %s/%s",
-                   directory, vcdimager->cue_file,
-                   directory, vcdimager->bin_file,
+  
+  bin_file = bg_sprintf("%s/%s", directory, vcdimager->bin_file);
+  cue_file = bg_sprintf("%s/%s", directory, vcdimager->cue_file);
+  
+  str = bg_sprintf(" --gui -p -c %s -b %s %s/%s",
+                   cue_file,
+                   bin_file,
                    directory, vcdimager->xml_file);
   commandline = bg_strcat(commandline, str);
   free(str);
@@ -337,6 +343,21 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
     parse_output_line(vcdimager, line);
     }
   bg_subprocess_close(proc); 
+
+  /* Run cdrdao */
+  bg_cdrdao_run(vcdimager->cdr, cue_file);
+
+  free(cue_file);
+  free(bin_file);
+  
+  }
+
+
+static void stop_vcdimager(void * data)
+  {
+  vcdimager_t * vcdimager;
+  vcdimager = (vcdimager_t*)data;
+  bg_cdrdao_stop(vcdimager->cdr);
   }
 
 
@@ -364,7 +385,7 @@ bg_encoder_pp_plugin_t the_plugin =
     init:                init_vcdimager,
     add_track:           add_track_vcdimager,
     run:                 run_vcdimager,
-    
+    stop:                stop_vcdimager,
   };
 
 /* Include this into all plugin modules exactly once
