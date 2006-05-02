@@ -155,6 +155,7 @@ static void set_parameter_vcdimager(void * data, char * name, bg_parameter_value
   SET_STR(cue_file);
   SET_STR(xml_file);
   SET_STR(volume_label);
+  SET_STR(vcd_version);
   }
 
 static void set_callbacks_vcdimager(void * data, bg_e_pp_callbacks_t * callbacks)
@@ -170,12 +171,12 @@ static int init_vcdimager(void * data)
   {
   vcdimager_t * vcdimager;
   vcdimager = (vcdimager_t*)data;
-  
+#if 0
   if(!bg_search_file_exec("cdrdao", (char**)0) ||
      !bg_search_file_exec("vcdxgen", (char**)0) ||
      !bg_search_file_exec("vcdxbuild", (char**)0))
     return 0;
-
+#endif
   free_tracks(vcdimager);
   
   return 1;
@@ -279,9 +280,9 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
   
   /* Build vcdxgen commandline */
 
-  bg_search_file_exec("vcdxgen", &commandline);
+  //  bg_search_file_exec("vcdxgen", &commandline);
 
-  str = bg_sprintf(" -o %s/%s -t %s --iso-application-id=%s-%s",
+  str = bg_sprintf("vcdxgen -o %s/%s -t %s --iso-application-id=%s-%s",
                    directory, vcdimager->xml_file, vcdimager->vcd_version, PACKAGE, VERSION);
   commandline = bg_strcat(commandline, str);
   free(str);
