@@ -259,7 +259,7 @@ static void parse_output_line(vcdimager_t * vcdimager, char * line)
         free(str);
         }
       }
-    if(!vcdimager->callbacks->progress_callback)
+    if(vcdimager->callbacks->progress_callback)
       vcdimager->callbacks->progress_callback(vcdimager->callbacks->data,
                                               (float)position / (float)size);
     }
@@ -321,7 +321,7 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
 
   /* Build vcdxbuild commandline */
   
-  bg_search_file_exec("vcdxgen", &commandline);
+  bg_search_file_exec("vcdxbuild", &commandline);
 
   str = bg_sprintf(" --gui -p -c %s/%s -b %s/%s %s/%s",
                    directory, vcdimager->cue_file,
@@ -332,11 +332,11 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
 
   proc = bg_subprocess_create(commandline, 0, 1, 0);
   free(commandline);
-  while(bg_subprocess_read_line(proc->stderr, &line, &line_alloc, -1))
+  while(bg_subprocess_read_line(proc->stdout, &line, &line_alloc, -1))
     {
     parse_output_line(vcdimager, line);
     }
-  
+  bg_subprocess_close(proc); 
   }
 
 
