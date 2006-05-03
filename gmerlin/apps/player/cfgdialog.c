@@ -36,6 +36,16 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 (void*)(g),
                 parameters);
 
+  parameters = bg_player_get_input_parameters(g->player);
+  
+  bg_dialog_add(g->cfg_dialog,
+                (char*)0,
+                g->input_section,
+                bg_player_set_input_parameter,
+                (void*)(g->player),
+                parameters);
+
+  
   parameters = bg_player_get_audio_parameters(g->player);
   
   bg_dialog_add(g->cfg_dialog,

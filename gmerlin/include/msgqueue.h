@@ -115,6 +115,10 @@ void bg_msg_queue_unlock_read(bg_msg_queue_t *);
 bg_msg_t * bg_msg_queue_lock_write(bg_msg_queue_t *);
 void bg_msg_queue_unlock_write(bg_msg_queue_t *);
 
+/* Returns TRUE if there is a message and sets id to the message-id */
+int bg_msg_queue_peek(bg_msg_queue_t * m, uint32_t * id);
+
+
 /*
  *  Finally, we have a list of message queues 
  *  This can be used, if some informations have to be passed to

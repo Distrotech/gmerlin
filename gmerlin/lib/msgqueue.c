@@ -630,6 +630,20 @@ bg_msg_t * bg_msg_queue_try_lock_read(bg_msg_queue_t * m)
     return (bg_msg_t*)0;
   }
 
+int bg_msg_queue_peek(bg_msg_queue_t * m, uint32_t * id)
+  {
+  int sem_val;
+  sem_getvalue(&(m->msg_output->produced), &sem_val);
+  if(sem_val)
+    {
+    if(id)
+      *id = m->msg_output->id;
+    return 1;
+    }
+  else
+    return 0;
+  }
+
 void bg_msg_queue_unlock_read(bg_msg_queue_t * m)
   {
 

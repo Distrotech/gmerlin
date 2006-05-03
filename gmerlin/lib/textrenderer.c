@@ -1031,6 +1031,11 @@ static void flush_line(bg_text_renderer_t * r, gavl_video_frame_t * f,
   {
   int line_x, j;
   int line_width;
+  //  fprintf(stderr, "flush_line, len: %d\n", len);
+
+  if(!len)
+    return;
+  
   line_width = 0;
   line_width = -glyphs[0]->bbox.xmin;
   //  fprintf(stderr, "Line width: %d\n", line_width);
@@ -1084,7 +1089,7 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
   int line_start, line_end;
   int line_width, line_end_y;
   int line_offset;
-
+  int break_word; /* Linebreak within a (long) word */
   pthread_mutex_lock(&r->config_mutex);
   
   if(r->config_changed)
@@ -1110,10 +1115,6 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
   len /= 4;
   
   //  fprintf(stderr, "Len: %d\n", len);
-  
-  line_start = 0;
-  line_end   = 0;
-
   line_offset = r->face->size->metrics.height >> 6;
   
   glyphs = malloc(len * sizeof(*glyphs));
@@ -1134,6 +1135,10 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
     }
   //  fprintf(stderr, "pos_y: %d\n", pos_y);
 
+  line_start = 0;
+  line_end   = -1;
+  break_word = 0;
+  
   pos_x = 0;
   pos_y = r->face->size->metrics.ascender >> 6;
   line_width = 0;
@@ -1146,6 +1151,7 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
       line_end = i;
       line_width = pos_x;
       line_end_y = pos_y;
+      break_word = 0;
       }
     
     // fprintf(stderr, "Checking '%c', x: %d\n", string_unicode[i], pos_x);
@@ -1156,6 +1162,13 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
       {
       //      fprintf(stderr, "Linebreak\n");
       
+      if(line_end < 0)
+        {
+        line_width = pos_x;
+        line_end_y = pos_y;
+        line_end = i;
+        break_word = 1;
+        }
       /* Render the line */
       
       flush_line(r, ovl->frame,
@@ -1168,10 +1181,12 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
       
       if((pos_y + (r->face->size->metrics.descender >> 6)) > r->max_bbox.h)
         break;
-      line_start = line_end+1;
       
+      line_start = line_end;
+      if(!break_word)
+        line_start++;
+      line_end = -1;
       }
-    
     pos_x += glyphs[i]->advance_x;
 
     }

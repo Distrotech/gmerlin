@@ -63,6 +63,21 @@ static void free_info(bg_plugin_info_t * info)
   free(info);
   }
 
+static void free_info_list(bg_plugin_info_t * entries)
+  {
+  bg_plugin_info_t * info;
+  
+  info = entries;
+
+  while(info)
+    {
+    entries = info->next;
+    free_info(info);
+    info = entries;
+    }
+  }
+
+
 static bg_plugin_info_t *
 find_by_dll(bg_plugin_info_t * info, const char * filename)
   {
@@ -263,13 +278,14 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
   bg_cfg_section_t * stream_section;
   bg_parameter_info_t * parameter_info;
   void * plugin_priv;
-  
-  file_info = *_file_info;
 
+  if(_file_info)
+    file_info = *_file_info;
+  else
+    file_info = (bg_plugin_info_t *)0;
+  
   ret = (bg_plugin_info_t *)0;
-
-  *changed = 0;
-  
+    
   dir = opendir(directory);
   
   if(!dir)
@@ -316,6 +332,15 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
         }
       }
 
+    if(!(*changed))
+      {
+      *changed = 1;
+      closedir(dir);
+      if(_file_info)
+        *_file_info = file_info;
+      return ret;
+      }
+    
     /* Open the DLL and see what's inside */
 
     test_module = dlopen(filename, RTLD_NOW);
@@ -340,7 +365,6 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
     if(!plugin->priority)
       fprintf(stderr, "Warning: Plugin %s has zero priority\n",
               plugin->name);
-    *changed = 1;
     new_info = calloc(1, sizeof(*new_info));
     new_info->name = bg_strdup(new_info->name, plugin->name);
 
@@ -425,9 +449,9 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
     }
   
   closedir(dir);
-
-  *_file_info = file_info;
-
+  if(_file_info)
+    *_file_info = file_info;
+  
   return ret;
   }
 
@@ -463,19 +487,19 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   if(file_info)
     {
     changed = 1;
-
-    while(file_info)
-      {
-      tmp_info = file_info->next;
-      free_info(file_info);
-      file_info = tmp_info;
-      }
+    free_info_list(file_info);
     }
   
   if(changed)
+    {
+    /* Reload the entire registry to prevent mysterious crashes */
+    free_info_list(ret->entries);
+    ret->entries = scan_directory(GMERLIN_PLUGIN_DIR,
+                                  (bg_plugin_info_t**)0, &changed,
+                                  section);
     bg_plugin_registry_save(ret->entries);
+    }
   
-
   /* Now we have all external plugins, time to create the meta plugins */
 
   tmp_info = ret->entries;

@@ -112,7 +112,7 @@ void bg_player_time_init(bg_player_t * player)
   bg_player_oa_context_t * ctx;
   ctx = player->oa_context;
 
-  if(player->input_handle->info->flags & BG_PLUGIN_INPUT_HAS_SYNC)
+  if((player->input_handle->info->flags & BG_PLUGIN_INPUT_HAS_SYNC) && player->do_bypass)
     ctx->sync_mode = SYNC_INPUT;
   else if((ctx->plugin->get_delay) && (ctx->player->do_audio))
     ctx->sync_mode = SYNC_SOUNDCARD;

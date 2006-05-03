@@ -52,6 +52,9 @@ struct bg_player_input_context_s
 
   bg_input_callbacks_t callbacks;
 
+  /* Config stuff */
+  pthread_mutex_t config_mutex;
+  int do_bypass;
   };
 
 static void track_changed(void * data, int track)
@@ -129,12 +132,14 @@ void bg_player_input_create(bg_player_t * player)
   ctx->player = player;
   
   player->input_context = ctx;
+  pthread_mutex_init(&(player->input_context->config_mutex),(pthread_mutexattr_t *)0);
   }
 
 void bg_player_input_destroy(bg_player_t * player)
   {
   if(player->input_context->plugin_handle)
     bg_plugin_unref(player->input_context->plugin_handle);
+  pthread_mutex_destroy(&(player->input_context->config_mutex));
   free(player->input_context);
   }
 
@@ -143,6 +148,11 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
                          int track_index)
   {
   int i;
+  int do_bypass;
+
+  pthread_mutex_lock(&(ctx->config_mutex));
+  do_bypass = ctx->do_bypass;
+  pthread_mutex_unlock(&(ctx->config_mutex));
   
   ctx->plugin_handle = handle;
   //  bg_plugin_ref(ctx->plugin_handle);
@@ -180,7 +190,7 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
 
   /* Check for bypass mode */
   
-  if(ctx->plugin_handle->info->flags & BG_PLUGIN_BYPASS)
+  if(do_bypass && (ctx->plugin_handle->info->flags & BG_PLUGIN_BYPASS))
     {
     /* Initialize volume for bypass mode */
     bg_player_input_bypass_set_volume(ctx, ctx->player->volume);
@@ -794,3 +804,45 @@ void bg_player_input_bypass_set_pause(bg_player_input_context_t * ctx,
   bg_plugin_unlock(ctx->plugin_handle);
   }
 
+/* Configuration stuff */
+
+static bg_parameter_info_t parameters[] =
+  {
+    {
+      name:      "input",
+      long_name: "Input options",
+      type:      BG_PARAMETER_SECTION,
+    },
+    {
+      name:      "do_bypass",
+      long_name: "Enable bypass mode",
+      type:      BG_PARAMETER_CHECKBUTTON,
+      val_default: { val_i: 1 },
+      help_string: "Use input plugins in bypass mode if they support it (Currently only the audio CD player).\
+ This dramatically decreases CPU usage but doesn't work on all hardware setups."
+    },
+    { /* End of parameters */ }
+  };
+
+
+bg_parameter_info_t * bg_player_get_input_parameters(bg_player_t * p)
+  {
+  return parameters;
+  }
+
+void bg_player_set_input_parameter(void * data, char * name,
+                                   bg_parameter_value_t * val)
+  {
+  bg_player_t * player = (bg_player_t*)data;
+
+  if(!name)
+    return;
+
+  pthread_mutex_lock(&(player->input_context->config_mutex));
+
+  if(!strcmp(name, "do_bypass"))
+    player->input_context->do_bypass = val->val_i;
+  
+  pthread_mutex_unlock(&(player->input_context->config_mutex));
+
+  }

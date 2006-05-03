@@ -106,6 +106,7 @@ struct gmerlin_s
   bg_cfg_section_t * video_section;
   bg_cfg_section_t * subtitle_section;
   bg_cfg_section_t * osd_section;
+  bg_cfg_section_t * input_section;
   bg_cfg_section_t * lcdproc_section;
   bg_cfg_section_t * remote_section;
   bg_cfg_section_t * logwindow_section;

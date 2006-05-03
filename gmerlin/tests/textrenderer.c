@@ -77,7 +77,7 @@ int main(int argc, char ** argv)
   
   /* Render */
 
-  bg_text_renderer_render(r, "Ein Pferd isst keinen Gurkensalat", &ovl);
+  bg_text_renderer_render(r, "EinPferdisstkeinenGurkensalat", &ovl);
   
   /* Save png */
 
