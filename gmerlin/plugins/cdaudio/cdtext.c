@@ -49,10 +49,11 @@ int bg_cdaudio_get_metadata_cdtext(CdIo_t * cdio,
     
   /* Global information */
 
-  char * artist = (char*)0;
-  char * author = (char*)0;
-  char * album = (char*)0;
-  char * genre = (char*)0;
+  char * artist  = (char*)0;
+  char * author  = (char*)0;
+  char * album   = (char*)0;
+  char * genre   = (char*)0;
+  char * comment = (char*)0;
   const cdtext_t * cdtext;
 
   /* Get information for the whole disc */
@@ -70,6 +71,7 @@ int bg_cdaudio_get_metadata_cdtext(CdIo_t * cdio,
   GET_FIELD(author,CDTEXT_COMPOSER); /* Composer overwrites songwriter */
   GET_FIELD(album,CDTEXT_TITLE);
   GET_FIELD(genre,CDTEXT_GENRE);
+  GET_FIELD(comment,CDTEXT_MESSAGE);
   
   for(i = 0; i < idx->num_tracks; i++)
     {
@@ -88,6 +90,7 @@ int bg_cdaudio_get_metadata_cdtext(CdIo_t * cdio,
       GET_FIELD_DEFAULT(author, CDTEXT_SONGWRITER);
       GET_FIELD_DEFAULT(author, CDTEXT_COMPOSER);
       GET_FIELD_DEFAULT(genre,  CDTEXT_GENRE);
+      GET_FIELD_DEFAULT(comment,  CDTEXT_MESSAGE);
       info[idx->tracks[i].index].metadata.album =
         bg_strdup(info[idx->tracks[i].index].metadata.album,
                   album);

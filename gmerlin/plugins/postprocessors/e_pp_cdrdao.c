@@ -326,7 +326,6 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
           {
           if(strcmp(cdrdao->tracks[i].metadata.artist, cdrdao->tracks[0].metadata.artist))
             {
-            do_album = 0;
             same_artist = 0;
             }
           if(!cdrdao->tracks[i].metadata.album ||
