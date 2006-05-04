@@ -24,20 +24,26 @@
 #include <gavl.h>
 #include <volume.h>
 
-struct gavl_volume_control_s
+static void set_factor_i(gavl_volume_control_t * v)
   {
-  gavl_audio_format_t format;
-  
-  float factor;
-    
-  void (*set_volume)(gavl_volume_control_t * v,
-                     gavl_audio_frame_t * frame);
-  
-  void (*set_volume_channel)(void * samples, float factor,
-                             int num_samples);
-  
-  };
-
+  switch(v->format.sample_format)
+    {
+    case GAVL_SAMPLE_S8:
+    case GAVL_SAMPLE_U8:
+      v->factor_i = (int64_t)(v->factor_f * 0x100+0.5);
+      break;
+    case GAVL_SAMPLE_S16:
+    case GAVL_SAMPLE_U16:
+      v->factor_i = (int64_t)(v->factor_f * 0x10000+0.5);
+      break;
+    case GAVL_SAMPLE_S32:
+      v->factor_i = (int64_t)(v->factor_f * 0x80000000LL+0.5);
+      break;
+    case GAVL_SAMPLE_NONE:
+    case GAVL_SAMPLE_FLOAT:
+      break;
+    }
+  }
 
 static void set_volume_interleave_none(gavl_volume_control_t * v,
                                        gavl_audio_frame_t * frame)
@@ -47,7 +53,7 @@ static void set_volume_interleave_none(gavl_volume_control_t * v,
 
   for(i = 0; i < v->format.num_channels; i++)
     {
-    v->set_volume_channel(frame->channels.s_8[i], v->factor,
+    v->set_volume_channel(v, frame->channels.s_8[i],
                           frame->valid_samples);
     }
   }
@@ -62,13 +68,13 @@ static void set_volume_interleave_2(gavl_volume_control_t * v,
   
   for(i = 0; i < imax; i++)
     {
-    v->set_volume_channel(frame->channels.s_8[2*i], v->factor,
+    v->set_volume_channel(v, frame->channels.s_8[2*i],
                           frame->valid_samples * 2);
     }
 
   if(v->format.num_channels % 2)
     {
-    v->set_volume_channel(frame->channels.s_8[2*imax], v->factor,
+    v->set_volume_channel(v, frame->channels.s_8[2*imax],
                           frame->valid_samples);
     }
   }
@@ -76,7 +82,7 @@ static void set_volume_interleave_2(gavl_volume_control_t * v,
 static void set_volume_interleave_all(gavl_volume_control_t * v,
                                       gavl_audio_frame_t * frame)
   {
-  v->set_volume_channel(frame->samples.s_8, v->factor,
+  v->set_volume_channel(v, frame->samples.s_8,
                         frame->valid_samples * v->format.num_channels);
   }
 
@@ -150,6 +156,7 @@ void gavl_volume_control_set_format(gavl_volume_control_t * v,
       v->set_volume = set_volume_interleave_all;
       break;
     }
+  set_factor_i(v);
   }
 
 /* Apply the volume control to one audio frame */
@@ -160,10 +167,12 @@ void gavl_volume_control_apply(gavl_volume_control_t * v,
   v->set_volume(v, frame);
   }
 
+
 void gavl_volume_control_set_volume(gavl_volume_control_t * v,
                                     float volume)
   {
-  v->factor = pow(10, volume/20.0);
+  v->factor_f = pow(10, volume/20.0);
+  set_factor_i(v);
   }
 
 

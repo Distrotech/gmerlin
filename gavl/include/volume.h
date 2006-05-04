@@ -19,22 +19,38 @@
 
 typedef struct
   {
-  void (*set_volume_s8)(void * samples, float factor,
+  void (*set_volume_s8)(gavl_volume_control_t * v, void * samples,
                         int num_samples);
-  void (*set_volume_u8)(void * samples, float factor,
+  void (*set_volume_u8)(gavl_volume_control_t * v, void * samples,
                         int num_samples);
 
-  void (*set_volume_s16)(void * samples, float factor,
+  void (*set_volume_s16)(gavl_volume_control_t * v, void * samples,
                          int num_samples);
-  void (*set_volume_u16)(void * samples, float factor,
-                         int num_samples);
-
-  void (*set_volume_s32)(void * samples, float factor,
+  void (*set_volume_u16)(gavl_volume_control_t * v, void * samples,
                          int num_samples);
 
-  void (*set_volume_float)(void * samples, float factor,
+  void (*set_volume_s32)(gavl_volume_control_t * v, void * samples,
+                         int num_samples);
+
+  void (*set_volume_float)(gavl_volume_control_t * v, void * samples,
                          int num_samples);
   } gavl_volume_funcs_t;
+
+struct gavl_volume_control_s
+  {
+  gavl_audio_format_t format;
+  
+  float factor_f;
+  int64_t factor_i;
+  
+  void (*set_volume)(gavl_volume_control_t * v,
+                     gavl_audio_frame_t * frame);
+  
+  void (*set_volume_channel)(gavl_volume_control_t * v,
+                             void * samples,
+                             int num_samples);
+  };
+
 
 gavl_volume_funcs_t * gavl_volume_funcs_create();
 void gavl_volume_funcs_destroy(gavl_volume_funcs_t *);
