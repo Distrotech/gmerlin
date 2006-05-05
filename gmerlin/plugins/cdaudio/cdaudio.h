@@ -106,7 +106,8 @@ int bg_cdaudio_get_metadata_cddb(bg_cdaudio_index_t * idx,
                                  char * cddb_proxy_host,
                                  int cddb_proxy_port,
                                  char * cddb_proxy_user,
-                                 char * cddb_proxy_pass);
+                                 char * cddb_proxy_pass,
+                                 int timeout);
 #endif
 
 /*

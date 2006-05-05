@@ -52,6 +52,7 @@ typedef struct
   int    cddb_proxy_port;
   char * cddb_proxy_user;
   char * cddb_proxy_pass;
+  int cddb_timeout;
 #endif
   
   
@@ -226,7 +227,7 @@ static int open_cdaudio(void * data, const char * arg)
         {
         have_metadata = 1;
         have_local_metadata = 1;
-        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got metadata from %s", tmp_filename);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got metadata from gmerlin cache (%s)", tmp_filename);
         }
       free(tmp_filename);
       }
@@ -242,7 +243,7 @@ static int open_cdaudio(void * data, const char * arg)
                                            cd->musicbrainz_proxy_host,
                                            cd->musicbrainz_proxy_port))
       {
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got metadata from %s", cd->musicbrainz_host);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got metadata from musicbrainz (%s)", cd->musicbrainz_host);
       have_metadata = 1;
       }
     }
@@ -258,10 +259,13 @@ static int open_cdaudio(void * data, const char * arg)
                                     cd->cddb_proxy_host,
                                     cd->cddb_proxy_port,
                                     cd->cddb_proxy_user,
-                                    cd->cddb_proxy_user))
+                                    cd->cddb_proxy_user,
+                                    cd->cddb_timeout))
       {
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got metadata from %s", cd->cddb_host);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got metadata from CDDB (%s)", cd->cddb_host);
       have_metadata = 1;
+      /* Disable gmerlin caching */
+      have_local_metadata = 1;
       }
     }
 #endif
@@ -714,7 +718,7 @@ $HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,\
       help_string: "Proxy port"
     },
 #endif
-#ifdef HAVE_MUSICBRAINZ
+#ifdef HAVE_CDDB
     {
       name:      "cddb",
       long_name: "Cddb",
@@ -773,6 +777,15 @@ $HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,\
       type:        BG_PARAMETER_STRING_HIDDEN,
       help_string: "Password for proxy"
     },
+    {
+      name:        "cddb_timeout",
+      long_name:   "Timeout",
+      type:         BG_PARAMETER_INT,
+      val_min:      { val_i: 0 },
+      val_max:      { val_i: 1000 },
+      val_default:  { val_i: 10 },
+      help_string: "Timeout (in seconds) for connections to the CDDB server"
+    },
 #endif
     { /* End of parmeters */ }
   };
@@ -827,7 +840,7 @@ static void set_parameter_cdaudio(void * data, char * name, bg_parameter_value_t
 #ifdef HAVE_CDDB
   if(!strcmp(name, "use_cddb"))
     cd->use_cddb = val->val_i;
-  if(!strcmp(name, "cddb_server"))
+  if(!strcmp(name, "cddb_host"))
     cd->cddb_host = bg_strdup(cd->cddb_host, val->val_str);
   if(!strcmp(name, "cddb_port"))
     cd->cddb_port = val->val_i;
@@ -841,8 +854,9 @@ static void set_parameter_cdaudio(void * data, char * name, bg_parameter_value_t
     cd->cddb_proxy_user = bg_strdup(cd->cddb_proxy_user, val->val_str);
   if(!strcmp(name, "cddb_proxy_pass"))
     cd->cddb_proxy_pass = bg_strdup(cd->cddb_proxy_pass, val->val_str);
+  if(!strcmp(name, "cddb_timeout"))
+    cd->cddb_timeout = val->val_i;
 #endif
-  
   }
 
 bg_input_plugin_t the_plugin =
