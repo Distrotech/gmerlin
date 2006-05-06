@@ -81,7 +81,7 @@
 #define FACTOR(i)     channel->inputs[i].factor.f_32
 #define SAMPLE_TYPE   int32_t
 #define TMP_TYPE      int64_t
-#define ADJUST_TMP(i) i/=0x100000000LL;CLAMP(i, INT32_MIN, INT32_MAX)
+#define ADJUST_TMP(i) i/=0x80000000LL;CLAMP(i, INT32_MIN, INT32_MAX)
 
 #include "_mix_c.c"
 

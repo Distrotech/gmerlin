@@ -699,7 +699,7 @@ static void set_factor(gavl_mix_input_channel_t * ret,
       ret->factor.f_16 =    (int16_t)(fac * INT16_MAX + 0.5);
       break;
     case GAVL_SAMPLE_S32:
-      ret->factor.f_32 =    (int32_t)(fac * INT32_MAX + 0.5);
+      ret->factor.f_32 =    (int32_t)(fac * (INT32_MAX>>1) + 0.5);
       break;
     case GAVL_SAMPLE_FLOAT:
       ret->factor.f_float = fac;
@@ -824,6 +824,11 @@ gavl_mix_context_create(gavl_audio_options_t * opt,
                         gavl_audio_format_t * out_format)
   {
   gavl_audio_convert_context_t * ret;
+#if 0
+  fprintf(stderr, "gavl_mix_context_create\n");
+  gavl_audio_format_dump(in_format);
+  gavl_audio_format_dump(out_format);
+#endif
   ret = gavl_audio_convert_context_create(in_format,
                                           out_format);
 

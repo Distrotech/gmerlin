@@ -241,7 +241,8 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
       }
     
     if((cnv->current_format->sample_format != GAVL_SAMPLE_FLOAT) &&
-       (cnv->opt.accel_flags & GAVL_ACCEL_C_HQ))
+       ((cnv->opt.accel_flags & GAVL_ACCEL_C_HQ) ||
+        (cnv->output_format.sample_format == GAVL_SAMPLE_FLOAT)))
       {
       tmp_format.sample_format = GAVL_SAMPLE_FLOAT;
       ctx = gavl_sampleformat_context_create(&(cnv->opt),

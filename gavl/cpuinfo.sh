@@ -23,6 +23,8 @@ _cc_minor=`echo $cc_version | cut -d'.' -f2`
 
 if test $_cc_major -ge 4; then
   _opt_mcpu="-mtune"
+elif test $_cc_major -ge 3 -a $_cc_minor -ge 4; then
+  _opt_mcpu="-mtune"
 else
   _opt_mcpu="-mcpu"
 fi
