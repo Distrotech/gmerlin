@@ -136,6 +136,7 @@ static void create_encoder_sections(bg_transcoder_track_t * t,
 
 static void create_sections(bg_transcoder_track_t * t,
                             bg_cfg_section_t * track_defaults_section,
+                            bg_cfg_section_t * input_section,
                             bg_cfg_section_t * audio_encoder_section,
                             bg_cfg_section_t * video_encoder_section,
                             bg_plugin_handle_t * audio_encoder,
@@ -149,6 +150,8 @@ static void create_sections(bg_transcoder_track_t * t,
   t->general_section =
     bg_cfg_section_create_from_parameters("General", t->general_parameters);
 #else
+  t->input_section = bg_cfg_section_copy(input_section);
+  
   general_section = bg_cfg_section_find_subsection(track_defaults_section, "general");
   t->general_section = bg_cfg_section_copy(general_section);
   
@@ -670,6 +673,7 @@ bg_transcoder_track_create(const char * url,
 
   bg_cfg_section_t * audio_encoder_section;
   bg_cfg_section_t * video_encoder_section;
+  bg_cfg_section_t * input_section;
   
   const bg_plugin_info_t * encoder_info;
     
@@ -730,6 +734,9 @@ bg_transcoder_track_create(const char * url,
 
   input = (bg_input_plugin_t*)(plugin_handle->plugin);
   
+  input_section = bg_plugin_registry_get_section(plugin_reg,
+                                                 plugin_handle->info->name);
+  
   /* Decide what to load */
   
   if(track >= 0)
@@ -759,7 +766,7 @@ bg_transcoder_track_create(const char * url,
     
     set_track(new_track, track_info, plugin_handle, url, track,
               audio_encoder, video_encoder);
-    create_sections(new_track, track_defaults_section,
+    create_sections(new_track, track_defaults_section, input_section,
                     audio_encoder_section, video_encoder_section,
                     audio_encoder, video_encoder);
     if(streams_enabled)
@@ -808,7 +815,7 @@ bg_transcoder_track_create(const char * url,
       
       set_track(new_track, track_info, plugin_handle, url, i,
                 audio_encoder, video_encoder);
-      create_sections(new_track, track_defaults_section,
+      create_sections(new_track, track_defaults_section, input_section,
                       audio_encoder_section, video_encoder_section,
                       audio_encoder, video_encoder);
       if(streams_enabled)
@@ -1112,6 +1119,8 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
 
   if(t->general_section)
     bg_cfg_section_destroy(t->general_section);
+  if(t->input_section)
+    bg_cfg_section_destroy(t->input_section);
   if(t->metadata_section)
     bg_cfg_section_destroy(t->metadata_section);
 

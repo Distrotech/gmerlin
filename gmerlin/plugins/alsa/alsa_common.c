@@ -21,100 +21,26 @@
 #include <utils.h>
 #include "alsa_common.h"
 
-static struct
-  {
-  gavl_sample_format_t gavl_format;
-  snd_pcm_format_t     alsa_format;
-  }
-sampleformats[] =
-  {
-    { GAVL_SAMPLE_NONE,     SND_PCM_FORMAT_UNKNOWN  },
-    { GAVL_SAMPLE_S8,       SND_PCM_FORMAT_S8       },
-    { GAVL_SAMPLE_U8,       SND_PCM_FORMAT_U8       },
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
-    { GAVL_SAMPLE_S16,      SND_PCM_FORMAT_S16_LE   },
-    { GAVL_SAMPLE_U16,      SND_PCM_FORMAT_U16_LE   },
-    { GAVL_SAMPLE_S32,      SND_PCM_FORMAT_S32_LE   },
-    { GAVL_SAMPLE_FLOAT,    SND_PCM_FORMAT_FLOAT_LE },
-#else  
-    { GAVL_SAMPLE_S16,      SND_PCM_FORMAT_S16_BE   },
-    { GAVL_SAMPLE_U16,      SND_PCM_FORMAT_U16_BE   },
-    { GAVL_SAMPLE_S32,      SND_PCM_FORMAT_S32_BE   },
-    { GAVL_SAMPLE_FLOAT,    SND_PCM_FORMAT_FLOAT_BE },
-#endif
-
-#if 0
-    { SND_PCM_FORMAT_S24_LE             },
-    { SND_PCM_FORMAT_S24_BE             },
-    { SND_PCM_FORMAT_U24_LE             },
-    { SND_PCM_FORMAT_U24_BE             },
-    { SND_PCM_FORMAT_S32_BE             },
-    { SND_PCM_FORMAT_U32_LE             },
-    { SND_PCM_FORMAT_U32_BE             },
-    { SND_PCM_FORMAT_FLOAT64_LE         },
-    { SND_PCM_FORMAT_FLOAT64_BE         },
-    { SND_PCM_FORMAT_IEC958_SUBFRAME_LE },
-    { SND_PCM_FORMAT_IEC958_SUBFRAME_BE },
-    { SND_PCM_FORMAT_MU_LAW             },
-    { SND_PCM_FORMAT_A_LAW              },
-    { SND_PCM_FORMAT_IMA_ADPCM          },
-    { SND_PCM_FORMAT_MPEG               },
-    { SND_PCM_FORMAT_GSM                },
-    { SND_PCM_FORMAT_SPECIAL            },
-    { SND_PCM_FORMAT_S24_3LE            },
-    { SND_PCM_FORMAT_S24_3BE            },
-    { SND_PCM_FORMAT_U24_3LE            },
-    { SND_PCM_FORMAT_U24_3BE            },
-    { SND_PCM_FORMAT_S20_3LE            },
-    { SND_PCM_FORMAT_S20_3BE            },
-    { SND_PCM_FORMAT_U20_3LE            },
-    { SND_PCM_FORMAT_U20_3BE            },
-    { SND_PCM_FORMAT_S18_3LE            },
-    { SND_PCM_FORMAT_S18_3BE            },
-    { SND_PCM_FORMAT_U18_3LE            },
-    { SND_PCM_FORMAT_U18_3BE            }
-#endif
-  };
-
-static snd_pcm_format_t sample_format_gavl_2_alsa(gavl_sample_format_t f)
-  {
-  int i;
-  for(i = 0; i < sizeof(sampleformats)/sizeof(sampleformats[0]); i++)
-    {
-    if(sampleformats[i].gavl_format == f)
-      return sampleformats[i].alsa_format;
-    }
-  return SND_PCM_FORMAT_UNKNOWN;
-  }
-
-static gavl_sample_format_t sample_format_alsa_2_gavl(snd_pcm_format_t f)
-  {
-  int i;
-  for(i = 0; i < sizeof(sampleformats)/sizeof(sampleformats[0]); i++)
-    {
-    if(sampleformats[i].alsa_format == f)
-      return sampleformats[i].gavl_format;
-    }
-  return GAVL_SAMPLE_NONE;
-  }
-
 static snd_pcm_t * bg_alsa_open(const char * card,
                                 gavl_audio_format_t * format,
                                 snd_pcm_stream_t stream,
-                                unsigned int buffer_time,
-                                unsigned int period_time,
-                                char ** error_msg)
+                                gavl_time_t buffer_time,
+                                char ** error_msg,
+                                int * convert_4_3)
   {
   unsigned int i_tmp;
-  int bytes_per_sample;
   int dir;
-  snd_pcm_format_t alsa_format;
   snd_pcm_hw_params_t *hw_params = (snd_pcm_hw_params_t *)0;
+  //  snd_pcm_sw_params_t *sw_params = (snd_pcm_sw_params_t *)0;
   snd_pcm_t *ret                 = (snd_pcm_t *)0;
   
   snd_pcm_uframes_t buffer_size;
   snd_pcm_uframes_t period_size;
-
+  
+  snd_pcm_uframes_t period_size_min = 0; 
+  snd_pcm_uframes_t period_size_max = 0; 
+  snd_pcm_uframes_t buffer_size_min = 0;
+  snd_pcm_uframes_t buffer_size_max = 0;
   /* We open in non blocking mode so our process won't hang if the card is
      busy */
   
@@ -147,101 +73,130 @@ static snd_pcm_t * bg_alsa_open(const char * card,
 
   /* Interleave mode */
   
-#if 0
-  if(format->interleave_mode != GAVL_INTERLEAVE_ALL)
+  if(snd_pcm_hw_params_set_access(ret, hw_params,
+                                  SND_PCM_ACCESS_RW_INTERLEAVED) < 0)
     {
-    if(snd_pcm_hw_params_set_access(ret, hw_params,
-                                    SND_PCM_ACCESS_RW_NONINTERLEAVED) < 0)
-      {
-      fprintf(stderr, "Non interleaved access doesn't work, trying interleaved\n");
-#endif
-      if(snd_pcm_hw_params_set_access(ret, hw_params,
-                                      SND_PCM_ACCESS_RW_INTERLEAVED) < 0)
-        {
-        if(error_msg)
-          *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_access failed");
-        goto fail;
-        }
-      else
-        format->interleave_mode = GAVL_INTERLEAVE_ALL;
-#if 0
-      }
-    else
-      format->interleave_mode = GAVL_INTERLEAVE_NONE;
+    if(error_msg)
+      *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_access failed");
+    goto fail;
     }
   else
-    if(snd_pcm_hw_params_set_access(ret, hw_params,
-                                    SND_PCM_ACCESS_RW_INTERLEAVED) < 0)
-      {
-      if(error_msg)
-        *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_access failed");
-      goto fail;
-      }
-#endif
+    format->interleave_mode = GAVL_INTERLEAVE_ALL;
   
   /* Sample format */
-  
-  alsa_format = sample_format_gavl_2_alsa(format->sample_format);
-  if(alsa_format == SND_PCM_FORMAT_UNKNOWN)
-    alsa_format = sample_format_gavl_2_alsa(GAVL_SAMPLE_S16);
-  
-//  fprintf(stderr, "Trying 1 %s\n", snd_pcm_format_name(alsa_format)); 
-  if(snd_pcm_hw_params_set_format(ret, hw_params,
-                                  alsa_format) < 0)
-    {
-    bytes_per_sample = gavl_bytes_per_sample(format->sample_format);
 
-    switch(bytes_per_sample)
-      {
-      case 1:
-        alsa_format = SND_PCM_FORMAT_U8;
-        break;
-      case 4:
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
-        alsa_format = SND_PCM_FORMAT_S32_LE;
-#else
-        alsa_format = SND_PCM_FORMAT_S32_BE;
-#endif
-        break;
-      case 2:
-      default:
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
-        alsa_format = SND_PCM_FORMAT_S16_LE;
-#else
-        alsa_format = SND_PCM_FORMAT_S16_BE;
-#endif
-      }
-    //    fprintf(stderr, "Trying 2 %s\n", snd_pcm_format_name(alsa_format));    
-    if(snd_pcm_hw_params_set_format(ret, hw_params,
-                                    alsa_format) < 0)
-      {
-#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
-      alsa_format = SND_PCM_FORMAT_S16_LE;
-#else
-      alsa_format = SND_PCM_FORMAT_S16_BE;
-#endif
-      if(snd_pcm_hw_params_set_format(ret, hw_params,
-                                    alsa_format) < 0)
+  switch(format->sample_format)
+    {
+    case GAVL_SAMPLE_S8:
+    case GAVL_SAMPLE_U8:
+      if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_U8) < 0)
         {
+        /* Soundcard support no 8-bit, try 16 */
+        if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S16) < 0)
+          {
+          /* Hopeless */
+          if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_format failed");
+          goto fail;
+          }
+        else
+          format->sample_format = GAVL_SAMPLE_S16;
+        }
+      else
+        format->sample_format = GAVL_SAMPLE_U8;
+      break;
+    case GAVL_SAMPLE_S16:
+    case GAVL_SAMPLE_U16:
+      if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S16) < 0)
+        {
+        /* Hopeless */
         if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_format failed");
         goto fail;
         }
-      }
+      else
+        format->sample_format = GAVL_SAMPLE_S16;
+      break;
+    case GAVL_SAMPLE_S32:
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+      if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S32_LE) < 0)
+#else
+      if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S32_BE) < 0)
+#endif
+        {
+        /* Soundcard supports no 32-bit, try 24
+           (more probably supported but needs conversion) */
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+        if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S24_3LE) < 0)
+#else
+        if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S24_3BE) < 0)
+#endif
+          {
+          /* No 24 bit, try 16 */
+          if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S16) < 0)
+            {
+            /* Hopeless */
+            if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_format failed");
+            goto fail;
+            }
+          else
+            format->sample_format = GAVL_SAMPLE_S16;
+          }
+        else
+          {
+          format->sample_format = GAVL_SAMPLE_S32;
+          if(convert_4_3)
+            *convert_4_3 = 1;
+          }
+        }
+      else
+        format->sample_format = GAVL_SAMPLE_S32;
+      break;
+    case GAVL_SAMPLE_FLOAT:
+      if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_FLOAT) < 0)
+        {
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+        if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S32_LE) < 0)
+#else
+          if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S32_BE) < 0)
+#endif
+            {
+            /* Soundcard supports no 32-bit, try 24
+               (more probably supported but needs conversion) */
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+            if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S24_3LE) < 0)
+#else
+              if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S24_3BE) < 0)
+#endif
+                {
+                /* No 24 bit, try 16 */
+                if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S16) < 0)
+                  {
+                  /* Hopeless */
+                  if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_format failed");
+                  goto fail;
+                  }
+                else
+                  format->sample_format = GAVL_SAMPLE_S16;
+                }
+              else
+                {
+                format->sample_format = GAVL_SAMPLE_S32;
+                if(convert_4_3)
+                  *convert_4_3 = 1;
+                }
+            }
+          else
+            format->sample_format = GAVL_SAMPLE_S32;
+        
+        }
+      else
+        format->sample_format = GAVL_SAMPLE_FLOAT;
+      break;
+    case GAVL_SAMPLE_NONE:
+      goto fail;
+      break;
     }
-  format->sample_format = sample_format_alsa_2_gavl(alsa_format);
-  
-  /* Samplerate */
-  i_tmp = format->samplerate;
-  if(snd_pcm_hw_params_set_rate_near(ret, hw_params,
-                                     &(i_tmp),
-                                     0) < 0)
-    {
-    if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_rate_near failed");
-    goto fail;
-    }
-  format->samplerate = i_tmp;
+
   /* Channels */
-  
   if(snd_pcm_hw_params_set_channels(ret, hw_params,
                                     format->num_channels) < 0)
     {
@@ -266,42 +221,68 @@ static snd_pcm_t * bg_alsa_open(const char * card,
       goto fail;
     }
 
-  dir = 0;
-  /* Buffer time */
-  if(snd_pcm_hw_params_set_buffer_time_near(ret, hw_params,
-                                            &buffer_time, &dir) < 0)
+  /* Switch off driver side resampling */
+#if SND_LIB_VERSION >= 0x010009
+  snd_pcm_hw_params_set_rate_resample(ret, hw_params, 0);
+#endif
+  
+  /* Samplerate */
+  i_tmp = format->samplerate;
+  if(snd_pcm_hw_params_set_rate_near(ret, hw_params,
+                                     &(i_tmp),
+                                     0) < 0)
     {
-    if(error_msg)
-      *error_msg =
-        bg_sprintf("bg_alsa_open: snd_pcm_hw_params_set_buffer_time_near failed");
+    if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_rate_near failed");
     goto fail;
     }
+  format->samplerate = i_tmp;
+  
+  dir = 0;
 
   /* Buffer size */
 
-  if(snd_pcm_hw_params_get_buffer_size(hw_params, &buffer_size) < 0)
-    {
-    if(error_msg)
-      *error_msg = bg_sprintf("bg_alsa_open: snd_pcm_hw_params_get_buffer_size failed");
-    goto fail;
-    }
-  //  fprintf(stderr, "*** Buffer size: %d\n", (int)buffer_size);
-  /* Period time */
-  if(snd_pcm_hw_params_set_period_time_near(ret, hw_params, &period_time, &dir) < 0)
-    {
-    if(error_msg)
-      *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_set_period_time_near failed");
-    goto fail;
-    }
-  /* Period size */
-  
-  if(snd_pcm_hw_params_get_period_size(hw_params, &period_size, &dir) < 0)
-    {
-    if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_hw_params_get_period_size failed");
-    goto fail;
-    }
-  //  fprintf(stderr, "*** Period size: %d\n", (int)period_size);
+  snd_pcm_hw_params_get_buffer_size_min(hw_params, &buffer_size_min);
+  snd_pcm_hw_params_get_buffer_size_max(hw_params, &buffer_size_max);
+  dir=0;
+  snd_pcm_hw_params_get_period_size_min(hw_params, &period_size_min,&dir);
+  dir=0;
+  snd_pcm_hw_params_get_period_size_max(hw_params, &period_size_max,&dir);
 
+  //  fprintf(stderr, "Buffer size: [%d..%d], Period Size: [%d..%d]\n",
+  //          buffer_size_min, buffer_size_max, period_size_min, period_size_max);
+  
+  buffer_size = gavl_time_to_samples(format->samplerate, buffer_time);
+
+  if(buffer_size > buffer_size_max)
+    buffer_size = buffer_size_max;
+  if(buffer_size < buffer_size_min)
+    buffer_size = buffer_size_min;
+
+  period_size = buffer_size / 8;
+  buffer_size = period_size * 8;
+
+  dir = 0;
+  if(snd_pcm_hw_params_set_period_size_near(ret, hw_params, &period_size, &dir) < 0)
+    {
+    if(error_msg)
+      *error_msg = bg_sprintf("bg_alsa_open: snd_pcm_hw_params_set_period_size failed");
+    goto fail;
+    }
+  dir = 0;
+  snd_pcm_hw_params_get_period_size(hw_params, &period_size, &dir);
+
+  dir = 0;
+  if(snd_pcm_hw_params_set_buffer_size_near(ret, hw_params, &buffer_size) < 0)
+    {
+    if(error_msg)
+      *error_msg = bg_sprintf("bg_alsa_open: snd_pcm_hw_params_set_buffer_size failed");
+    goto fail;
+    }
+  
+  snd_pcm_hw_params_get_buffer_size(hw_params, &buffer_size);
+
+  //  fprintf(stderr, "Buffer size: %d, period_size: %d\n", buffer_size, period_size);
+  
   format->samples_per_frame = period_size;
   
   /* Write params to card */
@@ -336,14 +317,14 @@ snd_pcm_t * bg_alsa_open_read(const char * card, gavl_audio_format_t * format,
                               char ** error_msg)
   {
   return bg_alsa_open(card, format, SND_PCM_STREAM_CAPTURE,
-                      30000, 10000, error_msg);
+                      GAVL_TIME_SCALE/10, error_msg, NULL);
   }
 
 snd_pcm_t * bg_alsa_open_write(const char * card, gavl_audio_format_t * format,
-                              char ** error_msg)
+                               char ** error_msg, int * convert_4_3)
   {
   return bg_alsa_open(card, format, SND_PCM_STREAM_PLAYBACK,
-                      350000, 30000, error_msg);
+                      GAVL_TIME_SCALE, error_msg, convert_4_3);
   }
 
 void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)

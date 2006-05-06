@@ -1358,6 +1358,15 @@ static int open_input(bg_transcoder_t * ret)
 
   ret->in_plugin = (bg_input_plugin_t*)(ret->in_handle->plugin);
 
+  if(ret->in_plugin->common.set_parameter &&
+     ret->in_plugin->common.get_parameters &&
+     ret->transcoder_track->input_section)
+    {
+    bg_cfg_section_apply(ret->transcoder_track->input_section,
+                         ret->in_plugin->common.get_parameters(ret->in_handle->priv),
+                         ret->in_plugin->common.set_parameter, ret->in_handle->priv);
+    }
+  
   if(!ret->in_plugin->open(ret->in_handle->priv, ret->location))
     {
     ret->error_msg = bg_sprintf("Cannot open %s with plugin %s",

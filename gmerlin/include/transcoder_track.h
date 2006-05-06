@@ -49,6 +49,8 @@ bg_transcoder_track_video_get_general_parameters();
 
 typedef struct bg_transcoder_track_s
   {
+  bg_cfg_section_t    * input_section;
+  
   bg_parameter_info_t * metadata_parameters;
   bg_cfg_section_t    * metadata_section;
 

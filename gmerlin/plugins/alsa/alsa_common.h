@@ -28,7 +28,7 @@ snd_pcm_t * bg_alsa_open_read(const char * card, gavl_audio_format_t * format,
 /* For writing, the complete format must be set, values will be changed if not compatible */
 
 snd_pcm_t * bg_alsa_open_write(const char * card, gavl_audio_format_t * format,
-                               char ** error_msg);
+                               char ** error_msg, int * convert_3_4);
 
 /* Builds a parameter array for all available cards */
 

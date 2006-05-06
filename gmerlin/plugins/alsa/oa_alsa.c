@@ -74,8 +74,6 @@ static bg_parameter_info_t global_parameters[] =
 static int num_global_parameters =
   sizeof(global_parameters)/sizeof(global_parameters[0]);
 
-
-
 typedef struct
   {
   bg_parameter_info_t * parameters;
@@ -92,7 +90,40 @@ typedef struct
   int card_index;
 
   char * error_msg;
+  int convert_4_3;
+  uint8_t * convert_buffer;
+  int convert_buffer_alloc;
   } alsa_t;
+
+static void convert_4_to_3(alsa_t * priv, gavl_audio_frame_t * frame)
+  {
+  int i, imax;
+  uint8_t * src, * dst;
+  
+  imax = frame->valid_samples * priv->format.num_channels;
+
+  if(imax * 3 < priv->convert_buffer_alloc)
+    {
+    priv->convert_buffer_alloc = (imax+1024) * 3;
+    priv->convert_buffer = realloc(priv->convert_buffer, priv->convert_buffer_alloc);
+    }
+
+  dst = priv->convert_buffer;
+  src = frame->samples.u_8;
+  
+  for(i = 0; i < imax; i++)
+    {
+#ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
+    dst[0] = src[1];
+    dst[1] = src[2];
+    dst[2] = src[3];
+#else
+    dst[0] = src[0];
+    dst[1] = src[1];
+    dst[2] = src[2];
+#endif
+    }
+  }
 
 static void * create_alsa()
   {
@@ -137,7 +168,6 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   int num_front_channels;
   int num_rear_channels;
   int num_lfe_channels;
-  
   char * card = (char*)0;
   alsa_t * priv = (alsa_t*)(data);
   
@@ -247,7 +277,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
 
   //  fprintf(stderr, "Opening card %s...", card);
     
-  priv->pcm = bg_alsa_open_write(card, format, &priv->error_msg);
+  priv->pcm = bg_alsa_open_write(card, format, &priv->error_msg, &priv->convert_4_3);
 #if 0  
   if(priv->pcm)
     fprintf(stderr, "done\n");
@@ -256,6 +286,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
 #endif
   free(card);
   
+
   if(!priv->pcm)
     return 0;
   gavl_audio_format_copy(&(priv->format), format);
@@ -281,36 +312,51 @@ static void close_alsa(void * p)
 
 static void write_frame_alsa(void * p, gavl_audio_frame_t * f)
   {
-  int result = -1;
+  int result = -EPIPE;
   alsa_t * priv = (alsa_t*)(p);
-  
-  //  fprintf(stderr, "PCM: %p\n", priv->pcm);
 
-  while(result <= 0)
+  if(priv->convert_4_3)
     {
-    if(priv->format.interleave_mode == GAVL_INTERLEAVE_ALL)
+    convert_4_to_3(priv, f);
+    while(result == -EPIPE)
+      {
+      result = snd_pcm_writei(priv->pcm,
+                              priv->convert_buffer,
+                              f->valid_samples);
+
+      if(result == -EPIPE)
+        {
+        //    fprintf(stderr, "Warning: Buffer underrun\n");
+        //    snd_pcm_drop(priv->pcm);
+        if(snd_pcm_prepare(priv->pcm) < 0)
+          return;
+        }
+      }
+    }
+  else
+    {
+    while(result == -EPIPE)
       {
       result = snd_pcm_writei(priv->pcm,
                               f->samples.s_8,
                               f->valid_samples);
+      //      fprintf(stderr, "writei %s\n", snd_strerror(result));
+
+      if(result == -EPIPE)
+        {
+        //    fprintf(stderr, "Warning: Buffer underrun\n");
+        //    snd_pcm_drop(priv->pcm);
+        if(snd_pcm_prepare(priv->pcm) < 0)
+          return;
+        }
       }
-    else if(priv->format.interleave_mode == GAVL_INTERLEAVE_NONE)
-      {
-      result = snd_pcm_writen(priv->pcm,
-                              (void**)(f->channels.s_8),
-                              f->valid_samples);
-      }
-    if(result == -EPIPE)
-      {
-      //    fprintf(stderr, "Warning: Buffer underrun\n");
-      //    snd_pcm_drop(priv->pcm);
-      if(snd_pcm_prepare(priv->pcm) < 0)
-        return;
-      }
-    else if(result < 0)
-      {
-      fprintf(stderr, "snd_pcm_write returned %s\n", snd_strerror(result));
-      }
+    }
+  
+  //  fprintf(stderr, "PCM: %p\n", priv->pcm);
+  
+  if(result < 0)
+    {
+    fprintf(stderr, "snd_pcm_write returned %s\n", snd_strerror(result));
     }
   }
 
