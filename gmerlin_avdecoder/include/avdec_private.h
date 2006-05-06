@@ -37,6 +37,8 @@ typedef struct bgav_input_context_s            bgav_input_context_t;
 typedef struct bgav_audio_decoder_s            bgav_audio_decoder_t;
 typedef struct bgav_video_decoder_s            bgav_video_decoder_t;
 typedef struct bgav_subtitle_overlay_decoder_s bgav_subtitle_overlay_decoder_t;
+typedef struct bgav_subtitle_reader_s bgav_subtitle_reader_t;
+typedef struct bgav_subtitle_reader_context_s bgav_subtitle_reader_context_t;
 
 typedef struct bgav_audio_decoder_context_s bgav_audio_decoder_context_t;
 typedef struct bgav_video_decoder_context_s bgav_video_decoder_context_t;
@@ -366,7 +368,8 @@ struct bgav_stream_s
       bgav_charset_converter_t * cnv;
 
       bgav_subtitle_overlay_decoder_context_t * decoder;
-
+      bgav_subtitle_reader_context_t * subreader;
+      
       /* The video stream, onto which the subtitles will be
          displayed */
       bgav_stream_t * video_stream;
@@ -1191,3 +1194,25 @@ const char * bgav_lang_from_name(const char * name);
 const char * bgav_lang_from_twocc(const char * twocc);
 
 const char * bgav_lang_name(const char * lang);
+
+/* subreader.c */
+
+struct bgav_subtitle_reader_context_s
+  {
+  bgav_input_context_t * input;
+  bgav_subtitle_reader_t * reader;
+  };
+
+struct bgav_subtitle_reader_s
+  {
+  char * extensions;
+  char * name;
+
+  /* Read one subtitle, all returned args can be NULL if not needed */
+  const char * (*read_subtitle)(bgav_subtitle_reader_context_t*,
+                                gavl_time_t * start,
+                                gavl_time_t * duration,
+                                int64_t * start_pos);
+  
+  };
+
