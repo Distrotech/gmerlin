@@ -17,9 +17,15 @@
  
 *****************************************************************/
 
+#include <config.h>
+
+#ifdef HAVE_VASPRINTF
+#define _GNU_SOURCE
+#endif
+
 #include <stdarg.h>
-#include <parameter.h>
-#include <msgqueue.h>
+#include <stdio.h>
+
 #include <log.h>
 
 static struct
@@ -55,12 +61,20 @@ void bg_log(bg_log_level_t level, const char * domain, char * format, ...)
   char * msg_string;
   bg_msg_t * msg;
   va_list argp; /* arg ptr */
+#ifndef HAVE_VASPRINTF
   int len;
+#endif
 
   va_start( argp, format);
+
+#ifndef HAVE_VASPRINTF
   len = vsnprintf((char*)0, 0, format, argp);
   msg_string = malloc(len+1);
   vsnprintf(msg_string, len+1, format, argp);
+#else
+  vasprintf(&msg_string, format, argp);
+#endif
+
   va_end(argp);
   
   if(!log_queue)

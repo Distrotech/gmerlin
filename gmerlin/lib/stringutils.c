@@ -17,6 +17,12 @@
  
 *****************************************************************/
 
+#include <config.h>
+
+#ifdef HAVE_VASPRINTF
+#define _GNU_SOURCE
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -113,12 +119,19 @@ char * bg_strndup(char * old_string,
 char * bg_sprintf(const char * format,...)
   {
   va_list argp; /* arg ptr */
+#ifndef HAVE_VASPRINTF
   int len;
+#endif
   char * ret;
   va_start( argp, format);
+
+#ifndef HAVE_VASPRINTF
   len = vsnprintf((char*)0, 0, format, argp);
   ret = malloc(len+1);
   vsnprintf(ret, len+1, format, argp);
+#else
+  vasprintf(&ret, format, argp);
+#endif
   va_end(argp);
   return ret;
   }

@@ -17,6 +17,12 @@
  
 *****************************************************************/
 
+#include <avdec_private.h>
+
+#ifdef HAVE_VASPRINTF
+#define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -27,8 +33,6 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-
-#include <avdec_private.h>
 #include <utils.h>
 
 void bgav_dump_fourcc(uint32_t fourcc)
@@ -73,12 +77,19 @@ void bgav_hexdump(uint8_t * data, int len, int linebreak)
 char * bgav_sprintf(const char * format,...)
   {
   va_list argp; /* arg ptr */
+#ifndef HAVE_VASPRINTF
   int len;
+#endif
   char * ret;
   va_start( argp, format);
+
+#ifndef HAVE_VASPRINTF
   len = vsnprintf((char*)0, 0, format, argp);
   ret = malloc(len+1);
   vsnprintf(ret, len+1, format, argp);
+#else
+  vasprintf(&ret, format, argp);
+#endif
   va_end(argp);
   return ret;
   }

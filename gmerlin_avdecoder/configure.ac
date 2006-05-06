@@ -15,7 +15,7 @@ AC_CHECK_HEADERS(byteswap.h)
 
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
-AC_CHECK_FUNCS(ftello)
+AC_CHECK_FUNCS(ftello vasprintf)
 
 
 dnl

@@ -17,6 +17,7 @@ dnl
 
 AC_CHECK_SIZEOF(long)
 AC_C_BIGENDIAN
+AC_CHECK_FUNCS(vasprintf)
 
 dnl
 dnl Check for Dependencies package

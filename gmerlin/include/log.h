@@ -20,9 +20,10 @@
 #ifndef __BG_LOG_H_
 #define __BG_LOG_H_
 
+/* Gmerlin log facilities */
+
 #include "parameter.h"
 #include "msgqueue.h"
-/* Gmerlin log facilities */
 
 typedef enum
   {
