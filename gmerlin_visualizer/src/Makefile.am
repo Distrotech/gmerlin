@@ -29,7 +29,6 @@ input.c \
 main.c \
 mainwindow.c \
 fft.c \
-static_xfree_libs_wrapper.c \
 vis_plugin.c \
 vis_plugin_xml.c \
 $(xmms1_sources) \
