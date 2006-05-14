@@ -539,7 +539,7 @@ void gavl_video_frame_copy(gavl_video_format_t * format,
   
   }
 
-static inline void flip_scanline_1(uint8_t * dst, uint8_t * src, int len)
+static void flip_scanline_1(uint8_t * dst, uint8_t * src, int len)
   {
   int i;
   dst += (len-1);
