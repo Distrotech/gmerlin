@@ -1,9 +1,9 @@
 #!/bin/sh
-SUBDIRS="plugins/cdaudio plugins/v4l plugins/alsa plugins/esd plugins/lqt plugins/oss plugins/wavwrite plugins/x11 plugins/tiff tests include include/gui_gtk icons lib lib/gtk apps apps/player apps/plugincfg apps/alsamixer apps/camelot apps/transcoder"
+SUBDIRS="plugins/cdaudio plugins/v4l plugins/alsa plugins/esd plugins/lqt plugins/oss plugins/wavwrite plugins/x11 plugins/tiff plugins/postprocessors tests include include/gui_gtk icons lib lib/gtk apps apps/player apps/plugincfg apps/alsamixer apps/camelot apps/transcoder"
 
 make distclean
 
-CLEANFILES="Makefile.in *.o *.lo *.la .libs .deps"
+CLEANFILES="Makefile Makefile.in *.o *.lo *.la .libs .deps"
 
 TOPCLEANFILES="aclocal.m4 config.guess config.status config.sub configure gmerlin.spec gmerlin.pc libtool ltmain.sh autom4te*.cache depcomp install-sh missing mkinstalldirs Makefile.in"
 

@@ -182,26 +182,27 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
       bg_log(BG_LOG_WARNING, LOG_DOMAIN, line);	   
       //      break;
       }
-    else if(c->callbacks && c->callbacks->action_callback &&
-            !strncmp(line, "Writing", 7))
+    else if(!strncmp(line, "Writing", 7))
       {
-      c->callbacks->action_callback(c->callbacks->data,
-                                    line);
+      if(c->callbacks && c->callbacks->action_callback)
+        c->callbacks->action_callback(c->callbacks->data,
+                                      line);
       bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
 
-      if(c->callbacks->progress_callback)
+      if(c->callbacks && c->callbacks->progress_callback)
         {
         if(!strncmp(line, "Writing track 01", 16) ||
            strncmp(line, "Writing track", 13))
           c->callbacks->progress_callback(c->callbacks->data, 0.0);
         }
       }
-    else if(c->callbacks && c->callbacks->progress_callback &&
-            (sscanf(line, "Wrote %d of %d", &mb_written, &mb_total) == 2))
+    else if(sscanf(line, "Wrote %d of %d", &mb_written, &mb_total) == 2)
       {
-      c->callbacks->progress_callback(c->callbacks->data,
-                                      (float)mb_written/(float)mb_total);
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
+      if(c->callbacks && c->callbacks->progress_callback)
+        c->callbacks->progress_callback(c->callbacks->data,
+                                        (float)mb_written/(float)mb_total);
+      else
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
       }
     else
       bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
