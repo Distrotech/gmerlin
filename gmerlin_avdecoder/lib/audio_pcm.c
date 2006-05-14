@@ -1119,6 +1119,7 @@ static bgav_audio_decoder_t decoder =
                            BGAV_MK_FOURCC('s', 'o', 'w', 't'),
                            BGAV_MK_FOURCC('r', 'a', 'w', ' '),
                            BGAV_MK_FOURCC('l', 'p', 'c', 'm'),
+                           BGAV_MK_FOURCC('L', 'P', 'C', 'M'),
                            BGAV_MK_FOURCC('f', 'l', '3', '2'),
                            BGAV_MK_FOURCC('f', 'l', '6', '4'),
                            BGAV_MK_FOURCC('i', 'n', '2', '4'),

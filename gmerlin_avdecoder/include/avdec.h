@@ -409,6 +409,23 @@ void bgav_options_set_audio_dynrange(bgav_options_t* opt,
                                      int audio_dynrange);
 
 
+/** \ingroup options
+ *  \brief Enable seamless playback
+ *  \param opt Option container
+ *  \param 1 for enabling seamless playback
+ *
+ *  If a source has multiple tracks, we can sometimes switch to the
+ *  next track seamlessly (i.e. without closing and reopening the
+ *  codecs). If you set this option, the decoder will not signal EOF at the
+ *  end of a track if a seamless transition to the next track is possible.
+ *  Instead, the track change is signalled with the
+ *  \ref bgav_track_change_callback (if available) and decoding continues.
+ */
+
+void bgav_options_set_seamless(bgav_options_t* opt,
+                               int seamless);
+
+
 /* Set callbacks */
 
 /** \ingroup options

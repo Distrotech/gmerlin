@@ -128,6 +128,7 @@ static gavl_time_t convert_time(dvd_time_t * time)
 static void setup_track(bgav_input_context_t * ctx,
                         int title, int chapter, int angle)
   {
+  const char * audio_codec;
   audio_attr_t * audio_attr;
   subp_attr_t *  subp_attr;
   int i;
@@ -248,28 +249,33 @@ static void setup_track(bgav_input_context_t * ctx,
       case 0:
         //        printf("ac3 ");
         s->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
+        audio_codec = "AC3";
         s->stream_id = 0xbd80 + stream_position;
         break;
       case 2:
         //        printf("mpeg1 ");
         s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
         s->stream_id = 0xc0 + stream_position;
+        audio_codec = "MPA";
         break;
       case 3:
         //        printf("mpeg2ext ");
         /* Unsupported */
         s->fourcc = BGAV_MK_FOURCC('m', 'p', 'a', 'e');
+        audio_codec = "MPAext";
         break;
       case 4:
         //        printf("lpcm ");
         s->fourcc = BGAV_MK_FOURCC('L', 'P', 'C', 'M');
         s->stream_id = 0xbda0 + stream_position;
+        audio_codec = "LPCM";
         
         break;
       case 6:
         //        printf("dts ");
         s->fourcc = BGAV_MK_FOURCC('d', 't', 's', ' ');
         s->stream_id = 0xbd88 + stream_position;
+        audio_codec = "DTS";
         break;
       default:
         //        printf("(please send a bug report) ");
@@ -290,19 +296,24 @@ static void setup_track(bgav_input_context_t * ctx,
     switch(audio_attr->code_extension)
       {
       case 0:
-        s->info = bgav_strndup("Unspecified", (char*)0);
+        s->info = bgav_sprintf("Unspecified (%s, %dch)",
+                               audio_codec, audio_attr->channels+1);
         break;
       case 1:
-        s->info = bgav_strndup("Audio stream", (char*)0);
+        s->info = bgav_sprintf("Audio stream (%s, %dch)",
+                               audio_codec, audio_attr->channels+1);
         break;
       case 2:
-        s->info = bgav_strndup("Audio for visually impaired", (char*)0);
+        s->info = bgav_sprintf("Audio for visually impaired (%s, %dch)",
+                               audio_codec, audio_attr->channels+1);
         break;
       case 3:
-        s->info = bgav_strndup("Director's comments 1", (char*)0);
+        s->info = bgav_sprintf("Director's comments 1 (%s, %dch)",
+                               audio_codec, audio_attr->channels+1);
         break;
       case 4:
-        s->info = bgav_strndup("Director's comments 2", (char*)0);
+        s->info = bgav_sprintf("Director's comments 2 (%s, %dch)",
+                               audio_codec, audio_attr->channels+1);
         break;
       }
     }
@@ -436,7 +447,7 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
   int i, j, k;
   dvd_t * priv;
   tt_srpt_t *ttsrpt;
-  fprintf(stderr, "OPEN DVD\n");
+  //  fprintf(stderr, "OPEN DVD\n");
 
   //  DVDInit();
   
@@ -515,10 +526,14 @@ next_cell(pgc_t *pgc, int cell, int angle)
     while(pgc->cell_playback[ret].block_mode != BLOCK_MODE_LAST_CELL)
       ret++;
     }
-
+    
   /* Advance by one cell */
   ret++;
 
+  /* Check if we are at the end of the pgc */
+  if(ret >= pgc->nr_of_cells)
+    return -1;
+  
   /* If we entered an angle block, go to the right angle */
   if(pgc->cell_playback[ret].block_type == BLOCK_TYPE_ANGLE_BLOCK)
     {
@@ -601,6 +616,29 @@ read_nav(bgav_input_context_t * ctx, int sector, int *next)
   return blocks;
   }
 
+static int check_next_cell(bgav_input_context_t * ctx)
+  {
+  dvd_t * d;
+  d = (dvd_t*)(ctx->priv);
+
+  if(d->next_cell < 0)
+    return 0;
+  
+  if(d->next_cell >= d->current_track_priv->end_cell)
+    {
+#if 0
+    /* No seamless playback requested */
+    if(ctx->opt->seamless)
+      {
+      /* Check if the next track is in the same title */
+      }
+    else
+#endif
+      return 0;
+    }
+  return 1;
+  }
+
 static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
   {
   dvd_t * d;
@@ -611,33 +649,46 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
     {
     case CELL_START:
       /* TODO: EOF at chapter boundaries */
-      if(d->next_cell >= d->current_track_priv->end_cell)
+      
+      if(!check_next_cell(ctx))
         return 0;
       d->cell = d->next_cell;
-      fprintf(stderr, "DVD: entering cell %i\n", d->cell+1);
+      fprintf(stderr, "DVD: entering cell %i [%d..%d]\n", d->cell+1,
+              d->pgc->cell_playback[d->cell].first_sector,
+              d->pgc->cell_playback[d->cell].last_sector);
       d->next_cell = next_cell(d->pgc, d->cell, d->current_track_priv->angle);
       d->npack = d->pgc->cell_playback[d->cell].first_sector;
       d->state = CELL_LOOP;
-      
+      /* Fallthrough */
     case CELL_LOOP:
       d->pack = d->npack;
       l = read_nav(ctx, d->pack, &d->npack);
+      //      fprintf(stderr, "Got nav, blocks: %d\n", l);
       if(l < 0)
         return -1;
       //      fprintf(stderr, "DVD: cell %i, %i blocks @%i\n", d->cell+1, l, d->pack);
       d->blocks = l;
       d->pack++;
       d->state = BLOCK_LOOP;
-      
+      /* Fallthrough */
     case BLOCK_LOOP:
-      /* 	    fprintf(stderr, "DVD: reading %i blocks @%i -> %p\n", */
-      /* 		    r, d->pack, d->buf); */
+      //      fprintf(stderr, "DVD: reading block %d (blocks: %d)\n", d->pack, d->blocks);
+
+      /* Do some additional EOF checking */
+      if((d->pack > d->pgc->cell_playback[d->cell].last_sector) &&
+         (d->next_cell < 0))
+        {
+        fprintf(stderr, "Detected EOF\n");
+        return 0;
+        }
       l = DVDReadBlocks(d->dvd_file, d->pack, 1, data);
       if(l < 1)
         {
         fprintf(stderr, "DVD: error reading blocks @%i\n", d->pack);
-        return -1;
+        return 0;
         }
+      //      bgav_hexdump(data, 32, 16);
+
       d->blocks -= l;
       
       if(!d->blocks)
@@ -876,10 +927,11 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
 
   ctx->demuxer->timestamp_offset = time_scaled - (int64_t)pci_pack.pci_gi.vobu_s_ptm;
   dvd->last_vobu_end_pts = pci_pack.pci_gi.vobu_s_ptm;
-  
+#if 0  
   fprintf(stderr, "ctx->demuxer->timestamp_offset: %f - %f = %f\n",
           time_scaled / 90000.0, pci_pack.pci_gi.vobu_s_ptm / 90000.0,
           ctx->demuxer->timestamp_offset / 90000.0);
+#endif
   }
 
 bgav_input_t bgav_input_dvd =

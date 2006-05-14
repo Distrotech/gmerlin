@@ -18,12 +18,12 @@
 *****************************************************************/
 
 #include <avdec_private.h>
+#include <stdio.h>
 
 #ifdef HAVE_CDIO
 
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 #include <cdio/cdio.h>
@@ -546,6 +546,7 @@ int bgav_open_vcd(bgav_t * b, const char * device)
   }
 
 #else /* !HAVE_CDIO */
+
 
 int bgav_check_device_vcd(const char * device, char ** name)
   {

@@ -124,6 +124,12 @@ void bgav_options_set_default_subtitle_encoding(bgav_options_t* b,
   b->default_subtitle_encoding = bgav_strndup(encoding, NULL);
   }
 
+void bgav_options_set_seamless(bgav_options_t* opt,
+                               int seamless)
+  {
+  opt->seamless = 1;
+  }
+
 
 #define FREE(ptr) if(ptr) free(ptr)
 

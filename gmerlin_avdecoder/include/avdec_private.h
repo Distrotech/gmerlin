@@ -535,6 +535,7 @@ struct bgav_options_s
   int dvd_chapters_as_tracks;
 
   int audio_dynrange;
+  int seamless;
   
   /* Callbacks */
   

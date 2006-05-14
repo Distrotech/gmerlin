@@ -273,8 +273,10 @@ static int init_a52(bgav_stream_t * s)
   priv->buffer = calloc(MAX_FRAME_SIZE, 1);
   s->data.audio.decoder->priv = priv;
   if(!do_resync(s))
+    {
     fprintf(stderr, "Resync failed\n");
-  
+    return 0;
+    }
   //  a52_header_dump(&(priv->header));
 
   //  fprintf(stderr, "Dynamic range control is %s\n",
@@ -490,8 +492,8 @@ static void close_a52(bgav_stream_t * s)
     gavl_audio_frame_destroy(priv->frame);
   if(priv->buffer)
     free(priv->buffer);
-
-  a52_free(priv->state);
+  if(priv->state)
+    a52_free(priv->state);
   free(priv);
   }
 

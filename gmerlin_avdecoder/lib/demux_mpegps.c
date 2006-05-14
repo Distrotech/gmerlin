@@ -492,7 +492,7 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
   bgav_stream_t * stream = (bgav_stream_t*)0;
 
   priv = (mpegps_priv_t*)(ctx->priv);
-  
+  //  fprintf(stderr, "Next packet...");
   while(!got_packet)
     {
     if(!(start_code = next_start_code(input)))
