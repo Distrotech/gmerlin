@@ -289,6 +289,7 @@ demux_avi.c \
 demux_au.c \
 demux_flac.c \
 demux_fli.c \
+demux_flv.c \
 demux_gsm.c \
 demux_8svx.c \
 demux_ircam.c \

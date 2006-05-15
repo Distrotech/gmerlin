@@ -79,6 +79,11 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x11),
                     BGAV_MK_FOURCC('m', 's', 0x00, 0x11), 0x00 } },
 
+#if 0 // Sounds disgusting
+    { "FFmpeg Flash ADPCM decoder", "Flash ADPCM", CODEC_ID_ADPCM_SWF,
+      (uint32_t[]){ BGAV_MK_FOURCC('F', 'L', 'A', '1'), 0x00 } },
+#endif
+    
     { "FFmpeg IMA DK4 decoder", "IMA DK4", CODEC_ID_ADPCM_IMA_DK4,
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x61), 0x00 } },  /* rogue format number */
     { "FFmpeg IMA DK3 decoder", "IMA DK3", CODEC_ID_ADPCM_IMA_DK3,
@@ -205,29 +210,47 @@ static int decode_frame(bgav_stream_t * s)
   priv= (ffmpeg_audio_priv*)(s->data.audio.decoder->priv);
 
   /* Read data if necessary */
-  if(!priv->bytes_in_packet_buffer)
+  while(!priv->bytes_in_packet_buffer ||
+     (s->data.audio.block_align &&
+      (priv->bytes_in_packet_buffer < s->data.audio.block_align)))
     {
+    /* Get packet */
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
     if(!p)
       {
       //        fprintf(stderr, "Got no packet\n");
       return 0;
       }
-    if(p->data_size + FF_INPUT_BUFFER_PADDING_SIZE > priv->packet_buffer_alloc)
+    //    fprintf(stderr, "Get packet %d %d\n",
+    //            priv->bytes_in_packet_buffer, s->data.audio.block_align);
+    /* Move data to the beginning */
+    if(priv->bytes_in_packet_buffer && (priv->packet_buffer_ptr > priv->packet_buffer))
+      memmove(priv->packet_buffer, priv->packet_buffer_ptr,
+              priv->bytes_in_packet_buffer);
+    /* Realloc */
+    if(p->data_size + priv->bytes_in_packet_buffer +
+       FF_INPUT_BUFFER_PADDING_SIZE > priv->packet_buffer_alloc)
       {
-      priv->packet_buffer_alloc = p->data_size + FF_INPUT_BUFFER_PADDING_SIZE + 32;
+      priv->packet_buffer_alloc = p->data_size +
+        priv->bytes_in_packet_buffer +
+        FF_INPUT_BUFFER_PADDING_SIZE + 32;
       priv->packet_buffer = realloc(priv->packet_buffer, priv->packet_buffer_alloc);
       }
+    
     //    fprintf(stderr, "Got packet: %d bytes\n", p->data_size);      
-    priv->bytes_in_packet_buffer = p->data_size;
-    memcpy(priv->packet_buffer, p->data, p->data_size);
+    
+    memcpy(priv->packet_buffer + priv->bytes_in_packet_buffer, p->data, p->data_size);
+    
+    priv->bytes_in_packet_buffer += p->data_size;
     priv->packet_buffer_ptr = priv->packet_buffer;
     
-    memset(&(priv->packet_buffer[p->data_size]), 0, FF_INPUT_BUFFER_PADDING_SIZE);
+    memset(&(priv->packet_buffer[priv->bytes_in_packet_buffer]),
+           0, FF_INPUT_BUFFER_PADDING_SIZE);
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
   frame_size = 0;
-  //  fprintf(stderr, "Decode: %d %d\n", *priv->packet_buffer_ptr, priv->bytes_in_packet_buffer);
+  //  fprintf(stderr, "Decode: %02x %d, block_align: %d\n",
+  //          *priv->packet_buffer_ptr, priv->bytes_in_packet_buffer, s->data.audio.block_align);
   bytes_used = avcodec_decode_audio(priv->ctx,
                                     priv->frame->samples.s_16,
                                     &frame_size,
@@ -259,6 +282,8 @@ static int decode_frame(bgav_stream_t * s)
     {
     priv->packet_buffer_ptr += bytes_used;
     priv->bytes_in_packet_buffer -= bytes_used;
+    if(priv->bytes_in_packet_buffer < 0)
+      priv->bytes_in_packet_buffer = 0;
     }
   else
     {

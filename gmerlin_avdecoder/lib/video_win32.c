@@ -254,7 +254,8 @@ typedef struct
   DMO_VideoDecoder *dmo_dec;
 
   int bytes_per_pixel;
-  
+
+  int flip_y; /* Flip the image vertically */
   } win32_priv_t;
 
 static void pack_bih(BITMAPINFOHEADER * dst, bgav_BITMAPINFOHEADER_t * src)
@@ -309,7 +310,13 @@ static int init_std(bgav_win32_thread_t * thread)
   info = find_decoder(s->data.video.decoder->decoder);
 
   priv->ex_functions = info->ex_functions;
-    
+
+  if(s->data.video.format.image_height < 0)
+    {
+    s->data.video.format.image_height = -s->data.video.format.image_height;
+    priv->flip_y = 1;
+    }
+  
   bgav_BITMAPINFOHEADER_set_format(&bih_in, s);
   //  bih_in.biCompression = 0x6f766976;
   //  bih_in.biCompression = s->fourcc;
@@ -429,6 +436,10 @@ static int init_std(bgav_win32_thread_t * thread)
 
   //  fprintf(stderr, "OPEN VIDEO DONE\n");
 
+
+  if(gavl_pixelformat_is_rgb(s->data.video.format.pixelformat))
+    priv->flip_y ^= 1;
+  
   return 1;
   }
 
@@ -476,7 +487,7 @@ static int decode_std(bgav_win32_thread_t * thread)
     }
   if(frame)
     {
-    if(gavl_pixelformat_is_rgb(s->data.video.format.pixelformat))
+    if(priv->flip_y)
       {
       /* RGB pixelformats are upside down normally */
       gavl_video_frame_copy_flip_y(&s->data.video.format, frame, priv->frame);

@@ -30,6 +30,7 @@ extern bgav_demuxer_t bgav_demuxer_rmff;
 extern bgav_demuxer_t bgav_demuxer_quicktime;
 extern bgav_demuxer_t bgav_demuxer_vivo;
 extern bgav_demuxer_t bgav_demuxer_fli;
+extern bgav_demuxer_t bgav_demuxer_flv;
 
 extern bgav_demuxer_t bgav_demuxer_wav;
 extern bgav_demuxer_t bgav_demuxer_au;
@@ -88,6 +89,7 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_vivo,      "Vivo" },
     { &bgav_demuxer_mpegvideo, "Mpeg Video" },
     { &bgav_demuxer_fli,       "FLI/FLC Animation" },
+    { &bgav_demuxer_flv,       "Flash video (FLV)" },
     { &bgav_demuxer_nsv,       "NullSoft Video" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },

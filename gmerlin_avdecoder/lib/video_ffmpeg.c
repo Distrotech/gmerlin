@@ -239,6 +239,9 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('S', 'V', 'Q', '3'),
                0x00 } },
 
+    { "FFmpeg Flash video decoder", "Flash Video 1", CODEC_ID_FLV1,
+      (uint32_t[]){ BGAV_MK_FOURCC('F', 'L', 'V', '1'),
+                    0x00 } },
     
     /*************************************************************
      * Misc other stuff

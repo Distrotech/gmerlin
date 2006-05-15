@@ -353,6 +353,7 @@ static bgav_audio_decoder_t decoder =
     fourccs: (uint32_t[]){ BGAV_MK_FOURCC('m','p','4','a'),
                            BGAV_MK_FOURCC('a','a','c',' '),
                            BGAV_MK_FOURCC('A','A','C',' '),
+                           BGAV_MK_FOURCC('A','A','C','P'),
                       0x0 },
     
     init:   init_faad2,
