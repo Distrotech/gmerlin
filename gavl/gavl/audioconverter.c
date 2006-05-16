@@ -140,7 +140,7 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
 
   gavl_audio_format_t tmp_format;
   
-#if 1
+#if 0
   fprintf(stderr, "Initializing audio converter, quality: %d, Flags: 0x%08x\n",
           cnv->opt.quality, cnv->opt.accel_flags);
 #endif
@@ -160,9 +160,6 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
     cnv->input_format.samples_per_frame = cnv->output_format.samples_per_frame;
   else
     cnv->output_format.samples_per_frame = cnv->input_format.samples_per_frame;
-  
-  gavl_set_conversion_parameters(&(cnv->opt.accel_flags),
-                                 &(cnv->opt.quality));
   
   memset(&tmp_format, 0, sizeof(tmp_format));
   cnv->current_format = &(cnv->input_format);
@@ -241,7 +238,7 @@ int gavl_audio_converter_init(gavl_audio_converter_t* cnv,
       }
     
     if((cnv->current_format->sample_format != GAVL_SAMPLE_FLOAT) &&
-       ((cnv->opt.accel_flags & GAVL_ACCEL_C_HQ) ||
+       ((cnv->opt.quality > 3) ||
         (cnv->output_format.sample_format == GAVL_SAMPLE_FLOAT)))
       {
       tmp_format.sample_format = GAVL_SAMPLE_FLOAT;

@@ -1,5 +1,5 @@
 
-if ARCH_X86
+if HAVE_MMX
 mmx_libs = mmx/libgavl_mmx.la mmxext/libgavl_mmxext.la
 mmx_subdirs = mmx mmxext
 else

@@ -339,8 +339,9 @@ gavl_init_yuv_yuv_funcs_mmx(gavl_pixelformat_function_table_t * tab, int width,
   {
   if(width % 8)
     return;
-
-  /* These are as good as the C-Functions */
+  
+  /* These are as good as the C-Functions. Higher quality will invoke a scaler,
+     so this function won't get called anyway */
   
   tab->yuy2_to_yuv_420_p      = yuy2_to_yuv_420_p_mmx;
   tab->yuy2_to_yuv_422_p      = yuy2_to_yuv_422_p_mmx;

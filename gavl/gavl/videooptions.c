@@ -36,7 +36,7 @@
 void gavl_video_options_set_defaults(gavl_video_options_t * opt)
   {
   memset(opt, 0, sizeof(*opt));
-  opt->accel_flags = GAVL_ACCEL_C;
+  opt->accel_flags = gavl_accel_supported();
   opt->scale_order = 4;
   opt->quality = GAVL_QUALITY_DEFAULT;
   }

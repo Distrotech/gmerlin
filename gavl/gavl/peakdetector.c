@@ -107,7 +107,7 @@ static void update_channel_s16(gavl_peak_detector_t * pd, void * _samples,
                                int num)
   {
   int i;
-  int16_t * samples = (uint16_t *)_samples;
+  int16_t * samples = (int16_t *)_samples;
   for(i = 0; i < num; i++)
     {
     if(samples[i] > pd->max_i) pd->max_i = samples[i];
@@ -121,7 +121,7 @@ static void update_channel_s32(gavl_peak_detector_t * pd, void * _samples,
                                int num)
   {
   int i;
-  int32_t * samples = (uint32_t *)_samples;
+  int32_t * samples = (int32_t *)_samples;
   for(i = 0; i < num; i++)
     {
     if(samples[i] > pd->max_i) pd->max_i = samples[i];

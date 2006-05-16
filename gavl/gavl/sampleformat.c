@@ -119,7 +119,7 @@ gavl_sampleformat_table_t * gavl_create_sampleformat_table(gavl_audio_options_t 
   {
   gavl_sampleformat_table_t * ret = calloc(1, sizeof(*ret));
 
-  if(opt->accel_flags & GAVL_ACCEL_C)
+  if(!opt->accel_flags || (opt->accel_flags & GAVL_ACCEL_C))
     gavl_init_sampleformat_funcs_c(ret, interleave_mode);
   return ret;
   }

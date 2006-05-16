@@ -66,27 +66,58 @@ PKG_CHECK_MODULES(SECRETRABBIT, samplerate >= $SAMPLERATE_REQUIRED, ,
 AC_SUBST(SAMPLERATE_REQUIRED)
 
 dnl
-dnl CPU type (FIXME: Should be compiler features!)
-dnl
-
-CPU_PENTIUM=false
-
-case "$host_cpu" in
-  i586) CPU_PENTIUM=true ;;
-  i686) CPU_PENTIUM=true ;;
-  k6)   CPU_PENTIUM=true ;;
-esac
-
-case $CPU_PENTIUM in
-true) AC_DEFINE_UNQUOTED(ARCH_X86, , [X86 Architecture])
-esac
-AM_CONDITIONAL(ARCH_X86, test x$CPU_PENTIUM = xtrue)
-
-dnl
 dnl Build optimization flags
 dnl
 
 LQT_OPT_CFLAGS($host_cpu, ["-O3 -funroll-all-loops -fomit-frame-pointer -ffast-math"])
+
+dnl
+dnl Check for SIMD
+dnl
+
+AH_TEMPLATE([ARCH_X86],    [Intel Architecture (32/64)])
+AH_TEMPLATE([ARCH_X86_64], [Intel Architecture (64)])
+AH_TEMPLATE([ARCH_PPC],    [PowerPC Architecture])
+
+AH_TEMPLATE([HAVE_MMX],    [MMX Supported])
+AH_TEMPLATE([HAVE_3DNOW],  [3Dnow Supported])
+AH_TEMPLATE([HAVE_SSE],    [SSE Supported])
+AH_TEMPLATE([HAVE_SSE2],   [SSE2 Supported])
+
+
+GAVL_CHECK_SIMD($host_cpu, "$OPT_CFLAGS")
+
+if test x"$HAVE_MMX" = "xtrue"; then
+AC_DEFINE(HAVE_MMX)
+fi
+AM_CONDITIONAL(HAVE_MMX, test "x$HAVE_MMX" = "xtrue")
+
+if test x"$HAVE_3DNOW" = "xtrue"; then
+AC_DEFINE(HAVE_3DNOW)
+fi
+AM_CONDITIONAL(HAVE_3DNOW, test "x$HAVE_3DNOW" = "xtrue")
+
+if test x"$HAVE_SSE" = "xtrue"; then
+AC_DEFINE(HAVE_SSE)
+fi
+AM_CONDITIONAL(HAVE_SSE, test "x$HAVE_SSE" = "xtrue")
+
+if test x"$HAVE_SSE2" = "xtrue"; then
+AC_DEFINE(HAVE_SSE2)
+fi
+AM_CONDITIONAL(HAVE_SSE2, test "x$HAVE_SSE2" = "xtrue")
+
+if test x"$ARCH_X86" = "xtrue"; then
+AC_DEFINE(ARCH_X86)
+fi
+
+if test x"$ARCH_X86_64" = "xtrue"; then
+AC_DEFINE(ARCH_X86_64)
+fi
+
+if test x"$ARCH_PPC" = "xtrue"; then
+AC_DEFINE(ARCH_PPC)
+fi
 
 dnl
 dnl Now, build the final CFLAGS.

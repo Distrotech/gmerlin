@@ -2103,12 +2103,30 @@ gavl_init_rgb_rgb_funcs_mmx(gavl_pixelformat_function_table_t * tab,
   {
   if(width % 8)
     return;
+
+  /* Lossless conversions */
   
   tab->swap_rgb_24 = swap_rgb_24_mmx;
   tab->swap_rgb_32 = swap_rgb_32_mmx;
   tab->swap_rgb_16 = swap_rgb_16_mmx;
   tab->swap_rgb_15 = swap_rgb_15_mmx;
 
+  /* Conversion from RGB formats to RGBA (lossless) */
+
+  tab->rgb_24_to_rgba_32 = rgb_24_to_rgba_32_mmx;
+  tab->bgr_24_to_rgba_32 = bgr_24_to_rgba_32_mmx;
+  tab->rgb_32_to_rgba_32 = rgb_32_to_rgba_32_mmx;
+  tab->bgr_32_to_rgba_32 = bgr_32_to_rgba_32_mmx;
+
+  /* RGBA -> */
+
+  if(opt->alpha_mode == GAVL_ALPHA_IGNORE)
+    {
+    tab->rgba_32_to_rgb_24    = rgb_32_to_24_mmx;
+    tab->rgba_32_to_bgr_24    = rgb_32_to_24_swap_mmx;
+    tab->rgba_32_to_bgr_32    = swap_rgb_32_mmx;
+    }
+  
   /* Conversions from fewer to more bits are not that good */
 
   if(opt->quality < 3)
@@ -2143,45 +2161,45 @@ gavl_init_rgb_rgb_funcs_mmx(gavl_pixelformat_function_table_t * tab,
       tab->rgba_32_to_rgb_32 = rgba_32_to_rgb_32_mmx;
       tab->rgba_32_to_bgr_32 = rgba_32_to_bgr_32_mmx;  
       }
+    
     }
 
-  tab->rgb_16_to_15 = rgb_16_to_15_mmx;
-  
-  tab->rgb_24_to_15 = rgb_24_to_15_mmx;
-  tab->rgb_24_to_16 = rgb_24_to_16_mmx;
-  tab->rgb_24_to_32 = rgb_24_to_32_mmx;
-  
-  tab->rgb_32_to_15 = rgb_32_to_15_mmx;
-  tab->rgb_32_to_16 = rgb_32_to_16_mmx;
-  tab->rgb_32_to_24 = rgb_32_to_24_mmx;
+  /* Conversions from more to fewer bits are the same as the C versions.
+     High quality versions however, might be better */
 
-  tab->rgb_16_to_15_swap = rgb_16_to_15_swap_mmx;
-  
-  tab->rgb_24_to_15_swap = rgb_24_to_15_swap_mmx;
-  tab->rgb_24_to_16_swap = rgb_24_to_16_swap_mmx;
-  tab->rgb_24_to_32_swap = rgb_24_to_32_swap_mmx;
-  
-  tab->rgb_32_to_15_swap = rgb_32_to_15_swap_mmx;
-  tab->rgb_32_to_16_swap = rgb_32_to_16_swap_mmx;
-  tab->rgb_32_to_24_swap = rgb_32_to_24_swap_mmx;
-
-  /* Conversion from RGB formats to RGBA */
-
-  tab->rgb_24_to_rgba_32 = rgb_24_to_rgba_32_mmx;
-  tab->bgr_24_to_rgba_32 = bgr_24_to_rgba_32_mmx;
-  tab->rgb_32_to_rgba_32 = rgb_32_to_rgba_32_mmx;
-  tab->bgr_32_to_rgba_32 = bgr_32_to_rgba_32_mmx;
-
-  /* RGBA -> */
-
-  if(opt->alpha_mode == GAVL_ALPHA_IGNORE)
+  if(opt->quality < 4)
     {
-    tab->rgba_32_to_rgb_15    = rgb_32_to_15_mmx;
-    tab->rgba_32_to_bgr_15    = rgb_32_to_15_swap_mmx;
-    tab->rgba_32_to_rgb_16    = rgb_32_to_16_mmx;
-    tab->rgba_32_to_bgr_16    = rgb_32_to_16_swap_mmx;
-    tab->rgba_32_to_rgb_24    = rgb_32_to_24_mmx;
-    tab->rgba_32_to_bgr_24    = rgb_32_to_24_swap_mmx;
-    tab->rgba_32_to_bgr_32    = swap_rgb_32_mmx;
+    tab->rgb_16_to_15 = rgb_16_to_15_mmx;
+  
+    tab->rgb_24_to_15 = rgb_24_to_15_mmx;
+    tab->rgb_24_to_16 = rgb_24_to_16_mmx;
+    tab->rgb_24_to_32 = rgb_24_to_32_mmx;
+    
+    tab->rgb_32_to_15 = rgb_32_to_15_mmx;
+    tab->rgb_32_to_16 = rgb_32_to_16_mmx;
+    tab->rgb_32_to_24 = rgb_32_to_24_mmx;
+    
+    tab->rgb_16_to_15_swap = rgb_16_to_15_swap_mmx;
+    
+    tab->rgb_24_to_15_swap = rgb_24_to_15_swap_mmx;
+    tab->rgb_24_to_16_swap = rgb_24_to_16_swap_mmx;
+    tab->rgb_24_to_32_swap = rgb_24_to_32_swap_mmx;
+    
+    tab->rgb_32_to_15_swap = rgb_32_to_15_swap_mmx;
+    tab->rgb_32_to_16_swap = rgb_32_to_16_swap_mmx;
+    tab->rgb_32_to_24_swap = rgb_32_to_24_swap_mmx;
+
+    /* RGBA -> */
+    
+    if(opt->alpha_mode == GAVL_ALPHA_IGNORE)
+      {
+      tab->rgba_32_to_rgb_15    = rgb_32_to_15_mmx;
+      tab->rgba_32_to_bgr_15    = rgb_32_to_15_swap_mmx;
+      tab->rgba_32_to_rgb_16    = rgb_32_to_16_mmx;
+      tab->rgba_32_to_bgr_16    = rgb_32_to_16_swap_mmx;
+      }
+    
     }
+  
+
   }

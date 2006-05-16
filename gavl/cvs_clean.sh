@@ -4,6 +4,8 @@ CVSCLEANFILES="config.guess config.status config.sub configure gavl.spec gavl.pc
 
 SUBDIRS="src gavl gavl/c gavl/mmx gavl/mmxext include"
 
+make distclean
+
 echo "Cleaning up..."
 for i in $CVSCLEANFILES; do
 echo "Removing $i"

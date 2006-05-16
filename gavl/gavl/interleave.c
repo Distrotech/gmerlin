@@ -168,7 +168,7 @@ gavl_create_interleave_table(gavl_audio_options_t * opt)
   {
   gavl_interleave_table_t * ret = calloc(1, sizeof(*ret));
 
-  if(opt->accel_flags & GAVL_ACCEL_C)
+  if(!opt->accel_flags || (opt->accel_flags & GAVL_ACCEL_C))
     gavl_init_interleave_funcs_c(ret);
   return ret;
   }
