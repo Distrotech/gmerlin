@@ -662,6 +662,7 @@ plugins/esd/Makefile \
 plugins/lqt/Makefile \
 plugins/oss/Makefile \
 plugins/jpeg/Makefile \
+plugins/mikmod/Makefile \
 plugins/png/Makefile \
 plugins/postprocessors/Makefile \
 plugins/image/Makefile \

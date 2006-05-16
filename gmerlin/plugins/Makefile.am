@@ -69,6 +69,7 @@ $(png_subdirs) \
 $(tiff_subdirs) \
 $(x11_subdirs) \
 $(cdio_subdirs) \
+mikmod \
 wavwrite \
 image \
 postprocessors
