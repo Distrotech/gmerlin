@@ -1,10 +1,7 @@
 #!/bin/sh
-clear
 ##################################################################
 # 
 #  gmerlin_installer.sh
-# 
-#  Copyright (c) 2006 by Michael Gruenert - one78@web.de
 # 
 #  http://gmerlin.sourceforge.net
 # 
@@ -18,8 +15,10 @@ clear
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
 #
 ################################################################## 
-
-
+# TO DO:
+# packets control: 
+#   UBUNTU: freetype pack
+#   FEDORA + UBUNTU: nasm + libcddb packs
 
 
 
@@ -28,12 +27,16 @@ clear
 
                                         ###### Define VARIABLES for installation ######
 
+                                            # Define the script version #
+VERSION="0.1"
+FROM="11.05.2006"
+
                                             # Define the old PKG_CONFIG_PATH #
 OLD_PKG_CONFIG=$PKG_CONFIG_PATH
 
                                             # Define a test PACKET variable #
-GRUENI=""
-#GRUENI="20060203"
+TEST_PACK=""
+#TEST_PACK="20060203"
 
                                            # Define the INSTALLATION directorys #
 LOGS=".gmerlin_logs"     ;     HELPS=".gmerlin_helps"     ;      HOME="GMerlin_INstallation"
@@ -43,12 +46,21 @@ BASE="yum apt-get"
 BASE_HELP="rpm dpkg"
 TOOLS="tar grep wget findutils"
 
-APT_LIBS_OPTI="libttf-dev libfontconfig1-dev libtiff4-dev libpng12-dev libjpeg62-dev libgtk2.0-dev libvorbis-dev libesd0-dev libxt-dev libgtk1.2-dev xmms-dev"
-APT_LIBS_NEED="libasound2-dev zlib1g-dev libxml2-dev libxinerama-dev libxv-dev libflac-dev libsmbclient-dev x11proto-video-dev"
+APT_LIBS_OPTI="libttf-dev libfontconfig1-dev libtiff4-dev \
+               libpng12-dev libjpeg62-dev libgtk2.0-dev \
+               libvorbis-dev libesd0-dev libxt-dev \
+               libgtk1.2-dev xmms-dev"
+APT_LIBS_NEED="libasound2-dev zlib1g-dev libxml2-dev \
+               libxinerama-dev libxv-dev libflac-dev \
+               libsmbclient-dev x11proto-video-dev"
 APT_LIBS_IMPO="autoconf automake1.9 build-essential libtool"
 
-YUM_LIBS_OPTI="libpng-devel libtiff-devel libvorbis-devel esound-devel flac-devel libjpeg-devel fontconfig-devel freetype-devel"
-YUM_LIBS_NEED="alsa-lib-devel libxml2-devel samba-common xmms-devel xorg-x11-devel zlib-devel gtk+-devel gtk2-devel ncurses-devel"
+YUM_LIBS_OPTI="libpng-devel libtiff-devel libvorbis-devel \
+               esound-devel flac-devel libjpeg-devel \
+               fontconfig-devel freetype-devel"
+YUM_LIBS_NEED="alsa-lib-devel libxml2-devel samba-common \
+               xmms-devel xorg-x11-devel zlib-devel \
+               gtk+-devel gtk2-devel ncurses-devel"
 YUM_LIBS_IMPO="gcc gcc-c++ autoconf automake libtool"
 
                                         ###### Define COLORS and POSITIONS ######
@@ -81,9 +93,9 @@ YES_NO="$COL_DEF$POSITION_DISKRIPTION[ \033[32;1mY\033[0mES,\033[31;1mN\033[0mO 
 # $1 = GMERLIN_PACK TO FIND // $NEWEST = RETURN WERT
 function FIND_NEWEST_PACKET_FUNC()
 {
-if [ "$GRUENI" != "" ]
+if [ "$TEST_PACK" != "" ]
     then
-    NEWEST="$1-$GRUENI.tar.bz2"
+    NEWEST="$1-$TEST_PACK.tar.bz2"
     #echo $NEWEST
     return 0
 else
@@ -577,6 +589,37 @@ function FIND_PKG_FUNC()
     return 0;
 }
 
+# PRINT VERSION NUMBER
+function VERSION_NUMBER_FUNK()
+{
+    echo -e "\n$POSITION_INFO Script Version: $COL_RED_HIGH$VERSION$COL_DEF $FROM by http://gmerlin.sourceforge.net/\n";
+}
+
+# PRINT HELP TEXT
+function HELP_TEXT_FUNK()
+{
+cat << EOF
+     ---------
+       Help:
+     ---------
+ 
+     Usage:          gmerlin_installer.sh [options] 
+ 
+     Description:    This script is designed to install gmerlin
+                     with all dependencies and featurs on the computer
+ 
+     Options: -a     answers all questions automatically with yes 
+                     without installation questions
+ 
+              -i     install all things automatically without questions
+ 
+              -v     print the scrit versions number
+ 
+              -h     print this help message
+
+EOF
+echo;
+}
 
 
 
@@ -631,14 +674,31 @@ READY_EXIT_FUNC "$COL_DEF Can not change to $COL_RED_LINE_HIGH$HOME$COL_DEF dire
 HAND=false
 AUTO_CHECK=false
 AUTO_INSTALL=false
-if [ "$1" = "-a" -o "$2" = "-a" ]
+
+if [ "$1" = "-v" ]
     then
+    VERSION_NUMBER_FUNK
+    exit
+elif [ "$1" = "-h" -o "$1" = "--help" ]
+    then
+    VERSION_NUMBER_FUNK
+    HELP_TEXT_FUNK
+    exit 
+elif [ "$1" = "-a" -o "$2" = "-a" ]
+    then
+    clear
     AUTO_CHECK=true
-fi
-if [ "$1" = "-i" -o "$2" = "-i" ]
+elif [ "$1" = "-i" -o "$2" = "-i" ]
     then
+    clear
     AUTO_INSTALL=true
-fi
+elif [ "$1" = "" ]
+    then
+    clear
+else
+    HELP_TEXT_FUNK
+    exit
+fi	 
 
 
 
@@ -646,6 +706,7 @@ fi
 ############################################### SEND WELCOME MESSAGE AND INFOS ##############################################################
 
 PRINT_PAGE_HEAD_LINE_FUNC "Welcome to the Gmerlin installation" "-e"
+
 PRINT_PAGE_COMMENT_LINE_FUNC "This script will be install Gmerlin on your System, with all features." "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "The needed components and librarys will downloaded by internet." "-e"
 PRINT_NEW_LINE_FUNC 1
