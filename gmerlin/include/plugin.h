@@ -579,7 +579,7 @@ typedef struct bg_encoder_plugin_s
   /* Multipass video encoding. Return FALSE if multipass transcoding is
      not supported and can be ommitted */
   int (*set_video_pass)(void * data, int stream, int pass, int total_passes,
-                        char * stats_file);
+                        const char * stats_file);
   
   
   /*

@@ -651,7 +651,7 @@ static int load_font(bg_text_renderer_t * r)
     {
     /* Get font file */
     FcInit();
-    fc_pattern = FcNameParse(r->font);
+    fc_pattern = FcNameParse((const FcChar8*)r->font);
     
     //  FcPatternPrint(fc_pattern);
     
@@ -675,7 +675,7 @@ static int load_font(bg_text_renderer_t * r)
       FcPatternDestroy(fc_pattern);
       FcPatternDestroy(fc_pattern_1);
       
-      fc_pattern = FcNameParse("Sans-20");
+      fc_pattern = FcNameParse((const FcChar8*)"Sans-20");
       FcConfigSubstitute(0, fc_pattern, FcMatchPattern);
       FcDefaultSubstitute(fc_pattern);
       fc_pattern_1 = FcFontMatch(0, fc_pattern, 0);
@@ -687,14 +687,14 @@ static int load_font(bg_text_renderer_t * r)
     }
   else
     {
-    filename = r->font_file;
+    filename = (FcChar8 *)r->font_file;
     }
   
   //  fprintf(stderr, "File: %s, Size: %f\n", filename, r->font_size);
   
   /* Load face */
   
-  err = FT_New_Face(r->library, filename, 0, &r->face);
+  err = FT_New_Face(r->library, (char*)filename, 0, &r->face);
   
   if(err)
     {

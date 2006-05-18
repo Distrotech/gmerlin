@@ -273,7 +273,7 @@ pango_fc_make_pattern (const  PangoFontDescription *description,
     g_strsplit (pango_font_description_get_family (description), ",", -1);
   
   for (i = 0; families[i]; i++)
-    FcPatternAddString (pattern, FC_FAMILY, families[i]);
+    FcPatternAddString (pattern, FC_FAMILY, (const FcChar8*)families[i]);
   
   g_strfreev (families);
   
@@ -306,7 +306,7 @@ char * bg_gtk_convert_font_name_from_pango(const char * name)
   
   pattern = pango_fc_make_pattern(description, size);
 
-  ret = FcNameUnparse(pattern);
+  ret = (char*)FcNameUnparse(pattern);
 
   FcPatternDestroy(pattern);
   pango_font_description_free(description);
@@ -321,7 +321,7 @@ char * bg_gtk_convert_font_name_to_pango(const char * name)
   PangoFontDescription *description;
   FcPattern *pattern;
 
-  pattern = FcNameParse(name);
+  pattern = FcNameParse((const FcChar8 *)name);
   description = pango_fc_font_description_from_pattern(pattern, TRUE);
 
   tmp = pango_font_description_to_string(description);

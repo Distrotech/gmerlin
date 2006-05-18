@@ -23,7 +23,12 @@
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
-// #undef FT_STROKER_H
+/* The freetype stroker is screwed up in
+   versions up to and including 2.1.9 */
+
+#if (FREETYPE_MINOR<1)|| ((FREETYPE_MINOR==1)&&(FREETYPE_PATCH<10))
+#undef FT_STROKER_H
+#endif
 
 /* Stroker interface */
 #ifdef FT_STROKER_H

@@ -37,10 +37,11 @@
 
 #define PLAYBACK_NONE       0
 #define PLAYBACK_GENERIC    1
-#define PLAYBACK_SURROUND40 2
-#define PLAYBACK_SURROUND41 3
-#define PLAYBACK_SURROUND50 4
-#define PLAYBACK_SURROUND51 5
+#define PLAYBACK_USER       2
+#define PLAYBACK_SURROUND40 3
+#define PLAYBACK_SURROUND41 4
+#define PLAYBACK_SURROUND50 5
+#define PLAYBACK_SURROUND51 6
 
 
 static bg_parameter_info_t global_parameters[] =
@@ -50,24 +51,35 @@ static bg_parameter_info_t global_parameters[] =
       long_name:   "Enable 4.0 Surround",
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
+      help_string: "Use the surround 4.0 (aka quadrophonic) device"
     },
     {
       name:        "surround41",
       long_name:   "Enable 4.1 Surround",
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
+      help_string: "Use the surround 4.1 device"
     },
     {
       name:        "surround50",
       long_name:   "Enable 5.0 Surround",
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
+      help_string: "Use the surround 5.0 device"
     },
     {
       name:        "surround51",
       long_name:   "Enable 5.1 Surround",
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
+      help_string: "Use the surround 5.1 device"
+    },
+    {
+      name:        "user_device",
+      long_name:   "User device",
+      type:        BG_PARAMETER_STRING,
+      help_string: "Enter a custom device to use for playback. Leave empty to use the\
+ settings above",
     },
   };
 
@@ -89,6 +101,7 @@ typedef struct
   
   int card_index;
 
+  char * user_device;
   char * error_msg;
   int convert_4_3;
   uint8_t * convert_buffer;
@@ -177,37 +190,44 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   num_rear_channels = gavl_rear_channels(format);
   num_lfe_channels = gavl_lfe_channels(format);
 
-  playback_mode = PLAYBACK_NONE;
-  
-  if(num_front_channels > 2)
+  if(priv->user_device)
     {
-    if(num_lfe_channels)
+    playback_mode = PLAYBACK_USER;
+    }
+  else
+    {
+    playback_mode = PLAYBACK_NONE;
+  
+    if(num_front_channels > 2)
       {
-      if(priv->enable_surround51)
-        playback_mode = PLAYBACK_SURROUND51;
+      if(num_lfe_channels)
+        {
+        if(priv->enable_surround51)
+          playback_mode = PLAYBACK_SURROUND51;
+        else if(priv->enable_surround50)
+          playback_mode = PLAYBACK_SURROUND50;
+        }
       else if(priv->enable_surround50)
         playback_mode = PLAYBACK_SURROUND50;
       }
-    else if(priv->enable_surround50)
-      playback_mode = PLAYBACK_SURROUND50;
-    }
   
-  else if((playback_mode == PLAYBACK_NONE) && num_rear_channels)
-    {
-    if(num_lfe_channels)
+    else if((playback_mode == PLAYBACK_NONE) && num_rear_channels)
       {
-      if(priv->enable_surround41)
-        playback_mode = PLAYBACK_SURROUND41;
+      if(num_lfe_channels)
+        {
+        if(priv->enable_surround41)
+          playback_mode = PLAYBACK_SURROUND41;
+        else if(priv->enable_surround40)
+          playback_mode = PLAYBACK_SURROUND40;
+        }
       else if(priv->enable_surround40)
         playback_mode = PLAYBACK_SURROUND40;
       }
-    else if(priv->enable_surround40)
-      playback_mode = PLAYBACK_SURROUND40;
+
+    if(playback_mode == PLAYBACK_NONE)
+      playback_mode = PLAYBACK_GENERIC;
     }
-
-  if(playback_mode == PLAYBACK_NONE)
-    playback_mode = PLAYBACK_GENERIC;
-
+  
   switch(playback_mode)
     {
     case PLAYBACK_GENERIC:
@@ -219,6 +239,12 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
 
       //      fprintf(stderr, "Playback mode: generic\n");
 
+      break;
+    case PLAYBACK_USER:
+      format->channel_locations[0] = GAVL_CHID_NONE;
+      gavl_set_channel_setup(format);
+      card = bg_strdup((char*)0, priv->user_device);
+      //      fprintf(stderr, "Using user device %s\n", card);
       break;
     case PLAYBACK_SURROUND40:
       format->num_channels = 4;
@@ -367,8 +393,8 @@ static void destroy_alsa(void * p)
 
   if(priv->parameters)
     bg_parameter_info_destroy_array(priv->parameters);
-
-
+  if(priv->user_device)
+    free(priv->user_device);
   free(priv);
   }
 
@@ -420,6 +446,10 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
   else if(!strcmp(name, "surround51"))
     {
     priv->enable_surround51 = val->val_i;
+    }
+  else if(!strcmp(name, "user_device"))
+    {
+    priv->user_device = bg_strdup(priv->user_device, val->val_str);
     }
   else if(!strcmp(name, "card"))
     {
