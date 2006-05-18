@@ -29,7 +29,7 @@ static snd_pcm_t * bg_alsa_open(const char * card,
                                 int * convert_4_3)
   {
   unsigned int i_tmp;
-  int dir;
+  int dir, err;
   snd_pcm_hw_params_t *hw_params = (snd_pcm_hw_params_t *)0;
   //  snd_pcm_sw_params_t *sw_params = (snd_pcm_sw_params_t *)0;
   snd_pcm_t *ret                 = (snd_pcm_t *)0;
@@ -44,15 +44,16 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   /* We open in non blocking mode so our process won't hang if the card is
      busy */
   
-  if(snd_pcm_open(&ret,
-                  card,
-                  stream,           // SND_PCM_STREAM_PLAYBACK SND_PCM_STREAM_CAPTURE
-                  SND_PCM_NONBLOCK  //   SND_PCM_ASYNC
-                  ) < 0)
+  if((err = snd_pcm_open(&ret,
+                         card,
+                         stream,  // SND_PCM_STREAM_PLAYBACK SND_PCM_STREAM_CAPTURE
+                         SND_PCM_NONBLOCK  //   SND_PCM_ASYNC
+                         ) < 0))
     {
     ret = (snd_pcm_t *)0;
-    if(error_msg) *error_msg = bg_sprintf("alsa: snd_pcm_open failed");
-    fprintf(stderr, "alsa: snd_pcm_open failed [%s]\n", *error_msg);
+    if(error_msg)
+      *error_msg = bg_sprintf("alsa: snd_pcm_open failed for device %s (%s)", 
+                              card, snd_strerror(err));
     goto fail;
     }
 
