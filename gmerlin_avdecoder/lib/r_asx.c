@@ -93,8 +93,7 @@ static void get_url(bgav_yml_node_t * n, bgav_url_info_t * ret,
       {
       if(!ret->url)
         ret->url =
-          bgav_strndup(bgav_yml_get_attribute_i(n, "href"),
-                       NULL);
+          bgav_strdup(bgav_yml_get_attribute_i(n, "href"));
       }
     n = n->next;
     }
@@ -148,7 +147,7 @@ static int xml_2_asx(bgav_redirector_context_t * r, bgav_yml_node_t * n)
     {
     if(!sc(node->name, "Title") && node->children)
       {
-      title = bgav_strndup(node->children->str, NULL);
+      title = bgav_strdup(node->children->str);
       }
     node = node->next;
     }

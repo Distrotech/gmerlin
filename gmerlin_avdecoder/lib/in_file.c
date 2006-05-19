@@ -52,7 +52,7 @@ static int open_file(bgav_input_context_t * ctx, const char * url)
 
   //  fprintf(stderr, "Total bytes: %lld\n", ctx->total_bytes);
   
-  ctx->filename = bgav_strndup(url, NULL);
+  ctx->filename = bgav_strdup(url);
   return 1;
   }
 

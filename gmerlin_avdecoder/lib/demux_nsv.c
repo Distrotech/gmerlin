@@ -510,14 +510,14 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
 
     if(p->fh.metadata.title)
       ctx->tt->current_track->metadata.title =
-        bgav_strndup(p->fh.metadata.title, (char*)0);
+        bgav_strdup(p->fh.metadata.title);
 
     if(p->fh.metadata.url)
       ctx->tt->current_track->metadata.comment =
-        bgav_strndup(p->fh.metadata.url, (char*)0);
+        bgav_strdup(p->fh.metadata.url);
     if(p->fh.metadata.creator)
       ctx->tt->current_track->metadata.author =
-        bgav_strndup(p->fh.metadata.creator, (char*)0);
+        bgav_strdup(p->fh.metadata.creator);
 
     /* Decide whether we can seek */
 
@@ -529,8 +529,7 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
 
   if(!ctx->tt->tracks[0].name && ctx->input->metadata.title)
     {
-    ctx->tt->tracks[0].name = bgav_strndup(ctx->input->metadata.title,
-                                           NULL);
+    ctx->tt->tracks[0].name = bgav_strdup(ctx->input->metadata.title);
     }
 
   ctx->stream_description = bgav_sprintf("Nullsoft Video (NSV)");

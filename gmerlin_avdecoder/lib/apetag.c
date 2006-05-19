@@ -100,7 +100,7 @@ bgav_ape_tag_t * bgav_ape_tag_read(bgav_input_context_t * input, int tag_size)
     item_value_size = BGAV_PTR_2_32LE(ptr); ptr+=4;
     flags  = BGAV_PTR_2_32LE(ptr);          ptr+=4;
 
-    ret->items[i].key = bgav_strndup((char*)ptr, (char*)0);
+    ret->items[i].key = bgav_strdup((char*)ptr);
     ptr += strlen(ret->items[i].key) + 1;
 
     if((flags & 0x00000006) == 0) /* UTF-8 Data */
@@ -132,7 +132,7 @@ void bgav_ape_tag_dump(bgav_ape_tag_t * tag)
 
 #define STRVAL(k, v) \
   if(!strcasecmp(tag->items[i].key, k) && tag->items[i].str)  \
-    m->v = bgav_strndup(tag->items[i].str, (char*)0)
+    m->v = bgav_strdup(tag->items[i].str)
 
 #define INTVAL(k, v) \
   if(!strcasecmp(tag->items[i].key, k) && tag->items[i].str)  \

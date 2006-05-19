@@ -71,7 +71,7 @@ static int parse_origin(const char * line, bgav_sdp_origin_t * ret)
   if(strings[0])
     {
     if((strings[0][0] != '-') || (strlen(strings[0]) > 1))
-      ret->username = bgav_strndup(strings[0], NULL);
+      ret->username = bgav_strdup(strings[0]);
     }
   else
     goto fail;
@@ -95,7 +95,7 @@ static int parse_origin(const char * line, bgav_sdp_origin_t * ret)
   if(strings[3])
     {
     if(strlen(strings[3]))
-      ret->network_type = bgav_strndup(strings[3], NULL);
+      ret->network_type = bgav_strdup(strings[3]);
     }
   else
     goto fail;
@@ -103,7 +103,7 @@ static int parse_origin(const char * line, bgav_sdp_origin_t * ret)
   if(strings[4])
     {
     if(strlen(strings[4]))
-      ret->addr_type = bgav_strndup(strings[4], NULL);
+      ret->addr_type = bgav_strdup(strings[4]);
     }
   else
     goto fail;
@@ -111,7 +111,7 @@ static int parse_origin(const char * line, bgav_sdp_origin_t * ret)
   if(strings[5])
     {
     if(strlen(strings[5]))
-      ret->addr = bgav_strndup(strings[5], NULL);
+      ret->addr = bgav_strdup(strings[5]);
     }
   else
     goto fail;
@@ -172,7 +172,7 @@ static int parse_bandwidth_desc(const char * line,
       ret->bandwidth = strtoul(line + 3, NULL, 10);
       break;
     case BGAV_SDP_BANDWIDTH_MODIFIER_USER:
-      ret->user_bandwidth = bgav_strndup(line, NULL);
+      ret->user_bandwidth = bgav_strdup(line);
       break;
     }
   return 1;
@@ -235,7 +235,7 @@ static int parse_key_desc(const char * line, bgav_sdp_key_desc_t * ret)
   if(*pos == ':')
     {
     pos++;
-    ret->key = bgav_strndup(pos, NULL);
+    ret->key = bgav_strdup(pos);
     }
   return 1;
   }
@@ -366,7 +366,7 @@ static int parse_attr(const char * line,
   else
     {
     ret->type = BGAV_SDP_TYPE_GENERIC;
-    ret->val.str = bgav_strndup(pos1, NULL);
+    ret->val.str = bgav_strdup(pos1);
     }
   return 1;
   }
@@ -482,7 +482,7 @@ static int parse_media(char ** lines, bgav_sdp_media_desc_t * ret)
   strings = bgav_stringbreak(lines[0]+2, ' ');
 
   if(strings[0])
-    ret->media = bgav_strndup(strings[0], NULL);
+    ret->media = bgav_strdup(strings[0]);
   else
     goto fail;
 
@@ -501,7 +501,7 @@ static int parse_media(char ** lines, bgav_sdp_media_desc_t * ret)
 
   if(strings[2])
     {
-    ret->protocol = bgav_strndup(strings[2], NULL);
+    ret->protocol = bgav_strdup(strings[2]);
     }
   else
     goto fail;
@@ -514,7 +514,7 @@ static int parse_media(char ** lines, bgav_sdp_media_desc_t * ret)
     ret->formats = malloc(ret->num_formats * sizeof(char*));
     for(i = 0; i < ret->num_formats; i++)
       {
-      ret->formats[i] = bgav_strndup(strings[3+i], NULL);
+      ret->formats[i] = bgav_strdup(strings[3+i]);
       }
     }
   else
@@ -539,7 +539,7 @@ static int parse_media(char ** lines, bgav_sdp_media_desc_t * ret)
     switch(lines[line_index][0])
       {
       case 'i': //  i=* (session information)
-        ret->media_title = bgav_strndup(lines[line_index] + 2, NULL);
+        ret->media_title = bgav_strdup(lines[line_index] + 2);
         line_index++;
         break;
       case 'c': //  c=* (connection information - not required if included in all media)
@@ -721,23 +721,23 @@ int bgav_sdp_parse(const char * data, bgav_sdp_t * ret)
         line_index++;
         break;
       case 's': //  s=  (session name)
-        ret->session_name = bgav_strndup(lines[line_index] + 2, NULL);
+        ret->session_name = bgav_strdup(lines[line_index] + 2);
         line_index++;
         break;
       case 'i': //  i=* (session information)
-        ret->session_description = bgav_strndup(lines[line_index] + 2, NULL);
+        ret->session_description = bgav_strdup(lines[line_index] + 2);
         line_index++;
         break;
       case 'u': //  u=* (URI of description)
-        ret->uri = bgav_strndup(lines[line_index] + 2, NULL);
+        ret->uri = bgav_strdup(lines[line_index] + 2);
         line_index++;
         break;
       case 'e': //  e=* (email address)
-        ret->email = bgav_strndup(lines[line_index] + 2, NULL);
+        ret->email = bgav_strdup(lines[line_index] + 2);
         line_index++;
         break;
       case 'p': //  p=* (phone number)
-        ret->phone = bgav_strndup(lines[line_index] + 2, NULL);
+        ret->phone = bgav_strdup(lines[line_index] + 2);
         line_index++;
         break;
       case 'c': //  c=* (connection information - not required if included in all media)

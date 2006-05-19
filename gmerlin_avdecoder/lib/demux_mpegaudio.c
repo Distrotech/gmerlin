@@ -694,7 +694,7 @@ static int set_stream(bgav_demuxer_context_t * ctx)
     }
     
   if(priv->have_xing)
-    bitrate_string = bgav_strndup("Variable", NULL);
+    bitrate_string = bgav_strdup("Variable");
   else
     bitrate_string =
       bgav_sprintf("%d kb/s",
@@ -889,8 +889,7 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx,
   if(!ctx->tt->tracks[0].name && ctx->input->metadata.title)
     {
     // fprintf(stderr, "demux_mpegaudio: Setting track name from metadata title\n");
-    ctx->tt->tracks[0].name = bgav_strndup(ctx->input->metadata.title,
-                                           NULL);
+    ctx->tt->tracks[0].name = bgav_strdup(ctx->input->metadata.title);
     }
   return 1;
   }

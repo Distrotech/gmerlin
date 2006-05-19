@@ -168,7 +168,7 @@ static const char *id3_genres[GENRE_MAX] =
   };
 
 #define CS(src, dst) \
-if(t->src) m->dst = bgav_strndup(t->src, NULL);
+if(t->src) m->dst = bgav_strdup(t->src);
 
 #if 0
   
@@ -203,6 +203,6 @@ void bgav_id3v1_2_metadata(bgav_id3v1_tag_t * t, bgav_metadata_t * m)
   CS(comment, comment);
   
   if(t->genre < GENRE_MAX)
-    m->genre = bgav_strndup(bgav_id3v1_get_genre(t->genre), NULL);
+    m->genre = bgav_strdup(bgav_id3v1_get_genre(t->genre));
   m->track = t->track;
   }

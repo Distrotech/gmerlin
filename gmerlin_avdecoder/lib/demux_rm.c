@@ -574,7 +574,7 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
   track = ctx->tt->current_track;
 
   if(ctx->input->metadata.title)
-    track->name = bgav_strndup(ctx->input->metadata.title, (char*)0);
+    track->name = bgav_strdup(ctx->input->metadata.title);
     
   /* Create streams */
 

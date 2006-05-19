@@ -311,7 +311,7 @@ static int open_and_describe(bgav_input_context_t * ctx,
   var = bgav_rtsp_get_answer(priv->r, "RealChallenge1");
   if(var)
     {
-    priv->challenge1 = bgav_strndup(var, NULL);
+    priv->challenge1 = bgav_strdup(var);
     priv->type = SERVER_TYPE_REAL;
     //    fprintf(stderr, "Real Server, challenge %s\n", var);
     }
@@ -436,13 +436,13 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
     goto fail;
     }
   else
-    session_id=bgav_strndup(var, NULL);
+    session_id=bgav_strdup(var);
   
   sdp = bgav_rtsp_get_sdp(priv->r);
 
   /* Set up input metadata from sdp */
-  ctx->metadata.title = bgav_strndup(sdp->session_name, (char*)0);
-  ctx->metadata.comment = bgav_strndup(sdp->session_description, (char*)0);
+  ctx->metadata.title = bgav_strdup(sdp->session_name);
+  ctx->metadata.comment = bgav_strdup(sdp->session_description);
   
   switch(priv->type)
     {
@@ -529,7 +529,7 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
   if(session_id)
     free(session_id);
 
-  ctx->url = bgav_strndup(url, NULL);
+  ctx->url = bgav_strdup(url);
   
   return 1;
 

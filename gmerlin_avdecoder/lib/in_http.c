@@ -82,7 +82,7 @@ static void set_metadata_string(bgav_http_header_t * header,
     val = bgav_http_header_get_var(header, vars[i]);
     if(val)
       {
-      *str = bgav_strndup(val, NULL);
+      *str = bgav_strdup(val);
 //      fprintf(stderr, "Metadata title: %s\n", val);
       return;
       }
@@ -147,9 +147,9 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
   
   var = bgav_http_header_get_var(header, "Content-Type");
   if(var)
-    ctx->mimetype = bgav_strndup(var, NULL);
+    ctx->mimetype = bgav_strdup(var);
   else if(bgav_http_header_get_var(header, "icy-notice1"))
-    ctx->mimetype = bgav_strndup("audio/mpeg", NULL);
+    ctx->mimetype = bgav_strdup("audio/mpeg");
   
   var = bgav_http_header_get_var(header, "icy-metaint");
   if(var)
@@ -183,7 +183,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
   else
     ctx->do_buffer = 1;
 
-  ctx->url = bgav_strndup(url, NULL);
+  ctx->url = bgav_strdup(url);
   return 1;
   }
 

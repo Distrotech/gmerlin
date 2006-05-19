@@ -735,7 +735,7 @@ static int select_mlti_data(const uint8_t *mlti_chunk, int mlti_size, int select
 #define GET_ATTR_STRING(attrs, num_attrs, name, dst, dst_len)   \
   if(bgav_sdp_get_attr_string(attrs, num_attrs, name, &str))    \
     {                                                           \
-    dst = bgav_strndup(str, NULL);                              \
+    dst = bgav_strdup(str);                              \
     dst_len = strlen(dst);                                      \
     }
 

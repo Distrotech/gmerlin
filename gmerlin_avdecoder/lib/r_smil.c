@@ -214,11 +214,11 @@ static void get_url(bgav_yml_node_t * n, bgav_url_info_t * ret,
   int i;
   
   location =
-    bgav_strndup(bgav_yml_get_attribute_i(n, "src"), NULL);
+    bgav_strdup(bgav_yml_get_attribute_i(n, "src"));
   language = 
-    bgav_strndup(bgav_yml_get_attribute_i(n, "system-language"), NULL);
+    bgav_strdup(bgav_yml_get_attribute_i(n, "system-language"));
   bitrate = 
-    bgav_strndup(bgav_yml_get_attribute_i(n, "system-bitrate"), NULL);
+    bgav_strdup(bgav_yml_get_attribute_i(n, "system-bitrate"));
 
   // fprintf(stderr, "Location: %s\n", location);
   
@@ -235,7 +235,7 @@ static void get_url(bgav_yml_node_t * n, bgav_url_info_t * ret,
       ret->url = bgav_sprintf("%s/%s", url_base, location);
     }
   else
-    ret->url = bgav_strndup(location, NULL);
+    ret->url = bgav_strdup(location);
 
   /* Set name */
 
@@ -314,7 +314,7 @@ static int xml_2_smil(bgav_redirector_context_t * r, bgav_yml_node_t * n)
     if(!sc(node->name, "head"))
       {
       child_node = node->children;
-      //      title = bgav_strndup(node->children->str, NULL);
+      //      title = bgav_strdup(node->children->str);
 
       while(child_node)
         {
@@ -330,8 +330,7 @@ static int xml_2_smil(bgav_redirector_context_t * r, bgav_yml_node_t * n)
             if(!sc(bgav_yml_get_attribute(child_node, "name"), "base"))
               {
               url_base =
-                bgav_strndup(bgav_yml_get_attribute(child_node, "content"),
-                             NULL);
+                bgav_strdup(bgav_yml_get_attribute(child_node, "content"));
               }
             }
 

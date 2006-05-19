@@ -111,6 +111,11 @@ char * bgav_strndup(const char * start, const char * end)
   return ret;
   }
 
+char * bgav_strdup(const char * str)
+  {
+  return (bgav_strndup(str, (char*)0));
+  }
+
 char * bgav_strncat(char * old, const char * start, const char * end)
   {
   int len, old_len;
@@ -389,7 +394,7 @@ char ** bgav_stringbreak(const char * str, char sep)
   ret = calloc(num+1, sizeof(char*));
 
   index = 1;
-  ret[0] = bgav_strndup(str, NULL);
+  ret[0] = bgav_strdup(str);
   
   for(i = 0; i < len; i++)
     {

@@ -117,25 +117,25 @@ void bgav_vorbis_comment_2_metadata(bgav_vorbis_comment_t * comment,
   int j;
 
   if((field = bgav_vorbis_comment_get_field(comment, _artist_key)))
-    m->artist = bgav_strndup(field, NULL);
+    m->artist = bgav_strdup(field);
 
   if((field = bgav_vorbis_comment_get_field(comment, _author_key)))
-    m->author = bgav_strndup(field, NULL);
+    m->author = bgav_strdup(field);
 
   if((field = bgav_vorbis_comment_get_field(comment, _album_key)))
-    m->album = bgav_strndup(field, NULL);
+    m->album = bgav_strdup(field);
 
   if((field = bgav_vorbis_comment_get_field(comment, _title_key)))
-    m->title = bgav_strndup(field, NULL);
+    m->title = bgav_strdup(field);
 
   if((field = bgav_vorbis_comment_get_field(comment, _genre_key)))
-    m->genre = bgav_strndup(field, NULL);
+    m->genre = bgav_strdup(field);
 
   if((field = bgav_vorbis_comment_get_field(comment, _date_key)))
-    m->date = bgav_strndup(field, NULL);
+    m->date = bgav_strdup(field);
 
   if((field = bgav_vorbis_comment_get_field(comment, _copyright_key)))
-    m->copyright = bgav_strndup(field, NULL);
+    m->copyright = bgav_strdup(field);
 
   if((field = bgav_vorbis_comment_get_field(comment, _track_number_key)))
     m->track = atoi(field);
@@ -144,7 +144,7 @@ void bgav_vorbis_comment_2_metadata(bgav_vorbis_comment_t * comment,
     {
     if(!strchr(comment->user_comments[j], '='))
       {
-      m->comment = bgav_strndup(comment->user_comments[j], NULL);
+      m->comment = bgav_strdup(comment->user_comments[j]);
       break;
       }
     }

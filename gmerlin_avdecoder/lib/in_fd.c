@@ -59,6 +59,6 @@ bgav_input_context_t * bgav_input_open_fd(int fd, int64_t total_bytes, const cha
 
   priv->fd     = fd;
   ret->total_bytes = total_bytes;
-  ret->mimetype = bgav_strndup(mimetype, NULL);
+  ret->mimetype = bgav_strdup(mimetype);
   return ret;
   }

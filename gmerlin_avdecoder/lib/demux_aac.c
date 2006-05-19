@@ -229,19 +229,19 @@ static int open_adts(bgav_demuxer_context_t * ctx)
       {
       case 0:
         ctx->stream_description =
-          bgav_strndup("MPEG-2 AAC Main profile", NULL);
+          bgav_strdup("MPEG-2 AAC Main profile");
         break;
       case 1:
         ctx->stream_description =
-          bgav_strndup("MPEG-2 AAC Low Complexity profile (LC)", NULL);
+          bgav_strdup("MPEG-2 AAC Low Complexity profile (LC)");
         break;
       case 2:
         ctx->stream_description =
-          bgav_strndup("MPEG-2 AAC Scalable Sample Rate profile (SSR)", NULL);
+          bgav_strdup("MPEG-2 AAC Scalable Sample Rate profile (SSR)");
         break;
       case 3:
         ctx->stream_description =
-          bgav_strndup("MPEG-2 AAC (reserved)", NULL);
+          bgav_strdup("MPEG-2 AAC (reserved)");
         break;
       }
     }
@@ -251,19 +251,19 @@ static int open_adts(bgav_demuxer_context_t * ctx)
       {
       case 0:
         ctx->stream_description =
-          bgav_strndup("MPEG-4 AAC MAIN", NULL);
+          bgav_strdup("MPEG-4 AAC MAIN");
         break;
       case 1:
         ctx->stream_description =
-          bgav_strndup("MPEG-4 AAC LC", NULL);
+          bgav_strdup("MPEG-4 AAC LC");
         break;
       case 2:
         ctx->stream_description =
-          bgav_strndup("MPEG-4 AAC SSR", NULL);
+          bgav_strdup("MPEG-4 AAC SSR");
         break;
       case 3:
         ctx->stream_description =
-          bgav_strndup("MPEG-4 AAC LTP", NULL);
+          bgav_strdup("MPEG-4 AAC LTP");
         break;
       }
     }
@@ -473,8 +473,7 @@ static int open_aac(bgav_demuxer_context_t * ctx,
 
   if(!ctx->tt->tracks[0].name && ctx->input->metadata.title)
     {
-    ctx->tt->tracks[0].name = bgav_strndup(ctx->input->metadata.title,
-                                           NULL);
+    ctx->tt->tracks[0].name = bgav_strdup(ctx->input->metadata.title);
     }
   
   //  ctx->stream_description = bgav_sprintf("AAC");

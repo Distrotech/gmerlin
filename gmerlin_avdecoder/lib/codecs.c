@@ -78,7 +78,7 @@ static void bgav_set_dll_path_real()
     {
     free(bgav_dll_path_real);
     }
-  bgav_dll_path_real = bgav_strndup(find_directory(real_dirs, env_name_real), NULL);
+  bgav_dll_path_real = bgav_strdup(find_directory(real_dirs, env_name_real));
   }
 #endif
 
@@ -101,7 +101,7 @@ static void bgav_set_dll_path_xanim()
     {
     free(bgav_dll_path_xanim);
     }
-  bgav_dll_path_xanim = bgav_strndup(find_directory(xanim_dirs, env_name_xanim), NULL);
+  bgav_dll_path_xanim = bgav_strdup(find_directory(xanim_dirs, env_name_xanim));
   }
 #endif
 
@@ -126,7 +126,7 @@ static void bgav_set_dll_path_win32()
     {
     free(win32_def_path);
     }
-  win32_def_path = bgav_strndup(find_directory(win32_dirs, env_name_win32), NULL);
+  win32_def_path = bgav_strdup(find_directory(win32_dirs, env_name_win32));
   if(win32_def_path)
     win_path_needs_delete = 1;
   }

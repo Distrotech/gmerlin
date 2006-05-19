@@ -42,9 +42,9 @@ void bgav_metadata_free(bgav_metadata_t * m)
 #define MERGE_S(s) \
 if(dst->s) free(dst->s);\
 if(src1->s) \
-  dst->s=bgav_strndup(src1->s,NULL);\
+  dst->s=bgav_strdup(src1->s);\
 else if(src2->s) \
-  dst->s=bgav_strndup(src2->s,NULL);\
+  dst->s=bgav_strdup(src2->s);\
 else \
   dst->s=NULL;
 
@@ -73,7 +73,7 @@ void bgav_metadata_merge(bgav_metadata_t * dst,
   }
 
 #define MERGE2_S(s) \
-if((!dst->s) && (src->s)) dst->s=bgav_strndup(src->s,NULL)
+if((!dst->s) && (src->s)) dst->s=bgav_strdup(src->s)
 
 #define MERGE2_I(s) \
 if((!dst->s) && (src->s)) dst->s=src->s

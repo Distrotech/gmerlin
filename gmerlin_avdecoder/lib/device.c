@@ -51,8 +51,8 @@ bgav_device_info_t * bgav_device_info_append(bgav_device_info_t * arr,
   
   //  fprintf(stderr, "arr 2: %p\n", arr);
 
-  arr[size-1].device = bgav_strndup(device, NULL);
-  arr[size-1].name = bgav_strndup(name, NULL);
+  arr[size-1].device = bgav_strdup(device);
+  arr[size-1].name = bgav_strdup(name);
 
   /* Zero terminate */
   

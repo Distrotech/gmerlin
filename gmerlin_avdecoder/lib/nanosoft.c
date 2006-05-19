@@ -453,7 +453,7 @@ int bgav_RIFFINFO_probe(bgav_input_context_t * input)
 #define RS(tag) \
   if(!strncmp((char*)ptr, #tag, 4))             \
     { \
-    ret->tag = bgav_strndup((char*)(ptr + 8), NULL);    \
+    ret->tag = bgav_strdup((char*)(ptr + 8));    \
     ptr += string_len + 8; \
     if(string_len % 2) \
       ptr++; \
@@ -611,7 +611,7 @@ void bgav_RIFFINFO_destroy(bgav_RIFFINFO_t * info)
 
 /* CS == copy_string */
 
-#define CS(meta, tag) if(!m->meta) m->meta = bgav_strndup(info->tag, NULL);
+#define CS(meta, tag) if(!m->meta) m->meta = bgav_strdup(info->tag);
 
 void bgav_RIFFINFO_get_metadata(bgav_RIFFINFO_t * info, bgav_metadata_t * m)
   {

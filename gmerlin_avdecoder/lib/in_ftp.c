@@ -193,12 +193,12 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url)
     {
     if(ctx->opt->ftp_anonymous)
       {
-      user = bgav_strndup("ftp", (char*)0);
+      user = bgav_strdup("ftp");
 
       if(ctx->opt->ftp_anonymous_password)
-        pass = bgav_strndup(ctx->opt->ftp_anonymous_password, (char*)0);
+        pass = bgav_strdup(ctx->opt->ftp_anonymous_password);
       else
-        pass = bgav_strndup("gates@nanosoft.com", (char*)0);
+        pass = bgav_strdup("gates@nanosoft.com");
       }
     else /* Get user/pass with callback */
       {

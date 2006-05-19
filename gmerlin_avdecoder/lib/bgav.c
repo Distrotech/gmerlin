@@ -107,7 +107,7 @@ int bgav_init(bgav_t * ret)
       if(!bgav_demuxer_start(ret->demuxer, &(ret->redirector)))
         {
         if(ret->demuxer->error_msg)
-          ret->error_msg = bgav_strndup(ret->demuxer->error_msg, (char*)0);
+          ret->error_msg = bgav_strdup(ret->demuxer->error_msg);
         goto fail;
         }
       }
@@ -174,13 +174,13 @@ int bgav_open(bgav_t * ret, const char * location)
   ret->input = create_input(ret);
   if(!bgav_input_open(ret->input, location))
     {
-    ret->error_msg = bgav_strndup(ret->input->error_msg, NULL);
+    ret->error_msg = bgav_strdup(ret->input->error_msg);
     goto fail;
     }
   if(!bgav_init(ret))
     goto fail;
 
-  ret->location = bgav_strndup(location, NULL);
+  ret->location = bgav_strdup(location);
   
   return 1;
   fail:
@@ -291,7 +291,7 @@ int bgav_start(bgav_t * b)
   if(!bgav_track_start(b->tt->current_track, b->demuxer))
     {
     if(b->demuxer->error_msg)
-       b->error_msg = bgav_strndup(b->demuxer->error_msg, (char*)0);
+       b->error_msg = bgav_strdup(b->demuxer->error_msg);
     return 0;
     }
   return 1;

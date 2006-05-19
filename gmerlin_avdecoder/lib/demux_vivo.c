@@ -244,13 +244,13 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
     else if(check_key(buffer, "Preroll", &pos))
       ret->preroll = strtoul(pos, NULL, 10);
     else if(check_key(buffer, "Title", &pos))
-      ret->title = bgav_strndup(pos, NULL);
+      ret->title = bgav_strdup(pos);
     else if(check_key(buffer, "Author", &pos))
-      ret->author = bgav_strndup(pos, NULL);
+      ret->author = bgav_strdup(pos);
     else if(check_key(buffer, "Copyright", &pos))
-      ret->copyright = bgav_strndup(pos, NULL);
+      ret->copyright = bgav_strdup(pos);
     else if(check_key(buffer, "Producer", &pos))
-      ret->producer = bgav_strndup(pos, NULL);
+      ret->producer = bgav_strdup(pos);
     else if(check_key(buffer, "Width", &pos))
       ret->width = strtoul(pos, NULL, 10);
     else if(check_key(buffer, "Height", &pos))
@@ -482,9 +482,9 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
     video_stream->data.video.format.image_height * 3;
   /* Set up metadata */
 
-  ctx->tt->current_track->metadata.title     = bgav_strndup(priv->header.title, NULL);
-  ctx->tt->current_track->metadata.author    = bgav_strndup(priv->header.author, NULL);
-  ctx->tt->current_track->metadata.copyright = bgav_strndup(priv->header.copyright, NULL);
+  ctx->tt->current_track->metadata.title     = bgav_strdup(priv->header.title);
+  ctx->tt->current_track->metadata.author    = bgav_strdup(priv->header.author);
+  ctx->tt->current_track->metadata.copyright = bgav_strdup(priv->header.copyright);
   ctx->tt->current_track->metadata.comment   = bgav_sprintf("Made with %s",
                                                             priv->header.producer);
 

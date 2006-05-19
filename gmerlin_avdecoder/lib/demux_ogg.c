@@ -1376,8 +1376,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
   else /* Streaming case */
     {
     if(ctx->input->metadata.title)
-      ctx->tt->tracks[0].name = bgav_strndup(ctx->input->metadata.title,
-                                             (char*)0);
+      ctx->tt->tracks[0].name = bgav_strdup(ctx->input->metadata.title);
     get_metadata(&ctx->tt->tracks[0]);
 
     /* Set end position to -1 */
@@ -1389,7 +1388,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
   
   if(ctx->input->input->seek_byte)
     ctx->can_seek = 1;
-  ctx->stream_description = bgav_strndup("Ogg bitstream", NULL);
+  ctx->stream_description = bgav_strdup("Ogg bitstream");
   ctx->seek_iterative = 1;
   
   return 1;

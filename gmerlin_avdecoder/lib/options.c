@@ -58,7 +58,7 @@ void bgav_options_set_http_proxy_host(bgav_options_t*b, const char * h)
   {
   if(b->http_proxy_host)
     free(b->http_proxy_host);
-  b->http_proxy_host = bgav_strndup(h, NULL);
+  b->http_proxy_host = bgav_strdup(h);
   }
 
 void bgav_options_set_http_proxy_port(bgav_options_t*b, int p)
@@ -75,14 +75,14 @@ void bgav_options_set_http_proxy_user(bgav_options_t*b, const char * h)
   {
   if(b->http_proxy_user)
     free(b->http_proxy_user);
-  b->http_proxy_user = bgav_strndup(h, NULL);
+  b->http_proxy_user = bgav_strdup(h);
   }
 
 void bgav_options_set_http_proxy_pass(bgav_options_t*b, const char * h)
   {
   if(b->http_proxy_pass)
     free(b->http_proxy_pass);
-  b->http_proxy_pass = bgav_strndup(h, NULL);
+  b->http_proxy_pass = bgav_strdup(h);
   }
 
 
@@ -95,7 +95,7 @@ void bgav_options_set_ftp_anonymous_password(bgav_options_t*b, const char * h)
   {
   if(b->ftp_anonymous_password)
     free(b->ftp_anonymous_password);
-  b->ftp_anonymous_password = bgav_strndup(h, NULL);
+  b->ftp_anonymous_password = bgav_strdup(h);
   }
 
 void bgav_options_set_ftp_anonymous(bgav_options_t*b, int anonymous)
@@ -121,7 +121,7 @@ void bgav_options_set_default_subtitle_encoding(bgav_options_t* b,
   {
   if(b->default_subtitle_encoding)
     free(b->default_subtitle_encoding);
-  b->default_subtitle_encoding = bgav_strndup(encoding, NULL);
+  b->default_subtitle_encoding = bgav_strdup(encoding);
   }
 
 void bgav_options_set_seamless(bgav_options_t* opt,
@@ -148,7 +148,7 @@ void bgav_options_set_defaults(bgav_options_t * b)
   b->connect_timeout = 10000;
   b->read_timeout = 10000;
   b->ftp_anonymous = 1;
-  b->default_subtitle_encoding = bgav_strndup("LATIN1", (char*)0);
+  b->default_subtitle_encoding = bgav_strdup("LATIN1");
   b->dvd_chapters_as_tracks = 1;
   b->audio_dynrange = 1;
   }
@@ -168,7 +168,7 @@ void bgav_options_destroy(bgav_options_t * opt)
   }
 
 #define CP_INT(i) dst->i = src->i
-#define CP_STR(s) if(dst->s) free(dst->s); dst->s = bgav_strndup(src->s, (char*)0)
+#define CP_STR(s) if(dst->s) free(dst->s); dst->s = bgav_strdup(src->s)
 
 void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   {

@@ -462,7 +462,7 @@ typedef struct
 
   int64_t old_pts[FF_MAX_B_FRAMES+1];
   int num_old_pts;
-  int delay;
+  int delay, last_delay;
   
   } ffmpeg_video_priv;
 
@@ -609,7 +609,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
                                       &got_picture,
                                       priv->packet_buffer_ptr,
                                       len);
-
+    
     //    fprintf(stderr, "%d\n", priv->ctx->pix_fmt);
 
     //    fprintf(stderr, "Sample aspect ratio: %d %d\n", priv->ctx->sample_aspect_ratio.num,
@@ -624,22 +624,35 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
 
     if(!got_picture)
       {
-      /* Decoding delay */
-      if(priv->delay == FF_MAX_B_FRAMES)
+      if(priv->last_delay != priv->delay)
         {
-        fprintf(stderr, "Decoding delay too large\n");
-        return 0;
+        /* Decoding delay */
+        if(priv->delay == FF_MAX_B_FRAMES)
+          {
+          fprintf(stderr, "Decoding delay too large\n");
+          return 0;
+          }
+
+        if(p)
+          {
+          priv->delay++;
+          }
+        else /* !p and !got_picture means EOF */
+          {
+          return 0;
+          }
+        }
+      else /* Skip this frame */
+        {
+        priv->num_old_pts--;
+        if(priv->num_old_pts)
+          memmove(&(priv->old_pts[0]), &(priv->old_pts[1]),
+                  sizeof(int64_t) * priv->num_old_pts);
         }
 
-      if(p)
-        {
-        priv->delay++;
-        }
-      else /* !p and !got_picture means EOF */
-        {
-        return 0;
-        }
       }
+
+    priv->last_delay = priv->delay;
     
 #if 0
     if(!got_picture)
@@ -815,6 +828,9 @@ static int init(bgav_stream_t * s)
   
   ffmpeg_video_priv * priv;
   priv = calloc(1, sizeof(*priv));
+
+  priv->last_delay = -1;
+
   priv->info = lookup_codec(s);
   codec = avcodec_find_decoder(priv->info->ffmpeg_id);
   priv->ctx = avcodec_alloc_context();
@@ -834,6 +850,7 @@ static int init(bgav_stream_t * s)
   priv->ctx->codec_type = CODEC_TYPE_VIDEO;
   
   priv->ctx->bit_rate = 0;
+
 #if LIBAVCODEC_BUILD >= 4754
   priv->ctx->time_base.den = s->data.video.format.timescale;
   priv->ctx->time_base.num = s->data.video.format.frame_duration;
@@ -969,6 +986,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
   avcodec_flush_buffers(priv->ctx);
   priv->bytes_in_packet_buffer = 0;
   priv->delay = 0;
+  priv->last_delay = -1;
   priv->num_old_pts = 0;
   }
 

@@ -56,7 +56,7 @@ void bgav_rtsp_set_user_agent(bgav_rtsp_t * r, const char * user_agent)
   {
   if(r->user_agent)
     free(r->user_agent);
-  r->user_agent = bgav_strndup(user_agent, NULL);
+  r->user_agent = bgav_strdup(user_agent);
   }
 
 #define DUMP_REQUESTS
@@ -122,8 +122,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
     {
     free(rtsp->url);
     rtsp->url =
-      bgav_strndup(bgav_http_header_get_var(rtsp->answers,"Location"),
-                   NULL);
+      bgav_strdup(bgav_http_header_get_var(rtsp->answers,"Location"));
     //    fprintf(stderr, "Got redirected to: %s\n", rtsp->url);
     if(got_redirected)
       *got_redirected = 1;
@@ -165,7 +164,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
 
   var = bgav_http_header_get_var(rtsp->answers, "Session");
   if(var && !(rtsp->session)) 
-    rtsp->session = bgav_strndup(var, NULL);
+    rtsp->session = bgav_strdup(var);
   return 1;
   
   fail:
@@ -318,7 +317,7 @@ int bgav_rtsp_open(bgav_rtsp_t * rtsp, const char * url,
   {
   //  fprintf(stderr, "bgav_rtsp_open %s\n", rtsp->url);
   if(url)
-    rtsp->url = bgav_strndup(url, NULL);
+    rtsp->url = bgav_strdup(url);
   //  fprintf(stderr, "*** BGAV_RTSP_OPEN %s %s\n", url, rtsp->url);
   return do_connect(rtsp, got_redirected, error_msg);
   }

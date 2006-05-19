@@ -301,7 +301,7 @@ static int open_flac(bgav_demuxer_context_t * ctx,
     }
   priv->data_start = ctx->input->position;
   
-  ctx->stream_description = bgav_strndup("FLAC Format", NULL);
+  ctx->stream_description = bgav_strdup("FLAC Format");
 
   if(priv->seektable.num_entries && ctx->input->input->seek_byte)
     ctx->can_seek = 1;

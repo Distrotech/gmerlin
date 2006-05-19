@@ -690,7 +690,7 @@ static char * get_comment(bgav_id3v2_frame_t* frame)
                               (char*)pos, frame->header.size - (int)(pos - frame->data),
                               NULL);
   else
-    ret = bgav_strndup((char*)pos, NULL);
+    ret = bgav_strdup((char*)pos);
 
   if(cnv)
     bgav_charset_converter_destroy(cnv);
@@ -706,37 +706,37 @@ void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
 
   frame = bgav_id3v2_find_frame(t, title_tags);
   if(frame && frame->strings)
-    m->title = bgav_strndup(frame->strings[0], NULL);
+    m->title = bgav_strdup(frame->strings[0]);
 
   /* Album */
     
   frame = bgav_id3v2_find_frame(t, album_tags);
   if(frame && frame->strings)
-    m->album = bgav_strndup(frame->strings[0], NULL);
+    m->album = bgav_strdup(frame->strings[0]);
 
   /* Copyright */
     
   frame = bgav_id3v2_find_frame(t, copyright_tags);
   if(frame && frame->strings)
-    m->copyright = bgav_strndup(frame->strings[0], NULL);
+    m->copyright = bgav_strdup(frame->strings[0]);
 
   /* Artist */
 
   frame = bgav_id3v2_find_frame(t, artist_tags);
   if(frame && frame->strings)
-    m->artist = bgav_strndup(frame->strings[0], NULL);
+    m->artist = bgav_strdup(frame->strings[0]);
 
   /* Author */
 
   frame = bgav_id3v2_find_frame(t, author_tags);
   if(frame && frame->strings)
-    m->author = bgav_strndup(frame->strings[0], NULL);
+    m->author = bgav_strdup(frame->strings[0]);
   
   /* Date */
   
   frame = bgav_id3v2_find_frame(t, date_tags);
   if(frame && frame->strings)
-    m->date = bgav_strndup(frame->strings[0], NULL);
+    m->date = bgav_strdup(frame->strings[0]);
 
   /* Track */
 
@@ -752,11 +752,11 @@ void bgav_id3v2_2_metadata(bgav_id3v2_tag_t * t, bgav_metadata_t*m)
     if((frame->strings[0][0] == '(') && isdigit(frame->strings[0][1]))
       {
       i_tmp = atoi(&(frame->strings[0][1]));
-      m->genre = bgav_strndup(bgav_id3v1_get_genre(i_tmp), NULL);
+      m->genre = bgav_strdup(bgav_id3v1_get_genre(i_tmp));
       }
     else
       {
-      m->genre = bgav_strndup(frame->strings[0], NULL);
+      m->genre = bgav_strdup(frame->strings[0]);
       }
     }
 

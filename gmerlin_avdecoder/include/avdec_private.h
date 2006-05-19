@@ -1074,6 +1074,7 @@ void bgav_dump_fourcc(uint32_t fourcc);
 void bgav_hexdump(uint8_t * data, int len, int linebreak);
 char * bgav_sprintf(const char * format,...);
 char * bgav_strndup(const char * start, const char * end);
+char * bgav_strdup(const char * str);
 
 char * bgav_strncat(char * old, const char * start, const char * end);
 
@@ -1202,6 +1203,9 @@ struct bgav_subtitle_reader_context_s
   {
   bgav_input_context_t * input;
   bgav_subtitle_reader_t * reader;
+
+  /* bgav_subtitle_reader_open returns a chained list */
+  bgav_subtitle_reader_context_t * next;
   };
 
 struct bgav_subtitle_reader_s
@@ -1210,10 +1214,20 @@ struct bgav_subtitle_reader_s
   char * name;
 
   /* Read one subtitle, all returned args can be NULL if not needed */
-  const char * (*read_subtitle)(bgav_subtitle_reader_context_t*,
-                                gavl_time_t * start,
-                                gavl_time_t * duration,
-                                int64_t * start_pos);
-  
+  int (*read_subtitle_text)(bgav_subtitle_reader_context_t*,
+                            gavl_time_t * start,
+                            gavl_time_t * duration,
+                            int64_t * start_pos,
+                            char ** ret, int * ret_alloc);
   };
 
+bgav_subtitle_reader_t *
+bgav_subtitle_reader_open(bgav_input_context_t * input_ctx);
+
+void bgav_subtitle_reader_close(bgav_subtitle_reader_t *);
+
+int bgav_subtitle_reader_read_text(bgav_subtitle_reader_t *,
+                                   gavl_time_t * start,
+                                   gavl_time_t * duration,
+                                   int64_t * start_pos,
+                                   char ** ret, int * ret_alloc);
