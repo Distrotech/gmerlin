@@ -69,8 +69,11 @@ YUM_LIBS_IMPO="gcc gcc-c++ autoconf automake libtool"
 COL_DEF="\033[0m"
 COL_RED="\033[31m"    ;    COL_RED_HIGH="\033[31;1m"    ;    COL_RED_LINE="\033[31;4m"    ;    COL_RED_LINE_HIGH="\033[31;4;1m"
 COL_GRE="\033[32m"    ;    COL_GRE_HIGH="\033[32;1m"    ;    COL_GRE_LINE="\033[32;4m"    ;    COL_GRE_LINE_HIGH="\033[32;4;1m"
-COL_YEL="\033[33m"    ;    COL_YEL_HIGH="\033[33;1m"    ;    COL_YEL_LINE="\033[33;4m"    ;    COL_YEL_LINE_HIGH="\033[33;4;1m"
-COL_BLU="\033[34m"    ;    COL_BLU_HIGH="\033[34;1m"    ;    COL_BLU_LINE="\033[34;4m"    ;    COL_BLU_LINE_HIGH="\033[34;4;1m"
+#COL_YEL="\033[33m"    ;    COL_YEL_HIGH="\033[33;1m"    ;    COL_YEL_LINE="\033[33;4m"    ;    COL_YEL_LINE_HIGH="\033[33;4;1m"
+#COL_BLU="\033[34m"    ;    COL_BLU_HIGH="\033[34;1m"    ;    COL_BLU_LINE="\033[34;4m"    ;    COL_BLU_LINE_HIGH="\033[34;4;1m"
+COL_YEL="\033[0m"    ;    COL_YEL_HIGH="\033[0;1m"    ;    COL_YEL_LINE="\033[0;4m"    ;    COL_YEL_LINE_HIGH="\033[0;4;1m"
+COL_BLU="\033[0m"    ;    COL_BLU_HIGH="\033[0;1m"    ;    COL_BLU_LINE="\033[0;4m"    ;    COL_BLU_LINE_HIGH="\033[0;4;1m"
+
 
 					      # Define the POSITION strings #
 POSITION_HEADLINE="\n\033[1C"               ;          POSITION_HEADLINE_COMMENT="\033[2C"
@@ -82,10 +85,10 @@ YES_NO_EXIT_CLEAR="\033[1A$POSITION_DISKRIPTION\033[K"
 					     # Generate the INFORMATION strings #
 OK="$POSITION_STATUS[ $COL_GRE_HIGH OK $COL_DEF ]"
 OK2="$POSITION_STATUS[ $COL_BLU_HIGH OK $COL_DEF ]"
-YES_NO_EXIT="$COL_DEF$POSITION_DISKRIPTION[ \033[32;1mY\033[0mES,\033[31;1mN\033[0mO,E\033[33;1mX\033[0mIT ]\033[5C Y\033[1D"
+YES_NO_EXIT="$COL_DEF$POSITION_DISKRIPTION [ \033[0;4mY\033[0mes, \033[0;4mN\033[0mo, e\033[0;4mX\033[0mit ] Y\033[1D"
 FAIL="$POSITION_STATUS[$COL_RED_HIGH FAIL $COL_DEF]"
 FAIL2="$POSITION_STATUS[$COL_YEL_HIGH FAIL $COL_DEF]"
-YES_NO="$COL_DEF$POSITION_DISKRIPTION[ \033[32;1mY\033[0mES,\033[31;1mN\033[0mO ]\033[5C Y\033[1D"
+YES_NO="$COL_DEF$POSITION_DISKRIPTION [ \033[0;4mY\033[0mes, \033[0;4mN\033[0mo ] Y\033[1D"
 
 					###### Define FUNCTIONS how need ######
 
@@ -633,7 +636,7 @@ TEXT="COREUTILS"    ;    INSTALL_HOME=`pwd`    ;      READY_EXIT_FUNC "$COL_DEF 
                                                 # Exit when we are not ROOT #
 if [ `whoami` != root ]
     then
-    echo -e "\n$POSITION_INFO Must be$COL_RED_HIGH ROOT$COL_DEF to run the install script\n"
+    echo -e "\n$POSITION_INFO Must be$COL_RED_HIGH root$COL_DEF to run the install script\n"
     exit 
 fi
 
@@ -711,13 +714,11 @@ PRINT_PAGE_COMMENT_LINE_FUNC "This script will be install Gmerlin on your System
 PRINT_PAGE_COMMENT_LINE_FUNC "The needed components and librarys will downloaded by internet." "-e"
 PRINT_NEW_LINE_FUNC 1
 PRINT_PAGE_COMMENT_LINE_FUNC "Please make sure, that the internet connection is ready." "-e"
-PRINT_PAGE_COMMENT_LINE_FUNC "The Skript will be run in an normal root terminal like." "-e"
-PRINT_PAGE_COMMENT_LINE_FUNC "        $COL_RED(su , sudo -s, sudo bash ...)" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "Gmerlin will be downloaded 10 to 50 MByte." "-e"
 
 PRINT_NEW_LINE_FUNC 1
 PRINT_PAGE_COMMENT_LINE_FUNC "The installation Time is depending on Internet speed and CPU speed." "-e"
-PRINT_PAGE_COMMENT_LINE_FUNC "On a Pentium III 1.4 GHz with DSL1000 it can take up to 60 Minutes." "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "On a Pentium III 1.4 GHz with DSL it can take up to 60 Minutes." "-e"
 PRINT_NEW_LINE_FUNC 1
 
 PRINT_PAGE_COMMENT_LINE_FUNC "You can download an install all components form hand, the script" "-e"
