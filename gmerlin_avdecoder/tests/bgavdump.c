@@ -99,10 +99,15 @@ int main(int argc, char ** argv)
   int num_urls;
   int num_tracks;
   int track;
+
+  char * sub_text = (char *)0;
+  int sub_text_alloc = 0;
+  gavl_time_t sub_time;
+  gavl_time_t sub_duration;
     
   bgav_t * file;
   bgav_options_t * opt;
-
+  gavl_overlay_t ovl;
   
   gavl_audio_frame_t * af;
   gavl_video_frame_t * vf;
@@ -121,6 +126,9 @@ int main(int argc, char ** argv)
     bgav_formats_dump();
     
     bgav_codecs_dump();
+
+    bgav_subreaders_dump();
+    
     return 0;
     }
   
@@ -235,10 +243,37 @@ int main(int argc, char ** argv)
       //      gavl_video_frame_dump(vf, video_format, "frame");
       gavl_video_frame_destroy(vf);
       }
-    }
-    
 
-  
+    for(i = 0; i < num_subtitle_streams; i++)
+      {
+      video_format = bgav_get_subtitle_format(file, i);
+
+      if(!video_format)
+        {
+        fprintf(stderr, "Reading text subtitle from stream %d...", i+1);
+
+        if(bgav_read_subtitle_text(file, &sub_text, &sub_text_alloc,
+                                   &sub_time, &sub_duration, i))
+          {
+          fprintf(stderr, "Done\nstart: %f, duration: %f\n%s\n",
+                  gavl_time_to_seconds(sub_time),
+                  gavl_time_to_seconds(sub_duration),
+                                       sub_text);
+          }
+        else
+          fprintf(stderr, "Failed\n");
+        }
+      else
+        {
+        ovl.frame = gavl_video_frame_create(video_format);
+        bgav_read_subtitle_overlay(file, &ovl, i);
+        }
+      }
+    }
+
+  if(sub_text)
+    free(sub_text);
+    
   bgav_close(file);
     
   return -1;

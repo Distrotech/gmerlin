@@ -424,6 +424,8 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
   //  fprintf(stderr, "Current chunk: %d\n", priv->current_packet);
   ctx->si->current_position++;
 
+  
+  
   //  fprintf(stderr, "next_packet_interleaved done %d\n", p->data_size);
 
   return 1;
@@ -738,6 +740,7 @@ static void skip_to(bgav_t * b, bgav_track_t * track, gavl_time_t * time)
 void
 bgav_seek(bgav_t * b, gavl_time_t * time)
   {
+  int i;
   gavl_time_t diff_time;
   gavl_time_t sync_time;
   gavl_time_t seek_time;
@@ -869,6 +872,18 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
       break;
       }
     }
+
+  /* Let the subtitle readers seek */
+  for(i = 0; i < track->num_subtitle_streams; i++)
+    {
+    if(track->subtitle_streams[i].data.subtitle.subreader &&
+       track->subtitle_streams[i].action != BGAV_STREAM_MUTE)
+      {
+      bgav_subtitle_reader_seek(&track->subtitle_streams[i],
+                                *time);
+      }
+    }
+
   //  fprintf(stderr, "Seek done, %d iterations\n", num_iterations);
   }
 

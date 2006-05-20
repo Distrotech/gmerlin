@@ -1213,3 +1213,12 @@ void bgav_inputs_dump();
  */
 
 void bgav_redirectors_dump();
+
+/** \ingroup debugging
+ *  \brief Dump informations about all available subtitle readers to stderr
+ *
+ * The output format is html. The main purpose of this function is to generate a feature list
+ * for the webpage.
+ */
+
+void bgav_subreaders_dump();

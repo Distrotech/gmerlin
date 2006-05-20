@@ -1241,7 +1241,7 @@ struct bgav_subtitle_reader_s
 bgav_subtitle_reader_context_t *
 bgav_subtitle_reader_open(bgav_input_context_t * input_ctx);
 
-void bgav_subtitle_reader_close(bgav_subtitle_reader_context_t *);
+void bgav_subtitle_reader_close(bgav_stream_t *);
 
 int bgav_subtitle_reader_start(bgav_stream_t *);
 

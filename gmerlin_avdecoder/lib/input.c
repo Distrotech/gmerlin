@@ -509,6 +509,11 @@ extern bgav_input_t bgav_input_ftp;
 
 #ifdef HAVE_CDIO
 extern bgav_input_t bgav_input_vcd;
+
+#ifdef HAVE_DVDREAD
+extern bgav_input_t bgav_input_dvd;
+#endif
+
 #endif
 
 #ifdef HAVE_SAMBA
@@ -527,6 +532,11 @@ void bgav_inputs_dump()
   fprintf(stderr, "<li>%s\n", bgav_input_ftp.name);
 #ifdef HAVE_CDIO
   fprintf(stderr, "<li>%s\n", bgav_input_vcd.name);
+
+#ifdef HAVE_DVDREAD
+  fprintf(stderr, "<li>%s\n", bgav_input_dvd.name);
+#endif
+
 #endif
 #ifdef HAVE_SAMBA
   fprintf(stderr, "<li>%s\n", bgav_input_smb.name);

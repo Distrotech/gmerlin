@@ -93,6 +93,8 @@ void bgav_stream_free(bgav_stream_t * s)
   {
   if(s->description)
     free(s->description);
+  if(s->info)
+    free(s->info);
   
   if(s->packet_buffer)
     bgav_packet_buffer_destroy(s->packet_buffer);

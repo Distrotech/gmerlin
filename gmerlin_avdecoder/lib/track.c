@@ -291,6 +291,12 @@ void bgav_track_free(bgav_track_t * t)
       bgav_stream_free(&(t->video_streams[i]));
     free(t->video_streams);
     }
+  if(t->num_subtitle_streams)
+    {
+    for(i = 0; i < t->num_subtitle_streams; i++)
+      bgav_stream_free(&(t->subtitle_streams[i]));
+    free(t->subtitle_streams);
+    }
   if(t->name)
     free(t->name);
   }

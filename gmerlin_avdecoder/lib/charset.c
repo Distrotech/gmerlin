@@ -91,7 +91,7 @@ int do_convert(iconv_t cd, char * in_string, int len, int * out_len,
           *ret_alloc   += BYTES_INCREMENT;
           outbytesleft += BYTES_INCREMENT;
 
-          *ret = realloc(ret, *ret_alloc);
+          *ret = realloc(*ret, *ret_alloc);
           outbuf = &((*ret)[output_pos]);
           break;
         case EILSEQ:
