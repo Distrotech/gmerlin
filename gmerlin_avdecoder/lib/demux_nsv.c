@@ -66,7 +66,7 @@ typedef struct
   
   } nsv_file_header_t;
 
-static uint8_t * parse_metadata(char * buf,
+static uint8_t * parse_metadata(uint8_t * buf,
                                 char ** name,
                                 char ** value)
   {
@@ -75,11 +75,11 @@ static uint8_t * parse_metadata(char * buf,
   while(isspace(*buf) && (*buf != '\0'))
     buf++;
   if(*buf == '\0')
-    return (char*)0;
-  start = buf;
+    return (uint8_t*)0;
+  start = (char*)buf;
   end = strchr(start, '=');
   if(!end)
-    return (char*)0;
+    return (uint8_t*)0;
   *name = bgav_strndup(start, end);
   start = end;
   start++; /* Start now points to the delimiter */
@@ -87,12 +87,12 @@ static uint8_t * parse_metadata(char * buf,
   start++;
   end = strchr(start, delim);
   if(!end)
-    return (char*)0;
+    return (uint8_t*)0;
   *value = bgav_strndup(start, end);
   end++;
   start = end;
   start++;
-  return start;
+  return (uint8_t*)start;
   }
 
 static int nsv_file_header_read(bgav_input_context_t * ctx,

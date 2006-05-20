@@ -177,6 +177,7 @@ void bgav_packet_done_write(bgav_packet_t *);
 
 void bgav_packet_set_text_subtitle(bgav_packet_t * p,
                                    const char * text,
+                                   int len,
                                    int64_t start,
                                    int64_t duration);
 
@@ -370,6 +371,8 @@ struct bgav_stream_s
       bgav_subtitle_overlay_decoder_context_t * decoder;
       bgav_subtitle_reader_context_t * subreader;
       
+      char * encoding;
+      
       /* The video stream, onto which the subtitles will be
          displayed */
       bgav_stream_t * video_stream;
@@ -381,7 +384,8 @@ struct bgav_stream_s
 
 int bgav_stream_start(bgav_stream_t * stream);
 void bgav_stream_stop(bgav_stream_t * stream);
-void bgav_stream_alloc(bgav_stream_t * stream, const bgav_options_t * opt);
+void bgav_stream_create_packet_buffer(bgav_stream_t * stream);
+void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt);
 void bgav_stream_free(bgav_stream_t * stream);
 void bgav_stream_dump(bgav_stream_t * s);
 
@@ -440,7 +444,10 @@ bgav_stream_t *
 bgav_track_add_subtitle_stream(bgav_track_t * t, const bgav_options_t * opt,
                                int text, const char * encoding);
 
-
+bgav_stream_t *
+bgav_track_attach_subtitle_reader(bgav_track_t * t,
+                                  const bgav_options_t * opt,
+                                  bgav_subtitle_reader_context_t * r);
 
 bgav_stream_t *
 bgav_track_find_stream(bgav_track_t * t, int stream_id);
@@ -710,7 +717,7 @@ void bgav_input_destroy(bgav_input_context_t * ctx);
 
 void bgav_input_skip(bgav_input_context_t *, int64_t);
 
-bgav_input_context_t * bgav_input_create(bgav_options_t * opt);
+bgav_input_context_t * bgav_input_create(const bgav_options_t * opt);
 
 /* For debugging purposes only: if you encounter data,
    hexdump them to stderr and skip them */
@@ -1114,6 +1121,11 @@ char * bgav_convert_string(bgav_charset_converter_t *,
                            const char * in_string, int in_len,
                            int * out_len);
 
+int bgav_convert_string_realloc(bgav_charset_converter_t * cnv,
+                                const char * str, int len,
+                                int * out_len,
+                                char ** ret, int * ret_alloc);
+
 /* audio.c */
 
 void bgav_audio_dump(bgav_stream_t * s);
@@ -1204,8 +1216,15 @@ struct bgav_subtitle_reader_context_s
   bgav_input_context_t * input;
   bgav_subtitle_reader_t * reader;
 
+  char * info; /* Derived from filename difference */
+  char * filename; /* Name of the subtitle file */
+  bgav_packet_t * p;
+  
   /* bgav_subtitle_reader_open returns a chained list */
   bgav_subtitle_reader_context_t * next;
+
+  /* Private data */
+  void * priv;
   };
 
 struct bgav_subtitle_reader_s
@@ -1213,21 +1232,20 @@ struct bgav_subtitle_reader_s
   char * extensions;
   char * name;
 
-  /* Read one subtitle, all returned args can be NULL if not needed */
-  int (*read_subtitle_text)(bgav_subtitle_reader_context_t*,
-                            gavl_time_t * start,
-                            gavl_time_t * duration,
-                            int64_t * start_pos,
-                            char ** ret, int * ret_alloc);
+  int (*init)(bgav_stream_t*);
+  void (*close)(bgav_stream_t*);
+  
+  int (*read_subtitle_text)(bgav_stream_t*);
   };
 
-bgav_subtitle_reader_t *
+bgav_subtitle_reader_context_t *
 bgav_subtitle_reader_open(bgav_input_context_t * input_ctx);
 
-void bgav_subtitle_reader_close(bgav_subtitle_reader_t *);
+void bgav_subtitle_reader_close(bgav_subtitle_reader_context_t *);
 
-int bgav_subtitle_reader_read_text(bgav_subtitle_reader_t *,
-                                   gavl_time_t * start,
-                                   gavl_time_t * duration,
-                                   int64_t * start_pos,
-                                   char ** ret, int * ret_alloc);
+int bgav_subtitle_reader_start(bgav_stream_t *);
+
+void bgav_subtitle_reader_seek(bgav_stream_t *,
+                               gavl_time_t time);
+
+bgav_packet_t * bgav_subtitle_reader_read_text(bgav_stream_t *);

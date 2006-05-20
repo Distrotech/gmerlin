@@ -54,7 +54,9 @@ int bgav_init(bgav_t * ret)
     
   bgav_demuxer_t * demuxer = (bgav_demuxer_t *)0;
   bgav_redirector_t * redirector = (bgav_redirector_t*)0;
-
+  
+  bgav_subtitle_reader_context_t * subreader, * subreaders;
+  
   /*
    *  If the input already has it's track table,
    *  we can stop here
@@ -126,6 +128,19 @@ int bgav_init(bgav_t * ret)
   
   bgav_track_table_merge_metadata(ret->tt,
                                   &(ret->input->metadata));
+
+  /* Check for subtitle file */
+  subreaders = bgav_subtitle_reader_open(ret->input);
+  if(subreaders)
+    fprintf(stderr, "Got subtitle reader(s)\n");
+
+  subreader = subreaders;
+  while(subreader)
+    {
+    bgav_track_attach_subtitle_reader(ret->tt->current_track,
+                                      &(ret->opt), subreader);
+    subreader = subreader->next;
+    }
   
   return 1;
     

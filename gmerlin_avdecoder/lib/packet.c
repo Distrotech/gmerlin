@@ -56,45 +56,20 @@ void bgav_packet_done_write(bgav_packet_t * p)
 
 void bgav_packet_set_text_subtitle(bgav_packet_t * p,
                                    const char * text,
+                                   int len,
                                    int64_t start,
                                    int64_t duration)
   {
-  const char * src;
-  char * dst, *tmp;
-  int i;
-  int len;
-  /* TODO: Convert character set !!! */
+  if(len < 0)
+    len = strlen(text);
   
-  tmp = bgav_convert_string(p->stream->data.subtitle.cnv,
-                            text, -1, &len);
+  bgav_packet_alloc(p, len);
+  memcpy(p->data, text, len);
+  p->data_size = len;
   
-  bgav_packet_alloc(p, len+1);
-
-  src = tmp;
-  dst = (char*)(p->data);
-  for(i = 0; i < len; i++)
-    {
-    if(*src == '\r')
-      src++;
-    else if(*src == '\t')
-      {
-      *dst = ' ';
-      src++;
-      dst++;
-      }
-    else
-      {
-      *dst = *src;
-      src++;
-      dst++;
-      }
-    }
-  *dst = '\0';
   p->timestamp_scaled = start;
   p->duration_scaled = duration;
   p->data_size = len + 1;
-
-  free(tmp);
   }
 
 void bgav_packet_get_text_subtitle(bgav_packet_t * p,
@@ -111,7 +86,7 @@ void bgav_packet_get_text_subtitle(bgav_packet_t * p,
     *text_alloc = len + 128;
     *text = realloc(*text, *text_alloc);
     }
-  strcpy(*text, p->data);
+  strcpy(*text, (char*)p->data);
 
   *start    = gavl_time_unscale(p->stream->timescale, p->timestamp_scaled);
   *duration = gavl_time_unscale(p->stream->timescale, p->duration_scaled);

@@ -57,26 +57,26 @@ char * bgav_convert_string(bgav_charset_converter_t *,
 
 #define BYTES_INCREMENT 10
 
-static char * do_convert(iconv_t cd, char * in_string, int len, int * out_len)
+int do_convert(iconv_t cd, char * in_string, int len, int * out_len,
+               char ** ret, int * ret_alloc)
   {
-  char * ret;
 
   char *inbuf;
   char *outbuf;
-  int alloc_size;
   int output_pos;
   
   size_t inbytesleft;
   size_t outbytesleft;
 
-  alloc_size = len + BYTES_INCREMENT;
-
+  if(!(*ret_alloc) < len + BYTES_INCREMENT)
+    *ret_alloc = len + BYTES_INCREMENT;
+  
   inbytesleft  = len;
-  outbytesleft = alloc_size;
+  outbytesleft = *ret_alloc;
 
-  ret    = malloc(alloc_size);
+  *ret    = realloc(*ret, *ret_alloc);
   inbuf  = in_string;
-  outbuf = ret;
+  outbuf = *ret;
   
   while(1)
     {
@@ -86,19 +86,21 @@ static char * do_convert(iconv_t cd, char * in_string, int len, int * out_len)
       switch(errno)
         {
         case E2BIG:
-          output_pos = (int)(outbuf - ret);
+          output_pos = (int)(outbuf - *ret);
 
-          alloc_size   += BYTES_INCREMENT;
+          *ret_alloc   += BYTES_INCREMENT;
           outbytesleft += BYTES_INCREMENT;
 
-          ret = realloc(ret, alloc_size);
-          outbuf = &ret[output_pos];
+          *ret = realloc(ret, *ret_alloc);
+          outbuf = &((*ret)[output_pos]);
           break;
         case EILSEQ:
           fprintf(stderr, "Invalid Multibyte sequence\n");
+          return 0;
           break;
         case EINVAL:
           fprintf(stderr, "Incomplete Multibyte sequence\n");
+          return 0;
           break;
         }
       }
@@ -107,26 +109,28 @@ static char * do_convert(iconv_t cd, char * in_string, int len, int * out_len)
     }
   /* Zero terminate */
 
-  output_pos = (int)(outbuf - ret);
+  output_pos = (int)(outbuf - *ret);
   
   if(outbytesleft < 2)
     {
-    alloc_size+=2;
-    ret = realloc(ret, alloc_size);
-    outbuf = &ret[output_pos];
+    *ret_alloc+=2;
+    *ret = realloc(*ret, *ret_alloc);
+    outbuf = &((*ret)[output_pos]);
     }
   outbuf[0] = '\0';
   outbuf[1] = '\0';
   if(out_len)
-    *out_len = outbuf - ret;
-  return ret;
+    *out_len = outbuf - *ret;
+  return 1;
   }
 
 char * bgav_convert_string(bgav_charset_converter_t * cnv,
                            const char * str, int len,
                            int * out_len)
   {
-  char * ret;
+  int result;
+  char * ret = (char*)0;
+  int ret_alloc = 0;
   char * tmp_string;
 
   if(len < 0)
@@ -135,8 +139,33 @@ char * bgav_convert_string(bgav_charset_converter_t * cnv,
   tmp_string = malloc(len+1);
   memcpy(tmp_string, str, len);
   tmp_string[len] = '\0';
-  ret = do_convert(cnv->cd, tmp_string, len, out_len);
+  result = do_convert(cnv->cd, tmp_string, len, out_len, &ret, &ret_alloc);
   free(tmp_string);
+  
+  if(!result)
+    {
+    return (char*)0;
+    if(ret)
+      free(ret);
+    }
   return ret;
   }
 
+int bgav_convert_string_realloc(bgav_charset_converter_t * cnv,
+                                const char * str, int len,
+                                int * out_len,
+                                char ** ret, int * ret_alloc)
+  {
+  int result;
+  char * tmp_string;
+  if(len < 0)
+    len = strlen(str);
+  
+  tmp_string = malloc(len+1);
+  memcpy(tmp_string, str, len);
+  tmp_string[len] = '\0';
+  result = do_convert(cnv->cd, tmp_string, len, out_len, ret, ret_alloc);
+  free(tmp_string);
+  
+  return result;
+  }

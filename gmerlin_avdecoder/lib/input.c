@@ -784,7 +784,7 @@ void bgav_input_seek_sector(bgav_input_context_t * ctx,
     ctx->input->seek_sector(ctx, sector);
   }
 
-bgav_input_context_t * bgav_input_create(bgav_options_t * opt)
+bgav_input_context_t * bgav_input_create(const bgav_options_t * opt)
   {
   bgav_input_context_t * ret;
 

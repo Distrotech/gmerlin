@@ -67,13 +67,18 @@ void bgav_stream_stop(bgav_stream_t * stream)
         break;
       }
     }
-  bgav_packet_buffer_clear(stream->packet_buffer);
+  if(stream->packet_buffer)
+    bgav_packet_buffer_clear(stream->packet_buffer);
   }
 
-void bgav_stream_alloc(bgav_stream_t * stream, const bgav_options_t * opt)
+void bgav_stream_create_packet_buffer(bgav_stream_t * stream)
+  {
+  stream->packet_buffer = bgav_packet_buffer_create();
+  }
+
+void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt)
   {
   memset(stream, 0, sizeof(*stream));
-  stream->packet_buffer = bgav_packet_buffer_create();
   stream->time_scaled = -1;
   stream->first_index_position = INT_MAX;
 
@@ -82,6 +87,7 @@ void bgav_stream_alloc(bgav_stream_t * stream, const bgav_options_t * opt)
   stream->index_position = -1;
   stream->opt = opt;
   }
+
 
 void bgav_stream_free(bgav_stream_t * s)
   {
@@ -114,8 +120,10 @@ void bgav_stream_dump(bgav_stream_t * s)
       return;
     }
 
-  if(s->language)
+  if(s->language[0] != '\0')
     fprintf(stderr, "  Language:          %s\n", bgav_lang_name(s->language));
+  if(s->info)
+    fprintf(stderr, "  Info:              %s\n", s->info);
   
   fprintf(stderr, "  Type:              %s\n",
           (s->description ? s->description : "Not specified"));

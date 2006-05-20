@@ -160,7 +160,7 @@ typedef struct
 
 static int ogm_header_read(bgav_input_context_t * input, ogm_header_t * ret)
   {
-  if((bgav_input_read_data(input, ret->type, 8) < 8) ||
+  if((bgav_input_read_data(input, (uint8_t*)ret->type, 8) < 8) ||
      !bgav_input_read_fourcc(input, &ret->subtype) ||
      !bgav_input_read_32_le(input, &ret->size) ||
      !bgav_input_read_64_le(input, &ret->time_unit) ||
@@ -678,10 +678,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         break;
       case FOURCC_OGM_TEXT:
         //        fprintf(stderr, "Detected OGM text data\n");
-        
         s = bgav_track_add_subtitle_stream(track, ctx->opt, 1,
-                                           ctx->opt->default_subtitle_encoding);
-      
+                                           (const char*)0);
         s->priv   = ogg_stream;
         s->stream_id = serialno;
 
@@ -1835,7 +1833,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
 
         bgav_packet_set_text_subtitle(p, (char*)(priv->op.packet + 1 + len_bytes),
-                                      granulepos, subtitle_duration);
+                                      -1, granulepos, subtitle_duration);
         bgav_packet_done_write(p);
         break;
       }

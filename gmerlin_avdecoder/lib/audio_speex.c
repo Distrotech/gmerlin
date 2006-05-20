@@ -56,7 +56,7 @@ static int init_speex(bgav_stream_t * s)
     return 0;
     }
 
-  priv->header = speex_packet_to_header(s->ext_data, s->ext_size);
+  priv->header = speex_packet_to_header((char*)s->ext_data, s->ext_size);
 
   if(!priv->header)
     return 0;

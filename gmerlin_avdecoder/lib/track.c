@@ -28,7 +28,8 @@ bgav_track_add_audio_stream(bgav_track_t * t, const bgav_options_t * opt)
   t->num_audio_streams++;
   t->audio_streams = realloc(t->audio_streams, t->num_audio_streams * 
                              sizeof(*(t->audio_streams)));
-  bgav_stream_alloc(&(t->audio_streams[t->num_audio_streams-1]), opt);
+  bgav_stream_init(&(t->audio_streams[t->num_audio_streams-1]), opt);
+  bgav_stream_create_packet_buffer(&(t->audio_streams[t->num_audio_streams-1]));
   t->audio_streams[t->num_audio_streams-1].data.audio.bits_per_sample = 16;
   t->audio_streams[t->num_audio_streams-1].type = BGAV_STREAM_AUDIO;
   return &(t->audio_streams[t->num_audio_streams-1]);
@@ -40,35 +41,74 @@ bgav_track_add_video_stream(bgav_track_t * t, const bgav_options_t * opt)
   t->num_video_streams++;
   t->video_streams = realloc(t->video_streams, t->num_video_streams * 
                              sizeof(*(t->video_streams)));
-  bgav_stream_alloc(&(t->video_streams[t->num_video_streams-1]), opt);
+  bgav_stream_init(&(t->video_streams[t->num_video_streams-1]), opt);
+  bgav_stream_create_packet_buffer(&(t->video_streams[t->num_video_streams-1]));
   t->video_streams[t->num_video_streams-1].type = BGAV_STREAM_VIDEO;
   t->video_streams[t->num_video_streams-1].opt = opt;
   return &(t->video_streams[t->num_video_streams-1]);
   }
 
-bgav_stream_t *
-bgav_track_add_subtitle_stream(bgav_track_t * t, const bgav_options_t * opt, int text,
-                               const char * encoding)
+static bgav_stream_t * add_subtitle_stream(bgav_track_t * t,
+                                           const bgav_options_t * opt,
+                                           int text,
+                                           const char * encoding,
+                                           bgav_subtitle_reader_context_t * r)
   {
+  bgav_stream_t * ret;
+  
   t->num_subtitle_streams++;
   t->subtitle_streams = realloc(t->subtitle_streams, t->num_subtitle_streams * 
-                             sizeof(*(t->subtitle_streams)));
-  bgav_stream_alloc(&(t->subtitle_streams[t->num_subtitle_streams-1]), opt);
+                                sizeof(*(t->subtitle_streams)));
+
+  ret = &t->subtitle_streams[t->num_subtitle_streams-1];
+  bgav_stream_init(ret, opt);
+  if(!r)
+    bgav_stream_create_packet_buffer(ret);
+  else
+    ret->data.subtitle.subreader = r;
   
   if(text)
     {
-    t->subtitle_streams[t->num_subtitle_streams-1].type =
-      BGAV_STREAM_SUBTITLE_TEXT;
-    t->subtitle_streams[t->num_subtitle_streams-1].data.subtitle.cnv =
-      bgav_charset_converter_create(encoding, "UTF-8");
+    ret->type = BGAV_STREAM_SUBTITLE_TEXT;
+    if(encoding)
+      t->subtitle_streams[t->num_subtitle_streams-1].data.subtitle.encoding =
+        bgav_strdup(encoding);
     }
   else
     t->subtitle_streams[t->num_subtitle_streams-1].type =
       BGAV_STREAM_SUBTITLE_OVERLAY;
   
-  return &(t->subtitle_streams[t->num_subtitle_streams-1]);
+  return ret;
+  }
+                                           
+                                           
+
+bgav_stream_t *
+bgav_track_add_subtitle_stream(bgav_track_t * t, const bgav_options_t * opt,
+                               int text,
+                               const char * encoding)
+  {
+  return add_subtitle_stream(t,
+                             opt,
+                             text,
+                             encoding,
+                             (bgav_subtitle_reader_context_t*)0);
   }
 
+bgav_stream_t *
+bgav_track_attach_subtitle_reader(bgav_track_t * t,
+                                  const bgav_options_t * opt,
+                                  bgav_subtitle_reader_context_t * r)
+  {
+  bgav_stream_t * ret;
+  ret = add_subtitle_stream(t, opt,
+                            r->reader->read_subtitle_text ? 1 : 0,
+                            (char*)0, r);
+  if(r->info)
+    ret->info = bgav_strdup(r->info);
+  ret->timescale = GAVL_TIME_SCALE;
+  return ret;
+  }
 
 bgav_stream_t *
 bgav_track_find_stream_all(bgav_track_t * t, int stream_id)
@@ -86,7 +126,8 @@ bgav_track_find_stream_all(bgav_track_t * t, int stream_id)
     }
   for(i = 0; i < t->num_subtitle_streams; i++)
     {
-    if(t->subtitle_streams[i].stream_id == stream_id)
+    if((t->subtitle_streams[i].stream_id == stream_id) &&
+       (!t->subtitle_streams[i].data.subtitle.subreader))
       return &(t->subtitle_streams[i]);
     }
   return (bgav_stream_t *)0;
@@ -117,7 +158,8 @@ bgav_stream_t * bgav_track_find_stream(bgav_track_t * t, int stream_id)
     }
   for(i = 0; i < t->num_subtitle_streams; i++)
     {
-    if(t->subtitle_streams[i].stream_id == stream_id)
+    if((t->subtitle_streams[i].stream_id == stream_id) &&
+       (!t->subtitle_streams[i].data.subtitle.subreader))
       {
       if(t->subtitle_streams[i].action != BGAV_STREAM_MUTE)
         return &(t->subtitle_streams[i]);

@@ -157,7 +157,7 @@ static char * read_meta_string(char * old, bgav_input_context_t * input,
   if(old)
     free(old);
   old = calloc(h->size+1, 1);
-  if(bgav_input_read_data(input, old, h->size) < h->size)
+  if(bgav_input_read_data(input, (uint8_t*)old, h->size) < h->size)
     {
     free(old);
     return (char*)0;

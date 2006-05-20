@@ -247,9 +247,9 @@ static char * encode_user_pass(const char * user, const char * pass)
   userpass_enc_len = (userpass_len * 4)/3+4;
   
   ret = malloc(userpass_enc_len);
-  userpass_enc_len = bgav_base64encode(userpass,
+  userpass_enc_len = bgav_base64encode((uint8_t*)userpass,
                                        userpass_len,
-                                       ret,
+                                       (uint8_t*)ret,
                                        userpass_enc_len);
   ret[userpass_enc_len] = '\0';
   return ret;

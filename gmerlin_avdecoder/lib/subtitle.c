@@ -59,14 +59,39 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
                             gavl_time_t * start_time, gavl_time_t * duration,
                             int stream)
   {
+  int out_len;
   bgav_packet_t * p;
   bgav_stream_t * s = &(b->tt->current_track->subtitle_streams[stream]);
-  if(!bgav_packet_buffer_peek_packet_read(s->packet_buffer))
+
+  if(s->packet_buffer)
+    {
+    if(!bgav_packet_buffer_peek_packet_read(s->packet_buffer))
+      return 0;
+    
+    p = bgav_packet_buffer_get_packet_read(s->packet_buffer);
+    bgav_packet_get_text_subtitle(p, ret, ret_alloc, start_time, duration);
+    }
+  else if(s->data.subtitle.subreader)
+    {
+    p = bgav_subtitle_reader_read_text(s);
+    }
+
+  /* Convert packet to subtitle */
+  if(!bgav_convert_string_realloc(s->data.subtitle.cnv,
+                                  (const char *)p->data, p->data_size,
+                                  &out_len,
+                                  ret, ret_alloc))
     return 0;
 
-  p = bgav_packet_buffer_get_packet_read(s->packet_buffer);
-  bgav_packet_get_text_subtitle(p, ret, ret_alloc, start_time, duration);
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  *start_time = gavl_time_unscale(s->timescale, p->timestamp_scaled);
+  *duration   = gavl_time_unscale(s->timescale, p->duration_scaled);
+  
+  if(s->packet_buffer)
+    {
+    bgav_demuxer_done_packet_read(s->demuxer, p);
+    }
+
+  
   return 1;
   }
 
@@ -74,15 +99,26 @@ int bgav_has_subtitle(bgav_t * b, int stream)
   {
   bgav_stream_t * s = &(b->tt->current_track->subtitle_streams[stream]);
 
-  if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
+  
+  if(s->packet_buffer)
     {
-    if(!bgav_packet_buffer_peek_packet_read(s->packet_buffer))
-      return 0;
+    if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
+      {
+      if(!bgav_packet_buffer_peek_packet_read(s->packet_buffer))
+        return 0;
+      else
+        return 1;
+      }
     else
-      return 1;
+      return s->data.subtitle.decoder->decoder->has_subtitle(s);
+    }
+  else if(s->data.subtitle.subreader)
+    {
+    //    fprintf(stderr, "bgav_has_subtitle\n");
+    return 1;
     }
   else
-    return s->data.subtitle.decoder->decoder->has_subtitle(s);
+    return 0;
   }
 
 
@@ -95,29 +131,39 @@ int bgav_subtitle_start(bgav_stream_t * s)
   bgav_subtitle_overlay_decoder_t * dec;
   bgav_subtitle_overlay_decoder_context_t * ctx;
 
-  /* Nothing to do here */
   if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
-    return 1;
-  
-  dec = bgav_find_subtitle_overlay_decoder(s);
-  if(!dec)
     {
-    fprintf(stderr, "No subtitle overlay decoder found for fourcc ");
-    bgav_dump_fourcc(s->fourcc);
-    fprintf(stderr, "\n");
-    return 0;
+    if(s->data.subtitle.subreader)
+      bgav_subtitle_reader_start(s);
+    
+    if(s->data.subtitle.encoding)
+      s->data.subtitle.cnv =
+        bgav_charset_converter_create(s->data.subtitle.encoding, "UTF-8");
+    else
+      s->data.subtitle.cnv =
+        bgav_charset_converter_create(s->opt->default_subtitle_encoding, "UTF-8");
+    
+    return 1;
     }
-  ctx = calloc(1, sizeof(*ctx));
-  s->data.subtitle.decoder = ctx;
-  s->data.subtitle.decoder->decoder = dec;
-  //  fprintf(stderr, "Opening codec %s\n", dec->name);
-
-  if(!dec->init(s))
-    return 0;
-
+  else
+    {
+    dec = bgav_find_subtitle_overlay_decoder(s);
+    if(!dec)
+      {
+      fprintf(stderr, "No subtitle overlay decoder found for fourcc ");
+      bgav_dump_fourcc(s->fourcc);
+      fprintf(stderr, "\n");
+      return 0;
+      }
+    ctx = calloc(1, sizeof(*ctx));
+    s->data.subtitle.decoder = ctx;
+    s->data.subtitle.decoder->decoder = dec;
+    //  fprintf(stderr, "Opening codec %s\n", dec->name);
+    
+    if(!dec->init(s))
+      return 0;
+    }
   return 1;
-
-
   }
 
 void bgav_subtitle_stop(bgav_stream_t * s)
