@@ -60,6 +60,14 @@ static void free_info(bg_plugin_info_t * info)
     free(info->module_filename);
   if(info->devices)
     bg_device_info_destroy(info->devices);
+
+  if(info->parameters)
+    bg_parameter_info_destroy_array(info->parameters);
+  if(info->audio_parameters)
+    bg_parameter_info_destroy_array(info->audio_parameters);
+  if(info->video_parameters)
+    bg_parameter_info_destroy_array(info->video_parameters);
+  
   free(info);
   }
 
@@ -392,9 +400,11 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
       {
           
       parameter_info = plugin->get_parameters(plugin_priv);
-
+      
       bg_cfg_section_create_items(plugin_section,
                                   parameter_info);
+
+      new_info->parameters = bg_parameter_info_copy_array(parameter_info);
       }
     
     if(plugin->type & (BG_PLUGIN_ENCODER_AUDIO|
@@ -414,6 +424,7 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
         
         bg_cfg_section_create_items(stream_section,
                                     parameter_info);
+        new_info->audio_parameters = bg_parameter_info_copy_array(parameter_info);
         }
 
       if(encoder->get_video_parameters)
@@ -424,8 +435,8 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
         
         bg_cfg_section_create_items(stream_section,
                                     parameter_info);
+        new_info->video_parameters = bg_parameter_info_copy_array(parameter_info);
         }
-      
       }
     
     if(plugin->find_devices)
@@ -497,8 +508,9 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
     ret->entries = scan_directory(GMERLIN_PLUGIN_DIR,
                                   (bg_plugin_info_t**)0, &changed,
                                   section);
-    bg_plugin_registry_save(ret->entries);
+    //    bg_plugin_registry_save(ret->entries);
     }
+  bg_plugin_registry_save(ret->entries);
   
   /* Now we have all external plugins, time to create the meta plugins */
 

@@ -32,7 +32,6 @@ struct bg_player_ov_context_s
   bg_ov_plugin_t     * plugin;
   void               * priv;
   bg_player_t        * player;
-  int do_sync;
   bg_ov_callbacks_t callbacks;
   gavl_video_frame_t * frame;
   gavl_time_t frame_time;
@@ -98,9 +97,8 @@ static void button_callback(void * data, int x, int y, int button, int mask)
     bg_player_seek_rel(ctx->player, 2 * GAVL_TIME_SCALE );
   else if(button == 5)
     bg_player_seek_rel(ctx->player, - 2 * GAVL_TIME_SCALE );
-    
   
-  fprintf(stderr, "Button callback %d %d (Button %d)\n", x, y, button);
+  //  fprintf(stderr, "Button callback %d %d (Button %d)\n", x, y, button);
   }
 
 static void brightness_callback(void * data, float val)
@@ -271,6 +269,9 @@ int bg_player_ov_init(bg_player_ov_context_t * ctx)
   {
   gavl_video_format_t osd_format;
   int result;
+
+  ctx->next_subtitle    = (gavl_overlay_t*)0;
+  ctx->has_subtitle = 0;
   
   gavl_video_format_copy(&(ctx->player->video_stream.output_format),
                          &(ctx->player->video_stream.input_format));
@@ -369,9 +370,19 @@ void bg_player_ov_cleanup(bg_player_ov_context_t * ctx)
   bg_plugin_unlock(ctx->plugin_handle);
   }
 
-void bg_player_ov_sync(bg_player_t * p)
+void bg_player_ov_reset(bg_player_t * player)
   {
-  p->ov_context->do_sync  = 1;
+  bg_player_ov_context_t * ctx;
+  ctx = player->ov_context;
+
+  if(ctx->has_subtitle)
+    {
+    ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
+    ctx->has_subtitle = 0;
+    }
+  
+  ctx->next_subtitle = (gavl_overlay_t*)0;
+  fprintf(stderr, "Resetting subtitles\n");
   }
 
 /* Set this extra because we must initialize subtitles after the video output */
@@ -499,12 +510,14 @@ void * bg_player_ov_thread(void * data)
     /* Subtitle handling */
     if(ctx->player->do_subtitle_text || ctx->player->do_subtitle_overlay)
       {
+
       /* Try to get next subtitle */
       if(!ctx->next_subtitle)
         {
         ctx->next_subtitle = bg_fifo_try_lock_read(ctx->player->subtitle_stream.fifo,
                                                   &state);
         }
+      //      fprintf(stderr, "Subtitle %p\n", ctx->next_subtitle);
       /* Check if the overlay is expired */
       if(ctx->has_subtitle)
         {
@@ -536,11 +549,17 @@ void * bg_player_ov_thread(void * data)
           ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id,
                                    &(ctx->current_subtitle));
           
-          //          fprintf(stderr, "New Overlay\n");
+          //          fprintf(stderr, "Using New Overlay\n");
           ctx->has_subtitle = 1;
           ctx->next_subtitle = (gavl_overlay_t*)0;
           bg_fifo_unlock_read(ctx->player->subtitle_stream.fifo);
           }
+#if 0
+        else
+          fprintf(stderr, "Not using new overlay: %f, %f\n",
+                  gavl_time_to_seconds(ctx->frame_time),
+                  gavl_time_to_seconds(ctx->next_subtitle->frame->time_scaled));
+#endif
         }
       }
     /* Handle message */
@@ -562,35 +581,23 @@ void * bg_player_ov_thread(void * data)
             gavl_time_to_seconds(current_time));
 #endif
 
-    /* Check for subtitle */
+    diff_time =  ctx->frame_time - current_time;
     
+    /* Wait until we can display the frame */
+    if(diff_time > 0)
+      gavl_time_delay(&diff_time);
     
-    if(!ctx->do_sync)
+    /* TODO: Drop frames */
+    else if(diff_time < -100000)
       {
-      diff_time =  ctx->frame_time - current_time;
-      
-      /* Wait until we can display the frame */
-      if(diff_time > 0)
-        gavl_time_delay(&diff_time);
-    
-      /* TODO: Drop frames */
-      else if(diff_time < -100000)
-        {
-        //        fprintf(stderr, "Warning, frame dropping not yet implemented\n");
-        }
+      //        fprintf(stderr, "Warning, frame dropping not yet implemented\n");
       }
+    
     //    fprintf(stderr, "Frame time: %lld\n", frame->time);
     bg_plugin_lock(ctx->plugin_handle);
     //    fprintf(stderr, "Put video\n");
     ctx->plugin->put_video(ctx->priv, ctx->frame);
     ctx->plugin->handle_events(ctx->priv);
-    
-    if(ctx->do_sync)
-      {
-      bg_player_time_set(ctx->player, ctx->frame_time);
-      //      fprintf(stderr, "OV Resync %lld\n", frame->time);
-      ctx->do_sync = 0;
-      }
     
     bg_plugin_unlock(ctx->plugin_handle);
     }

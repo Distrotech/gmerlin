@@ -208,7 +208,7 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
   if(ctx->player->current_video_stream >= ctx->player->track_info->num_video_streams)
     ctx->player->current_video_stream = 0;
 
-  //  ctx->player->current_subtitle_stream = 0;
+  //  ctx->player->current_subtitle_stream = 7;
   if(ctx->player->current_subtitle_stream >= ctx->player->track_info->num_subtitle_streams)
     ctx->player->current_subtitle_stream = 0;
   
@@ -462,17 +462,17 @@ static int process_subtitle(bg_player_input_context_t * ctx)
   gavl_time_t start, duration;
   bg_player_subtitle_stream_t * s;
   bg_fifo_state_t state;
-  //  fprintf(stderr, "Process video %d...", preload);
-
-  //  fprintf(stderr, "Process subtitle %d %d\n", ctx->player->do_subtitle_text,
-  //          ctx->player->do_subtitle_overlay);
-
+  
   if(!ctx->player->do_subtitle_text &&
      !ctx->player->do_subtitle_overlay)
     return 0;
 
   s = &(ctx->player->subtitle_stream);
 
+  //fprintf(stderr, "Process subtitle %d %d\n", ctx->player->do_subtitle_text,
+  //            ctx->player->do_subtitle_overlay);
+
+  
   if(ctx->plugin->has_subtitle(ctx->priv,
                                ctx->player->current_subtitle_stream))
     {
@@ -480,8 +480,11 @@ static int process_subtitle(bg_player_input_context_t * ctx)
     ovl = (gavl_overlay_t*)bg_fifo_try_lock_write(s->fifo, &state);
 
     if(!ovl)
-      return 0;
+      {
+      //      fprintf(stderr, "Got no overlay\n");
 
+      return 0;
+      }
     if(ctx->player->do_subtitle_text)
       {
       if(!ctx->plugin->read_subtitle_text(ctx->priv,
@@ -517,6 +520,7 @@ static int process_subtitle(bg_player_input_context_t * ctx)
       }
     bg_fifo_unlock_write(s->fifo, 0); /* Subtitle streams never signal eof! */
     }
+  
   return 1;
   }
 

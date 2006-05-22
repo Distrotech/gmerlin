@@ -251,9 +251,12 @@ void bg_player_input_bypass_set_pause(bg_player_input_context_t * ctx,
 
 
 
-/* player1_ov.c */
+/* player_ov.c */
 
 void bg_player_ov_create(bg_player_t * player);
+
+void bg_player_ov_reset(bg_player_t * player);
+
 void bg_player_ov_destroy(bg_player_t * player);
 int  bg_player_ov_init(bg_player_ov_context_t * ctx);
 void bg_player_ov_cleanup(bg_player_ov_context_t * ctx);

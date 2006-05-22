@@ -20,6 +20,9 @@
 #ifndef __BG_PARAMETER_H_
 #define __BG_PARAMETER_H_
 
+#include <libxml/tree.h>
+#include <libxml/parser.h>
+
 #include <gavl/gavl.h>
 
 /* Universal Parameter setting mechanism */
@@ -142,7 +145,15 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
 
 bg_parameter_info_t *
 bg_parameter_info_merge_arrays(bg_parameter_info_t ** srcs);
-  
+
+bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
+                                          xmlNodePtr xml_parameters);
+
+void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters);
+
+
+
+
 
 #endif /* __BG_PARAMETER_H_ */
 

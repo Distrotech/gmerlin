@@ -31,6 +31,7 @@ metadata_xml.c \
 msgqueue.c \
 osd.c \
 parameter.c \
+parameter_xml.c \
 player.c \
 player_input.c \
 player_oa.c \

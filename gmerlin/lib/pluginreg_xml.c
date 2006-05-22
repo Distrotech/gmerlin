@@ -82,6 +82,10 @@ static const char * device_key            = "DEVICE";
 static const char * max_audio_streams_key = "MAX_AUDIO_STREAMS";
 static const char * max_video_streams_key = "MAX_VIDEO_STREAMS";
 
+static const char * parameters_key       = "PARAMETERS";
+static const char * audio_parameters_key = "AUDIO_PARAMETERS";
+static const char * video_parameters_key = "VIDEO_PARAMETERS";
+
 static bg_device_info_t *
 load_device(bg_device_info_t * arr, xmlDocPtr doc, xmlNodePtr node)
   {
@@ -141,15 +145,7 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
   bg_plugin_info_t * ret;
 
   ret = calloc(1, sizeof(*ret));
-
-  tmp_string = BG_XML_GET_PROP(node, name_key);
   
-  if(tmp_string)
-    {
-    ret->name = bg_strdup(ret->name, tmp_string);
-    free(tmp_string);
-    }
-    
   cur = node->children;
     
   while(cur)
@@ -160,6 +156,25 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
       continue;
       }
 
+    if(!BG_XML_STRCMP(cur->name, parameters_key))
+      {
+      ret->parameters = bg_xml_2_parameters(doc, cur);
+      cur = cur->next;
+      continue;
+      }
+    else if(!BG_XML_STRCMP(cur->name, audio_parameters_key))
+      {
+      ret->audio_parameters = bg_xml_2_parameters(doc, cur);
+      cur = cur->next;
+      continue;
+      }
+    else if(!BG_XML_STRCMP(cur->name, video_parameters_key))
+      {
+      ret->video_parameters = bg_xml_2_parameters(doc, cur);
+      cur = cur->next;
+      continue;
+      }
+    
     tmp_string = (char*)xmlNodeListGetString(doc, cur->children, 1);
 
     if(!BG_XML_STRCMP(cur->name, name_key))
@@ -336,6 +351,26 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->mimetypes));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
+
+  if(info->parameters)
+    {
+    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)parameters_key, NULL);
+    bg_parameters_2_xml(info->parameters, xml_item);
+    xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+    }
+  if(info->audio_parameters)
+    {
+    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)audio_parameters_key, NULL);
+    bg_parameters_2_xml(info->audio_parameters, xml_item);
+    xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+    }
+  if(info->video_parameters)
+    {
+    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)video_parameters_key, NULL);
+    bg_parameters_2_xml(info->video_parameters, xml_item);
+    xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+    }
+  
   if(info->type & (BG_PLUGIN_ENCODER_AUDIO|
                    BG_PLUGIN_ENCODER_VIDEO|
                    BG_PLUGIN_ENCODER))

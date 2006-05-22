@@ -740,7 +740,7 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
     }
   if(player->do_subtitle_text || player->do_subtitle_overlay)
     {
-    bg_fifo_clear(player->video_stream.fifo);
+    bg_fifo_clear(player->subtitle_stream.fifo);
     }
   
   /* Resync */
@@ -756,6 +756,8 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
   //  fprintf(stderr, "Preload done\n");
   
   bg_player_time_set(player, sync_time);
+
+  bg_player_ov_reset(player);
   
   if(old_state == BG_PLAYER_STATE_PAUSED)
     {

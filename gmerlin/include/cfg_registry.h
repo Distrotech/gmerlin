@@ -22,10 +22,6 @@
 
 #include "parameter.h"
 
-#include <libxml/tree.h>
-#include <libxml/parser.h>
-
-
 typedef enum
   {
     BG_CFG_INT,
