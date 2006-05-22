@@ -124,8 +124,7 @@ int bgav_has_subtitle(bgav_t * b, int stream)
     }
   else if(s->data.subtitle.subreader)
     {
-    //    fprintf(stderr, "bgav_has_subtitle\n");
-    return 1;
+    return bgav_subtitle_reader_has_subtitle(s);
     }
   else
     return 0;

@@ -463,13 +463,30 @@ void bgav_subtitle_reader_close(bgav_stream_t * s)
   free(ctx);
   }
 
+int bgav_subtitle_reader_has_subtitle(bgav_stream_t * s)
+  {
+  bgav_subtitle_reader_context_t * ctx;
+  ctx = s->data.subtitle.subreader;
+
+  if(!ctx->has_subtitle && ctx->reader->read_subtitle_text(s))
+    ctx->has_subtitle = 1;
+
+  return ctx->has_subtitle;
+  }
+
 bgav_packet_t * bgav_subtitle_reader_read_text(bgav_stream_t * s)
   {
-  bgav_subtitle_reader_t * r;
-  r = s->data.subtitle.subreader->reader;
-  
-  if(r->read_subtitle_text(s))
+  bgav_subtitle_reader_context_t * ctx;
+  ctx = s->data.subtitle.subreader;
+
+  if(!ctx->has_subtitle && ctx->reader->read_subtitle_text(s))
+    ctx->has_subtitle = 1;
+
+  if(ctx->has_subtitle)
+    {
+    ctx->has_subtitle = 0;
     return s->data.subtitle.subreader->p;
+    }
   else
     return (bgav_packet_t *)0;
   }
@@ -490,5 +507,24 @@ int bgav_subtitle_reader_start(bgav_stream_t * s)
 void bgav_subtitle_reader_seek(bgav_stream_t * s,
                                gavl_time_t time)
   {
-  
+  int titles_skipped;
+  bgav_subtitle_reader_context_t * ctx;
+  ctx = s->data.subtitle.subreader;
+    
+  if(ctx->input->input->seek_byte)
+    {
+    bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
+
+    titles_skipped = 0;
+    
+    while(ctx->reader->read_subtitle_text(s))
+      {
+      titles_skipped++;
+      if(ctx->p->timestamp_scaled + ctx->p->duration_scaled < time)
+        continue;
+      else
+        break;
+      }
+    }
+  fprintf(stderr, "seeked in subtitle file (skipped %d)\n", titles_skipped);
   }

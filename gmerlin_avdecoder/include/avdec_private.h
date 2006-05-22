@@ -1219,6 +1219,12 @@ struct bgav_subtitle_reader_context_s
   char * info; /* Derived from filename difference */
   char * filename; /* Name of the subtitle file */
   bgav_packet_t * p;
+
+  /* 1 if the packet contains a not yet read subtitle */
+  int has_subtitle; 
+
+  /* Some formats have a header... */
+  int64_t data_start;
   
   /* bgav_subtitle_reader_open returns a chained list */
   bgav_subtitle_reader_context_t * next;
@@ -1247,5 +1253,7 @@ int bgav_subtitle_reader_start(bgav_stream_t *);
 
 void bgav_subtitle_reader_seek(bgav_stream_t *,
                                gavl_time_t time);
+
+int bgav_subtitle_reader_has_subtitle(bgav_stream_t * s);
 
 bgav_packet_t * bgav_subtitle_reader_read_text(bgav_stream_t *);

@@ -17,11 +17,10 @@
  
 *****************************************************************/
 
+#define _GNU_SOURCE /* vasprintf */
+
 #include <avdec_private.h>
 
-#ifdef HAVE_VASPRINTF
-#define _GNU_SOURCE
-#endif
 
 #include <stdio.h>
 #include <stdarg.h>
