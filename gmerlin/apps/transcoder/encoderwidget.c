@@ -191,7 +191,8 @@ static void encoder_window_apply(encoder_window_t * win)
     if(track->selected)
       {
       bg_transcoder_track_set_encoders(track, win->encoder_widget.plugin_reg,
-                                       audio_encoder, video_encoder);
+                                       audio_encoder ? audio_encoder->info : NULL,
+                                       video_encoder->info);
       }
     track = track->next;
     }

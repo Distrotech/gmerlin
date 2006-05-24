@@ -17,11 +17,10 @@
  
 *****************************************************************/
 
+#define _GNU_SOURCE
+
 #include <config.h>
 
-#ifdef HAVE_VASPRINTF
-#define _GNU_SOURCE
-#endif
 
 #include <string.h>
 #include <stdlib.h>

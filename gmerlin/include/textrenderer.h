@@ -23,7 +23,7 @@ typedef struct bg_text_renderer_s bg_text_renderer_t;
 bg_text_renderer_t * bg_text_renderer_create();
 void bg_text_renderer_destroy(bg_text_renderer_t *);
 
-bg_parameter_info_t * bg_text_renderer_get_parameters(bg_text_renderer_t * r);
+bg_parameter_info_t * bg_text_renderer_get_parameters(void);
 
 void bg_text_renderer_set_parameter(void * data, char * name, bg_parameter_value_t * val);
 

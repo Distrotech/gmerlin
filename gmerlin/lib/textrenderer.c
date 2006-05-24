@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-
 /* Fontconfig */
 
 #include <fontconfig/fontconfig.h>
@@ -774,7 +773,7 @@ void bg_text_renderer_destroy(bg_text_renderer_t * r)
   free(r);
   }
 
-bg_parameter_info_t * bg_text_renderer_get_parameters(bg_text_renderer_t * r)
+bg_parameter_info_t * bg_text_renderer_get_parameters()
   {
   return parameters;
   }

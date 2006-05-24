@@ -33,6 +33,7 @@
 #include <transcodermsg.h>
 
 #include <remote.h>
+#include <textrenderer.h>
 
 #include <gui_gtk/display.h>
 #include <gui_gtk/scrolltext.h>
@@ -1226,7 +1227,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 NULL,
                 NULL,
                 bg_transcoder_track_audio_get_general_parameters());
-
+  
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
                                                "video");
 
@@ -1240,6 +1241,39 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                       NULL,
                       bg_transcoder_track_video_get_general_parameters());
 
+
+  parent = bg_dialog_add_parent(dlg, NULL,
+                                "Text subtitle defaults");
+  
+  
+  cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
+                                               "subtitle_text");
+
+  bg_dialog_add_child(dlg, parent, "General",
+                      cfg_section,
+                      NULL,
+                      NULL,
+                      bg_transcoder_track_subtitle_text_get_general_parameters());
+
+  cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
+                                               "textrenderer");
+
+  bg_dialog_add_child(dlg, parent, "Textrenderer",
+                      cfg_section,
+                      NULL,
+                      NULL,
+                      bg_text_renderer_get_parameters());
+  
+  cfg_section = bg_cfg_registry_find_section(w->cfg_reg,
+                                             "subtitle_overlay");
+  bg_dialog_add(dlg,
+                "Overlay subtitle defaults",
+                cfg_section,
+                NULL,
+                NULL,
+                bg_transcoder_track_subtitle_overlay_get_general_parameters());
+  
+  
   cfg_section = bg_cfg_registry_find_section(w->cfg_reg,
                                              "transcoder_window");
 

@@ -521,9 +521,9 @@ void * bg_player_ov_thread(void * data)
       /* Check if the overlay is expired */
       if(ctx->has_subtitle)
         {
-        if((ctx->current_subtitle.frame->duration_scaled >= 0) &&
-           (ctx->frame_time >= ctx->current_subtitle.frame->time_scaled +
-            ctx->current_subtitle.frame->duration_scaled))
+        if(bg_overlay_too_old(ctx->frame_time,
+                              ctx->current_subtitle.frame->time_scaled,
+                              ctx->current_subtitle.frame->duration_scaled))
           {
           ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
 #if 0
@@ -540,7 +540,8 @@ void * bg_player_ov_thread(void * data)
       
       if(ctx->next_subtitle)
         {
-        if(ctx->frame_time >= ctx->next_subtitle->frame->time_scaled)
+        if(!bg_overlay_too_new(ctx->frame_time,
+                               ctx->next_subtitle->frame->time_scaled))
           {
           memcpy(&tmp_overlay, ctx->next_subtitle, sizeof(tmp_overlay));
           memcpy(ctx->next_subtitle, &(ctx->current_subtitle),

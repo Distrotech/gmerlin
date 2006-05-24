@@ -130,7 +130,7 @@ void bg_player_subtitle_cleanup(bg_player_t * player)
 
 bg_parameter_info_t * bg_player_get_subtitle_parameters(bg_player_t * p)
   {
-  return bg_text_renderer_get_parameters(p->subtitle_stream.renderer);
+  return bg_text_renderer_get_parameters();
   }
 
 void bg_player_set_subtitle_parameter(void * data, char * name,

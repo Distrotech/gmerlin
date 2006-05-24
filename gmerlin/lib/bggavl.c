@@ -616,3 +616,19 @@ void bg_gavl_video_options_set_rectangles(bg_gavl_video_options_t * opt,
 
   gavl_video_options_set_rectangles(opt->opt, &in_rect, &out_rect);
   }
+
+
+int bg_overlay_too_old(gavl_time_t time, gavl_time_t ovl_time,
+                       gavl_time_t ovl_duration)
+  {
+  if((ovl_duration >= 0) && (time > ovl_time + ovl_duration))
+    return 1;
+  return 0;
+  }
+
+int bg_overlay_too_new(gavl_time_t time, gavl_time_t ovl_time)
+  {
+  if(time < ovl_time)
+    return 1;
+  return 0;
+  }

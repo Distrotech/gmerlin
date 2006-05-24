@@ -23,31 +23,56 @@
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 
+typedef struct bg_transcoder_track_s bg_transcoder_track_t;
+
+
 
 /* This defines a track with all information
    necessary for transcoding */
 
 typedef struct
   {
+  char * label;
+  
   bg_parameter_info_t * encoder_parameters;
+
   bg_cfg_section_t * encoder_section;
   bg_cfg_section_t * general_section;
   } bg_transcoder_track_audio_t;
 
-bg_parameter_info_t *
-bg_transcoder_track_audio_get_general_parameters();
-
 typedef struct
   {
+  char * label;
+
   bg_parameter_info_t * encoder_parameters;
+
   bg_cfg_section_t * encoder_section;
   bg_cfg_section_t * general_section;
   } bg_transcoder_track_video_t;
 
-bg_parameter_info_t *
-bg_transcoder_track_video_get_general_parameters();
+typedef struct
+  {
+  char * label;
+  int in_index;
+  
+  bg_parameter_info_t * general_parameters;
+  bg_cfg_section_t * general_section;
+  bg_cfg_section_t * textrenderer_section;
+  
+  } bg_transcoder_track_subtitle_text_t;
 
-typedef struct bg_transcoder_track_s
+typedef struct
+  {
+  char * label;
+  int in_index;
+
+  bg_parameter_info_t * general_parameters;
+  bg_cfg_section_t * general_section;
+  
+  } bg_transcoder_track_subtitle_overlay_t;
+
+
+struct bg_transcoder_track_s
   {
   bg_cfg_section_t    * input_section;
   
@@ -65,10 +90,14 @@ typedef struct bg_transcoder_track_s
   
   int num_audio_streams;
   int num_video_streams;
+  int num_subtitle_text_streams;
+  int num_subtitle_overlay_streams;
 
-  bg_transcoder_track_audio_t * audio_streams;
-  bg_transcoder_track_video_t * video_streams;
-      
+  bg_transcoder_track_audio_t    * audio_streams;
+  bg_transcoder_track_video_t    * video_streams;
+  bg_transcoder_track_subtitle_text_t    * subtitle_text_streams;
+  bg_transcoder_track_subtitle_overlay_t * subtitle_overlay_streams;
+  
   /* For chaining */
   struct bg_transcoder_track_s * next;
 
@@ -78,10 +107,24 @@ typedef struct bg_transcoder_track_s
 
   /* This is non NULL if we have a redirector */
   char * url;
-  } bg_transcoder_track_t;
+  };
 
 bg_parameter_info_t *
 bg_transcoder_track_get_general_parameters();
+
+
+bg_parameter_info_t *
+bg_transcoder_track_audio_get_general_parameters();
+
+bg_parameter_info_t *
+bg_transcoder_track_video_get_general_parameters();
+
+bg_parameter_info_t *
+bg_transcoder_track_subtitle_text_get_general_parameters();
+
+bg_parameter_info_t *
+bg_transcoder_track_subtitle_overlay_get_general_parameters();
+
 
 bg_transcoder_track_t *
 bg_transcoder_track_create(const char * url,
@@ -122,14 +165,14 @@ void bg_transcoder_track_get_duration(bg_transcoder_track_t * t,
 
 void
 bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
-                                      bg_plugin_handle_t * audio_encoder,
-                                      bg_plugin_handle_t * video_encoder);
+                                      const bg_plugin_info_t * audio_info,
+                                      const bg_plugin_info_t * video_info);
 
 void
 bg_transcoder_track_set_encoders(bg_transcoder_track_t * track,
                                  bg_plugin_registry_t * plugin_reg,
-                                 bg_plugin_handle_t * audio_encoder,
-                                 bg_plugin_handle_t * video_encoder);
+                                 const bg_plugin_info_t * audio_info,
+                                 const bg_plugin_info_t * video_info);
 
 /*
  *  Global options

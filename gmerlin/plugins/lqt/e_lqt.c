@@ -35,6 +35,7 @@ static bg_parameter_info_t stream_parameters[] =
 
 typedef struct
   {
+  int max_riff_size;
   char * filename;
   quicktime_t * file;
   
@@ -87,10 +88,10 @@ static struct
   }
 extensions[] =
   {
-    { LQT_FILE_QT | LQT_FILE_QT_OLD, ".mov" },
-    { LQT_FILE_AVI, ".avi" },
-    { LQT_FILE_MP4, ".mp4" },
-    { LQT_FILE_M4A, ".m4a" },
+    { LQT_FILE_QT  | LQT_FILE_QT_OLD,      ".mov" },
+    { LQT_FILE_AVI | LQT_FILE_AVI_ODML, ".avi" },
+    { LQT_FILE_MP4,                        ".mp4" },
+    { LQT_FILE_M4A,                        ".m4a" },
   };
 
 static const char * get_extension_lqt(void * data)
@@ -112,19 +113,23 @@ static int open_lqt(void * data, const char * filename,
   char * track_string;
   e_lqt_t * e = (e_lqt_t*)data;
   
-  if(e->make_streamable && (e->file_type != LQT_FILE_AVI))
+  if(e->make_streamable && !(e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)))
     e->filename = bg_sprintf("%s.tmp", filename);
   else
     e->filename = bg_strdup(e->filename, filename);
 
   e->file = lqt_open_write(e->filename, e->file_type);
 
+  
   if(!e->file)
     {
     e->error_msg = bg_sprintf("Cannot open file %s", e->filename);
     return 0;
     }
-  
+
+  if(e->file_type == LQT_FILE_AVI_ODML)
+    lqt_set_max_riff_size(e->file, e->max_riff_size);
+    
   /* Set metadata */
 
   if(metadata->copyright)
@@ -181,7 +186,7 @@ static int add_video_stream_lqt(void * data, gavl_video_format_t* format)
                          format);
 
   /* AVIs are made with constant framerates only */
-  if(e->file_type == LQT_FILE_AVI)
+  if((e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)))
     e->video_streams[e->num_video_streams].format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
   
   e->num_video_streams++;
@@ -263,7 +268,7 @@ static void close_lqt(void * data, int do_delete)
   if(do_delete)
     remove(e->filename);
 
-  else if(e->make_streamable && (e->file_type != LQT_FILE_AVI))
+  else if(e->make_streamable && !(e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)))
     {
     filename_final = bg_strdup((char*)0, e->filename);
     pos = strrchr(filename_final, '.');
@@ -345,8 +350,8 @@ static bg_parameter_info_t common_parameters[] =
       name:      "format",
       long_name: "Format",
       type:      BG_PARAMETER_STRINGLIST,
-      multi_names:    (char*[]) { "quicktime", "avi", "mp4", "m4a", (char*)0 },
-      multi_labels:   (char*[]) { "Quicktime", "AVI", "MP4", "M4A", (char*)0 },
+      multi_names:    (char*[]) { "quicktime", "avi", "avi_opendml",   "mp4", "m4a", (char*)0 },
+      multi_labels:   (char*[]) { "Quicktime", "AVI", "AVI (Opendml)", "MP4", "M4A", (char*)0 },
       val_default: { val_str: "quicktime" },
     },
     {
@@ -354,6 +359,15 @@ static bg_parameter_info_t common_parameters[] =
       long_name: "Make streamable",
       type:      BG_PARAMETER_CHECKBUTTON,
       help_string: "Make the file streamable afterwards (uses twice the diskspace)",
+    },
+    {
+      name:      "max_riff_size",
+      long_name: "Maximum RIFF size for ODML",
+      type:      BG_PARAMETER_INT,
+      val_min:     { val_i: 1 },
+      val_max:     { val_i: 1024 },
+      val_default: { val_i: 1024 },
+      help_string: "Maximum RIFF size for OpenDML AVIs",
     },
     { /* End of parameters */ }
   };
@@ -376,6 +390,8 @@ static void set_parameter_lqt(void * data, char * name,
       e->file_type = LQT_FILE_QT;
     else if(!strcmp(val->val_str, "avi"))
       e->file_type = LQT_FILE_AVI;
+    else if(!strcmp(val->val_str, "avi_opendml"))
+      e->file_type = LQT_FILE_AVI_ODML;
     else if(!strcmp(val->val_str, "mp4"))
       e->file_type = LQT_FILE_MP4;
     else if(!strcmp(val->val_str, "m4a"))
@@ -383,6 +399,8 @@ static void set_parameter_lqt(void * data, char * name,
     }
   else if(!strcmp(name, "make_streamable"))
     e->make_streamable = val->val_i;
+  else if(!strcmp(name, "max_riff_size"))
+    e->max_riff_size = val->val_i;
   
   }
 

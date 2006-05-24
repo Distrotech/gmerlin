@@ -93,7 +93,22 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
 
   for(i = 0; i < t->num_audio_streams; i++)
     {
-    label = bg_sprintf("Audio stream %d", i+1);
+    if(t->num_audio_streams > 1)
+      {
+      if(t->audio_streams[i].label)
+        label = bg_sprintf("Audio #%d: %s", i+1, t->audio_streams[i].label);
+      else
+        label = bg_sprintf("Audio #%d", i+1);
+      }
+    else
+      {
+      if(t->audio_streams[i].label)
+        label = bg_sprintf("Audio: %s", t->audio_streams[i].label);
+      else
+        label = bg_sprintf("Audio");
+      }
+    
+    
     parent = bg_dialog_add_parent(ret->cfg_dialog, NULL,
                                   label);
     free(label);
@@ -118,7 +133,20 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
 
   for(i = 0; i < t->num_video_streams; i++)
     {
-    label = bg_sprintf("Video stream %d", i+1);
+    if(t->num_video_streams > 1)
+      {
+      if(t->video_streams[i].label)
+        label = bg_sprintf("Video #%d: %s", i+1, t->video_streams[i].label);
+      else
+        label = bg_sprintf("Video #%d", i+1);
+      }
+    else
+      {
+      if(t->video_streams[i].label)
+        label = bg_sprintf("Video: %s", t->video_streams[i].label);
+      else
+        label = bg_sprintf("Video");
+      }
 
     parent = bg_dialog_add_parent(ret->cfg_dialog, NULL,
                                   label);
@@ -140,9 +168,77 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                           t->video_streams[i].encoder_parameters);
     }
 
+  /* Subtitle streams */
+
+  for(i = 0; i < t->num_subtitle_text_streams; i++)
+    {
+    if(t->num_subtitle_text_streams > 1)
+      {
+      if(t->subtitle_text_streams[i].label)
+        label = bg_sprintf("Subtitles #%d: %s", i+1, t->subtitle_text_streams[i].label);
+      else
+        label = bg_sprintf("Subtitles #%d", i+1);
+      }
+    else
+      {
+      if(t->subtitle_text_streams[i].label)
+        label = bg_sprintf("Subtitles: %s", t->subtitle_text_streams[i].label);
+      else
+        label = bg_sprintf("Subtitles");
+      }
+    
+    parent = bg_dialog_add_parent(ret->cfg_dialog, NULL,
+                                  label);
+    free(label);
+    
+    bg_dialog_add_child(ret->cfg_dialog, parent,
+                        "General",
+                        t->subtitle_text_streams[i].general_section,
+                        NULL,
+                        NULL,
+                        t->subtitle_text_streams[i].general_parameters);
+
+    bg_dialog_add_child(ret->cfg_dialog, parent,
+                        "Textrenderer",
+                        t->subtitle_text_streams[i].textrenderer_section,
+                        NULL,
+                        NULL,
+                        bg_text_renderer_get_parameters());
+    }
+
+  for(i = 0; i < t->num_subtitle_overlay_streams; i++)
+    {
+    if(t->num_subtitle_overlay_streams > 1)
+      {
+      if(t->subtitle_overlay_streams[i].label)
+        label = bg_sprintf("Subtitles #%d: %s", i+1+t->num_subtitle_text_streams,
+                           t->subtitle_overlay_streams[i].label);
+      else
+        label = bg_sprintf("Subtitles #%d", i+1+t->num_subtitle_text_streams);
+      }
+    else
+      {
+      if(t->subtitle_overlay_streams[i].label)
+        label = bg_sprintf("Subtitles: %s", t->subtitle_overlay_streams[i].label);
+      else
+        label = bg_sprintf("Subtitles");
+      }
+    
+    parent = bg_dialog_add_parent(ret->cfg_dialog, NULL,
+                                  label);
+    free(label);
+    
+    bg_dialog_add_child(ret->cfg_dialog, parent,
+                        "General",
+                        t->subtitle_overlay_streams[i].general_section,
+                        NULL,
+                        NULL,
+                        t->subtitle_overlay_streams[i].general_parameters);
+    }
+  
   bg_dialog_set_tooltips(ret->cfg_dialog, show_tooltips);
 
-  fprintf(stderr, "Show tooltips: %d\n", show_tooltips);
+  //  fprintf(stderr, "Show tooltips: %d\n", show_tooltips);
   
   return ret;
   
