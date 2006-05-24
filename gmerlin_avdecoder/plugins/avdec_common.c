@@ -458,7 +458,11 @@ bg_avdec_set_parameter(void * p, char * name,
     //    fprintf(stderr, "Setting dynamic range %d\n", val->val_i);
     bgav_options_set_audio_dynrange(avdec->opt, val->val_i);
     }
-          
+  else if(!strcmp(name, "seek_subtitles"))
+    {
+    bgav_options_set_seek_subtitles(avdec->opt, atoi(val->val_str));
+    //    fprintf(stderr, "Seek subtitles: %d\n", atoi(val->val_str));
+    }
   }
 
 int bg_avdec_get_num_tracks(void * p)

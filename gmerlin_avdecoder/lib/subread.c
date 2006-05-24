@@ -428,8 +428,8 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
       new->info = bgav_strndup(name, pos);
       }
 
-    fprintf(stderr, "Found subtitle file %s (reader: %s, info: %s)\n",
-            new->filename, new->reader->name, new->info);
+    //    fprintf(stderr, "Found subtitle file %s (reader: %s, info: %s)\n",
+    //            new->filename, new->reader->name, new->info);
     
     if(!ret)
       {
@@ -519,12 +519,15 @@ void bgav_subtitle_reader_seek(bgav_stream_t * s,
     
     while(ctx->reader->read_subtitle_text(s))
       {
-      titles_skipped++;
       if(ctx->p->timestamp_scaled + ctx->p->duration_scaled < time)
+        {
+        titles_skipped++;
         continue;
+        }
       else
         break;
       }
+    ctx->has_subtitle = 1;
     }
   fprintf(stderr, "seeked in subtitle file (skipped %d)\n", titles_skipped);
   }

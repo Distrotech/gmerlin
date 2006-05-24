@@ -800,10 +800,14 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       if(priv->num_old_pts > 1)
         s->data.video.last_frame_duration = priv->old_pts[1] - priv->old_pts[0];
       }
+    //    fprintf(stderr, "num_old_pts: %d\n", priv->num_old_pts);
 
-    priv->num_old_pts--;
     if(priv->num_old_pts)
-      memmove(&(priv->old_pts[0]), &(priv->old_pts[1]), sizeof(int64_t) * priv->num_old_pts);
+      {
+      priv->num_old_pts--;
+      if(priv->num_old_pts)
+        memmove(&(priv->old_pts[0]), &(priv->old_pts[1]), sizeof(int64_t) * priv->num_old_pts);
+      }
     
     //      fprintf(stderr, "Decode %p %d\n", priv->packet_buffer_ptr, priv->have_last_frame);
     if(!priv->packet_buffer_ptr)
@@ -988,6 +992,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
   priv->delay = 0;
   priv->last_delay = -1;
   priv->num_old_pts = 0;
+  priv->have_first_frame = 0;
   }
 
 static void close_ffmpeg(bgav_stream_t * s)

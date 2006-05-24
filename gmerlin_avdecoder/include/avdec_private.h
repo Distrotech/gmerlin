@@ -543,6 +543,7 @@ struct bgav_options_s
 
   int audio_dynrange;
   int seamless;
+  int seek_subtitles;
   
   /* Callbacks */
   

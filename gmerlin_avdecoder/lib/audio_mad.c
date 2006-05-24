@@ -69,10 +69,12 @@ static int get_data(bgav_stream_t * s)
             bytes_in_buffer);
   
   memcpy(priv->buffer + bytes_in_buffer, p->data, p->data_size);
-
+  
   mad_stream_buffer(&(priv->stream), priv->buffer,
                     p->data_size + bytes_in_buffer);
   //  fprintf(stderr, "Get data %d %d\n", p->data_size, bytes_in_buffer);
+  //  bgav_hexdump(priv->buffer, 16, 16);
+    
   bgav_demuxer_done_packet_read(s->demuxer, p);
   return 1;
   }
@@ -119,15 +121,7 @@ static int decode_frame(bgav_stream_t * s)
       return 0;
       }
   //  fprintf(stderr, "Decode frame\n");
-#if 0
-  /* Resync just in case */
 
-  while(mad_stream_sync(&(priv->stream)) == -1)
-    {
-    if(!get_data(s))
-      return 0;
-    }
-#endif
   while(mad_frame_decode(&(priv->frame), &(priv->stream)) == -1)
     {
     switch(priv->stream.error)
@@ -137,9 +131,8 @@ static int decode_frame(bgav_stream_t * s)
           return 0;
         break;
       default:
-        //        fprintf(stderr, "mad_decode_frame returned: %s\n",
-        //                mad_stream_errorstr(&priv->stream));
-        //        fprintf(stderr, "Oops, Muting frame %s\n");
+        fprintf(stderr, "mad_decode_frame returned: %s\n",
+                mad_stream_errorstr(&priv->stream));
         mad_frame_mute(&priv->frame);
         break;
       }

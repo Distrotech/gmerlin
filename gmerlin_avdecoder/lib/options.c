@@ -127,9 +127,14 @@ void bgav_options_set_default_subtitle_encoding(bgav_options_t* b,
 void bgav_options_set_seamless(bgav_options_t* opt,
                                int seamless)
   {
-  opt->seamless = 1;
+  opt->seamless = seamless;
   }
 
+void bgav_options_set_seek_subtitles(bgav_options_t* opt,
+                                     int seek_subtitles)
+  {
+  opt->seek_subtitles = seek_subtitles;
+  }
 
 #define FREE(ptr) if(ptr) free(ptr)
 
@@ -200,6 +205,7 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   /* Subtitle */
   
   CP_STR(default_subtitle_encoding);
+  CP_INT(seek_subtitles);
 
   /* DVD */
 

@@ -130,16 +130,22 @@ int bgav_init(bgav_t * ret)
                                   &(ret->input->metadata));
 
   /* Check for subtitle file */
-  subreaders = bgav_subtitle_reader_open(ret->input);
-  if(subreaders)
-    fprintf(stderr, "Got subtitle reader(s)\n");
 
-  subreader = subreaders;
-  while(subreader)
+  //  fprintf(stderr, "seek_subtitles: %d, num_video_streams: %d\n",
+  //          ret->opt.seek_subtitles, ret->tt->current_track->num_video_streams);
+  
+  if(ret->opt.seek_subtitles &&
+     (ret->opt.seek_subtitles + ret->tt->current_track->num_video_streams > 1))
     {
-    bgav_track_attach_subtitle_reader(ret->tt->current_track,
-                                      &(ret->opt), subreader);
-    subreader = subreader->next;
+    subreaders = bgav_subtitle_reader_open(ret->input);
+    
+    subreader = subreaders;
+    while(subreader)
+      {
+      bgav_track_attach_subtitle_reader(ret->tt->current_track,
+                                        &(ret->opt), subreader);
+      subreader = subreader->next;
+      }
     }
   
   return 1;

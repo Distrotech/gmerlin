@@ -206,6 +206,21 @@ static bg_parameter_info_t parameters[] =
       type:       BG_PARAMETER_SECTION
     },
     {
+      name:        "seek_subtitles",
+      long_name:   "Seek external subtitles",
+      type:        BG_PARAMETER_STRINGLIST,
+      val_default:  { val_str: "0" },
+      multi_names:  (char*[]){ "0", "1", "2", (char*)0 },
+      multi_labels: (char*[]){ "Never", "For video files only", "Always", (char*)0 },
+      help_string:  "If the input is a regular file, gmerlin_avdecoder can scan the\
+ directory for matching subtitle files. For a file movie.mpg, possible\
+ subtitle files are e.g. movie_english.srt, movie_german.srt. The\
+ rule is, that the first part of the filename of the subtitle file\
+ must be equal to the movie filename up to the extension.\
+ Furthermore, the subtitle filename must have an extension supported by\
+ any of the subtitle readers."
+    },
+    {
       name:        "default_subtitle_encoding",
       long_name:   "Default subtitle encoding",
       type:        BG_PARAMETER_STRING,

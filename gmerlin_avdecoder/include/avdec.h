@@ -425,6 +425,25 @@ void bgav_options_set_audio_dynrange(bgav_options_t* opt,
 void bgav_options_set_seamless(bgav_options_t* opt,
                                int seamless);
 
+/** \ingroup options
+ *  \brief Enable external subtitle files
+ *  \param opt Option container
+ *  \param If 1, subtitle files will be seeked for video files. If 2, subtitles
+        will be seeked for all files.
+ *
+ *  If the input is a regular file, gmerlin_avdecoder can scan the
+ *  directory for matching subtitle files. For a file movie.mpg, possible
+ *  subtitle files are e.g. movie_english.srt, movie_german.srt. The
+ *  rule is, that the first part of the filename of the subtitle file
+ *  must be equal to the movie filename up to the extension (hiere: .mpg).
+ *  Furthermore, the subtitle filename must have an extension supported by
+ *  any of the subtitle readers.
+ */
+
+void bgav_options_set_seek_subtitles(bgav_options_t* opt,
+                                    int seek_subtitles);
+
+
 
 /* Set callbacks */
 
