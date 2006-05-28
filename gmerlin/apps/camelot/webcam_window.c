@@ -57,11 +57,14 @@ struct gmerlin_webcam_window_s
   GtkTooltips * tooltips;
   };
 
-static void set_input_plugin(bg_plugin_handle_t * h, void * data)
+static void set_input_plugin(const bg_plugin_info_t * info, void * data)
   {
   bg_msg_t * msg;
   gmerlin_webcam_window_t * w;
+  bg_plugin_handle_t * h;
   w = (gmerlin_webcam_window_t *)data;
+  h = bg_gtk_plugin_widget_single_load_plugin(w->input_plugin);
+  bg_plugin_registry_set_default(w->plugin_reg, BG_PLUGIN_RECORDER_VIDEO, info->name);
 
   msg = bg_msg_queue_lock_write(w->cmd_queue);
   bg_msg_set_id(msg, CMD_SET_INPUT_PLUGIN);
@@ -71,24 +74,30 @@ static void set_input_plugin(bg_plugin_handle_t * h, void * data)
   //  gmerlin_webcam_set_input_plugin(w->cam, h);
   }
 
-static void set_capture_plugin(bg_plugin_handle_t * h, void *  data)
+static void set_capture_plugin(const bg_plugin_info_t * info, void *  data)
   {
   bg_msg_t * msg;
   gmerlin_webcam_window_t * w;
+  bg_plugin_handle_t * h;
   w = (gmerlin_webcam_window_t *)data;
-
+  h = bg_gtk_plugin_widget_single_load_plugin(w->capture_plugin);
+  bg_plugin_registry_set_default(w->plugin_reg, BG_PLUGIN_IMAGE_WRITER, info->name);
+  
   msg = bg_msg_queue_lock_write(w->cmd_queue);
   bg_msg_set_id(msg, CMD_SET_CAPTURE_PLUGIN);
   bg_msg_set_arg_ptr_nocopy(msg, 0, h);
   bg_msg_queue_unlock_write(w->cmd_queue);
   }
 
-static void set_monitor_plugin(bg_plugin_handle_t * h, void *  data)
+static void set_monitor_plugin(const bg_plugin_info_t * info, void *  data)
   {
   bg_msg_t * msg;
   gmerlin_webcam_window_t * w;
+  bg_plugin_handle_t * h;
   w = (gmerlin_webcam_window_t *)data;
-
+  h = bg_gtk_plugin_widget_single_load_plugin(w->monitor_plugin);
+  bg_plugin_registry_set_default(w->plugin_reg, BG_PLUGIN_OUTPUT_VIDEO, info->name);
+                                 
   msg = bg_msg_queue_lock_write(w->cmd_queue);
   bg_msg_set_id(msg, CMD_SET_MONITOR_PLUGIN);
   bg_msg_set_arg_ptr_nocopy(msg, 0, h);
@@ -286,9 +295,12 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
     bg_gtk_plugin_widget_single_create("Plugin", ret->plugin_reg,
                                        BG_PLUGIN_RECORDER_VIDEO,
                                        BG_PLUGIN_RECORDER,
-                                       set_input_plugin,
-                                       ret, ret->tooltips);
-
+                                       ret->tooltips);
+  bg_gtk_plugin_widget_single_set_change_callback(ret->input_plugin, set_input_plugin, ret);
+  
+  set_input_plugin(bg_gtk_plugin_widget_single_get_plugin(ret->input_plugin),
+                                                          ret);
+  
   ret->input_reopen = gtk_button_new_with_label("Reopen");
   g_signal_connect(G_OBJECT(ret->input_reopen), "clicked",
                    G_CALLBACK(button_callback), ret);
@@ -300,9 +312,13 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
     bg_gtk_plugin_widget_single_create("Plugin", ret->plugin_reg,
                                        BG_PLUGIN_IMAGE_WRITER,
                                        BG_PLUGIN_FILE,
-                                       set_capture_plugin,
-                                       ret, ret->tooltips);
+                                       ret->tooltips);
+  bg_gtk_plugin_widget_single_set_change_callback(ret->capture_plugin, set_capture_plugin, ret);
 
+  set_capture_plugin(bg_gtk_plugin_widget_single_get_plugin(ret->capture_plugin),
+                                                          ret);
+
+  
   ret->capture_button = gtk_button_new_with_label("Take picture");
   g_signal_connect(G_OBJECT(ret->capture_button), "clicked", G_CALLBACK(button_callback),
                    ret);
@@ -325,9 +341,14 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
     bg_gtk_plugin_widget_single_create("Plugin", ret->plugin_reg,
                                        BG_PLUGIN_OUTPUT_VIDEO,
                                        BG_PLUGIN_PLAYBACK,
-                                       set_monitor_plugin,
-                                       ret, ret->tooltips);
+                                       ret->tooltips);
+  bg_gtk_plugin_widget_single_set_change_callback(ret->monitor_plugin,
+                                                  set_monitor_plugin, ret);
 
+  set_monitor_plugin(bg_gtk_plugin_widget_single_get_plugin(ret->monitor_plugin),
+                                                            ret);
+                     
+  
   ret->monitor_button = gtk_check_button_new_with_label("Enable Monitor");
   g_signal_connect(G_OBJECT(ret->monitor_button), "toggled",
                    G_CALLBACK(button_callback), ret);

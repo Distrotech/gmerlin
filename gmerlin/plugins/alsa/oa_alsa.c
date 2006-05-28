@@ -81,6 +81,17 @@ static bg_parameter_info_t global_parameters[] =
       help_string: "Enter a custom device to use for playback. Leave empty to use the\
  settings above",
     },
+    {
+      name:        "buffer_time",
+      long_name:   "Buffer time",
+      type:        BG_PARAMETER_INT,
+      val_min:     { val_i: 10    },
+      val_max:     { val_i: 10000 },
+      val_default: { val_i: 1000  },
+      help_string: "Set the buffer time (in milliseconds). Larger values \
+improve playback performance on slow systems under load. Smaller values \
+decrease the latency of the volume control.",
+    },
   };
 
 static int num_global_parameters =
@@ -106,6 +117,8 @@ typedef struct
   int convert_4_3;
   uint8_t * convert_buffer;
   int convert_buffer_alloc;
+  
+  gavl_time_t buffer_time;
   } alsa_t;
 
 static void convert_4_to_3(alsa_t * priv, gavl_audio_frame_t * frame)
@@ -303,8 +316,9 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
 
   //  fprintf(stderr, "Opening card %s...", card);
     
-  priv->pcm = bg_alsa_open_write(card, format, &priv->error_msg, &priv->convert_4_3);
-#if 0  
+  priv->pcm = bg_alsa_open_write(card, format, &priv->error_msg,
+                                 priv->buffer_time, &priv->convert_4_3);
+#if 0
   if(priv->pcm)
     fprintf(stderr, "done\n");
   else
@@ -450,6 +464,12 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
   else if(!strcmp(name, "user_device"))
     {
     priv->user_device = bg_strdup(priv->user_device, val->val_str);
+    }
+  else if(!strcmp(name, "buffer_time"))
+    {
+    priv->buffer_time = val->val_i;
+    priv->buffer_time *= (GAVL_TIME_SCALE/1000);
+    //    fprintf(stderr, "Set buffer time: %d\n", val->val_i);
     }
   else if(!strcmp(name, "card"))
     {

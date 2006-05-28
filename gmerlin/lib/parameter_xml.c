@@ -498,7 +498,7 @@ void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters)
           {
           child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)default_key, NULL);
 
-          tmp_string = bg_sprintf("%f", info[num_parameters].val_default.val_i);
+          tmp_string = bg_sprintf("%f", info[num_parameters].val_default.val_f);
           xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
           free(tmp_string);
           

@@ -41,6 +41,8 @@ type_names[] =
     { "Video recorder", BG_PLUGIN_RECORDER_VIDEO },
     { "Audio encoder",  BG_PLUGIN_ENCODER_AUDIO },
     { "Video encoder",  BG_PLUGIN_ENCODER_VIDEO },
+    { "Text subtitle exporter",  BG_PLUGIN_ENCODER_SUBTITLE_TEXT },
+    { "Overlay subtitle exporter",  BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY },
     { "Audio/Video encoder",  BG_PLUGIN_ENCODER },
     { "Image Reader",   BG_PLUGIN_IMAGE_READER  },
     { "Image Writer",   BG_PLUGIN_IMAGE_WRITER  },

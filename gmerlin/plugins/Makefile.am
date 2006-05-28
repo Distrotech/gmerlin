@@ -72,5 +72,7 @@ $(cdio_subdirs) \
 mikmod \
 wavwrite \
 image \
-postprocessors
+postprocessors \
+subwriters
+
 

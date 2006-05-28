@@ -382,7 +382,7 @@ void bg_player_ov_reset(bg_player_t * player)
     }
   
   ctx->next_subtitle = (gavl_overlay_t*)0;
-  fprintf(stderr, "Resetting subtitles\n");
+  //  fprintf(stderr, "Resetting subtitles\n");
   }
 
 /* Set this extra because we must initialize subtitles after the video output */

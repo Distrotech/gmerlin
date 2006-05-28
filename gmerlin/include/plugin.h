@@ -24,7 +24,7 @@
 #include "parameter.h"
 #include "streaminfo.h"
 
-#define BG_PLUGIN_API_VERSION 5
+#define BG_PLUGIN_API_VERSION 6
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -71,18 +71,20 @@ typedef enum
 
 typedef enum
   {
-    BG_PLUGIN_NONE               = 0,
-    BG_PLUGIN_INPUT              = (1<<0),
-    BG_PLUGIN_OUTPUT_AUDIO       = (1<<1),
-    BG_PLUGIN_OUTPUT_VIDEO       = (1<<2),
-    BG_PLUGIN_RECORDER_AUDIO     = (1<<3),
-    BG_PLUGIN_RECORDER_VIDEO     = (1<<4),
-    BG_PLUGIN_ENCODER_AUDIO      = (1<<5),
-    BG_PLUGIN_ENCODER_VIDEO      = (1<<6),
-    BG_PLUGIN_ENCODER            = (1<<7), // Encoder for both audio and video
-    BG_PLUGIN_ENCODER_PP         = (1<<8), // Encoder postprocessor
-    BG_PLUGIN_IMAGE_READER       = (1<<9),
-    BG_PLUGIN_IMAGE_WRITER       = (1<<10)
+    BG_PLUGIN_NONE                       = 0,
+    BG_PLUGIN_INPUT                      = (1<<0),
+    BG_PLUGIN_OUTPUT_AUDIO               = (1<<1),
+    BG_PLUGIN_OUTPUT_VIDEO               = (1<<2),
+    BG_PLUGIN_RECORDER_AUDIO             = (1<<3),
+    BG_PLUGIN_RECORDER_VIDEO             = (1<<4),
+    BG_PLUGIN_ENCODER_AUDIO              = (1<<5),
+    BG_PLUGIN_ENCODER_VIDEO              = (1<<6),
+    BG_PLUGIN_ENCODER_SUBTITLE_TEXT      = (1<<7),
+    BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY   = (1<<8),
+    BG_PLUGIN_ENCODER                    = (1<<9),  // Encoder for multiple kinds of streams
+    BG_PLUGIN_ENCODER_PP                 = (1<<10), // Encoder postprocessor
+    BG_PLUGIN_IMAGE_READER               = (1<<11),
+    BG_PLUGIN_IMAGE_WRITER               = (1<<12)
   } bg_plugin_type_t;
 
 /* At least one of these must be set */
@@ -539,6 +541,8 @@ typedef struct bg_encoder_plugin_s
 
   int max_audio_streams;
   int max_video_streams;
+  int max_subtitle_text_streams;
+  int max_subtitle_overlay_streams;
 
   /* Return the file extension, which will be appended to the file */
 
@@ -559,7 +563,9 @@ typedef struct bg_encoder_plugin_s
     
   bg_parameter_info_t * (*get_audio_parameters)(void * data);
   bg_parameter_info_t * (*get_video_parameters)(void * data);
-
+  bg_parameter_info_t * (*get_subtitle_text_parameters)(void * data);
+  bg_parameter_info_t * (*get_subtitle_overlay_parameters)(void * data);
+  
   /* Add streams. The formats can be changed, be sure to get the
    * final formats with get_[audio|video]_format after starting the plugin
    * Return value is the index of the added stream.
@@ -567,7 +573,10 @@ typedef struct bg_encoder_plugin_s
   
   int (*add_audio_stream)(void *, gavl_audio_format_t * format);
   int (*add_video_stream)(void *, gavl_video_format_t * format);
-
+  int (*add_subtitle_text_stream)(void *, const char * language);
+  int (*add_subtitle_overlay_stream)(void *, const char * language,
+                                     gavl_video_format_t * format);
+  
   /* Set parameters for the streams */
   
   void (*set_audio_parameter)(void * data, int stream, char * name,
@@ -575,6 +584,12 @@ typedef struct bg_encoder_plugin_s
   
   void (*set_video_parameter)(void * data, int stream, char * name,
                               bg_parameter_value_t * v);
+
+  void (*set_subtitle_text_parameter)(void * data, int stream, char * name,
+                                      bg_parameter_value_t * v);
+
+  void (*set_subtitle_overlay_parameter)(void * data, int stream, char * name,
+                                         bg_parameter_value_t * v);
   
   /* Multipass video encoding. Return FALSE if multipass transcoding is
      not supported and can be ommitted */
@@ -595,14 +610,20 @@ typedef struct bg_encoder_plugin_s
 
   void (*get_audio_format)(void * data, int stream, gavl_audio_format_t*ret);
   void (*get_video_format)(void * data, int stream, gavl_video_format_t*ret);
-  
-  
+  void (*get_subtitle_overlay_format)(void * data, int stream,
+                                      gavl_video_format_t*ret);
+    
   /*
    *  Encode audio/video
    */
 
   void (*write_audio_frame)(void*,gavl_audio_frame_t*,int stream);
   void (*write_video_frame)(void*,gavl_video_frame_t*,int stream);
+  
+  void (*write_subtitle_text)(void*,const char * text, gavl_time_t start,
+                              gavl_time_t duration, int stream);
+
+  void (*write_subtitle_overlay)(void*, gavl_overlay_t * ovl, int stream);
   
   /*
    *  Close it. if do_delete = 1, all output files should be erased

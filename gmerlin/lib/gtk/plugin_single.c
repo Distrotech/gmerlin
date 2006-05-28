@@ -43,15 +43,18 @@ struct bg_gtk_plugin_widget_single_s
     
   bg_plugin_registry_t * reg;
   const bg_plugin_info_t * info;
-  bg_plugin_handle_t * handle;
 
+  bg_plugin_handle_t * handle;
+  
   bg_cfg_section_t * section;
   bg_cfg_section_t * audio_section;
   bg_cfg_section_t * video_section;
+  bg_cfg_section_t * subtitle_text_section;
+  bg_cfg_section_t * subtitle_overlay_section;
 
   int32_t type_mask;
   int32_t flag_mask;
-  void (*set_plugin)(bg_plugin_handle_t *, void*);
+  void (*set_plugin)(const bg_plugin_info_t *, void*);
   void * set_plugin_data;
 
   };
@@ -62,7 +65,7 @@ static void set_parameter(void * data, char * name,
   bg_gtk_plugin_widget_single_t * widget;
   widget = (bg_gtk_plugin_widget_single_t *)data;
 
-  if(widget->handle->plugin->set_parameter)
+  if(widget->handle && widget->handle->plugin->set_parameter)
     {
     bg_plugin_lock(widget->handle);
     widget->handle->plugin->set_parameter(widget->handle->priv, name, v);
@@ -73,10 +76,7 @@ static void set_parameter(void * data, char * name,
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
-  bg_encoder_plugin_t * encoder;
-
   bg_gtk_plugin_widget_single_t * widget;
-  bg_parameter_info_t * parameters;
   
   bg_dialog_t * dialog;
   
@@ -88,47 +88,31 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == widget->config_button)
     {
-    bg_plugin_lock(widget->handle);
-    parameters = widget->handle->plugin->get_parameters(widget->handle->priv);
-    bg_plugin_unlock(widget->handle);
-    
     dialog = bg_dialog_create(widget->section,
                               set_parameter,
                               (void*)widget,
-                              parameters,
-                              widget->handle->info->long_name);
+                              widget->info->parameters,
+                              widget->info->long_name);
     bg_dialog_show(dialog);
     bg_dialog_destroy(dialog);
     }
 
   else if(w == widget->audio_button)
     {
-    encoder = (bg_encoder_plugin_t*)(widget->handle->plugin);
-
-    bg_plugin_lock(widget->handle);
-    parameters = encoder->get_audio_parameters(widget->handle->priv);
-    bg_plugin_unlock(widget->handle);
-    
     dialog = bg_dialog_create(widget->audio_section,
                               NULL, NULL,
-                              parameters,
-                              widget->handle->info->long_name);
+                              widget->info->audio_parameters,
+                              widget->info->long_name);
     bg_dialog_show(dialog);
     bg_dialog_destroy(dialog);
     }
 
   else if(w == widget->video_button)
     {
-    encoder = (bg_encoder_plugin_t*)(widget->handle->plugin);
-
-    bg_plugin_lock(widget->handle);
-    parameters = encoder->get_video_parameters(widget->handle->priv);
-    bg_plugin_unlock(widget->handle);
-    
     dialog = bg_dialog_create(widget->video_section,
                               NULL, NULL,
-                              parameters,
-                              widget->handle->info->long_name);
+                              widget->info->video_parameters,
+                              widget->info->long_name);
     bg_dialog_show(dialog);
     bg_dialog_destroy(dialog);
     }
@@ -169,25 +153,22 @@ static GtkWidget * create_pixmap_button(bg_gtk_plugin_widget_single_t * w,
 
 static void update_sensitive(bg_gtk_plugin_widget_single_t * widget)
   {
-  bg_encoder_plugin_t * encoder;
 
-  if(!widget->handle)
+  if(!widget->info)
     {
     fprintf(stderr, "ERROR: have no plugin\n");
     }
   
-  if(widget->handle->plugin->get_parameters)
+  if(widget->info->parameters)
     gtk_widget_set_sensitive(widget->config_button, 1);
   else
     gtk_widget_set_sensitive(widget->config_button, 0);
 
   if(widget->info->type & (BG_PLUGIN_ENCODER_AUDIO|BG_PLUGIN_ENCODER_VIDEO|BG_PLUGIN_ENCODER))
     {
-    encoder = (bg_encoder_plugin_t*)(widget->handle->plugin);
-
     if(widget->audio_button)
       {
-      if(encoder->get_audio_parameters)
+      if(widget->info->audio_parameters)
         gtk_widget_set_sensitive(widget->audio_button, 1);
       else
         gtk_widget_set_sensitive(widget->audio_button, 0);
@@ -195,7 +176,7 @@ static void update_sensitive(bg_gtk_plugin_widget_single_t * widget)
     
     if(widget->video_button)
       {
-      if(encoder->get_video_parameters)
+      if(widget->info->video_parameters)
         gtk_widget_set_sensitive(widget->video_button, 1);
       else
         gtk_widget_set_sensitive(widget->video_button, 0);
@@ -206,7 +187,6 @@ static void update_sensitive(bg_gtk_plugin_widget_single_t * widget)
 
 static void change_callback(GtkWidget * w, gpointer data)
   {
-  bg_encoder_plugin_t * encoder;
 
 #ifndef GTK_2_4
   const char * long_name;
@@ -230,48 +210,68 @@ static void change_callback(GtkWidget * w, gpointer data)
   
 #endif
 
-  if(widget->info)
-    bg_plugin_registry_set_default(widget->reg, widget->type_mask, widget->info->name);
-  
   if(widget->handle)
+    {
     bg_plugin_unref(widget->handle);
-  
-  widget->handle = bg_plugin_load(widget->reg, widget->info);
-    
+    widget->handle = (bg_plugin_handle_t*)0;
+    }
   update_sensitive(widget);
   
   widget->section = bg_plugin_registry_get_section(widget->reg,
                                                    widget->info->name);
 
-  if(widget->info->type & (BG_PLUGIN_ENCODER_AUDIO|BG_PLUGIN_ENCODER_VIDEO|BG_PLUGIN_ENCODER))
+  if(widget->info->type & (BG_PLUGIN_ENCODER_AUDIO|
+                           BG_PLUGIN_ENCODER_VIDEO|
+                           BG_PLUGIN_ENCODER_SUBTITLE_TEXT|
+                           BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY|
+                           BG_PLUGIN_ENCODER))
     {
-    encoder = (bg_encoder_plugin_t*)(widget->handle->plugin);
-    if(encoder->get_audio_parameters)
+    if(widget->info->audio_parameters)
       widget->audio_section = bg_cfg_section_find_subsection(widget->section, "$audio");
     else
       widget->audio_section = (bg_cfg_section_t*)0;
 
-    if(encoder->get_video_parameters)
+    if(widget->info->video_parameters)
       widget->video_section = bg_cfg_section_find_subsection(widget->section, "$video");
     else
       widget->video_section = (bg_cfg_section_t*)0;
+
+    if(widget->info->subtitle_text_parameters)
+      widget->subtitle_text_section =
+        bg_cfg_section_find_subsection(widget->section, "$subtitle_text");
+    else
+      widget->subtitle_text_section = (bg_cfg_section_t*)0;
     
+    if(widget->info->subtitle_overlay_parameters)
+      widget->subtitle_overlay_section =
+        bg_cfg_section_find_subsection(widget->section, "$subtitle_overlay");
+    else
+      widget->subtitle_overlay_section = (bg_cfg_section_t*)0;
+
     }
   
-  
   if(widget->set_plugin)
-    widget->set_plugin(widget->handle, widget->set_plugin_data);
+    widget->set_plugin(widget->info, widget->set_plugin_data);
   
   }
+
+void
+bg_gtk_plugin_widget_single_set_change_callback(bg_gtk_plugin_widget_single_t * w,
+                                                void (*set_plugin)(const bg_plugin_info_t * plugin,
+                                                                   void * data),
+                                                void * set_plugin_data)
+  {
+  w->set_plugin = set_plugin;
+  w->set_plugin_data = set_plugin_data;
+  
+  }
+                                                
 
 bg_gtk_plugin_widget_single_t *
 bg_gtk_plugin_widget_single_create(char * label,
                                    bg_plugin_registry_t * reg,
                                    uint32_t type_mask,
                                    uint32_t flag_mask,
-                                   void (*set_plugin)(bg_plugin_handle_t * plugin,
-                                                     void * data),
-                                   void * set_plugin_data,
                                    GtkTooltips * tooltips)
   {
 #ifdef GTK_2_4
@@ -288,8 +288,6 @@ bg_gtk_plugin_widget_single_create(char * label,
   
   ret = calloc(1, sizeof(*ret));
 
-  ret->set_plugin = set_plugin;
-  ret->set_plugin_data = set_plugin_data;
   
   ret->reg = reg;
   ret->type_mask = type_mask;
@@ -298,6 +296,7 @@ bg_gtk_plugin_widget_single_create(char * label,
   /* Make label */
 
   ret->label = gtk_label_new(label);
+  gtk_misc_set_alignment(GTK_MISC(ret->label), 0.0, 0.5);
   gtk_widget_show(ret->label);
     
   /* Make buttons */
@@ -397,7 +396,6 @@ void bg_gtk_plugin_widget_single_destroy(bg_gtk_plugin_widget_single_t * w)
   {
   if(w->handle)
     bg_plugin_unref(w->handle);
-  //  fprintf(stderr, "bg_gtk_plugin_widget_single_destroy\n");
   free(w);
   }
 
@@ -466,13 +464,14 @@ void bg_gtk_plugin_widget_single_set_sensitive(bg_gtk_plugin_widget_single_t * w
   
   }
 
-bg_plugin_handle_t *
+const bg_plugin_info_t *
 bg_gtk_plugin_widget_single_get_plugin(bg_gtk_plugin_widget_single_t * w)
   {
-  return w->handle;
+  return w->info;
   }
 
-void bg_gtk_plugin_widget_single_set_plugin(bg_gtk_plugin_widget_single_t * w, char * name)
+void bg_gtk_plugin_widget_single_set_plugin(bg_gtk_plugin_widget_single_t * w,
+                                            const bg_plugin_info_t * info)
   {
 #ifdef GTK_2_4
   int index;
@@ -480,11 +479,6 @@ void bg_gtk_plugin_widget_single_set_plugin(bg_gtk_plugin_widget_single_t * w, c
   int i;
   const bg_plugin_info_t * test_info;
 #endif
-
-  const bg_plugin_info_t * info;
-  
-  info = bg_plugin_find_by_name(w->reg, name);
-
   
 #ifdef GTK_2_4
   index = -1;
@@ -516,3 +510,85 @@ void bg_gtk_plugin_widget_single_set_plugin(bg_gtk_plugin_widget_single_t * w, c
 
   
   }
+
+bg_plugin_handle_t *
+bg_gtk_plugin_widget_single_load_plugin(bg_gtk_plugin_widget_single_t * w)
+  {
+  if(w->handle)
+    bg_plugin_unref(w->handle);
+  w->handle = bg_plugin_load(w->reg, w->info);
+  return w->handle;
+  }
+
+bg_cfg_section_t *
+bg_gtk_plugin_widget_single_get_section(bg_gtk_plugin_widget_single_t * w)
+  {
+  return w->section;
+  }
+
+bg_cfg_section_t *
+bg_gtk_plugin_widget_single_get_audio_section(bg_gtk_plugin_widget_single_t * w)
+  {
+  return w->audio_section;
+  }
+
+bg_cfg_section_t *
+bg_gtk_plugin_widget_single_get_video_section(bg_gtk_plugin_widget_single_t * w)
+  {
+  return w->video_section;
+
+  }
+
+bg_cfg_section_t *
+bg_gtk_plugin_widget_single_get_subtitle_text_section(bg_gtk_plugin_widget_single_t * w)
+  {
+  return w->subtitle_text_section;
+
+  }
+
+bg_cfg_section_t *
+bg_gtk_plugin_widget_single_get_subtitle_overlay_section(bg_gtk_plugin_widget_single_t * w)
+  {
+  return w->subtitle_overlay_section;
+
+  }
+
+
+void
+bg_gtk_plugin_widget_single_set_section(bg_gtk_plugin_widget_single_t * w,
+                                        bg_cfg_section_t * s)
+  {
+  w->section = s;
+  }
+
+void
+bg_gtk_plugin_widget_single_set_audio_section(bg_gtk_plugin_widget_single_t * w,
+                                              bg_cfg_section_t * s)
+  {
+  w->audio_section = s;
+  }
+
+void
+bg_gtk_plugin_widget_single_set_video_section(bg_gtk_plugin_widget_single_t * w,
+                                              bg_cfg_section_t * s)
+  {
+  w->video_section = s;
+
+  }
+
+void
+bg_gtk_plugin_widget_single_set_subtitle_text_section(bg_gtk_plugin_widget_single_t * w,
+                                                      bg_cfg_section_t * s)
+  {
+  w->subtitle_text_section = s;
+
+  }
+
+void
+bg_gtk_plugin_widget_single_set_subtitle_overlay_section(bg_gtk_plugin_widget_single_t * w,
+                                                         bg_cfg_section_t * s)
+  {
+  w->subtitle_overlay_section = s;
+  
+  }
+

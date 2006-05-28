@@ -47,10 +47,14 @@ bg_gtk_plugin_widget_single_create(char * label,
                                    bg_plugin_registry_t * reg,
                                    uint32_t type_mask,
                                    uint32_t flag_mask,
-                                   void (*set_plugin)(bg_plugin_handle_t *,
-                                                      void*),
-                                   void * set_plugin_data,
                                    GtkTooltips * tooltips);
+
+void
+bg_gtk_plugin_widget_single_set_change_callback(bg_gtk_plugin_widget_single_t * w,
+                                                void (*set_plugin)(const bg_plugin_info_t * plugin,
+                                                                   void * data),
+                                                void * set_plugin_data);
+
 
 void bg_gtk_plugin_widget_single_destroy(bg_gtk_plugin_widget_single_t * w);
 
@@ -64,10 +68,53 @@ void bg_gtk_plugin_widget_single_attach(bg_gtk_plugin_widget_single_t * w,
 void bg_gtk_plugin_widget_single_set_sensitive(bg_gtk_plugin_widget_single_t * w,
                                                int sensitive);
 
-bg_plugin_handle_t *
+const bg_plugin_info_t *
 bg_gtk_plugin_widget_single_get_plugin(bg_gtk_plugin_widget_single_t * w);
 
-void bg_gtk_plugin_widget_single_set_plugin(bg_gtk_plugin_widget_single_t * w, char * name);
+bg_plugin_handle_t *
+bg_gtk_plugin_widget_single_load_plugin(bg_gtk_plugin_widget_single_t * w);
+
+void bg_gtk_plugin_widget_single_set_plugin(bg_gtk_plugin_widget_single_t * w,
+                                            const bg_plugin_info_t *);
+
+
+bg_cfg_section_t *
+bg_gtk_plugin_widget_single_get_section(bg_gtk_plugin_widget_single_t * w);
+
+bg_cfg_section_t *
+bg_gtk_plugin_widget_single_get_audio_section(bg_gtk_plugin_widget_single_t * w);
+
+bg_cfg_section_t *
+bg_gtk_plugin_widget_single_get_video_section(bg_gtk_plugin_widget_single_t * w);
+
+bg_cfg_section_t *
+bg_gtk_plugin_widget_single_get_subtitle_text_section(bg_gtk_plugin_widget_single_t * w);
+
+bg_cfg_section_t *
+bg_gtk_plugin_widget_single_get_subtitle_overlay_section(bg_gtk_plugin_widget_single_t * w);
+
+
+void
+bg_gtk_plugin_widget_single_set_section(bg_gtk_plugin_widget_single_t * w,
+                                        bg_cfg_section_t * s);
+
+void
+bg_gtk_plugin_widget_single_set_audio_section(bg_gtk_plugin_widget_single_t * w,
+                                              bg_cfg_section_t * s);
+
+void
+bg_gtk_plugin_widget_single_set_video_section(bg_gtk_plugin_widget_single_t * w,
+                                              bg_cfg_section_t * s);
+
+void
+bg_gtk_plugin_widget_single_set_subtitle_text_section(bg_gtk_plugin_widget_single_t * w,
+                                                      bg_cfg_section_t * s);
+
+void
+bg_gtk_plugin_widget_single_set_subtitle_overlay_section(bg_gtk_plugin_widget_single_t * w,
+                                                         bg_cfg_section_t * s);
+
+
 
 
 /* Menu for plugins, will be used for file selectors to select the plugin */

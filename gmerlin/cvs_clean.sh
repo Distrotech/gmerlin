@@ -1,5 +1,5 @@
 #!/bin/sh
-SUBDIRS="plugins/cdaudio plugins/v4l plugins/alsa plugins/esd plugins/lqt plugins/oss plugins/wavwrite plugins/x11 plugins/tiff plugins/postprocessors tests include include/gui_gtk icons lib lib/gtk apps apps/player apps/plugincfg apps/alsamixer apps/camelot apps/transcoder"
+SUBDIRS="plugins/cdaudio plugins/subwriters plugins/v4l plugins/alsa plugins/esd plugins/lqt plugins/oss plugins/wavwrite plugins/x11 plugins/tiff plugins/postprocessors tests include include/gui_gtk icons lib lib/gtk apps apps/player apps/plugincfg apps/alsamixer apps/camelot apps/transcoder"
 
 make distclean
 

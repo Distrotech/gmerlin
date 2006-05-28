@@ -50,8 +50,14 @@ typedef struct bg_plugin_info_s
   /* For encoding plugins */
   int max_audio_streams;
   int max_video_streams;
+  int max_subtitle_text_streams;
+  int max_subtitle_overlay_streams;
+
   bg_parameter_info_t * audio_parameters;
   bg_parameter_info_t * video_parameters;
+
+  bg_parameter_info_t * subtitle_text_parameters;
+  bg_parameter_info_t * subtitle_overlay_parameters;
   
   } bg_plugin_info_t;
 
@@ -152,6 +158,18 @@ void bg_plugin_registry_set_encode_audio_to_video(bg_plugin_registry_t *,
                                                   int audio_to_video);
 
 int bg_plugin_registry_get_encode_audio_to_video(bg_plugin_registry_t *);
+
+void bg_plugin_registry_set_encode_subtitle_text_to_video(bg_plugin_registry_t * reg,
+                                                          int subtitle_text_to_video);
+
+int bg_plugin_registry_get_encode_subtitle_text_to_video(bg_plugin_registry_t * reg);
+
+void bg_plugin_registry_set_encode_subtitle_overlay_to_video(bg_plugin_registry_t * reg,
+                                                             int subtitle_overlay_to_video);
+
+int bg_plugin_registry_get_encode_subtitle_overlay_to_video(bg_plugin_registry_t * reg);
+
+
 
 void bg_plugin_registry_set_encode_pp(bg_plugin_registry_t *,
                                       int encode_pp);

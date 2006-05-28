@@ -58,7 +58,7 @@ struct transcoder_window_s
 
   GtkWidget * run_button;
   GtkWidget * stop_button;
-  GtkWidget * preferences_button;
+  GtkWidget * plugin_button;
   GtkWidget * properties_button;
   GtkWidget * quit_button;
   GtkWidget * load_button;
@@ -301,7 +301,7 @@ static void plugin_window_close_notify(plugin_window_t * w,
   {
   transcoder_window_t * win = (transcoder_window_t *)data;
 
-  gtk_widget_set_sensitive(win->preferences_button, 1);
+  gtk_widget_set_sensitive(win->plugin_button, 1);
   }
 
 static void finish_transcoding(transcoder_window_t * win)
@@ -711,10 +711,10 @@ static void button_callback(GtkWidget * w, gpointer data)
       win->filesel_path = (char*)0;
       }
     }
-  else if((w == win->preferences_button) || (w == win->options_menu.plugin_item))
+  else if((w == win->plugin_button) || (w == win->options_menu.plugin_item))
     {
     //    fprintf(stderr, "Preferences Button\n");
-    gtk_widget_set_sensitive(win->preferences_button, 0);
+    gtk_widget_set_sensitive(win->plugin_button, 0);
     plugin_window_show(win->plugin_window);
     }
   else if((w == win->quit_button) || (w == win->file_menu.quit_item))
@@ -952,7 +952,7 @@ transcoder_window_t * transcoder_window_create()
   ret->stop_button = create_pixmap_button(ret,
                                           "stop_16.png", "Stop transcoding", "Stop transcoding");
 
-  ret->preferences_button = create_pixmap_button(ret,
+  ret->plugin_button = create_pixmap_button(ret,
                                                 "plugin_16.png", "Change and configure plugins\nfor newly added tracks",
                                                 "Change and configure plugins\nfor newly added tracks");
   ret->properties_button = create_pixmap_button(ret,
@@ -1036,7 +1036,7 @@ transcoder_window_t * transcoder_window_create()
   gtk_box_pack_start(GTK_BOX(box), ret->save_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->run_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->stop_button, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(box), ret->preferences_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->plugin_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->properties_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->quit_button, FALSE, FALSE, 0);
   gtk_widget_show(box);

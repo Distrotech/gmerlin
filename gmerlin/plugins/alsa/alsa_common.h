@@ -23,12 +23,15 @@
 /* For reading, the sample format, num_channels and samplerate must be set */
 
 snd_pcm_t * bg_alsa_open_read(const char * card, gavl_audio_format_t * format,
-                              char ** error_msg);
+                              char ** error_msg,
+                              gavl_time_t buffer_time);
 
 /* For writing, the complete format must be set, values will be changed if not compatible */
 
 snd_pcm_t * bg_alsa_open_write(const char * card, gavl_audio_format_t * format,
-                               char ** error_msg, int * convert_3_4);
+                               char ** error_msg,
+                               gavl_time_t buffer_time,
+                               int * convert_3_4);
 
 /* Builds a parameter array for all available cards */
 

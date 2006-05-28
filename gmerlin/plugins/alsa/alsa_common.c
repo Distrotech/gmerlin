@@ -248,12 +248,16 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   snd_pcm_hw_params_get_period_size_min(hw_params, &period_size_min,&dir);
   dir=0;
   snd_pcm_hw_params_get_period_size_max(hw_params, &period_size_max,&dir);
-
-  //  fprintf(stderr, "Buffer size: [%d..%d], Period Size: [%d..%d]\n",
-  //          buffer_size_min, buffer_size_max, period_size_min, period_size_max);
   
   buffer_size = gavl_time_to_samples(format->samplerate, buffer_time);
 
+#if 0
+  fprintf(stderr,
+          "Buffer time: %lld, Buffer size: %d [%d..%d], Period Size: [%d..%d]\n",
+          buffer_time, buffer_size,
+          buffer_size_min, buffer_size_max, period_size_min, period_size_max);
+#endif
+  
   if(buffer_size > buffer_size_max)
     buffer_size = buffer_size_max;
   if(buffer_size < buffer_size_min)
@@ -282,7 +286,8 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   
   snd_pcm_hw_params_get_buffer_size(hw_params, &buffer_size);
 
-  //  fprintf(stderr, "Buffer size: %d, period_size: %d\n", buffer_size, period_size);
+  fprintf(stderr, "Buffer size: %ld, period_size: %ld\n",
+          buffer_size, period_size);
   
   format->samples_per_frame = period_size;
   
@@ -314,18 +319,22 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   return (snd_pcm_t *)0;
   }
 
-snd_pcm_t * bg_alsa_open_read(const char * card, gavl_audio_format_t * format,
-                              char ** error_msg)
+snd_pcm_t * bg_alsa_open_read(const char * card,
+                              gavl_audio_format_t * format,
+                              char ** error_msg,
+                              gavl_time_t buffer_time)
   {
   return bg_alsa_open(card, format, SND_PCM_STREAM_CAPTURE,
-                      GAVL_TIME_SCALE/10, error_msg, NULL);
+                      buffer_time, error_msg, NULL);
   }
 
 snd_pcm_t * bg_alsa_open_write(const char * card, gavl_audio_format_t * format,
-                               char ** error_msg, int * convert_4_3)
+                               char ** error_msg,
+                               gavl_time_t buffer_time,
+                               int * convert_4_3)
   {
   return bg_alsa_open(card, format, SND_PCM_STREAM_PLAYBACK,
-                      GAVL_TIME_SCALE, error_msg, convert_4_3);
+                      buffer_time, error_msg, convert_4_3);
   }
 
 void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)

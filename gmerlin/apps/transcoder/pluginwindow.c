@@ -50,6 +50,37 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * evt,
   return TRUE;
   }
 
+static void set_audio_encoder(const bg_plugin_info_t * info, void * data)
+  {
+  plugin_window_t * w = (plugin_window_t*)data;
+  bg_plugin_registry_set_default(w->plugin_reg, BG_PLUGIN_ENCODER_AUDIO, info->name);
+  
+  }
+
+static void set_video_encoder(const bg_plugin_info_t * info, void * data)
+  {
+  plugin_window_t * w = (plugin_window_t*)data;
+  bg_plugin_registry_set_default(w->plugin_reg, BG_PLUGIN_ENCODER_VIDEO, info->name);
+  encoder_widget_update_sensitive(&w->encoders);
+  }
+
+static void set_subtitle_text_encoder(const bg_plugin_info_t * info, void * data)
+  {
+  plugin_window_t * w = (plugin_window_t*)data;
+  bg_plugin_registry_set_default(w->plugin_reg, BG_PLUGIN_ENCODER_SUBTITLE_TEXT, info->name);
+  
+  }
+
+#if 0
+static void set_subtitle_overlay_encoder(const bg_plugin_info_t * info, void * data)
+  {
+  plugin_window_t * w = (plugin_window_t*)data;
+  bg_plugin_registry_set_default(w->plugin_reg, BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY, info->name);
+  
+  }
+#endif
+
+
 plugin_window_t *
 plugin_window_create(bg_plugin_registry_t * plugin_reg,
                      transcoder_window_t * win,
@@ -63,6 +94,13 @@ plugin_window_create(bg_plugin_registry_t * plugin_reg,
   ret = calloc(1, sizeof(*ret));
 
   encoder_widget_init(&(ret->encoders), plugin_reg);
+
+  bg_gtk_plugin_widget_single_set_change_callback(ret->encoders.audio_encoder,
+                                                  set_audio_encoder, ret);
+  bg_gtk_plugin_widget_single_set_change_callback(ret->encoders.video_encoder,
+                                                  set_video_encoder, ret);
+  bg_gtk_plugin_widget_single_set_change_callback(ret->encoders.subtitle_text_encoder,
+                                                  set_subtitle_text_encoder, ret);
   
   ret->tooltips = gtk_tooltips_new();
 

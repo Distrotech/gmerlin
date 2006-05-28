@@ -58,6 +58,17 @@ static bg_parameter_info_t static_parameters[] =
       val_min:     { val_i:  8000 },
       val_max:     { val_i: 96000 },
     },
+    {
+      name:        "buffer_time",
+      long_name:   "Buffer time",
+      type:        BG_PARAMETER_INT,
+      val_min:     { val_i: 10    },
+      val_max:     { val_i: 10000 },
+      val_default: { val_i: 1000  },
+      help_string: "Set the buffer time (in milliseconds). Larger values \
+improve playback performance on slow systems under load. Smaller values \
+decrease the latency of the volume control.",
+    },
   };
 
 static int num_static_parameters =
@@ -79,6 +90,7 @@ typedef struct
   int last_frame_size;
 
   char * error_msg;  
+  gavl_time_t buffer_time;
   } alsa_t;
 
 static bg_parameter_info_t *
@@ -123,6 +135,11 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
       priv->bytes_per_sample = 1;
     else if(!strcmp(val->val_str, "16"))
       priv->bytes_per_sample = 2;
+    }
+  else if(!strcmp(name, "buffer_time"))
+    {
+    priv->buffer_time = val->val_i;
+    priv->buffer_time *= (GAVL_TIME_SCALE/1000);
     }
   else if(!strcmp(name, "samplerate"))
     {
@@ -180,7 +197,7 @@ static int open_alsa(void * data,
     format->sample_format = GAVL_SAMPLE_S16;
   format->samplerate = priv->samplerate;
     
-  priv->pcm = bg_alsa_open_read(card, format, &priv->error_msg);
+  priv->pcm = bg_alsa_open_read(card, format, &priv->error_msg, priv->buffer_time);
   free(card);
   
   if(!priv->pcm)

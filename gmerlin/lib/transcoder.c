@@ -49,8 +49,10 @@
 
 /* The followings are for subtitles only */
 
-#define STREAM_ACTION_BLEND     2
-#define STREAM_ACTION_EXPORT    3
+#define STREAM_ACTION_BLEND           2
+/* The following is only for text subtitles and means, that they'll be
+   converted to graphical overlays using the text renderer */
+#define STREAM_ACTION_TRANSCODE_OVERLAY  4
 
 #define TRANSCODER_STATE_INIT     0
 #define TRANSCODER_STATE_RUNNING  1
@@ -90,8 +92,10 @@ static int set_stream_parameters_general(stream_t * s,
     {
     if(!strcmp(val->val_str, "transcode"))
       s->action = STREAM_ACTION_TRANSCODE;
-    else if(!strcmp(val->val_str, "export"))
-      s->action = STREAM_ACTION_EXPORT;
+    else if(!strcmp(val->val_str, "transcode"))
+      s->action = STREAM_ACTION_TRANSCODE;
+    else if(!strcmp(val->val_str, "transcode_overlay"))
+      s->action = STREAM_ACTION_TRANSCODE_OVERLAY;
     else if(!strcmp(val->val_str, "blend"))
       s->action = STREAM_ACTION_BLEND;
     else
@@ -221,19 +225,22 @@ static void set_video_parameter_general(void * data,
 struct subtitle_stream_s
   {
   stream_t com;
+  gavl_video_converter_t * cnv;
+  int do_convert;
 
   gavl_overlay_t ovl1, ovl2;
 
   gavl_overlay_t * current_ovl;
   gavl_overlay_t * next_ovl;
 
-  int has_current_ovl;
-  int has_next_ovl;
+  int has_current;
+  int has_next;
   
   gavl_overlay_blend_context_t * blend_context;
-  int blend_stream;
+  int video_stream;
 
-  gavl_video_format_t ovl_format;
+  gavl_video_format_t in_format;
+  gavl_video_format_t out_format;
   
   int do_blend; /* Set by check_video_blend() */
   
@@ -263,8 +270,8 @@ static void set_subtitle_parameter_general(void * data,
   if(!name)
     return;
 
-  if(!strcmp(name, "blend_stream"))
-    stream->blend_stream = val->val_i-1;
+  if(!strcmp(name, "video_stream"))
+    stream->video_stream = val->val_i-1;
   
   if(set_stream_parameters_general(&(stream->com),
                                    name, val))
@@ -274,6 +281,7 @@ static void set_subtitle_parameter_general(void * data,
 struct bg_transcoder_s
   {
   int separate_streams;
+  int separate_subtitles;
   int num_audio_streams;
   int num_video_streams;
 
@@ -285,17 +293,12 @@ struct bg_transcoder_s
 
   int num_subtitle_text_streams_real;
   int num_subtitle_overlay_streams_real;
-  
-  int audio_to_video;
-    
+      
   audio_stream_t * audio_streams;
   video_stream_t * video_streams;
 
   subtitle_text_stream_t * subtitle_text_streams;
   subtitle_stream_t      * subtitle_overlay_streams;
-  
-  char * audio_encoder;
-  char * video_encoder;
   
   float percentage_done;
   gavl_time_t remaining_time; /* Remaining time (Transcoding time, NOT track time!!!) */
@@ -368,6 +371,9 @@ struct bg_transcoder_s
   /* Track we are created from */
   bg_transcoder_track_t * transcoder_track;
 
+  /* Encoder info */
+  bg_transcoder_encoder_info_t encoder_info;
+    
   /* Postprocess only */
   int pp_only;
   
@@ -765,6 +771,7 @@ static void init_subtitle_overlay_stream(subtitle_stream_t * ret,
     ret->blend_context = gavl_overlay_blend_context_create();
     }
 
+  ret->cnv = gavl_video_converter_create();
   }
 
 static void init_subtitle_text_stream(subtitle_text_stream_t * ret,
@@ -789,7 +796,15 @@ static void init_subtitle_text_stream(subtitle_text_stream_t * ret,
                          bg_text_renderer_set_parameter,
                          ret->textrenderer);
     }
-  
+  else if(ret->com.com.action == STREAM_ACTION_TRANSCODE_OVERLAY)
+    {
+    ret->textrenderer = bg_text_renderer_create();
+    bg_cfg_section_apply(s->textrenderer_section,
+                         bg_text_renderer_get_parameters(),
+                         bg_text_renderer_set_parameter,
+                         ret->textrenderer);
+    ret->com.cnv = gavl_video_converter_create();
+    }
   }
 
 static void start_subtitle_stream_i(subtitle_stream_t * ret, bg_plugin_handle_t * in_handle)
@@ -852,16 +867,22 @@ static void set_input_formats(bg_transcoder_t * ret)
   for(i = 0; i < ret->num_subtitle_overlay_streams; i++)
     {
     if(ret->subtitle_overlay_streams[i].com.do_decode)
-      gavl_video_format_copy(&(ret->subtitle_overlay_streams[i].ovl_format),
+      gavl_video_format_copy(&(ret->subtitle_overlay_streams[i].in_format),
                              &(ret->track_info->subtitle_streams[ret->subtitle_overlay_streams[i].com.in_index].format));
+    }
+  for(i = 0; i < ret->num_subtitle_text_streams; i++)
+    {
+    if(ret->subtitle_text_streams[i].com.com.do_decode)
+      gavl_video_format_copy(&(ret->subtitle_text_streams[i].com.in_format),
+                             &(ret->track_info->subtitle_streams[ret->subtitle_text_streams[i].com.com.in_index].format));
     }
   }
 
 static void add_audio_stream(audio_stream_t * ret,
-                             bg_transcoder_track_audio_t * s)
+                             bg_transcoder_track_audio_t * s,
+                             bg_transcoder_t * t)
   {
   set_stream_param_struct_t st;
-  ret->com.status = STREAM_STATE_ON;
   
   /* We set the frame size so we have roughly half second long audio chunks */
 #if 1
@@ -880,32 +901,116 @@ static void add_audio_stream(audio_stream_t * ret,
   
   /* Apply parameters */
 
-  if(s->encoder_parameters && s->encoder_section && ret->com.out_plugin->set_audio_parameter)
+  if(t->encoder_info.audio_stream_parameters &&
+     s->encoder_section && ret->com.out_plugin->set_audio_parameter)
     {
     st.func =  ret->com.out_plugin->set_audio_parameter;
     st.data =  ret->com.out_handle->priv;
     st.index = ret->com.out_index;
     
     bg_cfg_section_apply(s->encoder_section,
-                         s->encoder_parameters,
+                         t->encoder_info.audio_stream_parameters,
                          set_stream_param,
                          &st);
     }
   }
 
+static void add_subtitle_text_stream(subtitle_text_stream_t * ret,
+                                     bg_transcoder_track_subtitle_text_t * s,
+                                     bg_transcoder_t * t)
+  {
+  set_stream_param_struct_t st;
+  if(ret->com.com.action == STREAM_ACTION_TRANSCODE)
+    {
+    ret->com.com.out_index =
+      ret->com.com.out_plugin->add_subtitle_text_stream(ret->com.com.out_handle->priv,
+                                                        t->track_info->subtitle_streams[ret->com.com.in_index].language);
+    
+    if(t->encoder_info.subtitle_text_stream_parameters &&
+       s->encoder_section_text && ret->com.com.out_plugin->set_subtitle_text_parameter)
+      {
+      st.func =  ret->com.com.out_plugin->set_subtitle_text_parameter;
+      st.data =  ret->com.com.out_handle->priv;
+      st.index = ret->com.com.out_index;
+      
+      bg_cfg_section_apply(s->encoder_section_text,
+                           t->encoder_info.subtitle_text_stream_parameters,
+                           set_stream_param,
+                           &st);
+      }
+    }
+  else if(ret->com.com.action == STREAM_ACTION_TRANSCODE_OVERLAY)
+    {
+    /* Get the video format for overlay encoding. This is a bit nasty, since we have no idea yet,
+       how the format will look like (the video output format isn't known by now). We'll copy the
+       format, which was passed to the video encoder and hope that the overlay encoder will choose
+       a proper pixelformat for us. Then, we pass the same format as *frame* format to the
+       textrenderer */
+
+    if(t->video_streams[ret->com.video_stream].com.do_encode)
+      {
+      gavl_video_format_copy(&ret->com.out_format,
+                             &t->video_streams[ret->com.video_stream].out_format);
+      }
+    else
+      {
+      /* Video stream won't get encoded: Use video format associatd with the text subtitle stream */
+      gavl_video_format_copy(&ret->com.out_format, &ret->com.in_format);
+      }
+    
+    ret->com.com.out_index =
+      ret->com.com.out_plugin->add_subtitle_overlay_stream(ret->com.com.out_handle->priv,
+                                                           t->track_info->subtitle_streams[ret->com.com.in_index].language,
+                                                           &ret->com.out_format);
+
+    if(t->encoder_info.subtitle_overlay_stream_parameters &&
+       s->encoder_section_overlay && ret->com.com.out_plugin->set_subtitle_overlay_parameter)
+      {
+      st.func =  ret->com.com.out_plugin->set_subtitle_overlay_parameter;
+      st.data =  ret->com.com.out_handle->priv;
+      st.index = ret->com.com.out_index;
+      
+      bg_cfg_section_apply(s->encoder_section_overlay,
+                           t->encoder_info.subtitle_overlay_stream_parameters,
+                           set_stream_param,
+                           &st);
+      }
+    
+    }
+  }
+
+static void add_subtitle_overlay_stream(subtitle_stream_t * ret,
+                                        bg_transcoder_track_subtitle_overlay_t * s,
+                                        bg_transcoder_t * t)
+  {
+  set_stream_param_struct_t st;
+  gavl_video_format_copy(&ret->out_format, &ret->in_format);
+  
+  ret->com.out_index =
+    ret->com.out_plugin->add_subtitle_overlay_stream(ret->com.out_handle->priv,
+                                                         t->track_info->subtitle_streams[ret->com.in_index].language,
+                                                         &ret->out_format);
+
+  if(t->encoder_info.subtitle_overlay_stream_parameters &&
+     s->encoder_section && ret->com.out_plugin->set_subtitle_overlay_parameter)
+    {
+    st.func =  ret->com.out_plugin->set_subtitle_overlay_parameter;
+    st.data =  ret->com.out_handle->priv;
+    st.index = ret->com.out_index;
+    
+    bg_cfg_section_apply(s->encoder_section,
+                         t->encoder_info.subtitle_overlay_stream_parameters,
+                         set_stream_param,
+                         &st);
+    }
+  
+  }
 
 static void add_video_stream(video_stream_t * ret,
                              bg_transcoder_track_video_t * s,
-                             bg_track_info_t * track_info)
+                             bg_transcoder_t * t)
   {
   set_stream_param_struct_t st;
-  ret->com.status = STREAM_STATE_ON;
-
-  
-  /* Get Input format */
-
-  gavl_video_format_copy(&(ret->in_format),
-                         &(track_info->video_streams[ret->com.in_index].format));
 
   /* Set desired output format */
     
@@ -930,7 +1035,7 @@ static void add_video_stream(video_stream_t * ret,
   
   /* Apply parameters */
 
-  if(s->encoder_parameters && s->encoder_section &&
+  if(t->encoder_info.video_stream_parameters && s->encoder_section &&
      ret->com.out_plugin->set_video_parameter)
     {
     st.func =  ret->com.out_plugin->set_video_parameter;
@@ -938,7 +1043,7 @@ static void add_video_stream(video_stream_t * ret,
     st.index = ret->com.out_index;
     
     bg_cfg_section_apply(s->encoder_section,
-                         s->encoder_parameters,
+                         t->encoder_info.video_stream_parameters,
                          set_stream_param,
                          &st);
     }
@@ -1116,6 +1221,24 @@ static int decode_video_frame(video_stream_t * s, bg_transcoder_t * t,
   return 1;
   }
 
+static void correct_subtitle_timestamp(gavl_time_t * start, gavl_time_t * duration,
+                                       bg_transcoder_t * t)
+  {
+  /* Correct timestamps */
+
+  if(t->start_time != GAVL_TIME_UNDEFINED)
+    {
+    *start -= t->start_time;
+    if(*start < 0)
+      {
+      *duration += *start;
+      if(*duration < 0)
+        *duration = 0;
+      *start = 0;
+      }
+    }
+  }
+
 static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
                                    gavl_overlay_t * ovl)
   {
@@ -1134,10 +1257,8 @@ static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
                                                   &st->subtitle_start,
                                                   &st->subtitle_duration,
                                                   s->com.in_index);
-
-    ovl->frame->time_scaled     = st->subtitle_start;
-    ovl->frame->duration_scaled = st->subtitle_duration;
-   
+    
+#if 0
     if(result)
       {
       fprintf(stderr, "Got text subtitle %lld -> %lld:\n",
@@ -1145,7 +1266,8 @@ static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
               ovl->frame->time_scaled + ovl->frame->duration_scaled);
       fprintf(stderr, "%s\n", st->text);
       }
-    
+#endif    
+
     if(!result || ((t->end_time != GAVL_TIME_UNDEFINED) &&
                    (st->subtitle_start >= t->end_time)))
       {
@@ -1153,6 +1275,13 @@ static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
       s->eof = 1;
       return 0;
       }
+
+    correct_subtitle_timestamp(&st->subtitle_start,
+                               &st->subtitle_duration, t);
+    
+    ovl->frame->time_scaled     = st->subtitle_start;
+    ovl->frame->duration_scaled = st->subtitle_duration;
+    
     bg_text_renderer_render(st->textrenderer, st->text, ovl);
     }
   else
@@ -1160,30 +1289,47 @@ static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
     result = s->com.in_plugin->read_subtitle_overlay(s->com.in_handle->priv,
                                                      ovl, s->com.in_index);
     
-    if(!result || ((t->end_time != GAVL_TIME_UNDEFINED) && (ovl->frame->time_scaled >= t->end_time)))
+    if(!result || ((t->end_time != GAVL_TIME_UNDEFINED) &&
+                   (ovl->frame->time_scaled >= t->end_time)))
       {
-      s->com.status = STREAM_STATE_FINISHED;
+      s->eof = 1;
       return 0;
       }
+    correct_subtitle_timestamp(&ovl->frame->time_scaled,
+                               &ovl->frame->duration_scaled, t);
     }
-
-  /* Correct timestamps */
-
-  if(t->start_time != GAVL_TIME_UNDEFINED)
-    {
-    ovl->frame->time_scaled -= t->start_time;
-    if(ovl->frame->time_scaled < 0)
-      {
-      ovl->frame->duration_scaled += ovl->frame->time_scaled;
-      if(ovl->frame->duration_scaled < 0)
-        ovl->frame->duration_scaled = 0;
-      ovl->frame->time_scaled = 0;
-      }
-    }
-
-
   return 1;
   }
+
+static int decode_subtitle_text(subtitle_text_stream_t * s, bg_transcoder_t * t)
+  {
+  int result;
+  result =
+    s->com.com.in_plugin->has_subtitle(s->com.com.in_handle->priv,
+                                       s->com.com.in_index);
+  if(!result)
+    return 0;
+
+  result = s->com.com.in_plugin->read_subtitle_text(s->com.com.in_handle->priv,
+                                                    &s->text, &s->text_alloc,
+                                                    &s->subtitle_start,
+                                                    &s->subtitle_duration,
+                                                    s->com.com.in_index);
+  
+  if(!result || ((t->end_time != GAVL_TIME_UNDEFINED) &&
+                 (s->subtitle_start >= t->end_time)))
+    {
+    fprintf(stderr, "Subtitle stream finished result: %d\n", result); 
+    s->com.eof = 1;
+    return 0;
+    }
+
+  correct_subtitle_timestamp(&s->subtitle_start,
+                             &s->subtitle_duration, t);
+  
+  return 1;
+  }
+
 
 static int check_video_blend(video_stream_t * vs,
                              bg_transcoder_t * t, gavl_time_t time)
@@ -1204,7 +1350,7 @@ static int check_video_blend(video_stream_t * vs,
     //    fprintf(stderr, "Check video blend %lld\n", time);
     
     /* Check if the overlay expired */
-    if(ss->has_current_ovl)
+    if(ss->has_current)
       {
       if(bg_overlay_too_old(time,
                             ss->current_ovl->frame->time_scaled,
@@ -1220,16 +1366,16 @@ static int check_video_blend(video_stream_t * vs,
         ss->current_ovl = ss->next_ovl;
         ss->next_ovl = tmp_ovl;
 
-        ss->has_current_ovl = ss->has_next_ovl;
-        ss->has_next_ovl = 0;
+        ss->has_current = ss->has_next;
+        ss->has_next = 0;
         
-        if(ss->has_current_ovl)
+        if(ss->has_current)
           current_changed = 1;
         }
       }
     
     /* Check if the next overlay replaces the current one */
-    if(ss->has_next_ovl)
+    if(ss->has_next)
       {
       if(!bg_overlay_too_new(time,
                              ss->next_ovl->frame->time_scaled))
@@ -1238,24 +1384,24 @@ static int check_video_blend(video_stream_t * vs,
         ss->current_ovl = ss->next_ovl;
         ss->next_ovl = tmp_ovl;
 
-        ss->has_current_ovl = 1;
+        ss->has_current = 1;
         
-        ss->has_next_ovl = 0;
+        ss->has_next = 0;
         
         if(bg_overlay_too_old(time,
                               ss->current_ovl->frame->time_scaled,
                               ss->current_ovl->frame->duration_scaled))
-          ss->has_current_ovl = 0;
+          ss->has_current = 0;
         else
           current_changed = 1;
         }
       }
 
-    if(!ss->has_current_ovl && !ss->eof)
+    if(!ss->has_current && !ss->eof)
       {
       if(decode_subtitle_overlay(ss, t, ss->current_ovl))
         {
-        ss->has_current_ovl = 1;
+        ss->has_current = 1;
         current_changed = 1;
 #if 0
         fprintf(stderr, "Using current overlay (%lld -> %lld, t: %lld)\n",
@@ -1267,13 +1413,13 @@ static int check_video_blend(video_stream_t * vs,
       else
         continue;
       }
-    if(!ss->has_next_ovl && !ss->eof)
+    if(!ss->has_next && !ss->eof)
       {
       if(decode_subtitle_overlay(ss, t, ss->next_ovl))
-        ss->has_next_ovl = 1;
+        ss->has_next = 1;
       }
     
-    if(ss->has_current_ovl &&
+    if(ss->has_current &&
        !bg_overlay_too_new(time,
                            ss->current_ovl->frame->time_scaled))
       {
@@ -1288,7 +1434,7 @@ static int check_video_blend(video_stream_t * vs,
       gavl_overlay_blend_context_set_overlay(ss->blend_context,
                                              ss->current_ovl);
 
-    if(!ss->has_current_ovl && !ss->has_next_ovl &&
+    if(!ss->has_current && !ss->has_next &&
        ss->eof)
       ss->com.status = STREAM_STATE_FINISHED;
     }
@@ -1438,6 +1584,128 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
     
   }
 
+/* Time offset of 0.5 seconds means, that we encode subtitles maximum
+   0.5 seconds before the subtitle should appear. This is only interesting
+   for formats, which don't allow random access to subtitles */
+
+#define SUBTITLE_TIME_OFFSET (GAVL_TIME_SCALE/2)
+
+
+static void subtitle_iteration(bg_transcoder_t * t)
+  {
+  int i;
+  subtitle_text_stream_t * st;
+  subtitle_stream_t      * ss;
+  video_stream_t         * vs;
+  gavl_video_frame_t * tmp_frame;
+  
+  for(i = 0; i < t->num_subtitle_text_streams; i++)
+    {
+    st = &t->subtitle_text_streams[i];
+
+    if(!st->com.com.do_encode)
+      continue;
+    
+    if(st->com.eof)
+      {
+      st->com.com.status = STREAM_STATE_FINISHED;
+      continue;
+      }
+    
+    
+    /* Check for decoding */
+    if(!st->com.has_current)
+      {
+      if(st->com.com.action == STREAM_ACTION_TRANSCODE)
+        {
+        st->com.has_current = decode_subtitle_text(st, t);
+        }
+      else if(st->com.com.action == STREAM_ACTION_TRANSCODE_OVERLAY)
+        {
+        st->com.has_current = decode_subtitle_overlay((subtitle_stream_t*)st, t, &st->com.ovl1);
+        if(st->com.has_current && st->com.do_convert)
+          {
+          gavl_video_convert(st->com.cnv, st->com.ovl1.frame, st->com.ovl2.frame);
+          tmp_frame = st->com.ovl1.frame;
+          st->com.ovl1.frame = st->com.ovl2.frame;
+          st->com.ovl2.frame = tmp_frame;
+          }
+        }
+      }
+
+    /* Check for encoding */
+    if(st->com.has_current)
+      {
+      vs = &(t->video_streams[st->com.video_stream]);
+      if(!vs->com.do_encode || (st->subtitle_start - vs->com.time < SUBTITLE_TIME_OFFSET))
+        {
+        if(st->com.com.action == STREAM_ACTION_TRANSCODE)
+          {
+          st->com.com.out_plugin->write_subtitle_text(st->com.com.out_handle->priv,
+                                                 st->text, st->subtitle_start,
+                                                 st->subtitle_duration,
+                                                 st->com.com.out_index);
+          
+          if(st->subtitle_start > t->time)
+            t->time = st->subtitle_start;
+          }
+        else if(st->com.com.action == STREAM_ACTION_TRANSCODE_OVERLAY)
+          {
+          st->com.com.out_plugin->write_subtitle_overlay(st->com.com.out_handle->priv,
+                                                         &st->com.ovl1,
+                                                         st->com.com.out_index);
+          if(st->com.ovl1.frame->time_scaled > t->time)
+            t->time = st->com.ovl1.frame->time_scaled;
+          }
+        st->com.has_current = 0;
+        }
+      }
+    }
+  
+  for(i = 0; i < t->num_subtitle_overlay_streams; i++)
+    {
+    ss = &t->subtitle_overlay_streams[i];
+
+    if(!ss->com.do_encode)
+      continue;
+    
+    if(ss->eof)
+      {
+      ss->com.status = STREAM_STATE_FINISHED;
+      continue;
+      }
+    
+    
+    /* Check for decoding */
+    if(!ss->has_current)
+      {
+      ss->has_current = decode_subtitle_overlay((subtitle_stream_t*)st, t, &ss->ovl1);
+      if(ss->has_current && ss->do_convert)
+        {
+        gavl_video_convert(ss->cnv, ss->ovl1.frame, ss->ovl2.frame);
+        tmp_frame = ss->ovl1.frame;
+        ss->ovl1.frame = ss->ovl2.frame;
+        ss->ovl2.frame = tmp_frame;
+        }
+      }
+
+    /* Check for encoding */
+    if(ss->has_current)
+      {
+      vs = &(t->video_streams[ss->video_stream]);
+      if(!vs->com.do_encode || (ss->ovl1.frame->time_scaled - vs->com.time < SUBTITLE_TIME_OFFSET))
+        {
+        ss->com.out_plugin->write_subtitle_overlay(ss->com.out_handle->priv,
+                                                   &ss->ovl1,
+                                                   ss->com.out_index);
+        if(st->com.ovl1.frame->time_scaled > t->time)
+          t->time = st->com.ovl1.frame->time_scaled;
+        ss->has_current = 0;
+        }
+      }
+    }
+  }
+
 /* Parameter passing for the Transcoder */
 
 #define SP_STR(s) if(!strcmp(name, # s))   \
@@ -1492,8 +1760,6 @@ set_parameter_general(void * data, char * name, bg_parameter_value_t * val)
   SP_STR(name);
   SP_STR(location);
   SP_STR(plugin);
-  SP_STR(audio_encoder);
-  SP_STR(video_encoder);
   SP_INT(track);
 
   SP_INT(set_start_time);
@@ -1507,20 +1773,14 @@ set_parameter_general(void * data, char * name, bg_parameter_value_t * val)
 #undef SP_TIME
 #undef SP_STR
 
-static bg_plugin_handle_t * load_encoder_by_name(bg_plugin_registry_t * plugin_reg,
-                                                const char * name,
-                                                bg_parameter_info_t * parameter_info,
-                                                bg_cfg_section_t * section,
-                                                bg_encoder_plugin_t ** encoder)
+static bg_plugin_handle_t * load_encoder(bg_plugin_registry_t * plugin_reg,
+                                         const bg_plugin_info_t * info,
+                                         bg_parameter_info_t * parameter_info,
+                                         bg_cfg_section_t * section,
+                                         bg_encoder_plugin_t ** encoder)
   {
   bg_plugin_handle_t * ret;
-  const bg_plugin_info_t * info;
 
-  info = bg_plugin_find_by_name(plugin_reg, name);
-  if(!info)
-    {
-    return (bg_plugin_handle_t*)0;
-    }
   ret = bg_plugin_load(plugin_reg, info);
 
   if(parameter_info && section && ret->plugin->set_parameter)
@@ -1630,10 +1890,11 @@ static void send_init_messages(bg_transcoder_t * t)
           {
           case STREAM_ACTION_BLEND:
             bg_log(BG_LOG_INFO, LOG_DOMAIN, "Text subtitle stream %d: Blending onto video stream %d",
-                   i+1, t->subtitle_text_streams[i].com.blend_stream);
+                   i+1, t->subtitle_text_streams[i].com.video_stream);
             break;
-          case STREAM_ACTION_EXPORT:
-            bg_log(BG_LOG_INFO, LOG_DOMAIN, "Text subtitle stream %d: Exporting to file");
+          case STREAM_ACTION_TRANSCODE:
+          case STREAM_ACTION_TRANSCODE_OVERLAY:
+            bg_log(BG_LOG_INFO, LOG_DOMAIN, "Text subtitle stream %d: Exporting to file", i+1);
             break;
           }
         }
@@ -1648,9 +1909,10 @@ static void send_init_messages(bg_transcoder_t * t)
           {
           case STREAM_ACTION_BLEND:
             bg_log(BG_LOG_INFO, LOG_DOMAIN, "Text subtitle stream %d: Blending onto video stream %d",
-                   i+1, t->subtitle_overlay_streams[i].blend_stream);
+                   i+1, t->subtitle_overlay_streams[i].video_stream);
             break;
-          case STREAM_ACTION_EXPORT:
+          case STREAM_ACTION_TRANSCODE:
+          case STREAM_ACTION_TRANSCODE_OVERLAY:
             bg_log(BG_LOG_INFO, LOG_DOMAIN, "Text subtitle stream %d: Exporting to file", i+1);
             break;
           }
@@ -1851,25 +2113,27 @@ static void create_streams(bg_transcoder_t * ret,
     }
 
   ret->num_subtitle_text_streams_real = 0;
+  ret->num_subtitle_overlay_streams_real = 0;
   
   for(i = 0; i < ret->num_subtitle_text_streams; i++)
     {
     //    fprintf(stderr, "Preparing subtitle_text stream %d...", i);
     init_subtitle_text_stream(&(ret->subtitle_text_streams[i]),
                               &(track->subtitle_text_streams[i]));
-    if(ret->subtitle_text_streams[i].com.com.action != STREAM_ACTION_FORGET)
+
+    if(ret->subtitle_text_streams[i].com.com.action == STREAM_ACTION_TRANSCODE)
       ret->num_subtitle_text_streams_real++;
+    else if(ret->subtitle_text_streams[i].com.com.action == STREAM_ACTION_TRANSCODE_OVERLAY)
+      ret->num_subtitle_overlay_streams_real++;
     //    fprintf(stderr, "done\n");
     }
-
-  ret->num_subtitle_overlay_streams_real = 0;
   
   for(i = 0; i < ret->num_subtitle_overlay_streams; i++)
     {
     //    fprintf(stderr, "Preparing subtitle_overlay stream %d...", i);
     init_subtitle_overlay_stream(&(ret->subtitle_overlay_streams[i]),
                                  &(track->subtitle_overlay_streams[i]));
-    if(ret->subtitle_overlay_streams[i].com.action != STREAM_ACTION_FORGET)
+    if(ret->subtitle_overlay_streams[i].com.action == STREAM_ACTION_TRANSCODE)
       ret->num_subtitle_overlay_streams_real++;
     //    fprintf(stderr, "done\n");
     }
@@ -1955,18 +2219,35 @@ static int start_input(bg_transcoder_t * ret)
 
 int check_separate(bg_transcoder_t * ret)
   {
-  const bg_plugin_info_t * info;
   
   ret->separate_streams = 0;
-  if(!ret->audio_to_video &&
+  ret->separate_subtitles = 0;
+
+  if(ret->encoder_info.audio_info &&
      ret->num_audio_streams_real &&
      ret->num_video_streams_real)
+    {
     ret->separate_streams = 1;
+    }
 
+  if(ret->encoder_info.subtitle_text_info &&
+     ret->num_video_streams_real &&
+     ret->num_subtitle_text_streams_real)
+    {
+    ret->separate_subtitles = 1;
+    }
+  if(ret->encoder_info.subtitle_overlay_info &&
+     ret->num_video_streams_real &&
+     ret->num_subtitle_overlay_streams_real)
+    {
+    ret->separate_subtitles = 1;
+    }
+  
   /* all passes except the last one will have separate streams */
   if(!ret->separate_streams && (ret->pass < ret->total_passes))
     {
     ret->separate_streams = 1;
+    ret->separate_subtitles = 1;
     }
   
   /* Get audio and video plugin infos so we can check for the maximum
@@ -1976,23 +2257,16 @@ int check_separate(bg_transcoder_t * ret)
     {
     if(ret->num_audio_streams_real)
       { /* Load audio plugin and check for max_audio_streams */
-      if(ret->audio_to_video)
+      if(!ret->encoder_info.audio_info)
         {
-        info = bg_plugin_find_by_name(ret->plugin_reg, ret->video_encoder);
-        if(!info)
-          goto fail;
-        if((info->max_audio_streams >= 0) &&
-           (ret->num_audio_streams_real > info->max_audio_streams))
+        if((ret->encoder_info.video_info->max_audio_streams >= 0) &&
+           (ret->num_audio_streams_real > ret->encoder_info.video_info->max_audio_streams))
           ret->separate_streams = 1;
         }
       else
         {
-        info = bg_plugin_find_by_name(ret->plugin_reg, ret->audio_encoder);
-        if(!info)
-          goto fail;
-
-        if((info->max_audio_streams >= 0) &&
-           (ret->num_audio_streams_real > info->max_audio_streams))
+        if((ret->encoder_info.audio_info->max_audio_streams >= 0) &&
+           (ret->num_audio_streams_real > ret->encoder_info.audio_info->max_audio_streams))
           ret->separate_streams = 1;
         }
       }
@@ -2002,16 +2276,35 @@ int check_separate(bg_transcoder_t * ret)
     {
     if(ret->num_video_streams_real)
       { /* Load video plugin and check for max_audio_streams */
-      info = bg_plugin_find_by_name(ret->plugin_reg, ret->video_encoder);
-      if((info->max_video_streams >= 0) &&
-         (ret->num_video_streams_real > info->max_video_streams))
+      if((ret->encoder_info.video_info->max_video_streams >= 0) &&
+         (ret->num_video_streams_real > ret->encoder_info.video_info->max_video_streams))
         ret->separate_streams = 1;
       }
     }
+
+  if(!ret->separate_subtitles)
+    {
+    
+    if(ret->num_subtitle_text_streams_real)
+      {
+      if((ret->encoder_info.video_info->max_subtitle_text_streams >= 0) &&
+         (ret->num_subtitle_text_streams_real >
+          ret->encoder_info.video_info->max_subtitle_text_streams))
+        ret->separate_subtitles = 1;
+      }
+
+    if(ret->num_subtitle_overlay_streams_real)
+      {
+      if((ret->encoder_info.video_info->max_subtitle_overlay_streams >= 0) &&
+         (ret->num_subtitle_overlay_streams_real >
+          ret->encoder_info.video_info->max_subtitle_overlay_streams))
+        ret->separate_subtitles = 1;
+      }
+    
+    }
+
   
   return 1;
-  fail:
-  return 0;
   
   }
 
@@ -2108,8 +2401,21 @@ void setup_pass(bg_transcoder_t * ret)
         ret->subtitle_text_streams[i].com.com.do_encode = 0;
         break;
       case STREAM_ACTION_BLEND:
-        if((ret->video_streams[ret->subtitle_text_streams[i].com.blend_stream].twopass) ||
+        if((ret->video_streams[ret->subtitle_text_streams[i].com.video_stream].twopass) ||
            (ret->pass == ret->total_passes))
+          {
+          ret->subtitle_text_streams[i].com.com.do_decode = 1;
+          ret->subtitle_text_streams[i].com.com.do_encode = 0;
+          }
+        else
+          {
+          ret->subtitle_text_streams[i].com.com.do_decode = 0;
+          ret->subtitle_text_streams[i].com.com.do_encode = 0;
+          }
+        break;
+      case STREAM_ACTION_TRANSCODE:
+      case STREAM_ACTION_TRANSCODE_OVERLAY:
+        if(ret->pass == ret->total_passes)
           {
           ret->subtitle_text_streams[i].com.com.do_decode = 1;
           ret->subtitle_text_streams[i].com.com.do_encode = 1;
@@ -2121,7 +2427,7 @@ void setup_pass(bg_transcoder_t * ret)
           }
         break;
       default:
-        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Subtitle stream cannot be handled\n");
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Subtitle stream cannot be handled");
         ret->subtitle_text_streams[i].com.com.do_decode = 0;
         ret->subtitle_text_streams[i].com.com.do_encode = 0;
         ret->subtitle_text_streams[i].com.com.action = STREAM_ACTION_FORGET;
@@ -2143,7 +2449,19 @@ void setup_pass(bg_transcoder_t * ret)
         ret->subtitle_overlay_streams[i].com.do_encode = 0;
         break;
       case STREAM_ACTION_BLEND:
-        if(ret->video_streams[ret->subtitle_overlay_streams[i].blend_stream].com.do_encode)
+        if(ret->video_streams[ret->subtitle_overlay_streams[i].video_stream].com.do_encode)
+          {
+          ret->subtitle_overlay_streams[i].com.do_decode = 1;
+          ret->subtitle_overlay_streams[i].com.do_encode = 1;
+          }
+        else
+          {
+          ret->subtitle_overlay_streams[i].com.do_decode = 0;
+          ret->subtitle_overlay_streams[i].com.do_encode = 0;
+          }
+        break;
+      case STREAM_ACTION_TRANSCODE:
+        if(ret->pass == ret->total_passes)
           {
           ret->subtitle_overlay_streams[i].com.do_decode = 1;
           ret->subtitle_overlay_streams[i].com.do_encode = 1;
@@ -2222,11 +2540,136 @@ static int start_encoder(bg_transcoder_t * ret, bg_plugin_handle_t  * encoder_ha
   return 1;
   }
 
+static int init_subtitle_encoders_separate(bg_transcoder_t * ret)
+  {
+  int i;
+  const bg_plugin_info_t * encoder_info;
+  bg_parameter_info_t * encoder_parameters;
+  bg_cfg_section_t    * encoder_section;
+  
+  bg_plugin_handle_t  * encoder_handle = (bg_plugin_handle_t  *)0;
+  bg_encoder_plugin_t * encoder_plugin;
+  
+      /* Subtitle text streams */
+
+  for(i = 0; i < ret->num_subtitle_text_streams; i++)
+    {
+    if(!ret->subtitle_text_streams[i].com.com.do_encode)
+      continue;
+    
+    switch(ret->subtitle_text_streams[i].com.com.action)
+      {
+      case STREAM_ACTION_TRANSCODE:
+        if(ret->encoder_info.subtitle_text_info)
+          {
+          encoder_info       = ret->encoder_info.subtitle_text_info;
+          encoder_parameters = ret->encoder_info.subtitle_text_encoder_parameters;
+          encoder_section    = ret->transcoder_track->subtitle_text_encoder_section;
+          }
+        else
+          {
+          encoder_info       = ret->encoder_info.video_info;
+          encoder_parameters = ret->encoder_info.video_encoder_parameters;
+          encoder_section    = ret->transcoder_track->video_encoder_section;
+          }
+        break;
+      case STREAM_ACTION_TRANSCODE_OVERLAY:
+        if(ret->encoder_info.subtitle_overlay_info)
+          {
+          encoder_info       = ret->encoder_info.subtitle_overlay_info;
+          encoder_parameters = ret->encoder_info.subtitle_overlay_encoder_parameters;
+          encoder_section    = ret->transcoder_track->subtitle_overlay_encoder_section;
+          }
+        else
+          {
+          encoder_info = ret->encoder_info.video_info;
+          encoder_parameters = ret->encoder_info.video_encoder_parameters;
+          encoder_section = ret->transcoder_track->video_encoder_section;
+          }
+        break;
+      }
+    
+    encoder_handle = load_encoder(ret->plugin_reg, encoder_info ,
+                                  encoder_parameters,
+                                  encoder_section,
+                                  &encoder_plugin);
+    
+    if(!ret->subtitle_text_streams[i].com.com.output_filename)
+      ret->subtitle_text_streams[i].com.com.output_filename =
+        bg_sprintf("%s/%s_subtitle_%02d.%s", ret->output_directory, ret->name,
+                   ret->subtitle_text_streams[i].com.com.in_index+1,
+                   encoder_plugin->get_extension(encoder_handle->priv));
+    
+    if(!open_encoder(ret, encoder_handle,
+                     encoder_plugin, &ret->subtitle_text_streams[i].com.com.output_filename))
+      goto fail;
+    
+    set_stream_encoder(&(ret->subtitle_text_streams[i].com.com), encoder_handle);
+
+    add_subtitle_text_stream(&(ret->subtitle_text_streams[i]),
+                             &(ret->transcoder_track->subtitle_text_streams[i]),
+                             ret);
+    if(!start_encoder(ret, encoder_handle, encoder_plugin))
+      goto fail;
+    }
+
+  /* Subtitle overlay streams */
+    
+  for(i = 0; i < ret->num_subtitle_overlay_streams; i++)
+    {
+    if(!ret->subtitle_overlay_streams[i].com.do_encode)
+      continue;
+
+    if(ret->encoder_info.subtitle_overlay_info)
+      {
+      encoder_info       = ret->encoder_info.subtitle_overlay_info;
+      encoder_parameters = ret->encoder_info.subtitle_overlay_encoder_parameters;
+      encoder_section    = ret->transcoder_track->subtitle_overlay_encoder_section;
+      }
+    else
+      {
+      encoder_info = ret->encoder_info.video_info;
+      encoder_parameters = ret->encoder_info.video_encoder_parameters;
+      encoder_section = ret->transcoder_track->video_encoder_section;
+      }
+    break;
+      
+    encoder_handle = load_encoder(ret->plugin_reg, encoder_info ,
+                                  encoder_parameters,
+                                  encoder_section,
+                                  &encoder_plugin);
+      
+    if(!ret->subtitle_overlay_streams[i].com.output_filename)
+      ret->subtitle_overlay_streams[i].com.output_filename =
+        bg_sprintf("%s/%s_subtitle_%02d.%s", ret->output_directory, ret->name,
+                   ret->subtitle_overlay_streams[i].com.in_index+1,
+                   encoder_plugin->get_extension(encoder_handle->priv));
+      
+    if(!open_encoder(ret, encoder_handle,
+                     encoder_plugin, &ret->subtitle_overlay_streams[i].com.output_filename))
+      goto fail;
+
+    set_stream_encoder(&(ret->subtitle_overlay_streams[i].com), encoder_handle);
+
+    add_subtitle_overlay_stream(&(ret->subtitle_overlay_streams[i]),
+                                &(ret->transcoder_track->subtitle_overlay_streams[i]),
+                                ret);
+    if(!start_encoder(ret, encoder_handle, encoder_plugin))
+      goto fail;
+    }
+  return 1;
+  fail:
+  return 0;
+  }
+
 static int init_encoders(bg_transcoder_t * ret)
   {
   int i;
 
-  char * encoder_name;
+  const bg_plugin_info_t * encoder_info;
+  bg_parameter_info_t * encoder_parameters;
+  bg_cfg_section_t    * encoder_section;
+  
   bg_plugin_handle_t  * encoder_handle = (bg_plugin_handle_t  *)0;
   bg_encoder_plugin_t * encoder_plugin;
 
@@ -2234,19 +2677,35 @@ static int init_encoders(bg_transcoder_t * ret)
     {
     /* Open new files for each streams */
 
-    encoder_name = ret->audio_to_video ? ret->video_encoder : ret->audio_encoder;
+    /* Audio streams */
+
+    if(ret->encoder_info.audio_info)
+      {
+      encoder_info = ret->encoder_info.audio_info;
+      encoder_parameters = ret->encoder_info.audio_encoder_parameters;
+      encoder_section    = ret->transcoder_track->audio_encoder_section;
+      }
+    else
+      {
+      encoder_info = ret->encoder_info.video_info;
+      encoder_parameters = ret->encoder_info.video_encoder_parameters;
+      encoder_section    = ret->transcoder_track->video_encoder_section;
+      }
+    
     for(i = 0; i < ret->num_audio_streams; i++)
       {
       if(!ret->audio_streams[i].com.do_decode) /* If we don't encode we still need to open the
-                                                 plugin to get the final output format */
+                                                  plugin to get the final output format */
         continue;
-      encoder_handle = load_encoder_by_name(ret->plugin_reg, encoder_name,
-                                            ret->transcoder_track->video_encoder_parameters,
-                                            ret->transcoder_track->video_encoder_section,
-                                            &encoder_plugin);
+      encoder_handle = load_encoder(ret->plugin_reg, encoder_info ,
+                                    encoder_parameters,
+                                    encoder_section,
+                                    &encoder_plugin);
+      
       if(!ret->audio_streams[i].com.output_filename)
         ret->audio_streams[i].com.output_filename =
-          bg_sprintf("%s/%s_audio_%02d%s", ret->output_directory, ret->name, i+1,
+          bg_sprintf("%s/%s_audio_%02d%s", ret->output_directory, ret->name,
+                     ret->audio_streams[i].com.in_index,
                      encoder_plugin->get_extension(encoder_handle->priv));
       
       if(!open_encoder(ret, encoder_handle,
@@ -2255,24 +2714,33 @@ static int init_encoders(bg_transcoder_t * ret)
 
       set_stream_encoder(&(ret->audio_streams[i].com), encoder_handle);
       
-      add_audio_stream(&(ret->audio_streams[i]), &(ret->transcoder_track->audio_streams[i]));
+      add_audio_stream(&(ret->audio_streams[i]), &(ret->transcoder_track->audio_streams[i]),
+                       ret);
       
       if(!start_encoder(ret, encoder_handle, encoder_plugin))
         goto fail;
       
       }
+
+    /* */
+
+    if(!init_subtitle_encoders_separate(ret))
+      goto fail;
+    
+    /* Video streams */
     for(i = 0; i < ret->num_video_streams; i++)
       {
       if(!ret->video_streams[i].com.do_decode)/* If we don't encode we still need to open the
                                                  plugin to get the final output format */
         continue;
-      encoder_handle = load_encoder_by_name(ret->plugin_reg, ret->video_encoder,
-                                            ret->transcoder_track->video_encoder_parameters,
-                                            ret->transcoder_track->video_encoder_section,
-                                            &encoder_plugin);
+      encoder_handle = load_encoder(ret->plugin_reg, ret->encoder_info.video_info,
+                                    ret->encoder_info.video_encoder_parameters,
+                                    ret->transcoder_track->video_encoder_section,
+                                    &encoder_plugin);
       if(!ret->video_streams[i].com.output_filename)
         ret->video_streams[i].com.output_filename =
-          bg_sprintf("%s/%s_video_%02d%s", ret->output_directory, ret->name, i+1,
+          bg_sprintf("%s/%s_video_%02d%s", ret->output_directory, ret->name,
+                     ret->video_streams[i].com.in_index+1,
                      encoder_plugin->get_extension(encoder_handle->priv));
       
       if(!open_encoder(ret, encoder_handle,
@@ -2280,7 +2748,8 @@ static int init_encoders(bg_transcoder_t * ret)
         goto fail;
 
       set_stream_encoder(&(ret->video_streams[i].com), encoder_handle);
-      add_video_stream(&(ret->video_streams[i]), &(ret->transcoder_track->video_streams[i]), ret->track_info);
+      add_video_stream(&(ret->video_streams[i]),
+                       &(ret->transcoder_track->video_streams[i]), ret);
 
       if(!set_video_pass(ret, i))
         goto fail;
@@ -2289,54 +2758,96 @@ static int init_encoders(bg_transcoder_t * ret)
         goto fail;
       }
     }
-  else
+  else /* All streams into one file */
     {
     /* Put all streams into one file. */
-    
-    if(ret->audio_to_video || ret->num_video_streams_real)
+
+    if(ret->num_video_streams_real || ret->num_audio_streams_real)
       {
-      ret->out_handle = load_encoder_by_name(ret->plugin_reg, ret->video_encoder,
-                                             ret->transcoder_track->video_encoder_parameters,
-                                             ret->transcoder_track->video_encoder_section,
-                                             &encoder_plugin);
+      if(!ret->encoder_info.audio_info || ret->num_video_streams_real)
+        {
+        ret->out_handle = load_encoder(ret->plugin_reg, ret->encoder_info.video_info,
+                                       ret->encoder_info.video_encoder_parameters,
+                                       ret->transcoder_track->video_encoder_section,
+                                       &encoder_plugin);
+        }
+      else
+        {
+        ret->out_handle = load_encoder(ret->plugin_reg, ret->encoder_info.audio_info,
+                                        ret->encoder_info.audio_encoder_parameters,
+                                       ret->transcoder_track->audio_encoder_section,
+                                       &encoder_plugin);
+        }
+      }
+    else if(!ret->separate_subtitles)
+      {
+      ret->out_handle = load_encoder(ret->plugin_reg, ret->encoder_info.video_info,
+                                     ret->encoder_info.video_encoder_parameters,
+                                     ret->transcoder_track->video_encoder_section,
+                                     &encoder_plugin);
       }
     else
-      {
-      ret->out_handle = load_encoder_by_name(ret->plugin_reg, ret->audio_encoder,
-                                             ret->transcoder_track->video_encoder_parameters,
-                                             ret->transcoder_track->video_encoder_section,
-                                             &encoder_plugin);
-      }
+      ret->out_handle = (bg_plugin_handle_t*)0;
 
-    if(!ret->output_filename)
-      ret->output_filename = bg_sprintf("%s/%s%s", ret->output_directory, ret->name,
-                                        encoder_plugin->get_extension(ret->out_handle->priv));
+    if(ret->out_handle)
+      {
+      if(!ret->output_filename)
+        ret->output_filename = bg_sprintf("%s/%s%s", ret->output_directory, ret->name,
+                                          encoder_plugin->get_extension(ret->out_handle->priv));
     
-    if(!open_encoder(ret, ret->out_handle,
-                     encoder_plugin, &ret->output_filename))
-      goto fail;
+      if(!open_encoder(ret, ret->out_handle,
+                       encoder_plugin, &ret->output_filename))
+        goto fail;
     
-    for(i = 0; i < ret->num_audio_streams; i++)
-      {
-      if(!ret->audio_streams[i].com.do_decode)/* If we don't encode we still need to open the
-                                                 plugin to get the final output format */
-        continue;
-      set_stream_encoder(&(ret->audio_streams[i].com), ret->out_handle);
-      add_audio_stream(&(ret->audio_streams[i]), &(ret->transcoder_track->audio_streams[i]));
-      }
+      for(i = 0; i < ret->num_audio_streams; i++)
+        {
+        if(!ret->audio_streams[i].com.do_decode)/* If we don't encode we still need to open the
+                                                   plugin to get the final output format */
+          continue;
+        set_stream_encoder(&(ret->audio_streams[i].com), ret->out_handle);
+        add_audio_stream(&(ret->audio_streams[i]), &(ret->transcoder_track->audio_streams[i]),
+                         ret);
+        }
 
-    for(i = 0; i < ret->num_video_streams; i++)
-      {
-      if(!ret->video_streams[i].com.do_decode)/* If we don't encode we still need to open the
-                                                 plugin to get the final output format */
-        continue;
-      set_stream_encoder(&(ret->video_streams[i].com), ret->out_handle);
-      add_video_stream(&(ret->video_streams[i]), &(ret->transcoder_track->video_streams[i]), ret->track_info);
+      for(i = 0; i < ret->num_video_streams; i++)
+        {
+        if(!ret->video_streams[i].com.do_decode)/* If we don't encode we still need to open the
+                                                   plugin to get the final output format */
+          continue;
+        set_stream_encoder(&(ret->video_streams[i].com), ret->out_handle);
+        add_video_stream(&(ret->video_streams[i]),
+                         &(ret->transcoder_track->video_streams[i]), ret);
 
-      if(!set_video_pass(ret, i))
+        if(!set_video_pass(ret, i))
+          goto fail;
+        }
+
+      if(!ret->separate_subtitles)
+        {
+        for(i = 0; i < ret->num_subtitle_text_streams; i++)
+          {
+          if(!ret->subtitle_text_streams[i].com.com.do_encode)
+            continue;
+          set_stream_encoder(&(ret->subtitle_text_streams[i].com.com), ret->out_handle);
+          add_subtitle_text_stream(&(ret->subtitle_text_streams[i]),
+                                   &(ret->transcoder_track->subtitle_text_streams[i]),
+                                   ret);
+          }
+        for(i = 0; i < ret->num_subtitle_overlay_streams; i++)
+          {
+          if(!ret->subtitle_overlay_streams[i].com.do_encode)
+            continue;
+          set_stream_encoder(&(ret->subtitle_overlay_streams[i].com), ret->out_handle);
+          add_subtitle_overlay_stream(&(ret->subtitle_overlay_streams[i]),
+                                      &(ret->transcoder_track->subtitle_overlay_streams[i]),
+                                      ret);
+          }
+        }
+
+      if(!start_encoder(ret, ret->out_handle, encoder_plugin))
         goto fail;
       }
-    if(!start_encoder(ret, ret->out_handle, encoder_plugin))
+    if(ret->separate_subtitles && !init_subtitle_encoders_separate(ret))
       goto fail;
     }
   return 1;
@@ -2376,7 +2887,7 @@ static void close_encoders(bg_transcoder_t * ret, int do_delete)
         }
       }
     }
-  else
+  else if(ret->out_handle)
     {
     /* Put all streams into one file. */
     encoder_plugin = (bg_encoder_plugin_t*)(ret->out_handle->plugin);
@@ -2394,6 +2905,47 @@ static void close_encoders(bg_transcoder_t * ret, int do_delete)
       s = &ret->video_streams[i].com; 
       s->out_handle = (bg_plugin_handle_t*)0;
       }
+
+    if(!ret->separate_subtitles)
+      {
+      for(i = 0; i < ret->num_subtitle_text_streams; i++)
+        {
+        s = &ret->subtitle_text_streams[i].com.com;
+        s->out_handle = (bg_plugin_handle_t*)0;
+        }
+      for(i = 0; i < ret->num_subtitle_overlay_streams; i++)
+        {
+        s = &ret->subtitle_overlay_streams[i].com;
+        s->out_handle = (bg_plugin_handle_t*)0;
+        }
+      }
+    }
+  
+  if(ret->separate_subtitles)
+    {
+    for(i = 0; i < ret->num_subtitle_text_streams; i++)
+      {
+      s = &ret->subtitle_text_streams[i].com.com; 
+      if(s->out_handle)
+        {
+        s->out_plugin->close(s->out_handle->priv, do_delete);
+        bg_plugin_unref(s->out_handle);
+        s->out_handle = (bg_plugin_handle_t*)0;
+        }
+      }
+
+    for(i = 0; i < ret->num_subtitle_overlay_streams; i++)
+      {
+      s = &ret->subtitle_overlay_streams[i].com; 
+      if(s->out_handle)
+        {
+        s->out_plugin->close(s->out_handle->priv, do_delete);
+        bg_plugin_unref(s->out_handle);
+        s->out_handle = (bg_plugin_handle_t*)0;
+        }
+      }
+
+    
     }
   }
 
@@ -2452,7 +3004,7 @@ static void init_video_converter(video_stream_t * ret)
   {
   gavl_video_options_t * opt;
   ret->com.out_plugin->get_video_format(ret->com.out_handle->priv,
-                                           ret->com.out_index, &(ret->out_format));
+                                        ret->com.out_index, &(ret->out_format));
 
   bg_gavl_video_options_set_rectangles(&(ret->options),
                                        &(ret->in_format),
@@ -2470,7 +3022,8 @@ static void init_video_converter(video_stream_t * ret)
 
   /* Check if we wanna convert the framerate */
 
-  if((ret->in_format.framerate_mode != GAVL_FRAMERATE_CONSTANT) && (ret->out_format.framerate_mode == GAVL_FRAMERATE_CONSTANT))
+  if((ret->in_format.framerate_mode != GAVL_FRAMERATE_CONSTANT) &&
+     (ret->out_format.framerate_mode == GAVL_FRAMERATE_CONSTANT))
     ret->convert_framerate = 1;
 
   else if((int64_t)ret->in_format.frame_duration * (int64_t)ret->out_format.timescale !=
@@ -2523,10 +3076,10 @@ void subtitle_init_blend(subtitle_stream_t * ss, video_stream_t * vs)
     sst = (subtitle_text_stream_t*)ss;
     bg_text_renderer_init(sst->textrenderer,
                           &(vs->out_format),
-                          &(ss->ovl_format));
+                          &(ss->in_format));
     }
-  if(!ss->ovl1.frame) ss->ovl1.frame = gavl_video_frame_create(&(ss->ovl_format));
-  if(!ss->ovl2.frame) ss->ovl2.frame = gavl_video_frame_create(&(ss->ovl_format));
+  if(!ss->ovl1.frame) ss->ovl1.frame = gavl_video_frame_create(&(ss->in_format));
+  if(!ss->ovl2.frame) ss->ovl2.frame = gavl_video_frame_create(&(ss->in_format));
 
   ss->current_ovl = &(ss->ovl1);
   ss->next_ovl    = &(ss->ovl2);
@@ -2535,7 +3088,46 @@ void subtitle_init_blend(subtitle_stream_t * ss, video_stream_t * vs)
     vs->out_frame = gavl_video_frame_create(&(vs->out_format));
   
   gavl_overlay_blend_context_init(ss->blend_context,
-                                  &(vs->out_format), &(ss->ovl_format));
+                                  &(vs->out_format), &(ss->in_format));
+  }
+
+static void subtitle_init_encode_text(subtitle_text_stream_t * ss)
+  {
+  /* Nothing to do here for now */
+  }
+
+static void subtitle_init_encode_overlay(subtitle_stream_t * ss)
+  {
+  subtitle_text_stream_t * sst;
+
+  ss->com.out_plugin->get_subtitle_overlay_format(ss->com.out_handle->priv,
+                                                  ss->com.out_index, &(ss->out_format));
+  
+  
+  /* Check whether to initialize the text renderer */
+  if(ss->com.type == STREAM_TYPE_SUBTITLE_TEXT)
+    {
+    sst = (subtitle_text_stream_t*)ss;
+    bg_text_renderer_init(sst->textrenderer,
+                          &(ss->out_format),
+                          &(ss->in_format));
+
+    fprintf(stderr, "Initialized text tenderer\n");
+    gavl_video_format_dump(&(ss->in_format));
+    gavl_video_format_dump(&(ss->out_format));
+    
+
+    }
+
+  ss->do_convert = gavl_video_converter_init(ss->cnv, &(ss->in_format),
+                                             &(ss->out_format));
+  
+  if(!ss->ovl1.frame) ss->ovl1.frame = gavl_video_frame_create(&(ss->in_format));
+
+  if(ss->do_convert)
+    {
+    if(!ss->ovl2.frame) ss->ovl2.frame = gavl_video_frame_create(&(ss->out_format));
+    }
   }
 
 static void init_converters(bg_transcoder_t * ret)
@@ -2570,8 +3162,13 @@ static void init_converters(bg_transcoder_t * ret)
       {
       case STREAM_ACTION_BLEND:
         subtitle_init_blend((subtitle_stream_t*)(&ret->subtitle_text_streams[i]),
-                            &ret->video_streams[ret->subtitle_text_streams[i].com.blend_stream]);
+                            &ret->video_streams[ret->subtitle_text_streams[i].com.video_stream]);
         break;
+      case STREAM_ACTION_TRANSCODE:
+        subtitle_init_encode_text((&ret->subtitle_text_streams[i]));
+        break;
+      case STREAM_ACTION_TRANSCODE_OVERLAY:
+        subtitle_init_encode_overlay((subtitle_stream_t*)&ret->subtitle_text_streams[i]);       break;
       }
     }
 
@@ -2584,7 +3181,10 @@ static void init_converters(bg_transcoder_t * ret)
       {
       case STREAM_ACTION_BLEND:
         subtitle_init_blend(&ret->subtitle_overlay_streams[i],
-                            &ret->video_streams[ret->subtitle_overlay_streams[i].blend_stream]);
+                            &ret->video_streams[ret->subtitle_overlay_streams[i].video_stream]);
+        break;
+      case STREAM_ACTION_TRANSCODE:
+        subtitle_init_encode_overlay(&ret->subtitle_overlay_streams[i]);
         break;
       }
     }
@@ -2638,7 +3238,13 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   ret->plugin_reg = plugin_reg;
   ret->transcoder_track = track;
   //  fprintf(stderr, "Setting global parameters...");
-  
+
+  /* Initialize encoder info */
+
+  bg_transcoder_encoder_info_get_from_track(ret->plugin_reg,
+                                            ret->transcoder_track,
+                                            &(ret->encoder_info));
+    
   /* Set general parameter */
 
   bg_cfg_section_apply(track->general_section,
@@ -2691,11 +3297,7 @@ int bg_transcoder_init(bg_transcoder_t * ret,
 
   //  fprintf(stderr, "Checking for mode...");
   
-  if(!strcmp(ret->audio_encoder, ret->video_encoder))
-    ret->audio_to_video = 1;
-  else
-    ret->audio_to_video = 0;
-    
+  
   if(!check_separate(ret))
     goto fail;
   
@@ -2938,6 +3540,19 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
       stream = &(t->video_streams[i].com);
       }
     }
+
+  for(i = 0; i < t->num_subtitle_text_streams; i++)
+    {
+    if(t->subtitle_text_streams[i].com.com.status != STREAM_STATE_ON)
+      continue;
+    done = 0;
+    }
+  for(i = 0; i < t->num_subtitle_overlay_streams; i++)
+    {
+    if(t->subtitle_overlay_streams[i].com.status != STREAM_STATE_ON)
+      continue;
+    done = 0;
+    }
   
   if(done)
     {
@@ -2956,14 +3571,20 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
     }
   
   /* Do the actual transcoding */
+  /* Subtitle iteration must always be done */
+  subtitle_iteration(t);
 
-  if(stream->type == STREAM_TYPE_AUDIO)
-    audio_iteration((audio_stream_t*)stream, t);
-  else if(stream->type == STREAM_TYPE_VIDEO)
-    video_iteration((video_stream_t*)stream, t);
-
-  if(stream->time > t->time)
-    t->time = stream->time;
+  if(stream)
+    {
+    if(stream->type == STREAM_TYPE_AUDIO)
+      audio_iteration((audio_stream_t*)stream, t);
+    else if(stream->type == STREAM_TYPE_VIDEO)
+      video_iteration((video_stream_t*)stream, t);
+    
+    if(stream->time > t->time)
+      t->time = stream->time;
+    }
+  
   
   /* Update status */
 
@@ -3079,8 +3700,6 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
   FREE_STR(t->name);
   FREE_STR(t->location);
   FREE_STR(t->plugin);
-  FREE_STR(t->audio_encoder);
-  FREE_STR(t->video_encoder);
   FREE_STR(t->output_directory);
   FREE_STR(t->output_filename);
   

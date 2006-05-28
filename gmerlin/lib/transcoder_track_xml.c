@@ -90,7 +90,19 @@ static void subtitle_text_stream_2_xml(xmlNodePtr parent,
   node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"TEXTRENDERER", NULL);
   section_2_xml(s->textrenderer_section, node);
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
-  
+
+  if(s->encoder_section_text)
+    {
+    node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"ENCODER_TEXT", NULL);
+    section_2_xml(s->encoder_section_text, node);
+    xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
+    }
+  if(s->encoder_section_overlay)
+    {
+    node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"ENCODER_OVERLAY", NULL);
+    section_2_xml(s->encoder_section_overlay, node);
+    xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
+    }
   }
 
 static void subtitle_overlay_stream_2_xml(xmlNodePtr parent,
@@ -108,6 +120,13 @@ static void subtitle_overlay_stream_2_xml(xmlNodePtr parent,
   node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"GENERAL", NULL);
   section_2_xml(s->general_section, node);
 
+  if(s->encoder_section)
+    {
+    node = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"ENCODER", NULL);
+    section_2_xml(s->encoder_section, node);
+    xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
+    }
+  
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
   }
 
@@ -144,6 +163,21 @@ static void track_2_xml(bg_transcoder_track_t * track,
     section_2_xml(track->video_encoder_section, node);
     xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     }
+
+  if(track->subtitle_text_encoder_section)
+    {
+    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"SUBTITLE_TEXT_ENCODER", NULL);
+    section_2_xml(track->subtitle_text_encoder_section, node);
+    xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
+    }
+
+  if(track->subtitle_overlay_encoder_section)
+    {
+    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"SUBTITLE_OVERLAY_ENCODER", NULL);
+    section_2_xml(track->subtitle_overlay_encoder_section, node);
+    xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
+    }
+  
   if(track->num_audio_streams)
     {
     node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"AUDIO_STREAMS", NULL);
@@ -379,6 +413,14 @@ static void xml_2_subtitle_text(bg_transcoder_track_subtitle_text_t * s,
       {
       s->textrenderer_section = xml_2_section(xml_doc, node);
       }
+    else if(!BG_XML_STRCMP(node->name, "ENCODER_TEXT"))
+      {
+      s->encoder_section_text = xml_2_section(xml_doc, node);
+      }
+    else if(!BG_XML_STRCMP(node->name, "ENCODER_OVERLAY"))
+      {
+      s->encoder_section_overlay = xml_2_section(xml_doc, node);
+      }
     node = node->next;
     }
   }
@@ -414,6 +456,11 @@ static void xml_2_subtitle_overlay(bg_transcoder_track_subtitle_overlay_t * s,
       {
       s->general_section = xml_2_section(xml_doc, node);
       }
+    else if(!BG_XML_STRCMP(node->name, "ENCODER"))
+      {
+      s->encoder_section = xml_2_section(xml_doc, node);
+      }
+    
     node = node->next;
     }
   }
@@ -459,6 +506,14 @@ static int xml_2_track(bg_transcoder_track_t * t,
     else if(!BG_XML_STRCMP(node->name, "VIDEO_ENCODER"))
       {
       t->video_encoder_section = xml_2_section(xml_doc, node);
+      }
+    else if(!BG_XML_STRCMP(node->name, "SUBTITLE_TEXT_ENCODER"))
+      {
+      t->subtitle_text_encoder_section = xml_2_section(xml_doc, node);
+      }
+    else if(!BG_XML_STRCMP(node->name, "SUBTITLE_OVERLAY_ENCODER"))
+      {
+      t->subtitle_overlay_encoder_section = xml_2_section(xml_doc, node);
       }
     else if(!BG_XML_STRCMP(node->name, "AUDIO_STREAMS"))
       {

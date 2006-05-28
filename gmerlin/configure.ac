@@ -665,6 +665,7 @@ plugins/jpeg/Makefile \
 plugins/mikmod/Makefile \
 plugins/png/Makefile \
 plugins/postprocessors/Makefile \
+plugins/subwriters/Makefile \
 plugins/image/Makefile \
 plugins/tiff/Makefile \
 plugins/v4l/Makefile \

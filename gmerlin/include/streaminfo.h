@@ -33,22 +33,20 @@ typedef struct
   {
   gavl_audio_format_t format;
   char * description; /* Something line MPEG-1 audio layer 3, 128 kbps */
-  char * language;
+  char   language[4];
   char * info;        /* Directors comments etc... */
   } bg_audio_info_t;
 
-void bg_audio_info_copy(bg_audio_info_t * dst, const bg_audio_info_t * src);
 void bg_audio_info_free(bg_audio_info_t * info);
 
 typedef struct
   {
   gavl_video_format_t format;
   char * description;
-  char * language;
+  char language[4];
   char * info;
   } bg_video_info_t;
 
-void bg_video_info_copy(bg_video_info_t * dst, const bg_video_info_t * src);
 void bg_video_info_free(bg_video_info_t * info);
 
 typedef struct
@@ -57,18 +55,19 @@ typedef struct
   char * description;
   } bg_still_info_t;
 
-void bg_still_info_copy(bg_still_info_t * dst, const bg_still_info_t * src);
 void bg_still_info_free(bg_still_info_t * info);
 
 typedef struct
   {
   char * description;
-  char * language;
+  char language[4];
   char * info;
 
   int is_text; /* Subtitles have text format */
   gavl_video_format_t format;
   } bg_subtitle_info_t;
+
+void bg_subtitle_info_free(bg_subtitle_info_t * info);
 
 typedef struct
   {

@@ -34,40 +34,22 @@
     ptr = NULL; \
     }
 
-#define CS(str) dst->str = bg_strdup(dst->str, src->str);
-
-void bg_audio_info_copy(bg_audio_info_t * dst,
-                        const bg_audio_info_t * src)
-  {
-  gavl_audio_format_copy(&(dst->format), &(src->format));
-  
-  CS(language);
-  CS(description);
-  }
-
-void bg_video_info_copy(bg_video_info_t * dst,
-                        const bg_video_info_t * src)
-  {
-  gavl_video_format_copy(&(dst->format), &(src->format));
-  CS(description);
-  }
-
-void bg_still_info_copy(bg_still_info_t * dst,
-                        const bg_still_info_t * src)
-  {
-  gavl_video_format_copy(&(dst->format), &(src->format));
-  CS(description);
-  }
-
 void bg_audio_info_free(bg_audio_info_t * info)
   {
   MY_FREE(info->description);
-  MY_FREE(info->language);
+  MY_FREE(info->info);
   }
 
 void bg_video_info_free(bg_video_info_t * info)
   {
   MY_FREE(info->description);
+  MY_FREE(info->info);
+  }
+
+void bg_subtitle_info_free(bg_subtitle_info_t * info)
+  {
+  MY_FREE(info->description);
+  MY_FREE(info->info);
   }
 
 void bg_still_info_free(bg_still_info_t * info)
@@ -101,7 +83,7 @@ void bg_track_info_free(bg_track_info_t * info)
   if(info->subtitle_streams)
     {
     for(i = 0; i < info->num_subtitle_streams; i++)
-      MY_FREE(info->subtitle_streams[i].language);
+      bg_subtitle_info_free(&(info->subtitle_streams[i]));
     MY_FREE(info->subtitle_streams);
     }
 

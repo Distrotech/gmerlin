@@ -265,6 +265,7 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
                                             pluginwindow_close_callback, 
                                             ret);
   
+  
   ret->lcdproc = bg_lcdproc_create(ret->player);
 
   remote_port = PLAYER_REMOTE_PORT;

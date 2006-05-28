@@ -13,19 +13,32 @@ struct plugin_window_s
   void (*close_notify)(plugin_window_t*,void*);
   void * close_notify_data;
 
+  gmerlin_t * g;
+  
   GtkTooltips * tooltips;
   };
 
-static void set_audio_output(bg_plugin_handle_t * handle, void * data)
+static void set_audio_output(const bg_plugin_info_t * info, void * data)
   {
-  gmerlin_t * gmerlin = (gmerlin_t*)data;
-  bg_player_set_oa_plugin(gmerlin->player, handle);
+  bg_plugin_handle_t * handle;
+  plugin_window_t * win = (plugin_window_t *)data;
+
+  handle = bg_gtk_plugin_widget_single_load_plugin(win->audio_output);
+  bg_plugin_registry_set_default(win->g->plugin_reg, BG_PLUGIN_OUTPUT_AUDIO, info->name);
+
+  bg_player_set_oa_plugin(win->g->player, handle);
+  
   }
 
-static void set_video_output(bg_plugin_handle_t * handle, void * data)
+static void set_video_output(const bg_plugin_info_t * info, void * data)
   {
-  gmerlin_t * gmerlin = (gmerlin_t*)data;
-  bg_player_set_ov_plugin(gmerlin->player, handle);
+  bg_plugin_handle_t * handle;
+  plugin_window_t * win = (plugin_window_t *)data;
+
+  handle = bg_gtk_plugin_widget_single_load_plugin(win->video_output);
+  bg_plugin_registry_set_default(win->g->plugin_reg, BG_PLUGIN_OUTPUT_VIDEO, info->name);
+
+  bg_player_set_ov_plugin(win->g->player, handle);
   }
 
 static void button_callback(GtkWidget * w, gpointer data)
@@ -56,6 +69,7 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
     
   ret = calloc(1, sizeof(*ret));
 
+  ret->g = g;
   ret->tooltips = gtk_tooltips_new();
 
   g_object_ref (G_OBJECT (ret->tooltips));
@@ -75,15 +89,22 @@ plugin_window_t * plugin_window_create(gmerlin_t * g,
                                        g->plugin_reg,
                                        BG_PLUGIN_OUTPUT_AUDIO,
                                        BG_PLUGIN_PLAYBACK,
-                                       set_audio_output,
-                                       g, ret->tooltips);
+                                       ret->tooltips);
+
+  set_audio_output(bg_gtk_plugin_widget_single_get_plugin(ret->audio_output), ret);
+  
+  bg_gtk_plugin_widget_single_set_change_callback(ret->audio_output, set_audio_output, ret);
+                                           
   ret->video_output = 
     bg_gtk_plugin_widget_single_create("Video",
                                        g->plugin_reg,
                                        BG_PLUGIN_OUTPUT_VIDEO,
                                        BG_PLUGIN_PLAYBACK,
-                                       set_video_output,
-                                       g, ret->tooltips);
+                                       ret->tooltips);
+
+  set_video_output(bg_gtk_plugin_widget_single_get_plugin(ret->video_output), ret);
+
+  bg_gtk_plugin_widget_single_set_change_callback(ret->video_output, set_video_output, ret); 
 
   ret->inputs = 
     bg_gtk_plugin_widget_multi_create(g->plugin_reg,

@@ -8,6 +8,9 @@
 #include <transcoder_track.h>
 #include "trackdialog.h"
 
+#include <textrenderer.h>
+
+
 struct track_dialog_s
   {
   /* Config dialog */
@@ -32,13 +35,17 @@ static void set_parameter_general(void * priv, char * name, bg_parameter_value_t
 
 track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                                      void (*update_callback)(void * priv),
-                                     void * update_priv, int show_tooltips)
+                                     void * update_priv, int show_tooltips,
+                                     bg_plugin_registry_t * plugin_reg)
   {
   int i;
   char * label;
   track_dialog_t * ret;
   void * parent;
-    
+  bg_transcoder_encoder_info_t encoder_info;
+
+  bg_transcoder_encoder_info_get_from_track(plugin_reg, t, &encoder_info);
+                                            
   ret = calloc(1, sizeof(*ret));
 
   ret->update_callback = update_callback;
@@ -66,28 +73,52 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
 
   /* Audio encoder */
 
-  if(t->audio_encoder_parameters)
+  if(encoder_info.audio_encoder_parameters)
     {
     bg_dialog_add(ret->cfg_dialog,
                   bg_cfg_section_get_name(t->audio_encoder_section),
                   t->audio_encoder_section,
                   NULL,
                   NULL,
-                  t->audio_encoder_parameters);
+                  encoder_info.audio_encoder_parameters);
     }
 
   /* Video encoder */
 
-  if(t->video_encoder_parameters)
+  if(encoder_info.video_encoder_parameters)
     {
     bg_dialog_add(ret->cfg_dialog,
                   bg_cfg_section_get_name(t->video_encoder_section),
                   t->video_encoder_section,
                   NULL,
                   NULL,
-                  t->video_encoder_parameters);
+                  encoder_info.video_encoder_parameters);
     }
-  
+
+  /* Subtitle text encoder */
+
+  if(encoder_info.subtitle_text_encoder_parameters)
+    {
+    bg_dialog_add(ret->cfg_dialog,
+                  bg_cfg_section_get_name(t->subtitle_text_encoder_section),
+                  t->subtitle_text_encoder_section,
+                  NULL,
+                  NULL,
+                  encoder_info.subtitle_text_encoder_parameters);
+    }
+
+  /* Subtitle overlay encoder */
+
+  if(encoder_info.subtitle_overlay_encoder_parameters)
+    {
+    bg_dialog_add(ret->cfg_dialog,
+                  bg_cfg_section_get_name(t->subtitle_overlay_encoder_section),
+                  t->subtitle_overlay_encoder_section,
+                  NULL,
+                  NULL,
+                  encoder_info.subtitle_overlay_encoder_parameters);
+    }
+
   
   /* Audio streams */
 
@@ -120,13 +151,13 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                         NULL,
                         bg_transcoder_track_audio_get_general_parameters());
 
-    if(t->audio_streams[i].encoder_parameters)
+    if(encoder_info.audio_stream_parameters)
       bg_dialog_add_child(ret->cfg_dialog, parent,
                           bg_cfg_section_get_name(t->audio_streams[i].encoder_section),
                           t->audio_streams[i].encoder_section,
                           NULL,
                           NULL,
-                          t->audio_streams[i].encoder_parameters);
+                          encoder_info.audio_stream_parameters);
     }
 
   /* Video streams */
@@ -159,13 +190,13 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
                         NULL,
                         bg_transcoder_track_video_get_general_parameters());
 
-    if(t->video_streams[i].encoder_parameters)
+    if(encoder_info.video_stream_parameters)
       bg_dialog_add_child(ret->cfg_dialog, parent,
                           bg_cfg_section_get_name(t->video_streams[i].encoder_section),
                           t->video_streams[i].encoder_section,
                           NULL,
                           NULL,
-                          t->video_streams[i].encoder_parameters);
+                          encoder_info.video_stream_parameters);
     }
 
   /* Subtitle streams */

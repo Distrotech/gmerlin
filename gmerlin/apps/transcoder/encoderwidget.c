@@ -10,10 +10,12 @@
 
 #include "encoderwidget.h"
 
-static void set_video_encoder(bg_plugin_handle_t * handle, void * data)
+void encoder_widget_update_sensitive(encoder_widget_t * win)
   {
-  encoder_widget_t * win = (encoder_widget_t *)data;
-  if(handle->info->type == BG_PLUGIN_ENCODER_VIDEO)
+  const bg_plugin_info_t * info;
+  info = bg_gtk_plugin_widget_single_get_plugin(win->video_encoder);
+  
+  if(!info->max_audio_streams)
     {
     gtk_widget_set_sensitive(win->audio_to_video, 0);
 
@@ -25,6 +27,34 @@ static void set_video_encoder(bg_plugin_handle_t * handle, void * data)
     bg_gtk_plugin_widget_single_set_sensitive(win->audio_encoder,
                                               !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->audio_to_video)));
     }
+
+  if(!info->max_subtitle_text_streams)
+    {
+    gtk_widget_set_sensitive(win->subtitle_text_to_video, 0);
+
+    bg_gtk_plugin_widget_single_set_sensitive(win->subtitle_text_encoder, 1);
+    }
+  else
+    {
+    gtk_widget_set_sensitive(win->subtitle_text_to_video, 1);
+    bg_gtk_plugin_widget_single_set_sensitive(win->subtitle_text_encoder,
+                                              !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->subtitle_text_to_video)));
+    }
+
+  if(!info->max_subtitle_overlay_streams)
+    {
+    gtk_widget_set_sensitive(win->subtitle_overlay_to_video, 0);
+
+    bg_gtk_plugin_widget_single_set_sensitive(win->subtitle_overlay_encoder, 1);
+    }
+  else
+    {
+    gtk_widget_set_sensitive(win->subtitle_overlay_to_video, 1);
+    bg_gtk_plugin_widget_single_set_sensitive(win->subtitle_overlay_encoder,
+                                              !gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->subtitle_overlay_to_video)));
+    }
+
+  
   
   }
 
@@ -45,6 +75,29 @@ static void button_callback(GtkWidget * w, gpointer data)
       bg_plugin_registry_set_encode_audio_to_video(wid->plugin_reg, 0);
       }
     }
+
+  if(w == wid->subtitle_text_to_video)
+    {
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(wid->subtitle_text_to_video)))
+      {
+      bg_gtk_plugin_widget_single_set_sensitive(wid->subtitle_text_encoder, 0);
+      }
+    else
+      {
+      bg_gtk_plugin_widget_single_set_sensitive(wid->subtitle_text_encoder, 1);
+      }
+    }
+  if(w == wid->subtitle_overlay_to_video)
+    {
+    if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(wid->subtitle_overlay_to_video)))
+      {
+      bg_gtk_plugin_widget_single_set_sensitive(wid->subtitle_overlay_encoder, 0);
+      }
+    else
+      {
+      bg_gtk_plugin_widget_single_set_sensitive(wid->subtitle_overlay_encoder, 1);
+      }
+    }
   }
 
 void encoder_widget_init(encoder_widget_t * ret, bg_plugin_registry_t * plugin_reg)
@@ -61,27 +114,47 @@ void encoder_widget_init(encoder_widget_t * ret, bg_plugin_registry_t * plugin_r
     bg_gtk_plugin_widget_single_create("Audio", plugin_reg,
                                        BG_PLUGIN_ENCODER_AUDIO,
                                        BG_PLUGIN_FILE,
-                                       NULL,
-                                       ret, ret->tooltips);
+                                       ret->tooltips);
+
+  ret->subtitle_text_encoder =
+    bg_gtk_plugin_widget_single_create("Text subtitles", plugin_reg,
+                                       BG_PLUGIN_ENCODER_SUBTITLE_TEXT,
+                                       BG_PLUGIN_FILE,
+                                       ret->tooltips);
+
+  ret->subtitle_overlay_encoder =
+    bg_gtk_plugin_widget_single_create("Overlay subtitles", plugin_reg,
+                                       BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY,
+                                       BG_PLUGIN_FILE,
+                                       ret->tooltips);
 
   ret->audio_to_video =
     gtk_check_button_new_with_label("Encode audio into video file");
 
+  ret->subtitle_text_to_video =
+    gtk_check_button_new_with_label("Encode text subtitles into video file");
+  ret->subtitle_overlay_to_video =
+    gtk_check_button_new_with_label("Encode overlay subtitles into video file");
+    
   g_signal_connect(G_OBJECT(ret->audio_to_video), "toggled",
                    G_CALLBACK(button_callback),
                    ret);
-
-  gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(ret->audio_to_video),
-                               bg_plugin_registry_get_encode_audio_to_video(plugin_reg));
-
+  g_signal_connect(G_OBJECT(ret->subtitle_text_to_video), "toggled",
+                   G_CALLBACK(button_callback),
+                   ret);
+  g_signal_connect(G_OBJECT(ret->subtitle_overlay_to_video), "toggled",
+                   G_CALLBACK(button_callback),
+                   ret);
+  
   ret->video_encoder =
     bg_gtk_plugin_widget_single_create("Video", plugin_reg,
                                        BG_PLUGIN_ENCODER_VIDEO |
                                        BG_PLUGIN_ENCODER,
                                        BG_PLUGIN_FILE,
-                                       set_video_encoder,
-                                       ret, ret->tooltips);
+                                       ret->tooltips);
   gtk_widget_show(ret->audio_to_video);
+  gtk_widget_show(ret->subtitle_text_to_video);
+  gtk_widget_show(ret->subtitle_overlay_to_video);
 
   ret->widget = gtk_table_new(1, 1, 0);
   gtk_table_set_row_spacings(GTK_TABLE(ret->widget), 5);
@@ -89,24 +162,59 @@ void encoder_widget_init(encoder_widget_t * ret, bg_plugin_registry_t * plugin_r
   gtk_container_set_border_width(GTK_CONTAINER(ret->widget), 5);
 
   row = 0;
-  num_columns = 0;
+  num_columns = 6;
 
-  bg_gtk_plugin_widget_single_attach(ret->audio_encoder,
-                                     ret->widget,
-                                     &row, &num_columns);
-  bg_gtk_plugin_widget_single_attach(ret->video_encoder,
-                                     ret->widget,
-                                     &row, &num_columns);
-
+  /* Audio */
+  
   gtk_table_resize(GTK_TABLE(ret->widget), row+1, num_columns);
    
   gtk_table_attach(GTK_TABLE(ret->widget),
                    ret->audio_to_video,
                    0, num_columns, row, row+1,
                    GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+  row++;
   
-  gtk_widget_show(ret->widget);
+  bg_gtk_plugin_widget_single_attach(ret->audio_encoder,
+                                     ret->widget,
+                                     &row, &num_columns);
 
+  /* Text subtitles */
+    
+  gtk_table_resize(GTK_TABLE(ret->widget), row+1, num_columns);
+   
+  gtk_table_attach(GTK_TABLE(ret->widget),
+                   ret->subtitle_text_to_video,
+                   0, num_columns, row, row+1,
+                   GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+  row++;
+
+  bg_gtk_plugin_widget_single_attach(ret->subtitle_text_encoder,
+                                     ret->widget,
+                                     &row, &num_columns);
+
+  /* Overlay subtitles */
+    
+  gtk_table_resize(GTK_TABLE(ret->widget), row+1, num_columns);
+   
+  gtk_table_attach(GTK_TABLE(ret->widget),
+                   ret->subtitle_overlay_to_video,
+                   0, num_columns, row, row+1,
+                   GTK_FILL | GTK_EXPAND, GTK_SHRINK, 0, 0);
+  row++;
+
+  bg_gtk_plugin_widget_single_attach(ret->subtitle_overlay_encoder,
+                                     ret->widget,
+                                     &row, &num_columns);
+
+  
+  
+  bg_gtk_plugin_widget_single_attach(ret->video_encoder,
+                                     ret->widget,
+                                     &row, &num_columns);
+
+  
+  encoder_widget_update_sensitive(ret);
+  gtk_widget_show(ret->widget);
   }
 
 void encoder_widget_destroy(encoder_widget_t * wid)
@@ -130,9 +238,7 @@ struct encoder_window_s
 
 static void encoder_window_get(encoder_window_t * win)
   {
-  char * audio_encoder;
-  char * video_encoder;
-
+  bg_transcoder_encoder_info_t info;
   bg_transcoder_track_t * first_selected;
 
   /* Get the first selected track */
@@ -143,56 +249,144 @@ static void encoder_window_get(encoder_window_t * win)
     {
     first_selected = first_selected->next;
     }
+
+  bg_transcoder_encoder_info_get_from_track(win->encoder_widget.plugin_reg,
+                                            first_selected,
+                                            &info);
+
+  bg_transcoder_encoder_info_get_sections_from_track(first_selected,
+                                                     &info);
   
-  audio_encoder = bg_transcoder_track_get_audio_encoder(first_selected);
-  video_encoder = bg_transcoder_track_get_video_encoder(first_selected);
+  bg_gtk_plugin_widget_single_set_plugin(win->encoder_widget.video_encoder,
+                                         info.video_info);
+  bg_gtk_plugin_widget_single_set_section(win->encoder_widget.video_encoder,
+                                          info.video_encoder_section);
 
-  fprintf(stderr, "Audio encoder: %s\n", audio_encoder);
-  fprintf(stderr, "Video encoder: %s\n", video_encoder);
-
-  if(!strcmp(audio_encoder, video_encoder))
+  bg_gtk_plugin_widget_single_set_video_section(win->encoder_widget.video_encoder,
+                                                info.video_stream_section);
+  
+  if(info.audio_info)
     {
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(win->encoder_widget.audio_to_video), 1);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(win->encoder_widget.audio_to_video), 0);
+    bg_gtk_plugin_widget_single_set_plugin(win->encoder_widget.audio_encoder,
+                                           info.audio_info);
+    bg_gtk_plugin_widget_single_set_section(win->encoder_widget.audio_encoder,
+                                            info.audio_encoder_section);
+    bg_gtk_plugin_widget_single_set_audio_section(win->encoder_widget.audio_encoder,
+                                                  info.audio_stream_section);
     }
   else
     {
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(win->encoder_widget.audio_to_video), 0);
-    bg_gtk_plugin_widget_single_set_plugin(win->encoder_widget.audio_encoder, audio_encoder);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(win->encoder_widget.audio_to_video), 1);
+    bg_gtk_plugin_widget_single_set_audio_section(win->encoder_widget.video_encoder,
+                                                  info.audio_stream_section);
     }
-  
-  bg_gtk_plugin_widget_single_set_plugin(win->encoder_widget.video_encoder, video_encoder);
-  
-  free(audio_encoder);
-  free(video_encoder);
+
+  if(info.subtitle_text_info)
+    {
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(win->encoder_widget.subtitle_text_to_video), 0);
+    bg_gtk_plugin_widget_single_set_plugin(win->encoder_widget.subtitle_text_encoder,
+                                           info.subtitle_text_info);
+    bg_gtk_plugin_widget_single_set_section(win->encoder_widget.subtitle_text_encoder,
+                                            info.subtitle_text_encoder_section);
+    bg_gtk_plugin_widget_single_set_subtitle_text_section(win->encoder_widget.subtitle_text_encoder,
+                                                          info.subtitle_text_stream_section);
+    }
+  else
+    {
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(win->encoder_widget.subtitle_text_to_video), 1);
+    bg_gtk_plugin_widget_single_set_subtitle_text_section(win->encoder_widget.video_encoder,
+                                                          info.subtitle_text_stream_section);
+    }
+
+  if(info.subtitle_overlay_info)
+    {
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(win->encoder_widget.subtitle_overlay_to_video), 0);
+    bg_gtk_plugin_widget_single_set_plugin(win->encoder_widget.subtitle_overlay_encoder,
+                                           info.subtitle_overlay_info);
+    bg_gtk_plugin_widget_single_set_section(win->encoder_widget.subtitle_overlay_encoder,
+                                            info.subtitle_overlay_encoder_section);
+    bg_gtk_plugin_widget_single_set_subtitle_overlay_section(win->encoder_widget.subtitle_overlay_encoder,
+                                                          info.subtitle_overlay_stream_section);
+    }
+  else
+    {
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(win->encoder_widget.subtitle_overlay_to_video), 1);
+    bg_gtk_plugin_widget_single_set_subtitle_overlay_section(win->encoder_widget.video_encoder,
+                                                             info.subtitle_overlay_stream_section);
+    }
   
   }
 
 static void encoder_window_apply(encoder_window_t * win)
   {
-  bg_plugin_handle_t * audio_encoder;
-  bg_plugin_handle_t * video_encoder;
-
   bg_transcoder_track_t * track;
 
+  bg_transcoder_encoder_info_t info;
+  memset(&info, 0, sizeof(info));
+  
   track = win->tracks;
 
-  video_encoder = bg_gtk_plugin_widget_single_get_plugin(win->encoder_widget.video_encoder);
+  info.video_info = bg_gtk_plugin_widget_single_get_plugin(win->encoder_widget.video_encoder);
+  info.video_encoder_section =
+    bg_gtk_plugin_widget_single_get_section(win->encoder_widget.video_encoder);
+  info.video_stream_section =
+    bg_gtk_plugin_widget_single_get_video_section(win->encoder_widget.video_encoder);
 
+  
   if(!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->encoder_widget.audio_to_video)) ||
-     (video_encoder->info->type == BG_PLUGIN_ENCODER_VIDEO))
+     (!info.video_info->max_audio_streams))
     {
-    audio_encoder = bg_gtk_plugin_widget_single_get_plugin(win->encoder_widget.audio_encoder);
+    info.audio_info = bg_gtk_plugin_widget_single_get_plugin(win->encoder_widget.audio_encoder);
+    info.audio_encoder_section =
+      bg_gtk_plugin_widget_single_get_section(win->encoder_widget.audio_encoder);
+    info.audio_stream_section =
+      bg_gtk_plugin_widget_single_get_audio_section(win->encoder_widget.audio_encoder);
     }
   else
-    audio_encoder = (bg_plugin_handle_t*)0;
+    {
+    info.audio_stream_section =
+      bg_gtk_plugin_widget_single_get_audio_section(win->encoder_widget.video_encoder);
+    }
+  
+  if(!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->encoder_widget.subtitle_text_to_video)) ||
+     (!info.video_info->max_subtitle_text_streams))
+    {
+    info.subtitle_text_info =
+      bg_gtk_plugin_widget_single_get_plugin(win->encoder_widget.subtitle_text_encoder);
+    info.subtitle_text_encoder_section =
+      bg_gtk_plugin_widget_single_get_section(win->encoder_widget.subtitle_text_encoder);
+    info.subtitle_text_stream_section =
+      bg_gtk_plugin_widget_single_get_subtitle_text_section(win->encoder_widget.subtitle_text_encoder);
+    }
+  else
+    {
+    info.subtitle_text_stream_section =
+      bg_gtk_plugin_widget_single_get_subtitle_text_section(win->encoder_widget.video_encoder);
+    }
+
+  if(!gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->encoder_widget.subtitle_overlay_to_video)) ||
+     (!info.video_info->max_subtitle_overlay_streams))
+    {
+    info.subtitle_overlay_info =
+      bg_gtk_plugin_widget_single_get_plugin(win->encoder_widget.subtitle_overlay_encoder);
+    info.subtitle_overlay_encoder_section =
+      bg_gtk_plugin_widget_single_get_section(win->encoder_widget.subtitle_overlay_encoder);
+    info.subtitle_overlay_stream_section =
+      bg_gtk_plugin_widget_single_get_subtitle_overlay_section(win->encoder_widget.subtitle_overlay_encoder);
+    }
+  else
+    {
+    info.subtitle_overlay_stream_section =
+      bg_gtk_plugin_widget_single_get_subtitle_overlay_section(win->encoder_widget.video_encoder);
+    }
   
   while(track)
     {
     if(track->selected)
       {
       bg_transcoder_track_set_encoders(track, win->encoder_widget.plugin_reg,
-                                       audio_encoder ? audio_encoder->info : NULL,
-                                       video_encoder->info);
+                                       &info);
       }
     track = track->next;
     }

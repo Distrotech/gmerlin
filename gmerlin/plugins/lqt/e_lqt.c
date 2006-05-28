@@ -362,12 +362,12 @@ static bg_parameter_info_t common_parameters[] =
     },
     {
       name:      "max_riff_size",
-      long_name: "Maximum RIFF size for ODML",
+      long_name: "Maximum RIFF size",
       type:      BG_PARAMETER_INT,
       val_min:     { val_i: 1 },
       val_max:     { val_i: 1024 },
       val_default: { val_i: 1024 },
-      help_string: "Maximum RIFF size for OpenDML AVIs",
+      help_string: "Maximum RIFF size (in MB) for OpenDML AVIs. The default (1GB) is reasonable and should only be changed by people who know what they do.",
     },
     { /* End of parameters */ }
   };

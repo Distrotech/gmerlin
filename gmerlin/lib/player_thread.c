@@ -152,7 +152,6 @@ static void msg_subtitle_stream_info(bg_msg_t * msg, const void * data)
   bg_msg_set_arg_string(msg, 2, si->track->subtitle_streams[si->index].language);
   }
 
-
 static void msg_video_description(bg_msg_t * msg, const void * data)
   {
   bg_msg_set_id(msg, BG_PLAYER_MSG_VIDEO_DESCRIPTION);

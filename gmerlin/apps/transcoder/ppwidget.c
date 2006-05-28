@@ -54,8 +54,7 @@ static void encoder_pp_widget_init(encoder_pp_widget_t * ret, bg_plugin_registry
     bg_gtk_plugin_widget_single_create("Postprocessing plugin", plugin_reg,
                                        BG_PLUGIN_ENCODER_PP,
                                        0,
-                                       NULL,
-                                       ret, ret->tooltips);
+                                       ret->tooltips);
 
   bg_gtk_plugin_widget_single_set_sensitive(ret->plugins, 0);
 
@@ -112,16 +111,18 @@ struct encoder_pp_window_s
   bg_transcoder_track_global_t * global;
   };
 
-bg_plugin_handle_t * encoder_pp_window_get_plugin(encoder_pp_window_t * win)
+const
+bg_plugin_info_t * encoder_pp_window_get_plugin(encoder_pp_window_t * win)
   {
   if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->encoder_pp_widget.pp)))
     return bg_gtk_plugin_widget_single_get_plugin(win->encoder_pp_widget.plugins);
   else
-    return (bg_plugin_handle_t *)0;
+    return (const bg_plugin_info_t *)0;
   }
 
 static void encoder_pp_window_get(encoder_pp_window_t * win)
   {
+  const bg_plugin_info_t * plugin_info;
   if(!win->global->pp_plugin)
     {
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(win->encoder_pp_widget.pp), 0);
@@ -129,8 +130,10 @@ static void encoder_pp_window_get(encoder_pp_window_t * win)
   else
     {
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(win->encoder_pp_widget.pp), 1);
+    plugin_info = bg_plugin_find_by_name(win->encoder_pp_widget.plugin_reg,
+                                         win->global->pp_plugin);
     bg_gtk_plugin_widget_single_set_plugin(win->encoder_pp_widget.plugins,
-                                           win->global->pp_plugin);
+                                           plugin_info);
     }
   bg_transcoder_track_global_to_reg(win->global,
                                     win->encoder_pp_widget.plugin_reg);
