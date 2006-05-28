@@ -991,18 +991,30 @@ const gavl_audio_format_t * bgav_get_audio_format(bgav_t * bgav, int stream);
 const gavl_video_format_t * bgav_get_video_format(bgav_t * bgav, int stream);
 
 /** \ingroup stream_info
- *  \brief Get the format of a subtitle stream
+ *  \brief Get the video format of a subtitle stream
  *  \param bgav A decoder instance
  *  \param stream Stream index (starting with 0)
- *  \returns The format or NULL if we have text subtitles
+ *  \returns The format
  *
  *  Note, that you can trust the return value of this function only, if you enabled
  *  the stream (see \ref bgav_set_subtitle_stream) and started the decoders
- *  (see \ref bgav_start).
+ *  (see \ref bgav_start). For overlay subtitles, this is the video format of the decoded
+ *  overlays. For text subtitles, it's the format of the associated video stream.
  */
 
 const gavl_video_format_t * bgav_get_subtitle_format(bgav_t * bgav, int stream);
 
+/** \ingroup stream_info
+ *  \brief Check if a subtitle is text or graphics based
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \returns 1 for text subtitles, 0 for graphic subtitles
+ *
+ *  If this function returns 1, you must use \ref bgav_read_subtitle_text
+ *  to decode subtitles, else use \ref bgav_read_subtitle_overlay
+ */
+
+int bgav_subtitle_is_text(bgav_t * bgav, int stream);
 
 /** \ingroup stream_info
  *  \brief Get the description of an audio stream
@@ -1078,6 +1090,7 @@ const char * bgav_get_subtitle_description(bgav_t * bgav, int stream);
 const char * bgav_get_subtitle_info(bgav_t * bgav, int stream);
 
 
+
 /***************************************************
  * Decoding functions
  ***************************************************/
@@ -1114,8 +1127,8 @@ int bgav_read_audio(bgav_t * bgav, gavl_audio_frame_t * frame, int stream,
     \param stream Stream index (starting with 0)
     \returns 1 if a subtitle is available.
 
-    Use this function to check in advance, if \ref bgav_read_subtitle_overlay or
-    \ref bgav_read_subtitle_text would return 1.
+    Use this function to check in advance, if it would make sense to call
+    \ref bgav_read_subtitle_overlay or \ref bgav_read_subtitle_text.
 
 */
 
@@ -1126,10 +1139,13 @@ int bgav_has_subtitle(bgav_t * bgav, int stream);
     \param bgav A decoder instance
     \param frame The overlay to which the subtitle will be decoded.
     \param stream Stream index (starting with 0)
-    \returns 1 if a subtitle could be decoded.
+    \returns 1 if a subtitle could be decoded, 0 else
 
-    A return value of 0 doesn't necessarily mean EOF. Sometimes, there is
-    simply no subtitle available yet.
+    If this function returns 1, a subtitle was decoded. If this function returns
+    0 and \ref bgav_has_subtitle returned 0 before as well, there is no subtitle
+    yet available, but there might come others at a later point in the stream.
+    If this function returns 0 and \ref bgav_has_subtitle returned 1 before,
+    it means, that you reached the end of the subtitle stream.
 
 */
 
@@ -1143,10 +1159,13 @@ int bgav_read_subtitle_overlay(bgav_t * bgav, gavl_overlay_t * ovl, int stream);
     \param start_time Returns the start time
     \param duration   Returns the duration
     \param stream     Stream index (starting with 0)
-    \returns 1 if a subtitle could be decoded.
+    \returns 1 if a subtitle could be decoded, 0 else
 
-    A return value of 0 doesn't necessarily mean EOF. Sometimes, there is
-    simply no subtitle available yet.
+    If this function returns 1, a subtitle was decoded. If this function returns
+    0 and \ref bgav_has_subtitle returned 0 before as well, there is no subtitle
+    yet available, but there might come others at a later point in the stream.
+    If this function returns 0 and \ref bgav_has_subtitle returned 1 before,
+    it means, that you reached the end of the subtitle stream.
 */
 
 int bgav_read_subtitle_text(bgav_t * bgav, char ** ret, int *ret_alloc,

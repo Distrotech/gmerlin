@@ -51,7 +51,7 @@ bgav_track_add_video_stream(bgav_track_t * t, const bgav_options_t * opt)
 static bgav_stream_t * add_subtitle_stream(bgav_track_t * t,
                                            const bgav_options_t * opt,
                                            int text,
-                                           const char * encoding,
+                                           const char * charset,
                                            bgav_subtitle_reader_context_t * r)
   {
   bgav_stream_t * ret;
@@ -70,9 +70,9 @@ static bgav_stream_t * add_subtitle_stream(bgav_track_t * t,
   if(text)
     {
     ret->type = BGAV_STREAM_SUBTITLE_TEXT;
-    if(encoding)
-      t->subtitle_streams[t->num_subtitle_streams-1].data.subtitle.encoding =
-        bgav_strdup(encoding);
+    if(charset)
+      t->subtitle_streams[t->num_subtitle_streams-1].data.subtitle.charset =
+        bgav_strdup(charset);
     }
   else
     t->subtitle_streams[t->num_subtitle_streams-1].type =
@@ -192,8 +192,16 @@ void bgav_track_stop(bgav_track_t * t)
 int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
   {
   int i;
+  gavl_video_format_t * video_format;
+  bgav_stream_t * video_stream;
+  int num_active_audio_streams = 0;
+  int num_active_video_streams = 0;
+  int num_active_subtitle_streams = 0;
+  
   for(i = 0; i < t->num_audio_streams; i++)
     {
+    if(t->audio_streams[i].action != BGAV_STREAM_MUTE)
+      num_active_audio_streams++;
     t->audio_streams[i].demuxer = demuxer;
     if(!bgav_stream_start(&(t->audio_streams[i])))
       {
@@ -204,6 +212,8 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
+    if(t->video_streams[i].action != BGAV_STREAM_MUTE)
+      num_active_video_streams++;
     t->video_streams[i].demuxer = demuxer;
     if(!bgav_stream_start(&(t->video_streams[i])))
       {
@@ -214,7 +224,53 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     }
   for(i = 0; i < t->num_subtitle_streams; i++)
     {
+    if(t->subtitle_streams[i].action != BGAV_STREAM_MUTE)
+      num_active_subtitle_streams++;
     t->subtitle_streams[i].demuxer = demuxer;
+    
+    if(!t->subtitle_streams[i].data.subtitle.video_stream)
+      t->subtitle_streams[i].data.subtitle.video_stream =
+        t->video_streams;
+
+    if(!t->subtitle_streams[i].data.subtitle.video_stream)
+      {
+      demuxer->error_msg = 
+        bgav_sprintf("Cannot decode subtitles from stream %d (no video)",
+                     i+1);
+      return 0;
+      }
+    video_stream = t->subtitle_streams[i].data.subtitle.video_stream;
+    
+    /* Check, if we must get the video format from the decoder */
+    video_format =  &video_stream->data.video.format;
+
+    if((video_stream->action == BGAV_STREAM_MUTE) &&
+       !video_stream->initialized)
+      {
+      /* Start the video decoder to get the format */
+      video_stream->action = BGAV_STREAM_DECODE;
+      bgav_stream_start(video_stream);
+      bgav_stream_stop(video_stream);
+      video_stream->action = BGAV_STREAM_MUTE;
+      }
+    
+    if(!video_format->image_width || !video_format->image_height ||
+       !video_format->timescale || !video_format->frame_duration)
+      {
+      demuxer->error_msg = 
+        bgav_sprintf("Starting subtitle decoder for stream %d failed (cannot get video format)",
+                     i+1);
+      return 0;
+      
+      }
+
+    /* For text subtitles, copy the video format */
+    
+    if(t->subtitle_streams[i].type == BGAV_STREAM_SUBTITLE_TEXT)
+      {
+      gavl_video_format_copy(&(t->subtitle_streams[i].data.subtitle.format), video_format);
+      }
+    
     if(!bgav_stream_start(&(t->subtitle_streams[i])))
       {
       demuxer->error_msg = 
@@ -222,6 +278,13 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
       return 0;
       }
     }
+
+  if(!num_active_audio_streams && !num_active_video_streams &&
+     num_active_subtitle_streams)
+    demuxer->peek_forces_read = 1;
+  else
+    demuxer->peek_forces_read = 0;
+  
   return 1;
   }
 

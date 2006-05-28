@@ -228,7 +228,7 @@ static void ogm_header_dump(ogm_header_t * h)
   }
 #endif
 /* Dump entire structure of the file */
-#if 1
+#if 0
 static void dump_ogg(bgav_demuxer_context_t * ctx)
   {
   int i, j;
@@ -271,6 +271,9 @@ static void dump_ogg(bgav_demuxer_context_t * ctx)
       }
     for(j = 0; j < track->num_subtitle_streams; j++)
       {
+      if(track->subtitle_streams[j].data.subtitle.subreader)
+        continue;
+      
       s = &track->subtitle_streams[j];
       stream_priv = (stream_priv_t*)(s->priv);
       fprintf(stderr, "Subtitle stream %d\n", j+1);
@@ -872,6 +875,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
       {
       for(i = 0; i < track->num_subtitle_streams; i++)
         {
+        if(track->subtitle_streams[i].data.subtitle.subreader)
+          continue;
         ogg_stream = (stream_priv_t*)(track->subtitle_streams[i].priv);
         if(ogg_stream->header_packets_read < ogg_stream->header_packets_needed)
           done = 0;
@@ -1346,6 +1351,9 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
         }
       for(j = 0; j < ctx->tt->tracks[i].num_subtitle_streams; j++)
         {
+        if(ctx->tt->tracks[i].subtitle_streams[j].data.subtitle.subreader)
+          continue;
+    
         stream_priv =
           (stream_priv_t*)(ctx->tt->tracks[i].subtitle_streams[j].priv);
 
@@ -1382,7 +1390,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
     track_priv_1->end_pos = -1;
     }
   
-  dump_ogg(ctx);
+  //  dump_ogg(ctx);
   
   if(ctx->input->input->seek_byte)
     ctx->can_seek = 1;
@@ -1885,6 +1893,8 @@ static void reset_track(bgav_track_t * track)
   
   for(i = 0; i < track->num_subtitle_streams; i++)
     {
+    if(track->subtitle_streams[i].data.subtitle.subreader)
+      continue;
     stream_priv =
       (stream_priv_t*)(track->subtitle_streams[i].priv);
     ogg_stream_reset(&stream_priv->os);

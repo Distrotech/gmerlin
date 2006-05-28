@@ -266,31 +266,27 @@ int bg_avdec_start(void * priv)
       avdec->current_track->audio_streams[i].info = bg_strdup(NULL, str);
 
     str = bgav_get_audio_language(avdec->dec, i);
-    if(str)
-      avdec->current_track->audio_streams[i].language = bg_strdup(NULL, str);
-
+    if(str && *str)
+      memcpy(avdec->current_track->audio_streams[i].language, str, 4);
     }
   for(i = 0; i < avdec->current_track->num_subtitle_streams; i++)
     {
     str = bgav_get_subtitle_language(avdec->dec, i);
-    if(str)
-      avdec->current_track->subtitle_streams[i].language = bg_strdup(NULL, str);
-
+    if(str && *str)
+      memcpy(avdec->current_track->subtitle_streams[i].language, str, 4);
+    
     str = bgav_get_subtitle_info(avdec->dec, i);
     if(str)
       avdec->current_track->subtitle_streams[i].info = bg_strdup(NULL, str);
 
+    if(bgav_subtitle_is_text(avdec->dec, i))
+      avdec->current_track->subtitle_streams[i].is_text = 1;
 
     format = bgav_get_subtitle_format(avdec->dec, i);
-    if(!format)
-      avdec->current_track->subtitle_streams[i].is_text = 1;
-    else
-      {
-      gavl_video_format_copy(&avdec->current_track->subtitle_streams[i].format,
-                             format);
-      //      fprintf(stderr, "Subtitle format:\n");
-      //      gavl_video_format_dump(&avdec->current_track->subtitle_streams[i].format);
-      }
+    gavl_video_format_copy(&avdec->current_track->subtitle_streams[i].format,
+                           format);
+    //      fprintf(stderr, "Subtitle format:\n");
+    //      gavl_video_format_dump(&avdec->current_track->subtitle_streams[i].format);
     }
   //  bgav_dump(avdec->dec);
   return 1;

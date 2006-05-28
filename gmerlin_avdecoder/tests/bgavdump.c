@@ -141,6 +141,8 @@ int main(int argc, char ** argv)
   bgav_options_set_read_timeout(opt,      read_timeout);
   bgav_options_set_network_bandwidth(opt, network_bandwidth);
 
+  bgav_options_set_seek_subtitles(opt, 1);
+  
   bgav_options_set_user_pass_callback(opt, user_pass_func, (void*)0);
   
   if(!strncmp(argv[1], "vcd://", 6))
@@ -265,8 +267,20 @@ int main(int argc, char ** argv)
         }
       else
         {
+        fprintf(stderr, "Reading overlay subtitle from stream %d...", i+1);
         ovl.frame = gavl_video_frame_create(video_format);
-        bgav_read_subtitle_overlay(file, &ovl, i);
+        if(bgav_read_subtitle_overlay(file, &ovl, i))
+          {
+          fprintf(stderr, "Done\nsrc_rect: ");
+          gavl_rectangle_i_dump(&ovl.ovl_rect);
+          fprintf(stderr, "\ndst_coords: %d,%d\n", ovl.dst_x, ovl.dst_y);
+          fprintf(stderr, "Time: %lld -> %lld\n",
+                  ovl.frame->time_scaled,
+                  ovl.frame->time_scaled+ovl.frame->duration_scaled);
+          }
+        else
+          fprintf(stderr, "Failed\n");
+        gavl_video_frame_destroy(ovl.frame);
         }
       }
     }

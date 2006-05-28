@@ -45,6 +45,8 @@ int bgav_stream_start(bgav_stream_t * stream)
         break;
       }
     }
+  if(result)
+    stream->initialized = 1;
   return result;
   }
 

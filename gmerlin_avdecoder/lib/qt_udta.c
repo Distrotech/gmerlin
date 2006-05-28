@@ -150,7 +150,6 @@ int bgav_qt_udta_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_udta_t * ret)
   {
   qt_atom_header_t ch;
-  int have_ilst = 0;
   memcpy(&(ret->h), h, sizeof(*h));
 
   //  fprintf(stderr, "udta atom:\n");
@@ -175,128 +174,128 @@ int bgav_qt_udta_read(qt_atom_header_t * h, bgav_input_context_t * input,
       }
     if(ch.fourcc == BGAV_MK_FOURCC('i','l','s','t'))
       {
-      have_ilst = 1;
+      ret->have_ilst = 1;
       continue;
       }
     
     switch(ch.fourcc)
       {
       case BGAV_MK_FOURCC(0xa9, 'c','p','y'): /* Copyright                        */
-        ret->cpy = read_string(&ch, input, have_ilst);
+        ret->cpy = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'd','a','y'): /* Date                             */
-        ret->day = read_string(&ch, input, have_ilst);
+        ret->day = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'd','i','r'): /* Director                         */
-        ret->dir = read_string(&ch, input, have_ilst);
+        ret->dir = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'e','d','1'): /* 1st edit date and description    */
-        ret->ed1 = read_string(&ch, input, have_ilst);
+        ret->ed1 = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'e','d','2'): /* 2nd edit date and description    */
-        ret->ed2 = read_string(&ch, input, have_ilst);
+        ret->ed2 = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'e','d','3'): /* 3rd edit date and description    */
-        ret->ed3 = read_string(&ch, input, have_ilst);
+        ret->ed3 = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'e','d','4'): /* 4th edit date and description    */
-        ret->ed4 = read_string(&ch, input, have_ilst);
+        ret->ed4 = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'e','d','5'): /* 5th edit date and description    */
-        ret->ed5 = read_string(&ch, input, have_ilst);
+        ret->ed5 = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'e','d','6'): /* 6th edit date and description    */
-        ret->ed6 = read_string(&ch, input, have_ilst);
+        ret->ed6 = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'e','d','7'): /* 7th edit date and description    */
-        ret->ed7 = read_string(&ch, input, have_ilst);
+        ret->ed7 = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'e','d','8'): /* 8th edit date and description    */
-        ret->ed8 = read_string(&ch, input, have_ilst);
+        ret->ed8 = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'e','d','9'): /* 9th edit date and description    */
-        ret->ed9 = read_string(&ch, input, have_ilst);
+        ret->ed9 = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'f','m','t'): /* Format (Computer generated etc.) */  
-        ret->fmt = read_string(&ch, input, have_ilst);
+        ret->fmt = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'i','n','f'): /* Information about the movie      */
-        ret->inf = read_string(&ch, input, have_ilst);
+        ret->inf = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'p','r','d'): /* Producer                         */
-        ret->prd = read_string(&ch, input, have_ilst);
+        ret->prd = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'p','r','f'): /* Performers                       */
-        ret->prf = read_string(&ch, input, have_ilst);
+        ret->prf = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'r','e','c'): /* Hard- software requirements      */
-        ret->rec = read_string(&ch, input, have_ilst);
+        ret->rec = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 's','r','c'): /* Credits for movie Source         */
-        ret->src = read_string(&ch, input, have_ilst);
+        ret->src = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'w','r','t'): /* Writer                           */
-        ret->wrt = read_string(&ch, input, have_ilst);
+        ret->wrt = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'n','a','m'): /* Name            */
-        ret->nam = read_string(&ch, input, have_ilst);
+        ret->nam = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'A','R','T'): /* Artist          */
-        ret->ART = read_string(&ch, input, have_ilst);
+        ret->ART = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'a','l','b'): /* Album           */
-        ret->alb = read_string(&ch, input, have_ilst);
+        ret->alb = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'e','n','c'): /* Encoded by      */
-        ret->enc = read_string(&ch, input, have_ilst);
+        ret->enc = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 't','r','k'): /* Track           */
-        ret->trk = read_string(&ch, input, have_ilst);
+        ret->trk = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'c','m','t'): /* Comment         */
-        ret->cmt = read_string(&ch, input, have_ilst);
+        ret->cmt = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'a','u','t'): /* Author          */
-        ret->aut = read_string(&ch, input, have_ilst);
+        ret->aut = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'c','o','m'): /* Composer        */
-        ret->com = read_string(&ch, input, have_ilst);
+        ret->com = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'd','e','s'): /* Description     */
-        ret->des = read_string(&ch, input, have_ilst);
+        ret->des = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'd','i','s'): /* Disclaimer      */
-        ret->dis = read_string(&ch, input, have_ilst);
+        ret->dis = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'g','e','n'): /* Genre           */
-        ret->gen = read_string(&ch, input, have_ilst);
+        ret->gen = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'h','s','t'): /* Host computer   */
-        ret->hst = read_string(&ch, input, have_ilst);
+        ret->hst = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'm','a','k'): /* Make (??)       */
-        ret->mak = read_string(&ch, input, have_ilst);
+        ret->mak = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'm','o','d'): /* Model (??)      */
-        ret->mod = read_string(&ch, input, have_ilst);
+        ret->mod = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'o','p','e'): /* Original Artist */
-        ret->ope = read_string(&ch, input, have_ilst);
+        ret->ope = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'P','R','D'): /* Product         */
-        ret->PRD = read_string(&ch, input, have_ilst);
+        ret->PRD = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 's','w','r'): /* Software        */
-        ret->swr = read_string(&ch, input, have_ilst);
+        ret->swr = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'w','r','n'): /* Warning         */
-        ret->wrn = read_string(&ch, input, have_ilst);
+        ret->wrn = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC(0xa9, 'u','r','l'): /* URL link        */
-        ret->url = read_string(&ch, input, have_ilst);
+        ret->url = read_string(&ch, input, ret->have_ilst);
         break;
       case BGAV_MK_FOURCC('t', 'r','k', 'n'): /* Track number     */
-        ret->trkn = read_trkn(&ch, input, have_ilst);
+        ret->trkn = read_trkn(&ch, input, ret->have_ilst);
         break;
       default:
         //        fprintf(stderr, "Skipping udta atom ");

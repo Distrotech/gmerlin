@@ -190,11 +190,17 @@ void bgav_packet_get_text_subtitle(bgav_packet_t * p,
 
 /* packetbuffer.c */
 
+struct bgav_packet_buffer_s
+  {
+  bgav_packet_t * packets;
+  bgav_packet_t * read_packet;
+  bgav_packet_t * write_packet;
+  };
+
 bgav_packet_buffer_t * bgav_packet_buffer_create();
 void bgav_packet_buffer_destroy(bgav_packet_buffer_t*);
 
 bgav_packet_t * bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t*);
-bgav_packet_t * bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b);
 
 bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t*, bgav_stream_t * s);
 
@@ -256,6 +262,8 @@ struct bgav_stream_s
   {
   void * priv;
 
+  int initialized; /* Mostly means, that the format is valid */
+  
   const bgav_options_t * opt;
 
   bgav_stream_action_t action;
@@ -371,11 +379,15 @@ struct bgav_stream_s
       bgav_subtitle_overlay_decoder_context_t * decoder;
       bgav_subtitle_reader_context_t * subreader;
       
-      char * encoding;
+      char * charset;
       
       /* The video stream, onto which the subtitles will be
          displayed */
       bgav_stream_t * video_stream;
+
+      /* We need to keep an own flag for EOF, since it's a bit
+         more complicated for subtitle streams */
+      int eof;
       } subtitle;
     } data;
   };
@@ -622,13 +634,18 @@ struct bgav_input_context_s
 
   /*
    *  These can be NULL. If not, they might be used to
-   *  fire up the right demultiplexer
+   *  choose the right demultiplexer for sources, which
+   *  don't support format detection by content
    */
   
   char * filename;
   char * url;
   char * mimetype;
 
+  /* For reading textfiles */
+  char * charset;
+  bgav_charset_converter_t * cnv;
+  
   /* For multiple track support */
 
   bgav_track_table_t * tt;
@@ -707,7 +724,13 @@ int bgav_input_get_double_64_le(bgav_input_context_t * ctx, double * ret);
  */
 
 int bgav_input_read_line(bgav_input_context_t*,
-                         char ** buffer, int * buffer_alloc, int buffer_offset);
+                         char ** buffer, int * buffer_alloc, int buffer_offset, int * len);
+
+void bgav_input_detect_charset(bgav_input_context_t*);
+
+int bgav_input_read_convert_line(bgav_input_context_t*,
+                                 char ** buffer, int * buffer_alloc,
+                                 int * len);
 
 int bgav_input_read_sector(bgav_input_context_t*, uint8_t*);
 
@@ -861,7 +884,9 @@ struct bgav_demuxer_context_s
   
   /* If 1, perform iterative seeking */
   int seek_iterative;
-  
+
+  /* This is set to 1 if only subtitle streams are read */
+  int peek_forces_read;
   };
 
 /* demuxer.c */
@@ -884,6 +909,10 @@ bgav_packet_t *
 bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
                              bgav_stream_t * s);
 
+
+bgav_packet_t *
+bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
+                              bgav_stream_t * s);
 
 void 
 bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
@@ -1097,6 +1126,12 @@ int bgav_url_split(const char * url,
 char ** bgav_stringbreak(const char * str, char sep);
 void bgav_stringbreak_free(char ** str);
 
+int bgav_slurp_file(const char * location,
+                    uint8_t ** ret,
+                    int * ret_alloc,
+                    int * size,
+                    const bgav_options_t * opt);
+
 
 /* Read a single line from a filedescriptor */
 
@@ -1220,8 +1255,14 @@ struct bgav_subtitle_reader_context_s
   char * info; /* Derived from filename difference */
   char * filename; /* Name of the subtitle file */
   bgav_packet_t * p;
+  gavl_overlay_t  ovl;
 
-  /* 1 if the packet contains a not yet read subtitle */
+  char * line;
+  int line_alloc;
+  
+  /* 1 if the packet or overlay contains a not yet read
+     subtitle */
+  
   int has_subtitle; 
 
   /* Some formats have a header... */
@@ -1239,10 +1280,14 @@ struct bgav_subtitle_reader_s
   char * extensions;
   char * name;
 
+  int (*probe)(char * line);
+  
   int (*init)(bgav_stream_t*);
   void (*close)(bgav_stream_t*);
+  void (*seek)(bgav_stream_t*,gavl_time_t);
   
   int (*read_subtitle_text)(bgav_stream_t*);
+  int (*read_subtitle_overlay)(bgav_stream_t*);
   };
 
 bgav_subtitle_reader_context_t *
@@ -1258,3 +1303,5 @@ void bgav_subtitle_reader_seek(bgav_stream_t *,
 int bgav_subtitle_reader_has_subtitle(bgav_stream_t * s);
 
 bgav_packet_t * bgav_subtitle_reader_read_text(bgav_stream_t *);
+
+int bgav_subtitle_reader_read_overlay(bgav_stream_t *, gavl_overlay_t * ovl);

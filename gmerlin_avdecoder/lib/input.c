@@ -26,6 +26,57 @@
 #define GET_LINE_SIZE 8
 #define ALLOC_SIZE    128
 
+static void add_char_16(char ** buffer, int * buffer_alloc,
+                       int pos, uint16_t c)
+  {
+  uint16_t * ptr;
+  //  fprintf(stderr, "Add char: %c %d\n", c, pos);
+  if(pos + 2 > *buffer_alloc)
+    {
+    while(pos+2 > *buffer_alloc)
+      (*buffer_alloc) += ALLOC_SIZE;
+    *buffer = realloc(*buffer, *buffer_alloc);
+    }
+  ptr = (uint16_t*)(*buffer + pos);
+  *ptr = c;
+  }
+
+static int read_line_utf16(bgav_input_context_t * ctx,
+                           int (*read_char)(bgav_input_context_t*,uint16_t*),
+                           char ** buffer, int * buffer_alloc, int buffer_offset,
+                           int * ret_len)
+  {
+  uint16_t c;
+  int pos = buffer_offset;
+  int64_t old_pos = ctx->position;
+
+  
+  
+  while(1)
+    {
+    if(!read_char(ctx, &c))
+      {
+      add_char_16(buffer, buffer_alloc, pos, 0);
+      return pos - buffer_offset;
+      break;
+      }
+    if(c == 0x000a) /* \n' */
+      break;
+    else if((c != 0x000d) && (c != 0xfeff)) /* Skip '\r' and endian marker */
+      {
+      add_char_16(buffer, buffer_alloc, pos, c);
+      pos+=2;
+      }
+    }
+
+  add_char_16(buffer, buffer_alloc, pos, 0);
+  
+  if(ret_len)
+    *ret_len = pos - buffer_offset;
+  
+  return ctx->position - old_pos;
+  }
+
 static void add_char(char ** buffer, int * buffer_alloc,
                      int pos, char c)
   {
@@ -40,11 +91,21 @@ static void add_char(char ** buffer, int * buffer_alloc,
   }
 
 int bgav_input_read_line(bgav_input_context_t* input,
-                         char ** buffer, int * buffer_alloc, int buffer_offset) 
+                         char ** buffer, int * buffer_alloc, int buffer_offset, int * len)
   {
   char c;
   int pos = buffer_offset;
   int64_t old_pos = input->position;
+  
+  if(input->charset)
+    {
+    if(!strcmp(input->charset, "UTF-16LE"))
+      return read_line_utf16(input, bgav_input_read_16_le,
+                             buffer, buffer_alloc, buffer_offset, len);
+    else if(!strcmp(input->charset, "UTF-16BE"))
+      return read_line_utf16(input, bgav_input_read_16_be,
+                             buffer, buffer_alloc, buffer_offset, len);
+    }
   
   while(1)
     {
@@ -66,8 +127,42 @@ int bgav_input_read_line(bgav_input_context_t* input,
     }
   add_char(buffer, buffer_alloc, pos, 0);
   //  fprintf(stderr, "Read line: %s\n", *buffer);
+  if(len)
+    *len = pos - buffer_offset;
   return input->position - old_pos;
   }
+
+int bgav_input_read_convert_line(bgav_input_context_t * input,
+                                 char ** buffer, int * buffer_alloc,
+                                 int * len)
+  {
+  int line_alloc = 0;
+  char * line = (char*)0;
+  int in_len, out_len;
+  int64_t old_pos = input->position;
+  
+  if(!input->charset || !strcmp(input->charset, "UTF-8"))
+    return bgav_input_read_line(input, buffer, buffer_alloc, 0,
+                                len);
+  else
+    {
+    if(!input->cnv)
+      input->cnv = bgav_charset_converter_create(input->charset, "UTF-8");
+
+    if(!bgav_input_read_line(input, &line, &line_alloc, 0, &in_len))
+      return 0;
+    
+    bgav_convert_string_realloc(input->cnv,
+                                line, in_len,
+                                &out_len,
+                                buffer, buffer_alloc);
+    if(len) *len = out_len;
+    if(line) free(line);
+
+    return input->position - old_pos;
+    }
+  }
+
 
 int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
   {
@@ -633,7 +728,11 @@ void bgav_input_close(bgav_input_context_t * ctx)
     bgav_id3v2_destroy(ctx->id3v2);
   if(ctx->error_msg)
     free(ctx->error_msg);
-    
+  if(ctx->charset)
+    free(ctx->charset);
+  if(ctx->cnv)
+    bgav_charset_converter_destroy(ctx->cnv);
+  
   bgav_metadata_free(&(ctx->metadata));
   //  free(ctx);
   memset(ctx, 0, sizeof(*ctx));

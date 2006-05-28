@@ -36,7 +36,7 @@ endif
 if HAVE_LIBPNG
 png_cflags =  @PNG_CFLAGS@
 png_libs =    @PNG_LIBS@
-png_sources = video_png.c
+png_sources = video_png.c pngreader.c
 else
 png_cflags =
 png_libs =

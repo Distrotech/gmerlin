@@ -44,17 +44,8 @@ static int init_dvdsub(bgav_stream_t * s)
   /* Initialize format */
   video_stream_format = &(s->data.subtitle.video_stream->data.video.format);
 
-  s->data.subtitle.format.image_width  = video_stream_format->image_width;
-  s->data.subtitle.format.image_height = video_stream_format->image_height;
-
-  s->data.subtitle.format.pixel_width  = video_stream_format->pixel_width;
-  s->data.subtitle.format.pixel_height = video_stream_format->pixel_height;
-
-  s->data.subtitle.format.frame_width  = video_stream_format->frame_width;
-  s->data.subtitle.format.frame_height = video_stream_format->frame_height;
+  gavl_video_format_copy(&(s->data.subtitle.format), video_stream_format);
   s->data.subtitle.format.pixelformat = GAVL_YUVA_32;
-
-  /* */
   
   return 1;
   }
@@ -75,10 +66,11 @@ static int has_subtitle_dvdsub(bgav_stream_t * s)
     if(priv->packet_size && (priv->buffer_size >= priv->packet_size))
       return 1;
 
-    if(!bgav_packet_buffer_peek_packet_read(s->packet_buffer))
+    if(!bgav_demuxer_peek_packet_read(s->demuxer, s))
+      {
       return 0;
-    
-    p = bgav_packet_buffer_get_packet_read(s->packet_buffer);
+      }
+    p = bgav_demuxer_get_packet_read(s->demuxer, s);
 
     /* Append data */
     if(priv->buffer_size + p->data_size > priv->buffer_alloc)

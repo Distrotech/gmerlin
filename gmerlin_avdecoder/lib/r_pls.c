@@ -58,7 +58,7 @@ static int parse_pls(bgav_redirector_context_t * r)
   /* Get the first nonempty line */
   while(1)
     {
-    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0))
+    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, (int*)0))
       return 0;
     pos = buffer;
     while(isspace(*pos))
@@ -76,7 +76,7 @@ static int parse_pls(bgav_redirector_context_t * r)
   
   while(1)
     {
-    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0))
+    if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, (int*)0))
       break;
 
     fprintf(stderr, "Got line %s\n", buffer);

@@ -44,7 +44,8 @@ static int more_data(parser_t * p)
   //          p->input->total_bytes, p->input->buffer_size);
   while(1)
     {
-    if(!bgav_input_read_line(p->input, &(p->buffer), &(p->buffer_alloc), p->buffer_size))
+    if(!bgav_input_read_line(p->input, &(p->buffer), &(p->buffer_alloc),
+                             p->buffer_size, (int*)0))
       {
       //      fprintf(stderr, "more_data done %d\n", bytes_read);
       return bytes_read;

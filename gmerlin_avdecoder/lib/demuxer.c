@@ -581,11 +581,35 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
   return ret;
   }
 
+bgav_packet_t *
+bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
+                              bgav_stream_t * s)
+  {
+  if(!s->packet_buffer)
+    return (bgav_packet_t*)0;
+  
+  if(demuxer->peek_forces_read)
+    {
+    demuxer->request_stream = s; 
+    while(!s->packet_buffer->read_packet->valid)
+      {
+      if(!demuxer_next_packet(demuxer))
+        return (bgav_packet_t*)0;
+      }
+    demuxer->request_stream = (bgav_stream_t*)0;
+    return s->packet_buffer->read_packet;
+    }
+  else if(s->packet_buffer->read_packet->valid)
+    return s->packet_buffer->read_packet;
+  else
+    return (bgav_packet_t*)0;
+  }
+
+
 void 
 bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
                               bgav_packet_t * p)
   {
-  bgav_packet_t * next = (bgav_packet_t*)0;
 
   p->valid = 0;
 
@@ -595,18 +619,20 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
 
     demuxer->request_stream = p->stream;
     
-    while(!(next = bgav_packet_buffer_peek_packet_read(p->stream->packet_buffer)))
+    while(!p->stream->packet_buffer->read_packet->valid)
       {
       if(!demuxer_next_packet(demuxer))
         {
-        p->stream->data.video.last_frame_duration = p->stream->data.video.format.frame_duration;
+        p->stream->data.video.last_frame_duration =
+          p->stream->data.video.format.frame_duration;
         return;
         }
       }
     demuxer->request_stream = (bgav_stream_t*)0;
 
     p->stream->data.video.last_frame_duration =
-      next->timestamp_scaled - p->stream->data.video.last_frame_time;
+      p->stream->packet_buffer->read_packet->timestamp_scaled -
+      p->stream->data.video.last_frame_time;
     }
   }
 

@@ -642,6 +642,7 @@ void bgav_qt_mvhd_free(qt_mvhd_t * c);
 
 typedef struct
   {
+  int have_ilst;
   qt_atom_header_t h;
   /*
    *   We support all strings, which begin with the

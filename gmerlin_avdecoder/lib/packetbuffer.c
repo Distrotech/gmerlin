@@ -21,12 +21,6 @@
 
 #include <avdec_private.h>
 
-struct bgav_packet_buffer_s
-  {
-  bgav_packet_t * packets;
-  bgav_packet_t * read_packet;
-  bgav_packet_t * write_packet;
-  };
 
 bgav_packet_buffer_t * bgav_packet_buffer_create()
   {
@@ -81,12 +75,6 @@ bgav_packet_t * bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t * b)
   return ret;
   }
 
-bgav_packet_t * bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b)
-  {
-  if(!b->read_packet->valid)
-    return (bgav_packet_t*)0;
-  return b->read_packet;
-  }
 
 bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t * b, bgav_stream_t * s)
   {

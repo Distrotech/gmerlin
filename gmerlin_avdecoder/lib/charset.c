@@ -169,3 +169,101 @@ int bgav_convert_string_realloc(bgav_charset_converter_t * cnv,
   
   return result;
   }
+
+/* Charset detection. This detects UTF-8 and UTF-16 for now */
+
+static int utf8_validate(const uint8_t * str)
+  {
+  while(1)
+    {
+    if(*str == '\0')
+      return 1;
+    /* 0xxxxxxx */
+    if(!(str[0] & 0x80))
+      str++;
+
+    /* 110xxxxx 10xxxxxx */
+    else if((str[0] & 0xe0) == 0xc0)
+      {
+      if((str[1] & 0xc0) == 0x80)
+        str+=2;
+      else
+        return 0;
+      }
+    
+    /* 1110xxxx 10xxxxxx 10xxxxxx */
+    else if((str[0] & 0xf0) == 0xe0)
+      {
+      if(((str[1] & 0xc0) == 0x80) &&
+         ((str[2] & 0xc0) == 0x80))
+        str+=3;
+      else
+        return 0;
+      }
+    /* 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
+
+    else if((str[0] & 0xf8) == 0xf0)
+      {
+      if(((str[1] & 0xc0) == 0x80) &&
+         ((str[2] & 0xc0) == 0x80) &&
+         ((str[3] & 0xc0) == 0x80))
+        str+=4;
+      else
+        return 0;
+      }
+    else
+      return 0;
+    }
+  return 1;
+  }
+
+void bgav_input_detect_charset(bgav_input_context_t * ctx)
+  {
+  char * line = (char*)0;
+  int line_alloc = 0;
+  
+  int64_t old_position;
+  uint8_t first_bytes[2];
+  
+  /* We need byte accurate seeking */
+  if(!ctx->input->seek_byte || !ctx->total_bytes || ctx->charset)
+    return;
+
+  old_position = ctx->position;
+  
+  bgav_input_seek(ctx, 0, SEEK_SET);
+
+  if(bgav_input_get_data(ctx, first_bytes, 2) < 2)
+    return;
+
+  if((first_bytes[0] == 0xff) && (first_bytes[1] == 0xfe))
+    {
+    ctx->charset = bgav_strdup("UTF-16LE");
+    bgav_input_seek(ctx, old_position, SEEK_SET);
+    return;
+    }
+  else if((first_bytes[0] == 0xfe) && (first_bytes[1] == 0xff))
+    {
+    ctx->charset = bgav_strdup("UTF-16BE");
+    bgav_input_seek(ctx, old_position, SEEK_SET);
+    return;
+    }
+  else
+    {
+    while(bgav_input_read_line(ctx, &line, &line_alloc, 0, (int*)0))
+      {
+      if(!utf8_validate((uint8_t*)line))
+        {
+        bgav_input_seek(ctx, old_position, SEEK_SET);
+        if(line) free(line);
+        return;
+        }
+      }
+    ctx->charset = bgav_strdup("UTF-8");
+    bgav_input_seek(ctx, old_position, SEEK_SET);
+    if(line) free(line);
+    return;
+    }
+  bgav_input_seek(ctx, old_position, SEEK_SET);
+  if(line) free(line);
+  }

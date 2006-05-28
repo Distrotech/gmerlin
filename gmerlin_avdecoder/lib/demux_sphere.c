@@ -124,11 +124,11 @@ static int sphere_header_read(bgav_input_context_t * input, sphere_header_t * re
     
   while(1)
     {
-    if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0))
+    if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0, (int*)0))
       return 0;
     if(check_key(buffer, "NIST_1A"))
       {
-      if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0))
+      if(!bgav_input_read_line(input, &buffer, &buffer_alloc, 0, (int*)0))
         return 0;
       ret->HeaderSize = atoi(buffer);
       }

@@ -461,7 +461,10 @@ static void build_index(bgav_demuxer_context_t * ctx)
 #define SET_UDTA_STRING(dst, src) \
 if(!(ctx->tt->current_track->metadata.dst) && moov->udta.src)\
   {                                                                     \
-  ctx->tt->current_track->metadata.dst=bgav_convert_string(cnv, moov->udta.src, -1, NULL);\
+  if(moov->udta.have_ilst) \
+    ctx->tt->current_track->metadata.dst = bgav_strdup(moov->udta.src); \
+  else \
+    ctx->tt->current_track->metadata.dst = bgav_convert_string(cnv, moov->udta.src, -1, NULL);\
   }
 
 #define SET_UDTA_INT(dst, src) \
@@ -472,15 +475,18 @@ if(!(ctx->tt->current_track->metadata.dst) && moov->udta.src)\
 
 static void set_metadata(bgav_demuxer_context_t * ctx)
   {
-  bgav_charset_converter_t * cnv;
-
   qt_priv_t * priv;
   qt_moov_t * moov;
+  
+  bgav_charset_converter_t * cnv = (bgav_charset_converter_t *)0;
+  
   priv = (qt_priv_t*)(ctx->priv);
   moov = &(priv->moov);
 
-  cnv = bgav_charset_converter_create("ISO-8859-1", "UTF-8");
+  if(moov->udta.have_ilst)
+    cnv = bgav_charset_converter_create("ISO-8859-1", "UTF-8");
     
+  
   SET_UDTA_STRING(artist,    ART);
   SET_UDTA_STRING(title,     nam);
   SET_UDTA_STRING(album,     alb);

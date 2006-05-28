@@ -19,163 +19,46 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <avdec_private.h>
-
 #include <sys/types.h>
 #include <dirent.h>
 #include <string.h>
 #include <ctype.h>
 
-static int read_line_utf16(bgav_input_context_t * ctx,
-                           int (*read_char)(bgav_input_context_t*,uint16_t*),
-                           char ** _ret, int * ret_len,
-                           int * ret_alloc)
+
+#include <avdec_private.h>
+#include <yml.h>
+
+/* SRT format */
+
+static int probe_srt(char * line)
   {
-  uint16_t * ret;
-  uint16_t c;
-  int eof = 0;
-  *ret_len = 0;
-
-  ret = (uint16_t*)(*_ret);
-  
-  while(1)
-    {
-    if(!read_char(ctx, &c))
-      {
-      eof = 1;
-      break;
-      }
-    if(c == 0x000a) /* \n' */
-      break;
-    else if((c != 0x000d) && (c != 0xfeff)) /* Skip '\r' and endian marker */
-      {
-      // fprintf(stderr, "Got 0x%04x\n", c);
-      if(*ret_alloc <= (*ret_len)*2)
-        {
-        *ret_alloc += 256;
-        //        fprintf(stderr, "Realloc 1...");
-        ret = realloc(ret, *ret_alloc);
-        //        fprintf(stderr, "done\n");
-        }
-      ret[*ret_len] = c;
-      (*ret_len)++;
-      }
-    }
-
-  /* Len is in bytes */
-  *ret_len *= 2;
-
-  *_ret = (char*)ret;
-  
-  if(eof)
-    return !!(*ret_len);
-  
-  return 1;
-  }
-
-typedef struct
-  {
-  int (*read_char_16)(bgav_input_context_t * ctx, uint16_t*);
-
-  char * buf_16;
-  char * buf_8;
-  int buf_16_alloc;
-  int buf_8_alloc;
-
-  uint8_t nl_16[2];
-  
-  } srt_priv_t;
-
-static int init_srt(bgav_stream_t * s)
-  {
-  srt_priv_t * priv;
-  uint8_t first_bytes[2];
-  bgav_subtitle_reader_context_t * ctx;
-
-  ctx = s->data.subtitle.subreader;
-
-  priv = calloc(1, sizeof(*priv));
-  ctx->priv = priv;
-  
-  /* Check for utf-16 */
-  if(bgav_input_get_data(ctx->input, first_bytes, 2) < 2)
-    return 0;
-
-  //  fprintf(stderr, "First bytes: ");
-  //  bgav_hexdump(first_bytes, 2, 2);
-  
-  if((first_bytes[0] == 0xff) && (first_bytes[1] == 0xfe))
-    {
-    priv->read_char_16 = bgav_input_read_16_le;
-    s->data.subtitle.encoding = bgav_strdup("UTF-16LE");
-    priv->nl_16[0] = 0x0d;
-    priv->nl_16[1] = 0x00;
-    //    fprintf(stderr, "Detected UTF-16LE format\n");
-    
-    }
-  else if((first_bytes[0] == 0xfe) && (first_bytes[1] == 0xff))
-    {
-    priv->read_char_16 = bgav_input_read_16_be;
-    s->data.subtitle.encoding = bgav_strdup("UTF-16BE");
-    priv->nl_16[0] = 0x00;
-    priv->nl_16[1] = 0x0d;
-    
-    //    fprintf(stderr, "Detected UTF-16BE format\n");
-    }
-  return 1;
-  }
-
-static int read_line_srt(bgav_stream_t * s)
-  {
-  int len, out_len;
-  srt_priv_t * priv;
-  bgav_subtitle_reader_context_t * ctx;
-  ctx = s->data.subtitle.subreader;
-  priv = (srt_priv_t *)(ctx->priv);
-
-  if(priv->read_char_16)
-    {
-    if(!read_line_utf16(ctx->input, priv->read_char_16,
-                        &(priv->buf_16), &len,
-                        &(priv->buf_16_alloc)))
-      return 0;
-    //    fprintf(stderr, "Read %p (%d bytes)\n", priv->buf_16, len);
-    //    fprintf(stderr, "convert_string_realloc 1...");
-    bgav_convert_string_realloc(s->data.subtitle.cnv,
-                                priv->buf_16, len,
-                                &out_len,
-                                &(priv->buf_8), &(priv->buf_8_alloc));
-    //    fprintf(stderr, "done\n");
+  int a1,a2,a3,a4,b1,b2,b3,b4,i;
+  if(sscanf(line, "%d:%d:%d%[,.:]%d --> %d:%d:%d%[,.:]%d",
+            &a1,&a2,&a3,(char *)&i,&a4,&b1,&b2,&b3,(char *)&i,&b4) == 10)
     return 1;
-    }
-  else
-    {
-    return bgav_input_read_line(ctx->input, &(priv->buf_8), &(priv->buf_8_alloc), 0);
-    }
+  return 0;
   }
 
-static int read_subtitle_srt(bgav_stream_t * s)
+static int read_srt(bgav_stream_t * s)
   {
   int lines_read, line_len;
   int a1,a2,a3,a4,b1,b2,b3,b4;
   int i,len;
-  srt_priv_t * priv;
   bgav_subtitle_reader_context_t * ctx;
 
   gavl_time_t start, end;
 
   ctx = s->data.subtitle.subreader;
-  priv = (srt_priv_t *)(ctx->priv);
 
   /* Read lines */
   while(1)
     {
-    if(!read_line_srt(s))
+    if(!bgav_input_read_convert_line(ctx->input, &ctx->line, &ctx->line_alloc,
+                                     &line_len))
       return 0;
-
+    
     //    fprintf(stderr, "Got line: %s\n", priv->buf_8);
-    if ((len=sscanf (priv->buf_8, "%d:%d:%d%[,.:]%d --> %d:%d:%d%[,.:]%d",
+    if ((len=sscanf (ctx->line, "%d:%d:%d%[,.:]%d --> %d:%d:%d%[,.:]%d",
                      &a1,&a2,&a3,(char *)&i,&a4,&b1,&b2,&b3,(char *)&i,&b4)) == 10)
       {
       break;
@@ -203,100 +86,364 @@ static int read_subtitle_srt(bgav_stream_t * s)
 
   ctx->p->data_size = 0;
   
-  lines_read = 0;
   /* Read lines until we are done */
-  if(priv->read_char_16)
+
+  lines_read = 0;
+  while(1)
     {
-    while(1)
+    if(!bgav_input_read_convert_line(ctx->input, &ctx->line, &ctx->line_alloc,
+                                     &line_len))
       {
-      if(!read_line_utf16(ctx->input, priv->read_char_16,
-                          &(priv->buf_16), &line_len,
-                          &(priv->buf_16_alloc)))
-        line_len = 0;
-
-      if(!line_len)
-        {
-        /* Zero terminate */
-        if(lines_read)
-          {
-          ctx->p->data[ctx->p->data_size]   = 0x00;
-          ctx->p->data[ctx->p->data_size+1] = 0x00;
-          ctx->p->data_size+=2;
-          }
-        return !!lines_read;
-        }
-
-      if(lines_read)
-        {
-        ctx->p->data[ctx->p->data_size]   = priv->nl_16[0];
-        ctx->p->data[ctx->p->data_size+1] = priv->nl_16[1];
-        ctx->p->data_size+=2;
-        }
-      lines_read++;
-      bgav_packet_alloc(ctx->p, ctx->p->data_size + line_len + 4);
-      memcpy(ctx->p->data + ctx->p->data_size, priv->buf_16, line_len);
-      ctx->p->data_size += line_len;
-      //      fprintf(stderr, "Line: ");
-      //      bgav_hexdump(priv->buf_16, line_len, 16);
+      line_len = 0;
+      if(!lines_read)
+        return 0;
       }
-    }
-  else
-    {
-    while(1)
+    
+    if(!line_len)
       {
-      if(!bgav_input_read_line(ctx->input, &(priv->buf_8),
-                               &(priv->buf_8_alloc), 0))
-        line_len = 0;
-      else
-        line_len = strlen(priv->buf_8);
-      
-      if(!line_len)
-        {
-        /* Zero terminate */
-        if(lines_read)
-          {
-          ctx->p->data[ctx->p->data_size] = '\0';
-          ctx->p->data_size++;
-          }
-        return 1;
-        }
+      /* Zero terminate */
       if(lines_read)
         {
-        ctx->p->data[ctx->p->data_size] = '\n';
+        ctx->p->data[ctx->p->data_size] = '\0';
         ctx->p->data_size++;
         }
-      lines_read++;
-      bgav_packet_alloc(ctx->p, ctx->p->data_size + line_len + 2);
-      memcpy(ctx->p->data + ctx->p->data_size, priv->buf_8, line_len);
-      ctx->p->data_size += line_len;
+      return 1;
       }
+    if(lines_read)
+      {
+      ctx->p->data[ctx->p->data_size] = '\n';
+      ctx->p->data_size++;
+      }
+    
+    lines_read++;
+    bgav_packet_alloc(ctx->p, ctx->p->data_size + line_len + 2);
+    memcpy(ctx->p->data + ctx->p->data_size, ctx->line, line_len);
+    ctx->p->data_size += line_len;
     }
   
   return 0;
   }
 
-static void close_srt(bgav_stream_t * s)
-  {
-  srt_priv_t * priv;
-  bgav_subtitle_reader_context_t * ctx;
-  ctx = s->data.subtitle.subreader;
-  priv = (srt_priv_t *)(ctx->priv);
+/* Spumux */
 
-  if(priv->buf_8) free(priv->buf_8);
-  if(priv->buf_16) free(priv->buf_16);
+#ifdef HAVE_LIBPNG
+
+#include <pngreader.h>
+
+typedef struct
+  {
+  bgav_yml_node_t * yml;
+  bgav_yml_node_t * cur;
+  bgav_png_reader_t * reader;
+  gavl_video_format_t format;
+  int have_header;
+  int need_header;
+  
+  int buffer_alloc;
+  uint8_t * buffer;
+  } spumux_t;
+
+static int probe_spumux(char * line)
+  {
+  if(!strcasecmp(line, "<subpictures>"))
+    return 1;
+  return 0;
+  }
+
+static int init_current_spumux(bgav_stream_t * s)
+  {
+  bgav_subtitle_reader_context_t * ctx;
+  spumux_t * priv;
+  ctx = s->data.subtitle.subreader;
+  priv = (spumux_t*)(ctx->priv);
+  
+  priv->cur = priv->yml->children;
+  while(priv->cur && (!priv->cur->name || strcasecmp(priv->cur->name, "stream")))
+    {
+    priv->cur = priv->cur->next;
+    }
+  if(!priv->cur)
+    return 0;
+  priv->cur = priv->cur->children;
+  while(priv->cur && (!priv->cur->name || strcasecmp(priv->cur->name, "spu")))
+    {
+    priv->cur = priv->cur->next;
+    }
+  if(!priv->cur)
+    return 0;
+  return 1;
+  }
+
+static int advance_current_spumux(bgav_stream_t * s)
+  {
+  bgav_subtitle_reader_context_t * ctx;
+  spumux_t * priv;
+  ctx = s->data.subtitle.subreader;
+  priv = (spumux_t*)(ctx->priv);
+
+  priv->cur = priv->cur->next;
+  while(priv->cur && (!priv->cur->name || strcasecmp(priv->cur->name, "spu")))
+    {
+    priv->cur = priv->cur->next;
+    }
+  if(!priv->cur)
+    return 0;
+  return 1;
+  }
+
+static gavl_time_t parse_time_spumux(const char * str, int timescale, int frame_duration)
+  {
+  int h, m, s, f;
+  gavl_time_t ret;
+  if(sscanf(str, "%d:%d:%d.%d", &h, &m, &s, &f) < 4)
+    return GAVL_TIME_UNDEFINED;
+  //  fprintf(stderr, "parse_time_spumux: %d %d %d %d", h, m, s, f);
+  ret = h;
+  ret *= 60;
+  ret += m;
+  ret *= 60;
+  ret += s;
+  ret *= GAVL_TIME_SCALE;
+  ret += gavl_frames_to_time(timescale, frame_duration, f);
+  return ret;
+  }
+
+static int read_spumux(bgav_stream_t * s)
+  {
+  int size;
+  const char * filename;
+  const char * start_time;
+  const char * tmp;
+  
+  bgav_subtitle_reader_context_t * ctx;
+  spumux_t * priv;
+  ctx = s->data.subtitle.subreader;
+  priv = (spumux_t*)(ctx->priv);
+
+  if(!priv->cur)
+    return 0;
+
+  //  bgav_yml_dump(priv->cur);
+
+  start_time = bgav_yml_get_attribute_i(priv->cur, "start");
+  if(!start_time)
+    {
+    fprintf(stderr, "yml node has no start attribute\n");
+    return 0;
+    }
+  
+  if(!priv->have_header)
+    {
+    filename = bgav_yml_get_attribute_i(priv->cur, "image");
+    if(!filename)
+      {
+      fprintf(stderr, "yml node has no filename attribute\n");
+      return 0;
+      }
+    if(!bgav_slurp_file(filename, &priv->buffer, &priv->buffer_alloc,
+                        &size, s->opt))
+      {
+      fprintf(stderr, "Reading file %s failed\n", filename);
+      return 0;
+      }
+    if(!bgav_png_reader_read_header(priv->reader, priv->buffer, size, &priv->format))
+      {
+      fprintf(stderr, "Reading png header failed\n");
+      return 0;
+      }
+    if(priv->need_header)
+      {
+      priv->have_header = 1;
+      return 1;
+      }
+    }
+  
+  /* Read the image */
+  if((priv->format.image_width > s->data.subtitle.format.image_width) ||
+     (priv->format.image_width > s->data.subtitle.format.image_height))
+    {
+    fprintf(stderr, "Overlay too large\n");
+    return 0;
+    }
+
+  if(!bgav_png_reader_read_image(priv->reader, ctx->ovl.frame))
+    return 0;
+  
+  ctx->ovl.frame->time_scaled =
+    parse_time_spumux(start_time, s->data.subtitle.format.timescale,
+                      s->data.subtitle.format.frame_duration);
+  
+  if(ctx->ovl.frame->time_scaled == GAVL_TIME_UNDEFINED)
+    {
+    fprintf(stderr, "Parsing time string %s failed\n", start_time);
+    return 0;
+    }
+  tmp = bgav_yml_get_attribute_i(priv->cur, "end");
+  if(tmp)
+    {
+    ctx->ovl.frame->duration_scaled =
+      parse_time_spumux(tmp,
+                        s->data.subtitle.format.timescale,
+                        s->data.subtitle.format.frame_duration);
+    if(ctx->ovl.frame->duration_scaled == GAVL_TIME_UNDEFINED)
+      return 0;
+    ctx->ovl.frame->duration_scaled -= ctx->ovl.frame->time_scaled;
+    }
+  else
+    {
+    ctx->ovl.frame->duration_scaled = -1;
+    }
+
+  tmp = bgav_yml_get_attribute_i(priv->cur, "xoffset");
+  if(tmp)
+    ctx->ovl.dst_x = atoi(tmp);
+  else
+    ctx->ovl.dst_x = 0;
+
+  tmp = bgav_yml_get_attribute_i(priv->cur, "yoffset");
+  if(tmp)
+    ctx->ovl.dst_y = atoi(tmp);
+  else
+    ctx->ovl.dst_y = 0;
+  
+  ctx->ovl.ovl_rect.x = 0;
+  ctx->ovl.ovl_rect.y = 0;
+
+  ctx->ovl.ovl_rect.w = priv->format.image_width;
+  ctx->ovl.ovl_rect.h = priv->format.image_height;
+  
+  priv->have_header = 0;
+  advance_current_spumux(s);
+  
+  return 1;
+  }
+
+static int init_spumux(bgav_stream_t * s)
+  {
+  bgav_subtitle_reader_context_t * ctx;
+  spumux_t * priv;
+  ctx = s->data.subtitle.subreader;
+
+  priv = calloc(1, sizeof(*priv));
+  ctx->priv = priv;
+    
+  priv->yml = bgav_yml_parse(ctx->input);
+  if(!priv->yml)
+    {
+    fprintf(stderr, "Parsing spumux file failed\n");
+    return 0;
+    }
+  if(!priv->yml->name || strcasecmp(priv->yml->name, "subpictures"))
+    return 0;
+  
+  if(!init_current_spumux(s))
+    return 0;
+
+  priv->reader = bgav_png_reader_create(0);
+
+  gavl_video_format_copy(&s->data.subtitle.format,
+                         &s->data.subtitle.video_stream->data.video.format);
+
+  priv->need_header = 1;
+  if(!read_spumux(s))
+    return 0;
+  priv->need_header = 0;
+  
+  s->data.subtitle.format.pixelformat = priv->format.pixelformat;
+  
+  return 1;
+  }
+
+
+static void seek_spumux(bgav_stream_t * s, gavl_time_t time)
+  {
+  const char * start_time, * end_time;
+  bgav_subtitle_reader_context_t * ctx;
+  spumux_t * priv;
+  gavl_time_t start, end;
+    
+  ctx = s->data.subtitle.subreader;
+  priv = (spumux_t*)(ctx->priv);
+  init_current_spumux(s);
+  
+  while(1)
+    {
+    start_time = bgav_yml_get_attribute_i(priv->cur, "start");
+    if(!start_time)
+      {
+      fprintf(stderr, "yml node has no start attribute\n");
+      return;
+      }
+    end_time = bgav_yml_get_attribute_i(priv->cur, "end");
+
+    start = parse_time_spumux(start_time,
+                              s->data.subtitle.format.timescale,
+                              s->data.subtitle.format.frame_duration);
+    if(start == GAVL_TIME_UNDEFINED)
+      {
+      fprintf(stderr, "Error parsing start start attribute\n");
+      return;
+      }
+    
+    if(end_time)
+      end = parse_time_spumux(end_time,
+                              s->data.subtitle.format.timescale,
+                              s->data.subtitle.format.frame_duration);
+    
+    if(end == GAVL_TIME_UNDEFINED)
+      {
+      if(end > time)
+        break;
+      }
+    else
+      {
+      if(start > time)
+        break;
+      }
+    advance_current_spumux(s);
+    }
+  priv->have_header = 0;
+  bgav_png_reader_reset(priv->reader);
+  }
+
+static void close_spumux(bgav_stream_t * s)
+  {
+  bgav_subtitle_reader_context_t * ctx;
+  spumux_t * priv;
+  ctx = s->data.subtitle.subreader;
+  priv = (spumux_t*)(ctx->priv);
+
+  if(priv->yml)
+    bgav_yml_free(priv->yml);
+  if(priv->buffer)
+    free(priv->buffer);
+  
+  if(priv->reader)
+    bgav_png_reader_destroy(priv->reader);
   free(priv);
   
   }
+
+#endif // HAVE_LIBPNG
+
 
 static bgav_subtitle_reader_t subtitle_readers[] =
   {
     {
       name: "Subrip (srt)",
-      extensions: "srt",
-      read_subtitle_text: read_subtitle_srt,
-      init:               init_srt,
-      close:              close_srt,
+      probe:              probe_srt,
+      read_subtitle_text: read_srt,
     },
+#ifdef HAVE_LIBPNG
+    {
+      name: "Spumux (xml/png)",
+      probe:                 probe_spumux,
+      init:                  init_spumux,
+      read_subtitle_overlay: read_spumux,
+      seek:                  seek_spumux,
+      close:                 close_spumux,
+    },
+#endif // HAVE_LIBPNG
     { /* End of subtitle readers */ }
     
   };
@@ -313,28 +460,80 @@ void bgav_subreaders_dump()
   fprintf(stderr, "</ul>\n");
   }
 
-
-static bgav_subtitle_reader_t * find_subtitle_reader(const char * extension)
+static char * extensions[] =
   {
-  char ** extensions;
-  int i = 0, j;
-  while(subtitle_readers[i].name)
+    "srt",
+    "sub",
+    "xml",
+    (char*)0
+  };
+
+static bgav_subtitle_reader_t * find_subtitle_reader(const char * filename,
+                                                     const bgav_options_t * opt)
+  {
+  int i;
+  bgav_input_context_t * input;
+  const char * extension;
+  bgav_subtitle_reader_t* ret = (bgav_subtitle_reader_t*)0;
+  
+  char * line = (char*)0;
+  int line_alloc = 0;
+  int line_len;
+  fprintf(stderr, "Testing file %s\n", filename);
+  /* 1. Check if we have a supported extension */
+  extension = strrchr(filename, '.');
+  if(!extension)
+    return (bgav_subtitle_reader_t*)0;
+
+  extension++;
+  i = 0;
+  while(extensions[i])
     {
-    extensions = bgav_stringbreak(subtitle_readers[i].extensions, ' ');
-    j = 0;
-    while(extensions[j])
-      {
-      if(!strcasecmp(extension, extensions[j]))
-        {
-        bgav_stringbreak_free(extensions);
-        return &subtitle_readers[i];
-        }
-      j++;
-      }
-    bgav_stringbreak_free(extensions);
+    if(!strcasecmp(extension, extensions[i]))
+      break;
     i++;
     }
-  return (bgav_subtitle_reader_t*)0;
+  if(!extensions[i])
+    return (bgav_subtitle_reader_t*)0;
+
+  /* 2. Open the file and do autodetection */
+  input = bgav_input_create(opt);
+  if(!bgav_input_open(input, filename))
+    {
+    bgav_input_destroy(input);
+    return (bgav_subtitle_reader_t*)0;
+    }
+
+  bgav_input_detect_charset(input);
+  if(input->charset)
+    fprintf(stderr, "Detected character set: %s\n", input->charset);
+  else
+    fprintf(stderr, "Character set detection failed, assuming default\n");
+
+  while(bgav_input_read_convert_line(input, &line, &line_alloc, &line_len))
+    {
+    i = 0;
+
+    // fprintf(stderr, "Got line (len: %d): %s\n", line_len, line);
+        
+    while(subtitle_readers[i].name)
+      {
+      if(subtitle_readers[i].probe(line))
+        {
+        ret = &(subtitle_readers[i]);
+        fprintf(stderr, "Detected %s format\n",
+                subtitle_readers[i].name);
+        break;
+        }
+      i++;
+      }
+    if(ret)
+      break;
+    }
+  bgav_input_destroy(input);
+  free(line);
+  
+  return ret;
   }
 
 extern bgav_input_t bgav_input_file;
@@ -342,12 +541,12 @@ extern bgav_input_t bgav_input_file;
 bgav_subtitle_reader_context_t *
 bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   {
-  char * file, *directory, *pos, *extension, *name;
+  char * file, *directory, *pos, *name;
   int file_len;
   DIR * dir;
   struct dirent * res;
   bgav_subtitle_reader_t * r;
-
+  char * subtitle_filename;
   bgav_subtitle_reader_context_t * ret = (bgav_subtitle_reader_context_t *)0;
   bgav_subtitle_reader_context_t * end, *new;
   
@@ -399,19 +598,17 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
     if(strncasecmp(u.d.d_name, file, file_len) ||
        !strcmp(u.d.d_name, file))
       continue;
-      
-    /* Check if there is an extension for this */
-    pos = strrchr(u.d.d_name, '.');
-    if(pos)
-      extension = pos+1;
-    else
-      continue;
-    r = find_subtitle_reader(extension);
-    if(!r)
-      continue;
     
+    subtitle_filename = bgav_sprintf("%s/%s", directory, u.d.d_name);
+    
+    r = find_subtitle_reader(subtitle_filename, input_ctx->opt);
+    if(!r)
+      {
+      free(subtitle_filename);
+      continue;
+      }
     new = calloc(1, sizeof(*new));
-    new->filename = bgav_sprintf("%s/%s", directory, u.d.d_name);
+    new->filename = subtitle_filename;
     new->input    = bgav_input_create(input_ctx->opt);
     new->reader   = r;
     new->p = bgav_packet_create();
@@ -457,7 +654,9 @@ void bgav_subtitle_reader_close(bgav_stream_t * s)
   if(ctx->info) free(ctx->info);
   if(ctx->filename) free(ctx->filename);
   if(ctx->p) bgav_packet_destroy(ctx->p);
-    
+  if(ctx->ovl.frame) gavl_video_frame_destroy(ctx->ovl.frame);
+
+  
   if(ctx->input)
     bgav_input_destroy(ctx->input);
   free(ctx);
@@ -468,9 +667,13 @@ int bgav_subtitle_reader_has_subtitle(bgav_stream_t * s)
   bgav_subtitle_reader_context_t * ctx;
   ctx = s->data.subtitle.subreader;
 
-  if(!ctx->has_subtitle && ctx->reader->read_subtitle_text(s))
-    ctx->has_subtitle = 1;
-
+  if(!ctx->has_subtitle)
+    {
+    if(ctx->reader->read_subtitle_text && ctx->reader->read_subtitle_text(s))
+      ctx->has_subtitle = 1;
+    else if(ctx->reader->read_subtitle_overlay && ctx->reader->read_subtitle_overlay(s))
+      ctx->has_subtitle = 1;
+    }
   return ctx->has_subtitle;
   }
 
@@ -498,9 +701,17 @@ int bgav_subtitle_reader_start(bgav_stream_t * s)
   if(!bgav_input_open(ctx->input, ctx->filename))
     return 0;
 
+  bgav_input_detect_charset(ctx->input);
+  if(ctx->input->charset) /* We'll do charset conversion by the input */
+    s->data.subtitle.charset = bgav_strdup("UTF-8");
+  
   if(ctx->reader->init && !ctx->reader->init(s))
     return 0;
-  
+
+  if(s->type == BGAV_STREAM_SUBTITLE_OVERLAY)
+    {
+    ctx->ovl.frame = gavl_video_frame_create(&s->data.subtitle.format);
+    }
   return 1;
   }
 
@@ -510,24 +721,73 @@ void bgav_subtitle_reader_seek(bgav_stream_t * s,
   int titles_skipped;
   bgav_subtitle_reader_context_t * ctx;
   ctx = s->data.subtitle.subreader;
+
+  if(ctx->reader->seek)
+    ctx->reader->seek(s, time);
     
-  if(ctx->input->input->seek_byte)
+  else if(ctx->input->input->seek_byte)
     {
     bgav_input_seek(ctx->input, ctx->data_start, SEEK_SET);
 
     titles_skipped = 0;
     
-    while(ctx->reader->read_subtitle_text(s))
+    if(ctx->reader->read_subtitle_text)
       {
-      if(ctx->p->timestamp_scaled + ctx->p->duration_scaled < time)
+      while(ctx->reader->read_subtitle_text(s))
         {
-        titles_skipped++;
+        if(ctx->p->timestamp_scaled + ctx->p->duration_scaled < time)
+          {
+          titles_skipped++;
         continue;
+          }
+        else
+          break;
         }
-      else
-        break;
+      }
+    else if(ctx->reader->read_subtitle_overlay)
+      {
+      while(ctx->reader->read_subtitle_overlay(s))
+        {
+        if(ctx->ovl.frame->time_scaled + ctx->ovl.frame->duration_scaled < time)
+          {
+          titles_skipped++;
+          continue;
+          }
+        else
+          break;
+        }
       }
     ctx->has_subtitle = 1;
+    fprintf(stderr, "seeked in subtitle file (skipped %d)\n", titles_skipped);
     }
-  fprintf(stderr, "seeked in subtitle file (skipped %d)\n", titles_skipped);
+  }
+
+int bgav_subtitle_reader_read_overlay(bgav_stream_t * s, gavl_overlay_t * ovl)
+  {
+  gavl_video_format_t copy_format;
+  bgav_subtitle_reader_context_t * ctx;
+  ctx = s->data.subtitle.subreader;
+
+  if(!ctx->has_subtitle && ctx->reader->read_subtitle_overlay(s))
+    ctx->has_subtitle = 1;
+
+  if(ctx->has_subtitle)
+    {
+    ctx->has_subtitle = 0;
+    gavl_video_format_copy(&copy_format, &(s->data.subtitle.format));
+    copy_format.image_width = ctx->ovl.ovl_rect.w;
+    copy_format.frame_width = ctx->ovl.ovl_rect.w;
+
+    copy_format.image_height = ctx->ovl.ovl_rect.h;
+    copy_format.frame_height = ctx->ovl.ovl_rect.h;
+    gavl_video_frame_copy(&copy_format, ovl->frame, ctx->ovl.frame);
+    ovl->frame->time_scaled     = ctx->ovl.frame->time_scaled;
+    ovl->frame->duration_scaled = ctx->ovl.frame->duration_scaled;
+    ovl->dst_x = ctx->ovl.dst_x;
+    ovl->dst_y = ctx->ovl.dst_y;
+    gavl_rectangle_i_copy(&(ovl->ovl_rect), &(ctx->ovl.ovl_rect));
+    return 1;
+    }
+  else
+    return 0;
   }
