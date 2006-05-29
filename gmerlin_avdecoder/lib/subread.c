@@ -124,6 +124,166 @@ static int read_srt(bgav_stream_t * s)
   return 0;
   }
 
+/* MPSub */
+
+typedef struct
+  {
+  int frame_based;
+  int64_t frame_duration;
+
+  gavl_time_t last_end_time;
+  } mpsub_priv_t;
+
+static int probe_mpsub(char * line)
+  {
+  float f;
+  while(isspace(*line) && (*line != '\0'))
+    line++;
+  fprintf(stderr, "Probe mpsub: %s\n", line);
+  
+  if(!strncmp(line, "FORMAT=TIME", 11) || (sscanf(line, "FORMAT=%f", &f) == 1))
+    return 1;
+  return 0;
+  }
+
+static int init_mpsub(bgav_stream_t * s)
+  {
+  int line_len;
+  double framerate;
+  char * ptr;
+  bgav_subtitle_reader_context_t * ctx;
+  mpsub_priv_t * priv = calloc(1, sizeof(*priv));
+  ctx = s->data.subtitle.subreader;
+  ctx->priv = priv;
+
+  while(1)
+    {
+    if(!bgav_input_read_line(ctx->input, &ctx->line, &ctx->line_alloc, 0, &line_len))
+      return 0;
+
+    ptr = ctx->line;
+    
+    while(isspace(*ptr) && (*ptr != '\0'))
+      ptr++;
+
+    if(!strncmp(ptr, "FORMAT=TIME", 11))
+      return 1;
+    else if(sscanf(ptr, "FORMAT=%lf", &framerate))
+      {
+      priv->frame_duration = gavl_seconds_to_time(1.0 / framerate);
+      priv->frame_based = 1;
+      return 1;
+      }
+    }
+  return 0;
+  }
+
+static int read_mpsub(bgav_stream_t * s)
+  {
+  int i1, i2;
+  double d1, d2;
+  gavl_time_t t1 = 0, t2 = 0;
+  
+  int line_len, lines_read;
+  bgav_subtitle_reader_context_t * ctx;
+  mpsub_priv_t * priv;
+  char * ptr;
+  
+  ctx = s->data.subtitle.subreader;
+  priv = (mpsub_priv_t*)(ctx->priv);
+    
+  while(1)
+    {
+    if(!bgav_input_read_line(ctx->input, &ctx->line, &ctx->line_alloc, 0, &line_len))
+      return 0;
+
+    ptr = ctx->line;
+    
+    while(isspace(*ptr) && (*ptr != '\0'))
+      ptr++;
+
+    /* The following will reset last_end_time whenever we cross a "FORMAT=" line */
+    if(!strncmp(ptr, "FORMAT=", 7))
+      {
+      priv->last_end_time = 0;
+      continue;
+      }
+    
+    if(priv->frame_based)
+      {
+      if(sscanf(ptr, "%d %d\n", &i1, &i2) == 2)
+        {
+        t1 = i1 * priv->frame_duration;
+        t2 = i2 * priv->frame_duration;
+        break;
+        }
+      }
+    else if(sscanf(ptr, "%lf %lf\n", &d1, &d2) == 2)
+      {
+      t1 = gavl_seconds_to_time(d1);
+      t2 = gavl_seconds_to_time(d2);
+      break;
+      }
+    }
+
+  /* Set times */
+
+  ctx->p->timestamp_scaled = priv->last_end_time + t1;
+  ctx->p->duration_scaled  = t2;
+  
+  priv->last_end_time = ctx->p->timestamp_scaled + ctx->p->duration_scaled;
+  
+  /* Read the actual stuff */
+  ctx->p->data_size = 0;
+  
+  /* Read lines until we are done */
+
+  lines_read = 0;
+
+  while(1)
+    {
+    if(!bgav_input_read_convert_line(ctx->input, &ctx->line, &ctx->line_alloc,
+                                     &line_len))
+      {
+      line_len = 0;
+      if(!lines_read)
+        return 0;
+      }
+    
+    if(!line_len)
+      {
+      /* Zero terminate */
+      if(lines_read)
+        {
+        ctx->p->data[ctx->p->data_size] = '\0';
+        ctx->p->data_size++;
+        }
+      return 1;
+      }
+    if(lines_read)
+      {
+      ctx->p->data[ctx->p->data_size] = '\n';
+      ctx->p->data_size++;
+      }
+    
+    lines_read++;
+    bgav_packet_alloc(ctx->p, ctx->p->data_size + line_len + 2);
+    memcpy(ctx->p->data + ctx->p->data_size, ctx->line, line_len);
+    ctx->p->data_size += line_len;
+    }
+  return 0;
+  }
+
+static void close_mpsub(bgav_stream_t * s)
+  {
+  bgav_subtitle_reader_context_t * ctx;
+  mpsub_priv_t * priv;
+  
+  ctx = s->data.subtitle.subreader;
+  priv = (mpsub_priv_t *)(ctx->priv);
+  free(priv);
+  }
+
 /* Spumux */
 
 #ifdef HAVE_LIBPNG
@@ -433,6 +593,13 @@ static bgav_subtitle_reader_t subtitle_readers[] =
       name: "Subrip (srt)",
       probe:              probe_srt,
       read_subtitle_text: read_srt,
+    },
+    {
+      name: "Mplayer mpsub",
+      init:               init_mpsub,
+      probe:              probe_mpsub,
+      read_subtitle_text: read_mpsub,
+      close:              close_mpsub,
     },
 #ifdef HAVE_LIBPNG
     {
