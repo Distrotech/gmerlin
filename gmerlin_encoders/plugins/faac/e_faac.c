@@ -49,6 +49,8 @@ typedef struct
   int do_id3v1;
   int do_id3v2;
 
+  int64_t samples_read;
+  
   } faac_t;
 
 static void * create_faac()
@@ -433,6 +435,8 @@ static void write_audio_frame_faac(void * data, gavl_audio_frame_t * frame,
     if(faac->frame->valid_samples == faac->format.samples_per_frame)
       flush_audio(faac);
     }
+
+  faac->samples_read += frame->valid_samples;
   
   }
 
@@ -452,29 +456,40 @@ static void close_faac(void * data, int do_delete)
 
   /* Flush remaining audio data */
 
-  while(flush_audio(faac))
-    ;
-
+  if(faac->samples_read)
+    {
+    while(flush_audio(faac))
+      ;
+    }
+  
   if(faac->enc)
     {
     faacEncClose(faac->enc);
     faac->enc = (faacEncHandle)0;
     }
-
-  /* Write id3v1 tag */
-  if(faac->id3v1)
+  
+  if(faac->output)
     {
-    bgen_id3v1_write(faac->output, faac->id3v1);
-    bgen_id3v1_destroy(faac->id3v1);
-    faac->id3v1 = (bgen_id3v1_t*)0;    
+    /* Write id3v1 tag */
+    if(faac->id3v1)
+      {
+      bgen_id3v1_write(faac->output, faac->id3v1);
+      bgen_id3v1_destroy(faac->id3v1);
+      faac->id3v1 = (bgen_id3v1_t*)0;    
+      }
+    fclose(faac->output);
+    faac->output = (FILE*)0;
     }
   
-  fclose(faac->output);
-
-  if(do_delete)
-    remove(faac->filename);
+  if(faac->filename)
+    {
+    if(do_delete)
+      remove(faac->filename);
+    free(faac->filename);
+    faac->filename = (char*)0;
+    }
   }
-
+  
 bg_encoder_plugin_t the_plugin =
   {
     common:

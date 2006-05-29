@@ -167,6 +167,8 @@ typedef struct
   int vbr_quality;
 
   bgen_id3v1_t * id3v1;
+
+  int64_t samples_read;
   
   } lame_priv_t;
 
@@ -204,7 +206,7 @@ static bg_parameter_info_t audio_parameters[] =
   {
     {
       name:        "lame_general",
-      long_name:   "Lame general",
+      long_name:   "General",
       type:        BG_PARAMETER_SECTION
     },
     {
@@ -243,7 +245,7 @@ Auto (recommended): Select one of the above depending on quality or bitrate sett
     },
     {
       name:        "lame_cbr_options",
-      long_name:   "Lame CBR options",
+      long_name:   "CBR options",
       type:        BG_PARAMETER_SECTION
     },
     {
@@ -258,7 +260,7 @@ valid mp3 bitrate, we'll choose the closest value."
     },
     {
       name:        "lame_vbr_abr_options",
-      long_name:   "Lame VBR/ABR options",
+      long_name:   "VBR/ABR options",
       type:        BG_PARAMETER_SECTION
     },
     {
@@ -608,6 +610,7 @@ static void write_audio_frame_lame(void * data, gavl_audio_frame_t * frame,
                                            lame->output_buffer,
                                            lame->output_buffer_alloc);
   fwrite(lame->output_buffer, 1, bytes_encoded, lame->output);
+  lame->samples_read += frame->valid_samples;
   }
 
 static void get_audio_format_lame(void * data, int stream,
@@ -624,56 +627,68 @@ static void close_lame(void * data, int do_delete)
   lame_priv_t * lame;
   lame = (lame_priv_t*)data;
   int bytes_encoded;
+
   /* 1. Flush the buffer */
 
-  if(lame->output_buffer_alloc < 7200)
+  if(lame->samples_read)
     {
-    lame->output_buffer_alloc = 7200;
-    lame->output_buffer = realloc(lame->output_buffer, lame->output_buffer_alloc);
+    if(lame->output_buffer_alloc < 7200)
+      {
+      lame->output_buffer_alloc = 7200;
+      lame->output_buffer = realloc(lame->output_buffer, lame->output_buffer_alloc);
+      }
+    bytes_encoded = lame_encode_flush(lame->lame, lame->output_buffer, 
+                                      lame->output_buffer_alloc);
+    fwrite(lame->output_buffer, 1, bytes_encoded, lame->output);
+
+    /* 2. Write xing tag */
+    
+    if(lame->vbr_mode != vbr_off)
+      {
+      //    fprintf(stderr, "Adding XING tag\n");
+      lame_mp3_tags_fid(lame->lame, lame->output);
+      }
     }
-  bytes_encoded = lame_encode_flush(lame->lame, lame->output_buffer, 
-                                    lame->output_buffer_alloc);
-  fwrite(lame->output_buffer, 1, bytes_encoded, lame->output);
-
-  /* 2. Write xing tag */
-
-  if(lame->vbr_mode != vbr_off)
-    {
-    //    fprintf(stderr, "Adding XING tag\n");
-    lame_mp3_tags_fid(lame->lame, lame->output);
-    }
-
+  
   /* 3. Write ID3V1 tag */
 
-  if(lame->id3v1)
+  if(lame->output)
     {
-    fseek(lame->output, 0, SEEK_END);
-    bgen_id3v1_write(lame->output, lame->id3v1);
-    bgen_id3v1_destroy(lame->id3v1);
-    lame->id3v1 = (bgen_id3v1_t*)0;
+    if(lame->id3v1)
+      {
+      fseek(lame->output, 0, SEEK_END);
+      bgen_id3v1_write(lame->output, lame->id3v1);
+      bgen_id3v1_destroy(lame->id3v1);
+      lame->id3v1 = (bgen_id3v1_t*)0;
+      }
+    
+    /* 4. Close output file */
+    
+    fclose(lame->output);
+    lame->output = (FILE*)0;
     }
   
-  /* 4. Close output file */
-
-  fclose(lame->output);
-    
-  /* Remove if necessary */
-
-  if(do_delete)
-    remove(lame->filename);
-
-  
   /* Clean up */
-  lame_close(lame->lame);
-  lame->lame = (lame_t)0;
+  if(lame->lame)
+    {
+    lame_close(lame->lame);
+    lame->lame = (lame_t)0;
+    }
 
   if(lame->filename)
+    {
+    /* Remove if necessary */
+    if(do_delete)
+      remove(lame->filename);
     free(lame->filename);
+    lame->filename = (char*)0;
+    }
 
   if(lame->output_buffer)
+    {
     free(lame->output_buffer);
-    
-  
+    lame->output_buffer = (uint8_t*)0;
+    }
   }
 
 bg_encoder_plugin_t the_plugin =

@@ -62,7 +62,9 @@ typedef struct
 
   float quality;     /* Float from 0 to 1 (low->high) */
   int quality_set;
-      
+
+  int64_t samples_read;
+  
   } vorbis_t;
 
 static void * create_vorbis()
@@ -427,6 +429,8 @@ static void write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame,
                         0, 0, frame->valid_samples, frame->valid_samples);
   vorbis_analysis_wrote(&(vorbis->enc_vd), frame->valid_samples);
   flush_data(vorbis);
+
+  vorbis->samples_read += frame->valid_samples;
   }
 
 static void get_audio_format_vorbis(void * data, int stream,
@@ -443,19 +447,23 @@ static void close_vorbis(void * data, int do_delete)
   {
   vorbis_t * vorbis;
   vorbis = (vorbis_t*)data;
+
+  if(vorbis->samples_read)
+    {
+    vorbis_analysis_wrote(&(vorbis->enc_vd), 0);
+    flush_data(vorbis);
+    }
+  if(vorbis->output)
+    fclose(vorbis->output);
   
-  vorbis_analysis_wrote(&(vorbis->enc_vd), 0);
-  flush_data(vorbis);
-
-  fclose(vorbis->output);
-
   bg_metadata_free(&vorbis->metadata);
-  
-  if(do_delete)
-    remove(vorbis->filename);
 
   if(vorbis->filename)
+    {
+    if(do_delete)
+      remove(vorbis->filename);
     free(vorbis->filename);
+    }
   }
 
 bg_encoder_plugin_t the_plugin =
