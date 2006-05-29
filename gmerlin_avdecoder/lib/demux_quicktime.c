@@ -483,7 +483,7 @@ static void set_metadata(bgav_demuxer_context_t * ctx)
   priv = (qt_priv_t*)(ctx->priv);
   moov = &(priv->moov);
 
-  if(moov->udta.have_ilst)
+  if(!moov->udta.have_ilst)
     cnv = bgav_charset_converter_create("ISO-8859-1", "UTF-8");
     
   
