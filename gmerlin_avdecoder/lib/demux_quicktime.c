@@ -499,8 +499,11 @@ static void set_metadata(bgav_demuxer_context_t * ctx)
 
   if(!ctx->tt->current_track->metadata.track && moov->udta.trkn)
     ctx->tt->current_track->metadata.track = moov->udta.trkn;
-  
-  bgav_charset_converter_destroy(cnv);
+
+  if(cnv)
+    bgav_charset_converter_destroy(cnv);
+
+  //  bgav_metadata_dump(&ctx->tt->current_track->metadata);
   }
 
 static void quicktime_init(bgav_demuxer_context_t * ctx)
@@ -826,6 +829,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
     }
   
   set_metadata(ctx);
+  
   }
 
 static int open_quicktime(bgav_demuxer_context_t * ctx,
@@ -916,6 +920,12 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
       done = 1;
     }
   quicktime_init(ctx);
+
+  if(!have_mdat)
+    {
+    fprintf(stderr, "No mdats\n");
+    return 0;
+    }
   
   build_index(ctx);
 
