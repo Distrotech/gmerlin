@@ -249,8 +249,8 @@ int main(int argc, char ** argv)
     for(i = 0; i < num_subtitle_streams; i++)
       {
       video_format = bgav_get_subtitle_format(file, i);
-
-      if(!video_format)
+      
+      if(bgav_subtitle_is_text(file, i))
         {
         fprintf(stderr, "Reading text subtitle from stream %d...", i+1);
 

@@ -558,21 +558,23 @@ struct bgav_options_s
   int seek_subtitles;
   
   /* Callbacks */
-  
-  void (*name_change_callback)(void * data, const char * name);
-  void * name_change_callback_data;
 
-  void (*metadata_change_callback)(void * data, const bgav_metadata_t * m);
+  bgav_log_callback log_callback;
+  void * log_callback_data;
+  
+  bgav_name_change_callback name_change_callback;
+  void * name_change_callback_data;
+  
+  bgav_metadata_change_callback metadata_change_callback;
   void * metadata_change_callback_data;
 
-  void (*track_change_callback)(void * data, int track);
+  bgav_track_change_callback track_change_callback;
   void * track_change_callback_data;
 
-  void (*buffer_callback)(void * data, float percentage);
+  bgav_buffer_callback buffer_callback;
   void * buffer_callback_data;
 
-  int (*user_pass_callback)(void * data, const char * resource,
-                            char ** user, char ** password);
+  bgav_user_pass_callback user_pass_callback;
   void * user_pass_callback_data;
   };
 
@@ -910,7 +912,7 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
                              bgav_stream_t * s);
 
 
-bgav_packet_t *
+int
 bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
                               bgav_stream_t * s);
 
@@ -1305,3 +1307,9 @@ int bgav_subtitle_reader_has_subtitle(bgav_stream_t * s);
 bgav_packet_t * bgav_subtitle_reader_read_text(bgav_stream_t *);
 
 int bgav_subtitle_reader_read_overlay(bgav_stream_t *, gavl_overlay_t * ovl);
+
+/* log.c */
+
+void bgav_log(const bgav_options_t * opt,
+              bgav_log_level_t level,
+              const char * domain, char * format, ...);

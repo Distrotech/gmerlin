@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define LOG_DOMAIN "demuxer"
+
 extern bgav_demuxer_t bgav_demuxer_asf;
 extern bgav_demuxer_t bgav_demuxer_avi;
 extern bgav_demuxer_t bgav_demuxer_rmff;
@@ -160,7 +162,8 @@ bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
     {
     if(demuxers[i].demuxer->probe(input))
       {
-      fprintf(stderr, "Detected %s format\n", demuxers[i].format_name);
+      bgav_log(input->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+               "Detected %s format", demuxers[i].format_name);
       return demuxers[i].demuxer;
       }
     }
@@ -169,7 +172,9 @@ bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
     {
     if(sync_demuxers[i].demuxer->probe(input))
       {
-      fprintf(stderr, "Detected %s format\n", sync_demuxers[i].format_name);
+      bgav_log(input->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+               "Detected %s format",
+               sync_demuxers[i].format_name);
       return sync_demuxers[i].demuxer;
       }
     }
@@ -581,12 +586,12 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
   return ret;
   }
 
-bgav_packet_t *
+int
 bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
                               bgav_stream_t * s)
   {
   if(!s->packet_buffer)
-    return (bgav_packet_t*)0;
+    return 0;
   
   if(demuxer->peek_forces_read)
     {
@@ -594,15 +599,15 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
     while(!s->packet_buffer->read_packet->valid)
       {
       if(!demuxer_next_packet(demuxer))
-        return (bgav_packet_t*)0;
+        return 0;
       }
     demuxer->request_stream = (bgav_stream_t*)0;
-    return s->packet_buffer->read_packet;
+    return 1;
     }
   else if(s->packet_buffer->read_packet->valid)
-    return s->packet_buffer->read_packet;
+    return 1;
   else
-    return (bgav_packet_t*)0;
+    return 0;
   }
 
 

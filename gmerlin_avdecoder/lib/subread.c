@@ -139,7 +139,7 @@ static int probe_mpsub(char * line)
   float f;
   while(isspace(*line) && (*line != '\0'))
     line++;
-  fprintf(stderr, "Probe mpsub: %s\n", line);
+  //  fprintf(stderr, "Probe mpsub: %s\n", line);
   
   if(!strncmp(line, "FORMAT=TIME", 11) || (sscanf(line, "FORMAT=%f", &f) == 1))
     return 1;
@@ -855,6 +855,13 @@ bgav_packet_t * bgav_subtitle_reader_read_text(bgav_stream_t * s)
   if(ctx->has_subtitle)
     {
     ctx->has_subtitle = 0;
+#if 0
+    fprintf(stderr, "Got text subtitle %lld -> %lld\n%s\n",
+            s->data.subtitle.subreader->p->timestamp_scaled,
+            s->data.subtitle.subreader->p->timestamp_scaled +
+            s->data.subtitle.subreader->p->duration_scaled,
+            s->data.subtitle.subreader->p->data);
+#endif    
     return s->data.subtitle.subreader->p;
     }
   else

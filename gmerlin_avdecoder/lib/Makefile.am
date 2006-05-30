@@ -320,6 +320,7 @@ in_rtsp.c \
 in_vcd.c \
 input.c \
 languages.c \
+log.c \
 metadata.c \
 mms.c \
 nanosoft.c \

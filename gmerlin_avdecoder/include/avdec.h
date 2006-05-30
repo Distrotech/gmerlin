@@ -443,6 +443,43 @@ void bgav_options_set_seamless(bgav_options_t* opt,
 void bgav_options_set_seek_subtitles(bgav_options_t* opt,
                                     int seek_subtitles);
 
+/** \ingroup options
+ *  \brief Enumeration for log levels
+ *
+ * These will be called from within log callbacks
+ */
+
+typedef enum
+  {
+    BGAV_LOG_DEBUG,
+    BGAV_LOG_WARNING,
+    BGAV_LOG_ERROR,
+    BGAV_LOG_INFO
+  } bgav_log_level_t;
+
+/** \ingroup options
+ *  \brief Function to be called for loggins messages
+ *  \param data The data you passed to \ref bgav_options_set_log_callback.
+ *  \param level The log level
+ *  \param log_domain A string describing the module from which the message comes
+ *  \param message The message itself
+ */
+ 
+typedef void (*bgav_log_callback)(void*data, bgav_log_level_t level,
+                                  const char * log_domain,
+                                  const char * message);
+
+/** \ingroup options
+ *  \brief Set the callback for log messages
+ *  \param opt Option container
+ *  \param callback The callback
+ *  \param data Some data you want to get passed to the callback
+ */
+
+void
+bgav_options_set_log_callback(bgav_options_t* opt,
+                              bgav_log_callback callback,
+                              void * data);
 
 
 /* Set callbacks */
@@ -480,7 +517,7 @@ bgav_options_set_name_change_callback(bgav_options_t* opt,
  */
 
 
-typedef void (bgav_metadata_change_callback)(void*data, const bgav_metadata_t * metadata);
+typedef void (*bgav_metadata_change_callback)(void*data, const bgav_metadata_t * metadata);
 
 /** \ingroup options
  *  \brief Set the callback for metadata change events
@@ -504,7 +541,7 @@ bgav_options_set_metadata_change_callback(bgav_options_t* opt,
  *
  */
 
-typedef void (bgav_track_change_callback)(void*data, int track);
+typedef void (*bgav_track_change_callback)(void*data, int track);
 
 /** \ingroup options
  *  \brief Set the callback for track change events

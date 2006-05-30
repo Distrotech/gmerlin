@@ -651,11 +651,12 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       else
         bg_as->data.audio.endianess = BGAV_ENDIANESS_BIG;
       
-
+#if 0
       fprintf(stderr, "%d bytes extradata, fourcc: ", bg_as->ext_size);
       bgav_dump_fourcc(bg_as->fourcc);
       bgav_hexdump(bg_as->ext_data, bg_as->ext_size, 16);
       fprintf(stderr, "\n");
+#endif
       }
     /* Video stream */
     else if(moov->tracks[i].mdia.minf.has_vmhd)

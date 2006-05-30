@@ -33,23 +33,26 @@ typedef struct
   bgav_png_reader_t * png_reader;
   int have_header;
   int need_header;
+  bgav_packet_t * p;
   } png_priv_t;
 
 static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
-  bgav_packet_t * p;
   png_priv_t * priv;
   priv = (png_priv_t*)(s->data.video.decoder->priv);
 
-  p = bgav_demuxer_get_packet_read(s->demuxer, s);
-  if(!p)
-    return 0;
-  
+  if(!priv->have_header)
+    {
+    priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
+    if(!priv->p)
+      return 0;
+    }
   /* We decode only if we have a frame */
   if(priv->need_header)
     {
+    
     if(!bgav_png_reader_read_header(priv->png_reader,
-                                    p->data, p->data_size,
+                                    priv->p->data, priv->p->data_size,
                                     &(s->data.video.format)))
       return 0;
     priv->have_header = 1;
@@ -60,14 +63,15 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
     {
     if(!priv->have_header &&
        !bgav_png_reader_read_header(priv->png_reader,
-                                    p->data, p->data_size,
+                                    priv->p->data, priv->p->data_size,
                                     &(s->data.video.format)))
       return 0;
     if(!bgav_png_reader_read_image(priv->png_reader, frame))
       return 0;
     priv->have_header = 0;
     }
-  bgav_demuxer_done_packet_read(s->demuxer, p);
+  bgav_demuxer_done_packet_read(s->demuxer, priv->p);
+  priv->p = (bgav_packet_t*)0;
   return 1;
   }
 

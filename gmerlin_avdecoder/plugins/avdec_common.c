@@ -23,6 +23,7 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
 #include <avdec.h>
 #include "avdec_common.h"
 
@@ -79,10 +80,39 @@ static void convert_metadata(bg_metadata_t * dst,
   
   }
 
+static void log_callback(void*data, bgav_log_level_t level,
+                         const char * log_domain,
+                         const char * message)
+  {
+  char * domain;
+  bg_log_level_t l;
+  
+  switch(level)
+    {
+    case BGAV_LOG_DEBUG:
+      l = BG_LOG_DEBUG;
+      break;
+    case BGAV_LOG_WARNING:
+      l = BG_LOG_WARNING;
+      break;
+    case BGAV_LOG_ERROR:
+      l = BG_LOG_ERROR;
+      break;
+    case BGAV_LOG_INFO:
+      l = BG_LOG_INFO;
+      break;
+    }
+
+  domain = bg_sprintf("avdecoder.%s", log_domain);
+  bg_log(l, domain, message);
+  free(domain);
+  }
+     
 void * bg_avdec_create()
   {
   avdec_priv * ret = calloc(1, sizeof(*ret));
   ret->opt = bgav_options_create();
+  bgav_options_set_log_callback(ret->opt, log_callback, (void*)0);
   return ret;
   }
 

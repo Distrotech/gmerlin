@@ -228,7 +228,7 @@ int bgav_open_fd(bgav_t * ret, int fd, int64_t total_size, const char * mimetype
 
 void bgav_close(bgav_t * b)
   {
-  fprintf(stderr, "bgav_close\n");
+  //  fprintf(stderr, "bgav_close\n");
   
   if(b->location)
     free(b->location);
@@ -331,54 +331,6 @@ const bgav_metadata_t * bgav_get_metadata(bgav_t*b, int track)
 const char * bgav_get_description(bgav_t * b)
   {
   return b->demuxer->stream_description;
-  }
-
-void
-bgav_options_set_name_change_callback(bgav_options_t * opt,
-                              void (callback)(void*data, const char * name),
-                              void * data)
-  {
-  opt->name_change_callback      = callback;
-  opt->name_change_callback_data = data;
-  //  fprintf(stderr, "bgav_set_name_change_callback\n");
-  }
-
-void
-bgav_options_set_metadata_change_callback(bgav_options_t * opt,
-                                  void (callback)(void*data, const bgav_metadata_t*),
-                                  void * data)
-  {
-  opt->metadata_change_callback      = callback;
-  opt->metadata_change_callback_data = data;
-  }
-
-void
-bgav_options_set_user_pass_callback(bgav_options_t * opt,
-                            int (callback)(void*data, const char * resource, char ** username, char ** password),
-                            void * data)
-  {
-  opt->user_pass_callback      = callback;
-  opt->user_pass_callback_data = data;
-  }
-
-
-void
-bgav_options_set_track_change_callback(bgav_options_t * opt,
-                               void (callback)(void*data, int track),
-                               void * data)
-  {
-  opt->track_change_callback      = callback;
-  opt->track_change_callback_data = data;
-  }
-
-
-void
-bgav_options_set_buffer_callback(bgav_options_t * opt,
-                         void (callback)(void*data, float percentage),
-                         void * data)
-  {
-  opt->buffer_callback      = callback;
-  opt->buffer_callback_data = data;
   }
 
 const char * bgav_get_error(bgav_t * b)

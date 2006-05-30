@@ -188,9 +188,9 @@ static int ogm_header_read(bgav_input_context_t * input, ogm_header_t * ret)
     }
   else if(!strncmp(ret->type, "text", 5))
     {
-    fprintf(stderr, "Found subtitles %lld %lld\n",
-            input->position, input->total_bytes);
-    bgav_input_skip_dump(input, input->total_bytes - input->position);
+    //    fprintf(stderr, "Found subtitles %lld %lld\n",
+    //            input->position, input->total_bytes);
+    //    bgav_input_skip_dump(input, input->total_bytes - input->position);
     return 1;
     }
   else
@@ -835,7 +835,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
                 break;
               case 1:
                 parse_vorbis_comment(s, priv->op.packet+4, priv->op.bytes-4);
-                fprintf(stderr, "Found vorbis comment in old flac header\n");
+                // fprintf(stderr, "Found vorbis comment in old flac header\n");
                 break;
               }
             ogg_stream->header_packets_read++;
@@ -1535,8 +1535,8 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
     else
       {
       serialno = ogg_page_serialno(&(priv->current_page));
-      fprintf(stderr, "New stream detected, serialno %d\n",
-              serialno);
+      //      fprintf(stderr, "New stream detected, serialno %d\n",
+      //              serialno);
       
       }
     }
@@ -1721,8 +1721,8 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
 #endif
         if(priv->op.packet[0] & 0x01) /* Header is already read -> skip it */
           {
-          fprintf(stderr, "Skipping OGM video header, granulepos: %lld\n",
-                  granulepos);
+          //          fprintf(stderr, "Skipping OGM video header, granulepos: %lld\n",
+          //                  granulepos);
           break;
           }
         //        fprintf(stderr, "OGM video data (%d)\n", serialno);
@@ -1792,7 +1792,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         
         if(priv->op.packetno < stream_priv->header_packets_needed)
           {
-          fprintf(stderr, "Skipping speex header\n");
+          //          fprintf(stderr, "Skipping speex header\n");
           break;
           }
         /* Set raw data */
@@ -1809,13 +1809,13 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
 
         if(priv->op.packet[0] & 0x01) /* Header is already read -> skip it */
           {
-          fprintf(stderr, "Skipping OGM subtitle header, granulepos: %lld\n",
-                  granulepos);
+          //          fprintf(stderr, "Skipping OGM subtitle header, granulepos: %lld\n",
+          //                  granulepos);
           break;
           }
         if(!(priv->op.packet[0] & 0x08))
           {
-          fprintf(stderr, "Got non keyframe in subtitle stream\n");
+          //          fprintf(stderr, "Got non keyframe in subtitle stream\n");
           break;
           }
         

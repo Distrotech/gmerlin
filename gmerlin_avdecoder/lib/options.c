@@ -221,6 +221,9 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   CP_INT(name_change_callback);
   CP_INT(name_change_callback_data);
 
+  CP_INT(log_callback);
+  CP_INT(log_callback_data);
+    
   CP_INT(metadata_change_callback);
   CP_INT(metadata_change_callback_data);
 
@@ -238,3 +241,59 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
 #undef CP_INT
 #undef CP_STR
 
+void
+bgav_options_set_name_change_callback(bgav_options_t * opt,
+                                      bgav_name_change_callback callback,
+                                      void * data)
+  {
+  opt->name_change_callback      = callback;
+  opt->name_change_callback_data = data;
+  //  fprintf(stderr, "bgav_set_name_change_callback\n");
+  }
+
+void
+bgav_options_set_metadata_change_callback(bgav_options_t * opt,
+                                          bgav_metadata_change_callback callback,
+                                          void * data)
+  {
+  opt->metadata_change_callback      = callback;
+  opt->metadata_change_callback_data = data;
+  }
+
+void
+bgav_options_set_user_pass_callback(bgav_options_t * opt,
+                                    bgav_user_pass_callback callback,
+                                    void * data)
+  {
+  opt->user_pass_callback      = callback;
+  opt->user_pass_callback_data = data;
+  }
+
+
+void
+bgav_options_set_track_change_callback(bgav_options_t * opt,
+                                       bgav_track_change_callback callback,
+                                       void * data)
+  {
+  opt->track_change_callback      = callback;
+  opt->track_change_callback_data = data;
+  }
+
+
+void
+bgav_options_set_buffer_callback(bgav_options_t * opt,
+                         bgav_buffer_callback callback,
+                         void * data)
+  {
+  opt->buffer_callback      = callback;
+  opt->buffer_callback_data = data;
+  }
+
+void
+bgav_options_set_log_callback(bgav_options_t * opt,
+                              bgav_log_callback callback,
+                              void * data)
+  {
+  opt->log_callback      = callback;
+  opt->log_callback_data = data;
+  }
