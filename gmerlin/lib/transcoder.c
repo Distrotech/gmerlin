@@ -1679,7 +1679,7 @@ static void subtitle_iteration(bg_transcoder_t * t)
     /* Check for decoding */
     if(!ss->has_current)
       {
-      ss->has_current = decode_subtitle_overlay((subtitle_stream_t*)st, t, &ss->ovl1);
+      ss->has_current = decode_subtitle_overlay(ss, t, &ss->ovl1);
       if(ss->has_current && ss->do_convert)
         {
         gavl_video_convert(ss->cnv, ss->ovl1.frame, ss->ovl2.frame);
@@ -1698,8 +1698,8 @@ static void subtitle_iteration(bg_transcoder_t * t)
         ss->com.out_plugin->write_subtitle_overlay(ss->com.out_handle->priv,
                                                    &ss->ovl1,
                                                    ss->com.out_index);
-        if(st->com.ovl1.frame->time_scaled > t->time)
-          t->time = st->com.ovl1.frame->time_scaled;
+        if(ss->ovl1.frame->time_scaled > t->time)
+          t->time = ss->ovl1.frame->time_scaled;
         ss->has_current = 0;
         }
       }
@@ -2543,9 +2543,9 @@ static int start_encoder(bg_transcoder_t * ret, bg_plugin_handle_t  * encoder_ha
 static int init_subtitle_encoders_separate(bg_transcoder_t * ret)
   {
   int i;
-  const bg_plugin_info_t * encoder_info;
-  bg_parameter_info_t * encoder_parameters;
-  bg_cfg_section_t    * encoder_section;
+  const bg_plugin_info_t * encoder_info = (const bg_plugin_info_t*)0;
+  bg_parameter_info_t * encoder_parameters = (bg_parameter_info_t*)0;
+  bg_cfg_section_t    * encoder_section = (bg_cfg_section_t*)0;
   
   bg_plugin_handle_t  * encoder_handle = (bg_plugin_handle_t  *)0;
   bg_encoder_plugin_t * encoder_plugin;
@@ -2670,8 +2670,8 @@ static int init_encoders(bg_transcoder_t * ret)
   bg_parameter_info_t * encoder_parameters;
   bg_cfg_section_t    * encoder_section;
   
-  bg_plugin_handle_t  * encoder_handle = (bg_plugin_handle_t  *)0;
-  bg_encoder_plugin_t * encoder_plugin;
+  bg_plugin_handle_t  * encoder_handle = (bg_plugin_handle_t*)0;
+  bg_encoder_plugin_t * encoder_plugin = (bg_encoder_plugin_t*)0;
 
   if(ret->separate_streams)
     {
@@ -3195,7 +3195,7 @@ static void init_normalize(bg_transcoder_t * ret)
   {
   int i;
   double min, max, absolute;
-  double volume_dB;
+  double volume_dB = 0.0;
   for(i = 0; i < ret->num_audio_streams; i++)
     {
     if(!ret->audio_streams[i].normalize)

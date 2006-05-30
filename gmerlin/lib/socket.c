@@ -374,7 +374,7 @@ int bg_listen_socket_create_inet(int port,
   name.sin_addr.s_addr = htonl (INADDR_ANY);
   if (bind (ret, (struct sockaddr *) &name, sizeof (name)) < 0)
     {
-    fprintf(stderr, "Cannot bind socket\n");
+    //    fprintf(stderr, "Cannot bind socket\n");
     return -1;
     }
   if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)

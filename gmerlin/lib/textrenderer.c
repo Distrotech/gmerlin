@@ -794,7 +794,7 @@ void bg_text_renderer_set_parameter(void * data, char * name,
     {
     if(!r->font || strcmp(val->val_str, r->font))
       {
-      fprintf(stderr, "Set font %s -> %s\n", r->font, val->val_str);
+      //      fprintf(stderr, "Set font %s -> %s\n", r->font, val->val_str);
       r->font = bg_strdup(r->font, val->val_str);
       r->font_changed = 1;
       }

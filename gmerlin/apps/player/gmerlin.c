@@ -214,7 +214,18 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
     bg_cfg_registry_find_section(cfg_reg, "Logwindow");
   ret->infowindow_section =
     bg_cfg_registry_find_section(cfg_reg, "Infowindow");
-    
+
+  /* Log window should be created quite early so we can catch messages
+     during startup */
+
+  ret->log_window = bg_gtk_log_window_create(logwindow_close_callback, 
+                                             ret);
+
+  bg_cfg_section_apply(ret->logwindow_section,
+                       bg_gtk_log_window_get_parameters(ret->log_window),
+                       bg_gtk_log_window_set_parameter,
+                       (void*)ret->log_window);
+  
   /* Create player instance */
   
   ret->player = bg_player_create();
@@ -257,9 +268,6 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   ret->info_window = bg_gtk_info_window_create(ret->player,
                                                infowindow_close_callback, 
                                                ret);
-
-  ret->log_window = bg_gtk_log_window_create(logwindow_close_callback, 
-                                             ret);
 
   ret->plugin_window = plugin_window_create(ret,
                                             pluginwindow_close_callback, 

@@ -433,6 +433,7 @@ static void ping_func(void * data)
       
       //      fprintf(stderr, "Put still...");
       bg_plugin_lock(ctx->plugin_handle);
+      
       ctx->plugin->put_still(ctx->priv, ctx->still_frame);
       bg_plugin_unlock(ctx->plugin_handle);
       //      fprintf(stderr, "Done\n");
@@ -505,8 +506,10 @@ void * bg_player_ov_thread(void * data)
 
     /* Get frame time */
     ctx->frame_time = gavl_time_unscale(ctx->player->video_stream.output_format.timescale,
-                                   ctx->frame->time_scaled);
+                                        ctx->frame->time_scaled);
 
+    //    fprintf(stderr, "OV: Frame time: %lld\n", ctx->frame_time);
+    
     /* Subtitle handling */
     if(ctx->player->do_subtitle_text || ctx->player->do_subtitle_overlay)
       {

@@ -198,7 +198,7 @@ static void add_track_vcdimager(void * data, const char * filename,
 static void parse_output_line(vcdimager_t * vcdimager, char * line)
   {
   int position, size;
-  bg_log_level_t log_level;
+  bg_log_level_t log_level = 0;
   char * start, *end, *id, * str;
 
   if(!strncmp(line, "<log ", 5))

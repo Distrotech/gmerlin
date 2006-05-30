@@ -233,7 +233,7 @@ int32_t get_wav_length(const char * filename)
 void add_track_cdrdao(void * data, const char * filename,
                       bg_metadata_t * metadata)
   {
-  int32_t duration;
+  int32_t duration = 0;
   cdrdao_t * cdrdao;
   cdrdao = (cdrdao_t*)data;
 

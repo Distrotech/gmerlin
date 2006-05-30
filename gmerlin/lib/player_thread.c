@@ -2,7 +2,7 @@
  
   player_thread.c
  
-  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
   http://gmerlin.sourceforge.net
  
@@ -20,8 +20,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "player.h"
-#include "playerprivate.h"
+
+#include <player.h>
+#include <playerprivate.h>
+#include <log.h>
+
+#define LOG_DOMAIN "player"
 
 /* Metadata */
 
@@ -649,22 +653,22 @@ static void stop_cmd(bg_player_t * player, int new_state)
     /* Input thread is joined before entering still mode */
     if(old_state != BG_PLAYER_STATE_STILL)
       {
-      fprintf(stderr, "Joining input thread...");
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining input thread...");
       pthread_join(player->input_thread, (void**)0);
-      fprintf(stderr, "done\n");
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining input thread done");
       }
 
     if(player->do_audio)
       {
-      fprintf(stderr, "Joining audio thread...");
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining audio thread...");
       pthread_join(player->oa_thread, (void**)0);
-      fprintf(stderr, "done\n");
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining audio thread done");
       }
     if(player->do_video || player->do_still)
       {
-      fprintf(stderr, "Joining video thread...");
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining video thread...");
       pthread_join(player->ov_thread, (void**)0);
-      fprintf(stderr, "done\n");
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining video thread done");
       }
     if(player->do_audio)
       bg_player_oa_stop(player->oa_context);
@@ -1016,9 +1020,9 @@ static int process_commands(bg_player_t * player)
           {
           case BG_PLAYER_STATE_STILL:
             /* Close down input plugin */
-            fprintf(stderr, "Joining input thread...");
+            bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining input thread...");
             pthread_join(player->input_thread, (void**)0);
-            fprintf(stderr, "done\n");
+            bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining input thread done");
             bg_player_set_state(player, BG_PLAYER_STATE_STILL, NULL, NULL);
             break;
           case BG_PLAYER_STATE_FINISHING:
@@ -1030,21 +1034,21 @@ static int process_commands(bg_player_t * player)
           
             if(state != BG_PLAYER_STATE_STILL)
               {
-              fprintf(stderr, "Joining input thread...");
+              bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining input thread...");
               pthread_join(player->input_thread, (void**)0);
-              fprintf(stderr, "done\n");
+              bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining input thread done");
               }
             if(player->do_audio)
               {
-              fprintf(stderr, "Joining audio thread...");
+              bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining audio thread...");
               pthread_join(player->oa_thread, (void**)0);
-              fprintf(stderr, "done\n");
+              bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining audio thread done");
               }
             if(player->do_video || player->do_still)
               {
-              fprintf(stderr, "Joining video thread...");
+              bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining video thread...");
               pthread_join(player->ov_thread, (void**)0);
-              fprintf(stderr, "done\n");
+              bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Joining video thread done");
               }
             player_cleanup(player);
             next_track = 1;

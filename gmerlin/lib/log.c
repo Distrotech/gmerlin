@@ -56,7 +56,8 @@ const char * bg_log_level_to_string(bg_log_level_t level)
 
 static bg_msg_queue_t * log_queue = (bg_msg_queue_t*)0;
 
-void bg_log(bg_log_level_t level, const char * domain, char * format, ...)
+void bg_log(bg_log_level_t level, const char * domain,
+            const char * format, ...)
   {
   char * msg_string;
   bg_msg_t * msg;

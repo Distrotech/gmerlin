@@ -25,10 +25,13 @@
 #include <remote.h>
 #include <bgsocket.h>
 #include <utils.h>
+#include <log.h>
 
 /* For INADDR_ Macros */
 
 #include <netinet/in.h>
+
+#define LOG_DOMAIN "remote_server"
 
 /*
  *  Server
@@ -78,7 +81,8 @@ int bg_remote_server_init(bg_remote_server_t * s)
                                        s->allow_remote ? INADDR_ANY : INADDR_LOOPBACK);
   if(s->fd < 0)
     {
-    fprintf(stderr, "Setting up socket failed, this instance won't be reachable via remote\n");
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+           "Setting up socket failed, this instance won't be reachable via remote");
     return 0;
     }
 

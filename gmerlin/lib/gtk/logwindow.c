@@ -123,6 +123,7 @@ static gboolean idle_callback(gpointer data)
   int i;
   char ** lines;
   int got_message = 0;
+  int do_log = 0;
   
   w = (bg_gtk_log_window_t *)data;
   
@@ -142,48 +143,57 @@ static gboolean idle_callback(gpointer data)
       {
       case BG_LOG_DEBUG:
         tag = w->debug_tag;
+        if(w->show_debug) do_log = 1;
         break;
       case BG_LOG_WARNING:
         tag = w->warning_tag;
+        if(w->show_warning) do_log = 1;
         break;
       case BG_LOG_ERROR:
         tag = w->error_tag;
+        if(w->show_error) do_log = 1;
         break;
       case BG_LOG_INFO:
         tag = w->info_tag;
+        if(w->show_info) do_log = 1;
         break;
       }
-    
-    gtk_text_buffer_get_end_iter(w->buffer, &iter);
 
-    if(*message == '\0') /* Empty string */
+    if(do_log)
       {
-      str = bg_sprintf("[%s]\n", domain);
-      gtk_text_buffer_insert_with_tags(w->buffer,
-                                       &iter,
-                                       str, -1, tag, NULL);
-      }
-    else
-      {
-      lines = bg_strbreak(message, '\n');
-      i = 0;
-      while(lines[i])
+      
+      gtk_text_buffer_get_end_iter(w->buffer, &iter);
+
+      if(*message == '\0') /* Empty string */
         {
-        str = bg_sprintf("[%s]: %s\n", domain, lines[i]);
+        str = bg_sprintf("[%s]\n", domain);
         gtk_text_buffer_insert_with_tags(w->buffer,
                                          &iter,
                                          str, -1, tag, NULL);
-        free(str);
-        i++;
         }
-      bg_strbreak_free(lines);
+      else
+        {
+        lines = bg_strbreak(message, '\n');
+        i = 0;
+        while(lines[i])
+          {
+          str = bg_sprintf("[%s]: %s\n", domain, lines[i]);
+          gtk_text_buffer_insert_with_tags(w->buffer,
+                                           &iter,
+                                           str, -1, tag, NULL);
+          free(str);
+          i++;
+          }
+        bg_strbreak_free(lines);
+        }
+      w->num_messages++;
+      got_message = 1;
       }
+
     free(message);
     free(domain);
 
     bg_msg_queue_unlock_read(w->queue);
-    w->num_messages++;
-    got_message = 1;
     }
   if(got_message)
     changed_callback(w);

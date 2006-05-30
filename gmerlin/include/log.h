@@ -33,7 +33,8 @@ typedef enum
     BG_LOG_INFO
   } bg_log_level_t;
 
-void bg_log(bg_log_level_t level, const char * domain, char * format, ...);
+void bg_log(bg_log_level_t level, const char * domain,
+            const char * format, ...);
 
 void bg_set_log_dest(bg_msg_queue_t *);
 

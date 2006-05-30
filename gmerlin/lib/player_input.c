@@ -34,6 +34,7 @@ struct bg_player_input_context_s
 
   int audio_finished;
   int video_finished;
+  int subtitle_finished;
   int send_silence;
     
   int64_t audio_samples_written;
@@ -435,11 +436,15 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
     ctx->audio_samples_written += audio_frame->valid_samples;
     }
   
-  if(ctx->audio_finished && !ctx->video_finished)
+  if(ctx->audio_finished &&
+     (!ctx->video_finished || !ctx->subtitle_finished))
     ctx->send_silence = 1;
   
-  bg_fifo_unlock_write(s->fifo, ctx->audio_finished && ctx->video_finished);
-
+  bg_fifo_unlock_write(s->fifo,
+                       ctx->audio_finished &&
+                       ctx->video_finished &&
+                       ctx->subtitle_finished);
+  
   ctx->audio_time =
     gavl_samples_to_time(ctx->player->audio_stream.input_format.samplerate,
                          ctx->audio_samples_written);
@@ -463,14 +468,10 @@ static int process_subtitle(bg_player_input_context_t * ctx)
   bg_player_subtitle_stream_t * s;
   bg_fifo_state_t state;
   
-  if(!ctx->player->do_subtitle_text &&
-     !ctx->player->do_subtitle_overlay)
-    return 0;
-
   s = &(ctx->player->subtitle_stream);
 
-  //fprintf(stderr, "Process subtitle %d %d\n", ctx->player->do_subtitle_text,
-  //            ctx->player->do_subtitle_overlay);
+  //  fprintf(stderr, "Process subtitle %d %d\n", ctx->player->do_subtitle_text,
+  //          ctx->player->do_subtitle_overlay);
 
   
   if(ctx->plugin->has_subtitle(ctx->priv,
@@ -492,8 +493,10 @@ static int process_subtitle(bg_player_input_context_t * ctx)
                                           &(s->buffer_alloc),
                                           &start, &duration,
                                           ctx->player->current_subtitle_stream))
+        {
+        ctx->subtitle_finished = 1;
         return 0;
-
+        }
       bg_text_renderer_render(s->renderer, s->buffer, ovl);
       ovl->frame->time_scaled = start;
       ovl->frame->duration_scaled = duration;
@@ -516,7 +519,10 @@ static int process_subtitle(bg_player_input_context_t * ctx)
       {
       if(!ctx->plugin->read_subtitle_overlay(ctx->priv, ovl,
                                              ctx->player->current_subtitle_stream))
+        {
+        ctx->subtitle_finished = 1;
         return 0;
+        }
       }
     bg_fifo_unlock_write(s->fifo, 0); /* Subtitle streams never signal eof! */
     }
@@ -556,11 +562,6 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
       ctx->video_time = gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
                                           ctx->player->video_stream.frame->time_scaled);
     gavl_video_convert(s->cnv, ctx->player->video_stream.frame, video_frame);
-#if 0
-    fprintf(stderr, "Video Frame time: %lld %lld\n",
-            ctx->player->video_stream.frame->time,
-            video_frame->time);
-#endif
     }
   else
     {
@@ -580,13 +581,19 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     bg_plugin_unlock(ctx->plugin_handle);
     if(!result)
       ctx->video_finished = 1;
-    ctx->video_time = gavl_time_unscale(ctx->player->video_stream.input_format.timescale, video_frame->time_scaled);
+    ctx->video_time =
+      gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
+                        video_frame->time_scaled);
     ctx->video_frames_written++;
     }
+
+#if 0
+    fprintf(stderr, "INP: Video Frame time: %lld\n",
+            video_frame->time_scaled);
+#endif
+  
   bg_fifo_unlock_write(s->fifo, ctx->video_finished);
 
-  if(!ctx->video_finished && !preload)
-    process_subtitle(ctx);
 #if 0
   if(ctx->video_finished)
     fprintf(stderr, "Process video: EOF\n");
@@ -602,16 +609,22 @@ void * bg_player_input_thread(void * data)
   bg_fifo_state_t state;
   int do_audio;
   int do_video;
+  int do_subtitle;
   
   int read_audio;
   
   ctx = (bg_player_input_context_t*)data;
 
   do_audio = ctx->player->do_audio;
-  do_video = ((ctx->player->do_video) || (ctx->player->do_still));
+  do_video = ctx->player->do_video || ctx->player->do_still;
+  do_subtitle =
+    ctx->player->do_subtitle_overlay ||
+    ctx->player->do_subtitle_text;
   
   ctx->audio_finished = !do_audio;
   ctx->video_finished = !do_video;
+  ctx->subtitle_finished = !do_subtitle;
+  
   ctx->send_silence = 0;
   ctx->audio_samples_written = 0;
   
@@ -631,6 +644,10 @@ void * bg_player_input_thread(void * data)
       {
       return NULL;
       }
+
+    /* Read subtitles early */
+    if(!ctx->subtitle_finished)
+      process_subtitle(ctx);
     
     /* Check for EOF here */
     if(ctx->audio_finished && ctx->video_finished)
@@ -735,10 +752,13 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
   int do_audio;
   int do_video;
   int do_still;
+  int do_subtitle;
 
   do_audio = ctx->player->do_audio;
   do_video = ctx->player->do_video;
   do_still = ctx->player->do_still;
+  do_subtitle = ctx->player->do_subtitle_text || 
+    ctx->player->do_subtitle_overlay;
 
   if(do_still)
     {
@@ -748,6 +768,8 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
   
   while(do_audio || do_video)
     {
+    if(do_subtitle)
+      do_subtitle = process_subtitle(ctx);
     if(do_audio)
       do_audio = process_audio(ctx, 1);
     if(do_video)

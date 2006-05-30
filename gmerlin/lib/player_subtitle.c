@@ -99,7 +99,8 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
   
   /* Initialize subtitle fifo */
 
-  player->subtitle_stream.fifo = bg_fifo_create(1, create_frame, (void*)(s));
+  player->subtitle_stream.fifo = bg_fifo_create(NUM_SUBTITLE_FRAMES,
+                                                create_frame, (void*)(s));
   bg_player_ov_set_subtitle_format(player->ov_context,
                                    &(player->subtitle_stream.format));
 

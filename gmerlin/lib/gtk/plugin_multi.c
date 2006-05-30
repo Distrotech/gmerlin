@@ -47,7 +47,6 @@ struct bg_gtk_plugin_widget_multi_s
   
   bg_plugin_registry_t * reg;
   const bg_plugin_info_t * info;
-  bg_plugin_handle_t * handle;
 
   bg_parameter_info_t * parameters;
   bg_cfg_section_t * section;
@@ -77,9 +76,9 @@ static void button_callback(GtkWidget * w, gpointer data)
   else if(w == win->config_button)
     {
     dialog = bg_dialog_create(win->section,
-                              win->handle->plugin->set_parameter,
-                              win->handle->priv, win->parameters,
-                              win->handle->info->long_name);
+                              NULL, NULL,
+                              win->parameters,
+                              win->info->long_name);
     bg_dialog_show(dialog);
     bg_dialog_destroy(dialog);
     }
@@ -170,21 +169,17 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
       }
     }
 #endif
-  if(win->handle)
-    bg_plugin_unref(win->handle);
   
   win->info = bg_plugin_find_by_long_name(win->reg, long_name);
 
-  win->handle = bg_plugin_load(win->reg, win->info);
-
-  if(win->handle->plugin->get_parameters)
-    win->parameters = win->handle->plugin->get_parameters(win->handle->priv);
+  if(win->info->parameters)
+    win->parameters = win->info->parameters;
   else
     win->parameters = (bg_parameter_info_t*)0;
   
   win->section = bg_plugin_registry_get_section(win->reg, win->info->name);
   
-  if(win->parameters && win->handle->plugin->set_parameter)
+  if(win->parameters)
     gtk_widget_set_sensitive(win->config_button, 1);
   else
     gtk_widget_set_sensitive(win->config_button, 0);

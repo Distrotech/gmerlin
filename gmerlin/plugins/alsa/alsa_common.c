@@ -286,8 +286,8 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   
   snd_pcm_hw_params_get_buffer_size(hw_params, &buffer_size);
 
-  fprintf(stderr, "Buffer size: %ld, period_size: %ld\n",
-          buffer_size, period_size);
+  //  fprintf(stderr, "Buffer size: %ld, period_size: %ld\n",
+  //          buffer_size, period_size);
   
   format->samples_per_frame = period_size;
   

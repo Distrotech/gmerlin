@@ -342,6 +342,7 @@ void bg_player_subtitle_destroy(bg_player_t * p);
 
 /* Number of frames in the buffers */
 
-#define NUM_AUDIO_FRAMES 8
-#define NUM_VIDEO_FRAMES 8
+#define NUM_AUDIO_FRAMES    8
+#define NUM_VIDEO_FRAMES    4
+#define NUM_SUBTITLE_FRAMES 4
 
