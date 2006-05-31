@@ -17,8 +17,8 @@
 ################################################################## 
 # TO DO:
 # packets control: 
-#   UBUNTU: freetype pack
-#   FEDORA + UBUNTU: nasm + libcddb packs
+#   UBUNTU: freetype pack 
+#   FEDORA + UBUNTU: nasm + libcddb packs + mikmod
 
 
 
