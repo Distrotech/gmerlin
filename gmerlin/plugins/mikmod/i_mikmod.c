@@ -115,7 +115,7 @@ static int open_mikmod(void * data, const char * arg)
   
   gavl_set_channel_setup(&(mik->track_info.audio_streams[0].format));
 
-  command = bg_sprintf("mikmod -q -f %d -d stdout", mik->frequency);
+  command = bg_sprintf("mikmod -q --playmode 0 --noloops --exitafter -f %d -d stdout", mik->frequency);
     
   if(mik->output == MONO8)
     {
