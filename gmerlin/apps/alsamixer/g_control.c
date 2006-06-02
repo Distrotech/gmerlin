@@ -1,6 +1,10 @@
+#include <config.h>
 #include <utils.h>
 #include <parameter.h>
 #include "gui.h"
+
+#include <gui_gtk/aboutwindow.h>
+
 
 #if GTK_MINOR_VERSION >= 4
 #define GTK_2_4
@@ -20,6 +24,13 @@
 #define TYPE_VOLUME     16
 #define TYPE_TONE       17
 
+static bg_gtk_about_window_t * about_window = (bg_gtk_about_window_t*)0;
+
+static void about_window_close_callback(bg_gtk_about_window_t * w,
+                                        void * data)
+  {
+  about_window = (bg_gtk_about_window_t*)0;
+  }
 
 static GtkWidget * create_pixmap_toggle_button(const char * filename)
   {
@@ -574,6 +585,7 @@ typedef struct
   GtkWidget * last;
   GtkWidget * tearoff;
   GtkWidget * config;
+  GtkWidget * about;
   GtkWidget * menu;
   } menu_t;
 
@@ -677,6 +689,14 @@ static void menu_callback(GtkWidget * w, gpointer data)
     //    card_widget_tearoff_control(wid->card, wid);
     //    fprintf(stderr, "Config\n");
     }
+  else if(w == wid->menu.about)
+    {
+    about_window = bg_gtk_about_window_create("Gmerlin Alsamixer",
+                                              VERSION,
+                                              "mixer_icon.png",
+                                              about_window_close_callback,
+                                              (void*)0);
+    }
   }
 
 static GtkWidget * create_pixmap_item(const char * filename)
@@ -702,12 +722,13 @@ static GtkWidget * create_pixmap_item(const char * filename)
 
 static void init_menu(control_widget_t * w)
   {
-  w->menu.left  = create_pixmap_item("left_16.png");
-  w->menu.right = create_pixmap_item("right_16.png");
-  w->menu.first = create_pixmap_item("first_16.png");
-  w->menu.last  = create_pixmap_item("last_16.png");
-  w->menu.tearoff  = create_pixmap_item("tearoff_16.png");
+  w->menu.left    = create_pixmap_item("left_16.png");
+  w->menu.right   = create_pixmap_item("right_16.png");
+  w->menu.first   = create_pixmap_item("first_16.png");
+  w->menu.last    = create_pixmap_item("last_16.png");
+  w->menu.tearoff = create_pixmap_item("tearoff_16.png");
   w->menu.config  = create_pixmap_item("config_16.png");
+  w->menu.about   = create_pixmap_item("info_16.png");
 
   g_signal_connect(w->menu.left, "activate",
                    G_CALLBACK(menu_callback), w);
@@ -727,12 +748,16 @@ static void init_menu(control_widget_t * w)
   g_signal_connect(w->menu.config, "activate",
                    G_CALLBACK(menu_callback), w);
 
+  g_signal_connect(w->menu.about, "activate",
+                   G_CALLBACK(menu_callback), w);
+  
   gtk_widget_show(w->menu.left);
   gtk_widget_show(w->menu.right);
   gtk_widget_show(w->menu.first);
   gtk_widget_show(w->menu.last);
   gtk_widget_show(w->menu.tearoff);
   gtk_widget_show(w->menu.config);
+  gtk_widget_show(w->menu.about);
 
   w->menu.menu = gtk_menu_new();
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.left);
@@ -741,6 +766,7 @@ static void init_menu(control_widget_t * w)
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.last);
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.tearoff);
   gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.config);
+  gtk_menu_shell_append(GTK_MENU_SHELL(w->menu.menu), w->menu.about);
   gtk_widget_show(w->menu.menu);
   }
 
@@ -1245,6 +1271,10 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
   
   if(evt->button == 3)
     {
+    if(about_window)
+      gtk_widget_set_sensitive(wid->menu.about, 0);
+    else
+      gtk_widget_set_sensitive(wid->menu.about, 1);
     gtk_menu_popup(GTK_MENU(wid->menu.menu),
                    (GtkWidget *)0,
                    (GtkWidget *)0,

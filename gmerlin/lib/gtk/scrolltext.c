@@ -372,6 +372,8 @@ void bg_gtk_scrolltext_set_font(bg_gtk_scrolltext_t * d, const char * font)
 
 void bg_gtk_scrolltext_destroy(bg_gtk_scrolltext_t * d)
   {
+  if(d->do_scroll)
+    g_source_remove(d->timeout_tag);
   if(d->font_desc)
     pango_font_description_free(d->font_desc);
   if(d->text)

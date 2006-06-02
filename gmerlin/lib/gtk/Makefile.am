@@ -4,6 +4,7 @@ lib_LTLIBRARIES = libgmerlin_gtk.la
 noinst_HEADERS = gtk_dialog.h
 
 libgmerlin_gtk_la_SOURCES = \
+aboutwindow.c \
 albumentry.c \
 albumwidget.c \
 albumwindow.c \
@@ -42,6 +43,7 @@ textview.c \
 textwindow.c \
 treewidget.c \
 treewindow.c \
+urllink.c \
 urlselect.c \
 vumeter.c
 

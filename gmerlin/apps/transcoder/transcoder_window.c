@@ -39,6 +39,7 @@
 #include <gui_gtk/scrolltext.h>
 #include <gui_gtk/gtkutils.h>
 #include <gui_gtk/logwindow.h>
+#include <gui_gtk/aboutwindow.h>
 
 #include "transcoder_window.h"
 #include "transcoder_remote.h"
@@ -137,6 +138,7 @@ struct transcoder_window_s
   struct
     {
     GtkWidget * log_item;
+    GtkWidget * about_item;
     GtkWidget * menu;
     } windows_menu;
     
@@ -555,6 +557,12 @@ static void filesel_set_path(GtkWidget * filesel, char * path)
     gtk_file_selection_set_filename(GTK_FILE_SELECTION(filesel), path);
   }
 
+static void about_window_close_callback(bg_gtk_about_window_t * w,
+                                        void * data)
+  {
+  transcoder_window_t * win = (transcoder_window_t *)data;
+  gtk_widget_set_sensitive(win->windows_menu.about_item, 1);
+  }
                              
 static void button_callback(GtkWidget * w, gpointer data)
   {
@@ -742,6 +750,14 @@ static void button_callback(GtkWidget * w, gpointer data)
       }
     }
 
+  else if(w == win->windows_menu.about_item)
+    {
+    bg_gtk_about_window_create("Gmerlin transcoder", VERSION,
+                               "transcoder_icon.png", about_window_close_callback,
+                               win);
+    gtk_widget_set_sensitive(win->windows_menu.about_item, 0);
+    }
+
   }
 
 static GtkWidget * create_pixmap_button(transcoder_window_t * win,
@@ -872,6 +888,7 @@ static void init_menus(transcoder_window_t * w)
 
   w->windows_menu.menu = gtk_menu_new();
   w->windows_menu.log_item = create_toggle_item(w, w->windows_menu.menu, "Log messages");
+  w->windows_menu.about_item = create_item(w, w->windows_menu.menu, "About...", (char*)0);
   gtk_widget_show(w->windows_menu.menu);
 
   

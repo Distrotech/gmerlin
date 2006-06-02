@@ -17,9 +17,12 @@
  
 *****************************************************************/
 
+#include <config.h>
 #include "gmerlin.h"
 #include <utils.h>
 #include <gdk/gdkkeysyms.h>
+
+#include <gui_gtk/aboutwindow.h>
 
 typedef struct stream_menu_s
   {
@@ -44,6 +47,7 @@ struct windows_menu_s
   guint       infowindow_id;
   GtkWidget * logwindow;
   guint       logwindow_id;
+  GtkWidget * about;
   GtkWidget * menu;
   };
 
@@ -136,11 +140,22 @@ static int stream_menu_has_widget(stream_menu_t * s,
   return 0;
   }
 
+void about_window_close_callback(bg_gtk_about_window_t* win, void* data)
+  {
+  gmerlin_t * g;
+  main_menu_t * the_menu;
+
+  g = (gmerlin_t*)data;
+  the_menu = g->player_window->main_menu;
+  gtk_widget_set_sensitive(the_menu->windows_menu.about, 1);
+  }
+
 static void menu_callback(GtkWidget * w, gpointer data)
   {
   int stream_index;
   gmerlin_t * g;
   main_menu_t * the_menu;
+
   g = (gmerlin_t*)data;
   the_menu = g->player_window->main_menu;
   
@@ -189,8 +204,15 @@ static void menu_callback(GtkWidget * w, gpointer data)
       g->show_log_window = 0;
       }
     }
+  else if(w == the_menu->windows_menu.about)
+    {
+    gtk_widget_set_sensitive(the_menu->windows_menu.about, 0);
+    bg_gtk_about_window_create("Gmerlin player", VERSION,
+                               "player_icon.png",
+                               about_window_close_callback,
+                               g);
+    }
   
-
   else if(w == the_menu->windows_menu.mediatree)
     {
     if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(the_menu->windows_menu.mediatree)))
@@ -568,6 +590,7 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   ret->windows_menu.logwindow =
     create_toggle_item("Log window", gmerlin, ret->windows_menu.menu,
                        &ret->windows_menu.logwindow_id);
+  ret->windows_menu.about = create_item("About...", gmerlin, ret->windows_menu.menu);
   gtk_widget_show(ret->windows_menu.menu);
 
   /* Streams */

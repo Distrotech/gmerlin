@@ -49,10 +49,12 @@ int bg_pwc_probe(int fd)
 
   if(ioctl(fd, VIDIOCPWCPROBE, &p) < 0)
     return 0;
-
+  
   if(ioctl(fd, VIDIOCGCAP, &c) < 0)
     return 0;
 
+  //  fprintf(stderr, "p.name: %s, c.name: %s\n", p.name, c.name);
+  
   if(!strcmp(p.name, c.name))
     return 1;
   return 0;
@@ -216,6 +218,8 @@ void * bg_pwc_get_parameters(int fd, bg_parameter_info_t ** parameters)
   int num_generic_parameters;
   int num_pwc_parameters;
   pwc_priv_t * ret;
+
+  fprintf(stderr, "bg_pwc_get_parameters\n");
   
   p = *parameters;
   

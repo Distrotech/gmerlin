@@ -76,6 +76,7 @@ static void set_parameter(void * data, char * name,
 
 static void button_callback(GtkWidget * w, gpointer data)
   {
+  bg_parameter_info_t * parameters;
   bg_gtk_plugin_widget_single_t * widget;
   
   bg_dialog_t * dialog;
@@ -88,10 +89,14 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == widget->config_button)
     {
+    if(widget->handle)
+      parameters = widget->handle->plugin->get_parameters(widget->handle->priv);
+    else
+      parameters = widget->info->parameters;
     dialog = bg_dialog_create(widget->section,
                               set_parameter,
                               (void*)widget,
-                              widget->info->parameters,
+                              parameters,
                               widget->info->long_name);
     bg_dialog_show(dialog);
     bg_dialog_destroy(dialog);

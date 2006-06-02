@@ -30,6 +30,7 @@
 
 #include <config.h>
 #include <utils.h>
+#include <subprocess.h>
 
 char * bg_search_file_read(const char * directory, const char * file)
   {
@@ -190,4 +191,48 @@ int bg_search_file_exec(const char * file, char ** _path)
     }
   bg_strbreak_free(searchpaths);
   return 0;
+  }
+
+static struct
+  {
+  char * command;
+  char * template;
+  }
+webbrowsers[] =
+  {
+    { "firefox", "firefox %s" },
+    { "mozilla", "mozilla %s" },
+  };
+
+char * bg_find_url_launcher()
+  {
+  int i;
+  char * ret = (char*)0;
+  int ret_alloc = 0;
+  bg_subprocess_t * proc;
+  /* Try to get the default url handler from gnome */
+  
+  if(bg_search_file_exec("gconftool-2", (char**)0))
+    {
+    proc =
+      bg_subprocess_create("gconftool-2 -g /desktop/gnome/url-handlers/http/command",
+                           0, 1, 0);
+    
+    if(bg_subprocess_read_line(proc->stdout, &ret, &ret_alloc, 0))
+      {
+      bg_subprocess_close(proc);
+      return ret;
+      }
+    else if(ret)
+      free(ret);
+    bg_subprocess_close(proc);
+    }
+  for(i = 0; i < sizeof(webbrowsers)/sizeof(webbrowsers[0]); i++)
+    {
+    if(bg_search_file_exec(webbrowsers[i].command, (char**)0))
+      {
+      return bg_strdup((char*)0, webbrowsers[i].template);
+      }
+    }
+  return (char*)0;
   }

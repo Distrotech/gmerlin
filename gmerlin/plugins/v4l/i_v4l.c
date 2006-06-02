@@ -211,8 +211,8 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
 
   v4l->have_pwc = bg_pwc_probe(v4l->fd);
 
-  //  if(v4l->have_pwc)
-  //    fprintf(stderr, "Phillips webcam detected\n");
+  if(v4l->have_pwc)
+    fprintf(stderr, "Phillips webcam detected\n");
   
   /* Set Picture */
   
@@ -532,6 +532,17 @@ static void create_parameters(v4l_t * v4l)
     bg_parameter_info_destroy_array(v4l->parameters);
   v4l->parameters = bg_parameter_info_copy_array(parameters);
 
+#if 0  
+  if((v4l->fd < 0) &&
+     ((v4l->fd = open(v4l->device, O_RDWR, 0)) >= 0))
+    {
+    v4l->have_pwc = bg_pwc_probe(v4l->fd);
+    close(v4l->fd);
+    v4l->fd = -1;
+    }
+#endif
+  fprintf(stderr, "Have PWC: %d\n", v4l->have_pwc);
+  
   if(v4l->have_pwc)
     {
     v4l->pwc_priv = bg_pwc_get_parameters(v4l->fd, &(v4l->parameters));

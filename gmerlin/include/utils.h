@@ -164,5 +164,8 @@ int bg_overlay_too_old(gavl_time_t time, gavl_time_t ovl_time,
 
 int bg_overlay_too_new(gavl_time_t time, gavl_time_t ovl_time);
 
+/* Find an URL launcher */
+
+char * bg_find_url_launcher();
 
 #endif // __BG_UTILS_H_

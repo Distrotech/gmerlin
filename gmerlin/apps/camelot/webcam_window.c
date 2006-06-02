@@ -15,6 +15,7 @@
 #include <gui_gtk/fileentry.h>
 #include <gui_gtk/message.h>
 #include <gui_gtk/gtkutils.h>
+#include <gui_gtk/aboutwindow.h>
 
 #define DELAY_TIME 100
 
@@ -38,6 +39,7 @@ struct gmerlin_webcam_window_s
   GtkWidget * capture_framerate;
   
   GtkWidget * statusbar;
+  GtkWidget * about_button;
 
   bg_msg_queue_t * cmd_queue;
   bg_msg_queue_t * msg_queue;
@@ -102,6 +104,14 @@ static void set_monitor_plugin(const bg_plugin_info_t * info, void *  data)
   bg_msg_set_id(msg, CMD_SET_MONITOR_PLUGIN);
   bg_msg_set_arg_ptr_nocopy(msg, 0, h);
   bg_msg_queue_unlock_write(w->cmd_queue);
+  }
+
+static void about_window_close_callback(bg_gtk_about_window_t * w,
+                                        void * data)
+  {
+  gmerlin_webcam_window_t * win;
+  win = (gmerlin_webcam_window_t *)data;
+  gtk_widget_set_sensitive(win->about_button, 1);
   }
 
 static void button_callback(GtkWidget * w, gpointer data)
@@ -174,6 +184,14 @@ static void button_callback(GtkWidget * w, gpointer data)
       (msg, 0, gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(win->output_frame_counter)));
     bg_msg_queue_unlock_write(win->cmd_queue);
     }
+  else if(w == win->about_button)
+    {
+    gtk_widget_set_sensitive(win->about_button, 0);
+    bg_gtk_about_window_create("Camelot", VERSION,
+                               "camelot_icon.png", about_window_close_callback,
+                               win);
+    }
+  
   }
 
 static gboolean timeout_func(gpointer data)
@@ -253,12 +271,44 @@ static void delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
   gtk_main_quit();
   }
 
+static GtkWidget * create_pixmap_button(gmerlin_webcam_window_t * w,
+                                        const char * filename,
+                                        const char * tooltip,
+                                        const char * tooltip_private)
+  {
+  GtkWidget * button;
+  GtkWidget * image;
+  char * path;
+  path = bg_search_file_read("icons", filename);
+  if(path)
+    {
+    image = gtk_image_new_from_file(path);
+    free(path);
+    }
+  else
+    image = gtk_image_new();
+
+  gtk_widget_show(image);
+  button = gtk_button_new();
+  gtk_container_add(GTK_CONTAINER(button), image);
+
+  g_signal_connect(G_OBJECT(button), "clicked",
+                   G_CALLBACK(button_callback), w);
+
+  gtk_widget_show(button);
+
+  gtk_tooltips_set_tip(w->tooltips, button, tooltip, tooltip_private);
+  
+  return button;
+  }
+
 gmerlin_webcam_window_t *
 gmerlin_webcam_window_create(gmerlin_webcam_t * w,
                              bg_plugin_registry_t * reg, bg_cfg_section_t * section)
   {
   GtkWidget * notebook;
   GtkWidget * mainbox;
+  GtkWidget * hbox;
   GtkWidget * label;
   GtkWidget * table;
   GtkWidget * box;
@@ -545,17 +595,23 @@ gmerlin_webcam_window_create(gmerlin_webcam_t * w,
   ret->statusbar = gtk_statusbar_new();
   ret->framerate_context = gtk_statusbar_get_context_id(GTK_STATUSBAR(ret->statusbar),
                                                         "framerate");
-      
   gtk_widget_show(ret->statusbar);
-  
+
+  ret->about_button = create_pixmap_button(ret, "info_16.png", "About", "About");
   
   mainbox = gtk_vbox_new(0, 5);
   gtk_box_pack_start_defaults(GTK_BOX(mainbox), notebook);
-  gtk_box_pack_start(GTK_BOX(mainbox), ret->statusbar, FALSE, FALSE, 0);
+  
+  hbox = gtk_hbox_new(0, 0);
+  gtk_box_pack_start_defaults(GTK_BOX(hbox), ret->statusbar);
+  gtk_box_pack_start(GTK_BOX(hbox), ret->about_button, FALSE, FALSE, 0);
 
+  gtk_widget_show(hbox);
+  gtk_box_pack_start(GTK_BOX(mainbox), hbox, FALSE, FALSE, 0);
+  
   gtk_widget_show(mainbox);
   gtk_container_add(GTK_CONTAINER(ret->win), mainbox);
-
+  
   /* Add timeout */
 
   g_timeout_add(DELAY_TIME, timeout_func, ret);
