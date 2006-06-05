@@ -38,23 +38,43 @@ struct gavl_samplerate_converter_s
   double ratio;
   };
 
-static int get_filter_type(int gavl_quality)
+static int get_filter_type(gavl_audio_options_t * opt)
   {
-  switch(gavl_quality)
+  switch(opt->resample_mode)
     {
-    case 1:
+    case GAVL_RESAMPLE_AUTO:
+      switch(opt->quality)
+        {
+        case 1:
+          return SRC_LINEAR;
+          break;
+        case 2:
+          return SRC_ZERO_ORDER_HOLD;
+          break;
+        case 3:
+          return SRC_SINC_FASTEST;
+          break;
+        case 4:
+          return SRC_SINC_MEDIUM_QUALITY;
+          break;
+        case 5:
+          return SRC_SINC_BEST_QUALITY;
+          break;
+        }
+      break;
+    case GAVL_RESAMPLE_LINEAR:
       return SRC_LINEAR;
       break;
-    case 2:
+    case GAVL_RESAMPLE_ZOH:
       return SRC_ZERO_ORDER_HOLD;
       break;
-    case 3:
+    case GAVL_RESAMPLE_SINC_FAST:
       return SRC_SINC_FASTEST;
       break;
-    case 4:
+    case GAVL_RESAMPLE_SINC_MEDIUM:
       return SRC_SINC_MEDIUM_QUALITY;
       break;
-    case 5:
+    case GAVL_RESAMPLE_SINC_BEST:
       return SRC_SINC_BEST_QUALITY;
       break;
     }
@@ -79,11 +99,11 @@ static void resample_interleave_none(gavl_audio_convert_context_t * ctx)
 #endif
     ctx->samplerate_converter->data.data_in  = ctx->input_frame->channels.f[i];
     ctx->samplerate_converter->data.data_out = ctx->output_frame->channels.f[i];
-    result = src_process(ctx->samplerate_converter->resamplers[i],
+    result = gavl_src_process(ctx->samplerate_converter->resamplers[i],
                          &(ctx->samplerate_converter->data));
     if(result)
       {
-      fprintf(stderr, "src_process returned %s (%p)\n", src_strerror(result), ctx->output_frame->samples.f);
+      fprintf(stderr, "gavl_src_process returned %s (%p)\n", gavl_src_strerror(result), ctx->output_frame->samples.f);
       break;
       }
 #if 0
@@ -113,7 +133,7 @@ static void resample_interleave_2(gavl_audio_convert_context_t * ctx)
       ctx->input_frame->channels.f[2*i];
     ctx->samplerate_converter->data.data_out =
       ctx->output_frame->channels.f[2*i];
-    src_process(ctx->samplerate_converter->resamplers[i],
+    gavl_src_process(ctx->samplerate_converter->resamplers[i],
                 &(ctx->samplerate_converter->data));
     }
   ctx->output_frame->valid_samples =
@@ -136,7 +156,7 @@ static void resample_interleave_all(gavl_audio_convert_context_t * ctx)
 
   ctx->samplerate_converter->data.data_in  = ctx->input_frame->samples.f;
   ctx->samplerate_converter->data.data_out = ctx->output_frame->samples.f;
-  src_process(ctx->samplerate_converter->resamplers[0],
+  gavl_src_process(ctx->samplerate_converter->resamplers[0],
               &(ctx->samplerate_converter->data));
   ctx->output_frame->valid_samples =
     ctx->samplerate_converter->data.output_frames_gen;
@@ -156,7 +176,7 @@ static void init_interleave_none(gavl_audio_convert_context_t * ctx,
   {
   int i, error = 0, filter_type;
 
-  filter_type = get_filter_type(opt->quality);
+  filter_type = get_filter_type(opt);
     
   /* No interleaving: num_channels interleave converters */
 
@@ -169,7 +189,7 @@ static void init_interleave_none(gavl_audio_convert_context_t * ctx,
   for(i = 0; i < ctx->samplerate_converter->num_resamplers; i++)
     {
     ctx->samplerate_converter->resamplers[i] =
-      src_new(filter_type, 1, &error);
+      gavl_src_new(filter_type, 1, &error);
     }
 
   ctx->func = resample_interleave_none;
@@ -184,7 +204,7 @@ static void init_interleave_2(gavl_audio_convert_context_t * ctx,
   int i, error = 0, filter_type;
   int num_channels;
   
-  filter_type = get_filter_type(opt->quality);
+  filter_type = get_filter_type(opt);
   ctx->samplerate_converter->num_resamplers = (input_format->num_channels+1)/2;
 
   ctx->samplerate_converter->resamplers =
@@ -197,7 +217,7 @@ static void init_interleave_2(gavl_audio_convert_context_t * ctx,
                     (i == ctx->samplerate_converter->num_resamplers - 1)) ? 1 : 2;
     
     ctx->samplerate_converter->resamplers[i] =
-      src_new(filter_type, num_channels, &error);
+      gavl_src_new(filter_type, num_channels, &error);
     }
   
   ctx->func = resample_interleave_2;
@@ -216,7 +236,7 @@ static void init_interleave_all(gavl_audio_convert_context_t * ctx,
            sizeof(*(ctx->samplerate_converter->resamplers)));
   
   ctx->samplerate_converter->resamplers[0] =
-    src_new(get_filter_type(opt->quality),
+    gavl_src_new(get_filter_type(opt),
             input_format->num_channels, &error);
 
   ctx->func = resample_interleave_all;
@@ -265,7 +285,7 @@ gavl_samplerate_context_create(gavl_audio_options_t * opt,
 #if 0
   
   for(i = 0; i < ret->samplerate_converter->num_resamplers; i++)
-    src_set_ratio(ret->samplerate_converter->resamplers[i],
+    gavl_src_set_ratio(ret->samplerate_converter->resamplers[i],
                   ret->samplerate_converter->ratio);
 #endif
   
@@ -278,7 +298,7 @@ void gavl_samplerate_converter_destroy(gavl_samplerate_converter_t * s)
   int i;
   for(i = 0; i < s->num_resamplers; i++)
     {
-    src_delete(s->resamplers[i]);
+    gavl_src_delete(s->resamplers[i]);
     }
   free(s->resamplers);
   free(s);

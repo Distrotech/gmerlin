@@ -124,6 +124,44 @@ gavl_sampleformat_table_t * gavl_create_sampleformat_table(gavl_audio_options_t 
   return ret;
   }
 
+static GDitherType get_dither_type(gavl_audio_options_t * opt)
+  {
+  switch(opt->dither_mode)
+    {
+    case GAVL_AUDIO_DITHER_NONE:
+      return GDitherNone;
+      break;
+    case GAVL_AUDIO_DITHER_RECT:
+      return GDitherRect;
+      break;
+    case GAVL_AUDIO_DITHER_TRI:
+      return GDitherTri;
+      break;
+    case GAVL_AUDIO_DITHER_SHAPED:
+      return GDitherShaped;
+      break;
+    case GAVL_AUDIO_DITHER_AUTO:
+      switch(opt->quality)
+        {
+        case 1:
+        case 2:
+          return GDitherNone;
+          break;
+        case 3:
+          return GDitherRect;
+          break;
+        case 4:
+          return GDitherTri;
+          break;
+        case 5:
+          return GDitherShaped;
+          break;
+        }
+      break;
+    }
+  return GDitherNone;
+  }
+
 /* Create sampleformat converter. Samples are interleaved or non interleaved */
 
 gavl_audio_convert_context_t *
@@ -148,7 +186,9 @@ gavl_sampleformat_context_create(gavl_audio_options_t * opt,
   ret = gavl_audio_convert_context_create(in_format, out_format);
   ret->output_format.sample_format = out_format->sample_format;
 
-  if((opt->quality < 3) ||
+  dither_type = get_dither_type(opt);
+  
+  if((dither_type == GAVL_AUDIO_DITHER_NONE) ||
      (gavl_bytes_per_sample(out_format->sample_format) > 2) ||
      (in_format->sample_format != GAVL_SAMPLE_FLOAT))
     {
@@ -164,18 +204,6 @@ gavl_sampleformat_context_create(gavl_audio_options_t * opt,
     }
   else
     {
-    switch(opt->quality)
-      {
-      case 4:
-        dither_type = GDitherTri; /* Medium */
-        break;
-      case 5:
-        dither_type = GDitherShaped; /* Best */
-        break;
-      default:
-        dither_type = GDitherRect; /* Fastest */
-        break;
-      }
     switch(out_format->sample_format)
       {
       case GAVL_SAMPLE_U8:

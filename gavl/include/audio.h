@@ -38,6 +38,9 @@ struct gavl_audio_options_s
   /* #defines from above */
     
   uint32_t conversion_flags;
+
+  gavl_audio_dither_mode_t dither_mode;
+  gavl_resample_mode_t resample_mode;
   };
 
 typedef struct gavl_audio_convert_context_s gavl_audio_convert_context_t;

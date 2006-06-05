@@ -58,13 +58,6 @@ AC_CHECK_FUNCS([memalign])
 AC_C99_FUNC_LRINT
 AC_C99_FUNC_LRINTF
 
-SAMPLERATE_REQUIRED="0.1.0"
-
-PKG_CHECK_MODULES(SECRETRABBIT, samplerate >= $SAMPLERATE_REQUIRED, ,
-                  AC_MSG_ERROR("libsamplerate not found! Go to http://www.mega-nerd.com/SRC/"))
-
-AC_SUBST(SAMPLERATE_REQUIRED)
-
 dnl
 dnl Build optimization flags
 dnl
@@ -123,7 +116,33 @@ dnl
 dnl Now, build the final CFLAGS.
 dnl 
 
-CFLAGS="-Wall $SECRETRABBIT_CFLAGS $OPT_CFLAGS"
+CFLAGS="-Wall -Wmissing-declarations $OPT_CFLAGS"
+
+dnl
+dnl Stuff from libsamplerate
+dnl
+
+AC_ARG_ENABLE(cpu-clip,
+    AC_HELP_STRING([--disable-cpu-clip], [disable tricky cpu specific clipper]),
+    ac_arg_cpu_clip="N", ac_arg_cpu_clip="Y")
+
+if test x$ac_arg_cpu_clip = "xY" ; then
+        AC_C_CLIP_MODE
+else
+        echo "checking processor clipping capabilities... disabled"
+        ac_cv_c_clip_positive=0
+        ac_cv_c_clip_negative=0
+        fi
+
+AC_DEFINE_UNQUOTED(CPU_CLIPS_POSITIVE, ${ac_cv_c_clip_positive},
+        [Target processor clips on positive float to int conversion.])
+AC_DEFINE_UNQUOTED(CPU_CLIPS_NEGATIVE, ${ac_cv_c_clip_negative},
+        [Target processor clips on negative float to int conversion.])
+
+AC_CHECK_SIZEOF(int,0)
+AC_CHECK_SIZEOF(long,0)
+AC_CHECK_SIZEOF(float,4)
+AC_CHECK_SIZEOF(double,8)
 
 dnl
 dnl Output variables
@@ -142,6 +161,7 @@ include/gavlconfig.h \
 include/gavl/Makefile \
 gavl/Makefile \
 gavl/libgdither/Makefile \
+gavl/libsamplerate/Makefile \
 gavl/c/Makefile \
 gavl/mmx/Makefile \
 gavl/mmxext/Makefile)

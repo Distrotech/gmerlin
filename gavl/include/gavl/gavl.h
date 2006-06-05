@@ -498,6 +498,33 @@ GAVL_AUDIO_FRONT_TO_REAR_MUTE | \
 (GAVL_AUDIO_STEREO_TO_MONO_LEFT | \
 GAVL_AUDIO_STEREO_TO_MONO_RIGHT | \
 GAVL_AUDIO_STEREO_TO_MONO_MIX) /*!< Mask for converting stereo to mono */
+
+/*! \ingroup audio_options
+ *  \brief Dither mode
+ */
+
+typedef enum
+  {
+    GAVL_AUDIO_DITHER_NONE   = 0,
+    GAVL_AUDIO_DITHER_AUTO   = 1,
+    GAVL_AUDIO_DITHER_RECT   = 2,
+    GAVL_AUDIO_DITHER_TRI    = 3,
+    GAVL_AUDIO_DITHER_SHAPED = 4,
+  } gavl_audio_dither_mode_t;
+
+/*! \ingroup audio_options
+ *  \brief Resample mode
+ */
+  
+typedef enum
+  {
+    GAVL_RESAMPLE_AUTO        = 0, /*!< Set from quality */
+    GAVL_RESAMPLE_LINEAR      = 1, /*!< Linear interpolator, very fast, poor quality. */
+    GAVL_RESAMPLE_ZOH         = 2, /*!< Zero order hold interpolator, very fast, poor quality. */
+    GAVL_RESAMPLE_SINC_FAST   = 3, /*!< Band limited sinc interpolation, fastest, 97dB SNR, 80% BW. */
+    GAVL_RESAMPLE_SINC_MEDIUM = 4, /*!< Band limited sinc interpolation, medium quality, 97dB SNR, 90% BW. */
+    GAVL_RESAMPLE_SINC_BEST   = 5  /*!< Band limited sinc interpolation, best quality, 97dB SNR, 96% BW. */
+  } gavl_resample_mode_t;
   
 /*! \ingroup audio_options
  *  \brief Opaque container for audio conversion options.
@@ -515,6 +542,22 @@ typedef struct gavl_audio_options_s gavl_audio_options_t;
   
 void gavl_audio_options_set_quality(gavl_audio_options_t * opt, int quality);
 
+/*! \ingroup audio_options
+ *  \brief Set the dither mode for the converter
+ *  \param opt Audio options
+ *  \param mode A dither mode
+ */
+  
+void gavl_audio_options_set_dither_mode(gavl_audio_options_t * opt, gavl_audio_dither_mode_t mode);
+
+/*! \ingroup audio_options
+ *  \brief Set the resample mode for the converter
+ *  \param opt Audio options
+ *  \param mode A resample mode
+ */
+  
+void gavl_audio_options_set_resample_mode(gavl_audio_options_t * opt, gavl_resample_mode_t mode);
+  
 /*! \ingroup audio_options
  *  \brief Set the conversion flags
  *  \param opt Audio options

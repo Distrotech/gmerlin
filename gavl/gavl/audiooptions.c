@@ -36,6 +36,16 @@ void gavl_audio_options_set_quality(gavl_audio_options_t * opt, int quality)
   SET_INT(quality);
   }
 
+void gavl_audio_options_set_dither_mode(gavl_audio_options_t * opt, gavl_audio_dither_mode_t dither_mode)
+  {
+  SET_INT(dither_mode);
+  }
+
+void gavl_audio_options_set_resample_mode(gavl_audio_options_t * opt, gavl_resample_mode_t resample_mode)
+  {
+  SET_INT(resample_mode);
+  }
+
 void gavl_audio_options_set_accel_flags(gavl_audio_options_t * opt,
                                         int accel_flags)
   {

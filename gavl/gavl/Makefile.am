@@ -6,9 +6,7 @@ else
 mmx_libs = 
 endif
 
-AM_CFLAGS = @SECRETRABBIT_CFLAGS@
-
-SUBDIRS = c libgdither $(mmx_subdirs)
+SUBDIRS = c libgdither libsamplerate $(mmx_subdirs)
 
 lib_LTLIBRARIES= libgavl.la
 #noinst_LTLIBRARIES = libgavl.la
@@ -53,7 +51,7 @@ libgavl_la_LIBADD = \
 $(mmx_libs) \
 c/libgavl_c.la \
 libgdither/libgdither.la \
-@SECRETRABBIT_LIBS@ \
+libsamplerate/libsamplerate.la \
 -lm
 
 EXTRA_libgavl_la_SOURCES = _video_copy.c _planar_420_422.c
