@@ -247,7 +247,7 @@ bg_input_plugin_t the_plugin =
       name:           "i_avdec",
       long_name:      "AVDecoder plugin",
       mimetypes:      "video/x-ms-asf audio/x-pn-realaudio-plugin video/x-pn-realvideo-plugin audio/x-pn-realaudio video/x-pn-realvideo audio/x-mpegurl audio/mpegurl audio/x-scpls audio/scpls audio/m3u",
-      extensions:     "avi asf asx wmv rm ra ram mov wav mp4 m4a 3gp qt au aiff aif mp3 mpg mpeg vob m3u pls ogg flac aac mpc",
+      extensions:     "avi asf asx wmv rm ra ram mov wav mp4 m4a 3gp qt au aiff aif mp3 mpg mpeg vob m3u pls ogg flac aac mpc spx vob",
       type:           BG_PLUGIN_INPUT,
       flags:          BG_PLUGIN_FILE|BG_PLUGIN_URL,
       priority:       BG_PLUGIN_PRIORITY_MAX,

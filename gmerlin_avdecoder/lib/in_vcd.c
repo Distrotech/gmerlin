@@ -179,7 +179,7 @@ static int read_toc(vcd_priv * priv)
   return 1;
   }
 
-void toc_2_tt(bgav_input_context_t * ctx)
+static void toc_2_tt(bgav_input_context_t * ctx)
   {
   int index;
   bgav_stream_t * stream;

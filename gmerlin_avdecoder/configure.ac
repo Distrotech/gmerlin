@@ -50,6 +50,10 @@ GAVL_REQUIRED="0.2.4pre1"
 PKG_CHECK_MODULES(GAVL, gavl = $GAVL_REQUIRED, , AC_MSG_ERROR("gavl not found"))
 AC_SUBST(GAVL_REQUIRED)
 
+ICONV_LIBS=
+AC_CHECK_LIB(iconv, libiconv_close, ICONV_LIBS="-liconv")
+AC_SUBST(ICONV_LIBS)
+
 dnl
 dnl Optional Libraries
 dnl
@@ -93,29 +97,6 @@ AC_SUBST(AVCODEC_CFLAGS)
 
 if test "x$have_avcodec" = "xtrue"; then
 AC_DEFINE([HAVE_LIBAVCODEC])
-fi
-
-
-dnl
-dnl Check for libdv
-dnl
-
-AH_TEMPLATE([HAVE_LIBDV],
-            [Do we have libdv installed?])
-
-have_libdv="false"
-
-LIBDV_REQUIRED="0.102"
-
-PKG_CHECK_MODULES(LIBDV, libdv >= $LIBDV_REQUIRED, have_libdv="true", have_libdv="false")
-AC_SUBST(LIBDV_REQUIRED)
-AC_SUBST(LIBDV_LIBS)
-AC_SUBST(LIBDV_CFLAGS)
-
-AM_CONDITIONAL(HAVE_LIBDV, test x$have_libdv = xtrue)
-
-if test "x$have_libdv" = "xtrue"; then
-AC_DEFINE([HAVE_LIBDV])
 fi
 
 dnl
@@ -796,7 +777,7 @@ dnl
 dnl Common CFLAGS
 dnl
 
-CFLAGS="-Wall -D_REENTRANT -D_FILE_OFFSET_BITS=64 $GAVL_CFLAGS"
+CFLAGS="-Wall -Wmissing-declarations -D_REENTRANT -D_FILE_OFFSET_BITS=64 $GAVL_CFLAGS"
 
 dnl The following is necessary so the win32 dll loader also gets compiled
 dnl with -g
@@ -932,13 +913,6 @@ if test "x$have_cdio" = "xtrue"; then
 echo "Found (CFLAGS=$CDIO_CFLAGS LIBS=$CDIO_LIBS)"
 else
 echo "Missing (Go to http://www.gnu.org/software/libcdio/)"
-fi
-
-echo -n "libdv:                  "
-if test "x$have_libdv" = "xtrue"; then
-echo "Found (CFLAGS=$LIBDV_CFLAGS LIBS=$LIBDV_LIBS)"
-else
-echo "Missing (Go to http://libdv.sourceforge.net/)"
 fi
 
 echo -n "mjpegtools:             "

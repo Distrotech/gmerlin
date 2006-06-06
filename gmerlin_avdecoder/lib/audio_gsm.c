@@ -19,6 +19,8 @@
 
 #include <stdlib.h>
 #include <avdec_private.h>
+#include <codecs.h>
+
 #include "GSM610/gsm.h"
 
 /* Audio decoder for the internal libgsm */

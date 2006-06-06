@@ -82,5 +82,7 @@ void bg_cdrdao_set_callbacks(bg_cdrdao_t *, bg_e_pp_callbacks_t * callbacks);
 
 void bg_cdrdao_set_parameter(void * data, char * name, bg_parameter_value_t * val);
 
-void bg_cdrdao_run(bg_cdrdao_t *, const char * toc_file);
+/* 1 if cdrdao was actually run */
+int bg_cdrdao_run(bg_cdrdao_t *, const char * toc_file);
+
 void bg_cdrdao_stop(bg_cdrdao_t *);

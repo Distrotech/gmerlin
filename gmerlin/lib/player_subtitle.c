@@ -23,7 +23,7 @@
 #include "player.h"
 #include "playerprivate.h"
 
-#define NUM_SUBTITLE_FRAMES 2 /* How many overlays are in the fifo */
+// #define NUM_SUBTITLE_FRAMES 2 /* How many overlays are in the fifo */
 
 void bg_player_subtitle_create(bg_player_t * p)
   {

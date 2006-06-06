@@ -62,3 +62,6 @@ int bgav_win32_codec_thread_decode_video(bgav_win32_thread_t*,
                                          int data_len, int keyframe);
 
 void bgav_win32_codec_thread_cleanup(bgav_win32_thread_t*);
+
+void bgav_windll_lock();
+void bgav_windll_unlock();

@@ -318,6 +318,9 @@ static void encoder_window_get(encoder_window_t * win)
   
   }
 
+#define COPY_SECTION(sec) if(info.sec) info.sec = bg_cfg_section_copy(info.sec)
+#define FREE_SECTION(sec) if(info.sec) free(info.sec)
+
 static void encoder_window_apply(encoder_window_t * win)
   {
   bg_transcoder_track_t * track;
@@ -380,6 +383,18 @@ static void encoder_window_apply(encoder_window_t * win)
     info.subtitle_overlay_stream_section =
       bg_gtk_plugin_widget_single_get_subtitle_overlay_section(win->encoder_widget.video_encoder);
     }
+
+  /* The sections come either out of the registry or from the first transcoder track.
+     Now, we need to make local copies of all sections to avoid some crashes */
+  
+  COPY_SECTION(audio_encoder_section);
+  COPY_SECTION(video_encoder_section);
+  COPY_SECTION(subtitle_text_encoder_section);
+  COPY_SECTION(subtitle_overlay_encoder_section);
+  COPY_SECTION(audio_stream_section);
+  COPY_SECTION(video_stream_section);
+  COPY_SECTION(subtitle_text_stream_section);
+  COPY_SECTION(subtitle_overlay_stream_section);
   
   while(track)
     {
@@ -390,7 +405,19 @@ static void encoder_window_apply(encoder_window_t * win)
       }
     track = track->next;
     }
+
+  FREE_SECTION(audio_encoder_section);
+  FREE_SECTION(video_encoder_section);
+  FREE_SECTION(subtitle_text_encoder_section);
+  FREE_SECTION(subtitle_overlay_encoder_section);
+  FREE_SECTION(audio_stream_section);
+  FREE_SECTION(video_stream_section);
+  FREE_SECTION(subtitle_text_stream_section);
+  FREE_SECTION(subtitle_overlay_stream_section);
   }
+
+#undef COPY_SECTION
+#undef FREE_SECTION
 
 static void window_button_callback(GtkWidget * w, gpointer data)
   {

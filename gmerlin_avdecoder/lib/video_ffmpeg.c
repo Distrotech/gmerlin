@@ -28,9 +28,7 @@
 
 #include <stdio.h>
 
-#ifdef HAVE_LIBDV
 #include <dvframe.h>
-#endif
 
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
@@ -498,10 +496,10 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   dp_hdr_t *hdr;
   ffmpeg_video_priv * priv;
   bgav_packet_t * p;
-#ifdef HAVE_LIBDV /* We get the DV format info from libdv, since the values
-                     ffmpeg returns are not reliable */
+  /* We get the DV format info ourselfes, since the values
+     ffmpeg returns are not reliable */
   bgav_dv_dec_t * dvdec;
-#endif  
+
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
   
   
@@ -590,7 +588,6 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
 #endif
     //    fprintf(stderr, "Decode %d...", priv->ctx->pix_fmt);
 
-#ifdef HAVE_LIBDV
     if(priv->need_first_frame && (priv->info->ffmpeg_id == CODEC_ID_DVVIDEO))
       {
       dvdec = bgav_dv_dec_create();
@@ -602,7 +599,6 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       
       bgav_dv_dec_destroy(dvdec);
       }
-#endif
     
     bytes_used = avcodec_decode_video(priv->ctx,
                                       priv->frame,

@@ -141,6 +141,12 @@ typedef struct
 
 /* DLLs need this */
 
+void *__builtin_vec_new(unsigned long size);
+void *__builtin_new(unsigned long size);
+void __builtin_delete(void *mem);
+void __builtin_vec_delete(void *mem);
+void __pure_virtual(void);
+
 void *__builtin_vec_new(unsigned long size) {
         return malloc(size);
 }

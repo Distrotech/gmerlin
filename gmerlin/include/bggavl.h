@@ -283,6 +283,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)."\
                               "pal_d1_wide", \
                               "pal_dv", \
                               "pal_dv_wide", \
+                              "pal_cvd", \
                               "pal_vcd", \
                               "pal_svcd", \
                               "pal_svcd_wide", \
@@ -290,6 +291,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)."\
                               "ntsc_d1_wide", \
                               "ntsc_dv", \
                               "ntsc_dv_wide", \
+                              "ntsc_cvd", \
                               "ntsc_vcd", \
                               "ntsc_svcd", \
                               "ntsc_svcd_wide", \
@@ -302,6 +304,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)."\
                                 "PAL DVD D1 16:9 (720 x 576)", \
                                 "PAL DV 4:3 (720 x 576)", \
                                 "PAL DV 16:9 (720 x 576)", \
+                                "PAL CVD (352 x 576)", \
                                 "PAL VCD (352 x 288)", \
                                 "PAL SVCD 4:3 (480 x 576)", \
                                 "PAL SVCD 16:9 (480 x 576)", \
@@ -309,6 +312,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)."\
                                 "NTSC DVD D1 16:9 (720 x 480)", \
                                 "NTSC DV 4:3 (720 x 480)", \
                                 "NTSC DV 16:9 (720 x 480)", \
+                                "NTSC CVD (352 x 480)", \
                                 "NTSC VCD (352 x 240)", \
                                 "NTSC SVCD 4:3 (480 x 480)", \
                                 "NTSC SVCD 16:9 (480 x 480)", \
@@ -441,7 +445,11 @@ timescale and frame duration below (framerate = timescale / frame_duration)."\
       long_name:   "Front to rear mode", \
       type:        BG_PARAMETER_STRINGLIST, \
       val_default: { val_str: "Copy" }, \
-      multi_names:  (char*[]){ "Mute", \
+      multi_names:  (char*[]){ "mute", \
+                              "copy", \
+                              "diff", \
+                              (char*)0 }, \
+      multi_labels:  (char*[]){ "Mute", \
                               "Copy", \
                               "Diff", \
                               (char*)0 }, \
@@ -453,7 +461,11 @@ but the source doesn't.", \
       long_name:   "Stereo to mono mode", \
       type:        BG_PARAMETER_STRINGLIST, \
       val_default: { val_str: "Mix" }, \
-      multi_names:  (char*[]){ "Choose left", \
+      multi_names:  (char*[]){ "left", \
+                              "right", \
+                              "mix", \
+                              (char*)0 }, \
+      multi_labels:  (char*[]){ "Choose left", \
                               "Choose right", \
                               "Mix", \
                               (char*)0 }, \
@@ -469,3 +481,32 @@ but the source doesn't.", \
       val_default: { val_i: 0 },\
       help_string: "Force floating point processing. This will inprove the quality but might slow things down." \
     }
+
+#define BG_GAVL_PARAM_AUDIO_DITHER_MODE \
+    { \
+      name:      "dither_mode", \
+      long_name: "Dither mode", \
+      type:      BG_PARAMETER_STRINGLIST,\
+      val_default: { val_str: "auto" },\
+      multi_names:  (char*[]){ "auto", "none", "rect",        "tri",        "shaped", (char*)0 },\
+      multi_labels: (char*[]){ "Auto", "None", "Rectangular", "Triangular", "Shaped", (char*)0 },\
+      help_string: "Dither mode. Auto means to use the quality level. Subsequent options are ordered by increasing quality (i.e. decreasing speed)." \
+    }
+
+#define BG_GAVL_PARAM_RESAMPLE_MODE \
+    { \
+      name:      "resample_mode", \
+      long_name: "Resample mode", \
+      type:      BG_PARAMETER_STRINGLIST,\
+      val_default: { val_str: "auto" },\
+      multi_names:  (char*[]){ "auto", "linear", "zoh",             "sinc_fast",  "sinc_medium", "sinc_best", (char*)0 },\
+      multi_labels: (char*[]){ "Auto", "Linear", "Zero order hold", "Sinc fast",  "Sinc medium", "Sinc best", (char*)0 },\
+      help_string: "Resample mode. Auto means to use the quality level. Subsequent options are ordered by increasing quality (i.e. decreasing speed)." \
+    }
+
+
+/* Subtitle display decisions */
+int bg_overlay_too_old(gavl_time_t time, gavl_time_t ovl_time,
+                       gavl_time_t ovl_duration);
+
+int bg_overlay_too_new(gavl_time_t time, gavl_time_t ovl_time);

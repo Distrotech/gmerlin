@@ -62,5 +62,5 @@ tree_xml.c \
 urilist.c \
 utf8.c
 
-libgmerlin_la_LIBADD = @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ -ldl -lpthread
+libgmerlin_la_LIBADD = @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ @ICONV_LIBS@ -ldl -lpthread
 

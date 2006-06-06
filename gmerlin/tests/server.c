@@ -20,7 +20,7 @@ typedef struct connection_s
   struct connection_s * next;
   } connection_t;
 
-connection_t * add_connection(connection_t * list, int fd)
+static connection_t * add_connection(connection_t * list, int fd)
   {
   connection_t * new_connection;
   
@@ -30,7 +30,7 @@ connection_t * add_connection(connection_t * list, int fd)
   return new_connection;
   }
 
-connection_t * remove_connection(connection_t * list, connection_t * c)
+static connection_t * remove_connection(connection_t * list, connection_t * c)
   {
   connection_t * before;
 

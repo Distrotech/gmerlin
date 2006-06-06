@@ -43,7 +43,7 @@ static int open_dvd(void * priv, const char * location)
   return bg_avdec_init(avdec);
   }
 
-bg_device_info_t * find_devices_dvd()
+static bg_device_info_t * find_devices_dvd()
   {
   bg_device_info_t * ret;
   bgav_device_info_t * dev;
@@ -53,7 +53,7 @@ bg_device_info_t * find_devices_dvd()
   return ret;
   }
 
-int check_device_dvd(const char * device, char ** name)
+static int check_device_dvd(const char * device, char ** name)
   {
   return bgav_check_device_dvd(device, name);
   }

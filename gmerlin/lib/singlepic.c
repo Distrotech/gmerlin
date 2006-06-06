@@ -30,6 +30,7 @@
 #include <pluginregistry.h>
 #include <config.h>
 #include <utils.h>
+#include <singlepic.h>
 
 #if 0
 char * bg_singlepic_ouput_name = "e_singlepic";

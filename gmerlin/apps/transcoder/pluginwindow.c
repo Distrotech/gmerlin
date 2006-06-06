@@ -193,10 +193,6 @@ void plugin_window_show(plugin_window_t * w)
   gtk_widget_show(w->window);
   }
 
-void plugin_window_hide(plugin_window_t * w)
-  {
-  gtk_widget_show(w->window);
-  }
 
 void plugin_window_set_tooltips(plugin_window_t * w, int enable)
   {

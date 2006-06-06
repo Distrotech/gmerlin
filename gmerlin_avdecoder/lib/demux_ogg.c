@@ -1778,6 +1778,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         //        fprintf(stderr, "Read flac packet %ld bytes\n", priv->op.bytes);
         break;
       case FOURCC_SPEEX:
+        //        fprintf(stderr, "Speex granulepos: %lld\n", granulepos);
         /* Resync if necessary */
         if(stream_priv->do_sync)
           {

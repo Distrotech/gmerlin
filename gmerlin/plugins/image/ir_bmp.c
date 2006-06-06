@@ -180,7 +180,7 @@ static struct
     };
 
 
-gavl_pixelformat_t get_csp(int bits, uint32_t r_mask,
+static gavl_pixelformat_t get_csp(int bits, uint32_t r_mask,
                           uint32_t g_mask, uint32_t b_mask) 
   {
   int i = 0;

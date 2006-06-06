@@ -24,9 +24,8 @@
 #include <avdec_private.h>
 #include <nanosoft.h>
 
-#ifdef HAVE_LIBDV
 #include <dvframe.h>
-#endif
+
 
 /* Define the variables below to get a detailed file dump
    on each open call */
@@ -251,12 +250,9 @@ typedef struct
 
   int64_t total_frames;
 
-#ifdef HAVE_LIBDV
   bgav_dv_dec_t * d;
   uint8_t * buffer;
   int dv_frame_size;
-#endif
-
   } video_priv_t;
 
 /* Chunk */
@@ -1281,7 +1277,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-#ifdef HAVE_LIBDV
+
 
 static int read_packet_iavs(bgav_demuxer_context_t * ctx,
                             int size)
@@ -1461,7 +1457,7 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
   
   return 1;
   }
-#endif // HAVE_LIBDV
+
 
 /* Get a stream ID (internally used) from the stream ID in the chunk header */
 
@@ -1624,10 +1620,8 @@ static int open_avi(bgav_demuxer_context_t * ctx,
       init_audio_stream(ctx, &strh, &ch);
     else if(strh.fccType == ID_VIDS)
       init_video_stream(ctx, &strh, &ch);
-#ifdef HAVE_LIBDV
     else if(strh.fccType == ID_IAVS)
       init_iavs_stream(ctx, &strh, &ch);
-#endif
 #if 1
     else
       {
@@ -1818,12 +1812,10 @@ static void close_avi(bgav_demuxer_context_t * ctx)
       {
       if(avi_vs->has_indx)
         free_indx(&(avi_vs->indx));
-#ifdef HAVE_LIBDV
       if(avi_vs->d)
         bgav_dv_dec_destroy(avi_vs->d);
       if(avi_vs->buffer)
         free(avi_vs->buffer);
-#endif
       free(avi_vs);
       }
     }

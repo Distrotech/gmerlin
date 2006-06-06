@@ -30,7 +30,7 @@
 /* Taken from the Unix programmer FAQ: http://www.faqs.org/faqs/unix-faq/programmer/faq/ */
 
 static struct termios stored_settings;
-void echo_off(void)
+static void echo_off(void)
   {
   struct termios new_settings;
   tcgetattr(0,&stored_settings);
@@ -40,7 +40,7 @@ void echo_off(void)
   return;
   }
 
-void echo_on(void)
+static void echo_on(void)
   {
   tcsetattr(0,TCSANOW,&stored_settings);
   return;

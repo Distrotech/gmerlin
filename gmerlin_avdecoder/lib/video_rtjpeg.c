@@ -21,6 +21,7 @@
 #include <stdlib.h>
 
 #include <avdec_private.h>
+#include <codecs.h>
 
 #include <RTjpeg.h>
 

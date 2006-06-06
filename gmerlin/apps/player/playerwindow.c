@@ -523,7 +523,7 @@ static void handle_message(player_window_t * win,
   
   }
 
-gboolean idle_callback(gpointer data)
+static gboolean idle_callback(gpointer data)
   {
   bg_msg_t * msg;
   

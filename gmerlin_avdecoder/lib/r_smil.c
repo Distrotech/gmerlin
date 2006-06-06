@@ -132,7 +132,7 @@ static struct
     { "vi",    "Vietnamese" },
   };
 
-const char * get_language(const char * code)
+static const char * get_language(const char * code)
   {
   int i;
   for(i = 0; i < sizeof(languages)/sizeof(languages[0]); i++)

@@ -95,7 +95,7 @@ static void destroy_cd_data(cdaudio_t* cd)
     free(cd->error_msg);
   }
 
-const char * get_error_cdaudio(void* priv)
+static const char * get_error_cdaudio(void* priv)
   {
   cdaudio_t * cd;
   cd = (cdaudio_t *)priv;
@@ -612,14 +612,14 @@ static void seek_cdaudio(void * priv, gavl_time_t * time)
     }
   }
 
-void bypass_set_pause_cdaudio(void * priv, int pause)
+static void bypass_set_pause_cdaudio(void * priv, int pause)
   {
   cdaudio_t * cd = (cdaudio_t*)priv;
   bg_cdaudio_set_pause(cd->cdio, pause);
   cd->paused = pause;
   }
 
-void bypass_set_volume_cdaudio(void * priv, float volume)
+static void bypass_set_volume_cdaudio(void * priv, float volume)
   {
   cdaudio_t * cd = (cdaudio_t*)priv;
   bg_cdaudio_set_volume(cd->cdio, volume);

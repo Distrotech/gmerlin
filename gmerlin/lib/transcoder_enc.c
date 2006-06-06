@@ -26,7 +26,7 @@
 #include <transcoder_track.h>
 #include <utils.h>
 
-void create_parameters(bg_plugin_registry_t * plugin_reg,
+static void create_parameters(bg_plugin_registry_t * plugin_reg,
                        bg_transcoder_encoder_info_t * encoder_info)
   {
   /* Video */

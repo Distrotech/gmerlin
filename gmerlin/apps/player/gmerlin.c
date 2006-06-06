@@ -162,7 +162,7 @@ static void pluginwindow_close_callback(plugin_window_t * w, void * data)
   main_menu_set_plugin_window_item(g->player_window->main_menu, 0);
   }
 
-void treewindow_close_callback(bg_gtk_tree_window_t * win,
+static void treewindow_close_callback(bg_gtk_tree_window_t * win,
                                void * data)
   {
   gmerlin_t * g;

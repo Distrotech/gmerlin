@@ -183,6 +183,7 @@ typedef struct
 int bgav_rmff_indx_read(bgav_input_context_t * input,
                         bgav_rmff_indx_t * ret);
 void bgav_rmff_indx_free(bgav_rmff_indx_t * indx);
+void bgav_rmff_indx_dump(bgav_rmff_indx_t * indx);
 
 
 /* Now, the overall file header */

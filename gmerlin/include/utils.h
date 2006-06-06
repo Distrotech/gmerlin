@@ -158,12 +158,6 @@ const char * bg_get_language_name(const char * iso);
 
 int bg_string_match(const char * key, const char * key_list);
 
-/* Subtitle display decisions */
-int bg_overlay_too_old(gavl_time_t time, gavl_time_t ovl_time,
-                       gavl_time_t ovl_duration);
-
-int bg_overlay_too_new(gavl_time_t time, gavl_time_t ovl_time);
-
 /* Find an URL launcher */
 
 char * bg_find_url_launcher();

@@ -44,6 +44,7 @@ typedef struct
     bg_metadata_t metadata;
     char * filename;
     uint32_t duration; /* In samples */
+    int pp_only;
     } * tracks;
   int num_tracks;
   } cdrdao_t;
@@ -188,7 +189,7 @@ static int read_chunk(FILE * input, chunk_t * ret)
   return 1;
   }
 
-int32_t get_wav_length(const char * filename)
+static int32_t get_wav_length(const char * filename)
   {
   int32_t ret;
   chunk_t ch;
@@ -230,8 +231,8 @@ int32_t get_wav_length(const char * filename)
   return ret;
   }
 
-void add_track_cdrdao(void * data, const char * filename,
-                      bg_metadata_t * metadata)
+static void add_track_cdrdao(void * data, const char * filename,
+                             bg_metadata_t * metadata, int pp_only)
   {
   int32_t duration = 0;
   cdrdao_t * cdrdao;
@@ -255,7 +256,8 @@ void add_track_cdrdao(void * data, const char * filename,
   bg_metadata_copy(&(cdrdao->tracks[cdrdao->num_tracks].metadata),
                    metadata);
   cdrdao->tracks[cdrdao->num_tracks].filename = bg_strdup((char*)0, filename);
-
+  cdrdao->tracks[cdrdao->num_tracks].pp_only = pp_only;
+  
   if(cdrdao->pregap > 0)
     cdrdao->tracks[cdrdao->num_tracks].duration = duration;
   
@@ -415,7 +417,19 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
 
   /* Run cdrdao */
 
-  bg_cdrdao_run(cdrdao->cdr, filename);
+  if(bg_cdrdao_run(cdrdao->cdr, filename) && cleanup)
+    {
+    for(i = 0; i < cdrdao->num_tracks; i++)
+      {
+      if(!cdrdao->tracks[i].pp_only)
+        {
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing %s", cdrdao->tracks[i].filename);
+        remove(cdrdao->tracks[i].filename);
+        }
+      }
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing %s", filename);
+    remove(filename);
+    }
   free(filename);
   }
 

@@ -92,7 +92,7 @@ static int check_stop(bg_cdrdao_t * c)
   return ret;
   }
 
-void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
+int bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   {
   bg_subprocess_t * cdrdao;
   char * str;
@@ -106,12 +106,12 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   if(!c->run)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Not running cdrdao (disabled by user)");
-    return;
+    return 0;
     }
   if(!bg_search_file_exec("cdrdao", &commandline))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "cdrdao executable not found");
-    return;
+    return 0;
     }
   commandline = bg_strcat(commandline, " write");
   
@@ -156,7 +156,7 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
   if(check_stop(c))
     {
     free(commandline);
-    return;
+    return 0;
     }
 
   /* Launching command (cdrdao sends everything to stderr) */
@@ -169,7 +169,8 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
     if(check_stop(c))
       {
       bg_subprocess_kill(cdrdao, SIGQUIT);
-      
+      bg_subprocess_close(cdrdao);
+      return 0;
       }
 
     if(!strncmp(line, "ERROR", 5))
@@ -209,6 +210,11 @@ void bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
     //    fprintf(stderr, "Got line: %s\n", line);
     }
   bg_subprocess_close(cdrdao);
+
+  if(c->simulate)
+    return 0;
+  else
+    return 1;
   }
 
 void bg_cdrdao_set_callbacks(bg_cdrdao_t * c, bg_e_pp_callbacks_t * callbacks)

@@ -105,12 +105,6 @@ find_by_dll(bg_plugin_info_t * info, const char * filename)
   return (bg_plugin_info_t*)0;
   }
 
-const bg_plugin_info_t *
-bg_plugin_find_by_dll(bg_plugin_registry_t * reg, const char * filename)
-  {
-  return find_by_dll(reg->entries, filename);
-  }
-
 static bg_plugin_info_t *
 find_by_name(bg_plugin_info_t * info, const char * name)
   {

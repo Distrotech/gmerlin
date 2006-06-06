@@ -59,19 +59,21 @@ int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t *
   
   if(!strcmp(name, "front_to_rear"))
     {
+    if(!val->val_str)
+      return 1;
     flags = gavl_audio_options_get_conversion_flags(opt->opt);
 
     flags &= ~GAVL_AUDIO_FRONT_TO_REAR_MASK;
     
-    if(!strcmp(val->val_str, "Copy"))
+    if(!strcmp(val->val_str, "copy"))
       {
       flags |= GAVL_AUDIO_FRONT_TO_REAR_COPY;
       }
-    else if(!strcmp(val->val_str, "Mute"))
+    else if(!strcmp(val->val_str, "mute"))
       {
       flags |= GAVL_AUDIO_FRONT_TO_REAR_MUTE;
       }
-    else if(!strcmp(val->val_str, "Diff"))
+    else if(!strcmp(val->val_str, "diff"))
       {
       flags |= GAVL_AUDIO_FRONT_TO_REAR_DIFF;
       }
@@ -82,19 +84,21 @@ int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t *
 
   else if(!strcmp(name, "stereo_to_mono"))
     {
+    if(!val->val_str)
+      return 1;
     flags = gavl_audio_options_get_conversion_flags(opt->opt);
 
     flags &= ~GAVL_AUDIO_STEREO_TO_MONO_MASK;
                                                                                                         
-    if(!strcmp(val->val_str, "Choose left"))
+    if(!strcmp(val->val_str, "left"))
       {
       flags |= GAVL_AUDIO_STEREO_TO_MONO_LEFT;
       }
-    else if(!strcmp(val->val_str, "Choose right"))
+    else if(!strcmp(val->val_str, "right"))
       {
       flags |= GAVL_AUDIO_STEREO_TO_MONO_RIGHT;
       }
-    else if(!strcmp(val->val_str, "Mix"))
+    else if(!strcmp(val->val_str, "mix"))
       {
       flags |= GAVL_AUDIO_STEREO_TO_MONO_MIX;
       }
@@ -102,6 +106,59 @@ int bg_gavl_audio_set_parameter(void * data, char * name, bg_parameter_value_t *
     return 1;
     }
 
+  else if(!strcmp(name, "dither_mode"))
+    {
+    if(!strcmp(val->val_str, "auto"))
+      {
+      gavl_audio_options_set_dither_mode(opt->opt, GAVL_AUDIO_DITHER_AUTO);
+      }
+    else if(!strcmp(val->val_str, "none"))
+      {
+      gavl_audio_options_set_dither_mode(opt->opt, GAVL_AUDIO_DITHER_NONE);
+      }
+    else if(!strcmp(val->val_str, "rect"))
+      {
+      gavl_audio_options_set_dither_mode(opt->opt, GAVL_AUDIO_DITHER_RECT);
+      }
+    else if(!strcmp(val->val_str, "shaped"))
+      {
+      gavl_audio_options_set_dither_mode(opt->opt, GAVL_AUDIO_DITHER_SHAPED);
+      }
+    return 1;
+    }
+
+  
+  else if(!strcmp(name, "resample_mode"))
+    {
+    if(!strcmp(val->val_str, "auto"))
+      {
+      gavl_audio_options_set_resample_mode(opt->opt, GAVL_RESAMPLE_AUTO);
+      }
+    else if(!strcmp(val->val_str, "linear"))
+      {
+      gavl_audio_options_set_resample_mode(opt->opt, GAVL_RESAMPLE_LINEAR);
+      }
+    else if(!strcmp(val->val_str, "zoh"))
+      {
+      gavl_audio_options_set_resample_mode(opt->opt, GAVL_RESAMPLE_ZOH);
+      }
+    else if(!strcmp(val->val_str, "sinc_fast"))
+      {
+      gavl_audio_options_set_resample_mode(opt->opt, GAVL_RESAMPLE_SINC_FAST);
+      }
+    else if(!strcmp(val->val_str, "sinc_medium"))
+      {
+      gavl_audio_options_set_resample_mode(opt->opt, GAVL_RESAMPLE_SINC_MEDIUM);
+      }
+    else if(!strcmp(val->val_str, "sinc_best"))
+      {
+      gavl_audio_options_set_resample_mode(opt->opt, GAVL_RESAMPLE_SINC_BEST);
+      }
+    
+    return 1;
+    }
+
+  
   return 0;
   }
 
@@ -202,19 +259,21 @@ void bg_gavl_audio_options_set_format(bg_gavl_audio_options_t * opt,
 #define FRAME_SIZE_PAL_D1_WIDE     3
 #define FRAME_SIZE_PAL_DV          4
 #define FRAME_SIZE_PAL_DV_WIDE     5
-#define FRAME_SIZE_PAL_VCD         6
-#define FRAME_SIZE_PAL_SVCD        7
-#define FRAME_SIZE_PAL_SVCD_WIDE   8
-#define FRAME_SIZE_NTSC_D1         9
-#define FRAME_SIZE_NTSC_D1_WIDE   10
-#define FRAME_SIZE_NTSC_DV        11
-#define FRAME_SIZE_NTSC_DV_WIDE   12
-#define FRAME_SIZE_NTSC_VCD       13
-#define FRAME_SIZE_NTSC_SVCD      14
-#define FRAME_SIZE_NTSC_SVCD_WIDE 15
-#define FRAME_SIZE_VGA            16
-#define FRAME_SIZE_QVGA           17
-#define NUM_FRAME_SIZES           18
+#define FRAME_SIZE_PAL_CVD         6
+#define FRAME_SIZE_PAL_VCD         7
+#define FRAME_SIZE_PAL_SVCD        8
+#define FRAME_SIZE_PAL_SVCD_WIDE   9
+#define FRAME_SIZE_NTSC_D1        10
+#define FRAME_SIZE_NTSC_D1_WIDE   11
+#define FRAME_SIZE_NTSC_DV        12
+#define FRAME_SIZE_NTSC_DV_WIDE   13
+#define FRAME_SIZE_NTSC_CVD       14
+#define FRAME_SIZE_NTSC_VCD       15
+#define FRAME_SIZE_NTSC_SVCD      16
+#define FRAME_SIZE_NTSC_SVCD_WIDE 17
+#define FRAME_SIZE_VGA            18
+#define FRAME_SIZE_QVGA           19
+#define NUM_FRAME_SIZES           20
 
 #if 0
       multi_names: (char*[]){ "from_input", \
@@ -253,6 +312,7 @@ framesize_strings[NUM_FRAME_SIZES] =
     { FRAME_SIZE_PAL_D1_WIDE,    "pal_d1_wide"},
     { FRAME_SIZE_PAL_DV,         "pal_dv"},
     { FRAME_SIZE_PAL_DV_WIDE,    "pal_dv_wide"},
+    { FRAME_SIZE_PAL_CVD,        "pal_cvd"},
     { FRAME_SIZE_PAL_VCD,        "pal_vcd"},
     { FRAME_SIZE_PAL_SVCD,       "pal_svcd"},
     { FRAME_SIZE_PAL_SVCD_WIDE,  "pal_svcd_wide"},
@@ -260,6 +320,7 @@ framesize_strings[NUM_FRAME_SIZES] =
     { FRAME_SIZE_NTSC_D1_WIDE,   "ntsc_d1_wide"},
     { FRAME_SIZE_NTSC_DV,        "ntsc_dv"},
     { FRAME_SIZE_NTSC_DV_WIDE,   "ntsc_dv_wide"},
+    { FRAME_SIZE_NTSC_CVD,       "ntsc_cvd"},
     { FRAME_SIZE_NTSC_VCD,       "ntsc_vcd"},
     { FRAME_SIZE_NTSC_SVCD,      "ntsc_svcd"},
     { FRAME_SIZE_NTSC_SVCD_WIDE, "ntsc_svcd_wide"},
@@ -283,6 +344,7 @@ frame_size_sizes[NUM_FRAME_SIZES] =
     { FRAME_SIZE_PAL_D1_WIDE,      720, 576,  118,   81},
     { FRAME_SIZE_PAL_DV,           720, 576,   59,   54},
     { FRAME_SIZE_PAL_DV_WIDE,      720, 576,  118,   81},
+    { FRAME_SIZE_PAL_CVD,          352, 576,   59,   27},
     { FRAME_SIZE_PAL_VCD,          352, 288,   59,   54},
     { FRAME_SIZE_PAL_SVCD,         480, 576,   59,   36},
     { FRAME_SIZE_PAL_SVCD_WIDE,    480, 576,   59,   27},
@@ -290,6 +352,7 @@ frame_size_sizes[NUM_FRAME_SIZES] =
     { FRAME_SIZE_NTSC_D1_WIDE,     720, 480,   40,   33 },
     { FRAME_SIZE_NTSC_DV,          720, 480,   10,   11 },
     { FRAME_SIZE_NTSC_DV_WIDE,     720, 480,   40,   33 },
+    { FRAME_SIZE_NTSC_CVD,         352, 480,   20,   11 },
     { FRAME_SIZE_NTSC_VCD,         352, 240,   10,   11 },
     { FRAME_SIZE_NTSC_SVCD,        480, 480,   15,   11 },
     { FRAME_SIZE_NTSC_SVCD_WIDE,   480, 480,   20,   11 },

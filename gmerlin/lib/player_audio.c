@@ -190,7 +190,9 @@ static bg_parameter_info_t parameters[] =
     },
     BG_GAVL_PARAM_FORCE_FLOAT,
     BG_GAVL_PARAM_CONVERSION_QUALITY,
+    BG_GAVL_PARAM_AUDIO_DITHER_MODE,
     BG_GAVL_PARAM_SAMPLERATE,
+    BG_GAVL_PARAM_RESAMPLE_MODE,
     BG_GAVL_PARAM_CHANNEL_SETUP,
     { /* End of parameters */ }
   };

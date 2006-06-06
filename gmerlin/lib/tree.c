@@ -1059,7 +1059,6 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
     }
   else
     {
-
     if(t->com.current_entry->plugin)
       info = bg_plugin_find_by_name(t->com.plugin_reg, t->com.current_entry->plugin);
     else

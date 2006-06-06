@@ -87,7 +87,7 @@ void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
   if(info->subtitle_text_encoder_section && !t->subtitle_text_encoder_section)
     {
     t->subtitle_text_encoder_section = bg_cfg_section_copy(info->subtitle_text_encoder_section);
-    fprintf(stderr, "Text encoder: %s\n", info->subtitle_text_info->long_name);
+    //    fprintf(stderr, "Text encoder: %s\n", info->subtitle_text_info->long_name);
     bg_cfg_section_set_name(t->subtitle_text_encoder_section,
                             info->subtitle_text_info->long_name);
 
@@ -1320,7 +1320,9 @@ static bg_parameter_info_t general_parameters_audio[] =
     },
     BG_GAVL_PARAM_FORCE_FLOAT,
     BG_GAVL_PARAM_CONVERSION_QUALITY,
+    BG_GAVL_PARAM_AUDIO_DITHER_MODE,
     BG_GAVL_PARAM_SAMPLERATE,
+    BG_GAVL_PARAM_RESAMPLE_MODE,
     BG_GAVL_PARAM_CHANNEL_SETUP,
     { /* End of parameters */ }
   };

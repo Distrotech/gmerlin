@@ -140,7 +140,7 @@ static int stream_menu_has_widget(stream_menu_t * s,
   return 0;
   }
 
-void about_window_close_callback(bg_gtk_about_window_t* win, void* data)
+static void about_window_close_callback(bg_gtk_about_window_t* win, void* data)
   {
   gmerlin_t * g;
   main_menu_t * the_menu;

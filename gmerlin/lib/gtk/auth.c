@@ -54,7 +54,7 @@ static gboolean delete_callback(GtkWidget * w, GdkEventAny * event,
   return TRUE;
   }
 
-userpass_win * userpass_win_create(const char * resource)
+static userpass_win * userpass_win_create(const char * resource)
   {
   GtkWidget * w;
   GtkWidget * table;

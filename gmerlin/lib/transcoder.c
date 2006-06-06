@@ -444,7 +444,7 @@ typedef struct
   int num;
   } message_num_t;
 
-void set_message_num(bg_msg_t * msg, const void * data)
+static void set_message_num(bg_msg_t * msg, const void * data)
   {
   message_num_t * num = (message_num_t *)data;
   bg_msg_set_id(msg, num->id);
@@ -542,6 +542,7 @@ typedef struct
   int id;
   int index;
   const char * name;
+  int pp_only;
   } message_file_t;
 
 static void set_message_file(bg_msg_t * msg, const void * data)
@@ -553,44 +554,51 @@ static void set_message_file(bg_msg_t * msg, const void * data)
     {
     bg_msg_set_arg_int(msg, 0, m->index);
     bg_msg_set_arg_string(msg, 1, m->name);
+    bg_msg_set_arg_int(msg, 2, m->pp_only);
     }
   else
+    {
     bg_msg_set_arg_string(msg, 0, m->name);
+    bg_msg_set_arg_int(msg, 1, m->pp_only);
+    }
   }
  
 
 void bg_transcoder_send_msg_audio_file(bg_msg_queue_list_t * l,
-                                int index,
-                                const char * filename)
+                                       int index,
+                                       const char * filename, int pp_only)
   {
   message_file_t m;
   m.id = BG_TRANSCODER_MSG_AUDIO_FILE;
   m.name = filename;
   m.index = index;
+  m.pp_only = pp_only;
   bg_msg_queue_list_send(l,
                          set_message_file, &m);
   }
 
-static void bg_transcoder_send_msg_video_file(bg_msg_queue_list_t * l,
-                                int index,
-                                const char * filename)
+void bg_transcoder_send_msg_video_file(bg_msg_queue_list_t * l,
+                                       int index,
+                                       const char * filename, int pp_only)
   {
   message_file_t m;
   m.id = BG_TRANSCODER_MSG_VIDEO_FILE;
   m.name = filename;
   m.index = index;
+  m.pp_only = pp_only;
   bg_msg_queue_list_send(l,
                          set_message_file, &m);
   
   }
 
 void bg_transcoder_send_msg_file(bg_msg_queue_list_t * l,
-                          const char * filename)
+                                 const char * filename, int pp_only)
   {
   message_file_t m;
   m.id = BG_TRANSCODER_MSG_FILE;
   m.name = filename;
   m.index = -1;
+  m.pp_only = pp_only;
   bg_msg_queue_list_send(l,
                          set_message_file, &m);
   
@@ -1125,6 +1133,7 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   if(!samples_decoded)
     {
     s->com.status = STREAM_STATE_FINISHED;
+    fprintf(stderr, "Audio EOF\n");
     return;
     }
 
@@ -1951,7 +1960,8 @@ static void send_file_messages(bg_transcoder_t * t)
         if(t->audio_streams[i].com.output_filename)
           {
           bg_transcoder_send_msg_audio_file(t->message_queues, i,
-                                            t->audio_streams[i].com.output_filename);
+                                            t->audio_streams[i].com.output_filename,
+                                            t->pp_only);
           bg_log(BG_LOG_INFO, LOG_DOMAIN, "Audio stream %d -> file: %s",
                  i+1, t->audio_streams[i].com.output_filename);
           if(t->send_finished)
@@ -1966,7 +1976,7 @@ static void send_file_messages(bg_transcoder_t * t)
         if(t->video_streams[i].com.output_filename)
           {
           bg_transcoder_send_msg_video_file(t->message_queues,
-                                            i, t->video_streams[i].com.output_filename);
+                                            i, t->video_streams[i].com.output_filename, t->pp_only);
           bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video stream %d -> %s", i+1,
                  t->video_streams[i].com.output_filename);
           if(t->send_finished)
@@ -1977,7 +1987,7 @@ static void send_file_messages(bg_transcoder_t * t)
     }
   else if(t->output_filename)
     {
-    bg_transcoder_send_msg_file(t->message_queues, t->output_filename);
+    bg_transcoder_send_msg_file(t->message_queues, t->output_filename, t->pp_only);
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Output file: %s", t->output_filename);
     if(t->send_finished)
       send_file(t->output_filename);
@@ -2217,7 +2227,7 @@ static int start_input(bg_transcoder_t * ret)
   return 0;
   }
 
-int check_separate(bg_transcoder_t * ret)
+static int check_separate(bg_transcoder_t * ret)
   {
   
   ret->separate_streams = 0;
@@ -2309,7 +2319,7 @@ int check_separate(bg_transcoder_t * ret)
   }
 
 
-void check_passes(bg_transcoder_t * ret)
+static void check_passes(bg_transcoder_t * ret)
   {
   int i;
   ret->total_passes = 1;
@@ -2335,7 +2345,7 @@ void check_passes(bg_transcoder_t * ret)
     }
   }
 
-void setup_pass(bg_transcoder_t * ret)
+static void setup_pass(bg_transcoder_t * ret)
   {
   int i;
   for(i = 0; i < ret->num_audio_streams; i++)
@@ -3061,7 +3071,7 @@ static void init_video_converter(video_stream_t * ret)
     }
   }
 
-void subtitle_init_blend(subtitle_stream_t * ss, video_stream_t * vs)
+static void subtitle_init_blend(subtitle_stream_t * ss, video_stream_t * vs)
   {
   subtitle_text_stream_t * sst;
   vs->subtitle_streams =

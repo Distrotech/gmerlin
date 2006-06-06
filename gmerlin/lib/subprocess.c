@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/time.h>
+#include <inttypes.h>
 
 #include <signal.h>
 #include <unistd.h>
@@ -56,7 +57,7 @@ typedef struct
   int w; /*  1 if parent writes */
   } pipe_t;
 
-int create_pipe(pipe_t * p)
+static int create_pipe(pipe_t * p)
   {
   if(pipe(p->fd) == -1)
     return 0;
@@ -64,7 +65,7 @@ int create_pipe(pipe_t * p)
   return 1;
   }
 
-int connect_pipe_parent(pipe_t * p)
+static int connect_pipe_parent(pipe_t * p)
   {
   if(!p->use)
     return -1;
@@ -78,7 +79,7 @@ int connect_pipe_parent(pipe_t * p)
     return p->fd[READ];
   }
 
-void connect_pipe_child(pipe_t * p, int fileno)
+static void connect_pipe_child(pipe_t * p, int fileno)
   {
   if(!p->use)
     return;
@@ -261,4 +262,19 @@ int bg_subprocess_read_line(int fd, char ** ret, int * ret_alloc,
 
   (*ret)[bytes_read] = '\0';
   return 1;
+  }
+
+int bg_subprocess_read_data(int fd, uint8_t * ret, int len)
+  {
+  int result;
+  int bytes_read = 0;
+
+  while(bytes_read < len)
+    {
+    result = read(fd, ret + bytes_read, len - bytes_read);
+    if(result <= 0)
+      return bytes_read;
+    bytes_read += result;
+    }
+  return bytes_read;
   }

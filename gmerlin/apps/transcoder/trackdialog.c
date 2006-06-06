@@ -43,7 +43,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
   track_dialog_t * ret;
   void * parent;
   bg_transcoder_encoder_info_t encoder_info;
-
+  
   bg_transcoder_encoder_info_get_from_track(plugin_reg, t, &encoder_info);
                                             
   ret = calloc(1, sizeof(*ret));
@@ -73,7 +73,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
 
   /* Audio encoder */
 
-  if(encoder_info.audio_encoder_parameters)
+  if(encoder_info.audio_encoder_parameters && t->num_audio_streams)
     {
     bg_dialog_add(ret->cfg_dialog,
                   bg_cfg_section_get_name(t->audio_encoder_section),
@@ -85,7 +85,8 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
 
   /* Video encoder */
 
-  if(encoder_info.video_encoder_parameters)
+  if(encoder_info.video_encoder_parameters &&
+     (!(encoder_info.audio_info) || t->num_video_streams))
     {
     bg_dialog_add(ret->cfg_dialog,
                   bg_cfg_section_get_name(t->video_encoder_section),
@@ -97,7 +98,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
 
   /* Subtitle text encoder */
 
-  if(encoder_info.subtitle_text_encoder_parameters)
+  if(encoder_info.subtitle_text_encoder_parameters && t->num_subtitle_text_streams)
     {
     bg_dialog_add(ret->cfg_dialog,
                   bg_cfg_section_get_name(t->subtitle_text_encoder_section),
@@ -109,7 +110,8 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
 
   /* Subtitle overlay encoder */
 
-  if(encoder_info.subtitle_overlay_encoder_parameters)
+  if(encoder_info.subtitle_overlay_encoder_parameters &&
+     (t->num_subtitle_text_streams || t->num_subtitle_overlay_streams))
     {
     bg_dialog_add(ret->cfg_dialog,
                   bg_cfg_section_get_name(t->subtitle_overlay_encoder_section),

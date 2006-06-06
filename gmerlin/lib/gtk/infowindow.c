@@ -630,16 +630,6 @@ void bg_gtk_info_window_destroy(bg_gtk_info_window_t * w)
   free(w);
   }
 
-/*
- *  Return the queue. It must then be passed to the
- *  player with bg_player_add_message_queue()
- */
-
-bg_msg_queue_t *
-bg_gtk_info_window_get_queue(bg_gtk_info_window_t * w)
-  {
-  return w->queue;
-  }
 
 /* Show/hide the window */
 

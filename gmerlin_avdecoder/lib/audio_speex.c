@@ -22,6 +22,8 @@
 #include <string.h>
 
 #include <avdec_private.h>
+#include <codecs.h>
+
 #include <speex/speex.h>
 #include <speex/speex_header.h>
 #include <speex/speex_stereo.h>
@@ -63,7 +65,7 @@ static int init_speex(bgav_stream_t * s)
   
   priv->dec_state = speex_decoder_init(speex_mode_list[priv->header->mode]);
 
-  fprintf(stderr, "Mode: %d\n", priv->header->mode);
+  //  fprintf(stderr, "Mode: %d\n", priv->header->mode);
   
   /* Set up format */
 

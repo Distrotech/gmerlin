@@ -62,7 +62,6 @@
 /* Global locking for win32 codecs */
 
 pthread_mutex_t win32_mutex = PTHREAD_MUTEX_INITIALIZER;
-
 void bgav_windll_lock()
   {
   pthread_mutex_lock(&win32_mutex);
@@ -72,8 +71,6 @@ void bgav_windll_unlock()
   {
   pthread_mutex_unlock(&win32_mutex);
   }
-
-
 
 typedef struct
   {

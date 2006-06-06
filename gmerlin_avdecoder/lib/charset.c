@@ -57,7 +57,7 @@ char * bgav_convert_string(bgav_charset_converter_t *,
 
 #define BYTES_INCREMENT 10
 
-int do_convert(iconv_t cd, char * in_string, int len, int * out_len,
+static int do_convert(iconv_t cd, char * in_string, int len, int * out_len,
                char ** ret, int * ret_alloc)
   {
 

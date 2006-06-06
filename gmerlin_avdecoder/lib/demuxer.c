@@ -54,9 +54,7 @@ extern bgav_demuxer_t bgav_demuxer_nsv;
 extern bgav_demuxer_t bgav_demuxer_ogg;
 #endif
 
-#if (HAVE_LIBDV && HAVE_LIBAVCODEC)
 extern bgav_demuxer_t bgav_demuxer_dv;
-#endif
 
 #ifdef HAVE_LIBA52
 extern bgav_demuxer_t bgav_demuxer_a52;
@@ -105,9 +103,7 @@ static demuxer_t demuxers[] =
 #ifdef HAVE_MJPEGTOOLS
     { &bgav_demuxer_y4m, "yuv4mpeg" },
 #endif
-#if (HAVE_LIBDV && HAVE_LIBAVCODEC)
     { &bgav_demuxer_dv, "DV" },
-#endif
     { &bgav_demuxer_sphere, "nist Sphere"},
     { &bgav_demuxer_ircam, "IRCAM" },
     { &bgav_demuxer_8svx, "Amiga IFF" },

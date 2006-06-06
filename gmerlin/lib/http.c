@@ -156,7 +156,7 @@ static char * get_hostname(char * old, const char * url)
   return bg_strndup(old, pos1, pos2);
   }
 
-void bg_http_connection_dump(bg_http_connection_t * c)
+static void bg_http_connection_dump(bg_http_connection_t * c)
   {
   int i;
   fprintf(stderr, "HTTP header:\n");
@@ -315,12 +315,12 @@ int bg_http_connection_connect(bg_http_connection_t * c,
   }
 
 /* NULL terminated array of header lines */
-
-const char ** bg_http_connection_get_header(bg_http_connection_t * c)
+#if 0
+static const char ** bg_http_connection_get_header(bg_http_connection_t * c)
   {
   return (const char**)c->header;
   }
-
+#endif
 /* Close the connection */
 
 void bg_http_connection_close(bg_http_connection_t * c)

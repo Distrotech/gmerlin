@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include <avdec_private.h>
+#include <codecs.h>
 #include <bswap.h>
 
 typedef struct

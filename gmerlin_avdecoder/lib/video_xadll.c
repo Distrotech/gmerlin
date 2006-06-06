@@ -252,10 +252,15 @@ static void XA_YUV221111_Convert(unsigned char *image_p,
     }
   }
 
+void *XA_YUV221111_Func(unsigned int image_type);
+
+
 void *XA_YUV221111_Func(unsigned int image_type)
   {
   return((void *)XA_YUV221111_Convert);
   }
+
+void XA_Print(char *fmt, ...);
 
 void XA_Print(char *fmt, ...)
 {
@@ -271,12 +276,15 @@ void XA_Print(char *fmt, ...)
 /* 0 is no debug (needed by 3ivX) */
 long xa_debug = 0;
 
+void XA_Gen_YUV_Tabs(XA_ANIM_HDR *anim_hdr);
+
 void XA_Gen_YUV_Tabs(XA_ANIM_HDR *anim_hdr)
   {
   //  XA_Print("XA_Gen_YUV_Tabs('anim_hdr: %08x')\n", anim_hdr);
   return;
   }
 
+void JPG_Setup_Samp_Limit_Table(XA_ANIM_HDR *anim_hdr);
 void JPG_Setup_Samp_Limit_Table(XA_ANIM_HDR *anim_hdr)
   {
   //  XA_Print("JPG_Setup_Samp_Limit_Table('anim_hdr: %08x')\n", anim_hdr);

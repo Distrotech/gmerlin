@@ -174,7 +174,7 @@ void bg_transcoder_pp_update(bg_transcoder_pp_t * p)
   bg_msg_t *msg;
   char * str = (char*)0;
   char * ext;
-
+  int pp_only;
   //  fprintf(stderr, "bg_transcoder_pp_update\n");
 
   while((msg = bg_msg_queue_try_lock_read(p->msg_in)))
@@ -192,12 +192,15 @@ void bg_transcoder_pp_update(bg_transcoder_pp_t * p)
         break;
       case BG_TRANSCODER_MSG_VIDEO_FILE:
         str = bg_msg_get_arg_string(msg, 1);
+        pp_only = bg_msg_get_arg_int(msg, 2);
         break;
       case BG_TRANSCODER_MSG_AUDIO_FILE:
         str = bg_msg_get_arg_string(msg, 1);
+        pp_only = bg_msg_get_arg_int(msg, 2);
         break;
       case BG_TRANSCODER_MSG_FILE:
         str = bg_msg_get_arg_string(msg, 0);
+        pp_only = bg_msg_get_arg_int(msg, 1);
         break;
       case BG_TRANSCODER_MSG_PROGRESS:
         break;
@@ -216,7 +219,7 @@ void bg_transcoder_pp_update(bg_transcoder_pp_t * p)
         }
       if(str)
         {
-        p->pp_plugin->add_track(p->plugin->priv, str, &p->metadata);
+        p->pp_plugin->add_track(p->plugin->priv, str, &p->metadata, pp_only);
         p->num_tracks++;
         bg_log(BG_LOG_INFO, LOG_DOMAIN, "Scheduling %s for postprocessing", str);
         //        fprintf(stderr, "Scheduling %s for postprocessing", str);

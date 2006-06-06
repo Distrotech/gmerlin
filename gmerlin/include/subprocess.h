@@ -39,3 +39,5 @@ int bg_subprocess_close(bg_subprocess_t*);
 /* For reading text strings from stdout or stderr */
 int bg_subprocess_read_line(int fd, char ** ret, int * ret_alloc,
                             int milliseconds);
+
+int bg_subprocess_read_data(int fd, uint8_t * ret, int len);

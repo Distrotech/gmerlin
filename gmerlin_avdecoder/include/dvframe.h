@@ -17,7 +17,9 @@
 
 *****************************************************************/
 
-#define DV_HEADER_SIZE 6
+/* minimum number of bytes to read from a DV stream in order to
+   determine the profile */
+#define DV_HEADER_SIZE (6*80) /* 6 DIF blocks */
 
 /*
  *  Handler for DV frames

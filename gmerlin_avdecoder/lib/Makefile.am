@@ -123,15 +123,6 @@ dvdread_cflags  =
 dvdread_libs    =
 endif
 
-if HAVE_LIBDV
-libdv_cflags =  @LIBDV_CFLAGS@
-libdv_libs =    @LIBDV_LIBS@
-libdv_sources = dvframe.c demux_dv.c
-else
-libdv_cflags =
-libdv_libs =
-libdv_sources =
-endif
 
 if HAVE_MJPEGTOOLS
 mjpegtools_cflags =  @MJPEGTOOLS_CFLAGS@
@@ -223,12 +214,12 @@ $(avcodec_libs) \
 $(real_libs) \
 $(xadll_libs) \
 $(cdio_libs) \
-$(libdv_libs) \
 $(mjpegtools_libs) \
 $(samba_libs) \
 $(theora_libs) \
 $(speex_libs) \
 GSM610/libgsm.la \
+@ICONV_LIBS@ \
 -lm
 
 AM_CFLAGS = \
@@ -244,7 +235,6 @@ $(a52_cflags) \
 $(musepack_cflags) \
 $(avcodec_cflags) \
 $(cdio_cflags) \
-$(libdv_cflags) \
 $(mjpegtools_cflags) \
 $(samba_cflags) \
 $(theora_cflags) \
@@ -265,7 +255,6 @@ $(flac_sources) \
 $(avcodec_sources) \
 $(real_sources) \
 $(xadll_sources) \
-$(libdv_sources) \
 $(mjpegtools_sources) \
 $(samba_sources) \
 $(theora_sources) \
@@ -287,6 +276,7 @@ demux_aiff.c \
 demux_asf.c \
 demux_avi.c \
 demux_au.c \
+demux_dv.c \
 demux_flac.c \
 demux_fli.c \
 demux_flv.c \
@@ -305,6 +295,7 @@ demux_rm.c \
 demux_vivo.c \
 demux_wav.c \
 device.c \
+dvframe.c \
 http.c \
 id3v1.c \
 id3v2.c \

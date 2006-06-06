@@ -90,7 +90,7 @@ int bg_remote_server_init(bg_remote_server_t * s)
   return 1;
   }
 
-void bg_remote_server_cleanup(bg_remote_server_t * s)
+static void bg_remote_server_cleanup(bg_remote_server_t * s)
   {
   close(s->fd);
   s->fd = -1;

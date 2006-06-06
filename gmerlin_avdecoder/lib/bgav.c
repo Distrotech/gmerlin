@@ -25,7 +25,7 @@
 
 #define DUMP_SIZE 1024
 
-bgav_input_context_t * create_input(bgav_t * b)
+static bgav_input_context_t * create_input(bgav_t * b)
   {
   bgav_input_context_t * ret;
 

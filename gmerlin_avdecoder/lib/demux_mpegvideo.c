@@ -60,7 +60,7 @@ typedef struct
   uint32_t bitrate; /* In 400 bits per second */
   } sequence_header_t;
 
-int sequence_header_read(bgav_input_context_t * ctx,sequence_header_t * ret)
+static int sequence_header_read(bgav_input_context_t * ctx,sequence_header_t * ret)
   {
   uint8_t buffer[8];
   if(bgav_input_read_data(ctx, buffer, 8) < 8)
@@ -80,7 +80,7 @@ typedef struct
   uint32_t bitrate_ext;
   } sequence_extension_t;
 
-int sequence_extension_read(bgav_input_context_t * ctx,
+static int sequence_extension_read(bgav_input_context_t * ctx,
                             sequence_extension_t * ret)
   {
   uint8_t buffer[4];

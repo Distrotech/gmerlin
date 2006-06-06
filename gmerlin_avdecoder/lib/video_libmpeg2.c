@@ -245,7 +245,7 @@ static int init_mpeg2(bgav_stream_t*s)
   return 1;
   }
 
-int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
+static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   {
   int64_t tmp;
   mpeg2_priv_t * priv;
@@ -378,7 +378,7 @@ static void resync_mpeg2(bgav_stream_t*s)
   }
 
   
-void close_mpeg2(bgav_stream_t*s)
+static void close_mpeg2(bgav_stream_t*s)
   {
   mpeg2_priv_t * priv;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);

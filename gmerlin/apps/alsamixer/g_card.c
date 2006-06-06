@@ -27,7 +27,7 @@ struct card_widget_s
   GList * control_windows;
   };
 
-gboolean  timeout_func(gpointer data)
+static gboolean  timeout_func(gpointer data)
   {
   card_widget_t * w;
   w = (card_widget_t *)data;

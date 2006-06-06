@@ -63,6 +63,10 @@ PKG_CHECK_MODULES(FONTCONFIG, fontconfig >= $FONTCONFIG_REQUIRED, , AC_MSG_ERROR
 FREETYPE_REQUIRED="9.7.3"
 PKG_CHECK_MODULES(FREETYPE, freetype2 >= $FREETYPE_REQUIRED, , AC_MSG_ERROR("freetype2 not found"))
 
+ICONV_LIBS=
+AC_CHECK_LIB(iconv, libiconv_close, ICONV_LIBS="-liconv")
+AC_SUBST(ICONV_LIBS)
+
 dnl
 dnl Gtk
 dnl
@@ -597,7 +601,7 @@ dnl
 
 LQT_OPT_CFLAGS($host_cpu, ["-O3 -funroll-all-loops -fomit-frame-pointer -ffast-math"])
 
-CFLAGS="-Wall -D_REENTRANT -D_FILE_OFFSET_BITS=64 $GAVL_CFLAGS $OPT_CFLAGS"
+CFLAGS="-Wall -Wmissing-declarations -D_REENTRANT -D_FILE_OFFSET_BITS=64 $GAVL_CFLAGS $OPT_CFLAGS"
 
 dnl
 dnl libxml is necessary for all sources

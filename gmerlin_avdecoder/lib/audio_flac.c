@@ -186,7 +186,7 @@ write_callback(const FLAC__StreamDecoder *decoder,
   return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
   }
 
-void
+static void
 metadata_callback(const FLAC__StreamDecoder *decoder,
                   const FLAC__StreamMetadata *metadata,
                   void *client_data)
@@ -201,7 +201,7 @@ metadata_callback(const FLAC__StreamDecoder *decoder,
     }
   }
 
-void
+static void
 error_callback(const FLAC__StreamDecoder *decoder,
                FLAC__StreamDecoderErrorStatus status,
                void *client_data)

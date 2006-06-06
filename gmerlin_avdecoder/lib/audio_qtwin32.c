@@ -32,10 +32,13 @@
 #include <codecs.h>
 #include <avdec_private.h>
 
-
 #include "libw32dll/qtx/qtxsdk/components.h"
 #include "libw32dll/wine/windef.h"
 #include "libw32dll/wine/ldt_keeper.h"
+
+#include <semaphore.h>
+#include <win32codec.h>
+
 /*
  * This version of the macro avoids compiler warnings about
  * multiple-character constants. It also does NOT assume
@@ -46,8 +49,6 @@
 #endif
 #define FOUR_CHAR_CODE BE_FOURCC
 
-extern void bgav_windll_lock();
-extern void bgav_windll_unlock();
 
 HMODULE   WINAPI LoadLibraryA(LPCSTR);
 FARPROC   WINAPI GetProcAddress(HMODULE,LPCSTR);

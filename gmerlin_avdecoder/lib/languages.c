@@ -19,7 +19,7 @@
 
 #include <string.h>
 
-#include <avdec.h>
+#include <avdec_private.h>
 #include <language_table.h>
 
 static int num_lang = sizeof(language_codes)/sizeof(language_codes[0]);

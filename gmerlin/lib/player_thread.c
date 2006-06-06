@@ -878,28 +878,38 @@ static int process_commands(bg_player_t * player)
         //      fprintf(stderr, "Command play\n");
         play_flags = bg_msg_get_arg_int(command, 2);
         state = bg_player_get_state(player);
+        arg_ptr1 = bg_msg_get_arg_ptr_nocopy(command, 0);
 
         if(play_flags)
           {
           if(((state == BG_PLAYER_STATE_PLAYING) || (state == BG_PLAYER_STATE_STILL)) &&
              (play_flags & BG_PLAY_FLAG_IGNORE_IF_PLAYING))
+            {
+            if(arg_ptr1)
+              bg_plugin_unref((bg_plugin_handle_t*)arg_ptr1);
             break;
+            }
           else if((state == BG_PLAYER_STATE_STOPPED) &&
                   (play_flags & BG_PLAY_FLAG_IGNORE_IF_STOPPED))
+            {
+            if(arg_ptr1)
+              bg_plugin_unref((bg_plugin_handle_t*)arg_ptr1);
             break;
+            }
           }
         if(state == BG_PLAYER_STATE_PAUSED)
           {
           if(play_flags & BG_PLAY_FLAG_RESUME)
             {
             pause_cmd(player);
+            if(arg_ptr1)
+              bg_plugin_unref((bg_plugin_handle_t*)arg_ptr1);
             break;
             }
           else
             play_flags |= BG_PLAY_FLAG_INIT_THEN_PAUSE;
           }
         
-        arg_ptr1 = bg_msg_get_arg_ptr_nocopy(command, 0);
         arg_i1   = bg_msg_get_arg_int(command, 1);
         arg_str1 = bg_msg_get_arg_string(command, 3);
       

@@ -384,7 +384,7 @@ static void lock_callback(GtkWidget * w, gpointer data)
   //  fprintf(stderr, "lock: %d\n", arr->locked);
   }
 
-void init_array(widget_array_t * ret, alsa_mixer_control_t * c,
+static void init_array(widget_array_t * ret, alsa_mixer_control_t * c,
                 snd_ctl_elem_info_t * _info, int lock_button)
   {
   int req_width, req_height;

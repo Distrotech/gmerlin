@@ -156,7 +156,7 @@ static skin_info_t * skin_info_create()
     return (skin_info_t*)0;
   }
 
-void skin_info_destroy(skin_info_t * info)
+static void skin_info_destroy(skin_info_t * info)
   {
   skin_info_t * tmp_info;
 

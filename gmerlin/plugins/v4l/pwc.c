@@ -32,6 +32,8 @@
 
 #include <linux/videodev.h>
 
+#include "pwc.h"
+
 typedef struct
   {
   struct pwc_leds led;

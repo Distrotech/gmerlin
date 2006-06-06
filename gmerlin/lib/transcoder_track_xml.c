@@ -146,10 +146,12 @@ static void track_2_xml(bg_transcoder_track_t * track,
   section_2_xml(track->metadata_section, node);
   xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
 
-  node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"INPUT", NULL);
-  section_2_xml(track->input_section, node);
-  xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
-  
+  if(track->input_section)
+    {
+    node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"INPUT", NULL);
+    section_2_xml(track->input_section, node);
+    xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
+    }
   if(track->audio_encoder_section)
     {
     node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"AUDIO_ENCODER", NULL);

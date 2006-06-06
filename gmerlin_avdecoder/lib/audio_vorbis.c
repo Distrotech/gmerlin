@@ -753,7 +753,7 @@ static FORMATDETAIL aOggFormatIndexToDetail[] =
 
 #define ARRAYLEN(arr) (sizeof(arr)/sizeof(arr[0]))
 
-DWORD oggFormatToIndex(const bgav_stream_t *pwfx)
+static DWORD oggFormatToIndex(const bgav_stream_t *pwfx)
   {
   DWORD index = 0;
   LONG  delta = LONG_MAX;

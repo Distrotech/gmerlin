@@ -89,7 +89,7 @@ GdkPixbuf * bg_gtk_pixbuf_scale_alpha(GdkPixbuf * src,
 
 static GdkPixbuf * window_pixbuf = (GdkPixbuf*)0;
 
-void set_default_window_icon(const char * icon)
+static void set_default_window_icon(const char * icon)
   {
   char * tmp;
   tmp = bg_search_file_read("icons", icon);

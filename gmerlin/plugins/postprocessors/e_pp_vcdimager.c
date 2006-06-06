@@ -46,7 +46,11 @@ typedef struct
 
   bg_cdrdao_t * cdr;
 
-  char ** files;
+  struct
+    {
+    char * name;
+    int pp_only;
+    } * files;
   int num_files;
   } vcdimager_t;
 
@@ -54,10 +58,10 @@ static void free_tracks(vcdimager_t * v)
   {
   int i;
   for(i = 0; i < v->num_files; i++)
-    free(v->files[i]);
+    free(v->files[i].name);
   if(v->files)
     free(v->files);
-  v->files = (char**)0;
+  v->files = NULL;
   v->num_files = 0;
   }
 
@@ -87,6 +91,8 @@ static void destroy_vcdimager(void * priv)
 
   free(vcdimager);
   }
+
+#undef FREE
 
 static const char * get_error_vcdimager(void * priv)
   {
@@ -185,13 +191,14 @@ static int init_vcdimager(void * data)
   }
 
 static void add_track_vcdimager(void * data, const char * filename,
-                         bg_metadata_t * metadata)
+                                bg_metadata_t * metadata, int pp_only)
   {
   vcdimager_t * vcdimager;
   vcdimager = (vcdimager_t*)data;
   vcdimager->files = realloc(vcdimager->files,
                              sizeof(*(vcdimager->files)) * (vcdimager->num_files+1));
-  vcdimager->files[vcdimager->num_files] = bg_strdup((char*)0, filename);
+  vcdimager->files[vcdimager->num_files].name = bg_strdup((char*)0, filename);
+  vcdimager->files[vcdimager->num_files].pp_only = pp_only;
   vcdimager->num_files++;
   }
 
@@ -277,16 +284,19 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
   int i;
   char * line = (char*)0;
   int line_alloc = 0;
-  char * bin_file;
-  char * cue_file;
+  char * bin_file = (char*)0;
+  char * cue_file = (char*)0;
+  char * xml_file = (char*)0;
   vcdimager = (vcdimager_t*)data;
   
   /* Build vcdxgen commandline */
 
   //  bg_search_file_exec("vcdxgen", &commandline);
 
-  str = bg_sprintf("vcdxgen -o %s/%s -t %s --iso-application-id=%s-%s",
-                   directory, vcdimager->xml_file, vcdimager->vcd_version, PACKAGE, VERSION);
+  xml_file = bg_sprintf("%s/%s", directory, vcdimager->xml_file);
+    
+  str = bg_sprintf("vcdxgen -o %s -t %s --iso-application-id=%s-%s",
+                   xml_file, vcdimager->vcd_version, PACKAGE, VERSION);
   commandline = bg_strcat(commandline, str);
   free(str);
 
@@ -299,7 +309,7 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
 
   for(i = 0; i < vcdimager->num_files; i++)
     {
-    str = bg_sprintf(" \"%s\"", vcdimager->files[i]);
+    str = bg_sprintf(" \"%s\"", vcdimager->files[i].name);
     commandline = bg_strcat(commandline, str);
     free(str);
     }
@@ -320,8 +330,11 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
   bg_subprocess_close(proc);
 
   if(err)
+    {
+    if(cleanup)
+      remove(xml_file);
     return;
-
+    }
   /* Build vcdxbuild commandline */
   
   bg_search_file_exec("vcdxbuild", &commandline);
@@ -344,11 +357,35 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
     }
   bg_subprocess_close(proc); 
 
-  /* Run cdrdao */
-  bg_cdrdao_run(vcdimager->cdr, cue_file);
+  /* If we reached this point, we can delete the mpg files as well as
+     the xml file */
 
+  if(cleanup)
+    {
+    for(i = 0; i < vcdimager->num_files; i++)
+      {
+      if(!vcdimager->files[i].pp_only)
+        {
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing %s", vcdimager->files[i]);
+        remove(vcdimager->files[i].name);
+        }
+      }
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing %s", xml_file);
+    remove(xml_file);
+    }
+  
+  /* Run cdrdao */
+  if(bg_cdrdao_run(vcdimager->cdr, cue_file) && cleanup)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing %s", bin_file);
+    remove(bin_file);
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing %s", cue_file);
+    remove(cue_file);
+    }
+  
   free(cue_file);
   free(bin_file);
+  free(xml_file);
   
   }
 

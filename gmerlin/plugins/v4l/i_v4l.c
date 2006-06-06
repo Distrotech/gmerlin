@@ -34,15 +34,7 @@
 #include <unistd.h>
 #include <utils.h>
 
-extern int bg_pwc_probe(int fd);
-
-extern void * bg_pwc_get_parameters(int fd,
-                                    bg_parameter_info_t ** parameters);
-
-extern void bg_pwc_destroy(void*);
-
-extern void bg_pwc_set_parameter(int fd, void * priv, char * name,
-                                 bg_parameter_value_t * val);
+#include "pwc.h"
 
 /* Debugging stuff */
 #if 0
@@ -712,7 +704,7 @@ static void set_parameter_v4l(void * priv, char * name,
   //  dump_video_picture(&(v4l->cfg_pic));
   }
 
-const char * get_error_v4l(void * priv)
+static const char * get_error_v4l(void * priv)
   {
   v4l_t * v4l = (v4l_t*)priv;
   return v4l->error_message;

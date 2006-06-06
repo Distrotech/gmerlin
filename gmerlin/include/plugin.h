@@ -30,6 +30,7 @@
    to let the plugin loader obtain the API version */
 
 #define BG_GET_PLUGIN_API_VERSION \
+  extern int get_plugin_api_version(); \
   extern int get_plugin_api_version() { return BG_PLUGIN_API_VERSION; }
 
 #define BG_PLUGIN_PRIORITY_MIN 1
@@ -663,8 +664,8 @@ typedef struct bg_encoder_pp_plugin_s
 
   /* Add a transcoded track */
   void (*add_track)(void*, const char * filename,
-                    bg_metadata_t * metadata);
-
+                    bg_metadata_t * metadata, int pp_only);
+  
   /* Run can be a long operation, it should be called from a separate
      thread launched by the application and the callbacks should be
      used for progress reporting */
