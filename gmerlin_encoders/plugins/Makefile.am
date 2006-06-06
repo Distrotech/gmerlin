@@ -1,7 +1,7 @@
 if HAVE_VORBIS
-vorbis_subdirs = vorbis
+ogg_subdirs = ogg
 else
-vorbis_subdirs =
+ogg_subdirs =
 endif
 
 if HAVE_FLAC
@@ -28,6 +28,5 @@ else
 mjpeg_subdirs =
 endif
 
-
-SUBDIRS = $(vorbis_subdirs) $(flac_subdirs) $(lame_subdirs) $(faac_subdirs) $(mjpeg_subdirs)
+SUBDIRS = $(ogg_subdirs) $(flac_subdirs) $(lame_subdirs) $(faac_subdirs) $(mjpeg_subdirs)
 

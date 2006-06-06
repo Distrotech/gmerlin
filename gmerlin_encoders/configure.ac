@@ -65,6 +65,50 @@ fi
 AC_SUBST(VORBIS_REQUIRED)
 
 dnl
+dnl Theora
+dnl
+
+AH_TEMPLATE([HAVE_THEORA],
+            [Do we have theora installed?])
+
+have_theora="false"
+
+THEORA_REQUIRED="1.0alpha5"
+
+PKG_CHECK_MODULES(THEORA, theora >= $THEORA_REQUIRED, have_theora="true", have_theora="false")
+AC_SUBST(THEORA_REQUIRED)
+AC_SUBST(THEORA_LIBS)
+AC_SUBST(THEORA_CFLAGS)
+
+AM_CONDITIONAL(HAVE_THEORA, test x$have_theora = xtrue)
+
+if test "x$have_theora" = "xtrue"; then
+AC_DEFINE([HAVE_THEORA])
+fi
+
+dnl
+dnl Speex
+dnl
+
+AH_TEMPLATE([HAVE_SPEEX],
+            [Do we have speex installed?])
+
+have_speex="false"
+
+SPEEX_REQUIRED="1.0.4"
+
+PKG_CHECK_MODULES(SPEEX, speex >= $SPEEX_REQUIRED, have_speex="true", have_speex="false")
+AC_SUBST(SPEEX_REQUIRED)
+AC_SUBST(SPEEX_LIBS)
+AC_SUBST(SPEEX_CFLAGS)
+
+AM_CONDITIONAL(HAVE_SPEEX, test x$have_speex = xtrue)
+
+if test "x$have_speex" = "xtrue"; then
+AC_DEFINE([HAVE_SPEEX])
+fi
+
+dnl
 dnl FLAC
 dnl
 
@@ -296,7 +340,7 @@ lib/Makefile \
 m4/Makefile \
 plugins/Makefile \
 plugins/flac/Makefile \
-plugins/vorbis/Makefile \
+plugins/ogg/Makefile \
 plugins/lame/Makefile \
 plugins/faac/Makefile \
 plugins/yuv4mpeg/Makefile \
@@ -320,6 +364,21 @@ echo "Found (CFLAGS=$VORBIS_CFLAGS LIBS=$VORBIS_LIBS)"
 else
 echo "Missing (Go to: http://www.vorbis.com/)"
 fi
+
+echo -n "theora:     "
+if test "x$have_theora" = "xtrue"; then
+echo "Found (CFLAGS=$THEORA_CFLAGS LIBS=$THEORA_LIBS)"
+else
+echo "Missing (Go to: http://www.theora.org/)"
+fi
+
+echo -n "speex:      "
+if test "x$have_speex" = "xtrue"; then
+echo "Found (CFLAGS=$SPEEX_CFLAGS LIBS=$SPEEX_LIBS)"
+else
+echo "Missing (Go to: http://www.speex.org/)"
+fi
+
 
 echo -n "lame:       "
 if test "x$have_lame" = "xtrue"; then

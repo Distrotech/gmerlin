@@ -1,8 +1,8 @@
 /*****************************************************************
  
-  e_vorbis.c
+  vorbis.c
  
-  Copyright (c) 2005 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2005-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
   http://gmerlin.sourceforge.net
  
@@ -19,39 +19,26 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <config.h>
-#include <gmerlin_encoders.h>
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 
 #include <vorbis/vorbisenc.h>
-
-/* This plugin tries to resemble the behaviour and user options
-   found in the oggenc program. The "Advanced Options" however,
-   are left out for now */
+#include "ogg_common.h"
 
 typedef struct
   {
-  char * error_msg;
-
   /* Ogg vorbis stuff */
     
   ogg_stream_state enc_os;
-  ogg_page enc_og;
-  ogg_packet enc_op;
+  //  ogg_page enc_og;
   vorbis_info enc_vi;
   vorbis_comment enc_vc;
   vorbis_dsp_state enc_vd;
   vorbis_block enc_vb;
 
-  /* Misc stuff */
-
+  long serialno;
   FILE * output;
-  gavl_audio_format_t format;
-  bg_metadata_t metadata;
-  gavl_audio_frame_t * frame;
-  char * filename;
   
   /* Options */
 
@@ -65,64 +52,22 @@ typedef struct
 
   int64_t samples_read;
   
+  gavl_audio_format_t * format;
+  gavl_audio_frame_t * frame;
+  
   } vorbis_t;
 
-static void * create_vorbis()
+static void * create_vorbis(FILE * output, long serialno)
   {
   vorbis_t * ret;
   ret = calloc(1, sizeof(*ret));
-
+  ret->serialno = serialno;
+  ret->output = output;
   ret->frame = gavl_audio_frame_create(NULL);
-    
   return ret;
   }
 
-static void destroy_vorbis(void * priv)
-  {
-  vorbis_t * vorbis;
-  vorbis = (vorbis_t*)priv;
-
-  ogg_stream_clear(&vorbis->enc_os);
-  vorbis_block_clear(&vorbis->enc_vb);
-  vorbis_dsp_clear(&vorbis->enc_vd);
-  vorbis_comment_clear(&vorbis->enc_vc);
-  vorbis_info_clear(&vorbis->enc_vi);
-
-  gavl_audio_frame_destroy(vorbis->frame);
-  
-  free(vorbis);
-  }
-
-static const char * get_error_vorbis(void * priv)
-  {
-  vorbis_t * vorbis;
-  vorbis = (vorbis_t*)priv;
-  return vorbis->error_msg;
-  }
-
-#if 0 /* Common parameters (nothing here yet) */
-
 static bg_parameter_info_t parameters[] =
-  {
-    { /* End of parameters */ }
-  };
-
-static bg_parameter_info_t * get_parameters_vorbis(void * data)
-  {
-  return parameters;
-  }
-
-static void set_parameter_vorbis(void * data, char * name, bg_parameter_value_t * v)
-  {
-  vorbis_t * vorbis;
-  vorbis = (vorbis_t*)data;
-  
-  if(!name)
-    return;
-  }
-#endif
-
-static bg_parameter_info_t audio_parameters[] =
   {
     {
       name:        "bitrate_mode",
@@ -180,9 +125,9 @@ VBR is recommended, managed bitrate might result in a worse quality"
   };
 
 
-static bg_parameter_info_t * get_audio_parameters_vorbis(void * data)
+static bg_parameter_info_t * get_parameters_vorbis()
   {
-  return audio_parameters;
+  return parameters;
   }
 
 static void build_comment(vorbis_comment * vc, bg_metadata_t * metadata)
@@ -220,22 +165,30 @@ static void build_comment(vorbis_comment * vc, bg_metadata_t * metadata)
     vorbis_comment_add(vc, metadata->comment);
   }
 
-static void init_encode(vorbis_t * vorbis)
+
+static int init_vorbis(void * data, gavl_audio_format_t * format, bg_metadata_t * metadata)
   {
   ogg_packet header_main;
   ogg_packet header_comments;
   ogg_packet header_codebooks;
-    
-  unsigned int serialno;
   struct ovectl_ratemanage_arg ai;
+
+  vorbis_t * vorbis = (vorbis_t *)data;
+
+  vorbis->format = format;
+
+  /* Adjust the format */
+
+  vorbis->format->interleave_mode = GAVL_INTERLEAVE_NONE;
+  vorbis->format->sample_format = GAVL_SAMPLE_FLOAT;
   
   vorbis_info_init(&vorbis->enc_vi);
 
   /* VBR Initialization */
   if(!vorbis->managed) 
     {
-    vorbis_encode_setup_vbr(&vorbis->enc_vi, vorbis->format.num_channels,
-                            vorbis->format.samplerate, vorbis->quality);
+    vorbis_encode_setup_vbr(&vorbis->enc_vi, vorbis->format->num_channels,
+                            vorbis->format->samplerate, vorbis->quality);
     
     /* If we have additional bitrate rescrictions, set them here */
     if((vorbis->min_bitrate > 0) || (vorbis->max_bitrate > 0))
@@ -251,8 +204,8 @@ static void init_encode(vorbis_t * vorbis)
     }
   else
     {
-    vorbis_encode_setup_managed(&vorbis->enc_vi, vorbis->format.num_channels,
-                                vorbis->format.samplerate,
+    vorbis_encode_setup_managed(&vorbis->enc_vi, vorbis->format->num_channels,
+                                vorbis->format->samplerate,
                                 vorbis->max_bitrate>0 ? vorbis->max_bitrate : -1,
                                 vorbis->nominal_bitrate,
                                 vorbis->min_bitrate>0 ? vorbis->min_bitrate : -1);
@@ -270,12 +223,11 @@ static void init_encode(vorbis_t * vorbis)
   vorbis_analysis_init(&vorbis->enc_vd,&vorbis->enc_vi);
   vorbis_block_init(&vorbis->enc_vd,&vorbis->enc_vb);
 
-  serialno = rand();
-  ogg_stream_init(&vorbis->enc_os, serialno);
+  ogg_stream_init(&vorbis->enc_os, vorbis->serialno);
 
   /* Build comment (comments are UTF-8, good for us :-) */
 
-  build_comment(&vorbis->enc_vc, &vorbis->metadata);
+  build_comment(&vorbis->enc_vc, metadata);
   
   /* Build the packets */
   vorbis_analysis_headerout(&vorbis->enc_vd,&vorbis->enc_vc,
@@ -283,28 +235,30 @@ static void init_encode(vorbis_t * vorbis)
   
   /* And stream them out */
   ogg_stream_packetin(&vorbis->enc_os,&header_main);
+  if(!bg_ogg_flush_page(&vorbis->enc_os, vorbis->output, 1))
+    fprintf(stderr, "Warning: Got no Vorbis ID page\n");
+  
   ogg_stream_packetin(&vorbis->enc_os,&header_comments);
   ogg_stream_packetin(&vorbis->enc_os,&header_codebooks);
 
-  while(ogg_stream_pageout(&vorbis->enc_os,&vorbis->enc_og))
-    {
-    fwrite(vorbis->enc_og.header,1,vorbis->enc_og.header_len,vorbis->output);
-    fwrite(vorbis->enc_og.body,1,vorbis->enc_og.body_len,vorbis->output);
-    }
+  return 1;
   }
 
-static void set_audio_parameter_vorbis(void * data, int stream, char * name,
-                                       bg_parameter_value_t * v)
+void flush_header_pages_vorbis(void*data)
+  {
+  vorbis_t * vorbis;
+  vorbis = (vorbis_t*)data;
+  bg_ogg_flush(&vorbis->enc_os, vorbis->output, 1);
+  }
+
+static void set_parameter_vorbis(void * data, char * name,
+                                 bg_parameter_value_t * v)
   {
   vorbis_t * vorbis;
   vorbis = (vorbis_t*)data;
   
-  if(stream)
-    return;
-    
   if(!name)
     {
-    init_encode(vorbis);
     return;
     }
   else if(!strcmp(name, "nominal_bitrate"))
@@ -339,48 +293,10 @@ static void set_audio_parameter_vorbis(void * data, int stream, char * name,
   
   }
 
-static int open_vorbis(void * data, const char * filename,
-                       bg_metadata_t * metadata)
-  {
-  vorbis_t * vorbis;
-  vorbis = (vorbis_t*)data;
-  bg_metadata_copy(&(vorbis->metadata), metadata);
-
-  vorbis->filename = bg_strdup(vorbis->filename, filename);
-
-  //  fprintf(stderr, "Open Vorbis %s...", vorbis->filename);
-  vorbis->output = fopen(vorbis->filename, "wb");
-  //  fprintf(stderr, "Done %p\n", vorbis->output);
-
-  if(!vorbis->output)
-    return 0;
-    
-  return 1;
-  }
-
-static char * vorbis_extension = ".ogg";
-
-static const char * get_extension_vorbis(void * data)
-  {
-  return vorbis_extension;
-  }
-
-static int add_audio_stream_vorbis(void * data, gavl_audio_format_t * format)
-  {
-  vorbis_t * vorbis;
-  vorbis = (vorbis_t*)data;
-  gavl_audio_format_copy(&(vorbis->format), format);
-
-  /* Adjust the format */
-
-  vorbis->format.interleave_mode = GAVL_INTERLEAVE_NONE;
-  vorbis->format.sample_format = GAVL_SAMPLE_FLOAT;
-    
-  return 0;
-  }
-
 static void flush_data(vorbis_t * vorbis)
   {
+  ogg_packet op;
+    
   /* While we can get enough data from the library to analyse, one
      block at a time... */
 
@@ -391,25 +307,21 @@ static void flush_data(vorbis_t * vorbis)
     vorbis_analysis(&(vorbis->enc_vb), NULL);
     vorbis_bitrate_addblock(&vorbis->enc_vb);
     
-    while(vorbis_bitrate_flushpacket(&vorbis->enc_vd, &vorbis->enc_op))
+    while(vorbis_bitrate_flushpacket(&vorbis->enc_vd, &op))
       {
       /* Add packet to bitstream */
-      ogg_stream_packetin(&vorbis->enc_os,&vorbis->enc_op);
+      ogg_stream_packetin(&vorbis->enc_os,&op);
       
       /* If we've gone over a page boundary, we can do actual output,
          so do so (for however many pages are available) */
+
+      bg_ogg_flush(&vorbis->enc_os, vorbis->output, 0);
       
-      while(ogg_stream_pageout(&vorbis->enc_os,&vorbis->enc_og))
-        {
-        fwrite(vorbis->enc_og.header,1,vorbis->enc_og.header_len,vorbis->output);
-        fwrite(vorbis->enc_og.body,1,vorbis->enc_og.body_len,vorbis->output);
-        }
       }
     }
   }
 
-static void write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame,
-                                  int stream)
+static void write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
   {
   int i;
   vorbis_t * vorbis;
@@ -419,11 +331,11 @@ static void write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame,
 
   buffer = vorbis_analysis_buffer(&(vorbis->enc_vd), frame->valid_samples);
 
-  for(i = 0; i < vorbis->format.num_channels; i++)
+  for(i = 0; i < vorbis->format->num_channels; i++)
     {
     vorbis->frame->channels.f[i] = buffer[i];
     }
-  gavl_audio_frame_copy(&(vorbis->format),
+  gavl_audio_frame_copy(vorbis->format,
                         vorbis->frame,
                         frame,
                         0, 0, frame->valid_samples, frame->valid_samples);
@@ -433,17 +345,7 @@ static void write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame,
   vorbis->samples_read += frame->valid_samples;
   }
 
-static void get_audio_format_vorbis(void * data, int stream,
-                                 gavl_audio_format_t * ret)
-  {
-  vorbis_t * vorbis;
-  vorbis = (vorbis_t*)data;
-  gavl_audio_format_copy(ret, &(vorbis->format));
-  
-  }
-
-
-static void close_vorbis(void * data, int do_delete)
+static void close_vorbis(void * data)
   {
   vorbis_t * vorbis;
   vorbis = (vorbis_t*)data;
@@ -453,57 +355,34 @@ static void close_vorbis(void * data, int do_delete)
     vorbis_analysis_wrote(&(vorbis->enc_vd), 0);
     flush_data(vorbis);
     }
-  if(vorbis->output)
-    fclose(vorbis->output);
-  
-  bg_metadata_free(&vorbis->metadata);
 
-  if(vorbis->filename)
-    {
-    if(do_delete)
-      remove(vorbis->filename);
-    free(vorbis->filename);
-    }
+  ogg_stream_clear(&vorbis->enc_os);
+  vorbis_block_clear(&vorbis->enc_vb);
+  vorbis_dsp_clear(&vorbis->enc_vd);
+  vorbis_comment_clear(&vorbis->enc_vc);
+  vorbis_info_clear(&vorbis->enc_vi);
+
+  gavl_audio_frame_destroy(vorbis->frame);
+  
+  free(vorbis);
   }
 
-bg_encoder_plugin_t the_plugin =
+
+bg_ogg_codec_t bg_vorbis_codec =
   {
-    common:
-    {
-      name:            "e_vorbis",       /* Unique short name */
-      long_name:       "Vorbis encoder",
-      mimetypes:       NULL,
-      extensions:      "ogg",
-      type:            BG_PLUGIN_ENCODER_AUDIO,
-      flags:           BG_PLUGIN_FILE,
-      priority:        5,
-      create:            create_vorbis,
-      destroy:           destroy_vorbis,
-      get_error:         get_error_vorbis,
-#if 0
-      get_parameters:    get_parameters_vorbis,
-      set_parameter:     set_parameter_vorbis,
-#endif
-    },
-    max_audio_streams:   1,
-    max_video_streams:   0,
-    
-    get_extension:       get_extension_vorbis,
-    
-    open:                open_vorbis,
-    
-    get_audio_parameters:    get_audio_parameters_vorbis,
+    name:      "vorbis",
+    long_name: "Vorbis encoder",
+    create: create_vorbis,
 
-    add_audio_stream:        add_audio_stream_vorbis,
+    get_parameters: get_parameters_vorbis,
+    set_parameter:  set_parameter_vorbis,
     
-    set_audio_parameter:     set_audio_parameter_vorbis,
-
-    get_audio_format:        get_audio_format_vorbis,
+    init_audio:     init_vorbis,
     
-    write_audio_frame:   write_audio_frame_vorbis,
-    close:               close_vorbis
+    //  int (*init_video)(void*, gavl_video_format_t * format);
+  
+    flush_header_pages: flush_header_pages_vorbis,
+    
+    encode_audio: write_audio_frame_vorbis,
+    close: close_vorbis,
   };
-
-/* Include this into all plugin modules exactly once
-   to let the plugin loader obtain the API version */
-BG_GET_PLUGIN_API_VERSION;
