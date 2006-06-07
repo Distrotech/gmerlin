@@ -653,7 +653,7 @@ static int get_packet(bgav_stream_t * s)
   
   if(!priv->p)
     {
-    fprintf(stderr, "Reached EOF\n");
+    //    fprintf(stderr, "Reached EOF\n");
     return 0;
     }
   priv->bytes_in_packet = priv->p->data_size;

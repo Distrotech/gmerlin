@@ -567,7 +567,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
           }
         break;
       case FOURCC_FLAC_NEW:
-        //        fprintf(stderr, "Detected FLAC data (new format)\n");
+        fprintf(stderr, "Detected FLAC data (new format), serialno: %d\n", serialno);
         s = bgav_track_add_audio_stream(track, ctx->opt);
         s->fourcc = FOURCC_FLAC;
         s->priv   = ogg_stream;
@@ -792,7 +792,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         case FOURCC_FLAC_NEW:
           while(ogg_stream_packetout(&ogg_stream->os, &priv->op) == 1)
             {
-            if(priv->op.packet[0] == 0x04)
+            if((priv->op.packet[0] & 0x7f) == 0x04)
               {
               parse_vorbis_comment(s, priv->op.packet+4, priv->op.bytes-4);
               //              fprintf(stderr, "Found vorbis comment in new flac header\n");
@@ -951,7 +951,8 @@ static int64_t find_last_page(bgav_demuxer_context_t * ctx, int64_t pos1,
   int this_serialno, last_serialno = 0;
   int64_t this_granulepos, last_granulepos = 0;
   start_pos = pos2 - BYTES_TO_READ;
-  
+  if(start_pos < 0)
+    start_pos = 0;
   while(1)
     {
     //    fprintf(stderr, "find_last_page %lld %lld...", start_pos, pos2);    

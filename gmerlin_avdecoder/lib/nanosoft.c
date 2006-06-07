@@ -118,8 +118,8 @@ void bgav_WAVEFORMAT_read(bgav_WAVEFORMAT_t * ret, uint8_t * data, int len)
   if(len < 12)
     return;
 
-  fprintf(stderr, "bgav_VAVEFORMAT_read: %d bytes ", len);
-  bgav_hexdump(data, len, 16);
+  //  fprintf(stderr, "bgav_WAVEFORMAT_read: %d bytes ", len);
+  //  bgav_hexdump(data, len, 16);
   
   ptr = data;
   ret->type = BGAV_WAVEFORMAT_WAVEFORMAT;
