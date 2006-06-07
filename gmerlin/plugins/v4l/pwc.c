@@ -25,13 +25,12 @@
 #include <stdlib.h>
 
 
-#include "pwc-ioctl.h"
 #include <plugin.h>
 #include <utils.h>
 
 
 #include <linux/videodev.h>
-
+#include "pwc-ioctl.h"
 #include "pwc.h"
 
 typedef struct
