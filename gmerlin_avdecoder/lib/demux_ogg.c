@@ -96,6 +96,8 @@ typedef struct
 
   int64_t last_granulepos;
   int64_t prev_granulepos;      /* Granulepos of the previous page */
+
+  int64_t first_timestamp;      /* Needed for streaming theora */
   
   int keyframe_granule_shift;
 
@@ -489,6 +491,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
     
     ogg_stream = calloc(1, sizeof(*ogg_stream));
     ogg_stream->last_granulepos = -1;
+    ogg_stream->first_timestamp = -1;
+    
     ogg_stream_init(&ogg_stream->os, serialno);
     ogg_stream_pagein(&ogg_stream->os, &(priv->current_page));
     priv->page_valid = 0;
@@ -1631,8 +1635,19 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           //          fprintf(stderr, "Iframes: %lld, pframes: %lld, keyframe: %d\n", iframes, pframes,
           //                  !(priv->op.packet[0] & 0x40));
           p->timestamp_scaled = (pframes + iframes) * (s->data.video.format.frame_duration);
+
+          fprintf(stderr, "Theora timestamp 1: %lld\n", p->timestamp_scaled);
+          
+          if(stream_priv->first_timestamp < 0)
+            stream_priv->first_timestamp = p->timestamp_scaled;
+          p->timestamp_scaled -= stream_priv->first_timestamp;
+
+          fprintf(stderr, "Theora timestamp 2: %lld\n", p->timestamp_scaled);
+
           }
-        //        
+
+        fprintf(stderr, "Theora timestamp 3: %lld\n", p->timestamp_scaled);
+        
         bgav_packet_done_write(p);
         break;
       case FOURCC_VORBIS:

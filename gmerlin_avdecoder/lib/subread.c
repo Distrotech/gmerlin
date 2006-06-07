@@ -305,7 +305,7 @@ typedef struct
 
 static int probe_spumux(char * line)
   {
-  if(!strcasecmp(line, "<subpictures>"))
+  if(!strncasecmp(line, "<subpictures>", 13))
     return 1;
   return 0;
   }
@@ -646,7 +646,7 @@ static bgav_subtitle_reader_t * find_subtitle_reader(const char * filename,
   char * line = (char*)0;
   int line_alloc = 0;
   int line_len;
-  fprintf(stderr, "Testing file %s\n", filename);
+  //  fprintf(stderr, "Testing file %s\n", filename);
   /* 1. Check if we have a supported extension */
   extension = strrchr(filename, '.');
   if(!extension)
@@ -672,11 +672,12 @@ static bgav_subtitle_reader_t * find_subtitle_reader(const char * filename,
     }
 
   bgav_input_detect_charset(input);
+#if 0
   if(input->charset)
     fprintf(stderr, "Detected character set: %s\n", input->charset);
   else
     fprintf(stderr, "Character set detection failed, assuming default\n");
-
+#endif
   while(bgav_input_read_convert_line(input, &line, &line_alloc, &line_len))
     {
     i = 0;
@@ -688,8 +689,10 @@ static bgav_subtitle_reader_t * find_subtitle_reader(const char * filename,
       if(subtitle_readers[i].probe(line))
         {
         ret = &(subtitle_readers[i]);
+#if 0
         fprintf(stderr, "Detected %s format\n",
                 subtitle_readers[i].name);
+#endif
         break;
         }
       i++;
@@ -726,7 +729,7 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   /* Check if input is a regular file */
   if((input_ctx->input != &bgav_input_file) || !input_ctx->filename)
     {
-    fprintf(stderr, "No subtitle searching, no regular file\n");
+    //    fprintf(stderr, "No subtitle searching, no regular file\n");
     return (bgav_subtitle_reader_context_t*)0;
     }
 
@@ -736,7 +739,7 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   if(!pos)
     {
     free(directory);
-    fprintf(stderr, "No subtitle searching, Invalid filename\n");
+    //    fprintf(stderr, "No subtitle searching, Invalid filename\n");
     return (bgav_subtitle_reader_context_t*)0;
     }
   *pos = '\0';
@@ -751,7 +754,7 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   dir = opendir(directory);
   if(!dir)
     {
-    fprintf(stderr, "No subtitle searching, failed to open directory\n");
+    //    fprintf(stderr, "No subtitle searching, failed to open directory\n");
     return (bgav_subtitle_reader_context_t*)0;
     }
 
