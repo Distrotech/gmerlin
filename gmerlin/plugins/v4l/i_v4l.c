@@ -533,7 +533,7 @@ static void create_parameters(v4l_t * v4l)
     v4l->fd = -1;
     }
 #endif
-  fprintf(stderr, "Have PWC: %d\n", v4l->have_pwc);
+  //  fprintf(stderr, "Have PWC: %d\n", v4l->have_pwc);
   
   if(v4l->have_pwc)
     {

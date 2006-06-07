@@ -112,7 +112,7 @@ char * bg_utf8_to_system(const char * str, int len);
 
 /* This is mostly for debugging */
 
-void bg_hexdump(const void * data, int len);
+void bg_hexdump(uint8_t * data, int len, int linebreak);
 
 /*
  *  Convert formats to strings, free return value with

@@ -31,7 +31,7 @@
 
 #include <netinet/in.h>
 
-#define LOG_DOMAIN "remote_server"
+#define LOG_DOMAIN "remote.server"
 
 /*
  *  Server
@@ -86,7 +86,8 @@ int bg_remote_server_init(bg_remote_server_t * s)
     return 0;
     }
 
-  fprintf(stderr, "Remote socket listening at port %d\n", s->listen_port);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN,
+         "Remote socket listening at port %d", s->listen_port);
   return 1;
   }
 

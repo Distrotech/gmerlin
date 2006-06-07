@@ -21,8 +21,11 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "player.h"
-#include "playerprivate.h"
+#include <player.h>
+#include <playerprivate.h>
+#include <log.h>
+
+#define LOG_DOMAIN "player.input"
 
 struct bg_player_input_context_s
   {
@@ -708,6 +711,13 @@ void * bg_player_input_thread(void * data)
     bg_msg_set_arg_int(msg, 0, BG_PLAYER_STATE_FINISHING);
   
   bg_msg_queue_unlock_write(ctx->player->command_queue);
+
+  if(do_audio)
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Processed %lld audio samples",
+           ctx->audio_samples_written);
+  if(do_video)
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Processed %lld video frames",
+           ctx->video_frames_written);
   
   //  fprintf(stderr, "input thread finished\n");
   return NULL;

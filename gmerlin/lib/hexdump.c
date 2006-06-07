@@ -20,16 +20,27 @@
 #include <stdio.h>
 #include <utils.h>
 
-void bg_hexdump(const void * data, int len)
+void bg_hexdump(uint8_t * data, int len, int linebreak)
   {
   int i;
-  const unsigned char * str = data;
+  int bytes_written = 0;
+  int imax;
   
-  for(i = 0; i < len; i++)
+  while(bytes_written < len)
     {
-    fprintf(stderr, "%02x ", (unsigned int)(str[i]));
-    if(!((i+1) % 16))
-      fprintf(stderr, "\n");
+    imax = (bytes_written + linebreak > len) ? len - bytes_written : linebreak;
+    for(i = 0; i < imax; i++)
+      fprintf(stderr, "%02x ", data[bytes_written + i]);
+    for(i = imax; i < linebreak; i++)
+      fprintf(stderr, "   ");
+    for(i = 0; i < imax; i++)
+      {
+      if(!(data[bytes_written + i] & 0x80) && (data[bytes_written + i] >= 32))
+        fprintf(stderr, "%c", data[bytes_written + i]);
+      else
+        fprintf(stderr, ".");
+      }
+    bytes_written += imax;
+    fprintf(stderr, "\n");
     }
-  fprintf(stderr, "\n");
   }
