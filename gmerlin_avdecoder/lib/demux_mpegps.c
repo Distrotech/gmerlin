@@ -979,7 +979,7 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
   mpegps_priv_t * priv;
   int need_streams = 0;
 
-  fprintf(stderr, "Open mpegps\n");
+  //  fprintf(stderr, "Open mpegps\n");
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;

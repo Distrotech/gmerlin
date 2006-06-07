@@ -97,7 +97,7 @@ write_callback(const FLAC__StreamEncoder *encoder,
       if(!bg_ogg_flush_page(&flacogg->os, flacogg->output, 1))
         fprintf(stderr, "Warning: Got no Flac ID page\n");
       flacogg->header_written = 1;
-      fprintf(stderr, "Wrote header\n");
+      //      fprintf(stderr, "Wrote header\n");
       }
     }
   else if((buffer[0] & 0x7f) == 0x04) /* Vorbis comment */
@@ -158,7 +158,7 @@ static void metadata_callback(const FLAC__StreamEncoder *encoder,
                               const FLAC__StreamMetadata *metadata,
                               void *client_data)
   {
-  fprintf(stderr, "Metadata callback\n");
+  //  fprintf(stderr, "Metadata callback\n");
   }
 
 static void * create_flacogg(FILE * output, long serialno)
@@ -217,38 +217,14 @@ static int init_flacogg(void * data, gavl_audio_format_t * format, bg_metadata_t
   
   /* Initialize encoder */
 
-  fprintf(stderr, "FLAC__stream_encoder_init...\n");
+  //  fprintf(stderr, "FLAC__stream_encoder_init...\n");
   if(FLAC__stream_encoder_init(flacogg->enc) != FLAC__STREAM_ENCODER_OK)
     {
     fprintf(stderr, "ERROR: FLAC__stream_encoder_init failed\n");
     return 0;
     }
-  fprintf(stderr, "FLAC__stream_encoder_done...\n");
+  //  fprintf(stderr, "FLAC__stream_encoder_done...\n");
   
-#if 0
-  
-  /* Build header */
-  op.packet = (unsigned char *)speex_header_to_packet(&header, (int*)&(op.bytes));
-  op.b_o_s = 1;
-  op.e_o_s = 0;
-  op.granulepos = 0;
-  op.packetno = 0;
-  
-  /* And stream them out */
-  ogg_stream_packetin(&speex->os,&op);
-  free(op.packet);
-  if(!bg_ogg_flush_page(&speex->os, speex->output, 1))
-    fprintf(stderr, "Warning: Got no Speex ID page\n");
-
-  /* Build comment */
-  op.packet = (unsigned char *)comments;
-  op.bytes = comments_length;
-  op.b_o_s = 0;
-  op.e_o_s = 0;
-  op.granulepos = 0;
-  op.packetno = 1;
-  ogg_stream_packetin(&speex->os, &op);
-#endif
   return 1;
   }
 
