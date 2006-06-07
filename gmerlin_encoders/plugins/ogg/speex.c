@@ -31,12 +31,11 @@
 #include <ogg/ogg.h>
 #include "ogg_common.h"
 
+/* Way too large but save */
 #define BUFFER_SIZE (MAX_BYTES_PER_FRAME*10)
 
 typedef struct
   {
-  /* Ogg vorbis stuff */
-    
   ogg_stream_state enc_os;
   
   long serialno;
@@ -65,11 +64,11 @@ typedef struct
 
   int frames_encoded;
 
-  uint8_t buffer[MAX_BYTES_PER_FRAME*10];
+  uint8_t buffer[BUFFER_SIZE];
   
   } speex_t;
 
-/* Comment building stuff */
+/* Comment building stuff (ripped from speexenc.c) */
 
 #define readint(buf, base) (((buf[base+3]<<24)&0xff000000)| \
                            ((buf[base+2]<<16)&0xff0000)| \
@@ -80,7 +79,7 @@ typedef struct
                                      buf[base+1]=((val)>>8)&0xff; \
                                      buf[base]=(val)&0xff; \
                                  }while(0)
-void comment_init(char **comments, int* length, char *vendor_string)
+static void comment_init(char **comments, int* length, char *vendor_string)
 {
   int vendor_length=strlen(vendor_string);
   int user_comment_list_length=0;
@@ -94,7 +93,7 @@ void comment_init(char **comments, int* length, char *vendor_string)
   *length=len;
   *comments=p;
 }
-void comment_add(char **comments, int* length, char *tag, char *val)
+static void comment_add(char **comments, int* length, char *tag, char *val)
 {
   char* p=*comments;
   int vendor_length=readint(p, 0);
@@ -434,7 +433,7 @@ static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t *
   return 1;
   }
 
-void flush_header_pages_speex(void*data)
+static void flush_header_pages_speex(void*data)
   {
   speex_t * speex;
   speex = (speex_t*)data;
@@ -497,7 +496,7 @@ static void encode_frame(speex_t * speex, int eof)
     op.packetno = 2 + (speex->frames_encoded / speex->nframes);
     ogg_stream_packetin(&speex->enc_os, &op);
     speex_bits_reset(&speex->bits);
-    fprintf(stderr, "Wrote speex packet %d bytes\n", op.bytes);
+    fprintf(stderr, "Wrote speex packet %ld bytes\n", op.bytes);
     bg_ogg_flush(&speex->enc_os, speex->output, eof);
     }
   if(eof)

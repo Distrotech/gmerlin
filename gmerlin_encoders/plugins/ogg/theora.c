@@ -348,7 +348,7 @@ static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t 
   return 1;
   }
 
-void flush_header_pages_theora(void*data)
+static void flush_header_pages_theora(void*data)
   {
   theora_t * theora;
   theora = (theora_t*)data;

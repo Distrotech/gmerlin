@@ -1,1 +1,1 @@
-noinst_HEADERS = gmerlin_encoders.h
+noinst_HEADERS = gmerlin_encoders.h bgflac.h

@@ -83,7 +83,7 @@ void bg_mpa_set_parameter(void * data, char * name, bg_parameter_value_t * val)
     com->layer = val->val_i;
   }
 
-char * bg_mpa_make_commandline(bg_mpa_common_t * com,
+static char * bg_mpa_make_commandline(bg_mpa_common_t * com,
                                const char * filename)
   {
   char * ret;

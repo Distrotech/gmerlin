@@ -47,6 +47,24 @@ dnl Optional libraries
 dnl
 
 dnl
+dnl Ogg
+dnl
+
+OGG_REQUIRED="1.1"
+
+have_ogg=false
+AH_TEMPLATE([HAVE_OGG], [Ogg libraries are there])
+
+XIPH_PATH_OGG(have_ogg=true)
+AM_CONDITIONAL(HAVE_OGG, test x$have_ogg = xtrue)
+
+if test x$have_ogg = xtrue; then
+AC_DEFINE(HAVE_OGG)
+fi
+
+AC_SUBST(OGG_REQUIRED)
+
+dnl
 dnl Vorbis
 dnl
 
@@ -318,7 +336,7 @@ dnl CFLAGS
 dnl
 
 LQT_OPT_CFLAGS($host_cpu, ["-O3 -funroll-all-loops -fomit-frame-pointer -ffast-math"])
-CFLAGS="-Wall -D_REENTRANT -D_FILE_OFFSET_BITS=64 $OPT_CFLAGS $GMERLIN_CFLAGS"
+CFLAGS="-Wall -Wmissing-declarations -D_REENTRANT -D_FILE_OFFSET_BITS=64 $OPT_CFLAGS $GMERLIN_CFLAGS"
 
 dnl
 dnl LIBS
@@ -356,6 +374,13 @@ if test "x$have_flac" = "xtrue"; then
 echo "Found (CFLAGS=$FLAC_CFLAGS LIBS=$FLAC_LIBS)"
 else
 echo "Missing (Go to: http://flac.sourceforge.net/)"
+fi
+
+echo -n "ogg:        "
+if test "x$have_ogg" = "xtrue"; then
+echo "Found (CFLAGS=$OGG_CFLAGS LIBS=$OGG_LIBS)"
+else
+echo "Missing (Go to: http://www.xiph.org/)"
 fi
 
 echo -n "vorbis:     "

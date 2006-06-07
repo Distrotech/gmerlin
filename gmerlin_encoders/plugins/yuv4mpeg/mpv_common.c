@@ -150,7 +150,7 @@ void bg_mpv_set_parameter(void * data, char * name, bg_parameter_value_t * val)
 
 #undef SET_ENUM
 
-char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filename)
+static char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filename)
   {
   char * ret;
   char * mpeg2enc_path;
@@ -229,7 +229,7 @@ mpeg_framerates[] =
   };
 
 
-void bg_mpv_adjust_framerate(gavl_video_format_t * format)
+static void bg_mpv_adjust_framerate(gavl_video_format_t * format)
   {
   double rate_d;
   double test_rate_d;
@@ -273,7 +273,7 @@ void bg_mpv_adjust_framerate(gavl_video_format_t * format)
   format->frame_duration = mpeg_framerates[min_index].frame_duration;
   }
 
-int bg_mpv_get_chroma_mode(bg_mpv_common_t * com)
+static int bg_mpv_get_chroma_mode(bg_mpv_common_t * com)
   {
   switch(com->format)
     {
@@ -292,7 +292,7 @@ int bg_mpv_get_chroma_mode(bg_mpv_common_t * com)
   return -1;
   }
 
-void bg_mpv_adjust_interlacing(gavl_video_format_t * format,
+static void bg_mpv_adjust_interlacing(gavl_video_format_t * format,
                                int mpeg_format)
   {
   switch(mpeg_format)

@@ -244,7 +244,7 @@ static int init_vorbis(void * data, gavl_audio_format_t * format, bg_metadata_t 
   return 1;
   }
 
-void flush_header_pages_vorbis(void*data)
+static void flush_header_pages_vorbis(void*data)
   {
   vorbis_t * vorbis;
   vorbis = (vorbis_t*)data;

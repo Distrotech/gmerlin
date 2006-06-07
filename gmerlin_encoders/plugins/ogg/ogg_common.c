@@ -58,7 +58,7 @@ int bg_ogg_flush_page(ogg_stream_state * os, FILE * output, int force)
     {
     fwrite(og.header,1,og.header_len,output);
     fwrite(og.body,1,og.body_len,output);
-    fprintf(stderr, "Wrote Ogg page EOS: %d\n", ogg_page_eos(&og));
+    //    fprintf(stderr, "Wrote Ogg page EOS: %d\n", ogg_page_eos(&og));
     return 1;
     }
   return 0;

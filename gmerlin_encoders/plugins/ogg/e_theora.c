@@ -32,9 +32,23 @@
 extern bg_ogg_codec_t bg_theora_codec;
 extern bg_ogg_codec_t bg_vorbis_codec;
 
+#ifdef HAVE_SPEEX
+extern bg_ogg_codec_t bg_speex_codec;
+#endif
+
+#ifdef HAVE_FLAC
+extern bg_ogg_codec_t bg_flacogg_codec;
+#endif
+
 static bg_ogg_codec_t* audio_codecs[] =
   {
     &bg_vorbis_codec,
+#ifdef HAVE_SPEEX
+    &bg_speex_codec,
+#endif
+#ifdef HAVE_FLAC
+    &bg_flacogg_codec,
+#endif
   };
 
 static int num_audio_codecs = sizeof(audio_codecs) / sizeof(audio_codecs[0]);
