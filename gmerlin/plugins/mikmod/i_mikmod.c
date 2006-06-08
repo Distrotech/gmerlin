@@ -240,6 +240,8 @@ static void destroy_mikmod(void * data)
   {
   i_mikmod_t * e = (i_mikmod_t*)data;
   close_mikmod(data);
+  if(e->error_msg)
+    free(e->error_msg);
   free(e);
   }
 
