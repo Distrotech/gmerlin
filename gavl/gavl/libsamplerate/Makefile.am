@@ -3,7 +3,7 @@
 
 noinst_LTLIBRARIES = libsamplerate.la
 
-EXTRA_DIST = config.h.in Version_script.in check_asm.sh
+EXTRA_DIST = Version_script.in check_asm.sh
 CLEANFILES = src_sinc.s
 
 COEFF_HDRS = high_qual_coeffs.h mid_qual_coeffs.h fastest_coeffs.h
@@ -28,9 +28,6 @@ check-asm : check_asm.sh src_sinc.s
 
 src_sinc.s : $(srcdir)/src_sinc.c
 	$(CC) -S $(CFLAGS) $(DEFAULT_INCLUDES) $(srcdir)/src_sinc.c -o src_sinc.s
-
-# Disable autoheader.
-AUTOHEADER=echo
 
 ## Do not edit or modify anything in this comment block.
 ## The arch-tag line is a file identity tag for the GNU Arch
