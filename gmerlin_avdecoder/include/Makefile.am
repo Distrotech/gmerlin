@@ -13,6 +13,7 @@ language_table.h \
 mms.h \
 nanosoft.h \
 pes_header.h \
+pngreader.h \
 qt.h \
 rmff.h \
 rtsp.h \

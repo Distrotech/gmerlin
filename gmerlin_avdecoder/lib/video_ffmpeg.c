@@ -188,7 +188,10 @@ static codec_info_t codec_infos[] =
                BGAV_MK_FOURCC('d', 'v', 'p', 'p'), 
                BGAV_MK_FOURCC('d', 'v', 's', 'l'), 
                BGAV_MK_FOURCC('d', 'v', '2', '5'),
-               BGAV_MK_FOURCC('d', 'v', '5', 'n'),
+               0x00 } },
+    
+    { "FFmpeg DVCPRO50 decoder", "DVCPRO50 Video", CODEC_ID_DVVIDEO,
+      (uint32_t[]){ BGAV_MK_FOURCC('d', 'v', '5', 'n'),
                BGAV_MK_FOURCC('d', 'v', '5', 'p'),
                0x00 } },
 
