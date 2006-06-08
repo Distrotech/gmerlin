@@ -48,6 +48,7 @@ typedef struct
 
   int block_align;
   int eof;
+  char * error_msg;
   } i_mikmod_t;
 
 #ifdef dump
@@ -77,18 +78,47 @@ static void dump_mikmod(void * data, const char * path)
   fprintf(stderr, "    Use interpolate: %d\n", mikmod->use_interpolate);
   }
 #endif
+
 static void * create_mikmod()
   {
   i_mikmod_t * ret = calloc(1, sizeof(*ret));
   return ret;
   }
 
+static const char * get_error_mikmod(void * data)
+  {
+  i_mikmod_t * e = (i_mikmod_t*)data;
+  return e->error_msg;
+  }
+  
+/* Read one audio frame (returns FALSE on EOF) */
+static int read_audio_samples_mikmod(void * data, gavl_audio_frame_t * f, int stream,
+                                     int num_samples)
+  {
+  int result;
+  i_mikmod_t * e = (i_mikmod_t*)data;
+
+  result = bg_subprocess_read_data(e->proc->stdout,
+                                   f->samples.u_8, num_samples * e->block_align);
+
+  if(result < 0)
+    return 0;
+
+  if(result < num_samples * e->block_align)
+    e->eof = 1;
+  
+  f->valid_samples = result / e->block_align;
+  return f->valid_samples;
+  }
+
 // arg = path of mod
 static int open_mikmod(void * data, const char * arg)
   {
+  int result;
   char *command;
   i_mikmod_t * mik = (i_mikmod_t*)data;
-
+  gavl_audio_frame_t * test_frame;
+  
   // if no mikmod installed 
   if(!bg_search_file_exec("mikmod", (char**)0))
     {
@@ -102,16 +132,20 @@ static int open_mikmod(void * data, const char * arg)
   mik->track_info.audio_streams = calloc(1, sizeof(*(mik->track_info.audio_streams)));
   
   mik->track_info.audio_streams[0].format.samplerate = mik->frequency;
+
   if(mik->output == MONO8 || mik->output == MONO16)
     mik->track_info.audio_streams[0].format.num_channels = 1;
   else if(mik->output == STEREO8 || mik->output == STEREO16)
     mik->track_info.audio_streams[0].format.num_channels = 2;
+
   if(mik->output == MONO8 || mik->output == STEREO8)
     mik->track_info.audio_streams[0].format.sample_format = GAVL_SAMPLE_U8;
   else if(mik->output == MONO16 || mik->output == STEREO16)
     mik->track_info.audio_streams[0].format.sample_format = GAVL_SAMPLE_S16;
+
   mik->track_info.audio_streams[0].format.interleave_mode = GAVL_INTERLEAVE_ALL;
   mik->track_info.audio_streams[0].description = bg_strdup(NULL, "mikmod audio");
+  mik->track_info.audio_streams[0].format.samples_per_frame = 1024;
   
   gavl_set_channel_setup(&(mik->track_info.audio_streams[0].format));
 
@@ -148,14 +182,33 @@ static int open_mikmod(void * data, const char * arg)
 
   command = bg_strcat(command, " ");
   command = bg_strcat(command, arg);
-  
-  mik->proc = bg_subprocess_create(command, 0, 1, 0);
 
+  /* Test file compatibility */
+  mik->proc = bg_subprocess_create(command, 0, 1, 0);
+  test_frame = gavl_audio_frame_create(&mik->track_info.audio_streams[0].format);
+
+  result = read_audio_samples_mikmod(data, test_frame, 0, 1);
+
+  if(result)
+    {
+    bg_subprocess_kill(mik->proc, SIGKILL);
+    bg_subprocess_close(mik->proc);
+    mik->proc = bg_subprocess_create(command, 0, 1, 0);
+    }
+  else
+    {
+    bg_subprocess_close(mik->proc);
+    mik->proc = (bg_subprocess_t*)0;
+    mik->error_msg = bg_strdup(mik->error_msg, "Unrecognized fileformat");
+    }
+
+  gavl_audio_frame_destroy(test_frame);
+  
   free(command);
 #ifdef dump
   dump_mikmod(data, (const char*)arg);
 #endif
-  return 1;
+  return result;
   }
 
 static int get_num_tracks_mikmod(void * data)
@@ -169,25 +222,6 @@ static bg_track_info_t * get_track_info_mikmod(void * data, int track)
   return &(e->track_info);
   }
 
-/* Read one audio frame (returns FALSE on EOF) */
-static int read_audio_samples_mikmod(void * data, gavl_audio_frame_t * f, int stream,
-                                     int num_samples)
-  {
-  int result;
-  i_mikmod_t * e = (i_mikmod_t*)data;
-
-  result = bg_subprocess_read_data(e->proc->stdout,
-                                   f->samples.u_8, num_samples * e->block_align);
-
-  if(result < 0)
-    return 0;
-
-  if(result < num_samples * e->block_align)
-    e->eof = 1;
-  
-  f->valid_samples = result / e->block_align;
-  return f->valid_samples;
-  }
 
 static void close_mikmod(void * data)
   {
@@ -304,6 +338,7 @@ bg_input_plugin_t the_plugin =
       destroy:         destroy_mikmod,
       get_parameters:  get_parameters_mikmod,
       set_parameter:   set_parameter_mikmod,
+      get_error:       get_error_mikmod,
     },
     
     open:              open_mikmod,
