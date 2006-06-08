@@ -66,7 +66,8 @@ bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input)
     if(redirectors[i].r->probe(input))
       {
 //      fprintf(stderr, "done\n");
-      fprintf(stderr, "Detected %s redirector\n", redirectors[i].format_name);
+      bgav_log(input->opt, BGAV_LOG_INFO,
+               "Detected %s redirector\n", redirectors[i].format_name);
       return redirectors[i].r;
       }
 //    fprintf(stderr, "done\n");

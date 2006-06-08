@@ -97,8 +97,6 @@ typedef struct
   int64_t last_granulepos;
   int64_t prev_granulepos;      /* Granulepos of the previous page */
 
-  int64_t first_timestamp;      /* Needed for streaming theora */
-  
   int keyframe_granule_shift;
 
   bgav_metadata_t metadata;
@@ -127,7 +125,9 @@ typedef struct
   
   /* Remember to call metadata_change and name_change callbacks */
   int metadata_changed;
-  
+
+  /* Different timestamp handling if the stream is live */
+  int is_live;
   } ogg_priv;
 
 /* Special header for OGM files */
@@ -385,6 +385,7 @@ static int get_page(bgav_demuxer_context_t * ctx)
     if(!get_data(ctx))
       return 0;
     }
+  //  fprintf(stderr, "Got page: %lld\n", ogg_page_granulepos(&(priv->current_page)));
   priv->page_valid = 1;
   return 1;
   }
@@ -491,7 +492,6 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
     
     ogg_stream = calloc(1, sizeof(*ogg_stream));
     ogg_stream->last_granulepos = -1;
-    ogg_stream->first_timestamp = -1;
     
     ogg_stream_init(&ogg_stream->os, serialno);
     ogg_stream_pagein(&ogg_stream->os, &(priv->current_page));
@@ -1393,6 +1393,8 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
     /* Set end position to -1 */
     track_priv_1 = (track_priv_t*)(ctx->tt->tracks[0].priv);
     track_priv_1->end_pos = -1;
+
+    priv->is_live = 1;
     }
   
   //  dump_ogg(ctx);
@@ -1624,8 +1626,14 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         p->data_size = sizeof(priv->op) + priv->op.bytes;
         
         //        fprintf(stderr, "Theora granulepos: %lld\n", granulepos);
-        
-        if(priv->op.granulepos >= 0)
+
+        if(priv->is_live)
+          {
+          p->timestamp_scaled = (stream_priv->frame_counter) *
+            s->data.video.format.frame_duration;
+          stream_priv->frame_counter++;
+          }
+        else if(priv->op.granulepos >= 0)
           {
           iframes =
             priv->op.granulepos >> stream_priv->keyframe_granule_shift;
@@ -1634,19 +1642,11 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
 
           //          fprintf(stderr, "Iframes: %lld, pframes: %lld, keyframe: %d\n", iframes, pframes,
           //                  !(priv->op.packet[0] & 0x40));
-          p->timestamp_scaled = (pframes + iframes) * (s->data.video.format.frame_duration);
-
-          fprintf(stderr, "Theora timestamp 1: %lld\n", p->timestamp_scaled);
+          p->timestamp_scaled = (pframes + iframes) * s->data.video.format.frame_duration;
           
-          if(stream_priv->first_timestamp < 0)
-            stream_priv->first_timestamp = p->timestamp_scaled;
-          p->timestamp_scaled -= stream_priv->first_timestamp;
-
-          fprintf(stderr, "Theora timestamp 2: %lld\n", p->timestamp_scaled);
-
           }
 
-        fprintf(stderr, "Theora timestamp 3: %lld\n", p->timestamp_scaled);
+        //        fprintf(stderr, "Theora timestamp 3: %lld\n", p->timestamp_scaled);
         
         bgav_packet_done_write(p);
         break;
