@@ -340,7 +340,7 @@ snd_pcm_t * bg_alsa_open_write(const char * card, gavl_audio_format_t * format,
 void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)
   {
   int i;
-  int num_cards = 0;
+  int num_cards = 1; /* default */
   int card_index = -1;
   char * c_tmp;
   while(!snd_card_next(&card_index))
@@ -357,15 +357,15 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)
   
   ret->multi_names   = calloc(num_cards+1,
                           sizeof(*(ret->multi_names)));
-  for(i = 0; i < num_cards; i++)
+
+  ret->multi_names[0] = bg_strdup(NULL, "Default");
+  ret->val_default.val_str = bg_strdup(NULL, ret->multi_names[0]);
+  
+  for(i = 1; i < num_cards; i++)
     {
-    snd_card_get_name(i, &c_tmp);
+    snd_card_get_name(i-1, &c_tmp);
     //    snd_card_get_longname(i, &c_tmp);
     ret->multi_names[i] = bg_strdup(NULL, c_tmp);
-    
-    if(!i)
-      ret->val_default.val_str = bg_strdup(NULL, c_tmp);
-
     free(c_tmp);
     }
   }

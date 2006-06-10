@@ -103,7 +103,7 @@ static bg_parameter_info_t parameters[] =
       name:      "font",
       long_name: "Font",
       type: BG_PARAMETER_FONT,
-      val_default: { val_str:  "Sans Bold 10" },
+      val_default: { val_str:  "Sans-10:slant=0:weight=200:width=100" },
     },
     { /* End of parameters */ }
   };

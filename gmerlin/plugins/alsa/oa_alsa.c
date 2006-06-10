@@ -248,8 +248,12 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
         format->num_channels = 2;
       format->channel_locations[0] = GAVL_CHID_NONE;
       gavl_set_channel_setup(format);
-      card = bg_sprintf("hw:%d,0", priv->card_index);
 
+      if(!priv->card_index)
+        card = bg_sprintf("default");
+      else
+        card = bg_sprintf("hw:%d,0", priv->card_index-1);
+      
       //      fprintf(stderr, "Playback mode: generic\n");
 
       break;

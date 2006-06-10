@@ -20,8 +20,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "player.h"
-#include "playerprivate.h"
+#include <player.h>
+#include <playerprivate.h>
+#include <log.h>
+
+#define LOG_DOMAIN "player.audio_output"
 
 struct bg_player_oa_context_s
   {
@@ -323,6 +326,7 @@ void * bg_player_oa_thread(void * data)
 
 int bg_player_oa_init(bg_player_oa_context_t * ctx)
   {
+  char * log_domain;
   int result;
   bg_plugin_lock(ctx->plugin_handle);
   result =
@@ -333,7 +337,13 @@ int bg_player_oa_init(bg_player_oa_context_t * ctx)
     {
     ctx->output_open = 0;
     if(ctx->plugin->common.get_error)
+      {
       ctx->error_msg = ctx->plugin->common.get_error(ctx->priv);
+      log_domain =
+        bg_sprintf("%s.%s", LOG_DOMAIN, ctx->plugin_handle->info->name);
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, ctx->error_msg);
+      free(log_domain);
+      }
     }
 
   //  fprintf(stderr, "Output format:\n");

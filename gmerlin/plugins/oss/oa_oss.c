@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include <plugin.h>
 #include <utils.h>
@@ -103,6 +104,8 @@ typedef struct
 
   int bytes_per_sample;
   gavl_audio_format_t format;
+
+  char * error_msg;
   } oss_t;
 
 static void * create_oss()
@@ -120,7 +123,7 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
   gavl_sample_format_t test_format;
   int test_value;
 
-  fprintf(stderr, "Open Devices\n");
+  //  fprintf(stderr, "Open Devices\n");
   
   /* Open the devices */
   
@@ -128,7 +131,8 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
 
   if(priv->fd_front == -1)
     {
-    fprintf(stderr, "Cannot open %s\n", priv->device_front);
+    priv->error_msg = bg_sprintf("Cannot open %s: %s", priv->device_front,
+                                 strerror(errno));
     goto fail;
     }
 
@@ -137,7 +141,8 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
     priv->fd_rear = open(priv->device_rear, O_WRONLY, 0);
     if(priv->fd_rear == -1)
       {
-      fprintf(stderr, "Cannot open %s\n", priv->device_rear);
+      priv->error_msg = bg_sprintf("Cannot open %s: %s", priv->device_rear,
+                                   strerror(errno));
       goto fail;
       }
     }
@@ -146,7 +151,9 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
     priv->fd_center_lfe = open(priv->device_center_lfe, O_WRONLY, 0);
     if(priv->fd_center_lfe == -1)
       {
-      fprintf(stderr, "Cannot open %s\n", priv->device_center_lfe);
+      priv->error_msg = bg_sprintf("Cannot open %s: %s",
+                                   priv->device_center_lfe,
+                                   strerror(errno));
       goto fail;
       }
     }
@@ -467,6 +474,8 @@ static void destroy_oss(void * p)
     free(priv->device_rear);
   if(priv->device_center_lfe)
     free(priv->device_center_lfe);
+  if(priv->error_msg)
+    free(priv->error_msg);
   free(priv);
   }
 
@@ -474,6 +483,13 @@ static bg_parameter_info_t *
 get_parameters_oss(void * priv)
   {
   return parameters;
+  }
+
+static const char * get_error_oss(void * p)
+  {
+  oss_t * priv;
+  priv = (oss_t*)(p);
+  return priv->error_msg;
   }
 
 static int get_delay_oss(void * p)
@@ -544,7 +560,7 @@ bg_oa_plugin_t the_plugin =
       priority:      5,
       create:        create_oss,
       destroy:       destroy_oss,
-      
+      get_error:     get_error_oss,
       get_parameters: get_parameters_oss,
       set_parameter:  set_parameter_oss
     },
