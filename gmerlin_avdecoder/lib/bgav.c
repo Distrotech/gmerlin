@@ -69,8 +69,10 @@ int bgav_init(bgav_t * ret)
     ret->demuxer = ret->input->demuxer;
 
     if(ret->demuxer)
+      {
       ret->demuxer->tt = ret->input->tt;
-   
+      bgav_track_table_ref(ret->demuxer->tt);
+      }
     if(ret->tt->num_tracks > 1)
       return 1;
     

@@ -674,11 +674,18 @@ int bgav_check_device_dvd(const char * device, char ** name);
 
 /** \ingroup devices
  *  \brief Destroy a device info array
- *  
+ *  \param arr A device info returned by \ref bgav_find_devices_dvd or \ref bgav_find_devices_dvd
  */
 
 void bgav_device_info_destroy(bgav_device_info_t * arr);
 
+/** \ingroup devices
+ *  \brief Eject a disc
+ *  \param device Device name
+ *  \return 1 if the disc could be ejected, 0 else
+ */
+
+int bgav_eject_disc(const char * device);
 
 /******************************************************
  * Open

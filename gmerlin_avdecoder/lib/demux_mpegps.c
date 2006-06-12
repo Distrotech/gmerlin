@@ -514,7 +514,7 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
       {
       if(!bgav_pes_header_read(input, &(priv->pes_header)))
         {
-        fprintf(stderr, "Reading PES header failed\n");
+        //        fprintf(stderr, "Reading PES header failed\n");
         return 0;
         }
       //      fprintf(stderr, "Got PES packet\n");
@@ -1161,6 +1161,11 @@ static void close_mpegps(bgav_demuxer_context_t * ctx)
     return;
   if(priv->sector_buffer)
     free(priv->sector_buffer);
+  if(priv->input_mem)
+    {
+    bgav_input_close(priv->input_mem);
+    bgav_input_destroy(priv->input_mem);
+    }
   free(priv);
   }
 

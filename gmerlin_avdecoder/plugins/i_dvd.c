@@ -92,8 +92,10 @@ bg_input_plugin_t the_plugin =
       check_device: check_device_dvd,
       get_error:    bg_avdec_get_error      
     },
-  /* Open file/device */
+    protocols: "dvd",
+    /* Open file/device */
     open: open_dvd,
+    eject_disc: bgav_eject_disc,
     //    set_callbacks: set_callbacks_avdec,
   /* For file and network plugins, this can be NULL */
     get_num_tracks: bg_avdec_get_num_tracks,
