@@ -83,7 +83,7 @@ static bg_parameter_info_t parameters[] =
       num_digits:  2,
       val_min:     { val_f: 12.0 },
       val_max:     { val_f: 100.0 },
-      val_default: { val_f: 40.0 },
+      val_default: { val_f: 30.0 },
       help_string: "Specify fontsize for OSD. The value you enter, is for an image width of 640. For other \
 widths, the value will be scaled",
     },
@@ -106,7 +106,7 @@ widths, the value will be scaled",
       type:       BG_PARAMETER_FLOAT,
       val_min:     { val_f: 0.0 },
       val_max:     { val_f: 10.0 },
-      val_default: { val_f: 5.0 },
+      val_default: { val_f: 2.0 },
       num_digits:  2,
     },
 #endif    

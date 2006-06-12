@@ -859,6 +859,22 @@ static void set_parameter_cdaudio(void * data, char * name, bg_parameter_value_t
 #endif
   }
 
+static int eject_disc_cdaudio(const char * device)
+  {
+  int err;
+  CdIo_t * cdio;
+  cdio = cdio_open (device, DRIVER_DEVICE);
+  if(!cdio)
+    return 0;
+  if((err = cdio_eject_media(&cdio)) != DRIVER_OP_SUCCESS)
+    {
+    fprintf(stderr, "cdio_eject_media for %s failed: %d\n", device, err);
+    cdio_destroy(cdio);
+    return 0;
+    }
+  return 1;
+  }
+
 bg_input_plugin_t the_plugin =
   {
     common:
@@ -881,8 +897,10 @@ bg_input_plugin_t the_plugin =
       check_device: bg_cdaudio_check_device,
       get_error:    get_error_cdaudio,
     },
+    protocols: "cda",
   /* Open file/device */
     open: open_cdaudio,
+    eject_disc: eject_disc_cdaudio,
     set_callbacks: set_callbacks_cdaudio,
   /* For file and network plugins, this can be NULL */
     get_num_tracks: get_num_tracks_cdaudio,

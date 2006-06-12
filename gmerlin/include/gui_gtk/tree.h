@@ -104,6 +104,10 @@ void bg_gtk_album_widget_put_config(bg_gtk_album_widget_t * w);
 
 void bg_gtk_album_widget_set_tooltips(bg_gtk_album_widget_t * w, int enable);
 
+void
+bg_gtk_album_widget_set_close_callback(bg_gtk_album_widget_t * w,
+                                       void (*callback)(bg_gtk_album_widget_t *, void*), void*);
+
 
 /* Album window */
 

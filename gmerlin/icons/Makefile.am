@@ -30,6 +30,7 @@ drive_16.png \
 drive_error_16.png \
 drive_running_16.png \
 earth_16.png \
+eject_16.png \
 favourites_16.png \
 favourites_closed_16.png \
 favourites_open_16.png \

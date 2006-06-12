@@ -107,6 +107,8 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
   
   tmp_string = BG_XML_GET_PROP(xml_parameters, num_key);
   num_parameters = atoi(tmp_string);
+  free(tmp_string);
+  
   ret = calloc(num_parameters+1, sizeof(*ret));
   
   cur = xml_parameters->children;
@@ -127,6 +129,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
 
       tmp_string = BG_XML_GET_PROP(cur, name_key);
       ret[index].name = bg_strdup(ret[index].name, tmp_string);
+      free(tmp_string);
       
       child = cur->children;
 

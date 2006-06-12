@@ -153,6 +153,14 @@ static void close_callback(GtkWidget * w, gpointer data)
   bg_gtk_album_window_destroy(win, 1);
   }
 
+static void widget_close_callback(bg_gtk_album_widget_t * w, gpointer data)
+  {
+  bg_gtk_album_window_t * win;
+  win = (bg_gtk_album_window_t*)data;
+  bg_gtk_album_window_destroy(win, 1);
+  }
+
+
 static void name_change_callback(bg_album_t * a,
                                  const char * name,
                                  void * data)
@@ -183,6 +191,11 @@ bg_gtk_album_window_create(bg_album_t * album,
   bg_album_set_name_change_callback(album, name_change_callback, ret);
   
   ret->widget = bg_gtk_album_widget_create(album, ret->window);
+  bg_gtk_album_widget_set_close_callback(ret->widget,
+                                         widget_close_callback,
+                                         ret);
+    
+
   g_object_ref(G_OBJECT(bg_gtk_album_widget_get_widget(ret->widget)));
 
   /* Set config stuff */

@@ -79,8 +79,6 @@ typedef struct bg_album_entry_s
 typedef struct bg_album_s bg_album_t;
 typedef struct bg_mediatree_s bg_media_tree_t;
 
-/* Can return 0 if CD is missing or so */
-
 typedef enum
   {
     /* Regular album */
@@ -97,8 +95,17 @@ typedef enum
 
 bg_album_type_t bg_album_get_type(bg_album_t *); 
 
+/* Can return 0 if CD is missing or so */
+
 int bg_album_open(bg_album_t *);
 void bg_album_close(bg_album_t *);
+
+/* Call after open() */
+
+const char * bg_album_get_disc_name(bg_album_t*);
+
+int bg_album_can_eject(bg_album_t*);
+void bg_album_eject(bg_album_t*);
 
 void bg_album_select_error_tracks(bg_album_t*);
 

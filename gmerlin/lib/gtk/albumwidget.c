@@ -229,7 +229,10 @@ struct bg_gtk_album_widget_s
   GtkTreeViewColumn * col_duration;
   GtkTreeViewColumn * col_name;
   gulong select_handler_id;
-      
+
+  void (*close_callback)(bg_gtk_album_widget_t *, void*);
+  void * close_callback_data;
+  
   menu_t menu;
 
   guint drop_time;
@@ -266,7 +269,8 @@ struct bg_gtk_album_widget_s
   GtkWidget * copy_button;
   GtkWidget * cut_button;
   GtkWidget * paste_button;
-    
+  GtkWidget * eject_button;
+  
   /* Display */
 
   bg_gtk_time_display_t * total_time;
@@ -2249,18 +2253,25 @@ static void button_callback(GtkWidget * wid, gpointer data)
     }
   else if(wid == w->copy_button)
     {
-    fprintf(stderr, "Copy button clicked\n");
+    //    fprintf(stderr, "Copy button clicked\n");
     do_copy(w);
     }
   else if(wid == w->cut_button)
     {
-    fprintf(stderr, "Cut button clicked\n");
+    //    fprintf(stderr, "Cut button clicked\n");
     do_cut(w);
     }
   else if(wid == w->paste_button)
     {
-    fprintf(stderr, "Paste button clicked\n");
+    //    fprintf(stderr, "Paste button clicked\n");
     do_paste(w);
+    }
+  else if(wid == w->eject_button)
+    {
+    fprintf(stderr, "Eject button clicked\n");
+    if(w->close_callback)
+      w->close_callback(w, w->close_callback_data);
+    bg_album_eject(w->album);
     }
   }
 
@@ -2564,6 +2575,13 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
                                                          "Paste", "Paste");
     }
 
+  if(type == BG_ALBUM_TYPE_REMOVABLE && bg_album_can_eject(ret->album))
+    {
+    ret->eject_button = create_pixmap_button(ret, "eject_16.png",
+                                             "Close album and eject disc",
+                                             "Close album and eject disc");
+    }
+  
   if((type == BG_ALBUM_TYPE_REGULAR) ||
      (type == BG_ALBUM_TYPE_INCOMING))
     ret->copy_to_favourites_button = create_pixmap_button(ret, "favourites_16.png",
@@ -2593,31 +2611,25 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
 
   ret->toolbar                   = gtk_hbox_new(0, 0);
 
-  if(type == BG_ALBUM_TYPE_REGULAR)
-    {
-    gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->add_files_button, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->add_urls_button, FALSE, FALSE, 0);
-    }
-  gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->remove_selected_button, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->info_button, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->rename_selected_button, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->move_selected_up_button, FALSE, FALSE, 0);
-  gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->move_selected_down_button, FALSE, FALSE, 0);
+#define PACK_BUTTON(but) if(ret->but) gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->but, FALSE, FALSE, 0);
+
   
-  if((type == BG_ALBUM_TYPE_REGULAR) ||
-     (type == BG_ALBUM_TYPE_INCOMING) ||
-     (type == BG_ALBUM_TYPE_FAVOURITES))
-    {
-    gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->cut_button, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->copy_button, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->paste_button, FALSE, FALSE, 0);
-    }
+  PACK_BUTTON(add_files_button);
+  PACK_BUTTON(add_urls_button);
+
+  PACK_BUTTON(remove_selected_button);
+  PACK_BUTTON(info_button);
+  PACK_BUTTON(rename_selected_button);
+  PACK_BUTTON(move_selected_up_button);
+  PACK_BUTTON(move_selected_down_button);
   
-  if((type == BG_ALBUM_TYPE_REGULAR) ||
-     (type == BG_ALBUM_TYPE_INCOMING))
-    {
-    gtk_box_pack_start(GTK_BOX(ret->toolbar), ret->copy_to_favourites_button, FALSE, FALSE, 0);
-    }
+  PACK_BUTTON(cut_button);
+  PACK_BUTTON(copy_button);
+  PACK_BUTTON(paste_button);
+  
+  PACK_BUTTON(copy_to_favourites_button);
+  PACK_BUTTON(eject_button);
+#undef PACK_BUTTON
   
   gtk_box_pack_end(GTK_BOX(ret->toolbar),
                    bg_gtk_time_display_get_widget(ret->total_time), FALSE, FALSE, 0);
@@ -2730,4 +2742,13 @@ void bg_gtk_album_widget_goto_current(bg_gtk_album_widget_t * aw)
 GtkAccelGroup * bg_gtk_album_widget_get_accel_group(bg_gtk_album_widget_t * w)
   {
   return w->accel_group;
+  }
+
+void
+bg_gtk_album_widget_set_close_callback(bg_gtk_album_widget_t * w,
+                                       void (*callback)(bg_gtk_album_widget_t *, void*),
+                                       void* data)
+  {
+  w->close_callback = callback;
+  w->close_callback_data = data;
   }

@@ -65,7 +65,7 @@ static bg_parameter_info_t parameters[] =
       type:       BG_PARAMETER_FLOAT,
       val_min:     { val_f: 0.0 },
       val_max:     { val_f: 10.0 },
-      val_default: { val_f: 1.0 },
+      val_default: { val_f: 2.0 },
       num_digits:  2,
     },
 #endif    

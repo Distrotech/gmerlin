@@ -248,25 +248,35 @@ typedef struct bg_input_callbacks_s
 typedef struct bg_input_plugin_s
   {
   bg_plugin_common_t common;
+
+  /* Space separated list of protocols this plugin can handle */
+  char * protocols; 
   
   /* Open file/device, return False on failure */
-  
   int (*open)(void * priv, const char * arg);
 
   /* Alternative: Open with filedescriptor (used for http mostly) */
 
   int (*open_fd)(void * priv, int fd, int64_t total_bytes,
                  const char * mimetype);
+
+  /* For plugins, which read disks: Get the disc name (call after open) */
+  
+  const char * (*get_disc_name)(void * priv);
+
+  /* For plugins, which read disks: Eject (call after close) */
+  
+  int (*eject_disc)(const char * device);
   
   /*
    * Set callback functions, which can be called by plugin
-   * This can be NULL is the plugin doesn't support any of these
-   * callabacks
+   * This can be NULL if the plugin doesn't support any of these
+   * callbacks
    */
   
   void (*set_callbacks)(void * priv, bg_input_callbacks_t * callbacks);
   
-  /* For file and network plugins, this is NULL */
+  /* This can be NULL */
 
   int (*get_num_tracks)(void * priv);
   

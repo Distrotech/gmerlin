@@ -21,6 +21,7 @@
 
 #define BG_ALBUM_EXPANDED    (1<<1)
 #define BG_ALBUM_ERROR       (1<<2)
+#define BG_ALBUM_CAN_EJECT   (1<<3)
 
 typedef struct bg_shuffle_list_s
   {
@@ -96,6 +97,9 @@ struct bg_album_s
   char * name;        /* Name for dialog boxes      */
   char * location;    /* Album filename or device   */
 
+  char * disc_name;   /* Set by open_removable */
+
+  
   const bg_plugin_info_t * plugin_info;
   bg_plugin_handle_t      * handle;
   

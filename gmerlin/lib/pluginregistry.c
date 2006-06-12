@@ -32,6 +32,9 @@
 #include <config.h>
 #include <utils.h>
 #include <singlepic.h>
+#include <log.h>
+
+#define LOG_DOMAIN "pluginregistry"
 
 struct bg_plugin_registry_s
   {
@@ -846,6 +849,8 @@ void bg_plugin_ref(bg_plugin_handle_t * h)
   bg_plugin_lock(h);
   h->refcount++;
 
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_ref %s: %d", h->info->name, h->refcount);
+  
 #if 0
   fprintf(stderr, "bg_plugin_ref %p %s %d\n", h, h->info->name, h->refcount);
 #endif
@@ -859,7 +864,10 @@ void bg_plugin_unref(bg_plugin_handle_t * h)
   int refcount;
   bg_cfg_section_t * section;
   bg_plugin_lock(h);
+  
   h->refcount--;
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_unref %s: %d", h->info->name, h->refcount);
+
 #if 0
   fprintf(stderr, "bg_plugin_unref %p %s %d\n", h, h->info->name, h->refcount);
 #endif

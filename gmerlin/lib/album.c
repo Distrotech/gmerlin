@@ -356,11 +356,9 @@ void bg_album_insert_urilist_before(bg_album_t * a, const char * str,
 
 static int open_removable(bg_album_t * a)
   {
-  //  bg_parameter_value_t val;
   bg_track_info_t * track_info;
   int i;
   int num_tracks;
-  //  const bg_plugin_info_t * info;
   bg_input_plugin_t * plugin;
   bg_album_entry_t * new_entry;
   
@@ -377,6 +375,13 @@ static int open_removable(bg_album_t * a)
     bg_plugin_unlock(a->handle);
     return 0;
     }
+
+  if(plugin->get_disc_name)
+    a->disc_name = bg_strdup(a->disc_name,
+                             plugin->get_disc_name(a->handle->priv));
+
+  if(plugin->eject_disc)
+    a->flags |= BG_ALBUM_CAN_EJECT;
   
   /* Get number of tracks */
 
@@ -421,9 +426,12 @@ int bg_album_open(bg_album_t * a)
    
   if(a->open_count)
     {
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Album %s already open", a->name);
     a->open_count++;
     return 1;
     }
+
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Opening album %s", a->name);
   
   //  fprintf(stderr, "Open album\n");
   
@@ -518,8 +526,11 @@ void bg_album_close(bg_album_t *a )
   a->open_count--;
 
   if(a->open_count)
+    {
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Not closing album %s (open_count > 0)", a->name);
     return;
-
+    }
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Closing album %s", a->name);
   //  fprintf(stderr, "Close album\n");
 
   /* Tell the tree, if we are the current album */
@@ -533,6 +544,7 @@ void bg_album_close(bg_album_t *a )
   switch(a->type)
     {
     case BG_ALBUM_TYPE_REMOVABLE:
+      a->flags |= ~BG_ALBUM_CAN_EJECT;
       bg_plugin_unref(a->handle);
       a->handle = (bg_plugin_handle_t*)0;
       break;
@@ -598,6 +610,8 @@ void bg_album_destroy(bg_album_t * a)
     free(a->name);
   if(a->location)
     free(a->location);
+  if(a->disc_name)
+    free(a->disc_name);
   if(a->cfg_section)
     bg_cfg_section_destroy(a->cfg_section);
   
@@ -1580,3 +1594,27 @@ void bg_album_move_selected_to_favourites(bg_album_t * a)
   bg_album_delete_selected(a);
   bg_album_changed(a);  
   }
+
+const char * bg_album_get_disc_name(bg_album_t * a)
+  {
+  return a->disc_name;
+  }
+
+int bg_album_can_eject(bg_album_t * a)
+  {
+  return !!(a->flags & BG_ALBUM_CAN_EJECT);
+  }
+
+void bg_album_eject(bg_album_t * a)
+  {
+  bg_input_plugin_t * plugin;
+  bg_plugin_handle_t * handle;
+
+  handle = bg_plugin_load(a->com->plugin_reg, a->plugin_info);
+  plugin = (bg_input_plugin_t*)handle->plugin;
+  
+  if(plugin->eject_disc(a->location))
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Ejecting disc failed");
+  bg_plugin_unref(handle);
+  }
+   
