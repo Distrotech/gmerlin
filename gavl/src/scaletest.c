@@ -17,7 +17,7 @@ static void write_png(char * filename, gavl_video_format_t * format, gavl_video_
   {
   int i;
   unsigned char ** rows;
-
+  gavl_video_options_t * opt;
   int color_type;
   FILE * output;
 
@@ -47,7 +47,9 @@ static void write_png(char * filename, gavl_video_format_t * format, gavl_video_
       color_type = PNG_COLOR_TYPE_RGB;
       }
     frame_1 = gavl_video_frame_create(&format_1);
-    
+
+    opt = gavl_video_converter_get_options(cnv);
+    gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_BLEND_COLOR);    
     gavl_video_converter_init(cnv, format, &format_1);
     
     gavl_video_convert(cnv, frame, frame_1);
@@ -110,6 +112,7 @@ static gavl_video_frame_t * read_png(const char * filename,
   unsigned char ** rows;
   
   gavl_video_converter_t * cnv;
+  gavl_video_options_t * opt;
   gavl_video_format_t format_1;
   gavl_video_frame_t * frame, * frame_1;
     
@@ -218,6 +221,8 @@ static gavl_video_frame_t * read_png(const char * filename,
   if(format->pixelformat != pixelformat)
     {
     cnv = gavl_video_converter_create();
+    opt = gavl_video_converter_get_options(cnv);
+    gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_BLEND_COLOR);    
 
     gavl_video_format_copy(&format_1, format);
     format_1.pixelformat = pixelformat;
@@ -281,7 +286,7 @@ int main(int argc, char ** argv)
     dst_rect.y = 0;
     
     src_rect.w = 128;
-    src_rect.h = 128;
+    src_rect.h = 2;
     src_rect.x = 0;
     src_rect.y = 0;
         

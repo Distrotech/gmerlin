@@ -70,6 +70,36 @@ gavl_video_scaler_t * gavl_video_scaler_create()
   return ret;
   }
 
+void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt)
+  {
+  /* Get scale functions */
+  switch(opt->scale_mode)
+    {
+    case GAVL_SCALE_AUTO:
+      break;
+    case GAVL_SCALE_NEAREST:
+      gavl_init_scale_funcs_nearest_c(tab);
+      break;
+    case GAVL_SCALE_BILINEAR:
+      gavl_init_scale_funcs_bilinear_c(tab);
+      break;
+    case GAVL_SCALE_QUADRATIC:
+      gavl_init_scale_funcs_quadratic_c(tab);
+      break;
+    case GAVL_SCALE_CUBIC_BSPLINE:
+      gavl_init_scale_funcs_bicubic_noclip_c(tab);
+      break;
+    case GAVL_SCALE_CUBIC_MITCHELL:
+    case GAVL_SCALE_CUBIC_CATMULL:
+      gavl_init_scale_funcs_bicubic_c(tab);
+      break;
+    case GAVL_SCALE_SINC_LANCZOS:
+      gavl_init_scale_funcs_generic_c(tab);
+      break;
+    }
+  }
+
+
 int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
                            const gavl_video_format_t * _src_format,
                            const gavl_video_format_t * _dst_format)
@@ -78,7 +108,6 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
   gavl_rectangle_i_t  dst_rect;
   gavl_video_options_t opt;
 
-  gavl_scale_funcs_t funcs;
   int field, plane;
  
   int sub_h_out = 1, sub_v_out = 1;
@@ -195,7 +224,6 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
 
   /* Handle automatic mode selection */
   
-  memset(&funcs, 0, sizeof(funcs));
 
   if(opt.scale_mode == GAVL_SCALE_AUTO)
     {
@@ -207,32 +235,6 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
       opt.scale_mode = GAVL_SCALE_CUBIC_BSPLINE;
     }
   
-  /* Get scale functions */
-  
-  switch(opt.scale_mode)
-    {
-    case GAVL_SCALE_AUTO:
-      break;
-    case GAVL_SCALE_NEAREST:
-      gavl_init_scale_funcs_nearest_c(&funcs);
-      break;
-    case GAVL_SCALE_BILINEAR:
-      gavl_init_scale_funcs_bilinear_c(&funcs);
-      break;
-    case GAVL_SCALE_QUADRATIC:
-      gavl_init_scale_funcs_quadratic_c(&funcs);
-      break;
-    case GAVL_SCALE_CUBIC_BSPLINE:
-      gavl_init_scale_funcs_bicubic_noclip_c(&funcs);
-      break;
-    case GAVL_SCALE_CUBIC_MITCHELL:
-    case GAVL_SCALE_CUBIC_CATMULL:
-      gavl_init_scale_funcs_bicubic_c(&funcs);
-      break;
-    case GAVL_SCALE_SINC_LANCZOS:
-      gavl_init_scale_funcs_generic_c(&funcs);
-      break;
-    }
   
   /* Now, initialize all fields and planes */
 
@@ -243,7 +245,7 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
       {
       gavl_video_scale_context_init(&(scaler->contexts[field][plane]),
                                     &opt,
-                                    plane, &(scaler->src_format), &(scaler->dst_format), &funcs, field, 0,
+                                    plane, &(scaler->src_format), &(scaler->dst_format), field, 0,
                                     scaler->src_fields, scaler->dst_fields);
       }
     }
@@ -255,7 +257,7 @@ int gavl_video_scaler_init(gavl_video_scaler_t * scaler,
         {
         gavl_video_scale_context_init(&(scaler->contexts[field][plane]),
                                       &opt,
-                                      plane, &(scaler->src_format), &(scaler->dst_format), &funcs, field, field,
+                                      plane, &(scaler->src_format), &(scaler->dst_format), field, field,
                                       scaler->src_fields, scaler->dst_fields);
         }
       }

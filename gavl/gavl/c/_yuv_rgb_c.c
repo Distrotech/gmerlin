@@ -92,7 +92,7 @@ static void _init_yuv2rgb_c()
   uint8_t r; \
   uint8_t g; \
   uint8_t b; \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -114,7 +114,7 @@ static void _init_yuv2rgb_c()
   uint8_t r; \
   uint8_t g; \
   uint8_t b; \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -136,7 +136,7 @@ static void _init_yuv2rgb_c()
   uint8_t r; \
   uint8_t g; \
   uint8_t b; \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -158,7 +158,7 @@ static void _init_yuv2rgb_c()
   uint8_t r; \
   uint8_t g; \
   uint8_t b; \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -175,7 +175,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src[2], src[1], src[3], dst[3], dst[4], dst[5])
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -192,7 +192,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_48(src[2], src[1], src[3], dst[3], dst[4], dst[5])
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -229,7 +229,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src[2], src[1], src[3], dst[5], dst[4], dst[3])
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -246,7 +246,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src[2], src[1], src[3], dst[4], dst[5], dst[6])
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -263,7 +263,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src[2], src[1], src[3], dst[6], dst[5], dst[4])
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -282,7 +282,7 @@ static void _init_yuv2rgb_c()
   dst[7] = 0xFF;
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -301,7 +301,7 @@ static void _init_yuv2rgb_c()
   dst[7] = 0xFFFF;
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -346,7 +346,7 @@ static void _init_yuv2rgb_c()
   uint8_t r; \
   uint8_t g; \
   uint8_t b; \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -368,7 +368,7 @@ static void _init_yuv2rgb_c()
   uint8_t r; \
   uint8_t g; \
   uint8_t b; \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -390,7 +390,7 @@ static void _init_yuv2rgb_c()
   uint8_t r; \
   uint8_t g; \
   uint8_t b; \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -412,7 +412,7 @@ static void _init_yuv2rgb_c()
   uint8_t r; \
   uint8_t g; \
   uint8_t b; \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -429,7 +429,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src[3], src[0], src[2], dst[3], dst[4], dst[5])
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -446,7 +446,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_48(src[3], src[0], src[2], dst[3], dst[4], dst[5])
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -480,7 +480,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src[3], src[0], src[2], dst[5], dst[4], dst[3])
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -497,7 +497,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src[3], src[0], src[2], dst[4], dst[5], dst[6])
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -514,7 +514,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src[3], src[0], src[2], dst[6], dst[5], dst[4])
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -533,7 +533,7 @@ static void _init_yuv2rgb_c()
   dst[7] = 0xFF;
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -552,7 +552,7 @@ static void _init_yuv2rgb_c()
   dst[7] = 0xFFFF;
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -597,7 +597,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB15(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -620,7 +620,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR15(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -643,7 +643,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB16(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -666,7 +666,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR16(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -688,7 +688,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[3], dst[4], dst[5])
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -706,7 +706,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_48(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2])\
   YUV_8_TO_RGB_48(src_y[1], src_u[0], src_v[0], dst[3], dst[4], dst[5])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -743,7 +743,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[5], dst[4], dst[3])
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -761,7 +761,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2]) \
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[4], dst[5], dst[6])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -779,7 +779,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[2], dst[1], dst[0]) \
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[6], dst[5], dst[4])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -799,7 +799,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[4], dst[5], dst[6]) \
   dst[7] = 0xff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -819,7 +819,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_48(src_y[1], src_u[0], src_v[0], dst[4], dst[5], dst[6]) \
   dst[7] = 0xffff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -868,7 +868,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB15(r, g, b, dst[3]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -895,7 +895,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR15(r, g, b, dst[3]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -922,7 +922,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB16(r, g, b, dst[3]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -949,7 +949,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR16(r, g, b, dst[3]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -973,7 +973,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], dst[9], dst[10], dst[11])
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -995,7 +995,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_48(src_y[3], src_u[0], src_v[0], dst[9], dst[10], dst[11])
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1037,7 +1037,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[2], src_u[0], src_v[0], dst[8], dst[7], dst[6]) \
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], dst[11], dst[10], dst[9])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1057,7 +1057,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[2], src_u[0], src_v[0], dst[8], dst[9], dst[10]) \
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], dst[12], dst[13], dst[14])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1077,7 +1077,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[2], src_u[0], src_v[0], dst[10], dst[9], dst[8]) \
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], dst[14], dst[13], dst[12])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1101,7 +1101,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], dst[12], dst[13], dst[14]) \
   dst[15] = 0xff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1125,7 +1125,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_48(src_y[3], src_u[0], src_v[0], dst[12], dst[13], dst[14]) \
   dst[15] = 0xffff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1176,7 +1176,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB15(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -1199,7 +1199,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR15(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -1222,7 +1222,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB16(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -1245,7 +1245,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR16(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -1267,7 +1267,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[3], dst[4], dst[5])
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1285,7 +1285,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_48(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2])\
   YUV_8_TO_RGB_48(src_y[1], src_u[0], src_v[0], dst[3], dst[4], dst[5])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1323,7 +1323,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[5], dst[4], dst[3])
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1341,7 +1341,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2]) \
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[4], dst[5], dst[6])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1359,7 +1359,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[2], dst[1], dst[0]) \
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[6], dst[5], dst[4])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1379,7 +1379,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[4], dst[5], dst[6]) \
   dst[7] = 0xff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1399,7 +1399,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_48(src_y[1], src_u[0], src_v[0], dst[4], dst[5], dst[6]) \
   dst[7] = 0xffff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1714,7 +1714,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB15(r, g, b, dst[3]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -1742,7 +1742,7 @@ static void _init_yuv2rgb_c()
   PACK_8_TO_BGR15(r, g, b, dst[3]);
   
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -1769,7 +1769,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB16(r, g, b, dst[3]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -1796,7 +1796,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR16(r, g, b, dst[3]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -1819,7 +1819,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[2], src_u[0], src_v[0], dst[6], dst[7], dst[8])\
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], dst[9], dst[10], dst[11])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1839,7 +1839,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_48(src_y[2], src_u[0], src_v[0], dst[6], dst[7], dst[8])\
   YUV_8_TO_RGB_48(src_y[3], src_u[0], src_v[0], dst[9], dst[10], dst[11])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1882,7 +1882,7 @@ static void _init_yuv2rgb_c()
 
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1902,7 +1902,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[2], src_u[0], src_v[0], dst[8], dst[9], dst[10]) \
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], dst[12], dst[13], dst[14])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1923,7 +1923,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[3], src_u[0], src_v[0], dst[14], dst[13], dst[12])
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1948,7 +1948,7 @@ static void _init_yuv2rgb_c()
   dst[15] = 0xff;
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -1972,7 +1972,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_48(src_y[3], src_u[0], src_v[0], dst[12], dst[13], dst[14]) \
   dst[15] = 0xffff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2019,7 +2019,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB15(r, g, b, dst[0]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -2040,7 +2040,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR15(r, g, b, dst[0]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -2061,7 +2061,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB16(r, g, b, dst[0]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -2082,7 +2082,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR16(r, g, b, dst[0]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -2102,7 +2102,7 @@ static void _init_yuv2rgb_c()
 #define CONVERT \
   YUV_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2119,7 +2119,7 @@ static void _init_yuv2rgb_c()
 #define CONVERT \
   YUV_8_TO_RGB_48(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2155,7 +2155,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[2], dst[1], dst[0])
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2172,7 +2172,7 @@ static void _init_yuv2rgb_c()
 #define CONVERT \
   YUV_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2189,7 +2189,7 @@ static void _init_yuv2rgb_c()
 #define CONVERT \
   YUV_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[2], dst[1], dst[0])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2207,7 +2207,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2]) \
   dst[3] = 0xff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2225,7 +2225,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_48(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2]) \
   dst[3] = 0xffff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2517,7 +2517,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB15(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -2540,7 +2540,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR15(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -2563,7 +2563,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB16(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -2586,7 +2586,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR16(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -2608,7 +2608,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[3], dst[4], dst[5])
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2626,7 +2626,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_48(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2])\
   YUVJ_8_TO_RGB_48(src_y[1], src_u[0], src_v[0], dst[3], dst[4], dst[5])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2665,7 +2665,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[5], dst[4], dst[3])
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2683,7 +2683,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2]) \
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[4], dst[5], dst[6])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2701,7 +2701,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[2], dst[1], dst[0]) \
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[6], dst[5], dst[4])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2721,7 +2721,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[4], dst[5], dst[6]) \
   dst[7] = 0xff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2741,7 +2741,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_48(src_y[1], src_u[0], src_v[0], dst[4], dst[5], dst[6]) \
   dst[7] = 0xffff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2786,7 +2786,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB15(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -2809,7 +2809,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR15(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -2832,7 +2832,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB16(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -2855,7 +2855,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR16(r, g, b, dst[1]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -2877,7 +2877,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[3], dst[4], dst[5])
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2895,7 +2895,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_48(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2])\
   YUVJ_8_TO_RGB_48(src_y[1], src_u[0], src_v[0], dst[3], dst[4], dst[5])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2932,7 +2932,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[5], dst[4], dst[3])
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2950,7 +2950,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2]) \
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[4], dst[5], dst[6])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2968,7 +2968,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[2], dst[1], dst[0]) \
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[6], dst[5], dst[4])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -2988,7 +2988,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[1], src_u[0], src_v[0], dst[4], dst[5], dst[6]) \
   dst[7] = 0xff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -3008,7 +3008,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_48(src_y[1], src_u[0], src_v[0], dst[4], dst[5], dst[6]) \
   dst[7] = 0xffff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -3051,7 +3051,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB15(r, g, b, dst[0]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -3072,7 +3072,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR15(r, g, b, dst[0]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -3093,7 +3093,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_RGB16(r, g, b, dst[0]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -3114,7 +3114,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], r, g, b) \
   PACK_8_TO_BGR16(r, g, b, dst[0]);
 
-#define INIT   int i_tmp; \
+#define INIT   int32_t i_tmp; \
   uint8_t r; \
   uint8_t g; \
   uint8_t b;
@@ -3134,7 +3134,7 @@ static void _init_yuv2rgb_c()
 #define CONVERT \
   YUVJ_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -3151,7 +3151,7 @@ static void _init_yuv2rgb_c()
 #define CONVERT \
   YUVJ_8_TO_RGB_48(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -3186,7 +3186,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[2], dst[1], dst[0])
 
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -3203,7 +3203,7 @@ static void _init_yuv2rgb_c()
 #define CONVERT \
   YUVJ_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -3220,7 +3220,7 @@ static void _init_yuv2rgb_c()
 #define CONVERT \
   YUVJ_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[2], dst[1], dst[0])
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -3238,7 +3238,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_24(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2]) \
   dst[3] = 0xff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -3256,7 +3256,7 @@ static void _init_yuv2rgb_c()
   YUVJ_8_TO_RGB_48(src_y[0], src_u[0], src_v[0], dst[0], dst[1], dst[2]) \
   dst[3] = 0xffff;
 
-#define INIT   int i_tmp;
+#define INIT   int32_t i_tmp;
 
 #include "../csp_planar_packed.h"
 
@@ -3293,7 +3293,7 @@ static void _init_yuv2rgb_c()
 #define CONVERT  \
   YUV_8_TO_RGB_24(src[0], src[1], src[2], dst[0], dst[1], dst[2]) \
     dst[3] = src[3];
-#define INIT int i_tmp;
+#define INIT int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -3308,7 +3308,7 @@ static void _init_yuv2rgb_c()
 #define CONVERT  \
   YUV_8_TO_RGB_48(src[0], src[1], src[2], dst[0], dst[1], dst[2]) \
     dst[3] = RGB_8_TO_16(src[3]);
-#define INIT int i_tmp;
+#define INIT int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -3345,7 +3345,7 @@ static void _init_yuv2rgb_c()
   PACK_8_TO_RGB15(r_tmp2, g_tmp2, b_tmp2, *dst);
 
 #define INIT \
-  int i_tmp; \
+  int32_t i_tmp; \
   int r_tmp1; \
   int g_tmp1; \
   int b_tmp1; \
@@ -3370,7 +3370,7 @@ static void _init_yuv2rgb_c()
   PACK_8_TO_BGR15(r_tmp2, g_tmp2, b_tmp2, *dst);
 
 #define INIT \
-  int i_tmp; \
+  int32_t i_tmp; \
   int r_tmp1; \
   int g_tmp1; \
   int b_tmp1; \
@@ -3395,7 +3395,7 @@ static void _init_yuv2rgb_c()
   PACK_8_TO_RGB16(r_tmp2, g_tmp2, b_tmp2, *dst);
 
 #define INIT \
-  int i_tmp; \
+  int32_t i_tmp; \
   int r_tmp1; \
   int g_tmp1; \
   int b_tmp1; \
@@ -3420,7 +3420,7 @@ static void _init_yuv2rgb_c()
   PACK_8_TO_BGR16(r_tmp2, g_tmp2, b_tmp2, *dst);
 
 #define INIT \
-  int i_tmp; \
+  int32_t i_tmp; \
   int r_tmp1; \
   int g_tmp1; \
   int b_tmp1; \
@@ -3445,7 +3445,7 @@ static void _init_yuv2rgb_c()
   RGBA_32_TO_RGB_24(r_tmp, g_tmp, b_tmp, src[3], dst[0], dst[1], dst[2]) \
 
 #define INIT \
-  int i_tmp; \
+  int32_t i_tmp; \
   int r_tmp; \
   int g_tmp; \
   int b_tmp; \
@@ -3466,7 +3466,7 @@ static void _init_yuv2rgb_c()
   RGBA_32_TO_RGB_24(r_tmp, g_tmp, b_tmp, src[3], dst[2], dst[1], dst[0]) \
 
 #define INIT \
-  int i_tmp; \
+  int32_t i_tmp; \
   int r_tmp; \
   int g_tmp; \
   int b_tmp; \
@@ -3487,7 +3487,7 @@ static void _init_yuv2rgb_c()
   RGBA_32_TO_RGB_24(r_tmp, g_tmp, b_tmp, src[3], dst[0], dst[1], dst[2]) \
 
 #define INIT \
-  int i_tmp; \
+  int32_t i_tmp; \
   int r_tmp; \
   int g_tmp; \
   int b_tmp; \
@@ -3508,7 +3508,7 @@ static void _init_yuv2rgb_c()
   RGBA_32_TO_RGB_24(r_tmp, g_tmp, b_tmp, src[3], dst[2], dst[1], dst[0]) \
 
 #define INIT \
-  int i_tmp; \
+  int32_t i_tmp; \
   int r_tmp; \
   int g_tmp; \
   int b_tmp; \
@@ -3530,7 +3530,7 @@ static void _init_yuv2rgb_c()
     RGBA_64_TO_RGB_48(r_tmp, g_tmp, b_tmp, a_tmp, dst[0], dst[1], dst[2]) \
     
 #define INIT \
-  int i_tmp; \
+  int32_t i_tmp; \
   int r_tmp; \
   int g_tmp; \
   int b_tmp; \
@@ -3580,7 +3580,7 @@ static void _init_yuv2rgb_c()
   PACK_8_TO_RGB15(r_tmp1, g_tmp1, b_tmp1, *dst);
 
 #define INIT \
-  int i_tmp; \
+  int32_t i_tmp; \
   int r_tmp1; \
   int g_tmp1; \
   int b_tmp1; \
@@ -3600,7 +3600,7 @@ static void _init_yuv2rgb_c()
   PACK_8_TO_BGR15(r_tmp1, g_tmp1, b_tmp1, *dst);
 
 #define INIT \
-  int i_tmp; \
+  int32_t i_tmp; \
   int r_tmp1; \
   int g_tmp1; \
   int b_tmp1; \
@@ -3620,7 +3620,7 @@ static void _init_yuv2rgb_c()
   PACK_8_TO_RGB16(r_tmp1, g_tmp1, b_tmp1, *dst);
 
 #define INIT \
-  int i_tmp; \
+  int32_t i_tmp; \
   int r_tmp1; \
   int g_tmp1; \
   int b_tmp1; \
@@ -3640,7 +3640,7 @@ static void _init_yuv2rgb_c()
   PACK_8_TO_BGR16(r_tmp1, g_tmp1, b_tmp1, *dst);
 
 #define INIT \
-  int i_tmp; \
+  int32_t i_tmp; \
   int r_tmp1; \
   int g_tmp1; \
   int b_tmp1; \
@@ -3659,7 +3659,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src[0], src[1], src[2], dst[0], dst[1], dst[2])
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -3675,7 +3675,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src[0], src[1], src[2], dst[2], dst[1], dst[0])
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -3691,7 +3691,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src[0], src[1], src[2], dst[0], dst[1], dst[2])
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -3707,7 +3707,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_24(src[0], src[1], src[2], dst[2], dst[1], dst[0])
 
 #define INIT \
-  int i_tmp;
+  int32_t i_tmp;
 
 #include "../csp_packed_packed.h"
 
@@ -3723,7 +3723,7 @@ static void _init_yuv2rgb_c()
   YUV_8_TO_RGB_48(src[0], src[1], src[2], dst[0], dst[1], dst[2])          \
 
 #define INIT   \
-  int i_tmp; \
+  int32_t i_tmp; \
 
 #include "../csp_packed_packed.h"
 

@@ -432,7 +432,7 @@ static void blend_rgba_32(gavl_overlay_blend_context_t * ctx,
   uint8_t * ovl_ptr_start;
   uint8_t * dst_ptr_start;
 
-  int r_tmp, g_tmp, b_tmp, a_tmp;
+  int32_t r_tmp, g_tmp, b_tmp, a_tmp;
   
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
@@ -460,7 +460,7 @@ static void blend_rgba_32(gavl_overlay_blend_context_t * ctx,
       dst_ptr[0] = r_tmp;
       dst_ptr[1] = g_tmp;
       dst_ptr[2] = b_tmp;
-      dst_ptr[3] = RECLIP_8(a_tmp);
+      dst_ptr[3] = RECLIP_32_TO_8(a_tmp);
       
       ovl_ptr+=4;
       dst_ptr+=4;
@@ -560,7 +560,7 @@ static void blend_rgba_64(gavl_overlay_blend_context_t * ctx,
       dst_ptr[0] = r_tmp;
       dst_ptr[1] = g_tmp;
       dst_ptr[2] = b_tmp;
-      dst_ptr[3] = RECLIP_16(a_tmp);
+      dst_ptr[3] = RECLIP_64_TO_16(a_tmp);
       
       ovl_ptr+=4;
       dst_ptr+=4;
@@ -775,7 +775,7 @@ static void blend_yuva_32(gavl_overlay_blend_context_t * ctx,
   uint8_t * ovl_ptr_start;
   uint8_t * dst_ptr_start;
 
-  int y_tmp, u_tmp, v_tmp, a_tmp;
+  int32_t y_tmp, u_tmp, v_tmp, a_tmp;
   
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
@@ -803,7 +803,7 @@ static void blend_yuva_32(gavl_overlay_blend_context_t * ctx,
       dst_ptr[0] = y_tmp;
       dst_ptr[1] = u_tmp;
       dst_ptr[2] = v_tmp;
-      dst_ptr[3] = RECLIP_8(a_tmp);
+      dst_ptr[3] = RECLIP_32_TO_8(a_tmp);
       
       ovl_ptr+=4;
       dst_ptr+=4;

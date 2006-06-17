@@ -80,7 +80,7 @@ static int * uj_to_b = (int*)0;
 
 
 
-void init_yuv()
+static void init_yuv()
   {
   int i;
   
@@ -1093,7 +1093,7 @@ static void convert_UYVY_to_RGB24(gavl_video_frame_t * in_frame,
 
 /* On error, FALSE is returned */
 
-int write_file(const char * name,
+static int write_file(const char * name,
                gavl_video_frame_t * frame, gavl_video_format_t * format)
   {
   int color_type;  
@@ -1379,7 +1379,7 @@ static uint8_t colorbar_colors[16][2][3] =
 
 // #define COLORBAR_HORIZONTAL
 
-void get_pixel_colorbar(int x, int y,
+static void get_pixel_colorbar(int x, int y,
                         float * ret)
   {
   int color_index;
@@ -1449,7 +1449,7 @@ _pixel=((((((_r<<5)&0xff00)|_g)<<5)&0xfff00)|_b)>>3
 #define VJ_TO_8(d) d=RECLIP((int)(yuv_f[2]*255.0+0.5)+128)
 
 
-gavl_video_frame_t * create_picture(gavl_pixelformat_t pixelformat,
+static gavl_video_frame_t * create_picture(gavl_pixelformat_t pixelformat,
                                     void (*get_pixel)(int x, int y,
                                                       float * ret))
   
@@ -2314,7 +2314,7 @@ int main(int argc, char ** argv)
 
       gavl_video_options_set_defaults(opt);
 
-      gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_IGNORE);
+      gavl_video_options_set_alpha_mode(opt, GAVL_ALPHA_BLEND_COLOR);
       gavl_video_options_set_background_color(opt, background);
 
 #ifdef ALL_PIXELFORMATS

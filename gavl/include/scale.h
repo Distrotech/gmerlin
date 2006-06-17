@@ -81,6 +81,8 @@ void gavl_init_scale_funcs_mmx(gavl_scale_funcs_t * tab,
                                int scale_x, int scale_y, int min_scanline_width);
 #endif
 
+void gavl_init_scale_funcs(gavl_scale_funcs_t * tab, gavl_video_options_t * opt);
+
 typedef struct
   {
   float fac_f; /* Scaling coefficient with high precision */
@@ -207,7 +209,6 @@ int gavl_video_scale_context_init(gavl_video_scale_context_t*,
                                   int plane,
                                   const gavl_video_format_t * input_format,
                                   const gavl_video_format_t * output_format,
-                                  gavl_scale_funcs_t * funcs,
                                   int src_field, int dst_field,
                                   int src_fields, int dst_fields);
 

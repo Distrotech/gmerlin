@@ -92,6 +92,30 @@ void gavl_video_scale_table_init(gavl_video_scale_table_t * tab,
   
   weight_func = gavl_video_scale_get_weight_func(opt, &(tab->factors_per_pixel));
 
+  //  fprintf(stderr, "tab->factors_per_pixel: %d, src_width: %d\n",
+  //          tab->factors_per_pixel, src_width);
+  
+  if(tab->factors_per_pixel > src_width)
+    {
+    switch(src_width)
+      {
+      case 1:
+        opt->scale_mode = GAVL_SCALE_NEAREST;
+        fprintf(stderr, "gavl: Changing scale mode to nearest (image too small)\n");
+        break;
+      case 2:
+      case 3:
+        opt->scale_mode = GAVL_SCALE_BILINEAR;
+        fprintf(stderr, "gavl: Changing scale mode to bilinear (image too small)\n");
+        break;
+      default:
+        opt->scale_mode = GAVL_SCALE_CUBIC_BSPLINE;
+        fprintf(stderr, "gavl: Changing scale mode to bspline (image too small)\n");
+        break;
+      }
+    weight_func = gavl_video_scale_get_weight_func(opt, &(tab->factors_per_pixel));
+    }
+  
   //  fprintf(stderr, "gavl_video_scale_table_init: %f %f %d %d\n", 
   //          src_off, src_size, dst_size, tab->factors_per_pixel);
   
