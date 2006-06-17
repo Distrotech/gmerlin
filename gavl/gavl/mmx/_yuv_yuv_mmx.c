@@ -18,7 +18,6 @@
 *****************************************************************/
 
 #include "mmx_macros.h"
-#include "../_video_copy.c"
 
 /*
  *  Support for mmxext
@@ -349,15 +348,11 @@ gavl_init_yuv_yuv_funcs_mmx(gavl_pixelformat_function_table_t * tab, int width,
   tab->uyvy_to_yuv_420_p      = uyvy_to_yuv_420_p_mmx;
   tab->uyvy_to_yuv_422_p      = uyvy_to_yuv_422_p_mmx;
   
-  tab->yuv_420_p_to_yuv_422_p = yuv_420_p_to_yuv_422_p_generic;
   tab->yuv_420_p_to_yuy2      = yuv_420_p_to_yuy2_mmx;
   tab->yuv_420_p_to_uyvy      = yuv_420_p_to_uyvy_mmx;
 
-  tab->yuv_410_p_to_yuv_411_p = yuv_410_p_to_yuv_411_p_generic;
   
-  tab->yuv_422_p_to_yuv_420_p = yuv_422_p_to_yuv_420_p_generic;
   tab->yuv_422_p_to_yuy2      = yuv_422_p_to_yuy2_mmx;
   tab->yuv_422_p_to_uyvy      = yuv_422_p_to_uyvy_mmx;
 
-  tab->yuv_411_p_to_yuv_410_p = yuv_411_p_to_yuv_410_p_generic;
   }

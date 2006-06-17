@@ -26,7 +26,6 @@ _mix_c.c \
 _sampleformat_c.c
 
 noinst_HEADERS= \
-c_macros.h \
 colorspace_tables.h \
 colorspace_macros.h \
 scale_bilinear_x.h \

@@ -1,6 +1,6 @@
-#include "c_macros.h"
 #include <audio.h>
 #include <mix.h>
+#include <accel.h>
 
 #define SWAP_SIGN_16(i) (i^0x8000)
 #define SWAP_SIGN_8(i)  (i^0x80)
@@ -119,7 +119,7 @@ static void copy_8(gavl_mix_output_channel_t * channel,
                    gavl_audio_frame_t * input_frame,
                    gavl_audio_frame_t * output_frame)
   {
-  GAVL_MEMCPY(output_frame->channels.s_8[channel->index],
+  gavl_memcpy(output_frame->channels.s_8[channel->index],
               input_frame->channels.s_8[SRC_INDEX(0)],
               input_frame->valid_samples);
   }
@@ -128,7 +128,7 @@ static void copy_16(gavl_mix_output_channel_t * channel,
                     gavl_audio_frame_t * input_frame,
                     gavl_audio_frame_t * output_frame)
   {
-  GAVL_MEMCPY(output_frame->channels.s_16[channel->index],
+  gavl_memcpy(output_frame->channels.s_16[channel->index],
               input_frame->channels.s_16[SRC_INDEX(0)],
               input_frame->valid_samples*2);
   }
@@ -137,7 +137,7 @@ static void copy_32(gavl_mix_output_channel_t * channel,
                     gavl_audio_frame_t * input_frame,
                     gavl_audio_frame_t * output_frame)
   {
-  GAVL_MEMCPY(output_frame->channels.s_32[channel->index],
+  gavl_memcpy(output_frame->channels.s_32[channel->index],
               input_frame->channels.s_32[SRC_INDEX(0)],
               input_frame->valid_samples*4);
   }

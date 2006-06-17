@@ -1,3 +1,5 @@
+#include <string.h> /* We want the memcpy prototype anyway */
+
 /* Acceleration flags */
 
 #define GAVL_ACCEL_C        (1<<0)
@@ -30,3 +32,9 @@ int gavl_audio_options_get_accel_flags(gavl_audio_options_t * opt);
 void gavl_video_options_set_accel_flags(gavl_video_options_t * opt,
                                         int accel_flags);
 int gavl_video_options_get_accel_flags(gavl_video_options_t * opt);
+
+/* Optimized memcpy versions */
+
+void gavl_init_memcpy();
+
+extern void * (*gavl_memcpy)(void *to, const void *from, size_t len);

@@ -23,6 +23,7 @@ cputest.c \
 deinterlace.c \
 deinterlace_copy.c \
 interleave.c \
+memcpy.c \
 mix.c \
 peakdetector.c \
 rectangle.c \
@@ -53,7 +54,5 @@ c/libgavl_c.la \
 libgdither/libgdither.la \
 libsamplerate/libsamplerate.la \
 -lm
-
-EXTRA_libgavl_la_SOURCES = _video_copy.c _planar_420_422.c
 
 EXTRA_DIST=Makefile.am.in

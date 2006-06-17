@@ -21,6 +21,7 @@
 
 #include <video.h>
 #include <config.h>
+#include <accel.h>
 
 #include "c/colorspace_tables.h"
 #include "c/colorspace_macros.h"
@@ -472,13 +473,19 @@ static void copy_plane(gavl_video_frame_t * dst,
   uint8_t * sp, *dp;
   sp = src->planes[plane];
   dp = dst->planes[plane];
-  for(j = 0; j < height; j++)
-    {
-    memcpy(dp, sp, bytes_per_line);
-    sp += src->strides[plane];
-    dp += dst->strides[plane];
-    }
 
+  if((src->strides[plane] == dst->strides[plane]) && 
+     (src->strides[plane] == bytes_per_line))
+    gavl_memcpy(dp, sp, bytes_per_line * height);
+  else
+    {
+    for(j = 0; j < height; j++)
+      {
+      gavl_memcpy(dp, sp, bytes_per_line);
+      sp += src->strides[plane];
+      dp += dst->strides[plane];
+      }
+    }
   }
 
 void gavl_video_frame_copy_plane(gavl_video_format_t * format,
@@ -488,7 +495,7 @@ void gavl_video_frame_copy_plane(gavl_video_format_t * format,
   int bytes_per_line;
   int sub_h, sub_v;
   int height = format->image_height;
-  
+  gavl_init_memcpy();
   sub_h = 1;
   sub_v = 1;
   
@@ -514,6 +521,7 @@ void gavl_video_frame_copy(gavl_video_format_t * format,
   int bytes_per_line;
   int sub_h, sub_v;
   int planes;
+  gavl_init_memcpy();
 #if 0
   fprintf(stderr, "gavl_video_frame_copy, %d %d format:\n",
           src->strides[0], dst->strides[0]);
@@ -652,7 +660,7 @@ static void flip_scanline_12(uint8_t * dst, uint8_t * src, int len)
   
   for(i = 0; i < len; i++)
     {
-    memcpy(dst, src, 12);
+    gavl_memcpy(dst, src, 12);
     
     dst-=12;
     src+=12;
@@ -667,7 +675,7 @@ static void flip_scanline_16(uint8_t * dst, uint8_t * src, int len)
   
   for(i = 0; i < len; i++)
     {
-    memcpy(dst, src, 16);
+    gavl_memcpy(dst, src, 16);
     
     dst-=16;
     src+=16;
@@ -778,7 +786,7 @@ void gavl_video_frame_copy_flip_y(gavl_video_format_t * format,
   int sub_h, sub_v;
   int planes;
   int bytes_per_line;
-    
+  gavl_init_memcpy();
   planes = gavl_pixelformat_num_planes(format->pixelformat);
   
   sub_h = 1;
@@ -800,7 +808,7 @@ void gavl_video_frame_copy_flip_y(gavl_video_format_t * format,
     
     for(j = 0; j < format->image_height / sub_v; j++)
       {
-      memcpy(dst_ptr, src_ptr, bytes_per_line);
+      gavl_memcpy(dst_ptr, src_ptr, bytes_per_line);
       
       src_ptr -= src->strides[i];
       dst_ptr += dst->strides[i];
@@ -1020,7 +1028,7 @@ static void fill_48_packed(gavl_video_frame_t * frame,
                            uint16_t * color)
   {
   FILL_FUNC_HEAD_PACKED(uint16_t);
-  memcpy(dst, color, 3*sizeof(*dst));
+  gavl_memcpy(dst, color, 3*sizeof(*dst));
   FILL_FUNC_TAIL_PACKED(3);
   }
 
@@ -1029,7 +1037,7 @@ static void fill_64_packed(gavl_video_frame_t * frame,
                            uint16_t * color)
   {
   FILL_FUNC_HEAD_PACKED(uint16_t);
-  memcpy(dst, color, 4*sizeof(*dst));
+  gavl_memcpy(dst, color, 4*sizeof(*dst));
   FILL_FUNC_TAIL_PACKED(4);
   }
 
@@ -1038,7 +1046,7 @@ static void fill_float_rgb(gavl_video_frame_t * frame,
                            float * color)
   {
   FILL_FUNC_HEAD_PACKED(float);
-  memcpy(dst, color, 3*sizeof(*dst));
+  gavl_memcpy(dst, color, 3*sizeof(*dst));
   FILL_FUNC_TAIL_PACKED(3);
   }
 
@@ -1047,7 +1055,7 @@ static void fill_float_rgba(gavl_video_frame_t * frame,
                             float * color)
   {
   FILL_FUNC_HEAD_PACKED(float);
-  memcpy(dst, color, 4*sizeof(*dst));
+  gavl_memcpy(dst, color, 4*sizeof(*dst));
   FILL_FUNC_TAIL_PACKED(4);
   }
 
@@ -1077,7 +1085,7 @@ static void fill_planar_8(gavl_video_frame_t * frame,
   int sub_h, sub_v;
 
   uint8_t * dst, *dst_1;
-
+  
   gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
   
   /* Luminance */
@@ -1165,6 +1173,8 @@ void gavl_video_frame_fill(gavl_video_frame_t * frame,
   uint16_t packed_16;
   uint8_t  packed_32[4];
   uint16_t packed_64[4];
+
+  gavl_init_memcpy();
   
   switch(format->pixelformat)
     {

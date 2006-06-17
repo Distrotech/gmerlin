@@ -58,6 +58,8 @@ AC_CHECK_FUNCS([memalign])
 AC_C99_FUNC_LRINT
 AC_C99_FUNC_LRINTF
 
+AC_CHECK_HEADERS(sys/times.h)
+
 dnl
 dnl Build optimization flags
 dnl

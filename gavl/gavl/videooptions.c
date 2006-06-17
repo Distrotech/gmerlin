@@ -39,6 +39,7 @@ void gavl_video_options_set_defaults(gavl_video_options_t * opt)
   opt->accel_flags = gavl_accel_supported();
   opt->scale_order = 4;
   opt->quality = GAVL_QUALITY_DEFAULT;
+  gavl_init_memcpy();
   }
   
 void gavl_video_options_set_rectangles(gavl_video_options_t * opt,
