@@ -247,7 +247,7 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   vcd_priv * priv;
   const char * pos;
 
-  //  fprintf(stderr, "OPEN VCD\n");
+  //  fprintf(stderr, "OPEN VCD %s\n", url);
 
   //  bgav_find_devices_vcd();
     
@@ -268,7 +268,8 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
     priv->cdio = cdio_open (url, DRIVER_DEVICE);
   if(!priv->cdio)
     {
-    fprintf(stderr, "VCD: Open failed\n");
+    ctx->error_msg = bgav_sprintf("cdio_open failed for %s", url);
+    //    fprintf(stderr, "VCD: Open failed\n");
     return 0;
     }
   /* Get some infos */

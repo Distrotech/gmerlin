@@ -27,9 +27,11 @@
  *  data and can extract audio.
  */
 
+#include <stdlib.h>
+
 #include <avdec_private.h>
 #include <dvframe.h>
-#include <libdv/dv.h>
+// #include <libdv/dv.h>
 
 /*
  *  This used to be implemented with libdv, later replaced by a port from

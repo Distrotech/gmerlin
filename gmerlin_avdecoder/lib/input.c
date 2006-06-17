@@ -692,15 +692,17 @@ int bgav_input_open(bgav_input_context_t * ctx,
     if(pos && !strcasecmp(pos, ".cue"))
       ctx->input = &bgav_input_vcd;
 #ifdef HAVE_DVDREAD
-    if(strlen(url) >= DVD_PATH_LEN)
+    else if(strlen(url) >= DVD_PATH_LEN)
       {
       pos = url + strlen(url) - DVD_PATH_LEN;
-      fprintf(stderr, "Checking for DVD image: %s %s\n", pos, DVD_PATH);
+      //      fprintf(stderr, "Checking for DVD image: %s %s\n", pos, DVD_PATH);
       if(!strcasecmp(pos, DVD_PATH))
+        {
         ctx->input = &bgav_input_dvd;
-      /* Libdvdread wants just the directory */
-      tmp_pos = strrchr(tmp_url, '/');
-      *tmp_pos = '\0';
+        /* Libdvdread wants just the directory */
+        tmp_pos = strrchr(tmp_url, '/');
+        *tmp_pos = '\0';
+        }
       }
 #endif
 #endif

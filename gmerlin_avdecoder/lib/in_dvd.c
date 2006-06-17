@@ -450,7 +450,7 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
   dvd_t * priv;
   tt_srpt_t *ttsrpt;
   char volid[32];
-  char volsetid[128];
+  unsigned char volsetid[128];
   //  fprintf(stderr, "OPEN DVD\n");
   
   //  DVDInit();
@@ -603,9 +603,11 @@ read_nav(bgav_input_context_t * ctx, int sector, int *next)
     {
     if(d->last_vobu_end_pts != pci_pack.pci_gi.vobu_s_ptm)
       {
+#if 0
       fprintf(stderr, "** Detected PTS discontinuity: %d -> %d (Diff: %d)\n",
               (int)d->last_vobu_end_pts, (int)pci_pack.pci_gi.vobu_s_ptm,
               (int)(d->last_vobu_end_pts - pci_pack.pci_gi.vobu_s_ptm));
+#endif
       if(d->last_vobu_end_pts >= 0)
         ctx->demuxer->timestamp_offset += d->last_vobu_end_pts - pci_pack.pci_gi.vobu_s_ptm;
       else
@@ -670,9 +672,11 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
       if(!check_next_cell(ctx))
         return 0;
       d->cell = d->next_cell;
+#if 0
       fprintf(stderr, "DVD: entering cell %i [%d..%d]\n", d->cell+1,
               d->pgc->cell_playback[d->cell].first_sector,
               d->pgc->cell_playback[d->cell].last_sector);
+#endif
       d->next_cell = next_cell(d->pgc, d->cell, d->current_track_priv->angle);
       d->npack = d->pgc->cell_playback[d->cell].first_sector;
       d->state = CELL_LOOP;
@@ -787,10 +791,10 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   
   dvd->state = CELL_START;
   dvd->start_sector = dvd->pgc->cell_playback[dvd->next_cell].first_sector;
-  
+#if 0  
   fprintf(stderr, "Select track: t: %d, c: %d, pgc_id: %d, pgn: %d, start_sector: %d\n",
           track_priv->title, track_priv->chapter, pgc_id, pgn, dvd->start_sector);
-
+#endif
   /* Set the subtitle palettes */
   for(i = 0; i < ctx->tt->current_track->num_subtitle_streams; i++)
     {
@@ -820,7 +824,7 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
   /* Get entry cell */
   dvd->cell = dvd->current_track_priv->start_cell;
 
-  fprintf(stderr, "DVD Seek time\n");
+  //  fprintf(stderr, "DVD Seek time\n");
   
   while(1)
     {
