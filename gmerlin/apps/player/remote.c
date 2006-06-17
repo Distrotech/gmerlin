@@ -57,6 +57,7 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
       locations[0] = arg_str;
       locations[1] = (char*)0;
       gmerlin_add_locations(g, locations);
+      free(arg_str);
       
       break;
       
@@ -66,8 +67,20 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
       locations[0] = arg_str;
       locations[1] = (char*)0;
       gmerlin_play_locations(g, locations);
+      free(arg_str);
+      break;
+    case PLAYER_COMMAND_OPEN_DEVICE:
+      arg_str = bg_msg_get_arg_string(msg, 0);
+      gmerlin_open_device(g, arg_str);
+      free(arg_str);
+      break;
+    case PLAYER_COMMAND_PLAY_DEVICE:
+      arg_str = bg_msg_get_arg_string(msg, 0);
+      gmerlin_play_device(g, arg_str);
+      free(arg_str);
       break;
 
+      
 /* Volume control (arg: Volume in dB) */
 
     case PLAYER_COMMAND_SET_VOLUME:

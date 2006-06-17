@@ -95,7 +95,7 @@ static void cmd_addplay(void * data, int * argc, char *** _argv, int arg)
   char ** argv = *_argv;
   remote = (bg_remote_client_t *)data;
 
-  fprintf(stderr, "cmd_addplay\n");
+  //  fprintf(stderr, "cmd_addplay\n");
   
   if(arg >= *argc)
     {
@@ -129,6 +129,53 @@ static void cmd_add(void * data, int * argc, char *** _argv, int arg)
   msg = bg_remote_client_get_msg_write(remote);
   
   bg_msg_set_id(msg, PLAYER_COMMAND_ADD_LOCATION);
+  bg_msg_set_arg_string(msg, 0, argv[arg]);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+
+  bg_remote_client_done_msg_write(remote);
+  }
+
+static void cmd_openplay(void * data, int * argc, char *** _argv, int arg)
+  {
+  bg_msg_t * msg;
+  bg_remote_client_t * remote;
+  char ** argv = *_argv;
+  remote = (bg_remote_client_t *)data;
+
+  //  fprintf(stderr, "cmd_openplay\n");
+  
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -openplay requires an argument\n");
+    exit(-1);
+    }
+  
+  msg = bg_remote_client_get_msg_write(remote);
+
+  bg_msg_set_id(msg, PLAYER_COMMAND_PLAY_DEVICE);
+  bg_msg_set_arg_string(msg, 0, argv[arg]);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+
+  bg_remote_client_done_msg_write(remote);
+  }
+
+static void cmd_open(void * data, int * argc, char *** _argv, int arg)
+  {
+  bg_msg_t * msg;
+  bg_remote_client_t * remote;
+  char ** argv = *_argv;
+  remote = (bg_remote_client_t *)data;
+
+  fprintf(stderr, "cmd_open\n");
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -open requires an argument\n");
+    exit(-1);
+    }
+  
+  msg = bg_remote_client_get_msg_write(remote);
+  
+  bg_msg_set_id(msg, PLAYER_COMMAND_OPEN_DEVICE);
   bg_msg_set_arg_string(msg, 0, argv[arg]);
   bg_cmdline_remove_arg(argc, _argv, arg);
 
@@ -220,6 +267,18 @@ bg_cmdline_arg_t commands[] =
       help_arg:    "<location>",
       help_string: "Add <location> to the incoming album and play it",
       callback:    cmd_addplay,
+    },
+    {
+      arg:         "-open",
+      help_arg:    "<device>",
+      help_string: "Open album for <device>. Device must be a GML.",
+      callback:    cmd_open,
+    },
+    {
+      arg:         "-openplay",
+      help_arg:    "<device>",
+      help_string: "Open album for <device> and play first track. Device must be a GML.",
+      callback:    cmd_openplay,
     },
     {
       arg:         "-volume",

@@ -32,6 +32,7 @@ typedef struct bg_plugin_info_s
   char * long_name;
   char * mimetypes;
   char * extensions;
+  char * protocols;
   char * module_filename;
   long   module_time; /* Modification time of DLL, needed internally */
 
@@ -108,6 +109,11 @@ bg_plugin_find_by_mimetype(bg_plugin_registry_t *,
 
 const bg_plugin_info_t *
 bg_plugin_find_by_long_name(bg_plugin_registry_t *, const char * long_name);
+
+const bg_plugin_info_t *
+bg_plugin_find_by_protocol(bg_plugin_registry_t *,
+                           const char * protocol);
+
 
 /* Another method: Return long names as strings (NULL terminated) */
 

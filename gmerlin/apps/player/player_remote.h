@@ -37,6 +37,7 @@
 #define PLAYER_COMMAND_ADD_LOCATION   6
 #define PLAYER_COMMAND_PLAY_LOCATION  7
 
+
 /* Volume control (arg: Volume in dB) */
 
 #define PLAYER_COMMAND_SET_VOLUME     8
@@ -47,3 +48,5 @@
 #define PLAYER_COMMAND_SEEK           10
 #define PLAYER_COMMAND_SEEK_REL       11
 
+#define PLAYER_COMMAND_OPEN_DEVICE    12
+#define PLAYER_COMMAND_PLAY_DEVICE    13

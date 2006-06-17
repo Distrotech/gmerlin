@@ -626,7 +626,7 @@ static void set_album(bg_gtk_tree_widget_t * widget,
   current_album = bg_media_tree_get_current_album(widget->tree);
   
   gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_NAME,
-                     bg_album_get_name(album), -1);
+                     bg_album_get_label(album), -1);
 
   type = bg_album_get_type(album);
 
@@ -702,7 +702,7 @@ static void set_album(bg_gtk_tree_widget_t * widget,
                        COLUMN_COLOR,
                        "#000000", -1);
 
-  if(open_window && bg_album_is_open(album))
+  if(open_window && bg_album_is_open(album) && !album_is_open(widget, album))
     {
     album_window = bg_gtk_album_window_create(album,
                                               widget, widget->accel_group);
@@ -785,7 +785,7 @@ static void expand_album(bg_gtk_tree_widget_t * w, bg_album_t * album)
 
 /* Update the entire tree */
 
-static void bg_gtk_tree_widget_update(bg_gtk_tree_widget_t * w,
+void bg_gtk_tree_widget_update(bg_gtk_tree_widget_t * w,
                                       int open_albums)
   {
   GtkTreeModel * model;
@@ -896,7 +896,7 @@ static void open_album(bg_gtk_tree_widget_t * widget,
   
   if(!album)
     return;
-
+  
   type = bg_album_get_type(album);
   if(type == BG_ALBUM_TYPE_PLUGIN)
     return;
@@ -908,6 +908,9 @@ static void open_album(bg_gtk_tree_widget_t * widget,
     if(!bg_album_is_open(album))
       {
       result = bg_album_open(album);
+
+      //      fprintf(stderr, "Open album returned %d\n", result);
+
       bg_album_set_error(album, !result);
       }
     

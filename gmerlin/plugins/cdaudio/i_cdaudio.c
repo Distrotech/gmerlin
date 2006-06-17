@@ -73,6 +73,8 @@ typedef struct
   int paused;
   
   char * error_msg;
+
+  const char * disc_name;
   } cdaudio_t;
 
 static void destroy_cd_data(cdaudio_t* cd)
@@ -100,6 +102,13 @@ static const char * get_error_cdaudio(void* priv)
   cdaudio_t * cd;
   cd = (cdaudio_t *)priv;
   return cd->error_msg;
+  }
+
+static const char * get_disc_name_cdaudio(void* priv)
+  {
+  cdaudio_t * cd;
+  cd = (cdaudio_t *)priv;
+  return cd->disc_name;
   }
 
 static void close_cdaudio(void * priv);
@@ -304,6 +313,9 @@ static int open_cdaudio(void * data, const char * arg)
                                                         cd->trackname_template);
         }
       }
+    if(cd->track_info[0].metadata.album)
+      cd->disc_name = cd->track_info[0].metadata.album;
+    
     }
 
   /* We close it again, so other apps won't cry */
@@ -868,7 +880,7 @@ static int eject_disc_cdaudio(const char * device)
     return 0;
   if((err = cdio_eject_media(&cdio)) != DRIVER_OP_SUCCESS)
     {
-    fprintf(stderr, "cdio_eject_media for %s failed: %d\n", device, err);
+    // fprintf(stderr, "cdio_eject_media for %s failed: %d\n", device, err);
     cdio_destroy(cdio);
     return 0;
     }
@@ -900,6 +912,7 @@ bg_input_plugin_t the_plugin =
     protocols: "cda",
   /* Open file/device */
     open: open_cdaudio,
+    get_disc_name: get_disc_name_cdaudio,
     eject_disc: eject_disc_cdaudio,
     set_callbacks: set_callbacks_cdaudio,
   /* For file and network plugins, this can be NULL */

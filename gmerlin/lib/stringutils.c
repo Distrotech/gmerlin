@@ -332,6 +332,102 @@ int bg_string_is_url(const char * str)
   return 1;
   }
 
+
+int bg_url_split(const char * url,
+                   char ** protocol,
+                   char ** user,
+                   char ** password,
+                   char ** hostname,
+                   int * port,
+                   char ** path)
+  {
+  const char * pos1;
+  const char * pos2;
+
+  /* For detecting user:pass@blabla.com/file */
+
+  const char * colon_pos;
+  const char * at_pos;
+  const char * slash_pos;
+  
+  pos1 = url;
+
+  /* Sanity check */
+  
+  pos2 = strstr(url, "://");
+  if(!pos2)
+    return 0;
+
+  /* Protocol */
+    
+  if(protocol)
+    *protocol = bg_strndup((char*)0, pos1, pos2);
+
+  pos2 += 3;
+  pos1 = pos2;
+
+  /* Check for user and password */
+
+  colon_pos = strchr(pos1, ':');
+  at_pos = strchr(pos1, '@');
+  slash_pos = strchr(pos1, '/');
+
+  if(colon_pos && at_pos && at_pos &&
+     (colon_pos < at_pos) && 
+     (at_pos < slash_pos))
+    {
+    if(user)
+      *user = bg_strndup((char*)0, pos1, colon_pos);
+    pos1 = colon_pos + 1;
+    if(password)
+      *password = bg_strndup((char*)0, pos1, at_pos);
+    pos1 = at_pos + 1;
+    pos2 = pos1;
+    }
+  
+  /* Hostname */
+
+  while((*pos2 != '\0') && (*pos2 != ':') && (*pos2 != '/'))
+    pos2++;
+
+  if(hostname)
+    *hostname = bg_strndup((char*)0, pos1, pos2);
+
+  switch(*pos2)
+    {
+    case '\0':
+      if(port)
+        *port = -1;
+      return 1;
+      break;
+    case ':':
+      /* Port */
+      pos2++;
+      if(port)
+        *port = atoi(pos2);
+      while(isdigit(*pos2))
+        pos2++;
+      break;
+    default:
+      if(port)
+        *port = -1;
+      break;
+    }
+
+  if(path)
+    {
+    pos1 = pos2;
+    pos2 = pos1 + strlen(pos1);
+    if(pos1 != pos2)
+      *path = bg_strndup((char*)0, pos1, pos2);
+    else
+      *path = (char*)0;
+    }
+  return 1;
+  }
+
+
+
 /* Scramble and descramble password (taken from gftp) */
 
 char * bg_scramble_string(const char * str)

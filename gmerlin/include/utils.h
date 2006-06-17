@@ -58,6 +58,15 @@ char * bg_strncat(char * old_string, const char * start, const char * end);
 
 int bg_string_is_url(const char * str);
 
+int bg_url_split(const char * url,
+                 char ** protocol,
+                 char ** user,
+                 char ** password,
+                 char ** hostname,
+                 int * port,
+                 char ** path);
+
+
 /* Like sprintf, but allocates memory (free with free())*/
 
 char * bg_sprintf(const char * format,...);

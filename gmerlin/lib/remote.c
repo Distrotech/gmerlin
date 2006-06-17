@@ -31,7 +31,8 @@
 
 #include <netinet/in.h>
 
-#define LOG_DOMAIN "remote.server"
+#define LOG_DOMAIN_SERVER "remote.server"
+#define LOG_DOMAIN_CLIENT "remote.client"
 
 /*
  *  Server
@@ -81,12 +82,12 @@ int bg_remote_server_init(bg_remote_server_t * s)
                                        s->allow_remote ? INADDR_ANY : INADDR_LOOPBACK);
   if(s->fd < 0)
     {
-    bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN_SERVER,
            "Setting up socket failed, this instance won't be reachable via remote");
     return 0;
     }
 
-  bg_log(BG_LOG_INFO, LOG_DOMAIN,
+  bg_log(BG_LOG_INFO, LOG_DOMAIN_SERVER,
          "Remote socket listening at port %d", s->listen_port);
   return 1;
   }
@@ -365,12 +366,12 @@ int bg_remote_client_init(bg_remote_client_t * c,
   c->milliseconds = milliseconds;
   if(!bg_host_address_set(addr, host, port))
     goto fail;
-  fprintf(stderr, "Connecting remote client...");
+  //  fprintf(stderr, "Connecting remote client...");
   c->fd = bg_socket_connect_inet(addr, c->milliseconds);
-  fprintf(stderr, "done\n");
+  //  fprintf(stderr, "done\n");
   if(c->fd < 0)
     {
-    fprintf(stderr, "Connecting failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN_CLIENT, "Connecting failed");
     goto fail;
     }
 
@@ -382,23 +383,23 @@ int bg_remote_client_init(bg_remote_client_t * c,
   if(bg_socket_write_data(c->fd, (uint8_t*)answer_message, len) < len)
     goto fail;
 
-  fprintf(stderr, "Reading answer message\n");
+  //  fprintf(stderr, "Reading answer message\n");
   /* Read welcome message */
   
   if(!bg_socket_read_line(c->fd, &(buffer),
                           &buffer_alloc, c->milliseconds))
     {
-    fprintf(stderr, "Reading welcome line failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN_CLIENT, "Reading welcome line failed");
     goto fail;
     }
-  fprintf(stderr, "Got welcome line: %s\n", buffer);
+  //  fprintf(stderr, "Got welcome line: %s\n", buffer);
 
   strings = bg_strbreak(buffer, ' ');
 
   if((!strings[0] || strcmp(strings[0], c->protocol_id)) ||
      (!strings[1] || strcmp(strings[1], VERSION)))
     {
-    fprintf(stderr, "Protocol mismatch");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN_CLIENT, "Protocol mismatch");
     goto fail;
     }
 

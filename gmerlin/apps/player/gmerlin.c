@@ -891,3 +891,43 @@ void gmerlin_play_locations(gmerlin_t * g, char ** locations)
     bg_album_play(incoming);
     }
   }
+
+static bg_album_t * open_device(gmerlin_t * g, char * device)
+  {
+  bg_album_t * album;
+  album = bg_media_tree_get_device_album(g->tree, device);
+
+  if(!album)
+    return album;
+  
+  if(!bg_album_is_open(album))
+    {
+    bg_album_open(album);
+    bg_gtk_tree_window_update(g->tree_window, 1);
+    }
+  return album;
+  }
+
+
+void gmerlin_open_device(gmerlin_t * g, char * device)
+  {
+  open_device(g, device);
+  }
+
+void gmerlin_play_device(gmerlin_t * g, char * device)
+  {
+  bg_album_t * album;
+  bg_album_entry_t * entry;
+  album = open_device(g, device);
+
+  if(!album)
+    return;
+  
+  entry = bg_album_get_entry(album, 0);
+
+  if(!entry)
+    return;
+  
+  bg_album_set_current(album, entry);
+  bg_album_play(album);
+  }

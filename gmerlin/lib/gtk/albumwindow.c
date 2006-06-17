@@ -326,7 +326,7 @@ void bg_gtk_album_window_attach(bg_gtk_album_window_t * w, GtkWidget * notebook)
 
   album = bg_gtk_album_widget_get_album(w->widget);
 
-  name = bg_album_get_name(album);
+  name = bg_album_get_label(album);
   
   w->tab_label = gtk_label_new(name);
   w->name_len = strlen(name);
@@ -349,7 +349,7 @@ void bg_gtk_album_window_attach(bg_gtk_album_window_t * w, GtkWidget * notebook)
   
   gtk_notebook_set_menu_label_text(GTK_NOTEBOOK(notebook),
                                    bg_gtk_album_widget_get_widget(w->widget),
-                                   bg_album_get_name(album));
+                                   bg_album_get_label(album));
 
   
   w->notebook = notebook;
@@ -378,7 +378,7 @@ void bg_gtk_album_window_detach(bg_gtk_album_window_t * w)
   g_signal_connect(G_OBJECT(w->window), "delete-event",
                    G_CALLBACK(delete_callback),
                    w);
-  gtk_window_set_title(GTK_WINDOW(w->window), bg_album_get_name(album));
+  gtk_window_set_title(GTK_WINDOW(w->window), bg_album_get_label(album));
   
   gtk_container_add(GTK_CONTAINER(w->window),
                     bg_gtk_album_widget_get_widget(w->widget));

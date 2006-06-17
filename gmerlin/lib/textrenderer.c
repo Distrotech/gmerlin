@@ -767,6 +767,8 @@ void bg_text_renderer_destroy(bg_text_renderer_t * r)
 
   if(r->font)
     free(r->font);
+  if(r->font_file)
+    free(r->font_file);
   
   FT_Done_FreeType(r->library);
   pthread_mutex_destroy(&(r->config_mutex));

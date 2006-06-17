@@ -2268,7 +2268,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
     }
   else if(wid == w->eject_button)
     {
-    fprintf(stderr, "Eject button clicked\n");
+    //    fprintf(stderr, "Eject button clicked\n");
     if(w->close_callback)
       w->close_callback(w, w->close_callback_data);
     bg_album_eject(w->album);

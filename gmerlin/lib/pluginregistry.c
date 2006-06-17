@@ -62,6 +62,8 @@ static void free_info(bg_plugin_info_t * info)
     free(info->mimetypes);
   if(info->extensions)
     free(info->extensions);
+  if(info->protocols)
+    free(info->protocols);
   if(info->module_filename)
     free(info->module_filename);
   if(info->devices)
@@ -135,6 +137,19 @@ static bg_plugin_info_t * find_by_long_name(bg_plugin_info_t * info,
   while(info)
     {
     if(!strcmp(info->long_name, name))
+      return info;
+    info = info->next;
+    }
+  return (bg_plugin_info_t*)0;
+  }
+
+const bg_plugin_info_t * bg_plugin_find_by_protocol(bg_plugin_registry_t * reg,
+                                                    const char * protocol)
+  {
+  const bg_plugin_info_t * info = reg->entries;
+  while(info)
+    {
+    if(bg_string_match(protocol, info->protocols))
       return info;
     info = info->next;
     }
@@ -285,6 +300,7 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
   bg_plugin_info_t * file_info;
   bg_plugin_info_t *  new_info;
   bg_encoder_plugin_t * encoder;
+  bg_input_plugin_t  * input;
   
   bg_cfg_section_t * plugin_section;
   bg_cfg_section_t * stream_section;
@@ -464,6 +480,13 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
                                     parameter_info);
         new_info->subtitle_overlay_parameters = bg_parameter_info_copy_array(parameter_info);
         }
+      }
+    if(plugin->type & (BG_PLUGIN_INPUT))
+      {
+      input = (bg_input_plugin_t*)plugin;
+      if(input->protocols)
+        new_info->protocols = bg_strdup(new_info->protocols,
+                                        input->protocols);
       }
     
     if(plugin->find_devices)

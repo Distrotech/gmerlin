@@ -900,7 +900,7 @@ int bg_message_read_socket(bg_msg_t * ret, int fd, int milliseconds)
   if(!read_uint32(fd, (uint32_t*)(&val_i), 0))
     return 0;
 
-  fprintf(stderr, "Read ID: %d\n", val_i);
+  //  fprintf(stderr, "Read ID: %d\n", val_i);
   
   ret->id = val_i;
 

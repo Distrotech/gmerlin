@@ -150,6 +150,10 @@ bg_album_t * bg_album_get_child(bg_album_t *, int);
 char * bg_album_get_name(bg_album_t * a);
 char * bg_album_get_location(bg_album_t * a);
 
+/* This returns the disc name or the album name */
+char * bg_album_get_label(bg_album_t * a);
+
+
 void bg_album_set_error(bg_album_t * a, int err);
 int  bg_album_get_error(bg_album_t * a);
 
@@ -275,6 +279,9 @@ bg_media_tree_get_cfg_section(bg_media_tree_t *);
 
 
 bg_album_t * bg_media_tree_get_incoming(bg_media_tree_t *);
+
+bg_album_t * bg_media_tree_get_device_album(bg_media_tree_t *,
+                                            const char * gml);
 
 void
 bg_media_tree_set_change_callback(bg_media_tree_t *,

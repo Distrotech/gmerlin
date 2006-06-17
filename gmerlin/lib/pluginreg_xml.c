@@ -74,6 +74,7 @@ static const char * name_key              = "NAME";
 static const char * long_name_key         = "LONG_NAME";
 static const char * mimetypes_key         = "MIMETYPES";
 static const char * extensions_key        = "EXTENSIONS";
+static const char * protocols_key         = "PROTOCOLS";
 static const char * module_filename_key   = "MODULE_FILENAME";
 static const char * module_time_key       = "MODULE_TIME";
 static const char * type_key              = "TYPE";
@@ -210,6 +211,10 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
     else if(!BG_XML_STRCMP(cur->name, extensions_key))
       {
       ret->extensions = bg_strdup(ret->extensions, tmp_string);
+      }
+    else if(!BG_XML_STRCMP(cur->name, protocols_key))
+      {
+      ret->protocols = bg_strdup(ret->protocols, tmp_string);
       }
     else if(!BG_XML_STRCMP(cur->name, module_filename_key))
       {
@@ -369,6 +374,12 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
     {
     xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)extensions_key, NULL);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->extensions));
+    xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
+    }
+  if(info->protocols)
+    {
+    xml_item = xmlNewTextChild(xml_plugin, (xmlNsPtr)0, (xmlChar*)protocols_key, NULL);
+    xmlAddChild(xml_item, BG_XML_NEW_TEXT(info->protocols));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
   if(info->mimetypes)

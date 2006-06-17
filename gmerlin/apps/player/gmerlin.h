@@ -134,6 +134,8 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg);
 void gmerlin_add_locations(gmerlin_t * g, char ** locations);
 void gmerlin_play_locations(gmerlin_t * g, char ** locations);
 
+void gmerlin_open_device(gmerlin_t * g, char * device);
+void gmerlin_play_device(gmerlin_t * g, char * device);
 
 void gmerlin_destroy(gmerlin_t*);
 

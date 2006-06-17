@@ -380,6 +380,8 @@ static int open_removable(bg_album_t * a)
     a->disc_name = bg_strdup(a->disc_name,
                              plugin->get_disc_name(a->handle->priv));
 
+  //  fprintf(stderr, "Disc name: %s\n", a->disc_name);
+  
   if(plugin->eject_disc)
     a->flags |= BG_ALBUM_CAN_EJECT;
   
@@ -544,9 +546,14 @@ void bg_album_close(bg_album_t *a )
   switch(a->type)
     {
     case BG_ALBUM_TYPE_REMOVABLE:
-      a->flags |= ~BG_ALBUM_CAN_EJECT;
+      a->flags &= ~BG_ALBUM_CAN_EJECT;
       bg_plugin_unref(a->handle);
       a->handle = (bg_plugin_handle_t*)0;
+      if(a->disc_name)
+        {
+        free(a->disc_name);
+        a->disc_name = (char*)0;
+        }
       break;
     case BG_ALBUM_TYPE_REGULAR:
     case BG_ALBUM_TYPE_INCOMING:
@@ -1600,6 +1607,12 @@ const char * bg_album_get_disc_name(bg_album_t * a)
   return a->disc_name;
   }
 
+char * bg_album_get_label(bg_album_t * a)
+  {
+  return a->disc_name ? a->disc_name : a->name;
+  }
+
+
 int bg_album_can_eject(bg_album_t * a)
   {
   return !!(a->flags & BG_ALBUM_CAN_EJECT);
@@ -1613,7 +1626,7 @@ void bg_album_eject(bg_album_t * a)
   handle = bg_plugin_load(a->com->plugin_reg, a->plugin_info);
   plugin = (bg_input_plugin_t*)handle->plugin;
   
-  if(plugin->eject_disc(a->location))
+  if(!plugin->eject_disc(a->location))
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Ejecting disc failed");
   bg_plugin_unref(handle);
   }

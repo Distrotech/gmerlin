@@ -1419,3 +1419,48 @@ void bg_album_common_set_auth_info(bg_album_common_t * com, bg_album_entry_t * e
     entry->flags &= ~BG_ALBUM_ENTRY_SAVE_AUTH;
 
   }
+
+bg_album_t * bg_media_tree_get_device_album(bg_media_tree_t * t, const char * gml)
+  {
+  bg_album_t * ret = (bg_album_t *)0;
+  const bg_plugin_info_t * plugin_info;
+  char * protocol = (char *)0;
+  char * path = (char *)0;
+  
+  if(!bg_url_split(gml,
+                   &protocol,
+                   (char **)0, // user,
+                   (char **)0, //  password,
+                   (char **)0, //  hostname,
+                   (int*)0, //  port,
+                   &path)) //  path)
+    return (bg_album_t*)0;
+
+  /* 1. Seek the plugin */
+  plugin_info = bg_plugin_find_by_protocol(t->com.plugin_reg, protocol);
+
+  if(!plugin_info)
+    goto fail;
+
+  ret = t->children;
+  while(ret &&
+        ((ret->type != BG_ALBUM_TYPE_PLUGIN) ||
+         strcmp(ret->plugin_info->name, plugin_info->name)))
+    ret = ret->next;
+
+  if(!ret)
+    goto fail;
+    
+  /* Now, look for the device */
+
+  ret = ret->children;
+
+  while(ret && strcmp(ret->location, path))
+    ret = ret->next;
+  
+  fail:
+  if(path) free(path);
+  if(protocol) free(protocol);
+  
+  return ret;
+  }

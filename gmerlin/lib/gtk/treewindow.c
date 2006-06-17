@@ -234,3 +234,9 @@ void bg_gtk_tree_window_goto_current(bg_gtk_tree_window_t * win)
   {
   bg_gtk_tree_widget_goto_current(win->widget);
   }
+
+void bg_gtk_tree_window_update(bg_gtk_tree_window_t * w,
+                               int open_albums)
+  {
+  bg_gtk_tree_widget_update(w->widget, open_albums);
+  }

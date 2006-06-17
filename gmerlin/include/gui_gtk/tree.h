@@ -82,6 +82,10 @@ void bg_gtk_tree_window_open_incoming(bg_gtk_tree_window_t*);
 
 void bg_gtk_tree_window_goto_current(bg_gtk_tree_window_t * win);
 
+void bg_gtk_tree_window_update(bg_gtk_tree_window_t * w,
+                               int open_albums);
+
+
 /* Album widget */
 
 bg_gtk_album_widget_t * bg_gtk_album_widget_create(bg_album_t * album,
@@ -108,6 +112,8 @@ void
 bg_gtk_album_widget_set_close_callback(bg_gtk_album_widget_t * w,
                                        void (*callback)(bg_gtk_album_widget_t *, void*), void*);
 
+void bg_gtk_tree_widget_update(bg_gtk_tree_widget_t * w,
+                               int open_albums);
 
 /* Album window */
 
