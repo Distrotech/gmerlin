@@ -344,3 +344,11 @@ bgav_options_t * bgav_get_options(bgav_t * b)
   {
   return &(b->opt);
   }
+
+const char * bgav_get_disc_name(bgav_t * bgav)
+  {
+  if(bgav->input)
+    return bgav->input->disc_name;
+  return
+    (const char*)0;
+  }

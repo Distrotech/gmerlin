@@ -23,6 +23,7 @@
 #ifdef HAVE_CDIO
 
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -99,9 +100,9 @@ static void select_track_vcd(bgav_input_context_t * ctx, int track)
 #endif          
   }
 
-static int read_toc(vcd_priv * priv)
+static int read_toc(vcd_priv * priv, char ** iso_label)
   {
-  int i;
+  int i, j;
   cdio_iso_analysis_t iso;
   cdio_fs_anal_t fs;
   
@@ -134,6 +135,21 @@ static int read_toc(vcd_priv * priv)
         }
       else
         {
+        if(!i && iso_label)
+          {
+          /* Remove trailing spaces */
+          j = strlen(iso.iso_label)-1;
+          while(j--)
+            {
+            if(!isspace(iso.iso_label[j]))
+              {
+              iso.iso_label[j+1] = '\0';
+              break;
+              }
+            }
+          *iso_label = bgav_strdup(iso.iso_label);
+          //          fprintf(stderr, "iso_label: %s %s\n", iso.iso_label, *iso_label);
+          }
         //        fprintf(stderr, "Track %d is the VCD iso9660 track\n", i+1);
         priv->tracks[i].mode = TRACK_OTHER;
         }
@@ -229,6 +245,8 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   {
   int i;
   vcd_priv * priv;
+  const char * pos;
+
   //  fprintf(stderr, "OPEN VCD\n");
 
   //  bgav_find_devices_vcd();
@@ -241,9 +259,13 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   priv->buffer = priv->sector + 8;
   priv->buffer_ptr = priv->buffer + SECTOR_SIZE;
 #endif
-  fprintf(stderr, "OPEN VCD\n");
-  
-  priv->cdio = cdio_open (url, DRIVER_DEVICE);
+  //  fprintf(stderr, "OPEN VCD\n");
+
+  pos = strrchr(url, '.');
+  if(pos && !strcasecmp(pos, ".cue"))
+    priv->cdio = cdio_open (url, DRIVER_BINCUE);
+  else
+    priv->cdio = cdio_open (url, DRIVER_DEVICE);
   if(!priv->cdio)
     {
     fprintf(stderr, "VCD: Open failed\n");
@@ -255,7 +277,7 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   
   /* Read TOC */
   
-  if(!read_toc(priv))
+  if(!read_toc(priv, &(ctx->disc_name)))
     {
     //    fprintf(stderr, "VCD: Read toc failed\n");
     return 0;
@@ -402,7 +424,7 @@ static int64_t seek_sector_vcd(bgav_input_context_t * ctx,
 static void    close_vcd(bgav_input_context_t * ctx)
   {
   vcd_priv * priv;
-  fprintf(stderr, "CLOSE VCD\n");
+  //  fprintf(stderr, "CLOSE VCD\n");
   priv = (vcd_priv*)(ctx->priv);
   if(priv->cdio)
     cdio_destroy(priv->cdio);
@@ -515,7 +537,8 @@ bgav_device_info_t * bgav_find_devices_vcd()
   }
 
 static
-bgav_input_context_t * bgav_input_open_vcd(const char * device, bgav_options_t * opt)
+bgav_input_context_t * bgav_input_open_vcd(const char * device,
+                                           bgav_options_t * opt)
   {
   bgav_input_context_t * ret = (bgav_input_context_t *)0;
   ret = bgav_input_create(opt);
@@ -523,7 +546,7 @@ bgav_input_context_t * bgav_input_open_vcd(const char * device, bgav_options_t *
 
   if(!ret->input->open(ret, device))
     {
-    fprintf(stderr, "Cannot open VCD Device %s\n", device);
+    // fprintf(stderr, "Cannot open VCD Device %s\n", device);
     goto fail;
     }
   return ret;
@@ -550,16 +573,8 @@ int bgav_open_vcd(bgav_t * b, const char * device)
 int bgav_eject_disc(const char * device)
   {
   driver_return_code_t err;
-  CdIo_t * cdio;
-  cdio = cdio_open (device, DRIVER_DEVICE);
-  if(!cdio)
+  if((err = cdio_eject_media_drive(device)) != DRIVER_OP_SUCCESS)
     return 0;
-  if((err = cdio_eject_media(&cdio)) != DRIVER_OP_SUCCESS)
-    {
-    fprintf(stderr, "cdio_eject_media for %s failed: %d\n", device, err);
-    cdio_destroy(cdio);
-    return 0;
-    }
   return 1;
   }
 

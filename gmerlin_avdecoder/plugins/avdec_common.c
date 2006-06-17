@@ -610,3 +610,12 @@ bg_device_info_t * bg_avdec_get_devices(bgav_device_info_t * info)
   return ret;
   }
 
+
+const char * bg_avdec_get_disc_name(void * priv)
+  {
+  avdec_priv * avdec;
+  avdec = (avdec_priv*)(priv);
+  if(avdec->dec)
+    return bgav_get_disc_name(avdec->dec);
+  return (const char *)0;
+  }

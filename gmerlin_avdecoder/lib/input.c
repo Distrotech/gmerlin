@@ -639,12 +639,21 @@ void bgav_inputs_dump()
   fprintf(stderr, "</ul>\n");
   }
 
-int bgav_input_open(bgav_input_context_t * ret,
+#define DVD_PATH "/video_ts/video_ts.ifo"
+#define DVD_PATH_LEN strlen(DVD_PATH)
+
+int bgav_input_open(bgav_input_context_t * ctx,
                     const char *url)
   {
+  int ret = 0;
+  const char * pos;
   char * protocol = (char*)0;
-
-  if(bgav_url_split(url,
+  char * tmp_url;
+  char * tmp_pos;
+  
+  tmp_url = bgav_strdup(url);
+  
+  if(bgav_url_split(tmp_url,
                     &protocol,
                     (char**)0, /* User */
                     (char**)0, /* Pass */
@@ -653,57 +662,78 @@ int bgav_input_open(bgav_input_context_t * ret,
                     (char**)0))
     {
     if(!strcasecmp(protocol, "rtsp"))
-      ret->input = &bgav_input_rtsp;
+      ctx->input = &bgav_input_rtsp;
     else if(!strcasecmp(protocol, "pnm"))
-      ret->input = &bgav_input_pnm;
+      ctx->input = &bgav_input_pnm;
     else if(!strcasecmp(protocol, "mms") ||
             !strcasecmp(protocol, "mmst") ||
             !strcasecmp(protocol, "mmsu"))
-      ret->input = &bgav_input_mms;
+      ctx->input = &bgav_input_mms;
     else if(!strcasecmp(protocol, "http"))
-      ret->input = &bgav_input_http;
+      ctx->input = &bgav_input_http;
     else if(!strcasecmp(protocol, "ftp"))
-      ret->input = &bgav_input_ftp;
+      ctx->input = &bgav_input_ftp;
 #ifdef HAVE_SAMBA
     else if(!strcmp(protocol, "smb"))
-      ret->input = &bgav_input_smb;
+      ctx->input = &bgav_input_smb;
 #endif
     else
       {
       fprintf(stderr, "Unknown protocol: %s\n", protocol);
       goto fail;
       }
-    free(protocol);
-    protocol = (char*)0;
     }
   else
-    ret->input = &bgav_input_file;
-  
-  if(!ret->input->open(ret, url))
     {
-    fprintf(stderr, "Cannot open file %s\n", url);
+    /* Check vcd image */
+    pos = strrchr(url, '.');
+#ifdef HAVE_CDIO
+    /* Check for VCD image */
+    if(pos && !strcasecmp(pos, ".cue"))
+      ctx->input = &bgav_input_vcd;
+#ifdef HAVE_DVDREAD
+    if(strlen(url) >= DVD_PATH_LEN)
+      {
+      pos = url + strlen(url) - DVD_PATH_LEN;
+      fprintf(stderr, "Checking for DVD image: %s %s\n", pos, DVD_PATH);
+      if(!strcasecmp(pos, DVD_PATH))
+        ctx->input = &bgav_input_dvd;
+      /* Libdvdread wants just the directory */
+      tmp_pos = strrchr(tmp_url, '/');
+      *tmp_pos = '\0';
+      }
+#endif
+#endif
+    if(!ctx->input)
+      ctx->input = &bgav_input_file;
+    }
+ 
+  if(!ctx->input->open(ctx, tmp_url))
+    {
+    if(!ctx->error_msg)
+      ctx->error_msg = bgav_sprintf("Opening %s failed", tmp_url);
     goto fail;
     }
 
   /* Check if we should buffer data */
 
-  if(!ret->opt->network_buffer_size || !ret->input->read_nonblock)
-    ret->do_buffer = 0;
-  if(ret->do_buffer)
+  if(!ctx->opt->network_buffer_size || !ctx->input->read_nonblock)
+    ctx->do_buffer = 0;
+  if(ctx->do_buffer)
     {
-    ret->buffer_alloc = ret->opt->network_buffer_size;
-    ret->buffer = malloc(ret->buffer_alloc);
+    ctx->buffer_alloc = ctx->opt->network_buffer_size;
+    ctx->buffer = malloc(ctx->buffer_alloc);
     }
   
-  if(protocol)
-    free(protocol);
-  return 1;
+  ret = 1;
 
   fail:
   if(protocol)
     free(protocol);
+  if(tmp_url)
+    free(tmp_url);
   
-  return 0;
+  return ret;
   }
 
 

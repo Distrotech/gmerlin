@@ -687,6 +687,14 @@ void bgav_device_info_destroy(bgav_device_info_t * arr);
 
 int bgav_eject_disc(const char * device);
 
+/** \ingroup devices
+ *  \brief Get the name of a disc
+ *  \param bgav A decoder instance
+ *  \return The name of the disc, or NULL if it's not known or irrelevant
+ */
+
+const char * bgav_get_disc_name(bgav_t * bgav);
+
 /******************************************************
  * Open
  ******************************************************/

@@ -70,6 +70,8 @@ void bg_avdec_seek(void * priv, gavl_time_t * t);
 
 int bg_avdec_init(avdec_priv * avdec);
 
+const char * bg_avdec_get_disc_name(void * priv);
+
 
 void
 bg_avdec_set_parameter(void * p, char * name,

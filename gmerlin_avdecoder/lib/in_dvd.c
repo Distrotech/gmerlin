@@ -435,20 +435,24 @@ static void setup_track(bgav_input_context_t * ctx,
   
   }
 
+#if 0
 static void dump_vmg_ifo(ifo_handle_t * vmg_ifo)
   {
   fprintf(stderr, "VMG IFO:\n");
   fprintf(stderr, "  Title sets: %d\n",
           vmg_ifo->vmgi_mat->vmg_nr_of_title_sets);
   }
+#endif
 
 static int open_dvd(bgav_input_context_t * ctx, const char * url)
   {
   int i, j, k;
   dvd_t * priv;
   tt_srpt_t *ttsrpt;
+  char volid[32];
+  char volsetid[128];
   //  fprintf(stderr, "OPEN DVD\n");
-
+  
   //  DVDInit();
   
   priv = calloc(1, sizeof(*priv));
@@ -463,6 +467,18 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
     return 0;
     }
 
+  /* Get disc name */
+  if(!DVDUDFVolumeInfo(priv->dvd_reader, volid, 32,
+                      volsetid, 128))
+    {
+#if 0
+    fprintf(stderr, "volume_id: %s\nvolumeset_id: ", volid);
+    fwrite(volsetid, 128, 1, stderr);
+    fprintf(stderr, "\n");
+#endif
+    ctx->disc_name = bgav_strdup(volid);
+    }
+    
   /* Open Video Manager */
 
   priv->vmg_ifo = ifoOpen(priv->dvd_reader, 0);
@@ -471,8 +487,9 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
     fprintf(stderr, "ifoOpen failed\n");
     return 0;
     }
+#if 0
   dump_vmg_ifo(priv->vmg_ifo);
-  
+#endif
   ttsrpt = priv->vmg_ifo->tt_srpt;
   //  fprintf(stderr, "
 

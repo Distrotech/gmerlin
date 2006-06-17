@@ -643,7 +643,8 @@ struct bgav_input_context_s
   char * filename;
   char * url;
   char * mimetype;
-
+  char * disc_name;
+  
   /* For reading textfiles */
   char * charset;
   bgav_charset_converter_t * cnv;

@@ -95,6 +95,7 @@ bg_input_plugin_t the_plugin =
     protocols: "dvd",
     /* Open file/device */
     open: open_dvd,
+    get_disc_name: bg_avdec_get_disc_name,
     eject_disc: bgav_eject_disc,
     //    set_callbacks: set_callbacks_avdec,
   /* For file and network plugins, this can be NULL */
