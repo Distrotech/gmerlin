@@ -24,6 +24,8 @@
 
 #include <config.h>
 #include <gavl.h>
+#include <accel.h>
+
 
 /* Taken from a52dec (thanks guys) */
 
@@ -35,7 +37,7 @@ void * memalign (size_t align, size_t size);
 #define memalign(align,size) malloc (size)
 #endif
 
-#define ALIGNMENT_BYTES 8
+#define ALIGNMENT_BYTES 16
 
 gavl_audio_frame_t *
 gavl_audio_frame_create(const gavl_audio_format_t * format)

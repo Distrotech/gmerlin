@@ -172,7 +172,8 @@ static void * sse_memcpy(void * to, const void * from, size_t len)
   void *retval;
   size_t i;
   retval = to;
-
+  //  fprintf(stderr, "sse_memcpy 1\n");
+  
   /* PREFETCH has effect even for MOVSB instruction ;) */
   __asm__ __volatile__ (
     "   prefetchnta (%0)\n"
@@ -503,7 +504,7 @@ void gavl_init_memcpy()
       t = rdtsc(config_flags) - t;
       memcpy_method[i].time = t;
       
-      fprintf(stderr, "% 6s: %" PRIu64 "\n", memcpy_method[i].name, t);
+      fprintf(stderr, "%6s: %" PRIu64 "\n", memcpy_method[i].name, t);
       
       if( i && (t < memcpy_method[best].time ))
         best = i;
