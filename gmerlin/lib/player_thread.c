@@ -43,6 +43,13 @@ static void msg_time(bg_msg_t * msg,
   bg_msg_set_arg_time(msg, 0, *((const gavl_time_t*)data));
   }
 
+static void msg_cleanup(bg_msg_t * msg,
+                        const void * data)
+  {
+  bg_msg_set_id(msg, BG_PLAYER_MSG_CLEANUP);
+  }
+
+
 static void msg_volume_changed(bg_msg_t * msg,
                                const void * data)
   {
@@ -366,6 +373,7 @@ static void player_cleanup(bg_player_t * player)
   bg_msg_queue_list_send(player->message_queues,
                          msg_time,
                          &t);
+  
   }
 
 
@@ -946,6 +954,32 @@ static int process_commands(bg_player_t * player)
             stop_cmd(player, BG_PLAYER_STATE_STOPPED);
             break;
           }
+        break;
+      case BG_PLAYER_CMD_CHANGE:
+        state = bg_player_get_state(player);
+        arg_i1 = bg_msg_get_arg_int(command, 0);
+        //      fprintf(stderr, "Command stop\n");
+        
+        switch(state)
+          {
+          case BG_PLAYER_STATE_PLAYING:
+          case BG_PLAYER_STATE_PAUSED:
+          case BG_PLAYER_STATE_SEEKING:
+            if(!(arg_i1 & BG_PLAY_FLAG_IGNORE_IF_PLAYING))
+              stop_cmd(player, BG_PLAYER_STATE_CHANGING);
+            break;
+          case BG_PLAYER_STATE_STOPPED:
+            if(!(arg_i1 & BG_PLAY_FLAG_IGNORE_IF_STOPPED))
+              stop_cmd(player, BG_PLAYER_STATE_CHANGING);
+            break;
+          case BG_PLAYER_STATE_STILL:
+          case BG_PLAYER_STATE_CHANGING:
+            stop_cmd(player, BG_PLAYER_STATE_CHANGING);
+            break;
+          }
+        bg_msg_queue_list_send(player->message_queues,
+                               msg_cleanup,
+                               &player);
         break;
       case BG_PLAYER_CMD_SEEK:
         if(!player->can_seek)

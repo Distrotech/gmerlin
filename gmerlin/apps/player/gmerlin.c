@@ -433,6 +433,9 @@ int gmerlin_play(gmerlin_t * g, int flags)
   gavl_time_t duration_before;
   gavl_time_t duration_current;
   gavl_time_t duration_after;
+
+  /* Tell the player that we want to change */
+  bg_player_change(g->player, flags);
   //  fprintf(stderr, "gmerlin_play\n");
   handle = bg_media_tree_get_current_track(g->tree, &track_index);
   

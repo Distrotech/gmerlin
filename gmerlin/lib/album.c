@@ -1615,7 +1615,9 @@ char * bg_album_get_label(bg_album_t * a)
 
 int bg_album_can_eject(bg_album_t * a)
   {
-  return !!(a->flags & BG_ALBUM_CAN_EJECT);
+  /* Leave this disabled until ejecting really works */
+  // return !!(a->flags & BG_ALBUM_CAN_EJECT);
+  return 0;
   }
 
 void bg_album_eject(bg_album_t * a)

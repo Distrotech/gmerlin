@@ -128,6 +128,9 @@
 
 #define BG_PLAYER_CMD_KEY                 17 /* A key was pressed */
 
+#define BG_PLAYER_CMD_CHANGE              18 /* Player should prepare for changing the
+                                                track */
+
 /********************************
  * Messages from the player
 ********************************/
@@ -239,5 +242,9 @@
 */
 
 #define BG_PLAYER_MSG_KEY                    20 /* A key was pressed */
+
+/* A previously triggerend cleanup operation is finished */
+#define BG_PLAYER_MSG_CLEANUP                21
+
 
 #endif // __BG_PLAYERMSG_H_

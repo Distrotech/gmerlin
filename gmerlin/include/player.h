@@ -105,5 +105,7 @@ bg_parameter_info_t * bg_player_get_input_parameters(bg_player_t * p);
 void bg_player_set_input_parameter(void * data, char * name,
                                    bg_parameter_value_t * val);
 
+/* Shut down playback, so we can change the track */
+void bg_player_change(bg_player_t * p, int flags);
 
 #endif // __BG_PLAYER_H_
