@@ -16,12 +16,12 @@ static struct timeval time_after;
 #define INPUT_PIXELFORMAT GAVL_RGBA_32
 
 
-void timer_init()
+static void timer_init()
   {
   gettimeofday(&time_before, (struct timezone*)0);
   }
 
-void timer_stop()
+static void timer_stop()
   {
   double before, after, diff;
   

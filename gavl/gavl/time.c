@@ -34,7 +34,7 @@ static char digit_to_char(int digit)
   return digit_to_char_array[digit];
   }
 
-void
+static void
 do_prettyprint(int total_seconds, char ret[GAVL_TIME_STRING_LEN])
   {
   char * pos;

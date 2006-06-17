@@ -12,12 +12,12 @@
 static struct timeval time_before;
 static struct timeval time_after;
 
-void timer_init()
+static void timer_init()
   {
   gettimeofday(&time_before, (struct timezone*)0);
   }
 
-void timer_stop()
+static void timer_stop()
   {
   double before, after, diff;
   

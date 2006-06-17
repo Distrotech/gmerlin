@@ -96,7 +96,7 @@ add_context(gavl_video_converter_t * cnv,
   return ctx;
   }
 
-int add_context_csp(gavl_video_converter_t * cnv,
+static int add_context_csp(gavl_video_converter_t * cnv,
                      const gavl_video_format_t * input_format,
                      const gavl_video_format_t * output_format)
   {
@@ -134,7 +134,7 @@ static void scale_func(gavl_video_convert_context_t * ctx)
                           ctx->output_frame);
   }
 
-void add_context_scale(gavl_video_converter_t * cnv,
+static void add_context_scale(gavl_video_converter_t * cnv,
                        const gavl_video_format_t * input_format,
                        const gavl_video_format_t * output_format)
   {
