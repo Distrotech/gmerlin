@@ -154,7 +154,7 @@ static int init_cdrdao(void * data)
   {
   cdrdao_t * cdrdao;
   cdrdao = (cdrdao_t*)data;
-  fprintf(stderr, "init_cdrdao");
+  //  fprintf(stderr, "init_cdrdao\n");
   free_tracks(cdrdao);
   /* Check for cdrdao */
   if(!bg_search_file_exec("cdrdao", (char**)0))

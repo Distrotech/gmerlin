@@ -539,7 +539,7 @@ int bg_gavl_video_set_parameter(void * data, char * name,
       {
       if(!strcmp(val->val_str, framesize_strings[i].name))
         {
-        fprintf(stderr, "Frame size: %s\n", framesize_strings[i].name);
+        //        fprintf(stderr, "Frame size: %s\n", framesize_strings[i].name);
         opt->frame_size = framesize_strings[i].size;
         break;
         }

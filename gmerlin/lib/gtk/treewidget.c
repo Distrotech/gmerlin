@@ -1892,11 +1892,20 @@ static void notebook_change_page(GtkWidget * widget, GtkNotebookPage *page, int 
   //  wid = (bg_gtk_tree_widget_t *)data;
   
   //  fprintf(stderr, "notebook_change_page %d\n", num);
-
+  
   if(wid->album_accel_group)
+    {
     gtk_window_remove_accel_group(GTK_WINDOW (wid->toplevel_window), wid->album_accel_group);
-  wid->album_accel_group = bg_gtk_album_window_get_accel_group(win);
-  gtk_window_add_accel_group(GTK_WINDOW (wid->toplevel_window), wid->album_accel_group);
+    wid->album_accel_group = NULL;
+    }
+
+  if(win)
+    {
+    wid->album_accel_group = bg_gtk_album_window_get_accel_group(win);
+    gtk_window_add_accel_group(GTK_WINDOW (wid->toplevel_window), wid->album_accel_group);
+    }
+  //  else
+  //    fprintf(stderr, "notebook_change_page: Album window %d no longer open\n", num);
   }
 
 /* Constructor */
