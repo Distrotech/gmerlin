@@ -23,6 +23,7 @@
 #include <config.h>
 #include <accel.h>
 
+#define DO_ROUND
 #include "c/colorspace_tables.h"
 #include "c/colorspace_macros.h"
 
@@ -1179,81 +1180,81 @@ void gavl_video_frame_fill(gavl_video_frame_t * frame,
   switch(format->pixelformat)
     {
     case GAVL_RGB_15:
-      packed_32[0] = RGB_FLOAT_TO_8(color[0]);
-      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
-      packed_32[2] = RGB_FLOAT_TO_8(color[2]);
+      RGB_FLOAT_TO_8(color[0], packed_32[0]);
+      RGB_FLOAT_TO_8(color[1], packed_32[1]);
+      RGB_FLOAT_TO_8(color[2], packed_32[2]);
       PACK_8_TO_RGB15(packed_32[0],packed_32[1],packed_32[2],packed_16);
       fill_16_packed(frame, format, packed_16);
       break;
     case GAVL_BGR_15:
-      packed_32[0] = RGB_FLOAT_TO_8(color[0]);
-      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
-      packed_32[2] = RGB_FLOAT_TO_8(color[2]);
+      RGB_FLOAT_TO_8(color[0], packed_32[0]);
+      RGB_FLOAT_TO_8(color[1], packed_32[1]);
+      RGB_FLOAT_TO_8(color[2], packed_32[2]);
       PACK_8_TO_BGR15(packed_32[0],packed_32[1],packed_32[2],packed_16);
       fill_16_packed(frame, format, packed_16);
       break;
     case GAVL_RGB_16:
-      packed_32[0] = RGB_FLOAT_TO_8(color[0]);
-      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
-      packed_32[2] = RGB_FLOAT_TO_8(color[2]);
+      RGB_FLOAT_TO_8(color[0], packed_32[0]);
+      RGB_FLOAT_TO_8(color[1], packed_32[1]);
+      RGB_FLOAT_TO_8(color[2], packed_32[2]);
       PACK_8_TO_RGB16(packed_32[0],packed_32[1],packed_32[2],packed_16);
       fill_16_packed(frame, format, packed_16);
       break;
     case GAVL_BGR_16:
-      packed_32[0] = RGB_FLOAT_TO_8(color[0]);
-      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
-      packed_32[2] = RGB_FLOAT_TO_8(color[2]);
+      RGB_FLOAT_TO_8(color[0], packed_32[0]);
+      RGB_FLOAT_TO_8(color[1], packed_32[1]);
+      RGB_FLOAT_TO_8(color[2], packed_32[2]);
       PACK_8_TO_BGR16(packed_32[0],packed_32[1],packed_32[2],packed_16);
       fill_16_packed(frame, format, packed_16);
       break;
     case GAVL_RGB_24:
-      packed_32[0] = RGB_FLOAT_TO_8(color[0]);
-      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
-      packed_32[2] = RGB_FLOAT_TO_8(color[2]);
+      RGB_FLOAT_TO_8(color[0], packed_32[0]);
+      RGB_FLOAT_TO_8(color[1], packed_32[1]);
+      RGB_FLOAT_TO_8(color[2], packed_32[2]);
       fill_24_packed(frame, format, packed_32);
       break;
     case GAVL_BGR_24:
-      packed_32[2] = RGB_FLOAT_TO_8(color[0]);
-      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
-      packed_32[0] = RGB_FLOAT_TO_8(color[2]);
+      RGB_FLOAT_TO_8(color[0], packed_32[2]);
+      RGB_FLOAT_TO_8(color[1], packed_32[1]);
+      RGB_FLOAT_TO_8(color[2], packed_32[0]);
       fill_24_packed(frame, format, packed_32);
       break;
     case GAVL_RGB_32:
-      packed_32[0] = RGB_FLOAT_TO_8(color[0]);
-      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
-      packed_32[2] = RGB_FLOAT_TO_8(color[2]);
+      RGB_FLOAT_TO_8(color[0], packed_32[0]);
+      RGB_FLOAT_TO_8(color[1], packed_32[1]);
+      RGB_FLOAT_TO_8(color[2], packed_32[2]);
       fill_32_packed(frame, format, packed_32);
       break;
     case GAVL_BGR_32:
-      packed_32[2] = RGB_FLOAT_TO_8(color[0]);
-      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
-      packed_32[0] = RGB_FLOAT_TO_8(color[2]);
+      RGB_FLOAT_TO_8(color[0], packed_32[2]);
+      RGB_FLOAT_TO_8(color[1], packed_32[1]);
+      RGB_FLOAT_TO_8(color[2], packed_32[0]);
       fill_32_packed(frame, format, packed_32);
       break;
     case GAVL_YUVA_32:
       RGB_FLOAT_TO_YUV_8(color[0], color[1], color[2],
                          packed_32[0], packed_32[1], packed_32[2]);
-      packed_32[3] = RGB_FLOAT_TO_8(color[3]);
+      RGB_FLOAT_TO_8(color[3], packed_32[3]);
       fill_32_packed(frame, format, packed_32);
       break;
     case GAVL_RGBA_32:
-      packed_32[0] = RGB_FLOAT_TO_8(color[0]);
-      packed_32[1] = RGB_FLOAT_TO_8(color[1]);
-      packed_32[2] = RGB_FLOAT_TO_8(color[2]);
-      packed_32[3] = RGB_FLOAT_TO_8(color[3]);
+      RGB_FLOAT_TO_8(color[0], packed_32[0]);
+      RGB_FLOAT_TO_8(color[1], packed_32[1]);
+      RGB_FLOAT_TO_8(color[2], packed_32[2]);
+      RGB_FLOAT_TO_8(color[3], packed_32[3]);
       fill_32_packed(frame, format, packed_32);
       break;
     case GAVL_RGB_48:
-      packed_64[0] = RGB_FLOAT_TO_16(color[0]);
-      packed_64[1] = RGB_FLOAT_TO_16(color[1]);
-      packed_64[2] = RGB_FLOAT_TO_16(color[2]);
+      RGB_FLOAT_TO_16(color[0], packed_64[0]);
+      RGB_FLOAT_TO_16(color[1], packed_64[1]);
+      RGB_FLOAT_TO_16(color[2], packed_64[2]);
       fill_48_packed(frame, format, packed_64);
       break;
     case GAVL_RGBA_64:
-      packed_64[0] = RGB_FLOAT_TO_16(color[0]);
-      packed_64[1] = RGB_FLOAT_TO_16(color[1]);
-      packed_64[2] = RGB_FLOAT_TO_16(color[2]);
-      packed_64[3] = RGB_FLOAT_TO_16(color[3]);
+      RGB_FLOAT_TO_16(color[0], packed_64[0]);
+      RGB_FLOAT_TO_16(color[1], packed_64[1]);
+      RGB_FLOAT_TO_16(color[2], packed_64[2]);
+      RGB_FLOAT_TO_16(color[3], packed_64[3]);
       fill_64_packed(frame, format, packed_64);
       break;
     case GAVL_RGB_FLOAT:

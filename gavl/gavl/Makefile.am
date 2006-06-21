@@ -6,7 +6,7 @@ else
 mmx_libs = 
 endif
 
-SUBDIRS = c libgdither libsamplerate $(mmx_subdirs)
+SUBDIRS = hq c libgdither libsamplerate $(mmx_subdirs)
 
 lib_LTLIBRARIES= libgavl.la
 #noinst_LTLIBRARIES = libgavl.la
@@ -51,6 +51,7 @@ libgavl_la_LIBADD = \
 @GMERLIN_DEP_LIBS@ \
 $(mmx_libs) \
 c/libgavl_c.la \
+hq/libgavl_hq.la \
 libgdither/libgdither.la \
 libsamplerate/libsamplerate.la \
 -lm

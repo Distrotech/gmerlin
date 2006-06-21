@@ -20,59 +20,11 @@
 
 #include <stdlib.h>
 
-#if 0
-
-/* Standard quantization */
-
-static int y_to_rgb[0x100];
-static int v_to_r[0x100];
-static int u_to_g[0x100];
-static int v_to_g[0x100];
-static int u_to_b[0x100];
-
-/* JPEG Quantization */
-
-static int yj_to_rgb[0x100];
-static int vj_to_r[0x100];
-static int uj_to_g[0x100];
-static int vj_to_g[0x100];
-static int uj_to_b[0x100];
-
-static int yuv2rgb_tables_initialized = 0;
-
-static void _init_yuv2rgb_c()
-  {
-  int i;
-  if(yuv2rgb_tables_initialized)
-    return;
-  yuv2rgb_tables_initialized = 1;
-  
-  for(i = 0; i < 0x100; i++)
-    {
-    // YCbCr -> R'G'B' according to CCIR 601
-    
-    y_to_rgb[i] = (int)(255.0/219.0*(i-16)) * 0x10000;
-    
-    v_to_r[i]   = (int)( 1.40200*255.0/224.0 * (i - 0x80) * 0x10000);
-    u_to_g[i]   = (int)(-0.34414*255.0/224.0 * (i - 0x80) * 0x10000);
-    v_to_g[i]   = (int)(-0.71414*255.0/224.0 * (i - 0x80) * 0x10000);
-    u_to_b[i]   = (int)( 1.77200*255.0/224.0 * (i - 0x80) * 0x10000);
-
-    /* JPEG Quantization */
-    yj_to_rgb[i] = (int)(i * 0x10000);
-    
-    vj_to_r[i]   = (int)( 1.40200 * (i - 0x80) * 0x10000);
-    uj_to_g[i]   = (int)(-0.34414 * (i - 0x80) * 0x10000);
-    vj_to_g[i]   = (int)(-0.71414 * (i - 0x80) * 0x10000);
-    uj_to_b[i]   = (int)( 1.77200 * (i - 0x80) * 0x10000);
-    }
-  }
-
-#endif
-
 /*************************************************
   YUY2 ->
  *************************************************/
+
+#ifndef HQ
 
 /* yuy2_to_rgb_15_c */
 
@@ -1423,6 +1375,8 @@ static void _init_yuv2rgb_c()
 
 #include "../csp_planar_packed.h"
 
+#endif // HQ
+
 /*************************************************
   YUV422P (16 bit) ->
  *************************************************/
@@ -1538,6 +1492,8 @@ static void _init_yuv2rgb_c()
 
 #include "../csp_planar_packed.h"
 
+#ifndef HQ
+
 /* yuv_422_p_16_to_rgb_48_c */
 
 #define FUNC_NAME yuv_422_p_16_to_rgb_48_c
@@ -1574,7 +1530,7 @@ static void _init_yuv2rgb_c()
 
 #include "../csp_planar_packed.h"
 
-
+#endif // !HQ
 /* yuv_422_p_16_to_bgr_24_c */
 
 #define FUNC_NAME yuv_422_p_16_to_bgr_24_c
@@ -1649,6 +1605,8 @@ static void _init_yuv2rgb_c()
 #define INIT   int64_t i_tmp;
 
 #include "../csp_planar_packed.h"
+
+#ifndef HQ
 
 /* yuv_422_p_16_to_rgba_64_c */
 
@@ -2247,6 +2205,7 @@ static void _init_yuv2rgb_c()
 
 #include "../csp_planar_packed.h"
 
+#endif // !HQ
 
 /*************************************************
   YUV444P (16 bit) ->
@@ -2353,6 +2312,8 @@ static void _init_yuv2rgb_c()
 
 #include "../csp_planar_packed.h"
 
+#ifndef HQ
+
 /* yuv_444_p_16_to_rgb_48_c */
 
 #define FUNC_NAME yuv_444_p_16_to_rgb_48_c
@@ -2387,6 +2348,7 @@ static void _init_yuv2rgb_c()
 
 #include "../csp_planar_packed.h"
 
+#endif // HQ
 
 /* yuv_444_p_16_to_bgr_24_c */
 
@@ -2457,6 +2419,8 @@ static void _init_yuv2rgb_c()
 #define INIT   int64_t i_tmp;
 
 #include "../csp_planar_packed.h"
+
+#ifndef HQ
 
 /* yuv_444_p_16_to_rgba_64_c */
 
@@ -3742,9 +3706,16 @@ static void _init_yuv2rgb_c()
   float i_tmp; \
 
 #include "../csp_packed_packed.h"
+#endif // !HQ
 
+
+#ifdef HQ
+void gavl_init_yuv_rgb_funcs_hq(gavl_pixelformat_function_table_t * tab, const gavl_video_options_t * opt)
+#else
 void gavl_init_yuv_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const gavl_video_options_t * opt)
+#endif
   {
+#ifndef HQ
   if(opt->alpha_mode == GAVL_ALPHA_BLEND_COLOR)
     {
     tab->yuva_32_to_rgb_15 = yuva_32_to_rgb_15_c;
@@ -3849,7 +3820,7 @@ void gavl_init_yuv_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   tab->yuv_422_p_to_rgba_32 = yuv_422_p_to_rgba_32_c;
   tab->yuv_422_p_to_rgba_64 = yuv_422_p_to_rgba_64_c;
   tab->yuv_422_p_to_rgba_float = yuv_422_p_to_rgba_float_c;
-
+#endif
   
   tab->yuv_422_p_16_to_rgb_15 = yuv_422_p_16_to_rgb_15_c;
   tab->yuv_422_p_16_to_bgr_15 = yuv_422_p_16_to_bgr_15_c;
@@ -3859,12 +3830,12 @@ void gavl_init_yuv_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   tab->yuv_422_p_16_to_bgr_24 = yuv_422_p_16_to_bgr_24_c;
   tab->yuv_422_p_16_to_rgb_32 = yuv_422_p_16_to_rgb_32_c;
   tab->yuv_422_p_16_to_bgr_32 = yuv_422_p_16_to_bgr_32_c;
+  tab->yuv_422_p_16_to_rgba_32 = yuv_422_p_16_to_rgba_32_c;
+#ifndef HQ
   tab->yuv_422_p_16_to_rgb_48 = yuv_422_p_16_to_rgb_48_c;
   tab->yuv_422_p_16_to_rgb_float = yuv_422_p_16_to_rgb_float_c;
-  tab->yuv_422_p_16_to_rgba_32 = yuv_422_p_16_to_rgba_32_c;
   tab->yuv_422_p_16_to_rgba_64 = yuv_422_p_16_to_rgba_64_c;
   tab->yuv_422_p_16_to_rgba_float = yuv_422_p_16_to_rgba_float_c;
-
 
   tab->yuv_411_p_to_rgb_15 = yuv_411_p_to_rgb_15_c;
   tab->yuv_411_p_to_bgr_15 = yuv_411_p_to_bgr_15_c;
@@ -3894,6 +3865,7 @@ void gavl_init_yuv_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   tab->yuv_444_p_to_rgba_32 = yuv_444_p_to_rgba_32_c;
   tab->yuv_444_p_to_rgba_64 = yuv_444_p_to_rgba_64_c;
   tab->yuv_444_p_to_rgba_float = yuv_444_p_to_rgba_float_c;
+#endif
 
   tab->yuv_444_p_16_to_rgb_15 = yuv_444_p_16_to_rgb_15_c;
   tab->yuv_444_p_16_to_bgr_15 = yuv_444_p_16_to_bgr_15_c;
@@ -3903,9 +3875,11 @@ void gavl_init_yuv_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   tab->yuv_444_p_16_to_bgr_24 = yuv_444_p_16_to_bgr_24_c;
   tab->yuv_444_p_16_to_rgb_32 = yuv_444_p_16_to_rgb_32_c;
   tab->yuv_444_p_16_to_bgr_32 = yuv_444_p_16_to_bgr_32_c;
+  tab->yuv_444_p_16_to_rgba_32 = yuv_444_p_16_to_rgba_32_c;
+#ifndef HQ
+
   tab->yuv_444_p_16_to_rgb_48 = yuv_444_p_16_to_rgb_48_c;
   tab->yuv_444_p_16_to_rgb_float = yuv_444_p_16_to_rgb_float_c;
-  tab->yuv_444_p_16_to_rgba_32 = yuv_444_p_16_to_rgba_32_c;
   tab->yuv_444_p_16_to_rgba_64 = yuv_444_p_16_to_rgba_64_c;
   tab->yuv_444_p_16_to_rgba_float = yuv_444_p_16_to_rgba_float_c;
 
@@ -3954,9 +3928,6 @@ void gavl_init_yuv_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   tab->yuvj_444_p_to_rgba_32 = yuvj_444_p_to_rgba_32_c;
   tab->yuvj_444_p_to_rgba_64 = yuvj_444_p_to_rgba_64_c;
   tab->yuvj_444_p_to_rgba_float = yuvj_444_p_to_rgba_float_c;
+#endif
   
   }
-
-#undef RECLIP_8
-
-#undef YUV_2_RGB

@@ -85,32 +85,68 @@
 
 /* Conversion from float */
 
-#define RGB_FLOAT_TO_8(val) (uint8_t)((val)*255.0+0.5)
-#define RGB_FLOAT_TO_16(val) (uint16_t)((val)*65535.0+0.5)
+#ifdef DO_ROUND
+#define RGB_FLOAT_TO_8(val, dst)  dst=(uint8_t)((val)*255.0+0.5)
+#define RGB_FLOAT_TO_16(val, dst) dst=(uint16_t)((val)*65535.0+0.5)
+#else
+#define RGB_FLOAT_TO_8(val, dst)  dst=(uint8_t)((val)*255.0)
+#define RGB_FLOAT_TO_16(val, dst) dst=(uint16_t)((val)*65535.0)
+#endif
 
 /* Conversion from 16 bit */
 
-#define RGB_16_TO_8(val) ((val)>>8)
+#ifdef DO_ROUND
+#define RGB_16_TO_8(val,dst) round_tmp=((val+0x80)>>8);dst=RECLIP_32_TO_8(round_tmp);
+#else
+#define RGB_16_TO_8(val,dst) dst=((val)>>8)
+#endif
+
 #define RGB_16_TO_FLOAT(val) ((float)(val)/65535.0)
 
 /* Conversion from YUV float */
 
-#define Y_FLOAT_TO_8(val) (int)(val * 219.0) + 16;
-#define UV_FLOAT_TO_8(val) (int)(val * 224.0) + 128;
+#ifdef DO_ROUND
+#define Y_FLOAT_TO_8(val,dst)  dst=(int)(val * 219.0+0.5) + 16;
+#define UV_FLOAT_TO_8(val,dst) dst=(int)(val * 224.0+0.5) + 128;
+#else
+#define Y_FLOAT_TO_8(val,dst)  dst=(int)(val * 219.0) + 16;
+#define UV_FLOAT_TO_8(val,dst) dst=(int)(val * 224.0) + 128;
+#endif
 
-#define Y_FLOAT_TO_16(val) (int)(val * 219.0 * (float)0x100) + 0x1000;
-#define UV_FLOAT_TO_16(val) (int)(val * 224.0 * (float)0x100) + 0x8000;
+#ifdef DO_ROUND
+#define Y_FLOAT_TO_16(val,dst)  dst=(int)(val * 219.0 * (float)0x100+0.5) + 0x1000;
+#define UV_FLOAT_TO_16(val,dst) dst=(int)(val * 224.0 * (float)0x100+0.5) + 0x8000;
+#else
+#define Y_FLOAT_TO_16(val,dst)  dst=(int)(val * 219.0 * (float)0x100) + 0x1000;
+#define UV_FLOAT_TO_16(val,dst) dst=(int)(val * 224.0 * (float)0x100) + 0x8000;
+#endif
 
-#define YJ_FLOAT_TO_8(val) (int)(val * 255.0);
-#define UVJ_FLOAT_TO_8(val) (int)(val * 255.0) + 128;
+#ifdef DO_ROUND
+#define YJ_FLOAT_TO_8(val,dst)  dst=(int)(val * 255.0+0.5);
+#define UVJ_FLOAT_TO_8(val,dst) dst=(int)(val * 255.0+0.5) + 128;
+#else
+#define YJ_FLOAT_TO_8(val,dst)  dst=(int)(val * 255.0);
+#define UVJ_FLOAT_TO_8(val,dst) dst=(int)(val * 255.0) + 128;
+#endif
 
 /* Conversion from YUV 16 */
 
-#define Y_16_TO_Y_8(val) ((val)>>8)
-#define UV_16_TO_UV_8(val) ((val)>>8)
+#ifdef DO_ROUND
+#define Y_16_TO_Y_8(val,dst) dst=((val+0x80)>>8)
+#define UV_16_TO_UV_8(val,dst) dst=((val+0x80)>>8)
+#else
+#define Y_16_TO_Y_8(val,dst) dst=((val)>>8)
+#define UV_16_TO_UV_8(val,dst) dst=((val)>>8)
+#endif
 
-#define Y_16_TO_YJ_8(val)   ((((RECLIP(val, 0x1000, 0xEB00)-0x1000)*255)/219)>>8)
-#define UV_16_TO_UVJ_8(val) ((((RECLIP(val, 0x1000, 0xF000)-0x1000)*255)/224)>>8)
+
+#ifdef DO_ROUND
+#define Y_16_TO_YJ_8(val,dst)   dst=((((RECLIP(val, 0x1000, 0xEB00)-0x1000)*255)/219+0x80)>>8)
+#define UV_16_TO_UVJ_8(val,dst) dst=((((RECLIP(val, 0x1000, 0xF000)-0x1000)*255)/224+0x80)>>8)
+#else
+#define Y_16_TO_YJ_8(val,dst)   dst=((((RECLIP(val, 0x1000, 0xEB00)-0x1000)*255)/219)>>8)
+#define UV_16_TO_UVJ_8(val,dst) dst=((((RECLIP(val, 0x1000, 0xF000)-0x1000)*255)/224)>>8)
+#endif
 
 /* Conversion from YUV 8 */
 
@@ -181,8 +217,31 @@
 #define g_16_to_vj ((int64_t)(-(0.41869)*0x10000))
 #define b_16_to_vj ((int64_t)(-(0.08131)*0x10000))
 
+#ifdef DO_ROUND
+
 #define RGB_48_TO_Y_8(r,g,b,y) \
-  y=(r_16_to_y * r + g_16_to_y * g + b_16_to_y * b + 16 * 0x1000000LL)>>24;
+  y=(r_16_to_y * r + g_16_to_y * g + b_16_to_y * b + 0x10800000LL)>>24;
+  
+#define RGB_48_TO_YUV_8(r,g,b,y,u,v)                                    \
+  RGB_48_TO_Y_8(r,g,b,y);                                               \
+  u=(r_16_to_u * r + g_16_to_u * g + b_16_to_u * b + 0x80800000LL)>>24;  \
+  v=(r_16_to_v * r + g_16_to_v * g + b_16_to_v * b + 0x80800000LL)>>24;
+
+#define RGB_48_TO_YJ_8(r,g,b,y) \
+  round_tmp=(r_16_to_yj * r + g_16_to_yj * g + b_16_to_yj * b)>>24;\
+  y=RECLIP_32_TO_8(round_tmp);
+
+#define RGB_48_TO_YUVJ_8(r,g,b,y,u,v)                                    \
+  RGB_48_TO_YJ_8(r,g,b,y);                                               \
+  round_tmp=(r_16_to_uj * r + g_16_to_uj * g + b_16_to_uj * b + 0x80800000LL)>>24;  \
+  u=RECLIP_32_TO_8(round_tmp); \
+  round_tmp=(r_16_to_vj * r + g_16_to_vj * g + b_16_to_vj * b + 0x80800000LL)>>24; \
+  v=RECLIP_32_TO_8(round_tmp);
+  
+#else // !DO_ROUND
+
+#define RGB_48_TO_Y_8(r,g,b,y) \
+  y=(r_16_to_y * r + g_16_to_y * g + b_16_to_y * b + 0x10000000LL)>>24;
 
 #define RGB_48_TO_YUV_8(r,g,b,y,u,v)                                    \
   RGB_48_TO_Y_8(r,g,b,y);                                               \
@@ -196,6 +255,8 @@
   RGB_48_TO_YJ_8(r,g,b,y);                                               \
   u=(r_16_to_uj * r + g_16_to_uj * g + b_16_to_uj * b + 0x80000000LL)>>24;  \
   v=(r_16_to_vj * r + g_16_to_vj * g + b_16_to_vj * b + 0x80000000LL)>>24;
+
+#endif // !DO_ROUND
 
 /* 48 -> 16 */
 
@@ -228,38 +289,38 @@
 
 #define RGB_FLOAT_TO_Y_8(r, g, b, y)                              \
   y_tmp = r_float_to_y * r + g_float_to_y * g + b_float_to_y * b; \
-  y = Y_FLOAT_TO_8(y_tmp);
+  Y_FLOAT_TO_8(y_tmp, y);
 
 #define RGB_FLOAT_TO_YUV_8(r, g, b, y, u, v)                      \
   RGB_FLOAT_TO_Y_8(r, g, b, y)                                    \
   u_tmp = r_float_to_u * r + g_float_to_u * g + b_float_to_u * b; \
   v_tmp = r_float_to_v * r + g_float_to_v * g + b_float_to_v * b; \
-  u = UV_FLOAT_TO_8(u_tmp);                                        \
-  v = UV_FLOAT_TO_8(v_tmp);
+  UV_FLOAT_TO_8(u_tmp, u);                                        \
+  UV_FLOAT_TO_8(v_tmp, v);
 
 #define RGB_FLOAT_TO_YJ_8(r, g, b, y)                              \
   y_tmp = r_float_to_y * r + g_float_to_y * g + b_float_to_y * b; \
-  y = YJ_FLOAT_TO_8(y_tmp);
+  YJ_FLOAT_TO_8(y_tmp, y);
 
 #define RGB_FLOAT_TO_YUVJ_8(r, g, b, y, u, v)                      \
   RGB_FLOAT_TO_YJ_8(r, g, b, y)                                    \
   u_tmp = r_float_to_u * r + g_float_to_u * g + b_float_to_u * b; \
   v_tmp = r_float_to_v * r + g_float_to_v * g + b_float_to_v * b; \
-  u = UVJ_FLOAT_TO_8(u_tmp);                                        \
-  v = UVJ_FLOAT_TO_8(v_tmp);
+  UVJ_FLOAT_TO_8(u_tmp, u);                                        \
+  UVJ_FLOAT_TO_8(v_tmp, v);
 
 /* Float -> 16 */
 
 #define RGB_FLOAT_TO_Y_16(r, g, b, y)                              \
   y_tmp = r_float_to_y * r + g_float_to_y * g + b_float_to_y * b; \
-  y = Y_FLOAT_TO_16(y_tmp);
+  Y_FLOAT_TO_16(y_tmp, y);
 
 #define RGB_FLOAT_TO_YUV_16(r, g, b, y, u, v)                      \
   RGB_FLOAT_TO_Y_16(r, g, b, y)                                    \
   u_tmp = r_float_to_u * r + g_float_to_u * g + b_float_to_u * b; \
   v_tmp = r_float_to_v * r + g_float_to_v * g + b_float_to_v * b; \
-  u = UV_FLOAT_TO_16(u_tmp);                                        \
-  v = UV_FLOAT_TO_16(v_tmp);
+  UV_FLOAT_TO_16(u_tmp, u);                                        \
+  UV_FLOAT_TO_16(v_tmp, v);
 
 
 /* YUV (8bit) -> */
@@ -317,6 +378,18 @@
 #define v_16_to_g    ((int64_t)(-0.71414*255.0/224.0 * 0x10000))
 #define u_16_to_b    ((int64_t)( 1.77200*255.0/224.0 * 0x10000))
 
+#ifdef DO_ROUND
+
+#define YUV_16_TO_RGB_24(y,u,v,r,g,b) \
+  i_tmp=(y_16_to_rgb * (y-0x1000) + v_16_to_r * (v-0x8000)+0x8000)>>24;        \
+  r = RECLIP_64_TO_8(i_tmp);\
+  i_tmp=(y_16_to_rgb * (y-0x1000) + u_16_to_g * (u-0x8000)+ v_16_to_g * (v-0x8000)+0x8000)>>24; \
+  g = RECLIP_64_TO_8(i_tmp);\
+  i_tmp=(y_16_to_rgb * (y-0x1000) + u_16_to_b * (u-0x8000)+0x8000)>>24; \
+  b = RECLIP_64_TO_8(i_tmp);
+
+#else
+
 #define YUV_16_TO_RGB_24(y,u,v,r,g,b) \
   i_tmp=(y_16_to_rgb * (y-0x1000) + v_16_to_r * (v-0x8000))>>24;        \
   r = RECLIP_64_TO_8(i_tmp);\
@@ -325,6 +398,7 @@
   i_tmp=(y_16_to_rgb * (y-0x1000) + u_16_to_b * (u-0x8000))>>24; \
   b = RECLIP_64_TO_8(i_tmp);
 
+#endif
 
 /* YUV (16 bit) -> 16 */
 
@@ -397,11 +471,28 @@ dst_r=((src_a*src_r)+(anti_alpha*background_r));\
 dst_g=((src_a*src_g)+(anti_alpha*background_g));\
 dst_b=((src_a*src_b)+(anti_alpha*background_b));
 
+#ifdef DO_ROUND
+
+#define RGBA_64_TO_RGB_24(src_r, src_g, src_b, src_a, dst_r, dst_g, dst_b) \
+  anti_alpha = 0xFFFF - src_a;                                          \
+  round_tmp=((src_a*src_r)+(anti_alpha*background_r))>>8; \
+  round_tmp=(round_tmp+0x8000)>>16;\
+  dst_r=RECLIP_32_TO_8(round_tmp);\
+  round_tmp=((src_a*src_g)+(anti_alpha*background_g))>>8; \
+  round_tmp=(round_tmp+0x8000)>>16;\
+  dst_g=RECLIP_32_TO_8(round_tmp);\
+  round_tmp=((src_a*src_b)+(anti_alpha*background_b))>>8;\
+  round_tmp=(round_tmp+0x8000)>>16;\
+  dst_b=RECLIP_32_TO_8(round_tmp);\
+
+#else
 #define RGBA_64_TO_RGB_24(src_r, src_g, src_b, src_a, dst_r, dst_g, dst_b) \
   anti_alpha = 0xFFFF - src_a;                                          \
   dst_r=((src_a*src_r)+(anti_alpha*background_r))>>24; \
   dst_g=((src_a*src_g)+(anti_alpha*background_g))>>24; \
   dst_b=((src_a*src_b)+(anti_alpha*background_b))>>24;
+
+#endif // DO_ROUND
 
 #define RGBA_64_TO_RGB_48(src_r, src_g, src_b, src_a, dst_r, dst_g, dst_b) \
   anti_alpha = 0xFFFF - src_a;                                          \
@@ -418,15 +509,15 @@ dst_b=((src_a*src_b)+(anti_alpha*background_b));
 
 #define RGBA_FLOAT_TO_RGB_24(src_r, src_g, src_b, src_a, dst_r, dst_g, dst_b) \
   anti_alpha = 1.0 - src_a;                                             \
-  dst_r=RGB_FLOAT_TO_8(src_a*src_r+anti_alpha*background_r);            \
-  dst_g=RGB_FLOAT_TO_8(src_a*src_g+anti_alpha*background_g);            \
-  dst_b=RGB_FLOAT_TO_8(src_a*src_b+anti_alpha*background_b);
+  RGB_FLOAT_TO_8(src_a*src_r+anti_alpha*background_r, dst_r);            \
+  RGB_FLOAT_TO_8(src_a*src_g+anti_alpha*background_g, dst_g);            \
+  RGB_FLOAT_TO_8(src_a*src_b+anti_alpha*background_b, dst_b);
 
 #define RGBA_FLOAT_TO_RGB_48(src_r, src_g, src_b, src_a, dst_r, dst_g, dst_b) \
   anti_alpha = 1.0 - src_a;                                             \
-  dst_r=RGB_FLOAT_TO_16(src_a*src_r+anti_alpha*background_r);            \
-  dst_g=RGB_FLOAT_TO_16(src_a*src_g+anti_alpha*background_g);            \
-  dst_b=RGB_FLOAT_TO_16(src_a*src_b+anti_alpha*background_b);
+  RGB_FLOAT_TO_16(src_a*src_r+anti_alpha*background_r, dst_r);            \
+  RGB_FLOAT_TO_16(src_a*src_g+anti_alpha*background_g, dst_g);            \
+  RGB_FLOAT_TO_16(src_a*src_b+anti_alpha*background_b, dst_b);
 
 #define RGBA_FLOAT_TO_RGB_FLOAT(src_r, src_g, src_b, src_a, dst_r, dst_g, dst_b) \
   anti_alpha = 1.0 - src_a;                                             \
@@ -457,13 +548,13 @@ dst_b=((src_a*src_b)+(anti_alpha*background_b));
 
 #define YUVA_32_TO_YUVJ_8(src_y, src_u, src_v, src_a, dst_y, dst_u, dst_v) \
   anti_alpha = 0xFF - src_a;                                            \
-  dst_y=Y_16_TO_YJ_8(((src_a*src_y)+(anti_alpha*background_y)));        \
-  dst_u=UV_16_TO_UVJ_8(((src_a*src_u)+(anti_alpha*background_u)));      \
-  dst_v=UV_16_TO_UVJ_8(((src_a*src_v)+(anti_alpha*background_v)));
+  Y_16_TO_YJ_8(((src_a*src_y)+(anti_alpha*background_y)), dst_y);        \
+  UV_16_TO_UVJ_8(((src_a*src_u)+(anti_alpha*background_u)), dst_u);      \
+  UV_16_TO_UVJ_8(((src_a*src_v)+(anti_alpha*background_v)), dst_v);
   
 #define YUVA_32_TO_YJ_8(src_y, src_a, dst_y)                \
   anti_alpha = 0xFF - src_a;                                            \
-  dst_y=Y_16_TO_YJ_8(((src_a*src_y)+(anti_alpha*background_y)));
+  Y_16_TO_YJ_8(((src_a*src_y)+(anti_alpha*background_y)), dst_y);
 
 
 #define YUVA_32_TO_YUV_16(src_y, src_u, src_v, src_a, dst_y, dst_u, dst_v) \
@@ -476,4 +567,142 @@ dst_b=((src_a*src_b)+(anti_alpha*background_b));
   anti_alpha = 0xFF - src_a;                                            \
   dst_y=((src_a*src_y)+(anti_alpha*background_y));
 
+
+/********************************************************************
+ * RGBA -> YUV
+ ********************************************************************/
+
+/* 8 Bit */
+
+#define RGBA_32_TO_YUV_8(src_r, src_g, src_b, src_a, dst_y, dst_u, dst_v) \
+  anti_alpha = 0xFF - src_a;                                            \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r));                   \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g));                   \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b));                   \
+  RGB_48_TO_YUV_8(r_tmp, g_tmp, b_tmp, dst_y, dst_u, dst_v);
+
+#define RGBA_32_TO_Y_8(src_r, src_g, src_b, src_a, dst_y) \
+  anti_alpha = 0xFF - src_a;                              \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r));     \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g));     \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b));     \
+  RGB_48_TO_Y_8(r_tmp, g_tmp, b_tmp, dst_y);
+
+#define RGBA_32_TO_YUVJ_8(src_r, src_g, src_b, src_a, dst_y, dst_u, dst_v) \
+  anti_alpha = 0xFF - src_a;                                            \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r));   \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g));   \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b));           \
+  RGB_48_TO_YUVJ_8(r_tmp, g_tmp, b_tmp, dst_y, dst_u, dst_v);
+
+#define RGBA_32_TO_YJ_8(src_r, src_g, src_b, src_a, dst_y) \
+  anti_alpha = 0xFF - src_a;                               \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r));      \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g));      \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b));      \
+  RGB_48_TO_YJ_8(r_tmp, g_tmp, b_tmp, dst_y);
+
+/* RGBA 32 to YUV 16 */
+
+#define RGBA_32_TO_YUV_16(src_r, src_g, src_b, src_a, dst_y, dst_u, dst_v) \
+  anti_alpha = 0xFF - src_a;                                            \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r));                   \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g));                   \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b));                   \
+  RGB_48_TO_YUV_16(r_tmp, g_tmp, b_tmp, dst_y, dst_u, dst_v);
+
+#define RGBA_32_TO_Y_16(src_r, src_g, src_b, src_a, dst_y) \
+  anti_alpha = 0xFF - src_a;                              \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r));     \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g));     \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b));     \
+  RGB_48_TO_Y_16(r_tmp, g_tmp, b_tmp, dst_y);
+
+/* 16 Bit */
+
+#define RGBA_64_TO_YUV_8(src_r, src_g, src_b, src_a, dst_y, dst_u, dst_v) \
+  anti_alpha = 0xFFFF - src_a;                                            \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r))>>16;                  \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g))>>16;                  \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b))>>16;                  \
+  RGB_48_TO_YUV_8(r_tmp, g_tmp, b_tmp, dst_y, dst_u, dst_v);
+
+#define RGBA_64_TO_Y_8(src_r, src_g, src_b, src_a, dst_y) \
+  anti_alpha = 0xFFFF - src_a;                              \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r))>>16;     \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g))>>16;     \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b))>>16;     \
+  RGB_48_TO_Y_8(r_tmp, g_tmp, b_tmp, dst_y);
+
+#define RGBA_64_TO_YUVJ_8(src_r, src_g, src_b, src_a, dst_y, dst_u, dst_v) \
+  anti_alpha = 0xFFFF - src_a;                                            \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r))>>16;   \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g))>>16;   \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b))>>16;           \
+  RGB_48_TO_YUVJ_8(r_tmp, g_tmp, b_tmp, dst_y, dst_u, dst_v);
+
+#define RGBA_64_TO_YJ_8(src_r, src_g, src_b, src_a, dst_y) \
+  anti_alpha = 0xFFFF - src_a;                               \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r))>>16;      \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g))>>16;      \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b))>>16;      \
+  RGB_48_TO_YJ_8(r_tmp, g_tmp, b_tmp, dst_y);
+
+#define RGBA_64_TO_YUV_16(src_r, src_g, src_b, src_a, dst_y, dst_u, dst_v) \
+  anti_alpha = 0xFFFF - src_a;                                            \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r))>>16;                  \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g))>>16;                  \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b))>>16;                  \
+  RGB_48_TO_YUV_16(r_tmp, g_tmp, b_tmp, dst_y, dst_u, dst_v);
+
+#define RGBA_64_TO_Y_16(src_r, src_g, src_b, src_a, dst_y) \
+  anti_alpha = 0xFFFF - src_a;                              \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r))>>16;     \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g))>>16;     \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b))>>16;     \
+  RGB_48_TO_Y_16(r_tmp, g_tmp, b_tmp, dst_y);
+
+/* Float */
+
+#define RGBA_FLOAT_TO_YUV_8(src_r, src_g, src_b, src_a, dst_y, dst_u, dst_v) \
+  anti_alpha = 1.0 - src_a;                                            \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r));                  \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g));                  \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b));                  \
+  RGB_FLOAT_TO_YUV_8(r_tmp, g_tmp, b_tmp, dst_y, dst_u, dst_v);
+
+#define RGBA_FLOAT_TO_Y_8(src_r, src_g, src_b, src_a, dst_y) \
+  anti_alpha = 1.0 - src_a;                              \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r));     \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g));     \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b));     \
+  RGB_FLOAT_TO_Y_8(r_tmp, g_tmp, b_tmp, dst_y);
+
+#define RGBA_FLOAT_TO_YUVJ_8(src_r, src_g, src_b, src_a, dst_y, dst_u, dst_v) \
+  anti_alpha = 1.0 - src_a;                                            \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r));   \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g));   \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b));           \
+  RGB_FLOAT_TO_YUVJ_8(r_tmp, g_tmp, b_tmp, dst_y, dst_u, dst_v);
+
+#define RGBA_FLOAT_TO_YJ_8(src_r, src_g, src_b, src_a, dst_y) \
+  anti_alpha = 1.0 - src_a;                               \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r));      \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g));      \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b));      \
+  RGB_FLOAT_TO_YJ_8(r_tmp, g_tmp, b_tmp, dst_y);
+
+#define RGBA_FLOAT_TO_YUV_16(src_r, src_g, src_b, src_a, dst_y, dst_u, dst_v) \
+  anti_alpha = 1.0 - src_a;                                            \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r));                  \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g));                  \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b));                  \
+  RGB_FLOAT_TO_YUV_16(r_tmp, g_tmp, b_tmp, dst_y, dst_u, dst_v);
+
+#define RGBA_FLOAT_TO_Y_16(src_r, src_g, src_b, src_a, dst_y) \
+  anti_alpha = 1.0 - src_a;                              \
+  r_tmp=((src_a*src_r)+(anti_alpha*background_r));     \
+  g_tmp=((src_a*src_g)+(anti_alpha*background_g));     \
+  b_tmp=((src_a*src_b)+(anti_alpha*background_b));     \
+  RGB_FLOAT_TO_Y_16(r_tmp, g_tmp, b_tmp, dst_y);
 

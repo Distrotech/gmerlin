@@ -19,6 +19,8 @@
 
 #include <accel.h>
 
+#ifndef HQ
+
 /*
  *  The conversion routines YUV 422 Planar <-> YUV 420 Planar
  *  and YUV 411 Planar <-> YUV 410 Planar
@@ -754,6 +756,8 @@ static void yuv_411_p_to_yuv_410_p_generic(gavl_video_convert_context_t * ctx)
 
 #include "../csp_planar_packed.h"
 
+#endif // !HQ
+
 /* yuv_422_p_16_to_yuy2_c */
 
 #define FUNC_NAME     yuv_422_p_16_to_yuy2_c
@@ -765,12 +769,14 @@ static void yuv_411_p_to_yuv_410_p_generic(gavl_video_convert_context_t * ctx)
 #define NUM_PIXELS    2
 #define CHROMA_SUB    1
 #define CONVERT       \
-  dst[0] = Y_16_TO_Y_8(src_y[0]);                 \
-  dst[1] = UV_16_TO_UV_8(*src_u);                  \
-  dst[2] = Y_16_TO_Y_8(src_y[1]);                 \
-  dst[3] = UV_16_TO_UV_8(*src_v);
+  Y_16_TO_Y_8(src_y[0], dst[0]);                 \
+  UV_16_TO_UV_8(*src_u, dst[1]);                  \
+  Y_16_TO_Y_8(src_y[1], dst[2]);                 \
+  UV_16_TO_UV_8(*src_v, dst[3]);
 
 #include "../csp_planar_packed.h"
+
+#ifndef HQ
 
 /* yuv_411_p_to_yuy2_c */
 
@@ -812,6 +818,8 @@ static void yuv_411_p_to_yuv_410_p_generic(gavl_video_convert_context_t * ctx)
 
 #include "../csp_planar_packed.h"
 
+#endif // !HQ
+
 /* yuv_444_p_16_to_yuy2_c */
 
 #define FUNC_NAME     yuv_444_p_16_to_yuy2_c
@@ -823,14 +831,14 @@ static void yuv_411_p_to_yuv_410_p_generic(gavl_video_convert_context_t * ctx)
 #define NUM_PIXELS    2
 #define CHROMA_SUB    1
 #define CONVERT       \
-  dst[0] = Y_16_TO_Y_8(src_y[0]);                 \
-  dst[1] = UV_16_TO_UV_8(*src_u);                   \
-  dst[2] = Y_16_TO_Y_8(src_y[1]);                 \
-  dst[3] = UV_16_TO_UV_8(*src_v);
+  Y_16_TO_Y_8(src_y[0], dst[0]);                 \
+  UV_16_TO_UV_8(*src_u, dst[1]);                   \
+  Y_16_TO_Y_8(src_y[1], dst[2]);                 \
+  UV_16_TO_UV_8(*src_v, dst[3]);
 
 #include "../csp_planar_packed.h"
 
-
+#ifndef HQ
 /* yuvj_420_p_to_yuy2_c */
 
 #define FUNC_NAME     yuvj_420_p_to_yuy2_c
@@ -945,6 +953,8 @@ static void yuv_411_p_to_yuv_410_p_generic(gavl_video_convert_context_t * ctx)
 
 #include "../csp_planar_packed.h"
 
+#endif // !HQ
+
 /* yuv_422_p_16_to_uyvy_c */
 
 #define FUNC_NAME     yuv_422_p_16_to_uyvy_c
@@ -956,13 +966,14 @@ static void yuv_411_p_to_yuv_410_p_generic(gavl_video_convert_context_t * ctx)
 #define NUM_PIXELS    2
 #define CHROMA_SUB    1
 #define CONVERT       \
-  dst[1] = Y_16_TO_Y_8(src_y[0]);                 \
-  dst[0] = UV_16_TO_UV_8(*src_u);                  \
-  dst[3] = Y_16_TO_Y_8(src_y[1]);                 \
-  dst[2] = UV_16_TO_UV_8(*src_v);
+  Y_16_TO_Y_8(src_y[0], dst[1]);                 \
+  UV_16_TO_UV_8(*src_u, dst[0]);                  \
+  Y_16_TO_Y_8(src_y[1], dst[3]);                 \
+  UV_16_TO_UV_8(*src_v, dst[2]);
 
 #include "../csp_planar_packed.h"
 
+#ifndef HQ
 
 /* yuv_411_p_to_uyvy_c */
 
@@ -1005,6 +1016,8 @@ static void yuv_411_p_to_yuv_410_p_generic(gavl_video_convert_context_t * ctx)
 
 #include "../csp_planar_packed.h"
 
+#endif // !HQ
+
 /* yuv_444_p_16_to_uyvy_c */
 
 #define FUNC_NAME     yuv_444_p_16_to_uyvy_c
@@ -1016,13 +1029,14 @@ static void yuv_411_p_to_yuv_410_p_generic(gavl_video_convert_context_t * ctx)
 #define NUM_PIXELS    2
 #define CHROMA_SUB    1
 #define CONVERT       \
-  dst[1] = Y_16_TO_Y_8(src_y[0]);                 \
-  dst[0] = UV_16_TO_UV_8(*src_u);                  \
-  dst[3] = Y_16_TO_Y_8(src_y[1]);                 \
-  dst[2] = UV_16_TO_UV_8(*src_v);
+Y_16_TO_Y_8(src_y[0], dst[1]);                 \
+UV_16_TO_UV_8(*src_u, dst[0]);                  \
+Y_16_TO_Y_8(src_y[1], dst[3]);                 \
+UV_16_TO_UV_8(*src_v, dst[2]);
 
 #include "../csp_planar_packed.h"
 
+#ifndef HQ
 /* yuvj_420_p_to_uyvy_c */
 
 #define FUNC_NAME     yuvj_420_p_to_uyvy_c
@@ -1469,6 +1483,8 @@ dst_y[1]=Y_8_TO_YJ_8(src_y[1]);
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_422_p_16_to_yuvj_420_p_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -1480,17 +1496,18 @@ dst_y[1]=Y_8_TO_YJ_8(src_y[1]);
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 2
 #define CONVERT_YUV    \
-dst_y[0]=Y_16_TO_YJ_8(src_y[0]);\
-dst_u[0]=UV_16_TO_UVJ_8(src_u[0]);\
-dst_v[0]=UV_16_TO_UVJ_8(src_v[0]);\
-dst_y[1]=Y_16_TO_YJ_8(src_y[1]);
+Y_16_TO_YJ_8(src_y[0], dst_y[0]);\
+UV_16_TO_UVJ_8(src_u[0], dst_u[0]);\
+UV_16_TO_UVJ_8(src_v[0], dst_v[0]);\
+Y_16_TO_YJ_8(src_y[1], dst_y[1]);
 
 #define CONVERT_Y    \
-dst_y[0]=Y_16_TO_YJ_8(src_y[0]);\
-dst_y[1]=Y_16_TO_YJ_8(src_y[1]);
+Y_16_TO_YJ_8(src_y[0], dst_y[0]);\
+Y_16_TO_YJ_8(src_y[1], dst_y[1]);
 
 #include "../csp_planar_planar.h"
 
+#ifndef HQ
 
 #define FUNC_NAME     yuvj_422_p_to_yuv_420_p_c
 #define IN_TYPE       uint8_t
@@ -1514,6 +1531,7 @@ dst_y[1]=YJ_8_TO_Y_8(src_y[1]);
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
 
 #define FUNC_NAME     yuv_422_p_16_to_yuv_420_p_c
 #define IN_TYPE       uint16_t
@@ -1526,14 +1544,14 @@ dst_y[1]=YJ_8_TO_Y_8(src_y[1]);
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 2
 #define CONVERT_YUV    \
-  dst_y[0]=Y_16_TO_Y_8(src_y[0]);                 \
-  dst_u[0]=UV_16_TO_UV_8(src_u[0]);                 \
-  dst_v[0]=UV_16_TO_UV_8(src_v[0]);                 \
-  dst_y[1]=Y_16_TO_Y_8(src_y[1]);
+  Y_16_TO_Y_8(src_y[0], dst_y[0]);                 \
+  UV_16_TO_UV_8(src_u[0], dst_u[0]);                 \
+  UV_16_TO_UV_8(src_v[0], dst_v[0]);                 \
+  Y_16_TO_Y_8(src_y[1], dst_y[1]);
 
 #define CONVERT_Y    \
-  dst_y[0]=Y_16_TO_Y_8(src_y[0]);                 \
-  dst_y[1]=Y_16_TO_Y_8(src_y[1]);
+  Y_16_TO_Y_8(src_y[0], dst_y[0]);                 \
+  Y_16_TO_Y_8(src_y[1], dst_y[1]);
 
 #include "../csp_planar_planar.h"
 
@@ -1541,6 +1559,8 @@ dst_y[1]=YJ_8_TO_Y_8(src_y[1]);
 /*********************************
  * 422 -> 410 
  *********************************/
+
+#ifndef HQ
 
 #define FUNC_NAME     yuvj_422_p_to_yuv_410_p_c
 #define IN_TYPE       uint8_t
@@ -1594,6 +1614,8 @@ dst_y[3]=src_y[3];
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_422_p_16_to_yuv_410_p_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -1605,22 +1627,22 @@ dst_y[3]=src_y[3];
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 4
 #define CONVERT_YUV    \
-  dst_u[0]=UV_16_TO_UV_8(src_u[0]);                 \
-  dst_v[0]=UV_16_TO_UV_8(src_v[0]);                 \
-  dst_y[0]=Y_16_TO_Y_8(src_y[0]);                  \
-  dst_y[1]=Y_16_TO_Y_8(src_y[1]);                  \
-  dst_y[2]=Y_16_TO_Y_8(src_y[2]);                  \
-  dst_y[3]=Y_16_TO_Y_8(src_y[3]);
+  UV_16_TO_UV_8(src_u[0], dst_u[0]);                 \
+  UV_16_TO_UV_8(src_v[0], dst_v[0]);                 \
+  Y_16_TO_Y_8(src_y[0], dst_y[0]);                  \
+  Y_16_TO_Y_8(src_y[1], dst_y[1]);                  \
+  Y_16_TO_Y_8(src_y[2], dst_y[2]);                  \
+  Y_16_TO_Y_8(src_y[3], dst_y[3]);
 
 #define CONVERT_Y    \
-  dst_y[0]=Y_16_TO_Y_8(src_y[0]);                 \
-  dst_y[1]=Y_16_TO_Y_8(src_y[1]);                \
-  dst_y[2]=Y_16_TO_Y_8(src_y[2]);                \
-  dst_y[3]=Y_16_TO_Y_8(src_y[3]);
+  Y_16_TO_Y_8(src_y[0], dst_y[0]);                 \
+  Y_16_TO_Y_8(src_y[1], dst_y[1]);                \
+  Y_16_TO_Y_8(src_y[2], dst_y[2]);                \
+  Y_16_TO_Y_8(src_y[3], dst_y[3]);
 
 #include "../csp_planar_planar.h"
 
-
+#ifndef HQ
 
 /*********************************
  * 411 -> 420 
@@ -1708,6 +1730,8 @@ dst_v[1]=src_v[0];
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_422_p_16_to_yuv_444_p_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -1719,14 +1743,16 @@ dst_v[1]=src_v[0];
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 1
 #define CONVERT_YUV    \
-  dst_y[0]=Y_16_TO_Y_8(src_y[0]);                 \
-  dst_u[0]=UV_16_TO_UV_8(src_u[0]);                \
-  dst_v[0]=UV_16_TO_UV_8(src_v[0]);                \
-  dst_y[1]=Y_16_TO_Y_8(src_y[1]);                 \
-  dst_u[1]=UV_16_TO_UV_8(src_u[0]);                \
-  dst_v[1]=UV_16_TO_UV_8(src_v[0]);
+  Y_16_TO_Y_8(src_y[0], dst_y[0]);                 \
+  UV_16_TO_UV_8(src_u[0], dst_u[0]);                \
+  UV_16_TO_UV_8(src_v[0], dst_v[0]);                \
+  Y_16_TO_Y_8(src_y[1], dst_y[1]);                 \
+  UV_16_TO_UV_8(src_u[0], dst_u[1]);                \
+  UV_16_TO_UV_8(src_v[0], dst_v[1]);
 
 #include "../csp_planar_planar.h"
+
+#ifndef HQ
 
 #define FUNC_NAME     yuv_422_p_to_yuv_444_p_16_c
 #define IN_TYPE       uint8_t
@@ -1788,6 +1814,8 @@ dst_v[1]=UV_8_TO_UVJ_8(src_v[0]);
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_422_p_16_to_yuvj_444_p_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -1799,15 +1827,16 @@ dst_v[1]=UV_8_TO_UVJ_8(src_v[0]);
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 1
 #define CONVERT_YUV    \
-dst_y[0]=Y_16_TO_YJ_8(src_y[0]);\
-dst_u[0]=UV_16_TO_UVJ_8(src_u[0]);\
-dst_v[0]=UV_16_TO_UVJ_8(src_v[0]);\
-dst_y[1]=Y_16_TO_YJ_8(src_y[1]);\
-dst_u[1]=UV_16_TO_UVJ_8(src_u[0]);\
-dst_v[1]=UV_16_TO_UVJ_8(src_v[0]);
+Y_16_TO_YJ_8(src_y[0], dst_y[0]);\
+UV_16_TO_UVJ_8(src_u[0], dst_u[0]);\
+UV_16_TO_UVJ_8(src_v[0], dst_v[0]);\
+Y_16_TO_YJ_8(src_y[1], dst_y[1]);\
+UV_16_TO_UVJ_8(src_u[0], dst_u[1]);\
+UV_16_TO_UVJ_8(src_v[0], dst_v[1]);
 
 #include "../csp_planar_planar.h"
 
+#ifndef HQ
 
 #define FUNC_NAME     yuvj_422_p_to_yuv_444_p_c
 #define IN_TYPE       uint8_t
@@ -1875,6 +1904,8 @@ dst_y[1]=src_y[1];
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_444_p_16_to_yuv_420_p_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -1886,17 +1917,18 @@ dst_y[1]=src_y[1];
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 2
 #define CONVERT_YUV    \
-  dst_y[0]=Y_16_TO_Y_8(src_y[0]);                 \
-  dst_u[0]=UV_16_TO_UV_8(src_u[0]);                 \
-  dst_v[0]=UV_16_TO_UV_8(src_v[0]);                 \
-  dst_y[1]=Y_16_TO_Y_8(src_y[1]);
+  Y_16_TO_Y_8(src_y[0], dst_y[0]);                 \
+  UV_16_TO_UV_8(src_u[0], dst_u[0]);                 \
+  UV_16_TO_UV_8(src_v[0], dst_v[0]);                 \
+  Y_16_TO_Y_8(src_y[1], dst_y[1]);
 
 #define CONVERT_Y    \
-  dst_y[0]=Y_16_TO_Y_8(src_y[0]);                 \
-  dst_y[1]=Y_16_TO_Y_8(src_y[1]);
+  Y_16_TO_Y_8(src_y[0], dst_y[0]);                 \
+  Y_16_TO_Y_8(src_y[1], dst_y[1]);
 
 #include "../csp_planar_planar.h"
 
+#ifndef HQ
 
 #define FUNC_NAME     yuv_444_p_to_yuvj_420_p_c
 #define IN_TYPE       uint8_t
@@ -1920,6 +1952,8 @@ dst_y[1]=Y_8_TO_YJ_8(src_y[1]);
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_444_p_16_to_yuvj_420_p_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -1931,17 +1965,18 @@ dst_y[1]=Y_8_TO_YJ_8(src_y[1]);
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 2
 #define CONVERT_YUV    \
-dst_y[0]=Y_16_TO_YJ_8(src_y[0]);\
-dst_u[0]=UV_16_TO_UVJ_8(src_u[0]);\
-dst_v[0]=UV_16_TO_UVJ_8(src_v[0]);\
-dst_y[1]=Y_16_TO_YJ_8(src_y[1]);
+Y_16_TO_YJ_8(src_y[0], dst_y[0]);\
+UV_16_TO_UVJ_8(src_u[0], dst_u[0]);\
+UV_16_TO_UVJ_8(src_v[0], dst_v[0]);\
+Y_16_TO_YJ_8(src_y[1], dst_y[1]);
 
 #define CONVERT_Y    \
-dst_y[0]=Y_16_TO_YJ_8(src_y[0]);\
-dst_y[1]=Y_16_TO_YJ_8(src_y[1]);
+Y_16_TO_YJ_8(src_y[0], dst_y[0]);\
+Y_16_TO_YJ_8(src_y[1], dst_y[1]);
 
 #include "../csp_planar_planar.h"
 
+#ifndef HQ
 
 #define FUNC_NAME     yuvj_444_p_to_yuv_420_p_c
 #define IN_TYPE       uint8_t
@@ -2022,6 +2057,8 @@ dst_y[3]=src_y[3];
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_444_p_16_to_yuv_410_p_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -2033,18 +2070,18 @@ dst_y[3]=src_y[3];
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 4
 #define CONVERT_YUV    \
-  dst_u[0]=UV_16_TO_UV_8(src_u[0]);                 \
-  dst_v[0]=UV_16_TO_UV_8(src_v[0]);                 \
-  dst_y[0]=Y_16_TO_Y_8(src_y[0]);                  \
-  dst_y[1]=Y_16_TO_Y_8(src_y[1]);                  \
-  dst_y[2]=Y_16_TO_Y_8(src_y[2]);                  \
-  dst_y[3]=Y_16_TO_Y_8(src_y[3]);
+  UV_16_TO_UV_8(src_u[0], dst_u[0]);                 \
+  UV_16_TO_UV_8(src_v[0], dst_v[0]);                 \
+  Y_16_TO_Y_8(src_y[0], dst_y[0]);                  \
+  Y_16_TO_Y_8(src_y[1], dst_y[1]);                  \
+  Y_16_TO_Y_8(src_y[2], dst_y[2]);                  \
+  Y_16_TO_Y_8(src_y[3], dst_y[3]);
 
 #define CONVERT_Y    \
-  dst_y[0]=Y_16_TO_Y_8(src_y[0]);                 \
-  dst_y[1]=Y_16_TO_Y_8(src_y[1]);                 \
-  dst_y[2]=Y_16_TO_Y_8(src_y[2]);                 \
-  dst_y[3]=Y_16_TO_Y_8(src_y[3]);
+  Y_16_TO_Y_8(src_y[0], dst_y[0]);                 \
+  Y_16_TO_Y_8(src_y[1], dst_y[1]);                 \
+  Y_16_TO_Y_8(src_y[2], dst_y[2]);                 \
+  Y_16_TO_Y_8(src_y[3], dst_y[3]);
 
 #include "../csp_planar_planar.h"
 
@@ -2052,6 +2089,8 @@ dst_y[3]=src_y[3];
 /*********************************
  * 444 -> 422 
  *********************************/
+
+#ifndef HQ
 
 #define FUNC_NAME     yuv_444_p_to_yuv_422_p_c
 #define IN_TYPE       uint8_t
@@ -2089,6 +2128,7 @@ dst_y[1]=src_y[1];
 
 #include "../csp_planar_planar.h"
 
+
 #define FUNC_NAME     yuv_444_p_to_yuv_422_p_16_c
 #define IN_TYPE       uint8_t
 #define OUT_TYPE      uint16_t
@@ -2107,6 +2147,8 @@ dst_y[1]=src_y[1];
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_444_p_16_to_yuv_422_p_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -2118,12 +2160,14 @@ dst_y[1]=src_y[1];
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 1
 #define CONVERT_YUV    \
-  dst_y[0]=Y_16_TO_Y_8(src_y[0]);                 \
-  dst_u[0]=UV_16_TO_UV_8(src_u[0]);                 \
-  dst_v[0]=UV_16_TO_UV_8(src_v[0]);                 \
-  dst_y[1]=Y_16_TO_Y_8(src_y[1]);
+  Y_16_TO_Y_8(src_y[0], dst_y[0]);     \
+  UV_16_TO_UV_8(src_u[0], dst_u[0]);   \
+  UV_16_TO_UV_8(src_v[0], dst_v[0]);   \
+  Y_16_TO_Y_8(src_y[1], dst_y[1]);
 
 #include "../csp_planar_planar.h"
+
+#ifndef HQ
 
 #define FUNC_NAME     yuv_444_p_to_yuvj_422_p_c
 #define IN_TYPE       uint8_t
@@ -2143,6 +2187,8 @@ dst_y[1]=Y_8_TO_YJ_8(src_y[1]);
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_444_p_16_to_yuvj_422_p_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -2154,12 +2200,14 @@ dst_y[1]=Y_8_TO_YJ_8(src_y[1]);
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 1
 #define CONVERT_YUV    \
-dst_y[0]=Y_16_TO_YJ_8(src_y[0]);\
-dst_u[0]=UV_16_TO_UVJ_8(src_u[0]);\
-dst_v[0]=UV_16_TO_UVJ_8(src_v[0]);\
-dst_y[1]=Y_16_TO_YJ_8(src_y[1]);
+Y_16_TO_YJ_8(src_y[0], dst_y[0]);\
+UV_16_TO_UVJ_8(src_u[0], dst_u[0]);\
+UV_16_TO_UVJ_8(src_v[0], dst_v[0]);\
+Y_16_TO_YJ_8(src_y[1], dst_y[1]);
 
 #include "../csp_planar_planar.h"
+
+#ifndef HQ
 
 #define FUNC_NAME     yuvj_444_p_to_yuv_422_p_c
 #define IN_TYPE       uint8_t
@@ -2241,6 +2289,8 @@ dst_y[3]=src_y[3];
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_444_p_16_to_yuv_411_p_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -2252,15 +2302,16 @@ dst_y[3]=src_y[3];
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 1
 #define CONVERT_YUV    \
-  dst_u[0]=UV_16_TO_UV_8(src_u[0]);                \
-  dst_v[0]=UV_16_TO_UV_8(src_v[0]);                \
-  dst_y[0]=Y_16_TO_Y_8(src_y[0]);                \
-  dst_y[1]=Y_16_TO_Y_8(src_y[1]);                \
-  dst_y[2]=Y_16_TO_Y_8(src_y[2]);                \
-  dst_y[3]=Y_16_TO_Y_8(src_y[3]);
+  UV_16_TO_UV_8(src_u[0], dst_u[0]);                \
+  UV_16_TO_UV_8(src_v[0], dst_v[0]);                \
+  Y_16_TO_Y_8(src_y[0], dst_y[0]);                \
+  Y_16_TO_Y_8(src_y[1], dst_y[1]);                \
+  Y_16_TO_Y_8(src_y[2], dst_y[2]);                \
+  Y_16_TO_Y_8(src_y[3], dst_y[3]);
 
 #include "../csp_planar_planar.h"
 
+#ifndef HQ
 
 /*********************************
  * 420 -> 420 
@@ -2481,6 +2532,8 @@ dst_y[1]=Y_8_TO_YJ_8(src_y[1]);
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_422_p_16_to_yuvj_422_p_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -2492,12 +2545,13 @@ dst_y[1]=Y_8_TO_YJ_8(src_y[1]);
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 1
 #define CONVERT_YUV    \
-dst_y[0]=Y_16_TO_YJ_8(src_y[0]);\
-dst_u[0]=UV_16_TO_UVJ_8(src_u[0]);\
-dst_v[0]=UV_16_TO_UVJ_8(src_v[0]);\
-dst_y[1]=Y_16_TO_YJ_8(src_y[1]);
+Y_16_TO_YJ_8(src_y[0], dst_y[0]);\
+UV_16_TO_UVJ_8(src_u[0], dst_u[0]);\
+UV_16_TO_UVJ_8(src_v[0], dst_v[0]);\
+Y_16_TO_YJ_8(src_y[1], dst_y[1]);
 
 #include "../csp_planar_planar.h"
+
 
 #define FUNC_NAME     yuv_422_p_16_to_yuv_422_p_c
 #define IN_TYPE       uint16_t
@@ -2510,13 +2564,14 @@ dst_y[1]=Y_16_TO_YJ_8(src_y[1]);
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 1
 #define CONVERT_YUV    \
-  dst_y[0]=Y_16_TO_Y_8(src_y[0]);                 \
-  dst_u[0]=UV_16_TO_UV_8(src_u[0]);                 \
-  dst_v[0]=UV_16_TO_UV_8(src_v[0]);                 \
-  dst_y[1]=Y_16_TO_Y_8(src_y[1]);
+  Y_16_TO_Y_8(src_y[0], dst_y[0]);                 \
+  UV_16_TO_UV_8(src_u[0], dst_u[0]);                 \
+  UV_16_TO_UV_8(src_v[0], dst_v[0]);                 \
+  Y_16_TO_Y_8(src_y[1], dst_y[1]);
 
 #include "../csp_planar_planar.h"
 
+#ifndef HQ
 
 #define FUNC_NAME     yuv_422_p_to_yuv_422_p_16_c
 #define IN_TYPE       uint8_t
@@ -2616,6 +2671,8 @@ dst_y[3]=src_y[3];
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_422_p_16_to_yuv_411_p_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -2627,18 +2684,20 @@ dst_y[3]=src_y[3];
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 1
 #define CONVERT_YUV    \
-  dst_u[0]=UV_16_TO_UV_8(src_u[0]);                \
-  dst_v[0]=UV_16_TO_UV_8(src_v[0]);                \
-  dst_y[0]=Y_16_TO_Y_8(src_y[0]);                 \
-  dst_y[1]=Y_16_TO_Y_8(src_y[1]);                 \
-  dst_y[2]=Y_16_TO_Y_8(src_y[2]);                 \
-  dst_y[3]=Y_16_TO_Y_8(src_y[3]);
+  UV_16_TO_UV_8(src_u[0], dst_u[0]);                \
+  UV_16_TO_UV_8(src_v[0], dst_v[0]);                \
+  Y_16_TO_Y_8(src_y[0], dst_y[0]);                 \
+  Y_16_TO_Y_8(src_y[1], dst_y[1]);                 \
+  Y_16_TO_Y_8(src_y[2], dst_y[2]);                 \
+  Y_16_TO_Y_8(src_y[3], dst_y[3]);
 
 #include "../csp_planar_planar.h"
 
 /*********************************
  * 411 -> 422 
  *********************************/
+
+#ifndef HQ
 
 #define FUNC_NAME     yuv_411_p_to_yuvj_422_p_c
 #define IN_TYPE       uint8_t
@@ -2811,6 +2870,8 @@ dst_v[0]=UV_8_TO_UVJ_8(src_v[0]);
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_444_p_16_to_yuvj_444_p_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -2822,11 +2883,13 @@ dst_v[0]=UV_8_TO_UVJ_8(src_v[0]);
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 1
 #define CONVERT_YUV    \
-dst_y[0]=Y_16_TO_YJ_8(src_y[0]);\
-dst_u[0]=UV_16_TO_UVJ_8(src_u[0]);\
-dst_v[0]=UV_16_TO_UVJ_8(src_v[0]);
+Y_16_TO_YJ_8(src_y[0], dst_y[0]);\
+UV_16_TO_UVJ_8(src_u[0], dst_u[0]);\
+UV_16_TO_UVJ_8(src_v[0], dst_v[0]);
 
 #include "../csp_planar_planar.h"
+
+#ifndef HQ
 
 #define FUNC_NAME     yuv_444_p_to_yuv_444_p_16_c
 #define IN_TYPE       uint8_t
@@ -2845,6 +2908,8 @@ dst_v[0]=UV_16_TO_UVJ_8(src_v[0]);
 
 #include "../csp_planar_planar.h"
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_444_p_16_to_yuv_444_p_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -2856,11 +2921,13 @@ dst_v[0]=UV_16_TO_UVJ_8(src_v[0]);
 #define CHROMA_SUB_IN  1
 #define CHROMA_SUB_OUT 1
 #define CONVERT_YUV    \
-  dst_y[0]=Y_16_TO_Y_8(src_y[0]);                 \
-  dst_u[0]=UV_16_TO_UV_8(src_u[0]);                \
-  dst_v[0]=UV_16_TO_UV_8(src_v[0]);
+  Y_16_TO_Y_8(src_y[0], dst_y[0]);                 \
+  UV_16_TO_UV_8(src_u[0], dst_u[0]);                \
+  UV_16_TO_UV_8(src_v[0], dst_v[0]);
 
 #include "../csp_planar_planar.h"
+
+#ifndef HQ
 
 #define FUNC_NAME     yuvj_444_p_to_yuv_444_p_c
 #define IN_TYPE       uint8_t
@@ -2920,6 +2987,8 @@ dst_v[0]=UVJ_8_TO_UV_16(src_v[0]);
 
 /* yuv_444_p_16_to_yuya_32_c */
 
+#endif // !HQ
+
 #define FUNC_NAME     yuv_444_p_16_to_yuva_32_c
 #define IN_TYPE       uint16_t
 #define OUT_TYPE      uint8_t
@@ -2929,12 +2998,14 @@ dst_v[0]=UVJ_8_TO_UV_16(src_v[0]);
 #define NUM_PIXELS    1
 #define CHROMA_SUB    1
 #define CONVERT    \
-  dst[0] = Y_16_TO_Y_8(src_y[0]);                 \
-  dst[1] = UV_16_TO_UV_8(*src_u);                   \
-  dst[2] = UV_16_TO_UV_8(*src_v);                   \
+  Y_16_TO_Y_8(src_y[0], dst[0]);                 \
+  UV_16_TO_UV_8(*src_u, dst[1]);                   \
+  UV_16_TO_UV_8(*src_v, dst[2]);                   \
   dst[3] = 0xff;
 
 #include "../csp_planar_packed.h"
+
+#ifndef HQ
 
 /* yuvj_444_p_to_yuya_32_c */
 
@@ -2977,6 +3048,8 @@ dst_v[0]=UVJ_8_TO_UV_16(src_v[0]);
 
 #include "../csp_planar_packed.h"
 
+#endif // !HQ
+
 /* yuv_422_p_16_to_yuva_32_c */
 
 #define FUNC_NAME     yuv_422_p_16_to_yuva_32_c
@@ -2988,16 +3061,18 @@ dst_v[0]=UVJ_8_TO_UV_16(src_v[0]);
 #define NUM_PIXELS    2
 #define CHROMA_SUB    1
 #define CONVERT    \
-  dst[0] = Y_16_TO_Y_8(src_y[0]);                 \
-  dst[1] = UV_16_TO_UV_8(*src_u);                   \
-  dst[2] = UV_16_TO_UV_8(*src_v);                   \
+  Y_16_TO_Y_8(src_y[0], dst[0]);                 \
+  UV_16_TO_UV_8(*src_u, dst[1]);                   \
+  UV_16_TO_UV_8(*src_v, dst[2]);                   \
   dst[3] = 0xff;                                 \
-  dst[4] = Y_16_TO_Y_8(src_y[2]);                  \
-  dst[5] = UV_16_TO_UV_8(*src_u);                   \
-  dst[6] = UV_16_TO_UV_8(*src_v);                   \
+  Y_16_TO_Y_8(src_y[2], dst[4]);                  \
+  UV_16_TO_UV_8(*src_u, dst[5]);                   \
+  UV_16_TO_UV_8(*src_v, dst[6]);                   \
   dst[7] = 0xff;
 
 #include "../csp_planar_packed.h"
+
+#ifndef HQ
 
 /* yuvj_422_p_to_yuva_32_c */
 
@@ -3627,8 +3702,17 @@ dst_v[0]=UVJ_8_TO_UV_16(src_v[0]);
 
 #include "../csp_packed_packed.h"
 
+#endif // !HQ
+
+
+#ifdef HQ
+void gavl_init_yuv_yuv_funcs_hq(gavl_pixelformat_function_table_t * tab, const gavl_video_options_t * opt)
+#else
 void gavl_init_yuv_yuv_funcs_c(gavl_pixelformat_function_table_t * tab, const gavl_video_options_t * opt)
+#endif
   {
+
+#ifndef HQ
   if(opt->alpha_mode == GAVL_ALPHA_BLEND_COLOR)
     {
     tab->yuva_32_to_yuv_420_p = yuva_32_to_yuv_420_p_c;
@@ -3675,10 +3759,8 @@ void gavl_init_yuv_yuv_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   
   tab->yuv_420_p_to_yuy2       = yuv_420_p_to_yuy2_c;
   tab->yuv_422_p_to_yuy2       = yuv_422_p_to_yuy2_c;
-  tab->yuv_422_p_16_to_yuy2       = yuv_422_p_16_to_yuy2_c;
 
   tab->yuv_444_p_to_yuy2       = yuv_444_p_to_yuy2_c;
-  tab->yuv_444_p_16_to_yuy2       = yuv_444_p_16_to_yuy2_c;
 
   tab->yuvj_420_p_to_yuy2      = yuvj_420_p_to_yuy2_c;
   tab->yuvj_422_p_to_yuy2      = yuvj_422_p_to_yuy2_c;
@@ -3698,9 +3780,7 @@ void gavl_init_yuv_yuv_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   
   tab->yuv_420_p_to_uyvy       = yuv_420_p_to_uyvy_c;
   tab->yuv_422_p_to_uyvy       = yuv_422_p_to_uyvy_c;
-  tab->yuv_422_p_16_to_uyvy       = yuv_422_p_16_to_uyvy_c;
   tab->yuv_444_p_to_uyvy       = yuv_444_p_to_uyvy_c;
-  tab->yuv_444_p_16_to_uyvy       = yuv_444_p_16_to_uyvy_c;
 
   tab->yuvj_420_p_to_uyvy      = yuvj_420_p_to_uyvy_c;
   tab->yuvj_422_p_to_uyvy      = yuvj_422_p_to_uyvy_c;
@@ -3715,8 +3795,6 @@ void gavl_init_yuv_yuv_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   tab->yuv_422_p_to_yuv_444_p  = yuv_422_p_to_yuv_444_p_c;
 
   tab->yuv_422_p_to_yuv_444_p_16  = yuv_422_p_to_yuv_444_p_16_c;
-  tab->yuv_422_p_16_to_yuv_444_p  = yuv_422_p_16_to_yuv_444_p_c;
-  tab->yuv_422_p_16_to_yuvj_444_p  = yuv_422_p_16_to_yuvj_444_p_c;
 
   tab->yuv_422_p_to_yuvj_444_p = yuv_422_p_to_yuvj_444_p_c;
   tab->yuvj_422_p_to_yuv_444_p = yuvj_422_p_to_yuv_444_p_c;
@@ -3729,14 +3807,6 @@ void gavl_init_yuv_yuv_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   tab->yuv_444_p_to_yuv_422_p  = yuv_444_p_to_yuv_422_p_c;
   tab->yuv_444_p_to_yuv_422_p_16  = yuv_444_p_to_yuv_422_p_16_c;
 
-  tab->yuv_444_p_16_to_yuv_422_p_16  = yuv_444_p_16_to_yuv_422_p_16_c;
-  tab->yuv_444_p_16_to_yuv_422_p  = yuv_444_p_16_to_yuv_422_p_c;
-  tab->yuv_444_p_16_to_yuvj_422_p  = yuv_444_p_16_to_yuvj_422_p_c;
-
-  tab->yuv_444_p_16_to_yuv_410_p  = yuv_444_p_16_to_yuv_410_p_c;
-  tab->yuv_444_p_16_to_yuv_411_p  = yuv_444_p_16_to_yuv_411_p_c;
-  tab->yuv_444_p_16_to_yuv_420_p  = yuv_444_p_16_to_yuv_420_p_c;
-  tab->yuv_444_p_16_to_yuvj_420_p  = yuv_444_p_16_to_yuvj_420_p_c;
   
   tab->yuv_444_p_to_yuvj_422_p = yuv_444_p_to_yuvj_422_p_c;
   tab->yuvj_444_p_to_yuv_422_p = yuvj_444_p_to_yuv_422_p_c;
@@ -3779,17 +3849,6 @@ void gavl_init_yuv_yuv_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   tab->yuv_422_p_to_yuv_410_p  = yuv_422_p_to_yuv_410_p_c;
   tab->yuvj_422_p_to_yuv_410_p = yuvj_422_p_to_yuv_410_p_c;
   tab->yuv_422_p_to_yuv_422_p_16  = yuv_422_p_to_yuv_422_p_16_c;
-
-  
-  tab->yuv_422_p_16_to_yuv_420_p = yuv_422_p_16_to_yuv_420_p_c;
-  tab->yuv_422_p_16_to_yuvj_420_p = yuv_422_p_16_to_yuvj_420_p_c;
-  tab->yuv_422_p_16_to_yuv_410_p = yuv_422_p_16_to_yuv_410_p_c;
-  tab->yuv_422_p_16_to_yuv_411_p = yuv_422_p_16_to_yuv_411_p_c;
-  tab->yuv_422_p_16_to_yuv_422_p = yuv_422_p_16_to_yuv_422_p_c;
-  tab->yuv_422_p_16_to_yuvj_422_p = yuv_422_p_16_to_yuvj_422_p_c;
-
-  tab->yuv_422_p_16_to_yuv_444_p_16 = yuv_422_p_16_to_yuv_444_p_16_c;
-
   
   tab->yuv_411_p_to_yuv_410_p  = yuv_411_p_to_yuv_410_p_generic;
   tab->yuv_411_p_to_yuy2       = yuv_411_p_to_yuy2_c;
@@ -3816,15 +3875,11 @@ void gavl_init_yuv_yuv_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   tab->yuvj_444_p_to_yuv_444_p_16 = yuvj_444_p_to_yuv_444_p_16_c;
 
   tab->yuv_444_p_to_yuv_444_p_16 = yuv_444_p_to_yuv_444_p_16_c;
-  tab->yuv_444_p_16_to_yuv_444_p = yuv_444_p_16_to_yuv_444_p_c;
-  tab->yuv_444_p_16_to_yuvj_444_p = yuv_444_p_16_to_yuvj_444_p_c;
   
   tab->yuv_444_p_to_yuva_32  = yuv_444_p_to_yuva_32_c;
   tab->yuv_422_p_to_yuva_32  = yuv_422_p_to_yuva_32_c;
 
-  tab->yuv_444_p_16_to_yuva_32  = yuv_444_p_16_to_yuva_32_c;
   tab->yuvj_444_p_to_yuva_32  = yuvj_444_p_to_yuva_32_c;
-  tab->yuv_422_p_16_to_yuva_32  = yuv_422_p_16_to_yuva_32_c;
   tab->yuvj_422_p_to_yuva_32  = yuvj_422_p_to_yuva_32_c;
 
   tab->yuv_411_p_to_yuva_32  = yuv_411_p_to_yuva_32_c;
@@ -3833,8 +3888,31 @@ void gavl_init_yuv_yuv_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   tab->yuvj_420_p_to_yuva_32  = yuvj_420_p_to_yuva_32_c;
   tab->uyvy_to_yuva_32  = uyvy_to_yuva_32_c;
   tab->yuy2_to_yuva_32  = yuy2_to_yuva_32_c;
-  
 
-
+  tab->yuv_444_p_16_to_yuv_422_p_16  = yuv_444_p_16_to_yuv_422_p_16_c;
+  tab->yuv_422_p_16_to_yuv_444_p_16 = yuv_422_p_16_to_yuv_444_p_16_c;
   
+#endif // !HQ
+  tab->yuv_444_p_16_to_yuva_32  = yuv_444_p_16_to_yuva_32_c;
+  tab->yuv_422_p_16_to_yuva_32  = yuv_422_p_16_to_yuva_32_c;
+  tab->yuv_422_p_16_to_yuy2       = yuv_422_p_16_to_yuy2_c;
+  tab->yuv_444_p_16_to_yuy2       = yuv_444_p_16_to_yuy2_c;
+  tab->yuv_422_p_16_to_uyvy       = yuv_422_p_16_to_uyvy_c;
+  tab->yuv_444_p_16_to_uyvy       = yuv_444_p_16_to_uyvy_c;
+  tab->yuv_422_p_16_to_yuv_444_p  = yuv_422_p_16_to_yuv_444_p_c;
+  tab->yuv_422_p_16_to_yuvj_444_p  = yuv_422_p_16_to_yuvj_444_p_c;
+  tab->yuv_444_p_16_to_yuv_422_p  = yuv_444_p_16_to_yuv_422_p_c;
+  tab->yuv_444_p_16_to_yuvj_422_p  = yuv_444_p_16_to_yuvj_422_p_c;
+  tab->yuv_444_p_16_to_yuv_410_p  = yuv_444_p_16_to_yuv_410_p_c;
+  tab->yuv_444_p_16_to_yuv_411_p  = yuv_444_p_16_to_yuv_411_p_c;
+  tab->yuv_444_p_16_to_yuv_420_p  = yuv_444_p_16_to_yuv_420_p_c;
+  tab->yuv_444_p_16_to_yuvj_420_p  = yuv_444_p_16_to_yuvj_420_p_c;
+  tab->yuv_422_p_16_to_yuv_420_p = yuv_422_p_16_to_yuv_420_p_c;
+  tab->yuv_422_p_16_to_yuvj_420_p = yuv_422_p_16_to_yuvj_420_p_c;
+  tab->yuv_422_p_16_to_yuv_410_p = yuv_422_p_16_to_yuv_410_p_c;
+  tab->yuv_422_p_16_to_yuv_411_p = yuv_422_p_16_to_yuv_411_p_c;
+  tab->yuv_422_p_16_to_yuv_422_p = yuv_422_p_16_to_yuv_422_p_c;
+  tab->yuv_422_p_16_to_yuvj_422_p = yuv_422_p_16_to_yuvj_422_p_c;
+  tab->yuv_444_p_16_to_yuv_444_p = yuv_444_p_16_to_yuv_444_p_c;
+  tab->yuv_444_p_16_to_yuvj_444_p = yuv_444_p_16_to_yuvj_444_p_c;
   }

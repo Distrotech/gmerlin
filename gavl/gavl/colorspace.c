@@ -201,7 +201,11 @@ create_pixelformat_function_table(const gavl_video_options_t * opt,
     
   csp_tab =
     calloc(1,sizeof(gavl_pixelformat_function_table_t));
-#if 1
+
+  //  fprintf(stderr, "create_pixelformat_function_table, flags: %08x, q: %d\n",
+  //          opt->accel_flags, opt->quality);
+  
+  /* Standard C-routines, always complete */
   if(!opt->accel_flags || (opt->accel_flags & GAVL_ACCEL_C))
     {
     //    fprintf(stderr, "Init C functions %08x\n", real_accel_flags);
@@ -210,7 +214,6 @@ create_pixelformat_function_table(const gavl_video_options_t * opt,
     gavl_init_yuv_rgb_funcs_c(csp_tab, opt);
     gavl_init_yuv_yuv_funcs_c(csp_tab, opt);
     }
-#endif
   
 #ifdef HAVE_MMX
   if(opt->accel_flags & GAVL_ACCEL_MMX)
@@ -230,6 +233,20 @@ create_pixelformat_function_table(const gavl_video_options_t * opt,
     gavl_init_yuv_rgb_funcs_mmxext(csp_tab, width, opt);
     }
 #endif
+
+  /* High quality */
+  
+  if((!opt->accel_flags && (opt->quality > 3)) ||
+     (opt->accel_flags & GAVL_ACCEL_C_HQ))
+    {
+    //    fprintf(stderr, "Init HQ\n");
+    gavl_init_rgb_rgb_funcs_hq(csp_tab, opt);
+    gavl_init_rgb_yuv_funcs_hq(csp_tab, opt);
+    gavl_init_yuv_rgb_funcs_hq(csp_tab, opt);
+    gavl_init_yuv_yuv_funcs_hq(csp_tab, opt);
+    }
+
+
   return csp_tab;
   }
 
@@ -2593,8 +2610,8 @@ int gavl_pixelformat_can_scale(gavl_pixelformat_t in_csp, gavl_pixelformat_t out
 
   if(!gavl_pixelformat_is_planar(in_csp))
     {
-    fprintf(stderr, "BLUPPPP: %d %d\n", gavl_pixelformat_is_planar(out_csp),
-            gavl_pixelformat_bytes_per_component(out_csp));
+    // fprintf(stderr, "BLUPPPP: %d %d\n", gavl_pixelformat_is_planar(out_csp),
+    //         gavl_pixelformat_bytes_per_component(out_csp));
     
     if(gavl_pixelformat_is_planar(out_csp) &&
        (gavl_pixelformat_bytes_per_component(out_csp) == 1))

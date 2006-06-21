@@ -36,9 +36,9 @@
   dst[2]=RGB_8_TO_FLOAT(src[2]);
 
 #define COPY_48_TO_24 \
-  dst[0]=RGB_16_TO_8(src[0]);\
-  dst[1]=RGB_16_TO_8(src[1]);\
-  dst[2]=RGB_16_TO_8(src[2]);
+  RGB_16_TO_8(src[0], dst[0]);\
+  RGB_16_TO_8(src[1], dst[1]);\
+  RGB_16_TO_8(src[2], dst[2]);
 
 #define COPY_48_TO_48 \
   dst[0]=src[0];\
@@ -52,14 +52,14 @@
   dst[2]=RGB_16_TO_FLOAT(src[2]);
 
 #define COPY_FLOAT_TO_24 \
-  dst[0]=RGB_FLOAT_TO_8(src[0]);\
-  dst[1]=RGB_FLOAT_TO_8(src[1]);\
-  dst[2]=RGB_FLOAT_TO_8(src[2]);
+  RGB_FLOAT_TO_8(src[0], dst[0]);\
+  RGB_FLOAT_TO_8(src[1], dst[1]);\
+  RGB_FLOAT_TO_8(src[2], dst[2]);
 
 #define COPY_FLOAT_TO_48 \
-  dst[0]=RGB_FLOAT_TO_16(src[0]);\
-  dst[1]=RGB_FLOAT_TO_16(src[1]);\
-  dst[2]=RGB_FLOAT_TO_16(src[2]);
+  RGB_FLOAT_TO_16(src[0], dst[0]);\
+  RGB_FLOAT_TO_16(src[1], dst[1]);\
+  RGB_FLOAT_TO_16(src[2], dst[2]);
 
 #define COPY_FLOAT_TO_FLOAT                        \
   dst[0]=src[0];                                   \
@@ -79,19 +79,19 @@
   dst[0]=RGB_8_TO_FLOAT(src[2]);
 
 #define SWAP_48_TO_24 \
-  dst[2]=RGB_16_TO_8(src[0]);\
-  dst[1]=RGB_16_TO_8(src[1]);\
-  dst[0]=RGB_16_TO_8(src[2]);
+  RGB_16_TO_8(src[0], dst[2]);\
+  RGB_16_TO_8(src[1], dst[1]);\
+  RGB_16_TO_8(src[2], dst[0]);
 
 #define SWAP_48_TO_FLOAT \
-  dst[2]=RGB_16_TO_FLOAT(src[0]);\
-  dst[1]=RGB_16_TO_FLOAT(src[1]);\
-  dst[0]=RGB_16_TO_FLOAT(src[2]);
+  RGB_16_TO_FLOAT(src[0], dst[2]);\
+  RGB_16_TO_FLOAT(src[1], dst[1]);\
+  RGB_16_TO_FLOAT(src[2], dst[0]);
 
 #define SWAP_FLOAT_TO_24 \
-  dst[2]=RGB_FLOAT_TO_8(src[0]);\
-  dst[1]=RGB_FLOAT_TO_8(src[1]);\
-  dst[0]=RGB_FLOAT_TO_8(src[2]);
+  RGB_FLOAT_TO_8(src[0], dst[2]);\
+  RGB_FLOAT_TO_8(src[1], dst[1]);\
+  RGB_FLOAT_TO_8(src[2], dst[0]);
 
 /*
  *  Needs the following macros:
@@ -105,6 +105,8 @@
  *               from <src> to <dst>
  *  INIT:        Variable declarations and initialization (can be empty)
  */
+
+#ifndef HQ
 
 /* swap_rgb_24_c */
 
@@ -463,6 +465,8 @@
 
 #include "../csp_packed_packed.h"
 
+#endif // !HQ
+
 /* rgb_48_to_24_c */
 
 #define IN_TYPE  uint16_t
@@ -471,8 +475,12 @@
 #define OUT_ADVANCE 3
 #define NUM_PIXELS  1
 #define FUNC_NAME rgb_48_to_24_c
+
 #define CONVERT \
   COPY_48_TO_24
+#ifdef HQ
+#define INIT int32_t round_tmp;
+#endif
 
 #include "../csp_packed_packed.h"
 
@@ -487,7 +495,13 @@
 #define CONVERT \
   COPY_48_TO_24
 
+#ifdef HQ
+#define INIT int32_t round_tmp;
+#endif
+
 #include "../csp_packed_packed.h"
+
+#ifndef HQ
 
 /* rgb_48_to_float_c */
 
@@ -502,6 +516,8 @@
 
 #include "../csp_packed_packed.h"
 
+#endif // !HQ
+
 /* rgb_float_to_15_c */
 
 #define IN_TYPE  float
@@ -514,9 +530,9 @@
 #define INIT uint8_t r_tmp, g_tmp, b_tmp;
 
 #define CONVERT                                 \
-  r_tmp = RGB_FLOAT_TO_8(src[0]);               \
-  g_tmp = RGB_FLOAT_TO_8(src[1]);               \
-  b_tmp = RGB_FLOAT_TO_8(src[2]);               \
+  RGB_FLOAT_TO_8(src[0], r_tmp);               \
+  RGB_FLOAT_TO_8(src[1], g_tmp);               \
+  RGB_FLOAT_TO_8(src[2], b_tmp);               \
   PACK_8_TO_RGB15(r_tmp, g_tmp, b_tmp, *dst)
 
 #include "../csp_packed_packed.h"
@@ -533,9 +549,9 @@
 #define INIT uint8_t r_tmp, g_tmp, b_tmp;
 
 #define CONVERT                                 \
-  r_tmp = RGB_FLOAT_TO_8(src[0]);               \
-  g_tmp = RGB_FLOAT_TO_8(src[1]);               \
-  b_tmp = RGB_FLOAT_TO_8(src[2]);               \
+  RGB_FLOAT_TO_8(src[0], r_tmp);               \
+  RGB_FLOAT_TO_8(src[1], g_tmp);               \
+  RGB_FLOAT_TO_8(src[2], b_tmp);               \
   PACK_8_TO_RGB16(r_tmp, g_tmp, b_tmp, *dst)
 
 #include "../csp_packed_packed.h"
@@ -579,6 +595,7 @@
 
 #include "../csp_packed_packed.h"
 
+#ifndef HQ // !HQ
 
 /* rgb_15_to_16_swap_c */
 
@@ -852,6 +869,7 @@
 
 #include "../csp_packed_packed.h"
 
+
 /* rgb_48_to_15_swap_c */
 
 #define IN_TYPE  uint16_t
@@ -862,6 +880,7 @@
 #define FUNC_NAME rgb_48_to_15_swap_c
 #define CONVERT \
   PACK_16_TO_BGR15(src[0],src[1],src[2],*dst)
+
 #include "../csp_packed_packed.h"
 
 /* rgb_48_to_16_swap_c */
@@ -874,7 +893,10 @@
 #define FUNC_NAME rgb_48_to_16_swap_c
 #define CONVERT \
   PACK_16_TO_BGR16(src[0],src[1],src[2],*dst)
+
 #include "../csp_packed_packed.h"
+
+#endif // !HQ
 
 /* rgb_48_to_24_swap_c */
 
@@ -886,6 +908,11 @@
 #define FUNC_NAME rgb_48_to_24_swap_c
 #define CONVERT \
   SWAP_48_TO_24
+
+#ifdef HQ
+#define INIT int32_t round_tmp;
+#endif
+
 #include "../csp_packed_packed.h"
 
 /* rgb_48_to_32_swap_c */
@@ -898,7 +925,12 @@
 #define FUNC_NAME rgb_48_to_32_swap_c
 #define CONVERT \
   SWAP_48_TO_24
+#ifdef HQ
+#define INIT int32_t round_tmp;
+#endif
+
 #include "../csp_packed_packed.h"
+
 
 /* rgb_float_to_15_swap_c */
 
@@ -912,9 +944,9 @@
 #define INIT uint8_t r_tmp, g_tmp, b_tmp;
 
 #define CONVERT                                 \
-  r_tmp = RGB_FLOAT_TO_8(src[0]);               \
-  g_tmp = RGB_FLOAT_TO_8(src[1]);               \
-  b_tmp = RGB_FLOAT_TO_8(src[2]);               \
+  RGB_FLOAT_TO_8(src[0], r_tmp);               \
+  RGB_FLOAT_TO_8(src[1], g_tmp);               \
+  RGB_FLOAT_TO_8(src[2], b_tmp);               \
   PACK_8_TO_BGR15(r_tmp, g_tmp, b_tmp, *dst)
 
 #include "../csp_packed_packed.h"
@@ -931,9 +963,9 @@
 #define INIT uint8_t r_tmp, g_tmp, b_tmp;
 
 #define CONVERT                                 \
-  r_tmp = RGB_FLOAT_TO_8(src[0]);               \
-  g_tmp = RGB_FLOAT_TO_8(src[1]);               \
-  b_tmp = RGB_FLOAT_TO_8(src[2]);               \
+  RGB_FLOAT_TO_8(src[0], r_tmp);               \
+  RGB_FLOAT_TO_8(src[1], g_tmp);               \
+  RGB_FLOAT_TO_8(src[2], b_tmp);               \
   PACK_8_TO_BGR16(r_tmp, g_tmp, b_tmp, *dst)
 
 #include "../csp_packed_packed.h"
@@ -964,6 +996,7 @@
 
 #include "../csp_packed_packed.h"
 
+#ifndef HQ
 
 /* Conversion from RGBA 32 to RGB */
 
@@ -1195,12 +1228,21 @@
   RGBA_64_TO_RGB_24(src[0], src[1], src[2], src[3], r_tmp, g_tmp, b_tmp)\
   PACK_8_TO_RGB15(r_tmp, g_tmp, b_tmp, *dst)
 
+#ifdef HQ
+#define INIT \
+  int32_t round_tmp;\
+  uint8_t r_tmp;\
+  uint8_t g_tmp;\
+  uint8_t b_tmp;\
+  INIT_RGBA_64
+#else
 #define INIT \
   uint8_t r_tmp;\
   uint8_t g_tmp;\
   uint8_t b_tmp;\
   INIT_RGBA_64
-
+#endif
+  
 #include "../csp_packed_packed.h"
 
 /* rgba_64_to_bgr_15_c */
@@ -1215,11 +1257,20 @@
   RGBA_64_TO_RGB_24(src[0], src[1], src[2], src[3], r_tmp, g_tmp, b_tmp) \
   PACK_8_TO_BGR15(r_tmp, g_tmp, b_tmp, *dst)
 
+#ifdef HQ
+#define INIT \
+  int32_t round_tmp;\
+  uint8_t r_tmp;\
+  uint8_t g_tmp;\
+  uint8_t b_tmp;\
+  INIT_RGBA_64
+#else
 #define INIT \
   uint8_t r_tmp;\
   uint8_t g_tmp;\
   uint8_t b_tmp;\
   INIT_RGBA_64
+#endif
 
 #include "../csp_packed_packed.h"
 
@@ -1235,11 +1286,21 @@
   RGBA_64_TO_RGB_24(src[0], src[1], src[2], src[3], r_tmp, g_tmp, b_tmp) \
   PACK_8_TO_RGB16(r_tmp, g_tmp, b_tmp, *dst)
 
+#ifdef HQ
+#define INIT \
+  int32_t round_tmp;\
+  uint8_t r_tmp;\
+  uint8_t g_tmp;\
+  uint8_t b_tmp;\
+  INIT_RGBA_64
+#else
 #define INIT \
   uint8_t r_tmp;\
   uint8_t g_tmp;\
   uint8_t b_tmp;\
   INIT_RGBA_64
+#endif
+
 
 #include "../csp_packed_packed.h"
 
@@ -1255,13 +1316,25 @@
   RGBA_64_TO_RGB_24(src[0], src[1], src[2], src[3], r_tmp, g_tmp, b_tmp) \
   PACK_8_TO_BGR16(r_tmp, g_tmp, b_tmp, *dst)
 
+#ifdef HQ
+#define INIT \
+  int32_t round_tmp;\
+  uint8_t r_tmp;\
+  uint8_t g_tmp;\
+  uint8_t b_tmp;\
+  INIT_RGBA_64
+#else
 #define INIT \
   uint8_t r_tmp;\
   uint8_t g_tmp;\
   uint8_t b_tmp;\
   INIT_RGBA_64
+#endif
+
 
 #include "../csp_packed_packed.h"
+
+#endif // !HQ
 
 /* rgba_64_to_rgb_24_c */
 
@@ -1274,9 +1347,15 @@
 #define CONVERT \
   RGBA_64_TO_RGB_24(src[0], src[1], src[2], src[3], dst[0], dst[1], dst[2])
 
+#ifdef HQ
+#define INIT \
+  int32_t round_tmp;\
+  INIT_RGBA_64
+#else
 #define INIT \
   INIT_RGBA_64
-
+#endif  
+  
 #include "../csp_packed_packed.h"
 
 /* rgba_64_to_bgr_24_c */
@@ -1290,8 +1369,14 @@
 #define CONVERT \
   RGBA_64_TO_RGB_24(src[0], src[1], src[2], src[3], dst[2], dst[1], dst[0])
 
+#ifdef HQ
+#define INIT \
+  int32_t round_tmp;\
+  INIT_RGBA_64
+#else
 #define INIT \
   INIT_RGBA_64
+#endif  
 
 #include "../csp_packed_packed.h"
 
@@ -1306,8 +1391,15 @@
 #define CONVERT \
   RGBA_64_TO_RGB_24(src[0], src[1], src[2], src[3], dst[0], dst[1], dst[2])
 
+#ifdef HQ
+#define INIT \
+  int32_t round_tmp;\
+  INIT_RGBA_64
+#else
 #define INIT \
   INIT_RGBA_64
+#endif  
+
 
 #include "../csp_packed_packed.h"
 
@@ -1322,10 +1414,19 @@
 #define CONVERT \
   RGBA_64_TO_RGB_24(src[0], src[1], src[2], src[3], dst[2], dst[1], dst[0])
 
+#ifdef HQ
+#define INIT \
+  int32_t round_tmp;\
+  INIT_RGBA_64
+#else
 #define INIT \
   INIT_RGBA_64
+#endif  
+
 
 #include "../csp_packed_packed.h"
+
+#ifndef HQ
 
 /* rgba_64_to_rgb_48_c */
 
@@ -1359,6 +1460,8 @@
 
 #include "../csp_packed_packed.h"
 
+#endif // !HQ
+
 /* rgba_64_to_rgba_32_c */
 
 #define IN_TYPE  uint16_t
@@ -1368,12 +1471,20 @@
 #define NUM_PIXELS  1
 #define FUNC_NAME rgba_64_to_rgba_32_c
 #define CONVERT \
-  dst[0] = RGB_16_TO_8(src[0]); \
-  dst[1] = RGB_16_TO_8(src[1]); \
-  dst[2] = RGB_16_TO_8(src[2]); \
-  dst[3] = RGB_16_TO_8(src[3]);
+  RGB_16_TO_8(src[0], dst[0]); \
+  RGB_16_TO_8(src[1], dst[1]); \
+  RGB_16_TO_8(src[2], dst[2]); \
+  RGB_16_TO_8(src[3], dst[3]);
 
+#ifdef HQ
+#define INIT \
+  uint32_t round_tmp;
+#endif  
+
+  
 #include "../csp_packed_packed.h"
+
+#ifndef HQ
 
 /* rgba_64_to_rgba_float_c */
 
@@ -1391,7 +1502,6 @@
 
 #include "../csp_packed_packed.h"
 
-
 /* Conversion from RGBA 64 to RGB (ignoring alpha) */
 
 /* rgba_64_to_rgb_15_ia_c */
@@ -1405,6 +1515,10 @@
 #define CONVERT \
   PACK_16_TO_RGB15(src[0], src[1], src[2], *dst)
 
+#ifdef HQ
+#define INIT uint32_t round_tmp;
+#endif
+  
 #include "../csp_packed_packed.h"
 
 /* rgba_64_to_bgr_15_ia_c */
@@ -1417,6 +1531,9 @@
 #define FUNC_NAME rgba_64_to_bgr_15_ia_c
 #define CONVERT \
   PACK_16_TO_BGR15(src[0], src[1], src[2], *dst)
+#ifdef HQ
+#define INIT uint32_t round_tmp;
+#endif
 
 
 #include "../csp_packed_packed.h"
@@ -1432,6 +1549,9 @@
 #define CONVERT \
   PACK_16_TO_RGB16(src[0], src[1], src[2], *dst)
 
+#ifdef HQ
+#define INIT uint32_t round_tmp;
+#endif
 
 #include "../csp_packed_packed.h"
 
@@ -1445,10 +1565,15 @@
 #define FUNC_NAME rgba_64_to_bgr_16_ia_c
 #define CONVERT \
   PACK_16_TO_BGR16(src[0], src[1], src[2], *dst)
-
+#ifdef HQ
+#define INIT uint32_t round_tmp;
+#endif
+  
 #include "../csp_packed_packed.h"
 
 /* rgba_64_to_rgb_24_ia_c */
+
+#endif // !HQ
 
 #define IN_TYPE  uint16_t
 #define OUT_TYPE uint8_t
@@ -1459,6 +1584,9 @@
 #define CONVERT \
   COPY_48_TO_24
 
+#ifdef HQ
+#define INIT int32_t round_tmp;
+#endif
 
 #include "../csp_packed_packed.h"
 
@@ -1472,6 +1600,9 @@
 #define FUNC_NAME rgba_64_to_bgr_24_ia_c
 #define CONVERT \
   SWAP_48_TO_24
+#ifdef HQ
+#define INIT int32_t round_tmp;
+#endif
 
 #include "../csp_packed_packed.h"
 
@@ -1485,6 +1616,9 @@
 #define FUNC_NAME rgba_64_to_rgb_32_ia_c
 #define CONVERT \
   COPY_48_TO_24
+#ifdef HQ
+#define INIT int32_t round_tmp;
+#endif
 
 #include "../csp_packed_packed.h"
 
@@ -1498,8 +1632,13 @@
 #define FUNC_NAME rgba_64_to_bgr_32_ia_c
 #define CONVERT \
   SWAP_48_TO_24
+#ifdef HQ
+#define INIT int32_t round_tmp;
+#endif
 
 #include "../csp_packed_packed.h"
+
+#ifndef HQ
 
 /* rgba_64_to_rgb_48_ia_c */
 
@@ -1528,6 +1667,8 @@
 #include "../csp_packed_packed.h"
 
 /* Conversion from RGBA float to RGB */
+
+#endif // !HQ
 
 /* rgba_float_to_rgb_15_c */
 
@@ -1689,6 +1830,8 @@
 
 #include "../csp_packed_packed.h"
 
+#ifndef HQ
+
 /* rgba_float_to_rgb_float_c */
 
 #define IN_TYPE  float
@@ -1714,10 +1857,10 @@
 #define NUM_PIXELS  1
 #define FUNC_NAME rgba_float_to_rgba_32_c
 #define CONVERT \
-  dst[0] = RGB_FLOAT_TO_8(src[0]);                    \
-  dst[1] = RGB_FLOAT_TO_8(src[1]);                    \
-  dst[2] = RGB_FLOAT_TO_8(src[2]);                    \
-  dst[3] = RGB_FLOAT_TO_8(src[3]);
+  RGB_FLOAT_TO_8(src[0], dst[0]);                    \
+  RGB_FLOAT_TO_8(src[1], dst[1]);                    \
+  RGB_FLOAT_TO_8(src[2], dst[2]);                    \
+  RGB_FLOAT_TO_8(src[3], dst[3]);
 
 #include "../csp_packed_packed.h"
 
@@ -1730,10 +1873,10 @@
 #define NUM_PIXELS  1
 #define FUNC_NAME rgba_float_to_rgba_64_c
 #define CONVERT \
-  dst[0] = RGB_FLOAT_TO_16(src[0]);                    \
-  dst[1] = RGB_FLOAT_TO_16(src[1]);                    \
-  dst[2] = RGB_FLOAT_TO_16(src[2]);                    \
-  dst[3] = RGB_FLOAT_TO_16(src[3]);
+  RGB_FLOAT_TO_16(src[0], dst[0]);                    \
+  RGB_FLOAT_TO_16(src[1], dst[1]);                    \
+  RGB_FLOAT_TO_16(src[2], dst[2]);                    \
+  RGB_FLOAT_TO_16(src[3], dst[3]);
 
 #include "../csp_packed_packed.h"
 
@@ -1751,9 +1894,9 @@
 #define INIT uint8_t r_tmp, g_tmp, b_tmp;
 
 #define CONVERT                                 \
-  r_tmp = RGB_FLOAT_TO_8(src[0]);               \
-  g_tmp = RGB_FLOAT_TO_8(src[1]);               \
-  b_tmp = RGB_FLOAT_TO_8(src[2]);               \
+  RGB_FLOAT_TO_8(src[0], r_tmp);               \
+  RGB_FLOAT_TO_8(src[1], g_tmp);               \
+  RGB_FLOAT_TO_8(src[2], b_tmp);               \
   PACK_8_TO_RGB15(r_tmp, g_tmp, b_tmp, *dst)
 
 #include "../csp_packed_packed.h"
@@ -1770,9 +1913,9 @@
 #define INIT uint8_t r_tmp, g_tmp, b_tmp;
 
 #define CONVERT                                 \
-  r_tmp = RGB_FLOAT_TO_8(src[0]);               \
-  g_tmp = RGB_FLOAT_TO_8(src[1]);               \
-  b_tmp = RGB_FLOAT_TO_8(src[2]);               \
+  RGB_FLOAT_TO_8(src[0], r_tmp);               \
+  RGB_FLOAT_TO_8(src[1], g_tmp);               \
+  RGB_FLOAT_TO_8(src[2], b_tmp);               \
   PACK_8_TO_BGR15(r_tmp, g_tmp, b_tmp, *dst)
 
 #include "../csp_packed_packed.h"
@@ -1787,9 +1930,9 @@
 #define FUNC_NAME rgba_float_to_rgb_16_ia_c
 #define INIT uint8_t r_tmp, g_tmp, b_tmp;
 #define CONVERT                                 \
-  r_tmp = RGB_FLOAT_TO_8(src[0]);               \
-  g_tmp = RGB_FLOAT_TO_8(src[1]);               \
-  b_tmp = RGB_FLOAT_TO_8(src[2]);               \
+  RGB_FLOAT_TO_8(src[0], r_tmp);               \
+  RGB_FLOAT_TO_8(src[1], g_tmp);               \
+  RGB_FLOAT_TO_8(src[2], b_tmp);               \
   PACK_8_TO_RGB16(r_tmp, g_tmp, b_tmp, *dst)
 
 
@@ -1805,12 +1948,14 @@
 #define FUNC_NAME rgba_float_to_bgr_16_ia_c
 #define INIT uint8_t r_tmp, g_tmp, b_tmp;
 #define CONVERT                                 \
-  r_tmp = RGB_FLOAT_TO_8(src[0]);               \
-  g_tmp = RGB_FLOAT_TO_8(src[1]);               \
-  b_tmp = RGB_FLOAT_TO_8(src[2]);               \
+  RGB_FLOAT_TO_8(src[0], r_tmp);               \
+  RGB_FLOAT_TO_8(src[1], g_tmp);               \
+  RGB_FLOAT_TO_8(src[2], b_tmp);               \
   PACK_8_TO_BGR16(r_tmp, g_tmp, b_tmp, *dst)
 
 #include "../csp_packed_packed.h"
+
+#endif // !HQ
 
 /* rgba_float_to_rgb_24_ia_c */
 
@@ -1876,6 +2021,9 @@
   COPY_FLOAT_TO_48
 
 #include "../csp_packed_packed.h"
+
+#ifndef HQ
+
 
 /* rgba_float_to_rgb_float_ia_c */
 
@@ -2012,6 +2160,8 @@
 
 #include "../csp_packed_packed.h"
 
+#endif // !HQ
+
 /* rgb_48_to_rgba_32_c */
 
 #define IN_TYPE  uint16_t
@@ -2023,6 +2173,9 @@
 #define CONVERT \
   COPY_48_TO_24 \
   dst[3] = 0xff;
+#ifdef HQ
+#define INIT int32_t round_tmp;
+#endif
 
 #include "../csp_packed_packed.h"
 
@@ -2039,6 +2192,8 @@
   dst[3] = 0xff;
 
 #include "../csp_packed_packed.h"
+
+#ifndef HQ
 
 /* Conversion from RGB formats to RGBA 64 */
 
@@ -2176,6 +2331,8 @@
 
 #include "../csp_packed_packed.h"
 
+#endif // !HQ
+
 /* rgb_float_to_rgba_64_c */
 
 #define IN_TYPE  float
@@ -2190,6 +2347,7 @@
 
 #include "../csp_packed_packed.h"
 
+#ifndef HQ
 
 /* Conversion from RGB formats to RGBA Float */
 
@@ -2341,10 +2499,18 @@
 
 #include "../csp_packed_packed.h"
 
+#endif // !HQ
 
-void gavl_init_rgb_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const gavl_video_options_t * opt)
+
+#ifdef HQ
+void gavl_init_rgb_rgb_funcs_hq(gavl_pixelformat_function_table_t * tab,
+                                const gavl_video_options_t * opt)
+#else
+void gavl_init_rgb_rgb_funcs_c(gavl_pixelformat_function_table_t * tab,
+                               const gavl_video_options_t * opt)
+#endif
   {
-
+#ifndef HQ
   tab->swap_rgb_24 = swap_rgb_24_c;
   tab->swap_rgb_32 = swap_rgb_32_c;
   tab->swap_rgb_16 = swap_rgb_16_c;
@@ -2373,19 +2539,23 @@ void gavl_init_rgb_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   tab->rgb_32_to_24    = rgb_32_to_24_c;
   tab->rgb_32_to_48    = rgb_32_to_48_c;
   tab->rgb_32_to_float = rgb_32_to_float_c;
-
+  
   tab->rgb_48_to_15    = rgb_48_to_15_c;
   tab->rgb_48_to_16    = rgb_48_to_16_c;
+#endif // !HQ
   tab->rgb_48_to_24    = rgb_48_to_24_c;
   tab->rgb_48_to_32    = rgb_48_to_32_c;
+#ifndef HQ
   tab->rgb_48_to_float = rgb_48_to_float_c;
 
+#endif // !HQ
   tab->rgb_float_to_15    = rgb_float_to_15_c;
   tab->rgb_float_to_16    = rgb_float_to_16_c;
   tab->rgb_float_to_24    = rgb_float_to_24_c;
   tab->rgb_float_to_32    = rgb_float_to_32_c;
   tab->rgb_float_to_48    = rgb_float_to_48_c;
 
+#ifndef HQ
   
   tab->rgb_15_to_16_swap    = rgb_15_to_16_swap_c;
   tab->rgb_15_to_24_swap    = rgb_15_to_24_swap_c;
@@ -2413,6 +2583,7 @@ void gavl_init_rgb_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
 
   tab->rgb_48_to_15_swap    = rgb_48_to_15_swap_c;
   tab->rgb_48_to_16_swap    = rgb_48_to_16_swap_c;
+#endif // !HQ
   tab->rgb_48_to_24_swap    = rgb_48_to_24_swap_c;
   tab->rgb_48_to_32_swap    = rgb_48_to_32_swap_c;
 
@@ -2425,6 +2596,7 @@ void gavl_init_rgb_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
 
   if(opt->alpha_mode == GAVL_ALPHA_BLEND_COLOR)
     {
+#ifndef HQ
     tab->rgba_32_to_rgb_15    = rgba_32_to_rgb_15_c;
     tab->rgba_32_to_bgr_15    = rgba_32_to_bgr_15_c;
     tab->rgba_32_to_rgb_16    = rgba_32_to_rgb_16_c;
@@ -2440,12 +2612,15 @@ void gavl_init_rgb_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
     tab->rgba_64_to_bgr_15 = rgba_64_to_bgr_15_c;
     tab->rgba_64_to_rgb_16 = rgba_64_to_rgb_16_c;
     tab->rgba_64_to_bgr_16 = rgba_64_to_bgr_16_c;
+#endif // !HQ
     tab->rgba_64_to_rgb_24 = rgba_64_to_rgb_24_c;
     tab->rgba_64_to_bgr_24 = rgba_64_to_bgr_24_c;
     tab->rgba_64_to_rgb_32 = rgba_64_to_rgb_32_c;
     tab->rgba_64_to_bgr_32 = rgba_64_to_bgr_32_c;
+#ifndef HQ
     tab->rgba_64_to_rgb_48 = rgba_64_to_rgb_48_c;
     tab->rgba_64_to_rgb_float = rgba_64_to_rgb_float_c;
+#endif // !HQ
 
     tab->rgba_float_to_rgb_15    = rgba_float_to_rgb_15_c;
     tab->rgba_float_to_bgr_15    = rgba_float_to_bgr_15_c;
@@ -2456,10 +2631,13 @@ void gavl_init_rgb_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
     tab->rgba_float_to_rgb_32    = rgba_float_to_rgb_32_c;
     tab->rgba_float_to_bgr_32    = rgba_float_to_bgr_32_c;
     tab->rgba_float_to_rgb_48    = rgba_float_to_rgb_48_c;
+#ifndef HQ
     tab->rgba_float_to_rgb_float = rgba_float_to_rgb_float_c;
+#endif // !HQ
     }
   else if(opt->alpha_mode == GAVL_ALPHA_IGNORE)
     {
+#ifndef HQ
     tab->rgba_32_to_rgb_15    = rgb_32_to_15_c;
     tab->rgba_32_to_bgr_15    = rgb_32_to_15_swap_c;
     tab->rgba_32_to_rgb_16    = rgb_32_to_16_c;
@@ -2474,32 +2652,41 @@ void gavl_init_rgb_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
     tab->rgba_64_to_bgr_15    = rgba_64_to_bgr_15_ia_c;
     tab->rgba_64_to_rgb_16    = rgba_64_to_rgb_16_ia_c;
     tab->rgba_64_to_bgr_16    = rgba_64_to_bgr_16_ia_c;
+#endif // !HQ
     tab->rgba_64_to_rgb_24    = rgba_64_to_rgb_24_ia_c;
     tab->rgba_64_to_bgr_24    = rgba_64_to_bgr_24_ia_c;
     tab->rgba_64_to_rgb_32    = rgba_64_to_rgb_32_ia_c;
     tab->rgba_64_to_bgr_32    = rgba_64_to_bgr_32_ia_c;
+#ifndef HQ
     tab->rgba_64_to_rgb_48    = rgba_64_to_rgb_48_ia_c;
     tab->rgba_64_to_rgb_float = rgba_64_to_rgb_float_ia_c;
-#if 1
+
     tab->rgba_float_to_rgb_15    = rgba_float_to_rgb_15_ia_c;
     tab->rgba_float_to_bgr_15    = rgba_float_to_bgr_15_ia_c;
     tab->rgba_float_to_rgb_16    = rgba_float_to_rgb_16_ia_c;
     tab->rgba_float_to_bgr_16    = rgba_float_to_bgr_16_ia_c;
+#endif // !HQ
     tab->rgba_float_to_rgb_24    = rgba_float_to_rgb_24_ia_c;
     tab->rgba_float_to_bgr_24    = rgba_float_to_bgr_24_ia_c;
     tab->rgba_float_to_rgb_32    = rgba_float_to_rgb_32_ia_c;
     tab->rgba_float_to_bgr_32    = rgba_float_to_bgr_32_ia_c;
     tab->rgba_float_to_rgb_48    = rgba_float_to_rgb_48_ia_c;
+#ifndef HQ
     tab->rgba_float_to_rgb_float = rgba_float_to_rgb_float_ia_c;
-#endif
+#endif // !HQ
     }
   
+#ifndef HQ
   tab->rgba_32_to_rgba_64    = rgba_32_to_rgba_64_c;
   tab->rgba_32_to_rgba_float = rgba_32_to_rgba_float_c;
+#endif // !HQ
   
   tab->rgba_64_to_rgba_32    = rgba_64_to_rgba_32_c;
+#ifndef HQ
   tab->rgba_64_to_rgba_float = rgba_64_to_rgba_float_c;
+#endif // !HQ
   
+#ifndef HQ
   tab->rgba_float_to_rgba_32   = rgba_float_to_rgba_32_c;
   tab->rgba_float_to_rgba_64   = rgba_float_to_rgba_64_c;
   
@@ -2513,8 +2700,10 @@ void gavl_init_rgb_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   tab->bgr_24_to_rgba_32 = bgr_24_to_rgba_32_c;
   tab->rgb_32_to_rgba_32 = rgb_32_to_rgba_32_c;
   tab->bgr_32_to_rgba_32 = bgr_32_to_rgba_32_c;
+#endif // !HQ
   tab->rgb_48_to_rgba_32 = rgb_48_to_rgba_32_c;
   tab->rgb_float_to_rgba_32 = rgb_float_to_rgba_32_c;
+#ifndef HQ
 
   tab->rgb_15_to_rgba_64 = rgb_15_to_rgba_64_c;
   tab->bgr_15_to_rgba_64 = bgr_15_to_rgba_64_c;
@@ -2525,8 +2714,9 @@ void gavl_init_rgb_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   tab->rgb_32_to_rgba_64 = rgb_32_to_rgba_64_c;
   tab->bgr_32_to_rgba_64 = bgr_32_to_rgba_64_c;
   tab->rgb_48_to_rgba_64 = rgb_48_to_rgba_64_c;
+#endif // !HQ
   tab->rgb_float_to_rgba_64 = rgb_float_to_rgba_64_c;
-
+#ifndef HQ
   tab->rgb_15_to_rgba_float = rgb_15_to_rgba_float_c;
   tab->bgr_15_to_rgba_float = bgr_15_to_rgba_float_c;
   tab->rgb_16_to_rgba_float = rgb_16_to_rgba_float_c;
@@ -2537,11 +2727,9 @@ void gavl_init_rgb_rgb_funcs_c(gavl_pixelformat_function_table_t * tab, const ga
   tab->bgr_32_to_rgba_float = bgr_32_to_rgba_float_c;
   tab->rgb_48_to_rgba_float = rgb_48_to_rgba_float_c;
   tab->rgb_float_to_rgba_float = rgb_float_to_rgba_float_c;
-
+#endif // !HQ
   
   }
-
-/* Combine r, g and b values to a 16 bit rgb pixel (taken from avifile) */
 
 #undef COPY_24
 #undef SWAP_24 

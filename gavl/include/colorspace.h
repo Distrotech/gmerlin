@@ -706,6 +706,12 @@ void gavl_init_rgb_yuv_funcs_c(gavl_pixelformat_function_table_t *, const gavl_v
 void gavl_init_yuv_yuv_funcs_c(gavl_pixelformat_function_table_t *, const gavl_video_options_t * opt);
 void gavl_init_yuv_rgb_funcs_c(gavl_pixelformat_function_table_t *, const gavl_video_options_t * opt);
 
+void gavl_init_rgb_rgb_funcs_hq(gavl_pixelformat_function_table_t *, const gavl_video_options_t * opt);
+void gavl_init_rgb_yuv_funcs_hq(gavl_pixelformat_function_table_t *, const gavl_video_options_t * opt);
+void gavl_init_yuv_yuv_funcs_hq(gavl_pixelformat_function_table_t *, const gavl_video_options_t * opt);
+void gavl_init_yuv_rgb_funcs_hq(gavl_pixelformat_function_table_t *, const gavl_video_options_t * opt);
+
+
 #ifdef ARCH_X86
 void gavl_init_rgb_rgb_funcs_mmx(gavl_pixelformat_function_table_t *,
                                  int width, const gavl_video_options_t * opt);

@@ -2329,8 +2329,8 @@ int main(int argc, char ** argv)
       
       fprintf(stderr, "%s *************\n", tmp2);
 
-      //      gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
-      gavl_video_options_set_quality(opt, 5);
+      gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
+      //      gavl_video_options_set_quality(opt, 5);
       gavl_video_frame_clear(output_frame, &output_format);
       
       if(gavl_video_converter_init(cnv, &input_format, &output_format) <= 0)
@@ -2349,7 +2349,23 @@ int main(int argc, char ** argv)
       write_file(filename_buffer,
                  output_frame, &output_format);
       fprintf(stderr, "Wrote %s\n", filename_buffer);
+
+      /* HQ */
       
+      gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C_HQ);
+      
+      gavl_video_frame_clear(output_frame, &output_format);
+      sprintf(filename_buffer, "%s_to_%s_hq.png", tmp1, tmp2);
+      if(gavl_video_converter_init(cnv, &input_format, &output_format) == -1)
+        fprintf(stderr, "No High Quality Conversion defined yet\n");
+      else
+        {
+        fprintf(stderr, "High Quality Version:    ");
+        gavl_video_convert(cnv, input_frame, output_frame);
+        }
+      write_file(filename_buffer,
+                 output_frame, &output_format);
+      fprintf(stderr, "Wrote %s\n", filename_buffer);
       
       /* Now, initialize with MMX */
 
