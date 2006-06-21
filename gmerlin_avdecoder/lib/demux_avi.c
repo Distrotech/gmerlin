@@ -1235,7 +1235,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
         keep_going = 0;
         break;
       case ID_INDX:
-        fprintf(stderr, "Found video indx\n");
+        //        fprintf(stderr, "Found video indx\n");
         if(!read_indx(ctx->input, &avi_vs->indx, ch))
           return 0;
 

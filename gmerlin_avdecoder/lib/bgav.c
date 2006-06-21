@@ -281,9 +281,12 @@ void bgav_stop(bgav_t * b)
   b->is_running = 0;
   }
 
-void bgav_select_track(bgav_t * b, int track)
+int bgav_select_track(bgav_t * b, int track)
   {
 //  fprintf(stderr, "bgav_select_track %d\n", track);
+
+  if((track < 0) || (track >= b->tt->num_tracks))
+    return 0;
   
   if(b->is_running)
     bgav_stop(b);
@@ -303,6 +306,7 @@ void bgav_select_track(bgav_t * b, int track)
     bgav_track_table_select_track(b->tt, track);
     b->demuxer->demuxer->select_track(b->demuxer, track);
     }
+  return 1;
   }
 
 int bgav_start(bgav_t * b)

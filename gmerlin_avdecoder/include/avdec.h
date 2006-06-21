@@ -907,12 +907,13 @@ const bgav_metadata_t * bgav_get_metadata(bgav_t * bgav,int track);
  *  \brief Select a track
  *  \param bgav A decoder instance
  *  \param track Track index (starts with 0)
+ *  \returns 0 if there was no such track, 1 else
  *
  *  Select the track. All subsequent function calls will refer to the track you
  *  selected.
  */
 
-void bgav_select_track(bgav_t * bgav, int track);
+int bgav_select_track(bgav_t * bgav, int track);
 
 /** \defgroup streams Query and select streams
  * \ingroup decoding

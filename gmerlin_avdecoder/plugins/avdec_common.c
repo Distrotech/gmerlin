@@ -506,7 +506,8 @@ int bg_avdec_set_track(void * priv, int track)
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
   
-  bgav_select_track(avdec->dec, track);
+  if(!bgav_select_track(avdec->dec, track))
+    return 0;
   avdec->current_track = &(avdec->track_info[track]);
   
   str = bgav_get_description(avdec->dec);
