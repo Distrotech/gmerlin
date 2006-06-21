@@ -66,8 +66,7 @@ static void set_plugin_parameter(bg_parameter_info_t * ret,
   {
   int num_plugins, i;
   const bg_plugin_info_t * info;
-  bg_plugin_handle_t * h;
-
+  
   num_plugins =
     bg_plugin_registry_get_num_plugins(reg, type_mask, flag_mask);
 
@@ -89,13 +88,11 @@ static void set_plugin_parameter(bg_parameter_info_t * ret,
 
     ret->multi_labels[i] = bg_strdup(NULL, info->long_name);
 
-    h = bg_plugin_load(reg, info);
-    if(h->plugin->get_parameters)
+    if(info->parameters)
       {
       ret->multi_parameters[i] =
-        bg_parameter_info_copy_array(h->plugin->get_parameters(h->priv));
+        bg_parameter_info_copy_array(info->parameters);
       }
-    bg_plugin_unref(h);
     }
   }
 
@@ -119,6 +116,7 @@ static bg_parameter_info_t parameters_input[] =
       val_max:     { val_i: 100000 },
       val_default: { val_i: 1 }
     },
+    { /* End of parameters */ }
   };
 
 static bg_parameter_info_t parameters_input_still[] =
@@ -132,13 +130,13 @@ static bg_parameter_info_t parameters_input_still[] =
       val_default: { val_time: 0 },
       help_string:  "Time to pass until the next track will be selected. 0 means infinite."
     },
+    { /* End of parameters */ }
   };
 
 
 typedef struct
   {
   bg_track_info_t track_info;
-  bg_parameter_info_t * parameters;
   bg_plugin_registry_t * plugin_reg;
   
   int timescale;
@@ -164,26 +162,12 @@ typedef struct
 
 static bg_parameter_info_t * get_parameters_input(void * priv)
   {
-  input_t * inp = (input_t *)priv;
-  inp->parameters =
-    calloc(sizeof(parameters_input)/sizeof(parameters_input[0])+1,
-           sizeof(*inp->parameters));
-  
-  bg_parameter_info_copy(&inp->parameters[0], &parameters_input[0]);
-  bg_parameter_info_copy(&inp->parameters[1], &parameters_input[1]);
-
-  return inp->parameters;
+  return parameters_input;
   }
 
 static bg_parameter_info_t * get_parameters_input_still(void * priv)
   {
-  input_t * inp = (input_t *)priv;
-  inp->parameters =
-    calloc(sizeof(parameters_input_still)/sizeof(parameters_input_still[0])+1,
-           sizeof(*inp->parameters));
-  
-  bg_parameter_info_copy(&inp->parameters[0], &parameters_input_still[0]);
-  return inp->parameters;
+  return parameters_input_still;
   }
 
 static void set_parameter_input(void * priv, char * name,
@@ -202,17 +186,6 @@ static void set_parameter_input(void * priv, char * name,
     {
     inp->frame_duration = val->val_i;
     }
-  
-  }
-
-static void set_parameter_input_still(void * priv, char * name,
-                                      bg_parameter_value_t * val)
-  {
-  input_t * inp = (input_t *)priv;
-
-  if(!name)
-    return;
-
   else if(!strcmp(name, "display_time"))
     {
     inp->display_time = val->val_time;
@@ -512,12 +485,7 @@ static void close_input(void * priv)
 
 static void destroy_input(void* priv)
   {
-  input_t * inp = (input_t *)priv;
-
   close_input(priv);
-  
-  if(inp->parameters)
-    bg_parameter_info_destroy_array(inp->parameters);
   free(priv);
   }
 
@@ -530,7 +498,7 @@ static bg_input_plugin_t input_plugin =
       extensions:     NULL, /* Filled in later */
       type:           BG_PLUGIN_INPUT,
       flags:          BG_PLUGIN_FILE,
-      priority:       BG_PLUGIN_PRIORITY_MAX,
+      priority:       5,
       create:         NULL,
       destroy:        destroy_input,
       get_parameters: get_parameters_input,
@@ -577,7 +545,7 @@ static bg_input_plugin_t input_plugin_stills =
       create:         NULL,
       destroy:        destroy_input,
       get_parameters: get_parameters_input_still,
-      set_parameter:  set_parameter_input_still
+      set_parameter:  set_parameter_input
     },
     open:          open_stills_input,
 
@@ -636,19 +604,23 @@ static bg_plugin_info_t * get_input_info(bg_plugin_registry_t * reg,
   ret->priority  =  plugin->common.priority;
   ret->type  =  plugin->common.type;
   ret->flags =  plugin->common.flags;
-  
-  
   return ret;
   }
 
 bg_plugin_info_t * bg_singlepic_input_info(bg_plugin_registry_t * reg)
   {
-  return get_input_info(reg, &input_plugin);
+  bg_plugin_info_t * ret;
+  ret = get_input_info(reg, &input_plugin);
+  ret->parameters = bg_parameter_info_copy_array(parameters_input);
+  return ret;
   }
 
 bg_plugin_info_t * bg_singlepic_stills_input_info(bg_plugin_registry_t * reg)
   {
-  return get_input_info(reg, &input_plugin_stills);
+  bg_plugin_info_t * ret;
+  ret = get_input_info(reg, &input_plugin_stills);
+  ret->parameters = bg_parameter_info_copy_array(parameters_input_still);
+  return ret;
   }
 
 
@@ -724,24 +696,30 @@ typedef struct
     
   } encoder_t;
 
-static bg_parameter_info_t * get_parameters_encoder(void * priv)
+static bg_parameter_info_t *
+create_encoder_parameters(bg_plugin_registry_t * plugin_reg)
   {
   int i;
+  bg_parameter_info_t * ret;
+  ret =
+    calloc(sizeof(parameters_encoder)/sizeof(parameters_encoder[0])+1,
+           sizeof(*ret));
+  
+  for(i = 0; i < sizeof(parameters_encoder)/sizeof(parameters_encoder[0]); i++)
+    {
+    bg_parameter_info_copy(&ret[i], &parameters_encoder[i]);
+    }
+  set_plugin_parameter(&ret[0],
+                       plugin_reg, BG_PLUGIN_IMAGE_WRITER, BG_PLUGIN_FILE);
+  return ret;
+  }
+
+static bg_parameter_info_t * get_parameters_encoder(void * priv)
+  {
   encoder_t * enc = (encoder_t *)priv;
   
   if(!enc->parameters)
-    {
-    enc->parameters =
-      calloc(sizeof(parameters_encoder)/sizeof(parameters_encoder[0])+1,
-             sizeof(*enc->parameters));
-    
-    for(i = 0; i < sizeof(parameters_encoder)/sizeof(parameters_encoder[0]); i++)
-      {
-      bg_parameter_info_copy(&enc->parameters[i], &parameters_encoder[i]);
-      }
-    set_plugin_parameter(&enc->parameters[0],
-                         enc->plugin_reg, BG_PLUGIN_IMAGE_WRITER, BG_PLUGIN_FILE);
-    }
+    enc->parameters = create_encoder_parameters(enc->plugin_reg);
   return enc->parameters;
   }
 
@@ -807,8 +785,8 @@ static const char * get_extension_encoder(void * data)
     e->extension_mask = bg_sprintf("-%%0%dlld%s", e->frame_digits, plugin_extension);
     e->extension      = bg_sprintf(e->extension_mask, (int64_t)e->frame_offset);
 
-    fprintf(stderr, "Extension mask: %s, extension: %s\n",
-            e->extension_mask,e->extension);
+    //    fprintf(stderr, "Extension mask: %s, extension: %s\n",
+    //            e->extension_mask,e->extension);
     }
   return e->extension;
   }
@@ -1016,7 +994,8 @@ bg_plugin_info_t * bg_singlepic_encoder_info(bg_plugin_registry_t * reg)
   ret->type     = encoder_plugin.common.type;
   ret->flags    = encoder_plugin.common.flags;
   ret->priority = encoder_plugin.common.priority;
-   
+  ret->parameters = create_encoder_parameters(reg);
+  
   return ret;
   }
 

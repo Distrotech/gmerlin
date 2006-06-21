@@ -182,16 +182,22 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
      !ctx->player->track_info->num_video_streams &&
      !ctx->player->track_info->num_still_streams)
     {
-    fprintf(stderr,
-            "Stream has neither audio nor video, skipping\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+            "Stream has neither audio nor video, skipping");
     return 0;
     }
   
   /* Set the track if neccesary */
   
   if(ctx->plugin->set_track)
-    ctx->plugin->set_track(ctx->priv, track_index);
-
+    {
+    if(!ctx->plugin->set_track(ctx->priv, track_index))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Cannot select track, skipping");
+      return 0;
+      }
+    }
   /* Check for bypass mode */
   
   if(do_bypass && (ctx->plugin_handle->info->flags & BG_PLUGIN_BYPASS))

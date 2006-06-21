@@ -41,7 +41,7 @@ struct bg_gtk_plugin_widget_multi_s
   GtkWidget * down_button;
   
   GtkWidget * treeview;
-  GtkWidget * table;
+  GtkWidget * widget;
   GtkWidget * mimetypes;
   GtkWidget * extensions;
   
@@ -270,7 +270,9 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
   GtkCellRenderer *renderer;
   GtkWidget * label;
   GtkWidget * scrolled;
+  GtkWidget * table;
   GtkTreeSelection * selection;
+  GtkWidget * hbox;
   
   const bg_plugin_info_t * info;
   
@@ -386,39 +388,48 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
     
   /* Pack stuff */
   
-  ret->table = gtk_table_new(4, 3, 0);
-  gtk_container_set_border_width(GTK_CONTAINER(ret->table), 5);
-  gtk_table_set_row_spacings(GTK_TABLE(ret->table), 5);
-  gtk_table_set_col_spacings(GTK_TABLE(ret->table), 5);
- 
-  gtk_table_attach_defaults(GTK_TABLE(ret->table), scrolled, 0, 1, 0, 4);
+  table = gtk_table_new(4, 2, 0);
+  gtk_container_set_border_width(GTK_CONTAINER(table), 5);
+  gtk_table_set_row_spacings(GTK_TABLE(table), 5);
+  gtk_table_set_col_spacings(GTK_TABLE(table), 5);
 
-  gtk_table_attach_defaults(GTK_TABLE(ret->table),
-                            ret->config_button, 1, 2, 0, 1);
-  gtk_table_attach_defaults(GTK_TABLE(ret->table),
-                            ret->info_button, 1, 2, 1, 2);
-  gtk_table_attach_defaults(GTK_TABLE(ret->table),
-                            ret->up_button, 1, 2, 2, 3);
-  gtk_table_attach_defaults(GTK_TABLE(ret->table),
-                            ret->down_button, 1, 2, 3, 4);
+  
+  
+  //   gtk_table_attach_defaults(GTK_TABLE(table), scrolled, 0, 1, 0, 5);
+
+  gtk_table_attach(GTK_TABLE(table),
+                   ret->config_button, 0, 1, 0, 1, GTK_FILL, GTK_SHRINK, 0, 0);
+  gtk_table_attach(GTK_TABLE(table),
+                   ret->info_button, 0, 1, 1, 2, GTK_FILL, GTK_SHRINK, 0, 0);
+  gtk_table_attach(GTK_TABLE(table),
+                   ret->up_button, 0, 1, 2, 3, GTK_FILL, GTK_SHRINK, 0, 0);
+  gtk_table_attach(GTK_TABLE(table),
+                   ret->down_button, 0, 1, 3, 4, GTK_FILL, GTK_SHRINK, 0, 0);
     
   label = gtk_label_new("Mimetypes");
   gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
   gtk_widget_show(label);
-  gtk_table_attach_defaults(GTK_TABLE(ret->table), label, 2, 3, 0, 1);
-  gtk_table_attach_defaults(GTK_TABLE(ret->table), ret->mimetypes, 2, 3, 1, 2);
+  gtk_table_attach(GTK_TABLE(table), label, 1, 2, 0, 1, GTK_FILL|GTK_EXPAND,
+                   GTK_SHRINK, 0, 0);
+  gtk_table_attach(GTK_TABLE(table), ret->mimetypes, 1, 2, 1, 2, GTK_FILL|GTK_EXPAND,
+                   GTK_SHRINK, 0, 0);
   
   label = gtk_label_new("Extensions");
   gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
   gtk_widget_show(label);
 
-  gtk_table_attach_defaults(GTK_TABLE(ret->table),
-                            label, 2, 3, 2, 3);
-  gtk_table_attach_defaults(GTK_TABLE(ret->table),
-                            ret->extensions, 2, 3, 3, 4);
+  gtk_table_attach(GTK_TABLE(table), label, 1, 2, 2, 3, GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
+  gtk_table_attach(GTK_TABLE(table),
+                   ret->extensions, 1, 2, 3, 4, GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
   
-  gtk_widget_show(ret->table);
-    
+  gtk_widget_show(table);
+
+  hbox = gtk_hpaned_new();
+  
+  gtk_paned_add1(GTK_PANED(hbox), scrolled);
+  gtk_paned_add2(GTK_PANED(hbox), table);
+  gtk_widget_show(hbox);
+  ret->widget = hbox;
   /* Make things insensitive, because nothing is selected so far */
 
   gtk_widget_set_sensitive(ret->mimetypes, 0);
@@ -432,7 +443,7 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
 GtkWidget *
 bg_gtk_plugin_widget_multi_get_widget(bg_gtk_plugin_widget_multi_t * w)
   {
-  return w->table;
+  return w->widget;
   }
 
 void bg_gtk_plugin_widget_multi_destroy(bg_gtk_plugin_widget_multi_t * w)

@@ -359,25 +359,25 @@ static gboolean idle_callback(gpointer data)
         free(arg_str);
         break;
       case BG_TRANSCODER_MSG_NUM_AUDIO_STREAMS:
-        fprintf(stderr, "BG_TRANSCODER_MSG_NUM_AUDIO_STREAMS\n");
+        //        fprintf(stderr, "BG_TRANSCODER_MSG_NUM_AUDIO_STREAMS\n");
         break;
       case BG_TRANSCODER_MSG_AUDIO_FORMAT:
-        fprintf(stderr, "BG_TRANSCODER_MSG_AUDIO_FORMAT\n");
+        //        fprintf(stderr, "BG_TRANSCODER_MSG_AUDIO_FORMAT\n");
         break;
       case BG_TRANSCODER_MSG_AUDIO_FILE:
-        fprintf(stderr, "BG_TRANSCODER_MSG_AUDIO_FILE\n");
+        //        fprintf(stderr, "BG_TRANSCODER_MSG_AUDIO_FILE\n");
         break;
       case BG_TRANSCODER_MSG_NUM_VIDEO_STREAMS:
-        fprintf(stderr, "BG_TRANSCODER_MSG_NUM_VIDEO_STREAMS\n");
+        //        fprintf(stderr, "BG_TRANSCODER_MSG_NUM_VIDEO_STREAMS\n");
         break;
       case BG_TRANSCODER_MSG_VIDEO_FORMAT:
-        fprintf(stderr, "BG_TRANSCODER_MSG_VIDEO_FORMAT\n");
+        //        fprintf(stderr, "BG_TRANSCODER_MSG_VIDEO_FORMAT\n");
         break;
       case BG_TRANSCODER_MSG_VIDEO_FILE:
-        fprintf(stderr, "BG_TRANSCODER_MSG_VIDEO_FILE\n");
+        //        fprintf(stderr, "BG_TRANSCODER_MSG_VIDEO_FILE\n");
         break;
       case BG_TRANSCODER_MSG_FILE:
-        fprintf(stderr, "BG_TRANSCODER_MSG_FILE\n");
+        //        fprintf(stderr, "BG_TRANSCODER_MSG_FILE\n");
         break;
       case BG_TRANSCODER_MSG_PROGRESS:
         //        fprintf(stderr, "BG_TRANSCODER_MSG_PROGRESS\n");
@@ -393,7 +393,7 @@ static gboolean idle_callback(gpointer data)
                                       percentage_done);
         break;
       case BG_TRANSCODER_MSG_FINISHED:
-        fprintf(stderr, "BG_TRANSCODER_MSG_FINISHED\n");
+        //        fprintf(stderr, "BG_TRANSCODER_MSG_FINISHED\n");
 
         finish_transcoding(win);
         
@@ -410,7 +410,7 @@ static gboolean idle_callback(gpointer data)
           gtk_widget_set_sensitive(win->stop_button, 0);
           gtk_widget_set_sensitive(win->actions_menu.stop_item, 0);
           bg_msg_queue_unlock_read(win->msg_queue);
-          fprintf(stderr, "start_transcode failed\n");
+          //          fprintf(stderr, "start_transcode failed\n");
           return TRUE;
           }
         else

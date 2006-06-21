@@ -2055,9 +2055,7 @@ static int open_input(bg_transcoder_t * ret)
                                                    ret->track);
 
   if(ret->in_plugin->set_track)
-    {
     ret->in_plugin->set_track(ret->in_handle->priv, ret->track);
-    }
   return 1;
   fail:
   return 0;
