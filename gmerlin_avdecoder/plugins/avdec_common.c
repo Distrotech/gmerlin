@@ -157,6 +157,8 @@ bg_track_info_t * bg_avdec_get_track_info(void * priv, int track)
   {
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
+  if((track < 0) || (track >= avdec->num_tracks))
+    return (bg_track_info_t*)0;
   return &(avdec->track_info[track]);
   }
 

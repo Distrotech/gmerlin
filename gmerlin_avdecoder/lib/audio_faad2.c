@@ -134,10 +134,9 @@ static int decode_frame(bgav_stream_t * s)
   /*
    * Dirty trick: Frames from some mp4 files are randomly padded with
    * one byte, padding bits are (hopefully always) set to zero.
-   * Doing this cleanly would require heavy changes in the mp4 demuxer
-   * code.
+   * This enables playback of BigBounc1960_256kb.mp4
    */
-#if 0
+#if 1
   if(*priv->data_ptr == 0x00)
     {
     priv->data_ptr++;

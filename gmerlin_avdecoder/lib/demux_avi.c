@@ -1092,7 +1092,7 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
     switch(ch->ckID)
       {
       case ID_STRF:
-        //        fprintf(stderr, "Found format %d bytes\n", ch.ckSize);
+        //        fprintf(stderr, "Found format %d bytes\n", ch->ckSize);
         buf = malloc(ch->ckSize);
         if(bgav_input_read_data(ctx->input, buf, ch->ckSize) < ch->ckSize)
           return 0;
@@ -1196,11 +1196,12 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
                 
         if((ch->ckSize > 40) && (bg_vs->fourcc != BGAV_MK_FOURCC('M','J','P','G')))
           {
-          //          fprintf(stderr, "Adding extradata %d bytes\n",
-          //                  ch->ckSize - 40);
           bg_vs->ext_size = ch->ckSize - 40;
           bg_vs->ext_data = calloc(bg_vs->ext_size + 16, 1);
           memcpy(bg_vs->ext_data, pos, bg_vs->ext_size);
+          //          fprintf(stderr, "Adding extradata %d bytes\n",
+          //                  ch->ckSize - 40);
+          bgav_hexdump(bg_vs->ext_data, bg_vs->ext_size, 16);
           }
 
         /* Add palette if depth <= 8 */
@@ -1399,7 +1400,7 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
       case ID_STRF:
         /* Format chunk can be skipped */
         bgav_input_skip(ctx->input, PADD(ch->ckSize));
-        fprintf(stderr, "Skipping format chunk %d bytes\n", ch->ckSize);
+        //        fprintf(stderr, "Skipping format chunk %d bytes\n", ch->ckSize);
         break;
       case ID_STRD:
         //        fprintf(stderr, "Found data %d bytes\n", ch->ckSize);
@@ -1597,7 +1598,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
     {
     if(!bgav_input_read_fourcc(ctx->input, &fourcc))
       {
-      fprintf(stderr, "EOF during header parsing\n");
+      //      fprintf(stderr, "EOF during header parsing\n");
       goto fail;
       }
     if(fourcc != ID_STRL)
@@ -1668,7 +1669,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
         p->info = bgav_RIFFINFO_read_without_header(ctx->input, ch.ckSize-4);
         break;
       default:
-#if 1
+#if 0
         fprintf(stderr, "Skipping unknown chunk\n");
         bgav_dump_fourcc(fourcc);
         fprintf(stderr, "\n");
@@ -1694,7 +1695,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
     p->movi_size =  ch.ckSize - 4;
   else
     {
-    fprintf(stderr, "Warning: MOVI Atom has zero size, seeking will be impossible\n");
+    //    fprintf(stderr, "Warning: MOVI Atom has zero size, seeking will be impossible\n");
     if(ctx->input->total_bytes)
       p->movi_size = ctx->input->total_bytes - p->movi_start;
     }
@@ -1839,7 +1840,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
   
   if(ctx->input->position + 8 >= priv->movi_start + priv->movi_size)
     {
-    fprintf(stderr, "next_packet_avi: EOF 1\n");
+    //    fprintf(stderr, "next_packet_avi: EOF 1\n");
     return 0;
     }
   while(!s)
@@ -1858,10 +1859,10 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
 
     if(ch.ckID == BGAV_MK_FOURCC('L','I','S','T'))
       {
-      fprintf(stderr, "Got list chunk\n");
+      //      fprintf(stderr, "Got list chunk\n");
       bgav_input_read_fourcc(ctx->input, &fourcc);
-      bgav_dump_fourcc(fourcc);
-      fprintf(stderr, "\n");
+      //      bgav_dump_fourcc(fourcc);
+      //      fprintf(stderr, "\n");
       }
     else if(ch.ckID == BGAV_MK_FOURCC('J','U','N','K'))
       {
