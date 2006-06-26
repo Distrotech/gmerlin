@@ -60,7 +60,7 @@ static void set_audio_encoder(const bg_plugin_info_t * info, void * data)
 static void set_video_encoder(const bg_plugin_info_t * info, void * data)
   {
   plugin_window_t * w = (plugin_window_t*)data;
-  bg_plugin_registry_set_default(w->plugin_reg, BG_PLUGIN_ENCODER_VIDEO, info->name);
+  bg_plugin_registry_set_default(w->plugin_reg, BG_PLUGIN_ENCODER_VIDEO | BG_PLUGIN_ENCODER, info->name);
   encoder_widget_update_sensitive(&w->encoders);
   }
 

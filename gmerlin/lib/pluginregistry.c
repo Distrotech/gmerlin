@@ -354,8 +354,8 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
           {
           end->next = new_info;
           end = end->next;
-          end->next = NULL;
           }
+        end->next = NULL;
         continue;
         }
       }
@@ -1323,7 +1323,7 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
         else
           *error_msg = bg_sprintf("Unknown error");
 
-        fprintf(stderr, "Error message: %s\n", *error_msg);
+        //        fprintf(stderr, "Error message: %s\n", *error_msg);
         
         return 0;
         }

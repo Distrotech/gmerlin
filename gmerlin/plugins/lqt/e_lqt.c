@@ -119,8 +119,7 @@ static int open_lqt(void * data, const char * filename,
     e->filename = bg_strdup(e->filename, filename);
 
   e->file = lqt_open_write(e->filename, e->file_type);
-
-  
+  //  fprintf(stderr, "lqt_open_write %d\n", e->file_type);
   if(!e->file)
     {
     e->error_msg = bg_sprintf("Cannot open file %s", e->filename);
@@ -224,11 +223,6 @@ static int start_lqt(void * data)
     lqt_gavl_get_video_format(e->file,
                               i,
                               &(e->video_streams[i].format));
-    }
-  
-  if(e->file_type == LQT_FILE_AVI)
-    {
-    quicktime_set_avi(e->file, 1);
     }
   return 1;
   }
