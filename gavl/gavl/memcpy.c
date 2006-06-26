@@ -41,9 +41,12 @@
 
 #include <inttypes.h>
 
+#if 0
 #if defined (ARCH_PPC) && !defined (HOST_OS_DARWIN)
 #include "ppcasm_string.h"
 #endif
+#endif
+
 
 #ifdef HAVE_SYS_TIMES_H
 #include <sys/times.h>
@@ -463,7 +466,7 @@ void gavl_init_memcpy()
   if(mmx_env && !strcasecmp(mmx_env, "AUTO"))
     benchmark = 1;
   
-  fprintf(stderr, "gavl_init_memcpy\n");
+  //  fprintf(stderr, "gavl_init_memcpy\n");
   
   config_flags = gavl_accel_supported();
   
@@ -525,7 +528,12 @@ void gavl_init_memcpy()
     }
   
   gavl_memcpy = memcpy_method[best].function;
-  fprintf(stderr, "Using %s memcpy implementation. To make this permanent,\nset the environment variable GAVL_MEMCPY to %s\n", memcpy_method[best].name, memcpy_method[best].name);
+
+  if(benchmark)
+    {
+    fprintf(stderr,
+            "Using %s memcpy implementation. To make this permanent,\nset the environment variable GAVL_MEMCPY to %s\n", memcpy_method[best].name, memcpy_method[best].name);
+    }
   free(buf1);
   free(buf2);
 }
