@@ -515,11 +515,11 @@ void main_menu_set_audio_info(main_menu_t * m, int stream,
   {
   char * label;
   GtkWidget * w;
-  if(info && language)
+  if(info && *language)
     label = bg_sprintf("%s [%s]", info, bg_get_language_name(language));
   else if(info)
     label = bg_sprintf("%s", info);
-  else if(language)
+  else if(*language)
     label = bg_sprintf("Stream %d [%s]", stream+1, bg_get_language_name(language));
   else
     label = bg_sprintf("Stream %d", stream+1);

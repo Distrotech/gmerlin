@@ -20,10 +20,12 @@
 #include <string.h>
 #include <plugin.h>
 #include <utils.h>
+#include <log.h>
 
 #include "lqt_common.h"
 #include "lqtgavl.h"
 
+#define LOG_DOMAIN "e_lqt"
 
 static bg_parameter_info_t stream_parameters[] = 
   {
@@ -267,9 +269,9 @@ static void close_lqt(void * data, int do_delete)
     filename_final = bg_strdup((char*)0, e->filename);
     pos = strrchr(filename_final, '.');
     *pos = '\0';
-    fprintf(stderr, "Making streamable....");
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Making streamable....");
     quicktime_make_streamable(e->filename, filename_final);
-    fprintf(stderr, "done\n");
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Making streamable....done");
     remove(e->filename);
     free(filename_final);
     }

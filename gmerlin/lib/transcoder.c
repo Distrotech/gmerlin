@@ -1133,7 +1133,7 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   if(!samples_decoded)
     {
     s->com.status = STREAM_STATE_FINISHED;
-    fprintf(stderr, "Audio EOF\n");
+    //    fprintf(stderr, "Audio EOF\n");
     return;
     }
 

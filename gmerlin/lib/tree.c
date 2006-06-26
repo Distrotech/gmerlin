@@ -1098,7 +1098,12 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
     }
   track_info = input_plugin->get_track_info(ret->priv,
                                             t->com.current_entry->index);
-  
+  if(!track_info)
+    {
+    error_message = bg_sprintf("Selecting track %d for %s failed",
+           t->com.current_entry->index+1, t->com.current_entry->location);
+    goto fail;
+    }
   bg_album_update_entry(t->com.current_album, t->com.current_entry, track_info);
 
   bg_album_common_set_auth_info(&(t->com), t->com.current_entry);
