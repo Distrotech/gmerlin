@@ -778,8 +778,8 @@ void gavl_volume_control_apply(gavl_volume_control_t *ctrl,
     of gavl, some low-level functionality can be provided
 */
  
-/*! \ingroup peak_detector
- *  \brief Opaque structure for a volume control
+/*! \ingroup peak_detection
+ *  \brief Opaque structure for peak detector
  *
  * You don't want to know what's inside.
  */
@@ -788,21 +788,21 @@ typedef struct gavl_peak_detector_s gavl_peak_detector_t;
   
 /* Create / destroy */
 
-/*! \ingroup peak_detector
+/*! \ingroup peak_detection
  *  \brief Create peak detector
  *  \returns A newly allocated peak detector
  */
   
 gavl_peak_detector_t * gavl_peak_detector_create();
 
-/*! \ingroup peak_detector
+/*! \ingroup peak_detection
  *  \brief Destroys a peak detector and frees all associated memory
  *  \param pd A peak detector
  */
 
 void gavl_peak_detector_destroy(gavl_peak_detector_t *pd);
 
-/*! \ingroup peak_detector
+/*! \ingroup peak_detection
  *  \brief Set format for a peak detector
  *  \param pd A peak detector
  *  \param format The format subsequent frames will be passed with
@@ -814,7 +814,7 @@ void gavl_peak_detector_destroy(gavl_peak_detector_t *pd);
 void gavl_peak_detector_set_format(gavl_peak_detector_t *pd,
                                     gavl_audio_format_t * format);
 
-/*! \ingroup peak_detector
+/*! \ingroup peak_detection
  *  \brief Feed the peak detector with a new frame
  *  \param pd A peak detector
  *  \param frame An audio frame
@@ -823,7 +823,7 @@ void gavl_peak_detector_set_format(gavl_peak_detector_t *pd,
 void gavl_peak_detector_update(gavl_peak_detector_t *pd,
                               gavl_audio_frame_t * frame);
   
-/*! \ingroup peak_detector
+/*! \ingroup peak_detection
  *  \brief Get the peak volume seen so far
  *  \param pd A peak detector
  *  \param min Returns minimum amplitude
@@ -837,7 +837,7 @@ void gavl_peak_detector_update(gavl_peak_detector_t *pd,
 void gavl_peak_detector_get_peak(gavl_peak_detector_t * pd,
                                  double * min, double * max);
 
-/*! \ingroup peak_detector
+/*! \ingroup peak_detection
  *  \brief Reset a peak detector
  *  \param pd A peak detector
  */
