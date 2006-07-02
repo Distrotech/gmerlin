@@ -35,6 +35,8 @@
 #include <utils.h>
 #include <charset.h>
 
+// #undef FT_STROKER_H
+
 /* Text alignment */
 
 #define JUSTIFY_CENTER 0
@@ -237,13 +239,15 @@ static void adjust_bbox(cache_entry_t * glyph, int dst_x, int dst_y, bbox_t * re
     ret->ymax = dst_y + glyph->bbox.ymax;
   }
 
+#define MY_MIN(x, y) (x < y ? x : y)
+
 static void render_rgba_32(bg_text_renderer_t * r, cache_entry_t * glyph,
                            gavl_video_frame_t * frame,
                            int * dst_x, int * dst_y)
   {
   FT_BitmapGlyph bitmap_glyph;
   uint8_t * src_ptr, * dst_ptr, * src_ptr_start, * dst_ptr_start;
-  int i, j, i_tmp;
+  int i, j, i_tmp, jmax;
 #ifdef FT_STROKER_H
   int alpha_i;
 #endif
@@ -266,13 +270,16 @@ static void render_rgba_32(bg_text_renderer_t * r, cache_entry_t * glyph,
   src_ptr_start = bitmap_glyph->bitmap.buffer;
   dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
     frame->strides[0] + (*dst_x + bitmap_glyph->left) * 4;
-  
+
+  jmax = MY_MIN(bitmap_glyph->bitmap.width, 
+                bitmap_glyph->bitmap.pitch);
+    
   for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
     {
     src_ptr = src_ptr_start;
     dst_ptr = dst_ptr_start;
     
-    for(j = 0; j < bitmap_glyph->bitmap.width; j++)
+    for(j = 0; j < jmax; j++)
       {
       i_tmp = ((int)*src_ptr * (int)r->alpha_i) >> 8;
       if(i_tmp > dst_ptr[3])
@@ -290,13 +297,17 @@ static void render_rgba_32(bg_text_renderer_t * r, cache_entry_t * glyph,
   src_ptr_start = bitmap_glyph->bitmap.buffer;
   dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
     frame->strides[0] + (*dst_x + bitmap_glyph->left) * 4;
+
+  jmax = MY_MIN(bitmap_glyph->bitmap.width, 
+                bitmap_glyph->bitmap.pitch);
+  
   
   for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
     {
     src_ptr = src_ptr_start;
     dst_ptr = dst_ptr_start;
     
-    for(j = 0; j < bitmap_glyph->bitmap.width; j++)
+    for(j = 0; j < jmax; j++)
       {
       if(*src_ptr)
         {
@@ -333,7 +344,7 @@ static void render_rgba_64(bg_text_renderer_t * r, cache_entry_t * glyph,
   FT_BitmapGlyph bitmap_glyph;
   uint8_t * src_ptr, * src_ptr_start, * dst_ptr_start;
   uint16_t * dst_ptr;
-  int i, j, i_tmp;
+  int i, j, i_tmp, jmax;
 #ifdef FT_STROKER_H
   int alpha_i;
 #endif
@@ -355,13 +366,16 @@ static void render_rgba_64(bg_text_renderer_t * r, cache_entry_t * glyph,
   src_ptr_start = bitmap_glyph->bitmap.buffer;
   dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
     frame->strides[0] + (*dst_x + bitmap_glyph->left) * 8;
-  
+
+  jmax = MY_MIN(bitmap_glyph->bitmap.width, 
+                bitmap_glyph->bitmap.pitch);
+    
   for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
     {
     src_ptr = src_ptr_start;
     dst_ptr = (uint16_t*)dst_ptr_start;
     
-    for(j = 0; j < bitmap_glyph->bitmap.width; j++)
+    for(j = 0; j < jmax; j++)
       {
       i_tmp = ((int)*src_ptr * (int)r->alpha_i) >> 8;
       if(i_tmp > dst_ptr[3])
@@ -381,13 +395,16 @@ static void render_rgba_64(bg_text_renderer_t * r, cache_entry_t * glyph,
   src_ptr_start = bitmap_glyph->bitmap.buffer;
   dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
     frame->strides[0] + (*dst_x + bitmap_glyph->left) * 8;
+
+  jmax = MY_MIN(bitmap_glyph->bitmap.width, 
+                bitmap_glyph->bitmap.pitch);
   
   for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
     {
     src_ptr = src_ptr_start;
     dst_ptr = (uint16_t*)dst_ptr_start;
     
-    for(j = 0; j < bitmap_glyph->bitmap.width; j++)
+    for(j = 0; j < jmax; j++)
       {
       if(*src_ptr)
         {
@@ -425,7 +442,7 @@ static void render_rgba_float(bg_text_renderer_t * r, cache_entry_t * glyph,
   FT_BitmapGlyph bitmap_glyph;
   uint8_t * src_ptr, * src_ptr_start, * dst_ptr_start;
   float * dst_ptr;
-  int i, j;
+  int i, j, jmax;
   float f_tmp;
 #ifdef FT_STROKER_H
   float alpha_f;
@@ -448,13 +465,25 @@ static void render_rgba_float(bg_text_renderer_t * r, cache_entry_t * glyph,
   src_ptr_start = bitmap_glyph->bitmap.buffer;
   dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
     frame->strides[0] + (*dst_x + bitmap_glyph->left) * 4 * sizeof(float);
-  
+
+#if 0  
+  fprintf(stderr, "render_rgba_float 1: width: %d rows: %d pitch: %d left: %d top: %d\n",
+          bitmap_glyph->bitmap.width,
+          bitmap_glyph->bitmap.rows, 
+          bitmap_glyph->bitmap.pitch,
+          bitmap_glyph->left,
+          bitmap_glyph->top);
+#endif  
+
+  jmax = MY_MIN(bitmap_glyph->bitmap.width, 
+                bitmap_glyph->bitmap.pitch);
+
   for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
     {
     src_ptr = src_ptr_start;
     dst_ptr = (float*)dst_ptr_start;
     
-    for(j = 0; j < bitmap_glyph->bitmap.width; j++)
+    for(j = 0; j < jmax; j++)
       {
       f_tmp = ((float)*src_ptr * r->alpha_f) / 255.0;
       if(f_tmp > dst_ptr[3])
@@ -470,17 +499,28 @@ static void render_rgba_float(bg_text_renderer_t * r, cache_entry_t * glyph,
 #ifdef FT_STROKER_H
   /* Render border */
   bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph);
-
+#if 0
+  fprintf(stderr, "render_rgba_float 1: width: %d rows: %d pitch: %d left: %d top: %d\n",
+          bitmap_glyph->bitmap.width,
+          bitmap_glyph->bitmap.rows, 
+          bitmap_glyph->bitmap.pitch,
+          bitmap_glyph->left,
+          bitmap_glyph->top);
+#endif
+  
   src_ptr_start = bitmap_glyph->bitmap.buffer;
   dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
     frame->strides[0] + (*dst_x + bitmap_glyph->left) * 4 * sizeof(float);
+
+  jmax = MY_MIN(bitmap_glyph->bitmap.width, 
+                bitmap_glyph->bitmap.pitch);
   
   for(i = 0; i < bitmap_glyph->bitmap.rows; i++)
     {
     src_ptr = src_ptr_start;
     dst_ptr = (float*)dst_ptr_start;
     
-    for(j = 0; j < bitmap_glyph->bitmap.width; j++)
+    for(j = 0; j < jmax; j++)
       {
       if(*src_ptr)
         {
@@ -614,7 +654,9 @@ static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
 
   entry->advance_x = entry->glyph->advance.x>>16;
   entry->advance_y = entry->glyph->advance.y>>16;
-  
+
+  //  fprintf(stderr, "advance: %d %d\n", entry->advance_x, entry->advance_y);
+    
   entry->unicode = unicode;
   return entry;
   }

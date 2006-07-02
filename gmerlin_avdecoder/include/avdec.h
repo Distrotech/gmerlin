@@ -389,7 +389,7 @@ void bgav_options_set_default_subtitle_encoding(bgav_options_t* opt,
 /** \ingroup options
  *  \brief Handle DVD chapters as tracks
  *  \param opt Option container
- *  \param 1 to handle DVD chapters like individual tracks, 0 else
+ *  \param chapters_as_tracks 1 to handle DVD chapters like individual tracks, 0 else
  */
 
 void bgav_options_set_dvd_chapters_as_tracks(bgav_options_t* opt,
@@ -398,7 +398,7 @@ void bgav_options_set_dvd_chapters_as_tracks(bgav_options_t* opt,
 /** \ingroup options
  *  \brief Enable dynamic range control
  *  \param opt Option container
- *  \param 1 for enabling dynamic range control.
+ *  \param audio_dynrange 1 for enabling dynamic range control.
  *
  *  This enables dynamic range control for codecs, which supports it.
  *  By default dynamic range control is enabled. Use this function to switch it
@@ -412,7 +412,8 @@ void bgav_options_set_audio_dynrange(bgav_options_t* opt,
 /** \ingroup options
  *  \brief Enable seamless playback
  *  \param opt Option container
- *  \param 1 for enabling seamless playback
+ *  \param seamless 1 for enabling seamless playback
+ *  \note This function does nothing for now
  *
  *  If a source has multiple tracks, we can sometimes switch to the
  *  next track seamlessly (i.e. without closing and reopening the
@@ -428,7 +429,7 @@ void bgav_options_set_seamless(bgav_options_t* opt,
 /** \ingroup options
  *  \brief Enable external subtitle files
  *  \param opt Option container
- *  \param If 1, subtitle files will be seeked for video files. If 2, subtitles
+ *  \param seek_subtitles If 1, subtitle files will be seeked for video files. If 2, subtitles
         will be seeked for all files.
  *
  *  If the input is a regular file, gmerlin_avdecoder can scan the
@@ -1190,7 +1191,7 @@ int bgav_has_subtitle(bgav_t * bgav, int stream);
 /** \ingroup decode
     \brief Decode an overlay subtitle
     \param bgav A decoder instance
-    \param frame The overlay to which the subtitle will be decoded.
+    \param ovl The overlay to which the subtitle will be decoded.
     \param stream Stream index (starting with 0)
     \returns 1 if a subtitle could be decoded, 0 else
 

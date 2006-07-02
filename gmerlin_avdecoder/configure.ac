@@ -1,4 +1,4 @@
-AC_INIT(gmerlin-avdecoder, 0.1.4pre1)
+AC_INIT(gmerlin-avdecoder, 0.1.4)
 AC_CONFIG_SRCDIR([include/avdec.h])
 AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(1.8.5)
@@ -64,7 +64,7 @@ dnl
 
 have_gmerlin="false"
 
-GMERLIN_REQUIRED="0.3.4pre1"
+GMERLIN_REQUIRED="0.3.4"
 
 PKG_CHECK_MODULES(GMERLIN, gmerlin >= $GMERLIN_REQUIRED, have_gmerlin="true",
 have_gmerlin="false")

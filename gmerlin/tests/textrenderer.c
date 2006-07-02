@@ -20,9 +20,9 @@ int main(int argc, char ** argv)
   bg_parameter_value_t val;
   bg_text_renderer_t * r;
 
-  if(argc != 2)
+  if(argc != 3)
     {
-    fprintf(stderr, "usage: %s <font-name>\n", argv[0]);
+    fprintf(stderr, "usage: %s <font-name> <string>\n", argv[0]);
     return 1;
     }
 
@@ -77,7 +77,7 @@ int main(int argc, char ** argv)
   
   /* Render */
 
-  bg_text_renderer_render(r, "EinPferdisstkeinenGurkensalat", &ovl);
+  bg_text_renderer_render(r, argv[2], &ovl);
   
   /* Save png */
 
