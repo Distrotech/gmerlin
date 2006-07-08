@@ -80,25 +80,25 @@ typedef struct
 #if 0
 static void adts_header_dump(adts_header_t * adts)
   {
-  fprintf(stderr, "ADTS\n");
-  fprintf(stderr, "  MPEG Version:          %d\n", adts->mpeg_version);
-  fprintf(stderr, "  Profile:               ");
+  bgav_dprintf( "ADTS\n");
+  bgav_dprintf( "  MPEG Version:          %d\n", adts->mpeg_version);
+  bgav_dprintf( "  Profile:               ");
   
   if(adts->mpeg_version == 2)
     {
     switch(adts->profile)
       {
       case 0:
-        fprintf(stderr, "MPEG-2 AAC Main profile\n");
+        bgav_dprintf( "MPEG-2 AAC Main profile\n");
         break;
       case 1:
-        fprintf(stderr, "MPEG-2 AAC Low Complexity profile (LC)\n");
+        bgav_dprintf( "MPEG-2 AAC Low Complexity profile (LC)\n");
         break;
       case 2:
-        fprintf(stderr, "MPEG-2 AAC Scalable Sample Rate profile (SSR)\n");
+        bgav_dprintf( "MPEG-2 AAC Scalable Sample Rate profile (SSR)\n");
         break;
       case 3:
-        fprintf(stderr, "MPEG-2 AAC (reserved)\n");
+        bgav_dprintf( "MPEG-2 AAC (reserved)\n");
         break;
       }
     }
@@ -107,24 +107,24 @@ static void adts_header_dump(adts_header_t * adts)
     switch(adts->profile)
       {
       case 0:
-        fprintf(stderr, "MPEG-4 AAC Main profile\n");
+        bgav_dprintf( "MPEG-4 AAC Main profile\n");
         break;
       case 1:
-        fprintf(stderr, "MPEG-4 AAC Low Complexity profile (LC)\n");
+        bgav_dprintf( "MPEG-4 AAC Low Complexity profile (LC)\n");
         break;
       case 2:
-        fprintf(stderr, "MPEG-4 AAC Scalable Sample Rate profile (SSR)\n");
+        bgav_dprintf( "MPEG-4 AAC Scalable Sample Rate profile (SSR)\n");
         break;
       case 3:
-        fprintf(stderr, "MPEG-4 AAC Long Term Prediction (LTP)\n");
+        bgav_dprintf( "MPEG-4 AAC Long Term Prediction (LTP)\n");
         break;
       }
     }
-  fprintf(stderr, "  Samplerate:            %d\n", adts->samplerate);
-  fprintf(stderr, "  Channel configuration: %d\n", adts->channel_configuration);
-  fprintf(stderr, "  Frame bytes:           %d\n", adts->frame_bytes);
-  fprintf(stderr, "  Num blocks:            %d\n", adts->num_blocks);
-  fprintf(stderr, "  Samples per block:     %d\n", adts->block_samples);
+  bgav_dprintf( "  Samplerate:            %d\n", adts->samplerate);
+  bgav_dprintf( "  Channel configuration: %d\n", adts->channel_configuration);
+  bgav_dprintf( "  Frame bytes:           %d\n", adts->frame_bytes);
+  bgav_dprintf( "  Num blocks:            %d\n", adts->num_blocks);
+  bgav_dprintf( "  Samples per block:     %d\n", adts->block_samples);
   }
 #endif
 static int adts_header_read(uint8_t * data, adts_header_t * ret)
@@ -191,8 +191,6 @@ static int probe_aac(bgav_input_context_t * input)
 
   if(bgav_input_get_data(input, header, 4) < 4)
     return 0;
-  
-  //  fprintf(stderr, "Probe AAC %08x\n", header);
   
   if(IS_ADIF(header) || IS_ADTS(header))
     return 1;
@@ -314,14 +312,6 @@ static int open_adts(bgav_demuxer_context_t * ctx)
       if(!adts_header_read(buf, &adts))
         break;
       }
-#if 0
-    for(i = 0; i < priv->seek_table_size; i++)
-      {
-      fprintf(stderr, "Pos: %8lld, time: %f\n",
-              priv->seek_table[i].position,
-              gavl_time_to_seconds(priv->seek_table[i].time));
-      }
-#endif
     bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
     ctx->can_seek = 1;
     
@@ -384,13 +374,11 @@ static int open_aac(bgav_demuxer_context_t * ctx,
     
     if(IS_ADTS(header))
       {
-      //      fprintf(stderr, "Found ADTS header\n");
       priv->type = TYPE_ADTS;
       break;
       }
     else if(IS_ADIF(header))
       {
-      //      fprintf(stderr, "Found ADIF header\n");
       priv->type = TYPE_ADIF;
       //    return 0;
       break;
@@ -412,7 +400,6 @@ static int open_aac(bgav_demuxer_context_t * ctx,
     if(bgav_id3v1_probe(ctx->input))
       {
       id3v1 = bgav_id3v1_read(ctx->input);
-      //      fprintf(stderr, "Found ID3V1 tag\n");
       }
     bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
     }
@@ -501,8 +488,6 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
   if(!adts_header_read(buf, &adts))
     return 0;
 
-  //  fprintf(stderr, "next_packet_adts: %d blocks %d bytes\n",
-  //          adts.num_blocks, adts.frame_bytes);
   
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
   

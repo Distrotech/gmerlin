@@ -90,19 +90,16 @@ static int close_function(thandle_t fd)
 
 static tsize_t write_function(thandle_t fd, tdata_t data, tsize_t length)
   {
-  fprintf(stderr,"write_funktion\n");
   return 0;
   }
 
 static int map_file_proc(thandle_t a, tdata_t* b, toff_t* c)
   {
-  fprintf(stderr,"write_funktion\n");
   return 0;
   }
 
 static void unmap_file_proc(thandle_t a, tdata_t b, toff_t c)
   {
-  fprintf(stderr,"write_funktion\n");
   }
 
 static TIFF* open_tiff_mem(char *mode, tiff_t* p)

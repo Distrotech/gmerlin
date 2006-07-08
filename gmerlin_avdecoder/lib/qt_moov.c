@@ -44,7 +44,6 @@ int bgav_qt_moov_read(qt_atom_header_t * h, bgav_input_context_t * input,
       case BGAV_MK_FOURCC('r', 'm', 'r', 'a'):
         if(!bgav_qt_rmra_read(&ch, input, &(ret->rmra)))
           return 0;
-        //        fprintf(stderr, "Found rmra atom\n");
         ret->has_rmra = 1;
         break;
       case BGAV_MK_FOURCC('t', 'r', 'a', 'k'):
@@ -66,8 +65,6 @@ int bgav_qt_moov_read(qt_atom_header_t * h, bgav_input_context_t * input,
           return 0;
         break;
       default:
-        //        fprintf(stderr, "Skipping atom:\n");
-        //        bgav_qt_atom_dump_header(&ch);
         bgav_qt_atom_skip(input, &ch);
         break;
       }

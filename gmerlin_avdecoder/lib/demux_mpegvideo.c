@@ -24,6 +24,8 @@
 #define SEQUENCE_HEADER    0x000001b3
 #define SEQUENCE_EXTENSION 0x000001b5
 
+#define LOG_DOMAIN "mpegvideo"
+
 /* Synchronization routines */
 
 #define IS_START_CODE(h)  ((h&0xffffff00)==0x00000100)
@@ -68,7 +70,7 @@ static int sequence_header_read(bgav_input_context_t * ctx,sequence_header_t * r
 
   if((buffer[6] & 0x20) != 0x20)
     {
-    fprintf(stderr, "missing marker bit!\n");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot read sequence header: missing marker bit");
     return 0;        /* missing marker_bit */
     }
   ret->bitrate = (buffer[4]<<10)|(buffer[5]<<2)|(buffer[6]>>6);
@@ -89,7 +91,7 @@ static int sequence_extension_read(bgav_input_context_t * ctx,
 
   if((buffer[3] & 0x01) != 0x01)
     {
-    fprintf(stderr, "missing marker bit!\n");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot read sequence extension: missing marker bit");
     return 0;        /* missing marker_bit */
     }
   ret->bitrate_ext = ((buffer[2]<<25) | (buffer[3]<<17)) & 0x3ffc0000;
@@ -237,8 +239,6 @@ static int next_packet_mpegvideo(bgav_demuxer_context_t * ctx)
 
   p->data_size = bgav_input_read_data(ctx->input, p->data, BYTES_TO_READ);
   
-  //  fprintf(stderr, "Read packet %d\n", p->data_size);
-  
   if(!p->data_size)
     return 0;
 
@@ -248,7 +248,6 @@ static int next_packet_mpegvideo(bgav_demuxer_context_t * ctx)
     priv->next_packet_time = -1;
     }
   bgav_packet_done_write(p);
-  //  fprintf(stderr, "done\n");
   
   return 1;
   }

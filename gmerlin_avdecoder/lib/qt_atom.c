@@ -47,17 +47,12 @@ int bgav_qt_atom_read_header(bgav_input_context_t * input,
 
   if(!bgav_input_read_fourcc(input, &(h->fourcc)))
     return 0;
-
-  //  fprintf(stderr, "Read atom ");
-  //  bgav_dump_fourcc(h->fourcc);
-    
+  
   if(tmp_32 == 1) /* 64 bit atom */
     {
     if(!bgav_input_read_64_be(input, &(h->size)))
       return 0;
-    //    fprintf(stderr, " (64 bit)");
     }
-  //  fprintf(stderr, "\n");
   return 1;
   }
 
@@ -65,7 +60,6 @@ void bgav_qt_atom_skip(bgav_input_context_t * input,
                        qt_atom_header_t * h)
   {
   int64_t bytes_to_skip = h->size - (input->position - h->start_position);
-  //  fprintf(stderr, "bgav_qt_atom_skip: %lld\n", bytes_to_skip);
   if(bytes_to_skip > 0)
     bgav_input_skip(input, bytes_to_skip);
   
@@ -74,9 +68,9 @@ void bgav_qt_atom_skip(bgav_input_context_t * input,
 
 void bgav_qt_atom_dump_header(qt_atom_header_t * h)
   {
-  fprintf(stderr, "Size:           %lld\n", h->size);
-  fprintf(stderr, "Start Position: %lld\n", h->start_position);
-  fprintf(stderr, "Fourcc:         ");
+  bgav_dprintf( "Size:           %lld\n", h->size);
+  bgav_dprintf( "Start Position: %lld\n", h->start_position);
+  bgav_dprintf( "Fourcc:         ");
   bgav_dump_fourcc(h->fourcc);
-  fprintf(stderr, "\n");
+  bgav_dprintf( "\n");
   }

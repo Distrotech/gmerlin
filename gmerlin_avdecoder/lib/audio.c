@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#define LOG_DOMAIN "audio"
+
 int bgav_num_audio_streams(bgav_t * bgav, int track)
   {
   return bgav->tt->tracks[track].num_audio_streams;
@@ -48,15 +50,22 @@ int bgav_audio_start(bgav_stream_t * stream)
   dec = bgav_find_audio_decoder(stream);
   if(!dec)
     {
-    fprintf(stderr, "No audio decoder found for fourcc ");
-    bgav_dump_fourcc(stream->fourcc);
-    fprintf(stderr, "\n");
+    if(!(stream->fourcc & 0xffff0000))
+      bgav_log(stream->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "No audio decoder found for WAVId 0x%04x", stream->fourcc);
+    else
+      bgav_log(stream->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "No audio decoder found for fourcc %c%c%c%c (0x%08x)",
+               (stream->fourcc & 0xFF000000) >> 24,
+               (stream->fourcc & 0x00FF0000) >> 16,
+               (stream->fourcc & 0x0000FF00) >> 8,
+               (stream->fourcc & 0x000000FF),
+               stream->fourcc);
     return 0;
     }
   ctx = calloc(1, sizeof(*ctx));
   stream->data.audio.decoder = ctx;
   stream->data.audio.decoder->decoder = dec;
-  //  fprintf(stderr, "Opening codec %s\n", dec->name);
 
   if(!stream->timescale && stream->data.audio.format.samplerate)
     stream->timescale = stream->data.audio.format.samplerate;
@@ -113,7 +122,6 @@ int bgav_read_audio(bgav_t * b, gavl_audio_frame_t * frame,
   if(b->eof)
     return 0;
 
-  //  fprintf(stderr, "Read audio %d\n", num_samples);
   result = bgav_audio_decode(s, frame, num_samples);
   s->position += result;
   return result;
@@ -121,10 +129,10 @@ int bgav_read_audio(bgav_t * b, gavl_audio_frame_t * frame,
 
 void bgav_audio_dump(bgav_stream_t * s)
   {
-  fprintf(stderr, "  Bits per sample:   %d\n", s->data.audio.bits_per_sample);
-  fprintf(stderr, "  Block align:       %d\n", s->data.audio.block_align);
-  //  fprintf(stderr, "Bitrate:         %d\n", s->data.audio.bitrate);
-  fprintf(stderr, "Format:\n");
+  bgav_dprintf("  Bits per sample:   %d\n", s->data.audio.bits_per_sample);
+  bgav_dprintf("  Block align:       %d\n", s->data.audio.block_align);
+  //  bgav_dprintf("Bitrate:         %d\n", s->data.audio.bitrate);
+  bgav_dprintf("Format:\n");
   gavl_audio_format_dump(&(s->data.audio.format));
   }
 
@@ -148,21 +156,19 @@ int bgav_audio_skipto(bgav_stream_t * s, gavl_time_t * t)
 
   num_samples = ((int64_t)(s->data.audio.format.samplerate)* (*t - stream_time)) /
     GAVL_TIME_SCALE;
-  
+
   if(num_samples < 0)
-    fprintf(stderr, "audio.c: Cannot skip backwards: Stream time: %f Skip time: %f\n",
+    bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Cannot skip backwards: Stream time: %f Skip time: %f",
             gavl_time_to_seconds(stream_time), gavl_time_to_seconds(*t));
-  else if(num_samples > 0)
+  else
+    if(num_samples > 0)
     samples_skipped = bgav_audio_decode(s, (gavl_audio_frame_t*)0, num_samples);
 
   if(samples_skipped < num_samples)
     {
-    fprintf(stderr, "bgav_audio_skipto: EOF (%d %lld)\n", samples_skipped, num_samples);
     return 0;
     }
-  //  fprintf(stderr, "bgav_audio_skip: Samples: %lld, stream time: %f, time: %f\n",
-  //          num_samples, gavl_time_to_seconds(stream_time), 
-  //          gavl_time_to_seconds(*t));
   
   return 1;
   }

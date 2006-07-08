@@ -38,7 +38,6 @@ int bgav_qt_trak_read(qt_atom_header_t * h, bgav_input_context_t * input,
   {
   qt_atom_header_t ch; /* Child header */
   memcpy(&(ret->h), h, sizeof(*h));
-  //  fprintf(stderr, "reading trak\n");
   while(input->position < h->start_position + h->size)
     {
     if(!bgav_qt_atom_read_header(input, &ch))
@@ -61,7 +60,6 @@ int bgav_qt_trak_read(qt_atom_header_t * h, bgav_input_context_t * input,
 
   bgav_qt_stsd_finalize(&(ret->mdia.minf.stbl.stsd), ret);
   
-  //  fprintf(stderr, "reading trak done\n");
   return 1;
   }
 
@@ -72,10 +70,10 @@ void bgav_qt_trak_free(qt_trak_t * c)
 
 void bgav_qt_trak_dump(qt_trak_t * c)
   {
-  fprintf(stderr, "trak\n");
+  bgav_dprintf( "trak\n");
   bgav_qt_tkhd_dump(&c->tkhd);
   bgav_qt_mdia_dump(&c->mdia);
-  fprintf(stderr, "end of trak\n");
+  bgav_dprintf( "end of trak\n");
   }
 
 int64_t bgav_qt_trak_samples(qt_trak_t * trak)

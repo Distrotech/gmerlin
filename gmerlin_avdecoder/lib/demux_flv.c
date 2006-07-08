@@ -24,6 +24,8 @@
 #define AUDIO_ID 8
 #define VIDEO_ID 9
 
+#define LOG_DOMAIN "flv"
+
 typedef struct
   {
   int init;
@@ -65,11 +67,11 @@ static int flv_tag_read(bgav_input_context_t * ctx, flv_tag * ret)
 #if 0
 static void flv_tag_dump(flv_tag * t)
   {
-  fprintf(stderr, "FLVTAG\n");
-  fprintf(stderr, "  type:      %d\n", t->type);
-  fprintf(stderr, "  data_size: %d\n", t->data_size);
-  fprintf(stderr, "  timestamp: %d\n", t->timestamp);
-  fprintf(stderr, "  reserved:  %d\n", t->reserved);
+  bgav_dprintf("FLVTAG\n");
+  bgav_dprintf("  type:      %d\n", t->type);
+  bgav_dprintf("  data_size: %d\n", t->data_size);
+  bgav_dprintf("  timestamp: %d\n", t->timestamp);
+  bgav_dprintf("  reserved:  %d\n", t->reserved);
   }
 #endif
 
@@ -103,7 +105,6 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
 
   if(!s)
     {
-    //    fprintf(stderr, "Skipping %d unknown bytes\n", t.data_size);
     bgav_input_skip(ctx->input, t.data_size);
     return 1;
     }
@@ -144,8 +145,6 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
             s->data.audio.format.num_channels * (((tmp_8 >> 6) + 2) * 4096 + 16 + 6);
           
           s->data.audio.block_align = (adpcm_bits + 7) / 8;
-          //          fprintf(stderr, "adpcm_bits: %d, block_align: %d\n",
-          //                  adpcm_bits, s->data.audio.block_align);
           break;
         case 2: /* MP3 */
           s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
@@ -158,7 +157,8 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
           break;
         default: /* Set some nonsense so we can finish initializing */
           s->fourcc = BGAV_MK_FOURCC('?', '?', '?', '?');
-          fprintf(stderr, "Unknown audio codec tag: %d\n", flags >> 4);
+          bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Unknown audio codec tag: %d",
+                   flags >> 4);
           break;
         }
       }
@@ -188,17 +188,20 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
              so we set a negative height */
           s->data.video.format.image_height = -vp6_header[3] * 16;
           s->data.video.format.image_width  = vp6_header[4] * 16;
-
+          
           s->data.video.format.frame_height = -s->data.video.format.image_height;
           s->data.video.format.frame_width  = s->data.video.format.image_width;
           
-          //          fprintf(stderr, "vp6 header: ");
-          //          bgav_hexdump(vp6_header, 16, 16);
+          /* Crop */
+          s->data.video.format.image_width  -= (vp6_header[0] >> 4);
+          s->data.video.format.image_height += vp6_header[0] & 0x0f;
+          
 #endif
           break;
         default: /* Set some nonsense so we can finish initializing */
           s->fourcc = BGAV_MK_FOURCC('?', '?', '?', '?');
-          fprintf(stderr, "Unknown video codec tag: %d\n", flags & 0xF);
+          bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Unknown video codec tag: %d",
+                   flags & 0x0f);
           break;
         }
       /* Set the framerate */
@@ -226,7 +229,7 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
 
   if(!packet_size)
     {
-    fprintf(stderr, "Got zero packet size (somethings wrong?)\n");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Got zero packet size (somethings wrong?)");
     return 0;
     }
 
@@ -287,12 +290,8 @@ static int open_flv(bgav_demuxer_context_t * ctx,
   if(!bgav_input_read_32_be(ctx->input, &data_offset))
     goto fail;
 
-  fprintf(stderr, "Flags 0x%02x, data_offset: %d\n", flags, data_offset);
-  
   if(data_offset > ctx->input->position)
     {
-    fprintf(stderr, "Skipping %lld header bytes\n",
-            data_offset - ctx->input->position);
     bgav_input_skip(ctx->input, data_offset - ctx->input->position);
     }
 
@@ -314,24 +313,17 @@ static int open_flv(bgav_demuxer_context_t * ctx,
     {
     pos = ctx->input->position;
     bgav_input_seek(ctx->input, -4, SEEK_END);
-    //    fprintf(stderr, "Pos: %lld, total_bytes: %lld\n",
-    //            ctx->input->position, ctx->input->total_bytes);
     if(bgav_input_read_32_be(ctx->input, &tmp))
       {
-      //      fprintf(stderr, "Last packet size: %d\n", tmp); 
       bgav_input_seek(ctx->input, -((int64_t)tmp+4), SEEK_END);
-      //      fprintf(stderr, "Pos: %lld, total_bytes: %lld\n",
-      //              ctx->input->position, ctx->input->total_bytes);
       
       if(flv_tag_read(ctx->input, &t))
         {
         ctx->tt->current_track->duration =
           gavl_time_unscale(1000, t.timestamp);
-        //        fprintf(stderr, "Got packet:\n");
-        //        flv_tag_dump(&t);
         }
       else
-        fprintf(stderr, "Reading FLV tag failed\n");
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Getting duration from last timestamp failed");
       }
     bgav_input_seek(ctx->input, pos, SEEK_SET);
     }

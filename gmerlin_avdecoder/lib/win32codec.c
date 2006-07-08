@@ -66,15 +66,12 @@ static void * win32_thread(void * data)
       {
       /* Decode */
       
-      //      fprintf(stderr, "Decode %d %d...", t->keyframe, t->data_len);
-
       if(!t->keyframe_seen)
         {
         if(t->keyframe)
           t->keyframe_seen = 1;
         else
           {
-          //          fprintf(stderr, "Skipped\n");
           sem_post(&t->output_ready);
           if(t->video_frame)
             gavl_video_frame_clear(t->video_frame, &t->s->data.video.format);
@@ -86,7 +83,6 @@ static void * win32_thread(void * data)
       if(!t->decode(t))
         t->state = STATE_ERROR;
       sem_post(&t->output_ready);
-      //      fprintf(stderr, "Done\n");
       
       }
     else

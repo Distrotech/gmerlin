@@ -37,7 +37,7 @@ int bgav_qt_fiel_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 
 void bgav_qt_fiel_dump(qt_fiel_t * p)
   {
-  fprintf(stderr, "fiel:\n");
-  fprintf(stderr, "  fields: %d\n", p->fields);
-  fprintf(stderr, "  detail: %d\n", p->detail);
+  bgav_dprintf( "fiel:\n");
+  bgav_dprintf( "  fields: %d\n", p->fields);
+  bgav_dprintf( "  detail: %d\n", p->detail);
   }

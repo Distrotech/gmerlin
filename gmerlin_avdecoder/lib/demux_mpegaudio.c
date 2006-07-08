@@ -27,6 +27,8 @@
 #include <xing.h>
 #include <utils.h>
 
+#define LOG_DOMAIN "mpegaudio"
+
 #define MAX_FRAME_BYTES 2881
 #define PROBE_FRAMES    5
 #define PROBE_BYTES     ((PROBE_FRAMES-1)*MAX_FRAME_BYTES+4)
@@ -105,7 +107,6 @@ static int header_check(uint32_t head)
 #endif
         if ((head & 0xffff0000) == 0xfffe0000)
           return 0;
-        //        fprintf(stderr, "Head check ok %08x\n", head);
         return 1;
 }
 
@@ -154,28 +155,28 @@ static int header_equal(mpeg_header * h1, mpeg_header * h2)
 #if 0
 static void dump_header(mpeg_header * h)
   {
-  fprintf(stderr, "Header:\n");
-  fprintf(stderr, "  Version:     %s\n",
+  bgav_dprintf( "Header:\n");
+  bgav_dprintf( "  Version:     %s\n",
           (h->version == MPEG_VERSION_1 ? "1" :
            (h->version == MPEG_VERSION_2 ? "2" : "2.5")));
-  fprintf(stderr, "  Layer:       %d\n", h->layer);
-  fprintf(stderr, "  Bitrate:     %d\n", h->bitrate);
-  fprintf(stderr, "  Samplerate:  %d\n", h->samplerate);
-  fprintf(stderr, "  Frame bytes: %d\n", h->frame_bytes);
+  bgav_dprintf( "  Layer:       %d\n", h->layer);
+  bgav_dprintf( "  Bitrate:     %d\n", h->bitrate);
+  bgav_dprintf( "  Samplerate:  %d\n", h->samplerate);
+  bgav_dprintf( "  Frame bytes: %d\n", h->frame_bytes);
 
   switch(h->channel_mode)
     {
     case CHANNEL_STEREO:
-      fprintf(stderr, "  Channel mode: Stereo\n");
+      bgav_dprintf( "  Channel mode: Stereo\n");
       break;
     case CHANNEL_JSTEREO:
-      fprintf(stderr, "  Channel mode: Joint Stereo\n");
+      bgav_dprintf( "  Channel mode: Joint Stereo\n");
       break;
     case CHANNEL_DUAL:
-      fprintf(stderr, "  Channel mode: Dual\n");
+      bgav_dprintf( "  Channel mode: Dual\n");
       break;
     case CHANNEL_MONO:
-      fprintf(stderr, "  Channel mode: Mono\n");
+      bgav_dprintf( "  Channel mode: Mono\n");
       break;
     }
   
@@ -194,7 +195,6 @@ static int decode_header(mpeg_header * h, uint8_t * ptr)
     ptr[3] | (ptr[2] << 8) | (ptr[1] << 16) | (ptr[0] << 24);
   if(!header_check(header))
     return 0;
-  //  fprintf(stderr, "*** Header: 0x%08x\n", header);
 
   index = (header & MPEG_MODE_MASK) >> 6;
   switch(index)
@@ -336,10 +336,10 @@ typedef struct
 static void bgav_albw_dump(bgav_albw_t * a)
   {
   int i;
-  fprintf(stderr, "Tracks: %d\n", a->num_tracks);
+  bgav_dprintf( "Tracks: %d\n", a->num_tracks);
 
   for(i = 0; i < a->num_tracks; i++)
-    fprintf(stderr, "Start: %lld, End: %lld, File: %s\n",
+    bgav_dprintf( "Start: %lld, End: %lld, File: %s\n",
             a->tracks[i].start_pos,
             a->tracks[i].end_pos,
             a->tracks[i].filename);
@@ -359,41 +359,6 @@ static int bgav_albw_probe(bgav_input_context_t * input)
     return 0;
   return 1;
   }
-
-#if 0
-#define BUF_SIZE 1024
-
-static void bgav_albw_unwrap(bgav_input_context_t * input, bgav_albw_t * a)
-  {
-  int i;
-  char buffer[BUF_SIZE];
-  int bytes_read;
-  int bytes_to_read;
-
-  FILE * output;
-  for(i = 0; i < a->num_tracks; i++)
-    {
-    output = fopen(a->tracks[i].filename, "wb");
-    //    fprintf(stderr, "%d: %s\n", i+1, a->tracks[i].filename);
-    bytes_read = 1;
-    while(bytes_read)
-      {
-      if(a->tracks[i].end_pos < input->position + BUF_SIZE)
-        bytes_to_read =
-          a->tracks[i].end_pos - input->position;
-      else
-        bytes_to_read = BUF_SIZE;
-      if(!bytes_to_read)
-        return;
-      bytes_read = bgav_input_read_data(input, buffer, bytes_to_read);
-      if(bytes_read < bytes_to_read)
-        fprintf(stderr, "Unexpected EOF, exiting\n");
-      fwrite(buffer, 1,  bytes_read, output);
-      }
-    fclose(output);
-    }
-  }
-#endif
 
 static void bgav_albw_destroy(bgav_albw_t * a)
   {
@@ -463,9 +428,6 @@ static bgav_albw_t * bgav_albw_read(bgav_input_context_t * input)
   
   if(diff > 0)
     {
-    //    fprintf(stderr, "WARNING: first file starts at %lld, pos: %lld (diff: %lld)\n",
-    //            ret->tracks[0].start_pos, input->position,
-    //            diff);
     for(i = 0; i < ret->num_tracks; i++)
       {
       ret->tracks[i].start_pos += diff;
@@ -572,7 +534,8 @@ static int resync(bgav_demuxer_context_t * ctx, int check_next)
     skipped_bytes++;
     }
   if(skipped_bytes)
-    fprintf(stderr, "Skipped %d bytes in mpeg audio stream\n", skipped_bytes);
+    bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+             "Skipped %d bytes in mpeg audio stream", skipped_bytes);
   return 1;
   }
 
@@ -635,15 +598,12 @@ static int set_stream(bgav_demuxer_context_t * ctx)
   
   if(bgav_xing_header_read(&(priv->xing), frame))
     {
-    //    fprintf(stderr, "*** VBR Header found %d\n", priv->xing.frames);
     priv->have_xing = 1;
     bgav_input_skip(ctx->input, priv->header.frame_bytes);
     priv->data_start += priv->header.frame_bytes;
     }
   else
     {
-    //    fprintf(stderr, "*** NO VBR Header found\n");
-    //    bgav_hexdump(frame, priv->header.frame_bytes, 16);
     priv->have_xing = 0;
     }
 
@@ -799,7 +759,6 @@ static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
                                            albw->tracks[i].end_pos);
       
     
-//    fprintf(stderr, "*** ret[i].duration: %f\n", gavl_time_to_seconds(ret->tracks[i].duration));
     }
   
   return ret;
@@ -825,8 +784,6 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx,
   
   if(ctx->input->id3v2)
     {
-    //    fprintf(stderr, "Found ID3V2!\n");
-    
     bgav_id3v2_2_metadata(ctx->input->id3v2, &(metadata_v2));
     
     /* Check for ALBW, but only on a seekable source! */
@@ -888,7 +845,6 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx,
 
   if(!ctx->tt->tracks[0].name && ctx->input->metadata.title)
     {
-    // fprintf(stderr, "demux_mpegaudio: Setting track name from metadata title\n");
     ctx->tt->tracks[0].name = bgav_strdup(ctx->input->metadata.title);
     }
   return 1;
@@ -904,13 +860,10 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
   
   if(priv->data_end && (priv->data_end - ctx->input->position < 4))
     {
-//    fprintf(stderr, "Stream finished %lld %lld\n",
-//            priv->data_end, ctx->input->position);
     return 0;
     }
   if(!resync(ctx, 0))
     {
-//    fprintf(stderr, "Lost sync\n");
     return 0;
     }
   s = ctx->tt->current_track->audio_streams;
@@ -920,7 +873,6 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
   if(bgav_input_read_data(ctx->input, p->data, priv->header.frame_bytes) <
      priv->header.frame_bytes)
     {
-//    fprintf(stderr, "EOF\n");
     return 0;
     }
   p->data_size = priv->header.frame_bytes;
@@ -929,8 +881,6 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
   p->timestamp_scaled = priv->frames * (int64_t)priv->header.samples_per_frame;
 
   bgav_packet_done_write(p);
-
-  //  fprintf(stderr, "Frame: %lld\n", priv->frames);
 
   priv->frames++;
   return 1;
@@ -950,8 +900,6 @@ static void seek_mpegaudio(bgav_demuxer_context_t * ctx, gavl_time_t time)
     pos =
       bgav_xing_get_seek_position(&(priv->xing),
                                   100.0 * (float)time / (float)(ctx->tt->current_track->duration));
-    //    fprintf(stderr, "VBR Seek position: %lld\n", pos);
-    //    bgav_xing_header_dump(&(priv->xing));
     }
   else /* CBR */
     {
@@ -962,9 +910,6 @@ static void seek_mpegaudio(bgav_demuxer_context_t * ctx, gavl_time_t time)
     gavl_time_to_samples(ctx->tt->current_track->audio_streams[0].data.audio.format.samplerate, time);
   
   pos += priv->data_start;
-  //  fprintf(stderr, "Seeking: %lld %lld %lld %f %f %f\n", pos, priv->data_start, priv->data_end,
-  //          (float)time / (float)(ctx->duration), gavl_time_to_seconds(time),
-  //          gavl_time_to_seconds(ctx->duration));
   bgav_input_seek(ctx->input, pos, SEEK_SET);
   }
 

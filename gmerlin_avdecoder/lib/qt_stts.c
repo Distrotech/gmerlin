@@ -73,11 +73,11 @@ void bgav_qt_stts_free(qt_stts_t * c)
 void bgav_qt_stts_dump(qt_stts_t * c)
   {
   int i;
-  fprintf(stderr, "stts\n");
-  fprintf(stderr, "  num_entries: %d\n", c->num_entries);
+  bgav_dprintf( "stts\n");
+  bgav_dprintf( "  num_entries: %d\n", c->num_entries);
   for(i = 0; i < c->num_entries; i++)
     {
-    fprintf(stderr, "  count: %d duration: %d\n",
+    bgav_dprintf( "  count: %d duration: %d\n",
             c->entries[i].count, c->entries[i].duration);
     
     }

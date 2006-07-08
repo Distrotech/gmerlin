@@ -88,12 +88,10 @@ static int a52_header_read(a52_header * ret, uint8_t * buf)
   
   if ((buf[0] != 0x0b) || (buf[1] != 0x77))   /* syncword */
     {
-    //    fprintf(stderr, "Syncword: %02x, %02x\n", buf[0], buf[1]);
     return 0;
     }
   if (buf[5] >= 0x60)         /* bsid >= 12 */
     {
-    //    fprintf(stderr, "bsid: %d\n", buf[5]);
     return 0;
     }
   half = halfrate[buf[5] >> 3];
@@ -160,14 +158,14 @@ static int a52_header_read(a52_header * ret, uint8_t * buf)
 #if 0
 static void a52_header_dump(a52_header * h)
   {
-  fprintf(stderr, "A52 header:\n");
-  fprintf(stderr, "  Frame bytes: %d\n", h->total_bytes);
-  fprintf(stderr, "  Samplerate:  %d\n", h->samplerate);
-  fprintf(stderr, "  acmod:  0x%0x\n",   h->acmod);
+  bgav_dprintf("A52 header:\n");
+  bgav_dprintf("  Frame bytes: %d\n", h->total_bytes);
+  bgav_dprintf("  Samplerate:  %d\n", h->samplerate);
+  bgav_dprintf("  acmod:  0x%0x\n",   h->acmod);
   if(h->smixlev >= 0.0)
-    fprintf(stderr, "  smixlev: %f\n", h->smixlev);
+    bgav_dprintf("  smixlev: %f\n", h->smixlev);
   if(h->cmixlev >= 0.0)
-    fprintf(stderr, "  cmixlev: %f\n", h->cmixlev);
+    bgav_dprintf("  cmixlev: %f\n", h->cmixlev);
   }
 #endif
 /*
@@ -226,7 +224,6 @@ static void done_data(bgav_stream_t * s, int num_bytes)
   
   if(bytes_left < 0)
     {
-    fprintf(stderr, "BUUUUUG in liba52!!!\n");
     return;
     }
   else if(bytes_left > 0)
@@ -274,14 +271,10 @@ static int init_a52(bgav_stream_t * s)
   s->data.audio.decoder->priv = priv;
   if(!do_resync(s))
     {
-    fprintf(stderr, "Resync failed\n");
     return 0;
     }
   //  a52_header_dump(&(priv->header));
-
-  //  fprintf(stderr, "Dynamic range control is %s\n",
-  //          (s->opt->audio_dynrange ? "on" : "off"));
-  
+    
   /* Get format */
 
   s->data.audio.format.samplerate = priv->header.samplerate;
@@ -398,8 +391,6 @@ static int decode_frame(bgav_stream_t * s)
   a52_priv * priv;
   priv = (a52_priv*)s->data.audio.decoder->priv;
 
-  //  fprintf(stderr, "Decode frame");
-  
   if(!do_resync(s))
     return 0;
   if(!get_data(s, priv->header.total_bytes))
@@ -416,7 +407,6 @@ static int decode_frame(bgav_stream_t * s)
 
   if(!s->opt->audio_dynrange)
     {
-    //    fprintf(stderr, "Disabling dynamic range control\n");
     a52_dynrng(priv->state, NULL, NULL);
     }
   
@@ -459,7 +449,6 @@ static int decode_a52(bgav_stream_t * s,
         {
         if(f)
           f->valid_samples = samples_decoded;
-        //        fprintf(stderr, "A52: EOF %d\n", samples_decoded);
         return samples_decoded;
         }
       }
@@ -479,7 +468,6 @@ static int decode_a52(bgav_stream_t * s,
     {
     f->valid_samples = samples_decoded;
     }
-  //  fprintf(stderr, "done %d\n", samples_decoded);
   return samples_decoded;
   }
 

@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define LOG_DOMAIN "realaudio"
+
 /* RealAudio demuxer inspired by xine */
 
 typedef struct
@@ -88,8 +90,6 @@ static int open_ra(bgav_demuxer_context_t * ctx,
     }
   
   version = BGAV_PTR_2_16BE(file_header + 0x04);
-  //  fprintf(stderr, "Real audio Version %d\n", version);
-
   /* read header size according to version */
   if (version == 3)
     hdr_size = BGAV_PTR_2_16BE(file_header + 0x06) + 8;
@@ -97,7 +97,6 @@ static int open_ra(bgav_demuxer_context_t * ctx,
     hdr_size = BGAV_PTR_2_32BE(file_header + 0x12) + 16;
   else
     {
-    fprintf(stderr, "demux_ra: unknown version number %d\n", version);
     return 0;
     }
   
@@ -109,7 +108,7 @@ static int open_ra(bgav_demuxer_context_t * ctx,
                           &(audio_header[RA_FILE_HEADER_PREV_SIZE]),
                             hdr_size - RA_FILE_HEADER_PREV_SIZE) < hdr_size - RA_FILE_HEADER_PREV_SIZE)
     {
-    fprintf(stderr, "demux_realaudio: unable to read header\n");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Unable to read header");
     free(audio_header);
     return 0;
     }
@@ -137,25 +136,16 @@ static int open_ra(bgav_demuxer_context_t * ctx,
     s->data.audio.bits_per_sample     = audio_header[0x35];
     s->data.audio.format.num_channels = audio_header[0x37];
 
-#if 1
     sub_packet_size    = BGAV_PTR_2_16BE(audio_header + 0x2C);
     priv->sub_packet_h       = BGAV_PTR_2_16BE(audio_header + 0x28);    
     framesize = BGAV_PTR_2_16BE(audio_header + 0x2A);
     codec_flavor       = BGAV_PTR_2_16BE(audio_header + 0x16);
     coded_framesize    = BGAV_PTR_2_32BE(audio_header + 0x18); 
 
-    //    fprintf(stderr, "sub_packet_size %d, sub_packet_height %d, codec_flavor %d, coded_framesize %d framesize: %d\n",
-    //            sub_packet_size, priv->sub_packet_h, codec_flavor, coded_framesize, framesize);
-      
-
-
-#endif
-
     if(audio_header[0x3D] == 4)
       s->fourcc = BGAV_PTR_2_FOURCC(audio_header+0x3E);
     else
       {
-      fprintf(stderr, "demux_ra: invalid fourcc size %d\n", audio_header[0x3D]);
       free(audio_header);
       return 0;
       }
@@ -163,7 +153,7 @@ static int open_ra(bgav_demuxer_context_t * ctx,
     }
   else
     {
-    fprintf(stderr, "demux_ra: header too small\n");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Header too small");
     free(audio_header);
     return 0;
     }
@@ -215,8 +205,8 @@ static int open_ra(bgav_demuxer_context_t * ctx,
       s->fourcc = BGAV_PTR_2_FOURCC(audio_header + offset+3);
     else
       {
-      fprintf(stderr, 
-              "demux_ra: invalid fourcc size %d\n", audio_header[offset+2]);
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Invalid fourcc size %d",
+               audio_header[offset+2]);
       free(audio_header);
       return 0;
       }
@@ -273,8 +263,6 @@ static int next_packet_ra(bgav_demuxer_context_t * ctx)
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
 
   len = s->data.audio.block_align * priv->sub_packet_h;
-//  fprintf(stderr, "Len: %d\n", len);
-    
   bgav_packet_alloc(p, len);
   if(bgav_input_read_data(ctx->input, p->data, len) < len)
     return 0;

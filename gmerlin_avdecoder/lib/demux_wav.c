@@ -147,7 +147,6 @@ static int open_wav(bgav_demuxer_context_t * ctx,
     bgav_input_seek(ctx->input, priv->data_start + priv->data_size, SEEK_SET);
     if(bgav_RIFFINFO_probe(ctx->input))
       {
-      //      fprintf(stderr, "Found INFO chunk");
       priv->info = bgav_RIFFINFO_read(ctx->input);
       }
     bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
@@ -164,8 +163,6 @@ static int open_wav(bgav_demuxer_context_t * ctx,
 
   priv->packet_size = ((1024 + s->data.audio.block_align - 1) / 
                        s->data.audio.block_align) * s->data.audio.block_align;
-  //  fprintf(stderr, "Packet size: %d Block align: %d\n", priv->packet_size,
-  //          s->data.audio.block_align);
 
   if(ctx->input->input->seek_byte)
     ctx->can_seek = 1;
@@ -203,9 +200,7 @@ static int next_packet_wav(bgav_demuxer_context_t * ctx)
   bgav_packet_alloc(p, priv->packet_size);
     
   p->data_size = bgav_input_read_data(ctx->input, p->data, priv->packet_size);
-
-  //  fprintf(stderr, "Read packet %d\n", priv->data_size);
-  
+ 
   p->keyframe = 1;
   
   if(!p->data_size)

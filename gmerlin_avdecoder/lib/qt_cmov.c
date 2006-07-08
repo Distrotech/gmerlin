@@ -27,6 +27,8 @@
 #include <zlib.h>
 #include <stdio.h>
 
+#define LOG_DOMAIN "quicktime.cmov"
+
 int bgav_qt_cmov_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_moov_t * ret)
   {
@@ -58,8 +60,12 @@ int bgav_qt_cmov_read(qt_atom_header_t * h, bgav_input_context_t * input,
             have_dcom = 1;
             break;
           default:
-            fprintf(stderr, "Unknown compression method: ");
-            bgav_dump_fourcc(compression_id);
+            bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                     "Unknown compression method: %c%c%c%c",
+                     compression_id >> 24,
+                     (compression_id >> 16) & 0xff,
+                     (compression_id >> 8) & 0xff,
+                     compression_id & 0xff);
             return 0;
           }
         break;
@@ -67,8 +73,6 @@ int bgav_qt_cmov_read(qt_atom_header_t * h, bgav_input_context_t * input,
         if(!bgav_input_read_32_be(input, &size_uncompressed))
           return 0;
         size_compressed = h->size - (input->position - h->start_position);
-        //        fprintf(stderr, "Compressed size: %d Uncompressed size: %d\n",
-        //                size_compressed, size_uncompressed);
 
         /* Decompress header and parse it */
 
@@ -82,16 +86,8 @@ int bgav_qt_cmov_read(qt_atom_header_t * h, bgav_input_context_t * input,
         if(uncompress(buf_uncompressed, &size_uncompressed_ret,
                       buf_compressed, size_compressed) != Z_OK)
           {
-          fprintf(stderr, "Uncompression failed\n");
+          bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Uncompression failed");
           return 0;
-          }
-        else
-          {
-          //          fprintf(stderr, "Uncompressed %d bytes\n",
-          //                  (int)size_uncompressed_ret);
-          //          outfile = fopen("header.dat", "w");
-          //          fwrite(buf_uncompressed, size_uncompressed_ret, 1, outfile);
-          //          fclose(outfile);
           }
         input_mem = bgav_input_open_memory(buf_uncompressed,
                                            size_uncompressed_ret);

@@ -172,11 +172,8 @@ static int next_packet_fli(bgav_demuxer_context_t * ctx)
     {
     if(bgav_input_read_data(ctx->input, preamble, FLIC_PREAMBLE_SIZE) < FLIC_PREAMBLE_SIZE)
       {
-      //      fprintf(stderr, "next_packet_fli1: Detected EOF %d\n", priv->header_size);
       return 0;
       }
-    //    else
-    //      fprintf(stderr, "next_packet_fli1: read preamble\n");
       
     size  = BGAV_PTR_2_32LE(&preamble[0]);
     magic = BGAV_PTR_2_16LE(&preamble[4]);
@@ -192,7 +189,6 @@ static int next_packet_fli(bgav_demuxer_context_t * ctx)
       if(bgav_input_read_data(ctx->input, p->data + FLIC_PREAMBLE_SIZE,
                               size - FLIC_PREAMBLE_SIZE) < size - FLIC_PREAMBLE_SIZE)
         {
-        //        fprintf(stderr, "next_packet_fli2: Detected EOF\n");
         return 0;
         }
       
@@ -205,7 +201,6 @@ static int next_packet_fli(bgav_demuxer_context_t * ctx)
       }
     else
       {
-      //      fprintf(stderr, "Skipping %d bytes\n", size - FLIC_PREAMBLE_SIZE);
       bgav_input_skip(ctx->input, size - FLIC_PREAMBLE_SIZE);
       }
     }

@@ -86,11 +86,11 @@ void bgav_qt_stco_free(qt_stco_t * c)
 void bgav_qt_stco_dump(qt_stco_t * c)
   {
   int i;
-  fprintf(stderr, "stco\n");
-  fprintf(stderr, "  num_entries: %d\n", c->num_entries);
+  bgav_dprintf( "stco\n");
+  bgav_dprintf( "  num_entries: %d\n", c->num_entries);
   
   for(i = 0; i < c->num_entries; i++)
     {
-    fprintf(stderr, "  offset: %lld\n", c->entries[i]);
+    bgav_dprintf( "  offset: %lld\n", c->entries[i]);
     }
   }

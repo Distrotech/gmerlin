@@ -118,9 +118,6 @@ void bgav_WAVEFORMAT_read(bgav_WAVEFORMAT_t * ret, uint8_t * data, int len)
   if(len < 12)
     return;
 
-  //  fprintf(stderr, "bgav_WAVEFORMAT_read: %d bytes ", len);
-  //  bgav_hexdump(data, len, 16);
-  
   ptr = data;
   ret->type = BGAV_WAVEFORMAT_WAVEFORMAT;
   ret->f.WAVEFORMAT.wFormatTag      = BGAV_PTR_2_16LE(ptr);ptr+=2;
@@ -289,51 +286,51 @@ void bgav_WAVEFORMAT_dump(bgav_WAVEFORMAT_t * ret)
   switch(ret->type)
     {
     case BGAV_WAVEFORMAT_WAVEFORMAT:
-      fprintf(stderr, "WAVEFORMAT\n");
+      bgav_dprintf( "WAVEFORMAT\n");
       break;
     case BGAV_WAVEFORMAT_PCMWAVEFORMAT:
-      fprintf(stderr, "PCMWAVEFORMAT\n");
+      bgav_dprintf( "PCMWAVEFORMAT\n");
       break;
     case BGAV_WAVEFORMAT_WAVEFORMATEX:
-      fprintf(stderr, "WAVEFORMATEX\n");
+      bgav_dprintf( "WAVEFORMATEX\n");
       break;
     case BGAV_WAVEFORMAT_WAVEFORMATEXTENSIBLE:
-      fprintf(stderr, "WAVEFORMATEXTENSIBLE\n");
+      bgav_dprintf( "WAVEFORMATEXTENSIBLE\n");
       break;
     }
-  fprintf(stderr, "  wFormatTag:      %04x\n", ret->f.WAVEFORMAT.wFormatTag);
-  fprintf(stderr, "  nChannels:       %d\n",   ret->f.WAVEFORMAT.nChannels);
-  fprintf(stderr, "  nSamplesPerSec:  %d\n",   ret->f.WAVEFORMAT.nSamplesPerSec);
-  fprintf(stderr, "  nAvgBytesPerSec: %d\n",   ret->f.WAVEFORMAT.nAvgBytesPerSec);
-  fprintf(stderr, "  nBlockAlign:     %d\n",   ret->f.WAVEFORMAT.nBlockAlign);
+  bgav_dprintf( "  wFormatTag:      %04x\n", ret->f.WAVEFORMAT.wFormatTag);
+  bgav_dprintf( "  nChannels:       %d\n",   ret->f.WAVEFORMAT.nChannels);
+  bgav_dprintf( "  nSamplesPerSec:  %d\n",   ret->f.WAVEFORMAT.nSamplesPerSec);
+  bgav_dprintf( "  nAvgBytesPerSec: %d\n",   ret->f.WAVEFORMAT.nAvgBytesPerSec);
+  bgav_dprintf( "  nBlockAlign:     %d\n",   ret->f.WAVEFORMAT.nBlockAlign);
 
   switch(ret->type)
     {
     case BGAV_WAVEFORMAT_WAVEFORMAT:
       break;
     case BGAV_WAVEFORMAT_PCMWAVEFORMAT:
-      fprintf(stderr, "  wBitsPerSample:  %d\n",   ret->f.PCMWAVEFORMAT.wBitsPerSample);
+      bgav_dprintf( "  wBitsPerSample:  %d\n",   ret->f.PCMWAVEFORMAT.wBitsPerSample);
       break;
     case BGAV_WAVEFORMAT_WAVEFORMATEX:
-      fprintf(stderr, "  wBitsPerSample:  %d\n",   ret->f.PCMWAVEFORMAT.wBitsPerSample);
-      fprintf(stderr, "  cbSize:          %d\n",   ret->f.WAVEFORMATEX.cbSize);
+      bgav_dprintf( "  wBitsPerSample:  %d\n",   ret->f.PCMWAVEFORMAT.wBitsPerSample);
+      bgav_dprintf( "  cbSize:          %d\n",   ret->f.WAVEFORMATEX.cbSize);
       if(ret->f.WAVEFORMATEX.ext_size)
         {
-        fprintf(stderr, "Extradata %d bytes, hexdump follows\n", ret->f.WAVEFORMATEX.ext_size);
+        bgav_dprintf( "Extradata %d bytes, hexdump follows\n", ret->f.WAVEFORMATEX.ext_size);
         bgav_hexdump(ret->f.WAVEFORMATEX.ext_data, ret->f.WAVEFORMATEX.ext_size, 16);
         }
       break;
     case BGAV_WAVEFORMAT_WAVEFORMATEXTENSIBLE:
-      fprintf(stderr, "  wBitsPerSample:  %d\n",   ret->f.PCMWAVEFORMAT.wBitsPerSample);
-      fprintf(stderr, "  cbSize:          %d\n",   ret->f.WAVEFORMATEX.cbSize);
+      bgav_dprintf( "  wBitsPerSample:  %d\n",   ret->f.PCMWAVEFORMAT.wBitsPerSample);
+      bgav_dprintf( "  cbSize:          %d\n",   ret->f.WAVEFORMATEX.cbSize);
       
-      fprintf(stderr, "  wValidBitsPerSample: %d\n", ret->f.WAVEFORMATEXTENSIBLE.Samples.wValidBitsPerSample);
-      fprintf(stderr, "  dwChannelMask:       %08x\n", ret->f.WAVEFORMATEXTENSIBLE.dwChannelMask);
-      fprintf(stderr, "  SubFormat:           ");
+      bgav_dprintf( "  wValidBitsPerSample: %d\n", ret->f.WAVEFORMATEXTENSIBLE.Samples.wValidBitsPerSample);
+      bgav_dprintf( "  dwChannelMask:       %08x\n", ret->f.WAVEFORMATEXTENSIBLE.dwChannelMask);
+      bgav_dprintf( "  SubFormat:           ");
       bgav_GUID_dump(&(ret->f.WAVEFORMATEXTENSIBLE.SubFormat));
       if(ret->f.WAVEFORMATEX.ext_size)
         {
-        fprintf(stderr, "Extradata %d bytes, hexdump follows\n", ret->f.WAVEFORMATEX.ext_size);
+        bgav_dprintf( "Extradata %d bytes, hexdump follows\n", ret->f.WAVEFORMATEX.ext_size);
         bgav_hexdump(ret->f.WAVEFORMATEX.ext_data, ret->f.WAVEFORMATEX.ext_size, 16);
         }
       break;
@@ -409,21 +406,21 @@ void bgav_BITMAPINFOHEADER_set_format(bgav_BITMAPINFOHEADER_t * bh,
 void bgav_BITMAPINFOHEADER_dump(bgav_BITMAPINFOHEADER_t * ret)
   {
   uint32_t fourcc_be;
-  fprintf(stderr, "BITMAPINFOHEADER:\n");
-  fprintf(stderr, "  biSize: %d\n", ret->biSize); /* sizeof(BITMAPINFOHEADER) */
-  fprintf(stderr, "  biWidth: %d\n", ret->biWidth);
-  fprintf(stderr, "  biHeight: %d\n", ret->biHeight);
-  fprintf(stderr, "  biPlanes: %d\n", ret->biPlanes);
-  fprintf(stderr, "  biBitCount: %d\n", ret->biBitCount);
+  bgav_dprintf( "BITMAPINFOHEADER:\n");
+  bgav_dprintf( "  biSize: %d\n", ret->biSize); /* sizeof(BITMAPINFOHEADER) */
+  bgav_dprintf( "  biWidth: %d\n", ret->biWidth);
+  bgav_dprintf( "  biHeight: %d\n", ret->biHeight);
+  bgav_dprintf( "  biPlanes: %d\n", ret->biPlanes);
+  bgav_dprintf( "  biBitCount: %d\n", ret->biBitCount);
   fourcc_be = swap_endian(ret->biCompression);
-  fprintf(stderr, "  biCompression: ");
+  bgav_dprintf( "  biCompression: ");
   bgav_dump_fourcc(fourcc_be);
-  fprintf(stderr, "\n");
-  fprintf(stderr, "  biSizeImage: %d\n", ret->biSizeImage);
-  fprintf(stderr, "  biXPelsPerMeter: %d\n", ret->biXPelsPerMeter);
-  fprintf(stderr, "  biYPelsPerMeter: %d\n", ret->biXPelsPerMeter);
-  fprintf(stderr, "  biClrUsed: %d\n", ret->biClrUsed);
-  fprintf(stderr, "  biClrImportant: %d\n", ret->biClrImportant);
+  bgav_dprintf( "\n");
+  bgav_dprintf( "  biSizeImage: %d\n", ret->biSizeImage);
+  bgav_dprintf( "  biXPelsPerMeter: %d\n", ret->biXPelsPerMeter);
+  bgav_dprintf( "  biYPelsPerMeter: %d\n", ret->biXPelsPerMeter);
+  bgav_dprintf( "  biClrUsed: %d\n", ret->biClrUsed);
+  bgav_dprintf( "  biClrImportant: %d\n", ret->biClrImportant);
   }
 
 /* RIFF INFO chunk */
@@ -521,8 +518,6 @@ bgav_RIFFINFO_t * bgav_RIFFINFO_read(bgav_input_context_t * input)
   {
   uint32_t size;
 
-  //  fprintf(stderr, "bgav_RIFFINFO_read...");
-  
   /*
    *  Read 12 byte header. We assume that it's already verified with
    *  bgav_RIFFINFO_probe
@@ -540,11 +535,11 @@ bgav_RIFFINFO_t * bgav_RIFFINFO_read(bgav_input_context_t * input)
 
 /* DS == dump_string */
 
-#define DS(tag) if(info->tag) fprintf(stderr, "  %s: %s\n", #tag, info->tag)
+#define DS(tag) if(info->tag) bgav_dprintf( "  %s: %s\n", #tag, info->tag)
 
 void bgav_RIFFINFO_dump(bgav_RIFFINFO_t * info)
   {
-  fprintf(stderr, "INFO\n");
+  bgav_dprintf( "INFO\n");
 
   DS(IARL);
   DS(IART);
@@ -646,7 +641,7 @@ void bgav_RIFFINFO_get_metadata(bgav_RIFFINFO_t * info, bgav_metadata_t * m)
 
 void bgav_GUID_dump(bgav_GUID_t * g)
   {
-  fprintf(stderr,
+  bgav_dprintf(
           "%08x-%04x-%04x-%02x-%02x-%02x-%02x-%02x-%02x-%02x-%02x\n",
           g->v1, g->v2, g->v3, g->v4[0], g->v4[1], g->v4[2], g->v4[3],
           g->v4[4], g->v4[5], g->v4[6], g->v4[7]);

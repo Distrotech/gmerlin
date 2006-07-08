@@ -22,6 +22,7 @@
 #include <stdio.h>
 
 #define BLOCKS_PER_PACKET 1024
+#define LOG_DOMAIN "au"
 
 /* AU demuxer */
 
@@ -165,7 +166,8 @@ static int open_au(bgav_demuxer_context_t * ctx,
       break;
 #endif
     default:
-      fprintf(stderr, "Unsupported encoding %d\n", hdr.encoding);
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Unsupported encoding %d", hdr.encoding);
       return 0;
     }
 

@@ -195,21 +195,21 @@ static uint32_t swap_endian(uint32_t val)
 static void dump_bi(BITMAPINFOHEADER * bh)
   {
   uint32_t fourcc_be;
-  fprintf(stderr, "BITMAPINFOHEADER:\n");
-  fprintf(stderr, "  biSize: %ld\n", bh->biSize); /* sizeof(BITMAPINFOHEADER) */
-  fprintf(stderr, "  biWidth: %ld\n", bh->biWidth);
-  fprintf(stderr, "  biHeight: %ld\n", bh->biHeight);
-  fprintf(stderr, "  biPlanes: %d\n", bh->biPlanes);
-  fprintf(stderr, "  biBitCount: %d\n", bh->biBitCount);
+  bgav_dprintf( "BITMAPINFOHEADER:\n");
+  bgav_dprintf( "  biSize: %ld\n", bh->biSize); /* sizeof(BITMAPINFOHEADER) */
+  bgav_dprintf( "  biWidth: %ld\n", bh->biWidth);
+  bgav_dprintf( "  biHeight: %ld\n", bh->biHeight);
+  bgav_dprintf( "  biPlanes: %d\n", bh->biPlanes);
+  bgav_dprintf( "  biBitCount: %d\n", bh->biBitCount);
   fourcc_be = swap_endian(bh->biCompression);
-  fprintf(stderr, "  biCompression: ");
+  bgav_dprintf( "  biCompression: ");
   bgav_dump_fourcc(fourcc_be);
-  fprintf(stderr, "\n");
-  fprintf(stderr, "  biSizeImage: %ld\n", bh->biSizeImage);
-  fprintf(stderr, "  biXPelsPerMeter: %ld\n", bh->biXPelsPerMeter);
-  fprintf(stderr, "  biYPelsPerMeter: %ld\n", bh->biXPelsPerMeter);
-  fprintf(stderr, "  biClrUsed: %ld\n", bh->biClrUsed);
-  fprintf(stderr, "  biClrImportant: %ld\n", bh->biClrImportant);
+  bgav_dprintf( "\n");
+  bgav_dprintf( "  biSizeImage: %ld\n", bh->biSizeImage);
+  bgav_dprintf( "  biXPelsPerMeter: %ld\n", bh->biXPelsPerMeter);
+  bgav_dprintf( "  biYPelsPerMeter: %ld\n", bh->biXPelsPerMeter);
+  bgav_dprintf( "  biClrUsed: %ld\n", bh->biClrUsed);
+  bgav_dprintf( "  biClrImportant: %ld\n", bh->biClrImportant);
 
   }
 #endif
@@ -299,7 +299,6 @@ static int init_std(bgav_win32_thread_t * thread)
   bgav_BITMAPINFOHEADER_t bih_out;
   bgav_stream_t * s = thread->s;
   
-//  fprintf(stderr, "OPEN VIDEO\n");
   priv = calloc(1, sizeof(*priv));
   thread->priv = priv;
   
@@ -330,8 +329,6 @@ static int init_std(bgav_win32_thread_t * thread)
   bih_in.biSizeImage = 0;
   pack_bih(&priv->bih_in, &bih_in);
 
-//  fprintf(stderr, "ICDecompressGetFormatSize: %d\n",
-//          (int)ICDecompressGetFormatSize(priv->hic, &bih_in));
           
   result = ICDecompressGetFormat(priv->hic, &priv->bih_in, &priv->bih_out);
 
@@ -339,23 +336,14 @@ static int init_std(bgav_win32_thread_t * thread)
   
   if(result < 0)
     {
-    fprintf(stderr, "Cannot get format\n");
-    //    bgav_BITMAPINFOHEADER_dump(&bih_in);
+    return 0;
     }
-#if 0
-  fprintf(stderr, "Input Format:");
-  bgav_BITMAPINFOHEADER_dump(&bih_in);
-  fprintf(stderr, "Output Format:");
-  bgav_BITMAPINFOHEADER_dump(&bih_out);
-#endif    
-
+  
   switch(bih_out.biCompression)
     {
     case 0:
       break;
     default:
-      fprintf(stderr, "Warning: Unsupported Colorspace\n");
-      bgav_dump_fourcc(bih_out.biCompression);
       return 0;
       
     }
@@ -378,7 +366,6 @@ static int init_std(bgav_win32_thread_t * thread)
 #endif
   if(result)
     {
-    fprintf(stderr, "No YUV output possible, switching to RGB\n");
     bih_out.biCompression = 0;
     bih_out.biBitCount  = old_bit_count;
     
@@ -386,17 +373,13 @@ static int init_std(bgav_win32_thread_t * thread)
       {
       case 24:
         s->data.video.format.pixelformat = GAVL_RGB_24;
-        fprintf(stderr, "Using RGB24 output\n");
         priv->bytes_per_pixel = 3;
         break;
       case 16:
         s->data.video.format.pixelformat = GAVL_RGB_15;
-        fprintf(stderr, "Using RGB16 output\n");
         priv->bytes_per_pixel = 2;
         break;
       default:
-        fprintf(stderr, "Warning: Unsupported depth %d\n",
-                bih_out.biBitCount);
         return 0;
       }
     bih_out.biSizeImage = bih_out.biWidth * bih_out.biHeight * priv->bytes_per_pixel;
@@ -405,9 +388,6 @@ static int init_std(bgav_win32_thread_t * thread)
     }
   else
     {
-//    fprintf(stderr, "Decoder supports YUY2 output\n");
-    //    unpack_bih(&bih_out, &priv->bih_out);
-    //    bgav_BITMAPINFOHEADER_dump(&bih_out);
     s->data.video.format.pixelformat = GAVL_YUY2;
     priv->bytes_per_pixel = 2;
     }
@@ -418,9 +398,6 @@ static int init_std(bgav_win32_thread_t * thread)
     ?ICDecompressBegin(priv->hic, &priv->bih_in, &priv->bih_out)
     :ICDecompressBeginEx(priv->hic, &priv->bih_in, &priv->bih_out);
 
-//  fprintf(stderr, "ICDecompressBegin\n");
-//  dump_bi(&priv->bih_in);
-//  dump_bi(&priv->bih_out);
     
   if(result)
     {
@@ -430,8 +407,6 @@ static int init_std(bgav_win32_thread_t * thread)
   priv->frame = gavl_video_frame_create(&(s->data.video.format));
 
   s->description = bgav_strdup(info->format_name);
-
-  //  fprintf(stderr, "OPEN VIDEO DONE\n");
 
 
   if(gavl_pixelformat_is_rgb(s->data.video.format.pixelformat))
@@ -458,18 +433,12 @@ static int decode_std(bgav_win32_thread_t * thread)
   if(!frame)
     flags |= ICDECOMPRESS_HURRYUP|ICDECOMPRESS_PREROL;
 
-  //  fprintf(stderr, "ICDecompress %d\n", p->data_size);
   priv->bih_in.biSizeImage = thread->data_len;
 
   priv->bih_out.biSizeImage =
     s->data.video.format.image_height * priv->frame->strides[0];
   priv->bih_out.biWidth     =
     priv->frame->strides[0] / priv->bytes_per_pixel;
-#if 0
-  fprintf(stderr, "ICDecompress\n");
-  dump_bi(&priv->bih_in);
-  dump_bi(&priv->bih_out);
-#endif
   result = (!priv->ex_functions)
     ?ICDecompress(priv->hic, flags,
                   &priv->bih_in, thread->data, &priv->bih_out, 
@@ -558,7 +527,6 @@ static int init_ds(bgav_win32_thread_t*t)
 
   if(!DS_VideoDecoder_SetDestFmt(priv->ds_dec, 16, BGAV_MK_FOURCC('2', 'Y', 'U', 'Y')))
     {
-    //    fprintf(stderr, "YUY2 output\n");
     s->data.video.format.pixelformat = GAVL_YUY2;
     }
   else /* RGB */
@@ -582,11 +550,9 @@ static int decode_ds(bgav_win32_thread_t*t)
   
   priv = (win32_priv_t*)(t->priv);
   
-  //  fprintf(stderr, "Decode ds %d....", p->data_size);
   result = DS_VideoDecoder_DecodeInternal(priv->ds_dec, t->data, t->data_len,
                                            t->keyframe,
                                           (char*)(priv->frame->planes[0]));
-  //  fprintf(stderr, "done\n");
   
   if(result)
     {
@@ -661,7 +627,6 @@ static int init_dmo(bgav_win32_thread_t*t)
 
   if(!DMO_VideoDecoder_SetDestFmt(priv->dmo_dec, 16, BGAV_MK_FOURCC('2', 'Y', 'U', 'Y')))
     {
-    //    fprintf(stderr, "YUY2 output\n");
     s->data.video.format.pixelformat = GAVL_YUY2;
     }
   else /* RGB */
@@ -685,14 +650,10 @@ static int decode_dmo(bgav_win32_thread_t*t)
   
   priv = (win32_priv_t*)(t->priv);
     
-  //  fprintf(stderr, "Decode dmo %d....", p->data_size);
   result = DMO_VideoDecoder_DecodeInternal(priv->dmo_dec, t->data,
                                            t->data_len,
                                            t->keyframe,
                                            (char*)(priv->frame->planes[0]));
-  //  fprintf(stderr, "done\n");
-
-
   if(result)
     {
     fprintf(stderr, "Decode failed\n");
@@ -794,8 +755,6 @@ int bgav_init_video_decoders_win32()
       }
     else
       {
-      fprintf(stderr, "Cannot find file %s, disabling %s\n",
-              dll_filename, codec_infos[i].name);
       ret = 0;
       }
     }

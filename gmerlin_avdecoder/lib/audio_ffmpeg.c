@@ -148,7 +148,6 @@ static int init(bgav_stream_t * s)
   codec = avcodec_find_decoder(priv->info->ffmpeg_id);
   priv->ctx = avcodec_alloc_context();
   
-  //  fprintf(stderr, "Initializing %s\n", s->data.audio.decoder->decoder->name);
 
   //  priv->ctx->width = s->format.frame_width;
   //  priv->ctx->height = s->format.frame_height;
@@ -156,12 +155,7 @@ static int init(bgav_stream_t * s)
   priv->ctx->extradata = s->ext_data;
   priv->ctx->extradata_size = s->ext_size;
 
-  /* Dump extradata */
-
-  //  fprintf(stderr, "Extradata:\n");
-  //  bgav_hexdump(priv->ctx->extradata, priv->ctx->extradata_size,
-  //               16);
-  
+    
   priv->ctx->channels        = s->data.audio.format.num_channels;
   priv->ctx->sample_rate     = s->data.audio.format.samplerate;
   priv->ctx->block_align     = s->data.audio.block_align;
@@ -218,11 +212,8 @@ static int decode_frame(bgav_stream_t * s)
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
     if(!p)
       {
-      //        fprintf(stderr, "Got no packet\n");
       return 0;
       }
-    //    fprintf(stderr, "Get packet %d %d\n",
-    //            priv->bytes_in_packet_buffer, s->data.audio.block_align);
     /* Move data to the beginning */
     if(priv->bytes_in_packet_buffer && (priv->packet_buffer_ptr > priv->packet_buffer))
       memmove(priv->packet_buffer, priv->packet_buffer_ptr,
@@ -237,8 +228,6 @@ static int decode_frame(bgav_stream_t * s)
       priv->packet_buffer = realloc(priv->packet_buffer, priv->packet_buffer_alloc);
       }
     
-    //    fprintf(stderr, "Got packet: %d bytes\n", p->data_size);      
-    
     memcpy(priv->packet_buffer + priv->bytes_in_packet_buffer, p->data, p->data_size);
     
     priv->bytes_in_packet_buffer += p->data_size;
@@ -249,14 +238,11 @@ static int decode_frame(bgav_stream_t * s)
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
   frame_size = 0;
-  //  fprintf(stderr, "Decode: %02x %d, block_align: %d\n",
-  //          *priv->packet_buffer_ptr, priv->bytes_in_packet_buffer, s->data.audio.block_align);
   bytes_used = avcodec_decode_audio(priv->ctx,
                                     priv->frame->samples.s_16,
                                     &frame_size,
                                     priv->packet_buffer_ptr,
                                     priv->bytes_in_packet_buffer);
-  //  fprintf(stderr, "Used: %d bytes, frame_size: %d\n", bytes_used, frame_size);
 
 #if 1
   if(bytes_used <= 1)
@@ -268,15 +254,12 @@ static int decode_frame(bgav_stream_t * s)
     
   if(frame_size < 0)
     {
-    //    fprintf(stderr, "Decoding failed %d\n", bytes_used);
     //      if(f)
     //        f->valid_samples = samples_decoded;
     //      return samples_decoded;
     }
   /* Advance packet buffer */
 
-  //  fprintf(stderr, "bytes_used: %d, bytes_in_packet_buffer: %d\n",
-  //          bytes_used, priv->bytes_in_packet_buffer);
 
   if(bytes_used > 0)
     {
@@ -289,7 +272,6 @@ static int decode_frame(bgav_stream_t * s)
     {
     priv->bytes_in_packet_buffer = 0;
     }
-  //  fprintf(stderr, "Frame size: %d\n", frame_size);
   
   /* No Samples decoded, get next packet */
 
@@ -300,9 +282,7 @@ static int decode_frame(bgav_stream_t * s)
 
   if(frame_size > AVCODEC_MAX_AUDIO_FRAME_SIZE*2)
     {
-    fprintf(stderr, "Adjusting frame size %d -> ", frame_size);
     frame_size = AVCODEC_MAX_AUDIO_FRAME_SIZE*2;
-    fprintf(stderr, "%d\n", frame_size);
     }
   
   frame_size /= (2 * s->data.audio.format.num_channels);
@@ -323,22 +303,13 @@ static int decode(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
     {
     if(!priv->frame->valid_samples)
       {
-      //      fprintf(stderr, "decode frame...");
       if(!decode_frame(s))
         {
         if(f)
           f->valid_samples = samples_decoded;
         return samples_decoded;
         }
-      //      fprintf(stderr, "done\n");
       }
-#if 0
-    fprintf(stderr, "Copy out_pos: %d, in_pos: %d, out_size: %d, in_size: %d\n",
-            samples_decoded, /* out_pos */
-            priv->last_frame_size - priv->frame->valid_samples,  /* in_pos */
-            num_samples - samples_decoded, /* out_size, */
-            priv->frame->valid_samples);
-#endif       
     samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
                                            f,
                                            priv->frame,
@@ -394,7 +365,6 @@ bgav_init_audio_decoders_ffmpeg()
     {
     if(avcodec_find_decoder(codec_infos[i].ffmpeg_id))
       {
-      // fprintf(stderr, "Trying %s\n", codec_map_template[i].name);
       codecs[real_num_codecs].info = &(codec_infos[i]);
       codecs[real_num_codecs].decoder.name =
         codecs[real_num_codecs].info->decoder_name;
@@ -404,8 +374,6 @@ bgav_init_audio_decoders_ffmpeg()
       codecs[real_num_codecs].decoder.decode = decode;
       codecs[real_num_codecs].decoder.close = close_ffmpeg;
       codecs[real_num_codecs].decoder.resync = resync_ffmpeg;
-      // fprintf(stderr, "Registering Codec %s\n",
-      //         codecs[real_num_codecs].decoder.name);
       bgav_audio_decoder_register(&codecs[real_num_codecs].decoder);
       
       real_num_codecs++;

@@ -120,11 +120,8 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
   else
     return 0; /* Never get here */
   
-  //  fprintf(stderr, "Got packet %p\n", p);
   /* Convert packet to subtitle */
 
-  //  fprintf(stderr, "convert_string_realloc 2 (ret: %p, ret_alloc: %d)...",
-  //          *ret, *ret_alloc);
 
   if(s->data.subtitle.cnv)
     {
@@ -144,10 +141,6 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
     memcpy(*ret, p->data, p->data_size);
     (*ret)[p->data_size] = '\0';
     }
-  //  fprintf(stderr, "done\n");
-
-  
-  //  fprintf(stderr, "Got subtitle: %s\n", *ret);
   
   *start_time = gavl_time_unscale(s->timescale, p->timestamp_scaled);
   *duration   = gavl_time_unscale(s->timescale, p->duration_scaled);
@@ -219,12 +212,12 @@ void bgav_subtitle_dump(bgav_stream_t * s)
   {
   if(s->type == BGAV_STREAM_SUBTITLE_OVERLAY)
     {
-    fprintf(stderr, "Format:\n");
+    bgav_dprintf( "Format:\n");
     gavl_video_format_dump(&(s->data.subtitle.format));
     }
   else
     {
-    fprintf(stderr, "Character set: %s\n", s->data.subtitle.charset);
+    bgav_dprintf( "Character set: %s\n", s->data.subtitle.charset);
     }
   }
 
@@ -274,7 +267,6 @@ int bgav_subtitle_start(bgav_stream_t * s)
     ctx = calloc(1, sizeof(*ctx));
     s->data.subtitle.decoder = ctx;
     s->data.subtitle.decoder->decoder = dec;
-    //  fprintf(stderr, "Opening codec %s\n", dec->name);
     
     if(!dec->init(s))
       return 0;

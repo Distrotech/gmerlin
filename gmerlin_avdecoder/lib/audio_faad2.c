@@ -26,6 +26,8 @@
 #include <codecs.h>
 #include <avdec_private.h>
 
+#define LOG_DOMAIN "faad2"
+
 typedef struct
   {
   faacDecHandle dec;
@@ -49,7 +51,6 @@ static int get_data(bgav_stream_t * s)
   
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
 
-  //  fprintf(stderr, "Get data %d\n", priv->data_size);
   
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!p)
@@ -72,7 +73,6 @@ static int get_data(bgav_stream_t * s)
   priv->data_size += p->data_size;
   bgav_demuxer_done_packet_read(s->demuxer, p);
 
-  //  fprintf(stderr, "done %d\n", priv->data_size);
   return 1;
   }
 
@@ -121,15 +121,11 @@ static int decode_frame(bgav_stream_t * s)
   
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
 
-  //  fprintf(stderr, "Decode frame %d\n", priv->data_size);
-  
   memset(&frame_info, 0, sizeof(&frame_info));
   
   if(priv->data_size < FAAD_MIN_STREAMSIZE*GAVL_MAX_CHANNELS)
     if(!get_data(s))
       return 0;
-
-  //  fprintf(stderr, "Decode %d\n", priv->data_size);
 
   /*
    * Dirty trick: Frames from some mp4 files are randomly padded with
@@ -145,28 +141,24 @@ static int decode_frame(bgav_stream_t * s)
 #endif
   while(1)
     {
-    //    fprintf(stderr, "faacDecDecode, buf: %d: ", priv->data_size);
-    //    bgav_hexdump(priv->data_ptr, 16, 16);
     priv->frame->samples.f = faacDecDecode(priv->dec,
                                            &frame_info,
                                            priv->data_ptr,
                                            priv->data_size);
     priv->data_ptr  += frame_info.bytesconsumed;
     priv->data_size -= frame_info.bytesconsumed;
-
-    //    fprintf(stderr, "Bytes used: %ld\n", frame_info.bytesconsumed);
     
     if(!priv->frame->samples.f)
       {
       if(frame_info.error == 14) /* Too little data */
         {
-        //        fprintf(stderr, "Need more data %d\n", priv->data_size);
         if(!get_data(s))
           return 0;
         }
       else
         {
-        fprintf(stderr, "faad2: faacDecDecode failed %s\n",
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "faad2: faacDecDecode failed %s",
                 faacDecGetErrorMessage(frame_info.error));
         //    priv->data_size = 0;
         //    priv->frame->valid_samples = 0;
@@ -211,8 +203,6 @@ static int decode_frame(bgav_stream_t * s)
   priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
   priv->last_block_size = priv->frame->valid_samples;
   
-  //  fprintf(stderr, "Decoded %d samples, used %ud bytes\n", priv->last_block_size,
-  //          frame_info.bytesconsumed);
   
   return 1;
   }
@@ -232,7 +222,6 @@ static int init_faad2(bgav_stream_t * s)
   
   /* Init the library using a DecoderSpecificInfo */
 
-  //  fprintf(stderr, "Extradata size: %d\n", s->ext_size);
 
   if(!s->ext_size)
     {
@@ -242,7 +231,6 @@ static int init_faad2(bgav_stream_t * s)
     result = faacDecInit(priv->dec, priv->data_ptr,
                          priv->data_size,
                          &samplerate, &channels);
-    //    fprintf(stderr, "faacDecInit %d bytes used\n", result);
 
     priv->data_size -= result;
     priv->data_ptr += result;
@@ -252,11 +240,7 @@ static int init_faad2(bgav_stream_t * s)
     result = faacDecInit2(priv->dec, s->ext_data,
                           s->ext_size,
                           &samplerate, &channels);
-    //    fprintf(stderr, "faacDecInit2, samplerate: %d, channels: %d\n",
-    //            samplerate, channels);
-    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
     }
-  //  fprintf(stderr, "Result: %d %d %d\n", result, samplerate, channels);
 
   /* Some mp4 files have a wrong samplerate in the sample description,
      so we correct it here */
@@ -299,14 +283,12 @@ static int decode_faad2(bgav_stream_t * s, gavl_audio_frame_t * f,
     {
     if(!priv->frame->valid_samples)
       {
-      //      fprintf(stderr, "decode frame...");
       if(!decode_frame(s))
         {
         if(f)
           f->valid_samples = samples_decoded;
         return samples_decoded;
         }
-      //      fprintf(stderr, "done\n");
       }
     samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
                                            f,

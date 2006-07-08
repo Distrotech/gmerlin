@@ -743,45 +743,45 @@ void bgav_qt_chan_dump(qt_chan_t * chan)
   int num_channels;
   int i, j;
   uint32_t mask;
-  fprintf(stderr, "channel description (chan)\n");
-  fprintf(stderr, "  version                     %d\n", chan->version);
-  fprintf(stderr, "  flags                       %d\n", chan->flags);
-  fprintf(stderr, "  mChannelLayoutTag:          0x%08x", chan->mChannelLayoutTag);
+  bgav_dprintf( "channel description (chan)\n");
+  bgav_dprintf( "  version                     %d\n", chan->version);
+  bgav_dprintf( "  flags                       %d\n", chan->flags);
+  bgav_dprintf( "  mChannelLayoutTag:          0x%08x", chan->mChannelLayoutTag);
 
   if(chan->mChannelLayoutTag == CHANNEL_LAYOUT_UseChannelDescriptions)
     {
-    fprintf(stderr, " [Use channel decriptions]\n");
+    bgav_dprintf( " [Use channel decriptions]\n");
     }
   else if(chan->mChannelLayoutTag == CHANNEL_LAYOUT_UseChannelBitmap)
     {
-    fprintf(stderr, " [Use channel bitmap]\n");
+    bgav_dprintf( " [Use channel bitmap]\n");
     }
   else
     {
     channel_labels = get_channel_locations(chan->mChannelLayoutTag, &num_channels);
     
-    fprintf(stderr, " [");
+    bgav_dprintf( " [");
 
     if(channel_labels)
       {
       for(i = 0; i < num_channels; i++)
         {
-        fprintf(stderr, "%s", get_channel_name(channel_labels[i]));
+        bgav_dprintf( "%s", get_channel_name(channel_labels[i]));
         if(i < num_channels-1)
-        fprintf(stderr, ", ");
+        bgav_dprintf( ", ");
         }
       }
     else
-      fprintf(stderr, "Not available");
+      bgav_dprintf( "Not available");
     
-    fprintf(stderr, "]\n");
+    bgav_dprintf( "]\n");
     }
   
-  fprintf(stderr, "  mChannelBitmap:             0x%08x", chan->mChannelBitmap);
+  bgav_dprintf( "  mChannelBitmap:             0x%08x", chan->mChannelBitmap);
 
   if(chan->mChannelLayoutTag == CHANNEL_LAYOUT_UseChannelBitmap)
     {
-    fprintf(stderr, " [");
+    bgav_dprintf( " [");
     j = 0;
     mask = 1;
     for(i = 0; i < 32; i++)
@@ -789,26 +789,26 @@ void bgav_qt_chan_dump(qt_chan_t * chan)
       if(chan->mChannelBitmap & mask)
         {
         if(j)
-          fprintf(stderr, ", ");
-        fprintf(stderr, "%s", get_channel_name(channel_bit_2_channel_label(mask)));
+          bgav_dprintf( ", ");
+        bgav_dprintf( "%s", get_channel_name(channel_bit_2_channel_label(mask)));
         j++;
         }
       mask <<= 1;
       }
-    fprintf(stderr, "]\n");
+    bgav_dprintf( "]\n");
     }
   else
-    fprintf(stderr, "\n");
+    bgav_dprintf( "\n");
    
   
-  fprintf(stderr, "        mNumberChannelDescriptions: %d\n", chan->mNumberChannelDescriptions);
+  bgav_dprintf( "        mNumberChannelDescriptions: %d\n", chan->mNumberChannelDescriptions);
   for(i = 0; i < chan->mNumberChannelDescriptions; i++)
     {
-    fprintf(stderr, "         mChannelLabel[%d]: 0x%08x [%s]\n", i,
+    bgav_dprintf( "         mChannelLabel[%d]: 0x%08x [%s]\n", i,
            chan->ChannelDescriptions[i].mChannelLabel, get_channel_name(chan->ChannelDescriptions[i].mChannelLabel));
-    fprintf(stderr, "         mChannelFlags[%d]: 0x%08x\n", i,
+    bgav_dprintf( "         mChannelFlags[%d]: 0x%08x\n", i,
            chan->ChannelDescriptions[i].mChannelFlags);
-    fprintf(stderr, "         mCoordinates[%d]: [%f %f %f]\n", i,
+    bgav_dprintf( "         mCoordinates[%d]: [%f %f %f]\n", i,
            chan->ChannelDescriptions[i].mCoordinates[0],
            chan->ChannelDescriptions[i].mCoordinates[1],
            chan->ChannelDescriptions[i].mCoordinates[2]);

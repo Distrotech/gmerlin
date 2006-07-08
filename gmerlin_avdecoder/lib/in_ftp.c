@@ -41,21 +41,17 @@ static int get_server_answer(int fd, char ** server_msg,
     
   if(!bgav_read_line_fd(fd, server_msg, server_msg_alloc, connect_timeout))
     {
-    // fprintf(stderr, "Got no line \n");
     return 0;
     }
 
   strncpy(status, *server_msg, 4);
-  // fprintf(stderr,"server_msg: %s\n", *server_msg);
 
   if(status[3]=='-')
     {
     status[3] = ' ';
-    // fprintf(stderr,"status_sav: %s\n", status);
     }
   else
     {
-    // fprintf(stderr,"get_server_msg: %d\n", atoi(*server_msg));
     return atoi(*server_msg);
     }
 
@@ -66,8 +62,6 @@ static int get_server_answer(int fd, char ** server_msg,
     if(!bgav_read_line_fd(fd, server_msg, server_msg_alloc, connect_timeout))
       return 0;
     strncpy(status_neu, *server_msg, 4);
-    // fprintf(stderr,"server_msg: %s\n", *server_msg);
-    // fprintf(stderr,"status_neu: %s\n", status_neu);
     }
   return atoi(*server_msg);
   }
@@ -175,10 +169,8 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url)
   ctx->priv = p;
   
   /* Connect */
-  // fprintf(stderr, "Connecting 1 ...");
   if((p->control_fd = bgav_tcp_connect(host, port, ctx->opt->connect_timeout, &(ctx->error_msg)))== -1)
     goto fail;
-  // fprintf(stderr, "done %d\n", p->control_fd);
   if(get_server_answer(p->control_fd, &server_msg, &server_msg_alloc,
                        ctx->opt->connect_timeout) != 220)
     {
@@ -234,23 +226,18 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url)
   /* done */
 
   /* parse file_name and directory */
-  // fprintf(stderr,"path      = %s \n", path);
   file_name = strrchr(path, '/');
   if(!file_name)
     goto fail;
 
   *file_name = '\0';
   file_name ++;
-  // fprintf(stderr,"file_name = %s \n", file_name);
-  // fprintf(stderr,"path      = %s \n", path);
   /* done */
 
 
   
   /* Change Directory */
   server_cmd = bgav_sprintf("CWD %s\r\n",path);
-  //fprintf(stderr, "Sending command %s", server_cmd);
-
   if(!bgav_tcp_send(p->control_fd, (uint8_t*)server_cmd, strlen(server_cmd), &(ctx->error_msg)))
     goto fail;
   FREE(server_cmd);
@@ -266,8 +253,6 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url)
   
   /* Find size of File */
   server_cmd = bgav_sprintf("SIZE %s\r\n",file_name);
-  //fprintf(stderr, "Sending command %s", server_cmd);
-
   if(!bgav_tcp_send(p->control_fd, (uint8_t*)server_cmd, strlen(server_cmd), &(ctx->error_msg)))
     goto fail;
   FREE(server_cmd);
@@ -278,8 +263,6 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url)
     ctx->error_msg = bgav_sprintf("Could not read answer");
     goto fail;
     }
-
-  //  fprintf (stderr, "Server_msg: %s\n", server_msg);
 
   pos = server_msg;
   while(!isspace(*pos) && (pos != '\0'))
@@ -292,11 +275,7 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url)
     }
   ctx->total_bytes = strtoll(pos, NULL, 10);
 
-  // fprintf(stderr,"server_msg->size: %lld\n", ctx->total_bytes);
   /* done */
-
-
-
   
   /* Set Binaer */
   server_cmd = bgav_sprintf("TYPE I\r\n");
@@ -331,13 +310,9 @@ static int open_ftp(bgav_input_context_t * ctx, const char * url)
   /* done */
 
   /* Connect */
-  // fprintf(stderr, "Connecting 2 %s:%d ", data_ip, data_port);
   if((p->data_fd = bgav_tcp_connect(data_ip, data_port, ctx->opt->connect_timeout, &(ctx->error_msg)))== -1)
     goto fail;
-  // fprintf(stderr, "done %d\n", p->data_fd);
   /* done */
-
-
 
   /* open data connection */ 
   server_cmd = bgav_sprintf("RETR %s\r\n", file_name);
@@ -387,7 +362,6 @@ static int do_read(bgav_input_context_t * ctx,
 
   if(!len)
     {
-    // fprintf(stderr, "in_ftp: detected EOF\n");
     return 0;
     }
   len_read = bgav_read_data_fd(p->data_fd, buffer, len, timeout);

@@ -27,6 +27,7 @@
 #include <bswap.h>
 
 #define FRAME_SAMPLES 1024
+#define LOG_DOMAIN "pcm"
 
 typedef struct
   {
@@ -93,7 +94,6 @@ static void decode_s_16_swap(bgav_stream_t * s)
 
   num_samples = priv->bytes_in_packet / (2 * s->data.audio.format.num_channels);
 
-  //  fprintf(stderr, "SAMPLES: %d\n", num_samples);
   
   if(num_samples > FRAME_SAMPLES)
     num_samples = FRAME_SAMPLES;
@@ -203,7 +203,6 @@ static void decode_s_32(bgav_stream_t * s)
   priv->packet_ptr += num_bytes;
   priv->bytes_in_packet -= num_bytes;
   priv->frame->valid_samples = num_samples;
-  //  fprintf(stderr, "Decode %d %d\n", num_bytes, num_samples);
   
   }
 
@@ -653,7 +652,6 @@ static int get_packet(bgav_stream_t * s)
   
   if(!priv->p)
     {
-    //    fprintf(stderr, "Reached EOF\n");
     return 0;
     }
   priv->bytes_in_packet = priv->p->data_size;
@@ -661,10 +659,6 @@ static int get_packet(bgav_stream_t * s)
   if(priv->p->samples && (priv->p->samples * priv->block_align < priv->bytes_in_packet))
     priv->bytes_in_packet = priv->p->samples * priv->block_align;
   priv->packet_ptr = priv->p->data;
-#if 0
-  fprintf(stderr, "Got packet, %d bytes (%d samples)\n",
-          priv->bytes_in_packet, priv->bytes_in_packet/priv->block_align);
-#endif
   return 1;
   }
 
@@ -717,7 +711,8 @@ static int init_pcm(bgav_stream_t * s)
         }
       else
         {
-        fprintf(stderr, "Audio bits %d not supported!!\n",
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Audio bits %d not supported.",
                 s->data.audio.bits_per_sample);
         return 0;
         }
@@ -798,8 +793,9 @@ static int init_pcm(bgav_stream_t * s)
 #endif
           break;
         default:
-          fprintf(stderr, "Audio bits %d not supported!!\n",
-                  s->data.audio.bits_per_sample);
+          bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                   "Audio bits %d not supported.",
+                   s->data.audio.bits_per_sample);
           return 0;
         }
       break;
@@ -808,7 +804,8 @@ static int init_pcm(bgav_stream_t * s)
          the stream parameters */
       if(!get_packet(s))
         {
-        fprintf(stderr, "Could not get initial packet\n");
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Could not get initial packet");
         return 0;
         }
       switch(s->data.audio.bits_per_sample)
@@ -822,7 +819,9 @@ static int init_pcm(bgav_stream_t * s)
 #endif
           break;
         default:
-          fprintf(stderr, "Error: %d bit lpcm not supported\n", s->data.audio.bits_per_sample);
+          bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                   "Audio bits %d not supported.",
+                   s->data.audio.bits_per_sample);
           return 0;
         }
 
@@ -929,9 +928,9 @@ static int init_pcm(bgav_stream_t * s)
       /* Quicktime 7 lpcm: extradata contains formatSpecificFlags in native byte order */
       if(s->ext_size < sizeof(formatSpecificFlags))
         {
-        fprintf(stderr, "extradata too small (%d < %d)\n", s->ext_size,
-                sizeof(formatSpecificFlags));
-        bgav_stream_dump(s);
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "extradata too small (%d < %d)\n", s->ext_size,
+                 sizeof(formatSpecificFlags));
         return 0;
         }
       formatSpecificFlags = *((uint32_t*)(s->ext_data));
@@ -1028,7 +1027,8 @@ static int init_pcm(bgav_stream_t * s)
         }
       break;
     default:
-      fprintf(stderr, "Unknown fourcc\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Unknown fourcc");
       return 0;
     }
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;

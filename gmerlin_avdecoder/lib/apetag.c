@@ -116,17 +116,17 @@ bgav_ape_tag_t * bgav_ape_tag_read(bgav_input_context_t * input, int tag_size)
 void bgav_ape_tag_dump(bgav_ape_tag_t * tag)
   {
   int i;
-  fprintf(stderr, "APE Tag %d items\n", tag->num_items);
+  bgav_dprintf("APE Tag %d items\n", tag->num_items);
 
   for(i = 0; i < tag->num_items; i++)
     {
-    fprintf(stderr, "  Item %d\n", i+1);
-    fprintf(stderr, "    Key: %s\n", tag->items[i].key);
+    bgav_dprintf("  Item %d\n", i+1);
+    bgav_dprintf("    Key: %s\n", tag->items[i].key);
 
     if(tag->items[i].str)
-      fprintf(stderr, "    String: %s\n", tag->items[i].str);
+      bgav_dprintf("    String: %s\n", tag->items[i].str);
     else
-      fprintf(stderr, "    No usable value\n");
+      bgav_dprintf("    No usable value\n");
     }
   }
 

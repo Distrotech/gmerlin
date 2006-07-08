@@ -39,8 +39,8 @@ int bgav_qt_frma_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
   
 void bgav_qt_frma_dump(qt_frma_t * f)
   {
-  fprintf(stderr, "frma:\n");
-  fprintf(stderr, "  fourcc: ");
+  bgav_dprintf( "frma:\n");
+  bgav_dprintf( "  fourcc: ");
   bgav_dump_fourcc(f->fourcc);
-  fprintf(stderr, "\n");
+  bgav_dprintf( "\n");
   }

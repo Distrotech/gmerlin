@@ -29,6 +29,8 @@
 #include <speex/speex_stereo.h>
 #include <speex/speex_callbacks.h>
 
+#define LOG_DOMAIN "speex"
+
 typedef struct
   {
   SpeexBits bits;
@@ -54,7 +56,7 @@ static int init_speex(bgav_stream_t * s)
   
   if(!s->ext_data)
     {
-    fprintf(stderr, "Speex needs extradata\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Speex needs extradata");
     return 0;
     }
 
@@ -65,7 +67,6 @@ static int init_speex(bgav_stream_t * s)
   
   priv->dec_state = speex_decoder_init(speex_mode_list[priv->header->mode]);
 
-  //  fprintf(stderr, "Mode: %d\n", priv->header->mode);
   
   /* Set up format */
 
@@ -110,10 +111,8 @@ static int decode_packet(bgav_stream_t * s)
   
   for(i = 0; i < priv->header->frames_per_packet; i++)
     {
-    //    fprintf(stderr, "speex_decode %d\n", p->data_size);
     speex_decode(priv->dec_state, &(priv->bits),
                  priv->frame->samples.f + i * priv->frame_size * s->data.audio.format.num_channels);
-    //    fprintf(stderr, "speex_decode done\n");
     if(s->data.audio.format.num_channels > 1)
       {
       speex_decode_stereo(priv->frame->samples.f +
@@ -150,14 +149,12 @@ static int decode_speex(bgav_stream_t * s,
     {
     if(!priv->frame->valid_samples)
       {
-      //      fprintf(stderr, "decode frame...");
       if(!decode_packet(s))
         {
         if(f)
           f->valid_samples = samples_decoded;
         return samples_decoded;
         }
-      //      fprintf(stderr, "done\n");
       }
     samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
                                            f,

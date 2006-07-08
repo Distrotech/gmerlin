@@ -156,8 +156,6 @@ static int mutex_initialized = 0;
 
 static void codecs_lock()
   {
-  //  fprintf(stderr, "codecs_lock\n");
-  
   if(!mutex_initialized)
     {
     pthread_mutex_init(&(codec_mutex),(pthread_mutexattr_t *)0);
@@ -168,7 +166,6 @@ static void codecs_lock()
 
 static void codecs_unlock()
   {
-  //  fprintf(stderr, "codecs_unlock\n");
   pthread_mutex_unlock(&(codec_mutex));
   }
 
@@ -184,85 +181,47 @@ void bgav_codecs_dump()
   /* Print */
   ad = audio_decoders;
 
-  fprintf(stderr, "<h2>Audio codecs</h2>\n");
+  bgav_dprintf("<h2>Audio codecs</h2>\n");
 
-  fprintf(stderr, "<ul>\n");
+  bgav_dprintf("<ul>\n");
   for(i = 0; i < num_audio_codecs; i++)
     {
-    fprintf(stderr, "<li>%s\n", ad->name);
+    bgav_dprintf("<li>%s\n", ad->name);
     ad = ad->next;
     }
-  fprintf(stderr, "</ul>\n");
+  bgav_dprintf("</ul>\n");
   
-  fprintf(stderr, "<h2>Video codecs</h2>\n");
-  fprintf(stderr, "<ul>\n");
+  bgav_dprintf("<h2>Video codecs</h2>\n");
+  bgav_dprintf("<ul>\n");
   vd = video_decoders;
   for(i = 0; i < num_video_codecs; i++)
     {
-    fprintf(stderr, "<li>%s\n", vd->name);
+    bgav_dprintf("<li>%s\n", vd->name);
     vd = vd->next;
     }
-  fprintf(stderr, "</ul>\n");
+  bgav_dprintf("</ul>\n");
 
-  fprintf(stderr, "<h2>Graphical subtitle codecs</h2>\n");
-  fprintf(stderr, "<ul>\n");
+  bgav_dprintf("<h2>Graphical subtitle codecs</h2>\n");
+  bgav_dprintf("<ul>\n");
   sod = subtitle_overlay_decoders;
   for(i = 0; i < num_subtitle_overlay_codecs; i++)
     {
-    fprintf(stderr, "<li>%s\n", sod->name);
+    bgav_dprintf("<li>%s\n", sod->name);
     sod = sod->next;
     }
-  fprintf(stderr, "</ul>\n");
+  bgav_dprintf("</ul>\n");
 
   }
 
-/*
- *  Print some verbose error messages so users will know
- *  how to set up their systems
- */
-
-static void print_dirs(char ** dirs)
-  {
-  int i = 0;
-  
-  fprintf(stderr, "\n");
-  while(dirs[i])
-    {
-    fprintf(stderr, "%s\n", dirs[i]);
-    i++;
-    }
-  fprintf(stderr, "\n");
-  }
-
-static void print_error_nopath(const char * name, const char * env_name, char ** dirs)
-  {
-  
-  fprintf(stderr, "Didn't find path for %s\n", name);
-  fprintf(stderr, "Install it in one of the following directories:\n");
-  print_dirs(dirs);
-  
-  fprintf(stderr, "or set the environment variable %s\n\n", env_name);
-  }
-
-static void print_error_nofile(const char * name, const char * env_name, char ** dirs)
-  {
-  fprintf(stderr, "Didn't find some %s\n", name);
-  fprintf(stderr, "Install them in one of the following directories:\n");
-  print_dirs(dirs);
-  fprintf(stderr, "Or set the the environment variable %s\n\n",
-          env_name);
-  }
 
 void bgav_codecs_init()
   {
-  //  fprintf(stderr, "bgav_codecs_init()\n");
   codecs_lock();
   if(codecs_initialized)
     {
     codecs_unlock();
     return;
     }
-  //  fprintf(stderr, "bgav_codecs_init() 1\n");
   codecs_initialized = 1;
   
 #ifdef HAVE_LIBAVCODEC
@@ -314,14 +273,9 @@ void bgav_codecs_init()
 
   bgav_set_dll_path_xanim();
 
-  if(!bgav_dll_path_xanim)
-    print_error_nopath("Xanim dlls", env_name_xanim, xanim_dirs);
-  else
+  if(bgav_dll_path_xanim)
     {
-    if(!bgav_init_video_decoders_xadll())
-      {
-      print_error_nofile("Xanim dlls", env_name_xanim, xanim_dirs);
-      }
+    bgav_init_video_decoders_xadll();
     }
 #endif
 
@@ -329,18 +283,10 @@ void bgav_codecs_init()
   
   bgav_set_dll_path_real();
 
-  if(!bgav_dll_path_real)
-    print_error_nopath("Real DLLs", env_name_real, real_dirs);
-  else
+  if(bgav_dll_path_real)
     {
-    if(!bgav_init_video_decoders_real())
-      {
-      print_error_nofile("Real video DLLs", env_name_real, real_dirs);
-      }
-    if(!bgav_init_audio_decoders_real())
-      {
-      print_error_nofile("Real audio DLLs", env_name_real, real_dirs);
-      }
+    bgav_init_video_decoders_real();
+    bgav_init_audio_decoders_real();
     }
 #endif
 
@@ -348,24 +294,11 @@ void bgav_codecs_init()
   
   bgav_set_dll_path_win32();
 
-  if(!win_path_needs_delete)
+  if(win_path_needs_delete)
     {
-    print_error_nopath("Win32 DLLs", env_name_win32, win32_dirs);
-    }
-  else
-    {
-    if(!bgav_init_video_decoders_win32())
-      {
-      print_error_nofile("Win32 video DLLs", env_name_win32, win32_dirs);
-      }
-    if(!bgav_init_audio_decoders_win32())
-      {
-      print_error_nofile("Win32 audio DLLs", env_name_win32, win32_dirs);
-      }
-    if(!bgav_init_audio_decoders_qtwin32())
-      {
-      print_error_nofile("Win32 Quicktime audio DLLs", env_name_win32, win32_dirs);
-      }
+    bgav_init_video_decoders_win32();
+    bgav_init_audio_decoders_win32();
+    bgav_init_audio_decoders_qtwin32();
     }
   
 #endif
@@ -382,10 +315,6 @@ void bgav_codecs_init()
 
   bgav_init_subtitle_overlay_decoders_dvd();
 
-#if 0  
-  fprintf(stderr, "BGAV Codecs initialized: A: %d V: %d\n",
-          num_audio_codecs, num_video_codecs);
-#endif
   codecs_unlock();
   
   }
@@ -448,24 +377,15 @@ bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t * s)
   //  if(!codecs_initialized)
   //    bgav_codecs_init();
 
-#ifdef ENABLE_DEBUG
-  fprintf(stderr, "Seeking audio codec ");
-  bgav_dump_fourcc(s->fourcc);
-  fprintf(stderr, "\n");
-#endif
   
   while(cur)
     {
     i = 0;
-    //    fprintf(stderr, "Trying %s\n", cur->name);
     while(cur->fourccs[i])
       {
       if(cur->fourccs[i] == s->fourcc)
         {
         codecs_unlock();
-#ifdef ENABLE_DEBUG
-        fprintf(stderr, "Found %s\n", cur->name);
-#endif
         return cur;
         }
       else
@@ -488,11 +408,6 @@ bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
   
   cur = video_decoders;
 
-#ifdef ENABLE_DEBUG
-  fprintf(stderr, "Seeking video codec ");
-  bgav_dump_fourcc(s->fourcc);
-  fprintf(stderr, "\n");
-#endif
   while(cur)
     {
     i = 0;
@@ -501,9 +416,6 @@ bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t * s)
       if(cur->fourccs[i] == s->fourcc)
         {
         codecs_unlock();
-#ifdef ENABLE_DEBUG
-        fprintf(stderr, "Found %s\n", cur->name);
-#endif
         return cur;
         }
       else
@@ -526,11 +438,6 @@ bgav_subtitle_overlay_decoder_t * bgav_find_subtitle_overlay_decoder(bgav_stream
   
   cur = subtitle_overlay_decoders;
 
-#ifdef ENABLE_DEBUG
-  fprintf(stderr, "Seeking subtitle overlay codec ");
-  bgav_dump_fourcc(s->fourcc);
-  fprintf(stderr, "\n");
-#endif
   while(cur)
     {
     i = 0;
@@ -539,9 +446,6 @@ bgav_subtitle_overlay_decoder_t * bgav_find_subtitle_overlay_decoder(bgav_stream
       if(cur->fourccs[i] == s->fourcc)
         {
         codecs_unlock();
-#ifdef ENABLE_DEBUG
-        fprintf(stderr, "Found %s\n", cur->name);
-#endif
         return cur;
         }
       else
@@ -567,8 +471,6 @@ static void __cleanup() __attribute__ ((destructor));
  
 static void __cleanup()
   {
-  //  fprintf(stderr, "Freeing codec paths\n");
-
   if(mutex_initialized)
     pthread_mutex_destroy(&codec_mutex);
     

@@ -83,7 +83,6 @@ static void set_metadata_string(bgav_http_header_t * header,
     if(val)
       {
       *str = bgav_strdup(val);
-//      fprintf(stderr, "Metadata title: %s\n", val);
       return;
       }
     else
@@ -116,8 +115,6 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
     {
     for(i = 0; i < NUM_REDIRECTIONS; i++)
       {
-      //      fprintf(stderr, "Got redirection, new URL: %s\n",
-      //              redirect_url);
       p->h = bgav_http_open(redirect_url, ctx->opt,
                             &redirect_url, extra_header, &ctx->error_msg);
       if(p->h)
@@ -156,8 +153,6 @@ static int open_http(bgav_input_context_t * ctx, const char * url)
     {
     p->icy_metaint = atoi(var);
     //    p->icy_bytes = p->icy_metaint;
-//    fprintf(stderr, "icy-metaint: %d\n", p->icy_metaint);
-
     /* Then, we'll also need a charset converter */
 
     p->charset_cnv = bgav_charset_converter_create("ISO-8859-1", "UTF-8");
@@ -205,8 +200,6 @@ static int read_chunk(bgav_input_context_t* ctx)
   http_priv * p = (http_priv *)(ctx->priv);
   fd = bgav_http_get_fd(p->h);
 
-  //  fprintf(stderr, "Read chunk...");
-    
   /* We first check if there is data availble, after that, the whole
      chunk is read at once */
 
@@ -256,8 +249,6 @@ static int read_chunk(bgav_input_context_t* ctx)
   p->chunk_buffer_size = chunk_size;
   p->chunk_size = chunk_size;
 
-  //  fprintf(stderr, "done, size: %d\n", p->chunk_size);
-  //  bgav_hexdump(p->chunk_buffer, p->chunk_size, 16);
   return bytes_read;
   }
 
@@ -270,9 +261,6 @@ static int read_data_chunked(bgav_input_context_t* ctx,
   http_priv * p = (http_priv *)(ctx->priv);
   while(bytes_read < len)
     {
-    //    fprintf(stderr, "read_data_chunked %d %d\n",
-    //            bytes_read, p->chunk_size);
-
     if(!p->chunk_buffer_size)
       {
       if(!read_chunk(ctx))
@@ -304,8 +292,6 @@ static int read_data(bgav_input_context_t* ctx,
 
   fd = bgav_http_get_fd(p->h);
   
-  //  fprintf(stderr, "Read data %d %d %d\n", len, ctx->opt->read_timeout, ctx->opt->connect_timeout);
-
   if(block)
     return bgav_read_data_fd(fd, buffer, len, ctx->opt->read_timeout);
   else
@@ -328,8 +314,6 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
     }
   meta_bytes = icy_len * 16;
   
-  //  fprintf(stderr, "Metadata bytes: %d\n", meta_bytes);
-  
   if(meta_bytes)
     {
     meta_buffer = malloc(meta_bytes);
@@ -338,9 +322,6 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
     
     if(read_data(ctx, (uint8_t*)meta_buffer, meta_bytes, 1) < meta_bytes)
       return 0;
-    
-//    fprintf(stderr, "Meta buffer:\n");
-//    bgav_hexdump(meta_buffer, meta_bytes, 16);
     
     if(ctx->opt->name_change_callback)
       {
@@ -372,13 +353,10 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
           ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
                                          meta_name);
         
-          //        fprintf(stderr, "NAME CHANGED: %s\n", meta_name);
           free(meta_name);
           }
         }
       }
-    //        else
-    //          fprintf(stderr, "Name changed callback is NULL!!!\n");
     free(meta_buffer);
     }
   return 1;
@@ -393,8 +371,6 @@ static int do_read(bgav_input_context_t* ctx,
   int result;
   http_priv * p = (http_priv *)(ctx->priv);
 
-  //  fprintf(stderr, "Do read %d %d %d\n", len, p->icy_bytes, block);
-  
   if(!p->icy_metaint) 
     return read_data(ctx, buffer, len, block);
   else
@@ -436,9 +412,7 @@ static int read_http(bgav_input_context_t* ctx,
                      uint8_t * buffer, int len)
   {
   int result;
-  //  fprintf(stderr, "Do read..");
   result = do_read(ctx, buffer, len, 1);
-  //  fprintf(stderr, "result: %d\n", result);
   return result;
   }
 
@@ -456,8 +430,6 @@ static void close_http(bgav_input_context_t * ctx)
   if(p->chunk_buffer)
     free(p->chunk_buffer);
   bgav_http_close(p->h);
-
-  //  fprintf(stderr, "CLOSE HTTP\n");
 
   free(p);
   }

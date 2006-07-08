@@ -57,11 +57,11 @@ static int read_chunk_header(bgav_input_context_t * ctx, chunk_header_t * ret)
 #if 0
 static void dump_chunk_header(chunk_header_t * ret)
   {
-  fprintf(stderr,"chunk_header\n");
-  fprintf(stderr,"  fourcc:            ");
+  bgav_dprintf("chunk_header\n");
+  bgav_dprintf("  fourcc:            ");
   bgav_dump_fourcc(ret->fourcc);
-  fprintf(stderr,"\n");
-  fprintf(stderr,"  size:              %d\n",ret->size);
+  bgav_dprintf("\n");
+  bgav_dprintf("  size:              %d\n",ret->size);
   }
 #endif
 
@@ -82,15 +82,15 @@ typedef struct
 #if 0
 static void dump_VHDR(VHDR_t * v)
   {
-  fprintf(stderr,"VHDR\n");
-  fprintf(stderr,"  oneShotHiSamples:  %d\n",v->oneShotHiSamples);
-  fprintf(stderr,"  repeatHiSamples:   %d\n",v->repeatHiSamples);
-  fprintf(stderr,"  samplesPerHiCycle: %d\n",v->samplesPerHiCycle);
+  bgav_dprintf("VHDR\n");
+  bgav_dprintf("  oneShotHiSamples:  %d\n",v->oneShotHiSamples);
+  bgav_dprintf("  repeatHiSamples:   %d\n",v->repeatHiSamples);
+  bgav_dprintf("  samplesPerHiCycle: %d\n",v->samplesPerHiCycle);
 
-  fprintf(stderr,"  samplesPerSec:     %d\n",v->samplesPerSec);
-  fprintf(stderr,"  ctOctave:          %d\n",v->ctOctave);
-  fprintf(stderr,"  sCompression:      %d\n",v->sCompression);
-  fprintf(stderr,"  volume:            %d\n",v->volume);
+  bgav_dprintf("  samplesPerSec:     %d\n",v->samplesPerSec);
+  bgav_dprintf("  ctOctave:          %d\n",v->ctOctave);
+  bgav_dprintf("  sCompression:      %d\n",v->sCompression);
+  bgav_dprintf("  volume:            %d\n",v->volume);
   }
 #endif
 

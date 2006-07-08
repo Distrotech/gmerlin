@@ -40,6 +40,8 @@ static void close_real(bgav_stream_t * s);
 static void resync_real(bgav_stream_t * s);
 // static void skip_real(bgav_stream_t * s,int);
 
+#define LOG_DOMAIN "audio_real"
+
 typedef struct
   {
   const char * dll_name;
@@ -99,7 +101,6 @@ int bgav_init_audio_decoders_real()
   char test_filename[PATH_MAX];
   int i;
 
-  //  fprintf(stderr, "bgav_init_audio_decoders_real: %s\n", bgav_dll_path_real); 
   for(i = 0; i < sizeof(real_codecs) / sizeof(real_codecs[0]); i++)
     {
     sprintf(test_filename, "%s/%s", bgav_dll_path_real, real_codecs[i].dll_name);
@@ -107,8 +108,6 @@ int bgav_init_audio_decoders_real()
       bgav_audio_decoder_register(&real_codecs[i].decoder);
     else
       {
-      fprintf(stderr, "Cannot find file %s, disabling %s\n",
-              test_filename, real_codecs[i].decoder.name);
       ret = 0;
       }
     }
@@ -130,16 +129,16 @@ typedef struct /*__attribute__((__packed__))*/ {
 #if 0
 static void dump_init_data(ra_init_t * i)
   {
-  fprintf(stderr, "*** INIT DATA ******\n");
-  fprintf(stderr, "samplerate:     %d\n", i->samplerate);
-  fprintf(stderr, "bits:           %d\n", i->bits);
-  fprintf(stderr, "channels:       %d\n", i->channels);
-  fprintf(stderr, "quality:        %d\n", i->quality);
-  fprintf(stderr, "bits_per_frame: %d\n", i->bits_per_frame);
-  fprintf(stderr, "packetsize:     %d\n", i->packetsize);
-  fprintf(stderr, "extradata_len:  %d\n", i->extradata_len);
+  bgav_dprintf("*** INIT DATA ******\n");
+  bgav_dprintf("samplerate:     %d\n", i->samplerate);
+  bgav_dprintf("bits:           %d\n", i->bits);
+  bgav_dprintf("channels:       %d\n", i->channels);
+  bgav_dprintf("quality:        %d\n", i->quality);
+  bgav_dprintf("bits_per_frame: %d\n", i->bits_per_frame);
+  bgav_dprintf("packetsize:     %d\n", i->packetsize);
+  bgav_dprintf("extradata_len:  %d\n", i->extradata_len);
   bgav_hexdump(i->extradata, i->extradata_len, 16);
-  fprintf(stderr, "*** END INIT DATA **\n");
+  bgav_dprintf("*** END INIT DATA **\n");
   }
 #endif
 
@@ -208,11 +207,10 @@ static int init_real(bgav_stream_t * s)
 
   if(!(priv->module = dlopen(codec_filename, RTLD_NOW)))
     {
-    fprintf(stderr, "Could not open DLL %s %s\n", codec_filename, dlerror());
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not open DLL %s %s", codec_filename, dlerror());
     return 0;
     }
 
-  //  fprintf(stderr, "dlopen: %p\n", priv->module);
 
   /* Get the symbols */
 
@@ -258,13 +256,13 @@ static int init_real(bgav_stream_t * s)
     {
     if(priv->raOpenCodec2(&(priv->real_handle),&(path[10])))
       {
-      fprintf(stderr, "raOpenCodec2 failed\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "raOpenCodec2 failed");
       return 0;
       }
     }
   else if(priv->raOpenCodec(priv->real_handle))
     {
-    fprintf(stderr, "raOpenCodec2 failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "raOpenCodec2 failed");
     return 0;
     }
 
@@ -285,7 +283,7 @@ static int init_real(bgav_stream_t * s)
 
   if(priv->raInitDecoder(priv->real_handle,&init_data))
     {
-    fprintf(stderr, "raInitDecoder failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "raInitDecoder failed");
     return 0;
     }
   if(priv->raSetPwd)
@@ -295,7 +293,7 @@ static int init_real(bgav_stream_t * s)
 
   if(priv->raSetFlavor(priv->real_handle,s->subformat))
     {
-    fprintf(stderr, "raSetFlavor failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "raSetFlavor failed");
     return 0;
     }
   
@@ -305,7 +303,6 @@ static int init_real(bgav_stream_t * s)
     s->description = bgav_sprintf("%s (Flavor: %s)", info->format_name, prop);
   else
     s->description = bgav_sprintf("%s (Flavor: %s)", info->format_name);
-  //  fprintf(stderr, "FlavorProperty: %s\n", prop);
   
   //  prop = priv->raGetFlavorProperty(priv->real_handle, s->subformat, 1, &len);
   
@@ -343,11 +340,8 @@ static int fill_buffer(bgav_stream_t * s)
 
   if(!p)
     {
-    //    fprintf(stderr, "Got no packet\n");
     return 0;
     }
-
-  //  fprintf(stderr, "Got packet %d/%d bytes \n", p->data_size, priv->read_buffer_alloc);
 
   if(p->data_size > priv->read_buffer_alloc)
     {
@@ -374,7 +368,6 @@ static int fill_buffer(bgav_stream_t * s)
 
   if(!p)
     {
-    //    fprintf(stderr, "Got no packet\n");
     return 0;
     }
   if(p->data_size > priv->read_buffer_alloc)
@@ -385,8 +378,6 @@ static int fill_buffer(bgav_stream_t * s)
   priv->read_buffer_size = p->data_size;
   priv->read_buffer_ptr  = priv->read_buffer;
 
-  //  fprintf(stderr, "data_size: %d\n", p->data_size);
-  // hexdump(p->data, p->data_size, 7);
   
   /* Now, read and descramble the stuff */
 
@@ -394,12 +385,10 @@ static int fill_buffer(bgav_stream_t * s)
      (s->fourcc == BGAV_MK_FOURCC('d','n','e','t')))
     {
     memcpy(priv->read_buffer, p->data, p->data_size);
-    //    fprintf(stderr, "COPY 14.4\n");
     }
   else if(s->fourcc == BGAV_MK_FOURCC('2','8','_','8'))
     {
     int i,j, idx = 0;
-    //    fprintf(stderr, "COPY 28.8\n");
     for (j = 0; j < h; j++)
       {
       for (i = 0; i < h/2; i++)
@@ -415,7 +404,6 @@ static int fill_buffer(bgav_stream_t * s)
     int j,n;
     int bs=h*w*2/96; // nibbles per subpacket
     unsigned char *ptr;
-    //    fprintf(stderr, "COPY sipr\n");
 
     memcpy(priv->read_buffer, p->data, p->data_size);
     ptr = priv->read_buffer;
@@ -440,7 +428,6 @@ static int fill_buffer(bgav_stream_t * s)
     {
     // 'cook' way
     int x,y,idx=0;
-    fprintf(stderr, "COPY cook %d %d %d %p\n", w, h, sps, priv->read_buffer);
     w/=sps;
     for(y=0;y<h;y++)
       for(x=0;x<w;x++)
@@ -466,24 +453,18 @@ static int decode_frame(bgav_stream_t * s)
     {
     if(!fill_buffer(s))
       {
-      //      fprintf(stderr, "No more data\n");
       return 0;
       }
-    //    else
-    //      fprintf(stderr, "Read data: %d\n", priv->read_buffer_size);
     }
   /* Call the decoder */
 
-  //  fprintf(stderr, "raDecode: %p\n", priv->read_buffer_ptr);
   
   if(priv->raDecode(priv->real_handle, (char*)priv->read_buffer_ptr,
                     s->data.audio.block_align,
                     (char*)priv->frame->samples.s_8, &len, -1))
     {
-    fprintf(stderr, "raDecode failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "raDecode failed\n");
     }
-  //  fprintf(stderr, "Used %d bytes, decoded %d samples\n",
-  //          s->data.audio.block_align, len / (2 * s->data.audio.format.num_channels));
   priv->read_buffer_ptr += s->data.audio.block_align;
   priv->read_buffer_size -= s->data.audio.block_align;
   
@@ -503,15 +484,12 @@ static int decode_real(bgav_stream_t * s, gavl_audio_frame_t * f, int num_sample
     {
     if(!priv->frame->valid_samples)
       {
-      //      fprintf(stderr, "decode frame...");
       if(!decode_frame(s))
         {
         if(f)
           f->valid_samples = samples_decoded;
-        //        fprintf(stderr, "Decode frame failed %d\n", samples_decoded);
         return samples_decoded;
         }
-      //      fprintf(stderr, "done\n");
       }
     samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
                                            f,
@@ -522,7 +500,6 @@ static int decode_real(bgav_stream_t * s, gavl_audio_frame_t * f, int num_sample
                                            priv->frame->valid_samples /* in_size */);
     priv->frame->valid_samples -= samples_copied;
     samples_decoded += samples_copied;
-    //    fprintf(stderr, "Samples decoded %d\n", samples_decoded);
     }
   if(f)
     f->valid_samples = samples_decoded;
@@ -586,9 +563,6 @@ static void close_real(bgav_stream_t * s)
   if(p->raCloseCodec)
     p->raCloseCodec(p->real_handle);
 #endif
-
-  //  fprintf(stderr, "dlclose: %p\n", p->module);
-  
   //  dlclose(p->module);
   free(p);
   }
@@ -598,7 +572,5 @@ static void resync_real(bgav_stream_t * s)
   real_priv_t * p = (real_priv_t*)s->data.audio.decoder->priv;
   p->frame->valid_samples = 0;
   p->read_buffer_size = 0;
-
-  //  fprintf(stderr, "clear realaud\n");
   }
 

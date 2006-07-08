@@ -30,14 +30,14 @@ extern bgav_redirector_t bgav_redirector_smil;
 
 void bgav_redirectors_dump()
   {
-  fprintf(stderr, "<h2>Redirectors</h2>\n");
-  fprintf(stderr, "<ul>\n");
-  fprintf(stderr, "<li>%s\n", bgav_redirector_asx.name);
-  fprintf(stderr, "<li>%s\n", bgav_redirector_m3u.name);
-  fprintf(stderr, "<li>%s\n", bgav_redirector_pls.name);
-  fprintf(stderr, "<li>%s\n", bgav_redirector_ref.name);
-  fprintf(stderr, "<li>%s\n", bgav_redirector_smil.name);
-  fprintf(stderr, "</ul>\n");
+  bgav_dprintf( "<h2>Redirectors</h2>\n");
+  bgav_dprintf( "<ul>\n");
+  bgav_dprintf( "<li>%s\n", bgav_redirector_asx.name);
+  bgav_dprintf( "<li>%s\n", bgav_redirector_m3u.name);
+  bgav_dprintf( "<li>%s\n", bgav_redirector_pls.name);
+  bgav_dprintf( "<li>%s\n", bgav_redirector_ref.name);
+  bgav_dprintf( "<li>%s\n", bgav_redirector_smil.name);
+  bgav_dprintf( "</ul>\n");
   }
 
 static struct
@@ -62,15 +62,12 @@ bgav_redirector_t * bgav_redirector_probe(bgav_input_context_t * input)
 
   for(i = 0; i < num_redirectors; i++)
     {
-//    fprintf(stderr, "bgav_redirector_probe...");
     if(redirectors[i].r->probe(input))
       {
-//      fprintf(stderr, "done\n");
       bgav_log(input->opt, BGAV_LOG_INFO,
                "Detected %s redirector\n", redirectors[i].format_name);
       return redirectors[i].r;
       }
-//    fprintf(stderr, "done\n");
     }
   return (bgav_redirector_t*)0;
   }

@@ -222,8 +222,6 @@ static void setup_track(bgav_input_context_t * ctx,
       i++;
       }
     }
-  //  fprintf(stderr, "Name: %s, start_cell: %d, end_cell: %d\n", new_track->name,
-  //          start_cell, end_cell);
   
   /* Setup streams */
   s = bgav_track_add_video_stream(new_track, ctx->opt);
@@ -427,7 +425,6 @@ static void setup_track(bgav_input_context_t * ctx,
         //        printf("(please send a bug report) ");
         break;
       }
-    //    fprintf(stderr, "Got subtitle stream %s, %s\n", s->language, s->info);
 
     s->data.subtitle.video_stream = new_track->video_streams;
     }
@@ -438,8 +435,8 @@ static void setup_track(bgav_input_context_t * ctx,
 #if 0
 static void dump_vmg_ifo(ifo_handle_t * vmg_ifo)
   {
-  fprintf(stderr, "VMG IFO:\n");
-  fprintf(stderr, "  Title sets: %d\n",
+  bgav_dprintf( "VMG IFO:\n");
+  bgav_dprintf( "  Title sets: %d\n",
           vmg_ifo->vmgi_mat->vmg_nr_of_title_sets);
   }
 #endif
@@ -451,8 +448,6 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
   tt_srpt_t *ttsrpt;
   char volid[32];
   unsigned char volsetid[128];
-  //  fprintf(stderr, "OPEN DVD\n");
-  
   //  DVDInit();
   
   priv = calloc(1, sizeof(*priv));
@@ -471,11 +466,6 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
   if(!DVDUDFVolumeInfo(priv->dvd_reader, volid, 32,
                       volsetid, 128))
     {
-#if 0
-    fprintf(stderr, "volume_id: %s\nvolumeset_id: ", volid);
-    fwrite(volsetid, 128, 1, stderr);
-    fprintf(stderr, "\n");
-#endif
     ctx->disc_name = bgav_strdup(volid);
     }
     
@@ -491,7 +481,6 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
   dump_vmg_ifo(priv->vmg_ifo);
 #endif
   ttsrpt = priv->vmg_ifo->tt_srpt;
-  //  fprintf(stderr, "
 
   /* Create track table */
   ctx->tt = bgav_track_table_create(0);
@@ -591,23 +580,11 @@ read_nav(bgav_input_context_t * ctx, int sector, int *next)
   navRead_DSI(&dsi_pack, buf + DSI_START_BYTE);
   navRead_PCI(&pci_pack, buf + PCI_START_BYTE);
 
-  //  printf("DSI\n");
-  //  navPrint_DSI(&dsi_pack);
-  //  printf("PCI\n");
-  //  navPrint_PCI(&pci_pack);
-  
-  //  fprintf(stderr, "PCI timestamps: %d -> %d\n",
-  //          pci_pack.pci_gi.vobu_s_ptm, pci_pack.pci_gi.vobu_e_ptm);
 
   if(d->last_vobu_end_pts >= 0)
     {
     if(d->last_vobu_end_pts != pci_pack.pci_gi.vobu_s_ptm)
       {
-#if 0
-      fprintf(stderr, "** Detected PTS discontinuity: %d -> %d (Diff: %d)\n",
-              (int)d->last_vobu_end_pts, (int)pci_pack.pci_gi.vobu_s_ptm,
-              (int)(d->last_vobu_end_pts - pci_pack.pci_gi.vobu_s_ptm));
-#endif
       if(d->last_vobu_end_pts >= 0)
         ctx->demuxer->timestamp_offset += d->last_vobu_end_pts - pci_pack.pci_gi.vobu_s_ptm;
       else
@@ -672,11 +649,6 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
       if(!check_next_cell(ctx))
         return 0;
       d->cell = d->next_cell;
-#if 0
-      fprintf(stderr, "DVD: entering cell %i [%d..%d]\n", d->cell+1,
-              d->pgc->cell_playback[d->cell].first_sector,
-              d->pgc->cell_playback[d->cell].last_sector);
-#endif
       d->next_cell = next_cell(d->pgc, d->cell, d->current_track_priv->angle);
       d->npack = d->pgc->cell_playback[d->cell].first_sector;
       d->state = CELL_LOOP;
@@ -684,22 +656,17 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
     case CELL_LOOP:
       d->pack = d->npack;
       l = read_nav(ctx, d->pack, &d->npack);
-      //      fprintf(stderr, "Got nav, blocks: %d\n", l);
       if(l < 0)
         return -1;
-      //      fprintf(stderr, "DVD: cell %i, %i blocks @%i\n", d->cell+1, l, d->pack);
       d->blocks = l;
       d->pack++;
       d->state = BLOCK_LOOP;
       /* Fallthrough */
     case BLOCK_LOOP:
-      //      fprintf(stderr, "DVD: reading block %d (blocks: %d)\n", d->pack, d->blocks);
-
       /* Do some additional EOF checking */
       if((d->pack > d->pgc->cell_playback[d->cell].last_sector) &&
          (d->next_cell < 0))
         {
-        fprintf(stderr, "Detected EOF\n");
         return 0;
         }
       l = DVDReadBlocks(d->dvd_file, d->pack, 1, data);
@@ -731,7 +698,6 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
 static void    close_dvd(bgav_input_context_t * ctx)
   {
   dvd_t * dvd;
-  //  fprintf(stderr, "CLOSE DVD\n");
   dvd = (dvd_t*)(ctx->priv);
 
   //  if(dvd->dvd_file)
@@ -791,10 +757,6 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   
   dvd->state = CELL_START;
   dvd->start_sector = dvd->pgc->cell_playback[dvd->next_cell].first_sector;
-#if 0  
-  fprintf(stderr, "Select track: t: %d, c: %d, pgc_id: %d, pgn: %d, start_sector: %d\n",
-          track_priv->title, track_priv->chapter, pgc_id, pgn, dvd->start_sector);
-#endif
   /* Set the subtitle palettes */
   for(i = 0; i < ctx->tt->current_track->num_subtitle_streams; i++)
     {
@@ -824,8 +786,6 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
   /* Get entry cell */
   dvd->cell = dvd->current_track_priv->start_cell;
 
-  //  fprintf(stderr, "DVD Seek time\n");
-  
   while(1)
     {
     /* If we are in an angle block, go to the right angle */
@@ -845,12 +805,6 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
       while(dvd->pgc->cell_playback[dvd->cell].block_mode != BLOCK_MODE_LAST_CELL)
         dvd->cell++;
       }
-#if 0
-    fprintf(stderr, "Skipping cell (time: %f, cell_start: %f, diff: %f)\n",
-            gavl_time_to_seconds(t),
-            gavl_time_to_seconds(cell_start_time),
-            gavl_time_to_seconds(diff_time));
-#endif       
     /* Advance by one */
     dvd->cell++;
     
@@ -862,7 +816,6 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
 
   if(dvd->cell >= dvd->current_track_priv->end_cell)
     {
-    fprintf(stderr, "Hit EOF during seek (%d >= %d)\n", dvd->cell, dvd->current_track_priv->end_cell);
     ctx->demuxer->eof = 1;
     return;
     }
@@ -880,7 +833,6 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
       }
     if(!is_nav_pack(buf))
       {
-      printf("*** Got NO nav pack ***\n");
       return;
       }
     //    printf("*** Got nav pack ***\n");
@@ -932,11 +884,6 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
 
   time_scaled = gavl_time_scale(90000, time);
   
-  //  fprintf(stderr, "Seeked %f -> %f (%lld), start_pts: %f\n",
-  //          gavl_time_to_seconds(t),
-  //          gavl_time_to_seconds(time), time_scaled,
-  //          pci_pack.pci_gi.vobu_s_ptm / 90000.0);
-  
   
   for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
     ctx->tt->current_track->audio_streams[i].time_scaled = time_scaled;
@@ -948,11 +895,6 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
 
   ctx->demuxer->timestamp_offset = time_scaled - (int64_t)pci_pack.pci_gi.vobu_s_ptm;
   dvd->last_vobu_end_pts = pci_pack.pci_gi.vobu_s_ptm;
-#if 0  
-  fprintf(stderr, "ctx->demuxer->timestamp_offset: %f - %f = %f\n",
-          time_scaled / 90000.0, pci_pack.pci_gi.vobu_s_ptm / 90000.0,
-          ctx->demuxer->timestamp_offset / 90000.0);
-#endif
   }
 
 bgav_input_t bgav_input_dvd =
@@ -1035,7 +977,6 @@ bgav_device_info_t * bgav_find_devices_dvd()
   i = 0;
   while(devices[i])
     {
-    //    fprintf(stderr, "Checking %s\n", devices[i]);
     device_name = (char*)0;
     if(bgav_check_device_dvd(devices[i], &device_name))
       {
@@ -1090,20 +1031,17 @@ int bgav_open_dvd(bgav_t * b, const char * device)
 
 int bgav_check_device_dvd(const char * device, char ** name)
   {
-  fprintf(stderr, "DVD not supported (need libcdio and libdvdread)\n");
   return 0;
   }
 
 bgav_device_info_t * bgav_find_devices_dvd()
   {
-  fprintf(stderr, "DVD not supported (need libcdio and libdvdread)\n");
   return (bgav_device_info_t*)0;
   
   }
 
 int bgav_open_dvd(bgav_t * b, const char * device)
   {
-  fprintf(stderr, "DVD not supported (need libcdio and libdvdread)\n");
   return 0;
   }
 

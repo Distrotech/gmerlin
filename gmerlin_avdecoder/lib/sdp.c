@@ -32,7 +32,7 @@
 
 static void print_string(const char * label, const char * str)
   {
-  fprintf(stderr, "%s: %s\n", label, (str ? str : "(NULL)"));
+  bgav_dprintf( "%s: %s\n", label, (str ? str : "(NULL)"));
   }
 
 
@@ -135,7 +135,7 @@ static int parse_connection_desc(const char * line,
 #endif
 static void dump_connection_desc(bgav_sdp_connection_desc_t * c)
   {
-  fprintf(stderr, "Connection: type: %s addr: %s ttl: %d num: %d\n",
+  bgav_dprintf( "Connection: type: %s addr: %s ttl: %d num: %d\n",
           c->type,
           c->addr,
           c->ttl,
@@ -187,12 +187,12 @@ static void dump_bandwidth_desc(bgav_sdp_bandwidth_desc_t * b)
       break;
     case BGAV_SDP_BANDWIDTH_MODIFIER_CT:
     case BGAV_SDP_BANDWIDTH_MODIFIER_AS:
-      fprintf(stderr, "Bandwidth: %s:%lu\n",
+      bgav_dprintf( "Bandwidth: %s:%lu\n",
               ((b->modifier == BGAV_SDP_BANDWIDTH_MODIFIER_CT) ? "CT" : "AS"),
               b->bandwidth);
       break;
     case BGAV_SDP_BANDWIDTH_MODIFIER_USER:
-      fprintf(stderr, "Bandwidth (user defined): %s\n",
+      bgav_dprintf( "Bandwidth (user defined): %s\n",
               b->user_bandwidth);
       break;
     }
@@ -247,22 +247,22 @@ static void dump_key_desc(bgav_sdp_key_desc_t * k)
     case BGAV_SDP_KEY_TYPE_NONE:
       return;
     case BGAV_SDP_KEY_TYPE_CLEAR:
-      fprintf(stderr, "Key (clear)");
+      bgav_dprintf( "Key (clear)");
       break;
     case BGAV_SDP_KEY_TYPE_BASE64:
-      fprintf(stderr, "Key (base64)");
+      bgav_dprintf( "Key (base64)");
       break;
     case BGAV_SDP_KEY_TYPE_URI:
-      fprintf(stderr, "Key (uri)");
+      bgav_dprintf( "Key (uri)");
       break;
     case BGAV_SDP_KEY_TYPE_PROMPT:
-      fprintf(stderr, "Key (prompt)");
+      bgav_dprintf( "Key (prompt)");
       break;
     }
   if(k->key)
-    fprintf(stderr, ": %s\n", k->key);
+    bgav_dprintf( ": %s\n", k->key);
   else
-    fprintf(stderr, "\n");
+    bgav_dprintf( "\n");
   }
 
 static void free_key_desc(bgav_sdp_key_desc_t * k)
@@ -305,7 +305,6 @@ static int parse_attr(const char * line,
   if(*pos2 == ';')
     {
     /* Predefined types */
-    //    fprintf(stderr, "*** POS1: %s POS2: %s\n", pos1, pos2);
     if(!strncmp(pos1, "string", (int)(pos2 - pos1)))
       {
       ret->type = BGAV_SDP_TYPE_STRING;
@@ -344,8 +343,6 @@ static int parse_attr(const char * line,
       pos1++;
       pos2 = strrchr(pos1, '"');
       data_len = ((pos2 - pos1) / 4) * 3;
-      //      fprintf(stderr, "BUFFER %d %d\n", (int)(pos2 - pos1), data_len);
-
       ret->val.data = malloc(data_len);
 
       ret->data_len = bgav_base64decode(pos1, (int)(pos2 - pos1),
@@ -396,32 +393,32 @@ static void dump_attributes(bgav_sdp_attr_t * attr)
   if(!attr || (attr[0].type == BGAV_SDP_TYPE_NONE))
     return;
 
-  fprintf(stderr, "Attributes:\n");
+  bgav_dprintf( "Attributes:\n");
   index = 0;
   while(attr[index].type != BGAV_SDP_TYPE_NONE)
     {
-    fprintf(stderr, "  %s ", attr[index].name);
+    bgav_dprintf( "  %s ", attr[index].name);
     
     switch(attr[index].type)
       {
       case BGAV_SDP_TYPE_NONE:
         return;
       case BGAV_SDP_TYPE_INT:
-        fprintf(stderr, "(integer): %d\n", attr[index].val.i);
+        bgav_dprintf( "(integer): %d\n", attr[index].val.i);
         break;
       case BGAV_SDP_TYPE_STRING:
-        fprintf(stderr, "(string): %s\n", attr[index].val.str);
+        bgav_dprintf( "(string): %s\n", attr[index].val.str);
         break;
       case BGAV_SDP_TYPE_GENERIC:
-        fprintf(stderr, "(generic): %s\n", attr[index].val.str);
+        bgav_dprintf( "(generic): %s\n", attr[index].val.str);
         break;
       case BGAV_SDP_TYPE_DATA:
-        fprintf(stderr, ": binary data (%d bytes), hexdump follows\n",
+        bgav_dprintf( ": binary data (%d bytes), hexdump follows\n",
                 attr[index].data_len);
         bgav_hexdump(attr[index].val.data, attr[index].data_len, 16);
         break;
       case BGAV_SDP_TYPE_BOOLEAN:
-        fprintf(stderr, "\n");
+        bgav_dprintf( "\n");
       }
     index++;
     }
@@ -436,7 +433,6 @@ static void free_attributes(bgav_sdp_attr_t ** attr)
   index = 0;
   while((*attr)[index].type != BGAV_SDP_TYPE_NONE)
     {
-    //    fprintf(stderr, "  %s ", (*attr)[index].name);
     MY_FREE((*attr)[index].name);
     switch((*attr)[index].type)
       {
@@ -473,8 +469,6 @@ static int parse_media(char ** lines, bgav_sdp_media_desc_t * ret)
   num_lines = 1;
   while(lines[num_lines] && (lines[num_lines][0] != 'm'))
     num_lines++;
-  //  fprintf(stderr, "Num lines: %d %c %p\n", num_lines, lines[num_lines-1][0], lines[num_lines]);
-  
   /* 2. Parse "m=" header */
 
   line_index = 0;
@@ -561,7 +555,6 @@ static int parse_media(char ** lines, bgav_sdp_media_desc_t * ret)
         ret->num_attributes = i_tmp;
         break;
       default:
-        fprintf(stderr, "Unknown line: %s\n", lines[line_index]);
         line_index++;
       }
     }
@@ -569,7 +562,6 @@ static int parse_media(char ** lines, bgav_sdp_media_desc_t * ret)
   fail:
   if(strings)
     bgav_stringbreak_free(strings);
-  //  fprintf(stderr, "parse_media failed\n");
   return 0;    
   }
 
@@ -578,17 +570,17 @@ static void dump_media(bgav_sdp_media_desc_t * m)
   int i;
   print_string("Media", m->media); /* audio, video etc */
 
-  fprintf(stderr, "  Port %d\n", m->port);
-  fprintf(stderr, "  Num Ports %d\n", m->num_ports);
+  bgav_dprintf( "  Port %d\n", m->port);
+  bgav_dprintf( "  Num Ports %d\n", m->num_ports);
   print_string("  Protocol", m->protocol);
 
-  fprintf(stderr, "  Formats: ");
+  bgav_dprintf( "  Formats: ");
   
   for(i = 0; i < m->num_formats; i++)
     {
-    fprintf(stderr, "%s ", m->formats[i]);
+    bgav_dprintf( "%s ", m->formats[i]);
     }
-  fprintf(stderr, "\n");
+  bgav_dprintf( "\n");
 
   /* Additional stuff */
 
@@ -653,12 +645,7 @@ int bgav_sdp_parse(const char * data, bgav_sdp_t * ret)
 
   while(1)
     {
-    //    fprintf(stderr, "pos 1: %p\n", pos);
-
     SKIP_NOSEP;
-    //    while(!ISSEP(pos))
-    //    fprintf(stderr, "pos 2: %p\n", pos);
-    //      pos++;
     if(*pos == '\0')
       break;
     num_lines++;
@@ -676,7 +663,6 @@ int bgav_sdp_parse(const char * data, bgav_sdp_t * ret)
 
   /* 3. Create lines array */
   lines = calloc(num_lines + 1, sizeof(char*));
-  //  fprintf(stderr, "Num lines: %d\n", num_lines);  
   pos = buf;
   line_index = 0;
   for(line_index = 0; line_index < num_lines; line_index++)
@@ -684,7 +670,6 @@ int bgav_sdp_parse(const char * data, bgav_sdp_t * ret)
     lines[line_index] = pos;
     
     SKIP_NOSEP;
-    //    fprintf(stderr, "pos: %s\n", pos);
     *pos = '\0';
     if(line_index < num_lines-1)
       {
@@ -813,13 +798,13 @@ void bgav_sdp_free(bgav_sdp_t * s)
 void bgav_sdp_dump(bgav_sdp_t * s)
   {
   int i;
-  fprintf(stderr, "Protcol Version: %d\n", s->protocol_version);        /* v= */
+  bgav_dprintf( "Protcol Version: %d\n", s->protocol_version);        /* v= */
 
-  fprintf(stderr, "Origin:\n");
+  bgav_dprintf( "Origin:\n");
 
   print_string("  Useraname", s->origin.username);
-  fprintf(stderr, "  Session ID: %lld\n", s->origin.session_id);
-  fprintf(stderr, "  Session Version: %lld\n", s->origin.session_version);
+  bgav_dprintf( "  Session ID: %lld\n", s->origin.session_id);
+  bgav_dprintf( "  Session Version: %lld\n", s->origin.session_version);
   print_string("  Network Type", s->origin.network_type);
   print_string("  Address Type", s->origin.addr_type);
   print_string("  Address", s->origin.addr);
@@ -841,7 +826,7 @@ void bgav_sdp_dump(bgav_sdp_t * s)
   
   /* Media */
 
-  fprintf(stderr, "Num Media: %d\n", s->num_media);
+  bgav_dprintf( "Num Media: %d\n", s->num_media);
   
   for(i = 0; i < s->num_media; i++)
     {

@@ -87,10 +87,6 @@ static int has_subtitle_dvdsub(bgav_stream_t * s)
       priv->pts = p->timestamp_scaled;
       }
     priv->buffer_size += p->data_size;
-#if 0
-    fprintf(stderr, "Got subtitle packet, %d/%d bytes\n", priv->packet_size,
-            p->data_size);
-#endif
     bgav_demuxer_done_packet_read(s->demuxer, p);
 
     }
@@ -265,25 +261,25 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
   
   /* Dump the information we have right now */
 #if 0  
-  fprintf(stderr, "Subtitle packet %d bytes\n", priv->packet_size);
-  fprintf(stderr, "Coords:  [%d,%d] -> [%d,%d]\n", x1, y1, x2, y2);
-  fprintf(stderr, "Palette: [ %02x, %02x, %02x, %02x ]\n",
+  bgav_dprintf("Subtitle packet %d bytes\n", priv->packet_size);
+  bgav_dprintf("Coords:  [%d,%d] -> [%d,%d]\n", x1, y1, x2, y2);
+  bgav_dprintf("Palette: [ %02x, %02x, %02x, %02x ]\n",
           palette[0], palette[1], palette[2], palette[3]);
-  fprintf(stderr, "Alpha:   [ %02x, %02x, %02x, %02x ]\n",
+  bgav_dprintf("Alpha:   [ %02x, %02x, %02x, %02x ]\n",
           alpha[0], alpha[1], alpha[2], alpha[3]);
-  fprintf(stderr, "PTS:     %lld\n", priv->pts);
-  fprintf(stderr, "Time:    %d -> %d\n", start_date, end_date);
-  fprintf(stderr, "Offsets: %d %d\n", offset1, offset2);
-  fprintf(stderr, "IFO Palette:\n");
+  bgav_dprintf("PTS:     %lld\n", priv->pts);
+  bgav_dprintf("Time:    %d -> %d\n", start_date, end_date);
+  bgav_dprintf("Offsets: %d %d\n", offset1, offset2);
+  bgav_dprintf("IFO Palette:\n");
   for(i = 0; i < 16; i++)
     {
-    fprintf(stderr, "%08x\n", ifo_palette[i]);
+    bgav_dprintf("%08x\n", ifo_palette[i]);
     }
   
-  fprintf(stderr, "Local Palette:\n");
+  bgav_dprintf("Local Palette:\n");
   for(i = 0; i < 4; i++)
     {
-    fprintf(stderr, "%08x\n", local_palette[i]);
+    bgav_dprintf("%08x\n", local_palette[i]);
     }
 #endif
   /* Decode the image */

@@ -22,14 +22,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
-#define DUMP_SIZE 1024
+#define LOG_DOMAIN "core"
 
 static bgav_input_context_t * create_input(bgav_t * b)
   {
   bgav_input_context_t * ret;
 
-  //  fprintf(stderr, "CREATE INPUT %p\n", b->name_change_callback);
   
   ret = bgav_input_create(&(b->opt));
   
@@ -41,7 +39,6 @@ create_demuxer(bgav_t * b, bgav_demuxer_t * demuxer)
   {
   bgav_demuxer_context_t * ret;
 
-  //  fprintf(stderr, "CREATE DEMUXER %p\n", b->name_change_callback);
 
   ret = bgav_demuxer_create(&(b->opt), demuxer, b->input);
   return ret;
@@ -49,9 +46,6 @@ create_demuxer(bgav_t * b, bgav_demuxer_t * demuxer)
 
 int bgav_init(bgav_t * ret)
   {
-  uint8_t dump_buffer[DUMP_SIZE];
-  int dump_len;
-    
   bgav_demuxer_t * demuxer = (bgav_demuxer_t *)0;
   bgav_redirector_t * redirector = (bgav_redirector_t*)0;
   
@@ -133,8 +127,6 @@ int bgav_init(bgav_t * ret)
 
   /* Check for subtitle file */
 
-  //  fprintf(stderr, "seek_subtitles: %d, num_video_streams: %d\n",
-  //          ret->opt.seek_subtitles, ret->tt->current_track->num_video_streams);
   
   if(ret->opt.seek_subtitles &&
      (ret->opt.seek_subtitles + ret->tt->current_track->num_video_streams > 1))
@@ -156,11 +148,7 @@ int bgav_init(bgav_t * ret)
 
   if(!demuxer && !redirector)
     {
-    dump_len =  bgav_input_get_data(ret->input, dump_buffer, DUMP_SIZE);
-
-    fprintf(stderr, "Cannot detect stream type, first %d bytes of stream follow\n",
-            dump_len);
-    bgav_hexdump(dump_buffer, dump_len, 16);
+    bgav_log(&ret->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot detect stream type");
     }
   
   if(ret->demuxer)
@@ -230,8 +218,6 @@ int bgav_open_fd(bgav_t * ret, int fd, int64_t total_size, const char * mimetype
 
 void bgav_close(bgav_t * b)
   {
-  //  fprintf(stderr, "bgav_close\n");
-  
   if(b->location)
     free(b->location);
   
@@ -283,8 +269,6 @@ void bgav_stop(bgav_t * b)
 
 int bgav_select_track(bgav_t * b, int track)
   {
-//  fprintf(stderr, "bgav_select_track %d\n", track);
-
   if((track < 0) || (track >= b->tt->num_tracks))
     return 0;
   
@@ -313,7 +297,6 @@ int bgav_start(bgav_t * b)
   {
   b->is_running = 1;
   /* Create buffers */
-  //  fprintf(stderr, "bgav_start\n");
   bgav_input_buffer(b->input);
   if(!bgav_track_start(b->tt->current_track, b->demuxer))
     {

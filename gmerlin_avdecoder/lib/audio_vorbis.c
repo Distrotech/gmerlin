@@ -31,6 +31,8 @@
 
 #define BGAV_VORBIS BGAV_MK_FOURCC('V','B','I','S')
 
+#define LOG_DOMAIN "vorbis"
+
 typedef struct
   {
   ogg_sync_state   dec_oy; /* sync and verify incoming physical bitstream */
@@ -63,7 +65,6 @@ static uint8_t * parse_packet(ogg_packet * op, uint8_t * str)
   {
   memcpy(op, str, sizeof(*op));
   op->packet = str + sizeof(*op);
-  //  fprintf(stderr, "Parse packet %ld\n", op->bytes);
   return str + sizeof(*op) + op->bytes;
   }
 
@@ -79,8 +80,6 @@ static int read_data(bgav_stream_t * s)
   if(!p)
     return 0;
 
-  //  fprintf(stderr, "Read data %d bytes\n", p->data_size);
-  //  bgav_hexdump(p->data, p->data_size, 16);
   
   buffer = ogg_sync_buffer(&priv->dec_oy, p->data_size);
   memcpy(buffer, p->data, p->data_size);
@@ -95,7 +94,6 @@ static int next_page(bgav_stream_t * s)
   vorbis_audio_priv * priv;
   priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
 
-  //  fprintf(stderr, "Next page\n");
   
   while(result < 1)
     {
@@ -129,7 +127,6 @@ static int next_packet(bgav_stream_t * s)
 
   priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
 
-  //  fprintf(stderr, "Next packet\n");
 
   if(s->fourcc == BGAV_VORBIS)
     {
@@ -144,8 +141,6 @@ static int next_packet(bgav_stream_t * s)
     while(result < 1)
       {
       result = ogg_stream_packetout(&priv->dec_os, &priv->dec_op);
-      
-      //    fprintf(stderr, "Getting new packet %d\n", result);
       
       if(result == 0)
         {
@@ -195,8 +190,8 @@ static int init_vorbis(bgav_stream_t * s)
     if(vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
                                  &priv->dec_op) < 0)
       {
-      fprintf(stderr, "decode: vorbis_synthesis_headerin: not a vorbis header\n");
-      return 1;
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "decode: vorbis_synthesis_headerin: not a vorbis header");
+      return 0;
       }
     
     if(!next_packet(s))
@@ -217,7 +212,7 @@ static int init_vorbis(bgav_stream_t * s)
     {
     if(s->ext_size < 3 * sizeof(uint32_t))
       {
-      fprintf(stderr, "Vorbis decoder: Init data too small (%d bytes)\n", s->ext_size);
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Vorbis decoder: Init data too small (%d bytes)", s->ext_size);
       return 0;
       }
     //    bgav_hexdump(s->ext_data, s->ext_size, 16);
@@ -234,7 +229,7 @@ static int init_vorbis(bgav_stream_t * s)
     if(vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
                                  &priv->dec_op) < 0)
       {
-      fprintf(stderr, "decode: vorbis_synthesis_headerin: not a vorbis header\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "decode: vorbis_synthesis_headerin: not a vorbis header");
       return 1;
       }
     ptr += header_sizes[0];
@@ -261,12 +256,9 @@ static int init_vorbis(bgav_stream_t * s)
   else if((s->fourcc == BGAV_WAVID_2_FOURCC(0x6750)) ||
           (s->fourcc == BGAV_WAVID_2_FOURCC(0x6770)))
     {
-    //    fprintf(stderr, "Extradata:\n");
-    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
-
     if(s->ext_size <= 8)
       {
-      fprintf(stderr, "ext size too small\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "ext size too small");
       return 0;
       }
     buffer = ogg_sync_buffer(&priv->dec_oy, s->ext_size - 8);
@@ -278,15 +270,11 @@ static int init_vorbis(bgav_stream_t * s)
     if(!next_packet(s))
       return 0;
     /* Initialize vorbis */
-    
-    //    fprintf(stderr, "Init vorbis %d\n", s->ext_size);
-    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
-    
     if(vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
                                  &priv->dec_op) < 0)
       {
-      fprintf(stderr, "decode: vorbis_synthesis_headerin: not a vorbis header\n");
-      return 1;
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "decode: vorbis_synthesis_headerin: not a vorbis header");
+      return 0;
       }
     
     if(!next_packet(s))
@@ -307,9 +295,6 @@ static int init_vorbis(bgav_stream_t * s)
     {
     default_header = get_default_vorbis_header(s, &default_header_len);
 
-    //    fprintf(stderr, "Default header:\n");
-    //    bgav_hexdump(default_header, default_header_len, 16); 
-    
     buffer = ogg_sync_buffer(&priv->dec_oy, default_header_len);
     memcpy(buffer, default_header, default_header_len);
     ogg_sync_wrote(&priv->dec_oy, default_header_len);
@@ -321,14 +306,11 @@ static int init_vorbis(bgav_stream_t * s)
       return 0;
     /* Initialize vorbis */
     
-    //    fprintf(stderr, "Init vorbis %d\n", s->ext_size);
-    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
-    
     if(vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
                                  &priv->dec_op) < 0)
       {
-      fprintf(stderr, "decode: vorbis_synthesis_headerin: not a vorbis header\n");
-      return 1;
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "decode: vorbis_synthesis_headerin: not a vorbis header");
+      return 0;
       }
     
     if(!next_packet(s))
@@ -358,10 +340,9 @@ static int init_vorbis(bgav_stream_t * s)
     fourcc = BGAV_PTR_2_FOURCC(ptr);ptr+=4;
     if(fourcc != BGAV_MK_FOURCC('O','V','H','S'))
       {
-      fprintf(stderr, "No OVHS Atom found\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "No OVHS Atom found");
       return 0;
       }
-    //    fprintf(stderr, "Found OVHS Atom\n");
 
     buffer = ogg_sync_buffer(&priv->dec_oy, len - 8);
     memcpy(buffer, ptr, len - 8);
@@ -375,14 +356,11 @@ static int init_vorbis(bgav_stream_t * s)
     
     /* Initialize vorbis */
     
-    //    fprintf(stderr, "Init vorbis %d\n", s->ext_size);
-    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
-    
     if(vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
                                  &priv->dec_op) < 0)
       {
-      fprintf(stderr, "decode: vorbis_synthesis_headerin: not a vorbis header\n");
-      return 1;
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "decode: vorbis_synthesis_headerin: not a vorbis header");
+      return 0;
       }
     
     if(!next_packet(s))
@@ -399,21 +377,17 @@ static int init_vorbis(bgav_stream_t * s)
     {
     if(!s->ext_data)
       {
-      fprintf(stderr, "No extradata found\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "No extradata found");
       return 0;
       }
-    //    else
-    //      fprintf(stderr, "Found extradata %d bytes\n", s->ext_size);
-    
     ptr = s->ext_data;
     ptr = parse_packet(&priv->dec_op, ptr);
 
     if(vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
                                  &priv->dec_op) < 0)
       {
-      fprintf(stderr, "decode: vorbis_synthesis_headerin: not a vorbis header\n");
-      bgav_hexdump(priv->dec_op.packet, priv->dec_op.bytes, 16);
-      return 1;
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "decode: vorbis_synthesis_headerin: not a vorbis header");
+      return 0;
       }
     ptr = parse_packet(&priv->dec_op, ptr);
     vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
@@ -476,7 +450,6 @@ static int decode_vorbis(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samp
       while((priv->last_block_size =
              vorbis_synthesis_pcmout(&priv->dec_vd, &(channels))) < 1)
         {
-        //        fprintf(stderr, "Decode Next Packet\n");
         if(!next_packet(s))
           {
           if(f)
@@ -485,7 +458,6 @@ static int decode_vorbis(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samp
           }
         if(vorbis_synthesis(&priv->dec_vb, &priv->dec_op) == 0)
           {
-          //          fprintf(stderr, "Decode Next Block\n");
           vorbis_synthesis_blockin(&priv->dec_vd,
                                    &priv->dec_vb);
           }
@@ -494,15 +466,9 @@ static int decode_vorbis(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samp
         {
         priv->frame->channels.f[i] = channels[i];
         }
-      //      fprintf(stderr, "Decoded %d samples\n", priv->last_block_size);
       priv->frame->valid_samples = priv->last_block_size;
       vorbis_synthesis_read(&priv->dec_vd,priv->last_block_size);
       }
-    //    fprintf(stderr, "Copy samples out_pos: %d, in_pos: %d, out_size: %d, in_size: %d\n",
-    //            f->valid_samples,
-    //            priv->last_block_size - priv->frame->valid_samples,
-    //            num_samples - f->valid_samples,
-     //           priv->frame->valid_samples);
     samples_copied = gavl_audio_frame_copy(&(s->data.audio.format),
                                            f,
                                            priv->frame,
@@ -522,7 +488,6 @@ static void resync_vorbis(bgav_stream_t * s)
   {
   vorbis_audio_priv * priv;
   priv = (vorbis_audio_priv*)(s->data.audio.decoder->priv);
-  //  fprintf(stderr, "Resync vorbis: %p\n", priv);
   vorbis_dsp_clear(&priv->dec_vd);
   vorbis_block_clear(&priv->dec_vb);
 
@@ -824,8 +789,6 @@ static char * get_default_vorbis_header(bgav_stream_t * stream, int * len)
   vorbis_comment_init(&vc);
   vorbis_comment_add_tag(&vc,"ENCODER","vorbis.acm"); /* LOL */
 
-  //  fprintf(stderr, "Quality: %f, Bitrate: %d\n",
-  //          aOggFormatIndexToDetail[format_index].flQuality, stream->container_bitrate);
 
   bitrate = aOggFormatIndexToDetail[format_index].nAvgBytesPerSec * 8;
   
@@ -849,9 +812,6 @@ static char * get_default_vorbis_header(bgav_stream_t * stream, int * len)
 
   while(ogg_stream_flush(&os, &og))
     {
-    //    fprintf(stderr, "Got header page %ld + %ld bytes\n",
-    //            codec->enc_og.header_len, codec->enc_og.body_len);
-    
     ret = realloc(ret, ret_len + og.header_len + og.body_len);
      
     memcpy(ret + ret_len, og.header, og.header_len);

@@ -73,9 +73,6 @@ static void select_track_vcd(bgav_input_context_t * ctx, int track)
   vcd_priv * priv;
   priv = (vcd_priv*)(ctx->priv);
 
-#if 0
-  fprintf(stderr, "Select track VCD...");
-#endif
 
   priv->current_track = track+1;
   priv->next_sector = priv->tracks[priv->current_track].start_sector;
@@ -93,11 +90,6 @@ static void select_track_vcd(bgav_input_context_t * ctx, int track)
   priv->buffer_ptr = priv->buffer + SECTOR_SIZE;
 #endif
 
-#if 0
-  fprintf(stderr, "start: %d, end: %d\n",
-          priv->tracks[priv->current_track].start_sector,
-          priv->tracks[priv->current_track].end_sector);
-#endif          
   }
 
 static int read_toc(vcd_priv * priv, char ** iso_label)
@@ -129,7 +121,6 @@ static int read_toc(vcd_priv * priv, char ** iso_label)
       {
       if(i)
         {
-        //        fprintf(stderr, "Track %d is a VCD track\n", i+1);
         priv->num_video_tracks++;
         priv->tracks[i].mode = TRACK_VCD;
         }
@@ -148,9 +139,7 @@ static int read_toc(vcd_priv * priv, char ** iso_label)
               }
             }
           *iso_label = bgav_strdup(iso.iso_label);
-          //          fprintf(stderr, "iso_label: %s %s\n", iso.iso_label, *iso_label);
           }
-        //        fprintf(stderr, "Track %d is the VCD iso9660 track\n", i+1);
         priv->tracks[i].mode = TRACK_OTHER;
         }
       }
@@ -158,34 +147,19 @@ static int read_toc(vcd_priv * priv, char ** iso_label)
       {
       if(i)
         {
-        //        fprintf(stderr, "Track %d is a SVCD track\n", i+1);
         priv->num_video_tracks++;
         priv->tracks[i].mode = TRACK_SVCD;
         }
       else
         {
-        //        fprintf(stderr, "Track %d is the SVCD iso9660 track\n", i+1);
         priv->tracks[i].mode = TRACK_OTHER;
         }
       }
     else
       {
-      //      fprintf(stderr, "Track %d is something else\n", i+1);
       priv->tracks[i].mode = TRACK_OTHER;
       }
     }
-  /* Dump this */
-#if 0
-  for(i = 0; i < priv->num_tracks; i++)
-    {
-    fprintf(stderr, "Track %d, Start: %d, end: %d ",
-            i+1, priv->tracks[i].start_sector, priv->tracks[i].end_sector);
-    if(priv->tracks[i].mode == TRACK_OTHER)
-      fprintf(stderr, "No Video Track\n");
-    else
-      fprintf(stderr, "Video Track\n");
-    }
-#endif
   if(!priv->num_video_tracks)
     {
     free(priv->tracks);
@@ -247,8 +221,6 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   vcd_priv * priv;
   const char * pos;
 
-  //  fprintf(stderr, "OPEN VCD %s\n", url);
-
   //  bgav_find_devices_vcd();
     
   priv = calloc(1, sizeof(*priv));
@@ -259,7 +231,6 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   priv->buffer = priv->sector + 8;
   priv->buffer_ptr = priv->buffer + SECTOR_SIZE;
 #endif
-  //  fprintf(stderr, "OPEN VCD\n");
 
   pos = strrchr(url, '.');
   if(pos && !strcasecmp(pos, ".cue"))
@@ -269,7 +240,6 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   if(!priv->cdio)
     {
     ctx->error_msg = bgav_sprintf("cdio_open failed for %s", url);
-    //    fprintf(stderr, "VCD: Open failed\n");
     return 0;
     }
   /* Get some infos */
@@ -280,7 +250,6 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   
   if(!read_toc(priv, &(ctx->disc_name)))
     {
-    //    fprintf(stderr, "VCD: Read toc failed\n");
     return 0;
     }
   toc_2_tt(ctx);
@@ -315,24 +284,15 @@ static int read_sector(bgav_input_context_t * ctx, uint8_t * data)
   vcd_priv * priv;
   priv = (vcd_priv*)(ctx->priv);
 
-  // fprintf(stderr, "Read sector %d ", priv->next_sector);
-
   //  do
   //    {
-#if 0
-  fprintf(stderr, "read_sector %d...", priv->next_sector);
-#endif
   if(priv->next_sector > priv->tracks[priv->current_track].end_sector)
     return 0;
 
   if(cdio_read_mode2_sector(priv->cdio, data, priv->next_sector, true)!=0)
     {
-    fprintf(stderr, "Read sector from %d failed\n", priv->next_sector);
     return 0;
     }
-#if 0
-  fprintf(stderr, "Ok\n");
-#endif
   priv->next_sector++;
 
   priv->last_sector = priv->next_sector - 1;
@@ -353,8 +313,6 @@ static int read_vcd(bgav_input_context_t* ctx,
   vcd_priv * priv;
   priv = (vcd_priv*)(ctx->priv);
 
-  //  fprintf(stderr, "Read VCD %d\n", len);
-  
   while(bytes_read < len)
     {
     if(priv->buffer_ptr - priv->buffer >= SECTOR_SIZE)
@@ -387,10 +345,6 @@ static int64_t seek_byte_vcd(bgav_input_context_t * ctx,
     ctx->position / SECTOR_SIZE;
 
   sector_offset = ctx->position % SECTOR_SIZE;
-#if 0
-  fprintf(stderr, "Seek: Pos: %lld, whence: %d, S: %d, O: %d\n", 
-          pos, whence, sector, sector_offset);
-#endif
   if(sector == priv->last_sector)
     priv->buffer_ptr = priv->buffer + sector_offset;
   else
@@ -409,10 +363,6 @@ static int64_t seek_sector_vcd(bgav_input_context_t * ctx,
   {
   vcd_priv * priv;
   priv = (vcd_priv*)(ctx->priv);
-#if 0
-  fprintf(stderr, "Seek: sector: %lld + %d\n", 
-          sector, priv->tracks[priv->current_track].start_sector);
-#endif
 
   priv->next_sector = sector + priv->tracks[priv->current_track].start_sector;
   return priv->next_sector;
@@ -425,7 +375,6 @@ static int64_t seek_sector_vcd(bgav_input_context_t * ctx,
 static void    close_vcd(bgav_input_context_t * ctx)
   {
   vcd_priv * priv;
-  //  fprintf(stderr, "CLOSE VCD\n");
   priv = (vcd_priv*)(ctx->priv);
   if(priv->cdio)
     cdio_destroy(priv->cdio);
@@ -520,7 +469,6 @@ bgav_device_info_t * bgav_find_devices_vcd()
   i = 0;
   while(devices[i])
     {
-    //    fprintf(stderr, "Checking %s\n", devices[i]);
     device_name = (char*)0;
     if(bgav_check_device_vcd(devices[i], &device_name))
       {
@@ -547,7 +495,6 @@ bgav_input_context_t * bgav_input_open_vcd(const char * device,
 
   if(!ret->input->open(ret, device))
     {
-    // fprintf(stderr, "Cannot open VCD Device %s\n", device);
     goto fail;
     }
   return ret;
@@ -584,26 +531,21 @@ int bgav_eject_disc(const char * device)
 
 int bgav_check_device_vcd(const char * device, char ** name)
   {
-  fprintf(stderr, "VCD not supported (libcdio was missing)\n");
   return 0;
   }
 
 bgav_device_info_t * bgav_find_devices_vcd()
   {
-  fprintf(stderr, "VCD not supported (libcdio was missing)\n");
   return (bgav_device_info_t*)0;
-  
   }
 
 int bgav_open_vcd(bgav_t * b, const char * device)
   {
-  fprintf(stderr, "VCD not supported (libcdio was missing)\n");
   return 0;
   }
 
 int bgav_eject_disc(char * device)
   {
-  fprintf(stderr, "Cannot eject disc (libcdio was missing)\n");
   return 0;
   }
 

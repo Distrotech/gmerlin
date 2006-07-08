@@ -36,7 +36,7 @@ int bgav_qt_pasp_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 
 void bgav_qt_pasp_dump(qt_pasp_t * p)
   {
-  fprintf(stderr, "pasp:\n");
-  fprintf(stderr, "  hSpacing: %d\n", p->hSpacing);
-  fprintf(stderr, "  vSpacing: %d\n", p->vSpacing);
+  bgav_dprintf( "pasp:\n");
+  bgav_dprintf( "  hSpacing: %d\n", p->hSpacing);
+  bgav_dprintf( "  vSpacing: %d\n", p->vSpacing);
   }

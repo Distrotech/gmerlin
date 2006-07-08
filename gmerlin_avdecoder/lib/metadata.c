@@ -95,8 +95,8 @@ void bgav_metadata_merge2(bgav_metadata_t * dst,
 
 
 
-#define PS(label, str) if(str)fprintf(stderr, "%s%s\n", label, str);
-#define PI(label, i)   if(i)fprintf(stderr, "%s%d\n", label, i);
+#define PS(label, str) if(str)bgav_dprintf("%s%s\n", label, str);
+#define PI(label, i)   if(i) bgav_dprintf("%s%d\n", label, i);
 
 void bgav_metadata_dump(bgav_metadata_t*m)
   {

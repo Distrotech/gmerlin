@@ -144,7 +144,6 @@ static int next_packet_dv(bgav_demuxer_context_t * ctx)
   
   bgav_packet_done_write(ap);
   bgav_packet_done_write(vp);
-  //  fprintf(stderr, "done\n");
   
   return 1;
   }
@@ -157,8 +156,6 @@ static void seek_dv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   bgav_stream_t * as, * vs;
   int64_t frame_pos;
 
-  //  fprintf(stderr, "Seek time: %lld\n", time);
-  
   vs = ctx->tt->current_track->video_streams;
   as = ctx->tt->current_track->audio_streams;
   
@@ -168,16 +165,12 @@ static void seek_dv(bgav_demuxer_context_t * ctx, gavl_time_t time)
   
   file_position = frame_pos * priv->frame_size;
 
-  //  fprintf(stderr, "**** File position: %lld /%lld\n", file_position, ctx->input->total_bytes);
-  
   bgav_dv_dec_set_frame_counter(priv->d, frame_pos);
   bgav_input_seek(ctx->input, file_position, SEEK_SET);
 
   vs->time_scaled = frame_pos * vs->data.video.format.frame_duration;
   as->time_scaled = (vs->time_scaled * as->data.audio.format.samplerate) / vs->data.video.format.timescale;
 
-  //  fprintf(stderr, "Audio time: %lld\n", gavl_time_unscale(as->data.audio.format.samplerate, as->time_scaled));
-  //  fprintf(stderr, "Video time: %lld\n", gavl_time_unscale(vs->data.video.format.timescale, vs->time_scaled));
   
   }
 

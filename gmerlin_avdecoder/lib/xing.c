@@ -108,26 +108,26 @@ int64_t bgav_xing_get_seek_position(bgav_xing_header_t * xing, float percent)
 void bgav_xing_header_dump(bgav_xing_header_t * xing)
   {
   int i, j;
-  fprintf(stderr, "Xing header:\n");
-  fprintf(stderr, "Flags: %08x, ", xing->flags);
+  bgav_dprintf( "Xing header:\n");
+  bgav_dprintf( "Flags: %08x, ", xing->flags);
   if(xing->flags & FRAMES_FLAG)
-    fprintf(stderr, "FRAMES_FLAG ");
+    bgav_dprintf( "FRAMES_FLAG ");
   if(xing->flags & BYTES_FLAG)
-    fprintf(stderr, "BYTES_FLAG ");
+    bgav_dprintf( "BYTES_FLAG ");
   if(xing->flags & TOC_FLAG)
-    fprintf(stderr, "TOC_FLAG ");
+    bgav_dprintf( "TOC_FLAG ");
   if(xing->flags & VBR_SCALE_FLAG)
-    fprintf(stderr, "VBR_SCALE_FLAG ");
+    bgav_dprintf( "VBR_SCALE_FLAG ");
   
-  fprintf(stderr, "\nFrames: %u\n", xing->frames);
-  fprintf(stderr, "Bytes: %u\n", xing->bytes);
-  fprintf(stderr, "TOC:\n");
+  bgav_dprintf( "\nFrames: %u\n", xing->frames);
+  bgav_dprintf( "Bytes: %u\n", xing->bytes);
+  bgav_dprintf( "TOC:\n");
   for(i = 0; i < 10; i++)
     {
     for(j = 0; j < 10; j++)
       {
-      fprintf(stderr, "%02x ", xing->toc[i*10+j]);
+      bgav_dprintf( "%02x ", xing->toc[i*10+j]);
       }
-    fprintf(stderr, "\n");
+    bgav_dprintf( "\n");
     }
   }

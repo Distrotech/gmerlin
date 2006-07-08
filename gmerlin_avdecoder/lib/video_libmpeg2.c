@@ -322,14 +322,6 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
-#if 0
-  if((priv->info->display_picture->flags & PIC_MASK_CODING_TYPE) == PIC_FLAG_CODING_TYPE_I)
-    fprintf(stderr, "I-Frame\n");
-  else if((priv->info->display_picture->flags & PIC_MASK_CODING_TYPE) == PIC_FLAG_CODING_TYPE_P)
-    fprintf(stderr, "P-Frame\n");
-  else if((priv->info->display_picture->flags & PIC_MASK_CODING_TYPE) == PIC_FLAG_CODING_TYPE_B)
-    fprintf(stderr, "B-Frame\n");
-#endif
   
   //  fprintf(stderr, "Timestamp: %lld, duration: %d\n",
   //          s->data.video.last_frame_time,

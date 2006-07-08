@@ -117,7 +117,6 @@ static char * read_string(qt_atom_header_t * h,
       return NULL;
     bgav_input_skip(ctx, 4); /* Reserved (0) */
     tmp_32 = data_atom.start_position  + data_atom.size - ctx->position;
-    //    fprintf(stderr, "Got udta string %d\n", tmp_32);
     ret = malloc(tmp_32+1);
     if(bgav_input_read_data(ctx, (uint8_t*)ret, tmp_32) < tmp_32)
       {
@@ -152,17 +151,12 @@ int bgav_qt_udta_read(qt_atom_header_t * h, bgav_input_context_t * input,
   qt_atom_header_t ch;
   memcpy(&(ret->h), h, sizeof(*h));
 
-  //  fprintf(stderr, "udta atom:\n");
-  //  bgav_qt_atom_dump_header(h);
 
   while(input->position + 8 < h->start_position + h->size)
     {
     
     if(!bgav_qt_atom_read_header(input, &ch))
       return 0;
-
-    //    fprintf(stderr, "Found atom:\n");
-    //    bgav_qt_atom_dump_header(&ch);
 
     /* iTunes Metadata are somewhat different */
 
@@ -298,9 +292,6 @@ int bgav_qt_udta_read(qt_atom_header_t * h, bgav_input_context_t * input,
         ret->trkn = read_trkn(&ch, input, ret->have_ilst);
         break;
       default:
-        //        fprintf(stderr, "Skipping udta atom ");
-        //        bgav_dump_fourcc(ch.fourcc);
-        //        fprintf(stderr, "\n");
         break;
       }
     bgav_qt_atom_skip(input, &ch);
@@ -357,11 +348,11 @@ void bgav_qt_udta_free(qt_udta_t * udta)
   
   }
 
-#define PRINT(e) fprintf(stderr, "  %s: %s\n", #e, (udta->e ? udta->e : "(null)"));
+#define PRINT(e) bgav_dprintf( "  %s: %s\n", #e, (udta->e ? udta->e : "(null)"));
 
 void bgav_qt_udta_dump(qt_udta_t * udta)
   {
-  fprintf(stderr, "udta\n");
+  bgav_dprintf( "udta\n");
   PRINT(cpy); /* Copyright                        */
   PRINT(day); /* Date                             */
   PRINT(dir); /* Director                         */
@@ -401,6 +392,6 @@ void bgav_qt_udta_dump(qt_udta_t * udta)
   PRINT(swr); /* Software        */
   PRINT(wrn); /* Warning         */
   PRINT(url); /* URL link        */
-  fprintf(stderr, "  trkn: %d\n", udta->trkn);
+  bgav_dprintf( "  trkn: %d\n", udta->trkn);
   
   }

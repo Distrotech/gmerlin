@@ -25,7 +25,7 @@
 #include <nanosoft.h>
 
 #include <dvframe.h>
-
+#define LOG_DOMAIN "avi"
 
 /* Define the variables below to get a detailed file dump
    on each open call */
@@ -267,10 +267,10 @@ static int read_chunk_header(bgav_input_context_t * input,
 #ifdef DUMP_HEADERS
 static void dump_chunk_header(chunk_header_t * chunk)
   {
-  fprintf(stderr, "chunk header:\n");
-  fprintf(stderr, "  ckID: ");
+  bgav_dprintf("chunk header:\n");
+  bgav_dprintf("  ckID: ");
   bgav_dump_fourcc(chunk->ckID);
-  fprintf(stderr, "\n  ckSize %d\n", chunk->ckSize);
+  bgav_dprintf("\n  ckSize %d\n", chunk->ckSize);
   }
 #endif
 
@@ -307,13 +307,6 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
     
     if ((avi_as->strh.dwSampleSize == 0) && (avi_as->strh.dwScale > 1))
       {
-#ifdef DUMP_AUDIO_TYPE
-      if(do_msg)
-        {
-        do_msg = 0;
-        fprintf(stderr, "Audio Type 2\n");
-        }
-#endif
       /* variable bitrate */
       time = (samplerate * (gavl_time_t)avi_as->total_blocks *
               (gavl_time_t)avi_as->strh.dwScale) / avi_as->strh.dwRate;
@@ -327,13 +320,6 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
       //                at->wavex->nBlockAlign, at->dwSampleSize);
       if(stream->data.audio.block_align)
         {
-#ifdef DUMP_AUDIO_TYPE
-      if(do_msg)
-        {
-        do_msg = 0;
-        fprintf(stderr, "Audio Type 1\n");
-        }
-#endif
       time =
           ((gavl_time_t)avi_as->total_bytes * (gavl_time_t)avi_as->strh.dwScale *
            samplerate) /
@@ -341,13 +327,6 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
         }
       else
         {
-#ifdef DUMP_AUDIO_TYPE
-      if(do_msg)
-        {
-        do_msg = 0;
-        fprintf(stderr, "Audio Type 3\n");
-        }
-#endif
       time =
           (samplerate * (gavl_time_t)avi_as->total_bytes *
            (gavl_time_t)avi_as->strh.dwScale) /
@@ -386,7 +365,6 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
     
     if(size)
       {
-      //      fprintf(stderr, "frame size: %d\n", size);
       time = stream->data.video.format.frame_duration *
         avi_vs->total_frames;
       
@@ -400,7 +378,6 @@ static void add_index_packet(bgav_superindex_t * si, bgav_stream_t * stream,
       }
     else /* If we have zero size, the framerate will be nonconstant */
       {
-      //      fprintf(stderr, "Zero size frame\n");
       stream->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
       }
     avi_vs->total_frames++;
@@ -423,20 +400,20 @@ static int read_riff_header(bgav_input_context_t * input,
 #ifdef DUMP_HEADERS
 void dump_avih(avih_t * h)
   {
-  fprintf(stderr, "avih:\n");
-  fprintf(stderr, "  dwMicroSecPerFrame: %d\n",    h->dwMicroSecPerFrame);
-  fprintf(stderr, "  dwMaxBytesPerSec: %d\n",      h->dwMaxBytesPerSec);
-  fprintf(stderr, "  dwReserved1: %d\n",           h->dwReserved1);
-  fprintf(stderr, "  dwFlags: %08x\n",             h->dwFlags);
-  fprintf(stderr, "  dwTotalFrames: %d\n",         h->dwTotalFrames);
-  fprintf(stderr, "  dwInitialFrames: %d\n",       h->dwInitialFrames);
-  fprintf(stderr, "  dwStreams: %d\n",             h->dwStreams);
-  fprintf(stderr, "  dwSuggestedBufferSize: %d\n", h->dwSuggestedBufferSize);
-  fprintf(stderr, "  dwWidth: %d\n",               h->dwWidth);
-  fprintf(stderr, "  dwHeight: %d\n",              h->dwHeight);
-  fprintf(stderr, "  dwScale: %d\n",               h->dwScale);
-  fprintf(stderr, "  dwRate: %d\n",                h->dwRate);
-  fprintf(stderr, "  dwLength: %d\n",              h->dwLength);
+  bgav_dprintf("avih:\n");
+  bgav_dprintf("  dwMicroSecPerFrame: %d\n",    h->dwMicroSecPerFrame);
+  bgav_dprintf("  dwMaxBytesPerSec: %d\n",      h->dwMaxBytesPerSec);
+  bgav_dprintf("  dwReserved1: %d\n",           h->dwReserved1);
+  bgav_dprintf("  dwFlags: %08x\n",             h->dwFlags);
+  bgav_dprintf("  dwTotalFrames: %d\n",         h->dwTotalFrames);
+  bgav_dprintf("  dwInitialFrames: %d\n",       h->dwInitialFrames);
+  bgav_dprintf("  dwStreams: %d\n",             h->dwStreams);
+  bgav_dprintf("  dwSuggestedBufferSize: %d\n", h->dwSuggestedBufferSize);
+  bgav_dprintf("  dwWidth: %d\n",               h->dwWidth);
+  bgav_dprintf("  dwHeight: %d\n",              h->dwHeight);
+  bgav_dprintf("  dwScale: %d\n",               h->dwScale);
+  bgav_dprintf("  dwRate: %d\n",                h->dwRate);
+  bgav_dprintf("  dwLength: %d\n",              h->dwLength);
   }
 #endif
 
@@ -464,8 +441,6 @@ static int read_avih(bgav_input_context_t* input,
 
   if(input->position - start_pos < ch->ckSize)
     {
-    //    fprintf(stderr, "AVIH: Skipping %lld bytes\n",
-    //            ch->ckSize - (input->position - start_pos));
     
     bgav_input_skip(input, PADD(ch->ckSize) - (input->position - start_pos));
     }
@@ -487,14 +462,14 @@ static void free_idx1(idx1_t * idx1)
 static void dump_idx1(idx1_t * idx1)
   {
   int i;
-  fprintf(stderr, "idx1, %d entries\n", idx1->num_entries);
+  bgav_dprintf("idx1, %d entries\n", idx1->num_entries);
   for(i = 0; i < idx1->num_entries; i++)
     {
-    fprintf(stderr, "ID: ");
+    bgav_dprintf("ID: ");
     bgav_dump_fourcc(idx1->entries[i].ckid);
-    fprintf(stderr, " Flags: %08x", idx1->entries[i].dwFlags);
-    fprintf(stderr, " Offset: %d", idx1->entries[i].dwChunkOffset);
-    fprintf(stderr, " Size: %d\n", idx1->entries[i].dwChunkLength);
+    bgav_dprintf(" Flags: %08x", idx1->entries[i].dwFlags);
+    bgav_dprintf(" Offset: %d", idx1->entries[i].dwChunkOffset);
+    bgav_dprintf(" Size: %d\n", idx1->entries[i].dwChunkLength);
     }
   }
 #endif
@@ -515,14 +490,10 @@ static int read_idx1(bgav_input_context_t * input, idx1_t * ret)
   {
   int i;
   chunk_header_t ch;
-  //  fprintf(stderr, "Reading Index %08llx\n", input->position);
   if(!read_chunk_header(input, &ch))
     return 0;
-  //  bgav_dump_fourcc(ch.ckID);
   ret->num_entries = ch.ckSize / 16;
-
-  //  fprintf(stderr, "Entries: %d\n", ret->num_entries);
-
+  
   ret->entries = calloc(ret->num_entries, sizeof(*ret->entries));
   for(i = 0; i < ret->num_entries; i++)
     {
@@ -532,7 +503,6 @@ static int read_idx1(bgav_input_context_t * input, idx1_t * ret)
        !bgav_input_read_32_le(input, &(ret->entries[i].dwChunkLength)))
       return 0;
     }
-  //  fprintf(stderr, "\nReading Index done %d\n", ret->num_entries);
   return 1;
   }
 
@@ -542,25 +512,25 @@ static int read_idx1(bgav_input_context_t * input, idx1_t * ret)
 #ifdef DUMP_HEADERS
 static void dump_strh(strh_t * ret)
   {
-  fprintf(stderr, "strh\n  fccType: ");
+  bgav_dprintf("strh\n  fccType: ");
   bgav_dump_fourcc(ret->fccType);
-  fprintf(stderr, "\n  fccHandler: ");
+  bgav_dprintf("\n  fccHandler: ");
   bgav_dump_fourcc(ret->fccHandler);
-  fprintf(stderr, "\n  dwFlags: %d (%08x)\n",
+  bgav_dprintf("\n  dwFlags: %d (%08x)\n",
           ret->dwFlags, ret->dwFlags);
-  fprintf(stderr, "  dwReserved1: %d (%08x)\n",
+  bgav_dprintf("  dwReserved1: %d (%08x)\n",
           ret->dwReserved1, ret->dwReserved1);
-  fprintf(stderr, "  dwInitialFrames: %d (%08x)\n",
+  bgav_dprintf("  dwInitialFrames: %d (%08x)\n",
           ret->dwInitialFrames, ret->dwInitialFrames);
-  fprintf(stderr, "  dwScale: %d (%08x)\n", ret->dwScale, ret->dwScale);
-  fprintf(stderr, "  dwRate: %d (%08x)\n", ret->dwRate, ret->dwRate);
-  fprintf(stderr, "  dwStart: %d (%08x)\n", ret->dwStart, ret->dwStart);
-  fprintf(stderr, "  dwLength: %d (%08x)\n", ret->dwLength, ret->dwLength);
-  fprintf(stderr, "  dwSuggestedBufferSize: %d (%08x)\n",
+  bgav_dprintf("  dwScale: %d (%08x)\n", ret->dwScale, ret->dwScale);
+  bgav_dprintf("  dwRate: %d (%08x)\n", ret->dwRate, ret->dwRate);
+  bgav_dprintf("  dwStart: %d (%08x)\n", ret->dwStart, ret->dwStart);
+  bgav_dprintf("  dwLength: %d (%08x)\n", ret->dwLength, ret->dwLength);
+  bgav_dprintf("  dwSuggestedBufferSize: %d (%08x)\n",
           ret->dwSuggestedBufferSize,
           ret->dwSuggestedBufferSize);
-  fprintf(stderr, "  dwQuality: %d (%08x)\n", ret->dwQuality, ret->dwQuality);
-  fprintf(stderr, "  dwSampleSize: %d (%08x)\n", ret->dwSampleSize, ret->dwSampleSize);
+  bgav_dprintf("  dwQuality: %d (%08x)\n", ret->dwQuality, ret->dwQuality);
+  bgav_dprintf("  dwSampleSize: %d (%08x)\n", ret->dwSampleSize, ret->dwSampleSize);
   }
 #endif
 
@@ -588,9 +558,6 @@ static int read_strh(bgav_input_context_t * input, strh_t * ret,
 
   if(input->position - start_pos < ch->ckSize)
     {
-    //    fprintf(stderr, "STRH: Skipping %lld bytes\n",
-    //            ch->ckSize - (input->position - start_pos));
-    
     bgav_input_skip(input, PADD(ch->ckSize) - (input->position - start_pos));
     }
 #ifdef DUMP_HEADERS
@@ -607,8 +574,8 @@ static int read_strh(bgav_input_context_t * input, strh_t * ret,
 #ifdef DUMP_HEADERS
 static void dump_dmlh(dmlh_t * dmlh)
   {
-  fprintf(stderr, "dmlh:\n");
-  fprintf(stderr, "  dwTotalFrames: %d\n", dmlh->dwTotalFrames);
+  bgav_dprintf("dmlh:\n");
+  bgav_dprintf("  dwTotalFrames: %d\n", dmlh->dwTotalFrames);
   }
 #endif
 
@@ -623,8 +590,6 @@ static int read_dmlh(bgav_input_context_t * input, dmlh_t * ret,
 
   if(input->position - start_pos < ch->ckSize)
     {
-    //    fprintf(stderr, "dmlh: Skipping %lld bytes\n",
-    //            ch->ckSize - (input->position - start_pos));
     bgav_input_skip(input, PADD(ch->ckSize) - (input->position - start_pos));
     }
   return 1;
@@ -634,7 +599,7 @@ static int read_dmlh(bgav_input_context_t * input, dmlh_t * ret,
 #ifdef DUMP_HEADERS
 static void dump_odml(odml_t * odml)
   {
-  fprintf(stderr, "odml:\n");
+  bgav_dprintf("odml:\n");
   if(odml->has_dmlh)
     dump_dmlh(&(odml->dmlh));
   }
@@ -665,8 +630,6 @@ static int read_odml(bgav_input_context_t * input, odml_t * ret,
         ret->has_dmlh = 1;
         break;
       default:
-        //        fprintf(stderr, "Unknown chunk inside odml list, skipping rest:\n");
-        //        dump_chunk_header(&ch1);
         keep_going = 0;
         break;
       }
@@ -674,8 +637,6 @@ static int read_odml(bgav_input_context_t * input, odml_t * ret,
   
   if(input->position - start_pos < ch->ckSize - 4)
     {
-    //    fprintf(stderr, "odml: Skipping %lld bytes\n",
-    //            ch->ckSize - 4 - input->position - start_pos);
     bgav_input_skip(input, ch->ckSize - 4 - input->position - start_pos);
     }
 #ifdef DUMP_HEADERS
@@ -759,8 +720,6 @@ static int read_indx(bgav_input_context_t * input, indx_t * ret,
   
   if(input->position - pos < ch->ckSize)
     {
-    //    fprintf(stderr, "indx: Skipping %lld bytes\n",
-    //            ch->ckSize - (input->position - pos));
     
     bgav_input_skip(input, PADD(ch->ckSize) - (input->position - pos));
     }
@@ -781,7 +740,6 @@ static int read_indx(bgav_input_context_t * input, indx_t * ret,
       }
     bgav_input_seek(input, pos, SEEK_SET);
     }
-  //  fprintf(stderr, "Read indx\n");
   return 1;
   }
 
@@ -789,31 +747,31 @@ static int read_indx(bgav_input_context_t * input, indx_t * ret,
 static void dump_indx(indx_t * indx)
   {
   int i;
-  fprintf(stderr, "indx:\n");
-  fprintf(stderr, "wLongsPerEntry: %d\n", indx->wLongsPerEntry);
-  fprintf(stderr, "bIndexSubType:  0x%02x\n", indx->bIndexSubType);
-  fprintf(stderr, "bIndexType:     0x%02x\n", indx->bIndexType);
-  fprintf(stderr, "nEntriesInUse:  %d\n", indx->nEntriesInUse);
-  fprintf(stderr, "dwChunkID:      ");
+  bgav_dprintf("indx:\n");
+  bgav_dprintf("wLongsPerEntry: %d\n", indx->wLongsPerEntry);
+  bgav_dprintf("bIndexSubType:  0x%02x\n", indx->bIndexSubType);
+  bgav_dprintf("bIndexType:     0x%02x\n", indx->bIndexType);
+  bgav_dprintf("nEntriesInUse:  %d\n", indx->nEntriesInUse);
+  bgav_dprintf("dwChunkID:      ");
   bgav_dump_fourcc(indx->dwChunkID);
-  fprintf(stderr, "\n");
+  bgav_dprintf("\n");
   
   switch(indx->bIndexType)
     {
     case AVI_INDEX_OF_INDEXES:
       for(i = 0; i < 3; i++)
-        fprintf(stderr, "dwReserved[%d]: %d\n", i,
+        bgav_dprintf("dwReserved[%d]: %d\n", i,
                 indx->i.index.dwReserved[i]);
 
       for(i = 0; i < indx->nEntriesInUse; i++)
         {
-        fprintf(stderr, "%d qwOffset: %lld dwSize: %d dwDuration: %d\n", i,
+        bgav_dprintf("%d qwOffset: %lld dwSize: %d dwDuration: %d\n", i,
                 indx->i.index.entries[i].qwOffset,
                 indx->i.index.entries[i].dwSize,
                 indx->i.index.entries[i].dwDuration);
         if(indx->i.index.entries[i].subindex)
           {
-          fprintf(stderr, "Subindex follows:\n");
+          bgav_dprintf("Subindex follows:\n");
           dump_indx(indx->i.index.entries[i].subindex);
           }
         }
@@ -822,14 +780,14 @@ static void dump_indx(indx_t * indx)
       
       if(indx->bIndexSubType == AVI_INDEX_2FIELD)
         {
-        fprintf(stderr, "qwBaseOffset:  %lld\n",
+        bgav_dprintf("qwBaseOffset:  %lld\n",
                 indx->i.field_chunk.qwBaseOffset);
-        fprintf(stderr, "dwReserved3:   %d\n",
+        bgav_dprintf("dwReserved3:   %d\n",
                 indx->i.field_chunk.dwReserved3);
         
         for(i = 0; i < indx->nEntriesInUse; i++)
           {
-          fprintf(stderr, "%d dwOffset: %d dwSize: %d dwOffsetField2: %d Keyframe: %d\n", i,
+          bgav_dprintf("%d dwOffset: %d dwSize: %d dwOffsetField2: %d Keyframe: %d\n", i,
                   indx->i.field_chunk.entries[i].dwOffset,
                   indx->i.field_chunk.entries[i].dwSize & 0x7FFFFFFF,
                   indx->i.field_chunk.entries[i].dwOffsetField2,
@@ -838,14 +796,14 @@ static void dump_indx(indx_t * indx)
         }
       else
         {
-        fprintf(stderr, "qwBaseOffset:  %lld\n",
+        bgav_dprintf("qwBaseOffset:  %lld\n",
                 indx->i.chunk.qwBaseOffset);
-        fprintf(stderr, "dwReserved3:   %d\n",
+        bgav_dprintf("dwReserved3:   %d\n",
                 indx->i.chunk.dwReserved3);
         
         for(i = 0; i < indx->nEntriesInUse; i++)
           {
-          fprintf(stderr, "%d dwOffset: %d dwSize: 0x%08x Keyframe: %d\n", i,
+          bgav_dprintf("%d dwOffset: %d dwSize: 0x%08x Keyframe: %d\n", i,
                   indx->i.chunk.entries[i].dwOffset,
                   indx->i.chunk.entries[i].dwSize & 0x7FFFFFFF,
                   // indx->i.chunk.entries[i].dwSize,
@@ -917,7 +875,6 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
 
     if(!avi_as->has_indx)
       {
-      //      fprintf(stderr, "Audio stream %d has no indx\n", i);
       return;
       }
     avi_as->total_bytes = 0;
@@ -929,7 +886,6 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
     
     if(!avi_vs->has_indx)
       {
-      //      fprintf(stderr, "Video stream %d has no indx\n", i);
       return;
       }
     avi_vs->total_frames = 0;
@@ -937,7 +893,6 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
 
   /* Count the entries */
 
-  // fprintf(stderr, "Using indx\n");
 
   num_entries = 0;
 
@@ -1078,8 +1033,6 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
   audio_priv_t * avi_as;
   keep_going = 1;
 
-  //  fprintf(stderr, "Init audio stream\n");
-  
   bg_as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
   avi_as = calloc(1, sizeof(*avi_as));
   bg_as->priv = avi_as;
@@ -1092,7 +1045,6 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
     switch(ch->ckID)
       {
       case ID_STRF:
-        //        fprintf(stderr, "Found format %d bytes\n", ch->ckSize);
         buf = malloc(ch->ckSize);
         if(bgav_input_read_data(ctx->input, buf, ch->ckSize) < ch->ckSize)
           return 0;
@@ -1110,18 +1062,14 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
         /* Seek support */
         if(!strh->dwSampleSize)
           {
-          //          fprintf(stderr, "Audio is VBR!\n");
           avi_as->vbr = 1;
           }
         free(buf);
         break;
       case ID_STRD:
-        //        fprintf(stderr, "Found data %d bytes\n", ch->ckSize);
-        
         bgav_input_skip(ctx->input, PADD(ch->ckSize));
         break;
       case ID_JUNK:
-        //        fprintf(stderr, "Found junk %d bytes\n", ch->ckSize);
         bgav_input_skip(ctx->input, PADD(ch->ckSize));
         break;
       case ID_LIST:
@@ -1136,9 +1084,6 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx,
         avi_as->has_indx = 1;
         break;
       default:
-        //        fprintf(stderr, "Unknown subchunk ");
-        //        bgav_dump_fourcc(ch->ckID);
-        //        fprintf(stderr, "\n");
         bgav_input_skip(ctx->input, PADD(ch->ckSize));
         break;
       }
@@ -1170,17 +1115,12 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
   memcpy(&(avi_vs->strh), strh, sizeof(*strh));
   
   bg_vs->priv = avi_vs;
-  
-  //  fprintf(stderr, "Init video stream\n");
-
   while(keep_going)
     {
     read_chunk_header(ctx->input, ch);
     switch(ch->ckID)
       {
       case ID_STRF:
-        //        fprintf(stderr, "Found format %d bytes\n", ch->ckSize);
-
         buf = malloc(ch->ckSize);
         if(bgav_input_read_data(ctx->input, buf, ch->ckSize) < ch->ckSize)
           return 0;
@@ -1199,8 +1139,6 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
           bg_vs->ext_size = ch->ckSize - 40;
           bg_vs->ext_data = calloc(bg_vs->ext_size + 16, 1);
           memcpy(bg_vs->ext_data, pos, bg_vs->ext_size);
-          //          fprintf(stderr, "Adding extradata %d bytes\n",
-          //                  ch->ckSize - 40);
           bgav_hexdump(bg_vs->ext_data, bg_vs->ext_size, 16);
           }
 
@@ -1225,18 +1163,15 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
         free(buf);
         break;
       case ID_STRD:
-        //        fprintf(stderr, "Found data %d bytes\n", ch->ckSize);
         bgav_input_skip(ctx->input, PADD(ch->ckSize));
         break;
       case ID_JUNK:
-        //        fprintf(stderr, "Found junk %d bytes\n", ch->ckSize);
         bgav_input_skip(ctx->input, PADD(ch->ckSize));
         break;
       case ID_LIST:
         keep_going = 0;
         break;
       case ID_INDX:
-        //        fprintf(stderr, "Found video indx\n");
         if(!read_indx(ctx->input, &avi_vs->indx, ch))
           return 0;
 
@@ -1246,9 +1181,6 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
         avi_vs->has_indx = 1;
         break;
       default:
-        //        fprintf(stderr, "Unknown subchunk ");
-        //        bgav_dump_fourcc(ch->ckID);
-        //        fprintf(stderr, "\n");
         bgav_input_skip(ctx->input, PADD(ch->ckSize));
         break;
       }
@@ -1294,8 +1226,6 @@ static int read_packet_iavs(bgav_demuxer_context_t * ctx,
   vs = ctx->tt->current_track->video_streams;
   as = ctx->tt->current_track->audio_streams;
 
-  //  fprintf(stderr, "*** read_packet_iavs %lld %d\n", ctx->input->position, size);
-
   avi_iavs = (video_priv_t*)(vs->priv);
   if(!avi_iavs->d)
     {
@@ -1333,7 +1263,6 @@ static int read_packet_iavs(bgav_demuxer_context_t * ctx,
   
   if(do_init)
     {
-    //    fprintf(stderr, "Finalizing streams...");
     bgav_dv_dec_init_audio(avi_iavs->d, as);
     bgav_dv_dec_init_video(avi_iavs->d, vs);
 
@@ -1400,21 +1329,17 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
       case ID_STRF:
         /* Format chunk can be skipped */
         bgav_input_skip(ctx->input, PADD(ch->ckSize));
-        //        fprintf(stderr, "Skipping format chunk %d bytes\n", ch->ckSize);
         break;
       case ID_STRD:
-        //        fprintf(stderr, "Found data %d bytes\n", ch->ckSize);
         bgav_input_skip(ctx->input, PADD(ch->ckSize));
         break;
       case ID_JUNK:
-        //        fprintf(stderr, "Found junk %d bytes\n", ch->ckSize);
         bgav_input_skip(ctx->input, PADD(ch->ckSize));
         break;
       case ID_LIST:
         keep_going = 0;
         break;
       case ID_INDX:
-        //        fprintf(stderr, "Found iavs indx\n");
         if(!read_indx(ctx->input, &avi_iavs->indx, ch))
           return 0;
 
@@ -1424,9 +1349,6 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
         avi_iavs->has_indx = 1;
         break;
       default:
-        //        fprintf(stderr, "Unknown subchunk ");
-        //        bgav_dump_fourcc(ch->ckID);
-        //        fprintf(stderr, "\n");
         bgav_input_skip(ctx->input, PADD(ch->ckSize));
         break;
       }
@@ -1489,8 +1411,6 @@ static void idx1_build_superindex(bgav_demuxer_context_t * ctx)
   int64_t base_offset;
   
   avi = (avi_priv*)(ctx->priv);
-  
-  //  fprintf(stderr, "Getting index timestamps\n");
 
   /* Reset timestamps */
   
@@ -1598,16 +1518,10 @@ static int open_avi(bgav_demuxer_context_t * ctx,
     {
     if(!bgav_input_read_fourcc(ctx->input, &fourcc))
       {
-      //      fprintf(stderr, "EOF during header parsing\n");
       goto fail;
       }
     if(fourcc != ID_STRL)
       {
-      fprintf(stderr, "Wrong fourcc ");
-      bgav_dump_fourcc(fourcc);
-      fprintf(stderr, "\nExpected ");
-      bgav_dump_fourcc(ID_STRL);
-      fprintf(stderr, "\n");
       goto fail;
       }
     if(!read_chunk_header(ctx->input, &ch) ||
@@ -1623,15 +1537,15 @@ static int open_avi(bgav_demuxer_context_t * ctx,
       init_video_stream(ctx, &strh, &ch);
     else if(strh.fccType == ID_IAVS)
       init_iavs_stream(ctx, &strh, &ch);
-#if 1
     else
       {
-      fprintf(stderr, "Unknown stream type: ");
-      bgav_dump_fourcc(strh.fccType);
-      fprintf(stderr, "\n");
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Unknown stream type: %c%c%c%c",
+               (strh.fccType >> 24) & 0xff,
+               (strh.fccType >> 16) & 0xff,
+               (strh.fccType >> 8) & 0xff,
+               strh.fccType & 0xff);
       return 0;
       }
-#endif
     }
 
   keep_going = 1;
@@ -1654,8 +1568,6 @@ static int open_avi(bgav_demuxer_context_t * ctx,
         keep_going = 0;
         break;
       case ID_ODML:
-        //        fprintf(stderr, "Found odml chunk\n");
-        //        dump_chunk_header(&ch);
 
         if(!read_odml(ctx->input, &(p->odml), &ch))
           goto fail;
@@ -1669,12 +1581,6 @@ static int open_avi(bgav_demuxer_context_t * ctx,
         p->info = bgav_RIFFINFO_read_without_header(ctx->input, ch.ckSize-4);
         break;
       default:
-#if 0
-        fprintf(stderr, "Skipping unknown chunk\n");
-        bgav_dump_fourcc(fourcc);
-        fprintf(stderr, "\n");
-        //        dump_chunk_header(&ch);
-#endif
         bgav_input_skip(ctx->input, ch.ckSize-4);
         break;
       }
@@ -1686,7 +1592,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
       goto fail;
     }
 #ifdef DUMP_HEADERS
-  fprintf(stderr, "movi:\n");
+  bgav_dprintf("movi:\n");
   dump_chunk_header(&ch);
 #endif
   p->movi_start = ctx->input->position;
@@ -1695,12 +1601,9 @@ static int open_avi(bgav_demuxer_context_t * ctx,
     p->movi_size =  ch.ckSize - 4;
   else
     {
-    //    fprintf(stderr, "Warning: MOVI Atom has zero size, seeking will be impossible\n");
     if(ctx->input->total_bytes)
       p->movi_size = ctx->input->total_bytes - p->movi_start;
     }
-  //  fprintf(stderr, "Reached MOVI atom start: %lld size: %d\n", p->movi_start, p->movi_size);
-  //  bgav_dump_fourcc(fourcc);
 
   if(ctx->input->input->seek_byte)
     {
@@ -1752,7 +1655,6 @@ static int open_avi(bgav_demuxer_context_t * ctx,
     if(!ctx->si && p->has_idx1)
       {
       idx1_build_superindex(ctx);
-      //    fprintf(stderr, "Using idx1\n");
       }
     if(ctx->si)
       ctx->can_seek = 1;
@@ -1840,29 +1742,22 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
   
   if(ctx->input->position + 8 >= priv->movi_start + priv->movi_size)
     {
-    //    fprintf(stderr, "next_packet_avi: EOF 1\n");
     return 0;
     }
   while(!s)
     {
     if(!read_chunk_header(ctx->input, &ch))
       {
-      //  fprintf(stderr, "next_packet_avi: EOF 2 (%lld, %lld)\n",
-      //          ctx->input->position, ctx->input->total_bytes);
       return 0;
       }
 
 #ifdef DUMP_HEADERS
     dump_chunk_header(&ch);
-    //  fprintf(stderr, "File position: %lld\n", ctx->input->position);
 #endif
 
     if(ch.ckID == BGAV_MK_FOURCC('L','I','S','T'))
       {
-      //      fprintf(stderr, "Got list chunk\n");
       bgav_input_read_fourcc(ctx->input, &fourcc);
-      //      bgav_dump_fourcc(fourcc);
-      //      fprintf(stderr, "\n");
       }
     else if(ch.ckID == BGAV_MK_FOURCC('J','U','N','K'))
       {
@@ -1875,16 +1770,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
       s = bgav_track_find_stream(ctx->tt->current_track, stream_id);
       }
     }
-
-  /*
-    fprintf(stderr, "Position: %lld, index position: %d\n",
-    ctx->input->position - priv->movi_start,
-    priv->idx1.entries[priv->index_position].dwChunkOffset+4);
-    fprintf(stderr, "Size: %d, index size: %d\n",
-    ch.ckSize,
-    priv->idx1.entries[priv->index_position].dwChunkLength);
-  */
-
+  
   if(ch.ckSize)
     {
     p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
@@ -1893,7 +1779,6 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
     
     if(bgav_input_read_data(ctx->input, p->data, ch.ckSize) < ch.ckSize)
       {
-      //      fprintf(stderr, "next_packet_avi: EOF 3\n");
       return 0;
       }
     p->data_size = ch.ckSize;
@@ -1911,7 +1796,6 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
     avi_vs = (video_priv_t*)s->priv;
     avi_vs->total_frames++;
     }
-  //  fprintf(stderr, " Stream ID %d\n", stream_id);
   if(ch.ckSize & 1)
     bgav_input_skip(ctx->input, 1);
   return 1;

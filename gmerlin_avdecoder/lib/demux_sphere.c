@@ -162,15 +162,15 @@ static int sphere_header_read(bgav_input_context_t * input, sphere_header_t * re
 #if 0
 static void sphere_header_dump(sphere_header_t * h)
   {
-  fprintf(stderr,"NIST SPHERE Header\n");
-  fprintf(stderr,"  HeaderSize:       %lld\n",h->HeaderSize);
-  fprintf(stderr,"  SampleRate:       %lld\n",h->SampleRate);
-  fprintf(stderr,"  Channels:         %d\n",h->Channels);
-  fprintf(stderr,"  BitsPerSample:    %d\n",h->BitsPerSample);
-  fprintf(stderr,"  SampleNBytes:     %d\n",h->SampleNBytes);
-  fprintf(stderr,"  SampleByteFormat: %s\n",h->SampleByteFormat);
-  fprintf(stderr,"  SampleCoding:     %s\n",h->SampleCoding);
-  fprintf(stderr,"  SampleCount:      %lld\n",h->SampleCount);
+  bgav_dprintf("NIST SPHERE Header\n");
+  bgav_dprintf("  HeaderSize:       %lld\n",h->HeaderSize);
+  bgav_dprintf("  SampleRate:       %lld\n",h->SampleRate);
+  bgav_dprintf("  Channels:         %d\n",h->Channels);
+  bgav_dprintf("  BitsPerSample:    %d\n",h->BitsPerSample);
+  bgav_dprintf("  SampleNBytes:     %d\n",h->SampleNBytes);
+  bgav_dprintf("  SampleByteFormat: %s\n",h->SampleByteFormat);
+  bgav_dprintf("  SampleCoding:     %s\n",h->SampleCoding);
+  bgav_dprintf("  SampleCount:      %lld\n",h->SampleCount);
   }
 #endif
 

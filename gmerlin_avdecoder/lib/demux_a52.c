@@ -144,14 +144,10 @@ static int next_packet_a52(bgav_demuxer_context_t * ctx)
 
   p->data_size = bgav_input_read_data(ctx->input, p->data, packet_size);
   
-  //  fprintf(stderr, "Read packet %d\n", priv->data_size);
-  
   if(p->data_size < packet_size)
     return 0;
   
   bgav_packet_done_write(p);
-  //  fprintf(stderr, "done\n");
-  
   return 1;
   }
 

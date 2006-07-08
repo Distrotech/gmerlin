@@ -32,12 +32,12 @@
 void bgav_vorbis_comment_dump(bgav_vorbis_comment_t * ret)
   {
   int i;
-  fprintf(stderr, "Vorbis comment:\n");
-  fprintf(stderr, "  Vendor string: %s\n", ret->vendor);
+  bgav_dprintf( "Vorbis comment:\n");
+  bgav_dprintf( "  Vendor string: %s\n", ret->vendor);
   
   for(i = 0; i < ret->num_user_comments; i++)
     {
-    fprintf(stderr, "  %s\n", ret->user_comments[i]);
+    bgav_dprintf( "  %s\n", ret->user_comments[i]);
     }
   }
 

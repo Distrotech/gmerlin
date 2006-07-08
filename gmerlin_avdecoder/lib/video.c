@@ -21,6 +21,8 @@
 #include <avdec_private.h>
 #include <stdio.h>
 
+#define LOG_DOMAIN "video"
+
 int bgav_num_video_streams(bgav_t *  bgav, int track)
   {
   return bgav->tt->tracks[track].num_video_streams;
@@ -49,9 +51,13 @@ int bgav_video_start(bgav_stream_t * stream)
   dec = bgav_find_video_decoder(stream);
   if(!dec)
     {
-    fprintf(stderr, "No video decoder found for fourcc ");
-    bgav_dump_fourcc(stream->fourcc);
-    fprintf(stderr, "\n");
+    bgav_log(stream->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "No audio decoder found for fourcc %c%c%c%c (0x08x)",
+             (stream->fourcc & 0xFF000000) >> 24,
+             (stream->fourcc & 0x00FF0000) >> 16,
+             (stream->fourcc & 0x0000FF00) >> 8,
+             (stream->fourcc & 0x000000FF),
+             stream->fourcc);
     return 0;
     }
   ctx = calloc(1, sizeof(*ctx));

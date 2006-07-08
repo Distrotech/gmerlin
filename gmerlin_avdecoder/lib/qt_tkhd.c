@@ -54,26 +54,26 @@ typedef struct
 void bgav_qt_tkhd_dump(qt_tkhd_t * c)
   {
   int i, j;
-  fprintf(stderr, "tkhd:\n");
-  fprintf(stderr, "  Version:           %d\n", c->version);
-  fprintf(stderr, "  Flags:             %d\n", c->flags);
-  fprintf(stderr, "  Creation time:     %lld\n", c->creation_time);
-  fprintf(stderr, "  Modificatiom time: %lld\n", c->modification_time);
-  fprintf(stderr, "  Track ID:          %d\n", c->track_id);
-  fprintf(stderr, "  Duration:          %lld\n", c->duration);
-  fprintf(stderr, "  Layer:             %d\n", c->layer);
-  fprintf(stderr, "  Alternate Group:   %d\n", c->alternate_group);
-  fprintf(stderr, "  Volume:            %f\n", c->volume);
-  fprintf(stderr, "  Matrix:\n");
+  bgav_dprintf( "tkhd:\n");
+  bgav_dprintf( "  Version:           %d\n", c->version);
+  bgav_dprintf( "  Flags:             %d\n", c->flags);
+  bgav_dprintf( "  Creation time:     %lld\n", c->creation_time);
+  bgav_dprintf( "  Modificatiom time: %lld\n", c->modification_time);
+  bgav_dprintf( "  Track ID:          %d\n", c->track_id);
+  bgav_dprintf( "  Duration:          %lld\n", c->duration);
+  bgav_dprintf( "  Layer:             %d\n", c->layer);
+  bgav_dprintf( "  Alternate Group:   %d\n", c->alternate_group);
+  bgav_dprintf( "  Volume:            %f\n", c->volume);
+  bgav_dprintf( "  Matrix:\n");
   for(i = 0; i < 3; i++)
     {
-    fprintf(stderr, "    ");
+    bgav_dprintf( "    ");
     for(j = 0; j < 3; j++)
-      fprintf(stderr, "%f ", c->matrix[3*i+j]);
-    fprintf(stderr, "\n");
+      bgav_dprintf( "%f ", c->matrix[3*i+j]);
+    bgav_dprintf( "\n");
     }
-  fprintf(stderr, "  Track width:       %f\n", c->track_width);
-  fprintf(stderr, "  Track height:      %f\n", c->track_height);
+  bgav_dprintf( "  Track width:       %f\n", c->track_width);
+  bgav_dprintf( "  Track height:      %f\n", c->track_height);
   }
 
 int bgav_qt_tkhd_read(qt_atom_header_t * h, bgav_input_context_t * input,

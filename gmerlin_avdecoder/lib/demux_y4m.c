@@ -43,8 +43,6 @@ static ssize_t read_func(void * data, void * buf, size_t len)
   bgav_input_context_t * inp = (bgav_input_context_t *)data;
   result = bgav_input_read_data(inp, (uint8_t*)buf, len);
 
-  //  fprintf(stderr, "Read func %d %d\n", len, result);  
-  
   if(result < len)
     return len - result;
   return 0;
@@ -68,10 +66,10 @@ static int probe_y4m(bgav_input_context_t * input)
 /* For debugging only (incomplete) */
 static void dump_stream_header(y4m_stream_info_t * si)
   {
-  fprintf(stderr, "YUV4MPEG2 stream header\n");
-  fprintf(stderr, "  Image size: %dx%d\n", y4m_si_get_width(si), y4m_si_get_height(si));
-  fprintf(stderr, "  Interlace mode: %d\n", y4m_si_get_interlace(si));
-  fprintf(stderr, "  Chroma: %d\n", y4m_si_get_chroma(si));
+  bgav_dprintf( "YUV4MPEG2 stream header\n");
+  bgav_dprintf( "  Image size: %dx%d\n", y4m_si_get_width(si), y4m_si_get_height(si));
+  bgav_dprintf( "  Interlace mode: %d\n", y4m_si_get_interlace(si));
+  bgav_dprintf( "  Chroma: %d\n", y4m_si_get_chroma(si));
   }
 #endif
 

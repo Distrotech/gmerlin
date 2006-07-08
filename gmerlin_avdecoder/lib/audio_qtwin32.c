@@ -39,6 +39,8 @@
 #include <semaphore.h>
 #include <win32codec.h>
 
+#define LOG_DOMAIN "qtwin32"
+
 /*
  * This version of the macro avoids compiler warnings about
  * multiple-character constants. It also does NOT assume
@@ -142,13 +144,14 @@ static int init_qtaudio(bgav_stream_t * s)
   priv->qts_dll = LoadLibraryA("QuickTime.qts");
   if(!priv->qts_dll)
     {
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot open QuickTime.qts");
     goto fail;
     }
   
   priv->qtml_dll = LoadLibraryA("qtmlClient.dll");
   if(!priv->qtml_dll)
     {
-    //    fprintf(stderr, "Cannot open qtmlClient.dll\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot open qtmlClient.dll");
     goto fail;
     }
 
@@ -156,16 +159,16 @@ static int init_qtaudio(bgav_stream_t * s)
     (LPFUNC1)GetProcAddress (priv->qtml_dll, "InitializeQTML");
   if ( priv->InitializeQTML == NULL )
     {
-    fprintf(stderr, 
-	     "qt_audio: failed geting proc address InitializeQTML\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
+	     "qt_audio: failed geting proc address InitializeQTML");
     goto fail;
     }
   priv->SoundConverterOpen =
     (LPFUNC2)GetProcAddress (priv->qtml_dll, "SoundConverterOpen");
   if ( priv->SoundConverterOpen == NULL )
     {
-    fprintf(stderr, 
-	     "qt_audio: failed getting proc address SoundConverterOpen\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
+	     "qt_audio: failed getting proc address SoundConverterOpen");
     goto fail;
     }
   
@@ -173,62 +176,63 @@ static int init_qtaudio(bgav_stream_t * s)
     (LPFUNC3)GetProcAddress (priv->qtml_dll, "SoundConverterClose");
   if ( priv->SoundConverterClose == NULL )
     {
-    fprintf(stderr, 
-	     "qt_audio: failed getting proc address SoundConverterClose\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
+	     "qt_audio: failed getting proc address SoundConverterClose");
     goto fail;
     }
   priv->TerminateQTML =
     (LPFUNC4)GetProcAddress (priv->qtml_dll, "TerminateQTML");
   if ( priv->TerminateQTML == NULL )
     {
-    fprintf(stderr, 
-	     "qt_audio: failed getting proc address TerminateQTML\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
+	     "qt_audio: failed getting proc address TerminateQTML");
     goto fail;
     }
   priv->SoundConverterSetInfo =
     (LPFUNC5)GetProcAddress (priv->qtml_dll, "SoundConverterSetInfo");
   if ( priv->SoundConverterSetInfo == NULL )
     {
-    fprintf(stderr, 
-	     "qt_audio: failed getting proc address SoundConverterSetInfo\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
+	     "qt_audio: failed getting proc address SoundConverterSetInfo");
     goto fail;
     }
   priv->SoundConverterGetBufferSizes =
     (LPFUNC6)GetProcAddress (priv->qtml_dll, "SoundConverterGetBufferSizes");
   if ( priv->SoundConverterGetBufferSizes == NULL )
     {
-    fprintf(stderr, 
-	     "qt_audio: failed getting proc address SoundConverterGetBufferSizes\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
+	     "qt_audio: failed getting proc address SoundConverterGetBufferSizes");
     goto fail;
     }
   priv->SoundConverterConvertBuffer =
     (LPFUNC7)GetProcAddress (priv->qtml_dll, "SoundConverterConvertBuffer");
   if ( priv->SoundConverterConvertBuffer == NULL )
     {
-    fprintf(stderr, 
-	     "qt_audio: failed getting proc address SoundConverterConvertBuffer1\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
+	     "qt_audio: failed getting proc address SoundConverterConvertBuffer1");
     goto fail;
     }
   priv->SoundConverterEndConversion =
     (LPFUNC8)GetProcAddress (priv->qtml_dll, "SoundConverterEndConversion");
   if ( priv->SoundConverterEndConversion == NULL )
     {
-    fprintf(stderr, 
-	     "qt_audio: failed getting proc address SoundConverterEndConversion\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
+	     "qt_audio: failed getting proc address SoundConverterEndConversion");
     goto fail;
     }
   priv->SoundConverterBeginConversion =
     (LPFUNC9)GetProcAddress (priv->qtml_dll, "SoundConverterBeginConversion");
   if ( priv->SoundConverterBeginConversion == NULL )
     {
-    fprintf(stderr, 
-	     "qt_audio: failed getting proc address SoundConverterBeginConversion\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, 
+	     "qt_audio: failed getting proc address SoundConverterBeginConversion");
     goto fail;
     }
 
   if(priv->InitializeQTML(6+16))
     {
-    fprintf(stderr, "InitializeQTML failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "InitializeQTML failed");
+    goto fail;
     }
 
   priv->OutputFormatInfo.flags       = priv->InputFormatInfo.flags       = 0;
@@ -266,7 +270,7 @@ static int init_qtaudio(bgav_stream_t * s)
                                &priv->OutputFormatInfo, 
                                &priv->myConverter))
     {
-    fprintf(stderr, "SoundConverterOpen failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "SoundConverterOpen failed");
     goto fail;
     }
 
@@ -276,7 +280,7 @@ static int init_qtaudio(bgav_stream_t * s)
                                    BGAV_MK_FOURCC('w','a','v','e'),
                                    s->ext_data))
       {
-      fprintf(stderr, "SoundConverterSetInfo failed\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "SoundConverterSetInfo failed");
       goto fail;
       }
     }
@@ -291,16 +295,9 @@ static int init_qtaudio(bgav_stream_t * s)
   priv->InFrameSize   = (InputBufferSize+priv->FramesToGet-1)/priv->FramesToGet;
   priv->OutFrameSize  = OutputBufferSize/priv->FramesToGet;
   
-  //  fprintf(stderr, "audio: SoundConverterGetBufferSizes:%i\n", result);
-  //  fprintf(stderr, "audio: WantedBufferSize = %li\n", WantedBufferSize);
-  //  fprintf(stderr, "audio: InputBufferSize  = %li\n", InputBufferSize);
-  //  fprintf(stderr, "audio: OutputBufferSize = %li\n", OutputBufferSize);
-  //  fprintf(stderr, "audio: priv->FramesToGet = %li\n", priv->FramesToGet);
-  //  fprintf(stderr, "audio: FrameSize: %i -> %i\n", priv->InFrameSize, priv->OutFrameSize);
-
   if(priv->SoundConverterBeginConversion (priv->myConverter))
     {
-    fprintf(stderr, "SoundConverterBeginConversion failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "SoundConverterBeginConversion failed");
     goto fail;
     }
   
@@ -326,15 +323,11 @@ static int read_data(bgav_stream_t * s)
   {
   bgav_packet_t * p;
   qta_priv_t * priv = (qta_priv_t*)s->data.audio.decoder->priv;
-  //  fprintf(stderr, "read data...");
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
-  //  fprintf(stderr, "read data 1");
   if(!p)
     {
-    //    fprintf(stderr, " -> EOF\n");
     return 0;
     }
-  //  fprintf(stderr, "Read %d bytes\n", p->data_size);
 
   if(p->data_size + priv->in_buffer_size > priv->in_buffer_alloc)
     {
@@ -344,7 +337,6 @@ static int read_data(bgav_stream_t * s)
   memcpy(priv->in_buffer + priv->in_buffer_size, p->data, p->data_size);
   priv->in_buffer_size += p->data_size;
   bgav_demuxer_done_packet_read(s->demuxer, p);
-  //  fprintf(stderr, "read data done\n");
   return 1;
   }
 
@@ -353,7 +345,6 @@ static int decode(bgav_stream_t * s)
   int num_frames;
   unsigned long out_frames, out_bytes;
   qta_priv_t * priv = (qta_priv_t*)s->data.audio.decoder->priv;
-  //  fprintf(stderr, "decode qtwin32...");
   //  priv->ldt_fs = Setup_LDT_Keeper();
     
   while(priv->in_buffer_size < priv->InFrameSize)
@@ -366,29 +357,24 @@ static int decode(bgav_stream_t * s)
   
   num_frames = priv->in_buffer_size / priv->InFrameSize;
 
-  //  fprintf(stderr, "SoundConverterConvertBuffer...");
   if(priv->SoundConverterConvertBuffer(priv->myConverter,
                                        priv->in_buffer,
                                        num_frames, 
                                        priv->out_buffer,
                                        &out_frames, &out_bytes))
     {
-    fprintf(stderr, "SoundConverterConvertBuffer failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "SoundConverterConvertBuffer failed");
     bgav_windll_unlock();
     return 0;
     }
-  //  fprintf(stderr, "\n");
   priv->frame->valid_samples = out_bytes / (2 * s->data.audio.format.num_channels);
   priv->last_block_size = priv->frame->valid_samples;
 
-  //  fprintf(stderr, "Decoded %d frames, %d samples, used %d bytes\n", num_frames,
-  //          priv->frame->valid_samples, num_frames * priv->InFrameSize);
 
   priv->in_buffer_size -= priv->InFrameSize * num_frames;
   if(priv->in_buffer_size > 0)
     memmove(priv->in_buffer, priv->in_buffer + num_frames * priv->InFrameSize, priv->in_buffer_size);
   //  Restore_LDT_Keeper(priv->ldt_fs);
-  //  fprintf(stderr, "decode qtwin32 done\n");
   bgav_windll_unlock();
   return 1;
   }
@@ -399,7 +385,6 @@ static int decode_qtaudio(bgav_stream_t * s,
   {
   int samples_decoded = 0;
   int samples_copied;
-  //  fprintf(stderr, "Decode 1 %d\n", num_samples);
   qta_priv_t * priv = (qta_priv_t*)s->data.audio.decoder->priv;
   while(samples_decoded < num_samples)
     {
@@ -416,7 +401,6 @@ static int decode_qtaudio(bgav_stream_t * s,
                                            priv->last_block_size - priv->frame->valid_samples,  /* in_pos */
                                            num_samples - samples_decoded, /* out_size, */
                                            priv->frame->valid_samples /* in_size */);
-    //    fprintf(stderr, "Decode 2 %d\n", samples_copied);
     
     priv->frame->valid_samples -= samples_copied;
     samples_decoded += samples_copied;
@@ -497,8 +481,6 @@ int bgav_init_audio_decoders_qtwin32()
     sprintf(dll_filename, "%s/%s", win32_def_path, needed_filenames[i]);
     if(stat(dll_filename, &stat_buf))
       {
-      fprintf(stderr, "Cannot find file %s, disabling %s\n",
-              dll_filename, decoder.name);
       return 0;
       }
     }

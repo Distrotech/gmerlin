@@ -107,17 +107,17 @@ void bgav_stream_dump(bgav_stream_t * s)
   switch(s->type)
     {
     case BGAV_STREAM_AUDIO:
-      fprintf(stderr, "============ Audio stream ============\n");
+      bgav_dprintf("============ Audio stream ============\n");
       break;
     case BGAV_STREAM_VIDEO:
-      fprintf(stderr, "============ Video stream ============\n");
+      bgav_dprintf("============ Video stream ============\n");
       break;
 
     case BGAV_STREAM_SUBTITLE_TEXT:
-      fprintf(stderr, "=========== Text subtitles ===========\n");
+      bgav_dprintf("=========== Text subtitles ===========\n");
       break;
     case BGAV_STREAM_SUBTITLE_OVERLAY:
-      fprintf(stderr, "========= Overlay subtitles ===========\n");
+      bgav_dprintf("========= Overlay subtitles ===========\n");
       break;
       
     case BGAV_STREAM_UNKNOWN:
@@ -125,33 +125,33 @@ void bgav_stream_dump(bgav_stream_t * s)
     }
 
   if(s->language[0] != '\0')
-    fprintf(stderr, "  Language:          %s\n", bgav_lang_name(s->language));
+    bgav_dprintf("  Language:          %s\n", bgav_lang_name(s->language));
   if(s->info)
-    fprintf(stderr, "  Info:              %s\n", s->info);
+    bgav_dprintf("  Info:              %s\n", s->info);
   
-  fprintf(stderr, "  Type:              %s\n",
+  bgav_dprintf("  Type:              %s\n",
           (s->description ? s->description : "Not specified"));
-  fprintf(stderr, "  Fourcc:            ");
+  bgav_dprintf("  Fourcc:            ");
   bgav_dump_fourcc(s->fourcc);
-  fprintf(stderr, "\n");
+  bgav_dprintf("\n");
   
-  fprintf(stderr, "  Stream ID:         %d (0x%x)\n",
+  bgav_dprintf("  Stream ID:         %d (0x%x)\n",
           s->stream_id,
           s->stream_id);
-  fprintf(stderr, "  Codec bitrate:     ");
+  bgav_dprintf("  Codec bitrate:     ");
   if(s->codec_bitrate)
-    fprintf(stderr, "%d\n", s->codec_bitrate);
+    bgav_dprintf("%d\n", s->codec_bitrate);
   else
-    fprintf(stderr, "Unspecified\n");
+    bgav_dprintf("Unspecified\n");
 
-  fprintf(stderr, "  Container bitrate: ");
+  bgav_dprintf("  Container bitrate: ");
   if(s->container_bitrate)
-    fprintf(stderr, "%d\n", s->container_bitrate);
+    bgav_dprintf("%d\n", s->container_bitrate);
   else
-    fprintf(stderr, "Unspecified\n");
+    bgav_dprintf("Unspecified\n");
 
-  fprintf(stderr, "  Timescale:         %d\n", s->timescale);
-  fprintf(stderr, "  Private data:      %p\n", s->priv);
+  bgav_dprintf("  Timescale:         %d\n", s->timescale);
+  bgav_dprintf("  Private data:      %p\n", s->priv);
   }
 
 void bgav_stream_clear(bgav_stream_t * s)

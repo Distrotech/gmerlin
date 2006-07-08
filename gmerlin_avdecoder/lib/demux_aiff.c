@@ -22,6 +22,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#define LOG_DOMAIN "aiff"
+
 typedef struct
   {
   uint32_t fourcc;
@@ -295,7 +297,7 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
               }
             else
               {
-              fprintf(stderr, "%d bit aiff not supported\n", 
+              bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,  "%d bit aiff not supported\n", 
                       s->data.audio.bits_per_sample);
               return 0;
               }
@@ -327,9 +329,11 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
             break;
 #endif
           default:
-            fprintf(stderr, "Compression ");
-            bgav_dump_fourcc(comm.compression_type);
-            fprintf(stderr, " not supported\n");
+            bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Compression %c%c%c%c not supported",
+                    comm.compression_type >> 24,
+                    (comm.compression_type >> 16) & 0xff,
+                    (comm.compression_type >> 8) & 0xff,
+                    (comm.compression_type) & 0xff);
             return 0;
           }
         break;
@@ -364,9 +368,6 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
         keep_going = 0;
         break;
       default:
-        fprintf(stderr, "Skipping chunk ");
-        bgav_dump_fourcc(ch.fourcc);
-        fprintf(stderr, "\n");
         bgav_input_skip(ctx->input, PADD(ch.size));
         break;
       }

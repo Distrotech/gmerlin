@@ -45,12 +45,8 @@ bgav_device_info_t * bgav_device_info_append(bgav_device_info_t * arr,
   
   size++;
 
-  //  fprintf(stderr, "arr 1: %p\n", arr);
-  
   arr = realloc(arr, (size+1) * sizeof(*arr));
   
-  //  fprintf(stderr, "arr 2: %p\n", arr);
-
   arr[size-1].device = bgav_strdup(device);
   arr[size-1].name = bgav_strdup(name);
 
@@ -84,13 +80,13 @@ void bgav_device_info_dump(bgav_device_info_t * arr)
 
   if(!arr || !arr->device)
     {
-    fprintf(stderr, "No devices\n");
+    bgav_dprintf( "No devices\n");
     return;
     }
   while(arr[i].device)
     {
-    fprintf(stderr, "Name:   %s\n", (arr[i].name ? arr[i].name : "Unknown"));
-    fprintf(stderr, "Device: %s\n", arr[i].device);
+    bgav_dprintf( "Name:   %s\n", (arr[i].name ? arr[i].name : "Unknown"));
+    bgav_dprintf( "Device: %s\n", arr[i].device);
     i++;
     }
 

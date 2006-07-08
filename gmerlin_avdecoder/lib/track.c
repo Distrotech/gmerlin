@@ -22,6 +22,8 @@
 #include <string.h>
 #include <stdio.h>
 
+#define LOG_DOMAIN "track"
+
 bgav_stream_t *
 bgav_track_add_audio_stream(bgav_track_t * t, const bgav_options_t * opt)
   {
@@ -366,8 +368,31 @@ void bgav_track_free(bgav_track_t * t)
 
 static void remove_stream(bgav_stream_t * stream_array, int index, int num)
   {
-  fprintf(stderr, "Warning, unsupported stream:\n");
-  bgav_stream_dump(&(stream_array[index]));
+  if(stream_array[index].type == BGAV_STREAM_AUDIO)
+    {
+    if(!(stream_array[index].fourcc & 0xffff0000))
+      bgav_log(stream_array[index].opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "No audio decoder found for WAVId 0x%04x", stream_array[index].fourcc);
+    else
+      bgav_log(stream_array[index].opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "No audio decoder found for fourcc %c%c%c%c (0x%08x)",
+               (stream_array[index].fourcc & 0xFF000000) >> 24,
+               (stream_array[index].fourcc & 0x00FF0000) >> 16,
+               (stream_array[index].fourcc & 0x0000FF00) >> 8,
+               (stream_array[index].fourcc & 0x000000FF),
+               stream_array[index].fourcc);
+    }
+  else if(stream_array[index].type == BGAV_STREAM_VIDEO)
+    {
+    bgav_log(stream_array[index].opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "No video decoder found for fourcc %c%c%c%c (0x%08x)",
+             (stream_array[index].fourcc & 0xFF000000) >> 24,
+             (stream_array[index].fourcc & 0x00FF0000) >> 16,
+             (stream_array[index].fourcc & 0x0000FF00) >> 8,
+             (stream_array[index].fourcc & 0x000000FF),
+             stream_array[index].fourcc);
+    
+    }
   bgav_stream_free(&(stream_array[index]));
   if(index < num - 1)
     {

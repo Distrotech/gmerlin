@@ -1118,6 +1118,8 @@ char * bgav_strdup(const char * str);
 
 char * bgav_strncat(char * old, const char * start, const char * end);
 
+void bgav_dprintf(const char * format, ...);
+
 int bgav_url_split(const char * url,
                    char ** protocol,
                    char ** user,

@@ -132,8 +132,6 @@ static int xml_2_asx(bgav_redirector_context_t * r, bgav_yml_node_t * n)
   node = n->children;
   r->num_urls = 0;
   
-  //  fprintf(stderr, "Node: %s\n", node->name);
-  
   if(sc(n->name, "ASX"))
     return 0;
   
@@ -156,7 +154,6 @@ static int xml_2_asx(bgav_redirector_context_t * r, bgav_yml_node_t * n)
 
   r->num_urls = count_urls(n->children);
   
-  //  fprintf(stderr, "Num entries: %d\n", r->num_urls);
   r->urls = calloc(r->num_urls, sizeof(*(r->urls)));
   
   /* Now, loop through all streams and collect the values */
@@ -176,12 +173,8 @@ static int parse_asx(bgav_redirector_context_t * r)
   int result;
   bgav_yml_node_t * node;
   
-  //  fprintf(stderr, "parse_asx\n");
-  //  bgav_input_get_dump(r->input, 32);
   
   node = bgav_yml_parse(r->input);
-
-  //  fprintf(stderr,"Node: %p\n", node);
 
   if(!node)
     {

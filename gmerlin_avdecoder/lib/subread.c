@@ -729,7 +729,6 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   /* Check if input is a regular file */
   if((input_ctx->input != &bgav_input_file) || !input_ctx->filename)
     {
-    //    fprintf(stderr, "No subtitle searching, no regular file\n");
     return (bgav_subtitle_reader_context_t*)0;
     }
 
@@ -739,7 +738,6 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   if(!pos)
     {
     free(directory);
-    //    fprintf(stderr, "No subtitle searching, Invalid filename\n");
     return (bgav_subtitle_reader_context_t*)0;
     }
   *pos = '\0';
@@ -754,7 +752,6 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   dir = opendir(directory);
   if(!dir)
     {
-    //    fprintf(stderr, "No subtitle searching, failed to open directory\n");
     return (bgav_subtitle_reader_context_t*)0;
     }
 
@@ -763,7 +760,6 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
     if(!res)
       break;
     
-    //    fprintf(stderr, "Trying %s\n", u.d.d_name);
     /* Check, if the filenames match */
     if(strncasecmp(u.d.d_name, file, file_len) ||
        !strcmp(u.d.d_name, file))
@@ -795,9 +791,6 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
       new->info = bgav_strndup(name, pos);
       }
 
-    //    fprintf(stderr, "Found subtitle file %s (reader: %s, info: %s)\n",
-    //            new->filename, new->reader->name, new->info);
-    
     if(!ret)
       {
       ret = new;
@@ -858,13 +851,6 @@ bgav_packet_t * bgav_subtitle_reader_read_text(bgav_stream_t * s)
   if(ctx->has_subtitle)
     {
     ctx->has_subtitle = 0;
-#if 0
-    fprintf(stderr, "Got text subtitle %lld -> %lld\n%s\n",
-            s->data.subtitle.subreader->p->timestamp_scaled,
-            s->data.subtitle.subreader->p->timestamp_scaled +
-            s->data.subtitle.subreader->p->duration_scaled,
-            s->data.subtitle.subreader->p->data);
-#endif    
     return s->data.subtitle.subreader->p;
     }
   else
@@ -935,7 +921,6 @@ void bgav_subtitle_reader_seek(bgav_stream_t * s,
         }
       }
     ctx->has_subtitle = 1;
-    fprintf(stderr, "seeked in subtitle file (skipped %d)\n", titles_skipped);
     }
   }
 

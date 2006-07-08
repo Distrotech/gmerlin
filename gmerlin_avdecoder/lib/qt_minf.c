@@ -47,12 +47,10 @@ int bgav_qt_minf_read(qt_atom_header_t * h, bgav_input_context_t * input,
         break;
       case BGAV_MK_FOURCC('v', 'm', 'h', 'd'):
         ret->has_vmhd = 1;
-        //       fprintf(stderr, "Detected video stream\n");
         bgav_qt_atom_skip(input, &ch);
         break;
       case BGAV_MK_FOURCC('s', 'm', 'h', 'd'):
         ret->has_smhd = 1;
-        //        fprintf(stderr, "Detected audio stream\n");
         bgav_qt_atom_skip(input, &ch);
       case BGAV_MK_FOURCC('d', 'i', 'n', 'f'):
       default:
@@ -72,8 +70,8 @@ void bgav_qt_minf_free(qt_minf_t * h)
 
 void bgav_qt_minf_dump(qt_minf_t * h)
   {
-  fprintf(stderr, "minf\n");
+  bgav_dprintf( "minf\n");
   bgav_qt_hdlr_dump(&(h->hdlr));
   bgav_qt_stbl_dump(&(h->stbl));
-  fprintf(stderr, "end of minf\n");
+  bgav_dprintf( "end of minf\n");
   }

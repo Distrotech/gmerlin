@@ -142,10 +142,10 @@ int bgav_pes_header_read(bgav_input_context_t * input,
 void bgav_pes_header_dump(bgav_pes_header_t * p)
   {
   if(p->pts > 0)
-    fprintf(stderr, "PES Header: PTS: %f, Stream ID: %02x, payload_size: %d\n",
+    bgav_dprintf("PES Header: PTS: %f, Stream ID: %02x, payload_size: %d\n",
             (float)p->pts / 90000.0, p->stream_id, p->payload_size);
   else
-    fprintf(stderr, "PES Header: PTS: Unknown, Stream ID: %02x, payload_size: %d\n",
+    bgav_dprintf("PES Header: PTS: Unknown, Stream ID: %02x, payload_size: %d\n",
             p->stream_id, p->payload_size);
   
   }

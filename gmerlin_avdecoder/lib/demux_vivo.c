@@ -150,40 +150,40 @@ static int check_key(char * buffer, const char * key, char ** pos)
 
 static void vivo_header_dump(vivo_header_t * h)
   {
-  fprintf(stderr, "Main VIVO header\n");
-  fprintf(stderr, "  Version:       %d\n", h->version);
-  fprintf(stderr, "  FPS:           %f\n", h->fps);
-  fprintf(stderr, "  Duration:      %d\n", h->duration);
-  fprintf(stderr, "  Length:        %d\n", h->length);
-  fprintf(stderr, "  Rate:          %d\n", h->rate);
-  fprintf(stderr, "  VidRate:       %d\n", h->vid_rate);
-  fprintf(stderr, "  Playtime1:     %d\n", h->playtime1);
-  fprintf(stderr, "  Playtime2:     %d\n", h->playtime2);
-  fprintf(stderr, "  Buffer:        %d\n", h->buffer);
-  fprintf(stderr, "  Preroll:       %d\n", h->preroll);
-  fprintf(stderr, "  Title:         %s\n", h->title);
-  fprintf(stderr, "  Author:        %s\n", h->author);
-  fprintf(stderr, "  Copyright:     %s\n", h->copyright);
-  fprintf(stderr, "  Producer:      %s\n", h->producer);
-  fprintf(stderr, "  Width:         %d\n", h->width);
-  fprintf(stderr, "  Height:        %d\n", h->height);
-  fprintf(stderr, "  DisplayWidth:  %d\n", h->display_width);
-  fprintf(stderr, "  DisplayHeight: %d\n", h->display_height);
+  bgav_dprintf( "Main VIVO header\n");
+  bgav_dprintf( "  Version:       %d\n", h->version);
+  bgav_dprintf( "  FPS:           %f\n", h->fps);
+  bgav_dprintf( "  Duration:      %d\n", h->duration);
+  bgav_dprintf( "  Length:        %d\n", h->length);
+  bgav_dprintf( "  Rate:          %d\n", h->rate);
+  bgav_dprintf( "  VidRate:       %d\n", h->vid_rate);
+  bgav_dprintf( "  Playtime1:     %d\n", h->playtime1);
+  bgav_dprintf( "  Playtime2:     %d\n", h->playtime2);
+  bgav_dprintf( "  Buffer:        %d\n", h->buffer);
+  bgav_dprintf( "  Preroll:       %d\n", h->preroll);
+  bgav_dprintf( "  Title:         %s\n", h->title);
+  bgav_dprintf( "  Author:        %s\n", h->author);
+  bgav_dprintf( "  Copyright:     %s\n", h->copyright);
+  bgav_dprintf( "  Producer:      %s\n", h->producer);
+  bgav_dprintf( "  Width:         %d\n", h->width);
+  bgav_dprintf( "  Height:        %d\n", h->height);
+  bgav_dprintf( "  DisplayWidth:  %d\n", h->display_width);
+  bgav_dprintf( "  DisplayHeight: %d\n", h->display_height);
 
   if(h->have_record_2)
     {
-    fprintf(stderr, "RecordType 2\n");
-    fprintf(stderr, "  TimeUnitNumerator:   %d\n", h->record_2.time_unit_num);
-    fprintf(stderr, "  TimeUnitDenominator: %d\n", h->record_2.time_unit_den);
+    bgav_dprintf( "RecordType 2\n");
+    bgav_dprintf( "  TimeUnitNumerator:   %d\n", h->record_2.time_unit_num);
+    bgav_dprintf( "  TimeUnitDenominator: %d\n", h->record_2.time_unit_den);
     }
 
   if(h->have_record_3_4)
     {
-    fprintf(stderr, "RecordType %d\n", h->record_3_4.type);
-    fprintf(stderr, "  Length:             %d\n", h->record_3_4.length);
-    fprintf(stderr, "  InitialFrameLength: %d\n", h->record_3_4.initial_frame_length);
-    fprintf(stderr, "  SamplingFrequency:  %d\n", h->record_3_4.sampling_frequency);
-    fprintf(stderr, "  GainFactor:         %d\n", h->record_3_4.gain_factor);
+    bgav_dprintf( "RecordType %d\n", h->record_3_4.type);
+    bgav_dprintf( "  Length:             %d\n", h->record_3_4.length);
+    bgav_dprintf( "  InitialFrameLength: %d\n", h->record_3_4.initial_frame_length);
+    bgav_dprintf( "  SamplingFrequency:  %d\n", h->record_3_4.sampling_frequency);
+    bgav_dprintf( "  GainFactor:         %d\n", h->record_3_4.gain_factor);
     }
   
   }

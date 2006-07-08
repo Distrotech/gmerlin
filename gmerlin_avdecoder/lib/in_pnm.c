@@ -58,7 +58,6 @@ static int open_pnm(bgav_input_context_t * ctx, const char * url)
 
   if(!priv->s)
     {
-    //    fprintf(stderr, "Cannot open %s\n", url);
     return 0;
     }
 
@@ -93,7 +92,6 @@ static int     read_pnm(bgav_input_context_t* ctx,
 
   if(!result)
     priv->eof = 1;
-  //  fprintf(stderr, "Result: %d\n", result);
   return result;
   }
 

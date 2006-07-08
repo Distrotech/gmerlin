@@ -69,21 +69,12 @@ static uint32_t previous_start_code(bgav_input_context_t * ctx)
 
   while(ctx->position >= 0)
     {
-//    fprintf(stderr, "previous_start_code, pos: %lld\n", 
-//            ctx->position);
     if(!bgav_input_get_32_be(ctx, &c))
       {
-#if 0
-      fprintf(stderr, "previous_start_code: EOF %lld %lld\n",
-              ctx->position, ctx->total_bytes);
-#endif
       return 0;
       }
     if(IS_START_CODE(c))
       {
-#if 0
-      fprintf(stderr, "previous_start_code: skipped %d bytes\n", skipped);
-#endif
       return c;
       }
     bgav_input_seek(ctx, -1, SEEK_CUR);
@@ -99,10 +90,6 @@ static int probe_mpegps(bgav_input_context_t * input)
   uint8_t probe_data[12];
   if(bgav_input_get_data(input, probe_data, 12) < 12)
     return 0;
-#if 0
-  fprintf(stderr, "Probe mpegps: ");
-  bgav_hexdump(probe_data, 12, 12);
-#endif
   
   /* Check for pack header */
 
@@ -151,7 +138,6 @@ static int pack_header_read(bgav_input_context_t * input,
 
   if((c & 0xf0) == 0x20) /* MPEG-1 */
     {
-    //    fprintf(stderr, "MPEG-1");
     //    bgav_input_read_8(input, &c);
     
     ret->scr = ((c >> 1) & 7) << 30;
@@ -169,12 +155,10 @@ static int pack_header_read(bgav_input_context_t * input,
     bgav_input_read_8(input, &c);
     ret->mux_rate |= (((c & 0xFE)) >> 1);
     ret->version = 1;
-    //    fprintf(stderr, "SCR: %f\n", demuxer->pack_header.scr / 90000.0);
     }
   else if(c & 0x40) /* MPEG-2 */
     {
     /* SCR */
-    //    fprintf(stderr, "MPEG-2");
     if(!bgav_input_read_32_be(input, &tmp_32))
       return 0;
     
@@ -216,16 +200,12 @@ static int pack_header_read(bgav_input_context_t * input,
     bgav_input_skip(input, stuffing);
 
     }
-  //  else
-  //    {
-  //    fprintf(stderr, "MPEG-X %02x\n", c);
-  //    }
   return 1;
   }
 #if 0
 static void pack_header_dump(pack_header_t * h)
   {
-  fprintf(stderr,
+  bgav_dprintf(
           "Pack header: MPEG-%d, SCR: %lld (%f secs), Mux rate: %d bits/s\n",
           h->version, h->scr, (float)(h->scr)/90000.0,
           h->mux_rate * 400);
@@ -250,7 +230,7 @@ static int system_header_read(bgav_input_context_t * input,
 #if 0
 static void system_header_dump(system_header_t * h)
   {
-  fprintf(stderr, "System header (skipped %d bytes)\n", h->size);
+  bgav_dprintf( "System header (skipped %d bytes)\n", h->size);
   }
 #endif
 /* Demuxer structure */
@@ -300,9 +280,6 @@ static void goto_sector_cdxa(bgav_demuxer_context_t * ctx, int64_t sector)
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
 
-  //  fprintf(stderr, "Start: %lld, Pos: %lld\n", priv->data_start,
-  //          priv->data_start + priv->sector_size_raw * (sector + priv->start_sector));
-
   bgav_input_seek(ctx->input, priv->data_start + priv->sector_size_raw * (sector + priv->start_sector),
                   SEEK_SET);
   bgav_input_reopen_memory(priv->input_mem,
@@ -317,8 +294,6 @@ static int read_sector_cdxa(bgav_demuxer_context_t * ctx)
   if(bgav_input_read_data(ctx->input, priv->sector_buffer, priv->sector_size_raw) <
      priv->sector_size_raw)
     return 0;
-  //  fprintf(stderr, "Sector ");
-  //  bgav_hexdump(priv->sector_buffer + priv->sector_header_size, 16, 16);
   
   bgav_input_reopen_memory(priv->input_mem,
                            priv->sector_buffer + priv->sector_header_size,
@@ -330,7 +305,6 @@ static void goto_sector_input(bgav_demuxer_context_t * ctx, int64_t sector)
   {
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
-  //  fprintf(stderr, "Seek sector %lld\n", sector + priv->start_sector);
   bgav_input_seek_sector(ctx->input, sector + priv->start_sector);
   bgav_input_reopen_memory(priv->input_mem,
                            NULL, 0);
@@ -343,7 +317,6 @@ static int read_sector_input(bgav_demuxer_context_t * ctx)
   priv = (mpegps_priv_t*)(ctx->priv);
   if(!bgav_input_read_sector(ctx->input, priv->sector_buffer))
     {
-    //    fprintf(stderr, "read_sector_input: EOF\n");
     return 0;
     }
   bgav_input_reopen_memory(priv->input_mem,
@@ -365,9 +338,6 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
 
   priv->input_mem          = bgav_input_open_memory(NULL, 0);
 
-  //  fprintf(stderr, "init_sector_mode 1: start_sector: %d, total_sectors: %lld\n",
-  //          priv->start_sector, priv->total_sectors);
-
   if(priv->goto_sector)
     {
     priv->goto_sector(ctx, 0);
@@ -381,14 +351,6 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
         return;
       if(start_code == PACK_HEADER)
         break;
-#if 0
-      else
-        {
-        fprintf(stderr, "Start code: ");
-        bgav_dump_fourcc( start_code);
-        fprintf(stderr, "\n");
-        }
-#endif
       priv->start_sector++;
       priv->total_sectors--;
       }
@@ -402,10 +364,6 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
   
   if(!pack_header_read(priv->input_mem, &(priv->pack_header)))
     {
-#if 1
-    fprintf(stderr, "pack_header_read failed %lld %lld\n",
-            ctx->input->position, ctx->input->total_bytes);
-#endif
     return;
     }
   //  pack_header_dump(&(priv->pack_header));
@@ -414,7 +372,6 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
     {
     scr_start = priv->pack_header.scr;
     
-    //  fprintf(stderr, "scr_start: %lld\n", scr_start);
     
     /* If we already have the duration, stop here. */
     
@@ -430,7 +387,6 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
       priv->goto_sector(ctx, priv->total_sectors - 1);
       if(!priv->read_sector(ctx))
         {
-        //      fprintf(stderr, "Read sector failed\n");
         priv->total_sectors--;
         continue;
         }
@@ -438,33 +394,16 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
         return;
       if(start_code == PACK_HEADER)
         break;
-#if 0
-      else
-        {
-        fprintf(stderr, "Start code: ");
-        bgav_dump_fourcc( start_code);
-        fprintf(stderr, "\n");
-        }
-#endif
       priv->total_sectors--;
       }
     
     if(!pack_header_read(priv->input_mem, &(priv->pack_header)))
       {
-#if 1
-      fprintf(stderr, "pack_header_read failed %lld %lld\n",
-              ctx->input->position, ctx->input->total_bytes);
-#endif
       return;
       }
     //  pack_header_dump(&(priv->pack_header));
     scr_end = priv->pack_header.scr;
     
-    fprintf(stderr, "scr_start: %lld, scr_end: %lld\n", scr_start, scr_end);
-#if 1
-    fprintf(stderr, "init_sector_mode 2: %lld\n",
-            priv->total_sectors);
-#endif
     
     ctx->tt->current_track->duration =
       ((int64_t)(scr_end - scr_start) * GAVL_TIME_SCALE) / 90000;
@@ -492,7 +431,6 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
   bgav_stream_t * stream = (bgav_stream_t*)0;
 
   priv = (mpegps_priv_t*)(ctx->priv);
-  //  fprintf(stderr, "Next packet...");
   while(!got_packet)
     {
     if(!(start_code = next_start_code(input)))
@@ -514,12 +452,8 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
       {
       if(!bgav_pes_header_read(input, &(priv->pes_header)))
         {
-        //        fprintf(stderr, "Reading PES header failed\n");
         return 0;
         }
-      //      fprintf(stderr, "Got PES packet\n");
-      //      bgav_pes_header_dump(&(priv->pes_header));
-      
       /* Private stream 1 (non MPEG audio, subpictures) */
       if(priv->pes_header.stream_id == 0xbd)
         {
@@ -534,8 +468,6 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
           {
           stream = bgav_track_find_stream(ctx->tt->current_track,
                                           priv->pes_header.stream_id);
-          //          fprintf(stderr, "Got subtitle packet, ID: %04x, S: %p\n",
-          //                  priv->pes_header.stream_id, stream);
           }
         else if((c >= 0x80) && (c <= 0x87)) /* AC3 Audio */
           {
@@ -554,12 +486,10 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
             stream->timescale = 90000;
             stream->fourcc = BGAV_MK_FOURCC('.', 'a', 'c', '3');
             stream->stream_id = priv->pes_header.stream_id;
-            //            fprintf(stderr, "Found AC3 audio stream\n");
             }
           }
         else if((c >= 0xA0) && (c <= 0xA7)) /* LPCM Audio */
           {
-          //          fprintf(stderr, "LPCM Audio!\n");
           bgav_input_skip(input, 3);
           priv->pes_header.payload_size -= 3;
 
@@ -575,7 +505,6 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
             stream->timescale = 90000;
             stream->fourcc = BGAV_MK_FOURCC('L', 'P', 'C', 'M');
             stream->stream_id = priv->pes_header.stream_id;
-            //            fprintf(stderr, "Found LPCM stream\n");
             }
 
           /* Set stream format */
@@ -626,7 +555,6 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
           stream->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
           stream->timescale = 90000;
           stream->stream_id = priv->pes_header.stream_id;
-          //          fprintf(stderr, "Found audio stream\n");
           }
         }
       /* Video stream */
@@ -644,7 +572,6 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
           stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
           stream->stream_id = priv->pes_header.stream_id;
           stream->timescale = 90000;
-          //          fprintf(stderr, "Found video stream\n");
           }
         }
 
@@ -680,20 +607,12 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
                 {
                 ctx->timestamp_offset = -priv->pes_header.pts;
                 ctx->have_timestamp_offset = 1;
-#if 0
-                fprintf(stderr, "Start PTS: %f\n",
-                        -ctx->timestamp_offset / 90000.0);
-#endif
                 }
               }
             else
               {
               ctx->timestamp_offset = -priv->pes_header.pts;
               ctx->have_timestamp_offset = 1;
-#if 0
-              fprintf(stderr, "Start PTS: %f\n",
-                      -ctx->timestamp_offset / 90000.0);
-#endif
               }
             }
 
@@ -702,15 +621,6 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
             p->timestamp_scaled = priv->pes_header.pts + ctx->timestamp_offset;
             if(p->timestamp_scaled < 0)
               p->timestamp_scaled = 0;
-#if 0
-            if(stream->type == BGAV_STREAM_VIDEO)
-              {
-              fprintf(stderr, "PTS: %f, Offset: %f, timestamp: %f\n",
-                      priv->pes_header.pts / 90000.0,
-                      ctx->timestamp_offset / 90000.0,
-                      p->timestamp_scaled / 90000.0);
-              }
-#endif
 
             }
           else
@@ -721,8 +631,6 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
           if(priv->do_sync && (stream->time_scaled < 0))
             stream->time_scaled = p->timestamp_scaled;
           
-          //          fprintf(stderr, "Stream: %04x, pts: %lld\n",
-          //                  stream->stream_id, priv->pes_header.pts - priv->start_pts);
           }
         
         bgav_packet_done_write(p);
@@ -730,11 +638,6 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
         }
       else
         {
-#if 0
-        fprintf(stderr, "Skipping %d bytes of stream %02x\n",
-                priv->pes_header.payload_size,
-                priv->pes_header.stream_id);
-#endif
         bgav_input_skip(input, priv->pes_header.payload_size);
         }
       
@@ -756,7 +659,6 @@ static int next_packet_mpegps(bgav_demuxer_context_t * ctx)
         {
         if(!priv->read_sector(ctx))
           {
-          //          fprintf(stderr, "Read sector failed\n");
           return 0;
           }
         }
@@ -802,7 +704,6 @@ static void get_duration(bgav_demuxer_context_t * ctx)
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
 
-  //  fprintf(stderr, "get duration...\n");
   
   if(!ctx->input->total_bytes && !ctx->input->total_sectors)
     return;
@@ -818,21 +719,11 @@ static void get_duration(bgav_demuxer_context_t * ctx)
     while(start_code != PACK_HEADER)
       {
       start_code = previous_start_code(ctx->input);
-#if 0
-      fprintf(stderr, "previous_start_code %lld %lld ",
-              ctx->input->position, ctx->input->total_bytes);
-      bgav_dump_fourcc(start_code);
-      fprintf(stderr, "\n");
-#endif
       }
     
     
     if(!pack_header_read(ctx->input, &(priv->pack_header)))
       {
-#if 0
-      fprintf(stderr, "pack_header_read failed %lld %lld\n",
-              ctx->input->position, ctx->input->total_bytes);
-#endif
       return;
       }
     scr_end = priv->pack_header.scr;
@@ -848,7 +739,6 @@ static void get_duration(bgav_demuxer_context_t * ctx)
       (ctx->input->total_bytes * GAVL_TIME_SCALE)/
       (priv->pack_header.mux_rate*50);
     }
-  //  fprintf(stderr, "get duration done\n");
   }
 
 
@@ -859,8 +749,6 @@ static int do_sync(bgav_demuxer_context_t * ctx)
   priv->do_sync = 1;
   while(!bgav_track_has_sync(ctx->tt->current_track))
     {
-    //    fprintf(stderr, "next_packet_mpegps %lld %lld\n",
-    //            ctx->input->position, ctx->input->total_bytes);
     if(!next_packet_mpegps(ctx))
       {
       priv->do_sync = 0;
@@ -903,20 +791,12 @@ static int init_cdxa(bgav_demuxer_context_t * ctx)
       return 0;
     if(fourcc == BGAV_MK_FOURCC('d', 'a', 't', 'a'))
       break;
-#if 0
-    fprintf(stderr, "Got fourcc ");
-    bgav_dump_fourcc(fourcc);
-    fprintf(stderr, " skipping %d bytes\n", size);
-#endif
     bgav_input_skip(ctx->input, size);
     }
   priv->data_start = ctx->input->position;
   priv->data_size = size;
 
   priv->total_sectors      = priv->data_size / CDXA_SECTOR_SIZE_RAW;
-  fprintf(stderr, "Got CDXA file, %lld sectors (rest: %d)\n",
-          priv->total_sectors, (int)(priv->data_size % CDXA_SECTOR_SIZE_RAW));
-
   priv->sector_size        = CDXA_SECTOR_SIZE;
   priv->sector_size_raw    = CDXA_SECTOR_SIZE_RAW;
   priv->sector_header_size = CDXA_HEADER_SIZE;
@@ -960,8 +840,6 @@ static int init_mpegps(bgav_demuxer_context_t * ctx)
       break;
     }
 
-  //  fprintf(stderr, "Data start: %lld\n", ctx->input->position);
-
   priv->data_start = ctx->input->position;
   if(ctx->input->total_bytes)
     priv->data_size = ctx->input->total_bytes - priv->data_start;
@@ -979,8 +857,6 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
   mpegps_priv_t * priv;
   int need_streams = 0;
 
-  //  fprintf(stderr, "Open mpegps\n");
-  
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
   
@@ -1016,22 +892,12 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
     need_streams = 1;
     }
   
-  //  fprintf(stderr, "Duration: %lld, Mux rate: %d, total_bytes: %lld\n",
-  //          ctx->tt->current_track->duration,
-  //          priv->pack_header.mux_rate,
-  //          ctx->input->total_bytes);
   if(ctx->tt->current_track->duration == GAVL_TIME_UNDEFINED)
     get_duration(ctx);
   
   if(need_streams)
     find_streams(ctx);
-    
-  //  fprintf(stderr, "Duration: %lld, Mux rate: %d, total_bytes: %lld\n",
-  //          ctx->tt->current_track->duration,
-  //          priv->pack_header.mux_rate,
-  //          ctx->input->total_bytes);
-  
-  
+ 
   if(!priv->pack_header.mux_rate)
     {
     ctx->stream_description =
@@ -1056,8 +922,6 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
   if(!ctx->input->input->seek_time)
     ctx->seek_iterative = 1;
 
-  //  fprintf(stderr, "Seeking abilities: %d %d\n", ctx->can_seek, ctx->seek_iterative);
-  
   return 1;
   }
 
@@ -1085,14 +949,7 @@ static void seek_normal(bgav_demuxer_context_t * ctx, gavl_time_t time)
     
     while(header != PACK_HEADER)
       {
-      //      fprintf(stderr, "Previous start code %lld..", ctx->input->position);
       header = previous_start_code(ctx->input);
-      //      fprintf(stderr, "Done\n");
-#if 0
-      fprintf(stderr, "Start code: ");
-      bgav_dump_fourcc(header);
-      fprintf(stderr, "\n");
-#endif
       }
     if(do_sync(ctx))
       break;

@@ -27,6 +27,8 @@
 #define AUDIO_ID 0
 #define VIDEO_ID 1
 
+#define LOG_DOMAIN "nsv"
+
 // #define DUMP_HEADERS
 
 /*
@@ -165,7 +167,6 @@ static int nsv_file_header_read(bgav_input_context_t * ctx,
     for(i = 0; i < ret->toc_size; i++)
       {
       ret->toc.offsets[i] = BGAV_PTR_2_32LE(pos); pos+=4;
-      //      fprintf(stderr, "Got offset %d\n", ret->toc.offsets[i]);
       }
     /* Read TOC version 2 */
     if((ret->toc_alloc > ret->toc_size * 2) &&
@@ -200,43 +201,43 @@ static void nsv_file_header_free(nsv_file_header_t * h)
 static void nsv_file_header_dump(nsv_file_header_t * h)
   {
   int i;
-  fprintf(stderr, "file_header\n");
+  bgav_dprintf( "file_header\n");
 
-  fprintf(stderr, "  header_size:  %d\n", h->header_size);
-  fprintf(stderr, "  file_size:    %d\n", h->file_size);
-  fprintf(stderr, "  file_len:     %d\n", h->file_len); /* Milliseconds */
-  fprintf(stderr, "  metadata_len: %d\n", h->metadata_len);
-  fprintf(stderr, "  toc_alloc:    %d\n", h->toc_alloc);
-  fprintf(stderr, "  toc_size:     %d\n", h->toc_size);
-  fprintf(stderr, "  title:        %s\n",
+  bgav_dprintf( "  header_size:  %d\n", h->header_size);
+  bgav_dprintf( "  file_size:    %d\n", h->file_size);
+  bgav_dprintf( "  file_len:     %d\n", h->file_len); /* Milliseconds */
+  bgav_dprintf( "  metadata_len: %d\n", h->metadata_len);
+  bgav_dprintf( "  toc_alloc:    %d\n", h->toc_alloc);
+  bgav_dprintf( "  toc_size:     %d\n", h->toc_size);
+  bgav_dprintf( "  title:        %s\n",
           (h->metadata.title ? h->metadata.title : "[not set]"));
-  fprintf(stderr, "  url:          %s\n",
+  bgav_dprintf( "  url:          %s\n",
           (h->metadata.url ? h->metadata.url : "[not set]"));
-  fprintf(stderr, "  creator:      %s\n",
+  bgav_dprintf( "  creator:      %s\n",
           (h->metadata.creator ? h->metadata.creator : "[not set]"));
-  fprintf(stderr, "  aspect:       %s\n",
+  bgav_dprintf( "  aspect:       %s\n",
           (h->metadata.aspect ? h->metadata.aspect : "[not set]"));
-  fprintf(stderr, "  framerate:    %s\n",
+  bgav_dprintf( "  framerate:    %s\n",
           (h->metadata.framerate ? h->metadata.framerate : "[not set]"));
 
   if(h->toc_size)
     {
     if(h->toc.frames)
       {
-      fprintf(stderr, "  TOC version 2 (%d entries)\n", h->toc_size);
+      bgav_dprintf( "  TOC version 2 (%d entries)\n", h->toc_size);
       for(i = 0; i < h->toc_size; i++)
-        fprintf(stderr, "    frame: %d, offset: %d\n",
+        bgav_dprintf( "    frame: %d, offset: %d\n",
                 h->toc.frames[i], h->toc.offsets[i]);
       }
     else
       {
-      fprintf(stderr, "  TOC version 1 (%d entries)\n", h->toc_size);
+      bgav_dprintf( "  TOC version 1 (%d entries)\n", h->toc_size);
       for(i = 0; i < h->toc_size; i++)
-        fprintf(stderr, "    offset: %d\n", h->toc.offsets[i]);
+        bgav_dprintf( "    offset: %d\n", h->toc.offsets[i]);
       }
     }
   else
-    fprintf(stderr, "  No TOC\n");
+    bgav_dprintf( "  No TOC\n");
   }
 #endif
 
@@ -268,19 +269,19 @@ static int nsv_sync_header_read(bgav_input_context_t * ctx,
 #ifdef DUMP_HEADERS
 static void nsv_sync_header_dump(nsv_sync_header_t * h)
   {
-  fprintf(stderr, "sync_header\n");
-  fprintf(stderr, "  vidfmt: ");
+  bgav_dprintf( "sync_header\n");
+  bgav_dprintf( "  vidfmt: ");
   bgav_dump_fourcc(h->vidfmt);
-  fprintf(stderr, "\n");
+  bgav_dprintf( "\n");
 
-  fprintf(stderr, "  audfmt: ");
+  bgav_dprintf( "  audfmt: ");
   bgav_dump_fourcc(h->audfmt);
-  fprintf(stderr, "\n");
+  bgav_dprintf( "\n");
 
-  fprintf(stderr, "  width:         %d\n", h->width);
-  fprintf(stderr, "  height:        %d\n", h->height);
-  fprintf(stderr, "  framerate_idx: %d\n", h->framerate);
-  fprintf(stderr, "  syncoffs:      %d\n", h->syncoffs);
+  bgav_dprintf( "  width:         %d\n", h->width);
+  bgav_dprintf( "  height:        %d\n", h->height);
+  bgav_dprintf( "  framerate_idx: %d\n", h->framerate);
+  bgav_dprintf( "  syncoffs:      %d\n", h->syncoffs);
   }
 #endif
 
@@ -388,17 +389,7 @@ static void calc_framerate(int code, int * num, int * den)
     }
   simplify_rational(num, den);
   }
-#if 0
-static void test_framerate()
-  {
-  int i, num, den;
-  for(i = 0; i < 256; i++)
-    {
-    calc_framerate(i, &num, &den);
-    fprintf(stderr, "%d=%.4f [%d:%d]\n", i, (float)num/(float)den, num, den);
-    }
-  }
-#endif
+
 static int open_nsv(bgav_demuxer_context_t * ctx,
                     bgav_redirector_context_t ** redir)
   {
@@ -429,8 +420,6 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
 
     if(fourcc == NSV_FILE_HEADER)
       {
-      //      fprintf(stderr, "Got file header\n");
-
       if(!nsv_file_header_read(ctx->input, &(p->fh)))
         return 0;
       else
@@ -443,8 +432,6 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
       }
     else if(fourcc == NSV_SYNC_HEADER)
       {
-      //      fprintf(stderr, "Got sync header\n");
-
       if(!nsv_sync_header_read(ctx->input, &sh))
         return 0;
 #ifdef DUMP_HEADERS
@@ -521,8 +508,17 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
 
     /* Decide whether we can seek */
 
-    if(ctx->input->input->seek_byte && p->fh.toc.offsets)
-      ctx->can_seek = 1;
+    if(ctx->input->input->seek_byte)
+      {
+      if(p->fh.toc.offsets)
+        ctx->can_seek = 1;
+      else
+        {
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Seeking with verison 2 TOC not support due to lack of sample files.\nContact the authors to solve this");
+        }
+      }
+
     }
   
   p->payload_follows = 1;
@@ -560,10 +556,6 @@ static int get_pcm_format(bgav_demuxer_context_t * ctx, bgav_stream_t * s)
   if(!bgav_input_read_16_le(ctx->input, &tmp_16))
     return 0;
   s->data.audio.format.samplerate = tmp_16;
-#if 0
-  fprintf(stderr, "get_pcm_format %d %d %d\n", s->data.audio.bits_per_sample,
-          s->data.audio.format.num_channels, s->data.audio.format.samplerate);
-#endif
   s->data.audio.block_align = (s->data.audio.bits_per_sample * s->data.audio.format.num_channels) / 8;
 
 #if 1 /* What's that???? */
@@ -646,11 +638,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
   
   aux_plus_video_len = (aux_plus_video_len << 4) | (num_aux >> 4);
   num_aux &= 0x0f;
-#if 0 
-  fprintf(stderr, "num_aux: %d, aux_plus_video_len: %d, audio_len: %d\n",
-          num_aux, aux_plus_video_len, audio_len);
-#endif
-  video_len = aux_plus_video_len;
+ video_len = aux_plus_video_len;
 
   /* Skip aux packets */
   for(i = 0; i < num_aux; i++)
@@ -659,9 +647,6 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
        !bgav_input_read_fourcc(ctx->input, &aux_chunk_type))
       return 0;
 
-    fprintf(stderr, "Skipping %d bytes of aux data type ", aux_chunk_len);
-    bgav_dump_fourcc(aux_chunk_type);
-    fprintf(stderr, "\n");
     bgav_input_skip(ctx->input, aux_chunk_len);
 
     video_len -= (aux_chunk_len+6);
@@ -774,7 +759,7 @@ static void seek_nsv(bgav_demuxer_context_t * ctx, gavl_time_t time)
     }
   else  /* TOC version 2 */
     {
-    fprintf(stderr, "Seeking with verison 2 TOC not support due to lack of sample files. Contact the authors to solve this\n");
+    return;
     }
   file_position = priv->fh.toc.offsets[index_position] + priv->fh.header_size;
   bgav_input_seek(ctx->input, file_position, SEEK_SET);

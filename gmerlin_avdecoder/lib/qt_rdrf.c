@@ -32,20 +32,20 @@
 
 static void bgav_qt_rdrf_dump(qt_rdrf_t * r)
   {
-  fprintf(stderr, "rdrf:\n");
-  fprintf(stderr, "fourcc: ");
+  bgav_dprintf( "rdrf:\n");
+  bgav_dprintf( "fourcc: ");
   bgav_dump_fourcc(r->fourcc);
-  fprintf(stderr, "\ndata_ref_size: %d\n", r->data_ref_size);
+  bgav_dprintf( "\ndata_ref_size: %d\n", r->data_ref_size);
 
   if(r->fourcc == BGAV_MK_FOURCC('u', 'r', 'l', ' '))
     {
-    fprintf(stderr, "URL: ");
+    bgav_dprintf( "URL: ");
     fwrite(r->data_ref, 1, r->data_ref_size, stderr);
-    fprintf(stderr, "\n");
+    bgav_dprintf( "\n");
     }
   else
     {
-    fprintf(stderr, "Unknown data, hexdump follows");
+    bgav_dprintf( "Unknown data, hexdump follows");
     bgav_hexdump(r->data_ref, r->data_ref_size, 16);
     }
   }

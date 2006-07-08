@@ -26,6 +26,8 @@
 #include <qt.h>
 #include <utils.h>
 
+#define LOG_DOMAIN "quicktime"
+
 typedef struct
   {
   qt_trak_t * trak;
@@ -252,7 +254,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
   
   if(!num_packets)
     {
-    fprintf(stderr, "No packets in movie\n");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "No packets in movie");
     return;
     }
   ctx->si = bgav_superindex_create(num_packets);
@@ -274,7 +276,6 @@ static void build_index(bgav_demuxer_context_t * ctx)
     
     for(j = 0; j < priv->moov.num_tracks; j++)
       {
-      //      fprintf(stderr, "stco_pos: %lld\n", priv->streams[j].stco_pos);
       if((priv->streams[j].stco_pos < priv->moov.tracks[j].mdia.minf.stbl.stco.num_entries) &&
          (priv->moov.tracks[j].mdia.minf.stbl.stco.entries[priv->streams[j].stco_pos] < chunk_offset))
         {
@@ -435,26 +436,12 @@ static void build_index(bgav_demuxer_context_t * ctx)
       add_packet(ctx, priv, (bgav_stream_t*)0, i, chunk_offset, -1, -1, 0, 0, 0);
       i++;
       priv->streams[stream_id].stco_pos++;
-      //      fprintf(stderr, "Fill dummy packet\n");
       }
     }
   ctx->si->entries[ctx->si->num_entries-1].size =
     priv->mdats[priv->current_mdat].start +
   priv->mdats[priv->current_mdat].size - ctx->si->entries[ctx->si->num_entries-1].offset;
   
-  /* Dump this */
-#if 0
-  //  fprintf(stderr, "Mdat: %lld %lld\n", priv->mdat_start, priv->mdat_size);
-  for(i = 0; i < priv->num_packets; i++)
-    {
-    fprintf(stderr, "Chunk %d, Stream %d, offset: %lld, size: %d time: %lld, Key: %d\n",
-            i, priv->packet_table[i].stream_id,
-            priv->packet_table[i].offset,
-            priv->packet_table[i].size,
-            priv->packet_table[i].time,
-            priv->packet_table[i].keyframe);
-    }
-#endif
   free(chunk_indices);
   }
 
@@ -525,8 +512,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
     
   ctx->tt->current_track->duration = 0;
 
-  //  fprintf(stderr, "Total %d tracks\n", moov->num_tracks);
-
   priv->streams = calloc(moov->num_tracks, sizeof(*(priv->streams)));
   
   
@@ -535,12 +520,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
     /* Audio stream */
     if(moov->tracks[i].mdia.minf.has_smhd)
       {
-      //      fprintf(stderr, "Found audio stream\n");
-      //      bgav_qt_trak_dump(&(moov->tracks[i]));
-
       if(!moov->tracks[i].mdia.minf.stbl.stsd.entries)
         {
-        fprintf(stderr, "No sample desciption present\n");
         continue;
         }
       bg_as = bgav_track_add_audio_stream(track, ctx->opt);
@@ -578,10 +559,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         {
         bg_as->ext_size = desc->esds.decoderConfigLen;
         bg_as->ext_data = desc->esds.decoderConfig;
-#if 0
-        fprintf(stderr, "Setting mp4 extradata:\n");
-        bgav_hexdump(bg_as->ext_data, bg_as->ext_size, 16);
-#endif   
         }
       else if(bg_as->fourcc == BGAV_MK_FOURCC('l', 'p', 'c', 'm'))
         {
@@ -596,10 +573,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
           {
           bg_as->ext_size = desc->format.audio.wave.esds.decoderConfigLen;
           bg_as->ext_data = desc->format.audio.wave.esds.decoderConfig;
-#if 0
-          fprintf(stderr, "Setting mp4 extradata:\n");
-          bgav_hexdump(bg_as->ext_data, bg_as->ext_size, 16);
-#endif   
           }
         else if(desc->format.audio.wave.num_user_atoms)
           {
@@ -629,10 +602,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
           bg_as->ext_data = desc->format.audio.wave.raw;
           bg_as->ext_size = desc->format.audio.wave.raw_size;
           }
-#if 0
-        fprintf(stderr, "Setting wave extradata:\n");
-        bgav_hexdump(bg_as->ext_data, bg_as->ext_size, 16);
-#endif   
         }
       bg_as->stream_id = i;
       
@@ -646,28 +615,18 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
          desc->format.audio.wave.enda.littleEndian)
         {
         bg_as->data.audio.endianess = BGAV_ENDIANESS_LITTLE;
-        //        fprintf(stderr, "Endianess: %d\n", bg_as->data.audio.endianess);
         }
       else
         bg_as->data.audio.endianess = BGAV_ENDIANESS_BIG;
       
-#if 0
-      fprintf(stderr, "%d bytes extradata, fourcc: ", bg_as->ext_size);
-      bgav_dump_fourcc(bg_as->fourcc);
-      bgav_hexdump(bg_as->ext_data, bg_as->ext_size, 16);
-      fprintf(stderr, "\n");
-#endif
       }
     /* Video stream */
     else if(moov->tracks[i].mdia.minf.has_vmhd)
       {
-      //      fprintf(stderr, "Found video stream\n");
-      //      bgav_qt_trak_dump(&(moov->tracks[i]));
       skip_first_frame = 0;
 
       if(!moov->tracks[i].mdia.minf.stbl.stsd.entries)
         {
-        //        fprintf(stderr, "No sample desciption present\n");
         continue;
         }
       if(moov->tracks[i].mdia.minf.stbl.stsd.num_entries > 1)
@@ -682,7 +641,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
           }
         else
           {
-          fprintf(stderr, "Too weird codec setup\n");
           continue;
           }
         
@@ -788,9 +746,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         if((BGAV_PTR_2_FOURCC(ptr)) == BGAV_MK_FOURCC('S', 'M', 'I', ' '))
           {
           bg_vs->ext_size = 82 + atom_size;
-          //          fprintf(stderr, "Found SMI Atom, %d bytes\n", atom_size);
           bg_vs->ext_data = moov->tracks[i].mdia.minf.stbl.stsd.entries[0].data;
-          //          bgav_hexdump(bg_vs->ext_data, bg_vs->ext_size, 16);
           }
         }
       else if((bg_vs->fourcc == BGAV_MK_FOURCC('a', 'v', 'c', '1')) &&
@@ -799,10 +755,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         bg_vs->ext_data = moov->tracks[i].mdia.minf.stbl.stsd.entries[skip_first_frame].data +
           moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc.avcC_offset;
         bg_vs->ext_size = moov->tracks[i].mdia.minf.stbl.stsd.entries[skip_first_frame].desc.avcC_size;
-#if 0
-        fprintf(stderr, "Setting AVCC extradata\n");
-        bgav_hexdump(bg_vs->ext_data, bg_vs->ext_size, 16);
-#endif
         }
       
       /* Set mp4 extradata */
@@ -820,11 +772,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       stream_duration = stream_get_duration(bg_vs);
       if(ctx->tt->current_track->duration < stream_duration)
         ctx->tt->current_track->duration = stream_duration;
-      //      bgav_qt_trak_dump(&moov->tracks[i]);
-      }
-    else
-      {
-      //      fprintf(stderr, "Steam %d has an unhandled type\n", i);
       //      bgav_qt_trak_dump(&moov->tracks[i]);
       }
     }
@@ -853,13 +800,11 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
 
   while(!done)
     {
-    //    fprintf(stderr, "Get atom\n");
     if(!bgav_qt_atom_read_header(ctx->input, &h))
       return 0;
     switch(h.fourcc)
       {
       case BGAV_MK_FOURCC('m','d','a','t'):
-        //        fprintf(stderr, "Got mdat atom\n");
         /* Reached the movie data atom, stop here */
         have_mdat = 1;
 
@@ -868,10 +813,6 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
 
         priv->mdats[priv->num_mdats].start = ctx->input->position;
         priv->mdats[priv->num_mdats].size  = h.size - (ctx->input->position - h.start_position);
-#if 0
-        fprintf(stderr, "Found mdat atom, start: %lld, size: %lld\n", priv->mdats[priv->num_mdats].start,
-                priv->mdats[priv->num_mdats].size);
-#endif
         priv->num_mdats++;
         
         /* Some files have the moov atom at the end */
@@ -889,7 +830,6 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
         
         break;
       case BGAV_MK_FOURCC('m','o','o','v'):
-        //        fprintf(stderr, "Got moov atom\n");
         if(!bgav_qt_moov_read(&h, ctx->input, &(priv->moov)))
           return 0;
         have_moov = 1;
@@ -900,16 +840,12 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
         bgav_qt_atom_skip(ctx->input, &h);
         break;
       case BGAV_MK_FOURCC('f','t','y','p'):
-        //        fprintf(stderr, "Got ftyp atom\n");
         if(!bgav_input_read_fourcc(ctx->input, &priv->ftyp_fourcc))
           return 0;
         bgav_qt_atom_skip(ctx->input, &h);
         break;
       default:
         bgav_qt_atom_skip(ctx->input, &h);
-        fprintf(stderr, "Skipping unknown atom\n");
-        bgav_qt_atom_dump_header(&h);
-        fprintf(stderr, "New position: %lld\n", ctx->input->position);
       }
 
     if(ctx->input->input->seek_byte)
@@ -924,7 +860,6 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
 
   if(!have_mdat)
     {
-    fprintf(stderr, "No mdats\n");
     return 0;
     }
   
@@ -946,7 +881,6 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
     bgav_input_skip(ctx->input,
                     ctx->si->entries[0].offset -
                     priv->mdats[priv->current_mdat].start);
-  //  fprintf(stderr, "Start offset: %lld\n", ctx->input->position);
 
   switch(priv->ftyp_fourcc)
     {

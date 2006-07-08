@@ -95,11 +95,9 @@ static int do_convert(iconv_t cd, char * in_string, int len, int * out_len,
           outbuf = &((*ret)[output_pos]);
           break;
         case EILSEQ:
-          fprintf(stderr, "Invalid Multibyte sequence\n");
           return 0;
           break;
         case EINVAL:
-          fprintf(stderr, "Incomplete Multibyte sequence\n");
           return 0;
           break;
         }

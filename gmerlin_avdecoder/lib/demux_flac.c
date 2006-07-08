@@ -75,15 +75,15 @@ static int streaminfo_read(bgav_input_context_t * ctx,
 #if 0
 static void streaminfo_dump(streaminfo_t * s)
   {
-  fprintf(stderr, "FLAC Streaminfo\n");
-  fprintf(stderr, "Blocksize [%d/%d]\n", s->min_blocksize,
+  bgav_dprintf("FLAC Streaminfo\n");
+  bgav_dprintf("Blocksize [%d/%d]\n", s->min_blocksize,
           s->max_blocksize);
-  fprintf(stderr, "Framesize [%d/%d]\n", s->min_framesize,
+  bgav_dprintf("Framesize [%d/%d]\n", s->min_framesize,
           s->max_framesize);
-  fprintf(stderr, "Samplerate:      %d\n", s->samplerate);
-  fprintf(stderr, "Num channels:    %d\n", s->num_channels);
-  fprintf(stderr, "Bits per sample: %d\n", s->bits_per_sample);
-  fprintf(stderr, "Total samples:   %lld\n", s->total_samples);
+  bgav_dprintf("Samplerate:      %d\n", s->samplerate);
+  bgav_dprintf("Num channels:    %d\n", s->num_channels);
+  bgav_dprintf("Bits per sample: %d\n", s->bits_per_sample);
+  bgav_dprintf("Total samples:   %lld\n", s->total_samples);
   }
 #endif
 /* Seek table */
@@ -120,10 +120,10 @@ static int seektable_read(bgav_input_context_t * input,
 static void seektable_dump(seektable_t * t)
   {
   int i;
-  fprintf(stderr, "Seektable: %d entries\n", t->num_entries);
+  bgav_dprintf("Seektable: %d entries\n", t->num_entries);
   for(i = 0; i < t->num_entries; i++)
     {
-    fprintf(stderr, "Sample: %lld, Position: %lld, Num samples: %d\n",
+    bgav_dprintf("Sample: %lld, Position: %lld, Num samples: %d\n",
             t->entries[i].sample_number,
             t->entries[i].offset,
             t->entries[i].num_samples);
@@ -188,8 +188,6 @@ static int open_flac(bgav_demuxer_context_t * ctx,
   
   while(!(header[0] & 0x80))
     {
-    //    fprintf(stderr, "Pos: %lld\n", ctx->input->position);
-    
     if(bgav_input_read_data(ctx->input, header, 4) < 4)
       return 0;
     
@@ -198,15 +196,12 @@ static int open_flac(bgav_demuxer_context_t * ctx,
     size |= header[2];
     size <<= 8;
     size |= header[3];
-    //    fprintf(stderr, "Size: %d\n", size);
-    
     //    if(!bgav_input_read_24_be(ctx->input, &size))
     //      return 0;
     
     switch(header[0] & 0x7F)
       {
       case 0: // STREAMINFO
-        //        fprintf(stderr, "STREAMINFO\n");
         /* Add audio stream */
         s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
 
@@ -250,24 +245,18 @@ static int open_flac(bgav_demuxer_context_t * ctx,
         //        bgav_input_skip(ctx->input, size);
         break;
       case 1: // PADDING
-        //        fprintf(stderr, "PADDING %d bytes\n", size);
         bgav_input_skip(ctx->input, size);
         break;
       case 2: // APPLICATION
-        //        fprintf(stderr, "APPLICATION\n");
         bgav_input_skip(ctx->input, size);
         break;
       case 3: // SEEKTABLE
-        //        fprintf(stderr, "SEEKTABLE\n");
-
         if(!seektable_read(ctx->input, &(priv->seektable), size))
           goto fail;
         //        seektable_dump(&(priv->seektable));
         //        bgav_input_skip(ctx->input, size);
         break;
       case 4: // VORBIS_COMMENT
-        // fprintf(stderr, "VORBIS_COMMENT %d bytes\n", size);
-
         comment_buffer = malloc(size);
         if(bgav_input_read_data(ctx->input, comment_buffer, size) < size)
           return 0;
@@ -291,7 +280,6 @@ static int open_flac(bgav_demuxer_context_t * ctx,
         //        bgav_input_skip(ctx->input, size);
         break;
       case 5: // CUESHEET
-        //        fprintf(stderr, "CUESHEET\n");
         bgav_input_skip(ctx->input, size);
         break;
       default:

@@ -41,20 +41,20 @@ typedef struct
 
 void bgav_qt_hdlr_dump(qt_hdlr_t * ret)
   {
-  fprintf(stderr,"hdlr:\n");
+  bgav_dprintf("hdlr:\n");
   
-  fprintf(stderr,"  component_type: ");
+  bgav_dprintf("  component_type: ");
   bgav_dump_fourcc(ret->component_type);
   
-  fprintf(stderr,"\n  component_subtype: ");
+  bgav_dprintf("\n  component_subtype: ");
   bgav_dump_fourcc(ret->component_subtype);
 
-  fprintf(stderr,"\n  component_manufacturer: ");
+  bgav_dprintf("\n  component_manufacturer: ");
   bgav_dump_fourcc(ret->component_manufacturer);
 
-  fprintf(stderr,"\n  component_flags:     0x%08x\n", ret->component_flags);
-  fprintf(stderr,"  component_flag_mask: 0x%08x\n", ret->component_flag_mask);
-  fprintf(stderr,"  component_name: %s\n", ret->component_name);
+  bgav_dprintf("\n  component_flags:     0x%08x\n", ret->component_flags);
+  bgav_dprintf("  component_flag_mask: 0x%08x\n", ret->component_flag_mask);
+  bgav_dprintf("  component_name: %s\n", ret->component_name);
   }
 
 
@@ -72,16 +72,10 @@ int bgav_qt_hdlr_read(qt_atom_header_t * h,
       !bgav_input_read_32_le(input, &(ret->component_flags)) ||
       !bgav_input_read_32_le(input, &(ret->component_flag_mask)))
     return 0;
-#if 0
-  fprintf(stderr, "Component type: ");
-  bgav_dump_fourcc(ret->component_type);
-  fprintf(stderr, "\n");
-#endif
   if(!ret->component_type) /* mp4 case:
                                Read everything until the end of the atom */
     {
     name_len = h->start_position + h->size - input->position;
-    //    fprintf(stderr, "MP4 Name len: %d\n", name_len);
     }
   else /* Quicktime case */
     {
@@ -94,8 +88,6 @@ int bgav_qt_hdlr_read(qt_atom_header_t * h,
       name_len = tmp_8;
       }
     }
-  //  fprintf(stderr, "Name len: %d\n", name_len);
-
   if(name_len)
     {
     ret->component_name = malloc(name_len + 1);
@@ -104,9 +96,6 @@ int bgav_qt_hdlr_read(qt_atom_header_t * h,
       return 0;
     ret->component_name[name_len] = '\0';
     }
-  //  fprintf(stderr, "Component name: %s\n", ret->component_name);
-
-  //  fprintf(stderr, "Read hdlr: %lld %lld\n", h->start_position + h->size, input->position);
   
   bgav_qt_atom_skip(input, h);
   

@@ -155,19 +155,19 @@ typedef struct
 #if 0
 static void transport_packet_dump(transport_packet_t * p)
   {
-  fprintf(stderr, "Transport packet:\n");
-  fprintf(stderr, "  Payload start:      %d\n", p->payload_start);
-  fprintf(stderr, "  PID:                0x%04x\n", p->pid);
-  fprintf(stderr, "  Adaption field:     %s\n",
+  bgav_dprintf( "Transport packet:\n");
+  bgav_dprintf( "  Payload start:      %d\n", p->payload_start);
+  bgav_dprintf( "  PID:                0x%04x\n", p->pid);
+  bgav_dprintf( "  Adaption field:     %s\n",
           (p->has_adaption_field ? "Yes" : "No"));
-  fprintf(stderr, "  Payload:            %s\n",
+  bgav_dprintf( "  Payload:            %s\n",
           (p->has_payload ? "Yes" : "No"));
-  fprintf(stderr, "  Continuity counter: %d\n", p->continuity_counter);
-  fprintf(stderr, "  Payload size: %d\n", p->payload_size);
+  bgav_dprintf( "  Continuity counter: %d\n", p->continuity_counter);
+  bgav_dprintf( "  Payload size: %d\n", p->payload_size);
   if(p->pcr >= 0)
-    fprintf(stderr, "  PCR: %f\n", (float)p->pcr / 90000.0);
+    bgav_dprintf( "  PCR: %f\n", (float)p->pcr / 90000.0);
   else
-    fprintf(stderr, "  PCR: None\n");
+    bgav_dprintf( "  PCR: None\n");
   }
 
 #endif
@@ -335,37 +335,37 @@ static void pmt_section_dump(pmt_section_t * pmts)
   int i;
   stream_type_t * stream_type;
   
-  fprintf(stderr, "PMT section:\n");
-  fprintf(stderr, "  table_id:               %02x\n",   pmts->table_id);
-  fprintf(stderr, "  section_length:         %d\n",     pmts->section_length);
-  fprintf(stderr, "  program_number:         %d\n",     pmts->program_number);
-  fprintf(stderr, "  current_next_indicator: %d\n",     pmts->current_next_indicator);
-  fprintf(stderr, "  section_number:         %d\n",     pmts->section_number);
-  fprintf(stderr, "  last_section_number:    %d\n",     pmts->last_section_number);
-  fprintf(stderr, "  pcr_pid:                0x%04x\n", pmts->pcr_pid);
-  fprintf(stderr, "  descriptor:             ");
+  bgav_dprintf( "PMT section:\n");
+  bgav_dprintf( "  table_id:               %02x\n",   pmts->table_id);
+  bgav_dprintf( "  section_length:         %d\n",     pmts->section_length);
+  bgav_dprintf( "  program_number:         %d\n",     pmts->program_number);
+  bgav_dprintf( "  current_next_indicator: %d\n",     pmts->current_next_indicator);
+  bgav_dprintf( "  section_number:         %d\n",     pmts->section_number);
+  bgav_dprintf( "  last_section_number:    %d\n",     pmts->last_section_number);
+  bgav_dprintf( "  pcr_pid:                0x%04x\n", pmts->pcr_pid);
+  bgav_dprintf( "  descriptor:             ");
   if(pmts->descriptor_len)
     bgav_hexdump((uint8_t*)pmts->descriptor, pmts->descriptor_len, pmts->descriptor_len);
   else
-    fprintf(stderr, "[none]\n");
-  fprintf(stderr, "  Number of streams:      %d\n",     pmts->num_streams);
+    bgav_dprintf( "[none]\n");
+  bgav_dprintf( "  Number of streams:      %d\n",     pmts->num_streams);
 
   for(i = 0; i < pmts->num_streams; i++)
     {
     stream_type = get_stream_type(pmts->streams[i].type);
     
-    fprintf(stderr, "  Stream %d\n", i+1);
-    fprintf(stderr, "    type:       0x%02x (%s)\n",
+    bgav_dprintf( "  Stream %d\n", i+1);
+    bgav_dprintf( "    type:       0x%02x (%s)\n",
             pmts->streams[i].type,
             (stream_type ? stream_type->description : "Unknown"));
-    fprintf(stderr, "    PID:        0x%04x\n", pmts->streams[i].pid);
-    fprintf(stderr, "    descriptor: ");
+    bgav_dprintf( "    PID:        0x%04x\n", pmts->streams[i].pid);
+    bgav_dprintf( "    descriptor: ");
     
     if(pmts->streams[i].descriptor_len)
       bgav_hexdump((uint8_t*)pmts->streams[i].descriptor, pmts->streams[i].descriptor_len,
                    pmts->streams[i].descriptor_len);
     else
-      fprintf(stderr, "[none]\n");
+      bgav_dprintf( "[none]\n");
 
     }
   
@@ -425,19 +425,19 @@ static int pat_section_read(uint8_t * data, int size,
 static void pat_section_dump(pat_section_t * pats)
   {
   int i;
-  fprintf(stderr, "PAT section:\n");
-  fprintf(stderr, "  table_id:               %d\n", pats->table_id);
-  fprintf(stderr, "  section_length:         %d\n", pats->section_length);
-  fprintf(stderr, "  transport_stream_id:    %d\n", pats->transport_stream_id);
-  fprintf(stderr, "  current_next_indicator: %d\n", pats->current_next_indicator);
-  fprintf(stderr, "  section_number:         %d\n", pats->section_number);
-  fprintf(stderr, "  last_section_number:    %d\n", pats->last_section_number);
+  bgav_dprintf( "PAT section:\n");
+  bgav_dprintf( "  table_id:               %d\n", pats->table_id);
+  bgav_dprintf( "  section_length:         %d\n", pats->section_length);
+  bgav_dprintf( "  transport_stream_id:    %d\n", pats->transport_stream_id);
+  bgav_dprintf( "  current_next_indicator: %d\n", pats->current_next_indicator);
+  bgav_dprintf( "  section_number:         %d\n", pats->section_number);
+  bgav_dprintf( "  last_section_number:    %d\n", pats->last_section_number);
   
-  fprintf(stderr, "  Number of programs: %d\n", pats->num_programs);
+  bgav_dprintf( "  Number of programs: %d\n", pats->num_programs);
   for(i = 0; i < pats->num_programs; i++)
     {
-    fprintf(stderr, "    Program: %d ", pats->programs[i].program_number);
-    fprintf(stderr, "Program map PID: 0x%04x\n", pats->programs[i].program_map_pid);
+    bgav_dprintf( "    Program: %d ", pats->programs[i].program_number);
+    bgav_dprintf( "Program map PID: 0x%04x\n", pats->programs[i].program_map_pid);
     }
   }
 

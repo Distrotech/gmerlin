@@ -51,7 +51,6 @@ static int get_data(bgav_stream_t * s)
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!p)
     {
-    //    fprintf(stderr, "No packet\n");
     return 0;
     }
   bytes_in_buffer = (int)(priv->stream.bufend - priv->stream.next_frame);
@@ -72,8 +71,6 @@ static int get_data(bgav_stream_t * s)
   
   mad_stream_buffer(&(priv->stream), priv->buffer,
                     p->data_size + bytes_in_buffer);
-  //  fprintf(stderr, "Get data %d %d\n", p->data_size, bytes_in_buffer);
-  //  bgav_hexdump(priv->buffer, 16, 16);
     
   bgav_demuxer_done_packet_read(s->demuxer, p);
   return 1;
@@ -117,10 +114,8 @@ static int decode_frame(bgav_stream_t * s)
   if(priv->stream.bufend - priv->stream.next_frame <= MAD_BUFFER_GUARD)
     if(!get_data(s))
       {
-      //      fprintf(stderr, "No data left\n");
       return 0;
       }
-  //  fprintf(stderr, "Decode frame\n");
 
   while(mad_frame_decode(&(priv->frame), &(priv->stream)) == -1)
     {
@@ -131,8 +126,6 @@ static int decode_frame(bgav_stream_t * s)
           return 0;
         break;
       default:
-        //        fprintf(stderr, "mad_decode_frame returned: %s\n",
-        //                mad_stream_errorstr(&priv->stream));
         mad_frame_mute(&priv->frame);
         break;
       }
@@ -176,13 +169,10 @@ static int decode_frame(bgav_stream_t * s)
                    version_string, priv->frame.header.layer, bitrate_string);
     free(bitrate_string);
 
-    //    fprintf(stderr, "Creating audio frame %d\n",
-    //            s->data.audio.format.samples_per_frame);
     
     priv->audio_frame = gavl_audio_frame_create(&(s->data.audio.format));
     }
 
-  //  fprintf(stderr, "Bytes left: %d\n", (int)(priv->stream.bufend - priv->stream.next_frame));
   
   mad_synth_frame(&priv->synth, &priv->frame);
 
@@ -210,7 +200,6 @@ static int init_mad(bgav_stream_t * s)
   {
   mad_priv_t * priv;
 
-  //  fprintf(stderr, "Init MAD\n");
 
   priv = calloc(1, sizeof(*priv));
   s->data.audio.decoder->priv = priv;
@@ -224,7 +213,6 @@ static int init_mad(bgav_stream_t * s)
   get_data(s);
   if(!decode_frame(s))
     {
-    //    fprintf(stderr, "Decode frame failed\n");
     return 0;
     }
   return 1;
@@ -251,12 +239,6 @@ static int decode_mad(bgav_stream_t * s, gavl_audio_frame_t * f,
         }
       }
 
-    //    fprintf(stderr, "Copy frame: in_pos: %d, out_pos: %d, in_size: %d, out_size: %d\n",
-    //            s->data.audio.format.samples_per_frame -
-    //            priv->audio_frame->valid_samples,
-    //            samples_decoded,
-    //            priv->audio_frame->valid_samples,
-    //            num_samples - samples_decoded);
     
     samples_copied =
       gavl_audio_frame_copy(&(s->data.audio.format),
@@ -267,7 +249,6 @@ static int decode_mad(bgav_stream_t * s, gavl_audio_frame_t * f,
                             priv->audio_frame->valid_samples,  /* in_pos */
                             num_samples - samples_decoded, /* out_size, */
                             priv->audio_frame->valid_samples /* in_size */);
-    //    fprintf(stderr, "done %d\n", samples_copied);
     priv->audio_frame->valid_samples -= samples_copied;
     samples_decoded += samples_copied;
     }

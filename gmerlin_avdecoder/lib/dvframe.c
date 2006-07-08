@@ -506,8 +506,6 @@ int bgav_dv_dec_get_audio_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
                                                    d->profile);
   p->keyframe = 1;
 
-  //  fprintf(stderr, "Decode audio %p\n", p->audio_frame->channels.s_16[0]);
-  
   return 1;
   }
 

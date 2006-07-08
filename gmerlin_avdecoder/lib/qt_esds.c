@@ -28,18 +28,18 @@
 
 void bgav_qt_esds_dump(qt_esds_t * e)
   {
-  fprintf(stderr, "esds:\n");
+  bgav_dprintf( "esds:\n");
   bgav_qt_atom_dump_header(&(e->h));
-  fprintf(stderr, "  Version:          %d\n", e->version);
-  fprintf(stderr, "  Flags:            0x%0x06x\n", e->flags);
-  fprintf(stderr, "  objectTypeId:     %d\n", e->objectTypeId);
-  fprintf(stderr, "  streamType:       0x%02x\n", e->streamType);
-  fprintf(stderr, "  bufferSizeDB:     %d\n", e->bufferSizeDB);
+  bgav_dprintf( "  Version:          %d\n", e->version);
+  bgav_dprintf( "  Flags:            0x%0x06x\n", e->flags);
+  bgav_dprintf( "  objectTypeId:     %d\n", e->objectTypeId);
+  bgav_dprintf( "  streamType:       0x%02x\n", e->streamType);
+  bgav_dprintf( "  bufferSizeDB:     %d\n", e->bufferSizeDB);
 
-  fprintf(stderr, "  maxBitrate:       %d\n", e->maxBitrate);
-  fprintf(stderr, "  avgBitrate:       %d\n", e->avgBitrate);
-  fprintf(stderr, "  decoderConfigLen: %d\n", e->decoderConfigLen);
-  fprintf(stderr, "  decoderConfig:\n");
+  bgav_dprintf( "  maxBitrate:       %d\n", e->maxBitrate);
+  bgav_dprintf( "  avgBitrate:       %d\n", e->avgBitrate);
+  bgav_dprintf( "  decoderConfigLen: %d\n", e->decoderConfigLen);
+  bgav_dprintf( "  decoderConfig:\n");
   bgav_hexdump(e->decoderConfig, e->decoderConfigLen, 16);
   
   }
@@ -71,8 +71,6 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
   if(!bgav_input_read_8(input, &tag))
     return 0;
 
-  //  fprintf(stderr, "tag: 0x%02x\n", tag);
-  
   if(tag == 0x03)
     {
     if(read_mp4_descr_length(input) < 20)
@@ -84,8 +82,6 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
 
   if(!bgav_input_read_8(input, &tag))
     return 0;
-
-  //  fprintf(stderr, "tag: 0x%02x\n", tag);
 
   if(tag != 0x04)
     return 0;
@@ -103,23 +99,15 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
   if(!bgav_input_read_8(input, &tag))
     return 0;
 
-  //  fprintf(stderr, "tag: 0x%02x\n", tag);
   if(tag != 0x05)
     return 0;
 
   ret->decoderConfigLen = read_mp4_descr_length(input);
 
-  // fprintf(stderr, "decoderConfigLen 1: %d\n", ret->decoderConfigLen);
-
-  // ret->decoderConfigLen = input->total_bytes - input->position;
-  // fprintf(stderr, "decoderConfigLen 2: %d\n", ret->decoderConfigLen);
-    
   ret->decoderConfig = calloc(ret->decoderConfigLen+16, 1);
   if(bgav_input_read_data(input, ret->decoderConfig,
                           ret->decoderConfigLen) < ret->decoderConfigLen)
     return 0;
-  //  fprintf(stderr, "decoderConfigLen: %d\n", ret->decoderConfigLen);
-  //  fprintf(stderr, "Skipping %lld bytes\n", h->size - (input->position - h->start_position));
   bgav_qt_atom_skip(input, h);
 #ifdef ENABLE_DUMP
   bgav_qt_esds_dump(ret);

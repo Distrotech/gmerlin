@@ -197,12 +197,12 @@ static int ircam_header_read(bgav_input_context_t * input, ircam_header_t * ret)
 #if 0
 static void ircam_header_dump(ircam_header_t * h)
   {
-  fprintf(stderr,"IRCAM\n");
-  fprintf(stderr,"  fourcc:            0x%08x\n", h->fourcc);
-  fprintf(stderr,"  SampleFreqenz:     %f\n",h->SampleFrequenz);
-  fprintf(stderr,"  NumChanels:        %d\n",h->NumChannels);
-  fprintf(stderr,"  DataType:          0x%08x\n",h->DataType);
-  fprintf(stderr,"  is LittleEndian:   %d\n",h->LittleEndian);
+  bgav_dprintf("IRCAM\n");
+  bgav_dprintf("  fourcc:            0x%08x\n", h->fourcc);
+  bgav_dprintf("  SampleFreqenz:     %f\n",h->SampleFrequenz);
+  bgav_dprintf("  NumChanels:        %d\n",h->NumChannels);
+  bgav_dprintf("  DataType:          0x%08x\n",h->DataType);
+  bgav_dprintf("  is LittleEndian:   %d\n",h->LittleEndian);
   }
 #endif
 

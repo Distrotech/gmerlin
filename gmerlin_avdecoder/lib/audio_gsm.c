@@ -33,6 +33,8 @@
 // #define GSM_BLOCK_SIZE_MS 65
 // #define GSM_FRAME_SIZE_MS 320
 
+#define LOG_DOMAIN "gsm"
+
 typedef struct
   {
   gsm gsm_state;
@@ -55,8 +57,8 @@ static int init_gsm(bgav_stream_t * s)
 
   if(s->data.audio.format.num_channels > 1)
     {
-    fprintf(stderr,
-            "Multichannel GSM not supported (who encodes such a nonsense?)\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+            "Multichannel GSM not supported (who encodes such a nonsense?)");
     return 0;
     }
 
@@ -117,7 +119,6 @@ static int decode_frame(bgav_stream_t * s)
     if(!priv->packet)
       return 0;
     priv->packet_ptr = priv->packet->data;
-    //    fprintf(stderr, "Get packet %d\n", priv->packet->data_size);
     }
   gsm_decode(priv->gsm_state, priv->packet_ptr, priv->frame->samples.s_16);
   priv->frame->valid_samples = GSM_FRAME_SIZE;

@@ -2134,9 +2134,7 @@ static mmx_t fix_108n184	= (mmx_t)(int64_t)0xcf04cf04cf04cf04LL;
 
 	/*
    movq_r2m(mm4, *dummy);
-	fprintf(stderr, "3-4 %016llx\n", dummy);
    movq_r2m(mm4, *dummy);
-	fprintf(stderr, "3+4 %016llx\n", dummy);
 	*/
 	
 

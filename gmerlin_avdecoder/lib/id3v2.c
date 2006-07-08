@@ -101,44 +101,44 @@ static bgav_id3v2_frame_t * bgav_id3v2_find_frame(bgav_id3v2_tag_t*t,
 static void dump_frame(bgav_id3v2_frame_t * frame)
   {
   int i;
-  fprintf(stderr, "Header:\n");
-  fprintf(stderr, "  Fourcc: ");
+  bgav_dprintf( "Header:\n");
+  bgav_dprintf( "  Fourcc: ");
   bgav_dump_fourcc(frame->header.fourcc);
-  fprintf(stderr, "\n");
+  bgav_dprintf( "\n");
   
-  fprintf(stderr, "  Size:   %d\n", frame->header.size);
+  bgav_dprintf( "  Size:   %d\n", frame->header.size);
 
-  fprintf(stderr, "  Flags:  ");
+  bgav_dprintf( "  Flags:  ");
 
   if(frame->header.flags & ID3V2_FRAME_TAG_ALTER_PRESERVATION)
-    fprintf(stderr, "ALTER_PRESERVATION ");
+    bgav_dprintf( "ALTER_PRESERVATION ");
   if(frame->header.flags & ID3V2_FRAME_READ_ONLY)
-    fprintf(stderr, "READ_ONLY ");
+    bgav_dprintf( "READ_ONLY ");
   if(frame->header.flags & ID3V2_FRAME_GROUPING)
-    fprintf(stderr, "GOUPING ");
+    bgav_dprintf( "GOUPING ");
   if(frame->header.flags & ID3V2_FRAME_COMPRESSION)
-    fprintf(stderr, "COMPRESSION ");
+    bgav_dprintf( "COMPRESSION ");
   if(frame->header.flags & ID3V2_FRAME_ENCRYPTION)
-    fprintf(stderr, "ENCRYPTION ");
+    bgav_dprintf( "ENCRYPTION ");
   if(frame->header.flags & ID3V2_FRAME_UNSYNCHRONIZED)
-    fprintf(stderr, "UNSYNCHRONIZED ");
+    bgav_dprintf( "UNSYNCHRONIZED ");
   if(frame->header.flags & ID3V2_FRAME_DATA_LENGTH)
-    fprintf(stderr, "DATA_LENGTH");
+    bgav_dprintf( "DATA_LENGTH");
 
-  fprintf(stderr, "\n");
+  bgav_dprintf( "\n");
 
   if(frame->data)
     {
-    fprintf(stderr, "Raw data:\n");
+    bgav_dprintf( "Raw data:\n");
     bgav_hexdump(frame->data, frame->header.size, 16);
     }
   else if(frame->strings)
     {
-    fprintf(stderr, "Strings:\n");
+    bgav_dprintf( "Strings:\n");
     i = 0;
     while(frame->strings[i])
       {
-      fprintf(stderr, "%02x: %s\n", i, frame->strings[i]);
+      bgav_dprintf( "%02x: %s\n", i, frame->strings[i]);
       i++;
       }
     }
@@ -165,36 +165,36 @@ static void free_frame(bgav_id3v2_frame_t * frame)
 void bgav_id3v2_dump(bgav_id3v2_tag_t * t)
   {
   int i;
-  fprintf(stderr, "============= ID3V2 tag =============\n");
+  bgav_dprintf( "============= ID3V2 tag =============\n");
   
   /* Dump header */
 
-  fprintf(stderr, "Header:\n");
-  fprintf(stderr, "  Major version: %d\n", t->header.major_version);
-  fprintf(stderr, "  Minor version: %d\n", t->header.minor_version);
-  fprintf(stderr, "  Flags:         ");
+  bgav_dprintf( "Header:\n");
+  bgav_dprintf( "  Major version: %d\n", t->header.major_version);
+  bgav_dprintf( "  Minor version: %d\n", t->header.minor_version);
+  bgav_dprintf( "  Flags:         ");
   if(t->header.flags & ID3V2_TAG_UNSYNCHRONIZED)
     {
-    fprintf(stderr, "UNSYNCHRONIZED ");
+    bgav_dprintf( "UNSYNCHRONIZED ");
     }
   if(t->header.flags & ID3V2_TAG_EXTENDED_HEADER)
     {
-    fprintf(stderr, " EXTENDED_HEADER");
+    bgav_dprintf( " EXTENDED_HEADER");
     }
   if(t->header.flags & ID3V2_TAG_EXPERIMENTAL)
     {
-    fprintf(stderr, " EXPERIMENTAL");
+    bgav_dprintf( " EXPERIMENTAL");
     }
   if(t->header.flags & ID3V2_TAG_EXPERIMENTAL)
     {
-    fprintf(stderr, " FOOTER_PRESENT");
+    bgav_dprintf( " FOOTER_PRESENT");
     }
-  fprintf(stderr, "\n");
-  fprintf(stderr, "  Size: %d\n", t->header.size);
+  bgav_dprintf( "\n");
+  bgav_dprintf( "  Size: %d\n", t->header.size);
 
   for(i = 0; i < t->num_frames; i++)
     {
-    fprintf(stderr, "========== Frame %d ==========\n", i+1);
+    bgav_dprintf( "========== Frame %d ==========\n", i+1);
     dump_frame(&(t->frames[i]));
     }
   }
@@ -260,7 +260,6 @@ static char ** read_string_list(uint8_t * data, int data_size)
     case ENCODING_LATIN1:
       bytes_per_char = 1;
       cnv = bgav_charset_converter_create("LATIN1", "UTF-8");
-      //      fprintf(stderr, "Charset: LATIN1\n");
       pos = ((char*)data) + 1;
       break;
     case ENCODING_UTF16_BOM:
@@ -275,7 +274,6 @@ static char ** read_string_list(uint8_t * data, int data_size)
     case ENCODING_UTF16_BE:
       bytes_per_char = 2;
       cnv = bgav_charset_converter_create("UTF16BE", "UTF-8");
-      //      fprintf(stderr, "Charset: UTF16BE\n");
       pos = ((char*)data) + 1;
       break;
     case ENCODING_UTF8:
@@ -283,7 +281,6 @@ static char ** read_string_list(uint8_t * data, int data_size)
       pos = ((char*)data) + 1;
       break;
     default:
-      fprintf(stderr, "Warning, unknown encoding %02x\n", encoding);
       return (char **)0;
     }
   
@@ -315,8 +312,6 @@ static char ** read_string_list(uint8_t * data, int data_size)
       ret[i] = bgav_convert_string(cnv,
                                    pos, end_pos - pos,
                                    NULL);
-      // fprintf(stderr, "Converted string: %s (%d, %d)\n", ret[i], (int)(end_pos - pos),
-      //        strlen(ret[i]));
       }
     else
       ret[i] = bgav_strndup(pos, end_pos);
@@ -381,11 +376,6 @@ static int read_frame(bgav_input_context_t * input,
        !bgav_input_read_16_be(input, &(ret->header.flags)))
       return 0;
     }
-#if 0
-  fprintf(stderr, "Header fourcc: ");
-  bgav_dump_fourcc(ret->header.fourcc);
-  fprintf(stderr, "Header size: %d\n", ret->header.size);
-#endif
   if(ret->header.size > input->total_bytes - input->position)
     return 0;
   
@@ -426,8 +416,6 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
       
   bgav_id3v2_tag_t * ret = (bgav_id3v2_tag_t *)0;
   
-  //  fprintf(stderr, "Reading ID3V2 tag...\n");
-    
   if(bgav_input_read_data(input, probe_data, 3) < 3)
     goto fail;
   
@@ -461,8 +449,6 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
   
   /* Read frames */
 
-  //  fprintf(stderr, "ID3 size: %d\n", ret->header.size);
-
   data_size = tag_start_pos + ret->header.size - input->position;
   data = malloc(data_size);
   if(bgav_input_read_data(input, data, data_size) < data_size)
@@ -472,7 +458,6 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
     
   while(input_mem->position < data_size)
     {
-    //    fprintf(stderr, "Input position: %lld\n", input->position);    
     if(input_mem->position >= data_size - 4)
       break;
     
@@ -523,10 +508,7 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
   
   else if(tag_start_pos + ret->header.size > input->position)
     {
-    //    fprintf(stderr, "Skipping %lld padding bytes\n",
-    //            tag_start_pos + ret->header.size - input->position);
     bgav_input_skip(input, tag_start_pos + ret->header.size - input->position);
-    //    fprintf(stderr, "Pos: %lld\n", input->position);
     }
   //  bgav_id3v2_dump(ret);
   return ret;
@@ -542,10 +524,6 @@ static bgav_id3v2_frame_t * bgav_id3v2_find_frame(bgav_id3v2_tag_t*t,
   {
   int i, j;
   
-  //  fprintf(stderr, "Find frame ");
-  //  bgav_dump_fourcc(fourcc);
-  //  fprintf(stderr, "\n");
-  
   for(i = 0; i < t->num_frames; i++)
     {
     j = 0;
@@ -555,13 +533,11 @@ static bgav_id3v2_frame_t * bgav_id3v2_find_frame(bgav_id3v2_tag_t*t,
       
       if(t->frames[i].header.fourcc == fourcc[j])
         {
-        //      fprintf(stderr, "Found\n");
         return &(t->frames[i]);
         }
       j++;
       }
     }
-  //  fprintf(stderr, "Not Found\n");
   return (bgav_id3v2_frame_t*)0;
   }
 
@@ -672,7 +648,6 @@ static char * get_comment(bgav_id3v2_frame_t* frame)
       pos = frame->data + 4;
       break;
     default:
-      fprintf(stderr, "Warning, unknown encoding %02x\n", encoding);
       return (char *)0;
     }
   

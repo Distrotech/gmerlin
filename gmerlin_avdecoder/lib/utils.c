@@ -93,6 +93,13 @@ char * bgav_sprintf(const char * format,...)
   return ret;
   }
 
+void bgav_dprintf(const char * format, ...)
+  {
+  va_list argp; /* arg ptr */
+  va_start( argp, format);
+  vfprintf(stderr, format, argp);
+  va_end(argp);
+  }
 
 
 char * bgav_strndup(const char * start, const char * end)

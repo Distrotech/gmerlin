@@ -30,7 +30,6 @@ static void add_char_16(char ** buffer, int * buffer_alloc,
                        int pos, uint16_t c)
   {
   uint16_t * ptr;
-  //  fprintf(stderr, "Add char: %c %d\n", c, pos);
   if(pos + 2 > *buffer_alloc)
     {
     while(pos+2 > *buffer_alloc)
@@ -80,7 +79,6 @@ static int read_line_utf16(bgav_input_context_t * ctx,
 static void add_char(char ** buffer, int * buffer_alloc,
                      int pos, char c)
   {
-  //  fprintf(stderr, "Add char: %c %d\n", c, pos);
   if(pos + 1 > *buffer_alloc)
     {
     while(pos + 1 > *buffer_alloc)
@@ -120,13 +118,11 @@ int bgav_input_read_line(bgav_input_context_t* input,
       break;
     else if(c != '\r')
       {
-      //      fprintf(stderr, "Read line %02x\n", c);
       add_char(buffer, buffer_alloc, pos, c);
       pos++;
       }
     }
   add_char(buffer, buffer_alloc, pos, 0);
-  //  fprintf(stderr, "Read line: %s\n", *buffer);
   if(len)
     *len = pos - buffer_offset;
   return input->position - old_pos;
@@ -172,8 +168,6 @@ int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
 
   if(ctx->total_bytes)
     {
-    //    fprintf(stderr, "Total bytes: %lld, pos: %lld\n",
-    //            ctx->total_bytes, ctx->position);
     if(ctx->position + len > ctx->total_bytes)
       len = ctx->total_bytes - ctx->position;
     if(len <= 0)
@@ -208,11 +202,9 @@ int bgav_input_read_data(bgav_input_context_t * ctx, uint8_t * buffer, int len)
 
   if(ctx->do_buffer)
     {
-    //    fprintf(stderr, "Do buffer 1 %d\n", ctx->buffer_size);
     ctx->buffer_size +=
       ctx->input->read_nonblock(ctx, ctx->buffer + ctx->buffer_size,
                                 ctx->buffer_alloc - ctx->buffer_size);
-    //    fprintf(stderr, "Do buffer 2 %d\n", ctx->buffer_size);
     }
   return ret;
   }
@@ -617,26 +609,26 @@ extern bgav_input_t bgav_input_smb;
 
 void bgav_inputs_dump()
   {
-  fprintf(stderr, "<h2>Input modules</h2>\n");
-  fprintf(stderr, "<ul>\n");
-  fprintf(stderr, "<li>%s\n", bgav_input_file.name);
-  fprintf(stderr, "<li>%s\n", bgav_input_rtsp.name);
-  fprintf(stderr, "<li>%s\n", bgav_input_pnm.name);
-  fprintf(stderr, "<li>%s\n", bgav_input_mms.name);
-  fprintf(stderr, "<li>%s\n", bgav_input_http.name);
-  fprintf(stderr, "<li>%s\n", bgav_input_ftp.name);
+  bgav_dprintf( "<h2>Input modules</h2>\n");
+  bgav_dprintf( "<ul>\n");
+  bgav_dprintf( "<li>%s\n", bgav_input_file.name);
+  bgav_dprintf( "<li>%s\n", bgav_input_rtsp.name);
+  bgav_dprintf( "<li>%s\n", bgav_input_pnm.name);
+  bgav_dprintf( "<li>%s\n", bgav_input_mms.name);
+  bgav_dprintf( "<li>%s\n", bgav_input_http.name);
+  bgav_dprintf( "<li>%s\n", bgav_input_ftp.name);
 #ifdef HAVE_CDIO
-  fprintf(stderr, "<li>%s\n", bgav_input_vcd.name);
+  bgav_dprintf( "<li>%s\n", bgav_input_vcd.name);
 
 #ifdef HAVE_DVDREAD
-  fprintf(stderr, "<li>%s\n", bgav_input_dvd.name);
+  bgav_dprintf( "<li>%s\n", bgav_input_dvd.name);
 #endif
 
 #endif
 #ifdef HAVE_SAMBA
-  fprintf(stderr, "<li>%s\n", bgav_input_smb.name);
+  bgav_dprintf( "<li>%s\n", bgav_input_smb.name);
 #endif
-  fprintf(stderr, "</ul>\n");
+  bgav_dprintf( "</ul>\n");
   }
 
 #define DVD_PATH "/video_ts/video_ts.ifo"
@@ -695,7 +687,6 @@ int bgav_input_open(bgav_input_context_t * ctx,
     else if(strlen(url) >= DVD_PATH_LEN)
       {
       pos = url + strlen(url) - DVD_PATH_LEN;
-      //      fprintf(stderr, "Checking for DVD image: %s %s\n", pos, DVD_PATH);
       if(!strcasecmp(pos, DVD_PATH))
         {
         ctx->input = &bgav_input_dvd;
@@ -822,11 +813,10 @@ void bgav_input_skip_dump(bgav_input_context_t * ctx, int bytes)
   buf = malloc(bytes);
   if(bgav_input_read_data(ctx, buf, bytes) < bytes)
     {
-    fprintf(stderr, "Unextected EOF during skipping\n");
     free(buf);
     return;
     }
-  fprintf(stderr, "Skipping %d bytes:\n", bytes);
+  bgav_dprintf( "Skipping %d bytes:\n", bytes);
   bgav_hexdump(buf, bytes, 16);
   free(buf);
   }
@@ -839,7 +829,6 @@ void bgav_input_get_dump(bgav_input_context_t * ctx, int bytes)
   buf = malloc(bytes);
   bytes_read = bgav_input_get_data(ctx, buf, bytes);
 
-//    fprintf(stderr, "Skipping %d bytes:\n", bytes);
   bgav_hexdump(buf, bytes_read, 16);
   free(buf);
   }
@@ -928,8 +917,6 @@ void bgav_input_seek_sector(bgav_input_context_t * ctx,
 bgav_input_context_t * bgav_input_create(const bgav_options_t * opt)
   {
   bgav_input_context_t * ret;
-
-  //  fprintf(stderr, "CREATE INPUT %p\n", b->name_change_callback);
   
   ret = calloc(1, sizeof(*ret));
 

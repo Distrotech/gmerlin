@@ -56,8 +56,6 @@ void bgav_http_header_destroy(bgav_http_header_t * h)
 void bgav_http_header_add_line(bgav_http_header_t * h, const char * line)
   {
   int len;
-  //  fprintf(stderr, "bgav_http_header_add_line: %s\n",
-  //          line);
   if(h->lines_alloc < h->num_lines + 1)
     {
     h->lines_alloc += 8;
@@ -150,8 +148,6 @@ const char * bgav_http_header_get_var(bgav_http_header_t * h,
   name_len = strlen(name);
   for(i = 1; i < h->num_lines; i++)
     {
-    //    fprintf(stderr, "bgav_http_header_get_var %s\n",
-    //           h->lines[i].line);
     
     if(!strncasecmp(h->lines[i].line, name, name_len) &&
        h->lines[i].line[name_len] == ':')
@@ -168,12 +164,12 @@ const char * bgav_http_header_get_var(bgav_http_header_t * h,
 void bgav_http_header_dump(bgav_http_header_t*h)
   {
   int i;
-  fprintf(stderr, "HTTP Header\n");
+  bgav_dprintf( "HTTP Header\n");
   for(i = 0; i < h->num_lines; i++)
     {
-    fprintf(stderr, "  %s\n", h->lines[i].line);
+    bgav_dprintf( "  %s\n", h->lines[i].line);
     }
-  fprintf(stderr, "End of HTTP Header\n");
+  bgav_dprintf( "End of HTTP Header\n");
   }
 
 struct bgav_http_s
@@ -193,7 +189,6 @@ static bgav_http_t * do_connect(const char * host, int port, const bgav_options_
   ret = calloc(1, sizeof(*ret));
   ret->opt = opt;
 
-  //  fprintf(stderr, "Connecting...");
   ret->fd = bgav_tcp_connect(host, port, ret->opt->connect_timeout, error_msg);
 
   if(ret->fd == -1)
@@ -201,11 +196,6 @@ static bgav_http_t * do_connect(const char * host, int port, const bgav_options_
 
   if(!bgav_http_header_send(request_header, ret->fd, error_msg))
     goto fail;
-  
-  //  bgav_http_header_send(request_header, ret->fd);
-  //  fprintf(stderr, "Request sent\n");
-
-  //  bgav_http_header_dump(request_header);
   
   if(extra_header)
     {
@@ -220,15 +210,10 @@ static bgav_http_t * do_connect(const char * host, int port, const bgav_options_
   
   bgav_http_header_revc(ret->header, ret->fd, ret->opt->connect_timeout);
 
-  //  fprintf(stderr, "Got http header:\n");
-  //  bgav_http_header_dump(ret->header);
   return ret;
   
   fail:
-
-  if(error_msg && *error_msg)
-    fprintf(stderr, "Connection failed: %s\n", *error_msg);
-
+  
   if(ret)
     bgav_http_close(ret);
   return (bgav_http_t*)0;
@@ -300,10 +285,6 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     port = 80;
   if(strcasecmp(protocol, "http"))
     goto fail;
-#if 0
-  if(user && pass)
-    fprintf(stderr, "User: %s, pass: %s\n", user, pass);
-#endif
 
   /* Check for proxy */
 
@@ -374,8 +355,6 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
       goto fail;
 
     /* Now, user and pass should be the authentication data */
-
-    //    fprintf(stderr, "User: %s, pass: %s\n", user, pass);
 
     userpass_enc = encode_user_pass(user, pass);
     line = bgav_sprintf("Authorization: Basic %s", userpass_enc);

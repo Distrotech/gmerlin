@@ -44,9 +44,6 @@ static int init_gavl(bgav_stream_t * s)
 
 #endif
 
-  //  fprintf(stderr, "Initializing done, audio format:");
-  //  gavl_audio_format_dump(&s->data.audio.format);
-
   return 1;
   }
 
@@ -71,16 +68,12 @@ static int decode_gavl(bgav_stream_t * s,
       
       if(!priv->p || !priv->p->audio_frame)
         {
-        //          fprintf(stderr, "Reached EOF\n");
         break;
         }
       priv->last_frame_samples = priv->p->audio_frame->valid_samples;
       }
 
     /* Decode */
-    //    fprintf(stderr, "%d %d %d %d\n", samples_decoded,
-    //            priv->last_frame_samples - priv->p->audio_frame->valid_samples,
-    //           num_samples - samples_decoded, priv->p->audio_frame->valid_samples);
     samples_copied =
       gavl_audio_frame_copy(&(s->data.audio.format),
                             frame,       /* dst */

@@ -126,8 +126,6 @@ static int do_read(bgav_input_context_t* ctx,
   int bytes_to_copy;
   int bytes_read;
 
-  //  fprintf(stderr, "read_mms\n");
-  
   priv = (mms_priv_t *)(ctx->priv);
   
   bytes_read = 0;
