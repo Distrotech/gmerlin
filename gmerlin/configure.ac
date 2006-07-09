@@ -263,7 +263,7 @@ AH_TEMPLATE([HAVE_CDDB],
             [Do we have libcddb installed?])
 
 dnl CDDB_REQUIRED="1.2.1"
-CDDB_REQUIRED="0.9.6"
+CDDB_REQUIRED="1.0.2"
 have_cddb=false
 AC_ARG_ENABLE(cddb,
               AC_HELP_STRING(--disable-cddb, [Disable cddb support (default: autodetect)]),
