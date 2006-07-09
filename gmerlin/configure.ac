@@ -207,7 +207,7 @@ dnl
 
 have_cdio="false"
 
-CDIO_REQUIRED="0.74"
+CDIO_REQUIRED="0.77"
 
 PKG_CHECK_MODULES(CDIO, libcdio >= $CDIO_REQUIRED, have_cdio="true", have_cdio="false")
 
@@ -262,7 +262,8 @@ dnl
 AH_TEMPLATE([HAVE_CDDB],
             [Do we have libcddb installed?])
 
-CDDB_REQUIRED="1.2.1"
+dnl CDDB_REQUIRED="1.2.1"
+CDDB_REQUIRED="0.9.6"
 have_cddb=false
 AC_ARG_ENABLE(cddb,
               AC_HELP_STRING(--disable-cddb, [Disable cddb support (default: autodetect)]),
