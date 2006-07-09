@@ -110,8 +110,18 @@ static void set_channel_setup(faacDecFrameInfo * frame_info,
                               gavl_audio_format_t * format)
   {
   int i;
-  for(i = 0; i < format->num_channels; i++)
-    format->channel_locations[i] = get_channel(frame_info->channel_position[i]);
+
+  /* This method fails for HE-AAC streams. So we
+     use our own detection for mono and stereo */
+  if(format->num_channels > 2)
+    {
+    for(i = 0; i < format->num_channels; i++)
+      format->channel_locations[i] =
+        get_channel(frame_info->channel_position[i]);
+    }
+  else
+    gavl_set_channel_setup(format);
+  
   }
 
 static int decode_frame(bgav_stream_t * s)
@@ -123,7 +133,7 @@ static int decode_frame(bgav_stream_t * s)
 
   memset(&frame_info, 0, sizeof(&frame_info));
   
-  if(priv->data_size < FAAD_MIN_STREAMSIZE*GAVL_MAX_CHANNELS)
+  if(priv->data_size < FAAD_MIN_STREAMSIZE)
     if(!get_data(s))
       return 0;
 
