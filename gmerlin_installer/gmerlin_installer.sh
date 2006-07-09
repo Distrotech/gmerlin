@@ -17,8 +17,7 @@
 ################################################################## 
 # TO DO:
 # packets control: 
-#   UBUNTU: freetype pack 
-#   FEDORA + UBUNTU: libcddb packs + mikmod
+#   FEDORA + UBUNTU: mikmod
 
 ### DEFINE THE IMPORTANT THINGS
 
@@ -32,8 +31,8 @@ FROM="11.05.2006"
 OLD_PKG_CONFIG=$PKG_CONFIG_PATH
 
                                             # Define a test PACKET variable #
-TEST_PACK=""
-#TEST_PACK="20060203"
+#TEST_PACK=""
+TEST_PACK="20060709"
 
 # Define the INSTALLATION directories #
 LOGS="log"
@@ -49,29 +48,30 @@ TOOLS="tar grep wget findutils"
 # *** Warum libxt-dev, ncurses-devel ?
 
 APT_LIBS_OPT="libtiff4-dev \
-                libesd0-dev libxt-dev \
-                xmms-dev"
+              libesd0-dev libxt-dev \
+              xmms-dev libsmbclient-dev libflac-dev"
+
 APT_LIBS_REC=" libvorbis-dev libpng12-dev libjpeg62-dev \
                libasound2-dev  \
-               libxinerama-dev libxv-dev libflac-dev \
-               libsmbclient-dev x11proto-video-dev libcddb0-dev"
+               libxinerama-dev \
+               libcddb2-dev"
 
 APT_LIBS_REQ="autoconf automake1.9 build-essential libtool \
               libfreetype6-dev libfontconfig1-dev libgtk2.0-dev \
-	      zlib1g-dev libxml2-dev libgtk1.2-dev"
+	      zlib1g-dev libxv-dev x11proto-video-dev \
+	      libxml2-dev libgtk1.2-dev"
 	      
 
-YUM_LIBS_OPT="libtiff-devel \
-               esound-devel flac-devel"
+YUM_LIBS_OPT="libtiff-devel xmms-devel samba-common \
+              esound-devel flac-devel"
+
 YUM_LIBS_REC="libpng-devel alsa-lib-devel \
               libjpeg-devel libvorbis-devel \
-	      samba-common \
-               xmms-devel xorg-x11-devel \
-               ncurses-devel"
+	      ncurses-devel libcddb-devel"
 
 YUM_LIBS_REQ="gcc gcc-c++ autoconf automake \
               libtool libxml2-devel zlib-devel gtk+-devel \
-	      gtk2-devel fontconfig-devel freetype-devel"
+	      gtk2-devel fontconfig-devel freetype-devel xorg-x11-devel"
 
 # Check, which assembler we need for x264 (taken from the x264 configure script
 UNAMEM="`uname -m`"
@@ -1469,10 +1469,10 @@ fi
 ############################################### BEFOR EXIT INSTALLATION INFO TEXT ##############################################################
 
 					              # PAGE TITLE_LINE #
-PRINT_PAGE_HEAD_LINE_FUNC "Last infos for Gmerlin" "-e"
+PRINT_PAGE_HEAD_LINE_FUNC "Installation (almost) finished" "-e"
 PRINT_NEW_LINE_FUNC 1
 PRINT_PAGE_COMMENT_LINE_FUNC "For completion the of the Gmerlin installation, download the"
-PRINT_PAGE_COMMENT_LINE_FUNC "Windows DLL's from www.mplayerhq.hu and install them into" "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "Windows codec DLL's from www.mplayerhq.hu and install them into" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "/usr/lib/codecs/." "-e"
 PRINT_NEW_LINE_FUNC 1
 # *** ??
