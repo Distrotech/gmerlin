@@ -24,7 +24,7 @@
 #include "parameter.h"
 #include "streaminfo.h"
 
-#define BG_PLUGIN_API_VERSION 6
+#define BG_PLUGIN_API_VERSION 7
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */

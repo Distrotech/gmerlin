@@ -1294,7 +1294,6 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
       }
     else if(S_ISREG(stat_buf.st_mode))
       {
-      //      fprintf(stderr, "Loading %s\n", urls[0]);
       bg_album_insert_urls_before(a, urls, plugin, NULL);
       }
     if(t->change_callback)
