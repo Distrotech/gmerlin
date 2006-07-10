@@ -1072,13 +1072,7 @@ if [ "$ANSWER" = true ]
 	    PRINT_NEW_LINE_FUNC 1
 	    PRINT_ERROR_MESSAGE_LINE_FUNC "Cannot find the packages:" "-e"
 	    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_RED_HIGH$ERROR$COL_DEF$COL_RED." "-e"
-	    PRINT_ERROR_MESSAGE_LINE_FUNC "If autoconf, automake or libtool fail on fedora," "-e"
-	    PRINT_ERROR_MESSAGE_LINE_FUNC "edit the file /etc/yum.repos.d/fedora.repo and correct the line" "-e"
-	    PRINT_ERROR_MESSAGE_LINE_FUNC "gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-fedora" "-e"
-	    PRINT_ERROR_MESSAGE_LINE_FUNC "with:" "-e"
-	    PRINT_ERROR_MESSAGE_LINE_FUNC "gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY" "-e"
-	    PRINT_ERROR_MESSAGE_LINE_FUNC "and restart the script." "-e"
-	    PRINT_ERROR_MESSAGE_LINE_FUNC "Install it and continue installation? $YES_NO" "-ne"
+	    PRINT_ERROR_MESSAGE_LINE_FUNC "Install it manually and continue installation? $YES_NO" "-ne"
 	    AUTO_INSTALL_FUNC ; YES_NO_FUNC
 	    if [ "$ANSWER" = false ] ; then	PRINT_NEW_LINE_FUNC 2 ; exit ; fi
 	fi
