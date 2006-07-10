@@ -749,7 +749,9 @@ PRINT_NEW_LINE_FUNC 1
 PRINT_PAGE_COMMENT_LINE_FUNC "Please make sure, that your internet connection is ready." "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "Depending on what you want or already have, 10 to 50 MBytes will" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "be downloaded." "-e"
-
+PRINT_NEW_LINE_FUNC 1
+PRINT_PAGE_COMMENT_LINE_FUNC "On older Fedora systems, make sure, you have the extras repository" "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "in your yum configuration." "-e"
 PRINT_NEW_LINE_FUNC 1
 PRINT_PAGE_COMMENT_LINE_FUNC "The installation time depends on internet- and CPU speed." "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "On a Pentium III 1.4 GHz with DSL, it can take up to 60 minutes." "-e"
