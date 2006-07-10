@@ -17,22 +17,23 @@
 ################################################################## 
 # TO DO:
 # packets control: 
-#   FEDORA + UBUNTU: mikmod
+#   FEDORA + UBUNTU: mikmod && musikbrainz
+
 
 ### DEFINE THE IMPORTANT THINGS
 
 ### Define VARIABLES for installation
 
-                                            # Define the script version #
+# Define the script version #
 VERSION="0.1"
 FROM="11.05.2006"
 
-                                            # Define the old PKG_CONFIG_PATH #
+# Define the old PKG_CONFIG_PATH #
 OLD_PKG_CONFIG=$PKG_CONFIG_PATH
 
-                                            # Define a test PACKET variable #
-#TEST_PACK=""
-TEST_PACK="20060709"
+# Define a test PACKET variable #
+TEST_PACK=""
+#TEST_PACK="20060709"
 
 # Define the INSTALLATION directories #
 LOGS="log"
@@ -99,14 +100,14 @@ COL_YEL="\033[0m"    ;    COL_YEL_HIGH="\033[0;1m"    ;    COL_YEL_LINE="\033[0;
 COL_BLU="\033[0m"    ;    COL_BLU_HIGH="\033[0;1m"    ;    COL_BLU_LINE="\033[0;4m"    ;    COL_BLU_LINE_HIGH="\033[0;4;1m"
 
 
-					      # Define the POSITION strings #
+# Define the POSITION strings #
 POSITION_HEADLINE="\n\033[1C"               ;          POSITION_HEADLINE_COMMENT="\033[2C"
 POSITION_HEADLINE_COMMENT_2="\033[3C"       ;          POSITION_INFO="\033[4C"       
 POSITION_STATUS="\r\033[56C"                ;          POSITION_DISCRIPTION="\r\033[55C"
 POSITION_PAGE_HEAD_LINE="\033[15C"          ;          POSITION_PAGE_COMMENT_LINE="\033[5C"
 YES_NO_EXIT_CLEAR="\033[1A$POSITION_DISCRIPTION\033[K"
  
-					     # Generate the INFORMATION strings #
+# Generate the INFORMATION strings #
 OK="$POSITION_STATUS[ $COL_GRE_HIGH OK $COL_DEF ]"
 OK2="$POSITION_STATUS[ $COL_BLU_HIGH OK $COL_DEF ]"
 YES_NO_EXIT="$COL_DEF$POSITION_DISCRIPTION [ \033[0;4mY\033[0mes, \033[0;4mN\033[0mo, e\033[0;4mX\033[0mit ] Y\033[1D"
@@ -114,16 +115,15 @@ FAIL="$POSITION_STATUS[$COL_RED_HIGH FAIL $COL_DEF]"
 FAIL2="$POSITION_STATUS[$COL_YEL_HIGH FAIL $COL_DEF]"
 YES_NO="$COL_DEF$POSITION_DISCRIPTION [ \033[0;4mY\033[0mes, \033[0;4mN\033[0mo ] Y\033[1D"
 
-					###### Define FUNCTIONS how need ######
+###### Define FUNCTIONS how need ######
 
-					        # Page DESIGN for text #
+# Page DESIGN for text #
 # $1 = GMERLIN_PACK TO FIND // $NEWEST = RETURN WERT
 function FIND_NEWEST_PACKET_FUNC()
 {
 if [ "$TEST_PACK" != "" ]
     then
     NEWEST="$1-$TEST_PACK.tar.bz2"
-    #echo $NEWEST
     return 0
 else
     wget http://prdownloads.sourceforge.net/gmerlin/ -O $HELPS/packs.txt >& $HELPS/DUMP
@@ -140,128 +140,128 @@ fi;
 # $1 = GMERLIN_PACK TO FIND 
 function DOWNLOAD_NEWEST_PACKET_FUNC()
 {
-wget http://prdownloads.sourceforge.net/gmerlin/ -O $HELPS/packs.txt >& $HELPS/DUMP
-VAR=`grep /gmerlin/$1 $HELPS/packs.txt | awk '{ print $6}' | awk  -F '"' '{ print $2 }' | sort -n -r | awk -F '/' '{ printf $3 ; printf " "}' | awk '{ print $1 }'`
-wget http://prdownloads.sourceforge.net/gmerlin/$VAR -O $HELPS/mirrors.txt >& $HELPS/DUMP
-VAR2=`grep -B 1 use_mirror $HELPS/mirrors.txt | awk '{ print  $1 , $2 }' | awk -F "<td>" '{ print $1 $2 }' | awk -F "</td>" '{ print $1 $2 }' | awk -F "<a " '{ print $1 $2 }' | awk -F "\"" '{ print $1 $2 }' | awk -F "--" '{ print $1 $2 }' | sed -e '/^[ ]*$/d' | awk -F "href=/gmerlin/" '{ print $1 , $2 }' | awk '{ printf $1 ; printf " " }'`
-ZAHL=0 ; ZEILE=0
-
-PRINT_NEW_LINE_FUNC 1
-PRINT_COMMENT_LINE_FUNC "  No. \r\033[8C Region \r\033[15C = \r\033[29C Mirror" 
-PRINT_COMMENT_LINE_FUNC "------------------------------------------------"
-PRINT_NEW_LINE_FUNC 1
-
-for i in $VAR2
-  do
-  if [ "$ZAHL" = "1" ]
-      then
-      echo -e `echo $i| awk -F "=" '{print $2}'`
-      let ZAHL=$ZAHL+1
-  fi
-  if [ "$ZAHL" = "0" ]
-   then
-   echo -ne "$POSITION_INFO$ZEILE \r\033[8C $i \r\033[15C = \r\033[30C"  
-   let ZAHL=$ZAHL+1
-   let ZEILE=ZEILE+1
-  fi
-  if [ "$ZAHL" = "2" ]
-   then
-   ZAHL=0
-  fi
-done
-PRINT_NEW_LINE_FUNC 1
-
-let ZEILE=$ZEILE-1
-
-if [ "$AUTO_INSTALL" = true ]
-    then
-    PACK=0
-    ANSWER_OK=true
-else
-    echo -e $POSITION_INFO$COL_RED"X for EXIT$COL_DEF"
+    wget http://prdownloads.sourceforge.net/gmerlin/ -O $HELPS/packs.txt >& $HELPS/DUMP
+    VAR=`grep /gmerlin/$1 $HELPS/packs.txt | awk '{ print $6}' | awk  -F '"' '{ print $2 }' | sort -n -r | awk -F '/' '{ printf $3 ; printf " "}' | awk '{ print $1 }'`
+    wget http://prdownloads.sourceforge.net/gmerlin/$VAR -O $HELPS/mirrors.txt >& $HELPS/DUMP
+    VAR2=`grep -B 1 use_mirror $HELPS/mirrors.txt | awk '{ print  $1 , $2 }' | awk -F "<td>" '{ print $1 $2 }' | awk -F "</td>" '{ print $1 $2 }' | awk -F "<a " '{ print $1 $2 }' | awk -F "\"" '{ print $1 $2 }' | awk -F "--" '{ print $1 $2 }' | sed -e '/^[ ]*$/d' | awk -F "href=/gmerlin/" '{ print $1 , $2 }' | awk '{ printf $1 ; printf " " }'`
+    ZAHL=0 ; ZEILE=0
+    
     PRINT_NEW_LINE_FUNC 1
+    PRINT_COMMENT_LINE_FUNC "  No. \r\033[8C Region \r\033[15C = \r\033[29C Mirror" 
+    PRINT_COMMENT_LINE_FUNC "------------------------------------------------"
+    PRINT_NEW_LINE_FUNC 1
+    
+    for i in $VAR2
+      do
+      if [ "$ZAHL" = "1" ]
+	  then
+	  echo -e `echo $i| awk -F "=" '{print $2}'`
+	  let ZAHL=$ZAHL+1
+      fi
+      if [ "$ZAHL" = "0" ]
+	  then
+	  echo -ne "$POSITION_INFO$ZEILE \r\033[8C $i \r\033[15C = \r\033[30C"  
+	  let ZAHL=$ZAHL+1
+	  let ZEILE=ZEILE+1
+      fi
+      if [ "$ZAHL" = "2" ]
+	  then
+	  ZAHL=0
+      fi
+    done
+    PRINT_NEW_LINE_FUNC 1
+    
+    let ZEILE=$ZEILE-1
+    
+    if [ "$AUTO_INSTALL" = true ]
+    then
+	PACK=0
+	ANSWER_OK=true
+    else
+	echo -e $POSITION_INFO$COL_RED"X for EXIT$COL_DEF"
+	PRINT_NEW_LINE_FUNC 1
     ANSWER_OK=false
-fi
-
-while ! $ANSWER_OK
-  do
-  echo -ne $POSITION_INFO"Enter number of mirror\033[5C 0\033[1D"
-  read ANSWER
-  if [ "$ZEILE" = "-1" ]
-      then
-      PRINT_NEW_LINE_FUNC 2
-      PRINT_ERROR_MESSAGE_LINE_FUNC "Cannot find the packets at sourceforge:" "-e"
-      PRINT_ERROR_MESSAGE_LINE_FUNC "Please correct the error and restart the script" "-e"
-      DEL_FILE_FUNC "$HELPS/packs.txt" "Cannot delete file"
-      DEL_FILE_FUNC "$HELPS/mirrors.txt" "Cannot delete file"
-      DEL_FILE_FUNC "$HELPS/DUMP" "Cannot delete file"
-      PRINT_NEW_LINE_FUNC 2
-      exit
-  fi
-  for i in `seq 0 $ZEILE`
-    do
-    if [ "$ANSWER" = "$i" ]
-        then
-        PACK=$i
-        ANSWER_OK=true
     fi
-    if [ "$ANSWER" = "" -o "$ANSWER" = " " ]
-        then
-        PACK=0
-        ANSWER_OK=true
-    fi
-    if [ "$ANSWER" = "x" -o "$ANSWER" = "X" ]
-	then
-	DEL_FILE_FUNC "$HELPS/packs.txt" "Cannot delete file"
-	DEL_FILE_FUNC "$HELPS/mirrors.txt" "Cannot delete file"
-	DEL_FILE_FUNC "$HELPS/DUMP" "Cannot delete file"
-	PRINT_NEW_LINE_FUNC 2
-	exit
-    fi
-  done
-done
-
-ZAHL=0 ; let ZEILE=($PACK*2)+1
-for i in $VAR2
-  do
-  if [ "$ZAHL" = "$ZEILE" ]
-   then
+    
+    while ! $ANSWER_OK
+      do
+      echo -ne $POSITION_INFO"Enter number of mirror\033[5C 0\033[1D"
+      read ANSWER
+      if [ "$ZEILE" = "-1" ]
+	  then
+	  PRINT_NEW_LINE_FUNC 2
+	  PRINT_ERROR_MESSAGE_LINE_FUNC "Cannot find the packets at sourceforge:" "-e"
+	  PRINT_ERROR_MESSAGE_LINE_FUNC "Please correct the error and restart the script" "-e"
+	  DEL_FILE_FUNC "$HELPS/packs.txt" "Cannot delete file"
+	  DEL_FILE_FUNC "$HELPS/mirrors.txt" "Cannot delete file"
+	  DEL_FILE_FUNC "$HELPS/DUMP" "Cannot delete file"
+	  PRINT_NEW_LINE_FUNC 2
+	  exit
+      fi
+      for i in `seq 0 $ZEILE`
+	do
+	if [ "$ANSWER" = "$i" ]
+	    then
+	    PACK=$i
+	    ANSWER_OK=true
+	fi
+	if [ "$ANSWER" = "" -o "$ANSWER" = " " ]
+	    then
+	    PACK=0
+	    ANSWER_OK=true
+	fi
+	if [ "$ANSWER" = "x" -o "$ANSWER" = "X" ]
+	    then
+	    DEL_FILE_FUNC "$HELPS/packs.txt" "Cannot delete file"
+	    DEL_FILE_FUNC "$HELPS/mirrors.txt" "Cannot delete file"
+	    DEL_FILE_FUNC "$HELPS/DUMP" "Cannot delete file"
+	    PRINT_NEW_LINE_FUNC 2
+	    exit
+	fi
+      done
+    done
+    
+    ZAHL=0 ; let ZEILE=($PACK*2)+1
+    for i in $VAR2
+      do
+      if [ "$ZAHL" = "$ZEILE" ]
+	  then
 # ***
 #   wget http://prdownloads.sourceforge.net/gmerlin/$i -O $HELPS/download_html.txt >& $HELPS/DUMP
 #   i = gmerlin-dependencies-20060608.tar.bz2?use_mirror=puzzle
-  tmp1=`echo $i | awk -F "?" '{ print $1 }'`
-  tmp2=`echo $i | awk -F "=" '{ print $2 }'`
-  fi
-  let ZAHL=$ZAHL+1
-done
-
+	  tmp1=`echo $i | awk -F "?" '{ print $1 }'`
+	  tmp2=`echo $i | awk -F "=" '{ print $2 }'`
+      fi
+      let ZAHL=$ZAHL+1
+    done
+    
 # ***
 # DOWN=`grep URL= $HELPS/download_html.txt | awk -F ";" '{print $2}' | awk -F "=" '{print $2}' | awk -F "\"" '{print $1}'`
-
-DOWN="http://"$tmp2".dl.sourceforge.net/sourceforge/gmerlin/"$tmp1
-
-echo "Downloading $DOWN"
-PRINT_NEW_LINE_FUNC 1
-PRINT_INFO_LINE_FUNC "download $1"
-echo -ne "$POSITION_STATUS   "
-wget -N $DOWN 2>&1 | tee $HELPS/DUMP | awk '$7~/%$/ { printf "%4s" ,$7; system("echo -ne \"\033[4D\"")}' 
-grep -q '100%' $HELPS/DUMP
-if [ "$?" = "0" ]
-    then
-    DEL_FILE_FUNC "$HELPS/packs.txt" "Cannot delete file"
-    DEL_FILE_FUNC "$HELPS/mirrors.txt" "Cannot delete file"
-    DEL_FILE_FUNC "$HELPS/download_html.txt" "Cannot delete file"
-    DEL_FILE_FUNC "$HELPS/DUMP" "Cannot delete file"
-    return 0
-else
-    cp $HELPS/DUMP $INSTALL_HOME/$1.wget.log >& .DUMP ; READY_EXIT_FUNC "Cannot copy file"
-    cp $HELPS/DUMP $LOGS/$1.wget.log >& .DUMP ; READY_EXIT_FUNC "Cannot copy file"
-    DEL_FILE_FUNC "$HELPS/packs.txt" "Cannot delete file"
-    DEL_FILE_FUNC "$HELPS/mirrors.txt" "Cannot delete file"
-    DEL_FILE_FUNC "$HELPS/download_html.txt" "Cannot delete file"
-    DEL_FILE_FUNC "$HELPS/DUMP" "Cannot delete file"
-    return 1
-fi;
+    
+    DOWN="http://"$tmp2".dl.sourceforge.net/sourceforge/gmerlin/"$tmp1
+    
+#echo "Downloading $DOWN"
+    PRINT_NEW_LINE_FUNC 1
+    PRINT_INFO_LINE_FUNC "download $1"
+    echo -ne "$POSITION_STATUS   "
+    wget -N $DOWN 2>&1 | tee $HELPS/DUMP | awk '$7~/%$/ { printf "%4s" ,$7; system("echo -ne \"\033[4D\"")}' 
+    grep -q '100%' $HELPS/DUMP
+    if [ "$?" = "0" ]
+	then
+	DEL_FILE_FUNC "$HELPS/packs.txt" "Cannot delete file"
+	DEL_FILE_FUNC "$HELPS/mirrors.txt" "Cannot delete file"
+	DEL_FILE_FUNC "$HELPS/download_html.txt" "Cannot delete file"
+	DEL_FILE_FUNC "$HELPS/DUMP" "Cannot delete file"
+	return 0
+    else
+	cp $HELPS/DUMP $INSTALL_HOME/$1.wget.log >& .DUMP ; READY_EXIT_FUNC "Cannot copy file"
+	cp $HELPS/DUMP $LOGS/$1.wget.log >& .DUMP ; READY_EXIT_FUNC "Cannot copy file"
+	DEL_FILE_FUNC "$HELPS/packs.txt" "Cannot delete file"
+	DEL_FILE_FUNC "$HELPS/mirrors.txt" "Cannot delete file"
+	DEL_FILE_FUNC "$HELPS/download_html.txt" "Cannot delete file"
+	DEL_FILE_FUNC "$HELPS/DUMP" "Cannot delete file"
+	return 1
+    fi;
 }
 
 
@@ -385,7 +385,8 @@ function PRINT_ERROR_MESSAGE_LINE_FUNC()
 }
 
 
-					        # help FUNCTIONS for script #
+# help FUNCTIONS for script #
+
 # TEST $? ; IF ERROR RETURN 1
 function READY_FUNC()
 {
@@ -659,11 +660,11 @@ echo;
 
 
 
-############################################### MAKE THE DIRECTORYS FOR INSTALLATION ##############################################################
+###### MAKE THE DIRECTORYS FOR INSTALLATION ######
 
-					  ######## CHECK THE BASE TOOLS ###########
+# CHECK THE BASE TOOLS #
 
-    # Check CORETILS #
+# Check CORETILS #
 TEXT="COREUTILS"    ;    INSTALL_HOME=`pwd`    ;      READY_EXIT_FUNC "$COL_DEF Please install the $COL_RED_LINE_HIGH$TEXT$COL_DEF packet"
 
 # Exit when we are not ROOT #
@@ -703,10 +704,9 @@ READY_EXIT_FUNC "$COL_DEF Cannot change to $COL_RED_LINE_HIGH$HOME$COL_DEF direc
 
 
 
-############################################### FIRST CHECK BASH FUNCTIONS  ##############################################################
+####### FIRST CHECK BASH FUNCTIONS  ######
 
-
-	                                 ######## CHECK THE SCRIPT PARAMETER ##########
+# CHECK THE SCRIPT PARAMETER #
 HAND=false
 AUTO_CHECK=false
 AUTO_INSTALL=false
@@ -739,7 +739,7 @@ fi
 
 
 
-############################################### SEND WELCOME MESSAGE AND INFOS ##############################################################
+###### SEND WELCOME MESSAGE AND INFOS #######
 
 PRINT_PAGE_HEAD_LINE_FUNC "Welcome to the Gmerlin installation" "-e"
 
@@ -755,8 +755,6 @@ PRINT_PAGE_COMMENT_LINE_FUNC "The installation time depends on internet- and CPU
 PRINT_PAGE_COMMENT_LINE_FUNC "On a Pentium III 1.4 GHz with DSL, it can take up to 60 minutes." "-e"
 PRINT_NEW_LINE_FUNC 1
 
-# *** WO findet das script for componenten?
-
 PRINT_PAGE_COMMENT_LINE_FUNC "You can download the gmerlin packages manually, the script" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "will find them in the current directory." "-e"
 
@@ -768,22 +766,22 @@ if [ "$AUTO_CHECK" = false ]
     AUTO_CHECK_FUNC ; YES_NO_FUNC ; if [ "$ANSWER" = false ] ; then	PRINT_NEW_LINE_FUNC 2 ; exit ; fi
 fi
 
-					    # PAGE TITLE_LINE AFTER WELCOME #
+# PAGE TITLE_LINE AFTER WELCOME #
 PRINT_PAGE_HEAD_LINE_FUNC "Begin with checking system components" "-e"
 
-### CHECK PACKAGE MANAGER
+# CHECK PACKAGE MANAGER
 
-                                              # Define MACKER for this funktion #
+# Define MACKER for this funktion #
 ERROR=""                ;            ERROR_SAVE=""    
 MANAGER=""              ;            PACKET_TOOL=""
  
-                                             # Begin with the CHECKING tools #
+# Begin with the CHECKING tools #
 PRINT_HEAD_LINE_FUNC "Check for the package manager:"
 if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(We hope to find yum && rpm or apt-get && dpkg)"
 
- # Check BASE tools #
+# Check BASE tools #
     for i in $BASE
       do
       PRINT_INFO_LINE_FUNC "$i"
@@ -800,7 +798,7 @@ if [ "$ANSWER" = true ]
       fi
     done
     
- # Check BASE_HELP tools #
+# Check BASE_HELP tools #
     for i in $BASE_HELP
       do
       PRINT_INFO_LINE_FUNC "$i"
@@ -817,7 +815,7 @@ if [ "$ANSWER" = true ]
       fi
     done
     
- # If error SEND user Message #
+# If error SEND user Message #
     if [ "$MANAGER" = "" -o "$PACKET_TOOL" = "" ]
 	then
 	PRINT_NEW_LINE_FUNC 1
@@ -841,18 +839,18 @@ fi
 
 
 
-### CHECK AND INSTALL SYSTEM TOOLS 
+# CHECK AND INSTALL SYSTEM TOOLS 
 
-                                              # Define MACKER for this funktion #
+# Define MACKER for this funktion #
 ERROR=""                ;            ERROR_SAVE=""       ;        DUMP=false   
  
-                                             # Begin with the CHECKING tools #
+# Begin with the CHECKING tools #
 PRINT_HEAD_LINE_FUNC "Check/install system tools:"
 if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(These tools are needed by this script)"
     
- # Check BASE tools #
+# Check BASE tools #
     for i in $TOOLS
       do
       PRINT_INFO_LINE_FUNC "$i"
@@ -873,7 +871,7 @@ if [ "$ANSWER" = true ]
       fi
     done
     
-                                               # If error SEND user Message #
+# If error SEND user Message #
     if [ "$ERROR" != "" ]
 	then
 	PRINT_NEW_LINE_FUNC 1
@@ -885,22 +883,20 @@ if [ "$ANSWER" = true ]
 	    AUTO_INSTALL_FUNC ; YES_NO_FUNC
 	    if [ "$ANSWER" = false ]
 		then
-# *** Was heisst die naechste Zeile??
-		PRINT_ERROR_MESSAGE_LINE_FUNC "Install it jet and go on? $YES_NO" "-ne"
+		PRINT_ERROR_MESSAGE_LINE_FUNC "Install it now and continue? $YES_NO" "-ne"
 		AUTO_INSTALL_FUNC ; YES_NO_FUNC ; HAND=true
 		if [ "$ANSWER" = false ] ; then	PRINT_NEW_LINE_FUNC 2 ; exit ; fi
 	    fi
 	else
 	    if [ "$AUTO_INSTALL" = false ]
 		then
-# *** Was heisst die naechste Zeile??
-		PRINT_ERROR_MESSAGE_LINE_FUNC "Install it jet and go on? $YES_NO" "-ne"
+		PRINT_ERROR_MESSAGE_LINE_FUNC "Install it now and continue? $YES_NO" "-ne"
 		AUTO_INSTALL_FUNC ; YES_NO_FUNC ; HAND=true
 		if [ "$ANSWER" = false ] ; then PRINT_NEW_LINE_FUNC 2 ; exit ; fi
 	    fi
 	fi
 	
- # Check BASE tools too #
+# Check BASE tools too #
 	ERROR_SAVE=""
 	PRINT_NEW_LINE_FUNC 1
 	if [ "$HAND" = true ]
@@ -929,7 +925,7 @@ if [ "$ANSWER" = true ]
 	fi
     fi
     
- # If ERROR too #
+# If ERROR too #
     if [ "$ERROR_SAVE" != "" ]
 	then
 	PRINT_NEW_LINE_FUNC 1
@@ -943,20 +939,20 @@ fi
 
 
 
-############################################### CHECK AND INSTALL SYSTEM TOOLS ##############################################################
+####### CHECK AND INSTALL SYSTEM TOOLS #########
 
-					            # PAGE TITLE_LINE #
+# PAGE TITLE_LINE #
 PRINT_PAGE_HEAD_LINE_FUNC "Check and/or install libraries" "-e"
 
 
-					       # Define MACKER for this funktion #
+# Define MACKER for this funktion #
 ERROR=""                ;            ERROR_SAVE=""       
 
-                                               # Begin with the CHECKING tools #
+# Begin with the CHECKING tools #
 PRINT_HEAD_LINE_FUNC "Check/install the SYSTEM libraries:"
 if [ "$ANSWER" = true ]
     then
-    PRINT_COMMENT_LINE_FUNC "(This libraries are needed for the gmerlin installation)"
+    PRINT_COMMENT_LINE_FUNC "(These libraries are needed for the gmerlin installation)"
 # NO MANAGER && NO PACKET_TOOL
     if [ "$MANAGER" = "" -a "$PACKET_TOOL" = "" ]
 	then
@@ -968,8 +964,7 @@ if [ "$ANSWER" = true ]
 	PRINT_DOUBLE_LINE_FUNC "$APT_LIBS_REQ" "\033[5C"  "$COL_RED\r\033[25C( important )$COL_DEF" "$YUM_LIBS_REQ" "\033[45C" "$COL_RED\r\033[65C( important )$COL_DEF"
 	PRINT_DOUBLE_LINE_FUNC "$APT_LIBS_REC" "\033[5C"  "$COL_YEL\r\033[25C( recommended )$COL_DEF" "$YUM_LIBS_REC" "\033[45C" "$COL_YEL\r\033[65C( recommended )$COL_DEF"
 	PRINT_DOUBLE_LINE_FUNC "$APT_LIBS_OPT" "\033[5C"  "$COL_GRE\r\033[25C( optional )$COL_DEF" "$YUM_LIBS_OPT" "\033[45C" "$COL_GRE\r\033[65C( optional )$COL_DEF"
-# *** ??
-		PRINT_ERROR_MESSAGE_LINE_FUNC "Install it jet and go on? $YES_NO" "-ne"
+		PRINT_ERROR_MESSAGE_LINE_FUNC "Install it now and continue? $YES_NO" "-ne"
 	AUTO_INSTALL_FUNC ; YES_NO_FUNC ; HAND=true
 	if [ "$ANSWER" = false ] ; then PRINT_NEW_LINE_FUNC 2 ; exit ; fi
 # YES MANAGER && YES PACKET_TOOL
@@ -1028,7 +1023,6 @@ if [ "$ANSWER" = true ]
 # YES MANAGER && NO PACKET_TOOL
     elif [ "$MANAGER" != "" -a "$PACKET_TOOL" = "" ]
 	then
-# *** Was passiert hier genau?
 	PRINT_COMMENT_2_LINE_FUNC "No package tool like RPM/DPKG found, so we can install"
 	PRINT_COMMENT_2_LINE_FUNC "the following packages only. ( This can take a little bit longer )"
 	if [ "$MANAGER" = "apt-get" ]
@@ -1095,17 +1089,17 @@ if [ "$ANSWER" = true ]
     fi
 fi
 
-#### PREPARE INSTALLATION ##############################################################
+#### PREPARE INSTALLATION #####
 
-					              # PAGE TITLE_LINE #
+
+# PAGE TITLE_LINE #
 PRINT_PAGE_HEAD_LINE_FUNC "Preparing installation" "-e"
 
-					       # Define MACKER for this funktion #
+# Define MACKER for this funktion #
 ERROR=""                        ;            ERROR_SAVE=""                      ;               ALL_PACKS=""
 
-                                          # Begin with find PKG and gmerlin COMPONENTS #
-# Braucht man das wirklich?
-# PRINT_HEAD_LINE_FUNC "Prepare the SYSTEM conditions:"
+# Begin with find PKG and gmerlin COMPONENTS #
+PRINT_HEAD_LINE_FUNC "Prepare the SYSTEM conditions:"
 if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(Build PGK_CONFIG, find/download gmerlin and unpack/check it)"
@@ -1183,7 +1177,7 @@ if [ "$ANSWER" = true ]
 	fi
     fi
     
-                                               # If error SEND user Message #
+# If error SEND user Message #
     if [ "$ERROR" != "" ]
 	then
 	PRINT_NEW_LINE_FUNC 1
@@ -1195,15 +1189,14 @@ if [ "$ANSWER" = true ]
 	    if [ "$ANSWER" = false ]
 		then
 		PRINT_ERROR_MESSAGE_LINE_FUNC "Download to $INSTALL_HOME" "-e"
-# *** ??
-		PRINT_ERROR_MESSAGE_LINE_FUNC "Download it jet and go on? $YES_NO" "-ne"
+		PRINT_ERROR_MESSAGE_LINE_FUNC "Download it now and continue? $YES_NO" "-ne"
 		AUTO_INSTALL_FUNC ; YES_NO_FUNC ; HAND=true
 		if [ "$ANSWER" = false ] ; then	PRINT_NEW_LINE_FUNC 2 ; exit ; fi
 	    fi
 	fi
     fi	
 
-					       # Check and DOWNLOAD too #
+# Check and DOWNLOAD too #
    ERROR_SAVE=false ; SAVE=""
    if [ "$ERROR" != "" ]
        then
@@ -1253,7 +1246,7 @@ if [ "$ANSWER" = true ]
 	   done
        fi
     fi
-						 # If ERROR too #
+# If ERROR too #
    if [ "$ERROR_SAVE" = true ]
        then
        PRINT_NEW_LINE_FUNC 1
@@ -1263,7 +1256,7 @@ if [ "$ANSWER" = true ]
        exit
    fi
 fi
-						# Extra check DIRECTORY #
+# Extra check DIRECTORY #
 cd $HOME >& .DUMP
 READY_EXIT_FUNC "$COL_DEF Cannot change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
 
@@ -1272,14 +1265,14 @@ READY_EXIT_FUNC "$COL_DEF Cannot change to $COL_RED_LINE_HIGH$HOME$COL_DEF direc
 
 ### UNPACKING AND CHECK THE PACKETS
 
-					       # Define MACKER for this funktion #
+# Define MACKER for this funktion #
 ERROR=false                        ;            ERROR_SAVE=false       
 
 # UNPACK AND CHECK THE PACKETS #
 #PRINT_HEAD_LINE_FUNC "Unpack/check the GMERLIN packages:"
-#if [ "$ANSWER" = true ]
-#    then
-#    PRINT_COMMENT_LINE_FUNC "(After unpack, check if the packages complite)"
+if [ "$ANSWER" = true ]
+    then
+ #    PRINT_COMMENT_LINE_FUNC "(After unpack, check if the packages complite)"
     for i in $ALL_PACKS
 	do
 	PRINT_INFO_LINE_FUNC "unpack $i"
@@ -1317,7 +1310,7 @@ ERROR=false                        ;            ERROR_SAVE=false
 	fi
 	cd $HOME >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Cannot change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
     done
-						 # If ERROR #
+# If ERROR #
     if [ "$ERROR_SAVE" = true ]
 	then
 	PRINT_NEW_LINE_FUNC 1
@@ -1326,22 +1319,20 @@ ERROR=false                        ;            ERROR_SAVE=false
 	PRINT_NEW_LINE_FUNC 2
 	exit
     fi
-#fi
+fi
 
 
 
 
-############################################### INSTALL THE GMERLIN PACKETS ##############################################################
+##### INSTALL THE GMERLIN PACKETS #####
 
-
-# *** Ab hier HOECHSTENS noch eine Abfrage!
-					              # PAGE TITLE_LINE #
+# PAGE TITLE_LINE #
 PRINT_PAGE_HEAD_LINE_FUNC "Installation of Gmerlin packages" "-e"
 
-					       # Define MACKER for this funktion #
+# Define MACKER for this funktion #
 ERROR=false                        ;            ERROR_SAVE=""       ;    FILE=""
 
-                                          # Begin with find PKG and gmerlin COMPONENTS #
+# Begin with find PKG and gmerlin COMPONENTS #
 if [ "$ALL_PACKS" != "" ]
     then
     PRINT_HEAD_LINE_FUNC "Install the Gmerlin packages:"
@@ -1352,8 +1343,6 @@ if [ "$ALL_PACKS" != "" ]
 	  do
 	  ERROR=false
 	  PRINT_COMMENT_2_LINE_FUNC "Install `echo $i| awk -F "." '{print $1}'`:"
-	  echo -ne "\033[1A$POSITION_DISCRIPTION$YES_NO"
-	  AUTO_CHECK_FUNC ; YES_NO_FUNC ; echo -e "$YES_NO_EXIT_CLEAR"
 	  if [ "$ANSWER" = true ]
 	      then
 	      DIR=`echo $i| awk -F "." '{print $1}'`
@@ -1404,7 +1393,7 @@ if [ "$ALL_PACKS" != "" ]
 	      fi
 	      cd $HOME >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Cannot change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
 	  fi
- 					 # If ERROR #
+# If ERROR #
 	  if [ "$ERROR" = true ]
 	      then
 	      PRINT_NEW_LINE_FUNC 1
@@ -1419,18 +1408,18 @@ if [ "$ALL_PACKS" != "" ]
     fi
 else
     PRINT_NEW_LINE_FUNC 1
-# *** ??
-    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_DEF You must first "$COL_RED_LINE_HIGH"Preparing"$COL_DEF" the System installation" "-e"
+    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_DEF Incomplete packages (interrupted download?). " "-e"
+    PRINT_ERROR_MESSAGE_LINE_FUNC "$COL_DEF Remove all .tar.bz files and retry. " "-e"
     PRINT_NEW_LINE_FUNC 1
 fi
 
 
-############################################### CLEAN UP AND EXIT INSTALLATION ##############################################################
+####### CLEAN UP AND EXIT INSTALLATION #########
 
-					              # PAGE TITLE_LINE #
+# PAGE TITLE_LINE #
 PRINT_PAGE_HEAD_LINE_FUNC "Installation complete" "-e"
 
-   # Clean up the SYSTEM #
+# Clean up the SYSTEM #
 PRINT_HEAD_LINE_FUNC "cleaning the installation directory:"
 if [ "$ANSWER" = true ]
     then
@@ -1438,20 +1427,19 @@ if [ "$ANSWER" = true ]
     cd $HOME >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Cannot change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
     PRINT_INFO_LINE_FUNC "reset pkg_config_path"
     export PKG_CONFIG_PATH=$PKG_CONF_OLD ;  if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
-    # tar LOG files #
+# tar LOG files #
     PRINT_INFO_LINE_FUNC "compressing log files"
     if test -d `basename $LOGS`
 	then
-# *** ?
-	cp -r `basename $LOGS` INstall_LOgs >& .DUMP ; READY_EXIT_FUNC "Cannot copy directory" 
+	cp -r `basename $LOGS` gmerlin_install_logs >& .DUMP ; READY_EXIT_FUNC "Cannot copy directory" 
     fi
-    tar cvjf gmerlin_logs.tar.bz2 INstall_LOgs/ >& .DUMP ; READY_EXIT_FUNC "Cannot compress the log files"
-    DEL_DIRECTORY_FUNC "INstall_LOgs/" "Cannot delete directory" ; if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
+    tar cvjf gmerlin_logs.tar.bz2 gmerlin_install_logs/ >& .DUMP ; READY_EXIT_FUNC "Cannot compress the log files"
+    DEL_DIRECTORY_FUNC "gmerlin_install_logs/" "Cannot delete directory" ; if test $? = 0 ; then echo -e "$OK\033[K" ; else echo -e "$FAIL\033[K" ; fi
     if test -f gmerlin_logs.tar.bz2
 	then 
 	mv gmerlin_logs.tar.bz2 $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "Cannot move log file" 
     fi
-     # delete LOG files #
+# delete LOG files #
     cd $INSTALL_HOME >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Cannot change to $COL_RED_LINE_HIGH$HOME$COL_DEF directory"
     for i in *.log
       do
@@ -1466,17 +1454,15 @@ fi
 
 
 
-############################################### BEFOR EXIT INSTALLATION INFO TEXT ##############################################################
+##### BEFOR EXIT INSTALLATION INFO TEXT ####
 
-					              # PAGE TITLE_LINE #
+# PAGE TITLE_LINE #
 PRINT_PAGE_HEAD_LINE_FUNC "Installation (almost) finished" "-e"
 PRINT_NEW_LINE_FUNC 1
-PRINT_PAGE_COMMENT_LINE_FUNC "For completion the of the Gmerlin installation, download the"
+PRINT_PAGE_COMMENT_LINE_FUNC "For completion the of the Gmerlin installation, download the" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "Windows codec DLL's from www.mplayerhq.hu and install them into" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "/usr/lib/codecs/." "-e"
 PRINT_NEW_LINE_FUNC 1
-# *** ??
-# PRINT_PAGE_COMMENT_LINE_FUNC "       Thank's for Downloading and installating Gmerlin" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "                         And now, have fun." "-e"
 PRINT_NEW_LINE_FUNC 2
 exit 0
