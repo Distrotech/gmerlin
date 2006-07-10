@@ -122,8 +122,6 @@ int main(int argc, char ** argv)
   char * error_msg = (char*)0;
   char * msg;
   gtk_init(&argc, &argv);
-
-  fprintf(stderr, "gmerlin_visualizer starting\n");
   
 #ifdef HAVE_LIBVISUAL
   visual_init (&argc, &argv);
