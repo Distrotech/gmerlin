@@ -48,14 +48,14 @@ TOOLS="tar grep wget findutils"
 
 # *** Warum libxt-dev, ncurses-devel ?
 
-APT_LIBS_OPT="libtiff4-dev \
+APT_LIBS_OPT="libtiff4-dev mikmod \
               libesd0-dev libxt-dev \
               xmms-dev libsmbclient-dev libflac-dev"
 
 APT_LIBS_REC=" libvorbis-dev libpng12-dev libjpeg62-dev \
                libasound2-dev  \
                libxinerama-dev \
-               libcddb2-dev"
+               libcddb2-dev libmusicbrainz4-dev"
 
 APT_LIBS_REQ="autoconf automake1.9 build-essential libtool \
               libfreetype6-dev libfontconfig1-dev libgtk2.0-dev \
@@ -64,11 +64,11 @@ APT_LIBS_REQ="autoconf automake1.9 build-essential libtool \
 	      
 
 YUM_LIBS_OPT="libtiff-devel xmms-devel samba-common \
-              esound-devel flac-devel"
+              esound-devel flac-devel mikmod"
 
 YUM_LIBS_REC="libpng-devel alsa-lib-devel \
               libjpeg-devel libvorbis-devel \
-	      ncurses-devel libcddb-devel"
+	      ncurses-devel libcddb-devel libmusicbrainz-devel"
 
 YUM_LIBS_REQ="gcc gcc-c++ autoconf automake \
               libtool libxml2-devel zlib-devel gtk+-devel \
@@ -1023,8 +1023,9 @@ if [ "$ANSWER" = true ]
 # YES MANAGER && NO PACKET_TOOL
     elif [ "$MANAGER" != "" -a "$PACKET_TOOL" = "" ]
 	then
-	PRINT_COMMENT_2_LINE_FUNC "No package tool like RPM/DPKG found, so we can install"
-	PRINT_COMMENT_2_LINE_FUNC "the following packages only. ( This can take a little bit longer )"
+	PRINT_COMMENT_2_LINE_FUNC "No package tool like RPM/DPKG found, so we will install/upgrade"
+	PRINT_COMMENT_2_LINE_FUNC "all following packages without testing if they are already installed."
+	PRINT_COMMENT_2_LINE_FUNC "(This can take a little bit longer)"
 	if [ "$MANAGER" = "apt-get" ]
 	    then
 	    INSTALL_PACKETS_FUNC "$MANAGER" "$APT_LIBS_REQ" "$COL_RED\r\033[25C( required    )$COL_DEF"
@@ -1099,7 +1100,7 @@ PRINT_PAGE_HEAD_LINE_FUNC "Preparing installation" "-e"
 ERROR=""                        ;            ERROR_SAVE=""                      ;               ALL_PACKS=""
 
 # Begin with find PKG and gmerlin COMPONENTS #
-PRINT_HEAD_LINE_FUNC "Prepare the SYSTEM conditions:"
+PRINT_HEAD_LINE_FUNC "Prepare the installation environment:"
 if [ "$ANSWER" = true ]
     then
     PRINT_COMMENT_LINE_FUNC "(Build PGK_CONFIG, find/download gmerlin and unpack/check it)"
@@ -1335,14 +1336,17 @@ ERROR=false                        ;            ERROR_SAVE=""       ;    FILE=""
 # Begin with find PKG and gmerlin COMPONENTS #
 if [ "$ALL_PACKS" != "" ]
     then
-    PRINT_HEAD_LINE_FUNC "Install the Gmerlin packages:"
+    PRINT_HEAD_LINE_FUNC "Compile/install the Gmerlin packages:"
     if [ "$ANSWER" = true ]
 	then
 	PRINT_COMMENT_LINE_FUNC "(Install prefix is /opt/gmerlin/...)"
+        PRINT_COMMENT_LINE_FUNC "This will take some time..."
 	for i in $ALL_PACKS
 	  do
 	  ERROR=false
 	  PRINT_COMMENT_2_LINE_FUNC "Install `echo $i| awk -F "." '{print $1}'`:"
+          # HACK
+          ANSWER="true"
 	  if [ "$ANSWER" = true ]
 	      then
 	      DIR=`echo $i| awk -F "." '{print $1}'`
