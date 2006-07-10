@@ -58,7 +58,7 @@ typedef struct
 
 extern input_t * the_input;
 
-int input_create();
+int input_create(char ** error_msg);
 
 void input_add_plugin(input_t * c, vis_plugin_handle_t * plugin);
 void input_remove_plugin(input_t * c, const vis_plugin_info_t * info);

@@ -69,6 +69,7 @@ static void button_callback(GtkWidget * w, gpointer data)
   info_window_t * win;
   win = (info_window_t*)data;
   gtk_widget_hide(win->window);
+  gtk_main_quit();
   }
 
 static gboolean delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
@@ -118,9 +119,12 @@ static void message(const char * text)
 int main(int argc, char ** argv)
   {
   main_window_t * main_window;
-    
+  char * error_msg = (char*)0;
+  char * msg;
   gtk_init(&argc, &argv);
 
+  fprintf(stderr, "gmerlin_visualizer starting\n");
+  
 #ifdef HAVE_LIBVISUAL
   visual_init (&argc, &argv);
 #endif
@@ -130,9 +134,11 @@ int main(int argc, char ** argv)
 #endif
   gdk_rgb_init();
 
-  if(!input_create())
+  if(!input_create(&error_msg))
     {
-    message("Could not open recording plugin!\nMake sure the soundcard is not\nused by other applications\nor use gmerlin_plugincfg to set things up");
+    msg = bg_sprintf("Could not open recording plugin:\n%s\nMake sure the soundcard is not\nused by other applications\nor use gmerlin_plugincfg to set things up", (error_msg ? error_msg : "Unknown error"));
+    message(msg);
+    free(msg);
     return -1;
     }
   

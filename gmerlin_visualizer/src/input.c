@@ -36,7 +36,7 @@
 
 input_t * the_input = (input_t*)0;
 
-int input_create()
+int input_create(char ** error_msg)
   {
   gavl_audio_format_t input_format;
   gavl_audio_format_t format;
@@ -70,8 +70,14 @@ int input_create()
 
   the_input->input = (bg_ra_plugin_t*)(the_input->input_handle->plugin);
   if(!the_input->input->open(the_input->input_handle->priv, &input_format))
+    {
+    if(the_input->input_handle->plugin->get_error)
+      *error_msg =
+        bg_strdup(*error_msg,
+                  the_input->input_handle->plugin->get_error(the_input->input_handle->priv));
     return 0;
-
+    }
+  
   /* Set up format */
   //  fprintf(stderr, "Input format:\n");
   //  gavl_audio_format_dump(&input_format);
