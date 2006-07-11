@@ -25,8 +25,8 @@
 ### Define VARIABLES for installation
 
 # Define the script version #
-VERSION="0.1"
-FROM="11.05.2006"
+VERSION="beta_0.2"
+FROM="11.07.2006"
 
 # Define the old PKG_CONFIG_PATH #
 OLD_PKG_CONFIG=$PKG_CONFIG_PATH
@@ -72,7 +72,8 @@ YUM_LIBS_REC="libpng-devel alsa-lib-devel \
 
 YUM_LIBS_REQ="gcc gcc-c++ autoconf automake \
               libtool libxml2-devel zlib-devel gtk+-devel \
-	      gtk2-devel fontconfig-devel freetype-devel xorg-x11-devel"
+	      gtk2-devel fontconfig-devel freetype-devel \
+	      xorg-x11-devel libdv-devel"
 
 # Check, which assembler we need for x264 (taken from the x264 configure script
 UNAMEM="`uname -m`"
