@@ -1128,13 +1128,13 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
 static int next_packet_rmff(bgav_demuxer_context_t * ctx)
   {
   //  bgav_packet_t * p;
-  bgav_stream_t * stream;
+  bgav_stream_t * stream = (bgav_stream_t*)0;
   rm_private_t * rm;
   bgav_rmff_packet_header_t h;
-  rm_stream_t * rs;
+  rm_stream_t * rs = (rm_stream_t*)0;
   int result = 0;
   bgav_track_t * track;
-  uint32_t stream_pos;
+  uint32_t stream_pos = 0;
   int i;
   
   rm = (rm_private_t*)(ctx->priv);

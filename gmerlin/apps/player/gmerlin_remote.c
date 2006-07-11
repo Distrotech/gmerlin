@@ -243,7 +243,7 @@ bg_cmdline_arg_t commands[] =
     },
     {
       arg:         "-prev",
-      help_string: "Switch to previous track track",
+      help_string: "Switch to previous track",
       callback:    cmd_prev,
     },
     {
@@ -271,13 +271,13 @@ bg_cmdline_arg_t commands[] =
     {
       arg:         "-open",
       help_arg:    "<device>",
-      help_string: "Open album for <device>. Device must be a GML.",
+      help_string: "Open album for <device>. Device must be a GML (e.g. dvd:///dev/hdd).",
       callback:    cmd_open,
     },
     {
       arg:         "-openplay",
       help_arg:    "<device>",
-      help_string: "Open album for <device> and play first track. Device must be a GML.",
+      help_string: "Open album for <device> and play first track. Device must be a GML (e.g. dvd:///dev/hdd).",
       callback:    cmd_openplay,
     },
     {

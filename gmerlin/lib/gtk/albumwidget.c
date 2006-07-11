@@ -2119,7 +2119,9 @@ static gboolean key_press_callback(GtkWidget * w, GdkEventKey * evt,
       tree_model = gtk_tree_view_get_model(GTK_TREE_VIEW(wid->treeview));
 
       get_visible_range(wid, &start_index, &end_index);
-
+      
+      old_cursor_pos = wid->cursor_pos;
+      
       wid->cursor_pos+=end_index - start_index;
       if(wid->cursor_pos > wid->num_entries)
         wid->cursor_pos = wid->num_entries;

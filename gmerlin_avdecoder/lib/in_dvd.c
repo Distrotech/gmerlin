@@ -128,7 +128,7 @@ static gavl_time_t convert_time(dvd_time_t * time)
 static void setup_track(bgav_input_context_t * ctx,
                         int title, int chapter, int angle)
   {
-  const char * audio_codec;
+  const char * audio_codec = (const char *)0;
   audio_attr_t * audio_attr;
   subp_attr_t *  subp_attr;
   int i;

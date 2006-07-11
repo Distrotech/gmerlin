@@ -174,7 +174,7 @@ void bg_transcoder_pp_update(bg_transcoder_pp_t * p)
   bg_msg_t *msg;
   char * str = (char*)0;
   char * ext;
-  int pp_only;
+  int pp_only = 0;
   //  fprintf(stderr, "bg_transcoder_pp_update\n");
 
   while((msg = bg_msg_queue_try_lock_read(p->msg_in)))

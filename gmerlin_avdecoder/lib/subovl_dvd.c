@@ -165,8 +165,8 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
   uint16_t date;
   uint8_t palette[4], alpha[4];
   int start_date = -1, end_date = -1;
-  int x1, y1, x2, y2, i;
-  uint16_t offset1, offset2;
+  int x1 = 0, y1 = 0, x2= 0, y2= 0, i;
+  uint16_t offset1 = 0, offset2 = 0;
   int ctrl_seq_end;
   uint32_t * ifo_palette;
   

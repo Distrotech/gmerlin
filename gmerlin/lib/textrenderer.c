@@ -681,7 +681,8 @@ static void unload_font(bg_text_renderer_t * r)
 static int load_font(bg_text_renderer_t * r)
   {
   int err;
-  FcPattern *fc_pattern, *fc_pattern_1;
+  FcPattern *fc_pattern = (FcPattern *)0;
+  FcPattern *fc_pattern_1 = (FcPattern *)0;
   FcChar8 *filename;
   FcBool scalable;
   float sar, font_size_scaled;

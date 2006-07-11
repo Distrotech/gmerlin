@@ -20,6 +20,7 @@
 #include <avdec_private.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #define SEQUENCE_HEADER    0x000001b3
 #define SEQUENCE_EXTENSION 0x000001b5
@@ -131,7 +132,10 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx,
   bgav_stream_t * s;
   uint8_t buffer[HEADER_BYTES];
   bgav_input_context_t * input_mem = (bgav_input_context_t*)0;
-  
+
+  memset(&se, 0, sizeof(se));
+  memset(&sh, 0, sizeof(sh));
+    
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
 

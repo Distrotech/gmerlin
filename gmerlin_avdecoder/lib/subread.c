@@ -520,7 +520,7 @@ static void seek_spumux(bgav_stream_t * s, gavl_time_t time)
   const char * start_time, * end_time;
   bgav_subtitle_reader_context_t * ctx;
   spumux_t * priv;
-  gavl_time_t start, end;
+  gavl_time_t start, end = 0;
     
   ctx = s->data.subtitle.subreader;
   priv = (spumux_t*)(ctx->priv);
@@ -718,7 +718,8 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
   bgav_subtitle_reader_t * r;
   char * subtitle_filename;
   bgav_subtitle_reader_context_t * ret = (bgav_subtitle_reader_context_t *)0;
-  bgav_subtitle_reader_context_t * end, *new;
+  bgav_subtitle_reader_context_t * end = (bgav_subtitle_reader_context_t *)0;
+  bgav_subtitle_reader_context_t *new;
   
   union
     {

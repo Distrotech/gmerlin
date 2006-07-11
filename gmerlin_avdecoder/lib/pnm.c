@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
  *
- * $Id: pnm.c,v 1.4 2005-12-23 03:11:34 gmerlin Exp $
+ * $Id: pnm.c,v 1.5 2006-07-11 18:19:41 gmerlin Exp $
  *
  * pnm protocol implementation 
  * based upon code from joschka
@@ -493,7 +493,7 @@ static int pnm_get_headers(pnm_t *p, int *need_response) {
   uint8_t  *ptr=p->header;
   uint8_t  *prop_hdr=NULL;
   int      chunk_size,size=0;
-  int      nr;
+  int      nr = 0;
 /*  rmff_header_t *h; */
 
   *need_response=0;

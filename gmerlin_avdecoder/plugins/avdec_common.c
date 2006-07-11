@@ -85,7 +85,7 @@ static void log_callback(void*data, bgav_log_level_t level,
                          const char * message)
   {
   char * domain;
-  bg_log_level_t l;
+  bg_log_level_t l = 0;
   
   switch(level)
     {
@@ -411,6 +411,7 @@ bg_avdec_set_parameter(void * p, char * name,
     }
   else if(!strcmp(name, "network_bandwidth"))
     {
+    i_tmp = 393216;
     if(!strcmp(val->val_str, "14.4 Kbps (Modem)"))
       i_tmp = 14400;
     else if(!strcmp(val->val_str, "19.2 Kbps (Modem)"))

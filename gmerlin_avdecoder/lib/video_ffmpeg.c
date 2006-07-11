@@ -498,7 +498,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   AVPicture ffmpeg_frame;
   dp_hdr_t *hdr;
   ffmpeg_video_priv * priv;
-  bgav_packet_t * p;
+  bgav_packet_t * p = (bgav_packet_t*)0;
   /* We get the DV format info ourselfes, since the values
      ffmpeg returns are not reliable */
   bgav_dv_dec_t * dvdec;
