@@ -55,12 +55,12 @@ APT_LIBS_OPT="libtiff4-dev mikmod \
 APT_LIBS_REC=" libvorbis-dev libpng12-dev libjpeg62-dev \
                libasound2-dev  \
                libxinerama-dev \
-               libcddb2-dev libmusicbrainz4-dev"
+               cddb libmusicbrainz4-dev"
 
 APT_LIBS_REQ="autoconf automake1.9 build-essential libtool \
               libfreetype6-dev libfontconfig1-dev libgtk2.0-dev \
 	      zlib1g-dev libxv-dev x11proto-video-dev \
-	      libxml2-dev libgtk1.2-dev"
+	      libxml2-dev libgtk1.2-dev libdv4-dev"
 	      
 
 YUM_LIBS_OPT="libtiff-devel xmms-devel samba-common \
@@ -753,6 +753,9 @@ PRINT_NEW_LINE_FUNC 1
 PRINT_PAGE_COMMENT_LINE_FUNC "On older Fedora systems, make sure, you have the extras repository" "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "in your yum configuration." "-e"
 PRINT_NEW_LINE_FUNC 1
+PRINT_PAGE_COMMENT_LINE_FUNC "On Ubuntu systems, make sure, you have in synaptics as packet quell" "-e"
+PRINT_PAGE_COMMENT_LINE_FUNC "Universe and Multiverse." "-e"
+PRINT_NEW_LINE_FUNC 1
 PRINT_PAGE_COMMENT_LINE_FUNC "The installation time depends on internet- and CPU speed." "-e"
 PRINT_PAGE_COMMENT_LINE_FUNC "On a Pentium III 1.4 GHz with DSL, it can take up to 60 minutes." "-e"
 PRINT_NEW_LINE_FUNC 1
@@ -1267,7 +1270,8 @@ ERROR=false                        ;            ERROR_SAVE=false
 
 # UNPACK AND CHECK THE PACKETS #
 #PRINT_HEAD_LINE_FUNC "Unpack/check the GMERLIN packages:"
-if [ "$ANSWER" = true ]
+ANSWER="true"
+if [ "$ANSWER" = "true" ]
     then
  #    PRINT_COMMENT_LINE_FUNC "(After unpack, check if the packages complite)"
     for i in $ALL_PACKS
@@ -1358,7 +1362,7 @@ if [ "$ALL_PACKS" != "" ]
 		    if [ "$?" = "0" ]
 			then
 			DEL_FILE_FUNC "$LOGS/$PACK.build.log" "Cannot delete file"
-			echo -e "$OK2"
+			echo -e "$OK"
 		    else
 			FILE=`find -name config.log | find -name $i`
 			cd $FILE >& .DUMP ; READY_EXIT_FUNC "$COL_DEF Cannot change to $COL_RED_LINE_HIGH$FILE$COL_DEF directory" ; FILE=""
@@ -1375,7 +1379,7 @@ if [ "$ALL_PACKS" != "" ]
 			    cp "$LOGS/$PACK.build.log" "$INSTALL_HOME/$PACK.build.log" >& .DUMP ; READY_EXIT_FUNC "Cannot copy build.log file" 
 			fi
 			ERROR=true
-			echo -e "$FAIL2"
+			echo -e "$FAIL"
 		    fi
 		  done
 		  PRINT_INFO_LINE_FUNC "$COL_GRE$DIR"
