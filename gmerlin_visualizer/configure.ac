@@ -2,7 +2,7 @@ AC_INIT(src/mainwindow.c)
 
 AM_CONFIG_HEADER(src/config.h)
 
-AM_INIT_AUTOMAKE(gmerlin-visualizer, 1.0.3)
+AM_INIT_AUTOMAKE(gmerlin-visualizer, 1.0.4)
 AC_PROG_LIBTOOL
 
 dnl
