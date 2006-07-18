@@ -1,1 +1,2 @@
 EXTRA_DIST=usersguide.html
+info_TEXINFOS=gmerlin.texi
