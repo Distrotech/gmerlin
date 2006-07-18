@@ -27,8 +27,10 @@ void bgav_png_reader_reset(bgav_png_reader_t * png);
 
 int bgav_png_reader_read_image(bgav_png_reader_t * png,
                                gavl_video_frame_t * frame);
+
 int bgav_png_reader_read_header(bgav_png_reader_t * png,
                                 uint8_t * buffer, int buffer_size,
-                                gavl_video_format_t * format);
+                                gavl_video_format_t * format,
+                                char ** error_msg);
 
 

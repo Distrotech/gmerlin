@@ -28,6 +28,8 @@
 #include <avdec_private.h>
 #include <pngreader.h>
 
+#define LOG_DOMAIN "png"
+
 typedef struct
   {
   bgav_png_reader_t * png_reader;
@@ -38,6 +40,7 @@ typedef struct
 
 static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
+  char * error_msg = (char*)0;
   png_priv_t * priv;
   priv = (png_priv_t*)(s->data.video.decoder->priv);
 
@@ -45,26 +48,38 @@ static int decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
     {
     priv->p = bgav_demuxer_get_packet_read(s->demuxer, s);
     if(!priv->p)
+      {
+      bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "EOF");
       return 0;
+      }
     }
-  /* We decode only if we have a frame */
   if(priv->need_header)
     {
     
     if(!bgav_png_reader_read_header(priv->png_reader,
                                     priv->p->data, priv->p->data_size,
-                                    &(s->data.video.format)))
+                                    &(s->data.video.format), &error_msg))
+      {
+      if(error_msg)
+        {
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, error_msg);
+        free(error_msg);
+        }
+      else
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "reading png header failed");
+        
       return 0;
+      }
     priv->have_header = 1;
     return 1;
     }
-  
+  /* We decode only if we have a frame */
   if(frame)
     {
     if(!priv->have_header &&
        !bgav_png_reader_read_header(priv->png_reader,
                                     priv->p->data, priv->p->data_size,
-                                    &(s->data.video.format)))
+                                    &(s->data.video.format), (char**)0))
       return 0;
     if(!bgav_png_reader_read_image(priv->png_reader, frame))
       return 0;
@@ -84,7 +99,10 @@ static int init_png(bgav_stream_t * s)
   priv->png_reader = bgav_png_reader_create(s->data.video.depth);
   priv->need_header = 1;
   if(!decode_png(s, (gavl_video_frame_t*)0))
+    {
+    fprintf(stderr, "Decode png failed\n");
     return 0;
+    }
   priv->need_header = 0;
   
   s->description = bgav_sprintf("PNG Video (%s)",

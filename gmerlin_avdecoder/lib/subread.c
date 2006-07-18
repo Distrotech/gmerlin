@@ -368,12 +368,15 @@ static gavl_time_t parse_time_spumux(const char * str, int timescale, int frame_
   return ret;
   }
 
+#define LOG_DOMAIN "spumux"
+
 static int read_spumux(bgav_stream_t * s)
   {
   int size;
   const char * filename;
   const char * start_time;
   const char * tmp;
+  char * error_msg = (char*)0;
   
   bgav_subtitle_reader_context_t * ctx;
   spumux_t * priv;
@@ -388,7 +391,7 @@ static int read_spumux(bgav_stream_t * s)
   start_time = bgav_yml_get_attribute_i(priv->cur, "start");
   if(!start_time)
     {
-    fprintf(stderr, "yml node has no start attribute\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "yml node has no start attribute");
     return 0;
     }
   
@@ -397,18 +400,27 @@ static int read_spumux(bgav_stream_t * s)
     filename = bgav_yml_get_attribute_i(priv->cur, "image");
     if(!filename)
       {
-      fprintf(stderr, "yml node has no filename attribute\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "yml node has no filename attribute");
       return 0;
       }
     if(!bgav_slurp_file(filename, &priv->buffer, &priv->buffer_alloc,
                         &size, s->opt))
       {
-      fprintf(stderr, "Reading file %s failed\n", filename);
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading file %s failed", filename);
       return 0;
       }
-    if(!bgav_png_reader_read_header(priv->reader, priv->buffer, size, &priv->format))
+    if(!bgav_png_reader_read_header(priv->reader, priv->buffer, size, &priv->format, &error_msg))
       {
-      fprintf(stderr, "Reading png header failed\n");
+      if(error_msg)
+        {
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Reading png header failed: %s", error_msg);
+        free(error_msg);
+        }
+      else
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Reading png header failed");
+        
       return 0;
       }
     if(priv->need_header)
@@ -422,7 +434,7 @@ static int read_spumux(bgav_stream_t * s)
   if((priv->format.image_width > s->data.subtitle.format.image_width) ||
      (priv->format.image_width > s->data.subtitle.format.image_height))
     {
-    fprintf(stderr, "Overlay too large\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Overlay too large\n");
     return 0;
     }
 
@@ -435,7 +447,7 @@ static int read_spumux(bgav_stream_t * s)
   
   if(ctx->ovl.frame->time_scaled == GAVL_TIME_UNDEFINED)
     {
-    fprintf(stderr, "Parsing time string %s failed\n", start_time);
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Parsing time string %s failed\n", start_time);
     return 0;
     }
   tmp = bgav_yml_get_attribute_i(priv->cur, "end");
@@ -490,7 +502,7 @@ static int init_spumux(bgav_stream_t * s)
   priv->yml = bgav_yml_parse(ctx->input);
   if(!priv->yml)
     {
-    fprintf(stderr, "Parsing spumux file failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Parsing spumux file failed\n");
     return 0;
     }
   if(!priv->yml->name || strcasecmp(priv->yml->name, "subpictures"))
@@ -531,7 +543,7 @@ static void seek_spumux(bgav_stream_t * s, gavl_time_t time)
     start_time = bgav_yml_get_attribute_i(priv->cur, "start");
     if(!start_time)
       {
-      fprintf(stderr, "yml node has no start attribute\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "yml node has no start attribute\n");
       return;
       }
     end_time = bgav_yml_get_attribute_i(priv->cur, "end");
@@ -541,7 +553,7 @@ static void seek_spumux(bgav_stream_t * s, gavl_time_t time)
                               s->data.subtitle.format.frame_duration);
     if(start == GAVL_TIME_UNDEFINED)
       {
-      fprintf(stderr, "Error parsing start start attribute\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Error parsing start start attribute\n");
       return;
       }
     
@@ -583,6 +595,8 @@ static void close_spumux(bgav_stream_t * s)
   free(priv);
   
   }
+
+#undef LOG_DOMAIN
 
 #endif // HAVE_LIBPNG
 

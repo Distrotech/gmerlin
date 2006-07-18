@@ -70,7 +70,8 @@ static void read_function(png_structp png_ptr,
 
 int bgav_png_reader_read_header(bgav_png_reader_t * png,
                                 uint8_t * buffer, int buffer_size,
-                                gavl_video_format_t * format)
+                                gavl_video_format_t * format,
+                                char ** error_msg)
   {
   int bit_depth;
   int color_type;
@@ -83,8 +84,11 @@ int bgav_png_reader_read_header(bgav_png_reader_t * png,
   png->buffer_position = 0;
   
   if(png_sig_cmp(png->buffer, 0, 8))
+    {
+    if(error_msg)
+      *error_msg = bgav_sprintf("No png data");
     goto fail;
-
+    }
   png->png_ptr = png_create_read_struct
     (PNG_LIBPNG_VER_STRING, (png_voidp)0,
      NULL, NULL);
@@ -94,12 +98,19 @@ int bgav_png_reader_read_header(bgav_png_reader_t * png,
   png->info_ptr = png_create_info_struct(png->png_ptr);
 
   if(!png->info_ptr)
+    {
+    if(error_msg)
+      *error_msg = bgav_sprintf("Creating info struct failed");
     goto fail;
-  
+    }
   png->end_info = png_create_info_struct(png->png_ptr);
+
   if(!png->end_info)
-    return 0;
-  
+    {
+    if(error_msg)
+      *error_msg = bgav_sprintf("Creating info struct failed");
+    goto fail;
+    }
   png_set_read_fn(png->png_ptr, png, read_function);
   
   png_read_info(png->png_ptr, png->info_ptr);
