@@ -31,6 +31,11 @@
 #include <ogg/ogg.h>
 #include "ogg_common.h"
 
+/* Newer speex version (1.1.x) don't have this */
+#ifndef MAX_BYTES_PER_FRAME
+#define MAX_BYTES_PER_FRAME 2000
+#endif
+
 /* Way too large but save */
 #define BUFFER_SIZE (MAX_BYTES_PER_FRAME*10)
 
@@ -346,7 +351,7 @@ static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t *
     
   mode = speex_lib_get_mode(speex->modeID);
 
-  fprintf(stderr, "Mode: %p\n", mode);
+  //  fprintf(stderr, "Mode: %p\n", mode);
   
   speex_init_header(&header, speex->format->samplerate, 1, mode);
   header.frames_per_packet=speex->nframes;
@@ -397,8 +402,8 @@ static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t *
   speex_encoder_ctl(speex->enc, SPEEX_GET_FRAME_SIZE, &speex->format->samples_per_frame);
   speex_encoder_ctl(speex->enc, SPEEX_GET_LOOKAHEAD,  &speex->lookahead);
 
-  fprintf(stderr, "Framesize: %d, lookahead: %d\n",
-          speex->format->samples_per_frame, speex->lookahead);
+  //  fprintf(stderr, "Framesize: %d, lookahead: %d\n",
+  //          speex->format->samples_per_frame, speex->lookahead);
 
   /* Allocate temporary frame */
 
@@ -476,8 +481,8 @@ static void encode_frame(speex_t * speex, int eof)
       speex->frames_encoded++;
       }
     }
-  if(eof)
-    fprintf(stderr, "EOF: %d %d\n", speex->frames_encoded, speex->nframes);
+  //  if(eof)
+  //    fprintf(stderr, "EOF: %d %d\n", speex->frames_encoded, speex->nframes);
   
   if(speex->frames_encoded && !(speex->frames_encoded % speex->nframes))
     {
@@ -496,7 +501,7 @@ static void encode_frame(speex_t * speex, int eof)
     op.packetno = 2 + (speex->frames_encoded / speex->nframes);
     ogg_stream_packetin(&speex->enc_os, &op);
     speex_bits_reset(&speex->bits);
-    fprintf(stderr, "Wrote speex packet %ld bytes\n", op.bytes);
+    //    fprintf(stderr, "Wrote speex packet %ld bytes\n", op.bytes);
     bg_ogg_flush(&speex->enc_os, speex->output, eof);
     }
   if(eof)
