@@ -1,0 +1,336 @@
+\input texinfo   @c -*-texinfo-*-
+@comment %**start of header
+@include version.texi
+@setfilename gmerlin.info
+@settitle Gmerlin @value{VERSION}
+@syncodeindex pg cp
+@comment %**end of header
+@copying
+This manual is for Gmerlin
+(version @value{VERSION}, @value{UPDATED}).
+
+Copyright @copyright{} 2001-2006 Members of the Gmerlin project.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with the Front-Cover Texts being ``A GNU Manual,''
+and with the Back-Cover Texts as in (a) below.  A copy of the
+license is included in the section entitled ``GNU Free Documentation
+License.''
+
+(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
+this GNU Manual, like GNU software.  Copies published by the Free
+Software Foundation raise funds for GNU development.''
+@end quotation
+@end copying
+
+@titlepage
+@title Gmerlin
+@subtitle for version @value{VERSION}, @value{UPDATED}
+@author Burkhard Plaum (@email{gmerlin@@users.sourceforge.net})
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top GNU Sample
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Basics::
+* Installation::
+* General usage information::
+* Applications::
+* FAQ::
+* Get involved::
+* Index::
+@end menu
+
+@node Basics
+@chapter Basics
+This manual should help you to get familiar with gmerlin software. The
+gmerlin software is quite modular, because it consists of multiple
+packages, most of which can be used independently. In this document,
+it is assumed, that you have all packages installed (See Installation below).
+
+@node Installation
+@chapter Installation
+
+@menu
+* Requirements::
+* Compilation and installation::
+* Binary codecs::
+@end menu
+
+@node Requirements
+@section Requirements
+
+For compiling x264, you need @uref{http://nasm.sourceforge.net/, nasm}
+(@uref{http://www.tortall.net/projects/yasm/, yasm} on x86_64).
+They are included in
+most distributions. Required libraries can be installed from source or from
+binary packages. In the latter case, you must install the development
+packages (e.g. libfoo-devel-1.2.3-4.i386.rpm) also. This is what you need:
+
+@table @uref
+
+@item http://www.alsa-project.org/, Alsa
+It's the recommended audio architecture
+
+@item http://www.tux.org/~ricdude/EsounD.html, esound
+Only needed if neither Alsa nor OSS work for you.
+
+@item http://flac.sourceforge.net/, flac
+For en-/decoding flac files (optional).
+
+@item http://www.gtk.org/, gtk-2.4.x
+This is needed for compiling the GUI applications. Without it you'll
+get just the core library, which won't be of much use.
+
+@item http://www.ijg.org/, libjpeg
+For reading and writing single JPEG images (strongly recommended)
+
+@item http://www.libpng.org/pub/png/libpng.html, libpng
+For reading and writing single PNG images (strongly recommended).
+Also for decoding png encoded Quicktime and AVI files
+
+@item http://www.remotesensing.org/libtiff/, libtiff
+For reading and writing single TIFF images (Optional)
+
+@item http://www.xmlsoft.org/, libxml
+Required. All kinds of configuration files as well as the media
+tree are xml based.
+
+@item http://www.vorbis.com/, vorbis
+Needed for en-/decoding Vorbis files. Also required for the
+theora encoding.
+
+@item http://musicbrainz.org/products/client/index.html, libmusicbrainz
+Needed for getting Audio CD metadata using
+@uref{http://musicbrainz.org/, musicbrainz}
+
+@item http://libcddb.sourceforge.net/, libcddb
+Needed for getting Audio CD metadata from CDDB servers
+
+@item http://www.samba.org/, libsmbclient
+For loading smb:// URLs (optional).
+@end table
+
+From now on, there are 2 ways to proceed:
+@itemize @bullet
+@item You can download the
+@uref{http://sourceforge.net/project/showfiles.php?group_id=19684&package_id=151779, gmerlin-dependencies}
+package, unpack it and install it using the instructions in the README file.
+A full dependencies install will provide you with the complete codec support,
+but some packages you already have might be installed a second time.
+Everything, however, gets into /opt/gmerlin, so there will be no conflicts.
+
+@item To have more control over the process, download and install the
+libraries listed below manually. 
+@end itemize
+
+@table @uref
+@item http://www.gnu.org/software/libcdio/, libcdio
+Neccessary for the VCD, Audio CD and DVD plugins.
+
+@item http://www.audiocoding.com/, faad2
+Needed for MPEG-4 audio support (mp4, aac files). The latest official
+faad-2.0 won't play some streams. The current CVS version or the rpms
+from @uref{http://freshrpms.net/, freshrpms} should be ok.
+
+@item http://www.audiocoding.com/, faac
+Needed for MPEG-4 audio encoding (.aac files) and for AAC encoding via
+libquicktime.
+
+@item http://www.ffmpeg.org/, FFmpeg
+Many other codecs, strongly recommended. You should get a sufficiently new
+version from @uref{http://ffmpeg.mplayerhq.hu/download.html, ffmpeg SVN}
+and use --enable-shared when calling configure. Another option is the
+version in the
+@uref{http://sourceforge.net/project/showfiles.php?group_id=19684&package_id=151779, gmerlin-dependencies} package.
+
+@item http://www.mp3dev.org/, lame
+For encoding mp3 files and AVIs with mp3 audio streams with libquicktime.
+
+@item http://mad.sourceforge.net/, lame
+For playing MPEG-1/2 audio (e.g. for mp3)
+
+@item http://freshmeat.net/redir/libdvdread/17926/url_homepage/downloads.shtml, libdvdread
+For playing DVDs. Gmerlins method of accessing DVD drives doesn't
+differ much from others. Thus, DVD playback howtos found in the web
+apply for gmerlin as well.
+
+@item http://developers.videolan.org/x264.html, x264
+For H.264 encoding with libquicktime.
+
+@item http://libmpeg2.sourceforge.net/, libmpeg2
+For decoding MPEG-1/2 Video (like .mpg files and DVD video)
+
+@item http://liba52.sourceforge.net/, liba52
+For playing AC3 (aka DVD audio) streams.
+
+@item http://www.musepack.net/, libmpcdec
+For playing musepack files (optional).
+
+@item http://www.theora.org/, theora
+For en-/decoding theora video (optional).
+ 
+@item http://www.speex.org/, speex
+For en-/decoding Speex streams (optional).
+
+@item http://libquicktime.sourceforge.net/, libquicktime
+Optional, for the libquicktime based encoding and decoding plugins.
+Mostly necessary if you want to encode video. For decoding Quicktime,
+gmerlin_avdecoder is a lot better.
+
+@item http://mjpeg.sourceforge.net/, mjpegtools
+Optional for en-/decoding yuv4mpeg streams and for encoding high
+quality MPEG video using mpeg2enc and friends.
+
+@end table
+
+@node Compilation and installation
+@section Compilation and installation
+
+If you downloaded a release, make sure, that you have the latest
+version of all packages. Alternatively, you can download the latest
+@uref{http://sourceforge.net/project/showfiles.php?group_id=19684&package_id=151778, gmerlin-all-in-one}
+package. It contains all source packages together
+with optional scripts to build and install them. Check the included
+README file.
+
+We always try to be compatible ther GNU build system. This means, that
+all gmerlin packages are compiled using the usual
+@code{./configure; make; su; make install} prodecure. Type
+@code{./configure --help} to see the supported options.
+
+The order is the following:
+
+@itemize
+@item @uref{http://sourceforge.net/project/showfiles.php?group_id=19684&package_id=50349, gavl}
+@item @uref{http://sourceforge.net/project/showfiles.php?group_id=19684&package_id=14511, gmerlin}
+@item @uref{http://sourceforge.net/project/showfiles.php?group_id=19684&package_id=124659, gmerlin_avdecoder}
+@item @uref{http://sourceforge.net/project/showfiles.php?group_id=19684&package_id=152799, gmerlin-encoders}
+@item @uref{http://sourceforge.net/project/showfiles.php?group_id=19684&package_id=124661, gmerlin-visualizer}
+@end itemize
+
+@node Binary codecs
+@section Binary codecs
+
+These must be downloaded from the @uref{http://www1.mplayerhq.hu/MPlayer/releases/codecs/, MPlayer codec page}. Download the file
+essential-YYYYMMDD.tar.bz2, where YYYYMMDD is some date. Unpack the
+.tar.bz2 and move the included files to /usr/lib/codecs. At this
+location, the DLLs will also be found by other players.
+
+@node General usage information
+@chapter General usage information
+
+@menu
+* Configuration data::
+* GUI::
+* Remote control::
+@end menu
+
+@node Configuration data
+@section Configuration data
+
+They are saved in the directory @code{~/.gmerlin}, which has subdirectories
+for all applications. The directory "generic" stores common configuration
+data for applications, which have no config dialog. Plugins used by these
+programs can be configured with the gmerlin_plugincfg application. If a
+program misbehaves, especially after a version upgrade, delete the file
+@code{~/.gmerlin/application_dir/config.xml}, where @code{application_dir}
+corresponds to the application. Normally, this shouldn't be necessary.
+
+All applications except gmerlin_visualizer have their own configuration data.
+This means, that changes made to plugin configurations are not shared between
+these applications. Most applications have a configuration dialog, which
+lets you change some global settings. Then, there is a plugin dialog,
+which lets you select and configure plugins. It might be a bit tricky to
+find out if a special option can be set via the the plugin dialog or via
+the global config dialog. The general rule is: All features, which are
+supported independently from any plugins, are configured in the global
+dialog. You can expect them to be present on every gmerlin installation
+of the same version. The plugin dialog changes depending on what plugins
+are installed. That's the reason, why they are separated.
+
+@node GUI
+@section GUI
+We try to make this as consistent as possible across the applications.
+In many windows, you'll see context sensitive menus when you right
+click somewhere. Furthermore, tooltips are enabled in all programs by
+default. You can, however, switch them off if they bother you. Many
+dialogs behave exactly the same in all applications, because they share
+a lot of code.
+
+@node Remote control
+@section Remote control
+
+The player and the transcoder are remotely controllable by the commandline
+programs @code{gmerlin_remote} and @code{gmerlin_transcoder_remote}
+respectively.
+Call them with @code{-help} as argument to see the options. The remote servers
+listen at ports starting with 10101 by default. You can change these via
+environment variables:
+
+@table @var
+@item GMERLIN_PLAYER_REMOTE_PORT
+Port for the player remote, default 10101
+
+@item GMERLIN_TRANSCODER_REMOTE_PORT
+Port for the transcoder remote, default 10102
+@end table
+
+By default, remote enabled applications will listen on the localhost
+(127.0.0.1) only. If you want to control your gmerlin applications from
+other computers too, enable it in their config dialogs.
+
+Remote commands can be used to launch gmerlin and/or open files, urls
+and devices. They allow seamless integration of gmerlin into existing
+desktop systems. Finally there is a script @code{gmerlin_launcher}. It can be
+used as a Mime handler by filenamagers and webbrowsers. If
+@code{gmerlin_launcher}
+is called with a file or URL as argument, it will launch a gmerlin player
+if neccessary, add the location to the Incoming album and start playing it.
+
+@node Applications
+@chapter Applications
+
+@menu
+* Player::
+* Transcoder::
+* Alsamixer::
+@end menu
+
+@node Player
+@section Player
+Type @code{gmerlin} with optionally any number of files or URLs to start this.
+
+
+
+@node Transcoder
+@section Transcoder
+
+@node Alsamixer
+@section Alsamixer
+
+@node FAQ
+@chapter FAQ
+
+@node Get involved
+@chapter Get involved
+
+@node Index
+@unnumbered Index
+
+@printindex cp
+@bye
+
