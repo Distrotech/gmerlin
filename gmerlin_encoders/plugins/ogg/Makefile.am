@@ -47,6 +47,6 @@ e_theora_la_LIBADD = @GMERLIN_DEP_LIBS@ @top_srcdir@/lib/libgmerlin_encoders.la 
 e_speex_la_CFLAGS = @SPEEX_CFLAGS@
 e_speex_la_SOURCES = e_speex.c speex.c ogg_common.c
 e_speex_la_LDFLAGS = -avoid-version -module
-e_speex_la_LIBADD = @GMERLIN_DEP_LIBS@ @top_srcdir@/lib/libgmerlin_encoders.la @SPEEX_LIBS@
+e_speex_la_LIBADD = @GMERLIN_DEP_LIBS@ @top_srcdir@/lib/libgmerlin_encoders.la @SPEEX_LIBS@ @OGG_LIBS@
 
 noinst_HEADERS = ogg_common.h
