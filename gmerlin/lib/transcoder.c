@@ -1094,7 +1094,6 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   int samples_decoded;
   gavl_audio_frame_t * frame;
   
-  //  fprintf(stderr, "Audio iteration\n");
   /* Get one frame worth of input data */
 
   if(!s->initialized)
@@ -1123,17 +1122,18 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
     num_samples = s->samples_to_read - s->samples_read;
   else
     num_samples = s->in_format.samples_per_frame;
-    
-  samples_decoded = s->com.in_plugin->read_audio_samples(s->com.in_handle->priv,
-                                                s->in_frame,
-                                                s->com.in_index,
-                                                num_samples);
+
+  
+  samples_decoded =
+    s->com.in_plugin->read_audio_samples(s->com.in_handle->priv,
+                                         s->in_frame,
+                                         s->com.in_index,
+                                         num_samples);
   /* Nothing more to transcode */
   
   if(!samples_decoded)
     {
     s->com.status = STREAM_STATE_FINISHED;
-    //    fprintf(stderr, "Audio EOF\n");
     return;
     }
 
@@ -1144,7 +1144,6 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   if((samples_decoded < num_samples) ||
      (s->samples_to_read && (s->samples_to_read <= s->samples_read)))
     {
-    //    fprintf(stderr, "Audio stream finished\n");
     s->com.status = STREAM_STATE_FINISHED;
     }
 
@@ -1152,15 +1151,13 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   
   if(s->do_convert_in)
     {
-    //    fprintf(stderr, "Converting %d samples, ", s->in_frame->valid_samples);
     gavl_audio_convert(s->cnv_in, s->in_frame, s->pipe_frame);
-    //    fprintf(stderr, "got %d samples\n", s->out_frame->valid_samples);
     frame = s->pipe_frame;
     }
   else
     frame = s->in_frame;
   
-  /* Update the time BEFORE we decide what top do with the frame */
+  /* Update the time BEFORE we decide what to do with the frame */
   s->samples_written += frame->valid_samples;
   
   s->com.time = gavl_samples_to_time(s->out_format.samplerate,
@@ -1180,9 +1177,7 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   /* Output conversion */
   if(s->do_convert_out)
     {
-    //    fprintf(stderr, "Converting %d samples, ", s->in_frame->valid_samples);
     gavl_audio_convert(s->cnv_out, frame, s->out_frame);
-    //    fprintf(stderr, "got %d samples\n", s->out_frame->valid_samples);
     frame = s->out_frame;
     }
 
@@ -1200,7 +1195,6 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
                                          frame,
                                          s->com.out_index);
   
-  //  fprintf(stderr, "Audio iteration %f\n", gavl_time_to_seconds(s->com.time));
   }
 
 static int decode_video_frame(video_stream_t * s, bg_transcoder_t * t,
@@ -1328,7 +1322,7 @@ static int decode_subtitle_text(subtitle_text_stream_t * s, bg_transcoder_t * t)
   if(!result || ((t->end_time != GAVL_TIME_UNDEFINED) &&
                  (s->subtitle_start >= t->end_time)))
     {
-    fprintf(stderr, "Subtitle stream finished result: %d\n", result); 
+    //    fprintf(stderr, "Subtitle stream finished result: %d\n", result); 
     s->com.eof = 1;
     return 0;
     }
@@ -2346,8 +2340,12 @@ static void check_passes(bg_transcoder_t * ret)
 static void setup_pass(bg_transcoder_t * ret)
   {
   int i;
+  //  fprintf(stderr, "Setup pass\n");
   for(i = 0; i < ret->num_audio_streams; i++)
     {
+    /* Reset the samples already decoded */
+    ret->audio_streams[i].samples_read = 0;
+
     if(ret->audio_streams[i].com.action != STREAM_ACTION_TRANSCODE)
       {
       ret->audio_streams[i].com.do_decode = 0;
@@ -2372,6 +2370,7 @@ static void setup_pass(bg_transcoder_t * ret)
       ret->audio_streams[i].com.status = STREAM_STATE_OFF;
     else
       ret->audio_streams[i].com.status = STREAM_STATE_ON;
+
     }
   
   for(i = 0; i < ret->num_video_streams; i++)
@@ -3120,7 +3119,7 @@ static void subtitle_init_encode_overlay(subtitle_stream_t * ss)
                           &(ss->out_format),
                           &(ss->in_format));
 
-    fprintf(stderr, "Initialized text tenderer\n");
+    //    fprintf(stderr, "Initialized text tenderer\n");
     gavl_video_format_dump(&(ss->in_format));
     gavl_video_format_dump(&(ss->out_format));
     
@@ -3527,6 +3526,7 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   
   for(i = 0; i < t->num_audio_streams; i++)
     {
+    
     if(t->audio_streams[i].com.status != STREAM_STATE_ON)
       continue;
     done = 0;
