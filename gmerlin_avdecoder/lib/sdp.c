@@ -329,8 +329,8 @@ static int parse_attr(const char * line,
         else
           {
           *dst = *pos1;
-          *pos1++;
-          *dst++;
+          pos1++;
+          dst++;
           }
         }
       *dst = '\0';
