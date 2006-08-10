@@ -133,7 +133,10 @@ static int get_bitrate(int in_rate, int layer, int channels,
   int diff;
   int min_diff = 1000000;
   int min_i = -1;
-  int ret;
+  int ret = 0;
+
+  fprintf(stderr, "get_bitrate: %d %d %d %d\n",
+          in_rate, layer, channels, vcd);
   
   for(i = 0; i < 15; i++)
     {
@@ -152,7 +155,7 @@ static int get_bitrate(int in_rate, int layer, int channels,
         }
       }
     }
-  if(min_i >= 0)
+  if(!ret)
     {
     ret = bitrates[layer-1][min_i];
     }
@@ -193,9 +196,6 @@ static int get_bitrate(int in_rate, int layer, int channels,
     {
     bg_log(BG_LOG_WARNING, LOG_DOMAIN,
            "Bitrate %d kbps unsupported, switching to %d kbps", in_rate, ret);
-    fprintf(stderr,
-            "Bitrate %d kbps unsupported, switching to %d kbps",
-            in_rate, ret);
     }
   return ret;
   }
