@@ -206,9 +206,8 @@ create_pixelformat_function_table(const gavl_video_options_t * opt,
   //          opt->accel_flags, opt->quality);
   
   /* Standard C-routines, always complete */
-  if(!opt->accel_flags || (opt->accel_flags & GAVL_ACCEL_C))
+  if(opt->quality || (opt->accel_flags & GAVL_ACCEL_C))
     {
-    //    fprintf(stderr, "Init C functions %08x\n", real_accel_flags);
     gavl_init_rgb_rgb_funcs_c(csp_tab, opt);
     gavl_init_rgb_yuv_funcs_c(csp_tab, opt);
     gavl_init_yuv_rgb_funcs_c(csp_tab, opt);
@@ -236,8 +235,8 @@ create_pixelformat_function_table(const gavl_video_options_t * opt,
 
   /* High quality */
   
-  if((!opt->accel_flags && (opt->quality > 3)) ||
-     (opt->accel_flags & GAVL_ACCEL_C_HQ))
+  if((opt->quality > 3) ||
+     ((!opt->quality) && (opt->accel_flags & GAVL_ACCEL_C_HQ)))
     {
     //    fprintf(stderr, "Init HQ\n");
     gavl_init_rgb_rgb_funcs_hq(csp_tab, opt);

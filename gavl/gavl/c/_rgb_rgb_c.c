@@ -1470,15 +1470,17 @@
 #define OUT_ADVANCE 4
 #define NUM_PIXELS  1
 #define FUNC_NAME rgba_64_to_rgba_32_c
+
 #define CONVERT \
   RGB_16_TO_8(src[0], dst[0]); \
   RGB_16_TO_8(src[1], dst[1]); \
   RGB_16_TO_8(src[2], dst[2]); \
-  RGB_16_TO_8(src[3], dst[3]);
+  RGB_16_TO_8(src[3], dst[3]); \
 
 #ifdef HQ
+
 #define INIT \
-  uint32_t round_tmp;
+  int32_t round_tmp;
 #endif  
 
   
@@ -1516,7 +1518,7 @@
   PACK_16_TO_RGB15(src[0], src[1], src[2], *dst)
 
 #ifdef HQ
-#define INIT uint32_t round_tmp;
+#define INIT int32_t round_tmp;
 #endif
   
 #include "../csp_packed_packed.h"
@@ -1532,7 +1534,7 @@
 #define CONVERT \
   PACK_16_TO_BGR15(src[0], src[1], src[2], *dst)
 #ifdef HQ
-#define INIT uint32_t round_tmp;
+#define INIT int32_t round_tmp;
 #endif
 
 
@@ -1550,7 +1552,7 @@
   PACK_16_TO_RGB16(src[0], src[1], src[2], *dst)
 
 #ifdef HQ
-#define INIT uint32_t round_tmp;
+#define INIT int32_t round_tmp;
 #endif
 
 #include "../csp_packed_packed.h"
@@ -1566,7 +1568,7 @@
 #define CONVERT \
   PACK_16_TO_BGR16(src[0], src[1], src[2], *dst)
 #ifdef HQ
-#define INIT uint32_t round_tmp;
+#define INIT int32_t round_tmp;
 #endif
   
 #include "../csp_packed_packed.h"

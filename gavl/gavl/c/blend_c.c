@@ -21,6 +21,8 @@
 #include <video.h>
 #include <blend.h>
 
+#include <math.h>
+
 /* Switch on individual items in the colorspace tables / macros */
 #define HAVE_YUVJ_TO_YUV_8
 #define HAVE_YUVJ_TO_YUV_16
@@ -432,7 +434,7 @@ static void blend_rgba_32(gavl_overlay_blend_context_t * ctx,
   uint8_t * ovl_ptr_start;
   uint8_t * dst_ptr_start;
 
-  int32_t r_tmp, g_tmp, b_tmp, a_tmp;
+  float c_a, c_b, c_dst, a_a, o_a, a_b, a_dst;
   
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
@@ -444,23 +446,44 @@ static void blend_rgba_32(gavl_overlay_blend_context_t * ctx,
     
     for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
-      r_tmp = dst_ptr[0];
-      g_tmp = dst_ptr[1];
-      b_tmp = dst_ptr[2];
-      a_tmp = dst_ptr[3];
+      /* Transparent frame -> Copy overlay */
+      if(!dst_ptr[3])
+        {
+        dst_ptr[0] = ovl_ptr[0];
+        dst_ptr[1] = ovl_ptr[1];
+        dst_ptr[2] = ovl_ptr[2];
+        dst_ptr[3] = ovl_ptr[3];
+        }
+      else if(ovl_ptr[3])
+        {
+        /* rgba -> rgba blending */
+        /* Due to the complicated arithmetics, this is
+           done in floating point. High speed integer versions
+           are welcome */
 
-      BLEND_8(ovl_ptr[0], r_tmp, ovl_ptr[3]);
-      BLEND_8(ovl_ptr[1], g_tmp, ovl_ptr[3]);
-      BLEND_8(ovl_ptr[2], b_tmp, ovl_ptr[3]);
+        a_a = RGB_8_TO_FLOAT(ovl_ptr[3]);
+        a_b = RGB_8_TO_FLOAT(dst_ptr[3]);
+        o_a = 1.0 - a_a;
+                
+        a_dst = a_a + a_b - a_a * a_b;
 
-      // BLEND_8(ovl_ptr[3], a_tmp, ovl_ptr[3]);
+        c_a = RGB_8_TO_FLOAT(ovl_ptr[0]);
+        c_b = RGB_8_TO_FLOAT(dst_ptr[0]);
+        c_dst = (c_a * a_a + c_b * a_b * o_a) / a_dst;
+        RGB_FLOAT_TO_8(c_dst, dst_ptr[0]);
 
-      a_tmp = ovl_ptr[3] + a_tmp - ((ovl_ptr[3] * a_tmp) >> 8);
-      
-      dst_ptr[0] = r_tmp;
-      dst_ptr[1] = g_tmp;
-      dst_ptr[2] = b_tmp;
-      dst_ptr[3] = RECLIP_32_TO_8(a_tmp);
+        c_a = RGB_8_TO_FLOAT(ovl_ptr[1]);
+        c_b = RGB_8_TO_FLOAT(dst_ptr[1]);
+        c_dst = (c_a * a_a + c_b * a_b * o_a) / a_dst;
+        RGB_FLOAT_TO_8(c_dst, dst_ptr[1]);
+
+        c_a = RGB_8_TO_FLOAT(ovl_ptr[2]);
+        c_b = RGB_8_TO_FLOAT(dst_ptr[2]);
+        c_dst = (c_a * a_a + c_b * a_b * o_a) / a_dst;
+        RGB_FLOAT_TO_8(c_dst, dst_ptr[2]);
+        
+        RGB_FLOAT_TO_8(a_dst, dst_ptr[3]);
+        }
       
       ovl_ptr+=4;
       dst_ptr+=4;
@@ -532,7 +555,7 @@ static void blend_rgba_64(gavl_overlay_blend_context_t * ctx,
   uint8_t * ovl_ptr_start;
   uint8_t * dst_ptr_start;
 
-  int64_t r_tmp, g_tmp, b_tmp, a_tmp;
+  float c_a, c_b, c_dst, a_a, o_a, a_b, a_dst;
   
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
@@ -544,23 +567,44 @@ static void blend_rgba_64(gavl_overlay_blend_context_t * ctx,
     
     for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
-      r_tmp = dst_ptr[0];
-      g_tmp = dst_ptr[1];
-      b_tmp = dst_ptr[2];
-      a_tmp = dst_ptr[3];
+      /* Transparent frame -> Copy overlay */
+      if(!dst_ptr[3])
+        {
+        dst_ptr[0] = ovl_ptr[0];
+        dst_ptr[1] = ovl_ptr[1];
+        dst_ptr[2] = ovl_ptr[2];
+        dst_ptr[3] = ovl_ptr[3];
+        }
+      else if(ovl_ptr[3])
+        {
+        /* rgba -> rgba blending */
+        /* Due to the complicated arithmetics, this is
+           done in floating point. High speed integer versions
+           are welcome */
 
-      BLEND_16(ovl_ptr[0], r_tmp, ovl_ptr[3]);
-      BLEND_16(ovl_ptr[1], g_tmp, ovl_ptr[3]);
-      BLEND_16(ovl_ptr[2], b_tmp, ovl_ptr[3]);
+        a_a = RGB_16_TO_FLOAT(ovl_ptr[3]);
+        a_b = RGB_16_TO_FLOAT(dst_ptr[3]);
+        o_a = 1.0 - a_a;
+                
+        a_dst = a_a + a_b - a_a * a_b;
 
-      // BLEND_8(ovl_ptr[3], a_tmp, ovl_ptr[3]);
+        c_a = RGB_16_TO_FLOAT(ovl_ptr[0]);
+        c_b = RGB_16_TO_FLOAT(dst_ptr[0]);
+        c_dst = (c_a * a_a + c_b * a_b * o_a) / a_dst;
+        RGB_FLOAT_TO_16(c_dst, dst_ptr[0]);
 
-      a_tmp = (int64_t)ovl_ptr[3] + a_tmp - ((ovl_ptr[3] * a_tmp) >> 16);
-      
-      dst_ptr[0] = r_tmp;
-      dst_ptr[1] = g_tmp;
-      dst_ptr[2] = b_tmp;
-      dst_ptr[3] = RECLIP_64_TO_16(a_tmp);
+        c_a = RGB_16_TO_FLOAT(ovl_ptr[1]);
+        c_b = RGB_16_TO_FLOAT(dst_ptr[1]);
+        c_dst = (c_a * a_a + c_b * a_b * o_a) / a_dst;
+        RGB_FLOAT_TO_16(c_dst, dst_ptr[1]);
+
+        c_a = RGB_16_TO_FLOAT(ovl_ptr[2]);
+        c_b = RGB_16_TO_FLOAT(dst_ptr[2]);
+        c_dst = (c_a * a_a + c_b * a_b * o_a) / a_dst;
+        RGB_FLOAT_TO_16(c_dst, dst_ptr[2]);
+        
+        RGB_FLOAT_TO_16(a_dst, dst_ptr[3]);
+        }
       
       ovl_ptr+=4;
       dst_ptr+=4;
@@ -621,8 +665,8 @@ static void blend_rgba_float(gavl_overlay_blend_context_t * ctx,
   
   uint8_t * ovl_ptr_start;
   uint8_t * dst_ptr_start;
-
-  
+  float o_a, a_dst;
+    
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
   
@@ -633,10 +677,21 @@ static void blend_rgba_float(gavl_overlay_blend_context_t * ctx,
     
     for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
-      BLEND_FLOAT(ovl_ptr[0], dst_ptr[0], ovl_ptr[3]);
-      BLEND_FLOAT(ovl_ptr[1], dst_ptr[1], ovl_ptr[3]);
-      BLEND_FLOAT(ovl_ptr[2], dst_ptr[2], ovl_ptr[3]);
-      dst_ptr[3] = dst_ptr[3] + ovl_ptr[3] - dst_ptr[3]*ovl_ptr[3];
+      a_dst = dst_ptr[3] + ovl_ptr[3] - dst_ptr[3]*ovl_ptr[3];
+
+      if(fabs(a_dst) < 1.0e-6)
+        {
+	ovl_ptr+=4;
+	dst_ptr+=4;
+        continue;
+	}
+      o_a = 1.0 - ovl_ptr[3];
+
+      dst_ptr[0] = (ovl_ptr[0]*ovl_ptr[3] + dst_ptr[0]*dst_ptr[3]*o_a)/a_dst;
+      dst_ptr[1] = (ovl_ptr[1]*ovl_ptr[3] + dst_ptr[1]*dst_ptr[3]*o_a)/a_dst;
+      dst_ptr[2] = (ovl_ptr[2]*ovl_ptr[3] + dst_ptr[2]*dst_ptr[3]*o_a)/a_dst;
+      dst_ptr[3] = a_dst;
+
       ovl_ptr+=4;
       dst_ptr+=4;
       }
@@ -775,7 +830,7 @@ static void blend_yuva_32(gavl_overlay_blend_context_t * ctx,
   uint8_t * ovl_ptr_start;
   uint8_t * dst_ptr_start;
 
-  int32_t y_tmp, u_tmp, v_tmp, a_tmp;
+  float c_a, c_b, c_dst, a_a, o_a, a_b, a_dst;
   
   ovl_ptr_start = overlay->planes[0];
   dst_ptr_start = frame->planes[0];
@@ -787,23 +842,44 @@ static void blend_yuva_32(gavl_overlay_blend_context_t * ctx,
     
     for(j = 0; j < ctx->ovl.ovl_rect.w; j++)
       {
-      y_tmp = dst_ptr[0];
-      u_tmp = dst_ptr[1];
-      v_tmp = dst_ptr[2];
-      a_tmp = dst_ptr[3];
+      /* Transparent frame -> Copy overlay */
+      if(!dst_ptr[3])
+        {
+        dst_ptr[0] = ovl_ptr[0];
+        dst_ptr[1] = ovl_ptr[1];
+        dst_ptr[2] = ovl_ptr[2];
+        dst_ptr[3] = ovl_ptr[3];
+        }
+      else if(ovl_ptr[3])
+        {
+        /* rgba -> rgba blending */
+        /* Due to the complicated arithmetics, this is
+           done in floating point. High speed integer versions
+           are welcome */
 
-      BLEND_8(ovl_ptr[0], y_tmp, ovl_ptr[3]);
-      BLEND_8(ovl_ptr[1], u_tmp, ovl_ptr[3]);
-      BLEND_8(ovl_ptr[2], v_tmp, ovl_ptr[3]);
+        a_a = RGB_8_TO_FLOAT(ovl_ptr[3]);
+        a_b = RGB_8_TO_FLOAT(dst_ptr[3]);
+        o_a = 1.0 - a_a;
+                
+        a_dst = a_a + a_b - a_a * a_b;
 
-      // BLEND_8(ovl_ptr[3], a_tmp, ovl_ptr[3]);
+        c_a = RGB_8_TO_FLOAT(ovl_ptr[0]);
+        c_b = RGB_8_TO_FLOAT(dst_ptr[0]);
+        c_dst = (c_a * a_a + c_b * a_b * o_a) / a_dst;
+        RGB_FLOAT_TO_8(c_dst, dst_ptr[0]);
 
-      a_tmp = ovl_ptr[3] + a_tmp - ((ovl_ptr[3] * a_tmp) >> 8);
-      
-      dst_ptr[0] = y_tmp;
-      dst_ptr[1] = u_tmp;
-      dst_ptr[2] = v_tmp;
-      dst_ptr[3] = RECLIP_32_TO_8(a_tmp);
+        c_a = RGB_8_TO_FLOAT(ovl_ptr[1]);
+        c_b = RGB_8_TO_FLOAT(dst_ptr[1]);
+        c_dst = (c_a * a_a + c_b * a_b * o_a) / a_dst;
+        RGB_FLOAT_TO_8(c_dst, dst_ptr[1]);
+
+        c_a = RGB_8_TO_FLOAT(ovl_ptr[2]);
+        c_b = RGB_8_TO_FLOAT(dst_ptr[2]);
+        c_dst = (c_a * a_a + c_b * a_b * o_a) / a_dst;
+        RGB_FLOAT_TO_8(c_dst, dst_ptr[2]);
+        
+        RGB_FLOAT_TO_8(a_dst, dst_ptr[3]);
+        }
       
       ovl_ptr+=4;
       dst_ptr+=4;

@@ -285,8 +285,8 @@ int main(int argc, char ** argv)
     dst_rect.x = 0;
     dst_rect.y = 0;
     
-    src_rect.w = 128;
-    src_rect.h = 2;
+    src_rect.w = 200;
+    src_rect.h = 200;
     src_rect.x = 0;
     src_rect.y = 0;
         

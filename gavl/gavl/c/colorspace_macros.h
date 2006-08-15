@@ -1,4 +1,7 @@
+
 #define RECLIP_32_TO_8(color) (uint8_t)((color & ~0xFF)?((-color) >> 31) : color) 
+// #define RECLIP_32_TO_8(color) color>255?255:((color<0)?0:color)
+
 #define RECLIP_32_TO_16(color) (uint16_t)((color & ~0xFFFF)?((-color) >> 31) : color) 
 
 #define RECLIP_64_TO_8(color) (uint8_t)((color & ~0xFF)?((-color) >> 63) : color) 
@@ -96,7 +99,9 @@
 /* Conversion from 16 bit */
 
 #ifdef DO_ROUND
-#define RGB_16_TO_8(val,dst) round_tmp=((val+0x80)>>8);dst=RECLIP_32_TO_8(round_tmp);
+#define RGB_16_TO_8(val,dst) \
+  round_tmp=(((int32_t)val+0x80)>>8);\
+  dst=RECLIP_32_TO_8(round_tmp);
 #else
 #define RGB_16_TO_8(val,dst) dst=((val)>>8)
 #endif

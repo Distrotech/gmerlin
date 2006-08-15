@@ -26,7 +26,7 @@
  *   Shamelessly stolen from ffmpeg (ffmpeg.sf.net)
  */
 
-#define ACCEL_GENERIC GAVL_ACCEL_C|GAVL_ACCEL_C_HQ|GAVL_ACCEL_C_SHQ
+#define ACCEL_GENERIC 0
 
 /*
  *  Wrappers for foreign flag constants

@@ -264,6 +264,13 @@ int main(int argc, char ** argv)
   gavl_pixelformat_t frame_csp;
   gavl_pixelformat_t overlay_csp;
 
+
+  if(argc != 3)
+    {
+    fprintf(stderr, "Usage: blend_test <frame_file> <overlay_file>\n");
+    return -1;
+    }
+
   memset(&frame_format,   0, sizeof(frame_format));
   memset(&overlay_format, 0, sizeof(overlay_format));
   
