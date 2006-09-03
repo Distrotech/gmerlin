@@ -451,6 +451,7 @@ static int open_vivo(bgav_demuxer_context_t * ctx,
   /* Set up video stream */
   
   video_stream = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+  video_stream->vfr_timestamps = 1;
 
   if(priv->header.version == 1)
     {

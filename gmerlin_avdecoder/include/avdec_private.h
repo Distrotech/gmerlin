@@ -153,7 +153,7 @@ struct bgav_packet_s
   int data_alloc;
   uint8_t * data;
   int64_t timestamp_scaled;
-  int64_t duration_scaled;  /* For text subtitles only! */
+  int64_t duration_scaled;  /* For text subtitles and VFR video only! */
   int keyframe;
   bgav_stream_t * stream; /* The stream this packet belongs to */
   int samples; /* Optional */
@@ -200,7 +200,8 @@ struct bgav_packet_buffer_s
 bgav_packet_buffer_t * bgav_packet_buffer_create();
 void bgav_packet_buffer_destroy(bgav_packet_buffer_t*);
 
-bgav_packet_t * bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t*);
+bgav_packet_t * bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t*, int get_duration);
+bgav_packet_t * bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t*, int get_duration);
 
 bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t*, bgav_stream_t * s);
 
@@ -328,7 +329,13 @@ struct bgav_stream_s
 
   int no_packets;
   bgav_stream_t * sync_stream;
-    
+
+  /*
+   *  Indicator for streams, where VFR framerate is realized by packet timestamps
+   */
+  
+  int vfr_timestamps;
+  
   union
     {
     struct
@@ -368,6 +375,13 @@ struct bgav_stream_s
       
       int64_t last_frame_time;
       int     last_frame_duration;
+
+      /* These are set by the demuxer during seeking (and optionally
+         by the codec during resync. They are invalid except during the
+         seek process */
+
+      int64_t next_frame_time;
+      int     next_frame_duration;
       } video;
     struct
       {
@@ -913,9 +927,9 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
                              bgav_stream_t * s);
 
 
-int
+bgav_packet_t *
 bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
-                              bgav_stream_t * s);
+                              bgav_stream_t * s, int force);
 
 void 
 bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,

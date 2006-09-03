@@ -457,7 +457,8 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
   gavl_time_t test_time;
   
   bgav_stream_t * s;
-
+  bgav_packet_t * p;
+  
   for(i = 0; i < track->num_audio_streams; i++)
     {
     s = &(track->audio_streams[i]);
@@ -469,7 +470,8 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
 
     if(s->time_scaled < 0)
       {
-      fprintf(stderr, "Couldn't resync audio stream after seeking, maybe EOF\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Couldn't resync audio stream after seeking, maybe EOF");
       return GAVL_TIME_UNDEFINED;
       }
     test_time = gavl_samples_to_time(s->timescale, s->time_scaled);
@@ -485,12 +487,28 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
 
     if(s->action != BGAV_STREAM_DECODE)
       continue;
+
+    s->data.video.next_frame_time =
+      gavl_time_rescale(s->timescale, s->data.video.format.timescale, s->time_scaled);
+    
+    if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_CONSTANT)
+      s->data.video.next_frame_duration = s->data.video.format.frame_duration;
+    else if(s->vfr_timestamps)
+      {
+      p = bgav_demuxer_peek_packet_read(s->demuxer, s, 1);
+      if(!p)
+        s->data.video.next_frame_duration = 0;
+      else
+        s->data.video.next_frame_duration =
+          gavl_time_rescale(s->timescale, s->data.video.format.timescale, p->duration_scaled);
+      }
     
     bgav_stream_resync_decoder(s);
     
     if(s->time_scaled < 0)
       {
-      fprintf(stderr, "Couldn't resync video stream after seeking, maybe EOF\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Couldn't resync video stream after seeking, maybe EOF");
       return GAVL_TIME_UNDEFINED;
       }
     test_time = gavl_time_unscale(s->timescale, s->time_scaled);

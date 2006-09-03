@@ -447,6 +447,8 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
   if(sh.vidfmt != BGAV_MK_FOURCC('N','O','N','E'))
     {
     s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+    s->vfr_timestamps = 1;
+    
     s->fourcc = sh.vidfmt;
     
     s->data.video.format.image_width  = sh.width;

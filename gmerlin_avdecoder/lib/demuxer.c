@@ -546,7 +546,7 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
   if(!s->packet_buffer)
     return (bgav_packet_t*)0;
   demuxer->request_stream = s; 
-  while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer)))
+  while(!(ret = bgav_packet_buffer_get_packet_read(s->packet_buffer, 0)))
     {
     if(!demuxer_next_packet(demuxer))
       return (bgav_packet_t*)0;
@@ -556,28 +556,27 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
   return ret;
   }
 
-int
+bgav_packet_t *
 bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
-                              bgav_stream_t * s)
+                              bgav_stream_t * s, int force)
   {
+  bgav_packet_t * ret;
   if(!s->packet_buffer)
     return 0;
   
-  if(demuxer->peek_forces_read)
+  if(demuxer->peek_forces_read || force)
     {
     demuxer->request_stream = s; 
-    while(!s->packet_buffer->read_packet->valid)
+    while(!(ret = bgav_packet_buffer_peek_packet_read(s->packet_buffer, s->vfr_timestamps)))
       {
       if(!demuxer_next_packet(demuxer))
         return 0;
       }
     demuxer->request_stream = (bgav_stream_t*)0;
-    return 1;
+    return ret;
     }
-  else if(s->packet_buffer->read_packet->valid)
-    return 1;
   else
-    return 0;
+    return bgav_packet_buffer_peek_packet_read(s->packet_buffer, s->vfr_timestamps);
   }
 
 
@@ -759,14 +758,15 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
     sync_time = bgav_track_resync_decoders(track);
     if(sync_time == GAVL_TIME_UNDEFINED)
       {
-      bgav_log(&b->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Warning: Undefined sync time after seeking");
+      bgav_log(&b->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "Warning: Undefined sync time after seeking");
       return;
       }
     /* If demuxer already seeked perfectly, break here */
 
     if(!b->demuxer->seek_iterative)
       {
-
+      //      fprintf(stderr, "Seek %lld %lld\n", *time, sync_time);
       if(*time > sync_time)
         skip_to(b, track, time);
       else

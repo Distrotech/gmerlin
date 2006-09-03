@@ -88,6 +88,12 @@ void bgav_log(const bgav_options_t * opt,
     {
     opt->log_callback(opt->log_callback_data,
                       level, domain, msg_string);
+#if 0
+    fprintf(stderr, "[%s] %s: %s\n",
+            domain,
+            log_level_to_string(level),
+            msg_string);
+#endif
     }
   free(msg_string);
   }

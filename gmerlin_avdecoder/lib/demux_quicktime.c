@@ -647,7 +647,8 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         }
       
       bg_vs = bgav_track_add_video_stream(track, ctx->opt);
-      
+      bg_vs->vfr_timestamps = 1;
+            
       desc = &(moov->tracks[i].mdia.minf.stbl.stsd.entries[skip_first_frame].desc);
       stream_priv = &(priv->streams[i]);
       

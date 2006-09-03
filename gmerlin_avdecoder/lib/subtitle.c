@@ -167,7 +167,7 @@ int bgav_has_subtitle(bgav_t * b, int stream)
     {
     if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
       {
-      if(bgav_demuxer_peek_packet_read(s->demuxer, s))
+      if(bgav_demuxer_peek_packet_read(s->demuxer, s, 0))
         return 1;
       else
         {

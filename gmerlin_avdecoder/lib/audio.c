@@ -150,21 +150,38 @@ int bgav_audio_skipto(bgav_stream_t * s, gavl_time_t * t)
   int64_t num_samples;
   int samples_skipped = 0;  
   gavl_time_t stream_time;
+  gavl_time_t diff_time;
 
+  //  fprintf(stderr, "bgav_audio_skipto\n");
+  
   stream_time = gavl_time_unscale(s->timescale,
                                   s->time_scaled);
 
-  num_samples = ((int64_t)(s->data.audio.format.samplerate)* (*t - stream_time)) /
-    GAVL_TIME_SCALE;
+  diff_time = *t - stream_time;
 
+  num_samples = gavl_time_to_samples(s->data.audio.format.samplerate,
+                                     diff_time);
+  
+  bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+           "Resynching audio stream (num_samples: %lld, stream_time: %f, sync_time: %f)",
+           num_samples, 
+           gavl_time_to_seconds(stream_time), gavl_time_to_seconds(*t));
+  
+  
   if(num_samples < 0)
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
              "Cannot skip backwards: Stream time: %f Skip time: %f",
             gavl_time_to_seconds(stream_time), gavl_time_to_seconds(*t));
   else
     if(num_samples > 0)
-    samples_skipped = bgav_audio_decode(s, (gavl_audio_frame_t*)0, num_samples);
-
+      {
+      bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+               "Skipping %lld samples (stream_time: %f, sync_time: %f)",
+               num_samples, 
+               gavl_time_to_seconds(stream_time), gavl_time_to_seconds(*t));
+      
+      samples_skipped = bgav_audio_decode(s, (gavl_audio_frame_t*)0, num_samples);
+      }
   if(samples_skipped < num_samples)
     {
     return 0;

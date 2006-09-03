@@ -608,7 +608,10 @@ static int open_asf(bgav_demuxer_context_t * ctx,
       else if(bgav_GUID_equal(&guid, &guid_video_media))
         {
         bgav_vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+        bgav_vs->vfr_timestamps = 1;
+        
         bgav_vs->stream_id = stream_number;
+        
         //        asf_vs  = calloc(1, sizeof(*asf_vs));
         
         //        bgav_vs->priv = asf_vs;

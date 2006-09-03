@@ -140,22 +140,29 @@ void bgav_video_resync(bgav_stream_t * s)
 
 int bgav_video_skipto(bgav_stream_t * s, gavl_time_t * time)
   {
-  gavl_time_t stream_time;
-  int64_t codec_time_scaled;
+  //  gavl_time_t stream_time;
   gavl_time_t next_frame_time;
   int result;
+  int64_t time_scaled;
+    
+  time_scaled = gavl_time_scale(s->data.video.format.timescale, *time);
   
-  stream_time = gavl_samples_to_time(s->timescale,
-                                     s->time_scaled);
-  
-  if(stream_time >= *time)
+  if(s->data.video.next_frame_time >= time_scaled)
     {
+    bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN, 
+             "Cannot skip backwards, stream_time: %lld, sync_time: %lld",
+             s->time_scaled, time_scaled);
     //    fprintf(stderr, "video.c: cannot skip backwards\n");
     return 1;
     }
 
-  codec_time_scaled = gavl_time_to_samples(s->data.video.format.timescale,
-                                           *time);
+  else if(s->data.video.next_frame_time + s->data.video.next_frame_duration > time_scaled)
+    {
+    /* Do nothing but update the time */
+    *time = gavl_time_unscale(s->data.video.format.timescale, s->data.video.next_frame_time);
+    //    fprintf(stderr, "bgav_video_skipto: Time: %f\n", gavl_time_to_seconds(*time));
+    return 1;
+    }
   
   do{
     result = bgav_video_decode(s, (gavl_video_frame_t*)0);
@@ -163,16 +170,17 @@ int bgav_video_skipto(bgav_stream_t * s, gavl_time_t * time)
     if(!result)
       return 0;
 
-    next_frame_time = gavl_samples_to_time(s->data.video.format.timescale,
-                                           s->data.video.last_frame_time +
-                                           s->data.video.last_frame_duration);
-    } while((next_frame_time < *time) && result);
-#if 0  
-  fprintf(stderr, "bgav_video_skipto: Time: %f, next frame time: %f\n",
-          gavl_time_to_seconds(*time),
-          gavl_time_to_seconds(next_frame_time));
+    next_frame_time = s->data.video.last_frame_time + s->data.video.last_frame_duration;
+    } while((next_frame_time < time_scaled) && result);
+
+  *time = gavl_time_unscale(s->data.video.format.timescale, next_frame_time);
+  s->time_scaled = gavl_time_scale(s->timescale, *time);
+
+#if 0
+  fprintf(stderr, "bgav_video_skipto: Time: %f\n", gavl_time_to_seconds(*time));
 #endif
-  s->time_scaled = gavl_time_to_samples(s->timescale, *time);
+
+  
   return 1;
   }
 

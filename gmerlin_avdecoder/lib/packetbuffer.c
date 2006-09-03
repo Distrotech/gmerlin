@@ -65,15 +65,31 @@ void bgav_packet_buffer_clear(bgav_packet_buffer_t * b)
   b->read_packet = b->write_packet;
   }
 
-bgav_packet_t * bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t * b)
+bgav_packet_t * bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b, int get_duration)
+  {
+  if(get_duration)
+    {
+    if(!b->read_packet->valid || !b->read_packet->next->valid)
+      return (bgav_packet_t*)0; 
+    b->read_packet->duration_scaled =
+      b->read_packet->next->timestamp_scaled - b->read_packet->timestamp_scaled;
+    }
+  else if(!b->read_packet->valid)
+    return (bgav_packet_t*)0;
+  
+  return b->read_packet;
+  }
+
+bgav_packet_t * bgav_packet_buffer_get_packet_read(bgav_packet_buffer_t * b, int get_duration)
   {
   bgav_packet_t * ret;
-  if(!b->read_packet->valid)
-    return (bgav_packet_t*)0;
-  ret = b->read_packet;
+  ret = bgav_packet_buffer_peek_packet_read(b, get_duration);
+  if(!ret)
+    return ret;
   b->read_packet = b->read_packet->next;
   return ret;
   }
+
 
 
 bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t * b, bgav_stream_t * s)

@@ -186,6 +186,12 @@ static void get_format(gavl_video_format_t * ret,
   
   if(sequence->flags & SEQ_FLAG_MPEG2)
     ret->framerate_mode = GAVL_FRAMERATE_VARIABLE;
+  else /* MPEG-1 is always constant framerate */
+    {
+    ret->timescale /= 2;
+    ret->frame_duration /= 2;
+    }
+
   //  dump_sequence_header(sequence);
   }
 
@@ -362,11 +368,28 @@ static void resync_mpeg2(bgav_stream_t*s)
       {
       // fprintf(stderr, "resync_mpeg2: Got I Frame %p\n", priv->info->current_picture);
       priv->first_iframe = priv->info->current_picture;
+
+      
+
       break;
       }
     }
   mpeg2_skip(priv->dec, 0);
   priv->do_resync = 0;
+
+  /* Set next timestamps */
+
+  s->data.video.next_frame_time = priv->picture_timestamp;
+
+  s->data.video.next_frame_duration = s->data.video.format.frame_duration;
+  
+  if((priv->info->current_picture->flags & PIC_FLAG_TOP_FIELD_FIRST) &&
+     (priv->info->current_picture->nb_fields > 2))
+    {
+    s->data.video.next_frame_duration =
+      (s->data.video.next_frame_duration * priv->info->current_picture->nb_fields) / 2;
+    }
+  
   }
 
   

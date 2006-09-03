@@ -284,6 +284,8 @@ static int open_flv(bgav_demuxer_context_t * ctx,
   if(flags & 0x01)
     {
     vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+    vs->vfr_timestamps = 1;
+    
     vs->stream_id = VIDEO_ID;
     vs->timescale = 1000;
     }
