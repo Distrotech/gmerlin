@@ -135,8 +135,8 @@ static int get_bitrate(int in_rate, int layer, int channels,
   int min_i = -1;
   int ret = 0;
 
-  fprintf(stderr, "get_bitrate: %d %d %d %d\n",
-          in_rate, layer, channels, vcd);
+  //  fprintf(stderr, "get_bitrate: %d %d %d %d\n",
+  //          in_rate, layer, channels, vcd);
   
   for(i = 0; i < 15; i++)
     {
@@ -224,7 +224,7 @@ static int get_samplerate(int in_rate, int vcd)
   int diff;
   int min_diff = 1000000;
   int min_i = -1;
-  int ret;
+  int ret = 0;
   
   if(vcd)
     ret = 44100;
@@ -245,12 +245,8 @@ static int get_samplerate(int in_rate, int vcd)
           }
         }
       }
-    if(min_i >= 0)
-      {
+    if(!ret)
       ret = samplerates[min_i];
-      }
-    else
-      ret = 44100;
     }
 
   if(ret != in_rate)
@@ -311,7 +307,7 @@ int bg_mpa_start(bg_mpa_common_t * com, const char * filename)
     {
     return 0;
     }
-  fprintf(stderr, "Launching %s\n", commandline);
+  //  fprintf(stderr, "Launching %s\n", commandline);
     
   com->mp2enc = bg_subprocess_create(commandline, 1, 0, 0);
   if(!com->mp2enc)
