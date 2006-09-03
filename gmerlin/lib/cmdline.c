@@ -41,7 +41,6 @@ void bg_cmdline_parse(bg_cmdline_arg_t * args, int * argc, char *** _argv,
           args[j].callback(callback_data, argc, _argv, i);
         else if(args[j].parameters)
           {
-          
           }
           
         found = 1;

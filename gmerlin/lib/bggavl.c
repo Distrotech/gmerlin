@@ -661,7 +661,7 @@ void bg_gavl_video_options_set_rectangles(bg_gavl_video_options_t * opt,
 
   if(opt->maintain_aspect)
     {
-    // fprintf(stderr, "FIT ASPECT\n");
+    fprintf(stderr, "FIT ASPECT\n");
     gavl_rectangle_fit_aspect(&out_rect,   // gavl_rectangle_t * r,
                               in_format,  // gavl_video_format_t * src_format,
                               &in_rect,    // gavl_rectangle_t * src_rect,
@@ -672,9 +672,14 @@ void bg_gavl_video_options_set_rectangles(bg_gavl_video_options_t * opt,
     }
   else
     {
+    fprintf(stderr, "Ignore aspect\n");
     gavl_rectangle_i_set_all(&out_rect, out_format);
     }
-
+  fprintf(stderr, "In Rectangle: ");
+  gavl_rectangle_f_dump(&in_rect);
+  fprintf(stderr, "Out Rectangle: ");
+  gavl_rectangle_i_dump(&out_rect);
+      
   /* Set rectangles */
 
   gavl_video_options_set_rectangles(opt->opt, &in_rect, &out_rect);

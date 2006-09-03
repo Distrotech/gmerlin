@@ -29,7 +29,7 @@ static void set_video_parameter(void * data, char * name,
 
 static void opt_video_options(void * data, int * argc, char *** argv, int arg)
   {
-  fprintf(stderr, "opt_video_options\n");
+  //  fprintf(stderr, "opt_video_options\n");
 
   if(arg >= *argc)
     {

@@ -28,6 +28,8 @@
 
 #include <log.h>
 
+static int log_mask = BG_LOG_ERROR | BG_LOG_WARNING;
+
 static struct
   {
   bg_log_level_t level;
@@ -80,10 +82,11 @@ void bg_log(bg_log_level_t level, const char * domain,
   
   if(!log_queue)
     {
-    fprintf(stderr, "[%s] %s: %s\n",
-            domain,
-            bg_log_level_to_string(level),
-            msg_string);
+    if(level & log_mask)
+      fprintf(stderr, "[%s] %s: %s\n",
+              domain,
+              bg_log_level_to_string(level),
+              msg_string);
     }
   else
     {
@@ -99,4 +102,9 @@ void bg_log(bg_log_level_t level, const char * domain,
 void bg_set_log_dest(bg_msg_queue_t * q)
   {
   log_queue = q;
+  }
+
+void bg_log_set_verbose(int mask)
+  {
+  log_mask = mask;
   }

@@ -1,4 +1,4 @@
-AM_CFLAGS = -I@top_srcdir@/gavl/include @GTK_CFLAGS@ @XML2_CFLAGS@
+AM_CFLAGS = @GTK_CFLAGS@ @XML2_CFLAGS@
 
 if HAVE_GTK
 gtk_programs = cfgtest \
