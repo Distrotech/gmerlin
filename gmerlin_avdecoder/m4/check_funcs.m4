@@ -849,3 +849,240 @@ AC_DEFINE([HAVE_CDIO])
 fi
 
 ])
+
+
+dnl
+dnl Ogg
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_OGG],[
+
+OGG_REQUIRED="1.1"
+have_ogg=false
+AH_TEMPLATE([HAVE_OGG], [Ogg libraries are there])
+
+AC_ARG_ENABLE(ogg,
+[AC_HELP_STRING([--disable-ogg],[Disable libogg (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_ogg=true ;;
+   no)  test_ogg=false ;;
+esac],[test_ogg=true])
+
+if test x$test_ogg = xtrue; then
+XIPH_PATH_OGG(have_ogg=true)
+fi
+
+AM_CONDITIONAL(HAVE_OGG, test x$have_ogg = xtrue)
+
+if test x$have_ogg = xtrue; then
+AC_DEFINE(HAVE_OGG)
+fi
+
+AC_SUBST(OGG_REQUIRED)
+
+])
+
+dnl
+dnl lame
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_LAME],[
+LAME_REQUIRED="3.93"
+have_lame="false"
+
+AC_ARG_ENABLE(lame,
+[AC_HELP_STRING([--disable-lame],[Disable lame (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_lame=true ;;
+   no)  test_lame=false ;;
+esac],[test_lame=true])
+
+if test x$test_lame = xtrue; then
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+if test x$have_vorbis = xtrue; then
+LIBS="$GMERLIN_DEP_LIBS -lmp3lame -lvorbis -lm"
+else
+LIBS="$GMERLIN_DEP_LIBS -lmp3lame -lm"
+fi
+
+CFLAGS="$GMERLIN_DEP_CFLAGS"
+
+
+AH_TEMPLATE([HAVE_LAME], [Enable lame])
+AC_MSG_CHECKING(for lame)
+  AC_TRY_RUN([
+    #include <lame/lame.h>
+    #include <stdio.h>
+    main()
+    {
+    int version_major;
+    int version_minor;
+    const char * version;
+    version = get_lame_version();
+    fprintf(stderr, "lame version: %s\n", version);
+    if(sscanf(version, "%d.%d", &version_major,
+              &version_minor) < 2)
+      return -1;
+    if((version_major != 3) || (version_minor < 93))
+      return 1;
+    return 0;
+    }
+  ],
+  [
+    # program could be run
+    have_lame="true"
+    AC_MSG_RESULT(yes)
+    LAME_CFLAGS=$CFLAGS
+    LAME_LIBS=$LIBS
+
+  ],
+    # program could not be run
+    AC_MSG_RESULT(no)
+)
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+fi
+
+AC_SUBST(LAME_CFLAGS)
+AC_SUBST(LAME_LIBS)
+AC_SUBST(LAME_REQUIRED)
+
+AM_CONDITIONAL(HAVE_LAME, test x$have_lame = xtrue)
+if test x$have_lame = xtrue; then
+AC_DEFINE(HAVE_LAME)
+fi
+
+])
+
+dnl
+dnl faac
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_FAAC],[
+
+have_faac="false"
+FAAC_REQUIRED="1.24"
+
+
+AC_ARG_ENABLE(faac,
+[AC_HELP_STRING([--disable-faac],[Disable faac (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_faac=true ;;
+   no)  test_faac=false ;;
+esac],[test_faac=true])
+
+if test x$test_faac = xtrue; then
+
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+AH_TEMPLATE([HAVE_FAAC], [Enable faac])
+
+LIBS="$GMERLIN_DEP_LIBS -lfaac -lm"
+CFLAGS="$GMERLIN_DEP_CFLAGS"
+
+AC_MSG_CHECKING(for faac)
+AC_TRY_RUN([
+    #include <inttypes.h>
+    #include <faac.h>
+    main()
+    {
+    int samplerate = 44100, num_channels = 2;
+    unsigned long input_samples, output_bytes;
+    faacEncHandle enc;
+    enc = faacEncOpen(samplerate,
+                      num_channels,
+                      &input_samples,
+                      &output_bytes);
+
+    return 0;
+    }
+  ],
+  [
+    # program could be run
+    have_faac="true"
+    AC_MSG_RESULT(yes)
+    FAAC_CFLAGS=$CFLAGS
+    FAAC_LIBS=$LIBS
+
+  ],
+    # program could not be run
+    AC_MSG_RESULT(no)
+)
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+fi
+
+AC_SUBST(FAAC_CFLAGS)
+AC_SUBST(FAAC_LIBS)
+AC_SUBST(FAAC_REQUIRED)
+
+AM_CONDITIONAL(HAVE_FAAC, test x$have_faac = xtrue)
+
+if test x$have_faac = xtrue; then
+AC_DEFINE(HAVE_FAAC)
+fi
+
+])
+
+dnl
+dnl libjpeg
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_LIBJPEG],[
+
+AH_TEMPLATE([HAVE_LIBJPEG],
+            [Do we have libjpeg installed?])
+
+have_libjpeg=false
+JPEG_REQUIRED="6b"
+
+AC_ARG_ENABLE(libjpeg,
+[AC_HELP_STRING([--disable-libjpeg],[Disable libjpeg (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_libjpeg=true ;;
+   no)  test_libjpeg=false ;;
+esac],[test_libjpeg=true])
+
+if test x$test_libjpeg = xtrue; then
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+LIBS=-ljpeg
+CFLAGS=""
+
+AC_MSG_CHECKING(for libjpeg)
+AC_TRY_LINK([#include <stdio.h>
+             #include <jpeglib.h>],
+            [struct jpeg_decompress_struct cinfo;
+             jpeg_create_decompress(&cinfo);],
+            [have_libjpeg=true])
+case $have_libjpeg in
+  true) AC_DEFINE(HAVE_LIBJPEG)
+        AC_MSG_RESULT(yes)
+        JPEG_LIBS=$LIBS;
+        JPEG_CFLAGS=$CFLAGS;;
+  false) AC_MSG_RESULT(no); JPEG_LIBS=""; JPEG_CFLAGS="";;
+  * ) AC_MSG_RESULT("Somethings wrong: $have_libjpeg") ;;
+esac
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+fi
+
+AC_SUBST(JPEG_LIBS)
+AC_SUBST(JPEG_CFLAGS)
+AC_SUBST(JPEG_REQUIRED)
+AM_CONDITIONAL(HAVE_LIBJPEG, test x$have_libjpeg = xtrue)
+
+])
+
