@@ -379,139 +379,19 @@ dnl
 dnl libjpeg
 dnl
 
-AH_TEMPLATE([HAVE_LIBJPEG],
-            [Do we have libjpeg installed?])
-                                                                               
-have_libjpeg=false
-                                                                               
-OLD_CFLAGS=$CFLAGS
-OLD_LIBS=$LIBS
-JPEG_REQUIRED="6b"
-LIBS=-ljpeg-mmx
-CFLAGS=""
-                                                                               
-AC_MSG_CHECKING(for jpeg-mmx)
-AC_TRY_LINK([#include <stdio.h>
-             #include <jpeglib.h>],
-            [struct jpeg_decompress_struct cinfo;
-             jpeg_create_decompress(&cinfo);],
-            [have_libjpeg=true])
- 
-if test x$have_libjpeg = xfalse; then
-  AC_MSG_RESULT(no);
-  LIBS=-ljpeg
-  CFLAGS=""
-  AC_MSG_CHECKING(for libjpeg)
-  AC_TRY_LINK([#include <stdio.h>
-               #include <jpeglib.h>],
-              [struct jpeg_decompress_struct cinfo;
-               jpeg_create_decompress(&cinfo);],
-              [have_libjpeg=true])
-fi
-                                                                               
-case $have_libjpeg in
-  true) AC_DEFINE(HAVE_LIBJPEG)
-        AC_MSG_RESULT(yes)
-        JPEG_LIBS=$LIBS;
-        JPEG_CFLAGS=$CFLAGS;;
-  false) AC_MSG_RESULT(no); JPEG_LIBS=""; JPEG_CFLAGS="";;
-  * ) AC_MSG_RESULT("Somethings wrong: $have_libjpeg") ;;
-esac
-                                                                               
-CFLAGS=$OLD_CFLAGS
-LIBS=$OLD_LIBS
-                                                                               
-AC_SUBST(JPEG_LIBS)
-AC_SUBST(JPEG_CFLAGS)
-AC_SUBST(JPEG_REQUIRED)                                                                               
-AM_CONDITIONAL(HAVE_LIBJPEG, test x$have_libjpeg = xtrue)
+GMERLIN_CHECK_LIBJPEG
 
 dnl
 dnl png
 dnl
 
-AH_TEMPLATE([HAVE_LIBPNG], [Do we have libpng installed?])
-
-PNG_REQUIRED="1.2.2"
-have_libpng=false
-
-OLD_CFLAGS=$CFLAGS
-OLD_LIBS=$LIBS
-
-LIBS="-lpng -lm -lz"
-CFLAGS=""
-                                                                               
-AC_MSG_CHECKING(for libpng)
-AC_TRY_LINK([#include <png.h>],
-            [png_structp png_ptr;
-             png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
-                                               (png_voidp)0,
-                                                NULL, NULL);],
-            [have_libpng=true])
-                                                                               
-case $have_libpng in
-  true) AC_DEFINE(HAVE_LIBPNG)
-        AC_MSG_RESULT(yes)
-        PNG_LIBS=$LIBS ;
-        PNG_CFLAGS=$CFLAGS ;;
-  false) AC_MSG_RESULT(no); PNG_LIBS=""; PNG_CFLAGS="";;
-esac
-CFLAGS=$OLD_CFLAGS
-LIBS=$OLD_LIBS
-                                                                               
-AC_SUBST(PNG_CFLAGS)
-AC_SUBST(PNG_LIBS)
-AC_SUBST(PNG_REQUIRED)
-AM_CONDITIONAL(HAVE_LIBPNG, test x$have_libpng = xtrue)
-                                                                               
-if test x$have_libpng = xtrue; then
-AC_DEFINE(HAVE_LIBPNG)
-fi
+GMERLIN_CHECK_LIBPNG
 
 dnl
 dnl libtiff
 dnl 
 
-AH_TEMPLATE([HAVE_LIBTIFF], [Enable tiff codec])
- 
-have_libtiff=false
-TIFF_REQUIRED="3.5.0"
- 
-OLD_CFLAGS=$CFLAGS
-OLD_LIBS=$LIBS
-
-LIBS="-ltiff"
-CFLAGS=""
- 
-AC_MSG_CHECKING(for libtiff)
-AC_TRY_LINK([#include <tiffio.h>],
-            [TIFF * tiff = (TIFF*)0;
-	     int i = 0;
-	     /* We ensure the function is here but never call it */
-             if(i)
-	       TIFFReadRGBAImage(tiff, 0, 0, (uint32*)0, 0);
-	     return 0;],
-            [have_libtiff=true])
- 
-case $have_libtiff in
-  true) AC_DEFINE(HAVE_LIBTIFF)
-        AC_MSG_RESULT(yes)
-        TIFF_LIBS=$LIBS;
-        TIFF_CFLAGS=$CFLAGS ;;
-  false) AC_MSG_RESULT(no); TIFF_LIBS=""; TIFF_CFLAGS="";;
-esac
-CFLAGS=$OLD_CFLAGS
-LIBS=$OLD_LIBS
-
-AC_SUBST(TIFF_CFLAGS)
-AC_SUBST(TIFF_LIBS)
-AC_SUBST(TIFF_REQUIRED)
-
-AM_CONDITIONAL(HAVE_LIBTIFF, test x$have_libtiff = xtrue)
-
-if test x$have_libtiff = xtrue; then
-AC_DEFINE(HAVE_LIBTIFF)
-fi
+GMERLIN_CHECK_LIBTIFF
 
 dnl
 dnl Applications
