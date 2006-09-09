@@ -524,7 +524,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       if(!p)
         {
         priv->packet_buffer_ptr = (uint8_t*)0;
-        //        fprintf(stderr, "EOF %d\n", priv->has_b_frames);
+        fprintf(stderr, "video_ffmpeg: EOF\n");
         break;
         }
       if(!p->data_size)

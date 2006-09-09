@@ -52,8 +52,13 @@ int bgav_qt_trak_read(qt_atom_header_t * h, bgav_input_context_t * input,
         if(!bgav_qt_tkhd_read(&ch, input, &(ret->tkhd)))
           return 0;
         break;
+      case BGAV_MK_FOURCC('u', 'd', 't', 'a'):
+        if(!bgav_qt_udta_read(&ch, input, &(ret->udta)))
+          return 0;
+        ret->has_udta = 1;
+        break;
       default:
-        bgav_qt_atom_skip(input, &ch);
+        bgav_qt_atom_skip_unknown(input, &ch,h->fourcc);
         break;
       }
     }
@@ -66,14 +71,19 @@ int bgav_qt_trak_read(qt_atom_header_t * h, bgav_input_context_t * input,
 void bgav_qt_trak_free(qt_trak_t * c)
   {
   bgav_qt_mdia_free(&(c->mdia));
+  bgav_qt_udta_free(&(c->udta));
   }
 
-void bgav_qt_trak_dump(qt_trak_t * c)
+void bgav_qt_trak_dump(int indent, qt_trak_t * c)
   {
-  bgav_dprintf( "trak\n");
-  bgav_qt_tkhd_dump(&c->tkhd);
-  bgav_qt_mdia_dump(&c->mdia);
-  bgav_dprintf( "end of trak\n");
+  bgav_diprintf(indent, "trak\n");
+  bgav_qt_tkhd_dump(indent+2, &c->tkhd);
+  bgav_qt_mdia_dump(indent+2, &c->mdia);
+
+  if(c->has_udta)
+    bgav_qt_udta_dump(indent+2, &c->udta);
+  
+  bgav_diprintf(indent, "end of trak\n");
   }
 
 int64_t bgav_qt_trak_samples(qt_trak_t * trak)

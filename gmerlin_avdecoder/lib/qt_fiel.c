@@ -35,9 +35,9 @@ int bgav_qt_fiel_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
   return 1;
   }
 
-void bgav_qt_fiel_dump(qt_fiel_t * p)
+void bgav_qt_fiel_dump(int indent, qt_fiel_t * p)
   {
-  bgav_dprintf( "fiel:\n");
-  bgav_dprintf( "  fields: %d\n", p->fields);
-  bgav_dprintf( "  detail: %d\n", p->detail);
+  bgav_diprintf(indent, "fiel:\n");
+  bgav_diprintf(indent+2, "fields: %d\n", p->fields);
+  bgav_diprintf(indent+2, "detail: %d\n", p->detail);
   }

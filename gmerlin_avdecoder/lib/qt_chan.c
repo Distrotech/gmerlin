@@ -737,7 +737,7 @@ static channel_label_t * get_channel_locations(uint32_t layout, int * num_channe
   return (channel_label_t*)0;
   }
 
-void bgav_qt_chan_dump(qt_chan_t * chan)
+void bgav_qt_chan_dump(int indent, qt_chan_t * chan)
   {
   channel_label_t * channel_labels;
   int num_channels;

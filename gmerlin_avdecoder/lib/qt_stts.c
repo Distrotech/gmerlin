@@ -70,15 +70,16 @@ void bgav_qt_stts_free(qt_stts_t * c)
     free(c->entries);
   }
 
-void bgav_qt_stts_dump(qt_stts_t * c)
+void bgav_qt_stts_dump(int indent, qt_stts_t * c)
   {
   int i;
-  bgav_dprintf( "stts\n");
-  bgav_dprintf( "  num_entries: %d\n", c->num_entries);
+  bgav_diprintf(indent, "stts\n");
+  bgav_diprintf(indent+2, "num_entries: %d\n", c->num_entries);
   for(i = 0; i < c->num_entries; i++)
     {
-    bgav_dprintf( "  count: %d duration: %d\n",
+    bgav_diprintf(indent+2, "count: %d duration: %d\n",
             c->entries[i].count, c->entries[i].duration);
     
     }
+  bgav_diprintf(indent, "end of stts\n");
   }

@@ -30,22 +30,23 @@
   uint8_t * data_ref;
 #endif
 
-static void bgav_qt_rdrf_dump(qt_rdrf_t * r)
+void bgav_qt_rdrf_dump(int indent, qt_rdrf_t * r)
   {
-  bgav_dprintf( "rdrf:\n");
-  bgav_dprintf( "fourcc: ");
+  bgav_diprintf(indent, "rdrf:\n");
+  bgav_diprintf(indent+2, "fourcc: ");
   bgav_dump_fourcc(r->fourcc);
-  bgav_dprintf( "\ndata_ref_size: %d\n", r->data_ref_size);
+  bgav_dprintf( "\n");
+  bgav_diprintf(indent+2, "data_ref_size: %d\n", r->data_ref_size);
 
   if(r->fourcc == BGAV_MK_FOURCC('u', 'r', 'l', ' '))
     {
-    bgav_dprintf( "URL: ");
+    bgav_diprintf(indent+2, "URL: ");
     fwrite(r->data_ref, 1, r->data_ref_size, stderr);
     bgav_dprintf( "\n");
     }
   else
     {
-    bgav_dprintf( "Unknown data, hexdump follows");
+    bgav_diprintf(indent+2, "Unknown data, hexdump follows: ");
     bgav_hexdump(r->data_ref, r->data_ref_size, 16);
     }
   }
@@ -62,7 +63,6 @@ int bgav_qt_rdrf_read(qt_atom_header_t * h,
   if(bgav_input_read_data(input, ret->data_ref, ret->data_ref_size) <
      ret->data_ref_size)
     return 0;
-  bgav_qt_rdrf_dump(ret);
   return 1;
   }
 

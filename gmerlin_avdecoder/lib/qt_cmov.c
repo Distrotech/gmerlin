@@ -106,7 +106,7 @@ int bgav_qt_cmov_read(qt_atom_header_t * h, bgav_input_context_t * input,
         return result;
         break;
       default:
-        bgav_qt_atom_skip(input, &ch);
+        bgav_qt_atom_skip_unknown(input, &ch, h->fourcc);
       }
     }
   return 1;

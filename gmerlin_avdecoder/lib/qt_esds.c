@@ -26,22 +26,21 @@
 
 // #define ENABLE_DUMP
 
-void bgav_qt_esds_dump(qt_esds_t * e)
+void bgav_qt_esds_dump(int indent, qt_esds_t * e)
   {
-  bgav_dprintf( "esds:\n");
-  bgav_qt_atom_dump_header(&(e->h));
-  bgav_dprintf( "  Version:          %d\n", e->version);
-  bgav_dprintf( "  Flags:            0x%0x06x\n", e->flags);
-  bgav_dprintf( "  objectTypeId:     %d\n", e->objectTypeId);
-  bgav_dprintf( "  streamType:       0x%02x\n", e->streamType);
-  bgav_dprintf( "  bufferSizeDB:     %d\n", e->bufferSizeDB);
+  bgav_diprintf(indent, "esds:\n");
+  bgav_qt_atom_dump_header(indent+2, &(e->h));
+  bgav_diprintf(indent+2, "Version:          %d\n", e->version);
+  bgav_diprintf(indent+2, "Flags:            0x%0x06x\n", e->flags);
+  bgav_diprintf(indent+2, "objectTypeId:     %d\n", e->objectTypeId);
+  bgav_diprintf(indent+2, "streamType:       0x%02x\n", e->streamType);
+  bgav_diprintf(indent+2, "bufferSizeDB:     %d\n", e->bufferSizeDB);
 
-  bgav_dprintf( "  maxBitrate:       %d\n", e->maxBitrate);
-  bgav_dprintf( "  avgBitrate:       %d\n", e->avgBitrate);
-  bgav_dprintf( "  decoderConfigLen: %d\n", e->decoderConfigLen);
-  bgav_dprintf( "  decoderConfig:\n");
+  bgav_diprintf(indent+2, "maxBitrate:       %d\n", e->maxBitrate);
+  bgav_diprintf(indent+2, "avgBitrate:       %d\n", e->avgBitrate);
+  bgav_diprintf(indent+2, "decoderConfigLen: %d\n", e->decoderConfigLen);
+  bgav_diprintf(indent+2, "decoderConfig:\n");
   bgav_hexdump(e->decoderConfig, e->decoderConfigLen, 16);
-  
   }
 
 static int read_mp4_descr_length(bgav_input_context_t * input)

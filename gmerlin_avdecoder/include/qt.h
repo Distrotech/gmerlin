@@ -53,10 +53,13 @@ typedef struct
 int bgav_qt_atom_read_header(bgav_input_context_t * input,
                              qt_atom_header_t * h);
 
-void bgav_qt_atom_dump_header(qt_atom_header_t * h);
+void bgav_qt_atom_dump_header(int indent, qt_atom_header_t * h);
 
 void bgav_qt_atom_skip(bgav_input_context_t * input,
                        qt_atom_header_t * h);
+
+void bgav_qt_atom_skip_unknown(bgav_input_context_t * input,
+                               qt_atom_header_t * h, uint32_t parent);
 
 /* Reference movies (== Quicktime redirectors) */
 
@@ -72,10 +75,12 @@ int bgav_qt_rdrf_read(qt_atom_header_t * h,
                       bgav_input_context_t * ctx, qt_rdrf_t * ret);
 
 void bgav_qt_rdrf_free(qt_rdrf_t * r);
+void bgav_qt_rdrf_dump(int indent, qt_rdrf_t * r);
 
 typedef struct
   {
   qt_atom_header_t h;
+  int has_rdrf;
   qt_rdrf_t rdrf;
   } qt_rmda_t;
 
@@ -83,10 +88,12 @@ int bgav_qt_rmda_read(qt_atom_header_t * h,
                       bgav_input_context_t * ctx, qt_rmda_t * ret);
 
 void bgav_qt_rmda_free(qt_rmda_t * r);
+void bgav_qt_rmda_dump(int indent, qt_rmda_t * r);
 
 typedef struct
   {
   qt_atom_header_t h;
+  int has_rmda;
   qt_rmda_t rmda;
   } qt_rmra_t;
 
@@ -94,6 +101,9 @@ int bgav_qt_rmra_read(qt_atom_header_t * h,
                       bgav_input_context_t * ctx, qt_rmra_t * ret);
 
 void bgav_qt_rmra_free(qt_rmra_t * r);
+
+void bgav_qt_rmra_dump(int indent, qt_rmra_t * r);
+
 
 /*
  *  Time to sample
@@ -116,7 +126,7 @@ typedef struct
 int bgav_qt_stts_read(qt_atom_header_t * h,
                       bgav_input_context_t * ctx, qt_stts_t * ret);
 void bgav_qt_stts_free(qt_stts_t * c);
-void bgav_qt_stts_dump(qt_stts_t * c);
+void bgav_qt_stts_dump(int indent, qt_stts_t * c);
 
 /*
  *  Sync samples
@@ -134,7 +144,7 @@ typedef struct
 int bgav_qt_stss_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                   qt_stss_t * ret);
 void bgav_qt_stss_free(qt_stss_t * c);
-void bgav_qt_stss_dump(qt_stss_t * c);
+void bgav_qt_stss_dump(int indent, qt_stss_t * c);
 
 /* ssds */
 
@@ -158,7 +168,7 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 
 void bgav_qt_esds_free(qt_esds_t * ret);
 
-void bgav_qt_esds_dump(qt_esds_t * e);
+void bgav_qt_esds_dump(int indent, qt_esds_t * e);
 
 /* pasp */
 
@@ -172,7 +182,7 @@ typedef struct
 int bgav_qt_pasp_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_pasp_t * ret);
 
-void bgav_qt_pasp_dump(qt_pasp_t * e);
+void bgav_qt_pasp_dump(int indent, qt_pasp_t * e);
 
 /* fiel */
 
@@ -186,7 +196,7 @@ typedef struct
 int bgav_qt_fiel_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_fiel_t * ret);
 
-void bgav_qt_fiel_dump(qt_fiel_t * f);
+void bgav_qt_fiel_dump(int indent, qt_fiel_t * f);
 
 /* frma */
 
@@ -198,7 +208,7 @@ typedef struct
 int bgav_qt_frma_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_frma_t * ret);
 
-void bgav_qt_frma_dump(qt_frma_t * f);
+void bgav_qt_frma_dump(int indent, qt_frma_t * f);
 
 /* enda */
 
@@ -210,7 +220,7 @@ typedef struct
 int bgav_qt_enda_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_enda_t * ret);
 
-void bgav_qt_enda_dump(qt_enda_t * f);
+void bgav_qt_enda_dump(int indent, qt_enda_t * f);
 
 /* chan */
 
@@ -234,7 +244,7 @@ typedef struct
 
 int bgav_qt_chan_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_chan_t * chan);
-void bgav_qt_chan_dump(qt_chan_t * chan);
+void bgav_qt_chan_dump(int indent, qt_chan_t * chan);
 
 void bgav_qt_chan_get(qt_chan_t * chan, gavl_audio_format_t * format);
 
@@ -267,7 +277,7 @@ typedef struct
 int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_wave_t * ret);
 
-void bgav_qt_wave_dump(qt_wave_t * f);
+void bgav_qt_wave_dump(int indent, qt_wave_t * f);
 
 void bgav_qt_wave_free(qt_wave_t * r);
 
@@ -373,7 +383,7 @@ int bgav_qt_stsd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 void bgav_qt_stsd_free(qt_stsd_t * c);
 int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak);
 
-void bgav_qt_stsd_dump(qt_stsd_t * c);
+void bgav_qt_stsd_dump(int indent, qt_stsd_t * c);
 
 
 /*
@@ -399,7 +409,7 @@ typedef struct
 int bgav_qt_stsc_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_stsc_t * ret);
 void bgav_qt_stsc_free(qt_stsc_t * c);
-void bgav_qt_stsc_dump(qt_stsc_t * c);
+void bgav_qt_stsc_dump(int indent, qt_stsc_t * c);
 
 /*
  *  Sample size table
@@ -418,7 +428,7 @@ typedef struct
 int bgav_qt_stsz_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_stsz_t * ret);
 void bgav_qt_stsz_free(qt_stsz_t * c);
-void bgav_qt_stsz_dump(qt_stsz_t * c);
+void bgav_qt_stsz_dump(int indent, qt_stsz_t * c);
 
 /*
  *  Chunk offset table
@@ -438,7 +448,7 @@ int bgav_qt_stco_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 int bgav_qt_stco_read_64(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_stco_t * ret);
 void bgav_qt_stco_free(qt_stco_t * c);
-void bgav_qt_stco_dump(qt_stco_t * c);
+void bgav_qt_stco_dump(int indent, qt_stco_t * c);
 
 /*
  *  Sample table
@@ -459,7 +469,50 @@ typedef struct
 int bgav_qt_stbl_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_stbl_t * ret, qt_minf_t * minf);
 void bgav_qt_stbl_free(qt_stbl_t * c);
-void bgav_qt_stbl_dump(qt_stbl_t * c);
+void bgav_qt_stbl_dump(int indent, qt_stbl_t * c);
+
+/*
+ * Data reference
+ */
+
+typedef struct
+  {
+  uint32_t size;
+  uint32_t type;
+  int version;
+  uint32_t flags;
+  uint8_t * data_reference;
+  } qt_dref_table_t;
+
+
+typedef struct
+  {
+  int version;
+  uint32_t flags;
+  uint32_t table_size;
+  qt_dref_table_t * table;
+  } qt_dref_t;
+
+int bgav_qt_dref_read(qt_atom_header_t * h, bgav_input_context_t * input,
+                      qt_dref_t * dref);
+void bgav_qt_dref_free(qt_dref_t * dref);
+void bgav_qt_dref_dump(int indent, qt_dref_t * c);
+
+
+/*
+ *  dinf
+ */
+
+typedef struct
+  {
+  int has_dref;
+  qt_dref_t dref;
+  } qt_dinf_t;
+
+int bgav_qt_dinf_read(qt_atom_header_t * h, bgav_input_context_t * input,
+                      qt_dinf_t * dinf);
+void bgav_qt_dinf_free(qt_dinf_t * dinf);
+void bgav_qt_dinf_dump(int indent, qt_dinf_t * c);
 
 /*
  * Media handler
@@ -482,7 +535,43 @@ int bgav_qt_hdlr_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_hdlr_t * ret);
 
 void bgav_qt_hdlr_free(qt_hdlr_t * h);
-void bgav_qt_hdlr_dump(qt_hdlr_t * h);
+void bgav_qt_hdlr_dump(int indent, qt_hdlr_t * h);
+
+/*
+ *  Generic media info
+ */
+
+typedef struct
+  {
+  int version;
+  uint32_t flags;
+  uint16_t graphics_mode;
+  uint16_t opcolor[3];
+  uint16_t balance;
+  uint16_t reserved;
+  } qt_gmin_t;
+
+int bgav_qt_gmin_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_gmin_t * ret);
+
+void bgav_qt_gmin_free(qt_gmin_t * g);
+void bgav_qt_gmin_dump(int indent, qt_gmin_t * g);
+
+/*
+ *  Generic media header
+ */
+
+typedef struct
+  {
+  int has_gmin;
+  qt_gmin_t gmin;
+  } qt_gmhd_t;
+
+int bgav_qt_gmhd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_gmhd_t * ret);
+void bgav_qt_gmhd_free(qt_gmhd_t * g);
+void bgav_qt_gmhd_dump(int indent, qt_gmhd_t * g);
+
 
 /*
  *  Media information
@@ -493,10 +582,15 @@ struct qt_minf_s
   qt_atom_header_t h;
   qt_stbl_t stbl;
   qt_hdlr_t hdlr;
+
+  int has_dinf;
+  qt_dinf_t dinf;
   
   int has_vmhd;
   int has_smhd;
   
+  int has_gmhd;
+  qt_gmhd_t gmhd;
   };
 
 int bgav_qt_minf_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
@@ -504,7 +598,7 @@ int bgav_qt_minf_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 
 void bgav_qt_minf_free(qt_minf_t * h);
 
-void bgav_qt_minf_dump(qt_minf_t * h);
+void bgav_qt_minf_dump(int indent, qt_minf_t * h);
 
 /*
  *  Media header
@@ -528,7 +622,7 @@ int bgav_qt_mdhd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_mdhd_t * ret);
 
 void bgav_qt_mdhd_free(qt_mdhd_t * c);
-void bgav_qt_mdhd_dump(qt_mdhd_t * c);
+void bgav_qt_mdhd_dump(int indent, qt_mdhd_t * c);
 
 /*
  *  Media
@@ -547,7 +641,7 @@ int bgav_qt_mdia_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_mdia_t * ret);
 
 void bgav_qt_mdia_free(qt_mdia_t * c);
-void bgav_qt_mdia_dump(qt_mdia_t * c);
+void bgav_qt_mdia_dump(int indent, qt_mdia_t * c);
 
 /*
  *  Track header
@@ -579,64 +673,7 @@ int bgav_qt_tkhd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_tkhd_t * ret);
 
 void bgav_qt_tkhd_free(qt_tkhd_t * c);
-void bgav_qt_tkhd_dump(qt_tkhd_t * c);
-
-
-/*
- *  Track atom
- */
-
-struct qt_trak_s
-  {
-  qt_atom_header_t h;
-  qt_mdia_t mdia;
-  qt_tkhd_t tkhd;
-  };
-
-int bgav_qt_trak_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
-                      qt_trak_t * ret);
-void bgav_qt_trak_free(qt_trak_t * c);
-
-void bgav_qt_trak_dump(qt_trak_t * c);
-
-/* Infos about the track */
-
-int64_t bgav_qt_trak_samples(qt_trak_t * c);
-
-int64_t bgav_qt_trak_chunks(qt_trak_t * c);
-
-int64_t bgav_qt_trak_tics(qt_trak_t * c); /* Duration in timescale tics */
-
-/*
- *  Movie header
- */
-
-typedef struct
-  {
-  qt_atom_header_t h;
-  int version;
-  uint32_t flags;
-  uint64_t creation_time;
-  uint64_t modification_time;
-  uint32_t time_scale;
-  uint64_t duration;
-  float preferred_rate;
-  float preferred_volume;
-  uint8_t reserved[10];
-  float matrix[9];
-  uint32_t preview_time;
-  uint32_t preview_duration;
-  uint32_t poster_time;
-  uint32_t selection_time;
-  uint32_t selection_duration;
-  uint32_t current_time;
-  uint32_t next_track_id;
-  
-  } qt_mvhd_t;
-
-int bgav_qt_mvhd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
-                      qt_mvhd_t * ret);
-void bgav_qt_mvhd_free(qt_mvhd_t * c);
+void bgav_qt_tkhd_dump(int indent, qt_tkhd_t * c);
 
 /* udta atom */
 
@@ -699,7 +736,69 @@ int bgav_qt_udta_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_udta_t * ret);
 
 void bgav_qt_udta_free(qt_udta_t * udta);
-void bgav_qt_udta_dump(qt_udta_t * udta);
+void bgav_qt_udta_dump(int indent, qt_udta_t * udta);
+
+/*
+ *  Track atom
+ */
+
+struct qt_trak_s
+  {
+  qt_atom_header_t h;
+  qt_mdia_t mdia;
+  qt_tkhd_t tkhd;
+
+  int has_udta;
+  qt_udta_t udta;
+  };
+
+int bgav_qt_trak_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_trak_t * ret);
+void bgav_qt_trak_free(qt_trak_t * c);
+
+void bgav_qt_trak_dump(int indent, qt_trak_t * c);
+
+/* Infos about the track */
+
+int64_t bgav_qt_trak_samples(qt_trak_t * c);
+
+int64_t bgav_qt_trak_chunks(qt_trak_t * c);
+
+int64_t bgav_qt_trak_tics(qt_trak_t * c); /* Duration in timescale tics */
+
+/*
+ *  Movie header
+ */
+
+typedef struct
+  {
+  qt_atom_header_t h;
+  int version;
+  uint32_t flags;
+  uint64_t creation_time;
+  uint64_t modification_time;
+  uint32_t time_scale;
+  uint64_t duration;
+  float preferred_rate;
+  float preferred_volume;
+  uint8_t reserved[10];
+  float matrix[9];
+  uint32_t preview_time;
+  uint32_t preview_duration;
+  uint32_t poster_time;
+  uint32_t selection_time;
+  uint32_t selection_duration;
+  uint32_t current_time;
+  uint32_t next_track_id;
+  
+  } qt_mvhd_t;
+
+void bgav_qt_mvhd_dump(int indent, qt_mvhd_t * c);
+
+int bgav_qt_mvhd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_mvhd_t * ret);
+void bgav_qt_mvhd_free(qt_mvhd_t * c);
+
 
 /*
  *  moov atom
@@ -711,6 +810,7 @@ typedef struct
   qt_mvhd_t mvhd;
   
   qt_udta_t udta;
+  int has_udta;
   
   int num_tracks;
   qt_trak_t * tracks;
@@ -729,6 +829,9 @@ int bgav_qt_cmov_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_moov_t * ret);
 
 void bgav_qt_moov_free(qt_moov_t * c);
+
+void bgav_qt_moov_dump(int indent, qt_moov_t * c);
+
 
 /*
  *  Quicktime specific utilities

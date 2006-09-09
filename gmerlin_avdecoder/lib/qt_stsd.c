@@ -38,33 +38,40 @@ extern bgav_palette_entry_t bgav_qt_default_palette_256_gray[];
 /*
  *  Sample description
  */
-static void stsd_dump_audio(qt_sample_description_t * d)
+
+static void stsd_dump_common(int indent, qt_sample_description_t * d)
   {
-  bgav_dprintf( "  fourcc: ");
+  bgav_diprintf(indent, "fourcc:                ");
   bgav_dump_fourcc(d->fourcc);
   bgav_dprintf( "\n");
-    
-  bgav_dprintf( "  data_reference_index: %d\n", d->data_reference_index);
-  bgav_dprintf( "  version:              %d\n", d->version);
-  bgav_dprintf( "  revision_level:       %d\n", d->revision_level);
-  bgav_dprintf( "  vendor:               ");
-  bgav_dump_fourcc(d->vendor);
   
-  bgav_dprintf( "\n  num_channels          %d\n", d->format.audio.num_channels);
-  bgav_dprintf( "  bits_per_sample:      %d\n", d->format.audio.bits_per_sample);
-  bgav_dprintf( "  compression_id:       %d\n", d->format.audio.compression_id);
-  bgav_dprintf( "  packet_size:          %d\n", d->format.audio.packet_size);
-  bgav_dprintf( "  samplerate:           %d\n", d->format.audio.samplerate);
+  bgav_diprintf(indent, "data_reference_index:  %d\n", d->data_reference_index);
+  bgav_diprintf(indent, "version:               %d\n", d->version);
+  bgav_diprintf(indent, "revision_level:        %d\n", d->revision_level);
+  bgav_diprintf(indent, "vendor:                ");
+  bgav_dump_fourcc(d->vendor);
+  bgav_dprintf( "\n");
+  }
+
+
+static void stsd_dump_audio(int indent, qt_sample_description_t * d)
+  {
+  
+  bgav_diprintf(indent, "  num_channels          %d\n", d->format.audio.num_channels);
+  bgav_diprintf(indent, "  bits_per_sample:      %d\n", d->format.audio.bits_per_sample);
+  bgav_diprintf(indent, "  compression_id:       %d\n", d->format.audio.compression_id);
+  bgav_diprintf(indent, "  packet_size:          %d\n", d->format.audio.packet_size);
+  bgav_diprintf(indent, "  samplerate:           %d\n", d->format.audio.samplerate);
 
   if(d->version == 1)
     {
-    bgav_dprintf( "  samples_per_packet:   %d\n",
+    bgav_diprintf(indent, "samples_per_packet:   %d\n",
             d->format.audio.samples_per_packet);
-    bgav_dprintf( "  bytes_per_packet:     %d\n",
+    bgav_diprintf(indent, "bytes_per_packet:     %d\n",
             d->format.audio.bytes_per_packet);
-    bgav_dprintf( "  bytes_per_frame:      %d\n",
+    bgav_diprintf(indent, "bytes_per_frame:      %d\n",
             d->format.audio.bytes_per_frame);
-    bgav_dprintf( "  bytes_per_sample:     %d\n",
+    bgav_diprintf(indent, "bytes_per_sample:     %d\n",
             d->format.audio.bytes_per_sample);
     }
   if(d->version == 2)
@@ -72,23 +79,13 @@ static void stsd_dump_audio(qt_sample_description_t * d)
     
     }
   if(d->format.audio.has_wave)
-    bgav_qt_wave_dump(&d->format.audio.wave);
+    bgav_qt_wave_dump(indent+2, &d->format.audio.wave);
   if(d->format.audio.has_chan)
-    bgav_qt_chan_dump(&d->format.audio.chan);
+    bgav_qt_chan_dump(indent+2, &d->format.audio.chan);
   }
 
-static void stsd_dump_video(qt_sample_description_t * d)
+static void stsd_dump_video(int indent, qt_sample_description_t * d)
   {
-  bgav_dprintf( "  fourcc: ");
-  bgav_dump_fourcc(d->fourcc);
-  bgav_dprintf( "\n");
-    
-  bgav_dprintf( "  data_reference_index:  %d\n", d->data_reference_index);
-  bgav_dprintf( "  version:               %d\n", d->version);
-  bgav_dprintf( "  revision_level:        %d\n", d->revision_level);
-  bgav_dprintf( "  vendor:                ");
-  bgav_dump_fourcc(d->vendor);
-  bgav_dprintf( "\n");
 
   bgav_dprintf( "  temporal_quality:      %d\n", d->format.video.temporal_quality);
   bgav_dprintf( "  spatial_quality:       %d\n", d->format.video.spatial_quality);
@@ -115,73 +112,6 @@ static int stsd_read_common(bgav_input_context_t * input,
           bgav_input_read_32_be(input, &(ret->vendor)));
   }
 
-
-/* Convert Version 2 of the SampleDescription to Version 0 */
-
-#if 0
-
-/* SampleDescription V2 definitions */
-#define kAudioFormatFlagIsFloat          (1L<<0) 
-#define kAudioFormatFlagIsBigEndian      (1L<<1) 
-#define kAudioFormatFlagIsSignedInteger  (1L<<2) 
-#define kAudioFormatFlagIsPacked         (1L<<3) 
-#define kAudioFormatFlagIsAlignedHigh    (1L<<4) 
-#define kAudioFormatFlagIsNonInterleaved (1L<<5) 
-#define kAudioFormatFlagIsNonMixable     (1L<<6) 
-#define kAudioFormatFlagsAreAllClear     (1L<<31)  
-
-static void import_sampledescription_v2(qt_sample_description_t *table)
-  {
-  if(table->fourcc == BGAV_MK_FOURCC('l','p','c','m'))
-    {
-    if(table->format.audio.formatSpecificFlags & kAudioFormatFlagIsFloat)
-      {
-      switch(table->format.audio.bits_per_sample)
-        {
-        case 32:
-          table->fourcc = BGAV_MK_FOURCC('f','l','3','2');
-          break;
-        case 64:
-          table->fourcc = BGAV_MK_FOURCC('f','l','6','4');
-          break;
-        }
-      if(!(table->format.audio.formatSpecificFlags & kAudioFormatFlagIsBigEndian))
-        {
-        table->format.audio.wave.has_enda = 1;
-        table->format.audio.wave.enda.littleEndian = 1;
-        }
-      }
-    else
-      {
-      switch(table->format.audio.bits_per_sample)
-        {
-        case 16:
-          if(table->format.audio.formatSpecificFlags & kAudioFormatFlagIsBigEndian)
-            table->fourcc = BGAV_MK_FOURCC('t','w','o','s');
-          else
-            table->fourcc = BGAV_MK_FOURCC('s','o','w','t');
-          break;
-        case 24:
-          table->fourcc = BGAV_MK_FOURCC('i','n','2','4');
-          if(!(table->format.audio.formatSpecificFlags & kAudioFormatFlagIsBigEndian))
-            {
-            table->format.audio.wave.has_enda = 1;
-            table->format.audio.wave.enda.littleEndian = 1;
-            }
-          break;
-        case 32:
-          table->fourcc = BGAV_MK_FOURCC('i','n','3','2');
-          if(!(table->format.audio.formatSpecificFlags & kAudioFormatFlagIsBigEndian))
-            {
-            table->format.audio.wave.has_enda = 1;
-            table->format.audio.wave.enda.littleEndian = 1;
-            }
-          break;
-        }
-      }
-    }
-  }
-#endif
 
 
 static int stsd_read_audio(bgav_input_context_t * input,
@@ -293,14 +223,10 @@ static int stsd_read_audio(bgav_input_context_t * input,
       case 0:
         break;
       default:
-        bgav_qt_atom_skip(input, &h);
+        bgav_qt_atom_skip_unknown(input, &h, BGAV_MK_FOURCC('s','t','s','d'));
         break;
       }
     }
-#if 0
-  if(ret->version == 2)
-    import_sampledescription_v2(ret);
-#endif
   //  stsd_dump_audio(ret);
   return 1;
   }
@@ -427,7 +353,7 @@ static int stsd_read_video(bgav_input_context_t * input,
         //        bgav_qt_fiel_dump(&(ret->format.video.fiel));
         break;
       default:
-        bgav_qt_atom_skip(input, &h);
+        bgav_qt_atom_skip_unknown(input, &h, BGAV_MK_FOURCC('s','t','s','d'));
         break;
       }
     }
@@ -532,20 +458,23 @@ void bgav_qt_stsd_free(qt_stsd_t * c)
   free(c->entries);
   }
 
-void bgav_qt_stsd_dump(qt_stsd_t * s)
+void bgav_qt_stsd_dump(int indent, qt_stsd_t * s)
   {
   int i;
 
-  bgav_dprintf( "stsd\n");
+  bgav_diprintf(indent, "stsd\n");
 
-  bgav_dprintf( "  num_entries: %d\n", s->num_entries);
+  bgav_diprintf(indent+2, "num_entries: %d\n", s->num_entries);
   
   for(i = 0; i < s->num_entries; i++)
     {
-    bgav_dprintf( "  Sample description: %d\n", i);
+    bgav_diprintf(indent+2, "Sample description: %d\n", i);
+
+    stsd_dump_common(indent+2, &s->entries[i].desc);
+
     if(s->entries[i].desc.type == BGAV_STREAM_AUDIO)
-      stsd_dump_audio(&s->entries[i].desc);
+      stsd_dump_audio(indent+2, &s->entries[i].desc);
     else if(s->entries[i].desc.type == BGAV_STREAM_VIDEO)
-      stsd_dump_video(&s->entries[i].desc);
+      stsd_dump_video(indent+2, &s->entries[i].desc);
     }
   }

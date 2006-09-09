@@ -39,22 +39,28 @@ typedef struct
 */
 
 
-void bgav_qt_hdlr_dump(qt_hdlr_t * ret)
+void bgav_qt_hdlr_dump(int indent, qt_hdlr_t * ret)
   {
-  bgav_dprintf("hdlr:\n");
+  bgav_diprintf(indent, "hdlr:\n");
   
-  bgav_dprintf("  component_type: ");
+  bgav_diprintf(indent+2, "component_type:         ");
   bgav_dump_fourcc(ret->component_type);
   
-  bgav_dprintf("\n  component_subtype: ");
+  bgav_dprintf("\n");
+  bgav_diprintf(indent+2, "component_subtype:      ");
   bgav_dump_fourcc(ret->component_subtype);
+  bgav_dprintf("\n");
 
-  bgav_dprintf("\n  component_manufacturer: ");
+  bgav_diprintf(indent+2, "component_manufacturer: ");
   bgav_dump_fourcc(ret->component_manufacturer);
+  bgav_dprintf("\n");
 
-  bgav_dprintf("\n  component_flags:     0x%08x\n", ret->component_flags);
-  bgav_dprintf("  component_flag_mask: 0x%08x\n", ret->component_flag_mask);
-  bgav_dprintf("  component_name: %s\n", ret->component_name);
+  bgav_diprintf(indent+2, "component_flags:        0x%08x\n",
+                ret->component_flags);
+  bgav_diprintf(indent+2, "component_flag_mask:    0x%08x\n",
+                ret->component_flag_mask);
+  bgav_diprintf(indent+2, "component_name:         %s\n",
+                ret->component_name);
   }
 
 
@@ -68,9 +74,9 @@ int bgav_qt_hdlr_read(qt_atom_header_t * h,
   memcpy(&(ret->h), h, sizeof(*h));
   if (!bgav_input_read_fourcc(input, &(ret->component_type)) ||
       !bgav_input_read_fourcc(input, &(ret->component_subtype)) ||
-      !bgav_input_read_32_le(input, &(ret->component_manufacturer)) ||
-      !bgav_input_read_32_le(input, &(ret->component_flags)) ||
-      !bgav_input_read_32_le(input, &(ret->component_flag_mask)))
+      !bgav_input_read_fourcc(input, &(ret->component_manufacturer)) ||
+      !bgav_input_read_32_be(input, &(ret->component_flags)) ||
+      !bgav_input_read_32_be(input, &(ret->component_flag_mask)))
     return 0;
   if(!ret->component_type) /* mp4 case:
                                Read everything until the end of the atom */

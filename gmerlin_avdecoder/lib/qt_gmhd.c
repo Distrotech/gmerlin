@@ -1,6 +1,6 @@
 /*****************************************************************
  
-  qt_rmda.c
+  qt_gmhd.c
  
   Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
@@ -17,44 +17,45 @@
  
 *****************************************************************/
 
-#include <string.h>
 #include <avdec_private.h>
 #include <qt.h>
 
-int bgav_qt_rmda_read(qt_atom_header_t * h,
-                      bgav_input_context_t * input, qt_rmda_t * ret)
+int bgav_qt_gmhd_read(qt_atom_header_t * h, bgav_input_context_t * input,
+                      qt_gmhd_t * ret)
   {
-  qt_atom_header_t ch;
-  memcpy(&(ret->h), h, sizeof(*h));
-
+  qt_atom_header_t ch; /* Child header */
+  
   while(input->position < h->start_position + h->size)
     {
     if(!bgav_qt_atom_read_header(input, &ch))
       return 0;
     switch(ch.fourcc)
       {
-      case BGAV_MK_FOURCC('r', 'd', 'r', 'f'):
-        if(!bgav_qt_rdrf_read(&ch, input, &(ret->rdrf)))
+      case BGAV_MK_FOURCC('g', 'm', 'i', 'n'):
+        if(!bgav_qt_gmin_read(&ch, input, &(ret->gmin)))
           return 0;
-        ret->has_rdrf = 1;
+        ret->has_gmin = 1;
         break;
       default:
         bgav_qt_atom_skip_unknown(input, &ch, h->fourcc);
         break;
-        
       }
     }
   return 1;
+
   }
 
-void bgav_qt_rmda_free(qt_rmda_t * r)
+void bgav_qt_gmhd_free(qt_gmhd_t * g)
   {
-  bgav_qt_rdrf_free(&(r->rdrf));
+  if(g->has_gmin)
+    bgav_qt_gmin_free(&g->gmin);
+
   }
 
-void bgav_qt_rmda_dump(int indent, qt_rmda_t * r)
+void bgav_qt_gmhd_dump(int indent, qt_gmhd_t * g)
   {
-  bgav_diprintf(indent, "rmda\n");
-  if(r->has_rdrf)
-    bgav_qt_rdrf_dump(indent+2, &r->rdrf);
+  bgav_diprintf(indent, "gmhd\n");
+  if(g->has_gmin)
+    bgav_qt_gmin_dump(indent+2, &g->gmin);
+  bgav_diprintf(indent, "end of gmhd\n");
   }

@@ -101,6 +101,19 @@ void bgav_dprintf(const char * format, ...)
   va_end(argp);
   }
 
+void bgav_diprintf(int indent, const char * format, ...)
+  {
+  int i;
+  for(i = 0; i < indent; i++)
+    fprintf(stderr, " ");
+  
+  va_list argp; /* arg ptr */
+  va_start( argp, format);
+  vfprintf(stderr, format, argp);
+  va_end(argp);
+  }
+
+
 
 char * bgav_strndup(const char * start, const char * end)
   {

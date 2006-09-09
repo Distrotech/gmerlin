@@ -31,16 +31,14 @@ int bgav_qt_frma_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
   result = bgav_input_read_fourcc(ctx, &ret->fourcc);
 
   if(result)
-    {
     bgav_qt_atom_skip(ctx, h);
-    }
   return result;
   }
   
-void bgav_qt_frma_dump(qt_frma_t * f)
+void bgav_qt_frma_dump(int indent, qt_frma_t * f)
   {
-  bgav_dprintf( "frma:\n");
-  bgav_dprintf( "  fourcc: ");
+  bgav_diprintf(indent, "frma:\n");
+  bgav_diprintf(indent+2, "fourcc: ");
   bgav_dump_fourcc(f->fourcc);
   bgav_dprintf( "\n");
   }

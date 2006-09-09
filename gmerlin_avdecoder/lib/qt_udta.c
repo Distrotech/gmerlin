@@ -292,6 +292,7 @@ int bgav_qt_udta_read(qt_atom_header_t * h, bgav_input_context_t * input,
         ret->trkn = read_trkn(&ch, input, ret->have_ilst);
         break;
       default:
+        bgav_qt_atom_skip_unknown(input, &ch, h->fourcc);
         break;
       }
     bgav_qt_atom_skip(input, &ch);
@@ -348,11 +349,11 @@ void bgav_qt_udta_free(qt_udta_t * udta)
   
   }
 
-#define PRINT(e) bgav_dprintf( "  %s: %s\n", #e, (udta->e ? udta->e : "(null)"));
+#define PRINT(e) bgav_diprintf(indent+2, "%s: %s\n", #e, (udta->e ? udta->e : "(null)"));
 
-void bgav_qt_udta_dump(qt_udta_t * udta)
+void bgav_qt_udta_dump(int indent, qt_udta_t * udta)
   {
-  bgav_dprintf( "udta\n");
+  bgav_diprintf(indent, "udta\n");
   PRINT(cpy); /* Copyright                        */
   PRINT(day); /* Date                             */
   PRINT(dir); /* Director                         */
@@ -392,6 +393,6 @@ void bgav_qt_udta_dump(qt_udta_t * udta)
   PRINT(swr); /* Software        */
   PRINT(wrn); /* Warning         */
   PRINT(url); /* URL link        */
-  bgav_dprintf( "  trkn: %d\n", udta->trkn);
+  bgav_diprintf(indent+2, "trkn: %d\n", udta->trkn);
   
   }

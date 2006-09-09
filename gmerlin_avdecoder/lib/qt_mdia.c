@@ -63,7 +63,7 @@ int bgav_qt_mdia_read(qt_atom_header_t * h, bgav_input_context_t * input,
           return 0;
         break;
       default:
-        bgav_qt_atom_skip(input, &ch);
+        bgav_qt_atom_skip_unknown(input, &ch, h->fourcc);
         break;
 
       }
@@ -78,11 +78,11 @@ void bgav_qt_mdia_free(qt_mdia_t * c)
   bgav_qt_minf_free(&(c->minf));
   }
 
-void bgav_qt_mdia_dump(qt_mdia_t * c)
+void bgav_qt_mdia_dump(int indent, qt_mdia_t * c)
   {
-  bgav_dprintf( "mdia\n");
-  bgav_qt_mdhd_dump(&(c->mdhd));
-  bgav_qt_hdlr_dump(&(c->hdlr));
-  bgav_qt_minf_dump(&(c->minf));
-  bgav_dprintf( "end of mdia\n");
+  bgav_diprintf(indent, "mdia\n");
+  bgav_qt_mdhd_dump(indent+2, &(c->mdhd));
+  bgav_qt_hdlr_dump(indent+2, &(c->hdlr));
+  bgav_qt_minf_dump(indent+2, &(c->minf));
+  bgav_diprintf(indent, "end of mdia\n");
   }

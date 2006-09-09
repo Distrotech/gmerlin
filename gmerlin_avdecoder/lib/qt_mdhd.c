@@ -39,15 +39,18 @@ typedef struct
   } qt_mdhd_t;
 */
 
-void bgav_qt_mdhd_dump(qt_mdhd_t * m)
+void bgav_qt_mdhd_dump(int indent, qt_mdhd_t * m)
   {
-  bgav_dprintf( "mdhd:\n");
-  bgav_dprintf( "  creation_time:     %d\n", m->creation_time);
-  bgav_dprintf( "  modification_time: %d\n", m->modification_time);
-  bgav_dprintf( "  time_scale:        %d\n", m->time_scale);
-  bgav_dprintf( "  duration:          %d\n", m->duration);
-  bgav_dprintf( "  language:          %d\n", m->language);
-  bgav_dprintf( "  quality:           %d\n", m->quality);
+  bgav_diprintf(indent, "mdhd:\n");
+  bgav_diprintf(indent+2, "version:           %d\n", m->version);
+  bgav_diprintf(indent+2, "flags:             %06xd\n", m->flags);
+  
+  bgav_diprintf(indent+2, "creation_time:     %d\n", m->creation_time);
+  bgav_diprintf(indent+2, "modification_time: %d\n", m->modification_time);
+  bgav_diprintf(indent+2, "time_scale:        %d\n", m->time_scale);
+  bgav_diprintf(indent+2, "duration:          %d\n", m->duration);
+  bgav_diprintf(indent+2, "language:          %d\n", m->language);
+  bgav_diprintf(indent+2, "quality:           %d\n", m->quality);
   }
   
 int bgav_qt_mdhd_read(qt_atom_header_t * h, bgav_input_context_t * input,

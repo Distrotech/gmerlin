@@ -323,10 +323,14 @@ pnm.c \
 qt_atom.c \
 qt_chan.c \
 qt_cmov.c \
+qt_dinf.c \
+qt_dref.c \
 qt_enda.c \
 qt_esds.c \
 qt_fiel.c \
 qt_frma.c \
+qt_gmhd.c \
+qt_gmin.c \
 qt_hdlr.c \
 qt_mdhd.c \
 qt_mdia.c \

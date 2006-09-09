@@ -63,9 +63,10 @@ int bgav_qt_moov_read(qt_atom_header_t * h, bgav_input_context_t * input,
       case BGAV_MK_FOURCC('u', 'd', 't', 'a'):
         if(!bgav_qt_udta_read(&ch, input, &(ret->udta)))
           return 0;
+        ret->has_udta = 1;
         break;
       default:
-        bgav_qt_atom_skip(input, &ch);
+        bgav_qt_atom_skip_unknown(input, &ch, h->fourcc);
         break;
       }
     }
@@ -83,4 +84,21 @@ void bgav_qt_moov_free(qt_moov_t * c)
     }
   bgav_qt_mvhd_free(&(c->mvhd));
   bgav_qt_udta_free(&(c->udta));
+  }
+
+void bgav_qt_moov_dump(int indent, qt_moov_t * c)
+  {
+  int i;
+  bgav_diprintf(indent, "moov\n");
+  bgav_qt_mvhd_dump(indent+2, &c->mvhd);
+
+  if(c->has_udta)
+    bgav_qt_udta_dump(indent+2, &c->udta);
+
+  for(i = 0; i < c->num_tracks; i++)
+    bgav_qt_trak_dump(indent+2, &c->tracks[i]);
+  if(c->has_rmra)
+    bgav_qt_rmra_dump(indent+2, &c->rmra);
+  bgav_diprintf(indent, "end of moov\n");
+  
   }

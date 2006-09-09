@@ -28,6 +28,8 @@
 
 #define LOG_DOMAIN "quicktime"
 
+// #define DUMP_MOOV
+
 typedef struct
   {
   qt_trak_t * trak;
@@ -835,6 +837,10 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
           return 0;
         have_moov = 1;
         bgav_qt_atom_skip(ctx->input, &h);
+#ifdef DUMP_MOOV
+        bgav_qt_moov_dump(0, &(priv->moov));
+#endif
+
         break;
       case BGAV_MK_FOURCC('f','r','e','e'):
       case BGAV_MK_FOURCC('w','i','d','e'):
@@ -846,7 +852,7 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
         bgav_qt_atom_skip(ctx->input, &h);
         break;
       default:
-        bgav_qt_atom_skip(ctx->input, &h);
+        bgav_qt_atom_skip_unknown(ctx->input, &h, 0);
       }
 
     if(ctx->input->input->seek_byte)

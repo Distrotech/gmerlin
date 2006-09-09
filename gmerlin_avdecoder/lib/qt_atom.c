@@ -22,6 +22,9 @@
 #include <qt.h>
 
 #include <stdio.h>
+
+#define LOG_DOMAIN "qt_atom"
+
 /*
   
   uint64_t size;
@@ -65,12 +68,37 @@ void bgav_qt_atom_skip(bgav_input_context_t * input,
   
   }
 
-
-void bgav_qt_atom_dump_header(qt_atom_header_t * h)
+void bgav_qt_atom_skip_unknown(bgav_input_context_t * input,
+                               qt_atom_header_t * h, uint32_t parent)
   {
-  bgav_dprintf( "Size:           %lld\n", h->size);
-  bgav_dprintf( "Start Position: %lld\n", h->start_position);
-  bgav_dprintf( "Fourcc:         ");
+  if(!parent)
+    bgav_log(input->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+             "Unknown atom [%c%c%c%c] at toplevel",
+             (h->fourcc & 0xFF000000) >> 24,
+             (h->fourcc & 0x00FF0000) >> 16,
+             (h->fourcc & 0x0000FF00) >> 8,
+             (h->fourcc & 0x000000FF));
+  else
+    bgav_log(input->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+             "Unknown atom [%c%c%c%c] inside [%c%c%c%c]",
+             (h->fourcc & 0xFF000000) >> 24,
+             (h->fourcc & 0x00FF0000) >> 16,
+             (h->fourcc & 0x0000FF00) >> 8,
+             (h->fourcc & 0x000000FF),
+             (parent & 0xFF000000) >> 24,
+             (parent & 0x00FF0000) >> 16,
+             (parent & 0x0000FF00) >> 8,
+             (parent & 0x000000FF));
+  bgav_qt_atom_skip(input, h);
+  }
+
+
+
+void bgav_qt_atom_dump_header(int indent, qt_atom_header_t * h)
+  {
+  bgav_diprintf(indent, "Size:           %lld\n", h->size);
+  bgav_diprintf(indent, "Start Position: %lld\n", h->start_position);
+  bgav_diprintf(indent, "Fourcc:         ");
   bgav_dump_fourcc(h->fourcc);
-  bgav_dprintf( "\n");
+  bgav_dprintf("\n");
   }

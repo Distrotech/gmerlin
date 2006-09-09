@@ -422,70 +422,35 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
 
 static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   {
-  int i;
-  bgav_stream_t * stream = (bgav_stream_t*)0;
-  bgav_stream_t * test_stream;
   bgav_packet_t * p;
-  
-  /* We read data for the first stream with an empty packet buffer */
-
-  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
+  //  fprintf(stderr, "request_stream: %p %s\n", ctx->request_stream, (ctx->request_stream->type == BGAV_STREAM_AUDIO ? "Audio" : "Video") );
+  /* If the file is truely noninterleaved, this isn't neccessary, but who knows? */
+  while(ctx->si->entries[ctx->request_stream->index_position].stream_id !=
+        ctx->request_stream->stream_id)
     {
-    test_stream = &(ctx->tt->current_track->audio_streams[i]);
-    if(test_stream->no_packets)
-      continue;
-    if((test_stream->action != BGAV_STREAM_MUTE) &&
-       bgav_packet_buffer_is_empty(test_stream->packet_buffer) &&
-       (test_stream->index_position <= test_stream->last_index_position))
-      {
-      stream = test_stream;
-      break;
-      }
-    }
-  if(!stream)
-    {
-    for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
-      {
-      test_stream = &(ctx->tt->current_track->video_streams[i]);
-      if(test_stream->no_packets)
-        continue;
-      if((test_stream->action != BGAV_STREAM_MUTE) &&
-         bgav_packet_buffer_is_empty(test_stream->packet_buffer) &&
-         (test_stream->index_position <= test_stream->last_index_position))
-        {
-        stream = test_stream;
-        break;
-        }
-      }
+    ctx->request_stream->index_position++;
     }
 
-  if(!stream)
-    {
+  if(ctx->request_stream->index_position >= ctx->request_stream->last_index_position)
     return 0;
-    }
-
-  while(ctx->si->entries[stream->index_position].stream_id != stream->stream_id)
-    {
-    stream->index_position++;
-    }
   
   bgav_input_seek(ctx->input,
-                  ctx->si->entries[stream->index_position].offset,
+                  ctx->si->entries[ctx->request_stream->index_position].offset,
                   SEEK_SET);
 
-  p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
-  p->data_size = ctx->si->entries[stream->index_position].size;
+  p = bgav_packet_buffer_get_packet_write(ctx->request_stream->packet_buffer, ctx->request_stream);
+  p->data_size = ctx->si->entries[ctx->request_stream->index_position].size;
   bgav_packet_alloc(p, p->data_size);
   
-  p->timestamp_scaled = ctx->si->entries[stream->index_position].time;
-  p->samples          = ctx->si->entries[stream->index_position].samples;
-  p->keyframe         = ctx->si->entries[stream->index_position].keyframe;
+  p->timestamp_scaled = ctx->si->entries[ctx->request_stream->index_position].time;
+  p->samples          = ctx->si->entries[ctx->request_stream->index_position].samples;
+  p->keyframe         = ctx->si->entries[ctx->request_stream->index_position].keyframe;
     
   if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
     return 0;
   bgav_packet_done_write(p);
   
-  stream->index_position++;
+  ctx->request_stream->index_position++;
   return 1;
   
   }

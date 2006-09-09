@@ -41,6 +41,16 @@ int bgav_qt_minf_read(qt_atom_header_t * h, bgav_input_context_t * input,
         if(!bgav_qt_hdlr_read(&ch, input, &(ret->hdlr)))
           return 0;
         break;
+      case BGAV_MK_FOURCC('d', 'i', 'n', 'f'):
+        if(!bgav_qt_dinf_read(&ch, input, &(ret->dinf)))
+          return 0;
+        ret->has_dinf = 1;
+        break;
+      case BGAV_MK_FOURCC('g', 'm', 'h', 'd'):
+        if(!bgav_qt_gmhd_read(&ch, input, &(ret->gmhd)))
+          return 0;
+        ret->has_gmhd = 1;
+        break;
       case BGAV_MK_FOURCC('s', 't', 'b', 'l'):
         if(!bgav_qt_stbl_read(&ch, input, &(ret->stbl), ret))
           return 0;
@@ -52,9 +62,8 @@ int bgav_qt_minf_read(qt_atom_header_t * h, bgav_input_context_t * input,
       case BGAV_MK_FOURCC('s', 'm', 'h', 'd'):
         ret->has_smhd = 1;
         bgav_qt_atom_skip(input, &ch);
-      case BGAV_MK_FOURCC('d', 'i', 'n', 'f'):
       default:
-        bgav_qt_atom_skip(input, &ch);
+        bgav_qt_atom_skip_unknown(input, &ch, h->fourcc);
       }
     }
   return 1;
@@ -66,12 +75,25 @@ void bgav_qt_minf_free(qt_minf_t * h)
   //  bgav_qt_dinf_free(&(h->dinf));
   bgav_qt_hdlr_free(&(h->hdlr));
   bgav_qt_stbl_free(&(h->stbl));
+  
+  if(h->has_dinf)
+    bgav_qt_dinf_free(&(h->dinf));
+
+  if(h->has_gmhd)
+    bgav_qt_gmhd_free(&(h->gmhd));
   }
 
-void bgav_qt_minf_dump(qt_minf_t * h)
+void bgav_qt_minf_dump(int indent, qt_minf_t * h)
   {
-  bgav_dprintf( "minf\n");
-  bgav_qt_hdlr_dump(&(h->hdlr));
-  bgav_qt_stbl_dump(&(h->stbl));
-  bgav_dprintf( "end of minf\n");
+  bgav_diprintf(indent, "minf\n");
+  bgav_qt_hdlr_dump(indent+2, &(h->hdlr));
+  bgav_qt_stbl_dump(indent+2, &(h->stbl));
+
+  if(h->has_dinf)
+    bgav_qt_dinf_dump(indent+2, &(h->dinf));
+
+  if(h->has_gmhd)
+    bgav_qt_gmhd_dump(indent+2, &(h->gmhd));
+  
+  bgav_diprintf(indent, "end of minf\n");
   }

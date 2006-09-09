@@ -84,6 +84,7 @@ int bgav_qt_stbl_read(qt_atom_header_t * h, bgav_input_context_t * input,
           return 0;
         break;
       default:
+        bgav_qt_atom_skip_unknown(input, &ch, h->fourcc);
         break;
       }
     bgav_qt_atom_skip(input, &ch);
@@ -101,12 +102,14 @@ void bgav_qt_stbl_free(qt_stbl_t * c)
   bgav_qt_stco_free(&(c->stco));
   }
 
-void bgav_qt_stbl_dump(qt_stbl_t * c)
+void bgav_qt_stbl_dump(int indent, qt_stbl_t * c)
   {
-  bgav_qt_stsd_dump(&(c->stsd));
-  bgav_qt_stts_dump(&(c->stts));
-  bgav_qt_stss_dump(&(c->stss));
-  bgav_qt_stsz_dump(&(c->stsz));
-  bgav_qt_stsc_dump(&(c->stsc));
-  bgav_qt_stco_dump(&(c->stco));
+  bgav_diprintf(indent, "stbl\n");
+  bgav_qt_stsd_dump(indent+2, &(c->stsd));
+  bgav_qt_stts_dump(indent+2, &(c->stts));
+  bgav_qt_stss_dump(indent+2, &(c->stss));
+  bgav_qt_stsz_dump(indent+2, &(c->stsz));
+  bgav_qt_stsc_dump(indent+2, &(c->stsc));
+  bgav_qt_stco_dump(indent+2, &(c->stco));
+  bgav_diprintf(indent, "end of stbl\n");
   }

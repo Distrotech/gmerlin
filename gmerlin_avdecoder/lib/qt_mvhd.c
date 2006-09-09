@@ -101,3 +101,58 @@ void bgav_qt_mvhd_free(qt_mvhd_t * c)
   {
   
   }
+
+/*
+  int version;
+  uint32_t flags;
+  uint64_t creation_time;
+  uint64_t modification_time;
+  uint32_t time_scale;
+  uint64_t duration;
+  float preferred_rate;
+  float preferred_volume;
+  uint8_t reserved[10];
+  float matrix[9];
+  uint32_t preview_time;
+  uint32_t preview_duration;
+  uint32_t poster_time;
+  uint32_t selection_time;
+  uint32_t selection_duration;
+  uint32_t current_time;
+  uint32_t next_track_id;
+*/
+
+void bgav_qt_mvhd_dump(int indent, qt_mvhd_t * c)
+  {
+  int i, j;
+  
+  bgav_diprintf(indent, "mvhd\n");
+  bgav_diprintf(indent+2, "version:            %d\n", c->version);
+  bgav_diprintf(indent+2, "flags:              %08x\n", c->flags);
+  bgav_diprintf(indent+2, "creation_time:      %d\n", c->creation_time);
+  bgav_diprintf(indent+2, "modification_time:  %d\n", c->modification_time);
+  bgav_diprintf(indent+2, "time_scale:         %d\n", c->time_scale);
+  bgav_diprintf(indent+2, "duration:           %lld\n", c->duration);
+  bgav_diprintf(indent+2, "preferred_rate:     %f\n", c->preferred_rate);
+  bgav_diprintf(indent+2, "preferred_volume:   %f\n", c->preferred_volume);
+  bgav_diprintf(indent+2, "reserved:           ");
+  bgav_hexdump(c->reserved, 10, 10);
+  bgav_dprintf("\n");
+  bgav_diprintf(indent+2, "Matrix:\n");
+
+  for(i = 0; i < 3; i++)
+    {
+    bgav_diprintf(indent, "    ");
+    for(j = 0; j < 3; j++)
+      bgav_dprintf( "%f ", c->matrix[3*i+j]);
+    bgav_dprintf( "\n");
+    }
+  bgav_diprintf(indent+2, "preview_time:       %d\n", c->preview_time);
+  bgav_diprintf(indent+2, "preview_duration:   %d\n", c->preview_duration);
+  bgav_diprintf(indent+2, "selection_time:     %d\n", c->selection_time);
+  bgav_diprintf(indent+2, "selection_duration: %d\n", c->selection_duration);
+  bgav_diprintf(indent+2, "current_time:       %d\n", c->current_time);
+  bgav_diprintf(indent+2, "next_track_id:      %d\n", c->next_track_id);
+  
+  bgav_diprintf(indent, "end of mvhd\n");
+  }

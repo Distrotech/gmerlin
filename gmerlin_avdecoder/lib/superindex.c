@@ -91,7 +91,7 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
   int i;
   int64_t time_scaled;
   
-  time_scaled = (time * s->timescale)/GAVL_TIME_SCALE;
+  time_scaled = gavl_time_scale(s->timescale, time);
   
   i = s->last_index_position;
 

@@ -81,25 +81,25 @@ int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
   return 1;
   }
 
-void bgav_qt_wave_dump(qt_wave_t * f)
+void bgav_qt_wave_dump(int indent, qt_wave_t * f)
   {
   int i;
   int size;
   uint32_t fourcc;
 
-  bgav_dprintf( "wave\n");
+  bgav_diprintf(indent, "wave\n");
   if(f->has_frma)
-    bgav_qt_frma_dump(&f->frma);
+    bgav_qt_frma_dump(indent+2, &f->frma);
   if(f->has_enda)
-    bgav_qt_enda_dump(&f->enda);
+    bgav_qt_enda_dump(indent+2, &f->enda);
   if(f->has_esds)
-    bgav_qt_esds_dump(&f->esds);
+    bgav_qt_esds_dump(indent+2, &f->esds);
 
   for(i = 0; i < f->num_user_atoms; i++)
     {
     size = BGAV_PTR_2_32BE(f->user_atoms[i]);
     fourcc = BGAV_PTR_2_FOURCC(f->user_atoms[i]+4);
-    bgav_dprintf( "User atom: ");
+    bgav_diprintf(indent+2, "User atom: ");
     bgav_dump_fourcc(fourcc);
     bgav_dprintf( " (size: %d)\n", size);
     bgav_hexdump(f->user_atoms[i], size, 16);

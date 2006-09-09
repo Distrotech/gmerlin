@@ -62,15 +62,16 @@ void bgav_qt_stss_free(qt_stss_t * c)
     free(c->entries);
   }
 
-void bgav_qt_stss_dump(qt_stss_t * c)
+void bgav_qt_stss_dump(int indent, qt_stss_t * c)
   {
   int i;
-  bgav_dprintf( "stss\n");
-  bgav_dprintf( "  num_entries: %d\n", c->num_entries);
+  bgav_diprintf(indent, "stss\n");
+  bgav_diprintf(indent+2, "num_entries: %d\n", c->num_entries);
   
   for(i = 0; i < c->num_entries; i++)
     {
-    bgav_dprintf( "  sample: %d\n", c->entries[i]);
+    bgav_diprintf(indent+2, "sample: %d\n", c->entries[i]);
     }
+  bgav_diprintf(indent, "end of stss\n");
     
   }
