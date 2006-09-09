@@ -325,6 +325,8 @@ qt_chan.c \
 qt_cmov.c \
 qt_dinf.c \
 qt_dref.c \
+qt_edts.c \
+qt_elst.c \
 qt_enda.c \
 qt_esds.c \
 qt_fiel.c \

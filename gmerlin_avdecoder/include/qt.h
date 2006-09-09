@@ -572,6 +572,45 @@ int bgav_qt_gmhd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 void bgav_qt_gmhd_free(qt_gmhd_t * g);
 void bgav_qt_gmhd_dump(int indent, qt_gmhd_t * g);
 
+/*
+ *  elst
+ */
+
+typedef struct
+  {
+  int version;
+  uint32_t flags;
+  uint32_t num_entries;
+  
+  struct
+    {
+    uint32_t duration;
+    uint32_t media_time;
+    float media_rate;
+    } * table;
+  } qt_elst_t;
+
+int bgav_qt_elst_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_elst_t * ret);
+void bgav_qt_elst_free(qt_elst_t * g);
+void bgav_qt_elst_dump(int indent, qt_elst_t * e);
+
+/*
+ *  edts
+ */
+
+typedef struct
+  {
+  int has_elst;
+  qt_elst_t elst;
+  } qt_edts_t;
+
+
+int bgav_qt_edts_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_edts_t * ret);
+void bgav_qt_edts_free(qt_edts_t * g);
+void bgav_qt_edts_dump(int indent, qt_edts_t * e);
+
 
 /*
  *  Media information
@@ -750,6 +789,10 @@ struct qt_trak_s
 
   int has_udta;
   qt_udta_t udta;
+
+  int has_edts;
+  qt_edts_t edts;
+
   };
 
 int bgav_qt_trak_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
