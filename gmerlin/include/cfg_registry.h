@@ -22,90 +22,279 @@
 
 #include "parameter.h"
 
-typedef enum
-  {
-    BG_CFG_INT,
-    BG_CFG_FLOAT,
-    BG_CFG_STRING,
-    BG_CFG_STRING_HIDDEN,
-    BG_CFG_COLOR,
-    BG_CFG_TIME /* int64 */
-  } bg_cfg_type_t;
+/** \defgroup cfg_registry Configuration registry
+ *
+ *  This is a registry for configuration data, which stores the configuration
+ *  of a whole application. Each module has it's own section, sections can
+ *  have subsections. Inside the section, the configuration is stored as
+ *  name-value pairs.
+ *
+ *  You can save a registry in an xml-file and load it again. Furthermore,
+ *  sections can be attached to GUI-widgets. Special
+ *  routines are available to copy all values from/to a section by using
+ *  functions of type \ref bg_set_parameter_func_t and
+ *  \ref bg_get_parameter_func_t.
+ */
 
-typedef struct bg_cfg_item_s     bg_cfg_item_t;
+/** \defgroup cfg_section Configuration section
+ *  \ingroup cfg_registry
+ *
+ *  Sections are nodes in the configuration tree. They can contain
+ *  name-value pairs and child sections. Usually, config sections are
+ *  kept within a configuration registry to store the applications
+ *  configuration data.
+ *
+ *  They can, however, be used indepentently from a registry as
+ *  universal data containers.
+ */
+
+/** \ingroup cfg_section
+ *  \brief Configuration section
+ *
+ *  Opaque container for configuration data and child sections
+ */
+
 typedef struct bg_cfg_section_s  bg_cfg_section_t;
+
+/** \ingroup cfg_registry
+ *  \brief Configuration registry
+ *
+ *  Opaque container for configuration sections.
+ */
+
 typedef struct bg_cfg_registry_s bg_cfg_registry_t;
 
+/** \ingroup cfg_registry
+ *  \brief Create an empty configuration registry
+ *  \returns A newly allocated and empty registry.
+ *
+ *  To free the registry, use \ref bg_cfg_registry_destroy.
+ */
+
 bg_cfg_registry_t * bg_cfg_registry_create();
-void bg_cfg_registry_destroy(bg_cfg_registry_t *);
+
+/** \ingroup cfg_registry
+ *  \brief Destroy configuration registry and free all associated memory
+ *  \param reg A configuration registry.
+ */
+
+void bg_cfg_registry_destroy(bg_cfg_registry_t * reg);
 
 /* cfg_xml.c */
 
-void bg_cfg_registry_load(bg_cfg_registry_t *, const char * filename);
-void bg_cfg_registry_save(bg_cfg_registry_t *, const char * filename);
+/** \ingroup cfg_registry
+ *  \brief Load a configuration registry from an xml- file
+ *  \param reg A configuration registry.
+ *  \param filename Name of the file
+ */
+
+void bg_cfg_registry_load(bg_cfg_registry_t * reg, const char * filename);
+
+/** \ingroup cfg_registry
+ *  \brief Save a configuration registry to an xml-file
+ *  \param reg A configuration registry.
+ *  \param filename Name of the file
+ */
+
+void bg_cfg_registry_save(bg_cfg_registry_t * reg, const char * filename);
 
 /* The name and xml tag of the section must be set before */
 
+/** \ingroup cfg_section
+ *  \brief Convert a configuration section into a libxml2 node
+ *  \param section Configuration section
+ *  \param xml_section Pointer to the xml node for the section
+ *
+ *  See the libxml2 documentation for more infos
+ */
+
 void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section);
 
+/** \ingroup cfg_section
+ *  \brief Convert libxml2 node into a configuration section
+ *  \param xml_doc Pointer to the xml document
+ *  \param xml_section Pointer to the xml node for the section
+ *  \param section Configuration section
+ *
+ *  See the libxml2 documentation for more infos
+ */
+
 void bg_cfg_xml_2_section(xmlDocPtr xml_doc, xmlNodePtr xml_section,
-                          bg_cfg_section_t * cfg_section);
+                          bg_cfg_section_t * section);
 
 /*
  *  Path looks like "section:subsection:subsubsection"
  */
 
-bg_cfg_section_t * bg_cfg_registry_find_section(bg_cfg_registry_t *,
+/** \ingroup cfg_registry
+ *  \brief Find a section in the registry
+ *  \param reg A configuration registry
+ *  \param path The path
+ *  \returns Configuration section
+ *
+ *  Path looks like "section:subsection:subsubsection". If the section
+ *  does not exist, an empty section is created (including enevtually
+ *  missing parent sections).
+ */
+
+bg_cfg_section_t * bg_cfg_registry_find_section(bg_cfg_registry_t * reg,
                                                 const char * path);
 
-bg_cfg_section_t * bg_cfg_section_find_subsection(bg_cfg_section_t *,
+/** \ingroup cfg_section
+ *  \brief Find a child of a section
+ *  \param section A configuration section
+ *  \param name name of the subsection
+ *  \returns Configuration section
+ *
+ *  If the child section does not exist, an empty section is created.
+ */
+
+bg_cfg_section_t * bg_cfg_section_find_subsection(bg_cfg_section_t * section,
                                                   const char * name);
 
 /* 
  *  Create/destroy config sections
  */
 
+/** \ingroup cfg_section
+ *  \brief Create an empty config section
+ *  \param name Name 
+ *  \returns Configuration section
+ */
+
 bg_cfg_section_t * bg_cfg_section_create(const char * name);
+
+/** \ingroup cfg_section
+ *  \brief Create a config section from a parameter array
+ *  \param name Name 
+ *  \param parameters A parameter array 
+ *  \returns Configuration section
+ *
+ *  Creates a configuration section from a parameter array.
+ *  The values in the section are set from the defaults given in the
+ *  array.
+ */
 
 bg_cfg_section_t *
 bg_cfg_section_create_from_parameters(const char * name,
                                       bg_parameter_info_t * parameters);
-                        
 
-void bg_cfg_section_destroy(bg_cfg_section_t * s);
+/** \ingroup cfg_section
+ *  \brief Create items from a parameter info
+ *  \param section Configuration section
+ *  \param parameters A parameter array 
+ *
+ *  This iterates through parameters and creates all missing
+ *  entries with the values set to their defaults
+ */
+
+
+void bg_cfg_section_create_items(bg_cfg_section_t * section,
+                                 bg_parameter_info_t * parameters);
+
+/** \ingroup cfg_section
+ *  \brief Destroy a config section 
+ *  \param section Configuration section
+ */
+
+void bg_cfg_section_destroy(bg_cfg_section_t * section);
+
+/** \ingroup cfg_section
+ *  \brief Duplicate a configuration section 
+ *  \param src Configuration section
+ *  \returns A newly allocated section with all values copied from src.
+ */
 
 bg_cfg_section_t * bg_cfg_section_copy(bg_cfg_section_t * src);
+
+/** \ingroup cfg_section
+ *  \brief Set values in a configuration section from another section
+ *  \param src Source section
+ *  \param dst Destination section
+ *
+ *  This function iterates through all entries of src and copies the values
+ *  to dst. Values, which don't exist in dst, are created. The same is then
+ *  done for all children of src.
+ */
+
 void bg_cfg_section_transfer(bg_cfg_section_t * src, bg_cfg_section_t * dst);
 
 /*
  *  Get/Set section names
  */
 
-const char * bg_cfg_section_get_name(bg_cfg_section_t * s);
-void bg_cfg_section_set_name(bg_cfg_section_t * s, const char * name);
+/** \ingroup cfg_section
+ *  \brief Get the name of a configuration section
+ *  \param section Configuration section
+ *  \returns The name
+ */
 
+const char * bg_cfg_section_get_name(bg_cfg_section_t * section);
+
+/** \ingroup cfg_section
+ *  \brief Set the name of a configuration section
+ *  \param section Configuration section
+ *  \param name The new name
+ */
+
+void bg_cfg_section_set_name(bg_cfg_section_t * section, const char * name);
 
 /*
  *  Get/Set values
+ */
+
+/** \ingroup cfg_section
+ *  \brief Store a value in the section
+ *  \param section The configuration section
+ *  \param info The parameter destription
+ *  \param value The value to be stored
+ *
+ *  If the value does not exist in the section, it is created
+ *  from the parameter description.
  */
 
 void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
                                   bg_parameter_info_t * info,
                                   bg_parameter_value_t * value);
 
+/** \ingroup cfg_section
+ *  \brief Store a value from a string in the section
+ *  \param section The configuration section
+ *  \param info The parameter destription
+ *  \param str A string describing the value to be stored
+ *
+ *  If the value does not exist in the section, it is created
+ *  from the parameter description. The string is parsed
+ *  according to the type of the parameter.
+ *
+ *  \todo Document syntax for all parameter types
+ */
+
 int bg_cfg_section_set_parameter_from_string(bg_cfg_section_t * section,
                                              bg_parameter_info_t * info,
                                              const char * str);
 
+/** \ingroup cfg_section
+ *  \brief Read a value from the section
+ *  \param section The configuration section
+ *  \param info The parameter destription
+ *  \param value The value will be stored here
+ *
+ *  If the value does not exist in the section, it is created
+ *  from the parameter description.
+ */
 
 void bg_cfg_section_get_parameter(bg_cfg_section_t * section,
                                   bg_parameter_info_t * info,
                                   bg_parameter_value_t * value);
 
-void bg_cfg_section_create_items(bg_cfg_section_t * section,
-                                 bg_parameter_info_t * info);
-
-/* Delete a subsection (useful for cleaning up */
+/** \ingroup cfg_section
+ *  \brief Delete a subsection
+ *  \param section The configuration section
+ *  \param subsection The child section to be deleten
+ *
+ *  If the subsection if no child of section, this function does nothing.
+ */
 
 void bg_cfg_section_delete_subsection(bg_cfg_section_t * section,
                                       bg_cfg_section_t * subsection);
@@ -116,25 +305,88 @@ void bg_cfg_section_delete_subsection(bg_cfg_section_t * section,
  *  an info structure
  */
 
+/** \ingroup cfg_section
+ *  \brief Store an integer value in a section
+ *  \param section The configuration section
+ *  \param name Name of the entry
+ *  \param value Value to be stored
+ */ 
+
 void bg_cfg_section_set_parameter_int(bg_cfg_section_t * section,
                                       const char * name, int value);
+
+/** \ingroup cfg_section
+ *  \brief Store a float value in a section
+ *  \param section The configuration section
+ *  \param name Name of the entry
+ *  \param value Value to be stored
+ */ 
+
 void bg_cfg_section_set_parameter_float(bg_cfg_section_t * section,
                                         const char * name, float value);
+
+/** \ingroup cfg_section
+ *  \brief Store a string value in a section
+ *  \param section The configuration section
+ *  \param name Name of the entry
+ *  \param value Value to be stored
+ */ 
+
 void bg_cfg_section_set_parameter_string(bg_cfg_section_t * section,
                                          const char * name, const char * value);
+
+/** \ingroup cfg_section
+ *  \brief Store a time value in a section
+ *  \param section The configuration section
+ *  \param name Name of the entry
+ *  \param value Value to be stored
+ */ 
+
 void bg_cfg_section_set_parameter_time(bg_cfg_section_t * section,
                                        const char * name, gavl_time_t value);
 
 /* Get parameter values, return 0 if no such entry */
 
+/** \ingroup cfg_section
+ *  \brief Get an integer value from a section
+ *  \param section The configuration section
+ *  \param name Name of the entry
+ *  \param value Returns value
+ *  \returns 1 if entry was available, 0 else.
+ */ 
+
 int bg_cfg_section_get_parameter_int(bg_cfg_section_t * section,
                                       const char * name, int * value);
+
+/** \ingroup cfg_section
+ *  \brief Get an float value from a section
+ *  \param section The configuration section
+ *  \param name Name of the entry
+ *  \param value Returns value
+ *  \returns 1 if entry was available, 0 else.
+ */ 
 
 int bg_cfg_section_get_parameter_float(bg_cfg_section_t * section,
                                        const char * name, float * value);
 
+/** \ingroup cfg_section
+ *  \brief Get an string value from a section
+ *  \param section The configuration section
+ *  \param name Name of the entry
+ *  \param value Returns value
+ *  \returns 1 if entry was available, 0 else.
+ */ 
+
 int bg_cfg_section_get_parameter_string(bg_cfg_section_t * section,
                                         const char * name, const char ** value);
+
+/** \ingroup cfg_section
+ *  \brief Get an time value from a section
+ *  \param section The configuration section
+ *  \param name Name of the entry
+ *  \param value Returns value
+ *  \returns 1 if entry was available, 0 else.
+ */ 
 
 int bg_cfg_section_get_parameter_time(bg_cfg_section_t * section,
                                       const char * name, gavl_time_t * value);
@@ -142,16 +394,47 @@ int bg_cfg_section_get_parameter_time(bg_cfg_section_t * section,
 
 /* Apply all values found in the parameter info */
 
+/** \ingroup cfg_section
+ *  \brief Send all parameters to a module
+ *  \param section The configuration section
+ *  \param parameters Parameter array
+ *  \param func Function to be called
+ *  \param callback_data First argument passed to func
+ *
+ *  This function iterates though all parameters and calls
+ *  func with the stored values. It is the main function to transfer
+ *  data from the section to a module.
+ */ 
+
 void bg_cfg_section_apply(bg_cfg_section_t * section,
-                          bg_parameter_info_t * infos,
-                          bg_set_parameter_func func,
+                          bg_parameter_info_t * parameters,
+                          bg_set_parameter_func_t func,
                           void * callback_data);
 
+/** \ingroup cfg_section
+ *  \brief Get parameters from a module
+ *  \param section The configuration section
+ *  \param parameters Parameter array
+ *  \param func Function to be called
+ *  \param callback_data First argument passed to func
+ *
+ *  This function iterates though all parameters and calls
+ *  func with the stored values. It is the main function to transfer
+ *  data from the module to a section. It is used only, if the module
+ *  has parameters, which are changed internally.
+ */ 
 
 void bg_cfg_section_get(bg_cfg_section_t * section,
-                        bg_parameter_info_t * infos,
-                        bg_get_parameter_func func,
+                        bg_parameter_info_t * parameters,
+                        bg_get_parameter_func_t func,
                         void * callback_data);
+
+/** \ingroup cfg_section
+ *  \brief Qurey if a child section is available
+ *  \param section The configuration section
+ *  \param name Name of the child section
+ *  \returns 1 if the child section is available, 0 else.
+ */ 
 
 int bg_cfg_section_has_subsection(bg_cfg_section_t * section,
                                   const char * name);

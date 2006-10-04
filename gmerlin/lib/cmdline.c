@@ -130,7 +130,7 @@ void bg_cmdline_print_help(bg_cmdline_arg_t* args)
   }
 
 int bg_cmdline_apply_options(bg_cfg_section_t * section,
-                             bg_set_parameter_func set_parameter,
+                             bg_set_parameter_func_t set_parameter,
                              void * data,
                              bg_parameter_info_t * parameters,
                              const char * option_string)

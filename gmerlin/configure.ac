@@ -259,11 +259,11 @@ dnl
 dnl Libcddb
 dnl
 
-AH_TEMPLATE([HAVE_CDDB],
+AH_TEMPLATE([HAVE_LIBCDDB],
             [Do we have libcddb installed?])
 
-dnl CDDB_REQUIRED="1.2.1"
-CDDB_REQUIRED="1.0.2"
+dnl LIBCDDB_REQUIRED="1.2.1"
+LIBCDDB_REQUIRED="1.0.2"
 have_cddb=false
 AC_ARG_ENABLE(cddb,
               AC_HELP_STRING(--disable-cddb, [Disable cddb support (default: autodetect)]),
@@ -279,15 +279,15 @@ test_cddb=false
 fi
 
 if test x$test_cddb = "xtrue"; then
-PKG_CHECK_MODULES(CDDB, libcddb >= $CDDB_REQUIRED, have_cddb=true, have_cddb=false)
+PKG_CHECK_MODULES(CDDB, libcddb >= $LIBCDDB_REQUIRED, have_cddb=true, have_cddb=false)
 fi
 
 if test x$have_cddb = "xtrue"; then
-AC_DEFINE(HAVE_CDDB)
+AC_DEFINE(HAVE_LIBCDDB)
 fi
 
-AM_CONDITIONAL(HAVE_CDDB, test x$have_cddb = xtrue)
-AC_SUBST(CDDB_REQUIRED)
+AM_CONDITIONAL(HAVE_LIBCDDB, test x$have_cddb = xtrue)
+AC_SUBST(LIBCDDB_REQUIRED)
 
 
 dnl

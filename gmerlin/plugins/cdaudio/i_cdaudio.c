@@ -43,7 +43,7 @@ typedef struct
   int    musicbrainz_proxy_port;
 #endif
 
-#ifdef HAVE_CDDB
+#ifdef HAVE_LIBCDDB
   int    use_cddb;
   char * cddb_host;
   int    cddb_port;
@@ -258,7 +258,7 @@ static int open_cdaudio(void * data, const char * arg)
     }
 #endif
 
-#ifdef HAVE_CDDB
+#ifdef HAVE_LIBCDDB
   if(cd->use_cddb && !have_metadata)
     {
     if(bg_cdaudio_get_metadata_cddb(cd->index, cd->track_info,
@@ -730,7 +730,7 @@ $HOME/.gmerlin/cdaudio_metadata. If you got wrong metadata for a CD,\
       help_string: "Proxy port"
     },
 #endif
-#ifdef HAVE_CDDB
+#ifdef HAVE_LIBCDDB
     {
       name:      "cddb",
       long_name: "Cddb",
@@ -812,7 +812,7 @@ static bg_parameter_info_t * get_parameters_cdaudio(void * data)
     srcs[0] = parameters;
     srcs[1] = bg_cdaudio_rip_get_parameters();
     srcs[2] = (bg_parameter_info_t*)0;
-    cd->parameters = bg_parameter_info_merge_arrays(srcs);
+    cd->parameters = bg_parameter_info_concat_arrays(srcs);
     }
     
   return cd->parameters;
@@ -849,7 +849,7 @@ static void set_parameter_cdaudio(void * data, char * name, bg_parameter_value_t
     cd->musicbrainz_proxy_port = val->val_i;
 #endif
 
-#ifdef HAVE_CDDB
+#ifdef HAVE_LIBCDDB
   if(!strcmp(name, "use_cddb"))
     cd->use_cddb = val->val_i;
   if(!strcmp(name, "cddb_host"))

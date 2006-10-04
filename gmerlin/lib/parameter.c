@@ -307,7 +307,7 @@ void bg_parameter_info_destroy_array(bg_parameter_info_t * info)
   }
 
 bg_parameter_info_t *
-bg_parameter_info_merge_arrays(bg_parameter_info_t ** srcs)
+bg_parameter_info_concat_arrays(bg_parameter_info_t ** srcs)
   {
   int i, j, dst, num_parameters;
 

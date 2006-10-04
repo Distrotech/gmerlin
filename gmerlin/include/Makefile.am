@@ -38,5 +38,6 @@ bggavl.h \
 language_table.h \
 playerprivate.h \
 registry_priv.h \
-treeprivate.h
+treeprivate.h \
+pluginreg_priv.h
 

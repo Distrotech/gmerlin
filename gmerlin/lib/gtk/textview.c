@@ -188,7 +188,7 @@ void bg_gtk_textview_update(bg_gtk_textview_t * t,
       pango_tab_array_new_with_positions(1, /* gint size, */
                                          1, /* gboolean positions_in_pixels, */
                                          PANGO_TAB_LEFT, /* PangoTabAlign first_alignment, */
-                                         tab_pos+1 /* gint first_position, */ );
+                                         tab_pos+10 /* gint first_position, */ );
     gtk_text_view_set_tabs(GTK_TEXT_VIEW(t->textview), tab_array);
     pango_tab_array_free(tab_array);
     

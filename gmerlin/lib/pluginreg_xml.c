@@ -21,6 +21,7 @@
 #include <locale.h>
 
 #include <pluginregistry.h>
+#include <pluginreg_priv.h>
 #include <utils.h>
 
 #include <libxml/tree.h>
@@ -562,7 +563,6 @@ void bg_plugin_registry_save(bg_plugin_info_t * info)
   {
   xmlDocPtr  xml_doc;
   xmlNodePtr xml_registry;
-  char * old_locale;
   char * filename;
 
   filename = bg_search_file_write("", "plugins.xml");
@@ -571,19 +571,18 @@ void bg_plugin_registry_save(bg_plugin_info_t * info)
     return;
     }
   
-  old_locale = setlocale(LC_NUMERIC, "C");
   xml_doc = xmlNewDoc((xmlChar*)"1.0");
   xml_registry = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)plugin_registry_key, NULL);
   xmlDocSetRootElement(xml_doc, xml_registry);
     
   while(info)
     {
-    save_plugin(xml_registry, info);
+    if(info->module_filename) /* We save only external plugins */
+      save_plugin(xml_registry, info);
     info = info->next;
     }
   xmlAddChild(xml_registry, BG_XML_NEW_TEXT("\n"));
   xmlSaveFile(filename, xml_doc);
   xmlFreeDoc(xml_doc);
-  setlocale(LC_NUMERIC, old_locale);
   free(filename);
   }

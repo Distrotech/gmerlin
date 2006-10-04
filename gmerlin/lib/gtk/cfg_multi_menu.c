@@ -39,7 +39,7 @@ typedef struct
   GtkWidget * info_button;
 
   bg_cfg_section_t * cfg_section;
-  bg_set_parameter_func  set_param;
+  bg_set_parameter_func_t  set_param;
   void * data;
   int selected;
   } multi_menu_t;
@@ -288,7 +288,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
 void bg_gtk_create_multi_menu(bg_gtk_widget_t * w,
                               bg_parameter_info_t * info,
                               bg_cfg_section_t * cfg_section,
-                              bg_set_parameter_func set_param,
+                              bg_set_parameter_func_t set_param,
                               void * data)
   {
   int i;

@@ -70,6 +70,7 @@ struct command_menu_s
 
   GtkWidget * seek_start;
   GtkWidget * pause;
+  GtkWidget * quit;
   
   GtkWidget * menu;
   };
@@ -276,6 +277,11 @@ static void menu_callback(GtkWidget * w, gpointer data)
     {
     //    fprintf(stderr, "seek_start\n");
     bg_player_seek(g->player, 0 );
+    }
+  else if(w == the_menu->command_menu.quit)
+    {
+    //    fprintf(stderr, "seek_start\n");
+    gtk_main_quit();
     }
   else if(w == the_menu->command_menu.pause)
     {
@@ -620,34 +626,44 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
 
   /* Commands */
   ret->command_menu.menu = create_menu();
-  ret->command_menu.inc_volume =
-    create_item("Increase volume", gmerlin, ret->command_menu.menu);
-  gtk_widget_add_accelerator(ret->command_menu.inc_volume, "activate", ret->g->player_window->accel_group,
-                             GDK_Up, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
-
-  ret->command_menu.dec_volume =
-    create_item("Decrease volume", gmerlin, ret->command_menu.menu);
-  gtk_widget_add_accelerator(ret->command_menu.dec_volume, "activate", ret->g->player_window->accel_group,
-                             GDK_Down, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
   ret->command_menu.seek_forward =
     create_item("Seek forward", gmerlin, ret->command_menu.menu);
-  gtk_widget_add_accelerator(ret->command_menu.seek_forward, "activate", ret->g->player_window->accel_group,
+  gtk_widget_add_accelerator(ret->command_menu.seek_forward, "activate",
+                             ret->g->accel_group,
                              GDK_Right, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
-
+  
+  
   ret->command_menu.seek_backward =
     create_item("Seek backward", gmerlin, ret->command_menu.menu);
-  gtk_widget_add_accelerator(ret->command_menu.seek_backward, "activate", ret->g->player_window->accel_group,
+  gtk_widget_add_accelerator(ret->command_menu.seek_backward, "activate",
+                             ret->g->accel_group,
                              GDK_Left, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+  
 
+  ret->command_menu.inc_volume =
+    create_item("Increase volume", gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.inc_volume, "activate",
+                             ret->g->accel_group,
+                             GDK_Right, GDK_SHIFT_MASK, GTK_ACCEL_VISIBLE);
+
+
+  ret->command_menu.dec_volume =
+    create_item("Decrease volume", gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.dec_volume, "activate",
+                             ret->g->accel_group,
+                             GDK_Left, GDK_SHIFT_MASK, GTK_ACCEL_VISIBLE);
+
+  
+  
   ret->command_menu.next =
     create_item("Next track", gmerlin, ret->command_menu.menu);
-  gtk_widget_add_accelerator(ret->command_menu.next, "activate", ret->g->player_window->accel_group,
+  gtk_widget_add_accelerator(ret->command_menu.next, "activate", ret->g->accel_group,
                              GDK_Page_Down, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
   ret->command_menu.previous =
     create_item("Previous track", gmerlin, ret->command_menu.menu);
-  gtk_widget_add_accelerator(ret->command_menu.previous, "activate", ret->g->player_window->accel_group,
+  gtk_widget_add_accelerator(ret->command_menu.previous, "activate", ret->g->accel_group,
                              GDK_Page_Up, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
   ret->command_menu.seek_start =
@@ -660,6 +676,12 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   gtk_widget_add_accelerator(ret->command_menu.pause, "activate", ret->g->player_window->accel_group,
                              GDK_space, 0, GTK_ACCEL_VISIBLE);
 
+  ret->command_menu.quit =
+    create_item("Quit gmerlin", gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.quit, "activate",
+                             ret->g->accel_group,
+                             GDK_q, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+  
   /* Accessories */
 
   ret->accessories_menu.menu = create_menu();

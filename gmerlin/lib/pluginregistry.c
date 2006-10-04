@@ -29,6 +29,7 @@
 
 #include <cfg_registry.h>
 #include <pluginregistry.h>
+#include <pluginreg_priv.h>
 #include <config.h>
 #include <utils.h>
 #include <singlepic.h>
@@ -212,41 +213,6 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
     info = info->next;
     }
   return ret;
-  }
-
-const bg_plugin_info_t *
-bg_plugin_find_by_mimetype(bg_plugin_registry_t * reg,
-                           const char * mimetype,
-                           const char * url)
-  {
-  bg_plugin_info_t * info;
-  
-  //  fprintf(stderr, "bg_plugin_find_by_mimetype %p\n", reg);
-    
-  //  fprintf(stderr, "info %p\n", info);
-  
-  info = reg->entries;
-  
-  while(info)
-    {
-    if((info->type != BG_PLUGIN_INPUT) ||
-       !(info->flags & BG_PLUGIN_URL) ||
-       !info->mimetypes)
-      {
-      //      fprintf(stderr, "skipping plugin: %s\n",
-      //              info->long_name);
-      info = info->next;
-      continue;
-      }
-
-    if(bg_string_match(mimetype, info->mimetypes))
-      {
-      return info;
-      }
-
-    info = info->next;
-    }
-  return (const bg_plugin_info_t *)0;
   }
 
 static bg_plugin_info_t * remove_from_list(bg_plugin_info_t * list,
@@ -524,7 +490,6 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   bg_plugin_info_t * tmp_info;
   char * filename;
   int changed = 0;
-  const char * sort_string;
   ret = calloc(1, sizeof(*ret));
   ret->config_section = section;
 
@@ -548,11 +513,23 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   if(file_info)
     {
     changed = 1;
+
+    tmp_info = file_info;
+    
+    while(tmp_info)
+      {
+      fprintf(stderr, "Plugin %s left\n", tmp_info->name);
+      tmp_info = tmp_info->next;
+      }
     free_info_list(file_info);
+
+  
     }
   
   if(changed)
     {
+    fprintf(stderr, "Plugin registry changed!\n");
+    
     /* Reload the entire registry to prevent mysterious crashes */
     free_info_list(ret->entries);
     ret->entries = scan_directory(GMERLIN_PLUGIN_DIR,
@@ -596,16 +573,6 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
     tmp_info = tmp_info->next;
     }
   
-  
-  /* Lets sort them */
-  
-  sort_string = (const char*)0;
-  
-  bg_cfg_section_get_parameter_string(ret->config_section,
-                                      "Order", &sort_string);
-  if(sort_string)
-    bg_plugin_registry_sort(ret, sort_string);
-
   /* Get flags */
 
   bg_cfg_section_get_parameter_int(ret->config_section, "encode_audio_to_video",
@@ -730,13 +697,15 @@ void bg_plugin_registry_set_extensions(bg_plugin_registry_t * reg,
     return;
   info->extensions = bg_strdup(info->extensions, extensions);
 
+  fprintf(stderr, "Set extensions: %s\n", extensions);
+  
   bg_plugin_registry_save(reg->entries);
   
   }
 
-void bg_plugin_registry_set_mimetypes(bg_plugin_registry_t * reg,
+void bg_plugin_registry_set_protocols(bg_plugin_registry_t * reg,
                                       const char * plugin_name,
-                                      const char * mimetypes)
+                                      const char * protocols)
   {
   bg_plugin_info_t * info;
   info = find_by_name(reg->entries, plugin_name);
@@ -744,9 +713,21 @@ void bg_plugin_registry_set_mimetypes(bg_plugin_registry_t * reg,
     return;
   if(!(info->flags & BG_PLUGIN_URL))
     return;
-  info->mimetypes = bg_strdup(info->mimetypes, mimetypes);
+  info->protocols = bg_strdup(info->protocols, protocols);
   bg_plugin_registry_save(reg->entries);
 
+  }
+
+void bg_plugin_registry_set_priority(bg_plugin_registry_t * reg,
+                                     const char * plugin_name,
+                                     int priority)
+  {
+  bg_plugin_info_t * info;
+  info = find_by_name(reg->entries, plugin_name);
+  if(!info)
+    return;
+  info->priority = priority;
+  bg_plugin_registry_save(reg->entries);
   }
 
 bg_cfg_section_t *
@@ -825,46 +806,6 @@ const bg_plugin_info_t * bg_plugin_registry_get_default(bg_plugin_registry_t * r
     }
   }
 
-void bg_plugin_registry_sort(bg_plugin_registry_t * r, const char * sort_string)
-  {
-  char ** names;
-  int index;
-  bg_plugin_info_t * info;
-  bg_plugin_info_t * new_entries    = (bg_plugin_info_t *)0;
-  bg_plugin_info_t * last_new_entry = (bg_plugin_info_t *)0;
-  
-  names = bg_strbreak(sort_string, ',');
-
-  index = 0;
-  while(names[index])
-    {
-    info = find_by_name(r->entries, names[index]);
-
-    if(!info)
-      {
-      index++;
-      continue;
-      }
-
-    r->entries = remove_from_list(r->entries, info);
-    
-    if(!new_entries)
-      {
-      new_entries = info;
-      last_new_entry = new_entries;
-      }
-    else
-      {
-      last_new_entry->next = info;
-      last_new_entry = last_new_entry->next;
-      }
-    index++;
-    }
-  last_new_entry->next = r->entries;
-  r->entries = new_entries;
-  bg_strbreak_free(names);
-  bg_cfg_section_set_parameter_string(r->config_section, "Order", sort_string);
-  }
 
 
 void bg_plugin_ref(bg_plugin_handle_t * h)
@@ -1310,8 +1251,8 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
     
     if(!plugin->open((*ret)->priv, location))
       {
-      fprintf(stderr, "Opening %s with %s failed\n", location,
-              info->long_name);
+      //      fprintf(stderr, "Opening %s with %s failed\n", location,
+      //              info->long_name);
 
       if(error_msg)
         {

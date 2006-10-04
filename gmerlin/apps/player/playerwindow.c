@@ -323,10 +323,10 @@ static void handle_message(player_window_t * win,
   float arg_f_1;
   char * arg_str_1;
   char * arg_str_2;
-  id = bg_msg_get_id(msg);
-
   gavl_time_t time;
 
+  id = bg_msg_get_id(msg);
+  
   switch(id)
     {
     case BG_PLAYER_MSG_TIME_CHANGED:
@@ -425,15 +425,22 @@ static void handle_message(player_window_t * win,
       switch(arg_i_1)
         {
         case BG_KEY_PAGE_UP:
-          bg_media_tree_previous(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
-          gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
+          if(arg_i_2 & BG_KEY_CONTROL_MASK)
+            {
+            bg_media_tree_previous(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
+            gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
+            }
           break;
         case BG_KEY_PAGE_DOWN:
-          bg_media_tree_next(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
-          gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
+          if(arg_i_2 & BG_KEY_CONTROL_MASK)
+            {
+            bg_media_tree_next(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
+            gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
+            }
           break;
         case BG_KEY_Q:
-          gtk_main_quit();
+          if(arg_i_2 & BG_KEY_CONTROL_MASK)
+            gtk_main_quit();
           return;
           break;
         case BG_KEY_O:
@@ -544,8 +551,6 @@ static gboolean idle_callback(gpointer data)
         }
       }
     }
-  else
-    fprintf(stderr, "queue already locked\n");
   
   /* Handle remote control */
 

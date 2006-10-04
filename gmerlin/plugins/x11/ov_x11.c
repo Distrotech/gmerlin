@@ -586,7 +586,8 @@ static void check_xv(Display * d, Window w,
       break;
     }
    XvFreeAdaptorInfo (adaptorInfo);
-   //  fprintf(stderr, "Check xv: %d %d %d %d\n", (int)(*port), *have_i420, *have_yuy2, *have_yv12);
+   //   fprintf(stderr, "Check xv: %d %d %d %d %d\n", (int)(*port),
+   //           *have_i420, *have_yuy2, *have_yv12, *have_uyvy);
   return;
   }
 
@@ -1143,7 +1144,7 @@ static int _open_x11(void * data,
           priv->do_xv = 1;
           priv->xv_format = XV_ID_YUY2;
           }
-        if(priv->have_xv_uyvy)
+        else if(priv->have_xv_uyvy)
           {
           priv->do_xv = 1;
           priv->xv_format = XV_ID_UYVY;
@@ -1164,6 +1165,35 @@ static int _open_x11(void * data,
         else
           format->pixelformat = x11_pixelformat;
         break;
+      case GAVL_UYVY:
+        if(priv->have_xv_uyvy)
+          {
+          priv->do_xv = 1;
+          priv->xv_format = XV_ID_UYVY;
+          format->pixelformat = GAVL_UYVY;
+          }
+        else if(priv->have_xv_yuy2)
+          {
+          priv->do_xv = 1;
+          priv->xv_format = XV_ID_YUY2;
+          }
+        else if(priv->have_xv_yv12)
+          {
+          priv->do_xv = 1;
+          priv->xv_format = XV_ID_YV12;
+          format->pixelformat = GAVL_YUV_420_P;
+          }
+        else if(priv->have_xv_i420)
+          {
+          priv->do_xv = 1;
+          priv->xv_format = XV_ID_I420;
+          format->pixelformat = GAVL_YUV_420_P;
+          }
+        else
+          format->pixelformat = x11_pixelformat;
+        break;
+
+
       default:
         if(gavl_pixelformat_is_yuv(format->pixelformat) ||
            priv->xv_mode == XV_MODE_ALWAYS)

@@ -349,7 +349,7 @@ void bg_cfg_section_destroy(bg_cfg_section_t * s)
 
 void bg_cfg_section_apply(bg_cfg_section_t * section,
                           bg_parameter_info_t * infos,
-                          bg_set_parameter_func func,
+                          bg_set_parameter_func_t func,
                           void * callback_data)
   {
   int num, selected;
@@ -392,7 +392,7 @@ void bg_cfg_section_apply(bg_cfg_section_t * section,
 
 void bg_cfg_section_get(bg_cfg_section_t * section,
                         bg_parameter_info_t * infos,
-                        bg_get_parameter_func func,
+                        bg_get_parameter_func_t func,
                         void * callback_data)
   {
   int num;

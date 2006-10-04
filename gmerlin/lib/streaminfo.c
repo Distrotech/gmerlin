@@ -34,25 +34,25 @@
     ptr = NULL; \
     }
 
-void bg_audio_info_free(bg_audio_info_t * info)
+static void bg_audio_info_free(bg_audio_info_t * info)
   {
   MY_FREE(info->description);
   MY_FREE(info->info);
   }
 
-void bg_video_info_free(bg_video_info_t * info)
+static void bg_video_info_free(bg_video_info_t * info)
   {
   MY_FREE(info->description);
   MY_FREE(info->info);
   }
 
-void bg_subtitle_info_free(bg_subtitle_info_t * info)
+static void bg_subtitle_info_free(bg_subtitle_info_t * info)
   {
   MY_FREE(info->description);
   MY_FREE(info->info);
   }
 
-void bg_still_info_free(bg_still_info_t * info)
+static void bg_still_info_free(bg_still_info_t * info)
   {
   MY_FREE(info->description);
   }

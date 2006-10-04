@@ -10,7 +10,7 @@ musicbrainz_cflags =
 endif
 
 
-if HAVE_CDDB
+if HAVE_LIBCDDB
 cddb_sources = cddb.c
 cddb_libs = @CDDB_LIBS@
 cddb_cflags = @CDDB_CFLAGS@

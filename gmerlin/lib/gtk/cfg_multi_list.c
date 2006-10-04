@@ -41,7 +41,7 @@ typedef struct
 
   
   bg_cfg_section_t * cfg_section;
-  bg_set_parameter_func  set_param;
+  bg_set_parameter_func_t  set_param;
   void * data;
   int selected;
   } decoder_t;
@@ -387,7 +387,7 @@ static GtkWidget * create_pixmap_button(const char * filename)
 void
 bg_gtk_create_multi_list(bg_gtk_widget_t * w, bg_parameter_info_t * info,
                          bg_cfg_section_t * cfg_section,
-                         bg_set_parameter_func set_param,
+                         bg_set_parameter_func_t set_param,
                          void * data)
   {
   GtkListStore *store;

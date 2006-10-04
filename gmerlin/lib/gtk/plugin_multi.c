@@ -37,13 +37,12 @@ struct bg_gtk_plugin_widget_multi_s
   {
   GtkWidget * info_button;
   GtkWidget * config_button;
-  GtkWidget * up_button;
-  GtkWidget * down_button;
   
   GtkWidget * treeview;
   GtkWidget * widget;
-  GtkWidget * mimetypes;
+  GtkWidget * protocols;
   GtkWidget * extensions;
+  GtkWidget * priority;
   
   bg_plugin_registry_t * reg;
   const bg_plugin_info_t * info;
@@ -52,7 +51,8 @@ struct bg_gtk_plugin_widget_multi_s
   bg_cfg_section_t * section;
 
   gulong extensions_changed_id;
-  gulong mimetypes_changed_id;
+  gulong protocols_changed_id;
+  gulong priority_changed_id;
   
   };
 
@@ -82,61 +82,6 @@ static void button_callback(GtkWidget * w, gpointer data)
     bg_dialog_show(dialog);
     bg_dialog_destroy(dialog);
     }
-  else /* Up / Down */
-    {
-    selection =
-      gtk_tree_view_get_selection(GTK_TREE_VIEW(win->treeview));
-
-    if(!gtk_tree_selection_get_selected(selection, &model, &iter))
-      return;
-    
-    if(w == win->up_button)
-      {
-      gtk_list_store_move_after(GTK_LIST_STORE(model),
-                                &iter,
-                                (GtkTreeIter*)0);
-      
-      }
-    if(w == win->down_button)
-      {
-      gtk_list_store_move_before(GTK_LIST_STORE(model),
-                                 &iter,
-                                 (GtkTreeIter*)0);
-      }
-
-    /* Scroll to the cell */
-
-    path = gtk_tree_model_get_path(model, &iter);
-    gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(win->treeview),
-                                 path,
-                                 (GtkTreeViewColumn *)0,
-                                 0, 0.0, 0.0);
-    gtk_tree_path_free(path);
-
-    /* Sort the plugins */
-    sort_string = (char*)0;
-    
-    if(!gtk_tree_model_get_iter_first(model, &iter))
-      {
-      return;
-      }
-    while(1)
-      {
-      gtk_tree_model_get(model, &iter, COLUMN_PLUGIN, &name, -1);
-
-      info = bg_plugin_find_by_long_name(win->reg, name);
-
-      g_free(name);
-
-      sort_string = bg_strcat(sort_string, info->name);
-      if(!gtk_tree_model_iter_next(model, &iter))
-        break;
-      sort_string = bg_strcat(sort_string, ",");
-
-      }
-    fprintf(stderr, "Sort string: %s\n", sort_string);
-    bg_plugin_registry_sort(win->reg, sort_string);
-    }
   }
 
 static void select_row_callback(GtkTreeSelection * s, gpointer data)
@@ -153,22 +98,6 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
   
   gtk_tree_model_get(model, &iter, COLUMN_PLUGIN,
                      &long_name, -1);
-#if 0
-  if(win->info)
-    {
-    if(win->info->flags & BG_PLUGIN_FILE)
-      {
-      bg_plugin_registry_set_extensions(win->reg, win->info->name,
-                                        gtk_entry_get_text(GTK_ENTRY(win->extensions)));
-      
-      }
-    if(win->info->flags & BG_PLUGIN_URL)
-      {
-      bg_plugin_registry_set_mimetypes(win->reg, win->info->name,
-                                       gtk_entry_get_text(GTK_ENTRY(win->mimetypes)));
-      }
-    }
-#endif
   
   win->info = bg_plugin_find_by_long_name(win->reg, long_name);
 
@@ -198,38 +127,54 @@ static void select_row_callback(GtkTreeSelection * s, gpointer data)
   g_signal_handler_unblock(G_OBJECT(win->extensions), win->extensions_changed_id);
 
   
-  g_signal_handler_block(G_OBJECT(win->mimetypes), win->mimetypes_changed_id);
+  g_signal_handler_block(G_OBJECT(win->protocols), win->protocols_changed_id);
   if(win->info->flags & BG_PLUGIN_URL)
     {
-    gtk_entry_set_text(GTK_ENTRY(win->mimetypes), win->info->mimetypes);
-    gtk_widget_set_sensitive(win->mimetypes, 1);
+    gtk_entry_set_text(GTK_ENTRY(win->protocols), win->info->protocols);
+    gtk_widget_set_sensitive(win->protocols, 1);
+    }
+  else if(win->info->flags & BG_PLUGIN_REMOVABLE)
+    {
+    gtk_entry_set_text(GTK_ENTRY(win->protocols), win->info->protocols);
+    gtk_widget_set_sensitive(win->protocols, 0);
     }
   else
     {
-    gtk_entry_set_text(GTK_ENTRY(win->mimetypes), "");
-    gtk_widget_set_sensitive(win->mimetypes, 0);
+    gtk_entry_set_text(GTK_ENTRY(win->protocols), "");
+    gtk_widget_set_sensitive(win->protocols, 0);
     }
-  g_signal_handler_unblock(G_OBJECT(win->mimetypes), win->mimetypes_changed_id);
+  g_signal_handler_unblock(G_OBJECT(win->protocols), win->protocols_changed_id);
   gtk_widget_set_sensitive(win->info_button, 1);
-  
 
+  g_signal_handler_block(G_OBJECT(win->priority), win->priority_changed_id);
+  gtk_spin_button_set_value(GTK_SPIN_BUTTON(win->priority), win->info->priority);
+  g_signal_handler_unblock(G_OBJECT(win->priority), win->priority_changed_id);
+
+  if(win->info->flags & (BG_PLUGIN_URL | BG_PLUGIN_FILE))
+    gtk_widget_set_sensitive(win->priority, 1);
+  else
+    gtk_widget_set_sensitive(win->priority, 0);
   g_free(long_name);
   }
 
-static void entry_change_callback(GtkWidget * w, gpointer data)
+static void change_callback(GtkWidget * w, gpointer data)
   {
   bg_gtk_plugin_widget_multi_t * win = (bg_gtk_plugin_widget_multi_t*)data;
-  fprintf(stderr, "entry_change_callback\n");
   if(w == win->extensions)
     {
     bg_plugin_registry_set_extensions(win->reg, win->info->name,
                                       gtk_entry_get_text(GTK_ENTRY(win->extensions)));
     }
-  else if(w == win->mimetypes)
+  else if(w == win->protocols)
     {
-    bg_plugin_registry_set_mimetypes(win->reg, win->info->name,
-                                     gtk_entry_get_text(GTK_ENTRY(win->mimetypes)));
+    bg_plugin_registry_set_protocols(win->reg, win->info->name,
+                                     gtk_entry_get_text(GTK_ENTRY(win->protocols)));
     
+    }
+  else if(w == win->priority)
+    {
+    bg_plugin_registry_set_priority(win->reg, win->info->name,
+                                    gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(win->priority)));
     }
   }
 
@@ -289,11 +234,6 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
   ret->config_button = create_pixmap_button("config_16.png", tooltips,
                                             "Plugin options", "Plugin options");
                                                                                 
-  ret->up_button = create_pixmap_button("top_16.png", tooltips, "Move plugin to top",
-                                        "Move plugin to top");
-  
-  ret->down_button = create_pixmap_button("bottom_16.png", tooltips, "Move plugin to bottom",
-                                        "Move plugin to bottom");
                                                                                 
   g_signal_connect(G_OBJECT(ret->info_button),
                    "clicked", G_CALLBACK(button_callback),
@@ -301,17 +241,9 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
   g_signal_connect(G_OBJECT(ret->config_button),
                    "clicked", G_CALLBACK(button_callback),
                    (gpointer)ret);
-  g_signal_connect(G_OBJECT(ret->up_button),
-                   "clicked", G_CALLBACK(button_callback),
-                   (gpointer)ret);
-  g_signal_connect(G_OBJECT(ret->down_button),
-                   "clicked", G_CALLBACK(button_callback),
-                   (gpointer)ret);
   
   gtk_widget_show(ret->info_button);
   gtk_widget_show(ret->config_button);
-  gtk_widget_show(ret->up_button);
-  gtk_widget_show(ret->down_button);
     
   /* Create list */
 
@@ -370,25 +302,33 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
   /* Create entries */
 
   ret->extensions = gtk_entry_new();
-  ret->mimetypes = gtk_entry_new();
-
+  ret->protocols = gtk_entry_new();
+  ret->priority = gtk_spin_button_new_with_range(BG_PLUGIN_PRIORITY_MIN,
+                                                 BG_PLUGIN_PRIORITY_MAX, 1.0);
+  
   ret->extensions_changed_id =
     g_signal_connect(G_OBJECT(ret->extensions),
-                     "changed", G_CALLBACK(entry_change_callback),
+                     "changed", G_CALLBACK(change_callback),
                      (gpointer)ret);
   
-  ret->mimetypes_changed_id =
-    g_signal_connect(G_OBJECT(ret->mimetypes),
-                     "changed", G_CALLBACK(entry_change_callback),
+  ret->protocols_changed_id =
+    g_signal_connect(G_OBJECT(ret->protocols),
+                     "changed", G_CALLBACK(change_callback),
+                     (gpointer)ret);
+
+  ret->priority_changed_id =
+    g_signal_connect(G_OBJECT(ret->priority),
+                     "value-changed", G_CALLBACK(change_callback),
                      (gpointer)ret);
   
 
-  gtk_widget_show(ret->mimetypes);
+  gtk_widget_show(ret->protocols);
   gtk_widget_show(ret->extensions);
+  gtk_widget_show(ret->priority);
     
   /* Pack stuff */
   
-  table = gtk_table_new(4, 2, 0);
+  table = gtk_table_new(5, 4, 0);
   gtk_container_set_border_width(GTK_CONTAINER(table), 5);
   gtk_table_set_row_spacings(GTK_TABLE(table), 5);
   gtk_table_set_col_spacings(GTK_TABLE(table), 5);
@@ -400,27 +340,33 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
   gtk_table_attach(GTK_TABLE(table),
                    ret->config_button, 0, 1, 0, 1, GTK_FILL, GTK_SHRINK, 0, 0);
   gtk_table_attach(GTK_TABLE(table),
-                   ret->info_button, 0, 1, 1, 2, GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table),
-                   ret->up_button, 0, 1, 2, 3, GTK_FILL, GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table),
-                   ret->down_button, 0, 1, 3, 4, GTK_FILL, GTK_SHRINK, 0, 0);
-    
-  label = gtk_label_new("Mimetypes");
+                   ret->info_button, 1, 2, 0, 1, GTK_FILL, GTK_SHRINK, 0, 0);
+
+  label = gtk_label_new("Priority");
   gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
   gtk_widget_show(label);
-  gtk_table_attach(GTK_TABLE(table), label, 1, 2, 0, 1, GTK_FILL|GTK_EXPAND,
+  gtk_table_attach(GTK_TABLE(table), label, 2, 3, 0, 1, GTK_FILL,
                    GTK_SHRINK, 0, 0);
-  gtk_table_attach(GTK_TABLE(table), ret->mimetypes, 1, 2, 1, 2, GTK_FILL|GTK_EXPAND,
+  gtk_table_attach(GTK_TABLE(table), ret->priority, 3, 4, 0, 1, GTK_FILL|GTK_EXPAND,
+                   GTK_SHRINK, 0, 0);
+
+
+  
+  label = gtk_label_new("Protocols");
+  gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
+  gtk_widget_show(label);
+  gtk_table_attach(GTK_TABLE(table), label, 0, 4, 1, 2, GTK_FILL|GTK_EXPAND,
+                   GTK_SHRINK, 0, 0);
+  gtk_table_attach(GTK_TABLE(table), ret->protocols, 0, 4, 2, 3, GTK_FILL|GTK_EXPAND,
                    GTK_SHRINK, 0, 0);
   
   label = gtk_label_new("Extensions");
   gtk_misc_set_alignment(GTK_MISC(label), 0.0, 0.5);
   gtk_widget_show(label);
 
-  gtk_table_attach(GTK_TABLE(table), label, 1, 2, 2, 3, GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
+  gtk_table_attach(GTK_TABLE(table), label, 0, 4, 3, 4, GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
   gtk_table_attach(GTK_TABLE(table),
-                   ret->extensions, 1, 2, 3, 4, GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
+                   ret->extensions, 0, 4, 4, 5, GTK_FILL|GTK_EXPAND, GTK_SHRINK, 0, 0);
   
   gtk_widget_show(table);
 
@@ -432,7 +378,9 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
   ret->widget = hbox;
   /* Make things insensitive, because nothing is selected so far */
 
-  gtk_widget_set_sensitive(ret->mimetypes, 0);
+  gtk_widget_set_sensitive(ret->priority, 0);
+
+  gtk_widget_set_sensitive(ret->protocols, 0);
   gtk_widget_set_sensitive(ret->extensions, 0);
   gtk_widget_set_sensitive(ret->config_button, 0);
   gtk_widget_set_sensitive(ret->info_button, 0);

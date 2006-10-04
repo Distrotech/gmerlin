@@ -43,7 +43,7 @@ struct bg_gtk_widget_s
 
   /* For change callbacks */
   
-  bg_set_parameter_func change_callback;
+  bg_set_parameter_func_t change_callback;
   void * change_callback_data;
   gulong callback_id;
   GtkWidget * callback_widget;
@@ -106,13 +106,13 @@ bg_gtk_create_time(bg_gtk_widget_t *,
 void
 bg_gtk_create_multi_list(bg_gtk_widget_t *, bg_parameter_info_t * info,
                          bg_cfg_section_t * cfg_section,
-                         bg_set_parameter_func set_param,
+                         bg_set_parameter_func_t set_param,
                          void * data);
 
 void
 bg_gtk_create_multi_menu(bg_gtk_widget_t *, bg_parameter_info_t * info,
                          bg_cfg_section_t * cfg_section,
-                         bg_set_parameter_func set_param,
+                         bg_set_parameter_func_t set_param,
                          void * data);
 
 

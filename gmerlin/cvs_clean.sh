@@ -1,5 +1,5 @@
 #!/bin/sh
-SUBDIRS="plugins/cdaudio plugins/subwriters plugins/v4l plugins/alsa plugins/esd plugins/lqt plugins/oss plugins/wavwrite plugins/x11 plugins/tiff plugins/postprocessors tests include include/gui_gtk icons lib lib/gtk apps apps/player apps/plugincfg apps/alsamixer apps/camelot apps/transcoder"
+SUBDIRS="m4 doc plugins/cdaudio plugins/subwriters plugins/v4l plugins/alsa plugins/esd plugins/lqt plugins/oss plugins/wavwrite plugins/x11 plugins/tiff plugins/postprocessors plugins/png plugins/mikmod plugins/image plugins/jpeg plugins plugins/tga plugins/vorbis tests include include/gui_gtk icons lib lib/gtk apps apps/player apps/plugincfg apps/alsamixer apps/camelot apps/transcoder skins/Default skins apps/ossmixer osd "
 
 make distclean
 
@@ -9,6 +9,11 @@ TOPCLEANFILES="aclocal.m4 config.guess config.status config.sub configure gmerli
 
 echo "Cleaning up..."
 for i in $TOPCLEANFILES; do
+echo "Removing $i"
+rm -rf $i
+done
+
+for i in $CLEANFILES; do
 echo "Removing $i"
 rm -rf $i
 done

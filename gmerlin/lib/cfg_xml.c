@@ -303,12 +303,8 @@ void bg_cfg_registry_save(bg_cfg_registry_t * r, const char * filename)
   xmlNodePtr xml_registry, xml_section;
   
   bg_cfg_section_t * tmp_section;
-  //  char * old_locale;
-
   if(!filename)
     return;
-  
-  //  old_locale = setlocale(LC_NUMERIC, "C");
   
   xml_doc = xmlNewDoc((xmlChar*)"1.0");
   xml_registry = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)"REGISTRY", NULL);
@@ -330,5 +326,4 @@ void bg_cfg_registry_save(bg_cfg_registry_t * r, const char * filename)
     }
   xmlSaveFile(filename, xml_doc);
   xmlFreeDoc(xml_doc);
-  //  setlocale(LC_NUMERIC, old_locale);
   }
