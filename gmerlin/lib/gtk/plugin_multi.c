@@ -59,13 +59,8 @@ struct bg_gtk_plugin_widget_multi_s
 static void button_callback(GtkWidget * w, gpointer data)
   {
   bg_gtk_plugin_widget_multi_t * win;
-  GtkTreeSelection * selection;
   bg_dialog_t * dialog;
-  GtkTreeModel * model;
-  GtkTreeIter iter;
-  GtkTreePath * path;
-  char * name, * sort_string;
-  const bg_plugin_info_t * info;
+  char * name;
   
   win = (bg_gtk_plugin_widget_multi_t *)data;
 

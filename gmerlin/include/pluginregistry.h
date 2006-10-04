@@ -89,8 +89,8 @@ typedef struct bg_plugin_registry_s bg_plugin_registry_t;
  *  \brief Handle of a loaded plugin
  *
  *  When you load a plugin, the shared module will be loaded. Then, the
- *  create method of the plugin is called, the returned handle is stored in
- *  priv.
+ *  create method of the plugin is called. The pointer obtained from the create method
+ *  is stored in the priv member of the returned handle.
  */
 
 typedef struct bg_plugin_handle_s
@@ -98,8 +98,8 @@ typedef struct bg_plugin_handle_s
   /* Private members, should not be accessed! */
     
   void * dll_handle; //!< dll_handle (don't touch)
-  pthread_mutex_t mutex; //!< dll_handle (don't touch, use \ref bg_plugin_lock and \ref bg_plugin_lock)
-  int refcount;          //!< Reference counter (don't touch, use \ref bg_plugin_ref and \ref bg_plugin_ref)
+  pthread_mutex_t mutex; //!< dll_handle (don't touch, use \ref bg_plugin_lock and \ref bg_plugin_unlock)
+  int refcount;          //!< Reference counter (don't touch, use \ref bg_plugin_ref and \ref bg_plugin_unref)
   bg_plugin_registry_t * plugin_reg; //!< The plugin registry, from which the plugin was loaded
   
   /* These are for use by applications */
