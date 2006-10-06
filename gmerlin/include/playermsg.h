@@ -33,12 +33,6 @@
 #define BG_PLAYER_STATE_ERROR     8
 #define BG_PLAYER_STATE_STILL     9 /* Still image */
 
-/* Error codes */
-
-#define BG_PLAYER_ERROR_GENERAL   1
-#define BG_PLAYER_ERROR_TRACK     2 /* Somethings wrong with the track */
-
-
 /* Message definition for the player */
 
 /****************************
@@ -51,11 +45,6 @@
 /* arg3: Play flags, see defines below                  */
 
 #define BG_PLAYER_CMD_PLAY     0
-
-#define BG_PLAY_FLAG_IGNORE_IF_PLAYING (1<<0)
-#define BG_PLAY_FLAG_IGNORE_IF_STOPPED (1<<1)
-#define BG_PLAY_FLAG_INIT_THEN_PAUSE   (1<<2)
-#define BG_PLAY_FLAG_RESUME            (1<<3)
 
 /* Stop playing                              */
 
@@ -151,8 +140,7 @@
  *  If (state == BG_PLAYER_STATE_BUFFERING)
  *    arg2: Buffering percentage (float)
  *  else if(state == BG_PLAYER_STATE_ERROR)
- *    arg1: String describing the error
- *    arg2: Integer error code (Seek BG_PLAYER_ERROR_* above)
+ *    arg2: String describing the error
  *  else if(state == BG_PLAYER_STATE_PLAYING)
  *    arg2: Integer (1 if player can seek withing the current track)
  *  else if(state == BG_PLAYER_STATE_CHANGING)

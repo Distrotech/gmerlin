@@ -7,15 +7,15 @@
 #include <pluginregistry.h>
 #include <gavl/gavl.h>
 #include <utils.h>
+#include <cmdline.h>
+#include <log.h>
 
 #ifdef INFO_WINDOW
 #include <gtk/gtk.h>
 #include <gui_gtk/infowindow.h>
 #endif // INFO_WINDOW
 
-int     bg_argc;
-int     bg_arg_index = 1;
-char ** bg_argv;
+#define LOG_DOMAIN "gmerlin_player"
 
 bg_player_t * player;
 
@@ -23,86 +23,164 @@ bg_plugin_registry_t * plugin_reg;
 bg_cfg_registry_t * cfg_reg;
 
 bg_plugin_handle_t * input_handle = (bg_plugin_handle_t*)0;
-void * input_priv;
-
 int display_time = 1;
+
+char * audio_output_name = (char*)0;
+char * video_output_name = (char*)0;
+
+char ** gmls = (char **)0;
+int gml_index = 0;
+
+bg_cfg_section_t * audio_section;
+bg_cfg_section_t * video_section;
+bg_cfg_section_t * osd_section;
+
+/*
+ *  Commandline options stuff
+ */
+
+static void opt_oa(void * data, int * argc, char *** _argv, int arg)
+  {
+  char ** argv = *_argv;
+  
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -oa requires an argument\n");
+    exit(-1);
+    }
+  audio_output_name = bg_strdup(audio_output_name, argv[arg]);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_ov(void * data, int * argc, char *** _argv, int arg)
+  {
+  char ** argv = *_argv;
+  
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -ov requires an argument\n");
+    exit(-1);
+    }
+  video_output_name = bg_strdup(video_output_name, argv[arg]);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_nt(void * data, int * argc, char *** _argv, int arg)
+  {
+  display_time = 0;
+  }
+
+static void opt_v(void * data, int * argc, char *** _argv, int arg)
+  {
+  int val, verbose = 0;
+
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -v requires an argument\n");
+    exit(-1);
+    }
+  val = atoi((*_argv)[arg]);  
+  
+  if(val > 0)
+    verbose |= BG_LOG_ERROR;
+  if(val > 1)
+    verbose |= BG_LOG_WARNING;
+  if(val > 2)
+    verbose |= BG_LOG_INFO;
+  if(val > 3)
+    verbose |= BG_LOG_DEBUG;
+  bg_log_set_verbose(verbose);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+
+static void opt_help(void * data, int * argc, char *** argv, int arg);
+
+static bg_cmdline_arg_t global_options[] =
+  {
+    {
+      arg:         "-oa",
+      help_string: "Set audio plugin",
+      callback:    opt_oa,
+    },
+    {
+      arg:         "-ov",
+      help_string: "Set video plugin",
+      callback:    opt_ov,
+    },
+    {
+      arg:         "-nt",
+      help_string: "Disable time display",
+      callback:    opt_nt,
+    },
+    {
+      arg:         "-v",
+      help_string: "Set verbosity level",
+      callback:    opt_v,
+    },
+    {
+      arg:         "-help",
+      help_string: "Print this help message and exit",
+      callback:    opt_help,
+    },
+    { /* End of options */ }
+  };
+
+static void opt_help(void * data, int * argc, char *** argv, int arg)
+  {
+  fprintf(stderr, "Usage: %s [options] gml...\n\n", (*argv)[0]);
+  fprintf(stderr, "gml is a gmerlin media location (e.g. filename or URL)\n");
+  fprintf(stderr, "Options:\n\n");
+  bg_cmdline_print_help(global_options);
+  exit(0);
+  }
+
+
 
 /* Input plugin stuff */
 
-static void play_file(bg_player_t * player)
+static void play_track(bg_player_t * player, const char * gml, int track,
+                       const char * plugin_name)
   {
-  bg_msg_t * message;
-  bg_msg_queue_t * queue;
-  
-  const bg_plugin_info_t * info;
+  const bg_plugin_info_t * info = (const bg_plugin_info_t *)0;
   bg_input_plugin_t * plugin;
-  char * track_name;
-  const char * start_pos;
-  const char * end_pos;
+  bg_track_info_t * track_info;
+  int num_tracks;
+  char * error_msg = (char*)0;
+  if(plugin_name)
+    info = bg_plugin_find_by_name(plugin_reg,
+                                  plugin_name);
   
-  /* Open input */
-  
-  /* Load input plugin */
-  
-  //  fprintf(stderr, "Searching plugin for %s...", filename);
-  
-  info = bg_plugin_find_by_filename(plugin_reg,
-                                    bg_argv[bg_arg_index],
-                                    BG_PLUGIN_INPUT);
-
-  if(!info)
+  if(!bg_input_plugin_load(plugin_reg, gml, info,
+                           &input_handle, &error_msg,
+                           (bg_input_callbacks_t*)0))
     {
-    fprintf(stderr, "No plugin found, skipping file\n");
+    fprintf(stderr, "Cannot open %s\n", gml);
+    if(error_msg)
+      free(error_msg);
     return;
     }
-  //  else
-  //    fprintf(stderr, "Found %s\n", info->long_name);
   
-  if(!input_handle ||
-     strcmp(input_handle->info->name, info->name))
-    {
-    if(input_handle)
-      bg_plugin_unref(input_handle);
-
-    input_handle = bg_plugin_load(plugin_reg, info);
-    }
-
   plugin = (bg_input_plugin_t*)(input_handle->plugin);
-  
-  /* Initialize input plugin */
 
-  if(!plugin->open(input_handle->priv, bg_argv[bg_arg_index]))
+  num_tracks = plugin->get_num_tracks(input_handle->priv);
+
+  if((track < 0) || (track >= num_tracks))
     {
-    fprintf(stderr, "Cannot open %s\n", bg_argv[bg_arg_index]);
+    fprintf(stderr, "No such track %d\n", track);
     return;
     }
   
-  /* Create message */
-
-  start_pos = strrchr(bg_argv[bg_arg_index], '/');
-  if(start_pos)
-    start_pos++;
-
-  end_pos = strrchr(bg_argv[bg_arg_index], '.');
-
-  if(start_pos && end_pos && (end_pos > start_pos))
-    track_name = bg_strndup(NULL, start_pos, end_pos);
-  else
-    track_name = bg_strdup(NULL, bg_argv[bg_arg_index]);
+  track_info = plugin->get_track_info(input_handle->priv, track);
   
-  queue = bg_player_get_command_queue(player);
+  if(!track_info)
+    {
+    return;
+    }
 
-  message = bg_msg_queue_lock_write(queue);
-  bg_msg_set_id(message, BG_PLAYER_CMD_PLAY);
-
-  bg_msg_set_arg_ptr_nocopy(message, 0, input_handle);
-  bg_msg_set_arg_int(message, 1, 0);
-  bg_msg_set_arg_int(message, 2, 0);
-  bg_msg_set_arg_string(message, 3, track_name);
-  bg_msg_queue_unlock_write(queue);
-  bg_arg_index++;
-
-  free(track_name);
+  if(!track_info->name)
+    bg_set_track_name_default(track_info, gml);
+  bg_player_play(player, input_handle, track, 0, track_info->name);
   }
 
 static int time_active = 0;
@@ -119,13 +197,8 @@ static void print_time(gavl_time_t time)
   total_len = 2*GAVL_TIME_STRING_LEN + 7;
   
   if(time_active)
-    {
-    for(i = 0; i < total_len; i++)
-      {
-      putc(0x08, stderr);
-      }
-    }
-
+    putc('\r', stderr);
+  
   gavl_time_prettyprint(time, str);
 
   fprintf(stderr, "[ ");
@@ -151,20 +224,21 @@ static void print_time(gavl_time_t time)
   time_active = 1;
   }
 
-#define DO_PRINT(f, s) if(s)fprintf(stderr, f, s);
+#define DO_PRINT(f, s) if(s)bg_log(BG_LOG_INFO, LOG_DOMAIN, f, s);
 
 static void dump_metadata(bg_metadata_t * m)
   {
-  DO_PRINT("Artist:    %s\n", m->artist);
-  DO_PRINT("Author:    %s\n", m->author);
-  DO_PRINT("Title:     %s\n", m->title);
-  DO_PRINT("Album:     %s\n", m->album);
-  DO_PRINT("Genre:     %s\n", m->genre);
-  DO_PRINT("Copyright: %s\n", m->copyright);
-  DO_PRINT("Date:      %s\n", m->date);
-  DO_PRINT("Track:     %d\n", m->track);
-  DO_PRINT("Comment:   %s\n", m->comment);
+  DO_PRINT("Artist:    %s", m->artist);
+  DO_PRINT("Author:    %s", m->author);
+  DO_PRINT("Title:     %s", m->title);
+  DO_PRINT("Album:     %s", m->album);
+  DO_PRINT("Genre:     %s", m->genre);
+  DO_PRINT("Copyright: %s", m->copyright);
+  DO_PRINT("Date:      %s", m->date);
+  DO_PRINT("Track:     %d", m->track);
+  DO_PRINT("Comment:   %s", m->comment);
   }
+#undef DO_PRINT
 
 static int handle_message(bg_player_t * player,
                           bg_msg_t * message)
@@ -176,6 +250,9 @@ static int handle_message(bg_player_t * player,
   gavl_video_format_t video_format;
   bg_metadata_t metadata;
 
+  char * tmp_string_1;
+  char * tmp_string_2;
+  
   switch(bg_msg_get_id(message))
     {
     case BG_PLAYER_MSG_TIME_CHANGED:
@@ -188,61 +265,72 @@ static int handle_message(bg_player_t * player,
     case BG_PLAYER_MSG_TRACK_NAME:
       arg_str1 = bg_msg_get_arg_string(message, 0);
       if(arg_str1)
-        {
-        fprintf(stderr, "Track: %s\n", arg_str1);
-        free(arg_str1);
-        }
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Name: %s", arg_str1);
       break;
     case BG_PLAYER_MSG_TRACK_NUM_STREAMS:
       arg_i1 = bg_msg_get_arg_int(message, 0);
       if(arg_i1)
         {
-        fprintf(stderr, "Audio streams %d\n", arg_i1);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Audio streams %d", arg_i1);
         }
       arg_i1 = bg_msg_get_arg_int(message, 1);
       if(arg_i1)
         {
-        fprintf(stderr, "Video streams %d\n", arg_i1);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video streams %d", arg_i1);
         }
       arg_i1 = bg_msg_get_arg_int(message, 2);
       if(arg_i1)
         {
-        fprintf(stderr, "Subpicture streams %d\n", arg_i1);
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Subpicture streams %d", arg_i1);
         }
       break;
-
     case BG_PLAYER_MSG_AUDIO_STREAM:
       arg_i1 = bg_msg_get_arg_int(message, 0);
-      fprintf(stderr, "Playing audio stream %d\n", arg_i1 + 1);
-      bg_msg_get_arg_audio_format(message, 1, &audio_format);
-      fprintf(stderr, "Input format:\n");
-      gavl_audio_format_dump(&audio_format);
-      bg_msg_get_arg_audio_format(message, 2, &audio_format);
-      fprintf(stderr, "Output format:\n");
-      gavl_audio_format_dump(&audio_format);
-      break;
 
+      bg_msg_get_arg_audio_format(message, 1, &audio_format);
+      tmp_string_1 = bg_audio_format_to_string(&audio_format, 0);
+
+      bg_msg_get_arg_audio_format(message, 2, &audio_format);
+      tmp_string_2 = bg_audio_format_to_string(&audio_format, 0);
+  
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Playing audio stream %d\nInput format:\n%s\nOutput format:\n%s",
+             arg_i1+1, tmp_string_1, tmp_string_2);
+      free(tmp_string_1);
+      free(tmp_string_2);
+      
+      break;
     case BG_PLAYER_MSG_VIDEO_STREAM:
       arg_i1 = bg_msg_get_arg_int(message, 0);
-      fprintf(stderr, "Playing video stream %d\n", arg_i1 + 1);
+
       bg_msg_get_arg_video_format(message, 1, &video_format);
-      fprintf(stderr, "Input format:\n");
-      gavl_video_format_dump(&video_format);
+      tmp_string_1 = bg_video_format_to_string(&video_format, 0);
+
       bg_msg_get_arg_video_format(message, 2, &video_format);
-      fprintf(stderr, "Output format:\n");
-      gavl_video_format_dump(&video_format);
+      tmp_string_2 = bg_video_format_to_string(&video_format, 0);
+  
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Playing video stream %d\nInput format:\n%s\nOutput format:\n%s",
+             arg_i1+1, tmp_string_1, tmp_string_2);
+      free(tmp_string_1);
+      free(tmp_string_2);
       break;
     case BG_PLAYER_MSG_STREAM_DESCRIPTION:
+      arg_str1 = bg_msg_get_arg_string(message, 0);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Format: %s", arg_str1);
+      break;
     case BG_PLAYER_MSG_AUDIO_DESCRIPTION:
+      arg_str1 = bg_msg_get_arg_string(message, 0);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Audio stream: %s", arg_str1);
+      break;
     case BG_PLAYER_MSG_VIDEO_DESCRIPTION:
+      arg_str1 = bg_msg_get_arg_string(message, 0);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Video stream: %s", arg_str1);
+      break;
     case BG_PLAYER_MSG_SUBTITLE_DESCRIPTION:
       arg_str1 = bg_msg_get_arg_string(message, 0);
-      fprintf(stderr, "%s\n", arg_str1);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Subtitle stream: %s", arg_str1);
       free(arg_str1);
       break;
-
       /* Metadata */
-
     case BG_PLAYER_MSG_METADATA:
       memset(&metadata, 0, sizeof(metadata));
       bg_msg_get_arg_metadata(message, 0, &metadata);
@@ -254,28 +342,19 @@ static int handle_message(bg_player_t * player,
       switch(arg_i1)
         {
         case BG_PLAYER_STATE_STOPPED:
-          fprintf(stderr, "Stopped\n");
-          if(bg_arg_index >= bg_argc)
-            return 0;
-          else
-            play_file(player);
           break;
         case BG_PLAYER_STATE_PLAYING:
+          fprintf(stderr, "Playing\n");
           break;
         case BG_PLAYER_STATE_SEEKING:
           break;
         case BG_PLAYER_STATE_CHANGING:
-          fprintf(stderr, "Changing...");
-          if(bg_arg_index >= bg_argc)
-            {
-            fprintf(stderr, "Exiting\n");
+          fprintf(stderr, "Changing\n");
+          gml_index++;
+          if(!gmls[gml_index])
             return 0;
-            }
           else
-            {
-            fprintf(stderr, "Next track\n");
-            play_file(player);
-            }
+            play_track(player, gmls[gml_index], 0, (const char*)0);
           break;
         case BG_PLAYER_STATE_BUFFERING:
           break;
@@ -313,16 +392,13 @@ static void info_close_callback(bg_gtk_info_window_t * info_window,
   {
   fprintf(stderr, "Info window now closed\n");
   }
-
 #endif
 
 int main(int argc, char ** argv)
   {
+  
   bg_msg_t * message;
-  bg_msg_queue_t * queue;
   char * tmp_path;
-  int i;
-  int remove_arg;
 #ifdef INFO_WINDOW
   bg_gtk_info_window_t * info_window;
 #endif
@@ -336,7 +412,26 @@ int main(int argc, char ** argv)
 #endif
   
   player = bg_player_create();
+  
+  bg_player_set_volume(player, 0.0);
+  
+  /* Create config section */
 
+  audio_section =
+    bg_cfg_section_create_from_parameters("audio", bg_player_get_audio_parameters(player));
+  video_section =
+    bg_cfg_section_create_from_parameters("video", bg_player_get_video_parameters(player));
+  osd_section =
+    bg_cfg_section_create_from_parameters("osd", bg_player_get_osd_parameters(player));
+
+  bg_cfg_section_apply(audio_section, bg_player_get_audio_parameters(player),
+                       bg_player_set_audio_parameter, player);
+  bg_cfg_section_apply(video_section, bg_player_get_video_parameters(player),
+                       bg_player_set_video_parameter, player);
+
+  bg_cfg_section_apply(video_section, bg_player_get_osd_parameters(player),
+                       bg_player_set_osd_parameter, player);
+  
   /* Create plugin regsitry */
   cfg_reg = bg_cfg_registry_create();
   tmp_path =  bg_search_file_read("generic", "config.xml");
@@ -365,60 +460,45 @@ int main(int argc, char ** argv)
 
   /* Get commandline options */
 
-  for(i = 1; i < argc; i++)
-    {
-    remove_arg = 0;
-    if(!strcmp(argv[i], "-nt"))
-      {
-      display_time = 0;
-      remove_arg = 1;
-      }
-    else if(!strcmp(argv[i], "--"))
-      {
-      break;
-      }
-      if(remove_arg)
-        {
-        if(i < argc-1)
-          {
-          memcpy(&(argv[i]), &(argv[i+1]), (argc - i)*sizeof(char*));
-          i--;
-          }
-        argc--;
-        }
-    }
-  bg_argc = argc;
-  bg_argv = argv;
+  bg_cmdline_parse(global_options, &argc, &argv, NULL);
+  gmls = bg_cmdline_get_locations_from_args(&argc, &argv);
 
+  if(!gmls)
+    {
+    fprintf(stderr, "No input files given");
+    return 0;
+    }
+  
   /* Start the player thread */
 
   bg_player_run(player);
 
-  /* Load output plugins */
-  queue = bg_player_get_command_queue(player);
+  /* Load audio output */
 
-  info = bg_plugin_registry_get_default(plugin_reg,
-                                        BG_PLUGIN_OUTPUT_AUDIO);
-
+  if(!audio_output_name)
+    info = bg_plugin_registry_get_default(plugin_reg,
+                                          BG_PLUGIN_OUTPUT_AUDIO);
+  else
+    info = bg_plugin_find_by_name(plugin_reg,
+                                  audio_output_name);
+  
   handle = bg_plugin_load(plugin_reg, info);
-
-  message = bg_msg_queue_lock_write(queue);
-  bg_msg_set_id(message, BG_PLAYER_CMD_SET_OA_PLUGIN);
+  bg_player_set_oa_plugin(player, handle);
   
-  bg_msg_set_arg_ptr_nocopy(message, 0, handle);
-  bg_msg_queue_unlock_write(queue);
+  /* Load video output */
 
-  
-  info = bg_plugin_registry_get_default(plugin_reg,
-                                        BG_PLUGIN_OUTPUT_VIDEO);
+  if(!video_output_name)
+    info = bg_plugin_registry_get_default(plugin_reg,
+                                          BG_PLUGIN_OUTPUT_VIDEO);
+  else
+    info = bg_plugin_find_by_name(plugin_reg,
+                                  video_output_name);
   handle = bg_plugin_load(plugin_reg, info);
+  bg_player_set_ov_plugin(player, handle);
 
-  message = bg_msg_queue_lock_write(queue);
-  bg_msg_set_id(message, BG_PLAYER_CMD_SET_OV_PLUGIN);
-  
-  bg_msg_set_arg_ptr_nocopy(message, 0, handle);
-  bg_msg_queue_unlock_write(queue);
+  /* Play first track */
 
+  play_track(player, gmls[gml_index], 0, (const char*)0);
   
   /* Main loop */
   
@@ -429,6 +509,7 @@ int main(int argc, char ** argv)
     if(!handle_message(player, message))
       {
       bg_msg_queue_unlock_read(message_queue);
+      fprintf(stderr, "Finishing\n");
       break;
       }
     bg_msg_queue_unlock_read(message_queue);

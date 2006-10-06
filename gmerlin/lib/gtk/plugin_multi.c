@@ -60,7 +60,6 @@ static void button_callback(GtkWidget * w, gpointer data)
   {
   bg_gtk_plugin_widget_multi_t * win;
   bg_dialog_t * dialog;
-  char * name;
   
   win = (bg_gtk_plugin_widget_multi_t *)data;
 

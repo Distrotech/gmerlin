@@ -340,6 +340,15 @@ void bg_player_subtitle_cleanup(bg_player_t * p);
 void bg_player_subtitle_create(bg_player_t * p);
 void bg_player_subtitle_destroy(bg_player_t * p);
 
+void bg_player_key_pressed(bg_player_t * player, int keycode, int mask);
+
+void bg_player_set_track(bg_player_t *  player, int track);
+void bg_player_set_track_name(bg_player_t * player, const char *);
+void bg_player_set_duration(bg_player_t * player, gavl_time_t duration, int can_seek);
+void bg_player_set_metadata(bg_player_t * player, const bg_metadata_t *);
+
+
+
 /* Number of frames in the buffers */
 
 #define NUM_AUDIO_FRAMES    8

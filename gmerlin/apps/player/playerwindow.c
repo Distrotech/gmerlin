@@ -371,13 +371,6 @@ static void handle_message(player_window_t * win,
           arg_str_1 = bg_msg_get_arg_string(msg, 1);
           //          fprintf(stderr, "State Error %s\n", arg_str_1);
           display_set_state(win->display, win->gmerlin->player_state, arg_str_1);
-          arg_i_2 = bg_msg_get_arg_int(msg, 2);
-
-          switch(arg_i_2)
-            {
-            case BG_PLAYER_ERROR_TRACK:
-              break;
-            }
           break;
         case BG_PLAYER_STATE_BUFFERING:
           arg_f_1 = bg_msg_get_arg_float(msg, 1);

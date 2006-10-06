@@ -447,10 +447,26 @@ static void play_cmd(bg_player_t * p,
     msg_name,
     p->track_info);
   */
+
+  if(p->track_info->description)
+    bg_msg_queue_list_send(p->message_queues,
+                           msg_stream_description,
+                           p->track_info->description);
+
+  /* Send metadata */
+
+  bg_msg_queue_list_send(p->message_queues,
+                         msg_metadata,
+                         &(p->track_info->metadata));
+
+
+  bg_player_set_duration(p, p->track_info->duration, p->can_seek);
+  
   bg_msg_queue_list_send(p->message_queues,
                          msg_num_streams,
                          p->track_info);
 
+  
   /* Send infos about the streams we have */
   si.track = p->track_info;
   for(i = 0; i < p->track_info->num_audio_streams; i++)
@@ -474,19 +490,6 @@ static void play_cmd(bg_player_t * p,
                            msg_subtitle_stream_info,
                            &si);
     }
-  
-  bg_player_set_duration(p, p->track_info->duration, p->can_seek);
-  
-  /* Send metadata */
-
-  bg_msg_queue_list_send(p->message_queues,
-                         msg_metadata,
-                         &(p->track_info->metadata));
-  
-  if(p->track_info->description)
-    bg_msg_queue_list_send(p->message_queues,
-                           msg_stream_description,
-                           p->track_info->description);
   
   /* Send messages about formats */
   if(p->do_audio)
@@ -793,7 +796,7 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
 static void set_audio_stream_cmd(bg_player_t * player, int stream)
   {
   int state;
-  fprintf(stderr, "SET_AUDIO_STREAM %d\n", stream);
+  //  fprintf(stderr, "SET_AUDIO_STREAM %d\n", stream);
   
   if(stream == player->current_audio_stream)
     return;
@@ -807,7 +810,7 @@ static void set_audio_stream_cmd(bg_player_t * player, int stream)
 static void set_video_stream_cmd(bg_player_t * player, int stream)
   {
   int state;
-  fprintf(stderr, "SET_VIDEO_STREAM %d\n", stream);
+  //  fprintf(stderr, "SET_VIDEO_STREAM %d\n", stream);
 
   if(stream == player->current_video_stream)
     return;
@@ -823,7 +826,7 @@ static void set_video_stream_cmd(bg_player_t * player, int stream)
 static void set_subtitle_stream_cmd(bg_player_t * player, int stream)
   {
   int state;
-  fprintf(stderr, "SET_SUBTITLE_STREAM %d\n", stream);
+  //  fprintf(stderr, "SET_SUBTITLE_STREAM %d\n", stream);
 
   if(stream == player->current_subtitle_stream)
     return;
@@ -834,7 +837,6 @@ static void set_subtitle_stream_cmd(bg_player_t * player, int stream)
   player->current_subtitle_stream = stream;
     
   }
-
 
 /* Process command, return FALSE if thread should be ended */
 
@@ -847,7 +849,6 @@ static int process_commands(bg_player_t * player)
   void * arg_ptr1;
   char * arg_str1;
   int next_track;
-  int error_code;
   gavl_time_t time;
   gavl_time_t current_time;
   bg_msg_t * command;
@@ -929,9 +930,8 @@ static int process_commands(bg_player_t * player)
           }
         if(!arg_ptr1)
           {
-          error_code = BG_PLAYER_ERROR_GENERAL;
           bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
-                              "No Track selected", &error_code);
+                              "No Track selected", NULL);
           }
         else
           play_cmd(player, arg_ptr1, arg_i1, arg_str1, play_flags);

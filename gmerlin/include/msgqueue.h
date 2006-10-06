@@ -281,7 +281,7 @@ int bg_message_write_socket(bg_msg_t * msg, int fd);
 /** @} */
 
 /** \defgroup message_queues Message queues
-/*  \ingroup messages
+ *  \ingroup messages
  *  \brief Thread save message queues
  *
  *  @{

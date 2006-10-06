@@ -61,6 +61,8 @@ static bg_msg_queue_t * log_queue = (bg_msg_queue_t*)0;
 void bg_log(bg_log_level_t level, const char * domain,
             const char * format, ...)
   {
+  char ** lines;
+  int i;
   char * msg_string;
   bg_msg_t * msg;
   va_list argp; /* arg ptr */
@@ -83,10 +85,19 @@ void bg_log(bg_log_level_t level, const char * domain,
   if(!log_queue)
     {
     if(level & log_mask)
-      fprintf(stderr, "[%s] %s: %s\n",
-              domain,
-              bg_log_level_to_string(level),
-              msg_string);
+      {
+      lines = bg_strbreak(msg_string, '\n');
+
+      i = 0;
+      while(lines[i])
+        {
+        fprintf(stderr, "[%s] %s: %s\n",
+                domain,
+                bg_log_level_to_string(level),
+                lines[i]);
+        i++;
+        }
+      }
     }
   else
     {

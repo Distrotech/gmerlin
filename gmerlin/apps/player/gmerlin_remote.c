@@ -119,7 +119,7 @@ static void cmd_add(void * data, int * argc, char *** _argv, int arg)
   char ** argv = *_argv;
   remote = (bg_remote_client_t *)data;
 
-  fprintf(stderr, "cmd_add\n");
+  //  fprintf(stderr, "cmd_add\n");
   if(arg >= *argc)
     {
     fprintf(stderr, "Option -add requires an argument\n");

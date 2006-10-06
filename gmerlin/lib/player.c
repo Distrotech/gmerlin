@@ -187,11 +187,6 @@ void bg_player_destroy(bg_player_t * player)
   //  fprintf(stderr, "bg_player_destroy done\n");
   }
 
-bg_msg_queue_t * bg_player_get_command_queue(bg_player_t * player)
-  {
-  return player->command_queue;
-  }
-
 void bg_player_add_message_queue(bg_player_t * player,
                                  bg_msg_queue_t * message_queue)
   {
@@ -238,7 +233,6 @@ static void msg_state(bg_msg_t * msg,
     }
   else if(s->state == BG_PLAYER_STATE_ERROR)
     {
-    //    fprintf(stderr, "SET ERROR: %s\n", s->error_msg);
     bg_msg_set_arg_string(msg, 1, s->error_msg);
     }
   else if(s->state == BG_PLAYER_STATE_CHANGING)
@@ -266,10 +260,7 @@ void bg_player_set_state(bg_player_t * player, int state,
   if(state == BG_PLAYER_STATE_BUFFERING)
     s.percentage = *((const float*)arg1);
   else if(state == BG_PLAYER_STATE_ERROR)
-    {
     s.error_msg =  (const char *)arg1;
-    }
-  
   else if(state == BG_PLAYER_STATE_CHANGING)
     s.want_new = *((const int*)arg1);
   

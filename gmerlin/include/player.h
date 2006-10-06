@@ -24,88 +24,260 @@
 #include "pluginregistry.h"
 #include "msgqueue.h"
 
+/** \defgroup player Player
+ *  \brief Multimedia player
+ */
+
 #define BG_PLAYER_VOLUME_MIN (-40.0)
 
 typedef struct bg_player_s bg_player_t;
 
 /* player.c */
 
+/** \ingroup player
+ *  \brief Create a player
+ *  \returns A newly allocated player
+ */
+
 bg_player_t * bg_player_create();
+
+/** \ingroup player
+ *  \brief Destroy a player
+ *  \param player A player
+ */
 
 void bg_player_destroy(bg_player_t * player);
 
-bg_msg_queue_t * bg_player_get_command_queue(bg_player_t * player);
+/** \ingroup player
+ *  \brief Attach a message queue to a player
+ *  \param player A player
+ *  \param message_queue A mesage queue
+ */
 
 void bg_player_add_message_queue(bg_player_t * player,
                                  bg_msg_queue_t * message_queue);
 
+/** \ingroup player
+ *  \brief Detach a message queue from a player
+ *  \param player A player
+ *  \param message_queue A mesage queue
+ */
+
 void bg_player_delete_message_queue(bg_player_t * player,
                                     bg_msg_queue_t * message_queue);
 
+/** \ingroup player
+ *  \brief Start the player thread
+ *  \param player A player
+ */
 
-void bg_player_run(bg_player_t *);
+void bg_player_run(bg_player_t * player);
 
-void bg_player_quit(bg_player_t *);
+/** \ingroup player
+ *  \brief Quit the player thread
+ *  \param player A player
+ */
 
-void bg_player_key_pressed(bg_player_t * p, int keycode, int mask);
+void bg_player_quit(bg_player_t * player);
 
 /*
  *  Thread save functions for controlling the player (see playercmd.c)
  *  These just create messages and send them into the command queue
  */
 
-void bg_player_play(bg_player_t *, bg_plugin_handle_t * handle,
+/** \defgroup player_cmd Commands, which can be sent to the player
+ *  \ingroup player
+ *
+ *  Most of these are called in an aynchronous manner.
+ *
+ *  @{
+ */
+
+
+#define BG_PLAY_FLAG_IGNORE_IF_PLAYING (1<<0) //!< Ignore play command, if the player is already playing
+#define BG_PLAY_FLAG_IGNORE_IF_STOPPED (1<<1) //!< Ignore play command, if the player is stopped
+#define BG_PLAY_FLAG_INIT_THEN_PAUSE   (1<<2) //!< Initialize but go to pause status after
+#define BG_PLAY_FLAG_RESUME            (1<<3) //!< If the player is paused, resume currently played track
+
+/** \brief Play a track
+ *  \param player A player
+ *  \param handle Handle of an open input plugin
+ *  \param track Track index to select (starting with 0)
+ *  \param flags A combination of BG_PLAY_FLAG_* flags
+ *  \param track_name Name of the track to broadcast
+ *  
+ */
+
+void bg_player_play(bg_player_t * player, bg_plugin_handle_t * handle,
                     int track, int flags, const char * track_name);
 
-void bg_player_play_pause(bg_player_t *, bg_plugin_handle_t * handle,
-                          int track, int ignore_flags, const char * track_name);
-
-void bg_player_seek(bg_player_t *, gavl_time_t time);
-
-void bg_player_seek_rel(bg_player_t *, gavl_time_t time);
-
-void bg_player_set_volume(bg_player_t *, float volume);
-void bg_player_set_volume_rel(bg_player_t *, float volume);
+/** \brief Seek to a specific time
+ *  \param player A player
+ *  \param time Time to seek to
+ */
 
 
-void bg_player_set_track(bg_player_t * p, int track);
-void bg_player_set_duration(bg_player_t * p, gavl_time_t duration, int can_seek);
+void bg_player_seek(bg_player_t * player, gavl_time_t time);
 
-void bg_player_stop(bg_player_t *);
-void bg_player_stop_sync(bg_player_t *);
+/** \brief Seek relative by a specific time
+ *  \param player A player
+ *  \param time Time offset (can be negative to seek backwards)
+ */
 
-void bg_player_pause(bg_player_t *);
+void bg_player_seek_rel(bg_player_t * player, gavl_time_t time);
 
-void bg_player_error(bg_player_t *, const char * message);
+/** \brief Set the volume
+ *  \param player A player
+ *  \param volume Volume (in dB, max is 0.0)
+ */
 
-void bg_player_set_oa_plugin(bg_player_t *, bg_plugin_handle_t * handle);
-void bg_player_set_ov_plugin(bg_player_t *, bg_plugin_handle_t * handle);
+void bg_player_set_volume(bg_player_t * player, float volume);
 
-void bg_player_set_audio_stream(bg_player_t *, int);
-void bg_player_set_video_stream(bg_player_t *, int);
-void bg_player_set_subtitle_stream(bg_player_t *, int);
+/** \brief Set the volume relative
+ *  \param player A player
+ *  \param volume Volume offset (in dB)
+ */
 
-void bg_player_set_track_name(bg_player_t *, const char *);
-void bg_player_set_metadata(bg_player_t *, const bg_metadata_t *);
+void bg_player_set_volume_rel(bg_player_t * player, float volume);
 
-bg_parameter_info_t * bg_player_get_audio_parameters(bg_player_t *);
-void bg_player_set_audio_parameter(void*, char *, bg_parameter_value_t*);
+/** \brief Stop playback
+ *  \param player A player
+ */
 
-bg_parameter_info_t * bg_player_get_video_parameters(bg_player_t *);
-void bg_player_set_video_parameter(void*, char *, bg_parameter_value_t*);
+void bg_player_stop(bg_player_t * player);
 
-bg_parameter_info_t * bg_player_get_subtitle_parameters(bg_player_t *);
-void bg_player_set_subtitle_parameter(void*, char *, bg_parameter_value_t*);
+/** \brief Toggle pause
+ *  \param player A player
+ */
 
-bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t *);
-void bg_player_set_osd_parameter(void*, char *, bg_parameter_value_t*);
+void bg_player_pause(bg_player_t * player);
 
-bg_parameter_info_t * bg_player_get_input_parameters(bg_player_t * p);
+/** \brief Trigger an error
+ *  \param player A player
+ *  \param message Human readable error message
+ */
 
+void bg_player_error(bg_player_t * player, const char * message);
+
+/** \brief Set audio output plugin
+ *  \param player A player
+ *  \param handle A plugin handle
+ */
+
+void bg_player_set_oa_plugin(bg_player_t * player, bg_plugin_handle_t * handle);
+
+/** \brief Set video output plugin
+ *  \param player A player
+ *  \param handle A plugin handle
+ */
+
+void bg_player_set_ov_plugin(bg_player_t * player, bg_plugin_handle_t * handle);
+
+/** \brief Set audio stream
+ *  \param player A player
+ *  \param stream Stream index (starts with 0, -1 means no audio playback)
+ */
+
+void bg_player_set_audio_stream(bg_player_t * player, int stream);
+
+/** \brief Set video stream
+ *  \param player A player
+ *  \param stream Stream index (starts with 0, -1 means no video playback)
+ */
+
+void bg_player_set_video_stream(bg_player_t * player, int stream);
+
+/** \brief Set subtitle stream
+ *  \param player A player
+ *  \param stream Stream index (starts with 0, -1 means no subtitle playback)
+ */
+
+void bg_player_set_subtitle_stream(bg_player_t * player, int stream);
+
+/* Shut down playback, so we can change the track */
+void bg_player_change(bg_player_t * player, int flags);
+
+/** @} */
+
+/** \defgroup player_cfg Player configuration
+ * \ingroup player
+ * @{
+ */
+
+/** \brief Get input parameters
+ *  \param player A player
+ *  \returns Null terminated parameter array.
+ *
+ *  Returned parameters can be passed to \ref bg_player_set_input_parameter
+ */
+bg_parameter_info_t * bg_player_get_input_parameters(bg_player_t *  player);
+/** \brief Set an input parameter
+ *  \param data Player casted to void*
+ *  \param name Name
+ *  \param val Value
+ */
 void bg_player_set_input_parameter(void * data, char * name,
                                    bg_parameter_value_t * val);
 
-/* Shut down playback, so we can change the track */
-void bg_player_change(bg_player_t * p, int flags);
+/** \brief Get audio parameters
+ *  \param player A player
+ *  \returns Null terminated parameter array.
+ *
+ *  Returned parameters can be passed to \ref bg_player_set_audio_parameter
+ */
+
+bg_parameter_info_t * bg_player_get_audio_parameters(bg_player_t * player);
+
+/** \brief Set an audio parameter
+ *  \param data Player casted to void*
+ *  \param name Name
+ *  \param val Value
+ */
+void bg_player_set_audio_parameter(void*data, char * name, bg_parameter_value_t*val);
+
+/** \brief Get video parameters
+ *  \param player A player
+ *  \returns Null terminated parameter array.
+ *
+ *  Returned parameters can be passed to \ref bg_player_set_video_parameter
+ */
+bg_parameter_info_t * bg_player_get_video_parameters(bg_player_t * player);
+/** \brief Set a video parameter
+ *  \param data Player casted to void*
+ *  \param name Name
+ *  \param val Value
+ */
+void bg_player_set_video_parameter(void*data, char * name, bg_parameter_value_t*val);
+
+/** \brief Get subtitle parameters
+ *  \param player A player
+ *  \returns Null terminated parameter array.
+ *
+ *  Returned parameters can be passed to \ref bg_player_set_subtitle_parameter
+ */
+bg_parameter_info_t * bg_player_get_subtitle_parameters(bg_player_t * player);
+/** \brief Set a subtitle parameter
+ *  \param data Player casted to void*
+ *  \param name Name
+ *  \param val Value
+ */
+void bg_player_set_subtitle_parameter(void*data, char * name, bg_parameter_value_t*val);
+
+/** \brief Get OSD parameters
+ *  \param player A player
+ *  \returns Null terminated parameter array.
+ *
+ *  Returned parameters can be passed to \ref bg_player_set_osd_parameter
+ */
+bg_parameter_info_t * bg_player_get_osd_parameters(bg_player_t * player);
+/** \brief Set an OSD parameter
+ *  \param data Player casted to void*
+ *  \param name Name
+ *  \param val Value
+ */
+void bg_player_set_osd_parameter(void*data, char * name, bg_parameter_value_t*val);
+/** @} */
+
+
 
 #endif // __BG_PLAYER_H_

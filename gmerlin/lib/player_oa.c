@@ -284,7 +284,6 @@ void * bg_player_oa_thread(void * data)
       }
     if(frame->valid_samples)
       {
-      //      fprintf(stderr, "Got samples: %d\n", frame->valid_samples);
       pthread_mutex_lock(&(ctx->player->audio_stream.volume_mutex));
       gavl_volume_control_apply(ctx->player->audio_stream.volume, frame);
       pthread_mutex_unlock(&(ctx->player->audio_stream.volume_mutex));
@@ -315,6 +314,11 @@ void * bg_player_oa_thread(void * data)
         gavl_samples_to_time(ctx->player->audio_stream.output_format.samplerate,
                              frame->valid_samples)/2;
       }
+#if 0
+    else
+      fprintf(stderr, "Got no samples: %d\n", frame->valid_samples);
+#endif
+    
     bg_fifo_unlock_read(s->fifo);
     
     if(wait_time != GAVL_TIME_UNDEFINED)
