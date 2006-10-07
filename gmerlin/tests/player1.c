@@ -20,6 +20,9 @@
 
 #define LOG_DOMAIN "gmerlin_player"
 
+static int time_active = 0;
+static gavl_time_t total_time  = 0;
+
 int num_tracks;
 int current_track = -1;
 
@@ -222,17 +225,27 @@ static int play_track(bg_player_t * player, const char * gml,
   bg_input_plugin_t * plugin;
   bg_track_info_t * track_info;
   char * error_msg = (char*)0;
+
+  int result;
+  char * redir_url;
+  char * redir_plugin;
+  
   if(plugin_name)
     info = bg_plugin_find_by_name(plugin_reg,
                                   plugin_name);
 
   if(input_handle &&
-     (input_handle->info->flags && BG_PLUGIN_REMOVABLE))
+     (input_handle->info->flags & BG_PLUGIN_REMOVABLE))
     {
     plugin = (bg_input_plugin_t*)(input_handle->plugin);
     }
   else
     {
+    if(input_handle)
+      {
+      bg_plugin_unref(input_handle);
+      input_handle = (bg_plugin_handle_t*)0;
+      }
     if(!bg_input_plugin_load(plugin_reg, gml, info,
                              &input_handle, &error_msg,
                              (bg_input_callbacks_t*)0))
@@ -286,17 +299,33 @@ static int play_track(bg_player_t * player, const char * gml,
   track_info = plugin->get_track_info(input_handle->priv, current_track);
   
   if(!track_info)
-    {
     return 0;
-    }
+    
+  if(track_info->url)
+    {
+    redir_url    = bg_strdup((char*)0, track_info->url);
+    redir_plugin = bg_strdup((char*)0, input_handle->info->name);
 
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Got redirector %s (%d/%d)\n",
+            redir_url, current_track+1, num_tracks);
+
+    
+    bg_plugin_unref(input_handle);
+    input_handle = (bg_plugin_handle_t*)0;
+    
+    result = play_track(player, redir_url, redir_plugin);
+    free(redir_url);
+    free(redir_plugin);
+    return result;
+    }
+  
   if(!track_info->name)
     bg_set_track_name_default(track_info, gml);
   bg_player_play(player, input_handle, current_track, 0, track_info->name);
+  
+  return 1;
   }
 
-static int time_active = 0;
-static gavl_time_t total_time  = 0;
 
 static void print_time(gavl_time_t time)
   {
@@ -377,7 +406,10 @@ static int handle_message(bg_player_t * player,
     case BG_PLAYER_MSG_TRACK_NAME:
       arg_str1 = bg_msg_get_arg_string(message, 0);
       if(arg_str1)
+        {
+        if(time_active) { putc('\n', stderr); time_active = 0; }
         bg_log(BG_LOG_INFO, LOG_DOMAIN, "Name: %s", arg_str1);
+        }
       break;
     case BG_PLAYER_MSG_TRACK_NUM_STREAMS:
       arg_i1 = bg_msg_get_arg_int(message, 0);
@@ -443,6 +475,9 @@ static int handle_message(bg_player_t * player,
       free(arg_str1);
       break;
       /* Metadata */
+    case BG_PLAYER_MSG_CLEANUP:
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Player cleaned up");
+      break;
     case BG_PLAYER_MSG_METADATA:
       memset(&metadata, 0, sizeof(metadata));
       bg_msg_get_arg_metadata(message, 0, &metadata);
@@ -456,11 +491,15 @@ static int handle_message(bg_player_t * player,
         case BG_PLAYER_STATE_STOPPED:
           break;
         case BG_PLAYER_STATE_PLAYING:
+          bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Player playing");
           break;
         case BG_PLAYER_STATE_SEEKING:
+          if(time_active) { putc('\n', stderr); time_active = 0; }
+          bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Player seeking");
           break;
         case BG_PLAYER_STATE_CHANGING:
-
+          if(time_active) { putc('\n', stderr); time_active = 0; }
+          
           if(num_tracks == 1)
             gml_index++;
           
@@ -475,6 +514,7 @@ static int handle_message(bg_player_t * player,
         case BG_PLAYER_STATE_PAUSED:
           break;
         case BG_PLAYER_STATE_FINISHING:
+          bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Player finishing");
           break;
         }
       break;

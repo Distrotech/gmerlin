@@ -279,7 +279,6 @@ void * bg_player_oa_thread(void * data)
       {
       if(state == BG_FIFO_STOPPED) 
         {
-        //        fprintf(stderr, "oa thread finisheded\n");
         break;
         }
       else if(state == BG_FIFO_PAUSED)
@@ -329,7 +328,7 @@ void * bg_player_oa_thread(void * data)
     if(wait_time != GAVL_TIME_UNDEFINED)
       gavl_time_delay(&wait_time);
     }
-  
+  fprintf(stderr, "oa thread finisheded\n");
   return NULL;
   }
 

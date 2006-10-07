@@ -27,6 +27,7 @@
 #include <stdio.h>
 
 #include <log.h>
+#include <utils.h>
 
 static int log_mask = BG_LOG_ERROR | BG_LOG_WARNING | BG_LOG_INFO;
 

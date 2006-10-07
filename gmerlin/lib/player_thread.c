@@ -746,9 +746,7 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
   bg_player_input_seek(player->input_context, &sync_time);
 
   //  fprintf(stderr, "Player seeked: %f %f\n", gavl_time_to_seconds(t), gavl_time_to_seconds(sync_time));
-
-  
-  
+    
   /* Clear fifos */
 
   if(player->do_audio)
@@ -765,7 +763,6 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
     }
   
   /* Resync */
-  //  fprintf(stderr, "Preload\n");
 
   /* Fire up the fifos */
   if(player->do_audio)
@@ -773,6 +770,7 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
   if(player->do_video)
     bg_fifo_set_state(player->video_stream.fifo, BG_FIFO_PLAYING);
   
+  //  fprintf(stderr, "Preload\n");
   preload(player);
   //  fprintf(stderr, "Preload done\n");
   
@@ -1022,6 +1020,7 @@ static int process_commands(bg_player_t * player)
         
         bg_player_time_get(player, 1, &current_time);
         time += current_time;
+        
         if(time < 0)
           time = 0;
         else if(time > player->track_info->duration)

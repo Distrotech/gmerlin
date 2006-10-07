@@ -236,7 +236,7 @@ void bg_metadata_set_parameter(void * data, char * name,
 typedef struct
   {
   int seekable; //!< 1 if track is seekable (duration must be > 0 then)
-  int redirector; //!< 1 if we are a redirector, the url field must be valid then
+  //  int redirector; //!< 1 if we are a redirector, the url field must be valid then
   char * name;             //!< Name of the track (can be NULL)
   char * description;      //!< Technical desription of the format
   int64_t duration;        //!< Duration
