@@ -61,6 +61,12 @@ void * bg_player_oa_create_frame(void * data)
   return gavl_audio_frame_create(&(ctx->player->audio_stream.pipe_format));
   }
 
+int  bg_player_oa_has_plugin(bg_player_oa_context_t * ctx)
+  {
+  return (ctx->plugin_handle ? 1 : 0);
+  }
+
+
 void bg_player_oa_destroy_frame(void * data, void * frame)
   {
   gavl_audio_frame_t *  audio_frame = (gavl_audio_frame_t*)frame;
@@ -90,7 +96,6 @@ void bg_player_oa_set_plugin(bg_player_t * player,
     bg_plugin_unref(ctx->plugin_handle);
   
   ctx->plugin_handle = handle;
-  bg_plugin_ref(ctx->plugin_handle);
   
   ctx->plugin = (bg_oa_plugin_t*)(ctx->plugin_handle->plugin);
   ctx->priv = ctx->plugin_handle->priv;
@@ -117,7 +122,7 @@ void bg_player_time_init(bg_player_t * player)
 
   if((player->input_handle->info->flags & BG_PLUGIN_INPUT_HAS_SYNC) && player->do_bypass)
     ctx->sync_mode = SYNC_INPUT;
-  else if((ctx->plugin->get_delay) && (ctx->player->do_audio))
+  else if(ctx->plugin && (ctx->plugin->get_delay) && (ctx->player->do_audio))
     ctx->sync_mode = SYNC_SOUNDCARD;
   else
     ctx->sync_mode = SYNC_SOFTWARE;

@@ -332,14 +332,13 @@ int bg_string_is_url(const char * str)
   return 1;
   }
 
-
 int bg_url_split(const char * url,
-                   char ** protocol,
-                   char ** user,
-                   char ** password,
-                   char ** hostname,
-                   int * port,
-                   char ** path)
+                 char ** protocol,
+                 char ** user,
+                 char ** password,
+                 char ** hostname,
+                 int * port,
+                 char ** path)
   {
   const char * pos1;
   const char * pos2;

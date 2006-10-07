@@ -468,7 +468,10 @@ int gmerlin_play(gmerlin_t * g, int flags)
   
   bg_player_play(g->player, handle, track_index,
                 flags, bg_media_tree_get_current_track_name(g->tree));
-  
+
+  /* Unref the handle, we don't need it any longer here */
+  bg_plugin_unref(handle);
+    
   return 1;
   }
 

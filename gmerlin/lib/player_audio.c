@@ -51,6 +51,7 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   {
   int force_float;
   gavl_audio_options_t * opt;
+  
   if(player->track_info->num_audio_streams)
     player->do_audio =
       bg_player_input_set_audio_stream(player->input_context, audio_stream);

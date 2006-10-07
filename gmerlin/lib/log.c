@@ -28,7 +28,7 @@
 
 #include <log.h>
 
-static int log_mask = BG_LOG_ERROR | BG_LOG_WARNING;
+static int log_mask = BG_LOG_ERROR | BG_LOG_WARNING | BG_LOG_INFO;
 
 static struct
   {

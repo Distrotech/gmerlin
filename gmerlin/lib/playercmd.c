@@ -24,6 +24,9 @@
 void bg_player_set_oa_plugin(bg_player_t * p, bg_plugin_handle_t * handle)
   {
   bg_msg_t * msg;
+
+  bg_plugin_ref(handle);
+  
   msg = bg_msg_queue_lock_write(p->command_queue);
 
   bg_msg_set_id(msg, BG_PLAYER_CMD_SET_OA_PLUGIN);
@@ -35,8 +38,9 @@ void bg_player_set_oa_plugin(bg_player_t * p, bg_plugin_handle_t * handle)
 void bg_player_set_ov_plugin(bg_player_t * p, bg_plugin_handle_t * handle)
   {
   bg_msg_t * msg;
-  msg = bg_msg_queue_lock_write(p->command_queue);
+  bg_plugin_ref(handle);
 
+  msg = bg_msg_queue_lock_write(p->command_queue);
   bg_msg_set_id(msg, BG_PLAYER_CMD_SET_OV_PLUGIN);
   bg_msg_set_arg_ptr_nocopy(msg, 0, handle);
   bg_msg_queue_unlock_write(p->command_queue);
@@ -47,9 +51,11 @@ void bg_player_play(bg_player_t * p, bg_plugin_handle_t * handle,
                     int track, int ignore_flags, const char * track_name)
   {
   bg_msg_t * msg;
+
+  bg_plugin_ref(handle);
+  
   msg = bg_msg_queue_lock_write(p->command_queue);
   bg_msg_set_id(msg, BG_PLAYER_CMD_PLAY);
-
   bg_msg_set_arg_ptr_nocopy(msg, 0, handle);
   bg_msg_set_arg_int(msg, 1, track);
   bg_msg_set_arg_int(msg, 2, ignore_flags);

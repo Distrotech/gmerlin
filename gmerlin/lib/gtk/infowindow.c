@@ -53,17 +53,17 @@ struct bg_gtk_info_window_s
   gavl_video_format_t video_format_i;
   gavl_video_format_t video_format_o;
 
+  gavl_video_format_t subtitle_format;
+  
   bg_metadata_t metadata;
 
   int num_audio_streams;
   int num_video_streams;
-  int num_subpicture_streams;
-  int num_programs;
+  int num_subtitle_streams;
 
   int current_audio_stream;
   int current_video_stream;
-  int current_subpicture_stream;
-  int current_program;
+  int current_subtitle_stream;
   
   char * name;
   char * location;
@@ -71,14 +71,10 @@ struct bg_gtk_info_window_s
     
   char * audio_description;
   char * video_description;
+  char * subtitle_description;
 
-  int do_audio_i;
-  int do_video_i;
-
-  int do_audio_o;
-  int do_video_o;
-
-  
+  int subtitle_is_text;
+    
   GtkWidget * window;
 
   /* The text views */
@@ -91,9 +87,9 @@ struct bg_gtk_info_window_s
   bg_gtk_textview_t * w_video_format_i;
   bg_gtk_textview_t * w_video_format_o;
 
-  bg_gtk_textview_t * w_audio_stream;
-  bg_gtk_textview_t * w_video_stream;
-
+  bg_gtk_textview_t * w_subtitle_description;
+  bg_gtk_textview_t * w_subtitle_format;
+  
   bg_gtk_textview_t * w_name;
   bg_gtk_textview_t * w_description;
   bg_gtk_textview_t * w_metadata;
@@ -208,11 +204,6 @@ int bg_gtk_info_window_get_parameter(void * data, char * name,
   return 0;
   }
 
-
-#define STRINGSET(index, str) \
-arg_str = mg_msg_get_arg_string(msg, index); \
-str = arg_str;
-
 #define FREE(str) if(str) free(str);str=(char*)0;
 
 static void clear_info(bg_gtk_info_window_t * w)
@@ -224,6 +215,7 @@ static void clear_info(bg_gtk_info_window_t * w)
 
   FREE(w->audio_description);
   FREE(w->video_description);
+  FREE(w->subtitle_description);
   FREE(w->description);
 
   bg_metadata_free(&(w->metadata));
@@ -233,11 +225,13 @@ static void clear_info(bg_gtk_info_window_t * w)
   bg_gtk_textview_update(w->w_audio_format_o, "");
   bg_gtk_textview_update(w->w_video_format_i, "");
   bg_gtk_textview_update(w->w_video_format_o, "");
+  bg_gtk_textview_update(w->w_subtitle_format, "");
   bg_gtk_textview_update(w->w_metadata, "");
   
   bg_gtk_textview_update(w->w_description, "");
   bg_gtk_textview_update(w->w_audio_description, "");
   bg_gtk_textview_update(w->w_video_description, "");
+  bg_gtk_textview_update(w->w_subtitle_description, "");
   bg_gtk_textview_update(w->w_name, "");
   
   }
@@ -260,14 +254,14 @@ static void update_audio(bg_gtk_info_window_t * w)
 
   if(w->audio_description)
     {
-    tmp_string = bg_sprintf("Audio stream %d: %s",
-                            w->current_audio_stream +1,
+    tmp_string = bg_sprintf("Audio stream %d/%d: %s",
+                            w->current_audio_stream +1, w->num_audio_streams,
                             w->audio_description);
     }
   else
     {
-    tmp_string = bg_sprintf("Audio stream %d",
-                            w->current_audio_stream +1);
+    tmp_string = bg_sprintf("Audio stream %d/%d",
+                            w->current_audio_stream +1, w->num_audio_streams);
     }
   bg_gtk_textview_update(w->w_audio_description, tmp_string);
   free(tmp_string);
@@ -291,18 +285,44 @@ static void update_video(bg_gtk_info_window_t * w)
 
   if(w->video_description)
     {
-    tmp_string = bg_sprintf("Video stream %d: %s",
-                            w->current_video_stream +1,
+    tmp_string = bg_sprintf("Video stream %d/%d: %s",
+                            w->current_video_stream +1, w->num_video_streams, 
                             w->video_description);
     }
   else
     {
-    tmp_string = bg_sprintf("Video stream %d",
-                            w->current_video_stream +1);
+    tmp_string = bg_sprintf("Video stream %d/%d",
+                            w->current_video_stream +1, w->num_video_streams);
     }
   bg_gtk_textview_update(w->w_video_description, tmp_string);
   free(tmp_string);
   }
+
+static void update_subtitles(bg_gtk_info_window_t * w)
+  {
+  char * tmp_string;
+  /* Subtitle format */
+
+  tmp_string = bg_video_format_to_string(&(w->subtitle_format), 1);
+  bg_gtk_textview_update(w->w_subtitle_format, tmp_string);
+  free(tmp_string);
+  
+  if(w->subtitle_description)
+    {
+    tmp_string = bg_sprintf("Subtitle stream %d/%d: %s [%s]",
+                            w->current_subtitle_stream +1, w->num_subtitle_streams,
+                            w->subtitle_description, (w->subtitle_is_text ? "text" : "overlay"));
+    }
+  else
+    {
+    tmp_string = bg_sprintf("Subtitle stream %d/%d [%s]",
+                            w->current_subtitle_stream +1, w->num_subtitle_streams,
+                            (w->subtitle_is_text ? "text" : "overlay"));
+    }
+  bg_gtk_textview_update(w->w_subtitle_description, tmp_string);
+  free(tmp_string);
+  }
+
 
 static void update_stream(bg_gtk_info_window_t * w)
   {
@@ -360,9 +380,6 @@ static gboolean idle_callback(gpointer data)
             /* All infos sent, update display */
             update_stream(w);
             break;
-          case BG_PLAYER_STATE_CHANGING:
-            /* Current track is over, let's clear all data */
-            break;
           default:
             break;
           }
@@ -373,6 +390,9 @@ static gboolean idle_callback(gpointer data)
         free(arg_str);
         break;
       case BG_PLAYER_MSG_TRACK_NUM_STREAMS:
+        w->num_audio_streams = bg_msg_get_arg_int(msg, 0);
+        w->num_video_streams = bg_msg_get_arg_int(msg, 1);
+        w->num_subtitle_streams = bg_msg_get_arg_int(msg, 2);
         break;
       case BG_PLAYER_MSG_TRACK_DURATION:
         break;
@@ -391,6 +411,12 @@ static gboolean idle_callback(gpointer data)
         bg_msg_get_arg_audio_format(msg, 1, &(w->audio_format_i));
         bg_msg_get_arg_audio_format(msg, 2, &(w->audio_format_o));
         update_audio(w);
+        break;
+      case BG_PLAYER_MSG_SUBTITLE_STREAM:
+        w->current_subtitle_stream = bg_msg_get_arg_int(msg, 0);
+        w->subtitle_is_text = bg_msg_get_arg_int(msg, 1);
+        bg_msg_get_arg_video_format(msg, 2, &(w->subtitle_format));
+        update_subtitles(w);
         break;
       case BG_PLAYER_MSG_VIDEO_STREAM:
       case BG_PLAYER_MSG_STILL_STREAM:
@@ -479,6 +505,7 @@ bg_gtk_info_window_create(bg_player_t * player,
   
   ret->w_audio_description = bg_gtk_textview_create();
   ret->w_video_description = bg_gtk_textview_create();
+  ret->w_subtitle_description = bg_gtk_textview_create();
 
   ret->w_audio_format_i = bg_gtk_textview_create();
   ret->w_audio_format_o = bg_gtk_textview_create();
@@ -486,9 +513,8 @@ bg_gtk_info_window_create(bg_player_t * player,
   ret->w_video_format_i = bg_gtk_textview_create();
   ret->w_video_format_o = bg_gtk_textview_create();
 
-  ret->w_audio_stream = bg_gtk_textview_create();
-  ret->w_video_stream = bg_gtk_textview_create();
-
+  ret->w_subtitle_format = bg_gtk_textview_create();
+  
   ret->w_name        = bg_gtk_textview_create();
   ret->w_description = bg_gtk_textview_create();
   ret->w_metadata    = bg_gtk_textview_create();
@@ -597,6 +623,28 @@ bg_gtk_info_window_create(bg_player_t * player,
   gtk_widget_show(tab_label);
   gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, tab_label);
 
+
+  /* Subtitle stream */
+
+  table = gtk_table_new(2, 2, 0);
+  
+  frame = create_frame("Stream type");
+  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_subtitle_description));
+  gtk_widget_show(frame);
+  gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 0, 1,
+                   GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
+
+  frame = create_frame("Format format");
+  gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_subtitle_format));
+  gtk_widget_show(frame);
+  gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 1, 2);
+
+  gtk_widget_show(table);
+  
+  tab_label = gtk_label_new("Subtitles");
+  gtk_widget_show(tab_label);
+  gtk_notebook_append_page(GTK_NOTEBOOK(notebook), table, tab_label);
+  
   gtk_widget_show(notebook);
   gtk_container_add(GTK_CONTAINER(ret->window), notebook);
   
@@ -622,8 +670,6 @@ void bg_gtk_info_window_destroy(bg_gtk_info_window_t * w)
   bg_gtk_textview_destroy(w->w_video_description);
   bg_gtk_textview_destroy(w->w_name);
 
-  bg_gtk_textview_destroy(w->w_audio_stream);
-  bg_gtk_textview_destroy(w->w_video_stream);
     
   bg_msg_queue_destroy(w->queue);
   

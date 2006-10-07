@@ -513,23 +513,11 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   if(file_info)
     {
     changed = 1;
-
-    tmp_info = file_info;
-    
-    while(tmp_info)
-      {
-      fprintf(stderr, "Plugin %s left\n", tmp_info->name);
-      tmp_info = tmp_info->next;
-      }
     free_info_list(file_info);
-
-  
     }
   
   if(changed)
     {
-    fprintf(stderr, "Plugin registry changed!\n");
-    
     /* Reload the entire registry to prevent mysterious crashes */
     free_info_list(ret->entries);
     ret->entries = scan_directory(GMERLIN_PLUGIN_DIR,
@@ -1212,20 +1200,47 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
                          char ** error_msg,
                          bg_input_callbacks_t * callbacks)
   {
+  const char * real_location;
+  char * protocol = (char*)0, * path = (char*)0;
+  
   const char * msg;
   int num_plugins, i;
   uint32_t flags;
   bg_input_plugin_t * plugin;
   int try_and_error = 1;
   const bg_plugin_info_t * first_plugin = (const bg_plugin_info_t*)0;
-
+  
+  
   if(!location)
     return 0;
   
+  real_location = location;
+  
   if(!info) /* No plugin given, seek one */
     {
-    info = bg_plugin_find_by_filename(reg, location,
-                                      (BG_PLUGIN_INPUT));
+    if(bg_string_is_url(location))
+      {
+      if(bg_url_split(location,
+                      &protocol,
+                      (char **)0, // user,
+                      (char **)0, // password,
+                      (char **)0, // hostname,
+                      (int *)0,   //  port,
+                      &path))
+        {
+        info = bg_plugin_find_by_protocol(reg, protocol);
+        if(info)
+          {
+          if(info->flags & BG_PLUGIN_REMOVABLE)
+            real_location = path;
+          }
+        }
+      }
+    else
+      {
+      info = bg_plugin_find_by_filename(reg, real_location,
+                                        (BG_PLUGIN_INPUT));
+      }
     first_plugin = info;
     }
   else
@@ -1249,7 +1264,7 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
     if(plugin->set_callbacks)
       plugin->set_callbacks((*ret)->priv, callbacks);
     
-    if(!plugin->open((*ret)->priv, location))
+    if(!plugin->open((*ret)->priv, real_location))
       {
       //      fprintf(stderr, "Opening %s with %s failed\n", location,
       //              info->long_name);
@@ -1273,9 +1288,13 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
       return 1;
     }
 
+  if(protocol) free(protocol);
+  if(path)     free(path);
+  
   if(!try_and_error)
     return 0;
 
+  
   flags = bg_string_is_url(location) ? BG_PLUGIN_URL : BG_PLUGIN_FILE;
   
   num_plugins = bg_plugin_registry_get_num_plugins(reg,

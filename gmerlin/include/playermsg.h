@@ -20,18 +20,27 @@
 #ifndef __BG_PLAYERMSG_H_
 #define __BG_PLAYERMSG_H_
 
-/* State definitions for the player */
+/** \defgroup player_states Player states
+ *  \ingroup player_msg
+ *  \brief State definitions for the player
+ *
+ *  @{
+*/
 
-#define BG_PLAYER_STATE_STOPPED   0
-#define BG_PLAYER_STATE_PLAYING   1
-#define BG_PLAYER_STATE_SEEKING   2
-#define BG_PLAYER_STATE_CHANGING  3
-#define BG_PLAYER_STATE_BUFFERING 4
-#define BG_PLAYER_STATE_PAUSED    5
-#define BG_PLAYER_STATE_FINISHING 6
-#define BG_PLAYER_STATE_STARTING  7
-#define BG_PLAYER_STATE_ERROR     8
-#define BG_PLAYER_STATE_STILL     9 /* Still image */
+#define BG_PLAYER_STATE_STOPPED   0 //!< Stopped, waiting for play command
+#define BG_PLAYER_STATE_PLAYING   1 //!< Playing
+#define BG_PLAYER_STATE_SEEKING   2 //!< Seeking
+#define BG_PLAYER_STATE_CHANGING  3 //!< Changing the track
+#define BG_PLAYER_STATE_BUFFERING 4 //!< Buffering data
+#define BG_PLAYER_STATE_PAUSED    5 //!< Paused
+#define BG_PLAYER_STATE_FINISHING 6 //!< Finishing playback
+#define BG_PLAYER_STATE_STARTING  7 //!< Starting playback
+#define BG_PLAYER_STATE_ERROR     8 //!< Error
+#define BG_PLAYER_STATE_STILL     9 //!< Displaying a still image
+
+/**
+ *  @}
+ */
 
 /* Message definition for the player */
 
@@ -124,115 +133,225 @@
  * Messages from the player
 ********************************/
 
-/* Display time changed            */
-/* arg1: New time in seconds (int) */
+/** \defgroup player_msg Messages from the player
+ *  \ingroup player
+*
+ *  @{
+ */
+
+/** \brief Display time changed
+ *
+ *  arg0: New time (gavl_time_t)
+ *
+ *  This is called periodically during playback if the time changed.
+ */
 
 #define BG_PLAYER_MSG_TIME_CHANGED            0
 
-/* Track changed   */
-/* Arg1: new track */
+/** \brief Track changed
+ *
+ *  arg0: Track index (int)
+ *
+ *  This message is only emitted for input plugins,
+ *  which do playback themselves.
+ */
 
 #define BG_PLAYER_MSG_TRACK_CHANGED           1
 
-/*
- *  State changed:
- *  arg1: New state (see above)
- *  If (state == BG_PLAYER_STATE_BUFFERING)
- *    arg2: Buffering percentage (float)
- *  else if(state == BG_PLAYER_STATE_ERROR)
- *    arg2: String describing the error
- *  else if(state == BG_PLAYER_STATE_PLAYING)
- *    arg2: Integer (1 if player can seek withing the current track)
- *  else if(state == BG_PLAYER_STATE_CHANGING)
- *    arg2: Integer (1 if player needs the next track)
+/** \brief State changed
  *
+ *  arg0: New state (\ref player_states)
+ *
+ *  arg1 depends on the state:
+ *
+ *  - BG_PLAYER_STATE_BUFFERING: Buffering percentage (float, 0.0..1.0)
+ *  - BG_PLAYER_STATE_ERROR: String describing the error (char*)
+ *  - BG_PLAYER_STATE_PLAYING: 1 if player can seek within the current track, 0 else (int)
+ *  - BG_PLAYER_STATE_CHANGING: 1 if player needs the next track, 0 else
  */
 
 #define BG_PLAYER_MSG_STATE_CHANGED           2
 
-/*
- *  Informations about the currently playing
- *  Track.
- *  These are sent in the order given.
- *  Information, which isn't available, isn't sent.
- *  Consider the info to be finished, when the state
- *  switches to BG_PLAYER_STATE_PLAYING
+/** \brief Track name
+ *
+ *  arg0: Track name (char*)
+ *
+ *  This is set whenever the track name changes. For internet radio stations, it can be
+ *  sent multiple times for one URL.
  */
-
-/* Arg1: Name (For track display) */
 
 #define BG_PLAYER_MSG_TRACK_NAME              3
 
-/*
- *  Arg1: Number of audio streams
- *  Arg2: Number of video streams
- *  Arg3: Number of subtitle streams
+/** \brief Duration changed
+ *
+ *  arg0: Total duration in seconds (gavl_time_t)
+ */
+
+#define BG_PLAYER_MSG_TRACK_DURATION          5
+
+/** \brief Get info about the streams
+ *
+ *  arg0: Number of audio streams (int)
+ *
+ *  arg1: Number of video streams (int)
+ *
+ *  arg2: Number of subtitle streams (int)
  */
 
 #define BG_PLAYER_MSG_TRACK_NUM_STREAMS       4
 
-/* Arg1: Total duration in seconds */
-
-#define BG_PLAYER_MSG_TRACK_DURATION          5
-
-/* Arg1: Stream index (int) */
-/* Arg2: Input Format       */
-/* Arg3: Output Format      */
+/** \brief Get information about the current audio stream
+ *
+ *  arg0: Stream index (int)
+ *
+ *  arg1: Input Format (gavl_audio_format_t)
+ *
+ *  arg2: Output Format (gavl_audio_format_t)
+ */
 
 #define BG_PLAYER_MSG_AUDIO_STREAM            6
 
-/* Arg1: Stream index (int) */
-/* Arg2: Input Format       */
-/* Arg3: Output Format      */
+/** \brief Get information about the current video stream
+ *
+ *  arg0: Stream index (int)
+ *
+ *  arg1: Input Format (gavl_video_format_t)
+ *
+ *  arg2: Output Format (gavl_video_format_t)
+ */
 
 #define BG_PLAYER_MSG_VIDEO_STREAM            7
 
-/* Arg1: Stream index (int) */
-/* Arg2: Input Format       */
-/* Arg3: Output Format      */
+/** \brief Get information about the current still image stream
+ *
+ *  arg0: Stream index (int)
+ *
+ *  arg1: Input Format (gavl_video_format_t)
+ *
+ *  arg2: Output Format (gavl_video_format_t)
+ */
 
 #define BG_PLAYER_MSG_STILL_STREAM            8
 
+/** \brief Get information about the current subtitle stream
+ *
+ *  arg0: Stream index (int)
+ *
+ *  arg1: 1 if the subtitle is a text subtitle, 0 else
+ *
+ *  arg2: Format (gavl_video_format_t)
+ */
+
 #define BG_PLAYER_MSG_SUBTITLE_STREAM         9
-
-
 
 /* Metadata (is only sent, if information is available) */
 
-/* Arg1 : string */
+/** \brief Metadata changed
+ *
+ *  arg0: Metadata (bg_metadata_t)
+ */
 
 #define BG_PLAYER_MSG_METADATA               10
 
+/** \brief Audio description changed
+ *
+ *  arg0: Audio description (char*)
+ */
+
 #define BG_PLAYER_MSG_AUDIO_DESCRIPTION      11
 
+/** \brief Video description changed
+ *
+ *  arg0: Video description (char*)
+ */
 #define BG_PLAYER_MSG_VIDEO_DESCRIPTION      12
 
+/** \brief Still image description changed
+ *
+ *  arg0: Still image description (char*)
+ */
 #define BG_PLAYER_MSG_STILL_DESCRIPTION      13
+
+/** \brief Subtitle description changed
+ *
+ *  arg0: Subtitle description (char*)
+ */
 
 #define BG_PLAYER_MSG_SUBTITLE_DESCRIPTION   14
 
+/** \brief Description of the track changed
+ *
+ *  arg0: Stream description (char*)
+ */
 #define BG_PLAYER_MSG_STREAM_DESCRIPTION     15
 
+/** \brief Volume changed
+ *
+ *  arg0: New volume in dB (float)
+ */
 #define BG_PLAYER_MSG_VOLUME_CHANGED         16
 
-/*
- * Arg 1: stream index (int)
- * Arg 2: stream name (string)
- * Arg 3: stream language (string)
+/** \brief Audio stream info
+ *
+ *  arg0: stream index (int)
+ *
+ *  arg1: stream name (char*)
+ *
+ *  arg2: stream language (char*)
+ *
+ *  This message is sent for all available audio streams
+ *  regardless of what you selected
  */
 
 #define BG_PLAYER_MSG_AUDIO_STREAM_INFO      17
+
+/** \brief Video stream info
+ *
+ *  arg0: stream index (int)
+ *
+ *  arg1: stream name (char*)
+ *
+ *  arg2: stream language (char*)
+ *
+ *  This message is sent for all available video streams
+ *  regardless of what you selected
+ */
+
 #define BG_PLAYER_MSG_VIDEO_STREAM_INFO      18
+
+/** \brief Subtitle stream info
+ *
+ *  arg0: stream index (int)
+ *
+ *  arg1: stream name (char*)
+ *
+ *  arg2: stream language (char*)
+ *
+ *  This message is sent for all available video streams
+ *  regardless of what you selected
+ */
 #define BG_PLAYER_MSG_SUBTITLE_STREAM_INFO   19
 
-/* Argument 1: keycode (see keycodes.h)
-   Argument 2: mask (see keycodes.h)
-*/
+/** \brief A key was pressed in the video window
+ *
+ *  arg0: keycode (see \ref keycodes)
+ *
+ *  arg1: mask (see \ref keycodes)
+ *
+ *  This message is only emitted if key+mask were not handled
+ *  by the video plugin or by the player.
+ */
 
 #define BG_PLAYER_MSG_KEY                    20 /* A key was pressed */
 
-/* A previously triggerend cleanup operation is finished */
+/** \brief Player just cleaned up
+ *
+ *  A previously triggerend cleanup operation is finished.
+ */
+
 #define BG_PLAYER_MSG_CLEANUP                21
 
+/**  @}
+ */
 
 #endif // __BG_PLAYERMSG_H_

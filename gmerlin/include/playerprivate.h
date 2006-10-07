@@ -259,6 +259,10 @@ void bg_player_ov_reset(bg_player_t * player);
 
 void bg_player_ov_destroy(bg_player_t * player);
 int  bg_player_ov_init(bg_player_ov_context_t * ctx);
+
+int  bg_player_ov_has_plugin(bg_player_ov_context_t * ctx);
+
+
 void bg_player_ov_cleanup(bg_player_ov_context_t * ctx);
 void * bg_player_ov_thread(void *);
 void * bg_player_ov_still_thread(void *);
@@ -301,6 +305,9 @@ void bg_player_oa_destroy_frame(void * data, void * frame);
 
 void bg_player_oa_create(bg_player_t * player);
 void bg_player_oa_destroy(bg_player_t * player);
+
+int  bg_player_oa_has_plugin(bg_player_oa_context_t * ctx);
+
 
 int bg_player_oa_init(bg_player_oa_context_t * ctx);
 int bg_player_oa_start(bg_player_oa_context_t * ctx);

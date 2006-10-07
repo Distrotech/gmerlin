@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+
+
 #include <player.h>
 #include <pluginregistry.h>
 #include <gavl/gavl.h>
@@ -16,6 +19,9 @@
 #endif // INFO_WINDOW
 
 #define LOG_DOMAIN "gmerlin_player"
+
+int num_tracks;
+int current_track = -1;
 
 bg_player_t * player;
 
@@ -34,6 +40,12 @@ int gml_index = 0;
 bg_cfg_section_t * audio_section;
 bg_cfg_section_t * video_section;
 bg_cfg_section_t * osd_section;
+bg_cfg_section_t * input_section;
+
+char * track_spec = (char*)0;
+char * track_spec_ptr;
+
+int * track_spec_int;
 
 /*
  *  Commandline options stuff
@@ -68,6 +80,18 @@ static void opt_ov(void * data, int * argc, char *** _argv, int arg)
 static void opt_nt(void * data, int * argc, char *** _argv, int arg)
   {
   display_time = 0;
+  }
+
+static void opt_tracks(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -t requires an argument\n");
+    exit(-1);
+    }
+  track_spec = bg_strdup(track_spec, (*_argv)[arg]);
+  track_spec_ptr = track_spec;
+  bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
 static void opt_v(void * data, int * argc, char *** _argv, int arg)
@@ -119,6 +143,11 @@ static bg_cmdline_arg_t global_options[] =
       callback:    opt_v,
     },
     {
+      arg:         "-tracks",
+      help_string: "Tracks can be a range or comma separated tracks",
+      callback:    opt_tracks,
+    },
+    {
       arg:         "-help",
       help_string: "Print this help message and exit",
       callback:    opt_help,
@@ -135,52 +164,135 @@ static void opt_help(void * data, int * argc, char *** argv, int arg)
   exit(0);
   }
 
-
+static int set_track_from_spec()
+  {
+  char * rest;
+  if(*track_spec_ptr == '\0')
+    return 0;
+  
+  /* Beginning */
+  if(track_spec_ptr == track_spec)
+    {
+    current_track = strtol(track_spec_ptr, &rest, 10)-1;
+    track_spec_ptr = rest;
+    }
+  else
+    {
+    if(*track_spec_ptr == '\0')
+      return 0;
+    
+    else if(*track_spec_ptr == '-')
+      {
+      current_track++;
+      if(current_track >= num_tracks)
+        return 0;
+      
+      /* Open range */
+      if(!isdigit(*(track_spec_ptr+1)))
+        return 1;
+      
+      if(current_track+1 == atoi(track_spec_ptr+1))
+        {
+        /* End of range reached, advance pointer */
+        track_spec_ptr++;
+        strtol(track_spec_ptr, &rest, 10)-1;
+        track_spec_ptr = rest;
+        }
+      }
+    else if(*track_spec_ptr == ',')
+      {
+      track_spec_ptr++;
+     
+      if(*track_spec_ptr == '\0')
+        return 0;
+     
+      current_track = strtol(track_spec_ptr, &rest, 10)-1;
+      track_spec_ptr = rest;
+      }
+    }
+  return 1;
+  }
 
 /* Input plugin stuff */
 
-static void play_track(bg_player_t * player, const char * gml, int track,
-                       const char * plugin_name)
+static int play_track(bg_player_t * player, const char * gml,
+                      const char * plugin_name)
   {
   const bg_plugin_info_t * info = (const bg_plugin_info_t *)0;
   bg_input_plugin_t * plugin;
   bg_track_info_t * track_info;
-  int num_tracks;
   char * error_msg = (char*)0;
   if(plugin_name)
     info = bg_plugin_find_by_name(plugin_reg,
                                   plugin_name);
-  
-  if(!bg_input_plugin_load(plugin_reg, gml, info,
-                           &input_handle, &error_msg,
-                           (bg_input_callbacks_t*)0))
+
+  if(input_handle &&
+     (input_handle->info->flags && BG_PLUGIN_REMOVABLE))
     {
-    fprintf(stderr, "Cannot open %s\n", gml);
-    if(error_msg)
-      free(error_msg);
-    return;
+    plugin = (bg_input_plugin_t*)(input_handle->plugin);
+    }
+  else
+    {
+    if(!bg_input_plugin_load(plugin_reg, gml, info,
+                             &input_handle, &error_msg,
+                             (bg_input_callbacks_t*)0))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s", gml);
+      if(error_msg)
+        free(error_msg);
+      return 0;
+      }
+    plugin = (bg_input_plugin_t*)(input_handle->plugin);
+    num_tracks = plugin->get_num_tracks(input_handle->priv);
+    }
+
+  if(num_tracks == 1)
+    {
+    if(current_track > 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "No such track %d", current_track+1);
+      return 0;
+      }
+    current_track = 0;
+    }
+  else
+    {
+    if(!track_spec)
+      {
+      current_track++;
+      if(current_track >= num_tracks)
+        return 0;
+      }
+    else
+      {
+#if 0      
+      if(track_spec == track_spec_ptr)
+        {
+        while(set_track_from_spec())
+          {
+          fprintf(stderr, "Track %d\n", current_track + 1);
+          }
+        track_spec_ptr = track_spec;
+        current_track = -1;
+        }
+#endif
+      
+      if(!set_track_from_spec())
+        return 0;
+      }
     }
   
-  plugin = (bg_input_plugin_t*)(input_handle->plugin);
-
-  num_tracks = plugin->get_num_tracks(input_handle->priv);
-
-  if((track < 0) || (track >= num_tracks))
-    {
-    fprintf(stderr, "No such track %d\n", track);
-    return;
-    }
-  
-  track_info = plugin->get_track_info(input_handle->priv, track);
+  track_info = plugin->get_track_info(input_handle->priv, current_track);
   
   if(!track_info)
     {
-    return;
+    return 0;
     }
 
   if(!track_info->name)
     bg_set_track_name_default(track_info, gml);
-  bg_player_play(player, input_handle, track, 0, track_info->name);
+  bg_player_play(player, input_handle, current_track, 0, track_info->name);
   }
 
 static int time_active = 0;
@@ -344,24 +456,25 @@ static int handle_message(bg_player_t * player,
         case BG_PLAYER_STATE_STOPPED:
           break;
         case BG_PLAYER_STATE_PLAYING:
-          fprintf(stderr, "Playing\n");
           break;
         case BG_PLAYER_STATE_SEEKING:
           break;
         case BG_PLAYER_STATE_CHANGING:
-          fprintf(stderr, "Changing\n");
-          gml_index++;
+
+          if(num_tracks == 1)
+            gml_index++;
+          
           if(!gmls[gml_index])
             return 0;
           else
-            play_track(player, gmls[gml_index], 0, (const char*)0);
+            if(!play_track(player, gmls[gml_index], (const char*)0))
+              return 0;
           break;
         case BG_PLAYER_STATE_BUFFERING:
           break;
         case BG_PLAYER_STATE_PAUSED:
           break;
         case BG_PLAYER_STATE_FINISHING:
-          fprintf(stderr, "Finishing\n");
           break;
         }
       break;
@@ -423,14 +536,18 @@ int main(int argc, char ** argv)
     bg_cfg_section_create_from_parameters("video", bg_player_get_video_parameters(player));
   osd_section =
     bg_cfg_section_create_from_parameters("osd", bg_player_get_osd_parameters(player));
-
+  input_section =
+    bg_cfg_section_create_from_parameters("input",
+                                          bg_player_get_input_parameters(player));
+  
   bg_cfg_section_apply(audio_section, bg_player_get_audio_parameters(player),
                        bg_player_set_audio_parameter, player);
   bg_cfg_section_apply(video_section, bg_player_get_video_parameters(player),
                        bg_player_set_video_parameter, player);
-
-  bg_cfg_section_apply(video_section, bg_player_get_osd_parameters(player),
+  bg_cfg_section_apply(osd_section, bg_player_get_osd_parameters(player),
                        bg_player_set_osd_parameter, player);
+  bg_cfg_section_apply(input_section, bg_player_get_input_parameters(player),
+                       bg_player_set_input_parameter, player);
   
   /* Create plugin regsitry */
   cfg_reg = bg_cfg_registry_create();
@@ -448,7 +565,6 @@ int main(int argc, char ** argv)
     bg_gtk_info_window_create(player, info_close_callback, NULL);
   bg_gtk_info_window_show(info_window);
 #endif
-
     
   /* Set message queue */
 
@@ -475,30 +591,49 @@ int main(int argc, char ** argv)
 
   /* Load audio output */
 
-  if(!audio_output_name)
+  info = (const bg_plugin_info_t*)0;
+  
+  if(audio_output_name)
+    {
+    if(strcmp(audio_output_name, "null"))
+      info = bg_plugin_find_by_name(plugin_reg,
+                                    audio_output_name);
+    }
+  else
+    {
+
     info = bg_plugin_registry_get_default(plugin_reg,
                                           BG_PLUGIN_OUTPUT_AUDIO);
-  else
-    info = bg_plugin_find_by_name(plugin_reg,
-                                  audio_output_name);
-  
-  handle = bg_plugin_load(plugin_reg, info);
-  bg_player_set_oa_plugin(player, handle);
+    }
+    
+  if(info)
+    {
+    handle = bg_plugin_load(plugin_reg, info);
+    bg_player_set_oa_plugin(player, handle);
+    }
   
   /* Load video output */
 
-  if(!video_output_name)
+  info = (const bg_plugin_info_t*)0;
+  if(video_output_name)
+    {
+    if(strcmp(video_output_name, "null"))
+      info = bg_plugin_find_by_name(plugin_reg,
+                                    video_output_name);
+    }
+  else
     info = bg_plugin_registry_get_default(plugin_reg,
                                           BG_PLUGIN_OUTPUT_VIDEO);
-  else
-    info = bg_plugin_find_by_name(plugin_reg,
-                                  video_output_name);
-  handle = bg_plugin_load(plugin_reg, info);
-  bg_player_set_ov_plugin(player, handle);
 
+  if(info)
+    {
+    handle = bg_plugin_load(plugin_reg, info);
+    bg_player_set_ov_plugin(player, handle);
+    }
+  
   /* Play first track */
-
-  play_track(player, gmls[gml_index], 0, (const char*)0);
+  
+  play_track(player, gmls[gml_index], (const char*)0);
   
   /* Main loop */
   
@@ -509,7 +644,6 @@ int main(int argc, char ** argv)
     if(!handle_message(player, message))
       {
       bg_msg_queue_unlock_read(message_queue);
-      fprintf(stderr, "Finishing\n");
       break;
       }
     bg_msg_queue_unlock_read(message_queue);

@@ -110,6 +110,12 @@ static void msg_subtitle_stream(bg_msg_t * msg,
 
   bg_msg_set_id(msg, BG_PLAYER_MSG_SUBTITLE_STREAM);
   bg_msg_set_arg_int(msg, 0, player->current_subtitle_stream);
+  bg_msg_set_arg_int(msg, 1, player->do_subtitle_text);
+  
+  bg_msg_set_arg_video_format(msg, 2,
+                              &(player->subtitle_stream.format));
+  
+
   }
 
 static void msg_num_streams(bg_msg_t * msg,
@@ -357,11 +363,13 @@ static void player_cleanup(bg_player_t * player)
   player->input_handle = (bg_plugin_handle_t*)0;
   
   //  fprintf(stderr, "bg_player_oa_cleanup...");
-  
-  bg_player_oa_cleanup(player->oa_context);
+
+  if(player->do_audio)
+    bg_player_oa_cleanup(player->oa_context);
   //  fprintf(stderr, "bg_player_oa_cleanup done\n");
   
-  bg_player_ov_cleanup(player->ov_context);
+  if(player->do_video)
+    bg_player_ov_cleanup(player->ov_context);
   
   bg_player_time_stop(player);
   
@@ -399,7 +407,6 @@ static void play_cmd(bg_player_t * p,
 
   if(p->input_handle && !bg_plugin_equal(p->input_handle, handle))
     player_cleanup(p);
-
   
   had_video = p->do_video || p->do_still;
   

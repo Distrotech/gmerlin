@@ -159,7 +159,6 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
   pthread_mutex_unlock(&(ctx->config_mutex));
   
   ctx->plugin_handle = handle;
-  //  bg_plugin_ref(ctx->plugin_handle);
   
   ctx->plugin = (bg_input_plugin_t*)(handle->plugin);
   ctx->priv = handle->priv;
@@ -221,6 +220,15 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
   //  ctx->player->current_subtitle_stream = 7;
   if(ctx->player->current_subtitle_stream >= ctx->player->track_info->num_subtitle_streams)
     ctx->player->current_subtitle_stream = 0;
+
+  if(!bg_player_oa_has_plugin(ctx->player->oa_context))
+    ctx->player->current_audio_stream = -1;
+
+  if(!bg_player_ov_has_plugin(ctx->player->ov_context))
+    {
+    ctx->player->current_video_stream = -1;
+    ctx->player->current_subtitle_stream = -1;
+    }
   
   if(ctx->plugin->set_audio_stream)
     {
@@ -298,7 +306,6 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
 
 void bg_player_input_cleanup(bg_player_input_context_t * ctx)
   {
-  
   if(ctx->plugin->stop)
     ctx->plugin->stop(ctx->priv);
   if(ctx->plugin_handle)

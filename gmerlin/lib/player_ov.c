@@ -147,6 +147,11 @@ static void handle_messages(bg_player_ov_context_t * ctx, gavl_time_t time)
     }
   }
 
+int  bg_player_ov_has_plugin(bg_player_ov_context_t * ctx)
+  {
+  return (ctx->plugin_handle ? 1 : 0);
+  }
+
 /* Create frame */
 
 void * bg_player_ov_create_frame(void * data)
@@ -238,7 +243,6 @@ void bg_player_ov_set_plugin(bg_player_t * player, bg_plugin_handle_t * handle)
 
   ctx->plugin_handle = handle;
 
-  bg_plugin_ref(ctx->plugin_handle);
 
   ctx->plugin = (bg_ov_plugin_t*)(ctx->plugin_handle->plugin);
   ctx->priv = ctx->plugin_handle->priv;
