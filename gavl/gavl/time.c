@@ -1,3 +1,22 @@
+/*****************************************************************
+
+  time.c
+ 
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -146,6 +165,7 @@ int gavl_time_parse(const char * str, gavl_time_t * ret)
     
     if(*end_c == '.')
       {
+      *ret *= 60;
       /* Floating point seconds */
       seconds_f = strtod(start, &end);
       seconds_t = gavl_seconds_to_time(seconds_f);
@@ -157,21 +177,24 @@ int gavl_time_parse(const char * str, gavl_time_t * ret)
     else if(*end_c != ':')
       {
       /* Integer seconds */
-      i_tmp = strtol(str, &end, 10);
+      i_tmp = strtol(start, &end, 10);
+      *ret *= 60;
       *ret += i_tmp;
       *ret *= GAVL_TIME_SCALE;
+      end_c = end;
       return end_c - str;
       }
     else
       {
-      i_tmp = strtol(str, &end, 10);
-      *ret += i_tmp;
+      i_tmp = strtol(start, &end, 10);
       *ret *= 60;
+      *ret += i_tmp;
+      end++; // ':'
+      end_c = end;
       }
     if(*end_c == '\0')
       break;
-    start = end_c+1;
-    
+    start = end_c;
     }
   return 0;
   }
