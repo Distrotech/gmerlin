@@ -217,6 +217,7 @@ int bg_cfg_section_set_parameter_from_string(bg_cfg_section_t * section,
                                              bg_parameter_info_t * info,
                                              const char * str)
   {
+  char cpy_str[2];
   char * end;
   const char * end_c;
   const char * pos;
@@ -233,7 +234,13 @@ int bg_cfg_section_set_parameter_from_string(bg_cfg_section_t * section,
       return end - str;
       break;
     case BG_CFG_TIME:
-      return gavl_time_parse(str, &(item->value.val_time));
+      end_c = str;
+      if(*end_c == '{')
+        end_c++;
+      end_c += gavl_time_parse(end_c, &(item->value.val_time));
+      if(*end_c == '}')
+        end_c++;
+      return end_c - str;
       break;
     case BG_CFG_FLOAT:
       item->value.val_f = strtod(str, &end);
@@ -241,13 +248,48 @@ int bg_cfg_section_set_parameter_from_string(bg_cfg_section_t * section,
       break;
     case BG_CFG_STRING:
     case BG_CFG_STRING_HIDDEN:
+      if(item->value.val_str)
+        {
+        free(item->value.val_str);
+        item->value.val_str = (char*)0;
+        }
+
       end_c = str;
-      while(!((*end_c == ',') && (*(end_c-1) != '\\')) &&
-            (*end_c != '\0'))
-        end_c++;
+
+      cpy_str[1] = '\0';
       
-      item->value.val_str = bg_strndup(item->value.val_str,
-                                       str, end_c);
+      while(*end_c != '\0')
+        {
+        if(*end_c == '\\')
+          {
+          if((*(end_c+1) == ':') ||
+             (*(end_c+1) == '{') ||
+             (*(end_c+1) == '}'))
+            {
+            end_c++;
+            cpy_str[0] = *end_c;
+            item->value.val_str = bg_strcat(item->value.val_str, cpy_str);
+            }
+          else
+            {
+            cpy_str[0] = *end_c;
+            item->value.val_str = bg_strcat(item->value.val_str, cpy_str);
+            }
+          }
+        else if((*end_c == ':') ||
+                (*end_c == '{') ||
+                (*end_c == '}'))
+          {
+          break;
+          }
+        else
+          {
+          cpy_str[0] = *end_c;
+          item->value.val_str = bg_strcat(item->value.val_str, cpy_str);
+          }
+        end_c++;
+        }
+      
       //      fprintf(stderr, "String: %s\n", item->value.val_str);
       return end_c - str;
       break;
@@ -283,7 +325,7 @@ int bg_cfg_section_set_parameter_from_string(bg_cfg_section_t * section,
         if(pos == end)
           return 0;
         }
-      return end - pos;
+      return end - str;
       break;
     }
   return 0;

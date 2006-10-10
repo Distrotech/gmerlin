@@ -51,24 +51,6 @@ type_names[] =
     { "time",          BG_PARAMETER_TIME }
   };
 
-static char * name_key             = "NAME";
-static char * long_name_key        = "LONG_NAME";
-static char * opt_key              = "OPT";
-static char * type_key             = "TYPE";
-static char * help_string_key      = "HELP_STRING";
-static char * default_key          = "DEFAULT";
-static char * range_key            = "RANGE";
-static char * num_digits_key       = "NUM_DIGITS";
-static char * num_key              = "NUM";
-static char * index_key            = "INDEX";
-static char * parameter_key        = "PARAMETER";
-static char * multi_names_key      = "MULTI_NAMES";
-static char * multi_labels_key     = "MULTI_LABELS";
-static char * multi_name_key       = "MULTI_NAME";
-static char * multi_label_key      = "MULTI_LABEL";
-static char * multi_parameters_key = "MULTI_PARAMETERS";
-static char * multi_parameter_key  = "MULTI_PARAMETER";
-
 static const char * type_2_name(bg_parameter_type_t type)
   {
   int i;
@@ -92,6 +74,85 @@ static bg_parameter_type_t name_2_type(const char * name)
     }
   return 0;
   }
+
+static struct
+  {
+  char * name;
+  int flag;
+  }
+flag_names[] =
+  {
+    { "sync",        BG_PARAMETER_SYNC },
+    { "hide_dialog", BG_PARAMETER_HIDE_DIALOG },
+  };
+
+static int string_to_flags(const char * str)
+  {
+  int i;
+  int ret = 0;
+  const char * start;
+  const char * end;
+
+  start = str;
+  end = start;
+  
+  while(1)
+    {
+    while((*end != '\0') && (*end != '|'))
+      end++;
+    
+    for(i = 0; i < sizeof(flag_names)/sizeof(flag_names[0]); i++)
+      {
+      if(!strncmp(flag_names[i].name, start, (int)(end-start)))
+        ret |= flag_names[i].flag;
+      }
+
+    if(*end == '\0')
+      return ret;
+    
+    end++;
+    start = end;
+    }
+  return ret;
+  }
+
+static char * flags_to_string(int flags)
+  {
+  int num = 0;
+  int i;
+  char * ret = (char*)0;
+
+  for(i = 0; i < sizeof(flag_names)/sizeof(flag_names[0]); i++)
+    {
+    if(flag_names[i].flag & flags)
+      {
+      if(num) ret = bg_strcat(ret, "|");
+      ret = bg_strcat(ret, flag_names[i].name);
+      num++;
+      }
+    }
+  return ret;
+  }
+
+static char * name_key             = "NAME";
+static char * long_name_key        = "LONG_NAME";
+static char * opt_key              = "OPT";
+static char * type_key             = "TYPE";
+static char * flags_key             = "FLAGS";
+static char * help_string_key      = "HELP_STRING";
+static char * default_key          = "DEFAULT";
+static char * range_key            = "RANGE";
+static char * num_digits_key       = "NUM_DIGITS";
+static char * num_key              = "NUM";
+static char * index_key            = "INDEX";
+static char * parameter_key        = "PARAMETER";
+static char * multi_names_key      = "MULTI_NAMES";
+static char * multi_labels_key     = "MULTI_LABELS";
+static char * multi_name_key       = "MULTI_NAME";
+static char * multi_label_key      = "MULTI_LABEL";
+static char * multi_parameters_key = "MULTI_PARAMETERS";
+static char * multi_parameter_key  = "MULTI_PARAMETER";
+
 
 /* */
 
@@ -145,6 +206,12 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
           {
           tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
           ret[index].long_name = bg_strdup(ret[index].long_name, tmp_string);
+          free(tmp_string);
+          }
+        if(!BG_XML_STRCMP(child->name, flags_key))
+          {
+          tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
+          ret[index].flags = string_to_flags(tmp_string);
           free(tmp_string);
           }
         else if(!BG_XML_STRCMP(child->name, opt_key))
@@ -383,6 +450,18 @@ void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters)
       xmlAddChild(child, BG_XML_NEW_TEXT(info[num_parameters].opt));
       xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
       }
+
+    if(info[num_parameters].flags)
+      {
+      child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)flags_key, NULL);
+
+      tmp_string = flags_to_string(info[num_parameters].flags);
+      xmlAddChild(child, BG_XML_NEW_TEXT(tmp_string));
+      free(tmp_string);
+      xmlAddChild(xml_info, BG_XML_NEW_TEXT("\n"));
+      }
+
+
     if(info[num_parameters].help_string)
       {
       child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)help_string_key, NULL);

@@ -559,6 +559,7 @@ static bg_parameter_info_t * get_parameters_v4l(void * priv)
 static void set_parameter_v4l(void * priv, char * name,
                        bg_parameter_value_t * val)
   {
+  char * pos;
   v4l_t * v4l;
   v4l = (v4l_t*)priv;
 
@@ -629,6 +630,7 @@ static void set_parameter_v4l(void * priv, char * name,
   else if(!strcmp(name, "device"))
     {
     v4l->device = bg_strdup(v4l->device, val->val_str);
+    pos = strchr(v4l->device, ' '); if(pos) *pos = '\0';
     }
   else if(!strcmp(name, "user_width"))
     {

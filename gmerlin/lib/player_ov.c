@@ -475,7 +475,6 @@ void * bg_player_ov_thread(void * data)
     {
     if(!bg_player_keep_going(ctx->player, ping_func, ctx))
       {
-      fprintf(stderr, "bg_player_keep_going returned 0\n");
       break;
       }
     if(ctx->frame)
@@ -619,7 +618,6 @@ void * bg_player_ov_thread(void * data)
 
   bg_player_delete_message_queue(ctx->player,
                               ctx->msg_queue);
-  fprintf(stderr, "ov thread finisheded\n");
   return NULL;
   }
 

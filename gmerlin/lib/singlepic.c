@@ -60,42 +60,6 @@ static char * get_extensions(bg_plugin_registry_t * reg,
   return ret;
   }
 
-static void set_plugin_parameter(bg_parameter_info_t * ret,
-                                 bg_plugin_registry_t * reg,
-                                 uint32_t type_mask, uint32_t flag_mask)
-  {
-  int num_plugins, i;
-  const bg_plugin_info_t * info;
-  
-  num_plugins =
-    bg_plugin_registry_get_num_plugins(reg, type_mask, flag_mask);
-
-  ret->multi_names      = calloc(num_plugins + 1, sizeof(*ret->multi_names));
-  ret->multi_labels     = calloc(num_plugins + 1, sizeof(*ret->multi_labels));
-  ret->multi_parameters = calloc(num_plugins + 1,
-                                 sizeof(*ret->multi_parameters));
-  
-  for(i = 0; i < num_plugins; i++)
-    {
-    info = bg_plugin_find_by_index(reg, i,
-                                   type_mask, flag_mask);
-    ret->multi_names[i] = bg_strdup(NULL, info->name);
-
-    if(!i) /* First plugin is the default one */
-      {
-      ret->val_default.val_str = bg_strdup(NULL, info->name);
-      }
-
-    ret->multi_labels[i] = bg_strdup(NULL, info->long_name);
-
-    if(info->parameters)
-      {
-      ret->multi_parameters[i] =
-        bg_parameter_info_copy_array(info->parameters);
-      }
-    }
-  }
-
 /* Input stuff */
 
 static bg_parameter_info_t parameters_input[] =
@@ -709,8 +673,9 @@ create_encoder_parameters(bg_plugin_registry_t * plugin_reg)
     {
     bg_parameter_info_copy(&ret[i], &parameters_encoder[i]);
     }
-  set_plugin_parameter(&ret[0],
-                       plugin_reg, BG_PLUGIN_IMAGE_WRITER, BG_PLUGIN_FILE);
+  bg_plugin_registry_set_parameter_info(plugin_reg,
+                                        BG_PLUGIN_IMAGE_WRITER,
+                                        BG_PLUGIN_FILE, &ret[0]);
   return ret;
   }
 

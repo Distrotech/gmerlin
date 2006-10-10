@@ -95,11 +95,13 @@ static void
 set_parameter_oss(void * p, char * name, bg_parameter_value_t * val)
   {
   oss_t * priv = (oss_t*)(p);
+  char * pos;
   if(!name)
     return;
   if(!strcmp(name, "device"))
     {
     priv->device = bg_strdup(priv->device, val->val_str);
+    pos = strchr(priv->device, ' '); if(pos) *pos = '\0';
     }
   else if(!strcmp(name, "channel_mode"))
     {

@@ -44,8 +44,12 @@ static bg_parameter_info_t parameters[] =
       name:        "multichannel_mode",
       long_name:   "Multichannel Mode",
       type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "None (Downmix)" },
-      multi_names:    (char*[]){  "None (Downmix)",
+      val_default: { val_str: "none" },
+      multi_names:    (char*[]){  "none",
+                              "multidev",
+                              "creative",
+                              (char*)0 },
+      multi_labels:    (char*[]){  "None (Downmix)",
                               "Multiple devices",
                               "Creative Multichannel",
                               (char*)0 },
@@ -511,22 +515,26 @@ static int get_delay_oss(void * p)
 static void
 set_parameter_oss(void * p, char * name, bg_parameter_value_t * val)
   {
+  char * pos;
   oss_t * priv = (oss_t*)(p);
   if(!name)
     return;
   //  fprintf(stderr, "Set parameter %s\n", name);
   if(!strcmp(name, "multichannel_mode"))
     {
-   if(!strcmp(val->val_str, "None (Downmix)"))
+   if(!strcmp(val->val_str, "none"))
       priv->multichannel_mode = MULTICHANNEL_NONE;
-    else if(!strcmp(val->val_str, "Multiple devices"))
+    else if(!strcmp(val->val_str, "multidev"))
       priv->multichannel_mode = MULTICHANNEL_DEVICES;
-    else if(!strcmp(val->val_str, "Creative Multichannel"))
+    else if(!strcmp(val->val_str, "creative"))
       priv->multichannel_mode = MULTICHANNEL_CREATIVE;
     }
   else if(!strcmp(name, "device"))
     {
     priv->device_front = bg_strdup(priv->device_front, val->val_str);
+
+    pos = strchr(priv->device_front, ' '); if(pos) *pos = '\0';
+
     }
   else if(!strcmp(name, "use_rear_device"))
     {
@@ -535,6 +543,7 @@ set_parameter_oss(void * p, char * name, bg_parameter_value_t * val)
   else if(!strcmp(name, "rear_device"))
     {
     priv->device_rear = bg_strdup(priv->device_rear, val->val_str);
+    pos = strchr(priv->device_rear, ' '); if(pos) *pos = '\0';
     }
   else if(!strcmp(name, "use_center_lfe_device"))
     {
@@ -544,6 +553,7 @@ set_parameter_oss(void * p, char * name, bg_parameter_value_t * val)
     {
     priv->device_center_lfe =
       bg_strdup(priv->device_center_lfe, val->val_str);
+    pos = strchr(priv->device_center_lfe, ' '); if(pos) *pos = '\0';
     }
   }
 

@@ -316,6 +316,21 @@ bg_cfg_section_t *
 bg_plugin_registry_get_section(bg_plugin_registry_t * reg,
                                const char * plugin_name);
 
+/** \ingroup plugin_registry
+ *  \brief Set a parameter info for selecting and configuring plugins
+ *  \param reg A plugin registry
+ *  \param type_mask Mask of all returned types
+ *  \param flag_mask Mask of all returned flags
+ *  \param ret Where the parameter info will be copied
+ *
+ */
+
+void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
+                                           uint32_t type_mask,
+                                           uint32_t flag_mask,
+                                           bg_parameter_info_t * ret);
+
+
 /** \ingroup plugin_registry_defaults 
  *  \brief Set the default for a particular plugin type
  *  \param reg A plugin registry

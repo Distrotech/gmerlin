@@ -34,16 +34,51 @@ bg_cfg_registry_t * cfg_reg;
 bg_plugin_handle_t * input_handle = (bg_plugin_handle_t*)0;
 int display_time = 1;
 
-char * audio_output_name = (char*)0;
-char * video_output_name = (char*)0;
+bg_plugin_handle_t * oa_handle = (bg_plugin_handle_t*)0;
+bg_plugin_handle_t * ov_handle = (bg_plugin_handle_t*)0;
+
+
 
 char ** gmls = (char **)0;
 int gml_index = 0;
+
+bg_cfg_section_t * oa_section;
+bg_cfg_section_t * ov_section;
 
 bg_cfg_section_t * audio_section;
 bg_cfg_section_t * video_section;
 bg_cfg_section_t * osd_section;
 bg_cfg_section_t * input_section;
+
+/* Set up by registry */
+static bg_parameter_info_t oa_parameters[] =
+  {
+    {
+      name:      "plugin",
+      long_name: "Audio output plugin",
+      opt:       "p",
+      type:      BG_PARAMETER_MULTI_MENU,
+    },
+    { /* End of parameters */ }
+  };
+
+static bg_parameter_info_t ov_parameters[] =
+  {
+    {
+      name:      "plugin",
+      long_name: "Video output plugin",
+      //      opt:       "p",
+      type:      BG_PARAMETER_MULTI_MENU,
+    },
+    { /* End of parameters */ }
+  };
+
+/* Set from player */
+bg_parameter_info_t * osd_parameters;
+bg_parameter_info_t * audio_parameters;
+bg_parameter_info_t * video_parameters;
+bg_parameter_info_t * input_parameters;
+
 
 char * track_spec = (char*)0;
 char * track_spec_ptr;
@@ -54,31 +89,91 @@ int * track_spec_int;
  *  Commandline options stuff
  */
 
+static void set_oa_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  const bg_plugin_info_t * info;
+
+  fprintf(stderr, "set_oa_parameter: %s\n", name);
+
+  if(name && !strcmp(name, "plugin"))
+    {
+    fprintf(stderr, "set_oa_parameter: plugin: %s\n", val->val_str);
+
+    info =  bg_plugin_find_by_name(plugin_reg, val->val_str);
+    oa_handle = bg_plugin_load(plugin_reg, info);
+    }
+  else
+    {
+    if(oa_handle && oa_handle->plugin && oa_handle->plugin->set_parameter)
+      oa_handle->plugin->set_parameter(oa_handle->priv, name, val);
+    }
+  }
+
 static void opt_oa(void * data, int * argc, char *** _argv, int arg)
   {
-  char ** argv = *_argv;
-  
   if(arg >= *argc)
     {
     fprintf(stderr, "Option -oa requires an argument\n");
     exit(-1);
     }
-  audio_output_name = bg_strdup(audio_output_name, argv[arg]);
+  
+  if(!bg_cmdline_apply_options(oa_section,
+                               set_oa_parameter,
+                               (void*)0,
+                               oa_parameters,
+                               (*_argv)[arg]))
+    exit(-1);
+    
   bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void set_ov_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  const bg_plugin_info_t * info;
+  if(name && !strcmp(name, "plugin"))
+    {
+    info =  bg_plugin_find_by_name(plugin_reg, val->val_str);
+    ov_handle = bg_plugin_load(plugin_reg, info);
+    }
+  else
+    {
+    if(ov_handle && ov_handle->plugin && ov_handle->plugin->set_parameter)
+      ov_handle->plugin->set_parameter(ov_handle->priv, name, val);
+    }
   }
 
 static void opt_ov(void * data, int * argc, char *** _argv, int arg)
   {
-  char ** argv = *_argv;
-  
   if(arg >= *argc)
     {
     fprintf(stderr, "Option -ov requires an argument\n");
     exit(-1);
     }
-  video_output_name = bg_strdup(video_output_name, argv[arg]);
+  if(!bg_cmdline_apply_options(ov_section,
+                               set_ov_parameter,
+                               (void*)0,
+                               ov_parameters,
+                               (*_argv)[arg]))
+    exit(-1);
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
+
+static void opt_osd(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -osd requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(ov_section,
+                               bg_player_set_osd_parameter,
+                               player,
+                               osd_parameters,
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
 
 static void opt_nt(void * data, int * argc, char *** _argv, int arg)
   {
@@ -89,7 +184,7 @@ static void opt_tracks(void * data, int * argc, char *** _argv, int arg)
   {
   if(arg >= *argc)
     {
-    fprintf(stderr, "Option -t requires an argument\n");
+    fprintf(stderr, "Option -tracks requires an argument\n");
     exit(-1);
     }
   track_spec = bg_strdup(track_spec, (*_argv)[arg]);
@@ -123,17 +218,25 @@ static void opt_v(void * data, int * argc, char *** _argv, int arg)
 
 static void opt_help(void * data, int * argc, char *** argv, int arg);
 
+
 static bg_cmdline_arg_t global_options[] =
   {
     {
       arg:         "-oa",
-      help_string: "Set audio plugin",
+      help_string: "Set audio output options",
       callback:    opt_oa,
+      parameters:  oa_parameters,
     },
     {
       arg:         "-ov",
-      help_string: "Set video plugin",
+      help_string: "Set video output options",
       callback:    opt_ov,
+      parameters:  ov_parameters,
+    },
+    {
+      arg:         "-osd",
+      help_string: "Set OSD options",
+      callback:    opt_osd,
     },
     {
       arg:         "-nt",
@@ -157,6 +260,11 @@ static bg_cmdline_arg_t global_options[] =
     },
     { /* End of options */ }
   };
+
+static void update_global_options()
+  {
+  global_options[2].parameters = osd_parameters;
+  }
 
 static void opt_help(void * data, int * argc, char *** argv, int arg)
   {
@@ -557,8 +665,6 @@ int main(int argc, char ** argv)
 #endif
   const bg_plugin_info_t * info;
   bg_cfg_section_t * cfg_section;
-  bg_plugin_handle_t * handle;
-
   bg_msg_queue_t * message_queue;
 #ifdef INFO_WINDOW
   bg_gtk_init(&argc, &argv);
@@ -568,26 +674,26 @@ int main(int argc, char ** argv)
   
   bg_player_set_volume(player, 0.0);
   
-  /* Create config section */
+  /* Create config sections */
 
+  audio_parameters = bg_player_get_audio_parameters(player);
   audio_section =
-    bg_cfg_section_create_from_parameters("audio", bg_player_get_audio_parameters(player));
+    bg_cfg_section_create_from_parameters("audio", audio_parameters);
+
+  video_parameters = bg_player_get_video_parameters(player);
   video_section =
-    bg_cfg_section_create_from_parameters("video", bg_player_get_video_parameters(player));
+    bg_cfg_section_create_from_parameters("video", video_parameters);
+
+  osd_parameters = bg_player_get_osd_parameters(player);
   osd_section =
-    bg_cfg_section_create_from_parameters("osd", bg_player_get_osd_parameters(player));
+    bg_cfg_section_create_from_parameters("osd", osd_parameters);
+
+  input_parameters = bg_player_get_input_parameters(player);
   input_section =
     bg_cfg_section_create_from_parameters("input",
-                                          bg_player_get_input_parameters(player));
-  
-  bg_cfg_section_apply(audio_section, bg_player_get_audio_parameters(player),
-                       bg_player_set_audio_parameter, player);
-  bg_cfg_section_apply(video_section, bg_player_get_video_parameters(player),
-                       bg_player_set_video_parameter, player);
-  bg_cfg_section_apply(osd_section, bg_player_get_osd_parameters(player),
-                       bg_player_set_osd_parameter, player);
-  bg_cfg_section_apply(input_section, bg_player_get_input_parameters(player),
-                       bg_player_set_input_parameter, player);
+                                          input_parameters);
+
+  update_global_options();
   
   /* Create plugin regsitry */
   cfg_reg = bg_cfg_registry_create();
@@ -605,7 +711,19 @@ int main(int argc, char ** argv)
     bg_gtk_info_window_create(player, info_close_callback, NULL);
   bg_gtk_info_window_show(info_window);
 #endif
-    
+  /* Set the plugin parameter for the commandline */
+
+  bg_plugin_registry_set_parameter_info(plugin_reg,
+                                        BG_PLUGIN_OUTPUT_AUDIO,
+                                        BG_PLUGIN_PLAYBACK, &oa_parameters[0]);
+
+  bg_plugin_registry_set_parameter_info(plugin_reg,
+                                        BG_PLUGIN_OUTPUT_VIDEO,
+                                        BG_PLUGIN_PLAYBACK, &ov_parameters[0]);
+
+  oa_section = bg_cfg_section_create_from_parameters("oa", oa_parameters);
+  ov_section = bg_cfg_section_create_from_parameters("oa", ov_parameters);
+  
   /* Set message queue */
 
   message_queue = bg_msg_queue_create();
@@ -614,6 +732,17 @@ int main(int argc, char ** argv)
                               message_queue);
 
 
+  /* Apply default options */
+
+  bg_cfg_section_apply(audio_section, audio_parameters,
+                       bg_player_set_audio_parameter, player);
+  bg_cfg_section_apply(video_section, video_parameters,
+                       bg_player_set_video_parameter, player);
+  bg_cfg_section_apply(osd_section, osd_parameters,
+                       bg_player_set_osd_parameter, player);
+  bg_cfg_section_apply(input_section, input_parameters,
+                       bg_player_set_input_parameter, player);
+    
   /* Get commandline options */
 
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
@@ -631,45 +760,33 @@ int main(int argc, char ** argv)
 
   /* Load audio output */
 
-  info = (const bg_plugin_info_t*)0;
-  
-  if(audio_output_name)
+  if(!oa_handle)
     {
-    if(strcmp(audio_output_name, "null"))
-      info = bg_plugin_find_by_name(plugin_reg,
-                                    audio_output_name);
-    }
-  else
-    {
-
     info = bg_plugin_registry_get_default(plugin_reg,
                                           BG_PLUGIN_OUTPUT_AUDIO);
+
+    if(info)
+      {
+      oa_handle = bg_plugin_load(plugin_reg, info);
+      }
     }
-    
-  if(info)
-    {
-    handle = bg_plugin_load(plugin_reg, info);
-    bg_player_set_oa_plugin(player, handle);
-    }
+  
+  bg_player_set_oa_plugin(player, oa_handle);
   
   /* Load video output */
 
-  info = (const bg_plugin_info_t*)0;
-  if(video_output_name)
+  if(!ov_handle)
     {
-    if(strcmp(video_output_name, "null"))
-      info = bg_plugin_find_by_name(plugin_reg,
-                                    video_output_name);
-    }
-  else
     info = bg_plugin_registry_get_default(plugin_reg,
                                           BG_PLUGIN_OUTPUT_VIDEO);
 
-  if(info)
-    {
-    handle = bg_plugin_load(plugin_reg, info);
-    bg_player_set_ov_plugin(player, handle);
+    if(info)
+      {
+      ov_handle = bg_plugin_load(plugin_reg, info);
+      }
     }
+  
+  bg_player_set_ov_plugin(player, ov_handle);
   
   /* Play first track */
   

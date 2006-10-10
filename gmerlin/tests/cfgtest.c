@@ -3,18 +3,24 @@
 #include <stdio.h>
 
 #include <cfg_dialog.h>
+#include <cmdline.h>
+
 #include <gui_gtk/gtkutils.h>
+
+bg_cfg_section_t  * section_1;
+bg_cfg_section_t  * section_2;
+bg_cfg_section_t  * section_3;
 
 
 static bg_parameter_info_t multimenu_1_info[] =
   {
     {
-      name:      "multimenu_1_checkbutton 1",
+      name:      "multimenu_1_checkbutton_1",
       long_name: "Multimenu 1 Checkbutton 1",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
     {
-      name:      "multimenu_1_checkbutton 2",
+      name:      "multimenu_1_checkbutton_2",
       long_name: "Multimenu 1 Checkbutton 2",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
@@ -24,12 +30,12 @@ static bg_parameter_info_t multimenu_1_info[] =
 static bg_parameter_info_t multimenu_2_info[] =
   {
     {
-      name:      "multimenu_2_checkbutton 1",
+      name:      "multimenu_2_checkbutton_1",
       long_name: "Multimenu 2 Checkbutton 1",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
     {
-      name:      "multimenu_2_checkbutton 2",
+      name:      "multimenu_2_checkbutton_2",
       long_name: "Multimenu 2 Checkbutton 2",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
@@ -39,12 +45,12 @@ static bg_parameter_info_t multimenu_2_info[] =
 static bg_parameter_info_t multilist_1_info[] =
   {
     {
-      name:      "multilist_1_checkbutton 1",
+      name:      "multilist_1_checkbutton_1",
       long_name: "Multilist 1 Checkbutton 1",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
     {
-      name:      "multilist_1_checkbutton 2",
+      name:      "multilist_1_checkbutton_2",
       long_name: "Multilist 1 Checkbutton 2",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
@@ -54,39 +60,41 @@ static bg_parameter_info_t multilist_1_info[] =
 static bg_parameter_info_t multilist_2_info[] =
   {
     {
-      name:      "multilist_2_checkbutton 1",
+      name:      "multilist_2_checkbutton_1",
       long_name: "Multilist 2 Checkbutton 1",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
     {
-      name:      "multilist_2_checkbutton 2",
+      name:      "multilist_2_checkbutton_2",
       long_name: "Multilist 2 Checkbutton 2",
       type:      BG_PARAMETER_CHECKBUTTON,
     },
     { /* End of Parameters */ }
   };
 
-bg_parameter_info_t * multilist_parameters[] =
+static bg_parameter_info_t * multilist_parameters[] =
   {
     multilist_1_info,
     multilist_2_info,
     (bg_parameter_info_t *)0
   };
 
-bg_parameter_info_t * multimenu_parameters[] =
+static bg_parameter_info_t * multimenu_parameters[] =
   {
     multimenu_1_info,
     multimenu_2_info,
     (bg_parameter_info_t *)0
   };
 
-static bg_parameter_info_t info[] =
+static bg_parameter_info_t info_1[] =
   {
+#if 0
     {
       name:      "section_1",
       long_name: "Section 1",
       type:      BG_PARAMETER_SECTION
     },
+#endif
     {
       name:        "checkbutton1",
       long_name:   "Check Button 1",
@@ -156,15 +164,23 @@ static bg_parameter_info_t info[] =
       name:        "stringlist",
       long_name:   "Stringlist",
       type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str: "Option 2" },
-      multi_names:     (char *[]){ "Option 1", "Option 2", "Option 3", NULL },
-      help_string:   "Stringlist help",
+      val_default: { val_str: "option_2" },
+      multi_names:  (char *[]){ "option_1", "option_2", "option_3", NULL },
+      multi_labels: (char *[]){ "Option 1", "Option 2", "Option 3", NULL },
+      help_string:   "Stringlist help"
     },
+    { /* End of parameters */ }
+  };
+    
+static bg_parameter_info_t info_2[] =
+  {
+#if 0
     {
       name:      "section_2",
       long_name: "Section 2",
       type:      BG_PARAMETER_SECTION
     },
+#endif
     {
       name:      "color_rgb",
       long_name: "Color RGB",
@@ -197,7 +213,7 @@ static bg_parameter_info_t info[] =
       name:      "font",
       long_name: "Font",
       type:      BG_PARAMETER_FONT,
-      val_default: { val_str: "rudelsberg 12" },
+      val_default: { val_str: "Sans-12:slant=0:weight=100:width=100" },
       help_string:   "Font help",
     },
     {
@@ -207,16 +223,24 @@ static bg_parameter_info_t info[] =
       val_default: { val_str: "/dev/cdrom" },
       help_string:   "Device help",
     },
+    { /* End of parameters */ }
+  };
+
+
+static bg_parameter_info_t info_3[] =
+  {
+#if 0
     {
       name:      "section_3",
       long_name: "Section 3",
       type:      BG_PARAMETER_SECTION
     },
+#endif
     {
       name:               "multimenu",
       long_name:          "Multimenu",
       type:               BG_PARAMETER_MULTI_MENU,
-      val_default:        { val_str: "Multimenu 1" },
+      val_default:        { val_str: "multimenu_1" },
       multi_names:        (char *[]){ "multimenu_1", "multimenu_2", NULL },
       multi_labels:   (char *[]){ "Multimenu 1", "Multimenu 2", NULL },
       multi_descriptions: (char *[]){ "Multimenu 1", "Multimenu 2", NULL },
@@ -231,42 +255,74 @@ static bg_parameter_info_t info[] =
       multi_names:        (char *[]){ "multilist_1", "multilist_2", NULL },
       multi_labels:   (char *[]){ "Multilist 1", "Multilist 2", NULL },
       multi_descriptions: (char *[]){ "Multilist 1", "Multilist 2", NULL },
-      multi_parameters:   multimenu_parameters,
+      multi_parameters:   multilist_parameters,
       help_string:   "Multilist help",
     },
 #endif
     { /* End of parameters */ }
   };
 
-static void set_param(void * data, char * name,
+static bg_parameter_info_t * find_parameter(bg_parameter_info_t * arr, char * name)
+  {
+  bg_parameter_info_t * ret;
+  int i = 0, j;
+  
+  i = 0;
+
+  while(1)
+    {
+    if(!arr[i].name)
+      break;
+    
+    if(!strcmp(arr[i].name, name))
+      {
+      return &(arr[i]);
+      break;
+      }
+    else if(arr[i].multi_parameters)
+      {
+      j = 0;
+      while(arr[i].multi_names[j])
+        {
+        if(arr[i].multi_parameters[j])
+          {
+          ret = find_parameter(arr[i].multi_parameters[j], name);
+          if(ret) return ret;
+
+          }
+        j++;
+        }
+      }
+    i++;
+    }
+  return (bg_parameter_info_t*)0;
+  }
+
+
+
+static void set_parameter(void * data, char * name,
                       bg_parameter_value_t * v)
   {
   bg_parameter_info_t * tmp_info;
   int i;
   char time_buf[GAVL_TIME_STRING_LEN];
 
-  i = 0;
   tmp_info = (bg_parameter_info_t *)0;
 
   if(!name)
     return;
   
-  while(1)
-    {
-    if(!info[i].name)
-      break;
-    
-    if(!strcmp(info[i].name, name))
-      {
-      tmp_info = &(info[i]);
-      break;
-      }
-    i++;
-    }
+  i = 0;
+
+  tmp_info = find_parameter(info_1, name);
+  if(!tmp_info)
+    tmp_info = find_parameter(info_2, name);
+  if(!tmp_info)
+    tmp_info = find_parameter(info_3, name);
   
   if(!tmp_info)
     {
-    fprintf(stderr, "No valid parameter\n");
+    fprintf(stderr, "No valid parameter %s\n", name);
     return;
     }
 
@@ -312,21 +368,117 @@ static void set_param(void * data, char * name,
     }
   }
 
+static void opt_opt1(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -opt1 requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(section_1,
+                               set_parameter,
+                               (void*)0,
+                               info_1,
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_opt2(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -opt2 requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(section_2,
+                               set_parameter,
+                               (void*)0,
+                               info_2,
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_opt3(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -opt3 requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(section_3,
+                               set_parameter,
+                               (void*)0,
+                               info_3,
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_help(void * data, int * argc, char *** argv, int arg);
+
+static bg_cmdline_arg_t global_options[] =
+  {
+    {
+      arg:         "-opt1",
+      help_string: "Set Options 1",
+      callback:    opt_opt1,
+      parameters:  info_1,
+    },
+    {
+      arg:         "-opt2",
+      help_string: "Set Options 2",
+      callback:    opt_opt2,
+      parameters:  info_2,
+    },
+    {
+      arg:         "-opt3",
+      help_string: "Set Options 3",
+      callback:    opt_opt3,
+      parameters:  info_3,
+    },
+    {
+      arg:         "-help",
+      help_string: "Print this help message and exit",
+      callback:    opt_help,
+    },
+    { /* End of options */ }
+  };
+
+static void opt_help(void * data, int * argc, char *** argv, int arg)
+  {
+  fprintf(stderr, "Usage: %s [options]\n\n", (*argv)[0]);
+  fprintf(stderr, "Options:\n\n");
+  bg_cmdline_print_help(global_options);
+  exit(0);
+  }
+
 int main(int argc, char ** argv)
   {
   bg_dialog_t * test_dialog;
   bg_cfg_registry_t * registry;
-  bg_cfg_section_t  * section;
-    
-  bg_gtk_init(&argc, &argv, (char*)0);
 
   registry = bg_cfg_registry_create();
   bg_cfg_registry_load(registry, "config.xml");
 
-  section = bg_cfg_registry_find_section(registry, "section_1");
-  
-  test_dialog = bg_dialog_create(section, set_param, NULL, info, "Test dialog");
+  section_1 = bg_cfg_registry_find_section(registry, "section_1");
+  section_2 = bg_cfg_registry_find_section(registry, "section_2");
+  section_3 = bg_cfg_registry_find_section(registry, "section_3");
 
+  bg_cmdline_parse(global_options, &argc, &argv, NULL);
+    
+  bg_gtk_init(&argc, &argv, (char*)0);
+
+  
+  //  test_dialog = bg_dialog_create(section, set_param, NULL, info, "Test dialog");
+
+  test_dialog = bg_dialog_create_multi("Test dialog");
+
+  bg_dialog_add(test_dialog, "Section 1", section_1,set_parameter,(void *)0,info_1);
+  bg_dialog_add(test_dialog, "Section 2", section_2,set_parameter,(void *)0,info_2);
+  bg_dialog_add(test_dialog, "Section 3", section_3,set_parameter,(void *)0,info_3);
+  
   bg_dialog_show(test_dialog);
   bg_cfg_registry_save(registry, "config.xml");
 

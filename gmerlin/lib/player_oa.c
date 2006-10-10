@@ -328,7 +328,7 @@ void * bg_player_oa_thread(void * data)
     if(wait_time != GAVL_TIME_UNDEFINED)
       gavl_time_delay(&wait_time);
     }
-  fprintf(stderr, "oa thread finisheded\n");
+  //  fprintf(stderr, "oa thread finisheded\n");
   return NULL;
   }
 

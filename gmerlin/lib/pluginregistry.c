@@ -1400,3 +1400,40 @@ int bg_plugin_equal(bg_plugin_handle_t * h1,
   {
   return h1 == h2;
   }
+
+void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
+                                           uint32_t type_mask,
+                                           uint32_t flag_mask,
+                                           bg_parameter_info_t * ret)
+  {
+  int num_plugins, i;
+  const bg_plugin_info_t * info;
+  
+  num_plugins =
+    bg_plugin_registry_get_num_plugins(reg, type_mask, flag_mask);
+
+  ret->multi_names      = calloc(num_plugins + 1, sizeof(*ret->multi_names));
+  ret->multi_labels     = calloc(num_plugins + 1, sizeof(*ret->multi_labels));
+  ret->multi_parameters = calloc(num_plugins + 1,
+                                 sizeof(*ret->multi_parameters));
+  
+  for(i = 0; i < num_plugins; i++)
+    {
+    info = bg_plugin_find_by_index(reg, i,
+                                   type_mask, flag_mask);
+    ret->multi_names[i] = bg_strdup(NULL, info->name);
+
+    if(!i) /* First plugin is the default one */
+      {
+      ret->val_default.val_str = bg_strdup(NULL, info->name);
+      }
+
+    ret->multi_labels[i] = bg_strdup(NULL, info->long_name);
+
+    if(info->parameters)
+      {
+      ret->multi_parameters[i] =
+        bg_parameter_info_copy_array(info->parameters);
+      }
+    }
+  }

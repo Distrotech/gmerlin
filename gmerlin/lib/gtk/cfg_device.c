@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <utils.h>
+
 #include "gtk_dialog.h"
 
 enum
@@ -46,10 +48,7 @@ static void get_value(bg_gtk_widget_t * w)
   GtkTreeSelection * selection;
   GtkTreeIter iter;
   GtkTreeModel * model;
-  int num_entries;
-  char * tmp_string;
-
-  char *pos, *end = (char*)0;
+  char ** tmp_items;
   
   priv = (device_t*)(w->priv);
 
@@ -60,42 +59,26 @@ static void get_value(bg_gtk_widget_t * w)
   
   if(!w->value.val_str || (*w->value.val_str == '\0'))
     return;
-
-  tmp_string = g_strdup(w->value.val_str);
-
+  
+  tmp_items = bg_strbreak(w->value.val_str, ' ');
+  
   /*  fprintf(stderr, "Tmp string: %s\n", tmp_string); */
-  
-  pos = tmp_string;
-  
-  num_entries = 1;
-  while((pos = strchr(pos, ':')))
-    {
-    num_entries++;
-    pos++;
-    }
 
-  pos = tmp_string;
-  for(i = 0; i < num_entries; i++)
+  i = 0;
+  
+  while(tmp_items[i])
     {
-    if(i < num_entries-1)
-      {
-      end = strchr(pos, ':');
-      *end = '\0';
-      }
-
     gtk_list_store_append(GTK_LIST_STORE(model), &iter);
     gtk_list_store_set(GTK_LIST_STORE(model), &iter,
                        COLUMN_DEVICE,
-                       pos,
+                       tmp_items[i],
                        -1);
     if(!i)
       gtk_tree_selection_select_iter(selection, &iter);
     
-    end++;
-    pos = end;
-    
+    i++;
     }
-  g_free(tmp_string);
+  bg_strbreak_free(tmp_items);
   }
 
 static void set_value(bg_gtk_widget_t * w)
@@ -167,7 +150,7 @@ static void set_value(bg_gtk_widget_t * w)
     {
     strcat(w->value.val_str, strings[selected]);
     if(num_entries > 1)
-      strcat(w->value.val_str, ":");
+      strcat(w->value.val_str, " ");
     imax = num_entries-1;
     }
   else
