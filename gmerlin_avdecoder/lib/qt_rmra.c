@@ -18,6 +18,8 @@
 *****************************************************************/
 
 #include <string.h>
+#include <stdlib.h>
+
 #include <avdec_private.h>
 #include <qt.h>
 
@@ -34,9 +36,12 @@ int bgav_qt_rmra_read(qt_atom_header_t * h,
     switch(ch.fourcc)
       {
       case BGAV_MK_FOURCC('r', 'm', 'd', 'a'):
-        if(!bgav_qt_rmda_read(&ch, input, &(ret->rmda)))
+        ret->rmda =
+          realloc(ret->rmda, sizeof(*ret->rmda) * (ret->num_rmda+1));
+        
+        if(!bgav_qt_rmda_read(&ch, input, ret->rmda+ret->num_rmda))
           return 0;
-        ret->has_rmda = 1;
+        ret->num_rmda++;
         break;
       default:
         bgav_qt_atom_skip_unknown(input, &ch, h->fourcc);
@@ -49,12 +54,21 @@ int bgav_qt_rmra_read(qt_atom_header_t * h,
 
 void bgav_qt_rmra_free(qt_rmra_t * r)
   {
-  bgav_qt_rmda_free(&(r->rmda));
+  int i;
+  for(i = 0; i < r->num_rmda; i++)
+    bgav_qt_rmda_free(r->rmda+i);
+  if(r->rmda)
+    free(r->rmda);
   }
 
 void bgav_qt_rmra_dump(int indent, qt_rmra_t * c)
   {
-  bgav_diprintf(indent, "rmra)\n");
-  if(c->has_rmda)
-    bgav_qt_rmda_dump(indent+2, &c->rmda);
+  int i;
+  bgav_diprintf(indent, "rmra\n");
+
+  for(i = 0; i < c->num_rmda; i++)
+    {
+    bgav_qt_rmda_dump(indent+2, c->rmda+i);
+    }
+  bgav_diprintf(indent, "end of rmra\n");
   }

@@ -147,12 +147,11 @@ int bgav_video_skipto(bgav_stream_t * s, gavl_time_t * time)
     
   time_scaled = gavl_time_scale(s->data.video.format.timescale, *time);
   
-  if(s->data.video.next_frame_time >= time_scaled)
+  if(s->data.video.next_frame_time > time_scaled)
     {
     bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN, 
              "Cannot skip backwards, stream_time: %lld, sync_time: %lld",
              s->time_scaled, time_scaled);
-    //    fprintf(stderr, "video.c: cannot skip backwards\n");
     return 1;
     }
 
@@ -161,6 +160,7 @@ int bgav_video_skipto(bgav_stream_t * s, gavl_time_t * time)
     /* Do nothing but update the time */
     *time = gavl_time_unscale(s->data.video.format.timescale, s->data.video.next_frame_time);
     //    fprintf(stderr, "bgav_video_skipto: Time: %f\n", gavl_time_to_seconds(*time));
+    s->time_scaled = gavl_time_scale(s->timescale, *time);
     return 1;
     }
   

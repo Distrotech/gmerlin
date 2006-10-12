@@ -93,8 +93,9 @@ void bgav_qt_rmda_dump(int indent, qt_rmda_t * r);
 typedef struct
   {
   qt_atom_header_t h;
-  int has_rmda;
-  qt_rmda_t rmda;
+
+  int num_rmda;
+  qt_rmda_t * rmda;
   } qt_rmra_t;
 
 int bgav_qt_rmra_read(qt_atom_header_t * h,
@@ -381,7 +382,8 @@ int bgav_qt_stsd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_stsd_t * ret);
 
 void bgav_qt_stsd_free(qt_stsd_t * c);
-int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak);
+int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak,
+                          const bgav_options_t * opt);
 
 void bgav_qt_stsd_dump(int indent, qt_stsd_t * c);
 

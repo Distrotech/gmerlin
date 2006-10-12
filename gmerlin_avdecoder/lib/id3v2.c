@@ -454,7 +454,7 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
   if(bgav_input_read_data(input, data, data_size) < data_size)
     goto fail;
 
-  input_mem = bgav_input_open_memory(data, data_size);
+  input_mem = bgav_input_open_memory(data, data_size, input->opt);
     
   while(input_mem->position < data_size)
     {

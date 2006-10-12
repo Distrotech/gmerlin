@@ -50,7 +50,6 @@ static int open_avdec(void * priv, const char * location)
     {
     avdec->num_tracks = bgav_redirector_get_num_urls(avdec->dec);
     avdec->track_info = calloc(avdec->num_tracks, sizeof(*(avdec->track_info)));
-    
     for(i = 0; i < avdec->num_tracks; i++)
       {
       str = bgav_redirector_get_url(avdec->dec, i);
@@ -257,6 +256,7 @@ bg_input_plugin_t the_plugin =
       set_parameter:  bg_avdec_set_parameter,
       get_error:      bg_avdec_get_error
     },
+      protocols:      "http ftp rtsp smb mms pnm",
   /* Open file/device */
     open: open_avdec,
     set_callbacks: bg_avdec_set_callbacks,

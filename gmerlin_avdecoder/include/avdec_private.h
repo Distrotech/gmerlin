@@ -780,7 +780,8 @@ void bgav_input_buffer(bgav_input_context_t * ctx);
 /* Input module to read from memory */
 
 bgav_input_context_t * bgav_input_open_memory(uint8_t * data,
-                                              uint32_t data_size);
+                                              uint32_t data_size,
+                                              const bgav_options_t*);
 
 /* Reopen a memory input with new data and minimal CPU overhead */
 

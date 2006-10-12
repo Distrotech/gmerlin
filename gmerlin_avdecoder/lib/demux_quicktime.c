@@ -783,6 +783,72 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   
   }
 
+static int handle_rmra(bgav_demuxer_context_t * ctx,
+                        bgav_redirector_context_t ** redir)
+  {
+  char * basename, *pos;
+  
+  int i, index;
+  qt_priv_t * priv = (qt_priv_t*)(ctx->priv);
+  int num_urls = 0;
+  for(i = 0; i < priv->moov.rmra.num_rmda; i++)
+    {
+    if(priv->moov.rmra.rmda[i].rdrf.fourcc == BGAV_MK_FOURCC('u','r','l',' '))
+      num_urls++;
+    }
+
+  (*redir) = calloc(1, sizeof(**redir));
+  (*redir)->num_urls = num_urls;
+
+  (*redir)->urls = calloc(num_urls, sizeof(*((*redir)->urls)));
+
+  /* Some urls are relative urls */
+  if(ctx->input->url)
+    basename = bgav_strdup(ctx->input->url);
+  else if(ctx->input->filename)
+    basename = bgav_strdup(ctx->input->filename);
+  
+  if(!basename)
+    return 0;
+
+  pos = strrchr(basename, '/');
+  if(!pos)
+    *basename = '\0';
+  else
+    {
+    pos++;
+    *pos = '\0';
+    }
+  
+  index = 0;
+  for(i = 0; i < priv->moov.rmra.num_rmda; i++)
+    {
+    if(priv->moov.rmra.rmda[i].rdrf.fourcc == BGAV_MK_FOURCC('u','r','l',' '))
+      {
+      /* Absolute url */
+      if(strstr((char*)priv->moov.rmra.rmda[i].rdrf.data_ref, "://"))
+        {
+        (*redir)->urls[index].url =
+          bgav_strdup((char*)priv->moov.rmra.rmda[i].rdrf.data_ref);
+        
+        }
+      /* Relative url */
+      else
+        {
+        fprintf(stderr, "Relative: %s %s\n", basename,
+                priv->moov.rmra.rmda[i].rdrf.data_ref);
+
+        (*redir)->urls[index].url = bgav_strdup(basename);
+        (*redir)->urls[index].url =
+          bgav_strncat((*redir)->urls[index].url,
+                       (char*)priv->moov.rmra.rmda[i].rdrf.data_ref,
+                       (char*)0);
+        }
+      index++;
+      }
+    }
+  }
+
 static int open_quicktime(bgav_demuxer_context_t * ctx,
                           bgav_redirector_context_t ** redir)
   {
@@ -804,7 +870,9 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
   while(!done)
     {
     if(!bgav_qt_atom_read_header(ctx->input, &h))
-      return 0;
+      {
+      break;
+      }
     switch(h.fourcc)
       {
       case BGAV_MK_FOURCC('m','d','a','t'):
@@ -834,7 +902,12 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
         break;
       case BGAV_MK_FOURCC('m','o','o','v'):
         if(!bgav_qt_moov_read(&h, ctx->input, &(priv->moov)))
+          {
+          fprintf(stderr, "Reading moov atom failed\n");
+          ctx->error_msg =
+            bgav_sprintf("Reading moov atom failed");
           return 0;
+          }
         have_moov = 1;
         bgav_qt_atom_skip(ctx->input, &h);
 #ifdef DUMP_MOOV
@@ -863,6 +936,16 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
     else if(have_moov && have_mdat)
       done = 1;
     }
+
+  /* Get for redirecting */
+  if(!have_mdat && priv->moov.has_rmra)
+    {
+    /* Redirector!!! */
+    //    fprintf(stderr, "Redirector!!\n");
+    handle_rmra(ctx, redir);
+    return 1;
+    }
+  
   quicktime_init(ctx);
 
   if(!have_mdat)

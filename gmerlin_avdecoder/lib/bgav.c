@@ -108,6 +108,8 @@ int bgav_init(bgav_t * ret)
           ret->error_msg = bgav_strdup(ret->demuxer->error_msg);
         goto fail;
         }
+      if(ret->redirector)
+        return 1;
       }
     if(!ret->demuxer)
       goto fail;

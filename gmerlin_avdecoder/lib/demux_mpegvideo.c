@@ -145,7 +145,7 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx,
   if(bgav_input_get_data(ctx->input, buffer, HEADER_BYTES) < HEADER_BYTES)
     goto fail;
 
-  input_mem = bgav_input_open_memory(buffer, HEADER_BYTES);
+  input_mem = bgav_input_open_memory(buffer, HEADER_BYTES, ctx->opt);
                                         
   /* Read sequence header and check for sequence extension */
 

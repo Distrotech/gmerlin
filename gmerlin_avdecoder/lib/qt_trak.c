@@ -68,7 +68,7 @@ int bgav_qt_trak_read(qt_atom_header_t * h, bgav_input_context_t * input,
       }
     }
 
-  bgav_qt_stsd_finalize(&(ret->mdia.minf.stbl.stsd), ret);
+  bgav_qt_stsd_finalize(&(ret->mdia.minf.stbl.stsd), ret, input->opt);
   
   return 1;
   }

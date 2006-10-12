@@ -320,7 +320,9 @@ int bgav_rmff_mdpr_read(bgav_rmff_chunk_t * c,
   if(!strncmp(ret->mime_type, "logical-audio", 13) ||
      !strncmp(ret->mime_type, "logical-video", 13))
     {
-    input_mem = bgav_input_open_memory(ret->type_specific_data, ret->type_specific_len);
+    input_mem =
+      bgav_input_open_memory(ret->type_specific_data,
+                             ret->type_specific_len, input->opt);
 
     bgav_input_skip(input_mem, 6); /* Skip size and object_version */
 

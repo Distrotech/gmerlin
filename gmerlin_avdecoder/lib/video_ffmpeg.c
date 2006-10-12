@@ -133,6 +133,7 @@ static codec_info_t codec_infos[] =
         
     { "FFmpeg MPEG-4 decoder", "MPEG-4", CODEC_ID_MPEG4,
       (uint32_t[]){ BGAV_MK_FOURCC('D', 'I', 'V', 'X'),
+               BGAV_MK_FOURCC('d', 'i', 'v', 'x'),
                BGAV_MK_FOURCC('D', 'X', '5', '0'),
                BGAV_MK_FOURCC('X', 'V', 'I', 'D'),
                BGAV_MK_FOURCC('X', 'V', 'I', 'D'),

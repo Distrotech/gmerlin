@@ -224,7 +224,8 @@ static int open_flac(bgav_demuxer_context_t * ctx,
           goto fail;
         
         input_mem =
-          bgav_input_open_memory(s->ext_data + 8, STREAMINFO_SIZE - 4);
+          bgav_input_open_memory(s->ext_data + 8, STREAMINFO_SIZE - 4,
+                                 ctx->opt);
         
         if(!streaminfo_read(input_mem, &(priv->streaminfo)))
           goto fail;
@@ -262,7 +263,7 @@ static int open_flac(bgav_demuxer_context_t * ctx,
           return 0;
 
         input_mem =
-          bgav_input_open_memory(comment_buffer, size);
+          bgav_input_open_memory(comment_buffer, size, ctx->opt);
 
         memset(&vc, 0, sizeof(vc));
 

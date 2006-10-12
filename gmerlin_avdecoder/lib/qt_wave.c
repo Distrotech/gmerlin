@@ -39,7 +39,7 @@ int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
     return 0;
   
   input_mem = bgav_input_open_memory(ret->raw,
-                                     ret->raw_size);
+                                     ret->raw_size, ctx->opt);
   
   while(input_mem->position < ret->raw_size)
     {

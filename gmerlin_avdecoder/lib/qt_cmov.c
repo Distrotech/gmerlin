@@ -90,7 +90,8 @@ int bgav_qt_cmov_read(qt_atom_header_t * h, bgav_input_context_t * input,
           return 0;
           }
         input_mem = bgav_input_open_memory(buf_uncompressed,
-                                           size_uncompressed_ret);
+                                           size_uncompressed_ret,
+                                           input->opt);
 
         if(!bgav_qt_atom_read_header(input_mem, &ch) ||
            ch.fourcc != BGAV_MK_FOURCC('m', 'o', 'o', 'v'))

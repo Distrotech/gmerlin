@@ -300,7 +300,7 @@ static void parse_vorbis_comment(bgav_stream_t * s, uint8_t * data,
   stream_priv_t * stream_priv;
   bgav_vorbis_comment_t vc;
   bgav_input_context_t * input_mem;
-  input_mem = bgav_input_open_memory(data, len);
+  input_mem = bgav_input_open_memory(data, len, s->opt);
 
   memset(&vc, 0, sizeof(vc));
 
@@ -608,7 +608,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s->priv   = ogg_stream;
         s->stream_id = serialno;
 
-        input_mem = bgav_input_open_memory(priv->op.packet + 1, priv->op.bytes - 1);
+        input_mem = bgav_input_open_memory(priv->op.packet + 1, priv->op.bytes - 1, s->opt);
 
         if(!ogm_header_read(input_mem, &ogm_header))
           {
@@ -648,7 +648,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         s->priv   = ogg_stream;
         s->stream_id = serialno;
 
-        input_mem = bgav_input_open_memory(priv->op.packet + 1, priv->op.bytes - 1);
+        input_mem = bgav_input_open_memory(priv->op.packet + 1, priv->op.bytes - 1, s->opt);
 
         if(!ogm_header_read(input_mem, &ogm_header))
           {

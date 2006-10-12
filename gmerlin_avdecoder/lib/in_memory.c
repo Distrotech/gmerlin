@@ -65,12 +65,13 @@ static bgav_input_t bgav_input_mem =
   };
 
 bgav_input_context_t * bgav_input_open_memory(uint8_t * data,
-                                              uint32_t data_size)
+                                              uint32_t data_size,
+                                              const bgav_options_t * opt)
   {
   bgav_input_context_t * ret;
   mem_priv_t * priv;
 
-  ret = calloc(1, sizeof(*ret));
+  ret = bgav_input_create(opt);
   priv = calloc(1, sizeof(*priv));
   ret->priv = priv;
   ret->input = &(bgav_input_mem);

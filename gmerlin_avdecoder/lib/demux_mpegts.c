@@ -683,7 +683,7 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
 
   priv = calloc(1, sizeof(*priv));
   
-  priv->input_mem = bgav_input_open_memory((uint8_t*)0, 0);
+  priv->input_mem = bgav_input_open_memory((uint8_t*)0, 0, ctx->opt);
   
   ctx->priv = priv;
 

@@ -390,7 +390,8 @@ int bgav_qt_stsd_read(qt_atom_header_t * h, bgav_input_context_t * input,
   return 1;
   }
 
-int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak)
+int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak,
+                          const bgav_options_t * opt)
   {
   int i;
   int result;
@@ -401,7 +402,8 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak)
       {
       
       input_mem = bgav_input_open_memory(c->entries[i].data,
-                                         c->entries[i].data_size);
+                                         c->entries[i].data_size,
+                                         opt);
       
       result = stsd_read_video(input_mem, &(c->entries[i].desc));
 
@@ -421,7 +423,7 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak)
     else if(trak->mdia.minf.has_smhd) /* Audio sample description */
       {
       input_mem = bgav_input_open_memory(c->entries[i].data,
-                                         c->entries[i].data_size);
+                                         c->entries[i].data_size, opt);
       
       result = stsd_read_audio(input_mem, &(c->entries[i].desc));
       bgav_input_destroy(input_mem);

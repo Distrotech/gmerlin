@@ -65,7 +65,6 @@ void bgav_qt_atom_skip(bgav_input_context_t * input,
   int64_t bytes_to_skip = h->size - (input->position - h->start_position);
   if(bytes_to_skip > 0)
     bgav_input_skip(input, bytes_to_skip);
-  
   }
 
 void bgav_qt_atom_skip_unknown(bgav_input_context_t * input,
@@ -80,15 +79,15 @@ void bgav_qt_atom_skip_unknown(bgav_input_context_t * input,
              (h->fourcc & 0x000000FF));
   else
     bgav_log(input->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
-             "Unknown atom [%c%c%c%c] inside [%c%c%c%c]",
-             (h->fourcc & 0xFF000000) >> 24,
-             (h->fourcc & 0x00FF0000) >> 16,
-             (h->fourcc & 0x0000FF00) >> 8,
-             (h->fourcc & 0x000000FF),
+             "Unknown atom inside [%c%c%c%c] (fourcc: [%c%c%c%c])",
              (parent & 0xFF000000) >> 24,
              (parent & 0x00FF0000) >> 16,
              (parent & 0x0000FF00) >> 8,
-             (parent & 0x000000FF));
+             (parent & 0x000000FF),
+             (h->fourcc & 0xFF000000) >> 24,
+             (h->fourcc & 0x00FF0000) >> 16,
+             (h->fourcc & 0x0000FF00) >> 8,
+             (h->fourcc & 0x000000FF));
   bgav_qt_atom_skip(input, h);
   }
 

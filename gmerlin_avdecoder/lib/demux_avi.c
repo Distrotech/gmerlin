@@ -1492,13 +1492,20 @@ static int open_avi(bgav_demuxer_context_t * ctx,
      (rh.fccType != ID_AVI))
     goto fail;
   
-  /* Now, a LIST chunk must come */
+  /* Skip all LIST chunks until a hdrl comes */
 
-  if(!read_riff_header(ctx->input, &rh) ||
-     (rh.ckID != ID_LIST) ||
-     (rh.fccType != ID_HDRL))
-    goto fail;
+  while(1)
+    {
+    if(!read_riff_header(ctx->input, &rh) ||
+       (rh.ckID != ID_LIST))
+      goto fail;
 
+    if(rh.fccType == ID_HDRL)
+      break;
+    else
+      bgav_input_skip(ctx->input, rh.ckSize - 4);
+    }
+  
   /* Now, read the hdrl stuff */
 
   if(!read_chunk_header(ctx->input, &ch) ||
@@ -1687,10 +1694,18 @@ static void close_avi(bgav_demuxer_context_t * ctx)
   video_priv_t * avi_vs;
   
   priv = (avi_priv*)(ctx->priv);
-
-  if(priv->has_idx1)
-    free_idx1(&(priv->idx1));
   
+  if(priv)
+    {
+    if(priv->has_idx1)
+      {
+      free_idx1(&(priv->idx1));
+      
+      if(priv->info)
+        bgav_RIFFINFO_destroy(priv->info);
+      free(priv);
+      }
+    }
   for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
     {
     if(ctx->tt->current_track->audio_streams[i].ext_data)
@@ -1724,10 +1739,6 @@ static void close_avi(bgav_demuxer_context_t * ctx)
       free(avi_vs);
       }
     }
-
-  if(priv->info)
-    bgav_RIFFINFO_destroy(priv->info);
-  free(priv);
   }
 
 static int next_packet_avi(bgav_demuxer_context_t * ctx)

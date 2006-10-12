@@ -336,7 +336,7 @@ static void init_sector_mode(bgav_demuxer_context_t * ctx)
   mpegps_priv_t * priv;
   priv = (mpegps_priv_t*)(ctx->priv);
 
-  priv->input_mem          = bgav_input_open_memory(NULL, 0);
+  priv->input_mem          = bgav_input_open_memory(NULL, 0, ctx->opt);
 
   if(priv->goto_sector)
     {

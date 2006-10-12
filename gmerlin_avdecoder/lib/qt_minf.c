@@ -62,6 +62,7 @@ int bgav_qt_minf_read(qt_atom_header_t * h, bgav_input_context_t * input,
       case BGAV_MK_FOURCC('s', 'm', 'h', 'd'):
         ret->has_smhd = 1;
         bgav_qt_atom_skip(input, &ch);
+        break;
       default:
         bgav_qt_atom_skip_unknown(input, &ch, h->fourcc);
       }

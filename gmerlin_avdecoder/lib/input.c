@@ -771,9 +771,12 @@ void bgav_input_destroy(bgav_input_context_t * ctx)
 void bgav_input_skip(bgav_input_context_t * ctx, int64_t bytes)
   {
   int i;
+  //  int64_t old_pos;
   int64_t bytes_to_skip = bytes;
   uint8_t buf;
-  ctx->position += bytes;
+
+  //  ctx->position += bytes;
+  //  old_pos = ctx->position;
   if(ctx->buffer_size)
     {
     if(ctx->buffer_size >= bytes)
@@ -782,29 +785,35 @@ void bgav_input_skip(bgav_input_context_t * ctx, int64_t bytes)
       if(ctx->buffer_size)
         memmove(ctx->buffer, &(ctx->buffer[bytes]),
                                    ctx->buffer_size);
+      ctx->position += bytes;
       if(ctx->do_buffer)
         {
-        ctx->buffer_size += ctx->input->read_nonblock(ctx, ctx->buffer + ctx->buffer_size,
-                                                      ctx->buffer_alloc - ctx->buffer_size);
+        ctx->buffer_size +=
+          ctx->input->read_nonblock(ctx, ctx->buffer + ctx->buffer_size,
+                                    ctx->buffer_alloc - ctx->buffer_size);
         }
       return;
       }
     else
       {
       bytes_to_skip -= ctx->buffer_size;
+      ctx->position += ctx->buffer_size;
       ctx->buffer_size = 0;
       }
     }
   if(ctx->input->seek_byte)
-    ctx->input->seek_byte(ctx, bytes_to_skip, SEEK_CUR);
+    {
+    bgav_input_seek(ctx, bytes_to_skip, SEEK_CUR);
+    }
   else /* Only small amounts of data should be skipped like this */
     {
     for(i = 0; i < bytes_to_skip; i++)
       bgav_input_read_8(ctx, &buf);
     }
   if(ctx->do_buffer)
-    ctx->buffer_size += ctx->input->read_nonblock(ctx, ctx->buffer + ctx->buffer_size,
-                                                  ctx->buffer_alloc - ctx->buffer_size);
+    ctx->buffer_size +=
+      ctx->input->read_nonblock(ctx, ctx->buffer + ctx->buffer_size,
+                                ctx->buffer_alloc - ctx->buffer_size);
   }
 
 void bgav_input_skip_dump(bgav_input_context_t * ctx, int bytes)
