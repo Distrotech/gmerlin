@@ -477,11 +477,11 @@ int bg_gavl_video_set_parameter(void * data, char * name,
   if(!strcmp(name, "alpha_mode"))
     {
     //    fprintf(stderr, "Setting alpha mode\n");
-    if(!strcmp(val->val_str, "Ignore"))
+    if(!strcmp(val->val_str, "ignore"))
       {
       gavl_video_options_set_alpha_mode(opt->opt, GAVL_ALPHA_IGNORE);
       }
-    else if(!strcmp(val->val_str, "Blend background color"))
+    else if(!strcmp(val->val_str, "blend_color"))
       {
       gavl_video_options_set_alpha_mode(opt->opt, GAVL_ALPHA_BLEND_COLOR);
       }

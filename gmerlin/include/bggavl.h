@@ -379,7 +379,8 @@ timescale and frame duration below (framerate = timescale / frame_duration)."\
       long_name:   "Alpha mode", \
       type:        BG_PARAMETER_STRINGLIST, \
       val_default: { val_str: "Ignore" }, \
-      multi_names: (char*[]){"Ignore", "Blend background color", (char*)0}, \
+      multi_names: (char*[]){"ignore", "blend_color", (char*)0}, \
+      multi_labels: (char*[]){"Ignore", "Blend background color", (char*)0}, \
     help_string: "This option is used if the source has an alpha (=transparency) channel, but the output supports no transparency. Either, the transparency is ignored, or the background color you specify below is blended in.",\
     }, \
     { \
@@ -444,7 +445,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)."\
       name:        "front_to_rear", \
       long_name:   "Front to rear mode", \
       type:        BG_PARAMETER_STRINGLIST, \
-      val_default: { val_str: "Copy" }, \
+      val_default: { val_str: "copy" }, \
       multi_names:  (char*[]){ "mute", \
                               "copy", \
                               "diff", \

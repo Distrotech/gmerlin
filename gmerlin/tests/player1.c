@@ -44,11 +44,14 @@ int gml_index = 0;
 
 bg_cfg_section_t * oa_section;
 bg_cfg_section_t * ov_section;
+bg_cfg_section_t * i_section;
 
 bg_cfg_section_t * audio_section;
 bg_cfg_section_t * video_section;
 bg_cfg_section_t * osd_section;
 bg_cfg_section_t * input_section;
+
+char * input_plugin_name = (char*)0;
 
 /* Set up by registry */
 static bg_parameter_info_t oa_parameters[] =
@@ -67,11 +70,23 @@ static bg_parameter_info_t ov_parameters[] =
     {
       name:      "plugin",
       long_name: "Video output plugin",
-      //      opt:       "p",
+      opt:       "p",
       type:      BG_PARAMETER_MULTI_MENU,
     },
     { /* End of parameters */ }
   };
+
+static bg_parameter_info_t i_parameters[] =
+  {
+    {
+      name:      "plugin",
+      long_name: "input plugin",
+      opt:       "p",
+      type:      BG_PARAMETER_MULTI_MENU,
+    },
+    { /* End of parameters */ }
+  };
+
 
 /* Set from player */
 bg_parameter_info_t * osd_parameters;
@@ -142,6 +157,13 @@ static void set_ov_parameter(void * data, char * name, bg_parameter_value_t * va
     }
   }
 
+static void set_i_parameter(void * data, char * name, bg_parameter_value_t * val)
+  {
+  if(name && !strcmp(name, "plugin"))
+    input_plugin_name = bg_strdup(input_plugin_name,
+                                  val->val_str);
+  }
+
 static void opt_ov(void * data, int * argc, char *** _argv, int arg)
   {
   if(arg >= *argc)
@@ -158,6 +180,23 @@ static void opt_ov(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
+static void opt_i(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -i requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(i_section,
+                               set_i_parameter,
+                               (void*)0,
+                               i_parameters,
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+
 static void opt_osd(void * data, int * argc, char *** _argv, int arg)
   {
   if(arg >= *argc)
@@ -165,7 +204,7 @@ static void opt_osd(void * data, int * argc, char *** _argv, int arg)
     fprintf(stderr, "Option -osd requires an argument\n");
     exit(-1);
     }
-  if(!bg_cmdline_apply_options(ov_section,
+  if(!bg_cmdline_apply_options(osd_section,
                                bg_player_set_osd_parameter,
                                player,
                                osd_parameters,
@@ -175,9 +214,68 @@ static void opt_osd(void * data, int * argc, char *** _argv, int arg)
   }
 
 
+static void opt_aud(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -aud requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(audio_section,
+                               bg_player_set_audio_parameter,
+                               player,
+                               audio_parameters,
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_vid(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -vid requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(video_section,
+                               bg_player_set_video_parameter,
+                               player,
+                               video_parameters,
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_inopt(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -inopt requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(input_section,
+                               bg_player_set_input_parameter,
+                               player,
+                               input_parameters,
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
 static void opt_nt(void * data, int * argc, char *** _argv, int arg)
   {
   display_time = 0;
+  }
+
+static void opt_vol(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -vol requires an argument\n");
+    exit(-1);
+    }
+  bg_player_set_volume(player, strtod((*_argv[arg]), (char**)0));
+  bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
 static void opt_tracks(void * data, int * argc, char *** _argv, int arg)
@@ -223,18 +321,46 @@ static bg_cmdline_arg_t global_options[] =
   {
     {
       arg:         "-oa",
+      help_arg:    "<audio_output_options>",
       help_string: "Set audio output options",
       callback:    opt_oa,
       parameters:  oa_parameters,
     },
     {
       arg:         "-ov",
+      help_arg:    "<video_output_options>",
       help_string: "Set video output options",
       callback:    opt_ov,
       parameters:  ov_parameters,
     },
     {
+      arg:         "-i",
+      help_arg:    "<input_plugin>",
+      help_string: "Set and configure input plugin",
+      callback:    opt_i,
+      parameters:  i_parameters,
+    },
+    {
+      arg:         "-aud",
+      help_arg:    "<audio_options>",
+      help_string: "Set audio processing options",
+      callback:    opt_aud,
+    },
+    {
+      arg:         "-vid",
+      help_arg:    "<video_options>",
+      help_string: "Set video processing options",
+      callback:    opt_vid,
+    },
+    {
+      arg:         "-inopt",
+      help_arg:    "<input_options>",
+      help_string: "Set generic input options",
+      callback:    opt_inopt,
+    },
+    {
       arg:         "-osd",
+      help_arg:    "<osd_options>",
       help_string: "Set OSD options",
       callback:    opt_osd,
     },
@@ -244,13 +370,21 @@ static bg_cmdline_arg_t global_options[] =
       callback:    opt_nt,
     },
     {
+      arg:         "-vol",
+      help_arg:    "<volume>",
+      help_string: "Set volume in dB (max: 0.0)",
+      callback:    opt_vol,
+    },
+    {
       arg:         "-v",
-      help_string: "Set verbosity level",
+      help_arg:    "level",
+      help_string: "Set verbosity level (0..4)",
       callback:    opt_v,
     },
     {
       arg:         "-tracks",
-      help_string: "Tracks can be a range or comma separated tracks",
+      help_arg:    "<track_spec>",
+      help_string: "<track_spec> can be a ranges mixed with comma separated tracks",
       callback:    opt_tracks,
     },
     {
@@ -263,7 +397,10 @@ static bg_cmdline_arg_t global_options[] =
 
 static void update_global_options()
   {
-  global_options[2].parameters = osd_parameters;
+  global_options[3].parameters = audio_parameters;
+  global_options[4].parameters = video_parameters;
+  global_options[5].parameters = input_parameters;
+  global_options[6].parameters = osd_parameters;
   }
 
 static void opt_help(void * data, int * argc, char *** argv, int arg)
@@ -341,7 +478,7 @@ static int play_track(bg_player_t * player, const char * gml,
   if(plugin_name)
     info = bg_plugin_find_by_name(plugin_reg,
                                   plugin_name);
-
+  
   if(input_handle &&
      (input_handle->info->flags & BG_PLUGIN_REMOVABLE))
     {
@@ -720,6 +857,11 @@ int main(int argc, char ** argv)
   bg_plugin_registry_set_parameter_info(plugin_reg,
                                         BG_PLUGIN_OUTPUT_VIDEO,
                                         BG_PLUGIN_PLAYBACK, &ov_parameters[0]);
+
+  bg_plugin_registry_set_parameter_info(plugin_reg,
+                                        BG_PLUGIN_INPUT,
+                                        BG_PLUGIN_FILE|BG_PLUGIN_URL|BG_PLUGIN_REMOVABLE,
+                                        &i_parameters[0]);
 
   oa_section = bg_cfg_section_create_from_parameters("oa", oa_parameters);
   ov_section = bg_cfg_section_create_from_parameters("oa", ov_parameters);

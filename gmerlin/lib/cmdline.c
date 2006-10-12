@@ -1,10 +1,100 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
+#include <unistd.h>
 
 #include <cfg_registry.h>
 #include <cmdline.h>
 #include <utils.h>
+
+/* Terminal related functions */
+
+#define MAX_COLS 79 /* For line-wrapping */
+
+static void dump_string_term(FILE * out, const char * str, int indent)
+  {
+  const char * start;
+  const char * end;
+  const char * pos;
+
+  char * spaces;
+  spaces = calloc(indent+1, 1);
+  memset(spaces, ' ', indent);
+    
+  start = str;
+  pos   = str;
+  end   = str;
+  
+  while(1)
+    {
+    if(isspace(*pos))
+      end = pos;
+
+    if(pos - start + strlen(spaces) + 2 > MAX_COLS)
+      {
+      fprintf(out, spaces);
+      fprintf(out, "  ");
+      
+      fwrite(start, 1, end - start, out);
+      fprintf(out, "\n");
+      
+      while(isspace(*end))
+        end++;
+      start = end;
+      }
+    else if(*pos == '\0')
+      {
+      fprintf(out, spaces);
+      fprintf(out, "  ");
+      
+      fwrite(start, 1, pos - start, out);
+      fprintf(out, "\n");
+      break;
+      }
+    else if(*pos == '\n')
+      {
+      fprintf(out, spaces);
+      fprintf(out, "  ");
+      
+      fwrite(start, 1, pos - start, out);
+      fprintf(out, "\n");
+
+      pos++;
+      
+      start = pos;
+      end = pos;
+      }
+    
+    else
+      pos++;
+    }
+
+  free(spaces);
+  }
+
+static void font_bold(FILE * out)
+  {
+  char ansi_bold[] = { 27, '[', '1', 'm', '\0' };
+  //  if(isatty(fileno(out)))
+    fprintf(out, ansi_bold);
+  }
+
+static void font_underline(FILE * out)
+  {
+  char ansi_underline[] = { 27, '[', '4', 'm', '\0' };
+  //  if(isatty(fileno(out)))
+    fprintf(out, ansi_underline);
+  }
+
+static void font_normal(FILE * out)
+  {
+  char ansi_normal[] = { 27, '[', '0', 'm', '\0' };
+  //  if(isatty(fileno(out)))
+    fprintf(out, ansi_normal);
+  }
+
+/* */
 
 void bg_cmdline_remove_arg(int * argc, char *** _argv, int arg)
   {
@@ -112,19 +202,32 @@ char ** bg_cmdline_get_locations_from_args(int * argc, char *** _argv)
 void bg_cmdline_print_help(bg_cmdline_arg_t* args)
   {
   int i = 0;
-
+  FILE * out = stdout;
+  
   while(args[i].arg)
     {
-    fprintf(stderr, "%s", args[i].arg);
-
+    font_bold(out);
+    fprintf(out, "%s", args[i].arg);
+    font_normal(out);
+    
     if(args[i].help_arg)
-      fprintf(stderr, " %s\n", args[i].help_arg);
+      {
+      fprintf(out, " ");
+      
+      font_underline(out);
+      fprintf(out, "%s\n", args[i].help_arg);
+      font_normal(out);
+      }
     else
-      fprintf(stderr, "\n");
-    fprintf(stderr, "  %s\n", args[i].help_string);
-
+      fprintf(out, "\n");
+    
+    dump_string_term(out, args[i].help_string, 0);
+    
     if(args[i].parameters)
       bg_cmdline_print_help_parameters(args[i].parameters);
+    else
+      fprintf(out, "\n");
+    
     i++;
     }
   
@@ -265,19 +368,29 @@ int bg_cmdline_apply_options(bg_cfg_section_t * section,
   return 1;
   }
 
+
+
 static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
   {
   int i = 0;
   int j;
-
+  FILE * out = stdout;
+  
+  int pos;
+  
   char * spaces;
   char tmp_string[GAVL_TIME_STRING_LEN];
-
+    
   spaces = calloc(indent + 1, 1);
   memset(spaces, ' ', indent);
   
-  fprintf(stderr, spaces);
-  fprintf(stderr, "  Supported options:\n");
+  
+  if(!indent)
+    {
+    fprintf(out, spaces);
+    fprintf(out, "\n  Supported options:\n\n");
+    }
+  
   while(parameters[i].name)
     {
     if((parameters[i].type == BG_PARAMETER_SECTION) ||
@@ -286,119 +399,140 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
       i++;
       continue;
       }
-      
-    fprintf(stderr, spaces);
+    pos = 0;
+    pos += fprintf(out, spaces);
+
+    font_bold(out);
+        
     if(parameters[i].opt)
-      fprintf(stderr, "  %s=", parameters[i].opt);
+      pos += fprintf(out, "  %s", parameters[i].opt);
     else
-      fprintf(stderr, "  %s=", parameters[i].name);
+      pos += fprintf(out, "  %s", parameters[i].name);
     
+    font_normal(out);
+    fprintf(out, "=");
     switch(parameters[i].type)
       {
       case BG_PARAMETER_SECTION:
         break;
       case BG_PARAMETER_CHECKBUTTON:
-        fprintf(stderr, "[1|0] (default: %d)\n", parameters[i].val_default.val_i);
+        pos += fprintf(out, "[1|0] (default: %d)\n", parameters[i].val_default.val_i);
         break;
       case BG_PARAMETER_INT:
       case BG_PARAMETER_SLIDER_INT:
-        fprintf(stderr, "<num> (");
+        pos += fprintf(out, "<num> (");
         if(parameters[i].val_min.val_i < parameters[i].val_max.val_i)
           {
-          fprintf(stderr, "%d..%d, ",
-                  parameters[i].val_min.val_i, parameters[i].val_max.val_i);
+          pos += fprintf(out, "%d..%d, ",
+                         parameters[i].val_min.val_i, parameters[i].val_max.val_i);
           }
-        fprintf(stderr, "default: %d)\n", parameters[i].val_default.val_i);
+        fprintf(out, "default: %d)\n", parameters[i].val_default.val_i);
         break;
       case BG_PARAMETER_SLIDER_FLOAT:
       case BG_PARAMETER_FLOAT:
-        fprintf(stderr, "<num> (");
+        pos += fprintf(out, "<num> (");
         if(parameters[i].val_min.val_f < parameters[i].val_max.val_f)
           {
-          fprintf(stderr, "%.2f..%.2f, ",
-                  parameters[i].val_min.val_f, parameters[i].val_max.val_f);
+          pos += fprintf(out, "%.2f..%.2f, ",
+                         parameters[i].val_min.val_f, parameters[i].val_max.val_f);
           }
-        fprintf(stderr, "default: %.2f)\n", parameters[i].val_default.val_f);
+        fprintf(out, "default: %.2f)\n", parameters[i].val_default.val_f);
         break;
       case BG_PARAMETER_STRING:
       case BG_PARAMETER_FONT:
       case BG_PARAMETER_DEVICE:
       case BG_PARAMETER_FILE:
       case BG_PARAMETER_DIRECTORY:
-        fprintf(stderr, "<string>");
+        pos += fprintf(out, "<string>");
         if(parameters[i].val_default.val_str)
-          fprintf(stderr, " (Default: %s)\n", parameters[i].val_default.val_str);
+          pos += fprintf(out, " (Default: %s)\n", parameters[i].val_default.val_str);
         else
-          fprintf(stderr, "\n");
+          pos += fprintf(out, "\n");
         break;
       case BG_PARAMETER_STRING_HIDDEN:
-        fprintf(stderr, "<string>\n");
+        pos += fprintf(out, "<string>\n");
         break;
       case BG_PARAMETER_STRINGLIST:
         j = 0;
         while(parameters[i].multi_names[j])
           {
-          if(j) fprintf(stderr, "|");
-          fprintf(stderr, parameters[i].multi_names[j]);
+          if(j) pos += fprintf(out, "|");
+
+          if(pos + strlen(parameters[i].multi_names[j]+1) > MAX_COLS)
+            {
+            fprintf(out, "\n");
+            pos = 0;
+            pos += fprintf(out, spaces);
+            pos += fprintf(out, "    ");
+            }
+          
+          pos += fprintf(out, parameters[i].multi_names[j]);
           j++;
           }
-        fprintf(stderr, " (default: %s)\n", parameters[i].val_default.val_str);
+        fprintf(out, " (default: %s)\n", parameters[i].val_default.val_str);
         break;
       case BG_PARAMETER_COLOR_RGB:
-        fprintf(stderr, "R,G,B (default: %.3f,%.3f,%.3f)\n",
+        fprintf(out, "<r>,<g>,<b> (default: %.3f,%.3f,%.3f)\n",
                 parameters[i].val_default.val_color[0],
                 parameters[i].val_default.val_color[1],
                 parameters[i].val_default.val_color[2]);
-        fprintf(stderr, spaces);
-        fprintf(stderr, "  R, G, and B are in the range 0.0..1.0\n");
+        fprintf(out, spaces);
+        fprintf(out, "  <r>, <g> and <b> are in the range 0.0..1.0\n");
         break;
       case BG_PARAMETER_COLOR_RGBA:
-        fprintf(stderr, "R,G,B,A (default: %.3f,%.3f,%.3f,%.3f)\n",
+        fprintf(out, "<r>,<g>,<b>,<a> (default: %.3f,%.3f,%.3f,%.3f)\n",
                 parameters[i].val_default.val_color[0],
                 parameters[i].val_default.val_color[1],
                 parameters[i].val_default.val_color[2],
                 parameters[i].val_default.val_color[3]);
-        fprintf(stderr, spaces);
-        fprintf(stderr, "  R, G, B and A are in the range 0.0..1.0\n");
+        fprintf(out, spaces);
+        fprintf(out, "  <r>, <g>, <b> and <a> are in the range 0.0..1.0\n");
         break;
       case BG_PARAMETER_MULTI_MENU:
         j = 0;
         while(parameters[i].multi_names[j])
           {
-          if(j) fprintf(stderr, "|");
-          fprintf(stderr, parameters[i].multi_names[j]);
+          if(j) fprintf(out, "|");
+
+          if(pos + strlen(parameters[i].multi_names[j]) > MAX_COLS)
+            {
+            fprintf(out, "\n");
+            pos = 0;
+            pos += fprintf(out, spaces);
+            pos += fprintf(out, "    ");
+            }
+          pos += fprintf(out, parameters[i].multi_names[j]);
           j++;
           }
-        fprintf(stderr, "[{<suboptions>}] (default: %s)\n", parameters[i].val_default.val_str);
+        fprintf(out, "[{<suboptions>}] (default: %s)\n", parameters[i].val_default.val_str);
         break;
       case BG_PARAMETER_MULTI_LIST:
         break;
       case BG_PARAMETER_TIME:
-        fprintf(stderr, "{[[HH:]MM:]SS} (");
+        fprintf(out, "{[[HH:]MM:]SS} (");
         if(parameters[i].val_min.val_time < parameters[i].val_max.val_time)
           {
           gavl_time_prettyprint(parameters[i].val_min.val_time, tmp_string);
-          fprintf(stderr, "%s..", tmp_string);
+          fprintf(out, "%s..", tmp_string);
           
           gavl_time_prettyprint(parameters[i].val_max.val_time, tmp_string);
-          fprintf(stderr, "%s, ", tmp_string);
+          fprintf(out, "%s, ", tmp_string);
           }
         gavl_time_prettyprint(parameters[i].val_default.val_time, tmp_string);
-        fprintf(stderr, "default: %s)\n", tmp_string);
-        fprintf(stderr, spaces);
-        fprintf(stderr, "  Seconds can be fractional (i.e. with decimal point)\n");
+        fprintf(out, "default: %s)\n", tmp_string);
+        fprintf(out, spaces);
+        fprintf(out, "  Seconds can be fractional (i.e. with decimal point)\n");
         
         break;
       }
 
-    fprintf(stderr, spaces);
-    fprintf(stderr, "  %s\n", parameters[i].long_name);
+    fprintf(out, spaces);
+    fprintf(out, "  %s\n", parameters[i].long_name);
+
     if(parameters[i].help_string)
-      {
-      fprintf(stderr, spaces);
-      fprintf(stderr, "  %s\n", parameters[i].help_string);
-      }
-    fprintf(stderr, "\n");
+      dump_string_term(out, parameters[i].help_string, indent);
+
+    fprintf(out, "\n");
 
     /* Print suboptions */
 
@@ -409,12 +543,12 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
         {
         if(parameters[i].multi_parameters[j])
           {
-          fprintf(stderr, spaces);
+          fprintf(out, spaces);
           if(parameters[i].opt)
-            fprintf(stderr, "  Suboptions for %s=%s\n",
+            fprintf(out, "  Suboptions for %s=%s\n\n",
                     parameters[i].opt,parameters[i].multi_names[j]);
           else
-            fprintf(stderr, "  Suboptions for %s=%s\n",
+            fprintf(out, "  Suboptions for %s=%s\n\n",
                     parameters[i].name,parameters[i].multi_names[j]);
 
           print_help_parameters(indent+2, parameters[i].multi_parameters[j]);
