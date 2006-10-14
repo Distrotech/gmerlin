@@ -233,6 +233,7 @@ void bg_cmdline_print_help(bg_cmdline_arg_t* args)
   
   }
 
+#if 0
 static int apply_options(bg_cfg_section_t * section,
                          bg_parameter_info_t * parameters,
                          const char * option_string)
@@ -285,7 +286,6 @@ static int apply_options(bg_cfg_section_t * section,
       goto fail;
       }
     
-    //    fprintf(stderr, "Found option %s\n", parameters[parameter_index].long_name);
     end++; // Skip '='
     start = end;
     //    fprintf(stderr, "start: %s\n", start);
@@ -352,6 +352,7 @@ static int apply_options(bg_cfg_section_t * section,
   fprintf(stderr, "^\n");
   return 0;
   }
+#endif
 
 int bg_cmdline_apply_options(bg_cfg_section_t * section,
                              bg_set_parameter_func_t set_parameter,
@@ -359,16 +360,20 @@ int bg_cmdline_apply_options(bg_cfg_section_t * section,
                              bg_parameter_info_t * parameters,
                              const char * option_string)
   {
+  if(!bg_cfg_section_set_parameters_from_string(section,
+                                                parameters,
+                                                option_string))
+    return 0;
+
+#if 0  
   if(!apply_options(section, parameters, option_string))
     return 0;
-  
+#endif  
   /* Now, apply the section */
 
   bg_cfg_section_apply(section, parameters, set_parameter, data);
   return 1;
   }
-
-
 
 static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
   {
@@ -453,10 +458,17 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
         pos += fprintf(out, "<string>\n");
         break;
       case BG_PARAMETER_STRINGLIST:
+        pos += fprintf(out, "<string>\n");
         j = 0;
+
+        pos = 0;
+        pos += fprintf(out, spaces);
+        pos += fprintf(out, "  ");
+        pos += fprintf(out, "Supported strings: ");
+        
         while(parameters[i].multi_names[j])
           {
-          if(j) pos += fprintf(out, "|");
+          if(j) pos += fprintf(out, " ");
 
           if(pos + strlen(parameters[i].multi_names[j]+1) > MAX_COLS)
             {
@@ -469,7 +481,10 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
           pos += fprintf(out, parameters[i].multi_names[j]);
           j++;
           }
-        fprintf(out, " (default: %s)\n", parameters[i].val_default.val_str);
+        fprintf(out, "\n");
+        fprintf(out, spaces);
+        fprintf(out, "  ");
+        fprintf(out, "Default: %s\n", parameters[i].val_default.val_str);
         break;
       case BG_PARAMETER_COLOR_RGB:
         fprintf(out, "<r>,<g>,<b> (default: %.3f,%.3f,%.3f)\n",
@@ -489,10 +504,15 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
         fprintf(out, "  <r>, <g>, <b> and <a> are in the range 0.0..1.0\n");
         break;
       case BG_PARAMETER_MULTI_MENU:
+        fprintf(out, "option[{suboptions}]\n");
+        pos = 0;
+        pos += fprintf(out, spaces);
+        pos += fprintf(out, "  ");
+        pos += fprintf(out, "Supported options: ");
         j = 0;
         while(parameters[i].multi_names[j])
           {
-          if(j) fprintf(out, "|");
+          if(j) pos += fprintf(out, " ");
 
           if(pos + strlen(parameters[i].multi_names[j]) > MAX_COLS)
             {
@@ -504,9 +524,34 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
           pos += fprintf(out, parameters[i].multi_names[j]);
           j++;
           }
-        fprintf(out, "[{<suboptions>}] (default: %s)\n", parameters[i].val_default.val_str);
+        fprintf(out, "\n");
+        fprintf(out, spaces);
+        fprintf(out, "  ");
+        fprintf(out, "Default: %s\n", parameters[i].val_default.val_str);
         break;
       case BG_PARAMETER_MULTI_LIST:
+        fprintf(out, "{option[{suboptions}][:option[{suboptions}]...]}\n");
+        pos = 0;
+        pos += fprintf(out, spaces);
+        pos += fprintf(out, "  ");
+        pos += fprintf(out, "Supported options: ");
+        j = 0;
+        while(parameters[i].multi_names[j])
+          {
+          if(j) pos += fprintf(out, " ");
+          
+          if(pos + strlen(parameters[i].multi_names[j]+1) > MAX_COLS)
+            {
+            fprintf(out, "\n");
+            pos = 0;
+            pos += fprintf(out, spaces);
+            pos += fprintf(out, "    ");
+            }
+          pos += fprintf(out, parameters[i].multi_names[j]);
+          j++;
+          }
+        fprintf(out, "\n\n");
+        
         break;
       case BG_PARAMETER_TIME:
         fprintf(out, "{[[HH:]MM:]SS} (");
@@ -544,13 +589,22 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
         if(parameters[i].multi_parameters[j])
           {
           fprintf(out, spaces);
-          if(parameters[i].opt)
-            fprintf(out, "  Suboptions for %s=%s\n\n",
-                    parameters[i].opt,parameters[i].multi_names[j]);
-          else
-            fprintf(out, "  Suboptions for %s=%s\n\n",
-                    parameters[i].name,parameters[i].multi_names[j]);
 
+          if(parameters[i].type == BG_PARAMETER_MULTI_LIST)
+            {
+            fprintf(out, "  Suboptions for %s\n\n",
+                    parameters[i].multi_names[j]);
+            
+            }
+          else
+            {
+            if(parameters[i].opt)
+              fprintf(out, "  Suboptions for %s=%s\n\n",
+                      parameters[i].opt,parameters[i].multi_names[j]);
+            else
+              fprintf(out, "  Suboptions for %s=%s\n\n",
+                      parameters[i].name,parameters[i].multi_names[j]);
+            }
           print_help_parameters(indent+2, parameters[i].multi_parameters[j]);
           }
         j++;

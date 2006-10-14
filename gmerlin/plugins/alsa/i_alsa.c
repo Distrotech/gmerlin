@@ -82,7 +82,7 @@ typedef struct
   int num_channels;
   int bytes_per_sample;
   int samplerate;
-  int card_index;
+  char * card;
   
   snd_pcm_t * pcm;
 
@@ -147,25 +147,7 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
     }
   else if(!strcmp(name, "card"))
     {
-    priv->card_index = 0;
-
-    if(val->val_str)
-      {
-      while(1)
-        {
-        if(!priv->parameters[0].multi_names[priv->card_index])
-          {
-          priv->card_index = 0;
-          break;
-          }
-        else if(!strcmp(priv->parameters[0].multi_names[priv->card_index],
-                   val->val_str))
-          break;
-        else
-          priv->card_index++;
-        }
-      }
-    //    fprintf(stderr, "Card index: %d\n", priv->card_index);
+    priv->card = bg_strdup(priv->card, val->val_str);
     }
   }
 
@@ -181,11 +163,14 @@ static void * create_alsa()
 static int open_alsa(void * data,
                     gavl_audio_format_t * format)
   {
-  char * card = (char*)0;
+  const char * card = (char*)0;
   alsa_t * priv = (alsa_t*)(data);
 
-  card = bg_sprintf("hw:%d,0", priv->card_index);
+  card = priv->card;
 
+  if(!card)
+    card = "default";
+  
   memset(format, 0, sizeof(*format));
   
   format->num_channels      = priv->num_channels;
@@ -198,7 +183,6 @@ static int open_alsa(void * data,
   format->samplerate = priv->samplerate;
     
   priv->pcm = bg_alsa_open_read(card, format, &priv->error_msg, priv->buffer_time);
-  free(card);
   
   if(!priv->pcm)
     return 0;

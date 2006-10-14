@@ -255,7 +255,6 @@ static void button_callback(GtkWidget * wid, gpointer data)
   bg_dialog_t * dialog;
   const char * label;
 
-  bg_cfg_section_t * section;
   bg_cfg_section_t * subsection;
     
   w = (bg_gtk_widget_t *)data;
@@ -267,8 +266,8 @@ static void button_callback(GtkWidget * wid, gpointer data)
     }
   else if(wid == priv->config_button)
     {
-    section = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
-    subsection = bg_cfg_section_find_subsection(section,
+    subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
+    subsection = bg_cfg_section_find_subsection(subsection,
                                                 w->info->multi_names[priv->selected]);
     
     if(w->info->multi_labels && w->info->multi_labels[priv->selected])

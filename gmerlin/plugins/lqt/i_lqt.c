@@ -38,6 +38,7 @@ static bg_parameter_info_t parameters[] =
     {
       name:      "audio_codecs",
       long_name: "Audio Codecs",
+      help_string: "Sort and configure audio codecs",
     },
     {
       name:      "video",
@@ -47,6 +48,7 @@ static bg_parameter_info_t parameters[] =
     {
       name:      "video_codecs",
       long_name: "Video Codecs",
+      help_string: "Sort and configure video codecs",
     },
     { /* End of parameters */ }
   };

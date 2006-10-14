@@ -110,8 +110,9 @@ typedef struct
   int enable_surround50;
   int enable_surround51;
   
-  int card_index;
-
+  //  int card_index;
+  char * card;
+  
   char * user_device;
   char * error_msg;
   int convert_4_3;
@@ -194,7 +195,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   int num_front_channels;
   int num_rear_channels;
   int num_lfe_channels;
-  char * card = (char*)0;
+  const char * card = (char*)0;
   alsa_t * priv = (alsa_t*)(data);
   
   /* Figure out the right channel setup */
@@ -249,18 +250,15 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
       format->channel_locations[0] = GAVL_CHID_NONE;
       gavl_set_channel_setup(format);
 
-      if(!priv->card_index)
-        card = bg_sprintf("default");
-      else
-        card = bg_sprintf("hw:%d,0", priv->card_index-1);
-      
+      card = priv->card;
+
       //      fprintf(stderr, "Playback mode: generic\n");
 
       break;
     case PLAYBACK_USER:
       format->channel_locations[0] = GAVL_CHID_NONE;
       gavl_set_channel_setup(format);
-      card = bg_strdup((char*)0, priv->user_device);
+      card = priv->user_device;
       //      fprintf(stderr, "Using user device %s\n", card);
       break;
     case PLAYBACK_SURROUND40:
@@ -318,6 +316,10 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
       break;
     }
 
+  if(!card)
+    card = "default";
+  
+  
   //  fprintf(stderr, "Opening card %s...", card);
     
   priv->pcm = bg_alsa_open_write(card, format, &priv->error_msg,
@@ -328,7 +330,6 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   else
     fprintf(stderr, "failed\n");
 #endif
-  free(card);
   
 
   if(!priv->pcm)
@@ -477,25 +478,7 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
     }
   else if(!strcmp(name, "card"))
     {
-    priv->card_index = 0;
-
-    if(val->val_str)
-      {
-      while(1)
-        {
-        if(!priv->parameters[0].multi_names[priv->card_index])
-          {
-          priv->card_index = 0;
-          break;
-          }
-        else if(!strcmp(priv->parameters[0].multi_names[priv->card_index],
-                   val->val_str))
-          break;
-        else
-          priv->card_index++;
-        }
-      }
-    //    fprintf(stderr, "Card index: %d\n", priv->card_index);
+    priv->card = bg_strdup(priv->card, val->val_str);
     }
   }
 

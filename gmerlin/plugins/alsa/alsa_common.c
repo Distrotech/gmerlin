@@ -356,16 +356,19 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)
   ret->type = BG_PARAMETER_STRINGLIST;
   
   ret->multi_names   = calloc(num_cards+1,
-                          sizeof(*(ret->multi_names)));
-
-  ret->multi_names[0] = bg_strdup(NULL, "Default");
-  ret->val_default.val_str = bg_strdup(NULL, ret->multi_names[0]);
+                              sizeof(*(ret->multi_names)));
+  ret->multi_labels   = calloc(num_cards+1,
+                               sizeof(*(ret->multi_labels)));
   
+  ret->multi_labels[0] = bg_strdup((char*)0, "Default");
+  ret->multi_names[0]  = bg_strdup((char*)0, "default");
+  ret->val_default.val_str = bg_strdup((char*)0, "default");
   for(i = 1; i < num_cards; i++)
     {
     snd_card_get_name(i-1, &c_tmp);
     //    snd_card_get_longname(i, &c_tmp);
-    ret->multi_names[i] = bg_strdup(NULL, c_tmp);
+    ret->multi_labels[i] = bg_strdup(NULL, c_tmp);
+    ret->multi_names[i] = bg_sprintf("hw:%d,0", i-1);
     free(c_tmp);
     }
   }

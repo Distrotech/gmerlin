@@ -212,122 +212,343 @@ void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
   
   }
 
-/* Returns characters read or 0 */
-int bg_cfg_section_set_parameter_from_string(bg_cfg_section_t * section,
-                                             bg_parameter_info_t * info,
-                                             const char * str)
+static char * parse_string(const char * str, int * len_ret)
   {
+  const char * end_c;
   char cpy_str[2];
+  char * ret = (char*)0;
+  end_c = str;
+
+  cpy_str[1] = '\0';
+      
+  while(*end_c != '\0')
+    {
+    if(*end_c == '\\')
+      {
+      if((*(end_c+1) == ':') ||
+         (*(end_c+1) == '{') ||
+         (*(end_c+1) == '}'))
+        {
+        end_c++;
+        cpy_str[0] = *end_c;
+        ret = bg_strcat(ret, cpy_str);
+        }
+      else
+        {
+        cpy_str[0] = *end_c;
+        ret = bg_strcat(ret, cpy_str);
+        }
+      }
+    else if((*end_c == ':') ||
+            (*end_c == '{') ||
+            (*end_c == '}'))
+      {
+      break;
+      }
+    else
+      {
+      cpy_str[0] = *end_c;
+      ret = bg_strcat(ret, cpy_str);
+      }
+    end_c++;
+    }
+  *len_ret = end_c - str;
+  return ret;
+  }
+
+static bg_parameter_info_t * find_parameter(bg_parameter_info_t * info,
+                                            const char * str, int * len)
+  {
+  int i;
+  const char * end;
+  /* Get the options name */
+  end = str;
+  while((*end != '=') && (*end != '\0'))
+    end++;
+  
+  if(*end == '\0')
+    return (bg_parameter_info_t*)0;
+  
+  /* Now, find the parameter info */
+  i = 0;
+  
+  while(info[i].name)
+    {
+    if(!info[i].opt)
+      {
+      if((strlen(info[i].name) == (end - str)) &&
+         !strncmp(info[i].name, str, end - str))
+        break;
+      }
+    else
+      {
+      if((strlen(info[i].opt) == (end - str)) &&
+         !strncmp(info[i].opt, str, end - str))
+        break;
+      }
+    i++;
+    }
+  
+  if(!info[i].name)
+    {
+    fprintf(stderr, "No such option ");
+    fwrite(str, 1, end - str, stderr);
+    fprintf(stderr, "\n");
+    return (bg_parameter_info_t*)0;
+    }
+  *len = (end - str + 1); // Skip '=' as well
+  return &info[i];
+  }
+
+static int check_option(bg_parameter_info_t * info,
+                        char * name)
+  {
+  int i = 0;
+  while(info->multi_names[i])
+    {
+    if(!strcmp(info->multi_names[i], name))
+      return 1;
+    i++;
+    }
+  fprintf(stderr, "Unsupported option: %s\n", name);
+  return 0;
+  }
+
+
+/* Returns characters read or 0 */
+int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
+                                              bg_parameter_info_t * parameters,
+                                              const char * str_start)
+  {
   char * end;
   const char * end_c;
-  const char * pos;
   bg_cfg_item_t * item;
-  item = bg_cfg_section_find_item(section, info);
+  int len, i;
+  bg_parameter_info_t * info;
+  bg_cfg_section_t * subsection;
+  char * tmp_string;
   
-  if(!str)
-    return 0;
+  const char * str = str_start;
   
-  switch(item->type)
+  while(1)
     {
-    case BG_CFG_INT:
-      item->value.val_i = strtol(str, &end, 10);
-      return end - str;
-      break;
-    case BG_CFG_TIME:
-      end_c = str;
-      if(*end_c == '{')
-        end_c++;
-      end_c += gavl_time_parse(end_c, &(item->value.val_time));
-      if(*end_c == '}')
-        end_c++;
-      return end_c - str;
-      break;
-    case BG_CFG_FLOAT:
-      item->value.val_f = strtod(str, &end);
-      return end - str;
-      break;
-    case BG_CFG_STRING:
-    case BG_CFG_STRING_HIDDEN:
-      if(item->value.val_str)
-        {
-        free(item->value.val_str);
-        item->value.val_str = (char*)0;
-        }
+    if((*str == '\0') || (*str == '}'))
+      return str - str_start;
+    
+    info = find_parameter(parameters, str, &len);
 
-      end_c = str;
+    if(!info || (info->type == BG_PARAMETER_SECTION))
+      {
+      fprintf(stderr, "Unsupported parameter ");
+      fwrite(str, 1, len, stderr);
+      fprintf(stderr, "\n");
+      goto fail;
+      }
+    item = bg_cfg_section_find_item(section, info);
 
-      cpy_str[1] = '\0';
-      
-      while(*end_c != '\0')
-        {
-        if(*end_c == '\\')
+    str += len;
+    
+    switch(info->type)
+      {
+      case BG_PARAMETER_CHECKBUTTON:
+      case BG_PARAMETER_INT:
+      case BG_PARAMETER_SLIDER_INT:
+        item->value.val_i = strtol(str, &end, 10);
+        if(str == end)
+          goto fail;
+        str = end;        
+        break;
+      case BG_PARAMETER_TIME:
+        end_c = str;
+        if(*end_c == '{')
+          end_c++;
+        end_c += gavl_time_parse(end_c, &(item->value.val_time));
+        if(*end_c == '}')
+          end_c++;
+        str = end_c;
+        break;
+      case BG_PARAMETER_FLOAT:
+      case BG_PARAMETER_SLIDER_FLOAT:
+        item->value.val_f = strtod(str, &end);
+        if(str == end)
+          goto fail;
+        str = end;
+        break;
+      case BG_PARAMETER_FILE:
+      case BG_PARAMETER_DIRECTORY:
+      case BG_PARAMETER_DEVICE:
+      case BG_PARAMETER_FONT:
+      case BG_PARAMETER_STRING:
+      case BG_PARAMETER_STRINGLIST:
+      case BG_PARAMETER_STRING_HIDDEN:
+        if(item->value.val_str)
           {
-          if((*(end_c+1) == ':') ||
-             (*(end_c+1) == '{') ||
-             (*(end_c+1) == '}'))
-            {
-            end_c++;
-            cpy_str[0] = *end_c;
-            item->value.val_str = bg_strcat(item->value.val_str, cpy_str);
-            }
-          else
-            {
-            cpy_str[0] = *end_c;
-            item->value.val_str = bg_strcat(item->value.val_str, cpy_str);
-            }
+          free(item->value.val_str);
+          item->value.val_str = (char*)0;
           }
-        else if((*end_c == ':') ||
-                (*end_c == '{') ||
-                (*end_c == '}'))
+        item->value.val_str = parse_string(str, &len);
+
+        /* Check if the string is in the options */
+        if(info->type == BG_PARAMETER_STRINGLIST)
           {
-          break;
+          if(!check_option(info, item->value.val_str))
+            goto fail;
           }
-        else
-          {
-          cpy_str[0] = *end_c;
-          item->value.val_str = bg_strcat(item->value.val_str, cpy_str);
-          }
-        end_c++;
-        }
-      
-      //      fprintf(stderr, "String: %s\n", item->value.val_str);
-      return end_c - str;
-      break;
-    case BG_CFG_COLOR:
-      pos = str;
-      if(*pos == '\0')
-        return 0;
-      item->value.val_color[0] = strtod(pos, &end);
-      pos = end;
-
-      if(*pos == '\0')
-        return 0;
-      pos++; // ,
-      item->value.val_color[1] = strtod(pos, &end);
-      pos = end;
-
-      if(*pos == '\0')
-        return 0;
-      pos++; // ,
-      item->value.val_color[2] = strtod(pos, &end);
-      if(pos == end)
-        return 0;
-      
-      pos = end;
-
-      if(info->type == BG_PARAMETER_COLOR_RGBA)
-        {
-        if(*pos == '\0')
-          return 0;
-        pos++; // ,
-        item->value.val_color[3] = strtod(pos, &end);
         
-        if(pos == end)
-          return 0;
-        }
-      return end - str;
+        str += len;
+        break;
+      case BG_PARAMETER_MULTI_LIST:
+        if(item->value.val_str)
+          {
+          free(item->value.val_str);
+          item->value.val_str = (char*)0;
+          }
+        if(*str != '{')
+          {
+          fprintf(stderr,
+                  "%s must be in form {option[{suboptions}][:option[{suboption}]]}...\n",
+                  info->name);
+          goto fail;
+          }
+        str++;
+        while(1)
+          {
+          tmp_string = parse_string(str, &len);
+          if(!check_option(info, tmp_string))
+            goto fail;
+
+          str += len;
+          if(item->value.val_str)
+            item->value.val_str = bg_strcat(item->value.val_str, ",");
+          item->value.val_str = bg_strcat(item->value.val_str, tmp_string);
+
+          if(*str == '{')
+            {
+            str++;
+            subsection = bg_cfg_section_find_subsection(section, info->name);
+            subsection = bg_cfg_section_find_subsection(subsection, tmp_string);
+
+            i = 0;
+            
+            while(info->multi_names[i])
+              {
+              if(!strcmp(info->multi_names[i], tmp_string))
+                break;
+              i++;
+              }
+            if(!info->multi_names[i]) return 0; // Already checked by check_option above
+            
+            str += bg_cfg_section_set_parameters_from_string(subsection,
+                                                             info->multi_parameters[i],
+                                                             str);
+            if(*str != '}')
+              goto fail;
+            str++;
+            }
+          if(*str == '}')
+            {
+            str++;
+            break;
+            }
+          else if(*str != ':')
+            goto fail;
+          str++;
+          }
+        break;
+      case BG_PARAMETER_MULTI_MENU:
+        if(item->value.val_str)
+          {
+          free(item->value.val_str);
+          item->value.val_str = (char*)0;
+          }
+        item->value.val_str = parse_string(str, &len);
+
+        if(!check_option(info, item->value.val_str))
+          goto fail;
+        
+        str += len;
+        
+        /* Parse sub parameters */
+
+        if(*str == '{')
+          {
+          str++;
+          subsection = bg_cfg_section_find_subsection(section, info->name);
+          subsection = bg_cfg_section_find_subsection(subsection, item->value.val_str);
+          i = 0;
+
+          while(info->multi_names[i])
+            {
+            if(!strcmp(info->multi_names[i], item->value.val_str))
+              break;
+            i++;
+            }
+          if(!info->multi_names[i])
+            return 0;
+
+          str += bg_cfg_section_set_parameters_from_string(subsection,
+                                                           info->multi_parameters[i],
+                                                           str);
+          if(*str != '}')
+            return 0;
+          str++;
+          }
+        break;
+      case BG_PARAMETER_COLOR_RGB:
+      case BG_PARAMETER_COLOR_RGBA:
+        if(*str == '\0')
+          goto fail;
+        item->value.val_color[0] = strtod(str, &end);
+        str = end;
+
+        if(*str == '\0')
+          goto fail;
+        str++; // ,
+        item->value.val_color[1] = strtod(str, &end);
+        str = end;
+
+        if(*str == '\0')
+          goto fail;
+        str++; // ,
+        item->value.val_color[2] = strtod(str, &end);
+        if(str == end)
+          goto fail;
+        
+        if(info->type == BG_PARAMETER_COLOR_RGBA)
+          {
+          str = end;
+          if(*str == '\0')
+            goto fail;
+          str++; // ,
+          item->value.val_color[3] = strtod(str, &end);
+        
+          if(str == end)
+            goto fail;
+          }
+        str = end;
+        break;
+      case BG_PARAMETER_SECTION:
+        break;
+      }
+    if(*str == ':')
+      str++;
+    else if(*str == '}')
       break;
+    else if(*str == '\0')
+      break;
+    else
+      goto fail;
     }
+
+  return str - str_start;
+  
+  fail:
+  fprintf(stderr, "Error parsing option\n");
+  fprintf(stderr, "%s\n", str_start);
+  
+  for(i = 0; i < (int)(str - str_start); i++)
+    fprintf(stderr, " ");
+  fprintf(stderr, "^\n");
   return 0;
   }
 

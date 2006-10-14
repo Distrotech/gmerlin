@@ -310,6 +310,8 @@ static void button_callback(GtkWidget * wid, gpointer data)
   GtkTreeSelection * selection;
   GtkTreePath      * path;
   const char * label;
+  bg_cfg_section_t * subsection;
+
   w = (bg_gtk_widget_t *)data;
   priv = (decoder_t *)(w->priv);
 
@@ -317,12 +319,16 @@ static void button_callback(GtkWidget * wid, gpointer data)
     {
     //    fprintf(stderr, "Config button clicked\n");
 
+    subsection = bg_cfg_section_find_subsection(priv->cfg_section, w->info->name);
+    subsection = bg_cfg_section_find_subsection(subsection,
+                                                w->info->multi_names[priv->selected]);
+    
     if(w->info->multi_labels && w->info->multi_labels[priv->selected])
       label = w->info->multi_labels[priv->selected];
     else
       label = w->info->multi_names[priv->selected];
 
-    dialog = bg_dialog_create(priv->cfg_section, priv->set_param,
+    dialog = bg_dialog_create(subsection, priv->set_param,
                               priv->data,
                               w->info->multi_parameters[priv->selected],
                               label);

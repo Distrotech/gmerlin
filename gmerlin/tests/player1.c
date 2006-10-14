@@ -405,9 +405,9 @@ static void update_global_options()
 
 static void opt_help(void * data, int * argc, char *** argv, int arg)
   {
-  fprintf(stderr, "Usage: %s [options] gml...\n\n", (*argv)[0]);
-  fprintf(stderr, "gml is a gmerlin media location (e.g. filename or URL)\n");
-  fprintf(stderr, "Options:\n\n");
+  fprintf(stdout, "Usage: %s [options] gml...\n\n", (*argv)[0]);
+  fprintf(stdout, "gml is a gmerlin media location (e.g. filename or URL)\n");
+  fprintf(stdout, "Options:\n\n");
   bg_cmdline_print_help(global_options);
   exit(0);
   }
@@ -751,7 +751,7 @@ static int handle_message(bg_player_t * player,
           if(!gmls[gml_index])
             return 0;
           else
-            if(!play_track(player, gmls[gml_index], (const char*)0))
+            if(!play_track(player, gmls[gml_index], input_plugin_name))
               return 0;
           break;
         case BG_PLAYER_STATE_BUFFERING:
@@ -865,6 +865,7 @@ int main(int argc, char ** argv)
 
   oa_section = bg_cfg_section_create_from_parameters("oa", oa_parameters);
   ov_section = bg_cfg_section_create_from_parameters("oa", ov_parameters);
+  i_section = bg_cfg_section_create_from_parameters("i", i_parameters);
   
   /* Set message queue */
 
@@ -932,7 +933,7 @@ int main(int argc, char ** argv)
   
   /* Play first track */
   
-  play_track(player, gmls[gml_index], (const char*)0);
+  play_track(player, gmls[gml_index], input_plugin_name);
   
   /* Main loop */
   

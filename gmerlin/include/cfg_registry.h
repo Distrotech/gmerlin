@@ -258,21 +258,20 @@ void bg_cfg_section_set_parameter(bg_cfg_section_t * section,
                                   bg_parameter_value_t * value);
 
 /** \ingroup cfg_section
- *  \brief Store a value from a string in the section
+ *  \brief Set values from an option string
  *  \param section The configuration section
  *  \param info The parameter destription
- *  \param str A string describing the value to be stored
+ *  \param str A string describing the values
  *
- *  If the value does not exist in the section, it is created
- *  from the parameter description. The string is parsed
- *  according to the type of the parameter.
+ *  This takes a string from the commandline and
+ *  stores it in the section.
  *
  *  \todo Document syntax for all parameter types
  */
 
-int bg_cfg_section_set_parameter_from_string(bg_cfg_section_t * section,
-                                             bg_parameter_info_t * info,
-                                             const char * str);
+int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
+                                              bg_parameter_info_t * info,
+                                              const char * str);
 
 /** \ingroup cfg_section
  *  \brief Read a value from the section

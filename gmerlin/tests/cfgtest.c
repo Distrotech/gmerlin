@@ -96,11 +96,11 @@ static bg_parameter_info_t info_1[] =
     },
 #endif
     {
-      name:        "checkbutton1",
-      long_name:   "Check Button 1",
+      name:        "checkbutton",
+      long_name:   "Check Button",
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
-      help_string: "Check Button 1 help"
+      help_string: "Checkbutton help"
     },
     {
       name:      "spinbutton_float",
