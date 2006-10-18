@@ -20,8 +20,10 @@
 
 #define LOG_DOMAIN "gmerlin_player"
 
-static int time_active = 0;
-static gavl_time_t total_time  = 0;
+/* In commandline apps, global variables are allowed :) */
+
+static int time_active = 0;         // Whether to display the time
+static gavl_time_t total_time  = 0; // Total time of the current track
 
 int num_tracks;
 int current_track = -1;
@@ -37,15 +39,15 @@ int display_time = 1;
 bg_plugin_handle_t * oa_handle = (bg_plugin_handle_t*)0;
 bg_plugin_handle_t * ov_handle = (bg_plugin_handle_t*)0;
 
-
-
 char ** gmls = (char **)0;
 int gml_index = 0;
 
-bg_cfg_section_t * oa_section;
-bg_cfg_section_t * ov_section;
-bg_cfg_section_t * i_section;
+/* Sections from the plugin registry */
+bg_cfg_section_t * oa_section = (bg_cfg_section_t*)0;
+bg_cfg_section_t * ov_section = (bg_cfg_section_t*)0;
+bg_cfg_section_t * i_section = (bg_cfg_section_t*)0;
 
+/* Sections from the player */
 bg_cfg_section_t * audio_section;
 bg_cfg_section_t * video_section;
 bg_cfg_section_t * osd_section;
@@ -98,8 +100,6 @@ bg_parameter_info_t * input_parameters;
 char * track_spec = (char*)0;
 char * track_spec_ptr;
 
-int * track_spec_int;
-
 /*
  *  Commandline options stuff
  */
@@ -108,11 +108,11 @@ static void set_oa_parameter(void * data, char * name, bg_parameter_value_t * va
   {
   const bg_plugin_info_t * info;
 
-  fprintf(stderr, "set_oa_parameter: %s\n", name);
+  //  fprintf(stderr, "set_oa_parameter: %s\n", name);
 
   if(name && !strcmp(name, "plugin"))
     {
-    fprintf(stderr, "set_oa_parameter: plugin: %s\n", val->val_str);
+    //    fprintf(stderr, "set_oa_parameter: plugin: %s\n", val->val_str);
 
     info =  bg_plugin_find_by_name(plugin_reg, val->val_str);
     oa_handle = bg_plugin_load(plugin_reg, info);
@@ -182,17 +182,38 @@ static void opt_ov(void * data, int * argc, char *** _argv, int arg)
 
 static void opt_i(void * data, int * argc, char *** _argv, int arg)
   {
+  bg_cfg_section_t * cmdline_section;
+  bg_cfg_section_t * registry_section;
+  
   if(arg >= *argc)
     {
     fprintf(stderr, "Option -i requires an argument\n");
     exit(-1);
     }
+
+  if(!i_section)
+    i_section =
+      bg_cfg_section_create_from_parameters("i", i_parameters);
+  
   if(!bg_cmdline_apply_options(i_section,
                                set_i_parameter,
                                (void*)0,
                                i_parameters,
                                (*_argv)[arg]))
     exit(-1);
+
+  /* Put the parameters into the registry */
+
+  if(input_plugin_name)
+    {
+    cmdline_section = bg_cfg_section_find_subsection(i_section, "plugin");
+    cmdline_section = bg_cfg_section_find_subsection(cmdline_section, input_plugin_name);
+
+    registry_section = bg_plugin_registry_get_section(plugin_reg, input_plugin_name);
+    bg_cfg_section_transfer(cmdline_section, registry_section);
+    bg_cfg_registry_save(cfg_reg, "test.xml");
+    }
+  
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
@@ -865,7 +886,6 @@ int main(int argc, char ** argv)
 
   oa_section = bg_cfg_section_create_from_parameters("oa", oa_parameters);
   ov_section = bg_cfg_section_create_from_parameters("oa", ov_parameters);
-  i_section = bg_cfg_section_create_from_parameters("i", i_parameters);
   
   /* Set message queue */
 
@@ -958,9 +978,15 @@ int main(int argc, char ** argv)
 
   bg_msg_queue_destroy(message_queue);
 
+  tmp_path =  bg_search_file_read("generic", "config.xml");
+  bg_cfg_registry_load(cfg_reg, tmp_path);
+  if(tmp_path)
+    free(tmp_path);
+    
   bg_cfg_registry_destroy(cfg_reg);
   bg_plugin_registry_destroy(plugin_reg);
 
+  
 
   return 0;
   }

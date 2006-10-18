@@ -880,7 +880,7 @@ static int eject_disc_cdaudio(const char * device)
     return 0;
   if((err = cdio_eject_media(&cdio)) != DRIVER_OP_SUCCESS)
     {
-    // fprintf(stderr, "cdio_eject_media for %s failed: %d\n", device, err);
+    fprintf(stderr, "cdio_eject_media for %s failed: %d\n", device, err);
     cdio_destroy(cdio);
     return 0;
     }

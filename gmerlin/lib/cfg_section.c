@@ -490,7 +490,7 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
                                                            info->multi_parameters[i],
                                                            str);
           if(*str != '}')
-            return 0;
+            goto fail;
           str++;
           }
         break;
@@ -609,48 +609,92 @@ void bg_cfg_section_destroy(bg_cfg_section_t * s)
   free(s);
   }
 
+static void do_apply(bg_cfg_section_t * section,
+                     bg_parameter_info_t * infos,
+                     bg_set_parameter_func_t func,
+                     void * callback_data, const char * prefix)
+  {
+  int num, selected;
+  bg_cfg_item_t * item;
+  bg_cfg_section_t * subsection;
+  bg_cfg_section_t * subsubsection;
+  char * tmp_string;
+  
+  num = 0;
+
+  while(infos[num].name)
+    {
+    item = bg_cfg_section_find_item(section, &(infos[num]));
+
+    if(prefix)
+      {
+      tmp_string = bg_sprintf("%s.%s", prefix, item->name);
+      func(callback_data, tmp_string, &(item->value));
+      free(tmp_string);
+      }
+    else
+      func(callback_data, item->name, &(item->value));
+
+    /* If this was a menu, apply children */ 
+
+    if(infos[num].multi_names && infos[num].multi_parameters)
+      {
+      if(infos[num].type == BG_PARAMETER_MULTI_MENU)
+        {
+        selected = 0;
+        while(infos[num].multi_names[selected] &&
+              strcmp(infos[num].multi_names[selected], item->value.val_str))
+          selected++;
+        if(infos[num].multi_names[selected] && infos[num].multi_parameters[selected])
+          {
+          subsection    = bg_cfg_section_find_subsection(section, infos[num].name);
+          subsubsection = bg_cfg_section_find_subsection(subsection,
+                                                         item->value.val_str);
+          do_apply(subsubsection,
+                   infos[num].multi_parameters[selected],
+                   func, callback_data, (const char*)0);
+          }
+        }
+      else if(infos[num].type == BG_PARAMETER_MULTI_LIST)
+        {
+        selected = 0;
+        /* Apply child parameters for all possible options */
+        while(infos[num].multi_names[selected])
+          {
+          subsection    = bg_cfg_section_find_subsection(section, infos[num].name);
+          if(infos[num].multi_parameters[selected])
+            {
+            subsubsection =
+              bg_cfg_section_find_subsection(subsection, infos[num].multi_names[selected]);
+            
+            if(prefix)
+              tmp_string =
+                bg_sprintf("%s.%s.%s", prefix, infos[num].name, infos[num].multi_names[selected]);
+            else
+              tmp_string =
+                bg_sprintf("%s.%s", infos[num].name, infos[num].multi_names[selected]);
+            
+            do_apply(subsubsection, infos[num].multi_parameters[selected],
+                     func, callback_data, tmp_string);
+            free(tmp_string);
+            }
+          selected++;
+          }
+        }
+      
+      }
+    
+    num++;
+    }
+  func(callback_data, NULL, NULL);
+  }
 
 void bg_cfg_section_apply(bg_cfg_section_t * section,
                           bg_parameter_info_t * infos,
                           bg_set_parameter_func_t func,
                           void * callback_data)
   {
-  int num, selected;
-  bg_cfg_item_t * item;
-  bg_cfg_section_t * subsection;
-  bg_cfg_section_t * subsubsection;
-
-  num = 0;
-
-  while(infos[num].name)
-    {
-    item = bg_cfg_section_find_item(section, &(infos[num]));
-    func(callback_data, item->name, &(item->value));
-
-    /* If this was a menu, apply children */ 
-
-    if((infos[num].type == BG_PARAMETER_MULTI_MENU) &&
-       infos[num].multi_names && infos[num].multi_parameters)
-      {
-      selected = 0;
-      while(infos[num].multi_names[selected] &&
-            strcmp(infos[num].multi_names[selected], item->value.val_str))
-        selected++;
-      if(infos[num].multi_names[selected] && infos[num].multi_parameters[selected])
-        {
-        subsection    = bg_cfg_section_find_subsection(section, infos[num].name);
-        subsubsection = bg_cfg_section_find_subsection(subsection,
-                                                       item->value.val_str);
-        bg_cfg_section_apply(subsubsection,
-                             infos[num].multi_parameters[selected],
-                             func, callback_data);
-        
-        }
-      }
-    
-    num++;
-    }
-  func(callback_data, NULL, NULL);
+  do_apply(section, infos, func, callback_data, (const char*)0);
   }
 
 void bg_cfg_section_get(bg_cfg_section_t * section,

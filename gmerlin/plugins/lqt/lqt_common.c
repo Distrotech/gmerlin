@@ -53,7 +53,9 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
     {
     lqt_parameter_info = (encode) ? codec_info[i]->encoding_parameters :
       codec_info[i]->decoding_parameters;
-
+    num_parameters = (encode) ? codec_info[i]->num_encoding_parameters :
+      codec_info[i]->num_decoding_parameters;
+    
     if(!i)
       info->val_default.val_str = bg_strdup((char*)0,
                                             codec_info[i]->name);
@@ -62,19 +64,21 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
                                      codec_info[i]->name);
     info->multi_labels[i] = bg_strdup((char*)0,
                                          codec_info[i]->long_name);
-    info->multi_descriptions[i] = bg_sprintf("%s Use for", codec_info[i]->description);
+
+    if(encode)
+      {
+      info->multi_descriptions[i] = bg_sprintf("%s Use for", codec_info[i]->description);
     
-    if(codec_info[i]->compatibility_flags & (LQT_FILE_QT | LQT_FILE_QT_OLD))
-      info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " QT");
-    if(codec_info[i]->compatibility_flags & ( LQT_FILE_MP4))
-      info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " MP4");
-    if(codec_info[i]->compatibility_flags & ( LQT_FILE_M4A))
-      info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " M4A");
-    if(codec_info[i]->compatibility_flags & ( LQT_FILE_AVI))
-      info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " AVI");
-    
-    num_parameters = (encode) ? codec_info[i]->num_encoding_parameters :
-      codec_info[i]->num_decoding_parameters;
+      if(codec_info[i]->compatibility_flags & (LQT_FILE_QT | LQT_FILE_QT_OLD))
+        info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " QT");
+      if(codec_info[i]->compatibility_flags & ( LQT_FILE_MP4))
+        info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " MP4");
+      if(codec_info[i]->compatibility_flags & ( LQT_FILE_M4A))
+        info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " M4A");
+      if(codec_info[i]->compatibility_flags & ( LQT_FILE_AVI))
+        info->multi_descriptions[i] = bg_strcat(info->multi_descriptions[i], " AVI");
+      }
+
 
     if(num_parameters)
       info->multi_parameters[i] = calloc(num_parameters + 1,
@@ -82,10 +86,13 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
     
     for(j = 0; j < num_parameters; j++)
       {
-      info->multi_parameters[i][j].name = bg_strdup(info->multi_parameters[i][j].name,
-                                                    lqt_parameter_info[j].name);
-      //        bg_sprintf("codec_%s_%s", info->multi_names[i],
-      //                   lqt_parameter_info[j].name);
+      //      if(encode)
+        info->multi_parameters[i][j].name = bg_strdup(info->multi_parameters[i][j].name,
+                                                      lqt_parameter_info[j].name);
+        //      else
+        //        info->multi_parameters[i][j].name =
+        //          bg_sprintf("%s.%s", info->multi_names[i], lqt_parameter_info[j].name);
+
       info->multi_parameters[i][j].long_name = 
         bg_strdup((char*)0, lqt_parameter_info[j].real_name);
 
@@ -236,4 +243,116 @@ void bg_lqt_set_video_parameter(quicktime_t * file,
     {
     lqt_set_video_parameter(file, stream, name, val_ptr);
     }
+  }
+
+static void set_decoder_parameter(const char * codec_name,
+                                  const char * parameter_name,
+                                  bg_parameter_value_t * val,
+                                  lqt_codec_info_t ** codec_info_arr)
+  {
+  int i;
+  lqt_codec_info_t *  codec_info = (lqt_codec_info_t*)0;
+
+  lqt_parameter_value_t lqt_val;
+  lqt_parameter_info_t * lqt_parameter_info =
+    (lqt_parameter_info_t*)0;
+  
+  /* This code stores the values in the lqt plugin
+     registry, which is also not good.
+     
+     To fix this, we need to keep our own bg_cfg_section_t,
+     save the values there and call lqt_set_[audio|video]_parameter
+     for each opened file */
+
+  //  fprintf(stderr, "bg_lqt_set_decoder_parameter 1: %s %s\n", codec_name,
+  //          parameter_name);
+
+  
+  i = 0;
+  
+  while(codec_info_arr[i])
+    {
+    if(!strcmp(codec_info_arr[i]->name, codec_name))
+      {
+      codec_info = codec_info_arr[i];
+      break;
+      }
+    i++;
+    }
+  if(!codec_info)
+    {
+    //    fprintf(stderr, "no such codec %s\n", codec_name);
+    return;
+    }
+  /* Get the decoding parameters */
+
+  for(i = 0; i < codec_info->num_decoding_parameters; i++)
+    {
+    if(!strcmp(codec_info->decoding_parameters[i].name,
+               parameter_name))
+      {
+      lqt_parameter_info = &codec_info->decoding_parameters[i];
+      }
+    }
+
+  if(!lqt_parameter_info)
+    {
+    //    fprintf(stderr, "no such parameter %s for codec %s\n",
+    //            parameter_name, codec_name);
+    return;
+    }
+  //  fprintf(stderr, "bg_lqt_set_decoder_parameter 2: %s %s\n", codec_name,
+  //          parameter_name);
+    
+  switch(lqt_parameter_info->type)
+    {
+    case LQT_PARAMETER_INT:
+      lqt_val.val_int = val->val_i;
+      //      fprintf(stderr, "%d\n", val->val_i);
+      break;
+    case LQT_PARAMETER_FLOAT:
+      lqt_val.val_float = val->val_f;
+      //      fprintf(stderr, "%f\n", val->val_f);
+      break;
+    case LQT_PARAMETER_STRING:
+    case LQT_PARAMETER_STRINGLIST:
+      lqt_val.val_string = val->val_str;
+      //      fprintf(stderr, "%s\n", val->val_str);
+      break;
+    case LQT_PARAMETER_SECTION:
+      return;
+    }
+  
+  lqt_set_default_parameter(codec_info->type, 0,
+                            codec_info->name,
+                            lqt_parameter_info->name,
+                            &lqt_val);
+  }
+
+void bg_lqt_set_audio_decoder_parameter(const char * codec_name,
+                                        const char * parameter_name,
+                                        bg_parameter_value_t * val)
+  {
+  lqt_codec_info_t ** codec_info_arr;
+  codec_info_arr = lqt_query_registry(1, 0, 0, 1);
+
+  set_decoder_parameter(codec_name, parameter_name, val, codec_info_arr);
+
+  if(codec_info_arr)
+    lqt_destroy_codec_info(codec_info_arr);
+
+  
+  }
+
+void bg_lqt_set_video_decoder_parameter(const char * codec_name,
+                                        const char * parameter_name,
+                                        bg_parameter_value_t * val)
+  {
+  lqt_codec_info_t ** codec_info_arr;
+  codec_info_arr = lqt_query_registry(0, 1, 0, 1);
+
+  set_decoder_parameter(codec_name, parameter_name, val, codec_info_arr);
+  
+  if(codec_info_arr)
+    lqt_destroy_codec_info(codec_info_arr);
   }

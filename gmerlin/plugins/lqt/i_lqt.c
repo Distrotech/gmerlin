@@ -37,6 +37,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:      "audio_codecs",
+      opt:       "ac",
       long_name: "Audio Codecs",
       help_string: "Sort and configure audio codecs",
     },
@@ -47,6 +48,7 @@ static bg_parameter_info_t parameters[] =
     },
     {
       name:      "video_codecs",
+      opt:       "vc",
       long_name: "Video Codecs",
       help_string: "Sort and configure video codecs",
     },
@@ -316,10 +318,13 @@ static void set_parameter_lqt(void * data, char * name,
                               bg_parameter_value_t * val)
   {
   i_lqt_t * e = (i_lqt_t*)data;
-
+  char * pos;
+  char * tmp_string;
   if(!name)
     return;
 
+  fprintf(stderr, "set_parameter_lqt %s\n", name);
+  
   if(!e->parameters)
     create_parameters(e);
 #if 0
@@ -335,7 +340,28 @@ static void set_parameter_lqt(void * data, char * name,
     {
     e->video_codec_string = bg_strdup(e->video_codec_string, val->val_str);
     }
-  
+  else if(!strncmp(name, "audio_codecs.", 13))
+    {
+    tmp_string = bg_strdup(NULL, name+13);
+    pos = strchr(tmp_string, '.');
+    *pos = '\0';
+    pos++;
+    
+    bg_lqt_set_audio_decoder_parameter(tmp_string, pos, val);
+    free(tmp_string);
+    
+    }
+  else if(!strncmp(name, "video_codecs.", 13))
+    {
+    tmp_string = bg_strdup(NULL, name+13);
+    pos = strchr(tmp_string, '.');
+    *pos = '\0';
+    pos++;
+    
+    bg_lqt_set_video_decoder_parameter(tmp_string, pos, val);
+    free(tmp_string);
+    
+    }
   }
 
 static int start_lqt(void * data)
