@@ -251,16 +251,16 @@ static bg_parameter_info_t parameters[] =
   {
     {
       name:        "output",
-      long_name:   "Output mixing",
+      long_name:   "Output format",
       type:        BG_PARAMETER_STRINGLIST,
       multi_names: (char*[]){ "mono8", "stereo8", "mono16", "stereo16", (char*)0 },
-      multi_labels:  (char*[]){ "Mono(8bit)", "Stereo(8bit)", "Mono(16bit)", "Stereo(16bit)", (char*)0 },
+      multi_labels:  (char*[]){ "Mono 8bit", "Stereo 8bit", "Mono 16bit", "Stereo 16bit", (char*)0 },
       
       val_default: { val_str: "stereo16" },
     },
       {
       name:        "mixing_frequency",
-      long_name:   "mixing Frequency",
+      long_name:   "Samplerate",
       type:         BG_PARAMETER_INT,
       val_min:     { val_i: 4000 },
       val_max:     { val_i: 60000 },
@@ -270,21 +270,25 @@ static bg_parameter_info_t parameters[] =
     {
       name: "look_for_hidden_patterns_in_module",
       long_name: "Look for hidden patterns in module",
+      opt:  "hidden",
       type: BG_PARAMETER_CHECKBUTTON,
     },
     {
       name: "use_surround_mixing",
       long_name: "Use surround mixing",
+      opt:  "sur",
       type: BG_PARAMETER_CHECKBUTTON,
     },
     {
       name: "force_volume_fade_at_the_end_of_module",
       long_name: "Force volume fade at the end of module",
+      opt:  "fade",
       type: BG_PARAMETER_CHECKBUTTON,
     },
     {
       name: "use_interpolate_mixing",
       long_name: "Use interpolate mixing",
+      opt:  "interpol",
       type: BG_PARAMETER_CHECKBUTTON,
     },
     { /* End of parameters */ }

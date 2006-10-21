@@ -670,7 +670,7 @@ static bg_parameter_info_t parameters[] =
 %t:    Track name\n\
 %<d>n: Track number (d = number of digits, 1-9)\n\
 %y:    Year\n\
-%c:    Comment\n"
+%c:    Comment"
     },
     {
       name:        "use_cdtext",
