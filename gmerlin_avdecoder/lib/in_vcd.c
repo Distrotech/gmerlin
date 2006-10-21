@@ -20,8 +20,9 @@
 #include <avdec_private.h>
 #include <stdio.h>
 
-#ifdef HAVE_CDIO
+#define LOG_DOMAIN "vcd"
 
+#ifdef HAVE_CDIO
 
 #include <ctype.h>
 #include <stdlib.h>
@@ -100,8 +101,9 @@ static int read_toc(vcd_priv * priv, char ** iso_label)
   
   priv->num_tracks = cdio_get_last_track_num(priv->cdio);
   if(priv->num_tracks == CDIO_INVALID_TRACK)
+    {
     return 0;
-    
+    }
   /* VCD needs at least 2 tracks */
   if(priv->num_tracks < 2)
     return 0;
@@ -217,6 +219,7 @@ static void toc_2_tt(bgav_input_context_t * ctx)
 
 static int open_vcd(bgav_input_context_t * ctx, const char * url)
   {
+  driver_return_code_t err;
   int i;
   vcd_priv * priv;
   const char * pos;
@@ -236,10 +239,21 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   if(pos && !strcasecmp(pos, ".cue"))
     priv->cdio = cdio_open (url, DRIVER_BINCUE);
   else
+    {
+    if(err = cdio_close_tray(url, NULL))
+      fprintf(stderr, "cdio_close_tray failed: %s\n",
+              cdio_driver_errmsg(err));
+
     priv->cdio = cdio_open (url, DRIVER_DEVICE);
+
+    /* Close tray, hope this won't be harmful if the
+       tray is already closed */
+
+    }
   if(!priv->cdio)
     {
-    ctx->error_msg = bgav_sprintf("cdio_open failed for %s", url);
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "cdio_open failed for %s", url);
     return 0;
     }
   /* Get some infos */
@@ -250,6 +264,8 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
   
   if(!read_toc(priv, &(ctx->disc_name)))
     {
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "read_toc failed for %s", url);
     return 0;
     }
   toc_2_tt(ctx);
@@ -522,8 +538,12 @@ int bgav_eject_disc(const char * device)
   {
   driver_return_code_t err;
   if((err = cdio_eject_media_drive(device)) != DRIVER_OP_SUCCESS)
+    {
+    fprintf(stderr, "Ejecting disk failed: %s\n", cdio_driver_errmsg(err));
     return 0;
-  return 1;
+    }
+  else
+    return 1;
   }
 
 #else /* !HAVE_CDIO */

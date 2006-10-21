@@ -448,11 +448,20 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
   tt_srpt_t *ttsrpt;
   char volid[32];
   unsigned char volsetid[128];
+  driver_return_code_t err;
+
   //  DVDInit();
   
   priv = calloc(1, sizeof(*priv));
   
   ctx->priv = priv;
+
+  /* Close the tray, hope it will be harmless if it's already
+     closed */
+  if(err = cdio_close_tray(url, NULL))
+    fprintf(stderr, "cdio_close_tray failed: %s\n",
+            cdio_driver_errmsg(err));
+  
   
   /* Try to open dvd */
   priv->dvd_reader = DVDOpen(url);
@@ -699,8 +708,6 @@ static void    close_dvd(bgav_input_context_t * ctx)
   {
   dvd_t * dvd;
   dvd = (dvd_t*)(ctx->priv);
-
-  //  if(dvd->dvd_file)
 
   if(dvd->dvd_reader)
     DVDClose(dvd->dvd_reader);
