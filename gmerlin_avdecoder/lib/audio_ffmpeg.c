@@ -71,6 +71,10 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('a', 'l', 'a', 'c'),
                     0x00 }  },
 
+    { "FFmpeg Wavpack decoder", "Wavpack", CODEC_ID_WAVPACK,
+      (uint32_t[]){ BGAV_MK_FOURCC('w', 'v', 'p', 'k'),
+                    0x00 }  },
+    
     { "FFmpeg MS ADPCM decoder", "MS ADPCM", CODEC_ID_ADPCM_MS,
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x02),
                     BGAV_MK_FOURCC('m', 's', 0x00, 0x02), 0x00 } },
