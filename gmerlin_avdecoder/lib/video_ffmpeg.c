@@ -302,6 +302,11 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('W', 'N', 'V', '1'),
                0x00 } },
 
+    { "FFmpeg ZMBV decoder", "Zip Motion Blocks Video", CODEC_ID_ZMBV,
+      (uint32_t[]){ BGAV_MK_FOURCC('Z', 'M', 'B', 'V'),
+               0x00 } },
+
+    
     
     { "FFmpeg AASC decoder", "Autodesk Animator Studio Codec", CODEC_ID_AASC,
       (uint32_t[]){ BGAV_MK_FOURCC('A', 'A', 'S', 'C'),
