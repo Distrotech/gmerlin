@@ -74,6 +74,10 @@ static codec_info_t codec_infos[] =
     { "FFmpeg Wavpack decoder", "Wavpack", CODEC_ID_WAVPACK,
       (uint32_t[]){ BGAV_MK_FOURCC('w', 'v', 'p', 'k'),
                     0x00 }  },
+
+    { "FFmpeg True audio decoder", "True audio", CODEC_ID_TTA,
+      (uint32_t[]){ BGAV_MK_FOURCC('T', 'T', 'A', '1'),
+                    0x00 }  },
     
     { "FFmpeg MS ADPCM decoder", "MS ADPCM", CODEC_ID_ADPCM_MS,
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x02),
