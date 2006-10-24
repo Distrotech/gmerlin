@@ -9,7 +9,7 @@ AH_TEMPLATE([HAVE_LIBAVCODEC],
 
 have_avcodec=false
 
-AVCODEC_BUILD="3342336"
+AVCODEC_BUILD="3347712"
 
 AC_ARG_ENABLE(libavcodec,
 [AC_HELP_STRING([--disable-libavcodec],[Disable libavcodec (default: autodetect)])],
