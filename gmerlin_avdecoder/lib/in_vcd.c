@@ -240,7 +240,7 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
     priv->cdio = cdio_open (url, DRIVER_BINCUE);
   else
     {
-    if(err = cdio_close_tray(url, NULL))
+    if((err = cdio_close_tray(url, NULL)))
       fprintf(stderr, "cdio_close_tray failed: %s\n",
               cdio_driver_errmsg(err));
 

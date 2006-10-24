@@ -88,6 +88,12 @@ static bg_parameter_info_t parameters[] =
     },
     PARAM_DYNRANGE,
     {
+      name:       "video_options",
+      long_name:  "Video options",
+      type:       BG_PARAMETER_SECTION
+    },
+    PARAM_PP_LEVEL,
+    {
       name:       "network_options",
       long_name:  "Network options",
       type:       BG_PARAMETER_SECTION

@@ -136,6 +136,17 @@ void bgav_options_set_seek_subtitles(bgav_options_t* opt,
   opt->seek_subtitles = seek_subtitles;
   }
 
+void bgav_options_set_pp_level(bgav_options_t* opt,
+                               int pp_level)
+  {
+  opt->pp_level = pp_level;
+  if(opt->pp_level < 0)
+    opt->pp_level = 0;
+  if(opt->pp_level > 6)
+    opt->pp_level = 6;
+  }
+
+
 #define FREE(ptr) if(ptr) free(ptr)
 
 void bgav_options_free(bgav_options_t*opt)
@@ -146,6 +157,8 @@ void bgav_options_free(bgav_options_t*opt)
   FREE(opt->http_proxy_pass);
   FREE(opt->default_subtitle_encoding);
   }
+
+
 
 void bgav_options_set_defaults(bgav_options_t * b)
   {
@@ -207,6 +220,10 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   CP_STR(default_subtitle_encoding);
   CP_INT(seek_subtitles);
 
+  /* Postprocessing */
+  
+  CP_INT(pp_level);
+  
   /* DVD */
 
   CP_INT(dvd_chapters_as_tracks);
@@ -297,3 +314,4 @@ bgav_options_set_log_callback(bgav_options_t * opt,
   opt->log_callback      = callback;
   opt->log_callback_data = data;
   }
+

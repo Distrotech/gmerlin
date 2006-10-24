@@ -94,6 +94,12 @@ dnl
 GMERLIN_CHECK_AVCODEC
 
 dnl
+dnl libpostproc
+dnl
+
+GMERLIN_CHECK_LIBPOSTPROC
+
+dnl
 dnl Check for theora
 dnl
 
@@ -331,6 +337,15 @@ echo -n "libavcodec (ffmpeg):    "
 if test "x$have_avcodec" = "xtrue"; then
 echo "Found (CFLAGS=$AVCODEC_CFLAGS LIBS=$AVCODEC_LIBS)"
 elif test "x$test_avcodec" = "xfalse"; then
+echo "Disabled"
+else
+echo "Missing (Go to http://www.ffmpeg.org/)"
+fi
+
+echo -n "libpostproc (ffmpeg):    "
+if test "x$have_libpostproc" = "xtrue"; then
+echo "Found (CFLAGS=$LIBPOSTPROC_CFLAGS LIBS=$LIBPOSTPROC_LIBS)"
+elif test "x$test_libpostproc" = "xfalse"; then
 echo "Disabled"
 else
 echo "Missing (Go to http://www.ffmpeg.org/)"

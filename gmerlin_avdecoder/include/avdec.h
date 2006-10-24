@@ -445,6 +445,16 @@ void bgav_options_set_seek_subtitles(bgav_options_t* opt,
                                     int seek_subtitles);
 
 /** \ingroup options
+ *  \brief Set postprocessing level
+ *  \param opt Option container
+ *  \param Value between 0 (no postprocessing) and 6 (maximum postprocessing)
+ */
+
+void bgav_options_set_pp_level(bgav_options_t* opt,
+                               int pp_level);
+
+
+/** \ingroup options
  *  \brief Enumeration for log levels
  *
  * These will be called from within log callbacks

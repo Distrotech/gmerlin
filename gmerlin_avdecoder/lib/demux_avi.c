@@ -52,10 +52,16 @@
 
 #define AVI_INDEX_2FIELD 0x01
 
-#define ID_RIFF BGAV_MK_FOURCC('R','I','F','F')
-#define ID_AVI  BGAV_MK_FOURCC('A','V','I',' ')
-#define ID_LIST BGAV_MK_FOURCC('L','I','S','T')
-#define ID_AVIH BGAV_MK_FOURCC('a','v','i','h')
+#define ID_RIFF     BGAV_MK_FOURCC('R','I','F','F')
+#define ID_RIFF_ON2 BGAV_MK_FOURCC('O','N','2',' ')
+
+#define ID_AVI      BGAV_MK_FOURCC('A','V','I',' ')
+#define ID_AVI_ON2  BGAV_MK_FOURCC('O','N','2','f')
+
+#define ID_LIST     BGAV_MK_FOURCC('L','I','S','T')
+#define ID_AVIH     BGAV_MK_FOURCC('a','v','i','h')
+#define ID_AVIH_ON2 BGAV_MK_FOURCC('O','N','2','h')
+
 #define ID_HDRL BGAV_MK_FOURCC('h','d','r','l')
 #define ID_STRL BGAV_MK_FOURCC('s','t','r','l')
 #define ID_STRH BGAV_MK_FOURCC('s','t','r','h')
@@ -1013,14 +1019,27 @@ static int probe_avi(bgav_input_context_t * input)
   if(bgav_input_get_data(input, data, 12) < 12)
     return 0;
 
-  return (data[0] == 'R') &&
-    (data[1] == 'I') &&
-    (data[2] == 'F') &&
-    (data[3] == 'F') &&
-    (data[8] == 'A') &&
-    (data[9] == 'V') &&
-    (data[10] == 'I') &&
-    (data[11] == ' ');
+  if ((data[0] == 'R') &&
+      (data[1] == 'I') &&
+      (data[2] == 'F') &&
+      (data[3] == 'F') &&
+      (data[8] == 'A') &&
+      (data[9] == 'V') &&
+      (data[10] == 'I') &&
+      (data[11] == ' '))
+    return 1;
+  else if((data[0] == 'O') &&
+          (data[1] == 'N') &&
+          (data[2] == '2') &&
+          (data[3] == ' ') &&
+          (data[8] == 'O') &&
+          (data[9] == 'N') &&
+          (data[10] == '2') &&
+          (data[11] == 'f'))
+    return 1;
+  else
+    return 0;
+  
   }
 
 static int init_audio_stream(bgav_demuxer_context_t * ctx,
@@ -1141,7 +1160,8 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
           bg_vs->ext_size = ch->ckSize - 40;
           bg_vs->ext_data = calloc(bg_vs->ext_size + 16, 1);
           memcpy(bg_vs->ext_data, pos, bg_vs->ext_size);
-          bgav_hexdump(bg_vs->ext_data, bg_vs->ext_size, 16);
+          //          fprintf(stderr, "Extradata\n");
+          //          bgav_hexdump(bg_vs->ext_data, bg_vs->ext_size, 16);
           }
 
         /* Add palette if depth <= 8 */
@@ -1488,8 +1508,8 @@ static int open_avi(bgav_demuxer_context_t * ctx,
   /* Read the main header */
     
   if(!read_riff_header(ctx->input, &rh) ||
-     (rh.ckID != ID_RIFF) ||
-     (rh.fccType != ID_AVI))
+     ((rh.ckID != ID_RIFF) && (rh.ckID != ID_RIFF_ON2)) ||
+     ((rh.fccType != ID_AVI) && (rh.fccType != ID_AVI_ON2)))
     goto fail;
   
   /* Skip all LIST chunks until a hdrl comes */
@@ -1509,7 +1529,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
   /* Now, read the hdrl stuff */
 
   if(!read_chunk_header(ctx->input, &ch) ||
-     (ch.ckID != ID_AVIH))
+     ((ch.ckID != ID_AVIH) && (ch.ckID != ID_AVIH_ON2)))
     goto fail;
 
   /* Main avi header */

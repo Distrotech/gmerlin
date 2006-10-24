@@ -492,6 +492,10 @@ bg_avdec_set_parameter(void * p, char * name,
     bgav_options_set_seek_subtitles(avdec->opt, atoi(val->val_str));
     //    fprintf(stderr, "Seek subtitles: %d\n", atoi(val->val_str));
     }
+  else if(!strcmp(name, "video_pp_level"))
+    {
+    bgav_options_set_pp_level(avdec->opt, val->val_i);
+    }
   }
 
 int bg_avdec_get_num_tracks(void * p)

@@ -458,7 +458,7 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
 
   /* Close the tray, hope it will be harmless if it's already
      closed */
-  if(err = cdio_close_tray(url, NULL))
+  if((err = cdio_close_tray(url, NULL)))
     fprintf(stderr, "cdio_close_tray failed: %s\n",
             cdio_driver_errmsg(err));
   

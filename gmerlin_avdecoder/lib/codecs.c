@@ -223,7 +223,7 @@ void bgav_codecs_init()
     return;
     }
   codecs_initialized = 1;
-  
+  /* ffmpeg codecs should be initialized BEFORE any DLL codecs */
 #ifdef HAVE_LIBAVCODEC
   bgav_init_audio_decoders_ffmpeg();
   bgav_init_video_decoders_ffmpeg();

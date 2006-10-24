@@ -104,6 +104,15 @@ avcodec_libs =
 avcodec_sources =
 endif
 
+if HAVE_LIBPOSTPROC
+libpostproc_cflags =  @LIBPOSTPROC_CFLAGS@
+libpostproc_libs =    @LIBPOSTPROC_LIBS@
+else
+libpostproc_cflags =
+libpostproc_libs =
+endif
+
+
 if HAVE_CDIO
 cdio_cflags =  @CDIO_CFLAGS@
 cdio_libs =    @CDIO_LIBS@
@@ -218,6 +227,7 @@ $(mjpegtools_libs) \
 $(samba_libs) \
 $(theora_libs) \
 $(speex_libs) \
+$(libpostproc_libs) \
 GSM610/libgsm.la \
 @ICONV_LIBS@ \
 -lm
@@ -238,8 +248,8 @@ $(cdio_cflags) \
 $(mjpegtools_cflags) \
 $(samba_cflags) \
 $(theora_cflags) \
-$(speex_cflags)
-
+$(speex_cflags) \
+$(libpostproc_cflags)
 
 libgmerlin_avdec_la_SOURCES = \
 $(libmpeg2_sources) \

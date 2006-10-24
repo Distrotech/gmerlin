@@ -409,7 +409,7 @@ static int init_xadll(bgav_stream_t * s)
   priv->decinfo.extra = codec_hdr.extra;
   s->data.video.decoder->priv = priv;
   s->data.video.format.pixelformat = GAVL_YUV_420_P;
-
+  s->description = bgav_sprintf("3ivx");
   free(codec_hdr.anim_hdr);
 
   return 1;

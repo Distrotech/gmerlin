@@ -30,6 +30,12 @@
 
 #include <dvframe.h>
 
+#ifdef HAVE_LIBPOSTPROC
+#include <postprocess.h>
+#endif
+
+#define LOG_DOMAIN "ffmpeg_video"
+
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
 typedef struct
@@ -144,6 +150,7 @@ static codec_info_t codec_infos[] =
                BGAV_MK_FOURCC('B', 'L', 'Z', '0'),
                BGAV_MK_FOURCC('m', 'p', '4', 'v'),
                BGAV_MK_FOURCC('U', 'M', 'P', '4'),
+               BGAV_MK_FOURCC('3', 'I', 'V', '2'),
                0x00 } },
     
     { "FFmpeg MSMPEG4V3 decoder", "Microsoft MPEG-4 V3", CODEC_ID_MSMPEG4V3,
@@ -175,7 +182,13 @@ static codec_info_t codec_infos[] =
     { "FFmpeg WMV2 decoder", "Window Media Video 8", CODEC_ID_WMV2,
       (uint32_t[]){ BGAV_MK_FOURCC('W', 'M', 'V', '2'),
                0x00 } }, 
-
+#if 0    
+    // [wmv3 @ 0xb63fe128]Old WMV3 version detected, only I-frames will be decoded
+    { "FFmpeg WMV3 decoder", "Window Media Video 9", CODEC_ID_WMV3,
+      (uint32_t[]){ BGAV_MK_FOURCC('W', 'M', 'V', '3'),
+               0x00 } }, 
+#endif
+    
     /************************************************************
      * DV Decoder
      ************************************************************/
@@ -265,15 +278,46 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '3', '1'),
                     BGAV_MK_FOURCC('V', 'P', '3', ' '),
                0x00 } },
+#if 0
+    // elvis-ad1-120.nsv is completely messed up
+    { "FFmpeg VP5 decoder", "On2 VP5", CODEC_ID_VP3,
+      (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '5', '0'),
+                    0x00 } },
+    // http://samples.mplayerhq.hu/V-codecs/VP6/harry3-40.vp6 messed up
+    { "FFmpeg VP6.2 decoder", "On2 VP6.2", CODEC_ID_VP6,
+      (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '2'),
+               0x00 } },
+#endif
 
+    
     { "FFmpeg ASV1 decoder", "Asus v1", CODEC_ID_ASV1,
       (uint32_t[]){ BGAV_MK_FOURCC('A', 'S', 'V', '1'),
                0x00 } },
-
+    
     { "FFmpeg ASV2 decoder", "Asus v2", CODEC_ID_ASV2,
       (uint32_t[]){ BGAV_MK_FOURCC('A', 'S', 'V', '2'),
+                    0x00 } },
+
+    { "FFmpeg AASC decoder", "Autodesk Animator Studio Codec", CODEC_ID_AASC,
+      (uint32_t[]){ BGAV_MK_FOURCC('A', 'A', 'S', 'C'),
                0x00 } },
 
+    { "FFmpeg CSCD decoder", "CamStudio Screen Codec", CODEC_ID_CSCD,
+      (uint32_t[]){ BGAV_MK_FOURCC('C', 'S', 'C', 'D'),
+               0x00 } },
+
+    { "FFmpeg DUCK decoder", "Duck TrueMotion 1", CODEC_ID_TRUEMOTION1,
+      (uint32_t[]){ BGAV_MK_FOURCC('D', 'U', 'C', 'K'),
+               0x00 } },
+
+    { "FFmpeg KMVC decoder", "Karl Morton's video codec", CODEC_ID_KMVC,
+      (uint32_t[]){ BGAV_MK_FOURCC('K', 'M', 'V', 'C'),
+               0x00 } },
+#if 0 // Crash
+    { "FFmpeg LOCO decoder", "LOCO", CODEC_ID_LOCO,
+      (uint32_t[]){ BGAV_MK_FOURCC('L', 'O', 'C', 'O'),
+               0x00 } },
+#endif
     { "FFmpeg VCR1 decoder", "ATI VCR1", CODEC_ID_VCR1,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'C', 'R', '1'),
                0x00 } },
@@ -465,7 +509,14 @@ typedef struct
   int64_t old_pts[FF_MAX_B_FRAMES+1];
   int num_old_pts;
   int delay, last_delay;
-  
+
+#ifdef HAVE_LIBPOSTPROC
+  int do_pp;
+  pp_context_t *pp_context;
+  pp_mode_t    *pp_mode;
+#endif
+
+  int flip_y;
   } ffmpeg_video_priv;
 
 static codec_info_t * lookup_codec(bgav_stream_t * s)
@@ -503,7 +554,11 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   /* We get the DV format info ourselfes, since the values
      ffmpeg returns are not reliable */
   bgav_dv_dec_t * dvdec;
-
+#ifdef HAVE_LIBPOSTPROC
+  int accel_flags;
+  int pp_flags;
+#endif
+  
   priv = (ffmpeg_video_priv*)(s->data.video.decoder->priv);
   
   
@@ -740,6 +795,52 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
           }
         
         }
+#ifdef HAVE_LIBPOSTPROC
+      /* Initialize postprocessing */
+      if(s->opt->pp_level > 0)
+        {
+        switch(priv->info->ffmpeg_id)
+          {
+          case CODEC_ID_MPEG4:
+          case CODEC_ID_MSMPEG4V1:
+          case CODEC_ID_MSMPEG4V2:
+          case CODEC_ID_MSMPEG4V3:
+          case CODEC_ID_WMV1:
+          case CODEC_ID_WMV2:
+          case CODEC_ID_WMV3:
+            priv->do_pp = 1;
+            accel_flags = gavl_accel_supported();
+
+            if(s->data.video.format.pixelformat != GAVL_YUV_420_P)
+              {
+              bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                       "Unsupported pixelformat for postprocessing");
+              priv->do_pp = 0;
+              break;
+              }
+            pp_flags = PP_FORMAT_420;
+            
+            if(accel_flags & GAVL_ACCEL_MMX)
+              pp_flags |= PP_CPU_CAPS_MMX;
+            if(accel_flags & GAVL_ACCEL_MMXEXT)
+              pp_flags |= PP_CPU_CAPS_MMX2;
+            if(accel_flags & GAVL_ACCEL_3DNOW)
+              pp_flags |= PP_CPU_CAPS_3DNOW;
+
+            priv->pp_context =
+              pp_get_context(priv->ctx->width, priv->ctx->height,
+                             pp_flags);
+            priv->pp_mode = pp_get_mode_by_name_and_quality("hb:a,vb:a,dr:a",
+                                                            s->opt->pp_level);
+            
+            break;
+          default:
+            priv->do_pp = 0;
+            break;
+          }
+        
+        }
+#endif
       
       return 1;
       }
@@ -760,21 +861,34 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         }
       else if(!priv->do_convert)
         {
-        priv->gavl_frame->planes[0]  = priv->frame->data[0];
-        priv->gavl_frame->planes[1]  = priv->frame->data[1];
-        priv->gavl_frame->planes[2]  = priv->frame->data[2];
-      
-        priv->gavl_frame->strides[0] = priv->frame->linesize[0];
-        priv->gavl_frame->strides[1] = priv->frame->linesize[1];
-        priv->gavl_frame->strides[2] = priv->frame->linesize[2];
-#if 0
-        fprintf(stderr, "gavl_video_frame_copy %d %d %d %lld\n",
-                priv->frame->linesize[0],
-                priv->frame->linesize[1],
-                priv->frame->linesize[2],
-                s->position);
-#endif   
-        gavl_video_frame_copy(&(s->data.video.format), f, priv->gavl_frame);
+#ifdef HAVE_LIBPOSTPROC
+        if(priv->do_pp)
+          {
+          pp_postprocess(priv->frame->data, priv->frame->linesize,
+                         f->planes, f->strides,
+                         priv->ctx->width, priv->ctx->height,
+                         priv->frame->qscale_table, priv->frame->qstride,
+                         priv->pp_mode, priv->pp_context,
+                         priv->frame->pict_type);
+          }
+        else
+          {
+#endif
+          priv->gavl_frame->planes[0]  = priv->frame->data[0];
+          priv->gavl_frame->planes[1]  = priv->frame->data[1];
+          priv->gavl_frame->planes[2]  = priv->frame->data[2];
+          
+          priv->gavl_frame->strides[0] = priv->frame->linesize[0];
+          priv->gavl_frame->strides[1] = priv->frame->linesize[1];
+          priv->gavl_frame->strides[2] = priv->frame->linesize[2];
+
+          if(priv->flip_y)
+            gavl_video_frame_copy_flip_y(&(s->data.video.format), f, priv->gavl_frame);
+          else
+            gavl_video_frame_copy(&(s->data.video.format), f, priv->gavl_frame);
+#ifdef HAVE_LIBPOSTPROC
+          }
+#endif
         }
       else
         {
@@ -833,6 +947,12 @@ static int init(bgav_stream_t * s)
   ffmpeg_video_priv * priv;
   priv = calloc(1, sizeof(*priv));
 
+  if(s->data.video.format.image_height < 0)
+    {
+    s->data.video.format.image_height = -s->data.video.format.image_height;
+    priv->flip_y = 1;
+    }
+  
   priv->last_delay = -1;
 
   priv->info = lookup_codec(s);
@@ -920,7 +1040,7 @@ static int init(bgav_stream_t * s)
      (s->fourcc == BGAV_MK_FOURCC('R','V','2','0')))
     {
     priv->ctx->extradata_size= 8;
-    priv->ctx->extradata = priv->rv_extradata;
+    priv->ctx->extradata = (uint8_t*)priv->rv_extradata;
     
     if(priv->ctx->extradata_size != 8)
       {
@@ -1015,7 +1135,12 @@ static void close_ffmpeg(bgav_stream_t * s)
     }
   if(priv->extradata)
     free(priv->extradata);
-  
+#ifdef HAVE_LIBPOSTPROC
+  if(priv->pp_mode)
+    pp_free_mode(priv->pp_mode);
+  if(priv->pp_context)
+    pp_free_context(priv->pp_context);
+#endif  
   free(priv->frame);
   free(priv);
   }
