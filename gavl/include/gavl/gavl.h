@@ -83,6 +83,35 @@ typedef struct gavl_video_format_s gavl_video_format_t;
 
 #define GAVL_QUALITY_DEFAULT 2 
 
+/** \defgroup accel_flags Acceleration flags
+ *  \brief CPU specific acceleration flags
+ *
+ *  These flags are used internally by gavl to obtain the supported
+ *  acceleration mechanisms at runtime. Some applications however might
+ *  need them as well for other tasks, so they are exported into the
+ *  public API.
+ *
+ *  @{
+ */
+  
+#define GAVL_ACCEL_MMX      (1<<0) //!< MMX
+#define GAVL_ACCEL_MMXEXT   (1<<1) //!< Extended MMX (a.k.a MMX2)
+#define GAVL_ACCEL_SSE      (1<<2) //!< Intel SSE
+#define GAVL_ACCEL_SSE2     (1<<3) //!< Intel SSE2
+#define GAVL_ACCEL_SSE3     (1<<4) //!< Intel SSE3
+#define GAVL_ACCEL_3DNOW    (1<<5) //!< AMD 3Dnow
+#define GAVL_ACCEL_3DNOWEXT (1<<6) //!< AMD 3Dnow ext
+
+/** \brief Get the supported acceleration flags
+ *  \returns A combination of GAVL_ACCEL_* flags.
+ */
+  
+int gavl_accel_supported();
+
+/**
+ *  @}
+ */
+  
 /** \defgroup audio Audio
  *  \brief Audio support
  */

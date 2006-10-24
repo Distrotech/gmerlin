@@ -1,11 +1,20 @@
-noinst_PROGRAMS = \
+if HAVE_LIBPNG
+png_programs = \
 colorspace_test \
-colorspace_time \
 fill_test \
+blend_test \
+scaletest 
+else
+png_programs =
+endif
+
+noinst_PROGRAMS = \
+$(png_programs) \
+colorspace_time \
 plot_scale_kernels \
-scaletest scale_time \
-timescale_test \
-blend_test
+scaletest \
+scale_time \
+timescale_test
 
 colorspace_test_SOURCES = colorspace_test.c
 colorspace_test_LDADD = ../gavl/libgavl.la -lpng -lz

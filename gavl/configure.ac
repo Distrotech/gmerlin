@@ -61,6 +61,12 @@ AC_C99_FUNC_LRINTF
 AC_CHECK_HEADERS(sys/times.h)
 
 dnl
+dnl Check for libpng (only needed for some tests)
+dnl
+
+GMERLIN_CHECK_LIBPNG
+
+dnl
 dnl Build optimization flags
 dnl
 
