@@ -298,6 +298,11 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('A', 'S', 'V', '2'),
                     0x00 } },
 
+    { "FFmpeg WNV1 decoder", "Winnow Video 1", CODEC_ID_WNV1,
+      (uint32_t[]){ BGAV_MK_FOURCC('W', 'N', 'V', '1'),
+               0x00 } },
+
+    
     { "FFmpeg AASC decoder", "Autodesk Animator Studio Codec", CODEC_ID_AASC,
       (uint32_t[]){ BGAV_MK_FOURCC('A', 'A', 'S', 'C'),
                0x00 } },
