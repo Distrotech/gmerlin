@@ -47,7 +47,7 @@ cfgtest_SOURCES = cfgtest.c
 cfgtest_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
 
 v4ltest_SOURCES = v4ltest.c
-v4ltest_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
+v4ltest_LDADD = ../lib/libgmerlin.la
 
 scrolltext_SOURCES = scrolltext.c
 scrolltext_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
