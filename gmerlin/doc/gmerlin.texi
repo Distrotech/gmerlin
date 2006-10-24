@@ -634,12 +634,78 @@ By right clicking on a control, you can:
 
 All window configurations and coordinates are remembered. The actual mixer
 settings are @emph{not} remembered, since this is done globally by the
-startup scripts.
+Alsa startup scripts.
   
 @node FAQ
 @chapter FAQ
 
+@menu
+* General questions::
+* Installation questions::
+* Usage questions::
+@end menu
 
+@node General questions
+@section General questions
+
+@node Installation questions
+@section Installation questions
+
+@strong{Q:} @emph{Why do I have to install so many packages?}
+
+@strong{A:} Gmerlins development philosophy is to be as modular and as reusable as
+   possible. There are, for example, some 3rd party software projects which
+   use gavl. Letting them install one giant gmerlin package only for using
+   one tiny feature from it would be annoying. Another issue are codecs,
+   which are hard to set up (mostly because many distributions refuse to
+   include them due to license/patent issues).
+
+@node Usage questions
+@section Usage questions
+
+@strong{Q:} @emph{Can I play a VCD image from harddisk before burning?}
+
+@strong{A:} Yes. If you use vcdimager, you have 2 files: a .bin file and a .cue
+   file. If you load the .cue file with the avdecoder plugin, you'll be
+   able to play the VCD image.
+
+@strong{Q:} @emph{Can I play a DVD image from harddisk or from a mounted DVD drive?}
+
+@strong{A:} Yes, in the dvd directory, go to the subdirectory @code{video_ts} and load the
+   file @code{video_ts.ifo}.
+   
+@strong{Q:} @emph{Can I play an audio CD image from harddisk before burning?}
+
+@strong{A:} Not yet.
+
+@strong{Q:} @emph{How can I make gmerlin the default audio CD player on my Desktop environment?}
+
+@strong{A:} First, find out how to configure the default audio CD player on your system.
+   Usually, you can set a command, which is executed, when a new audio cd is inserted.
+   Assuming your cdrom device is @code{/dev/hdd}, the command for opening and playing
+   an audio cd is:
+
+   @code{gmerlin_remote -launch -openplay cda:///dev/hdd}
+
+   If you just want ot open the CD (without starting playback), use:
+
+   @code{gmerlin_remote -launch -open cda:///dev/hdd}
+   
+@strong{Q:} @emph{How can I make gmerlin the default DVD player on my Desktop environment?}
+
+@strong{A:} Same as for audio CDs, but replace @code{cda://} with @code{dvd://}.
+
+@strong{Q:} @emph{How can I configure gmerlin as a Mime handler for media files on my Desktop environment?}
+
+@strong{A:} Find out how to set up mime handlers (e.g. right click onto a file and select ``Open with...'').
+   Then, enter the command @code{gmerlin_launcher}.
+   
+@strong{Q:} @emph{How can I map multimedia keys on my keyboard to gmerlin functions?}
+
+@strong{A:} You need some way to configure custom shell commands for multimedia keys. Check the
+documentation of your Desktop system. To remote control gmerlin, use the commandline program
+@code{gmerlin_remote}. Type @code{gmerlin_remote -help} for supported options and commands.
+   
 @node Get involved
 @chapter Get involved
 

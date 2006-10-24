@@ -323,7 +323,7 @@ static void set_parameter_lqt(void * data, char * name,
   if(!name)
     return;
 
-  fprintf(stderr, "set_parameter_lqt %s\n", name);
+  //  fprintf(stderr, "set_parameter_lqt %s\n", name);
   
   if(!e->parameters)
     create_parameters(e);

@@ -148,7 +148,13 @@ void bg_cdaudio_get_disc_id(bg_cdaudio_index_t * idx, char disc_id[DISCID_SIZE])
 
 CdIo_t * bg_cdaudio_open(const char * device)
   {
+  driver_return_code_t err;
   CdIo_t * ret;
+
+  /* Close the tray */
+  if((err = cdio_close_tray(device, NULL)))
+    fprintf(stderr, "cdio_close_tray failed: %s\n",
+            cdio_driver_errmsg(err));
   //  fprintf(stderr, "Opening CD device %s...", device);
   ret = cdio_open (device, DRIVER_DEVICE);
 #if 0
