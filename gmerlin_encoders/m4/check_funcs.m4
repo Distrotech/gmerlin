@@ -38,6 +38,44 @@ fi
 ])
 
 dnl
+dnl libpostproc
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_LIBPOSTPROC],[
+
+AH_TEMPLATE([HAVE_LIBPOSTPROC],
+            [Do we have libpostproc installed?])
+
+have_libpostproc=false
+
+LIBPOSTPROC_REQUIRED="51.21.0"
+
+AC_ARG_ENABLE(libpostproc,
+[AC_HELP_STRING([--disable-libpostproc],[Disable libpostproc (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_libpostproc=true ;;
+   no)  test_libpostproc=false ;;
+esac],[test_libpostproc=true])
+
+if test x$test_libpostproc = xtrue; then
+
+PKG_CHECK_MODULES(LIBPOSTPROC, libpostproc >= $LIBPOSTPROC_REQUIRED, have_libpostproc="true", have_libpostproc="false")
+fi
+
+AC_SUBST(LIBPOSTPROC_REQUIRED)
+AC_SUBST(LIBPOSTPROC_LIBS)
+AC_SUBST(LIBPOSTPROC_CFLAGS)
+
+AM_CONDITIONAL(HAVE_LIBPOSTPROC, test x$have_libpostproc = xtrue)
+
+if test "x$have_libpostproc" = "xtrue"; then
+AC_DEFINE([HAVE_LIBPOSTPROC])
+fi
+
+])
+
+
+dnl
 dnl Check for theora
 dnl
 
