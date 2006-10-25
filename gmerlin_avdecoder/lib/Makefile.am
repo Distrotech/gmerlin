@@ -304,6 +304,7 @@ demux_ra.c \
 demux_rm.c \
 demux_tta.c \
 demux_vivo.c \
+demux_voc.c \
 demux_wav.c \
 demux_wavpack.c \
 device.c \

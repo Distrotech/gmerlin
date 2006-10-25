@@ -108,6 +108,15 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('M', 'A', 'C', '3'), 0x00 } },
     { "FFmpeg MACE6 decoder", "Apple MACE 6", CODEC_ID_MACE6,
       (uint32_t[]){ BGAV_MK_FOURCC('M', 'A', 'C', '6'), 0x00 } },
+
+    { "FFmpeg Soundblaster Pro ADPCM 2 decoder", "Soundblaster Pro ADPCM 2", CODEC_ID_ADPCM_SBPRO_2,
+      (uint32_t[]){ BGAV_MK_FOURCC('S', 'B', 'P', '2'), 0x00 } },
+
+    { "FFmpeg Soundblaster Pro ADPCM 3 decoder", "Soundblaster Pro ADPCM 3", CODEC_ID_ADPCM_SBPRO_3,
+      (uint32_t[]){ BGAV_MK_FOURCC('S', 'B', 'P', '3'), 0x00 } },
+
+    { "FFmpeg Soundblaster Pro ADPCM 4 decoder", "Soundblaster Pro ADPCM 4", CODEC_ID_ADPCM_SBPRO_4,
+      (uint32_t[]){ BGAV_MK_FOURCC('S', 'B', 'P', '4'), 0x00 } },
   };
 
 
