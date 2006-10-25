@@ -35,7 +35,7 @@
 #define VOC_TYPE_EXTENDED         0x08
 #define VOC_TYPE_NEW_VOICE_DATA   0x09
 
-static const uint8_t * voc_magic = "Creative Voice File\x1A";
+static const char * voc_magic = "Creative Voice File\x1A";
 #define PROBE_LEN 26
 
 #define MAX_PACKET_LEN 2048
@@ -45,11 +45,11 @@ static const uint8_t * voc_magic = "Creative Voice File\x1A";
 typedef struct
   {
   uint8_t type;
-  int len;
+  uint32_t len;
   } chunk_header_t;
 
-static int read_chunk_header(chunk_header_t * ret,
-                             bgav_input_context_t * input)
+static int read_chunk_header(bgav_input_context_t * input,
+                             chunk_header_t * ret)
   {
   if(!bgav_input_read_data(input, &(ret->type), 1))
     return 0;
@@ -162,7 +162,7 @@ static int open_voc(bgav_demuxer_context_t * ctx,
   done = 0;
   while(!done)
     {
-    if(!read_chunk_header(&h, ctx->input))
+    if(!read_chunk_header(ctx->input, &h))
       return 0;
 
     switch(h.type)
@@ -252,7 +252,7 @@ static int next_packet_voc(bgav_demuxer_context_t * ctx)
   while(!priv->remaining_bytes)
     {
     /* Look if we have something else to read */
-    if(!read_chunk_header(&h, ctx->input))
+    if(!read_chunk_header(ctx->input, &h))
       return 0; /* EOF */
     
     switch(h.type)

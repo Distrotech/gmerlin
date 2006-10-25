@@ -1,0 +1,447 @@
+/*****************************************************************
+ 
+  demux_4xm.c
+ 
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
+#include <avdec_private.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#define LOG_DOMAIN "4xm"
+
+// #define ID_RIFF BGAV_MK_FOURCC('R','I','F','F')
+// #define ID_4XMV BGAV_MK_FOURCC('4','X','M','V')
+
+#define ID_LIST BGAV_MK_FOURCC('L','I','S','T')
+#define ID_HEAD BGAV_MK_FOURCC('H','E','A','D')
+#define ID_HNFO BGAV_MK_FOURCC('H','N','F','O')
+#define ID_info BGAV_MK_FOURCC('i','n','f','o')
+#define ID_std_ BGAV_MK_FOURCC('s','t','d','_')
+#define ID_TRK_ BGAV_MK_FOURCC('T','R','K','_')
+#define ID_MOVI BGAV_MK_FOURCC('M','O','V','I')
+
+#define ID_vtrk BGAV_MK_FOURCC('v','t','r','k')
+#define ID_strk BGAV_MK_FOURCC('s','t','r','k')
+
+#define ID_VTRK BGAV_MK_FOURCC('V','T','R','K')
+#define ID_STRK BGAV_MK_FOURCC('S','T','R','K')
+
+#define ID_ifrm BGAV_MK_FOURCC('i','f','r','m')
+#define ID_pfrm BGAV_MK_FOURCC('p','f','r','m')
+#define ID_cfrm BGAV_MK_FOURCC('c','f','r','m')
+#define ID_snd_ BGAV_MK_FOURCC('s','n','d','_')
+
+#define AUDIO_STREAM_OFFSET 10
+
+typedef struct
+  {
+  int64_t video_pts;
+  } fourxm_priv_t;
+
+typedef struct
+  {
+  uint32_t fourcc;
+  uint32_t size;
+  uint32_t type;   /* Only valid if fourcc == LIST */
+  int64_t end_pos;
+  } fourxm_chunk_t;
+
+static int read_chunk_header(bgav_input_context_t * input,
+                              fourxm_chunk_t * ch)
+  {
+  if(input->position & 1)
+    bgav_input_skip(input, 1);
+  if(!bgav_input_read_fourcc(input, &ch->fourcc) ||
+     !bgav_input_read_32_le(input, &ch->size))
+    return 0;
+
+  ch->end_pos = input->position + ch->size;
+  
+  if(ch->fourcc == ID_LIST)
+    {
+    if(!bgav_input_read_fourcc(input, &ch->type))
+      return 0;
+    }
+  else
+    ch->type = 0;
+  
+  return 1;
+  }
+
+static void skip_chunk(bgav_input_context_t * input,
+                       fourxm_chunk_t * ch)
+  {
+  int32_t bytes_to_skip = ch->end_pos - input->position;
+  if(bytes_to_skip > 0)
+    bgav_input_skip(input, bytes_to_skip);
+  }
+
+static void dump_chunk_header(fourxm_chunk_t * ch)
+  {
+  bgav_dprintf("4xm chunk header\n");
+  bgav_dprintf("  fourcc: ");
+  bgav_dump_fourcc(ch->fourcc);
+  bgav_dprintf("\n");
+
+  bgav_dprintf("  size:   %d\n", ch->size);
+  if(ch->fourcc == ID_LIST)
+    {
+    bgav_dprintf("  type:   ");
+    bgav_dump_fourcc(ch->type);
+    bgav_dprintf("\n");
+    }
+  }
+
+static int probe_4xm(bgav_input_context_t * input)
+  {
+  uint8_t data[12];
+  if(bgav_input_get_data(input, data, 12) < 12)
+    return 0;
+
+  if((data[0]  == 'R') &&
+     (data[1]  == 'I') &&
+     (data[2]  == 'F') &&
+     (data[3]  == 'F') &&
+     (data[8]  == '4') &&
+     (data[9]  == 'X') &&
+     (data[10] == 'M') &&
+     (data[11] == 'V'))
+    return 1;
+  return 0;
+  }
+
+static int setup_audio_stream(bgav_demuxer_context_t * ctx,
+                              fourxm_chunk_t * parent)
+  {
+  fourxm_chunk_t chunk;
+  bgav_stream_t * s;
+  uint32_t tmp_32;
+  
+  while(ctx->input->position < parent->end_pos)
+    {
+    if(!read_chunk_header(ctx->input, &chunk))
+      return 0;
+
+    switch(chunk.fourcc)
+      {
+      case ID_strk:
+        s = bgav_track_add_audio_stream(ctx->tt->current_track,
+                                        ctx->opt);
+        // bytes 8-11   track number
+        if(!bgav_input_read_32_le(ctx->input, &tmp_32))
+          return 0;
+        s->stream_id = AUDIO_STREAM_OFFSET + tmp_32;
+
+        // bytes 12-15  audio type: 0 = PCM, 1 = 4X IMA ADPCM
+        if(!bgav_input_read_32_le(ctx->input, &tmp_32))
+          return 0;
+
+        switch(tmp_32)
+          {
+          case 0: // PCM
+            s->fourcc = BGAV_WAVID_2_FOURCC(0x0001);
+            break;
+          case 1:
+            s->fourcc = BGAV_MK_FOURCC('4','X','M','A');
+            break;
+          }
+        // bytes 16-35  unknown
+        bgav_input_skip(ctx->input, 35 - 16 + 1);
+
+        // bytes 36-39  number of audio channels
+        if(!bgav_input_read_32_le(ctx->input, &tmp_32))
+          return 0;
+        s->data.audio.format.num_channels = tmp_32;
+
+        // bytes 40-43  audio sample rate
+        if(!bgav_input_read_32_le(ctx->input, &tmp_32))
+          return 0;
+        s->data.audio.format.samplerate = tmp_32;
+       
+        // bytes 44-47  audio sample resolution (8 or 16 bits)
+        if(!bgav_input_read_32_le(ctx->input, &tmp_32))
+          return 0;
+
+        s->data.audio.bits_per_sample = tmp_32;
+        break;
+      default:
+        skip_chunk(ctx->input, &chunk);
+      }
+    
+    }
+  return 1;
+  }
+
+static int setup_video_stream(bgav_demuxer_context_t * ctx,
+                              fourxm_chunk_t * parent,
+                              float framerate)
+  {
+  uint32_t width, height;
+  fourxm_chunk_t chunk;
+  bgav_stream_t * s;
+  while(ctx->input->position < parent->end_pos)
+    {
+    if(!read_chunk_header(ctx->input, &chunk))
+      return 0;
+    
+    switch(chunk.fourcc)
+      {
+      case ID_vtrk:
+        s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+        
+        bgav_input_skip(ctx->input, 35-8+1); // bytes 8-35   unknown
+
+        if(!bgav_input_read_32_le(ctx->input, &width) ||
+           !bgav_input_read_32_le(ctx->input, &height))
+          return 0;
+
+        s->data.video.format.image_width = width;
+        s->data.video.format.frame_width = width;
+
+        s->data.video.format.image_height = height;
+        s->data.video.format.frame_height = height;
+
+        s->data.video.format.pixel_width  = 1;
+        s->data.video.format.pixel_height = 1;
+
+        s->data.video.format.timescale      = 1000000;
+        s->data.video.format.frame_duration = 1000000.0/framerate;
+
+        s->fourcc = BGAV_MK_FOURCC('4','X','M','V');
+
+        //        skip_chunk(ctx->input, &chunk);
+#if 1
+        bgav_input_skip(ctx->input, 4); // bytes 44-47  video width (again?)
+        bgav_input_skip(ctx->input, 4); // bytes 48-51  video height (again?)
+        bgav_input_skip(ctx->input, 75 - 52 + 1); // bytes 52-75  unknown
+#endif
+        break;
+      default:
+        skip_chunk(ctx->input, &chunk);
+      }
+
+    
+    }
+  return 1;
+  }
+
+
+static int open_4xm(bgav_demuxer_context_t * ctx,
+                   bgav_redirector_context_t ** redir)
+  {
+  int done = 0;
+  fourxm_chunk_t list_chunk;
+  fourxm_chunk_t list_subchunk;
+  fourxm_chunk_t chunk;
+  fourxm_priv_t * priv;
+  float framerate = 25.0; // Dummy value
+
+  priv = calloc(1, sizeof(*priv));
+  ctx->priv = priv;
+  
+  /* Header is already probed */
+  bgav_input_skip(ctx->input, 12);
+
+  ctx->tt = bgav_track_table_create(1);
+  
+  while(!done)
+    {
+    if(!read_chunk_header(ctx->input, &list_chunk))
+      {
+      fprintf(stderr, "Rading chunk failed");
+      return 0;
+      }
+    dump_chunk_header(&list_chunk);
+
+    switch(list_chunk.type)
+      {
+      case ID_HEAD:
+        while(ctx->input->position < list_chunk.end_pos)
+          {
+          if(!read_chunk_header(ctx->input, &list_subchunk))
+            return 0;
+          
+          dump_chunk_header(&list_subchunk);
+
+          switch(list_subchunk.type)
+            {
+            case ID_HNFO:
+              while(ctx->input->position < list_subchunk.end_pos)
+                {
+                if(!read_chunk_header(ctx->input, &chunk))
+                  return 0;
+                dump_chunk_header(&chunk);
+
+                switch(chunk.fourcc)
+                  {
+                  case ID_info:
+                    ctx->tt->current_track->metadata.comment =
+                      calloc(chunk.size+1, 1);
+                    if(bgav_input_read_data(ctx->input,
+                                            (uint8_t*)ctx->tt->current_track->metadata.comment,
+                                            chunk.size) < chunk.size)
+                      return 0;
+                    break;
+                  case ID_std_:
+                    bgav_input_skip(ctx->input, 4); // data rate
+                    if(!bgav_input_read_float_32_le(ctx->input, &framerate))
+                      return 0;
+                    break;
+                  default:
+                    skip_chunk(ctx->input, &chunk);
+                    break;
+                  }
+                }
+              break;
+            case ID_TRK_:
+              while(ctx->input->position < list_subchunk.end_pos)
+                {
+                if(!read_chunk_header(ctx->input, &chunk))
+                  return 0;
+                dump_chunk_header(&chunk);
+
+                switch(chunk.type)
+                  {
+                  case ID_VTRK:
+                    if(!setup_video_stream(ctx, &chunk, framerate))
+                      return 0;
+                    break;
+                  case ID_STRK:
+                    if(!setup_audio_stream(ctx, &chunk))
+                      return 0;
+                    break;
+                  default:
+                    skip_chunk(ctx->input, &chunk);
+                    break;
+                  }
+                }
+              skip_chunk(ctx->input, &list_subchunk);
+              break;
+            default:
+              skip_chunk(ctx->input, &list_subchunk);
+              break;
+            }
+          }
+        break;
+      case ID_MOVI:
+        done = 1;
+        break;
+      default:
+        skip_chunk(ctx->input, &list_chunk);
+        break;
+      }
+    }
+  ctx->stream_description = bgav_sprintf("4XM");
+  return 1;
+  }
+
+static int next_packet_4xm(bgav_demuxer_context_t * ctx)
+  {
+  uint8_t header[8];
+  uint32_t fourcc;
+  int done = 0;
+  fourxm_chunk_t chunk;
+  uint32_t size;
+  bgav_stream_t * s;
+  bgav_packet_t * p;
+  uint32_t stream_id;
+  fourxm_priv_t * priv;
+
+  priv = (fourxm_priv_t*)(ctx->priv);
+  
+  while(!done)
+    {
+    if(ctx->input->position & 1)
+      bgav_input_skip(ctx->input, 1);
+    
+    if(bgav_input_read_data(ctx->input, header, 8) < 8)
+      return 0;
+
+    //    fprintf(stderr, "Chunk header: ");
+    //    bgav_hexdump(header, 8, 8);
+    
+    fourcc = BGAV_PTR_2_FOURCC(&header[0]);
+    switch(fourcc)
+      {
+      case ID_LIST:
+        bgav_input_skip(ctx->input, 4); // FRAM
+        break;
+      case ID_ifrm:
+      case ID_pfrm:
+      case ID_cfrm:
+        size = BGAV_PTR_2_32LE(&header[4]);
+        s = bgav_track_find_stream(ctx->tt->current_track, 0);
+
+        if(!s)
+          {
+          done = 1;
+          break;
+          }
+        
+        p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        bgav_packet_alloc(p, size + 8);
+        memcpy(p->data, header, 8);
+        p->data_size = 8 + bgav_input_read_data(ctx->input, p->data+8, size);
+
+        p->timestamp_scaled = priv->video_pts;
+        priv->video_pts += s->data.video.format.frame_duration;
+
+        bgav_packet_done_write(p);
+
+
+        done = 1;
+        break;
+      case ID_snd_:
+        size = BGAV_PTR_2_32LE(&header[4]);
+        if(!bgav_input_read_32_le(ctx->input, &stream_id))
+          return 0;
+        bgav_input_skip(ctx->input, 4); // out_size
+        s = bgav_track_find_stream(ctx->tt->current_track,
+                                   stream_id + AUDIO_STREAM_OFFSET);
+
+        if(!s)
+          {
+          done = 1;
+          break;
+          }
+        
+        p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        bgav_packet_alloc(p, size - 8);
+        p->data_size = bgav_input_read_data(ctx->input, p->data, size-8);
+        bgav_packet_done_write(p);
+        done = 1;
+      }
+    }
+  
+  return 1;
+  }
+
+static void close_4xm(bgav_demuxer_context_t * ctx)
+  {
+  fourxm_priv_t * priv;
+  priv = (fourxm_priv_t*)(ctx->priv);
+  free(priv);
+  }
+
+bgav_demuxer_t bgav_demuxer_4xm =
+  {
+    probe:       probe_4xm,
+    open:        open_4xm,
+    next_packet: next_packet_4xm,
+    close:       close_4xm
+  };

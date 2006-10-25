@@ -117,6 +117,10 @@ static codec_info_t codec_infos[] =
 
     { "FFmpeg Soundblaster Pro ADPCM 4 decoder", "Soundblaster Pro ADPCM 4", CODEC_ID_ADPCM_SBPRO_4,
       (uint32_t[]){ BGAV_MK_FOURCC('S', 'B', 'P', '4'), 0x00 } },
+
+    { "FFmpeg 4xm audio decoder", "4XM ADPCM", CODEC_ID_ADPCM_4XM,
+      (uint32_t[]){ BGAV_MK_FOURCC('4', 'X', 'M', 'A'), 0x00 } },
+
   };
 
 

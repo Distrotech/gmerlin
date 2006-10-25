@@ -281,6 +281,8 @@ bgav.c \
 charset.c \
 codecs.c \
 demuxer.c \
+demux_4xm.c \
+demux_8svx.c \
 demux_aac.c \
 demux_aiff.c \
 demux_asf.c \
@@ -291,7 +293,6 @@ demux_flac.c \
 demux_fli.c \
 demux_flv.c \
 demux_gsm.c \
-demux_8svx.c \
 demux_ircam.c \
 demux_sphere.c \
 demux_mpegaudio.c \

@@ -323,6 +323,12 @@ static codec_info_t codec_infos[] =
     { "FFmpeg KMVC decoder", "Karl Morton's video codec", CODEC_ID_KMVC,
       (uint32_t[]){ BGAV_MK_FOURCC('K', 'M', 'V', 'C'),
                0x00 } },
+
+    { "FFmpeg 4XM video decoder", "4XM Video", CODEC_ID_4XM,
+      (uint32_t[]){ BGAV_MK_FOURCC('4', 'X', 'M', 'V'),
+               0x00 } },
+
+
 #if 0 // Crash
     { "FFmpeg LOCO decoder", "LOCO", CODEC_ID_LOCO,
       (uint32_t[]){ BGAV_MK_FOURCC('L', 'O', 'C', 'O'),

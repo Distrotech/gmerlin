@@ -52,6 +52,7 @@ extern bgav_demuxer_t bgav_demuxer_mpegts;
 extern bgav_demuxer_t bgav_demuxer_flac;
 extern bgav_demuxer_t bgav_demuxer_aac;
 extern bgav_demuxer_t bgav_demuxer_nsv;
+extern bgav_demuxer_t bgav_demuxer_4xm;
 
 #ifdef HAVE_VORBIS
 extern bgav_demuxer_t bgav_demuxer_ogg;
@@ -97,6 +98,7 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_wavpack,   "Wavpack" },
     { &bgav_demuxer_tta,       "True Audio" },
     { &bgav_demuxer_voc,       "Creative voice" },
+    { &bgav_demuxer_4xm,       "4xm" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif
