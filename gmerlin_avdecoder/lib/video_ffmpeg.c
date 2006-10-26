@@ -231,6 +231,15 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('L', 'J', 'P', 'G'),
                0x00 } },
 
+    { "FFmpeg SP5X decoder", "SP5X Motion JPEG", CODEC_ID_SP5X,
+      (uint32_t[]){ BGAV_MK_FOURCC('S', 'P', '5', '4'),
+               0x00 } },
+
+    // Untested, seems to exist only as image format in the wild
+    { "FFmpeg JPEG-LS decoder", "JPEG-LS", CODEC_ID_JPEGLS,
+      (uint32_t[]){ BGAV_MK_FOURCC('M', 'J', 'L', 'S'),
+                    0x00 } },
+    
     /*************************************************************
      * Proprietary Codecs
      *************************************************************/
@@ -362,7 +371,13 @@ static codec_info_t codec_infos[] =
     { "FFmpeg ULTI decoder", "IBM Ultimotion", CODEC_ID_ULTI,
       (uint32_t[]){ BGAV_MK_FOURCC('U', 'L', 'T', 'I'),
                0x00 } },
+    
+    /* Untested (no samples found) */
+    { "FFmpeg Video 1 (FFV1) decoder", "FFV1", CODEC_ID_FFV1,
+      (uint32_t[]){ BGAV_MK_FOURCC('F', 'F', 'V', '1'),
+               0x00 } },
 
+    
     { "FFmpeg H264 decoder", "H264", CODEC_ID_H264,
       (uint32_t[]){ BGAV_MK_FOURCC('a', 'v', 'c', '1'),
                BGAV_MK_FOURCC('H', '2', '6', '4'),

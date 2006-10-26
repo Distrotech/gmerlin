@@ -51,6 +51,8 @@
 typedef struct
   {
   int64_t video_pts;
+  int32_t pts_inc;
+  uint32_t movi_end;
   } fourxm_priv_t;
 
 typedef struct
@@ -91,6 +93,7 @@ static void skip_chunk(bgav_input_context_t * input,
     bgav_input_skip(input, bytes_to_skip);
   }
 
+#if 0
 static void dump_chunk_header(fourxm_chunk_t * ch)
   {
   bgav_dprintf("4xm chunk header\n");
@@ -106,6 +109,7 @@ static void dump_chunk_header(fourxm_chunk_t * ch)
     bgav_dprintf("\n");
     }
   }
+#endif
 
 static int probe_4xm(bgav_input_context_t * input)
   {
@@ -194,6 +198,8 @@ static int setup_video_stream(bgav_demuxer_context_t * ctx,
   uint32_t width, height;
   fourxm_chunk_t chunk;
   bgav_stream_t * s;
+  fourxm_priv_t * priv = (fourxm_priv_t *)(ctx->priv);
+  
   while(ctx->input->position < parent->end_pos)
     {
     if(!read_chunk_header(ctx->input, &chunk))
@@ -222,6 +228,10 @@ static int setup_video_stream(bgav_demuxer_context_t * ctx,
         s->data.video.format.timescale      = 1000000;
         s->data.video.format.frame_duration = 1000000.0/framerate;
 
+        priv->pts_inc = s->data.video.format.frame_duration;
+        
+        /* Will be increased before the first frame is read */
+        priv->video_pts = - priv->pts_inc;
         s->fourcc = BGAV_MK_FOURCC('4','X','M','V');
 
         //        skip_chunk(ctx->input, &chunk);
@@ -266,7 +276,7 @@ static int open_4xm(bgav_demuxer_context_t * ctx,
       fprintf(stderr, "Rading chunk failed");
       return 0;
       }
-    dump_chunk_header(&list_chunk);
+    //    dump_chunk_header(&list_chunk);
 
     switch(list_chunk.type)
       {
@@ -276,7 +286,7 @@ static int open_4xm(bgav_demuxer_context_t * ctx,
           if(!read_chunk_header(ctx->input, &list_subchunk))
             return 0;
           
-          dump_chunk_header(&list_subchunk);
+          //          dump_chunk_header(&list_subchunk);
 
           switch(list_subchunk.type)
             {
@@ -285,7 +295,7 @@ static int open_4xm(bgav_demuxer_context_t * ctx,
                 {
                 if(!read_chunk_header(ctx->input, &chunk))
                   return 0;
-                dump_chunk_header(&chunk);
+                //                dump_chunk_header(&chunk);
 
                 switch(chunk.fourcc)
                   {
@@ -313,7 +323,7 @@ static int open_4xm(bgav_demuxer_context_t * ctx,
                 {
                 if(!read_chunk_header(ctx->input, &chunk))
                   return 0;
-                dump_chunk_header(&chunk);
+                //                dump_chunk_header(&chunk);
 
                 switch(chunk.type)
                   {
@@ -339,6 +349,7 @@ static int open_4xm(bgav_demuxer_context_t * ctx,
           }
         break;
       case ID_MOVI:
+        priv->movi_end = list_chunk.end_pos;
         done = 1;
         break;
       default:
@@ -366,8 +377,12 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
   
   while(!done)
     {
+    // FIXME: Is this needed/correct?
     if(ctx->input->position & 1)
       bgav_input_skip(ctx->input, 1);
+
+    if(ctx->input->position >= priv->movi_end)
+      return 0; // EOF
     
     if(bgav_input_read_data(ctx->input, header, 8) < 8)
       return 0;
@@ -376,10 +391,14 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
     //    bgav_hexdump(header, 8, 8);
     
     fourcc = BGAV_PTR_2_FOURCC(&header[0]);
+    //    fprintf(stderr, "FOURCC: ");
+    //    bgav_dump_fourcc(fourcc);
+    //    fprintf(stderr, "\n");
     switch(fourcc)
       {
       case ID_LIST:
         bgav_input_skip(ctx->input, 4); // FRAM
+        priv->video_pts += priv->pts_inc;
         break;
       case ID_ifrm:
       case ID_pfrm:
@@ -387,9 +406,12 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
         size = BGAV_PTR_2_32LE(&header[4]);
         s = bgav_track_find_stream(ctx->tt->current_track, 0);
 
+        //  fprintf(stderr, "Size: %d, pts: %lld\n", size, priv->video_pts);
+        
         if(!s)
           {
           done = 1;
+          bgav_input_skip(ctx->input, size);
           break;
           }
         
@@ -398,9 +420,11 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
         memcpy(p->data, header, 8);
         p->data_size = 8 + bgav_input_read_data(ctx->input, p->data+8, size);
 
+        if(p->data_size < size + 8)
+          return 0;
+                
         p->timestamp_scaled = priv->video_pts;
-        priv->video_pts += s->data.video.format.frame_duration;
-
+        
         bgav_packet_done_write(p);
 
 
@@ -408,6 +432,9 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
         break;
       case ID_snd_:
         size = BGAV_PTR_2_32LE(&header[4]);
+
+        // fprintf(stderr, "Size: %d, pos: %lld\n", size, ctx->input->position);
+        
         if(!bgav_input_read_32_le(ctx->input, &stream_id))
           return 0;
         bgav_input_skip(ctx->input, 4); // out_size
@@ -416,6 +443,7 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
 
         if(!s)
           {
+          bgav_input_skip(ctx->input, size-8);
           done = 1;
           break;
           }
@@ -423,8 +451,21 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
         p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
         bgav_packet_alloc(p, size - 8);
         p->data_size = bgav_input_read_data(ctx->input, p->data, size-8);
+
+        if(p->data_size < size-8)
+          return 0;
         bgav_packet_done_write(p);
         done = 1;
+        break;
+      default:
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Warning: Unknown Chunk %c%c%c%c",
+                 (fourcc & 0xFF000000) >> 24,
+                 (fourcc & 0x00FF0000) >> 16,
+                 (fourcc & 0x0000FF00) >> 8,
+                 (fourcc & 0x000000FF));
+        /* Exit here to prevent crashes with some broken files */
+        return 0;
       }
     }
   
