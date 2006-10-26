@@ -83,10 +83,19 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x02),
                     BGAV_MK_FOURCC('m', 's', 0x00, 0x02), 0x00 } },
 
-    { "FFmpeg WAV ADPCM decoder", "WAV ADPCM", CODEC_ID_ADPCM_IMA_WAV,
+    { "FFmpeg WAV ADPCM decoder", "WAV IMA ADPCM", CODEC_ID_ADPCM_IMA_WAV,
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x11),
                     BGAV_MK_FOURCC('m', 's', 0x00, 0x11), 0x00 } },
 
+    { "FFmpeg Creative ADPCM decoder", "Creative ADPCM", CODEC_ID_ADPCM_CT,
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x200),
+                    0x00 } },
+
+    { "FFmpeg G726 decoder", "G726 ADPCM", CODEC_ID_ADPCM_G726,
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0045),
+                    0x00 } },
+    
+    
 #if 0 // Sounds disgusting
     { "FFmpeg Flash ADPCM decoder", "Flash ADPCM", CODEC_ID_ADPCM_SWF,
       (uint32_t[]){ BGAV_MK_FOURCC('F', 'L', 'A', '1'), 0x00 } },

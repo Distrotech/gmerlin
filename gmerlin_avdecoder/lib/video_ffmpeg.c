@@ -91,6 +91,7 @@ static codec_info_t codec_infos[] =
 
     { "FFmpeg Creative YUV decoder", "Creative YUV", CODEC_ID_CYUV,
       (uint32_t[]){ BGAV_MK_FOURCC('C', 'Y', 'U', 'V'),
+                    BGAV_MK_FOURCC('c', 'y', 'u', 'v'),
                0x00 } },
 
     { "FFmpeg MSRLE Decoder", "Microsoft RLE", CODEC_ID_MSRLE,
@@ -106,7 +107,9 @@ static codec_info_t codec_infos[] =
     { "FFmpeg FLI/FLC Decoder", "FLI/FLC Animation", CODEC_ID_FLIC,
       (uint32_t[]){ BGAV_MK_FOURCC('F', 'L', 'I', 'C'),
                0x00 } },
-#if 0
+#if 0 // http://samples.mplayerhq.hu/V-codecs/h261/h261test.avi: Grey image
+      // http://samples.mplayerhq.hu/V-codecs/h261/lotr.mov: Messed up image then crash
+      // MPlayer can't play these either
     /************************************************************
      * H261 Variants
      ************************************************************/
@@ -151,6 +154,10 @@ static codec_info_t codec_infos[] =
                BGAV_MK_FOURCC('m', 'p', '4', 'v'),
                BGAV_MK_FOURCC('U', 'M', 'P', '4'),
                BGAV_MK_FOURCC('3', 'I', 'V', '2'),
+               BGAV_MK_FOURCC('W', 'V', '1', 'F'),
+               BGAV_MK_FOURCC('R', 'M', 'P', '4'),
+               BGAV_MK_FOURCC('S', 'E', 'D', 'G'),
+               BGAV_MK_FOURCC('S', 'M', 'P', '4'),
                0x00 } },
     
     { "FFmpeg MSMPEG4V3 decoder", "Microsoft MPEG-4 V3", CODEC_ID_MSMPEG4V3,
@@ -266,6 +273,15 @@ static codec_info_t codec_infos[] =
     { "FFmpeg Flash video decoder", "Flash Video 1", CODEC_ID_FLV1,
       (uint32_t[]){ BGAV_MK_FOURCC('F', 'L', 'V', '1'),
                     0x00 } },
+
+    { "FFmpeg Flash screen video decoder", "Flash Screen Video", CODEC_ID_FLASHSV,
+      (uint32_t[]){ BGAV_MK_FOURCC('F', 'L', 'V', 'S'),
+                    0x00 } },
+
+    { "FFmpeg Fraps 1 decoder", "Fraps 1", CODEC_ID_FRAPS,
+      (uint32_t[]){ BGAV_MK_FOURCC('F', 'P', 'S', '1'),
+                    0x00 } },
+
     
     /*************************************************************
      * Misc other stuff
@@ -325,8 +341,12 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('C', 'S', 'C', 'D'),
                0x00 } },
 
-    { "FFmpeg DUCK decoder", "Duck TrueMotion 1", CODEC_ID_TRUEMOTION1,
+    { "FFmpeg DUCK TrueMotion 1 decoder", "Duck TrueMotion 1", CODEC_ID_TRUEMOTION1,
       (uint32_t[]){ BGAV_MK_FOURCC('D', 'U', 'C', 'K'),
+               0x00 } },
+
+    { "FFmpeg DUCK TrueMotion 2 decoder", "Duck TrueMotion 2", CODEC_ID_TRUEMOTION2,
+      (uint32_t[]){ BGAV_MK_FOURCC('T', 'M', '2', '0'),
                0x00 } },
 
     { "FFmpeg KMVC decoder", "Karl Morton's video codec", CODEC_ID_KMVC,
@@ -371,7 +391,20 @@ static codec_info_t codec_infos[] =
     { "FFmpeg ULTI decoder", "IBM Ultimotion", CODEC_ID_ULTI,
       (uint32_t[]){ BGAV_MK_FOURCC('U', 'L', 'T', 'I'),
                0x00 } },
-    
+
+    { "FFmpeg MSZH decoder", "LCL MSZH", CODEC_ID_MSZH,
+      (uint32_t[]){ BGAV_MK_FOURCC('M', 'S', 'Z', 'H'),
+               0x00 } },
+
+    { "FFmpeg ZLIB decoder", "LCL ZLIB", CODEC_ID_ZLIB,
+      (uint32_t[]){ BGAV_MK_FOURCC('Z', 'L', 'I', 'B'),
+               0x00 } },
+
+    { "FFmpeg QPEG decoder", "QPEG", CODEC_ID_QPEG,
+      (uint32_t[]){ BGAV_MK_FOURCC('Q', '1', '.', '0'),
+                    BGAV_MK_FOURCC('Q', '1', '.', '1'),
+                    0x00 } },
+      
     /* Untested (no samples found) */
     { "FFmpeg Video 1 (FFV1) decoder", "FFV1", CODEC_ID_FFV1,
       (uint32_t[]){ BGAV_MK_FOURCC('F', 'F', 'V', '1'),
@@ -416,7 +449,7 @@ static struct
 };
 
 static void pal8_to_rgb24(gavl_video_frame_t * dst, AVFrame * src,
-                          int width, int height)
+                          int width, int height, int flip_y)
   {
   int i, j;
   uint32_t pixel;
@@ -428,10 +461,22 @@ static void pal8_to_rgb24(gavl_video_frame_t * dst, AVFrame * src,
 
   uint32_t * palette;
 
+  int dst_stride;
+    
   palette = (uint32_t*)(src->data[1]);
 
+  if(flip_y)
+    {
+    dst_save = dst->planes[0] + (height - 1) * dst->strides[0];
+    dst_stride = - dst->strides[0];
+    }
+  else
+    {
+    dst_save = dst->planes[0];
+    dst_stride = dst->strides[0];
+    }
+  
   src_save = src->data[0];
-  dst_save = dst->planes[0];
   for(i = 0; i < height; i++)
     {
     src_ptr = src_save;
@@ -449,25 +494,36 @@ static void pal8_to_rgb24(gavl_video_frame_t * dst, AVFrame * src,
       }
 
     src_save += src->linesize[0];
-    dst_save += dst->strides[0];
+    dst_save += dst_stride;
     }
   }
 
 /* Real stupid rgba format conversion */
 
 static void rgba32_to_rgba32(gavl_video_frame_t * dst, AVFrame * src,
-                             int width, int height)
+                             int width, int height, int flip_y)
   {
   int i, j;
   uint32_t r, g, b, a;
   uint8_t * dst_ptr;
   uint8_t * dst_save;
+  int dst_stride;
   
   uint32_t * src_ptr;
   uint8_t  * src_save;
-  
+
+  if(flip_y)
+    {
+    dst_save = dst->planes[0] + (height - 1) * dst->strides[0];
+    dst_stride = - dst->strides[0];
+    }
+  else
+    {
+    dst_save = dst->planes[0];
+    dst_stride = dst->strides[0];
+    }
+    
   src_save = src->data[0];
-  dst_save = dst->planes[0];
   for(i = 0; i < height; i++)
     {
     src_ptr = (uint32_t*)src_save;
@@ -488,7 +544,7 @@ static void rgba32_to_rgba32(gavl_video_frame_t * dst, AVFrame * src,
       src_ptr++;
       }
     src_save += src->linesize[0];
-    dst_save += dst->strides[0];
+    dst_save += dst_stride;
     }
   }
 
@@ -546,8 +602,10 @@ typedef struct
   pp_context_t *pp_context;
   pp_mode_t    *pp_mode;
 #endif
-
+  
   int flip_y;
+  gavl_video_frame_t * flip_frame; /* Only used if we flip AND do postprocessing */
+  
   } ffmpeg_video_priv;
 
 static codec_info_t * lookup_codec(bgav_stream_t * s)
@@ -863,6 +921,9 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
                              pp_flags);
             priv->pp_mode = pp_get_mode_by_name_and_quality("hb:a,vb:a,dr:a",
                                                             s->opt->pp_level);
+
+            if(priv->flip_y)
+              priv->flip_frame = gavl_video_frame_create(&s->data.video.format);
             
             break;
           default:
@@ -883,24 +944,36 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       if(priv->ctx->pix_fmt == PIX_FMT_PAL8)
         {
         pal8_to_rgb24(f, priv->frame,
-                      s->data.video.format.image_width, s->data.video.format.image_height);
+                      s->data.video.format.image_width, s->data.video.format.image_height, priv->flip_y);
         }
       else if(priv->ctx->pix_fmt == PIX_FMT_RGBA32)
         {
         rgba32_to_rgba32(f, priv->frame,
-                         s->data.video.format.image_width, s->data.video.format.image_height);
+                         s->data.video.format.image_width, s->data.video.format.image_height, priv->flip_y);
         }
       else if(!priv->do_convert)
         {
 #ifdef HAVE_LIBPOSTPROC
         if(priv->do_pp)
           {
-          pp_postprocess(priv->frame->data, priv->frame->linesize,
-                         f->planes, f->strides,
-                         priv->ctx->width, priv->ctx->height,
-                         priv->frame->qscale_table, priv->frame->qstride,
-                         priv->pp_mode, priv->pp_context,
-                         priv->frame->pict_type);
+          if(priv->flip_y)
+            {
+            pp_postprocess(priv->frame->data, priv->frame->linesize,
+                           priv->flip_frame->planes, priv->flip_frame->strides,
+                           priv->ctx->width, priv->ctx->height,
+                           priv->frame->qscale_table, priv->frame->qstride,
+                           priv->pp_mode, priv->pp_context,
+                           priv->frame->pict_type);
+            gavl_video_frame_copy_flip_y(&(s->data.video.format), f, priv->flip_frame);
+            }
+          else
+            pp_postprocess(priv->frame->data, priv->frame->linesize,
+                           f->planes, f->strides,
+                           priv->ctx->width, priv->ctx->height,
+                           priv->frame->qscale_table, priv->frame->qstride,
+                           priv->pp_mode, priv->pp_context,
+                           priv->frame->pict_type);
+            
           }
         else
           {
@@ -983,6 +1056,8 @@ static int init(bgav_stream_t * s)
     s->data.video.format.image_height = -s->data.video.format.image_height;
     priv->flip_y = 1;
     }
+  else if(s->fourcc == BGAV_MK_FOURCC('W','V','1','F'))
+    priv->flip_y = 1;
   
   priv->last_delay = -1;
 
