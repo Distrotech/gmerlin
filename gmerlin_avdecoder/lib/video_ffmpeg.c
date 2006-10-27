@@ -228,6 +228,7 @@ static codec_info_t codec_infos[] =
                BGAV_MK_FOURCC('m', 'j', 'p', 'a'),
                BGAV_MK_FOURCC('A', 'V', 'D', 'J'),
                BGAV_MK_FOURCC('M', 'J', 'P', 'G'),
+               BGAV_MK_FOURCC('I', 'J', 'P', 'G'),
                0x00 } },
 
     { "FFmpeg motion Jpeg-B decoder", "Motion Jpeg B", CODEC_ID_MJPEGB,
@@ -673,12 +674,12 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       if(!p)
         {
         priv->packet_buffer_ptr = (uint8_t*)0;
-        fprintf(stderr, "video_ffmpeg: EOF\n");
+        //        fprintf(stderr, "video_ffmpeg: EOF\n");
         break;
         }
       if(!p->data_size)
         s->position++;
-
+      
       priv->old_pts[priv->num_old_pts] = p->timestamp_scaled;
       priv->num_old_pts++;
       
@@ -734,8 +735,8 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       priv->ctx->hurry_up = 1;
     else
       priv->ctx->hurry_up = 0;
-#if 0
-    fprintf(stderr, "Decode: %lld %d\n", s->position, len);
+#if 1
+    fprintf(stderr, "Decode: position: %lld len: %d\n", s->position, len);
     //    bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
 #endif
     //    fprintf(stderr, "Decode %d...", priv->ctx->pix_fmt);
@@ -765,8 +766,8 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
 
     //    fprintf(stderr, "Image size: %d %d\n", priv->ctx->width, priv->ctx->height);
 
-#if 0
-    fprintf(stderr, "Used %d/%d bytes, got picture: %d, delay: %d, old_pts: %d\n",
+#if 1
+    fprintf(stderr, "Used %d/%d bytes, got picture: %d, delay: %d, num_old_pts: %d\n",
             bytes_used, len, got_picture, priv->delay, priv->num_old_pts);
 #endif
 
@@ -792,10 +793,14 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         }
       else /* Skip this frame */
         {
-        priv->num_old_pts--;
-        if(priv->num_old_pts)
-          memmove(&(priv->old_pts[0]), &(priv->old_pts[1]),
-                  sizeof(int64_t) * priv->num_old_pts);
+        if(priv->num_old_pts > 0)
+          {
+          priv->num_old_pts--;
+          fprintf(stderr, "num_old_pts: %d\n", priv->num_old_pts);
+          if(priv->num_old_pts)
+            memmove(&(priv->old_pts[0]), &(priv->old_pts[1]),
+                    sizeof(int64_t) * priv->num_old_pts);
+          }
         }
 
       }

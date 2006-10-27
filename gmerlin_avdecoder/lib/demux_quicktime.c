@@ -134,8 +134,7 @@ static int probe_quicktime(bgav_input_context_t * input)
     return 1;
   if(header == BGAV_MK_FOURCC('f','r','e','e'))
     return 1;
-  else if((header == BGAV_MK_FOURCC('m','d','a','t')) &&
-          input->input->seek_byte)
+  else if(header == BGAV_MK_FOURCC('m','d','a','t'))
     return 1;
   
   return 0;
@@ -894,6 +893,8 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
 
         else if(!have_moov)
           {
+          bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                   "Non streamable file on non seekable source");
           ctx->error_msg =
             bgav_sprintf("Non streamable file on non seekable source");
           return 0;

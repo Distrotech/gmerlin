@@ -304,6 +304,7 @@ demux_nsv.c \
 demux_quicktime.c \
 demux_ra.c \
 demux_rm.c \
+demux_smaf.c \
 demux_tta.c \
 demux_vivo.c \
 demux_voc.c \

@@ -133,6 +133,11 @@ static codec_info_t codec_infos[] =
     { "FFmpeg Delphine CIN audio decoder", "Delphine CIN Audio", CODEC_ID_DSICINAUDIO,
       (uint32_t[]){ BGAV_MK_FOURCC('d', 'c', 'i', 'n'),
                0x00 } },
+
+    { "FFmpeg SMAF audio decoder", "SMAF", CODEC_ID_ADPCM_YAMAHA,
+      (uint32_t[]){ BGAV_MK_FOURCC('S', 'M', 'A', 'F'),
+               0x00 } },
+
     
   };
 

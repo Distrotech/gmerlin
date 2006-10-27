@@ -54,6 +54,7 @@ extern bgav_demuxer_t bgav_demuxer_aac;
 extern bgav_demuxer_t bgav_demuxer_nsv;
 extern bgav_demuxer_t bgav_demuxer_4xm;
 extern bgav_demuxer_t bgav_demuxer_dsicin;
+extern bgav_demuxer_t bgav_demuxer_smaf;
 
 #ifdef HAVE_VORBIS
 extern bgav_demuxer_t bgav_demuxer_ogg;
@@ -101,6 +102,7 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_voc,       "Creative voice" },
     { &bgav_demuxer_4xm,       "4xm" },
     { &bgav_demuxer_dsicin,    "Delphine Software CIN" },
+    { &bgav_demuxer_smaf,      "SMAF Ringtone" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif
