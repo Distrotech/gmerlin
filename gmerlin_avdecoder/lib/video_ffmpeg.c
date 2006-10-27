@@ -355,6 +355,10 @@ static codec_info_t codec_infos[] =
 
     { "FFmpeg 4XM video decoder", "4XM Video", CODEC_ID_4XM,
       (uint32_t[]){ BGAV_MK_FOURCC('4', 'X', 'M', 'V'),
+                    0x00 } },
+
+    { "FFmpeg Delphine CIN video decoder", "Delphine CIN Video", CODEC_ID_DSICINVIDEO,
+      (uint32_t[]){ BGAV_MK_FOURCC('d', 'c', 'i', 'n'),
                0x00 } },
 
 
