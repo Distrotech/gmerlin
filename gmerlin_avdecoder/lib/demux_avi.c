@@ -1801,6 +1801,9 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
       {
       stream_id = get_stream_id(ch.ckID);
       s = bgav_track_find_stream(ctx->tt->current_track, stream_id);
+      
+      if(!s) /* Skip data for unused streams */
+        bgav_input_skip(ctx->input, PADD(ch.ckSize));
       }
     }
   

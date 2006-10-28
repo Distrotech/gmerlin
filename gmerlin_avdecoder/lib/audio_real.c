@@ -64,6 +64,7 @@ static codec_info_t real_codecs[] =
         resync: resync_real,
       },
     },
+#if 0 // Handled by ffmpeg
     {
       dll_name: "cook.so",
       format_name: "Real Audio cook",
@@ -77,6 +78,7 @@ static codec_info_t real_codecs[] =
         resync: resync_real,
       },
     },
+#endif
     {
       dll_name: "atrc.so.6.0",
       format_name: "Real Audio atrc",
@@ -278,6 +280,9 @@ static int init_real(bgav_stream_t * s)
 
   init_data.extradata_len =  s->ext_size;
   init_data.extradata =      s->ext_data;
+
+  //  fprintf(stderr, "Extradata: %d bytes\n", s->ext_size);
+  //  bgav_hexdump(s->ext_data, s->ext_size, 16);
   
   //  dump_init_data(&init_data);
 

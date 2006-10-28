@@ -39,16 +39,16 @@ typedef struct
 
 static codec_info_t codec_infos[] =
   {
-#if 1
     { "FFmpeg ra28.8 decoder", "Real audio 28.8", CODEC_ID_RA_288,
       (uint32_t[]){ BGAV_MK_FOURCC('2', '8', '_', '8'), 0x00 } },
-#endif
-#if 1
     { "FFmpeg ra14.4 decoder", "Real audio 14.4", CODEC_ID_RA_144,
       (uint32_t[]){ BGAV_MK_FOURCC('1', '4', '_', '4'),
                BGAV_MK_FOURCC('l', 'p', 'c', 'J'),
-               0x00 } },
-#endif
+                    0x00 } },
+
+    { "FFmpeg Real cook decoder", "Real cook", CODEC_ID_COOK,
+      (uint32_t[]){ BGAV_MK_FOURCC('c', 'o', 'o', 'k'),
+                    0x00 }  },
 
     /* MPEG audio is handled by mad */
 #if 0    
@@ -70,7 +70,13 @@ static codec_info_t codec_infos[] =
     { "FFmpeg alac decoder", "alac", CODEC_ID_ALAC,
       (uint32_t[]){ BGAV_MK_FOURCC('a', 'l', 'a', 'c'),
                     0x00 }  },
+#if 0
+    { "FFmpeg QDM2 decoder", "QDM2", CODEC_ID_QDM2,
+      (uint32_t[]){ BGAV_MK_FOURCC('Q', 'D', 'M', '2'),
+                    0x00 }  },
+#endif
 
+    
     { "FFmpeg Wavpack decoder", "Wavpack", CODEC_ID_WAVPACK,
       (uint32_t[]){ BGAV_MK_FOURCC('w', 'v', 'p', 'k'),
                     0x00 }  },
@@ -138,6 +144,15 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('S', 'M', 'A', 'F'),
                0x00 } },
 
+    { "FFmpeg Truespeech audio decoder", "Truespeech", CODEC_ID_TRUESPEECH,
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0022),
+               0x00 } },
+
+    { "FFmpeg Playstation ADPCM decoder", "Playstation ADPCM ", CODEC_ID_ADPCM_XA,
+      (uint32_t[]){ BGAV_MK_FOURCC('A','D','X','A'),
+               0x00 } },
+    
+    
     
   };
 
@@ -194,6 +209,8 @@ static int init(bgav_stream_t * s)
   priv->ctx->extradata = s->ext_data;
   priv->ctx->extradata_size = s->ext_size;
 
+  fprintf(stderr, "Adding extradata %d bytes\n", priv->ctx->extradata_size);
+  bgav_hexdump(priv->ctx->extradata, priv->ctx->extradata_size, 16);
     
   priv->ctx->channels        = s->data.audio.format.num_channels;
   priv->ctx->sample_rate     = s->data.audio.format.samplerate;
@@ -277,12 +294,14 @@ static int decode_frame(bgav_stream_t * s)
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
   frame_size = 0;
+  fprintf(stderr, "decode_audio Size: %d\n", priv->bytes_in_packet_buffer);
   bytes_used = avcodec_decode_audio(priv->ctx,
                                     priv->frame->samples.s_16,
                                     &frame_size,
                                     priv->packet_buffer_ptr,
                                     priv->bytes_in_packet_buffer);
 
+  fprintf(stderr, "used %d bytes (frame size: %d)\n", bytes_used, frame_size);
 #if 1
   if(bytes_used <= 1)
     {

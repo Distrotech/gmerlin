@@ -64,6 +64,11 @@ static codec_info_t codec_infos[] =
     { "FFmpeg 8BPS decoder", "Quicktime Planar RGB (8BPS)", CODEC_ID_8BPS,
       (uint32_t[]){ BGAV_MK_FOURCC('8', 'B', 'P', 'S'),
                0x00 } },
+
+    { "FFmpeg Inteo 2 decoder", "Intel Indeo 2", CODEC_ID_INDEO2,
+      (uint32_t[]){ BGAV_MK_FOURCC('R', 'T', '2', '1'),
+                    0x00 } },
+    
     { "FFmpeg Inteo 3 decoder", "Intel Indeo 3", CODEC_ID_INDEO3,
       (uint32_t[]){ BGAV_MK_FOURCC('I', 'V', '3', '1'),
                     BGAV_MK_FOURCC('I', 'V', '3', '2'),
@@ -362,7 +367,10 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('d', 'c', 'i', 'n'),
                0x00 } },
 
-
+    { "FFmpeg MPEC video decoder", "Playstation MDEC", CODEC_ID_MDEC,
+      (uint32_t[]){ BGAV_MK_FOURCC('M', 'D', 'E', 'C'),
+                    0x00 } },
+    
 #if 0 // Crash
     { "FFmpeg LOCO decoder", "LOCO", CODEC_ID_LOCO,
       (uint32_t[]){ BGAV_MK_FOURCC('L', 'O', 'C', 'O'),

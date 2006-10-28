@@ -301,6 +301,7 @@ demux_mpegps.c \
 demux_mpegts.c \
 demux_mpegvideo.c \
 demux_nsv.c \
+demux_psxstr.c \
 demux_quicktime.c \
 demux_ra.c \
 demux_rm.c \
