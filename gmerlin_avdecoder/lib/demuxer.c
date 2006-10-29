@@ -56,6 +56,8 @@ extern bgav_demuxer_t bgav_demuxer_4xm;
 extern bgav_demuxer_t bgav_demuxer_dsicin;
 extern bgav_demuxer_t bgav_demuxer_smaf;
 extern bgav_demuxer_t bgav_demuxer_psxstr;
+extern bgav_demuxer_t bgav_demuxer_tiertex;
+extern bgav_demuxer_t bgav_demuxer_smacker;
 
 #ifdef HAVE_VORBIS
 extern bgav_demuxer_t bgav_demuxer_ogg;
@@ -105,6 +107,8 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_dsicin,    "Delphine Software CIN" },
     { &bgav_demuxer_smaf,      "SMAF Ringtone" },
     { &bgav_demuxer_psxstr,    "Sony Playstation (PSX) STR" },
+    { &bgav_demuxer_tiertex,   "Tiertex SEQ" },
+    { &bgav_demuxer_smacker,   "Smacker" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif

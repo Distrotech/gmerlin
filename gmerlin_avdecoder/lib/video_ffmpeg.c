@@ -36,6 +36,8 @@
 
 #define LOG_DOMAIN "ffmpeg_video"
 
+// #define DUMP_DECODE
+
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
 typedef struct
@@ -54,8 +56,8 @@ static codec_info_t codec_infos[] =
 
     { "FFmpeg Raw decoder", "Uncompressed", CODEC_ID_RAWVIDEO,
       (uint32_t[]){ BGAV_MK_FOURCC('Y', '4', '2', '2'),
-               BGAV_MK_FOURCC('I', '4', '2', '0'),
-               0x00 } },
+                    BGAV_MK_FOURCC('I', '4', '2', '0'),
+                    0x00 } },
         
     /************************************************************
      * Simple, mostly old decoders
@@ -82,9 +84,11 @@ static codec_info_t codec_infos[] =
     { "FFmpeg SMC decoder", "Apple Graphics", CODEC_ID_SMC,
       (uint32_t[]){ BGAV_MK_FOURCC('s', 'm', 'c', ' '),
                0x00 } },
+
     { "FFmpeg cinepak decoder", "Cinepak", CODEC_ID_CINEPAK,
       (uint32_t[]){ BGAV_MK_FOURCC('c', 'v', 'i', 'd'),
                0x00 } },
+
     { "FFmpeg MSVideo 1 decoder", "Microsoft Video 1", CODEC_ID_MSVIDEO1,
       (uint32_t[]){ BGAV_MK_FOURCC('M', 'S', 'V', 'C'),
                BGAV_MK_FOURCC('m', 's', 'v', 'c'),
@@ -112,6 +116,22 @@ static codec_info_t codec_infos[] =
     { "FFmpeg FLI/FLC Decoder", "FLI/FLC Animation", CODEC_ID_FLIC,
       (uint32_t[]){ BGAV_MK_FOURCC('F', 'L', 'I', 'C'),
                0x00 } },
+
+    { "FFmpeg Video XL Decoder", "Video XL", CODEC_ID_VIXL,
+      (uint32_t[]){ BGAV_MK_FOURCC('V', 'I', 'X', 'L'),
+               0x00 } },
+
+    { "FFmpeg Tiertex Video Decoder", "Tiertex Video", CODEC_ID_TIERTEXSEQVIDEO,
+      (uint32_t[]){ BGAV_MK_FOURCC('T', 'I', 'T', 'X'),
+                    0x00 } },
+
+    { "FFmpeg Smacker Video Decoder", "Smacker Video", CODEC_ID_SMACKVIDEO,
+      (uint32_t[]){ BGAV_MK_FOURCC('S', 'M', 'K', '2'),
+                    BGAV_MK_FOURCC('S', 'M', 'K', '4'),
+                    0x00 } },
+
+    
+    
 #if 0 // http://samples.mplayerhq.hu/V-codecs/h261/h261test.avi: Grey image
       // http://samples.mplayerhq.hu/V-codecs/h261/lotr.mov: Messed up image then crash
       // MPlayer can't play these either
@@ -200,6 +220,11 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('W', 'M', 'V', '3'),
                0x00 } }, 
 #endif
+
+    { "FFmpeg VC1 decoder", "VC1", CODEC_ID_VC1,
+      (uint32_t[]){ BGAV_MK_FOURCC('W', 'V', 'C', '1'),
+               0x00 } }, 
+
     
     /************************************************************
      * DV Decoder
@@ -261,11 +286,9 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('R', 'V', '1', '0'),
                BGAV_MK_FOURCC('R', 'V', '1', '3'),
                0x00 } },
-#if 1
     { "FFmpeg Real Video 2.0 decoder", "Real Video 2.0", CODEC_ID_RV20,
       (uint32_t[]){ BGAV_MK_FOURCC('R', 'V', '2', '0'),
                0x00 } },
-#endif
     { "FFmpeg Sorenson 1 decoder", "Sorenson Video 1", CODEC_ID_SVQ1,
       (uint32_t[]){ BGAV_MK_FOURCC('S', 'V', 'Q', '1'),
                BGAV_MK_FOURCC('s', 'v', 'q', '1'),
@@ -743,8 +766,8 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       priv->ctx->hurry_up = 1;
     else
       priv->ctx->hurry_up = 0;
-#if 1
-    fprintf(stderr, "Decode: position: %lld len: %d\n", s->position, len);
+#ifdef DUMP_DECODE
+    bgav_dprintf("Decode: position: %lld len: %d\n", s->position, len);
     //    bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
 #endif
     //    fprintf(stderr, "Decode %d...", priv->ctx->pix_fmt);
@@ -774,9 +797,9 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
 
     //    fprintf(stderr, "Image size: %d %d\n", priv->ctx->width, priv->ctx->height);
 
-#if 1
-    fprintf(stderr, "Used %d/%d bytes, got picture: %d, delay: %d, num_old_pts: %d\n",
-            bytes_used, len, got_picture, priv->delay, priv->num_old_pts);
+#ifdef DUMP_DECODE
+    bgav_dprintf("Used %d/%d bytes, got picture: %d, delay: %d, num_old_pts: %d\n",
+                 bytes_used, len, got_picture, priv->delay, priv->num_old_pts);
 #endif
 
     if(!got_picture)

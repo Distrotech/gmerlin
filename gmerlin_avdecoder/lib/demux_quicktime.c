@@ -494,6 +494,81 @@ static void set_metadata(bgav_demuxer_context_t * ctx)
   //  bgav_metadata_dump(&ctx->tt->current_track->metadata);
   }
 
+/*
+ *  This struct MUST match the channel locations assumed by
+ *  ffmpeg (libavcodec/mpegaudiodec.c: mp3Frames[16], mp3Channels[16], chan_offset[9][5])
+ */
+
+static struct
+  {
+  int num_channels;
+  gavl_channel_id_t channels[8];
+  }
+mp3on4_channels[] =
+  {
+    { 0 }, /* Custom */
+    { 1, { GAVL_CHID_FRONT_CENTER } }, // C
+    { 2, { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT } }, // FLR
+    { 3, { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT, GAVL_CHID_FRONT_CENTER } },
+    { 4, { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT,
+           GAVL_CHID_FRONT_CENTER, GAVL_CHID_REAR_CENTER } }, // C FLR BS
+    { 5, { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT,
+           GAVL_CHID_REAR_LEFT, GAVL_CHID_REAR_RIGHT,
+           GAVL_CHID_FRONT_CENTER } }, // C FLR BLRS
+    { 6, { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT,
+           GAVL_CHID_REAR_LEFT, GAVL_CHID_REAR_RIGHT,
+           GAVL_CHID_FRONT_CENTER, GAVL_CHID_LFE } }, // C FLR BLRS LFE a.k.a 5.1
+    { 8, { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT,
+           GAVL_CHID_SIDE_LEFT, GAVL_CHID_SIDE_RIGHT,
+           GAVL_CHID_FRONT_CENTER, GAVL_CHID_LFE,
+           GAVL_CHID_REAR_LEFT, GAVL_CHID_REAR_RIGHT } }, // C FLR BLRS BLR LFE a.k.a 7.1 
+    { 4, { GAVL_CHID_FRONT_LEFT, GAVL_CHID_FRONT_RIGHT,
+           GAVL_CHID_REAR_LEFT, GAVL_CHID_REAR_RIGHT } }, // FLR BLRS (Quadrophonic)
+  };
+
+
+static int init_mp3on4(bgav_stream_t * s)
+  {
+  int channel_config;
+  s->fourcc = BGAV_MK_FOURCC('m', '4', 'a', 29);
+  
+  channel_config = (s->ext_data[1] >> 3) & 0x0f;
+  if(!channel_config || (channel_config > 8))
+    return 0;
+  s->data.audio.format.num_channels = mp3on4_channels[channel_config].num_channels;
+  memcpy(s->data.audio.format.channel_locations,
+         mp3on4_channels[channel_config].channels,
+         s->data.audio.format.num_channels * sizeof(mp3on4_channels[channel_config].channels[0]));
+  return 1;
+  }
+
+/* the audio fourcc mp4a doesn't necessarily mean, that we actually
+   have AAC audio */
+
+static struct
+  {
+  int objectTypeId;
+  uint32_t fourcc;
+  }
+audio_object_ids[] =
+  {
+    { 105, BGAV_MK_FOURCC('.','m','p','3') },
+    { 107, BGAV_MK_FOURCC('.','m','p','2') }
+  };
+
+static void set_audio_from_esds(bgav_stream_t * s, qt_esds_t * esds)
+  {
+  int i;
+  for(i = 0; i < sizeof(audio_object_ids)/sizeof(audio_object_ids[0]); i++)
+    {
+    if(audio_object_ids[i].objectTypeId == esds->objectTypeId)
+      {
+      s->fourcc = audio_object_ids[i].fourcc;
+      return;
+      }
+    }
+  }
+
 static void quicktime_init(bgav_demuxer_context_t * ctx)
   {
   int i, j;
@@ -555,11 +630,25 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       
       /* Set mp4 extradata */
       
-      if((desc->has_esds) &&
-         (desc->esds.decoderConfigLen))
+      if(desc->has_esds)
         {
         bg_as->ext_size = desc->esds.decoderConfigLen;
         bg_as->ext_data = desc->esds.decoderConfig;
+        
+        /* Check for mp3on4 */
+        if((desc->esds.objectTypeId == 64) &&
+           (desc->esds.decoderConfigLen >= 2) &&
+           (bg_as->ext_data[0] >> 3 == 29))
+          {
+          if(!init_mp3on4(bg_as))
+            {
+            bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                     "Invalid mp3on4 channel configuration");
+            bg_as->fourcc = 0;
+            }
+          }
+        else
+          set_audio_from_esds(bg_as, &desc->esds);
         }
       else if(bg_as->fourcc == BGAV_MK_FOURCC('l', 'p', 'c', 'm'))
         {

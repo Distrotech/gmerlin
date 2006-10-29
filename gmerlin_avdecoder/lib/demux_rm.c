@@ -275,6 +275,33 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
   
   }
 
+static void init_audio_stream_mp3(bgav_demuxer_context_t * ctx, bgav_rmff_stream_t * stream)
+  {
+  bgav_stream_t * bg_as;
+  bgav_track_t * track = ctx->tt->current_track;
+  rm_private_t * priv;
+  rm_audio_stream_t * rm_as;
+  rm_as = calloc(1, sizeof(*rm_as));
+
+  priv = (rm_private_t*)(ctx->priv);
+  
+  bg_as = bgav_track_add_audio_stream(track, ctx->opt);
+
+  /* Set container bitrate */
+  bg_as->container_bitrate = stream->mdpr.avg_bit_rate;
+
+  /* RTP-packed mp3 */
+  bg_as->fourcc = BGAV_MK_FOURCC('r','m','p','3');
+  bg_as->stream_id = stream->mdpr.stream_number;
+  bg_as->timescale = 1000;
+
+  bg_as->priv = rm_as;
+  
+  rm_as->com.stream = stream;
+
+
+  }
+
 typedef struct
   {
   rm_stream_t com;
@@ -534,7 +561,7 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
 
   bgav_charset_converter_t * cnv;
 
-  //  bgav_rmff_header_dump(h);
+  bgav_rmff_header_dump(h);
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
@@ -567,27 +594,35 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
         }
       continue;
       }
+
+    if(mdpr->type_specific_len)
+      {
+      j = mdpr->type_specific_len - 4;
+      pos = mdpr->type_specific_data;
+      while(j)
+        {
+        header = BGAV_PTR_2_FOURCC(pos);
+        if((header == BGAV_MK_FOURCC('.', 'r', 'a', 0xfd)) ||
+           (header == BGAV_MK_FOURCC('V', 'I', 'D', 'O')))
+          break;
+        pos++;
+        j--;
+        }
+      if(header == BGAV_MK_FOURCC('.', 'r', 'a', 0xfd))
+        {
+        init_audio_stream(ctx, &(h->streams[i]), pos);
+        }
+      else if(header == BGAV_MK_FOURCC('V', 'I', 'D', 'O'))
+        {
+        init_video_stream(ctx, &(h->streams[i]), pos,
+                          mdpr->type_specific_len - (int)(pos - mdpr->type_specific_data));
+        }
+      }
+    else if(!strcmp(mdpr->mime_type, "audio/X-MP3-draft-00"))
+      {
+      init_audio_stream_mp3(ctx, &(h->streams[i]));
+      }
     
-    j = mdpr->type_specific_len - 4;
-    pos = mdpr->type_specific_data;
-    while(j)
-      {
-      header = BGAV_PTR_2_FOURCC(pos);
-      if((header == BGAV_MK_FOURCC('.', 'r', 'a', 0xfd)) ||
-         (header == BGAV_MK_FOURCC('V', 'I', 'D', 'O')))
-        break;
-      pos++;
-      j--;
-      }
-    if(header == BGAV_MK_FOURCC('.', 'r', 'a', 0xfd))
-      {
-      init_audio_stream(ctx, &(h->streams[i]), pos);
-      }
-    else if(header == BGAV_MK_FOURCC('V', 'I', 'D', 'O'))
-      {
-      init_video_stream(ctx, &(h->streams[i]), pos,
-                        mdpr->type_specific_len - (int)(pos - mdpr->type_specific_data));
-      }
     }
   
   /* Update global fields */

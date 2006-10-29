@@ -27,6 +27,9 @@
 #include <config.h>
 #include <codecs.h>
 
+// #define DUMP_DECODE
+// #define DUMP_EXTRADATA
+
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
 typedef struct
@@ -100,9 +103,17 @@ static codec_info_t codec_infos[] =
     { "FFmpeg G726 decoder", "G726 ADPCM", CODEC_ID_ADPCM_G726,
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0045),
                     0x00 } },
-    
-    
+
+    { "FFmpeg mp3on4 decoder", "MP3on4", CODEC_ID_MP3ON4,
+      (uint32_t[]){ BGAV_MK_FOURCC('m', '4', 'a', 29),
+                    0x00 } },
 #if 0 // Sounds disgusting
+    { "FFmpeg mp3 ADU decoder", "MP3 ADU", CODEC_ID_MP3ADU,
+      (uint32_t[]){ BGAV_MK_FOURCC('r', 'm', 'p', '3'),
+                    0x00 } },
+#endif
+    
+#if 0 // Sounds disgusting (with ffplay as well). zelda.flv
     { "FFmpeg Flash ADPCM decoder", "Flash ADPCM", CODEC_ID_ADPCM_SWF,
       (uint32_t[]){ BGAV_MK_FOURCC('F', 'L', 'A', '1'), 0x00 } },
 #endif
@@ -151,8 +162,10 @@ static codec_info_t codec_infos[] =
     { "FFmpeg Playstation ADPCM decoder", "Playstation ADPCM ", CODEC_ID_ADPCM_XA,
       (uint32_t[]){ BGAV_MK_FOURCC('A','D','X','A'),
                0x00 } },
-    
-    
+
+    { "FFmpeg Smacker Audio decoder", "Smacker Audio ", CODEC_ID_SMACKAUDIO,
+      (uint32_t[]){ BGAV_MK_FOURCC('S','M','K','A'),
+               0x00 } },
     
   };
 
@@ -191,63 +204,6 @@ static codec_info_t * lookup_codec(bgav_stream_t * s)
       return codecs[i].info;
     }
   return (codec_info_t*)0;
-  }
-
-static int init(bgav_stream_t * s)
-  {
-  AVCodec * codec;
-  ffmpeg_audio_priv * priv;
-  priv = calloc(1, sizeof(*priv));
-  priv->info = lookup_codec(s);
-  codec = avcodec_find_decoder(priv->info->ffmpeg_id);
-  priv->ctx = avcodec_alloc_context();
-  
-
-  //  priv->ctx->width = s->format.frame_width;
-  //  priv->ctx->height = s->format.frame_height;
-  
-  priv->ctx->extradata = s->ext_data;
-  priv->ctx->extradata_size = s->ext_size;
-
-  fprintf(stderr, "Adding extradata %d bytes\n", priv->ctx->extradata_size);
-  bgav_hexdump(priv->ctx->extradata, priv->ctx->extradata_size, 16);
-    
-  priv->ctx->channels        = s->data.audio.format.num_channels;
-  priv->ctx->sample_rate     = s->data.audio.format.samplerate;
-  priv->ctx->block_align     = s->data.audio.block_align;
-  priv->ctx->bit_rate        = s->codec_bitrate;
-  priv->ctx->bits_per_sample = s->data.audio.bits_per_sample;
-
-  priv->ctx->codec_tag   =
-    ((s->fourcc & 0x000000ff) << 24) ||
-    ((s->fourcc & 0x0000ff00) << 8) ||
-    ((s->fourcc & 0x00ff0000) >> 8) ||
-    ((s->fourcc & 0xff000000) >> 24);
-  priv->ctx->codec_id =
-    codec->id;
-    
-  /* Some codecs need extra stuff */
-    
-  /* Open codec */
-  
-  if(avcodec_open(priv->ctx, codec) != 0)
-    return 0;
-  s->data.audio.decoder->priv = priv;
-
-  /* Set missing format values */
-  
-  s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
-  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
-  gavl_set_channel_setup(&(s->data.audio.format));
-
-  s->data.audio.format.samples_per_frame = 2*AVCODEC_MAX_AUDIO_FRAME_SIZE;
-
-  priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
-    
-  s->data.audio.format.samples_per_frame = 1024;
-    
-  s->description = bgav_sprintf(priv->info->format_name);
-  return 1;
   }
 
 static int decode_frame(bgav_stream_t * s)
@@ -294,20 +250,48 @@ static int decode_frame(bgav_stream_t * s)
     bgav_demuxer_done_packet_read(s->demuxer, p);
     }
   frame_size = 0;
-  fprintf(stderr, "decode_audio Size: %d\n", priv->bytes_in_packet_buffer);
-  bytes_used = avcodec_decode_audio(priv->ctx,
-                                    priv->frame->samples.s_16,
-                                    &frame_size,
-                                    priv->packet_buffer_ptr,
-                                    priv->bytes_in_packet_buffer);
 
+#ifdef DUMP_DECODE
+  fprintf(stderr, "decode_audio Size: %d\n", priv->bytes_in_packet_buffer);
+#endif
+  
+  if(priv->frame)
+    {
+    bytes_used = avcodec_decode_audio(priv->ctx,
+                                      priv->frame->samples.s_16,
+                                      &frame_size,
+                                      priv->packet_buffer_ptr,
+                                      priv->bytes_in_packet_buffer);
+    }
+  else
+    {
+    int16_t * tmp_buf = malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE*4);
+    bytes_used = avcodec_decode_audio(priv->ctx,
+                                      tmp_buf,
+                                      &frame_size,
+                                      priv->packet_buffer_ptr,
+                                      priv->bytes_in_packet_buffer);
+    s->data.audio.format.num_channels = priv->ctx->channels;
+    s->data.audio.format.samplerate   = priv->ctx->sample_rate;
+
+    gavl_set_channel_setup(&(s->data.audio.format));
+    s->data.audio.format.samples_per_frame = 2*AVCODEC_MAX_AUDIO_FRAME_SIZE;
+    priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+    s->data.audio.format.samples_per_frame = 1024;
+
+    memcpy(priv->frame->samples.s_16, tmp_buf, frame_size);
+    free(tmp_buf);
+    }
+
+#ifdef DUMP_DECODE
   fprintf(stderr, "used %d bytes (frame size: %d)\n", bytes_used, frame_size);
-#if 1
+#endif
+  
   if(bytes_used <= 1)
     {
     frame_size = -1;
     }
-#endif
+
   /* Check for error */
     
   if(frame_size < 0)
@@ -349,6 +333,72 @@ static int decode_frame(bgav_stream_t * s)
 
   return 1;
   }
+
+
+static int init(bgav_stream_t * s)
+  {
+  AVCodec * codec;
+  ffmpeg_audio_priv * priv;
+  priv = calloc(1, sizeof(*priv));
+  priv->info = lookup_codec(s);
+  codec = avcodec_find_decoder(priv->info->ffmpeg_id);
+  priv->ctx = avcodec_alloc_context();
+  
+
+  //  priv->ctx->width = s->format.frame_width;
+  //  priv->ctx->height = s->format.frame_height;
+  
+  priv->ctx->extradata = s->ext_data;
+  priv->ctx->extradata_size = s->ext_size;
+#ifdef DUMP_EXTRADATA
+  bgav_dprintf("Adding extradata %d bytes\n", priv->ctx->extradata_size);
+  bgav_hexdump(priv->ctx->extradata, priv->ctx->extradata_size, 16);
+#endif    
+  priv->ctx->channels        = s->data.audio.format.num_channels;
+  priv->ctx->sample_rate     = s->data.audio.format.samplerate;
+  priv->ctx->block_align     = s->data.audio.block_align;
+  priv->ctx->bit_rate        = s->codec_bitrate;
+  priv->ctx->bits_per_sample = s->data.audio.bits_per_sample;
+
+  priv->ctx->codec_tag   =
+    ((s->fourcc & 0x000000ff) << 24) ||
+    ((s->fourcc & 0x0000ff00) << 8) ||
+    ((s->fourcc & 0x00ff0000) >> 8) ||
+    ((s->fourcc & 0xff000000) >> 24);
+  priv->ctx->codec_id =
+    codec->id;
+    
+  /* Some codecs need extra stuff */
+    
+  /* Open codec */
+  
+  if(avcodec_open(priv->ctx, codec) != 0)
+    return 0;
+  s->data.audio.decoder->priv = priv;
+
+  /* Set missing format values */
+  
+  s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
+  s->data.audio.format.sample_format = GAVL_SAMPLE_S16;
+
+  /* Format already known */
+  if(s->data.audio.format.num_channels && s->data.audio.format.samplerate)
+    {
+    gavl_set_channel_setup(&(s->data.audio.format));
+    s->data.audio.format.samples_per_frame = 2*AVCODEC_MAX_AUDIO_FRAME_SIZE;
+    priv->frame = gavl_audio_frame_create(&(s->data.audio.format));
+    s->data.audio.format.samples_per_frame = 1024;
+    }
+  else /* Let ffmpeg find out the format */
+    {
+    if(!decode_frame(s))
+      return 0;
+    }
+    
+  s->description = bgav_sprintf(priv->info->format_name);
+  return 1;
+  }
+
 
 static int decode(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples)
   {

@@ -47,7 +47,7 @@ static int probe_dv(bgav_input_context_t * input)
     pos = strrchr(input->filename, '.');
     if(!pos)
       return 0;
-    if(!strcmp(pos, ".dv"))
+    if(!strcasecmp(pos, ".dv"))
       return 1;
     }
   return 0;

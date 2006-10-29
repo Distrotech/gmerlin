@@ -917,11 +917,12 @@ static int read_segment_header(const bgav_options_t * opt,
         }
       else
         {
-        bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                 "unknown segment type (rlen): 0x%02X", ret->rlen);
+        if(ret->rlen)
+          bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                   "unknown segment type (rlen): 0x%02X", ret->rlen);
         ret->time2=0; // unknown
         data_ptr+=ret->rlen;
-        return -1;
+        //        return -1;
         }
     }
   if(pkt_hdr->flags&1)

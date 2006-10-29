@@ -475,8 +475,11 @@ void bgav_qt_stsd_dump(int indent, qt_stsd_t * s)
     stsd_dump_common(indent+2, &s->entries[i].desc);
 
     if(s->entries[i].desc.type == BGAV_STREAM_AUDIO)
-      stsd_dump_audio(indent+2, &s->entries[i].desc);
+      stsd_dump_audio(indent, &s->entries[i].desc);
     else if(s->entries[i].desc.type == BGAV_STREAM_VIDEO)
-      stsd_dump_video(indent+2, &s->entries[i].desc);
+      stsd_dump_video(indent, &s->entries[i].desc);
+
+    if(s->entries[i].desc.has_esds)
+      bgav_qt_esds_dump(indent+2, &s->entries[i].desc.esds);
     }
   }

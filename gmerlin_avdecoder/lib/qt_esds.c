@@ -24,7 +24,29 @@
 #include <qt.h>
 #include <stdio.h>
 
+#define LOG_DOMAIN "qt_esds"
+
 // #define ENABLE_DUMP
+
+#define MP4ODescrTag                    0x01
+#define MP4IODescrTag                   0x02
+#define MP4ESDescrTag                   0x03
+#define MP4DecConfigDescrTag            0x04
+#define MP4DecSpecificDescrTag          0x05
+#define MP4SLConfigDescrTag             0x06
+#define MP4ContentIdDescrTag            0x07
+#define MP4SupplContentIdDescrTag       0x08
+#define MP4IPIPtrDescrTag               0x09
+#define MP4IPMPPtrDescrTag              0x0A
+#define MP4IPMPDescrTag                 0x0B
+#define MP4RegistrationDescrTag         0x0D
+#define MP4ESIDIncDescrTag              0x0E
+#define MP4ESIDRefDescrTag              0x0F
+#define MP4FileIODescrTag               0x10
+#define MP4FileODescrTag                0x11
+#define MP4ExtProfileLevelDescrTag      0x13
+#define MP4ExtDescrTagsStart            0x80
+#define MP4ExtDescrTagsEnd              0xFE
 
 void bgav_qt_esds_dump(int indent, qt_esds_t * e)
   {
@@ -63,6 +85,7 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_esds_t * ret)
   {
   uint8_t tag;
+  int len;
   
   READ_VERSION_AND_FLAGS;
   memcpy(&(ret->h), h, sizeof(*h));
@@ -70,9 +93,11 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
   if(!bgav_input_read_8(input, &tag))
     return 0;
 
-  if(tag == 0x03)
+  len = read_mp4_descr_length(input);
+  
+  if(tag == MP4ESDescrTag)
     {
-    if(read_mp4_descr_length(input) < 20)
+    if(len < 20)
       return 0;
     bgav_input_skip(input, 3);
     }
@@ -82,12 +107,18 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
   if(!bgav_input_read_8(input, &tag))
     return 0;
 
-  if(tag != 0x04)
-    return 0;
-  
-  if(read_mp4_descr_length(input) < 15)
+  if(tag != MP4DecConfigDescrTag)
     return 0;
 
+  len = read_mp4_descr_length(input);
+  
+  if(len < 13)
+    {
+    bgav_log(input->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "length of MP4DecConfigDescrTag too short: %d < 13\n", len);
+    return 0;
+    }
+  
   if(!bgav_input_read_8(input, &(ret->objectTypeId)) ||
      !bgav_input_read_8(input, &(ret->streamType)) ||
      !bgav_input_read_24_be(input, &(ret->bufferSizeDB)) ||
@@ -95,18 +126,21 @@ int bgav_qt_esds_read(qt_atom_header_t * h, bgav_input_context_t * input,
      !bgav_input_read_32_be(input, &(ret->avgBitrate)))
     return 0;
 
-  if(!bgav_input_read_8(input, &tag))
-    return 0;
-
-  if(tag != 0x05)
-    return 0;
-
-  ret->decoderConfigLen = read_mp4_descr_length(input);
-
-  ret->decoderConfig = calloc(ret->decoderConfigLen+16, 1);
-  if(bgav_input_read_data(input, ret->decoderConfig,
-                          ret->decoderConfigLen) < ret->decoderConfigLen)
-    return 0;
+  if(len >= 15)
+    {
+    if(!bgav_input_read_8(input, &tag))
+      return 0;
+    
+    if(tag != MP4DecSpecificDescrTag)
+      return 0;
+    
+    ret->decoderConfigLen = read_mp4_descr_length(input);
+    
+    ret->decoderConfig = calloc(ret->decoderConfigLen+16, 1);
+    if(bgav_input_read_data(input, ret->decoderConfig,
+                            ret->decoderConfigLen) < ret->decoderConfigLen)
+      return 0;
+    }
   bgav_qt_atom_skip(input, h);
 #ifdef ENABLE_DUMP
   bgav_qt_esds_dump(ret);
