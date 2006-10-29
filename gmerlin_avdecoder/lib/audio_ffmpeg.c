@@ -170,6 +170,10 @@ static codec_info_t codec_infos[] =
     { "FFmpeg ID Roq Audio decoder", "ID Roq Audio ", CODEC_ID_ROQ_DPCM,
       (uint32_t[]){ BGAV_MK_FOURCC('R','O','Q','A'),
                0x00 } },
+
+    { "FFmpeg Shorten decoder", "Shorten ", CODEC_ID_SHORTEN,
+      (uint32_t[]){ BGAV_MK_FOURCC('.','s','h','n'),
+               0x00 } },
     
   };
 
