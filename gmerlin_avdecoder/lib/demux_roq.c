@@ -1,0 +1,319 @@
+/*****************************************************************
+ 
+  demux_roq.c
+ 
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
+#include <avdec_private.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+#define LOG_DOMAIN "roq"
+
+#define RoQ_INFO           0x1001
+#define RoQ_QUAD_CODEBOOK  0x1002
+#define RoQ_QUAD_VQ        0x1011
+#define RoQ_SOUND_MONO     0x1020
+#define RoQ_SOUND_STEREO   0x1021
+
+#define RoQ_CHUNKS_TO_SCAN 30
+#define RoQ_AUDIO_SAMPLE_RATE 22050
+
+#define AUDIO_ID 0
+#define VIDEO_ID 1
+
+#define PREAMBLE_SIZE 8
+
+typedef struct
+  {
+  uint16_t id;
+  uint32_t size;
+  uint16_t arg;
+  } chunk_header_t;
+
+static int read_chunk_header(bgav_input_context_t * input, chunk_header_t * h)
+  {
+  return bgav_input_read_16_le(input, &h->id) &&
+    bgav_input_read_32_le(input, &h->size) &&
+    bgav_input_read_16_le(input, &h->arg);
+  }
+
+static void parse_chunk_header(uint8_t * data, chunk_header_t * h)
+  {
+  h->id    = BGAV_PTR_2_16LE(data); data+=2;
+  h->size  = BGAV_PTR_2_32LE(data); data+=4;
+  h->arg   = BGAV_PTR_2_16LE(data);
+  }
+
+static void dump_chunk_header(chunk_header_t * h)
+  {
+  bgav_dprintf("Roq chunk header\n");
+  bgav_dprintf("  id:   %04x\n", h->id);
+  bgav_dprintf("  size: %d\n", h->size);
+  bgav_dprintf("  arg:  %04x\n", h->arg);
+  
+  }
+
+static const uint8_t roq_magic[6] =
+  { 0x84, 0x10, 0xff, 0xff, 0xff, 0xff };
+
+typedef struct
+  {
+  uint32_t video_pts;
+  } roq_priv_t;
+
+static int probe_roq(bgav_input_context_t * input)
+  {
+  uint8_t data[6];
+  if(bgav_input_get_data(input, data, 6) < 6)
+    return 0;
+
+  if(memcmp(data, roq_magic, 6))
+    return 0;
+
+  return 1;
+  }
+
+static int open_roq(bgav_demuxer_context_t * ctx,
+                   bgav_redirector_context_t ** redir)
+  {
+  int i;
+  chunk_header_t h;
+  bgav_stream_t * s;
+  uint16_t width = 0, height = 0, framerate;
+  int num_channels = 0;
+  roq_priv_t * priv;
+  priv = calloc(1, sizeof(*priv));
+  ctx->priv = priv;
+  
+  
+  /* We can play RoQ files only from seekable sources */
+  if(!ctx->input->input->seek_byte)
+    {
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Cannot play Roq files from nonseekable source");
+    return 0;
+    }
+
+  /* Skip magic */
+  bgav_input_skip(ctx->input, 6);
+
+  if(!bgav_input_read_16_le(ctx->input, &framerate))
+    return 0;
+  
+  for(i = 0; i < RoQ_CHUNKS_TO_SCAN; i++)
+    {
+    if(!read_chunk_header(ctx->input, &h))
+      break;
+
+    switch(h.id)
+      {
+      case RoQ_INFO:
+        if(!bgav_input_read_16_le(ctx->input, &width) ||
+           !bgav_input_read_16_le(ctx->input, &height))
+          return 0;
+        bgav_input_skip(ctx->input, 4);
+        break;
+      case RoQ_QUAD_CODEBOOK:
+      case RoQ_QUAD_VQ:
+        bgav_input_skip(ctx->input, h.size);
+        break;
+      case RoQ_SOUND_MONO:
+        num_channels = 1;
+        bgav_input_skip(ctx->input, h.size);
+        break;
+      case RoQ_SOUND_STEREO:
+        num_channels = 2;
+        bgav_input_skip(ctx->input, h.size);
+        break;
+      default:
+        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Unknown Roq chunk %04x", h.id);
+        return 0;
+        break;
+      }
+    if(width && height && num_channels)
+      break;
+    }
+  /* Seek back */
+  bgav_input_seek(ctx->input, 8, SEEK_SET);
+
+  /* Set up track table */
+  ctx->tt = bgav_track_table_create(1);
+
+  /* Set up audio stream */
+
+  if(num_channels)
+    {
+    s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+    s->stream_id = AUDIO_ID;
+    s->fourcc = BGAV_MK_FOURCC('R','O','Q','A');
+    s->data.audio.format.num_channels = num_channels;
+    s->data.audio.format.samplerate = RoQ_AUDIO_SAMPLE_RATE;
+    s->data.audio.bits_per_sample = 16;
+    s->data.audio.block_align = num_channels * s->data.audio.bits_per_sample;
+    }
+
+  if(width && height)
+    {
+    s = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+    s->stream_id = VIDEO_ID;
+    s->fourcc = BGAV_MK_FOURCC('R','O','Q','V');
+    s->data.video.format.image_width = width;
+    s->data.video.format.image_height = height;
+
+    s->data.video.format.frame_width = width;
+    s->data.video.format.frame_height = height;
+
+    s->data.video.format.pixel_width = 1;
+    s->data.video.format.pixel_height = 1;
+    
+    s->data.video.format.timescale = framerate;
+    s->data.video.format.frame_duration = 1;
+    }
+  
+  
+  return 1;
+  }
+
+static int next_packet_roq(bgav_demuxer_context_t * ctx)
+  {
+  bgav_stream_t * s;
+  
+  uint8_t preamble[PREAMBLE_SIZE];
+  chunk_header_t h;
+  roq_priv_t * priv;
+  int done = 0;
+  bgav_packet_t * video_packet = (bgav_packet_t *)0;
+  bgav_packet_t * audio_packet = (bgav_packet_t *)0;
+  
+  priv = (roq_priv_t*)(ctx->priv);
+
+  while(!done)
+    {
+    if(bgav_input_read_data(ctx->input, preamble, PREAMBLE_SIZE) < PREAMBLE_SIZE)
+      return 0;
+    parse_chunk_header(preamble, &h);
+    switch(h.id)
+      {
+      case RoQ_INFO:
+        bgav_input_skip(ctx->input, h.size);
+        break;
+      case RoQ_QUAD_CODEBOOK:
+        //       fprintf(stderr, "Got codebook: %d bytes\n", h.size);
+        s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
+        if(!s)
+          {
+          bgav_input_skip(ctx->input, h.size);
+          break;
+          }
+        video_packet = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        bgav_packet_alloc(video_packet, h.size + PREAMBLE_SIZE);
+        video_packet->data_size = 0;
+        
+        memcpy(video_packet->data, preamble, PREAMBLE_SIZE);
+        video_packet->data_size += PREAMBLE_SIZE;
+        
+        if(bgav_input_read_data(ctx->input,
+                                video_packet->data+video_packet->data_size,
+                                h.size) < h.size)
+          return 0;
+        
+        video_packet->data_size += h.size;
+        break;
+      case RoQ_QUAD_VQ:
+        //        fprintf(stderr, "Got vq: %d bytes\n", h.size);
+        s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
+        if(!s)
+          {
+          bgav_input_skip(ctx->input, h.size);
+          break;
+          }
+        if(!video_packet)
+          {
+          bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+                   "No CODEBOOK chunk before VQ chunk");
+          video_packet = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+          video_packet->data_size = 0;
+          }
+        bgav_packet_alloc(video_packet,
+                          video_packet->data_size + h.size + PREAMBLE_SIZE);
+
+        memcpy(video_packet->data + video_packet->data_size, preamble, PREAMBLE_SIZE);
+        video_packet->data_size += PREAMBLE_SIZE;
+        
+        if(bgav_input_read_data(ctx->input,
+                                video_packet->data + video_packet->data_size,
+                                h.size) < h.size)
+          return 0;
+
+        video_packet->data_size += h.size;
+        //        fprintf(stderr, "Video packet %d\n", video_packet->data_size);
+
+        //        bgav_hexdump(video_packet->data, 16, 16);
+        video_packet->timestamp_scaled = priv->video_pts++;
+        bgav_packet_done_write(video_packet);
+        video_packet = (bgav_packet_t*)0;
+        done = 1;
+        break;
+      case RoQ_SOUND_MONO:
+      case RoQ_SOUND_STEREO:
+        s = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
+        if(!s)
+          {
+          bgav_input_skip(ctx->input, h.size);
+          break;
+          }
+        audio_packet = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+
+        bgav_packet_alloc(audio_packet, h.size + PREAMBLE_SIZE);
+        memcpy(audio_packet->data, preamble, 8);
+        
+        if(bgav_input_read_data(ctx->input,
+                                audio_packet->data+PREAMBLE_SIZE,
+                                h.size) < h.size)
+          return 0;
+        audio_packet->data_size = h.size + PREAMBLE_SIZE;
+
+        //        fprintf(stderr, "audio_size: %d\n", audio_packet->data_size);
+
+        bgav_packet_done_write(audio_packet);
+        done = 1;
+        break;
+      default:
+        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Unknown chunk %04x", h.id);
+        return 0;
+      }
+    }
+  return 1;
+  }
+
+static void close_roq(bgav_demuxer_context_t * ctx)
+  {
+  roq_priv_t * priv;
+  priv = (roq_priv_t*)(ctx->priv);
+  free(priv);
+  }
+
+bgav_demuxer_t bgav_demuxer_roq =
+  {
+    probe:       probe_roq,
+    open:        open_roq,
+    next_packet: next_packet_roq,
+    close:       close_roq
+  };

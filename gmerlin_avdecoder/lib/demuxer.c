@@ -58,6 +58,7 @@ extern bgav_demuxer_t bgav_demuxer_smaf;
 extern bgav_demuxer_t bgav_demuxer_psxstr;
 extern bgav_demuxer_t bgav_demuxer_tiertex;
 extern bgav_demuxer_t bgav_demuxer_smacker;
+extern bgav_demuxer_t bgav_demuxer_roq;
 
 #ifdef HAVE_VORBIS
 extern bgav_demuxer_t bgav_demuxer_ogg;
@@ -109,6 +110,7 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_psxstr,    "Sony Playstation (PSX) STR" },
     { &bgav_demuxer_tiertex,   "Tiertex SEQ" },
     { &bgav_demuxer_smacker,   "Smacker" },
+    { &bgav_demuxer_roq,       "ID Roq" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif

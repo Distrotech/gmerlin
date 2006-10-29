@@ -166,6 +166,10 @@ static codec_info_t codec_infos[] =
     { "FFmpeg Smacker Audio decoder", "Smacker Audio ", CODEC_ID_SMACKAUDIO,
       (uint32_t[]){ BGAV_MK_FOURCC('S','M','K','A'),
                0x00 } },
+
+    { "FFmpeg ID Roq Audio decoder", "ID Roq Audio ", CODEC_ID_ROQ_DPCM,
+      (uint32_t[]){ BGAV_MK_FOURCC('R','O','Q','A'),
+               0x00 } },
     
   };
 

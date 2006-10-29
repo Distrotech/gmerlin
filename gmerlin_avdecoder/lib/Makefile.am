@@ -305,6 +305,7 @@ demux_psxstr.c \
 demux_quicktime.c \
 demux_ra.c \
 demux_rm.c \
+demux_roq.c \
 demux_smacker.c \
 demux_smaf.c \
 demux_tiertex.c \

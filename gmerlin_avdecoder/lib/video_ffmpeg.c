@@ -130,7 +130,9 @@ static codec_info_t codec_infos[] =
                     BGAV_MK_FOURCC('S', 'M', 'K', '4'),
                     0x00 } },
 
-    
+    { "FFmpeg ID Roq Video Decoder", "ID Roq Video", CODEC_ID_ROQ,
+      (uint32_t[]){ BGAV_MK_FOURCC('R', 'O', 'Q', 'V'),
+                    0x00 } },
     
 #if 0 // http://samples.mplayerhq.hu/V-codecs/h261/h261test.avi: Grey image
       // http://samples.mplayerhq.hu/V-codecs/h261/lotr.mov: Messed up image then crash
