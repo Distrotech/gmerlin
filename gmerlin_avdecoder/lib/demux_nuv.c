@@ -1,0 +1,328 @@
+/*****************************************************************
+ 
+  demux_nuv.c
+ 
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
+#include <avdec_private.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+#define NUV_VIDEO     'V'
+#define NUV_EXTRADATA 'D'
+#define NUV_AUDIO     'A'
+#define NUV_SEEKP     'R'
+#define NUV_MYTHEXT   'X'
+
+#define HDRSIZE 12
+
+typedef struct
+  {
+  
+  } nuv_priv_t;
+
+static const char * nuppel_sig = "NuppelVideo";
+static const char * mythtv_sig = "MythTVVideo";
+#define SIG_LEN 12
+
+#define AUDIO_ID 0
+#define VIDEO_ID 1
+
+static int probe_nuv(bgav_input_context_t * input)
+  {
+  char probe_data[SIG_LEN];
+  if(bgav_input_get_data(input, (uint8_t*)probe_data, SIG_LEN) < SIG_LEN)
+    return 0;
+
+  if(!strncmp(probe_data, nuppel_sig, SIG_LEN) ||
+     !strncmp(probe_data, mythtv_sig, SIG_LEN))
+    return 1;
+  
+  return 0;
+  }
+
+static int open_nuv(bgav_demuxer_context_t * ctx,
+                    bgav_redirector_context_t ** redir)
+  {
+  uint8_t tmp_8, subtype;
+  uint32_t tmp_32;
+  double aspect, fps;
+  int done;
+  nuv_priv_t * priv;
+  char signature[SIG_LEN];
+  int is_mythtv;
+  int interlaced;
+  uint32_t width, height;
+  uint32_t a_packs, v_packs;
+
+  uint32_t size;
+  
+  bgav_stream_t * as = (bgav_stream_t*)0;
+  bgav_stream_t * vs = (bgav_stream_t*)0;
+  
+  ctx->tt = bgav_track_table_create(1);
+  
+  if(bgav_input_read_data(ctx->input, (uint8_t*)signature, SIG_LEN) < SIG_LEN)
+    return 0;
+  if(!strncmp(signature, mythtv_sig, SIG_LEN))
+    is_mythtv = 1;
+  else
+    is_mythtv = 0;
+
+  bgav_input_skip(ctx->input, 8); // 5 byte version + 3 byte padding
+  if(!bgav_input_read_32_le(ctx->input, &width) ||
+     !bgav_input_read_32_le(ctx->input, &height))
+    return 0;
+  bgav_input_skip(ctx->input, 8); // Desired width + height
+  
+  if(!bgav_input_read_data(ctx->input, &tmp_8, 1))
+    return 0;
+  if(tmp_8 == 'P')
+    interlaced = 0;
+  else
+    interlaced = 1;
+
+  bgav_input_skip(ctx->input, 3); // Padding
+  
+  if(!bgav_input_read_double_64_le(ctx->input, &aspect) ||
+     !bgav_input_read_double_64_le(ctx->input, &fps) ||
+     !bgav_input_read_32_le(ctx->input, &v_packs) ||
+     !bgav_input_read_32_le(ctx->input, &a_packs))
+    return 0;
+
+  bgav_input_skip(ctx->input, 8); // Text + Keyframe distance (?)
+
+  /* Initialize streams */
+
+  if(v_packs)
+    {
+    vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
+    vs->stream_id = VIDEO_ID;
+    vs->fourcc = BGAV_MK_FOURCC('R', 'J', 'P', 'G');
+    vs->timescale = 1000;
+    vs->data.video.format.image_width = width;
+    vs->data.video.format.frame_width = width;
+    vs->data.video.format.image_height = height;
+    vs->data.video.format.frame_height = height;
+    vs->data.video.format.pixel_width  = aspect * 10000;
+    vs->data.video.format.pixel_height = 10000;
+    vs->data.video.format.timescale      = 10000;
+    vs->data.video.format.frame_duration = 10000.0 / fps;
+    vs->vfr_timestamps = 1;
+    if(interlaced)
+      vs->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+    }
+
+  if(a_packs)
+    {
+    as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
+    as->stream_id = AUDIO_ID;
+    as->fourcc = BGAV_WAVID_2_FOURCC(0x0001);
+    as->timescale = 1000;
+    as->data.audio.bits_per_sample = 16;
+    as->data.audio.format.num_channels = 2;
+    as->data.audio.format.samplerate = 44100;
+    as->container_bitrate = as->data.audio.format.samplerate *
+      as->data.audio.format.num_channels * as->data.audio.bits_per_sample;
+    as->data.audio.block_align = as->data.audio.format.num_channels * 2;
+    }
+  
+  /* Get codec data */
+
+  if(!is_mythtv && !vs)
+    done = 1;
+  else
+    done = 0;
+
+  while(!done)
+    {
+    if(!bgav_input_read_data(ctx->input, &tmp_8, 1))
+      return 0;
+
+    switch(tmp_8)
+      {
+      case NUV_EXTRADATA:
+        if(!bgav_input_read_data(ctx->input, &subtype, 1))
+          return 0;
+        bgav_input_skip(ctx->input, 6);
+
+        if(!bgav_input_read_32_le(ctx->input, &size))
+          return 0;
+        size &= 0xffffff;
+        if(vs && (subtype == 'R'))
+          {
+          vs->ext_size = size;
+          vs->ext_data = malloc(size);
+          if(bgav_input_read_data(ctx->input, vs->ext_data, size) < size)
+            return 0;
+          size = 0;
+          if(!is_mythtv)
+            done = 1;
+          }
+        break;
+      case NUV_MYTHEXT:
+        bgav_input_skip(ctx->input, 7);
+        if(!bgav_input_read_32_le(ctx->input, &size))
+          return 0;
+        size &= 0xffffff;
+        if(size != 128 * 4)
+          break;
+        bgav_input_skip(ctx->input, 4); // Version
+
+        if(vs)
+          {
+          if(!bgav_input_read_fourcc(ctx->input, &vs->fourcc))
+            return 0;
+          }
+        else
+          bgav_input_skip(ctx->input, 4);
+
+        if(as)
+          {
+          if(!bgav_input_read_fourcc(ctx->input, &as->fourcc))
+            return 0;
+
+          if(!bgav_input_read_32_le(ctx->input, &tmp_32))
+            return 0;
+          as->data.audio.format.samplerate = tmp_32;
+
+          if(!bgav_input_read_32_le(ctx->input, &tmp_32))
+            return 0;
+          as->data.audio.bits_per_sample = tmp_32;
+
+          if(!bgav_input_read_32_le(ctx->input, &tmp_32))
+            return 0;
+          as->data.audio.format.num_channels = tmp_32;
+          as->container_bitrate = 0;
+          }
+        else
+          bgav_input_skip(ctx->input, 4*4);
+
+        size -= 6*4;
+        done = 1;
+        break;
+      case NUV_SEEKP:
+        size = 11;
+        break;
+      default:
+        bgav_input_skip(ctx->input, 7);
+        if(!bgav_input_read_32_le(ctx->input, &size))
+          return 0;
+        size &= 0xffffff;
+        
+        break;
+      }
+    if(size)
+      bgav_input_skip(ctx->input, size);
+    }
+  
+  /* Set description */
+  if(is_mythtv)
+    ctx->stream_description = bgav_sprintf("MythTV");
+  else
+    ctx->stream_description = bgav_sprintf("NuppelVideo");
+    
+  return 1;
+  }
+
+static int next_packet_nuv(bgav_demuxer_context_t * ctx)
+  {
+  nuv_priv_t * priv;
+  uint8_t hdr[HDRSIZE];
+  uint32_t size, pts;
+  bgav_stream_t * s;
+  bgav_packet_t * p;
+    
+  priv = (nuv_priv_t*)(ctx->priv);
+
+  if(bgav_input_read_data(ctx->input, hdr, HDRSIZE) < HDRSIZE)
+    return 0;
+
+  size = BGAV_PTR_2_32LE(&hdr[8]);
+  size &= 0xffffff;
+  
+  pts  = BGAV_PTR_2_32LE(&hdr[4]);
+  
+  switch(hdr[0])
+    {
+    case NUV_VIDEO:
+    case NUV_EXTRADATA:
+      s = bgav_track_find_stream(ctx->tt->current_track,
+                                 VIDEO_ID);
+      if(!s)
+        {
+        bgav_input_skip(ctx->input, size);
+        break;
+        }
+        
+      p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+      bgav_packet_alloc(p, size + HDRSIZE);
+      memcpy(p->data, hdr, HDRSIZE);
+
+      if(bgav_input_read_data(ctx->input, p->data + HDRSIZE,
+                              size) < size)
+        return 0;
+      
+      p->data_size = HDRSIZE + size;
+      p->timestamp_scaled = pts;
+      bgav_packet_done_write(p);
+      break;
+    case NUV_AUDIO:
+      s = bgav_track_find_stream(ctx->tt->current_track,
+                                 AUDIO_ID);
+      if(!s)
+        {
+        bgav_input_skip(ctx->input, size);
+        break;
+        }
+      
+      p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+      bgav_packet_alloc(p, size);
+
+      if(bgav_input_read_data(ctx->input, p->data,
+                              size) < size)
+        return 0;
+      
+      p->data_size = size;
+      p->timestamp_scaled = pts;
+      
+      bgav_packet_done_write(p);
+      break;
+    case NUV_SEEKP:
+      // contains no data, size value is invalid
+      break;
+    default:
+      bgav_input_skip(ctx->input, size);
+      break;
+    }
+  return 1;
+  }
+
+static void close_nuv(bgav_demuxer_context_t * ctx)
+  {
+  nuv_priv_t * priv;
+  priv = (nuv_priv_t*)(ctx->priv);
+  
+  }
+
+bgav_demuxer_t bgav_demuxer_nuv =
+  {
+    probe:       probe_nuv,
+    open:        open_nuv,
+    next_packet: next_packet_nuv,
+    close:       close_nuv
+  };

@@ -302,6 +302,7 @@ demux_mpegps.c \
 demux_mpegts.c \
 demux_mpegvideo.c \
 demux_nsv.c \
+demux_nuv.c \
 demux_psxstr.c \
 demux_quicktime.c \
 demux_ra.c \
@@ -310,6 +311,7 @@ demux_roq.c \
 demux_shorten.c \
 demux_smacker.c \
 demux_smaf.c \
+demux_sol.c \
 demux_tiertex.c \
 demux_tta.c \
 demux_vivo.c \

@@ -61,6 +61,8 @@ extern bgav_demuxer_t bgav_demuxer_smacker;
 extern bgav_demuxer_t bgav_demuxer_roq;
 extern bgav_demuxer_t bgav_demuxer_shorten;
 extern bgav_demuxer_t bgav_demuxer_daud;
+extern bgav_demuxer_t bgav_demuxer_nuv;
+extern bgav_demuxer_t bgav_demuxer_sol;
 
 #ifdef HAVE_VORBIS
 extern bgav_demuxer_t bgav_demuxer_ogg;
@@ -115,6 +117,8 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_smacker,   "Smacker" },
     { &bgav_demuxer_roq,       "ID Roq" },
     { &bgav_demuxer_shorten,   "Shorten" },
+    { &bgav_demuxer_nuv,       "NuppelVideo/MythTV" },
+    { &bgav_demuxer_sol,       "Sierra SOL" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif
@@ -578,7 +582,10 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
 
   if(p->stream->type == BGAV_STREAM_VIDEO)
     {
-    p->stream->data.video.last_frame_time = p->timestamp_scaled;
+    p->stream->data.video.last_frame_time =
+      gavl_time_rescale(p->stream->timescale,
+                        p->stream->data.video.format.timescale,
+                        p->timestamp_scaled);
 
     demuxer->request_stream = p->stream;
     

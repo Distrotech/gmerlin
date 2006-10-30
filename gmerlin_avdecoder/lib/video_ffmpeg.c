@@ -265,11 +265,6 @@ static codec_info_t codec_infos[] =
                BGAV_MK_FOURCC('L', 'J', 'P', 'G'),
                BGAV_MK_FOURCC('M', 'J', 'L', 'S'),
                0x00 } },
-
-    { "FFmpeg JPEG-LS decoder", "JPEG-LS", CODEC_ID_JPEGLS,
-      (uint32_t[]){ BGAV_MK_FOURCC('M', 'J', 'L', 'S'),
-               0x00 } },
-
     
     { "FFmpeg motion Jpeg-B decoder", "Motion Jpeg B", CODEC_ID_MJPEGB,
       (uint32_t[]){ BGAV_MK_FOURCC('m', 'j', 'p', 'b'),
@@ -279,10 +274,11 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('S', 'P', '5', '4'),
                0x00 } },
 
-    // Untested, seems to exist only as image format in the wild
-    { "FFmpeg JPEG-LS decoder", "JPEG-LS", CODEC_ID_JPEGLS,
-      (uint32_t[]){ BGAV_MK_FOURCC('M', 'J', 'L', 'S'),
-                    0x00 } },
+    { "FFmpeg NuppelVideo decoder", "NuppelVideo (rtjpeg)", CODEC_ID_NUV,
+      (uint32_t[]){ BGAV_MK_FOURCC('R', 'J', 'P', 'G'),
+               0x00 } },
+
+    
     
     /*************************************************************
      * Proprietary Codecs
@@ -839,7 +835,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
         if(priv->num_old_pts > 0)
           {
           priv->num_old_pts--;
-          fprintf(stderr, "num_old_pts: %d\n", priv->num_old_pts);
+          //          fprintf(stderr, "num_old_pts: %d\n", priv->num_old_pts);
           if(priv->num_old_pts)
             memmove(&(priv->old_pts[0]), &(priv->old_pts[1]),
                     sizeof(int64_t) * priv->num_old_pts);
@@ -1066,9 +1062,14 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     if(priv->delay)
       {
       s->time_scaled = priv->old_pts[0];
-      s->data.video.last_frame_time = priv->old_pts[0];
+      s->data.video.last_frame_time =
+        gavl_time_rescale(s->timescale, s->data.video.format.timescale,
+                          priv->old_pts[0]);
+
       if(priv->num_old_pts > 1)
-        s->data.video.last_frame_duration = priv->old_pts[1] - priv->old_pts[0];
+        s->data.video.last_frame_duration =
+          gavl_time_rescale(s->timescale, s->data.video.format.timescale,
+                            priv->old_pts[1] - priv->old_pts[0]);
       }
     //    fprintf(stderr, "num_old_pts: %d\n", priv->num_old_pts);
 
