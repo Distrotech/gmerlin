@@ -152,12 +152,12 @@ static codec_info_t codec_infos[] =
     
     { "FFmpeg H263 decoder", "H263", CODEC_ID_H263,
       (uint32_t[]){ BGAV_MK_FOURCC('H', '2', '6', '3'),
-               BGAV_MK_FOURCC('h', '2', '6', '3'),
-               BGAV_MK_FOURCC('s', '2', '6', '3'),
-               BGAV_MK_FOURCC('u', '2', '6', '3'),
-               BGAV_MK_FOURCC('U', '2', '6', '3'),
-               BGAV_MK_FOURCC('v', 'i', 'v', '1'),
-               0x00 } },
+                    BGAV_MK_FOURCC('h', '2', '6', '3'),
+                    BGAV_MK_FOURCC('s', '2', '6', '3'),
+                    BGAV_MK_FOURCC('u', '2', '6', '3'),
+                    BGAV_MK_FOURCC('U', '2', '6', '3'),
+                    BGAV_MK_FOURCC('v', 'i', 'v', '1'),
+                    0x00 } },
     
     { "FFmpeg H263I decoder", "I263", CODEC_ID_H263I,
       (uint32_t[]){ BGAV_MK_FOURCC('I', '2', '6', '3'), /* intel h263 */
@@ -255,22 +255,25 @@ static codec_info_t codec_infos[] =
     { "FFmpeg motion Jpeg decoder", "Motion Jpeg", CODEC_ID_MJPEG,
       (uint32_t[]){ BGAV_MK_FOURCC('L', 'J', 'P', 'G'),
                BGAV_MK_FOURCC('A', 'V', 'R', 'n'),
-               BGAV_MK_FOURCC('J', 'P', 'G', 'L'),
                BGAV_MK_FOURCC('j', 'p', 'e', 'g'),
                BGAV_MK_FOURCC('m', 'j', 'p', 'a'),
                BGAV_MK_FOURCC('A', 'V', 'D', 'J'),
                BGAV_MK_FOURCC('M', 'J', 'P', 'G'),
                BGAV_MK_FOURCC('I', 'J', 'P', 'G'),
+               BGAV_MK_FOURCC('J', 'P', 'G', 'L'),
+               BGAV_MK_FOURCC('L', 'J', 'P', 'G'),
+               BGAV_MK_FOURCC('M', 'J', 'L', 'S'),
                0x00 } },
 
+    { "FFmpeg JPEG-LS decoder", "JPEG-LS", CODEC_ID_JPEGLS,
+      (uint32_t[]){ BGAV_MK_FOURCC('M', 'J', 'L', 'S'),
+               0x00 } },
+
+    
     { "FFmpeg motion Jpeg-B decoder", "Motion Jpeg B", CODEC_ID_MJPEGB,
       (uint32_t[]){ BGAV_MK_FOURCC('m', 'j', 'p', 'b'),
                0x00 } },
     
-    { "FFmpeg Ljpeg decoder", "Lossless Motion Jpeg", CODEC_ID_LJPEG,
-      (uint32_t[]){ BGAV_MK_FOURCC('L', 'J', 'P', 'G'),
-               0x00 } },
-
     { "FFmpeg SP5X decoder", "SP5X Motion JPEG", CODEC_ID_SP5X,
       (uint32_t[]){ BGAV_MK_FOURCC('S', 'P', '5', '4'),
                0x00 } },
