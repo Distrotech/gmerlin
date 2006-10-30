@@ -147,6 +147,9 @@ static int open_tta(bgav_demuxer_context_t * ctx,
 
   
   priv->data_start = ctx->input->position;
+  
+  ctx->stream_description = bgav_sprintf("True Audio");
+
   return 1;
   }
 

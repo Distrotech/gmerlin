@@ -248,7 +248,9 @@ static int open_smacker(bgav_demuxer_context_t * ctx,
       s->stream_id = i + AUDIO_OFFSET;
       }
     }
-  
+
+  ctx->stream_description = bgav_sprintf("Smacker");
+
   return 1;
   }
 

@@ -185,7 +185,7 @@ static int open_roq(bgav_demuxer_context_t * ctx,
     s->data.video.format.timescale = framerate;
     s->data.video.format.frame_duration = 1;
     }
-  
+  ctx->stream_description = bgav_sprintf("ID Roq");
   
   return 1;
   }

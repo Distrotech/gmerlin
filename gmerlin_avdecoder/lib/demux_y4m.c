@@ -191,7 +191,9 @@ static int open_y4m(bgav_demuxer_context_t * ctx,
 
   /* Initialize frame info (will be needed for reading later on) */
   y4m_init_frame_info(&(priv->fi));
-    
+
+  ctx->stream_description = bgav_sprintf("yuv4mpeg");
+  
   return 1;
   }
 

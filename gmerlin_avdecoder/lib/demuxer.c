@@ -60,6 +60,7 @@ extern bgav_demuxer_t bgav_demuxer_tiertex;
 extern bgav_demuxer_t bgav_demuxer_smacker;
 extern bgav_demuxer_t bgav_demuxer_roq;
 extern bgav_demuxer_t bgav_demuxer_shorten;
+extern bgav_demuxer_t bgav_demuxer_daud;
 
 #ifdef HAVE_VORBIS
 extern bgav_demuxer_t bgav_demuxer_ogg;
@@ -107,6 +108,7 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_voc,       "Creative voice" },
     { &bgav_demuxer_4xm,       "4xm" },
     { &bgav_demuxer_dsicin,    "Delphine Software CIN" },
+    { &bgav_demuxer_8svx,      "Amiga IFF" },
     { &bgav_demuxer_smaf,      "SMAF Ringtone" },
     { &bgav_demuxer_psxstr,    "Sony Playstation (PSX) STR" },
     { &bgav_demuxer_tiertex,   "Tiertex SEQ" },
@@ -128,8 +130,8 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_dv, "DV" },
     { &bgav_demuxer_sphere, "nist Sphere"},
     { &bgav_demuxer_ircam, "IRCAM" },
-    { &bgav_demuxer_8svx, "Amiga IFF" },
     { &bgav_demuxer_gsm, "raw gsm" },
+    { &bgav_demuxer_daud, "D-Cinema audio" },
   };
 
 static demuxer_t sync_demuxers[] =

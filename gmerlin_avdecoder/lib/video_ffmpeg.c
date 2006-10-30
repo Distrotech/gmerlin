@@ -339,12 +339,11 @@ static codec_info_t codec_infos[] =
     { "FFmpeg VP5 decoder", "On2 VP5", CODEC_ID_VP3,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '5', '0'),
                     0x00 } },
-    // http://samples.mplayerhq.hu/V-codecs/VP6/harry3-40.vp6 messed up
-    { "FFmpeg VP6.2 decoder", "On2 VP6.2", CODEC_ID_VP6,
-      (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '2'),
-               0x00 } },
 #endif
 
+    { "FFmpeg VP6.2 decoder", "On2 VP6.2", CODEC_ID_VP6,
+      (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '2'),
+                    0x00 } },
     
     { "FFmpeg ASV1 decoder", "Asus v1", CODEC_ID_ASV1,
       (uint32_t[]){ BGAV_MK_FOURCC('A', 'S', 'V', '1'),
@@ -418,6 +417,10 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('F', 'F', 'V', '1'),
                0x00 } },
 
+    { "FFmpeg FFVHUFF decoder", "FFmpeg Huffman", CODEC_ID_FFVHUFF,
+      (uint32_t[]){ BGAV_MK_FOURCC('F', 'F', 'V', 'H'),
+               0x00 } },
+
     { "FFmpeg Xxan decoder", "Xan/WC3", CODEC_ID_XAN_WC4,
       (uint32_t[]){ BGAV_MK_FOURCC('X', 'x', 'a', 'n'),
                0x00 } },
@@ -453,6 +456,12 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('a', 'v', 'c', '1'),
                BGAV_MK_FOURCC('H', '2', '6', '4'),
                0x00 } },
+
+    { "FFmpeg Snow decoder", "Snow", CODEC_ID_SNOW,
+      (uint32_t[]){ BGAV_MK_FOURCC('S', 'N', 'O', 'W'),
+                    0x00 } },
+
+
   };
 
 /* Pixel formats */
@@ -760,20 +769,12 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       }
     
     /* Decode one frame */
-
-    //    fprintf(stderr, "Decode Video: %d %p\n", len, priv->packet_buffer_ptr);
-    //    bgav_hexdump(priv->packet_buffer_ptr, 128, 16);
     
     if(!f && !priv->need_first_frame)
       priv->ctx->hurry_up = 1;
     else
       priv->ctx->hurry_up = 0;
-#ifdef DUMP_DECODE
-    bgav_dprintf("Decode: position: %lld len: %d\n", s->position, len);
-    //    bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
-#endif
-    //    fprintf(stderr, "Decode %d...", priv->ctx->pix_fmt);
-
+    
     if(priv->need_first_frame && (priv->info->ffmpeg_id == CODEC_ID_DVVIDEO))
       {
       dvdec = bgav_dv_dec_create();
@@ -785,6 +786,11 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       
       bgav_dv_dec_destroy(dvdec);
       }
+
+#ifdef DUMP_DECODE
+    bgav_dprintf("Decode: position: %lld len: %d\n", s->position, len);
+    bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
+#endif
     
     bytes_used = avcodec_decode_video(priv->ctx,
                                       priv->frame,

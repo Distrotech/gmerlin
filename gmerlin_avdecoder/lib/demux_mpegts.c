@@ -893,6 +893,8 @@ static int open_mpegts(bgav_demuxer_context_t * ctx,
     {
     get_program_durations(ctx);
     }
+
+  ctx->stream_description = bgav_sprintf("MPEG-2 transport stream");
   
   //  fprintf(stderr, "Got transport packet:\n");
   //  transport_packet_dump(&packet);

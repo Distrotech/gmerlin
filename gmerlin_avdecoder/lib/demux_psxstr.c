@@ -167,6 +167,7 @@ static int open_psxstr(bgav_demuxer_context_t * ctx,
         break;
       }
     }
+  ctx->stream_description = bgav_sprintf("Sony Playstation (PSX) STR");
   
   ret = 1;
   fail:

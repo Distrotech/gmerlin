@@ -345,6 +345,7 @@ static bgav_audio_decoder_t decoder =
                            BGAV_MK_FOURCC('a','a','c',' '),
                            BGAV_MK_FOURCC('A','A','C',' '),
                            BGAV_MK_FOURCC('A','A','C','P'),
+                           BGAV_WAVID_2_FOURCC(0x00ff),
                       0x0 },
     
     init:   init_faad2,

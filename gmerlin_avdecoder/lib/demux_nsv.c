@@ -492,8 +492,6 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
     {
     /* Duration */
     if(p->fh.file_len != 0xFFFFFFFF)
-      // ctx->tt->current_track->duration =
-      //  (GAVL_TIME_SCALE * (int64_t)(p->fh.file_len)) / 1000;
       ctx->tt->current_track->duration = gavl_time_unscale(1000, p->fh.file_len);
     /* Metadata */
 
@@ -632,11 +630,11 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
 
   if(!bgav_input_read_16_le(ctx->input, &tmp_16))
     return 0;
-
+  aux_plus_video_len = tmp_16;
+  
   if(!bgav_input_read_16_le(ctx->input, &audio_len))
     return 0;
 
-  aux_plus_video_len = tmp_16;
   
   aux_plus_video_len = (aux_plus_video_len << 4) | (num_aux >> 4);
   num_aux &= 0x0f;

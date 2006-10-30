@@ -175,6 +175,10 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('.','s','h','n'),
                0x00 } },
     
+    { "FFmpeg D-Cinema decoder", "D-Cinema ", CODEC_ID_PCM_S24DAUD,
+      (uint32_t[]){ BGAV_MK_FOURCC('d','a','u','d'),
+               0x00 } },
+    
   };
 
 
