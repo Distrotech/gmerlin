@@ -185,6 +185,7 @@ static codec_info_t codec_infos[] =
                BGAV_MK_FOURCC('R', 'M', 'P', '4'),
                BGAV_MK_FOURCC('S', 'E', 'D', 'G'),
                BGAV_MK_FOURCC('S', 'M', 'P', '4'),
+               BGAV_MK_FOURCC('3', 'I', 'V', 'D'),
                0x00 } },
     
     { "FFmpeg MSMPEG4V3 decoder", "Microsoft MPEG-4 V3", CODEC_ID_MSMPEG4V3,
