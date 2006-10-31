@@ -63,6 +63,7 @@ extern bgav_demuxer_t bgav_demuxer_shorten;
 extern bgav_demuxer_t bgav_demuxer_daud;
 extern bgav_demuxer_t bgav_demuxer_nuv;
 extern bgav_demuxer_t bgav_demuxer_sol;
+extern bgav_demuxer_t bgav_demuxer_gif;
 
 #ifdef HAVE_VORBIS
 extern bgav_demuxer_t bgav_demuxer_ogg;
@@ -119,6 +120,7 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_shorten,   "Shorten" },
     { &bgav_demuxer_nuv,       "NuppelVideo/MythTV" },
     { &bgav_demuxer_sol,       "Sierra SOL" },
+    { &bgav_demuxer_gif,       "GIF" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif

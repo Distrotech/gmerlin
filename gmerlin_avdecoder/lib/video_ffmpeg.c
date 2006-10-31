@@ -133,6 +133,10 @@ static codec_info_t codec_infos[] =
     { "FFmpeg ID Roq Video Decoder", "ID Roq Video", CODEC_ID_ROQ,
       (uint32_t[]){ BGAV_MK_FOURCC('R', 'O', 'Q', 'V'),
                     0x00 } },
+
+    { "FFmpeg GIF Video Decoder", "GIF", CODEC_ID_GIF,
+      (uint32_t[]){ BGAV_MK_FOURCC('g', 'i', 'f', ' '),
+                    0x00 } },
     
 #if 0 // http://samples.mplayerhq.hu/V-codecs/h261/h261test.avi: Grey image
       // http://samples.mplayerhq.hu/V-codecs/h261/lotr.mov: Messed up image then crash
@@ -264,6 +268,7 @@ static codec_info_t codec_infos[] =
                BGAV_MK_FOURCC('J', 'P', 'G', 'L'),
                BGAV_MK_FOURCC('L', 'J', 'P', 'G'),
                BGAV_MK_FOURCC('M', 'J', 'L', 'S'),
+               
                0x00 } },
     
     { "FFmpeg motion Jpeg-B decoder", "Motion Jpeg B", CODEC_ID_MJPEGB,

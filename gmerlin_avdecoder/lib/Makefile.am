@@ -294,6 +294,7 @@ demux_dv.c \
 demux_flac.c \
 demux_fli.c \
 demux_flv.c \
+demux_gif.c \
 demux_gsm.c \
 demux_ircam.c \
 demux_sphere.c \
