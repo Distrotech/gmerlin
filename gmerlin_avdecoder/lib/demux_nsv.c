@@ -667,7 +667,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
       if(bgav_input_read_data(ctx->input, p->data, video_len) < video_len)
         return 0;
       p->data_size = video_len;
-      p->timestamp_scaled =
+      p->pts =
         priv->frame_counter * s->data.video.format.frame_duration;
 
       p->keyframe = 0;

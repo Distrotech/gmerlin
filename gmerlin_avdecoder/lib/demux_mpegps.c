@@ -424,7 +424,8 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
   system_header_t system_header;
   int got_packet = 0;
   uint32_t start_code;
-
+  uint32_t fourcc;
+  
   bgav_packet_t * p;
   
   mpegps_priv_t * priv;
@@ -569,9 +570,15 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
         if(!stream && priv->find_streams)
           {
           stream = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
-          stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
           stream->stream_id = priv->pes_header.stream_id;
           stream->timescale = 90000;
+
+          if(!bgav_input_get_fourcc(ctx->input, &fourcc))
+            return 0;
+          if(fourcc == BGAV_MK_FOURCC(0x00, 0x00, 0x01, 0xb0))
+            stream->fourcc = BGAV_MK_FOURCC('C', 'A', 'V', 'S');
+          else
+            stream->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
           }
         }
 
@@ -618,18 +625,18 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
 
           if(ctx->have_timestamp_offset)
             {
-            p->timestamp_scaled = priv->pes_header.pts + ctx->timestamp_offset;
-            if(p->timestamp_scaled < 0)
-              p->timestamp_scaled = 0;
+            p->pts = priv->pes_header.pts + ctx->timestamp_offset;
+            if(p->pts < 0)
+              p->pts = 0;
 
             }
           else
             {
-            p->timestamp_scaled = 0;
+            p->pts = 0;
             }
           
           if(priv->do_sync && (stream->time_scaled < 0))
-            stream->time_scaled = p->timestamp_scaled;
+            stream->time_scaled = p->pts;
           
           }
         
@@ -856,7 +863,8 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
   {
   mpegps_priv_t * priv;
   int need_streams = 0;
-
+  int i, j;
+  
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
   
@@ -922,6 +930,18 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
   if(!ctx->input->input->seek_time)
     ctx->seek_iterative = 1;
 
+  /* Set the not_aligned flags for all streams */
+
+  for(i = 0; i < ctx->tt->num_tracks; i++)
+    {
+    for(j = 0; j < ctx->tt->tracks[i].num_audio_streams; j++)
+      ctx->tt->tracks[i].audio_streams[j].not_aligned = 1;
+    for(j = 0; j < ctx->tt->tracks[i].num_video_streams; j++)
+      ctx->tt->tracks[i].video_streams[j].not_aligned = 1;
+    for(j = 0; j < ctx->tt->tracks[i].num_subtitle_streams; j++)
+      ctx->tt->tracks[i].subtitle_streams[j].not_aligned = 1;
+    }
+  
   return 1;
   }
 

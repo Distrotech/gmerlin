@@ -28,7 +28,9 @@
 static const char * gif_sig = "GIF89a";
 #define SIG_LEN 6
 
-#define HEADER_LEN 13 /* Signature + screen descriptor */
+#define GLOBAL_HEADER_LEN    13 /* Signature + screen descriptor */
+#define GCE_LEN               8
+#define IMAGE_DESCRIPTOR_LEN 10
 
 typedef struct
   {
@@ -50,6 +52,7 @@ static void parse_screen_descriptor(uint8_t * data,
   ret->pixel_aspect_ratio  = *data; data++;
   }
 
+#if 0
 static void dump_screen_descriptor(screen_descriptor_t * sd)
   {
   bgav_dprintf("GIF Screen descriptor\n");
@@ -59,15 +62,16 @@ static void dump_screen_descriptor(screen_descriptor_t * sd)
   bgav_dprintf("  bg_color:           %d\n", sd->bg_color);
   bgav_dprintf("  pixel_aspect_ratio: %d\n", sd->pixel_aspect_ratio);
   }
+#endif
 
 /* Private context */
 
 typedef struct
   {
-  uint8_t header[HEADER_LEN];
+  uint8_t header[GLOBAL_HEADER_LEN];
   uint8_t global_cmap[768];
   int global_cmap_bytes;
-  
+  int video_pts;
   } gif_priv_t;
 
 static int probe_gif(bgav_input_context_t * input)
@@ -77,7 +81,7 @@ static int probe_gif(bgav_input_context_t * input)
     return 0;
   if(!memcmp(probe_data, gif_sig, SIG_LEN))
     return 1;
-  return 1;
+  return 0;
   }
 
 static void skip_extension(bgav_input_context_t * input)
@@ -109,11 +113,11 @@ static int open_gif(bgav_demuxer_context_t * ctx,
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
 
-  if(bgav_input_read_data(ctx->input, priv->header, HEADER_LEN) < HEADER_LEN)
+  if(bgav_input_read_data(ctx->input, priv->header, GLOBAL_HEADER_LEN) < GLOBAL_HEADER_LEN)
     return 0;
   
   parse_screen_descriptor(priv->header, &sd);
-  dump_screen_descriptor(&sd);
+  //  dump_screen_descriptor(&sd);
 
   if(sd.flags & 0x80)
     {
@@ -140,7 +144,7 @@ static int open_gif(bgav_demuxer_context_t * ctx,
           done = 1;
         else
           {
-          fprintf(stderr, "Skipping extension 0x%02x\n", ext_header[1]);
+          //          fprintf(stderr, "Skipping extension 0x%02x\n", ext_header[1]);
           skip_extension(ctx->input);
           }
         break;
@@ -169,28 +173,171 @@ static int open_gif(bgav_demuxer_context_t * ctx,
   s->data.video.format.timescale = 100;
   s->data.video.format.frame_duration = 100; // Not reliable
   s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+  s->data.video.depth = 32; // RGBA
+  s->data.video.format.pixelformat = GAVL_RGBA_32;
   return 1;
   }
 
 static int next_packet_gif(bgav_demuxer_context_t * ctx)
   {
-  uint8_t header[2];
+  uint8_t buf[10];
+  uint8_t gce[GCE_LEN];
+  uint8_t image_descriptor[IMAGE_DESCRIPTOR_LEN];
+  int local_cmap_len;
   int done = 0;
   gif_priv_t * priv;
+  int frame_duration;
+  bgav_stream_t * s;
+  bgav_packet_t * p;
+  
   priv = (gif_priv_t*)(ctx->priv);
 
-  if(!bgav_input_get_data(ctx->input, header, 1))
-    return 0;
-  switch(header[0])
+  while(!done)
     {
-    case ';':
-      return 0; // Trailer
-      break;
-    case ',':
+    if(!bgav_input_get_data(ctx->input, buf, 1))
+      return 0;
+    switch(buf[0])
+      {
+      case ';':
+        return 0; // Trailer
+        break;
+      case '!':
+        if(bgav_input_get_data(ctx->input, buf, 2) < 2)
+          return 0;
+        if(buf[1] == 0xF9) /* Graphic Control Extension */
+          done = 1;
+        else
+          {
+          /* Skip other extension */
+          //          fprintf(stderr, "Skipping extension 0x%02x\n", buf[1]);
+          skip_extension(ctx->input);
+          break;
+          }
+        break;
+      default:
+        return 0; /* Unknown/unhandled chunk */
+      }
+    }
+
+  /* Parse GCE */
+  if(!bgav_input_read_data(ctx->input, gce, GCE_LEN))
+    return 0;
+  frame_duration = BGAV_PTR_2_16LE(&gce[4]);
+
+  /* Get the next image header */
+  done = 0;
+  while(!done)
+    {
+    if(!bgav_input_get_data(ctx->input, buf, 1))
+      return 0;
+    switch(buf[0])
+      {
+      case ';':
+        return 0; // Trailer
+        break;
+      case '!':
+        if(!bgav_input_get_data(ctx->input, buf, 2))
+          return 0;
+        if(buf[1] == 0xF9) /* Graphic Control Extension */
+          return 0;
+        else
+          {
+          /* Skip other extension */
+          //          fprintf(stderr, "Skipping extension 0x%02x\n", buf[1]);
+          skip_extension(ctx->input);
+          break;
+          }
+      case ',':
+        if(bgav_input_read_data(ctx->input, image_descriptor,
+                                IMAGE_DESCRIPTOR_LEN) < IMAGE_DESCRIPTOR_LEN)
+          return 0;
+        done = 1;
+        break;
+      default:
+        return 0; /* Unknown/unhandled chunk */
+      }
+    }
+  
+  /* Now assemble a valid GIF file (that's the hard part) */
+  s = ctx->tt->current_track->video_streams;
+  
+  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+
+  bgav_packet_alloc(p, GLOBAL_HEADER_LEN + priv->global_cmap_bytes +
+                    GCE_LEN + // GCE length
+                    IMAGE_DESCRIPTOR_LEN); // Image Descriptor length
+
+  p->data_size = 0;
+
+  /* Global header */
+  memcpy(p->data, priv->header, GLOBAL_HEADER_LEN);
+  p->data_size += GLOBAL_HEADER_LEN;
+
+  /* Global cmap */
+  if(priv->global_cmap_bytes)
+    {
+    memcpy(p->data + p->data_size, priv->global_cmap, priv->global_cmap_bytes);
+    p->data_size += priv->global_cmap_bytes;
+    }
+
+  /* GCE */
+  memcpy(p->data + p->data_size, gce, GCE_LEN);
+  p->data_size += GCE_LEN;
+
+  /* Image descriptor */
+
+  memcpy(p->data + p->data_size, image_descriptor, IMAGE_DESCRIPTOR_LEN);
+  p->data_size += IMAGE_DESCRIPTOR_LEN;
+  
+  /* Local colormap (if present) */
+
+  if(image_descriptor[IMAGE_DESCRIPTOR_LEN-1] & 0x80)
+    {
+    local_cmap_len =
+      3*(1 << ((image_descriptor[IMAGE_DESCRIPTOR_LEN-1] & 0x07) + 1));
+
+    bgav_packet_alloc(p, p->data_size + local_cmap_len);
+    
+    if(bgav_input_read_data(ctx->input, p->data + p->data_size,
+                            local_cmap_len) < local_cmap_len)
+      return 0;
+    p->data_size += local_cmap_len;
+    }
+  
+  /* Image data */
+
+  /* Initial code length */
+
+  bgav_packet_alloc(p, p->data_size + 1);
+  if(!bgav_input_read_data(ctx->input, p->data + p->data_size, 1))
+    return 0;
+  p->data_size++;
+  /* Data blocks */
+  while(1)
+    {
+    if(!bgav_input_get_data(ctx->input, buf, 1))
+      return 0;
+
+    bgav_packet_alloc(p, p->data_size + buf[0]+1);
+
+    if(bgav_input_read_data(ctx->input, p->data +
+                            p->data_size, buf[0]+1) < buf[0]+1)
+      return 0;
+    p->data_size += buf[0]+1;
+    if(!buf[0])
       break;
     }
   
-  return 0;
+  /* Trailer */
+  bgav_packet_alloc(p, p->data_size + 1);
+  p->data[p->data_size] = ';';
+  p->data_size++;
+  
+  p->pts = priv->video_pts;
+  priv->video_pts += frame_duration;
+  
+  bgav_packet_done_write(p);
+  return 1;
   }
 
 
@@ -198,7 +345,8 @@ static void close_gif(bgav_demuxer_context_t * ctx)
   {
   gif_priv_t * priv;
   priv = (gif_priv_t*)(ctx->priv);
-  
+  if(priv)
+    free(priv);
   }
 
 bgav_demuxer_t bgav_demuxer_gif =

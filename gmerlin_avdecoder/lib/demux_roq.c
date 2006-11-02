@@ -59,14 +59,15 @@ static void parse_chunk_header(uint8_t * data, chunk_header_t * h)
   h->arg   = BGAV_PTR_2_16LE(data);
   }
 
+#if 0
 static void dump_chunk_header(chunk_header_t * h)
   {
   bgav_dprintf("Roq chunk header\n");
   bgav_dprintf("  id:   %04x\n", h->id);
   bgav_dprintf("  size: %d\n", h->size);
   bgav_dprintf("  arg:  %04x\n", h->arg);
-  
   }
+#endif
 
 static const uint8_t roq_magic[6] =
   { 0x84, 0x10, 0xff, 0xff, 0xff, 0xff };
@@ -265,7 +266,7 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
         //        fprintf(stderr, "Video packet %d\n", video_packet->data_size);
 
         //        bgav_hexdump(video_packet->data, 16, 16);
-        video_packet->timestamp_scaled = priv->video_pts++;
+        video_packet->pts = priv->video_pts++;
         bgav_packet_done_write(video_packet);
         video_packet = (bgav_packet_t*)0;
         done = 1;

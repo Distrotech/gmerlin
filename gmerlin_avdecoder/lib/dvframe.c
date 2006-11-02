@@ -512,6 +512,6 @@ int bgav_dv_dec_get_audio_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
 void bgav_dv_dec_get_video_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
   {
   p->keyframe = 1;
-  p->timestamp_scaled = d->video_format.frame_duration * d->frame_counter;
+  p->pts = d->video_format.frame_duration * d->frame_counter;
   d->frame_counter++;
   }

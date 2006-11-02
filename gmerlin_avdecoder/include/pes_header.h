@@ -22,6 +22,7 @@
 typedef struct
   {
   int64_t pts;
+  int64_t dts;
   int stream_id;     /* For private streams: substream_id | (stream_id << 8)   */
   int payload_size;  /* To be read from the input after bgav_pes_header_read() */
   } bgav_pes_header_t;

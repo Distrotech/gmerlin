@@ -232,7 +232,7 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
       
       if(current_sector == sector_count-1)
         {
-        s->packet->timestamp_scaled = priv->video_pts++;
+        s->packet->pts = priv->video_pts++;
         bgav_packet_done_write(s->packet);
         s->packet = (bgav_packet_t*)0;
         }

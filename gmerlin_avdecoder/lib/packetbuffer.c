@@ -58,7 +58,7 @@ void bgav_packet_buffer_clear(bgav_packet_buffer_t * b)
 
   do{
   tmp_packet->data_size = 0;
-  tmp_packet->timestamp_scaled = -1;
+  tmp_packet->pts = -1;
   tmp_packet->valid = 0;
   tmp_packet = tmp_packet->next;
   }while(tmp_packet != b->packets);
@@ -72,7 +72,7 @@ bgav_packet_t * bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b, in
     if(!b->read_packet->valid || !b->read_packet->next->valid)
       return (bgav_packet_t*)0; 
     b->read_packet->duration_scaled =
-      b->read_packet->next->timestamp_scaled - b->read_packet->timestamp_scaled;
+      b->read_packet->next->pts - b->read_packet->pts;
     }
   else if(!b->read_packet->valid)
     return (bgav_packet_t*)0;
@@ -108,7 +108,8 @@ bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t * b, bg
     }
   ret = b->write_packet;
   b->write_packet = b->write_packet->next;
-  ret->timestamp_scaled = -1;
+  ret->pts = BGAV_TIMESTAMP_UNDEFINED;
+  ret->dts = BGAV_TIMESTAMP_UNDEFINED;
   //  fprintf(stderr, "Get packet write: %p\n", ret);  
   ret->stream = s;
   return ret;

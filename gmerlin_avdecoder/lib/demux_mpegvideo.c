@@ -191,6 +191,7 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx,
   /* We just set the fourcc, everything else will be set by the decoder */
 
   s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
+  s->not_aligned = 1;
   
   //  bgav_stream_dump(s);
 
@@ -211,7 +212,7 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx,
   
   ctx->stream_description = bgav_sprintf("Elementary MPEG-%d video stream",
                                          1 + mpeg2);
-
+  
   bgav_input_destroy(input_mem);
   return 1;
 
@@ -235,7 +236,7 @@ static int next_packet_mpegvideo(bgav_demuxer_context_t * ctx)
   
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
 
-  //  p->timestamp_scaled = FRAME_SAMPLES * priv->frame_count;
+  //  p->pts = FRAME_SAMPLES * priv->frame_count;
 
   //  p->keyframe = 1;
 
@@ -248,7 +249,7 @@ static int next_packet_mpegvideo(bgav_demuxer_context_t * ctx)
 
   if(priv->next_packet_time >= 0)
     {
-    p->timestamp_scaled = priv->next_packet_time;
+    p->pts = priv->next_packet_time;
     priv->next_packet_time = -1;
     }
   bgav_packet_done_write(p);

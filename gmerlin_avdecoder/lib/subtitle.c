@@ -142,7 +142,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
     (*ret)[p->data_size] = '\0';
     }
   
-  *start_time = gavl_time_unscale(s->timescale, p->timestamp_scaled);
+  *start_time = gavl_time_unscale(s->timescale, p->pts);
   *duration   = gavl_time_unscale(s->timescale, p->duration_scaled);
 
   remove_cr(*ret);

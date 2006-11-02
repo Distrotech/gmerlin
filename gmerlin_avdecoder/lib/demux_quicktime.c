@@ -935,6 +935,7 @@ static int handle_rmra(bgav_demuxer_context_t * ctx,
       index++;
       }
     }
+  return 1;
   }
 
 static int open_quicktime(bgav_demuxer_context_t * ctx,

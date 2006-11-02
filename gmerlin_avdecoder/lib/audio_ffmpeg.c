@@ -146,6 +146,11 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x62), 0x00 },
       -1 },  /* rogue format number */
 
+    { "FFmpeg SMJPEG audio decoder", "SMJPEG audio", CODEC_ID_ADPCM_IMA_SMJPEG,
+      (uint32_t[]){ BGAV_MK_FOURCC('S','M','J','A'), 0x00 },
+      -1 },  /* rogue format number */
+
+    
     { "FFmpeg ima4 decoder", "ima4", CODEC_ID_ADPCM_IMA_QT,
       (uint32_t[]){ BGAV_MK_FOURCC('i', 'm', 'a', '4'), 0x00 },
       -1 },

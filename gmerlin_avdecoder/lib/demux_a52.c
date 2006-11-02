@@ -134,7 +134,7 @@ static int next_packet_a52(bgav_demuxer_context_t * ctx)
   if(!packet_size)
     return 0;
 
-  p->timestamp_scaled = FRAME_SAMPLES * priv->frame_count;
+  p->pts = FRAME_SAMPLES * priv->frame_count;
 
   p->keyframe = 1;
 

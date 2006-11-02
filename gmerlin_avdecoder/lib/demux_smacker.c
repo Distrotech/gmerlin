@@ -423,7 +423,7 @@ static int next_packet_smacker(bgav_demuxer_context_t * ctx)
 
   p->data_size = size + 769;
   
-  p->timestamp_scaled = priv->video_pts * s->data.video.format.frame_duration;
+  p->pts = priv->video_pts * s->data.video.format.frame_duration;
   priv->video_pts++;
   
   bgav_packet_done_write(p);

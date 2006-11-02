@@ -1525,7 +1525,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         
         if(priv->is_live)
           {
-          p->timestamp_scaled = (stream_priv->frame_counter) *
+          p->pts = (stream_priv->frame_counter) *
             s->data.video.format.frame_duration;
           stream_priv->frame_counter++;
           }
@@ -1536,7 +1536,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           pframes =
             priv->op.granulepos-(iframes<<stream_priv->keyframe_granule_shift);
 
-          p->timestamp_scaled = (pframes + iframes) * s->data.video.format.frame_duration;
+          p->pts = (pframes + iframes) * s->data.video.format.frame_duration;
           
           }
         bgav_packet_done_write(p);
@@ -1619,7 +1619,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
         p->data_size = priv->op.bytes - 1 - len_bytes;
         if(priv->op.packet[0] & 0x08)
           p->keyframe = 1;
-        p->timestamp_scaled =
+        p->pts =
           s->data.video.format.frame_duration * stream_priv->frame_counter;
         stream_priv->frame_counter++;
         bgav_packet_done_write(p);

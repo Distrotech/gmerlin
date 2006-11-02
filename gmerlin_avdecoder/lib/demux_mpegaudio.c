@@ -878,7 +878,7 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
   p->data_size = priv->header.frame_bytes;
   
   p->keyframe  = 1;
-  p->timestamp_scaled = priv->frames * (int64_t)priv->header.samples_per_frame;
+  p->pts = priv->frames * (int64_t)priv->header.samples_per_frame;
 
   bgav_packet_done_write(p);
 

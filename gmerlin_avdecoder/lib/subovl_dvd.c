@@ -84,7 +84,7 @@ static int has_subtitle_dvdsub(bgav_stream_t * s)
     if(!priv->buffer_size)
       {
       priv->packet_size = BGAV_PTR_2_16BE(priv->buffer);
-      priv->pts = p->timestamp_scaled;
+      priv->pts = p->pts;
       }
     priv->buffer_size += p->data_size;
     bgav_demuxer_done_packet_read(s->demuxer, p);

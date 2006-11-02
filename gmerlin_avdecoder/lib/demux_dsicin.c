@@ -207,7 +207,7 @@ static int next_packet_dsicin(bgav_demuxer_context_t * ctx)
     return 0;
 
   p->data_size = pkt_size + 4;
-  p->timestamp_scaled += priv->video_pts++;
+  p->pts += priv->video_pts++;
   
   bgav_packet_done_write(p);
 

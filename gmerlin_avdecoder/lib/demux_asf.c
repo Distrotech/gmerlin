@@ -1016,7 +1016,7 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   else
     time = 0;
   
-  stream->packet->timestamp_scaled = time;
+  stream->packet->pts = time;
 
   
   // stream->packet->timestamp -= ((gavl_time_t)(asf->hdr.preroll) * GAVL_TIME_SCALE) / 1000;

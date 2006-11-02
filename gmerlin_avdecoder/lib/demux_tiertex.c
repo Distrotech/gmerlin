@@ -203,7 +203,6 @@ static int next_packet_tiertex(bgav_demuxer_context_t * ctx)
   frame_header_t fh;
   bgav_stream_t * s;
   uint8_t buf[SEQ_FRAME_SIZE];
-  uint8_t * ptr;
   bgav_packet_t * p;
   
   tiertex_priv_t * priv;
@@ -268,7 +267,7 @@ static int next_packet_tiertex(bgav_demuxer_context_t * ctx)
         p->data[0] |= 2;
         }
       p->data_size = video_size + palette_size + 1;
-      p->timestamp_scaled = priv->video_pts;
+      p->pts = priv->video_pts;
       bgav_packet_done_write(p);
       }
     }

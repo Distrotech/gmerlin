@@ -366,7 +366,6 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
   uint8_t header[8];
   uint32_t fourcc;
   int done = 0;
-  fourxm_chunk_t chunk;
   uint32_t size;
   bgav_stream_t * s;
   bgav_packet_t * p;
@@ -423,7 +422,7 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
         if(p->data_size < size + 8)
           return 0;
                 
-        p->timestamp_scaled = priv->video_pts;
+        p->pts = priv->video_pts;
         
         bgav_packet_done_write(p);
 

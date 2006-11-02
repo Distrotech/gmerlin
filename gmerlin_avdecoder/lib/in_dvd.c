@@ -590,14 +590,14 @@ read_nav(bgav_input_context_t * ctx, int sector, int *next)
   navRead_PCI(&pci_pack, buf + PCI_START_BYTE);
 
 
-  if(d->last_vobu_end_pts >= 0)
+  if(d->last_vobu_end_pts != BGAV_TIMESTAMP_UNDEFINED)
     {
     if(d->last_vobu_end_pts != pci_pack.pci_gi.vobu_s_ptm)
       {
-      if(d->last_vobu_end_pts >= 0)
+      if(d->last_vobu_end_pts != BGAV_TIMESTAMP_UNDEFINED)
         ctx->demuxer->timestamp_offset += d->last_vobu_end_pts - pci_pack.pci_gi.vobu_s_ptm;
       else
-        ctx->demuxer->timestamp_offset = d->last_vobu_end_pts - pci_pack.pci_gi.vobu_s_ptm;
+        ctx->demuxer->timestamp_offset = -pci_pack.pci_gi.vobu_s_ptm;
       }
     }
   else
@@ -735,7 +735,7 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   vts_ptt_srpt_t *vts_ptt_srpt;
   
   dvd = (dvd_t*)(ctx->priv);
-  dvd->last_vobu_end_pts = -1;
+  dvd->last_vobu_end_pts = BGAV_TIMESTAMP_UNDEFINED;
   ctx->demuxer->have_timestamp_offset = 0;
   
   ttsrpt = dvd->vmg_ifo->tt_srpt;

@@ -595,7 +595,7 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
 
     if(do_video)
       {
-      stream->packet->timestamp_scaled = (priv->audio_pos * 8000) /
+      stream->packet->pts = (priv->audio_pos * 8000) /
         ctx->tt->current_track->audio_streams[0].container_bitrate;
       }
 

@@ -24,10 +24,6 @@
 #define SOL_16BIT   4
 #define SOL_STEREO 16
 
-typedef struct
-  {
-  uint32_t data_start;
-  } sol_priv_t;
 
 static int probe_sol(bgav_input_context_t * input)
   {
@@ -102,7 +98,6 @@ static int open_sol(bgav_demuxer_context_t * ctx,
                    bgav_redirector_context_t ** redir)
   {
   uint16_t magic;
-  sol_priv_t * priv;
   bgav_stream_t * s;
   uint16_t rate;
   uint8_t type;
@@ -139,11 +134,9 @@ static int open_sol(bgav_demuxer_context_t * ctx,
 
 static int next_packet_sol(bgav_demuxer_context_t * ctx)
   {
-  sol_priv_t * priv;
   bgav_stream_t * s;
   bgav_packet_t * p;
 
-  priv = (sol_priv_t*)(ctx->priv);
   s = bgav_track_find_stream(ctx->tt->current_track, 0);
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
 
@@ -159,17 +152,9 @@ static int next_packet_sol(bgav_demuxer_context_t * ctx)
   return 1;
   }
 
-static void seek_sol(bgav_demuxer_context_t * ctx, gavl_time_t time)
-  {
-  sol_priv_t * priv;
-  priv = (sol_priv_t*)(ctx->priv);
-  }
 
 static void close_sol(bgav_demuxer_context_t * ctx)
   {
-  sol_priv_t * priv;
-  priv = (sol_priv_t*)(ctx->priv);
-  free(priv);
   }
 
 bgav_demuxer_t bgav_demuxer_sol =
@@ -177,6 +162,5 @@ bgav_demuxer_t bgav_demuxer_sol =
     probe:       probe_sol,
     open:        open_sol,
     next_packet: next_packet_sol,
-    seek:        seek_sol,
     close:       close_sol
   };

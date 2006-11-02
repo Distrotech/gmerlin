@@ -401,7 +401,7 @@ static int next_packet_aiff(bgav_demuxer_context_t * ctx)
   
   bgav_packet_alloc(p, bytes_to_read);
   
-  p->timestamp_scaled = pos_2_time(ctx, ctx->input->position);
+  p->pts = pos_2_time(ctx, ctx->input->position);
   
   bytes_read = bgav_input_read_data(ctx->input, p->data, bytes_to_read);
   p->data_size = bytes_read;

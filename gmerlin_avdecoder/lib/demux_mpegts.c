@@ -987,12 +987,12 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
         if(priv->programs[priv->current_program].start_pts < 0)
           priv->programs[priv->current_program].start_pts = stream_priv->pes_header.pts;
 
-        s->packet->timestamp_scaled =
+        s->packet->pts =
           stream_priv->pes_header.pts -
           priv->programs[priv->current_program].start_pts;
 
-        if(s->packet->timestamp_scaled < 0)
-          s->packet->timestamp_scaled = 0;
+        if(s->packet->pts < 0)
+          s->packet->pts = 0;
         }
 #endif
       /* Read data */

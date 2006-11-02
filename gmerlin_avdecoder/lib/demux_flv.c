@@ -581,10 +581,10 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
   if(p->data_size < packet_size) /* Got EOF in the middle of a packet */
     return 0; 
   
-  p->timestamp_scaled = t.timestamp;
+  p->pts = t.timestamp;
 
   if(s->time_scaled < 0)
-    s->time_scaled = p->timestamp_scaled;
+    s->time_scaled = p->pts;
 
   p->keyframe = keyframe;
   bgav_packet_done_write(p);

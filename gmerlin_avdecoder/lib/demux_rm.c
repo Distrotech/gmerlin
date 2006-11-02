@@ -878,7 +878,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
                 "closing probably incomplete packet %d != %d\n",
                 stream->packet_seq, vpkg_seqnum);
 #endif
-        p->timestamp_scaled=(dp_hdr->len<3)?0:
+        p->pts=(dp_hdr->len<3)?0:
           fix_timestamp(stream,dp_data,dp_hdr->timestamp, &p->keyframe);
         bgav_packet_done_write(p);
         // ds_add_packet(ds,dp);
@@ -931,7 +931,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
           //                 vpkg_offset,len);
           // we know that this is the last fragment -> we can close the packet!
 #if 1
-          p->timestamp_scaled=(dp_hdr->len<3)?0:
+          p->pts=(dp_hdr->len<3)?0:
             fix_timestamp(stream,dp_data,dp_hdr->timestamp, &p->keyframe);
 #endif
           bgav_packet_done_write(p);
@@ -1007,7 +1007,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
       return 0;
 
     //    stream_read(demuxer->stream, dp_data, vpkg_length);
-    p->timestamp_scaled=(dp_hdr->len<3)?0:
+    p->pts=(dp_hdr->len<3)?0:
       fix_timestamp(stream,dp_data,dp_hdr->timestamp, &p->keyframe);
 
     bgav_packet_done_write(p);

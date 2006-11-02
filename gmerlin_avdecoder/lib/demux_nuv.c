@@ -30,10 +30,6 @@
 
 #define HDRSIZE 12
 
-typedef struct
-  {
-  
-  } nuv_priv_t;
 
 static const char * nuppel_sig = "NuppelVideo";
 static const char * mythtv_sig = "MythTVVideo";
@@ -62,7 +58,6 @@ static int open_nuv(bgav_demuxer_context_t * ctx,
   uint32_t tmp_32;
   double aspect, fps;
   int done;
-  nuv_priv_t * priv;
   char signature[SIG_LEN];
   int is_mythtv;
   int interlaced;
@@ -241,13 +236,11 @@ static int open_nuv(bgav_demuxer_context_t * ctx,
 
 static int next_packet_nuv(bgav_demuxer_context_t * ctx)
   {
-  nuv_priv_t * priv;
   uint8_t hdr[HDRSIZE];
   uint32_t size, pts;
   bgav_stream_t * s;
   bgav_packet_t * p;
     
-  priv = (nuv_priv_t*)(ctx->priv);
 
   if(bgav_input_read_data(ctx->input, hdr, HDRSIZE) < HDRSIZE)
     return 0;
@@ -278,7 +271,7 @@ static int next_packet_nuv(bgav_demuxer_context_t * ctx)
         return 0;
       
       p->data_size = HDRSIZE + size;
-      p->timestamp_scaled = pts;
+      p->pts = pts;
       bgav_packet_done_write(p);
       break;
     case NUV_AUDIO:
@@ -298,7 +291,7 @@ static int next_packet_nuv(bgav_demuxer_context_t * ctx)
         return 0;
       
       p->data_size = size;
-      p->timestamp_scaled = pts;
+      p->pts = pts;
       
       bgav_packet_done_write(p);
       break;
@@ -314,9 +307,8 @@ static int next_packet_nuv(bgav_demuxer_context_t * ctx)
 
 static void close_nuv(bgav_demuxer_context_t * ctx)
   {
-  nuv_priv_t * priv;
-  priv = (nuv_priv_t*)(ctx->priv);
-  
+  if(ctx->tt->current_track->video_streams[0].ext_data)
+    free(ctx->tt->current_track->video_streams[0].ext_data);
   }
 
 bgav_demuxer_t bgav_demuxer_nuv =

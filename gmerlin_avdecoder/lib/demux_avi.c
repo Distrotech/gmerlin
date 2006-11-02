@@ -1822,7 +1822,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
     if(s->type == BGAV_STREAM_VIDEO)
       {
       avi_vs = (video_priv_t*)s->priv;
-      p->timestamp_scaled =  s->data.video.format.frame_duration * avi_vs->total_frames;
+      p->pts =  s->data.video.format.frame_duration * avi_vs->total_frames;
       avi_vs->total_frames++;
       }
     bgav_packet_done_write(p);

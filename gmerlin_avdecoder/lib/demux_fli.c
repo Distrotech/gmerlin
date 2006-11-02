@@ -192,7 +192,7 @@ static int next_packet_fli(bgav_demuxer_context_t * ctx)
         return 0;
         }
       
-      p->timestamp_scaled = priv->frame_counter * s->data.video.format.frame_duration;
+      p->pts = priv->frame_counter * s->data.video.format.frame_duration;
       p->data_size = size;
       priv->frame_counter++;
       

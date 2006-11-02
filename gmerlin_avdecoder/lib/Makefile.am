@@ -278,6 +278,7 @@ audio_pcm.c \
 asmrp.c \
 base64.c \
 bgav.c \
+bytebuffer.c \
 charset.c \
 codecs.c \
 demuxer.c \
@@ -312,6 +313,7 @@ demux_roq.c \
 demux_shorten.c \
 demux_smacker.c \
 demux_smaf.c \
+demux_smjpeg.c \
 demux_sol.c \
 demux_tiertex.c \
 demux_tta.c \

@@ -82,15 +82,15 @@ static int get_data(bgav_stream_t*s)
   
   mpeg2_buffer(priv->dec, priv->p->data, priv->p->data + priv->p->data_size);
   
-  if(priv->p->timestamp_scaled >= 0)
+  if(priv->p->pts != BGAV_TIMESTAMP_UNDEFINED)
     {
-    //    fprintf(stderr, "Got pts %f\n", priv->p->timestamp_scaled/90000.0);
+    //    fprintf(stderr, "Got pts %f\n", priv->p->pts/90000.0);
     mpeg2_tag_picture(priv->dec,
-                      (priv->p->timestamp_scaled) >> 32,
-                      priv->p->timestamp_scaled & 0xffffffff);
+                      (priv->p->pts) >> 32,
+                      priv->p->pts & 0xffffffff);
     if(priv->do_resync)
       priv->picture_timestamp =
-        (priv->p->timestamp_scaled * s->data.video.format.timescale) / s->timescale;
+        (priv->p->pts * s->data.video.format.timescale) / s->timescale;
     }
   
   return 1;

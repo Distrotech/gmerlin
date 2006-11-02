@@ -67,7 +67,7 @@ void bgav_packet_set_text_subtitle(bgav_packet_t * p,
   memcpy(p->data, text, len);
   p->data_size = len;
   
-  p->timestamp_scaled = start;
+  p->pts = start;
   p->duration_scaled = duration;
   p->data_size = len + 1;
   p->data[len]   = '\0';
@@ -90,7 +90,7 @@ void bgav_packet_get_text_subtitle(bgav_packet_t * p,
     }
   strcpy(*text, (char*)p->data);
 
-  *start    = gavl_time_unscale(p->stream->timescale, p->timestamp_scaled);
+  *start    = gavl_time_unscale(p->stream->timescale, p->pts);
   *duration = gavl_time_unscale(p->stream->timescale, p->duration_scaled);
   
   }

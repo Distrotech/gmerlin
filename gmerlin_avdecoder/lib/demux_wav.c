@@ -193,7 +193,7 @@ static int next_packet_wav(bgav_demuxer_context_t * ctx)
 
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
   
-  p->timestamp_scaled =
+  p->pts =
     ((ctx->input->position - priv->data_start) * s->data.audio.format.samplerate) /
     (s->codec_bitrate / 8);
   

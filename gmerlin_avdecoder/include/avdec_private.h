@@ -146,13 +146,18 @@ struct bgav_subtitle_overlay_decoder_context_s
 
 /* Packet */
 
+#define BGAV_TIMESTAMP_UNDEFINED 0x8000000000000000LL
+
 struct bgav_packet_s
   {
   int valid;
   int data_size;
   int data_alloc;
   uint8_t * data;
-  int64_t timestamp_scaled;
+  
+  int64_t pts; /* In stream timescale tics */
+  int64_t dts; /* In stream timescale tics */
+  
   int64_t duration_scaled;  /* For text subtitles and VFR video only! */
   int keyframe;
   bgav_stream_t * stream; /* The stream this packet belongs to */
@@ -335,7 +340,14 @@ struct bgav_stream_s
    */
   
   int vfr_timestamps;
-  
+
+  /*
+   *  This indicates, that the demuxer doesn't produce packets,
+   *  which are identical to frames.
+   */
+
+  int not_aligned;
+    
   union
     {
     struct
@@ -1336,3 +1348,17 @@ int bgav_subtitle_reader_read_overlay(bgav_stream_t *, gavl_overlay_t * ovl);
 void bgav_log(const bgav_options_t * opt,
               bgav_log_level_t level,
               const char * domain, char * format, ...);
+
+/* bytebuffer.c */
+
+typedef struct
+  {
+  uint8_t * buffer;
+  int size;
+  int alloc;
+  } bgav_bytebuffer_t;
+
+void bgav_bytebuffer_append(bgav_bytebuffer_t * b, bgav_packet_t * p, int padding);
+void bgav_bytebuffer_remove(bgav_bytebuffer_t * b, int bytes);
+void bgav_bytebuffer_free(bgav_bytebuffer_t * b);
+void bgav_bytebuffer_flush(bgav_bytebuffer_t * b);

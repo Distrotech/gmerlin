@@ -64,6 +64,7 @@ extern bgav_demuxer_t bgav_demuxer_daud;
 extern bgav_demuxer_t bgav_demuxer_nuv;
 extern bgav_demuxer_t bgav_demuxer_sol;
 extern bgav_demuxer_t bgav_demuxer_gif;
+extern bgav_demuxer_t bgav_demuxer_smjpeg;
 
 #ifdef HAVE_VORBIS
 extern bgav_demuxer_t bgav_demuxer_ogg;
@@ -121,6 +122,7 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_nuv,       "NuppelVideo/MythTV" },
     { &bgav_demuxer_sol,       "Sierra SOL" },
     { &bgav_demuxer_gif,       "GIF" },
+    { &bgav_demuxer_smjpeg,    "SMJPEG" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif
@@ -439,7 +441,7 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
     p->data_size = ctx->si->entries[ctx->si->current_position].size;
     p->keyframe = ctx->si->entries[ctx->si->current_position].keyframe;
     
-    p->timestamp_scaled = ctx->si->entries[ctx->si->current_position].time;
+    p->pts = ctx->si->entries[ctx->si->current_position].time;
     p->samples = ctx->si->entries[ctx->si->current_position].samples;
     if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
       return 0;
@@ -472,7 +474,7 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   p->data_size = ctx->si->entries[ctx->request_stream->index_position].size;
   bgav_packet_alloc(p, p->data_size);
   
-  p->timestamp_scaled = ctx->si->entries[ctx->request_stream->index_position].time;
+  p->pts = ctx->si->entries[ctx->request_stream->index_position].time;
   p->samples          = ctx->si->entries[ctx->request_stream->index_position].samples;
   p->keyframe         = ctx->si->entries[ctx->request_stream->index_position].keyframe;
     
@@ -546,7 +548,7 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
     if(!demuxer_next_packet(demuxer))
       return (bgav_packet_t*)0;
     }
-  s->time_scaled = ret->timestamp_scaled;
+  s->time_scaled = ret->pts;
   demuxer->request_stream = (bgav_stream_t*)0;
   return ret;
   }
@@ -587,7 +589,7 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
     p->stream->data.video.last_frame_time =
       gavl_time_rescale(p->stream->timescale,
                         p->stream->data.video.format.timescale,
-                        p->timestamp_scaled);
+                        p->pts);
 
     demuxer->request_stream = p->stream;
     
@@ -603,7 +605,9 @@ bgav_demuxer_done_packet_read(bgav_demuxer_context_t * demuxer,
     demuxer->request_stream = (bgav_stream_t*)0;
 
     p->stream->data.video.last_frame_duration =
-      p->stream->packet_buffer->read_packet->timestamp_scaled -
+      gavl_time_rescale(p->stream->timescale,
+                        p->stream->data.video.format.timescale,
+                        p->pts) -
       p->stream->data.video.last_frame_time;
     }
   }

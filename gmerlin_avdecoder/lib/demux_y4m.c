@@ -291,7 +291,7 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
       return 0;
     }
 
-  p->timestamp_scaled = priv->frame_counter * s->data.video.format.frame_duration;
+  p->pts = priv->frame_counter * s->data.video.format.frame_duration;
   priv->frame_counter++;
     
   bgav_packet_done_write(p);

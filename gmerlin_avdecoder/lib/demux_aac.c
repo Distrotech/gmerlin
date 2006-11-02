@@ -491,7 +491,7 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
   
   p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
   
-  p->timestamp_scaled = priv->sample_count;
+  p->pts = priv->sample_count;
     
   p->keyframe = 1;
 

@@ -42,7 +42,8 @@ int bgav_pes_header_read(bgav_input_context_t * input,
   uint32_t header;
 
   memset(ret, 0, sizeof(*ret));
-  ret->pts = -1;
+  ret->pts = BGAV_TIMESTAMP_UNDEFINED;
+  ret->dts = BGAV_TIMESTAMP_UNDEFINED;
   
   if(!bgav_input_read_32_be(input, &header))
     return 0;
@@ -75,18 +76,36 @@ int bgav_pes_header_read(bgav_input_context_t * input,
       {
       
       /* Read stuff */
-      if(header_flags & 0x80) /* PTS present */
+      if((header_flags & 0xc0) == 0x80) /* PTS present */
         {
         bgav_input_read_8(input, &c);
-        ret->pts = (c >> 1) & 7;
-        ret->pts <<= 15;
+        ret->pts = ((c >> 1) & 7) << 30;
         bgav_input_read_16_be(input, &tmp_16);
-        ret->pts |= (tmp_16 >> 1);
-        ret->pts <<= 15;
+        ret->pts |= (tmp_16 >> 1) << 15;
         bgav_input_read_16_be(input, &tmp_16);
         ret->pts |= (tmp_16 >> 1);
         header_size -= 5;
         }
+      else if((header_flags & 0xc0) == 0xc0) /* PTS+DTS present */
+        {
+        bgav_input_read_8(input, &c);
+        ret->pts = ((c >> 1) & 7) << 30;
+        bgav_input_read_16_be(input, &tmp_16);
+        ret->pts |= (tmp_16 >> 1) << 15;
+        bgav_input_read_16_be(input, &tmp_16);
+        ret->pts |= (tmp_16 >> 1);
+        header_size -= 5;
+
+        bgav_input_read_8(input, &c);
+        ret->dts = ((c >> 1) & 7) << 30;
+        bgav_input_read_16_be(input, &tmp_16);
+        ret->dts |= (tmp_16 >> 1) << 15;
+        bgav_input_read_16_be(input, &tmp_16);
+        ret->dts |= (tmp_16 >> 1);
+        header_size -= 5;
+        }
+
+
       }
     bgav_input_skip(input, header_size);
     }
@@ -121,14 +140,22 @@ int bgav_pes_header_read(bgav_input_context_t * input,
       }
     else if((c & 0xf0) == 0x30)
       {
-      //      fprintf(stderr, "PTS + DTS\n");
+      /* PTS */
       ret->pts = ((c >> 1) & 7) << 30;
       bgav_input_read_16_be(input, &tmp_16);
       ret->pts |= ((tmp_16 >> 1) << 15);
       bgav_input_read_16_be(input, &tmp_16);
       ret->pts |= (tmp_16 >> 1);
-      /* SKIP DTS */
-      bgav_input_skip(input, 5);
+      /* DTS */
+
+      bgav_input_read_data(input, &c, 1);
+      ret->dts = ((c >> 1) & 7) << 30;
+      bgav_input_read_16_be(input, &tmp_16);
+      ret->dts |= ((tmp_16 >> 1) << 15);
+      bgav_input_read_16_be(input, &tmp_16);
+      ret->dts |= (tmp_16 >> 1);
+
+      //  bgav_input_skip(input, 5);
       /*
         fprintf(stderr, "PTS: %f, DTS skipped\n",
         (float)demuxer->pes_packet.pts / 90000.0);
