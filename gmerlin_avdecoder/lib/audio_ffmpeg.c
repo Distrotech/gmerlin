@@ -148,7 +148,11 @@ static codec_info_t codec_infos[] =
 
     { "FFmpeg SMJPEG audio decoder", "SMJPEG audio", CODEC_ID_ADPCM_IMA_SMJPEG,
       (uint32_t[]){ BGAV_MK_FOURCC('S','M','J','A'), 0x00 },
-      -1 },  /* rogue format number */
+      -1 },
+    
+    { "FFmpeg Westwood ADPCM decoder", "Westwood ADPCM", CODEC_ID_ADPCM_IMA_WS,
+      (uint32_t[]){ BGAV_MK_FOURCC('w','s','p','c'), 0x00 },
+      -1 },
 
     
     { "FFmpeg ima4 decoder", "ima4", CODEC_ID_ADPCM_IMA_QT,

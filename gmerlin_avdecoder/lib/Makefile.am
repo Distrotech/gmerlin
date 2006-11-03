@@ -319,6 +319,7 @@ demux_tiertex.c \
 demux_tta.c \
 demux_vivo.c \
 demux_voc.c \
+demux_vqa.c \
 demux_wav.c \
 demux_wavpack.c \
 device.c \

@@ -36,9 +36,9 @@
 
 #define LOG_DOMAIN "ffmpeg_video"
 
-// #define DUMP_DECODE
+#define DUMP_DECODE
 // #define DUMP_EXTRADATA
-// #define DUMP_PARSER
+#define DUMP_PARSER
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
 typedef struct
@@ -314,7 +314,8 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
           priv->ctx->slice_offset= malloc(sizeof(int)*1000);
         priv->ctx->slice_count= hdr->chunks+1;
         for(i=0; i<priv->ctx->slice_count; i++)
-          priv->ctx->slice_offset[i]= ((uint32_t*)(priv->buf.buffer+hdr->chunktab))[2*i+1];
+          priv->ctx->slice_offset[i]=
+            ((uint32_t*)(priv->buf.buffer+hdr->chunktab))[2*i+1];
         len=hdr->len;
         bgav_bytebuffer_remove(&priv->buf, sizeof(dp_hdr_t));
         }
@@ -361,8 +362,22 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       priv->delay--;
     
 #ifdef DUMP_DECODE
-    bgav_dprintf("Used %d/%d bytes, got picture: %d, delay: %d, num_old_pts: %d\n",
+    bgav_dprintf("Used %d/%d bytes, got picture: %d, delay: %d, num_old_pts: %d ",
                  bytes_used, len, priv->have_picture, priv->delay, priv->pts_cache.num);
+    if(!priv->have_picture)
+      bgav_dprintf("\n");
+    else if(priv->frame->pict_type == FF_I_TYPE)
+      bgav_dprintf("I-Frame\n");
+    else if(priv->frame->pict_type == FF_B_TYPE)
+      bgav_dprintf("B-Frame\n");
+    else if(priv->frame->pict_type == FF_P_TYPE)
+      bgav_dprintf("P-Frame\n");
+    else if(priv->frame->pict_type == FF_S_TYPE)
+      bgav_dprintf("S-Frame\n");
+    else if(priv->frame->pict_type == FF_SI_TYPE)
+      bgav_dprintf("SI-Frame\n");
+    else if(priv->frame->pict_type == FF_SP_TYPE)
+      bgav_dprintf("SP-Frame\n");
 #endif
     
     /* Advance packet buffer */
@@ -373,7 +388,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       if(bytes_used < 0)
         {
         bgav_bytebuffer_flush(&priv->buf);
-        return 0;
+        //        return 0;
         }
       else
         {
@@ -534,9 +549,12 @@ static int init(bgav_stream_t * s)
 
   /* Initialize parser */
 #if 1
-  priv->parser = av_parser_init(priv->ctx->codec_id);
-  if(priv->parser && !s->not_aligned)
-    priv->parser->flags |= PARSER_FLAG_COMPLETE_FRAMES;
+  if(s->not_aligned)
+    {
+    priv->parser = av_parser_init(priv->ctx->codec_id);
+    //    if(priv->parser)
+    //      priv->parser->flags |= PARSER_FLAG_COMPLETE_FRAMES;
+    }
 #endif
   //  fprintf(stderr, "Codec tag: %08x\n", priv->ctx->codec_tag);
   //  fprintf(stderr, "FF: %d %s\n", priv->ctx->extradata_size, priv->ctx->extradata);
@@ -593,7 +611,7 @@ static int init(bgav_stream_t * s)
    *  we need an AVParser
    */
   priv->ctx->flags &= ~CODEC_FLAG_TRUNCATED;
-
+  
   if(codec->capabilities & CODEC_CAP_DELAY)
     priv->has_delay = 1;
   
@@ -617,7 +635,8 @@ static int init(bgav_stream_t * s)
 
   if(!decode(s, NULL))
     {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not get initial frame");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Could not get initial frame");
     return 0;
     }
   get_format(priv->ctx, &s->data.video.format);
@@ -651,7 +670,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
   priv->delay = 0;
   priv->pts_cache.num = 0;
   priv->have_picture = 0;
-
+  
   if(priv->parser)
     {
     av_parser_close(priv->parser);
@@ -1048,12 +1067,19 @@ static codec_info_t codec_infos[] =
     { "FFmpeg MPEC video decoder", "Playstation MDEC", CODEC_ID_MDEC,
       (uint32_t[]){ BGAV_MK_FOURCC('M', 'D', 'E', 'C'),
                     0x00 } },
+
+    { "FFmpeg VMware video decoder", "VMware video", CODEC_ID_VMNC,
+      (uint32_t[]){ BGAV_MK_FOURCC('V', 'M', 'n', 'c'),
+                    0x00 } },
     
-#if 1 // Crash
+    { "FFmpeg Westwood VQA decoder", "Westwood VQA", CODEC_ID_WS_VQA,
+      (uint32_t[]){ BGAV_MK_FOURCC('W', 'V', 'Q', 'A'),
+                    0x00 } },
+    
     { "FFmpeg LOCO decoder", "LOCO", CODEC_ID_LOCO,
       (uint32_t[]){ BGAV_MK_FOURCC('L', 'O', 'C', 'O'),
                0x00 } },
-#endif
+
     { "FFmpeg VCR1 decoder", "ATI VCR1", CODEC_ID_VCR1,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'C', 'R', '1'),
                0x00 } },
