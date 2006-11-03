@@ -36,9 +36,9 @@
 
 #define LOG_DOMAIN "ffmpeg_video"
 
-#define DUMP_DECODE
+// #define DUMP_DECODE
 // #define DUMP_EXTRADATA
-#define DUMP_PARSER
+// #define DUMP_PARSER
 /* Map of ffmpeg codecs to fourccs (from ffmpeg's avienc.c) */
 
 typedef struct
@@ -185,14 +185,15 @@ static int get_data(bgav_stream_t * s)
       else
         bytes_to_parse = priv->buf.size - priv->parsed_bytes_used;
       
-      priv->parsed_bytes_used += av_parser_parse(priv->parser,
-                                                 priv->ctx,
-                                                 &priv->parsed_frame,
-                                                 &priv->parsed_frame_size,
-                                                 priv->buf.buffer + priv->parsed_bytes_used,
-                                                 bytes_to_parse,
-                                                 TIME_BGAV_2_FFMPEG(priv->last_pts),
-                                                 TIME_BGAV_2_FFMPEG(priv->last_dts));
+      priv->parsed_bytes_used +=
+        av_parser_parse(priv->parser,
+                        priv->ctx,
+                        &priv->parsed_frame,
+                        &priv->parsed_frame_size,
+                        priv->buf.buffer + priv->parsed_bytes_used,
+                        bytes_to_parse,
+                        TIME_BGAV_2_FFMPEG(priv->last_pts),
+                        TIME_BGAV_2_FFMPEG(priv->last_dts));
 #ifdef DUMP_PARSER
       bgav_dprintf("done: bytes_used: %d frame_size: %d ",
                    priv->parsed_bytes_used, priv->parsed_frame_size);
@@ -243,7 +244,9 @@ static int get_data(bgav_stream_t * s)
       {
       priv->parsed_frame = priv->buf.buffer;
       priv->parsed_frame_size = priv->buf.size;
-
+#ifdef DUMP_PARSER
+      bgav_dprintf("Got complete packet %d bytes ", priv->buf.size);
+#endif      
       if(!put_pts(priv, p->pts))
         return 0;
       bgav_demuxer_done_packet_read(s->demuxer, p);
@@ -387,8 +390,16 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
       /* Check for error */
       if(bytes_used < 0)
         {
-        bgav_bytebuffer_flush(&priv->buf);
+        if(priv->parser)
+          {
+          bgav_bytebuffer_remove(&priv->buf, priv->parsed_bytes_used);
+          priv->parsed_bytes_used = 0;
+          }
+        else
+          bgav_bytebuffer_flush(&priv->buf);
+        //        fprintf(stderr, "Flush buffer\n");
         //        return 0;
+        get_pts(priv);
         }
       else
         {
@@ -399,6 +410,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
           }
         else if(!s->not_aligned)
           {
+          //          fprintf(stderr, "Flush buffer\n");
           bgav_bytebuffer_flush(&priv->buf);
           }
         else
@@ -680,7 +692,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
     priv->parser_started = 0;
     }
   
-  fprintf(stderr, "RESYNC\n");
+  //  fprintf(stderr, "RESYNC\n");
   }
 
 static void close_ffmpeg(bgav_stream_t * s)
@@ -1075,6 +1087,11 @@ static codec_info_t codec_infos[] =
     
     { "FFmpeg Westwood VQA decoder", "Westwood VQA", CODEC_ID_WS_VQA,
       (uint32_t[]){ BGAV_MK_FOURCC('W', 'V', 'Q', 'A'),
+                    0x00 } },
+
+    { "FFmpeg Sierra VMD video decoder", "Sierra VMD video",
+      CODEC_ID_VMDVIDEO,
+      (uint32_t[]){ BGAV_MK_FOURCC('V', 'M', 'D', 'V'),
                     0x00 } },
     
     { "FFmpeg LOCO decoder", "LOCO", CODEC_ID_LOCO,

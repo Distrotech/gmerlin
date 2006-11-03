@@ -153,6 +153,11 @@ static codec_info_t codec_infos[] =
     { "FFmpeg Westwood ADPCM decoder", "Westwood ADPCM", CODEC_ID_ADPCM_IMA_WS,
       (uint32_t[]){ BGAV_MK_FOURCC('w','s','p','c'), 0x00 },
       -1 },
+
+    { "FFmpeg Sierra VMD audio decoder", "Sierra VMD audio",
+      CODEC_ID_VMDAUDIO,
+      (uint32_t[]){ BGAV_MK_FOURCC('V', 'M', 'D', 'A'),
+                    0x00 } },
     
     { "FFmpeg Sonic decoder", "Sonic", CODEC_ID_SONIC,
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x2048), 0x00 },

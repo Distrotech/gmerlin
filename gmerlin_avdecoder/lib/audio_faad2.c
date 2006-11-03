@@ -28,26 +28,26 @@
 
 #define LOG_DOMAIN "faad2"
 
+// #define DUMP_DECODE
+
 typedef struct
   {
+  bgav_bytebuffer_t buf;
   faacDecHandle dec;
   float * sample_buffer;
   int sample_buffer_size;
-
-  uint8_t * data;
-  uint8_t * data_ptr;
-  int data_size;
-  int data_alloc;
   
   gavl_audio_frame_t * frame;
   int last_block_size;
+
+  int frame_start; /* Lower 3 bits */
+  
   } faad_priv_t;
 
 static int get_data(bgav_stream_t * s)
   {
   faad_priv_t * priv;
   bgav_packet_t * p;
-  int buffer_offset;
   
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
 
@@ -55,24 +55,16 @@ static int get_data(bgav_stream_t * s)
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!p)
     return 0;
-  
-  if(priv->data_alloc < p->data_size + priv->data_size)
-    {
-    buffer_offset = priv->data_ptr - priv->data;
-    
-    priv->data_alloc = p->data_size + priv->data_size + 32;
-    priv->data = realloc(priv->data, priv->data_alloc);
-    priv->data_ptr = priv->data + buffer_offset;
-    }
 
-  if(priv->data_size)
-    memmove(priv->data, priv->data_ptr, priv->data_size);
-  priv->data_ptr = priv->data;
+  /* If we know the number of samples (i.e. when the packet comes
+     from an mp4/mov container), flush the buffer to remove previous
+     padding bytes */
+  if(p->samples)
+    bgav_bytebuffer_flush(&priv->buf);
   
-  memcpy(priv->data + priv->data_size, p->data, p->data_size);
-  priv->data_size += p->data_size;
+  bgav_bytebuffer_append(&priv->buf, p, 0);
   bgav_demuxer_done_packet_read(s->demuxer, p);
-
+  
   return 1;
   }
 
@@ -133,7 +125,7 @@ static int decode_frame(bgav_stream_t * s)
 
   memset(&frame_info, 0, sizeof(&frame_info));
   
-  if(priv->data_size < FAAD_MIN_STREAMSIZE)
+  if(priv->buf.size < FAAD_MIN_STREAMSIZE)
     if(!get_data(s))
       return 0;
 
@@ -142,21 +134,31 @@ static int decode_frame(bgav_stream_t * s)
    * one byte, padding bits are (hopefully always) set to zero.
    * This enables playback of BigBounc1960_256kb.mp4
    */
-#if 1
-  if(*priv->data_ptr == 0x00)
+#if 0
+  if(priv->frame_start < 0)
+    priv->frame_start = priv->buf.buffer[0] & 0x0f;
+  else if((priv->buf.buffer[0] & 0x0f) != priv->frame_start)
     {
-    priv->data_ptr++;
-    priv->data_size--;
+    bgav_bytebuffer_remove(&priv->buf, 1);
     }
 #endif
   while(1)
     {
+#ifdef DUMP_DECODE
+    bgav_dprintf(stderr, "faacDecDecode %d bytes\n", priv->buf.size);
+    bgav_hexdump(priv->buf.buffer, 16, 16);
+#endif
+   
     priv->frame->samples.f = faacDecDecode(priv->dec,
                                            &frame_info,
-                                           priv->data_ptr,
-                                           priv->data_size);
-    priv->data_ptr  += frame_info.bytesconsumed;
-    priv->data_size -= frame_info.bytesconsumed;
+                                           priv->buf.buffer,
+                                           priv->buf.size);
+
+#ifdef DUMP_DECODE
+    bgav_dprintf(stderr, "Used %d bytes\n", frame_info.bytesconsumed);
+#endif
+   
+    bgav_bytebuffer_remove(&priv->buf, frame_info.bytesconsumed);
     
     if(!priv->frame->samples.f)
       {
@@ -170,9 +172,12 @@ static int decode_frame(bgav_stream_t * s)
         bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                  "faad2: faacDecDecode failed %s",
                 faacDecGetErrorMessage(frame_info.error));
+        bgav_bytebuffer_flush(&priv->buf);
+        if(!get_data(s))
+          return 0;
         //    priv->data_size = 0;
         //    priv->frame->valid_samples = 0;
-        return 0; /* Recatching the stream is doomed to failure, so we end here */
+        // return 0; /* Recatching the stream is doomed to failure, so we end here */
         }
       }
     else
@@ -212,8 +217,7 @@ static int decode_frame(bgav_stream_t * s)
     }
   priv->frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
   priv->last_block_size = priv->frame->valid_samples;
-  
-  
+    
   return 1;
   }
 
@@ -228,6 +232,7 @@ static int init_faad2(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
   priv->dec = faacDecOpen();
   priv->frame = gavl_audio_frame_create(NULL);
+  priv->frame_start = -1;
   s->data.audio.decoder->priv = priv;
   
   /* Init the library using a DecoderSpecificInfo */
@@ -238,12 +243,10 @@ static int init_faad2(bgav_stream_t * s)
     if(!get_data(s))
       return 0;
 
-    result = faacDecInit(priv->dec, priv->data_ptr,
-                         priv->data_size,
+    result = faacDecInit(priv->dec, priv->buf.buffer,
+                         priv->buf.size,
                          &samplerate, &channels);
-
-    priv->data_size -= result;
-    priv->data_ptr += result;
+    bgav_bytebuffer_remove(&priv->buf, result);
     }
   else
     {
@@ -271,8 +274,7 @@ static int init_faad2(bgav_stream_t * s)
   /* Decode a first frame to get the channel setup and the description */
   if(!decode_frame(s))
     return 0;
-  
-  
+    
   return 1;
   }
 
@@ -321,8 +323,8 @@ static void close_faad2(bgav_stream_t * s)
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
   if(priv->dec)
     faacDecClose(priv->dec);
-  if(priv->data)
-    free(priv->data);
+
+  bgav_bytebuffer_free(&priv->buf);
   gavl_audio_frame_null(priv->frame);
   gavl_audio_frame_destroy(priv->frame);
   free(priv);
@@ -334,8 +336,8 @@ static void resync_faad2(bgav_stream_t * s)
   priv = (faad_priv_t *)(s->data.audio.decoder->priv);
   priv->frame->valid_samples = 0;
   priv->sample_buffer_size = 0;
-  priv->data_size = 0;
-  
+
+  bgav_bytebuffer_flush(&priv->buf);
   }
 
 static bgav_audio_decoder_t decoder =

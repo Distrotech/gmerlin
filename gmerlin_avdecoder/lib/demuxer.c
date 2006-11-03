@@ -66,6 +66,7 @@ extern bgav_demuxer_t bgav_demuxer_sol;
 extern bgav_demuxer_t bgav_demuxer_gif;
 extern bgav_demuxer_t bgav_demuxer_smjpeg;
 extern bgav_demuxer_t bgav_demuxer_vqa;
+extern bgav_demuxer_t bgav_demuxer_vmd;
 
 #ifdef HAVE_VORBIS
 extern bgav_demuxer_t bgav_demuxer_ogg;
@@ -142,6 +143,7 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_ircam, "IRCAM" },
     { &bgav_demuxer_gsm, "raw gsm" },
     { &bgav_demuxer_daud, "D-Cinema audio" },
+    { &bgav_demuxer_vmd,  "Sierra VMD" },
   };
 
 static demuxer_t sync_demuxers[] =
