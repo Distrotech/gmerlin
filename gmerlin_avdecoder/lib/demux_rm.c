@@ -123,7 +123,6 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
   uint16_t samplesize;
   uint16_t frame_size;
   int version;
-  
 #if 0
   int flavor;
 #endif
@@ -153,119 +152,139 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
   data += 4;
   
   version = BGAV_PTR_2_16BE(data);data+=2;
-  data += 2; // 00 00
-  data += 4; /* .ra4 or .ra5 */
-  data += 4; // ???
-  data += 2; /* version (4 or 5) */
-  data += 4; // header size == 0x4E
-  bg_as->subformat = BGAV_PTR_2_16BE(data);data+=2;/* codec flavor id */
-  coded_framesize = BGAV_PTR_2_32BE(data);data+=4;/* needed by codec */
-  data += 4; // big number
-  data += 4; // bigger number
-  data += 4; // 2 || -''-
-  // data += 2; // 0x10
-  sub_packet_h = BGAV_PTR_2_16BE(data);data+=2;
-  //		    data += 2; /* coded frame size */
-  frame_size = BGAV_PTR_2_16BE(data);data+=2;
-  sub_packet_size = BGAV_PTR_2_16BE(data);data+=2;
-  data += 2; // 0
-      
-  if (version == 5)
-    data += 6; //0,srate,0
-  
-  bg_as->data.audio.format.samplerate = BGAV_PTR_2_16BE(data);data+=2;
-  data += 2;  // 0
-  samplesize = BGAV_PTR_2_16BE(data);data += 2;
-  samplesize /= 8;
-  bg_as->data.audio.bits_per_sample = samplesize * 8;
-  bg_as->data.audio.format.num_channels = BGAV_PTR_2_16BE(data);data+=2;
-  if (version == 5)
+
+  if(version == 3)
     {
-    data += 4;  // "genr"
-    bg_as->fourcc = BGAV_PTR_2_FOURCC(data);data += 4;
+    int len;
+    data += 16;
+    len = *data; data += len+1; // Name
+    len = *data; data += len+1; // Author
+    len = *data; data += len+1; // Copyright
+    data += 2;
+    len = *data;
+    data++;
+    //    fprintf(stderr, "Fourcc len: %d\n", len);
+    bg_as->fourcc = BGAV_PTR_2_FOURCC(data);
+    bg_as->data.audio.format.num_channels = 1;
+    bg_as->data.audio.bits_per_sample = 16;
+    bg_as->data.audio.format.samplerate = 8000;
     }
   else
-    {		
-    /* Desc #1 */
-    desc_len = *data;
-    data += desc_len+1;
-    /* Desc #2 */
-    desc_len = *data;
-    data++;
-    bg_as->fourcc = BGAV_PTR_2_FOURCC(data);
-    data += desc_len;
-    }
-  
-  switch(bg_as->fourcc)
     {
-    case BGAV_MK_FOURCC('d', 'n', 'e', 't'):
-      /* AC3 byteswapped */
-      break;
-    case BGAV_MK_FOURCC('1', '4', '_', '4'):
-      bg_as->data.audio.block_align = 0x14;
-      break;
-    case BGAV_MK_FOURCC('2', '8', '_', '8'):
-      bg_as->data.audio.block_align = coded_framesize;
-
-      rm_as->sub_packet_size = sub_packet_size;
-      rm_as->sub_packet_h = sub_packet_h;
-      rm_as->coded_framesize = coded_framesize;
-      rm_as->audiopk_size = frame_size;
-      break;
-    case BGAV_MK_FOURCC('s', 'i', 'p', 'r'):
-    case BGAV_MK_FOURCC('a', 't', 'r', 'c'):
-    case BGAV_MK_FOURCC('c', 'o', 'o', 'k'):
-      /* Get extradata for codec */
-      data += 3;
-      if(version == 5)
-        data++;
-
-      codecdata_length = BGAV_PTR_2_32BE(data);data+=4;
+    data += 2; // 00 00
+    data += 4; /* .ra4 or .ra5 */
+    data += 4; // ???
+    data += 2; /* version (4 or 5) */
+    data += 4; // header size == 0x4E
+    bg_as->subformat = BGAV_PTR_2_16BE(data);data+=2;/* codec flavor id */
+    coded_framesize = BGAV_PTR_2_32BE(data);data+=4;/* needed by codec */
+    data += 4; // big number
+    data += 4; // bigger number
+    data += 4; // 2 || -''-
+    // data += 2; // 0x10
+    sub_packet_h = BGAV_PTR_2_16BE(data);data+=2;
+    //		    data += 2; /* coded frame size */
+    frame_size = BGAV_PTR_2_16BE(data);data+=2;
+    sub_packet_size = BGAV_PTR_2_16BE(data);data+=2;
+    data += 2; // 0
       
-      bg_as->ext_size = codecdata_length;
-      if(bg_as->ext_size)
-        {
-        bg_as->ext_data = malloc(bg_as->ext_size);
-        memcpy(bg_as->ext_data, data, codecdata_length);
-        }
-
-      if((bg_as->fourcc == BGAV_MK_FOURCC('a', 't', 'r', 'c')) ||
-         (bg_as->fourcc == BGAV_MK_FOURCC('c', 'o', 'o', 'k')))
-        bg_as->data.audio.block_align = sub_packet_size;
-      else
+    if (version == 5)
+      data += 6; //0,srate,0
+  
+    bg_as->data.audio.format.samplerate = BGAV_PTR_2_16BE(data);data+=2;
+    data += 2;  // 0
+    samplesize = BGAV_PTR_2_16BE(data);data += 2;
+    samplesize /= 8;
+    bg_as->data.audio.bits_per_sample = samplesize * 8;
+    bg_as->data.audio.format.num_channels = BGAV_PTR_2_16BE(data);data+=2;
+    if (version == 5)
+      {
+      data += 4;  // "genr"
+      bg_as->fourcc = BGAV_PTR_2_FOURCC(data);data += 4;
+      }
+    else
+      {		
+      /* Desc #1 */
+      desc_len = *data;
+      data += desc_len+1;
+      /* Desc #2 */
+      desc_len = *data;
+      data++;
+      bg_as->fourcc = BGAV_PTR_2_FOURCC(data);
+      data += desc_len;
+      }
+  
+    switch(bg_as->fourcc)
+      {
+      case BGAV_MK_FOURCC('d', 'n', 'e', 't'):
+        /* AC3 byteswapped */
+        break;
+      case BGAV_MK_FOURCC('1', '4', '_', '4'):
+        bg_as->data.audio.block_align = 0x14;
+        break;
+      case BGAV_MK_FOURCC('2', '8', '_', '8'):
         bg_as->data.audio.block_align = coded_framesize;
-      
-      rm_as->sub_packet_size = sub_packet_size;
-      rm_as->sub_packet_h = sub_packet_h;
-      rm_as->coded_framesize = coded_framesize;
-      rm_as->audiopk_size = frame_size;
-      break;
-    case BGAV_MK_FOURCC('r', 'a', 'a', 'c'):
-    case BGAV_MK_FOURCC('r', 'a', 'c', 'p'):
-      data += 3;
-      if(version == 5)
-        data++;
 
-      codecdata_length = BGAV_PTR_2_32BE(data);data+=4;
-      if(codecdata_length>=1)
-        {
-        bg_as->ext_size = codecdata_length-1;
-        data++;
+        rm_as->sub_packet_size = sub_packet_size;
+        rm_as->sub_packet_h = sub_packet_h;
+        rm_as->coded_framesize = coded_framesize;
+        rm_as->audiopk_size = frame_size;
+        break;
+      case BGAV_MK_FOURCC('s', 'i', 'p', 'r'):
+      case BGAV_MK_FOURCC('a', 't', 'r', 'c'):
+      case BGAV_MK_FOURCC('c', 'o', 'o', 'k'):
+        /* Get extradata for codec */
+        data += 3;
+        if(version == 5)
+          data++;
+
+        codecdata_length = BGAV_PTR_2_32BE(data);data+=4;
+      
+        bg_as->ext_size = codecdata_length;
         if(bg_as->ext_size)
           {
           bg_as->ext_data = malloc(bg_as->ext_size);
-          memcpy(bg_as->ext_data, data, bg_as->ext_size);
+          memcpy(bg_as->ext_data, data, codecdata_length);
           }
-        }
-      break;
-    default:
-      
-      break;
-    }
 
-  if(rm_as->sub_packet_h && rm_as->audiopk_size)
-    rm_as->audio_buf = malloc(rm_as->sub_packet_h * rm_as->audiopk_size);
-  
+        if((bg_as->fourcc == BGAV_MK_FOURCC('a', 't', 'r', 'c')) ||
+           (bg_as->fourcc == BGAV_MK_FOURCC('c', 'o', 'o', 'k')))
+          bg_as->data.audio.block_align = sub_packet_size;
+        else
+          bg_as->data.audio.block_align = coded_framesize;
+      
+        rm_as->sub_packet_size = sub_packet_size;
+        rm_as->sub_packet_h = sub_packet_h;
+        rm_as->coded_framesize = coded_framesize;
+        rm_as->audiopk_size = frame_size;
+        break;
+      case BGAV_MK_FOURCC('r', 'a', 'a', 'c'):
+      case BGAV_MK_FOURCC('r', 'a', 'c', 'p'):
+        data += 3;
+        if(version == 5)
+          data++;
+
+        codecdata_length = BGAV_PTR_2_32BE(data);data+=4;
+        if(codecdata_length>=1)
+          {
+          bg_as->ext_size = codecdata_length-1;
+          data++;
+          if(bg_as->ext_size)
+            {
+            bg_as->ext_data = malloc(bg_as->ext_size);
+            memcpy(bg_as->ext_data, data, bg_as->ext_size);
+            }
+          }
+        break;
+      default:
+      
+        break;
+      }
+
+    if(rm_as->sub_packet_h && rm_as->audiopk_size)
+      rm_as->audio_buf = malloc(rm_as->sub_packet_h * rm_as->audiopk_size);
+    } // Version > 3
+
   //  dump_audio(rm_as);
 
   bg_as->stream_id = stream->mdpr.stream_number;

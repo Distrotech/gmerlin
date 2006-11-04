@@ -324,6 +324,7 @@ demux_vmd.c \
 demux_vqa.c \
 demux_wav.c \
 demux_wavpack.c \
+demux_wve.c \
 device.c \
 dvframe.c \
 http.c \

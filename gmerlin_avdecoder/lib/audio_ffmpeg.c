@@ -116,6 +116,13 @@ static codec_info_t codec_infos[] =
                     0x00 },
       -1 },
 
+    { "FFmpeg Electronicarts ADPCM decoder", "Electronicarts ADPCM",
+      CODEC_ID_ADPCM_EA,
+      (uint32_t[]){ BGAV_MK_FOURCC('w','v','e','a'),
+                    0x00 },
+      -1 },
+    
+    
     { "FFmpeg G726 decoder", "G726 ADPCM", CODEC_ID_ADPCM_G726,
       (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0045),
                     0x00 },
