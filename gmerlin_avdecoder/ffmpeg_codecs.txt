@@ -125,7 +125,7 @@ CODEC_ID_XAN_WC4
 + CODEC_ID_ADPCM_4XM
 + CODEC_ID_ADPCM_XA
 * CODEC_ID_ADPCM_ADX // ffmpeg neither reads nor writes them
-CODEC_ID_ADPCM_EA
++ CODEC_ID_ADPCM_EA
 + CODEC_ID_ADPCM_G726
 + CODEC_ID_ADPCM_CT
 ! CODEC_ID_ADPCM_SWF // http://samples.mplayerhq.hu/FLV/zelda.flv

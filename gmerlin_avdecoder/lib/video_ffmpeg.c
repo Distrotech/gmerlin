@@ -953,6 +953,7 @@ static codec_info_t codec_infos[] =
                     BGAV_MK_FOURCC('J', 'P', 'G', 'L'),
                     BGAV_MK_FOURCC('L', 'J', 'P', 'G'),
                     BGAV_MK_FOURCC('M', 'J', 'L', 'S'),
+                    BGAV_MK_FOURCC('d', 'm', 'b', '1'),
                     BGAV_MK_FOURCC('J', 'F', 'I', 'F'), // SMJPEG
                     0x00 } },
     
@@ -1155,6 +1156,7 @@ static codec_info_t codec_infos[] =
     { "FFmpeg H264 decoder", "H264", CODEC_ID_H264,
       (uint32_t[]){ BGAV_MK_FOURCC('a', 'v', 'c', '1'),
                BGAV_MK_FOURCC('H', '2', '6', '4'),
+               BGAV_MK_FOURCC('h', '2', '6', '4'),
                0x00 } },
 
     { "FFmpeg Snow decoder", "Snow", CODEC_ID_SNOW,
