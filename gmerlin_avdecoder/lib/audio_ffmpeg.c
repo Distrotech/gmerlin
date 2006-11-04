@@ -125,7 +125,7 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('m', '4', 'a', 29),
                     0x00 },
       -1 },
-#if 0 // Sounds disgusting
+#if 1 // Sounds disgusting
     { "FFmpeg mp3 ADU decoder", "MP3 ADU", CODEC_ID_MP3ADU,
       (uint32_t[]){ BGAV_MK_FOURCC('r', 'm', 'p', '3'),
                     0x00 },

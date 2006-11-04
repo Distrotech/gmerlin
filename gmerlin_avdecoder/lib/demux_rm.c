@@ -234,7 +234,7 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
         bg_as->data.audio.block_align = sub_packet_size;
       else
         bg_as->data.audio.block_align = coded_framesize;
-
+      
       rm_as->sub_packet_size = sub_packet_size;
       rm_as->sub_packet_h = sub_packet_h;
       rm_as->coded_framesize = coded_framesize;
@@ -242,6 +242,21 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
       break;
     case BGAV_MK_FOURCC('r', 'a', 'a', 'c'):
     case BGAV_MK_FOURCC('r', 'a', 'c', 'p'):
+      data += 3;
+      if(version == 5)
+        data++;
+
+      codecdata_length = BGAV_PTR_2_32BE(data);data+=4;
+      if(codecdata_length>=1)
+        {
+        bg_as->ext_size = codecdata_length-1;
+        data++;
+        if(bg_as->ext_size)
+          {
+          bg_as->ext_data = malloc(bg_as->ext_size);
+          memcpy(bg_as->ext_data, data, bg_as->ext_size);
+          }
+        }
       break;
     default:
       
@@ -561,7 +576,7 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
 
   bgav_charset_converter_t * cnv;
 
-  bgav_rmff_header_dump(h);
+  //  bgav_rmff_header_dump(h);
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
@@ -1046,6 +1061,10 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
   rm_audio_stream_t * as;
   int x, sps, cfs, sph, spc, w;
   uint8_t swp;
+
+  uint16_t aac_packet_lengths[16];
+  uint8_t num_aac_packets;
+  
   as = (rm_audio_stream_t*)stream->priv;
   
   packet_size = PAYLOAD_LENGTH(h);
@@ -1130,7 +1149,8 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
         }
       }
     }
-  else if(BGAV_MK_FOURCC('d', 'n', 'e', 't')) /* Byte swapped AC3 */
+  /* Byte swapped AC3 */
+  else if(stream->fourcc == BGAV_MK_FOURCC('d', 'n', 'e', 't')) 
     {
     p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
     bgav_packet_alloc(p, packet_size);
@@ -1149,6 +1169,28 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
     p->data_size = packet_size;
     bgav_packet_done_write(p);
     }
+  else if((stream->fourcc == BGAV_MK_FOURCC('r', 'a', 'a', 'c')) ||
+          (stream->fourcc == BGAV_MK_FOURCC('r', 'a', 'c', 'p')))
+    {
+    bgav_input_skip(ctx->input, 1);
+    if(!bgav_input_read_data(ctx->input, &num_aac_packets, 1))
+      return 0;
+    num_aac_packets >>= 4;
+    for(x = 0; x < num_aac_packets; x++)
+      {
+      if(!bgav_input_read_16_be(ctx->input, &aac_packet_lengths[x]))
+        return 0;
+      }
+    for(x = 0; x < num_aac_packets; x++)
+      {
+      p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
+      bgav_packet_alloc(p, packet_size);
+      
+      bgav_input_read_data(ctx->input, p->data, aac_packet_lengths[x]);
+      p->data_size = aac_packet_lengths[x];
+      bgav_packet_done_write(p);
+      }
+    }
   else /* No reordering needed */
     {
     p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
@@ -1157,6 +1199,8 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
     bgav_input_read_data(ctx->input, p->data, packet_size);
     p->data_size = packet_size;
     bgav_packet_done_write(p);
+
+    
     }
   
   return 1;
@@ -1423,16 +1467,18 @@ static void close_rmff(bgav_demuxer_context_t * ctx)
     for(i = 0; i < track->num_audio_streams; i++)
       {
       as = (rm_audio_stream_t*)(track->audio_streams[i].priv);
+      if(as) free(as);
+      
       if(track->audio_streams[i].ext_data)
         free(track->audio_streams[i].ext_data);
-      free(as);
-      } 
+      }
     for(i = 0; i < track->num_video_streams; i++)
       {
       vs = (rm_video_stream_t*)(track->video_streams[i].priv);
+      if(vs) free(vs);
+      
       if(track->video_streams[i].ext_data)
         free(track->video_streams[i].ext_data);
-      free(vs);
       }
     }
 

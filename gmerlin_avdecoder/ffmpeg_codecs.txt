@@ -57,7 +57,7 @@ CODEC_ID_XAN_WC4
 + CODEC_ID_SNOW
 + CODEC_ID_TSCC
 + CODEC_ID_ULTI
-! CODEC_ID_QDRAW http://samples.mplayerhq.hu/V-codecs/QT-qdrw/Airplane.mov
++ CODEC_ID_QDRAW
 + CODEC_ID_VIXL
 + CODEC_ID_QPEG
 - CODEC_ID_XVID
@@ -90,7 +90,7 @@ CODEC_ID_XAN_WC4
 + CODEC_ID_CAVS
 - CODEC_ID_JPEG2000
 + CODEC_ID_VMNC
-! CODEC_ID_VP5 // elvis-ad1-120.nsv messed up but played ok by ffplay (#&+#$°!!!)
++ CODEC_ID_VP5
 + CODEC_ID_VP6
 + CODEC_ID_VP6F
 # CODEC_ID_TARGA
@@ -157,7 +157,7 @@ CODEC_ID_XAN_DPCM
 + CODEC_ID_SONIC
 - CODEC_ID_SONIC_LS // Encoder only
 # CODEC_ID_FLAC
-! CODEC_ID_MP3ADU // http://samples.mplayerhq.hu/real/mp3_in_rm/iwantcandy.mp3.rm
++ CODEC_ID_MP3ADU
 + CODEC_ID_MP3ON4
 + CODEC_ID_SHORTEN
 + CODEC_ID_ALAC

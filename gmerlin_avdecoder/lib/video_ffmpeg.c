@@ -1024,12 +1024,10 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '3', '1'),
                     BGAV_MK_FOURCC('V', 'P', '3', ' '),
                0x00 } },
-#if 0
-    // elvis-ad1-120.nsv is completely messed up
-    { "FFmpeg VP5 decoder", "On2 VP5", CODEC_ID_VP3,
+
+    { "FFmpeg VP5 decoder", "On2 VP5", CODEC_ID_VP5,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '5', '0'),
                     0x00 } },
-#endif
 
     { "FFmpeg VP6.2 decoder", "On2 VP6.2", CODEC_ID_VP6,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '2'),

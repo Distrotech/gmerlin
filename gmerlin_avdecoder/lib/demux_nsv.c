@@ -469,8 +469,8 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
                    &s->data.video.format.timescale,
                    &s->data.video.format.frame_duration);
     /* Get depth for RGB3 */
-    if(sh.vidfmt == BGAV_MK_FOURCC('R','G','B','3'))
-      s->data.video.depth = 24;
+    //    if(sh.vidfmt == BGAV_MK_FOURCC('R','G','B','3'))
+    s->data.video.depth = 24;
     
     }
   
