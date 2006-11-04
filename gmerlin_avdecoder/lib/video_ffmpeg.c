@@ -814,6 +814,10 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('R', 'O', 'Q', 'V'),
                     0x00 } },
 
+    { "FFmpeg AVS Video Decoder", "AVS Video", CODEC_ID_AVS,
+      (uint32_t[]){ BGAV_MK_FOURCC('A', 'V', 'S', ' '),
+                    0x00 } },
+
     { "FFmpeg GIF Video Decoder", "GIF", CODEC_ID_GIF,
       (uint32_t[]){ BGAV_MK_FOURCC('g', 'i', 'f', ' '),
                     0x00 } },

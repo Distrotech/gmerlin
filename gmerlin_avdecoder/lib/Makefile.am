@@ -288,6 +288,7 @@ demux_aac.c \
 demux_aiff.c \
 demux_asf.c \
 demux_avi.c \
+demux_avs.c \
 demux_au.c \
 demux_daud.c \
 demux_dsicin.c \

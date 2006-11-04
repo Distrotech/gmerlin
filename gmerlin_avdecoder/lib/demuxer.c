@@ -67,6 +67,7 @@ extern bgav_demuxer_t bgav_demuxer_gif;
 extern bgav_demuxer_t bgav_demuxer_smjpeg;
 extern bgav_demuxer_t bgav_demuxer_vqa;
 extern bgav_demuxer_t bgav_demuxer_vmd;
+extern bgav_demuxer_t bgav_demuxer_avs;
 
 #ifdef HAVE_VORBIS
 extern bgav_demuxer_t bgav_demuxer_ogg;
@@ -126,6 +127,7 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_gif,       "GIF" },
     { &bgav_demuxer_smjpeg,    "SMJPEG" },
     { &bgav_demuxer_vqa,       "Westwood VQA" },
+    { &bgav_demuxer_avs,       "AVS" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif
