@@ -304,6 +304,7 @@ demux_mpegaudio.c \
 demux_mpegps.c \
 demux_mpegts.c \
 demux_mpegvideo.c \
+demux_mtv.c \
 demux_nsv.c \
 demux_nuv.c \
 demux_psxstr.c \

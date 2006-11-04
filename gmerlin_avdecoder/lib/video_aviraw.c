@@ -71,6 +71,22 @@ static void scanline_16(uint8_t * src, uint8_t * dst,
 #endif
   }
 
+static void scanline_16_swap(uint8_t * src, uint8_t * dst,
+                        int num_pixels, bgav_palette_entry_t * pal)
+  {
+#ifdef GAVL_PROCESSOR_BIG_ENDIAN
+  memcpy(dst, src, num_pixels * 2);
+#else
+  int i;
+  for(i = 0; i < num_pixels; i++)
+    {
+    dst[2*i]   = src[2*i+1];
+    dst[2*i+1] = src[2*i];
+    }
+#endif
+  }
+
+
 
 static void scanline_24(uint8_t * src, uint8_t * dst,
                         int num_pixels, bgav_palette_entry_t * pal)
@@ -172,8 +188,16 @@ static int init_aviraw(bgav_stream_t * s)
       priv->scanline_func = scanline_8;
       break;
     case 16:
-      s->data.video.format.pixelformat = GAVL_RGB_15;
-      priv->scanline_func = scanline_16;
+      if(s->fourcc == BGAV_MK_FOURCC('M','T','V',' '))
+        {
+        s->data.video.format.pixelformat = GAVL_RGB_16;
+        priv->scanline_func = scanline_16_swap;
+        }
+      else
+        {
+        s->data.video.format.pixelformat = GAVL_RGB_15;
+        priv->scanline_func = scanline_16;
+        }
       break;
     case 24:
       priv->scanline_func = scanline_24;
@@ -196,7 +220,7 @@ static int init_aviraw(bgav_stream_t * s)
     {
     priv->in_stride += (4 - (priv->in_stride % 4));
     }
-  s->description = bgav_sprintf("RGB uncompressed\n");
+  s->description = bgav_sprintf("RGB uncompressed");
   return 1;
   }
 
@@ -204,6 +228,7 @@ static bgav_video_decoder_t decoder =
   {
     name:   "Raw video decoder for AVI",
     fourccs:  (uint32_t[]){ BGAV_MK_FOURCC('R', 'G', 'B', ' '),
+                            BGAV_MK_FOURCC('M', 'T', 'V', ' '),
                             /* RGB3 is used by NSV, but seems to be the same as 24 bpp AVI */
                             BGAV_MK_FOURCC('R', 'G', 'B', '3'),
                             0x00  },
