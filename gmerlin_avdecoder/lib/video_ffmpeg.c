@@ -517,13 +517,9 @@ static int init(bgav_stream_t * s)
   
   priv->ctx->bit_rate = 0;
 
-#if LIBAVCODEC_BUILD >= 4754
   priv->ctx->time_base.den = s->data.video.format.timescale;
   priv->ctx->time_base.num = s->data.video.format.frame_duration;
-#else
-  priv->ctx->frame_rate = s->data.video.format.timescale;
-  priv->ctx->frame_rate_base = s->data.video.format.frame_duration;
-#endif
+
   /* Build the palette from the stream info */
   
   if(s->data.video.palette_size)
