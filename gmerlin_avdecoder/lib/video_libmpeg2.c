@@ -89,8 +89,13 @@ static int get_data(bgav_stream_t*s)
                       (priv->p->pts) >> 32,
                       priv->p->pts & 0xffffffff);
     if(priv->do_resync)
+      {
       priv->picture_timestamp =
-        (priv->p->pts * s->data.video.format.timescale) / s->timescale;
+        gavl_time_rescale(s->timescale,
+                          s->data.video.format.timescale,
+                          priv->p->pts);
+      s->time_scaled = priv->p->pts;
+      }
     }
   
   return 1;
@@ -324,14 +329,14 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     priv->frame->planes[2] = priv->info->display_fbuf->buf[2];
     gavl_video_frame_copy(&(s->data.video.format), f, priv->frame);
     }
-  s->time_scaled = priv->picture_timestamp;
     
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
-  
-  //  fprintf(stderr, "Timestamp: %lld, duration: %d\n",
-  //          s->data.video.last_frame_time,
-  //          s->data.video.last_frame_duration);
+  /*  
+  fprintf(stderr, "Timestamp: %lld, duration: %d\n",
+          s->data.video.last_frame_time,
+          s->data.video.last_frame_duration);
+  */
   return 1;
   }
 

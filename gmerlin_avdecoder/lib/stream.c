@@ -160,7 +160,7 @@ void bgav_stream_clear(bgav_stream_t * s)
     bgav_packet_buffer_clear(s->packet_buffer);
   s->packet = (bgav_packet_t*)0;
   s->position = -1;
-  s->time_scaled = -1;
+  s->time_scaled = BGAV_TIMESTAMP_UNDEFINED;
   }
 
 void bgav_stream_resync_decoder(bgav_stream_t * s)

@@ -468,13 +468,13 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
     
     bgav_stream_resync_decoder(s);
 
-    if(s->time_scaled < 0)
+    if(s->time_scaled == BGAV_TIMESTAMP_UNDEFINED)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Couldn't resync audio stream after seeking, maybe EOF");
       return GAVL_TIME_UNDEFINED;
       }
-    test_time = gavl_samples_to_time(s->timescale, s->time_scaled);
+    test_time = gavl_time_unscale(s->timescale, s->time_scaled);
     s->position =
       gavl_time_to_samples(s->data.audio.format.samplerate,
                            test_time);
@@ -505,14 +505,14 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
     
     bgav_stream_resync_decoder(s);
     
-    if(s->time_scaled < 0)
+    if(s->time_scaled == BGAV_TIMESTAMP_UNDEFINED)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Couldn't resync video stream after seeking, maybe EOF");
       return GAVL_TIME_UNDEFINED;
       }
     test_time = gavl_time_unscale(s->timescale, s->time_scaled);
-
+    
     s->position =
       gavl_time_to_frames(s->data.video.format.timescale,
                           s->data.video.format.frame_duration,

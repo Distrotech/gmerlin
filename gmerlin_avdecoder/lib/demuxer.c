@@ -70,6 +70,7 @@ extern bgav_demuxer_t bgav_demuxer_vmd;
 extern bgav_demuxer_t bgav_demuxer_avs;
 extern bgav_demuxer_t bgav_demuxer_wve;
 extern bgav_demuxer_t bgav_demuxer_mtv;
+extern bgav_demuxer_t bgav_demuxer_gxf;
 
 #ifdef HAVE_VORBIS
 extern bgav_demuxer_t bgav_demuxer_ogg;
@@ -132,6 +133,7 @@ static demuxer_t demuxers[] =
     { &bgav_demuxer_avs,       "AVS" },
     { &bgav_demuxer_wve,       "Electronicarts WVE" },
     { &bgav_demuxer_mtv,       "MTV" },
+    { &bgav_demuxer_gxf,       "GXF" },
 #ifdef HAVE_VORBIS
     { &bgav_demuxer_ogg, "Ogg Bitstream" },
 #endif
