@@ -90,8 +90,9 @@ static snd_pcm_t * bg_alsa_open(const char * card,
     {
     case GAVL_SAMPLE_S8:
     case GAVL_SAMPLE_U8:
-      if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_U8) < 0)
-        {
+//      if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_U8) < 0)
+        if(1)
+          {
         /* Soundcard support no 8-bit, try 16 */
         if(snd_pcm_hw_params_set_format(ret, hw_params, SND_PCM_FORMAT_S16) < 0)
           {

@@ -17,11 +17,11 @@ msgtest \
 server \
 client \
 v4ltest \
-gmerlin_player \
 imgconvert \
 textrenderer \
 $(gtk_programs)
 
+bin_PROGRAMS = gmerlin_player
 
 # noinst_HEADERS = player1.h
 

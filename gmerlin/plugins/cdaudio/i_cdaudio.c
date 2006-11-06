@@ -873,18 +873,19 @@ static void set_parameter_cdaudio(void * data, char * name, bg_parameter_value_t
 
 static int eject_disc_cdaudio(const char * device)
   {
-  int err;
-  CdIo_t * cdio;
-  cdio = cdio_open (device, DRIVER_DEVICE);
-  if(!cdio)
-    return 0;
-  if((err = cdio_eject_media(&cdio)) != DRIVER_OP_SUCCESS)
+#if LIBCDIO_VERSION_NUM >= 78
+  
+  driver_return_code_t err;
+  if((err = cdio_eject_media_drive(device)) != DRIVER_OP_SUCCESS)
     {
-    fprintf(stderr, "cdio_eject_media for %s failed: %d\n", device, err);
-    cdio_destroy(cdio);
+    fprintf(stderr, "Ejecting disk failed: %s\n", cdio_driver_errmsg(err));
     return 0;
     }
-  return 1;
+  else
+    return 1;
+#else
+  return 0;
+#endif
   }
 
 bg_input_plugin_t the_plugin =
@@ -913,7 +914,9 @@ bg_input_plugin_t the_plugin =
   /* Open file/device */
     open: open_cdaudio,
     get_disc_name: get_disc_name_cdaudio,
+#if LIBCDIO_VERSION_NUM >= 78
     eject_disc: eject_disc_cdaudio,
+#endif
     set_callbacks: set_callbacks_cdaudio,
   /* For file and network plugins, this can be NULL */
     get_num_tracks: get_num_tracks_cdaudio,

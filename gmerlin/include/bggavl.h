@@ -378,7 +378,7 @@ timescale and frame duration below (framerate = timescale / frame_duration)."\
       name:        "alpha_mode", \
       long_name:   "Alpha mode", \
       type:        BG_PARAMETER_STRINGLIST, \
-      val_default: { val_str: "Ignore" }, \
+      val_default: { val_str: "ignore" }, \
       multi_names: (char*[]){"ignore", "blend_color", (char*)0}, \
       multi_labels: (char*[]){"Ignore", "Blend background color", (char*)0}, \
     help_string: "This option is used if the source has an alpha (=transparency) channel, but the output supports no transparency. Either, the transparency is ignored, or the background color you specify below is blended in.",\
