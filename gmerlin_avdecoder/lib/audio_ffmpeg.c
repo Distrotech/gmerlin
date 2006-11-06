@@ -90,12 +90,13 @@ static codec_info_t codec_infos[] =
       -1 },
 #endif
 
-    
+#if LIBAVCODEC_BUILD >= 3346432
     { "FFmpeg Wavpack decoder", "Wavpack", CODEC_ID_WAVPACK,
       (uint32_t[]){ BGAV_MK_FOURCC('w', 'v', 'p', 'k'),
                     0x00 },
       -1 },
-
+#endif
+    
     { "FFmpeg True audio decoder", "True audio", CODEC_ID_TTA,
       (uint32_t[]){ BGAV_MK_FOURCC('T', 'T', 'A', '1'),
                     0x00 },

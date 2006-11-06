@@ -801,10 +801,12 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'I', 'X', 'L'),
                0x00 } },
 
+#if LIBAVCODEC_BUILD >= 3347200
     { "FFmpeg Tiertex Video Decoder", "Tiertex Video", CODEC_ID_TIERTEXSEQVIDEO,
       (uint32_t[]){ BGAV_MK_FOURCC('T', 'I', 'T', 'X'),
                     0x00 } },
-
+#endif
+    
     { "FFmpeg Smacker Video Decoder", "Smacker Video", CODEC_ID_SMACKVIDEO,
       (uint32_t[]){ BGAV_MK_FOURCC('S', 'M', 'K', '2'),
                     BGAV_MK_FOURCC('S', 'M', 'K', '4'),
@@ -818,9 +820,11 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('A', 'V', 'S', ' '),
                     0x00 } },
 
+#if LIBAVCODEC_BUILD >= 3347712
     { "FFmpeg GIF Video Decoder", "GIF", CODEC_ID_GIF,
       (uint32_t[]){ BGAV_MK_FOURCC('g', 'i', 'f', ' '),
                     0x00 } },
+#endif
     
 #if 0 // http://samples.mplayerhq.hu/V-codecs/h261/h261test.avi: Grey image
       // http://samples.mplayerhq.hu/V-codecs/h261/lotr.mov: Messed up image then crash
@@ -1026,6 +1030,7 @@ static codec_info_t codec_infos[] =
                     BGAV_MK_FOURCC('V', 'P', '3', ' '),
                0x00 } },
 
+#if LIBAVCODEC_BUILD >= 3345920    
     { "FFmpeg VP5 decoder", "On2 VP5", CODEC_ID_VP5,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '5', '0'),
                     0x00 } },
@@ -1033,6 +1038,7 @@ static codec_info_t codec_infos[] =
     { "FFmpeg VP6.2 decoder", "On2 VP6.2", CODEC_ID_VP6,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '2'),
                     0x00 } },
+#endif
     
     { "FFmpeg ASV1 decoder", "Asus v1", CODEC_ID_ASV1,
       (uint32_t[]){ BGAV_MK_FOURCC('A', 'S', 'V', '1'),
@@ -1074,19 +1080,25 @@ static codec_info_t codec_infos[] =
 
     { "FFmpeg 4XM video decoder", "4XM Video", CODEC_ID_4XM,
       (uint32_t[]){ BGAV_MK_FOURCC('4', 'X', 'M', 'V'),
-                    0x00 } },
 
+                    0x00 } },
+    
+#if LIBAVCODEC_BUILD >= 3346944    
     { "FFmpeg Delphine CIN video decoder", "Delphine CIN Video", CODEC_ID_DSICINVIDEO,
       (uint32_t[]){ BGAV_MK_FOURCC('d', 'c', 'i', 'n'),
                0x00 } },
+#endif      
 
     { "FFmpeg MPEC video decoder", "Playstation MDEC", CODEC_ID_MDEC,
       (uint32_t[]){ BGAV_MK_FOURCC('M', 'D', 'E', 'C'),
                     0x00 } },
 
+    
+#if LIBAVCODEC_BUILD >= 3345664
     { "FFmpeg VMware video decoder", "VMware video", CODEC_ID_VMNC,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'M', 'n', 'c'),
                     0x00 } },
+#endif      
     
     { "FFmpeg Westwood VQA decoder", "Westwood VQA", CODEC_ID_WS_VQA,
       (uint32_t[]){ BGAV_MK_FOURCC('W', 'V', 'Q', 'A'),
@@ -1162,11 +1174,11 @@ static codec_info_t codec_infos[] =
     { "FFmpeg Snow decoder", "Snow", CODEC_ID_SNOW,
       (uint32_t[]){ BGAV_MK_FOURCC('S', 'N', 'O', 'W'),
                     0x00 } },
-
+#if LIBAVCODEC_BUILD >= 3345152
     { "FFmpeg Chinese AVS decoder", "Chinese AVS", CODEC_ID_CAVS,
       (uint32_t[]){ BGAV_MK_FOURCC('C', 'A', 'V', 'S'),
                     0x00 } },
-
+#endif
 
   };
 

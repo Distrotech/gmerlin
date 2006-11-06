@@ -27,6 +27,8 @@
 
 #include "avdec_common.h"
 
+#include <cdio/cdio.h> // Version
+
 static int open_dvd(void * priv, const char * location)
   {
   avdec_priv * avdec;
@@ -96,7 +98,9 @@ bg_input_plugin_t the_plugin =
     /* Open file/device */
     open: open_dvd,
     get_disc_name: bg_avdec_get_disc_name,
+#if LIBCDIO_VERSION_NUM >= 78
     eject_disc: bgav_eject_disc,
+#endif
     //    set_callbacks: set_callbacks_avdec,
   /* For file and network plugins, this can be NULL */
     get_num_tracks: bg_avdec_get_num_tracks,

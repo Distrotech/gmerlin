@@ -536,6 +536,8 @@ int bgav_open_vcd(bgav_t * b, const char * device)
 
 int bgav_eject_disc(const char * device)
   {
+#if LIBCDIO_VERSION_NUM >= 78
+  
   driver_return_code_t err;
   if((err = cdio_eject_media_drive(device)) != DRIVER_OP_SUCCESS)
     {
@@ -544,6 +546,9 @@ int bgav_eject_disc(const char * device)
     }
   else
     return 1;
+#else
+  return 0;
+#endif
   }
 
 #else /* !HAVE_CDIO */

@@ -109,6 +109,7 @@ typedef struct
   uint32_t data_start;
   uint32_t data_size;
   int samples_per_block;
+  
   } aiff_priv_t;
 
 #define PADD(n) ((n&1)?(n+1):n)
@@ -120,8 +121,8 @@ static int64_t pos_2_time(bgav_demuxer_context_t * ctx, int64_t pos)
   s = &(ctx->tt->current_track->audio_streams[0]);
   priv = (aiff_priv_t*)(ctx->priv);
   
-  return ((pos - priv->data_start)/s->data.audio.block_align);
-  
+  return ((pos - priv->data_start)/s->data.audio.block_align) *
+    priv->samples_per_block;
   }
 
 static int64_t time_2_pos(bgav_demuxer_context_t * ctx, int64_t time)
@@ -132,7 +133,8 @@ static int64_t time_2_pos(bgav_demuxer_context_t * ctx, int64_t time)
   bgav_stream_t * s;
   s = &(ctx->tt->current_track->audio_streams[0]);
   
-  return priv->data_start + time * s->data.audio.block_align;
+  return priv->data_start + (time/priv->samples_per_block)
+    * s->data.audio.block_align;
   }
 
 
@@ -328,6 +330,16 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
             s->data.audio.format.samples_per_frame = 160;
             break;
 #endif
+          case BGAV_MK_FOURCC('M','A','C','3'):
+            s->data.audio.block_align = comm.num_channels * 2;
+            priv->samples_per_block = 6;
+            s->data.audio.format.samples_per_frame = 6*128;
+            break;
+          case BGAV_MK_FOURCC('M','A','C','6'):
+            s->data.audio.block_align = comm.num_channels;
+            priv->samples_per_block = 6;
+            s->data.audio.format.samples_per_frame = 6*128;
+            break;
           default:
             bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Compression %c%c%c%c not supported",
                     comm.compression_type >> 24,
