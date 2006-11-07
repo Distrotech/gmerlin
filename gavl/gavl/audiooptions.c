@@ -79,6 +79,7 @@ void gavl_audio_options_set_defaults(gavl_audio_options_t * opt)
     GAVL_AUDIO_FRONT_TO_REAR_COPY |
     GAVL_AUDIO_STEREO_TO_MONO_MIX;
   opt->accel_flags = gavl_accel_supported();
+  opt->quality = GAVL_QUALITY_DEFAULT;
   gavl_init_memcpy();
   }
 
