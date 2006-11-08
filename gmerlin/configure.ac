@@ -125,11 +125,19 @@ OLD_LIBS=$LIBS
 OLD_LDFLAGS=$LDFLAGS
                                                                                
 CFLAGS=$X_FLAGS
-LDFLAGS="$X_LIBS $LDFLAGS"
+LDFLAGS="$X_LIBS $LDFLAGS -lXinerama"
 LIBS=$X_LIBS
 
-AC_CHECK_LIB(Xinerama, XineramaQueryExtension,
-             XINERAMA_LIBS="-lXinerama";have_xinerama="true")
+AC_MSG_CHECKING(for xinerama)
+AC_TRY_LINK([#include <X11/Xlib.h>
+             #include <X11/extensions/Xinerama.h>],
+            [int i = 0;
+             /* We ensure the function is here but never call it */
+             if(i)
+               XineramaQueryExtension(NULL, NULL, NULL);
+             return 0;],
+            [XINERAMA_LIBS="-lXinerama";have_xinerama=true;AC_MSG_RESULT("Yes")],
+	    AC_MSG_RESULT("No"))
 
 if test x$have_xinerama="xtrue"; then
 AC_DEFINE(HAVE_LIBXINERAMA)
@@ -160,12 +168,20 @@ OLD_LIBS=$LIBS
 OLD_LDFLAGS=$LDFLAGS                                                                               
 CFLAGS=$X_FLAGS
 LIBS=$X_LIBS
-LDFLAGS="$X_LIBS $LDFLAGS"
+LDFLAGS="$X_LIBS $LDFLAGS -lXv"
 
-AC_CHECK_LIB(Xv, XvQueryExtension,
-             XV_LIBS="-lXv";have_xv="true")
+AC_MSG_CHECKING(for xv)
+AC_TRY_LINK([#include <X11/Xlib.h>
+             #include <X11/extensions/Xvlib.h>],
+            [int i = 0;
+             /* We ensure the function is here but never call it */
+             if(i)
+		 XvQueryExtension(NULL, NULL, NULL, NULL, NULL, NULL);
+             return 0;],
+            [XV_LIBS="-lXv";have_xv=true;AC_MSG_RESULT("Yes")],
+	    AC_MSG_RESULT("No"))
 
-if test x$have_xinerama="xtrue"; then
+if test x$have_xv="xtrue"; then
 AC_DEFINE(HAVE_LIBXV)
 fi
 
@@ -643,7 +659,7 @@ echo "Missing"
 fi
 
 echo -n "Xvideo extension:    "
-if test "x$have_xinerama" = "xtrue"; then
+if test "x$have_xv" = "xtrue"; then
 echo "Yes"
 else
 echo "Missing"

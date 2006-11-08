@@ -42,7 +42,10 @@
 
 #include "x11_window.h"
 
+#ifdef HAVE_LIBXV
 #include <X11/extensions/Xvlib.h>
+#endif
+
 // #undef HAVE_LIBXV
 
 #define SQUEEZE_MIN -1.0
