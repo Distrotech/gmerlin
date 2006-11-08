@@ -459,9 +459,12 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
   /* Close the tray, hope it will be harmless if it's already
      closed */
   if((err = cdio_close_tray(url, NULL)))
+#if LIBCDIO_VERSION_NUM >= 77
     fprintf(stderr, "cdio_close_tray failed: %s\n",
             cdio_driver_errmsg(err));
-  
+#else
+    fprintf(stderr, "cdio_close_tray failed\n");
+#endif  
   
   /* Try to open dvd */
   priv->dvd_reader = DVDOpen(url);

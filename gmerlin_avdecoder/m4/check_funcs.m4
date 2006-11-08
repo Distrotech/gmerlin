@@ -48,7 +48,7 @@ AH_TEMPLATE([HAVE_LIBPOSTPROC],
 
 have_libpostproc=false
 
-LIBPOSTPROC_REQUIRED="51.21.0"
+LIBPOSTPROC_REQUIRED="51"
 
 AC_ARG_ENABLE(libpostproc,
 [AC_HELP_STRING([--disable-libpostproc],[Disable libpostproc (default: autodetect)])],
@@ -59,7 +59,7 @@ esac],[test_libpostproc=true])
 
 if test x$test_libpostproc = xtrue; then
 
-PKG_CHECK_MODULES(LIBPOSTPROC, libpostproc >= $LIBPOSTPROC_REQUIRED, have_libpostproc="true", have_libpostproc="false")
+PKG_CHECK_MODULES(LIBPOSTPROC, libpostproc, have_libpostproc="true", have_libpostproc="false")
 fi
 
 AC_SUBST(LIBPOSTPROC_REQUIRED)
@@ -865,7 +865,7 @@ AC_DEFUN([GMERLIN_CHECK_CDIO],[
 AH_TEMPLATE([HAVE_CDIO], [ libcdio found ])
 
 have_cdio="false"
-CDIO_REQUIRED="0.77"
+CDIO_REQUIRED="0.76"
 
 AC_ARG_ENABLE(libcdio,
 [AC_HELP_STRING([--disable-libcdio],[Disable libcdio (default: autodetect)])],
