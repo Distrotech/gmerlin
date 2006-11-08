@@ -416,7 +416,7 @@ static void close_flac(void * data, int do_delete)
     flac->enc = NULL;
     }
   
-  if(do_delete)
+  if(do_delete && flac->filename)
     remove(flac->filename);
   else if(flac->seektable)
     finalize_seektable(flac);
