@@ -51,21 +51,10 @@ static void get_value(bg_gtk_widget_t * w)
   int i;
   multi_menu_t * priv;
   priv = (multi_menu_t*)(w->priv);
-  if(!w->value.val_str || (*(w->value.val_str) == '\0'))
-    {
-    gtk_combo_box_set_active(GTK_COMBO_BOX(priv->combo), 0);
-    return;
-    }
-  i = 0;
-  while(w->info->multi_names[i])
-    {
-    if(!strcmp(w->value.val_str, w->info->multi_names[i]))
-      {
-      gtk_combo_box_set_active(GTK_COMBO_BOX(priv->combo), i);
-      break; 
-      }
-    i++;
-    }
+
+  i = bg_parameter_get_selected(w->info, 
+                                w->value.val_str);
+  gtk_combo_box_set_active(GTK_COMBO_BOX(priv->combo), i);
   }
 
 #else
@@ -75,33 +64,16 @@ static void get_value(bg_gtk_widget_t * w)
   int i;
   multi_menu_t * priv;
   priv = (multi_menu_t*)(w->priv);
-  if(!w->value.val_str || (*(w->value.val_str) == '\0'))
-    {
-    if(w->info->multi_labels)
-      gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry),
-                         w->info->multi_labels[0]);
-    else
-      gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry),
-                         w->info->multi_names[0]);
-    return;
-    }
 
-  i = 0;
-
-  while(w->info->multi_names[i])
-    {
-    if(!strcmp(w->value.val_str, w->info->multi_names[i]))
-      {
-      if(w->info->multi_labels)
-        gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry),
-                           w->info->multi_labels[i]);
-      else
-        gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry),
-                           w->info->multi_names[i]);
-      return;
-      }
-    i++;
-    }
+  i = bg_parameter_get_selected(w->info, 
+                                w->value.val_str);
+  
+  if(w->info->multi_labels)
+    gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry),
+                       w->info->multi_labels[i]);
+  else
+    gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(priv->combo)->entry),
+                       w->info->multi_names[i]);
   }
 
 #endif

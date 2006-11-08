@@ -340,7 +340,7 @@ snd_pcm_t * bg_alsa_open_write(const char * card, gavl_audio_format_t * format,
 
 void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)
   {
-  int i;
+  int i, istart;
   int num_cards = 1; /* default */
   int card_index = -1;
   char * c_tmp;
@@ -355,18 +355,22 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret)
   ret->name      = bg_strdup((char*)0, "card");
   ret->long_name = bg_strdup((char*)0, "Card");
   ret->type = BG_PARAMETER_STRINGLIST;
+
+  istart = 1;
   
-  ret->multi_names   = calloc(num_cards+1,
+  ret->multi_names   = calloc(num_cards+istart,
                               sizeof(*(ret->multi_names)));
-  ret->multi_labels   = calloc(num_cards+1,
+  ret->multi_labels   = calloc(num_cards+istart,
                                sizeof(*(ret->multi_labels)));
   
+  ret->val_default.val_str = bg_strdup((char*)0, "default");
+
   ret->multi_labels[0] = bg_strdup((char*)0, "Default");
   ret->multi_names[0]  = bg_strdup((char*)0, "default");
-  ret->val_default.val_str = bg_strdup((char*)0, "default");
-  for(i = 1; i < num_cards; i++)
+  
+  for(i = istart; i < num_cards; i++)
     {
-    snd_card_get_name(i-1, &c_tmp);
+    snd_card_get_name(i-istart, &c_tmp);
     //    snd_card_get_longname(i, &c_tmp);
     ret->multi_labels[i] = bg_strdup(NULL, c_tmp);
     ret->multi_names[i] = bg_sprintf("hw:%d,0", i-1);

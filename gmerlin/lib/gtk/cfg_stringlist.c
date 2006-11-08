@@ -42,18 +42,9 @@ static void get_value(bg_gtk_widget_t * w)
   stringlist_t * priv;
   priv = (stringlist_t*)(w->priv);
 
-  if(!w->value.val_str || (*w->value.val_str == '\0'))
-    priv->selected = 0;
-  else
-    {  
-    priv->selected = 0;
-    while(w->info->multi_names[priv->selected])
-      {
-      if(!strcmp(w->value.val_str, w->info->multi_names[priv->selected]))
-        break; 
-      priv->selected++;
-      }
-    }
+  priv->selected = bg_parameter_get_selected(w->info, 
+                                             w->value.val_str);
+  
 #ifdef GTK_2_4
   gtk_combo_box_set_active(GTK_COMBO_BOX(priv->combo), priv->selected);
 #else

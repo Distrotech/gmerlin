@@ -354,3 +354,35 @@ bg_parameter_info_concat_arrays(bg_parameter_info_t ** srcs)
   
   return ret;
   }
+
+int bg_parameter_get_selected(bg_parameter_info_t * info,
+                              const char * val)
+  {
+  int ret = 0;
+
+  while(info->multi_names[ret])
+    {
+    if(!strcmp(val, info->multi_names[ret]))
+      break; 
+    ret++;
+    }
+
+  
+  if(!info->multi_names[ret])
+    {
+    /* Try default value */
+    ret = 0;
+    
+    while(info->multi_names[ret])
+      {
+      if(!strcmp(val, info->multi_names[ret]))
+        break; 
+      ret++;
+      }
+    }
+  
+  if(!info->multi_names[ret])
+    return 0;
+  else
+    return ret;
+  }

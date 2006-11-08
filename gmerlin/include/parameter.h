@@ -232,6 +232,20 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
 bg_parameter_info_t *
 bg_parameter_info_concat_arrays(bg_parameter_info_t ** srcs);
 
+/** \ingroup parameter
+ *  \brief Get the index for a multi-options parameter
+ *  \param info A parameter info
+ *  \param val The name if the value
+ *  \returns The index of val in the multi_names array
+ *
+ *  If val does not occur in the multi_names[] array,
+ *  try the default value. If that fails as well, return 0.
+ */
+
+int bg_parameter_get_selected(bg_parameter_info_t * info,
+                              const char * val);
+
+
 
 /** \ingroup parameter
  *  \brief Convert a libxml2 node into a parameter array

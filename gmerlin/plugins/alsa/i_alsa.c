@@ -69,6 +69,13 @@ static bg_parameter_info_t static_parameters[] =
 improve playback performance on slow systems under load. Smaller values \
 decrease the latency of the volume control.",
     },
+    {
+      name:        "user_device",
+      long_name:   "User device",
+      type:        BG_PARAMETER_STRING,
+      help_string: "Enter a custom device to use for recording. Leave empty to use the\
+ settings above",
+    },
   };
 
 static int num_static_parameters =
@@ -91,6 +98,7 @@ typedef struct
 
   char * error_msg;  
   gavl_time_t buffer_time;
+  char * user_device;
   } alsa_t;
 
 static bg_parameter_info_t *
@@ -149,6 +157,10 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
     {
     priv->card = bg_strdup(priv->card, val->val_str);
     }
+  else if(!strcmp(name, "user_device"))
+    {
+    priv->user_device = bg_strdup(priv->user_device, val->val_str);
+    }
   }
 
 
@@ -165,7 +177,10 @@ static int open_alsa(void * data,
   {
   const char * card = (char*)0;
   alsa_t * priv = (alsa_t*)(data);
-
+  
+  if(priv->user_device)
+  card = priv->user_device;
+  else
   card = priv->card;
 
   if(!card)
