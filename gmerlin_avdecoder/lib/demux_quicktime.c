@@ -573,7 +573,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   {
   int i, j;
   uint32_t atom_size, fourcc;
-  uint8_t * ptr;
   bgav_stream_t * bg_as;
   bgav_stream_t * bg_vs;
   stream_priv_t * stream_priv;
@@ -831,12 +830,9 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       
       if(bg_vs->fourcc == BGAV_MK_FOURCC('S', 'V', 'Q', '3'))
         {
-        ptr = moov->tracks[i].mdia.minf.stbl.stsd.entries[skip_first_frame].data + 82;
-        atom_size = BGAV_PTR_2_32BE(ptr); ptr+=4;
-        
-        if((BGAV_PTR_2_FOURCC(ptr)) == BGAV_MK_FOURCC('S', 'M', 'I', ' '))
+        if(moov->tracks[i].mdia.minf.stbl.stsd.entries[skip_first_frame].desc.has_SMI)
           {
-          bg_vs->ext_size = 82 + atom_size;
+          bg_vs->ext_size = moov->tracks[i].mdia.minf.stbl.stsd.entries[0].data_size;
           bg_vs->ext_data = moov->tracks[i].mdia.minf.stbl.stsd.entries[0].data;
           }
         }

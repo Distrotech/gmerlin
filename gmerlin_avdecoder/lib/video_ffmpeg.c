@@ -126,16 +126,6 @@ typedef struct dp_hdr_s {
 #define TIME_BGAV_2_FFMPEG(t) ((t == BGAV_TIMESTAMP_UNDEFINED) ? AV_NOPTS_VALUE : t)
 #define TIME_FFMPEG_2_BGAV(t) ((t == AV_NOPTS_VALUE) ? BGAV_TIMESTAMP_UNDEFINED : t)
 
-static int put_pts(ffmpeg_video_priv * priv, int64_t pts)
-  {
-  if(priv->pts_cache.num >= sizeof(priv->pts_cache.pts)/sizeof(priv->pts_cache.pts[0]))
-    return 0;
-  
-  priv->pts_cache.pts[priv->pts_cache.num] = pts;
-  priv->pts_cache.num++;
-  return 1;
-  }
-
 static int64_t get_pts(ffmpeg_video_priv * priv)
   {
   int64_t ret;
@@ -150,6 +140,17 @@ static int64_t get_pts(ffmpeg_video_priv * priv)
             sizeof(int64_t) * priv->pts_cache.num);
   return ret;
   }
+
+static int put_pts(ffmpeg_video_priv * priv, int64_t pts)
+  {
+  if(priv->pts_cache.num >= sizeof(priv->pts_cache.pts)/sizeof(priv->pts_cache.pts[0]))
+    get_pts(priv);
+  
+  priv->pts_cache.pts[priv->pts_cache.num] = pts;
+  priv->pts_cache.num++;
+  return 1;
+  }
+
 
 static int get_data(bgav_stream_t * s)
   {
@@ -906,7 +907,9 @@ static codec_info_t codec_infos[] =
     { "FFmpeg WMV2 decoder", "Window Media Video 8", CODEC_ID_WMV2,
       (uint32_t[]){ BGAV_MK_FOURCC('W', 'M', 'V', '2'),
                0x00 } }, 
-#if 0    
+
+#ifndef HAVE_W32DLL
+    
     // [wmv3 @ 0xb63fe128]Old WMV3 version detected, only I-frames will be decoded
     { "FFmpeg WMV3 decoder", "Window Media Video 9", CODEC_ID_WMV3,
       (uint32_t[]){ BGAV_MK_FOURCC('W', 'M', 'V', '3'),

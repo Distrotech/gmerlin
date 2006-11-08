@@ -358,6 +358,9 @@ typedef struct
 
   int avcC_offset;
   int avcC_size;
+  
+  int has_SMI;
+  
   } qt_sample_description_t ;
 
 typedef struct
