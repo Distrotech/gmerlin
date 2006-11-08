@@ -107,6 +107,8 @@ int input_create(char ** error_msg)
     }
   the_input->frame = gavl_audio_frame_create(NULL);
 
+  the_input->frame->samples.s_16 = the_input->audio_frame.pcm_data[0];
+  
   the_input->frame->channels.s_16[0] = the_input->audio_frame.pcm_data[0];
   the_input->frame->channels.s_16[1] = the_input->audio_frame.pcm_data[1];
 
@@ -188,7 +190,8 @@ int input_iteration(void * data)
     {
     c->input->read_frame(c->input_handle->priv, c->input_frame, 512);
     gavl_audio_convert(c->cnv, c->input_frame, c->frame);
-    //    fprintf(stderr, "input_iteration %d\n", c->input_frame->channels.s_16[0][0]);
+    //    fprintf(stderr, "input_iteration %d\n",
+    //            c->input_frame->samples.s_16[0]);
     }
   else
     {
