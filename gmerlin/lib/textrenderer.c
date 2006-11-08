@@ -760,7 +760,7 @@ static int load_font(bg_text_renderer_t * r)
 
 #ifdef FT_STROKER_H
   /* Create stroker */
-  FT_Stroker_New(r->face->memory, &(r->stroker));
+  FT_Stroker_New(r->library, &(r->stroker));
   FT_Stroker_Set(r->stroker, (int)(r->border_width * 32.0 + 0.5), 
                  FT_STROKER_LINECAP_ROUND, 
                  FT_STROKER_LINEJOIN_ROUND, 0); 
