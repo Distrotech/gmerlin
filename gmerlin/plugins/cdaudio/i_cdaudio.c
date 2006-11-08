@@ -878,7 +878,11 @@ static int eject_disc_cdaudio(const char * device)
   driver_return_code_t err;
   if((err = cdio_eject_media_drive(device)) != DRIVER_OP_SUCCESS)
     {
+#if LIBCDIO_VERSION_NUM >= 77
     fprintf(stderr, "Ejecting disk failed: %s\n", cdio_driver_errmsg(err));
+#else
+    fprintf(stderr, "Ejecting disk failed\n");
+#endif
     return 0;
     }
   else

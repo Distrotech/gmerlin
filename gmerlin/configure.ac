@@ -207,7 +207,7 @@ dnl
 
 have_cdio="false"
 
-CDIO_REQUIRED="0.77"
+CDIO_REQUIRED="0.76"
 
 PKG_CHECK_MODULES(CDIO, libcdio >= $CDIO_REQUIRED, have_cdio="true", have_cdio="false")
 

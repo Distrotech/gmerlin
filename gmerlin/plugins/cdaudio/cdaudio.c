@@ -153,9 +153,13 @@ CdIo_t * bg_cdaudio_open(const char * device)
 
   /* Close the tray */
   if((err = cdio_close_tray(device, NULL)))
+#if LIBCDIO_VERSION_NUM >= 77
     fprintf(stderr, "cdio_close_tray failed: %s\n",
             cdio_driver_errmsg(err));
-  //  fprintf(stderr, "Opening CD device %s...", device);
+#else
+    fprintf(stderr, "cdio_close_tray failed\n");
+#endif
+  
   ret = cdio_open (device, DRIVER_DEVICE);
 #if 0
   if(ret)
