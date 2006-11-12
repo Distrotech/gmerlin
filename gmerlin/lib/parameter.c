@@ -358,30 +358,39 @@ bg_parameter_info_concat_arrays(bg_parameter_info_t ** srcs)
 int bg_parameter_get_selected(bg_parameter_info_t * info,
                               const char * val)
   {
-  int ret = 0;
-
-  while(info->multi_names[ret])
-    {
-    if(!strcmp(val, info->multi_names[ret]))
-      break; 
-    ret++;
-    }
-
   
-  if(!info->multi_names[ret])
+  int ret = -1, i;
+
+  if(val)
     {
-    /* Try default value */
-    ret = 0;
-    
-    while(info->multi_names[ret])
+    i = 0;
+    while(info->multi_names[i])
       {
-      if(!strcmp(val, info->multi_names[ret]))
-        break; 
-      ret++;
+      if(!strcmp(val, info->multi_names[i]))
+        {
+        ret = i;
+        break;
+        }
+      i++;
       }
     }
   
-  if(!info->multi_names[ret])
+  if((ret < 0) && info->val_default.val_str)
+    {
+    i = 0;
+    /* Try default value */
+    while(info->multi_names[i])
+      {
+      if(!strcmp(info->val_default.val_str, info->multi_names[i]))
+        {
+        ret = i;
+        break;
+        }
+      i++;
+      }
+    }
+  
+  if(ret < 0)
     return 0;
   else
     return ret;

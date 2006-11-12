@@ -613,9 +613,8 @@ static void play_cmd(bg_player_t * p,
                          &time);
   }
 
-static void stop_cmd(bg_player_t * player, int new_state)
+static void stop_cmd(bg_player_t * player, int new_state, int want_new)
   {
-  int want_new;
   int old_state;
   
   old_state = bg_player_get_state(player);
@@ -626,10 +625,6 @@ static void stop_cmd(bg_player_t * player, int new_state)
   
   if(new_state == BG_PLAYER_STATE_CHANGING)
     {
-    //    if(old_state == BG_PLAYER_STATE_STILL)
-    //      want_new = 1;
-    //    else
-    want_new = 0;
     bg_player_set_state(player, new_state, &want_new, NULL);
     //    fprintf(stderr, "Changing, want_new: %d\n", want_new);
     }
@@ -715,7 +710,7 @@ static void set_ov_plugin_cmd(bg_player_t * player,
 
   state = bg_player_get_state(player);
   if((state == BG_PLAYER_STATE_PLAYING) || (state == BG_PLAYER_STATE_STILL))
-    stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+    stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
   
   bg_player_ov_set_plugin(player, handle);
   bg_player_ov_standby(player->ov_context);
@@ -728,7 +723,7 @@ static void set_oa_plugin_cmd(bg_player_t * player,
   //  fprintf(stderr, "Setting audio output plugin: %s\n", handle->info->name);
   state = bg_player_get_state(player);
   if((state == BG_PLAYER_STATE_PLAYING) || (state == BG_PLAYER_STATE_STILL))
-    stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+    stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
   bg_player_oa_set_plugin(player, handle);
   }
 
@@ -740,7 +735,6 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
   old_state = bg_player_get_state(player);
   
   //  gavl_video_frame_t * vf;
-  //  fprintf(stderr, "Seek cmd\n");
   interrupt_cmd(player, BG_PLAYER_STATE_SEEKING);
 
   bg_player_input_seek(player->input_context, &sync_time);
@@ -808,7 +802,7 @@ static void set_audio_stream_cmd(bg_player_t * player, int stream)
 
   state = bg_player_get_state(player);
   if(state != BG_PLAYER_STATE_STOPPED)
-    stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+    stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
   player->current_audio_stream = stream;
   }
 
@@ -822,7 +816,7 @@ static void set_video_stream_cmd(bg_player_t * player, int stream)
 
   state = bg_player_get_state(player);
   if(state != BG_PLAYER_STATE_STOPPED)
-    stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+    stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
   player->current_video_stream = stream;
 
   }
@@ -838,7 +832,7 @@ static void set_subtitle_stream_cmd(bg_player_t * player, int stream)
 
   state = bg_player_get_state(player);
   if(state != BG_PLAYER_STATE_STOPPED)
-    stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+    stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
   player->current_subtitle_stream = stream;
     
   }
@@ -881,7 +875,7 @@ static int process_commands(bg_player_t * player)
           case BG_PLAYER_STATE_CHANGING:
           case BG_PLAYER_STATE_PAUSED:
           case BG_PLAYER_STATE_STILL:
-            stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+            stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
             break;
           }
         bg_msg_queue_unlock_read(player->command_queue);
@@ -931,7 +925,7 @@ static int process_commands(bg_player_t * player)
            (state == BG_PLAYER_STATE_PAUSED) ||
            (state == BG_PLAYER_STATE_STILL))
           {
-          stop_cmd(player, BG_PLAYER_STATE_CHANGING);
+          stop_cmd(player, BG_PLAYER_STATE_CHANGING, 0);
           }
         if(!arg_ptr1)
           {
@@ -956,7 +950,7 @@ static int process_commands(bg_player_t * player)
           case BG_PLAYER_STATE_PAUSED:
           case BG_PLAYER_STATE_STILL:
           case BG_PLAYER_STATE_CHANGING:
-            stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+            stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
             break;
           }
         break;
@@ -971,15 +965,15 @@ static int process_commands(bg_player_t * player)
           case BG_PLAYER_STATE_PAUSED:
           case BG_PLAYER_STATE_SEEKING:
             if(!(arg_i1 & BG_PLAY_FLAG_IGNORE_IF_PLAYING))
-              stop_cmd(player, BG_PLAYER_STATE_CHANGING);
+              stop_cmd(player, BG_PLAYER_STATE_CHANGING, 0);
             break;
           case BG_PLAYER_STATE_STOPPED:
             if(!(arg_i1 & BG_PLAY_FLAG_IGNORE_IF_STOPPED))
-              stop_cmd(player, BG_PLAYER_STATE_CHANGING);
+              stop_cmd(player, BG_PLAYER_STATE_CHANGING, 0);
             break;
           case BG_PLAYER_STATE_STILL:
           case BG_PLAYER_STATE_CHANGING:
-            stop_cmd(player, BG_PLAYER_STATE_CHANGING);
+            stop_cmd(player, BG_PLAYER_STATE_CHANGING, 0);
             break;
           }
         bg_msg_queue_list_send(player->message_queues,
@@ -988,18 +982,27 @@ static int process_commands(bg_player_t * player)
         break;
       case BG_PLAYER_CMD_SEEK:
         if(!player->can_seek)
-          {
-          //        fprintf(stderr, "Cannot seek in this stream\n");
-          }
-        else
-          {
-          time = bg_msg_get_arg_time(command, 0);
-          seek_cmd(player, time);
-          }
+          break;
+
+        state = bg_player_get_state(player);
+
+        if((state != BG_PLAYER_STATE_PLAYING) &&
+           (state != BG_PLAYER_STATE_PAUSED))
+          break;           
+
+        time = bg_msg_get_arg_time(command, 0);
+        seek_cmd(player, time);
         break;
       case BG_PLAYER_CMD_SEEK_REL:
         if(!player->can_seek)
           break;
+
+        state = bg_player_get_state(player);
+
+        
+        if((state != BG_PLAYER_STATE_PLAYING) &&
+           (state != BG_PLAYER_STATE_PAUSED))
+          break;           
         
         time = bg_msg_get_arg_time(command, 0);
 
@@ -1026,10 +1029,12 @@ static int process_commands(bg_player_t * player)
         else if(time > player->track_info->duration)
           {
           /* Seeked beyond end -> finish track */
-          stop_cmd(player, BG_PLAYER_STATE_CHANGING);
+          stop_cmd(player, BG_PLAYER_STATE_CHANGING, 1);
+          //          fprintf(stderr, "Seeked beyond end\n");
           break;
           }
-        seek_cmd(player, time);
+        else
+          seek_cmd(player, time);
         break;
       case BG_PLAYER_CMD_SET_VOLUME:
         arg_f1 = bg_msg_get_arg_float(command, 0);
@@ -1107,7 +1112,7 @@ static int process_commands(bg_player_t * player)
             break;
           case BG_PLAYER_STATE_ERROR:
             arg_str1 = bg_msg_get_arg_string(command, 1);
-            stop_cmd(player, BG_PLAYER_STATE_STOPPED);
+            stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
             bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
                                 arg_str1, NULL);
           }

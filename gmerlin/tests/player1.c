@@ -757,13 +757,14 @@ static int handle_message(bg_player_t * player,
         case BG_PLAYER_STATE_STOPPED:
           break;
         case BG_PLAYER_STATE_PLAYING:
-          bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Player playing");
+          bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Player now playing");
           break;
         case BG_PLAYER_STATE_SEEKING:
           if(time_active) { putc('\n', stderr); time_active = 0; }
-          bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Player seeking");
+          bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Player now seeking");
           break;
         case BG_PLAYER_STATE_CHANGING:
+          bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Player now changing");
           if(time_active) { putc('\n', stderr); time_active = 0; }
           
           if(num_tracks == 1)
