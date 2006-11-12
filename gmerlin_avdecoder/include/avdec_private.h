@@ -904,7 +904,7 @@ struct bgav_demuxer_context_s
   int non_interleaved;
   
   /* Some demuxers have a custom read packet function */
-  int (*read_packet)(bgav_demuxer_context_t * ctx, int size);
+  int (*read_packet)(bgav_demuxer_context_t * ctx, int size, int64_t pts);
 
   /* Timestamp offset: By definition, timestamps for a track
      start at 0. The offset can be set either by the demuxer or

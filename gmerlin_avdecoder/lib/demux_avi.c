@@ -87,6 +87,12 @@
 
 #define PADD(s) (((s)&1)?((s)+1):(s))
 
+/* Hardwired stream IDs for DV avi. This prevents us from
+   decoding AVIs with muiltiple DV streams if they exist */
+
+#define DV_AUDIO_ID 0
+#define DV_VIDEO_ID 1
+
 /* Chunk */
 
 typedef struct
@@ -229,13 +235,17 @@ typedef struct
   int64_t movi_start;
   uint32_t movi_size;
 
-  int do_seek; /* Are wee seeking? */
-
   odml_t odml;
   int has_odml;
 
   bgav_RIFFINFO_t * info;
-  } avi_priv;
+
+  /* DV Stuff */
+  bgav_dv_dec_t * dv_dec;
+  int dv_frame_size;
+  uint8_t * dv_frame_buffer;
+  
+  } avi_priv_t;
 
 typedef struct
   {
@@ -256,9 +266,6 @@ typedef struct
 
   int64_t total_frames;
 
-  bgav_dv_dec_t * d;
-  uint8_t * buffer;
-  int dv_frame_size;
   } video_priv_t;
 
 /* Chunk */
@@ -1125,7 +1132,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
   video_priv_t * avi_vs;
   keep_going = 1;
   
-  avih = &(((avi_priv*)(ctx->priv))->avih);
+  avih = &(((avi_priv_t*)(ctx->priv))->avih);
     
   
   bg_vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
@@ -1232,85 +1239,75 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-
-
 static int read_packet_iavs(bgav_demuxer_context_t * ctx,
-                            int size)
+                            int size, int64_t pts)
   {
-  uint8_t * data;
   int do_init = 0;
   bgav_stream_t * as, *vs;
-  video_priv_t   * avi_iavs;
-  bgav_packet_t * ap;
+  bgav_packet_t * ap = (bgav_packet_t *)0;
   bgav_packet_t * vp = (bgav_packet_t *)0;
   uint8_t header[DV_HEADER_SIZE];
+  avi_priv_t * priv;
   
-  vs = ctx->tt->current_track->video_streams;
-  as = ctx->tt->current_track->audio_streams;
+  priv = (avi_priv_t*)(ctx->priv);
 
-  avi_iavs = (video_priv_t*)(vs->priv);
-  if(!avi_iavs->d)
+  if(!priv->dv_dec)
     {
-    avi_iavs->d = bgav_dv_dec_create();
+    priv->dv_dec = bgav_dv_dec_create();
     do_init = 1;
     /* Get formats */
     if(bgav_input_get_data(ctx->input, header, DV_HEADER_SIZE) < DV_HEADER_SIZE)
       return 0;
 
-    bgav_dv_dec_set_header(avi_iavs->d, header);
-    avi_iavs->dv_frame_size = bgav_dv_dec_get_frame_size(avi_iavs->d);
+    bgav_dv_dec_set_header(priv->dv_dec, header);
+    priv->dv_frame_size = bgav_dv_dec_get_frame_size(priv->dv_dec);
+    priv->dv_frame_buffer = malloc(priv->dv_frame_size);
     }
-  
-  if(vs->action != BGAV_STREAM_MUTE)
+
+  if(do_init)
     {
-    vp = bgav_packet_buffer_get_packet_write(vs->packet_buffer, vs);
-    bgav_packet_alloc(vp, avi_iavs->dv_frame_size);
-    data = vp->data;
+    vs = ctx->tt->current_track->video_streams;
+    as = ctx->tt->current_track->audio_streams;
     }
   else
     {
-    if(!avi_iavs->buffer)
-      avi_iavs->buffer = malloc(avi_iavs->dv_frame_size);
-    data = avi_iavs->buffer;
+    vs = bgav_track_find_stream(ctx->tt->current_track, DV_VIDEO_ID);
+    as = bgav_track_find_stream(ctx->tt->current_track, DV_AUDIO_ID);
     }
 
-  if(bgav_input_read_data(ctx->input, data, avi_iavs->dv_frame_size) <
-     avi_iavs->dv_frame_size)
+  if(bgav_input_read_data(ctx->input, priv->dv_frame_buffer,
+                          priv->dv_frame_size) < priv->dv_frame_size)
     return 0;
-  
-  if(!do_init)
-    bgav_dv_dec_set_header(avi_iavs->d, data);
 
-  bgav_dv_dec_set_frame(avi_iavs->d, data);
+  if(!do_init)
+    bgav_dv_dec_set_header(priv->dv_dec, priv->dv_frame_buffer);
+  bgav_dv_dec_set_frame(priv->dv_dec, priv->dv_frame_buffer);
   
   if(do_init)
     {
-    bgav_dv_dec_init_audio(avi_iavs->d, as);
-    bgav_dv_dec_init_video(avi_iavs->d, vs);
-
-    bgav_stream_dump(as);
-    gavl_audio_format_dump(&as->data.audio.format);
+    bgav_dv_dec_init_audio(priv->dv_dec, as);
+    bgav_dv_dec_init_video(priv->dv_dec, vs);
     }
   
-  if(as->action != BGAV_STREAM_MUTE)
+  if(vs)
+    {
+    vp = bgav_packet_buffer_get_packet_write(vs->packet_buffer, vs);
+    vp->pts = pts;
+    }
+  if(as)
     {
     ap = bgav_packet_buffer_get_packet_write(as->packet_buffer, as);
-
-    //    if(!ap->audio_frame)
-    //      ap->audio_frame = gavl_audio_frame_create(&as->data.audio.format);
-
-    bgav_dv_dec_get_audio_packet(avi_iavs->d, ap);
-    bgav_packet_done_write(ap);
+    ap->pts = pts;
     }
-  if(vp)
-    {
-    bgav_dv_dec_set_frame_counter(avi_iavs->d, vs->position);
-    
-    vp->data_size = avi_iavs->dv_frame_size;
-    bgav_dv_dec_get_video_packet(avi_iavs->d, vp);
-        
-    bgav_packet_done_write(vp);
-    }
+  if(!bgav_dv_dec_get_audio_packet(priv->dv_dec, ap))
+    return 0;
+  bgav_dv_dec_get_video_packet(priv->dv_dec, vp);
+
+  if(ap) bgav_packet_done_write(ap);
+  if(vp) bgav_packet_done_write(vp);
+  
+  if(vs) bgav_dv_dec_set_frame_counter(priv->dv_dec, vs->position);
+  
   return 1;
   }
 
@@ -1319,25 +1316,27 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
   {
   avih_t * avih;
   int keep_going;
-
+  video_priv_t * video_priv;
   bgav_stream_t * bg_vs;
   bgav_stream_t * bg_as;
-  video_priv_t   * avi_iavs;
 
   keep_going = 1;
   
-  avih = &(((avi_priv*)(ctx->priv))->avih);
+  avih = &(((avi_priv_t*)(ctx->priv))->avih);
   
   bg_vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
-  avi_iavs = calloc(1, sizeof(*avi_iavs));
- 
-  memcpy(&(avi_iavs->strh), strh, sizeof(*strh));
+  bg_vs->stream_id = DV_VIDEO_ID;
   
-  bg_vs->priv = avi_iavs;
+  video_priv = calloc(1, sizeof(*video_priv));
+  bg_vs->priv = video_priv;
+
+  memcpy(&video_priv->strh, strh, sizeof(*strh));
+  
 
   bg_as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
   bg_as->no_packets = 1;
   bg_as->sync_stream = bg_vs;
+  bg_as->stream_id = DV_AUDIO_ID;
   
   /* Prevent the core from thinking these streams are unsupported */
   bg_vs->fourcc = BGAV_MK_FOURCC('d', 'v', 'c', ' ');
@@ -1362,13 +1361,13 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
         keep_going = 0;
         break;
       case ID_INDX:
-        if(!read_indx(ctx->input, &avi_iavs->indx, ch))
+        if(!read_indx(ctx->input, &video_priv->indx, ch))
           return 0;
 
 #ifdef DUMP_INDICES
-        dump_indx(&avi_iavs->indx);
+        dump_indx(&video_priv->indx);
 #endif
-        avi_iavs->has_indx = 1;
+        video_priv->has_indx = 1;
         break;
       default:
         bgav_input_skip(ctx->input, PADD(ch->ckSize));
@@ -1376,8 +1375,8 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
       }
     }
 
-  /* Get frame rate */
-
+  /* Get frame rate (These values will be overwritten later,
+   they are only for getting the correct duration */
   if(strh->dwScale && strh->dwRate)
     {
     bg_vs->data.video.format.timescale = strh->dwRate;
@@ -1393,8 +1392,6 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
     bg_vs->data.video.format.timescale = 25;
     bg_vs->data.video.format.frame_duration = 1;
     }
-  bg_vs->stream_id = (ctx->tt->current_track->num_video_streams) - 1;
-  
   bg_vs->timescale = bg_vs->data.video.format.timescale;
   bg_as->timescale = bg_vs->timescale;
   
@@ -1429,10 +1426,10 @@ static void idx1_build_superindex(bgav_demuxer_context_t * ctx)
   audio_priv_t * avi_as;
   video_priv_t * avi_vs;
   bgav_stream_t * stream;
-  avi_priv * avi;
+  avi_priv_t * avi;
   int64_t base_offset;
   
-  avi = (avi_priv*)(ctx->priv);
+  avi = (avi_priv_t*)(ctx->priv);
 
   /* Reset timestamps */
   
@@ -1479,8 +1476,8 @@ static void idx1_build_superindex(bgav_demuxer_context_t * ctx)
 static void idx1_fix_offsets(bgav_demuxer_context_t * ctx)
   {
   int i, err;
-  avi_priv * avi;
-  avi = (avi_priv*)(ctx->priv);
+  avi_priv_t * avi;
+  avi = (avi_priv_t*)(ctx->priv);
   if(avi->idx1.entries[0].dwChunkOffset == 4)
     return;
 
@@ -1495,7 +1492,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
                     bgav_redirector_context_t ** redir)
   {
   int i;
-  avi_priv * p;
+  avi_priv_t * p;
   chunk_header_t ch;
   riff_header_t rh;
   strh_t strh;
@@ -1709,11 +1706,11 @@ static int open_avi(bgav_demuxer_context_t * ctx,
 static void close_avi(bgav_demuxer_context_t * ctx)
   {
   int i;
-  avi_priv * priv;
+  avi_priv_t * priv;
   audio_priv_t * avi_as;
   video_priv_t * avi_vs;
   
-  priv = (avi_priv*)(ctx->priv);
+  priv = (avi_priv_t*)(ctx->priv);
   
   if(priv)
     {
@@ -1725,6 +1722,11 @@ static void close_avi(bgav_demuxer_context_t * ctx)
         bgav_RIFFINFO_destroy(priv->info);
       free(priv);
       }
+
+    if(priv->dv_dec)
+      bgav_dv_dec_destroy(priv->dv_dec);
+    if(priv->dv_frame_buffer)
+      free(priv->dv_frame_buffer);
     }
   for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
     {
@@ -1752,10 +1754,6 @@ static void close_avi(bgav_demuxer_context_t * ctx)
       {
       if(avi_vs->has_indx)
         free_indx(&(avi_vs->indx));
-      if(avi_vs->d)
-        bgav_dv_dec_destroy(avi_vs->d);
-      if(avi_vs->buffer)
-        free(avi_vs->buffer);
       free(avi_vs);
       }
     }
@@ -1768,10 +1766,10 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s = (bgav_stream_t*)0;
   uint32_t fourcc;
   int stream_id;
-  avi_priv * priv;
+  avi_priv_t * priv;
   video_priv_t* avi_vs;
   
-  priv = (avi_priv*)(ctx->priv);
+  priv = (avi_priv_t*)(ctx->priv);
   
   if(ctx->input->position + 8 >= priv->movi_start + priv->movi_size)
     {

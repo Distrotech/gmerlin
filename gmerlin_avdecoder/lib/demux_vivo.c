@@ -567,15 +567,11 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
       return 0;
     }
     
-  if(do_audio && ctx->tt->current_track->num_audio_streams)
-    {
-    stream = &(ctx->tt->current_track->audio_streams[0]);
-    }
-  else if(do_video && ctx->tt->current_track->num_video_streams)
-    {
-    stream = &(ctx->tt->current_track->video_streams[0]);
-    }
-
+  if(do_audio)
+    stream = bgav_track_find_stream(ctx->tt->current_track, AUDIO_STREAM_ID);
+  else if(do_video)
+    stream = bgav_track_find_stream(ctx->tt->current_track, VIDEO_STREAM_ID);
+  
   if(!stream)
     {
     bgav_input_skip(ctx->input, len);

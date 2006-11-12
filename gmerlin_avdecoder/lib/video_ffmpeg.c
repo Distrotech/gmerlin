@@ -461,8 +461,7 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     {
     priv->frame_pts = gavl_time_rescale(s->timescale, s->data.video.format.timescale,
                                         s->time_scaled);
-    //    fprintf(stderr, "frame_pts 1: %lld\n", priv->frame_pts);
-
+    //    fprintf(stderr, "frame_pts 1: %lld %lld\n", priv->frame_pts, s->time_scaled);
     }
   else
     {

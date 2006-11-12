@@ -449,8 +449,13 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
   char volid[32];
   unsigned char volsetid[128];
   driver_return_code_t err;
+  int is_image = 0;
+  
+  const char * pos;
 
-  //  DVDInit();
+  pos = strrchr(url, '/');
+  if(pos && !strcasecmp(pos, "/video_ts"))
+    is_image = 1;
   
   priv = calloc(1, sizeof(*priv));
   
@@ -458,13 +463,17 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
 
   /* Close the tray, hope it will be harmless if it's already
      closed */
-  if((err = cdio_close_tray(url, NULL)))
+
+  if(!is_image)
+    {
+    if((err = cdio_close_tray(url, NULL)))
 #if LIBCDIO_VERSION_NUM >= 77
-    fprintf(stderr, "cdio_close_tray failed: %s\n",
-            cdio_driver_errmsg(err));
+      fprintf(stderr, "cdio_close_tray failed: %s\n",
+              cdio_driver_errmsg(err));
 #else
     fprintf(stderr, "cdio_close_tray failed\n");
 #endif  
+    }
   
   /* Try to open dvd */
   priv->dvd_reader = DVDOpen(url);
@@ -1035,6 +1044,29 @@ int bgav_open_dvd(bgav_t * b, const char * device)
   return 0;
   
   }
+
+#if DVDREAD_VERSION >= 905
+
+#if defined(__GNUC__) && defined(__ELF__)
+
+static void __cleanup() __attribute__ ((destructor));
+ 
+static void __cleanup()
+  {
+  DVDFinish();
+  }
+
+static void __init() __attribute__ ((constructor));
+ 
+static void __init()
+  {
+  DVDInit();
+  }
+
+#endif
+
+
+#endif
 
 
 #else /* No DVD support */

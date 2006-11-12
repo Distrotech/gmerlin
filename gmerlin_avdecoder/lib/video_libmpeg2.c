@@ -250,9 +250,12 @@ static int init_mpeg2(bgav_stream_t*s)
    *  intra slice refresh stream
    */
 
-  if(priv->info->current_picture->flags & PIC_FLAG_CODING_TYPE_P)
+  if((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
+     PIC_FLAG_CODING_TYPE_P)
+    {
+    fprintf(stderr, "Intra slice refresh\n");
     priv->intra_slice_refresh = 1;
-  
+    }
   return 1;
   }
 
@@ -347,8 +350,10 @@ static void resync_mpeg2(bgav_stream_t*s)
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
   mpeg2_reset(priv->dec, 0);
   mpeg2_buffer(priv->dec, NULL, NULL);
-  mpeg2_skip(priv->dec, 1);
-
+  //  mpeg2_skip(priv->dec, 1);
+  
+  priv->p = (bgav_packet_t*)0;
+  
   priv->do_resync = 1;
 
   while(1)
@@ -366,20 +371,20 @@ static void resync_mpeg2(bgav_stream_t*s)
     
     /* Check if we can start decoding again */
     if((priv->intra_slice_refresh)  &&
-       ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) == PIC_FLAG_CODING_TYPE_P))
-      break;
-    else if(priv->info->current_picture &&
-            ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) == PIC_FLAG_CODING_TYPE_I))
+       ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
+        PIC_FLAG_CODING_TYPE_P))
       {
-      // fprintf(stderr, "resync_mpeg2: Got I Frame %p\n", priv->info->current_picture);
+      break;
+      }
+    else if(priv->info->current_picture &&
+            ((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
+             PIC_FLAG_CODING_TYPE_I))
+      {
       priv->first_iframe = priv->info->current_picture;
-
-      
-
       break;
       }
     }
-  mpeg2_skip(priv->dec, 0);
+  //  mpeg2_skip(priv->dec, 0);
   priv->do_resync = 0;
 
   /* Set next timestamps */

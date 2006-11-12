@@ -28,6 +28,8 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 
 #include <avdec_private.h>
 #include <dvframe.h>
@@ -367,10 +369,18 @@ void bgav_dv_dec_init_video(bgav_dv_dec_t * d, bgav_stream_t * s)
 
   bgav_dv_dec_get_pixel_aspect(d, &s->data.video.format.pixel_width,
                                &s->data.video.format.pixel_height);
+
+  s->data.video.format.image_width  = d->profile->width;
+  s->data.video.format.image_height = d->profile->height;
   
-  s->data.video.format.frame_duration = d->profile->frame_rate_base;
-  s->data.video.format.timescale      = d->profile->frame_rate;
-  
+  s->data.video.format.frame_width  = d->profile->width;
+  s->data.video.format.frame_height = d->profile->height;
+
+  if(!s->data.video.format.timescale)
+    {
+    s->data.video.format.frame_duration = d->profile->frame_rate_base;
+    s->data.video.format.timescale      = d->profile->frame_rate;
+    }
   gavl_video_format_copy(&(d->video_format), &(s->data.video.format));
   }
 
@@ -497,21 +507,33 @@ static int dv_extract_audio(uint8_t* frame, uint8_t* pcm, uint8_t* pcm2,
 
 int bgav_dv_dec_get_audio_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
   {
-  if(!p->audio_frame)
-    p->audio_frame = gavl_audio_frame_create(&(d->audio_format));
-
-  p->audio_frame->valid_samples = dv_extract_audio(d->buffer,
-                                                   p->audio_frame->channels.u_8[0],
-                                                   p->audio_frame->channels.u_8[2],
-                                                   d->profile);
-  p->keyframe = 1;
-
+  if(p)
+    {
+    if(!p->audio_frame)
+      p->audio_frame = gavl_audio_frame_create(&(d->audio_format));
+    
+    p->audio_frame->valid_samples = dv_extract_audio(d->buffer,
+                                                     p->audio_frame->channels.u_8[0],
+                                                     p->audio_frame->channels.u_8[2],
+                                                     d->profile);
+    p->keyframe = 1;
+    }
   return 1;
   }
 
 void bgav_dv_dec_get_video_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
   {
-  p->keyframe = 1;
-  p->pts = d->video_format.frame_duration * d->frame_counter;
+  if(p)
+    {
+    p->keyframe = 1;
+
+    if(p->pts == BGAV_TIMESTAMP_UNDEFINED)
+      p->pts = d->video_format.frame_duration * d->frame_counter;
+    
+    bgav_packet_alloc(p, d->profile->frame_size);
+    memcpy(p->data, d->buffer, d->profile->frame_size);
+    p->data_size = d->profile->frame_size;
+    //    fprintf(stderr, "DV PTS: %lld\n", p->pts);
+    }
   d->frame_counter++;
   }

@@ -160,6 +160,7 @@ static int open_dsicin(bgav_demuxer_context_t * ctx,
   s->data.audio.format.num_channels   = 1+fh.stereo;
   s->data.audio.bits_per_sample   = fh.bits_per_sample;
   s->fourcc = BGAV_MK_FOURCC('d','c','i','n');
+  s->stream_id = AUDIO_ID;
 
   ctx->stream_description = bgav_sprintf("Delphine Software CIN");
   return 1;
@@ -180,8 +181,7 @@ static int next_packet_dsicin(bgav_demuxer_context_t * ctx)
   //  dump_frame_header(&frame_header);
 
   /*  Get video frame */
-
-  s = ctx->tt->current_track->video_streams;
+  
   if ((int16_t)frame_header.num_palette_colors < 0)
     {
     frame_header.num_palette_colors = -(int16_t)frame_header.num_palette_colors;
@@ -191,45 +191,63 @@ static int next_packet_dsicin(bgav_demuxer_context_t * ctx)
     {
     palette_type = 0;
     }
-  
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
-  
-  pkt_size = (palette_type + 3) * frame_header.num_palette_colors  + frame_header.video_size;
-  
-  bgav_packet_alloc(p, pkt_size + 4);
+  pkt_size = (palette_type + 3) *
+    frame_header.num_palette_colors  + frame_header.video_size;
 
-  p->data[0] = palette_type;
-  p->data[1] = frame_header.num_palette_colors & 0xFF;
-  p->data[2] = frame_header.num_palette_colors >> 8;
-  p->data[3] = frame_header.video_type;
-
-  if(bgav_input_read_data(ctx->input, p->data+4, pkt_size) < pkt_size)
-    return 0;
-
-  p->data_size = pkt_size + 4;
-  p->pts += priv->video_pts++;
+  s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
   
-  bgav_packet_done_write(p);
-
+  if(s)
+    {
+    p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+    
+    bgav_packet_alloc(p, pkt_size + 4);
+    
+    p->data[0] = palette_type;
+    p->data[1] = frame_header.num_palette_colors & 0xFF;
+    p->data[2] = frame_header.num_palette_colors >> 8;
+    p->data[3] = frame_header.video_type;
+    
+    if(bgav_input_read_data(ctx->input, p->data+4, pkt_size) < pkt_size)
+      return 0;
+    
+    p->data_size = pkt_size + 4;
+    p->pts += priv->video_pts++;
+    
+    bgav_packet_done_write(p);
+    }
+  else
+    bgav_input_skip(ctx->input, pkt_size);
+  
   if(!frame_header.audio_size)
     return 1;
   
-  s = ctx->tt->current_track->audio_streams;
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  s = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
 
-  bgav_packet_alloc(p, pkt_size + frame_header.audio_size);
+  if(s)
+    {
+    p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+
+    bgav_packet_alloc(p, pkt_size + frame_header.audio_size);
     
-  if(bgav_input_read_data(ctx->input, p->data, frame_header.audio_size) < frame_header.audio_size)
-    return 0;
-  p->data_size = frame_header.audio_size;
-  bgav_packet_done_write(p);
+    if(bgav_input_read_data(ctx->input, p->data, frame_header.audio_size) < frame_header.audio_size)
+      return 0;
+    p->data_size = frame_header.audio_size;
+    bgav_packet_done_write(p);
+    }
+  else
+    bgav_input_skip(ctx->input, frame_header.audio_size);
   
   return 1;
   }
 
 static void close_dsicin(bgav_demuxer_context_t * ctx)
   {
+  dsicin_priv_t * priv;
 
+  priv = (dsicin_priv_t *)(ctx->priv);
+
+  if(priv)
+    free(priv);
   }
 
 bgav_demuxer_t bgav_demuxer_dsicin =

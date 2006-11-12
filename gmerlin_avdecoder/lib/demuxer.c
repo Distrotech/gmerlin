@@ -17,7 +17,7 @@
  
 *****************************************************************/
 
-// #define DUMP_SUPERINDEX    
+#define DUMP_SUPERINDEX    
 #include <avdec_private.h>
 
 #include <stdio.h>
@@ -443,7 +443,8 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
 
   if(ctx->read_packet)
     {
-    if(!ctx->read_packet(ctx, ctx->si->entries[ctx->si->current_position].size))
+    if(!ctx->read_packet(ctx, ctx->si->entries[ctx->si->current_position].size,
+                         ctx->si->entries[ctx->si->current_position].time))
       return 0;
     }
   else

@@ -24,6 +24,8 @@
 
 #include <dvframe.h>
 
+#define AUDIO_ID 0
+#define VIDEO_ID 1
 
 /* DV demuxer */
 
@@ -34,6 +36,7 @@ typedef struct
   int64_t frame_pos;
   int frame_size;
   uint8_t * frame_buffer;
+  int frame_buffer_valid;
   } dv_priv_t;
 
 static int probe_dv(bgav_input_context_t * input)
@@ -73,9 +76,10 @@ static int open_dv(bgav_demuxer_context_t * ctx,
   priv->frame_size = bgav_dv_dec_get_frame_size(priv->d);
   priv->frame_buffer = malloc(priv->frame_size);
 
-  if(bgav_input_read_data(ctx->input, priv->frame_buffer, 
+  if(bgav_input_get_data(ctx->input, priv->frame_buffer, 
                           priv->frame_size) < priv->frame_size)
     return 0;
+  
   bgav_dv_dec_set_frame(priv->d, priv->frame_buffer);
   
   /* Create track */
@@ -85,10 +89,12 @@ static int open_dv(bgav_demuxer_context_t * ctx,
   /* Set up streams */
   as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
   bgav_dv_dec_init_audio(priv->d, as);
-
+  as->stream_id = AUDIO_ID;
+  
   vs = bgav_track_add_video_stream(ctx->tt->current_track, ctx->opt);
   bgav_dv_dec_init_video(priv->d, vs);
-
+  vs->stream_id = VIDEO_ID;
+  
   /* Set duration */
 
   if(ctx->input->total_bytes)
@@ -110,7 +116,7 @@ static int open_dv(bgav_demuxer_context_t * ctx,
 
 static int next_packet_dv(bgav_demuxer_context_t * ctx)
   {
-  bgav_packet_t *ap, *vp;
+  bgav_packet_t *ap = (bgav_packet_t *)0, *vp = (bgav_packet_t *)0;
   bgav_stream_t *as, *vs;
   dv_priv_t * priv;
   priv = (dv_priv_t *)(ctx->priv);
@@ -119,31 +125,28 @@ static int next_packet_dv(bgav_demuxer_context_t * ctx)
    *  demuxing dv is easy: we copy the video frame and
    *  extract the audio data
    */
-  
-  as = ctx->tt->current_track->audio_streams;
-  vs = ctx->tt->current_track->video_streams;
-  
-  ap = bgav_packet_buffer_get_packet_write(as->packet_buffer, as);
-  vp = bgav_packet_buffer_get_packet_write(vs->packet_buffer, vs);
- 
-  bgav_packet_alloc(vp, priv->frame_size);
-    
-  vp->data_size = bgav_input_read_data(ctx->input, vp->data, priv->frame_size);
-  if(vp->data_size < priv->frame_size)
-    return 0;
 
-  bgav_dv_dec_set_frame(priv->d, vp->data);
+  as = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
+  vs = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
+  
+  if(vs)
+    vp = bgav_packet_buffer_get_packet_write(vs->packet_buffer, vs);
+  
+  if(as)
+    ap = bgav_packet_buffer_get_packet_write(as->packet_buffer, as);
+
+  if(bgav_input_read_data(ctx->input, priv->frame_buffer, priv->frame_size) < priv->frame_size)
+    return 0;
+  
+  bgav_dv_dec_set_frame(priv->d, priv->frame_buffer);
   
   if(!bgav_dv_dec_get_audio_packet(priv->d, ap))
     return 0;
-
+  
   bgav_dv_dec_get_video_packet(priv->d, vp);
-  
-  ap->keyframe = 1;
-  vp->keyframe = 1;
-  
-  bgav_packet_done_write(ap);
-  bgav_packet_done_write(vp);
+
+  if(ap) bgav_packet_done_write(ap);
+  if(vp) bgav_packet_done_write(vp);
   
   return 1;
   }
