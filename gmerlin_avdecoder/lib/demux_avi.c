@@ -1715,18 +1715,15 @@ static void close_avi(bgav_demuxer_context_t * ctx)
   if(priv)
     {
     if(priv->has_idx1)
-      {
       free_idx1(&(priv->idx1));
-      
-      if(priv->info)
-        bgav_RIFFINFO_destroy(priv->info);
-      free(priv);
-      }
-
+        
+    if(priv->info)
+      bgav_RIFFINFO_destroy(priv->info);
     if(priv->dv_dec)
       bgav_dv_dec_destroy(priv->dv_dec);
     if(priv->dv_frame_buffer)
       free(priv->dv_frame_buffer);
+    free(priv);
     }
   for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
     {

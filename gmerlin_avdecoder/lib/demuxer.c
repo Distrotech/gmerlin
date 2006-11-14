@@ -17,7 +17,7 @@
  
 *****************************************************************/
 
-#define DUMP_SUPERINDEX    
+// #define DUMP_SUPERINDEX    
 #include <avdec_private.h>
 
 #include <stdio.h>
