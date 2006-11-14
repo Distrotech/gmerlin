@@ -285,8 +285,8 @@ int main(int argc, char ** argv)
     dst_rect.x = 0;
     dst_rect.y = 0;
     
-    src_rect.w = 200;
-    src_rect.h = 200;
+    src_rect.w = 640;
+    src_rect.h = 480;
     src_rect.x = 0;
     src_rect.y = 0;
         
@@ -305,8 +305,9 @@ int main(int argc, char ** argv)
     format_1.frame_height = dst_rect.h + dst_rect.y;
 
     gavl_video_options_set_defaults(opt);
-    //    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_);
-    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_CUBIC_BSPLINE);
+    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_SINC_LANCZOS);
+    gavl_video_options_set_scale_order(opt, 5);
+    //    gavl_video_options_set_scale_mode(opt, GAVL_SCALE_CUBIC_BSPLINE);
     gavl_video_options_set_accel_flags(opt, GAVL_ACCEL_C);
     gavl_video_options_set_rectangles(opt, &src_rect, &dst_rect);
     

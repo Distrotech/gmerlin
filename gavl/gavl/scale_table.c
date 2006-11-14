@@ -214,6 +214,8 @@ static void normalize_table(gavl_video_scale_table_t * tab)
     for(j = 0; j < tab->factors_per_pixel; j++)
       sum += tab->pixels[i].factor[j].fac_f;
 
+    // fprintf(stderr, "sum: %f\n", sum);
+    
     for(j = 0; j < tab->factors_per_pixel; j++)
       tab->pixels[i].factor[j].fac_f /= sum;
     }
@@ -338,18 +340,46 @@ void gavl_video_scale_table_dump(gavl_video_scale_table_t * tab)
 void gavl_video_scale_table_init_int(gavl_video_scale_table_t * tab,
                                      int bits)
   {
-  int fac_max_i, i, imax;
+  int fac_max_i, i, j;
   float fac_max_f;
+  int sum, index;
+  int min_index, max_index;
   //  fprintf(stderr, "gavl_video_scale_table_init_int: %d\n", bits);
-  imax = tab->num_pixels * tab->factors_per_pixel;
-
-  fac_max_i = (1<<bits) - 1;
+  
+  //  fac_max_i = (1<<bits) - 1;
+  fac_max_i = (1<<bits);
   fac_max_f = (float)(fac_max_i);
-    
-  for(i = 0; i < imax; i++)
+
+  index = 0;
+  
+  for(i = 0; i < tab->num_pixels; i++)
     {
-    tab->factors[i].fac_i = (int)(fac_max_f * tab->factors[i].fac_f+0.5);
-    //    fprintf(stderr, "%f -> %d\n", tab->factors[i].fac_f, tab->factors[i].fac_i);
+    min_index = index;
+    max_index = index;
+    
+    sum = 0;
+    for(j = 0; j < tab->factors_per_pixel; j++)
+      {
+      tab->factors[index].fac_i =
+        (int)(fac_max_f * tab->factors[index].fac_f+0.5);
+      sum += tab->factors[index].fac_i;
+
+      if(j)
+        {
+        if(tab->factors[index].fac_i > tab->factors[max_index].fac_i)
+          max_index = index;
+        if(tab->factors[index].fac_i < tab->factors[min_index].fac_i)
+          min_index = index;
+        }
+      index++;
+      }
+#if 1
+    if(sum > fac_max_i)
+      tab->factors[max_index].fac_i -= (sum - fac_max_i);
+    else if(sum < fac_max_i)
+      tab->factors[min_index].fac_i += (fac_max_i - sum);
+    //    fprintf(stderr, "sum: %08x\n", sum);
+#endif
     }
   }
 
