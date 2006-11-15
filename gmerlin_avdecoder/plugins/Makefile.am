@@ -1,9 +1,9 @@
 libdir=@GMERLIN_PLUGIN_DIR@
 
-AM_CFLAGS = @OPT_CFLAGS@ @GMERLIN_CFLAGS@
 
 if HAVE_CDIO
 cdio_modules = i_vcd.la
+cdio_cflags = @CDIO_CFLAGS@
 
 if HAVE_DVDREAD
 dvdread_modules = i_dvd.la
@@ -13,7 +13,10 @@ endif
 
 else
 cdio_modules =
+cdio_cflags =
 endif
+
+AM_CFLAGS = @OPT_CFLAGS@ @GMERLIN_CFLAGS@ $(cdio_cflags)
 
 lib_LTLIBRARIES = \
 i_avdec.la \
