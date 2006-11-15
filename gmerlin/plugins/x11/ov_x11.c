@@ -1547,6 +1547,8 @@ static int handle_event(x11_t * priv, XEvent * evt)
             done = 0;
           break;
         case XK_B:
+	  if(!priv->brightness_parameter)
+	    break;
           /* Increase brightness */
           priv->brightness_f += BCS_DELTA;
           if(priv->brightness_f > 1.0)
@@ -1565,6 +1567,8 @@ static int handle_event(x11_t * priv, XEvent * evt)
                                                  priv->brightness_f);
           break;
         case XK_b:
+	  if(!priv->brightness_parameter)
+	    break;
           /* Decrease brightness */
           priv->brightness_f -= BCS_DELTA;
           if(priv->brightness_f < 0.0)
@@ -1583,6 +1587,9 @@ static int handle_event(x11_t * priv, XEvent * evt)
           
           break;
         case XK_S:
+	  if(!priv->saturation_parameter)
+	    break;
+	
           /* Increase saturation */
           priv->saturation_f += BCS_DELTA;
           if(priv->saturation_f > 1.0)
@@ -1601,6 +1608,8 @@ static int handle_event(x11_t * priv, XEvent * evt)
                                                  priv->saturation_f);
           break;
         case XK_s:
+ 	  if(!priv->saturation_parameter)
+	    break;
           /* Decrease saturation */
           priv->saturation_f -= BCS_DELTA;
           if(priv->saturation_f < 0.0)
@@ -1619,6 +1628,8 @@ static int handle_event(x11_t * priv, XEvent * evt)
           
           break;
         case XK_C:
+ 	  if(!priv->contrast_parameter)
+	    break;
           /* Increase contrast */
           priv->contrast_f += BCS_DELTA;
           if(priv->contrast_f > 1.0)
@@ -1637,6 +1648,8 @@ static int handle_event(x11_t * priv, XEvent * evt)
                                                  priv->contrast_f);
           break;
         case XK_c:
+ 	  if(!priv->contrast_parameter)
+	    break;
           /* Decrease contrast */
           priv->contrast_f -= BCS_DELTA;
           if(priv->contrast_f < 0.0)

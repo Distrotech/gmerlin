@@ -555,7 +555,7 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
     XMapRaised(w->dpy, w->fullscreen_window);
 
-    XWithdrawWindow(w->dpy, w->normal_window, DefaultScreen(w->dpy));
+    XWithdrawWindow(w->dpy, w->normal_window, w->screen);
 		
     /* Wait until the window is mapped */ 
     
@@ -598,7 +598,7 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
                       w->window_width, w->window_height);
 
     XUnmapWindow(w->dpy, w->fullscreen_window);
-
+    XWithdrawWindow(w->dpy, w->fullscreen_window, w->screen);
     XSetInputFocus(w->dpy, w->normal_window, RevertToNone, CurrentTime);
     
     x11_window_clear(w);
