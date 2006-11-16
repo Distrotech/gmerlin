@@ -2161,44 +2161,42 @@ static void create_parameters(x11_t * x11)
   int i;
   int index;
 #ifdef HAVE_LIBXV
-  int num_xv_parameters;
+  int num_xv_parameters = 0;
 #endif
   int num_parameters;
     
 
 //  fprintf(stderr, "get_parameters_x11 %p\n", x11->parameters);
 
-  if(!x11->parameters)
-    {
-    /* Count parameters */
-    num_parameters = NUM_COMMON_PARAMETERS;
+  if(x11->parameters)
+    return;    
+  /* Count parameters */
+  num_parameters = NUM_COMMON_PARAMETERS;
 #ifdef HAVE_LIBXV
+  if(x11->have_xv_yv12 || x11->have_xv_yuy2 || x11->have_xv_i420 || x11->have_xv_uyvy)
     num_xv_parameters = get_num_xv_parameters(x11->dpy, x11->xv_port);
-    num_parameters += num_xv_parameters;
+  num_parameters += num_xv_parameters;
 #endif // HAVE_LIBXV
 
-    /* Create parameter array */
+  /* Create parameter array */
 
-    x11->parameters = calloc(num_parameters+1, sizeof(bg_parameter_info_t));
+  x11->parameters = calloc(num_parameters+1, sizeof(bg_parameter_info_t));
 
-    index = 0;
-    for(i = 0; i < NUM_COMMON_PARAMETERS; i++)
-      {
-      bg_parameter_info_copy(&(x11->parameters[index]),
-                             &(common_parameters[i]));
-      index++;
-      }
+  index = 0;
+  for(i = 0; i < NUM_COMMON_PARAMETERS; i++)
+    {
+    bg_parameter_info_copy(&(x11->parameters[index]),
+                           &(common_parameters[i]));
+    index++;
+    }
 //    fprintf(stderr, "num_xv_parameters: %d\n", num_xv_parameters);
 #ifdef HAVE_LIBXV
-    if(num_xv_parameters)
-      {
-      get_xv_parameters(x11, &(x11->parameters[index]));
-      index += num_xv_parameters;
-      }
-#endif
+  if(num_xv_parameters)
+    {
+    get_xv_parameters(x11, &(x11->parameters[index]));
+    index += num_xv_parameters;
     }
-
-
+#endif
   }
 
 static bg_parameter_info_t *
