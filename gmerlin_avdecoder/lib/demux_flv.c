@@ -298,12 +298,14 @@ static int read_meta_object(bgav_input_context_t * input,
 
       if(!bgav_input_read_16_be(input, &ret->data.date.date2))
         return 0;
+      break;
     case TYPE_TERMINATOR:
       //      fprintf(stderr, "Got Terminator\n");
       break;
     default:
-      fprintf(stderr, "Unknown type: %d for metadata object %s\n",
-              ret->type, ret->name);
+      bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Unknown type: %d for metadata object %s\n",
+               ret->type, ret->name);
       return 0;
     }
   return 1;
@@ -365,6 +367,7 @@ static int read_metadata(bgav_demuxer_context_t * ctx, flv_tag * t)
   uint8_t u8;
   flv_priv_t * priv;
   int64_t end_pos;
+  int ret;
   
   priv = (flv_priv_t*)(ctx->priv);
 
@@ -376,7 +379,14 @@ static int read_metadata(bgav_demuxer_context_t * ctx, flv_tag * t)
     bgav_input_skip(ctx->input, 4);
 
   priv->metadata.type = TYPE_OBJECT;
-  return read_meta_object(ctx->input, &priv->metadata, 0, 0, end_pos);
+
+  ret = read_meta_object(ctx->input, &priv->metadata, 0, 0, end_pos);
+  
+  if(ret && (ctx->input->position < end_pos))
+    {
+    bgav_input_skip(ctx->input, end_pos - ctx->input->position);
+    }
+  return ret;
   }
 
 static int next_packet_flv(bgav_demuxer_context_t * ctx)
@@ -386,7 +396,7 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
   
   double number;
   uint8_t flags;
-  uint8_t vp6_header[16];
+  uint8_t header[16];
   bgav_packet_t * p;
   bgav_stream_t * s;
   flv_priv_t * priv;
@@ -409,6 +419,15 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
     /* onMetaData */
     //    flv_tag_dump(&t);
 
+    if(bgav_input_get_data(ctx->input, header, 13) < 13)
+      return 0;
+
+    if(strncmp((char*)(&header[3]), "onMetaData", 10))
+      {
+      bgav_input_skip(ctx->input, t.data_size);
+      return 1;
+      }
+    
     read_metadata(ctx, &t);
 
     obj = priv->metadata.data.object.children;
@@ -523,19 +542,19 @@ static int next_packet_flv(bgav_demuxer_context_t * ctx)
         case 4: /* VP6 (Flash 8?) */
           s->fourcc = BGAV_MK_FOURCC('V', 'P', '6', '2');
 #if 1
-          if(bgav_input_get_data(ctx->input, vp6_header, 5) < 5)
+          if(bgav_input_get_data(ctx->input, header, 5) < 5)
             return 0;
           /* Get the video size. The image is flipped vertically,
              so we set a negative height */
-          s->data.video.format.image_height = -vp6_header[3] * 16;
-          s->data.video.format.image_width  = vp6_header[4] * 16;
+          s->data.video.format.image_height = -header[3] * 16;
+          s->data.video.format.image_width  = header[4] * 16;
           
           s->data.video.format.frame_height = -s->data.video.format.image_height;
           s->data.video.format.frame_width  = s->data.video.format.image_width;
           
           /* Crop */
-          s->data.video.format.image_width  -= (vp6_header[0] >> 4);
-          s->data.video.format.image_height += vp6_header[0] & 0x0f;
+          s->data.video.format.image_width  -= (header[0] >> 4);
+          s->data.video.format.image_height += header[0] & 0x0f;
           
 #endif
           break;
