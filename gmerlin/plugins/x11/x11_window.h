@@ -80,12 +80,15 @@ typedef struct
   Pixmap fullscreen_cursor_pixmap;
   Cursor fullscreen_cursor;
 
-  Atom WM_PROTOCOLS;
   Atom WM_DELETE_WINDOW;
   Atom _NET_SUPPORTED;
   Atom _NET_WM_STATE;
   Atom _NET_WM_STATE_FULLSCREEN;
+  Atom _NET_WM_STATE_ABOVE;
   Atom _NET_MOVERESIZE_WINDOW;
+  Atom WIN_PROTOCOLS;
+  Atom WM_PROTOCOLS;
+  Atom WIN_LAYER;
 
   /* For hiding the mouse pointer */
   int idle_counter;

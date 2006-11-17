@@ -450,7 +450,14 @@ static gboolean delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
   window_button_callback(w, data);
   return TRUE;
   }
-  
+
+static void set_video_encoder(const bg_plugin_info_t * info, void * data)
+  {
+  encoder_window_t * w = (encoder_window_t*)data;
+  encoder_widget_update_sensitive(&w->encoder_widget);
+  }
+
+
 encoder_window_t * encoder_window_create(bg_plugin_registry_t * plugin_reg)
   {
   GtkWidget * mainbox;
@@ -494,6 +501,10 @@ encoder_window_t * encoder_window_create(bg_plugin_registry_t * plugin_reg)
   
   encoder_widget_init(&(ret->encoder_widget), plugin_reg);
 
+  bg_gtk_plugin_widget_single_set_change_callback(ret->encoder_widget.video_encoder,
+                                                  set_video_encoder, ret);
+
+  
   /* Pack */
 
   buttonbox = gtk_hbutton_box_new();

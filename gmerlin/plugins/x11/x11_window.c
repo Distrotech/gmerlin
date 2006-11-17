@@ -30,8 +30,12 @@
 #define _NET_WM_STATE_REMOVE        0    /* remove/unset property */
 #define _NET_WM_STATE_ADD           1    /* add/set property */
 
-#define FULLSCREEN_MODE_OLD    0
-#define FULLSCREEN_MODE_NET_WM 1
+// #define FULLSCREEN_MODE_OLD    0
+#define FULLSCREEN_MODE_NET_FULLSCREEN (1<<0)
+#define FULLSCREEN_MODE_NET_ABOVE      (1<<1)
+
+#define FULLSCREEN_MODE_WIN_LAYER      (1<<2)
+
 
 #define IDLE_MAX 10
 
@@ -49,7 +53,7 @@ wm_check_capability(Display *dpy, Window root, Atom list, Atom wanted)
   int             retval = 0;
   
   if (Success != XGetWindowProperty
-      (dpy, root, list, 0, (65536 / sizeof(long)), False,
+      (dpy, root, list, 0, 16384, False,
        AnyPropertyType, &type, &format, &nitems, &bytesafter, &args))
     return 0;
   if (type != XA_ATOM)
@@ -59,32 +63,34 @@ wm_check_capability(Display *dpy, Window root, Atom list, Atom wanted)
     {
     if (ldata[i] == wanted)
       retval = 1;
+
     }
   XFree(ldata);
   return retval;
   }
-#if 0
+
 static void
-netwm_set_state(x11_window_t * w, Window win, int operation, Atom state)
+netwm_set_state(x11_window_t * w, Window win, int action, Atom state)
   {
-  XEvent e;
+  /* Setting _NET_WM_STATE by XSendEvent works only, if the window
+     is already mapped!! */
   
+  XEvent e;
   memset(&e,0,sizeof(e));
   e.xclient.type = ClientMessage;
   e.xclient.message_type = w->_NET_WM_STATE;
   e.xclient.display = w->dpy;
   e.xclient.window = win;
+  e.xclient.send_event = True;
   e.xclient.format = 32;
-  e.xclient.data.l[0] = operation;
+  e.xclient.data.l[0] = action;
   e.xclient.data.l[1] = state;
   
   XSendEvent(w->dpy, w->root, False,
-             SubstructureNotifyMask|SubstructureRedirectMask, &e);
-
-//  fprintf(stderr, "netwm_set_state\n");
-
+             SubstructureRedirectMask, &e);
   }
-#endif
+
+#if 0
 static void
 netwm_set_fullscreen(x11_window_t * w, Window win)
   {
@@ -102,6 +108,8 @@ netwm_set_fullscreen(x11_window_t * w, Window win)
 
 
   }
+#endif
+
 #if 0
 static void
 netwm_set_layer(x11_window_t * w, Window win, int layer)
@@ -125,23 +133,63 @@ netwm_set_layer(x11_window_t * w, Window win, int layer)
 
 static int get_fullscreen_mode(x11_window_t * w)
   {
-  if(wm_check_capability(w->dpy, w->root, w->_NET_SUPPORTED, w->_NET_WM_STATE_FULLSCREEN))
+  int ret = 0;
+
+  Atom            type;
+  int             format;
+  unsigned int    i;
+  unsigned long   nitems, bytesafter;
+  unsigned char   *args;
+  unsigned long   *ldata;
+  if (Success != XGetWindowProperty
+      (w->dpy, w->root, w->_NET_SUPPORTED, 0, (65536 / sizeof(long)), False,
+       AnyPropertyType, &type, &format, &nitems, &bytesafter, &args))
+    return 0;
+  if (type != XA_ATOM)
+    return 0;
+  ldata = (unsigned long*)args;
+  for (i = 0; i < nitems; i++)
     {
-    //    fprintf(stderr, "NET_WM FULLSCREEN\n");
-    return FULLSCREEN_MODE_NET_WM;
+    if (ldata[i] == w->_NET_WM_STATE_FULLSCREEN)
+      {
+      ret |= FULLSCREEN_MODE_NET_FULLSCREEN;
+      }
+    if (ldata[i] == w->_NET_WM_STATE_ABOVE)
+      {
+      ret |= FULLSCREEN_MODE_NET_ABOVE;
+      }
+
+    
     }
+  XFree(ldata);
+  
+  if(wm_check_capability(w->dpy, w->root, w->WIN_PROTOCOLS,
+                         w->WIN_LAYER))
+    {
+    fprintf(stderr, "WIN_LAYER\n");
+    ret |= FULLSCREEN_MODE_WIN_LAYER;
+    }
+  
   //  fprintf(stderr, "MWM FULLSCREEN\n");
-  return FULLSCREEN_MODE_OLD;
+  return ret;
   }
 
 static void init_atoms(x11_window_t * w)
   {
-  w->WM_PROTOCOLS             = XInternAtom(w->dpy, "WM_PROTOCOLS", False);
   w->WM_DELETE_WINDOW         = XInternAtom(w->dpy, "WM_DELETE_WINDOW", False);
+
+  w->WIN_PROTOCOLS             = XInternAtom(w->dpy, "WIN_PROTOCOLS", False);
+  w->WM_PROTOCOLS             = XInternAtom(w->dpy, "WM_PROTOCOLS", False);
+  w->WIN_LAYER              = XInternAtom(w->dpy, "WIN_LAYER", False);
+
   w->_NET_SUPPORTED           = XInternAtom(w->dpy, "_NET_SUPPORTED", False);
   w->_NET_WM_STATE            = XInternAtom(w->dpy, "_NET_WM_STATE", False);
   w->_NET_WM_STATE_FULLSCREEN = XInternAtom(w->dpy, "_NET_WM_STATE_FULLSCREEN",
                                             False);
+  
+  w->_NET_WM_STATE_ABOVE = XInternAtom(w->dpy, "_NET_WM_STATE_ABOVE",
+                                       False);
+
   w->_NET_MOVERESIZE_WINDOW   = XInternAtom(w->dpy, "_NET_MOVERESIZE_WINDOW",
                                             False);
 
@@ -177,12 +225,6 @@ int mwm_set_decorations(x11_window_t * w, Window win, int set)
   
   /* get the atom for the property */
   hintsatom = XInternAtom(w->dpy, "_MOTIF_WM_HINTS", False);
-  if (!hintsatom)
-    {
-    fprintf(stderr,
-            "Failed to get atom _MOTIF_WM_HINTS: probably your window manager does not support MWM hints\n");
-    return 0;
-    }
   
   XChangeProperty(w->dpy, win, hintsatom, hintsatom, 32, PropModeReplace,
                   (unsigned char *) &motif_hints, PROP_MOTIF_WM_HINTS_ELEMENTS);
@@ -544,16 +586,25 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     w->window_height = height;
 
     w->current_window = w->fullscreen_window;
-    
-    if(w->fullscreen_mode == FULLSCREEN_MODE_NET_WM)
-      netwm_set_fullscreen(w,w->fullscreen_window);
+    XMapRaised(w->dpy, w->fullscreen_window);
 
-//    XSetTransientForHint(w->dpy, w->fullscreen_window, None);
+#if 1
+    if(w->fullscreen_mode & FULLSCREEN_MODE_NET_ABOVE)
+      {
+      netwm_set_state(w, w->fullscreen_window,
+                      _NET_WM_STATE_ADD, w->_NET_WM_STATE_ABOVE);
+      }
+    if(w->fullscreen_mode & FULLSCREEN_MODE_NET_FULLSCREEN)
+      {
+      netwm_set_state(w, w->fullscreen_window,
+                      _NET_WM_STATE_ADD, w->_NET_WM_STATE_FULLSCREEN);
+      }
+#endif    
+    XSetTransientForHint(w->dpy, w->fullscreen_window, None);
 
 //    XRaiseWindow(w->dpy, w->fullscreen_window);
 //    XMapWindow(w->dpy, w->fullscreen_window);
     XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
-    XMapRaised(w->dpy, w->fullscreen_window);
 
     XWithdrawWindow(w->dpy, w->normal_window, w->screen);
 		
@@ -578,6 +629,15 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
 	
   if(!fullscreen && (w->current_window == w->fullscreen_window))
     {
+    /* Unmap fullscreen window */
+    netwm_set_state(w, w->fullscreen_window,
+                    _NET_WM_STATE_REMOVE, w->_NET_WM_STATE_FULLSCREEN);
+    netwm_set_state(w, w->fullscreen_window,
+                    _NET_WM_STATE_REMOVE, w->_NET_WM_STATE_ABOVE);
+    XWithdrawWindow(w->dpy, w->fullscreen_window, w->screen);
+    XUnmapWindow(w->dpy, w->fullscreen_window);
+        
+    /* Map normal window */
     w->current_window = w->normal_window;
     XMapWindow(w->dpy, w->normal_window);
     
@@ -596,9 +656,7 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     XMoveResizeWindow(w->dpy, w->normal_window,
                       w->window_x, w->window_y,
                       w->window_width, w->window_height);
-
-    XUnmapWindow(w->dpy, w->fullscreen_window);
-    XWithdrawWindow(w->dpy, w->fullscreen_window, w->screen);
+    
     XSetInputFocus(w->dpy, w->normal_window, RevertToNone, CurrentTime);
     
     x11_window_clear(w);
