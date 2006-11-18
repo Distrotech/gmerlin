@@ -38,13 +38,17 @@
 #include <keycodes.h>
 #include <utils.h>
 #include <config.h>
+#include <log.h>
 
+#define LOG_DOMAIN "x11"
 
 #include "x11_window.h"
 
 #ifdef HAVE_LIBXV
 #include <X11/extensions/Xvlib.h>
 #endif
+
+
 
 // #undef HAVE_LIBXV
 
@@ -906,6 +910,21 @@ static void * create_x11()
                     priv->dpy, DefaultVisual(priv->dpy, screen),
                     DefaultDepth(priv->dpy, screen),
                     320, 240, "Video output");
+
+  /* Log screensaver mode */
+
+  switch(priv->win.screensaver_mode)
+    {
+    case SCREENSAVER_MODE_XLIB:
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Assuming Xlib screensaver support");
+      break;
+    case SCREENSAVER_MODE_GNOME:
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Assuming Gnome screensaver support");
+      break;
+    case SCREENSAVER_MODE_KDE:
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Assuming KDE screensaver support");
+      break;
+    }
   
   x11_window_select_input(&(priv->win), ButtonPressMask |
                           KeyPressMask | ExposureMask);
@@ -1092,8 +1111,8 @@ static int _open_x11(void * data,
   
   /* Set screensaver options */
 
-  priv->win.disable_xscreensaver_fullscreen = priv->disable_xscreensaver_fullscreen;
-  priv->win.disable_xscreensaver_normal     = priv->disable_xscreensaver_normal;
+  priv->win.disable_screensaver_fullscreen = priv->disable_xscreensaver_fullscreen;
+  priv->win.disable_screensaver_normal     = priv->disable_xscreensaver_normal;
   
   x11_window_set_title(&(priv->win), window_title);
   
@@ -1725,6 +1744,7 @@ static void handle_events_x11(void * data)
         break;
       handle_event(priv, event);
       }
+    x11_window_handle_event(&(priv->win), (XEvent*)0);
     }
   }
 
@@ -2071,18 +2091,18 @@ bg_parameter_info_t common_parameters[] =
       multi_names: (char*[]){ "never", "yuv_only", "always", (char*)0},
       multi_labels: (char*[]){ "Never", "For YUV formats only", "Always", (char*)0},
       val_default: { val_str: "yuv_only" },
-      help_string: "Choose when to try XVideo (with hardware scaling)",
+      help_string: "Choose when to try XVideo (with hardware scaling). Note that your graphics card/driver must support this.",
     },
 #endif
     {
       name:        "disable_xscreensaver_normal",
-      long_name:   "Disable XScreensaver for normal playback",
+      long_name:   "Disable Screensaver for normal playback",
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 0 }
     },
     {
       name:        "disable_xscreensaver_fullscreen",
-      long_name:   "Disable XScreensaver for fullscreen playback",
+      long_name:   "Disable Screensaver for fullscreen playback",
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 }
     },

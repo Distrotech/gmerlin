@@ -27,6 +27,12 @@
 
 #include <x11_window.h>
 
+#include <stdlib.h>
+
+#include <time.h>
+#include <sys/time.h>
+
+
 #define _NET_WM_STATE_REMOVE        0    /* remove/unset property */
 #define _NET_WM_STATE_ADD           1    /* add/set property */
 
@@ -40,6 +46,124 @@
 #define IDLE_MAX 10
 
 static char bm_no_data[] = { 0,0,0,0, 0,0,0,0 };
+
+
+/* Screensaver detection */
+
+static void check_screensaver(x11_window_t * w)
+  {
+  char * env;
+  /* Check for gnome */
+  env = getenv("GNOME_DESKTOP_SESSION_ID");
+  if(env)
+    {
+    w->screensaver_mode = SCREENSAVER_MODE_GNOME;
+    return;
+    }
+
+  /* Check for KDE */
+  env = getenv("KDE_FULL_SESSION");
+  if(env && strcmp(env, "true"))
+    {
+    w->screensaver_mode = SCREENSAVER_MODE_GNOME;
+    return;
+    }
+
+  /* TODO: xfce4 */
+  
+  }
+
+static void disable_screensaver(x11_window_t * w)
+  {
+  int interval, prefer_blank, allow_exp;
+
+  if(w->screensaver_disabled)
+    return;
+
+  //  fprintf(stderr, "Disabling screensaver\n");
+  
+  switch(w->screensaver_mode)
+    {
+    case SCREENSAVER_MODE_XLIB:
+      XGetScreenSaver(w->dpy, &w->screensaver_saved_timeout,
+                      &interval, &prefer_blank,
+                      &allow_exp);
+      if(w->screensaver_saved_timeout)
+        w->screensaver_was_enabled = 1;
+      else
+        w->screensaver_was_enabled = 0;
+      XSetScreenSaver(w->dpy, 0, interval, prefer_blank, allow_exp);
+      break;
+    case SCREENSAVER_MODE_GNOME:
+      break;
+    case SCREENSAVER_MODE_KDE:
+      w->screensaver_was_enabled =
+        (system
+             ("dcop kdesktop KScreensaverIface isEnabled 2>/dev/null | sed 's/1/true/g' | grep true 2>/dev/null >/dev/null")
+         == 0);
+      
+      if(w->screensaver_was_enabled)
+        system("dcop kdesktop KScreensaverIface enable false > /dev/null");
+      break;
+    }
+  w->screensaver_disabled = 1;
+  }
+
+static void enable_screensaver(x11_window_t * w)
+  {
+  int dummy, interval, prefer_blank, allow_exp;
+
+  if(!w->screensaver_disabled)
+    return;
+  
+  w->screensaver_disabled = 0;
+  
+  //  fprintf(stderr, "Enabling screensaver\n");
+  
+  if(!w->screensaver_was_enabled)
+    return;
+  
+  switch(w->screensaver_mode)
+    {
+    case SCREENSAVER_MODE_XLIB:
+      XGetScreenSaver(w->dpy, &dummy, &interval, &prefer_blank,
+                      &allow_exp);
+      XSetScreenSaver(w->dpy, w->screensaver_saved_timeout, interval, prefer_blank,
+                      allow_exp);
+      break;
+    case SCREENSAVER_MODE_GNOME:
+      break;
+    case SCREENSAVER_MODE_KDE:
+      break;
+    }
+  }
+
+static void ping_screensaver(x11_window_t * w)
+  {
+  struct timeval tm;
+  gettimeofday(&tm, (struct timezone *)0);
+
+  if(tm.tv_sec - w->screensaver_last_ping_time < 40) // 40 Sec interval
+    {
+    return;
+    }
+
+  w->screensaver_last_ping_time = tm.tv_sec;
+  
+  switch(w->screensaver_mode)
+    {
+    case SCREENSAVER_MODE_XLIB:
+      break;
+    case SCREENSAVER_MODE_GNOME:
+      //      fprintf(stderr, "Pinging screensaver\n");
+      system("gnome-screensaver-command --poke > /dev/null 2> /dev/null");
+      break;
+    case SCREENSAVER_MODE_KDE:
+      break;
+    }
+  }
+
+
 
 static int
 wm_check_capability(Display *dpy, Window root, Atom list, Atom wanted)
@@ -166,7 +290,7 @@ static int get_fullscreen_mode(x11_window_t * w)
   if(wm_check_capability(w->dpy, w->root, w->WIN_PROTOCOLS,
                          w->WIN_LAYER))
     {
-    fprintf(stderr, "WIN_LAYER\n");
+    //    fprintf(stderr, "WIN_LAYER\n");
     ret |= FULLSCREEN_MODE_WIN_LAYER;
     }
   
@@ -272,7 +396,9 @@ int x11_window_create(x11_window_t * w,
   w->root = DefaultRootWindow (w->dpy);
 
   init_atoms(w);
-    
+
+  check_screensaver(w);
+  
   /* Get xinerama screens */
 
 #ifdef HAVE_LIBXINERAMA
@@ -440,12 +566,19 @@ void x11_window_handle_event(x11_window_t * w, XEvent*evt)
     w->idle_counter++;
     //    fprintf(stderr, "IDLE %d %d\n", w->idle_counter,
     //            w->pointer_hidden);
-    if((w->idle_counter == IDLE_MAX) && !w->pointer_hidden)
+    if(w->idle_counter == IDLE_MAX)
       {
-      XDefineCursor(w->dpy, w->normal_window, w->fullscreen_cursor);
-      XDefineCursor(w->dpy, w->fullscreen_window, w->fullscreen_cursor);
-      XFlush(w->dpy);
-      w->pointer_hidden = 1;
+      if(!w->pointer_hidden)
+        {
+        XDefineCursor(w->dpy, w->normal_window, w->fullscreen_cursor);
+        XDefineCursor(w->dpy, w->fullscreen_window, w->fullscreen_cursor);
+        XFlush(w->dpy);
+        w->pointer_hidden = 1;
+        }
+
+      if(w->disable_screensaver)
+        ping_screensaver(w);
+      w->idle_counter = 0;
       }
     }
   if(!evt)
@@ -584,10 +717,22 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     
     w->window_width = width;
     w->window_height = height;
-
+    
     w->current_window = w->fullscreen_window;
+    
     XMapRaised(w->dpy, w->fullscreen_window);
 
+    if(w->disable_screensaver_fullscreen)
+      {
+      w->disable_screensaver = 1;
+      disable_screensaver(w);
+      }
+    else
+      {
+      w->disable_screensaver = 0;
+      enable_screensaver(w);
+      }
+    
 #if 1
     if(w->fullscreen_mode & FULLSCREEN_MODE_NET_ABOVE)
       {
@@ -639,8 +784,19 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
         
     /* Map normal window */
     w->current_window = w->normal_window;
+        
     XMapWindow(w->dpy, w->normal_window);
-    
+
+    if(w->disable_screensaver_normal)
+      {
+      w->disable_screensaver = 1;
+      disable_screensaver(w);
+      }
+    else
+      {
+      w->disable_screensaver = 0;
+      enable_screensaver(w);
+      }
     w->window_width  = w->normal_width;
     w->window_height = w->normal_height;
 
@@ -751,7 +907,23 @@ void x11_window_show(x11_window_t * win, int show)
                     DefaultScreen(win->dpy));
     win->mapped = 0;
     XSync(win->dpy, False);
+
+    if(win->disable_screensaver)
+      enable_screensaver(win);
+    
     return;
+    }
+
+
+  if(((win->current_window == win->normal_window) && win->disable_screensaver_normal) ||
+     ((win->current_window == win->fullscreen_window) && win->disable_screensaver_fullscreen))
+    {
+    win->disable_screensaver = 1;
+    disable_screensaver(win);
+    }
+  else
+    {
+    win->disable_screensaver = 0;
     }
 
   /* If the window was already mapped, raise it */
@@ -770,6 +942,7 @@ void x11_window_show(x11_window_t * win, int show)
       XMoveResizeWindow(win->dpy, win->normal_window,
                         win->window_x, win->window_y,
                         win->window_width, win->window_height);
+    
     }
   }
 

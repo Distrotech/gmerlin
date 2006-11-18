@@ -33,25 +33,22 @@
 #include <X11/extensions/Xinerama.h>
 #endif
 
+#define SCREENSAVER_MODE_XLIB  0 // MUST be 0 (fallback)
+#define SCREENSAVER_MODE_GNOME 1
+#define SCREENSAVER_MODE_KDE   2
+
 typedef struct
   {
   /* User settable stuff (initialized before x11_window_create) */
 
   int min_width;
   int min_height;
-
-  int disable_xscreensaver_normal;
-  int disable_xscreensaver_fullscreen;
   
 #ifdef HAVE_LIBXINERAMA
   XineramaScreenInfo *xinerama;
   int                nxinerama;
 #endif
 
-  int xscreensaver_error;
-
-  time_t last_xscreensaver_time;
-  
   long event_mask;
   int mapped;
   unsigned long black;  
@@ -95,6 +92,20 @@ typedef struct
   int pointer_hidden;
   
   XEvent evt;
+
+  /* Screensaver stuff */
+  int screensaver_mode;
+  int screensaver_disabled;
+  int screensaver_was_enabled;
+  int screensaver_saved_timeout;
+
+  int disable_screensaver_normal;
+  int disable_screensaver_fullscreen;
+
+  /* Calculated from the 2 above and current_window */
+  int disable_screensaver;
+
+  int64_t screensaver_last_ping_time;
     
   } x11_window_t;
 
