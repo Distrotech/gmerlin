@@ -120,7 +120,6 @@ void bg_gtk_textview_update(bg_gtk_textview_t * t,
     line    = 0;
     tab_pos = 0;
 
-    //    fprintf(stderr, "bg_gtk_textview_update: %s\n***\n", pos);
     
     while(1)
       {
@@ -192,7 +191,6 @@ void bg_gtk_textview_update(bg_gtk_textview_t * t,
     gtk_text_view_set_tabs(GTK_TEXT_VIEW(t->textview), tab_array);
     pango_tab_array_free(tab_array);
     
-    //    fprintf(stderr, "Tab position: %d\n", tab_pos);
     }
   
   gtk_text_buffer_get_bounds(t->buffer,

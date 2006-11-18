@@ -39,7 +39,6 @@ static void test_cdindex()
   idx->tracks[14].last_sector  = 325731+150;
   get_cdindex_id(idx, disc_id);
 
-  //  fprintf(stderr, "ID: %s\n", disc_id);
 
   free(idx->tracks);
   free(idx);
@@ -87,22 +86,18 @@ int bg_cdaudio_get_metadata_musicbrainz(bg_cdaudio_index_t * idx,
   // Select the first album
   if(!mb_Select1(m, MBS_SelectAlbum, 1))
     {
-    //    fprintf(stderr, "Query failed\n");
     goto fail;
     }
 
   // Pull back the album id to see if we got the album
   if (!mb_GetResultData(m, MBE_AlbumGetAlbumId, data, 256))
     {
-    //    fprintf(stderr, "Query failed\n");
     goto fail;
     }
 
-  //  fprintf(stderr, "Query succeeded %s\n", data);
 
   mb_GetResultData(m, MBE_AlbumGetAlbumName, album_name, 256);
 
-  //  fprintf(stderr, "Name: %s\n", album_name);
 
   num_tracks = mb_GetResultInt(m, MBE_AlbumGetNumTracks);
   is_multiple_artist = 0;
@@ -126,7 +121,6 @@ int bg_cdaudio_get_metadata_musicbrainz(bg_cdaudio_index_t * idx,
   if(!is_multiple_artist)
     mb_GetResultData1(m, MBE_AlbumGetArtistName, artist, 256, 1);
 
-  //  fprintf(stderr, "Multiple artists: %s\n", (is_multiple_artist ? "Yes" : "No"));
 
   for(i = 0; i < num_tracks; i++)
     {

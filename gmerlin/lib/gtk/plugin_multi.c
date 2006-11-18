@@ -281,16 +281,11 @@ bg_gtk_plugin_widget_multi_create(bg_plugin_registry_t * reg,
   for(i = 0; i < num_plugins; i++)
     {
     info = bg_plugin_find_by_index(reg, i, type_mask, flag_mask);
-    if(!info)
-      fprintf(stderr, "No more plugins\n");
-    else
-      {
-      gtk_list_store_append(store, &iter);
-      gtk_list_store_set(store, &iter,
-                         COLUMN_PLUGIN,
-                         info->long_name,
-                         -1);
-      }
+    gtk_list_store_append(store, &iter);
+    gtk_list_store_set(store, &iter,
+                       COLUMN_PLUGIN,
+                       info->long_name,
+                       -1);
     }
 
   /* Create entries */

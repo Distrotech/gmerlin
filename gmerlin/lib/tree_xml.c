@@ -116,7 +116,6 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
     xmlFree(tmp_string);
     }
 
-  //  fprintf(stderr, "Found Album %s\n", ret->name);
 
   bg_album_set_default_location(ret);
   
@@ -159,7 +158,6 @@ void bg_media_tree_load(bg_media_tree_t * tree)
 
   if(BG_XML_STRCMP(node->name, "MEDIATREE"))
     {
-    fprintf(stderr, "File %s contains no media tree\n", tree->filename);
     xmlFreeDoc(xml_doc);
     return;
     }

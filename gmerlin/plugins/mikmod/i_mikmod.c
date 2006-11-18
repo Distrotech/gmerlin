@@ -54,28 +54,29 @@ typedef struct
 #ifdef dump
 static void dump_mikmod(void * data, const char * path)
   {
+  FILE * out = stderr;
   i_mikmod_t * mikmod;
   mikmod = (i_mikmod_t*)data;
    
-  fprintf(stderr, "  DUMP_MIKMOD:\n");
-  fprintf(stderr, "    Path:            %s\n", path);
-  fprintf(stderr, "    Frequency:       %d\n", mikmod->frequency);
+  fprintf(out, "  DUMP_MIKMOD:\n");
+  fprintf(out, "    Path:            %s\n", path);
+  fprintf(out, "    Frequency:       %d\n", mikmod->frequency);
 
   if(mikmod->output == MONO8)
-    fprintf(stderr, "    Output:          8m\n");
+    fprintf(out, "    Output:          8m\n");
   else if(mikmod->output == MONO16)
-    fprintf(stderr, "    Output:          8s\n");
+    fprintf(out, "    Output:          8s\n");
   else if(mikmod->output == STEREO8)
-    fprintf(stderr, "    Output:          16m\n");
+    fprintf(out, "    Output:          16m\n");
   else if(mikmod->output == STEREO16)
-    fprintf(stderr, "    Output:          16s\n");
+    fprintf(out, "    Output:          16s\n");
   else
-    fprintf(stderr, "    Output:          buggy mikmod.c\n");   
+    fprintf(out, "    Output:          buggy mikmod.c\n");   
 
-  fprintf(stderr, "    Use surround:    %d\n", mikmod->use_surround);
-  fprintf(stderr, "    Hidden patterns: %d\n", mikmod->hidden_patterns);
-  fprintf(stderr, "    Force volume:    %d\n", mikmod->force_volume);
-  fprintf(stderr, "    Use interpolate: %d\n", mikmod->use_interpolate);
+  fprintf(out, "    Use surround:    %d\n", mikmod->use_surround);
+  fprintf(out, "    Hidden patterns: %d\n", mikmod->hidden_patterns);
+  fprintf(out, "    Force volume:    %d\n", mikmod->force_volume);
+  fprintf(out, "    Use interpolate: %d\n", mikmod->use_interpolate);
   }
 #endif
 

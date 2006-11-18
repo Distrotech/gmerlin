@@ -681,7 +681,6 @@ static void init_audio_stream(audio_stream_t * ret,
   
   ret->cnv_in  = gavl_audio_converter_create();
   ret->cnv_out = gavl_audio_converter_create();
-  //  fprintf(stderr, "Options: %p\n", ret->options.opt);
   bg_gavl_audio_options_init(&(ret->options));
 
   
@@ -1261,20 +1260,10 @@ static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
                                                   &st->subtitle_duration,
                                                   s->com.in_index);
     
-#if 0
-    if(result)
-      {
-      fprintf(stderr, "Got text subtitle %lld -> %lld:\n",
-              ovl->frame->time_scaled,
-              ovl->frame->time_scaled + ovl->frame->duration_scaled);
-      fprintf(stderr, "%s\n", st->text);
-      }
-#endif    
 
     if(!result || ((t->end_time != GAVL_TIME_UNDEFINED) &&
                    (st->subtitle_start >= t->end_time)))
       {
-      // fprintf(stderr, "Subtitle stream finished result: %d\n", result); 
       s->eof = 1;
       return 0;
       }
@@ -1322,7 +1311,6 @@ static int decode_subtitle_text(subtitle_text_stream_t * s, bg_transcoder_t * t)
   if(!result || ((t->end_time != GAVL_TIME_UNDEFINED) &&
                  (s->subtitle_start >= t->end_time)))
     {
-    //    fprintf(stderr, "Subtitle stream finished result: %d\n", result); 
     s->com.eof = 1;
     return 0;
     }
@@ -1350,7 +1338,6 @@ static int check_video_blend(video_stream_t * vs,
     if(ss->com.status != STREAM_STATE_ON)
       continue;
 
-    //    fprintf(stderr, "Check video blend %lld\n", time);
     
     /* Check if the overlay expired */
     if(ss->has_current)
@@ -1359,12 +1346,6 @@ static int check_video_blend(video_stream_t * vs,
                             ss->current_ovl->frame->time_scaled,
                             ss->current_ovl->frame->duration_scaled))
         {
-#if 0
-        fprintf(stderr, "Current overlay too old (%lld -> %lld, t: %lld)\n",
-                ss->current_ovl->frame->time_scaled,
-                ss->current_ovl->frame->time_scaled + ss->current_ovl->frame->duration_scaled,
-                time);
-#endif        
         tmp_ovl = ss->current_ovl;
         ss->current_ovl = ss->next_ovl;
         ss->next_ovl = tmp_ovl;
@@ -1406,12 +1387,6 @@ static int check_video_blend(video_stream_t * vs,
         {
         ss->has_current = 1;
         current_changed = 1;
-#if 0
-        fprintf(stderr, "Using current overlay (%lld -> %lld, t: %lld)\n",
-                ss->current_ovl->frame->time_scaled,
-                ss->current_ovl->frame->time_scaled + ss->current_ovl->frame->duration_scaled,
-                time);
-#endif
         }
       else
         continue;
@@ -1466,7 +1441,6 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
     s->initialized = 1;
     }
   
-  //  fprintf(stderr, "Video iteration\n");
   
   if(s->convert_framerate)
     {
@@ -1558,12 +1532,6 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
       out_frame = s->in_frame_1;
       }
     
-#if 0
-    fprintf(stderr, "Video iteration, scale: %d, time_scaled: %lld -> %f\n",
-            s->in_format.timescale,
-            s->in_frame_1->time_scaled,
-            gavl_time_to_seconds(s->com.time));
-#endif
     }
 
   if(do_blend)
@@ -1574,7 +1542,6 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
         {
         gavl_overlay_blend(s->subtitle_streams[i]->blend_context,
                            out_frame);
-        //        fprintf(stderr, "Blend overlay\n");
         }
       }
     }
@@ -1931,11 +1898,9 @@ static void send_file(const char * name)
   {
   char * command;
 
-  //  fprintf(stderr, "Sending file: %s\n", name);
   
   command = bg_sprintf("gmerlin_remote -add \"%s\"\n", name);
 
-  //  fprintf(stderr, "Send file command: \"%s\"\n", command);
 
   system(command);
   free(command);
@@ -2030,12 +1995,10 @@ static int open_input(bg_transcoder_t * ret)
   if(bg_string_is_url(ret->location))
     ret->is_url = 1;
   
-  //  fprintf(stderr, "done\n");
 
   
   /* Select track and get track info */
 
-  //  fprintf(stderr, "Selecting track...");
     
   if(ret->in_plugin->get_num_tracks &&
      (ret->track >= ret->in_plugin->get_num_tracks(ret->in_handle->priv)))
@@ -2091,27 +2054,23 @@ static void create_streams(bg_transcoder_t * ret,
     
   for(i = 0; i < ret->num_audio_streams; i++)
     {
-    //    fprintf(stderr, "Preparing audio stream %d...", i);
 
     init_audio_stream(&(ret->audio_streams[i]),
                       &(track->audio_streams[i]),
                       i);
     if(ret->audio_streams[i].com.action == STREAM_ACTION_TRANSCODE)
       ret->num_audio_streams_real++;
-    //    fprintf(stderr, "done\n");
     }
 
   ret->num_video_streams_real = 0;
   
   for(i = 0; i < ret->num_video_streams; i++)
     {
-    //    fprintf(stderr, "Preparing video stream %d...", i);
     init_video_stream(&(ret->video_streams[i]),
                       &(track->video_streams[i]),
                       i);
     if(ret->video_streams[i].com.action == STREAM_ACTION_TRANSCODE)
       ret->num_video_streams_real++;
-    //    fprintf(stderr, "done\n");
     }
 
   ret->num_subtitle_text_streams_real = 0;
@@ -2119,7 +2078,6 @@ static void create_streams(bg_transcoder_t * ret,
   
   for(i = 0; i < ret->num_subtitle_text_streams; i++)
     {
-    //    fprintf(stderr, "Preparing subtitle_text stream %d...", i);
     init_subtitle_text_stream(&(ret->subtitle_text_streams[i]),
                               &(track->subtitle_text_streams[i]));
 
@@ -2127,17 +2085,14 @@ static void create_streams(bg_transcoder_t * ret,
       ret->num_subtitle_text_streams_real++;
     else if(ret->subtitle_text_streams[i].com.com.action == STREAM_ACTION_TRANSCODE_OVERLAY)
       ret->num_subtitle_overlay_streams_real++;
-    //    fprintf(stderr, "done\n");
     }
   
   for(i = 0; i < ret->num_subtitle_overlay_streams; i++)
     {
-    //    fprintf(stderr, "Preparing subtitle_overlay stream %d...", i);
     init_subtitle_overlay_stream(&(ret->subtitle_overlay_streams[i]),
                                  &(track->subtitle_overlay_streams[i]));
     if(ret->subtitle_overlay_streams[i].com.action == STREAM_ACTION_TRANSCODE)
       ret->num_subtitle_overlay_streams_real++;
-    //    fprintf(stderr, "done\n");
     }
   }
 
@@ -2340,7 +2295,6 @@ static void check_passes(bg_transcoder_t * ret)
 static void setup_pass(bg_transcoder_t * ret)
   {
   int i;
-  //  fprintf(stderr, "Setup pass\n");
   for(i = 0; i < ret->num_audio_streams; i++)
     {
     /* Reset the samples already decoded */
@@ -2480,7 +2434,7 @@ static void setup_pass(bg_transcoder_t * ret)
           }
         break;
       default:
-        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Subtitle stream cannot be handled\n");
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Subtitle stream cannot be handled");
         ret->subtitle_overlay_streams[i].com.do_decode = 0;
         ret->subtitle_overlay_streams[i].com.do_encode = 0;
         ret->subtitle_overlay_streams[i].com.action = STREAM_ACTION_FORGET;
@@ -2982,8 +2936,6 @@ static void init_audio_converter(audio_stream_t * ret)
                                                      &(ret->in_format),
                                                      &(ret->pipe_format));
 
-  //  if(ret->do_convert_in)
-  //    fprintf(stderr, "**** Doing Input conversion\n");
   
   opt = gavl_audio_converter_get_options(ret->cnv_out);
   gavl_audio_options_copy(opt, ret->options.opt);
@@ -2991,8 +2943,6 @@ static void init_audio_converter(audio_stream_t * ret)
   ret->do_convert_out = gavl_audio_converter_init(ret->cnv_out,
                                                   &(ret->pipe_format),
                                                   &(ret->out_format));
-  //  if(ret->do_convert_out)
-  //    fprintf(stderr, "**** Doing Output conversion\n");
   
   /* Create frames (could be left from the previous pass) */
 
@@ -3039,7 +2989,7 @@ static void init_video_converter(video_stream_t * ret)
 
   if(ret->convert_framerate)
     {
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Doing framerate conversion %5.2f (%s) -> %5.2f (%s)\n",
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Doing framerate conversion %5.2f (%s) -> %5.2f (%s)",
             (float)(ret->in_format.timescale) / (float)(ret->in_format.frame_duration),
             (ret->in_format.framerate_mode == GAVL_FRAMERATE_VARIABLE ? "nonconstant" : "constant"),
             (float)(ret->out_format.timescale) / (float)(ret->out_format.frame_duration),
@@ -3119,7 +3069,6 @@ static void subtitle_init_encode_overlay(subtitle_stream_t * ss)
                           &(ss->out_format),
                           &(ss->in_format));
 
-    //    fprintf(stderr, "Initialized text tenderer\n");
     gavl_video_format_dump(&(ss->in_format));
     gavl_video_format_dump(&(ss->out_format));
     
@@ -3244,7 +3193,6 @@ int bg_transcoder_init(bg_transcoder_t * ret,
 
   ret->plugin_reg = plugin_reg;
   ret->transcoder_track = track;
-  //  fprintf(stderr, "Setting global parameters...");
 
   /* Initialize encoder info */
 
@@ -3276,15 +3224,11 @@ int bg_transcoder_init(bg_transcoder_t * ret,
     return 1;
     }
   
-  //  fprintf(stderr, "done\n");
-    
-  //  fprintf(stderr, "Opening input with %s...", ret->location);
 
   /* Open input plugin */
   if(!open_input(ret))
     goto fail;
   
-  //  fprintf(stderr, "done\n");
 
   create_streams(ret, track);
 
@@ -3302,7 +3246,6 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   
   /* Check for the encoding plugins */
 
-  //  fprintf(stderr, "Checking for mode...");
   
   
   if(!check_separate(ret))
@@ -3513,12 +3456,10 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   if(t->pp_only)
     {
     t->state = TRANSCODER_STATE_FINISHED;
-    //    fprintf(stderr, "finished\n");
     bg_transcoder_send_msg_finished(t->message_queues);
     return 0;
     }
   
-  //  fprintf(stderr, "bg_transcoder_iteration...");
   
   time = GAVL_TIME_MAX;
   
@@ -3572,7 +3513,6 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
     else
       {
       t->state = TRANSCODER_STATE_FINISHED;
-      //    fprintf(stderr, "finished\n");
       bg_transcoder_send_msg_finished(t->message_queues);
       return 0;
       }
@@ -3624,10 +3564,6 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
     t->last_seconds = real_seconds;
     }
   
-  //  fprintf(stderr, "t->transcoder_info.remaining_time: %lld\n",
-  //          t->transcoder_info.remaining_time);
-
-  //  fprintf(stderr, "done\n");
   
   return 1;
   }
@@ -3645,7 +3581,6 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
   if(t->state == TRANSCODER_STATE_INIT)
     do_delete = 1;
 
-  //  fprintf(stderr, "Do delete: %d\n", do_delete);
   
   /* Close all encoders so the files are finished */
 

@@ -23,6 +23,9 @@
 
 #include <plugin.h>
 
+#include <log.h>
+#define LOG_DOMAIN "ir_tga"
+
 #include "targa.h"
 
 typedef struct
@@ -84,7 +87,7 @@ static int read_header_tga(void * priv, const char * filename,
   
   if(tga_read(&(tga->tga), filename) != TGA_NOERR)
     {
-    fprintf(stderr, "Read tga failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Read tga failed");
     return 0;
     }
   /* Get header */

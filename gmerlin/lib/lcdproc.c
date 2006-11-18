@@ -1,12 +1,34 @@
+/*****************************************************************
+ 
+  lcdproc.c
+ 
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
 #include <config.h>
 #include <parameter.h>
 #include <player.h>
 #include <lcdproc.h>
-#include <tcp.h>
+#include <bgsocket.h>
 
 #include <string.h>
 #include <unistd.h>
 #include <utils.h>
+
+#include <log.h>
+#define LOG_DOMAIN "lcdproc"
 
 static const char * formats_name      = "formats";
 static const char * name_time_name    = "name_time";
@@ -123,20 +145,17 @@ bg_lcdproc_t * bg_lcdproc_create(bg_player_t * player)
 
 static int send_command(bg_lcdproc_t * l, char * command)
   {
-  char * error_msg = (char*)0;
-//  fprintf(stderr, "Send command: %s\n", command);
-  if(!bg_tcp_send(l->fd, (uint8_t*)command, strlen(command), &error_msg))
+  if(!bg_socket_write_data(l->fd, (uint8_t*)command, strlen(command)))
     return 0;
 
   while(1)
     {
-    if(!bg_tcp_read_line(l->fd, &(l->answer), &(l->answer_alloc), 500))
+    if(!bg_socket_read_line(l->fd, &(l->answer), &(l->answer_alloc), 500))
       return 0;
     if(!strncmp(l->answer, "success", 7))
       break;
     else if(!strncmp(l->answer, "huh", 3))
       {
-      fprintf(stderr, "Got server error: %s\n", l->answer);
       return 0;
       }
     }
@@ -148,29 +167,27 @@ static int send_command(bg_lcdproc_t * l, char * command)
 
 static int do_connect(bg_lcdproc_t* l)
   {
-  char * error_msg = (char*)0;
+  bg_host_address_t * addr = bg_host_address_create();
 
-  //  fprintf(stderr, "Connecting to %s:%d...", l->hostname_cfg, l->port_cfg);
-  l->fd = bg_tcp_connect(l->hostname_cfg, l->port_cfg, 500,
-                         &error_msg);
+  if(!bg_host_address_set(addr, l->hostname_cfg, l->port_cfg))
+    return 0;
+  
+  l->fd = bg_socket_connect_inet(addr, 500);
   if(l->fd < 0)
     {
-    //    fprintf(stderr, "Failed\n");
     goto fail;
     }
-  //  fprintf(stderr, "Done\n");
   /* Send hello and get answer */
-  if(!bg_tcp_send(l->fd, (uint8_t*)"hello\n", 6, &error_msg))
+  if(!bg_socket_write_data(l->fd, (uint8_t*)"hello\n", 6))
     goto fail;
 
-  if(!bg_tcp_read_line(l->fd, &(l->answer), &(l->answer_alloc), 500))
+  if(!bg_socket_read_line(l->fd, &(l->answer), &(l->answer_alloc), 500))
     goto fail;
 
-  //  fprintf(stderr, "Got answer: %s\n", l->answer);
 
   if(strncmp(l->answer, "connect LCDproc", 15))
     {
-    error_msg = bg_sprintf("Invalid answer: %s\n", l->answer);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid answer: %s", l->answer);
     goto fail;
     }
 
@@ -181,11 +198,7 @@ static int do_connect(bg_lcdproc_t* l)
   
   return 1;
   fail:
-  if(error_msg)
-    {
-    //    fprintf(stderr, "Connecting failed: %s\n", error_msg);
-    free(error_msg);
-    }
+  bg_host_address_destroy(addr);
   return 0;
   }
 
@@ -560,7 +573,6 @@ static void * thread_func(void * data)
     while((msg = bg_msg_queue_try_lock_read(l->queue)))
       {
       id = bg_msg_get_id(msg);
-      //      fprintf(stderr, "Got message: %d\n", id);
       
       switch(id)
         {
@@ -600,7 +612,6 @@ static void * thread_func(void * data)
             {
             arg_str_1 = bg_msg_get_arg_string(msg, 0);
             set_name(l, arg_str_1);
-            fprintf(stderr, "BG_PLAYER_MSG_TRACK_NAME %s\n", arg_str_1);
             free(arg_str_1);
             }
           break;
@@ -651,7 +662,6 @@ static void * thread_func(void * data)
 
 static void start_thread(bg_lcdproc_t * l)
   {
-  //  fprintf(stderr, "Start thread...");
   pthread_mutex_lock(&(l->state_mutex));
 
   pthread_create(&(l->thread), (pthread_attr_t*)0,
@@ -659,12 +669,10 @@ static void start_thread(bg_lcdproc_t * l)
 
   l->is_running = 1;
   pthread_mutex_unlock(&(l->state_mutex));
-  //  fprintf(stderr, "done");
   }
 
 static void stop_thread(bg_lcdproc_t * l)
   {
-  //  fprintf(stderr, "Stop thread...");
   pthread_mutex_lock(&(l->state_mutex));
   l->do_stop = 1;
 
@@ -682,7 +690,6 @@ static void stop_thread(bg_lcdproc_t * l)
   l->do_stop = 0;
   l->is_running = 0;
   pthread_mutex_unlock(&(l->state_mutex));
-  //  fprintf(stderr, "done");
   }
 
 #define FREE(p) if(l->p) free(l->p);

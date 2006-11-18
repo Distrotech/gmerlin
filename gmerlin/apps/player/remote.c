@@ -30,7 +30,6 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
   char * locations[2];
     
   id = bg_msg_get_id(msg);
-  //  fprintf(stderr, "Got message %d\n", id);
   switch(id)
     {
     case PLAYER_COMMAND_PLAY:
@@ -53,7 +52,6 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
       break;
     case PLAYER_COMMAND_ADD_LOCATION:
       arg_str = bg_msg_get_arg_string(msg, 0);
-      //      fprintf(stderr, "PLAYER_COMMAND_ADD_LOCATION: %s\n", arg_str);
       locations[0] = arg_str;
       locations[1] = (char*)0;
       gmerlin_add_locations(g, locations);
@@ -63,7 +61,6 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
       
     case PLAYER_COMMAND_PLAY_LOCATION:
       arg_str = bg_msg_get_arg_string(msg, 0);
-      //      fprintf(stderr, "PLAYER_COMMAND_PLAY_LOCATION: %s\n", arg_str);
       locations[0] = arg_str;
       locations[1] = (char*)0;
       gmerlin_play_locations(g, locations);
@@ -85,12 +82,10 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
 
     case PLAYER_COMMAND_SET_VOLUME:
       arg_f = bg_msg_get_arg_float(msg, 0);
-      //      fprintf(stderr, "PLAYER_COMMAND_SET_VOLUME: %f\n", arg_f);
       bg_player_set_volume(g->player, arg_f);
       break;
     case PLAYER_COMMAND_SET_VOLUME_REL:
       arg_f = bg_msg_get_arg_float(msg, 0);
-      //      fprintf(stderr, "PLAYER_COMMAND_SET_VOLUME_REL: %f\n", arg_f);
       bg_player_set_volume_rel(g->player, arg_f);
       break;
 

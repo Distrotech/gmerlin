@@ -265,7 +265,6 @@ static void print_float(bg_osd_t * osd, float val, char c, gavl_time_t time)
   osd->ovl.frame->time_scaled = time;
   osd->ovl.frame->duration_scaled = osd->duration;
   
-  //  fprintf(stderr, "len: %d\n%s\n", strlen(buf), _buf);
   }
 
 void bg_osd_set_volume_changed(bg_osd_t * osd, float val,
@@ -273,7 +272,6 @@ void bg_osd_set_volume_changed(bg_osd_t * osd, float val,
   {
   if(!osd->enable)
     return;
-  //  fprintf(stderr, "Volume changed: %f\n", val);
   print_float(osd, val, 'V', time);
   }
 
@@ -282,7 +280,6 @@ void bg_osd_set_brightness_changed(bg_osd_t * osd, float val,
   {
   if(!osd->enable)
     return;
-  //  fprintf(stderr, "Brightness changed: %f\n", val);
   print_float(osd, val, 'B', time);
 
   }
@@ -292,7 +289,6 @@ void bg_osd_set_contrast_changed(bg_osd_t * osd, float val,
   {
   if(!osd->enable)
     return;
-  //  fprintf(stderr, "Contrast changed: %f\n", val);
   print_float(osd, val, 'C', time);
   }
 
@@ -301,7 +297,6 @@ void bg_osd_set_saturation_changed(bg_osd_t * osd, float val,
   {
   if(!osd->enable)
     return;
-  //  fprintf(stderr, "Saturation changed: %f\n", val);
   print_float(osd, val, 'S', time);
   }
 

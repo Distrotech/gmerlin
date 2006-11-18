@@ -47,10 +47,6 @@ static void * create_frame(void * data)
   s = (bg_player_subtitle_stream_t *)data;
   
   ret = calloc(1, sizeof(*ret));
-#if 0
-  fprintf(stderr, "Creating overlay frame\n");
-  gavl_video_format_dump(&s->format);
-#endif
   ret->frame = gavl_video_frame_create(&s->format);
   
   return ret;
@@ -106,7 +102,6 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
 
   /* Initialize video converter */
 
-  //  fprintf(stderr, "Initializing video converter...");
 
   pthread_mutex_lock(&(player->subtitle_stream.config_mutex));
 

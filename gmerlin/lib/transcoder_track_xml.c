@@ -196,7 +196,6 @@ static void track_2_xml(bg_transcoder_track_t * track,
     xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     }
 
-  //  fprintf(stderr, "transcoder_track_2_xml: video streams %d\n", track->num_video_streams);
   
   if(track->num_video_streams)
     {
@@ -566,7 +565,6 @@ static int xml_2_track(bg_transcoder_track_t * t,
         child_node = child_node->next;
         }
 
-      //      fprintf(stderr, "*** Got %d video streams ***", t->num_video_streams);
       
       /* Allocate streams */
       
@@ -760,7 +758,6 @@ bg_transcoder_tracks_load(const char * filename,
 
   if(BG_XML_STRCMP(node->name, "TRANSCODER_TRACKS"))
     {
-    fprintf(stderr, "File %s contains no transcoder tracks\n", filename);
     xmlFreeDoc(xml_doc);
     return (bg_transcoder_track_t*)0;
     }

@@ -34,6 +34,9 @@
 #include <utils.h>
 #include <bgsocket.h>
 
+#include <log.h>
+#define LOG_DOMAIN "tcpsocket"
+
 /* Opaque address structure so we can support IPv6 in the future */
 
 struct bg_host_address_s 
@@ -61,35 +64,7 @@ void bg_host_address_destroy(bg_host_address_t * a)
   free(a);
   }
 
-/* This must be extended for other protocols */
 
-static struct
-  {
-  char * name;
-  int    port;
-  } default_ports[] =
-  {
-    { "http://", 80 },
-    { (char*)0,   0 },
-  };
-
-/*
- *  Get the default port, return -1 if no
- *  registered protocol is found
- */
-
-static int get_default_port(const char * url)
-  {
-  int index;
-  index = 0;
-  while(default_ports[index].name)
-    {
-    if(!strncmp(url, default_ports[index].name,
-                strlen(default_ports[index].name)))
-      return default_ports[index].port;
-    }
-  return -1;
-  }
 
 
 /* gethostbyname */
@@ -107,7 +82,6 @@ static int hostbyname(bg_host_address_t * a, const char * hostname)
   gethostbyname_buffer_size = 1024;
   gethostbyname_buffer = malloc(gethostbyname_buffer_size);
 
-  //  fprintf(stderr, "Resolving host %s\n", hostname);
     
   while((result = gethostbyname_r(hostname,
                                   &h_ent,
@@ -124,7 +98,7 @@ static int hostbyname(bg_host_address_t * a, const char * hostname)
 
   if(result || (h_ent_p == NULL))
     {
-    fprintf(stderr, "Could not resolve address\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not resolve address");
     goto fail;
     }
   if(h_ent_p->h_addrtype == AF_INET)
@@ -141,81 +115,15 @@ static int hostbyname(bg_host_address_t * a, const char * hostname)
     }
   else
     {
-    fprintf(stderr, "No known address space\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No known address space");
     goto fail;
     }
-  //  fprintf(stderr, "Done\n");
   ret = 1;
 
   fail:
   
   if(gethostbyname_buffer)
     free(gethostbyname_buffer);
-  return ret;
-  }
-
-/* Set the address from an URL */
-
-int bg_host_address_set_from_url(bg_host_address_t * a, const char * url,
-                                const char ** rest)
-  {
-  const char * pos1;
-  const char * pos2;
-  char * hostname = (char*)0;
-  int ret = 0;
-  
-  /* First step: Get the default port */
-
-  a->port = get_default_port(url);
-  if(a->port == -1)
-    {
-    fprintf(stderr, "No registered protocol\n");
-    return 0;
-    }
-
-  /* Second step: Parse the URL      */
-
-  pos1 = strstr(url, "://");
-  pos1 += 3;
-  
-  if(!isalnum(*pos1))
-    {
-    fprintf(stderr, "Invalid hostname\n");
-    return 0;
-    }
-
-  pos2 = pos1;
-  
-  while((*pos2 != '\0') && (*pos2 != '/') && (*pos2 != ':'))
-    pos2++;
-
-  hostname = bg_strndup((char*)0, pos1, pos2);
-
-  /* Parse the port */
-
-  if(*pos2 == ':')
-    {
-    pos2++;
-    a->port = atoi(pos2);
-    while(isdigit(*pos2))
-      pos2++;
-    }
-
-  if(!hostbyname(a, hostname))
-    {
-    goto fail;
-    }
-
-  ret = 1;
-  if(rest)
-    *rest = pos2;
-  
-  /* Cleanup */
-  
-  fail:
-  
-  if(hostname)
-    free(hostname);
   return ret;
   }
 
@@ -244,7 +152,7 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
   
   if((ret = socket (PF_INET, SOCK_STREAM, 0)) < 0)
     {
-    fprintf(stderr, "Cannot create socket\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create inet client socket");
     return -1;
     }
 
@@ -278,11 +186,10 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
   
   /* Connect the thing */
 
-  //  fprintf(stderr, "Connecting...");
 
   if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)
     {
-    fprintf(stderr, "Cannot set nonblocking mode\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot set nonblocking mode");
     return -1;
     }
 
@@ -296,23 +203,22 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
       FD_SET (ret, &write_fds);
       if(!select(ret+1, (fd_set*)0, &write_fds,(fd_set*)0,&timeout))
         {
-        fprintf(stderr, "Connection timed out\n");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connection timed out");
         return -1;
         }
       }
     else
       {
-      fprintf(stderr, "Failed\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connecting failed");
       return -1;
       }
     }
-  //  fprintf(stderr, "Connected\n");
   
   /* Set back to blocking mode */
   
   if(fcntl(ret, F_SETFL, 0) < 0)
     {
-    fprintf(stderr, "Cannot set blocking mode\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot set blocking mode");
     return -1;
     }
   return ret;
@@ -326,7 +232,7 @@ int bg_socket_connect_unix(const char * name)
   ret = socket(PF_LOCAL, SOCK_STREAM, 0);
   if(ret < 0)
     {
-    fprintf(stderr, "Cannot create socket\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create unix socket");
     return -1;
     }
 
@@ -336,11 +242,10 @@ int bg_socket_connect_unix(const char * name)
 
   addr_len = SUN_LEN(&addr);
 
-  fprintf(stderr, "Connecting...");
   
   if(connect(ret,(struct sockaddr*)(&addr),addr_len)<0)
     {
-    fprintf(stderr, "failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connecting unix socket failed");
     return -1;
     }
   return ret;
@@ -364,7 +269,7 @@ int bg_listen_socket_create_inet(int port,
   ret = socket (PF_INET, SOCK_STREAM, 0);
   if (ret < 0)
     {
-    fprintf(stderr, "Cannot create socket\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create inet server socket");
     return -1;
     }
   
@@ -374,17 +279,17 @@ int bg_listen_socket_create_inet(int port,
   name.sin_addr.s_addr = htonl (INADDR_ANY);
   if (bind (ret, (struct sockaddr *) &name, sizeof (name)) < 0)
     {
-    //    fprintf(stderr, "Cannot bind socket\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot bind inet socket");
     return -1;
     }
   if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)
     {
-    fprintf(stderr, "Cannot set nonblocking mode\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot set nonblocking mode");
     return -1;
     }
   if(listen(ret, queue_size))
     {
-    fprintf(stderr, "Cannot put socket into listening mode\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot put socket into listening mode");
     return -1;
     }
   return ret;
@@ -400,7 +305,7 @@ int bg_listen_socket_create_unix(const char * name,
   ret = socket(PF_LOCAL, SOCK_STREAM, 0);
   if(ret < 0)
     {
-    fprintf(stderr, "Cannot create socket\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create unix server socket");
     return -1;
     }
 
@@ -410,17 +315,17 @@ int bg_listen_socket_create_unix(const char * name,
   addr_len = SUN_LEN(&addr);
   if(bind(ret,(struct sockaddr*)(&addr),addr_len)<0)
     {
-    fprintf(stderr, "Could not bind socket\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not bind socket");
     return -1;
     }
   if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)
     {
-    fprintf(stderr, "Cannot set nonblocking mode\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot set nonblocking mode");
     return -1;
     }
   if(listen(ret, queue_size))
     {
-    fprintf(stderr, "Cannot put socket into listening mode\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot put socket into listening mode");
     return -1;
     }
   return ret;

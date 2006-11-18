@@ -63,7 +63,6 @@ static void set_value(bg_gtk_widget_t * w)
   
   priv = (stringlist_t*)(w->priv);
   w->value.val_str = bg_strdup(w->value.val_str, w->info->multi_names[priv->selected]);
-  //  fprintf(stderr, "Set value: %s\n", w->value.val_str);
   }
 
 static void destroy(bg_gtk_widget_t * w)
@@ -133,7 +132,6 @@ static void change_callback(GtkWidget * wid, gpointer data)
         priv->selected++;
       }
     }
-  //  fprintf(stderr, "Change callback %d\n", priv->selected);
 #else
   priv->selected = gtk_combo_box_get_active(GTK_COMBO_BOX(priv->combo));
 #endif

@@ -34,6 +34,9 @@
 #include <treeprivate.h>
 #include <utils.h>
 
+#include <log.h>
+#define LOG_DOMAIN "album"
+
 /* Load an entry from a node */
 
 static bg_album_entry_t * load_entry(bg_album_t * album,
@@ -215,7 +218,7 @@ static bg_album_entry_t * load_album_file(bg_album_t * album,
 
   if(!xml_doc)
     {
-    fprintf(stderr, "Couldn't open album file %s\n", filename);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't open album file %s", filename);
     return (bg_album_entry_t*)0;
     }
   ret = xml_2_album(album, xml_doc, last, current, load_globals);
@@ -356,7 +359,6 @@ void bg_album_load(bg_album_t * a, const char * filename)
   if(current)
     {
     bg_album_set_current(a, current);
-    //    fprintf(stderr, "Current: %s\n", current->name);
     }
   }
 
@@ -372,7 +374,6 @@ static void save_entry(bg_album_t * a, bg_album_entry_t * entry, xmlNodePtr pare
 
   if(a && bg_album_entry_is_current(a, entry) && preserve_current)
     {
-    //    fprintf(stderr, "Save Current: %s\n", entry->name);
     BG_XML_SET_PROP(xml_entry, "current", "1");
     }
   if(entry->flags & BG_ALBUM_ENTRY_ERROR)

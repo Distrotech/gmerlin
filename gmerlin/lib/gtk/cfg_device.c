@@ -62,7 +62,6 @@ static void get_value(bg_gtk_widget_t * w)
   
   tmp_items = bg_strbreak(w->value.val_str, ' ');
   
-  /*  fprintf(stderr, "Tmp string: %s\n", tmp_string); */
 
   i = 0;
   
@@ -144,7 +143,6 @@ static void set_value(bg_gtk_widget_t * w)
   w->value.val_str = malloc(len);
   w->value.val_str[0] = '\0';
 
-  /*  fprintf(stderr, "Selected: %d\n", selected); */
   
   if(selected >= 0)
     {

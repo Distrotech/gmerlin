@@ -261,7 +261,6 @@ static void render_rgba_32(bg_text_renderer_t * r, cache_entry_t * glyph,
   
   if(!bitmap_glyph->bitmap.buffer)
     {
-    // fprintf(stderr, "Bitmap missing\n");
     *dst_x += glyph->advance_x;
     *dst_y += glyph->advance_y;
     return;
@@ -357,7 +356,6 @@ static void render_rgba_64(bg_text_renderer_t * r, cache_entry_t * glyph,
   
   if(!bitmap_glyph->bitmap.buffer)
     {
-    // fprintf(stderr, "Bitmap missing\n");
     *dst_x += glyph->advance_x;
     *dst_y += glyph->advance_y;
     return;
@@ -456,7 +454,6 @@ static void render_rgba_float(bg_text_renderer_t * r, cache_entry_t * glyph,
   
   if(!bitmap_glyph->bitmap.buffer)
     {
-    // fprintf(stderr, "Bitmap missing\n");
     *dst_x += glyph->advance_x;
     *dst_y += glyph->advance_y;
     return;
@@ -466,14 +463,6 @@ static void render_rgba_float(bg_text_renderer_t * r, cache_entry_t * glyph,
   dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
     frame->strides[0] + (*dst_x + bitmap_glyph->left) * 4 * sizeof(float);
 
-#if 0  
-  fprintf(stderr, "render_rgba_float 1: width: %d rows: %d pitch: %d left: %d top: %d\n",
-          bitmap_glyph->bitmap.width,
-          bitmap_glyph->bitmap.rows, 
-          bitmap_glyph->bitmap.pitch,
-          bitmap_glyph->left,
-          bitmap_glyph->top);
-#endif  
 
   jmax = MY_MIN(bitmap_glyph->bitmap.width, 
                 bitmap_glyph->bitmap.pitch);
@@ -499,14 +488,6 @@ static void render_rgba_float(bg_text_renderer_t * r, cache_entry_t * glyph,
 #ifdef FT_STROKER_H
   /* Render border */
   bitmap_glyph = (FT_BitmapGlyph)(glyph->glyph);
-#if 0
-  fprintf(stderr, "render_rgba_float 1: width: %d rows: %d pitch: %d left: %d top: %d\n",
-          bitmap_glyph->bitmap.width,
-          bitmap_glyph->bitmap.rows, 
-          bitmap_glyph->bitmap.pitch,
-          bitmap_glyph->left,
-          bitmap_glyph->top);
-#endif
   
   src_ptr_start = bitmap_glyph->bitmap.buffer;
   dst_ptr_start = frame->planes[0] + (*dst_y - bitmap_glyph->top) *
@@ -610,13 +591,11 @@ static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
   /* Load the glyph */
   if(FT_Load_Char(r->face, unicode, FT_LOAD_DEFAULT))
     {
-    fprintf(stderr, "Cannot load character for code %d\n", unicode);
     return (cache_entry_t*)0;
     }
   /* extract glyph image */
   if(FT_Get_Glyph(r->face->glyph, &(entry->glyph)))
     {
-    fprintf(stderr, "Copying glyph failed\n");
     return (cache_entry_t*)0;
     }
 #ifdef FT_STROKER_H
@@ -655,7 +634,6 @@ static cache_entry_t * get_glyph(bg_text_renderer_t * r, uint32_t unicode)
   entry->advance_x = entry->glyph->advance.x>>16;
   entry->advance_y = entry->glyph->advance.y>>16;
 
-  //  fprintf(stderr, "advance: %d %d\n", entry->advance_x, entry->advance_y);
     
   entry->unicode = unicode;
   return entry;
@@ -712,8 +690,6 @@ static int load_font(bg_text_renderer_t * r)
     FcPatternGetBool(fc_pattern_1, FC_SCALABLE, 0, &scalable);
     if(scalable != FcTrue)
       {
-      fprintf(stderr, "Font %s not scalable, using built in default\n",
-              r->font);
       FcPatternDestroy(fc_pattern);
       FcPatternDestroy(fc_pattern_1);
       
@@ -732,7 +708,6 @@ static int load_font(bg_text_renderer_t * r)
     filename = (FcChar8 *)r->font_file;
     }
   
-  //  fprintf(stderr, "File: %s, Size: %f\n", filename, r->font_size);
   
   /* Load face */
   
@@ -844,7 +819,6 @@ void bg_text_renderer_set_parameter(void * data, char * name,
     {
     if(!r->font || strcmp(val->val_str, r->font))
       {
-      //      fprintf(stderr, "Set font %s -> %s\n", r->font, val->val_str);
       r->font = bg_strdup(r->font, val->val_str);
       r->font_changed = 1;
       }
@@ -854,7 +828,6 @@ void bg_text_renderer_set_parameter(void * data, char * name,
     {
     if(!r->font_file || strcmp(val->val_str, r->font_file))
       {
-      //      fprintf(stderr, "Set font %s -> %s\n", r->font_file, val->val_str);
       r->font_file = bg_strdup(r->font_file, val->val_str);
       r->font_changed = 1;
       }
@@ -863,7 +836,6 @@ void bg_text_renderer_set_parameter(void * data, char * name,
     {
     if(r->font_size != val->val_f)
       {
-      //      fprintf(stderr, "Set font %s -> %s\n", r->font_file, val->val_str);
       r->font_size = val->val_f;
       r->font_changed = 1;
       }
@@ -1080,14 +1052,12 @@ static void flush_line(bg_text_renderer_t * r, gavl_video_frame_t * f,
   {
   int line_x, j;
   int line_width;
-  //  fprintf(stderr, "flush_line, len: %d\n", len);
 
   if(!len)
     return;
   
   line_width = 0;
   line_width = -glyphs[0]->bbox.xmin;
-  //  fprintf(stderr, "Line width: %d\n", line_width);
   /* Compute the length of the line */
   for(j = 0; j < len-1; j++)
     {
@@ -1119,7 +1089,6 @@ static void flush_line(bg_text_renderer_t * r, gavl_video_frame_t * f,
     }
 
   line_x -= glyphs[0]->bbox.xmin;
-  //  fprintf(stderr, "Flush line %d %d\n", line_x, line_y);
   
   for(j = 0; j < len; j++)
     {
@@ -1144,7 +1113,6 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
   if(r->config_changed)
     init_nolock(r);
   
-  //  fprintf(stderr, "bg_text_renderer_render: string:\n\n%s\n\n", string);
     
   r->bbox.xmin = r->overlay_format.image_width;
   r->bbox.ymin = r->overlay_format.image_height;
@@ -1163,7 +1131,6 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
   string_unicode = (uint32_t*)bg_convert_string(r->cnv, string, -1, &len);
   len /= 4;
   
-  //  fprintf(stderr, "Len: %d\n", len);
   line_offset = r->face->size->metrics.height >> 6;
   
   glyphs = malloc(len * sizeof(*glyphs));
@@ -1182,7 +1149,6 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
     if(!glyphs[i])
       glyphs[i] = get_glyph(r, '?');
     }
-  //  fprintf(stderr, "pos_y: %d\n", pos_y);
 
   line_start = 0;
   line_end   = -1;
@@ -1203,13 +1169,11 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
       break_word = 0;
       }
     
-    // fprintf(stderr, "Checking '%c', x: %d\n", string_unicode[i], pos_x);
     
     /* Linebreak */
     if((pos_x + (glyphs[i]->advance_x) > r->max_bbox.w) ||
        (string_unicode[i] == '\n'))
       {
-      //      fprintf(stderr, "Linebreak\n");
       
       if(line_end < 0)
         {
@@ -1245,10 +1209,6 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
                &glyphs[line_start], len - line_start,
                &pos_y);
     }
-#if 0
-  fprintf(stderr, "bounding_box: %d,%d -> %d,%d\n",
-          r->bbox.xmin, r->bbox.ymin, r->bbox.xmax, r->bbox.ymax);
-#endif
   
   ovl->ovl_rect.x = r->bbox.xmin;
   ovl->ovl_rect.y = r->bbox.ymin;

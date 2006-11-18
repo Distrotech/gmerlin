@@ -59,7 +59,6 @@ struct bg_player_ov_context_s
 static void key_callback(void * data, int key, int mask)
   {
   bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
-  //  fprintf(stderr, "Key callback %d, 0x%02x\n", key, mask);
 
   switch(key)
     {
@@ -98,27 +97,23 @@ static void button_callback(void * data, int x, int y, int button, int mask)
   else if(button == 5)
     bg_player_seek_rel(ctx->player, - 2 * GAVL_TIME_SCALE );
   
-  //  fprintf(stderr, "Button callback %d %d (Button %d)\n", x, y, button);
   }
 
 static void brightness_callback(void * data, float val)
   {
   bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
-  //  fprintf(stderr, "Brightness callback %f\n", val);
   bg_osd_set_brightness_changed(ctx->osd, val, ctx->frame_time);
   }
 
 static void saturation_callback(void * data, float val)
   {
   bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
-  //  fprintf(stderr, "Saturation callback %f\n", val);
   bg_osd_set_saturation_changed(ctx->osd, val, ctx->frame_time);
   }
 
 static void contrast_callback(void * data, float val)
   {
   bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
-  //  fprintf(stderr, "Contrast callback %f\n", val);
   bg_osd_set_contrast_changed(ctx->osd, val, ctx->frame_time);
   }
 
@@ -169,8 +164,6 @@ void * bg_player_ov_create_frame(void * data)
   else
     ret = gavl_video_frame_create(&(ctx->player->video_stream.output_format));
 
-  //  fprintf(stderr, "gavl_video_frame_clear %d %d %d\n", ret->strides[0], ret->strides[1], ret->strides[2]);
-  //  gavl_video_format_dump(&(ctx->player->video_stream.output_format));
   gavl_video_frame_clear(ret, &(ctx->player->video_stream.output_format));
   
   return (void*)ret;
@@ -218,7 +211,6 @@ void bg_player_ov_create(bg_player_t * player)
 
 void bg_player_ov_standby(bg_player_ov_context_t * ctx)
   {
-  //  fprintf(stderr, "bg_player_ov_standby\n");
   
   if(!ctx->plugin_handle)
     return;
@@ -311,35 +303,27 @@ void bg_player_ov_update_still(bg_player_ov_context_t * ctx)
   {
   bg_fifo_state_t state;
 
-  //  fprintf(stderr, "bg_player_ov_update_still\n");
   pthread_mutex_lock(&ctx->still_mutex);
 
   if(ctx->frame)
     bg_fifo_unlock_read(ctx->player->video_stream.fifo);
-  //  fprintf(stderr, "bg_player_ov_update_still 1\n");
 
   ctx->frame = bg_fifo_lock_read(ctx->player->video_stream.fifo, &state);
-  //  fprintf(stderr, "bg_player_ov_update_still 2 state: %d\n", state);
 
   if(!ctx->still_frame)
     {
-    //      fprintf(stderr, "create_frame....");
     ctx->still_frame = bg_player_ov_create_frame(ctx);
-    //      fprintf(stderr, "done\n");
     }
   
   if(ctx->frame)
     {
     gavl_video_frame_copy(&(ctx->player->video_stream.output_format),
                           ctx->still_frame, ctx->frame);
-    //      fprintf(stderr, "Unlock read....%p", ctx->frame);
     bg_fifo_unlock_read(ctx->player->video_stream.fifo);
     ctx->frame = (gavl_video_frame_t*)0;
-    //      fprintf(stderr, "Done\n");
     }
   else
     {
-    //    fprintf(stderr, "update_still: Got no frame\n");
     gavl_video_frame_clear(ctx->still_frame, &(ctx->player->video_stream.output_format));
     }
   
@@ -356,9 +340,7 @@ void bg_player_ov_cleanup(bg_player_ov_context_t * ctx)
   pthread_mutex_lock(&ctx->still_mutex);
   if(ctx->still_frame)
     {
-    //      fprintf(stderr, "Destroy still frame...");
     bg_player_ov_destroy_frame(ctx, ctx->still_frame);
-      //      fprintf(stderr, "done\n");
     ctx->still_frame = (gavl_video_frame_t*)0;
     }
   if(ctx->current_subtitle.frame)
@@ -386,7 +368,6 @@ void bg_player_ov_reset(bg_player_t * player)
     }
   
   ctx->next_subtitle = (gavl_overlay_t*)0;
-  //  fprintf(stderr, "Resetting subtitles\n");
   }
 
 /* Set this extra because we must initialize subtitles after the video output */
@@ -402,7 +383,6 @@ void bg_player_ov_set_subtitle_format(void * data, const gavl_video_format_t * f
   /* Allocate private overlay frame */
   ctx->current_subtitle.frame = gavl_video_frame_create(format);
 
-  //  fprintf(stderr, "bg_player_ov_set_subtitle_format\n");
   }
 
 
@@ -416,7 +396,6 @@ static void ping_func(void * data)
   bg_player_ov_context_t * ctx;
   ctx = (bg_player_ov_context_t*)data;
 
-  //  fprintf(stderr, "Ping func\n");  
   
   pthread_mutex_lock(&ctx->still_mutex);
   
@@ -424,32 +403,23 @@ static void ping_func(void * data)
     {
     if(ctx->frame)
       {
-      //      fprintf(stderr, "create_frame....");
       ctx->still_frame = bg_player_ov_create_frame(data);
-      //      fprintf(stderr, "done\n");
       
       gavl_video_frame_copy(&(ctx->player->video_stream.output_format),
                             ctx->still_frame, ctx->frame);
-      //      fprintf(stderr, "Unlock read....%p", ctx->frame);
       bg_fifo_unlock_read(ctx->player->video_stream.fifo);
       ctx->frame = (gavl_video_frame_t*)0;
-      //      fprintf(stderr, "Done\n");
-      
-      //      fprintf(stderr, "Put still...");
       bg_plugin_lock(ctx->plugin_handle);
       
       ctx->plugin->put_still(ctx->priv, ctx->still_frame);
       bg_plugin_unlock(ctx->plugin_handle);
-      //      fprintf(stderr, "Done\n");
       }
     
     ctx->still_shown = 1;
     }
-  //  fprintf(stderr, "handle_events...");
   bg_plugin_lock(ctx->plugin_handle);
   ctx->plugin->handle_events(ctx->priv);
   bg_plugin_unlock(ctx->plugin_handle);
-  //  fprintf(stderr, "Done\n");
   
   pthread_mutex_unlock(&ctx->still_mutex);
   }
@@ -469,7 +439,6 @@ void * bg_player_ov_thread(void * data)
                               ctx->msg_queue);
 
   
-  //  fprintf(stderr, "Starting ov thread\n");
 
   while(1)
     {
@@ -479,9 +448,7 @@ void * bg_player_ov_thread(void * data)
       }
     if(ctx->frame)
       {
-      //      fprintf(stderr, "Unlock_read %p...", ctx->frame);
       bg_fifo_unlock_read(ctx->player->video_stream.fifo);
-      //      fprintf(stderr, "done\n");
       
       ctx->frame = (gavl_video_frame_t*)0;
       }
@@ -489,18 +456,14 @@ void * bg_player_ov_thread(void * data)
     pthread_mutex_lock(&ctx->still_mutex);
     if(ctx->still_frame)
       {
-      //      fprintf(stderr, "Destroy still frame...");
       bg_player_ov_destroy_frame(data, ctx->still_frame);
-      //      fprintf(stderr, "done\n");
       ctx->still_frame = (gavl_video_frame_t*)0;
       }
     pthread_mutex_unlock(&ctx->still_mutex);
     
     ctx->still_shown = 0;
 
-    //    fprintf(stderr, "Lock read\n");
     ctx->frame = bg_fifo_lock_read(ctx->player->video_stream.fifo, &state);
-    //    fprintf(stderr, "Lock read done %p\n", ctx->frame);
     if(!ctx->frame)
       {
       if(state == BG_FIFO_STOPPED) 
@@ -518,7 +481,6 @@ void * bg_player_ov_thread(void * data)
     ctx->frame_time = gavl_time_unscale(ctx->player->video_stream.output_format.timescale,
                                         ctx->frame->time_scaled);
 
-    //    fprintf(stderr, "OV: Frame time: %lld\n", ctx->frame_time);
     
     /* Subtitle handling */
     if(ctx->player->do_subtitle_text || ctx->player->do_subtitle_overlay)
@@ -530,7 +492,6 @@ void * bg_player_ov_thread(void * data)
         ctx->next_subtitle = bg_fifo_try_lock_read(ctx->player->subtitle_stream.fifo,
                                                   &state);
         }
-      //      fprintf(stderr, "Subtitle %p\n", ctx->next_subtitle);
       /* Check if the overlay is expired */
       if(ctx->has_subtitle)
         {
@@ -539,12 +500,6 @@ void * bg_player_ov_thread(void * data)
                               ctx->current_subtitle.frame->duration_scaled))
           {
           ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id, (gavl_overlay_t*)0);
-#if 0
-          fprintf(stderr, "Overlay expired (%f > %f + %f)\n",
-                  gavl_time_to_seconds(ctx->frame_time),
-                  gavl_time_to_seconds(ctx->current_subtitle.frame->time_scaled),
-                  gavl_time_to_seconds(ctx->current_subtitle.frame->duration_scaled));
-#endif
           ctx->has_subtitle = 0;
           }
         }
@@ -563,17 +518,10 @@ void * bg_player_ov_thread(void * data)
           ctx->plugin->set_overlay(ctx->priv, ctx->subtitle_id,
                                    &(ctx->current_subtitle));
           
-          //          fprintf(stderr, "Using New Overlay\n");
           ctx->has_subtitle = 1;
           ctx->next_subtitle = (gavl_overlay_t*)0;
           bg_fifo_unlock_read(ctx->player->subtitle_stream.fifo);
           }
-#if 0
-        else
-          fprintf(stderr, "Not using new overlay: %f, %f\n",
-                  gavl_time_to_seconds(ctx->frame_time),
-                  gavl_time_to_seconds(ctx->next_subtitle->frame->time_scaled));
-#endif
         }
       }
     /* Handle message */
@@ -589,11 +537,6 @@ void * bg_player_ov_thread(void * data)
     /* Check Timing */
     bg_player_time_get(ctx->player, 1, &current_time);
     
-#if 0
-    fprintf(stderr, "F: %f, C: %f\n",
-            gavl_time_to_seconds(ctx->frame_time),
-            gavl_time_to_seconds(current_time));
-#endif
 
     diff_time =  ctx->frame_time - current_time;
     
@@ -604,12 +547,9 @@ void * bg_player_ov_thread(void * data)
     /* TODO: Drop frames */
     else if(diff_time < -100000)
       {
-      //        fprintf(stderr, "Warning, frame dropping not yet implemented\n");
       }
     
-    //    fprintf(stderr, "Frame time: %lld\n", frame->time);
     bg_plugin_lock(ctx->plugin_handle);
-    //    fprintf(stderr, "Put video\n");
     ctx->plugin->put_video(ctx->priv, ctx->frame);
     ctx->plugin->handle_events(ctx->priv);
     
@@ -629,14 +569,12 @@ void * bg_player_ov_still_thread(void *data)
   ctx = (bg_player_ov_context_t*)data;
   
   /* Put the image into the window once and handle only events thereafter */
-  //  fprintf(stderr, "Starting still loop\n");
 
   ctx->still_shown = 0;
   while(1)
     {
     if(!bg_player_keep_going(ctx->player, NULL, NULL))
       {
-      //      fprintf(stderr, "bg_player_keep_going returned 0\n");
       break;
       }
     if(!ctx->still_shown)
@@ -644,14 +582,11 @@ void * bg_player_ov_still_thread(void *data)
       bg_player_ov_update_still(ctx);
       ctx->still_shown = 1;
       }
-    //    fprintf(stderr, "Handle events...");
     bg_plugin_lock(ctx->plugin_handle);
     ctx->plugin->handle_events(ctx->priv);
     bg_plugin_unlock(ctx->plugin_handle);
-    //    fprintf(stderr, "Handle events done\n");
     gavl_time_delay(&delay_time);
     }
-  //  fprintf(stderr, "still thread finished\n");
   return NULL;
   }
 

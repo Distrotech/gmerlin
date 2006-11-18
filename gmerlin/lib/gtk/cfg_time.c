@@ -126,7 +126,6 @@ static void change_callback(GtkWidget * w, gpointer data)
   gavl_time_t t;
   int do_change = 0;
 
-  //  fprintf(stderr, "Change callback\n");
   
   if(s->no_change_callback)
     return;

@@ -19,6 +19,10 @@
 
 #include <parameter.h>
 #include <utils.h>
+
+#include <log.h>
+#define LOG_DOMAIN "alsa_common"
+
 #include "alsa_common.h"
 
 static snd_pcm_t * bg_alsa_open(const char * card,
@@ -252,12 +256,6 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   
   buffer_size = gavl_time_to_samples(format->samplerate, buffer_time);
 
-#if 0
-  fprintf(stderr,
-          "Buffer time: %lld, Buffer size: %d [%d..%d], Period Size: [%d..%d]\n",
-          buffer_time, buffer_size,
-          buffer_size_min, buffer_size_max, period_size_min, period_size_max);
-#endif
   
   if(buffer_size > buffer_size_max)
     buffer_size = buffer_size_max;
@@ -287,8 +285,6 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   
   snd_pcm_hw_params_get_buffer_size(hw_params, &buffer_size);
 
-  //  fprintf(stderr, "Buffer size: %ld, period_size: %ld\n",
-  //          buffer_size, period_size);
   
   format->samples_per_frame = period_size;
   
@@ -311,8 +307,8 @@ static snd_pcm_t * bg_alsa_open(const char * card,
   
   return ret;
   fail:
-
-  fprintf(stderr, "Alsa initialization failed\n");
+  
+  bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Alsa initialization failed");
   if(ret)
     snd_pcm_close(ret);
   if(hw_params)

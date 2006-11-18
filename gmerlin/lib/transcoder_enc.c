@@ -26,6 +26,9 @@
 #include <transcoder_track.h>
 #include <utils.h>
 
+#include <log.h>
+#define LOG_DOMAIN "transcoder"
+
 static void create_parameters(bg_plugin_registry_t * plugin_reg,
                        bg_transcoder_encoder_info_t * encoder_info)
   {
@@ -86,7 +89,7 @@ int bg_transcoder_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_r
   
   if(!encoder_info->video_info)
     {
-    fprintf(stderr, "No video encoder found, check installation\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No video encoder found, check installation");
     return 0;
     }
 
@@ -99,7 +102,7 @@ int bg_transcoder_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_r
                                                                      BG_PLUGIN_ENCODER_AUDIO);
     if(!encoder_info->audio_info)
       {
-      fprintf(stderr, "No audio encoder found, check installation\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No audio encoder found, check installation");
       return 0;
       }
     }
@@ -113,7 +116,7 @@ int bg_transcoder_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_r
                                                                       BG_PLUGIN_ENCODER_SUBTITLE_TEXT);
     if(!encoder_info->subtitle_text_info)
       {
-      fprintf(stderr, "No encoder for text subtitles found, check installation\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No encoder for text subtitles found, check installation");
       return 0;
       }
     }
@@ -128,7 +131,7 @@ int bg_transcoder_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_r
                                      BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY);
     if(!encoder_info->subtitle_overlay_info)
       {
-      fprintf(stderr, "No encoder for overlay subtitles found, check installation\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No encoder for overlay subtitles found, check installation");
       return 0;
       }
     }

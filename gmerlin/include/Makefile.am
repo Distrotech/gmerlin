@@ -8,7 +8,6 @@ charset.h \
 cmdline.h \
 config.h \
 fifo.h \
-http.h \
 keycodes.h \
 lcdproc.h \
 log.h \
@@ -23,7 +22,6 @@ remote.h \
 singlepic.h \
 streaminfo.h \
 subprocess.h \
-tcp.h \
 textrenderer.h \
 transcoder.h \
 transcodermsg.h \

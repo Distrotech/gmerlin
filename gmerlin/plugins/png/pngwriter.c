@@ -69,7 +69,6 @@ int bg_pngwriter_write_header(void * priv, const char * filename,
       
     }
 #ifdef GAVL_PROCESSOR_LITTLE_ENDIAN
-//  fprintf(stderr, "LITTLE ENDIAN\n");
   if(bits > 8)
     png->transform_flags |= PNG_TRANSFORM_SWAP_ENDIAN;
 #endif
@@ -136,7 +135,6 @@ void bg_pngwriter_set_parameter(void * p, char * name,
     png->compression_level = val->val_i;
   if(!strcmp(name, "bit_mode"))
     {
-    //    fprintf(stderr, "SET BIT MODE: %s\n", val->val_str);
     if(!strcmp(val->val_str, "Auto"))
       png->bit_mode = BITS_AUTO;
     else

@@ -31,6 +31,10 @@
 
 #include <plugin.h>
 #include <utils.h>
+
+#include <log.h>
+#define LOG_DOMAIN "oa_alsa"
+
 #include "alsa_common.h"
 
 /* Playback modes */
@@ -172,7 +176,6 @@ static void * create_alsa()
 static int start_alsa(void * data)
   {
   alsa_t * priv = (alsa_t*)(data);
-  //  fprintf(stderr, "start_alsa\n");
 
   if(snd_pcm_prepare(priv->pcm) < 0)
     return 0;
@@ -183,10 +186,8 @@ static int start_alsa(void * data)
 static void stop_alsa(void * data)
   {
   alsa_t * priv = (alsa_t*)(data);
-  //  fprintf(stderr, "stop_alsa: ");
   snd_pcm_drop(priv->pcm);
 
-  //  fprintf(stderr, "%s\n", snd_pcm_state_name(snd_pcm_state(priv->pcm)));
   }
 
 static int open_alsa(void * data, gavl_audio_format_t * format)
@@ -252,14 +253,12 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
 
       card = priv->card;
 
-      //      fprintf(stderr, "Playback mode: generic\n");
 
       break;
     case PLAYBACK_USER:
       format->channel_locations[0] = GAVL_CHID_NONE;
       gavl_set_channel_setup(format);
       card = priv->user_device;
-      //      fprintf(stderr, "Using user device %s\n", card);
       break;
     case PLAYBACK_SURROUND40:
       format->num_channels = 4;
@@ -271,7 +270,6 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
 
       card = bg_sprintf("surround40");
 
-      //      fprintf(stderr, "Playback mode: surround40\n");
       
       break;
     case PLAYBACK_SURROUND41:
@@ -285,7 +283,6 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
 
       card = bg_sprintf("surround41");
 
-      //      fprintf(stderr, "Playback mode: surround41\n");
       
       break;
     case PLAYBACK_SURROUND50:
@@ -298,7 +295,6 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
       format->channel_locations[4] = GAVL_CHID_FRONT_CENTER;
 
       card = bg_sprintf("surround50");
-      //      fprintf(stderr, "Playback mode: surround50\n");
       
       break;
     case PLAYBACK_SURROUND51:
@@ -312,7 +308,6 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
       format->channel_locations[5] = GAVL_CHID_LFE;
 
       card = bg_sprintf("surround51");
-      //      fprintf(stderr, "Playback mode: surround51\n");
       break;
     }
 
@@ -320,16 +315,9 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
     card = "default";
   
   
-  //  fprintf(stderr, "Opening card %s...", card);
     
   priv->pcm = bg_alsa_open_write(card, format, &priv->error_msg,
                                  priv->buffer_time, &priv->convert_4_3);
-#if 0
-  if(priv->pcm)
-    fprintf(stderr, "done\n");
-  else
-    fprintf(stderr, "failed\n");
-#endif
   
 
   if(!priv->pcm)
@@ -341,7 +329,6 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
 static void close_alsa(void * p)
   {
   alsa_t * priv = (alsa_t*)(p);
-  //  fprintf(stderr, "close_alsa\n");
   if(priv->pcm)
     {
     snd_pcm_close(priv->pcm);
@@ -371,7 +358,6 @@ static void write_frame_alsa(void * p, gavl_audio_frame_t * f)
 
       if(result == -EPIPE)
         {
-        //    fprintf(stderr, "Warning: Buffer underrun\n");
         //    snd_pcm_drop(priv->pcm);
         if(snd_pcm_prepare(priv->pcm) < 0)
           return;
@@ -385,11 +371,9 @@ static void write_frame_alsa(void * p, gavl_audio_frame_t * f)
       result = snd_pcm_writei(priv->pcm,
                               f->samples.s_8,
                               f->valid_samples);
-      //      fprintf(stderr, "writei %s\n", snd_strerror(result));
 
       if(result == -EPIPE)
         {
-        //    fprintf(stderr, "Warning: Buffer underrun\n");
         //    snd_pcm_drop(priv->pcm);
         if(snd_pcm_prepare(priv->pcm) < 0)
           return;
@@ -397,11 +381,10 @@ static void write_frame_alsa(void * p, gavl_audio_frame_t * f)
       }
     }
   
-  //  fprintf(stderr, "PCM: %p\n", priv->pcm);
   
   if(result < 0)
     {
-    fprintf(stderr, "snd_pcm_write returned %s\n", snd_strerror(result));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_write returned %s", snd_strerror(result));
     }
   }
 
@@ -474,7 +457,6 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
     {
     priv->buffer_time = val->val_i;
     priv->buffer_time *= (GAVL_TIME_SCALE/1000);
-    //    fprintf(stderr, "Set buffer time: %d\n", val->val_i);
     }
   else if(!strcmp(name, "card"))
     {

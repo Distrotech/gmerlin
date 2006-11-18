@@ -160,7 +160,6 @@ void bg_player_time_reset(bg_player_t * player)
   {
   bg_player_oa_context_t * ctx;
   ctx = player->oa_context;
-  //  fprintf(stderr, "time reset\n");
   if(ctx->sync_mode == SYNC_SOFTWARE)
     {
     pthread_mutex_lock(&(ctx->time_mutex));
@@ -214,18 +213,10 @@ void bg_player_time_get(bg_player_t * player, int exact, gavl_time_t * ret)
       //      ctx->current_time *= ctx->player->audio_stream.output_format.samplerate;
       //      ctx->current_time /= ctx->player->audio_stream.input_format.samplerate;
       
-#if 0
-      fprintf(stderr, "Samples: %lld (%lld - %d), time: %f, rate: %d\n",
-              ctx->audio_samples_written-samples_in_soundcard,
-              ctx->audio_samples_written, samples_in_soundcard,
-              gavl_time_to_seconds(ctx->current_time),
-              ctx->player->audio_stream.output_format.samplerate);
-#endif
       *ret = ctx->current_time;
       pthread_mutex_unlock(&(ctx->time_mutex));
       }
     }
-  //  fprintf(stderr, "bg_player_time_get %d %f\n", exact, gavl_time_to_seconds(*ret));
 
   }
 
@@ -234,7 +225,6 @@ void bg_player_time_set(bg_player_t * player, gavl_time_t time)
   bg_player_oa_context_t * ctx;
   ctx = player->oa_context;
 
-  //  fprintf(stderr, "bg_player_time_set %f\n", gavl_time_to_seconds(time));
   
   pthread_mutex_lock(&(ctx->time_mutex));
 
@@ -259,7 +249,6 @@ void * bg_player_oa_thread(void * data)
   
   bg_fifo_state_t state;
   
-  //  fprintf(stderr, "oa thread started\n");
     
   ctx = (bg_player_oa_context_t *)data;
   
@@ -318,17 +307,12 @@ void * bg_player_oa_thread(void * data)
         gavl_samples_to_time(ctx->player->audio_stream.output_format.samplerate,
                              frame->valid_samples)/2;
       }
-#if 0
-    else
-      fprintf(stderr, "Got no samples: %d\n", frame->valid_samples);
-#endif
     
     bg_fifo_unlock_read(s->fifo);
     
     if(wait_time != GAVL_TIME_UNDEFINED)
       gavl_time_delay(&wait_time);
     }
-  //  fprintf(stderr, "oa thread finisheded\n");
   return NULL;
   }
 
@@ -354,8 +338,6 @@ int bg_player_oa_init(bg_player_oa_context_t * ctx)
       }
     }
 
-  //  fprintf(stderr, "Output format:\n");
-  //  gavl_audio_format_dump(&(ctx->player->audio_stream.output_format));
   
 
   bg_plugin_unlock(ctx->plugin_handle);
@@ -374,7 +356,6 @@ const char * bg_player_oa_get_error(bg_player_oa_context_t * ctx)
 
 void bg_player_oa_cleanup(bg_player_oa_context_t * ctx)
   {
-  // fprintf(stderr, "audio_samples_written: %lld\n", ctx->audio_samples_written);
   bg_plugin_lock(ctx->plugin_handle);
   ctx->plugin->close(ctx->priv);
   ctx->output_open = 0;

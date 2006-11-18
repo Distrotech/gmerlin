@@ -51,3 +51,7 @@ bg_plugin_common_t * bg_singlepic_encoder_get();
 void * bg_singlepic_input_create(bg_plugin_registry_t * reg);
 void * bg_singlepic_stills_input_create(bg_plugin_registry_t * reg);
 void * bg_singlepic_encoder_create(bg_plugin_registry_t * reg);
+
+#define bg_singlepic_encoder_name        "e_singlepic"
+#define bg_singlepic_input_name        "i_singlepic"
+#define bg_singlepic_stills_input_name "i_singlepic_stills"

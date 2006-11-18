@@ -289,13 +289,10 @@ char * bg_create_track_name(const bg_metadata_t * metadata,
         end++;
         if(metadata->artist)
           {
-          //          fprintf(stderr,  "Artist: %s ", metadata->artist);
           ret = bg_strcat(ret, metadata->artist);
-          //          fprintf(stderr,  "%s\n", ret);
           }
         else
           {
-          //          fprintf(stderr, "No Artist\n");
           goto fail;
           }
         }
@@ -323,13 +320,10 @@ char * bg_create_track_name(const bg_metadata_t * metadata,
         end++;
         if(metadata->title)
           {
-          //          fprintf(stderr, "Ret: %s\n", ret);
           ret = bg_strcat(ret, metadata->title);
-          //          fprintf(stderr, "Title: %s\n", metadata->title);
           }
         else
           {
-          //          fprintf(stderr, "No Title\n");
           goto fail;
           }
         }

@@ -132,8 +132,6 @@ static void write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int
   bg_pngwriter_write_header(priv, image_filename,
                             &tmp_format);
 
-  fprintf(stderr, "Tmp format:\n");
-  gavl_video_format_dump(&tmp_format);
   
   bg_pngwriter_write_image(priv, spumux->subframe);
 

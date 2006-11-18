@@ -69,7 +69,6 @@ bg_remote_server_t * bg_remote_server_create(int listen_port,
   ret = calloc(1, sizeof(*ret));
   ret->listen_port = listen_port;
   ret->protocol_id = bg_strdup(ret->protocol_id, protocol_id);
-  //  fprintf(stderr, "Listen port: %d\n", default_listen_port);
   ret->fd = -1;
   ret->msg = bg_msg_create();
   return ret;
@@ -114,17 +113,16 @@ static server_connection_t * add_connection(bg_remote_server_t * s,
   if(!bg_socket_read_line(fd, &(buffer),
                           &buffer_alloc, 1))
     {
-    fprintf(stderr, "Reading hello line failed\n");
+    bg_log(BG_LOG_INFO, LOG_DOMAIN_SERVER, "Reading hello line failed");
     goto fail;
     }
-  //  fprintf(stderr, "Got hello line: %s\n", buffer);
 
   strings = bg_strbreak(buffer, ' ');
   if(!strings[0] || strcmp(strings[0], s->protocol_id) ||
      !strings[1] || strcmp(strings[1], VERSION) ||
      !strings[2])
     {
-    fprintf(stderr, "Protocol mismatch");
+    bg_log(BG_LOG_INFO, LOG_DOMAIN_SERVER, "Protocol mismatch");
     goto fail;
     }
   
@@ -134,7 +132,6 @@ static server_connection_t * add_connection(bg_remote_server_t * s,
 
   len = strlen(welcome_msg);
 
-  //  fprintf(stderr, "Sending welcome msg: %s\n", welcome_msg);
     
   if(bg_socket_write_data(fd, (uint8_t*)welcome_msg, len) < len)
     goto fail;
@@ -190,7 +187,6 @@ static void check_connections(bg_remote_server_t * s)
 
   if(new_fd >= 0)
     {
-    //    fprintf(stderr, "New client connection\n");
     
     conn = add_connection(s, new_fd);
 
@@ -232,7 +228,6 @@ bg_msg_t * bg_remote_server_get_msg(bg_remote_server_t * s)
       else /* Select said reading won't block but reading failed
               -> Client probably disconnected */
         {
-        //        fprintf(stderr, "Removing connection\n");
         tmp_conn = conn->next;
         s->connections = remove_connection(s->connections, conn);
         conn = tmp_conn;
@@ -366,9 +361,7 @@ int bg_remote_client_init(bg_remote_client_t * c,
   c->milliseconds = milliseconds;
   if(!bg_host_address_set(addr, host, port))
     goto fail;
-  //  fprintf(stderr, "Connecting remote client...");
   c->fd = bg_socket_connect_inet(addr, c->milliseconds);
-  //  fprintf(stderr, "done\n");
   if(c->fd < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN_CLIENT, "Connecting failed");
@@ -383,7 +376,6 @@ int bg_remote_client_init(bg_remote_client_t * c,
   if(bg_socket_write_data(c->fd, (uint8_t*)answer_message, len) < len)
     goto fail;
 
-  //  fprintf(stderr, "Reading answer message\n");
   /* Read welcome message */
   
   if(!bg_socket_read_line(c->fd, &(buffer),
@@ -392,7 +384,6 @@ int bg_remote_client_init(bg_remote_client_t * c,
     bg_log(BG_LOG_ERROR, LOG_DOMAIN_CLIENT, "Reading welcome line failed");
     goto fail;
     }
-  //  fprintf(stderr, "Got welcome line: %s\n", buffer);
 
   strings = bg_strbreak(buffer, ' ');
 

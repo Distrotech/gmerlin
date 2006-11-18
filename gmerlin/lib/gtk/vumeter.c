@@ -86,7 +86,6 @@ static int get_level_s_16(gavl_audio_frame_t * frame,
       if((sample >= 32767) || ((sample <= -32768)))
         {
         num_overflow++;
-        //        fprintf(stderr, "Overflow: %d\n", num_overflow);
         }
       //      else if(num_overflow < 3)
       //        num_overflow = 0;
@@ -790,13 +789,11 @@ void bg_gtk_vumeter_set_format(bg_gtk_vumeter_t * m,
 void bg_gtk_vumeter_update(bg_gtk_vumeter_t * m,
                            gavl_audio_frame_t * frame)
   {
-  //  fprintf(stderr, "Update...");
 
   gavl_audio_convert(m->cnv, frame, m->frame);
   pthread_mutex_lock(&(m->analysis_mutex));
   analyze(m);
   pthread_mutex_unlock(&(m->analysis_mutex));
-  //  fprintf(stderr, "done\n");
   }
 
 void bg_gtk_vumeter_draw(bg_gtk_vumeter_t * m)

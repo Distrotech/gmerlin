@@ -78,7 +78,6 @@ void bg_album_set_default_location(bg_album_t * album)
   if(!album->location)
     {
     album->location = new_filename(album);
-    fprintf(stderr, "New location: %s %s\n", album->name, album->location);
     }
   }
 
@@ -87,7 +86,6 @@ void bg_album_update_entry(bg_album_t * album,
                            bg_track_info_t  * track_info)
   {
   int name_set = 0;
-  //  fprintf(stderr, "Update entry!\n");
   entry->num_audio_streams = track_info->num_audio_streams;
   entry->num_video_streams = track_info->num_video_streams;
   entry->num_still_streams = track_info->num_still_streams;
@@ -134,8 +132,6 @@ void bg_album_update_entry(bg_album_t * album,
     entry->total_tracks = 1;
     entry->flags = BG_ALBUM_ENTRY_REDIRECTOR;
     }
-  //  fprintf(stderr, "Name:     %s\n", entry->name);
-  //  fprintf(stderr, "Location: %s\n", entry->location);
   
   
   }
@@ -380,7 +376,6 @@ static int open_removable(bg_album_t * a)
     a->disc_name = bg_strdup(a->disc_name,
                              plugin->get_disc_name(a->handle->priv));
 
-  //  fprintf(stderr, "Disc name: %s\n", a->disc_name);
   
   if(plugin->eject_disc)
     a->flags |= BG_ALBUM_CAN_EJECT;
@@ -407,7 +402,6 @@ static int open_removable(bg_album_t * a)
     new_entry->num_still_streams = track_info->num_still_streams;
     new_entry->num_subtitle_streams =
       track_info->num_subtitle_streams;
-    //    fprintf(stderr, "Album Duration: %lld\n", track_info->duration);
     new_entry->duration = track_info->duration;
 
     bg_album_insert_entries_before(a, new_entry, (bg_album_entry_t*)0);
@@ -435,7 +429,6 @@ int bg_album_open(bg_album_t * a)
 
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Opening album %s", a->name);
   
-  //  fprintf(stderr, "Open album\n");
   
   a->cfg_section = bg_cfg_section_create((char*)0);
   
@@ -533,7 +526,6 @@ void bg_album_close(bg_album_t *a )
     return;
     }
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Closing album %s", a->name);
-  //  fprintf(stderr, "Close album\n");
 
   /* Tell the tree, if we are the current album */
   
@@ -1005,7 +997,6 @@ void bg_album_rename_track(bg_album_t * album,
 
 void bg_album_rename(bg_album_t * a, const char * name)
   {
-  //  fprintf(stderr, "Name change callback: %s\n", name);
   a->name = bg_strdup(a->name, name);
 
   if((a->type == BG_ALBUM_TYPE_REMOVABLE) &&
@@ -1296,7 +1287,6 @@ void bg_album_remove_from_parent(bg_album_t * album)
   
   album->parent->children = remove_from_list(album->parent->children, album, &index);
 
-  //  fprintf(stderr, "bg_album_remove_from_parent: %d\n", index);
   
   if(album->type == BG_ALBUM_TYPE_REMOVABLE)
     {
@@ -1424,7 +1414,6 @@ static bg_album_entry_t * remove_redirectors(bg_album_t * album,
       e = e->next;
       }
     }
-  //  fprintf(stderr, "Remove redirectors %p\n", entries);
 
   return entries;
   }
@@ -1449,10 +1438,6 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
 
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Loading %s", url);
 
-#if 0  
-  fprintf(stderr, "bg_album_load_url %s %s\n", url,
-          (plugin_long_name ? plugin_long_name : "NULL"));
-#endif
   /* Load the appropriate plugin */
 
   if(plugin_long_name)
@@ -1554,7 +1539,6 @@ int bg_album_refresh_entry(bg_album_t * album,
     {
     entry->flags |= BG_ALBUM_ENTRY_ERROR;
 
-    // fprintf(stderr, "Loading %s failed: %s\n", system_location, error_msg);
     return 0;
     }
   

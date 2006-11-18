@@ -1,11 +1,34 @@
+/*****************************************************************
+ 
+  card.c
+ 
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
 #include <utils.h>
+#include <log.h>
+#define LOG_DOMAIN "card"
+
+
 #include "alsamixer.h"
 
 int alsa_mixer_control_read(alsa_mixer_control_t * c)
   {
   if(snd_hctl_elem_read(c->hctl, c->val))
     {
-    fprintf(stderr, "snd_hctl_elem_read Failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_hctl_elem_read Failed");
     return 0;
     }
   return 1;
@@ -16,7 +39,7 @@ int alsa_mixer_control_write(alsa_mixer_control_t * c)
   {
   if(snd_hctl_elem_write(c->hctl, c->val))
     {
-    fprintf(stderr, "snd_hctl_elem_write Failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_hctl_elem_write Failed");
     return 0;
     }
   return 1;
@@ -86,12 +109,12 @@ alsa_card_t * alsa_card_create(int index)
   
   if((err = snd_hctl_open(&(card->hctl), name, 0)))
     {
-    fprintf(stderr, "snd_hctl_open failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_hctl_open failed");
     goto fail;
     }
   if((err = snd_hctl_load(card->hctl)) < 0)
     {
-    fprintf(stderr, "snd_hctl_load failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_hctl_load failed");
     goto fail;
     }
 
@@ -99,12 +122,12 @@ alsa_card_t * alsa_card_create(int index)
   
   if(snd_ctl_card_info_malloc(&(card_info)))
     {
-    fprintf(stderr, "snd_ctl_card_info_malloc failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_ctl_card_info_malloc failed");
     goto fail;
     }
   if(snd_ctl_card_info(ctl, card_info))
     {
-    fprintf(stderr, "snd_ctl_card_info failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_ctl_card_info failed");
     goto fail;
     }
   card->name = bg_strdup(card->name,
@@ -256,41 +279,43 @@ void alsa_card_destroy(alsa_card_t * c)
 
 static void dump_ctl_elem_id(snd_ctl_elem_id_t * id)
   {
-  fprintf(stderr, "  ID:\n");
-  fprintf(stderr, "    numid:     %d\n", snd_ctl_elem_id_get_numid(id));
-  fprintf(stderr, "    device:    %d\n", snd_ctl_elem_id_get_device(id));
-  fprintf(stderr, "    subdevice: %d\n", snd_ctl_elem_id_get_subdevice(id));
-  fprintf(stderr, "    name:      %s\n", snd_ctl_elem_id_get_name(id));
-  fprintf(stderr, "    index:     %d\n", snd_ctl_elem_id_get_index(id));
-  fprintf(stderr, "    interface: %s\n",
+  FILE * out = stderr;
+  fprintf(out, "  ID:\n");
+  fprintf(out, "    numid:     %d\n", snd_ctl_elem_id_get_numid(id));
+  fprintf(out, "    device:    %d\n", snd_ctl_elem_id_get_device(id));
+  fprintf(out, "    subdevice: %d\n", snd_ctl_elem_id_get_subdevice(id));
+  fprintf(out, "    name:      %s\n", snd_ctl_elem_id_get_name(id));
+  fprintf(out, "    index:     %d\n", snd_ctl_elem_id_get_index(id));
+  fprintf(out, "    interface: %s\n",
           snd_ctl_elem_iface_name(snd_ctl_elem_id_get_interface(id)));
   }
 
 static void dump_ctl_elem_info(snd_hctl_elem_t * hctl,
                                snd_ctl_elem_info_t * info)
   {
+  FILE * out = stderr;
   snd_ctl_elem_type_t type;
   int i, num_items;
-  fprintf(stderr, "  ELEM_INFO:\n");
+  fprintf(out, "  ELEM_INFO:\n");
 
   type = snd_ctl_elem_info_get_type(info);
   
-  fprintf(stderr, "    Type: %s\n",
+  fprintf(out, "    Type: %s\n",
           snd_ctl_elem_type_name(type));
-  fprintf(stderr, "    Owner: %d\n", snd_ctl_elem_info_get_owner(info));
-  fprintf(stderr, "    Count: %d\n", snd_ctl_elem_info_get_count(info));
-  //  fprintf(stderr, "  : %d\n", snd_ctl_elem_info_get_count(info));
+  fprintf(out, "    Owner: %d\n", snd_ctl_elem_info_get_owner(info));
+  fprintf(out, "    Count: %d\n", snd_ctl_elem_info_get_count(info));
+  //  fprintf(out, "  : %d\n", snd_ctl_elem_info_get_count(info));
 
   if(type == SND_CTL_ELEM_TYPE_INTEGER)
     {
-    fprintf(stderr, "    Min: %ld, Max: %ld, Step: %ld\n",
+    fprintf(out, "    Min: %ld, Max: %ld, Step: %ld\n",
             snd_ctl_elem_info_get_min(info),
             snd_ctl_elem_info_get_max(info),
             snd_ctl_elem_info_get_step(info));
     }
   else if(type == SND_CTL_ELEM_TYPE_INTEGER64)
     {
-    fprintf(stderr, "    Min: %lld, Max: %lld, Step: %lld\n",
+    fprintf(out, "    Min: %lld, Max: %lld, Step: %lld\n",
             snd_ctl_elem_info_get_min64(info),
             snd_ctl_elem_info_get_max64(info),
             snd_ctl_elem_info_get_step64(info));
@@ -302,7 +327,7 @@ static void dump_ctl_elem_info(snd_hctl_elem_t * hctl,
       {
       snd_ctl_elem_info_set_item(info,i);
       snd_hctl_elem_info(hctl,info);
-      fprintf(stderr, "    Item %d: %s\n", i+1,
+      fprintf(out, "    Item %d: %s\n", i+1,
               snd_ctl_elem_info_get_item_name(info));
       }
     }
@@ -326,35 +351,37 @@ static void dump_hctl_elem(snd_hctl_elem_t * h)
 
 static void dump_control(alsa_mixer_control_t * c)
   {
-  fprintf(stderr, "HCTL:\n");
+  FILE * out = stderr;
+  fprintf(out, "HCTL:\n");
   dump_hctl_elem(c->hctl);
   }
 
 static void dump_group(alsa_mixer_group_t * g)
   {
+  FILE * out = stderr;
   if(g->playback_switch)
     {
-    fprintf(stderr, "Playback switch:");
+    fprintf(out, "Playback switch:");
     dump_control(g->playback_switch);
     }
   if(g->playback_volume)
     {
-    fprintf(stderr, "Playback volume:\n");
+    fprintf(out, "Playback volume:\n");
     dump_control(g->playback_volume);
     }
   if(g->capture_switch)
     {
-    fprintf(stderr, "Capture switch:\n");
+    fprintf(out, "Capture switch:\n");
     dump_control(g->capture_switch);
     }
   if(g->capture_volume)
     {
-    fprintf(stderr, "Capture volume:\n");
+    fprintf(out, "Capture volume:\n");
     dump_control(g->capture_volume);
     }
   if(g->ctl)
     {
-    fprintf(stderr, "Control:\n"); 
+    fprintf(out, "Control:\n"); 
     dump_control(g->ctl);
     }
   }
@@ -362,9 +389,10 @@ static void dump_group(alsa_mixer_group_t * g)
 void alsa_card_dump(alsa_card_t * c)
   {
   int i;
+  FILE * out = stderr;
   for(i = 0; i < c->num_groups; i++)
     {
-    fprintf(stderr, "Group %d: %s\n", i+1, c->groups[i].label);
+    fprintf(out, "Group %d: %s\n", i+1, c->groups[i].label);
     dump_group(&(c->groups[i]));
     }
   

@@ -117,7 +117,6 @@ bg_cfg_section_t * bg_cfg_section_find_subsection(bg_cfg_section_t * s,
     prev_section = section;
     section = section->next;
     }
-  /*  fprintf(stderr, "Creating subsection %s\n", name); */
   if(prev_section)
     {
     prev_section->next = bg_cfg_section_create(name);
@@ -259,6 +258,7 @@ static char * parse_string(const char * str, int * len_ret)
 static bg_parameter_info_t * find_parameter(bg_parameter_info_t * info,
                                             const char * str, int * len)
   {
+  FILE * out = stderr;
   int i;
   const char * end;
   /* Get the options name */
@@ -291,9 +291,9 @@ static bg_parameter_info_t * find_parameter(bg_parameter_info_t * info,
   
   if(!info[i].name)
     {
-    fprintf(stderr, "No such option ");
-    fwrite(str, 1, end - str, stderr);
-    fprintf(stderr, "\n");
+    fprintf(out, "No such option ");
+    fwrite(str, 1, end - str, out);
+    fprintf(out, "\n");
     return (bg_parameter_info_t*)0;
     }
   *len = (end - str + 1); // Skip '=' as well
@@ -304,13 +304,14 @@ static int check_option(bg_parameter_info_t * info,
                         char * name)
   {
   int i = 0;
+  FILE * out = stderr;
   while(info->multi_names[i])
     {
     if(!strcmp(info->multi_names[i], name))
       return 1;
     i++;
     }
-  fprintf(stderr, "Unsupported option: %s\n", name);
+  fprintf(out, "Unsupported option: %s\n", name);
   return 0;
   }
 
@@ -320,6 +321,7 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
                                               bg_parameter_info_t * parameters,
                                               const char * str_start)
   {
+  FILE * out = stderr;
   char * end;
   const char * end_c;
   bg_cfg_item_t * item;
@@ -339,9 +341,9 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
 
     if(!info || (info->type == BG_PARAMETER_SECTION))
       {
-      fprintf(stderr, "Unsupported parameter ");
-      fwrite(str, 1, len, stderr);
-      fprintf(stderr, "\n");
+      fprintf(out, "Unsupported parameter ");
+      fwrite(str, 1, len, out);
+      fprintf(out, "\n");
       goto fail;
       }
     item = bg_cfg_section_find_item(section, info);
@@ -405,7 +407,7 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
           }
         if(*str != '{')
           {
-          fprintf(stderr,
+          fprintf(out,
                   "%s must be in form {option[{suboptions}][:option[{suboption}]]}...\n",
                   info->name);
           goto fail;
@@ -543,12 +545,12 @@ int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * section,
   return str - str_start;
   
   fail:
-  fprintf(stderr, "Error parsing option\n");
-  fprintf(stderr, "%s\n", str_start);
+  fprintf(out, "Error parsing option\n");
+  fprintf(out, "%s\n", str_start);
   
   for(i = 0; i < (int)(str - str_start); i++)
-    fprintf(stderr, " ");
-  fprintf(stderr, "^\n");
+    fprintf(out, " ");
+  fprintf(out, "^\n");
   return 0;
   }
 

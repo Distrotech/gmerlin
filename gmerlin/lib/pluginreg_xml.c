@@ -305,8 +305,6 @@ static const char * get_flag_name(uint32_t flag)
     else
       index++;
     }
-  if(!flag_names[index].name)
-    fprintf(stderr, "No string defined for flag %0x08\n", flag);
   return flag_names[index].name;
   }
 
@@ -528,7 +526,6 @@ bg_plugin_info_t * bg_plugin_registry_load(const char * filename)
 
   if(BG_XML_STRCMP(node->name, plugin_registry_key))
     {
-    fprintf(stderr, "File %s contains no plugin registry\n", filename);
     xmlFreeDoc(xml_doc);
     return (bg_plugin_info_t*)0;
     }
@@ -574,13 +571,13 @@ void bg_plugin_registry_save(bg_plugin_info_t * info)
   xml_doc = xmlNewDoc((xmlChar*)"1.0");
   xml_registry = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)plugin_registry_key, NULL);
   xmlDocSetRootElement(xml_doc, xml_registry);
-    
   while(info)
     {
-    if(info->module_filename) /* We save only external plugins */
-      save_plugin(xml_registry, info);
+    //    if(info->module_filename) /* We save only external plugins */
+    save_plugin(xml_registry, info);
     info = info->next;
     }
+  
   xmlAddChild(xml_registry, BG_XML_NEW_TEXT("\n"));
   xmlSaveFile(filename, xml_doc);
   xmlFreeDoc(xml_doc);

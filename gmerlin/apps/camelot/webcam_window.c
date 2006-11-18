@@ -121,7 +121,6 @@ static void button_callback(GtkWidget * w, gpointer data)
   
   gmerlin_webcam_window_t * win;
   win = (gmerlin_webcam_window_t *)data;
-  //  fprintf(stderr, "Button callback\n");
   if(w == win->monitor_button)
     {
     msg = bg_msg_queue_lock_write(win->cmd_queue);
@@ -229,7 +228,6 @@ static gboolean timeout_func(gpointer data)
         //        tmp_string = bg_sprintf("Framerate: %.2f fps\n", arg_f);
         
         gtk_spin_button_set_value(GTK_SPIN_BUTTON(w->output_frame_counter), (float)arg_i);
-        //        fprintf(stderr, "Frame count: %d\n", arg_i);
         break;
       case MSG_ERROR:
         tmp_string = bg_msg_get_arg_string(msg, 0);

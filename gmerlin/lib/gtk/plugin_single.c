@@ -161,7 +161,7 @@ static void update_sensitive(bg_gtk_plugin_widget_single_t * widget)
 
   if(!widget->info)
     {
-    fprintf(stderr, "ERROR: have no plugin\n");
+    return;
     }
   
   if(widget->info->parameters)
@@ -207,7 +207,6 @@ static void change_callback(GtkWidget * w, gpointer data)
                                          widget->type_mask, widget->flag_mask);
 #else
   long_name = gtk_entry_get_text(GTK_ENTRY(GTK_COMBO(widget->combo)->entry));
-  //  fprintf(stderr, "Change callback %s\n", long_name);
   if(*long_name == '\0')
     return;
 
@@ -340,7 +339,6 @@ bg_gtk_plugin_widget_single_create(char * label,
 
   default_info = bg_plugin_registry_get_default(reg, type_mask);
 
-  //  fprintf(stderr, "Num plugins: %d, Default info: %p\n", num_plugins, default_info);
   
   /* Make combo */
 #ifdef GTK_2_4

@@ -30,6 +30,9 @@
 
 #include <textrenderer.h>
 
+#include <log.h>
+#define LOG_DOMAIN "transcoder_track"
+
 void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
                                                  bg_transcoder_encoder_info_t * info)
   {
@@ -87,7 +90,6 @@ void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
   if(info->subtitle_text_encoder_section && !t->subtitle_text_encoder_section)
     {
     t->subtitle_text_encoder_section = bg_cfg_section_copy(info->subtitle_text_encoder_section);
-    //    fprintf(stderr, "Text encoder: %s\n", info->subtitle_text_info->long_name);
     bg_cfg_section_set_name(t->subtitle_text_encoder_section,
                             info->subtitle_text_info->long_name);
 
@@ -535,13 +537,6 @@ bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
   
   create_subtitle_parameters(track);
     
-#if 0
-  fprintf(stderr, "Encoder parameters: %p %p %p %p\n",
-          audio_encoder,
-          video_encoder,
-          track->audio_encoder_parameters,
-          track->video_encoder_parameters);
-#endif
   }
 
 static char * create_stream_label(const char * info, const char * language)
@@ -566,8 +561,6 @@ static void set_track(bg_transcoder_track_t * track,
   int i;
   int subtitle_text_index, subtitle_overlay_index;
   
-  //  fprintf(stderr, "set_track, Encoders: %p %p\n",
-  //          audio_encoder, video_encoder);
 
   /* General parameters */
 
@@ -747,7 +740,6 @@ static void set_track(bg_transcoder_track_t * track,
  
   create_subtitle_parameters(track);
   
-  //  fprintf(stderr, "Track name: %s\n", track->name);
   }
 
 static void enable_streams(bg_input_plugin_t * plugin, void * priv, 
@@ -827,7 +819,7 @@ bg_transcoder_track_create(const char * url,
   if(!bg_input_plugin_load(plugin_reg, url,
                            input_info, &plugin_handle, &error_msg, (bg_input_callbacks_t*)0))
     {
-    fprintf(stderr, __FILE__": Loading %s failed: %s\n", url, error_msg);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Loading %s failed: %s", url, error_msg);
     free(error_msg);
     return (bg_transcoder_track_t*)0;
     }
@@ -853,7 +845,6 @@ bg_transcoder_track_create(const char * url,
     if(track_info->url)
       {
       new_track->url = bg_strdup(new_track->url, track_info->url);
-      //      fprintf(stderr, "Track: %d, URL: %s\n", track, new_track->url);
       }
     else
       {
@@ -901,7 +892,6 @@ bg_transcoder_track_create(const char * url,
       if(track_info->url)
         {
         new_track->url = bg_strdup(new_track->url, track_info->url);
-        //        fprintf(stderr, "Track: %d, URL: %s\n", i, new_track->url);
         }
       else
         {
@@ -942,7 +932,6 @@ static bg_transcoder_track_t * remove_redirectors(bg_transcoder_track_t * entrie
   done = 1;
   e = entries;
 
-  //  fprintf(stderr, "Remove redirectors\n");
   
   while(e)
     {
@@ -1096,8 +1085,6 @@ bg_transcoder_track_create_from_albumentries(const char * xml_string,
     if(!ret)
       {
         
-      //      fprintf(stderr, "bg_transcoder_track_create %s %s %d\n",
-      //              entry->location, entry->plugin, entry->index);
       ret = bg_transcoder_track_create(entry->location,
                                        plugin_info,
                                        entry->index,
@@ -1522,7 +1509,6 @@ bg_transcoder_track_global_to_reg(bg_transcoder_track_global_t * g,
   
   if(g->pp_plugin)
     {
-    fprintf(stderr, "bg_transcoder_track_global_to_reg %s\n", g->pp_plugin);
     bg_plugin_registry_set_default(plugin_reg, BG_PLUGIN_ENCODER_PP,
                                    g->pp_plugin);
     bg_plugin_registry_set_encode_pp(plugin_reg, 1);
@@ -1530,7 +1516,6 @@ bg_transcoder_track_global_to_reg(bg_transcoder_track_global_t * g,
     plugin_section =
       bg_plugin_registry_get_section(plugin_reg, g->pp_plugin);
 
-    fprintf(stderr, "Plugin section: %p %p\n", g->pp_section, plugin_section);
     
     bg_cfg_section_transfer(g->pp_section, plugin_section);
     }

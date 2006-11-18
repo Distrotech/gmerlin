@@ -26,6 +26,8 @@
 
 
 #include <stdlib.h>
+#include <assert.h>
+
 #include <string.h>
 #include <stdio.h>
 #include <pthread.h>
@@ -87,12 +89,7 @@ static int check_arg(int arg)
   {
   if(arg < 0)
     return 0;
-  if(arg > BG_MSG_MAX_ARGS-1)
-    {
-    fprintf(stderr, "Increase BG_MSG_MAX_ARGS in msgqueue.h to %d\n",
-            arg+1);
-    return 0;
-    }
+  assert(arg < BG_MSG_MAX_ARGS);
   return 1;
   }
 
@@ -900,7 +897,6 @@ int bg_message_read_socket(bg_msg_t * ret, int fd, int milliseconds)
   if(!read_uint32(fd, (uint32_t*)(&val_i), 0))
     return 0;
 
-  //  fprintf(stderr, "Read ID: %d\n", val_i);
   
   ret->id = val_i;
 
@@ -937,7 +933,6 @@ int bg_message_read_socket(bg_msg_t * ret, int fd, int milliseconds)
         if(bg_socket_read_data(fd, ret->args[i].value.val_ptr,
                                val_i, 1) < val_i)
           {
-          //          fprintf(stderr, "Reading pointer failed\n");
           return 0;
           }
         break;

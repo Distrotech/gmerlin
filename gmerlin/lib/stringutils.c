@@ -222,7 +222,6 @@ char * bg_create_unique_filename(char * template)
 
   while(1)
     {
-    //    fprintf(stderr, "Trying %s\n", filename);
     
     if(stat(filename, &stat_buf) == -1)
       {
@@ -509,7 +508,6 @@ int bg_string_match(const char * key,
 
   pos = key_list;
       
-  //  fprintf(stderr, "string_match: %s %d %s\n", key, (int)(key_end - key), key_list);
 
   if(!key_list)
     return 0;
@@ -522,13 +520,9 @@ int bg_string_match(const char * key,
     if(end == pos)
       break;
 
-    //    fprintf(stderr,
-    //            "String match Key: %s, keylist: %s, ley_len: %d, key_list_len: %d\n",
-    //            key, pos, (int)(key_end - key), (int)(end-pos));
     if((strlen(key) == (int)(end-pos)) &&
        !strncasecmp(pos, key, (int)(end-pos)))
       {
-      //      fprintf(stderr, "BINGOOOOOO\n");
       return 1;
       }
     pos = end;

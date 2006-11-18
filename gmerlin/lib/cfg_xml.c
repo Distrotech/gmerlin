@@ -43,7 +43,6 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
   
   if(!tmp_type || !info.name)
     {
-    fprintf(stderr, "Invalid item\n");
     if(tmp_type)
       xmlFree(tmp_type);
     if(info.name)
@@ -79,7 +78,6 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
     }
   else
     {
-    fprintf(stderr, "Unknown type: %s\n", tmp_type);
     return;
     }
 
@@ -187,7 +185,6 @@ void bg_cfg_registry_load(bg_cfg_registry_t * r, const char * filename)
 
   if(BG_XML_STRCMP(node->name, "REGISTRY"))
     {
-    fprintf(stderr, "File %s contains no config registry\n", filename);
     xmlFreeDoc(xml_doc);
     return;
     }
@@ -287,7 +284,6 @@ void bg_cfg_section_2_xml(bg_cfg_section_t * section, xmlNodePtr xml_section)
   while(tmp_section)
     {
     xml_child = xmlNewTextChild(xml_section, (xmlNsPtr)0, (xmlChar*)"SECTION", NULL);
-    //    fprintf(stderr, "Set child section: %s\n", tmp_section->name);
     BG_XML_SET_PROP(xml_child, "name", tmp_section->name);
 
     bg_cfg_section_2_xml(tmp_section, xml_child);

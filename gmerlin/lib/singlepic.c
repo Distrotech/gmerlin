@@ -236,8 +236,6 @@ static int open_input(void * priv, const char * arg)
       break;
     inp->frame_end++;
     }
-  //  fprintf(stderr, "Frames: %lld .. %lld, template: %s\n",
-  //         inp->frame_start, inp->frame_end, inp->template);
 
   /* Create stream */
     
@@ -335,7 +333,6 @@ static int start_input(void * priv)
 
   info = bg_plugin_find_by_filename(inp->plugin_reg, inp->filename_buffer,
                                     BG_PLUGIN_IMAGE_READER);
-  //  fprintf(stderr, "Loading: %p\n", info);
 
   inp->handle = bg_plugin_load(inp->plugin_reg, info);
   inp->image_reader = (bg_image_reader_plugin_t*)inp->handle->plugin;
@@ -379,7 +376,6 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
   else if(inp->current_frame == inp->frame_end)
     return 0;
 
-  //  fprintf(stderr, "Read image %d %s...", inp->header_read, inp->filename_buffer);
   
   if(!inp->header_read)
     {
@@ -392,10 +388,8 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
     }
   if(!inp->image_reader->read_image(inp->handle->priv, f))
     {
-    //    fprintf(stderr, "failed\n");
     return 0;
     }
-  //  fprintf(stderr, "done\n");
   if(f)
     {
     f->time_scaled = (inp->current_frame - inp->frame_start) * inp->frame_duration;
@@ -457,7 +451,7 @@ static bg_input_plugin_t input_plugin =
   {
     common:
     {
-      name:           "i_singlepic",
+      name:           bg_singlepic_input_name,
       long_name:      "Image video input plugin",
       extensions:     NULL, /* Filled in later */
       type:           BG_PLUGIN_INPUT,
@@ -500,7 +494,7 @@ static bg_input_plugin_t input_plugin_stills =
   {
     common:
     {
-      name:           "i_singlepic_stills",
+      name:           bg_singlepic_stills_input_name,
       long_name:      "Image stills input plugin",
       extensions:     NULL, /* Filled in later */
       type:           BG_PLUGIN_INPUT,
@@ -750,8 +744,6 @@ static const char * get_extension_encoder(void * data)
     e->extension_mask = bg_sprintf("-%%0%dlld%s", e->frame_digits, plugin_extension);
     e->extension      = bg_sprintf(e->extension_mask, (int64_t)e->frame_offset);
 
-    //    fprintf(stderr, "Extension mask: %s, extension: %s\n",
-    //            e->extension_mask,e->extension);
     }
   return e->extension;
   }
@@ -774,7 +766,6 @@ static int open_encoder(void * data, const char * filename,
 
   e->mask = bg_strcat(e->mask, e->extension_mask);
 
-  //  fprintf(stderr, "Mask: %s\n", e->mask);
 
   e->filename_buffer = malloc(filename_len+1);
 
@@ -800,12 +791,10 @@ static int write_frame_header(encoder_t * e)
 
   sprintf(e->filename_buffer, e->mask, e->frame_counter);
 
-  //  fprintf(stderr, "Write header...");
   
   e->image_writer->write_header(e->plugin_handle->priv,
                                 e->filename_buffer,
                                 &(e->format));
-  //  fprintf(stderr, "done\n");
 
   e->frame_counter++;
   return 1;
@@ -844,9 +833,7 @@ static void write_video_frame_encoder(void * data, gavl_video_frame_t * frame,in
     {
     write_frame_header(e);
     }
-  //  fprintf(stderr, "Write image...");
   e->image_writer->write_image(e->plugin_handle->priv, frame);
-  //  fprintf(stderr, "done\n");
   e->have_header = 0;
   }
 
@@ -864,7 +851,6 @@ static void close_encoder(void * data, int do_delete)
     for(i = e->frame_offset; i < e->frame_counter; i++)
       {
       sprintf(e->filename_buffer, e->mask, i);
-      fprintf(stderr, "Removing %s\n", e->filename_buffer);
       remove(e->filename_buffer);
       }
     }
@@ -901,7 +887,7 @@ bg_encoder_plugin_t encoder_plugin =
   {
     common:
     {
-      name:           "e_singlepic",
+      name:           bg_singlepic_encoder_name,
       long_name:      "Singlepicture encoder",
       extensions:     NULL, /* Filled in later */
       type:           BG_PLUGIN_ENCODER_VIDEO,

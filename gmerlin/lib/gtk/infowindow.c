@@ -148,8 +148,6 @@ void bg_gtk_info_window_set_parameter(void * data, char * name,
   if(!name)
     return;
 
-  //  fprintf(stderr, "bg_gtk_info_window_set_parameter %s %d\n",
-  //          name, val->val_i);
 
   
   if(!strcmp(name, "x"))
@@ -198,8 +196,6 @@ int bg_gtk_info_window_get_parameter(void * data, char * name,
     val->val_i = win->height;
     return 1;
     }
-  //  fprintf(stderr, "bg_gtk_info_window_get_parameter %s %d\n",
-  //          name, val->val_i);
   
   return 0;
   }
@@ -373,7 +369,6 @@ static gboolean idle_callback(gpointer data)
           {
           case BG_PLAYER_STATE_STARTING:
             /* New info on the way, clean up everything */
-            //            fprintf(stderr, "Cleaning info\n");
             clear_info(w);
             break;
           case BG_PLAYER_STATE_PLAYING:

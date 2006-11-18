@@ -43,11 +43,9 @@ static void dereference_link(const char * _src, char dst[PATH_MAX])
 
   while(1)
     {
-    //    fprintf(stderr, "Checking %s\n",src);
     if(lstat(src, &st) || !S_ISLNK(st.st_mode))
       {
       strcpy(dst, src);
-      //      fprintf(stderr, "Dereference link %s -> %s\n", _src, dst);
       return;
       }
 
@@ -55,7 +53,6 @@ static void dereference_link(const char * _src, char dst[PATH_MAX])
 
     len = readlink(src, dst, PATH_MAX);
     dst[len] = '\0';
-    //    fprintf(stderr, "Read link %s -> %s\n", src, dst);
     if(*dst == '/')
       {
       strcpy(src, dst);
@@ -76,7 +73,6 @@ bg_device_info_t * bg_device_info_append(bg_device_info_t * arr,
   int i, size = 0;
   char real_device[PATH_MAX];
 
-  //  fprintf(stderr, "bg_device_info_append: %s %s\n", device, name);
   
   if(arr)
     {

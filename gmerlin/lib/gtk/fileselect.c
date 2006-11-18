@@ -68,7 +68,6 @@ static void add_files(bg_gtk_filesel_t * f)
   if(f->plugins)
     plugin = bg_gtk_plugin_menu_get_plugin(f->plugins);
 
-  //  fprintf(stderr, "Add Selected: %s\n", plugin);
 
   f->unsensitive = 1;
   gtk_widget_set_sensitive(f->filesel, 0);

@@ -98,10 +98,6 @@ static skin_info_t * scan_directory(const char * directory)
     start++;
 
     new_info->name = bg_strdup(new_info->name, start);
-#if 0
-    fprintf(stderr, "Got skin, directory: %s, name: %s\n",
-            new_info->directory, new_info->name);
-#endif       
     if(!ret)
       {
       ret = new_info;
@@ -192,7 +188,6 @@ static void update_list(gmerlin_skin_browser_t * b)
   GtkTreeModel * model;
   GtkTreeIter iter;
 
-  //  fprintf(stderr, "update_list\n");
   
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(b->treeview));
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(b->treeview));
@@ -222,7 +217,6 @@ static void update_list(gmerlin_skin_browser_t * b)
     gtk_main_iteration();
   
   g_signal_handler_unblock(G_OBJECT(selection), b->select_handler_id);
-  //  fprintf(stderr, "update_list done\n");
   }
 
 static void select_row_callback(GtkTreeSelection * sel,
@@ -239,7 +233,6 @@ static void select_row_callback(GtkTreeSelection * sel,
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(b->treeview));
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(b->treeview));
   
-  //  fprintf(stderr, "Select row callback\n");
   if(!gtk_tree_model_get_iter_first(model, &iter))
     return;
   skin = b->skins;
@@ -266,18 +259,15 @@ static void select_row_callback(GtkTreeSelection * sel,
     return;
 
   b->g->skin_dir = bg_strdup(b->g->skin_dir, skin->directory);
-  //  fprintf(stderr, "Skin Directory: %s\n", b->g->skin_dir);
   gmerlin_skin_load(&(b->g->skin), b->g->skin_dir);
   gmerlin_skin_set(b->g);
  
-  //  fprintf(stderr, "Selected skin %s\n", skin->name);
   }
 
 static void filesel_close_callback(bg_gtk_filesel_t * f , void * data)
   {
   gmerlin_skin_browser_t * b;
   b = (gmerlin_skin_browser_t*)data;
-  //  fprintf(stderr, "Filesel close\n");
   gtk_widget_set_sensitive(b->new_button, 1);
   }
 
@@ -320,7 +310,6 @@ static int install_skin(const char * filename)
   command = bg_sprintf("tar -C %s/.gmerlin/skins -xvzf %s", home_dir, filename);
   if(system(command))
     {
-    //    fprintf(stderr, "Install failed, command was %s\n", command);
     error_msg = bg_sprintf("Installing skin from\n%s\nfailed", filename);
     bg_gtk_message(error_msg, BG_GTK_MESSAGE_ERROR);
     free(error_msg);
@@ -339,7 +328,6 @@ static void add_file_callback(char ** files, const char * plugin,
   gmerlin_skin_browser_t * b;
   b = (gmerlin_skin_browser_t*)data;
 
-  //  fprintf(stderr, "Add files %s\n", files[0]);
 
   i = 0;
   while(files[i])
@@ -370,7 +358,6 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == b->new_button)
     {
-    //    fprintf(stderr, "Install skin\n");
 
     filesel = bg_gtk_filesel_create("Install skin",
                                     add_file_callback,

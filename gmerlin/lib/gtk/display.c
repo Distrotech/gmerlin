@@ -65,7 +65,6 @@ static void load_pixbufs()
   for(i = 0; i < 10; i++)
     {
     c_tmp1 = bg_sprintf("digit_%d.png", i);
-    //    fprintf(stderr, "Loading %s\n", c_tmp1);
     c_tmp2 = bg_search_file_read("icons", c_tmp1);
     digit_pixbufs[i] = gdk_pixbuf_new_from_file(c_tmp2, NULL);    
     free(c_tmp1);

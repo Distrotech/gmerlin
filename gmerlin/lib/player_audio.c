@@ -69,10 +69,6 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   
   pthread_mutex_unlock(&(player->audio_stream.config_mutex));
     
-#if 0
-  fprintf(stderr, "======= Input format: ===========\n");
-  gavl_audio_format_dump(&(player->audio_stream.input_format));
-#endif
   
   /* Set up formats */
   
@@ -112,11 +108,6 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
   
   /* Initialize audio converter */
 
-#if 0
-  fprintf(stderr, "======= Output format: ==========\n");
-  gavl_audio_format_dump(&(player->audio_stream.output_format));
-  fprintf(stderr, "=================================\n");
-#endif
 
   /* Input conversion */
   opt = gavl_audio_converter_get_options(player->audio_stream.cnv_in);
@@ -127,14 +118,12 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
                                 &(player->audio_stream.pipe_format)))
     {
     player->audio_stream.do_convert_in = 0;
-    //    fprintf(stderr, "**** No Conversion ****\n");
     }
   else
     {
     player->audio_stream.do_convert_in = 1;
     player->audio_stream.frame_in =
       gavl_audio_frame_create(&(player->audio_stream.input_format));
-    //    fprintf(stderr, "**** Doing Input conversion\n");
     }
 
   /* Output conversion */
@@ -146,16 +135,12 @@ int bg_player_audio_init(bg_player_t * player, int audio_stream)
                                 &(player->audio_stream.output_format)))
     {
     player->audio_stream.do_convert_out = 0;
-    //    fprintf(stderr, "**** No Conversion ****\n");
     }
   else
     {
     player->audio_stream.do_convert_out = 1;
     player->audio_stream.frame_out =
       gavl_audio_frame_create(&(player->audio_stream.output_format));
-    //    fprintf(stderr, "**** Doing Output conversion\n");
-    //    fprintf(stderr, "**** Doing Conversion %d ****\n",
-    //            player->audio_stream.input_format.samples_per_frame);
     }
   return 1;
   }

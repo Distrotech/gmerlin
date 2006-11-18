@@ -41,7 +41,6 @@ static void set_background(player_window_t * win)
   int width, height;
   GdkPixbuf * pixbuf;
 
-  //  fprintf(stderr, "Set background %p\n", MASK_WINDOW);
   
   if(win->mouse_inside)
     pixbuf = win->background_pixbuf_highlight;
@@ -171,7 +170,6 @@ void player_window_set_skin(player_window_t * win,
 
   /* Update slider positions */
 
-  //  fprintf(stderr, "Setting volume: %f\n", win->volume);
   bg_gtk_slider_set_pos(win->volume_slider,
                         (win->volume - BG_PLAYER_VOLUME_MIN)/
                         (-BG_PLAYER_VOLUME_MIN));
@@ -230,7 +228,6 @@ static void seek_change_callback(bg_gtk_slider_t * slider, float perc,
   win->seek_active = 1;
   
   //  player_window_t * win = (player_window_t *)data;
-  //  fprintf(stderr, "Seek change callback %f\n", perc);
 
   display_set_time(win->display, (gavl_time_t)(perc *
                                                (float)win->duration + 0.5));
@@ -245,7 +242,6 @@ static void seek_release_callback(bg_gtk_slider_t * slider, float perc,
   time = (gavl_time_t)(perc * (double)win->duration);
   
   //  player_window_t * win = (player_window_t *)data;
-  //  fprintf(stderr, "Seek release callback %f\n", perc);
   bg_player_seek(win->gmerlin->player, time);
   
   }
@@ -269,7 +265,6 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
   player_window_t * win = (player_window_t *)data;
   if(b == win->play_button)
     {
-    // fprintf(stderr, "Play button clicked\n");
 
     gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_PLAYING | BG_PLAY_FLAG_RESUME);
     }
@@ -279,28 +274,23 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
     }
   else if(b == win->stop_button)
     {
-    //    fprintf(stderr, "Stop button clicked\n");
     bg_player_stop(win->gmerlin->player);
     }
   else if(b == win->next_button)
     {
-    //    fprintf(stderr, "Next button clicked\n");
 
     bg_media_tree_next(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
-    //    fprintf(stderr, "Handle: %p plugin %p\n", handle, handle->plugin);
 
     gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
     }
   else if(b == win->prev_button)
     {
-    //    fprintf(stderr, "Prev button clicked\n");
     bg_media_tree_previous(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
 
     gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
     }
   else if(b == win->close_button)
     {
-    //    fprintf(stderr, "Close button clicked\n");
     gtk_main_quit();
     }
   }
@@ -346,7 +336,6 @@ static void handle_message(player_window_t * win,
                             (- BG_PLAYER_VOLUME_MIN));
       break;
     case BG_PLAYER_MSG_TRACK_CHANGED:
-      //      fprintf(stderr, "Got BG_PLAYER_MSG_TRACK_CHANGED\n");
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
       gmerlin_check_next_track(win->gmerlin, arg_i_1);
       
@@ -369,7 +358,6 @@ static void handle_message(player_window_t * win,
           break;
         case BG_PLAYER_STATE_ERROR:
           arg_str_1 = bg_msg_get_arg_string(msg, 1);
-          //          fprintf(stderr, "State Error %s\n", arg_str_1);
           display_set_state(win->display, win->gmerlin->player_state, arg_str_1);
           break;
         case BG_PLAYER_STATE_BUFFERING:
@@ -383,7 +371,6 @@ static void handle_message(player_window_t * win,
         case BG_PLAYER_STATE_STOPPED:
           bg_gtk_slider_set_state(win->seek_slider,
                                   BG_GTK_SLIDER_INACTIVE);
-          //          fprintf(stderr, "Player is now stopped\n");
           display_set_state(win->display, win->gmerlin->player_state, NULL);
           break;
         case BG_PLAYER_STATE_CHANGING:
@@ -397,23 +384,18 @@ static void handle_message(player_window_t * win,
     case BG_PLAYER_MSG_TRACK_NAME:
       arg_str_1 = bg_msg_get_arg_string(msg, 0);
       display_set_track_name(win->display, arg_str_1);
-      //      fprintf(stderr, "BG_PLAYER_MSG_TRACK_NAME %s\n", arg_str_1);
       free(arg_str_1);
       break;
     case BG_PLAYER_MSG_TRACK_NUM_STREAMS:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
       arg_i_2 = bg_msg_get_arg_int(msg, 1);
       arg_i_3 = bg_msg_get_arg_int(msg, 2);
-      //      fprintf(stderr,
-      //              "Audio streams: %d, video streams: %d, subtitle_streams: %d\n",
-      //              arg_i_1, arg_i_2, arg_i_3);
       main_menu_set_num_streams(win->main_menu, arg_i_1, arg_i_2, arg_i_3);
       break;
     case BG_PLAYER_MSG_KEY:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
       arg_i_2 = bg_msg_get_arg_int(msg, 1);
 
-      //      fprintf(stderr, "BG_PLAYER_MSG_KEY %d, 0x%02x\n", arg_i_1, arg_i_2);
       
       switch(arg_i_1)
         {
@@ -458,9 +440,6 @@ static void handle_message(player_window_t * win,
       win->duration = bg_msg_get_arg_time(msg, 0);
 
       arg_i_2 = bg_msg_get_arg_int(msg, 1);
-
-      //      fprintf(stderr, "Duration: %f %d\n", gavl_time_to_seconds(win->duration),
-      //              arg_i_2);
 
       if(arg_i_2)
         bg_gtk_slider_set_state(win->seek_slider,
@@ -528,8 +507,6 @@ static gboolean idle_callback(gpointer data)
   
   player_window_t * w = (player_window_t *)data;
 
-  //  fprintf(stderr, "idle_callback\n");
-
   if(!w->msg_queue_locked)
     {
     while((msg = bg_msg_queue_try_lock_read(w->msg_queue)))
@@ -548,7 +525,6 @@ static gboolean idle_callback(gpointer data)
 
   while((msg = bg_remote_server_get_msg(w->gmerlin->remote)))
     {
-    //    fprintf(stderr, "Got remote message %d\n", bg_msg_get_id(msg));
     gmerlin_handle_remote(w->gmerlin, msg);
 
     }
@@ -566,7 +542,6 @@ static gboolean crossing_callback(GtkWidget *widget,
   
   w->mouse_inside = (event->type == GDK_ENTER_NOTIFY) ? 1 : 0;
   set_background(w);
-  //  fprintf(stderr, "crossing_callback\n");
   return FALSE;
   }
 
@@ -601,8 +576,6 @@ void player_window_create(gmerlin_t * g)
   
   gtk_window_add_accel_group (GTK_WINDOW(ret->window), ret->gmerlin->accel_group);
   gtk_window_add_accel_group (GTK_WINDOW(ret->window), ret->accel_group);
-  //  fprintf(stderr, "Player window Add accel group %p\n", ret->gmerlin->accel_group);
-
   
   ret->layout = gtk_layout_new((GtkAdjustment*)0,
                                (GtkAdjustment*)0);

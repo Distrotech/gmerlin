@@ -19,7 +19,7 @@ void track_list_set_display_colors(track_list_t * t, float * fg, float * bg);
 
 void track_list_set_tooltips(track_list_t * t, int show_tooltips);
 
-void track_list_add_files(track_list_t * t, char ** files);
+void track_list_add_url(track_list_t * t, char * url);
 void track_list_add_xml(track_list_t * t, char * xml_string, int len);
 
 bg_parameter_info_t * track_list_get_parameters(track_list_t * t);

@@ -70,16 +70,12 @@ static int write_header_pnm(void * priv, const char * filename,
   /* Write the header lines */  
   if(p->pnm_format == BINARY)
     {
-//    fprintf(stderr,"BINARY write header -->");
     fprintf(p->output,"P%d\n# %s\n%d %d\n255\n", BINARY, p->comment, p->Width, p->Height);
-    fprintf(stderr,"done \n");
     }
 
   if(p->pnm_format == ASCII)
     {
-//    fprintf(stderr,"ASCII write header -->");
     fprintf(p->output,"P%d\n# %s\n%d %d\n255\n", ASCII, p->comment, p->Width, p->Height);
-    fprintf(stderr,"done \n");
     }
   
   return 1;

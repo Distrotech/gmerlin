@@ -98,6 +98,62 @@ static void free_info_list(bg_plugin_info_t * entries)
     }
   }
 
+static bg_plugin_info_t * sort_by_priority(bg_plugin_info_t * list)
+  {
+  int i, j;
+  bg_plugin_info_t * info;
+  bg_plugin_info_t ** arr;
+  int num_plugins = 0;
+  int keep_going;
+  
+  /* Count plugins */
+
+  info = list;
+  while(info)
+    {
+    num_plugins++;
+    info = info->next;
+    }
+
+  /* Allocate array */
+  arr = malloc(num_plugins * sizeof(*arr));
+  info = list;
+  for(i = 0; i < num_plugins; i++)
+    {
+    arr[i] = info;
+    info = info->next;
+    }
+
+  /* Bubblesort */
+
+  for(i = 0; i < num_plugins - 1; i++)
+    {
+    keep_going = 0;
+    for(j = num_plugins-1; j > i; j--)
+      {
+      if(arr[j]->priority > arr[j-1]->priority)
+        {
+        info  = arr[j];
+        arr[j]   = arr[j-1];
+        arr[j-1] = info;
+        keep_going = 1;
+        }
+      }
+    if(!keep_going)
+      break;
+    }
+
+  /* Rechain */
+
+  for(i = 0; i < num_plugins-1; i++)
+    arr[i]->next = arr[i+1];
+  arr[num_plugins-1]->next = (bg_plugin_info_t*)0;
+  list = arr[0];
+  /* Free array */
+  free(arr);
+  
+  return list;
+  }
 
 static bg_plugin_info_t *
 find_by_dll(bg_plugin_info_t * info, const char * filename)
@@ -114,15 +170,12 @@ find_by_dll(bg_plugin_info_t * info, const char * filename)
 static bg_plugin_info_t *
 find_by_name(bg_plugin_info_t * info, const char * name)
   {
-  //  fprintf(stderr, "Find by name %s\n", name);
   while(info)
     {
-    //    fprintf(stderr, "Trying %s\n", info->name);
     if(!strcmp(info->name, name))
       return info;
     info = info->next;
     }
-  //  fprintf(stderr, "%s not found\n", name);
   return (bg_plugin_info_t*)0;
   }
 
@@ -175,7 +228,6 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
   if(!filename)
     return (const bg_plugin_info_t*)0;
   
-  //  fprintf(stderr, "bg_plugin_find_by_filename %08x %s\n", typemask, filename);
   
   info = reg->entries;
   extension = strrchr(filename, '.');
@@ -186,23 +238,18 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
     }
   extension++;
   
-  //  fprintf(stderr, "info %p\n", info);
   
   while(info)
     {
-    //    fprintf(stderr, "Trying: %08x %s %s\n", info->type, info->long_name, info->extensions);
     if(!(info->type & typemask) ||
        !(info->flags & BG_PLUGIN_FILE) ||
        !info->extensions)
       {
-      //      fprintf(stderr, "skipping plugin: %s\n",
-      //              info->long_name);
       info = info->next;
       continue;
       }
     if(bg_string_match(extension, info->extensions))
       {
-      //      fprintf(stderr, "%s looks good %d %d\n", info->name, max_priority, info->priority);
       if(max_priority < info->priority)
         {
         max_priority = info->priority;
@@ -235,6 +282,22 @@ static bg_plugin_info_t * remove_from_list(bg_plugin_info_t * list,
   return list;
   }
 
+static bg_plugin_info_t * append_to_list(bg_plugin_info_t * list,
+                                         bg_plugin_info_t * info)
+  {
+  bg_plugin_info_t * end;
+  info->next = (bg_plugin_info_t*)0;
+  if(!list)
+    {
+    return info;
+    }
+  end = list;
+  while(end->next)
+    end = end->next;
+  end->next = info;
+  return list;
+  }
+
 static int check_plugin_version(void * handle)
   {
   int (*get_plugin_api_version)();
@@ -254,7 +317,7 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
                bg_cfg_section_t * cfg_section)
   {
   bg_plugin_info_t * ret;
-  bg_plugin_info_t * end = (bg_plugin_info_t *)0;
+  //  bg_plugin_info_t * end = (bg_plugin_info_t *)0;
   DIR * dir;
   struct dirent * entry;
   char filename[PATH_MAX];
@@ -310,18 +373,8 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
                                         new_info->name)))
         {
         file_info = remove_from_list(file_info, new_info);
-        //        fprintf(stderr, "Found cached plugin %s\n", new_info->name);
-        if(!ret)
-          {
-          ret = new_info;
-          end = ret;
-          }
-        else
-          {
-          end->next = new_info;
-          end = end->next;
-          }
-        end->next = NULL;
+
+        ret = append_to_list(ret, new_info);
         continue;
         }
       }
@@ -340,25 +393,25 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
     test_module = dlopen(filename, RTLD_NOW);
     if(!test_module)
       {
-      fprintf(stderr, "Cannot dlopen %s: %s\n", filename, dlerror());
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot dlopen %s: %s", filename, dlerror());
       continue;
       }
     if(!check_plugin_version(test_module))
       {
-      fprintf(stderr, "Plugin %s has no or wrong version\n", filename);
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Plugin %s has no or wrong version", filename);
       dlclose(test_module);
       continue;
       }
     plugin = (bg_plugin_common_t*)(dlsym(test_module, "the_plugin"));
     if(!plugin)
       {
-      fprintf(stderr, "No symbol the_plugin in %s\n", filename);
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No symbol the_plugin in %s", filename);
       dlclose(test_module);
       continue;
       }
     if(!plugin->priority)
-      fprintf(stderr, "Warning: Plugin %s has zero priority\n",
-              plugin->name);
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Warning: Plugin %s has zero priority",
+             plugin->name);
     new_info = calloc(1, sizeof(*new_info));
     new_info->name = bg_strdup(new_info->name, plugin->name);
 
@@ -460,19 +513,8 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
     
     plugin->destroy(plugin_priv);
     dlclose(test_module);
-    if(ret)
-      {
-      end->next = new_info;
-      end = end->next;
-      }
-    else
-      {
-      ret = new_info;
-      end = ret;
-      }
 
-    //    if(new_info)
-    //      fprintf(stderr, "Loaded plugin %s\n", new_info->name);
+    ret = append_to_list(ret, new_info);
     }
   
   closedir(dir);
@@ -490,6 +532,8 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   bg_plugin_info_t * tmp_info;
   char * filename;
   int changed = 0;
+  int reloaded = 0;
+  
   ret = calloc(1, sizeof(*ret));
   ret->config_section = section;
 
@@ -504,11 +548,35 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
     free(filename);
     }
   
-  tmp_info = scan_directory(GMERLIN_PLUGIN_DIR,
-                            &file_info, &changed,
-                            section);
+  ret->entries = scan_directory(GMERLIN_PLUGIN_DIR,
+                                &file_info, &changed,
+                                section);
   
-  ret->entries = tmp_info;
+  /* Handle saved meta plugins */
+  if(!changed)
+    {
+    while(file_info)
+      {
+      if(!file_info->module_filename)
+        {
+        tmp_info = file_info;
+        file_info = remove_from_list(file_info, tmp_info);
+        ret->entries = append_to_list(ret->entries, tmp_info);
+
+        if(!strcmp(tmp_info->name, bg_singlepic_input_name))
+          ret->singlepic_input = tmp_info;
+        else if(!strcmp(tmp_info->name, bg_singlepic_stills_input_name))
+          ret->singlepic_stills_input = tmp_info;
+        else if(!strcmp(tmp_info->name, bg_singlepic_encoder_name))
+          ret->singlepic_encoder = tmp_info;
+        }
+      else
+        {
+        changed = 1;
+        break;
+        }
+      }
+    }
   
   if(file_info)
     {
@@ -518,6 +586,10 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   
   if(changed)
     {
+    reloaded = 1;
+
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Scanning for plugins");
+    
     /* Reload the entire registry to prevent mysterious crashes */
     free_info_list(ret->entries);
     ret->entries = scan_directory(GMERLIN_PLUGIN_DIR,
@@ -525,40 +597,22 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
                                   section);
     //    bg_plugin_registry_save(ret->entries);
     }
-  bg_plugin_registry_save(ret->entries);
   
   /* Now we have all external plugins, time to create the meta plugins */
 
-  tmp_info = ret->entries;
-  while(tmp_info->next)
-    tmp_info = tmp_info->next;
-
-  
-  ret->singlepic_input = bg_singlepic_input_info(ret);
-
-  if(ret->singlepic_input)
+  if(reloaded)
     {
-    //    fprintf(stderr, "Found Singlepicture input\n");
-    tmp_info->next = ret->singlepic_input;
-    tmp_info = tmp_info->next;
-    }
+    ret->singlepic_input = bg_singlepic_input_info(ret);
+    if(ret->singlepic_input)
+      ret->entries = append_to_list(ret->entries, ret->singlepic_input);
 
-  ret->singlepic_stills_input = bg_singlepic_stills_input_info(ret);
+    ret->singlepic_stills_input = bg_singlepic_stills_input_info(ret);
+    if(ret->singlepic_stills_input)
+      ret->entries = append_to_list(ret->entries, ret->singlepic_stills_input);
 
-  if(ret->singlepic_stills_input)
-    {
-    //    fprintf(stderr, "Found Singlepicture stills input\n");
-    tmp_info->next = ret->singlepic_stills_input;
-    tmp_info = tmp_info->next;
-    }
-  
-  ret->singlepic_encoder = bg_singlepic_encoder_info(ret);
-
-  if(ret->singlepic_encoder)
-    {
-    //    fprintf(stderr, "Found Singlepicture encoder\n");
-    tmp_info->next = ret->singlepic_encoder;
-    tmp_info = tmp_info->next;
+    ret->singlepic_encoder = bg_singlepic_encoder_info(ret);
+    if(ret->singlepic_encoder)
+      ret->entries = append_to_list(ret->entries, ret->singlepic_encoder);
     }
   
   /* Get flags */
@@ -573,6 +627,11 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   bg_cfg_section_get_parameter_int(ret->config_section, "encode_pp",
                                    &(ret->encode_pp));
     
+  /* Sort */
+
+  ret->entries = sort_by_priority(ret->entries);
+  bg_plugin_registry_save(ret->entries);
+  
   return ret;
   }
 
@@ -667,7 +726,6 @@ int bg_plugin_registry_get_num_plugins(bg_plugin_registry_t * reg,
        ((!info->flags && !flag_mask) || (info->flags & flag_mask)))
       ret++;
 
-    //    fprintf(stderr, "Tried %s %d\n", info->name, ret);
     info = info->next;
     }
   return ret;
@@ -684,8 +742,6 @@ void bg_plugin_registry_set_extensions(bg_plugin_registry_t * reg,
   if(!(info->flags & BG_PLUGIN_FILE))
     return;
   info->extensions = bg_strdup(info->extensions, extensions);
-
-  fprintf(stderr, "Set extensions: %s\n", extensions);
   
   bg_plugin_registry_save(reg->entries);
   
@@ -715,6 +771,7 @@ void bg_plugin_registry_set_priority(bg_plugin_registry_t * reg,
   if(!info)
     return;
   info->priority = priority;
+  reg->entries = sort_by_priority(reg->entries);
   bg_plugin_registry_save(reg->entries);
   }
 
@@ -789,7 +846,6 @@ const bg_plugin_info_t * bg_plugin_registry_get_default(bg_plugin_registry_t * r
     if(!ret)
       ret = find_by_priority(r->entries,
                             type, BG_PLUGIN_ALL);
-    //    fprintf(stderr, "bg_plugin_find_by_name %s\n", name);
     return ret;
     }
   }
@@ -803,9 +859,6 @@ void bg_plugin_ref(bg_plugin_handle_t * h)
 
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_ref %s: %d", h->info->name, h->refcount);
   
-#if 0
-  fprintf(stderr, "bg_plugin_ref %p %s %d\n", h, h->info->name, h->refcount);
-#endif
 
   bg_plugin_unlock(h);
   
@@ -820,9 +873,6 @@ void bg_plugin_unref(bg_plugin_handle_t * h)
   h->refcount--;
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "bg_plugin_unref %s: %d", h->info->name, h->refcount);
 
-#if 0
-  fprintf(stderr, "bg_plugin_unref %p %s %d\n", h, h->info->name, h->refcount);
-#endif
   refcount = h->refcount;
   bg_plugin_unlock(h);
 
@@ -862,7 +912,7 @@ bg_plugin_registry_load_image(bg_plugin_registry_t * r,
 
   if(!info)
     {
-    fprintf(stderr, "No plugin found for image %s\n", filename);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No plugin found for image %s", filename);
     goto fail;
     }
   
@@ -907,7 +957,7 @@ bg_plugin_registry_save_image(bg_plugin_registry_t * r,
   
   if(!info)
     {
-    fprintf(stderr, "No plugin found for image %s\n", filename);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No plugin found for image %s", filename);
     goto fail;
     }
   
@@ -964,14 +1014,14 @@ bg_plugin_handle_t * bg_plugin_load(bg_plugin_registry_t * reg,
     ret->dll_handle = dlopen(info->module_filename, RTLD_NOW | RTLD_GLOBAL);
     if(!ret->dll_handle)
       {
-      fprintf(stderr, "Cannot dlopen plugin %s: %s\n", info->module_filename,
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot dlopen plugin %s: %s", info->module_filename,
               dlerror());
       goto fail;
       }
     if(!check_plugin_version(ret->dll_handle))
       {
-      fprintf(stderr, "Plugin %s has no or wrong version\n",
-              info->module_filename);
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Plugin %s has no or wrong version",
+             info->module_filename);
       goto fail;
       }
 
@@ -1049,9 +1099,7 @@ void bg_plugin_registry_add_device(bg_plugin_registry_t * reg,
   info->devices = bg_device_info_append(info->devices,
                                         device, name);
 
-  //  fprintf(stderr, "bg_plugin_registry_save...");
   bg_plugin_registry_save(reg->entries);
-  //  fprintf(stderr, "done\n");
   }
 
 void bg_plugin_registry_set_device_name(bg_plugin_registry_t * reg,
@@ -1113,8 +1161,6 @@ void bg_plugin_registry_remove_device(bg_plugin_registry_t * reg,
     num_devices++;
     }
 
-  //  fprintf(stderr, "bg_plugin_registry_remove_device %s %s %d %d %d\n",
-  //          device, name, index, num_devices, sizeof(*(info->devices)));
 
   if(index != -1)
     memmove(&(info->devices[index]), &(info->devices[index+1]),
@@ -1143,6 +1189,7 @@ void bg_plugin_registry_find_devices(bg_plugin_registry_t * reg,
 
   info->devices = handle->plugin->find_devices();
   bg_plugin_registry_save(reg->entries);
+  bg_plugin_unref(handle);
   }
 
 char ** bg_plugin_registry_get_plugins(bg_plugin_registry_t*reg,
@@ -1266,9 +1313,6 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
     
     if(!plugin->open((*ret)->priv, real_location))
       {
-      //      fprintf(stderr, "Opening %s with %s failed\n", location,
-      //              info->long_name);
-
       if(error_msg)
         {
         msg = (const char *)0;
@@ -1278,9 +1322,6 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
           *error_msg = bg_sprintf(msg);
         else
           *error_msg = bg_sprintf("Unknown error");
-
-        //        fprintf(stderr, "Error message: %s\n", *error_msg);
-        
         return 0;
         }
       }
@@ -1312,13 +1353,8 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
       continue;
     
     plugin = (bg_input_plugin_t*)((*ret)->plugin);
-    //    fprintf(stderr, "Trying to load %s with %s...", location,
-    //            info->long_name);
     if(!plugin->open((*ret)->priv, location))
       {
-      //        plugin->close(album->com->load_handle->priv);
-      //      fprintf(stderr, "Failed\n");
-
       if(*error_msg)
         free(*error_msg);
 
@@ -1333,11 +1369,9 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
       }
     else
       {
-      //      fprintf(stderr, "Success\n");
       return 1;
       }
     }
-  //  fprintf(stderr, "Cannot load %s: giving up\n", location);
   return 0;
   }
 

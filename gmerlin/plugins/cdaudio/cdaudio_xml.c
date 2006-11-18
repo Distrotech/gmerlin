@@ -36,7 +36,6 @@ int bg_cdaudio_load(bg_track_info_t * tracks, const char * filename)
 
   if(BG_XML_STRCMP(node->name, "CD"))
     {
-    fprintf(stderr, "File %s contains no CD metadata\n", filename);
     xmlFreeDoc(xml_doc);
     return 0;
     }

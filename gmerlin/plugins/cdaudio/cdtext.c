@@ -62,7 +62,6 @@ int bg_cdaudio_get_metadata_cdtext(CdIo_t * cdio,
 
   if(!cdtext)
     {
-    //    fprintf(stderr, 
     return 0;
     }
   

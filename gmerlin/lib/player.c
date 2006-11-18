@@ -85,9 +85,7 @@ int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data)
         {
         if(old_state == BG_PLAYER_STATE_PAUSED)
           ping_func(data);
-        //        fprintf(stderr, "wait notify...");
         wait_notify(p);
-        //        fprintf(stderr, "done\n");
         while(1)
           {
           gettimeofday(&now, NULL);
@@ -112,7 +110,6 @@ int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data)
       
       pthread_mutex_unlock(&(p->start_mutex));
 
-      // fprintf(stderr, "Old state: 
       
       if(old_state == BG_PLAYER_STATE_PAUSED)
         {
@@ -124,7 +121,6 @@ int bg_player_keep_going(bg_player_t * p, void (*ping_func)(void*), void * data)
 
       break;
     }
-  //  fprintf(stderr, "Keep going: 1\n");
   return 1;
   }
 
@@ -168,7 +164,6 @@ bg_player_t * bg_player_create()
 
 void bg_player_destroy(bg_player_t * player)
   {
-  //  fprintf(stderr, "bg_player_destroy...\n");
     
   bg_player_input_destroy(player);
   bg_player_oa_destroy(player);
@@ -184,7 +179,6 @@ void bg_player_destroy(bg_player_t * player)
   pthread_mutex_destroy(&(player->state_mutex));
   
   free(player);
-  //  fprintf(stderr, "bg_player_destroy done\n");
   }
 
 void bg_player_add_message_queue(bg_player_t * player,
@@ -251,7 +245,6 @@ void bg_player_set_state(bg_player_t * player, int state,
 
   /* Broadcast this message */
 
-  //  fprintf(stderr, "bg_player_set_state %d\n", state);
   
   //  memset(&state, 0, sizeof(state));
     

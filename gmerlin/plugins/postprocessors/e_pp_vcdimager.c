@@ -323,7 +323,7 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
     /* If we read something from stderr, we know it's an error */
     if(line && (*line != '\0'))
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "vcdxgen failed: %s\n", line);
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "vcdxgen failed: %s", line);
       err = 1;
       }
     }

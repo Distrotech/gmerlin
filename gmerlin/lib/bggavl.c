@@ -447,7 +447,6 @@ int bg_gavl_video_set_parameter(void * data, char * name,
   bg_gavl_video_options_t * opt = (bg_gavl_video_options_t *)data;
 
   
-  //  fprintf(stderr, "bg_gavl_video_set_parameter: %s\n", name);
   if(!strcmp(name, "conversion_quality"))
     {
     gavl_video_options_set_quality(opt->opt, val->val_i);
@@ -476,7 +475,6 @@ int bg_gavl_video_set_parameter(void * data, char * name,
   
   if(!strcmp(name, "alpha_mode"))
     {
-    //    fprintf(stderr, "Setting alpha mode\n");
     if(!strcmp(val->val_str, "ignore"))
       {
       gavl_video_options_set_alpha_mode(opt->opt, GAVL_ALPHA_IGNORE);
@@ -539,7 +537,6 @@ int bg_gavl_video_set_parameter(void * data, char * name,
       {
       if(!strcmp(val->val_str, framesize_strings[i].name))
         {
-        //        fprintf(stderr, "Frame size: %s\n", framesize_strings[i].name);
         opt->frame_size = framesize_strings[i].size;
         break;
         }
@@ -573,7 +570,6 @@ void bg_gavl_video_options_set_framerate(bg_gavl_video_options_t * opt,
     
   if(opt->framerate_mode == FRAME_RATE_USER)
     {
-    //    fprintf(stderr, "Framerate: %d:%d\n", opt->timescale, opt->frame_duration);
     out_format->frame_duration = opt->frame_duration;
     out_format->timescale =      opt->timescale;
     out_format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
@@ -596,7 +592,6 @@ void bg_gavl_video_options_set_interlace(bg_gavl_video_options_t * opt,
                                          gavl_video_format_t * out_format)
   {
   int flags = gavl_video_options_get_conversion_flags(opt->opt);
-  //  fprintf(stderr, "bg_gavl_video_options_set_interlace: %d\n", !!(flags & GAVL_FORCE_DEINTERLACE));
   if(flags & GAVL_FORCE_DEINTERLACE)
     out_format->interlace_mode = GAVL_INTERLACE_NONE;
   }
@@ -607,7 +602,6 @@ void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t * opt,
   {
   int i;
 
-  //  fprintf(stderr, "bg_gavl_video_options_set_framesize %d\n", opt->frame_size);
   
   /* Set image- and pixel size for output */
   
@@ -618,7 +612,6 @@ void bg_gavl_video_options_set_framesize(bg_gavl_video_options_t * opt,
     }
   else if(opt->frame_size == FRAME_SIZE_USER)
     {
-    //    fprintf(stderr, "USER DEFINED SIZE\n");
     out_format->image_width  = opt->user_image_width;
     out_format->image_height = opt->user_image_height;
 
@@ -661,7 +654,6 @@ void bg_gavl_video_options_set_rectangles(bg_gavl_video_options_t * opt,
 
   if(opt->maintain_aspect)
     {
-    fprintf(stderr, "FIT ASPECT\n");
     gavl_rectangle_fit_aspect(&out_rect,   // gavl_rectangle_t * r,
                               in_format,  // gavl_video_format_t * src_format,
                               &in_rect,    // gavl_rectangle_t * src_rect,
@@ -672,13 +664,8 @@ void bg_gavl_video_options_set_rectangles(bg_gavl_video_options_t * opt,
     }
   else
     {
-    fprintf(stderr, "Ignore aspect\n");
     gavl_rectangle_i_set_all(&out_rect, out_format);
     }
-  fprintf(stderr, "In Rectangle: ");
-  gavl_rectangle_f_dump(&in_rect);
-  fprintf(stderr, "Out Rectangle: ");
-  gavl_rectangle_i_dump(&out_rect);
       
   /* Set rectangles */
 

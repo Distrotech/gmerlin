@@ -25,6 +25,9 @@
 #include <errno.h>
 #include <stdio.h>
 
+#include <log.h>
+#define LOG_DOMAIN "charset"
+
 struct bg_charset_converter_s
   {
   iconv_t cd;
@@ -86,10 +89,10 @@ static char * do_convert(iconv_t cd, char * in_string, int len, int * out_len)
           outbuf = &ret[output_pos];
           break;
         case EILSEQ:
-          fprintf(stderr, "Invalid Multibyte sequence\n");
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid Multibyte sequence");
           break;
         case EINVAL:
-          fprintf(stderr, "Incomplete Multibyte sequence\n");
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Incomplete Multibyte sequence");
           break;
         }
       }

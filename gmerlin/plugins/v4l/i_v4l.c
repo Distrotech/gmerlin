@@ -34,6 +34,9 @@
 #include <unistd.h>
 #include <utils.h>
 
+#include <log.h>
+#define LOG_DOMAIN "i_v4l"
+
 #include "pwc.h"
 
 /* Debugging stuff */
@@ -67,11 +70,12 @@ palette_names[] =
 static void dump_palette(int palette)
   {
   int i;
+  FILE * out = stderr;
   for(i = 0; i < sizeof(palette_names)/sizeof(palette_names[0]); i++)
     {
     if(palette == palette_names[i].id)
       {
-      fprintf(stderr, "%s", palette_names[i].name);
+      fprintf(out, "%s", palette_names[i].name);
       break;
       }
     }
@@ -79,16 +83,17 @@ static void dump_palette(int palette)
 
 static void dump_video_picture(struct video_picture * p)
   {
-  fprintf(stderr , "Video picture:\n");
-  fprintf(stderr , "  Brightness: %d\n", p->brightness);
-  fprintf(stderr , "  Hue:        %d\n", p->hue);
-  fprintf(stderr , "  Colour:     %d\n", p->colour);
-  fprintf(stderr , "  Contrast:   %d\n", p->contrast);
-  fprintf(stderr , "  Whiteness:  %d\n", p->whiteness);
-  fprintf(stderr , "  Depth:      %d\n", p->depth);
-  fprintf(stderr , "  Palette:    ");
+  FILE * out = stderr;
+  fprintf(out , "Video picture:\n");
+  fprintf(out , "  Brightness: %d\n", p->brightness);
+  fprintf(out , "  Hue:        %d\n", p->hue);
+  fprintf(out , "  Colour:     %d\n", p->colour);
+  fprintf(out , "  Contrast:   %d\n", p->contrast);
+  fprintf(out , "  Whiteness:  %d\n", p->whiteness);
+  fprintf(out , "  Depth:      %d\n", p->depth);
+  fprintf(out , "  Palette:    ");
   dump_palette(p->palette);
-  fprintf(stderr , "\n");
+  fprintf(out , "\n");
   }
 #endif
 
@@ -191,7 +196,6 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
 
   /* Open device */
 
-  //  fprintf(stderr, "Opening %s\n", v4l->device);
   if((v4l->fd = open(v4l->device, O_RDWR, 0)) < 0)
     {
     v4l->error_message = 
@@ -204,7 +208,7 @@ static int open_v4l(void * priv, gavl_video_format_t * format)
   v4l->have_pwc = bg_pwc_probe(v4l->fd);
 
   if(v4l->have_pwc)
-    fprintf(stderr, "Phillips webcam detected\n");
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Phillips webcam detected");
   
   /* Set Picture */
   
@@ -533,7 +537,6 @@ static void create_parameters(v4l_t * v4l)
     v4l->fd = -1;
     }
 #endif
-  //  fprintf(stderr, "Have PWC: %d\n", v4l->have_pwc);
   
   if(v4l->have_pwc)
     {
@@ -573,9 +576,7 @@ static void set_parameter_v4l(void * priv, char * name,
     bg_pwc_set_parameter(v4l->fd, v4l->pwc_priv, NULL, val);
     return;
     }
-
-  //  fprintf(stderr, "Set parameter %s\n", name);
-
+  
   if(!strncmp(name, "pwc_", 4))
     {
     bg_pwc_set_parameter(v4l->fd, v4l->pwc_priv, name, val);
@@ -702,8 +703,6 @@ static void set_parameter_v4l(void * priv, char * name,
         return;
       }
     }
-  //  fprintf(stderr, "cfg pic:\n");
-  //  dump_video_picture(&(v4l->cfg_pic));
   }
 
 static const char * get_error_v4l(void * priv)

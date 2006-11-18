@@ -32,6 +32,9 @@
 #include <utils.h>
 #include <subprocess.h>
 
+#include <log.h>
+#define LOG_DOMAIN "utils"
+
 char * bg_search_file_read(const char * directory, const char * file)
   {
   char * testpath;
@@ -50,7 +53,6 @@ char * bg_search_file_read(const char * directory, const char * file)
     {
     sprintf(testpath, "%s/.%s/%s/%s", home_dir,
             PACKAGE, directory, file);
-    /*    fprintf(stderr, "Trying %s\n", testpath); */
     testfile = fopen(testpath, "r");
     if(testfile)
       {
@@ -60,7 +62,6 @@ char * bg_search_file_read(const char * directory, const char * file)
     }
   /* Second step: Try Data directory */
   sprintf(testpath, "%s/%s/%s", GMERLIN_DATA_DIR, directory, file);
-  /*  fprintf(stderr, "Trying %s\n", testpath); */
   testfile = fopen(testpath, "r");
   if(testfile)
     {
@@ -127,7 +128,7 @@ char * bg_search_file_write(const char * directory, const char * file)
         }
       }
     else
-      fprintf(stderr, "Created directory %s\n", testpath);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Created directory %s", testpath);
     
     *pos2 = '/';
     pos1 = pos2;

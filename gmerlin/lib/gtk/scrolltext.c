@@ -88,7 +88,6 @@ static gboolean expose_callback(GtkWidget * w, GdkEventExpose * evt,
                                 gpointer data)
   {
   bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t *)data;
-  //  fprintf(stderr, "Expose %d %d\n", st->width, st->height);
   gdk_draw_drawable(st->drawingarea->window, st->gc, st->pixmap_2,
                     0, 0, 0, 0, st->width, st->height);
   
@@ -101,7 +100,6 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure * evt,
   GdkColor bg;
   bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t *)data;
   
-  //  fprintf(stderr, "Configure: %d %d\n", evt->width, evt->height);
 
   st->width = evt->width;
   st->height = evt->height;
@@ -119,7 +117,6 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure * evt,
       st->pixmap_2 = gdk_pixmap_new(st->drawingarea->window,
                                     st->pixmap_width, st->pixmap_height, -1);
       
-      //      fprintf(stderr, "Enlarging text pixmap_2\n");
       }
 
     /* Put pixmap_1 onto pixmap_2 if we won't scroll */
@@ -148,7 +145,6 @@ static gboolean configure_callback(GtkWidget * w, GdkEventConfigure * evt,
        ((st->width >= st->text_width) && st->do_scroll))
       {
       create_text_pixmap(st);
-      //      fprintf(stderr, "Creating pixmap_1\n");
       }
     }
   //  expose_callback(w, NULL, data);
@@ -203,7 +199,6 @@ static void create_text_pixmap(bg_gtk_scrolltext_t * st)
   if(!st->is_realized)
     return;
   
-  //  fprintf(stderr, "create_text_pixmap %s.", st->text);
   
   /* Create pango layout */
   
@@ -269,7 +264,6 @@ static void create_text_pixmap(bg_gtk_scrolltext_t * st)
                      0, 0, st->text_width, st->height);
     
   gdk_gc_set_foreground(st->gc, &fg);
-  //  fprintf(stderr, "y: %d\n", (st->height - height)/2);
   gdk_draw_layout(st->pixmap_1, st->gc, 0, (st->height - height)/2,
                   layout);
 
@@ -293,14 +287,12 @@ static void create_text_pixmap(bg_gtk_scrolltext_t * st)
   
   expose_callback(st->drawingarea, (GdkEventExpose*)0,
                   st);
-  //  fprintf(stderr, "done\n");
   
   }
 
 static void realize_callback(GtkWidget * w, gpointer data)
   {
   bg_gtk_scrolltext_t * st = (bg_gtk_scrolltext_t *)data;
-  //  fprintf(stderr, "Realize!!\n");
   st->is_realized = 1;
   st->gc = gdk_gc_new(st->drawingarea->window);
 

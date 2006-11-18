@@ -66,7 +66,9 @@ void bg_log(bg_log_level_t level, const char * domain,
   int i;
   char * msg_string;
   bg_msg_t * msg;
+  FILE * out = stderr;
   va_list argp; /* arg ptr */
+  
 #ifndef HAVE_VASPRINTF
   int len;
 #endif
@@ -92,7 +94,7 @@ void bg_log(bg_log_level_t level, const char * domain,
       i = 0;
       while(lines[i])
         {
-        fprintf(stderr, "[%s] %s: %s\n",
+        fprintf(out, "[%s] %s: %s\n",
                 domain,
                 bg_log_level_to_string(level),
                 lines[i]);

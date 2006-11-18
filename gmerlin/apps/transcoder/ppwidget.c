@@ -151,18 +151,15 @@ static void window_button_callback(GtkWidget * w, gpointer data)
 
   if((w == win->close_button) || (w == win->window))
     {
-    //    fprintf(stderr, "close_button\n");
     gtk_widget_hide(win->window);
     gtk_main_quit();
     }
   if(w == win->apply_button)
     {
-    //    fprintf(stderr, "apply_button\n");
     encoder_pp_window_apply(win);
     }
   if(w == win->ok_button)
     {
-    //    fprintf(stderr, "ok_button\n");
     encoder_pp_window_apply(win);
     gtk_widget_hide(win->window);
     gtk_main_quit();
@@ -172,7 +169,6 @@ static void window_button_callback(GtkWidget * w, gpointer data)
 
 static gboolean delete_callback(GtkWidget * w, GdkEvent * evt, gpointer data)
   {
-  //  fprintf(stderr, "Delete callback\n");
   window_button_callback(w, data);
   return TRUE;
   }

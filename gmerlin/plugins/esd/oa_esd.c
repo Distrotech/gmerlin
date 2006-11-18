@@ -125,15 +125,10 @@ static int open_esd(void * data, gavl_audio_format_t * format)
 static int start_esd(void * p)
   {
   esd_t * e = (esd_t *)p;
-//  char * stream_name;
-//   fprintf(stderr,"start_esd...");
-//  stream_name = bg_sprintf("gmerlin_output%08x", stream_count++);
   e->esd_socket = esd_play_stream(e->esd_format,
                                   e->samplerate,
                                   e->hostname,
                                   "gmerlin output");
-//  fprintf(stderr,"done\n");
-//  free(stream_name);
   if(e->esd_socket < 0)
     return 0;
   return 1;

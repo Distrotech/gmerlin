@@ -80,7 +80,6 @@ static void disable_screensaver(x11_window_t * w)
   if(w->screensaver_disabled)
     return;
 
-  //  fprintf(stderr, "Disabling screensaver\n");
   
   switch(w->screensaver_mode)
     {
@@ -118,7 +117,6 @@ static void enable_screensaver(x11_window_t * w)
   
   w->screensaver_disabled = 0;
   
-  //  fprintf(stderr, "Enabling screensaver\n");
   
   if(!w->screensaver_was_enabled)
     return;
@@ -155,7 +153,6 @@ static void ping_screensaver(x11_window_t * w)
     case SCREENSAVER_MODE_XLIB:
       break;
     case SCREENSAVER_MODE_GNOME:
-      //      fprintf(stderr, "Pinging screensaver\n");
       system("gnome-screensaver-command --poke > /dev/null 2> /dev/null");
       break;
     case SCREENSAVER_MODE_KDE:
@@ -290,11 +287,9 @@ static int get_fullscreen_mode(x11_window_t * w)
   if(wm_check_capability(w->dpy, w->root, w->WIN_PROTOCOLS,
                          w->WIN_LAYER))
     {
-    //    fprintf(stderr, "WIN_LAYER\n");
     ret |= FULLSCREEN_MODE_WIN_LAYER;
     }
   
-  //  fprintf(stderr, "MWM FULLSCREEN\n");
   return ret;
   }
 
@@ -406,17 +401,6 @@ int x11_window_create(x11_window_t * w,
       XineramaIsActive(w->dpy))
     {
     w->xinerama = XineramaQueryScreens(dpy,&(w->nxinerama));
-#if 0
-    for (i = 0; i < w->nxinerama; i++)
-      {
-      fprintf(stderr,"xinerama %d: %dx%d+%d+%d\n",
-              w->xinerama[i].screen_number,
-              w->xinerama[i].width,
-              w->xinerama[i].height,
-              w->xinerama[i].x_org,
-              w->xinerama[i].y_org);
-      }
-#endif
     }
 #endif
 
@@ -552,8 +536,6 @@ static void get_window_coords(x11_window_t * w,
     //                          &child_return);
     }
 
-  //  fprintf(stderr, "get_window_coords: %d x %d, %d %d\n", 
-  //          *width, *height, *x, *y);
   
   }
 
@@ -564,8 +546,6 @@ void x11_window_handle_event(x11_window_t * w, XEvent*evt)
   if(!evt || (evt->type != MotionNotify))
     {
     w->idle_counter++;
-    //    fprintf(stderr, "IDLE %d %d\n", w->idle_counter,
-    //            w->pointer_hidden);
     if(w->idle_counter == IDLE_MAX)
       {
       if(!w->pointer_hidden)
@@ -597,13 +577,9 @@ void x11_window_handle_event(x11_window_t * w, XEvent*evt)
       get_window_coords(w, w->normal_window,
                         &(w->window_x), &(w->window_y),
                         &(w->window_width), &(w->window_height));
-      //      fprintf(stderr, "Configure notify: %d x %d %d %d\n",
-      //              w->window_width, w->window_height,
-      //              w->window_x, w->window_y);
 
       break;
     case MotionNotify:
-      //      fprintf(stderr, "MotionNotify\n");
       w->idle_counter = 0;
       if(w->pointer_hidden)
         {
@@ -618,23 +594,16 @@ void x11_window_handle_event(x11_window_t * w, XEvent*evt)
       if((evt->xclient.message_type == w->WM_PROTOCOLS) &&
          (evt->xclient.data.l[0] == w->WM_DELETE_WINDOW))
         {
-//        fprintf(stderr, "Delete window\n");
         w->do_delete = 1;
         }
       break;
     case UnmapNotify:
       if(evt->xunmap.window == w->normal_window)
         w->mapped = 0;
-      //      fprintf(stderr, "Unmap Notify %08x %08x\n",
-      //              (unsigned int)evt->xunmap.window,
-      //              (unsigned int)priv->normal_window);
       break;
     case MapNotify:
       if(evt->xmap.window == w->normal_window)
         w->mapped = 1;
-      //      fprintf(stderr, "Map Notify %08x %08x\n",
-      //              (unsigned int)evt->xmap.window,
-      //              (unsigned int)priv->normal_window);
       break;
     }
   }
@@ -666,7 +635,6 @@ static void get_fullscreen_coords(x11_window_t * w,
                           &y_return,
                           &child);
 
-    //    fprintf(stderr, "Root coords: %d %d\n", x_return, y_return);
     
     /* Get the xinerama screen we are on */
     
@@ -692,11 +660,7 @@ static void get_fullscreen_coords(x11_window_t * w,
   *height = DisplayHeight(w->dpy, w->screen);
 #endif
 
-#if 0
-  fprintf(stderr, "Fullscreen coords: %d %d %d %d\n",
-          *x, *y, *width, *height);
-#endif
-  }
+   }
 
 
 void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
@@ -760,11 +724,9 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
       XMaskEvent(w->dpy, ExposureMask, &evt);
       x11_window_handle_event(w, &evt);
       } while((evt.type != Expose) && (evt.xexpose.window != w->fullscreen_window));
-//    fprintf(stderr, "Set Input focus: %d\n", w->fullscreen_window);
 
     XSetInputFocus(w->dpy, w->fullscreen_window, RevertToNone, CurrentTime);
 
-//    fprintf(stderr, "Move -> %d,%d\n", x, y);
 //    XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
 //    XSync(w->dpy, False);
     x11_window_clear(w);
@@ -800,9 +762,6 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
     w->window_width  = w->normal_width;
     w->window_height = w->normal_height;
 
-//    fprintf(stderr, "Move normal window: %d x %d, %d %d\n",
-//            w->window_width, w->window_height,
-//            w->window_x, w->window_y);
 
     do
       {
@@ -863,7 +822,6 @@ XEvent * x11_window_next_event(x11_window_t * w,
   int fd;
   struct timeval timeout;
   fd_set read_fds;
-  //  fprintf(stderr, "Next event %d\n", milliseconds);
   if(milliseconds < 0) /* Block */
     {
     XNextEvent(w->dpy, &(w->evt));
@@ -902,7 +860,6 @@ void x11_window_show(x11_window_t * win, int show)
   {
   if(!show)
     {
-      //      fprintf(stderr, "Unmapping window\n");
     XWithdrawWindow(win->dpy, win->current_window,
                     DefaultScreen(win->dpy));
     win->mapped = 0;
@@ -930,13 +887,10 @@ void x11_window_show(x11_window_t * win, int show)
   
   if(win->mapped)
     {
-    //      fprintf(stderr, "Already mapped\n");
     XRaiseWindow(win->dpy, win->current_window);
     }
   else
     {
-    //      fprintf(stderr, "Mapping window %d %d\n", win->window_x,
-    //              win->window_y);
     XMapWindow(win->dpy, win->current_window);
     if(win->current_window == win->normal_window)
       XMoveResizeWindow(win->dpy, win->normal_window,
@@ -970,6 +924,5 @@ void x11_window_clear(x11_window_t * win)
    XClearArea(win->dpy, win->fullscreen_window, 0, 0,
               win->window_width, win->window_height, True);
 
-   //   fprintf(stderr, "XSync\n");
    //   XSync(win->dpy, False);
   }

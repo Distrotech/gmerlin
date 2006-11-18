@@ -23,7 +23,6 @@ device.c \
 fifo.c \
 formats.c \
 hexdump.c \
-http.c \
 lcdproc.c \
 log.c \
 metadata.c \
@@ -50,7 +49,6 @@ socket.c \
 streaminfo.c \
 stringutils.c \
 subprocess.c \
-tcp.c \
 textrenderer.c \
 transcoder.c \
 transcoder_enc.c \

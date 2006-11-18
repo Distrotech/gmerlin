@@ -31,6 +31,10 @@
 
 #include <plugin.h>
 #include <utils.h>
+
+#include <log.h>
+#define LOG_DOMAIN "i_alsa"
+
 #include "alsa_common.h"
 
 
@@ -126,7 +130,6 @@ set_parameter_alsa(void * p, char * name, bg_parameter_value_t * val)
   {
   alsa_t * priv = (alsa_t*)(p);
 
-  //  fprintf(stderr, "Set parameter %s\n", name);
 
   if(!name)
     return;
@@ -237,7 +240,6 @@ static int read_frame(alsa_t * priv)
   {
   int result = 0;
 
-  //  fprintf(stderr, "Read frame: %d\n", priv->format.samples_per_frame);
   
   while(1)
     {
@@ -258,23 +260,22 @@ static int read_frame(alsa_t * priv)
       {
       priv->f->valid_samples = result;
       priv->last_frame_size = result;
-//      fprintf(stderr, "Read %d\n", result);
       return 1;
       }
     else if(result == -EPIPE)
       {
-      fprintf(stderr, "Warning: Dropping samples\n");
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Dropping samples");
       snd_pcm_drop(priv->pcm);
       if(snd_pcm_prepare(priv->pcm) < 0)
         {
-        fprintf(stderr, "i_alsa: snd_pcm_prepare failed\n");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_pcm_prepare failed");
         return 0;
         }
       snd_pcm_start(priv->pcm);
       }
     else
       {
-      fprintf(stderr, "Unknown error\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unknown error");
       break;
       }
     }
@@ -305,13 +306,6 @@ static void read_frame_alsa(void * p, gavl_audio_frame_t * f,
                             priv->last_frame_size - priv->f->valid_samples, /* src_pos */
                             num_samples - samples_read,                     /* dst_size */
                             priv->f->valid_samples                          /* src_size */ );
-#if 0 
-    fprintf(stderr, "Copy %d %d %d %d\n",
-            samples_read,                                   /* dst_pos */
-            priv->last_frame_size - priv->f->valid_samples, /* src_pos */
-            num_samples - samples_read,                     /* dst_size */
-            priv->f->valid_samples                          /* src_size */ );
-#endif
     priv->f->valid_samples -= samples_copied;
     samples_read += samples_copied;
     }

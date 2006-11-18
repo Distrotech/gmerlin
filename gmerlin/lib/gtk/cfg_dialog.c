@@ -177,7 +177,6 @@ static void apply_section(dialog_section_t * s)
   bg_parameter_value_t val;
   char * pos;
     
-  /*  fprintf(stderr, "Apply section\n"); */
   parameter_index = 0;
 
   for(i = 0; i < s->num_widgets; i++)
@@ -267,7 +266,6 @@ static void select_row_callback(GtkTreeSelection * sel,
   GtkTreeIter iter;
   bg_dialog_t * d = (bg_dialog_t *)data;
   
-  //  fprintf(stderr, "Select row\n");
 
   if(!gtk_tree_selection_get_selected(sel,
                                       &model,
@@ -785,7 +783,6 @@ void bg_dialog_add(bg_dialog_t *d,
 
 void bg_dialog_show(bg_dialog_t * d)
   {
-  //  fprintf(stderr, "bg_dialog_show %d\n", d->visible);
   
   if(d->visible)
     {
@@ -863,7 +860,6 @@ void * bg_dialog_add_parent(bg_dialog_t *d, void * _parent, const char * label)
   GtkTreeIter iter, parent_iter;
   dialog_section_t * parent;
   GtkTreeModel *model;
-  //  fprintf(stderr, "Add parent: %s\n", label);
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(d->treeview));
   if(_parent)
     {

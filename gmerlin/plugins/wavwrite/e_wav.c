@@ -394,7 +394,6 @@ static void set_audio_parameter_wav(void * data, int stream, char * name,
   if(!name)
     return;
 
-  //  fprintf(stderr, "set_audio_parameter_wav %s\n", name);
   
   if(!strcmp(name, "bits"))
     {
@@ -490,8 +489,6 @@ static int add_audio_stream_wav(void * data, gavl_audio_format_t * format)
 
   gavl_audio_format_copy(&(wav->format), format);
 
-  // fprintf(stderr, "add_audio_stream_wav\n");
-  // gavl_audio_format_dump(&(wav->format));
   
   wav->format.interleave_mode = GAVL_INTERLEAVE_ALL;
   return 0;

@@ -22,6 +22,7 @@
 
 void bg_hexdump(uint8_t * data, int len, int linebreak)
   {
+  FILE * out = stderr;
   int i;
   int bytes_written = 0;
   int imax;
@@ -30,17 +31,17 @@ void bg_hexdump(uint8_t * data, int len, int linebreak)
     {
     imax = (bytes_written + linebreak > len) ? len - bytes_written : linebreak;
     for(i = 0; i < imax; i++)
-      fprintf(stderr, "%02x ", data[bytes_written + i]);
+      fprintf(out, "%02x ", data[bytes_written + i]);
     for(i = imax; i < linebreak; i++)
-      fprintf(stderr, "   ");
+      fprintf(out, "   ");
     for(i = 0; i < imax; i++)
       {
       if(!(data[bytes_written + i] & 0x80) && (data[bytes_written + i] >= 32))
-        fprintf(stderr, "%c", data[bytes_written + i]);
+        fprintf(out, "%c", data[bytes_written + i]);
       else
-        fprintf(stderr, ".");
+        fprintf(out, ".");
       }
     bytes_written += imax;
-    fprintf(stderr, "\n");
+    fprintf(out, "\n");
     }
   }

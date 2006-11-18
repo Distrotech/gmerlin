@@ -32,13 +32,10 @@ static gboolean  timeout_func(gpointer data)
   card_widget_t * w;
   w = (card_widget_t *)data;
 
-  //  fprintf(stderr, "Timeout\n");
   snd_hctl_nonblock(w->hctl, 1);
   if(snd_hctl_wait(w->hctl, 1) >= 0)
     {
-    //    fprintf(stderr, "snd_hctl_handle_events...");
     snd_hctl_handle_events(w->hctl);
-    //    fprintf(stderr, "done\n");
     }
   return TRUE;
   }
@@ -54,14 +51,12 @@ static void sort_controls(control_widget_t ** controls, int num_controls)
 
   if(control_widget_get_index(controls[0]) == -1)
     {
-    //    fprintf(stderr, "New indices\n");
     for(i = 0; i < num_controls; i++)
       control_widget_set_index(controls[i], i);
     }
 
   else /* Bubblesort */
     {
-    //    fprintf(stderr, "Bubblesort....\n");
     for(i = 0; i < num_controls-1; i++)
       {
       keep_going = 0;
@@ -157,8 +152,6 @@ card_widget_t * card_widget_create(alsa_card_t * c, bg_cfg_section_t * section)
 
   sort_controls(ret->upper_controls, ret->num_upper_controls);
   
-  //  fprintf(stderr, "Lower widgets: %d, upper widgets: %d\n",
-  //          num_lower_widgets, num_upper_widgets);
 
   /* Pack the objects */
   
@@ -478,7 +471,6 @@ static void unmap_callback(GtkWidget * w, gpointer data)
   gtk_window_get_position(GTK_WINDOW(win->window), &(x), &(y));
   gtk_window_get_size(GTK_WINDOW(win->window), &(width), &(height));
 
-  //  fprintf(stderr, "Unmap callback %d %d %d %d\n", x, y, width, height);
   
   control_widget_set_coords(win->control, x, y, width, height);
   
@@ -492,8 +484,6 @@ static void map_callback(GtkWidget * w, gpointer data)
 
   control_widget_get_coords(win->control, &x, &y, &width, &height);
 
-  //  fprintf(stderr, "Map %d %d %d %d\n", x, y, width, height);
-  
   gtk_window_resize(GTK_WINDOW(win->window), width, height);
   gtk_window_move(GTK_WINDOW(win->window), x, y);
 

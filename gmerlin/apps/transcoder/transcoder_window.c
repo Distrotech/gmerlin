@@ -308,7 +308,6 @@ static void plugin_window_close_notify(plugin_window_t * w,
 
 static void finish_transcoding(transcoder_window_t * win)
   {
-  //  fprintf(stderr, "Finish transcoding\n");
   
   if(win->transcoder)
     {
@@ -346,61 +345,48 @@ static gboolean idle_callback(gpointer data)
 
   /* If the transcoder isn't there, it means that we were interrupted */
 
-  //  fprintf(stderr, "idle_callback\n");
 
   while((msg = bg_msg_queue_try_lock_read(win->msg_queue)))
     {
     switch(bg_msg_get_id(msg))
       {
       case BG_TRANSCODER_MSG_START:
-        //        fprintf(stderr, "BG_TRANSCODER_MSG_START\n");
         arg_str = bg_msg_get_arg_string(msg, 0);
         bg_gtk_scrolltext_set_text(win->scrolltext, arg_str, win->fg_color, win->bg_color);
         free(arg_str);
         break;
       case BG_TRANSCODER_MSG_NUM_AUDIO_STREAMS:
-        //        fprintf(stderr, "BG_TRANSCODER_MSG_NUM_AUDIO_STREAMS\n");
         break;
       case BG_TRANSCODER_MSG_AUDIO_FORMAT:
-        //        fprintf(stderr, "BG_TRANSCODER_MSG_AUDIO_FORMAT\n");
         break;
       case BG_TRANSCODER_MSG_AUDIO_FILE:
-        //        fprintf(stderr, "BG_TRANSCODER_MSG_AUDIO_FILE\n");
         break;
       case BG_TRANSCODER_MSG_NUM_VIDEO_STREAMS:
-        //        fprintf(stderr, "BG_TRANSCODER_MSG_NUM_VIDEO_STREAMS\n");
         break;
       case BG_TRANSCODER_MSG_VIDEO_FORMAT:
-        //        fprintf(stderr, "BG_TRANSCODER_MSG_VIDEO_FORMAT\n");
         break;
       case BG_TRANSCODER_MSG_VIDEO_FILE:
-        //        fprintf(stderr, "BG_TRANSCODER_MSG_VIDEO_FILE\n");
         break;
       case BG_TRANSCODER_MSG_FILE:
-        //        fprintf(stderr, "BG_TRANSCODER_MSG_FILE\n");
         break;
       case BG_TRANSCODER_MSG_PROGRESS:
-        //        fprintf(stderr, "BG_TRANSCODER_MSG_PROGRESS\n");
         percentage_done = bg_msg_get_arg_float(msg, 0);
         remaining_time = bg_msg_get_arg_time(msg, 1);
 
         bg_gtk_time_display_update(win->time_remaining,
                                    remaining_time);
         
-        //  fprintf(stderr, "done\n");
         
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar),
                                       percentage_done);
         break;
       case BG_TRANSCODER_MSG_FINISHED:
-        //        fprintf(stderr, "BG_TRANSCODER_MSG_FINISHED\n");
 
         finish_transcoding(win);
         
         bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED);
         gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
         
-        //    fprintf(stderr, "Transcoding done\n");
         
         if(!start_transcode(win))
           {
@@ -410,7 +396,6 @@ static gboolean idle_callback(gpointer data)
           gtk_widget_set_sensitive(win->stop_button, 0);
           gtk_widget_set_sensitive(win->actions_menu.stop_item, 0);
           bg_msg_queue_unlock_read(win->msg_queue);
-          //          fprintf(stderr, "start_transcode failed\n");
           return TRUE;
           }
         else
@@ -483,7 +468,6 @@ static int start_transcode(transcoder_window_t * win)
     win->transcoder = (bg_transcoder_t*)0;
     return 0;
     }
-  //  fprintf(stderr, "Initialized transcoder\n");
   
   gtk_widget_set_sensitive(win->run_button, 0);
   gtk_widget_set_sensitive(win->actions_menu.run_item, 0);
@@ -588,12 +572,10 @@ static void button_callback(GtkWidget * w, gpointer data)
         }
       }
     
-    //    fprintf(stderr, "Run Button\n");
     start_transcode(win);
     }
   else if((w == win->stop_button) || (w == win->actions_menu.stop_item))
     {
-    //    fprintf(stderr, "Stop Button\n");
     if(win->transcoder_track)
       track_list_prepend_track(win->tracklist, win->transcoder_track);
     win->transcoder_track = (bg_transcoder_track_t*)0;
@@ -602,9 +584,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     else if(win->pp)
       bg_transcoder_pp_stop(win->pp);
     
-    fprintf(stderr, "joining thread...");
     finish_transcoding(win);
-    fprintf(stderr, "done\n");
     gtk_widget_set_sensitive(win->run_button, 1);
     gtk_widget_set_sensitive(win->actions_menu.run_item, 1);
 
@@ -621,7 +601,6 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if((w == win->load_button) || (w == win->file_menu.load_item))
     {
-    //    fprintf(stderr, "Load Button\n");
     
     if(!win->filesel)
       win->filesel = create_filesel(win);
@@ -671,7 +650,6 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if(w == win->options_menu.load_item)
     {
-    fprintf(stderr, "Load profile\n");
     if(!win->filesel)
       win->filesel = create_filesel(win);
     
@@ -721,19 +699,16 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if((w == win->plugin_button) || (w == win->options_menu.plugin_item))
     {
-    //    fprintf(stderr, "Preferences Button\n");
     gtk_widget_set_sensitive(win->plugin_button, 0);
     plugin_window_show(win->plugin_window);
     }
   else if((w == win->quit_button) || (w == win->file_menu.quit_item))
     {
-    //    fprintf(stderr, "Quit Button\n");
     gtk_widget_hide(win->win);
     gtk_main_quit();
     }
   else if((w == win->properties_button) || (w == win->options_menu.config_item))
     {
-    //    fprintf(stderr, "Properties Button\n");
     transcoder_window_preferences(win);
     }
   else if(w == win->windows_menu.log_item)
@@ -794,7 +769,6 @@ static gboolean delete_callback(GtkWidget * w, GdkEvent * evt,
                                 gpointer data)
   {
   transcoder_window_t * win = (transcoder_window_t *)data;
-  fprintf(stderr, "Transcoder delete\n");
   gtk_widget_hide(win->win);
   gtk_main_quit();
   return TRUE;
@@ -1117,8 +1091,6 @@ transcoder_window_t * transcoder_window_create()
   bg_cfg_section_apply(cfg_section, bg_remote_server_get_parameters(ret->remote),
                        bg_remote_server_set_parameter, ret->remote);
   
-  //  if(!bg_remote_server_init(ret->remote))
-  //    fprintf(stderr, "Cannot open remote server (Port busy?)\n");
   
   return ret;
   }
@@ -1180,6 +1152,11 @@ static gboolean remote_callback(gpointer data)
       case TRANSCODER_REMOTE_ADD_ALBUM:
         arg_str = bg_msg_get_arg_string(msg, 0);
         track_list_add_xml(win->tracklist, arg_str, strlen(arg_str));
+        free(arg_str);
+        break;
+      case TRANSCODER_REMOTE_ADD_FILE:
+        arg_str = bg_msg_get_arg_string(msg, 0);
+        track_list_add_url(win->tracklist, arg_str);
         free(arg_str);
         break;
       }

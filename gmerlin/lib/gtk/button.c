@@ -221,8 +221,6 @@ static GdkPixbuf * make_pixbuf(GdkPixbuf * old,
 
   ret = gdk_pixbuf_new_from_file(filename, NULL);
 
-  if(!ret)
-    fprintf(stderr, "Cannot open %s\n", filename);
   
   return ret;
   }

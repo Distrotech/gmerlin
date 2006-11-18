@@ -233,7 +233,6 @@ static void update_background(display_t * d)
 static void update_colors(display_t * d)
   {
   int i;
-  //  fprintf(stderr, "Update colors\n");
   
   for(i = 0; i < NUM_STATES; i++)
     {
@@ -425,7 +424,6 @@ int display_get_parameter(void * data, char * name,
   {
   display_t * d = (display_t*)data;
 
-  // fprintf(stderr, "display_get_parameter, %s\n", name);
 
   if(!strcmp(name, "display_mode"))
     {
@@ -665,7 +663,6 @@ void display_set_state(display_t * d, int state,
     {
     case BG_PLAYER_STATE_STOPPED:
 
-      //      fprintf(stderr, "display_set_state: Stopped\n");
       d->state_index = STATE_STOPPED;
       display_set_track_name(d, "Gmerlin player (version "VERSION")");
 
@@ -674,12 +671,10 @@ void display_set_state(display_t * d, int state,
                                  d->duration_after);
       break;
     case BG_PLAYER_STATE_SEEKING:
-      //      fprintf(stderr, "STATE SEEKING\n");
       d->state_index = STATE_SEEKING;
       break;
     case BG_PLAYER_STATE_CHANGING:
     case BG_PLAYER_STATE_STARTING:
-      //      fprintf(stderr, "STATE SEEKING\n");
       d->state_index = STATE_CHANGING;
       break;
     case BG_PLAYER_STATE_BUFFERING:
@@ -765,15 +760,12 @@ void display_skin_load(display_skin_t * s,
       }
     else if(!BG_XML_STRCMP(node->name, "FOREGROUND_NORMAL"))
       {
-      //      fprintf(stderr, "FOREGROUND_NORMAL %s\n", tmp_string);
       pos = tmp_string;
       s->foreground_normal[0] = strtod(pos, &rest);
       pos = rest;
       s->foreground_normal[1] = strtod(pos, &rest);
       pos = rest;
       s->foreground_normal[2] = strtod(pos, &rest);
-      //      fprintf(stderr, "FOREGROUND_NORMAL %f %f %f",
-      //              s->foreground_normal[0], s->foreground_normal[1], s->foreground_normal[2]);
       }
     else if(!BG_XML_STRCMP(node->name, "FOREGROUND_ERROR"))
       {

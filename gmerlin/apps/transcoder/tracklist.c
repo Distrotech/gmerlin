@@ -233,7 +233,6 @@ static void select_row_callback(GtkTreeSelection * sel,
   
   track_list_t * w = (track_list_t *)data;
 
-  //  fprintf(stderr, "Select row callback\n");
   
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
   
@@ -368,7 +367,6 @@ static void track_list_update(track_list_t * w)
 
     name = bg_transcoder_track_get_name(track);
     
-    //    fprintf(stderr, "Adding track %s\n", name);
     
     /* Set index */
     sprintf(string_buffer, "%d.", i+1);
@@ -442,7 +440,6 @@ static void track_list_update(track_list_t * w)
     
     /* Select track */
 
-    //    fprintf(stderr, "Selected: %d\n", track->selected);
     if(track->selected)
       {
       gtk_tree_selection_select_iter(selection, &iter);
@@ -664,7 +661,6 @@ static void filesel_close_callback(bg_gtk_filesel_t * f , void * data)
   {
   track_list_t * t;
   t = (track_list_t*)data;
-  //  fprintf(stderr, "Filesel close\n");
   gtk_widget_set_sensitive(t->add_file_button, 1);
   t->filesel = (bg_gtk_filesel_t *)0;
   }
@@ -673,7 +669,6 @@ static void urlsel_close_callback(bg_gtk_urlsel_t * f , void * data)
   {
   track_list_t * t;
   t = (track_list_t*)data;
-  //  fprintf(stderr, "Urlsel close\n");
   gtk_widget_set_sensitive(t->add_url_button, 1);
   }
 
@@ -681,7 +676,6 @@ static void drivesel_close_callback(bg_gtk_drivesel_t * f , void * data)
   {
   track_list_t * t;
   t = (track_list_t*)data;
-  //  fprintf(stderr, "Drivesel close\n");
   gtk_widget_set_sensitive(t->add_removable_button, 1);
   }
 
@@ -692,7 +686,6 @@ static void update_track(void * data)
   {
   track_list_t * l = (track_list_t *)data;
 
-  //  fprintf(stderr, "Set Track name %s\n", name);
   track_list_update(l);
   }
 
@@ -709,7 +702,6 @@ static void button_callback(GtkWidget * w, gpointer data)
 
   if((w == t->add_file_button) || (w == t->menu.add_menu.add_files_item))
     {
-    //    fprintf(stderr, "Add button\n");
 
     if(!file_plugins)
       {
@@ -735,7 +727,6 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if((w == t->add_url_button) || (w == t->menu.add_menu.add_urls_item))
     {
-    //    fprintf(stderr, "Add URL\n");
 
     if(!url_plugins)
       {
@@ -755,7 +746,6 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if((w == t->add_removable_button) || (w == t->menu.add_menu.add_drives_item))
     {
-    //    fprintf(stderr, "Add Removable\n");
     
     if(!drive_plugins)
       {
@@ -778,22 +768,18 @@ static void button_callback(GtkWidget * w, gpointer data)
     }
   else if((w == t->delete_button) || (w == t->menu.selected_menu.remove_item))
     {
-    //    fprintf(stderr, "Delete button\n");
     delete_selected(t);
     }
   else if((w == t->up_button) || (w == t->menu.selected_menu.move_up_item))
     {
-    //    fprintf(stderr, "Up button\n");
     move_up(t);
     }
   else if((w == t->down_button) || (w == t->menu.selected_menu.move_down_item))
     {
-    //    fprintf(stderr, "Down button\n");
     move_down(t);
     }
   else if((w == t->config_button) || (w == t->menu.selected_menu.configure_item))
     {
-    //    fprintf(stderr, "Config button\n");
     track_dialog = track_dialog_create(t->selected_track, update_track,
                                        t, t->show_tooltips, t->plugin_reg);
     track_dialog_run(track_dialog);
@@ -1003,6 +989,19 @@ void track_list_add_xml(track_list_t * l, char * xml_string, int len)
   track_list_update(l);  
   }
 
+void track_list_add_url(track_list_t * l, char * url)
+  {
+  bg_transcoder_track_t * new_tracks;
+  new_tracks =
+    bg_transcoder_track_create(url,
+                               (const bg_plugin_info_t *)0,
+                               -1, l->plugin_reg,
+                               l->track_defaults_section, (char*)0);
+  add_track(l, new_tracks);
+  track_list_update(l);  
+  }
+
+
 
 static void drag_received_callback(GtkWidget *widget,
                                    GdkDragContext *drag_context,
@@ -1016,11 +1015,9 @@ static void drag_received_callback(GtkWidget *widget,
   bg_transcoder_track_t * new_tracks;
   track_list_t * l = (track_list_t *)d;
   
-  //  fprintf(stderr, "Drag received callback\n");
 
   if(is_urilist(data))
     {
-    //    fprintf(stderr, "Urilist\n");
     new_tracks =
       bg_transcoder_track_create_from_urilist((char*)(data->data),
                                               data->length,
@@ -1031,7 +1028,6 @@ static void drag_received_callback(GtkWidget *widget,
     }
   else if(is_albumentries(data))
     {
-    //    fprintf(stderr, "Album entries\n");
     track_list_add_xml(l, (char*)(data->data), data->length);
     }
 
@@ -1303,7 +1299,6 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
     {
     ret->tracks = bg_transcoder_tracks_load(tmp_path, &ret->track_global, ret->plugin_reg);
 
-    //    fprintf(stderr, "Loading tracks from %s\n", tmp_path);
     free(tmp_path);
 
     track_list_update(ret);

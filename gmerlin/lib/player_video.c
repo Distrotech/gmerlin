@@ -80,7 +80,6 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   
   /* Initialize video converter */
 
-  //  fprintf(stderr, "Initializing video converter...");
 
   pthread_mutex_lock(&(player->video_stream.config_mutex));
 
@@ -98,7 +97,6 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
     s->do_convert = 1;
     s->frame = gavl_video_frame_create(&(player->video_stream.input_format));
     }
-  //  fprintf(stderr, "done\n");
   pthread_mutex_unlock(&(player->video_stream.config_mutex));
   return 1;
   }

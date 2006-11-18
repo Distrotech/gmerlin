@@ -58,8 +58,6 @@ bg_oss_set_sample_format(int fd, gavl_sample_format_t format)
       break;
     }
 
-  //  fprintf(stderr, "Setting sample format %s\n",
-  //          gavl_sample_format_to_string(format));
   
   if(ioctl(fd, SNDCTL_DSP_SETFMT, &i_tmp) == -1)
     {
@@ -97,7 +95,6 @@ bg_oss_set_sample_format(int fd, gavl_sample_format_t format)
 
 int bg_oss_set_channels(int fd, int num_channels)
   {
-  //  fprintf(stderr, "Setting channels: %d\n", num_channels);
   
   if(ioctl(fd, SNDCTL_DSP_CHANNELS, &num_channels) == -1)
     return 0;
@@ -106,7 +103,6 @@ int bg_oss_set_channels(int fd, int num_channels)
 
 int bg_oss_set_samplerate(int fd, int samplerate)
   {
-  //  fprintf(stderr, "Setting samplerate %d\n", samplerate);
   
   if(ioctl(fd, SNDCTL_DSP_SPEED, &samplerate) == -1)
     return 0;

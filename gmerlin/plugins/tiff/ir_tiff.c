@@ -26,6 +26,9 @@
 #include <inttypes.h>
 #include <plugin.h>
 
+#include <log.h>
+#define LOG_DOMAIN "ir_tiff"
+
 typedef struct
   {
   uint8_t *buffer;
@@ -87,7 +90,7 @@ static toff_t seek_function(thandle_t fd, toff_t off, int whence)
   else if (whence == SEEK_END) p->buffer_size += off;
 
   if (p->buffer_position > p->buffer_size) {
-  fprintf(stderr, "codec_tiff: warning, seek overshot buffer.\n");
+  bg_log(BG_LOG_ERROR, LOG_DOMAIN, "codec_tiff: warning, seek overshot buffer.");
   return -1;
   }
 
@@ -109,19 +112,16 @@ static int close_function(thandle_t fd)
   }
 static tsize_t write_function(thandle_t fd, tdata_t data, tsize_t length)
   {
-  fprintf(stderr,"write_funktion\n");
   return 0;
   }
 
 static int map_file_proc(thandle_t a, tdata_t* b, toff_t* c)
   {
-  fprintf(stderr,"write_funktion\n");
   return 0;
   }
 
 static void unmap_file_proc(thandle_t a, tdata_t b, toff_t c)
   {
-  fprintf(stderr,"write_funktion\n");
   }
 
 static TIFF* open_tiff_mem(char *mode, tiff_t* p)
@@ -440,8 +440,6 @@ static void convert_scanline_RGB_float_64(uint8_t * _dst, uint8_t * src, int wid
   for(i = 0; i < width*3; i++)
     {
     *dst = double64_read(src);
-    //    if(*dst > 1.0)
-    //      fprintf(stderr, "Float overflow");
     dst++;
     src += 8;
     }
@@ -452,7 +450,6 @@ static void convert_scanline_RGB_float_64_planar(uint8_t * _dst, uint8_t * src, 
   int i;
   float * dst = (float*)_dst;
 
-  //  fprintf(stderr, "convert_scanline_RGB_float_64_planar\n");
   
   dst += plane;
   
@@ -460,8 +457,6 @@ static void convert_scanline_RGB_float_64_planar(uint8_t * _dst, uint8_t * src, 
     {
     *dst = double64_read(src);
 
-    //    if(*dst > 1.0)
-    //      fprintf(stderr, "Float overflow %f\n", *dst);
 
     dst+=3;
     src += 8;
@@ -484,7 +479,6 @@ static void convert_scanline_logl(uint8_t * _dst, uint8_t * _src, int width, int
   float * dst = (float*)_dst;
   float * src = (float*)_src;
   
-  //  fprintf(stderr, "convert_scanline_RGB_float_64_planar\n");
   
   for(i = 0; i < width; i++)
     {
@@ -518,7 +512,6 @@ static void convert_scanline_logluv(uint8_t * _dst, uint8_t * _src, int width, i
   float * dst = (float*)_dst;
   float * src = (float*)_src;
   
-  //  fprintf(stderr, "convert_scanline_RGB_float_64_planar\n");
   
   for(i = 0; i < width; i++)
     {
@@ -566,15 +559,6 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
   format->image_height = format->frame_height;
   format->pixel_width = 1;
   format->pixel_height = 1;
-#if 0
-  fprintf(stderr,"Filename:\t %s\n", filename);
-  fprintf(stderr,"BitsPerSample:\t %d\n", p->BitsPerSample);
-  fprintf(stderr,"SamplePerPixel:\t %d\n", p->SamplesPerPixel);  
-  fprintf(stderr,"SampleFormat:\t %d\n", p->SampleFormat);  
-  fprintf(stderr,"Planar:\t %d\n", p->is_planar);
-  fprintf(stderr,"Photometric:\t %d\n", p->Photometric);
-  fprintf(stderr,"Compression:\t %d\n", p->Compression);
-#endif
   /* Check for format */
 
   if(p->BitsPerSample <= 8)
@@ -588,7 +572,7 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
     {
     if((p->Compression != COMPRESSION_SGILOG) && (p->Compression != COMPRESSION_SGILOG24))
       {
-      fprintf(stderr, "Unsupported compression for LOGL/LOGLUV\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unsupported compression for LOGL/LOGLUV");
       return 0;
       }
     TIFFSetField(p->tiff, TIFFTAG_SGILOGDATAFMT, SGILOGDATAFMT_FLOAT);
@@ -632,7 +616,7 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
               }
             else
               {
-              fprintf(stderr, "Unsupported samples per pixel\n");
+              bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unsupported samples per pixel");
               return 0;
               }
             break;
@@ -661,21 +645,21 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
               }
             else
               {
-              fprintf(stderr, "Unsupported samples per pixel\n");
+              bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unsupported samples per pixel");
               return 0;
               }
             break;
           default:
-            fprintf(stderr, "Unsupported bits per sample (%d) for UINT\n", p->BitsPerSample);
+            bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unsupported bits per sample (%d) for UINT", p->BitsPerSample);
             return 0;
           }
         break;
       case SAMPLEFORMAT_IEEEFP:
         if(!(TIFFGetField(p->tiff, TIFFTAG_SMAXSAMPLEVALUE, minmax_d)))
-          fprintf(stderr, "Didn't get max sample value\n");
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Didn't get max sample value");
 
         if(!(TIFFGetField(p->tiff, TIFFTAG_SMINSAMPLEVALUE, minmax_d)))
-          fprintf(stderr, "Didn't get min sample value\n");
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Didn't get min sample value");
         
         switch(p->BitsPerSample)
           {
@@ -690,12 +674,12 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
               }
             else
               {
-              fprintf(stderr, "Unsupported samples per pixel\n");
+              bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unsupported samples per pixel");
               return 0;
               }
             break;
           default:
-            fprintf(stderr, "Unsupported depth %d for IEEE float\n", p->BitsPerSample);
+            bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unsupported depth %d for IEEE float", p->BitsPerSample);
             return 0;
           }
         
@@ -704,11 +688,11 @@ static int read_header_tiff(void *priv,const char *filename, gavl_video_format_t
       case SAMPLEFORMAT_VOID:
       case SAMPLEFORMAT_COMPLEXINT:
       case SAMPLEFORMAT_COMPLEXIEEEFP:
-        fprintf(stderr, "Unsupported sampleformat\n");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unsupported sampleformat");
         return 0;
         break;
       default:
-        fprintf(stderr, "Unknown sampleformat %d\n", p->SampleFormat);
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unknown sampleformat %d", p->SampleFormat);
         return 0;
         
       }
@@ -780,7 +764,6 @@ static int read_image_tiff(void *priv, gavl_video_frame_t *frame)
       raster = transpose(raster, p->Width, p->Height);
 #endif
     
-    //  fprintf(stderr, "Orientation: %d\n", p->Orientation);
     
     if(p->SamplesPerPixel == 4)
       {
@@ -827,7 +810,7 @@ static int read_image_tiff(void *priv, gavl_video_frame_t *frame)
     
     if(!p->convert_scanline)
       {
-      fprintf(stderr, "BUG!!! convert_func == 0x0\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "BUG!!! convert_func == 0x0");
       return 0;
       }
 

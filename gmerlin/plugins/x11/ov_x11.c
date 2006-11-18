@@ -444,7 +444,7 @@ static gavl_pixelformat_t get_x11_pixelformat(Display * d)
 
   if(visual->class != TrueColor)
     {
-    //    fprintf(stderr, "No True Color Visual\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No True Color Visual");
     return ret;
     }
 
@@ -593,8 +593,6 @@ static void check_xv(Display * d, Window w,
       break;
     }
    XvFreeAdaptorInfo (adaptorInfo);
-   //   fprintf(stderr, "Check xv: %d %d %d %d %d\n", (int)(*port),
-   //           *have_i420, *have_yuy2, *have_yv12, *have_uyvy);
   return;
   }
 
@@ -956,7 +954,6 @@ static void set_drawing_coords(x11_t * priv)
   zoom_factor = priv->zoom * 0.01;
   squeeze_factor = priv->squeeze;
   
-  //  fprintf(stderr, "Zoom: %f\n", zoom_factor);
   
   priv->window_format.image_width = priv->win.window_width;
   priv->window_format.image_height = priv->win.window_height;
@@ -970,33 +967,12 @@ static void set_drawing_coords(x11_t * priv)
                               &priv->window_format,
                               zoom_factor, squeeze_factor);
 
-#if 0
-  fprintf(stderr, "src_rect 1: ");
-  gavl_rectangle_i_dump(&(priv->src_rect_i));
-  fprintf(stderr, "\n");
-
-  
-  fprintf(stderr, "dst_rect 1: ");
-  gavl_rectangle_i_dump(&(priv->dst_rect));
-  fprintf(stderr, "\n");
-  
-#endif
    
     gavl_rectangle_crop_to_format_scale(&priv->src_rect_f,
                                         &priv->dst_rect,
                                         &priv->video_format,
                                         &priv->window_format);
 
-#if 0
-  fprintf(stderr, "src_rect 2: ");
-  gavl_rectangle_i_dump(&(priv->src_rect_i));
-  fprintf(stderr, "\n");
-
-  
-  fprintf(stderr, "dst_rect 2: ");
-  gavl_rectangle_i_dump(&(priv->dst_rect));
-  fprintf(stderr, "\n");
-#endif
 
     gavl_rectangle_f_to_i(&priv->src_rect_i, &priv->src_rect_f);
     gavl_rectangle_i_align_to_format(&priv->src_rect_i, &priv->video_format);
@@ -1018,19 +994,6 @@ static void set_drawing_coords(x11_t * priv)
                                           &priv->video_format,
                                           &priv->window_format);
     }
-#if 0
-  fprintf(stderr, "src_rect: ");
-  gavl_rectangle_dump(&priv->src_rect);
-  fprintf(stderr, "\n");
-  fprintf(stderr, "src size: %dx%d\n", priv->video_format.image_width,
-         priv->video_format.image_height);
-  
-  fprintf(stderr, "dst_rect: ");
-  gavl_rectangle_dump(&priv->dst_rect);
-  fprintf(stderr, "\n");
-  fprintf(stderr, "dst size: %dx%d\n", priv->window_format.image_width,
-         priv->window_format.image_height);
-#endif
   
   
   if(!priv->do_sw_scale)
@@ -1063,17 +1026,6 @@ static void set_drawing_coords(x11_t * priv)
   
   /* Reinitialize scaler */
   
-#if 0
-  fprintf(stderr, "src_rect 1: ");
-  gavl_rectangle_i_dump(&(priv->src_rect_i));
-  fprintf(stderr, "\n");
-
-  
-  fprintf(stderr, "dst_rect 1: ");
-  gavl_rectangle_i_dump(&(priv->dst_rect));
-  fprintf(stderr, "\n");
-  
-#endif
 
   opt = gavl_video_scaler_get_options(priv->scaler);
   gavl_video_options_set_scale_mode(opt, priv->scale_mode);
@@ -1088,17 +1040,6 @@ static void set_drawing_coords(x11_t * priv)
                          &(priv->window_format)); 
 
   
-#if 0
-  fprintf(stderr, "src_rect 2: ");
-  gavl_rectangle_dump(&(priv->src_rect));
-  fprintf(stderr, "\n");
-
-  
-  fprintf(stderr, "dst_rect 2: ");
-  gavl_rectangle_dump(&(priv->dst_rect));
-  fprintf(stderr, "\n");
-  
-#endif
   }
 
 static int _open_x11(void * data,
@@ -1120,10 +1061,7 @@ static int _open_x11(void * data,
 
   x11_pixelformat = get_x11_pixelformat(priv->dpy);
 
-#ifdef DEBUG
-  fprintf(stderr, "Display pixelformat %s\n",
-          gavl_pixelformat_to_string(x11_pixelformat));
-#endif
+
   
 #ifdef HAVE_LIBXV
   priv->do_xv = 0;
@@ -1387,12 +1325,9 @@ static int handle_event(x11_t * priv, XEvent * evt)
   int  y_image;
   int  button_number = 0;
   
-  //  fprintf(stderr, "handle event %p\n", evt);
   
   x11_window_handle_event(&(priv->win), evt);
 
-  //  fprintf(stderr, "Idle: %d, hidden: %d, evt: %p\n", priv->win.idle_counter, 
-  //          priv->win.pointer_hidden, evt);
   if(priv->win.do_delete)
     {
     if(priv->do_still)
@@ -1404,7 +1339,6 @@ static int handle_event(x11_t * priv, XEvent * evt)
   
   if(evt->type == priv->shm_completion_type)
     {
-    //    fprintf(stderr, "ShmCompletion\n");
     priv->wait_for_completion = 0;
     return 1;
     }
@@ -1578,8 +1512,6 @@ static int handle_event(x11_t * priv, XEvent * evt)
           set_xv_parameter(priv, priv->brightness_parameter->name,
                            priv->brightness_i);
           
-          fprintf(stderr, "Increase brightness %f %d\n",
-                  priv->brightness_f, priv->brightness_i);
 
           if(priv->callbacks && priv->callbacks->brightness_callback)
             priv->callbacks->brightness_callback(priv->callbacks->data,
@@ -1597,8 +1529,6 @@ static int handle_event(x11_t * priv, XEvent * evt)
             bcs_f2i(priv->brightness_parameter, priv->brightness_f);
           set_xv_parameter(priv, priv->brightness_parameter->name,
                            priv->brightness_i);
-          fprintf(stderr, "Decrease brightness %f %d\n",
-                  priv->brightness_f, priv->brightness_i);
 
           if(priv->callbacks && priv->callbacks->brightness_callback)
             priv->callbacks->brightness_callback(priv->callbacks->data,
@@ -1619,8 +1549,6 @@ static int handle_event(x11_t * priv, XEvent * evt)
           set_xv_parameter(priv, priv->saturation_parameter->name,
                            priv->saturation_i);
           
-          fprintf(stderr, "Increase saturation %f %d\n",
-                  priv->saturation_f, priv->saturation_i);
 
           if(priv->callbacks && priv->callbacks->saturation_callback)
             priv->callbacks->saturation_callback(priv->callbacks->data,
@@ -1638,8 +1566,6 @@ static int handle_event(x11_t * priv, XEvent * evt)
             bcs_f2i(priv->saturation_parameter, priv->saturation_f);
           set_xv_parameter(priv, priv->saturation_parameter->name,
                            priv->saturation_i);
-          fprintf(stderr, "Decrease saturation %f %d\n",
-                  priv->saturation_f, priv->saturation_i);
 
           if(priv->callbacks && priv->callbacks->saturation_callback)
             priv->callbacks->saturation_callback(priv->callbacks->data,
@@ -1659,8 +1585,6 @@ static int handle_event(x11_t * priv, XEvent * evt)
           set_xv_parameter(priv, priv->contrast_parameter->name,
                            priv->contrast_i);
           
-          fprintf(stderr, "Increase contrast %f %d\n",
-                  priv->contrast_f, priv->contrast_i);
 
           if(priv->callbacks && priv->callbacks->contrast_callback)
             priv->callbacks->contrast_callback(priv->callbacks->data,
@@ -1678,8 +1602,6 @@ static int handle_event(x11_t * priv, XEvent * evt)
             bcs_f2i(priv->contrast_parameter, priv->contrast_f);
           set_xv_parameter(priv, priv->contrast_parameter->name,
                            priv->contrast_i);
-          fprintf(stderr, "Decrease contrast %f %d\n",
-                  priv->contrast_f, priv->contrast_i);
 
           if(priv->callbacks && priv->callbacks->contrast_callback)
             priv->callbacks->contrast_callback(priv->callbacks->data,
@@ -1714,7 +1636,6 @@ static int handle_event(x11_t * priv, XEvent * evt)
         }
       break;
     case Expose:
-      //      fprintf(stderr, "ExposeEvent %d\n", priv->do_still);
       if(priv->do_still)
         write_frame_x11(priv, priv->still_frame);
       break;
@@ -1759,14 +1680,6 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
   
   if(priv->do_xv)
     {
-#if 0
-    fprintf(stderr, "src_rect: ");
-    gavl_rectangle_i_dump(&priv->src_rect_i);
-    fprintf(stderr, "\n");
-    fprintf(stderr, "dst_rect: ");
-    gavl_rectangle_i_dump(&priv->dst_rect);
-    fprintf(stderr, "\n");
-#endif
     
     if(priv->have_shm)
       {
@@ -1824,25 +1737,8 @@ static void write_frame_x11(void * data, gavl_video_frame_t * frame)
       x = priv->src_rect_i.x;
       y = priv->src_rect_i.y;
       }
-#if 0
-    fprintf(stderr, "dst_rect: ");
-    gavl_rectangle_dump(&(priv->dst_rect));
-    fprintf(stderr, "\n");
-#endif
     if(priv->have_shm)
       {
-#if 0
-      fprintf(stderr, "XShmPutImage [%d,%d]->[%d,%d], %dx%d\n",
-              x, y, priv->dst_rect.x,          /* dst_x      */
-              priv->dst_rect.y,          /* dst_y      */
-              priv->dst_rect.w,    /* src_width  */
-              priv->dst_rect.h);   /* src_height */
-      fprintf(stderr, "Window size: %dx%d, video size: %dx%d\n",
-              priv->window_format.image_width, 
-              priv->window_format.image_height, 
-              priv->window_format.image_width, 
-              priv->window_format.image_height);
-#endif
       XShmPutImage(priv->dpy,            /* dpy        */
                    priv->win.current_window, /* d          */
                    priv->win.gc,             /* gc         */
@@ -1892,7 +1788,6 @@ static void put_video_x11(void * data, gavl_video_frame_t * frame)
 
   blend_overlays(priv, frame);
   write_frame_x11(data, frame);
-  //  fprintf(stderr, "put_video_x11\n");
   }
 
 static void put_still_x11(void * data, gavl_video_frame_t * frame)
@@ -1905,7 +1800,6 @@ static void put_still_x11(void * data, gavl_video_frame_t * frame)
   blend_overlays(priv, frame);
   write_frame_x11(data, priv->still_frame);
   priv->do_still = 1;
-  //  fprintf(stderr, "put_still_x11\n");
   }
 
 static void show_window_x11(void * data, int show)
@@ -1929,7 +1823,6 @@ static void show_window_x11(void * data, int show)
     handle_event(priv, evt);
     }
   
-  //  fprintf(stderr, "Show window done\n");
   }
 
 #ifdef HAVE_LIBXV
@@ -1941,11 +1834,9 @@ static int get_num_xv_parameters(Display * dpy, XvPortID xv_port)
   int i, j;
   int ret = 0;
   attr = XvQueryPortAttributes(dpy, xv_port, &nattr);
-  //  fprintf(stderr, "nattr: %d xv_port: %d\n", nattr, (int)xv_port);
 
   for(i = 0; i < nattr; i++)
     {
-    //    fprintf(stderr, "attr[%d].name: %s\n", i, attr[i].name);
     if((attr[i].flags & XvSettable) && (attr[i].flags & XvGettable))
       {
       for(j = 0; j < NUM_XV_PARAMETERS; j++)
@@ -2186,7 +2077,6 @@ static void create_parameters(x11_t * x11)
   int num_parameters;
     
 
-//  fprintf(stderr, "get_parameters_x11 %p\n", x11->parameters);
 
   if(x11->parameters)
     return;    
@@ -2209,7 +2099,6 @@ static void create_parameters(x11_t * x11)
                            &(common_parameters[i]));
     index++;
     }
-//    fprintf(stderr, "num_xv_parameters: %d\n", num_xv_parameters);
 #ifdef HAVE_LIBXV
   if(num_xv_parameters)
     {
@@ -2239,7 +2128,6 @@ static int set_xv_parameter(x11_t * p, const char * name,
     {
     if(!strcmp(name, xv_parameters[j].xv_name))
       {
-//      fprintf(stderr, "Set xv parameter %s\n", name);
       XvSetPortAttribute (p->dpy, p->xv_port,
                         p->xv_attr_atoms[j], value);
       return 1;
@@ -2257,7 +2145,6 @@ static int get_xv_parameter(x11_t * p, const char * name,
     {
     if(!strcmp(name, xv_parameters[j].xv_name))
       {
-//      fprintf(stderr, "Set xv parameter %s\n", name);
       XvGetPortAttribute (p->dpy, p->xv_port,
                           p->xv_attr_atoms[j], value);
       return 1;

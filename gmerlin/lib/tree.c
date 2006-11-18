@@ -297,8 +297,6 @@ bg_media_tree_t * bg_media_tree_create(const char * filename,
   ret->com.input_callbacks.user_pass = get_user_pass;
   ret->com.input_callbacks.data      = &(ret->com);
   
-  //  fprintf(stderr, "ret->plugin_reg: %p\n", ret->plugin_reg);
-  //  fprintf(stderr, "ret: %p\n", ret);
   
   ret->filename = bg_strdup(ret->filename, filename);
   pos1 = strrchr(ret->filename, '/');
@@ -1042,10 +1040,6 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   bg_input_plugin_t * input_plugin;
   bg_plugin_handle_t * ret = (bg_plugin_handle_t *)0;
   //  char * system_location = (char*)0;
-#if 0
-  fprintf(stderr, "bg_media_tree_get_current_track %p %p\n",
-          t->com.current_entry, t->com.current_album);
-#endif
   if(!t->com.current_entry || !t->com.current_album)
     {
     error_message = bg_sprintf("Doubleclick on a track first");
@@ -1066,7 +1060,6 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
                                         t->com.current_entry->location,
                                         (BG_PLUGIN_INPUT));
 
-    //    fprintf(stderr, "bg_plugin_find_by_filename returned %p\n", info);
 
 #if 0    
     if(!info)
@@ -1275,7 +1268,6 @@ static void add_directory(bg_media_tree_t * t, bg_album_t * parent,
     if(!dent_ptr)
       break;
     
-    //    fprintf(stderr, "d_name: %s\n", dent.d.d_name);
 
     if(dent.d.d_name[0] == '.') /* Don't import hidden directories */
       continue;
@@ -1356,7 +1348,8 @@ void bg_media_tree_purge_directory(bg_media_tree_t * t)
   if(!dir)
     return;
 
-  //  fprintf(stderr, "Purging tree...\n");
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Purging %s", t->com.directory);
+  
   
   while(!readdir_r(dir, &(dent.d), &dent_ptr))
     {
@@ -1370,12 +1363,11 @@ void bg_media_tree_purge_directory(bg_media_tree_t * t)
     if(!albums_have_file(t->children, dent.d.d_name))
       {
       sprintf(filename, "%s/%s", t->com.directory, dent.d.d_name);
-      fprintf(stderr, "Removing %s\n", filename);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing %s", filename);
       remove(filename);
       }
     }
   closedir(dir);
-  //  fprintf(stderr, "Purging tree done\n");
   }
 
 bg_album_t * bg_media_tree_get_incoming(bg_media_tree_t *t)
@@ -1408,8 +1400,6 @@ void bg_album_common_prepare_callbacks(bg_album_common_t * com, bg_album_entry_t
 
 void bg_album_common_set_auth_info(bg_album_common_t * com, bg_album_entry_t * entry)
   {
-  //  fprintf(stderr, "bg_album_common_set_auth_info, user: %s, pass: %s, save: %d\n",
-  //          com->username, com->password, com->save_auth);
   
   if(!com->username || !com->password)
     return;

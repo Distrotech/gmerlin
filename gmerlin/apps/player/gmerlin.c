@@ -236,7 +236,6 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
   
   if(!tmp_string)
     {
-    fprintf(stderr, "Cannot open media tree\n");
     goto fail;
     }
   
@@ -310,7 +309,6 @@ gmerlin_t * gmerlin_create(bg_cfg_registry_t * cfg_reg)
 
 void gmerlin_destroy(gmerlin_t * g)
   {
-  //  fprintf(stderr, "gmerlin_destroy...\n");
     
   plugin_window_destroy(g->plugin_window);
   player_window_destroy(g->player_window);
@@ -320,11 +318,9 @@ void gmerlin_destroy(gmerlin_t * g)
     
   bg_player_destroy(g->player);
 
-  //  fprintf(stderr, "Blupp 1\n");
   
   bg_gtk_tree_window_destroy(g->tree_window);
 
-  //  fprintf(stderr, "Blupp 2\n");
 
   /* Fetch parameters */
   
@@ -343,27 +339,21 @@ void gmerlin_destroy(gmerlin_t * g)
 
   bg_gtk_log_window_destroy(g->log_window);
 
-  //  fprintf(stderr, "Blupp 3\n");
   
   bg_media_tree_destroy(g->tree);
 
-  //  fprintf(stderr, "Blupp 4\n");
 
   bg_plugin_registry_destroy(g->plugin_reg);
 
-  //  fprintf(stderr, "Blupp 5\n");
   
   gmerlin_skin_destroy(&(g->skin));
 
-  //  fprintf(stderr, "Blupp 6\n");
   bg_dialog_destroy(g->cfg_dialog);
 
   free(g->skin_dir);
   
-  //  fprintf(stderr, "Blupp 7\n");
   free(g);
   
-  //  fprintf(stderr, "gmerlin_destroy done\n");
   }
 
 void gmerlin_run(gmerlin_t * g)
@@ -436,12 +426,10 @@ int gmerlin_play(gmerlin_t * g, int flags)
 
   /* Tell the player that we want to change */
   bg_player_change(g->player, flags);
-  //  fprintf(stderr, "gmerlin_play\n");
   handle = bg_media_tree_get_current_track(g->tree, &track_index);
   
   if(!handle)
     {
-    //    fprintf(stderr, "Error playing file\n");
     return 0;
     }
 
@@ -452,10 +440,6 @@ int gmerlin_play(gmerlin_t * g, int flags)
                      &duration_current,
                      &duration_after);
 
-  //  fprintf(stderr, "Durations: %lld %lld %lld\n",
-  //          duration_before,
-  //          duration_current,
-  //          duration_after);
   
   display_set_playlist_times(g->player_window->display,
                              duration_before,
@@ -463,8 +447,6 @@ int gmerlin_play(gmerlin_t * g, int flags)
                              duration_after);
 
   
-  //  fprintf(stderr, "Track name: %s\n",
-  //          bg_media_tree_get_current_track_name(g->tree));
   
   bg_player_play(g->player, handle, track_index,
                 flags, bg_media_tree_get_current_track_name(g->tree));
@@ -488,7 +470,6 @@ void gmerlin_next_track(gmerlin_t * g)
   int result, keep_going, removable;
   bg_album_t * album;
 
-  //  fprintf(stderr, "gmerlin_next_track\n");
   if(g->playback_flags & PLAYBACK_NOADVANCE)
     {
     bg_player_stop(g->player);
@@ -500,7 +481,6 @@ void gmerlin_next_track(gmerlin_t * g)
     return;
 
   removable = (bg_album_get_type(album) == BG_ALBUM_TYPE_REMOVABLE) ? 1 : 0;
-  //  fprintf(stderr, "Removable: %d\n", removable);
 
   result = 1;
   keep_going = 1;
@@ -509,7 +489,6 @@ void gmerlin_next_track(gmerlin_t * g)
     switch(g->repeat_mode)
       {
       case REPEAT_MODE_NONE:
-        //      fprintf(stderr, "REPEAT_MODE_NONE\n");
         if(bg_media_tree_next(g->tree, 0, g->shuffle_mode))
           {
           result = gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_PLAYING);
@@ -518,20 +497,17 @@ void gmerlin_next_track(gmerlin_t * g)
           }
         else
           {
-          //          fprintf(stderr, "End of album, stopping\n");
           bg_player_stop(g->player);
           keep_going = 0;
           }
         break;
       case REPEAT_MODE_1:
-        //      fprintf(stderr, "REPEAT_MODE_1\n");
         result = gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_PLAYING);
         if(!result)
           bg_player_stop(g->player);
         keep_going = 0;
         break;
       case REPEAT_MODE_ALL:
-        //        fprintf(stderr, "REPEAT_MODE_ALL\n");
         if(!bg_media_tree_next(g->tree, 1, g->shuffle_mode))
           {
           bg_player_stop(g->player);
@@ -777,7 +753,6 @@ void gmerlin_set_parameter(void * data, char * name, bg_parameter_value_t * val)
   else if(!strcmp(name, "skin_dir"))
     {
     g->skin_dir = bg_strdup(g->skin_dir, val->val_str);
-    //    fprintf(stderr, "Skin Directory: %s\n", g->skin_dir);
     g->skin_dir = gmerlin_skin_load(&(g->skin), g->skin_dir);
     gmerlin_skin_set(g);
     }
@@ -841,7 +816,6 @@ void gmerlin_add_locations(gmerlin_t * g, char ** locations)
   i = 0;
   while(locations[i])
     {
-    //    fprintf(stderr, "Add location: %s\n", locations[i]);
     i++;
     }
   
@@ -876,7 +850,6 @@ void gmerlin_play_locations(gmerlin_t * g, char ** locations)
   i = 0;
   while(locations[i])
     {
-    fprintf(stderr, "Play location: %s\n", locations[i]);
     i++;
     }
 

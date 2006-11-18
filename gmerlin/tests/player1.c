@@ -522,7 +522,10 @@ static int play_track(bg_player_t * player, const char * gml,
       return 0;
       }
     plugin = (bg_input_plugin_t*)(input_handle->plugin);
-    num_tracks = plugin->get_num_tracks(input_handle->priv);
+    if(plugin->get_num_tracks)
+      num_tracks = plugin->get_num_tracks(input_handle->priv);
+    else
+      num_tracks = 1;
     }
 
   if(num_tracks == 1)
@@ -572,7 +575,7 @@ static int play_track(bg_player_t * player, const char * gml,
     redir_url    = bg_strdup((char*)0, track_info->url);
     redir_plugin = bg_strdup((char*)0, input_handle->info->name);
 
-    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Got redirector %s (%d/%d)\n",
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Got redirector %s (%d/%d)",
             redir_url, current_track+1, num_tracks);
 
     

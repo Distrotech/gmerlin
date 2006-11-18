@@ -71,7 +71,6 @@ static void * create_cdrdao()
   cdrdao_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->cdr = bg_cdrdao_create();
-  //  fprintf(stderr, "create_cdrdao %p\n", ret);
   return ret;
   }
 
@@ -81,7 +80,6 @@ static void destroy_cdrdao(void * priv)
   cdrdao = (cdrdao_t*)priv;
   bg_cdrdao_destroy(cdrdao->cdr);
   if(cdrdao->toc_file) free(cdrdao->toc_file);
-  //  fprintf(stderr, "destroy_cdrdao %p\n", cdrdao);
   free(cdrdao);
   }
 
@@ -154,7 +152,6 @@ static int init_cdrdao(void * data)
   {
   cdrdao_t * cdrdao;
   cdrdao = (cdrdao_t*)data;
-  //  fprintf(stderr, "init_cdrdao\n");
   free_tracks(cdrdao);
   /* Check for cdrdao */
   if(!bg_search_file_exec("cdrdao", (char**)0))
@@ -243,7 +240,7 @@ static void add_track_cdrdao(void * data, const char * filename,
     duration = get_wav_length(filename);
     if(duration <= 0)
       {
-      fprintf(stderr, "Cannot get duration of file %s\n", filename);
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot get duration of file %s", filename);
       return;
       }
     }
@@ -262,7 +259,6 @@ static void add_track_cdrdao(void * data, const char * filename,
     cdrdao->tracks[cdrdao->num_tracks].duration = duration;
   
   cdrdao->num_tracks++;
-  fprintf(stderr, "add_track_cdrdao %d %s\n", cdrdao->num_tracks, filename);
   }
 
 static void run_cdrdao(void * data, const char * directory, int cleanup)

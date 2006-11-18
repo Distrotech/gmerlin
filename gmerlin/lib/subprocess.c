@@ -197,9 +197,7 @@ int bg_subprocess_close(bg_subprocess_t*p)
 
   //  bg_subprocess_kill(p, SIGHUP);
   
-  fprintf(stderr, "waitpid...");
   waitpid(priv->pid, &status, 0);
-  fprintf(stderr, "done\n");
 
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Finished process [%d]",
          priv->pid);
@@ -234,17 +232,14 @@ int bg_subprocess_read_line(int fd, char ** ret, int * ret_alloc,
     
     if((result = select (fd+1, &rset, NULL, NULL, &timeout)) <= 0)
       {
-      //        fprintf(stderr, "select returned %d\n", result);
       return bytes_read;
       }
-    //      fprintf(stderr, "select returned %d\n", result);
     }
   
   while((c != '\n') && (c != '\r'))
     {
     if(!read(fd, &c, 1))
       {
-      //      fprintf(stderr, "read returned 0\n");
       return 0;
       }
     if((c != '\n') && (c != '\r'))
@@ -253,7 +248,6 @@ int bg_subprocess_read_line(int fd, char ** ret, int * ret_alloc,
         {
         *ret_alloc += 256;
         *ret = realloc(*ret, *ret_alloc);
-        //        fprintf(stderr, "Ret: %p, ret_alloc: %d\n", *ret, *ret_alloc);
         }
       (*ret)[bytes_read] = c;
       bytes_read++;

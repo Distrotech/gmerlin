@@ -159,7 +159,6 @@ bg_gtk_tree_window_create(bg_media_tree_t * tree,
   ret->close_callback = close_callback;
   ret->close_callback_data = close_callback_data;
     
-  //  fprintf(stderr, "Tree window Add accel group %p\n", accel_group);
   
   g_signal_connect(G_OBJECT(ret->window), "delete-event",
                    G_CALLBACK(delete_callback),
@@ -183,9 +182,7 @@ void bg_gtk_tree_window_destroy(bg_gtk_tree_window_t * w)
 
 void bg_gtk_tree_window_show(bg_gtk_tree_window_t* w)
   {
-  //  fprintf(stderr, "Showing tree window...\n");
   gtk_widget_show(w->window);
-  //  fprintf(stderr, "Showing tree window done\n");
 
   //  gtk_window_present(GTK_WINDOW(w->window));
 

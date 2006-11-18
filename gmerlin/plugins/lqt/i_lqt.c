@@ -95,7 +95,6 @@ static int open_lqt(void * data, const char * arg)
 
   lqt_codec_info_t ** codec_info;
 
-  //  fprintf(stderr, "** OPEN LQT **\n");
   
   /* We want to keep the thing const-clean */
   filename = bg_strdup((char*)0, arg);
@@ -134,8 +133,6 @@ static int open_lqt(void * data, const char * arg)
   num_audio_streams = quicktime_audio_tracks(e->file);
   num_video_streams = quicktime_video_tracks(e->file);
 
-  //  fprintf(stderr, "Audio streams: %d, video streams: %d\n", num_audio_streams,
-  //          num_video_streams);
   
   e->track_info.duration = 0;
   e->track_info.seekable = 1;
@@ -147,7 +144,6 @@ static int open_lqt(void * data, const char * arg)
     
     for(i = 0; i < num_audio_streams; i++)
       {
-      //      fprintf(stderr, "i: %d, num_audio_streams: %d\n", i, e->track_info.num_audio_streams);
       
       if(quicktime_supported_audio(e->file, i))
         {
@@ -224,7 +220,6 @@ int read_audio_samples_lqt(void * data, gavl_audio_frame_t * f, int stream,
 
   lqt_gavl_decode_audio(e->file, e->audio_streams[stream].quicktime_index,
                         f, num_samples);
-  //  fprintf(stderr, "read %d samples\n", f->valid_samples);
   return f->valid_samples;
   }
 
@@ -323,7 +318,6 @@ static void set_parameter_lqt(void * data, char * name,
   if(!name)
     return;
 
-  //  fprintf(stderr, "set_parameter_lqt %s\n", name);
   
   if(!e->parameters)
     create_parameters(e);

@@ -17,6 +17,7 @@
  
 *****************************************************************/
 
+#include <pthread.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <time.h>
@@ -25,9 +26,10 @@
 #include <plugin.h>
 #include <pluginregistry.h>
 
-#include "webcam.h"
+#include <log.h>
+#define LOG_DOMAIN "webcam"
 
-#include <pthread.h>
+#include "webcam.h"
 
 #define FRAMERATE_INTERVAL 10
 
@@ -251,7 +253,7 @@ static void do_capture(gmerlin_webcam_t * cam)
     
   if(!cam->capture)
     {
-    fprintf(stderr, "Do capture: No plugin loaded\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Do capture: No plugin loaded");
     goto fail;
     }
   
@@ -269,7 +271,7 @@ static void do_capture(gmerlin_webcam_t * cam)
   if(!cam->capture->write_header(cam->capture_handle->priv,
                                  filename, &cam->capture_format))
     {
-    fprintf(stderr, "Saving %s failed\n", filename);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Saving %s failed", filename);
     goto fail;
     }
 
@@ -307,7 +309,6 @@ static void open_monitor(gmerlin_webcam_t * cam)
   {
   if(!cam->input_open)
     return;
-  //  fprintf(stderr, "Open monitor\n");
   gavl_video_format_copy(&cam->monitor_format, &cam->input_format);
 
   /* Open monitor */
@@ -315,7 +316,7 @@ static void open_monitor(gmerlin_webcam_t * cam)
   if(!cam->monitor->open(cam->monitor_handle->priv, &cam->monitor_format,
                         "Camelot"))
     {
-    fprintf(stderr, "Opening monitor plugin failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening monitor plugin failed");
     }
   if(cam->monitor->show_window)
     cam->monitor->show_window(cam->monitor_handle->priv, 1);
@@ -336,7 +337,6 @@ static void open_monitor(gmerlin_webcam_t * cam)
     cam->monitor_frame = gavl_video_frame_create(&cam->monitor_format);
   cam->monitor_open = 1;
 
-  //  fprintf(stderr, "Open Monitor done\n");
   }
 
 static void close_monitor(gmerlin_webcam_t * cam)
@@ -344,7 +344,6 @@ static void close_monitor(gmerlin_webcam_t * cam)
   if(!cam->monitor_open)
     return;
 
-  //  fprintf(stderr, "Close monitor\n");
   if(cam->monitor->free_frame)
     cam->monitor->free_frame(cam->monitor_handle->priv, cam->monitor_frame);
   else
@@ -355,7 +354,6 @@ static void close_monitor(gmerlin_webcam_t * cam)
   if(cam->monitor->show_window)
     cam->monitor->show_window(cam->monitor_handle->priv, 0);
   cam->monitor_open = 0;
-  //  fprintf(stderr, "Close monitor done\n");
   }
 
 static void open_input(gmerlin_webcam_t * cam)
@@ -378,7 +376,6 @@ static void open_input(gmerlin_webcam_t * cam)
     bg_msg_set_arg_string(msg, 0, tmp_string);
     bg_msg_queue_unlock_write(cam->msg_queue);
 
-//    fprintf(stderr, "Opening video device failed\n");
     cam->input_open = 0;
     return;
     }
@@ -520,7 +517,7 @@ static void * thread_func(void * data)
       {
       bg_plugin_lock(w->input_handle);
       if(!w->input->read_frame(w->input_handle->priv, w->input_frame))
-        fprintf(stderr, "read_frame failed\n");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "read_frame failed");
       bg_plugin_unlock(w->input_handle);
       frame_time = gavl_timer_get(w->timer);
       
@@ -532,11 +529,9 @@ static void * thread_func(void * data)
         else
           gavl_video_frame_copy(&(w->input_format),
                                 w->monitor_frame, w->input_frame);
-//        fprintf(stderr, "Put video...");
         bg_plugin_lock(w->monitor_handle);
         w->monitor->put_video(w->monitor_handle->priv, w->monitor_frame);
         bg_plugin_unlock(w->monitor_handle);
-//        fprintf(stderr, "done\n");
         
         }
       	
@@ -566,7 +561,6 @@ static void * thread_func(void * data)
         bg_msg_queue_unlock_write(w->msg_queue);
         last_frame_time = frame_time;
 
-        //        fprintf(stderr, "FRAMERATE: %f\n", frame_rate, frame_time, last_frame_time);
         }
       }
     
@@ -593,11 +587,9 @@ void gmerlin_webcam_run(gmerlin_webcam_t * w)
 void gmerlin_webcam_quit(gmerlin_webcam_t * w)
   {
   bg_msg_t * msg;
-  fprintf(stderr, "Quitting cam thread...");
   msg = bg_msg_queue_lock_write(w->cmd_queue);
   bg_msg_set_id(msg, CMD_QUIT);
   bg_msg_queue_unlock_write(w->cmd_queue);
   
   pthread_join(w->thread, NULL);
-  fprintf(stderr, "done\n");
   }

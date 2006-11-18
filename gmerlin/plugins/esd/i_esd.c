@@ -27,6 +27,10 @@
 
 #include <esd.h>
 
+#include <log.h>
+#define LOG_DOMAIN "i_esd"
+
+
 typedef struct
   {
   int esd_socket;
@@ -146,7 +150,6 @@ static int open_esd(void * data,
     
   name = bg_sprintf("gmerlin@%s pid: %d", hostname, getpid());
 
-  fprintf(stderr, "Stream name: %s\n", name);
     
   if(e->do_monitor)
     e->esd_socket = esd_monitor_stream(esd_format, format->samplerate,
@@ -157,7 +160,7 @@ static int open_esd(void * data,
   free(name);
   if(e->esd_socket < 0)
     {
-    fprintf(stderr, "i_esd: Cannot connect to daemon\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot connect to daemon");
     return 0;
     }
   e->bytes_per_frame = 4;

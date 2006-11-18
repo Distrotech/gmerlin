@@ -29,10 +29,6 @@ typedef struct bg_host_address_s bg_host_address_t;
 bg_host_address_t * bg_host_address_create();
 void bg_host_address_destroy(bg_host_address_t *);
 
-/* Set the address from an URL, return FALSE on error */
-
-int bg_host_address_set_from_url(bg_host_address_t *, const char * url,
-                                 const char ** rest);
 
 /* Get address from hostname and port */
 

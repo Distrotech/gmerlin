@@ -395,7 +395,6 @@ static void update_menu(bg_gtk_tree_widget_t * w)
   bg_album_type_t type;
   /* En- or disable menu items */
 
-// fprintf(stderr, "Update menu %p\n", w->selected_album);
 
   if(w->tabbed_mode)
     {
@@ -610,7 +609,6 @@ static void set_album(bg_gtk_tree_widget_t * widget,
   bg_album_t * current_album;
   bg_gtk_album_window_t * album_window;
 
-  //  fprintf(stderr, "Set album %p\n", album);
   
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(widget->treeview));
 
@@ -909,7 +907,6 @@ static void open_album(bg_gtk_tree_widget_t * widget,
       {
       result = bg_album_open(album);
 
-      //      fprintf(stderr, "Open album returned %d\n", result);
 
       bg_album_set_error(album, !result);
       }
@@ -990,7 +987,6 @@ static void add_dir_callback(char * dir, int recursive,
 
 static void add_dir_close_notify(bg_gtk_filesel_t * s, void * data)
   {
-  //  fprintf(stderr, "add_dir_close_notify\n");
   }
 
 static void add_directory(bg_gtk_tree_widget_t * w)
@@ -1023,7 +1019,6 @@ static void create_new_album(bg_gtk_tree_widget_t * w)
   if(w->selected_album)
     bg_album_set_expanded(w->selected_album, 1);
   
-  //  fprintf(stderr, "New album: %p\n", new_album);
     
   w->selected_album = new_album;
   
@@ -1274,12 +1269,10 @@ static void menu_callback(GtkWidget * w, gpointer data)
       }
     else if(w == widget->menu.plugin_menu.find_devices_item)
       {
-      //      fprintf(stderr, "Scan devices!!!\n");
       find_devices(widget);
       }
     else if(w == widget->menu.plugin_menu.add_device_item)
       {
-      //      fprintf(stderr, "Add device!!!\n");
       add_device(widget);
       }
     }
@@ -1303,12 +1296,10 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == widget->menu.tree_menu.tabbed_mode_item)
     {
-    //    fprintf(stderr, "Tabbed mode\n");
     set_tabbed_mode(widget);
     }
   else if(w == widget->menu.tree_menu.windowed_mode_item)
     {
-    //    fprintf(stderr, "Windowed mode\n");
     set_windowed_mode(widget);
     }
   else if((w == widget->menu.tree_menu.goto_current_item) ||
@@ -1617,14 +1608,7 @@ static void drag_get_callback(GtkWidget *widget,
   bg_gtk_tree_widget_t * w;
   w = (bg_gtk_tree_widget_t *)user_data;
 
-  //  fprintf(stderr, "drag_get_callback\n");
   
-#if 0
-  fprintf(stderr, "selection: %s\n", gdk_atom_name(data->selection));
-  fprintf(stderr, "target:    %s\n", gdk_atom_name(data->target));
-  fprintf(stderr, "type:      %s\n", gdk_atom_name(data->type));
-  fprintf(stderr, "format:    %d\n", data->format);
-#endif
   
   type_atom = gdk_atom_intern("INTEGER", FALSE);
   if(!type_atom)
@@ -1645,7 +1629,6 @@ static void drag_received_callback(GtkWidget *widget,
                                    gpointer d)
   {
   
-  //  fprintf(stderr, "drag_received_callback\n");
   bg_gtk_album_window_t * album_window;
   bg_album_t * dest_album;
   gchar * atom_name;
@@ -1674,8 +1657,6 @@ static void drag_received_callback(GtkWidget *widget,
 
   atom_name = gdk_atom_name(data->target);
 
-  //  fprintf(stderr, "tree drop %d\n", data->length);
-  //  fwrite(data->data, 1, data->length, stderr);
 
   if(!strcmp(atom_name, bg_gtk_atom_album_name))
     {
@@ -1683,19 +1664,16 @@ static void drag_received_callback(GtkWidget *widget,
       {
       case GTK_TREE_VIEW_DROP_INTO_OR_BEFORE:
       case GTK_TREE_VIEW_DROP_INTO_OR_AFTER:
-        //        fprintf(stderr, "Gmerlin album dropped %p\n", dest_album);
         bg_media_tree_move_album(w->tree,
                                  w->selected_album,
                                  dest_album);
         break;
       case GTK_TREE_VIEW_DROP_AFTER:
-        //        fprintf(stderr, "Gmerlin album dropped after %p\n", dest_album);
         bg_media_tree_move_album_after(w->tree,
                                        w->selected_album,
                                        dest_album);
         break;
       case GTK_TREE_VIEW_DROP_BEFORE:
-        //        fprintf(stderr, "Gmerlin album dropped before %p\n", dest_album);
         bg_media_tree_move_album_before(w->tree,
                                         w->selected_album,
                                         dest_album);
@@ -1733,13 +1711,11 @@ static void drag_received_callback(GtkWidget *widget,
                                      (bg_album_entry_t*)0);
       
       
-      //      fprintf(stderr, "Files dropped\n");
       }
     else if(!strcmp(atom_name, bg_gtk_atom_entries_name))
       {
       bg_album_insert_xml_before(dest_album, (char*)(data->data), data->length,
                                  (bg_album_entry_t*)0);
-      //      fprintf(stderr, "Gmerlin entries dropped\n");
       if(drag_context->action == GDK_ACTION_MOVE)
         do_delete = 1;
       }
@@ -1795,7 +1771,6 @@ static gboolean drag_motion_callback(GtkWidget *widget,
 
   
   bg_gtk_tree_widget_t * w = (bg_gtk_tree_widget_t *)user_data;
-  //  fprintf(stderr, "Drag motion callback\n");
 
   if(!gtk_tree_view_get_dest_row_at_pos(GTK_TREE_VIEW(w->treeview),
                                         x, y, &path,
@@ -1891,7 +1866,6 @@ static void notebook_change_page(GtkWidget * widget, GtkNotebookPage *page, int 
   //  bg_gtk_tree_widget_t * wid;
   //  wid = (bg_gtk_tree_widget_t *)data;
   
-  //  fprintf(stderr, "notebook_change_page %d\n", num);
   
   if(wid->album_accel_group)
     {
@@ -1904,8 +1878,6 @@ static void notebook_change_page(GtkWidget * widget, GtkNotebookPage *page, int 
     wid->album_accel_group = bg_gtk_album_window_get_accel_group(win);
     gtk_window_add_accel_group(GTK_WINDOW (wid->toplevel_window), wid->album_accel_group);
     }
-  //  else
-  //    fprintf(stderr, "notebook_change_page: Album window %d no longer open\n", num);
   }
 
 /* Constructor */
@@ -2129,7 +2101,6 @@ void bg_gtk_tree_widget_destroy(bg_gtk_tree_widget_t * w)
   
   g_object_unref(w->tooltips);
 
-  //  fprintf(stderr, "bg_gtk_tree_widget_destroy\n");
 
   g_signal_handlers_block_by_func(G_OBJECT(w->notebook), notebook_change_page, w);
   
@@ -2140,7 +2111,6 @@ void bg_gtk_tree_widget_destroy(bg_gtk_tree_widget_t * w)
     bg_gtk_album_window_destroy(win, 0);
     }
 
-  //  fprintf(stderr, "bg_gtk_tree_widget_destroy 1\n");
   
   free(w);
   }

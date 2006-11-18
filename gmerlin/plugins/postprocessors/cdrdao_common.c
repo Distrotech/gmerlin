@@ -207,7 +207,6 @@ int bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
       }
     else
       bg_log(BG_LOG_INFO, LOG_DOMAIN, line);
-    //    fprintf(stderr, "Got line: %s\n", line);
     }
   bg_subprocess_close(cdrdao);
 

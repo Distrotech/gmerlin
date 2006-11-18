@@ -31,6 +31,10 @@
 
 #include <plugin.h>
 #include <utils.h>
+
+#include <log.h>
+#define LOG_DOMAIN "i_oss"
+
 #include "oss_common.h"
 
 #define SAMPLES_PER_FRAME 1024
@@ -157,7 +161,7 @@ static int open_oss(void * data,
       format->sample_format = GAVL_SAMPLE_S16;
       break;
     default:
-      fprintf(stderr, "Invalid number of bits\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid number of bits");
       return 0;
     }
 
@@ -172,7 +176,7 @@ static int open_oss(void * data,
       format->interleave_mode = GAVL_INTERLEAVE_ALL;
       break;
     default:
-      fprintf(stderr, "Invalid number of channels\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid number of channels");
       return 0;
     }
   
@@ -181,7 +185,6 @@ static int open_oss(void * data,
   format->channel_locations[0] = GAVL_CHID_NONE;
   gavl_set_channel_setup(format);
   
-  fprintf(stderr, "Opening device %s\n", priv->device);
   
   priv->fd = open(priv->device, O_RDONLY, 0);
   if(priv->fd == -1)
@@ -193,7 +196,7 @@ static int open_oss(void * data,
   
   if(sample_format == GAVL_SAMPLE_NONE)
     {
-    fprintf(stderr, "Cannot set sampleformat for %s\n", priv->device);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot set sampleformat for %s", priv->device);
     goto fail;
     }
 
@@ -201,7 +204,7 @@ static int open_oss(void * data,
     bg_oss_set_channels(priv->fd, format->num_channels);
   if(test_value != format->num_channels)
     {
-    fprintf(stderr, "Device %s doesn't support %d channel sound\n",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Device %s doesn't support %d channel sound",
             priv->device, format->num_channels);
     goto fail;
     }
@@ -210,7 +213,7 @@ static int open_oss(void * data,
     bg_oss_set_samplerate(priv->fd, format->samplerate);
   if(test_value != format->samplerate)
     {
-    fprintf(stderr, "Samplerate %f KHz not supported by device %s\n",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Samplerate %f KHz not supported by device %s",
               format->samplerate / 1000.0,
               priv->device);
     goto fail;

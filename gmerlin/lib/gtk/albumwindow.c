@@ -395,7 +395,6 @@ void bg_gtk_album_window_set_current(bg_gtk_album_window_t * w, int current)
   PangoAttribute *attr;
   PangoAttrList *attr_list;
 
-  //  fprintf(stderr, "bg_gtk_album_window_set_current %d\n", current);
 
   if(!w->notebook)
     return;

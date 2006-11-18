@@ -41,7 +41,6 @@ static void button_callback(GtkWidget * w, gpointer data)
         gtk_widget_set_sensitive(GTK_FILE_SELECTION(priv->fileselect)->file_list, 0);
       }
 
-    // fprintf(stderr, "Set filename %s\n", gtk_entry_get_text(GTK_ENTRY(priv->entry)));
 
     if(priv->is_dir)
       {

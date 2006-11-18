@@ -24,6 +24,10 @@
 #include <utils.h>
 #include <inttypes.h>
 
+#include <log.h>
+#define LOG_DOMAIN "iw_bmp"
+
+
 typedef struct
   {
   gavl_video_format_t format;
@@ -116,7 +120,7 @@ static int write_header_bmp(void * priv, const char * filename,
   
   if(!bmp->bmp_file)
     {
-    fprintf(stderr,"Can't open File %s\n", filename);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Can't open File %s", filename);
     return 0;
     }
   
@@ -176,7 +180,6 @@ static int write_image_bmp(void * priv, gavl_video_frame_t * frame)
   if((bmp->file_size = ftell(bmp->bmp_file))<0)
     return 0;
 
-  // fprintf(stderr," file_size = %d \n",bmp->file_size);
   fseek(bmp->bmp_file, 2, SEEK_SET);
 
   /* write file size to header */

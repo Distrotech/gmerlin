@@ -25,6 +25,10 @@
 #include <math.h>
 #include <ctype.h>
 
+#include <log.h>
+#define LOG_DOMAIN "ir_pnm"
+
+
 #define DEBUG
 
 #define Bits_16  (1<<8)
@@ -92,7 +96,7 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
     
   if(!pnm_file)
     {
-    fprintf(stderr,"Can't open file %s\n", filename);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Can't open file %s", filename);
     return 0;
     }
   
@@ -101,7 +105,6 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
   if((size = ftell(pnm_file))<0) return 1;
   fseek(pnm_file, 0, SEEK_SET);
 
-  //  fprintf(stderr,"filesize = %ld \n", size);
 
   if(p->buffer_alloc < size)
     {
@@ -111,7 +114,7 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
   
   if(fread(p->buffer, 1, size, pnm_file)!=size)
     {
-    fprintf(stderr,"Can't read File type\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Can't read File type");
     fclose(pnm_file);
     return 0;
     }
@@ -126,7 +129,7 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
 
   if(*ptr != 'P')
     {
-    fprintf(stderr,"File isn't a pnm\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"File isn't a pnm");
     return 0;
     }
   
@@ -143,7 +146,6 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
        
         {
         p->is_pnm = atoi(ptr);
-        //fprintf(stderr,"File is a Pnm (%.1s%.1s) is_pnm: %d\n",ptr-1,ptr, p->is_pnm);
         ptr ++;
         }
       else
@@ -153,7 +155,7 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
         {
         if(*ptr != '#')
           {
-          fprintf(stderr,"File must not be a pnm (%.1s%.1s%.1s)\n",ptr-1,ptr, ptr+1);
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN,"File must not be a pnm (%.1s%.1s%.1s)",ptr-1,ptr, ptr+1);
           p->is_pnm = 0;
           break;
           }
@@ -162,7 +164,6 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
            
     if(*ptr == '#')
       {
-      //fprintf(stderr,"ignor line\n");
       ptr = end_ptr;
       }
 
@@ -171,11 +172,10 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
       if(!isspace(*(ptr-1))) 
         {
         p->is_pnm = 0;
-        fprintf(stderr,"Can't read width\n");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Can't read width");
         break;
         }
       p->width = atoi(ptr);
-      //fprintf(stderr,"width:  %d\n",p->width);
       while(isdigit(*ptr))
         ptr ++;
       }
@@ -185,11 +185,10 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
       if(!isspace(*(ptr-1))) 
         {
         p->is_pnm = 0;
-        fprintf(stderr,"Can't read height\n");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Can't read height");
         break;
         }
       p->height = atoi(ptr);
-      //fprintf(stderr,"height: %d\n",p->height);
       while(isdigit(*ptr))
         ptr ++;
       }
@@ -199,12 +198,11 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
       if(!isspace(*(ptr-1))) 
         {
         p->is_pnm = 0;
-        fprintf(stderr,"Can't read maxval\n");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Can't read maxval");
         break;
         }
 
       p->maxval = atoi(ptr);
-      //fprintf(stderr,"maxval: %d\n",p->maxval);
       while(ptr != end_ptr+1)
         ptr ++;
       break;
@@ -224,20 +222,19 @@ static int read_header_pnm(void *priv,const char *filename, gavl_video_format_t 
 
   if(p->is_pnm == 7)
     {
-    fprintf(stderr,"Sorry PAM format not suported\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"Sorry PAM format not suported");
     return 0;
     }
   
   if(p->is_pnm == 0)
     {
-    fprintf(stderr,"File isn't a pnm (%.1s%.1s%.1s)\n",ptr-1,ptr, ptr+1);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,"File isn't a pnm (%.1s%.1s%.1s)",ptr-1,ptr, ptr+1);
     return 0;
     }
 
   p->buffer_ptr = (uint8_t*)ptr;
      
   /* set gavl_video_format */
-  fprintf(stderr, "maxval: %d\n", p->maxval);
   
   if(p->maxval > 255)
     {
@@ -278,7 +275,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   if(p->is_pnm == PBMascii)
     {
 #ifdef DEBUG
-    fprintf(stderr, "PBMascii\n");
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "PBMascii");
 #endif
     frame_ptr_start = frame->planes[0];
     
@@ -312,7 +309,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   if(p->is_pnm == PBMbin)
     {
 #ifdef DEBUG
-    fprintf(stderr, "PBMbin\n");
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "PBMbin");
 #endif
     frame_ptr_start = frame->planes[0];
         
@@ -350,7 +347,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   if(p->is_pnm == PGMascii)
     {
 #ifdef DEBUG
-    fprintf(stderr, "PGMascii\n");
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "PGMascii");
 #endif
     frame_ptr_start = frame->planes[0];
     
@@ -379,7 +376,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   if(p->is_pnm == PGMascii_16)
     {
 #ifdef DEBUG
-    fprintf(stderr, "PGMascii_16\n");
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "PGMascii_16");
 #endif
     frame_ptr_start = frame->planes[0];
     
@@ -410,7 +407,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   if(p->is_pnm == PGMbin)
     {
 #ifdef DEBUG
-    fprintf(stderr, "PGMbin\n");
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "PGMbin");
 #endif
 
     frame_ptr_start = frame->planes[0];
@@ -435,7 +432,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   if(p->is_pnm == PGMbin_16)
     {
 #ifdef DEBUG
-    fprintf(stderr, "PGMbin_16\n");
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "PGMbin_16");
 #endif
     frame_ptr_start = frame->planes[0];
         
@@ -462,7 +459,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   if(p->is_pnm == PPMascii)
     {
 #ifdef DEBUG
-    fprintf(stderr, "PPMascii\n");
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "PPMascii");
 #endif
     frame_ptr_start = frame->planes[0];
     
@@ -505,7 +502,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   if(p->is_pnm == PPMascii_16)
     {
 #ifdef DEBUG
-    fprintf(stderr, "PPMascii_16\n");
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "PPMascii_16");
 #endif
     frame_ptr_start = frame->planes[0];
     
@@ -548,9 +545,6 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   /* PPM binaer */
   if(p->is_pnm == PPMbin)
     {
-#ifdef DEBUG
-    fprintf(stderr, "PPMbin %d x %d, max: %d\n", p->width, p->height, p->maxval);
-#endif
     frame_ptr_start = frame->planes[0];
     
     for (y = 0; y < p->height; y++)
@@ -560,21 +554,18 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
       for (x = 0; x < p->width; x++)
         {
         byte = *(p->buffer_ptr);
-        //        fprintf(stderr, "%d ", byte);
         byte = (byte * 255)/p->maxval;
 
 
         frame_ptr[0]= byte;
         INC_PTR;
         byte = *(p->buffer_ptr);
-        //        fprintf(stderr, "%d ", byte);
         byte = (byte * 255)/p->maxval;
 
 
         frame_ptr[1]= byte;
         INC_PTR;
         byte = *(p->buffer_ptr);
-        //        fprintf(stderr, "%d ", byte);
         byte = (byte * 255)/p->maxval;
 
                 
@@ -589,7 +580,7 @@ static int read_image_pnm(void *priv, gavl_video_frame_t *frame)
   if(p->is_pnm == PPMbin_16)
     {
 #ifdef DEBUG
-    fprintf(stderr, "PPMbin_16\n");
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "PPMbin_16");
 #endif
 
     frame_ptr_start = frame->planes[0];

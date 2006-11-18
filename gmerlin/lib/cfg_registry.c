@@ -104,7 +104,6 @@ bg_cfg_section_t * bg_cfg_registry_find_section(bg_cfg_registry_t * r,
 
   if(!section)
     {
-    /*    fprintf(stderr, "Creating section %s\n", tmp_sections[0]); */
     if(prev_section)
       {
       prev_section->next = bg_cfg_section_create(tmp_sections[0]);

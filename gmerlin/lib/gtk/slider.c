@@ -413,8 +413,6 @@ static GdkPixbuf * make_pixbuf(GdkPixbuf * old,
   
   ret = gdk_pixbuf_new_from_file(filename, NULL);
 
-  if(!ret)
-    fprintf(stderr, "Cannot open %s\n", filename);
   
   return ret;
   }
@@ -547,12 +545,10 @@ void bg_gtk_slider_set_pos(bg_gtk_slider_t * s, float position)
     s->pos = (int)((1.0 - position) * (float)(s->total_size - s->slider_size) + 0.5);
   else
     s->pos = (int)(position * (float)(s->total_size - s->slider_size) + 0.5);
-  //  fprintf(stderr, "Position: %f Slider pos 1: %d\n", position, s->pos);
   if(s->pos < 0)
     s->pos = 0;
   else if(s->pos > s->total_size - s->slider_size)
     s->pos = s->total_size - s->slider_size;
-  //  fprintf(stderr, "Slider pos 2: %d\n", s->pos);
   
   if(s->vertical)
     gtk_layout_move(GTK_LAYOUT(s->background_layout), s->slider_eventbox,

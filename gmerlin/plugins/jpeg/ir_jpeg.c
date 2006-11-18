@@ -22,6 +22,10 @@
 
 #include <plugin.h>
 
+#include <log.h>
+#define LOG_DOMAIN "ir_jpeg"
+
+
 #include <jpeglib.h>
 
 
@@ -232,7 +236,7 @@ int read_image_jpeg(void * priv, gavl_video_frame_t * frame)
         }
       break;
     default:
-      fprintf(stderr, "Illegal pixelformat\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Illegal pixelformat");
       return 0;
     }
   jpeg_finish_decompress(&(jpeg->cinfo));

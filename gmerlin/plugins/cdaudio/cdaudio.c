@@ -32,17 +32,22 @@
 #include "cdaudio.h"
 #include "sha1.h"
 
+#include <log.h>
+#define LOG_DOMAIN "cdaudio"
+
+
 void bg_cdaudio_index_dump(bg_cdaudio_index_t * idx)
   {
   int i;
-
-  fprintf(stderr, "CD index, %d tracks (%d audio, %d data)\n",
+  FILE * out = stderr;
+  
+  fprintf(out, "CD index, %d tracks (%d audio, %d data)\n",
           idx->num_tracks, idx->num_audio_tracks,
           idx->num_tracks - idx->num_audio_tracks);
 
   for(i = 0; i < idx->num_tracks; i++)
     {
-    fprintf(stderr, "  Track %d: %s [%d %d]\n", i+1,
+    fprintf(out, "  Track %d: %s [%d %d]\n", i+1,
             ((idx->tracks[i].is_audio) ? "Audio" : "Data"),
             idx->tracks[i].first_sector,
             idx->tracks[i].last_sector);
@@ -154,19 +159,13 @@ CdIo_t * bg_cdaudio_open(const char * device)
   /* Close the tray */
   if((err = cdio_close_tray(device, NULL)))
 #if LIBCDIO_VERSION_NUM >= 77
-    fprintf(stderr, "cdio_close_tray failed: %s\n",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "cdio_close_tray failed: %s",
             cdio_driver_errmsg(err));
 #else
-    fprintf(stderr, "cdio_close_tray failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "cdio_close_tray failed");
 #endif
   
   ret = cdio_open (device, DRIVER_DEVICE);
-#if 0
-  if(ret)
-    fprintf(stderr, "done, using %s driver\n", cdio_get_driver_name(ret));
-  else
-    fprintf(stderr, "failed\n");
-#endif
   return ret;
   }
 #if 0
@@ -195,7 +194,6 @@ bg_cdaudio_index_t * bg_cdaudio_get_index(CdIo_t * cdio)
   
   ret = calloc(1, sizeof(*ret));
   ret->num_tracks = num_tracks;
-  //  fprintf(stderr, "Num tracks: %d\n", ret->num_tracks);
 
   ret->tracks = calloc(ret->num_tracks, sizeof(*(ret->tracks)));
   
@@ -225,7 +223,6 @@ bg_cdaudio_index_t * bg_cdaudio_get_index(CdIo_t * cdio)
 
 void bg_cdaudio_close(CdIo_t * cdio)
   {
-  //  fprintf(stderr, "Close CD device\n");
   cdio_destroy(cdio);
   }
 
@@ -299,7 +296,6 @@ bg_device_info_t * bg_cdaudio_find_devices()
   i = 0;
   while(devices[i])
     {
-    //    fprintf(stderr, "Checking %s\n", devices[i]);
     device_name = (char*)0;
     if(bg_cdaudio_check_device(devices[i], &device_name))
       {
@@ -345,13 +341,11 @@ int bg_cdaudio_get_status(CdIo_t * cdio, bg_cdaudio_status_t *st)
 
   if(subchannel.audio_status == CDIO_MMC_READ_SUB_ST_COMPLETED)
     {
-    //    fprintf(stderr, "Completed\n");
     return 0;
     }
   st->track = subchannel.track - 1;
   
   st->sector = cdio_msf_to_lsn(&(subchannel.abs_addr));
-  //  fprintf(stderr, "Track: %d Sector %d\n", subchannel.track, st->sector);  
   
   return 1;
   }
@@ -363,7 +357,6 @@ void bg_cdaudio_set_volume(CdIo_t * cdio, float volume)
   cdio_audio_volume_t volctrl;
   
   volume_i = (int)(255.0 * pow(10, volume/20.0) + 0.5);
-  //  fprintf(stderr, "bg_cdaudio_set_volume %f\n", volume);
 
   if(volume_i > 255)
     volume_i = 255;
@@ -382,7 +375,6 @@ void bg_cdaudio_set_volume(CdIo_t * cdio, float volume)
 
 void bg_cdaudio_set_pause(CdIo_t * cdio, int pause)
   {
-  //  fprintf(stderr, "bg_cdaudio_set_pause %d\n", pause);
 
   if(pause)
     cdio_audio_pause(cdio);

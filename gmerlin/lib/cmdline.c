@@ -1,3 +1,22 @@
+/*****************************************************************
+ 
+  cmdline.c
+ 
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -182,7 +201,6 @@ char ** bg_cmdline_get_locations_from_args(int * argc, char *** _argv)
     {
     if(seen_dashdash || (argv[i][0] != '-'))
       {
-      //      fprintf(stderr, "argv[%d/%d]: %s\n", i, *argc, argv[i]);
       ret[index++] = argv[i];
       bg_cmdline_remove_arg(argc, _argv, i);
       }
@@ -233,127 +251,6 @@ void bg_cmdline_print_help(bg_cmdline_arg_t* args)
   
   }
 
-#if 0
-static int apply_options(bg_cfg_section_t * section,
-                         bg_parameter_info_t * parameters,
-                         const char * option_string)
-  {
-  bg_cfg_section_t * child_section;
-  int parameter_index, child_index;
-  int len, i;
-  const char * start;
-  const char * end;
-
-  int result;
-  
-  char * tmp_string;
-  
-  start = option_string;
-  
-  while(1)
-    {
-    /* Get the options name */
-    end = start;
-    while((*end != '=') && (*end != '\0'))
-      end++;
-
-    if(*end == '\0')
-      goto fail;
-    
-    /* Now, find the parameter info */
-    parameter_index = 0;
-
-    while(parameters[parameter_index].name)
-      {
-      if(!parameters[parameter_index].opt)
-        {
-        if((strlen(parameters[parameter_index].name) == (end - start)) &&
-           !strncmp(parameters[parameter_index].name, start, end - start))
-          break;
-        }
-      else
-        {
-        if((strlen(parameters[parameter_index].opt) == (end - start)) &&
-           !strncmp(parameters[parameter_index].opt, start, end - start))
-          break;
-        }
-      parameter_index++;
-      }
-
-    if(!parameters[parameter_index].name)
-      {
-      fprintf(stderr, "No such option %s\n", start);
-      goto fail;
-      }
-    
-    end++; // Skip '='
-    start = end;
-    //    fprintf(stderr, "start: %s\n", start);
-    len = bg_cfg_section_set_parameter_from_string(section,
-                                                   &(parameters[parameter_index]),
-                                                   start);
-    if(!len)
-      goto fail;
-    end = start + len;
-
-    if(*end == ':')
-      end++;
-    else if(*end == '}')
-      end++;
-    else if(*end == '{')
-      {
-      /* Apply child parameters */
-      if(!parameters[parameter_index].multi_parameters ||
-         !parameters[parameter_index].multi_names)
-        goto fail;
-      
-      tmp_string = bg_strndup((char*)0, start, end);
-
-      child_index = 0;
-      while(strcmp(parameters[parameter_index].multi_names[child_index], tmp_string))
-        {
-        if(!parameters[parameter_index].multi_names[child_index])
-          goto fail;
-        child_index++;
-        }
-      
-      child_section = bg_cfg_section_find_subsection(section,
-                                                     parameters[parameter_index].name);
-      child_section = bg_cfg_section_find_subsection(child_section,
-                                                     tmp_string);
-      free(tmp_string);
-      
-      end++;
-      start = end;
-      
-      if(!(result = apply_options(child_section,
-                                  parameters[parameter_index].multi_parameters[child_index],
-                                  start)))
-        return 0;
-      end = start + result;
-      }
-    else if((*end == '\0') || (*end == '}'))
-      break;
-    else
-      goto fail;
-    start = end;
-    if(*start == '\0')
-      break;
-    }
-  
-  return end - option_string;
-
-  fail:
-  fprintf(stderr, "Error parsing option\n");
-  fprintf(stderr, "%s\n", option_string);
-
-  for(i = 0; i < (int)(end - option_string); i++)
-    fprintf(stderr, " ");
-  fprintf(stderr, "^\n");
-  return 0;
-  }
-#endif
-
 int bg_cmdline_apply_options(bg_cfg_section_t * section,
                              bg_set_parameter_func_t set_parameter,
                              void * data,
@@ -364,13 +261,8 @@ int bg_cmdline_apply_options(bg_cfg_section_t * section,
                                                 parameters,
                                                 option_string))
     return 0;
-
-#if 0  
-  if(!apply_options(section, parameters, option_string))
-    return 0;
-#endif  
   /* Now, apply the section */
-
+  
   bg_cfg_section_apply(section, parameters, set_parameter, data);
   return 1;
   }

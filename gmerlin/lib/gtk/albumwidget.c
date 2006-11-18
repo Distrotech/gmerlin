@@ -135,7 +135,6 @@ static void unload_pixmaps()
   num_album_widgets--;
   if(!num_album_widgets)
     {
-    //    fprintf(stderr, "albumwidget.c: unload_pixmaps\n");
     
     g_object_unref(has_audio_pixbuf);
     g_object_unref(has_video_pixbuf);
@@ -517,7 +516,6 @@ static void update_cursor_pos(bg_gtk_album_widget_t * w)
   
   gtk_widget_queue_draw(w->treeview);
 
-  //  fprintf(stderr, "Cursor pos: %d\n", w->cursor_pos);
   
   while(gdk_events_pending() || gtk_events_pending())
     gtk_main_iteration();
@@ -547,7 +545,6 @@ static int get_visible_range(bg_gtk_album_widget_t * w, int * start_index,
                                       &x_dummy,
                                       &y2);
 
-  //  fprintf(stderr, "y1: %d, y2: %d\n", y1, y2);
   
   if(!gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(w->treeview),
                                     0, y1, &start_path,
@@ -661,7 +658,6 @@ void bg_gtk_album_widget_update(bg_gtk_album_widget_t * w)
   GtkTreeSelection * selection;
   gavl_time_t total_time = 0;
   
-  //  fprintf(stderr, "bg_gtk_album_widget_update\n");
   
   selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(w->treeview));
   g_signal_handler_block(G_OBJECT(selection), w->select_handler_id);
@@ -802,12 +798,7 @@ static void clipboard_get_func(GtkClipboard *clipboard,
   {
   GdkAtom type_atom;
   bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
-  fprintf(stderr, "clipboard_get_func %d\n", w->clipboard_len);
 
-#if 0
-  fprintf(stderr, "Have clipboard:");
-  fwrite(w->clipboard, 1, w->clipboard_len, stderr);
-#endif
   
   type_atom = gdk_atom_intern("STRING", FALSE);
   //  type_atom = gdk_atom_intern(bg_gtk_atom_entries_name, FALSE);
@@ -822,7 +813,6 @@ static void clipboard_clear_func(GtkClipboard *clipboard,
                                  gpointer data)
   {
   bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
-  fprintf(stderr, "clipboard_clear_func\n");
   if(w->clipboard)
     {
     free(w->clipboard);
@@ -838,12 +828,10 @@ static void clipboard_received_func(GtkClipboard *clipboard,
   bg_album_entry_t * entry;
   bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t*)data;
   
-  fprintf(stderr, "clipboard_received_func %d\n", selection_data->length);
 
 #if 1
   if(selection_data->length <= 0)
     {
-    fprintf(stderr, "Retrieving clipboard failed\n");
     return;
     }
   entry = bg_album_get_entry(w->album, w->cursor_pos);
@@ -865,18 +853,13 @@ static void do_copy(bg_gtk_album_widget_t * w)
   clipboard_atom = gdk_atom_intern ("CLIPBOARD", FALSE);   
   clipboard = gtk_clipboard_get(clipboard_atom);
   
-  if(gtk_clipboard_set_with_data(clipboard,
-                                 dnd_copy_paste_entries,
-                                 sizeof(dnd_copy_paste_entries)/
-                                 sizeof(dnd_copy_paste_entries[0]),
-                                 clipboard_get_func,
-                                 clipboard_clear_func,
-                                 (gpointer)w))
-      {
-      fprintf(stderr, "Setting clipboard succeeded\n");
-      }
-  else
-    fprintf(stderr, "Setting clipboard failed\n");
+  gtk_clipboard_set_with_data(clipboard,
+                              dnd_copy_paste_entries,
+                              sizeof(dnd_copy_paste_entries)/
+                              sizeof(dnd_copy_paste_entries[0]),
+                              clipboard_get_func,
+                              clipboard_clear_func,
+                              (gpointer)w);
   
   if(w->clipboard)
     free(w->clipboard);
@@ -915,7 +898,6 @@ static void add_file_callback(char ** files, const char * plugin,
   {
   bg_album_entry_t * entry;
   bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
-  //  fprintf(stderr, "append_file_callback: %s\n", (plugin ? plugin : "NULL"));
 
   gtk_widget_set_sensitive(widget->treeview, 0);
 
@@ -935,7 +917,6 @@ static void add_urls_callback(char ** urls, const char * plugin,
   {
   bg_album_entry_t * entry;
   bg_gtk_album_widget_t * widget = (bg_gtk_album_widget_t*)data;
-  //  fprintf(stderr, "append_urls_callback: %s\n", (urls[0] ? urls[0] : "NULL"));
   gtk_widget_set_sensitive(widget->treeview, 0);
   entry = bg_album_get_entry(widget->album, widget->cursor_pos);
   bg_album_insert_urls_before(widget->album, urls, plugin, entry);
@@ -1114,7 +1095,6 @@ static void transcode_selected(bg_gtk_album_widget_t * w)
   file = fopen(filename, "w");
   if(!file)
     {
-    fprintf(stderr, "Cannot open temporary file %s\n", filename);
     free(filename);
     return;
     }
@@ -1719,8 +1699,6 @@ static void drag_received_callback(GtkWidget *widget,
   
   aw = (bg_gtk_album_widget_t *)d;
 
-  //  fprintf(stderr, "album drop %d\n", data->length);
-  //  fwrite(data->data, 1, data->length, stderr);
   
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(aw->treeview));
   
@@ -1741,12 +1719,10 @@ static void drag_received_callback(GtkWidget *widget,
     }
   else if(is_urilist(data))
     {
-    //    fprintf(stderr, "text/urilist");
     source_type = DND_TEXT_URI_LIST;
     }
   else
     {
-    //    fprintf(stderr, "text/plain");
     source_type = DND_TEXT_PLAIN;
     }
   
@@ -1858,14 +1834,7 @@ static void drag_get_callback(GtkWidget *widget,
   
   bg_gtk_album_widget_t * w;
   w = (bg_gtk_album_widget_t *)user_data;
-  //  fprintf(stderr, "Drag get callback\n");
   str = bg_album_save_selected_to_memory(w->album, &len, 1);
-#if 0
-  fprintf(stderr, "selection: %s\n", gdk_atom_name(data->selection));
-  fprintf(stderr, "target:    %s\n", gdk_atom_name(data->target));
-  fprintf(stderr, "type:      %s\n", gdk_atom_name(data->type));
-  fprintf(stderr, "format:    %d\n", data->format);
-#endif
   type_atom = gdk_atom_intern("STRING", FALSE);
   if(!type_atom)
     return;
@@ -1899,7 +1868,6 @@ static void select_row_callback(GtkTreeSelection * sel,
       album_entry->flags |= BG_ALBUM_ENTRY_SELECTED;
       w->selected_entry = album_entry;
       w->num_selected++;
-      //      fprintf(stderr, "Entry %d is selected\n", i+1);
       }
     else
       album_entry->flags &= ~BG_ALBUM_ENTRY_SELECTED;
@@ -1922,13 +1890,7 @@ static gboolean drag_motion_callback(GtkWidget *widget,
   gint * indices;
   bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t *)user_data;
 
-  //  fprintf(stderr, "Drag motion callback, x: %d, y: %d\n", x, y);
 
-#if 0
-  print_action(drag_context->action);
-  fprintf(stderr, "Suggtested Action: ");
-  print_action(drag_context->suggested_action);
-#endif
   gdk_drag_status(drag_context, drag_context->suggested_action, time);
   
   if(gtk_tree_view_get_dest_row_at_pos(GTK_TREE_VIEW(w->treeview),
@@ -1961,7 +1923,6 @@ static void drag_delete_callback(GtkWidget *widget,
   {
   bg_gtk_album_widget_t * w = (bg_gtk_album_widget_t *)user_data;
 
-  //  fprintf(stderr, "Drag delete %s\n", bg_album_get_name(w->album));
 
   bg_album_delete_selected(w->album);
   bg_gtk_album_widget_update(w);
@@ -1975,7 +1936,6 @@ motion_callback(GtkWidget * w, GdkEventMotion * evt, gpointer user_data)
   bg_gtk_album_widget_t * wid = (bg_gtk_album_widget_t *)user_data;
   GtkTargetList * tl;
 
-  //  fprintf(stderr, "wid: %p, wid->album: %p\n", wid, wid->album);
   
   if(bg_album_get_type(wid->album) == BG_ALBUM_TYPE_REMOVABLE)
     tl = target_list_r;
@@ -1984,15 +1944,12 @@ motion_callback(GtkWidget * w, GdkEventMotion * evt, gpointer user_data)
     
   if(evt->state & GDK_BUTTON1_MASK)
     {
-    //    fprintf(stderr, "Motion callback, %d\n",
-    //            abs((int)(evt->x) - wid->mouse_x) + abs((int)(evt->y) - wid->mouse_y));
     
     if((abs((int)(evt->x) - wid->mouse_x) + abs((int)(evt->y) - wid->mouse_y) < 10) ||
        (!wid->num_selected))
       return FALSE;
     if(evt->state & GDK_CONTROL_MASK)
       {
-      //      fprintf(stderr, "Start drag copy\n");
 
       ctx = gtk_drag_begin(w, tl,
                            GDK_ACTION_COPY,
@@ -2004,7 +1961,6 @@ motion_callback(GtkWidget * w, GdkEventMotion * evt, gpointer user_data)
       }
     else
       {
-      //      fprintf(stderr, "Start drag move\n");
       ctx = gtk_drag_begin(w, tl,
                            GDK_ACTION_MOVE,
                            1, (GdkEvent*)(evt));
@@ -2028,8 +1984,6 @@ static gboolean key_press_callback(GtkWidget * w, GdkEventKey * evt,
   bg_gtk_album_widget_t * wid = (bg_gtk_album_widget_t *)user_data;
   int old_cursor_pos;
 
-  //  fprintf(stderr, "Key Press Callback, state: %08x %08x\n",
-  //          evt->state, evt->keyval);
 
   switch(evt->keyval)
     {
@@ -2255,22 +2209,18 @@ static void button_callback(GtkWidget * wid, gpointer data)
     }
   else if(wid == w->copy_button)
     {
-    //    fprintf(stderr, "Copy button clicked\n");
     do_copy(w);
     }
   else if(wid == w->cut_button)
     {
-    //    fprintf(stderr, "Cut button clicked\n");
     do_cut(w);
     }
   else if(wid == w->paste_button)
     {
-    //    fprintf(stderr, "Paste button clicked\n");
     do_paste(w);
     }
   else if(wid == w->eject_button)
     {
-    //    fprintf(stderr, "Eject button clicked\n");
     if(w->close_callback)
       w->close_callback(w, w->close_callback_data);
     bg_album_eject(w->album);
@@ -2738,7 +2688,6 @@ void bg_gtk_album_widget_goto_current(bg_gtk_album_widget_t * aw)
       }
     }
   
-  //  fprintf(stderr, "bg_gtk_album_widget_goto_current\n");
   }
 
 GtkAccelGroup * bg_gtk_album_widget_get_accel_group(bg_gtk_album_widget_t * w)

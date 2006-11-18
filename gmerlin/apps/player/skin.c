@@ -60,7 +60,6 @@ char * gmerlin_skin_load(gmerlin_skin_t * s, char * directory)
   
   if(BG_XML_STRCMP(node->name, "SKIN"))
     {
-    fprintf(stderr, "File %s contains no skin\n", filename);
     goto fail;
     }
   node = node->children;

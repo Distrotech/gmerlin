@@ -1,7 +1,29 @@
+/*****************************************************************
+ 
+  g_control.c
+ 
+  Copyright (c) 2003-2006 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+ 
+  http://gmerlin.sourceforge.net
+ 
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
+ 
+*****************************************************************/
+
 #include <config.h>
 #include <utils.h>
 #include <parameter.h>
 #include "gui.h"
+
+#include <log.h>
+#define LOG_DOMAIN "g_control"
 
 #include <gui_gtk/aboutwindow.h>
 
@@ -120,7 +142,6 @@ static void enum_callback(GtkWidget * w, gpointer data)
     }
   if(index == arr->num)
     {
-    fprintf(stderr, "Dammit!!\n");
     return;
     }
   
@@ -138,7 +159,6 @@ static void enum_callback(GtkWidget * w, gpointer data)
   value = 0;
   while(1)
     {
-    //    fprintf(stderr, "Testing %s %s %d\n", list->data, label, index);
     if(!strcmp(list->data, label))
       break;
     else
@@ -153,7 +173,6 @@ static void enum_callback(GtkWidget * w, gpointer data)
   /* Write value */
   snd_hctl_elem_write(arr->control->hctl, arr->control->val);
 
-  //  fprintf(stderr, "enum_callback, Control: %d, val: %d\n", index, value);
   
   }
 
@@ -183,8 +202,6 @@ static int hctl_enum_callback(snd_hctl_elem_t *elem, unsigned int mask)
       
       val_str = g_list_nth_data(arr->popdown_strings, value);
 
-      //      fprintf(stderr, "hctl_enum_callback i: %d, value: %d, val_str: %s\n",
-      //              i, value, val_str);
       
       widget_block(&(arr->widgets[i]));
       gtk_entry_set_text(GTK_ENTRY(GTK_COMBO(arr->widgets[i].w)->entry),
@@ -210,11 +227,9 @@ static void int_callback(GtkWidget * w, gpointer data)
     }
   if(index == arr->num)
     {
-    fprintf(stderr, "Dammit!!\n");
     return;
     }
   value = (int)(gtk_range_get_value(GTK_RANGE(arr->widgets[index].w)));
-  //  fprintf(stderr, "Value: %d\n", value);  
 
   widget_block(&(arr->widgets[index]));
   gtk_range_set_value(GTK_RANGE(arr->widgets[index].w), (float)value);
@@ -246,7 +261,6 @@ static int hctl_int_callback(snd_hctl_elem_t *elem, unsigned int mask)
   widget_array_t * arr;
   int value;
 
-  //  fprintf(stderr, "hctl_int_callback\n");
   if(mask & SND_CTL_EVENT_MASK_VALUE) 
     {
     arr = (widget_array_t*)snd_hctl_elem_get_callback_private(elem);
@@ -278,11 +292,9 @@ static void int64_callback(GtkWidget * w, gpointer data)
     }
   if(index == arr->num)
     {
-    fprintf(stderr, "Dammit!!\n");
     return;
     }
   value = (int64_t)(gtk_range_get_value(GTK_RANGE(arr->widgets[index].w)));
-  //  fprintf(stderr, "Value: %lld\n", value);  
 
   /* Transfer value */
 
@@ -339,12 +351,10 @@ static void bool_callback(GtkWidget * w, gpointer data)
     }
   if(index == arr->num)
     {
-    fprintf(stderr, "Dammit!!\n");
     return;
     }
   value =
     (int)(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(arr->widgets[index].w)));
-  //  fprintf(stderr, "Value: %d\n", value);  
 
   /* Transfer value */
   snd_ctl_elem_value_set_boolean(arr->control->val, index, value);
@@ -381,7 +391,6 @@ static void lock_callback(GtkWidget * w, gpointer data)
   {
   widget_array_t * arr = (widget_array_t *)data;
   arr->locked = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(w));
-  //  fprintf(stderr, "lock: %d\n", arr->locked);
   }
 
 static void init_array(widget_array_t * ret, alsa_mixer_control_t * c,
@@ -661,33 +670,27 @@ static void menu_callback(GtkWidget * w, gpointer data)
   if(w == wid->menu.left)
     {
     card_widget_move_control_left(wid->card, wid);
-    //    fprintf(stderr, "Left\n");
     }
   else if(w == wid->menu.right)
     {
     card_widget_move_control_right(wid->card, wid);
-    // fprintf(stderr, "Right\n");
     }
   else if(w == wid->menu.first)
     {
     card_widget_move_control_first(wid->card, wid);
-    // fprintf(stderr, "First\n");
     }
   else if(w == wid->menu.last)
     {
     card_widget_move_control_last(wid->card, wid);
-    // fprintf(stderr, "Last\n");
     }
   else if(w == wid->menu.tearoff)
     {
     card_widget_tearoff_control(wid->card, wid);
-    //    fprintf(stderr, "Tearoff\n");
     }
   else if(w == wid->menu.config)
     {
     card_widget_configure(wid->card);
     //    card_widget_tearoff_control(wid->card, wid);
-    //    fprintf(stderr, "Config\n");
     }
   else if(w == wid->menu.about)
     {
@@ -985,7 +988,6 @@ static void init_volume(control_widget_t * w, alsa_mixer_group_t * c)
     num_rows++;
   
   w->w = gtk_table_new(4, capture_width + playback_width, 0);
-  //  fprintf(stderr, "Creating widget for %s\n", c->label);
 
   w->label = bg_strdup(w->label, c->label);
   label = gtk_label_new(w->label);
@@ -1142,7 +1144,6 @@ static void init_singlebool(control_widget_t * w, alsa_mixer_group_t * c,
                      w);
   w->priv.singlebool.checkbutton.handler_widget =
     w->priv.singlebool.checkbutton.w;
-  //  fprintf(stderr, "c->ctl: %p\n", c->ctl);
   w->priv.singlebool.control = c->ctl;
   w->w = w->priv.singlebool.checkbutton.w;
 
@@ -1363,7 +1364,6 @@ control_widget_t * control_widget_create(alsa_mixer_group_t * c,
       case SND_CTL_ELEM_TYPE_INTEGER:
         if(snd_ctl_elem_info_get_min(info) >= snd_ctl_elem_info_get_max(info))
           {
-          fprintf(stderr, "int control %s has min >= max, skipping\n", c->label);
           break;
           }
         ret = calloc(1, sizeof(*ret));
@@ -1386,7 +1386,6 @@ control_widget_t * control_widget_create(alsa_mixer_group_t * c,
       case SND_CTL_ELEM_TYPE_INTEGER64:
         if(snd_ctl_elem_info_get_min64(info) >= snd_ctl_elem_info_get_max64(info))
           {
-          fprintf(stderr, "int64 control %s has min >= max, skipping\n", c->label);
           break;
           }
         ret = calloc(1, sizeof(*ret));
@@ -1397,7 +1396,7 @@ control_widget_t * control_widget_create(alsa_mixer_group_t * c,
         
       case SND_CTL_ELEM_TYPE_BYTES:
       case SND_CTL_ELEM_TYPE_IEC958:
-        fprintf(stderr, "Warning: Type %s not handled for %s\n",
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Type %s not handled for %s",
                 snd_ctl_elem_type_name(type), c->label);
         break;
       }
@@ -1573,7 +1572,6 @@ void control_widget_set_parameter(void * data, char * name,
   if(!name)
     return;
 
-  //  fprintf(stderr, "Set parameter %s %d\n", name, w->type);
   
   if(!strcmp(name, "playback_locked"))
     {
@@ -1600,12 +1598,10 @@ void control_widget_set_parameter(void * data, char * name,
     }
   if(!strcmp(name, "index"))
     {
-    //    fprintf(stderr, "Index: %d\n", v->val_i);
     control_widget_set_index(w, v->val_i);
     }
   if(!strcmp(name, "own_window"))
     {
-    //    fprintf(stderr, "Index: %d\n", v->val_i);
     w->own_window = v->val_i;
     }
   if(!strcmp(name, "x"))
@@ -1637,7 +1633,6 @@ int control_widget_get_parameter(void * data, char * name,
   control_widget_t * w;
   w = (control_widget_t*)data;
 
-  //  fprintf(stderr, "Get parameter %s\n", name);
   
   if(!strcmp(name, "playback_locked"))
     {
@@ -1666,7 +1661,6 @@ int control_widget_get_parameter(void * data, char * name,
     }
   if(!strcmp(name, "own_window"))
     {
-    //    fprintf(stderr, "Index: %d\n", v->val_i);
     v->val_i = w->own_window;
     }
   if(!strcmp(name, "x"))
@@ -1746,7 +1740,6 @@ void control_widget_set_coords(control_widget_t * w, int x, int y, int width, in
 void control_widget_set_hidden(control_widget_t * w, int hidden)
   {
   w->hidden = hidden;
-  //  fprintf(stderr, "Set hidden %s %d\n", w->label, hidden);
   if(hidden)
     gtk_widget_hide(w->w);
   else

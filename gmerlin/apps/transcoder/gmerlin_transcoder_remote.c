@@ -22,11 +22,16 @@
 #include <cmdline.h>
 #include <utils.h>
 #include <remote.h>
+
+#include <log.h>
+#define LOG_DOMAIN "gmerlin_transcoder_remote"
+
 #include "transcoder_remote.h"
 
 static void cmd_addalbum(void * data, int * argc, char *** _argv, int arg)
   {
   FILE * file;
+  FILE * out = stderr;
   int len;
   char * xml_string;
 
@@ -34,12 +39,10 @@ static void cmd_addalbum(void * data, int * argc, char *** _argv, int arg)
   bg_remote_client_t * remote;
   char ** argv = *_argv;
   remote = (bg_remote_client_t *)data;
-
-  fprintf(stderr, "cmd_addalbum\n");
-
+  
   if(arg >= *argc)
     {
-    fprintf(stderr, "Option -addalbum requires an argument\n");
+    fprintf(out, "Option -addalbum requires an argument\n");
     exit(-1);
     }
 
@@ -71,7 +74,26 @@ static void cmd_addalbum(void * data, int * argc, char *** _argv, int arg)
 
 static void cmd_add(void * data, int * argc, char *** _argv, int arg)
   {
+  FILE * out = stderr;
 
+  bg_msg_t * msg;
+  bg_remote_client_t * remote;
+  remote = (bg_remote_client_t *)data;
+  
+  if(arg >= *argc)
+    {
+    fprintf(out, "Option -add requires an argument\n");
+    exit(-1);
+    }
+  
+  msg = bg_remote_client_get_msg_write(remote);
+
+  bg_msg_set_id(msg, TRANSCODER_REMOTE_ADD_FILE);
+
+  bg_msg_set_arg_string(msg, 0, (*_argv)[arg]);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  
+  bg_remote_client_done_msg_write(remote);
   }
 
 bg_cmdline_arg_t commands[] =
@@ -98,9 +120,10 @@ int launch = 0;
 
 static void opt_host(void * data, int * argc, char *** argv, int arg)
   {
+  FILE * out = stderr;
   if(arg >= *argc)
     {
-    fprintf(stderr, "Option -host requires an argument\n");
+    fprintf(out, "Option -host requires an argument\n");
     exit(-1);
     }
   host = bg_strdup(host, (*argv)[arg]);
@@ -109,9 +132,10 @@ static void opt_host(void * data, int * argc, char *** argv, int arg)
 
 static void opt_port(void * data, int * argc, char *** argv, int arg)
   {
+  FILE * out = stderr;
   if(arg >= *argc)
     {
-    fprintf(stderr, "Option -port requires an argument\n");
+    fprintf(out, "Option -port requires an argument\n");
     exit(-1);
     }
   port = atoi((*argv)[arg]);
@@ -154,10 +178,11 @@ static bg_cmdline_arg_t global_options[] =
 
 static void opt_help(void * data, int * argc, char *** argv, int arg)
   {
-  fprintf(stderr, "Usage: %s [options] command\n\n", (*argv)[0]);
-  fprintf(stderr, "Options:\n\n");
+  FILE * out = stderr;
+  fprintf(out, "Usage: %s [options] command\n\n", (*argv)[0]);
+  fprintf(out, "Options:\n\n");
   bg_cmdline_print_help(global_options);
-  fprintf(stderr, "\ncommand is of the following:\n\n");
+  fprintf(out, "\ncommand is of the following:\n\n");
   bg_cmdline_print_help(commands);
   exit(0);
   }
@@ -187,12 +212,11 @@ int main(int argc, char ** argv)
 
   if(!bg_remote_client_init(remote, host, port, 1000))
     {
-    //    fprintf(stderr, "Initializing remote failed\n");
     if(launch)
       {
       if(system("gmerlin_transcoder &"))
         {
-        fprintf(stderr, "Cannot launch transcoder process\n");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot launch transcoder process");
         return -1;
         }
 

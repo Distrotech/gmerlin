@@ -310,8 +310,6 @@ char * bg_gtk_convert_font_name_from_pango(const char * name)
 
   FcPatternDestroy(pattern);
   pango_font_description_free(description);
-  //  fprintf(stderr, "bg_gtk_convert_font_name_from_pango: %s -> %s\n",
-  //          name, ret);
   return ret;
   }
 
@@ -331,7 +329,6 @@ char * bg_gtk_convert_font_name_to_pango(const char * name)
   pango_font_description_free(description);
 
   
-  //  fprintf(stderr, "bg_gtk_convert_font_name_to_pango: %s -> %s\n", name, ret);
   return ret;
   
   }

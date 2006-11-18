@@ -32,6 +32,10 @@
 
 #include <plugin.h>
 #include <utils.h>
+
+#include <log.h>
+#define LOG_DOMAIN "oa_oss"
+
 #include "oss_common.h"
 
 #define MULTICHANNEL_NONE     0
@@ -127,7 +131,6 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
   gavl_sample_format_t test_format;
   int test_value;
 
-  //  fprintf(stderr, "Open Devices\n");
   
   /* Open the devices */
   
@@ -169,7 +172,7 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
 
   if(sample_format == GAVL_SAMPLE_NONE)
     {
-    fprintf(stderr, "Cannot set sampleformat for %s\n",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot set sampleformat for %s",
             priv->device_front);
     goto fail;
     }
@@ -181,7 +184,7 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
                                            sample_format);
     if(test_format != sample_format)
       {
-      fprintf(stderr, "Cannot set sampleformat for %s\n",
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot set sampleformat for %s",
               priv->device_rear);
       goto fail;
       }
@@ -193,7 +196,7 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
                                            sample_format);
     if(test_format != sample_format)
       {
-      fprintf(stderr, "Cannot set sampleformat for %s\n",
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot set sampleformat for %s",
               priv->device_center_lfe);
       goto fail;
       }
@@ -205,7 +208,7 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
     bg_oss_set_channels(priv->fd_front, priv->num_channels_front);
   if(test_value != priv->num_channels_front)
     {
-    fprintf(stderr, "Device %s supports no %d-channel sound\n",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Device %s supports no %d-channel sound",
             priv->device_front,
             priv->num_channels_front);
     goto fail;
@@ -217,7 +220,7 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
       bg_oss_set_channels(priv->fd_rear, priv->num_channels_rear);
     if(test_value != priv->num_channels_rear)
       {
-      fprintf(stderr, "Device %s supports no %d-channel sound\n",
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Device %s supports no %d-channel sound",
               priv->device_rear,
               priv->num_channels_rear);
       goto fail;
@@ -230,7 +233,7 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
       bg_oss_set_channels(priv->fd_center_lfe, priv->num_channels_center_lfe);
     if(test_value != priv->num_channels_center_lfe)
       {
-      fprintf(stderr, "Device %s supports no %d-channel sound\n",
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Device %s supports no %d-channel sound",
               priv->device_center_lfe,
               priv->num_channels_center_lfe);
       goto fail;
@@ -243,7 +246,7 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
     bg_oss_set_samplerate(priv->fd_front, format->samplerate);
   if(test_value != format->samplerate)
     {
-    fprintf(stderr, "Samplerate %f KHz not supported by device %s\n",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Samplerate %f KHz not supported by device %s",
             format->samplerate / 1000.0,
             priv->device_front);
     goto fail;
@@ -255,7 +258,7 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
       bg_oss_set_samplerate(priv->fd_rear, format->samplerate);
     if(test_value != format->samplerate)
       {
-      fprintf(stderr, "Samplerate %f KHz not supported by device %s\n",
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Samplerate %f KHz not supported by device %s",
               format->samplerate / 1000.0,
               priv->device_rear);
       goto fail;
@@ -268,7 +271,7 @@ static int open_devices(oss_t * priv, gavl_audio_format_t * format)
       bg_oss_set_samplerate(priv->fd_center_lfe, format->samplerate);
     if(test_value != format->samplerate)
       {
-      fprintf(stderr, "Samplerate %f KHz not supported by device %s\n",
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Samplerate %f KHz not supported by device %s",
               format->samplerate / 1000.0,
               priv->device_center_lfe);
       goto fail;
@@ -367,7 +370,6 @@ static int open_oss(void * data, gavl_audio_format_t * format)
     /* All Channels to one device */
     case MULTICHANNEL_CREATIVE:
       /* We need 2 rear channels */
-      //      fprintf(stderr, "Creative Multichannel!\n");
       
       if(center_channel || lfe_channel || rear_channels)
         rear_channels = 2;
@@ -450,7 +452,6 @@ static void write_frame_oss(void * p, gavl_audio_frame_t * f)
   {
   oss_t * priv = (oss_t*)(p);
 
-  //  fprintf(stderr, "Valid samples: %d\n", f->valid_samples);
   
   write(priv->fd_front, f->channels.s_8[0], f->valid_samples *
         priv->num_channels_front * priv->bytes_per_sample);
@@ -503,7 +504,7 @@ static int get_delay_oss(void * p)
   priv = (oss_t*)(p);
   if(ioctl(priv->fd_front, SNDCTL_DSP_GETODELAY, &unplayed_bytes)== -1)
     {
-    fprintf(stderr, "OSS Driver: SNDCTL_DSP_GETODELAY ioctl failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "SNDCTL_DSP_GETODELAY ioctl failed");
     return 0;
     }
   return unplayed_bytes/( priv->num_channels_front*priv->bytes_per_sample);
@@ -519,7 +520,6 @@ set_parameter_oss(void * p, char * name, bg_parameter_value_t * val)
   oss_t * priv = (oss_t*)(p);
   if(!name)
     return;
-  //  fprintf(stderr, "Set parameter %s\n", name);
   if(!strcmp(name, "multichannel_mode"))
     {
    if(!strcmp(val->val_str, "none"))

@@ -62,7 +62,6 @@ static void action_callback(void * data, char * action)
   p = (bg_transcoder_pp_t*)data;
   bg_transcoder_send_msg_start(p->msg_out, action);
   p->last_time = 0;
-  //  fprintf(stderr, "transcoder_pp: action %s\n", action);
   }
 
 static void progress_callback(void * data, float perc)
@@ -72,7 +71,6 @@ static void progress_callback(void * data, float perc)
   gavl_time_t remaining_time;
   p = (bg_transcoder_pp_t*)data;
 
-  //  fprintf(stderr, "transcoder_pp: progress %.1f\n", perc * 100.0);
   if(perc == 0.0)
     {
     gavl_timer_stop(p->timer);
@@ -175,11 +173,9 @@ void bg_transcoder_pp_update(bg_transcoder_pp_t * p)
   char * str = (char*)0;
   char * ext;
   int pp_only = 0;
-  //  fprintf(stderr, "bg_transcoder_pp_update\n");
 
   while((msg = bg_msg_queue_try_lock_read(p->msg_in)))
     {
-    //    fprintf(stderr, "Got message\n");
     switch(bg_msg_get_id(msg))
       {
       case BG_TRANSCODER_MSG_START:
@@ -222,7 +218,6 @@ void bg_transcoder_pp_update(bg_transcoder_pp_t * p)
         p->pp_plugin->add_track(p->plugin->priv, str, &p->metadata, pp_only);
         p->num_tracks++;
         bg_log(BG_LOG_INFO, LOG_DOMAIN, "Scheduling %s for postprocessing", str);
-        //        fprintf(stderr, "Scheduling %s for postprocessing", str);
         free(str);
         str = (char*)0;
         }

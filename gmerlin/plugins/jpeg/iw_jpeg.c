@@ -24,6 +24,10 @@
 #include <plugin.h>
 #include <utils.h>
 
+#include <log.h>
+#define LOG_DOMAIN "iw_jpeg"
+
+
 #include <jpeglib.h>
 
 #define PADD(i, size) i = ((i + size - 1) / size) * size
@@ -148,8 +152,8 @@ int write_header_jpeg(void * priv, const char * filename,
       
       break;
     default:
-      fprintf(stderr, "Illegal pixelformat: %s\n",
-              gavl_pixelformat_to_string(jpeg->pixelformat));      
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Illegal pixelformat: %s",
+             gavl_pixelformat_to_string(jpeg->pixelformat));      
       break;
     }
 
@@ -211,7 +215,6 @@ int write_image_jpeg(void * priv, gavl_video_frame_t * frame)
         }
       break;
     default:
-      fprintf(stderr, "Illegal pixelformat\n");
       return 0;
     }
   jpeg_finish_compress(&(jpeg->cinfo));

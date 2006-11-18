@@ -66,7 +66,6 @@ static void track_changed(void * data, int track)
   bg_player_input_context_t * ctx;
   ctx = (bg_player_input_context_t *)data;
 
-  //  fprintf(stderr, "Track changed callback, new track: %d\n", track);
 
   bg_player_set_track(ctx->player, track);
   
@@ -77,7 +76,6 @@ static void time_changed(void * data, gavl_time_t time)
   bg_player_input_context_t * ctx;
   ctx = (bg_player_input_context_t *)data;
 
-  //  fprintf(stderr, "Time changed callback, new track: %f\n", gavl_time_to_seconds(time));
   bg_player_time_set(ctx->player, time);
   }
 
@@ -86,8 +84,6 @@ static void duration_changed(void * data, gavl_time_t duration)
   bg_player_input_context_t * ctx;
   ctx = (bg_player_input_context_t *)data;
 
-  //  fprintf(stderr, "Duration changed callback, new duration: %f\n",
-  //          gavl_time_to_seconds(duration));
 
   bg_player_set_duration(ctx->player, duration, ctx->player->can_seek);
 
@@ -99,7 +95,6 @@ static void name_changed(void * data, const char * name)
   {
   bg_player_input_context_t * ctx;
   ctx = (bg_player_input_context_t *)data;
-  //  fprintf(stderr, "Name changed callback\n");
   bg_player_set_track_name(ctx->player, name);
   }
 
@@ -108,7 +103,6 @@ static void metadata_changed(void * data, const bg_metadata_t * m)
   bg_player_input_context_t * ctx;
   ctx = (bg_player_input_context_t *)data;
   bg_player_set_metadata(ctx->player, m);
-  //  fprintf(stderr, "** Set metadata **\n");
   }
 
 static void buffer_notify(void * data, float percentage)
@@ -207,7 +201,6 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
     }
   else
     ctx->player->do_bypass = 0;
-  //  fprintf(stderr, "Bypass mode: %d\n", ctx->player->do_bypass);
   /* Select streams */
 
   /* Adjust stream indices */
@@ -245,7 +238,6 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
       }
     }
 
-  //  fprintf(stderr, "*** Set video stream: %d\n", ctx->player->current_video_stream);
 
   if(ctx->plugin->set_video_stream)
     {
@@ -297,7 +289,6 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
     {
     if(!ctx->plugin->start(ctx->priv))
       {
-      fprintf(stderr, "start() failed\n");
       return 0;
       }
     }
@@ -391,7 +382,6 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   bg_fifo_state_t state;
   s = &(ctx->player->audio_stream);
   
-  //  fprintf(stderr, "Process audio\n");
 
   if(ctx->send_silence)
     {
@@ -431,7 +421,6 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
       ctx->audio_finished = 1;
     ctx->audio_samples_written += s->frame_in->valid_samples;
     bg_plugin_unlock(ctx->plugin_handle);
-    //    fprintf(stderr, "Convert audio %d\n", s->frame->valid_samples);
     
     gavl_audio_convert(s->cnv_in, s->frame_in, audio_frame);
     }
@@ -464,14 +453,7 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
   ctx->audio_time =
     gavl_samples_to_time(ctx->player->audio_stream.input_format.samplerate,
                          ctx->audio_samples_written);
-  //  if(ctx->audio_finished)
-  //    fprintf(stderr, "ctx->audio_finished\n");
 
-  //  fprintf(stderr, "Process audio done\n");
-#if 0
-  if(ctx->audio_finished)
-    fprintf(stderr, "Process audio: EOF\n");
-#endif
   
   return !ctx->audio_finished;
   }
@@ -486,8 +468,6 @@ static int process_subtitle(bg_player_input_context_t * ctx)
   
   s = &(ctx->player->subtitle_stream);
 
-  //  fprintf(stderr, "Process subtitle %d %d\n", ctx->player->do_subtitle_text,
-  //          ctx->player->do_subtitle_overlay);
 
   
   if(ctx->plugin->has_subtitle(ctx->priv,
@@ -498,7 +478,6 @@ static int process_subtitle(bg_player_input_context_t * ctx)
 
     if(!ovl)
       {
-      //      fprintf(stderr, "Got no overlay\n");
 
       return 0;
       }
@@ -516,19 +495,6 @@ static int process_subtitle(bg_player_input_context_t * ctx)
       bg_text_renderer_render(s->renderer, s->buffer, ovl);
       ovl->frame->time_scaled = start;
       ovl->frame->duration_scaled = duration;
-#if 0
-      gavl_time_prettyprint(start, time_string);
-      fprintf(stderr, "*** Player_input: Got subtitle: %s", time_string);
-      gavl_time_prettyprint(start+duration, time_string);
-      fprintf(stderr, " -> %s\n", time_string);
-      fprintf(stderr, "Src rect: ");
-      gavl_rectangle_i_dump(&ovl->ovl_rect);
-      fprintf(stderr, " dst_pos: %d, %d\n", ovl->dst_x, ovl->dst_y);
-      
-      fprintf(stderr, s->buffer);
-      fprintf(stderr, "\n***\n");
-      
-#endif
       //      return 1;
       }
     else
@@ -552,7 +518,6 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
   bg_fifo_state_t state;
   gavl_video_frame_t * video_frame;
   bg_player_video_stream_t * s;
-  //  fprintf(stderr, "Process video %d...", preload);
   s = &(ctx->player->video_stream);
   
   if(s->do_convert)
@@ -589,7 +554,6 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     
     if(!video_frame)
       return 0;
-    //    fprintf(stderr, "Got frame\n");
     bg_plugin_lock(ctx->plugin_handle);
     result = ctx->plugin->read_video_frame(ctx->priv,
                                            video_frame,
@@ -603,18 +567,9 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     ctx->video_frames_written++;
     }
 
-#if 0
-    fprintf(stderr, "INP: Video Frame time: %lld\n",
-            video_frame->time_scaled);
-#endif
   
   bg_fifo_unlock_write(s->fifo, ctx->video_finished);
 
-#if 0
-  if(ctx->video_finished)
-    fprintf(stderr, "Process video: EOF\n");
-#endif
-  //  fprintf(stderr, "done %d\n", ctx->video_finished);
   return !ctx->video_finished;
   }
 
@@ -652,7 +607,6 @@ void * bg_player_input_thread(void * data)
   if(do_audio && !do_video)
     read_audio = 1;
 
-  //  fprintf(stderr, "input thread started\n");
   
   while(1)
     {
@@ -677,11 +631,6 @@ void * bg_player_input_thread(void * data)
       }
     if(do_audio && do_video)
       {
-#if 0
-      fprintf(stderr, "A: %f, V: %f\n",
-              gavl_time_to_seconds(ctx->audio_time),
-              gavl_time_to_seconds(ctx->video_time));
-#endif        
             
       //      if(ctx->audio_finished)
       //        read_audio = 0;
@@ -732,7 +681,6 @@ void * bg_player_input_thread(void * data)
     bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Processed %lld video frames",
            ctx->video_frames_written);
   
-  //  fprintf(stderr, "input thread finished\n");
   return NULL;
   }
 
@@ -798,7 +746,6 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
     if(do_video)
       do_video = process_video(ctx, 1);
     }
-  //  fprintf(stderr, "Preload done\n");
   }
 
 void bg_player_input_seek(bg_player_input_context_t * ctx,
@@ -806,7 +753,6 @@ void bg_player_input_seek(bg_player_input_context_t * ctx,
   {
   int do_audio, do_video;
   bg_plugin_lock(ctx->plugin_handle);
-  //  fprintf(stderr, "bg_player_input_seek\n");
   ctx->plugin->seek(ctx->priv, time);
   bg_plugin_unlock(ctx->plugin_handle);
 

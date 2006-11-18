@@ -70,7 +70,6 @@ char * bg_string_to_uri(const char * _pos, int len)
       dst++;
       }
     }
-  //  fprintf(stderr, "bg_string_to_uri %s %s %d %d\n", _pos, ret, len, num_substitutions);
   return ret;
   }
 
@@ -139,9 +138,7 @@ char * bg_uri_to_string(const char * pos1, int len)
     ret_pos++;
     }
   *ret_pos = '\0';
-  //  bg_hexdump(ret, ret_pos - ret);
 
-  //  fprintf(stderr, "Decoded URI: %s -> %s\n", pos1, ret);  
   return ret;
   }
 
@@ -154,7 +151,6 @@ char ** bg_urilist_decode(const char * str, int len)
   int num_uris;
   int num_added;
 
-  //  fprintf(stderr, "bg_urilist_decode: %s\n", str);
   
   pos1 = str;
 

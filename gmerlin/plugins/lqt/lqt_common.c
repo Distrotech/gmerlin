@@ -264,8 +264,6 @@ static void set_decoder_parameter(const char * codec_name,
      save the values there and call lqt_set_[audio|video]_parameter
      for each opened file */
 
-  //  fprintf(stderr, "bg_lqt_set_decoder_parameter 1: %s %s\n", codec_name,
-  //          parameter_name);
 
   
   i = 0;
@@ -281,7 +279,6 @@ static void set_decoder_parameter(const char * codec_name,
     }
   if(!codec_info)
     {
-    //    fprintf(stderr, "no such codec %s\n", codec_name);
     return;
     }
   /* Get the decoding parameters */
@@ -297,27 +294,20 @@ static void set_decoder_parameter(const char * codec_name,
 
   if(!lqt_parameter_info)
     {
-    //    fprintf(stderr, "no such parameter %s for codec %s\n",
-    //            parameter_name, codec_name);
     return;
     }
-  //  fprintf(stderr, "bg_lqt_set_decoder_parameter 2: %s %s\n", codec_name,
-  //          parameter_name);
     
   switch(lqt_parameter_info->type)
     {
     case LQT_PARAMETER_INT:
       lqt_val.val_int = val->val_i;
-      //      fprintf(stderr, "%d\n", val->val_i);
       break;
     case LQT_PARAMETER_FLOAT:
       lqt_val.val_float = val->val_f;
-      //      fprintf(stderr, "%f\n", val->val_f);
       break;
     case LQT_PARAMETER_STRING:
     case LQT_PARAMETER_STRINGLIST:
       lqt_val.val_string = val->val_str;
-      //      fprintf(stderr, "%s\n", val->val_str);
       break;
     case LQT_PARAMETER_SECTION:
       return;

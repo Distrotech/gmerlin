@@ -372,7 +372,6 @@ static int start_cdaudio(void * priv)
   int i, last_sector;
   cdaudio_t * cd = (cdaudio_t*)priv;
 
-  //  fprintf(stderr, "start_cdaudio %d\n", cd->do_bypass);
 
   if(!cd->cdio)
     {
@@ -432,14 +431,12 @@ static void stop_cdaudio(void * priv)
   cdaudio_t * cd = (cdaudio_t*)priv;
   if(cd->do_bypass)
     {
-    //    fprintf(stderr, "stop_cdaudio\n");
     bg_cdaudio_stop(cd->cdio);
     close_cdaudio(cd);
     }
   else
     {
     bg_cdaudio_rip_close(cd->ripper);
-    //    fprintf(stderr, "Processed %d samples\n", cd->samples_written);
     }
   cd->cdio = (CdIo_t*)0;
   }
@@ -469,13 +466,9 @@ static int read_audio_cdaudio(void * priv,
   cdaudio_t * cd = (cdaudio_t*)priv;
 
 
-  //  fprintf(stderr, "Sector: %d %d\n", cd->current_sector,
-  //          cd->index->tracks[cd->current_track].last_sector);
   
   if(cd->current_sector > cd->index->tracks[cd->current_track].last_sector)
     {
-    //    fprintf(stderr, "EOF: %d %d\n", cd->current_sector,
-    //            cd->index->tracks[cd->current_track].last_sector);
     return 0;
     }
   while(samples_read < num_samples)
@@ -496,7 +489,6 @@ static int read_audio_cdaudio(void * priv,
     cd->frame->valid_samples -= samples_copied;
     samples_read += samples_copied;
     
-    //    fprintf(stderr, "cd->frame->valid_samples: %d\n", cd->frame->valid_samples);
     }
   if(frame)
     frame->valid_samples = samples_read;
@@ -513,20 +505,16 @@ static int bypass_cdaudio(void * priv)
 
   if(!bg_cdaudio_get_status(cd->cdio, &(cd->status)))
     {
-    //    fprintf(stderr, "bg_cdaudio_get_status returned 0\n");
     return 0;
     }
   if((cd->status.track < cd->current_track) ||
      (cd->status.track > cd->current_track+1))
     {
-    //    fprintf(stderr, "bg_cdaudio_get_status returned bullshit\n");
     cd->status.track = cd->current_track;
     return 1;
     }
   if(cd->status.track == cd->current_track + 1)
     {
-    //    fprintf(stderr, "Track changed, old_track: %d, new_track: %d\n",
-    //            cd->current_track, cd->status.track);
     cd->current_track = cd->status.track;
 
     j = cd->index->tracks[cd->current_track].index;
@@ -579,7 +567,6 @@ static void seek_cdaudio(void * priv, gavl_time_t * time)
   uint32_t sample_position, samples_to_skip;
   
   cdaudio_t * cd = (cdaudio_t*)priv;
-  //  fprintf(stderr, "Seek cdaudio\n");
   
   if(cd->do_bypass)
     {
@@ -642,9 +629,7 @@ static void close_cdaudio(void * priv)
   cdaudio_t * cd = (cdaudio_t*)priv;
   if(cd->cdio)
     {
-    //    fprintf(stderr, "Closing CD device, read %d samples", cd->samples_written);
     bg_cdaudio_close(cd->cdio);
-    //    fprintf(stderr, "done\n");
     }
   cd->cdio = (CdIo_t*)0;
   }
@@ -879,9 +864,9 @@ static int eject_disc_cdaudio(const char * device)
   if((err = cdio_eject_media_drive(device)) != DRIVER_OP_SUCCESS)
     {
 #if LIBCDIO_VERSION_NUM >= 77
-    fprintf(stderr, "Ejecting disk failed: %s\n", cdio_driver_errmsg(err));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Ejecting disk failed: %s", cdio_driver_errmsg(err));
 #else
-    fprintf(stderr, "Ejecting disk failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Ejecting disk failed");
 #endif
     return 0;
     }

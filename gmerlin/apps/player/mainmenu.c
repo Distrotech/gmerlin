@@ -163,12 +163,10 @@ static void menu_callback(GtkWidget * w, gpointer data)
   
   if(w == the_menu->options_menu.preferences)
     {
-    //    fprintf(stderr, "Launching config dialog\n");
     gmerlin_configure(g);
     }
   else if(w == the_menu->options_menu.skins)
     {
-    //    fprintf(stderr, "Launching config dialog\n");
     if(!g->skin_browser)
       g->skin_browser = gmerlin_skin_browser_create(g);
     gmerlin_skin_browser_show(g->skin_browser);
@@ -241,73 +239,57 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == the_menu->command_menu.inc_volume)
     {
-    //    fprintf(stderr, "inc volume\n");
     bg_player_set_volume_rel(g->player, 1.0);
     }
   else if(w == the_menu->command_menu.dec_volume)
     {
-    //    fprintf(stderr, "dec volume\n");
     bg_player_set_volume_rel(g->player, -1.0);
     }
   else if(w == the_menu->command_menu.seek_backward)
     {
     bg_player_seek_rel(g->player,   -2 * GAVL_TIME_SCALE );
-    //    fprintf(stderr, "seek_backward\n");
     }
   else if(w == the_menu->command_menu.seek_forward)
     {
     bg_player_seek_rel(g->player,    2 * GAVL_TIME_SCALE );
-    //    fprintf(stderr, "seek_forward\n");
     }
   else if(w == the_menu->command_menu.next)
     {
     bg_media_tree_next(g->tree, 1, g->shuffle_mode);
     gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
 
-    //    fprintf(stderr, "next\n");
     }
   else if(w == the_menu->command_menu.previous)
     {
     bg_media_tree_previous(g->tree, 1, g->shuffle_mode);
     gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
 
-    //    fprintf(stderr, "previous\n");
     }
   else if(w == the_menu->command_menu.seek_start)
     {
-    //    fprintf(stderr, "seek_start\n");
     bg_player_seek(g->player, 0 );
     }
   else if(w == the_menu->command_menu.quit)
     {
-    //    fprintf(stderr, "seek_start\n");
     gtk_main_quit();
     }
   else if(w == the_menu->command_menu.pause)
     {
-    //    fprintf(stderr, "pause\n");
     bg_player_pause(g->player);
     }
   
   else if(stream_menu_has_widget(&the_menu->audio_stream_menu, w, &stream_index))
     {
-    //    fprintf(stderr, "Select audio stream: %d\n", stream_index);
     bg_player_set_audio_stream(g->player, stream_index);
     }
   else if(stream_menu_has_widget(&the_menu->video_stream_menu, w, &stream_index))
     {
-    //    fprintf(stderr, "Select video stream: %d\n", stream_index);
     bg_player_set_video_stream(g->player, stream_index);
     }
   else if(stream_menu_has_widget(&the_menu->subtitle_stream_menu, w, &stream_index))
     {
-    //    fprintf(stderr, "Select subtitle stream: %d\n", stream_index);
     bg_player_set_subtitle_stream(g->player, stream_index);
     }
-#if 0
-  else
-    fprintf(stderr, "Unhandled menu item\n");
-#endif    
   }
 
 static GtkWidget *
@@ -689,20 +671,14 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   if(bg_search_file_exec("gmerlin_transcoder", (char**)0))
     ret->accessories_menu.transcoder =
       create_item("Transcoder", gmerlin, ret->accessories_menu.menu);
-  else
-    fprintf(stderr, "gmerlin_transcoder not found\n");
 
   if(bg_search_file_exec("gmerlin_visualizer", (char**)0))
     ret->accessories_menu.visualizer =
       create_item("Visualizer", gmerlin, ret->accessories_menu.menu);
-  else
-    fprintf(stderr, "gmerlin_visualizer not found\n");
 
   if(bg_search_file_exec("gmerlin_alsamixer", (char**)0))
     ret->accessories_menu.mixer =
       create_item("Mixer", gmerlin, ret->accessories_menu.menu);
-  else
-    fprintf(stderr, "gmerlin_alsamixer not found\n");
 
   
   /* Main menu */
