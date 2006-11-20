@@ -188,7 +188,7 @@ static int next_packet_mtv(bgav_demuxer_context_t * ctx)
       }
     else
       {
-      p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+      p = bgav_stream_get_packet_write(s);
       
       bgav_packet_alloc(p, MTV_ASUBCHUNK_DATA_SIZE * priv->h.audio_subsegments);
       p->data_size = 0;
@@ -215,7 +215,7 @@ static int next_packet_mtv(bgav_demuxer_context_t * ctx)
       }
     else
       {
-      p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+      p = bgav_stream_get_packet_write(s);
       
       bgav_packet_alloc(p, priv->h.img_segment_size);
 

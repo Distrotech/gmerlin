@@ -140,7 +140,7 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
         if(!vs->packet)
           {
           vs->packet =
-            bgav_packet_buffer_get_packet_write(vs->packet_buffer, vs);
+            bgav_stream_get_packet_write(vs);
           vs->packet->data_size = 0;
           }
 
@@ -172,7 +172,7 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
           return 0;
           }
         vs->packet =
-          bgav_packet_buffer_get_packet_write(vs->packet_buffer, vs);
+          bgav_stream_get_packet_write(vs);
         vs->packet->data_size = 0;
         
         bgav_packet_alloc(vs->packet, block_size);
@@ -224,7 +224,7 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
             
             //            dump_audio_header(&ah);
             as->packet =
-              bgav_packet_buffer_get_packet_write(as->packet_buffer, as);
+              bgav_stream_get_packet_write(as);
             as->packet->data_size = 0;
             priv->audio_bytes_remaining = ah.size - 2;
             }

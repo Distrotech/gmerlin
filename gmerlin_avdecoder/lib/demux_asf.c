@@ -954,57 +954,57 @@ static void add_packet(bgav_demuxer_context_t * ctx,
                        int offs,
                        int keyframe)
   {
-  bgav_stream_t * stream;
+  bgav_stream_t * s;
   asf_audio_stream_t * as;
   asf_t * asf = (asf_t *)(ctx->priv);
 
-  stream = bgav_track_find_stream(ctx->tt->current_track, id);
+  s = bgav_track_find_stream(ctx->tt->current_track, id);
   
-  if(!stream)
+  if(!s)
     return;
   
   if(asf->do_sync)
     {
-    if((stream->type == BGAV_STREAM_VIDEO) &&
-       (stream->time_scaled < 0) && (!keyframe || (offs > 0)))
+    if((s->type == BGAV_STREAM_VIDEO) &&
+       (s->time_scaled < 0) && (!keyframe || (offs > 0)))
       return;
-    else if((stream->type == BGAV_STREAM_AUDIO) &&
-            (stream->time_scaled < 0) && (offs > 0))
+    else if((s->type == BGAV_STREAM_AUDIO) &&
+            (s->time_scaled < 0) && (offs > 0))
       return;
     }
   
-  if(stream->packet)
+  if(s->packet)
     {
-    if(stream->packet_seq != seq)
+    if(s->packet_seq != seq)
       {
-      if(stream->type == BGAV_STREAM_AUDIO)
+      if(s->type == BGAV_STREAM_AUDIO)
         {
-        as = (asf_audio_stream_t*)(stream->priv);
+        as = (asf_audio_stream_t*)(s->priv);
         if((as->descramble_w > 1) && (as->descramble_h > 1))
           asf_descramble(as,
-                         stream->packet->data,
-                         stream->packet->data_size);
+                         s->packet->data,
+                         s->packet->data_size);
         }
-      bgav_packet_done_write(stream->packet);
-      stream->packet = (bgav_packet_t*)0;
+      bgav_packet_done_write(s->packet);
+      s->packet = (bgav_packet_t*)0;
       }
     else
       {
       // append data to it!
-      if((stream->packet->data_size != offs) &&
+      if((s->packet->data_size != offs) &&
          (offs != -1))
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Warning: data_size %d, Offset: %d",
-                stream->packet->data_size, offs);
-      bgav_packet_alloc(stream->packet,
-                        stream->packet->data_size + len);
-      memcpy(&(stream->packet->data[stream->packet->data_size]), data, len);
-      stream->packet->data_size += len;
+                s->packet->data_size, offs);
+      bgav_packet_alloc(s->packet,
+                        s->packet->data_size + len);
+      memcpy(&(s->packet->data[s->packet->data_size]), data, len);
+      s->packet->data_size += len;
       return;
       }
     }
   
-  stream->packet = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
-  bgav_packet_alloc(stream->packet, len);
+  s->packet = bgav_stream_get_packet_write(s);
+  bgav_packet_alloc(s->packet, len);
   
   if(asf->need_first_timestamp)
     {
@@ -1016,19 +1016,19 @@ static void add_packet(bgav_demuxer_context_t * ctx,
   else
     time = 0;
   
-  stream->packet->pts = time;
+  s->packet->pts = time;
 
   
-  // stream->packet->timestamp -= ((gavl_time_t)(asf->hdr.preroll) * GAVL_TIME_SCALE) / 1000;
+  // s->packet->timestamp -= ((gavl_time_t)(asf->hdr.preroll) * GAVL_TIME_SCALE) / 1000;
   
-  if(asf->do_sync && (stream->time_scaled < 0))
+  if(asf->do_sync && (s->time_scaled < 0))
     {
-    stream->time_scaled = time;
+    s->time_scaled = time;
     }
-  stream->packet->keyframe = keyframe;
-  stream->packet_seq = seq;
-  memcpy(stream->packet->data,data,len);
-  stream->packet->data_size = len;
+  s->packet->keyframe = keyframe;
+  s->packet_seq = seq;
+  memcpy(s->packet->data,data,len);
+  s->packet->data_size = len;
   }
 
 static int next_packet_asf(bgav_demuxer_context_t * ctx)

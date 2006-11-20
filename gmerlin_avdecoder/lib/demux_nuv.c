@@ -262,7 +262,7 @@ static int next_packet_nuv(bgav_demuxer_context_t * ctx)
         break;
         }
         
-      p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+      p = bgav_stream_get_packet_write(s);
       bgav_packet_alloc(p, size + HDRSIZE);
       memcpy(p->data, hdr, HDRSIZE);
 
@@ -283,7 +283,7 @@ static int next_packet_nuv(bgav_demuxer_context_t * ctx)
         break;
         }
       
-      p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+      p = bgav_stream_get_packet_write(s);
       bgav_packet_alloc(p, size);
 
       if(bgav_input_read_data(ctx->input, p->data,

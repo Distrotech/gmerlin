@@ -168,7 +168,7 @@ static int next_packet_wavpack(bgav_demuxer_context_t * ctx)
     return 0; // EOF
 
   s = &(ctx->tt->current_track->audio_streams[0]);
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  p = bgav_stream_get_packet_write(s);
 
   /* The last 12 bytes of the header must be copied to the
      packet */

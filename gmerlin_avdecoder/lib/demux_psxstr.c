@@ -214,7 +214,7 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
 #endif
       if(!s->packet)
         {
-        s->packet = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        s->packet = bgav_stream_get_packet_write(s);
         bgav_packet_alloc(s->packet, frame_size);
         }
       bytes_to_copy = frame_size - current_sector*VIDEO_DATA_CHUNK_SIZE;
@@ -243,7 +243,7 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
       if(!s)
         break;
 
-      p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+      p = bgav_stream_get_packet_write(s);
       bgav_packet_alloc(p, RAW_CD_SECTOR_DATA_SIZE);
 
       memcpy(p->data, sector + 24, RAW_CD_SECTOR_DATA_SIZE);

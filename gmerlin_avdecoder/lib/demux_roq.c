@@ -222,7 +222,7 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
           bgav_input_skip(ctx->input, h.size);
           break;
           }
-        video_packet = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        video_packet = bgav_stream_get_packet_write(s);
         bgav_packet_alloc(video_packet, h.size + PREAMBLE_SIZE);
         video_packet->data_size = 0;
         
@@ -248,7 +248,7 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
           {
           bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
                    "No CODEBOOK chunk before VQ chunk");
-          video_packet = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+          video_packet = bgav_stream_get_packet_write(s);
           video_packet->data_size = 0;
           }
         bgav_packet_alloc(video_packet,
@@ -279,7 +279,7 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
           bgav_input_skip(ctx->input, h.size);
           break;
           }
-        audio_packet = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        audio_packet = bgav_stream_get_packet_write(s);
 
         bgav_packet_alloc(audio_packet, h.size + PREAMBLE_SIZE);
         memcpy(audio_packet->data, preamble, 8);

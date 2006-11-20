@@ -265,7 +265,7 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
   
   s = ctx->tt->current_track->video_streams;
   
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  p = bgav_stream_get_packet_write(s);
 
   if(!p->video_frame)
     {

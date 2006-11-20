@@ -303,7 +303,7 @@ static int next_packet_sphere(bgav_demuxer_context_t * ctx)
   int bytes_to_read;
 
   s = &(ctx->tt->current_track->audio_streams[0]);
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  p = bgav_stream_get_packet_write(s);
 
   bytes_to_read = samples_to_bytes(s, SAMPLES2READ);
 

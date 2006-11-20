@@ -489,7 +489,7 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
     return 0;
 
   
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  p = bgav_stream_get_packet_write(s);
   
   p->pts = priv->sample_count;
     
@@ -521,7 +521,7 @@ static int next_packet_adif(bgav_demuxer_context_t * ctx)
   /* Just copy the bytes, we have no idea about
      aac frame boundaries or timestamps here */
 
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  p = bgav_stream_get_packet_write(s);
   bgav_packet_alloc(p, BYTES_TO_READ);
   
   bytes_read = bgav_input_read_data(ctx->input, p->data, BYTES_TO_READ);

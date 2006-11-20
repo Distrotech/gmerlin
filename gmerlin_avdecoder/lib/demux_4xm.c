@@ -414,7 +414,7 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
           break;
           }
         
-        p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        p = bgav_stream_get_packet_write(s);
         bgav_packet_alloc(p, size + 8);
         memcpy(p->data, header, 8);
         p->data_size = 8 + bgav_input_read_data(ctx->input, p->data+8, size);
@@ -447,7 +447,7 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
           break;
           }
         
-        p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        p = bgav_stream_get_packet_write(s);
         bgav_packet_alloc(p, size - 8);
         p->data_size = bgav_input_read_data(ctx->input, p->data, size-8);
 

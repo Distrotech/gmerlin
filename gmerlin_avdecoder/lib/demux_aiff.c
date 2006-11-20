@@ -405,7 +405,7 @@ static int next_packet_aiff(bgav_demuxer_context_t * ctx)
   priv = (aiff_priv_t *)ctx->priv;
 
   s = &(ctx->tt->current_track->audio_streams[0]);
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  p = bgav_stream_get_packet_write(s);
   
   bytes_to_read =
     (s->data.audio.format.samples_per_frame * s->data.audio.block_align) /

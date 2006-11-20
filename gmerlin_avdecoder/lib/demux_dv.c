@@ -130,10 +130,10 @@ static int next_packet_dv(bgav_demuxer_context_t * ctx)
   vs = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
   
   if(vs)
-    vp = bgav_packet_buffer_get_packet_write(vs->packet_buffer, vs);
+    vp = bgav_stream_get_packet_write(vs);
   
   if(as)
-    ap = bgav_packet_buffer_get_packet_write(as->packet_buffer, as);
+    ap = bgav_stream_get_packet_write(as);
 
   if(bgav_input_read_data(ctx->input, priv->frame_buffer, priv->frame_size) < priv->frame_size)
     return 0;

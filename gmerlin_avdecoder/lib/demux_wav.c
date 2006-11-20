@@ -191,7 +191,7 @@ static int next_packet_wav(bgav_demuxer_context_t * ctx)
   if(!s)
     return 1;
 
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  p = bgav_stream_get_packet_write(s);
   
   p->pts =
     ((ctx->input->position - priv->data_start) * s->data.audio.format.samplerate) /

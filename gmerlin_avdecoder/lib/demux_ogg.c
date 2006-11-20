@@ -1517,7 +1517,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           break;
           }
         
-        p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        p = bgav_stream_get_packet_write(s);
         bgav_packet_alloc(p, sizeof(priv->op) + priv->op.bytes);
         memcpy(p->data, &priv->op, sizeof(priv->op));
         memcpy(p->data + sizeof(priv->op), priv->op.packet, priv->op.bytes);
@@ -1566,7 +1566,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           break;
           }
         
-        p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        p = bgav_stream_get_packet_write(s);
         bgav_packet_alloc(p, sizeof(priv->op) + priv->op.bytes);
         memcpy(p->data, &priv->op, sizeof(priv->op));
         memcpy(p->data + sizeof(priv->op), priv->op.packet, priv->op.bytes);
@@ -1611,7 +1611,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           (priv->op.packet[0] >> 6) |
           ((priv->op.packet[0] & 0x02) << 1);
         
-        p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        p = bgav_stream_get_packet_write(s);
         
         bgav_packet_alloc(p, priv->op.bytes - 1 - len_bytes);
         memcpy(p->data, priv->op.packet + 1 + len_bytes,
@@ -1643,7 +1643,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           break;
 
                 
-        p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        p = bgav_stream_get_packet_write(s);
         bgav_packet_alloc(p, priv->op.bytes);
         memcpy(p->data, priv->op.packet, priv->op.bytes);
         p->data_size = priv->op.bytes;
@@ -1668,7 +1668,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           }
         /* Set raw data */
         
-        p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        p = bgav_stream_get_packet_write(s);
         bgav_packet_alloc(p, priv->op.bytes);
         memcpy(p->data, priv->op.packet, priv->op.bytes);
         p->data_size = priv->op.bytes;
@@ -1697,7 +1697,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
            (priv->op.packet[2 + len_bytes] == '\0'))
           break;
         
-        p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        p = bgav_stream_get_packet_write(s);
 
         bgav_packet_set_text_subtitle(p, (char*)(priv->op.packet + 1 + len_bytes),
                                       -1, granulepos, subtitle_duration);

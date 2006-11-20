@@ -960,7 +960,7 @@ static int next_packet_mpegts(bgav_demuxer_context_t * ctx)
       //      fprintf(stderr, "Got stream\n");
       //      bgav_stream_dump(s);
       
-      s->packet = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+      s->packet = bgav_stream_get_packet_write(s);
 
       /* Read PES header */
 

@@ -261,7 +261,7 @@ static int next_packet_gif(bgav_demuxer_context_t * ctx)
   /* Now assemble a valid GIF file (that's the hard part) */
   s = ctx->tt->current_track->video_streams;
   
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  p = bgav_stream_get_packet_write(s);
 
   bgav_packet_alloc(p, GLOBAL_HEADER_LEN + priv->global_cmap_bytes +
                     GCE_LEN + // GCE length

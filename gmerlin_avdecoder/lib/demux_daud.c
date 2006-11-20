@@ -68,7 +68,7 @@ static int next_packet_daud(bgav_demuxer_context_t * ctx)
   s = bgav_track_find_stream(ctx->tt->current_track, 0);
   if(s)
     {
-    p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+    p = bgav_stream_get_packet_write(s);
     bgav_packet_alloc(p, size);
     p->data_size = bgav_input_read_data(ctx->input, p->data, size);
     if(!p->data_size)

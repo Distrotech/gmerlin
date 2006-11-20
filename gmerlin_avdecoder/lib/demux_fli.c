@@ -182,7 +182,7 @@ static int next_packet_fli(bgav_demuxer_context_t * ctx)
        (size > FLIC_PREAMBLE_SIZE))
       {
       s = ctx->tt->current_track->video_streams;
-      p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+      p = bgav_stream_get_packet_write(s);
       bgav_packet_alloc(p, size);
       
       memcpy(p->data, preamble, FLIC_PREAMBLE_SIZE);

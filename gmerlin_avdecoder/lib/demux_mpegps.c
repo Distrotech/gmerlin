@@ -591,7 +591,7 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
           bgav_input_skip(input, priv->pes_header.payload_size);
           return 1;
           }
-        p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
+        p = bgav_stream_get_packet_write(stream);
         
         bgav_packet_alloc(p, priv->pes_header.payload_size);
         if(bgav_input_read_data(input, p->data, 

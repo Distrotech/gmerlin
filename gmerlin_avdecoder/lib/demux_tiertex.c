@@ -248,7 +248,7 @@ static int next_packet_tiertex(bgav_demuxer_context_t * ctx)
     s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
     if(s)
       {
-      p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+      p = bgav_stream_get_packet_write(s);
 
       bgav_packet_alloc(p, video_size + palette_size + 1);
       p->data[0] = 0;
@@ -282,7 +282,7 @@ static int next_packet_tiertex(bgav_demuxer_context_t * ctx)
     s = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
     if(s)
       {
-      p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+      p = bgav_stream_get_packet_write(s);
       
       bgav_packet_alloc(p, SEQ_AUDIO_BUFFER_SIZE);
       memcpy(p->data, buf + fh.sound_data_offset, SEQ_AUDIO_BUFFER_SIZE);

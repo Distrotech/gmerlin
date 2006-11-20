@@ -85,7 +85,7 @@ static int next_packet_gsm(bgav_demuxer_context_t * ctx)
   int bytes_read;
   
   s = &(ctx->tt->current_track->audio_streams[0]);
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  p = bgav_stream_get_packet_write(s);
 
   bgav_packet_alloc(p, s->data.audio.block_align);
 

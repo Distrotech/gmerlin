@@ -867,7 +867,7 @@ static int next_packet_mpegaudio(bgav_demuxer_context_t * ctx)
     return 0;
     }
   s = ctx->tt->current_track->audio_streams;
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  p = bgav_stream_get_packet_write(s);
   bgav_packet_alloc(p, priv->header.frame_bytes);
 
   if(bgav_input_read_data(ctx->input, p->data, priv->header.frame_bytes) <

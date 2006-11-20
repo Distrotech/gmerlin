@@ -286,7 +286,8 @@ static void setup_track(bgav_input_context_t * ctx,
       language_2cc[1] = audio_attr->lang_code & 0xff;
       language_2cc[2] = '\0';
       language_3cc = bgav_lang_from_twocc(language_2cc);
-      strcpy(s->language, language_3cc);
+      if(language_3cc)
+        strcpy(s->language, language_3cc);
       }
 
     /* Set description */
@@ -358,7 +359,8 @@ static void setup_track(bgav_input_context_t * ctx,
       language_2cc[1] = subp_attr->lang_code & 0xff;
       language_2cc[2] = '\0';
       language_3cc = bgav_lang_from_twocc(language_2cc);
-      strcpy(s->language, language_3cc);
+      if(language_3cc)
+        strcpy(s->language, language_3cc);
       }
 
     switch(subp_attr->code_extension)

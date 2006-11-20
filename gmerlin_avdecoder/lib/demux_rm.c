@@ -996,7 +996,7 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
       }
     // create new packet!
 
-    p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
+    p = bgav_stream_get_packet_write(stream);
     bgav_packet_alloc(p, sizeof(dp_hdr_t)+vpkg_length+8*(1+2*(vpkg_header&0x3F)));
     p->data_size = sizeof(dp_hdr_t)+vpkg_length+8*(1+2*(vpkg_header&0x3F));
         
@@ -1156,7 +1156,7 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
     
       for (x = 0; x < sph*w/apk_usize; x++)
         {
-        p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
+        p = bgav_stream_get_packet_write(stream);
         bgav_packet_alloc(p, apk_usize);
         p->data_size = apk_usize;
         memcpy(p->data, as->audio_buf + x * apk_usize, apk_usize);
@@ -1171,7 +1171,7 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
   /* Byte swapped AC3 */
   else if(stream->fourcc == BGAV_MK_FOURCC('d', 'n', 'e', 't')) 
     {
-    p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
+    p = bgav_stream_get_packet_write(stream);
     bgav_packet_alloc(p, packet_size);
     if(bgav_input_read_data(ctx->input, p->data, packet_size) < packet_size)
       return 0;
@@ -1202,7 +1202,7 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
       }
     for(x = 0; x < num_aac_packets; x++)
       {
-      p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
+      p = bgav_stream_get_packet_write(stream);
       bgav_packet_alloc(p, packet_size);
       
       bgav_input_read_data(ctx->input, p->data, aac_packet_lengths[x]);
@@ -1212,7 +1212,7 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
     }
   else /* No reordering needed */
     {
-    p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
+    p = bgav_stream_get_packet_write(stream);
     bgav_packet_alloc(p, packet_size);
     
     bgav_input_read_data(ctx->input, p->data, packet_size);

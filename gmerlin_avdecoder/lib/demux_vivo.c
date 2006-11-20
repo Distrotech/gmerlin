@@ -602,7 +602,7 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
   
   if(!stream->packet)
     {
-    stream->packet = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
+    stream->packet = bgav_stream_get_packet_write(stream);
     stream->packet_seq = seq;
     stream->packet->data_size = 0;
     }

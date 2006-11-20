@@ -31,6 +31,9 @@
 
 #include <codecs.h>
 
+#include <log.h>
+#define LOG_DOMAIN "video_realdll"
+
 // static char codec_path[PATH_MAX];
 
 char * bgav_dll_path_real = (char*)0;
@@ -333,7 +336,7 @@ static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
   if(priv->rvyuv_transform(dp_data, (char*)(priv->gavl_frame->planes[0]), &transform_in,
                            transform_out, priv->real_context))
     {
-    fprintf(stderr, "Decoding failed\n");
+    bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Decoding failed");
     }
   if(f)
     gavl_video_frame_copy(&(s->data.video.format), f, priv->gavl_frame);

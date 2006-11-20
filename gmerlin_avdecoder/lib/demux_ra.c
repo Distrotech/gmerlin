@@ -260,7 +260,7 @@ static int next_packet_ra(bgav_demuxer_context_t * ctx)
   priv = (ra_priv_t *)ctx->priv;
   
   s = &(ctx->tt->current_track->audio_streams[0]);
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  p = bgav_stream_get_packet_write(s);
 
   len = s->data.audio.block_align * priv->sub_packet_h;
   bgav_packet_alloc(p, len);

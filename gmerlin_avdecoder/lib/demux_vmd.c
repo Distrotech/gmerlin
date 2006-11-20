@@ -246,7 +246,7 @@ static int next_packet_vmd(bgav_demuxer_context_t * ctx)
   if(s)
     {
     bgav_input_seek(ctx->input, frame->frame_offset, SEEK_SET);
-    p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+    p = bgav_stream_get_packet_write(s);
 
     bgav_packet_alloc(p, frame->frame_size + BYTES_PER_FRAME_RECORD);
     memcpy(p->data, frame->frame_record, BYTES_PER_FRAME_RECORD);

@@ -171,7 +171,7 @@ static int next_packet_smjpeg(bgav_demuxer_context_t * ctx)
     bgav_input_skip(ctx->input, length);
   else
     {
-    p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+    p = bgav_stream_get_packet_write(s);
     
     bgav_packet_alloc(p, length);
     if(bgav_input_read_data(ctx->input, p->data, length) < length)

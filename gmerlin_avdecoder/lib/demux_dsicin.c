@@ -198,7 +198,7 @@ static int next_packet_dsicin(bgav_demuxer_context_t * ctx)
   
   if(s)
     {
-    p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+    p = bgav_stream_get_packet_write(s);
     
     bgav_packet_alloc(p, pkt_size + 4);
     
@@ -225,7 +225,7 @@ static int next_packet_dsicin(bgav_demuxer_context_t * ctx)
 
   if(s)
     {
-    p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+    p = bgav_stream_get_packet_write(s);
 
     bgav_packet_alloc(p, pkt_size + frame_header.audio_size);
     

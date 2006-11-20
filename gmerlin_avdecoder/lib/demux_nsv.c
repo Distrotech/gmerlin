@@ -662,7 +662,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
       s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
     if(s)
       {
-      p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+      p = bgav_stream_get_packet_write(s);
       bgav_packet_alloc(p, video_len);
       if(bgav_input_read_data(ctx->input, p->data, video_len) < video_len)
         return 0;
@@ -718,7 +718,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
         }
       if(audio_len)
         {
-        p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        p = bgav_stream_get_packet_write(s);
         bgav_packet_alloc(p, audio_len);
         if(bgav_input_read_data(ctx->input, p->data, audio_len) < audio_len)
           return 0;

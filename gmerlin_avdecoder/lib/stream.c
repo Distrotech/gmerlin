@@ -208,3 +208,8 @@ int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time)
     }
   return 0;
   }
+
+bgav_packet_t * bgav_stream_get_packet_write(bgav_stream_t * s)
+  {
+  return bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  }

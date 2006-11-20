@@ -381,7 +381,7 @@ static int next_packet_smacker(bgav_demuxer_context_t * ctx)
           size -= 4;
           }
 #endif
-        p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+        p = bgav_stream_get_packet_write(s);
 
         bgav_packet_alloc(p, size);
         p->data_size = bgav_input_read_data(ctx->input, p->data, size);
@@ -401,7 +401,7 @@ static int next_packet_smacker(bgav_demuxer_context_t * ctx)
     return 1;
     }
 
-  p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+  p = bgav_stream_get_packet_write(s);
 
   bgav_packet_alloc(p, frame_end - ctx->input->position + 769);
 

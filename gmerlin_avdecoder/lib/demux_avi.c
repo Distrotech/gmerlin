@@ -1291,12 +1291,12 @@ static int read_packet_iavs(bgav_demuxer_context_t * ctx,
   
   if(vs)
     {
-    vp = bgav_packet_buffer_get_packet_write(vs->packet_buffer, vs);
+    vp = bgav_stream_get_packet_write(vs);
     vp->pts = pts;
     }
   if(as)
     {
-    ap = bgav_packet_buffer_get_packet_write(as->packet_buffer, as);
+    ap = bgav_stream_get_packet_write(as);
     ap->pts = pts;
     }
   if(!bgav_dv_dec_get_audio_packet(priv->dv_dec, ap))
@@ -1804,7 +1804,7 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
   
   if(ch.ckSize)
     {
-    p = bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
+    p = bgav_stream_get_packet_write(s);
     
     bgav_packet_alloc(p, PADD(ch.ckSize));
     
