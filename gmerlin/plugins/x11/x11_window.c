@@ -63,9 +63,9 @@ static void check_screensaver(x11_window_t * w)
 
   /* Check for KDE */
   env = getenv("KDE_FULL_SESSION");
-  if(env && strcmp(env, "true"))
+  if(env && !strcmp(env, "true"))
     {
-    w->screensaver_mode = SCREENSAVER_MODE_GNOME;
+    w->screensaver_mode = SCREENSAVER_MODE_KDE;
     return;
     }
 
