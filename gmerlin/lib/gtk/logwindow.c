@@ -137,7 +137,9 @@ static gboolean idle_callback(gpointer data)
     domain = bg_msg_get_arg_string(msg, 0);
     message = bg_msg_get_arg_string(msg, 1);
     
+    do_log = 0;
 
+    
     switch(level)
       {
       case BG_LOG_DEBUG:

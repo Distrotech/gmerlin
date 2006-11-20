@@ -363,6 +363,7 @@ int bg_socket_read_data(int fd, uint8_t * data, int len, int milliseconds)
     
     if(select (fd+1, &rset, NULL, NULL, &timeout) <= 0)
       {
+      // bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got read timeout");
       return 0;
       }
     }

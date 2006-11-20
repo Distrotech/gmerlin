@@ -119,6 +119,12 @@ Needed for getting Audio CD metadata using
 @item @uref{http://libcddb.sourceforge.net/, libcddb}
 Needed for getting Audio CD metadata from CDDB servers
 
+@item Headers for libXv and libXinerama
+These are usually shipped with X11 but some distributions pack the header
+files separately (e.g. libxv-dev, libxinerama-dev). libXv is needed for
+hardware accelerated video playback, libXinerama adds support for
+multi-screen configurations.
+
 @item @uref{http://www.samba.org/, libsmbclient}
 For loading smb:// URLs (optional).
 @end table
@@ -141,16 +147,14 @@ libraries listed below manually.
 Neccessary for the VCD, Audio CD and DVD plugins.
 
 @item @uref{http://www.audiocoding.com/, faad2}
-Needed for MPEG-4 audio support (mp4, aac files). The latest official
-faad-2.0 won't play some streams. The current CVS version or the rpms
-from @uref{http://freshrpms.net/, freshrpms} should be ok.
+Needed for MPEG-4 audio support (mp4, aac files).
 
 @item @uref{http://www.audiocoding.com/, faac}
 Needed for MPEG-4 audio encoding (.aac files) and for AAC encoding via
 libquicktime.
 
 @item @uref{http://www.ffmpeg.org/, FFmpeg}
-Many other codecs, strongly recommended. You should get a sufficiently new
+Many codecs, strongly recommended. You should get a sufficiently new
 version from @uref{http://ffmpeg.mplayerhq.hu/download.html, ffmpeg SVN}
 and use --enable-shared when calling configure. Another option is the
 version in the
@@ -160,7 +164,7 @@ version in the
 For encoding mp3 files and AVIs with mp3 audio streams with libquicktime.
 
 @item @uref{http://mad.sourceforge.net/, mad}
-For playing MPEG-1/2 audio (e.g. for mp3)
+For playing MPEG-1/2 audio (e.g. mp3)
 
 @item @uref{http://freshmeat.net/redir/libdvdread/17926/url_homepage/downloads.shtml, libdvdread}
 For playing DVDs. Gmerlins method of accessing DVD drives doesn't
@@ -266,13 +270,10 @@ are installed. That's the reason, why they are separated.
 We try to make this as consistent as possible across the applications.
 In many windows, you'll see context sensitive menus when you right
 click somewhere. Furthermore, tooltips are enabled in all programs by
-default. You can, however, switch them off if they bother you. Many
-dialogs behave exactly the same in all applications, because they share
-a lot of code.
-
+default. You can, however, switch them off if they bother you. 
 @node Remote control
-@section Remote control
 
+@section Remote control
 The player and the transcoder are remotely controllable by the commandline
 programs @code{gmerlin_remote} and @code{gmerlin_transcoder_remote}
 respectively.
@@ -651,14 +652,11 @@ Alsa startup scripts.
 @node Installation questions
 @section Installation questions
 
-@strong{Q:} @emph{Why do I have to install so many packages?}
+@strong{Q:} @emph{Why do I have to install so many packages to get all features?}
 
-@strong{A:} Gmerlins development philosophy is to be as modular and as reusable as
-   possible. There are, for example, some 3rd party software projects which
-   use gavl. Letting them install one giant gmerlin package only for using
-   one tiny feature from it would be annoying. Another issue are codecs,
-   which are hard to set up (mostly because many distributions refuse to
-   include them due to license/patent issues).
+@strong{A:} Because having one huge package is not good for people, who want to use
+only one small subset of the included libraries or applications. To make installation
+a bit easier, there are the gmerlin-dependencies and gmerlin-all-in-one packages.
 
 @node Usage questions
 @section Usage questions

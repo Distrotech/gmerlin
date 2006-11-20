@@ -660,7 +660,7 @@ static void get_fullscreen_coords(x11_window_t * w,
   *height = DisplayHeight(w->dpy, w->screen);
 #endif
 
-   }
+  }
 
 
 void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
@@ -896,6 +896,20 @@ void x11_window_show(x11_window_t * win, int show)
       XMoveResizeWindow(win->dpy, win->normal_window,
                         win->window_x, win->window_y,
                         win->window_width, win->window_height);
+    else
+      {
+      if(win->fullscreen_mode & FULLSCREEN_MODE_NET_ABOVE)
+        {
+        netwm_set_state(win, win->fullscreen_window,
+                        _NET_WM_STATE_ADD, win->_NET_WM_STATE_ABOVE);
+        }
+      if(win->fullscreen_mode & FULLSCREEN_MODE_NET_FULLSCREEN)
+        {
+        netwm_set_state(win, win->fullscreen_window,
+                        _NET_WM_STATE_ADD, win->_NET_WM_STATE_FULLSCREEN);
+        }
+      }
+
     
     }
   }

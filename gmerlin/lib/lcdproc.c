@@ -45,6 +45,7 @@ static const char * time_name                = "time";
 
 struct bg_lcdproc_s
   {
+  int player_state;
   int fd;
 
   int enable_lcdproc;
@@ -82,6 +83,10 @@ struct bg_lcdproc_s
   int is_running;
   int do_stop;
 
+  /* Screen size (got from server welcome line) */
+  
+  int width, height;
+  
   bg_player_t * player;
   };
 
@@ -142,20 +147,42 @@ bg_lcdproc_t * bg_lcdproc_create(bg_player_t * player)
   return ret;
   }
 
-
 static int send_command(bg_lcdproc_t * l, char * command)
   {
+  char nl = '\n';
+  //  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Sending command %s", command);
   if(!bg_socket_write_data(l->fd, (uint8_t*)command, strlen(command)))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Sending command failed");
     return 0;
+    }
+  if(!bg_socket_write_data(l->fd, (uint8_t*)&nl, 1))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Sending command failed");
+    return 0;
+    }
+
 
   while(1)
     {
-    if(!bg_socket_read_line(l->fd, &(l->answer), &(l->answer_alloc), 500))
-      return 0;
+    if(!bg_socket_read_line(l->fd, &(l->answer), &(l->answer_alloc), 0))
+      {
+      //      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading answer failed");
+      //      return 0;
+      break;
+      }
+    
+    //    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Got answer %s", l->answer);
+
     if(!strncmp(l->answer, "success", 7))
+      break;
+    else if(!strncmp(l->answer, "listen", 6))
       break;
     else if(!strncmp(l->answer, "huh", 3))
       {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Command \"%s\" not unserstood by server",
+             command);
       return 0;
       }
     }
@@ -167,46 +194,103 @@ static int send_command(bg_lcdproc_t * l, char * command)
 
 static int do_connect(bg_lcdproc_t* l)
   {
+  int i;
+  char ** answer_args;
+    
   bg_host_address_t * addr = bg_host_address_create();
 
   if(!bg_host_address_set(addr, l->hostname_cfg, l->port_cfg))
-    return 0;
-  
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not resolve adress for: %s",
+           l->hostname_cfg);
+    goto fail;
+    }
   l->fd = bg_socket_connect_inet(addr, 500);
   if(l->fd < 0)
     {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not connect to server at %s:%d",
+           l->hostname_cfg, l->port_cfg);
     goto fail;
     }
+
+  //  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Sending hello");
+  
   /* Send hello and get answer */
   if(!bg_socket_write_data(l->fd, (uint8_t*)"hello\n", 6))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not send hello message");
     goto fail;
-
-  if(!bg_socket_read_line(l->fd, &(l->answer), &(l->answer_alloc), 500))
+    }
+  
+  if(!bg_socket_read_line(l->fd, &(l->answer), &(l->answer_alloc), 1000))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not get server welcome line");
     goto fail;
+    }
 
+  //  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Got welcome line: %s", l->answer);
 
+  
   if(strncmp(l->answer, "connect LCDproc", 15))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid answer: %s", l->answer);
     goto fail;
     }
 
+  answer_args = bg_strbreak(l->answer, ' ');
+  i = 0;
+  while(answer_args[i])
+    {
+    if(!strcmp(answer_args[i], "wid"))
+      {
+      i++;
+      l->width = atoi(answer_args[i]);
+      }
+    else if(!strcmp(answer_args[i], "hgt"))
+      {
+      i++;
+      l->height = atoi(answer_args[i]);
+      }
+    i++;
+    }
+  bg_strbreak_free(answer_args);
+  
+  
   /* Set client attributes */
 
-  if(!send_command(l, "client_set name {gmerlin}\n"))
+  if(!send_command(l, "client_set name {gmerlin}"))
     goto fail;
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN,
+         "Connection to server established, display size: %dx%d",
+         l->width, l->height);
   
   return 1;
   fail:
   bg_host_address_destroy(addr);
+
+  if(l->fd >= 0)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Connection to server closed due to error",
+           l->answer);
+    
+    close(l->fd);
+    }
   return 0;
   }
 
 static int set_name(bg_lcdproc_t * l, const char * name)
   {
   char * command;
-  command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {%s *** }\n",
-                       name_time_name, name_name, name);
+
+  if(strlen(name) > l->width)
+    command = bg_sprintf("widget_set %s %s 1 2 %d 3 m 1 {%s *** }",
+                       name_time_name, name_name, l->width, name);
+  else
+    command = bg_sprintf("widget_set %s %s 1 2 %d 3 m 1 {%s}",
+                       name_time_name, name_name, l->width, name);
+  
   if(!send_command(l, command))
     goto fail;
   free(command); 
@@ -218,14 +302,14 @@ static int set_name(bg_lcdproc_t * l, const char * name)
 
 static int set_time(bg_lcdproc_t * l, gavl_time_t time)
   {
-  char * command;
+  char * command, *format;
   char buffer[16]; /* MUST be larger than GAVL_TIME_STRING_LEN */
   
   if(time == GAVL_TIME_UNDEFINED)
     {
     gethostname(buffer, 16);
     
-    command = bg_sprintf("widget_set %s %s 1 1 {%s}\n",
+    command = bg_sprintf("widget_set %s %s 1 1 {%s}",
                          name_time_name, time_name, buffer);
     if(!send_command(l, command))
       goto fail;
@@ -233,13 +317,15 @@ static int set_time(bg_lcdproc_t * l, gavl_time_t time)
   else
     {
     gavl_time_prettyprint(time, buffer);
-    
-    command = bg_sprintf("widget_set %s %s 1 1 {Time: %10s}\n",
+
+    format = bg_sprintf("widget_set %%s %%s 1 1 {T: %%%ds}", l->width - 3);
+        
+    command = bg_sprintf(format,
                          name_time_name, time_name, buffer);
     if(!send_command(l, command))
       goto fail;
+    free(format);
     }
-  
   free(command);
   return 1;
   fail:
@@ -252,19 +338,19 @@ static int create_name_time(bg_lcdproc_t * l)
   //  char time_buf[GAVL_TIME_STRING_LEN];
     
   char * command;
-  command = bg_sprintf("screen_add %s\n", name_time_name);
+  command = bg_sprintf("screen_add %s", name_time_name);
   if(!send_command(l, command))
     goto fail;
   free(command);
 
-  command = bg_sprintf("screen_set %s heartbeat off\n", name_time_name);
+  command = bg_sprintf("screen_set %s -heartbeat off", name_time_name);
   if(!send_command(l, command))
     goto fail;
   free(command);
   
   /* Time display */
   
-  command = bg_sprintf("widget_add %s %s string\n",
+  command = bg_sprintf("widget_add %s %s string",
                        name_time_name, time_name);
   if(!send_command(l, command))
     goto fail;
@@ -273,7 +359,7 @@ static int create_name_time(bg_lcdproc_t * l)
   set_time(l, GAVL_TIME_UNDEFINED);
   
   /* Name display */
-  command = bg_sprintf("widget_add %s %s scroller\n",
+  command = bg_sprintf("widget_add %s %s scroller",
                        name_time_name, name_name);
   if(!send_command(l, command))
     goto fail;
@@ -292,7 +378,7 @@ static int destroy_name_time(bg_lcdproc_t * l)
   {
   char * command;
 
-  command = bg_sprintf("screen_del %s\n", name_time_name);
+  command = bg_sprintf("screen_del %s", name_time_name);
   if(!send_command(l, command))
     goto fail;
   free(command);
@@ -308,26 +394,33 @@ static int destroy_name_time(bg_lcdproc_t * l)
 static int set_audio_format(bg_lcdproc_t * l, gavl_audio_format_t * f)
   {
   char * command;
-
+  char * format_string;
+  
   if(!f)
     {
-    command = bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {Audio: none}\n",
+    command = bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {Audio: none}",
                          formats_name, audio_format_name);
     }
   else
     {
     if(f->num_channels == 1)
-      command = 
-        bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {Audio format: %d Hz Mono *** }\n", 
-                  formats_name, audio_format_name, f->samplerate);
+      format_string = bg_sprintf("%d Hz Mono", f->samplerate);
     else if(f->num_channels == 2)
-      command =         bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {Audio format: %d Hz Stereo *** }\n",
-                  formats_name, audio_format_name, f->samplerate);
+      format_string = bg_sprintf("%d Hz Stereo", f->samplerate);
     else
-      command = bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {Audio format: %d Hz %d Channels *** }\n",
-                         formats_name, audio_format_name, f->samplerate, f->num_channels);
-    }
+      format_string = bg_sprintf("%d Hz %d Ch", f->samplerate, f->num_channels);
 
+    if(strlen(format_string) > l->width)
+      command = 
+        bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {%s *** }",
+                   formats_name, audio_format_name, format_string);
+    else
+      command = 
+        bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {%s}",
+                   formats_name, audio_format_name, format_string);
+
+    free(format_string);
+    }
   
   if(!send_command(l, command))
     goto fail;
@@ -341,27 +434,35 @@ static int set_audio_format(bg_lcdproc_t * l, gavl_audio_format_t * f)
 
 static int set_video_format(bg_lcdproc_t * l, gavl_video_format_t * f)
   {
-  char * command;
+  char * command, *format_string;
   if(!f)
     {
-    command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {Video: none}\n",
+    command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {Video: none}",
                          formats_name, video_format_name);
     }
   else
     {
+    
     if(f->framerate_mode == GAVL_FRAMERATE_CONSTANT)
       {
-      command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {Video format: %dx%d %.2f fps *** }\n",
-                           formats_name, video_format_name, f->image_width,
-                           f->image_height, (float)(f->timescale)/
-                           (float)(f->frame_duration));
+      format_string = bg_sprintf("%dx%d %.2f fps", f->image_width,
+                                 f->image_height, (float)(f->timescale)/
+                                 (float)(f->frame_duration));
+      
       }
     else
       {
-      command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {Video format: %dx%d *** }\n",
-                           formats_name, video_format_name, f->image_width,
-                           f->image_height);
+      format_string = bg_sprintf("%dx%d", f->image_width,
+                                 f->image_height);
       }
+
+    if(strlen(format_string) > l->width)
+      command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {%s *** }",
+                           formats_name, video_format_name, format_string);
+    else
+      command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {%s}",
+                           formats_name, video_format_name, format_string);
+    free(format_string);
     }
   if(!send_command(l, command))
     goto fail;
@@ -375,19 +476,19 @@ static int set_video_format(bg_lcdproc_t * l, gavl_video_format_t * f)
 static int create_formats(bg_lcdproc_t * l)
   {
   char * command;
-  command = bg_sprintf("screen_add %s\n", formats_name);
+  command = bg_sprintf("screen_add %s", formats_name);
   if(!send_command(l, command))
     goto fail;
   free(command);
 
-  command = bg_sprintf("screen_set %s heartbeat off\n", formats_name);
+  command = bg_sprintf("screen_set %s -heartbeat off", formats_name);
   if(!send_command(l, command))
     goto fail;
   free(command);
   
   /* Audio format */
 
-  command = bg_sprintf("widget_add %s %s scroller\n",
+  command = bg_sprintf("widget_add %s %s scroller",
                        formats_name, audio_format_name);
   if(!send_command(l, command))
     goto fail;
@@ -397,7 +498,7 @@ static int create_formats(bg_lcdproc_t * l)
   
   /* Video format */
   
-  command = bg_sprintf("widget_add %s %s scroller\n",
+  command = bg_sprintf("widget_add %s %s scroller",
                        formats_name, video_format_name);
   if(!send_command(l, command))
     goto fail;
@@ -417,7 +518,7 @@ static int destroy_formats(bg_lcdproc_t * l)
   {
   char * command;
   
-  command = bg_sprintf("screen_del %s\n", formats_name);
+  command = bg_sprintf("screen_del %s", formats_name);
   if(!send_command(l, command))
     goto fail;
   free(command);
@@ -434,13 +535,18 @@ static int set_audio_description(bg_lcdproc_t * l, const char * desc)
 
   if(!desc)
     {
-    command = bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {Audio: off}\n",
+    command = bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {A: Off}",
                          descriptions_name, audio_description_name);
     }
   else
     {
-    command = bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {Audio stream: %s *** }\n",
-                         descriptions_name, audio_description_name, desc);
+    if(strlen(desc) > l->width)
+      command = bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {A: %s *** }",
+                           descriptions_name, audio_description_name, desc);
+      
+    else
+      command = bg_sprintf("widget_set %s %s 1 1 16 2 m 1 {A: %s}",
+                           descriptions_name, audio_description_name, desc);
     }
   if(!send_command(l, command))
     goto fail;
@@ -457,13 +563,17 @@ static int set_video_description(bg_lcdproc_t * l, const char * desc)
   char * command;
   if(!desc)
     {
-    command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {Video: off}\n",
+    command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {V: Off}",
                          descriptions_name, video_description_name);
     }
   else
     {
-    command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {Video stream: %s *** }\n",
-                         descriptions_name, video_description_name, desc);
+    if(strlen(desc) > l->width)
+      command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {V: %s *** }",
+                           descriptions_name, video_description_name, desc);
+    else
+      command = bg_sprintf("widget_set %s %s 1 2 16 3 m 1 {V: %s}",
+                           descriptions_name, video_description_name, desc);
     }
   if(!send_command(l, command))
     goto fail;
@@ -477,19 +587,19 @@ static int set_video_description(bg_lcdproc_t * l, const char * desc)
 static int create_descriptions(bg_lcdproc_t * l)
   {
   char * command;
-  command = bg_sprintf("screen_add %s\n", descriptions_name);
+  command = bg_sprintf("screen_add %s", descriptions_name);
   if(!send_command(l, command))
     goto fail;
   free(command);
 
-  command = bg_sprintf("screen_set %s heartbeat off\n", descriptions_name);
+  command = bg_sprintf("screen_set %s -heartbeat off", descriptions_name);
   if(!send_command(l, command))
     goto fail;
   free(command);
   
   /* Audio description */
 
-  command = bg_sprintf("widget_add %s %s scroller\n",
+  command = bg_sprintf("widget_add %s %s scroller",
                        descriptions_name, audio_description_name);
   if(!send_command(l, command))
     goto fail;
@@ -499,7 +609,7 @@ static int create_descriptions(bg_lcdproc_t * l)
   
   /* Video format */
   
-  command = bg_sprintf("widget_add %s %s scroller\n",
+  command = bg_sprintf("widget_add %s %s scroller",
                        descriptions_name, video_description_name);
   if(!send_command(l, command))
     goto fail;
@@ -521,7 +631,7 @@ static int destroy_descriptions(bg_lcdproc_t * l)
   {
   char * command;
   
-  command = bg_sprintf("screen_del %s\n", descriptions_name);
+  command = bg_sprintf("screen_del %s", descriptions_name);
   if(!send_command(l, command))
     goto fail;
   free(command);
@@ -534,6 +644,8 @@ static int destroy_descriptions(bg_lcdproc_t * l)
 
 static void * thread_func(void * data)
   {
+  int result = 1;
+  
   int arg_i_1;
   char * arg_str_1;
   
@@ -572,6 +684,9 @@ static void * thread_func(void * data)
     pthread_mutex_lock(&(l->config_mutex));
     while((msg = bg_msg_queue_try_lock_read(l->queue)))
       {
+      if(l->fd < 0)
+        continue;
+      
       id = bg_msg_get_id(msg);
       
       switch(id)
@@ -579,30 +694,34 @@ static void * thread_func(void * data)
         case BG_PLAYER_MSG_TIME_CHANGED:
           if(l->have_name_time)
             {
-            time = bg_msg_get_arg_time(msg, 0);
-            set_time(l, time);
+            if(l->player_state != BG_PLAYER_STATE_STOPPED)
+              time = bg_msg_get_arg_time(msg, 0);
+            else
+              time = GAVL_TIME_UNDEFINED;
+            result = set_time(l, time);
             }
           break;
         case BG_PLAYER_MSG_STATE_CHANGED:
           arg_i_1 = bg_msg_get_arg_int(msg, 0);
+          l->player_state = arg_i_1;
           switch(arg_i_1)
             {
             case BG_PLAYER_STATE_STOPPED:
             case BG_PLAYER_STATE_CHANGING:
               if(l->have_formats)
                 {
-                set_audio_format(l, NULL);
-                set_video_format(l, NULL);
+                result = (set_audio_format(l, NULL) &&
+                          set_video_format(l, NULL));
                 }
               if(l->have_descriptions)
                 {
-                set_audio_description(l, NULL);
-                set_video_description(l, NULL);
+                result = (set_audio_description(l, NULL) &&
+                          set_video_description(l, NULL));
                 }
               if(l->have_name_time)
                 {
-                set_time(l, GAVL_TIME_UNDEFINED);
-                set_name(l, PACKAGE"-"VERSION);
+                result = (set_time(l, GAVL_TIME_UNDEFINED) &&
+                          set_name(l, PACKAGE"-"VERSION));
                 }
               break;
             }
@@ -611,7 +730,7 @@ static void * thread_func(void * data)
           if(l->have_name_time)
             {
             arg_str_1 = bg_msg_get_arg_string(msg, 0);
-            set_name(l, arg_str_1);
+            result = set_name(l, arg_str_1);
             free(arg_str_1);
             }
           break;
@@ -619,7 +738,7 @@ static void * thread_func(void * data)
           if(l->have_descriptions)
             {
             arg_str_1 = bg_msg_get_arg_string(msg, 0);
-            set_audio_description(l, arg_str_1);
+            result = set_audio_description(l, arg_str_1);
             free(arg_str_1);
             }
           break;
@@ -627,7 +746,7 @@ static void * thread_func(void * data)
           if(l->have_descriptions)
             {
             arg_str_1 = bg_msg_get_arg_string(msg, 0);
-            set_video_description(l, arg_str_1);
+            result = set_video_description(l, arg_str_1);
             free(arg_str_1);
             }
           break;
@@ -635,14 +754,14 @@ static void * thread_func(void * data)
           if(l->have_formats)
             {
             bg_msg_get_arg_audio_format(msg, 1, &(audio_format));
-            set_audio_format(l, &(audio_format));
+            result = set_audio_format(l, &(audio_format));
             }
           break;
         case BG_PLAYER_MSG_VIDEO_STREAM:
           if(l->have_formats)
             {
             bg_msg_get_arg_video_format(msg, 1, &(video_format));
-            set_video_format(l, &(video_format));
+            result = set_video_format(l, &(video_format));
             }
           break;
         }
@@ -652,6 +771,14 @@ static void * thread_func(void * data)
     
     /* Sleep */
     gavl_time_delay(&delay_time);
+
+    if(!result && (l->fd >= 0))
+      {
+      close(l->fd);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Server connection closed due to error");
+      l->fd = -1;
+      }
+    
     }
 
   bg_player_delete_message_queue(l->player,
@@ -742,6 +869,8 @@ void bg_lcdproc_set_parameter(void * data, char * name,
         !l->enable_lcdproc))
       {
       close(l->fd);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Server connection closed");
+
       l->fd = -1;
       
       l->have_formats      = 0;
