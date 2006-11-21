@@ -18,9 +18,12 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <avdec_private.h>
 #include <string.h>
 #include <ctype.h>
+
+#include <avdec_private.h>
+
+#define LOG_DOMAIN "demux_sphere"
 
 #define SAMPLES2READ 1024
 #define HEADERSIZE 1024
@@ -222,7 +225,8 @@ static int open_sphere(bgav_demuxer_context_t * ctx,
 
     if(!bytes_per_sample)
       {
-      fprintf(stderr, "Bytes per sample is zero!\n");
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Bytes per sample is zero!");
       return 0;
       }
     

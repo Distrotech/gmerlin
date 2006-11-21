@@ -273,7 +273,6 @@ static int open_4xm(bgav_demuxer_context_t * ctx,
     {
     if(!read_chunk_header(ctx->input, &list_chunk))
       {
-      fprintf(stderr, "Rading chunk failed");
       return 0;
       }
     //    dump_chunk_header(&list_chunk);
@@ -386,13 +385,8 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
     if(bgav_input_read_data(ctx->input, header, 8) < 8)
       return 0;
 
-    //    fprintf(stderr, "Chunk header: ");
-    //    bgav_hexdump(header, 8, 8);
     
     fourcc = BGAV_PTR_2_FOURCC(&header[0]);
-    //    fprintf(stderr, "FOURCC: ");
-    //    bgav_dump_fourcc(fourcc);
-    //    fprintf(stderr, "\n");
     switch(fourcc)
       {
       case ID_LIST:
@@ -405,7 +399,6 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
         size = BGAV_PTR_2_32LE(&header[4]);
         s = bgav_track_find_stream(ctx->tt->current_track, 0);
 
-        //  fprintf(stderr, "Size: %d, pts: %lld\n", size, priv->video_pts);
         
         if(!s)
           {
@@ -432,7 +425,6 @@ static int next_packet_4xm(bgav_demuxer_context_t * ctx)
       case ID_snd_:
         size = BGAV_PTR_2_32LE(&header[4]);
 
-        // fprintf(stderr, "Size: %d, pos: %lld\n", size, ctx->input->position);
         
         if(!bgav_input_read_32_le(ctx->input, &stream_id))
           return 0;

@@ -17,8 +17,6 @@
  
 *****************************************************************/
 
-#include <avdec_private.h>
-
 #include <limits.h>
 #include <dlfcn.h>
 
@@ -28,11 +26,14 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <config.h>
+#include <avdec_private.h>
 #include <codecs.h>
 #include <utils.h>
-#include <stdio.h>
+
+// #define DUMP_EXTRADATA
 
 static int init_real(bgav_stream_t * s);
 static int decode_real(bgav_stream_t * s, gavl_audio_frame_t * f, int num_samples);
@@ -96,7 +97,7 @@ static codec_info_t real_codecs[] =
     },
   };
 
-int bgav_init_audio_decoders_real()
+int bgav_init_audio_decoders_real(bgav_options_t * opt)
   {
   int ret = 1;
   struct stat stat_buf;
@@ -110,6 +111,8 @@ int bgav_init_audio_decoders_real()
       bgav_audio_decoder_register(&real_codecs[i].decoder);
     else
       {
+      
+      
       ret = 0;
       }
     }
@@ -281,8 +284,10 @@ static int init_real(bgav_stream_t * s)
   init_data.extradata_len =  s->ext_size;
   init_data.extradata =      s->ext_data;
 
-  //  fprintf(stderr, "Extradata: %d bytes\n", s->ext_size);
-  //  bgav_hexdump(s->ext_data, s->ext_size, 16);
+#ifdef DUMP_EXTRADATA  
+  bgav_dprintf("Extradata: %d bytes\n", s->ext_size);
+  bgav_hexdump(s->ext_data, s->ext_size, 16);
+#endif
   
   //  dump_init_data(&init_data);
 

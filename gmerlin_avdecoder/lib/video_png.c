@@ -24,11 +24,11 @@
 #include <png.h>
 
 #include <config.h>
-#include <codecs.h>
 #include <avdec_private.h>
+#include <codecs.h>
 #include <pngreader.h>
 
-#define LOG_DOMAIN "png"
+#define LOG_DOMAIN "video_png"
 
 typedef struct
   {
@@ -100,7 +100,8 @@ static int init_png(bgav_stream_t * s)
   priv->need_header = 1;
   if(!decode_png(s, (gavl_video_frame_t*)0))
     {
-    fprintf(stderr, "Decode png failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Decode png failed");
     return 0;
     }
   priv->need_header = 0;

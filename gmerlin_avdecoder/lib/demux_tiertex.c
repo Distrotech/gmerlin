@@ -176,8 +176,6 @@ static int open_tiertex(bgav_demuxer_context_t * ctx,
     if(!priv->frame_buffers[i].data_size)
       break;
     priv->frame_buffers[i].data = malloc(priv->frame_buffers[i].data_size);
-    //    fprintf(stderr, "priv->frame_buffers[%d]: %d bytes\n",
-    //            i, priv->frame_buffers[i].data_size);
     }
   priv->num_frame_buffers = i;
 

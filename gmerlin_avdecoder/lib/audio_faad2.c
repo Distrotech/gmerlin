@@ -23,8 +23,8 @@
 #include <faad.h>
 
 #include <config.h>
-#include <codecs.h>
 #include <avdec_private.h>
+#include <codecs.h>
 
 #define LOG_DOMAIN "faad2"
 

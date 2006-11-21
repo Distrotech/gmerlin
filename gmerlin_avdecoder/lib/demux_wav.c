@@ -207,7 +207,6 @@ static int next_packet_wav(bgav_demuxer_context_t * ctx)
     return 0;
   
   bgav_packet_done_write(p);
-  //  fprintf(stderr, "done\n");
   
   return 1;
   }

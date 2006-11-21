@@ -19,11 +19,13 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <config.h>
-#include <codecs.h>
 #include <avdec_private.h>
-#include <stdio.h>
+#include <codecs.h>
+
+#define LOG_DOMAIN "video_qtraw"
 
 typedef struct
   {
@@ -234,7 +236,8 @@ static int init_qtraw(bgav_stream_t * s)
       priv->scanline_func = scanline_raw_1;
       if(s->data.video.palette_size < 2)
         {
-        fprintf(stderr, "Palette missing or too small %d\n",
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Palette missing or too small %d",
                 s->data.video.palette_size);
         goto fail;
         }
@@ -247,7 +250,9 @@ static int init_qtraw(bgav_stream_t * s)
       priv->scanline_func = scanline_raw_2;
       if(s->data.video.palette_size < 4)
         {
-        fprintf(stderr, "Palette missing or too small\n");
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Palette missing or too small %d",
+                 s->data.video.palette_size);
         goto fail;
         }
       s->data.video.format.pixelformat = GAVL_RGB_24;
@@ -259,7 +264,9 @@ static int init_qtraw(bgav_stream_t * s)
       priv->scanline_func = scanline_raw_4;
       if(s->data.video.palette_size < 16)
         {
-        fprintf(stderr, "Palette missing or too small\n");
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Palette missing or too small %d",
+                 s->data.video.palette_size);
         goto fail;
         }
       s->data.video.format.pixelformat = GAVL_RGB_24;
@@ -271,7 +278,9 @@ static int init_qtraw(bgav_stream_t * s)
       priv->scanline_func = scanline_raw_8;
       if(s->data.video.palette_size < 256)
         {
-        fprintf(stderr, "Palette missing or too small\n");
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Palette missing or too small %d",
+                 s->data.video.palette_size);
         goto fail;
         }
       s->data.video.format.pixelformat = GAVL_RGB_24;

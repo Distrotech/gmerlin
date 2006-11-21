@@ -25,7 +25,7 @@
 #define VMD_HEADER_SIZE 0x0330
 #define BYTES_PER_FRAME_RECORD 16
 
-#define LOG_DOMAIN "vmd"
+#define LOG_DOMAIN "demux_vmd"
 
 #define AUDIO_ID 0
 #define VIDEO_ID 1
@@ -185,7 +185,8 @@ static int open_vmd(bgav_demuxer_context_t * ctx,
       if(bgav_input_read_data(ctx->input, chunk, BYTES_PER_FRAME_RECORD) <
          BYTES_PER_FRAME_RECORD)
         {
-        fprintf(stderr, "Unexpected end of file %d %d\n", i, j);
+        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Unexpected end of file %d %d", i, j);
         goto fail;
         }
       type = chunk[0];
@@ -213,8 +214,6 @@ static int open_vmd(bgav_demuxer_context_t * ctx,
     current_video_pts += video_pts_inc;
     }
 
-  fprintf(stderr, "Frame count: %d, frame_index: %d\n",
-          priv->frame_count, frame_index);
   priv->frame_count = frame_index;
   /* */
   ctx->stream_description = bgav_sprintf("Sierra VMD");

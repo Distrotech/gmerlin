@@ -101,6 +101,7 @@ static int read_media_header(bgav_input_context_t * input,
          bgav_input_read_data(input, &ret->reserved, 1));
   }
 
+#if 0
 static void dump_media_header(media_header_t * h)
   {
   bgav_dprintf("Packet header\n");
@@ -114,6 +115,7 @@ static void dump_media_header(media_header_t * h)
   bgav_dprintf("  reserved:          %d\n", h->reserved);
   
   }
+#endif
 
 typedef struct
   {
@@ -324,7 +326,6 @@ static int get_previous_startcode(bgav_demuxer_context_t * ctx,
   {
   int type;
   uint32_t length;
-  //  fprintf(stderr, "get_previous_startcode\n");
   while(1)
     {
     if(ctx->input->position <= 0)
@@ -345,7 +346,6 @@ static int get_next_startcode(bgav_demuxer_context_t * ctx,
   {
   int type;
   uint32_t length;
-  //  fprintf(stderr, "get_next_startcode\n");
   while(1)
     {
     if(ctx->input->position >= ctx->input->total_bytes - 31)
@@ -590,7 +590,6 @@ static int next_packet_gxf(bgav_demuxer_context_t * ctx)
 static void seek_gxf(bgav_demuxer_context_t * ctx, gavl_time_t time)
   {
   media_header_t mh;
-  uint32_t field_offset;
   gxf_priv_t * priv;
   int64_t pos;
   

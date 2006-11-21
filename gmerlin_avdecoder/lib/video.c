@@ -176,9 +176,6 @@ int bgav_video_skipto(bgav_stream_t * s, gavl_time_t * time)
   *time = gavl_time_unscale(s->data.video.format.timescale, next_frame_time);
   s->time_scaled = gavl_time_scale(s->timescale, *time);
 
-#if 0
-  fprintf(stderr, "bgav_video_skipto: Time: %f\n", gavl_time_to_seconds(*time));
-#endif
 
   
   return 1;

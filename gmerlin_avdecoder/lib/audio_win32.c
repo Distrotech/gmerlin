@@ -24,8 +24,8 @@
 #include <sys/stat.h>
 
 #include <config.h>
-#include <codecs.h>
 #include <avdec_private.h>
+#include <codecs.h>
 #include <nanosoft.h>
 
 #include "libw32dll/wine/msacm.h"
@@ -558,7 +558,7 @@ static void close_w32(bgav_stream_t * s)
   free(priv);
   }
 
-int bgav_init_audio_decoders_win32()
+int bgav_init_audio_decoders_win32(bgav_options_t * opt)
   {
   int ret = 1;
   int i;
@@ -581,6 +581,8 @@ int bgav_init_audio_decoders_win32()
       }
     else
       {
+      bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Codec DLL %s not found",
+               dll_filename);
       ret = 0;
       }
     }

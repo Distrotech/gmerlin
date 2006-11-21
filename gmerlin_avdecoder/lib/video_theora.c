@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define LOG_DOMAIN "video_theora"
+
 typedef struct
   {
   theora_info    ti;
@@ -68,7 +70,8 @@ static int init_theora(bgav_stream_t * s)
   /* Get header packets and initialize decoder */
   if(!s->ext_data)
     {
-    fprintf(stderr, "Theora codec requires extradata\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Theora codec requires extradata");
     return 0;
     }
   ext_pos = s->ext_data;
@@ -115,7 +118,8 @@ static int init_theora(bgav_stream_t * s)
       s->data.video.format.pixelformat = GAVL_YUV_444_P;
       break;
     default:
-      fprintf(stderr, "Error, unknown pixelformat %d\n",
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Error, unknown pixelformat %d",
               priv->ti.pixelformat);
       return 0;
     }
@@ -172,7 +176,6 @@ static int decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
 #if 0
   s->data.video.last_frame_time =
     theora_granule_frame(&priv->ts, priv->ts.granulepos) * s->data.video.format.frame_duration;
-  //  fprintf(stderr, "Time: %lld\n", s->data.video.last_frame_time);
 #endif
   /* Copy the frame */
 

@@ -215,7 +215,6 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
         bgav_input_skip(ctx->input, h.size);
         break;
       case RoQ_QUAD_CODEBOOK:
-        //       fprintf(stderr, "Got codebook: %d bytes\n", h.size);
         s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
         if(!s)
           {
@@ -237,7 +236,6 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
         video_packet->data_size += h.size;
         break;
       case RoQ_QUAD_VQ:
-        //        fprintf(stderr, "Got vq: %d bytes\n", h.size);
         s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
         if(!s)
           {
@@ -263,9 +261,6 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
           return 0;
 
         video_packet->data_size += h.size;
-        //        fprintf(stderr, "Video packet %d\n", video_packet->data_size);
-
-        //        bgav_hexdump(video_packet->data, 16, 16);
         video_packet->pts = priv->video_pts++;
         bgav_packet_done_write(video_packet);
         video_packet = (bgav_packet_t*)0;
@@ -290,7 +285,6 @@ static int next_packet_roq(bgav_demuxer_context_t * ctx)
           return 0;
         audio_packet->data_size = h.size + PREAMBLE_SIZE;
 
-        //        fprintf(stderr, "audio_size: %d\n", audio_packet->data_size);
 
         bgav_packet_done_write(audio_packet);
         done = 1;

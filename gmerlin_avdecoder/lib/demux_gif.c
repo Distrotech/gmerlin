@@ -144,7 +144,6 @@ static int open_gif(bgav_demuxer_context_t * ctx,
           done = 1;
         else
           {
-          //          fprintf(stderr, "Skipping extension 0x%02x\n", ext_header[1]);
           skip_extension(ctx->input);
           }
         break;
@@ -209,7 +208,6 @@ static int next_packet_gif(bgav_demuxer_context_t * ctx)
         else
           {
           /* Skip other extension */
-          //          fprintf(stderr, "Skipping extension 0x%02x\n", buf[1]);
           skip_extension(ctx->input);
           break;
           }
@@ -243,7 +241,6 @@ static int next_packet_gif(bgav_demuxer_context_t * ctx)
         else
           {
           /* Skip other extension */
-          //          fprintf(stderr, "Skipping extension 0x%02x\n", buf[1]);
           skip_extension(ctx->input);
           break;
           }

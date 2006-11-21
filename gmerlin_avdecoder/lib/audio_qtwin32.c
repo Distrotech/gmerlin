@@ -29,8 +29,8 @@
 #include <sys/stat.h>
 
 #include <config.h>
-#include <codecs.h>
 #include <avdec_private.h>
+#include <codecs.h>
 
 #include "libw32dll/qtx/qtxsdk/components.h"
 #include "libw32dll/wine/windef.h"
@@ -470,7 +470,7 @@ static char * needed_filenames[] =
     "qtmlClient.dll"
   };
 
-int bgav_init_audio_decoders_qtwin32()
+int bgav_init_audio_decoders_qtwin32(bgav_options_t * opt)
   {
   int i;
   char dll_filename[PATH_MAX];
@@ -481,6 +481,8 @@ int bgav_init_audio_decoders_qtwin32()
     sprintf(dll_filename, "%s/%s", win32_def_path, needed_filenames[i]);
     if(stat(dll_filename, &stat_buf))
       {
+      bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN, "DLL %s not found\n",
+               dll_filename);
       return 0;
       }
     }

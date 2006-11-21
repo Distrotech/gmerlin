@@ -221,18 +221,15 @@ static int read_meta_object(bgav_input_context_t * input,
   switch(ret->type)
     {
     case TYPE_NUMBER:
-      //      fprintf(stderr, "Got number %s\n", ret->name);
       if(!bgav_input_read_64_be(input, (uint64_t*)&i64))
         return 0;
       ret->data.number = int2dbl(i64);
       break;
     case TYPE_BOOL:
-      //      fprintf(stderr, "Got bool\n");
       if(!bgav_input_read_data(input, &ret->data.bool, 1))
         return 0;
       break;
     case TYPE_STRING:
-      //      fprintf(stderr, "Got string\n");
       if(!bgav_input_read_16_be(input, &len))
         return 0;
       ret->data.string = malloc(len+1);
@@ -241,7 +238,6 @@ static int read_meta_object(bgav_input_context_t * input,
       ret->data.string[len] = '\0';
       break;
     case TYPE_OBJECT:
-      //      fprintf(stderr, "Got Object\n");
       while(1)
         {
         if(input->position >= end_pos)
@@ -267,7 +263,6 @@ static int read_meta_object(bgav_input_context_t * input,
         }
       break;
     case TYPE_ARRAY:
-      //      fprintf(stderr, "Got Array\n");
       
       if(!bgav_input_read_32_be(input, &ret->data.array.num_elements))
         return 0;
@@ -290,7 +285,6 @@ static int read_meta_object(bgav_input_context_t * input,
       
       break;
     case TYPE_DATE:
-      //      fprintf(stderr, "Got Date\n");
       
       if(!bgav_input_read_64_be(input, (uint64_t*)&i64))
         return 0;
@@ -300,7 +294,6 @@ static int read_meta_object(bgav_input_context_t * input,
         return 0;
       break;
     case TYPE_TERMINATOR:
-      //      fprintf(stderr, "Got Terminator\n");
       break;
     default:
       bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN,

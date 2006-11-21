@@ -468,7 +468,6 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
 static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   {
   bgav_packet_t * p;
-  //  fprintf(stderr, "request_stream: %p %s\n", ctx->request_stream, (ctx->request_stream->type == BGAV_STREAM_AUDIO ? "Audio" : "Video") );
   /* If the file is truely noninterleaved, this isn't neccessary, but who knows? */
   while(ctx->si->entries[ctx->request_stream->index_position].stream_id !=
         ctx->request_stream->stream_id)
@@ -781,7 +780,6 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
 
     if(!b->demuxer->seek_iterative)
       {
-      //      fprintf(stderr, "Seek %lld %lld\n", *time, sync_time);
       if(*time > sync_time)
         skip_to(b, track, time);
       else

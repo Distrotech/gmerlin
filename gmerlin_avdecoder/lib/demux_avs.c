@@ -129,8 +129,6 @@ static int next_packet_avs(bgav_demuxer_context_t * ctx)
     switch(block_type >> 8)
       {
       case 0x01: /* Video data */
-        //        fprintf(stderr, "Video data (Type: %04x, size: %d)\n",
-        //                block_type, block_size);
 
         if(!vs)
           {

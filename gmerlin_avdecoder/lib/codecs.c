@@ -176,7 +176,7 @@ void bgav_codecs_dump()
   bgav_video_decoder_t * vd;
   bgav_subtitle_overlay_decoder_t * sod;
   int i;
-  bgav_codecs_init();
+  bgav_codecs_init(NULL);
   
   /* Print */
   ad = audio_decoders;
@@ -214,7 +214,7 @@ void bgav_codecs_dump()
   }
 
 
-void bgav_codecs_init()
+void bgav_codecs_init(bgav_options_t * opt)
   {
   codecs_lock();
   if(codecs_initialized)
@@ -225,8 +225,8 @@ void bgav_codecs_init()
   codecs_initialized = 1;
   /* ffmpeg codecs should be initialized BEFORE any DLL codecs */
 #ifdef HAVE_LIBAVCODEC
-  bgav_init_audio_decoders_ffmpeg();
-  bgav_init_video_decoders_ffmpeg();
+  bgav_init_audio_decoders_ffmpeg(opt);
+  bgav_init_video_decoders_ffmpeg(opt);
 #endif
 #ifdef HAVE_VORBIS
   bgav_init_audio_decoders_vorbis();
@@ -275,7 +275,7 @@ void bgav_codecs_init()
 
   if(bgav_dll_path_xanim)
     {
-    bgav_init_video_decoders_xadll();
+    bgav_init_video_decoders_xadll(opt);
     }
 #endif
 
@@ -285,8 +285,8 @@ void bgav_codecs_init()
 
   if(bgav_dll_path_real)
     {
-    bgav_init_video_decoders_real();
-    bgav_init_audio_decoders_real();
+    bgav_init_video_decoders_real(opt);
+    bgav_init_audio_decoders_real(opt);
     }
 #endif
 
@@ -296,9 +296,9 @@ void bgav_codecs_init()
 
   if(win_path_needs_delete)
     {
-    bgav_init_video_decoders_win32();
-    bgav_init_audio_decoders_win32();
-    bgav_init_audio_decoders_qtwin32();
+    bgav_init_video_decoders_win32(opt);
+    bgav_init_audio_decoders_win32(opt);
+    bgav_init_audio_decoders_qtwin32(opt);
     }
   
 #endif

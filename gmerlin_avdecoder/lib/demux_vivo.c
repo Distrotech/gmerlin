@@ -26,6 +26,7 @@
 #define AUDIO_STREAM_ID 0
 #define VIDEO_STREAM_ID 1
 
+#define LOG_DOMAIN "demux_vivo" 
 
 /*
  *  VIVO demuxer
@@ -293,7 +294,8 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
       
       if(!check_key(buffer, "RecordType", &pos))
         {
-        fprintf(stderr, "Unknown extended header: %s\n", buffer);
+        bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Unknown extended header: %s", buffer);
         break;
         }
       record_type = atoi(pos);
@@ -314,7 +316,8 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
           if(check_key(buffer, "TimestampType", &pos))
             {
             if(strcmp(pos, "relative"))
-              fprintf(stderr, "Warning, unknown timestamp type: %s\n",
+              bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                       "Warning, unknown timestamp type: %s",
                       pos);
             }
           else if(check_key(buffer, "TimeUnitNumerator", &pos))
@@ -563,7 +566,8 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
       priv->audio_pos += len;
       break;
     default:
-      fprintf(stderr, "Unknown packet type\n");
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Unknown packet type");
       return 0;
     }
     
@@ -579,10 +583,6 @@ static int next_packet_vivo(bgav_demuxer_context_t * ctx)
     }
   
   seq = (h & 0x0f);
-#if 0
-  fprintf(stderr, "h: 0x%02x, %s, len: %d, prefix: %d, seq: %d\n",
-          h, (do_audio ? "Audio" : "Video"), len, prefix, seq);
-#endif
   /* Finish packet */
 
   if(stream->packet && (stream->packet_seq != seq))

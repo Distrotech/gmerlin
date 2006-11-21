@@ -427,6 +427,9 @@ void bgav_stream_init(bgav_stream_t * stream, const bgav_options_t * opt);
 void bgav_stream_free(bgav_stream_t * stream);
 void bgav_stream_dump(bgav_stream_t * s);
 
+bgav_packet_t * bgav_stream_get_packet_write(bgav_stream_t * s);
+
+
 /* Which timestamp would come if we would decode right now? */
 
 gavl_time_t bgav_stream_next_timestamp(bgav_stream_t *);
@@ -1240,7 +1243,7 @@ int bgav_subtitle_skipto(bgav_stream_t * stream, gavl_time_t * time);
 
 /* codecs.c */
 
-void bgav_codecs_init();
+void bgav_codecs_init(bgav_options_t * opt);
 
 bgav_audio_decoder_t * bgav_find_audio_decoder(bgav_stream_t*);
 bgav_video_decoder_t * bgav_find_video_decoder(bgav_stream_t*);

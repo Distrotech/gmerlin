@@ -31,7 +31,6 @@
 
 #include <codecs.h>
 
-#include <log.h>
 #define LOG_DOMAIN "video_realdll"
 
 // static char codec_path[PATH_MAX];
@@ -70,7 +69,7 @@ static codec_info_t real_codecs[] =
 
   };
 
-int bgav_init_video_decoders_real()
+int bgav_init_video_decoders_real(bgav_options_t * opt)
   {
   int ret = 1;
   struct stat stat_buf;
@@ -87,8 +86,9 @@ int bgav_init_video_decoders_real()
       bgav_video_decoder_register(&real_codecs[i].decoder);
     else
       {
-      fprintf(stderr, "Cannot find file %s, disabling %s\n",
-              test_filename, real_codecs[i].decoder.name);
+      bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "Cannot find file %s, disabling %s",
+               test_filename, real_codecs[i].decoder.name);
       ret = 0;
       }
     }
@@ -207,7 +207,7 @@ static int init_real(bgav_stream_t * s)
 
   if(!(priv->module = dlopen(codec_filename, RTLD_NOW)))
     {
-    fprintf(stderr, "Could not open DLL %s %s\n", codec_filename, dlerror());
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Could not open DLL %s %s", codec_filename, dlerror());
     return 0;
     }
 
@@ -238,7 +238,7 @@ static int init_real(bgav_stream_t * s)
      !priv->rvyuv_init ||
      !priv->rvyuv_transform)
     {
-    fprintf(stderr, "DLL %s is not ok: %s\n", codec_filename, dlerror());
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "DLL %s is not ok: %s", codec_filename, dlerror());
     return 0; 
     }
   
@@ -255,7 +255,7 @@ static int init_real(bgav_stream_t * s)
 
   if(priv->rvyuv_init(&init_data, &(priv->real_context)))
     {
-    fprintf(stderr, "Init codec failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Init codec failed");
     return 0;
     }
 
@@ -280,17 +280,14 @@ static int init_real(bgav_stream_t * s)
     cmsg_data.data1 = 0x24;
     cmsg_data.data2 = 1+((extradata[0]>>16)&7);
     cmsg_data.dimensions = &(cmsg24[0]);
-    //    fprintf(stderr, "rvyuv_custom_message...");
     if(priv->rvyuv_custom_message(&cmsg_data,priv->real_context))
       {
-      fprintf(stderr, "rvyuv_custom_message failed\n");
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "rvyuv_custom_message failed");
       return 0;
       }
-    //    else
-    //      fprintf(stderr, "Ok\n");
     }
-
-  s->description = bgav_sprintf("%s (ID: 0x%08x)", info->format_name, extradata[1]);
+  
+  s->description = bgav_sprintf("%s", info->format_name);
   
   return 1;
   };
@@ -317,7 +314,6 @@ static int decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
   
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
 
-  //  fprintf(stderr, "Packet timestamp: %lld, keyframe: %d\n", p->timestamp_scaled, p->keyframe);
   
   if(!p)
     return 0;

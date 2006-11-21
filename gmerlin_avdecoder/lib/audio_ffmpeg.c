@@ -28,6 +28,8 @@
 #include <config.h>
 #include <codecs.h>
 
+#define LOG_DOMAIN "audio_ffmpeg"
+
 // #define DUMP_DECODE
 // #define DUMP_EXTRADATA
 
@@ -359,7 +361,7 @@ static int decode_frame(bgav_stream_t * s)
   frame_size = 0;
 
 #ifdef DUMP_DECODE
-  fprintf(stderr, "decode_audio Size: %d\n", priv->bytes_in_packet_buffer);
+  bgav_dprintf("decode_audio Size: %d\n", priv->bytes_in_packet_buffer);
 #endif
   
   if(priv->frame)
@@ -389,9 +391,9 @@ static int decode_frame(bgav_stream_t * s)
     memcpy(priv->frame->samples.s_16, tmp_buf, frame_size);
     free(tmp_buf);
     }
-
+  
 #ifdef DUMP_DECODE
-  fprintf(stderr, "used %d bytes (frame size: %d)\n", bytes_used, frame_size);
+  bgav_dprintf("used %d bytes (frame size: %d)\n", bytes_used, frame_size);
 #endif
   
   if(bytes_used <= 1)
@@ -568,7 +570,7 @@ static void close_ffmpeg(bgav_stream_t * s)
   }
 
 void
-bgav_init_audio_decoders_ffmpeg()
+bgav_init_audio_decoders_ffmpeg(bgav_options_t * opt)
   {
   int i;
   real_num_codecs = 0;
@@ -593,7 +595,8 @@ bgav_init_audio_decoders_ffmpeg()
       real_num_codecs++;
       }
     else
-      fprintf(stderr, "Codec not found: %s\n", codec_infos[i].decoder_name);
+      bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Codec not found: %s",
+               codec_infos[i].decoder_name);
     }
   }
 

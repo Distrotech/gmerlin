@@ -208,10 +208,6 @@ static int next_packet_psxstr(bgav_demuxer_context_t * ctx)
       current_sector = BGAV_PTR_2_16LE(&sector[0x1C]);
       sector_count   = BGAV_PTR_2_16LE(&sector[0x1E]);
       frame_size     = BGAV_PTR_2_32LE(&sector[0x24]);
-#if 0
-      fprintf(stderr, "current_sector: %d, sector_count: %d, frame_size: %d\n",
-              current_sector,sector_count,frame_size);
-#endif
       if(!s->packet)
         {
         s->packet = bgav_stream_get_packet_write(s);

@@ -30,9 +30,10 @@
 #include <sys/stat.h>
 
 #include <config.h>
-#include <codecs.h>
 #include <avdec_private.h>
+#include <codecs.h>
 #include <nanosoft.h>
+#define LOG_DOMAIN "video_win32"
 
 #include "libw32dll/wine/msacm.h"
 #include "libw32dll/wine/driver.h"
@@ -322,7 +323,8 @@ static int init_std(bgav_win32_thread_t * thread)
   
   if(!priv->hic)
     {
-    fprintf(stderr, "Cannot open %s\n", info->dll_name);
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Cannot open %s", info->dll_name);
     return 0;
     }
 
@@ -401,7 +403,8 @@ static int init_std(bgav_win32_thread_t * thread)
     
   if(result)
     {
-    fprintf(stderr, "ICDecompressBegin failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "ICDecompressBegin failed");
     return 0;
     }
   priv->frame = gavl_video_frame_create(&(s->data.video.format));
@@ -449,7 +452,8 @@ static int decode_std(bgav_win32_thread_t * thread)
     
   if(result)
     {
-    fprintf(stderr, "ICDecompress failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "ICDecompress failed");
     }
   if(frame)
     {
@@ -520,7 +524,8 @@ static int init_ds(bgav_win32_thread_t*t)
   
   if(!priv->ds_dec)
     {
-    fprintf(stderr, "DS_VideoDecoder_Open failed %d\n", s->ext_size);
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "DS_VideoDecoder_Open failed %d", s->ext_size);
     }
 
   //  capabilities = DS_VideoDecoder_GetCapabilities(priv->ds_dec);
@@ -556,7 +561,8 @@ static int decode_ds(bgav_win32_thread_t*t)
   
   if(result)
     {
-    fprintf(stderr, "Decode failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Decode failed");
     }
   if(frame)
     {
@@ -620,7 +626,7 @@ static int init_dmo(bgav_win32_thread_t*t)
   
   if(!priv->dmo_dec)
     {
-    fprintf(stderr, "DMO_VideoDecoder_Open failed %d\n", s->ext_size);
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "DMO_VideoDecoder_Open failed %d\n", s->ext_size);
     }
 
   //  capabilities = DMO_VideoDecoder_GetCapabilities(priv->dmo_dec);
@@ -656,7 +662,7 @@ static int decode_dmo(bgav_win32_thread_t*t)
                                            (char*)(priv->frame->planes[0]));
   if(result)
     {
-    fprintf(stderr, "Decode failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Decode failed\n");
     }
   if(frame)
     {
@@ -733,7 +739,7 @@ static void close_win32(bgav_stream_t * s)
   
   }
 
-int bgav_init_video_decoders_win32()
+int bgav_init_video_decoders_win32(bgav_options_t * opt)
   {
   int i;
   char dll_filename[PATH_MAX];
@@ -755,6 +761,8 @@ int bgav_init_video_decoders_win32()
       }
     else
       {
+      bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Codec DLL %s not found",
+               dll_filename);
       ret = 0;
       }
     }

@@ -23,6 +23,8 @@
 #include <avdec_private.h>
 
 #include <rmff.h>
+#define LOG_DOMAIN "demux_rm"
+
 
 #define PN_SAVE_ENABLED 0x0001
 #define PN_PERFECT_PLAY_ENABLED 0x0002
@@ -163,7 +165,6 @@ static void init_audio_stream(bgav_demuxer_context_t * ctx,
     data += 2;
     len = *data;
     data++;
-    //    fprintf(stderr, "Fourcc len: %d\n", len);
     bg_as->fourcc = BGAV_PTR_2_FOURCC(data);
     bg_as->data.audio.format.num_channels = 1;
     bg_as->data.audio.bits_per_sample = 16;
@@ -460,14 +461,16 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
 
     if(cnt < 2)
       {
-      fprintf(stderr, "demux_rm: Video extradata too short: %d\n", cnt);
+      bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "Video extradata too short: %d\n", cnt);
       }
     else
       {
       int ii;
       if(cnt > 6)
         {
-        fprintf(stderr, "demux_rm: Video extradata too long: %d\n", cnt);
+        bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                  "Video extradata too long: %d\n", cnt);
         cnt = 6;
         }
       //      memcpy(bg_vs->ext_data + 8, data, cnt);
@@ -619,7 +622,8 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
       {
       if(!ctx->input->input->seek_byte)
         {
-        fprintf(stderr, "Cannot play multirate real from non seekable source\n");
+        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Cannot play multirate real from non seekable source");
         return 0;
         }
       else
@@ -901,17 +905,10 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
       dp_hdr=(dp_hdr_t*)p->data;
       dp_data=p->data+sizeof(*dp_hdr);
       extra=(uint32_t*)(p->data+dp_hdr->chunktab);
-      //      fprintf(stderr,
-      //              "we have an incomplete packet (oldseq=%d new=%d)\n",vs->seqnum,vpkg_seqnum);
       // we have an incomplete packet:
       if(stream->packet_seq!=vpkg_seqnum)
         {
         // this fragment is for new packet, close the old one
-#if 0
-        fprintf(stderr,
-                "closing probably incomplete packet %d != %d\n",
-                stream->packet_seq, vpkg_seqnum);
-#endif
         p->pts=(dp_hdr->len<3)?0:
           fix_timestamp(stream,dp_data,dp_hdr->timestamp, &p->keyframe);
         bgav_packet_done_write(p);
@@ -941,12 +938,6 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
         if(0x80==(vpkg_header&0xc0))
           {
           // last fragment!
-#if 0
-          if(dp_hdr->len!=vpkg_length-vpkg_offset)
-            fprintf(stderr,
-                   "warning! assembled.len=%d  frag.len=%d  total.len=%d  \n",
-                   dp_hdr->len,vpkg_offset,vpkg_length-vpkg_offset);
-#endif     
           if(bgav_input_read_data(ctx->input, dp_data+dp_hdr->len,
                                   vpkg_offset) < vpkg_offset)
             return 0;
@@ -976,12 +967,6 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
           continue;
           }
         // non-last fragment:
-#if 0
-        if(dp_hdr->len!=vpkg_offset)
-          fprintf(stderr,
-                  "warning! assembled.len=%d  offset=%d  frag.len=%d  total.len=%d  \n",
-                  dp_hdr->len,vpkg_offset,len,vpkg_length);
-#endif
         if(bgav_input_read_data(ctx->input, dp_data+dp_hdr->len, len) < len)
           return 0;
         //        stream_read(demuxer->stream, dp_data+dp_hdr->len, len);
@@ -1010,7 +995,6 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
     dp_hdr=(dp_hdr_t*)p->data;
     dp_hdr->chunks=0;
     dp_hdr->timestamp=h->timestamp;
-    //    fprintf(stderr, "Packet timestamp: %d\n", h->timestamp);
     dp_hdr->chunktab=sizeof(dp_hdr_t)+vpkg_length;
     dp_data=p->data+sizeof(dp_hdr_t);
     extra=(uint32_t*)(p->data+dp_hdr->chunktab);
@@ -1030,7 +1014,6 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
 
     if(vpkg_length > len)
       {
-      fprintf(stderr, "Warning: vpkg_length > len (%d > %d)\n", vpkg_length, len);
       bgav_packet_done_write(p);
       break;
       }
@@ -1053,7 +1036,6 @@ static int process_video_chunk(bgav_demuxer_context_t * ctx,
   
   if(len)
     {
-    fprintf(stderr, "\n******** !!!!!!!! BUG!! len=%d !!!!!!!!!!! ********\n",len);
     if(len>0)
       bgav_input_skip(ctx->input, len);
       // stream_skip(demuxer->stream, len);
@@ -1183,8 +1165,6 @@ static int process_audio_chunk(bgav_demuxer_context_t * ctx,
       p->data[x+1] = swp;
       }
 
-    //    fprintf(stderr, "Reordered dnet\n");
-    //    bgav_hexdump(p->data, 16, 16);
     p->data_size = packet_size;
     bgav_packet_done_write(p);
     }
@@ -1242,10 +1222,6 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
   if(!rm->is_multirate)
     {
     track = ctx->tt->current_track;
-#if 0
-    fprintf(stderr, "Data start: %lld, data size: %lld, input_pos: %lld\n",
-            rm->header->data_start, rm->header->data_size, ctx->input->position);
-#endif
     if(rm->header->data_size && (ctx->input->position + 10 >=
                                  rm->header->data_start + rm->header->data_size))
       {
@@ -1334,9 +1310,6 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
       return 0;
 
     /* Seek to the place we've been before */
-    //    fprintf(stderr, "%c Stream: %d, Seek to %d\n",
-    //            stream->type == BGAV_STREAM_VIDEO ? 'V' : 'A',
-    //            stream->stream_id, stream_pos);
     bgav_input_seek(ctx->input, stream_pos, SEEK_SET);
 
     while(1)
@@ -1353,14 +1326,11 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
         /* If this is the first packet in the stream and
            the stream id of the first packet is different,
            this means, that these packets are meant for us */
-        //        fprintf(stderr, "Changing stream ID %d -> %d\n",
-        //                stream->stream_id, h.stream_number);
         stream->stream_id = h.stream_number;
         break;
         }
       else
         {
-        //        fprintf(stderr, "Skipping unused packet from stream %d\n", h.stream_number);
         bgav_input_skip(ctx->input, PAYLOAD_LENGTH(&h));
         }
       }
@@ -1373,7 +1343,6 @@ static int next_packet_rmff(bgav_demuxer_context_t * ctx)
       {
       if(rs->stream->indx.records[rs->index_record].packet_count_for_this_packet > rm->next_packet)
         {
-        //        fprintf(stderr, "Skipping video packet\n");
         bgav_input_skip(ctx->input, PAYLOAD_LENGTH(&h));
         result = 1;
         }
@@ -1419,7 +1388,6 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
   uint32_t start_packet = ~0x00;
   uint32_t end_packet =    0x00;
   
-  //  fprintf(stderr, "Seek RMFF\n");
   
   rm = (rm_private_t*)(ctx->priv);
   track = ctx->tt->current_track;
@@ -1451,9 +1419,6 @@ static void seek_rmff(bgav_demuxer_context_t * ctx, gavl_time_t time)
     rs->data_pos = rs->stream->indx.records[rs->index_record].offset;
     }
   
-  //  fprintf(stderr, "Position: %u, Start Packet: %u, End Packet: %u\n",
-  //          position, start_packet, end_packet);
-    
   /* Seek to the position */
 
   if(!rm->is_multirate)

@@ -23,10 +23,12 @@
 #include <string.h>
 
 #include <config.h>
-#include <codecs.h>
 #include <avdec_private.h>
+#include <codecs.h>
 
 #include "targa.h"
+
+#define LOG_DOMAIN "video_tga"
 
 typedef struct
   {
@@ -48,7 +50,6 @@ typedef struct
 
 static gavl_pixelformat_t get_pixelformat(int depth, int * bytes_per_pixel, int * is_mono)
   {
-  //  fprintf(stderr, "GET PIXELFORMAT %d\n", depth);
   switch(depth)
     {
     case 8: /* Grayscale */
@@ -124,13 +125,12 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
     if(!p)
       return 0;
 
-    //    fprintf(stderr, "Read tga:\n");
-    //    bgav_hexdump(p->data, p->data_size, 16);
     
     result = tga_read_from_memory(&(priv->tga), p->data, p->data_size, priv->ctab, priv->ctab_size);
     if(result != TGA_NOERR)
       {
-      fprintf(stderr, "tga_read_from_memory failed: %s (%d bytes)\n",
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "tga_read_from_memory failed: %s (%d bytes)",
               tga_error(result), p->data_size);
       //      dump_packet(p->data, p->data_size);
       return 0;
@@ -168,7 +168,8 @@ static int decode_tga(bgav_stream_t * s, gavl_video_frame_t * frame)
       }
     if(s->data.video.format.pixelformat == GAVL_PIXELFORMAT_NONE)
       {
-      fprintf(stderr, "Cannot detect image type: %d\n", priv->tga.image_type);
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Cannot detect image type: %d", priv->tga.image_type);
       return 0;
       }
     if(priv->is_mono)
@@ -248,7 +249,6 @@ static int init_tga(bgav_stream_t * s)
   tga_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
 
-  //  fprintf(stderr, "init_tga, ext_size: %d\n", s->ext_size);
   
   s->data.video.decoder->priv = priv;
 
@@ -264,7 +264,9 @@ static int init_tga(bgav_stream_t * s)
       priv->ctab[i*4+2] = (s->data.video.palette[i].b) >> 8;
       priv->ctab[i*4+3] = (s->data.video.palette[i].a) >> 8;
       }
-    fprintf(stderr, "Setting palette %d entries\n", s->data.video.palette_size);
+    bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+             "Setting palette %d entries",
+             s->data.video.palette_size);
     }
   
   /* Get format by decoding first frame */

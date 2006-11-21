@@ -341,8 +341,6 @@ static int next_packet_smacker(bgav_demuxer_context_t * ctx)
   int64_t frame_end;
   priv = (smacker_priv_t*)(ctx->priv);
 
-  //  fprintf(stderr, "next_packet_smacker %d\n",
-  //          priv->current_frame);
     
   frame_end = ctx->input->position + 
     (priv->h.frame_sizes[priv->current_frame] & (~3));

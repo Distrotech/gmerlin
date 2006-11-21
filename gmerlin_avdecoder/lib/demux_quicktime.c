@@ -919,8 +919,6 @@ static int handle_rmra(bgav_demuxer_context_t * ctx,
       /* Relative url */
       else
         {
-        fprintf(stderr, "Relative: %s %s\n", basename,
-                priv->moov.rmra.rmda[i].rdrf.data_ref);
 
         (*redir)->urls[index].url = bgav_strdup(basename);
         (*redir)->urls[index].url =
@@ -990,7 +988,6 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
       case BGAV_MK_FOURCC('m','o','o','v'):
         if(!bgav_qt_moov_read(&h, ctx->input, &(priv->moov)))
           {
-          fprintf(stderr, "Reading moov atom failed\n");
           ctx->error_msg =
             bgav_sprintf("Reading moov atom failed");
           return 0;
@@ -1028,7 +1025,6 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
   if(!have_mdat && priv->moov.has_rmra)
     {
     /* Redirector!!! */
-    //    fprintf(stderr, "Redirector!!\n");
     handle_rmra(ctx, redir);
     return 1;
     }

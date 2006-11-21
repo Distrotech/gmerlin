@@ -526,7 +526,7 @@ bgav_input_context_t * bgav_input_open_vcd(const char * device,
 
 int bgav_open_vcd(bgav_t * b, const char * device)
   {
-  bgav_codecs_init();
+  bgav_codecs_init(&b->opt);
   b->input = bgav_input_open_vcd(device, &(b->opt));
   if(!b->input)
     return 0;

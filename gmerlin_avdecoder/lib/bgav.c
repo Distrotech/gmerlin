@@ -183,7 +183,7 @@ bgav_t * bgav_create()
 
 int bgav_open(bgav_t * ret, const char * location)
   {
-  bgav_codecs_init();
+  bgav_codecs_init(&ret->opt);
   ret->input = create_input(ret);
   if(!bgav_input_open(ret->input, location))
     {
@@ -211,7 +211,7 @@ int bgav_open(bgav_t * ret, const char * location)
 
 int bgav_open_fd(bgav_t * ret, int fd, int64_t total_size, const char * mimetype)
   {
-  bgav_codecs_init();
+  bgav_codecs_init(&ret->opt);
   ret->input = bgav_input_open_fd(fd, total_size, mimetype);
   if(!bgav_init(ret))
     return 0;

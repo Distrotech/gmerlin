@@ -1167,8 +1167,6 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
           bg_vs->ext_size = ch->ckSize - 40;
           bg_vs->ext_data = calloc(bg_vs->ext_size + 16, 1);
           memcpy(bg_vs->ext_data, pos, bg_vs->ext_size);
-          //          fprintf(stderr, "Extradata\n");
-          //          bgav_hexdump(bg_vs->ext_data, bg_vs->ext_size, 16);
           }
 
         /* Add palette if depth <= 8 */

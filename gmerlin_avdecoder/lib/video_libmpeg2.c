@@ -24,23 +24,26 @@
 #include <mpeg2dec/mpeg2.h>
 
 #include <config.h>
-#include <codecs.h>
+
 #include <avdec_private.h>
+#include <codecs.h>
+
+#define LOG_DOMAIN "video_libmpeg2"
 
 /* Debug function */
 #if 0
 void dump_sequence_header(const mpeg2_sequence_t * s)
   {
-  fprintf(stderr, "Sequence header:\n");
-  fprintf(stderr, "size:         %d x %d\n", s->width, s->height);
-  fprintf(stderr, "chroma_size:  %d x %d\n", s->chroma_width,
+  bgav_dprintf("Sequence header:\n");
+  bgav_dprintf("size:         %d x %d\n", s->width, s->height);
+  bgav_dprintf("chroma_size:  %d x %d\n", s->chroma_width,
           s->chroma_height);
 
-  fprintf(stderr, "picture_size: %d x %d\n", s->picture_width,
+  bgav_dprintf("picture_size: %d x %d\n", s->picture_width,
           s->picture_height);
-  fprintf(stderr, "display_size: %d x %d\n", s->display_width,
+  bgav_dprintf("display_size: %d x %d\n", s->display_width,
           s->display_height);
-  fprintf(stderr, "pixel_size:   %d x %d\n", s->pixel_width,
+  bgav_dprintf("pixel_size:   %d x %d\n", s->pixel_width,
           s->pixel_height);
   }
 #endif
@@ -77,14 +80,10 @@ static int get_data(bgav_stream_t*s)
   if(!priv->p)
     return 0;
 
-  //  fprintf(stderr, "Got data %d\n", priv->p->data_size);
-  //  bgav_hexdump(priv->p->data, 16, 16);
-  
   mpeg2_buffer(priv->dec, priv->p->data, priv->p->data + priv->p->data_size);
   
   if(priv->p->pts != BGAV_TIMESTAMP_UNDEFINED)
     {
-    //    fprintf(stderr, "Got pts %f\n", priv->p->pts/90000.0);
     mpeg2_tag_picture(priv->dec,
                       (priv->p->pts) >> 32,
                       priv->p->pts & 0xffffffff);
@@ -253,7 +252,8 @@ static int init_mpeg2(bgav_stream_t*s)
   if((priv->info->current_picture->flags & PIC_MASK_CODING_TYPE) ==
      PIC_FLAG_CODING_TYPE_P)
     {
-    fprintf(stderr, "Intra slice refresh\n");
+    bgav_log(s->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+             "Detected Intra slice refresh");
     priv->intra_slice_refresh = 1;
     }
   return 1;
@@ -267,14 +267,11 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
   /* Decode frame */
 
-  //  if(!f)
-  //    fprintf(stderr, "Skipping frame\n");
-#if 0
   if(f)
     mpeg2_skip(priv->dec, 0);
   else
     mpeg2_skip(priv->dec, 1);
-#endif
+
   while(1)
     {
     if(!parse(s, &state))
@@ -286,7 +283,6 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
         {
         if(priv->info->display_picture == priv->first_iframe)
           {
-          // fprintf(stderr, "Got I Frame 1: %p\n", priv->info->display_picture); 
           priv->first_iframe = (mpeg2_picture_t*)0;
           break;
           }
@@ -295,10 +291,6 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
         break;
       }
     }
-#if 0
-  if(priv->info->display_picture->flags & PIC_FLAG_SKIP)
-    fprintf(stderr, "BUG: Displaying skipped picture\n");
-#endif
   /* Calculate timestamp */
     
   if(priv->info->display_picture->flags & PIC_FLAG_TAGS)
@@ -307,12 +299,10 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     tmp <<= 32;
     tmp |= priv->info->display_picture->tag2;
     priv->picture_timestamp = (tmp * s->data.video.format.timescale) / s->timescale;
-    //    fprintf(stderr, "Got time from pts: %lld\n", priv->picture_timestamp);
     }
   else
     {
     priv->picture_timestamp += priv->picture_duration;
-    //    fprintf(stderr, "Calculated time: %lld\n", priv->picture_timestamp);
     }
   /* Get this pictures duration */
   
@@ -335,11 +325,6 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     
   s->data.video.last_frame_time     = priv->picture_timestamp;
   s->data.video.last_frame_duration = priv->picture_duration;
-  /*  
-  fprintf(stderr, "Timestamp: %lld, duration: %d\n",
-          s->data.video.last_frame_time,
-          s->data.video.last_frame_duration);
-  */
   return 1;
   }
 
@@ -366,8 +351,6 @@ static void resync_mpeg2(bgav_stream_t*s)
       if(state == STATE_PICTURE)
         break;
       }
-    //    fprintf(stderr, "Resync: Current: %p display: %p\n",
-    //            priv->info->current_picture, priv->info->display_picture);
     
     /* Check if we can start decoding again */
     if((priv->intra_slice_refresh)  &&

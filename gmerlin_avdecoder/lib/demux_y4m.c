@@ -24,6 +24,8 @@
 
 #include <yuv4mpeg.h>
 
+#define LOG_DOMAIN "demux_y4m"
+
 typedef struct
   {
   y4m_stream_info_t si;
@@ -100,7 +102,7 @@ static int open_y4m(bgav_demuxer_context_t * ctx,
 
   if((result = y4m_read_stream_header_cb(&(priv->reader),  &(priv->si))) != Y4M_OK)
     {
-    fprintf(stderr, "Reading stream header failed %d\n", result);
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading stream header failed %d", result);
     return 0;
     }
 
@@ -129,7 +131,7 @@ static int open_y4m(bgav_demuxer_context_t * ctx,
       s->data.video.format.interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
       break;
     case Y4M_ILACE_MIXED:
-      fprintf(stderr, "Warning: Unsupported interlace mode detected, treating as progressive\n");
+      bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "Unsupported interlace mode detected, treating as progressive");
       s->data.video.format.interlace_mode = GAVL_INTERLACE_NONE;
       break;
     }

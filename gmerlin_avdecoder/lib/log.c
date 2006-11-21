@@ -77,7 +77,7 @@ void bgav_log(const bgav_options_t * opt,
 
   va_end(argp);
   
-  if(!opt->log_callback)
+  if(!opt || !opt->log_callback)
     {
     fprintf(stderr, "[%s] %s: %s\n",
             domain,

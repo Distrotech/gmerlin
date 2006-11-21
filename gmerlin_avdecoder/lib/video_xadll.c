@@ -22,7 +22,6 @@
  *  the other xanim codecs are already there via libavcodec or Win32 dlls
  */
 
-#include <avdec_private.h>
 #include <dlfcn.h> /* dlsym, dlopen, dlclose */
 #include <stdarg.h> /* va_alist, va_start, va_end */
 #include <errno.h> /* strerror, errno */
@@ -34,7 +33,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <avdec_private.h>
 #include <codecs.h>
+#define LOG_DOMAIN "video_xadll"
 
 char * bgav_dll_path_xanim = (char*)0;
 
@@ -213,7 +214,6 @@ static void XA_YUV221111_Convert(unsigned char *image_p,
   int ystride; 
   int uvstride;
 
-  //  fprintf(stderr, "XA_YUV221111_Convert %p %p\n", 
   
   stream = (bgav_stream_t *)(image_p);
 
@@ -311,7 +311,7 @@ static int init_xadll(bgav_stream_t * s)
                               RTLD_NOW);
   if(!priv->dll_handle)
     {
-    fprintf(stderr, "Cannot open dll %s: %s\n", dll_filename, dlerror());
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot open dll %s: %s", dll_filename, dlerror());
     goto fail;
     }
   
@@ -319,59 +319,41 @@ static int init_xadll(bgav_stream_t * s)
 
   if(!what_the)
     {
-    fprintf(stderr, "xacodec: failed to init %s\n", dlerror());
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "xacodec: failed to init %s", dlerror());
     goto fail;
     }
         
   mod_hdr = what_the();
   if(!mod_hdr)
     {
-    fprintf(stderr, "xacodec: initializer function failed\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "xacodec: initializer function failed");
     goto fail;
     }
-#if 0  
-  //  fprintf(stderr, "=== XAnim Codec ===\n");
-  //  fprintf(stderr, " API revision: %x\n", mod_hdr->api_rev);
-  //  fprintf(stderr, " Codec: %s. Rev: %s\n", mod_hdr->desc, mod_hdr->rev);
-  //  if (mod_hdr->copyright)
-  //    fprintf(stderr, " %s\n", mod_hdr->copyright);
-  //  if (mod_hdr->mod_author)
-  //    fprintf(stderr, " Module Author(s): %s\n", mod_hdr->mod_author);
-  //  if (mod_hdr->authors)
-  //    fprintf(stderr, " Codec Author(s): %s\n", mod_hdr->authors);
-#endif
   if (mod_hdr->api_rev > XAVID_API_REV)
     {
-    fprintf(stderr, "xacodec: not supported api revision (%d)\n", mod_hdr->api_rev);
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "xacodec: not supported api revision (%d)", mod_hdr->api_rev);
     goto fail;
     }
   
   func = mod_hdr->funcs;
   if (!func)
     {
-    fprintf(stderr, "xacodec: function table error\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "xacodec: function table error");
     goto fail;
     }
   
-  //  fprintf(stderr, "function table size: %d\n", mod_hdr->num_funcs);
   for (i = 0; i < (int)mod_hdr->num_funcs; i++)
     {
     if (func[i].what & XAVID_AVI_QUERY)
       {
-      //      fprintf(stderr, " 0x%08x: avi init/query func (id: %d)\n",
-      //             func[i].iq_func, func[i].id);
       priv->iq_func = (void *)func[i].iq_func;
       }
     if (func[i].what & XAVID_QT_QUERY)
       {
-      //      fprintf(stderr, " 0x%08x: qt init/query func (id: %d)\n",
-      // func[i].iq_func, func[i].id);
       priv->iq_func = (void *)func[i].iq_func;
       }
     if (func[i].what & XAVID_DEC_FUNC)
       {
-      //      fprintf(stderr, " 0x%08x: decoder func (init/query: 0x%08x) (id: %d)\n",
-      //             func[i].dec_func, func[i].iq_func, func[i].id);
       priv->dec_func = (void *)func[i].dec_func;
       }
     }
@@ -391,7 +373,7 @@ static int init_xadll(bgav_stream_t * s)
 
   if(priv->iq_func(&codec_hdr) != CODEC_SUPPORTED)
     {
-    fprintf(stderr, "Codec not supported\n");
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Codec not supported");
     goto fail;
     }
   priv->dec_func = (void *)codec_hdr.decoder;
@@ -458,7 +440,7 @@ static bgav_video_decoder_t decoder =
     close:  close_xadll,
   };
 
-int bgav_init_video_decoders_xadll()
+int bgav_init_video_decoders_xadll(bgav_options_t * opt)
   {
   struct stat stat_buf;
   char dll_filename[PATH_MAX];
@@ -471,8 +453,9 @@ int bgav_init_video_decoders_xadll()
     }
   else
     {
-    fprintf(stderr, "Cannot find file %s, disabling %s\n",
-            dll_filename, decoder.name);
+    bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Cannot find file %s, disabling %s",
+             dll_filename, decoder.name);
     return 0;
     }
   }

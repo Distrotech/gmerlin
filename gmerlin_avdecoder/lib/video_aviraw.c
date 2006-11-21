@@ -24,6 +24,8 @@
 #include <codecs.h>
 #include <stdio.h>
 
+#define LOG_DOMAIN "video_aviraw"
+
 /* Palette */
 
 #if 0
@@ -173,18 +175,24 @@ static int init_aviraw(bgav_stream_t * s)
 #if 0
     case 1:
       if(s->data.video.palette_size < 2)
-        fprintf(stderr, "Warning: Palette too small %d < 2\n", s->data.video.palette_size);
+        bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Warning: Palette too small %d < 2",
+                s->data.video.palette_size);
       priv->scanline_func = scanline_1;
       break;
     case 4:
       if(s->data.video.palette_size < 16)
-        fprintf(stderr, "Warning: Palette too small %d < 16\n", s->data.video.palette_size);
+        bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Warning: Palette too small %d < 16",
+                s->data.video.palette_size);
       priv->scanline_func = scanline_4;
       break;
 #endif
     case 8:
       if(s->data.video.palette_size < 256)
-        fprintf(stderr, "Warning: Palette too small %d < 256\n", s->data.video.palette_size);
+        bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Warning: Palette too small %d < 256",
+                s->data.video.palette_size);
       priv->scanline_func = scanline_8;
       break;
     case 16:
@@ -208,7 +216,8 @@ static int init_aviraw(bgav_stream_t * s)
       s->data.video.format.pixelformat = GAVL_BGR_32;
       break;
     default:
-      fprintf(stderr, "Unsupported depth: %d\n", s->data.video.depth);
+      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Unsupported depth: %d", s->data.video.depth);
       return 0;
       break;
     }

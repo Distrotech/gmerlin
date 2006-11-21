@@ -67,7 +67,6 @@ static toff_t seek_function(thandle_t fd, toff_t off, int whence)
   else if (whence == SEEK_END) p->buffer_size += off;
 
   if (p->buffer_position > p->buffer_size) {
-  fprintf(stderr, "codec_tiff: warning, seek overshot buffer.\n");
   return -1;
   }
 
@@ -262,7 +261,6 @@ static int decode_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
   tiff_t * priv;
   priv = (tiff_t*)(s->data.video.decoder->priv);
 
-  //  fprintf(stderr, "Decode tiff...");
   
   /* We decode only if we have a frame */
 
@@ -280,7 +278,6 @@ static int decode_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
     bgav_demuxer_done_packet_read(s->demuxer, priv->packet);
     priv->packet = (bgav_packet_t*)0;
     }
-  //  fprintf(stderr, "done\n");
   return 1;
   }
 

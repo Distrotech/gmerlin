@@ -18,7 +18,6 @@
 *****************************************************************/
 
 /* System includes */
-#include <avdec_private.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -26,7 +25,11 @@
 
 /* Package includes */
 
+#include <avdec_private.h>
 #include <pes_header.h>
+
+#define LOG_DOMAIN "demux_ts"
+
 
 #define MAX_PAT_SECTION_LENGTH 1021
 
@@ -185,7 +188,8 @@ static int transport_packet_read(bgav_input_context_t * input,
 
   if((header & 0xff000000) != 0x47000000)
     {
-    fprintf(stderr, "transport_packet_read: Out of sync %08x\n", header);
+    bgav_log(input->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "transport_packet_read: Out of sync %08x\n", header);
     return 0;
     }
   ret->payload_start = !!(header & 0x00400000);

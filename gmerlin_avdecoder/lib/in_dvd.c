@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <avdec_private.h>
 
+#define LOG_DOMAIN "in_dvd"
+
 #if defined HAVE_CDIO && defined HAVE_DVDREAD
 
 #include <cdio/cdio.h>
@@ -470,10 +472,12 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
     {
     if((err = cdio_close_tray(url, NULL)))
 #if LIBCDIO_VERSION_NUM >= 77
-      fprintf(stderr, "cdio_close_tray failed: %s\n",
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "cdio_close_tray failed: %s",
               cdio_driver_errmsg(err));
 #else
-    fprintf(stderr, "cdio_close_tray failed\n");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "cdio_close_tray failed");
 #endif  
     }
   
@@ -481,7 +485,7 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
   priv->dvd_reader = DVDOpen(url);
   if(!priv->dvd_reader)
     {
-    fprintf(stderr, "DVDOpen failed\n");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "DVDOpen failed");
     return 0;
     }
 
@@ -497,7 +501,7 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
   priv->vmg_ifo = ifoOpen(priv->dvd_reader, 0);
   if(!priv->vmg_ifo)
     {
-    fprintf(stderr, "ifoOpen failed\n");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "ifoOpen failed");
     return 0;
     }
 #if 0
@@ -591,7 +595,7 @@ read_nav(bgav_input_context_t * ctx, int sector, int *next)
   
   if(DVDReadBlocks(d->dvd_file, sector, 1, buf) != 1)
     {
-    fprintf(stderr, "DVD: error reading NAV packet @%i\n", sector);
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "error reading NAV packet @%i", sector);
     return -1;
     }
   
@@ -695,7 +699,7 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
       l = DVDReadBlocks(d->dvd_file, d->pack, 1, data);
       if(l < 1)
         {
-        fprintf(stderr, "DVD: error reading blocks @%i\n", d->pack);
+        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "error reading blocks @%i", d->pack);
         return 0;
         }
       //      bgav_hexdump(data, 32, 16);
@@ -849,7 +853,8 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
     {
     if(DVDReadBlocks(dvd->dvd_file, dvd->npack, 1, buf) != 1)
       {
-      fprintf(stderr, "DVD: error reading NAV packet @%i\n", dvd->npack);
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "error reading NAV packet @%i", dvd->npack);
       return;
       }
     if(!is_nav_pack(buf))
@@ -1023,7 +1028,7 @@ bgav_input_context_t * bgav_input_open_dvd(const char * device,
   ret->input = &bgav_input_dvd;
   if(!ret->input->open(ret, device))
     {
-    fprintf(stderr, "Cannot open DVD Device %s\n", device);
+    bgav_log(ret->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot open DVD Device %s\n", device);
     goto fail;
     }
   return ret;
@@ -1035,7 +1040,7 @@ bgav_input_context_t * bgav_input_open_dvd(const char * device,
 
 int bgav_open_dvd(bgav_t * b, const char * device)
   {
-  bgav_codecs_init();
+  bgav_codecs_init(&b->opt);
   b->input = bgav_input_open_dvd(device, &b->opt);
   if(!b->input)
     return 0;

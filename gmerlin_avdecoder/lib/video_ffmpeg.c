@@ -23,8 +23,8 @@
 
 #include <config.h>
 #include <bswap.h>
-#include <codecs.h>
 #include <avdec_private.h>
+#include <codecs.h>
 
 #include <stdio.h>
 
@@ -293,7 +293,6 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
     /* Read data if necessary */
     if(!get_data(s))
       {
-      fprintf(stderr, "Get data failed\n");
       return 0;
       }
     len = priv->parsed_frame_size;
@@ -398,8 +397,6 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
           }
         else
           bgav_bytebuffer_flush(&priv->buf);
-        //        fprintf(stderr, "Flush buffer\n");
-        //        return 0;
         get_pts(priv);
         }
       else
@@ -411,7 +408,6 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
           }
         else if(!s->not_aligned)
           {
-          //          fprintf(stderr, "Flush buffer\n");
           bgav_bytebuffer_flush(&priv->buf);
           }
         else
@@ -455,18 +451,15 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
   
   s->time_scaled = get_pts(priv);
   
-  //    fprintf(stderr, "time_scaled: %llx ", s->time_scaled);
   
   if(s->time_scaled != BGAV_TIMESTAMP_UNDEFINED)
     {
     priv->frame_pts = gavl_time_rescale(s->timescale, s->data.video.format.timescale,
                                         s->time_scaled);
-    //    fprintf(stderr, "frame_pts 1: %lld %lld\n", priv->frame_pts, s->time_scaled);
     }
   else
     {
     priv->frame_pts += s->data.video.format.frame_duration;
-    //    fprintf(stderr, "frame_pts 2: %lld\n", priv->frame_pts);
     }
   s->data.video.last_frame_time = priv->frame_pts;
   
@@ -524,7 +517,6 @@ static int init(bgav_stream_t * s)
   
   if(s->data.video.palette_size)
     {
-    //    fprintf(stderr, "Building Palette...");
     priv->ctx->palctrl = &(priv->palette);
     priv->palette.palette_changed = 1;
     imax =
@@ -540,10 +532,8 @@ static int init(bgav_stream_t * s)
 
       }
     
-    //    fprintf(stderr, "done %d colors\n", imax);
     }
   
-  //  fprintf(stderr, "Setting extradata: %d bytes\n", s->ext_size);
 
   //  bgav_hexdump(s->ext_data, s->ext_size, 16);
 
@@ -564,8 +554,6 @@ static int init(bgav_stream_t * s)
     //      priv->parser->flags |= PARSER_FLAG_COMPLETE_FRAMES;
     }
 #endif
-  //  fprintf(stderr, "Codec tag: %08x\n", priv->ctx->codec_tag);
-  //  fprintf(stderr, "FF: %d %s\n", priv->ctx->extradata_size, priv->ctx->extradata);
   
   priv->frame = avcodec_alloc_frame();
   priv->gavl_frame = gavl_video_frame_create(NULL);
@@ -610,7 +598,6 @@ static int init(bgav_stream_t * s)
       priv->rv_extradata[1] = be2me_32(extrahdr[1]);
       }
 
-    //    fprintf(stderr, "subid: %08x\n", priv->ctx->sub_id);
     }
 
   /*
@@ -636,8 +623,6 @@ static int init(bgav_stream_t * s)
   
   /* Set missing format values */
 
-  //  fprintf(stderr, "Pixelformat: %s\n",
-  //          avcodec_get_pix_fmt_name(priv->ctx->pix_fmt));
   
   priv->need_format = 1;
 
@@ -657,8 +642,6 @@ static int init(bgav_stream_t * s)
   /* Handle unsupported colormodels */
   if(s->data.video.format.pixelformat == GAVL_PIXELFORMAT_NONE)
     {
-    //    fprintf(stderr, "Unsupported pixel format %s\n",
-    //            avcodec_get_pix_fmt_name(priv->ctx->pix_fmt));
     s->data.video.format.pixelformat = GAVL_YUV_420_P;
     priv->do_convert = 1;
     priv->dst_format = PIX_FMT_YUV420P;
@@ -688,7 +671,6 @@ static void resync_ffmpeg(bgav_stream_t * s)
     priv->parser_started = 0;
     }
   
-  //  fprintf(stderr, "RESYNC\n");
   }
 
 static void close_ffmpeg(bgav_stream_t * s)
@@ -1202,7 +1184,7 @@ static codec_info_t * lookup_codec(bgav_stream_t * s)
   return (codec_info_t *)0;
   }
 
-void bgav_init_video_decoders_ffmpeg()
+void bgav_init_video_decoders_ffmpeg(bgav_options_t * opt)
   {
   int i;
   real_num_codecs = 0;
@@ -1210,7 +1192,6 @@ void bgav_init_video_decoders_ffmpeg()
     {
     if(avcodec_find_decoder(codec_infos[i].ffmpeg_id))
       {
-      // fprintf(stderr, "Trying %s\n", codec_map_template[i].name);
       codecs[real_num_codecs].info = &(codec_infos[i]);
       codecs[real_num_codecs].decoder.name = codecs[real_num_codecs].info->decoder_name;
       codecs[real_num_codecs].decoder.fourccs = codecs[real_num_codecs].info->fourccs;
@@ -1218,12 +1199,15 @@ void bgav_init_video_decoders_ffmpeg()
       codecs[real_num_codecs].decoder.decode = decode;
       codecs[real_num_codecs].decoder.close = close_ffmpeg;
       codecs[real_num_codecs].decoder.resync = resync_ffmpeg;
-      //      fprintf(stderr, "Registering Codec %s\n", codecs[real_num_codecs].decoder.name);
       bgav_video_decoder_register(&codecs[real_num_codecs].decoder);
       real_num_codecs++;
       }
+    else
+      {
+      bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "Cannot find %s", codec_infos[i].decoder_name);
+      }
     }
-
   }
 
 static void pal8_to_rgb24(gavl_video_frame_t * dst, AVFrame * src,
@@ -1468,7 +1452,6 @@ static void get_format(AVCodecContext * ctx, gavl_video_format_t * format)
 
       format->image_height = ctx->height;
       format->frame_height = ctx->height;
-      //        fprintf(stderr, "Got size: %d x %d\n", ctx->width, ctx->height);
       }
     /* Sometimes, the size encoded in some mp4 (vol?) headers is different from
        what is found in the container. In this case, the image must be scaled. */
@@ -1628,7 +1611,6 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
                 (AVPicture*)(priv->frame), priv->ctx->pix_fmt,
                 s->data.video.format.image_width,
                 s->data.video.format.image_height);
-    //          fprintf(stderr, "img_convert\n");
     }
   
   }

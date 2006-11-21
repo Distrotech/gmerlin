@@ -533,7 +533,6 @@ void bgav_dv_dec_get_video_packet(bgav_dv_dec_t * d, bgav_packet_t * p)
     bgav_packet_alloc(p, d->profile->frame_size);
     memcpy(p->data, d->buffer, d->profile->frame_size);
     p->data_size = d->profile->frame_size;
-    //    fprintf(stderr, "DV PTS: %lld\n", p->pts);
     }
   d->frame_counter++;
   }

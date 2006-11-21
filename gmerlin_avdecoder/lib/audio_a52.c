@@ -22,9 +22,10 @@
 #include <string.h>
 
 #include <config.h>
-#include <codecs.h>
 
 #include <avdec_private.h>
+#include <codecs.h>
+
 #include <a52dec/a52.h>
 
 #define FRAME_SAMPLES 1536

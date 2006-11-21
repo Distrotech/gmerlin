@@ -23,8 +23,8 @@
 #include <string.h>
 
 #include <config.h>
-#include <codecs.h>
 #include <avdec_private.h>
+#include <codecs.h>
 
 #define PADD(size, bytes) ((((size)+bytes-1)/bytes)*bytes)
 

@@ -152,7 +152,6 @@ int bgav_audio_skipto(bgav_stream_t * s, gavl_time_t * t)
   gavl_time_t stream_time;
   gavl_time_t diff_time;
 
-  //  fprintf(stderr, "bgav_audio_skipto\n");
   
   stream_time = gavl_time_unscale(s->timescale,
                                   s->time_scaled);

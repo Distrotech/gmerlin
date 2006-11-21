@@ -50,7 +50,6 @@ static int open_file(bgav_input_context_t * ctx, const char * url)
     
   BGAV_FSEEK((FILE*)(ctx->priv), 0, SEEK_SET);
 
-  //  fprintf(stderr, "Total bytes: %lld\n", ctx->total_bytes);
   
   ctx->filename = bgav_strdup(url);
   return 1;
