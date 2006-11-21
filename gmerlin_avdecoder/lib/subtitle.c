@@ -23,6 +23,8 @@
 
 #include <avdec_private.h>
 
+#define LOG_DOMAIN "subtitle"
+
 int bgav_num_subtitle_streams(bgav_t * bgav, int track)
   {
   return bgav->tt->tracks[track].num_subtitle_streams;
@@ -259,9 +261,13 @@ int bgav_subtitle_start(bgav_stream_t * s)
     dec = bgav_find_subtitle_overlay_decoder(s);
     if(!dec)
       {
-      fprintf(stderr, "No subtitle overlay decoder found for fourcc ");
-      bgav_dump_fourcc(s->fourcc);
-      fprintf(stderr, "\n");
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "No subtitle decoder found for fourcc %c%c%c%c (0x%08x)",
+               (s->fourcc & 0xFF000000) >> 24,
+               (s->fourcc & 0x00FF0000) >> 16,
+               (s->fourcc & 0x0000FF00) >> 8,
+               (s->fourcc & 0x000000FF),
+               s->fourcc);
       return 0;
       }
     ctx = calloc(1, sizeof(*ctx));

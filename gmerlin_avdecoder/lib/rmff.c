@@ -25,6 +25,8 @@
 #include <rmff.h>
 #include <asmrp.h>
 
+#define LOG_DOMAIN "rmff"
+
 #define FILE_ID BGAV_MK_FOURCC('.', 'R', 'M', 'F')
 #define PROP_ID BGAV_MK_FOURCC('P', 'R', 'O', 'P')
 #define MDPR_ID BGAV_MK_FOURCC('M', 'D', 'P', 'R')
@@ -329,7 +331,8 @@ int bgav_rmff_mdpr_read(bgav_rmff_chunk_t * c,
     if(!bgav_rmff_logical_stream_read(input_mem, &ret->logical_stream))
       {
       bgav_input_destroy(input_mem);
-      fprintf(stderr, "Reading logical stream failed\n");
+      bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Reading logical stream failed");
       return 0;
       }
     ret->is_logical_stream = 1;
@@ -565,7 +568,8 @@ bgav_rmff_header_t * bgav_rmff_header_read(bgav_input_context_t * ctx)
             bgav_rmff_chunk_header_read(&chunk, ctx);
             if(chunk.id != INDX_ID)
               {
-              fprintf(stderr, "No index found, where I expected one\n");
+              bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                       "No index found, where I expected one");
               break;
               }
             if(!bgav_rmff_indx_read(ctx, &indx))
@@ -731,7 +735,8 @@ static int select_mlti_data(const uint8_t *mlti_chunk, int mlti_size, int select
 /* Create a real media header from an sdp object */
 
 bgav_rmff_header_t *
-bgav_rmff_header_create_from_sdp(bgav_sdp_t * sdp, int network_bandwidth, char ** stream_rules)
+bgav_rmff_header_create_from_sdp(const bgav_options_t * opt, bgav_sdp_t * sdp,
+                                 char ** stream_rules)
   {
   char * buf;
   char * pos;
@@ -805,13 +810,15 @@ bgav_rmff_header_create_from_sdp(bgav_sdp_t * sdp, int network_bandwidth, char *
     if(!bgav_sdp_get_attr_string(sdp->media[i].attributes, sdp->media[i].num_attributes,
                                  "control", &str))
       {
-      fprintf(stderr, "Control attribute missing\n");
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Control attribute missing");
       goto fail;
       }
 
     if(!(pos = strstr(str, "streamid=")))
       {
-      fprintf(stderr, "Stream number missing\n");
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Stream number missing");
       goto fail;
       }
     pos += 9;
@@ -820,15 +827,17 @@ bgav_rmff_header_create_from_sdp(bgav_sdp_t * sdp, int network_bandwidth, char *
     if(!bgav_sdp_get_attr_string(sdp->media[i].attributes, sdp->media[i].num_attributes,
                                  "ASMRuleBook", &asm_rulebook))
       {
-      fprintf(stderr, "No ASMRuleBook found\n");
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "No ASMRuleBook found");
       goto fail;
       }
 
-    num_matches = bgav_asmrp_match(asm_rulebook, network_bandwidth, matches);
+    num_matches = bgav_asmrp_match(asm_rulebook, opt->network_bandwidth, matches);
 
     if(!num_matches)
       {
-      fprintf(stderr, "Bad ASMRuleBook\n");
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Bad ASMRuleBook");
       goto fail;
       }
     for(j = 0; j < num_matches; j++)
@@ -841,7 +850,8 @@ bgav_rmff_header_create_from_sdp(bgav_sdp_t * sdp, int network_bandwidth, char *
     if(!bgav_sdp_get_attr_data(sdp->media[i].attributes, sdp->media[i].num_attributes,
                                "OpaqueData", &opaque_data, &opaque_data_len))
       {
-      fprintf(stderr, "No Opaque data there\n");
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "No Opaque data there");
       goto fail;
       }
 
@@ -892,7 +902,9 @@ int bgav_rmff_packet_header_read(bgav_input_context_t * input,
     }
   else
     {
-    fprintf(stderr, "Error, unsupported packet header version: %d\n", ret->object_version);
+    bgav_log(input->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Error, unsupported packet header version: %d",
+             ret->object_version);
     return 0;
     }
   return 1;

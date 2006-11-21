@@ -34,8 +34,6 @@ int bgav_qt_rmda_read(qt_atom_header_t * h,
 
   while(input->position < h->start_position + h->size)
     {
-    //    fprintf(stderr, "position: %lld start_position: %lld size: %lld\n",
-    //        input->position, h->start_position, h->size);
     
     if(!bgav_qt_atom_read_header(input, &ch))
       return 0;

@@ -26,6 +26,8 @@
 #include <rmff.h>
 #include <bswap.h>
 
+#define LOG_DOMAIN "in_rtsp"
+
 /* We support multiple server types */
 
 #define SERVER_TYPE_GENERIC   0
@@ -102,7 +104,6 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
   if(priv->eof)
     return 0;
   
-  //  fprintf(stderr, "Next packet rdt...\n");
 
   fd = bgav_rtsp_get_fd(priv->r);
   
@@ -120,8 +121,6 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
         return 0;
       else if(bytes_read < 8)
         {
-        //        fprintf(stderr, "Warning, got incomplete header %d bytes\n",
-        //                bytes_read);
         if(bgav_read_data_fd(fd, &(header[bytes_read]), 8 - bytes_read,
                              ctx->opt->read_timeout) < 8 - bytes_read)
           return 0;
@@ -130,14 +129,11 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
               
       }
     
-    //    fprintf(stderr, "Block: %d, Header: ", block);
-    //    bgav_hexdump(header, 8, 8);
     
     /* Check for a ping request */
     
     if(!strncmp((char*)header, "SET_PARA", 8))
       {
-      //      fprintf(stderr, "Got Ping request\n");
     
       size = 0;
 
@@ -164,22 +160,17 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
       buf = bgav_sprintf("CSeq: %u\r\n\r\n", seq);
       bgav_tcp_send(fd, (uint8_t*)buf, strlen(buf), &ctx->error_msg);
       free(buf);
-      //      fprintf(stderr, "Answered ping request\n");
       }
     else if(header[0] == '$')
       {
-      //      fprintf(stderr, "Got RDT header\n");
-      //      bgav_hexdump(header, 8, 8);
       size = BGAV_PTR_2_24BE(&(header[1]));
     
       flags1 = header[4];
 
       if ((flags1!=0x40)&&(flags1!=0x42))
         {
-        //      fprintf(stderr, "got flags1: 0x%02x\n",flags1);
         if(header[6] == 0x06)
           {
-          //          fprintf(stderr, "in_rtsp.c: Detected end of stream in RDT header\n");
           priv->eof = 1;
           return 0; /* End of stream */
           }
@@ -204,7 +195,6 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
       timestamp = BGAV_PTR_2_32BE(header);
       size+=2;
 
-      //      fprintf(stderr, "RDT size: %d\n", size);
       
       ph.object_version=0;
       ph.length=size;
@@ -249,22 +239,15 @@ static int next_packet_rdt(bgav_input_context_t * ctx, int block)
           }
 
 
-        // fprintf(stderr, "Got rdt chunk %d bytes\n", size);
-        //        bgav_hexdump(priv->packet, priv->packet_len, 16);
         }
-#if 0
-      else
-        {
-        fprintf(stderr, "Got rdt chunk %d bytes\n", size);
-        //        bgav_hexdump(priv->packet, size, 16);
-        }
-#endif
       return 1;
       }
     else
       {
-      fprintf(stderr, "in_rtsp.c: Unknown RDT chunk\n");
-      bgav_hexdump(header, 8, 8);
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+              "Unknown RDT chunk %02x %02x %02x %02x %02x %02x %02x %02x",
+              header[0], header[1], header[2], header[3],
+              header[4], header[5], header[6], header[7]);
       return 0;
       }
     }
@@ -313,7 +296,7 @@ static int open_and_describe(bgav_input_context_t * ctx,
     {
     priv->challenge1 = bgav_strdup(var);
     priv->type = SERVER_TYPE_REAL;
-    //    fprintf(stderr, "Real Server, challenge %s\n", var);
+    //    bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Real Server, challenge %s", var);
     }
   else
     {
@@ -323,7 +306,7 @@ static int open_and_describe(bgav_input_context_t * ctx,
       if(!strncmp(var, "QTSS", 4))
         {
         priv->type = SERVER_TYPE_QTSS;
-        fprintf(stderr, "QTSS Server\n");
+        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "QTSS Server");
         }
       }
     }
@@ -331,7 +314,7 @@ static int open_and_describe(bgav_input_context_t * ctx,
 #if 0
   if(priv->type == SERVER_TYPE_GENERIC)
     {
-    //    fprintf(stderr, "Generic RTSP code\n");
+    //    bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Generic RTSP code\n");
     //    return 0;
     }
 #endif
@@ -419,7 +402,7 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
       }
     if(got_redirected)
       {
-      // fprintf(stderr, "Got redirected to: %s\n", bgav_rtsp_get_url(priv->r));
+      // bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Got redirected to: %s\n", bgav_rtsp_get_url(priv->r));
       num_redirections++;
       }
     else
@@ -432,7 +415,7 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
   var = bgav_rtsp_get_answer(priv->r,"ETag");
   if(!var)
     {
-    fprintf(stderr, "real: got no ETag!\n");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Got no ETag");
     goto fail;
     }
   else
@@ -451,14 +434,13 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
 
       if(is_real_smil(sdp))
         {
-        fprintf(stderr, "Got smil redirector\n");
+        bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN, "Got smil redirector");
         priv->has_smil = 1;
         }
       else
         {
         priv->rmff_header =
-          bgav_rmff_header_create_from_sdp(sdp,
-                                           ctx->opt->network_bandwidth,
+          bgav_rmff_header_create_from_sdp(ctx->opt, sdp,
                                            &stream_rules);
         if(!priv->rmff_header)
           goto fail;
@@ -469,8 +451,6 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url)
         }
       break;
     }
-  
-  //  fprintf(stderr, "Stream rules: %s\n", stream_rules);
   
   /* Setup */
   
@@ -574,7 +554,6 @@ static int do_read(bgav_input_context_t* ctx,
   rtsp_priv_t * priv;
   int bytes_to_copy;
   priv = (rtsp_priv_t*)(ctx->priv);
-  //  fprintf(stderr, "do read %d", len);
   bytes_read = 0;
   while(bytes_read < len)
     {
@@ -592,8 +571,6 @@ static int do_read(bgav_input_context_t* ctx,
     priv->packet_ptr += bytes_to_copy;
     priv->packet_len -= bytes_to_copy;
     }
-  //  fprintf(stderr, "Done %d bytes\n", bytes_read);
-  //  bgav_hexdump(buffer, bytes_read, 16);
   return bytes_read;
   }
 
@@ -644,13 +621,6 @@ static void hash(char *field, char *param) {
   c= le2me_32(*(uint32_t*)(field+8));
   d= le2me_32(*(uint32_t*)(field+12));
 
-#ifdef LOG
-  printf("real: hash input: %x %x %x %x\n", a, b, c, d);
-  printf("real: hash parameter:\n");
-  hexdump(param, 64);
-  printf("real: hash field:\n");
-  hexdump(field, 64+24);
-#endif
   
   a = ((b & c) | (~b & d)) + le2me_32(*((uint32_t*)(param+0x00))) + a - 0x28955B88;
   a = ((a << 0x07) | (a >> 0x19)) + b;

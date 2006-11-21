@@ -112,10 +112,10 @@ void bgav_superindex_seek(bgav_superindex_t * idx,
 void bgav_superindex_dump(bgav_superindex_t * idx)
   {
   int i;
-  fprintf(stderr, "superindex %d entries:\n", idx->num_entries);
+  bgav_dprintf( "superindex %d entries:\n", idx->num_entries);
   for(i = 0; i < idx->num_entries; i++)
     {
-    fprintf(stderr, "  No: %d ID: %d K: %d Offset: %lld T: %lld S: %d\n", 
+    bgav_dprintf( "  No: %d ID: %d K: %d Offset: %lld T: %lld S: %d\n", 
             i,
             idx->entries[i].stream_id,
             idx->entries[i].keyframe,

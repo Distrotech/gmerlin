@@ -25,6 +25,8 @@
 #include <avdec_private.h>
 #include <sdp.h>
 
+#define LOG_DOMAIN "sdp"
+
 #define ISSEP(c) ((*c == '\n') || (*c == '\r') || (*c == '\0'))
 
 #define MY_FREE(p) if(p){free(p);p=NULL;}
@@ -458,7 +460,7 @@ static void free_attributes(bgav_sdp_attr_t ** attr)
 
 /* Returns the number of lines used */
 
-static int parse_media(char ** lines, bgav_sdp_media_desc_t * ret)
+static int parse_media(const bgav_options_t * opt, char ** lines, bgav_sdp_media_desc_t * ret)
   {
   int num_lines, line_index, i, i_tmp;
   char ** strings = (char**)0;
@@ -524,7 +526,7 @@ static int parse_media(char ** lines, bgav_sdp_media_desc_t * ret)
     {
     if(lines[line_index][1] != '=')
       {
-      fprintf(stderr, "sdp: Invalid line %d: %s\n",
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Invalid line %d: %s",
               line_index, lines[line_index]);
       line_index++;
       continue;
@@ -623,7 +625,8 @@ static void free_media(bgav_sdp_media_desc_t * m)
 #define SKIP_NOSEP                                                  \
   while((*pos != '\n') && (*pos != '\r') && (*pos != '\0')) pos++
 
-int bgav_sdp_parse(const char * data, bgav_sdp_t * ret)
+int bgav_sdp_parse(const bgav_options_t * opt,
+                   const char * data, bgav_sdp_t * ret)
   {
   char *  buf = (char*)0;
   char ** lines = (char**)0;
@@ -688,7 +691,7 @@ int bgav_sdp_parse(const char * data, bgav_sdp_t * ret)
     {
     if(lines[line_index][1] != '=')
       {
-      fprintf(stderr, "sdp: Invalid line %d: %s\n",
+      bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Invalid line %d: %s",
               line_index, lines[line_index]);
       line_index++;
       continue;
@@ -750,13 +753,13 @@ int bgav_sdp_parse(const char * data, bgav_sdp_t * ret)
         ret->num_attributes = i_tmp;
         break;
       case 'm': //  Zero or more media descriptions (see below)
-        //        fprintf(stderr, "Parse media %d\n", line_index);
         ret->num_media++;
         ret->media = realloc(ret->media, ret->num_media * sizeof(*(ret->media)));
-        line_index += parse_media(&(lines[line_index]), &(ret->media[ret->num_media-1]));
+        line_index += parse_media(opt, &(lines[line_index]), &(ret->media[ret->num_media-1]));
         break;
       default: //  Zero or more media descriptions (see below)
-        fprintf(stderr, "Unknown sdp specifier: %c\n", lines[line_index][0]);
+        bgav_log(opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
+                 "Unknown specifier: %c", lines[line_index][0]);
         line_index++;
         break;
       }

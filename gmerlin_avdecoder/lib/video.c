@@ -72,7 +72,6 @@ int bgav_video_start(bgav_stream_t * stream)
     stream->timescale = stream->data.video.format.timescale;
     }
   
-  //  fprintf(stderr, "Opening codec %s\n", dec->name);
   result = dec->init(stream);
   return result;
   }
@@ -96,11 +95,6 @@ static int bgav_video_decode(bgav_stream_t * stream, gavl_video_frame_t* frame)
     /* Yes, this sometimes happens due to rounding errors */
     if(frame->time_scaled < 0)
       frame->time_scaled = 0;
-#if 0
-    fprintf(stderr, "Video timestamp: %f\n",
-            gavl_time_to_seconds(gavl_time_unscale(stream->data.video.format.timescale,
-                                                   frame->time_scaled)));
-#endif
     }
   stream->position++;
   return result;
@@ -115,8 +109,8 @@ int bgav_read_video(bgav_t * b, gavl_video_frame_t * frame, int s)
 
 void bgav_video_dump(bgav_stream_t * s)
   {
-  fprintf(stderr, "  Depth:             %d\n", s->data.video.depth);
-  fprintf(stderr, "Format:\n");
+  bgav_dprintf("  Depth:             %d\n", s->data.video.depth);
+  bgav_dprintf("Format:\n");
   gavl_video_format_dump(&(s->data.video.format));
   }
 
@@ -155,11 +149,12 @@ int bgav_video_skipto(bgav_stream_t * s, gavl_time_t * time)
     return 1;
     }
 
-  else if(s->data.video.next_frame_time + s->data.video.next_frame_duration > time_scaled)
+  else if(s->data.video.next_frame_time + s->data.video.next_frame_duration >
+          time_scaled)
     {
     /* Do nothing but update the time */
-    *time = gavl_time_unscale(s->data.video.format.timescale, s->data.video.next_frame_time);
-    //    fprintf(stderr, "bgav_video_skipto: Time: %f\n", gavl_time_to_seconds(*time));
+    *time = gavl_time_unscale(s->data.video.format.timescale,
+                              s->data.video.next_frame_time);
     s->time_scaled = gavl_time_scale(s->timescale, *time);
     return 1;
     }
@@ -170,7 +165,8 @@ int bgav_video_skipto(bgav_stream_t * s, gavl_time_t * time)
     if(!result)
       return 0;
 
-    next_frame_time = s->data.video.last_frame_time + s->data.video.last_frame_duration;
+    next_frame_time = s->data.video.last_frame_time +
+      s->data.video.last_frame_duration;
     } while((next_frame_time < time_scaled) && result);
 
   *time = gavl_time_unscale(s->data.video.format.timescale, next_frame_time);

@@ -24,6 +24,8 @@
 #include <yml.h>
 #include <stdlib.h>
 
+#define LOG_DOMAIN "r_smil"
+
 static struct
   {
   char * code;
@@ -169,8 +171,6 @@ static int probe_smil(bgav_input_context_t * input)
      (buf[4] == 'l'))
     return 1;
 
-  //  fprintf(stderr, "Probe smil failed %c%c%c%c%c\n",
-  //          buf[0], buf[1], buf[2], buf[3], buf[4]);
   
   return 0;
   }
@@ -220,7 +220,6 @@ static void get_url(bgav_yml_node_t * n, bgav_url_info_t * ret,
   bitrate = 
     bgav_strdup(bgav_yml_get_attribute_i(n, "system-bitrate"));
 
-  // fprintf(stderr, "Location: %s\n", location);
   
   if(!location)
     return;
@@ -299,7 +298,6 @@ static int xml_2_smil(bgav_redirector_context_t * r, bgav_yml_node_t * n)
   char * pos;
   r->num_urls = 0;
   
-  //  fprintf(stderr, "Node: %s\n", node->name);
   
   if(sc(n->name, "smil"))
     return 0;
@@ -368,7 +366,6 @@ static int xml_2_smil(bgav_redirector_context_t * r, bgav_yml_node_t * n)
   /* Count the entries */
 
   r->num_urls = count_urls(node->children);
-  fprintf(stderr, "Num entries: %d\n", r->num_urls);
   
   r->urls = calloc(r->num_urls, sizeof(*(r->urls)));
   
@@ -393,20 +390,21 @@ static int parse_smil(bgav_redirector_context_t * r)
 
   node = bgav_yml_parse(r->input);
 
-  //  fprintf(stderr,"Node: %p\n", node);
 
   if(!node)
+    {
+    bgav_log(r->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Parse smil failed (yml error)");
     return 0;
-
+    }
   //  bgav_yml_dump(node);
   
   result = xml_2_smil(r, node);
 
   bgav_yml_free(node);
-
   if(!result)
-    fprintf(stderr, "Parse smil failed\n");
-
+    bgav_log(r->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Parse smil failed");
   return result;
   }
 

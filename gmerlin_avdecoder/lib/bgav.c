@@ -84,6 +84,7 @@ int bgav_init(bgav_t * ret)
       {
       ret->redirector = calloc(1, sizeof(*(ret->redirector)));
       ret->redirector->input = ret->input;
+      ret->redirector->opt = &(ret->opt);
       
       if(!redirector->parse(ret->redirector))
         goto fail;

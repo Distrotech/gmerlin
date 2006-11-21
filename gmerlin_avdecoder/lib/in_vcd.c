@@ -242,10 +242,12 @@ static int open_vcd(bgav_input_context_t * ctx, const char * url)
     {
     if((err = cdio_close_tray(url, NULL)))
 #if LIBCDIO_VERSION_NUM >= 77
-      fprintf(stderr, "cdio_close_tray failed: %s\n",
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "cdio_close_tray failed: %s",
               cdio_driver_errmsg(err));
 #else
-      fprintf(stderr, "cdio_close_tray failed\n");
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "cdio_close_tray failed");
 #endif    
     
     priv->cdio = cdio_open (url, DRIVER_DEVICE);
@@ -544,14 +546,7 @@ int bgav_eject_disc(const char * device)
   
   driver_return_code_t err;
   if((err = cdio_eject_media_drive(device)) != DRIVER_OP_SUCCESS)
-    {
-#if LIBCDIO_VERSION_NUM >= 77
-    fprintf(stderr, "Ejecting disk failed: %s\n", cdio_driver_errmsg(err));
-#else
-    fprintf(stderr, "Ejecting disk failed\n");
-#endif
     return 0;
-    }
   else
     return 1;
 #else

@@ -24,6 +24,8 @@
 #include <yml.h>
 #include <stdlib.h>
 
+#define LOG_DOMAIN "r_asx"
+
 static int probe_asx(bgav_input_context_t * input)
   {
   char * pos;
@@ -178,7 +180,8 @@ static int parse_asx(bgav_redirector_context_t * r)
 
   if(!node)
     {
-    fprintf(stderr, "Parse asx failed (yml error)\n");
+    
+    bgav_log(r->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Parse asx failed (yml error)");
     return 0;
     }
   result = xml_2_asx(r, node);
@@ -186,7 +189,7 @@ static int parse_asx(bgav_redirector_context_t * r)
   bgav_yml_free(node);
 
   if(!result)
-    fprintf(stderr, "Parse asx failed\n");
+    bgav_log(r->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Parse asx failed");
 
   return result;
   }

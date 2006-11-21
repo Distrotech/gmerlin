@@ -24,6 +24,8 @@
 #include <string.h>
 #include <mms.h>
 
+#define LOG_DOMAIN "in_mms"
+
 typedef struct
   {
   bgav_mms_t * mms;
@@ -53,8 +55,7 @@ static int open_mms(bgav_input_context_t * ctx, const char * url)
 
   /* Open mms connection */
   
-  priv->mms = bgav_mms_open(url, ctx->opt->connect_timeout,
-                            ctx->opt->read_timeout, &ctx->error_msg);
+  priv->mms = bgav_mms_open(ctx->opt, url, &ctx->error_msg);
   if(!priv->mms)
     goto fail;
 
@@ -74,7 +75,8 @@ static int open_mms(bgav_input_context_t * ctx, const char * url)
 
   if(!ctx->demuxer)
     {
-    fprintf(stderr, "Initializing asf demuxer failed\n");
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Initializing asf demuxer failed");
     return 0;
     }
 

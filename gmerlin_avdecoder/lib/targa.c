@@ -12,7 +12,7 @@
  * -------------------------------------------------------------------------*/
 
 /*@unused@*/ static const char rcsid[] =
-    "$Id: targa.c,v 1.3 2005-05-23 22:22:03 gmerlin Exp $";
+    "$Id: targa.c,v 1.4 2006-11-21 22:01:06 gmerlin Exp $";
 
 #define TGA_KEEP_MACROS /* BIT, htole16, letoh16 */
 #include "targa.h"
@@ -237,8 +237,6 @@ tga_result tga_read_from_memory(tga_image *dest, uint8_t * buf, int len, uint8_t
     READ16(dest->color_map_length);
     READ(&dest->color_map_depth, 1);
 
-    //    fprintf(stderr, "Colormap: origin: %d, len: %d, depth: %d\n",
-    //            dest->color_map_origin, dest->color_map_length, dest->color_map_depth); 
     
     if (tga_is_colormapped(dest) &&
         dest->color_map_type == TGA_COLOR_MAP_ABSENT)

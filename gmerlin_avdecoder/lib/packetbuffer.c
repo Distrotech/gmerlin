@@ -110,7 +110,6 @@ bgav_packet_t * bgav_packet_buffer_get_packet_write(bgav_packet_buffer_t * b, bg
   b->write_packet = b->write_packet->next;
   ret->pts = BGAV_TIMESTAMP_UNDEFINED;
   ret->dts = BGAV_TIMESTAMP_UNDEFINED;
-  //  fprintf(stderr, "Get packet write: %p\n", ret);  
   ret->stream = s;
   return ret;
   }

@@ -47,7 +47,6 @@ int bgav_pes_header_read(bgav_input_context_t * input,
   
   if(!bgav_input_read_32_be(input, &header))
     return 0;
-  //  fprintf(stderr, "Header: %08x\n", header);
   ret->stream_id = header & 0x000000ff;
 
   if(!bgav_input_read_16_be(input, &len))
@@ -123,20 +122,15 @@ int bgav_pes_header_read(bgav_input_context_t * input,
       {
       bgav_input_skip(input, 1);
       bgav_input_read_8(input, &c);
-      /*      fprintf(stderr, "STD buffer scale\n"); */
       }
 
     if((c & 0xf0) == 0x20)
       {
-      //      fprintf(stderr, "PTS\n");
       ret->pts = ((c >> 1) & 7) << 30;
       bgav_input_read_16_be(input, &tmp_16);
       ret->pts |= ((tmp_16 >> 1) << 15);
       bgav_input_read_16_be(input, &tmp_16);
       ret->pts |= (tmp_16 >> 1);
-      /*
-        fprintf(stderr, "PTS: %f\n", (float)demuxer->pes_packet.pts / 90000.0);
-      */
       }
     else if((c & 0xf0) == 0x30)
       {
@@ -156,10 +150,6 @@ int bgav_pes_header_read(bgav_input_context_t * input,
       ret->dts |= (tmp_16 >> 1);
 
       //  bgav_input_skip(input, 5);
-      /*
-        fprintf(stderr, "PTS: %f, DTS skipped\n",
-        (float)demuxer->pes_packet.pts / 90000.0);
-      */
       }
     }
   ret->payload_size = len - (input->position - pos);

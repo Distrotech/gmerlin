@@ -39,11 +39,13 @@
 
 #include <mms.h>
 
+#define LOG_DOMAIN "mms"
+
 #define   PRINT_STRING(label, str) \
 if(str)\
-fprintf(stderr, "%s%s\n", label, str);\
+bgav_dprintf("%s%s\n", label, str);\
 else \
-fprintf(stderr, "%sNULL\n", label);
+bgav_dprintf("%sNULL\n", label);
 
 #if 0
 static void dump_data(uint8_t * data, int len, const char * filename)
@@ -95,8 +97,6 @@ struct bgav_mms_s
   {
   int fd;
   int seqnum;
-  int read_timeout; /* In milliseconds */
-  int connect_timeout; /* In milliseconds */
   int got_data;
   /* Some infos */
 
@@ -143,6 +143,8 @@ struct bgav_mms_s
   uint8_t write_buffer[BUFFER_SIZE];
   int write_buffer_len;
   uint8_t * cmd_data_write;
+  
+  const bgav_options_t * opt;
   };
 
 #if 0
@@ -165,7 +167,6 @@ static void set_command_header(bgav_mms_t * mms, int command,
   ptr = mms->write_buffer;
   mms->write_buffer_len = len8*8 + 48;
 
-  //  fprintf(stderr, "Sending command %02x\n", command);
   
   BGAV_32LE_2_PTR(0x00000001, ptr);ptr+=4; /* Start sequence */
   BGAV_32LE_2_PTR(0xB00BFACE, ptr);ptr+=4; /* :-) */
@@ -186,8 +187,6 @@ static void set_command_header(bgav_mms_t * mms, int command,
 
 static int flush_command(bgav_mms_t * mms, char ** error_msg)
   {
-  //  fprintf(stderr, "Sending command\n");
-  //  bgav_hexdump(mms->write_buffer, mms->write_buffer_len, 16);
 
   return bgav_tcp_send(mms->fd, mms->write_buffer, mms->write_buffer_len, error_msg);
   }
@@ -199,63 +198,52 @@ static int read_command_header(bgav_mms_t * mms)
 
   /* Read the data length */
 
-  if(read_data(mms->fd, mms->read_buffer+8, 4, mms->read_timeout) < 4)
+  if(read_data(mms->fd, mms->read_buffer+8, 4, mms->opt->read_timeout) < 4)
     return 0;
   
   ptr = mms->command + 8;
   
   i_tmp = BGAV_PTR_2_32LE(ptr);ptr+=4;
-  //  fprintf(stderr, "Length 1: %d\n", i_tmp);
 
   mms->command_header.data_len = i_tmp + 16 - 48;
-  // fprintf(stderr, "Data len: %d\n", mms->command_header.data_len);
 
   /* Read remaining command */
 
   if(read_data(mms->fd, mms->read_buffer+12,
-               i_tmp + 4, mms->read_timeout) < i_tmp + 4)
+               i_tmp + 4, mms->opt->read_timeout) < i_tmp + 4)
     return 0;
   
   i_tmp = BGAV_PTR_2_FOURCC(ptr);ptr+=4;
-  //  fprintf(stderr, "Protocol: ");
-  //  bgav_dump_fourcc(i_tmp);
-  //  fprintf(stderr, "\n");
   
   i_tmp = BGAV_PTR_2_32LE(ptr);ptr+=4;
-  //  fprintf(stderr, "Length 2: %d\n", i_tmp);
 
   
   i_tmp = BGAV_PTR_2_32LE(ptr);ptr+=4;
-  //  fprintf(stderr, "Sequence number: %d\n", i_tmp);
 
   mms->command_header.seqnum = i_tmp;
   
   ptr+=8; /* Timestamp */
 
   i_tmp = BGAV_PTR_2_32LE(ptr);ptr+=4;
-  //  fprintf(stderr, "Length 3: %d\n", i_tmp);
 
   i_tmp = BGAV_PTR_2_16LE(ptr);ptr+=2;
-  //  fprintf(stderr, "Command: 0x%02x\n", i_tmp);
   
   mms->command_header.command = i_tmp;
   
   i_tmp = BGAV_PTR_2_16LE(ptr);ptr+=2;
-  //  fprintf(stderr, "Direction: %d\n", i_tmp);
 
   i_tmp = BGAV_PTR_2_32LE(ptr);ptr+=4;
   mms->command_header.prefix1 = i_tmp;
-  //  fprintf(stderr, "Prefix 1: 0x%08x\n", i_tmp);
 
   i_tmp = BGAV_PTR_2_32LE(ptr);ptr+=4;
   mms->command_header.prefix2 = i_tmp;
-  //  fprintf(stderr, "Prefix 2: 0x%08x\n", i_tmp);
 
   mms->cmd_data_read = mms->read_buffer + 48;
 
   if(mms->command_header.seqnum != mms->seqnum)
     {
-    fprintf(stderr, "Warning: Sequence number mismatch, expected %d, got %d\n",
+    bgav_log(mms->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Sequence number mismatch, expected %d, got %d",
             mms->seqnum, mms->command_header.seqnum);
     mms->seqnum = mms->command_header.seqnum+1;
     }
@@ -267,13 +255,13 @@ static int read_command_header(bgav_mms_t * mms)
 #if 0
 static void dump_command_header(bgav_mms_t * mms)
   {
-  fprintf(stderr, "Got command header:\n");
-  fprintf(stderr, "  Command:         0x%02x\n", mms->command_header.command);
-  fprintf(stderr, "  Data len:        %d\n", mms->command_header.data_len);
-  fprintf(stderr, "  Padded data len: %d\n", mms->command_header.padded_data_len);
-  fprintf(stderr, "  Sequence number: %d\n", mms->command_header.seqnum);
-  fprintf(stderr, "  Prefix1:         %d\n", mms->command_header.prefix1);
-  fprintf(stderr, "  Prefix2:         %d\n", mms->command_header.prefix2);
+  bgav_dprintf("Got command header:\n");
+  bgav_dprintf("  Command:         0x%02x\n", mms->command_header.command);
+  bgav_dprintf("  Data len:        %d\n", mms->command_header.data_len);
+  bgav_dprintf("  Padded data len: %d\n", mms->command_header.padded_data_len);
+  bgav_dprintf("  Sequence number: %d\n", mms->command_header.seqnum);
+  bgav_dprintf("  Prefix1:         %d\n", mms->command_header.prefix1);
+  bgav_dprintf("  Prefix2:         %d\n", mms->command_header.prefix2);
   bgav_hexdump(mms->cmd_data_read, mms->command_header.data_len, 16);
   }
 #endif
@@ -286,7 +274,6 @@ static int next_packet(bgav_mms_t * mms, int block, char ** error_msg)
   struct timeval timeout;
 
 
-  //  fprintf(stderr, "Next packet 1\n");
   mms->command = NULL;
   //  mms->header  = NULL;
 
@@ -304,13 +291,10 @@ static int next_packet(bgav_mms_t * mms, int block, char ** error_msg)
   
   while(1)
     {
-    //    fprintf(stderr, "Read data 1...");
     mms->read_buffer_len = read_data(mms->fd, mms->read_buffer,
-                                     8, mms->read_timeout);
-    //    fprintf(stderr, "done\n");
+                                     8, mms->opt->read_timeout);
     if(mms->read_buffer_len < 8)
       {
-      //    fprintf(stderr, "Failed 1 (%d)\n", mms->read_buffer_len);
       return 0;
       }
     /* Data read, now see, what we got */
@@ -332,7 +316,6 @@ static int next_packet(bgav_mms_t * mms, int block, char ** error_msg)
       
       if(mms->command_header.command == 0x1b)
         {
-        //        fprintf(stderr, "MMS: Sending keep alive message\n");
         set_command_header(mms, 0x1b, 0x00000001, 0x0001ffff, 0);
         if(!flush_command(mms, error_msg))
           return 0;
@@ -348,17 +331,14 @@ static int next_packet(bgav_mms_t * mms, int block, char ** error_msg)
         {
         ptr = mms->read_buffer;
         i_tmp1 = BGAV_PTR_2_32LE(ptr);ptr+=4;
-        //      fprintf(stderr, "Sequence number: %d\n", i_tmp1);
         ptr++;
-        //      fprintf(stderr, "Flags: %d\n", *ptr);
         ptr++;
         i_tmp1 = BGAV_PTR_2_16LE(ptr);ptr+=2;
-        //      fprintf(stderr, "Length: %d\n", i_tmp1);
       
         if(mms->header_size < mms->header_alloc)
           {
           if(read_data(mms->fd, mms->header + mms->header_size, i_tmp1-8,
-                       mms->read_timeout) < i_tmp1-8)
+                       mms->opt->read_timeout) < i_tmp1-8)
             return 0;
           mms->header_size += (i_tmp1-8);
           }
@@ -369,24 +349,25 @@ static int next_packet(bgav_mms_t * mms, int block, char ** error_msg)
         ptr = mms->read_buffer;
       
         i_tmp1 = BGAV_PTR_2_32LE(ptr);ptr+=4;
-        // fprintf(stderr, "Sequence number: %d\n", i_tmp1);
         ptr++;
-        // fprintf(stderr, "Flags: %d\n", *ptr);
         ptr++;
         i_tmp1 = BGAV_PTR_2_16LE(ptr);ptr+=2;
-        //      fprintf(stderr, "Length: %d\n", i_tmp1);
 
         if(read_data(mms->fd, mms->packet_buffer,
-                     i_tmp1-8, mms->read_timeout) < i_tmp1-8)
+                     i_tmp1-8, mms->opt->read_timeout) < i_tmp1-8)
           return 0;
 
-        // fprintf(stderr, "Got data packet %d bytes\n", i_tmp1-8);
       
         mms->got_data = 1;
         }
       else
         {
-        fprintf(stderr, "Unknown data, hexdump follows\n");
+        bgav_log(mms->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Unknown data: %02x %02x %02x %02x %02x %02x %02x %02x",
+                 mms->read_buffer[0], mms->read_buffer[0],
+                 mms->read_buffer[0], mms->read_buffer[0],
+                 mms->read_buffer[0], mms->read_buffer[0],
+                 mms->read_buffer[0], mms->read_buffer[0]);
         bgav_hexdump(mms->read_buffer, 8, 8);
         }
       }
@@ -411,8 +392,8 @@ static void mms_gen_guid(char guid[])
 
 #define NUM_ZEROS 8
 
-bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
-                           int read_timeout, char ** error_msg)
+bgav_mms_t * bgav_mms_open(const bgav_options_t * opt,
+                           const char * url, char ** error_msg)
   {
   char * host     = (char*)0;
   char * protocol = (char*)0;
@@ -450,17 +431,16 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
     }
   ret = calloc(1, sizeof(*ret));
 
-  /* Store timeouts */
+  /* Store options */
 
-  ret->connect_timeout = connect_timeout;
-  ret->read_timeout    = read_timeout;
+  ret->opt = opt;
     
   /* Connect */
   
   if(port < 0)
     port = 1755;
 
-  ret->fd = bgav_tcp_connect(host, port, connect_timeout, error_msg);
+  ret->fd = bgav_tcp_connect(host, port, opt->connect_timeout, error_msg);
   
   if(ret->fd < 0)
     goto fail;
@@ -469,7 +449,7 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
 
   if(fcntl(ret->fd, F_SETFL, O_NONBLOCK) < 0)
     {
-    fprintf(stderr, "Cannot set nonblocking mode\n");
+    bgav_log(ret->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot set nonblocking mode");
     goto fail;
     }
   
@@ -486,7 +466,6 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   
   utf16 = bgav_convert_string(ascii_2_utf16, buf, -1, &len_out);
   
-  //  fprintf(stderr, "Converted string: %d %d\n", len_in, len_out);
   
   set_command_header(ret, 0x01, 0, 0x0004000b, strlen(buf)*2+2);
 
@@ -594,7 +573,6 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
 
   /* C->S: Request file */
 
-  //  fprintf(stderr, "Path: %s\n", path);
   utf16 = bgav_convert_string(ascii_2_utf16, path, strlen(path),
                               &len_out);
   
@@ -642,31 +620,25 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
   pos+=4; /* 00000000 */
   pos+=4; /* 00000000 */
   i_tmp = BGAV_PTR_2_32LE(pos);pos+=4;
-  //  fprintf(stderr, "Broadcast flags: 0x%08x\n", i_tmp);
 
   pos+=8; /* Time point */
 
   i_tmp = BGAV_PTR_2_32LE(pos);pos+=4;
-  //  fprintf(stderr, "Length: %u seconds\n", i_tmp);
 
   pos += 16; /* Zeros */
 
   i_tmp = BGAV_PTR_2_32LE(pos);pos+=4;
-  //  fprintf(stderr, "Packet length: %u\n", i_tmp);
 
   ret->packet_buffer = malloc(i_tmp);
   ret->packet_len = i_tmp;
   
   i_tmp = BGAV_PTR_2_32LE(pos);pos+=4;
-  //  fprintf(stderr, "Total Packets: %u (0x%08x)\n", i_tmp, i_tmp);
   
   pos+=4; /* Zeros */
   
   i_tmp = BGAV_PTR_2_32LE(pos);pos+=4;
-  //  fprintf(stderr, "Highest Bitrate: %f kbit/sec\n", (float)(i_tmp)/1000.0);
   
   i_tmp = BGAV_PTR_2_32LE(pos);pos+=4;
-  //  fprintf(stderr, "Header size: %d\n", i_tmp);
   ret->header_alloc = i_tmp;
   ret->header = malloc(ret->header_alloc);
   
@@ -698,16 +670,11 @@ bgav_mms_t * bgav_mms_open(const char * url, int connect_timeout,
 
   while(ret->header_size < ret->header_alloc)
     {
-    //    fprintf(stderr, "** Next packet %d %d...", ret->header_size,
-    //            ret->header_alloc);
     if(!next_packet(ret, 1, error_msg))
       {
       *error_msg = bgav_sprintf("mms: Next packet failed");
       goto fail;
       }
-    //    fprintf(stderr, "done %d %d\n",
-    //            ret->header_size,
-    //            ret->header_alloc);
     }
   //  dump_data(ret->read_buffer+8, ret->read_buffer_len-8, "header.dat");
 
@@ -821,7 +788,6 @@ int bgav_mms_select_streams(bgav_mms_t * mms,
 
 uint8_t * bgav_mms_read_data(bgav_mms_t * mms, int * len, int block, char ** error_msg)
   {
-  //  fprintf(stderr, "bgav_mms_read_data...");
   mms->got_data = 0;
   if(!next_packet(mms, block, error_msg))
     return (uint8_t*)0;
@@ -829,8 +795,6 @@ uint8_t * bgav_mms_read_data(bgav_mms_t * mms, int * len, int block, char ** err
   if(mms->packet_buffer && mms->got_data)
     {
     *len = mms->packet_len;
-    //    fprintf(stderr, "%d\n", *len);
-    //    bgav_hexdump(mms->packet_buffer, mms->packet_len, 16);
     return mms->packet_buffer;
     }
   return (uint8_t*)0;

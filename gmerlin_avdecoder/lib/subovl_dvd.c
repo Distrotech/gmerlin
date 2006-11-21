@@ -25,6 +25,8 @@
 #include <codecs.h>
 #include <bswap.h>
 
+#define LOG_DOMAIN "subovl_dvd"
+
 typedef struct
   {
   uint8_t * buffer;
@@ -60,7 +62,6 @@ static int has_subtitle_dvdsub(bgav_stream_t * s)
   
   /* Check if we have enough data */
 
-  //  fprintf(stderr, "has_subtitle_dvdsub, stream ID: %04x\n", s->stream_id);
   
   while(1)
     {
@@ -236,7 +237,7 @@ static int decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
           ctrl_seq_end = 1;
           break;
         default:
-          fprintf(stderr,
+          bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                   "Unknown command %02x, decoding is doomed to failure\n",
                   cmd);
           break;

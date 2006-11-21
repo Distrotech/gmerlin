@@ -100,7 +100,7 @@ void bgav_metadata_merge2(bgav_metadata_t * dst,
 
 void bgav_metadata_dump(bgav_metadata_t*m)
   {
-  fprintf(stderr, "Metadata:\n");
+  bgav_dprintf("Metadata:\n");
   
   PS("  Author:    ", m->author);
   PS("  Title:     ", m->title);

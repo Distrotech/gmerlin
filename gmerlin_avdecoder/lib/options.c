@@ -265,7 +265,6 @@ bgav_options_set_name_change_callback(bgav_options_t * opt,
   {
   opt->name_change_callback      = callback;
   opt->name_change_callback_data = data;
-  //  fprintf(stderr, "bgav_set_name_change_callback\n");
   }
 
 void

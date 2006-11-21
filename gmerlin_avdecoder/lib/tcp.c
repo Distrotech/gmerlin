@@ -67,7 +67,6 @@ static int hostbyname(host_address_t * a, const char * hostname, char ** error_m
     return 1;
     }
 
-  //  fprintf(stderr, "Resolving host %s\n", hostname);
   
   gethostbyname_buffer_size = 1024;
   gethostbyname_buffer = malloc(gethostbyname_buffer_size);
@@ -108,7 +107,6 @@ static int hostbyname(host_address_t * a, const char * hostname, char ** error_m
                               hostname);
     goto fail;
     }
-  //  fprintf(stderr, "Done\n");
   ret = 1;
 
   fail:
@@ -134,7 +132,7 @@ static int socket_connect_inet(host_address_t * a, int milliseconds, char ** err
                                                                                
   if((ret = socket (PF_INET, SOCK_STREAM, 0)) < 0)
     {
-    fprintf(stderr, "Cannot create socket\n");
+    *error_msg = bgav_sprintf( "Cannot create socket\n");
     return -1;
     }
                                                                                
@@ -166,17 +164,15 @@ static int socket_connect_inet(host_address_t * a, int milliseconds, char ** err
     }
   else
     {
-    fprintf(stderr, "Unknown Address family!!!\n");
+    *error_msg = bgav_sprintf( "Unknown Address family!!!\n");
     return -1;
     }
   
   /* Connect the thing */
-                                                                               
-  //  fprintf(stderr, "Connecting...");
 
   if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)
     {
-    fprintf(stderr, "Cannot set nonblocking mode\n");
+    *error_msg = bgav_sprintf( "Cannot set nonblocking mode\n");
     return -1;
     }
   if(connect(ret,(struct sockaddr*)addr,addr_len)<0)
@@ -199,13 +195,12 @@ static int socket_connect_inet(host_address_t * a, int milliseconds, char ** err
       return -1;
       }
     }
-  //  fprintf(stderr, "Connected\n");
   
   /* Set back to blocking mode */
   
   if(fcntl(ret, F_SETFL, 0) < 0)
     {
-    fprintf(stderr, "Cannot set blocking mode\n");
+    *error_msg = bgav_sprintf( "Cannot set blocking mode\n");
     return -1;
     }
   return ret;

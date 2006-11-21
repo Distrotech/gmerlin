@@ -34,6 +34,8 @@
 
 #include <rmff.h>
 
+#define LOG_DOMAIN "rtsp"
+
 struct bgav_rtsp_s
   {
   int fd;
@@ -73,7 +75,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   rtsp->cseq++;
   line = bgav_sprintf("%s %s RTSP/1.0\r\n", command, what);
 #ifdef DUMP_REQUESTS
-  fprintf(stderr, "Sending: %s", line);
+  bgav_dprintf("Sending: %s", line);
 #endif  
   if(!bgav_tcp_send(rtsp->fd, (uint8_t*)line, strlen(line), error_msg))
     goto fail;
@@ -82,7 +84,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   
   line = bgav_sprintf("CSeq: %u\r\n", rtsp->cseq);
 #ifdef DUMP_REQUESTS
-  fprintf(stderr, "Sending: %s", line);
+  bgav_dprintf("Sending: %s", line);
 #endif  
   write(rtsp->fd, line, strlen(line));
   free(line);
@@ -91,13 +93,13 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
     {
     line = bgav_sprintf("Session: %s\r\n", rtsp->session);
 #ifdef DUMP_REQUESTS
-    fprintf(stderr, "Sending: %s", line);
+    bgav_dprintf("Sending: %s", line);
 #endif  
     write(rtsp->fd, line, strlen(line));
     free(line);
     }
 #ifdef DUMP_REQUESTS
-  fprintf(stderr, "Sending request\n");
+  bgav_dprintf("Sending request\n");
   bgav_http_header_dump(rtsp->request_fields);
 #endif
   
@@ -123,7 +125,6 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
     free(rtsp->url);
     rtsp->url =
       bgav_strdup(bgav_http_header_get_var(rtsp->answers,"Location"));
-    //    fprintf(stderr, "Got redirected to: %s\n", rtsp->url);
     if(got_redirected)
       *got_redirected = 1;
 #if 1
@@ -142,13 +143,8 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
   status = bgav_http_header_status_code(rtsp->answers);
   if(status != 200)
     {
-    fprintf(stderr, "Got status %d\n", status);
+    bgav_dprintf("Got status %d", status);
     
-    //    fprintf(stderr, "Request was: ");
-    //    bgav_http_header_dump(rtsp->request_fields);
-    
-    //    fprintf(stderr, "Answer was: ");
-    //    bgav_http_header_dump(rtsp->answers);
     if(error_msg)
       *error_msg = bgav_sprintf("Server said: %s",
                                 bgav_http_header_status_line(rtsp->answers));
@@ -156,7 +152,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
     }
   
 #ifdef DUMP_REQUESTS
-  fprintf(stderr, "Got answer:\n");
+  bgav_dprintf("Got answer:\n");
   bgav_http_header_dump(rtsp->answers);
 #endif  
   
@@ -202,22 +198,18 @@ int bgav_rtsp_request_describe(bgav_rtsp_t *rtsp, int * got_redirected, char ** 
   
   content_length = atoi(var);
     
-  //  fprintf(stderr, "Content-length: %d\n", content_length);
-  
   buf = malloc(content_length+1);
     
   if(bgav_read_data_fd(rtsp->fd, (uint8_t*)buf, content_length, rtsp->opt->read_timeout) <
      content_length)
     {
-    fprintf(stderr, "Reading session dscription failed\n");
+    bgav_log(rtsp->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading session dscription failed\n");
     goto fail;
     }
 
   buf[content_length] = '\0';
-  //  fprintf(stderr, "Session description: ");
-  //  fwrite(buf, 1, content_length, stderr);
   
-  if(!bgav_sdp_parse(buf, &(rtsp->sdp)))
+  if(!bgav_sdp_parse(rtsp->opt, buf, &(rtsp->sdp)))
     goto fail;
 
   //  bgav_sdp_dump(&(rtsp->sdp));
@@ -315,10 +307,8 @@ bgav_rtsp_t * bgav_rtsp_create(const bgav_options_t * opt)
 int bgav_rtsp_open(bgav_rtsp_t * rtsp, const char * url,
                    int * got_redirected, char ** error_msg)
   {
-  //  fprintf(stderr, "bgav_rtsp_open %s\n", rtsp->url);
   if(url)
     rtsp->url = bgav_strdup(url);
-  //  fprintf(stderr, "*** BGAV_RTSP_OPEN %s %s\n", url, rtsp->url);
   return do_connect(rtsp, got_redirected, error_msg);
   }
 

@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
  *
- * $Id: pnm.c,v 1.5 2006-07-11 18:19:41 gmerlin Exp $
+ * $Id: pnm.c,v 1.6 2006-11-21 22:01:06 gmerlin Exp $
  *
  * pnm protocol implementation 
  * based upon code from joschka
@@ -507,7 +507,6 @@ static int pnm_get_headers(pnm_t *p, int *need_response) {
     chunk_size=pnm_get_chunk(p,HEADER_SIZE-size,&chunk_type,(char*)ptr,&nr);
     if (chunk_size < 0)
       {
-      fprintf(stderr, "get chunk failed\n");
       return 0;
       }
     if (chunk_type == 0) break;

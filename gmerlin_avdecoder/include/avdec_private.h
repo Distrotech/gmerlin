@@ -1000,6 +1000,8 @@ struct bgav_redirector_context_s
   int parsed;
   int num_urls;
   bgav_url_info_t * urls;
+
+  const bgav_options_t * opt;
   };
 
 void bgav_redirector_destroy(bgav_redirector_context_t*r);

@@ -883,7 +883,7 @@ static int handle_rmra(bgav_demuxer_context_t * ctx,
 
   (*redir) = calloc(1, sizeof(**redir));
   (*redir)->num_urls = num_urls;
-
+  (*redir)->opt = ctx->opt;
   (*redir)->urls = calloc(num_urls, sizeof(*((*redir)->urls)));
 
   /* Some urls are relative urls */

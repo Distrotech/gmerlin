@@ -186,7 +186,8 @@ int bgav_sdp_get_attr_int(bgav_sdp_attr_t * attrs, int num_attrs,
 
 /* Init, free */
 
-int bgav_sdp_parse(const char * data, bgav_sdp_t * ret);
+int bgav_sdp_parse(const bgav_options_t * opt,
+                   const char * data, bgav_sdp_t * ret);
 void bgav_sdp_free(bgav_sdp_t * s);
 
 /* Dump the entire struct to stderr */

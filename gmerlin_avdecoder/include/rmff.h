@@ -276,8 +276,9 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
   
 /* Create an rmdff header from an sdp structure */
 
-bgav_rmff_header_t * bgav_rmff_header_create_from_sdp(bgav_sdp_t * sdp,
-                                                      int network_bandwidth,
-                                                      char ** stream_rules);
+bgav_rmff_header_t *
+bgav_rmff_header_create_from_sdp(const bgav_options_t*opt,
+                                 bgav_sdp_t * sdp,
+                                 char ** stream_rules);
 
 void bgav_rmff_header_dump(bgav_rmff_header_t * header);

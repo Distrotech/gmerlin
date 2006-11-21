@@ -57,7 +57,6 @@ static int read_srt(bgav_stream_t * s)
                                      &line_len))
       return 0;
     
-    //    fprintf(stderr, "Got line: %s\n", priv->buf_8);
     if ((len=sscanf (ctx->line, "%d:%d:%d%[,.:]%d --> %d:%d:%d%[,.:]%d",
                      &a1,&a2,&a3,(char *)&i,&a4,&b1,&b2,&b3,(char *)&i,&b4)) == 10)
       {
@@ -139,7 +138,6 @@ static int probe_mpsub(char * line)
   float f;
   while(isspace(*line) && (*line != '\0'))
     line++;
-  //  fprintf(stderr, "Probe mpsub: %s\n", line);
   
   if(!strncmp(line, "FORMAT=TIME", 11) || (sscanf(line, "FORMAT=%f", &f) == 1))
     return 1;
@@ -357,7 +355,6 @@ static gavl_time_t parse_time_spumux(const char * str, int timescale, int frame_
   gavl_time_t ret;
   if(sscanf(str, "%d:%d:%d.%d", &h, &m, &s, &f) < 4)
     return GAVL_TIME_UNDEFINED;
-  //  fprintf(stderr, "parse_time_spumux: %d %d %d %d", h, m, s, f);
   ret = h;
   ret *= 60;
   ret += m;
@@ -632,13 +629,13 @@ static bgav_subtitle_reader_t subtitle_readers[] =
 void bgav_subreaders_dump()
   {
   int i = 0;
-  fprintf(stderr, "<h2>Subtitle readers</h2>\n<ul>\n");
+  bgav_dprintf( "<h2>Subtitle readers</h2>\n<ul>\n");
   while(subtitle_readers[i].name)
     {
-    fprintf(stderr, "<li>%s\n", subtitle_readers[i].name);
+    bgav_dprintf( "<li>%s\n", subtitle_readers[i].name);
     i++;
     }
-  fprintf(stderr, "</ul>\n");
+  bgav_dprintf( "</ul>\n");
   }
 
 static char * extensions[] =
@@ -660,7 +657,6 @@ static bgav_subtitle_reader_t * find_subtitle_reader(const char * filename,
   char * line = (char*)0;
   int line_alloc = 0;
   int line_len;
-  //  fprintf(stderr, "Testing file %s\n", filename);
   /* 1. Check if we have a supported extension */
   extension = strrchr(filename, '.');
   if(!extension)
@@ -686,27 +682,16 @@ static bgav_subtitle_reader_t * find_subtitle_reader(const char * filename,
     }
 
   bgav_input_detect_charset(input);
-#if 0
-  if(input->charset)
-    fprintf(stderr, "Detected character set: %s\n", input->charset);
-  else
-    fprintf(stderr, "Character set detection failed, assuming default\n");
-#endif
   while(bgav_input_read_convert_line(input, &line, &line_alloc, &line_len))
     {
     i = 0;
 
-    // fprintf(stderr, "Got line (len: %d): %s\n", line_len, line);
         
     while(subtitle_readers[i].name)
       {
       if(subtitle_readers[i].probe(line))
         {
         ret = &(subtitle_readers[i]);
-#if 0
-        fprintf(stderr, "Detected %s format\n",
-                subtitle_readers[i].name);
-#endif
         break;
         }
       i++;

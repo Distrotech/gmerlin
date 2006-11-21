@@ -23,6 +23,8 @@
 
 #include <avdec_private.h>
 
+#define LOG_DOMAIN "input"
+
 #define GET_LINE_SIZE 8
 #define ALLOC_SIZE    128
 
@@ -671,7 +673,8 @@ int bgav_input_open(bgav_input_context_t * ctx,
 #endif
     else
       {
-      fprintf(stderr, "Unknown protocol: %s\n", protocol);
+      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+               "Unknown protocol: %s", protocol);
       goto fail;
       }
     }

@@ -2424,7 +2424,6 @@ int RTjpeg_set_size(RTjpeg_t *rtj, int *w, int *h)
   rtj->old=(int16_t *)(tmp<<5);
   if(!rtj->old)
   {
-   fprintf(stderr, "RTjpeg: Could not allocate memory\n");
    return -1;
   }
   bzero(rtj->old, ((4*rtj->width*rtj->height)));
@@ -2460,7 +2459,6 @@ int RTjpeg_set_intra(RTjpeg_t *rtj, int *key, int *lm, int *cm)
  rtj->old=(int16_t *)(tmp<<5);
  if (!rtj->old)
  {
-  fprintf(stderr, "RTjpeg: Could not allocate memory\n");
   return -1;
  }
  bzero(rtj->old, ((4*rtj->width*rtj->height)));

@@ -298,23 +298,22 @@ void bgav_track_dump(bgav_t * b, bgav_track_t * t)
   
   char duration_string[GAVL_TIME_STRING_LEN];
   
-  //  fprintf(stderr, "Track %d:\n", (int)(bgav->current_track - bgav->tracks) +1);
-  fprintf(stderr, "Name:  %s\n", t->name);
+  bgav_dprintf( "Name:  %s\n", t->name);
 
   description = bgav_get_description(b);
   
-  fprintf(stderr, "Format: %s\n", (description ? description : 
+  bgav_dprintf( "Format: %s\n", (description ? description : 
                                    "Not specified"));
-  //  fprintf(stderr, "Seekable: %s\n", (bgav->demuxer->can_seek ? "Yes" : "No"));
+  //  bgav_dprintf( "Seekable: %s\n", (bgav->demuxer->can_seek ? "Yes" : "No"));
 
-  fprintf(stderr, "Duration: ");
+  bgav_dprintf( "Duration: ");
   if(t->duration != GAVL_TIME_UNDEFINED)
     {
     gavl_time_prettyprint(t->duration, duration_string);
-    fprintf(stderr, "%s\n", duration_string);
+    bgav_dprintf( "%s\n", duration_string);
     }
   else
-    fprintf(stderr, "Not specified (maybe live)\n");
+    bgav_dprintf( "Not specified (maybe live)\n");
 
   
   bgav_metadata_dump(&(t->metadata));

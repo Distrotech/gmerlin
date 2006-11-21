@@ -37,14 +37,14 @@
 void bgav_dump_fourcc(uint32_t fourcc)
   {
   if((fourcc & 0xffff0000) || !(fourcc))
-    fprintf(stderr, "%c%c%c%c (%08x)",
+    bgav_dprintf( "%c%c%c%c (%08x)",
             (fourcc & 0xFF000000) >> 24,
             (fourcc & 0x00FF0000) >> 16,
             (fourcc & 0x0000FF00) >> 8,
             (fourcc & 0x000000FF),
             fourcc);
   else
-    fprintf(stderr, "WavID: 0x%04x", fourcc);
+    bgav_dprintf( "WavID: 0x%04x", fourcc);
     
   }
 
@@ -58,18 +58,18 @@ void bgav_hexdump(uint8_t * data, int len, int linebreak)
     {
     imax = (bytes_written + linebreak > len) ? len - bytes_written : linebreak;
     for(i = 0; i < imax; i++)
-      fprintf(stderr, "%02x ", data[bytes_written + i]);
+      bgav_dprintf( "%02x ", data[bytes_written + i]);
     for(i = imax; i < linebreak; i++)
-      fprintf(stderr, "   ");
+      bgav_dprintf( "   ");
     for(i = 0; i < imax; i++)
       {
       if(!(data[bytes_written + i] & 0x80) && (data[bytes_written + i] >= 32))
-        fprintf(stderr, "%c", data[bytes_written + i]);
+        bgav_dprintf( "%c", data[bytes_written + i]);
       else
-        fprintf(stderr, ".");
+        bgav_dprintf( ".");
       }
     bytes_written += imax;
-    fprintf(stderr, "\n");
+    bgav_dprintf( "\n");
     }
   }
 
@@ -105,7 +105,7 @@ void bgav_diprintf(int indent, const char * format, ...)
   {
   int i;
   for(i = 0; i < indent; i++)
-    fprintf(stderr, " ");
+    bgav_dprintf( " ");
   
   va_list argp; /* arg ptr */
   va_start( argp, format);
@@ -138,14 +138,12 @@ char * bgav_strdup(const char * str)
 char * bgav_strncat(char * old, const char * start, const char * end)
   {
   int len, old_len;
-  //  fprintf(stderr, "BGAV_STRNCAT %s %s...", old, start);
   old_len = old ? strlen(old) : 0;
   
   len = (end) ? (end - start) : strlen(start);
   old = realloc(old, len + old_len + 1);
   strncpy(old + old_len, start, len);
   old[old_len + len] = '\0';
-  //  fprintf(stderr, "%s\n", old);
   return old;
   }
 
@@ -353,7 +351,6 @@ int bgav_read_data_fd(int fd, uint8_t * ret, int len, int milliseconds)
 
   int flags = 0;
 
-  //  fprintf(stderr, "bgav_read_data_fd: %d %d\n", milliseconds, len);
 
   //  if(milliseconds < 0)
   //    flags = MSG_WAITALL;
@@ -370,15 +367,11 @@ int bgav_read_data_fd(int fd, uint8_t * ret, int len, int milliseconds)
     
       if((result = select (fd+1, &rset, NULL, NULL, &timeout)) <= 0)
         {
-        //        fprintf(stderr, "select returned %d\n", result);
         return bytes_read;
         }
-      //      fprintf(stderr, "select returned %d\n", result);
       }
 
     result = recv(fd, ret + bytes_read, len - bytes_read, flags);
-    //    fprintf(stderr, "recv returned %d\n", result);
-    
     if(result > 0)
       bytes_read += result;
     else if(result <= 0)
