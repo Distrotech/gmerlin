@@ -7,6 +7,6 @@ Name: Gmerlin-gtk
 Description: Gmerlin Gtk support library
 Version: @VERSION@
 Requires: gmerlin gtk+-2.0
-Libs: -L${libdir} -lgmerlin
+Libs: -L${libdir} -lgmerlin_gtk -lgmerlin
 Cflags: -I${includedir}
 
