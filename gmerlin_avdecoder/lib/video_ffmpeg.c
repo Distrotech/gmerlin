@@ -1113,11 +1113,11 @@ static codec_info_t codec_infos[] =
     { "FFmpeg FFVHUFF decoder", "FFmpeg Huffman", CODEC_ID_FFVHUFF,
       (uint32_t[]){ BGAV_MK_FOURCC('F', 'F', 'V', 'H'),
                0x00 } },
-
+#if 0 /* Commented out in libavcodec as well */
     { "FFmpeg Xxan decoder", "Xan/WC3", CODEC_ID_XAN_WC4,
       (uint32_t[]){ BGAV_MK_FOURCC('X', 'x', 'a', 'n'),
                0x00 } },
-
+#endif
     { "FFmpeg QDraw decoder", "Apple QuickDraw", CODEC_ID_QDRAW,
       (uint32_t[]){ BGAV_MK_FOURCC('q', 'd', 'r', 'w'),
                0x00 } },
