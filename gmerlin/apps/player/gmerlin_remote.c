@@ -232,7 +232,34 @@ static void cmd_volume_rel(void * data, int * argc, char *** _argv, int arg)
   
   bg_remote_client_done_msg_write(remote);
   }
+
+static void cmd_seek_rel(void * data, int * argc, char *** _argv, int arg)
+  {
+  bg_msg_t * msg;
+  bg_remote_client_t * remote;
+  char ** argv = *_argv;
+  float diff;
+  FILE * out = stderr;
+
+  remote = (bg_remote_client_t *)data;
+
+  if(arg >= *argc)
+    {
+    fprintf(out, "Option -seek_rel requires an argument\n");
+    exit(-1);
+    }
+
+  diff = strtod(argv[arg], NULL);
   
+  msg = bg_remote_client_get_msg_write(remote);
+
+  bg_msg_set_id(msg, PLAYER_COMMAND_SEEK_REL);
+  bg_msg_set_arg_time(msg, 0, gavl_seconds_to_time(diff));
+  
+  bg_remote_client_done_msg_write(remote);
+  }
+
+
 bg_cmdline_arg_t commands[] =
   {
     {
@@ -295,6 +322,12 @@ bg_cmdline_arg_t commands[] =
       help_arg:    "<diff>",
       help_string: "In- or decrease player volume. <diff> is in dB",
       callback:    cmd_volume_rel,
+    },
+    {
+      arg:         "-seek_rel",
+      help_arg:    "<diff>",
+      help_string: "Seek relative. <diff> is in seconds.",
+      callback:    cmd_seek_rel,
     },
     
     { /* End of options */ }

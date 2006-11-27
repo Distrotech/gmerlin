@@ -138,8 +138,8 @@ int main(int argc, char ** argv)
           else if(pollfds[i].revents & (POLLIN | POLLPRI))
             {
             /* Read message */
-
-            if(!bg_read_line_fd(pollfds[i].fd, &buffer, &buffer_size))
+            
+            if(!bg_socket_read_line(pollfds[i].fd, &buffer, &buffer_size, -1))
               {
               con_tmp = con_ptr->next;
               connections = remove_connection(connections, con_ptr);

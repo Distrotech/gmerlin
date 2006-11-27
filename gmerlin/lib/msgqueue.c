@@ -894,40 +894,39 @@ int bg_message_read_socket(bg_msg_t * ret, int fd, int milliseconds)
   
   /* Message ID */
 
-  if(!read_uint32(fd, (uint32_t*)(&val_i), 0))
+  if(!read_uint32(fd, (uint32_t*)(&val_i), milliseconds))
     return 0;
-
   
   ret->id = val_i;
 
   /* Number of arguments */
 
-  if(!bg_socket_read_data(fd, &val_u8, 1, 1))
+  if(!bg_socket_read_data(fd, &val_u8, 1, -1))
     return 0;
 
   ret->num_args = val_u8;
 
   for(i = 0; i < ret->num_args; i++)
     {
-    if(!bg_socket_read_data(fd, &val_u8, 1, 1))
+    if(!bg_socket_read_data(fd, &val_u8, 1, -1))
       return 0;
     ret->args[i].type = val_u8;
 
     switch(ret->args[i].type)
       {
       case TYPE_INT:
-        if(!read_uint32(fd, (uint32_t*)(&val_i), 1))
+        if(!read_uint32(fd, (uint32_t*)(&val_i), -1))
           return 0;
 
         ret->args[i].value.val_i = val_i;
         break;
       case TYPE_FLOAT:
-        if(!read_uint32(fd, (uint32_t*)(&val_i), 1))
+        if(!read_uint32(fd, (uint32_t*)(&val_i), -1))
           return 0;
         ret->args[i].value.val_f = (float)val_i/FLOAT_FRAC_FACTOR;
         break;
       case TYPE_POINTER:
-        if(!read_uint32(fd, (uint32_t*)(&val_i), 1)) /* Length */
+        if(!read_uint32(fd, (uint32_t*)(&val_i), -1)) /* Length */
           return 0;
         ptr = bg_msg_set_arg_ptr(ret, i, val_i);
         if(bg_socket_read_data(fd, ret->args[i].value.val_ptr,
@@ -937,11 +936,10 @@ int bg_message_read_socket(bg_msg_t * ret, int fd, int milliseconds)
           }
         break;
       case TYPE_TIME:
-        if(!read_time(fd, &val_time, 1))
+        if(!read_time(fd, &val_time, -1))
           return 0;
         ret->args[i].value.val_time = val_time;
         break;
-        
       case TYPE_POINTER_NOCOPY:
         break;
         

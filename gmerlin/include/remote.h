@@ -46,17 +46,22 @@ void bg_remote_server_put_msg(bg_remote_server_t *, bg_msg_t *);
 
 void bg_remote_server_destroy(bg_remote_server_t *);
 
+/* Wait until all client connections are closed (use with caution) */
+void bg_remote_server_wait_close(bg_remote_server_t * s);
+
 /* Remote client */
 
 typedef struct bg_remote_client_s bg_remote_client_t;
 
-/* Create a remote for a player on the local host */
+/* Create a remote client */
 
 bg_remote_client_t * bg_remote_client_create(const char * protocol_id,
                                              int read_messages);
 
 int bg_remote_client_init(bg_remote_client_t *,
                           const char * host, int port, int milliseconds);
+
+void bg_remote_client_close(bg_remote_client_t *);
 
 void bg_remote_client_destroy(bg_remote_client_t * c);
 

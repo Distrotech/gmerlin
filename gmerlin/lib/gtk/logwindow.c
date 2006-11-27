@@ -235,7 +235,7 @@ bg_gtk_log_window_t * bg_gtk_log_window_create(void (*close_callback)(bg_gtk_log
   
   /* Create and connect message queue */
   ret->queue = bg_msg_queue_create();
-  bg_set_log_dest(ret->queue);
+  bg_log_set_dest(ret->queue);
   
   ret->close_callback      = close_callback;
   ret->close_callback_data = close_callback_data;

@@ -23,7 +23,7 @@
 void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
   {
   int           id;
-  //  int           arg_i;
+  gavl_time_t   arg_time;
   char        * arg_str;
   //  gavl_time_t   arg_time;
   float         arg_f;
@@ -92,7 +92,10 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
 /* Seek */
 
     case PLAYER_COMMAND_SEEK:
+      break;
     case PLAYER_COMMAND_SEEK_REL:
+      arg_time = bg_msg_get_arg_time(msg, 0);
+      bg_player_seek_rel(g->player, arg_time);
       break;
     }
   }

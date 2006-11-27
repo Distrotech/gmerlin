@@ -2452,8 +2452,10 @@ static void setup_pass(bg_transcoder_t * ret)
   
   }
 
-static int open_encoder(bg_transcoder_t * ret, bg_plugin_handle_t  * encoder_handle,
-                        bg_encoder_plugin_t * encoder_plugin, char ** filename)
+static int open_encoder(bg_transcoder_t * ret,
+                        bg_plugin_handle_t  * encoder_handle,
+                        bg_encoder_plugin_t * encoder_plugin,
+                        char ** filename)
   {
   const char * new_filename;
   
@@ -2478,10 +2480,14 @@ static int open_encoder(bg_transcoder_t * ret, bg_plugin_handle_t  * encoder_han
   else
     {
     if(encoder_plugin->common.get_error)
-      ret->error_msg = bg_sprintf("Could not open %s: %s", encoder_handle->info->long_name,
-                                  encoder_plugin->common.get_error(encoder_handle->priv));
+      ret->error_msg =
+        bg_sprintf("Could not open %s: %s",
+                   encoder_handle->info->long_name,
+                   encoder_plugin->common.get_error(encoder_handle->priv));
     else
-      ret->error_msg = bg_sprintf("Could not open %s: Unknown error", encoder_handle->info->long_name);
+      ret->error_msg =
+        bg_sprintf("Could not open %s: Unknown error",
+                   encoder_handle->info->long_name);
     ret->error_msg_ret = ret->error_msg;
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, ret->error_msg);
     return 0;
@@ -2495,7 +2501,7 @@ static int start_encoder(bg_transcoder_t * ret, bg_plugin_handle_t  * encoder_ha
     {
     ret->error_msg = bg_sprintf("Cannot setup %s", encoder_handle->info->long_name);
     ret->error_msg_ret = ret->error_msg;
-    bg_plugin_unref(encoder_handle);
+    //    bg_plugin_unref(encoder_handle);
     return 0;
     }
   return 1;
@@ -2562,7 +2568,8 @@ static int init_subtitle_encoders_separate(bg_transcoder_t * ret)
                    encoder_plugin->get_extension(encoder_handle->priv));
     
     if(!open_encoder(ret, encoder_handle,
-                     encoder_plugin, &ret->subtitle_text_streams[i].com.com.output_filename))
+                     encoder_plugin,
+                     &ret->subtitle_text_streams[i].com.com.output_filename))
       goto fail;
     
     set_stream_encoder(&(ret->subtitle_text_streams[i].com.com), encoder_handle);
@@ -2607,7 +2614,8 @@ static int init_subtitle_encoders_separate(bg_transcoder_t * ret)
                    encoder_plugin->get_extension(encoder_handle->priv));
       
     if(!open_encoder(ret, encoder_handle,
-                     encoder_plugin, &ret->subtitle_overlay_streams[i].com.output_filename))
+                     encoder_plugin,
+                     &ret->subtitle_overlay_streams[i].com.output_filename))
       goto fail;
 
     set_stream_encoder(&(ret->subtitle_overlay_streams[i].com), encoder_handle);
@@ -2670,7 +2678,8 @@ static int init_encoders(bg_transcoder_t * ret)
                      encoder_plugin->get_extension(encoder_handle->priv));
       
       if(!open_encoder(ret, encoder_handle,
-                       encoder_plugin, &ret->audio_streams[i].com.output_filename))
+                       encoder_plugin,
+                       &ret->audio_streams[i].com.output_filename))
         goto fail;
 
       set_stream_encoder(&(ret->audio_streams[i].com), encoder_handle);

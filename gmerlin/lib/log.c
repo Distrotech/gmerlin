@@ -113,7 +113,7 @@ void bg_log(bg_log_level_t level, const char * domain,
   free(msg_string);
   }
 
-void bg_set_log_dest(bg_msg_queue_t * q)
+void bg_log_set_dest(bg_msg_queue_t * q)
   {
   log_queue = q;
   }

@@ -91,12 +91,6 @@ int bg_remote_server_init(bg_remote_server_t * s)
   return 1;
   }
 
-static void bg_remote_server_cleanup(bg_remote_server_t * s)
-  {
-  close(s->fd);
-  s->fd = -1;
-  }
-
 static server_connection_t * add_connection(bg_remote_server_t * s,
                                             int fd)
   {
@@ -158,6 +152,7 @@ remove_connection(server_connection_t * connections,
   {
   server_connection_t * before;
 
+  
   if(conn == connections)
     {
     connections = connections->next;
@@ -172,8 +167,17 @@ remove_connection(server_connection_t * connections,
   
   close(conn->fd);
   free(conn);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN_SERVER, "Client connection closed");
   
   return connections;
+  }
+
+static void bg_remote_server_cleanup(bg_remote_server_t * s)
+  {
+  close(s->fd);
+  s->fd = -1;
+  while(s->connections) s->connections =
+                          remove_connection(s->connections, s->connections);
   }
 
 static void check_connections(bg_remote_server_t * s)
@@ -187,7 +191,7 @@ static void check_connections(bg_remote_server_t * s)
 
   if(new_fd >= 0)
     {
-    
+    bg_log(BG_LOG_INFO, LOG_DOMAIN_SERVER, "New client connection");
     conn = add_connection(s, new_fd);
 
     if(conn)
@@ -240,6 +244,18 @@ bg_msg_t * bg_remote_server_get_msg(bg_remote_server_t * s)
   return (bg_msg_t *)0;
   }
 
+void bg_remote_server_wait_close(bg_remote_server_t * s)
+  {
+  gavl_time_t delay_time = GAVL_TIME_SCALE/200;
+  while(1)
+    {
+    bg_remote_server_get_msg(s);
+    if(!s->connections)
+      break;
+    gavl_time_delay(&delay_time);
+    }
+  }
+
 void bg_remote_server_put_msg(bg_remote_server_t * s, bg_msg_t * m)
   {
 
@@ -249,7 +265,7 @@ void bg_remote_server_destroy(bg_remote_server_t * s)
   {
   while(s->connections)
     s->connections = remove_connection(s->connections, s->connections);
-
+  
   if(s->protocol_id)
     free(s->protocol_id);
 
@@ -345,6 +361,12 @@ bg_remote_client_t * bg_remote_client_create(const char * protocol_id,
   return ret;
   }
 
+void bg_remote_client_close(bg_remote_client_t * c)
+  {
+  close(c->fd);
+  c->fd = -1;
+  }
+
 int bg_remote_client_init(bg_remote_client_t * c,
                           const char * host, int port,
                           int milliseconds)
@@ -374,8 +396,10 @@ int bg_remote_client_init(bg_remote_client_t * c,
   len = strlen(answer_message);
 
   if(bg_socket_write_data(c->fd, (uint8_t*)answer_message, len) < len)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN_CLIENT, "Sending initialization string failed");
     goto fail;
-
+    }
   /* Read welcome message */
   
   if(!bg_socket_read_line(c->fd, &(buffer),

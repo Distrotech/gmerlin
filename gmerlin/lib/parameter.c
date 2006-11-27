@@ -355,7 +355,7 @@ bg_parameter_info_concat_arrays(bg_parameter_info_t ** srcs)
   return ret;
   }
 
-int bg_parameter_get_selected(bg_parameter_info_t * info,
+int bg_parameter_get_selected(const bg_parameter_info_t * info,
                               const char * val)
   {
   

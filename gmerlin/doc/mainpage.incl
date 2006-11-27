@@ -1,14 +1,41 @@
 
 /*! \mainpage
 
- \section intro Introduction
+ \section Introduction
   This is the API documentation for the Gmerlin library, a multimedia
   framework.
  
   Click Modules (on top of the page) to get to the main API index.
   Here, you find just some general blabla :)
 
-  \section Introduction
+  Gmerlin is a multimedia framework, which allows you to quickly develop
+  multimedia applications. It is built upon gavl (for low level
+  Audio/Video things) and libxml2 (for loading and saving configuration
+  data and other things).
+  The gmerlin API can be used at multiple levels:
+  Either you take the basic things like plugins, fifos, message-queues
+  and gavl audio/video converters and build your own media engine. The
+  other possibility is to use the player or transcoder engines directly.
+  The latter approach is probably easier, but you'll have less freedom in
+  controlling the process.
 
-  To be written
-  */
+ \section threads Thread safety
+
+  All modules (except \ref log) are context based, i.e. we never change
+  any global structures. For all other things we have contexts, the
+  gmerlin library is thread save per instance. For most low-level modules,
+  the application must, however, take care that the instances are not
+  accessed from multiple threads simultaneously.
+
+  Plugin handles (see \ref bg_plugin_handle_t) already have a mutex, which
+  can be locked/unlocked (see \ref bg_plugin_lock, \ref bg_plugin_unlock)
+
+ \section utf8 Character set
+
+  All strings returned from (or passed to) gmerlin should be considered UTF-8,
+  with the only exception being filenames, which must be in the system
+  character set (which is also UTF-8 on modern systems). Special care is taken,
+  that different character sets are always converted. If you find a place, where
+  this is not true, please report it as a bug.
+
+*/

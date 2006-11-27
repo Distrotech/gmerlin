@@ -36,6 +36,8 @@
 #include <unistd.h>
 
 #include <utils.h>
+#include <log.h>
+#define LOG_DOMAIN "utils"
 
 char * bg_fix_path(char * path)
   {
@@ -134,79 +136,6 @@ char * bg_sprintf(const char * format,...)
   va_end(argp);
   return ret;
   }
-
-/*
- *  Read a single line from a filedescriptor
- *
- *  ret will be reallocated if neccesary and ret_alloc will
- *  be updated then
- *
- *  The string will be 0 terminated, a trailing \r or \n will
- *  be removed
- */
-
-#define BYTES_TO_ALLOC 1024
-
-int bg_read_line_fd(int fd, char ** ret, int * ret_alloc)
-  {
-  char * pos;
-  char c;
-  int bytes_read;
-
-  bytes_read = 0;
-
-  /* Allocate Memory for the case we have none */
-
-  if(!ret_alloc)
-    {
-    *ret_alloc = BYTES_TO_ALLOC;
-    *ret = realloc(*ret, *ret_alloc);
-    }
-
-  pos = *ret;
-  
-  while(1)
-    {
-    if(!read(fd, &c, 1))
-      {
-      if(!bytes_read)
-        return 0;
-      break;
-      }
-
-    /*
-     *  Line break sequence
-     *  is starting, remove the rest from the stream
-     */
-    
-    if(c == '\n')
-      {
-      break;
-      }
-    
-    /* Reallocate buffer */
-
-    else if(c != '\r')
-      {
-      if(bytes_read+2 >= *ret_alloc)
-        {
-        *ret_alloc += BYTES_TO_ALLOC;
-        *ret = realloc(*ret, *ret_alloc);
-        pos = &((*ret)[bytes_read]);
-        }
-      
-      /* Put the byte and advance pointer */
-      
-      *pos = c;
-      pos++;
-      bytes_read++;
-      }
-    }
-
-  *pos = '\0';
-  return 1;
-  }
-
   
 char * bg_create_unique_filename(char * template)
   {
@@ -228,10 +157,15 @@ char * bg_create_unique_filename(char * template)
       /* Create empty file */
       file = fopen(filename, "w");
       if(file)
+        {
         fclose(file);
+        }
       else
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open file \"%s\" for writing",
+               filename);
         err = 1;
-
+        }
       if(err)
         {
         free(filename);

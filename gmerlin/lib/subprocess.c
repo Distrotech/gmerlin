@@ -222,7 +222,7 @@ int bg_subprocess_read_line(int fd, char ** ret, int * ret_alloc,
   fd_set rset;
   struct timeval timeout;
   int result;
-  if(milliseconds > 0)
+  if(milliseconds >= 0)
     { 
     FD_ZERO (&rset);
     FD_SET  (fd, &rset);
