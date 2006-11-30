@@ -276,8 +276,9 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
   int pos;
   
   char * spaces;
-  char tmp_string[GAVL_TIME_STRING_LEN];
-    
+  char time_string[GAVL_TIME_STRING_LEN];
+  char * tmp_string;
+  
   spaces = calloc(indent + 1, 1);
   memset(spaces, ' ', indent);
   
@@ -317,7 +318,7 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
         break;
       case BG_PARAMETER_INT:
       case BG_PARAMETER_SLIDER_INT:
-        pos += fprintf(out, "<num> (");
+        pos += fprintf(out, "<num_int> (");
         if(parameters[i].val_min.val_i < parameters[i].val_max.val_i)
           {
           pos += fprintf(out, "%d..%d, ",
@@ -327,13 +328,22 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
         break;
       case BG_PARAMETER_SLIDER_FLOAT:
       case BG_PARAMETER_FLOAT:
-        pos += fprintf(out, "<num> (");
+        pos += fprintf(out, "<num_float> (");
         if(parameters[i].val_min.val_f < parameters[i].val_max.val_f)
           {
-          pos += fprintf(out, "%.2f..%.2f, ",
+          tmp_string = bg_sprintf("%%.%df..%%.%df, ",
+                                  parameters[i].num_digits,
+                                  parameters[i].num_digits);
+          pos += fprintf(out, tmp_string,
                          parameters[i].val_min.val_f, parameters[i].val_max.val_f);
+          free(tmp_string);
           }
-        fprintf(out, "default: %.2f)\n", parameters[i].val_default.val_f);
+        tmp_string =
+          bg_sprintf("default: %%.%df)\n",
+                     parameters[i].num_digits);
+        fprintf(out, tmp_string,
+                parameters[i].val_default.val_f);
+        free(tmp_string);
         break;
       case BG_PARAMETER_STRING:
       case BG_PARAMETER_FONT:
@@ -449,14 +459,14 @@ static void print_help_parameters(int indent, bg_parameter_info_t * parameters)
         fprintf(out, "{[[HH:]MM:]SS} (");
         if(parameters[i].val_min.val_time < parameters[i].val_max.val_time)
           {
-          gavl_time_prettyprint(parameters[i].val_min.val_time, tmp_string);
-          fprintf(out, "%s..", tmp_string);
+          gavl_time_prettyprint(parameters[i].val_min.val_time, time_string);
+          fprintf(out, "%s..", time_string);
           
-          gavl_time_prettyprint(parameters[i].val_max.val_time, tmp_string);
-          fprintf(out, "%s, ", tmp_string);
+          gavl_time_prettyprint(parameters[i].val_max.val_time, time_string);
+          fprintf(out, "%s, ", time_string);
           }
-        gavl_time_prettyprint(parameters[i].val_default.val_time, tmp_string);
-        fprintf(out, "default: %s)\n", tmp_string);
+        gavl_time_prettyprint(parameters[i].val_default.val_time, time_string);
+        fprintf(out, "default: %s)\n", time_string);
         fprintf(out, spaces);
         fprintf(out, "  Seconds can be fractional (i.e. with decimal point)\n");
         

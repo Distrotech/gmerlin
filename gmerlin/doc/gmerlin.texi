@@ -240,6 +240,7 @@ location, the DLLs will also be found by other players.
 * Configuration data::
 * GUI::
 * Remote control::
+* Commandline options::
 @end menu
 
 @node Configuration data
@@ -300,6 +301,82 @@ used as a Mime handler by filenamagers and webbrowsers. If
 @code{gmerlin_launcher}
 is called with a file or URL as argument, it will launch a gmerlin player
 if neccessary, add the location to the Incoming album and start playing it.
+
+@node Commandline options
+@section Commandline options
+@strong{Warning, the commandline syntax is not completely frozen yet. It may
+change slightly or completely in future releases}
+
+Commandline options are divided into simple ones and the ones, which
+set parameters.
+
+The following options should always be supported by all applications: 
+
+@table @code
+@item -v <num>
+Set verbosity level. Values are
+@table
+@item 0
+Be completely quiet
+@item 1
+Print errors only
+@item 2
+Like 1 but print warnings also
+@item 3
+Like 2 but print info messages also
+@item 4
+Like 3 but print debug messages also
+@end table
+@item -help
+Print a help and exit. Pipe it into a pager to enable scrolling, like
+@code{gmerlin_player -help | less -R}.
+@end table
+
+Commandline options for parameters are handled completely analogous
+to the configuration dialogs of GUI applications, i.e. for each
+configuration item, which shows up in a GUI application, you'll have a
+parameter on the commandline.
+
+In General options have the form
+
+@code{'parameter1=value1:parameter2=value2...'}
+
+The quotes are necessary, if the string contains characters, which
+have a special meaning for the shell.
+
+The syntax of values depends on the type:
+@table @strong
+@item Boolean
+Value can be either 0 or 1.
+@item Integer values
+An integer number.
+@item Float values
+A floating point (i.e. fractional) number.
+@item Strings
+A string. Colons ':' should be escaped with '\'.
+@item Time
+Time is in the format @code{@{[[HH:]MM:]SS@}} while the seconds can be
+fractional. Hours and Minutes are optional, thus any format of
+@code{@{5.5@}}, @code{@{0:05.5@}} or @code{@{0:00:05.5}@} is valid for a time
+of 5.5 seconds. Writing @code{0} instead of @code{00} is also ok.
+@item Enumeration with suboptions
+Value is in the form
+@code{string[@{subparameter1=subvalue1:subparameter2=subvalue2...@}]}.
+The subparameters are optional. E.g. if the option is for selecting a
+plugin, setting string to @code{foo} will select the plugin @code{foo} and
+pass the subparameters (if avaliable) to the @code{foo} plugin.
+@item List with suboptions
+This is like enumeration with suboptions with the difference, that
+you can concatenate multiple options together with colons (:) and
+must enclose everything with braces. For example:
+
+@code{@{opt1@{param1=value1@}:opt2@{param2=value2@}@}
+
+If you use @code{-help}, you'll also see supported ranges for
+numeric types, or supported options for strings (if available).
+
+@end table
+
 
 @node Applications
 @chapter Applications
@@ -660,6 +737,13 @@ a bit easier, there are the gmerlin-dependencies and gmerlin-all-in-one packages
 
 @node Usage questions
 @section Usage questions
+
+@strong{Q:} @emph{Ok, I compiled gmerlin and started the player, now how do I  play a file?}
+
+@strong{A:} The best way is to first create an album (right click onto the
+root item in the tree). Then open the album and, in the album view,
+use one of the buttons at the bottom to open a file or URL. Or drag the
+file from a filemanager into an album.
 
 @strong{Q:} @emph{Can I play a VCD image from harddisk before burning?}
 
