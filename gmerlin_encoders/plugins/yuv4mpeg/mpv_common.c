@@ -22,6 +22,9 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "mpegvideo"
+
 #include <gmerlin/subprocess.h>
 
 #include <yuv4mpeg.h>
@@ -125,8 +128,6 @@ void bg_mpv_set_parameter(void * data, char * name, bg_parameter_value_t * val)
     SET_ENUM("vcd",   com->format, FORMAT_VCD);
     SET_ENUM("svcd",  com->format, FORMAT_SVCD);
     SET_ENUM("dvd",   com->format, FORMAT_DVD);
-    //    fprintf(stderr, "val->str: %s format: %d\n",
-    //            val->val_str, com->format);
     }
   else if(!strcmp(name, "bitrate_mode"))
     {
@@ -158,12 +159,11 @@ static char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filena
   
   if(!bg_search_file_exec("mpeg2enc", &mpeg2enc_path))
     {
-    fprintf(stderr, "Cannot find mpeg2enc");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Cannot find mpeg2enc");
     return (char*)0;
     }
 
   /* path + format */
-  //  fprintf(stderr, "com->format: %d\n", com->format);
   ret = bg_sprintf("%s -f %d", mpeg2enc_path, com->format);
   free(mpeg2enc_path);
 
@@ -237,8 +237,6 @@ static void bg_mpv_adjust_framerate(gavl_video_format_t * format)
   int min_index;
   int i;
 
-  //  fprintf(stderr, "adjust_framerate\n");
-  //  gavl_video_format_dump(format);
   
   /* Constant framerate */
   format->framerate_mode = GAVL_FRAMERATE_CONSTANT;
@@ -258,10 +256,6 @@ static void bg_mpv_adjust_framerate(gavl_video_format_t * format)
       (double)mpeg_framerates[i].frame_duration;
 
     test_diff = fabs(rate_d - test_rate_d);
-#if 0
-    fprintf(stderr, "Rate: %f [%d:%d] test_rate: %f, diff: %f\n",
-            rate_d, format->timescale, format->frame_duration, test_rate_d, test_diff);
-#endif 
     if(test_diff < min_diff)
       {
       min_index = i;
@@ -287,7 +281,7 @@ static int bg_mpv_get_chroma_mode(bg_mpv_common_t * com)
       return Y4M_CHROMA_420MPEG2;
       break;
     default:
-      fprintf(stderr, "ERROR: Unknown MPEG format\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Unknown MPEG format");
     }
   return -1;
   }
@@ -306,7 +300,7 @@ static void bg_mpv_adjust_interlacing(gavl_video_format_t * format,
     case FORMAT_DVD:
       break;
     default:
-      fprintf(stderr, "ERROR: Unknown MPEG format\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Unknown MPEG format");
     }
   }
 
@@ -340,17 +334,14 @@ int bg_mpv_open(bg_mpv_common_t * com, const char * filename)
     return 0;
     }
 
-  //  fprintf(stderr, "launching %s...", commandline);
   com->mpeg2enc = bg_subprocess_create(commandline, 1, 0, 0);
   if(!com->mpeg2enc)
     {
-    //    fprintf(stderr, "failed\n");
     return 0;
     }
 
 
   com->y4m.fd = com->mpeg2enc->stdin;
-  //  fprintf(stderr, "done\n");
 
   free(commandline);
   
@@ -375,14 +366,13 @@ void bg_mpv_get_format(bg_mpv_common_t * com, gavl_video_format_t * format)
 
 void bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame)
   {
-  //  fprintf(stderr, "bg_mpv_write_video_frame\n");
   bg_y4m_write_frame(&com->y4m, frame);
   }
 
 void bg_mpv_close(bg_mpv_common_t * com)
   {
-  //  fprintf(stderr, "bg_mpv_close\n");
-  bg_subprocess_close(com->mpeg2enc);
+  if(com->mpeg2enc)
+    bg_subprocess_close(com->mpeg2enc);
   bg_y4m_cleanup(&com->y4m);
   if(com->user_options)
     free(com->user_options);

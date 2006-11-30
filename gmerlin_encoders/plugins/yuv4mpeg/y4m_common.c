@@ -21,6 +21,8 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "y4m"
 
 #include <yuv4mpeg.h>
 #include "y4m_common.h"
@@ -111,13 +113,11 @@ int bg_y4m_write_header(bg_y4m_common_t * com)
 
   /* Now, it's time to write the stream header */
 
-  fprintf(stderr, "Writing stream header....");
   if(y4m_write_stream_header(com->fd, &(com->si)) != Y4M_OK)
     {
-    fprintf(stderr, "Writing stream header failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing stream header failed");
     return 0;
     }
-  fprintf(stderr, "done\n");
   return 1;
 
   }

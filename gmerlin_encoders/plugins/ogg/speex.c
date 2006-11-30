@@ -22,6 +22,8 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "oggspeex"
 
 #include <speex/speex.h>
 #include <speex/speex_header.h>
@@ -351,7 +353,6 @@ static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t *
     
   mode = speex_lib_get_mode(speex->modeID);
 
-  //  fprintf(stderr, "Mode: %p\n", mode);
   
   speex_init_header(&header, speex->format->samplerate, 1, mode);
   header.frames_per_packet=speex->nframes;
@@ -402,8 +403,6 @@ static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t *
   speex_encoder_ctl(speex->enc, SPEEX_GET_FRAME_SIZE, &speex->format->samples_per_frame);
   speex_encoder_ctl(speex->enc, SPEEX_GET_LOOKAHEAD,  &speex->lookahead);
 
-  //  fprintf(stderr, "Framesize: %d, lookahead: %d\n",
-  //          speex->format->samples_per_frame, speex->lookahead);
 
   /* Allocate temporary frame */
 
@@ -424,7 +423,7 @@ static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t *
   ogg_stream_packetin(&speex->enc_os,&op);
   free(op.packet);
   if(!bg_ogg_flush_page(&speex->enc_os, speex->output, 1))
-    fprintf(stderr, "Warning: Got no Speex ID page\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Warning: Got no Speex ID page");
 
   /* Build comment */
   op.packet = (unsigned char *)comments;
@@ -481,8 +480,6 @@ static void encode_frame(speex_t * speex, int eof)
       speex->frames_encoded++;
       }
     }
-  //  if(eof)
-  //    fprintf(stderr, "EOF: %d %d\n", speex->frames_encoded, speex->nframes);
   
   if(speex->frames_encoded && !(speex->frames_encoded % speex->nframes))
     {
@@ -501,7 +498,6 @@ static void encode_frame(speex_t * speex, int eof)
     op.packetno = 2 + (speex->frames_encoded / speex->nframes);
     ogg_stream_packetin(&speex->enc_os, &op);
     speex_bits_reset(&speex->bits);
-    //    fprintf(stderr, "Wrote speex packet %ld bytes\n", op.bytes);
     bg_ogg_flush(&speex->enc_os, speex->output, eof);
     }
   if(eof)

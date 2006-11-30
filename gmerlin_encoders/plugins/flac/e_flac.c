@@ -23,7 +23,8 @@
 #include <config.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
-
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "e_flac"
 
 #include <bgflac.h>
 
@@ -199,7 +200,7 @@ static int start_flac(void * data)
   /* Initialize encoder */
   if(FLAC__file_encoder_init(flac->enc) != FLAC__FILE_ENCODER_OK)
     {
-    fprintf(stderr, "ERROR: FLAC__file_encoder_init failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "ERROR: FLAC__file_encoder_init failed");
     return 0;
     }
   return 1;
@@ -270,12 +271,6 @@ seektable_write_callback(const FLAC__FileDecoder *decoder,
     seekpoint.sample_number = cd->sample_position;
     seekpoint.stream_offset = cd->byte_position - cd->start_position;
     seekpoint.frame_samples = frame->header.blocksize;
-#if 0    
-    fprintf(stderr, "Seektable[%lld]: Byte pos: %lld sample pos: %lld frame_samples: %d\n",
-            cd->table_position,
-            cd->byte_position - cd->start_position, cd->sample_position,
-            frame->header.blocksize);
-#endif
     FLAC__metadata_object_seektable_set_point(cd->metadata,
                                               cd->table_position,
                                               seekpoint);
@@ -295,14 +290,12 @@ seektable_write_callback(const FLAC__FileDecoder *decoder,
 static void seektable_error_callback(const FLAC__FileDecoder *decoder,
                                      FLAC__StreamDecoderErrorStatus status, void *client_data)
   {
-  fprintf(stderr, "seektable_error_callback called!!\n");
   }
 
 static void seektable_metadata_callback(const FLAC__FileDecoder *decoder,
                                         const FLAC__StreamMetadata *metadata,
                                         void *client_data)
   {
-  fprintf(stderr, "seektable_metadata_callback called!!\n");
   }
 
 static void finalize_seektable(flac_t * flac)
@@ -348,8 +341,6 @@ static void finalize_seektable(flac_t * flac)
     /* Avoid duplicate entries */
     if(cd.seek_samples[index] > cd.seek_samples[index-1])
       {
-      //      fprintf(stderr, "Seek samples[%lld]: %lld (total: %lld)\n", index, cd.seek_samples[index],
-      //              flac->samples_written);
       index++;
       }
     else
@@ -373,8 +364,6 @@ static void finalize_seektable(flac_t * flac)
   FLAC__file_decoder_get_decode_position(decoder, &cd.start_position);
 
   cd.byte_position = cd.start_position;
-  
-  //  fprintf(stderr, "start_position: %lld\n", cd.start_position);
   
   FLAC__file_decoder_process_until_end_of_file(decoder);
   FLAC__file_decoder_delete(decoder);

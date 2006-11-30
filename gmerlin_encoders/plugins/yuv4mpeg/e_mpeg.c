@@ -24,6 +24,10 @@
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/subprocess.h>
+
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "e_mpeg"
+
 #include <gmerlin_encoders.h>
 #include "mpa_common.h"
 #include "mpv_common.h"
@@ -156,7 +160,6 @@ static void get_audio_format_mpeg(void * data, int stream,
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
   bg_mpa_get_format(&(e->audio_streams[stream].mpa), ret);
-  //  fprintf(stderr, "get_audio_format_mpeg\n");
   }
 
 static void get_video_format_mpeg(void * data, int stream,
@@ -164,7 +167,6 @@ static void get_video_format_mpeg(void * data, int stream,
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
   bg_mpv_get_format(&(e->video_streams[stream].mpv), ret);
-  //  fprintf(stderr, "get_video_format_mpeg\n");
   }
 
 static char * get_filename(e_mpeg_t * e, const char * extension, int is_audio)
@@ -218,18 +220,27 @@ static int start_mpeg(void * data)
   int i;
   e_mpeg_t * e = (e_mpeg_t*)data;
   e->is_open = 1;
-//  fprintf(stderr, "start_mpeg\n");
   
   for(i = 0; i < e->num_audio_streams; i++)
     {
-    e->audio_streams[i].filename = get_filename(e, bg_mpa_get_extension(&(e->audio_streams[i].mpa)), 1);
+    e->audio_streams[i].filename =
+      get_filename(e, bg_mpa_get_extension(&(e->audio_streams[i].mpa)), 1);
+
+    if(!e->audio_streams[i].filename)
+      return 0;
+    
     bg_mpa_set_format(&(e->audio_streams[i].mpa), &(e->audio_streams[i].format));
     if(!bg_mpa_start(&(e->audio_streams[i].mpa), e->audio_streams[i].filename))
       return 0;
     }
   for(i = 0; i < e->num_video_streams; i++)
     {
-    e->video_streams[i].filename = get_filename(e, bg_mpv_get_extension(&(e->video_streams[i].mpv)), 0);
+    e->video_streams[i].filename =
+      get_filename(e, bg_mpv_get_extension(&(e->video_streams[i].mpv)), 0);
+
+    if(!e->video_streams[i].filename)
+      return 0;
+    
     bg_mpv_open(&(e->video_streams[i].mpv), e->video_streams[i].filename);
     bg_mpv_set_format(&(e->video_streams[i].mpv), &(e->video_streams[i].format));
     if(!bg_mpv_start(&(e->video_streams[i].mpv)))
@@ -254,6 +265,7 @@ static void write_video_frame_mpeg(void * data, gavl_video_frame_t* frame,
 
 static void close_mpeg(void * data, int do_delete)
   {
+  bg_subprocess_t * proc;
   char * commandline;
   char * tmp_string;
   
@@ -281,7 +293,7 @@ static void close_mpeg(void * data, int do_delete)
     
     if(!bg_search_file_exec("mplex", &commandline))
       {
-      fprintf(stderr, "Cannot find mplex");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Cannot find mplex");
       return;
       }
     /* Options */
@@ -331,8 +343,9 @@ static void close_mpeg(void * data, int do_delete)
     
     /* 3. Step: Execute mplex */
 
-    fprintf(stderr, "Launching %s\n", commandline);
-    system(commandline);
+    proc = bg_subprocess_create(commandline, 0, 0, 0);
+    bg_subprocess_close(proc);
+    
     free(commandline);
     }
   /* 4. Step: Clean up */
@@ -341,9 +354,13 @@ static void close_mpeg(void * data, int do_delete)
     {
     for(i = 0; i < e->num_audio_streams; i++)
       {
-      fprintf(stderr, "Removing %s\n", e->audio_streams[i].filename);
-      remove(e->audio_streams[i].filename);
-      free(e->audio_streams[i].filename);
+      if(e->audio_streams[i].filename)
+        {
+        bg_log(BG_LOG_INFO, LOG_DOMAIN,
+               "Removing %s", e->audio_streams[i].filename);
+        remove(e->audio_streams[i].filename);
+        free(e->audio_streams[i].filename);
+        }
       }
     free(e->audio_streams);
     }
@@ -351,9 +368,13 @@ static void close_mpeg(void * data, int do_delete)
     {
     for(i = 0; i < e->num_video_streams; i++)
       {
-      fprintf(stderr, "Removing %s\n", e->video_streams[i].filename);
-      remove(e->video_streams[i].filename);
-      free(e->video_streams[i].filename);
+      if(e->video_streams[i].filename)
+        {
+        bg_log(BG_LOG_INFO, LOG_DOMAIN,
+               "Removing %s", e->video_streams[i].filename);
+        remove(e->video_streams[i].filename);
+        free(e->video_streams[i].filename);
+        }
       }
     free(e->video_streams);
     }

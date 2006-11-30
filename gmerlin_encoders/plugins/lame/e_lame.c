@@ -22,6 +22,9 @@
 #include <config.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "e_lame"
+
 #include <gmerlin_encoders.h>
 
 #include <lame/lame.h>
@@ -308,24 +311,7 @@ static bg_parameter_info_t * get_audio_parameters_lame(void * data)
   {
   return audio_parameters;
   }
-#if 0
-static void lame_dump(lame_t lame)
-  {
-  fprintf(stderr, "VBR_q:                %d\n", lame_get_VBR_q(lame));
-  fprintf(stderr, "VBR_mean_bitrate_kbps %d\n", lame_get_VBR_mean_bitrate_kbps(lame));
-  fprintf(stderr, "VBR_min_bitrate_kbps: %d\n", lame_get_VBR_min_bitrate_kbps(lame));
-  fprintf(stderr, "VBR_max_bitrate_kbps: %d\n", lame_get_VBR_max_bitrate_kbps(lame));
-  fprintf(stderr, "lame_get_VBR_q:       %d\n", lame_get_VBR_q(lame));
-  fprintf(stderr, "brate:                %d\n", lame_get_brate(lame));
-  fprintf(stderr, "VBR:                  %d\n", lame_get_VBR(lame));
-  fprintf(stderr, "bWriteVbrTag:         %d\n", lame_get_bWriteVbrTag(lame));
-  fprintf(stderr, "mode:                 %d\n", lame_get_mode(lame));
-  fprintf(stderr, "quality:              %d\n", lame_get_quality(lame));
-  fprintf(stderr, "in_samplerate:        %d\n", lame_get_in_samplerate(lame));
-  fprintf(stderr, "num_channels:         %d\n", lame_get_num_channels(lame));
-  fprintf(stderr, "scale:                %f\n", lame_get_scale(lame));
-  }
-#endif
+
 static void set_audio_parameter_lame(void * data, int stream, char * name,
                                      bg_parameter_value_t * v)
   {
@@ -344,10 +330,11 @@ static void set_audio_parameter_lame(void * data, int stream, char * name,
       case vbr_abr:
         /* Average bitrate */
         if(lame_set_VBR_q(lame->lame, lame->vbr_quality))
-          fprintf(stderr, "lame_set_VBR_q failed\n");
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_VBR_q failed");
 
         if(lame_set_VBR_mean_bitrate_kbps(lame->lame, lame->abr_bitrate))
-          fprintf(stderr, "lame_set_VBR_mean_bitrate_kbps failed\n");
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+                 "lame_set_VBR_mean_bitrate_kbps failed");
         
         if(lame->abr_min_bitrate)
           {
@@ -356,11 +343,10 @@ static void set_audio_parameter_lame(void * data, int stream, char * name,
           if(lame->abr_min_bitrate > lame->abr_bitrate)
             {
             lame->abr_min_bitrate = get_bitrate(8, lame->format.samplerate);
-            fprintf(stderr, "Adjusting abr_min_bitrate to %d\n",
-                    lame->abr_min_bitrate);
             }
           if(lame_set_VBR_min_bitrate_kbps(lame->lame, lame->abr_min_bitrate))
-            fprintf(stderr, "lame_set_VBR_min_bitrate_kbps failed\n");
+            bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+                   "lame_set_VBR_min_bitrate_kbps failed");
           }
         if(lame->abr_max_bitrate)
           {
@@ -369,38 +355,32 @@ static void set_audio_parameter_lame(void * data, int stream, char * name,
           if(lame->abr_max_bitrate < lame->abr_bitrate)
             {
             lame->abr_max_bitrate = get_bitrate(320, lame->format.samplerate);
-            fprintf(stderr, "Adjusting abr_max_bitrate to %d\n",
-                    lame->abr_max_bitrate);
             }
           if(lame_set_VBR_max_bitrate_kbps(lame->lame, lame->abr_max_bitrate))
-            fprintf(stderr, "lame_set_VBR_max_bitrate_kbps failed\n");
+            bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+                   "lame_set_VBR_max_bitrate_kbps failed");
           }
         break;
       case vbr_default:
         if(lame_set_VBR_q(lame->lame, lame->vbr_quality))
-          fprintf(stderr, "lame_set_VBR_q failed\n");
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_VBR_q failed");
         break;
       case vbr_off:
         lame->cbr_bitrate =
             get_bitrate(lame->cbr_bitrate, lame->format.samplerate);
         if(lame_set_brate(lame->lame, lame->cbr_bitrate))
-          fprintf(stderr, "lame_set_brate failed\n");
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_brate failed");
         break;
       default:
         break;
       }
 
     if(lame_init_params(lame->lame) < 0)
-      fprintf(stderr, "lame_init_params failed!!!\n");
-    //    lame_print_internals(lame->lame);
-
-    //    lame_dump(lame->lame);
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_init_params failed");
 
     return;
     }
 
-  //  fprintf(stderr, "Set audio parameter: %s\n", name);
-  
   if(!strcmp(name, "bitrate_mode"))
     {
     if(!strcmp(v->val_str, "ABR"))
@@ -416,10 +396,10 @@ static void set_audio_parameter_lame(void * data, int stream, char * name,
       lame->vbr_mode = vbr_off;
       }
     if(lame_set_VBR(lame->lame, lame->vbr_mode))
-      fprintf(stderr, "lame_set_VBR failed\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_VBR failed");
     
     if(lame_set_bWriteVbrTag(lame->lame, (lame->vbr_mode == vbr_off) ? 0 : 1))
-      fprintf(stderr, "lame_set_bWriteVbrTag failed\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_bWriteVbrTag failed");
 
     //    lame_set_bWriteVbrTag(lame->lame, 0);
     }
@@ -439,13 +419,13 @@ static void set_audio_parameter_lame(void * data, int stream, char * name,
     if(i != NOT_SET)
       {
       if(lame_set_mode(lame->lame, JOINT_STEREO))
-        fprintf(stderr, "lame_set_mode failed\n");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_mode failed");
       }
     }
   else if(!strcmp(name, "quality"))
     {
     if(lame_set_quality(lame->lame, v->val_i))
-      fprintf(stderr, "lame_set_quality failed\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_quality failed");
     }
   
   else if(!strcmp(name, "cbr_bitrate"))
@@ -468,9 +448,6 @@ static void set_audio_parameter_lame(void * data, int stream, char * name,
     {
     lame->abr_max_bitrate = v->val_i;
     }
-    
-  
-  //  fprintf(stderr, "set_audio_parameter_lame %s\n", name);
   }
 
 /* Global parameters */
@@ -570,14 +547,12 @@ static int add_audio_stream_lame(void * data, gavl_audio_format_t * format)
     }
 
   if(lame_set_in_samplerate(lame->lame, lame->format.samplerate))
-    fprintf(stderr, "lame_set_in_samplerate failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_in_samplerate failed");
   if(lame_set_num_channels(lame->lame,  lame->format.num_channels))
-    fprintf(stderr, "lame_set_num_channels failed\n");
-
-  //  fprintf(stderr, "ADD AUDIO STREAM %d\n", lame->format.num_channels);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_num_channels failed");
 
   if(lame_set_scale(lame->lame, 32767.0))
-    fprintf(stderr, "lame_set_scale failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "lame_set_scale failed");
     
   
   //  lame_set_out_samplerate(lame->lame, lame->format.samplerate);
@@ -645,7 +620,6 @@ static void close_lame(void * data, int do_delete)
     
     if(lame->vbr_mode != vbr_off)
       {
-      //    fprintf(stderr, "Adding XING tag\n");
       lame_mp3_tags_fid(lame->lame, lame->output);
       }
     }

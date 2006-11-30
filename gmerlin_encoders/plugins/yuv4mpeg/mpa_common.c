@@ -92,7 +92,7 @@ static char * bg_mpa_make_commandline(bg_mpa_common_t * com,
 
   if(!bg_search_file_exec("mp2enc", &mp2enc_path))
     {
-    fprintf(stderr, "Cannot find mp2enc");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Cannot find mp2enc");
     return (char*)0;
     }
 
@@ -134,9 +134,6 @@ static int get_bitrate(int in_rate, int layer, int channels,
   int min_diff = 1000000;
   int min_i = -1;
   int ret = 0;
-
-  //  fprintf(stderr, "get_bitrate: %d %d %d %d\n",
-  //          in_rate, layer, channels, vcd);
   
   for(i = 0; i < 15; i++)
     {
@@ -307,8 +304,6 @@ int bg_mpa_start(bg_mpa_common_t * com, const char * filename)
     {
     return 0;
     }
-  //  fprintf(stderr, "Launching %s\n", commandline);
-    
   com->mp2enc = bg_subprocess_create(commandline, 1, 0, 0);
   if(!com->mp2enc)
     return 0;
@@ -325,5 +320,6 @@ void bg_mpa_write_audio_frame(bg_mpa_common_t * com,
 
 void bg_mpa_close(bg_mpa_common_t * com)
   {
-  bg_subprocess_close(com->mp2enc);
+  if(com->mp2enc)
+    bg_subprocess_close(com->mp2enc);
   }

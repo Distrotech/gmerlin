@@ -22,6 +22,8 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "oggflac"
 
 #include <ogg/ogg.h>
 #include "ogg_common.h"
@@ -75,8 +77,6 @@ write_callback(const FLAC__StreamEncoder *encoder,
   flacogg_t * flacogg;
   flacogg = (flacogg_t*)data;
   
-  //  fprintf(stderr, "Write callback: bytes: %d, samples: %d, current_frame: %d\n", bytes, samples, current_frame);
-  // bg_hexdump(buffer, bytes, 16);
   
   if(!flacogg->header_written)
     {
@@ -95,9 +95,8 @@ write_callback(const FLAC__StreamEncoder *encoder,
       ogg_stream_packetin(&flacogg->os, &op);
       
       if(!bg_ogg_flush_page(&flacogg->os, flacogg->output, 1))
-        fprintf(stderr, "Warning: Got no Flac ID page\n");
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Warning: Got no Flac ID page");
       flacogg->header_written = 1;
-      //      fprintf(stderr, "Wrote header\n");
       }
     }
   else if((buffer[0] & 0x7f) == 0x04) /* Vorbis comment */
@@ -158,7 +157,6 @@ static void metadata_callback(const FLAC__StreamEncoder *encoder,
                               const FLAC__StreamMetadata *metadata,
                               void *client_data)
   {
-  //  fprintf(stderr, "Metadata callback\n");
   }
 
 static void * create_flacogg(FILE * output, long serialno)
@@ -217,13 +215,11 @@ static int init_flacogg(void * data, gavl_audio_format_t * format, bg_metadata_t
   
   /* Initialize encoder */
 
-  //  fprintf(stderr, "FLAC__stream_encoder_init...\n");
   if(FLAC__stream_encoder_init(flacogg->enc) != FLAC__STREAM_ENCODER_OK)
     {
-    fprintf(stderr, "ERROR: FLAC__stream_encoder_init failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "ERROR: FLAC__stream_encoder_init failed");
     return 0;
     }
-  //  fprintf(stderr, "FLAC__stream_encoder_done...\n");
   
   return 1;
   }
@@ -254,10 +250,8 @@ static void close_flacogg(void * data)
   
   if(flacogg->enc)
     {
-    //    fprintf(stderr, "Closing encoder\n");
     FLAC__stream_encoder_finish(flacogg->enc);
     FLAC__stream_encoder_delete(flacogg->enc);
-    //    fprintf(stderr, "Closing encoder done\n");
 
     /* Flush data */
     write_callback(NULL,

@@ -28,6 +28,8 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "e_faac"
 
 typedef struct
   {
@@ -87,13 +89,19 @@ static bg_parameter_info_t audio_parameters[] =
       name:        "object_type",
       long_name:   "Object type",
       type:        BG_PARAMETER_STRINGLIST,
-      val_default: { val_str:  "MPEG-4 Main profile" },
-      multi_names: (char*[]){ "MPEG-2 Main profile",
-                              "MPEG-2 Low Complexity profile (LC)",
-                              "MPEG-4 Main profile",
-                              "MPEG-4 Low Complexity profile (LC)",
-                              "MPEG-4 Long Term Prediction (LTP)",
+      val_default: { val_str:  "mpeg4_main" },
+      multi_names: (char*[]){ "mpeg2_main",
+                              "mpeg2_lc",
+                              "mpeg4_main",
+                              "mpeg4_lc",
+                              "mpeg4_ltp",
                               (char*)0 },
+      multi_labels: (char*[]){ "MPEG-2 Main profile",
+                               "MPEG-2 Low Complexity profile (LC)",
+                               "MPEG-4 Main profile",
+                               "MPEG-4 Low Complexity profile (LC)",
+                               "MPEG-4 Long Term Prediction (LTP)",
+                               (char*)0 },
     },
     {
       name:        "bitrate",
@@ -160,32 +168,32 @@ static void set_audio_parameter_faac(void * data, int stream, char * name,
     /* Set encoding parameters */
     
     if(!faacEncSetConfiguration(faac->enc, faac->enc_config))
-      fprintf(stderr, "ERROR: faacEncSetConfiguration failed\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "ERROR: faacEncSetConfiguration failed");
     }
     
   else if(!strcmp(name, "object_type"))
     {
-    if(!strcmp(v->val_str, "MPEG-2 Main profile"))
+    if(!strcmp(v->val_str, "mpeg2_main"))
       {
       faac->enc_config->mpegVersion = MPEG2;
       faac->enc_config->aacObjectType = MAIN;
       }
-    else if(!strcmp(v->val_str, "MPEG-2 Low Complexity profile (LC)"))
+    else if(!strcmp(v->val_str, "mpeg2_lc"))
       {
       faac->enc_config->mpegVersion = MPEG2;
       faac->enc_config->aacObjectType = LOW;
       }
-    else if(!strcmp(v->val_str, "MPEG-4 Main profile"))
+    else if(!strcmp(v->val_str, "mpeg4_main"))
       {
       faac->enc_config->mpegVersion = MPEG4;
       faac->enc_config->aacObjectType = MAIN;
       }
-    else if(!strcmp(v->val_str, "MPEG-4 Low Complexity profile (LC)"))
+    else if(!strcmp(v->val_str, "mpeg4_lc"))
       {
       faac->enc_config->mpegVersion = MPEG4;
       faac->enc_config->aacObjectType = LOW;
       }
-    else if(!strcmp(v->val_str, "MPEG-4 Long Term Prediction (LTP)"))
+    else if(!strcmp(v->val_str, "mpeg4_ltp"))
       {
       faac->enc_config->mpegVersion = MPEG4;
       faac->enc_config->aacObjectType = LTP;
@@ -223,12 +231,6 @@ static void set_audio_parameter_faac(void * data, int stream, char * name,
     {
     faac->enc_config->allowMidside = !v->val_i;
     }
-#if 0
-  else
-    {
-    fprintf(stderr, "set_audio_parameter_faac %s\n", name);
-    }
-#endif
   }
 
 static bg_parameter_info_t parameters[] =
@@ -380,8 +382,6 @@ static int flush_audio(faac_t * faac)
 
   /* First, we must scale the samples to -32767 .. 32767 */
 
-  //  fprintf(stderr, "FLUSH %d\n", faac->frame->valid_samples);
-  
   imax = faac->frame->valid_samples * faac->format.num_channels;
   
   for(i = 0; i < imax; i++)
@@ -414,7 +414,6 @@ static void write_audio_frame_faac(void * data, gavl_audio_frame_t * frame,
   
   while(samples_done < frame->valid_samples)
     {
-    //    fprintf(stderr, "ENCODE %d %d\n", frame->valid_samples, samples_done);
 
     /* Copy frame into our buffer */
     

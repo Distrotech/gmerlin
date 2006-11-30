@@ -22,6 +22,9 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "oggtheora"
+
 
 #include <theora/theora.h>
 #include "ogg_common.h"
@@ -320,7 +323,7 @@ static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t 
   /* Initialize encoder */
   if(theora_encode_init(&theora->ts, &theora->ti))
     {
-    fprintf(stderr, "theora_encode_init failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "theora_encode_init failed");
     return 0;
     }
   /* Build comment (comments are UTF-8, good for us :-) */
@@ -330,14 +333,18 @@ static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t 
   /* Encode initial packets */
   if(theora_encode_header(&theora->ts, &op))
     {
-    fprintf(stderr, "theora_encode_header failed\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "theora_encode_header failed");
+    return 0;
     }
   else
     {
     /* And stream them out */
     ogg_stream_packetin(&theora->os,&op);
     if(!bg_ogg_flush_page(&theora->os, theora->output, 1))
-      fprintf(stderr, "Warning: Got no Theora ID page\n");
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Warning: Got no Theora ID page\n");
+      return 0;
+      }
     }
   theora_encode_comment(&theora->tc, &op);
   ogg_stream_packetin(&theora->os,&op);
@@ -369,7 +376,8 @@ static void write_video_frame_theora(void * data, gavl_video_frame_t * frame)
     {
     if(!theora_encode_packetout(&theora->ts, 0, &op))
       {
-      fprintf(stderr, "Warning: theora encoder produced no packet\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Warning: theora encoder produced no packet");
       return;
       }
     ogg_stream_packetin(&theora->os,&op);
@@ -390,9 +398,7 @@ static void write_video_frame_theora(void * data, gavl_video_frame_t * frame)
   yuv.y = frame->planes[0];
   yuv.u = frame->planes[1];
   yuv.v = frame->planes[2];
-  //  fprintf(stderr, "theora_encode_YUVin...");
   theora_encode_YUVin(&theora->ts, &yuv);
-  //  fprintf(stderr, "done\n");
   theora->have_packet = 1;
   }
 
@@ -406,7 +412,7 @@ static void close_theora(void * data)
     {
     if(!theora_encode_packetout(&theora->ts, 1, &op))
       {
-      fprintf(stderr, "Warning: theora encoder produced no packet\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Warning: theora encoder produced no packet\n");
       return;
       }
     ogg_stream_packetin(&theora->os,&op);

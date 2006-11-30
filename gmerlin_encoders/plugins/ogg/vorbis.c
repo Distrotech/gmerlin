@@ -22,6 +22,8 @@
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "oggvorbis"
 
 #include <vorbis/vorbisenc.h>
 #include "ogg_common.h"
@@ -236,7 +238,7 @@ static int init_vorbis(void * data, gavl_audio_format_t * format, bg_metadata_t 
   /* And stream them out */
   ogg_stream_packetin(&vorbis->enc_os,&header_main);
   if(!bg_ogg_flush_page(&vorbis->enc_os, vorbis->output, 1))
-    fprintf(stderr, "Warning: Got no Vorbis ID page\n");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Warning: Got no Vorbis ID page");
   
   ogg_stream_packetin(&vorbis->enc_os,&header_comments);
   ogg_stream_packetin(&vorbis->enc_os,&header_codebooks);
