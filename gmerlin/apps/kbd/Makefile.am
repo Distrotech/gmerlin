@@ -25,4 +25,3 @@ gmerlin_kbd_LDADD = ../../lib/libgmerlin.la @X_LIBS@
 gmerlin_kbd_config_LDADD = ../../lib/libgmerlin.la ../../lib/gtk/libgmerlin_gtk.la
 
 
-EXTRA_DIST = gmerlin_launcher
