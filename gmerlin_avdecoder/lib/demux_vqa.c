@@ -19,7 +19,6 @@
 
 #include <avdec_private.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 /* Header structure */
 
@@ -83,6 +82,7 @@ static int read_file_header(bgav_input_context_t * input, VQAHeader * ret)
           bgav_input_read_32_le(input, &ret->Unknown5));
   }
 
+#if 0
 static void dump_file_header(VQAHeader * h)
   {
   bgav_dprintf("Version:     %d\n",   h->Version);   /* VQA version number                         */
@@ -106,6 +106,7 @@ static void dump_file_header(VQAHeader * h)
   bgav_dprintf("MaxCBFZSize: %d\n", h->MaxCBFZSize); /* 0 in old VQAs, max. CBFZ size in HiColor   */
   bgav_dprintf("Unknown5:    %d\n",  h->Unknown5);   /* Always 0 ???                               */
   }
+#endif
 
 typedef struct
   {
@@ -156,7 +157,7 @@ static int open_vqa(bgav_demuxer_context_t * ctx,
   bgav_input_close(input_mem);
   bgav_input_destroy(input_mem);
 
-  dump_file_header(&h);
+  //  dump_file_header(&h);
   
   /* Create track */
   ctx->tt = bgav_track_table_create(1);
@@ -229,11 +230,6 @@ static int next_packet_vqa(bgav_demuxer_context_t * ctx)
   if(!s)
     {
     bgav_input_skip(ctx->input, size);
-    
-    fprintf(stderr, "Skipping chunk ");
-    bgav_dump_fourcc(type);
-    fprintf(stderr, "%d bytes\n", size);
-
     if(size & 1)
       bgav_input_skip(ctx->input, 1);
     
