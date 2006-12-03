@@ -24,6 +24,11 @@
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/subprocess.h>
+#include <gmerlin/log.h>
+
+#define LOG_DOMAIN "e_mpegaudio"
+
+
 #include <gmerlin_encoders.h>
 #include "mpa_common.h"
 
@@ -101,12 +106,12 @@ static int start_mpa(void * data)
 
 
 
-static void write_audio_frame_mpa(void * data, gavl_audio_frame_t * frame,
+static int write_audio_frame_mpa(void * data, gavl_audio_frame_t * frame,
                                   int stream)
   {
   e_mpa_t * mpa;
   mpa = (e_mpa_t*)data;
-  bg_mpa_write_audio_frame(&mpa->com, frame);
+  return bg_mpa_write_audio_frame(&mpa->com, frame);
   }
 
 static void get_audio_format_mpa(void * data, int stream,
@@ -118,19 +123,23 @@ static void get_audio_format_mpa(void * data, int stream,
   
   }
 
-static void close_mpa(void * data, int do_delete)
+static int close_mpa(void * data, int do_delete)
   {
+  int ret = 1;
   e_mpa_t * mpa;
   mpa = (e_mpa_t*)data;
 
-  bg_mpa_close(&mpa->com);
+  if(!bg_mpa_close(&mpa->com))
+    ret = 0;
 
   if(do_delete)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing %s", mpa->filename);
     remove(mpa->filename);
-  
+    }
   if(mpa->filename)
     free(mpa->filename);
-
+  return ret;
   }
 
 static const char * get_extension_mpa(void * data)

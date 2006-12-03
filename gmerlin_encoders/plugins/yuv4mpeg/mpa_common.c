@@ -20,6 +20,8 @@
 #include <string.h>
 #include <config.h>
 #include <unistd.h> 
+#include <pthread.h>
+#include <sys/signal.h>
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
@@ -288,8 +290,14 @@ void bg_mpa_get_format(bg_mpa_common_t * com, gavl_audio_format_t * format)
 
 int bg_mpa_start(bg_mpa_common_t * com, const char * filename)
   {
+  sigset_t newset;
   char * commandline;
 
+  /* Block SIGPIPE */
+  sigemptyset(&newset);
+  sigaddset(&newset, SIGPIPE);
+  pthread_sigmask(SIG_BLOCK, &newset, &com->oldset);
+  
   /* Adjust Samplerate */
   com->format.samplerate = get_samplerate(com->format.samplerate, com->vcd);
     
@@ -311,15 +319,23 @@ int bg_mpa_start(bg_mpa_common_t * com, const char * filename)
   return 1;
   }
 
-void bg_mpa_write_audio_frame(bg_mpa_common_t * com,
+int bg_mpa_write_audio_frame(bg_mpa_common_t * com,
                               gavl_audio_frame_t * frame)
   {
-  write(com->mp2enc->stdin, frame->samples.s_16,
-        2 * com->format.num_channels * frame->valid_samples);
+  int bytes = 2 * com->format.num_channels * frame->valid_samples;
+  if(write(com->mp2enc->stdin, frame->samples.s_16, bytes) < bytes)
+    return 0;
+  return 1;
   }
 
-void bg_mpa_close(bg_mpa_common_t * com)
+int bg_mpa_close(bg_mpa_common_t * com)
   {
+  int ret = 1;
   if(com->mp2enc)
-    bg_subprocess_close(com->mp2enc);
+    {
+    if(bg_subprocess_close(com->mp2enc))
+      ret = 0;
+    }
+  pthread_sigmask(SIG_SETMASK, &com->oldset, NULL);
+  return ret;
   }

@@ -355,15 +355,17 @@ static int init_theora(void * data, gavl_video_format_t * format, bg_metadata_t 
   return 1;
   }
 
-static void flush_header_pages_theora(void*data)
+static int flush_header_pages_theora(void*data)
   {
   theora_t * theora;
   theora = (theora_t*)data;
-  bg_ogg_flush(&theora->os, theora->output, 1);
+  if(bg_ogg_flush(&theora->os, theora->output, 1) <= 0)
+    return 0;
+  return 1;
   }
 
 
-static void write_video_frame_theora(void * data, gavl_video_frame_t * frame)
+static int write_video_frame_theora(void * data, gavl_video_frame_t * frame)
   {
   theora_t * theora;
   int sub_h, sub_v;
@@ -377,11 +379,16 @@ static void write_video_frame_theora(void * data, gavl_video_frame_t * frame)
     if(!theora_encode_packetout(&theora->ts, 0, &op))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-             "Warning: theora encoder produced no packet");
-      return;
+             "Theora encoder produced no packet");
+      return 0;
       }
     ogg_stream_packetin(&theora->os,&op);
-    bg_ogg_flush(&theora->os, theora->output, 0);
+    if(bg_ogg_flush(&theora->os, theora->output, 0) <= 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Writing theora packet failed");
+      return 0;
+      }
     theora->have_packet = 0;
     }
   
@@ -400,10 +407,12 @@ static void write_video_frame_theora(void * data, gavl_video_frame_t * frame)
   yuv.v = frame->planes[2];
   theora_encode_YUVin(&theora->ts, &yuv);
   theora->have_packet = 1;
+  return 1;
   }
 
-static void close_theora(void * data)
+static int close_theora(void * data)
   {
+  int ret = 1;
   theora_t * theora;
   ogg_packet op;
   theora = (theora_t*)data;
@@ -412,11 +421,19 @@ static void close_theora(void * data)
     {
     if(!theora_encode_packetout(&theora->ts, 1, &op))
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Warning: theora encoder produced no packet\n");
-      return;
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Warning: theora encoder produced no packet");
+      ret = 0;
       }
-    ogg_stream_packetin(&theora->os,&op);
-    bg_ogg_flush(&theora->os, theora->output, 1);
+
+    if(ret)
+      {
+      ogg_stream_packetin(&theora->os,&op);
+      if(bg_ogg_flush(&theora->os, theora->output, 1) <= 0)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing packet failed");
+        ret = 0;
+        }
+      }
     theora->have_packet = 0;
     }
   
@@ -425,6 +442,7 @@ static void close_theora(void * data)
   theora_info_clear(&theora->ti);
   theora_clear(&theora->ts);
   free(theora);
+  return ret;
   }
 
 

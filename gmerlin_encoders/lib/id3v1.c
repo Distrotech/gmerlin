@@ -22,6 +22,7 @@
 #include <gmerlin_encoders.h>
 
 #include <gmerlin/utils.h>
+#include <gmerlin/charset.h>
 
 #define GENRE_MAX 0x94
 
@@ -97,7 +98,7 @@ struct bgen_id3v1_s
   };
 
 static void set_string(char * dst, char * src, int max_len,
-                       bgen_charset_converter_t * cnv)
+                       bg_charset_converter_t * cnv)
   {
   int out_len;
 
@@ -107,7 +108,7 @@ static void set_string(char * dst, char * src, int max_len,
     return;
 
   tmp_string =
-    bgen_convert_string(cnv,
+    bg_convert_string(cnv,
                         src, -1, &out_len);
 
   if(!tmp_string) /* String could not be converted */
@@ -124,7 +125,7 @@ bgen_id3v1_t * bgen_id3v1_create(const bg_metadata_t * m)
   int i;
   char * tmp_string;
   int year;
-  bgen_charset_converter_t * cnv;
+  bg_charset_converter_t * cnv;
   bgen_id3v1_t * ret;
   ret = calloc(1, sizeof(*ret));
 
@@ -132,7 +133,7 @@ bgen_id3v1_t * bgen_id3v1_create(const bg_metadata_t * m)
   ret->data[1] = 'A';
   ret->data[2] = 'G';
 
-  cnv = bgen_charset_converter_create("UTF-8", "ISO-8859-1");
+  cnv = bg_charset_converter_create("UTF-8", "ISO-8859-1");
 
   set_string(&(ret->data[TITLE_POS]),  m->title,  TITLE_LEN, cnv);
   set_string(&(ret->data[ARTIST_POS]), m->artist, ARTIST_LEN, cnv);
@@ -176,14 +177,16 @@ bgen_id3v1_t * bgen_id3v1_create(const bg_metadata_t * m)
       }
     }
     
-  bgen_charset_converter_destroy(cnv);
+  bg_charset_converter_destroy(cnv);
   
   return ret;
   }
 
-void bgen_id3v1_write(FILE * output, const bgen_id3v1_t * tag)
+int bgen_id3v1_write(FILE * output, const bgen_id3v1_t * tag)
   {
-  fwrite(tag->data, 1, 128, output);
+  if(fwrite(tag->data, 1, 128, output) < 128)
+    return 0;
+  return 1;
   }
 
 void bgen_id3v1_destroy(bgen_id3v1_t * tag)

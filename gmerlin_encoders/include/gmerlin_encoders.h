@@ -28,22 +28,8 @@ typedef struct bgen_id3v2_s bgen_id3v2_t;
 bgen_id3v1_t * bgen_id3v1_create(const bg_metadata_t*);
 bgen_id3v2_t * bgen_id3v2_create(const bg_metadata_t*);
 
-void bgen_id3v1_write(FILE * output, const bgen_id3v1_t *);
-void bgen_id3v2_write(FILE * output, const bgen_id3v2_t *);
+int bgen_id3v1_write(FILE * output, const bgen_id3v1_t *);
+int bgen_id3v2_write(FILE * output, const bgen_id3v2_t *);
 
 void bgen_id3v1_destroy(bgen_id3v1_t *);
 void bgen_id3v2_destroy(bgen_id3v2_t *);
-
-/* Charset support */
-
-typedef struct bgen_charset_converter_s bgen_charset_converter_t;
-
-bgen_charset_converter_t *
-bgen_charset_converter_create(const char * in_charset,
-                              const char * out_charset);
-
-void bgen_charset_converter_destroy(bgen_charset_converter_t *);
-
-char * bgen_convert_string(bgen_charset_converter_t *,
-                           const char * in_string, int in_len,
-                           int * out_len);

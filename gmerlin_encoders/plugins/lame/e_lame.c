@@ -20,6 +20,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <config.h>
+#include <errno.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
@@ -490,6 +491,7 @@ static void set_parameter_lame(void * data, char * name, bg_parameter_value_t * 
 static int open_lame(void * data, const char * filename,
                     bg_metadata_t * metadata)
   {
+  int ret = 1;
   lame_priv_t * lame;
   bgen_id3v2_t * id3v2;
 
@@ -497,16 +499,22 @@ static int open_lame(void * data, const char * filename,
 
   lame->output = fopen(filename, "wb+");
   if(!lame->output)
+    {
+    lame->error_msg = bg_sprintf("Cannot open %s: %s",
+                                 filename, strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, lame->error_msg);
     return 0;
+    }
   lame->filename = bg_strdup(lame->filename, filename);
 
   if(lame->do_id3v2)
     {
     id3v2 = bgen_id3v2_create(metadata);
-    bgen_id3v2_write(lame->output, id3v2);
+    if(!bgen_id3v2_write(lame->output, id3v2))
+      ret = 0;
     bgen_id3v2_destroy(id3v2);
     }
-  
+
   /* Create id3v1 tag. It will be appended to the file at the very end */
 
   if(lame->do_id3v1)
@@ -514,7 +522,7 @@ static int open_lame(void * data, const char * filename,
     lame->id3v1 = bgen_id3v1_create(metadata);
     }
   
-  return 1;
+  return ret;
   }
 
 static char * lame_extension = ".mp3";
@@ -560,9 +568,10 @@ static int add_audio_stream_lame(void * data, gavl_audio_format_t * format)
   return 0;
   }
 
-static void write_audio_frame_lame(void * data, gavl_audio_frame_t * frame,
+static int write_audio_frame_lame(void * data, gavl_audio_frame_t * frame,
                                   int stream)
   {
+  int ret = 1;
   int max_out_size, bytes_encoded;
   lame_priv_t * lame;
   
@@ -584,8 +593,10 @@ static void write_audio_frame_lame(void * data, gavl_audio_frame_t * frame,
                                            frame->valid_samples,
                                            lame->output_buffer,
                                            lame->output_buffer_alloc);
-  fwrite(lame->output_buffer, 1, bytes_encoded, lame->output);
+  if(fwrite(lame->output_buffer, 1, bytes_encoded, lame->output) < bytes_encoded)
+    ret = 0;
   lame->samples_read += frame->valid_samples;
+  return ret;
   }
 
 static void get_audio_format_lame(void * data, int stream,
@@ -597,8 +608,9 @@ static void get_audio_format_lame(void * data, int stream,
   
   }
 
-static void close_lame(void * data, int do_delete)
+static int close_lame(void * data, int do_delete)
   {
+  int ret = 1;
   lame_priv_t * lame;
   lame = (lame_priv_t*)data;
   int bytes_encoded;
@@ -614,8 +626,10 @@ static void close_lame(void * data, int do_delete)
       }
     bytes_encoded = lame_encode_flush(lame->lame, lame->output_buffer, 
                                       lame->output_buffer_alloc);
-    fwrite(lame->output_buffer, 1, bytes_encoded, lame->output);
 
+    if(fwrite(lame->output_buffer, 1, bytes_encoded, lame->output) < bytes_encoded)
+      ret = 0;
+    
     /* 2. Write xing tag */
     
     if(lame->vbr_mode != vbr_off)
@@ -628,10 +642,11 @@ static void close_lame(void * data, int do_delete)
 
   if(lame->output)
     {
-    if(lame->id3v1)
+    if(ret && lame->id3v1)
       {
       fseek(lame->output, 0, SEEK_END);
-      bgen_id3v1_write(lame->output, lame->id3v1);
+      if(!bgen_id3v1_write(lame->output, lame->id3v1))
+        ret = 0;
       bgen_id3v1_destroy(lame->id3v1);
       lame->id3v1 = (bgen_id3v1_t*)0;
       }
@@ -663,6 +678,7 @@ static void close_lame(void * data, int do_delete)
     free(lame->output_buffer);
     lame->output_buffer = (uint8_t*)0;
     }
+  return 1;
   }
 
 bg_encoder_plugin_t the_plugin =

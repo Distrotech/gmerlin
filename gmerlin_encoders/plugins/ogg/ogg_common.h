@@ -14,12 +14,12 @@ typedef struct
   int (*init_audio)(void*, gavl_audio_format_t * format, bg_metadata_t * metadata);
   int (*init_video)(void*, gavl_video_format_t * format, bg_metadata_t * metadata);
   
-  void (*flush_header_pages)(void*);
+  int (*flush_header_pages)(void*);
   
-  void (*encode_audio)(void*, gavl_audio_frame_t*f);
-  void (*encode_video)(void*, gavl_video_frame_t*f);
+  int (*encode_audio)(void*, gavl_audio_frame_t*f);
+  int (*encode_video)(void*, gavl_video_frame_t*f);
 
-  void (*close)(void*);
+  int (*close)(void*);
   } bg_ogg_codec_t;
 
 typedef struct
@@ -48,6 +48,8 @@ typedef struct
   char * filename;
   
   bg_parameter_info_t * audio_parameters;
+
+  char * error_msg;  
   } bg_ogg_encoder_t;
 
 void * bg_ogg_encoder_create();
@@ -58,7 +60,7 @@ void bg_ogg_encoder_destroy(void*);
 
 int bg_ogg_flush_page(ogg_stream_state * os, FILE * output, int force);
 
-void bg_ogg_flush(ogg_stream_state * os, FILE * output, int force);
+int bg_ogg_flush(ogg_stream_state * os, FILE * output, int force);
 
 int bg_ogg_encoder_add_audio_stream(void*, gavl_audio_format_t * format);
 int bg_ogg_encoder_add_video_stream(void*, gavl_video_format_t * format);
@@ -74,6 +76,6 @@ int bg_ogg_encoder_start(void*);
 void bg_ogg_encoder_get_audio_format(void * data, int stream, gavl_audio_format_t*ret);
 void bg_ogg_encoder_get_video_format(void * data, int stream, gavl_video_format_t*ret);
 
-void bg_ogg_encoder_write_audio_frame(void * data, gavl_audio_frame_t*f,int stream);
-void bg_ogg_encoder_write_video_frame(void * data, gavl_video_frame_t*f,int stream);
-void bg_ogg_encoder_close(void * data, int do_delete);
+int bg_ogg_encoder_write_audio_frame(void * data, gavl_audio_frame_t*f,int stream);
+int bg_ogg_encoder_write_video_frame(void * data, gavl_video_frame_t*f,int stream);
+int bg_ogg_encoder_close(void * data, int do_delete);

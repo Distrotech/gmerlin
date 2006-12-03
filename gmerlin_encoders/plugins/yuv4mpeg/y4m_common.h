@@ -42,6 +42,6 @@ typedef struct
 void bg_y4m_set_pixelformat(bg_y4m_common_t * com);
 int bg_y4m_write_header(bg_y4m_common_t * com);
 
-void bg_y4m_write_frame(bg_y4m_common_t * com, gavl_video_frame_t * frame);
+int bg_y4m_write_frame(bg_y4m_common_t * com, gavl_video_frame_t * frame);
 
 void bg_y4m_cleanup(bg_y4m_common_t * com);

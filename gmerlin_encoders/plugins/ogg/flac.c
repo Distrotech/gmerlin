@@ -19,6 +19,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
@@ -60,7 +61,8 @@ typedef struct
   int64_t frames_encoded;
   
   int frame_samples;
-  
+
+  int write_error;
   } flacogg_t;
 
 
@@ -73,7 +75,7 @@ write_callback(const FLAC__StreamEncoder *encoder,
                void *data)
   {
   ogg_packet op;
-  
+  int result;
   flacogg_t * flacogg;
   flacogg = (flacogg_t*)data;
   
@@ -93,9 +95,19 @@ write_callback(const FLAC__StreamEncoder *encoder,
       op.packetno = 0;
       op.granulepos = 0;
       ogg_stream_packetin(&flacogg->os, &op);
+
+      result = bg_ogg_flush_page(&flacogg->os, flacogg->output, 1);
+      if(!result)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got no Flac ID page");
+        return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
+        }
+      else if(result < 0)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Writing to file failed: %s", strerror(errno));
+        return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
+        }
       
-      if(!bg_ogg_flush_page(&flacogg->os, flacogg->output, 1))
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Warning: Got no Flac ID page");
       flacogg->header_written = 1;
       }
     }
@@ -130,8 +142,14 @@ write_callback(const FLAC__StreamEncoder *encoder,
       op.packetno = 2+flacogg->frames_encoded;
       op.granulepos = flacogg->samples_encoded + flacogg->frame_samples;
       ogg_stream_packetin(&flacogg->os, &op);
-      bg_ogg_flush(&flacogg->os, flacogg->output, !bytes);
+      result = bg_ogg_flush(&flacogg->os, flacogg->output, !bytes);
 
+      if(result < 0)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Writing to file failed: %s",
+               strerror(errno));
+        return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
+        }
       flacogg->frame_size = 0;
       flacogg->frames_encoded++;
       flacogg->samples_encoded += flacogg->frame_samples;
@@ -224,26 +242,31 @@ static int init_flacogg(void * data, gavl_audio_format_t * format, bg_metadata_t
   return 1;
   }
 
-static void flush_header_pages_flacogg(void*data)
+static int flush_header_pages_flacogg(void*data)
   {
   flacogg_t * flacogg;
   flacogg = (flacogg_t*)data;
-  bg_ogg_flush(&flacogg->os, flacogg->output, 1);
+  if(bg_ogg_flush(&flacogg->os, flacogg->output, 1) <= 0)
+    return 0;
+  return 1;
   }
 
-static void write_audio_frame_flacogg(void * data, gavl_audio_frame_t * frame)
+static int write_audio_frame_flacogg(void * data, gavl_audio_frame_t * frame)
   {
   flacogg_t * flacogg;
   flacogg = (flacogg_t*)data;
-
-  bg_flac_prepare_audio_frame(&flacogg->com, frame);
-  FLAC__stream_encoder_process(flacogg->enc, (const FLAC__int32 **) flacogg->com.buffer,
-                               frame->valid_samples);
   
+  bg_flac_prepare_audio_frame(&flacogg->com, frame);
+
+  if(FLAC__stream_encoder_process(flacogg->enc, (const FLAC__int32 **) flacogg->com.buffer,
+                                  frame->valid_samples)  != FLAC__STREAM_ENCODER_OK)
+    return 0;
+  return 1;
   }
 
-static void close_flacogg(void * data)
+static int close_flacogg(void * data)
   {
+  int ret = 1;
   uint8_t buf[1];
   flacogg_t * flacogg;
   flacogg = (flacogg_t*)data;
@@ -254,12 +277,13 @@ static void close_flacogg(void * data)
     FLAC__stream_encoder_delete(flacogg->enc);
 
     /* Flush data */
-    write_callback(NULL,
-                   buf,
-                   0,
-                   0,
-                   0,
-                   flacogg);
+    if(write_callback(NULL,
+                      buf,
+                      0,
+                      0,
+                      0,
+                      flacogg) == FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR)
+      ret = 0;
     
     flacogg->enc = NULL;
     }
@@ -272,6 +296,7 @@ static void close_flacogg(void * data)
     flacogg->frame = (uint8_t*)0;
     }
   free(flacogg);
+  return ret;
   }
 
 

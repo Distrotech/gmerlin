@@ -246,11 +246,14 @@ static int init_vorbis(void * data, gavl_audio_format_t * format, bg_metadata_t 
   return 1;
   }
 
-static void flush_header_pages_vorbis(void*data)
+static int flush_header_pages_vorbis(void*data)
   {
   vorbis_t * vorbis;
   vorbis = (vorbis_t*)data;
-  bg_ogg_flush(&vorbis->enc_os, vorbis->output, 1);
+  if(bg_ogg_flush(&vorbis->enc_os, vorbis->output, 1) < 0)
+    return 0;
+  else
+    return 1;
   }
 
 static void set_parameter_vorbis(void * data, char * name,
@@ -295,8 +298,9 @@ static void set_parameter_vorbis(void * data, char * name,
   
   }
 
-static void flush_data(vorbis_t * vorbis)
+static int flush_data(vorbis_t * vorbis)
   {
+  int result;
   ogg_packet op;
     
   /* While we can get enough data from the library to analyse, one
@@ -314,16 +318,16 @@ static void flush_data(vorbis_t * vorbis)
       /* Add packet to bitstream */
       ogg_stream_packetin(&vorbis->enc_os,&op);
       
-      /* If we've gone over a page boundary, we can do actual output,
-         so do so (for however many pages are available) */
-
-      bg_ogg_flush(&vorbis->enc_os, vorbis->output, 0);
+      /* Flush pages if any */
       
+      if((result = bg_ogg_flush(&vorbis->enc_os, vorbis->output, 0)) <= 0)
+        return result;
       }
     }
+  return 1;
   }
 
-static void write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
+static int write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
   {
   int i;
   vorbis_t * vorbis;
@@ -342,22 +346,26 @@ static void write_audio_frame_vorbis(void * data, gavl_audio_frame_t * frame)
                         frame,
                         0, 0, frame->valid_samples, frame->valid_samples);
   vorbis_analysis_wrote(&(vorbis->enc_vd), frame->valid_samples);
-  flush_data(vorbis);
+  if(flush_data(vorbis) < 0)
+    return 0;
 
   vorbis->samples_read += frame->valid_samples;
+  return 1;
   }
 
-static void close_vorbis(void * data)
+static int close_vorbis(void * data)
   {
+  int ret = 1;
   vorbis_t * vorbis;
   vorbis = (vorbis_t*)data;
 
   if(vorbis->samples_read)
     {
     vorbis_analysis_wrote(&(vorbis->enc_vd), 0);
-    flush_data(vorbis);
+    if(flush_data(vorbis) < 0)
+      ret = 0;
     }
-
+  
   ogg_stream_clear(&vorbis->enc_os);
   vorbis_block_clear(&vorbis->enc_vb);
   vorbis_dsp_clear(&vorbis->enc_vd);
@@ -367,7 +375,9 @@ static void close_vorbis(void * data)
   gavl_audio_frame_destroy(vorbis->frame);
   
   free(vorbis);
+  return ret;
   }
+
 
 
 bg_ogg_codec_t bg_vorbis_codec =

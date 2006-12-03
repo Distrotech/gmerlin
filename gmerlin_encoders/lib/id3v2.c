@@ -34,7 +34,7 @@
 
 #define MK_FOURCC(a, b, c, d) ((a<<24)|(b<<16)|(c<<8)|d)
 
-static void write_fourcc(FILE * output, uint32_t fourcc)
+static int write_fourcc(FILE * output, uint32_t fourcc)
   {
   uint8_t data[4];
 
@@ -43,7 +43,9 @@ static void write_fourcc(FILE * output, uint32_t fourcc)
   data[2] = (fourcc >> 8) & 0xff;
   data[3] = (fourcc) & 0xff;
 
-  fwrite(data, 1, 4, output);
+  if(fwrite(data, 1, 4, output) < 4)
+    return 0;
+  return 1;
   }
 
 #define ENCODING_LATIN1   0x00
@@ -149,62 +151,72 @@ bgen_id3v2_t * bgen_id3v2_create(const bg_metadata_t * m)
     }
 
   TEXT_FRAME(comment,   MK_FOURCC('C', 'O', 'M', 'M'));
-
-  
-  
   return ret;
   }
 
-static void write_32_syncsave(FILE * output, uint32_t num)
+static int write_32_syncsave(FILE * output, uint32_t num)
   {
   uint8_t data[4];
   data[0] = (num >> 21) & 0x7f;
   data[1] = (num >> 14) & 0x7f;
   data[2] = (num >> 7) & 0x7f;
   data[3] = num & 0x7f;
-  fwrite(data, 1, 4, output);
+  if(fwrite(data, 1, 4, output) < 4)
+    return 0;
+  return 1;
   }
 
-static void write_frame(FILE * output, id3v2_frame_t * frame)
+static int write_frame(FILE * output, id3v2_frame_t * frame)
   {
   uint8_t flags[2] = { 0x00, 0x00 };
   uint8_t comm_header[4] = { 'X', 'X', 'X', 0x00 };
   uint8_t encoding = 0x03; /* We do everything in UTF-8 */
-    
+  int len;
   uint32_t size_pos, end_pos, size;
 
   /* Write 10 bytes header */
 
-  write_fourcc(output, frame->fourcc);
-
+  if(!write_fourcc(output, frame->fourcc))
+    return 0;
+  
   size_pos = ftell(output);
-  write_32_syncsave(output, 0);
+
+  if(!write_32_syncsave(output, 0))
+    return 0;
   
   /* Frame flags are zero */
 
-  fwrite(flags, 1, 2, output);
-
+  if(fwrite(flags, 1, 2, output) < 2)
+    return 0;
+  
   /* Encoding */
-  fwrite(&encoding, 1, 1, output);
-
+  if(fwrite(&encoding, 1, 1, output) < 1)
+    return 0;
+  
   /* For COMM frames, we need to set the language as well */
 
   if(frame->fourcc == MK_FOURCC('C','O','M','M'))  
-    fwrite(comm_header, 1, 4, output);
-
+    {
+    if(fwrite(comm_header, 1, 4, output) < 4)
+      return 0;
+    }
   /* Then, write the string including terminating 0x00 character */
+  len = strlen(frame->str)+1;
   
-  fwrite(frame->str, 1, strlen(frame->str)+1, output);
+  if(fwrite(frame->str, 1, len, output) < len)
+    return 0;
 
   end_pos = ftell(output);
   size = end_pos - size_pos - 6;
   
   fseek(output, size_pos, SEEK_SET);
-  write_32_syncsave(output, size);
+  if(!write_32_syncsave(output, size))
+    return 0;
   fseek(output, end_pos, SEEK_SET);
+  return 1;
   }
 
-void bgen_id3v2_write(FILE * output, const bgen_id3v2_t * tag)
+int bgen_id3v2_write(FILE * output, const bgen_id3v2_t * tag)
   {
   int i;
   uint32_t size_pos, size, end_pos;
@@ -214,12 +226,13 @@ void bgen_id3v2_write(FILE * output, const bgen_id3v2_t * tag)
   /* Return if the tag has zero frames */
 
   if(!tag->num_frames)
-    return;
+    return 1;
 
   /* Write header */
 
-  fwrite(header, 1, 6, output);
-
+  if(fwrite(header, 1, 6, output) < 6)
+    return 0;
+  
   /* Write dummy size (will be filled in later) */
 
   size_pos = ftell(output);
@@ -238,6 +251,7 @@ void bgen_id3v2_write(FILE * output, const bgen_id3v2_t * tag)
   fseek(output, size_pos, SEEK_SET);
   write_32_syncsave(output, size);
   fseek(output, end_pos, SEEK_SET);
+  return 1;
   }
 
 void bgen_id3v2_destroy(bgen_id3v2_t * tag)

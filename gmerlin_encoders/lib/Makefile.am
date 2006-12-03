@@ -7,7 +7,6 @@ endif
 noinst_LTLIBRARIES = libgmerlin_encoders.la $(flac_libs)
 
 libgmerlin_encoders_la_SOURCES = \
-charset.c \
 id3v1.c \
 id3v2.c
 

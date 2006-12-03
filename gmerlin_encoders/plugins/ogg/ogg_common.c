@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include <ogg/ogg.h>
 
@@ -24,7 +25,8 @@ void bg_ogg_encoder_destroy(void * data)
   if(e->audio_streams) free(e->audio_streams);
   if(e->video_streams) free(e->video_streams);
   if(e->filename) free(e->filename);
-
+  if(e->error_msg) free(e->error_msg);
+  
   if(e->audio_parameters)
     bg_parameter_info_destroy_array(e->audio_parameters);
   
@@ -38,7 +40,10 @@ int bg_ogg_encoder_open(void * data, const char * file, bg_metadata_t * metadata
   e->filename = bg_strdup(e->filename, file);
   
   if(!(e->output = fopen(file, "w")))
+    {
+    e->error_msg = bg_sprintf("Cannot open file %s: %s", file, strerror(errno));
     return 0;
+    }
   e->serialno = rand();
   bg_metadata_copy(&(e->metadata), metadata);
   return 1;
@@ -56,17 +61,25 @@ int bg_ogg_flush_page(ogg_stream_state * os, FILE * output, int force)
   
   if(result)
     {
-    fwrite(og.header,1,og.header_len,output);
-    fwrite(og.body,1,og.body_len,output);
-    return 1;
+    if((fwrite(og.header,1,og.header_len,output) < og.header_len) ||
+       (fwrite(og.body,1,og.body_len,output) < og.body_len))
+      return -1;
+    else
+      return 1;
     }
   return 0;
   }
 
-void bg_ogg_flush(ogg_stream_state * os, FILE * output, int force)
+int bg_ogg_flush(ogg_stream_state * os, FILE * output, int force)
   {
-  while(bg_ogg_flush_page(os, output, force))
-    ;
+  int result, ret = 0;
+  while((result = bg_ogg_flush_page(os, output, force)) > 0)
+    {
+    ret = 1;
+    }
+  if(result < 0)
+    return result;
+  return ret;
   }
 
 int bg_ogg_encoder_add_audio_stream(void * data, gavl_audio_format_t * format)
@@ -181,33 +194,49 @@ void bg_ogg_encoder_get_video_format(void * data, int stream, gavl_video_format_
   gavl_video_format_copy(ret, &e->video_streams[stream].format);
   }
 
-void bg_ogg_encoder_write_audio_frame(void * data, gavl_audio_frame_t*f,int stream)
+int bg_ogg_encoder_write_audio_frame(void * data, gavl_audio_frame_t*f,int stream)
   {
   bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
-  e->audio_streams[stream].codec->encode_audio(e->audio_streams[stream].codec_priv, f);
+  return
+    e->audio_streams[stream].codec->encode_audio(e->audio_streams[stream].codec_priv, f);
   }
 
-void bg_ogg_encoder_write_video_frame(void * data, gavl_video_frame_t*f,int stream)
+int bg_ogg_encoder_write_video_frame(void * data, gavl_video_frame_t*f,int stream)
   {
   bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
-  e->video_streams[stream].codec->encode_video(e->video_streams[stream].codec_priv, f);
+  return
+    e->video_streams[stream].codec->encode_video(e->video_streams[stream].codec_priv, f);
   }
 
-void bg_ogg_encoder_close(void * data, int do_delete)
+int bg_ogg_encoder_close(void * data, int do_delete)
   {
+  int ret = 1;
   int i;
   bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
 
   if(!e->output)
-    return;
+    return 1;
   
   for(i = 0; i < e->num_audio_streams; i++)
-    e->audio_streams[i].codec->close(e->audio_streams[i].codec_priv);
+    {
+    if(!e->audio_streams[i].codec->close(e->audio_streams[i].codec_priv))
+      {
+      ret = 0;
+      break;
+      }
+    }
   for(i = 0; i < e->num_video_streams; i++)
-    e->video_streams[i].codec->close(e->video_streams[i].codec_priv);
+    {
+    if(!e->video_streams[i].codec->close(e->video_streams[i].codec_priv))
+      {
+      ret = 0;
+      break;
+      }
+    }
   
   fclose(e->output);
   e->output = (FILE*)0;
   if(do_delete)
     remove(e->filename);
+  return ret;
   }

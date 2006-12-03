@@ -19,6 +19,8 @@
 
 #include <string.h>
 #include <math.h>
+#include <pthread.h>
+#include <sys/signal.h>
 
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
@@ -328,6 +330,14 @@ int bg_mpv_open(bg_mpv_common_t * com, const char * filename)
   {
   char * commandline;
 
+  sigset_t newset;
+  /* Block SIGPIPE */
+  sigemptyset(&newset);
+  sigaddset(&newset, SIGPIPE);
+  pthread_sigmask(SIG_BLOCK, &newset, &com->oldset);
+  
+
+  
   commandline = bg_mpv_make_commandline(com, filename);
   if(!commandline)
     {
@@ -364,19 +374,26 @@ void bg_mpv_get_format(bg_mpv_common_t * com, gavl_video_format_t * format)
   gavl_video_format_copy(format, &(com->y4m.format));
   }
 
-void bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame)
+int bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame)
   {
-  bg_y4m_write_frame(&com->y4m, frame);
+  return bg_y4m_write_frame(&com->y4m, frame);
   }
 
-void bg_mpv_close(bg_mpv_common_t * com)
+int bg_mpv_close(bg_mpv_common_t * com)
   {
+  int ret = 0;
   if(com->mpeg2enc)
-    bg_subprocess_close(com->mpeg2enc);
+    {
+    if(bg_subprocess_close(com->mpeg2enc))
+      ret = 0;
+    }
+
+  pthread_sigmask(SIG_SETMASK, &com->oldset, NULL);
+  
   bg_y4m_cleanup(&com->y4m);
   if(com->user_options)
     free(com->user_options);
-  
+  return ret;
   }
 
 int bg_mpv_start(bg_mpv_common_t * com)

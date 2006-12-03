@@ -437,15 +437,17 @@ static int init_speex(void * data, gavl_audio_format_t * format, bg_metadata_t *
   return 1;
   }
 
-static void flush_header_pages_speex(void*data)
+static int flush_header_pages_speex(void*data)
   {
   speex_t * speex;
   speex = (speex_t*)data;
-  bg_ogg_flush(&speex->enc_os, speex->output, 1);
+  if(bg_ogg_flush(&speex->enc_os, speex->output, 1) <= 0)
+    return 0;
+  return 1;
   }
 
 
-static void encode_frame(speex_t * speex, int eof)
+static int encode_frame(speex_t * speex, int eof)
   {
   int block_align;
   ogg_packet op;
@@ -498,10 +500,11 @@ static void encode_frame(speex_t * speex, int eof)
     op.packetno = 2 + (speex->frames_encoded / speex->nframes);
     ogg_stream_packetin(&speex->enc_os, &op);
     speex_bits_reset(&speex->bits);
-    bg_ogg_flush(&speex->enc_os, speex->output, eof);
+    if(bg_ogg_flush(&speex->enc_os, speex->output, eof) < 0)
+      return 0;
     }
   if(eof)
-    return;
+    return 1;
 
   if(speex->frame->valid_samples == speex->format->samples_per_frame)
     {
@@ -513,10 +516,12 @@ static void encode_frame(speex_t * speex, int eof)
     speex->frame->valid_samples = 0;
     speex->frames_encoded++;
     }
+  return 1;
   }
 
-static void write_audio_frame_speex(void * data, gavl_audio_frame_t * frame)
+static int write_audio_frame_speex(void * data, gavl_audio_frame_t * frame)
   {
+  int result = 1;
   int samples_read = 0;
   int samples_copied;
   speex_t * speex;
@@ -535,18 +540,24 @@ static void write_audio_frame_speex(void * data, gavl_audio_frame_t * frame)
                             frame->valid_samples - samples_read /* src_size */ );
     speex->frame->valid_samples += samples_copied;
     samples_read += samples_copied;
-    encode_frame(speex, 0);
+    result = encode_frame(speex, 0);
+    if(!result)
+      break;
     }
   
   speex->samples_read += frame->valid_samples;
+  return result;
   }
 
-static void close_speex(void * data)
+static int close_speex(void * data)
   {
+  int ret = 1;
   speex_t * speex;
   speex = (speex_t*)data;
 
-  encode_frame(speex, 1);
+  if(!encode_frame(speex, 1))
+    ret = 0;
+     
 
   ogg_stream_clear(&speex->enc_os);
   gavl_audio_frame_destroy(speex->frame);
@@ -554,6 +565,7 @@ static void close_speex(void * data)
   speex_bits_destroy(&speex->bits);
   
   free(speex);
+  return ret;
   }
 
 

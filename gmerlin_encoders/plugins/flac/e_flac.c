@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
+
 #include <config.h>
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
@@ -200,15 +202,22 @@ static int start_flac(void * data)
   /* Initialize encoder */
   if(FLAC__file_encoder_init(flac->enc) != FLAC__FILE_ENCODER_OK)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "ERROR: FLAC__file_encoder_init failed");
+    if(errno)
+      flac->error_msg = bg_sprintf("Initializing encoder failed: %s",
+                                   strerror(errno));
+    else
+      flac->error_msg = bg_sprintf("Initializing encoder failed");
+    
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, flac->error_msg);
     return 0;
     }
   return 1;
   }
 
-static void write_audio_frame_flac(void * data, gavl_audio_frame_t * frame,
+static int write_audio_frame_flac(void * data, gavl_audio_frame_t * frame,
                                   int stream)
   {
+  int ret = 1;
   flac_t * flac;
   
   flac = (flac_t*)data;
@@ -217,9 +226,11 @@ static void write_audio_frame_flac(void * data, gavl_audio_frame_t * frame,
   
   /* Encode */
 
-  FLAC__file_encoder_process(flac->enc, (const FLAC__int32 **) flac->com.buffer,
-                             frame->valid_samples);
+  if(!FLAC__file_encoder_process(flac->enc, (const FLAC__int32 **) flac->com.buffer,
+                                 frame->valid_samples))
+    ret = 0;
   flac->samples_written += frame->valid_samples;
+  return ret;
   }
 
 static void get_audio_format_flac(void * data, int stream,
@@ -389,7 +400,7 @@ static void finalize_seektable(flac_t * flac)
 
   }
 
-static void close_flac(void * data, int do_delete)
+static int close_flac(void * data, int do_delete)
   {
   flac_t * flac;
   flac = (flac_t*)data;
@@ -419,6 +430,7 @@ static void close_flac(void * data, int do_delete)
     flac->seektable = NULL;
     }
   bg_flac_free(&flac->com);
+  return 1;
   }
 
 static void destroy_flac(void * priv)

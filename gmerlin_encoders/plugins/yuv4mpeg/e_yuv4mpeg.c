@@ -97,20 +97,21 @@ static int start_y4m(void * data)
   }
 
 
-static void write_video_frame_y4m(void * data,
-                                  gavl_video_frame_t* frame,
+static int write_video_frame_y4m(void * data,
+                                 gavl_video_frame_t* frame,
                                   int stream)
   {
   e_y4m_t * e = (e_y4m_t*)data;
-  bg_y4m_write_frame(&(e->com), frame);
+  return bg_y4m_write_frame(&(e->com), frame);
   }
 
-static void close_y4m(void * data, int do_delete)
+static int close_y4m(void * data, int do_delete)
   {
   e_y4m_t * e = (e_y4m_t*)data;
   close(e->com.fd);
   if(do_delete)
     remove(e->filename);
+  return 1;
   }
 
 static void destroy_y4m(void * data)

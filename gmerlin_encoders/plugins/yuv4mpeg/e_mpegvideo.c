@@ -19,12 +19,16 @@
 
 #include <string.h>
 
+#include <yuv4mpeg.h>
+
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/subprocess.h>
+#include <gmerlin/log.h>
 #include <gmerlin_encoders.h>
-#include <yuv4mpeg.h>
 #include "mpv_common.h"
+
+#define LOG_DOMAIN "e_mpegvideo"
 
 typedef struct
   {
@@ -83,20 +87,25 @@ static int start_mpv(void * data)
   return bg_mpv_start(&e->mpv);
   }
 
-static void write_video_frame_mpv(void * data,
+static int write_video_frame_mpv(void * data,
                                   gavl_video_frame_t* frame,
                                   int stream)
   {
   e_mpv_t * e = (e_mpv_t*)data;
-  bg_y4m_write_frame(&(e->mpv.y4m), frame);
+  return bg_mpv_write_video_frame(&(e->mpv), frame);
   }
 
-static void close_mpv(void * data, int do_delete)
+static int close_mpv(void * data, int do_delete)
   {
+  int ret;
   e_mpv_t * e = (e_mpv_t*)data;
-  bg_mpv_close(&e->mpv);
+  ret = bg_mpv_close(&e->mpv);
   if(do_delete)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing %s", e->filename);
     remove(e->filename);
+    }
+  return ret;
   }
 
 static void destroy_mpv(void * data)

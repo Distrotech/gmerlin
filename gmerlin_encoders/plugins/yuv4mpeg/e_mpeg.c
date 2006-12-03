@@ -249,52 +249,60 @@ static int start_mpeg(void * data)
   return 1;
   }
 
-static void write_audio_frame_mpeg(void * data, gavl_audio_frame_t* frame,
+static int write_audio_frame_mpeg(void * data, gavl_audio_frame_t* frame,
                                   int stream)
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
-  bg_mpa_write_audio_frame(&e->audio_streams[stream].mpa, frame);
+  return bg_mpa_write_audio_frame(&e->audio_streams[stream].mpa, frame);
   }
 
-static void write_video_frame_mpeg(void * data, gavl_video_frame_t* frame,
+static int write_video_frame_mpeg(void * data, gavl_video_frame_t* frame,
                                   int stream)
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
-  bg_mpv_write_video_frame(&e->video_streams[stream].mpv, frame);
+  return bg_mpv_write_video_frame(&e->video_streams[stream].mpv, frame);
   }
 
-static void close_mpeg(void * data, int do_delete)
+static int close_mpeg(void * data, int do_delete)
   {
   bg_subprocess_t * proc;
   char * commandline;
   char * tmp_string;
-  
+  int ret = 1;
   int i;
   e_mpeg_t * e = (e_mpeg_t*)data;
 
   if(!e->is_open)
-    return;
+    return 1;
   e->is_open = 0;
   
   /* 1. Step: Close all streams */
 
   for(i = 0; i < e->num_audio_streams; i++)
     {
-    bg_mpa_close(&e->audio_streams[i].mpa);
+    if(!bg_mpa_close(&e->audio_streams[i].mpa))
+      {
+      ret = 0;
+      break;
+      }
     }
   for(i = 0; i < e->num_video_streams; i++)
     {
-    bg_mpv_close(&e->video_streams[i].mpv);
-    }
-
-  if(!do_delete)
+    if(!bg_mpv_close(&e->video_streams[i].mpv))
+      {
+      ret = 0;
+      break;
+      }
+    } 
+  
+  if(!do_delete && ret)
     {
     /* 2. Step: Build mplex commandline */
     
     if(!bg_search_file_exec("mplex", &commandline))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Cannot find mplex");
-      return;
+      return 0;
       }
     /* Options */
 
@@ -344,7 +352,8 @@ static void close_mpeg(void * data, int do_delete)
     /* 3. Step: Execute mplex */
 
     proc = bg_subprocess_create(commandline, 0, 0, 0);
-    bg_subprocess_close(proc);
+    if(bg_subprocess_close(proc))
+      ret = 0;
     
     free(commandline);
     }
@@ -380,6 +389,7 @@ static void close_mpeg(void * data, int do_delete)
     }
   e->num_audio_streams = 0;
   e->num_video_streams = 0;
+  return ret;
   }
 
 

@@ -34,6 +34,7 @@ typedef struct
   char * user_options;
   bg_subprocess_t * mpeg2enc;
   bg_y4m_common_t y4m;
+  sigset_t oldset;
   } bg_mpv_common_t;
 
 bg_parameter_info_t * bg_mpv_get_parameters();
@@ -48,9 +49,9 @@ void bg_mpv_get_format(bg_mpv_common_t * com, gavl_video_format_t * format);
 
 int bg_mpv_start(bg_mpv_common_t * com);
 
-void bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame);
+int bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame);
 
-void bg_mpv_close(bg_mpv_common_t * com);
+int bg_mpv_close(bg_mpv_common_t * com);
 
 
 #if 0

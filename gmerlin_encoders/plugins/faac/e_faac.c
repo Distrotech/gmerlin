@@ -20,9 +20,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <config.h>
+#include <errno.h>
 
 #include <faac.h>
+
+#include <config.h>
 
 #include <gmerlin_encoders.h>
 
@@ -279,8 +281,15 @@ static int open_faac(void * data, const char * filename,
   faac = (faac_t*)data;
   
   faac->output = fopen(filename, "wb");
+
   if(!faac->output)
+    {
+    faac->error_msg = bg_sprintf("Cannot open %s: %s",
+                                 filename, strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, faac->error_msg);
     return 0;
+    }
+  
   faac->filename = bg_strdup(faac->filename, filename);
 
   if(faac->do_id3v1)
@@ -397,12 +406,14 @@ static int flush_audio(faac_t * faac)
   /* Write this to the file */
 
   if(bytes_encoded)
-    fwrite(faac->output_buffer, 1, bytes_encoded, faac->output);
-
+    {
+    if(fwrite(faac->output_buffer, 1, bytes_encoded, faac->output) < bytes_encoded)
+      return -1;
+    }
   return bytes_encoded;
   }
 
-static void write_audio_frame_faac(void * data, gavl_audio_frame_t * frame,
+static int write_audio_frame_faac(void * data, gavl_audio_frame_t * frame,
                                   int stream)
   {
   int samples_done = 0;
@@ -432,11 +443,14 @@ static void write_audio_frame_faac(void * data, gavl_audio_frame_t * frame,
     /* Encode buffer */
 
     if(faac->frame->valid_samples == faac->format.samples_per_frame)
-      flush_audio(faac);
+      {
+      if(flush_audio(faac) < 0)
+        return 0;
+      }
     }
-
-  faac->samples_read += frame->valid_samples;
   
+  faac->samples_read += frame->valid_samples;
+  return 1;
   }
 
 static void get_audio_format_faac(void * data, int stream,
@@ -448,8 +462,9 @@ static void get_audio_format_faac(void * data, int stream,
   }
 
 
-static void close_faac(void * data, int do_delete)
+static int close_faac(void * data, int do_delete)
   {
+  int ret = 1, result;
   faac_t * faac;
   faac = (faac_t*)data;
 
@@ -457,8 +472,15 @@ static void close_faac(void * data, int do_delete)
 
   if(faac->samples_read)
     {
-    while(flush_audio(faac))
-      ;
+    while(1)
+      {
+      result = flush_audio(faac);
+      if(result > 0)
+        continue;
+      else if(result < 0)
+        ret = 0;
+      break;
+      }
     }
   
   if(faac->enc)
@@ -472,7 +494,8 @@ static void close_faac(void * data, int do_delete)
     /* Write id3v1 tag */
     if(faac->id3v1)
       {
-      bgen_id3v1_write(faac->output, faac->id3v1);
+      if(ret)
+        ret = bgen_id3v1_write(faac->output, faac->id3v1);
       bgen_id3v1_destroy(faac->id3v1);
       faac->id3v1 = (bgen_id3v1_t*)0;    
       }
@@ -487,6 +510,7 @@ static void close_faac(void * data, int do_delete)
     free(faac->filename);
     faac->filename = (char*)0;
     }
+  return ret;
   }
   
 bg_encoder_plugin_t the_plugin =
