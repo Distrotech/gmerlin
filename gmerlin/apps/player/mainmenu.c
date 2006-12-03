@@ -56,6 +56,7 @@ struct options_menu_s
   GtkWidget * preferences;
   GtkWidget * plugins;
   GtkWidget * skins;
+  GtkWidget * kbd;
   GtkWidget * menu;
   };
 
@@ -176,7 +177,10 @@ static void menu_callback(GtkWidget * w, gpointer data)
     plugin_window_show(g->plugin_window);
     gtk_widget_set_sensitive(the_menu->options_menu.plugins, 0);
     }
-
+  else if(w == the_menu->options_menu.kbd)
+    {
+    system("gmerlin_kbd_config &");
+    }
   else if(w == the_menu->windows_menu.infowindow)
     {
     if(gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(the_menu->windows_menu.infowindow)))
@@ -606,6 +610,10 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   ret->options_menu.skins =
     create_item("Skins...", gmerlin, ret->options_menu.menu);
 
+  if(bg_search_file_exec("gmerlin_kbd_config", NULL))
+    ret->options_menu.kbd =
+      create_item("Multimedia keys...", gmerlin, ret->options_menu.menu);
+  
   /* Commands */
   ret->command_menu.menu = create_menu();
 

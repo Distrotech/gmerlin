@@ -97,5 +97,8 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
       arg_time = bg_msg_get_arg_time(msg, 0);
       bg_player_seek_rel(g->player, arg_time);
       break;
+    case PLAYER_COMMAND_TOGGLE_MUTE:
+      bg_player_toggle_mute(g->player);
+      break;
     }
   }

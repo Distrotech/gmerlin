@@ -41,7 +41,8 @@
 #define STATE_BUFFERING_5 9
 #define STATE_ERROR       10
 #define STATE_STILL       11
-#define NUM_STATES        12
+#define STATE_MUTE        12
+#define NUM_STATES        13
 
 #define DIGIT_HEIGHT      32
 #define DIGIT_WIDTH       20
@@ -151,6 +152,7 @@ static void load_pixbufs()
   state_pixbufs[STATE_BUFFERING_5] = load_pixbuf("state_buffering_5.png");
   state_pixbufs[STATE_ERROR]       = load_pixbuf("state_error.png");
   state_pixbufs[STATE_STILL]       = load_pixbuf("state_still.png");
+  state_pixbufs[STATE_MUTE]        = load_pixbuf("state_mute.png");
   
   repeat_pixbufs[REPEAT_MODE_NONE] = load_pixbuf("repeat_mode_none.png");
   repeat_pixbufs[REPEAT_MODE_ALL]  = load_pixbuf("repeat_mode_all.png");
@@ -196,6 +198,10 @@ struct display_s
   repeat_mode_t repeat_mode;
   display_mode_t display_mode;
   int state_index;
+
+  int state;
+  float buffer_percentage;
+  
   display_skin_t * skin;
 
   int error_active;
@@ -208,6 +214,9 @@ struct display_s
   gavl_time_t last_time;
   
   guint32 last_click_time;
+
+  int mute;
+  char * error_msg;
   };
 
 static void update_background(display_t * d)
@@ -599,6 +608,8 @@ GtkWidget * display_get_widget(display_t * d)
 
 void display_destroy(display_t * d)
   {
+  if(d->error_msg)
+    free(d->error_msg);
   bg_gtk_time_display_destroy(d->time_display);
   bg_gtk_scrolltext_destroy(d->scrolltext);
   free(d);
@@ -655,11 +666,9 @@ void display_set_time(display_t * d, gavl_time_t time)
   bg_gtk_time_display_update(d->time_display, display_time);
   }
 
-void display_set_state(display_t * d, int state,
-                       const void * arg)
+static void update_state(display_t * d)
   {
-  float percentage;
-  switch(state)
+  switch(d->state)
     {
     case BG_PLAYER_STATE_STOPPED:
 
@@ -678,7 +687,6 @@ void display_set_state(display_t * d, int state,
       d->state_index = STATE_CHANGING;
       break;
     case BG_PLAYER_STATE_BUFFERING:
-      percentage = *((float*)arg);
       if((d->state_index != STATE_BUFFERING_5) &&
          (d->state_index != STATE_BUFFERING_4) &&
          (d->state_index != STATE_BUFFERING_3) &&
@@ -690,13 +698,13 @@ void display_set_state(display_t * d, int state,
                                    d->foreground_normal, d->background);
 
         }
-      if(percentage > 0.8)
+      if(d->buffer_percentage > 0.8)
         d->state_index = STATE_BUFFERING_5;
-      else if(percentage > 0.6)
+      else if(d->buffer_percentage > 0.6)
         d->state_index = STATE_BUFFERING_4;
-      else if(percentage > 0.4)
+      else if(d->buffer_percentage > 0.4)
         d->state_index = STATE_BUFFERING_3;
-      else if(percentage > 0.2)
+      else if(d->buffer_percentage > 0.2)
         d->state_index = STATE_BUFFERING_2;
       else
         d->state_index = STATE_BUFFERING_1;
@@ -707,22 +715,50 @@ void display_set_state(display_t * d, int state,
     case BG_PLAYER_STATE_STILL:
       d->state_index = STATE_STILL;
       break;
+    case BG_PLAYER_STATE_ERROR:
+      d->state_index = STATE_ERROR;
+      bg_gtk_scrolltext_set_text(d->scrolltext,
+                                 d->error_msg,
+                                 d->foreground_error, d->background);
+      
+      break;
     default: /* BG_PLAYER_STATE_PLAYING, BG_PLAYER_STATE_FINISHING */
       if(d->state_index != STATE_PLAYING)
         bg_gtk_scrolltext_set_text(d->scrolltext,
                                    d->track_name,
                                    d->foreground_normal, d->background);
-      d->state_index = STATE_PLAYING;
-      break;
-    case BG_PLAYER_STATE_ERROR:
-      d->state_index = STATE_ERROR;
-      bg_gtk_scrolltext_set_text(d->scrolltext,
-                                 (const char*)arg,
-                                 d->foreground_error, d->background);
-      
+      if(d->mute)
+        d->state_index = STATE_MUTE;
+      else
+        d->state_index = STATE_PLAYING;
       break;
     }
   expose_callback(d->state_area, (GdkEventExpose*)0, d);
+  }
+
+void display_set_state(display_t * d, int state,
+                       const void * arg)
+  {
+  float percentage;
+  switch(state)
+    {
+    case BG_PLAYER_STATE_BUFFERING:
+      d->buffer_percentage = *((float*)arg);
+      break;
+    case BG_PLAYER_STATE_ERROR:
+      d->error_msg = bg_strdup(d->error_msg, (char*)arg);
+      break;
+    default: /* BG_PLAYER_STATE_PLAYING, BG_PLAYER_STATE_FINISHING */
+      break;
+    }
+  d->state = state;
+  update_state(d);
+  }
+
+void display_set_mute(display_t * d, int mute)
+  {
+  d->mute = mute;
+  update_state(d);
   }
 
 void display_skin_load(display_skin_t * s,

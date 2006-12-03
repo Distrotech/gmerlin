@@ -4,7 +4,7 @@ AC_CONFIG_SRCDIR([include/player.h])
 
 AM_CONFIG_HEADER(include/config.h)
 
-AM_INIT_AUTOMAKE(gmerlin, 0.3.5)
+AM_INIT_AUTOMAKE(gmerlin, 0.3.6)
 
 AC_DISABLE_STATIC
 dnl AM_DISABLE_STATIC
@@ -53,7 +53,7 @@ XML2_REQUIRED="2.4.0"
 PKG_CHECK_MODULES(XML2, libxml-2.0 >= $XML2_REQUIRED, , AC_MSG_ERROR("libxml2 not found"))
 AC_SUBST(XML2_REQUIRED)
 
-GAVL_REQUIRED="0.2.5"
+GAVL_REQUIRED="0.2.6"
 PKG_CHECK_MODULES(GAVL, gavl = $GAVL_REQUIRED, , AC_MSG_ERROR("gavl not found"))
 AC_SUBST(GAVL_REQUIRED)
 
@@ -476,6 +476,24 @@ fi
 
 AM_CONDITIONAL(HAVE_PLAYER, test x$have_player = xtrue)
 
+dnl kbd
+
+AC_ARG_ENABLE(kbd,
+              AC_HELP_STRING(--disable-kbd, [Disable keyboard daemon (default: enabled)]),
+              [case "${enableval}" in
+                 yes) have_kbd=true ;;
+                 no) have_kbd=false ;;
+               esac],
+	       have_kbd=true)
+
+if test "x$have_gtk" = "xfalse"; then
+have_kdb=false
+fi
+
+AM_CONDITIONAL(HAVE_KBD, test x$have_kbd = xtrue)
+
+
+
 dnl Transcoder
 
 AC_ARG_ENABLE(transcoder,
@@ -546,6 +564,8 @@ apps/camelot/Makefile \
 apps/camelot/gmerlin-camelot.desktop \
 apps/transcoder/Makefile \
 apps/transcoder/gmerlin-transcoder.desktop \
+apps/kbd/Makefile \
+apps/kbd/gmerlin-kbd.desktop \
 doc/Makefile \
 icons/Makefile \
 m4/Makefile \
@@ -720,6 +740,13 @@ fi
 
 echo -n "Transcoder:          "
 if test "x$have_transcoder" = "xtrue"; then
+echo "Enabled"
+else
+echo "Disabled"
+fi
+
+echo -n "Keyboard daemon:     "
+if test "x$have_kbd" = "xtrue"; then
 echo "Enabled"
 else
 echo "Disabled"

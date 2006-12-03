@@ -78,3 +78,9 @@
  */
 
 #define BG_TRANSCODER_MSG_METADATA         11
+
+/*
+ *  arg 1: Error message
+ */
+
+#define BG_TRANSCODER_MSG_ERROR            12

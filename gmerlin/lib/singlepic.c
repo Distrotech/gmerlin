@@ -785,6 +785,7 @@ static const char * get_filename_encoder(void * data)
 
 static int write_frame_header(encoder_t * e)
   {
+  int ret;
   e->have_header = 1;
 
   /* Create filename */
@@ -792,12 +793,12 @@ static int write_frame_header(encoder_t * e)
   sprintf(e->filename_buffer, e->mask, e->frame_counter);
 
   
-  e->image_writer->write_header(e->plugin_handle->priv,
-                                e->filename_buffer,
-                                &(e->format));
-
+  ret = e->image_writer->write_header(e->plugin_handle->priv,
+                                      e->filename_buffer,
+                                      &(e->format));
+  
   e->frame_counter++;
-  return 1;
+  return ret;
   }
 
 
@@ -823,23 +824,26 @@ static void get_video_format_encoder(void * data, int stream,
   gavl_video_format_copy(format, &(e->format));
   }
 
-static void write_video_frame_encoder(void * data, gavl_video_frame_t * frame,int stream)
+static int write_video_frame_encoder(void * data, gavl_video_frame_t * frame,int stream)
   {
+  int ret;
   encoder_t * e;
 
   e = (encoder_t *)data;
 
   if(!e->have_header)
     {
-    write_frame_header(e);
+    ret = write_frame_header(e);
     }
-  e->image_writer->write_image(e->plugin_handle->priv, frame);
+  if(ret)
+    ret = e->image_writer->write_image(e->plugin_handle->priv, frame);
   e->have_header = 0;
+  return ret;
   }
 
 #define STR_FREE(s) if(s){free(s);s=(char*)0;}
 
-static void close_encoder(void * data, int do_delete)
+static int close_encoder(void * data, int do_delete)
   {
   int64_t i;
   
@@ -866,6 +870,7 @@ static void close_encoder(void * data, int do_delete)
     bg_plugin_unref(e->plugin_handle);
     e->plugin_handle = (bg_plugin_handle_t*)0;
     }
+  return 1;
   }
 
 static void destroy_encoder(void * data)

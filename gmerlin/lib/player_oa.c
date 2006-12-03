@@ -246,7 +246,7 @@ void * bg_player_oa_thread(void * data)
   bg_player_audio_stream_t * s;
   gavl_audio_frame_t * frame;
   gavl_time_t wait_time;
-  
+  int do_mute;
   bg_fifo_state_t state;
   
     
@@ -277,10 +277,21 @@ void * bg_player_oa_thread(void * data)
       }
     if(frame->valid_samples)
       {
-      pthread_mutex_lock(&(ctx->player->audio_stream.volume_mutex));
-      gavl_volume_control_apply(ctx->player->audio_stream.volume, frame);
-      pthread_mutex_unlock(&(ctx->player->audio_stream.volume_mutex));
+      pthread_mutex_lock(&(ctx->player->mute_mutex));
+      do_mute = ctx->player->mute;
+      pthread_mutex_unlock(&(ctx->player->mute_mutex));
 
+      if(do_mute)
+        {
+        gavl_audio_frame_mute(frame, &(ctx->player->audio_stream.pipe_format));
+        }
+      else
+        {
+        pthread_mutex_lock(&(ctx->player->audio_stream.volume_mutex));
+        gavl_volume_control_apply(ctx->player->audio_stream.volume, frame);
+        pthread_mutex_unlock(&(ctx->player->audio_stream.volume_mutex));
+        }
+      
       if(ctx->player->audio_stream.do_convert_out)
         {
         gavl_audio_convert(ctx->player->audio_stream.cnv_out, frame,

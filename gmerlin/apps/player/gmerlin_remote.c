@@ -78,6 +78,20 @@ static void cmd_stop(void * data, int * argc, char *** _argv, int arg)
   bg_remote_client_done_msg_write(remote);
   }
 
+static void cmd_toggle_mute(void * data, int * argc, char *** _argv, int arg)
+  {
+  bg_msg_t * msg;
+  bg_remote_client_t * remote;
+  remote = (bg_remote_client_t *)data;
+  msg = bg_remote_client_get_msg_write(remote);
+
+  bg_msg_set_id(msg, PLAYER_COMMAND_TOGGLE_MUTE);
+
+
+  bg_remote_client_done_msg_write(remote);
+  }
+
+
 static void cmd_pause(void * data, int * argc, char *** _argv, int arg)
   {
   bg_msg_t * msg;
@@ -286,6 +300,11 @@ bg_cmdline_arg_t commands[] =
       arg:         "-pause",
       help_string: "Pause playback",
       callback:    cmd_pause,
+    },
+    {
+      arg:         "-mute",
+      help_string: "Toggle mute",
+      callback:    cmd_toggle_mute,
     },
     {
       arg:         "-add",

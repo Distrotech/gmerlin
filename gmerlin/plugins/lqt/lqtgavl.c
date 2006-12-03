@@ -189,8 +189,8 @@ channel_gavl_2_lqt(gavl_channel_id_t ch)
   }
 
 void lqt_gavl_add_audio_track(quicktime_t * file,
-                              const gavl_audio_format_t * format,
-                              lqt_codec_info_t * codec)
+                               gavl_audio_format_t * format,
+                               lqt_codec_info_t * codec)
   {
   int i;
   const lqt_channel_t * chans_1;
@@ -200,48 +200,67 @@ void lqt_gavl_add_audio_track(quicktime_t * file,
   
   lqt_add_audio_track(file, format->num_channels, format->samplerate,
                       16, codec);
-  
+
+  format->sample_format =
+    sampleformat_lqt_2_gavl(lqt_get_sample_format(file, track));
+  format->interleave_mode = GAVL_INTERLEAVE_ALL;
+
   /* Negotiate the channel setup */
 
   /* 1st try: The codec already knows (we cannot change that) */
   chans_1 = lqt_get_channel_setup(file, track);
-  if(!chans_1)
+  if(chans_1)
     {
-    /* 2nd try: Set our channel setup */
+    for(i = 0; i < format->num_channels; i++)
+      format->channel_locations[i] = channel_lqt_2_gavl(chans_1[i]);
+    }
+  else
+    {
+    /* Set our channel setup */
     chans_2 = calloc(format->num_channels, sizeof(*chans_2));
     for(i = 0; i < format->num_channels; i++)
       chans_2[i] = channel_gavl_2_lqt(format->channel_locations[i]);
     lqt_set_channel_setup(file, track, chans_2);
     free(chans_2);
+
+    /* Copy reordered setup back */
+    chans_1 = lqt_get_channel_setup(file, track);
+    for(i = 0; i < format->num_channels; i++)
+      format->channel_locations[i] = channel_lqt_2_gavl(chans_1[i]);
     }
   }
 
 void lqt_gavl_add_video_track(quicktime_t * file,
-                              const gavl_video_format_t * format,
-                              lqt_codec_info_t * codec)
+                               gavl_video_format_t * format,
+                               lqt_codec_info_t * codec)
   {
   int track = quicktime_video_tracks(file);
+  //  fprintf(stderr, "lqt_gavl_add_video_track: track: %d\n", track);
 
   lqt_add_video_track(file, format->image_width, format->image_height,
                       format->frame_duration, format->timescale,
                       codec);
   lqt_set_pixel_aspect(file, track, format->pixel_width, format->pixel_height);
 
+  //  fprintf(stderr, "lqt_gavl_add_video_track: %d %d %s\n", track, lqt_get_cmodel(file, track),
+  // lqt_colormodel_to_string(lqt_get_cmodel(file, track)));
   
+  format->pixelformat = pixelformat_lqt_2_gavl(lqt_get_cmodel(file, track));
   }
 
 
 
-void lqt_gavl_encode_video(quicktime_t * file, int track,
+int lqt_gavl_encode_video(quicktime_t * file, int track,
                            gavl_video_frame_t * frame, uint8_t ** rows)
   {
   int i, height;
-
+  int result;
+  
   if(lqt_colormodel_is_planar(lqt_get_cmodel(file, track)))
     {
     lqt_set_row_span(file, track, frame->strides[0]);
     lqt_set_row_span_uv(file, track, frame->strides[1]);
-    lqt_encode_video(file, frame->planes, track, frame->time_scaled);
+    result = lqt_encode_video(file, frame->planes, track, frame->time_scaled);
     }
   else
     {
@@ -251,8 +270,9 @@ void lqt_gavl_encode_video(quicktime_t * file, int track,
       lqt_set_row_span(file, track, frame->strides[0]);
       rows[i] = frame->planes[0] + i * frame->strides[0];
       }
-    lqt_encode_video(file, rows, track, frame->time_scaled);
+    result = lqt_encode_video(file, rows, track, frame->time_scaled);
     }
+  return result;
   }
 
 void lqt_gavl_encode_audio(quicktime_t * file, int track,
@@ -288,7 +308,9 @@ int lqt_gavl_get_audio_format(quicktime_t * file,
     for(i = 0; i < format->num_channels; i++)
       {
       format->channel_locations[i] = channel_lqt_2_gavl(channel_setup[i]);
-      
+      fprintf(stderr, "Got channel %s -> %s\n",
+              lqt_channel_to_string(channel_setup[i]),
+              gavl_channel_id_to_string(format->channel_locations[i]));
       }
     }
   else
@@ -374,6 +396,7 @@ int lqt_gavl_decode_audio(quicktime_t * file, int track,
   pos = quicktime_audio_position(file, track);
   lqt_decode_audio_raw(file, frame->samples.s_8, samples, track);
   frame->valid_samples = lqt_last_audio_position(file, track) - pos;
+  //  fprintf(stderr, "lqt_decode_audio_raw: %d\n", frame->valid_samples);
   return frame->valid_samples;
   }
 

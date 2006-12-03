@@ -48,3 +48,8 @@ void bg_lqt_set_audio_decoder_parameter(const char * codec_name,
 void bg_lqt_set_video_decoder_parameter(const char * codec_name,
                                         const char * parameter_name,
                                         bg_parameter_value_t * val);
+
+void bg_lqt_log(lqt_log_level_t level,
+                const char * log_domain,
+                const char * message,
+                void * data);

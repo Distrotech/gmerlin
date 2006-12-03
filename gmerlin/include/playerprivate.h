@@ -181,6 +181,8 @@ struct bg_player_s
 
   float volume; /* Current volume in dB (0 == max) */
 
+  int mute;
+  pthread_mutex_t mute_mutex;
   
   };
 

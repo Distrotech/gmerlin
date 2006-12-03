@@ -1283,6 +1283,10 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
           }
         }
       }
+    else if(!strcmp(location, "-"))
+      {
+      info = bg_plugin_find_by_protocol(reg, "stdin");
+      }
     else
       {
       info = bg_plugin_find_by_filename(reg, real_location,

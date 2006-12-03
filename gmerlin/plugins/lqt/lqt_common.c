@@ -21,6 +21,7 @@
 #include <string.h>
 #include <plugin.h>
 #include <utils.h>
+#include <log.h>
 
 #include "lqt_common.h"
 
@@ -345,4 +346,30 @@ void bg_lqt_set_video_decoder_parameter(const char * codec_name,
   
   if(codec_info_arr)
     lqt_destroy_codec_info(codec_info_arr);
+  }
+
+void bg_lqt_log(lqt_log_level_t level, const char * log_domain, const char * message,
+                void * data)
+  {
+  bg_log_level_t gmerlin_level = BG_LOG_INFO;
+  char * gmerlin_domain = bg_sprintf("lqt.%s", log_domain);
+  
+  switch(level)
+    {
+    case LQT_LOG_INFO:
+      gmerlin_level = BG_LOG_INFO;
+      break;
+    case LQT_LOG_ERROR:
+      gmerlin_level = BG_LOG_ERROR;
+      break;
+    case LQT_LOG_WARNING:
+      gmerlin_level = BG_LOG_WARNING;
+      break;
+    case LQT_LOG_DEBUG:
+      gmerlin_level = BG_LOG_DEBUG;
+      break;
+    }
+
+  bg_log(gmerlin_level, gmerlin_domain, message);
+  free(gmerlin_domain);
   }

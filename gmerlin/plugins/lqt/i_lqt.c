@@ -81,6 +81,9 @@ typedef struct
 static void * create_lqt()
   {
   i_lqt_t * ret = calloc(1, sizeof(*ret));
+
+  lqt_set_log_callback(bg_lqt_log, NULL);
+
   return ret;
   }
 
@@ -229,8 +232,9 @@ static
 int read_video_frame_lqt(void * data, gavl_video_frame_t * f, int stream)
   {
   i_lqt_t * e = (i_lqt_t*)data;
-  return lqt_gavl_decode_video(e->file, e->video_streams[stream].quicktime_index, f,
-                               e->video_streams[stream].rows);
+  return lqt_gavl_decode_video(e->file,
+                               e->video_streams[stream].quicktime_index,
+                               f, e->video_streams[stream].rows);
   }
 
 

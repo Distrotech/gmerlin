@@ -73,13 +73,15 @@ void lqt_gavl_rows_destroy(uint8_t** rows);
  *  \param codec The codec to use
  *
  * This function sets up an audio stream for encoding.
- * You must get the actual format with \ref lqt_gavl_get_audio_format
- * after you configured the codec with \ref lqt_set_audio_parameter.
+ * This function will change the format parameter according to
+ * what you must pass to the encode calls. If the format is different
+ * from the source format, you need a \ref gavl_audio_converter_t.
  */
 
+
 void lqt_gavl_add_audio_track(quicktime_t * file,
-                              const gavl_audio_format_t * format,
-                              lqt_codec_info_t * codec);
+                               gavl_audio_format_t * format,
+                               lqt_codec_info_t * codec);
 
 /** \ingroup encode
  *  \brief Set up a video stream for encoding
@@ -88,13 +90,14 @@ void lqt_gavl_add_audio_track(quicktime_t * file,
  *  \param codec The codec to use
  *
  * This function sets up a video stream for encoding.
- * You must get the actual format with \ref lqt_gavl_get_video_format
- * after you configured the codec with \ref lqt_set_video_parameter.
+ * This function will change the format parameter according to
+ * what you must pass to the encode calls. If the format is different
+ * from the source format, you need a \ref gavl_video_converter_t.
  */
 
 void lqt_gavl_add_video_track(quicktime_t * file,
-                              const gavl_video_format_t * format,
-                              lqt_codec_info_t * codec);
+                               gavl_video_format_t * format,
+                               lqt_codec_info_t * codec);
 
 /* Encode audio/video */
 
@@ -104,6 +107,7 @@ void lqt_gavl_add_video_track(quicktime_t * file,
  *  \param track Track index (starting with 0)
  *  \param frame Video frame
  *  \param rows Rows (created with \ref lqt_gavl_rows_create)
+ *  \returns 1 if a frame could be encoded, 0 else
  *
  *  Pass one audio frame to libquicktime for encoding.
  *  The format must be the same as returned by \ref lqt_gavl_add_audio_track.
@@ -111,7 +115,7 @@ void lqt_gavl_add_video_track(quicktime_t * file,
  *  the samples_per_frame member of the format.
  */
 
-void lqt_gavl_encode_video(quicktime_t * file, int track,
+int lqt_gavl_encode_video(quicktime_t * file, int track,
                            gavl_video_frame_t * frame, uint8_t ** rows);
 
 /** \ingroup encode

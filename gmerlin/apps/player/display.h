@@ -54,6 +54,8 @@ void display_set_playlist_times(display_t *,
 
 void display_set_time(display_t *, gavl_time_t time);
 
+void display_set_mute(display_t *, int mute);
+
 GtkWidget * display_get_widget(display_t *);
 
 void display_get_coords(display_t *, int * x, int * y);

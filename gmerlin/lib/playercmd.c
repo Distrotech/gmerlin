@@ -73,6 +73,17 @@ void bg_player_stop(bg_player_t * p)
   
   }
 
+void bg_player_toggle_mute(bg_player_t * p)
+  {
+  bg_msg_t * msg;
+
+  msg = bg_msg_queue_lock_write(p->command_queue);
+  bg_msg_set_id(msg, BG_PLAYER_CMD_TOGGLE_MUTE);
+  bg_msg_queue_unlock_write(p->command_queue);
+  
+  }
+
+
 void bg_player_pause(bg_player_t * p)
   {
   bg_msg_t * msg;

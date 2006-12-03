@@ -54,7 +54,7 @@
 #define RIFF_SIZE_OFFSET 4
 // #define DATA_SIZE_OFFSET 40
 
-typedef struct
+typedef struct wav_s
   {
   int bytes_per_sample;
   FILE * output;
@@ -66,35 +66,33 @@ typedef struct
   bg_metadata_t metadata;
   char * filename;
   uint32_t channel_mask;
+
+  uint8_t * buffer;
+  int buffer_alloc;
+  void (*convert_func)(struct wav_s*, uint8_t * samples, int num_samples);
   } wav_t;
 
-static void write_8(FILE * output, uint32_t val)
+static int write_8(FILE * output, uint32_t val)
   {
   uint8_t c = val;
-  fwrite(&c, 1, 1, output);
+  if(fwrite(&c, 1, 1, output) < 1)
+    return 0;
+  return 1;
   }
 
-static void write_16(FILE * output, uint32_t val)
+static int write_16(FILE * output, uint32_t val)
   {
   uint8_t c[2];
   
   c[0] = val & 0xff;
   c[1] = (val >> 8) & 0xff;
   
-  fwrite(c, 1, 2, output);
+  if(fwrite(c, 1, 2, output) < 2)
+    return 0;
+  return 1;
   }
-#if 0
-static void write_24(FILE * output, uint32_t val)
-  {
-  uint8_t c[3];
 
-  c[0] = val & 0xff;
-  c[1] = (val >> 8) & 0xff;
-  c[2] = (val >> 16) & 0xff;
-  fwrite(c, 1, 3, output);
-  }
-#endif
-static void write_32(FILE * output, uint32_t val)
+static int write_32(FILE * output, uint32_t val)
   {
   uint8_t c[4];
   
@@ -102,44 +100,12 @@ static void write_32(FILE * output, uint32_t val)
   c[1] = (val >> 8) & 0xff;
   c[2] = (val >> 16) & 0xff;
   c[3] = (val >> 24) & 0xff;
-  fwrite(c, 1, 4, output);
+  if(fwrite(c, 1, 4, output) < 4)
+    return 0;
+  return 1;
   }
 
-/* Functions for writing signed integers */
-
-static void write_16_s(FILE * output, int32_t val)
-  {
-  uint8_t c[2];
-  
-  c[0] = val & 0xff;
-  c[1] = (val >> 8) & 0xff;
-  
-  fwrite(c, 1, 2, output);
-  }
-
-static void write_24_s(FILE * output, int32_t val)
-  {
-  uint8_t c[3];
-
-  c[0] = (val >> 8) & 0xff;
-  c[1] = (val >> 16) & 0xff;
-  c[2] = (val >> 24) & 0xff;
-  fwrite(c, 1, 3, output);
-  }
-
-static void write_32_s(FILE * output, int32_t val)
-  {
-  uint8_t c[4];
-
-  c[0] = val & 0xff;
-  c[1] = (val >> 8) & 0xff;
-  c[2] = (val >> 16) & 0xff;
-  c[3] = (val >> 24) & 0xff;
-  fwrite(c, 1, 4, output);
-  }
-
-
-static void write_fourcc(FILE * output, char c1, char c2, char c3, char c4)
+static int write_fourcc(FILE * output, char c1, char c2, char c3, char c4)
   {
   char c[4];
 
@@ -147,8 +113,62 @@ static void write_fourcc(FILE * output, char c1, char c2, char c3, char c4)
   c[1] = c2;
   c[2] = c3;
   c[3] = c4;
-  fwrite(c, 1, 4, output);
+  if(fwrite(c, 1, 4, output) < 4)
+    return 0;
+  return 1;
   }
+
+/* Functions for writing signed integers */
+
+#ifdef GAVL_PROCESSOR_BIG_ENDIAN
+static void convert_16_be(struct wav_s*w, uint8_t * samples, int num_samples)
+  {
+  int i;
+  uint8_t * src = samples;
+  uint8_t * dst = w->buffer;
+  
+  for(i = 0; i < num_samples; i++)
+    {
+    dst[0] = src[1];
+    dst[1] = src[0];
+    dst+=2;
+    src+=2;
+    }
+  }
+
+static void convert_32_be(struct wav_s*w, uint8_t * samples, int num_samples)
+  {
+  int i;
+  uint8_t * src = samples;
+  uint8_t * dst = w->buffer;
+  for(i = 0; i < num_samples; i++)
+    {
+    dst[0] = src[3];
+    dst[1] = src[2];
+    dst[2] = src[1];
+    dst[3] = src[0];
+    dst+=4;
+    src+=4;
+    }
+  }
+#endif
+
+static void convert_24(struct wav_s*w, uint8_t * samples, int num_samples)
+  {
+  int i;
+  uint32_t * src = (uint32_t*)samples;
+  uint8_t * dst = w->buffer;
+
+  for(i = 0; i < num_samples; i++)
+    {
+    dst[0] = (src[0] >> 8) & 0xff;
+    dst[1] = (src[0] >> 16) & 0xff;
+    dst[2] = (src[0] >> 24) & 0xff;
+    src++;
+    dst+=3;
+    }
+  }
+
 
 /* Write info chunk */
 
@@ -179,16 +199,22 @@ typedef struct
     len = strlen(info.tag)+1; \
     if(len > 1) \
       { \
-      fwrite(#tag, 1, 4, output);\
+      if(fwrite(#tag, 1, 4, output) < 4)\
+        return 0; \
       write_32(output, len); \
-      fwrite(info.tag, 1, len, output); \
-      if(len % 2) write_8(output, 0x00); \
+      if(fwrite(info.tag, 1, len, output) < len) \
+        return 0; \
+      if(len % 2) \
+        { \
+        if(!write_8(output, 0x00)) \
+          return 0; \
+        } \
       } \
     }
 
 #define BUFFER_SIZE 256
 
-static void write_info_chunk(FILE * output, bg_metadata_t * m)
+static int write_info_chunk(FILE * output, bg_metadata_t * m)
   {
   int len;
   int total_len;
@@ -229,9 +255,10 @@ static void write_info_chunk(FILE * output, bg_metadata_t * m)
 
   /* Write chunk header */
 
-  write_fourcc(output, 'L', 'I', 'S', 'T');
-  write_32(output, total_len);
-  write_fourcc(output, 'I', 'N', 'F', 'O');
+  if(!write_fourcc(output, 'L', 'I', 'S', 'T') ||
+     !write_32(output, total_len) ||
+     !write_fourcc(output, 'I', 'N', 'F', 'O'))
+    return 0;
   
   /* Write strings */
 
@@ -242,7 +269,8 @@ static void write_info_chunk(FILE * output, bg_metadata_t * m)
   WRITE_STRING(IGNR);
   WRITE_STRING(ICRD);
   WRITE_STRING(ISFT);
-  
+
+  return 1;
   }
 
 
@@ -305,16 +333,17 @@ static bg_parameter_info_t * get_parameters_wav(void * data)
   return parameters;
   }
 
-static void write_PCMWAVEFORMAT(wav_t * wav)
+static int write_PCMWAVEFORMAT(wav_t * wav)
   {
-  write_32(wav->output, 16);                                               /* Size   */
-  write_16(wav->output, 0x0001);                                           /* wFormatTag */
-  write_16(wav->output, wav->format.num_channels);                         /* nChannels */
-  write_32(wav->output, wav->format.samplerate);                           /* nSamplesPerSec */
-  write_32(wav->output, wav->bytes_per_sample *
-           wav->format.num_channels * wav->format.samplerate);             /* nAvgBytesPerSec */
-  write_16(wav->output, wav->bytes_per_sample * wav->format.num_channels); /* nBlockAlign */
-  write_16(wav->output, wav->bytes_per_sample * 8);                        /* wBitsPerSample */
+  return
+    (write_32(wav->output, 16) &&                                               /* Size   */
+     write_16(wav->output, 0x0001) &&                                            /* wFormatTag */
+     write_16(wav->output, wav->format.num_channels) &&                          /* nChannels */
+     write_32(wav->output, wav->format.samplerate) &&                           /* nSamplesPerSec */
+     write_32(wav->output, wav->bytes_per_sample *
+              wav->format.num_channels * wav->format.samplerate) &&             /* nAvgBytesPerSec */
+     write_16(wav->output, wav->bytes_per_sample * wav->format.num_channels) && /* nBlockAlign */
+     write_16(wav->output, wav->bytes_per_sample * 8));                        /* wBitsPerSample */
   }
 
 struct
@@ -359,28 +388,27 @@ static uint32_t format_2_channel_mask(gavl_audio_format_t * format)
   }
 
 
-static void write_WAVEFORMATEXTENSIBLE(wav_t * wav)
+static int write_WAVEFORMATEXTENSIBLE(wav_t * wav)
   {
   uint8_t guid[16] = { 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00,
                       0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71 };
 
-  write_32(wav->output, 40);                                               /* Size   */
-  write_16(wav->output, 0xfffe);                                           /* wFormatTag */
-  write_16(wav->output, wav->format.num_channels);                         /* nChannels */
-  write_32(wav->output, wav->format.samplerate);                           /* nSamplesPerSec */
-  write_32(wav->output, wav->bytes_per_sample *
-           wav->format.num_channels * wav->format.samplerate);             /* nAvgBytesPerSec */
-  write_16(wav->output, wav->bytes_per_sample * wav->format.num_channels); /* nBlockAlign */
-  write_16(wav->output, wav->bytes_per_sample * 8);                        /* wBitsPerSample */
-  write_16(wav->output, 22);                                               /* cbSize         */
-  write_16(wav->output, wav->bytes_per_sample * 8);                        /* wValidBitsPerSample */
+  return(write_32(wav->output, 40) &&                                               /* Size   */
+         write_16(wav->output, 0xfffe) &&                                           /* wFormatTag */
+         write_16(wav->output, wav->format.num_channels) &&                         /* nChannels */
+         write_32(wav->output, wav->format.samplerate) &&                           /* nSamplesPerSec */
+         write_32(wav->output, wav->bytes_per_sample *
+                  wav->format.num_channels * wav->format.samplerate) &&             /* nAvgBytesPerSec */
+         write_16(wav->output, wav->bytes_per_sample * wav->format.num_channels) && /* nBlockAlign */
+         write_16(wav->output, wav->bytes_per_sample * 8) &&                        /* wBitsPerSample */
+         write_16(wav->output, 22) &&                                               /* cbSize         */
+         write_16(wav->output, wav->bytes_per_sample * 8) &&                        /* wValidBitsPerSample */
 
   /* Write channel mask */
 
-  write_32(wav->output, wav->channel_mask);            /* dwChannelMask */
-  fwrite(guid, 1, 16, wav->output);
-  
-  }
+         write_32(wav->output, wav->channel_mask) &&            /* dwChannelMask */
+         (fwrite(guid, 1, 16, wav->output) == 16));
+    }
 
 static void set_audio_parameter_wav(void * data, int stream, char * name,
                                     bg_parameter_value_t * v)
@@ -398,44 +426,6 @@ static void set_audio_parameter_wav(void * data, int stream, char * name,
   if(!strcmp(name, "bits"))
     {
     wav->bytes_per_sample = atoi(v->val_str) / 8;
-    
-    /* Write the header and adjust format */
-
-    write_fourcc(wav->output, 'R', 'I', 'F', 'F'); /* "RIFF" */
-    write_32(wav->output, 0x00000000);             /*  size  */
-    write_fourcc(wav->output, 'W', 'A', 'V', 'E'); /* "WAVE" */
-    write_fourcc(wav->output, 'f', 'm', 't', ' '); /* "fmt " */
-
-    /* Build channel mask and adjust channel locations */
-    wav->channel_mask = format_2_channel_mask(&wav->format);
-    
-    if(wav->format.num_channels <= 2)
-      write_PCMWAVEFORMAT(wav);
-    else
-      write_WAVEFORMATEXTENSIBLE(wav);
-    
-    /* Start data section */
-
-    write_fourcc(wav->output, 'd', 'a', 't', 'a'); /* "data" */
-
-    wav->data_size_offset = ftell(wav->output);
-    write_32(wav->output, 0x00000000);             /*  size  */
-
-    /* Adjust format */
-
-    switch(wav->bytes_per_sample)
-      {
-      case 1:
-        wav->format.sample_format = GAVL_SAMPLE_U8;
-        break;
-      case 2:
-        wav->format.sample_format = GAVL_SAMPLE_S16;
-        break;
-      case 3:
-      case 4:
-        wav->format.sample_format = GAVL_SAMPLE_S32;
-        break;
-      }
     }
   }
 
@@ -462,7 +452,7 @@ static int open_wav(void * data, const char * filename,
 
   if(!wav->output)
     {
-    wav->error_msg = bg_sprintf("Cannot open output file: %s\n",
+    wav->error_msg = bg_sprintf("Cannot open output file: %s",
                                strerror(errno));
     result = 0;
     }
@@ -494,35 +484,34 @@ static int add_audio_stream_wav(void * data, gavl_audio_format_t * format)
   return 0;
   }
 
-static void write_audio_frame_wav(void * data, gavl_audio_frame_t * frame,
+static int write_audio_frame_wav(void * data, gavl_audio_frame_t * frame,
                                   int stream)
   {
-  int i, imax;
+  int num_samples, num_bytes;
   wav_t * wav;
   
   wav = (wav_t*)data;
-
-  imax = frame->valid_samples * wav->format.num_channels;
   
-  switch(wav->bytes_per_sample)
+  num_samples = frame->valid_samples * wav->format.num_channels;
+  num_bytes = num_samples * wav->bytes_per_sample;
+  
+  if(wav->convert_func)
     {
-    case 1:
-      fwrite(frame->samples.s_8, 1, imax, wav->output);
-      break;
-    case 2:
-      for(i = 0; i < imax; i++)
-        write_16_s(wav->output, frame->samples.s_16[i]);
-      
-      break;
-    case 3:
-      for(i = 0; i < imax; i++)
-        write_24_s(wav->output, frame->samples.s_32[i]);
-      break;
-    case 4:
-      for(i = 0; i < imax; i++)
-        write_32_s(wav->output, frame->samples.s_32[i]);
-      break;
+    if(wav->buffer_alloc < num_bytes)
+      {
+      wav->buffer_alloc = num_bytes + 1024;
+      wav->buffer = realloc(wav->buffer, wav->buffer_alloc);
+      }
+    wav->convert_func(wav, frame->samples.u_8, num_samples);
+    if(fwrite(wav->buffer, 1, num_bytes, wav->output) < num_bytes)
+      return 0;
     }
+  else
+    {
+    if(fwrite(frame->samples.s_8, 1, num_bytes, wav->output) < num_bytes)
+      return 0;
+    }
+  return 1;
   }
 
 static void get_audio_format_wav(void * data, int stream,
@@ -533,9 +522,70 @@ static void get_audio_format_wav(void * data, int stream,
   gavl_audio_format_copy(ret, &(wav->format));
   }
 
-
-static void close_wav(void * data, int do_delete)
+static int start_wav(void * data)
   {
+  wav_t * wav;
+  wav = (wav_t*)data;
+
+  /* Write the header and adjust format */
+
+  if(!write_fourcc(wav->output, 'R', 'I', 'F', 'F') || /* "RIFF" */
+     !write_32(wav->output, 0x00000000) ||             /*  size  */
+     !write_fourcc(wav->output, 'W', 'A', 'V', 'E') || /* "WAVE" */
+     !write_fourcc(wav->output, 'f', 'm', 't', ' ')) /* "fmt " */
+    return 0;
+  
+  /* Build channel mask and adjust channel locations */
+  wav->channel_mask = format_2_channel_mask(&wav->format);
+  
+  if(wav->format.num_channels <= 2)
+    {
+    if(!write_PCMWAVEFORMAT(wav))
+      return 0;
+    }
+  else
+    {
+    if(!write_WAVEFORMATEXTENSIBLE(wav))
+      return 0;
+    }
+  /* Start data section */
+  
+  write_fourcc(wav->output, 'd', 'a', 't', 'a'); /* "data" */
+  
+  wav->data_size_offset = ftell(wav->output);
+  write_32(wav->output, 0x00000000);             /*  size  */
+  
+  /* Adjust format */
+  
+  switch(wav->bytes_per_sample)
+    {
+    case 1:
+      wav->format.sample_format = GAVL_SAMPLE_U8;
+      break;
+    case 2:
+      wav->format.sample_format = GAVL_SAMPLE_S16;
+#ifdef GAVL_PROCESSOR_BIG_ENDIAN
+      wav->convert_func = convert_16_be;
+#endif
+      break;
+    case 3:
+      wav->convert_func = convert_24;
+      wav->format.sample_format = GAVL_SAMPLE_S32;
+      break;
+    case 4:
+#ifdef GAVL_PROCESSOR_BIG_ENDIAN
+      wav->convert_func = convert_32_be;
+#endif
+      wav->format.sample_format = GAVL_SAMPLE_S32;
+      break;
+    }
+  return 1;
+  }
+
+
+static int close_wav(void * data, int do_delete)
+  {
+  int ret = 1;
   wav_t * wav;
   int64_t total_bytes;
   wav = (wav_t*)data;
@@ -546,27 +596,28 @@ static void close_wav(void * data, int do_delete)
     /* Finalize data section */
     fseek(wav->output, wav->data_size_offset, SEEK_SET);
     write_32(wav->output, total_bytes - wav->data_size_offset - 4);
+    /* Finalize RIFF */
+    fseek(wav->output, RIFF_SIZE_OFFSET, SEEK_SET);
+    write_32(wav->output, total_bytes - RIFF_SIZE_OFFSET - 4);
+
     /* Write info chunk */
     if(wav->write_info_chunk)
       {
       fseek(wav->output, total_bytes, SEEK_SET);
-      write_info_chunk(wav->output, &(wav->metadata));
+      ret = write_info_chunk(wav->output, &(wav->metadata));
       total_bytes = ftell(wav->output);
       }
-    /* Finalize RIFF */
-    fseek(wav->output, RIFF_SIZE_OFFSET, SEEK_SET);
-    write_32(wav->output, total_bytes - RIFF_SIZE_OFFSET - 4);
-    
     }
+  if(wav->output)
+    fclose(wav->output);
   
-  fclose(wav->output);
-
   if(do_delete)
     remove(wav->filename);
 
   bg_metadata_free(&(wav->metadata));
   
   wav->output = NULL;
+  return ret;
   }
 
 bg_encoder_plugin_t the_plugin =
@@ -600,7 +651,8 @@ bg_encoder_plugin_t the_plugin =
     set_audio_parameter:     set_audio_parameter_wav,
 
     get_audio_format:        get_audio_format_wav,
-    
+
+    start:               start_wav,
     write_audio_frame:   write_audio_frame_wav,
     close:               close_wav
   };

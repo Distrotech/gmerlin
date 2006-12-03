@@ -45,6 +45,7 @@ image_16.png \
 incoming_closed_16.png \
 incoming_open_16.png \
 info_16.png \
+kbd_icon.png \
 last_16.png \
 left_16.png \
 lock_16.png \
@@ -72,6 +73,7 @@ state_buffering_4.png \
 state_buffering_5.png \
 state_changing.png \
 state_error.png \
+state_mute.png \
 state_paused.png \
 state_playing.png \
 state_seeking.png \

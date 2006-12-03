@@ -201,6 +201,13 @@ void bg_player_set_subtitle_stream(bg_player_t * player, int stream);
 
 void bg_player_change(bg_player_t * player, int flags);
 
+/** \brief Toggle mute
+ *  \param player A player
+ */
+
+void bg_player_toggle_mute(bg_player_t * player);
+
+
 /** @} */
 
 /** \defgroup player_cfg Player configuration

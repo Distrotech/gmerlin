@@ -404,6 +404,33 @@ static gboolean idle_callback(gpointer data)
           return TRUE;
           }
         break;
+
+      case BG_TRANSCODER_MSG_ERROR:
+        arg_str = bg_msg_get_arg_string(msg, 0);
+        bg_gtk_scrolltext_set_text(win->scrolltext, arg_str,
+                                   win->fg_color_e, win->bg_color);
+        if(win->transcoder_track)
+          {
+          track_list_prepend_track(win->tracklist, win->transcoder_track);
+          win->transcoder_track = (bg_transcoder_track_t*)0;
+          }
+
+        finish_transcoding(win);
+        
+        bg_gtk_time_display_update(win->time_remaining, GAVL_TIME_UNDEFINED);
+        gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(win->progress_bar), 0.0);
+        
+        win->transcoder = (bg_transcoder_t*)0;
+        
+        gtk_widget_set_sensitive(win->run_button, 1);
+        gtk_widget_set_sensitive(win->actions_menu.run_item, 1);
+        
+        gtk_widget_set_sensitive(win->stop_button, 0);
+        gtk_widget_set_sensitive(win->actions_menu.stop_item, 0);
+        free(arg_str);
+
+        bg_msg_queue_unlock_read(win->msg_queue);
+        return TRUE;
       }
     bg_msg_queue_unlock_read(win->msg_queue);
     }

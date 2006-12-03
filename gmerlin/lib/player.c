@@ -152,7 +152,8 @@ bg_player_t * bg_player_create()
   pthread_mutex_init(&(ret->stop_mutex),  (pthread_mutexattr_t *)0);
   pthread_mutex_init(&(ret->waiting_plugin_threads_mutex),
                      (pthread_mutexattr_t *)0);
-
+  pthread_mutex_init(&(ret->mute_mutex), (pthread_mutexattr_t *)0);
+  
   pthread_cond_init (&(ret->start_cond),  (pthread_condattr_t *)0);
   pthread_cond_init (&(ret->stop_cond),   (pthread_condattr_t *)0);
 

@@ -29,9 +29,17 @@ else
 transcoder_subdirs =
 endif
 
+if HAVE_KBD
+kbd_subdirs = kbd
+else
+kbd_subdirs =
+endif
+
+
 SUBDIRS = $(player_subdirs) \
 $(plugincfg_subdirs) \
 $(alsamixer_subdirs) \
 $(camelot_subdirs) \
-$(transcoder_subdirs)
+$(transcoder_subdirs) \
+$(kbd_subdirs)
 

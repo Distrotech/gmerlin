@@ -73,6 +73,9 @@ typedef struct
 static void * create_lqt()
   {
   e_lqt_t * ret = calloc(1, sizeof(*ret));
+
+  lqt_set_log_callback(bg_lqt_log, NULL);
+  
   return ret;
   }
 
@@ -229,32 +232,31 @@ static int start_lqt(void * data)
   }
 
 
-static void write_audio_frame_lqt(void * data, gavl_audio_frame_t* frame,
+static int write_audio_frame_lqt(void * data, gavl_audio_frame_t* frame,
                                   int stream)
   {
   e_lqt_t * e = (e_lqt_t*)data;
 
-  lqt_encode_audio_raw(e->file, frame->samples.s_8, frame->valid_samples, stream);
-  
+  return !!lqt_encode_audio_raw(e->file, frame->samples.s_8,
+                                frame->valid_samples, stream);
   }
 
-static void write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
+static int write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
                                   int stream)
   {
   e_lqt_t * e = (e_lqt_t*)data;
 
-  lqt_gavl_encode_video(e->file, stream, frame, e->video_streams[stream].rows);
+  return lqt_gavl_encode_video(e->file, stream, frame, e->video_streams[stream].rows);
   }
 
-static void close_lqt(void * data, int do_delete)
+static int close_lqt(void * data, int do_delete)
   {
   int i;
   char * filename_final, *pos;
   e_lqt_t * e = (e_lqt_t*)data;
 
   if(!e->file)
-    return;
-
+    return 1;
   
   quicktime_close(e->file);
   e->file = (quicktime_t*)0;
@@ -304,7 +306,7 @@ static void close_lqt(void * data, int do_delete)
     }
   e->num_audio_streams = 0;
   e->num_video_streams = 0;
-  
+  return 1;
   }
 
 static void destroy_lqt(void * data)

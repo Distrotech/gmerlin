@@ -539,6 +539,9 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     bg_plugin_unlock(ctx->plugin_handle);
     if(!result)
       ctx->video_finished = 1;
+    else
+      ctx->video_frames_written++;
+    
     if(ctx->player->video_stream.input_format.framerate_mode != GAVL_FRAMERATE_STILL)
       ctx->video_time = gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
                                           ctx->player->video_stream.frame->time_scaled);
@@ -561,10 +564,12 @@ static int process_video(bg_player_input_context_t * ctx, int preload)
     bg_plugin_unlock(ctx->plugin_handle);
     if(!result)
       ctx->video_finished = 1;
+    else
+      ctx->video_frames_written++;
+    
     ctx->video_time =
       gavl_time_unscale(ctx->player->video_stream.input_format.timescale,
                         video_frame->time_scaled);
-    ctx->video_frames_written++;
     }
 
   
@@ -598,6 +603,7 @@ void * bg_player_input_thread(void * data)
   
   ctx->send_silence = 0;
   ctx->audio_samples_written = 0;
+  ctx->video_frames_written = 0;
   
   ctx->audio_time = 0;
   ctx->video_time = 0;

@@ -92,6 +92,7 @@ void bg_transcoder_send_msg_progress(bg_msg_queue_list_t * l,
 void bg_transcoder_send_msg_finished(bg_msg_queue_list_t * l);
 
 void bg_transcoder_send_msg_start(bg_msg_queue_list_t * l, char * what);
+void bg_transcoder_send_msg_error(bg_msg_queue_list_t * l, char * msg);
 
 void bg_transcoder_send_msg_metadata(bg_msg_queue_list_t * l, bg_metadata_t * m);
 

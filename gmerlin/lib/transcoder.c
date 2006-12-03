@@ -57,6 +57,7 @@
 #define TRANSCODER_STATE_INIT     0
 #define TRANSCODER_STATE_RUNNING  1
 #define TRANSCODER_STATE_FINISHED 2
+#define TRANSCODER_STATE_ERROR    3
 
 typedef struct subtitle_stream_s subtitle_stream_t;
 
@@ -652,6 +653,18 @@ void bg_transcoder_send_msg_start(bg_msg_queue_list_t * l, char * what)
                          set_message_start, what);
   }
 
+static void set_message_error(bg_msg_t * msg, const void * data)
+  {
+  bg_msg_set_id(msg, BG_TRANSCODER_MSG_ERROR);
+  bg_msg_set_arg_string(msg, 0, (char*)data);
+  }
+
+void bg_transcoder_send_msg_error(bg_msg_queue_list_t * l, char * msg)
+  {
+  bg_msg_queue_list_send(l, set_message_error, msg);
+  }
+
+
 static void set_message_metadata(bg_msg_t * msg, const void * data)
   {
   bg_msg_set_id(msg, BG_TRANSCODER_MSG_METADATA);
@@ -1087,8 +1100,9 @@ static int set_video_pass(bg_transcoder_t * t, int i)
   return 1;
   }
 
-static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
+static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   {
+  int ret = 1;
   int num_samples;
   int samples_decoded;
   gavl_audio_frame_t * frame;
@@ -1133,7 +1147,7 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   if(!samples_decoded)
     {
     s->com.status = STREAM_STATE_FINISHED;
-    return;
+    return ret;
     }
 
   s->samples_read += samples_decoded;
@@ -1190,10 +1204,19 @@ static void audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
       }
     }
   if(frame)
-    s->com.out_plugin->write_audio_frame(s->com.out_handle->priv,
-                                         frame,
-                                         s->com.out_index);
-  
+    ret = s->com.out_plugin->write_audio_frame(s->com.out_handle->priv,
+                                               frame,
+                                               s->com.out_index);
+
+  if(!ret)
+    {
+    if(s->com.out_plugin->common.get_error)
+      t->error_msg =
+        bg_strdup(t->error_msg,
+                  s->com.out_plugin->common.get_error(s->com.out_handle->priv));
+    }
+
+  return ret;
   }
 
 static int decode_video_frame(video_stream_t * s, bg_transcoder_t * t,
@@ -1424,8 +1447,9 @@ static int check_video_blend(video_stream_t * vs,
   s->in_frame_1=s->in_frame_2;\
   s->in_frame_2=tmp_frame
 
-static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
+static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
   {
+  int ret = 1;
   int i;
   gavl_time_t next_time;
   gavl_video_frame_t * tmp_frame;
@@ -1456,14 +1480,14 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
       if(!result)
         {
         s->com.status = STREAM_STATE_FINISHED;
-        return;
+        return ret;
         }
 
       result = decode_video_frame(s, t, s->in_frame_2);
       if(!result)
         {
         s->com.status = STREAM_STATE_FINISHED;
-        return;
+        return ret;
         }
       }
 
@@ -1516,7 +1540,7 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
     if(!result)
       {
       s->com.status = STREAM_STATE_FINISHED;
-      return;
+      return ret;
       }
 
     s->com.time = gavl_time_unscale(s->in_format.timescale, s->in_frame_1->time_scaled);
@@ -1546,12 +1570,20 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
       }
     }
   
-  s->com.out_plugin->write_video_frame(s->com.out_handle->priv,
-                                       out_frame,
-                                       s->com.out_index);
+  ret = s->com.out_plugin->write_video_frame(s->com.out_handle->priv,
+                                             out_frame,
+                                             s->com.out_index);
+
+  if(!ret)
+    {
+    if(s->com.out_plugin->common.get_error)
+      t->error_msg =
+        bg_strdup(t->error_msg,
+                  s->com.out_plugin->common.get_error(s->com.out_handle->priv));
+    }
   
   s->frames_written++;
-    
+  return ret;
   }
 
 /* Time offset of 0.5 seconds means, that we encode subtitles maximum
@@ -1561,9 +1593,9 @@ static void video_iteration(video_stream_t * s, bg_transcoder_t * t)
 #define SUBTITLE_TIME_OFFSET (GAVL_TIME_SCALE/2)
 
 
-static void subtitle_iteration(bg_transcoder_t * t)
+static int subtitle_iteration(bg_transcoder_t * t)
   {
-  int i;
+  int i, ret = 1;
   subtitle_text_stream_t * st;
   subtitle_stream_t      * ss;
   video_stream_t         * vs;
@@ -1611,7 +1643,8 @@ static void subtitle_iteration(bg_transcoder_t * t)
         {
         if(st->com.com.action == STREAM_ACTION_TRANSCODE)
           {
-          st->com.com.out_plugin->write_subtitle_text(st->com.com.out_handle->priv,
+          ret =
+            st->com.com.out_plugin->write_subtitle_text(st->com.com.out_handle->priv,
                                                  st->text, st->subtitle_start,
                                                  st->subtitle_duration,
                                                  st->com.com.out_index);
@@ -1621,16 +1654,28 @@ static void subtitle_iteration(bg_transcoder_t * t)
           }
         else if(st->com.com.action == STREAM_ACTION_TRANSCODE_OVERLAY)
           {
-          st->com.com.out_plugin->write_subtitle_overlay(st->com.com.out_handle->priv,
-                                                         &st->com.ovl1,
-                                                         st->com.com.out_index);
+          ret =
+            st->com.com.out_plugin->write_subtitle_overlay(st->com.com.out_handle->priv,
+                                                           &st->com.ovl1,
+                                                           st->com.com.out_index);
           if(st->com.ovl1.frame->time_scaled > t->time)
             t->time = st->com.ovl1.frame->time_scaled;
           }
         st->com.has_current = 0;
         }
       }
+    if(!ret)
+      {
+      if(st->com.com.out_plugin->common.get_error)
+        t->error_msg =
+          bg_strdup(t->error_msg,
+                    st->com.com.out_plugin->common.get_error(st->com.com.out_handle->priv));
+      break;
+      }
     }
+
+  if(!ret)
+    return ret;
   
   for(i = 0; i < t->num_subtitle_overlay_streams; i++)
     {
@@ -1665,7 +1710,7 @@ static void subtitle_iteration(bg_transcoder_t * t)
       vs = &(t->video_streams[ss->video_stream]);
       if(!vs->com.do_encode || (ss->ovl1.frame->time_scaled - vs->com.time < SUBTITLE_TIME_OFFSET))
         {
-        ss->com.out_plugin->write_subtitle_overlay(ss->com.out_handle->priv,
+        ret = ss->com.out_plugin->write_subtitle_overlay(ss->com.out_handle->priv,
                                                    &ss->ovl1,
                                                    ss->com.out_index);
         if(ss->ovl1.frame->time_scaled > t->time)
@@ -1673,7 +1718,18 @@ static void subtitle_iteration(bg_transcoder_t * t)
         ss->has_current = 0;
         }
       }
+
+    if(!ret)
+      {
+      if(ss->com.out_plugin->common.get_error)
+        t->error_msg =
+          bg_strdup(t->error_msg,
+                    ss->com.out_plugin->common.get_error(ss->com.out_handle->priv));
+
+      break;
+      }
     }
+  return ret;
   }
 
 /* Parameter passing for the Transcoder */
@@ -2292,9 +2348,10 @@ static void check_passes(bg_transcoder_t * ret)
     }
   }
 
-static void setup_pass(bg_transcoder_t * ret)
+static int setup_pass(bg_transcoder_t * ret)
   {
   int i;
+  int result = 0;
   for(i = 0; i < ret->num_audio_streams; i++)
     {
     /* Reset the samples already decoded */
@@ -2309,11 +2366,13 @@ static void setup_pass(bg_transcoder_t * ret)
       {
       ret->audio_streams[i].com.do_decode = 1;
       ret->audio_streams[i].com.do_encode = 1;
+      result = 1;
       }
     else if((ret->pass == 1) && (ret->audio_streams[i].normalize))
       {
       ret->audio_streams[i].com.do_decode = 1;
       ret->audio_streams[i].com.do_encode = 0;
+      result = 1;
       }
     else
       {
@@ -2338,6 +2397,7 @@ static void setup_pass(bg_transcoder_t * ret)
       {
       ret->video_streams[i].com.do_decode = 1;
       ret->video_streams[i].com.do_encode = 1;
+      result = 1;
       }
     else
       {
@@ -2373,6 +2433,7 @@ static void setup_pass(bg_transcoder_t * ret)
           ret->subtitle_text_streams[i].com.com.do_decode = 0;
           ret->subtitle_text_streams[i].com.com.do_encode = 0;
           }
+        result = 1;
         break;
       case STREAM_ACTION_TRANSCODE:
       case STREAM_ACTION_TRANSCODE_OVERLAY:
@@ -2380,6 +2441,7 @@ static void setup_pass(bg_transcoder_t * ret)
           {
           ret->subtitle_text_streams[i].com.com.do_decode = 1;
           ret->subtitle_text_streams[i].com.com.do_encode = 1;
+          result = 1;
           }
         else
           {
@@ -2414,6 +2476,7 @@ static void setup_pass(bg_transcoder_t * ret)
           {
           ret->subtitle_overlay_streams[i].com.do_decode = 1;
           ret->subtitle_overlay_streams[i].com.do_encode = 1;
+          result = 1;
           }
         else
           {
@@ -2426,6 +2489,7 @@ static void setup_pass(bg_transcoder_t * ret)
           {
           ret->subtitle_overlay_streams[i].com.do_decode = 1;
           ret->subtitle_overlay_streams[i].com.do_encode = 1;
+          result = 1;
           }
         else
           {
@@ -2446,10 +2510,7 @@ static void setup_pass(bg_transcoder_t * ret)
     else
       ret->subtitle_overlay_streams[i].com.status = STREAM_STATE_ON;
     }
-
-  
-  
-  
+  return result;
   }
 
 static int open_encoder(bg_transcoder_t * ret,
@@ -2499,9 +2560,17 @@ static int start_encoder(bg_transcoder_t * ret, bg_plugin_handle_t  * encoder_ha
   {
   if(encoder_plugin->start && !encoder_plugin->start(encoder_handle->priv))
     {
-    ret->error_msg = bg_sprintf("Cannot setup %s", encoder_handle->info->long_name);
+    if(encoder_plugin->common.get_error)
+      ret->error_msg =
+        bg_sprintf("Could not start %s: %s",
+                   encoder_handle->info->long_name,
+                   encoder_plugin->common.get_error(encoder_handle->priv));
+    else
+      ret->error_msg =
+        bg_sprintf("Could not start %s: Unknown error",
+                   encoder_handle->info->long_name);
     ret->error_msg_ret = ret->error_msg;
-    //    bg_plugin_unref(encoder_handle);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, ret->error_msg);
     return 0;
     }
   return 1;
@@ -3227,13 +3296,13 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   if(ret->pp_only)
     {
     ret->output_filename = bg_strdup(ret->output_filename, ret->location);
-
+    
     send_init_messages(ret);
     ret->state = STREAM_STATE_FINISHED;
     return 1;
     }
   
-
+  
   /* Open input plugin */
   if(!open_input(ret))
     goto fail;
@@ -3244,7 +3313,13 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   /* Set first transcoding pass */
   check_passes(ret);
   ret->pass = 1;
-  setup_pass(ret);
+
+  if(!setup_pass(ret))
+    {
+    ret->error_msg = bg_sprintf("No stream to encode");
+    ret->error_msg_ret = ret->error_msg;
+    goto fail;
+    }
   
   /* Start input plugin */
   
@@ -3529,15 +3604,35 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   
   /* Do the actual transcoding */
   /* Subtitle iteration must always be done */
-  subtitle_iteration(t);
+  if(!subtitle_iteration(t))
+    {
+    t->state = TRANSCODER_STATE_ERROR;
+    bg_transcoder_send_msg_error(t->message_queues, "Encoding subtitles failed");
+    return 0;
+    }
+
 
   if(stream)
     {
     if(stream->type == STREAM_TYPE_AUDIO)
-      audio_iteration((audio_stream_t*)stream, t);
-    else if(stream->type == STREAM_TYPE_VIDEO)
-      video_iteration((video_stream_t*)stream, t);
+      {
+      if(!audio_iteration((audio_stream_t*)stream, t))
+        {
+        t->state = TRANSCODER_STATE_ERROR;
+        bg_transcoder_send_msg_error(t->message_queues, "Encoding audio failed");
+        return 0;
+        }
+      }
     
+    else if(stream->type == STREAM_TYPE_VIDEO)
+      {
+      if(!video_iteration((video_stream_t*)stream, t))
+        {
+        t->state = TRANSCODER_STATE_ERROR;
+        bg_transcoder_send_msg_error(t->message_queues, "Encoding video failed");
+        return 0;
+        }
+      }
     if(stream->time > t->time)
       t->time = stream->time;
     }
@@ -3582,14 +3677,15 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
 void bg_transcoder_destroy(bg_transcoder_t * t)
   {
   int i;
-  int do_delete;
-  do_delete =
-    ((t->state == TRANSCODER_STATE_RUNNING) && t->delete_incomplete &&
-     !t->is_url) ? 1 : 0;
+  int do_delete = 0;
 
-  if(t->state == TRANSCODER_STATE_INIT)
+  if((t->state == TRANSCODER_STATE_RUNNING) && t->delete_incomplete &&
+     !t->is_url)
     do_delete = 1;
-
+  else if(t->state == TRANSCODER_STATE_INIT)
+    do_delete = 1;
+  else if(t->state == TRANSCODER_STATE_ERROR)
+    do_delete = 1;
   
   /* Close all encoders so the files are finished */
 

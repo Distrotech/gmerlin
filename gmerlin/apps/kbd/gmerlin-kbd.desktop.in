@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Gmerlin KBD
+Name[de]=Gmerlin KBD
+Comment=Configure the Gmerlin keyboard daemon
+Comment[de]=Gmerlin keyboard daemon konfigurieren
+Exec=gmerlin_kbd_config
+Icon=@GMERLIN_DATA_DIR@/icons/kbd_icon.png
+Type=Application
+Categories=Application;AudioVideo;
+

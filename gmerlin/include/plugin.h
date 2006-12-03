@@ -75,6 +75,8 @@
 
 #define BG_PLUGIN_INPUT_HAS_SYNC (1<<7) //!< For input plugins in bypass mode: Plugin will set the time via callback
 
+#define BG_PLUGIN_STDIN         (1<<8)  //!< Plugin can read from stdin ("-")
+
 #define BG_PLUGIN_ALL 0xFFFFFFFF //!< Mask of all possible plugin flags
 
 /** @}
@@ -1315,20 +1317,22 @@ typedef struct bg_encoder_plugin_s
    *  \param priv The handle returned by the create() method
    *  \param frame Frame with samples
    *  \param stream Stream index (starting with 0)
+   *  \returns 1 is the data was successfully written, 0 else
    *
    *  The actual number of samples must be stored in the valid_samples member of
    *  the frame.
    */
   
-  void (*write_audio_frame)(void * data,gavl_audio_frame_t * frame, int stream);
+  int (*write_audio_frame)(void * data,gavl_audio_frame_t * frame, int stream);
 
   /** \brief Write video frame
    *  \param priv The handle returned by the create() method
    *  \param frame Frame
    *  \param stream Stream index (starting with 0)
+   *  \returns 1 is the data was successfully written, 0 else
    */
 
-  void (*write_video_frame)(void * data,gavl_video_frame_t * frame, int stream);
+  int (*write_video_frame)(void * data,gavl_video_frame_t * frame, int stream);
 
   /** \brief Write a text subtitle
    *  \param priv The handle returned by the create() method
@@ -1336,28 +1340,31 @@ typedef struct bg_encoder_plugin_s
    *  \param start Start of the subtitle
    *  \param duration Duration of the subtitle
    *  \param stream Stream index (starting with 0)
+   *  \returns 1 is the data was successfully written, 0 else
    */
   
-  void (*write_subtitle_text)(void * data,const char * text,
-                              gavl_time_t start,
-                              gavl_time_t duration, int stream);
+  int (*write_subtitle_text)(void * data,const char * text,
+                             gavl_time_t start,
+                             gavl_time_t duration, int stream);
 
   /** \brief Write an overlay subtitle
    *  \param priv The handle returned by the create() method
    *  \param ovl An overlay
    *  \param stream Stream index (starting with 0)
+   *  \returns 1 is the data was successfully written, 0 else
    */
   
-  void (*write_subtitle_overlay)(void * data, gavl_overlay_t * ovl, int stream);
+  int (*write_subtitle_overlay)(void * data, gavl_overlay_t * ovl, int stream);
   
   /** \brief Close encoder
    *  \param priv The handle returned by the create() method
    *  \param do_delete Set this to 1 to delete all created files
+   *  \returns 1 is the file was sucessfully closed, 0 else
    *
    *  After calling this function, the plugin should be destroyed.
    */
 
-  void (*close)(void * data, int do_delete);
+  int (*close)(void * data, int do_delete);
   } bg_encoder_plugin_t;
 
 
@@ -1550,6 +1557,7 @@ typedef struct bg_image_writer_plugin_s
   /** \brief Write the image
    *  \param priv The handle returned by the create() method
    *  \param frame The frame containing the image
+   *  \returns 1 on success, 0 on error.
    *  
    *  After writing the image the plugin is cleaned up, so \ref write_header()
    *  can be called again after that. If frame is NULL, no image is read,

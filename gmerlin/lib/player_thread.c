@@ -192,6 +192,12 @@ static void msg_stream_description(bg_msg_t * msg, const void * data)
   bg_msg_set_arg_string(msg, 0, (char*)data);
   }
 
+static void msg_mute(bg_msg_t * msg, const void * data)
+  {
+  bg_msg_set_id(msg, BG_PLAYER_MSG_MUTE);
+  bg_msg_set_arg_int(msg, 0, *((int*)data));
+  }
+
 #if 0 
 
 static void msg_subpicture_description(bg_msg_t * msg, const void * data)
@@ -1111,6 +1117,15 @@ static int process_commands(bg_player_t * player)
         break;
       case BG_PLAYER_CMD_PAUSE:
         pause_cmd(player);
+        break;
+      case BG_PLAYER_CMD_TOGGLE_MUTE:
+        pthread_mutex_lock(&player->mute_mutex);
+        player->mute = !player->mute;
+
+        bg_msg_queue_list_send(player->message_queues,
+                               msg_mute,
+                               &player->mute);
+        pthread_mutex_unlock(&player->mute_mutex);
         break;
       }
     if(queue_locked)

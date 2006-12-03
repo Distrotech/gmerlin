@@ -65,6 +65,8 @@ flag_names[] =
     { "Bypass",       BG_PLUGIN_BYPASS         }, /* Plugin can bypass playback engine */
     { "KeepRunning", BG_PLUGIN_KEEP_RUNNING   }, /* Plugin should not be stopped and restarted if tracks change */
     { "HasSync",     BG_PLUGIN_INPUT_HAS_SYNC }, /* FOR INPUTS ONLY: Plugin will set the time via callback */
+    { "Stdin",          BG_PLUGIN_STDIN         }, /* Plugin reads from stdin */
+
     { (char*)0,    0                           },
   };
 

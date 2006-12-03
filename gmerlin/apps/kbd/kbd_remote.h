@@ -1,0 +1,7 @@
+
+#define KBD_REMOTE_PORT (BG_REMOTE_PORT_BASE+3)
+#define KBD_REMOTE_ID "gmerlin_kbd"
+#define KBD_REMOTE_ENV "GMERLIN_KBD_REMOTE_PORT"
+
+#define KBD_CMD_RELOAD 0
+#define KBD_CMD_QUIT   1

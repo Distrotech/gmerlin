@@ -341,6 +341,10 @@ static void handle_message(player_window_t * win,
       
 
       break;
+    case BG_PLAYER_MSG_MUTE:
+      arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      display_set_mute(win->display, arg_i_1);
+      break;
     case BG_PLAYER_MSG_STATE_CHANGED:
       win->gmerlin->player_state = bg_msg_get_arg_int(msg, 0);
       
