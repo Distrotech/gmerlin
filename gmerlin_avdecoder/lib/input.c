@@ -590,6 +590,7 @@ int bgav_input_get_double_64_le(bgav_input_context_t * ctx, double * ret)
 /* Open input */
 
 extern bgav_input_t bgav_input_file;
+extern bgav_input_t bgav_input_stdin;
 extern bgav_input_t bgav_input_rtsp;
 extern bgav_input_t bgav_input_pnm;
 extern bgav_input_t bgav_input_mms;
@@ -614,6 +615,7 @@ void bgav_inputs_dump()
   bgav_dprintf( "<h2>Input modules</h2>\n");
   bgav_dprintf( "<ul>\n");
   bgav_dprintf( "<li>%s\n", bgav_input_file.name);
+  bgav_dprintf( "<li>%s\n", bgav_input_stdin.name);
   bgav_dprintf( "<li>%s\n", bgav_input_rtsp.name);
   bgav_dprintf( "<li>%s\n", bgav_input_pnm.name);
   bgav_dprintf( "<li>%s\n", bgav_input_mms.name);
@@ -667,6 +669,8 @@ int bgav_input_open(bgav_input_context_t * ctx,
       ctx->input = &bgav_input_http;
     else if(!strcasecmp(protocol, "ftp"))
       ctx->input = &bgav_input_ftp;
+    else if(!strcasecmp(protocol, "stdin") || !strcmp(url, "-"))
+      ctx->input = &bgav_input_stdin;
 #ifdef HAVE_SAMBA
     else if(!strcmp(protocol, "smb"))
       ctx->input = &bgav_input_smb;
@@ -700,8 +704,12 @@ int bgav_input_open(bgav_input_context_t * ctx,
       }
 #endif
 #endif
+    else if(!strcmp(url, "-"))
+      ctx->input = &bgav_input_stdin;
+
     if(!ctx->input)
       ctx->input = &bgav_input_file;
+
     }
  
   if(!ctx->input->open(ctx, tmp_url))

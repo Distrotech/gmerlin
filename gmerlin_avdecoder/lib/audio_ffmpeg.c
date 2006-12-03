@@ -164,6 +164,10 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('w','s','p','c'), 0x00 },
       -1 },
 
+    { "FFmpeg Westwood SND1 decoder", "Westwood SND1", CODEC_ID_WESTWOOD_SND1,
+      (uint32_t[]){ BGAV_MK_FOURCC('w','s','p','1'), 0x00 },
+      -1 },
+
     { "FFmpeg Sierra VMD audio decoder", "Sierra VMD audio",
       CODEC_ID_VMDAUDIO,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'M', 'D', 'A'),

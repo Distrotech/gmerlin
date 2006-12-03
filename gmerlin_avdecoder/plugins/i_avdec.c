@@ -262,7 +262,7 @@ bg_input_plugin_t the_plugin =
       set_parameter:  bg_avdec_set_parameter,
       get_error:      bg_avdec_get_error
     },
-      protocols:      "http ftp rtsp smb mms pnm",
+      protocols:      "http ftp rtsp smb mms pnm stdin",
   /* Open file/device */
     open: open_avdec,
     set_callbacks: bg_avdec_set_callbacks,

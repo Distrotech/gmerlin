@@ -75,6 +75,17 @@ static void    close_file(bgav_input_context_t * ctx)
     fclose((FILE*)(ctx->priv));
   }
 
+static int open_stdin(bgav_input_context_t * ctx, const char * url)
+  {
+  ctx->priv = stdin;
+  return 1;
+  }
+
+static void close_stdin(bgav_input_context_t * ctx)
+  {
+  /* Nothing to do here */
+  }
+
 bgav_input_t bgav_input_file =
   {
     name:      "file",
@@ -82,5 +93,13 @@ bgav_input_t bgav_input_file =
     read:      read_file,
     seek_byte: seek_byte_file,
     close:     close_file
+  };
+
+bgav_input_t bgav_input_stdin =
+  {
+    name:      "stdin",
+    open:      open_stdin,
+    read:      read_file,
+    close:     close_stdin
   };
 

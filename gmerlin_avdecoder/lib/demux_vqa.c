@@ -19,12 +19,14 @@
 
 #include <avdec_private.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 /* Header structure */
 
 #define VQHD_TAG BGAV_MK_FOURCC('V', 'Q', 'H', 'D')
 #define FINF_TAG BGAV_MK_FOURCC('F', 'I', 'N', 'F')
 #define SND0_TAG BGAV_MK_FOURCC('S', 'N', 'D', '0')
+#define SND1_TAG BGAV_MK_FOURCC('S', 'N', 'D', '1')
 #define SND2_TAG BGAV_MK_FOURCC('S', 'N', 'D', '2')
 #define VQFR_TAG BGAV_MK_FOURCC('V', 'Q', 'F', 'R')
 #define VQA_HEADER_SIZE 0x2A
@@ -176,13 +178,25 @@ static int open_vqa(bgav_demuxer_context_t * ctx,
   s->data.video.format.frame_duration = 1;
   
   /* Initialize audio stream */
-  if(h.Freq)
+  if(h.Freq || ((h.Version == 1) && (h.Flags == 1)))
     {
     s = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
-    s->fourcc = BGAV_MK_FOURCC('w','s','p','c');
+
+    if(h.Version == 1)
+      s->fourcc = BGAV_MK_FOURCC('w','s','p','1');
+    else
+      s->fourcc = BGAV_MK_FOURCC('w','s','p','c');
+
     s->stream_id = AUDIO_ID;
     s->data.audio.format.samplerate = h.Freq;
+
+    if(!s->data.audio.format.samplerate)
+      s->data.audio.format.samplerate = 22050;
+    
     s->data.audio.format.num_channels = h.Channels;
+    if(!s->data.audio.format.num_channels)
+      s->data.audio.format.num_channels = 1;
+    
     s->data.audio.bits_per_sample = h.Bits;
     }
 
@@ -207,14 +221,22 @@ static int next_packet_vqa(bgav_demuxer_context_t * ctx)
     return 0;
 
   /* Audio */
-  if(type == SND2_TAG)
+  if((type == SND2_TAG) || (type == SND1_TAG))
     s = bgav_track_find_stream(ctx->tt->current_track, AUDIO_ID);
   else if(type == VQFR_TAG)
     s = bgav_track_find_stream(ctx->tt->current_track, VIDEO_ID);
-
+  
   if(!s)
     {
     bgav_input_skip(ctx->input, size);
+    
+    fprintf(stderr, "Skipping chunk ");
+    bgav_dump_fourcc(type);
+    fprintf(stderr, "%d bytes\n", size);
+
+    if(size & 1)
+      bgav_input_skip(ctx->input, 1);
+    
     return 1;
     }
 
