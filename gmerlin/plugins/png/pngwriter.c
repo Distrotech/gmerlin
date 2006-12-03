@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #include <plugin.h>
 #include <utils.h>
@@ -39,8 +40,12 @@ int bg_pngwriter_write_header(void * priv, const char * filename,
   
   png->output = fopen(filename, "wb");
   if(!png->output)
+    {
+    png->error_msg =
+      bg_sprintf("Cannot open %s: %s",
+                 filename, strerror(errno));
     return 0;
-
+    }
   png->png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,
                                          NULL, NULL);
 

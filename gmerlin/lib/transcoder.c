@@ -1212,8 +1212,11 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
     {
     if(s->com.out_plugin->common.get_error)
       t->error_msg =
-        bg_strdup(t->error_msg,
+        bg_sprintf("Encoding audio failed: %s",
                   s->com.out_plugin->common.get_error(s->com.out_handle->priv));
+    else
+      t->error_msg =
+        bg_sprintf("Encoding audio failed");
     }
 
   return ret;
@@ -1578,8 +1581,10 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
     {
     if(s->com.out_plugin->common.get_error)
       t->error_msg =
-        bg_strdup(t->error_msg,
+        bg_sprintf("Encoding video failed: %s",
                   s->com.out_plugin->common.get_error(s->com.out_handle->priv));
+    else
+      t->error_msg = bg_sprintf("Encoding video failed");
     }
   
   s->frames_written++;
@@ -1668,12 +1673,15 @@ static int subtitle_iteration(bg_transcoder_t * t)
       {
       if(st->com.com.out_plugin->common.get_error)
         t->error_msg =
-          bg_strdup(t->error_msg,
-                    st->com.com.out_plugin->common.get_error(st->com.com.out_handle->priv));
+          bg_sprintf("Encoding subtitles failed: %s",
+                     st->com.com.out_plugin->common.get_error(st->com.com.out_handle->priv));
+      else
+        t->error_msg =
+          bg_sprintf("Encoding subtitles failed");
       break;
       }
     }
-
+  
   if(!ret)
     return ret;
   
@@ -2558,13 +2566,16 @@ static int open_encoder(bg_transcoder_t * ret,
 static int start_encoder(bg_transcoder_t * ret, bg_plugin_handle_t  * encoder_handle,
                          bg_encoder_plugin_t * encoder_plugin)
   {
+  const char * error_msg = (const char *)0;
   if(encoder_plugin->start && !encoder_plugin->start(encoder_handle->priv))
     {
     if(encoder_plugin->common.get_error)
+      error_msg = encoder_plugin->common.get_error(encoder_handle->priv);
+
+    if(error_msg)
       ret->error_msg =
         bg_sprintf("Could not start %s: %s",
-                   encoder_handle->info->long_name,
-                   encoder_plugin->common.get_error(encoder_handle->priv));
+                   encoder_handle->info->long_name, error_msg);
     else
       ret->error_msg =
         bg_sprintf("Could not start %s: Unknown error",
@@ -3607,7 +3618,8 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
   if(!subtitle_iteration(t))
     {
     t->state = TRANSCODER_STATE_ERROR;
-    bg_transcoder_send_msg_error(t->message_queues, "Encoding subtitles failed");
+    bg_transcoder_send_msg_error(t->message_queues,
+                                 t->error_msg);
     return 0;
     }
 
@@ -3619,7 +3631,8 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
       if(!audio_iteration((audio_stream_t*)stream, t))
         {
         t->state = TRANSCODER_STATE_ERROR;
-        bg_transcoder_send_msg_error(t->message_queues, "Encoding audio failed");
+        bg_transcoder_send_msg_error(t->message_queues,
+                                     t->error_msg);
         return 0;
         }
       }
@@ -3629,7 +3642,9 @@ int bg_transcoder_iteration(bg_transcoder_t * t)
       if(!video_iteration((video_stream_t*)stream, t))
         {
         t->state = TRANSCODER_STATE_ERROR;
-        bg_transcoder_send_msg_error(t->message_queues, "Encoding video failed");
+        if(t->error_msg)
+          bg_transcoder_send_msg_error(t->message_queues,
+                                       t->error_msg);
         return 0;
         }
       }

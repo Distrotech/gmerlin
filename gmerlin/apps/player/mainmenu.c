@@ -64,6 +64,9 @@ struct command_menu_s
   {
   GtkWidget * inc_volume;
   GtkWidget * dec_volume;
+
+  GtkWidget * mute;
+
   GtkWidget * seek_forward;
   GtkWidget * seek_backward;
   GtkWidget * next;
@@ -71,6 +74,8 @@ struct command_menu_s
 
   GtkWidget * seek_start;
   GtkWidget * pause;
+
+
   GtkWidget * quit;
   
   GtkWidget * menu;
@@ -248,6 +253,10 @@ static void menu_callback(GtkWidget * w, gpointer data)
   else if(w == the_menu->command_menu.dec_volume)
     {
     bg_player_set_volume_rel(g->player, -1.0);
+    }
+  else if(w == the_menu->command_menu.mute)
+    {
+    bg_player_toggle_mute(g->player);
     }
   else if(w == the_menu->command_menu.seek_backward)
     {
@@ -644,7 +653,11 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
                              ret->g->accel_group,
                              GDK_Left, GDK_SHIFT_MASK, GTK_ACCEL_VISIBLE);
 
-  
+  ret->command_menu.mute =
+    create_item("Toggle mute", gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.mute, "activate",
+                             ret->g->accel_group,
+                             GDK_m, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
   
   ret->command_menu.next =
     create_item("Next track", gmerlin, ret->command_menu.menu);

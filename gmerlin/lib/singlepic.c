@@ -651,7 +651,7 @@ typedef struct
   gavl_video_format_t format;
 
   int have_header;
-    
+  char * error_msg;
   } encoder_t;
 
 static bg_parameter_info_t *
@@ -748,6 +748,13 @@ static const char * get_extension_encoder(void * data)
   return e->extension;
   }
 
+static const char * get_error_encoder(void * data)
+  {
+  encoder_t * e;
+  e = (encoder_t *)data;
+  return e->error_msg;
+  }
+
 static int open_encoder(void * data, const char * filename,
                         bg_metadata_t * metadata)
   {
@@ -791,17 +798,30 @@ static int write_frame_header(encoder_t * e)
   /* Create filename */
 
   sprintf(e->filename_buffer, e->mask, e->frame_counter);
-
   
   ret = e->image_writer->write_header(e->plugin_handle->priv,
                                       e->filename_buffer,
                                       &(e->format));
-  
+
+  if(!ret)
+    {
+    if(e->image_writer->common.get_error)
+      e->error_msg =
+        bg_strdup(e->error_msg,
+                  e->image_writer->common.get_error(e->plugin_handle->priv));
+    e->have_header = 0;
+    }
   e->frame_counter++;
   return ret;
   }
 
-
+static int start_encoder(void * data)
+  {
+  encoder_t * e;
+  e = (encoder_t *)data;
+  return e->have_header;
+  }
+     
 static int add_video_stream_encoder(void * data, gavl_video_format_t * format)
   {
   encoder_t * e;
@@ -837,6 +857,15 @@ static int write_video_frame_encoder(void * data, gavl_video_frame_t * frame,int
     }
   if(ret)
     ret = e->image_writer->write_image(e->plugin_handle->priv, frame);
+
+  if(!ret)
+    {
+    if(e->image_writer->common.get_error)
+      e->error_msg =
+        bg_strdup(e->error_msg,
+                  e->image_writer->common.get_error(e->plugin_handle->priv));
+    }
+
   e->have_header = 0;
   return ret;
   }
@@ -883,7 +912,8 @@ static void destroy_encoder(void * data)
     {
     bg_parameter_info_destroy_array(e->parameters);
     }
-
+  if(e->error_msg)
+    free(e->error_msg);
   free(e);
   }
 
@@ -900,6 +930,7 @@ bg_encoder_plugin_t encoder_plugin =
       priority:       BG_PLUGIN_PRIORITY_MAX,
       create:         NULL,
       destroy:        destroy_encoder,
+      get_error:      get_error_encoder,
       get_parameters: get_parameters_encoder,
       set_parameter:  set_parameter_encoder
     },
@@ -921,6 +952,8 @@ bg_encoder_plugin_t encoder_plugin =
     
     get_video_format:  get_video_format_encoder,
 
+    start:             start_encoder,
+    
     write_video_frame: write_video_frame_encoder,
     
     /* Close it */

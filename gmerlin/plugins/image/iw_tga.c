@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #include <plugin.h>
 #include <utils.h>
@@ -35,6 +36,7 @@ typedef struct
   gavl_video_format_t format;
   int rle;
   char * filename;
+  char * error_msg;
   } tga_t;
 
 static void * create_tga()
@@ -47,6 +49,8 @@ static void * create_tga()
 static void destroy_tga(void * priv)
   {
   tga_t * tga = (tga_t*)priv;
+  if(tga->error_msg)
+    free(tga->error_msg);
   free(tga);
   }
 
@@ -69,26 +73,27 @@ static int write_image_tga(void * priv, gavl_video_frame_t * frame)
   {
   tga_t * tga = (tga_t*)priv;
   gavl_video_frame_t * tmp_frame;
-  
+  int result;
+
+  errno = 0;
+
   if(tga->format.pixelformat == GAVL_RGBA_32)
     {
     tmp_frame = gavl_video_frame_create(&tga->format);
     gavl_video_frame_copy(&(tga->format), tmp_frame, frame);
     if(tga->rle)
       {
-      if(tga_write_rgb(tga->filename, tmp_frame->planes[0],
-                       tga->format.image_width,
-                       tga->format.image_height, 32,
-                       frame->strides[0]) != TGA_NOERR)
-        return 0;
+      result = tga_write_rgb(tga->filename, tmp_frame->planes[0],
+                             tga->format.image_width,
+                             tga->format.image_height, 32,
+                             frame->strides[0]);
       }
     else
       {
-      if(tga_write_rgb_rle(tga->filename, tmp_frame->planes[0],
-                           tga->format.image_width,
-                           tga->format.image_height, 32,
-                           frame->strides[0]) != TGA_NOERR)
-        return 0;
+      result =tga_write_rgb_rle(tga->filename, tmp_frame->planes[0],
+                                tga->format.image_width,
+                                tga->format.image_height, 32,
+                                frame->strides[0]);
       }
     gavl_video_frame_destroy(tmp_frame);
     }
@@ -96,23 +101,35 @@ static int write_image_tga(void * priv, gavl_video_frame_t * frame)
     {
     if(tga->rle)
       {
-      if(tga_write_bgr(tga->filename, frame->planes[0],
-                       tga->format.image_width,
-                       tga->format.image_height, 24,
-                       frame->strides[0]) != TGA_NOERR)
-        return 0;
+      result = tga_write_bgr(tga->filename, frame->planes[0],
+                             tga->format.image_width,
+                             tga->format.image_height, 24,
+                             frame->strides[0]);
       }
     else
       {
-      if(tga_write_bgr_rle(tga->filename, frame->planes[0],
-                           tga->format.image_width,
-                           tga->format.image_height, 24,
-                           frame->strides[0]) != TGA_NOERR)
-        return 0;
+      result = tga_write_bgr_rle(tga->filename, frame->planes[0],
+                                 tga->format.image_width,
+                                 tga->format.image_height, 24,
+                                 frame->strides[0]);
       }
+    }
+
+  if(result != TGA_NOERR)
+    {
+    if(errno)
+      tga->error_msg = bg_sprintf("Cannot save %s: %s",
+                                  tga->filename, strerror(errno));
+    else
+      tga->error_msg = bg_sprintf("Cannot save %s: %s",
+                                  tga->filename, tga_error(result));
+    free(tga->filename);
+    tga->filename = (char*)0;
+    return 0;
     }
   free(tga->filename);
   tga->filename = (char*)0;
+
   return 1;
   }
 
@@ -154,6 +171,13 @@ static const char * get_extension_tga(void * p)
   return tga_extension;
   }
 
+static const char * get_error_tga(void * p)
+  {
+  tga_t * tga;
+  tga = (tga_t *)p;
+  return tga->error_msg;
+  }
+
 bg_image_writer_plugin_t the_plugin =
   {
     common:
@@ -167,6 +191,7 @@ bg_image_writer_plugin_t the_plugin =
       priority:       5,
       create:         create_tga,
       destroy:        destroy_tga,
+      get_error:      get_error_tga,
       get_parameters: get_parameters_tga,
       set_parameter:  set_parameter_tga
     },

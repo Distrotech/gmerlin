@@ -47,6 +47,12 @@ static void destroy_png(void * priv)
   free(png);
   }
 
+static const char * get_error_png(void * priv)
+  {
+  bg_pngwriter_t * png = (bg_pngwriter_t*)priv;
+  return png->error_msg;
+  }
+
 
 /* Configuration stuff */
 
@@ -76,7 +82,6 @@ static bg_parameter_info_t * get_parameters_png(void * p)
   return parameters;
   }
 
-
 static char * png_extension = ".png";
 
 static const char * get_extension_png(void * p)
@@ -97,6 +102,7 @@ bg_image_writer_plugin_t the_plugin =
       priority:       5,
       create:         create_png,
       destroy:        destroy_png,
+      get_error:      get_error_png,
       get_parameters: get_parameters_png,
       set_parameter:  bg_pngwriter_set_parameter
     },

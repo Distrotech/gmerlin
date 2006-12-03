@@ -23,6 +23,7 @@
 #include <plugin.h>
 #include <utils.h>
 #include <inttypes.h>
+#include <errno.h>
 
 #include <log.h>
 #define LOG_DOMAIN "iw_bmp"
@@ -52,7 +53,8 @@ typedef struct
   int yresolution;             /* Pixels per meter          */
   uint32_t ncolours;           /* Number of colours         */
   uint32_t importantcolours;   /* Important colours         */
-  
+
+  char * error_msg;
   } bmp_t;
 
 static void write_16(FILE * output, uint32_t val)
@@ -86,6 +88,7 @@ static void * create_bmp()
 static void destroy_bmp(void * priv)
   {
   bmp_t * bmp = (bmp_t*)priv;
+  if(bmp->error_msg) free(bmp->error_msg);
   free(bmp);
   }
 
@@ -120,7 +123,9 @@ static int write_header_bmp(void * priv, const char * filename,
   
   if(!bmp->bmp_file)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Can't open File %s", filename);
+    bmp->error_msg = bg_sprintf("Cannot open %s: %s",
+                                filename, strerror(errno));
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, bmp->error_msg);
     return 0;
     }
   
@@ -198,6 +203,12 @@ static const char * get_extension_bmp(void * p)
   return bmp_extension;
   }
 
+static const char * get_error_bmp(void * p)
+  {
+  bmp_t * bmp = (bmp_t*)p;
+  return bmp->error_msg;
+  }
+
 bg_image_writer_plugin_t the_plugin =
   {
     common:
@@ -211,6 +222,7 @@ bg_image_writer_plugin_t the_plugin =
       priority:       5,
       create:         create_bmp,
       destroy:        destroy_bmp,
+      get_error:      get_error_bmp,
     },
     write_header: write_header_bmp,
     get_extension: get_extension_bmp,

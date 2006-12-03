@@ -65,27 +65,54 @@ static void key_callback(void * data, int key, int mask)
     /* Take the keys, we can handle from here */
     case BG_KEY_LEFT:
       if(mask == BG_KEY_SHIFT_MASK)
+        {
         bg_player_set_volume_rel(ctx->player,  -1.0);
+        return;
+        }
       else if(mask == BG_KEY_CONTROL_MASK)
+        {
         bg_player_seek_rel(ctx->player,   -2 * GAVL_TIME_SCALE );
+        return;
+        }
       break;
     case BG_KEY_RIGHT:
       if(mask == BG_KEY_SHIFT_MASK)
+        {
         bg_player_set_volume_rel(ctx->player,  1.0);
+        return;
+        }
       else if(mask == BG_KEY_CONTROL_MASK)
+        {
         bg_player_seek_rel(ctx->player,   2 * GAVL_TIME_SCALE );
+        return;
+        }
       break;
     case BG_KEY_0:
-      bg_player_seek(ctx->player, 0 );
+      if(!mask)
+        {
+        bg_player_seek(ctx->player, 0 );
+        return;
+        }
       break;
     case BG_KEY_SPACE:
-      bg_player_pause(ctx->player);
+      if(!mask)
+        {
+        bg_player_pause(ctx->player);
+        return;
+        }
       break;
-    default: /* Broadcast this */
-      bg_player_key_pressed(ctx->player, key, mask);
+    case BG_KEY_M:
+      if(mask == BG_KEY_CONTROL_MASK)
+        {
+        bg_player_toggle_mute(ctx->player);
+        return;
+        }
+      break;
+    default:
       break;
     }
-
+  /* Broadcast event if we didn't handle it */
+  bg_player_key_pressed(ctx->player, key, mask);
   }
 
 static void button_callback(void * data, int x, int y, int button, int mask)

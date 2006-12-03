@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+
 #include <tiffio.h>
 #include <inttypes.h>
 #include <plugin.h>
@@ -36,6 +38,7 @@ typedef struct
   uint16_t compression;
   int jpeg_quality;
   int zip_quality;  /* Compression level, actually */
+  char * error_msg;
   } tiff_t;
 
 static void * create_tiff()
@@ -48,6 +51,8 @@ static void * create_tiff()
 static void destroy_tiff(void* priv)
   {
   tiff_t * tiff = (tiff_t*)priv;
+  if(tiff->error_msg)
+    free(tiff->error_msg);
   free(tiff);
   }
 
@@ -70,11 +75,20 @@ static int write_header_tiff(void * priv, const char * filename,
     format->pixelformat = GAVL_RGB_24;
     p->SamplesPerPixel = 3;
     }
+
+  errno = 0;
   p->output = TIFFOpen(filename,"w");
 
   if(!p->output)
+    {
+    if(errno)
+      p->error_msg = bg_sprintf("Cannot open %s: %s",
+                                filename, strerror(errno));
+    else
+      p->error_msg = bg_sprintf("Cannot open %s",  filename);
     return 0;
-
+    }
+  
   TIFFSetField(p->output, TIFFTAG_IMAGEWIDTH, p->Width);
   TIFFSetField(p->output, TIFFTAG_IMAGELENGTH, p->Height);
   TIFFSetField(p->output, TIFFTAG_BITSPERSAMPLE, 8);
@@ -187,6 +201,14 @@ static const char * get_extension_tiff(void * p)
   return tiff_extension;
   }
 
+static const char * get_error_tiff(void * p)
+  {
+  tiff_t * tiff;
+  tiff = (tiff_t *)p;
+
+  return tiff->error_msg;
+  }
+
 bg_image_writer_plugin_t the_plugin =
   {
     common:
@@ -200,6 +222,7 @@ bg_image_writer_plugin_t the_plugin =
       priority:       5,
       create:         create_tiff,
       destroy:        destroy_tiff,
+      get_error:      get_error_tiff,
       get_parameters: get_parameters_tiff,
       set_parameter:  set_parameter_tiff
     },

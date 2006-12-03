@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #include <plugin.h>
 #include <utils.h>
@@ -52,6 +53,7 @@ typedef struct
   gavl_pixelformat_t pixelformat;
   
   int quality;
+  char * error_msg;
   } jpeg_t;
 
 static void * create_jpeg()
@@ -72,6 +74,7 @@ static void destroy_jpeg(void * priv)
   {
   jpeg_t * jpeg = (jpeg_t*)priv;
   jpeg_destroy_compress(&(jpeg->cinfo));
+  if(jpeg->error_msg) free(jpeg->error_msg);
   free(jpeg);
   }
 
@@ -83,8 +86,11 @@ int write_header_jpeg(void * priv, const char * filename,
   
   jpeg->output = fopen(filename, "wb");
   if(!jpeg->output)
+    {
+    jpeg->error_msg = bg_sprintf("Cannot open %s: %s",
+                                 filename, strerror(errno));
     return 0;
-  
+    }
   jpeg_stdio_dest(&(jpeg->cinfo), jpeg->output);
 
   jpeg->cinfo.image_width  = format->image_width;
@@ -253,6 +259,13 @@ static bg_parameter_info_t * get_parameters_jpeg(void * p)
   return parameters;
   }
 
+static const char * get_error_jpeg(void * p)
+  {
+  jpeg_t * jpeg;
+  jpeg = (jpeg_t *)p;
+  return jpeg->error_msg;
+  }
+
 static void set_parameter_jpeg(void * p, char * name,
                                bg_parameter_value_t * val)
   {
@@ -301,6 +314,7 @@ bg_image_writer_plugin_t the_plugin =
       priority:       BG_PLUGIN_PRIORITY_MAX,
       create:         create_jpeg,
       destroy:        destroy_jpeg,
+      get_error:      get_error_jpeg,
       get_parameters: get_parameters_jpeg,
       set_parameter:  set_parameter_jpeg
     },

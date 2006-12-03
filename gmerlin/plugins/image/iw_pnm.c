@@ -21,6 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include <errno.h>
+
 #include <plugin.h>
 #include <utils.h>
 
@@ -35,6 +37,7 @@ typedef struct
   uint32_t Height;
   gavl_video_format_t format;
   uint16_t pnm_format;
+  char * error_msg;
   } pnm_t;
 
 static void * create_pnm()
@@ -49,6 +52,8 @@ static void destroy_pnm(void* priv)
   pnm_t * pnm = (pnm_t*)priv;
   if(pnm->comment)
     free(pnm->comment);
+  if(pnm->error_msg)
+    free(pnm->error_msg);
   free(pnm);
   }
 
@@ -65,8 +70,11 @@ static int write_header_pnm(void * priv, const char * filename,
   p->output = fopen(filename,"wb");
 
   if(!p->output)
+    {
+    p->error_msg = bg_sprintf("Cannot open %s: %s",
+                              filename, strerror(errno));
     return 0;
-
+    }
   /* Write the header lines */  
   if(p->pnm_format == BINARY)
     {
@@ -178,6 +186,13 @@ static void set_parameter_pnm(void * p, char * name,
    
   }
 
+static const char * get_error_pnm(void * p)
+  {
+  pnm_t * pnm;
+  pnm = (pnm_t *)p;
+  return pnm->error_msg;
+  }
+
 static char * pnm_extension = ".ppm";
 
 static const char * get_extension_pnm(void * p)
@@ -198,6 +213,7 @@ bg_image_writer_plugin_t the_plugin =
       priority:       5,
       create:         create_pnm,
       destroy:        destroy_pnm,
+      get_error:      get_error_pnm,
       get_parameters: get_parameters_pnm,
       set_parameter:  set_parameter_pnm
     },
