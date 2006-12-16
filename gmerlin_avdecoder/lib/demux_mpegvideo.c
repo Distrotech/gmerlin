@@ -199,7 +199,7 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx,
     priv->data_size = ctx->input->total_bytes;
   
   if(ctx->input->input->seek_byte && priv->byte_rate)
-    ctx->can_seek = 1;
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
   if(ctx->input->total_bytes && priv->byte_rate)
     {

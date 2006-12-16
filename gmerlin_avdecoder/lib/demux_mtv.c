@@ -162,7 +162,7 @@ static int open_mtv(bgav_demuxer_context_t * ctx,
       gavl_time_unscale(ctx->tt->current_track->video_streams[0].data.video.format.timescale,
                         (ctx->input->total_bytes - MTV_HEADER_SIZE) / priv->sync_size);
     if(ctx->input->input->seek_byte)
-      ctx->can_seek = 1;
+      ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     }
   ctx->stream_description = bgav_sprintf("MTV format");
   

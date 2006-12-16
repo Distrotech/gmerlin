@@ -232,6 +232,7 @@ typedef struct
   avih_t avih;
   idx1_t idx1;
   int has_idx1;
+  
   int64_t movi_start;
   uint32_t movi_size;
 
@@ -244,6 +245,7 @@ typedef struct
   bgav_dv_dec_t * dv_dec;
   int dv_frame_size;
   uint8_t * dv_frame_buffer;
+  int has_iavs;
   
   } avi_priv_t;
 
@@ -865,6 +867,8 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
   audio_priv_t * avi_as;
   video_priv_t * avi_vs;
   uint32_t size = 0, test_size;
+
+  avi_priv_t * priv = (avi_priv_t *)(ctx->priv);
   
   struct
     {
@@ -879,37 +883,38 @@ static void indx_build_superindex(bgav_demuxer_context_t * ctx)
   /* Check if we can build this and reset timestamps */
 
   num_audio_streams = 0;
-  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
-    {
-    if(ctx->tt->current_track->audio_streams[i].no_packets)
-      continue;
-    num_audio_streams++;
-    avi_as = (audio_priv_t *)(ctx->tt->current_track->audio_streams[i].priv);
 
-    if(!avi_as->has_indx)
+  if(!priv->has_iavs)
+    {
+    for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
       {
-      return;
+      avi_as = (audio_priv_t *)(ctx->tt->current_track->audio_streams[i].priv);
+      
+      if(!avi_as->has_indx)
+        return;
+      
+      avi_as->total_bytes = 0;
+      avi_as->total_blocks = 0;
       }
-    avi_as->total_bytes = 0;
-    avi_as->total_blocks = 0;
     }
   for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
     {
     avi_vs = (video_priv_t *)(ctx->tt->current_track->video_streams[i].priv);
     
     if(!avi_vs->has_indx)
-      {
       return;
-      }
+
     avi_vs->total_frames = 0;
     }
-
+  
   /* Count the entries */
-
-
+  
   num_entries = 0;
 
-  num_streams = num_audio_streams + ctx->tt->current_track->num_video_streams;
+  if(priv->has_iavs)
+    num_streams = 1;
+  else
+    num_streams = num_audio_streams + ctx->tt->current_track->num_video_streams;
   
   streams = calloc(num_streams, sizeof(*streams));
 
@@ -1237,8 +1242,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
-static int read_packet_iavs(bgav_demuxer_context_t * ctx,
-                            int size, int64_t pts)
+static int process_packet_iavs(bgav_demuxer_context_t * ctx)
   {
   int do_init = 0;
   bgav_stream_t * as, *vs;
@@ -1248,7 +1252,7 @@ static int read_packet_iavs(bgav_demuxer_context_t * ctx,
   avi_priv_t * priv;
   
   priv = (avi_priv_t*)(ctx->priv);
-
+  
   if(!priv->dv_dec)
     {
     priv->dv_dec = bgav_dv_dec_create();
@@ -1262,6 +1266,10 @@ static int read_packet_iavs(bgav_demuxer_context_t * ctx,
     priv->dv_frame_buffer = malloc(priv->dv_frame_size);
     }
 
+  if(bgav_input_read_data(ctx->input, priv->dv_frame_buffer,
+                          priv->dv_frame_size) < priv->dv_frame_size)
+    return 0;
+  
   if(do_init)
     {
     vs = ctx->tt->current_track->video_streams;
@@ -1272,10 +1280,6 @@ static int read_packet_iavs(bgav_demuxer_context_t * ctx,
     vs = bgav_track_find_stream(ctx->tt->current_track, DV_VIDEO_ID);
     as = bgav_track_find_stream(ctx->tt->current_track, DV_AUDIO_ID);
     }
-
-  if(bgav_input_read_data(ctx->input, priv->dv_frame_buffer,
-                          priv->dv_frame_size) < priv->dv_frame_size)
-    return 0;
 
   if(!do_init)
     bgav_dv_dec_set_header(priv->dv_dec, priv->dv_frame_buffer);
@@ -1290,12 +1294,10 @@ static int read_packet_iavs(bgav_demuxer_context_t * ctx,
   if(vs)
     {
     vp = bgav_stream_get_packet_write(vs);
-    vp->pts = pts;
     }
   if(as)
     {
     ap = bgav_stream_get_packet_write(as);
-    ap->pts = pts;
     }
   if(!bgav_dv_dec_get_audio_packet(priv->dv_dec, ap))
     return 0;
@@ -1309,6 +1311,47 @@ static int read_packet_iavs(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
+static void seek_iavs(bgav_demuxer_context_t * ctx, gavl_time_t time)
+  {
+  bgav_superindex_seek(ctx->si,
+                       ctx->tt->current_track->video_streams,
+                       time);
+  ctx->tt->current_track->audio_streams->time_scaled =
+    ctx->tt->current_track->video_streams->time_scaled;
+  ctx->si->current_position = ctx->tt->current_track->video_streams->index_position;
+  bgav_input_seek(ctx->input, ctx->si->entries[ctx->si->current_position].offset,
+                  SEEK_SET);
+  }
+
+static int next_packet_iavs_si(bgav_demuxer_context_t * ctx)
+  {
+  int result;
+  
+  if(ctx->si->current_position >= ctx->si->num_entries)
+    {
+    return 0;
+    }
+  
+  if(ctx->input->position >=
+     ctx->si->entries[ctx->si->num_entries - 1].offset +
+     ctx->si->entries[ctx->si->num_entries - 1].size)
+    {
+    return 0;
+    }
+
+  if(ctx->si->entries[ctx->si->current_position].offset > ctx->input->position)
+    {
+    bgav_input_skip(ctx->input,
+                    ctx->si->entries[ctx->si->current_position].offset - ctx->input->position);
+    }
+
+  result = process_packet_iavs(ctx);
+  
+  ctx->si->current_position++;
+  return result;
+  }
+
+
 static int init_iavs_stream(bgav_demuxer_context_t * ctx,
                             strh_t * strh, chunk_header_t * ch)
   {
@@ -1317,7 +1360,10 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
   video_priv_t * video_priv;
   bgav_stream_t * bg_vs;
   bgav_stream_t * bg_as;
+  avi_priv_t * priv = (avi_priv_t*)(ctx->priv);
 
+  priv->has_iavs = 1;
+  
   keep_going = 1;
   
   avih = &(((avi_priv_t*)(ctx->priv))->avih);
@@ -1330,11 +1376,11 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
 
   memcpy(&video_priv->strh, strh, sizeof(*strh));
   
-
   bg_as = bgav_track_add_audio_stream(ctx->tt->current_track, ctx->opt);
-  bg_as->no_packets = 1;
-  bg_as->sync_stream = bg_vs;
   bg_as->stream_id = DV_AUDIO_ID;
+  
+  /* Tell the core that we do our own demuxing */
+  ctx->flags |= BGAV_DEMUXER_SI_PRIVATE_FUNCS;
   
   /* Prevent the core from thinking these streams are unsupported */
   bg_vs->fourcc = BGAV_MK_FOURCC('d', 'v', 'c', ' ');
@@ -1342,7 +1388,8 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
 
   while(keep_going)
     {
-    read_chunk_header(ctx->input, ch);
+    if(!read_chunk_header(ctx->input, ch))
+      return 0;
     switch(ch->ckID)
       {
       case ID_STRF:
@@ -1374,7 +1421,7 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
     }
 
   /* Get frame rate (These values will be overwritten later,
-   they are only for getting the correct duration */
+     they are only for getting the correct duration */
   if(strh->dwScale && strh->dwRate)
     {
     bg_vs->data.video.format.timescale = strh->dwRate;
@@ -1392,8 +1439,8 @@ static int init_iavs_stream(bgav_demuxer_context_t * ctx,
     }
   bg_vs->timescale = bg_vs->data.video.format.timescale;
   bg_as->timescale = bg_vs->timescale;
-  
-  ctx->read_packet = read_packet_iavs;
+
+  ctx->flags |= BGAV_DEMUXER_SI_PRIVATE_FUNCS;
   
   return 1;
   }
@@ -1467,24 +1514,6 @@ static void idx1_build_superindex(bgav_demuxer_context_t * ctx)
     }
   }
 
-#if 0 /* Obsolete */
-/* Fix offsets (yes, some files have the index offset relative to the file start,
-   instead of relative to the movi atom) */
-
-static void idx1_fix_offsets(bgav_demuxer_context_t * ctx)
-  {
-  int i, err;
-  avi_priv_t * avi;
-  avi = (avi_priv_t*)(ctx->priv);
-  if(avi->idx1.entries[0].dwChunkOffset == 4)
-    return;
-
-  err = avi->idx1.entries[0].dwChunkOffset - 4;
-
-  for(i = 0; i < avi->idx1.num_entries; i++)
-    avi->idx1.entries[i].dwChunkOffset -= err;
-  }
-#endif
 
 static int open_avi(bgav_demuxer_context_t * ctx,
                     bgav_redirector_context_t ** redir)
@@ -1636,8 +1665,6 @@ static int open_avi(bgav_demuxer_context_t * ctx,
     if(probe_idx1(ctx->input) && read_idx1(ctx->input, &(p->idx1)))
       {
       p->has_idx1 = 1;
-      //      idx1_calculate_timestamps(ctx);
-      //      idx1_fix_offsets(ctx);
 #ifdef DUMP_INDICES
       dump_idx1(&(p->idx1));
 #endif
@@ -1681,7 +1708,7 @@ static int open_avi(bgav_demuxer_context_t * ctx,
       idx1_build_superindex(ctx);
       }
     if(ctx->si)
-      ctx->can_seek = 1;
+      ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     }
   
   if(!ctx->tt->current_track->duration)
@@ -1763,8 +1790,12 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
   int stream_id;
   avi_priv_t * priv;
   video_priv_t* avi_vs;
+  int result = 1;
   
   priv = (avi_priv_t*)(ctx->priv);
+
+  if(priv->has_iavs && ctx->si)
+    return next_packet_iavs_si(ctx);
   
   if(ctx->input->position + 8 >= priv->movi_start + priv->movi_size)
     {
@@ -1802,32 +1833,47 @@ static int next_packet_avi(bgav_demuxer_context_t * ctx)
   
   if(ch.ckSize)
     {
-    p = bgav_stream_get_packet_write(s);
-    
-    bgav_packet_alloc(p, PADD(ch.ckSize));
-    
-    if(bgav_input_read_data(ctx->input, p->data, ch.ckSize) < ch.ckSize)
+    if(priv->has_iavs)
+      result = process_packet_iavs(ctx);
+    else
       {
-      return 0;
+      p = bgav_stream_get_packet_write(s);
+      
+      bgav_packet_alloc(p, PADD(ch.ckSize));
+      
+      if(bgav_input_read_data(ctx->input, p->data, ch.ckSize) < ch.ckSize)
+        {
+        return 0;
+        }
+      p->data_size = ch.ckSize;
+      
+      if(s->type == BGAV_STREAM_VIDEO)
+        {
+        avi_vs = (video_priv_t*)s->priv;
+        p->pts =  s->data.video.format.frame_duration * avi_vs->total_frames;
+        avi_vs->total_frames++;
+        }
+      bgav_packet_done_write(p);
       }
-    p->data_size = ch.ckSize;
-    
-    if(s->type == BGAV_STREAM_VIDEO)
-      {
-      avi_vs = (video_priv_t*)s->priv;
-      p->pts =  s->data.video.format.frame_duration * avi_vs->total_frames;
-      avi_vs->total_frames++;
-      }
-    bgav_packet_done_write(p);
+    if(ch.ckSize & 1)
+      bgav_input_skip(ctx->input, 1);
     }
-  else if(s->type == BGAV_STREAM_VIDEO)
+  else if(s->type == BGAV_STREAM_VIDEO) // Increase timestamp for empty frames
     {
     avi_vs = (video_priv_t*)s->priv;
     avi_vs->total_frames++;
     }
-  if(ch.ckSize & 1)
-    bgav_input_skip(ctx->input, 1);
-  return 1;
+
+  
+  return result;
+  }
+
+static void seek_avi(bgav_demuxer_context_t * ctx, gavl_time_t time)
+  {
+  avi_priv_t * priv;
+  priv = (avi_priv_t*)ctx->priv;
+  if(ctx->si && priv->has_iavs)
+    seek_iavs(ctx, time);
   }
 
 bgav_demuxer_t bgav_demuxer_avi =
@@ -1835,6 +1881,7 @@ bgav_demuxer_t bgav_demuxer_avi =
     probe:       probe_avi,
     open:        open_avi,
     next_packet: next_packet_avi,
+    seek:        seek_avi,
     close:       close_avi
 
   };

@@ -312,7 +312,7 @@ int bgav_start(bgav_t * b)
 
 int bgav_can_seek(bgav_t * b)
   {
-  return b->demuxer->can_seek;
+  return !!(b->demuxer->flags & BGAV_DEMUXER_CAN_SEEK);
   }
 
 const bgav_metadata_t * bgav_get_metadata(bgav_t*b, int track)

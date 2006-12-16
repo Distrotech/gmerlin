@@ -635,7 +635,7 @@ static void handle_metadata(bgav_demuxer_context_t * ctx)
                         "filepositions") &&
        meta_object_find(obj1->data.object.children, obj1->data.object.num_children,
                         "times"))
-      ctx->can_seek = 1;
+      ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     }
   }
 

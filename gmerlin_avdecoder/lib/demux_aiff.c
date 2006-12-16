@@ -385,7 +385,7 @@ static int open_aiff(bgav_demuxer_context_t * ctx,
       }
     }
   if(ctx->input->input->seek_byte)
-    ctx->can_seek = 1;
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
   if(priv->is_aifc)
     ctx->stream_description = bgav_sprintf("AIFF-C");

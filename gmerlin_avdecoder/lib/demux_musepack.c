@@ -227,7 +227,7 @@ static int open_mpc(bgav_demuxer_context_t * ctx,
   ctx->stream_description = bgav_sprintf("Musepack Format");
 
   if(ctx->input->input->seek_byte)
-    ctx->can_seek = 1;
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
   return 1;
   }

@@ -674,16 +674,16 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
   
   if(ctx->input->input->seek_byte)
     {
-    ctx->can_seek = 1;
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     for(i = 0; i < track->num_audio_streams; i++)
       {
       if(!((rm_stream_t*)(track->audio_streams[i].priv))->stream->has_indx)
-        ctx->can_seek = 0;
+        ctx->flags &= ~BGAV_DEMUXER_CAN_SEEK;
       }
     for(i = 0; i < track->num_video_streams; i++)
       {
       if(!((rm_stream_t*)(track->video_streams[i].priv))->stream->has_indx)
-        ctx->can_seek = 0;
+        ctx->flags &= ~BGAV_DEMUXER_CAN_SEEK;
       }
     }
 

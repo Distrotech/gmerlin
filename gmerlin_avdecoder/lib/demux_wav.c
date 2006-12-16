@@ -165,7 +165,7 @@ static int open_wav(bgav_demuxer_context_t * ctx,
                        s->data.audio.block_align) * s->data.audio.block_align;
 
   if(ctx->input->input->seek_byte)
-    ctx->can_seek = 1;
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
   ctx->tt->current_track->duration
     = ((int64_t)priv->data_size * (int64_t)GAVL_TIME_SCALE) / 

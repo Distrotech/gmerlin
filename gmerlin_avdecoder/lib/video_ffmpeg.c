@@ -359,6 +359,10 @@ static int decode(bgav_stream_t * s, gavl_video_frame_t * f)
                                       &priv->have_picture,
                                       priv->parsed_frame,
                                       len);
+
+    /* If we passed no data and got no picture, we are done here */
+    if(!len && !priv->have_picture)
+      return 0;
     
     /* Update decoding delay */
     if(priv->has_delay && priv->have_picture)

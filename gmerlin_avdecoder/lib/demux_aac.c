@@ -313,7 +313,7 @@ static int open_adts(bgav_demuxer_context_t * ctx)
         break;
       }
     bgav_input_seek(ctx->input, priv->data_start, SEEK_SET);
-    ctx->can_seek = 1;
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     
     ctx->tt->current_track->duration =
       gavl_samples_to_time(adts.samplerate, sample_count);

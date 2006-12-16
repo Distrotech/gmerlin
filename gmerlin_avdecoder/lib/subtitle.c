@@ -173,7 +173,7 @@ int bgav_has_subtitle(bgav_t * b, int stream)
         return 1;
       else
         {
-        if(s->demuxer->eof)
+        if(s->demuxer->flags & BGAV_DEMUXER_EOF)
           {
           s->data.subtitle.eof = 1;
           return 1;
@@ -186,7 +186,7 @@ int bgav_has_subtitle(bgav_t * b, int stream)
       {
       if(s->data.subtitle.decoder->decoder->has_subtitle(s))
         return 1;
-      else if(s->demuxer->eof)
+      else if(s->demuxer->flags & BGAV_DEMUXER_EOF)
         {
         s->data.subtitle.eof = 1;
         return 1;

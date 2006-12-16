@@ -151,7 +151,7 @@ static int open_wavpack(bgav_demuxer_context_t * ctx,
     gavl_time_unscale(s->data.audio.format.samplerate, h.total_samples);
 
   if(ctx->input->input->seek_byte)
-    ctx->can_seek = 1;
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
   
   return 1;
   }

@@ -605,7 +605,7 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
         
         if(priv->pes_header.pts >= 0)
           {
-          if(!ctx->have_timestamp_offset)
+          if(!(ctx->flags & BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET))
             {
             if(ctx->tt->current_track->num_audio_streams &&
                ctx->tt->current_track->num_video_streams)
@@ -613,17 +613,17 @@ static int next_packet(bgav_demuxer_context_t * ctx, bgav_input_context_t * inpu
               if(stream->type == BGAV_STREAM_AUDIO)
                 {
                 ctx->timestamp_offset = -priv->pes_header.pts;
-                ctx->have_timestamp_offset = 1;
+                ctx->flags |= BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
                 }
               }
             else
               {
               ctx->timestamp_offset = -priv->pes_header.pts;
-              ctx->have_timestamp_offset = 1;
+              ctx->flags |= BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
               }
             }
 
-          if(ctx->have_timestamp_offset)
+          if(ctx->flags & BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET)
             {
             p->pts = priv->pes_header.pts + ctx->timestamp_offset;
             if(p->pts < 0)
@@ -925,10 +925,10 @@ static int open_mpegps(bgav_demuxer_context_t * ctx,
   if((ctx->input->input->seek_byte) ||
      (ctx->input->input->seek_sector) ||
      (ctx->input->input->seek_time))
-    ctx->can_seek = 1;
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
   
   if(!ctx->input->input->seek_time)
-    ctx->seek_iterative = 1;
+    ctx->flags |= BGAV_DEMUXER_SEEK_ITERATIVE;
 
   /* Set the not_aligned flags for all streams */
 

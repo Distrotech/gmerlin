@@ -511,7 +511,7 @@ static int open_nsv(bgav_demuxer_context_t * ctx,
     if(ctx->input->input->seek_byte)
       {
       if(p->fh.toc.offsets)
-        ctx->can_seek = 1;
+        ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
       else
         {
         bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,

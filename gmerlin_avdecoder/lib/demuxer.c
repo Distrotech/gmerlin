@@ -286,8 +286,7 @@ static void check_missing_streams(bgav_demuxer_context_t * ctx)
   i = 0;
   while(i < ctx->tt->current_track->num_audio_streams)
     {
-    if((ctx->tt->current_track->audio_streams[i].last_index_position < 0) &&
-       (!ctx->tt->current_track->audio_streams[i].no_packets))
+    if(ctx->tt->current_track->audio_streams[i].last_index_position < 0)
       bgav_track_remove_audio_stream(ctx->tt->current_track, i);
     else
       i++;
@@ -308,21 +307,12 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s1;
   bgav_stream_t * s2 = (bgav_stream_t *)0;
   int i;
-  int num;
   
-  num = 0;
-  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
-    {
-    if(!ctx->tt->current_track->audio_streams[i].no_packets)
-      num++;
-    }
-  for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
-    {
-    if(!ctx->tt->current_track->video_streams[i].no_packets)
-      num++;
-    }
-  if(num <= 1)
+  if(ctx->tt->current_track->num_video_streams +
+     ctx->tt->current_track->num_audio_streams +
+     ctx->tt->current_track->num_subtitle_streams <= 1)
     return;
+
   
   if(ctx->tt->current_track->num_audio_streams &&
      ctx->tt->current_track->num_video_streams)
@@ -344,7 +334,7 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
   if((s1->last_index_position < s2->first_index_position) ||
      (s2->last_index_position < s1->first_index_position))
     {
-    ctx->non_interleaved = 1;
+    ctx->flags |= BGAV_DEMUXER_SI_NON_INTERLEAVED;
 
     /* Adjust index positions for the streams */
 
@@ -365,25 +355,30 @@ int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
                        bgav_redirector_context_t ** redir)
   {
   /* eof flag might be present from last track */
-  ctx->eof = 0;
+  ctx->flags &= ~BGAV_DEMUXER_EOF;
   
   if(!ctx->demuxer->open(ctx, redir))
     return 0;
   
   if(ctx->si)
     {
-    check_missing_streams(ctx);
-    check_interleave(ctx);
 #ifdef DUMP_SUPERINDEX    
     bgav_superindex_dump(ctx->si);
 #endif
-    if(ctx->non_interleaved)
+
+    if(!(ctx->flags & BGAV_DEMUXER_SI_PRIVATE_FUNCS))
       {
-      if(!ctx->input->input->seek_byte)
+      check_missing_streams(ctx);
+      check_interleave(ctx);
+
+      if(ctx->flags & BGAV_DEMUXER_SI_NON_INTERLEAVED)
         {
-        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                 "Non interleaved file from non seekable source");
-        return 0;
+        if(!ctx->input->input->seek_byte)
+          {
+          bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                   "Non interleaved file from non seekable source");
+          return 0;
+          }
         }
       }
     }
@@ -426,7 +421,7 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
     return 1;
     }
   
-  if(ctx->seeking && (stream->index_position > ctx->si->current_position))
+  if((ctx->flags & BGAV_DEMUXER_SI_SEEKING) && (stream->index_position > ctx->si->current_position))
     {
     bgav_input_skip(ctx->input,
                     ctx->si->entries[ctx->si->current_position].size);
@@ -438,29 +433,22 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
 
   if(ctx->si->entries[ctx->si->current_position].offset > ctx->input->position)
     {
-    bgav_input_skip(ctx->input, ctx->si->entries[ctx->si->current_position].offset - ctx->input->position);
+    bgav_input_skip(ctx->input,
+                    ctx->si->entries[ctx->si->current_position].offset - ctx->input->position);
     }
 
-  if(ctx->read_packet)
-    {
-    if(!ctx->read_packet(ctx, ctx->si->entries[ctx->si->current_position].size,
-                         ctx->si->entries[ctx->si->current_position].time))
-      return 0;
-    }
-  else
-    {
-    p = bgav_packet_buffer_get_packet_write(stream->packet_buffer, stream);
-    bgav_packet_alloc(p, ctx->si->entries[ctx->si->current_position].size);
-    p->data_size = ctx->si->entries[ctx->si->current_position].size;
-    p->keyframe = ctx->si->entries[ctx->si->current_position].keyframe;
-    
-    p->pts = ctx->si->entries[ctx->si->current_position].time;
-    p->samples = ctx->si->entries[ctx->si->current_position].samples;
-    if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
-      return 0;
-    
-    bgav_packet_done_write(p);
-    }
+  p = bgav_stream_get_packet_write(stream);
+  bgav_packet_alloc(p, ctx->si->entries[ctx->si->current_position].size);
+  p->data_size = ctx->si->entries[ctx->si->current_position].size;
+  p->keyframe = ctx->si->entries[ctx->si->current_position].keyframe;
+  
+  p->pts = ctx->si->entries[ctx->si->current_position].time;
+  p->samples = ctx->si->entries[ctx->si->current_position].samples;
+  if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
+    return 0;
+  
+  bgav_packet_done_write(p);
+  
   ctx->si->current_position++;
   return 1;
   }
@@ -482,7 +470,7 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
                   ctx->si->entries[ctx->request_stream->index_position].offset,
                   SEEK_SET);
 
-  p = bgav_packet_buffer_get_packet_write(ctx->request_stream->packet_buffer, ctx->request_stream);
+  p = bgav_stream_get_packet_write(ctx->request_stream);
   p->data_size = ctx->si->entries[ctx->request_stream->index_position].size;
   bgav_packet_alloc(p, p->data_size);
   
@@ -503,12 +491,12 @@ static int demuxer_next_packet(bgav_demuxer_context_t * demuxer)
   {
   int ret, i;
 
-  if(demuxer->eof)
+  if(demuxer->flags & BGAV_DEMUXER_EOF)
     return 0;
   
-  if(demuxer->si) /* Superindex present */
+  if(demuxer->si && !(demuxer->flags & BGAV_DEMUXER_SI_PRIVATE_FUNCS)) /* Superindex present */
     {
-    if(demuxer->non_interleaved)
+    if(demuxer->flags & BGAV_DEMUXER_SI_NON_INTERLEAVED)
       ret = next_packet_noninterleaved(demuxer);
     else
       ret = next_packet_interleaved(demuxer);
@@ -543,7 +531,7 @@ static int demuxer_next_packet(bgav_demuxer_context_t * demuxer)
       }
     }
   if(!ret)
-    demuxer->eof = 1;
+    demuxer->flags |= BGAV_DEMUXER_EOF;
   return ret;
   }
 
@@ -573,7 +561,7 @@ bgav_demuxer_peek_packet_read(bgav_demuxer_context_t * demuxer,
   if(!s->packet_buffer)
     return 0;
   
-  if(demuxer->peek_forces_read || force)
+  if((demuxer->flags & BGAV_DEMUXER_PEEK_FORCES_READ) || force)
     {
     demuxer->request_stream = s; 
     while(!(ret = bgav_packet_buffer_peek_packet_read(s->packet_buffer, s->vfr_timestamps)))
@@ -632,7 +620,6 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
   int32_t start_packet;
   int32_t end_packet;
   bgav_track_t * track;
-  int no_packets = 0;
     
   track = ctx->tt->current_track;
   
@@ -650,47 +637,26 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
   
   for(j = 0; j < track->num_audio_streams; j++)
     {
-    if(track->audio_streams[j].no_packets)
-      {
-      no_packets = 1;
-      continue;
-      }
     bgav_superindex_seek(ctx->si, &(track->audio_streams[j]), time);
     }
   for(j = 0; j < track->num_video_streams; j++)
     {
-    if(track->video_streams[j].no_packets)
-      {
-      no_packets = 1;
-      continue;
-      }
     bgav_superindex_seek(ctx->si, &(track->video_streams[j]), time);
     }
-
-  if(no_packets)
+  for(j = 0; j < track->num_subtitle_streams; j++)
     {
-    for(j = 0; j < track->num_audio_streams; j++)
-      {
-      if(track->audio_streams[j].no_packets)
-        track->audio_streams[j].time_scaled = track->audio_streams[j].sync_stream->time_scaled;
-      }
-    for(j = 0; j < track->num_video_streams; j++)
-      {
-      if(track->video_streams[j].no_packets)
-        track->video_streams[j].time_scaled = track->video_streams[j].sync_stream->time_scaled;
-      }
-    } 
+    bgav_superindex_seek(ctx->si, &(track->subtitle_streams[j]), time);
+    }
+  
   /* Find the start and end packet */
 
-  if(!ctx->non_interleaved)
+  if(!(ctx->flags & BGAV_DEMUXER_SI_NON_INTERLEAVED))
     {
     start_packet = 0x7FFFFFFF;
     end_packet   = 0x0;
     
     for(j = 0; j < track->num_audio_streams; j++)
       {
-      if(track->audio_streams[j].no_packets)
-        continue;
       if(start_packet > track->audio_streams[j].index_position)
         start_packet = track->audio_streams[j].index_position;
       if(end_packet < track->audio_streams[j].index_position)
@@ -698,8 +664,6 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
       }
     for(j = 0; j < track->num_video_streams; j++)
       {
-      if(track->video_streams[j].no_packets)
-        continue;
       if(start_packet > track->video_streams[j].index_position)
         start_packet = track->video_streams[j].index_position;
       if(end_packet < track->video_streams[j].index_position)
@@ -711,11 +675,11 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
     bgav_input_seek(ctx->input, ctx->si->entries[ctx->si->current_position].offset,
                     SEEK_SET);
 
-    ctx->seeking = 1;
+    ctx->flags |= BGAV_DEMUXER_SI_SEEKING;
     for(i = start_packet; i <= end_packet; i++)
       next_packet_interleaved(ctx);
 
-    ctx->seeking = 0;
+    ctx->flags &= ~BGAV_DEMUXER_SI_SEEKING;
     }
 
   }
@@ -753,7 +717,7 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
   int num_iterations = 0;
   seek_time = *time;
 
-  b->demuxer->eof = 0;
+  b->demuxer->flags &= ~BGAV_DEMUXER_EOF;
   
   while(1)
     {
@@ -764,8 +728,8 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
     
     /* Second step: Let the demuxer seek */
     /* This will set the "time" members of all streams */
-
-    if(b->demuxer->si)
+    
+    if(b->demuxer->si && !(b->demuxer->flags & BGAV_DEMUXER_SI_PRIVATE_FUNCS))
       seek_si(b->demuxer, seek_time);
     else
       b->demuxer->demuxer->seek(b->demuxer, seek_time);
@@ -778,7 +742,7 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
       }
     /* If demuxer already seeked perfectly, break here */
 
-    if(!b->demuxer->seek_iterative)
+    if(!(b->demuxer->flags & BGAV_DEMUXER_SEEK_ITERATIVE))
       {
       if(*time > sync_time)
         skip_to(b, track, time);

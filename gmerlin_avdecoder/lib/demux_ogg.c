@@ -1317,10 +1317,8 @@ static int open_ogg(bgav_demuxer_context_t * ctx,
   //  dump_ogg(ctx);
   
   if(ctx->input->input->seek_byte)
-    ctx->can_seek = 1;
+    ctx->flags |= (BGAV_DEMUXER_CAN_SEEK|BGAV_DEMUXER_SEEK_ITERATIVE);
   ctx->stream_description = bgav_strdup("Ogg bitstream");
-  ctx->seek_iterative = 1;
-  
   return 1;
   }
 

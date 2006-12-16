@@ -570,6 +570,8 @@ typedef struct
   {
   int has_gmin;
   qt_gmin_t gmin;
+
+  int has_text; /* We don't parse this just check if it's there */
   } qt_gmhd_t;
 
 int bgav_qt_gmhd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,

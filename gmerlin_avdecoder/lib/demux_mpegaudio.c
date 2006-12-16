@@ -841,7 +841,7 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx,
   bgav_metadata_free(&metadata_v2);
   
   if(ctx->input->input->seek_byte)
-    ctx->can_seek = 1;
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
   if(!ctx->tt->tracks[0].name && ctx->input->metadata.title)
     {

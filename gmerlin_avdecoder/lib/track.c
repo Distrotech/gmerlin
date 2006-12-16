@@ -283,9 +283,9 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
 
   if(!num_active_audio_streams && !num_active_video_streams &&
      num_active_subtitle_streams)
-    demuxer->peek_forces_read = 1;
+    demuxer->flags |= BGAV_DEMUXER_PEEK_FORCES_READ;
   else
-    demuxer->peek_forces_read = 0;
+    demuxer->flags &= ~BGAV_DEMUXER_PEEK_FORCES_READ;
   
   return 1;
   }
@@ -298,13 +298,13 @@ void bgav_track_dump(bgav_t * b, bgav_track_t * t)
   
   char duration_string[GAVL_TIME_STRING_LEN];
   
-  bgav_dprintf( "Name:  %s\n", t->name);
+  bgav_dprintf( "Name:     %s\n", t->name);
 
   description = bgav_get_description(b);
   
-  bgav_dprintf( "Format: %s\n", (description ? description : 
+  bgav_dprintf( "Format:   %s\n", (description ? description : 
                                    "Not specified"));
-  //  bgav_dprintf( "Seekable: %s\n", (bgav->demuxer->can_seek ? "Yes" : "No"));
+  bgav_dprintf( "Seekable: %s\n", ((b->demuxer->flags & BGAV_DEMUXER_CAN_SEEK) ? "Yes" : "No"));
 
   bgav_dprintf( "Duration: ");
   if(t->duration != GAVL_TIME_UNDEFINED)

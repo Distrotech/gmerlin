@@ -70,7 +70,7 @@ static int open_gsm(bgav_demuxer_context_t * ctx,
       gavl_samples_to_time(as->data.audio.format.samplerate, total_samples);
 
     if(ctx->input->input->seek_byte)
-      ctx->can_seek = 1;
+      ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
     }
 
   ctx->stream_description = bgav_sprintf("RAW GSM");

@@ -193,7 +193,7 @@ static int open_au(bgav_demuxer_context_t * ctx,
                           pos_2_time(ctx, priv->data_start + priv->data_size));
   
   if(ctx->input->input->seek_byte)
-    ctx->can_seek = 1;
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
   
   /* Skip everything until data section */
 

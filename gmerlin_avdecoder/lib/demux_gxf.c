@@ -502,8 +502,7 @@ static int open_gxf(bgav_demuxer_context_t * ctx,
         return 0;
       priv->last_field = mh.field_nr;
       bgav_input_seek(ctx->input, last_pos, SEEK_SET);
-      ctx->can_seek = 1;
-      ctx->seek_iterative = 1;
+      ctx->flags |= (BGAV_DEMUXER_CAN_SEEK | BGAV_DEMUXER_SEEK_ITERATIVE);
       }
 
     if(priv->last_field > priv->first_field)

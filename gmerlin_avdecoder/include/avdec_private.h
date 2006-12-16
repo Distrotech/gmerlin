@@ -328,14 +328,6 @@ struct bgav_stream_s
   int codec_bitrate;
 
   /*
-   *  Indicator for streams, which have no packets (e.g. type 1 DV AVIs,
-   *  where the audio is inside the videopackets
-   */
-
-  int no_packets;
-  bgav_stream_t * sync_stream;
-
-  /*
    *  Indicator for streams, where VFR framerate is realized by packet timestamps
    */
   
@@ -879,9 +871,19 @@ struct bgav_demuxer_s
   void (*select_track)(bgav_demuxer_context_t*, int track);
   };
 
+/* Demuxer flags */
+
+#define BGAV_DEMUXER_CAN_SEEK             (1<<0)
+#define BGAV_DEMUXER_SEEK_ITERATIVE       (1<<1) /* If 1, perform iterative seeking */
+#define BGAV_DEMUXER_PEEK_FORCES_READ     (1<<2) /* This is set if only subtitle streams are read */
+#define BGAV_DEMUXER_SI_SEEKING           (1<<3) /* Demuxer is seeking */
+#define BGAV_DEMUXER_SI_NON_INTERLEAVED   (1<<4) /* Track is non-interleaved */
+#define BGAV_DEMUXER_SI_PRIVATE_FUNCS     (1<<5) /* We have a suprindex but use private seek/demux funcs */
+#define BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET (1<<6) /* Timestamp offset (from input) is valid */
+#define BGAV_DEMUXER_EOF                  (1<<7) /* Report EOF just once and not for each stream */
+
 struct bgav_demuxer_context_s
   {
-  int eof; /* Report EOF just once and not for each stream */
   const bgav_options_t * opt;
   void * priv;
   bgav_demuxer_t * demuxer;
@@ -889,9 +891,9 @@ struct bgav_demuxer_context_s
   
   bgav_track_table_t * tt;
   char * stream_description;
-  
-  int can_seek;
 
+  uint32_t flags;
+  
   /*
    *  The stream, which requested the next_packet function.
    *  Can come handy sometimes
@@ -903,27 +905,16 @@ struct bgav_demuxer_context_s
    *  seek() functions will be used
    */
   bgav_superindex_t * si;
-  int seeking;
-  int non_interleaved;
   
-  /* Some demuxers have a custom read packet function */
-  int (*read_packet)(bgav_demuxer_context_t * ctx, int size, int64_t pts);
-
   /* Timestamp offset: By definition, timestamps for a track
      start at 0. The offset can be set either by the demuxer or
      by some inputs (DVD). */
 
   int64_t timestamp_offset;
-  int have_timestamp_offset;
 
   /* Human readable error string */
   char * error_msg;
-  
-  /* If 1, perform iterative seeking */
-  int seek_iterative;
-
-  /* This is set to 1 if only subtitle streams are read */
-  int peek_forces_read;
+ 
   };
 
 /* demuxer.c */

@@ -108,7 +108,7 @@ static int open_mms(bgav_input_context_t * ctx, const char * url)
   bgav_input_destroy(input);
   /* The demuxer might think he can seek, but that's  not true */
 
-  ctx->demuxer->can_seek = 0;
+  ctx->demuxer->flags &= ~BGAV_DEMUXER_CAN_SEEK;
     
   return 1;
   

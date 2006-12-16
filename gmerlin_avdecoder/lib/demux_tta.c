@@ -143,7 +143,7 @@ static int open_tta(bgav_demuxer_context_t * ctx,
     gavl_time_unscale(s->data.audio.format.samplerate, h.data_length);
 
   if(ctx->input->input->seek_byte)
-    ctx->can_seek = 1;
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
   
   priv->data_start = ctx->input->position;

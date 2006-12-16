@@ -92,7 +92,7 @@ static int open_a52(bgav_demuxer_context_t * ctx,
   /* Packet size will be at least 1024 bytes */
   
   if(ctx->input->input->seek_byte)
-    ctx->can_seek = 1;
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
   ctx->tt->current_track->duration
     = ((int64_t)priv->data_size * (int64_t)GAVL_TIME_SCALE) / 

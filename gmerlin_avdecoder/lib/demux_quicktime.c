@@ -127,16 +127,15 @@ static int probe_quicktime(bgav_input_context_t * input)
     pos = test_data + 12;
     header = BGAV_PTR_2_FOURCC(pos);
     }
-  
-  if(header == BGAV_MK_FOURCC('m','o','o','v'))
-    return 1;
-  if(header == BGAV_MK_FOURCC('f','t','y','p'))
-    return 1;
-  if(header == BGAV_MK_FOURCC('f','r','e','e'))
-    return 1;
-  else if(header == BGAV_MK_FOURCC('m','d','a','t'))
-    return 1;
-  
+
+  switch(header)
+    {
+    case BGAV_MK_FOURCC('m','o','o','v'):
+    case BGAV_MK_FOURCC('f','t','y','p'):
+    case BGAV_MK_FOURCC('f','r','e','e'):
+    case BGAV_MK_FOURCC('m','d','a','t'):
+      return 1;
+    }
   return 0;
   }
 
@@ -1078,7 +1077,7 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
   
 
   if(ctx->input->input->seek_byte)
-    ctx->can_seek = 1;
+    ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
   
   
   return 1;

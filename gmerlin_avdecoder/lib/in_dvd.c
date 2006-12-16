@@ -538,7 +538,7 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url)
   ctx->demuxer->tt = ctx->tt;
 
   /* We must set this here, because we don't initialize the demuxer here */
-  ctx->demuxer->can_seek = 1;
+  ctx->demuxer->flags |= BGAV_DEMUXER_CAN_SEEK;
   
   ctx->sector_size        = 2048;
   ctx->sector_size_raw    = 2048;
@@ -622,7 +622,7 @@ read_nav(bgav_input_context_t * ctx, int sector, int *next)
     {
     ctx->demuxer->timestamp_offset = -((int64_t)pci_pack.pci_gi.vobu_s_ptm);
     }
-  ctx->demuxer->have_timestamp_offset = 1;
+  ctx->demuxer->flags |= BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
   
   d->last_vobu_end_pts = pci_pack.pci_gi.vobu_e_ptm;
     
@@ -754,7 +754,7 @@ static void select_track_dvd(bgav_input_context_t * ctx, int track)
   
   dvd = (dvd_t*)(ctx->priv);
   dvd->last_vobu_end_pts = BGAV_TIMESTAMP_UNDEFINED;
-  ctx->demuxer->have_timestamp_offset = 0;
+  ctx->demuxer->flags &= ~BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET;
   
   ttsrpt = dvd->vmg_ifo->tt_srpt;
   track_priv = (track_priv_t*)(ctx->tt->current_track->priv);
@@ -841,7 +841,7 @@ static void seek_time_dvd(bgav_input_context_t * ctx, gavl_time_t t)
 
   if(dvd->cell >= dvd->current_track_priv->end_cell)
     {
-    ctx->demuxer->eof = 1;
+    ctx->demuxer->flags |= BGAV_DEMUXER_EOF;
     return;
     }
   /* Now, seek forward using the seek information in the dsi packets */
