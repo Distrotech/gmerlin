@@ -103,7 +103,14 @@ typedef struct
   
   int flip_y;
   gavl_video_frame_t * flip_frame; /* Only used if we flip AND do postprocessing */
-
+  
+  /* Swap fields for MJPEG-A/B bottom first */
+  int swap_fields;
+  gavl_video_frame_t  * src_field;
+  gavl_video_frame_t  * dst_field;
+  gavl_video_format_t field_format;
+  
+  /* */
   AVCodecParserContext * parser;
   int parser_started;
   
@@ -478,14 +485,17 @@ static int init(bgav_stream_t * s)
   ffmpeg_video_priv * priv;
   priv = calloc(1, sizeof(*priv));
 
+  /* Set up coded specific details */
+  
   if(s->data.video.format.image_height < 0)
     {
     s->data.video.format.image_height = -s->data.video.format.image_height;
     priv->flip_y = 1;
     }
-  else if(s->fourcc == BGAV_MK_FOURCC('W','V','1','F'))
+
+  if(s->fourcc == BGAV_MK_FOURCC('W','V','1','F'))
     priv->flip_y = 1;
-  
+    
 
   priv->info = lookup_codec(s);
   codec = avcodec_find_decoder(priv->info->ffmpeg_id);
@@ -564,6 +574,19 @@ static int init(bgav_stream_t * s)
   
   /* Some codecs need extra stuff */
 
+  /* Swap fields for Quicktime Motion JPEG */
+  if((s->fourcc == BGAV_MK_FOURCC('m','j','p','a')) ||
+     (s->fourcc == BGAV_MK_FOURCC('m','j','p','b')))
+    {
+    if(s->data.video.format.interlace_mode == GAVL_INTERLACE_BOTTOM_FIRST)
+      {
+      priv->swap_fields = 1;
+      priv->src_field = gavl_video_frame_create(NULL);
+      priv->dst_field = gavl_video_frame_create(NULL);
+      }
+    }
+
+  
   /* Huffman tables for Motion jpeg */
 
   if(((s->fourcc == BGAV_MK_FOURCC('A','V','R','n')) ||
@@ -650,6 +673,15 @@ static int init(bgav_stream_t * s)
     priv->do_convert = 1;
     priv->dst_format = PIX_FMT_YUV420P;
     }
+
+  if(priv->swap_fields)
+    {
+    gavl_video_format_copy(&(priv->field_format),
+                           &(s->data.video.format));
+    priv->field_format.frame_height /= 2;
+    priv->field_format.image_height /= 2;
+    }
+  
   s->description = bgav_sprintf("%s", priv->info->format_name);
   return 1;
   }
@@ -698,6 +730,19 @@ static void close_ffmpeg(bgav_stream_t * s)
     gavl_video_frame_null(priv->gavl_frame);
     gavl_video_frame_destroy(priv->gavl_frame);
     }
+
+  if(priv->src_field)
+    {
+    gavl_video_frame_null(priv->src_field);
+    gavl_video_frame_destroy(priv->src_field);
+    }
+  
+  if(priv->dst_field)
+    {
+    gavl_video_frame_null(priv->dst_field);
+    gavl_video_frame_destroy(priv->dst_field);
+    }
+
   if(priv->extradata)
     free(priv->extradata);
 #ifdef HAVE_LIBPOSTPROC
@@ -1597,6 +1642,33 @@ static void put_frame(bgav_stream_t * s, gavl_video_frame_t * f)
 
       if(priv->flip_y)
         gavl_video_frame_copy_flip_y(&(s->data.video.format), f, priv->gavl_frame);
+      else if(priv->swap_fields)
+        {
+        /* src field (top) -> dst field (bottom) */
+        gavl_video_frame_get_field(s->data.video.format.pixelformat,
+                                   priv->gavl_frame,
+                                   priv->src_field,
+                                   0);
+
+        gavl_video_frame_get_field(s->data.video.format.pixelformat,
+                                   f,
+                                   priv->dst_field,
+                                   1);
+        
+        gavl_video_frame_copy(&priv->field_format, priv->dst_field, priv->src_field);
+
+        /* src field (bottom) -> dst field (top) */
+        gavl_video_frame_get_field(s->data.video.format.pixelformat,
+                                   priv->gavl_frame,
+                                   priv->src_field,
+                                   1);
+
+        gavl_video_frame_get_field(s->data.video.format.pixelformat,
+                                   f,
+                                   priv->dst_field,
+                                   0);
+        gavl_video_frame_copy(&priv->field_format, priv->dst_field, priv->src_field);
+        }
       else
         gavl_video_frame_copy(&(s->data.video.format), f, priv->gavl_frame);
 #ifdef HAVE_LIBPOSTPROC
