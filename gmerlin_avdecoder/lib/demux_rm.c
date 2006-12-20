@@ -691,7 +691,7 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
 
   /* Handle metadata */
 
-  cnv = bgav_charset_converter_create("ISO-8859-1", "UTF-8");
+  cnv = bgav_charset_converter_create(ctx->opt, "ISO-8859-1", "UTF-8");
 
   if(priv->header->cont.title_len)
     track->metadata.title = bgav_convert_string(cnv,

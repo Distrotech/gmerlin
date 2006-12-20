@@ -25,18 +25,23 @@
 #include <errno.h>
 #include <stdio.h>
 
+#define LOG_DOMAIN "charset"
+
 struct bgav_charset_converter_s
   {
   iconv_t cd;
+  const bgav_options_t * opt;
   };
   
 
 bgav_charset_converter_t *
-bgav_charset_converter_create(const char * in_charset,
+bgav_charset_converter_create(const bgav_options_t * opt,
+                              const char * in_charset,
                               const char * out_charset)
   {
   bgav_charset_converter_t * ret = calloc(1, sizeof(*ret));
   ret->cd = iconv_open(out_charset, in_charset);
+  ret->opt = opt;
   return ret;
   }
 
@@ -57,8 +62,9 @@ char * bgav_convert_string(bgav_charset_converter_t *,
 
 #define BYTES_INCREMENT 10
 
-static int do_convert(iconv_t cd, char * in_string, int len, int * out_len,
-               char ** ret, int * ret_alloc)
+static int do_convert(bgav_charset_converter_t * cnv,
+                      char * in_string, int len, int * out_len,
+                      char ** ret, int * ret_alloc)
   {
 
   char *inbuf;
@@ -80,7 +86,7 @@ static int do_convert(iconv_t cd, char * in_string, int len, int * out_len,
   
   while(1)
     {
-    if(iconv(cd, &inbuf, &inbytesleft,
+    if(iconv(cnv->cd, &inbuf, &inbytesleft,
              &outbuf, &outbytesleft) == (size_t)-1)
       {
       switch(errno)
@@ -95,9 +101,13 @@ static int do_convert(iconv_t cd, char * in_string, int len, int * out_len,
           outbuf = &((*ret)[output_pos]);
           break;
         case EILSEQ:
+          bgav_log(cnv->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                   "Invalid multibyte sequence");
           return 0;
           break;
         case EINVAL:
+          bgav_log(cnv->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                   "Incomplete multibyte sequence");
           return 0;
           break;
         }
@@ -137,7 +147,7 @@ char * bgav_convert_string(bgav_charset_converter_t * cnv,
   tmp_string = malloc(len+1);
   memcpy(tmp_string, str, len);
   tmp_string[len] = '\0';
-  result = do_convert(cnv->cd, tmp_string, len, out_len, &ret, &ret_alloc);
+  result = do_convert(cnv, tmp_string, len, out_len, &ret, &ret_alloc);
   free(tmp_string);
   
   if(!result)
@@ -162,7 +172,7 @@ int bgav_convert_string_realloc(bgav_charset_converter_t * cnv,
   tmp_string = malloc(len+1);
   memcpy(tmp_string, str, len);
   tmp_string[len] = '\0';
-  result = do_convert(cnv->cd, tmp_string, len, out_len, ret, ret_alloc);
+  result = do_convert(cnv, tmp_string, len, out_len, ret, ret_alloc);
   free(tmp_string);
   
   return result;

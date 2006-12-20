@@ -240,11 +240,11 @@ int bgav_subtitle_start(bgav_stream_t * s)
       {
       if(strcmp(s->data.subtitle.charset, "UTF-8"))
         s->data.subtitle.cnv =
-          bgav_charset_converter_create(s->data.subtitle.charset, "UTF-8");
+          bgav_charset_converter_create(s->opt, s->data.subtitle.charset, "UTF-8");
       }
     else if(strcmp(s->opt->default_subtitle_encoding, "UTF-8"))
       s->data.subtitle.cnv =
-        bgav_charset_converter_create(s->opt->default_subtitle_encoding,
+        bgav_charset_converter_create(s->opt, s->opt->default_subtitle_encoding,
                                       "UTF-8");
     return 1;
     }

@@ -22,6 +22,7 @@
 
 #include <avdec_private.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <qt.h>
 
@@ -39,8 +40,33 @@ typedef struct
   } qt_mdhd_t;
 */
 
+int bgav_qt_mdhd_get_language(qt_mdhd_t * m, char * ret)
+  {
+  if(!bgav_qt_get_language(m->language, ret))
+    {
+    ret[0] = ((m->language >> 10) & 0x1f) + 0x60;
+    ret[1] = ((m->language >> 5) & 0x1f)  + 0x60;
+    ret[2] = (m->language & 0x1f)         + 0x60;
+    ret[3] = '\0';
+    }
+  return 1;
+  }
+
 void bgav_qt_mdhd_dump(int indent, qt_mdhd_t * m)
   {
+  char lang_code[4];
+  const char * language;
+  const char * charset = (char*)0;
+  memset(lang_code, 0, 4);
+
+  bgav_qt_mdhd_get_language(m, lang_code);
+  
+  language = bgav_lang_name(lang_code);
+  
+  charset = bgav_qt_get_charset(m->language);
+  if(!charset)
+    charset = "UTF-8/16";
+  
   bgav_diprintf(indent, "mdhd:\n");
   bgav_diprintf(indent+2, "version:           %d\n", m->version);
   bgav_diprintf(indent+2, "flags:             %06xd\n", m->flags);
@@ -49,10 +75,12 @@ void bgav_qt_mdhd_dump(int indent, qt_mdhd_t * m)
   bgav_diprintf(indent+2, "modification_time: %d\n", m->modification_time);
   bgav_diprintf(indent+2, "time_scale:        %d\n", m->time_scale);
   bgav_diprintf(indent+2, "duration:          %d\n", m->duration);
-  bgav_diprintf(indent+2, "language:          %d\n", m->language);
+  bgav_diprintf(indent+2, "language:          %d (%s, charset: %s)\n",
+                m->language, language, charset);
   bgav_diprintf(indent+2, "quality:           %d\n", m->quality);
   }
-  
+
+
 int bgav_qt_mdhd_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_mdhd_t * ret)
   {
@@ -76,3 +104,4 @@ void bgav_qt_mdhd_free(qt_mdhd_t * c)
   {
   
   }
+

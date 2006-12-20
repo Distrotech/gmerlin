@@ -367,11 +367,13 @@ qt_frma.c \
 qt_gmhd.c \
 qt_gmin.c \
 qt_hdlr.c \
+qt_language.c \
 qt_mdhd.c \
 qt_mdia.c \
 qt_minf.c \
 qt_moov.c \
 qt_mvhd.c \
+qt_nmhd.c \
 qt_palette.c \
 qt_pasp.c \
 qt_rdrf.c \

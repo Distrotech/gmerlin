@@ -339,7 +339,10 @@ struct bgav_stream_s
    */
 
   int not_aligned;
-    
+
+  /* If non-NULL, the superindex read functions will call this */
+  void (*process_packet)(bgav_stream_t * s, bgav_packet_t * p);
+  
   union
     {
     struct
@@ -1181,7 +1184,8 @@ int bgav_tcp_send(int fd, uint8_t * data, int len, char ** error_msg);
 
 
 bgav_charset_converter_t *
-bgav_charset_converter_create(const char * in_charset,
+bgav_charset_converter_create(const bgav_options_t * opt,
+                              const char * in_charset,
                               const char * out_charset);
 
 void bgav_charset_converter_destroy(bgav_charset_converter_t *);

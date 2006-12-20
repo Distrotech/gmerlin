@@ -26,6 +26,7 @@
 int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
                       qt_wave_t * ret)
   {
+  int done = 0;
   qt_atom_header_t ch; /* Child header */
   uint8_t * data_ptr;
   bgav_input_context_t * input_mem;
@@ -65,6 +66,7 @@ int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
         ret->has_enda = 1;
         break;
       case 0: /* audio atom Terminator */
+        done = 1;
         break;
       default:
         /* Append user atom */
@@ -76,6 +78,8 @@ int bgav_qt_wave_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
         ret->num_user_atoms++;
         break;
       }
+    if(done)
+      break;
     }
   bgav_input_destroy(input_mem);
   return 1;

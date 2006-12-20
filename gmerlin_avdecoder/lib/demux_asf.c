@@ -371,7 +371,7 @@ static int read_metadata(bgav_demuxer_context_t * ctx)
      !bgav_input_read_16_le(ctx->input, &len5))
     goto fail;
 
-  cnv = bgav_charset_converter_create("UTF-16LE", "UTF-8");
+  cnv = bgav_charset_converter_create(ctx->opt, "UTF-16LE", "UTF-8");
   
   str_len = len1;
   if(str_len < len2)

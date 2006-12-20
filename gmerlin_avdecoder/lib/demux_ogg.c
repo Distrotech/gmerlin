@@ -667,6 +667,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         
         s->fourcc = FOURCC_OGM_TEXT;
         s->timescale = 10000000 / ogm_header.time_unit;
+        s->description = bgav_sprintf("OGM subtitles");
         ogg_stream->header_packets_needed = 2;
         ogg_stream->header_packets_read = 1;
         break;

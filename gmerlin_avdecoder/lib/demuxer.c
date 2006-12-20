@@ -17,7 +17,7 @@
  
 *****************************************************************/
 
-// #define DUMP_SUPERINDEX    
+#define DUMP_SUPERINDEX    
 #include <avdec_private.h>
 
 #include <stdio.h>
@@ -307,48 +307,40 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s1;
   bgav_stream_t * s2 = (bgav_stream_t *)0;
   int i;
+  bgav_stream_t ** streams;
+  int index, num_streams;
+
+  num_streams =
+    ctx->tt->current_track->num_audio_streams +
+    ctx->tt->current_track->num_video_streams +
+    ctx->tt->current_track->num_subtitle_streams;
   
-  if(ctx->tt->current_track->num_video_streams +
-     ctx->tt->current_track->num_audio_streams +
-     ctx->tt->current_track->num_subtitle_streams <= 1)
+  if(num_streams <= 1)
     return;
-
   
-  if(ctx->tt->current_track->num_audio_streams &&
-     ctx->tt->current_track->num_video_streams)
-    {
-    s1 = &(ctx->tt->current_track->audio_streams[0]);
-    s2 = &(ctx->tt->current_track->video_streams[0]);
-    }
-  else if(ctx->tt->current_track->num_audio_streams)
-    {
-    s1 = &(ctx->tt->current_track->audio_streams[0]);
-    s1 = &(ctx->tt->current_track->audio_streams[1]);
-    }
-  else 
-    {
-    s1 = &(ctx->tt->current_track->video_streams[0]);
-    s1 = &(ctx->tt->current_track->video_streams[1]);
-    }
+  streams = malloc(num_streams * sizeof(*streams));
+  index = 0;
+  
+  for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
+    streams[index++] = &(ctx->tt->current_track->audio_streams[i]);
 
-  if((s1->last_index_position < s2->first_index_position) ||
-     (s2->last_index_position < s1->first_index_position))
+  for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
+    streams[index++] = &(ctx->tt->current_track->video_streams[i]);
+  
+  for(i = 0; i < ctx->tt->current_track->num_subtitle_streams; i++)
+    streams[index++] = &(ctx->tt->current_track->subtitle_streams[i]);
+  
+  if((streams[0]->last_index_position < streams[1]->first_index_position) ||
+     (streams[1]->last_index_position < streams[0]->first_index_position))
     {
     ctx->flags |= BGAV_DEMUXER_SI_NON_INTERLEAVED;
 
     /* Adjust index positions for the streams */
-
-    for(i = 0; i < ctx->tt->current_track->num_audio_streams; i++)
-      {
-      s1 = &(ctx->tt->current_track->audio_streams[i]);
-      s1->index_position = s1->first_index_position;
-      }
-    for(i = 0; i < ctx->tt->current_track->num_video_streams; i++)
-      {
-      s1 = &(ctx->tt->current_track->video_streams[i]);
-      s1->index_position = s1->first_index_position;
-      }
+    
+    for(i = 0; i < num_streams; i++)
+      streams[i]->index_position = streams[i]->first_index_position;
     }
+  free(streams);
   }
 
 int bgav_demuxer_start(bgav_demuxer_context_t * ctx,
@@ -415,8 +407,12 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
   
   if(!stream) /* Skip unused stream */
     {
-    bgav_input_skip(ctx->input,
-                    ctx->si->entries[ctx->si->current_position].size);
+    //    bgav_input_skip(ctx->input,
+    //                    ctx->si->entries[ctx->si->current_position].size);
+
+    bgav_input_skip_dump(ctx->input,
+                         ctx->si->entries[ctx->si->current_position].size);
+    
     ctx->si->current_position++;
     return 1;
     }
@@ -446,6 +442,9 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
   p->samples = ctx->si->entries[ctx->si->current_position].samples;
   if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
     return 0;
+  
+  if(stream->process_packet)
+    stream->process_packet(stream, p);
   
   bgav_packet_done_write(p);
   
@@ -480,6 +479,10 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
     
   if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
     return 0;
+
+  if(ctx->request_stream->process_packet)
+    ctx->request_stream->process_packet(ctx->request_stream, p);
+  
   bgav_packet_done_write(p);
   
   ctx->request_stream->index_position++;

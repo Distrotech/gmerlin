@@ -51,6 +51,11 @@ int bgav_qt_minf_read(qt_atom_header_t * h, bgav_input_context_t * input,
           return 0;
         ret->has_gmhd = 1;
         break;
+      case BGAV_MK_FOURCC('n', 'm', 'h', 'd'):
+        if(!bgav_qt_nmhd_read(&ch, input, &(ret->nmhd)))
+          return 0;
+        ret->has_nmhd = 1;
+        break;
       case BGAV_MK_FOURCC('s', 't', 'b', 'l'):
         if(!bgav_qt_stbl_read(&ch, input, &(ret->stbl), ret))
           return 0;
@@ -95,6 +100,8 @@ void bgav_qt_minf_dump(int indent, qt_minf_t * h)
 
   if(h->has_gmhd)
     bgav_qt_gmhd_dump(indent+2, &(h->gmhd));
+  if(h->has_nmhd)
+    bgav_qt_nmhd_dump(indent+2, &(h->nmhd));
   
   bgav_diprintf(indent, "end of minf\n");
   }

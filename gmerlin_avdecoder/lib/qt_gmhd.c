@@ -38,7 +38,10 @@ int bgav_qt_gmhd_read(qt_atom_header_t * h, bgav_input_context_t * input,
         break;
       case BGAV_MK_FOURCC('t', 'e', 'x', 't'):
         ret->has_text = 1;
-        bgav_qt_atom_skip(input, &ch);
+        bgav_dprintf("Got gmhd text\n");
+
+        bgav_input_skip_dump(input, ch.size - (input->position - ch.start_position));
+        //        bgav_qt_atom_skip_unknown(input, &ch, h->fourcc);
         break;
       default:
         bgav_qt_atom_skip_unknown(input, &ch, h->fourcc);

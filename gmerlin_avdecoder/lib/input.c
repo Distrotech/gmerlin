@@ -145,7 +145,7 @@ int bgav_input_read_convert_line(bgav_input_context_t * input,
   else
     {
     if(!input->cnv)
-      input->cnv = bgav_charset_converter_create(input->charset, "UTF-8");
+      input->cnv = bgav_charset_converter_create(input->opt, input->charset, "UTF-8");
 
     if(!bgav_input_read_line(input, &line, &line_alloc, 0, &in_len))
       return 0;

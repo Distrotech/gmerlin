@@ -348,6 +348,21 @@ typedef struct
       qt_chan_t chan;
       
       } audio;
+    struct
+      {
+      uint32_t displayFlags;
+      uint32_t textJustification;
+      uint16_t bgColor[3];
+      uint16_t defaultTextBox[4];
+      uint32_t scrpStartChar;              /*starting character position*/
+      uint16_t scrpHeight;
+      uint16_t scrpAscent;
+      uint16_t scrpFont;
+      uint16_t scrpFace;
+      uint16_t scrpSize;
+      uint16_t scrpColor[3];
+      char font_name[256];
+      } subtitle_qt;
     } format;
   qt_esds_t esds;
   int has_esds;
@@ -580,6 +595,22 @@ void bgav_qt_gmhd_free(qt_gmhd_t * g);
 void bgav_qt_gmhd_dump(int indent, qt_gmhd_t * g);
 
 /*
+ *  Null media header (used for MP4 subtitles)
+ */
+
+typedef struct
+  {
+  int version;
+  uint32_t flags;
+  } qt_nmhd_t;
+
+int bgav_qt_nmhd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_nmhd_t * ret);
+void bgav_qt_nmhd_free(qt_nmhd_t * n);
+void bgav_qt_nmhd_dump(int indent, qt_nmhd_t * n);
+
+
+/*
  *  elst
  */
 
@@ -618,7 +649,6 @@ int bgav_qt_edts_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 void bgav_qt_edts_free(qt_edts_t * g);
 void bgav_qt_edts_dump(int indent, qt_edts_t * e);
 
-
 /*
  *  Media information
  */
@@ -637,6 +667,10 @@ struct qt_minf_s
   
   int has_gmhd;
   qt_gmhd_t gmhd;
+
+  int has_nmhd;
+  qt_nmhd_t nmhd;
+
   };
 
 int bgav_qt_minf_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
@@ -669,6 +703,8 @@ int bgav_qt_mdhd_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 
 void bgav_qt_mdhd_free(qt_mdhd_t * c);
 void bgav_qt_mdhd_dump(int indent, qt_mdhd_t * c);
+
+int bgav_qt_mdhd_get_language(qt_mdhd_t * c, char * ret);
 
 /*
  *  Media
@@ -892,4 +928,9 @@ int bgav_qt_read_fixed32(bgav_input_context_t * ctx,
 
 int bgav_qt_read_fixed16(bgav_input_context_t * ctx,
                          float * ret);
+
+/* language/charset support */
+
+int bgav_qt_get_language(int mac_code, char * ret);
+const char * bgav_qt_get_charset(int mac_code);
 
