@@ -634,7 +634,6 @@ static void get_fullscreen_coords(x11_window_t * w,
                           &x_return,
                           &y_return,
                           &child);
-
     
     /* Get the xinerama screen we are on */
     
@@ -696,6 +695,13 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
       w->disable_screensaver = 0;
       enable_screensaver(w);
       }
+
+    XSetTransientForHint(w->dpy, w->fullscreen_window, None);
+
+//    XRaiseWindow(w->dpy, w->fullscreen_window);
+//    XMapWindow(w->dpy, w->fullscreen_window);
+    XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
+    
     
 #if 1
     if(w->fullscreen_mode & FULLSCREEN_MODE_NET_ABOVE)
@@ -709,11 +715,6 @@ void x11_window_set_fullscreen(x11_window_t * w,int fullscreen)
                       _NET_WM_STATE_ADD, w->_NET_WM_STATE_FULLSCREEN);
       }
 #endif    
-    XSetTransientForHint(w->dpy, w->fullscreen_window, None);
-
-//    XRaiseWindow(w->dpy, w->fullscreen_window);
-//    XMapWindow(w->dpy, w->fullscreen_window);
-    XMoveResizeWindow(w->dpy, w->fullscreen_window, x, y, width, height);
 
     XWithdrawWindow(w->dpy, w->normal_window, w->screen);
 		

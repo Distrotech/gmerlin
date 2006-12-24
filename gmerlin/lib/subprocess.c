@@ -184,7 +184,7 @@ void bg_subprocess_kill(bg_subprocess_t * p, int sig)
 
 int bg_subprocess_close(bg_subprocess_t*p)
   {
-  int status;
+  int status, ret;
   subprocess_priv_t * priv = (subprocess_priv_t*)(p->priv);
 
   if(priv->stdin.use)
@@ -199,8 +199,10 @@ int bg_subprocess_close(bg_subprocess_t*p)
   
   waitpid(priv->pid, &status, 0);
 
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Finished process [%d]",
-         priv->pid);
+  ret = WEXITSTATUS(status);
+  
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Finished process [%d] return value: %d",
+         priv->pid, ret);
 
   
   if(priv->stdout.use)
@@ -210,7 +212,7 @@ int bg_subprocess_close(bg_subprocess_t*p)
   
   free(priv);
   free(p);
-  return WEXITSTATUS(status);
+  return ret;
   }
 
 /* Read line without trailing '\r' or '\n' */

@@ -208,6 +208,32 @@ static void msg_subpicture_description(bg_msg_t * msg, const void * data)
 
 #endif
 
+static void msg_num_chapters(bg_msg_t * msg, const void * data)
+  {
+  bg_msg_set_id(msg, BG_PLAYER_MSG_NUM_CHAPTERS);
+  bg_msg_set_arg_int(msg, 0, *((int*)data));
+  }
+
+struct chapter_info_s
+  {
+  bg_chapter_list_t * l;
+  int index;
+  };
+
+static void msg_chapter_info(bg_msg_t * msg, const void * data)
+  {
+  struct chapter_info_s * d = (struct chapter_info_s*)data;
+  bg_msg_set_id(msg, BG_PLAYER_MSG_CHAPTER_INFO);
+  bg_msg_set_arg_int(msg, 0, d->index);
+  bg_msg_set_arg_string(msg, 1, d->l->chapters[d->index].name);
+  bg_msg_set_arg_time(msg, 2, d->l->chapters[d->index].time);
+  }
+
+static void msg_chapter_changed(bg_msg_t * msg, const void * data)
+  {
+  bg_msg_set_id(msg, BG_PLAYER_MSG_CHAPTER_CHANGED);
+  bg_msg_set_arg_int(msg, 0, *((int*)data));
+  }
 
 /*
  *  Interrupt playback so all plugin threads are waiting inside
@@ -396,20 +422,21 @@ static void play_cmd(bg_player_t * p,
   char * error_msg;
   const char * error_msg_input;
   struct stream_info_s si;
+  struct chapter_info_s ci;
+  int num_chapters;
   
   int had_video;
   gavl_time_t time = 0;
     
   
   /* Shut down from last playback if necessary */
-
+  
   if(p->input_handle && !bg_plugin_equal(p->input_handle, handle))
     player_cleanup(p);
   
   had_video = p->do_video || p->do_still;
   
   bg_player_set_state(p, BG_PLAYER_STATE_STARTING, NULL, NULL);
-
   
   bg_player_set_track_name(p, track_name);
 
@@ -470,6 +497,32 @@ static void play_cmd(bg_player_t * p,
                          msg_num_streams,
                          p->track_info);
 
+  /* Send chapter info */
+
+  if(p->track_info->chapter_list)
+    num_chapters = p->track_info->chapter_list->num_chapters;
+  else
+    num_chapters = 0;
+  bg_msg_queue_list_send(p->message_queues,
+                         msg_num_chapters,
+                         &(num_chapters));
+
+  ci.l = p->track_info->chapter_list;
+  
+  for(ci.index = 0; ci.index < num_chapters; ci.index++)
+    {
+    bg_msg_queue_list_send(p->message_queues,
+                           msg_chapter_info,
+                           &(ci));
+    }
+
+  if(num_chapters)
+    {
+    p->current_chapter = 0;
+    bg_msg_queue_list_send(p->message_queues,
+                           msg_chapter_changed,
+                           &(p->current_chapter));
+    }
   
   /* Send infos about the streams we have */
   si.track = p->track_info;
@@ -721,6 +774,7 @@ static void set_oa_plugin_cmd(bg_player_t * player,
 
 static void seek_cmd(bg_player_t * player, gavl_time_t t)
   {
+  int new_chapter;
   int old_state;
   gavl_time_t sync_time = t;
 
@@ -760,6 +814,20 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
   bg_player_time_set(player, sync_time);
 
   bg_player_ov_reset(player);
+
+  if(player->track_info->chapter_list)
+    {
+    new_chapter =
+      bg_chapter_list_get_current(player->track_info->chapter_list,
+                                  sync_time);
+    if(new_chapter != player->current_chapter)
+      {
+      player->current_chapter = new_chapter;
+      bg_msg_queue_list_send(player->message_queues,
+                             msg_chapter_changed,
+                             &(player->current_chapter));
+      }
+    }
   
   if(old_state == BG_PLAYER_STATE_PAUSED)
     {
@@ -821,6 +889,26 @@ static void set_subtitle_stream_cmd(bg_player_t * player, int stream)
     stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
   player->current_subtitle_stream = stream;
     
+  }
+
+static void chapter_cmd(bg_player_t * player, int chapter)
+  {
+  int state;
+
+  if(!player->can_seek)
+    return;
+  
+  state = bg_player_get_state(player);
+  
+  if((state != BG_PLAYER_STATE_PLAYING) &&
+     (state != BG_PLAYER_STATE_PAUSED))
+    return;
+  
+  if(!player->track_info->chapter_list ||
+     (chapter < 0) ||
+     (chapter >= player->track_info->chapter_list->num_chapters))
+    return;
+  seek_cmd(player, player->track_info->chapter_list->chapters[chapter].time);
   }
 
 /* Process command, return FALSE if thread should be ended */
@@ -973,6 +1061,16 @@ static int process_commands(bg_player_t * player)
 
         time = bg_msg_get_arg_time(command, 0);
         seek_cmd(player, time);
+        break;
+      case BG_PLAYER_CMD_SET_CHAPTER:
+        arg_i1 = bg_msg_get_arg_int(command, 0);
+        chapter_cmd(player, arg_i1);
+        break;
+      case BG_PLAYER_CMD_NEXT_CHAPTER:
+        chapter_cmd(player, player->current_chapter + 1);
+        break;
+      case BG_PLAYER_CMD_PREV_CHAPTER:
+        chapter_cmd(player, player->current_chapter - 1);
         break;
       case BG_PLAYER_CMD_SEEK_REL:
         if(!player->can_seek)
@@ -1176,6 +1274,15 @@ static void * player_thread(void * data)
                                  msg_time,
                                  &time);
           }
+        if(player->track_info->chapter_list &&
+           bg_chapter_list_changed(player->track_info->chapter_list,
+                                   time, &player->current_chapter))
+          {
+          bg_msg_queue_list_send(player->message_queues,
+                                 msg_chapter_changed,
+                                 &(player->current_chapter));
+          }
+        
         break;
       }
     /* Exit when still time is exceeded */

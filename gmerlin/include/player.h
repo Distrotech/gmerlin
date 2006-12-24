@@ -207,6 +207,26 @@ void bg_player_change(bg_player_t * player, int flags);
 
 void bg_player_toggle_mute(bg_player_t * player);
 
+/** \brief Goto a specified chapter
+ *  \param player A player
+ *  \param chapter Chapter index (starting with 0)
+ */
+
+void bg_player_set_chapter(bg_player_t * player, int chapter);
+
+/** \brief Goto the next chapter
+ *  \param player A player
+ */
+
+void bg_player_next_chapter(bg_player_t * player);
+
+/** \brief Goto the previous chapter
+ *  \param player A player
+ */
+
+void bg_player_prev_chapter(bg_player_t * player);
+
+
 
 /** @} */
 

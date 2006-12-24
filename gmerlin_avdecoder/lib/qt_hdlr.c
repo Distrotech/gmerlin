@@ -61,6 +61,8 @@ void bgav_qt_hdlr_dump(int indent, qt_hdlr_t * ret)
                 ret->component_flag_mask);
   bgav_diprintf(indent+2, "component_name:         %s\n",
                 ret->component_name);
+  bgav_diprintf(indent, "end of hdlr\n");
+
   }
 
 

@@ -279,6 +279,7 @@ asmrp.c \
 base64.c \
 bgav.c \
 bytebuffer.c \
+chapterlist.c \
 charset.c \
 codecs.c \
 demuxer.c \
@@ -364,6 +365,7 @@ qt_enda.c \
 qt_esds.c \
 qt_fiel.c \
 qt_frma.c \
+qt_ftab.c \
 qt_gmhd.c \
 qt_gmin.c \
 qt_hdlr.c \
@@ -388,6 +390,7 @@ qt_stsz.c \
 qt_stts.c \
 qt_tkhd.c \
 qt_trak.c \
+qt_tref.c \
 qt_udta.c \
 qt_utils.c \
 qt_wave.c \

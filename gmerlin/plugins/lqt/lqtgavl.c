@@ -100,6 +100,18 @@ interlace_mode_lqt_2_gavl(lqt_interlace_mode_t interlace_mode)
   return GAVL_INTERLACE_NONE;
   }
 
+static lqt_interlace_mode_t
+interlace_mode_gavl_2_lqt(gavl_interlace_mode_t interlace_mode)
+  {
+  int i;
+  for(i = 0; i < sizeof(interlace_modes) / sizeof(interlace_modes[0]); i++)
+    {
+    if(interlace_modes[i].gavl == interlace_mode)
+      return interlace_modes[i].lqt;
+    }
+  return LQT_INTERLACE_NONE;
+  }
+
 /* Pixelformats */
 
 static struct
@@ -235,15 +247,13 @@ void lqt_gavl_add_video_track(quicktime_t * file,
                                lqt_codec_info_t * codec)
   {
   int track = quicktime_video_tracks(file);
-  //  fprintf(stderr, "lqt_gavl_add_video_track: track: %d\n", track);
 
   lqt_add_video_track(file, format->image_width, format->image_height,
                       format->frame_duration, format->timescale,
                       codec);
   lqt_set_pixel_aspect(file, track, format->pixel_width, format->pixel_height);
-
-  //  fprintf(stderr, "lqt_gavl_add_video_track: %d %d %s\n", track, lqt_get_cmodel(file, track),
-  // lqt_colormodel_to_string(lqt_get_cmodel(file, track)));
+  lqt_set_interlace_mode(file, track,
+                         interlace_mode_gavl_2_lqt(format->interlace_mode));
   
   format->pixelformat = pixelformat_lqt_2_gavl(lqt_get_cmodel(file, track));
   }
@@ -308,9 +318,6 @@ int lqt_gavl_get_audio_format(quicktime_t * file,
     for(i = 0; i < format->num_channels; i++)
       {
       format->channel_locations[i] = channel_lqt_2_gavl(channel_setup[i]);
-      fprintf(stderr, "Got channel %s -> %s\n",
-              lqt_channel_to_string(channel_setup[i]),
-              gavl_channel_id_to_string(format->channel_locations[i]));
       }
     }
   else
@@ -396,7 +403,6 @@ int lqt_gavl_decode_audio(quicktime_t * file, int track,
   pos = quicktime_audio_position(file, track);
   lqt_decode_audio_raw(file, frame->samples.s_8, samples, track);
   frame->valid_samples = lqt_last_audio_position(file, track) - pos;
-  //  fprintf(stderr, "lqt_decode_audio_raw: %d\n", frame->valid_samples);
   return frame->valid_samples;
   }
 

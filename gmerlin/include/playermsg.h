@@ -131,6 +131,13 @@
 
 #define BG_PLAYER_CMD_TOGGLE_MUTE         19 /* Toggle mute state */
 
+#define BG_PLAYER_CMD_SET_CHAPTER         20 /* Goto chapter */
+
+#define BG_PLAYER_CMD_NEXT_CHAPTER        21 /* Next chapter */
+
+#define BG_PLAYER_CMD_PREV_CHAPTER        22 /* Previous chapter */
+
+
 /********************************
  * Messages from the player
 ********************************/
@@ -360,6 +367,29 @@
  */
 
 #define BG_PLAYER_MSG_MUTE                   22
+
+/** \brief Number of chapters
+ *
+ *  arg0: Number
+ */
+
+#define BG_PLAYER_MSG_NUM_CHAPTERS           23
+
+/** \brief Chapter info
+ *
+ *  arg0: Chapter index
+ *  arg1: Name (string)
+ *  arg2: Start time (time)
+ */
+
+#define BG_PLAYER_MSG_CHAPTER_INFO           24
+
+/** \brief Chapter changed
+ *
+ *  arg0: Chapter index
+ */
+
+#define BG_PLAYER_MSG_CHAPTER_CHANGED        25
 
 /**  @}
  */

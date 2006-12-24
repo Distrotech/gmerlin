@@ -48,9 +48,17 @@
 #define PLAYER_COMMAND_SEEK           10
 #define PLAYER_COMMAND_SEEK_REL       11
 
+/* Open devices */
+
 #define PLAYER_COMMAND_OPEN_DEVICE    12
 #define PLAYER_COMMAND_PLAY_DEVICE    13
 
 /* Mute */
 
 #define PLAYER_COMMAND_TOGGLE_MUTE    14
+
+/* Chapters */
+
+#define PLAYER_COMMAND_SET_CHAPTER    15
+#define PLAYER_COMMAND_NEXT_CHAPTER   16
+#define PLAYER_COMMAND_PREV_CHAPTER   17

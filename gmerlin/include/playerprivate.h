@@ -149,6 +149,7 @@ struct bg_player_s
   int current_video_stream;
   int current_still_stream;
   int current_subtitle_stream;
+  int current_chapter;
   
   /* Can we seek? */
 

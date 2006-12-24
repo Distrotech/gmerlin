@@ -101,21 +101,6 @@ static void stsd_dump_video(int indent, qt_sample_description_t * d)
   bgav_dprintf( "  ctab_size:             %d\n", d->format.video.ctab_size);
   }
 
-/*
-        uint32_t displayFlags;
-      uint32_t textJustification;
-      uint16_t bgColor[3];
-      uint16_t defaultTextBox[4];
-      uint32_t scrpStartChar;              
-      uint16_t scrpHeight;
-      uint16_t scrpAscent;
-      uint16_t scrpFont;
-      uint16_t scrpFace;
-      uint16_t scrpSize;
-      uint16_t scrpColor[3];
-      char * font_name;
-*/
-
 
 static void stsd_dump_subtitle_qt(int indent, qt_sample_description_t * d)
   {
@@ -143,6 +128,55 @@ static void stsd_dump_subtitle_qt(int indent, qt_sample_description_t * d)
                 d->format.subtitle_qt.scrpColor[1],
                 d->format.subtitle_qt.scrpColor[2]);
   bgav_diprintf(indent, "font_name:             %s\n", d->format.subtitle_qt.font_name);
+  }
+
+/*
+      uint32_t display_flags;
+      uint8_t horizontal_justification;
+      uint8_t vertical_justification;
+      uint8_t back_color[4];
+      uint16_t defaultTextBox[4];
+      uint16_t start_char_offset;
+      uint16_t end_char_offset;
+      uint16_t font_id;
+      uint8_t  style_flags;
+      uint8_t  font_size;
+      uint8_t  text_color[4];
+      int has_ftab;
+      qt_ftab_t ftab;
+*/
+
+static void stsd_dump_subtitle_tx3g(int indent, qt_sample_description_t * d)
+  {
+  bgav_diprintf(indent, "fourcc:                   ");
+  bgav_dump_fourcc(d->fourcc);
+  bgav_dprintf( "\n");
+  bgav_diprintf(indent, "data_reference_index:     %d\n", d->data_reference_index);
+  bgav_diprintf(indent, "display_flags:            %08x\n", d->format.subtitle_tx3g.display_flags);
+  bgav_diprintf(indent, "horizontal_justification: %d\n", d->format.subtitle_tx3g.horizontal_justification);
+  bgav_diprintf(indent, "vertical_justification:   %d\n", d->format.subtitle_tx3g.vertical_justification);
+  bgav_diprintf(indent, "back_color:               [%d,%d,%d,%d]\n",
+                d->format.subtitle_tx3g.back_color[0],
+                d->format.subtitle_tx3g.back_color[1],
+                d->format.subtitle_tx3g.back_color[2],
+                d->format.subtitle_tx3g.back_color[3]);
+  bgav_diprintf(indent, "defaultTextBox:           [%d,%d,%d,%d]\n",
+                d->format.subtitle_tx3g.defaultTextBox[0],
+                d->format.subtitle_tx3g.defaultTextBox[1],
+                d->format.subtitle_tx3g.defaultTextBox[2],
+                d->format.subtitle_tx3g.defaultTextBox[3]);
+  bgav_diprintf(indent, "start_char_offset:        %d\n", d->format.subtitle_tx3g.start_char_offset);
+  bgav_diprintf(indent, "end_char_offset:          %d\n", d->format.subtitle_tx3g.end_char_offset);
+  bgav_diprintf(indent, "font_id:                  %d\n", d->format.subtitle_tx3g.font_id);
+  bgav_diprintf(indent, "style_flags:              %d\n", d->format.subtitle_tx3g.style_flags);
+  bgav_diprintf(indent, "font_size:                %d\n", d->format.subtitle_tx3g.font_size);
+  bgav_diprintf(indent, "text_color:               [%d,%d,%d,%d]\n",
+                d->format.subtitle_tx3g.text_color[0],
+                d->format.subtitle_tx3g.text_color[1],
+                d->format.subtitle_tx3g.text_color[2],
+                d->format.subtitle_tx3g.text_color[3]);
+  if(d->format.subtitle_tx3g.has_ftab)
+    bgav_qt_ftab_dump(indent, &d->format.subtitle_tx3g.ftab);
   }
 
 static int stsd_read_common(bgav_input_context_t * input,
@@ -397,7 +431,6 @@ static int stsd_read_video(bgav_input_context_t * input,
           return 0;
         else
           ret->format.video.has_fiel = 1;
-        //        bgav_qt_fiel_dump(&(ret->format.video.fiel));
         break;
       default:
         bgav_qt_atom_skip_unknown(input, &h, BGAV_MK_FOURCC('s','t','s','d'));
@@ -438,6 +471,77 @@ static int stsd_read_subtitle_qt(bgav_input_context_t * input,
     return 0;
   return 1;
   }
+
+
+/*
+        uint32_t displayFlags;
+      uint32_t textJustification;
+      uint16_t bgColor[3];
+      uint16_t defaultTextBox[4];
+      uint32_t scrpStartChar;              
+      uint16_t scrpHeight;
+      uint16_t scrpAscent;
+      uint16_t scrpFont;
+      uint16_t scrpFace;
+      uint16_t scrpSize;
+      uint16_t scrpColor[3];
+      char * font_name;
+*/
+
+
+static int stsd_read_subtitle_tx3g(bgav_input_context_t * input,
+                                   qt_sample_description_t * ret)
+  {
+  qt_atom_header_t h;
+  ret->type = BGAV_STREAM_SUBTITLE_TEXT;
+  if(!bgav_input_read_fourcc(input, &ret->fourcc) ||
+     (bgav_input_read_data(input, ret->reserved, 6) < 6) ||
+     !bgav_input_read_16_be(input, &ret->data_reference_index) ||
+     !bgav_input_read_32_be(input, &ret->format.subtitle_tx3g.display_flags) ||
+     !bgav_input_read_data(input,  &ret->format.subtitle_tx3g.horizontal_justification, 1) ||
+     !bgav_input_read_data(input,  &ret->format.subtitle_tx3g.vertical_justification, 1) ||
+     !bgav_input_read_data(input,  &ret->format.subtitle_tx3g.text_color[0], 1) ||
+     !bgav_input_read_data(input,  &ret->format.subtitle_tx3g.text_color[1], 1) ||
+     !bgav_input_read_data(input,  &ret->format.subtitle_tx3g.text_color[2], 1) ||
+     !bgav_input_read_data(input,  &ret->format.subtitle_tx3g.text_color[3], 1) ||
+     !bgav_input_read_16_be(input, &ret->format.subtitle_tx3g.defaultTextBox[0]) ||
+     !bgav_input_read_16_be(input, &ret->format.subtitle_tx3g.defaultTextBox[1]) ||
+     !bgav_input_read_16_be(input, &ret->format.subtitle_tx3g.defaultTextBox[2]) ||
+     !bgav_input_read_16_be(input, &ret->format.subtitle_tx3g.defaultTextBox[3]) ||
+     !bgav_input_read_16_be(input, &ret->format.subtitle_tx3g.start_char_offset) ||
+     !bgav_input_read_16_be(input, &ret->format.subtitle_tx3g.end_char_offset) ||
+     !bgav_input_read_16_be(input, &ret->format.subtitle_tx3g.font_id) ||
+     !bgav_input_read_data(input,  &ret->format.subtitle_tx3g.style_flags, 1) ||
+     !bgav_input_read_data(input,  &ret->format.subtitle_tx3g.font_size, 1) ||
+     !bgav_input_read_data(input,  &ret->format.subtitle_tx3g.text_color[0], 1) ||
+     !bgav_input_read_data(input,  &ret->format.subtitle_tx3g.text_color[1], 1) ||
+     !bgav_input_read_data(input,  &ret->format.subtitle_tx3g.text_color[2], 1) ||
+     !bgav_input_read_data(input,  &ret->format.subtitle_tx3g.text_color[3], 1))
+    return 0;
+
+  while(1)
+    {
+    if(!bgav_qt_atom_read_header(input, &h))
+      {
+      break;
+      }
+    switch(h.fourcc)
+      {
+      case BGAV_MK_FOURCC('f', 't', 'a', 'b'):
+        if(!bgav_qt_ftab_read(&h, input, &(ret->format.subtitle_tx3g.ftab)))
+          return 0;
+        else
+          ret->format.subtitle_tx3g.has_ftab = 1;
+        break;
+      default:
+        bgav_qt_atom_skip_unknown(input, &h, BGAV_MK_FOURCC('s','t','s','d'));
+        break;
+      }
+    }
+  
+  return 1;
+  }
+
 
 int bgav_qt_stsd_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_stsd_t * ret)
@@ -509,12 +613,24 @@ int bgav_qt_stsd_finalize(qt_stsd_t * c, qt_trak_t * trak,
         return 0;
       }
     /* Quicktime text subtitles */
-    else if(trak->mdia.minf.has_gmhd && trak->mdia.minf.gmhd.has_text) 
+    else if(!strncmp((char*)trak->mdia.minf.stbl.stsd.entries[0].data,
+                     "text", 4)) 
       {
       input_mem = bgav_input_open_memory(c->entries[i].data,
                                          c->entries[i].data_size, opt);
       
       result = stsd_read_subtitle_qt(input_mem, &(c->entries[i].desc));
+      bgav_input_destroy(input_mem);
+      if(!result)
+        return 0;
+      }
+    else if(!strncmp((char*)trak->mdia.minf.stbl.stsd.entries[0].data,
+                     "tx3g", 4)) 
+      {
+      input_mem = bgav_input_open_memory(c->entries[i].data,
+                                         c->entries[i].data_size, opt);
+      
+      result = stsd_read_subtitle_tx3g(input_mem, &(c->entries[i].desc));
       bgav_input_destroy(input_mem);
       if(!result)
         return 0;
@@ -539,10 +655,16 @@ void bgav_qt_stsd_free(qt_stsd_t * c)
         bgav_qt_chan_free(&(c->entries[i].desc.format.audio.chan));
       
       }
-    if(c->entries[i].desc.type == BGAV_STREAM_VIDEO)
+    else if(c->entries[i].desc.type == BGAV_STREAM_VIDEO)
       {
       if(c->entries[i].desc.format.video.private_ctab)
         free(c->entries[i].desc.format.video.ctab);
+      }
+    else if((c->entries[i].desc.fourcc ==
+             BGAV_MK_FOURCC('t','x','3','g')) &&
+            c->entries[i].desc.format.subtitle_tx3g.has_ftab)
+      {
+      bgav_qt_ftab_free(&(c->entries[i].desc.format.subtitle_tx3g.ftab));
       }
     if(c->entries[i].desc.has_esds)
       bgav_qt_esds_free(&(c->entries[i].desc.esds));
@@ -582,6 +704,10 @@ void bgav_qt_stsd_dump(int indent, qt_stsd_t * s)
     else if(s->entries[i].desc.fourcc == BGAV_MK_FOURCC('t','e','x','t'))
       {
       stsd_dump_subtitle_qt(indent+2, &s->entries[i].desc);
+      }
+    else if(s->entries[i].desc.fourcc == BGAV_MK_FOURCC('t','x','3','g'))
+      {
+      stsd_dump_subtitle_tx3g(indent+2, &s->entries[i].desc);
       }
     }
   }

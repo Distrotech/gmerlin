@@ -317,10 +317,7 @@ int bg_avdec_start(void * priv)
     format = bgav_get_subtitle_format(avdec->dec, i);
     gavl_video_format_copy(&avdec->current_track->subtitle_streams[i].format,
                            format);
-    //      fprintf(stderr, "Subtitle format:\n");
-    //      gavl_video_format_dump(&avdec->current_track->subtitle_streams[i].format);
     }
-  //  bgav_dump(avdec->dec);
   return 1;
   }
 
@@ -328,16 +325,15 @@ void bg_avdec_seek(void * priv, gavl_time_t * t)
   {
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
-  //  fprintf(stderr, "seek_bgav: percentage: %f, duration: %f, pos: %f\n",
-  //          percentage, gavl_time_to_seconds(avdec->track_info->duration),
-  //          gavl_time_to_seconds(pos));
   bgav_seek(avdec->dec, t);
   }
 
 
 int bg_avdec_init(avdec_priv * avdec)
   {
-  int i;
+  int i, j;
+  int num_chapters;
+  int chapter_timescale;
   const bgav_metadata_t * m;
   
   avdec->num_tracks = bgav_num_tracks(avdec->dec);
@@ -382,6 +378,25 @@ int bg_avdec_init(avdec_priv * avdec)
     
     m = bgav_get_metadata(avdec->dec, i);
     convert_metadata(&(avdec->track_info[i].metadata), m);
+
+    /* Get chapters */
+
+    num_chapters = bgav_get_num_chapters(avdec->dec, i, &chapter_timescale);
+    if(num_chapters)
+      {
+      avdec->track_info[i].chapter_list = bg_chapter_list_create(num_chapters);
+      for(j = 0; j < num_chapters; j++)
+        {
+        avdec->track_info[i].chapter_list->chapters[j].name =
+          bg_strdup(avdec->track_info[i].chapter_list->chapters[j].name,
+                    bgav_get_chapter_name(avdec->dec, i, j));
+        avdec->track_info[i].chapter_list->chapters[j].time =
+          gavl_time_unscale(chapter_timescale,
+                            bgav_get_chapter_time(avdec->dec, i, j));
+        }
+      bg_chapter_list_set_default_names(avdec->track_info[i].chapter_list);
+      }
+
     }
   return 1;
   }

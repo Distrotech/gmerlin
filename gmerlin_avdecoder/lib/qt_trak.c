@@ -62,6 +62,11 @@ int bgav_qt_trak_read(qt_atom_header_t * h, bgav_input_context_t * input,
           return 0;
         ret->has_edts = 1;
         break;
+      case BGAV_MK_FOURCC('t', 'r', 'e', 'f'):
+        if(!bgav_qt_tref_read(&ch, input, &(ret->tref)))
+          return 0;
+        ret->has_tref = 1;
+        break;
       default:
         bgav_qt_atom_skip_unknown(input, &ch,h->fourcc);
         break;
@@ -80,6 +85,8 @@ void bgav_qt_trak_free(qt_trak_t * c)
 
   if(c->has_edts)
     bgav_qt_edts_free(&(c->edts));
+  if(c->has_tref)
+    bgav_qt_tref_free(&(c->tref));
   }
 
 void bgav_qt_trak_dump(int indent, qt_trak_t * c)
@@ -92,6 +99,8 @@ void bgav_qt_trak_dump(int indent, qt_trak_t * c)
     bgav_qt_udta_dump(indent+2, &c->udta);
   if(c->has_edts)
     bgav_qt_edts_dump(indent+2, &c->edts);
+  if(c->has_tref)
+    bgav_qt_tref_dump(indent+2, &c->tref);
   
   bgav_diprintf(indent, "end of trak\n");
   }

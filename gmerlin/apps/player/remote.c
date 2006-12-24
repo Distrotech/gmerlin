@@ -28,7 +28,8 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
   //  gavl_time_t   arg_time;
   float         arg_f;
   char * locations[2];
-    
+  int arg_i;
+  
   id = bg_msg_get_id(msg);
   switch(id)
     {
@@ -97,8 +98,23 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
       arg_time = bg_msg_get_arg_time(msg, 0);
       bg_player_seek_rel(g->player, arg_time);
       break;
+/* Mute */
+
     case PLAYER_COMMAND_TOGGLE_MUTE:
       bg_player_toggle_mute(g->player);
       break;
+      
+/* Chapters */
+    case PLAYER_COMMAND_SET_CHAPTER:
+      arg_i = bg_msg_get_arg_int(msg, 0);
+      bg_player_set_chapter(g->player, arg_i);
+      break;
+    case PLAYER_COMMAND_NEXT_CHAPTER:
+      bg_player_next_chapter(g->player);
+      break;
+    case PLAYER_COMMAND_PREV_CHAPTER:
+      bg_player_prev_chapter(g->player);
+      break;
+      
     }
   }

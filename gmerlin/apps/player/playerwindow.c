@@ -396,6 +396,20 @@ static void handle_message(player_window_t * win,
       arg_i_3 = bg_msg_get_arg_int(msg, 2);
       main_menu_set_num_streams(win->main_menu, arg_i_1, arg_i_2, arg_i_3);
       break;
+    case BG_PLAYER_MSG_NUM_CHAPTERS:
+      arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      main_menu_set_num_chapters(win->main_menu, arg_i_1);
+      break;
+    case BG_PLAYER_MSG_CHAPTER_INFO:
+      arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      arg_str_1 = bg_msg_get_arg_string(msg, 1);
+      time = bg_msg_get_arg_time(msg, 2);
+      main_menu_set_chapter_info(win->main_menu, arg_i_1, arg_str_1, time);
+      break;
+    case BG_PLAYER_MSG_CHAPTER_CHANGED:
+      arg_i_1 = bg_msg_get_arg_int(msg, 0);
+      main_menu_chapter_changed(win->main_menu, arg_i_1);
+      break;
     case BG_PLAYER_MSG_KEY:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
       arg_i_2 = bg_msg_get_arg_int(msg, 1);

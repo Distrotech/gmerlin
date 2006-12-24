@@ -39,6 +39,16 @@ typedef struct stream_menu_s
   GtkWidget * menu;
   } stream_menu_t;
 
+typedef struct chapter_menu_s
+  {
+  int num_chapters;
+  int chapters_alloc;
+  guint * ids;
+  GSList * group;
+  GtkWidget ** chapter_items;
+  GtkWidget * menu;
+  } chapter_menu_t;
+
 struct windows_menu_s
   {
   GtkWidget * mediatree;
@@ -72,6 +82,10 @@ struct command_menu_s
   GtkWidget * next;
   GtkWidget * previous;
 
+  GtkWidget * next_chapter;
+  GtkWidget * previous_chapter;
+
+  
   GtkWidget * seek_start;
   GtkWidget * pause;
 
@@ -99,6 +113,7 @@ struct main_menu_s
   struct stream_menu_s      audio_stream_menu;
   struct stream_menu_s      video_stream_menu;
   struct stream_menu_s      subtitle_stream_menu;
+  struct chapter_menu_s     chapter_menu;
     
   GtkWidget * windows_item;
   GtkWidget * options_item;
@@ -107,6 +122,7 @@ struct main_menu_s
   GtkWidget * audio_stream_item;
   GtkWidget * video_stream_item;
   GtkWidget * subtitle_stream_item;
+  GtkWidget * chapter_item;
   
   GtkWidget * menu;
   gmerlin_t * g;
@@ -147,6 +163,22 @@ static int stream_menu_has_widget(stream_menu_t * s,
   return 0;
   }
 
+static int chapter_menu_has_widget(chapter_menu_t * s,
+                                   GtkWidget * w, int * index)
+  {
+  int i;
+  for(i = 0; i < s->num_chapters; i++)
+    {
+    if((w == s->chapter_items[i]) &&
+       gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(s->chapter_items[i])))
+      {
+      *index = i;
+      return 1;
+      }
+    }
+  return 0;
+  }
+
 static void about_window_close_callback(bg_gtk_about_window_t* win, void* data)
   {
   gmerlin_t * g;
@@ -159,13 +191,12 @@ static void about_window_close_callback(bg_gtk_about_window_t* win, void* data)
 
 static void menu_callback(GtkWidget * w, gpointer data)
   {
-  int stream_index;
+  int index;
   gmerlin_t * g;
   main_menu_t * the_menu;
 
   g = (gmerlin_t*)data;
   the_menu = g->player_window->main_menu;
-  
   
   if(w == the_menu->options_menu.preferences)
     {
@@ -278,6 +309,15 @@ static void menu_callback(GtkWidget * w, gpointer data)
     gmerlin_play(g, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
 
     }
+  else if(w == the_menu->command_menu.next_chapter)
+    {
+    bg_player_next_chapter(g->player);
+    }
+  else if(w == the_menu->command_menu.previous_chapter)
+    {
+    bg_player_prev_chapter(g->player);
+    }
+
   else if(w == the_menu->command_menu.seek_start)
     {
     bg_player_seek(g->player, 0 );
@@ -291,17 +331,21 @@ static void menu_callback(GtkWidget * w, gpointer data)
     bg_player_pause(g->player);
     }
   
-  else if(stream_menu_has_widget(&the_menu->audio_stream_menu, w, &stream_index))
+  else if(stream_menu_has_widget(&the_menu->audio_stream_menu, w, &index))
     {
-    bg_player_set_audio_stream(g->player, stream_index);
+    bg_player_set_audio_stream(g->player, index);
     }
-  else if(stream_menu_has_widget(&the_menu->video_stream_menu, w, &stream_index))
+  else if(stream_menu_has_widget(&the_menu->video_stream_menu, w, &index))
     {
-    bg_player_set_video_stream(g->player, stream_index);
+    bg_player_set_video_stream(g->player, index);
     }
-  else if(stream_menu_has_widget(&the_menu->subtitle_stream_menu, w, &stream_index))
+  else if(stream_menu_has_widget(&the_menu->subtitle_stream_menu, w, &index))
     {
-    bg_player_set_subtitle_stream(g->player, stream_index);
+    bg_player_set_subtitle_stream(g->player, index);
+    }
+  else if(chapter_menu_has_widget(&the_menu->chapter_menu, w, &index))
+    {
+    bg_player_set_chapter(g->player, index);
     }
   }
 
@@ -371,6 +415,21 @@ static GtkWidget * create_toggle_item(const char * label,
 static GtkWidget * create_stream_item(gmerlin_t * gmerlin,
                                       stream_menu_t * m,
                                       guint * id)
+  {
+  GtkWidget * ret;
+  ret = gtk_radio_menu_item_new_with_label(m->group, "");
+  m->group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(ret));
+  
+  *id = g_signal_connect(G_OBJECT(ret), "activate",
+                         G_CALLBACK(menu_callback),
+                         gmerlin);
+  gtk_menu_shell_append(GTK_MENU_SHELL(m->menu), ret);
+  return ret;
+  }
+
+static GtkWidget * create_chapter_item(gmerlin_t * gmerlin,
+                                       chapter_menu_t * m,
+                                       guint * id)
   {
   GtkWidget * ret;
   ret = gtk_radio_menu_item_new_with_label(m->group, "");
@@ -467,6 +526,28 @@ static void stream_menu_set_index(stream_menu_t * s, int index)
 
   }
 
+static void chapter_menu_set_num(gmerlin_t * g, chapter_menu_t * s, int num)
+  {
+  int i;
+  if(num > s->chapters_alloc)
+    {
+    s->chapter_items = realloc(s->chapter_items,
+                               num * sizeof(*s->chapter_items));
+    s->ids = realloc(s->ids, num * sizeof(*s->ids));
+
+    for(i = s->chapters_alloc; i < num; i++)
+      s->chapter_items[i] = create_chapter_item(g, s, &(s->ids[i]));
+    s->chapters_alloc = num;
+    }
+  for(i = 0; i < num; i++)
+    gtk_widget_show(s->chapter_items[i]);
+  for(i = num; i < s->chapters_alloc; i++)
+    gtk_widget_hide(s->chapter_items[i]);
+  s->num_chapters = num;
+  }
+
+
+
 void
 main_menu_set_audio_index(main_menu_t * m, int index)
   {
@@ -510,6 +591,16 @@ void main_menu_set_num_streams(main_menu_t * m,
   stream_menu_set_num(m->g, &m->subtitle_stream_menu, subtitle_streams);
   }
 
+void main_menu_set_num_chapters(main_menu_t * m,
+                                int num)
+  {
+  if(!num)
+    gtk_widget_set_sensitive(m->chapter_item, 0);
+  else
+    gtk_widget_set_sensitive(m->chapter_item, 1);
+  chapter_menu_set_num(m->g, &m->chapter_menu, num);
+  }
+
 void main_menu_set_audio_info(main_menu_t * m, int stream,
                               const char * info,
                               const char * language)
@@ -530,6 +621,42 @@ void main_menu_set_audio_info(main_menu_t * m, int stream,
   free(label);
   }
 
+void main_menu_set_chapter_info(main_menu_t * m, int chapter,
+                                const char * name,
+                                gavl_time_t time)
+  {
+  char * label;
+  char time_string[GAVL_TIME_STRING_LEN];
+  GtkWidget * w;
+
+  gavl_time_prettyprint(time, time_string);
+  
+  if(name)
+    label = bg_sprintf("%s [%s]", name, time_string);
+  else
+    label = bg_sprintf("Chapter %d [%s]",
+                       chapter+1, time_string);
+  
+  w = m->chapter_menu.chapter_items[chapter];
+  gtk_label_set_text(GTK_LABEL(gtk_bin_get_child(GTK_BIN(w))), label);
+  free(label);
+  }
+
+void main_menu_chapter_changed(main_menu_t * m, int chapter)
+  {
+  GtkWidget * w;
+  if(chapter >= m->chapter_menu.num_chapters)
+    return;
+
+  w = m->chapter_menu.chapter_items[chapter];
+  g_signal_handler_block(G_OBJECT(w), m->chapter_menu.ids[chapter]);
+  gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(w), 1);
+  g_signal_handler_unblock(G_OBJECT(w), m->chapter_menu.ids[chapter]);
+  }
+
+
+
+
 void main_menu_set_video_info(main_menu_t * m, int stream,
                               const char * info,
                               const char * language)
@@ -541,7 +668,8 @@ void main_menu_set_video_info(main_menu_t * m, int stream,
   else if(info)
     label = bg_sprintf("%s", info);
   else if(language && *language)
-    label = bg_sprintf("Stream %d [%s]", stream+1, bg_get_language_name(language));
+    label = bg_sprintf("Stream %d [%s]", stream+1,
+                       bg_get_language_name(language));
   else
     label = bg_sprintf("Stream %d", stream+1);
   
@@ -563,7 +691,8 @@ void main_menu_set_subtitle_info(main_menu_t * m, int stream,
   else if(info)
     label = bg_sprintf("%s", info);
   else if(language && *language)
-    label = bg_sprintf("Stream %d [%s]", stream+1, bg_get_language_name(language));
+    label = bg_sprintf("Stream %d [%s]", stream+1,
+                       bg_get_language_name(language));
   else
     label = bg_sprintf("Stream %d", stream+1);
   
@@ -591,14 +720,18 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   ret->windows_menu.logwindow =
     create_toggle_item("Log window", gmerlin, ret->windows_menu.menu,
                        &ret->windows_menu.logwindow_id);
-  ret->windows_menu.about = create_item("About...", gmerlin, ret->windows_menu.menu);
+  ret->windows_menu.about = create_item("About...",
+                                        gmerlin, ret->windows_menu.menu);
   gtk_widget_show(ret->windows_menu.menu);
-
+  
   /* Streams */
 
   stream_menu_init(&ret->audio_stream_menu, gmerlin);
   stream_menu_init(&ret->video_stream_menu, gmerlin);
   stream_menu_init(&ret->subtitle_stream_menu, gmerlin);
+
+  /* Chapters */
+  ret->chapter_menu.menu = create_menu();
   
   /* Options */
   
@@ -669,6 +802,18 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   gtk_widget_add_accelerator(ret->command_menu.previous, "activate", ret->g->accel_group,
                              GDK_Page_Up, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 
+  ret->command_menu.next_chapter =
+    create_item("Next chapter", gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.next_chapter, "activate", ret->g->accel_group,
+                             GDK_Page_Down,  GDK_SHIFT_MASK | GDK_CONTROL_MASK,
+                             GTK_ACCEL_VISIBLE);
+
+  ret->command_menu.previous_chapter =
+    create_item("Previous chapter", gmerlin, ret->command_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.previous_chapter, "activate", ret->g->accel_group,
+                             GDK_Page_Up, GDK_SHIFT_MASK | GDK_CONTROL_MASK,
+                             GTK_ACCEL_VISIBLE);
+  
   ret->command_menu.seek_start =
     create_item("Seek to start", gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.seek_start, "activate", ret->g->player_window->accel_group,
@@ -717,6 +862,10 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   ret->subtitle_stream_item = create_submenu_item("Subtitles...",
                                                   ret->subtitle_stream_menu.menu,
                                                   ret->menu);
+  
+  ret->chapter_item = create_submenu_item("Chapters...",
+                                          ret->chapter_menu.menu,
+                                          ret->menu);
     
   ret->windows_item = create_submenu_item("Windows...",
                                           ret->windows_menu.menu,

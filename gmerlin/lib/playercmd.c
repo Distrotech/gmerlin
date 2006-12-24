@@ -290,3 +290,29 @@ void bg_player_change(bg_player_t * p, int flags)
   bg_player_delete_message_queue(p, q);
   bg_msg_queue_destroy(q);
   }
+
+void bg_player_next_chapter(bg_player_t * p)
+  {
+  bg_msg_t * msg;
+  msg = bg_msg_queue_lock_write(p->command_queue);
+  bg_msg_set_id(msg, BG_PLAYER_CMD_NEXT_CHAPTER);
+  bg_msg_queue_unlock_write(p->command_queue);
+  }
+
+
+void bg_player_prev_chapter(bg_player_t * p)
+  {
+  bg_msg_t * msg;
+  msg = bg_msg_queue_lock_write(p->command_queue);
+  bg_msg_set_id(msg, BG_PLAYER_CMD_PREV_CHAPTER);
+  bg_msg_queue_unlock_write(p->command_queue);
+  }
+
+void bg_player_set_chapter(bg_player_t * p, int chapter)
+  {
+  bg_msg_t * msg;
+  msg = bg_msg_queue_lock_write(p->command_queue);
+  bg_msg_set_id(msg, BG_PLAYER_CMD_SET_CHAPTER);
+  bg_msg_set_arg_int(msg, 0, chapter);
+  bg_msg_queue_unlock_write(p->command_queue);
+  }

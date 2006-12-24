@@ -924,7 +924,41 @@ const bgav_metadata_t * bgav_get_metadata(bgav_t * bgav,int track);
  *  selected.
  */
 
+
 int bgav_select_track(bgav_t * bgav, int track);
+
+/** \ingroup track
+ *  \brief Get the number of chapters
+ *  \param bgav A decoder instance
+ *  \param track Track index (starts with 0)
+ *  \param timescale Returns the timescale of the seekpoints
+ *  \returns The number of chapters or 0 if the format doesn't support chapters
+ *
+ *  Chapters are simply named seekpoints. Use
+ *  \ref bgav_get_chhapter_time and \ref bgav_get_chapter_name
+ *  to query the chapters.
+ */
+
+int bgav_get_num_chapters(bgav_t * bgav, int track, int * timescale);
+
+/** \ingroup track
+ *  \brief Get the name of a chapter
+ *  \param bgav A decoder instance
+ *  \param track Track index (starts with 0)
+ *  \returns The name of the chapter or NULL
+ */
+
+const char *
+bgav_get_chapter_name(bgav_t * bgav, int track, int chapter);
+
+/** \ingroup track
+ *  \brief Get the name of a chapter
+ *  \param bgav A decoder instance
+ *  \param track Track index (starts with 0)
+ *  \returns The time of the chapter
+ */
+
+int64_t bgav_get_chapter_time(bgav_t * bgav, int track, int chapter);
 
 /** \defgroup streams Query and select streams
  * \ingroup decoding

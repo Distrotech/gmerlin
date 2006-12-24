@@ -115,6 +115,7 @@ void bgav_superindex_dump(bgav_superindex_t * idx)
   bgav_dprintf( "superindex %d entries:\n", idx->num_entries);
   for(i = 0; i < idx->num_entries; i++)
     {
+#if 0
     bgav_dprintf( "  No: %d ID: %d K: %d Offset: %lld T: %lld S: %d\n", 
             i,
             idx->entries[i].stream_id,
@@ -122,6 +123,14 @@ void bgav_superindex_dump(bgav_superindex_t * idx)
             idx->entries[i].offset,
             idx->entries[i].time,
             idx->entries[i].size);
+#else
+    bgav_dprintf( "  ID: %d K: %d Offset: %lld T: %lld S: %d\n", 
+            idx->entries[i].stream_id,
+            idx->entries[i].keyframe,
+            idx->entries[i].offset,
+            idx->entries[i].time,
+            idx->entries[i].size);
+#endif
     }
   }
 

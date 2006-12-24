@@ -24,6 +24,7 @@ int bgav_qt_nmhd_read(qt_atom_header_t * h, bgav_input_context_t * input,
                       qt_nmhd_t * ret)
   {
   READ_VERSION_AND_FLAGS;
+  return 1;
   }
 
 void bgav_qt_nmhd_free(qt_nmhd_t * g)

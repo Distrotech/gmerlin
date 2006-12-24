@@ -317,7 +317,9 @@ void bgav_track_dump(bgav_t * b, bgav_track_t * t)
 
   
   bgav_metadata_dump(&(t->metadata));
-  
+
+  if(t->chapter_list)
+    bgav_chapter_list_dump(t->chapter_list);
   
   for(i = 0; i < t->num_audio_streams; i++)
     {
@@ -342,6 +344,8 @@ void bgav_track_free(bgav_track_t * t)
   int i;
   
   bgav_metadata_free(&(t->metadata));
+  if(t->chapter_list)
+    bgav_chapter_list_destroy(t->chapter_list);
   
   if(t->num_audio_streams)
     {

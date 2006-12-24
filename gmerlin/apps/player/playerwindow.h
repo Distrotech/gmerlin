@@ -37,10 +37,19 @@ void main_menu_destroy(main_menu_t *);
 
 GtkWidget * main_menu_get_widget(main_menu_t *);
 
+void main_menu_set_num_chapters(main_menu_t * m,
+                                int num);
+
 void main_menu_set_num_streams(main_menu_t *,
                                int audio_streams,
                                int video_streams,
                                int subtitle_streams);
+
+void main_menu_set_chapter_info(main_menu_t * m, int chapter,
+                                const char * name,
+                                gavl_time_t time);
+
+void main_menu_chapter_changed(main_menu_t * m, int chapter);
 
 void main_menu_set_audio_info(main_menu_t *, int stream,
                               const char * info,

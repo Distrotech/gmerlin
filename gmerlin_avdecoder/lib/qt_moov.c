@@ -70,6 +70,9 @@ int bgav_qt_moov_read(qt_atom_header_t * h, bgav_input_context_t * input,
         break;
       }
     }
+
+  
+
   return 1;
   }
 
@@ -102,3 +105,31 @@ void bgav_qt_moov_dump(int indent, qt_moov_t * c)
   bgav_diprintf(indent, "end of moov\n");
   
   }
+
+int bgav_qt_is_chapter_track(qt_moov_t * moov, qt_trak_t * trak)
+  {
+  int i, j, k;
+  for(i = 0; i < moov->num_tracks; i++)
+    {
+    if(trak == &moov->tracks[i])
+      continue;
+
+    if(moov->tracks[i].has_tref)
+      {
+      for(j = 0; j < moov->tracks[i].tref.num_references; j++)
+        {
+        if(moov->tracks[i].tref.references[j].type ==
+           BGAV_MK_FOURCC('c','h','a','p'))
+          {
+          for(k = 0; k < moov->tracks[i].tref.references[j].num_tracks; k++)
+            {
+            if(moov->tracks[i].tref.references[j].tracks[k] == trak->tkhd.track_id)
+              return 1;
+            }
+          }
+        }
+      }
+    }
+  return 0;
+  }
+

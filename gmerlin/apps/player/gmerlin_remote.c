@@ -273,6 +273,38 @@ static void cmd_seek_rel(void * data, int * argc, char *** _argv, int arg)
   bg_remote_client_done_msg_write(remote);
   }
 
+static void cmd_chapter(void * data, int * argc, char *** _argv, int arg)
+  {
+  bg_msg_t * msg;
+  bg_remote_client_t * remote;
+  char ** argv = *_argv;
+  int index;
+  FILE * out = stderr;
+
+  remote = (bg_remote_client_t *)data;
+
+  if(arg >= *argc)
+    {
+    fprintf(out, "Option -chapter requires an argument\n");
+    exit(-1);
+    }
+
+  msg = bg_remote_client_get_msg_write(remote);
+
+  if(!strcmp(argv[arg], "+"))
+    bg_msg_set_id(msg, PLAYER_COMMAND_NEXT_CHAPTER);
+  else if(!strcmp(argv[arg], "-"))
+    bg_msg_set_id(msg, PLAYER_COMMAND_PREV_CHAPTER);
+  else
+    {
+    index = atoi(argv[arg]);
+    bg_msg_set_id(msg, PLAYER_COMMAND_SET_CHAPTER);
+    bg_msg_set_arg_int(msg, 0, index);
+    }
+  bg_remote_client_done_msg_write(remote);
+  }
+
+
 
 bg_cmdline_arg_t commands[] =
   {
@@ -347,6 +379,12 @@ bg_cmdline_arg_t commands[] =
       help_arg:    "<diff>",
       help_string: "Seek relative. <diff> is in seconds.",
       callback:    cmd_seek_rel,
+    },
+    {
+      arg:         "-chapter",
+      help_arg:    "[num|+|-]>",
+      help_string: "Go to the specified chapter. Use '+' and '-' to go to the next or previous chapter respectively",
+      callback:    cmd_chapter,
     },
     
     { /* End of options */ }

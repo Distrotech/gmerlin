@@ -31,6 +31,8 @@ struct bgav_charset_converter_s
   {
   iconv_t cd;
   const bgav_options_t * opt;
+  int utf_8_16;
+  char * out_charset;
   };
   
 
@@ -40,14 +42,25 @@ bgav_charset_converter_create(const bgav_options_t * opt,
                               const char * out_charset)
   {
   bgav_charset_converter_t * ret = calloc(1, sizeof(*ret));
-  ret->cd = iconv_open(out_charset, in_charset);
+
+  if(!strcmp(in_charset, "bgav_unicode"))
+    {
+    ret->utf_8_16 = 1;
+    ret->out_charset = bgav_strdup(out_charset);
+    }
+  else  
+    ret->cd = iconv_open(out_charset, in_charset);
   ret->opt = opt;
+  
   return ret;
   }
 
 void bgav_charset_converter_destroy(bgav_charset_converter_t * cnv)
   {
-  iconv_close(cnv->cd);
+  if(cnv->cd)
+    iconv_close(cnv->cd);
+  if(cnv->out_charset)
+    free(cnv->out_charset);
   free(cnv);
   }
 
@@ -66,7 +79,7 @@ static int do_convert(bgav_charset_converter_t * cnv,
                       char * in_string, int len, int * out_len,
                       char ** ret, int * ret_alloc)
   {
-
+  
   char *inbuf;
   char *outbuf;
   int output_pos;
@@ -74,6 +87,38 @@ static int do_convert(bgav_charset_converter_t * cnv,
   size_t inbytesleft;
   size_t outbytesleft;
 
+  if(cnv->utf_8_16 && !cnv->cd)
+    {
+    /* Byte order Little Endian */
+    if((len > 1) &&
+       ((uint8_t)in_string[0] == 0xff) &&
+       ((uint8_t)in_string[0] == 0xfe))
+      cnv->cd = iconv_open(cnv->out_charset, "UTF-16LE");
+    /* Byte order Big Endian */
+    else if((len > 1) &&
+            ((uint8_t)in_string[0] == 0xfe) &&
+            ((uint8_t)in_string[0] == 0xff))
+      cnv->cd = iconv_open(cnv->out_charset, "UTF-16BE");
+    /* UTF-8 */
+    else if(!strcmp(cnv->out_charset, "UTF-8"))
+      {
+      if(*ret_alloc < len+1)
+        {
+        *ret_alloc = len + BYTES_INCREMENT;
+        *ret       = realloc(*ret, *ret_alloc);
+        }
+      strcpy(*ret, in_string);
+      if(out_len)
+        *out_len = len;
+      return 1;
+      }
+    else
+      {
+      cnv->cd = iconv_open(cnv->out_charset, "UTF-8");
+      }
+    }
+  
+  
   if(!(*ret_alloc) < len + BYTES_INCREMENT)
     *ret_alloc = len + BYTES_INCREMENT;
   

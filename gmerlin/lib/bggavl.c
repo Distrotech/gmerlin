@@ -470,7 +470,7 @@ int bg_gavl_video_set_parameter(void * data, char * name,
   SP_INT(user_pixel_width);
   SP_INT(user_pixel_height);
   SP_INT(maintain_aspect);
-
+  
   SP_FLAG("force_deinterlacing", GAVL_FORCE_DEINTERLACE);
   
   if(!strcmp(name, "alpha_mode"))

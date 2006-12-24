@@ -445,6 +445,27 @@ void bgav_stream_resync_decoder(bgav_stream_t * s);
 
 int bgav_stream_skipto(bgav_stream_t * s, gavl_time_t * time);
 
+/*
+ *  Chapter list
+ */
+
+typedef struct
+  {
+  int num_chapters;
+  int timescale;
+  struct
+    {
+    int64_t time;
+    char * name;
+    } * chapters;
+  } bgav_chapter_list_t;
+
+bgav_chapter_list_t * bgav_chapter_list_create(int timescale,
+                                               int num_chapters);
+
+void bgav_chapter_list_dump(bgav_chapter_list_t * list);
+void bgav_chapter_list_destroy(bgav_chapter_list_t * list);
+
 typedef struct
   {
   char * name;
@@ -458,6 +479,8 @@ typedef struct
   bgav_stream_t * audio_streams;
   bgav_stream_t * video_streams;
   bgav_stream_t * subtitle_streams;
+
+  bgav_chapter_list_t * chapter_list;
   
   void * priv; /* For storing private data */  
   } bgav_track_t;

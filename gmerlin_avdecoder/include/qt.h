@@ -105,6 +105,26 @@ void bgav_qt_rmra_free(qt_rmra_t * r);
 
 void bgav_qt_rmra_dump(int indent, qt_rmra_t * r);
 
+/* tref */
+
+typedef struct
+  {
+  int num_references;
+  struct
+    {
+    uint32_t type;
+    int num_tracks;
+    uint32_t * tracks;
+    } * references;
+  } qt_tref_t;
+
+int bgav_qt_tref_read(qt_atom_header_t * h,
+                      bgav_input_context_t * ctx, qt_tref_t * ret);
+
+void bgav_qt_tref_free(qt_tref_t * r);
+
+void bgav_qt_tref_dump(int indent, qt_tref_t * r);
+
 
 /*
  *  Time to sample
@@ -147,7 +167,9 @@ int bgav_qt_stss_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 void bgav_qt_stss_free(qt_stss_t * c);
 void bgav_qt_stss_dump(int indent, qt_stss_t * c);
 
-/* ssds */
+
+
+/* esds */
 
 typedef struct
   {
@@ -283,6 +305,29 @@ void bgav_qt_wave_dump(int indent, qt_wave_t * f);
 void bgav_qt_wave_free(qt_wave_t * r);
 
 /*
+ *  Font table (used in 3gpp subtitles)
+ */
+
+typedef struct
+  {
+  uint16_t num_fonts;
+
+  struct
+    {
+    uint16_t font_id;
+    char font_name[256];
+    } * fonts;
+  } qt_ftab_t;
+
+int bgav_qt_ftab_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
+                      qt_ftab_t * ret);
+
+void bgav_qt_ftab_dump(int indent, qt_ftab_t * f);
+
+void bgav_qt_ftab_free(qt_ftab_t * r);
+
+
+/*
  *  Sample description
  */
 
@@ -296,7 +341,7 @@ typedef struct
   uint16_t version;
   uint16_t revision_level;
   uint32_t vendor;
-  int type; /* BGAV_STREAM_AUDIO or BGAV_STREAM_VIDEO */
+  int type; /* BGAV_STREAM_AUDIO, BGAV_STREAM_VIDEO or BGAV_STREAM_SUBTITLE_TEXT */
   union
     {
     struct
@@ -363,6 +408,22 @@ typedef struct
       uint16_t scrpColor[3];
       char font_name[256];
       } subtitle_qt;
+    struct
+      {
+      uint32_t display_flags;
+      uint8_t horizontal_justification;
+      uint8_t vertical_justification;
+      uint8_t back_color[4];
+      uint16_t defaultTextBox[4];
+      uint16_t start_char_offset;
+      uint16_t end_char_offset;
+      uint16_t font_id;
+      uint8_t  style_flags;
+      uint8_t  font_size;
+      uint8_t  text_color[4];
+      int has_ftab;
+      qt_ftab_t ftab;
+      } subtitle_tx3g;
     } format;
   qt_esds_t esds;
   int has_esds;
@@ -836,6 +897,10 @@ struct qt_trak_s
   int has_edts;
   qt_edts_t edts;
 
+  int has_tref;
+  qt_tref_t tref;
+  
+  int is_chapter_track;
   };
 
 int bgav_qt_trak_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
@@ -917,6 +982,8 @@ int bgav_qt_cmov_read(qt_atom_header_t * h, bgav_input_context_t * ctx,
 void bgav_qt_moov_free(qt_moov_t * c);
 
 void bgav_qt_moov_dump(int indent, qt_moov_t * c);
+
+int bgav_qt_is_chapter_track(qt_moov_t * moov, qt_trak_t * trak);
 
 
 /*

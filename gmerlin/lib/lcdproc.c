@@ -24,6 +24,7 @@
 #include <bgsocket.h>
 
 #include <string.h>
+#include <sys/types.h> /* pid_t */
 #include <unistd.h>
 #include <utils.h>
 
@@ -196,7 +197,8 @@ static int do_connect(bg_lcdproc_t* l)
   {
   int i;
   char ** answer_args;
-    
+  char * cmd = (char*)0;
+  
   bg_host_address_t * addr = bg_host_address_create();
 
   if(!bg_host_address_set(addr, l->hostname_cfg, l->port_cfg))
@@ -258,9 +260,12 @@ static int do_connect(bg_lcdproc_t* l)
   
   /* Set client attributes */
 
-  if(!send_command(l, "client_set name {gmerlin}"))
+  cmd = bg_sprintf("client_set name {gmerlin%d}", getpid());
+  
+  if(!send_command(l, cmd))
     goto fail;
-
+  free(cmd);
+  
   bg_log(BG_LOG_INFO, LOG_DOMAIN,
          "Connection to server established, display size: %dx%d",
          l->width, l->height);
@@ -269,6 +274,8 @@ static int do_connect(bg_lcdproc_t* l)
   fail:
   bg_host_address_destroy(addr);
 
+  if(cmd) free(cmd);
+  
   if(l->fd >= 0)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN,

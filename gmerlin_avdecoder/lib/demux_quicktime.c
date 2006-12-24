@@ -239,24 +239,32 @@ static void build_index(bgav_demuxer_context_t * ctx)
   int chunk_samples;
   int packet_size;
 
+  qt_trak_t * trak;
+  
   priv = (qt_priv_t *)(ctx->priv);
 
   /* 1 step: Count the total number of chunks */
   for(i = 0; i < priv->moov.num_tracks; i++)
     {
-    if(priv->moov.tracks[i].mdia.minf.has_vmhd) /* One video chunk can be more packets (=frames) */
+    trak = &priv->moov.tracks[i];
+    if(trak->mdia.minf.has_vmhd) /* One video chunk can be more packets (=frames) */
       {
       num_packets += bgav_qt_trak_samples(&priv->moov.tracks[i]);
       if(priv->streams[i].skip_first_frame)
         num_packets--;
       }
-    /* Some audio frames will be read as "samples" (-> VBR audio!) */
-    else if(priv->moov.tracks[i].mdia.minf.has_smhd)
+    else if(trak->mdia.minf.has_smhd)
       {
-      if(!priv->moov.tracks[i].mdia.minf.stbl.stsz.sample_size)
-        num_packets += bgav_qt_trak_samples(&priv->moov.tracks[i]);
-      else /* Other packets will be complete quicktime chunks */
-        num_packets += bgav_qt_trak_chunks(&priv->moov.tracks[i]);
+      /* Some audio frames will be read as "samples" (-> VBR audio!) */
+      if(!trak->mdia.minf.stbl.stsz.sample_size)
+        num_packets += bgav_qt_trak_samples(trak);
+      else /* Other packets (uncompressed) will be complete quicktime chunks */
+        num_packets += bgav_qt_trak_chunks(trak);
+      }
+    else if(!strncmp((char*)trak->mdia.minf.stbl.stsd.entries[0].data, "text", 4) ||
+            !strncmp((char*)trak->mdia.minf.stbl.stsd.entries[0].data, "tx3g", 4))
+      {
+      num_packets += bgav_qt_trak_samples(trak);
       }
     else // For other tracks, we count entire chunks
       {
@@ -480,20 +488,20 @@ static void build_index(bgav_demuxer_context_t * ctx)
           }
         i++;
 
-        s->stco_pos++;
-        /* Update sample to chunk */
-        if(s->stsc_pos < s->stbl->stsc.num_entries - 1)
-          {
-          if(s->stbl->stsc.entries[s->stsc_pos+1].first_chunk - 1 == s->stco_pos)
-            s->stsc_pos++;
-          }
+        }
+      s->stco_pos++;
+      /* Update sample to chunk */
+      if(s->stsc_pos < s->stbl->stsc.num_entries - 1)
+        {
+        if(s->stbl->stsc.entries[s->stsc_pos+1].first_chunk - 1 == s->stco_pos)
+          s->stsc_pos++;
         }
       }
     else
       {
       /* Fill in dummy packet */
       fprintf(stderr, "Filling dummy packet\n");
-      add_packet(ctx, priv, (bgav_stream_t*)0, i, chunk_offset, -1, -1, 0, 0, 0);
+      add_packet(ctx, priv, (bgav_stream_t*)0, i, chunk_offset, stream_id, -1, 0, 0, 0);
       i++;
       priv->streams[stream_id].stco_pos++;
       }
@@ -634,20 +642,185 @@ static void process_packet_subtitle_qt(bgav_stream_t * s, bgav_packet_t * p)
   {
   int i;
   uint16_t len;
-  fprintf(stderr, "Got subtitle packet: %d bytes\n", p->data_size);
+
+  fprintf(stderr, "Got qt subtitle packet: %d bytes\n", p->data_size);
   bgav_hexdump(p->data, p->data_size, 16);
 
   len = BGAV_PTR_2_16BE(p->data);
-  memmove(p->data, p->data+2, len);
+
+  if(!len)
+    {
+    *(p->data) = '\0'; // Empty string
+    p->data_size = 1;
+    }
+  else
+    {
+    memmove(p->data, p->data+2, len);
+
+    /* De-Macify linebreaks */
+    for(i = 0; i < len; i++)
+      {
+      if(p->data[i] == '\r')
+        p->data[i] = '\n';
+      }
+    }
   p->data_size = len;
   p->duration_scaled = -1;
+  }
 
+static void process_packet_subtitle_tx3g(bgav_stream_t * s, bgav_packet_t * p)
+  {
+  //  int i;
+  uint16_t len;
+  fprintf(stderr, "Got tx3g subtitle packet: %d bytes\n", p->data_size);
+  bgav_hexdump(p->data, p->data_size, 16);
+
+  len = BGAV_PTR_2_16BE(p->data);
+  
+  if(len)
+    {
+    memmove(p->data, p->data+2, len);
+    p->data_size = len;
+    }
+  else
+    {
+    *(p->data) = '\0'; // Empty string
+    p->data_size = 1;
+    }
+  p->duration_scaled = -1;
+
+#if 0  
   /* De-Macify linebreaks */
   for(i = 0; i < len; i++)
     {
     if(p->data[i] == '\r')
       p->data[i] = '\n';
     }
+#endif
+  }
+
+static void setup_chapter_track(bgav_demuxer_context_t * ctx, qt_trak_t * trak)
+  {
+  int64_t old_pos;
+  int64_t pos;
+  uint8_t * buffer = (uint8_t *)0;
+  int buffer_alloc = 0;
+  
+  int total_chapters;
+
+  int chunk_index;
+  int stts_index;
+  int stts_count;
+  int stsc_index;
+  int stsc_count;
+  int64_t tics = 0;
+  int i;
+  qt_stts_t * stts;
+  qt_stsc_t * stsc;
+  qt_stsz_t * stsz;
+  qt_stco_t * stco;
+  uint32_t len;
+  bgav_charset_converter_t * cnv;
+  const char * charset;
+  
+  if(!ctx->input->input->seek_byte)
+    {
+    bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Chapters detected but stream is not seekable");
+    return;
+    }
+  if(ctx->tt->current_track->chapter_list)
+    {
+    bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "More than one chapter tracks, choosing first");
+    return;
+    }
+
+  old_pos = ctx->input->position;
+
+  if(trak->mdia.minf.stbl.stsd.entries[0].desc.fourcc == BGAV_MK_FOURCC('t','x','3','g'))
+    charset = "bgav_unicode";
+  else
+    charset = bgav_qt_get_charset(trak->mdia.mdhd.language);
+
+  if(charset)
+    cnv = bgav_charset_converter_create(ctx->opt, charset, "UTF-8");
+  else
+    {
+    cnv = (bgav_charset_converter_t*)0;
+    bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+             "Unknown encoding for chapter names");
+    }
+  
+  total_chapters = bgav_qt_trak_samples(trak);
+  ctx->tt->current_track->chapter_list =
+    bgav_chapter_list_create(trak->mdia.mdhd.time_scale, total_chapters);
+  
+  chunk_index = 0;
+  stts_index = 0;
+  stts_count = 0;
+  stsc_index = 0;
+  stsc_count = 0;
+
+  stts = &trak->mdia.minf.stbl.stts;
+  stsc = &trak->mdia.minf.stbl.stsc;
+  stsz = &trak->mdia.minf.stbl.stsz;
+  stco = &trak->mdia.minf.stbl.stco;
+  
+  pos = stco->entries[chunk_index];
+  
+  for(i = 0; i < total_chapters; i++)
+    {
+    ctx->tt->current_track->chapter_list->chapters[i].time = tics;
+
+    /* Increase tics */
+    tics += stts->entries[stts_index].duration;
+    stts_count++;
+    if(stts_count >= stts->entries[stts_index].count)
+      {
+      stts_index++;
+      stts_count = 0;
+      }
+    
+    /* Read sample */
+    if(stsz->entries[i] > buffer_alloc)
+      {
+      buffer_alloc = stsz->entries[i] + 128;
+      buffer = realloc(buffer, buffer_alloc);
+      }
+    bgav_input_seek(ctx->input, pos, SEEK_SET);
+    if(bgav_input_read_data(ctx->input, buffer, stsz->entries[i]) < stsz->entries[i])
+      {
+      bgav_log(ctx->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "Read error while setting up chapter list");
+      return;
+      }
+    /* Set chapter name */
+
+    len = BGAV_PTR_2_16BE(buffer);
+    if(len)
+      {
+      ctx->tt->current_track->chapter_list->chapters[i].name =
+        bgav_convert_string(cnv, (char*)(buffer+2), len, (int*)0);
+      }
+    /* Increase file position */
+    pos += stsz->entries[i];
+    stsc_count++;
+    if(stsc_count >= stsc->entries[stsc_index].samples_per_chunk)
+      {
+      chunk_index++;
+      if((stsc_index < stsc->num_entries-1) &&
+         (chunk_index +1 >= stsc->entries[stsc_index+1].first_chunk))
+        {
+        stsc_index++;
+        }
+      stsc_count = 0;
+      pos = stco->entries[chunk_index];
+      }
+    }
+  
+  if(buffer) free(buffer);
+  bgav_input_seek(ctx->input, old_pos, SEEK_SET);
   }
 
 static void quicktime_init(bgav_demuxer_context_t * ctx)
@@ -665,6 +838,10 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   qt_priv_t * priv = (qt_priv_t*)(ctx->priv);
   qt_moov_t * moov = &(priv->moov);
 
+  qt_trak_t * trak;
+  qt_stsd_t * stsd;
+  
+  
   track = ctx->tt->current_track;
   
   ctx->tt->current_track->duration = 0;
@@ -674,26 +851,28 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
   
   for(i = 0; i < moov->num_tracks; i++)
     {
+    trak = &moov->tracks[i];
+    stsd = &trak->mdia.minf.stbl.stsd;
     /* Audio stream */
-    if(moov->tracks[i].mdia.minf.has_smhd)
+    if(trak->mdia.minf.has_smhd)
       {
-      if(!moov->tracks[i].mdia.minf.stbl.stsd.entries)
+      if(!stsd->entries)
         {
         continue;
         }
       bg_as = bgav_track_add_audio_stream(track, ctx->opt);
 
-      bgav_qt_mdhd_get_language(&moov->tracks[i].mdia.mdhd,
+      bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
                                 bg_as->language);
       
-      desc = &(moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc);
+      desc = &(stsd->entries[0].desc);
 
       stream_priv = &(priv->streams[i]);
       stream_init(stream_priv, &(moov->tracks[i]));
       
       bg_as->priv = stream_priv;
       
-      bg_as->timescale = moov->tracks[i].mdia.mdhd.time_scale;
+      bg_as->timescale = trak->mdia.mdhd.time_scale;
       bg_as->fourcc    = desc->fourcc;
       bg_as->data.audio.format.num_channels = desc->format.audio.num_channels;
       bg_as->data.audio.format.samplerate = (int)(desc->format.audio.samplerate+0.5);
@@ -796,21 +975,21 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       
       }
     /* Video stream */
-    else if(moov->tracks[i].mdia.minf.has_vmhd)
+    else if(trak->mdia.minf.has_vmhd)
       {
       skip_first_frame = 0;
 
-      if(!moov->tracks[i].mdia.minf.stbl.stsd.entries)
+      if(!stsd->entries)
         {
         continue;
         }
-      if(moov->tracks[i].mdia.minf.stbl.stsd.num_entries > 1)
+      if(stsd->num_entries > 1)
         {
-        if((moov->tracks[i].mdia.minf.stbl.stsd.num_entries == 2) &&
-           (moov->tracks[i].mdia.minf.stbl.stsc.num_entries >= 2) &&
-           (moov->tracks[i].mdia.minf.stbl.stsc.entries[0].samples_per_chunk == 1) &&
-           (moov->tracks[i].mdia.minf.stbl.stsc.entries[1].sample_description_id == 2) &&
-           (moov->tracks[i].mdia.minf.stbl.stsc.entries[1].first_chunk == 2))
+        if((stsd->num_entries == 2) &&
+           (trak->mdia.minf.stbl.stsc.num_entries >= 2) &&
+           (trak->mdia.minf.stbl.stsc.entries[0].samples_per_chunk == 1) &&
+           (trak->mdia.minf.stbl.stsc.entries[1].sample_description_id == 2) &&
+           (trak->mdia.minf.stbl.stsc.entries[1].first_chunk == 2))
           {
           skip_first_frame = 1;
           }
@@ -824,7 +1003,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       bg_vs = bgav_track_add_video_stream(track, ctx->opt);
       bg_vs->vfr_timestamps = 1;
             
-      desc = &(moov->tracks[i].mdia.minf.stbl.stsd.entries[skip_first_frame].desc);
+      desc = &(stsd->entries[skip_first_frame].desc);
       stream_priv = &(priv->streams[i]);
       
       stream_init(stream_priv, &(moov->tracks[i]));
@@ -892,18 +1071,18 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         }
       bg_vs->data.video.depth = desc->format.video.depth;
       
-      bg_vs->data.video.format.timescale = moov->tracks[i].mdia.mdhd.time_scale;
+      bg_vs->data.video.format.timescale = trak->mdia.mdhd.time_scale;
 
       /* We set the timescale here, because we need it before the dmuxer sets it. */
 
-      bg_vs->timescale = moov->tracks[i].mdia.mdhd.time_scale;
+      bg_vs->timescale = trak->mdia.mdhd.time_scale;
       
       bg_vs->data.video.format.frame_duration =
-        moov->tracks[i].mdia.minf.stbl.stts.entries[0].duration;
+        trak->mdia.minf.stbl.stts.entries[0].duration;
 
-      if((moov->tracks[i].mdia.minf.stbl.stts.num_entries == 1) ||
-         ((moov->tracks[i].mdia.minf.stbl.stts.num_entries == 2) &&
-          (moov->tracks[i].mdia.minf.stbl.stts.entries[1].count == 1)))
+      if((trak->mdia.minf.stbl.stts.num_entries == 1) ||
+         ((trak->mdia.minf.stbl.stts.num_entries == 2) &&
+          (trak->mdia.minf.stbl.stts.entries[1].count == 1)))
         bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
       else
         bg_vs->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
@@ -916,29 +1095,29 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       
       if(bg_vs->fourcc == BGAV_MK_FOURCC('S', 'V', 'Q', '3'))
         {
-        if(moov->tracks[i].mdia.minf.stbl.stsd.entries[skip_first_frame].desc.has_SMI)
+        if(stsd->entries[skip_first_frame].desc.has_SMI)
           {
-          bg_vs->ext_size = moov->tracks[i].mdia.minf.stbl.stsd.entries[0].data_size;
-          bg_vs->ext_data = moov->tracks[i].mdia.minf.stbl.stsd.entries[0].data;
+          bg_vs->ext_size = stsd->entries[0].data_size;
+          bg_vs->ext_data = stsd->entries[0].data;
           }
         }
       else if((bg_vs->fourcc == BGAV_MK_FOURCC('a', 'v', 'c', '1')) &&
-              (moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc.avcC_offset))
+              (stsd->entries[0].desc.avcC_offset))
         {
-        bg_vs->ext_data = moov->tracks[i].mdia.minf.stbl.stsd.entries[skip_first_frame].data +
-          moov->tracks[i].mdia.minf.stbl.stsd.entries[0].desc.avcC_offset;
-        bg_vs->ext_size = moov->tracks[i].mdia.minf.stbl.stsd.entries[skip_first_frame].desc.avcC_size;
+        bg_vs->ext_data = stsd->entries[skip_first_frame].data +
+          stsd->entries[0].desc.avcC_offset;
+        bg_vs->ext_size = stsd->entries[skip_first_frame].desc.avcC_size;
         }
       
       /* Set mp4 extradata */
 
-      if((moov->tracks[i].mdia.minf.stbl.stsd.entries[skip_first_frame].desc.has_esds) &&
-         (moov->tracks[i].mdia.minf.stbl.stsd.entries[skip_first_frame].desc.esds.decoderConfigLen))
+      if((stsd->entries[skip_first_frame].desc.has_esds) &&
+         (stsd->entries[skip_first_frame].desc.esds.decoderConfigLen))
         {
         bg_vs->ext_size =
-          moov->tracks[i].mdia.minf.stbl.stsd.entries[skip_first_frame].desc.esds.decoderConfigLen;
+          stsd->entries[skip_first_frame].desc.esds.decoderConfigLen;
         bg_vs->ext_data =
-          moov->tracks[i].mdia.minf.stbl.stsd.entries[skip_first_frame].desc.esds.decoderConfig;
+          stsd->entries[skip_first_frame].desc.esds.decoderConfig;
         }
       bg_vs->stream_id = i;
 
@@ -948,36 +1127,61 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       //      bgav_qt_trak_dump(&moov->tracks[i]);
       }
     /* Quicktime subtitles */
-    else if(moov->tracks[i].mdia.minf.has_gmhd &&
-            moov->tracks[i].mdia.minf.gmhd.has_text)
+    else if(stsd->entries[0].desc.fourcc == BGAV_MK_FOURCC('t','e','x','t'))
       {
       const char * charset;
-      if(!moov->tracks[i].mdia.minf.stbl.stsd.entries)
+      if(!stsd->entries)
         continue;
 
-      charset = bgav_qt_get_charset(moov->tracks[i].mdia.mdhd.language);
-      
+      if(bgav_qt_is_chapter_track(moov, trak))
+      //      if(0)
+        {
+        fprintf(stderr, "Got chapter track!!!\n");
+        setup_chapter_track(ctx, trak);
+        }
+      else
+        {
+        charset = bgav_qt_get_charset(trak->mdia.mdhd.language);
+        
+        /* TODO: Quicktime text subtitles can also be chapter tracks!! */
+        
+        bg_ss =
+          bgav_track_add_subtitle_stream(track, ctx->opt, 1, charset);
+        bg_ss->description = bgav_sprintf("Quicktime subtitles");
+        bg_ss->fourcc = stsd->entries[0].desc.fourcc;
+        
+        bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
+                                  bg_ss->language);
+        
+        bg_ss->timescale = trak->mdia.mdhd.time_scale;
+        bg_ss->stream_id = i;
+        
+        stream_priv = &(priv->streams[i]);
+        stream_init(stream_priv, &(moov->tracks[i]));
+        bg_ss->priv = stream_priv;
+        bg_ss->process_packet = process_packet_subtitle_qt;
+        }
+      }
+    /* MPEG-4 subtitles (3gpp timed text?) */
+    else if(stsd->entries[0].desc.fourcc == BGAV_MK_FOURCC('t','x','3','g'))
+      {
+      fprintf(stderr, "Detected MPEG-4 subtitles\n");
+      if(!stsd->entries)
+        continue;
       bg_ss =
-        bgav_track_add_subtitle_stream(track, ctx->opt, 1, charset);
-      bg_ss->description = bgav_sprintf("Quicktime subtitles");
-
-      bgav_qt_mdhd_get_language(&moov->tracks[i].mdia.mdhd,
+        bgav_track_add_subtitle_stream(track, ctx->opt, 1, "bgav_unicode");
+      bg_ss->description = bgav_sprintf("3gpp subtitles");
+      bg_ss->fourcc = stsd->entries[0].desc.fourcc;
+      bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
                                 bg_ss->language);
       
-      bg_ss->timescale = moov->tracks[i].mdia.mdhd.time_scale;
+      bg_ss->timescale = trak->mdia.mdhd.time_scale;
       bg_ss->stream_id = i;
 
       stream_priv = &(priv->streams[i]);
       stream_init(stream_priv, &(moov->tracks[i]));
       bg_ss->priv = stream_priv;
-      bg_ss->process_packet = process_packet_subtitle_qt;
-      }
-    /* MPEG-4 subtitles (3gpp timed text?) */
-    else if(moov->tracks[i].mdia.minf.has_nmhd &&
-            !strncmp((char*)moov->tracks[i].mdia.minf.stbl.stsd.entries[0].data,
-                     "tx3g", 4))
-      {
-      fprintf(stderr, "Detected MPEG-4 subtitles\n");
+      bg_ss->process_packet = process_packet_subtitle_tx3g;
       }
     }
   
@@ -1146,7 +1350,7 @@ static int open_quicktime(bgav_demuxer_context_t * ctx,
     handle_rmra(ctx, redir);
     return 1;
     }
-  
+  /* Initialize streams */
   quicktime_init(ctx);
 
   if(!have_mdat)

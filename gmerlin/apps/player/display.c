@@ -739,7 +739,6 @@ static void update_state(display_t * d)
 void display_set_state(display_t * d, int state,
                        const void * arg)
   {
-  float percentage;
   switch(state)
     {
     case BG_PLAYER_STATE_BUFFERING:

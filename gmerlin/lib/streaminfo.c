@@ -88,6 +88,9 @@ void bg_track_info_free(bg_track_info_t * info)
     }
 
   bg_metadata_free(&(info->metadata));
+
+  if(info->chapter_list)
+    bg_chapter_list_destroy(info->chapter_list);
   
   MY_FREE(info->name);
   MY_FREE(info->description);
@@ -140,3 +143,4 @@ char * bg_get_track_name_default(const char * location)
   return bg_system_to_utf8(start_pos, end_pos - start_pos);
   
   }
+

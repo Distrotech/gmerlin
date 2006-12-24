@@ -108,6 +108,20 @@ static void key_callback(void * data, int key, int mask)
         return;
         }
       break;
+    case BG_KEY_PAGE_UP:
+      if(mask == (BG_KEY_SHIFT_MASK | BG_KEY_CONTROL_MASK))
+        {
+        bg_player_prev_chapter(ctx->player);
+        return;
+        }
+      break;
+    case BG_KEY_PAGE_DOWN:
+      if(mask == (BG_KEY_SHIFT_MASK | BG_KEY_CONTROL_MASK))
+        {
+        bg_player_next_chapter(ctx->player);
+        return;
+        }
+      break;
     default:
       break;
     }

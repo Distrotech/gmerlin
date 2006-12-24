@@ -230,6 +230,102 @@ void bg_metadata_set_parameter(void * data, char * name,
 
 
 /** \ingroup streaminfo
+ *  \brief Chapter list
+ *
+ *  Chapters in gmerlin are simply an array of
+ *  seekpoints with (optionally) associated names.
+ *  They are valid as soon as the file is opened
+ */
+
+typedef struct
+  {
+  int num_chapters;       //!< Number of chapters
+  struct
+    {
+    gavl_time_t time;     //!< Start time (seekpoint) of this chapter
+    char * name;          //!< Name for this chapter (or NULL if unavailable)
+    } * chapters;
+  } bg_chapter_list_t;
+
+/** \ingroup streaminfo
+ *  \brief Create chapter list
+ *  \param num_chapters Initial number of chapters
+ */
+
+bg_chapter_list_t * bg_chapter_list_create(int num_chapters);
+
+/** \ingroup streaminfo
+ *  \brief Destroy chapter list
+ *  \param list A chapter list
+ */
+
+void bg_chapter_list_destroy(bg_chapter_list_t * list);
+
+/** \ingroup streaminfo
+ *  \brief Destroy chapter list
+ *  \param list A chapter list
+ *  \param time The seekpoint
+ *  \param name The name for the seekpoint (or NULL)
+ */
+
+void bg_chapter_list_append(bg_chapter_list_t * list, int64_t time,
+                            const char * name);
+/** \ingroup streaminfo
+ *  \brief Insert a chapter into a chapter list
+ *  \param list A chapter list
+ *  \param index Position (starting with 0) where the new chapter will be placed
+ */
+
+void bg_chapter_list_insert(bg_chapter_list_t * list, int index,
+                            int64_t time, const char * name);
+
+/** \ingroup streaminfo
+ *  \brief Delete a chapter from a chapter list
+ *  \param list A chapter list
+ *  \param index Position (starting with 0) of the chapter to delete
+ */
+
+void bg_chapter_list_delete(bg_chapter_list_t * list, int index);
+
+/** \ingroup streaminfo
+ *  \brief Set default chapter names
+ *  \param list A chapter list
+ *
+ *  If no names for the chapters are avaiable, this function will
+ *  set them to "Chapter 1", "Chapter 2" etc.
+ */
+
+void bg_chapter_list_set_default_names(bg_chapter_list_t * list);
+
+/** \ingroup streaminfo
+ *  \brief Get current chapter
+ *  \param list A chapter list
+ *  \param time Playback time
+ *  \returns The current chapter index
+ *
+ *  Use this function after seeking to signal a
+ *  chapter change
+ */
+
+int bg_chapter_list_get_current(bg_chapter_list_t * list,
+                                 gavl_time_t time);
+
+/** \ingroup streaminfo
+ *  \brief Get current chapter
+ *  \param list A chapter list
+ *  \param time Playback time
+ *  \param current_chapter Returns the current chapter
+ *  \returns 1 if the chapter changed, 0 else
+ *
+ *  Use this function during linear playback to signal a
+ *  chapter change
+ */
+
+int bg_chapter_list_changed(bg_chapter_list_t * list,
+                            gavl_time_t time, int * current_chapter);
+
+
+/** \ingroup streaminfo
  *  \brief Track info
  */
 
@@ -256,6 +352,8 @@ typedef struct
   /* The following are only meaningful for redirectors */
   
   char * url; //!< URL (needed if is_redirector field is nonzero)
+
+  bg_chapter_list_t * chapter_list; //!< Chapter list (or NULL)
   
   } bg_track_info_t;
 

@@ -78,6 +78,8 @@ void bgav_qt_mdhd_dump(int indent, qt_mdhd_t * m)
   bgav_diprintf(indent+2, "language:          %d (%s, charset: %s)\n",
                 m->language, language, charset);
   bgav_diprintf(indent+2, "quality:           %d\n", m->quality);
+  bgav_diprintf(indent, "end of mdhd\n");
+
   }
 
 

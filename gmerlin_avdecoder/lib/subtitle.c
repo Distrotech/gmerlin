@@ -214,12 +214,12 @@ void bgav_subtitle_dump(bgav_stream_t * s)
   {
   if(s->type == BGAV_STREAM_SUBTITLE_OVERLAY)
     {
-    bgav_dprintf( "Format:\n");
+    bgav_dprintf( "  Format:\n");
     gavl_video_format_dump(&(s->data.subtitle.format));
     }
   else
     {
-    bgav_dprintf( "Character set: %s\n", s->data.subtitle.charset);
+    bgav_dprintf( "  Character set:     %s\n", s->data.subtitle.charset);
     }
   }
 
