@@ -136,16 +136,17 @@ static int start_subtext(void * data)
   return 1;
   }
 
-static void write_subtitle_text_subtext(void * data, const char * text, gavl_time_t start,
+static int write_subtitle_text_subtext(void * data, const char * text, gavl_time_t start,
                                         gavl_time_t duration, int stream)
   {
   subtext_t * e;
   e = (subtext_t *)data;
   formats[e->format_index].write_subtitle(e, text, start, duration);
   e->titles_written++;
+  return 1;
   }
 
-static void close_subtext(void * data, int do_delete)
+static int close_subtext(void * data, int do_delete)
   {
   subtext_t * e;
   e = (subtext_t *)data;
@@ -156,6 +157,7 @@ static void close_subtext(void * data, int do_delete)
     }
   if(do_delete)
     remove(e->filename);
+  return 1;
   }
 
 static void destroy_subtext(void * data)

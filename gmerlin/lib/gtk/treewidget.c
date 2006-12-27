@@ -1908,7 +1908,12 @@ bg_gtk_tree_widget_create(bg_media_tree_t * tree, GtkAccelGroup * accel_group, G
   ret->tooltips = gtk_tooltips_new();
 
   g_object_ref (G_OBJECT (ret->tooltips));
+
+#if GTK_MINOR_VERSION < 10
   gtk_object_sink (GTK_OBJECT (ret->tooltips));
+#else
+  g_object_ref_sink(G_OBJECT(ret->tooltips));
+#endif
 
   
   bg_media_tree_set_change_callback(ret->tree, tree_changed_callback, ret);

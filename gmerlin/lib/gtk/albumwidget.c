@@ -2296,7 +2296,12 @@ bg_gtk_album_widget_create(bg_album_t * album, GtkWidget * parent)
   ret->tooltips = gtk_tooltips_new();
   ret->last_clicked_row = -1;
   g_object_ref (G_OBJECT (ret->tooltips));
+
+#if GTK_MINOR_VERSION < 10
   gtk_object_sink (GTK_OBJECT (ret->tooltips));
+#else
+  g_object_ref_sink(G_OBJECT(ret->tooltips));
+#endif
   
   bg_album_set_change_callback(album, album_changed_callback, ret);
 

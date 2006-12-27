@@ -146,6 +146,14 @@ static void track_2_xml(bg_transcoder_track_t * track,
   section_2_xml(track->metadata_section, node);
   xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
 
+  if(track->chapter_list)
+    {
+    node =
+      xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"CHAPTERS", NULL);
+    bg_chapter_list_2_xml(track->chapter_list, node);
+    xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
+    }
+  
   if(track->input_section)
     {
     node = xmlNewTextChild(xml_track, (xmlNsPtr)0, (xmlChar*)"INPUT", NULL);
@@ -495,6 +503,10 @@ static int xml_2_track(bg_transcoder_track_t * t,
     else if(!BG_XML_STRCMP(node->name, "METADATA"))
       {
       t->metadata_section = xml_2_section(xml_doc, node);
+      }
+    else if(!BG_XML_STRCMP(node->name, "CHAPTERS"))
+      {
+      t->chapter_list = bg_xml_2_chapter_list(xml_doc, node);
       }
     else if(!BG_XML_STRCMP(node->name, "INPUT"))
       {

@@ -1153,6 +1153,7 @@ typedef struct bg_encoder_plugin_s
 
   /** \brief Add an audio stream
    *  \param priv The handle returned by the create() method
+   *  \param language as ISO 639-2 code (3 characters+'\\0') or NULL
    *  \param format Format of the source
    *  \returns Index of this stream (starting with 0)
    *  
@@ -1161,7 +1162,8 @@ typedef struct bg_encoder_plugin_s
    *  needed by the plugin, after \ref start() was called.
    */
   
-  int (*add_audio_stream)(void * priv, gavl_audio_format_t * format);
+  int (*add_audio_stream)(void * priv, const char * language,
+                          gavl_audio_format_t * format);
 
   /** \brief Add a video stream
    *  \param priv The handle returned by the create() method

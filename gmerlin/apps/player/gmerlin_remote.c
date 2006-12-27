@@ -16,6 +16,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111, USA.
  
 *****************************************************************/
+
+#include <string.h>
+
 #include <cfg_registry.h>
 #include <cmdline.h>
 #include <utils.h>

@@ -149,7 +149,7 @@ int bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
     }
   
   /* TOC-File and stderr redirection */
-  str = bg_sprintf(" %s", toc_file);
+  str = bg_sprintf(" \"%s\"", toc_file);
   commandline = bg_strcat(commandline, str);
   free(str);
   

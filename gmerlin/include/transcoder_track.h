@@ -154,6 +154,9 @@ struct bg_transcoder_track_s
 
   /* This is non NULL if we have a redirector */
   char * url;
+
+  /* Chapter list (can be NULL) */
+  bg_chapter_list_t * chapter_list;
   };
 
 bg_parameter_info_t *

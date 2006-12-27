@@ -113,7 +113,7 @@ static void print_time(FILE * out, gavl_time_t time, gavl_video_format_t * forma
   fprintf(out, "%02d:%02d:%02d.%02d", h, m, s, f);
   }
 
-static void write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int stream)
+static int write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int stream)
   {
   char * image_filename;
   spumux_t * spumux = (spumux_t*)priv;
@@ -129,12 +129,13 @@ static void write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int
 
   image_filename = bg_sprintf(spumux->filename_template, spumux->subtitles_written);
 
-  bg_pngwriter_write_header(priv, image_filename,
-                            &tmp_format);
-
+  if(!bg_pngwriter_write_header(priv, image_filename,
+                                &tmp_format))
+    return 0;
   
-  bg_pngwriter_write_image(priv, spumux->subframe);
-
+  if(!bg_pngwriter_write_image(priv, spumux->subframe))
+    return 0;
+  
   fprintf(spumux->xml_file, "    <spu start=\"");
   print_time(spumux->xml_file, ovl->frame->time_scaled, &spumux->format);
 
@@ -146,9 +147,10 @@ static void write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int
   free(image_filename);
     
   spumux->subtitles_written++;
+  return 1;
   }
 
-static void close_spumux(void * priv, int do_delete)
+static int close_spumux(void * priv, int do_delete)
   {
   int i;
   spumux_t * spumux = (spumux_t*)priv;
@@ -168,6 +170,7 @@ static void close_spumux(void * priv, int do_delete)
       }
     remove(spumux->filename);
     }
+  return 1;
   }
 
 static void destroy_spumux(void * priv)

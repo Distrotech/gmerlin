@@ -252,7 +252,16 @@ typedef struct
  *  \param num_chapters Initial number of chapters
  */
 
+
 bg_chapter_list_t * bg_chapter_list_create(int num_chapters);
+
+/** \ingroup streaminfo
+ *  \brief Copy chapter list
+ *  \param list Chapter list
+ */
+
+bg_chapter_list_t * bg_chapter_list_copy(const bg_chapter_list_t * list);
+
 
 /** \ingroup streaminfo
  *  \brief Destroy chapter list
@@ -323,6 +332,45 @@ int bg_chapter_list_get_current(bg_chapter_list_t * list,
 
 int bg_chapter_list_changed(bg_chapter_list_t * list,
                             gavl_time_t time, int * current_chapter);
+
+
+/** \ingroup streaminfo
+ *  \brief Convert a chapter list into a libxml2 node
+ *  \param list Chapter list
+ *  \param xml_list Pointer to the xml node for the chapter list
+ *
+ *  See the libxml2 documentation for more infos
+ */
+
+void bg_chapter_list_2_xml(bg_chapter_list_t * list, xmlNodePtr xml_list);
+
+/** \ingroup streaminfo
+ *  \brief Convert libxml2 node into a chapter list
+ *  \param xml_doc Pointer to the xml document
+ *  \param xml_list Pointer to the xml node for chapter list
+ *  \returns The chapter list from the xml node
+ *
+ *  See the libxml2 documentation for more infos
+ */
+
+bg_chapter_list_t *
+bg_xml_2_chapter_list(xmlDocPtr xml_doc, xmlNodePtr xml_list);
+
+/** \ingroup streaminfo
+ *  \brief Save a chapter list to a file
+ *  \param list A chapter list
+ *  \param filename Where to save the list
+ */
+
+void bg_chapter_list_save(bg_chapter_list_t * list, const char * filename);
+
+/** \ingroup streaminfo
+ *  \brief Load a chapter list from a file
+ *  \param filename From where to load the list
+ *  \returns A newly created chapter list or NULL
+ */
+
+bg_chapter_list_t * bg_chapter_list_load(const char * filename);
 
 
 /** \ingroup streaminfo

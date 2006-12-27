@@ -6,6 +6,7 @@ add_16.png \
 audio_16.png \
 bottom_16.png \
 camelot_icon.png \
+chapter_16.png \
 config_16.png \
 close_16.png \
 copy_16.png \

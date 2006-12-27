@@ -33,6 +33,7 @@
 #include <gui_gtk/tree.h>
 #include <gui_gtk/display.h>
 #include <gui_gtk/plugin.h>
+#include <gui_gtk/chapterdialog.h>
 
 #include <transcoder_track.h>
 #include "tracklist.h"
@@ -125,6 +126,7 @@ typedef struct
   GtkWidget * remove_item;
   GtkWidget * configure_item;
   GtkWidget * encoder_item;
+  GtkWidget * chapter_item;
   GtkWidget * menu;
   } selected_menu_t;
 
@@ -166,6 +168,7 @@ struct track_list_s
   GtkWidget * up_button;
   GtkWidget * down_button;
   GtkWidget * encoder_button;
+  GtkWidget * chapter_button;
   
   bg_transcoder_track_t * tracks;
   bg_transcoder_track_global_t track_global;
@@ -285,12 +288,14 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->up_button, 1);
     gtk_widget_set_sensitive(w->down_button, 1);
     gtk_widget_set_sensitive(w->delete_button, 1);
+    gtk_widget_set_sensitive(w->chapter_button, 1);
     
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.configure_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 1);
+    gtk_widget_set_sensitive(w->menu.selected_menu.chapter_item, 1);
 
     }
   else if(w->num_selected == 0)
@@ -301,12 +306,14 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->up_button, 0);
     gtk_widget_set_sensitive(w->down_button, 0);
     gtk_widget_set_sensitive(w->delete_button, 0);
+    gtk_widget_set_sensitive(w->chapter_button, 0);
 
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.configure_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 0);
+    gtk_widget_set_sensitive(w->menu.selected_menu.chapter_item, 0);
 
     }
   else
@@ -317,13 +324,14 @@ static void select_row_callback(GtkTreeSelection * sel,
     gtk_widget_set_sensitive(w->up_button, 1);
     gtk_widget_set_sensitive(w->down_button, 1);
     gtk_widget_set_sensitive(w->delete_button, 1);
+    gtk_widget_set_sensitive(w->chapter_button, 0);
 
     gtk_widget_set_sensitive(w->menu.selected_menu.move_up_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.move_down_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.configure_item, 0);
     gtk_widget_set_sensitive(w->menu.selected_menu.remove_item, 1);
     gtk_widget_set_sensitive(w->menu.selected_menu.encoder_item, 1);
-
+    gtk_widget_set_sensitive(w->menu.selected_menu.chapter_item, 0);
     }
   }
 
@@ -697,6 +705,10 @@ static void button_callback(GtkWidget * w, gpointer data)
   bg_gtk_drivesel_t * drivesel;
   
   track_dialog_t * track_dialog;
+
+  gavl_time_t track_duration;
+  gavl_time_t track_duration_total;
+
   
   t = (track_list_t*)data;
 
@@ -786,6 +798,16 @@ static void button_callback(GtkWidget * w, gpointer data)
     track_dialog_destroy(track_dialog);
 
     }
+  else if((w == t->chapter_button) || (w == t->menu.selected_menu.chapter_item))
+    {
+    bg_transcoder_track_get_duration(t->selected_track,
+                                     &track_duration, &track_duration_total);
+
+    
+    bg_gtk_chapter_dialog_show(&(t->selected_track->chapter_list),
+                               track_duration,
+                               t->show_tooltips);
+    }
   else if((w == t->encoder_button) ||
           (w == t->menu.selected_menu.encoder_item))
     {
@@ -861,6 +883,8 @@ static void init_menu(track_list_t * t)
     create_item(t, t->menu.selected_menu.menu, "Remove", "trash_16.png");
   t->menu.selected_menu.configure_item =
     create_item(t, t->menu.selected_menu.menu, "Configure...", "config_16.png");
+  t->menu.selected_menu.chapter_item =
+    create_item(t, t->menu.selected_menu.menu, "Edit chapters...", "chapter_16.png");
   t->menu.selected_menu.encoder_item =
     create_item(t, t->menu.selected_menu.menu, "Change encoders...", "plugin_16.png");
 
@@ -1068,20 +1092,60 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   ret->plugin_reg = plugin_reg;
   
   /* Create buttons */
-  ret->add_file_button = create_pixmap_button(ret,      "folder_open_16.png", "Add files", "Append files to the track list");
-  ret->add_url_button = create_pixmap_button(ret,       "earth_16.png",       "Add URLs", "Append URLs to the track list");
-  ret->add_removable_button = create_pixmap_button(ret, "drive_running_16.png", "Add removable media",
-                                                   "Append removable media tot he track_list");
+  ret->add_file_button =
+    create_pixmap_button(ret,
+                         "folder_open_16.png",
+                         "Add files",
+                         "Append files to the track list");
+
+  ret->add_url_button =
+    create_pixmap_button(ret,
+                         "earth_16.png",
+                         "Add URLs",
+                         "Append URLs to the track list");
+
+  ret->add_removable_button =
+    create_pixmap_button(ret,
+                         "drive_running_16.png",
+                         "Add removable media",
+                         "Append removable media to the track_list");
   
-  ret->delete_button = create_pixmap_button(ret,        "trash_16.png", "Delete", "Delete selected tracks");
-  ret->config_button = create_pixmap_button(ret,        "config_16.png", "Configure", "Configure selected track");
-  ret->encoder_button = create_pixmap_button(ret,        "plugin_16.png", "Change encoder plugins for selected tracks", "Change encoder plugins for selected tracks");
-  ret->up_button = create_pixmap_button(ret,            "top_16.png", "Move to top",
-                                        "Move selected tracks to the top of the tracklist");
+  ret->delete_button =
+    create_pixmap_button(ret,
+                         "trash_16.png",
+                         "Delete",
+                         "Delete selected tracks");
 
-  ret->down_button = create_pixmap_button(ret,          "bottom_16.png", "Move to bottom",
-                                          "Move selected tracks to the bottom of the tracklist");
+  ret->config_button =
+    create_pixmap_button(ret,
+                         "config_16.png",
+                         "Configure",
+                         "Configure selected track");
 
+  ret->chapter_button =
+    create_pixmap_button(ret,
+                         "chapter_16.png",
+                         "Edit chapters",
+                         "Edit chapters");
+  
+  ret->encoder_button =
+    create_pixmap_button(ret,
+                         "plugin_16.png",
+                         "Change encoder plugins for selected tracks",
+                         "Change encoder plugins for selected tracks");
+
+  ret->up_button =
+    create_pixmap_button(ret,
+                         "top_16.png",
+                         "Move to top",
+                         "Move selected tracks to the top of the tracklist");
+
+  ret->down_button =
+    create_pixmap_button(ret,
+                         "bottom_16.png",
+                         "Move to bottom",
+                         "Move selected tracks to the bottom of the tracklist");
+  
   g_signal_connect(G_OBJECT(ret->down_button), "clicked",
                    G_CALLBACK(button_callback), ret);
   g_signal_connect(G_OBJECT(ret->up_button), "clicked",
@@ -1096,6 +1160,8 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
                    G_CALLBACK(button_callback), ret);
   g_signal_connect(G_OBJECT(ret->config_button), "clicked",
                    G_CALLBACK(button_callback), ret);
+  g_signal_connect(G_OBJECT(ret->chapter_button), "clicked",
+                   G_CALLBACK(button_callback), ret);
   g_signal_connect(G_OBJECT(ret->encoder_button), "clicked",
                    G_CALLBACK(button_callback), ret);
 
@@ -1104,6 +1170,7 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   gtk_widget_show(ret->add_removable_button);
   gtk_widget_show(ret->delete_button);
   gtk_widget_show(ret->config_button);
+  gtk_widget_show(ret->chapter_button);
   gtk_widget_show(ret->up_button);
   gtk_widget_show(ret->down_button);
   gtk_widget_show(ret->encoder_button);
@@ -1111,6 +1178,7 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   gtk_widget_set_sensitive(ret->delete_button, 0);
   gtk_widget_set_sensitive(ret->encoder_button, 0);
   gtk_widget_set_sensitive(ret->config_button, 0);
+  gtk_widget_set_sensitive(ret->chapter_button, 0);
   gtk_widget_set_sensitive(ret->up_button, 0);
   gtk_widget_set_sensitive(ret->down_button, 0);
   
@@ -1278,6 +1346,7 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
   gtk_box_pack_start(GTK_BOX(box), ret->delete_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->encoder_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->config_button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(box), ret->chapter_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->up_button, FALSE, FALSE, 0);
   gtk_box_pack_start(GTK_BOX(box), ret->down_button, FALSE, FALSE, 0);
 
@@ -1303,8 +1372,6 @@ track_list_t * track_list_create(bg_plugin_registry_t * plugin_reg,
 
     track_list_update(ret);
     }
-
-  
   return ret;
   }
 

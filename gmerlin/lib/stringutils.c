@@ -423,13 +423,14 @@ char * bg_descramble_string(const char *str)
 
 const char * bg_get_language_name(const char * iso)
   {
-  int i;
-  for(i = 0; i < sizeof(language_codes)/sizeof(language_codes[0]); i++)
+  int i = 0;
+  while(bg_language_codes[i])
     {
-    if((language_codes[i].iso_639_b[0] == iso[0]) &&
-       (language_codes[i].iso_639_b[1] == iso[1]) &&
-       (language_codes[i].iso_639_b[2] == iso[2]))
-      return language_codes[i].name;
+    if((bg_language_codes[i][0] == iso[0]) &&
+       (bg_language_codes[i][1] == iso[1]) &&
+       (bg_language_codes[i][2] == iso[2]))
+      return bg_language_labels[i];
+    i++;
     }
   return (char*)0;
   }

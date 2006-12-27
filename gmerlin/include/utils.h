@@ -361,6 +361,9 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs);
 #define BG_XML_SET_PROP(a, b, c) xmlSetProp(a, (xmlChar*)b, (xmlChar*)c)
 #define BG_XML_NEW_TEXT(a) xmlNewText((xmlChar*)a)
 
+extern char * bg_language_codes[];
+extern char * bg_language_labels[];
+
 
 
 #endif // __BG_UTILS_H_

@@ -201,9 +201,10 @@ void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
 static void create_sections(bg_transcoder_track_t * t,
                             bg_cfg_section_t * track_defaults_section,
                             bg_cfg_section_t * input_section,
-                            bg_transcoder_encoder_info_t * encoder_info)
+                            bg_transcoder_encoder_info_t * encoder_info,
+                            bg_track_info_t * track_info)
   {
-  int i;
+  int i, in_index;
 
   bg_cfg_section_t * general_section;
   bg_cfg_section_t * textrenderer_section;
@@ -246,6 +247,13 @@ static void create_sections(bg_transcoder_track_t * t,
     for(i = 0; i < t->num_audio_streams; i++)
       {
       t->audio_streams[i].general_section = bg_cfg_section_copy(general_section);
+      if(track_info->audio_streams[i].language[0] != '\0')
+        bg_cfg_section_set_parameter_string(t->audio_streams[i].general_section,
+                                            "language",
+                                            track_info->audio_streams[i].language);
+      else
+        bg_cfg_section_set_parameter_string(t->audio_streams[i].general_section,
+                                            "language", "und");
       }
     
     }
@@ -271,6 +279,16 @@ static void create_sections(bg_transcoder_track_t * t,
       {
       t->subtitle_text_streams[i].general_section = bg_cfg_section_copy(general_section);
       t->subtitle_text_streams[i].textrenderer_section = bg_cfg_section_copy(textrenderer_section);
+
+      in_index = t->subtitle_text_streams[i].in_index;
+
+      if(track_info->subtitle_streams[in_index].language[0] != '\0')
+        bg_cfg_section_set_parameter_string(t->subtitle_text_streams[i].general_section,
+                                            "language",
+                                            track_info->subtitle_streams[in_index].language);
+      else
+        bg_cfg_section_set_parameter_string(t->subtitle_text_streams[i].general_section,
+                                            "language", "und");
       }
     }
 
@@ -281,6 +299,14 @@ static void create_sections(bg_transcoder_track_t * t,
     for(i = 0; i < t->num_subtitle_overlay_streams; i++)
       {
       t->subtitle_overlay_streams[i].general_section = bg_cfg_section_copy(general_section);
+      in_index = t->subtitle_overlay_streams[i].in_index;
+      if(track_info->subtitle_streams[in_index].language[0] != '\0')
+        bg_cfg_section_set_parameter_string(t->subtitle_overlay_streams[i].general_section,
+                                            "language",
+                                            track_info->subtitle_streams[in_index].language);
+      else
+        bg_cfg_section_set_parameter_string(t->subtitle_overlay_streams[i].general_section,
+                                            "language", "und");
       }
     }
   bg_transcoder_track_create_encoder_sections(t, encoder_info);
@@ -403,6 +429,14 @@ static bg_parameter_info_t general_parameters_subtitle_text[] =
       help_string: "Select action for this subtitle stream."
     },
     {
+      name:        "language",
+      long_name:   "Language",
+      type:        BG_PARAMETER_STRINGLIST,
+      val_default: { val_str: "eng" },
+      multi_names:  bg_language_codes,
+      multi_labels: bg_language_labels,
+    },
+    {
       name:        "video_stream",
       long_name:   "Video stream",
       type:        BG_PARAMETER_INT,
@@ -427,6 +461,14 @@ static bg_parameter_info_t general_parameters_subtitle_overlay[] =
       multi_names:  (char*[]){ "forget", "transcode", "blend",          (char*)0 },
       multi_labels: (char*[]){ "Forget", "Transcode", "Blend onto video", (char*)0 },
       val_default: { val_str: "forget" },
+    },
+    {
+      name:        "language",
+      long_name:   "Language",
+      type:        BG_PARAMETER_STRINGLIST,
+      val_default: { val_str: "eng" },
+      multi_names:  bg_language_codes,
+      multi_labels: bg_language_labels,
     },
     {
       name:        "blend_stream",
@@ -542,9 +584,9 @@ bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
 static char * create_stream_label(const char * info, const char * language)
   {
   if(language && *language && info)
-    return bg_sprintf("%s [%s]", info, language);
+    return bg_sprintf("%s [%s]", info, bg_get_language_name(language));
   else if(language && *language)
-    return bg_strdup((char*)0, language);
+    return bg_strdup((char*)0, bg_get_language_name(language));
   else if(info)
     return bg_strdup((char*)0, info);
   else
@@ -858,7 +900,7 @@ bg_transcoder_track_create(const char * url,
     
     set_track(new_track, track_info, plugin_handle, url, track, &encoder_info);
     create_sections(new_track, track_defaults_section, input_section,
-                    &encoder_info);
+                    &encoder_info, track_info);
     if(streams_enabled)
       disable_streams(input, plugin_handle->priv);
     }
@@ -905,7 +947,7 @@ bg_transcoder_track_create(const char * url,
       
       set_track(new_track, track_info, plugin_handle, url, i, &encoder_info);
       create_sections(new_track, track_defaults_section, input_section,
-                      &encoder_info);
+                      &encoder_info, track_info);
       if(streams_enabled)
         {
         disable_streams(input, plugin_handle->priv);
@@ -1245,6 +1287,9 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
   if(t->metadata_parameters)
     bg_parameter_info_destroy_array(t->metadata_parameters);
 
+  if(t->chapter_list)
+    bg_chapter_list_destroy(t->chapter_list);
+  
   if(t->url)
     free(t->url);
   free(t);
@@ -1297,6 +1342,14 @@ static bg_parameter_info_t general_parameters_audio[] =
       multi_names: (char*[]){ "transcode", "forget", (char*)0 },
       multi_labels:  (char*[]){ "Transcode", "Forget", (char*)0 },
       val_default: { val_str: "transcode" },
+    },
+    {
+      name:        "language",
+      long_name:   "Language",
+      type:        BG_PARAMETER_STRINGLIST,
+      val_default: { val_str: "eng" },
+      multi_names:  bg_language_codes,
+      multi_labels: bg_language_labels,
     },
     {
       name:        "normalize",

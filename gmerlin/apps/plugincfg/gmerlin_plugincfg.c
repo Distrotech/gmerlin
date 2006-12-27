@@ -225,7 +225,12 @@ static app_window * create_window(bg_plugin_registry_t * reg)
   ret->tooltips = gtk_tooltips_new();
 
   g_object_ref (G_OBJECT (ret->tooltips));
+
+#if GTK_MINOR_VERSION < 10
   gtk_object_sink (GTK_OBJECT (ret->tooltips));
+#else
+  g_object_ref_sink(G_OBJECT(ret->tooltips));
+#endif
     
   ret->plugin_reg = reg;
   

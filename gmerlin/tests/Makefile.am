@@ -6,7 +6,8 @@ playtree \
 question \
 message \
 scrolltext \
-auth
+auth \
+chapter
 else
 gtk_programs =
 endif
@@ -17,19 +18,18 @@ msgtest \
 server \
 client \
 v4ltest \
-imgconvert \
 textrenderer \
 $(gtk_programs)
 
-bin_PROGRAMS = gmerlin_player
+bin_PROGRAMS = gmerlin_player gmerlin_imgconvert
 
 # noinst_HEADERS = player1.h
 
 audioplayer1_SOURCES = audioplayer1.c
 audioplayer1_LDADD = ../lib/libgmerlin.la -ldl
 
-imgconvert_SOURCES = imgconvert.c
-imgconvert_LDADD = ../lib/libgmerlin.la -ldl
+gmerlin_imgconvert_SOURCES = imgconvert.c
+gmerlin_imgconvert_LDADD = ../lib/libgmerlin.la -ldl
 
 msgtest_SOURCES = msgtest.c
 msgtest_LDADD = ../lib/libgmerlin.la -ldl
@@ -45,6 +45,10 @@ videoplayer1_LDADD = ../lib/libgmerlin.la -ldl
 
 cfgtest_SOURCES = cfgtest.c
 cfgtest_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
+
+chapter_SOURCES = chapter.c
+chapter_LDADD = ../lib/libgmerlin.la ../lib/gtk/libgmerlin_gtk.la
+
 
 v4ltest_SOURCES = v4ltest.c
 v4ltest_LDADD = ../lib/libgmerlin.la

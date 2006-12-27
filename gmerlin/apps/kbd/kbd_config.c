@@ -357,7 +357,9 @@ static void update_list(window_t * win)
   
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(win->list));
   gtk_list_store_clear(GTK_LIST_STORE(model));
-  
+
+  selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(win->list));
+    
   for(i = 0; i < win->num_keys; i++)
     {
     tmp_string = bg_sprintf("%d", win->keys[i].scancode);
@@ -606,7 +608,12 @@ static window_t * create_window()
   /* Tooltips */
   ret->tooltips = gtk_tooltips_new();
   g_object_ref (G_OBJECT (ret->tooltips));
+
+#if GTK_MINOR_VERSION < 10
   gtk_object_sink (GTK_OBJECT (ret->tooltips));
+#else
+  g_object_ref_sink(G_OBJECT(ret->tooltips));
+#endif
   
   /* Create Buttons */
   ret->window = bg_gtk_window_new(GTK_WINDOW_TOPLEVEL);

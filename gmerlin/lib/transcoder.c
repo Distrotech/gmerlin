@@ -138,6 +138,8 @@ typedef struct
 
   gavl_peak_detector_t * peak_detector;
   gavl_volume_control_t * volume_control;
+
+  char language[4];
   
   } audio_stream_t;
 
@@ -152,6 +154,11 @@ static void set_audio_parameter_general(void * data, char * name, bg_parameter_v
   if(!strcmp(name, "normalize"))
     {
     stream->normalize = val->val_i;
+    return;
+    }
+  if(!strcmp(name, "language"))
+    {
+    strncpy(stream->language, val->val_str, 3);
     return;
     }
   if(set_stream_parameters_general(&(stream->com),
@@ -246,6 +253,8 @@ struct subtitle_stream_s
   int do_blend; /* Set by check_video_blend() */
   
   int eof; /* Set STREAM finished not before the last subtitle expired */
+
+  char language[4];
   };
 
 typedef struct
@@ -258,7 +267,7 @@ typedef struct
 
   gavl_time_t subtitle_start;
   gavl_time_t subtitle_duration;
-  
+
   } subtitle_text_stream_t;
 
 static void set_subtitle_parameter_general(void * data,
@@ -273,6 +282,12 @@ static void set_subtitle_parameter_general(void * data,
 
   if(!strcmp(name, "video_stream"))
     stream->video_stream = val->val_i-1;
+
+  if(!strcmp(name, "language"))
+    {
+    strncpy(stream->language, val->val_str, 3);
+    return;
+    }
   
   if(set_stream_parameters_general(&(stream->com),
                                    name, val))
@@ -917,7 +932,8 @@ static void add_audio_stream(audio_stream_t * ret,
   /* Add the audio stream */
 
   ret->com.out_index =
-    ret->com.out_plugin->add_audio_stream(ret->com.out_handle->priv, &(ret->out_format));
+    ret->com.out_plugin->add_audio_stream(ret->com.out_handle->priv, ret->language,
+                                          &(ret->out_format));
   
   /* Apply parameters */
 
@@ -944,7 +960,7 @@ static void add_subtitle_text_stream(subtitle_text_stream_t * ret,
     {
     ret->com.com.out_index =
       ret->com.com.out_plugin->add_subtitle_text_stream(ret->com.com.out_handle->priv,
-                                                        t->track_info->subtitle_streams[ret->com.com.in_index].language);
+                                                        ret->com.language);
     
     if(t->encoder_info.subtitle_text_stream_parameters &&
        s->encoder_section_text && ret->com.com.out_plugin->set_subtitle_text_parameter)
@@ -980,7 +996,7 @@ static void add_subtitle_text_stream(subtitle_text_stream_t * ret,
     
     ret->com.com.out_index =
       ret->com.com.out_plugin->add_subtitle_overlay_stream(ret->com.com.out_handle->priv,
-                                                           t->track_info->subtitle_streams[ret->com.com.in_index].language,
+                                                           ret->com.language,
                                                            &ret->com.out_format);
 
     if(t->encoder_info.subtitle_overlay_stream_parameters &&

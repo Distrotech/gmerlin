@@ -575,7 +575,11 @@ void player_window_create(gmerlin_t * g)
   ret->tooltips = gtk_tooltips_new();
   
   g_object_ref (G_OBJECT (ret->tooltips));
+#if GTK_MINOR_VERSION < 10
   gtk_object_sink (GTK_OBJECT (ret->tooltips));
+#else
+  g_object_ref_sink(G_OBJECT(ret->tooltips));
+#endif
   
   ret->msg_queue = bg_msg_queue_create();
 

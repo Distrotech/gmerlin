@@ -464,6 +464,7 @@ static int set_track_from_spec()
         {
         /* End of range reached, advance pointer */
         track_spec_ptr++;
+        // FIXME ???
         strtol(track_spec_ptr, &rest, 10)-1;
         track_spec_ptr = rest;
         }

@@ -26,6 +26,7 @@
 #include <tiffio.h>
 #include <inttypes.h>
 #include <plugin.h>
+#include <utils.h>
 
 typedef struct
   {

@@ -159,7 +159,7 @@ static int open_lqt(void * data, const char * filename,
   return 1;
   }
 
-static int add_audio_stream_lqt(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_lqt(void * data, const char * language, gavl_audio_format_t * format)
   {
   e_lqt_t * e = (e_lqt_t*)data;
 

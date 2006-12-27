@@ -27,10 +27,32 @@ bg_chapter_list_t * bg_chapter_list_create(int num_chapters)
   {
   bg_chapter_list_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->chapters = calloc(num_chapters, sizeof(*(ret->chapters)));
-  ret->num_chapters = num_chapters;
+  if(num_chapters)
+    {
+    ret->chapters = calloc(num_chapters, sizeof(*(ret->chapters)));
+    ret->num_chapters = num_chapters;
+    }
   return ret;
   }
+
+bg_chapter_list_t * bg_chapter_list_copy(const bg_chapter_list_t * list)
+  {
+  int i;
+  bg_chapter_list_t * ret;
+
+  if(!list || !list->num_chapters)
+    return (bg_chapter_list_t*)0;
+  
+  ret = bg_chapter_list_create(list->num_chapters);
+  for(i = 0; i < ret->num_chapters; i++)
+    {
+    ret->chapters[i].time = list->chapters[i].time;
+    ret->chapters[i].name = bg_strdup(ret->chapters[i].name,
+                                      list->chapters[i].name);
+    }
+  return ret;
+  }
+
 
 void bg_chapter_list_destroy(bg_chapter_list_t * list)
   {
@@ -41,6 +63,7 @@ void bg_chapter_list_destroy(bg_chapter_list_t * list)
       free(list->chapters[i].name);
     }
   free(list->chapters);
+  free(list);
   }
 
 void bg_chapter_list_insert(bg_chapter_list_t * list, int index,
@@ -89,7 +112,9 @@ void bg_chapter_list_delete(bg_chapter_list_t * list, int index)
     memmove(list->chapters + index, list->chapters + index + 1,
             sizeof(*list->chapters) * (list->num_chapters - index));
     }
-
+  if(!index)
+    list->chapters[index].time = 0;
+  
   list->num_chapters--;
   
   }

@@ -108,7 +108,12 @@ void encoder_widget_init(encoder_widget_t * ret, bg_plugin_registry_t * plugin_r
   ret->plugin_reg = plugin_reg;
   
   g_object_ref (G_OBJECT (ret->tooltips));
+
+#if GTK_MINOR_VERSION < 10
   gtk_object_sink (GTK_OBJECT (ret->tooltips));
+#else
+  g_object_ref_sink(G_OBJECT(ret->tooltips));
+#endif
 
   ret->audio_encoder =
     bg_gtk_plugin_widget_single_create("Audio", plugin_reg,

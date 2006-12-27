@@ -7,6 +7,7 @@ audio.h \
 auth.h \
 button.h \
 multiinfo.h \
+chapterdialog.h \
 display.h \
 fileentry.h \
 driveselect.h \

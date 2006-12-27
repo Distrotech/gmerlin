@@ -471,7 +471,7 @@ static const char * get_extension_wav(void * data)
   return wav_extension;
   }
 
-static int add_audio_stream_wav(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_wav(void * data, const char * language, gavl_audio_format_t * format)
   {
   wav_t * wav;
   

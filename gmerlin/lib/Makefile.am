@@ -18,6 +18,7 @@ cfg_registry.c \
 cfg_section.c \
 cfg_xml.c \
 chapterlist.c \
+chapterlist_xml.c \
 charset.c \
 cmdline.c \
 device.c \
