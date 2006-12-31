@@ -1094,9 +1094,11 @@ typedef struct bg_encoder_plugin_s
    *  \param priv The handle returned by the create() method
    *  \param filename Name of the file to be opened
    *  \param metadata Metadata to be written to the file
+   *  \param chapter_list Chapter list (optional, can be NULL)
    */
   
-  int (*open)(void * data, const char * filename, bg_metadata_t * metadata);
+  int (*open)(void * data, const char * filename,
+              bg_metadata_t * metadata, bg_chapter_list_t * chapter_list);
 
   /** \brief Return the filename, which can be passed to the player
    *  \param priv The handle returned by the create() method

@@ -756,7 +756,8 @@ static const char * get_error_encoder(void * data)
   }
 
 static int open_encoder(void * data, const char * filename,
-                        bg_metadata_t * metadata)
+                        bg_metadata_t * metadata,
+                        bg_chapter_list_t * chapter_list)
   {
   encoder_t * e;
   int filename_len;

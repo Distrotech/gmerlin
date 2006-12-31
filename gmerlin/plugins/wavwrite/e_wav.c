@@ -441,7 +441,8 @@ static void set_parameter_wav(void * data, char * name, bg_parameter_value_t * v
   }
 
 static int open_wav(void * data, const char * filename,
-                    bg_metadata_t * metadata)
+                    bg_metadata_t * metadata,
+                    bg_chapter_list_t * chapter_list)
   {
   int result;
   wav_t * wav;

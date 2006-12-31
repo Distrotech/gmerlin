@@ -842,7 +842,8 @@ static void init_subtitle_text_stream(subtitle_text_stream_t * ret,
     }
   }
 
-static void start_subtitle_stream_i(subtitle_stream_t * ret, bg_plugin_handle_t * in_handle)
+static void start_subtitle_stream_i(subtitle_stream_t * ret,
+                                    bg_plugin_handle_t * in_handle)
   {
   ret->com.in_handle = in_handle;
   ret->com.in_plugin = (bg_input_plugin_t*)(in_handle->plugin);
@@ -890,8 +891,10 @@ static void set_input_formats(bg_transcoder_t * ret)
   for(i = 0; i < ret->num_audio_streams; i++)
     {
     if(ret->audio_streams[i].com.do_decode)
+      {
       gavl_audio_format_copy(&(ret->audio_streams[i].in_format),
                              &(ret->track_info->audio_streams[ret->audio_streams[i].com.in_index].format));
+      }
     }
   for(i = 0; i < ret->num_video_streams; i++)
     {
@@ -2179,6 +2182,7 @@ static void create_streams(bg_transcoder_t * ret,
 static int start_input(bg_transcoder_t * ret)
   {
   int i;
+  const char * error_msg;
   for(i = 0; i < ret->num_audio_streams; i++)
     {
     if(ret->audio_streams[i].com.do_decode)
@@ -2213,8 +2217,22 @@ static int start_input(bg_transcoder_t * ret)
     }
   
   if(ret->in_plugin->start)
-    ret->in_plugin->start(ret->in_handle->priv);
-
+    {
+    if(!ret->in_plugin->start(ret->in_handle->priv))
+      {
+      if(ret->in_plugin->common.get_error)
+        error_msg = ret->in_plugin->common.get_error(ret->in_handle->priv);
+      else
+        error_msg = (const char*)0;
+      if(error_msg)
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Starting input plugin failed: %s",
+               error_msg);
+      else
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Starting input plugin failed");
+        
+      goto fail;
+      }
+    }
   /* Check if we must seek to the start position */
 
   if(ret->start_time != GAVL_TIME_UNDEFINED)
@@ -2552,7 +2570,9 @@ static int open_encoder(bg_transcoder_t * ret,
     return 0;
     }
 
-  if(encoder_plugin->open(encoder_handle->priv, *filename,  &(ret->metadata)))
+  if(encoder_plugin->open(encoder_handle->priv,
+                          *filename,  &(ret->metadata),
+                          ret->transcoder_track->chapter_list))
     {
     if((ret->pass == ret->total_passes) && encoder_plugin->get_filename)
       {
@@ -3015,15 +3035,19 @@ static void close_encoders(bg_transcoder_t * ret, int do_delete)
     }
   }
 
-
-
-static void init_audio_converter(audio_stream_t * ret)
+static int init_audio_converter(audio_stream_t * ret)
   {
   gavl_audio_options_t * opt;
   ret->com.out_plugin->get_audio_format(ret->com.out_handle->priv,
                                         ret->com.out_index,
                                         &(ret->out_format));
-
+#if 0
+  if(!ret->in_format.samplerate)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Input samplerate is zero");
+    return 0;
+    }
+#endif
   ret->out_format.samples_per_frame =
     (ret->in_format.samples_per_frame * ret->out_format.samplerate) /
     ret->in_format.samplerate + 10;
@@ -3059,10 +3083,11 @@ static void init_audio_converter(audio_stream_t * ret)
 
   if(ret->do_convert_out && !ret->out_frame)
     ret->out_frame = gavl_audio_frame_create(&(ret->out_format));
+  return 1;
   }
 
 
-static void init_video_converter(video_stream_t * ret)
+static int init_video_converter(video_stream_t * ret)
   {
   gavl_video_options_t * opt;
   ret->com.out_plugin->get_video_format(ret->com.out_handle->priv,
@@ -3121,6 +3146,7 @@ static void init_video_converter(video_stream_t * ret)
       ret->out_frame = gavl_video_frame_create(&(ret->out_format));
     gavl_video_frame_clear(ret->out_frame, &(ret->out_format));
     }
+  return 1;
   }
 
 static void subtitle_init_blend(subtitle_stream_t * ss, video_stream_t * vs)
@@ -3191,20 +3217,23 @@ static void subtitle_init_encode_overlay(subtitle_stream_t * ss)
     }
   }
 
-static void init_converters(bg_transcoder_t * ret)
+static int init_converters(bg_transcoder_t * ret)
   {
   int i;
   for(i = 0; i < ret->num_audio_streams; i++)
     {
     if(!ret->audio_streams[i].com.do_decode)
       continue;
-    init_audio_converter(&(ret->audio_streams[i]));
+    if(!init_audio_converter(&(ret->audio_streams[i])))
+      return 0;
     }
   for(i = 0; i < ret->num_video_streams; i++)
     {
     if(!ret->video_streams[i].com.do_decode)
       continue;
-    init_video_converter(&(ret->video_streams[i]));
+
+    if(!init_video_converter(&(ret->video_streams[i])))
+      return 0;
     
     if(ret->video_streams[i].subtitle_streams)
       {
@@ -3249,7 +3278,7 @@ static void init_converters(bg_transcoder_t * ret)
         break;
       }
     }
-
+  return 1;
   }
 
 static void init_normalize(bg_transcoder_t * ret)
@@ -3334,7 +3363,6 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   if(!open_input(ret))
     goto fail;
   
-
   create_streams(ret, track);
 
   /* Set first transcoding pass */
@@ -3367,7 +3395,8 @@ int bg_transcoder_init(bg_transcoder_t * ret,
     goto fail;
   
   /* Set formats */
-  init_converters(ret);
+  if(!init_converters(ret))
+    goto fail;
 
   /* Init normalizing */
   init_normalize(ret);

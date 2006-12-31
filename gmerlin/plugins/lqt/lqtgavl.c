@@ -442,7 +442,17 @@ void lqt_gavl_seek(quicktime_t * file, gavl_time_t * time)
     time_scaled = gavl_time_scale(timescale, *time);
     quicktime_set_audio_position(file, time_scaled, i);
     }
-  
+
+  imax = lqt_text_tracks(file);
+  for(i = 0; i < imax; i++)
+    {
+    if(lqt_is_chapter_track(file, i))
+      continue;
+    
+    timescale = lqt_text_time_scale(file, i);
+    time_scaled = gavl_time_scale(timescale, *time);
+    lqt_set_text_time(file, i, time_scaled);
+    }
   }
 
 uint8_t ** lqt_gavl_rows_create(quicktime_t * file, int track)

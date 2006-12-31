@@ -269,16 +269,6 @@ bg_chapter_list_t * bg_chapter_list_copy(const bg_chapter_list_t * list);
  */
 
 void bg_chapter_list_destroy(bg_chapter_list_t * list);
-
-/** \ingroup streaminfo
- *  \brief Destroy chapter list
- *  \param list A chapter list
- *  \param time The seekpoint
- *  \param name The name for the seekpoint (or NULL)
- */
-
-void bg_chapter_list_append(bg_chapter_list_t * list, int64_t time,
-                            const char * name);
 /** \ingroup streaminfo
  *  \brief Insert a chapter into a chapter list
  *  \param list A chapter list

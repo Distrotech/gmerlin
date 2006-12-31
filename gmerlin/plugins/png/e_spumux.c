@@ -58,7 +58,9 @@ static const char * get_extension_spumux(void * priv)
   return extension;
   }
 
-static int open_spumux(void * priv, const char * filename, bg_metadata_t * metadata)
+static int open_spumux(void * priv, const char * filename,
+                       bg_metadata_t * metadata,
+                       bg_chapter_list_t * chapter_list)
   {
   char * pos;
   spumux_t * spumux = (spumux_t*)priv;

@@ -628,8 +628,8 @@ bg_gtk_info_window_create(bg_player_t * player,
   gtk_widget_show(frame);
   gtk_table_attach(GTK_TABLE(table), frame, 0, 2, 0, 1,
                    GTK_EXPAND|GTK_FILL, GTK_FILL, 0, 0);
-
-  frame = create_frame("Format format");
+  
+  frame = create_frame("Format");
   gtk_container_add(GTK_CONTAINER(frame), bg_gtk_textview_get_widget(ret->w_subtitle_format));
   gtk_widget_show(frame);
   gtk_table_attach_defaults(GTK_TABLE(table), frame, 0, 2, 1, 2);

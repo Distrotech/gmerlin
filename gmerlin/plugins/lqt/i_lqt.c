@@ -21,9 +21,12 @@
 #include <ctype.h>
 #include <plugin.h>
 #include <utils.h>
+#include <log.h>
 
 #include "lqt_common.h"
 #include "lqtgavl.h"
+
+#define LOG_DOMAIN "i_lqt"
 
 #define PARAM_AUDIO 1
 #define PARAM_VIDEO 3
@@ -75,7 +78,11 @@ typedef struct
     int quicktime_index;
     unsigned char ** rows;
     } * video_streams;
-  
+  struct
+    {
+    int quicktime_index;
+    int timescale;
+    } * subtitle_streams;
   } i_lqt_t;
 
 static void * create_lqt()
@@ -87,6 +94,33 @@ static void * create_lqt()
   return ret;
   }
 
+static void setup_chapters(i_lqt_t * e, int track)
+  {
+  int i, num;
+  int timescale;
+  int64_t timestamp, duration;
+  char * text = (char*)0;
+  int text_alloc = 0;
+  gavl_time_t chapter_time;
+  
+  e->track_info.chapter_list = bg_chapter_list_create(0);
+  timescale = lqt_text_time_scale(e->file, track);
+
+  num = lqt_text_samples(e->file, track);
+  
+  for(i = 0; i < num; i++)
+    {
+    if(lqt_read_text(e->file, track, &text, &text_alloc, &timestamp, &duration))
+      {
+      chapter_time = gavl_time_unscale(timescale, timestamp);
+      bg_chapter_list_insert(e->track_info.chapter_list, i, chapter_time, text);
+      }
+    else
+      break;
+    }
+  if(text) free(text);
+  }
+
 static int open_lqt(void * data, const char * arg)
   {
   char * tmp_string;
@@ -94,6 +128,7 @@ static int open_lqt(void * data, const char * arg)
   char * filename;
   int num_audio_streams = 0;
   int num_video_streams = 0;
+  int num_text_streams = 0;
   i_lqt_t * e = (i_lqt_t*)data;
 
   lqt_codec_info_t ** codec_info;
@@ -135,8 +170,8 @@ static int open_lqt(void * data, const char * arg)
 
   num_audio_streams = quicktime_audio_tracks(e->file);
   num_video_streams = quicktime_video_tracks(e->file);
+  num_text_streams  = lqt_text_tracks(e->file);
 
-  
   e->track_info.duration = 0;
   e->track_info.seekable = 1;
   if(num_audio_streams)
@@ -147,7 +182,6 @@ static int open_lqt(void * data, const char * arg)
     
     for(i = 0; i < num_audio_streams; i++)
       {
-      
       if(quicktime_supported_audio(e->file, i))
         {
         e->audio_streams[e->track_info.num_audio_streams].quicktime_index = i;
@@ -158,6 +192,8 @@ static int open_lqt(void * data, const char * arg)
                     codec_info[0]->long_name);
         lqt_destroy_codec_info(codec_info);
 
+        lqt_get_audio_language(e->file, i,
+                               e->track_info.audio_streams[e->track_info.num_audio_streams].language);
         e->track_info.num_audio_streams++;
         }
       }
@@ -189,6 +225,40 @@ static int open_lqt(void * data, const char * arg)
         }
       }
     }
+  if(num_text_streams)
+    {
+    e->subtitle_streams = calloc(num_text_streams, sizeof(*e->subtitle_streams));
+    e->track_info.subtitle_streams =
+      calloc(num_text_streams, sizeof(*e->track_info.subtitle_streams));
+    
+    for(i = 0; i < num_text_streams; i++)
+      {
+      if(lqt_is_chapter_track(e->file, i))
+        {
+        if(e->track_info.chapter_list)
+          bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+                 "More than one chapter track found, using first one");
+        else
+          setup_chapters(e, i);
+        }
+      else
+        {
+        e->subtitle_streams[e->track_info.num_subtitle_streams].quicktime_index = i;
+        e->subtitle_streams[e->track_info.num_subtitle_streams].timescale =
+          lqt_text_time_scale(e->file, i);
+        
+        lqt_get_text_language(e->file, i,
+                              e->track_info.subtitle_streams[e->track_info.num_subtitle_streams].language);
+        
+        e->track_info.subtitle_streams[e->track_info.num_subtitle_streams].is_text = 1;
+        
+        e->track_info.num_subtitle_streams++;
+        }
+      }
+
+    
+    }
+
   e->track_info.duration = lqt_gavl_duration(e->file);
 
   if(lqt_is_avi(e->file))
@@ -224,6 +294,32 @@ int read_audio_samples_lqt(void * data, gavl_audio_frame_t * f, int stream,
   lqt_gavl_decode_audio(e->file, e->audio_streams[stream].quicktime_index,
                         f, num_samples);
   return f->valid_samples;
+  }
+
+
+static int has_subtitle_lqt(void * data, int stream)
+  {
+  return 1;
+  }
+
+static int read_subtitle_text_lqt(void * priv,
+                                  char ** text, int * text_alloc,
+                                  int64_t * start_time,
+                                  int64_t * duration, int stream)
+  {
+  int64_t start_time_scaled, duration_scaled;
+  i_lqt_t * e = (i_lqt_t*)priv;
+
+  if(lqt_read_text(e->file, stream, text, text_alloc,
+                   &start_time_scaled, &duration_scaled))
+    {
+    *start_time = gavl_time_unscale(e->subtitle_streams[stream].timescale,
+                                    start_time_scaled);
+    *duration   = gavl_time_unscale(e->subtitle_streams[stream].timescale,
+                                    duration_scaled);
+    return 1;
+    }
+  return 0;
   }
 
 
@@ -409,6 +505,10 @@ bg_input_plugin_t the_plugin =
 
     read_audio_samples: read_audio_samples_lqt,
     read_video_frame:   read_video_frame_lqt,
+
+    has_subtitle:       has_subtitle_lqt,
+    read_subtitle_text: read_subtitle_text_lqt,
+    
     seek:               seek_lqt,
     //    stop:               stop_lqt,
     close:              close_lqt

@@ -113,7 +113,8 @@ static const char * get_extension_subtext(void * data)
   }
 
 static int open_subtext(void * data, const char * filename,
-                        bg_metadata_t * metadata)
+                        bg_metadata_t * metadata,
+                        bg_chapter_list_t * chapter_list)
   {
   subtext_t * e;
   e = (subtext_t *)data;
@@ -136,8 +137,9 @@ static int start_subtext(void * data)
   return 1;
   }
 
-static int write_subtitle_text_subtext(void * data, const char * text, gavl_time_t start,
-                                        gavl_time_t duration, int stream)
+static int write_subtitle_text_subtext(void * data, const char * text,
+                                       gavl_time_t start,
+                                       gavl_time_t duration, int stream)
   {
   subtext_t * e;
   e = (subtext_t *)data;

@@ -54,20 +54,37 @@ typedef struct
   
   int num_video_streams;
   int num_audio_streams;
-    
+  int num_subtitle_text_streams;
+  
+  /* Needed for calculating the duration of the last chapter */
+  gavl_time_t duration;
+  
   struct
     {
     gavl_audio_format_t format;
     lqt_codec_info_t ** codec_info;
+    char language[4];
+    int64_t samples_written;
     } * audio_streams;
-
+  
   struct
     {
     gavl_video_format_t format;
     uint8_t ** rows;
     lqt_codec_info_t ** codec_info;
     } * video_streams;
+  
+  struct
+    {
+    char language[4];
+    gavl_time_t last_end_time;
+    } * subtitle_text_streams;
+  
   char * error_msg;
+
+  const bg_chapter_list_t * chapter_list;
+  
+  int chapter_track_id;
   } e_lqt_t;
 
 static void * create_lqt()
@@ -113,7 +130,8 @@ static const char * get_extension_lqt(void * data)
   }
 
 static int open_lqt(void * data, const char * filename,
-                    bg_metadata_t * metadata)
+                    bg_metadata_t * metadata,
+                    bg_chapter_list_t * chapter_list)
   {
   char * track_string;
   e_lqt_t * e = (e_lqt_t*)data;
@@ -156,10 +174,14 @@ static int open_lqt(void * data, const char * filename,
     lqt_set_album(e->file, metadata->album);
   if(metadata->author)
     lqt_set_author(e->file, metadata->author);
+  
+  e->chapter_list = chapter_list;
+  
   return 1;
   }
 
-static int add_audio_stream_lqt(void * data, const char * language, gavl_audio_format_t * format)
+static int add_audio_stream_lqt(void * data, const char * language,
+                                gavl_audio_format_t * format)
   {
   e_lqt_t * e = (e_lqt_t*)data;
 
@@ -170,12 +192,36 @@ static int add_audio_stream_lqt(void * data, const char * language, gavl_audio_f
          sizeof(*(e->audio_streams)));
   gavl_audio_format_copy(&(e->audio_streams[e->num_audio_streams].format),
                          format);
+
+  strncpy(e->audio_streams[e->num_audio_streams].language,
+          language, 3);
   
   e->num_audio_streams++;
   return e->num_audio_streams-1;
   }
 
-static int add_video_stream_lqt(void * data, gavl_video_format_t* format)
+static int add_subtitle_text_stream_lqt(void * data, const char * language)
+  {
+  e_lqt_t * e = (e_lqt_t*)data;
+
+  e->subtitle_text_streams =
+    realloc(e->subtitle_text_streams,
+            (e->num_subtitle_text_streams+1)*
+            sizeof(*(e->subtitle_text_streams)));
+
+  memset(&(e->subtitle_text_streams[e->num_subtitle_text_streams]), 0,
+         sizeof(*(e->subtitle_text_streams)));
+
+  strncpy(e->subtitle_text_streams[e->num_subtitle_text_streams].language,
+          language, 3);
+  
+  e->num_subtitle_text_streams++;
+  return e->num_subtitle_text_streams-1;
+  }
+
+
+static int add_video_stream_lqt(void * data,
+                                gavl_video_format_t* format)
   {
   e_lqt_t * e = (e_lqt_t*)data;
 
@@ -190,13 +236,15 @@ static int add_video_stream_lqt(void * data, gavl_video_format_t* format)
 
   /* AVIs are made with constant framerates only */
   if((e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)))
-    e->video_streams[e->num_video_streams].format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
+    e->video_streams[e->num_video_streams].format.framerate_mode =
+      GAVL_FRAMERATE_CONSTANT;
   
   e->num_video_streams++;
   return e->num_video_streams-1;
   }
 
-static void get_audio_format_lqt(void * data, int stream, gavl_audio_format_t * ret)
+static void get_audio_format_lqt(void * data, int stream,
+                                 gavl_audio_format_t * ret)
   {
   e_lqt_t * e = (e_lqt_t*)data;
 
@@ -204,7 +252,8 @@ static void get_audio_format_lqt(void * data, int stream, gavl_audio_format_t * 
   
   }
   
-static void get_video_format_lqt(void * data, int stream, gavl_video_format_t * ret)
+static void get_video_format_lqt(void * data, int stream,
+                                 gavl_video_format_t * ret)
   {
   e_lqt_t * e = (e_lqt_t*)data;
   
@@ -228,15 +277,38 @@ static int start_lqt(void * data)
                               i,
                               &(e->video_streams[i].format));
     }
+  
+  /* Add the subtitle tracks */
+  for(i = 0; i < e->num_subtitle_text_streams; i++)
+    {
+    lqt_add_text_track(e->file, GAVL_TIME_SCALE);
+    lqt_set_text_language(e->file, i, e->subtitle_text_streams[i].language);
+    }
+  
+  /* Add the chapter track */
+  if(e->chapter_list)
+    {
+    lqt_add_text_track(e->file, GAVL_TIME_SCALE);
+    e->chapter_track_id = e->num_subtitle_text_streams;
+    lqt_set_chapter_track(e->file, e->chapter_track_id);
+    }
   return 1;
   }
 
 
 static int write_audio_frame_lqt(void * data, gavl_audio_frame_t* frame,
-                                  int stream)
+                                 int stream)
   {
+  gavl_time_t test_time;
   e_lqt_t * e = (e_lqt_t*)data;
 
+  e->audio_streams[stream].samples_written += frame->valid_samples;
+  
+  test_time = gavl_time_unscale(e->audio_streams[stream].format.samplerate,
+                                e->audio_streams[stream].samples_written);
+  if(e->duration < test_time)
+    e->duration = test_time;
+  
   return !!lqt_encode_audio_raw(e->file, frame->samples.s_8,
                                 frame->valid_samples, stream);
   }
@@ -244,10 +316,39 @@ static int write_audio_frame_lqt(void * data, gavl_audio_frame_t* frame,
 static int write_video_frame_lqt(void * data, gavl_video_frame_t* frame,
                                   int stream)
   {
+  gavl_time_t test_time;
+  e_lqt_t * e = (e_lqt_t*)data;
+  
+  test_time = gavl_time_unscale(e->video_streams[stream].format.timescale,
+                                frame->time_scaled);
+  if(e->duration < test_time)
+    e->duration = test_time;
+
+  
+  return !lqt_gavl_encode_video(e->file, stream, frame,
+                                e->video_streams[stream].rows);
+  }
+
+static int write_subtitle_text_lqt(void * data,const char * text,
+                                   gavl_time_t start,
+                                   gavl_time_t duration, int stream)
+  {
   e_lqt_t * e = (e_lqt_t*)data;
 
-  return lqt_gavl_encode_video(e->file, stream, frame, e->video_streams[stream].rows);
+  /* Put empty subtitle if the last end time is not equal to
+     this start time */
+  if(e->subtitle_text_streams[stream].last_end_time < start)
+    {
+    if(lqt_write_text(e->file, stream, "",
+                      start - e->subtitle_text_streams[stream].last_end_time))
+      return 0;
+    }
+  if(lqt_write_text(e->file, stream, text, duration))
+    return 0;
+  e->subtitle_text_streams[stream].last_end_time = start + duration;
+  return 1;
   }
+
 
 static int close_lqt(void * data, int do_delete)
   {
@@ -257,6 +358,35 @@ static int close_lqt(void * data, int do_delete)
 
   if(!e->file)
     return 1;
+
+  /* Write chapter information */
+  if(e->chapter_list)
+    {
+    for(i = 0; i < e->chapter_list->num_chapters; i++)
+      {
+      if(e->chapter_list->chapters[i].time > e->duration)
+        {
+        bg_log(BG_LOG_WARNING, LOG_DOMAIN,
+               "Omitting chapter %d: time > duration", i+1);
+        break;
+        }
+      if(i < e->chapter_list->num_chapters)
+        {
+        if(lqt_write_text(e->file, e->chapter_track_id,
+                          e->chapter_list->chapters[i].name,
+                          e->chapter_list->chapters[i+1].time -
+                          e->chapter_list->chapters[i].time))
+          return 0;
+        }
+      else
+        {
+        if(lqt_write_text(e->file, e->chapter_track_id,
+                          e->chapter_list->chapters[i].name,
+                          e->duration - e->chapter_list->chapters[i].time))
+          return 0;
+        }
+      }
+    }
   
   quicktime_close(e->file);
   e->file = (quicktime_t*)0;
@@ -436,6 +566,7 @@ static void set_audio_parameter_lqt(void * data, int stream, char * name,
     
     lqt_gavl_add_audio_track(e->file, &e->audio_streams[stream].format,
                              *e->audio_streams[stream].codec_info);
+    lqt_set_audio_language(e->file, stream, e->audio_streams[stream].language);
     }
   else
     {
@@ -529,9 +660,10 @@ bg_encoder_plugin_t the_plugin =
       set_parameter:  set_parameter_lqt,
       get_error:      get_error_lqt,
     },
-
-    max_audio_streams: -1,
-    max_video_streams: -1,
+    
+    max_audio_streams:         -1,
+    max_video_streams:         -1,
+    max_subtitle_text_streams: -1,
 
     get_audio_parameters: get_audio_parameters_lqt,
     get_video_parameters: get_video_parameters_lqt,
@@ -541,6 +673,9 @@ bg_encoder_plugin_t the_plugin =
     open:                 open_lqt,
 
     add_audio_stream:     add_audio_stream_lqt,
+    
+    add_subtitle_text_stream: add_subtitle_text_stream_lqt,
+
     add_video_stream:     add_video_stream_lqt,
     set_video_pass:       set_video_pass_lqt,
     
@@ -552,10 +687,10 @@ bg_encoder_plugin_t the_plugin =
 
     start:                start_lqt,
     
-    write_audio_frame: write_audio_frame_lqt,
-    write_video_frame: write_video_frame_lqt,
-    close:             close_lqt,
-    
+    write_audio_frame:    write_audio_frame_lqt,
+    write_video_frame:    write_video_frame_lqt,
+    write_subtitle_text:  write_subtitle_text_lqt,
+    close:                close_lqt,
   };
 
 /* Include this into all plugin modules exactly once

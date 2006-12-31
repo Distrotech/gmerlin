@@ -702,8 +702,13 @@ static void set_track(bg_transcoder_track_t * track,
   
   /* Metadata */
     
-  track->metadata_parameters = bg_metadata_get_parameters(&(track_info->metadata));
+  track->metadata_parameters =
+    bg_metadata_get_parameters(&(track_info->metadata));
 
+  /* Chapter list */
+  if(track_info->chapter_list)
+    track->chapter_list = bg_chapter_list_copy(track_info->chapter_list);
+  
   /* Audio streams */
   
   if(track_info->num_audio_streams)

@@ -35,39 +35,47 @@ static void create_parameters(bg_plugin_registry_t * plugin_reg,
   /* Video */
   if(encoder_info->video_info)
     {
-    encoder_info->video_encoder_parameters = encoder_info->video_info->parameters;
-    encoder_info->video_stream_parameters  = encoder_info->video_info->video_parameters;
+    encoder_info->video_encoder_parameters =
+      encoder_info->video_info->parameters;
+    encoder_info->video_stream_parameters  =
+      encoder_info->video_info->video_parameters;
     }
 
   /* Audio */
   if(encoder_info->audio_info)
     {
-    encoder_info->audio_encoder_parameters = encoder_info->audio_info->parameters;
-    encoder_info->audio_stream_parameters  = encoder_info->audio_info->audio_parameters;
+    encoder_info->audio_encoder_parameters =
+      encoder_info->audio_info->parameters;
+    encoder_info->audio_stream_parameters  =
+      encoder_info->audio_info->audio_parameters;
     }
   else if(encoder_info->video_info)
     {
-    encoder_info->audio_stream_parameters  = encoder_info->video_info->audio_parameters;
+    encoder_info->audio_stream_parameters  =
+      encoder_info->video_info->audio_parameters;
     }
 
   /* Subtitle text */
   if(encoder_info->subtitle_text_info)
     {
-    encoder_info->subtitle_text_encoder_parameters = encoder_info->subtitle_text_info->parameters;
+    encoder_info->subtitle_text_encoder_parameters =
+      encoder_info->subtitle_text_info->parameters;
     encoder_info->subtitle_text_stream_parameters  =
       encoder_info->subtitle_text_info->subtitle_text_parameters;
     }
   else if(encoder_info->video_info)
     {
-    encoder_info->subtitle_text_stream_parameters  = encoder_info->video_info->subtitle_text_parameters;
+    encoder_info->subtitle_text_stream_parameters  =
+      encoder_info->video_info->subtitle_text_parameters;
     }
 
   /* Subtitle overlay */
   if(encoder_info->subtitle_overlay_info)
     {
-    encoder_info->subtitle_overlay_encoder_parameters = encoder_info->subtitle_overlay_info->parameters;
+    encoder_info->subtitle_overlay_encoder_parameters =
+      encoder_info->subtitle_overlay_info->parameters;
     encoder_info->subtitle_overlay_stream_parameters  =
-      encoder_info->subtitle_text_info->subtitle_overlay_parameters;
+      encoder_info->subtitle_overlay_info->subtitle_overlay_parameters;
     }
   else if(encoder_info->video_info)
     {
@@ -76,8 +84,9 @@ static void create_parameters(bg_plugin_registry_t * plugin_reg,
     }
   }
 
-int bg_transcoder_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_reg,
-                                                  bg_transcoder_encoder_info_t * encoder_info)
+int
+bg_transcoder_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_reg,
+                                             bg_transcoder_encoder_info_t * encoder_info)
   {
   memset(encoder_info, 0, sizeof(*encoder_info));
   

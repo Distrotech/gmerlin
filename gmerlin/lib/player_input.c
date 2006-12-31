@@ -757,7 +757,7 @@ void bg_player_input_preload(bg_player_input_context_t * ctx)
 void bg_player_input_seek(bg_player_input_context_t * ctx,
                           gavl_time_t * time)
   {
-  int do_audio, do_video;
+  int do_audio, do_video, do_subtitle;
   bg_plugin_lock(ctx->plugin_handle);
   ctx->plugin->seek(ctx->priv, time);
   bg_plugin_unlock(ctx->plugin_handle);
@@ -772,7 +772,11 @@ void bg_player_input_seek(bg_player_input_context_t * ctx,
   /* Clear EOF states */
   do_audio = ctx->player->do_audio;
   do_video = ((ctx->player->do_video) || (ctx->player->do_still));
+  do_subtitle =
+    ctx->player->do_subtitle_overlay ||
+    ctx->player->do_subtitle_text;
   
+  ctx->subtitle_finished = !do_subtitle;
   ctx->audio_finished = !do_audio;
   ctx->video_finished = !do_video;
   ctx->send_silence = 0;
