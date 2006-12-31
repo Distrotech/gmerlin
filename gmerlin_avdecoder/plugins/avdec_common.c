@@ -58,7 +58,6 @@ static void convert_metadata(bg_metadata_t * dst,
       bg_strdup(dst->genre, str);
     
   str = bgav_metadata_get_title(m);
-  //    fprintf(stderr, "Title: %s\n", str);
   if(str)
     dst->title =
       bg_strdup(dst->title, str);
@@ -204,10 +203,9 @@ int bg_avdec_read_subtitle_text(void * priv,
   {
   avdec_priv * avdec;
   avdec = (avdec_priv*)(priv);
-
-  return bgav_read_subtitle_text(avdec->dec, text, text_alloc,
-                            start_time, duration, stream);
   
+  return bgav_read_subtitle_text(avdec->dec, text, text_alloc,
+                                 start_time, duration, stream);
   }
 
 static bgav_stream_action_t get_stream_action(bg_stream_action_t action)
@@ -247,7 +245,6 @@ int bg_avdec_set_video_stream(void * priv,
   avdec = (avdec_priv*)(priv);
   act = get_stream_action(action);
 
-  //  fprintf(stderr, "bg_avdec_set_video_stream %d %d\n", stream, action);
   return bgav_set_video_stream(avdec->dec, stream, act);
   }
 
@@ -260,7 +257,6 @@ int bg_avdec_set_subtitle_stream(void * priv,
   avdec = (avdec_priv*)(priv);
   act = get_stream_action(action);
 
-  //  fprintf(stderr, "bg_avdec_set_video_stream %d %d\n", stream, action);
   return bgav_set_subtitle_stream(avdec->dec, stream, act);
   }
 
@@ -289,6 +285,8 @@ int bg_avdec_start(void * priv)
     {
     gavl_audio_format_copy(&(avdec->current_track->audio_streams[i].format),
                            bgav_get_audio_format(avdec->dec, i));
+
+    
     str = bgav_get_audio_description(avdec->dec, i);
     if(str)
       avdec->current_track->audio_streams[i].description = bg_strdup(NULL, str);
@@ -347,8 +345,6 @@ int bg_avdec_init(avdec_priv * avdec)
       bgav_num_subtitle_streams(avdec->dec, i);
     avdec->track_info[i].seekable = bgav_can_seek(avdec->dec);
 
-    //    fprintf(stderr, "bg_avdec_init: seekable: %d\n", 
-    //            avdec->track_info[i].seekable);
                 
     if(avdec->track_info[i].num_audio_streams)
       {
@@ -499,13 +495,11 @@ bg_avdec_set_parameter(void * p, char * name,
     }
   else if(!strcmp(name, "audio_dynrange"))
     {
-    //    fprintf(stderr, "Setting dynamic range %d\n", val->val_i);
     bgav_options_set_audio_dynrange(avdec->opt, val->val_i);
     }
   else if(!strcmp(name, "seek_subtitles"))
     {
     bgav_options_set_seek_subtitles(avdec->opt, atoi(val->val_str));
-    //    fprintf(stderr, "Seek subtitles: %d\n", atoi(val->val_str));
     }
   else if(!strcmp(name, "video_pp_level"))
     {

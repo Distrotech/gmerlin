@@ -178,7 +178,7 @@ static int num_mimetypes = sizeof(mimetypes)/sizeof(mimetypes[0]);
 static int demuxer_next_packet(bgav_demuxer_context_t * demuxer);
 
 
-#define SYNC_BYTES 4096
+#define SYNC_BYTES (32*1024)
 
 bgav_demuxer_t * bgav_demuxer_probe(bgav_input_context_t * input)
   {
@@ -304,8 +304,6 @@ static void check_missing_streams(bgav_demuxer_context_t * ctx)
 
 static void check_interleave(bgav_demuxer_context_t * ctx)
   {
-  bgav_stream_t * s1;
-  bgav_stream_t * s2 = (bgav_stream_t *)0;
   int i;
   bgav_stream_t ** streams;
   int index, num_streams;
@@ -439,7 +437,7 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
   p->keyframe = ctx->si->entries[ctx->si->current_position].keyframe;
   
   p->pts = ctx->si->entries[ctx->si->current_position].time;
-  p->samples = ctx->si->entries[ctx->si->current_position].samples;
+  p->duration = ctx->si->entries[ctx->si->current_position].duration;
   if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
     return 0;
   
@@ -474,8 +472,8 @@ static int next_packet_noninterleaved(bgav_demuxer_context_t * ctx)
   bgav_packet_alloc(p, p->data_size);
   
   p->pts = ctx->si->entries[ctx->request_stream->index_position].time;
-  p->samples          = ctx->si->entries[ctx->request_stream->index_position].samples;
-  p->keyframe         = ctx->si->entries[ctx->request_stream->index_position].keyframe;
+  p->duration = ctx->si->entries[ctx->request_stream->index_position].duration;
+  p->keyframe = ctx->si->entries[ctx->request_stream->index_position].keyframe;
     
   if(bgav_input_read_data(ctx->input, p->data, p->data_size) < p->data_size)
     return 0;
@@ -648,7 +646,8 @@ static void seek_si(bgav_demuxer_context_t * ctx, gavl_time_t time)
     }
   for(j = 0; j < track->num_subtitle_streams; j++)
     {
-    bgav_superindex_seek(ctx->si, &(track->subtitle_streams[j]), time);
+    if(!track->subtitle_streams[j].data.subtitle.subreader)
+      bgav_superindex_seek(ctx->si, &(track->subtitle_streams[j]), time);
     }
   
   /* Find the start and end packet */
@@ -838,6 +837,8 @@ bgav_seek(bgav_t * b, gavl_time_t * time)
     if(track->subtitle_streams[i].data.subtitle.subreader &&
        track->subtitle_streams[i].action != BGAV_STREAM_MUTE)
       {
+      /* Clear EOF state */
+      track->subtitle_streams[i].data.subtitle.eof = 0;
       bgav_subtitle_reader_seek(&track->subtitle_streams[i],
                                 *time);
       }

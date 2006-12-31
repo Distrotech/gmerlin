@@ -202,8 +202,9 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
   
   for(i = 0; i < t->num_audio_streams; i++)
     {
-    if(t->audio_streams[i].action != BGAV_STREAM_MUTE)
-      num_active_audio_streams++;
+    if(t->audio_streams[i].action == BGAV_STREAM_MUTE)
+      continue;
+    num_active_audio_streams++;
     t->audio_streams[i].demuxer = demuxer;
     if(!bgav_stream_start(&(t->audio_streams[i])))
       {
@@ -214,8 +215,9 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
-    if(t->video_streams[i].action != BGAV_STREAM_MUTE)
-      num_active_video_streams++;
+    if(t->video_streams[i].action == BGAV_STREAM_MUTE)
+      continue;
+    num_active_video_streams++;
     t->video_streams[i].demuxer = demuxer;
     if(!bgav_stream_start(&(t->video_streams[i])))
       {
@@ -226,8 +228,10 @@ int bgav_track_start(bgav_track_t * t, bgav_demuxer_context_t * demuxer)
     }
   for(i = 0; i < t->num_subtitle_streams; i++)
     {
-    if(t->subtitle_streams[i].action != BGAV_STREAM_MUTE)
-      num_active_subtitle_streams++;
+    if(t->subtitle_streams[i].action == BGAV_STREAM_MUTE)
+      continue;
+    num_active_subtitle_streams++;
+    
     t->subtitle_streams[i].demuxer = demuxer;
     
     if(!t->subtitle_streams[i].data.subtitle.video_stream)
@@ -503,7 +507,8 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
         s->data.video.next_frame_duration = 0;
       else
         s->data.video.next_frame_duration =
-          gavl_time_rescale(s->timescale, s->data.video.format.timescale, p->duration_scaled);
+          gavl_time_rescale(s->timescale, s->data.video.format.timescale,
+                            p->duration);
       }
     
     bgav_stream_resync_decoder(s);

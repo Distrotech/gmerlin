@@ -59,7 +59,7 @@ static int get_data(bgav_stream_t * s)
   /* If we know the number of samples (i.e. when the packet comes
      from an mp4/mov container), flush the buffer to remove previous
      padding bytes */
-  if(p->samples)
+  if(p->duration)
     bgav_bytebuffer_flush(&priv->buf);
   
   bgav_bytebuffer_append(&priv->buf, p, 0);

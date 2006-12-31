@@ -92,12 +92,12 @@ static int do_convert(bgav_charset_converter_t * cnv,
     /* Byte order Little Endian */
     if((len > 1) &&
        ((uint8_t)in_string[0] == 0xff) &&
-       ((uint8_t)in_string[0] == 0xfe))
+       ((uint8_t)in_string[1] == 0xfe))
       cnv->cd = iconv_open(cnv->out_charset, "UTF-16LE");
     /* Byte order Big Endian */
     else if((len > 1) &&
             ((uint8_t)in_string[0] == 0xfe) &&
-            ((uint8_t)in_string[0] == 0xff))
+            ((uint8_t)in_string[1] == 0xff))
       cnv->cd = iconv_open(cnv->out_charset, "UTF-16BE");
     /* UTF-8 */
     else if(!strcmp(cnv->out_charset, "UTF-8"))
@@ -107,7 +107,8 @@ static int do_convert(bgav_charset_converter_t * cnv,
         *ret_alloc = len + BYTES_INCREMENT;
         *ret       = realloc(*ret, *ret_alloc);
         }
-      strcpy(*ret, in_string);
+      strncpy(*ret, in_string, len);
+      (*ret)[len] = '\0';
       if(out_len)
         *out_len = len;
       return 1;

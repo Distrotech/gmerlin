@@ -81,7 +81,7 @@ static int read_srt(bgav_stream_t * s)
   end += b4 * (GAVL_TIME_SCALE/1000);
 
   ctx->p->pts = start;
-  ctx->p->duration_scaled = end - start;
+  ctx->p->duration = end - start;
 
   ctx->p->data_size = 0;
   
@@ -227,9 +227,9 @@ static int read_mpsub(bgav_stream_t * s)
   /* Set times */
 
   ctx->p->pts = priv->last_end_time + t1;
-  ctx->p->duration_scaled  = t2;
+  ctx->p->duration  = t2;
   
-  priv->last_end_time = ctx->p->pts + ctx->p->duration_scaled;
+  priv->last_end_time = ctx->p->pts + ctx->p->duration;
   
   /* Read the actual stuff */
   ctx->p->data_size = 0;
@@ -898,7 +898,7 @@ void bgav_subtitle_reader_seek(bgav_stream_t * s,
       {
       while(ctx->reader->read_subtitle_text(s))
         {
-        if(ctx->p->pts + ctx->p->duration_scaled < time)
+        if(ctx->p->pts + ctx->p->duration < time)
           {
           titles_skipped++;
         continue;

@@ -68,15 +68,17 @@ void bgav_packet_set_text_subtitle(bgav_packet_t * p,
   p->data_size = len;
   
   p->pts = start;
-  p->duration_scaled = duration;
+  p->duration = duration;
   p->data_size = len + 1;
   p->data[len]   = '\0';
   p->data[len+1] = '\0';
   }
 
+#if 0
 void bgav_packet_get_text_subtitle(bgav_packet_t * p,
                                    char ** text,
                                    int * text_alloc,
+                                   int &text_len,
                                    gavl_time_t * start,
                                    gavl_time_t * duration)
   {
@@ -88,9 +90,14 @@ void bgav_packet_get_text_subtitle(bgav_packet_t * p,
     *text_alloc = len + 128;
     *text = realloc(*text, *text_alloc);
     }
-  strcpy(*text, (char*)p->data);
+  
+  if(len)
+    {
+    strcpy(*text, (char*)p->data);
+    }
 
   *start    = gavl_time_unscale(p->stream->timescale, p->pts);
   *duration = gavl_time_unscale(p->stream->timescale, p->duration_scaled);
   
   }
+#endif

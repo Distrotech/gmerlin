@@ -52,7 +52,7 @@ void bgav_superindex_add_packet(bgav_superindex_t * idx,
                                 uint32_t size,
                                 int stream_id,
                                 int64_t timestamp,
-                                int keyframe, int samples)
+                                int keyframe, int duration)
   {
   /* Realloc */
   
@@ -70,7 +70,7 @@ void bgav_superindex_add_packet(bgav_superindex_t * idx,
   idx->entries[idx->num_entries].stream_id = stream_id;
   idx->entries[idx->num_entries].time = timestamp;
   idx->entries[idx->num_entries].keyframe  = keyframe;
-  idx->entries[idx->num_entries].samples   = samples;
+  idx->entries[idx->num_entries].duration   = duration;
 
   /* Update indices */
   if(s)

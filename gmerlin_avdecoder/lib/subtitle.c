@@ -113,7 +113,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
   if(s->packet_buffer)
     {
     p = bgav_demuxer_get_packet_read(s->demuxer, s);
-    bgav_packet_get_text_subtitle(p, ret, ret_alloc, start_time, duration);
+    // bgav_packet_get_text_subtitle(p, ret, ret_alloc, start_time, duration);
     }
   else if(s->data.subtitle.subreader)
     {
@@ -145,7 +145,7 @@ int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
     }
   
   *start_time = gavl_time_unscale(s->timescale, p->pts);
-  *duration   = gavl_time_unscale(s->timescale, p->duration_scaled);
+  *duration   = gavl_time_unscale(s->timescale, p->duration);
 
   remove_cr(*ret);
     

@@ -191,12 +191,13 @@ static void add_packet(bgav_demuxer_context_t * ctx,
                        int stream_id,
                        int64_t timestamp,
                        int keyframe,
-                       int samples,
+                       int duration,
                        int chunk_size)
   {
   if(stream_id >= 0)
     bgav_superindex_add_packet(ctx->si, s,
-                               offset, chunk_size, stream_id, timestamp, keyframe, samples);
+                               offset, chunk_size,
+                               stream_id, timestamp, keyframe, duration);
   
   if(index && !ctx->si->entries[index-1].size)
     {
@@ -238,7 +239,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
   bgav_stream_t * bgav_s;
   int chunk_samples;
   int packet_size;
-
+  int duration;
   qt_trak_t * trak;
   
   priv = (qt_priv_t *)(ctx->priv);
@@ -404,6 +405,11 @@ static void build_index(bgav_demuxer_context_t * ctx)
         /* Sample size */
         if(s->stsz_pos >= 0)
           s->stsz_pos++;
+
+        if(s->stts_pos >= 0)
+          duration = s->stbl->stts.entries[s->stts_pos].duration;
+        else
+          duration = s->stbl->stts.entries[0].duration;
         
         if(s->skip_first_frame && !s->stco_pos)
           add_packet(ctx,
@@ -412,7 +418,9 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      i, chunk_offset,
                      -1,
                      s->tics,
-                     check_keyframe(s), 1, packet_size);
+                     check_keyframe(s),
+                     duration,
+                     packet_size);
         else
           {
           add_packet(ctx,
@@ -421,25 +429,24 @@ static void build_index(bgav_demuxer_context_t * ctx)
                      i, chunk_offset,
                      stream_id,
                      s->tics,
-                     check_keyframe(s), 1, packet_size);
+                     check_keyframe(s),
+                     duration,
+                     packet_size);
           i++;
           }
         chunk_offset += packet_size;
-        
+
+        s->tics += duration;
+
         /* Time to sample */
         if(s->stts_pos >= 0)
           {
-          s->tics += s->stbl->stts.entries[s->stts_pos].duration;
           s->stts_count++;
           if(s->stts_count >= s->stbl->stts.entries[s->stts_pos].count)
             {
             s->stts_pos++;
             s->stts_count = 0;
             }
-          }
-        else
-          {
-          s->tics += s->stbl->stts.entries[0].duration;
           }
         }
       s->stco_pos++;
@@ -460,6 +467,12 @@ static void build_index(bgav_demuxer_context_t * ctx)
         {
         packet_size   = s->stbl->stsz.entries[s->stsz_pos];
         s->stsz_pos++;
+
+        if(s->stts_pos >= 0)
+          duration = s->stbl->stts.entries[s->stts_pos].duration;
+        else
+          duration = s->stbl->stts.entries[0].duration;
+
         
         add_packet(ctx,
                    priv,
@@ -467,14 +480,16 @@ static void build_index(bgav_demuxer_context_t * ctx)
                    i, chunk_offset,
                    stream_id,
                    s->tics,
-                   check_keyframe(s), 1, packet_size);
+                   check_keyframe(s), duration,
+                   packet_size);
         
         chunk_offset += packet_size;
+
+        s->tics += duration;
         
         /* Time to sample */
         if(s->stts_pos >= 0)
           {
-          s->tics += s->stbl->stts.entries[s->stts_pos].duration;
           s->stts_count++;
           if(s->stts_count >= s->stbl->stts.entries[s->stts_pos].count)
             {
@@ -482,12 +497,7 @@ static void build_index(bgav_demuxer_context_t * ctx)
             s->stts_count = 0;
             }
           }
-        else
-          {
-          s->tics += s->stbl->stts.entries[0].duration;
-          }
         i++;
-
         }
       s->stco_pos++;
       /* Update sample to chunk */
@@ -500,7 +510,6 @@ static void build_index(bgav_demuxer_context_t * ctx)
     else
       {
       /* Fill in dummy packet */
-      fprintf(stderr, "Filling dummy packet\n");
       add_packet(ctx, priv, (bgav_stream_t*)0, i, chunk_offset, stream_id, -1, 0, 0, 0);
       i++;
       priv->streams[stream_id].stco_pos++;
@@ -643,8 +652,6 @@ static void process_packet_subtitle_qt(bgav_stream_t * s, bgav_packet_t * p)
   int i;
   uint16_t len;
 
-  fprintf(stderr, "Got qt subtitle packet: %d bytes\n", p->data_size);
-  bgav_hexdump(p->data, p->data_size, 16);
 
   len = BGAV_PTR_2_16BE(p->data);
 
@@ -665,15 +672,13 @@ static void process_packet_subtitle_qt(bgav_stream_t * s, bgav_packet_t * p)
       }
     }
   p->data_size = len;
-  p->duration_scaled = -1;
+  // p->duration = -1;
   }
 
 static void process_packet_subtitle_tx3g(bgav_stream_t * s, bgav_packet_t * p)
   {
   //  int i;
   uint16_t len;
-  fprintf(stderr, "Got tx3g subtitle packet: %d bytes\n", p->data_size);
-  bgav_hexdump(p->data, p->data_size, 16);
 
   len = BGAV_PTR_2_16BE(p->data);
   
@@ -687,7 +692,7 @@ static void process_packet_subtitle_tx3g(bgav_stream_t * s, bgav_packet_t * p)
     *(p->data) = '\0'; // Empty string
     p->data_size = 1;
     }
-  p->duration_scaled = -1;
+  //  p->duration = -1;
 
 #if 0  
   /* De-Macify linebreaks */
@@ -1136,7 +1141,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       if(bgav_qt_is_chapter_track(moov, trak))
       //      if(0)
         {
-        fprintf(stderr, "Got chapter track!!!\n");
         setup_chapter_track(ctx, trak);
         }
       else
@@ -1165,7 +1169,6 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
     /* MPEG-4 subtitles (3gpp timed text?) */
     else if(stsd->entries[0].desc.fourcc == BGAV_MK_FOURCC('t','x','3','g'))
       {
-      fprintf(stderr, "Detected MPEG-4 subtitles\n");
       if(!stsd->entries)
         continue;
       bg_ss =

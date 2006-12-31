@@ -798,6 +798,8 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
 
 static void    close_dvd(bgav_input_context_t * ctx)
   {
+  int i;
+  track_priv_t * track_priv;
   dvd_t * dvd;
   dvd = (dvd_t*)(ctx->priv);
 
@@ -812,6 +814,20 @@ static void    close_dvd(bgav_input_context_t * ctx)
   
   if(dvd->vts_ifo)
     ifoClose(dvd->vts_ifo);
+
+  if(ctx->tt)
+    {
+    for(i = 0; i < ctx->tt->num_tracks; i++)
+      {
+      track_priv = (track_priv_t*)(ctx->tt->tracks[i].priv);
+      if(track_priv)
+        {
+        if(track_priv->chapters)
+          free(track_priv->chapters);
+        }
+      free(track_priv);
+      }
+    }
   
   free(dvd);
   return;

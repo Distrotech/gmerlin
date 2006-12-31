@@ -75,7 +75,6 @@ static int parse_asx(void * priv, const char * filename)
 
   p->num_streams = 0;
   
-  //  fprintf(stderr, "Node: %s\n", node->name);
   
   if(xmlStrcasecmp(node->name, "ASX"))
     {
@@ -88,7 +87,6 @@ static int parse_asx(void * priv, const char * filename)
   title = (char*)0;
   while(node)
     {
-    //    fprintf(stderr, "Node: %s\n", node->name);
 
     if(!xmlStrcasecmp(node->name, "Title"))
       {
@@ -100,7 +98,6 @@ static int parse_asx(void * priv, const char * filename)
       }
     node = node->next;
     }
-  fprintf(stderr, "Num entries: %d\n", p->num_streams);
 
   p->names = calloc(p->num_streams, sizeof(char*));
   p->locations = calloc(p->num_streams, sizeof(char*));
@@ -135,14 +132,8 @@ static int parse_asx(void * priv, const char * filename)
                                             tmp_string);
           xmlFree(tmp_string);
           }
-        //        else
-        //          {
-        //          fprintf(stderr, "Child name: %s\n", child_node->name);
-        //          }
         child_node = child_node->next;
         }
-      //      fprintf(stderr, "Name: %s\nLocation: %s\n", p->names[index],
-      //              p->locations[index]);
       if(!p->names[index])
         p->names[index] = bg_sprintf("Stream %d (%s)",
                                      index+1, p->locations[index]);

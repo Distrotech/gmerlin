@@ -158,10 +158,9 @@ struct bgav_packet_s
   int64_t pts; /* In stream timescale tics */
   int64_t dts; /* In stream timescale tics */
   
-  int64_t duration_scaled;  /* For text subtitles and VFR video only! */
+  int64_t duration;  /* For text subtitles and VFR video only! */
   int keyframe;
   bgav_stream_t * stream; /* The stream this packet belongs to */
-  int samples; /* Optional */
 
   gavl_audio_frame_t * audio_frame; /* For demuxers, which deliver audio
                                        frames directly */
@@ -850,8 +849,8 @@ typedef struct
     uint32_t size;
     int stream_id;
     int keyframe;
-    int64_t time; /* Time is scaled with the timescale of the stream */
-    int samples;  /* Can be 0 if unknown */
+    int64_t time;  /* Time is scaled with the timescale of the stream */
+    int duration;  /* In timescale tics, can be 0 if unknown */
     } * entries;
   } bgav_superindex_t;
 
@@ -866,7 +865,7 @@ void bgav_superindex_add_packet(bgav_superindex_t * idx,
                                 uint32_t size,
                                 int stream_id,
                                 int64_t timestamp,
-                                int keyframe, int samples);
+                                int keyframe, int duration);
 
 void bgav_superindex_seek(bgav_superindex_t * idx,
                           bgav_stream_t * s,
