@@ -243,7 +243,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)((0.29900*219.0/255.0)*0x10000 * i + 16 * 0x10000));
+    fprintf(source, "%d, ", (int)((0.29900*219.0/255.0)*0x10000 * i + 16 * 0x10000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -255,7 +255,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)((0.58700*219.0/255.0)*0x10000 * i));
+    fprintf(source, "%d, ", (int)((0.58700*219.0/255.0)*0x10000 * i + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -267,7 +267,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)((0.11400*219.0/255.0)*0x10000 * i));
+    fprintf(source, "%d, ", (int)((0.11400*219.0/255.0)*0x10000 * i + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -279,7 +279,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)(-(0.16874*224.0/255.0)*0x10000 * i));
+    fprintf(source, "%d, ", (int)(-(0.16874*224.0/255.0)*0x10000 * i + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -291,7 +291,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)(-(0.33126*224.0/255.0)*0x10000 * i));
+    fprintf(source, "%d, ", (int)(-(0.33126*224.0/255.0)*0x10000 * i + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -303,7 +303,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)( (0.50000*224.0/255.0)*0x10000 * i + 0x800000));
+    fprintf(source, "%d, ", (int)( (0.50000*224.0/255.0)*0x10000 * i + 0x800000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -315,7 +315,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)( (0.50000*224.0/255.0)*0x10000 * i));
+    fprintf(source, "%d, ", (int)( (0.50000*224.0/255.0)*0x10000 * i + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -327,7 +327,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)(-(0.41869*224.0/255.0)*0x10000 * i));
+    fprintf(source, "%d, ", (int)(-(0.41869*224.0/255.0)*0x10000 * i + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -339,7 +339,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)(-(0.08131*224.0/255.0)*0x10000 * i + 0x800000));
+    fprintf(source, "%d, ", (int)(-(0.08131*224.0/255.0)*0x10000 * i + 0x800000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -353,7 +353,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)((0.29900)*0x10000 * i));
+    fprintf(source, "%d, ", (int)((0.29900)*0x10000 * i + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -365,7 +365,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)((0.58700)*0x10000 * i));
+    fprintf(source, "%d, ", (int)((0.58700)*0x10000 * i + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -377,7 +377,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)((0.11400)*0x10000 * i));
+    fprintf(source, "%d, ", (int)((0.11400)*0x10000 * i + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -389,7 +389,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)(-(0.16874)*0x10000 * i));
+    fprintf(source, "%d, ", (int)(-(0.16874)*0x10000 * i + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -401,7 +401,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)(-(0.33126)*0x10000 * i));
+    fprintf(source, "%d, ", (int)(-(0.33126)*0x10000 * i + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -413,7 +413,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)( (0.50000)*0x10000 * i + 0x800000));
+    fprintf(source, "%d, ", (int)( (0.50000)*0x10000 * i + 0x800000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -425,7 +425,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)( (0.50000)*0x10000 * i));
+    fprintf(source, "%d, ", (int)( (0.50000)*0x10000 * i + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -437,7 +437,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)(-(0.41869)*0x10000 * i));
+    fprintf(source, "%d, ", (int)(-(0.41869)*0x10000 * i + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -449,7 +449,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)(-(0.08131)*0x10000 * i + 0x800000));
+    fprintf(source, "%d, ", (int)(-(0.08131)*0x10000 * i + 0x800000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -468,7 +468,7 @@ int main(int argc, char ** argv)
     if(!((i)%8))
       fprintf(source, "  ");
     
-    fprintf(source, "%d, ", (int)(255.0/219.0*(i-16)) * 0x10000);
+    fprintf(source, "%d, ", (int)(255.0/219.0*(i-16) * 0x10000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -480,7 +480,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)( 1.40200*255.0/224.0 * (i - 0x80) * 0x10000));
+    fprintf(source, "%d, ", (int)( 1.40200*255.0/224.0 * (i - 0x80) * 0x10000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -492,7 +492,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)(-0.34414*255.0/224.0 * (i - 0x80) * 0x10000));
+    fprintf(source, "%d, ", (int)(-0.34414*255.0/224.0 * (i - 0x80) * 0x10000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -504,7 +504,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)(-0.71414*255.0/224.0 * (i - 0x80) * 0x10000));
+    fprintf(source, "%d, ", (int)(-0.71414*255.0/224.0 * (i - 0x80) * 0x10000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -516,7 +516,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)( 1.77200*255.0/224.0 * (i - 0x80) * 0x10000));
+    fprintf(source, "%d, ", (int)( 1.77200*255.0/224.0 * (i - 0x80) * 0x10000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -532,7 +532,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)(i * 0x10000));
+    fprintf(source, "%d, ", (int)(i * 0x10000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -544,7 +544,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)( 1.40200 * (i - 0x80) * 0x10000));
+    fprintf(source, "%d, ", (int)( 1.40200 * (i - 0x80) * 0x10000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -556,7 +556,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)(-0.34414 * (i - 0x80) * 0x10000));
+    fprintf(source, "%d, ", (int)(-0.34414 * (i - 0x80) * 0x10000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -568,7 +568,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)(-0.71414 * (i - 0x80) * 0x10000));
+    fprintf(source, "%d, ", (int)(-0.71414 * (i - 0x80) * 0x10000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }
@@ -580,7 +580,7 @@ int main(int argc, char ** argv)
     {
     if(!((i)%8))
       fprintf(source, "  ");
-    fprintf(source, "%d, ", (int)( 1.77200 * (i - 0x80) * 0x10000));
+    fprintf(source, "%d, ", (int)( 1.77200 * (i - 0x80) * 0x10000 + 0.5));
     if(!((i+1)%8))
       fprintf(source, "\n");
     }

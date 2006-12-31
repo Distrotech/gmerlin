@@ -1818,7 +1818,7 @@ void gavl_video_frame_dump(gavl_video_frame_t * frame,
  * pretends to be progressive or if the ouput format is interlaced).
  */
 
-#define GAVL_FORCE_DEINTERLACE (0<<1)
+#define GAVL_FORCE_DEINTERLACE (1<<0)
 
   
 /** \ingroup video_options
