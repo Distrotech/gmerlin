@@ -102,7 +102,9 @@ static const char * get_extension_theora(void * data)
   return theora_extension;
   }
 
-static int add_audio_stream_theora(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_theora(void * data,
+                                   const char * language,
+                                   gavl_audio_format_t * format)
   {
   int ret;
   ret = bg_ogg_encoder_add_audio_stream(data, format);
@@ -136,6 +138,12 @@ static void set_audio_parameter_theora(void * data, int stream,
     bg_ogg_encoder_set_audio_parameter(data, stream, name, val);
   }
 
+static const char * get_error_theora(void * data)
+  {
+  bg_ogg_encoder_t * enc = (bg_ogg_encoder_t*)data;
+  return enc->error_msg;
+  }
+
 bg_encoder_plugin_t the_plugin =
   {
     common:
@@ -149,7 +157,7 @@ bg_encoder_plugin_t the_plugin =
       priority:        5,
       create:            bg_ogg_encoder_create,
       destroy:           bg_ogg_encoder_destroy,
-      //      get_error:         get_error_theora,
+      get_error:         get_error_theora,
 #if 0
       get_parameters:    get_parameters_theora,
       set_parameter:     set_parameter_theora,

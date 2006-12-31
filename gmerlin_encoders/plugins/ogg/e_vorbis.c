@@ -43,7 +43,8 @@ static const char * get_extension_vorbis(void * data)
   return vorbis_extension;
   }
 
-static int add_audio_stream_vorbis(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_vorbis(void * data, const char * language,
+                                   gavl_audio_format_t * format)
   {
   int ret;
   ret = bg_ogg_encoder_add_audio_stream(data, format);

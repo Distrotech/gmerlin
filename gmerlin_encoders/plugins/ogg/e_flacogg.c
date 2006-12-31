@@ -42,13 +42,21 @@ static const char * get_extension_flacogg(void * data)
   return flacogg_extension;
   }
 
-static int add_audio_stream_flacogg(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_flacogg(void * data, const char * language,
+                                    gavl_audio_format_t * format)
   {
   int ret;
   ret = bg_ogg_encoder_add_audio_stream(data, format);
   bg_ogg_encoder_init_audio_stream(data, ret, &bg_flacogg_codec);
   return ret;
   }
+
+static const char * get_error_flacogg(void * data)
+  {
+  bg_ogg_encoder_t * enc = (bg_ogg_encoder_t*)data;
+  return enc->error_msg;
+  }
+
 
 bg_encoder_plugin_t the_plugin =
   {
@@ -63,7 +71,7 @@ bg_encoder_plugin_t the_plugin =
       priority:        5,
       create:            bg_ogg_encoder_create,
       destroy:           bg_ogg_encoder_destroy,
-      //      get_error:         get_error_flacogg,
+      get_error:         get_error_flacogg,
 #if 0
       get_parameters:    get_parameters_flacogg,
       set_parameter:     set_parameter_flacogg,

@@ -489,7 +489,8 @@ static void set_parameter_lame(void * data, char * name, bg_parameter_value_t * 
   }
 
 static int open_lame(void * data, const char * filename,
-                    bg_metadata_t * metadata)
+                     bg_metadata_t * metadata,
+                     bg_chapter_list_t * chapter_list)
   {
   int ret = 1;
   lame_priv_t * lame;
@@ -533,7 +534,8 @@ static const char * get_extension_lame(void * data)
   }
 
 
-static int add_audio_stream_lame(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_lame(void * data, const char * language,
+                                 gavl_audio_format_t * format)
   {
   lame_priv_t * lame;
   

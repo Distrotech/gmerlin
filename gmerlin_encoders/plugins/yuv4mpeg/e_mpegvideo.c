@@ -57,7 +57,8 @@ static const char * get_extension_mpv(void * data)
   }
 
 static int open_mpv(void * data, const char * filename,
-                    bg_metadata_t * metadata)
+                    bg_metadata_t * metadata,
+                    bg_chapter_list_t * chapter_list)
   {
   e_mpv_t * e = (e_mpv_t*)data;
   e->filename = bg_strdup(e->filename, filename);

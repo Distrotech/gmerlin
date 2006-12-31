@@ -134,7 +134,7 @@ static void create_seektable(flac_t * flac)
   }
 
 static int open_flac(void * data, const char * filename,
-                    bg_metadata_t * m)
+                    bg_metadata_t * m, bg_chapter_list_t * chapter_list)
   {
   int result = 1;
   flac_t * flac;
@@ -179,7 +179,9 @@ static const char * get_extension_flac(void * data)
   return flac_extension;
   }
 
-static int add_audio_stream_flac(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_flac(void * data,
+                                 const char * language,
+                                 gavl_audio_format_t * format)
   {
   flac_t * flac;
   flac = (flac_t*)data;

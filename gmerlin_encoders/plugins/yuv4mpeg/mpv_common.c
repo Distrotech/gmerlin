@@ -381,7 +381,7 @@ int bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame)
 
 int bg_mpv_close(bg_mpv_common_t * com)
   {
-  int ret = 0;
+  int ret = 1;
   if(com->mpeg2enc)
     {
     if(bg_subprocess_close(com->mpeg2enc))

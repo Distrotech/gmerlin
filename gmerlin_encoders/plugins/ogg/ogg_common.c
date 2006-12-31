@@ -33,7 +33,9 @@ void bg_ogg_encoder_destroy(void * data)
   free(e);
   }
 
-int bg_ogg_encoder_open(void * data, const char * file, bg_metadata_t * metadata)
+int
+bg_ogg_encoder_open(void * data, const char * file,
+                    bg_metadata_t * metadata, bg_chapter_list_t * chapter_list)
   {
   bg_ogg_encoder_t * e = (bg_ogg_encoder_t *)data;
 

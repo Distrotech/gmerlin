@@ -42,7 +42,8 @@ static const char * get_extension_speex(void * data)
   return speex_extension;
   }
 
-static int add_audio_stream_speex(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_speex(void * data, const char * language,
+                                  gavl_audio_format_t * format)
   {
   int ret;
   ret = bg_ogg_encoder_add_audio_stream(data, format);
@@ -51,7 +52,11 @@ static int add_audio_stream_speex(void * data, gavl_audio_format_t * format)
   }
 
 
-
+static const char * get_error_speex(void * data)
+  {
+  bg_ogg_encoder_t * enc = (bg_ogg_encoder_t*)data;
+  return enc->error_msg;
+  }
 
 bg_encoder_plugin_t the_plugin =
   {
@@ -66,7 +71,7 @@ bg_encoder_plugin_t the_plugin =
       priority:        5,
       create:            bg_ogg_encoder_create,
       destroy:           bg_ogg_encoder_destroy,
-      //      get_error:         get_error_speex,
+      get_error:         get_error_speex,
 #if 0
       get_parameters:    get_parameters_speex,
       set_parameter:     set_parameter_speex,

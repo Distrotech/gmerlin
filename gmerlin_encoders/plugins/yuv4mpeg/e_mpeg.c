@@ -95,7 +95,8 @@ static const char * get_extension_mpeg(void * data)
   }
 
 static int open_mpeg(void * data, const char * filename,
-                    bg_metadata_t * metadata)
+                     bg_metadata_t * metadata,
+                     bg_chapter_list_t * chapter_list)
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
 
@@ -121,7 +122,9 @@ static int open_mpeg(void * data, const char * filename,
   return 1;
   }
 
-static int add_audio_stream_mpeg(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_mpeg(void * data,
+                                 const char * language,
+                                 gavl_audio_format_t * format)
   {
   e_mpeg_t * e = (e_mpeg_t*)data;
 

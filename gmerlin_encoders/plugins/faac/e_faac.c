@@ -273,7 +273,8 @@ static void set_parameter_faac(void * data, char * name,
   }
 
 static int open_faac(void * data, const char * filename,
-                    bg_metadata_t * metadata)
+                     bg_metadata_t * metadata,
+                     bg_chapter_list_t * chapter_list)
   {
   faac_t * faac;
   bgen_id3v2_t * id3v2;
@@ -310,7 +311,9 @@ static const char * get_extension_faac(void * data)
   return faac_extension;
   }
 
-static int add_audio_stream_faac(void * data, gavl_audio_format_t * format)
+static int add_audio_stream_faac(void * data,
+                                 const char * language,
+                                 gavl_audio_format_t * format)
   {
   unsigned long input_samples;
   unsigned long output_bytes;
