@@ -95,6 +95,12 @@ dnl
 GMERLIN_CHECK_MJPEGTOOLS
 
 dnl
+dnl libavformat
+dnl
+
+GMERLIN_CHECK_AVFORMAT
+
+dnl
 dnl CFLAGS
 dnl
 
@@ -125,6 +131,7 @@ plugins/ogg/Makefile \
 plugins/lame/Makefile \
 plugins/faac/Makefile \
 plugins/yuv4mpeg/Makefile \
+plugins/ffmpeg/Makefile \
 ])
 
 AC_OUTPUT
@@ -167,7 +174,6 @@ else
 echo "Missing (Go to: http://www.speex.org/)"
 fi
 
-
 echo -n "lame:       "
 if test "x$have_lame" = "xtrue"; then
 echo "Found (CFLAGS=$LAME_CFLAGS LIBS=$LAME_LIBS)"
@@ -187,6 +193,13 @@ if test "x$have_mjpegtools" = "xtrue"; then
 echo "Found (CFLAGS=$MJPEGTOOLS_CFLAGS LIBS=$MJPEGTOOLS_LIBS)"
 else
 echo "Missing (Go to: http://mjpeg.sourceforge.net/)"
+fi
+
+echo -n "ffmpeg:     "
+if test "x$have_avformat" = "xtrue"; then
+echo "Found (CFLAGS=$AVFORMAT_CFLAGS LIBS=$AVFORMAT_LIBS)"
+else
+echo "Missing (Go to: http://ffmpeg.org/)"
 fi
 
 echo

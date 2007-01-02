@@ -28,5 +28,16 @@ else
 mjpeg_subdirs =
 endif
 
-SUBDIRS = $(ogg_subdirs) $(flac_subdirs) $(lame_subdirs) $(faac_subdirs) $(mjpeg_subdirs)
+if HAVE_LIBAVFORMAT
+ffmpeg_subdirs = ffmpeg
+else
+ffmpeg_subdirs =
+endif
 
+SUBDIRS = \
+$(ogg_subdirs) \
+$(flac_subdirs) \
+$(lame_subdirs) \
+$(faac_subdirs) \
+$(mjpeg_subdirs) \
+$(ffmpeg_subdirs)
