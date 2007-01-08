@@ -91,6 +91,8 @@ typedef enum
     BG_ALBUM_TYPE_INCOMING   = 3,
     /* Favourites */
     BG_ALBUM_TYPE_FAVOURITES = 4,
+    /* Tuner */
+    BG_ALBUM_TYPE_TUNER      = 5,
   } bg_album_type_t;
 
 bg_album_type_t bg_album_get_type(bg_album_t *); 

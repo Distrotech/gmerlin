@@ -77,6 +77,8 @@
 
 #define BG_PLUGIN_STDIN         (1<<8)  //!< Plugin can read from stdin ("-")
 
+#define BG_PLUGIN_TUNER         (1<<9)  //!< Plugin has some kind of tuner
+
 #define BG_PLUGIN_ALL 0xFFFFFFFF //!< Mask of all possible plugin flags
 
 /** @}
@@ -84,7 +86,7 @@
 
 
 
-#define BG_PLUGIN_API_VERSION 7
+#define BG_PLUGIN_API_VERSION 8
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */

@@ -66,6 +66,7 @@ flag_names[] =
     { "KeepRunning", BG_PLUGIN_KEEP_RUNNING   }, /* Plugin should not be stopped and restarted if tracks change */
     { "HasSync",     BG_PLUGIN_INPUT_HAS_SYNC }, /* FOR INPUTS ONLY: Plugin will set the time via callback */
     { "Stdin",          BG_PLUGIN_STDIN         }, /* Plugin reads from stdin */
+    { "Tuner",          BG_PLUGIN_TUNER         }, /* Plugin has tuner */
 
     { (char*)0,    0                           },
   };

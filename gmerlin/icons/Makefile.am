@@ -88,6 +88,7 @@ tracks_dnd_32.png \
 trash_16.png \
 transcoder_icon.png \
 tree_root_16.png \
+tuner_16.png \
 up_16.png \
 video_16.png \
 gmerlin.jpg

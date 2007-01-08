@@ -50,9 +50,12 @@ static GdkPixbuf * incoming_open_pixbuf   = (GdkPixbuf *)0;
 
 static GdkPixbuf * removable_closed_pixbuf = (GdkPixbuf *)0;
 static GdkPixbuf * removable_open_pixbuf = (GdkPixbuf *)0;
-static GdkPixbuf * removable_error_pixbuf = (GdkPixbuf *)0;
+static GdkPixbuf * error_pixbuf = (GdkPixbuf *)0;
 
 static GdkPixbuf * hardware_pixbuf = (GdkPixbuf *)0;
+
+static GdkPixbuf * tuner_pixbuf = (GdkPixbuf *)0;
+
 
 static int num_tree_widgets = 0;
 
@@ -175,7 +178,7 @@ static void load_pixmaps()
   filename = bg_search_file_read("icons", "drive_error_16.png");
   if(filename)
     {
-    removable_error_pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
+    error_pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
     free(filename);
     }
   filename = bg_search_file_read("icons", "hardware_16.png");
@@ -188,6 +191,12 @@ static void load_pixmaps()
   if(filename)
     {
     root_pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
+    free(filename);
+    }
+  filename = bg_search_file_read("icons", "tuner_16.png");
+  if(filename)
+    {
+    tuner_pixbuf = gdk_pixbuf_new_from_file(filename, NULL);
     free(filename);
     }
   }
@@ -204,9 +213,10 @@ static void unload_pixmaps()
   
   g_object_unref(removable_closed_pixbuf);
   g_object_unref(removable_open_pixbuf);
-  g_object_unref(removable_error_pixbuf);
+  g_object_unref(error_pixbuf);
   
   g_object_unref(hardware_pixbuf);
+  g_object_unref(tuner_pixbuf);
     
   root_pixbuf = (GdkPixbuf *)0;
   folder_closed_pixbuf = (GdkPixbuf *)0;
@@ -214,11 +224,10 @@ static void unload_pixmaps()
   
   removable_closed_pixbuf = (GdkPixbuf *)0;
   removable_open_pixbuf = (GdkPixbuf *)0;
-  removable_error_pixbuf = (GdkPixbuf *)0;
+  error_pixbuf = (GdkPixbuf *)0;
   
   hardware_pixbuf = (GdkPixbuf *)0;
-
-  
+  tuner_pixbuf = (GdkPixbuf *)0;
   }
 #endif
 enum
@@ -646,10 +655,19 @@ static void set_album(bg_gtk_tree_widget_t * widget,
                            removable_open_pixbuf, -1);
       else if(bg_album_get_error(album))
         gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
-                           removable_error_pixbuf, -1);
+                           error_pixbuf, -1);
       else
         gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
                            removable_closed_pixbuf, -1);
+      break;
+      /* Tuner */
+    case BG_ALBUM_TYPE_TUNER:
+      if(bg_album_get_error(album))
+        gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
+                           error_pixbuf, -1);
+      else
+        gtk_tree_store_set(GTK_TREE_STORE(model), iter, COLUMN_PIXMAP,
+                         tuner_pixbuf, -1);
       break;
       /* Hardware plugin (Subalbums are devices) */
     case BG_ALBUM_TYPE_PLUGIN:
@@ -1545,6 +1563,7 @@ static void select_row_callback(GtkTreeSelection * sel,
       {
       case BG_ALBUM_TYPE_PLUGIN:
       case BG_ALBUM_TYPE_REMOVABLE:
+      case BG_ALBUM_TYPE_TUNER:
         gtk_tree_view_unset_rows_drag_source(GTK_TREE_VIEW(w->treeview));
         break;
       case BG_ALBUM_TYPE_REGULAR:
@@ -1687,6 +1706,7 @@ static void drag_received_callback(GtkWidget *widget,
       {
       case BG_ALBUM_TYPE_PLUGIN:
       case BG_ALBUM_TYPE_REMOVABLE:
+      case BG_ALBUM_TYPE_TUNER:
         return;
       case BG_ALBUM_TYPE_REGULAR:
       case BG_ALBUM_TYPE_INCOMING:
@@ -1834,6 +1854,7 @@ static gboolean drag_motion_callback(GtkWidget *widget,
           break;
         case BG_ALBUM_TYPE_PLUGIN:
         case BG_ALBUM_TYPE_REMOVABLE:
+        case BG_ALBUM_TYPE_TUNER:
           break;
         }
       }

@@ -65,6 +65,7 @@ flag_names[] =
     { "Bypass",      BG_PLUGIN_BYPASS         }, /* Bypass                         */
     { "Keep Running", BG_PLUGIN_KEEP_RUNNING   }, /* Plugin should not be stopped and restarted if tracks change */
     { "Has Sync",     BG_PLUGIN_INPUT_HAS_SYNC }, /* FOR INPUTS ONLY: Plugin will set the time via callback */
+    { "Tuner",       BG_PLUGIN_TUNER           }, /* Plugin has tuner */
     { (char*)0,      0                        },
   };
 

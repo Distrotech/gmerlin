@@ -275,16 +275,68 @@ static int get_user_pass(void * data, const char * resource,
   }
 
 
+static void add_device_plugins(bg_media_tree_t * ret,
+                               bg_plugin_registry_t * plugin_reg,
+                               int flag, bg_album_type_t type)
+  {
+  bg_album_t * plugin_album;
+  bg_album_t * device_album;
+  int num_plugins, i, j;
+  const bg_plugin_info_t * info;
+  num_plugins =
+    bg_plugin_registry_get_num_plugins(ret->com.plugin_reg,
+                                       BG_PLUGIN_INPUT, flag);
+  
+  for(i = 0; i < num_plugins; i++)
+    {
+    info = bg_plugin_find_by_index(ret->com.plugin_reg, i,
+                                   BG_PLUGIN_INPUT, flag);
+    
+    /* Add album for the plugin */
+
+    plugin_album = bg_album_create(&(ret->com), BG_ALBUM_TYPE_PLUGIN, NULL);
+    plugin_album->name  = bg_strdup(plugin_album->name, info->long_name);
+    plugin_album->plugin_info = info;
+    
+    ret->children = append_album(ret->children, plugin_album);
+
+    /* Now, get the number of devices */
+    
+    if(info->devices && info->devices->device)
+      {
+      j = 0;
+      
+      while(info->devices[j].device)
+        {
+        device_album = bg_album_create(&(ret->com), type, plugin_album);
+        device_album->location = bg_strdup(device_album->location,
+                                           info->devices[j].device);
+        if(info->devices[j].name)
+          {
+          device_album->name = bg_strdup(device_album->name,
+                                         info->devices[j].name);
+          }
+        else
+          {
+          device_album->name = bg_strdup(device_album->name,
+                                         info->devices[j].device);
+          }
+        device_album->plugin_info = info;
+        plugin_album->children = append_album(plugin_album->children,
+                                              device_album);
+        j++;
+        } /* Device loop */
+      }
+    } /* Plugin loop */
+  
+  }
+
 bg_media_tree_t * bg_media_tree_create(const char * filename,
                                        bg_plugin_registry_t * plugin_reg)
   {
   bg_media_tree_t * ret;
-  const bg_plugin_info_t * info;
-  int num_removable, i, j;
   const char * pos1;
   
-  bg_album_t * plugin_album;
-  bg_album_t * device_album;
   
   ret = calloc(1, sizeof(*ret));
 
@@ -325,54 +377,11 @@ bg_media_tree_t * bg_media_tree_create(const char * filename,
     ret->com.favourites->location  = bg_strdup(ret->com.favourites->location, "favourites.xml");
     ret->children = append_album(ret->children, ret->com.favourites);
     }
-
-  /* Check for removable devices */
   
-  num_removable =
-    bg_plugin_registry_get_num_plugins(ret->com.plugin_reg,
-                                       BG_PLUGIN_INPUT, BG_PLUGIN_REMOVABLE);
-
-  for(i = 0; i < num_removable; i++)
-    {
-    info = bg_plugin_find_by_index(ret->com.plugin_reg, i,
-                                   BG_PLUGIN_INPUT, BG_PLUGIN_REMOVABLE);
-    
-    /* Add album for the plugin */
-
-    plugin_album = bg_album_create(&(ret->com), BG_ALBUM_TYPE_PLUGIN, NULL);
-    plugin_album->name  = bg_strdup(plugin_album->name, info->long_name);
-    plugin_album->plugin_info = info;
-
-    ret->children = append_album(ret->children, plugin_album);
-
-    /* Now, get the number of devices */
-    
-    if(info->devices && info->devices->device)
-      {
-      j = 0;
-      
-      while(info->devices[j].device)
-        {
-        device_album = bg_album_create(&(ret->com), BG_ALBUM_TYPE_REMOVABLE, plugin_album);
-        device_album->location = bg_strdup(device_album->location,
-                                           info->devices[j].device);
-        if(info->devices[j].name)
-          {
-          device_album->name = bg_strdup(device_album->name,
-                                         info->devices[j].name);
-          }
-        else
-          {
-          device_album->name = bg_strdup(device_album->name,
-                                         info->devices[j].device);
-          }
-        device_album->plugin_info = info;
-        plugin_album->children = append_album(plugin_album->children,
-                                              device_album);
-        j++;
-        } /* Device loop */
-      }
-    } /* Plugin loop */
+  /* Check for removable devices */
+  add_device_plugins(ret, plugin_reg, BG_PLUGIN_REMOVABLE, BG_ALBUM_TYPE_REMOVABLE);
+  add_device_plugins(ret, plugin_reg, BG_PLUGIN_TUNER,     BG_ALBUM_TYPE_TUNER);
+  
   return ret;
   }
 
@@ -509,6 +518,7 @@ int bg_media_tree_check_move_album_before(bg_media_tree_t * t,
     {
     case BG_ALBUM_TYPE_REMOVABLE:
     case BG_ALBUM_TYPE_PLUGIN:
+    case BG_ALBUM_TYPE_TUNER:
       return 0;
     case BG_ALBUM_TYPE_INCOMING:
     case BG_ALBUM_TYPE_FAVOURITES:
@@ -533,6 +543,7 @@ int bg_media_tree_check_move_album_after(bg_media_tree_t * t,
     {
     case BG_ALBUM_TYPE_REMOVABLE:
     case BG_ALBUM_TYPE_PLUGIN:
+    case BG_ALBUM_TYPE_TUNER:
       return 0;
     case BG_ALBUM_TYPE_INCOMING:
     case BG_ALBUM_TYPE_FAVOURITES:
@@ -637,6 +648,7 @@ int bg_media_tree_check_move_album(bg_media_tree_t * t,
     {
     case BG_ALBUM_TYPE_REMOVABLE:
     case BG_ALBUM_TYPE_PLUGIN:
+    case BG_ALBUM_TYPE_TUNER:
       return 0;
     case BG_ALBUM_TYPE_REGULAR:
     case BG_ALBUM_TYPE_INCOMING:
@@ -1045,7 +1057,8 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
     error_message = bg_sprintf("Doubleclick on a track first");
     goto fail;
     }
-  if(t->com.current_album->type == BG_ALBUM_TYPE_REMOVABLE)
+  if((t->com.current_album->type == BG_ALBUM_TYPE_REMOVABLE) ||
+     (t->com.current_album->type == BG_ALBUM_TYPE_TUNER))
     {
     ret = t->com.current_album->handle;
     bg_plugin_ref(ret);

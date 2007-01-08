@@ -250,7 +250,8 @@ static app_window * create_window(bg_plugin_registry_t * reg)
                                       BG_PLUGIN_INPUT,
                                       BG_PLUGIN_FILE|
                                       BG_PLUGIN_URL|
-                                      BG_PLUGIN_REMOVABLE, ret->tooltips);
+                                      BG_PLUGIN_REMOVABLE |
+                                      BG_PLUGIN_TUNER, ret->tooltips);
   
   label = gtk_label_new("Input plugins");
   gtk_widget_show(label);

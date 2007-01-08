@@ -435,7 +435,8 @@ static int process_audio(bg_player_input_context_t * ctx, int preload)
     if(!audio_frame)
       return 0;
 
-    if(!ctx->plugin->read_audio_samples(ctx->priv, audio_frame, 0,
+    if(!ctx->plugin->read_audio_samples(ctx->priv, audio_frame,
+                                        ctx->player->current_audio_stream,
                                         ctx->player->audio_stream.input_format.samples_per_frame))
       ctx->audio_finished = 1;
     ctx->audio_samples_written += audio_frame->valid_samples;

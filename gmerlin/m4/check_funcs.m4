@@ -38,6 +38,46 @@ fi
 ])
 
 dnl
+dnl Avformat
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_AVFORMAT],[
+
+AH_TEMPLATE([HAVE_LIBAVFORMAT],
+            [Do we have libavformat installed?])
+
+have_avformat=false
+
+AVFORMAT_BUILD="3278080"
+
+AC_ARG_ENABLE(libavformat,
+[AC_HELP_STRING([--disable-libavformat],[Disable libavformat (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_avformat=true ;;
+   no)  test_avformat=false ;;
+esac],[test_avformat=true])
+
+if test x$test_avformat = xtrue; then
+
+ACL_PATH_AVFORMAT($AVFORMAT_BUILD , have_avformat="true", have_avformat="false")
+AVFORMAT_REQUIRED=$AVFORMAT_VERSION
+
+fi
+
+AM_CONDITIONAL(HAVE_LIBAVFORMAT, test x$have_avformat = xtrue)
+
+AC_SUBST(AVFORMAT_REQUIRED)
+AC_SUBST(AVFORMAT_LIBS)
+AC_SUBST(AVFORMAT_CFLAGS)
+
+if test "x$have_avformat" = "xtrue"; then
+AC_DEFINE([HAVE_LIBAVFORMAT])
+fi
+
+])
+
+
+dnl
 dnl libpostproc
 dnl
 

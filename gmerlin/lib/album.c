@@ -201,6 +201,7 @@ static void insertion_done(bg_album_t * album)
       break;
     case BG_ALBUM_TYPE_REMOVABLE:
     case BG_ALBUM_TYPE_PLUGIN:
+    case BG_ALBUM_TYPE_TUNER:
       break;
     }
   delete_shuffle_list(album);
@@ -456,6 +457,7 @@ int bg_album_open(bg_album_t * a)
         }
       break;
     case BG_ALBUM_TYPE_REMOVABLE:
+    case BG_ALBUM_TYPE_TUNER:
       /* Get infos from the plugin */
       if(!open_removable(a))
         return 0;
@@ -538,6 +540,7 @@ void bg_album_close(bg_album_t *a )
   switch(a->type)
     {
     case BG_ALBUM_TYPE_REMOVABLE:
+    case BG_ALBUM_TYPE_TUNER:
       a->flags &= ~BG_ALBUM_CAN_EJECT;
       bg_plugin_unref(a->handle);
       a->handle = (bg_plugin_handle_t*)0;
