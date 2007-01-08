@@ -572,6 +572,7 @@ bgav_rmff_header_t * bgav_rmff_header_read(bgav_input_context_t * ctx)
                        "No index found, where I expected one");
               break;
               }
+            memset(&indx, 0, sizeof(indx));
             if(!bgav_rmff_indx_read(ctx, &indx))
               {
               keep_going = 0;

@@ -604,6 +604,11 @@ extern bgav_input_t bgav_input_vcd;
 extern bgav_input_t bgav_input_dvd;
 #endif
 
+#ifdef HAVE_LINUXDVB
+extern bgav_input_t bgav_input_dvb;
+#endif
+
+
 #endif
 
 #ifdef HAVE_SAMBA
@@ -631,6 +636,9 @@ void bgav_inputs_dump()
 #endif
 #ifdef HAVE_SAMBA
   bgav_dprintf( "<li>%s\n", bgav_input_smb.name);
+#endif
+#ifdef HAVE_LINUXDVB
+  bgav_dprintf( "<li>%s\n", bgav_input_dvb.name);
 #endif
   bgav_dprintf( "</ul>\n");
   }

@@ -78,29 +78,29 @@ int bgav_pes_header_read(bgav_input_context_t * input,
       if((header_flags & 0xc0) == 0x80) /* PTS present */
         {
         bgav_input_read_8(input, &c);
-        ret->pts = ((c >> 1) & 7) << 30;
+        ret->pts = (int64_t)((c >> 1) & 7) << 30;
         bgav_input_read_16_be(input, &tmp_16);
-        ret->pts |= (tmp_16 >> 1) << 15;
+        ret->pts |= (int64_t)(tmp_16 >> 1) << 15;
         bgav_input_read_16_be(input, &tmp_16);
-        ret->pts |= (tmp_16 >> 1);
+        ret->pts |= (int64_t)(tmp_16 >> 1);
         header_size -= 5;
         }
       else if((header_flags & 0xc0) == 0xc0) /* PTS+DTS present */
         {
         bgav_input_read_8(input, &c);
-        ret->pts = ((c >> 1) & 7) << 30;
+        ret->pts = (int64_t)((c >> 1) & 7) << 30;
         bgav_input_read_16_be(input, &tmp_16);
-        ret->pts |= (tmp_16 >> 1) << 15;
+        ret->pts |= (int64_t)(tmp_16 >> 1) << 15;
         bgav_input_read_16_be(input, &tmp_16);
-        ret->pts |= (tmp_16 >> 1);
+        ret->pts |= (int64_t)(tmp_16 >> 1);
         header_size -= 5;
 
         bgav_input_read_8(input, &c);
-        ret->dts = ((c >> 1) & 7) << 30;
+        ret->dts = (int64_t)((c >> 1) & 7) << 30;
         bgav_input_read_16_be(input, &tmp_16);
-        ret->dts |= (tmp_16 >> 1) << 15;
+        ret->dts |= (int64_t)(tmp_16 >> 1) << 15;
         bgav_input_read_16_be(input, &tmp_16);
-        ret->dts |= (tmp_16 >> 1);
+        ret->dts |= (int64_t)(tmp_16 >> 1);
         header_size -= 5;
         }
 
@@ -126,28 +126,28 @@ int bgav_pes_header_read(bgav_input_context_t * input,
 
     if((c & 0xf0) == 0x20)
       {
-      ret->pts = ((c >> 1) & 7) << 30;
+      ret->pts = (int64_t)((c >> 1) & 7) << 30;
       bgav_input_read_16_be(input, &tmp_16);
-      ret->pts |= ((tmp_16 >> 1) << 15);
+      ret->pts |= (int64_t)((tmp_16 >> 1) << 15);
       bgav_input_read_16_be(input, &tmp_16);
-      ret->pts |= (tmp_16 >> 1);
+      ret->pts |= (int64_t)(tmp_16 >> 1);
       }
     else if((c & 0xf0) == 0x30)
       {
       /* PTS */
-      ret->pts = ((c >> 1) & 7) << 30;
+      ret->pts = (int64_t)((c >> 1) & 7) << 30;
       bgav_input_read_16_be(input, &tmp_16);
-      ret->pts |= ((tmp_16 >> 1) << 15);
+      ret->pts |= (int64_t)((tmp_16 >> 1) << 15);
       bgav_input_read_16_be(input, &tmp_16);
-      ret->pts |= (tmp_16 >> 1);
+      ret->pts |= (int64_t)(tmp_16 >> 1);
       /* DTS */
 
       bgav_input_read_data(input, &c, 1);
-      ret->dts = ((c >> 1) & 7) << 30;
+      ret->dts = (int64_t)((c >> 1) & 7) << 30;
       bgav_input_read_16_be(input, &tmp_16);
-      ret->dts |= ((tmp_16 >> 1) << 15);
+      ret->dts |= (int64_t)((tmp_16 >> 1) << 15);
       bgav_input_read_16_be(input, &tmp_16);
-      ret->dts |= (tmp_16 >> 1);
+      ret->dts |= (int64_t)(tmp_16 >> 1);
 
       //  bgav_input_skip(input, 5);
       }

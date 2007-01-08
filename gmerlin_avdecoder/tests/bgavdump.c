@@ -27,6 +27,8 @@
 
 #include <termios.h> /* Ask passwords */
 
+// #define TRACK 6
+
 /* Taken from the Unix programmer FAQ: http://www.faqs.org/faqs/unix-faq/programmer/faq/ */
 
 static struct termios stored_settings;
@@ -163,6 +165,15 @@ int main(int argc, char ** argv)
       return -1;
       }
     }
+  else if(!strncmp(argv[1], "dvb://", 6))
+    {
+    if(!bgav_open_dvb(file, argv[1] + 6))
+      {
+      fprintf(stderr, "Could not open DVB Device %s\n",
+              argv[1] + 5);
+      return -1;
+      }
+    }
   else if(!bgav_open(file, argv[1]))
     {
     fprintf(stderr, "Could not open file %s\n",
@@ -184,8 +195,13 @@ int main(int argc, char ** argv)
     return 0;
     }
   num_tracks = bgav_num_tracks(file);
+
+#ifdef TRACK  
+  track = TRACK;
+#else
   for(track = 0; track < num_tracks; track++)
     {
+#endif
     fprintf(stderr, "===================================\n");
     fprintf(stderr, "============ Track %3d ============\n", track+1);
     fprintf(stderr, "===================================\n");
@@ -203,8 +219,17 @@ int main(int argc, char ** argv)
       bgav_set_subtitle_stream(file, i, BGAV_STREAM_DECODE);
     
     fprintf(stderr, "Starting decoders...");
-    bgav_start(file);
-    fprintf(stderr, "done\n");
+    if(!bgav_start(file))
+      {
+      fprintf(stderr, "failed\n");
+#ifndef TRACK  
+      continue;
+#else
+      return -1;
+#endif
+      }
+    else
+      fprintf(stderr, "done\n");
     
     fprintf(stderr, "Dumping file contents...\n");
     bgav_dump(file);
@@ -283,8 +308,9 @@ int main(int argc, char ** argv)
         gavl_video_frame_destroy(ovl.frame);
         }
       }
+#ifndef TRACK
     }
-
+#endif
   if(sub_text)
     free(sub_text);
     

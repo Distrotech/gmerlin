@@ -203,6 +203,13 @@ xadll_sources =
 xadll_libs = 
 endif
 
+if HAVE_LINUXDVB
+dvb_sources = dvb_channels.c
+else
+dvb_sources = 
+endif
+
+
 SUBDIRS = $(win32_subdirs) GSM610
 
 libgmerlin_avdec_la_LDFLAGS=-export-dynamic
@@ -269,6 +276,7 @@ $(mjpegtools_sources) \
 $(samba_sources) \
 $(theora_sources) \
 $(speex_sources) \
+$(dvb_sources) \
 RTjpeg.c \
 apetag.c \
 audio.c \
@@ -333,6 +341,7 @@ dvframe.c \
 http.c \
 id3v1.c \
 id3v2.c \
+in_dvb_linux.c \
 in_dvd.c \
 in_fd.c \
 in_file.c \
@@ -347,6 +356,7 @@ input.c \
 languages.c \
 log.c \
 metadata.c \
+mpegts_common.c \
 mms.c \
 nanosoft.c \
 options.c \

@@ -1068,6 +1068,18 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '2'),
                     0x00 } },
 #endif
+
+#if LIBAVCODEC_BUILD >= 3349248
+    // #if 0
+    { "FFmpeg VP6.0 decoder", "On2 VP6.0", CODEC_ID_VP6,
+      (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '0'),
+                    0x00 } },
+    { "FFmpeg VP6.1 decoder", "On2 VP6.1", CODEC_ID_VP6,
+      (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '1'),
+                    0x00 } },
+    
+#endif
+
     
     { "FFmpeg ASV1 decoder", "Asus v1", CODEC_ID_ASV1,
       (uint32_t[]){ BGAV_MK_FOURCC('A', 'S', 'V', '1'),

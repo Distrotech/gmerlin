@@ -13,6 +13,8 @@ dnl
 
 AC_CHECK_HEADERS(byteswap.h)
 
+
+
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 AC_CHECK_FUNCS(ftello vasprintf)
@@ -190,6 +192,12 @@ dnl
 GMERLIN_CHECK_CDIO
 
 dnl
+dnl Linux DVB support
+dnl 
+
+GMERLIN_CHECK_LINUXDVB
+
+dnl
 dnl Check wether to enable win32 DLLs
 dnl We compile them, if we have an intel architecture and
 dnl gcc. Other libs make a more complicated check here.
@@ -277,7 +285,7 @@ dnl
 dnl Build optimization flags
 dnl
 
-LQT_OPT_CFLAGS($host_cpu, ["-O3 -funroll-all-loops -fomit-frame-pointer -ffast-math"])
+LQT_OPT_CFLAGS($host_cpu, ["-O3 -funroll-all-loops -ffast-math"])
 AC_SUBST(OPT_CFLAGS)
 
 dnl
@@ -298,6 +306,10 @@ dnl Common libs
 dnl 
 
 LIBS="$LIBS $GAVL_LIBS"
+
+if test "x$LQT_PROFILE" = "xtrue"; then
+LIBS="$LIBS $GAVL_LIBS -pg"
+fi
 
 dnl
 dnl Output
@@ -508,6 +520,13 @@ if test "x$enable_xadll" = "xtrue"; then
 echo "Enabled"
 else
 echo "Disabled (Unsupported Architecture)"
+fi
+
+echo -n "Linux DVB Support:      "
+if test "x$have_linuxdvb" = "xtrue"; then
+echo "Enabled"
+else
+echo "Disabled (Unsupported Architecture or kernel headers missing)"
 fi
 
 echo

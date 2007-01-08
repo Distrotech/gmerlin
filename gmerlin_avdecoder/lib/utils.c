@@ -462,3 +462,10 @@ int bgav_slurp_file(const char * location,
   bgav_input_destroy(input);
   return 1;
   }
+
+int bgav_check_file_read(const char * filename)
+  {
+  if(access(filename, R_OK))
+    return 0;
+  return 1;
+  }

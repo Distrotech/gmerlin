@@ -606,6 +606,8 @@ struct bgav_options_s
   /* Postprocessing level (0..6) */
   
   int pp_level;
+
+  char * dvb_channels_file;
   
   /* Callbacks */
 
@@ -722,6 +724,9 @@ struct bgav_input_context_s
   
   char * error_msg;
 
+  // Stream ID, which will be used for syncing (for DVB)
+  int sync_id;
+  
   };
 
 /* input.c */
@@ -1190,6 +1195,11 @@ int bgav_slurp_file(const char * location,
                     int * size,
                     const bgav_options_t * opt);
 
+/* Check if file exist and is readable */
+
+int bgav_check_file_read(const char * filename);
+
+
 
 /* Read a single line from a filedescriptor */
 
@@ -1303,6 +1313,8 @@ const char * bgav_lang_from_name(const char * name);
 const char * bgav_lang_from_twocc(const char * twocc);
 
 const char * bgav_lang_name(const char * lang);
+
+void bgav_correct_language(char * lang);
 
 /* subreader.c */
 

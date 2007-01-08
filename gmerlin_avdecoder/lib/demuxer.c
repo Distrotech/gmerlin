@@ -17,7 +17,7 @@
  
 *****************************************************************/
 
-#define DUMP_SUPERINDEX    
+// #define DUMP_SUPERINDEX    
 #include <avdec_private.h>
 
 #include <stdio.h>
@@ -156,7 +156,7 @@ static demuxer_t demuxers[] =
 
 static demuxer_t sync_demuxers[] =
   {
-    //    { &bgav_demuxer_mpegts,    "MPEG-2 transport stream" },
+    { &bgav_demuxer_mpegts,    "MPEG-2 transport stream" },
     { &bgav_demuxer_mpegaudio, "Mpeg Audio" },
     { &bgav_demuxer_mpegps, "Mpeg System" },
   };
@@ -381,6 +381,17 @@ void bgav_demuxer_stop(bgav_demuxer_context_t * ctx)
   ctx->demuxer->close(ctx);
   ctx->priv = NULL;
   FREE(ctx->stream_description);
+  FREE(ctx->error_msg);
+  
+  /* Reset global variables */
+  ctx->flags = 0;
+  ctx->timestamp_offset = 0;
+  if(ctx->si)
+    {
+    bgav_superindex_destroy(ctx->si);
+    ctx->si = (bgav_superindex_t*)0;
+    }
+  
   }
 
 static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
@@ -405,11 +416,11 @@ static int next_packet_interleaved(bgav_demuxer_context_t * ctx)
   
   if(!stream) /* Skip unused stream */
     {
-    //    bgav_input_skip(ctx->input,
-    //                    ctx->si->entries[ctx->si->current_position].size);
+    bgav_input_skip(ctx->input,
+                    ctx->si->entries[ctx->si->current_position].size);
 
-    bgav_input_skip_dump(ctx->input,
-                         ctx->si->entries[ctx->si->current_position].size);
+    //    bgav_input_skip_dump(ctx->input,
+    //                         ctx->si->entries[ctx->si->current_position].size);
     
     ctx->si->current_position++;
     return 1;

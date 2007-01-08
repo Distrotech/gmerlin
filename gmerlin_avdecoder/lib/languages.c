@@ -64,3 +64,28 @@ const char * bgav_lang_name(const char * lang)
   return (char*)0;
   }
 
+void bgav_correct_language(char * lang)
+  {
+  int i;
+  char lang_save[4];
+  memcpy(lang_save, lang, 3);
+  lang_save[3] = '\0';
+  memset(lang, 0, 4);
+  
+  for(i = 0; i < num_lang; i++)
+    {
+    if(language_codes[i].iso_639_b &&
+       !strcmp(language_codes[i].iso_639_b, lang_save))
+      {
+      memcpy(lang, language_codes[i].iso_639_b, 3);
+      break;
+      }
+    else if(language_codes[i].iso_639_t &&
+            language_codes[i].iso_639_b &&
+            !strcmp(language_codes[i].iso_639_t,lang_save ))
+      {
+      memcpy(lang, language_codes[i].iso_639_b, 3);
+      break;
+      }
+    }
+  }

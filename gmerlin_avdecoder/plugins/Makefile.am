@@ -16,13 +16,19 @@ cdio_modules =
 cdio_cflags =
 endif
 
+if HAVE_LINUXDVB
+dvb_modules = i_dvb.la
+else
+dvb_modules =
+endif
+
 AM_CFLAGS = @OPT_CFLAGS@ @GMERLIN_CFLAGS@ $(cdio_cflags)
 
 lib_LTLIBRARIES = \
 i_avdec.la \
 $(cdio_modules) \
-$(dvdread_modules)
-
+$(dvdread_modules) \
+$(dvb_modules)
 
 noinst_HEADERS = avdec_common.h
 
@@ -37,3 +43,7 @@ i_vcd_la_LIBADD = @top_srcdir@/lib/libgmerlin_avdec.la
 i_dvd_la_SOURCES = i_dvd.c avdec_common.c
 i_dvd_la_LDFLAGS = -avoid-version -module
 i_dvd_la_LIBADD = @top_srcdir@/lib/libgmerlin_avdec.la
+
+i_dvb_la_SOURCES = i_dvb.c avdec_common.c
+i_dvb_la_LDFLAGS = -avoid-version -module
+i_dvb_la_LIBADD = @top_srcdir@/lib/libgmerlin_avdec.la

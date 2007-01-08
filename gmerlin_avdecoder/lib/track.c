@@ -177,6 +177,7 @@ bgav_stream_t * bgav_track_find_stream(bgav_track_t * t, int stream_id)
 void bgav_track_stop(bgav_track_t * t)
   {
   int i;
+  
   for(i = 0; i < t->num_audio_streams; i++)
     {
     bgav_stream_stop(&(t->audio_streams[i]));
@@ -568,13 +569,13 @@ int bgav_track_has_sync(bgav_track_t * t)
   for(i = 0; i < t->num_audio_streams; i++)
     {
     if((t->audio_streams[i].action == BGAV_STREAM_DECODE) &&
-       (t->audio_streams[i].time_scaled < 0))
+       (t->audio_streams[i].time_scaled == BGAV_TIMESTAMP_UNDEFINED))
       return 0;
     }
   for(i = 0; i < t->num_video_streams; i++)
     {
     if((t->video_streams[i].action == BGAV_STREAM_DECODE) &&
-       (t->video_streams[i].time_scaled < 0))
+       (t->video_streams[i].time_scaled == BGAV_TIMESTAMP_UNDEFINED))
       return 0;
     }
   return 1;

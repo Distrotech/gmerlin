@@ -1,6 +1,6 @@
+bin_PROGRAMS = bgavdump
 
-
-noinst_PROGRAMS = bgavdump \
+noinst_PROGRAMS = \
 bgavsave \
 mmstest \
 rtsptest \

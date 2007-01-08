@@ -453,6 +453,20 @@ void bgav_options_set_seek_subtitles(bgav_options_t* opt,
 void bgav_options_set_pp_level(bgav_options_t* opt,
                                int pp_level);
 
+/** \ingroup options
+ *  \brief Set DVB channels file
+ *  \param opt Option container
+ *  \param Name of the channel configurations file
+ *
+ *  The channels file must have the format of the dvb-utils
+ *  programs (like szap, tzap). If you don't set this file,
+ *  several locations like $HOME/.tzap/channels.conf will be
+ *  searched.
+ */
+
+void bgav_options_set_dvb_channels_file(bgav_options_t* opt,
+                                        const char * file);
+
 
 /** \ingroup options
  *  \brief Enumeration for log levels
@@ -682,11 +696,29 @@ bgav_device_info_t * bgav_find_devices_dvd();
 
 int bgav_check_device_dvd(const char * device, char ** name);
 
+/** \ingroup devices
+ *  \brief Scan for DVB capable devices
+ *  \returns A \ref bgav_device_info_t array or NULL
+ *
+ *  Free the returned array with \ref bgav_device_info_destroy
+ */
+
+bgav_device_info_t * bgav_find_devices_dvb();
+
+/** \ingroup devices
+ *  \brief Test if a device is DVB capable
+ *  \param device The directory (e.g. /dev/dvb/adaptor0)
+ *  \param name Returns a human readable decription in a newly allocated string or NULL
+ *  \returns 1 if the device is ready to receive DVB streams, 0 else.
+*/
+
+int bgav_check_device_dvb(const char * device, char ** name);
 
 /** \ingroup devices
  *  \brief Destroy a device info array
- *  \param arr A device info returned by \ref bgav_find_devices_dvd or \ref bgav_find_devices_dvd
+ *  \param arr A device info returned by \ref bgav_find_devices_dvd, \ref bgav_find_devices_dvb or \ref bgav_find_devices_dvd
  */
+
 
 void bgav_device_info_destroy(bgav_device_info_t * arr);
 
@@ -738,6 +770,19 @@ int bgav_open_vcd(bgav_t * bgav, const char * location);
  */
 
 int bgav_open_dvd(bgav_t * bgav, const char * location);
+
+/** \ingroup opening
+ *  \brief Open a DVB device
+ *  \param bgav A decoder instance
+ *  \param location The device directory
+ *  \returns 1 if the DVB device was successfully openend, 0 else.
+ *
+ *  This function will search your system for channel configuration files,
+ *  which are created by other tools. The channels are then available as
+ *  normal tracks.
+ */
+
+int bgav_open_dvb(bgav_t * bgav, const char * location);
 
 
 /** \ingroup opening

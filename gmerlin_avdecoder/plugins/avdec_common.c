@@ -505,6 +505,10 @@ bg_avdec_set_parameter(void * p, char * name,
     {
     bgav_options_set_pp_level(avdec->opt, val->val_i);
     }
+  else if(!strcmp(name, "dvb_channels_file"))
+    {
+    bgav_options_set_dvb_channels_file(avdec->opt, val->val_str);
+    }
   }
 
 int bg_avdec_get_num_tracks(void * p)

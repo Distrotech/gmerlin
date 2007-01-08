@@ -146,6 +146,15 @@ void bgav_options_set_pp_level(bgav_options_t* opt,
     opt->pp_level = 6;
   }
 
+void bgav_options_set_dvb_channels_file(bgav_options_t* opt,
+                                        const char * file)
+  {
+  if(opt->dvb_channels_file)
+    free(opt->dvb_channels_file);
+  opt->dvb_channels_file = bgav_strdup(file);
+  }
+
+
 
 #define FREE(ptr) if(ptr) free(ptr)
 
@@ -156,9 +165,8 @@ void bgav_options_free(bgav_options_t*opt)
   FREE(opt->http_proxy_user);
   FREE(opt->http_proxy_pass);
   FREE(opt->default_subtitle_encoding);
+  FREE(opt->dvb_channels_file);
   }
-
-
 
 void bgav_options_set_defaults(bgav_options_t * b)
   {
@@ -228,6 +236,10 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
 
   CP_INT(dvd_chapters_as_tracks);
 
+  /* DVB */
+  
+  CP_STR(dvb_channels_file);
+  
   /* Audio */
 
   CP_INT(audio_dynrange);

@@ -175,3 +175,4 @@ CODEC_ID_XAN_DPCM
 * CODEC_ID_DVB_SUBTITLE
 # CODEC_ID_MPEG2TS= 0x20000 /* _FAKE_ codec to indicate a raw MPEG2 transport
 + CODEC_ID_IMC
+# CODEC_ID_MUSEPACK7 // Handled by libmpcdec
