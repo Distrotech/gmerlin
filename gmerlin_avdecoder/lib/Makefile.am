@@ -278,6 +278,7 @@ $(theora_sources) \
 $(speex_sources) \
 $(dvb_sources) \
 RTjpeg.c \
+a52_header.c \
 apetag.c \
 audio.c \
 audio_gavl.c \

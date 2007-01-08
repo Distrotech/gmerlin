@@ -27,6 +27,8 @@
 
 #include <avdec_private.h>
 #include <pes_header.h>
+#include <a52_header.h>
+
 #include <mpegts_common.h>
 
 #define LOG_DOMAIN "demux_ts"
@@ -538,11 +540,151 @@ static int init_psi(bgav_demuxer_context_t * ctx,
   return 1;
   }
 
+typedef struct
+  {
+  int pid;
+  int pes_id;
+  uint8_t * buffer;
+  int buffer_size;
+  int buffer_alloc;
+  int done;
+  } test_stream_t;
+
+typedef struct
+  {
+  int num_streams;
+  int last_added;
+  test_stream_t * streams;
+  } test_streams_t;
+
+static void
+test_streams_append_packet(test_streams_t * s, uint8_t * data,
+                           int data_size,
+                           int pid, bgav_pes_header_t * header)
+  {
+  int i, index = -1;
+  for(i = 0; i < s->num_streams; i++)
+    {
+    if(s->streams[i].pid == pid)
+      {
+      index = i;
+      break;
+      }
+    }
+
+  if(index == -1)
+    {
+    if(!header)
+      {
+      s->last_added = -1;
+      return;
+      }
+    else
+      {
+      s->streams =
+        realloc(s->streams, (s->num_streams+1)*sizeof(*s->streams));
+      memset(s->streams + s->num_streams, 0, sizeof(*s->streams));
+      s->last_added = s->num_streams;
+      s->num_streams++;
+      s->streams[s->last_added].pes_id = header->stream_id;
+      s->streams[s->last_added].pid = pid;
+      }
+    }
+  else if(s->streams[index].done)
+    {
+    s->last_added = -1;
+    return;
+    }
+  else
+    s->last_added = index;
+    
+  if(s->streams[s->last_added].buffer_size + data_size >
+     s->streams[s->last_added].buffer_alloc)
+    {
+    s->streams[s->last_added].buffer_alloc =
+      s->streams[s->last_added].buffer_size + data_size + 1024;
+    s->streams[s->last_added].buffer =
+      realloc(s->streams[s->last_added].buffer,
+              s->streams[s->last_added].buffer_alloc);
+    }
+  memcpy(s->streams[s->last_added].buffer +
+         s->streams[s->last_added].buffer_size,
+         data, data_size);
+  s->streams[s->last_added].buffer_size += data_size;
+  }
+
+static int test_a52(test_stream_t * st)
+  {
+  /* Check for 2 consecutive a52 headers */
+  bgav_a52_header_t header;
+  uint8_t * ptr, *ptr_end;
+  
+  ptr     = st->buffer;
+  ptr_end = st->buffer + st->buffer_size;
+
+  while(ptr_end - ptr > BGAV_A52_HEADER_BYTES)
+    {
+    if(bgav_a52_header_read(&header, ptr))
+      {
+      ptr += header.total_bytes;
+      
+      if((ptr_end - ptr > BGAV_A52_HEADER_BYTES) &&
+         bgav_a52_header_read(&header, ptr))
+        {
+        return 1;
+        }
+      }
+    else
+      ptr++;
+    }
+  
+  return 0;
+  }
+
+static bgav_stream_t *
+test_streams_detect(test_streams_t * s, bgav_track_t * track,
+                    const bgav_options_t * opt)
+  {
+  bgav_stream_t * ret = (bgav_stream_t*)0;
+  test_stream_t * st;
+  if(s->last_added < 0)
+    return (bgav_stream_t *)0;
+
+  st = s->streams + s->last_added;
+  
+  if(test_a52(st))
+    {
+    ret = bgav_track_add_audio_stream(track, opt);
+    ret->fourcc = BGAV_MK_FOURCC('.','a','c','3');
+    fprintf(stderr, "Detected AC3 Stream\n");
+    }
+
+  if(ret)
+    st->done = 1;
+  
+  return ret;
+  }
+
+static void test_data_free(test_streams_t * s)
+  {
+  int i;
+  for(i = 0; i < s->num_streams; i++)
+    {
+    if(s->streams[i].buffer)
+      free(s->streams[i].buffer);
+    }
+  free(s->streams);
+  }
+
 static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
   {
   mpegts_t * priv;
   bgav_pes_header_t pes_header;
   bgav_stream_t * s;
+
+  test_streams_t ts;
+
+  memset(&ts, 0, sizeof(ts));
   
   priv = (mpegts_t*)(ctx->priv);
   
@@ -564,8 +706,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
       fprintf(stderr, "Got PCR PID: %d\n", priv->programs[0].pcr_pid);
       }
     
-    if(!priv->packet.payload_start ||
-       bgav_track_find_stream_all(&ctx->tt->tracks[0],
+    if(bgav_track_find_stream_all(&ctx->tt->tracks[0],
                                   priv->packet.pid))
       {
       if(!next_packet_scan(ctx->input, priv, input_can_seek))
@@ -573,36 +714,52 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
       else
         continue;
       }
-    bgav_input_reopen_memory(priv->input_mem, priv->ptr,
-                             priv->buffer_size -
-                             (priv->ptr - priv->buffer));
-    
-    bgav_pes_header_read(priv->input_mem, &pes_header);
-    priv->ptr += priv->input_mem->position;
-        
-    fprintf(stderr, "payload start:\n");
-    bgav_pes_header_dump(&pes_header);
-        
-    /* MPEG-2 Video */
-    if((pes_header.stream_id >= 0xe0) && (pes_header.stream_id <= 0xef))
+
+    if(priv->packet.payload_start)
       {
-      s = bgav_track_add_video_stream(&ctx->tt->tracks[0], ctx->opt);
-      s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
-      fprintf(stderr, "Detected mpeg video stream\n");
-      }
-    /* MPEG Audio */
-    else if((pes_header.stream_id & 0xe0) == 0xc0)
-      {
-      s = bgav_track_add_audio_stream(&ctx->tt->tracks[0], ctx->opt);
-      s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
-      fprintf(stderr, "Detected mpeg audio stream\n");
+      bgav_input_reopen_memory(priv->input_mem, priv->ptr,
+                               priv->buffer_size -
+                               (priv->ptr - priv->buffer));
+      
+      bgav_pes_header_read(priv->input_mem, &pes_header);
+      priv->ptr += priv->input_mem->position;
+      
+      fprintf(stderr, "payload start, PID: %d\n", priv->packet.pid);
+      bgav_pes_header_dump(&pes_header);
+      
+      /* MPEG-2 Video */
+      if((pes_header.stream_id >= 0xe0) && (pes_header.stream_id <= 0xef))
+        {
+        s = bgav_track_add_video_stream(&ctx->tt->tracks[0], ctx->opt);
+        s->fourcc = BGAV_MK_FOURCC('m', 'p', 'g', 'v');
+        fprintf(stderr, "Detected mpeg video stream\n");
+        }
+      /* MPEG Audio */
+      else if((pes_header.stream_id & 0xe0) == 0xc0)
+        {
+        s = bgav_track_add_audio_stream(&ctx->tt->tracks[0], ctx->opt);
+        s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
+        fprintf(stderr, "Detected mpeg audio stream\n");
+        }
+      else
+        {
+        test_streams_append_packet(&ts, priv->ptr,
+                                   priv->packet.payload_size -
+                                   priv->input_mem->position,
+                                   priv->packet.pid,
+                                   &pes_header);
+        s = test_streams_detect(&ts, &ctx->tt->tracks[0], ctx->opt);
+        }
       }
     else
       {
-      fprintf(stderr, "Unknown data\n");
-      bgav_hexdump(priv->ptr, 16, 16);
-      s = (bgav_stream_t*)0;
+      test_streams_append_packet(&ts, priv->ptr,
+                                 priv->packet.payload_size,
+                                 priv->packet.pid,
+                                 (bgav_pes_header_t*)0);
+      s = test_streams_detect(&ts, &ctx->tt->tracks[0], ctx->opt);
       }
+    
     if(s)
       {
       s->stream_id = priv->packet.pid;
@@ -611,6 +768,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
     if(!next_packet_scan(ctx->input, priv, input_can_seek))
         break;
     }
+  test_data_free(&ts);
   return 1;
   }
 

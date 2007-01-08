@@ -2,6 +2,7 @@ pkgincludedir=$(includedir)/gmerlin
 pkginclude_HEADERS = avdec.h
 
 noinst_HEADERS = \
+a52_header.h \
 asmrp.h \
 avdec_private.h \
 bswap.h \
