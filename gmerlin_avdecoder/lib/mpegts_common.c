@@ -76,7 +76,7 @@ stream_type_t stream_types[] =
       ts_type:     STREAM_TYPE_VIDEO_H264,
       bgav_type:   BGAV_STREAM_VIDEO,
       fourcc:      BGAV_MK_FOURCC('H', '2', '6', '4'),
-      description: "H264 Video (AVC)",
+      description: "H264 Video",
     },
     {
       ts_type:     STREAM_TYPE_AUDIO_AC3,
@@ -392,7 +392,7 @@ static uint8_t * find_descriptor(uint8_t * data, int len,
   return (uint8_t*)0;
   }
 
-void bgav_pmt_section_setup_track(pmt_section_t * pmts,
+int bgav_pmt_section_setup_track(pmt_section_t * pmts,
                                   bgav_track_t * track,
                                   const bgav_options_t * opt,
                                   int max_audio_streams,
@@ -407,6 +407,7 @@ void bgav_pmt_section_setup_track(pmt_section_t * pmts,
   uint8_t * desc;
   int desc_len;
   int ac3_streams = 0;
+  int ret = 0;
   
   if(extra_pcr_pid)
     *extra_pcr_pid = 0;
@@ -415,6 +416,9 @@ void bgav_pmt_section_setup_track(pmt_section_t * pmts,
   
   for(i = 0; i < pmts->num_streams; i++)
     {
+    if(!pmts->streams[i].present)
+      continue;
+    
     st = get_stream_type(pmts->streams[i].type);
     
     if(st && (st->bgav_type == BGAV_STREAM_AUDIO) &&
@@ -483,12 +487,14 @@ void bgav_pmt_section_setup_track(pmt_section_t * pmts,
           bgav_correct_language(s->language);
           }
         }
-      
+      s->not_aligned = 1;
       s->timescale = 90000;
       //      fprintf(stderr, "Stream ID: %d\n", pmts->streams[i].pid);
       s->stream_id = pmts->streams[i].pid;
+      ret++;
       }
     }
   if(num_ac3_streams)
     *num_ac3_streams = ac3_streams;
+  return ret;
   }

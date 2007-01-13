@@ -497,7 +497,8 @@ gavl_time_t bgav_track_resync_decoders(bgav_track_t * track)
       continue;
 
     s->data.video.next_frame_time =
-      gavl_time_rescale(s->timescale, s->data.video.format.timescale, s->time_scaled);
+      gavl_time_rescale(s->timescale, s->data.video.format.timescale,
+                        s->time_scaled);
     
     if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_CONSTANT)
       s->data.video.next_frame_duration = s->data.video.format.frame_duration;

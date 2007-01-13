@@ -121,6 +121,7 @@ typedef struct
     
     char descriptor[4096];
     int descriptor_len;
+    int present; // Set by the demuxer to signal, that the stream is present
     } streams[MAX_STREAMS];
   } pmt_section_t;
 
@@ -129,7 +130,8 @@ int bgav_pmt_section_read(uint8_t * data, int size,
 
 void bgav_pmt_section_dump(pmt_section_t * pmts);
 
-void bgav_pmt_section_setup_track(pmt_section_t * pmts,
+/* Returns number of added streams */
+int bgav_pmt_section_setup_track(pmt_section_t * pmts,
                                   bgav_track_t * track,
                                   const bgav_options_t * opt,
                                   int max_audio_streams,

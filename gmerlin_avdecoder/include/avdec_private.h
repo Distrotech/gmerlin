@@ -341,6 +341,9 @@ struct bgav_stream_s
 
   /* If non-NULL, the superindex read functions will call this */
   void (*process_packet)(bgav_stream_t * s, bgav_packet_t * p);
+
+  int has_first_timestamp;
+  int64_t first_timestamp;
   
   union
     {
@@ -1238,8 +1241,6 @@ void bgav_audio_dump(bgav_stream_t * s);
 int bgav_audio_start(bgav_stream_t * s);
 void bgav_audio_stop(bgav_stream_t * s);
 
-int bgav_audio_decode(bgav_stream_t * stream, gavl_audio_frame_t * frame,
-                      int num_samples);
 
 void bgav_audio_resync(bgav_stream_t * stream);
 

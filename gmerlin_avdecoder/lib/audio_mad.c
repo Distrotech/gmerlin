@@ -26,6 +26,8 @@
 #include <avdec_private.h>
 #include <codecs.h>
 
+#define LOG_DOMAIN "mad"
+
 typedef struct
   {
   struct mad_stream stream;
@@ -38,6 +40,7 @@ typedef struct
 
   gavl_audio_frame_t * audio_frame;
   
+  int do_init;
   } mad_priv_t;
 
 static int get_data(bgav_stream_t * s)
@@ -50,9 +53,9 @@ static int get_data(bgav_stream_t * s)
   
   p = bgav_demuxer_get_packet_read(s->demuxer, s);
   if(!p)
-    {
     return 0;
-    }
+  
+  
   bytes_in_buffer = (int)(priv->stream.bufend - priv->stream.next_frame);
   
   if(priv->buffer_alloc < p->data_size + bytes_in_buffer)
@@ -76,30 +79,6 @@ static int get_data(bgav_stream_t * s)
   return 1;
   }
 
-#if 0
-
-static int get_frame_bytes(struct mad_header * h)
-  {
-  int pad;
-  int slots_per_frame;
-  int ret;
-  
-  pad = (h->flags & MAD_FLAG_PADDING) ? 1 : 0;
-  
-  if(h->layer == 1)
-    {
-    ret = ((12 * h->bitrate / h->samplerate) + pad) * 4;
-    }
-  else
-    {
-    slots_per_frame = ((h->layer == 3) &&
-                       (h->flags & MAD_FLAG_LSF_EXT)) ? 72 : 144;
-    ret = (slots_per_frame * h->bitrate) / h->samplerate + pad;
-    }
-  return ret;
-  }
-
-#endif
 
 static int decode_frame(bgav_stream_t * s)
   {
@@ -131,7 +110,7 @@ static int decode_frame(bgav_stream_t * s)
       }
     }
 
-  if(!priv->audio_frame)
+  if(priv->do_init)
     {
     /* Get audio format and create frame */
 
@@ -210,11 +189,16 @@ static int init_mad(bgav_stream_t * s)
   
   /* Now, decode the first header to get the format */
 
+  
   get_data(s);
+
+  priv->do_init = 1;
+
   if(!decode_frame(s))
-    {
     return 0;
-    }
+
+  priv->do_init = 0;
+  
   return 1;
   }
 

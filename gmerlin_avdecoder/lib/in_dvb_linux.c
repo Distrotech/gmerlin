@@ -178,6 +178,39 @@ static void dump_frontend_info(struct dvb_frontend_info * info)
 
 #endif
 
+static int set_diseqc(bgav_input_context_t * ctx, bgav_dvb_channel_info_t * c)
+  {
+  dvb_priv_t * priv;
+  gavl_time_t delay_time = 15000;
+  
+  priv = (dvb_priv_t *)(ctx->priv);
+
+  struct dvb_diseqc_master_cmd cmd =
+    {{0xe0, 0x10, 0x38, 0xf0, 0x00, 0x00}, 4};
+  
+  cmd.msg[3] = 0xf0 | ((c->sat_no * 4) & 0x0f) |
+    (c->tone ? 1 : 0) | (c->pol ? 0 : 2);
+  
+  if (ioctl(priv->fe_fd, FE_SET_TONE, SEC_TONE_OFF) < 0)
+    return 0;
+  if (ioctl(priv->fe_fd, FE_SET_VOLTAGE,
+            c->pol ? SEC_VOLTAGE_13 : SEC_VOLTAGE_18) < 0)
+    return 0;
+  gavl_time_delay(&delay_time);
+  if (ioctl(priv->fe_fd, FE_DISEQC_SEND_MASTER_CMD, &cmd) < 0)
+    return 0;
+  gavl_time_delay(&delay_time);
+  if (ioctl(priv->fe_fd, FE_DISEQC_SEND_BURST,
+            (c->sat_no / 4) % 2 ? SEC_MINI_B : SEC_MINI_A) < 0)
+    return 0;
+  gavl_time_delay(&delay_time);
+  if (ioctl(priv->fe_fd, FE_SET_TONE,
+            c->tone ? SEC_TONE_ON : SEC_TONE_OFF) < 0)
+    return 0;
+  
+  return 1;
+  }
+
 static int tune_in(bgav_input_context_t * ctx,
                    bgav_dvb_channel_info_t * channel)
   {
@@ -189,7 +222,16 @@ static int tune_in(bgav_input_context_t * ctx,
   
   priv = (dvb_priv_t *)(ctx->priv);
 
-  /* TODO: tuner_set_diseqc for satellite tuners */
+  /* set_diseqc for satellite tuners */
+
+  if(priv->fe_info.type==FE_QPSK)
+    {
+    if(!(priv->fe_info.caps & FE_CAN_INVERSION_AUTO))
+      channel->front_param.inversion = INVERSION_OFF;
+    if (!set_diseqc(ctx, channel))
+      return 0;
+    }
+  
   
   /* Flush events */
   while (ioctl(priv->fe_fd, FE_GET_EVENT, &event) != -1);
@@ -257,7 +299,7 @@ static int tune_in(bgav_input_context_t * ctx,
 
 static int get_streams(bgav_input_context_t * ctx, bgav_dvb_channel_info_t * channel)
   {
-  int i;
+  int i, j;
   int program_index;
   int bytes_read;
   uint8_t buffer[4096];
@@ -354,6 +396,11 @@ static int get_streams(bgav_input_context_t * ctx, bgav_dvb_channel_info_t * cha
                "Parsing PMT failed");
       return 0;
       }
+    
+    /* We assume, that all streams are present */
+    for(j = 0; j < pmts.num_streams; j++)
+      pmts.streams[j].present = 1;
+    
     bgav_pmt_section_dump(&pmts);  
 
     /* Setup streams from pmt */

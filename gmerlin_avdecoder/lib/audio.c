@@ -75,6 +75,15 @@ int bgav_audio_start(bgav_stream_t * stream)
 
   if(!stream->timescale)
     stream->timescale = stream->data.audio.format.samplerate;
+
+  if(stream->has_first_timestamp && (stream->first_timestamp != BGAV_TIMESTAMP_UNDEFINED))
+    {
+    stream->position =
+      gavl_time_rescale(stream->timescale, stream->data.audio.format.samplerate,
+                        stream->first_timestamp);
+    bgav_log(stream->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Got initial audio timestamp: %lld",
+             stream->position);
+    }
   return 1;
   }
 
@@ -105,14 +114,6 @@ const char * bgav_get_audio_language(bgav_t * b, int s)
     b->tt->current_track->audio_streams[s].language : (char*)0;
   }
 
-int bgav_audio_decode(bgav_stream_t * s, gavl_audio_frame_t * frame,
-                      int num_samples)
-  {
-  return
-    s->data.audio.decoder->decoder->decode(s, frame, num_samples);
-  
-  }
-
 int bgav_read_audio(bgav_t * b, gavl_audio_frame_t * frame,
                     int stream, int num_samples)
   {
@@ -122,7 +123,11 @@ int bgav_read_audio(bgav_t * b, gavl_audio_frame_t * frame,
   if(b->eof)
     return 0;
 
-  result = bgav_audio_decode(s, frame, num_samples);
+  result = s->data.audio.decoder->decoder->decode(s, frame, num_samples);
+  
+  if(frame)
+    frame->time_scaled = s->position;
+  
   s->position += result;
   return result;
   }
@@ -141,7 +146,6 @@ void bgav_audio_resync(bgav_stream_t * s)
   if(s->data.audio.decoder &&
      s->data.audio.decoder->decoder->resync)
     s->data.audio.decoder->decoder->resync(s);
-  
   }
 
 int bgav_audio_skipto(bgav_stream_t * s, gavl_time_t * t)
@@ -172,7 +176,9 @@ int bgav_audio_skipto(bgav_stream_t * s, gavl_time_t * t)
                "Skipping %lld samples",
                num_samples);
       
-      samples_skipped = bgav_audio_decode(s, (gavl_audio_frame_t*)0, num_samples);
+      samples_skipped =
+        s->data.audio.decoder->decoder->decode(s, (gavl_audio_frame_t*)0,
+                                               num_samples);
       }
   if(samples_skipped < num_samples)
     {

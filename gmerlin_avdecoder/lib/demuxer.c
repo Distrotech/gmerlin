@@ -561,6 +561,14 @@ bgav_demuxer_get_packet_read(bgav_demuxer_context_t * demuxer,
       return (bgav_packet_t*)0;
     }
   s->time_scaled = ret->pts;
+
+  if(!s->has_first_timestamp)
+    {
+    if(ret->pts != BGAV_TIMESTAMP_UNDEFINED)
+      s->first_timestamp = ret->pts;
+    s->has_first_timestamp = 1;
+    }
+  
   demuxer->request_stream = (bgav_stream_t*)0;
   return ret;
   }

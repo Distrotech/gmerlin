@@ -58,6 +58,7 @@ typedef struct
   
   uint16_t pcr_pid;
   
+  pmt_section_t pmts;
   } program_priv_t;
 
 typedef struct
@@ -300,7 +301,7 @@ static int get_program_durations(bgav_demuxer_context_t * ctx)
     keep_going = 0;
     for(i = 0; i < priv->num_programs; i++)
       {
-      if(priv->programs[i].start_pcr == -1)
+      if(priv->programs[i].initialized && (priv->programs[i].start_pcr == -1))
         {
         keep_going = 1;
         break;
@@ -356,7 +357,8 @@ static int get_program_durations(bgav_demuxer_context_t * ctx)
     keep_going = 0;
     for(i = 0; i < priv->num_programs; i++)
       {
-      if(priv->programs[i].end_pcr == -1)
+      if(priv->programs[i].initialized &&
+         (priv->programs[i].end_pcr == -1))
         {
         keep_going = 1;
         break;
@@ -375,17 +377,26 @@ static int get_program_durations(bgav_demuxer_context_t * ctx)
     fprintf(stderr, "Start pcr: %lld, end_pcr: %lld\n",
             priv->programs[i].start_pcr,
             priv->programs[i].end_pcr);
-
-    if(priv->programs[i].end_pcr > priv->programs[i].start_pcr)
-      ctx->tt->tracks[i].duration =
-        gavl_time_unscale(90000,
-                          priv->programs[i].end_pcr -
-                          priv->programs[i].start_pcr);
-    else
-      return 0;
+    
+    if(priv->programs[i].initialized)
+      {
+      if(priv->programs[i].end_pcr > priv->programs[i].start_pcr)
+        ctx->tt->tracks[i].duration =
+          gavl_time_unscale(90000,
+                            priv->programs[i].end_pcr -
+                            priv->programs[i].start_pcr);
+      else
+        return 0;
+      }
     }
   return 1;
   }
+
+/*
+ *  Initialize using a PAT and PMTs
+ *  This function expects a PAT table at the beginning
+ *  of the parsed buffer.
+ */
 
 static int init_psi(bgav_demuxer_context_t * ctx,
                     int input_can_seek)
@@ -393,7 +404,6 @@ static int init_psi(bgav_demuxer_context_t * ctx,
   int program;
   int keep_going;
   pat_section_t pats;
-  pmt_section_t pmts;
   int skip;
   mpegts_t * priv;
   int i, j;
@@ -466,77 +476,73 @@ static int init_psi(bgav_demuxer_context_t * ctx,
     if(!bgav_transport_packet_parse(ctx->opt, &priv->ptr, &priv->packet))
       {
       bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Premature EOF");
+               "Lost sync during initializing");
       return 0;
       }
     
     for(program = 0; program < priv->num_programs; program++)
       {
+      /* Check if we got the PMT of a program */
       if(priv->packet.pid == priv->programs[program].program_map_pid)
         break;
+      /* Check if the PMT is already parsed and we got a stream ID */
+      else if(priv->programs[program].pmts.table_id == 0x02)
+        {
+        for(i = 0; i < priv->programs[program].pmts.num_streams; i++)
+          {
+          if(priv->packet.pid == priv->programs[program].pmts.streams[i].pid)
+            {
+            priv->programs[program].pmts.streams[i].present = 1;
+            // fprintf(stderr, "**** Found stream %d\n", priv->packet.pid);
+            }
+          }
+        }
       }
     
     if(program == priv->num_programs)
       {
       // fprintf(stderr, "Skipping packet with PID 0x%04x (%d %d)\n", packet.pid,
       //              program, priv->num_programs);
-
       if(!next_packet_scan(ctx->input, priv, input_can_seek))
-        {
-        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                 "Premature EOF");
-        return 0;
-        }
+        break;
       continue;
       }
 
     skip = 1 + priv->ptr[0];
     priv->ptr += skip;
-    
-    if(!bgav_pmt_section_read(priv->ptr, priv->packet.payload_size-skip,
-                              &pmts))
-      {
-      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "PMT section spans multiple packets, please report");
-      return 0;
-      }
-    if(pmts.section_number || pmts.last_section_number)
-      {
-      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "PMT has multiple sections, please report");
-      return 0;
-      }
-    
-    bgav_pmt_section_dump(&pmts);
 
-    bgav_pmt_section_setup_track(&pmts,
-                                 &ctx->tt->tracks[program],
-                                 ctx->opt, -1, -1, -1, (int*)0, (int*)0);
-    
-    /* Assign program wide data */
-    
-    priv->programs[program].pcr_pid = pmts.pcr_pid;
-    priv->programs[program].initialized = 1;
-    
-    /* Check if we are done */
-    keep_going = 0;
-    
-    for(i = 0; i < priv->num_programs; i++)
+    if(!priv->programs[program].pmts.table_id)
       {
-      if(!priv->programs[i].initialized)
+      if(!bgav_pmt_section_read(priv->ptr, priv->packet.payload_size-skip,
+                                &priv->programs[program].pmts))
         {
-        keep_going = 1;
-        break;
+        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "PMT section spans multiple packets, please report");
+        return 0;
         }
+      if(priv->programs[program].pmts.section_number ||
+         priv->programs[program].pmts.last_section_number)
+        {
+        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "PMT has multiple sections, please report");
+        return 0;
+        }
+      bgav_pmt_section_dump(&priv->programs[program].pmts);
       }
     if(!next_packet_scan(ctx->input, priv, input_can_seek))
+      break;
+    }
+
+  for(program = 0; program < priv->num_programs; program++)
+    {
+    if(bgav_pmt_section_setup_track(&priv->programs[program].pmts,
+                                    &ctx->tt->tracks[program],
+                                    ctx->opt, -1, -1, -1, (int*)0, (int*)0))
       {
-      bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Premature EOF");
-      return 0;
+      priv->programs[program].pcr_pid = priv->programs[program].pmts.pcr_pid;
+      priv->programs[program].initialized = 1;
       }
     }
-  
   return 1;
   }
 
@@ -703,7 +709,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
        !priv->programs[0].pcr_pid)
       {
       priv->programs[0].pcr_pid = priv->packet.pid;
-      fprintf(stderr, "Got PCR PID: %d\n", priv->programs[0].pcr_pid);
+      //      fprintf(stderr, "Got PCR PID: %d\n", priv->programs[0].pcr_pid);
       }
     
     if(bgav_track_find_stream_all(&ctx->tt->tracks[0],
@@ -764,11 +770,13 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
       {
       s->stream_id = priv->packet.pid;
       s->timescale = 90000;
+      s->not_aligned = 1;
       }
     if(!next_packet_scan(ctx->input, priv, input_can_seek))
         break;
     }
   test_data_free(&ts);
+  priv->programs[0].initialized = 1;
   return 1;
   }
 

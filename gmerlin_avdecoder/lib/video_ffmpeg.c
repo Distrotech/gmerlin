@@ -1514,6 +1514,13 @@ static void get_format(AVCodecContext * ctx, gavl_video_format_t * format)
       format->image_height = ctx->height;
       format->frame_height = ctx->height;
       }
+    
+    if((format->pixel_width <= 0) || (format->pixel_height <= 0))
+      {
+      format->pixel_width  = 1;
+      format->pixel_height = 1;
+      }
+    
     /* Sometimes, the size encoded in some mp4 (vol?) headers is different from
        what is found in the container. In this case, the image must be scaled. */
     else if(format->image_width &&
