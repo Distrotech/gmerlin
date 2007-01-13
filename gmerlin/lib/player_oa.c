@@ -50,6 +50,8 @@ struct bg_player_oa_context_s
   gavl_timer_t *  timer;
 
   int64_t audio_samples_written;
+
+  int have_first_timestamp;
   
   /* Error message */
   const char * error_msg;
@@ -120,9 +122,11 @@ void bg_player_time_init(bg_player_t * player)
   bg_player_oa_context_t * ctx;
   ctx = player->oa_context;
 
-  if((player->input_handle->info->flags & BG_PLUGIN_INPUT_HAS_SYNC) && player->do_bypass)
+  if((player->input_handle->info->flags & BG_PLUGIN_INPUT_HAS_SYNC) &&
+     player->do_bypass)
     ctx->sync_mode = SYNC_INPUT;
-  else if(ctx->plugin && (ctx->plugin->get_delay) && (ctx->player->do_audio))
+  else if(ctx->plugin && (ctx->plugin->get_delay) &&
+          (ctx->player->do_audio))
     ctx->sync_mode = SYNC_SOUNDCARD;
   else
     ctx->sync_mode = SYNC_SOFTWARE;
@@ -177,7 +181,8 @@ void bg_player_time_reset(bg_player_t * player)
 
 /* Get the current time */
 
-void bg_player_time_get(bg_player_t * player, int exact, gavl_time_t * ret)
+void bg_player_time_get(bg_player_t * player, int exact,
+                        gavl_time_t * ret)
   {
   bg_player_oa_context_t * ctx;
   int samples_in_soundcard;
@@ -275,6 +280,22 @@ void * bg_player_oa_thread(void * data)
         continue;
         }
       }
+
+    if(!ctx->have_first_timestamp)
+      {
+      if(frame->time_scaled)
+        {
+        bg_log(BG_LOG_INFO, LOG_DOMAIN,
+               "Got initial audio timestamp: %lld",
+               frame->time_scaled);
+        
+        pthread_mutex_lock(&(ctx->time_mutex));
+        ctx->audio_samples_written += frame->time_scaled;
+        pthread_mutex_unlock(&(ctx->time_mutex));
+        }
+      ctx->have_first_timestamp = 1;
+      }
+    
     if(frame->valid_samples)
       {
       pthread_mutex_lock(&(ctx->player->mute_mutex));
@@ -283,12 +304,15 @@ void * bg_player_oa_thread(void * data)
 
       if(do_mute)
         {
-        gavl_audio_frame_mute(frame, &(ctx->player->audio_stream.pipe_format));
+        gavl_audio_frame_mute(frame,
+                              &(ctx->player->audio_stream.pipe_format));
         }
       else
         {
         pthread_mutex_lock(&(ctx->player->audio_stream.volume_mutex));
-        gavl_volume_control_apply(ctx->player->audio_stream.volume, frame);
+        gavl_volume_control_apply(ctx->player->audio_stream.volume,
+                                  frame);
+        
         pthread_mutex_unlock(&(ctx->player->audio_stream.volume_mutex));
         }
       
@@ -298,7 +322,8 @@ void * bg_player_oa_thread(void * data)
                            ctx->player->audio_stream.frame_out);
 
         bg_plugin_lock(ctx->plugin_handle);
-        ctx->plugin->write_frame(ctx->priv, ctx->player->audio_stream.frame_out);
+        ctx->plugin->write_frame(ctx->priv,
+                                 ctx->player->audio_stream.frame_out);
         bg_plugin_unlock(ctx->plugin_handle);
         }
       else
@@ -348,8 +373,8 @@ int bg_player_oa_init(bg_player_oa_context_t * ctx)
       free(log_domain);
       }
     }
-
   
+  ctx->have_first_timestamp = 0;
 
   bg_plugin_unlock(ctx->plugin_handle);
 

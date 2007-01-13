@@ -71,8 +71,8 @@ int main(int argc, char ** argv)
 
   /* Load input plugin */
 
-  plugin_info = bg_plugin_find_by_filename(plugin_reg, argv[1],
-                                           BG_PLUGIN_INPUT);
+  plugin_info = bg_plugin_find_by_name(plugin_reg,
+                                       "i_avdec");
   if(!plugin_info)
     {
     fprintf(stderr, "Input plugin not found\n");
