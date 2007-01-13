@@ -395,6 +395,7 @@ typedef struct gavl_audio_frame_s
   gavl_audio_samples_t  samples; /*!< Sample pointer for interleaved formats         */ 
   gavl_audio_channels_t channels;/*!< Channel pointer for non interleaved formats    */
   int valid_samples;             /*!< Number of actually valid samples */
+  int64_t time_scaled;           /*!< Timestamp in samplerate tics */
   } gavl_audio_frame_t;
 
 /*!

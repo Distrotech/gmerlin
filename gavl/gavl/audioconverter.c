@@ -371,6 +371,14 @@ void gavl_audio_convert(gavl_audio_converter_t * cnv,
       ctx->func(ctx);
       if(!ctx->output_frame->valid_samples)
         ctx->output_frame->valid_samples = ctx->input_frame->valid_samples;
+      
+      if(ctx->output_format.samplerate != ctx->input_format.samplerate)
+        ctx->output_frame->time_scaled =
+          gavl_time_rescale(ctx->input_format.samplerate,
+                            ctx->output_format.samplerate,
+                            ctx->input_frame->time_scaled);
+      else
+        ctx->output_frame->time_scaled = ctx->input_frame->time_scaled;
       }
     ctx = ctx->next;
     }
