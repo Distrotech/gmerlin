@@ -3,6 +3,9 @@
 
 #include "ffmpeg_common.h"
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+
+#define LOG_DOMAIN "ffmpeg"
 
 static bg_parameter_info_t *
 create_format_parameters(const ffmpeg_format_info_t * formats)
@@ -361,9 +364,48 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
 int bg_ffmpeg_start(void * data)
   {
   ffmpeg_priv_t * priv;
-  int i;
+  int i, j;
   priv = (ffmpeg_priv_t *)data;
 
+  /* Check if all codecs are supported by the format */
+
+  for(i = 0; i < priv->num_audio_streams; i++)
+    {
+    j = 0;
+
+    while(priv->format->audio_codecs[j] != CODEC_ID_NONE)
+      {
+      if(priv->format->audio_codecs[j] ==
+         priv->audio_streams[i].stream->codec->codec_id)
+        break;
+      j++;
+      }
+    if(priv->format->audio_codecs[j] != CODEC_ID_NONE)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Audio codec is not compatible with format\n");
+      return 0;
+      }
+    }
+  for(i = 0; i < priv->num_video_streams; i++)
+    {
+    j = 0;
+
+    while(priv->format->video_codecs[j] != CODEC_ID_NONE)
+      {
+      if(priv->format->video_codecs[j] ==
+         priv->video_streams[i].stream->codec->codec_id)
+        break;
+      j++;
+      }
+    if(priv->format->video_codecs[j] != CODEC_ID_NONE)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Video codec is not compatible with format\n");
+      return 0;
+      }
+    }
+  
   /* set the output parameters (must be done even if no
      parameters). */
   if(av_set_parameters(priv->ctx, NULL) < 0)
@@ -541,7 +583,7 @@ static int close_audio_encoder(ffmpeg_priv_t * priv,
                                ffmpeg_audio_stream_t * st)
   {
   /* Flush */
-  if(st->frame->valid_samples)
+  if(st->frame && st->frame->valid_samples)
     {
     if(!flush_audio(priv, st))
       return 0;
