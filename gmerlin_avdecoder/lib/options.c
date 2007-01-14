@@ -264,6 +264,9 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
 
   CP_INT(user_pass_callback);
   CP_INT(user_pass_callback_data);
+
+  CP_INT(aspect_callback);
+  CP_INT(aspect_callback_data);
   
   }
 
@@ -324,5 +327,14 @@ bgav_options_set_log_callback(bgav_options_t * opt,
   {
   opt->log_callback      = callback;
   opt->log_callback_data = data;
+  }
+
+void
+bgav_options_set_aspect_callback(bgav_options_t * opt,
+                              bgav_aspect_callback callback,
+                              void * data)
+  {
+  opt->aspect_callback      = callback;
+  opt->aspect_callback_data = data;
   }
 

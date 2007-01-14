@@ -558,6 +558,19 @@ static void metadata_change_callback(void * priv,
     }
   }
 
+static void aspect_callback(void * priv,
+                            int stream, int pixel_width,
+                            int pixel_height)
+  {
+  avdec_priv * avdec;
+  avdec = (avdec_priv*)(priv);
+  if(avdec->bg_callbacks && avdec->bg_callbacks->aspect_changed)
+    {
+    avdec->bg_callbacks->aspect_changed(avdec->bg_callbacks->data,
+                                        stream, pixel_width,
+                                        pixel_height);
+    }
+  }
 
 void bg_avdec_set_callbacks(void * priv,
                             bg_input_callbacks_t * callbacks)
@@ -574,10 +587,6 @@ void bg_avdec_set_callbacks(void * priv,
                                 avdec->bg_callbacks->name_changed,
                                 avdec->bg_callbacks->data);
   
-  bgav_options_set_name_change_callback(avdec->opt,
-                                avdec->bg_callbacks->name_changed,
-                                avdec->bg_callbacks->data);
-  
   bgav_options_set_track_change_callback(avdec->opt,
                                  avdec->bg_callbacks->track_changed,
                                  avdec->bg_callbacks->data);
@@ -589,6 +598,10 @@ void bg_avdec_set_callbacks(void * priv,
   bgav_options_set_user_pass_callback(avdec->opt,
                              avdec->bg_callbacks->user_pass,
                              avdec->bg_callbacks->data);
+  
+  bgav_options_set_aspect_callback(avdec->opt,
+                                   avdec->bg_callbacks->aspect_changed,
+                                   avdec->bg_callbacks->data);
   
   if(avdec->bg_callbacks->metadata_changed)
     {

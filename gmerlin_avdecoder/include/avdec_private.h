@@ -51,6 +51,7 @@ typedef struct bgav_packet_buffer_s   bgav_packet_buffer_t;
 
 typedef struct bgav_charset_converter_s bgav_charset_converter_t;
 
+typedef struct bgav_track_s bgav_track_t;
 
 #include "id3.h"
 
@@ -213,7 +214,7 @@ void bgav_packet_buffer_clear(bgav_packet_buffer_t*);
 
 int bgav_packet_buffer_is_empty(bgav_packet_buffer_t * b);
 
-
+int bgav_packet_buffer_total_bytes(bgav_packet_buffer_t * b);
 
 /* Palette support */
 
@@ -344,6 +345,9 @@ struct bgav_stream_s
 
   int has_first_timestamp;
   int64_t first_timestamp;
+
+  /* The track, where this stream belongs */
+  bgav_track_t * track;
   
   union
     {
@@ -426,6 +430,7 @@ void bgav_stream_dump(bgav_stream_t * s);
 
 bgav_packet_t * bgav_stream_get_packet_write(bgav_stream_t * s);
 
+int bgav_stream_get_index(bgav_stream_t * s);
 
 /* Which timestamp would come if we would decode right now? */
 
@@ -468,7 +473,7 @@ bgav_chapter_list_t * bgav_chapter_list_create(int timescale,
 void bgav_chapter_list_dump(bgav_chapter_list_t * list);
 void bgav_chapter_list_destroy(bgav_chapter_list_t * list);
 
-typedef struct
+struct bgav_track_s
   {
   char * name;
   gavl_time_t duration;
@@ -485,7 +490,7 @@ typedef struct
   bgav_chapter_list_t * chapter_list;
   
   void * priv; /* For storing private data */  
-  } bgav_track_t;
+  };
 
 /* track.c */
 
@@ -631,6 +636,9 @@ struct bgav_options_s
 
   bgav_user_pass_callback user_pass_callback;
   void * user_pass_callback_data;
+
+  bgav_aspect_callback aspect_callback;
+  void * aspect_callback_data;
   };
 
 void bgav_options_set_defaults(bgav_options_t*opt);

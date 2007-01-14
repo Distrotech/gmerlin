@@ -213,3 +213,23 @@ bgav_packet_t * bgav_stream_get_packet_write(bgav_stream_t * s)
   {
   return bgav_packet_buffer_get_packet_write(s->packet_buffer, s);
   }
+
+int bgav_stream_get_index(bgav_stream_t * s)
+  {
+  switch(s->type)
+    {
+    case BGAV_STREAM_AUDIO:
+      return (int)(s - s->track->audio_streams);
+      break;
+    case BGAV_STREAM_VIDEO:
+      return (int)(s - s->track->video_streams);
+      break;
+    case BGAV_STREAM_SUBTITLE_TEXT:
+    case BGAV_STREAM_SUBTITLE_OVERLAY:
+      return (int)(s - s->track->subtitle_streams);
+      break;
+    case BGAV_STREAM_UNKNOWN:
+      break;
+    }
+  return -1;
+  }

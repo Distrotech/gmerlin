@@ -305,7 +305,7 @@ int bgav_transport_packet_parse(const bgav_options_t * opt,
     {
     bgav_log(opt, BGAV_LOG_WARNING, LOG_DOMAIN,
              "transport_error");
-    //    return 0;
+    return 1;
     }
   
   ret->adaption_field.pcr = -1;

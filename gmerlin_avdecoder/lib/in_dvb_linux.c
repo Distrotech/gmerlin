@@ -297,7 +297,8 @@ static int tune_in(bgav_input_context_t * ctx,
   return 1;
   }
 
-static int get_streams(bgav_input_context_t * ctx, bgav_dvb_channel_info_t * channel)
+static int get_streams(bgav_input_context_t * ctx,
+                       bgav_dvb_channel_info_t * channel)
   {
   int i, j;
   int program_index;
@@ -335,9 +336,7 @@ static int get_streams(bgav_input_context_t * ctx, bgav_dvb_channel_info_t * cha
     return 0;
     }
   bytes_read = read(priv->filter_fds[0], buffer, 4096);
-  fprintf(stderr, "Read %d bytes\n", bytes_read);
-  bgav_hexdump(buffer, bytes_read, 16);
-  
+   
   if(!bgav_pat_section_read(buffer, bytes_read, &pats))
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -345,8 +344,6 @@ static int get_streams(bgav_input_context_t * ctx, bgav_dvb_channel_info_t * cha
     return 0;
     }
   
-  fprintf(stderr, "Got PAT:\n");
-  bgav_pat_section_dump(&pats);
 
   /* For each program, get the PMT */
   
@@ -359,7 +356,8 @@ static int get_streams(bgav_input_context_t * ctx, bgav_dvb_channel_info_t * cha
     
     while(program_index < priv->num_channels)
       {
-      if(pats.programs[i].program_number == priv->channels[program_index].service_id)
+      if(pats.programs[i].program_number ==
+         priv->channels[program_index].service_id)
         break;
       program_index++;
       }
@@ -387,8 +385,6 @@ static int get_streams(bgav_input_context_t * ctx, bgav_dvb_channel_info_t * cha
 
     bytes_read = read(priv->filter_fds[0],
                       buffer, 4096);
-    //    fprintf(stderr, "Read %d bytes\n", bytes_read);
-    //    bgav_hexdump(buffer, bytes_read, 16);
   
     if(!bgav_pmt_section_read(buffer, bytes_read, &pmts))
       {
@@ -401,7 +397,7 @@ static int get_streams(bgav_input_context_t * ctx, bgav_dvb_channel_info_t * cha
     for(j = 0; j < pmts.num_streams; j++)
       pmts.streams[j].present = 1;
     
-    bgav_pmt_section_dump(&pmts);  
+    //    bgav_pmt_section_dump(&pmts);  
 
     /* Setup streams from pmt */
     bgav_pmt_section_setup_track(&pmts,
@@ -521,15 +517,14 @@ static int read_dvb(bgav_input_context_t* ctx,
                          uint8_t * buffer, int len)
   {
   dvb_priv_t * priv;
-  priv = (dvb_priv_t *)(ctx->priv);
-#if 0
-  bytes_read = read(priv->dvr_fd, data, 188);
+  struct dvb_frontend_event event;
 
-  fprintf(stderr, "Read %d bytes\n", bytes_read);
-  bgav_hexdump(data,bytes_read, 16);
-#else
+  priv = (dvb_priv_t *)(ctx->priv);
+
+  /* Flush events */
+  while (ioctl(priv->fe_fd, FE_GET_EVENT, &event) != -1);
+
   return read(priv->dvr_fd, buffer, len);
-#endif  
   //  return 0;
   }
 
@@ -582,8 +577,6 @@ static int setup_filters(bgav_input_context_t * ctx,
             BGAV_MK_FOURCC('.','a','c','3'))
         audio_index++;
       }
-    fprintf(stderr, "Set audio filter 1 ID: %d\n",
-            track->audio_streams[audio_index].stream_id);
     if(!setup_pes_filter(ctx->opt,
                          priv->filter_fds[filter_index++],
                          DMX_PES_AUDIO0,
@@ -598,8 +591,6 @@ static int setup_filters(bgav_input_context_t * ctx,
             BGAV_MK_FOURCC('.','a','c','3'))
         audio_index++;
       }
-    fprintf(stderr, "Set audio filter 2 ID: %d\n",
-            track->audio_streams[audio_index].stream_id);
     if(!setup_pes_filter(ctx->opt,
                          priv->filter_fds[filter_index++],
                          DMX_PES_AUDIO1,
@@ -614,8 +605,6 @@ static int setup_filters(bgav_input_context_t * ctx,
             BGAV_MK_FOURCC('.','a','c','3'))
         audio_index++;
       }
-    fprintf(stderr, "Set audio filter 3 ID: %d\n",
-            track->audio_streams[audio_index].stream_id);
     if(!setup_pes_filter(ctx->opt,
                          priv->filter_fds[filter_index++],
                          DMX_PES_AUDIO2,
@@ -630,8 +619,6 @@ static int setup_filters(bgav_input_context_t * ctx,
             BGAV_MK_FOURCC('.','a','c','3'))
         audio_index++;
       }
-    fprintf(stderr, "Set audio filter 4 ID: %d\n",
-            track->audio_streams[audio_index].stream_id);
     if(!setup_pes_filter(ctx->opt,
                          priv->filter_fds[filter_index++],
                          DMX_PES_AUDIO3,
@@ -648,8 +635,6 @@ static int setup_filters(bgav_input_context_t * ctx,
           BGAV_MK_FOURCC('.','a','c','3'))
       audio_index++;
 
-    fprintf(stderr, "Set AC3 filter ID: %d\n",
-            track->audio_streams[audio_index].stream_id);
     
     if(!setup_pes_filter(ctx->opt,
                          priv->filter_fds[filter_index++],

@@ -19,6 +19,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <inttypes.h>
 #include <mpeg2dec/mpeg2.h>
@@ -125,7 +126,7 @@ static void get_format(gavl_video_format_t * ret,
     {
     /* Original timscale is 27.000.000, a bit too much for us */
 
-    /* We choose duration/scale so that the furation is always even.
+    /* We choose duration/scale so that the duration is always even.
        Since the MPEG-2 repeat stuff happens at half-frametime level,
        we nevertheless get 100% precise timestamps
     */
@@ -261,17 +262,20 @@ static int init_mpeg2(bgav_stream_t*s)
 
 static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
   {
+  gavl_video_format_t new_format;
   int64_t tmp;
   mpeg2_priv_t * priv;
   mpeg2_state_t state;
   priv = (mpeg2_priv_t*)(s->data.video.decoder->priv);
   /* Decode frame */
 
+#if 0  
   if(f)
     mpeg2_skip(priv->dec, 0);
   else
     mpeg2_skip(priv->dec, 1);
-
+#endif
+  
   while(1)
     {
     if(!parse(s, &state))
@@ -289,6 +293,36 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
         }
       else
         break;
+      }
+    else if((state == STATE_SEQUENCE) ||
+            (state == STATE_SEQUENCE_REPEATED) ||
+            (state == STATE_SEQUENCE_MODIFIED))
+      {
+      memset(&new_format, 0, sizeof(new_format));
+      get_format(&(new_format), priv->info->sequence);
+      
+      if((new_format.image_width != s->data.video.format.image_width) ||
+         (new_format.image_height != s->data.video.format.image_height))
+        bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+                 "Detected change of image size, not handled yet");
+
+      if((s->data.video.format.pixel_width != new_format.pixel_width) ||
+         (s->data.video.format.pixel_height != new_format.pixel_height))
+        {
+        bgav_log(s->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+                 "Detected change of pixel aspect ratio: %dx%d",
+                 new_format.pixel_width,
+                 new_format.pixel_height);
+        if(s->opt->aspect_callback)
+          {
+          s->opt->aspect_callback(s->opt->aspect_callback_data,
+                                  bgav_stream_get_index(s),
+                                  new_format.pixel_width,
+                                  new_format.pixel_height);
+          }
+        s->data.video.format.pixel_width = new_format.pixel_width;
+        s->data.video.format.pixel_height = new_format.pixel_height;
+        }
       }
     }
   /* Calculate timestamp */

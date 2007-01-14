@@ -65,6 +65,21 @@ void bgav_packet_buffer_clear(bgav_packet_buffer_t * b)
   b->read_packet = b->write_packet;
   }
 
+int bgav_packet_buffer_total_bytes(bgav_packet_buffer_t * b)
+  {
+  int ret = 0;
+  bgav_packet_t * tmp_packet;
+  tmp_packet = b->packets;
+
+  do{
+  if(tmp_packet->valid)
+    ret += tmp_packet->data_size;
+
+  tmp_packet = tmp_packet->next;
+  }while(tmp_packet != b->packets);
+  return ret;
+  }
+
 bgav_packet_t * bgav_packet_buffer_peek_packet_read(bgav_packet_buffer_t * b, int get_duration)
   {
   if(get_duration)

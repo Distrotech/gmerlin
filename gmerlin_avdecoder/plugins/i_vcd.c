@@ -81,6 +81,7 @@ bg_input_plugin_t the_plugin =
     
     /* Open file/device */
     open: open_vcd,
+    set_callbacks: bg_avdec_set_callbacks,
     get_disc_name: bg_avdec_get_disc_name,
 #if LIBCDIO_VERSION_NUM >= 78
     eject_disc: bgav_eject_disc,

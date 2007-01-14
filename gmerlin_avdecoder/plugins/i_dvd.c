@@ -95,6 +95,7 @@ bg_input_plugin_t the_plugin =
       get_error:    bg_avdec_get_error      
     },
     protocols: "dvd",
+    set_callbacks: bg_avdec_set_callbacks,
     /* Open file/device */
     open: open_dvd,
     get_disc_name: bg_avdec_get_disc_name,

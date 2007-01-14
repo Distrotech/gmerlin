@@ -81,7 +81,8 @@ const char * bgav_get_video_description(bgav_t * b, int s)
   return b->tt->current_track->video_streams[s].description;
   }
 
-static int bgav_video_decode(bgav_stream_t * stream, gavl_video_frame_t* frame)
+static int bgav_video_decode(bgav_stream_t * stream,
+                             gavl_video_frame_t* frame)
   {
   int result;
 
@@ -97,6 +98,7 @@ static int bgav_video_decode(bgav_stream_t * stream, gavl_video_frame_t* frame)
       frame->time_scaled = 0;
     }
   stream->position++;
+  
   return result;
   }
 

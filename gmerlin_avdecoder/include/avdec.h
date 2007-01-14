@@ -421,6 +421,7 @@ void bgav_options_set_audio_dynrange(bgav_options_t* opt,
  *  end of a track if a seamless transition to the next track is possible.
  *  Instead, the track change is signalled with the
  *  \ref bgav_track_change_callback (if available) and decoding continues.
+ *  \todo Seamless playback isn't implemented yet. This function might be removed in future versions.
  */
 
 void bgav_options_set_seamless(bgav_options_t* opt,
@@ -602,6 +603,7 @@ void
 bgav_options_set_buffer_callback(bgav_options_t* opt,
                                  bgav_buffer_callback callback,
                                  void * data);
+
 /** \ingroup options
  *  \brief Function to be called if the input module needs authentication data
  *  \param data The data you passed to \ref bgav_options_set_user_pass_callback.
@@ -631,6 +633,32 @@ void
 bgav_options_set_user_pass_callback(bgav_options_t* opt,
                                     bgav_user_pass_callback callback,
                                     void * data);
+
+/** \ingroup options
+ *  \brief Function to be called if a change of the aspect ratio was detected
+ *  \param data The data you passed to \ref bgav_options_set_user_pass_callback.
+ *  \param stream Index of the video stream (starts with 0)
+ *  \param pixel_width New pixel width
+ *  \param pixel_height New pixel height
+ *
+ *  This is called during \ref bgav_read_video.
+ */
+
+typedef void (*bgav_aspect_callback)(void*data, int stream,
+                                     int pixel_width, int pixel_height);
+
+
+/** \ingroup options
+ *  \brief Set aspect ratio change callback
+ *  \param opt Option container
+ *  \param callback The callback
+ *  \param data Some data you want to get passed to the callback
+ */
+
+void
+bgav_options_set_aspect_callback(bgav_options_t* opt,
+                                 bgav_aspect_callback callback,
+                                 void * data);
 
 
 /* Device description */
