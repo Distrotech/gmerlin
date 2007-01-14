@@ -2569,10 +2569,12 @@ static int open_encoder(bg_transcoder_t * ret,
     bg_plugin_unref(encoder_handle);
     return 0;
     }
-
+  
   if(encoder_plugin->open(encoder_handle->priv,
                           *filename,  &(ret->metadata),
-                          ret->transcoder_track->chapter_list))
+                          (ret->pass == ret->total_passes) ?
+                           ret->transcoder_track->chapter_list :
+                           (bg_chapter_list_t*)0))
     {
     if((ret->pass == ret->total_passes) && encoder_plugin->get_filename)
       {

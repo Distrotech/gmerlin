@@ -1042,6 +1042,22 @@ static void set_drawing_coords(x11_t * priv)
   
   }
 
+static void update_aspect_x11(void * data, int pixel_width,
+                              int pixel_height)
+  {
+  x11_t * priv;
+  priv = (x11_t*)data;
+
+  priv->video_format.pixel_width = pixel_width;
+  priv->video_format.pixel_height = pixel_height;
+  
+  x11_window_clear(&priv->win);
+  set_drawing_coords(priv);
+
+  }
+     
+
+
 static int _open_x11(void * data,
                      gavl_video_format_t * format,
                      const char * window_title)
@@ -2340,6 +2356,9 @@ bg_ov_plugin_t the_plugin =
     handle_events:  handle_events_x11,
     close:          close_x11,
     put_still:      put_still_x11,
+
+    update_aspect:  update_aspect_x11,
+
     set_callbacks:  set_callbacks_x11,
     show_window:    show_window_x11
   };

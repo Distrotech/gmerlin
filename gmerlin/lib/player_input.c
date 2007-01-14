@@ -109,7 +109,21 @@ static void buffer_notify(void * data, float percentage)
   {
   bg_player_input_context_t * ctx;
   ctx = (bg_player_input_context_t *)data;
-  bg_player_set_state(ctx->player, BG_PLAYER_STATE_BUFFERING, &percentage, NULL);
+  bg_player_set_state(ctx->player, BG_PLAYER_STATE_BUFFERING,
+                      &percentage, NULL);
+  }
+
+static void aspect_changed(void * data, int stream, int pixel_width,
+                           int pixel_height)
+  {
+  bg_player_input_context_t * ctx;
+  ctx = (bg_player_input_context_t *)data;
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Aspect ratio changed");
+
+  bg_player_ov_update_aspect(ctx->player->ov_context,
+                             pixel_width, pixel_height);
+  
   }
 
 void bg_player_input_create(bg_player_t * player)
@@ -126,6 +140,7 @@ void bg_player_input_create(bg_player_t * player)
   ctx->callbacks.duration_changed = duration_changed;
   ctx->callbacks.metadata_changed = metadata_changed;
   ctx->callbacks.buffer_notify    = buffer_notify;
+  ctx->callbacks.aspect_changed   = aspect_changed;
   
   ctx->player = player;
   

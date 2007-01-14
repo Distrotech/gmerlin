@@ -86,7 +86,7 @@
 
 
 
-#define BG_PLUGIN_API_VERSION 8
+#define BG_PLUGIN_API_VERSION 9
 
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
@@ -381,7 +381,18 @@ typedef struct bg_input_callbacks_s
 
   int (*user_pass)(void * data, const char * resource,
                    char ** username, char ** password);
- 
+
+  /** \brief Aspect ration change callback
+   *  \param data The data member of this bg_input_callbacks_s struct
+   *  \param stream Video stream index (starts with 0)
+   *  \param pixel_width  New pixel width
+   *  \param pixel_height New pixel height
+   */
+  
+  void (*aspect_changed)(void * data, int stream,
+                         int pixel_width, int pixel_height);
+  
+  
   void * data; //!< Application specific data passed as the first argument to all callbacks.
   
   } bg_input_callbacks_t;
@@ -969,6 +980,14 @@ typedef struct bg_ov_plugin_s
   
   void (*handle_events)(void * priv);
 
+  /** \brief Update aspect ratio
+   *  \param priv The handle returned by the create() method
+   *  \param pixel_width New pixel width
+   *  \param pixel_height New pixel height
+   */
+  
+  void (*update_aspect)(void * priv, int pixel_width, int pixel_height);
+    
   /** \brief Free a frame created with the alloc_frame() method.
    *  \param priv The handle returned by the create() method
    *  \param frame The frame to be freed

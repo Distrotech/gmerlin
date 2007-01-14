@@ -270,6 +270,9 @@ void bg_player_ov_cleanup(bg_player_ov_context_t * ctx);
 void * bg_player_ov_thread(void *);
 void * bg_player_ov_still_thread(void *);
 
+void bg_player_ov_update_aspect(bg_player_ov_context_t * ctx,
+                                int pixel_width, int pixel_height);
+
 /* Update still image: To be called during pause */
 void bg_player_ov_update_still(bg_player_ov_context_t * ctx);
 

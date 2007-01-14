@@ -411,6 +411,15 @@ void bg_player_ov_reset(bg_player_t * player)
   ctx->next_subtitle = (gavl_overlay_t*)0;
   }
 
+void bg_player_ov_update_aspect(bg_player_ov_context_t * ctx,
+                                int pixel_width, int pixel_height)
+  {
+  bg_plugin_lock(ctx->plugin_handle);
+  if(ctx->plugin && ctx->plugin->update_aspect)
+    ctx->plugin->update_aspect(ctx->priv, pixel_width, pixel_height);
+  bg_plugin_unlock(ctx->plugin_handle);
+  }
+
 /* Set this extra because we must initialize subtitles after the video output */
 void bg_player_ov_set_subtitle_format(void * data, const gavl_video_format_t * format)
   {

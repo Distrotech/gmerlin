@@ -367,7 +367,10 @@ static int close_lqt(void * data, int do_delete)
       if(e->chapter_list->chapters[i].time > e->duration)
         {
         bg_log(BG_LOG_WARNING, LOG_DOMAIN,
-               "Omitting chapter %d: time > duration", i+1);
+               "Omitting chapter %d: time (%f) > duration (%f)",
+               i+1,
+               gavl_time_to_seconds(e->chapter_list->chapters[i].time),
+               gavl_time_to_seconds(e->duration));
         break;
         }
       if(i < e->chapter_list->num_chapters)
