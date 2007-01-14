@@ -41,7 +41,7 @@ bg_encoder_plugin_t the_plugin =
       destroy:        bg_ffmpeg_destroy,
       get_parameters: bg_ffmpeg_get_parameters,
       set_parameter:  bg_ffmpeg_set_parameter,
-      //      get_error:      get_error_lqt,
+      get_error:      bg_ffmpeg_get_error,
     },
     
     max_video_streams:         1,

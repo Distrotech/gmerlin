@@ -52,6 +52,8 @@ typedef struct
   int buffer_alloc;
 
   gavl_audio_frame_t * frame;
+
+  int initialized;
   } ffmpeg_audio_stream_t;
 
 typedef struct
@@ -62,6 +64,8 @@ typedef struct
   uint8_t * buffer;
   int buffer_alloc;
   AVFrame * frame;
+
+  int initialized;
   } ffmpeg_video_stream_t;
 
 typedef struct
@@ -80,7 +84,9 @@ typedef struct
   
   const ffmpeg_format_info_t * formats;
   const ffmpeg_format_info_t * format;
-  
+
+  int initialized;
+  char * error_msg;
   } ffmpeg_priv_t;
 
 void * bg_ffmpeg_create(const ffmpeg_format_info_t * formats);
@@ -93,6 +99,8 @@ void bg_ffmpeg_set_parameter(void * data, char * name,
                              bg_parameter_value_t * v);
 
 const char * bg_ffmpeg_get_extension(void * data);
+
+const char * bg_ffmpeg_get_error(void * data);
 
 int bg_ffmpeg_open(void * data, const char * filename,
                    bg_metadata_t * metadata,

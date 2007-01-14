@@ -74,6 +74,21 @@ static ffmpeg_format_info_t formats[] =
                                        // CODEC_ID_WMV2, /* Crash */
                                        CODEC_ID_NONE },
     },
+    {
+      name:       "MPEG-2 Transport stream",
+      short_name: "mpegts",
+      extension:  ".ts",
+      max_audio_streams: 1,
+      max_video_streams: 1,
+      audio_codecs: (enum CodecID[]){  CODEC_ID_MP3,
+                                       CODEC_ID_MP2,
+                                       CODEC_ID_AC3,
+                                       CODEC_ID_NONE },
+      
+      video_codecs: (enum CodecID[]){  CODEC_ID_MPEG1VIDEO,
+                                       CODEC_ID_MPEG2VIDEO,
+                                       CODEC_ID_NONE },
+    },
 #if 0 // Encoded file is messed up
     {
       name:       "Real Media",
@@ -112,7 +127,7 @@ bg_encoder_plugin_t the_plugin =
       destroy:        bg_ffmpeg_destroy,
       get_parameters: bg_ffmpeg_get_parameters,
       set_parameter:  bg_ffmpeg_set_parameter,
-      //      get_error:      get_error_lqt,
+      get_error:      bg_ffmpeg_get_error,
     },
     
     max_audio_streams:         -1,

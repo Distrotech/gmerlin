@@ -74,6 +74,8 @@ void bg_ffmpeg_destroy(void * data)
     free(priv->audio_streams);
   if(priv->video_streams)
     free(priv->video_streams);
+  if(priv->error_msg)
+    free(priv->error_msg);
   }
 
 bg_parameter_info_t * bg_ffmpeg_get_parameters(void * data)
@@ -132,6 +134,14 @@ const char * bg_ffmpeg_get_extension(void * data)
   if(priv->format)
     return priv->format->extension;
   return (const char *)0;
+  }
+
+const char * bg_ffmpeg_get_error(void * data)
+  {
+  ffmpeg_priv_t * priv;
+  priv = (ffmpeg_priv_t *)data;
+
+  return priv->error_msg;
   }
 
 int bg_ffmpeg_open(void * data, const char * filename,
@@ -322,7 +332,7 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
   codec = avcodec_find_encoder(st->stream->codec->codec_id);
   if(!codec)
     return 0;
-
+  
   if(avcodec_open(st->stream->codec, codec) < 0)
     return 0;
 
@@ -337,6 +347,8 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
   
   st->buffer_alloc = 32768;
   st->buffer = malloc(st->buffer_alloc); /* Hopefully enough */
+
+  st->initialized = 1;
   
   return 1;
   }
@@ -356,6 +368,7 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
   st->buffer_alloc = st->format.image_width * st->format.image_width * 4;
   st->buffer = malloc(st->buffer_alloc);
   st->frame = avcodec_alloc_frame();
+  st->initialized = 1;
   
   return 1;
   }
@@ -380,10 +393,10 @@ int bg_ffmpeg_start(void * data)
         break;
       j++;
       }
-    if(priv->format->audio_codecs[j] != CODEC_ID_NONE)
+    if(priv->format->audio_codecs[j] == CODEC_ID_NONE)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-             "Audio codec is not compatible with format\n");
+      priv->error_msg =
+        bg_sprintf("Audio codec is not compatible with format");
       return 0;
       }
     }
@@ -398,10 +411,11 @@ int bg_ffmpeg_start(void * data)
         break;
       j++;
       }
-    if(priv->format->video_codecs[j] != CODEC_ID_NONE)
+    if(priv->format->video_codecs[j] == CODEC_ID_NONE)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-             "Video codec is not compatible with format\n");
+      fprintf(stderr, "Video codec is not compatible with format\n");
+      priv->error_msg =
+        bg_sprintf("Video codec is not compatible with format");
       return 0;
       }
     }
@@ -553,9 +567,6 @@ int bg_ffmpeg_write_video_frame(void * data,
   bytes_encoded = avcodec_encode_video(st->stream->codec,
                                        st->buffer, st->buffer_alloc,
                                        st->frame);
-
-  fprintf(stderr, "Encoded %d bytes\n", bytes_encoded);
-  bg_hexdump(st->buffer, 16, 16);
   
   if(bytes_encoded > 0)
     {
@@ -590,7 +601,10 @@ static int close_audio_encoder(ffmpeg_priv_t * priv,
     }
   
   /* Close encoder and free buffers */
-  avcodec_close(st->stream->codec);
+  if(st->initialized)
+    avcodec_close(st->stream->codec);
+  else
+    av_free(st->stream->codec);
   return 1;
   }
 
@@ -598,9 +612,12 @@ static void close_video_encoder(ffmpeg_priv_t * priv,
                                 ffmpeg_video_stream_t * st)
   {
   /* TODO: Flush */
-
+  
   /* Close encoder and free buffers */
-  avcodec_close(st->stream->codec);
+  if(st->initialized)
+    avcodec_close(st->stream->codec);
+  else
+    av_free(st->stream->codec);
   }
 
 int bg_ffmpeg_close(void * data, int do_delete)
@@ -620,10 +637,12 @@ int bg_ffmpeg_close(void * data, int do_delete)
     {
     close_video_encoder(priv, &priv->video_streams[i]);
     }
-  
-  av_write_trailer(priv->ctx);
-  url_fclose(&priv->ctx->pb);
-  
+
+  if(priv->initialized)
+    {
+    av_write_trailer(priv->ctx);
+    url_fclose(&priv->ctx->pb);
+    }
   if(do_delete)
     remove(priv->ctx->filename);
   
