@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/charset.h>
+
 #include <gmerlin_encoders.h>
 
 /* Simple ID3 writer.
@@ -48,10 +50,6 @@ static int write_fourcc(FILE * output, uint32_t fourcc)
   return 1;
   }
 
-#define ENCODING_LATIN1   0x00
-#define ENCODING_UTF16_LE 0x01
-#define ENCODING_UTF16_BE 0x02
-#define ENCODING_UTF8     0x03
 
 #define ID3V2_FRAME_TAG_ALTER_PRESERVATION  (1<<14)
 #define ID3V2_FRAME_FILE_ALTER_PRESERVATION (1<<13)
@@ -166,14 +164,22 @@ static int write_32_syncsave(FILE * output, uint32_t num)
   return 1;
   }
 
-static int write_frame(FILE * output, id3v2_frame_t * frame)
+static int write_frame(FILE * output, id3v2_frame_t * frame,
+                       int encoding)
   {
   uint8_t flags[2] = { 0x00, 0x00 };
-  uint8_t comm_header[4] = { 'X', 'X', 'X', 0x00 };
-  uint8_t encoding = 0x03; /* We do everything in UTF-8 */
+  uint8_t comm_header[3] = { 'X', 'X', 'X' };
+  uint8_t bom[2] = { 0xff, 0xfe };
+  uint8_t terminator[2] = { 0x00, 0x00 };
+  int is_comment = 0;
+  // uint8_t encoding = 0x03; /* We do everything in UTF-8 */
   int len;
   uint32_t size_pos, end_pos, size;
+  
+  char * str;
 
+  bg_charset_converter_t * cnv;
+  
   /* Write 10 bytes header */
 
   if(!write_fourcc(output, frame->fourcc))
@@ -197,14 +203,83 @@ static int write_frame(FILE * output, id3v2_frame_t * frame)
 
   if(frame->fourcc == MK_FOURCC('C','O','M','M'))  
     {
-    if(fwrite(comm_header, 1, 4, output) < 4)
+    is_comment = 1;
+    if(fwrite(comm_header, 1, 3, output) < 3)
       return 0;
     }
-  /* Then, write the string including terminating 0x00 character */
-  len = strlen(frame->str)+1;
+
+  switch(encoding)
+    {
+    case ID3_ENCODING_LATIN1:
+      if(is_comment)
+        {
+        if(fwrite(terminator, 1, 1, output) < 1)
+          return 0;
+        }
+      cnv = bg_charset_converter_create("UTF-8", "ISO-8859-1");
+      str = bg_convert_string(cnv, frame->str, -1, (int*)0);
+      len = strlen(str)+1;
+      if(fwrite(str, 1, len, output) < len)
+        return 0;
+      bg_charset_converter_destroy(cnv);
+      free(str);
+      break;
+    case ID3_ENCODING_UTF16_BOM:
+      /* Short Comment */
+      if(is_comment)
+        {
+        if(fwrite(bom, 1, 2, output) < 2)
+          return 0;
+        if(fwrite(terminator, 1, 2, output) < 2)
+          return 0;
+        }
+      /* Long Comment */
+      if(fwrite(bom, 1, 2, output) < 2)
+        return 0;
+      cnv = bg_charset_converter_create("UTF-8", "UTF-16LE");
+      str = bg_convert_string(cnv, frame->str, -1, &len);
+      fprintf(stderr, "Converted string:\n");
+      bg_hexdump(str, len, 16);
+      if(fwrite(str, 1, len, output) < len)
+        return 0;
+      if(fwrite(terminator, 1, 2, output) < 2)
+        return 0;
+      bg_charset_converter_destroy(cnv);
+      free(str);
+      break;
+    case ID3_ENCODING_UTF16_BE:
+      if(is_comment)
+        {
+        /* Short Comment */
+        if(fwrite(terminator, 1, 2, output) < 2)
+          return 0;
+        }
+      /* Long Comment */
+      cnv = bg_charset_converter_create("UTF-8", "UTF-16BE");
+      str = bg_convert_string(cnv, frame->str, -1, &len);
+      fprintf(stderr, "Converted string:\n");
+      bg_hexdump(str, len, 16);
+      if(fwrite(str, 1, len, output) < len)
+        return 0;
+      if(fwrite(terminator, 1, 2, output) < 2)
+        return 0;
+      bg_charset_converter_destroy(cnv);
+      free(str);
+      break;
+    case ID3_ENCODING_UTF8:
+      if(is_comment)
+        {
+        if(fwrite(terminator, 1, 1, output) < 1)
+          return 0;
+        }
+      /* Then, write the string including terminating 0x00 character */
+      len = strlen(frame->str)+1;
+      
+      if(fwrite(frame->str, 1, len, output) < len)
+        return 0;
+      break;
+    }
   
-  if(fwrite(frame->str, 1, len, output) < len)
-    return 0;
 
   end_pos = ftell(output);
   size = end_pos - size_pos - 6;
@@ -216,11 +291,13 @@ static int write_frame(FILE * output, id3v2_frame_t * frame)
   return 1;
   }
 
-int bgen_id3v2_write(FILE * output, const bgen_id3v2_t * tag)
+int bgen_id3v2_write(FILE * output, const bgen_id3v2_t * tag,
+                     int encoding)
   {
   int i;
   uint32_t size_pos, size, end_pos;
-
+  
+  
   uint8_t header[6] = { 'I', 'D', '3', 0x04, 0x00, 0x00 };
   
   /* Return if the tag has zero frames */
@@ -242,7 +319,7 @@ int bgen_id3v2_write(FILE * output, const bgen_id3v2_t * tag)
 
   for(i = 0; i < tag->num_frames; i++)
     {
-    write_frame(output, &tag->frames[i]);
+    write_frame(output, &tag->frames[i], encoding);
     }
 
   end_pos = ftell(output);

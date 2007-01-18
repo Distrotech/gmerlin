@@ -318,11 +318,18 @@ void bg_ffmpeg_set_video_parameter(void * data, int stream, char * name,
 
 int bg_ffmpeg_set_video_pass(void * data, int stream, int pass,
                              int total_passes,
-                             const char * stats_file)
+                             const char * stats_filename)
   {
   ffmpeg_priv_t * priv;
+  ffmpeg_video_stream_t * st;
   priv = (ffmpeg_priv_t *)data;
-  return 0;
+
+  st = &priv->video_streams[stream];
+  st->pass           = pass;
+  st->total_passes   = total_passes;
+  st->stats_filename = bg_strdup(st->stats_filename, stats_filename);
+
+  return 1;
   }
 
 static int open_audio_encoder(ffmpeg_priv_t * priv,
@@ -357,11 +364,39 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
 static int open_video_encoder(ffmpeg_priv_t * priv,
                               ffmpeg_video_stream_t * st)
   {
+  int stats_len;
   AVCodec * codec;
   codec = avcodec_find_encoder(st->stream->codec->codec_id);
   if(!codec)
     return 0;
 
+  /* Set up multipass encoding */
+  
+  if(st->total_passes)
+    {
+    if(st->pass == 1)
+      {
+      st->stats_file = fopen(st->stats_filename, "w");
+      st->stream->codec->flags |= CODEC_FLAG_PASS1;
+      }
+    else if(st->pass == st->total_passes)
+      {
+      st->stats_file = fopen(st->stats_filename, "r");
+      fseek(st->stats_file, 0, SEEK_END);
+      stats_len = ftell(st->stats_file);
+      fseek(st->stats_file, 0, SEEK_SET);
+      
+      st->stream->codec->stats_in = av_malloc(stats_len + 1);
+      fread(st->stream->codec->stats_in, stats_len, 1, st->stats_file);
+      st->stream->codec->stats_in[stats_len] = '\0';
+      
+      fclose(st->stats_file);
+      st->stats_file = (FILE*)0;
+      
+      st->stream->codec->flags |= CODEC_FLAG_PASS2;
+      }
+    }
+  
   if(avcodec_open(st->stream->codec, codec) < 0)
     return 0;
 
@@ -447,7 +482,7 @@ int bg_ffmpeg_start(void * data)
     }
   
   av_write_header(priv->ctx);
-  
+  priv->initialized = 1;
   return 1;
   }
 
@@ -504,6 +539,7 @@ static int flush_audio(ffmpeg_priv_t * priv,
     /* write the compressed frame in the media file */
     if(av_write_frame(priv->ctx, &pkt) != 0)
       {
+      priv->got_error = 1;
       return 0;
       }
     }
@@ -511,7 +547,7 @@ static int flush_audio(ffmpeg_priv_t * priv,
   /* Mute frame */
   gavl_audio_frame_mute(st->frame, &st->format);
   st->frame->valid_samples = 0;
-  return 1;
+  return bytes_encoded;
   }
 
 int bg_ffmpeg_write_audio_frame(void * data,
@@ -538,7 +574,9 @@ int bg_ffmpeg_write_audio_frame(void * data,
     st->frame->valid_samples += samples_copied;
     if(st->frame->valid_samples == st->format.samples_per_frame)
       {
-      if(!flush_audio(priv, st))
+      flush_audio(priv, st);
+      
+      if(priv->got_error)
         return 0;
       }
     samples_written += samples_copied;
@@ -546,11 +584,49 @@ int bg_ffmpeg_write_audio_frame(void * data,
   return 1;
   }
 
-int bg_ffmpeg_write_video_frame(void * data,
-                                gavl_video_frame_t * frame, int stream)
+static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
+                       AVFrame * frame)
   {
   AVPacket pkt;
   int bytes_encoded;
+
+  bytes_encoded = avcodec_encode_video(st->stream->codec,
+                                       st->buffer, st->buffer_alloc,
+                                       frame);
+
+  if(bytes_encoded > 0)
+    {
+    av_init_packet(&pkt);
+    pkt.pts= av_rescale_q(st->stream->codec->coded_frame->pts,
+                          st->stream->codec->time_base,
+                          st->stream->time_base);
+    
+    if(st->stream->codec->coded_frame->key_frame)
+      pkt.flags |= PKT_FLAG_KEY;
+    pkt.stream_index = st->stream->index;
+    pkt.data = st->buffer;
+    pkt.size = bytes_encoded;
+
+    
+    if(av_write_frame(priv->ctx, &pkt) != 0)
+      {
+      priv->got_error = 1;
+      return 0;
+      }
+
+    /* Write stats */
+    
+    if((st->pass == 1) && st->stream->codec->stats_out && st->stats_file)
+      fprintf(st->stats_file, st->stream->codec->stats_out);
+    }
+  return bytes_encoded;
+  }
+               
+                
+
+int bg_ffmpeg_write_video_frame(void * data,
+                                gavl_video_frame_t * frame, int stream)
+  {
   ffmpeg_priv_t * priv;
   ffmpeg_video_stream_t * st;
   
@@ -564,29 +640,11 @@ int bg_ffmpeg_write_video_frame(void * data,
   st->frame->linesize[1] = frame->strides[1];
   st->frame->linesize[2] = frame->strides[2];
   
-  bytes_encoded = avcodec_encode_video(st->stream->codec,
-                                       st->buffer, st->buffer_alloc,
-                                       st->frame);
+  flush_video(priv, st, st->frame);
   
-  if(bytes_encoded > 0)
-    {
-    av_init_packet(&pkt);
-    pkt.pts= av_rescale_q(st->stream->codec->coded_frame->pts,
-                          st->stream->codec->time_base,
-                          st->stream->time_base);
-
-    if(st->stream->codec->coded_frame->key_frame)
-      pkt.flags |= PKT_FLAG_KEY;
-    pkt.stream_index = st->stream->index;
-    pkt.data = st->buffer;
-    pkt.size = bytes_encoded;
-
-    
-    if(av_write_frame(priv->ctx, &pkt) != 0)
-      {
-      return 0;
-      }
-    }
+  if(priv->got_error)
+    return 0;
+  
   return 1;
   }
 
@@ -594,7 +652,7 @@ static int close_audio_encoder(ffmpeg_priv_t * priv,
                                ffmpeg_audio_stream_t * st)
   {
   /* Flush */
-  if(st->frame && st->frame->valid_samples)
+  if(st->frame && st->frame->valid_samples && priv->initialized)
     {
     if(!flush_audio(priv, st))
       return 0;
@@ -605,19 +663,51 @@ static int close_audio_encoder(ffmpeg_priv_t * priv,
     avcodec_close(st->stream->codec);
   else
     av_free(st->stream->codec);
+
+  if(st->buffer)
+    free(st->buffer);
+  if(st->frame)
+    gavl_audio_frame_destroy(st->frame);
+  
   return 1;
   }
 
 static void close_video_encoder(ffmpeg_priv_t * priv,
                                 ffmpeg_video_stream_t * st)
   {
-  /* TODO: Flush */
+  int result;
+  if(priv->initialized)
+    {
+    while(1)
+      {
+      result = flush_video(priv, st, NULL);
+      fprintf(stderr, "Flush video %d\n", result);
+      if(result <= 0)
+        break;
+      }
+    }
   
   /* Close encoder and free buffers */
   if(st->initialized)
     avcodec_close(st->stream->codec);
   else
     av_free(st->stream->codec);
+  
+  if(st->frame)
+    free(st->frame);
+  
+  if(st->buffer)
+    free(st->buffer);
+  
+  if(st->stream->codec->stats_in)
+    free(st->stream->codec->stats_in);
+
+  if(st->stats_filename)
+    free(st->stats_filename);
+  
+  if(st->stats_file)
+    fclose(st->stats_file);
+  
   }
 
 int bg_ffmpeg_close(void * data, int do_delete)

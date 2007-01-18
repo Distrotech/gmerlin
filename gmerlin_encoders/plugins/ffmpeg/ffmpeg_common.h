@@ -66,6 +66,13 @@ typedef struct
   AVFrame * frame;
 
   int initialized;
+
+  /* Multipass stuff */
+  char * stats_filename;
+  int pass;
+  int total_passes;
+  FILE * stats_file;
+  
   } ffmpeg_video_stream_t;
 
 typedef struct
@@ -87,6 +94,8 @@ typedef struct
 
   int initialized;
   char * error_msg;
+  
+  int got_error;
   } ffmpeg_priv_t;
 
 void * bg_ffmpeg_create(const ffmpeg_format_info_t * formats);

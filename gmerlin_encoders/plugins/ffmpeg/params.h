@@ -596,10 +596,10 @@ multi_names: (char*[]){ "Left", "Plane", "Median", (char*)0 },    \
   }
 
 /** Frame types */
-#define PARAM_SCENE_CHANGE_THESHOLD \
+#define PARAM_SCENE_CHANGE_THRESHOLD \
   {                                 \
     name:      "ff_scenechange_threshold",        \
-    long_name: "Scenechange theshold",            \
+    long_name: "Scenechange threshold",            \
     type: BG_PARAMETER_INT,             \
     val_default: { val_i: 0 },                \
     val_min: { val_i: -1000000000 },                    \

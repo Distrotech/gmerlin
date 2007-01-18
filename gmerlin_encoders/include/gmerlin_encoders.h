@@ -28,8 +28,13 @@ typedef struct bgen_id3v2_s bgen_id3v2_t;
 bgen_id3v1_t * bgen_id3v1_create(const bg_metadata_t*);
 bgen_id3v2_t * bgen_id3v2_create(const bg_metadata_t*);
 
+#define ID3_ENCODING_LATIN1    0x00
+#define ID3_ENCODING_UTF16_BOM 0x01
+#define ID3_ENCODING_UTF16_BE  0x02
+#define ID3_ENCODING_UTF8      0x03
+
 int bgen_id3v1_write(FILE * output, const bgen_id3v1_t *);
-int bgen_id3v2_write(FILE * output, const bgen_id3v2_t *);
+int bgen_id3v2_write(FILE * output, const bgen_id3v2_t *, int encoding);
 
 void bgen_id3v1_destroy(bgen_id3v1_t *);
 void bgen_id3v2_destroy(bgen_id3v2_t *);

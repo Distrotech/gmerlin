@@ -52,6 +52,7 @@ typedef struct
   
   int do_id3v1;
   int do_id3v2;
+  int id3v2_charset;
 
   int64_t samples_read;
   
@@ -249,6 +250,16 @@ static bg_parameter_info_t parameters[] =
       type:        BG_PARAMETER_CHECKBUTTON,
       val_default: { val_i: 1 },
     },
+    {
+      name:        "id3v2_charset",
+      long_name:   "ID3V2 Encoding",
+      type:        BG_PARAMETER_STRINGLIST,
+      val_default: { val_str: "3" },
+      multi_names: (char*[]){ "0", "1",
+                               "2", "3", (char*)0 },
+      multi_labels: (char*[]){ "ISO-8859-1", "UTF-16 LE",
+                               "UTF-16 BE", "UTF-8", (char*)0 },
+    },
     { /* End of parameters */ }
   };
 
@@ -270,6 +281,8 @@ static void set_parameter_faac(void * data, char * name,
     faac->do_id3v1 = v->val_i;
   else if(!strcmp(name, "do_id3v2"))
     faac->do_id3v2 = v->val_i;
+  else if(!strcmp(name, "id3v2_charset"))
+    faac->id3v2_charset = atoi(v->val_str);
   }
 
 static int open_faac(void * data, const char * filename,
@@ -298,7 +311,7 @@ static int open_faac(void * data, const char * filename,
   if(faac->do_id3v2)
     {
     id3v2 = bgen_id3v2_create(metadata);
-    bgen_id3v2_write(faac->output, id3v2);
+    bgen_id3v2_write(faac->output, id3v2, faac->id3v2_charset);
     bgen_id3v2_destroy(id3v2);
     }
   return 1;

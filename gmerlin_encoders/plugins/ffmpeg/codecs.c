@@ -84,7 +84,7 @@
     type:      BG_PARAMETER_SECTION,         \
   },                                        \
   PARAM_GOP_SIZE,                      \
-  PARAM_SCENE_CHANGE_THESHOLD,       \
+  PARAM_SCENE_CHANGE_THRESHOLD,       \
   PARAM_SCENECHANGE_FACTOR,        \
   PARAM_FLAG_CLOSED_GOP,         \
   PARAM_FLAG2_STRICT_GOP
