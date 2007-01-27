@@ -205,6 +205,7 @@ static int init_mpeg2(bgav_stream_t*s)
   mpeg2_state_t state;
   mpeg2_priv_t * priv;
 
+  
   priv = calloc(1, sizeof(*priv));
   s->data.video.decoder->priv = priv;
   
@@ -437,7 +438,7 @@ static void close_mpeg2(bgav_stream_t*s)
     mpeg2_close(priv->dec);
   
   free(priv);
-  
+
   }
 
 static bgav_video_decoder_t decoder =

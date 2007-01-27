@@ -384,7 +384,10 @@ void bgav_demuxer_stop(bgav_demuxer_context_t * ctx)
   FREE(ctx->error_msg);
   
   /* Reset global variables */
-  ctx->flags = 0;
+  ctx->flags &= ~(BGAV_DEMUXER_SI_SEEKING |
+                  BGAV_DEMUXER_HAS_TIMESTAMP_OFFSET |
+                  BGAV_DEMUXER_EOF);
+  
   ctx->timestamp_offset = 0;
   if(ctx->si)
     {

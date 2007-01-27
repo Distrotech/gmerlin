@@ -225,7 +225,10 @@ void bgav_close(bgav_t * b)
     free(b->location);
   
   if(b->is_running)
-    bgav_stop(b);
+    {
+    bgav_track_stop(b->tt->current_track);
+    b->is_running = 0;
+    }
 
   if(b->demuxer)
     bgav_demuxer_destroy(b->demuxer);
@@ -266,8 +269,6 @@ const char * bgav_get_track_name(bgav_t * b, int track)
 
 void bgav_stop(bgav_t * b)
   {
-  bgav_track_stop(b->tt->current_track);
-  b->is_running = 0;
   }
 
 int bgav_select_track(bgav_t * b, int track)
@@ -276,7 +277,10 @@ int bgav_select_track(bgav_t * b, int track)
     return 0;
   
   if(b->is_running)
-    bgav_stop(b);
+    {
+    bgav_track_stop(b->tt->current_track);
+    b->is_running = 0;
+    }
   
   if(b->input->input->select_track)
     {
@@ -293,6 +297,14 @@ int bgav_select_track(bgav_t * b, int track)
     bgav_track_table_select_track(b->tt, track);
     b->demuxer->demuxer->select_track(b->demuxer, track);
     }
+  else /* Try to seek to start and reopen the demuxer */
+    {
+    bgav_demuxer_stop(b->demuxer);
+    if(b->input->input->seek_byte)
+      bgav_input_seek(b->input, 0, SEEK_SET);
+    bgav_demuxer_start(b->demuxer, &(b->redirector));
+    }
+  
   return 1;
   }
 

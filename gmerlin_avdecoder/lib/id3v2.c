@@ -511,7 +511,7 @@ bgav_id3v2_tag_t * bgav_id3v2_read(bgav_input_context_t * input)
     {
     bgav_input_skip(input, tag_start_pos + ret->header.size - input->position);
     }
-  //  bgav_id3v2_dump(ret);
+  bgav_id3v2_dump(ret);
   return ret;
 
   fail:

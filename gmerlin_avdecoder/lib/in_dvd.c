@@ -1118,7 +1118,7 @@ bgav_input_context_t * bgav_input_open_dvd(const char * device,
   ret->input = &bgav_input_dvd;
   if(!ret->input->open(ret, device))
     {
-    bgav_log(ret->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot open DVD Device %s\n", device);
+    bgav_log(ret->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Cannot open DVD Device %s", device);
     goto fail;
     }
   return ret;

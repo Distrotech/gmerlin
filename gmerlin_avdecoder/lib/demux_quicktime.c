@@ -1171,20 +1171,26 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       {
       if(!stsd->entries)
         continue;
-      bg_ss =
-        bgav_track_add_subtitle_stream(track, ctx->opt, 1, "bgav_unicode");
-      bg_ss->description = bgav_sprintf("3gpp subtitles");
-      bg_ss->fourcc = stsd->entries[0].desc.fourcc;
-      bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
-                                bg_ss->language);
-      
-      bg_ss->timescale = trak->mdia.mdhd.time_scale;
-      bg_ss->stream_id = i;
 
-      stream_priv = &(priv->streams[i]);
-      stream_init(stream_priv, &(moov->tracks[i]));
-      bg_ss->priv = stream_priv;
-      bg_ss->process_packet = process_packet_subtitle_tx3g;
+      if(bgav_qt_is_chapter_track(moov, trak))
+        setup_chapter_track(ctx, trak);
+      else
+        {
+        bg_ss =
+          bgav_track_add_subtitle_stream(track, ctx->opt, 1, "bgav_unicode");
+        bg_ss->description = bgav_sprintf("3gpp subtitles");
+        bg_ss->fourcc = stsd->entries[0].desc.fourcc;
+        bgav_qt_mdhd_get_language(&trak->mdia.mdhd,
+                                  bg_ss->language);
+      
+        bg_ss->timescale = trak->mdia.mdhd.time_scale;
+        bg_ss->stream_id = i;
+
+        stream_priv = &(priv->streams[i]);
+        stream_init(stream_priv, &(moov->tracks[i]));
+        bg_ss->priv = stream_priv;
+        bg_ss->process_packet = process_packet_subtitle_tx3g;
+        }
       }
     }
   
