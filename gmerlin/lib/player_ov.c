@@ -26,6 +26,9 @@
 #include <player.h>
 #include <playerprivate.h>
 
+#include <log.h>
+#define LOG_DOMAIN "player.video_output"
+
 struct bg_player_ov_context_s
   {
   bg_plugin_handle_t * plugin_handle;
@@ -52,6 +55,8 @@ struct bg_player_ov_context_s
   gavl_overlay_t * osd_ovl;
   
   bg_msg_queue_t * msg_queue;
+
+  int64_t frames_written;
   };
 
 /* Callback functions */
@@ -129,7 +134,8 @@ static void key_callback(void * data, int key, int mask)
   bg_player_key_pressed(ctx->player, key, mask);
   }
 
-static void button_callback(void * data, int x, int y, int button, int mask)
+static void
+button_callback(void * data, int x, int y, int button, int mask)
   {
   bg_player_ov_context_t * ctx = (bg_player_ov_context_t*)data;
 
@@ -158,7 +164,8 @@ static void contrast_callback(void * data, float val)
   bg_osd_set_contrast_changed(ctx->osd, val, ctx->frame_time);
   }
 
-static void handle_messages(bg_player_ov_context_t * ctx, gavl_time_t time)
+static void
+handle_messages(bg_player_ov_context_t * ctx, gavl_time_t time)
   {
   bg_msg_t * msg;
   int id;
@@ -171,7 +178,8 @@ static void handle_messages(bg_player_ov_context_t * ctx, gavl_time_t time)
       {
       case BG_PLAYER_MSG_VOLUME_CHANGED:
         arg_f = bg_msg_get_arg_float(msg, 0);
-        bg_osd_set_volume_changed(ctx->osd, (arg_f - BG_PLAYER_VOLUME_MIN)/(-BG_PLAYER_VOLUME_MIN),
+        bg_osd_set_volume_changed(ctx->osd,
+                                  (arg_f - BG_PLAYER_VOLUME_MIN)/(-BG_PLAYER_VOLUME_MIN),
                                   time);
         break;
       default:
@@ -335,7 +343,7 @@ int bg_player_ov_init(bg_player_ov_context_t * ctx)
   ctx->osd_id = ctx->plugin->add_overlay_stream(ctx->priv,
                                                       &osd_format);
   ctx->osd_ovl = bg_osd_get_overlay(ctx->osd);
-  
+  ctx->frames_written = 0;
   bg_plugin_unlock(ctx->plugin_handle);
   return result;
   }
@@ -395,6 +403,9 @@ void bg_player_ov_cleanup(bg_player_ov_context_t * ctx)
   bg_plugin_lock(ctx->plugin_handle);
   ctx->plugin->close(ctx->priv);
   bg_plugin_unlock(ctx->plugin_handle);
+
+  //  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Processed %lld frames",
+  //         ctx->frames_written);
   }
 
 void bg_player_ov_reset(bg_player_t * player)
@@ -602,6 +613,7 @@ void * bg_player_ov_thread(void * data)
     bg_plugin_lock(ctx->plugin_handle);
     ctx->plugin->put_video(ctx->priv, ctx->frame);
     ctx->plugin->handle_events(ctx->priv);
+    ctx->frames_written++;
     
     bg_plugin_unlock(ctx->plugin_handle);
     }

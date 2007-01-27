@@ -59,6 +59,9 @@ struct bg_player_input_context_s
   /* Config stuff */
   pthread_mutex_t config_mutex;
   int do_bypass;
+
+  int current_track;
+  
   };
 
 static void track_changed(void * data, int track)
@@ -156,68 +159,10 @@ void bg_player_input_destroy(bg_player_t * player)
   free(player->input_context);
   }
 
-int bg_player_input_init(bg_player_input_context_t * ctx,
-                         bg_plugin_handle_t * handle,
-                         int track_index)
+void bg_player_input_select_streams(bg_player_input_context_t * ctx)
   {
   int i;
-  int do_bypass;
-
-  pthread_mutex_lock(&(ctx->config_mutex));
-  do_bypass = ctx->do_bypass;
-  pthread_mutex_unlock(&(ctx->config_mutex));
   
-  ctx->plugin_handle = handle;
-  
-  ctx->plugin = (bg_input_plugin_t*)(handle->plugin);
-  ctx->priv = handle->priv;
-
-  if(ctx->plugin->set_callbacks)
-    {
-    ctx->plugin->set_callbacks(ctx->priv, &(ctx->callbacks));
-    }
-
-  ctx->player->track_info = ctx->plugin->get_track_info(ctx->priv,
-                                                        track_index);
-  
-  if(ctx->plugin->seek && ctx->player->track_info->seekable &&
-     (ctx->player->track_info->duration > 0))
-    ctx->player->can_seek = 1;
-  else
-    ctx->player->can_seek = 0;
-  
-  if(!ctx->player->track_info->num_audio_streams &&
-     !ctx->player->track_info->num_video_streams &&
-     !ctx->player->track_info->num_still_streams)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-            "Stream has neither audio nor video, skipping");
-    return 0;
-    }
-  
-  /* Set the track if neccesary */
-  
-  if(ctx->plugin->set_track)
-    {
-    if(!ctx->plugin->set_track(ctx->priv, track_index))
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-             "Cannot select track, skipping");
-      return 0;
-      }
-    }
-  /* Check for bypass mode */
-  
-  if(do_bypass && (ctx->plugin_handle->info->flags & BG_PLUGIN_BYPASS))
-    {
-    /* Initialize volume for bypass mode */
-    bg_player_input_bypass_set_volume(ctx, ctx->player->volume);
-    ctx->player->do_bypass = 1;
-    }
-  else
-    ctx->player->do_bypass = 0;
-  /* Select streams */
-
   /* Adjust stream indices */
   if(ctx->player->current_audio_stream >= ctx->player->track_info->num_audio_streams)
     ctx->player->current_audio_stream = 0;
@@ -225,7 +170,6 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
   if(ctx->player->current_video_stream >= ctx->player->track_info->num_video_streams)
     ctx->player->current_video_stream = 0;
 
-  //  ctx->player->current_subtitle_stream = 7;
   if(ctx->player->current_subtitle_stream >= ctx->player->track_info->num_subtitle_streams)
     ctx->player->current_subtitle_stream = 0;
 
@@ -237,6 +181,45 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
     ctx->player->current_video_stream = -1;
     ctx->player->current_subtitle_stream = -1;
     }
+
+  /* Check if the streams are actually there */
+
+  ctx->player->do_audio = 0;
+  ctx->player->do_video = 0;
+  ctx->player->do_still = 0;
+  ctx->player->do_subtitle_text = 0;
+  ctx->player->do_subtitle_overlay = 0;
+
+  ctx->audio_finished = 1;
+  ctx->video_finished = 1;
+  ctx->subtitle_finished = 1;
+  
+  if((ctx->player->current_audio_stream >= 0) &&
+     (ctx->player->current_audio_stream < ctx->player->track_info->num_audio_streams))
+    {
+    ctx->audio_finished = 0;
+    ctx->player->do_audio = 1;
+    }
+  if((ctx->player->current_video_stream >= 0) &&
+     (ctx->player->current_video_stream < ctx->player->track_info->num_video_streams))
+    {
+    if(ctx->player->track_info->video_streams[ctx->player->current_video_stream].is_still)
+      ctx->player->do_still = 1;
+    else
+      ctx->player->do_video = 1;
+    ctx->video_finished = 0;
+    }
+  if((ctx->player->current_subtitle_stream >= 0) &&
+     (ctx->player->current_subtitle_stream < ctx->player->track_info->num_subtitle_streams))
+    {
+    if(ctx->player->track_info->subtitle_streams[ctx->player->current_subtitle_stream].is_text)
+      ctx->player->do_subtitle_text = 1;
+    else
+      ctx->player->do_subtitle_overlay = 1;
+    ctx->subtitle_finished = 0;
+    }
+  
+  /* En-/Disable strams at the input plugin */
   
   if(ctx->plugin->set_audio_stream)
     {
@@ -268,20 +251,6 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
                                       BG_STREAM_ACTION_OFF);
       }
     }
-  if(ctx->plugin->set_still_stream)
-    {
-    for(i = 0; i < ctx->player->track_info->num_still_streams; i++)
-      {
-      if(i == ctx->player->current_still_stream) 
-        ctx->plugin->set_still_stream(ctx->priv, i,
-                                      ctx->player->do_bypass ?
-                                      BG_STREAM_ACTION_BYPASS :
-                                      BG_STREAM_ACTION_DECODE);
-      else
-        ctx->plugin->set_still_stream(ctx->priv, i,
-                                      BG_STREAM_ACTION_OFF);
-      }
-    }
 
   if(ctx->plugin->set_subtitle_stream)
     {
@@ -297,93 +266,142 @@ int bg_player_input_init(bg_player_input_context_t * ctx,
                                          BG_STREAM_ACTION_OFF);
       }
     }
-  
+  }
+
+int bg_player_input_start(bg_player_input_context_t * ctx)
+  {
   /* Start input plugin, so we get the formats */
-  
   if(ctx->plugin->start)
     {
     if(!ctx->plugin->start(ctx->priv))
       {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Starting input plugin failed");
       return 0;
       }
     }
   return 1;
   }
 
-void bg_player_input_cleanup(bg_player_input_context_t * ctx)
+void bg_player_input_stop(bg_player_input_context_t * ctx)
   {
   if(ctx->plugin->stop)
     ctx->plugin->stop(ctx->priv);
+  }
+
+int bg_player_input_set_track(bg_player_input_context_t * ctx)
+  {
+  if(ctx->plugin->set_track)
+    {
+    if(!ctx->plugin->set_track(ctx->priv, ctx->current_track))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Cannot select track, skipping");
+      return 0;
+      }
+    }
+  return 1;
+  }
+
+int bg_player_input_init(bg_player_input_context_t * ctx,
+                         bg_plugin_handle_t * handle,
+                         int track_index)
+  {
+  int do_bypass;
+
+  pthread_mutex_lock(&(ctx->config_mutex));
+  do_bypass = ctx->do_bypass;
+  pthread_mutex_unlock(&(ctx->config_mutex));
+  
+  ctx->plugin_handle = handle;
+  ctx->current_track = track_index;
+  
+  ctx->plugin = (bg_input_plugin_t*)(handle->plugin);
+  ctx->priv = handle->priv;
+
+  if(ctx->plugin->set_callbacks)
+    {
+    ctx->plugin->set_callbacks(ctx->priv, &(ctx->callbacks));
+    }
+
+  ctx->player->track_info = ctx->plugin->get_track_info(ctx->priv,
+                                                        track_index);
+  
+  if(ctx->plugin->seek && ctx->player->track_info->seekable &&
+     (ctx->player->track_info->duration > 0))
+    ctx->player->can_seek = 1;
+  else
+    ctx->player->can_seek = 0;
+  
+  if(!ctx->player->track_info->num_audio_streams &&
+     !ctx->player->track_info->num_video_streams)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+            "Stream has neither audio nor video, skipping");
+    return 0;
+    }
+  
+  /* Set the track if neccesary */
+
+  if(!bg_player_input_set_track(ctx))
+    return 0;
+  
+  /* Check for bypass mode */
+  
+  if(do_bypass && (ctx->plugin_handle->info->flags & BG_PLUGIN_BYPASS))
+    {
+    /* Initialize volume for bypass mode */
+    bg_player_input_bypass_set_volume(ctx, ctx->player->volume);
+    ctx->player->do_bypass = 1;
+    }
+  else
+    ctx->player->do_bypass = 0;
+
+  /* Select streams */
+  bg_player_input_select_streams(ctx);
+  
+  /* Start input plugin, so we get the formats */
+  
+  if(!bg_player_input_start(ctx))
+    {
+    return 0;
+    }
+  return 1;
+  }
+
+void bg_player_input_cleanup(bg_player_input_context_t * ctx)
+  {
+  bg_player_input_stop(ctx);
   if(ctx->plugin_handle)
     bg_plugin_unref(ctx->plugin_handle);
   ctx->plugin_handle = NULL;
   ctx->plugin = NULL;
-  
-  //  if(!(ctx->plugin_handle->info->flags & BG_PLUGIN_REMOVABLE))
-  //    ctx->plugin->close(ctx->priv);
   }
 
-int bg_player_input_set_audio_stream(bg_player_input_context_t * ctx,
-                                     int audio_stream)
+int bg_player_input_get_audio_format(bg_player_input_context_t * ctx)
   {
-  if((audio_stream < 0) ||
-     (audio_stream > ctx->player->track_info->num_audio_streams-1))
-    {
-    return 0;
-    }
   gavl_audio_format_copy(&(ctx->player->audio_stream.input_format),
-                         &(ctx->player->track_info->audio_streams[audio_stream].format));
+                         &(ctx->player->track_info->audio_streams[ctx->player->current_audio_stream].format));
   return 1;
   }
 
-int bg_player_input_set_video_stream(bg_player_input_context_t * ctx,
-                                     int video_stream)
+int bg_player_input_get_video_format(bg_player_input_context_t * ctx)
   {
-  if((video_stream < 0) ||
-     (video_stream > ctx->player->track_info->num_video_streams-1))
-    {
-    return 0;
-    }
-
   gavl_video_format_copy(&(ctx->player->video_stream.input_format),
-                         &(ctx->player->track_info->video_streams[video_stream].format));
+                         &(ctx->player->track_info->video_streams[ctx->player->current_video_stream].format));
   return 1;
   }
 
 int
-bg_player_input_set_subtitle_stream(bg_player_input_context_t * ctx,
-                                    int subtitle_stream)
+bg_player_input_get_subtitle_format(bg_player_input_context_t * ctx)
   {
-  if((subtitle_stream < 0) ||
-     (subtitle_stream > ctx->player->track_info->num_subtitle_streams-1))
-    {
-    return 0;
-    }
-
-  if(!ctx->player->track_info->subtitle_streams[subtitle_stream].is_text)
+  if(!ctx->player->track_info->subtitle_streams[ctx->player->current_subtitle_stream].is_text)
     {
     gavl_video_format_copy(&(ctx->player->subtitle_stream.format),
-                           &(ctx->player->track_info->subtitle_streams[subtitle_stream].format));
+                           &(ctx->player->track_info->subtitle_streams[ctx->player->current_subtitle_stream].format));
     
     }
   return 1;
   }
-
-
-int bg_player_input_set_still_stream(bg_player_input_context_t * ctx,
-                                     int still_stream)
-  {
-  if((still_stream < 0) ||
-     (still_stream > ctx->player->track_info->num_still_streams-1))
-    {
-    return 0;
-    }
-
-  gavl_video_format_copy(&(ctx->player->video_stream.input_format),
-                         &(ctx->player->track_info->still_streams[still_stream].format));
-  return 1;
-  }
-
 
 /*
  *  Read audio frames from the input plugin until one frame for
@@ -599,14 +617,15 @@ void * bg_player_input_thread(void * data)
   bg_player_input_context_t * ctx;
   bg_msg_t * msg;
   bg_fifo_state_t state;
-  int do_audio;
-  int do_video;
-  int do_subtitle;
+  //  int do_audio;
+  //  int do_video;
+  //  int do_subtitle;
   
   int read_audio;
   
   ctx = (bg_player_input_context_t*)data;
 
+#if 0  
   do_audio = ctx->player->do_audio;
   do_video = ctx->player->do_video || ctx->player->do_still;
   do_subtitle =
@@ -616,7 +635,7 @@ void * bg_player_input_thread(void * data)
   ctx->audio_finished = !do_audio;
   ctx->video_finished = !do_video;
   ctx->subtitle_finished = !do_subtitle;
-  
+#endif  
   ctx->send_silence = 0;
   ctx->audio_samples_written = 0;
   ctx->video_frames_written = 0;
@@ -626,7 +645,8 @@ void * bg_player_input_thread(void * data)
 
   read_audio = 0;
 
-  if(do_audio && !do_video)
+  if(ctx->player->do_audio &&
+     !(ctx->player->do_video || ctx->player->do_still))
     read_audio = 1;
 
   
@@ -651,7 +671,8 @@ void * bg_player_input_thread(void * data)
         }
       break;
       }
-    if(do_audio && do_video)
+    if(ctx->player->do_audio &&
+       (ctx->player->do_video || ctx->player->do_still))
       {
             
       //      if(ctx->audio_finished)
@@ -696,10 +717,10 @@ void * bg_player_input_thread(void * data)
   
   bg_msg_queue_unlock_write(ctx->player->command_queue);
 
-  if(do_audio)
+  if(ctx->player->do_audio)
     bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Processed %lld audio samples",
            ctx->audio_samples_written);
-  if(do_video)
+  if(ctx->player->do_video || ctx->player->do_still)
     bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Processed %lld video frames",
            ctx->video_frames_written);
   

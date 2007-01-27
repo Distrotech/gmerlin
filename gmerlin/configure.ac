@@ -193,6 +193,47 @@ LDFLAGS=$OLD_LDFLAGS
 
 fi
 
+dnl
+dnl X11 DPMS extension
+dnl
+
+AH_TEMPLATE([HAVE_XDPMS],
+            [Do we have X11 dpms extension installed?])
+
+have_xdpms="false"
+XDPMS_LIBS=""
+
+if test x$no_x != xyes; then
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+OLD_LDFLAGS=$LDFLAGS                                                                               
+CFLAGS=$X_FLAGS
+LIBS=$X_LIBS
+LDFLAGS="$X_LIBS $LDFLAGS -lXext"
+
+AC_MSG_CHECKING(for x11 dpms)
+AC_TRY_LINK([#include <X11/Xlib.h>
+             #include <X11/extensions/dpms.h>],
+            [int i = 0;
+             /* We ensure the function is here but never call it */
+             if(i)
+		 DPMSQueryExtension(NULL, NULL, NULL);
+             return 0;],
+            [XDPMS_LIBS="-lXext";have_xdpms=true;AC_MSG_RESULT("Yes")],
+	    AC_MSG_RESULT("No"))
+
+if test x$have_xdpms="xtrue"; then
+AC_DEFINE(HAVE_XDPMS)
+fi
+
+AC_SUBST(XDPMS_LIBS)
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+LDFLAGS=$OLD_LDFLAGS
+
+fi
 
 dnl
 dnl Libquicktime
@@ -680,6 +721,13 @@ fi
 
 echo -n "Xvideo extension:    "
 if test "x$have_xv" = "xtrue"; then
+echo "Yes"
+else
+echo "Missing"
+fi
+
+echo -n "X11 dpms extension:  "
+if test "x$have_xdpms" = "xtrue"; then
 echo "Yes"
 else
 echo "Missing"

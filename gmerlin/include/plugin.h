@@ -269,7 +269,7 @@ typedef struct bg_plugin_common_s
    
   const char * (*get_error)(void* priv);
 
-  /** \brief Check, is a device can be opened by the plugin (optional)
+  /** \brief Check, if a device can be opened by the plugin (optional)
    *  \param device The device as passed to the open() method
    *  \param name Returns the name if available
    *  \returns 1 if the device is supported, 0 else
@@ -530,16 +530,7 @@ typedef struct bg_input_plugin_s
    */
 
   int (*set_video_stream)(void * priv, int stream, bg_stream_action_t action);
-
-  /** \brief Setup still image stream
-   *  \param priv The handle returned by the create() method
-   *  \param stream Stream index starting with 0
-   *  \param action What to do with the stream
-   *  \returns 1 on success, 0 on failure
-   */
-
-  int (*set_still_stream)(void * priv, int stream, bg_stream_action_t action);
-
+  
   /** \brief Setup subtitle stream
    *  \param priv The handle returned by the create() method
    *  \param stream Stream index starting with 0

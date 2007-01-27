@@ -49,7 +49,7 @@ struct bg_player_oa_context_s
   gavl_time_t     current_time;
   gavl_timer_t *  timer;
 
-  int64_t audio_samples_written;
+  int64_t samples_written;
 
   int have_first_timestamp;
   
@@ -213,7 +213,7 @@ void bg_player_time_get(bg_player_t * player, int exact,
       pthread_mutex_lock(&(ctx->time_mutex));
       ctx->current_time =
         gavl_samples_to_time(ctx->player->audio_stream.output_format.samplerate,
-                             ctx->audio_samples_written-samples_in_soundcard);
+                             ctx->samples_written-samples_in_soundcard);
 
       //      ctx->current_time *= ctx->player->audio_stream.output_format.samplerate;
       //      ctx->current_time /= ctx->player->audio_stream.input_format.samplerate;
@@ -236,9 +236,13 @@ void bg_player_time_set(bg_player_t * player, gavl_time_t time)
   if(ctx->sync_mode == SYNC_SOFTWARE)
     gavl_timer_set(ctx->timer, time);
   else if(ctx->sync_mode == SYNC_SOUNDCARD)
-    ctx->audio_samples_written =
+    {
+    ctx->samples_written =
       gavl_time_to_samples(ctx->player->audio_stream.output_format.samplerate,
                            time);
+    /* If time is set explicitely, we don't do that timestamp offset stuff */
+    ctx->have_first_timestamp = 1;
+    }
   ctx->current_time = time;
   pthread_mutex_unlock(&(ctx->time_mutex));
   }
@@ -268,6 +272,9 @@ void * bg_player_oa_thread(void * data)
 
     wait_time = GAVL_TIME_UNDEFINED;
     
+    if(!s->fifo) // Audio was switched off
+      break;
+    
     frame = bg_fifo_lock_read(s->fifo, &state);
     if(!frame)
       {
@@ -290,7 +297,7 @@ void * bg_player_oa_thread(void * data)
                frame->time_scaled);
         
         pthread_mutex_lock(&(ctx->time_mutex));
-        ctx->audio_samples_written += frame->time_scaled;
+        ctx->samples_written += frame->time_scaled;
         pthread_mutex_unlock(&(ctx->time_mutex));
         }
       ctx->have_first_timestamp = 1;
@@ -334,7 +341,7 @@ void * bg_player_oa_thread(void * data)
         }
       
       pthread_mutex_lock(&(ctx->time_mutex));
-      ctx->audio_samples_written += frame->valid_samples;
+      ctx->samples_written += frame->valid_samples;
       pthread_mutex_unlock(&(ctx->time_mutex));
 
       /* Now, wait a while to give other threads a chance to access the
@@ -379,7 +386,7 @@ int bg_player_oa_init(bg_player_oa_context_t * ctx)
   bg_plugin_unlock(ctx->plugin_handle);
 
   
-  ctx->audio_samples_written = 0;
+  ctx->samples_written = 0;
   return result;
   }
 
@@ -396,6 +403,9 @@ void bg_player_oa_cleanup(bg_player_oa_context_t * ctx)
   ctx->plugin->close(ctx->priv);
   ctx->output_open = 0;
   bg_plugin_unlock(ctx->plugin_handle);
+
+  //  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Processed %lld samples",
+  //         ctx->samples_written);
   }
 
 int bg_player_oa_start(bg_player_oa_context_t * ctx)

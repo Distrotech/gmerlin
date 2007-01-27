@@ -49,6 +49,11 @@ void bg_gtk_button_set_callback(bg_gtk_button_t *,
                                                  void *),
                                 void * callback_data);
 
+void bg_gtk_button_set_callback_2(bg_gtk_button_t *,
+                                  void (*callback_2)(bg_gtk_button_t *,
+                                                     void *),
+                                  void * callback_2_data);
+
 void bg_gtk_button_set_menu(bg_gtk_button_t *, GtkWidget * menu);
 
 /* Get Stuff */

@@ -324,7 +324,7 @@ static bg_parameter_info_t parameters[] =
       long_name: "Tabbed mode",
       type:      BG_PARAMETER_CHECKBUTTON,
       flags:     BG_PARAMETER_HIDE_DIALOG,
-      val_default: { val_i: 0 },
+      val_default: { val_i: 1 },
     },
     { /* End of parameters */ }
   };
@@ -449,6 +449,7 @@ static void update_menu(bg_gtk_tree_widget_t * w)
 
         break;
       case BG_ALBUM_TYPE_REMOVABLE:
+      case BG_ALBUM_TYPE_TUNER:
         rename_item(w->menu.album_item, "Device...");
         gtk_widget_show(w->menu.album_item);
         

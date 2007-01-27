@@ -59,12 +59,14 @@ typedef struct
     
   } bg_transcoder_encoder_info_t;
 
-int bg_transcoder_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_reg,
-                                                  bg_transcoder_encoder_info_t * encoder_info);
+int
+bg_transcoder_encoder_info_get_from_registry(bg_plugin_registry_t * plugin_reg,
+                                             bg_transcoder_encoder_info_t * encoder_info);
 
-int bg_transcoder_encoder_info_get_from_track(bg_plugin_registry_t * plugin_reg,
-                                               bg_transcoder_track_t * track,
-                                               bg_transcoder_encoder_info_t * encoder_info);
+int
+bg_transcoder_encoder_info_get_from_track(bg_plugin_registry_t * plugin_reg,
+                                          bg_transcoder_track_t * track,
+                                          bg_transcoder_encoder_info_t * encoder_info);
 
 void
 bg_transcoder_encoder_info_get_sections_from_track(bg_transcoder_track_t * track,

@@ -2,7 +2,7 @@
  
   pluginregistry.c
  
-  Copyright (c) 2003-2004 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
+  Copyright (c) 2003-2007 by Burkhard Plaum - plaum@ipf.uni-stuttgart.de
  
   http://gmerlin.sourceforge.net
  
@@ -617,11 +617,14 @@ bg_plugin_registry_create(bg_cfg_section_t * section)
   
   /* Get flags */
 
-  bg_cfg_section_get_parameter_int(ret->config_section, "encode_audio_to_video",
+  bg_cfg_section_get_parameter_int(ret->config_section,
+                                   "encode_audio_to_video",
                                    &(ret->encode_audio_to_video));
-  bg_cfg_section_get_parameter_int(ret->config_section, "encode_subtitle_text_to_video",
+  bg_cfg_section_get_parameter_int(ret->config_section,
+                                   "encode_subtitle_text_to_video",
                                    &(ret->encode_subtitle_text_to_video));
-  bg_cfg_section_get_parameter_int(ret->config_section, "encode_subtitle_overlay_to_video",
+  bg_cfg_section_get_parameter_int(ret->config_section,
+                                   "encode_subtitle_overlay_to_video",
                                    &(ret->encode_subtitle_overlay_to_video));
   
   bg_cfg_section_get_parameter_int(ret->config_section, "encode_pp",
@@ -1379,20 +1382,23 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
   return 0;
   }
 
-void bg_plugin_registry_set_encode_audio_to_video(bg_plugin_registry_t * reg,
+void
+bg_plugin_registry_set_encode_audio_to_video(bg_plugin_registry_t * reg,
                                                   int audio_to_video)
   {
   reg->encode_audio_to_video = audio_to_video;
   bg_cfg_section_set_parameter_int(reg->config_section, "encode_audio_to_video", audio_to_video);
   }
 
-int bg_plugin_registry_get_encode_audio_to_video(bg_plugin_registry_t * reg)
+int
+bg_plugin_registry_get_encode_audio_to_video(bg_plugin_registry_t * reg)
   {
   return reg->encode_audio_to_video;
   }
 
 
-void bg_plugin_registry_set_encode_subtitle_text_to_video(bg_plugin_registry_t * reg,
+void
+bg_plugin_registry_set_encode_subtitle_text_to_video(bg_plugin_registry_t * reg,
                                                   int subtitle_text_to_video)
   {
   reg->encode_subtitle_text_to_video = subtitle_text_to_video;
@@ -1400,7 +1406,8 @@ void bg_plugin_registry_set_encode_subtitle_text_to_video(bg_plugin_registry_t *
                                    subtitle_text_to_video);
   }
 
-int bg_plugin_registry_get_encode_subtitle_text_to_video(bg_plugin_registry_t * reg)
+int
+bg_plugin_registry_get_encode_subtitle_text_to_video(bg_plugin_registry_t * reg)
   {
   return reg->encode_subtitle_text_to_video;
   }

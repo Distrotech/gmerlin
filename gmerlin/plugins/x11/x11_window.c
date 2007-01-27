@@ -53,6 +53,7 @@ static char bm_no_data[] = { 0,0,0,0, 0,0,0,0 };
 static void check_screensaver(x11_window_t * w)
   {
   char * env;
+  
   /* Check for gnome */
   env = getenv("GNOME_DESKTOP_SESSION_ID");
   if(env)
@@ -77,10 +78,28 @@ static void disable_screensaver(x11_window_t * w)
   {
   int interval, prefer_blank, allow_exp;
 
+#if HAVE_XDPMS
+  int nothing;
+#endif // HAVE_XDPMS
+  
   if(w->screensaver_disabled)
     return;
 
-  
+#if HAVE_XDPMS
+  if(DPMSQueryExtension(w->dpy, &nothing, &nothing))
+    {
+    BOOL onoff;
+    CARD16 state;
+    
+    DPMSInfo(w->dpy, &state, &onoff);
+    if(onoff)
+      {
+      w->dpms_disabled = 1;
+      DPMSDisable(w->dpy);       // monitor powersave off
+      }
+    }
+#endif // HAVE_XDPMS
+    
   switch(w->screensaver_mode)
     {
     case SCREENSAVER_MODE_XLIB:
@@ -114,6 +133,26 @@ static void enable_screensaver(x11_window_t * w)
 
   if(!w->screensaver_disabled)
     return;
+
+#if HAVE_XDPMS
+  if(w->dpms_disabled)
+    {
+    if(DPMSQueryExtension(w->dpy, &dummy, &dummy))
+      {
+      if(DPMSEnable(w->dpy))
+        {
+        // DPMS does not seem to be enabled unless we call DPMSInfo
+        BOOL onoff;
+        CARD16 state;
+
+        DPMSForceLevel(w->dpy, DPMSModeOn);      
+        DPMSInfo(w->dpy, &state, &onoff);
+        }
+
+      }
+    w->dpms_disabled = 0;
+    }
+#endif // HAVE_XDPMS
   
   w->screensaver_disabled = 0;
   

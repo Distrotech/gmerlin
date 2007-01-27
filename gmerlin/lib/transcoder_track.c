@@ -340,6 +340,12 @@ static bg_parameter_info_t parameters_general[] =
       flags:     BG_PARAMETER_HIDE_DIALOG,
     },
     {
+      name:        "subdir",
+      long_name:   "Subdirectory",
+      type:        BG_PARAMETER_STRING,
+      help_string: "Subdirectory, where this track will be written to",
+    },
+    {
       name:      "duration",
       long_name: "Duration",
       type:      BG_PARAMETER_TIME,
@@ -602,8 +608,9 @@ static void set_track(bg_transcoder_track_t * track,
   {
   int i;
   int subtitle_text_index, subtitle_overlay_index;
+  bg_input_plugin_t * input;
+  input = (bg_input_plugin_t *)(input_plugin->plugin);
   
-
   /* General parameters */
 
   track->general_parameters = bg_parameter_info_copy_array(parameters_general);
@@ -655,6 +662,13 @@ static void set_track(bg_transcoder_track_t * track,
     
     else if(!strcmp(track->general_parameters[i].name, "duration"))
       track->general_parameters[i].val_default.val_time = track_info->duration;
+    else if(!strcmp(track->general_parameters[i].name, "subdir"))
+      {
+      if(input->get_disc_name)
+        track->general_parameters[i].val_default.val_str =
+          bg_strdup(track->general_parameters[i].val_default.val_str,
+                    input->get_disc_name(input_plugin->priv));
+      }
     else if(!strcmp(track->general_parameters[i].name, "seekable"))
       track->general_parameters[i].val_default.val_i = track_info->seekable;
     else if(!strcmp(track->general_parameters[i].name, "location"))

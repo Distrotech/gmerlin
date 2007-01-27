@@ -269,7 +269,8 @@ set_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t *
   }
 
 static int
-get_transcoder_window_parameter(void * data, char * name, bg_parameter_value_t * val)
+get_transcoder_window_parameter(void * data, char * name,
+                                bg_parameter_value_t * val)
   {
   transcoder_window_t * win = (transcoder_window_t *)data;
 
@@ -574,7 +575,13 @@ static void about_window_close_callback(bg_gtk_about_window_t * w,
   transcoder_window_t * win = (transcoder_window_t *)data;
   gtk_widget_set_sensitive(win->windows_menu.about_item, 1);
   }
-                             
+
+void transcoder_window_load_profile(transcoder_window_t * win,
+                                    const char * file)
+  {
+  bg_cfg_registry_load(win->cfg_reg, file);
+  }
+
 static void button_callback(GtkWidget * w, gpointer data)
   {
   bg_cfg_section_t * cfg_section;
@@ -688,7 +695,7 @@ static void button_callback(GtkWidget * w, gpointer data)
 
     if(win->filesel_file)
       {
-      bg_cfg_registry_load(win->cfg_reg, win->filesel_file);
+      transcoder_window_load_profile(win, win->filesel_file);
       free(win->filesel_file);
       win->filesel_file = (char*)0;
       }

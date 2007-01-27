@@ -27,6 +27,9 @@
 
 #define LOG_DOMAIN "e_lqt"
 
+#define TEXT_TIME_SCALE GAVL_TIME_SCALE
+// #define TEXT_TIME_SCALE 1000
+
 static bg_parameter_info_t stream_parameters[] = 
   {
     {
@@ -78,6 +81,11 @@ typedef struct
     {
     char language[4];
     gavl_time_t last_end_time;
+
+    uint16_t text_box[4];
+
+    uint16_t fg_color[4];
+    uint16_t bg_color[4];
     } * subtitle_text_streams;
   
   char * error_msg;
@@ -111,9 +119,10 @@ static struct
 extensions[] =
   {
     { LQT_FILE_QT  | LQT_FILE_QT_OLD,      ".mov" },
-    { LQT_FILE_AVI | LQT_FILE_AVI_ODML, ".avi" },
+    { LQT_FILE_AVI | LQT_FILE_AVI_ODML,    ".avi" },
     { LQT_FILE_MP4,                        ".mp4" },
     { LQT_FILE_M4A,                        ".m4a" },
+    { LQT_FILE_3GP,                        ".3gp" },
   };
 
 static const char * get_extension_lqt(void * data)
@@ -281,8 +290,27 @@ static int start_lqt(void * data)
   /* Add the subtitle tracks */
   for(i = 0; i < e->num_subtitle_text_streams; i++)
     {
-    lqt_add_text_track(e->file, GAVL_TIME_SCALE);
+    lqt_add_text_track(e->file, TEXT_TIME_SCALE);
     lqt_set_text_language(e->file, i, e->subtitle_text_streams[i].language);
+    
+    lqt_set_text_box(e->file, i,
+                     e->subtitle_text_streams[i].text_box[0],
+                     e->subtitle_text_streams[i].text_box[1],
+                     e->subtitle_text_streams[i].text_box[2],
+                     e->subtitle_text_streams[i].text_box[3]);
+
+    lqt_set_text_fg_color(e->file, i,
+                          e->subtitle_text_streams[i].fg_color[0],
+                          e->subtitle_text_streams[i].fg_color[1],
+                          e->subtitle_text_streams[i].fg_color[2],
+                          e->subtitle_text_streams[i].fg_color[3]);
+
+    lqt_set_text_bg_color(e->file, i,
+                          e->subtitle_text_streams[i].bg_color[0],
+                          e->subtitle_text_streams[i].bg_color[1],
+                          e->subtitle_text_streams[i].bg_color[2],
+                          e->subtitle_text_streams[i].bg_color[3]);
+    
     }
   
   /* Add the chapter track */
@@ -334,16 +362,23 @@ static int write_subtitle_text_lqt(void * data,const char * text,
                                    gavl_time_t duration, int stream)
   {
   e_lqt_t * e = (e_lqt_t*)data;
-
+  int64_t duration_scaled;
+  
   /* Put empty subtitle if the last end time is not equal to
      this start time */
   if(e->subtitle_text_streams[stream].last_end_time < start)
     {
+    duration_scaled =
+      gavl_time_scale(TEXT_TIME_SCALE,
+                      start - e->subtitle_text_streams[stream].last_end_time);
     if(lqt_write_text(e->file, stream, "",
-                      start - e->subtitle_text_streams[stream].last_end_time))
+                      duration_scaled))
       return 0;
     }
-  if(lqt_write_text(e->file, stream, text, duration))
+
+  duration_scaled = gavl_time_scale(TEXT_TIME_SCALE, duration);
+
+  if(lqt_write_text(e->file, stream, text, duration_scaled))
     return 0;
   e->subtitle_text_streams[stream].last_end_time = start + duration;
   return 1;
@@ -373,7 +408,7 @@ static int close_lqt(void * data, int do_delete)
                gavl_time_to_seconds(e->duration));
         break;
         }
-      if(i < e->chapter_list->num_chapters)
+      if(i < e->chapter_list->num_chapters-1)
         {
         if(lqt_write_text(e->file, e->chapter_track_id,
                           e->chapter_list->chapters[i].name,
@@ -479,8 +514,8 @@ static bg_parameter_info_t common_parameters[] =
       name:      "format",
       long_name: "Format",
       type:      BG_PARAMETER_STRINGLIST,
-      multi_names:    (char*[]) { "quicktime", "avi", "avi_opendml",   "mp4", "m4a", (char*)0 },
-      multi_labels:   (char*[]) { "Quicktime", "AVI", "AVI (Opendml)", "MP4", "M4A", (char*)0 },
+      multi_names:    (char*[]) { "quicktime", "avi", "avi_opendml",   "mp4", "m4a", "3gp", (char*)0 },
+      multi_labels:   (char*[]) { "Quicktime", "AVI", "AVI (Opendml)", "MP4", "M4A", "3GP", (char*)0 },
       val_default: { val_str: "quicktime" },
     },
     {
@@ -525,6 +560,8 @@ static void set_parameter_lqt(void * data, char * name,
       e->file_type = LQT_FILE_MP4;
     else if(!strcmp(val->val_str, "m4a"))
       e->file_type = LQT_FILE_M4A;
+    else if(!strcmp(val->val_str, "3gp"))
+      e->file_type = LQT_FILE_3GP;
     }
   else if(!strcmp(name, "make_streamable"))
     e->make_streamable = val->val_i;
@@ -645,6 +682,89 @@ static void set_video_parameter_lqt(void * data, int stream, char * name,
     }
   }
 
+/* Subtitle parameters */
+
+static bg_parameter_info_t subtitle_text_parameters[] =
+  {
+    {
+      name:      "box_top",
+      long_name: "Text box (top)",
+      type:      BG_PARAMETER_INT,
+      val_min:   { val_i: 0 },
+      val_max:   { val_i: 0xffff },
+    },
+    {
+      name:      "box_left",
+      long_name: "Text box (left)",
+      type:      BG_PARAMETER_INT,
+      val_min:   { val_i: 0 },
+      val_max:   { val_i: 0xffff },
+    },
+    {
+      name:      "box_bottom",
+      long_name: "Text box (bottom)",
+      type:      BG_PARAMETER_INT,
+      val_min:   { val_i: 0 },
+      val_max:   { val_i: 0xffff },
+    },
+    {
+      name:      "box_right",
+      long_name: "Text box (right)",
+      type:      BG_PARAMETER_INT,
+      val_min:   { val_i: 0 },
+      val_max:   { val_i: 0xffff },
+    },
+    {
+      name:        "fg_color",
+      long_name:   "Text color",
+      type:        BG_PARAMETER_COLOR_RGBA,
+      val_default: { val_color: (float[]){ 1.0, 1.0, 1.0, 1.0 }},
+    },
+    {
+      name:        "bg_color",
+      long_name:   "Background color",
+      type:        BG_PARAMETER_COLOR_RGBA,
+      val_default: { val_color: (float[]){ 0.0, 0.0, 0.0, 1.0 }},
+    },
+    { /* End of parameters */ },
+  };
+
+static bg_parameter_info_t * get_subtitle_text_parameters_lqt(void * priv)
+  {
+  return subtitle_text_parameters;
+  }
+
+static void set_subtitle_text_parameter_lqt(void * priv, int stream, char * name,
+                                            bg_parameter_value_t * val)
+  {
+  e_lqt_t * e = (e_lqt_t*)priv;
+  
+  if(!name)
+    return;
+  
+  if(!strcmp(name, "box_top"))
+    e->subtitle_text_streams[stream].text_box[0] = val->val_i;
+  else if(!strcmp(name, "box_left"))
+    e->subtitle_text_streams[stream].text_box[1] = val->val_i;
+  else if(!strcmp(name, "box_bottom"))
+    e->subtitle_text_streams[stream].text_box[2] = val->val_i;
+  else if(!strcmp(name, "box_right"))
+    e->subtitle_text_streams[stream].text_box[3] = val->val_i;
+  else if(!strcmp(name, "fg_color"))
+    {
+    e->subtitle_text_streams[stream].fg_color[0] = (int)(val->val_color[0] * 65535.0 + 0.5);
+    e->subtitle_text_streams[stream].fg_color[1] = (int)(val->val_color[1] * 65535.0 + 0.5);
+    e->subtitle_text_streams[stream].fg_color[2] = (int)(val->val_color[2] * 65535.0 + 0.5);
+    e->subtitle_text_streams[stream].fg_color[3] = (int)(val->val_color[3] * 65535.0 + 0.5);
+    }
+  else if(!strcmp(name, "bg_color"))
+    {
+    e->subtitle_text_streams[stream].bg_color[0] = (int)(val->val_color[0] * 65535.0 + 0.5);
+    e->subtitle_text_streams[stream].bg_color[1] = (int)(val->val_color[1] * 65535.0 + 0.5);
+    e->subtitle_text_streams[stream].bg_color[2] = (int)(val->val_color[2] * 65535.0 + 0.5);
+    e->subtitle_text_streams[stream].bg_color[3] = (int)(val->val_color[3] * 65535.0 + 0.5);
+    }
+  }
 
 bg_encoder_plugin_t the_plugin =
   {
@@ -668,8 +788,9 @@ bg_encoder_plugin_t the_plugin =
     max_video_streams:         -1,
     max_subtitle_text_streams: -1,
 
-    get_audio_parameters: get_audio_parameters_lqt,
-    get_video_parameters: get_video_parameters_lqt,
+    get_audio_parameters:         get_audio_parameters_lqt,
+    get_video_parameters:         get_video_parameters_lqt,
+    get_subtitle_text_parameters: get_subtitle_text_parameters_lqt,
 
     get_extension:        get_extension_lqt,
     
@@ -682,8 +803,9 @@ bg_encoder_plugin_t the_plugin =
     add_video_stream:     add_video_stream_lqt,
     set_video_pass:       set_video_pass_lqt,
     
-    set_audio_parameter:  set_audio_parameter_lqt,
-    set_video_parameter:  set_video_parameter_lqt,
+    set_audio_parameter:          set_audio_parameter_lqt,
+    set_video_parameter:          set_video_parameter_lqt,
+    set_subtitle_text_parameter:  set_subtitle_text_parameter_lqt,
     
     get_audio_format:     get_audio_format_lqt,
     get_video_format:     get_video_format_lqt,

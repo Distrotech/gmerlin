@@ -398,7 +398,6 @@ static gboolean idle_callback(gpointer data)
         w->audio_description = bg_msg_get_arg_string(msg, 0);
         break;
       case BG_PLAYER_MSG_VIDEO_DESCRIPTION:
-      case BG_PLAYER_MSG_STILL_DESCRIPTION:
         w->video_description = bg_msg_get_arg_string(msg, 0);
         break;
       case BG_PLAYER_MSG_AUDIO_STREAM:
@@ -414,7 +413,6 @@ static gboolean idle_callback(gpointer data)
         update_subtitles(w);
         break;
       case BG_PLAYER_MSG_VIDEO_STREAM:
-      case BG_PLAYER_MSG_STILL_STREAM:
         w->current_video_stream = bg_msg_get_arg_int(msg, 0);
         bg_msg_get_arg_video_format(msg, 1, &(w->video_format_i));
         bg_msg_get_arg_video_format(msg, 2, &(w->video_format_o));

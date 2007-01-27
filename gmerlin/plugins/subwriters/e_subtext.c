@@ -29,6 +29,12 @@ typedef struct
   int format_index;
   char * filename;
   int titles_written;
+  
+  gavl_time_t last_time;
+  gavl_time_t last_duration;
+  
+  bg_metadata_t metadata;
+  
   } subtext_t;
 
 static void write_time_srt(FILE * output, gavl_time_t time)
@@ -73,17 +79,43 @@ static void write_subtitle_srt(subtext_t * s, const char * text,
   bg_strbreak_free(lines);
   }
 
+static void write_header_mpsub(subtext_t * s)
+  {
+  if(s->metadata.title)
+    fprintf(s->output, "TITLE=%s\n", s->metadata.title);
+
+  if(s->metadata.author)
+    fprintf(s->output, "AUTHOR=%s\n", s->metadata.author);
+
+  if(s->metadata.comment)
+    fprintf(s->output, "NOTE=%s\n", s->metadata.comment);
+  fprintf(s->output, "FORMAT=TIME\n\n");
+  }
+
 static void write_subtitle_mpsub(subtext_t * s, const char * text,
                                  gavl_time_t time, gavl_time_t duration)
   {
+  if(s->last_time != GAVL_TIME_UNDEFINED)
+    {
+    fprintf(s->output, "%.3f %.3f\n",
+            gavl_time_to_seconds(time - (s->last_time + s->last_duration)),
+            gavl_time_to_seconds(duration));
+    }
+  else
+    fprintf(s->output, "%.3f %.3f\n",
+            gavl_time_to_seconds(time),
+            gavl_time_to_seconds(duration));
   
+  fprintf(s->output, "%s\n\n", text);
   }
 
 static struct
   {
   const char * extension;
   const char * name;
-  void (*write_subtitle)(subtext_t * s, const char * text, gavl_time_t time, gavl_time_t duration);
+  void (*write_subtitle)(subtext_t * s, const char * text,
+                         gavl_time_t time, gavl_time_t duration);
+  void (*write_header)(subtext_t * s);
   }
 formats[] =
   {
@@ -95,6 +127,7 @@ formats[] =
     {
       extension:      "sub",
       name:           "mpsub",
+      write_header:   write_header_mpsub,
       write_subtitle: write_subtitle_mpsub,
     }
   };
@@ -102,6 +135,8 @@ formats[] =
 static void * create_subtext()
   {
   subtext_t * ret = calloc(1, sizeof(*ret));
+  ret->last_time     = GAVL_TIME_UNDEFINED;
+  ret->last_duration = GAVL_TIME_UNDEFINED;
   return ret;
   }
 
@@ -121,6 +156,8 @@ static int open_subtext(void * data, const char * filename,
 
   e->filename = bg_strdup(e->filename, filename);
   e->output = fopen(e->filename, "w");
+
+  bg_metadata_copy(&e->metadata, metadata);
   
   return 1;
   }
@@ -134,6 +171,12 @@ static int add_subtitle_text_stream_subtext(void * data, const char * language)
 
 static int start_subtext(void * data)
   {
+  subtext_t * e;
+  e = (subtext_t *)data;
+  
+  if(formats[e->format_index].write_header)
+    formats[e->format_index].write_header(e);
+  
   return 1;
   }
 
@@ -145,6 +188,10 @@ static int write_subtitle_text_subtext(void * data, const char * text,
   e = (subtext_t *)data;
   formats[e->format_index].write_subtitle(e, text, start, duration);
   e->titles_written++;
+
+  e->last_time     = start;
+  e->last_duration = duration;
+  
   return 1;
   }
 

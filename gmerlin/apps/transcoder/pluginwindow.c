@@ -200,6 +200,9 @@ void plugin_window_destroy(plugin_window_t * w)
 
 void plugin_window_show(plugin_window_t * w)
   {
+  /* Get values from registry (they might have changed by loading a profile) */
+  encoder_widget_set_from_registry(&w->encoders,
+                                   w->plugin_reg);
   gtk_widget_show(w->window);
   }
 

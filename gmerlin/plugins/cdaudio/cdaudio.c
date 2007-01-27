@@ -339,7 +339,9 @@ int bg_cdaudio_get_status(CdIo_t * cdio, bg_cdaudio_status_t *st)
   if(cdio_audio_read_subchannel(cdio, &subchannel) !=  DRIVER_OP_SUCCESS)
     return 0;
 
-  if(subchannel.audio_status == CDIO_MMC_READ_SUB_ST_COMPLETED)
+  if((subchannel.audio_status != CDIO_MMC_READ_SUB_ST_PLAY) &&
+     (subchannel.audio_status != CDIO_MMC_READ_SUB_ST_PAUSED))
+     
     {
     return 0;
     }

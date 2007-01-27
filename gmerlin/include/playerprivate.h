@@ -150,7 +150,7 @@ struct bg_player_s
   int current_still_stream;
   int current_subtitle_stream;
   int current_chapter;
-  
+
   /* Can we seek? */
 
   int can_seek;
@@ -221,6 +221,12 @@ void * bg_player_input_thread_bypass(void *);
 int bg_player_input_init(bg_player_input_context_t * ctx,
                          bg_plugin_handle_t * handle,
                          int track_index);
+int bg_player_input_set_track(bg_player_input_context_t * ctx);
+
+void bg_player_input_select_streams(bg_player_input_context_t * ctx);
+int bg_player_input_start(bg_player_input_context_t * ctx);
+void bg_player_input_stop(bg_player_input_context_t * ctx);
+
 
 const char * bg_player_input_get_error(bg_player_input_context_t * ctx);
 
@@ -229,15 +235,12 @@ void bg_player_input_cleanup(bg_player_input_context_t * ctx);
 void bg_player_input_preload(bg_player_input_context_t * ctx);
 
 int
-bg_player_input_set_audio_stream(bg_player_input_context_t * ctx,
-                                 int audio_stream);
+bg_player_input_get_audio_format(bg_player_input_context_t * ctx);
 int
-bg_player_input_set_video_stream(bg_player_input_context_t * ctx,
-                                 int video_stream);
+bg_player_input_get_video_format(bg_player_input_context_t * ctx);
 
 int
-bg_player_input_set_subtitle_stream(bg_player_input_context_t * ctx,
-                                    int subtitle_stream);
+bg_player_input_get_subtitle_format(bg_player_input_context_t * ctx);
 
 int
 bg_player_input_set_still_stream(bg_player_input_context_t * ctx,

@@ -208,7 +208,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
           ret[index].long_name = bg_strdup(ret[index].long_name, tmp_string);
           free(tmp_string);
           }
-        if(!BG_XML_STRCMP(child->name, flags_key))
+        else if(!BG_XML_STRCMP(child->name, flags_key))
           {
           tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
           ret[index].flags = string_to_flags(tmp_string);
@@ -343,12 +343,16 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
                                                          tmp_string);
               break;
             case BG_PARAMETER_COLOR_RGB:
+              ret[index].val_default.val_color =
+                malloc(4 * sizeof(*ret[index].val_default.val_color));
               sscanf(tmp_string, "%f %f %f",
                      &(ret[index].val_default.val_color[0]),
                      &(ret[index].val_default.val_color[1]),
                      &(ret[index].val_default.val_color[2]));
               break;
             case BG_PARAMETER_COLOR_RGBA:
+              ret[index].val_default.val_color =
+                malloc(4 * sizeof(*ret[index].val_default.val_color));
               sscanf(tmp_string, "%f %f %f %f",
                      &(ret[index].val_default.val_color[0]),
                      &(ret[index].val_default.val_color[1]),
@@ -669,10 +673,7 @@ void bg_parameters_2_xml(bg_parameter_info_t * info, xmlNodePtr xml_parameters)
           }
         break;
       case BG_PARAMETER_COLOR_RGBA:
-        if((info[num_parameters].val_default.val_color[0] != 0.0) &&
-           (info[num_parameters].val_default.val_color[1] != 0.0) &&
-           (info[num_parameters].val_default.val_color[2] != 0.0) &&
-           (info[num_parameters].val_default.val_color[3] != 0.0))
+        if(info[num_parameters].val_default.val_color)
           {
           child = xmlNewTextChild(xml_info, (xmlNsPtr)0, (xmlChar*)default_key, NULL);
 

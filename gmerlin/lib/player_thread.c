@@ -86,21 +86,6 @@ static void msg_video_stream(bg_msg_t * msg,
   
   }
 
-static void msg_still_stream(bg_msg_t * msg,
-                             const void * data)
-  {
-  bg_player_t * player;
-  player = (bg_player_t*)data;
-
-  bg_msg_set_id(msg, BG_PLAYER_MSG_STILL_STREAM);
-  bg_msg_set_arg_int(msg, 0, player->current_still_stream);
-  bg_msg_set_arg_video_format(msg, 1,
-                              &(player->video_stream.input_format));
-  bg_msg_set_arg_video_format(msg, 2,
-                              &(player->video_stream.output_format));
-  
-  }
-
 static void msg_subtitle_stream(bg_msg_t * msg,
                                 const void * data)
   {
@@ -174,11 +159,6 @@ static void msg_video_description(bg_msg_t * msg, const void * data)
   bg_msg_set_arg_string(msg, 0, (char*)data);
   }
 
-static void msg_still_description(bg_msg_t * msg, const void * data)
-  {
-  bg_msg_set_id(msg, BG_PLAYER_MSG_STILL_DESCRIPTION);
-  bg_msg_set_arg_string(msg, 0, (char*)data);
-  }
 
 static void msg_audio_description(bg_msg_t * msg, const void * data)
   {
@@ -340,9 +320,7 @@ static void pause_cmd(bg_player_t * p)
     }
   }
 
-/* Initialize playback pipelines */
-
-static int init_streams(bg_player_t * p)
+static int init_audio_stream(bg_player_t * p)
   {
   if(!bg_player_audio_init(p, p->current_audio_stream))
     {
@@ -356,6 +334,11 @@ static int init_streams(bg_player_t * p)
                           "Cannot setup audio playback (unknown error)", NULL);
     return 0;
     }
+  return 1;  
+  }
+
+static int init_video_stream(bg_player_t * p)
+  {
   if(!bg_player_video_init(p, p->current_video_stream))
     {
     if(p->video_stream.error_msg)
@@ -366,6 +349,11 @@ static int init_streams(bg_player_t * p)
                           "Cannot setup video playback (unknown error)", NULL);
     return 0;
     }
+  return 1;
+  }
+
+static int init_subtitle_stream(bg_player_t * p)
+  {
   if(!bg_player_subtitle_init(p, p->current_subtitle_stream))
     {
     if(p->subtitle_stream.error_msg)
@@ -379,17 +367,21 @@ static int init_streams(bg_player_t * p)
   return 1;
   }
 
+/* Initialize playback pipelines */
+
+static int init_streams(bg_player_t * p)
+  {
+  if(!init_audio_stream(p) ||
+     !init_video_stream(p) ||
+     !init_subtitle_stream(p))
+    return 0;
+  return 1;
+  }
+
 /* Cleanup everything */
 
-static void player_cleanup(bg_player_t * player)
+static void cleanup_streams(bg_player_t * player)
   {
-  gavl_time_t t = 0;
-
-  
-  bg_player_input_cleanup(player->input_context);
-  player->input_handle = (bg_plugin_handle_t*)0;
-  
-
   if(player->do_audio)
     bg_player_oa_cleanup(player->oa_context);
   
@@ -402,6 +394,16 @@ static void player_cleanup(bg_player_t * player)
   bg_player_audio_cleanup(player);
   bg_player_subtitle_cleanup(player);
   bg_player_time_reset(player);
+  }
+
+static void player_cleanup(bg_player_t * player)
+  {
+  gavl_time_t t = 0;
+  
+  bg_player_input_cleanup(player->input_context);
+  player->input_handle = (bg_plugin_handle_t*)0;
+
+  cleanup_streams(player);
 
   bg_msg_queue_list_send(player->message_queues,
                          msg_time,
@@ -409,63 +411,20 @@ static void player_cleanup(bg_player_t * player)
   
   }
 
+/* Initialize playback (called when playback starts or after
+   streams have changed */
 
-/* Play a file. This must be called ONLY if the player is in
-   a defined stopped state
-*/
-
-static void play_cmd(bg_player_t * p,
-                     bg_plugin_handle_t * handle,
-                     int track_index, char * track_name, int flags)
+static void init_playback(bg_player_t * p, gavl_time_t time,
+                          int flags, int had_video)
   {
-  int i;
-  char * error_msg;
-  const char * error_msg_input;
+  int num_chapters, i;
   struct stream_info_s si;
   struct chapter_info_s ci;
-  int num_chapters;
-  
-  int had_video;
-  gavl_time_t time = 0;
-    
-  
-  /* Shut down from last playback if necessary */
-  
-  if(p->input_handle && !bg_plugin_equal(p->input_handle, handle))
-    player_cleanup(p);
-  
-  had_video = p->do_video || p->do_still;
-  
+
   bg_player_set_state(p, BG_PLAYER_STATE_STARTING, NULL, NULL);
   
-  bg_player_set_track_name(p, track_name);
-
-  p->input_handle = handle;
-  if(!bg_player_input_init(p->input_context,
-                           handle, track_index))
-    {
-    error_msg_input = bg_player_input_get_error(p->input_context);
-
-    if(error_msg_input)
-      {
-      error_msg = bg_sprintf("Cannot initialize input (%s)", error_msg_input);
-      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
-                          error_msg, NULL);
-      free(error_msg);
-      }
-    else
-      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
-                          "Cannot initialize input (unknown error)", NULL);
-    
-    return;
-    }
-
   /* Initialize audio and video streams if not in bypass mode */
-
-  p->do_audio = 0;
-  p->do_video = 0;
-  p->do_still = 0;
-
+  
   if(!p->do_bypass)
     {
     if(!init_streams(p))
@@ -569,19 +528,9 @@ static void play_cmd(bg_player_t * p,
                            msg_video_stream,
                            p);
     }
-  else if(p->do_still)
-    {
-    if(p->track_info->still_streams[p->current_still_stream].description)
-      bg_msg_queue_list_send(p->message_queues,
-                             msg_still_description,
-                             p->track_info->still_streams[p->current_still_stream].description);
-    bg_msg_queue_list_send(p->message_queues,
-                           msg_still_stream,
-                           p);
-    }
   else if(had_video)
     bg_player_ov_standby(p->ov_context);
-
+  
   if(p->do_subtitle_overlay || p->do_subtitle_text)
     {
     bg_msg_queue_list_send(p->message_queues, msg_subtitle_stream, p);
@@ -633,8 +582,16 @@ static void play_cmd(bg_player_t * p,
   pthread_mutex_unlock(&p->stop_mutex);
   
   bg_player_time_init(p);
-  bg_player_time_set(p, 0);
 
+  if(time > 0)
+    {
+    if(p->can_seek)
+      bg_player_input_seek(p->input_context, &time);
+    bg_player_time_set(p, time);
+    }
+  else
+    bg_player_time_set(p, 0);
+  
   /* Fire up the fifos */
   if(p->do_audio)
     bg_fifo_set_state(p->audio_stream.fifo, BG_FIFO_PLAYING);
@@ -662,12 +619,57 @@ static void play_cmd(bg_player_t * p,
                          &time);
   }
 
-static void stop_cmd(bg_player_t * player, int new_state, int want_new)
+
+/* Play a file. This must be called ONLY if the player is in
+   a defined stopped state
+*/
+
+static void play_cmd(bg_player_t * p,
+                     bg_plugin_handle_t * handle,
+                     int track_index, char * track_name, int flags)
   {
-  int old_state;
+  char * error_msg;
+  const char * error_msg_input;
   
-  old_state = bg_player_get_state(player);
+  int had_video;
+  gavl_time_t time = 0;
+    
   
+  /* Shut down from last playback if necessary */
+  
+  if(p->input_handle && !bg_plugin_equal(p->input_handle, handle))
+    player_cleanup(p);
+  
+  had_video = p->do_video || p->do_still;
+  
+  
+  bg_player_set_track_name(p, track_name);
+
+  p->input_handle = handle;
+  if(!bg_player_input_init(p->input_context,
+                           handle, track_index))
+    {
+    error_msg_input = bg_player_input_get_error(p->input_context);
+
+    if(error_msg_input)
+      {
+      error_msg = bg_sprintf("Cannot initialize input (%s)", error_msg_input);
+      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                          error_msg, NULL);
+      free(error_msg);
+      }
+    else
+      bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
+                          "Cannot initialize input (unknown error)", NULL);
+    
+    return;
+    }
+  init_playback(p, time, flags, had_video);
+  }
+
+static void cleanup_playback(bg_player_t * player,
+                             int old_state, int new_state, int want_new)
+  {
   if(old_state == BG_PLAYER_STATE_STOPPED)
     return;
   
@@ -732,11 +734,7 @@ static void stop_cmd(bg_player_t * player, int new_state, int want_new)
       }
     if(player->do_audio)
       bg_player_oa_stop(player->oa_context);
-
-    if((new_state == BG_PLAYER_STATE_STOPPED) ||
-       !(player->input_handle->info->flags & BG_PLUGIN_KEEP_RUNNING))
-      player_cleanup(player);
-    
+        
     if(new_state == BG_PLAYER_STATE_STOPPED)
       {
       if(player->do_video || player->do_still)
@@ -746,7 +744,27 @@ static void stop_cmd(bg_player_t * player, int new_state, int want_new)
         player->do_still = 0;
         }
       }
+    
     }
+  }
+
+static void stop_cmd(bg_player_t * player, int new_state, int want_new)
+  {
+  int old_state;
+  
+  old_state = bg_player_get_state(player);
+
+  cleanup_playback(player, old_state, new_state, want_new);
+  
+  if((old_state == BG_PLAYER_STATE_PLAYING) ||
+     (old_state == BG_PLAYER_STATE_PAUSED) ||
+     (old_state == BG_PLAYER_STATE_STILL))
+    {
+    if((new_state == BG_PLAYER_STATE_STOPPED) ||
+       !(player->input_handle->info->flags & BG_PLUGIN_KEEP_RUNNING))
+      player_cleanup(player);
+    }
+  
   }
 
 static void set_ov_plugin_cmd(bg_player_t * player,
@@ -772,20 +790,14 @@ static void set_oa_plugin_cmd(bg_player_t * player,
   bg_player_oa_set_plugin(player, handle);
   }
 
-static void seek_cmd(bg_player_t * player, gavl_time_t t)
+static void do_seek(bg_player_t * player, gavl_time_t t, int old_state)
   {
   int new_chapter;
-  int old_state;
   gavl_time_t sync_time = t;
 
-  old_state = bg_player_get_state(player);
+  if(player->can_seek)
+    bg_player_input_seek(player->input_context, &sync_time);
   
-  //  gavl_video_frame_t * vf;
-  interrupt_cmd(player, BG_PLAYER_STATE_SEEKING);
-
-  bg_player_input_seek(player->input_context, &sync_time);
-
-    
   /* Clear fifos */
 
   if(player->do_audio)
@@ -811,8 +823,11 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
   
   preload(player);
   
-  bg_player_time_set(player, sync_time);
-
+  if(player->can_seek)
+    bg_player_time_set(player, sync_time);
+  else
+    bg_player_time_set(player, 0);
+    
   bg_player_ov_reset(player);
 
   if(player->track_info->chapter_list)
@@ -849,46 +864,138 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
     start_playback(player, BG_PLAYER_STATE_PLAYING);
   }
 
+static void seek_cmd(bg_player_t * player, gavl_time_t t)
+  {
+  int old_state;
+
+  old_state = bg_player_get_state(player);
+  
+  //  gavl_video_frame_t * vf;
+  interrupt_cmd(player, BG_PLAYER_STATE_SEEKING);
+  
+  do_seek(player, t, old_state);  
+  }
+
 static void set_audio_stream_cmd(bg_player_t * player, int stream)
   {
-  int state;
+  gavl_time_t old_time;
+  int old_state;
+
+  int had_video = 0;
   
   if(stream == player->current_audio_stream)
     return;
 
-  state = bg_player_get_state(player);
-  if(state != BG_PLAYER_STATE_STOPPED)
-    stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
+  old_state = bg_player_get_state(player);
+  
+  if(old_state != BG_PLAYER_STATE_STOPPED)
+    {
+    bg_player_time_get(player, 1, &old_time);
+    /* Interrupt and pretend we are seeking */
+
+    had_video = player->do_video || player->do_still;
+    
+    cleanup_playback(player, old_state, BG_PLAYER_STATE_CHANGING, 0);
+    cleanup_streams(player);
+    bg_player_input_stop(player->input_context);
+    }
+  
   player->current_audio_stream = stream;
+
+  if(old_state != BG_PLAYER_STATE_STOPPED)
+    {
+    if(!bg_player_input_set_track(player->input_context))
+      return;
+    
+    bg_player_input_select_streams(player->input_context);
+    
+    if(!bg_player_input_start(player->input_context))
+      return;
+    init_playback(player, old_time, 0, had_video);
+    }
+  
   }
 
 static void set_video_stream_cmd(bg_player_t * player, int stream)
   {
-  int state;
+  gavl_time_t old_time;
+  int old_state;
 
+  int had_video = 0;
+  
   if(stream == player->current_video_stream)
     return;
 
-  state = bg_player_get_state(player);
-  if(state != BG_PLAYER_STATE_STOPPED)
-    stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
+  old_state = bg_player_get_state(player);
+  
+  if(old_state != BG_PLAYER_STATE_STOPPED)
+    {
+    bg_player_time_get(player, 1, &old_time);
+    /* Interrupt and pretend we are seeking */
+
+    had_video = player->do_video || player->do_still;
+    
+    cleanup_playback(player, old_state, BG_PLAYER_STATE_CHANGING, 0);
+    cleanup_streams(player);
+    
+    bg_player_input_stop(player->input_context);
+    }
+  
   player->current_video_stream = stream;
 
+  if(old_state != BG_PLAYER_STATE_STOPPED)
+    {
+    if(!bg_player_input_set_track(player->input_context))
+      return;
+    
+    bg_player_input_select_streams(player->input_context);
+    
+    if(!bg_player_input_start(player->input_context))
+      return;
+    init_playback(player, old_time, 0, had_video);
+    }
+  
   }
 
 
 static void set_subtitle_stream_cmd(bg_player_t * player, int stream)
   {
-  int state;
+  gavl_time_t old_time;
+  int old_state;
 
+  int had_video = 0;
+  
   if(stream == player->current_subtitle_stream)
     return;
 
-  state = bg_player_get_state(player);
-  if(state != BG_PLAYER_STATE_STOPPED)
-    stop_cmd(player, BG_PLAYER_STATE_STOPPED, 0);
-  player->current_subtitle_stream = stream;
+  old_state = bg_player_get_state(player);
+  
+  if(old_state != BG_PLAYER_STATE_STOPPED)
+    {
+    bg_player_time_get(player, 1, &old_time);
+    /* Interrupt and pretend we are seeking */
+
+    had_video = player->do_video || player->do_still;
     
+    cleanup_playback(player, old_state, BG_PLAYER_STATE_CHANGING, 0);
+    cleanup_streams(player);
+    
+    bg_player_input_stop(player->input_context);
+    }
+  
+  player->current_subtitle_stream = stream;
+
+  if(old_state != BG_PLAYER_STATE_STOPPED)
+    {
+    if(!bg_player_input_set_track(player->input_context))
+      return;
+    
+    bg_player_input_select_streams(player->input_context);
+    
+    if(!bg_player_input_start(player->input_context))
+      return;
+    init_playback(player, old_time, 0, had_video);
+    }
   }
 
 static void chapter_cmd(bg_player_t * player, int chapter)

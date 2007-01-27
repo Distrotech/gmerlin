@@ -231,16 +231,6 @@
 
 #define BG_PLAYER_MSG_VIDEO_STREAM            7
 
-/** \brief Get information about the current still image stream
- *
- *  arg0: Stream index (int)
- *
- *  arg1: Input Format (gavl_video_format_t)
- *
- *  arg2: Output Format (gavl_video_format_t)
- */
-
-#define BG_PLAYER_MSG_STILL_STREAM            8
 
 /** \brief Get information about the current subtitle stream
  *
@@ -275,11 +265,6 @@
  */
 #define BG_PLAYER_MSG_VIDEO_DESCRIPTION      12
 
-/** \brief Still image description changed
- *
- *  arg0: Still image description (char*)
- */
-#define BG_PLAYER_MSG_STILL_DESCRIPTION      13
 
 /** \brief Subtitle description changed
  *

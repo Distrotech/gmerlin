@@ -63,35 +63,18 @@ static void destroy_frame(void * data, void * frame)
 int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
   {
   bg_player_subtitle_stream_t * s;
+
+  if(!player->do_subtitle_text &&  !player->do_subtitle_overlay)
+    return 1;
   
   s = &(player->subtitle_stream);
-
-  player->do_subtitle_overlay = 0;
-  player->do_subtitle_text    = 0;
   
-  if(player->track_info->num_subtitle_streams)
-    {
-    if(bg_player_input_set_subtitle_stream(player->input_context,
-                                           subtitle_stream))
-      {
-      if(player->track_info->subtitle_streams[subtitle_stream].is_text)
-        {
-        player->do_subtitle_text = 1;
-        /* Initialize text renderer */
-        bg_text_renderer_init(player->subtitle_stream.renderer,
-                              &(player->video_stream.output_format),
-                              &(player->subtitle_stream.format));
-        }
-      else
-        player->do_subtitle_overlay = 1;
-      }
-    else
-      {
-      return 1;
-      }
-    }
-  else
-    return 1;
+  bg_player_input_get_subtitle_format(player->input_context);
+
+  if(player->do_subtitle_text)
+    bg_text_renderer_init(player->subtitle_stream.renderer,
+                          &(player->video_stream.output_format),
+                          &(player->subtitle_stream.format));
   
   /* Initialize subtitle fifo */
 

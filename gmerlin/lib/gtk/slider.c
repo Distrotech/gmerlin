@@ -55,6 +55,9 @@ struct bg_gtk_slider_s
   void (*release_callback)(bg_gtk_slider_t*, float, void*);
   void * release_callback_data;
 
+  void (*scroll_callback)(bg_gtk_slider_t*, int up, void*);
+  void * scroll_callback_data;
+  
   /* Widget stuff */
 
   GtkWidget * background_layout;
@@ -66,22 +69,23 @@ struct bg_gtk_slider_s
 
 /* Callbacks */
 
-static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
-                                      gpointer data)
+static gboolean
+button_press_callback(GtkWidget * w, GdkEventButton * evt,
+                      gpointer data)
   {
   bg_gtk_slider_t * s;
   s = (bg_gtk_slider_t *)data;
 
   if(s->state != BG_GTK_SLIDER_ACTIVE)
     return TRUE;
-  
-  gtk_image_set_from_pixbuf(GTK_IMAGE(s->slider_image), s->pixbuf_pressed);
 
+  gtk_image_set_from_pixbuf(GTK_IMAGE(s->slider_image), s->pixbuf_pressed);
+    
   if(s->vertical)
     s->mouse_root = (int)(evt->y_root);
   else
     s->mouse_root = (int)(evt->x_root);
-
+  
   s->action = 1;
   
   return TRUE;
@@ -89,8 +93,9 @@ static gboolean button_press_callback(GtkWidget * w, GdkEventButton * evt,
 
 //static void 
 
-static gboolean button_release_callback(GtkWidget * w, GdkEventButton * evt,
-                                        gpointer data)
+static gboolean
+button_release_callback(GtkWidget * w, GdkEventButton * evt,
+                        gpointer data)
   {
   bg_gtk_slider_t * s;
   int mouse_root_1;
@@ -100,12 +105,14 @@ static gboolean button_release_callback(GtkWidget * w, GdkEventButton * evt,
     return TRUE;
 
   if(s->mouse_inside)
-    gtk_image_set_from_pixbuf(GTK_IMAGE(s->slider_image), s->pixbuf_highlight);
+    gtk_image_set_from_pixbuf(GTK_IMAGE(s->slider_image),
+                              s->pixbuf_highlight);
   else
-    gtk_image_set_from_pixbuf(GTK_IMAGE(s->slider_image), s->pixbuf_normal);
+    gtk_image_set_from_pixbuf(GTK_IMAGE(s->slider_image),
+                              s->pixbuf_normal);
   
   s->action = 0;
-
+  
   if(s->release_callback)
     {
     if(s->vertical)
@@ -120,12 +127,14 @@ static gboolean button_release_callback(GtkWidget * w, GdkEventButton * evt,
       s->pos = 0;
     
     if(s->vertical)
-      gtk_layout_move(GTK_LAYOUT(s->background_layout), s->slider_eventbox,
+      gtk_layout_move(GTK_LAYOUT(s->background_layout),
+                      s->slider_eventbox,
                       0, s->pos);
     else
-      gtk_layout_move(GTK_LAYOUT(s->background_layout), s->slider_eventbox,
+      gtk_layout_move(GTK_LAYOUT(s->background_layout),
+                      s->slider_eventbox,
                       s->pos, 0);
-
+    
     if(s->vertical)
       s->release_callback(s,
                           1.0 - (float)(s->pos)/(float)(s->total_size -
@@ -137,7 +146,24 @@ static gboolean button_release_callback(GtkWidget * w, GdkEventButton * evt,
                                                   s->slider_size),
                           s->release_callback_data);
     }
+  return TRUE;
+  }
 
+static gboolean
+scroll_callback(GtkWidget * w, GdkEventScroll * evt,
+                gpointer data)
+  {
+  bg_gtk_slider_t * s;
+  s = (bg_gtk_slider_t *)data;
+
+  if(s->state != BG_GTK_SLIDER_ACTIVE)
+    return FALSE;
+  
+  if(s->scroll_callback)
+    {
+    s->scroll_callback(s, (evt->direction == GDK_SCROLL_UP),
+                       s->scroll_callback_data);
+    }
   return TRUE;
   }
 
@@ -300,6 +326,17 @@ bg_gtk_slider_t * bg_gtk_slider_create()
                    G_CALLBACK (button_press_callback),
                    ret);
 
+  g_signal_connect(G_OBJECT(ret->background_layout),
+                   "scroll_event",
+                   G_CALLBACK (scroll_callback),
+                   ret);
+
+  g_signal_connect(G_OBJECT(ret->slider_eventbox),
+                   "scroll_event",
+                   G_CALLBACK (scroll_callback),
+                   ret);
+
+  
   g_signal_connect(G_OBJECT(ret->slider_eventbox),
                    "button_release_event",
                    G_CALLBACK (button_release_callback),
@@ -557,3 +594,14 @@ void bg_gtk_slider_set_pos(bg_gtk_slider_t * s, float position)
     gtk_layout_move(GTK_LAYOUT(s->background_layout), s->slider_eventbox,
                     s->pos, 0);
   }
+
+void
+bg_gtk_slider_set_scroll_callback(bg_gtk_slider_t * s,
+                                  void (*func)(bg_gtk_slider_t*, int up, void*),
+                                  void* data)
+  {
+  s->scroll_callback      = func;
+  s->scroll_callback_data = data;
+  }
+
+

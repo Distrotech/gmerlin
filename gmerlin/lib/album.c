@@ -85,11 +85,21 @@ void bg_album_update_entry(bg_album_t * album,
                            bg_album_entry_t * entry,
                            bg_track_info_t  * track_info)
   {
+  int i;
   int name_set = 0;
   entry->num_audio_streams = track_info->num_audio_streams;
-  entry->num_video_streams = track_info->num_video_streams;
-  entry->num_still_streams = track_info->num_still_streams;
 
+  entry->num_video_streams = 0;
+  entry->num_still_streams = 0;
+
+  for(i = 0; i < track_info->num_video_streams; i++)
+    {
+    if(track_info->video_streams[i].is_still)
+      entry->num_still_streams++;
+    else
+      entry->num_video_streams++;
+    }
+  
   entry->num_subtitle_streams = track_info->num_subtitle_streams;
 
   if(!(entry->flags & BG_ALBUM_ENTRY_PRIVNAME))
@@ -354,7 +364,7 @@ void bg_album_insert_urilist_before(bg_album_t * a, const char * str,
 static int open_removable(bg_album_t * a)
   {
   bg_track_info_t * track_info;
-  int i;
+  int i, j;
   int num_tracks;
   bg_input_plugin_t * plugin;
   bg_album_entry_t * new_entry;
@@ -398,9 +408,17 @@ static int open_removable(bg_album_t * a)
     
     new_entry->location = bg_strdup(new_entry->location,
                                       a->location);
-    new_entry->num_video_streams = track_info->num_video_streams;
     new_entry->num_audio_streams = track_info->num_audio_streams;
-    new_entry->num_still_streams = track_info->num_still_streams;
+
+    new_entry->num_still_streams = 0;
+    new_entry->num_video_streams = 0;
+    for(j = 0; j < track_info->num_video_streams; j++)
+      {
+      if(track_info->video_streams[j].is_still)
+        new_entry->num_still_streams++;
+      else
+        new_entry->num_video_streams++;
+      }
     new_entry->num_subtitle_streams =
       track_info->num_subtitle_streams;
     new_entry->duration = track_info->duration;

@@ -33,6 +33,10 @@
 #include <X11/extensions/Xinerama.h>
 #endif
 
+#ifdef HAVE_XDPMS
+#include <X11/extensions/dpms.h>
+#endif
+
 #define SCREENSAVER_MODE_XLIB  0 // MUST be 0 (fallback)
 #define SCREENSAVER_MODE_GNOME 1
 #define SCREENSAVER_MODE_KDE   2
@@ -49,6 +53,10 @@ typedef struct
   int                nxinerama;
 #endif
 
+#ifdef HAVE_XDPMS
+  int dpms_disabled;
+#endif
+  
   long event_mask;
   int mapped;
   unsigned long black;  

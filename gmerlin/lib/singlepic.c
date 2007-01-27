@@ -247,7 +247,7 @@ static int open_input(void * priv, const char * arg)
                                                  inp->frame_duration,
                                                  inp->frame_end -
                                                  inp->frame_start);
-
+  
   /* Get track name */
 
   bg_set_track_name_default(&(inp->track_info), arg);
@@ -278,11 +278,12 @@ static int open_stills_input(void * priv, const char * arg)
   
   /* Create stream */
     
-  inp->track_info.num_still_streams = 1;
-  inp->track_info.still_streams =
-    calloc(1, sizeof(*inp->track_info.still_streams));
+  inp->track_info.num_video_streams = 1;
+  inp->track_info.video_streams =
+    calloc(1, sizeof(*inp->track_info.video_streams));
   
-  //  inp->track_info.duration = GAVL_TIME_UNDEFINED;
+  inp->track_info.video_streams[0].is_still = 1;
+  
   inp->track_info.duration = inp->display_time;
   
   /* Get track name */
@@ -290,7 +291,6 @@ static int open_stills_input(void * priv, const char * arg)
   bg_set_track_name_default(&(inp->track_info), arg);
 
   inp->filename_buffer = bg_strdup(inp->filename_buffer, filename);
-  inp->track_info.seekable = 1;
   return 1;
 
   }
@@ -322,11 +322,11 @@ static int start_input(void * priv)
   
   if(inp->do_still)
     {
-    inp->track_info.still_streams[0].description = bg_strdup(NULL, "Image\n");
+    inp->track_info.video_streams[0].description = bg_strdup(NULL, "Image");
     }
   else
     {
-    inp->track_info.video_streams[0].description = bg_strdup(NULL, "Single images\n");
+    inp->track_info.video_streams[0].description = bg_strdup(NULL, "Single images");
     sprintf(inp->filename_buffer, inp->template, inp->current_frame);
     }
   /* Load plugin */
@@ -342,11 +342,11 @@ static int start_input(void * priv)
     {
     if(!inp->image_reader->read_header(inp->handle->priv,
                                        inp->filename_buffer,
-                                       &(inp->track_info.still_streams[0].format)))
+                                       &(inp->track_info.video_streams[0].format)))
       return 0;
-    inp->track_info.still_streams[0].format.timescale = 0;
-    inp->track_info.still_streams[0].format.frame_duration = 0;
-    inp->track_info.still_streams[0].format.framerate_mode = GAVL_FRAMERATE_STILL;
+    inp->track_info.video_streams[0].format.timescale = 0;
+    inp->track_info.video_streams[0].format.frame_duration = 0;
+    inp->track_info.video_streams[0].format.framerate_mode = GAVL_FRAMERATE_STILL;
     }
   else
     {
@@ -511,7 +511,7 @@ static bg_input_plugin_t input_plugin_stills =
 
     get_track_info: get_track_info_input,
     /* Set streams */
-    set_still_stream:      set_video_stream_input,
+    set_video_stream:      set_video_stream_input,
     /*
      *  Start decoding.
      *  Track info is the track, which should be played.
@@ -845,9 +845,11 @@ static void get_video_format_encoder(void * data, int stream,
   gavl_video_format_copy(format, &(e->format));
   }
 
-static int write_video_frame_encoder(void * data, gavl_video_frame_t * frame,int stream)
+static int
+write_video_frame_encoder(void * data, gavl_video_frame_t * frame,
+                          int stream)
   {
-  int ret;
+  int ret = 1;
   encoder_t * e;
 
   e = (encoder_t *)data;

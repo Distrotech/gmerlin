@@ -246,6 +246,28 @@ static void seek_release_callback(bg_gtk_slider_t * slider, float perc,
   
   }
 
+static void
+slider_scroll_callback(bg_gtk_slider_t * slider, int up, void * data)
+  {
+  player_window_t * win = (player_window_t *)data;
+
+  if(slider == win->volume_slider)
+    {
+    if(up)
+      bg_player_set_volume_rel(win->gmerlin->player, 1.0);
+    else
+      bg_player_set_volume_rel(win->gmerlin->player, -1.0);
+    }
+  else if(slider == win->seek_slider)
+    {
+    if(up)
+      bg_player_seek_rel(win->gmerlin->player, 2 * GAVL_TIME_SCALE);
+    else
+      bg_player_seek_rel(win->gmerlin->player, -2 * GAVL_TIME_SCALE);
+    }
+  
+  }
+
 static void volume_change_callback(bg_gtk_slider_t * slider, float perc,
                                    void * data)
   {
@@ -258,6 +280,20 @@ static void volume_change_callback(bg_gtk_slider_t * slider, float perc,
   
   bg_player_set_volume(win->gmerlin->player, volume);
   win->volume = volume;
+  }
+
+static void gmerlin_button_callback_2(bg_gtk_button_t * b, void * data)
+  {
+  player_window_t * win = (player_window_t *)data;
+
+  if(b == win->next_button)
+    {
+    bg_player_next_chapter(win->gmerlin->player);
+    }
+  else if(b == win->prev_button)
+    {
+    bg_player_prev_chapter(win->gmerlin->player);
+    }
   }
 
 static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
@@ -278,7 +314,6 @@ static void gmerlin_button_callback(bg_gtk_button_t * b, void * data)
     }
   else if(b == win->next_button)
     {
-
     bg_media_tree_next(win->gmerlin->tree, 1, win->gmerlin->shuffle_mode);
 
     gmerlin_play(win->gmerlin, BG_PLAY_FLAG_IGNORE_IF_STOPPED);
@@ -660,6 +695,12 @@ void player_window_create(gmerlin_t * g)
 
   bg_gtk_slider_set_change_callback(ret->volume_slider,
                                     volume_change_callback, ret);
+
+  bg_gtk_slider_set_scroll_callback(ret->volume_slider,
+                                    slider_scroll_callback, ret);
+  bg_gtk_slider_set_scroll_callback(ret->seek_slider,
+                                    slider_scroll_callback, ret);
+
   
   bg_gtk_button_set_callback(ret->play_button, gmerlin_button_callback, ret);
   bg_gtk_button_set_callback(ret->stop_button, gmerlin_button_callback, ret);
@@ -668,6 +709,9 @@ void player_window_create(gmerlin_t * g)
   bg_gtk_button_set_callback(ret->prev_button, gmerlin_button_callback, ret);
   bg_gtk_button_set_callback(ret->close_button, gmerlin_button_callback, ret);
 
+  bg_gtk_button_set_callback_2(ret->next_button, gmerlin_button_callback_2, ret);
+  bg_gtk_button_set_callback_2(ret->prev_button, gmerlin_button_callback_2, ret);
+  
   bg_gtk_button_set_menu(ret->menu_button,
                          main_menu_get_widget(ret->main_menu));
 
@@ -680,9 +724,12 @@ void player_window_create(gmerlin_t * g)
   gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->pause_button),
                        "Pause", "Pause");
   gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->next_button),
-                       "Next track", "Next track");
+                       "Left button: Next track\nRight button: Next chapter",
+                       "Next track/chapter");
   gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->prev_button),
-                       "Previous track", "Previous track");
+                       "Left button: Previous track\nRight button: Previous chapter",
+                       "Previous track/chapter");
+  
   gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->menu_button),
                        "Main menu", "Main menu");
   gtk_tooltips_set_tip(ret->tooltips, bg_gtk_button_get_widget(ret->close_button),

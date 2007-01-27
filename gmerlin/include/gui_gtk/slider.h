@@ -69,6 +69,13 @@ void bg_gtk_slider_set_release_callback(bg_gtk_slider_t *,
                                                      void * data),
                                         void * data);
 
+void
+bg_gtk_slider_set_scroll_callback(bg_gtk_slider_t * s,
+                                  void (*func)(bg_gtk_slider_t*, int up, void*),
+                                  void* data);
+
+                                 
+
 void bg_gtk_slider_set_skin(bg_gtk_slider_t *,
                             bg_gtk_slider_skin_t*,
                             const char * directory);

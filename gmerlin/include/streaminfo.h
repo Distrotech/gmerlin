@@ -64,19 +64,8 @@ typedef struct
   char * description; //!< Something like MPEG-1 video 1150 kbps
   char language[4]; //!< The language in ISO 639-2 (3 character code+'\\0')
   char * info;        //!< Info about this stream
+  int is_still;       //!< 1 if this is a still image stream
   } bg_video_info_t;
-
-/** \ingroup streaminfo
- *  \brief Description of a still image stream
- *
- *  Unknown fields can be NULL.
- */
-
-typedef struct
-  {
-  gavl_video_format_t format;//!< Format (invalid until after the start function was called)
-  char * description; //!< Something like JPEG encoded
-  } bg_still_info_t;
 
 /** \ingroup streaminfo
  *  \brief Description of a subtitle stream
@@ -377,12 +366,10 @@ typedef struct
   
   int num_audio_streams;   //!< Number of audio streams
   int num_video_streams;   //!< Number of video streams
-  int num_still_streams;   //!< Number of still image streams
   int num_subtitle_streams;//!< Number of subtitle streams
   
   bg_audio_info_t *    audio_streams; //!< Audio streams
   bg_video_info_t *    video_streams; //!< Video streams
-  bg_still_info_t *    still_streams; //!< Still streams
   bg_subtitle_info_t * subtitle_streams; //!< Subtitle streams
 
   bg_metadata_t metadata; //!< Metadata (optional)

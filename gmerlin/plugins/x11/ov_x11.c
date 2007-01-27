@@ -1822,10 +1822,17 @@ static void show_window_x11(void * data, int show)
   {
   x11_t * priv = (x11_t*)data;
   XEvent * evt;
+#ifdef HAVE_XDPMS
+  int dpms_disabled = priv->win.dpms_disabled;
+#endif
   
   x11_window_show(&(priv->win), show);
-
-  
+#ifdef HAVE_XDPMS
+  if(dpms_disabled && !priv->win.dpms_disabled)
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Enabled DPMS");
+  else if(!dpms_disabled && priv->win.dpms_disabled)
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Disabled DPMS");
+#endif
   /* Clear the area and wait for the first ExposeEvent to come */
   x11_window_clear(&(priv->win));
 //  XClearArea(priv->win.dpy, priv->win.current_window, 0, 0,

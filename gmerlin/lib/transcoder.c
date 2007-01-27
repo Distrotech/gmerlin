@@ -19,7 +19,12 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <math.h>
+
+// mkdir()
+#include <sys/stat.h> 
+#include <sys/types.h>
 
 
 #include <pluginregistry.h>
@@ -347,6 +352,9 @@ struct bg_transcoder_s
   /* General configuration stuff */
 
   char * output_directory;
+  char * output_path;
+  char * subdir;
+  
   int delete_incomplete;
   int send_finished;
 
@@ -398,7 +406,7 @@ struct bg_transcoder_s
 static bg_parameter_info_t parameters[] =
   {
     {
-      name:      "output_directory",
+      name:      "output_path",
       long_name: "Output Directory",
       type:      BG_PARAMETER_DIRECTORY,
       val_default: { val_str: "." },
@@ -433,9 +441,9 @@ void bg_transcoder_set_parameter(void * data, char * name, bg_parameter_value_t 
   if(!name)
     return;
 
-  if(!strcmp(name, "output_directory"))
+  if(!strcmp(name, "output_path"))
     {
-    w->output_directory = bg_strdup(w->output_directory, val->val_str);
+    w->output_path = bg_strdup(w->output_path, val->val_str);
     }
   else if(!strcmp(name, "delete_incomplete"))
     {
@@ -1807,14 +1815,38 @@ set_parameter_general(void * data, char * name, bg_parameter_value_t * val)
           t->name[i] = '-';
         }
       }
+
+    /* Create the subdirectory if necessary */
+    if(t->subdir)
+      {
+      t->output_directory = bg_sprintf("%s/%s", t->output_path, t->subdir);
+
+      if(mkdir(t->output_directory,
+               S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IWOTH) == -1)
+        {
+        if(errno != EEXIST)
+          {
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create directory %s: %s, using default",
+                 t->output_directory, strerror(errno));
+          t->output_directory = bg_strdup(t->output_directory, t->output_path);
+          }
+        }
+      else
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Created directory %s", t->output_directory);
+      }
+    else
+      t->output_directory = bg_strdup(t->output_directory, t->output_path);
     
     return;
     }
   SP_STR(name);
   SP_STR(location);
   SP_STR(plugin);
+  SP_STR(subdir);
+  
   SP_INT(track);
-
+  
+  
   SP_INT(set_start_time);
   SP_INT(set_end_time);
   SP_TIME(start_time);
@@ -3811,6 +3843,9 @@ void bg_transcoder_destroy(bg_transcoder_t * t)
   FREE_STR(t->location);
   FREE_STR(t->plugin);
   FREE_STR(t->output_directory);
+  FREE_STR(t->output_path);
+  FREE_STR(t->subdir);
+
   FREE_STR(t->output_filename);
   
   gavl_timer_destroy(t->timer);

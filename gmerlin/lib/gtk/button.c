@@ -45,6 +45,10 @@ struct bg_gtk_button_s
     
   void (*callback)(bg_gtk_button_t*, void*);
   void * callback_data;
+
+  void (*callback_2)(bg_gtk_button_t*, void*);
+  void * callback_2_data;
+
   
   GtkWidget * menu;
 
@@ -82,7 +86,10 @@ static gboolean button_release_callback(GtkWidget * w, GdkEventButton * evt,
   if(b->mouse_inside)
     {
     gtk_image_set_from_pixbuf(GTK_IMAGE(b->image), b->pixbuf_highlight);
-    if(b->callback)
+
+    if(b->callback_2 && (evt->button == 3))
+      b->callback_2(b, b->callback_2_data);
+    else if(b->callback)
       b->callback(b, b->callback_data);
     }
   return TRUE;
@@ -262,6 +269,15 @@ void bg_gtk_button_set_callback(bg_gtk_button_t * b,
   {
   b->callback      = callback;
   b->callback_data = callback_data;
+  }
+
+void bg_gtk_button_set_callback_2(bg_gtk_button_t * b,
+                                  void (*callback_2)(bg_gtk_button_t *,
+                                                   void *),
+                                  void * callback_2_data)
+  {
+  b->callback_2      = callback_2;
+  b->callback_2_data = callback_2_data;
   }
 
 void bg_gtk_button_set_menu(bg_gtk_button_t * b, GtkWidget * menu)
