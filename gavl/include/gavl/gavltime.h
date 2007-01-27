@@ -123,7 +123,7 @@ int64_t gavl_time_rescale(int scale1, int scale2, int64_t time);
  * \returns Seconds as double
  */
 
-#define gavl_time_to_seconds(t) ((double)t/(double)(GAVL_TIME_SCALE))
+#define gavl_time_to_seconds(t) ((double)(t)/(double)(GAVL_TIME_SCALE))
 
 /*! \ingroup time
  * \brief Sleep for a specified time
