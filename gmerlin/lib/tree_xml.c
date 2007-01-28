@@ -68,6 +68,24 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
       xmlFree(tmp_string);
       }
     }
+  if(!ret)
+    {
+    tmp_string = BG_XML_GET_PROP(node, "plugin");
+    if(tmp_string)
+      {
+      ret = bg_album_create(&(tree->com), BG_ALBUM_TYPE_PLUGIN, parent);
+      xmlFree(tmp_string);
+      }
+    }
+  if(!ret)
+    {
+    tmp_string = BG_XML_GET_PROP(node, "tuner");
+    if(tmp_string)
+      {
+      ret = bg_album_create(&(tree->com), BG_ALBUM_TYPE_TUNER, parent);
+      xmlFree(tmp_string);
+      }
+    }
   
   if(!ret)
     {
@@ -91,7 +109,15 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
       }
     else if(!BG_XML_STRCMP(child->name, "LOCATION"))
       {
-      ret->location = bg_strdup(ret->location, tmp_string);
+      ret->xml_file = bg_strdup(ret->xml_file, tmp_string);
+      }
+    else if(!BG_XML_STRCMP(child->name, "DEVICE"))
+      {
+      ret->device = bg_strdup(ret->device, tmp_string);
+      }
+    else if(!BG_XML_STRCMP(child->name, "PLUGIN"))
+      {
+      ret->plugin_info = bg_plugin_find_by_name(ret->com->plugin_reg, tmp_string);
       }
     if(tmp_string)
       xmlFree(tmp_string);
@@ -191,14 +217,17 @@ static void save_album(bg_album_t * album, xmlNodePtr parent)
   xmlNodePtr xml_album;
   bg_album_t * child;
   xmlNodePtr node;
-  
-  if((album->type == BG_ALBUM_TYPE_REMOVABLE) ||
-     (album->type == BG_ALBUM_TYPE_PLUGIN))
+
+  if(album->type == BG_ALBUM_TYPE_PLUGIN)
+    {
+    if(album->plugin_info->flags & BG_PLUGIN_REMOVABLE)
+      return;
+    }
+  else if(album->type == BG_ALBUM_TYPE_REMOVABLE)
     return;
   
   /* Create XML album */
-  
-    
+      
   xml_album = xmlNewTextChild(parent, (xmlNsPtr)0, (xmlChar*)"ALBUM", NULL);
 
   if(bg_album_is_open(album))
@@ -211,34 +240,35 @@ static void save_album(bg_album_t * album, xmlNodePtr parent)
     BG_XML_SET_PROP(xml_album, "incoming", "1");
   else if(album->type == BG_ALBUM_TYPE_FAVOURITES)
     BG_XML_SET_PROP(xml_album, "favourites", "1");
+  else if(album->type == BG_ALBUM_TYPE_PLUGIN)
+    BG_XML_SET_PROP(xml_album, "plugin", "1");
+  else if(album->type == BG_ALBUM_TYPE_TUNER)
+    BG_XML_SET_PROP(xml_album, "tuner", "1");
   
   node = xmlNewTextChild(xml_album, (xmlNsPtr)0, (xmlChar*)"NAME", NULL);
   xmlAddChild(node, BG_XML_NEW_TEXT(album->name));
   
-  if(album->location)
+  if(album->xml_file)
     {
     node = xmlNewTextChild(xml_album, (xmlNsPtr)0, (xmlChar*)"LOCATION", NULL);
-    xmlAddChild(node, BG_XML_NEW_TEXT(album->location));
+    xmlAddChild(node, BG_XML_NEW_TEXT(album->xml_file));
     }
-  xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
-
-#if 0
-  /* Save coords */
-  node = xmlNewTextChild(xml_album, (xmlNsPtr)0, (xmlChar*)"COORDS", NULL);
-  tmp_string = bg_sprintf("%d %d %d %d", album->x, album->y,
-                          album->width, album->height);
-  xmlAddChild(node, BG_XML_NEW_TEXT(tmp_string));
-  free(tmp_string);
-  xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
-
-  /* Save open path */
-  if(album->open_path)
+  if(album->device)
     {
-    node = xmlNewTextChild(xml_album, (xmlNsPtr)0, (xmlChar*)"OPEN_PATH", NULL);
-    xmlAddChild(node, BG_XML_NEW_TEXT(album->open_path));
-    xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
+    node = xmlNewTextChild(xml_album, (xmlNsPtr)0, (xmlChar*)"DEVICE", NULL);
+    xmlAddChild(node, BG_XML_NEW_TEXT(album->device));
     }
-#endif
+  xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
+
+  if(album->plugin_info)
+    {
+    node = xmlNewTextChild(xml_album, (xmlNsPtr)0, (xmlChar*)"PLUGIN", NULL);
+    xmlAddChild(node, BG_XML_NEW_TEXT(album->plugin_info->name));
+    }
+  xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
+
+  
+  
   child = album->children;
 
   while(child)

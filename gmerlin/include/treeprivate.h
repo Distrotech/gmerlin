@@ -95,8 +95,9 @@ struct bg_album_s
   int open_count;
   
   char * name;        /* Name for dialog boxes      */
-  char * location;    /* Album filename or device   */
-
+  char * xml_file;    /* Album filename */
+  char * device;      /* Device */
+  
   char * disc_name;   /* Set by open_removable */
 
   

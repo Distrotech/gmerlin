@@ -75,9 +75,9 @@ static char * new_filename(bg_album_t * album)
 
 void bg_album_set_default_location(bg_album_t * album)
   {
-  if(!album->location)
+  if(!album->xml_file)
     {
-    album->location = new_filename(album);
+    album->xml_file = new_filename(album);
     }
   }
 
@@ -162,11 +162,6 @@ char * bg_album_get_name(bg_album_t * a)
   return a->name;
   }
 
-char * bg_album_get_location(bg_album_t * a)
-  {
-  return a->location;
-  }
-
 int bg_album_get_num_entries(bg_album_t * a)
   {
   int ret = 0;
@@ -206,12 +201,12 @@ static void insertion_done(bg_album_t * album)
     case BG_ALBUM_TYPE_FAVOURITES:
       break;
     case BG_ALBUM_TYPE_REGULAR:
-      if(!album->location)
-        album->location = new_filename(album);
+    case BG_ALBUM_TYPE_TUNER:
+      if(!album->xml_file)
+        album->xml_file = new_filename(album);
       break;
     case BG_ALBUM_TYPE_REMOVABLE:
     case BG_ALBUM_TYPE_PLUGIN:
-    case BG_ALBUM_TYPE_TUNER:
       break;
     }
   delete_shuffle_list(album);
@@ -361,7 +356,7 @@ void bg_album_insert_urilist_before(bg_album_t * a, const char * str,
 
 /* Open / close */
 
-static int open_removable(bg_album_t * a)
+static int open_device(bg_album_t * a)
   {
   bg_track_info_t * track_info;
   int i, j;
@@ -377,7 +372,7 @@ static int open_removable(bg_album_t * a)
   
   /* Open the plugin */
 
-  if(!plugin->open(a->handle->priv, a->location))
+  if(!plugin->open(a->handle->priv, a->device))
     {
     bg_plugin_unlock(a->handle);
     return 0;
@@ -407,7 +402,7 @@ static int open_removable(bg_album_t * a)
     new_entry->plugin = bg_strdup((char*)0, a->handle->info->name);
     
     new_entry->location = bg_strdup(new_entry->location,
-                                      a->location);
+                                      a->device);
     new_entry->num_audio_streams = track_info->num_audio_streams;
 
     new_entry->num_still_streams = 0;
@@ -438,6 +433,7 @@ int bg_album_open(bg_album_t * a)
   {
   char * tmp_filename;
   FILE * testfile;
+  bg_input_plugin_t * plugin;
    
   if(a->open_count)
     {
@@ -456,10 +452,11 @@ int bg_album_open(bg_album_t * a)
     case BG_ALBUM_TYPE_REGULAR:
     case BG_ALBUM_TYPE_FAVOURITES:
     case BG_ALBUM_TYPE_INCOMING:
-      if(a->location)
+      if(a->xml_file)
         {
-        tmp_filename = bg_sprintf("%s/%s", a->com->directory, a->location);
-
+        tmp_filename = bg_sprintf("%s/%s", a->com->directory,
+                                  a->xml_file);
+        
         /* If the file cannot be opened, it was deleted earlier
            we exit quietly here */
         
@@ -474,10 +471,48 @@ int bg_album_open(bg_album_t * a)
         free(tmp_filename);
         }
       break;
-    case BG_ALBUM_TYPE_REMOVABLE:
     case BG_ALBUM_TYPE_TUNER:
+      if(a->xml_file)
+        {
+        tmp_filename = bg_sprintf("%s/%s", a->com->directory,
+                                  a->xml_file);
+        
+        /* If the file cannot be opened, it was deleted earlier
+           we exit quietly here */
+        
+        if(!(testfile = fopen(tmp_filename,"r")))
+          {
+          free(tmp_filename);
+          if(!open_device(a))
+            return 0;
+          break;
+          }
+        fclose(testfile);
+        
+        bg_album_load(a, tmp_filename);
+        free(tmp_filename);
+        a->handle = bg_plugin_load(a->com->plugin_reg, a->plugin_info);
+
+        bg_plugin_lock(a->handle);
+
+        plugin = (bg_input_plugin_t*)a->handle->plugin;
+        
+        /* Open the plugin */
+        
+        if(!plugin->open(a->handle->priv, a->device))
+          {
+          bg_plugin_unlock(a->handle);
+          return 0;
+          }
+        bg_plugin_unlock(a->handle);
+        }
+      else
+        if(!open_device(a))
+          return 0;
+      break;
+    case BG_ALBUM_TYPE_REMOVABLE:
       /* Get infos from the plugin */
-      if(!open_removable(a))
+      if(!open_device(a))
         return 0;
       break;
     case BG_ALBUM_TYPE_PLUGIN:
@@ -533,7 +568,6 @@ bg_album_entry_t * bg_album_entry_create(bg_album_t * album)
   return ret;
   }
 
-
 void bg_album_close(bg_album_t *a )
   {
   //  char * tmp_filename;
@@ -567,6 +601,8 @@ void bg_album_close(bg_album_t *a )
         free(a->disc_name);
         a->disc_name = (char*)0;
         }
+      if(a->type == BG_ALBUM_TYPE_TUNER)
+        bg_album_save(a, NULL);
       break;
     case BG_ALBUM_TYPE_REGULAR:
     case BG_ALBUM_TYPE_INCOMING:
@@ -628,8 +664,11 @@ void bg_album_destroy(bg_album_t * a)
     }
   if(a->name)
     free(a->name);
-  if(a->location)
-    free(a->location);
+  if(a->xml_file)
+    free(a->xml_file);
+  if(a->device)
+    free(a->device);
+  
   if(a->disc_name)
     free(a->disc_name);
   if(a->cfg_section)
@@ -1020,10 +1059,12 @@ void bg_album_rename(bg_album_t * a, const char * name)
   {
   a->name = bg_strdup(a->name, name);
 
-  if((a->type == BG_ALBUM_TYPE_REMOVABLE) &&
-      a->plugin_info)
+  if(((a->type == BG_ALBUM_TYPE_REMOVABLE) ||
+      (a->type == BG_ALBUM_TYPE_TUNER)) &&
+     a->plugin_info)
     {
-    bg_plugin_registry_set_device_name(a->com->plugin_reg, a->plugin_info->name, a->location,
+    bg_plugin_registry_set_device_name(a->com->plugin_reg,
+                                       a->plugin_info->name, a->device,
                                        name);
     }
   if(a->name_change_callback)
@@ -1251,7 +1292,7 @@ static void add_device(bg_album_t * album,
   {
   bg_album_t * device_album;
   device_album = bg_album_create(album->com, BG_ALBUM_TYPE_REMOVABLE, album);
-  device_album->location = bg_strdup(device_album->location, device);
+  device_album->device = bg_strdup(device_album->device, device);
   if(name)
     {
     device_album->name = bg_strdup(device_album->name,
@@ -1633,7 +1674,7 @@ void bg_album_eject(bg_album_t * a)
   handle = bg_plugin_load(a->com->plugin_reg, a->plugin_info);
   plugin = (bg_input_plugin_t*)handle->plugin;
   
-  if(!plugin->eject_disc(a->location))
+  if(!plugin->eject_disc(a->device))
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Ejecting disc failed");
   bg_plugin_unref(handle);
   }

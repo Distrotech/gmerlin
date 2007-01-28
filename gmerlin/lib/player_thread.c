@@ -583,10 +583,9 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
   
   bg_player_time_init(p);
 
-  if(time > 0)
+  if((time > 0) && (p->can_seek))
     {
-    if(p->can_seek)
-      bg_player_input_seek(p->input_context, &time);
+    bg_player_input_seek(p->input_context, &time);
     bg_player_time_set(p, time);
     }
   else
@@ -632,8 +631,6 @@ static void play_cmd(bg_player_t * p,
   const char * error_msg_input;
   
   int had_video;
-  gavl_time_t time = 0;
-    
   
   /* Shut down from last playback if necessary */
   
@@ -664,7 +661,7 @@ static void play_cmd(bg_player_t * p,
     
     return;
     }
-  init_playback(p, time, flags, had_video);
+  init_playback(p, 0, flags, had_video);
   }
 
 static void cleanup_playback(bg_player_t * player,

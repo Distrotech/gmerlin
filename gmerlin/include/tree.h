@@ -150,7 +150,6 @@ int          bg_album_get_num_children(bg_album_t *);
 bg_album_t * bg_album_get_child(bg_album_t *, int);
 
 char * bg_album_get_name(bg_album_t * a);
-char * bg_album_get_location(bg_album_t * a);
 
 /* This returns the disc name or the album name */
 char * bg_album_get_label(bg_album_t * a);

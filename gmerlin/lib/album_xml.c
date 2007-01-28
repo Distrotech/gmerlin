@@ -671,11 +671,11 @@ void bg_album_save(bg_album_t * a, const char * filename)
     }
   else
     {
-    if(!a->location)
+    if(!a->xml_file)
       {
       bg_album_set_default_location(a);
       }
-    tmp_filename = bg_sprintf("%s/%s", a->com->directory, a->location);
+    tmp_filename = bg_sprintf("%s/%s", a->com->directory, a->xml_file);
     xmlSaveFile(tmp_filename, xml_doc);
     set_permissions(tmp_filename);
     free(tmp_filename);

@@ -275,6 +275,31 @@ static int get_user_pass(void * data, const char * resource,
   }
 
 
+static bg_album_t * find_by_plugin(bg_album_t * albums,
+                                   const char * plugin)
+  {
+  while(albums)
+    {
+    if(albums->plugin_info && !strcmp(albums->plugin_info->name, plugin))
+      return albums;
+    albums = albums->next;
+    }
+  return (bg_album_t *)0;
+  }
+
+static bg_album_t * find_by_device(bg_album_t * albums,
+                                   const char * device)
+  {
+  while(albums)
+    {
+    if(albums->device && !strcmp(albums->device, device))
+      return albums;
+    albums = albums->next;
+    }
+  return (bg_album_t *)0;
+  
+  }
+
 static void add_device_plugins(bg_media_tree_t * ret,
                                bg_plugin_registry_t * plugin_reg,
                                int flag, bg_album_type_t type)
@@ -294,12 +319,15 @@ static void add_device_plugins(bg_media_tree_t * ret,
     
     /* Add album for the plugin */
 
-    plugin_album = bg_album_create(&(ret->com), BG_ALBUM_TYPE_PLUGIN, NULL);
-    plugin_album->name  = bg_strdup(plugin_album->name, info->long_name);
-    plugin_album->plugin_info = info;
+    if(!(plugin_album = find_by_plugin(ret->children, info->name)))
+      {
+      plugin_album = bg_album_create(&(ret->com), BG_ALBUM_TYPE_PLUGIN, NULL);
+      plugin_album->name  = bg_strdup(plugin_album->name, info->long_name);
+      plugin_album->plugin_info = info;
+      
+      ret->children = append_album(ret->children, plugin_album);
+      }
     
-    ret->children = append_album(ret->children, plugin_album);
-
     /* Now, get the number of devices */
     
     if(info->devices && info->devices->device)
@@ -308,24 +336,32 @@ static void add_device_plugins(bg_media_tree_t * ret,
       
       while(info->devices[j].device)
         {
-        device_album = bg_album_create(&(ret->com), type, plugin_album);
-        device_album->location = bg_strdup(device_album->location,
+        if(!(device_album =
+             find_by_device(plugin_album->children,
+                            info->devices[j].device)))
+          {
+          device_album = bg_album_create(&(ret->com), type, plugin_album);
+          device_album->device = bg_strdup(device_album->device,
                                            info->devices[j].device);
-        if(info->devices[j].name)
-          {
-          device_album->name = bg_strdup(device_album->name,
-                                         info->devices[j].name);
-          }
-        else
-          {
-          device_album->name = bg_strdup(device_album->name,
-                                         info->devices[j].device);
-          }
-        device_album->plugin_info = info;
-        plugin_album->children = append_album(plugin_album->children,
+          if(info->devices[j].name)
+            {
+            device_album->name = bg_strdup(device_album->name,
+                                           info->devices[j].name);
+            }
+          else
+            {
+            device_album->name = bg_strdup(device_album->name,
+                                           info->devices[j].device);
+            }
+          device_album->plugin_info = info;
+          plugin_album->children = append_album(plugin_album->children,
                                               device_album);
+          }
         j++;
         } /* Device loop */
+
+      /* TODO: Remove albums, whose devices vanished */
+      
       }
     } /* Plugin loop */
   
@@ -367,14 +403,15 @@ bg_media_tree_t * bg_media_tree_create(const char * filename,
     {
     ret->incoming = bg_album_create(&(ret->com), BG_ALBUM_TYPE_INCOMING, NULL);
     ret->incoming->name  = bg_strdup(ret->incoming->name, "Incoming");
-    ret->incoming->location  = bg_strdup(ret->incoming->location, "incoming.xml");
+    ret->incoming->xml_file  = bg_strdup(ret->incoming->xml_file,
+                                         "incoming.xml");
     ret->children = append_album(ret->children, ret->incoming);
     }
   if(!ret->com.favourites)
     {
     ret->com.favourites = bg_album_create(&(ret->com), BG_ALBUM_TYPE_FAVOURITES, NULL);
     ret->com.favourites->name  = bg_strdup(ret->com.favourites->name, "Favourites");
-    ret->com.favourites->location  = bg_strdup(ret->com.favourites->location, "favourites.xml");
+    ret->com.favourites->xml_file  = bg_strdup(ret->com.favourites->xml_file, "favourites.xml");
     ret->children = append_album(ret->children, ret->com.favourites);
     }
   
@@ -468,8 +505,8 @@ void bg_media_tree_remove_album(bg_media_tree_t * tree,
   
   /* Check if album file if present */
   
-  if(album->location)
-    tmp_path = bg_sprintf("%s/%s", tree->com.directory, album->location);
+  if(album->xml_file)
+    tmp_path = bg_sprintf("%s/%s", tree->com.directory, album->xml_file);
   
   /* Schredder everything */
 
@@ -1335,7 +1372,7 @@ static int albums_have_file(bg_album_t * album, const char * filename)
 
   while(a)
     {
-    if(a->location && !strcmp(a->location, filename))
+    if(a->xml_file && !strcmp(a->xml_file, filename))
       return 1;
 
     else if(albums_have_file(a->children, filename))
@@ -1462,7 +1499,7 @@ bg_album_t * bg_media_tree_get_device_album(bg_media_tree_t * t, const char * gm
 
   ret = ret->children;
 
-  while(ret && strcmp(ret->location, path))
+  while(ret && strcmp(ret->device, path))
     ret = ret->next;
   
   fail:
