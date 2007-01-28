@@ -21,6 +21,7 @@
 
 #include <avdec_private.h>
 
+#define LOG_DOMAIN "utils"
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -31,6 +32,9 @@
 #include <sys/select.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <limits.h>
 
 #include <utils.h>
 
@@ -468,4 +472,104 @@ int bgav_check_file_read(const char * filename)
   if(access(filename, R_OK))
     return 0;
   return 1;
+  }
+
+/* Search file for writing */
+
+char * bgav_search_file_write(const bgav_options_t * opt,
+                              const char * directory, const char * file)
+  {
+  char * home_dir;
+  char * testpath;
+  char * pos1;
+  char * pos2;
+  FILE * testfile;
+
+  if(!file)
+    return (char*)0;
+  
+  testpath = malloc((PATH_MAX+1) * sizeof(char));
+  
+  home_dir = getenv("HOME");
+
+  /* Try to open the file */
+
+  snprintf(testpath, PATH_MAX,
+           "%s/.%s/%s/%s", home_dir, PACKAGE, directory, file);
+  testfile = fopen(testpath, "a");
+  if(testfile)
+    {
+    fclose(testfile);
+    return testpath;
+    }
+  
+  if(errno != ENOENT)
+    {
+    free(testpath);
+    return (char*)0;
+    }
+
+  /*
+   *  No such file or directory can mean, that the directory 
+   *  doesn't exist
+   */
+  
+  pos1 = &(testpath[strlen(home_dir)+1]);
+  
+  while(1)
+    {
+    pos2 = strchr(pos1, '/');
+
+    if(!pos2)
+      break;
+
+    *pos2 = '\0';
+
+    if(mkdir(testpath, S_IRUSR|S_IWUSR|S_IXUSR) == -1)
+      {
+      if(errno != EEXIST)
+        {
+        *pos2 = '/';
+        break;
+        }
+      }
+    else
+      bgav_log(opt, BGAV_LOG_INFO, LOG_DOMAIN,
+               "Created directory %s", testpath);
+    
+    *pos2 = '/';
+    pos1 = pos2;
+    pos1++;
+    }
+
+  /* Try once more to open the file */
+
+  testfile = fopen(testpath, "w");
+
+  if(testfile)
+    {
+    fclose(testfile);
+    return testpath;
+    }
+  free(testpath);
+  return (char*)0;
+  }
+
+char * bgav_search_file_read(const bgav_options_t * opt,
+                             const char * directory, const char * file)
+  {
+  char * home_dir;
+  char * test_path;
+
+  home_dir = getenv("HOME");
+
+  test_path = malloc((PATH_MAX+1) * sizeof(*test_path));
+  snprintf(test_path, PATH_MAX, "%s/.%s/%s/%s",
+           home_dir, PACKAGE, directory, file);
+
+  if(bgav_check_file_read(test_path))
+    return test_path;
+
+  free(test_path);
+  return (char*)0;
   }

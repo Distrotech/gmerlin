@@ -112,7 +112,7 @@ static void reset_streams_priv(bgav_track_t * track)
 
 #define WRAP_THRESHOLD 9000000 /* 100 seconds */
 
-void check_pts_wrap(bgav_stream_t * s, int64_t * pts)
+static void check_pts_wrap(bgav_stream_t * s, int64_t * pts)
   {
   stream_priv_t * priv;
   priv = (stream_priv_t*)(s->priv);

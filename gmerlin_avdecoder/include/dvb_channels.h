@@ -49,9 +49,13 @@ typedef struct
 
 #endif
 
+char *
+bgav_dvb_channels_seek(const bgav_options_t * opt,
+                       fe_type_t type);
+
 bgav_dvb_channel_info_t *
 bgav_dvb_channels_load(const bgav_options_t * opt,
-                       fe_type_t type, int * num);
+                       fe_type_t type, int * num, const char * filename);
 
 void dvb_channels_destroy(bgav_dvb_channel_info_t *, int num);
 

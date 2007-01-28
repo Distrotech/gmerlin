@@ -1206,6 +1206,14 @@ int bgav_slurp_file(const char * location,
                     int * size,
                     const bgav_options_t * opt);
 
+char * bgav_search_file_write(const bgav_options_t * opt,
+                              const char * directory, const char * file);
+
+char * bgav_search_file_read(const bgav_options_t * opt,
+                             const char * directory, const char * file);
+
+
+
 /* Check if file exist and is readable */
 
 int bgav_check_file_read(const char * filename);

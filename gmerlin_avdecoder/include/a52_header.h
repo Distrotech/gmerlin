@@ -36,4 +36,4 @@ typedef struct
 
 int bgav_a52_header_read(bgav_a52_header_t * ret, uint8_t * buf);
 
-void a52_header_dump(bgav_a52_header_t * h);
+void bgav_a52_header_dump(bgav_a52_header_t * h);

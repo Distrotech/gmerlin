@@ -18,6 +18,7 @@
 *****************************************************************/
 
 #include <avdec_private.h>
+#include <yml.h>
 
 #ifdef HAVE_LINUXDVB
 #include <linux/dvb/frontend.h>
@@ -72,6 +73,8 @@ typedef struct
   char * filter_filename;
   char * dvr_filename;
   char * frontend_filename;
+
+  char * channels_conf_file;
   
   } dvb_priv_t;
 
@@ -336,7 +339,7 @@ static int get_streams(bgav_input_context_t * ctx,
     return 0;
     }
   bytes_read = read(priv->filter_fds[0], buffer, 4096);
-   
+  
   if(!bgav_pat_section_read(buffer, bytes_read, &pats))
     {
     bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -416,6 +419,293 @@ static int get_streams(bgav_input_context_t * ctx,
   return 1;
   }
 
+/* The channel.conf doesn't save all neccesary infos,
+   so we cache them instead tuning to all transponders
+   and parsing pat/pmt tables.
+*/
+
+static int load_channel_cache(bgav_input_context_t * ctx)
+  {
+  bgav_input_context_t * input;
+  char * filename;
+  bgav_yml_node_t * yml;
+  bgav_yml_node_t * channel_node;
+  bgav_yml_node_t * channel_child;
+  bgav_yml_node_t * stream_node;
+  bgav_yml_node_t * stream_child;
+  int num_channels;
+  bgav_stream_t * s;
+  int channel_index;
+  int ret = 0;
+  dvb_priv_t * priv;
+  struct stat st;
+  char * path;
+  const char * attr;
+  long file_time;
+  
+  priv = (dvb_priv_t *)(ctx->priv);
+  
+  input = bgav_input_create(ctx->opt);
+  
+  filename = strrchr(priv->device_directory, '/');
+  filename++;
+    
+  path = bgav_search_file_read(ctx->opt,
+                               "dvb_linux", filename);
+  if(!path)
+    return 0;
+
+  if(!bgav_input_open(input, path))
+    {
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Channel cache %s cannot be opened: %s",
+             path, strerror(errno));
+    goto fail;
+    }
+
+  yml = bgav_yml_parse(input);
+
+  if(strcmp(yml->name, "channels"))
+    goto fail;
+
+  attr = bgav_yml_get_attribute(yml, "num");
+
+  if(!attr)
+    goto fail;
+
+  num_channels = atoi(attr);
+  
+  ctx->tt = bgav_track_table_create(num_channels);
+  
+  channel_node = yml->children;
+  
+  channel_index = 0;
+
+  while(channel_node)
+    {
+    if(!channel_node->name)
+      {
+      channel_node = channel_node->next;
+      continue;
+      }
+
+    if(!strcmp(channel_node->name, "conf_time"))
+      {
+      if(stat(priv->channels_conf_file, &st))
+        goto fail;
+      file_time = strtol(channel_node->children->str, (char**)0, 10);
+      if(file_time != st.st_mtime)
+        {
+        bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+                 "Channel cache older than channels.conf");
+        goto fail;
+        }
+      }
+    else if(!strcmp(channel_node->name, "channel"))
+      {
+      channel_child = channel_node->children;
+
+      attr = bgav_yml_get_attribute(channel_node, "pcr_pid");
+      if(!attr)
+        goto fail;
+      priv->channels[channel_index].pcr_pid = strtol(attr, (char**)0, 16);
+
+      attr = bgav_yml_get_attribute(channel_node, "extra_pcr_pid");
+      if(!attr)
+        goto fail;
+      priv->channels[channel_index].extra_pcr_pid = atoi(attr);
+
+      ctx->tt->tracks[channel_index].name = bgav_strdup(priv->channels[channel_index].name);
+      
+      while(channel_child)
+        {
+        if(!channel_child->name)
+          {
+          channel_child = channel_child->next;
+          continue;
+          }
+
+        if(!strcmp(channel_child->name, "astreams"))
+          {
+          stream_node = channel_child->children;
+
+          while(stream_node)
+            {
+            if(!stream_node->name)
+              {
+              stream_node = stream_node->next;
+              continue;
+              }
+
+            if(!strcmp(stream_node->name, "astream"))
+              {
+              s =
+                bgav_track_add_audio_stream(&ctx->tt->tracks[channel_index], ctx->opt);
+              s->timescale = 90000;
+              s->not_aligned = 1;
+              
+              stream_child = stream_node->children;
+
+              while(stream_child)
+                {
+                if(!stream_child->name)
+                  {
+                  stream_child = stream_child->next;
+                  continue;
+                  }
+
+                if(!strcmp(stream_child->name, "pid"))
+                  s->stream_id = strtol(stream_child->children->str, (char**)0, 16);
+                else if(!strcmp(stream_child->name, "fourcc"))
+                  s->fourcc = strtol(stream_child->children->str, (char**)0, 16);
+
+                else if(!strcmp(stream_child->name, "language"))
+                  sscanf(stream_child->children->str, "%3s", s->language);
+                
+                stream_child = stream_child->next;
+                }
+              }
+            
+            stream_node = stream_node->next;
+            }
+          
+          }
+        if(!strcmp(channel_child->name, "vstreams"))
+          {
+          stream_node = channel_child->children;
+
+          while(stream_node)
+            {
+            if(!stream_node->name)
+              {
+              stream_node = stream_node->next;
+              continue;
+              }
+
+            if(!strcmp(stream_node->name, "vstream"))
+              {
+              s =
+                bgav_track_add_video_stream(&ctx->tt->tracks[channel_index], ctx->opt);
+
+              s->timescale = 90000;
+              s->not_aligned = 1;
+              stream_child = stream_node->children;
+
+              while(stream_child)
+                {
+                if(!stream_child->name)
+                  {
+                  stream_child = stream_child->next;
+                  continue;
+                  }
+
+                if(!strcmp(stream_child->name, "pid"))
+                  s->stream_id = strtol(stream_child->children->str, (char**)0, 16);
+                else if(!strcmp(stream_child->name, "fourcc"))
+                  s->fourcc = strtol(stream_child->children->str, (char**)0, 16);
+                
+                stream_child = stream_child->next;
+                }
+              }
+            
+            stream_node = stream_node->next;
+            }
+          
+          }
+
+        channel_child = channel_child->next;
+        }
+      channel_index++;
+      }
+    
+    channel_node = channel_node->next;
+    }
+
+  
+  ret = 1;
+
+  fail:
+  bgav_input_close(input);
+  bgav_input_destroy(input);
+  if(path) free(path);
+  if(yml)
+    bgav_yml_free(yml);
+  return ret;
+  }
+
+static void save_channel_cache(bgav_input_context_t * ctx)
+  {
+  FILE * output = (FILE*)0;
+  char * filename;
+  char * path = (char*)0;
+  dvb_priv_t * priv;
+  int i, j;
+  struct stat st;
+  priv = (dvb_priv_t *)(ctx->priv);
+  
+  filename = strrchr(priv->device_directory, '/');
+  filename++;
+    
+  path = bgav_search_file_write(ctx->opt,
+                                "dvb_linux", filename);
+  if(!path)
+    return;
+
+  output = fopen(path, "w");
+
+  fprintf(output, "<channels num=\"%d\">\n", ctx->tt->num_tracks);
+  
+  if(stat(priv->channels_conf_file, &st))
+    goto fail;
+  fprintf(output, "  <conf_time>%ld</conf_time>\n", st.st_mtime);
+    
+  for(i = 0; i < ctx->tt->num_tracks; i++)
+    {
+    fprintf(output, "  <channel pcr_pid=\"%04x\" extra_pcr_pid=\"%d\">\n",
+            priv->channels[i].pcr_pid, priv->channels[i].extra_pcr_pid);
+    
+    fprintf(output, "    <astreams num=\"%d\">\n", 
+            ctx->tt->tracks[i].num_audio_streams);
+    for(j = 0; j < ctx->tt->tracks[i].num_audio_streams; j++)
+      {
+      fprintf(output, "      <astream>\n");
+      fprintf(output, "        <pid>%04x</pid>\n",
+              ctx->tt->tracks[i].audio_streams[j].stream_id);
+      fprintf(output, "        <fourcc>%08x</fourcc>\n",
+              ctx->tt->tracks[i].audio_streams[j].fourcc);
+
+      if(ctx->tt->tracks[i].audio_streams[j].language[0])
+        {
+        fprintf(output, "        <language>%3s</language>\n",
+                ctx->tt->tracks[i].audio_streams[j].language);
+        }
+      fprintf(output, "      </astream>\n");
+      }
+    fprintf(output, "    </astreams>\n");
+
+    
+    fprintf(output, "    <vstreams num=\"%d\">\n", 
+            ctx->tt->tracks[i].num_video_streams);
+    for(j = 0; j < ctx->tt->tracks[i].num_video_streams; j++)
+      {
+      fprintf(output, "      <vstream>\n");
+      fprintf(output, "        <pid>%04x</pid>\n",
+              ctx->tt->tracks[i].video_streams[j].stream_id);
+      fprintf(output, "        <fourcc>%08x</fourcc>\n",
+              ctx->tt->tracks[i].video_streams[j].fourcc);
+      fprintf(output, "      </vstream>\n");
+      }
+    fprintf(output, "    </vstreams>\n");
+    
+    fprintf(output, "  </channel>\n");
+    }
+  
+  fprintf(output, "</channels>\n");
+  fail:
+  if(path) free(path);
+  if(output) fclose(output);
+  return;
+  }
 
 static int open_dvb(bgav_input_context_t * ctx, const char * url)
   {
@@ -423,6 +713,7 @@ static int open_dvb(bgav_input_context_t * ctx, const char * url)
   fe_status_t status;
   char * tmp_string;
   dvb_priv_t * priv;
+  char * filename;
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
@@ -458,20 +749,44 @@ static int open_dvb(bgav_input_context_t * ctx, const char * url)
     }
 
   //  bgav_dprintf("Frontend status: 0x%02x\n", status);
-
+  
+  filename = strrchr(priv->device_directory, '/');
+  filename++;
+  
+  priv->channels_conf_file =
+    bgav_dvb_channels_seek(ctx->opt,
+                           priv->fe_info.type);
+  
+  if(!priv->channels_conf_file)
+    {
+    bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Found no channels.conf file");
+    return 0;
+    }
+  
   /* Load channels file */
   priv->channels = bgav_dvb_channels_load(ctx->opt, priv->fe_info.type,
-                                          &priv->num_channels);
+                                          &priv->num_channels,
+                                          priv->channels_conf_file);
 
-  // Add channels to the tracks
-
-  ctx->tt = bgav_track_table_create(priv->num_channels);
-  for(i = 0; i < priv->num_channels; i++)
+  if(!load_channel_cache(ctx))
     {
-    ctx->tt->tracks[i].name = bgav_strdup(priv->channels[i].name);
-    if(!get_streams(ctx, &priv->channels[i]))
-      return 0;
+    bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+             "Regenerating channel cache");
+    
+    // Add channels to the tracks
+    
+    ctx->tt = bgav_track_table_create(priv->num_channels);
+    for(i = 0; i < priv->num_channels; i++)
+      {
+      ctx->tt->tracks[i].name = bgav_strdup(priv->channels[i].name);
+      if(!get_streams(ctx, &priv->channels[i]))
+        return 0;
+      }
+    save_channel_cache(ctx);
     }
+  bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN,
+           "Using channel cache");
   
   /* Create demuxer */
   

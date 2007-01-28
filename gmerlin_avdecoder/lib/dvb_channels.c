@@ -117,32 +117,19 @@ static char * find_string(const Param *list, int val)
   return list->name;
   }
 
-bgav_dvb_channel_info_t *
-bgav_dvb_channels_load(const bgav_options_t * opt,
-                       fe_type_t type, int * num)
+char *
+bgav_dvb_channels_seek(const bgav_options_t * opt,
+                       fe_type_t type)
   {
-  int i;
-  unsigned long freq;
-  int is_open = 0;
-  char * home_dir;
   char * filename = (char*)0;
-
-  char * line = (char*)0;
-  int line_alloc = 0;
-  char ** entries;
-  
-  bgav_dvb_channel_info_t * ret = (bgav_dvb_channel_info_t*)0;
-  bgav_dvb_channel_info_t * channel;
-  
-  bgav_input_context_t * input;
-
-  input = bgav_input_create(opt);
-  
+  char * home_dir;
   /* Look for the file */
 
   if(opt->dvb_channels_file)
     {
-    if(!bgav_input_open(input, opt->dvb_channels_file))
+    filename = bgav_strdup(opt->dvb_channels_file);
+
+    if(!bgav_check_file_read(filename))
       {
       bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Channels file %s cannot be opened");
@@ -201,7 +188,33 @@ bgav_dvb_channels_load(const bgav_options_t * opt,
         }
       }
     }
+  return filename;
+  
+  fail:
+  if(filename) free(filename);
+  return (char*)0;
+  }
 
+bgav_dvb_channel_info_t *
+bgav_dvb_channels_load(const bgav_options_t * opt,
+                       fe_type_t type, int * num, const char * filename)
+  {
+  int i;
+  unsigned long freq;
+  int is_open = 0;
+  
+  char * line = (char*)0;
+  int line_alloc = 0;
+  char ** entries;
+  
+  bgav_dvb_channel_info_t * ret = (bgav_dvb_channel_info_t*)0;
+  bgav_dvb_channel_info_t * channel;
+  
+  bgav_input_context_t * input;
+
+  input = bgav_input_create(opt);
+
+  
   if(!filename)
     {
     bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -215,7 +228,7 @@ bgav_dvb_channels_load(const bgav_options_t * opt,
              "Channels file %s cannot be opened: %s", filename, strerror(errno));
     goto fail;
     }
-
+  
   /* Read lines */
 
   *num = 0;
@@ -344,8 +357,6 @@ bgav_dvb_channels_load(const bgav_options_t * opt,
   if(line)
     free(line);
   
-  if(filename)
-    free(filename);
   if(is_open)
     bgav_input_close(input);
   bgav_input_destroy(input);
