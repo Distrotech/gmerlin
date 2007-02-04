@@ -49,6 +49,11 @@
 static bg_parameter_info_t parameters[] =
   {
     {
+      name:       "render_options",
+      long_name:  "Render options",
+      type:       BG_PARAMETER_SECTION,
+    },
+    {
       name:       "color",
       long_name:  "Text color",
       type:       BG_PARAMETER_COLOR_RGBA,
@@ -146,6 +151,44 @@ static bg_parameter_info_t parameters[] =
       type:        BG_PARAMETER_CHECKBUTTON,
       help_string: "Ignore linebreaks in subtitles."
     },
+    {
+      name:       "default_format",
+      long_name:  "Default format",
+      type:       BG_PARAMETER_SECTION,
+    },
+#if 1
+    {
+      name:       "default_width",
+      long_name:  "Default width",
+      type:       BG_PARAMETER_INT,
+      val_min:     { val_i: 0     },
+      val_max:     { val_i: 65535 },
+      val_default: { val_i: 640   },
+    },
+    {
+      name:       "default_height",
+      long_name:  "Default height",
+      type:       BG_PARAMETER_INT,
+      val_min:     { val_i: 0     },
+      val_max:     { val_i: 65535 },
+      val_default: { val_i: 480   },
+    },
+    {
+      name:       "default_csp",
+      long_name:  "Default Colorspace",
+      type:       BG_PARAMETER_STRINGLIST,
+      val_default:  { val_str: "yuv" },
+      multi_names:  (char*[]){ "yuv", "rgb", (char*)0 },
+      multi_labels: (char*[]){ "YCrCb", "RGB", (char*)0 },
+    },
+    {
+      name:       "default_framerate",
+      long_name:  "Default Framerate",
+      type:       BG_PARAMETER_FLOAT,
+      val_default:  { val_f: 10.0 },
+      num_digits: 3,
+    },
+#endif
     { /* End of parameters */ },
   };
 
@@ -222,6 +265,10 @@ struct bg_text_renderer_s
   pthread_mutex_t config_mutex;
 
   int config_changed;
+
+  int default_width, default_height;
+  gavl_pixelformat_t default_csp;
+  float default_framerate;
   };
 
 static void adjust_bbox(cache_entry_t * glyph, int dst_x, int dst_y, bbox_t * ret)
@@ -905,6 +952,25 @@ void bg_text_renderer_set_parameter(void * data, char * name,
     {
     r->ignore_linebreaks = val->val_i;
     }
+  else if(!strcmp(name, "default_width"))
+    {
+    r->default_width = val->val_i;
+    }
+  else if(!strcmp(name, "default_height"))
+    {
+    r->default_height = val->val_i;
+    }
+  else if(!strcmp(name, "default_framerate"))
+    {
+    r->default_framerate = val->val_f;
+    }
+  else if(!strcmp(name, "default_csp"))
+    {
+    if(!strcmp(val->val_str, "rgb"))
+      r->default_csp = GAVL_RGB_24;
+    else
+      r->default_csp = GAVL_YUV_444_P;
+    }
   r->config_changed = 1;
   pthread_mutex_unlock(&(r->config_mutex));
   }
@@ -1036,8 +1102,27 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
   {
   pthread_mutex_lock(&r->config_mutex);
 
-  gavl_video_format_copy(&(r->frame_format), frame_format);
+  if(frame_format)
+    {
+    gavl_video_format_copy(&(r->frame_format), frame_format);
+    }
+  else
+    {
+    memset(&(r->frame_format), 0, sizeof(r->frame_format));
+    r->frame_format.image_width  = r->default_width;
+    r->frame_format.image_height = r->default_height;
 
+    r->frame_format.frame_width  = r->default_width;
+    r->frame_format.frame_height = r->default_height;
+
+    r->frame_format.pixel_width = 1;
+    r->frame_format.pixel_height = 1;
+    r->frame_format.pixelformat = r->default_csp;
+    r->frame_format.timescale = (int)(r->default_framerate * 1000 + 0.5);
+    r->frame_format.frame_duration = 1000;
+    
+    }
+  
   init_nolock(r);
 
   gavl_video_format_copy(overlay_format, &(r->overlay_format));
@@ -1046,7 +1131,14 @@ void bg_text_renderer_init(bg_text_renderer_t * r,
   
   pthread_mutex_unlock(&r->config_mutex);
   }
-  
+
+void bg_text_renderer_get_frame_format(bg_text_renderer_t * r,
+                                       gavl_video_format_t * frame_format)
+  {
+  gavl_video_format_copy(frame_format, &r->frame_format);
+  }
+
+
 static void flush_line(bg_text_renderer_t * r, gavl_video_frame_t * f,
                        cache_entry_t ** glyphs, int len, int * line_y)
   {

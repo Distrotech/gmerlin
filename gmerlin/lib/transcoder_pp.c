@@ -126,7 +126,7 @@ void bg_transcoder_pp_set_parameter(void * data, char * name, bg_parameter_value
   if(!name)
     return;
 
-  if(!strcmp(name, "output_directory"))
+  if(!strcmp(name, "output_path"))
     {
     w->output_directory = bg_strdup(w->output_directory, val->val_str);
     }

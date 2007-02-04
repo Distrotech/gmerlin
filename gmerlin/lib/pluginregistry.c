@@ -658,11 +658,9 @@ static bg_plugin_info_t * find_by_index(bg_plugin_info_t * info,
                                         uint32_t flag_mask)
   {
   int i;
+  bg_plugin_info_t * test_info;
 
   i = 0;
-
-  bg_plugin_info_t * test_info;
-  
   test_info = info;
 
   while(test_info)

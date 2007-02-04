@@ -199,7 +199,7 @@ static int open_alsa(void * data, gavl_audio_format_t * format)
   const char * card = (char*)0;
   alsa_t * priv = (alsa_t*)(data);
 
-  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Opening");
+  //  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Opening");
   
   /* Figure out the right channel setup */
   
@@ -332,7 +332,7 @@ static void close_alsa(void * p)
   {
   alsa_t * priv = (alsa_t*)(p);
 
-  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Closing");
+  //  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Closing");
 
   if(priv->pcm)
     {

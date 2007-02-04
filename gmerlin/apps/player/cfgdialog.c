@@ -21,6 +21,7 @@
 
 void gmerlin_create_dialog(gmerlin_t * g)
   {
+  void * parent;
   bg_parameter_info_t * parameters;
   /* Create the dialog */
     
@@ -35,7 +36,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 gmerlin_set_parameter,
                 (void*)(g),
                 parameters);
-
+  
   parameters = bg_player_get_input_parameters(g->player);
   
   bg_dialog_add(g->cfg_dialog,
@@ -65,13 +66,14 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 parameters);
 
   parameters = bg_player_get_subtitle_parameters(g->player);
+  parent = bg_dialog_add_parent(g->cfg_dialog, (void*)0, "Text subtitles");
   
-  bg_dialog_add(g->cfg_dialog,
-                "Subtitles",
-                g->subtitle_section,
-                bg_player_set_subtitle_parameter,
-                (void*)(g->player),
-                parameters);
+  bg_dialog_add_child(g->cfg_dialog, parent,
+                      "Subtitles",
+                      g->subtitle_section,
+                      bg_player_set_subtitle_parameter,
+                      (void*)(g->player),
+                      parameters);
 
   parameters = bg_player_get_osd_parameters(g->player);
   
@@ -110,6 +112,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 (void*)(g->remote),
                 parameters);
  
+#if 1
   parameters = bg_lcdproc_get_parameters(g->lcdproc);
   
   bg_dialog_add(g->cfg_dialog,
@@ -118,6 +121,7 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 bg_lcdproc_set_parameter,
                 (void*)(g->lcdproc),
                 parameters);
+#endif
 
   parameters = bg_gtk_log_window_get_parameters(g->log_window);
   
@@ -127,7 +131,6 @@ void gmerlin_create_dialog(gmerlin_t * g)
                 bg_gtk_log_window_set_parameter,
                 (void*)(g->log_window),
                 parameters);
-
   
   }
 

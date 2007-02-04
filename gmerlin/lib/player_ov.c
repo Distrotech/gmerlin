@@ -432,11 +432,12 @@ void bg_player_ov_update_aspect(bg_player_ov_context_t * ctx,
   }
 
 /* Set this extra because we must initialize subtitles after the video output */
-void bg_player_ov_set_subtitle_format(void * data, const gavl_video_format_t * format)
+void bg_player_ov_set_subtitle_format(void * data,
+                                      const gavl_video_format_t * format)
   {
   bg_player_ov_context_t * ctx;
   ctx = (bg_player_ov_context_t*)data;
-
+  
   /* Add subtitle stream for plugin */
   
   ctx->subtitle_id = ctx->plugin->add_overlay_stream(ctx->priv, format);
@@ -456,7 +457,6 @@ static void ping_func(void * data)
   {
   bg_player_ov_context_t * ctx;
   ctx = (bg_player_ov_context_t*)data;
-
   
   pthread_mutex_lock(&ctx->still_mutex);
   
@@ -597,7 +597,7 @@ void * bg_player_ov_thread(void * data)
     
     /* Check Timing */
     bg_player_time_get(ctx->player, 1, &current_time);
-    
+
 
     diff_time =  ctx->frame_time - current_time;
     

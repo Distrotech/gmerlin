@@ -27,8 +27,14 @@ bg_parameter_info_t * bg_text_renderer_get_parameters(void);
 
 void bg_text_renderer_set_parameter(void * data, char * name, bg_parameter_value_t * val);
 
+/* Frame format can be NULL */
+
 void bg_text_renderer_init(bg_text_renderer_t*,
                            const gavl_video_format_t * frame_format,
                            gavl_video_format_t * overlay_format);
+
+void bg_text_renderer_get_frame_format(bg_text_renderer_t * r,
+                                       gavl_video_format_t * frame_format);
+
 
 void bg_text_renderer_render(bg_text_renderer_t*, const char * string, gavl_overlay_t * ovl);

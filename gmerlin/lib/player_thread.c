@@ -371,10 +371,20 @@ static int init_subtitle_stream(bg_player_t * p)
 
 static int init_streams(bg_player_t * p)
   {
-  if(!init_audio_stream(p) ||
-     !init_video_stream(p) ||
-     !init_subtitle_stream(p))
-    return 0;
+  if(p->do_subtitle_only)
+    {
+    if(!init_audio_stream(p) ||
+       !init_subtitle_stream(p) ||
+       !init_video_stream(p))
+      return 0;
+    }
+  else
+    {
+    if(!init_audio_stream(p) ||
+       !init_video_stream(p) ||
+       !init_subtitle_stream(p))
+      return 0;
+    }
   return 1;
   }
 
@@ -520,7 +530,8 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
     }
   if(p->do_video)
     {
-    if(p->track_info->video_streams[p->current_video_stream].description)
+    if(!p->do_subtitle_only &&
+       p->track_info->video_streams[p->current_video_stream].description)
       bg_msg_queue_list_send(p->message_queues,
                              msg_video_description,
                              p->track_info->video_streams[p->current_video_stream].description);
@@ -588,17 +599,20 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
     bg_player_input_seek(p->input_context, &time);
     bg_player_time_set(p, time);
     }
-  else
-    bg_player_time_set(p, 0);
-  
-  /* Fire up the fifos */
-  if(p->do_audio)
-    bg_fifo_set_state(p->audio_stream.fifo, BG_FIFO_PLAYING);
-  if(p->do_video)
-    bg_fifo_set_state(p->video_stream.fifo, BG_FIFO_PLAYING);
-  
-  preload(p);
+  //  else
+  //    bg_player_time_set(p, 0);
 
+  if(!p->do_bypass)
+    {
+  
+    /* Fire up the fifos */
+    if(p->do_audio)
+      bg_fifo_set_state(p->audio_stream.fifo, BG_FIFO_PLAYING);
+    if(p->do_video)
+      bg_fifo_set_state(p->video_stream.fifo, BG_FIFO_PLAYING);
+    preload(p);
+    }
+  
   if(flags & BG_PLAY_FLAG_INIT_THEN_PAUSE)
     {
     bg_player_set_state(p, BG_PLAYER_STATE_PAUSED, NULL, NULL);
@@ -873,126 +887,136 @@ static void seek_cmd(bg_player_t * player, gavl_time_t t)
   do_seek(player, t, old_state);  
   }
 
-static void set_audio_stream_cmd(bg_player_t * player, int stream)
+static void stream_change_init(bg_player_t * player, int * was_playing,
+                               int * had_video, gavl_time_t * old_time)
   {
-  gavl_time_t old_time;
   int old_state;
-
-  int had_video = 0;
-  
-  if(stream == player->current_audio_stream)
-    return;
-
   old_state = bg_player_get_state(player);
+
+  if((old_state == BG_PLAYER_STATE_STOPPED)  ||
+     (old_state == BG_PLAYER_STATE_CHANGING) ||
+     (old_state == BG_PLAYER_STATE_ERROR))
+    *was_playing = 0;
+  else
+    *was_playing = 1;
   
-  if(old_state != BG_PLAYER_STATE_STOPPED)
+  if(*was_playing)
     {
-    bg_player_time_get(player, 1, &old_time);
+    bg_player_time_get(player, 1, old_time);
     /* Interrupt and pretend we are seeking */
 
-    had_video = player->do_video || player->do_still;
+    *had_video = player->do_video || player->do_still;
     
     cleanup_playback(player, old_state, BG_PLAYER_STATE_CHANGING, 0);
     cleanup_streams(player);
     bg_player_input_stop(player->input_context);
     }
-  
-  player->current_audio_stream = stream;
+  }
 
-  if(old_state != BG_PLAYER_STATE_STOPPED)
+static int stream_change_done(bg_player_t * player, int was_playing,
+                               int had_video, gavl_time_t old_time)
+  {
+  gavl_time_t t = 0;
+  char * error_msg;
+  const char * input_error;
+  if(was_playing)
     {
     if(!bg_player_input_set_track(player->input_context))
-      return;
-    
+      {
+      input_error = bg_player_input_get_error(player->input_context);
+
+      if(input_error)
+        {
+        error_msg = bg_sprintf("Cannot set track after stream change: %s",
+                                 input_error);
+        bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
+                            error_msg, NULL);
+        free(error_msg);
+        }
+      else
+        bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
+                            "Cannot set track after stream change (unknown error)", NULL);
+      
+      goto fail;
+      }
     bg_player_input_select_streams(player->input_context);
     
     if(!bg_player_input_start(player->input_context))
-      return;
+      {
+      input_error = bg_player_input_get_error(player->input_context);
+      if(input_error)
+        {
+        error_msg = bg_sprintf("Cannot start input after stream change: %s",
+                                 input_error);
+        bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
+                            error_msg, NULL);
+        free(error_msg);
+        }
+      else
+        bg_player_set_state(player, BG_PLAYER_STATE_ERROR,
+                            "Cannot start input after stream change (unknown error)", NULL);
+
+      goto fail;
+      }
     init_playback(player, old_time, 0, had_video);
     }
+  return 1;
+  fail:
+  if(had_video)
+    bg_player_ov_standby(player->ov_context);
+  bg_player_time_reset(player);
   
+  bg_player_input_cleanup(player->input_context);
+  player->input_handle = (bg_plugin_handle_t*)0;
+  bg_msg_queue_list_send(player->message_queues,
+                         msg_time,
+                         &t);
+  
+  return 0;
+  }
+
+static void set_audio_stream_cmd(bg_player_t * player, int stream)
+  {
+  gavl_time_t old_time;
+  int was_playing;
+  int had_video = 0;
+  
+  if(stream == player->current_audio_stream)
+    return;
+
+  stream_change_init(player, &was_playing, &had_video, &old_time);
+  player->current_audio_stream = stream;
+  stream_change_done(player, was_playing, had_video, old_time);
   }
 
 static void set_video_stream_cmd(bg_player_t * player, int stream)
   {
   gavl_time_t old_time;
-  int old_state;
+  int was_playing;
 
   int had_video = 0;
   
   if(stream == player->current_video_stream)
     return;
 
-  old_state = bg_player_get_state(player);
-  
-  if(old_state != BG_PLAYER_STATE_STOPPED)
-    {
-    bg_player_time_get(player, 1, &old_time);
-    /* Interrupt and pretend we are seeking */
-
-    had_video = player->do_video || player->do_still;
-    
-    cleanup_playback(player, old_state, BG_PLAYER_STATE_CHANGING, 0);
-    cleanup_streams(player);
-    
-    bg_player_input_stop(player->input_context);
-    }
-  
+  stream_change_init(player, &was_playing, &had_video, &old_time);
   player->current_video_stream = stream;
-
-  if(old_state != BG_PLAYER_STATE_STOPPED)
-    {
-    if(!bg_player_input_set_track(player->input_context))
-      return;
-    
-    bg_player_input_select_streams(player->input_context);
-    
-    if(!bg_player_input_start(player->input_context))
-      return;
-    init_playback(player, old_time, 0, had_video);
-    }
-  
+  stream_change_done(player, was_playing, had_video, old_time);
   }
 
 
 static void set_subtitle_stream_cmd(bg_player_t * player, int stream)
   {
   gavl_time_t old_time;
-  int old_state;
-
+  int was_playing;
   int had_video = 0;
   
   if(stream == player->current_subtitle_stream)
     return;
 
-  old_state = bg_player_get_state(player);
-  
-  if(old_state != BG_PLAYER_STATE_STOPPED)
-    {
-    bg_player_time_get(player, 1, &old_time);
-    /* Interrupt and pretend we are seeking */
-
-    had_video = player->do_video || player->do_still;
-    
-    cleanup_playback(player, old_state, BG_PLAYER_STATE_CHANGING, 0);
-    cleanup_streams(player);
-    
-    bg_player_input_stop(player->input_context);
-    }
-  
+  stream_change_init(player, &was_playing, &had_video, &old_time);
   player->current_subtitle_stream = stream;
-
-  if(old_state != BG_PLAYER_STATE_STOPPED)
-    {
-    if(!bg_player_input_set_track(player->input_context))
-      return;
-    
-    bg_player_input_select_streams(player->input_context);
-    
-    if(!bg_player_input_start(player->input_context))
-      return;
-    init_playback(player, old_time, 0, had_video);
-    }
+  stream_change_done(player, was_playing, had_video, old_time);
   }
 
 static void chapter_cmd(bg_player_t * player, int chapter)

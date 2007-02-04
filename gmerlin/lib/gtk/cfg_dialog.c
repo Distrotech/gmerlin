@@ -22,6 +22,8 @@
 #include "gtk_dialog.h"
 #include <gui_gtk/gtkutils.h>
 
+#include <log.h>
+#define LOG_DOMAIN "cfg_dialog"
 
 enum
 {
@@ -176,7 +178,10 @@ static void apply_section(dialog_section_t * s)
   int i, parameter_index;
   bg_parameter_value_t val;
   char * pos;
-    
+
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "apply_section %s",
+          (s->cfg_section ? bg_cfg_section_get_name(s->cfg_section) :
+          "NULL"));
   parameter_index = 0;
 
   for(i = 0; i < s->num_widgets; i++)

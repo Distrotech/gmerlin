@@ -283,6 +283,7 @@ static int do_connect(bg_lcdproc_t* l)
            l->answer);
     
     close(l->fd);
+    l->fd = -1;
     }
   return 0;
   }
@@ -692,8 +693,10 @@ static void * thread_func(void * data)
     while((msg = bg_msg_queue_try_lock_read(l->queue)))
       {
       if(l->fd < 0)
+        {
+        gavl_time_delay(&delay_time);
         continue;
-      
+        }
       id = bg_msg_get_id(msg);
       
       switch(id)

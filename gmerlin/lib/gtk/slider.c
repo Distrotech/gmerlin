@@ -529,8 +529,8 @@ GtkWidget * bg_gtk_slider_get_slider_widget(bg_gtk_slider_t * s)
 void bg_gtk_slider_skin_load(bg_gtk_slider_skin_t * s,
                              xmlDocPtr doc, xmlNodePtr node)
   {
-  node = node->children;
   char * tmp_string;
+  node = node->children;
   
   while(node)
     {

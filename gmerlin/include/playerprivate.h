@@ -144,6 +144,7 @@ struct bg_player_s
   
   int do_subtitle_overlay;
   int do_subtitle_text;
+  int do_subtitle_only; /* Display subtitles without video */
   
   int current_audio_stream;
   int current_video_stream;

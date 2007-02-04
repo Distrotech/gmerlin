@@ -47,7 +47,8 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   if(!player->do_video && !player->do_still)
     return 1;
 
-  bg_player_input_get_video_format(player->input_context);
+  if(!player->do_subtitle_only)
+    bg_player_input_get_video_format(player->input_context);
   
   if(!bg_player_ov_init(player->ov_context))
     {
@@ -64,27 +65,35 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
     player->video_stream.fifo = bg_fifo_create(1,
                                                bg_player_ov_create_frame,
                                                (void*)(player->ov_context));
-  
   /* Initialize video converter */
-
-
-  pthread_mutex_lock(&(player->video_stream.config_mutex));
-
-  opt = gavl_video_converter_get_options(s->cnv);
-  gavl_video_options_copy(opt, player->video_stream.options.opt);
-
-  if(!gavl_video_converter_init(s->cnv,
-                                &(player->video_stream.input_format),
-                                &(player->video_stream.output_format)))
+  if(!player->do_subtitle_only)
     {
-    s->do_convert = 0;
+    pthread_mutex_lock(&(player->video_stream.config_mutex));
+
+    opt = gavl_video_converter_get_options(s->cnv);
+    gavl_video_options_copy(opt, player->video_stream.options.opt);
+
+    if(!gavl_video_converter_init(s->cnv,
+                                  &(player->video_stream.input_format),
+                                  &(player->video_stream.output_format)))
+      {
+      s->do_convert = 0;
+      }
+    else
+      {
+      s->do_convert = 1;
+      s->frame = gavl_video_frame_create(&(player->video_stream.input_format));
+      }
+    pthread_mutex_unlock(&(player->video_stream.config_mutex));
     }
-  else
+  
+  if(player->do_subtitle_only)
     {
-    s->do_convert = 1;
-    s->frame = gavl_video_frame_create(&(player->video_stream.input_format));
+    /* Video output already initialized */
+    bg_player_ov_set_subtitle_format(player->ov_context,
+                                     &(player->subtitle_stream.format));
     }
-  pthread_mutex_unlock(&(player->video_stream.config_mutex));
+  
   return 1;
   }
 

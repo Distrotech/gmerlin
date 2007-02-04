@@ -62,9 +62,9 @@ void bg_cdrdao_destroy(bg_cdrdao_t * cdrdao)
 void bg_cdrdao_set_parameter(void * data, char * name,
                              bg_parameter_value_t * val)
   {
+  bg_cdrdao_t * c;
   if(!name)
     return;
-  bg_cdrdao_t * c;
   c = (bg_cdrdao_t*)(data);
   if(!strcmp(name, "cdrdao_run"))
     c->run = val->val_i;

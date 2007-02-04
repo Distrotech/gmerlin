@@ -557,7 +557,7 @@ dnl
 
 LQT_OPT_CFLAGS($host_cpu, ["-O3 -funroll-all-loops -fomit-frame-pointer -ffast-math"])
 
-CFLAGS="-Wall -Wmissing-declarations -D_REENTRANT -D_FILE_OFFSET_BITS=64 $GAVL_CFLAGS $OPT_CFLAGS"
+CFLAGS="-Wall -Wmissing-declarations -Wdeclaration-after-statement -D_REENTRANT -D_FILE_OFFSET_BITS=64 $GAVL_CFLAGS $OPT_CFLAGS"
 
 dnl
 dnl libxml is necessary for all sources

@@ -53,10 +53,10 @@ static void button_callback(GtkWidget * w, GdkEventButton * evt,
 bg_gtk_urllink_t * bg_gtk_urllink_create(const char * text, const char * url)
   {
   bg_gtk_urllink_t * ret;
-  ret = calloc(1, sizeof(*ret));
   
   GtkWidget * label;
   char * tmp_string;
+  ret = calloc(1, sizeof(*ret));
   ret->browser_command = bg_find_url_launcher();
   if(!ret->browser_command)
     {

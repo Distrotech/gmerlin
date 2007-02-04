@@ -69,28 +69,47 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
   
   s = &(player->subtitle_stream);
   
-  bg_player_input_get_subtitle_format(player->input_context);
-
   if(player->do_subtitle_text)
-    bg_text_renderer_init(player->subtitle_stream.renderer,
-                          &(player->video_stream.output_format),
-                          &(player->subtitle_stream.format));
+    {
+    pthread_mutex_lock(&(player->subtitle_stream.config_mutex));
+    if(player->do_subtitle_only)
+      {
+      bg_text_renderer_init(player->subtitle_stream.renderer,
+                            (gavl_video_format_t*)0,
+                            &(player->subtitle_stream.format));
+      bg_text_renderer_get_frame_format(player->subtitle_stream.renderer,
+                                        &(player->video_stream.input_format));
+      }
+    else
+      {
+      bg_text_renderer_init(player->subtitle_stream.renderer,
+                            &(player->video_stream.output_format),
+                            &(player->subtitle_stream.format));
+      }
+    pthread_mutex_unlock(&(player->subtitle_stream.config_mutex));
+    }
+  else
+    {
+    bg_player_input_get_subtitle_format(player->input_context);
+    
+    if(player->do_subtitle_only)
+      {
+      gavl_video_format_copy(&(player->video_stream.input_format),
+                             &player->subtitle_stream.format);
+      }
+    }
   
   /* Initialize subtitle fifo */
 
   player->subtitle_stream.fifo = bg_fifo_create(NUM_SUBTITLE_FRAMES,
                                                 create_frame, (void*)(s));
-  bg_player_ov_set_subtitle_format(player->ov_context,
-                                   &(player->subtitle_stream.format));
 
-  /* Initialize video converter */
-
-
-  pthread_mutex_lock(&(player->subtitle_stream.config_mutex));
-
-  
-
-  pthread_mutex_unlock(&(player->subtitle_stream.config_mutex));
+  if(!player->do_subtitle_only)
+    {
+    /* Video output already initialized */
+    bg_player_ov_set_subtitle_format(player->ov_context,
+                                     &(player->subtitle_stream.format));
+    }
   return 1;
   }
 

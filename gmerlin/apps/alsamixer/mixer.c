@@ -4,9 +4,9 @@ alsa_mixer_t * alsa_mixer_create()
   {
   int i;
   alsa_mixer_t * ret;
+  int card_index = -1;
   ret = calloc(1, sizeof(*ret));
   
-  int card_index = -1;
 
   while(!snd_card_next(&card_index))
     {

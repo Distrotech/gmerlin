@@ -395,22 +395,23 @@ static void run_cdrdao(void * data, const char * directory, int cleanup)
       fprintf(outfile, "    MESSAGE \"%s\"\n", (do_comment ? cdrdao->tracks[i].metadata.comment : ""));
       fprintf(outfile, "  }\n");
       fprintf(outfile, "}\n");
-      
-      if(i && (cdrdao->pregap > 0))
-        {
-        fprintf(outfile, "PREGAP %d:%d:%d\n", pregap_mm, 
-                pregap_ss, pregap_ff);
-        fprintf(outfile, "FILE \"%s\" 0 %d\n\n", cdrdao->tracks[i].filename,
-                cdrdao->tracks[i].duration);
-        }
-      else
-        {
-        fprintf(outfile, "FILE \"%s\" 0\n\n", cdrdao->tracks[i].filename);
-        }
+      }
+    if(i && (cdrdao->pregap > 0))
+      {
+      fprintf(outfile, "PREGAP %d:%d:%d\n", pregap_mm, 
+              pregap_ss, pregap_ff);
+      fprintf(outfile, "FILE \"%s\" 0 %d\n\n", cdrdao->tracks[i].filename,
+              cdrdao->tracks[i].duration);
+      }
+    else
+      {
+      fprintf(outfile, "FILE \"%s\" 0\n\n", cdrdao->tracks[i].filename);
       }
     }
   fclose(outfile);
-
+  
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Wrote %s", filename);
+  
   /* Run cdrdao */
 
   if(bg_cdrdao_run(cdrdao->cdr, filename) && cleanup)
